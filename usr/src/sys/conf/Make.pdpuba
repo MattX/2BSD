@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.0  (2.11BSD) 1995/12/14
+#	2.1  (2.11BSD) 1996/6/8
 #
 U=	../pdpuba
 VPATH=	../pdpuba
@@ -23,8 +23,7 @@ OBJS=	br.o dh.o dhu.o dhv.o dkbad.o dn.o dr.o dz.o hk.o ht.o lp.o ra.o rk.o \
 
 .c.o:
 	${CC} ${CFLAGS} -S $*.c
-	${ED} - < SPLFIX $*.s
-	${AS} - -o $*.o $*.s
+	${SED} -f SPLFIX $*.s | ${AS} -u -o $*.o
 	rm -f $*.s
 
 all: ${OBJS}

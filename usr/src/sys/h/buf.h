@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)buf.h	1.2 (2.11BSD GTE) 1995/04/13
+ *	@(#)buf.h	1.3 (2.11BSD GTE) 1996/6/9
  */
 
 /*
@@ -108,10 +108,6 @@ struct	buf *breada();
 #define	B_LOCKED	0x02000		/* locked in core (not reusable) */
 #define	B_UBAREMAP	0x04000		/* addr UNIBUS virtual, not physical */
 #define	B_RAMREMAP	0x08000		/* remapped into ramdisk */
-
-/* flag arguments to physio() and chkphys() */
-#define	WORD	2			/* doing I/O by word */
-#define	BYTE	1			/* doing I/O by byte */
 
 /*
  * Insq/Remq for the buffer hash lists.

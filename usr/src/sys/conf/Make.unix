@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.5 (2.11BSD GTE) 1996/1/11
+#	2.6 (2.11BSD GTE) 1996/6/8
 #
 #########################################################
 # Non-networking, non-separate I/D kernel		#
@@ -28,6 +28,7 @@ CFLAGS=	-O ${DEFS}
 CPP=	/lib/cpp -P ${DEFS}
 AS=	/bin/as -V
 ED=	/bin/ed
+SED=	/bin/sed
 
 SUB=	sys pdp pdpuba pdpmba
 
@@ -96,9 +97,7 @@ vers.o: FRC
 	${CC} -c vers.c
 
 boot.o: boot.s
-	${CPP} boot.s > boot.i
-	${AS} -o boot.o boot.i
-	rm -f boot.i
+	${CPP} boot.s | ${AS} -o boot.o
 
 param.o:
 	${CC} -S ${CFLAGS} param.c
@@ -111,13 +110,13 @@ ioconf.o: ioconf.c
 
 sys pdp pdpuba pdpmba:
 	make -f Make.$@ I=${I} H=${H} M=${M} AS="${AS}" CPP="${CPP}" \
-	    CFLAGS="${CFLAGS}" ED="${ED}"
+	    CFLAGS="${CFLAGS}" SED="${SED}"
 
 checksys: ../conf/checksys.c
 	${CC} ${CFLAGS} -o $@ ../conf/checksys.c
 
 clean:
-	rm -f unix core mklog *.o *.i assym.h genassym checksys
+	rm -f unix core mklog *.o assym.h genassym checksys
 
 install:
 	install -c -o root -g kmem -m 744 unix ${DESTDIR}/unix
@@ -143,4 +142,3 @@ FRC:
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
-

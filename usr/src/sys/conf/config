@@ -1,6 +1,8 @@
 #! /bin/sh
 #	2.11BSD script to set up a new kernel configuration directory.
 #
+#	1996/6/8 - New spl massaging scripts.  They are now 'sed' scripts
+#		   rather than 'ed' scripts and are about twice as fast.
 #	1995/07/21 - remove XP_PROBE, the kernel no longer probes for disk
 #		     type because that information is obtained from the 
 #		     disklabel.
@@ -59,16 +61,16 @@ EOF
 case $PDP11 in
 	GENERIC)
 		KERN_NONSEP=NO
-		NETFIX=:splfix.movb
-		SPLFIX=:splfix.movb;;
+		NETFIX=splfix.movb.sed
+		SPLFIX=splfix.movb.sed;;
 	53|73|83|84|93|94)
 		KERN_NONSEP=NO
-		NETFIX=:splfix.movb+mfps
-		SPLFIX=:splfix.mfps;;
+		NETFIX=splfix.movb+mfps.sed
+		SPLFIX=splfix.mfps.sed;;
 	44|45|50|55|70)
 		KERN_NONSEP=NO
-		NETFIX=:splfix.movb
-		SPLFIX=:splfix.spl;;
+		NETFIX=splfix.movb.sed
+		SPLFIX=splfix.spl.sed;;
 	*)
 		echo "$0: unrecognized PDP11 type $PDP11."
 		echo 'use GENERIC, 44, 70, 73'

@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.1 (2.11BSD GTE) 1996/1/11
+#	2.2 (2.11BSD GTE) 1996/6/8
 #
 M=	../machine
 VPATH=	../machine
@@ -36,8 +36,7 @@ SOBJS=	mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 
 .c.o:
 	${CC} ${CFLAGS} -S $*.c
-	${ED} - < SPLFIX $*.s
-	${AS} - -o $*.o $*.s
+	${SED} -f SPLFIX $*.s | ${AS} -u -o $*.o
 	rm -f $*.s
 
 .s.o:
@@ -62,4 +61,3 @@ depend:  assym.h
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
-

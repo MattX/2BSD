@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machparam.h	1.2 (2.11BSD GTE) 12/24/92
+ *	@(#)machparam.h	1.3 (2.11BSD GTE) 1996/6/19
  */
 
 /*
@@ -129,8 +129,8 @@ u_long	ntohl(), htonl();
 #define	DELAY(n)	{ long N = ((long)(n))<<1; while (--N > 0); }
 
 /*
- * Treat ps as byte, to allow restoring value from mfps/movb
- * (see :splfix.*)
+ * Treat ps as byte, to allow restoring value from mfps/movb.
+ * (see splfix.*.sed)
  */
 #define	PS_LOBYTE	((char *)0177776)
 #define	splx(ops)	(*PS_LOBYTE = ((char)(ops)))
