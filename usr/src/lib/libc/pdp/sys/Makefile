@@ -3,12 +3,14 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6.2 (2.11BSD GTE) 4/21/94
+#	@(#)Makefile	5.6.3 (2.11BSD GTE) 11/25/94
 #
 SRCS=	_exit.s accept.s access.s acct.s adjtime.s bind.s brk.s chdir.s \
+	chflags.s \
 	chmod.s chown.s chroot.s close.s connect.s creat.s dup.s dup2.s \
 	execl.s execle.s execv.s execve.s fchdir.s fchmod.s fchown.s fcntl.s \
-	flock.s fork.s fstat.s fsync.s ftruncate.s getdopt.s getdtablesiz.s \
+	fchflags.s \
+	flock.s fork.s fstat.s fsync.s ftruncate.s getdtablesiz.s \
 	getegid.s geteuid.s getgid.s getgroups.s gethostid.s gethostname.s \
 	getitimer.s getpagesize.s getpeername.s getpgrp.s getpid.s getppid.s \
 	getpriority.s getrlimit.s getrusage.s getsockname.s getsockopt.s \
@@ -16,16 +18,18 @@ SRCS=	_exit.s accept.s access.s acct.s adjtime.s bind.s brk.s chdir.s \
 	lseek.s lstat.s mkdir.s mknod.s mount.s open.s pipe.s profil.s \
 	ptrace.s quota.s read.s readlink.s readv.s reboot.s recv.s recvfrom.s \
 	recvmsg.s rename.s rmdir.s sbrk.s select.s send.s sendmsg.s sendto.s \
-	setdopt.s setgroups.s sethostid.s sethostname.s setitimer.s \
+	setgroups.s sethostid.s sethostname.s setitimer.s \
 	setpgrp.s setpriority.s setquota.s setregid.s setreuid.s setrlimit.s \
 	setsockopt.s settimeofday.s shutdown.s sigblock.s sigpause.s \
 	sigreturn.s sigsetmask.s sigstack.s sigvec.s socket.s socketpair.s \
 	stat.s symlink.s sync.s truncate.s umask.s umount.s unlink.s \
 	utimes.s vfork.s vhangup.s wait4.s write.s writev.s
 OBJS=	_exit.o accept.o access.o acct.o adjtime.o bind.o brk.o chdir.o \
+	chflags.o \
 	chmod.o chown.o chroot.o close.o connect.o creat.o dup.o dup2.o \
 	execl.o execle.o execv.o execve.o fchdir.o fchmod.o fchown.o fcntl.o \
-	flock.o fork.o fstat.o fsync.o ftruncate.o getdopt.o getdtablesiz.o \
+	fchflags.o \
+	flock.o fork.o fstat.o fsync.o ftruncate.o getdtablesiz.o \
 	getegid.o geteuid.o getgid.o getgroups.o gethostid.o gethostname.o \
 	getitimer.o getpagesize.o getpeername.o getpgrp.o getpid.o getppid.o \
 	getpriority.o getrlimit.o getrusage.o getsockname.o getsockopt.o \
@@ -33,7 +37,7 @@ OBJS=	_exit.o accept.o access.o acct.o adjtime.o bind.o brk.o chdir.o \
 	lseek.o lstat.o mkdir.o mknod.o mount.o open.o pipe.o profil.o \
 	ptrace.o quota.o read.o readlink.o readv.o reboot.o recv.o recvfrom.o \
 	recvmsg.o rename.o rmdir.o sbrk.o select.o send.o sendmsg.o sendto.o \
-	setdopt.o setgroups.o sethostid.o sethostname.o setitimer.o \
+	setgroups.o sethostid.o sethostname.o setitimer.o \
 	setpgrp.o setpriority.o setquota.o setregid.o setreuid.o setrlimit.o \
 	setsockopt.o settimeofday.o shutdown.o sigblock.o sigpause.o \
 	sigreturn.o sigsetmask.o sigstack.o sigvec.o socket.o socketpair.o \
@@ -98,6 +102,7 @@ adjtime.o: adjtime.s ./SYS.h /usr/include/syscall.h
 bind.o: bind.s ./SYS.h /usr/include/syscall.h
 brk.o: brk.s ./SYS.h /usr/include/syscall.h
 chdir.o: chdir.s ./SYS.h /usr/include/syscall.h
+chflags.o: chflags.s ./SYS.h /usr/include/syscall.h
 chmod.o: chmod.s ./SYS.h /usr/include/syscall.h
 chown.o: chown.s ./SYS.h /usr/include/syscall.h
 chroot.o: chroot.s ./SYS.h /usr/include/syscall.h
@@ -114,12 +119,12 @@ fchdir.o: fchdir.s ./SYS.h /usr/include/syscall.h
 fchmod.o: fchmod.s ./SYS.h /usr/include/syscall.h
 fchown.o: fchown.s ./SYS.h /usr/include/syscall.h
 fcntl.o: fcntl.s ./SYS.h /usr/include/syscall.h
+fchflags.o: fchflags.s ./SYS.h /usr/include/syscall.h
 flock.o: flock.s ./SYS.h /usr/include/syscall.h
 fork.o: fork.s ./SYS.h /usr/include/syscall.h
 fstat.o: fstat.s ./SYS.h /usr/include/syscall.h
 fsync.o: fsync.s ./SYS.h /usr/include/syscall.h
 ftruncate.o: ftruncate.s ./SYS.h /usr/include/syscall.h
-getdopt.o: getdopt.s ./SYS.h /usr/include/syscall.h
 getdtablesiz.o: getdtablesiz.s ./SYS.h /usr/include/syscall.h
 getegid.o: getegid.s ./SYS.h /usr/include/syscall.h
 geteuid.o: geteuid.s ./SYS.h /usr/include/syscall.h
@@ -169,7 +174,6 @@ select.o: select.s ./SYS.h /usr/include/syscall.h
 send.o: send.s ./SYS.h /usr/include/syscall.h
 sendmsg.o: sendmsg.s ./SYS.h /usr/include/syscall.h
 sendto.o: sendto.s ./SYS.h /usr/include/syscall.h
-setdopt.o: setdopt.s ./SYS.h /usr/include/syscall.h
 setgroups.o: setgroups.s ./SYS.h /usr/include/syscall.h
 sethostid.o: sethostid.s ./SYS.h /usr/include/syscall.h
 sethostname.o: sethostname.s ./SYS.h /usr/include/syscall.h

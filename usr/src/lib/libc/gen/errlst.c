@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)errlst.c	5.2 (Berkeley) 3/9/86";
+static char sccsid[] = "@(#)errlst.c	5.2.1 (2.11BSD GTE) 11/26/94";
 #endif LIBC_SCCS and not lint
 
 char	*sys_errlist[] = {
@@ -90,5 +90,19 @@ char	*sys_errlist[] = {
 	"Too many processes",			/* 67 - EPROCLIM */
 	"Too many users",			/* 68 - EUSERS */
 	"Disc quota exceeded",			/* 69 - EDQUOT */
+/* Network File System */
+	"Stale NFS file handle",		/* 70 - ESTALE */
+	"Too many levels of remote in path",	/* 71 - EREMOTE */
+	"RPC struct is bad",			/* 72 - EBADRPC */
+	"RPC version wrong",			/* 73 - ERPCMISMATCH */
+	"RPC prog. not avail",			/* 74 - EPROGUNAVAIL */
+	"Program version wrong",		/* 75 - EPROGMISMATCH */
+	"Bad procedure for program",		/* 76 - EPROCUNAVAIL */
+
+	"No locks available",			/* 77 - ENOLCK */
+	"Function not implemented",		/* 78 - ENOSYS */
+	"Inappropriate file type or format",	/* 79 - EFTYPE */
+	"Authentication error",			/* 80 - EAUTH */
+	"Need authenticator",			/* 81 - ENEEDAUTH */
 };
 int	sys_nerr = { sizeof sys_errlist/sizeof sys_errlist[0] };

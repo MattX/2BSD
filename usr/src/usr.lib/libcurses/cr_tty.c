@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)cr_tty.c	5.2 (Berkeley) 11/8/85";
+static char sccsid[] = "@(#)cr_tty.c	5.2.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 /*
@@ -56,13 +56,11 @@ gettmode() {
 		_tty.sg_flags = _res_flg;
 	ospeed = _tty.sg_ospeed;
 	_res_flg = _tty.sg_flags;
-	UPPERCASE = (_tty.sg_flags & LCASE) != 0;
 	GT = ((_tty.sg_flags & XTABS) == 0);
 	NONL = ((_tty.sg_flags & CRMOD) == 0);
 	_tty.sg_flags &= ~XTABS;
 	stty(_tty_ch, &_tty);
 # ifdef DEBUG
-	fprintf(outf, "GETTMODE: UPPERCASE = %s\n", UPPERCASE ? "TRUE":"FALSE");
 	fprintf(outf, "GETTMODE: GT = %s\n", GT ? "TRUE" : "FALSE");
 	fprintf(outf, "GETTMODE: NONL = %s\n", NONL ? "TRUE" : "FALSE");
 	fprintf(outf, "GETTMODE: ospeed = %d\n", ospeed);

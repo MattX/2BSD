@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.37 (Berkeley) 5/17/86	*/
+/*	@(#)llib-lc	1.38 (2.11BSD GTE) 11/29/94	*/
 
 /* LINTLIBRARY */
 
@@ -46,6 +46,7 @@ int	adjtime(delta, odelta) struct timeval *delta, *odelta; { return 0; }
 int	bind(s, n, l) struct sockaddr *n; { return 0; }
 char	*brk(a) char *a; { return(a); }
 int	chdir(s) char *s; { return(0); }
+int	chflags(s, m) char *s; u_short m; { return(0); }
 int	chmod(s, m) char *s; { return(0); }
 int	chown(s, u, g) char *s; { return(0); }
 int	chroot( d ) char *d; { return 0; }
@@ -56,6 +57,7 @@ int	dup2( o, n) { return o; }
 	execve(s, v, e) char *s, *v[], *e[]; {;}
 	_exit(s) {;}
 int	fchdir(f) int f; { return(0); }
+int	fchflags(f, m) int f; u_short m; { return(0); }
 int	fchmod(f, m) { return(0); }
 int	fchown(f, u, g) { return(0); }
 int	fcntl(f, c, a) { return (0); }

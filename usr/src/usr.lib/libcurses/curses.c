@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)curses.c	5.2 (Berkeley) 11/8/85";
+static char sccsid[] = "@(#)curses.c	5.2.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 /*
@@ -50,4 +50,4 @@ char	PC;
  * From the tty modes...
  */
 
-bool	GT, NONL, UPPERCASE, normtty, _pfast;
+bool	GT, NONL, normtty, _pfast;
