@@ -63,9 +63,9 @@ install: sendmail
 	install -c -o bin -m 644 /dev/null ${DESTDIR}/etc/sendmail.fc
 	install -c -o bin -m 666 /dev/null ${DESTDIR}/var/log/sendmail.st
 	rm -f ${DESTDIR}/usr/bin/newaliases
-	ln -s ${DESTDIR}/usr/sbin/sendmail ${DESTDIR}/usr/bin/newaliases
+	ln -s ../sbin/sendmail ${DESTDIR}/usr/bin/newaliases
 	rm -f ${DESTDIR}/usr/bin/mailq
-	ln -s ${DESTDIR}/usr/sbin/sendmail ${DESTDIR}/usr/bin/mailq
+	ln -s ../sbin/sendmail ${DESTDIR}/usr/bin/mailq
 	-if [ -s sendmail.sr ]; then \
 		install -c -o bin -m 644 sendmail.sr \
 			$(DESTDIR)/usr/share/misc/sendmail.sr; \

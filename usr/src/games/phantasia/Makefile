@@ -1,4 +1,4 @@
-# Makefile for Phantasia 3.2 (1.1 2.11BSD - 1996/1/28)
+# Makefile for Phantasia 3.2 (1.2 2.11BSD - 1997/9/22)
 #
 # MODIFIED TO COMPILE WITHOUT 'XSTR'.
 #
@@ -21,6 +21,7 @@ SEPFLAG=	-i
 DESTDIR=
 
 # DEST is where the program and its support files reside
+#   If this changes then the symbolic link in the 'install' target must change.
 DEST =		/usr/games/lib/phantasia
 
 # The following are program constants which are implementation dependent.
@@ -93,9 +94,12 @@ setfiles:	phant.h setfiles.c
 phant.help:	phant.nr
 		tbl -TX phant.nr | nroff -man -Ttn300 > phant.help
 
+# DO NOT use an absolute pathname in the symbolic link below.  Figure out
+#   what the relative path is.
+
 install:	all phantasia.0
 	rm -f ${DESTDIR}/usr/games/phantasia
-	ln -s ${DESTDIR}${DEST}/phantasia ${DESTDIR}/usr/games/phantasia
+	ln -s lib/phantasia/phantasia ${DESTDIR}/usr/games/phantasia
 	-mkdir ${DESTDIR}${DEST}
 	cp phantasia monsters phant.help ${DESTDIR}${DEST}
 	chmod 755 ${DESTDIR}${DEST}

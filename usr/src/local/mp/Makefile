@@ -163,7 +163,7 @@ common-install: $(BINARIES)
 	   -@for name in $(MAILPNAMES); do \
 		echo -n $$name " "; \
 		rm -f $(MPBINDIR)/$$name; \
-		ln -s $(MPBINDIR)/mailp $(MPBINDIR)/$$name; \
+		ln $(MPBINDIR)/mailp $(MPBINDIR)/$$name; \
 	   done
 	   @echo
 

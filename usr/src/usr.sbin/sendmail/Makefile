@@ -1,7 +1,7 @@
 #
 #	Makefile for sendmail base directory
 #
-#		@(#)Makefile	4.9.1	(2.11BSD) 1996/10/24
+#		@(#)Makefile	4.9.2	(2.11BSD) 1997/9/22
 #
 
 ALL=	src/sendmail
@@ -33,9 +33,9 @@ install: $(ALL) $(DIRS)
 	install -c -o root -m 666	/dev/null	$(STATUSFILE)
 	install -c -o root -m 644	/dev/null	$(FROZENFILE)
 	rm -f					$(DESTDIR)/usr/bin/newaliases
-	$(LN)			/usr/sbin/sendmail $(DESTDIR)/usr/bin/newaliases
+	$(LN)			../sbin/sendmail $(DESTDIR)/usr/bin/newaliases
 	rm -f					$(DESTDIR)/usr/bin/mailq
-	$(LN)			/usr/sbin/sendmail  $(DESTDIR)/usr/bin/mailq
+	$(LN)			../sbin/sendmail  $(DESTDIR)/usr/bin/mailq
 
 src/sendmail:
 	cd src; make ${MFLAGS} sendmail

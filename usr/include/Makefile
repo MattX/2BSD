@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.16 (2.11BSD GTE) 10/21/93
+#	@(#)Makefile	5.16.1 (2.11BSD GTE) 1997/9/22
 #
 # Doing a make install builds /usr/include
 #
@@ -17,7 +17,6 @@
 # follow symbolic links.
 #
 DESTDIR=
-TOPDIR=
 SUBDIRS=arpa pascal protocols OLD
 STD=	a.out.h ar.h assert.h ctype.h curses.h disktab.h fcntl.h \
 	fstab.h grp.h lastlog.h math.h memory.h mp.h mtab.h ndbm.h \
@@ -57,7 +56,7 @@ install: ${SHARED}
 		ln -s sys/$$i ${DESTDIR}/usr/include/$$i; \
 	done
 	rm -f ${DESTDIR}/usr/include/machine
-	ln -s ./${MACHINE} ${DESTDIR}/usr/include/machine
+	ln -s ${MACHINE} ${DESTDIR}/usr/include/machine
 	rm -f ${DESTDIR}/usr/include/frame.h
 	ln -s machine/frame.h ${DESTDIR}/usr/include/frame.h
 
@@ -66,7 +65,7 @@ symlinks:
 		rm -rf ${DESTDIR}/usr/include/$$i; \
 		if [ ! -s ${DESTDIR}/usr/include/$$i ]; \
 		then \
-			ln -s ${TOPDIR}/sys/$$i ${DESTDIR}/usr/include/$$i; \
+			ln -s ../../sys/$$i ${DESTDIR}/usr/include/$$i; \
 		else \
 			echo ${DESTDIR}/usr/include/$$i not removed; \
 		fi; \
@@ -74,7 +73,7 @@ symlinks:
 	rm -rf ${DESTDIR}/usr/include/sys
 	-if [ ! -s ${DESTDIR}/usr/include/sys ]; \
 	then \
-		ln -s ${TOPDIR}/sys/h ${DESTDIR}/usr/include/sys; \
+		ln -s ../../sys/h ${DESTDIR}/usr/include/sys; \
 	else \
 		echo ${DESTDIR}/usr/include/sys not removed; \
 	fi

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2.3 (2.11BSD GTE) 1996/12/1
+#	@(#)Makefile	5.2.4 (2.11BSD GTE) 1997/9/22
 #
 # reorder gives an editor command for most common terminals
 # (in reverse order from n'th to 1'st most commonly used)
@@ -17,8 +17,8 @@ termcap: reorder termcap.src
 install: termcap tabset map3270
 	install -c -m 444 termcap ${DESTDIR}/usr/share/misc/termcap
 	rm -f ${DESTDIR}/etc/termcap
-	ln -s /usr/share/misc/termcap ${DESTDIR}/etc/termcap
-	install -c -m 444 map3270 /usr/share/misc/map3270
+	ln -s ../usr/share/misc/termcap ${DESTDIR}/etc/termcap
+	install -c -m 444 map3270 ${DESTDIR}/usr/share/misc/map3270
 
 tabset: FRC
 	rm -fr ${DESTDIR}/usr/share/tabset
