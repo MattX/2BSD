@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)csh.1	6.8 (Berkeley) 6/5/86
+.\"	@(#)csh.1	6.8.1 (2.11BSD) 1996/11/27
 .\"
-.TH CSH 1 "June 5, 1986"
+.TH CSH 1 "November 27, 1996"
 .UC 4
 .de sh
 .br
@@ -1993,7 +1993,8 @@ If there is no
 variable then only full path names will execute.
 The usual search path is `.', `/bin' and `/usr/bin', but this
 may vary from system to system.
-For the super-user the default search path is `/etc', `/bin' and `/usr/bin'.
+For the super-user the default search path is `/bin', `/sbin', `/usr/sbin',
+and `/usr/bin'.
 A shell which is given neither the
 .B \-c
 nor the

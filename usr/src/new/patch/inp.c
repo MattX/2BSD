@@ -1,6 +1,11 @@
-/* $Header: inp.c,v 2.0.1.1 88/06/03 15:06:13 lwall Locked $
+/* $Header: inp.c,v 2.0.1.2 96/12/7 22:15:00 sms $
  *
  * $Log:	inp.c,v $
+ * Revision 2.0.1.2  96/12/7  22:15:00 sms
+ * Files right up against 64kb in size caused patch to core dump because
+ * a large (negative) value was passed to malloc().  Therefore force
+ * plan B for files over 48kb in size if on a pdp-11.
+ *
  * Revision 2.0.1.1  88/06/03  15:06:13  lwall
  * patch10: made a little smarter about sccs files
  * 
@@ -115,6 +120,14 @@ char *filename;
     if ((filemode & S_IFMT) & ~S_IFREG)
 	fatal2("%s is not a normal file--can't patch.\n", filename);
     i_size = filestat.st_size;
+#ifdef	pdp11
+/*
+ * csh.1 was 65392 bytes long and caused patch to core dump because
+ * malloc() couldn't cope.
+*/
+    if (i_size > 49152L)
+	return FALSE;
+#endif
     if (out_of_mem) {
 	set_hunkmax();		/* make sure dynamic arrays are allocated */
 	out_of_mem = FALSE;
