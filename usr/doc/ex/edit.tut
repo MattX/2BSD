@@ -138,7 +138,7 @@ We'll quickly review the standard \s-2UNIX\s0 login procedure.
 If the terminal you are using is directly linked to the computer,
 turn it on and press carriage return,
 usually
-labeled ``\s-1RETURN\s+1''.
+labelled ``\s-1RETURN\s+1''.
 If your terminal connects with the computer over a telephone line,
 turn on the terminal, dial the system access number,
 and, when you hear a high-pitched tone, place the receiver of
@@ -461,7 +461,7 @@ to end the entire session at the terminal we also need to
 exit from \s-2UNIX\s0.
 In response to the \s-2UNIX\s0 prompt of ``\|%\|''
 type a ``control d''.  This is done by holding down the control
-key (usually labeled ``CTRL'') and simultaneously
+key (usually labelled ``CTRL'') and simultaneously
 pressing the d key.  This
 will end your session with \s-2UNIX\s0 and will ready the
 terminal for the next user.
@@ -527,7 +527,7 @@ it does illustrate the editor.
 .SH
 \ \ Interrupt
 .PP
-Should you press the \s-2RUBOUT\s+2 key (sometimes labeled \s-2DELETE\s+2)
+Should you press the \s-2RUBOUT\s+2 key (sometimes labelled \s-2DELETE\s+2)
 while working with edit,
 it will send this message to you:
 .DS I 1i

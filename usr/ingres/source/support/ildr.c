@@ -1,10 +1,35 @@
-# include	"../param.h"
-# include 	"../user.h"
-# include	"../proc.h"
-# include	"../ildr.h"
+/*
+ * RCS ID:
+ * $Header:   RCS/ildr.c.v  Revision 1.2  82/12/29  23:12:24  wss  Exp$
+ */
+
+#include	"param.h"
+#include	<sys/dir.h>
+#include 	<sys/user.h>
+#include	<sys/proc.h>
+
+# ifdef	INGRES
+
+#include	"il.h"
+#include	<sys/ildr.h>
+
 /*
  *	/dev/lock header
  */
+
+struct	Lockform	 Locktab[IL_NLOCKS];
+struct	Lockform	*LocktNLOCKS = &Locktab[IL_NLOCKS];
+int	Lockset[] =
+			/* array of number of locks which can be
+			 * set for each lock.
+			 */
+{
+	IL_NLOCKS,
+	IL_PLOCKS,
+	IL_RLOCKS,
+	IL_DLOCKS
+};
+
 /*	
  *	ilwrite() : write driver
  *		1. copy Lock request info to lockbuf
@@ -20,8 +45,6 @@
  *	See "How to Install INGRES Concurrency Device" for
  *	details.
  *
- *	NOTE: this driver has not been tested under version
- *		7 (as of 1/8/81).
  */
 ilwrite()
 {
@@ -138,7 +161,7 @@ struct	Lockreq	*ll;
 	register struct Lockreq	*q;
 
 	q = ll;
-	for (k = 0; k < NLOCKS; k++)
+	for (k = 0; k < IL_NLOCKS; k++)
 	{
 		p = &Locktab[k];
 		if ((p->l_mod != M_EMTY)
@@ -157,7 +180,7 @@ struct	Lockreq	*ll;
 	register struct Lockreq	*q;
 
 	q = ll;
-	for (k = 0; k < NLOCKS; k++)
+	for (k = 0; k < IL_NLOCKS; k++)
 	{
 		p = &Locktab[k];
 		if ((p->l_mod != M_EMTY)
@@ -206,7 +229,7 @@ int pd;
 {
 	register int	i;
 
-	for ( i = 0; i < NLOCKS; i++ )
+	for ( i = 0; i < IL_NLOCKS; i++ )
 			ilrm(i,pd);
 }
 /*
@@ -221,7 +244,7 @@ struct Lockreq	*ll;
 	register char	*f,*t;
 	register struct Lockform	*p;
 
-	for (k = 0; k < NLOCKS; k++)
+	for (k = 0; k < IL_NLOCKS; k++)
 	{
 		p = &Locktab[k];
 		if (p->l_mod == M_EMTY)
@@ -266,14 +289,15 @@ ilclose()
 	register int	k;
 	register char *c;
 
-	for (k = 0; k < NLOCKS; k++)
+	for (k = 0; k < IL_NLOCKS; k++)
 		wakeup( &Locktab[k] );
 	for (k = 0; k < 4; k++)
 		wakeup( &Lockset[k]);
-	for (c = &Locktab[0].l_pid; c < &Locktab[NLOCKS]; c++)
+	for (c = &Locktab[0].l_pid; c < LocktNLOCKS; c++)
 		*c = 0;
-	Lockset[0] = NLOCKS;
-	Lockset[1] = PLOCKS;
-	Lockset[2] = RLOCKS;
-	Lockset[3] = DLOCKS;
+	Lockset[0] = IL_NLOCKS;
+	Lockset[1] = IL_PLOCKS;
+	Lockset[2] = IL_RLOCKS;
+	Lockset[3] = IL_DLOCKS;
 }
+# endif	INGRES

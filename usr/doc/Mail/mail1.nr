@@ -13,7 +13,7 @@ of outgoing messages, as well as providing the ability to define and send
 to names which address groups of users.  Finally,
 .i Mail
 is able to send and receive messages across such networks as the
-ARPANET, Bell Telephone net, Berkeley network, and COCANET.
+ARPANET, UUCP, and Berkeley network.
 .pp
 This document describes how to use the
 .i Mail
@@ -29,3 +29,31 @@ shell, the text editor, and some of the common \s-2UNIX\s0 commands.
 and
 .q "Text Editing with Ex and Vi"
 can be consulted for more information on these topics.
+.pp
+Here is how messages are handled:
+the mail system accepts incoming
+.i messages
+for you from other people
+and collects them in a file, called your
+.i "system mailbox" .
+When you login, the system notifies you if there are any messages
+waiting in your system mailbox.  If you are a
+.i csh
+user, you will be notified when new mail arrives if you inform
+the shell of the location of your mailbox.  On version 7 systems,
+your system mailbox is located in the directory /usr/spool/mail
+in a file with your login name.  If your login name is
+.q sam,
+then you can make
+.i csh
+notify you of new mail by including the following line in your .cshrc
+file:
+.(l
+set mail=/usr/spool/mail/sam
+.)l
+When you read your mail using
+.i Mail ,
+it reads your system mailbox and separates that file into the
+individual messages that have been sent to you.  You can then
+read, reply to, delete, or save these messages.
+Each message is marked with its author and the date they sent it.

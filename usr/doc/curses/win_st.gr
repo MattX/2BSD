@@ -1,6 +1,6 @@
 '-F
 .ds =F win_st.c
-.ds =M Jun 21 18:52 1981
+.ds =M May 11 03:56 1981
 'wh 0 vH
 'wh -1i vF
 \*(+K#\*(-K \*(+Kdefine\*(-K\h'|21n'WINDOW\h'|31n'\*(+Kstruct\*(-K \*_win\*_st

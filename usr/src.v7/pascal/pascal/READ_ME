@@ -1,7 +1,0 @@
-Sat May  3 14:08:09 PDT 1980
-
-This directory contains things needed for v7 Pascal on an 11/70 or
-an 11/45 with floating point.  I don't know how to set up the 11/34
-version or how to set up the non-floating point version.  We don't
-have such machines here and I didn't write it in the first place.
-Perhaps you can figure it out.

@@ -1,6 +1,6 @@
 '-F
 .ds =F twinkle1.c
-.ds =M Jun 21 18:52 1981
+.ds =M May 11 03:56 1981
 'wh 0 vH
 'wh -1i vF
 \*(+K#\*(-K \*(+Kinclude\*(-K\h'|21n'<curses\&.h>

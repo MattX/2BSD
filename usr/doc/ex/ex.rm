@@ -2051,7 +2051,7 @@ in
 .I open
 and
 .I visual.
-The pairs of characters in the option's value are the names
+The pairs of characters in the options's value are the names
 of the macros which start paragraphs.
 .LC
 \fBshell\fR, \fBsh\fR	default: sh=/bin/sh

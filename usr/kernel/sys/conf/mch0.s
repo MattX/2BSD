@@ -1,2 +1,0 @@
-HTDUMP = 0
-TUDUMP = 1

@@ -1,464 +1,383 @@
 .bp
-.sh 1 "Additional features"
-This section describes some additional commands of use for
-reading your mail, setting options, and handling lists of messages.
-.sh 2 "Additional commands"
+.sh 1 "More about sending mail"
+.sh 2 "Tilde escapes"
 .pp
-This section describes additional
+While typing in a message to be sent to others, it is often
+useful to be able to invoke the text editor on the partial message,
+print the message, execute a shell command, or do some other
+auxiliary function. 
 .i Mail
-commands available when
-receiving mail.
-.pp
-The
-.b next
-command goes to the next message and types it.  If given a message list,
-.b next
-goes to the first such message and types it.  Thus,
+provides these capabilities through
+.i "tilde escapes" ,
+which consist of a tilde (~) at the beginning of a line, followed by
+a single character which indicates the function to be performed.  For
+example, to print the text of the message so far, use:
 .(l
-next root
-.)L
-goes to the next message sent by
-.q root
-and types it.  The
-.b next
-command can be abbreviated to simply a newline, which means that one
-can go to and type a message by simply giving its message number or
-one of the magic characters
-.q "\(ua"
-.q "."
-or
-.q "$".
-Thus,
-.(l
-\&.
-.)L
-prints the current message and
-.(l
-4
-.)L
-prints message 4, as described previously.
-.pp
-The
-.rb \-
-command goes to the previous message and prints it.  The
-.rb \-
-command may be given a decimal number
-.i n
-as an argument, in which case the
-.i n th
-previous message is gone to and printed.
-.pp
-It is often useful to be able to save messages on related topics
-in a file.  The
-.b save
-command gives you ability to do this.  The
-.b save
-command takes as argument a lit of message numbers, followed by
-the name of the file on which to save the messages.  The messages
-are appended to the named file, thus allowing one to keep several
-messages in the file, stored in the order they were put there.
-The
-.b save
-command can be abbreviated to
-.b s .
-An example of the
-.b save
-command relative to our running example is:
-.(l
-s 1 2 tuitionmail
-.)L
-.b Saved
-messages are not automatically saved in
-.i mbox
-at quit time, nor are they selected by the
-.b next
-command described above, unless explicitly specified.
-.pp
-The
-.b save
-command always writes the entire message, including the headers,
-into the file.  If you want to write just the message itself, you
-can use the
-.b write
-command.  The
-.b write
-command has the same syntax as the
-.b save
-command, and can be abbreviated to simply
-.b w .
-Thus, we could write the second message by doing:
-.(l
-w 2 file.c
-.)L
-As suggested by this example, the
-.b write
-command is useful for such tasks as sending and receiving
-source program text over the message system.
-.pp
-The
-.b undelete
-command causes a message which had been deleted previously to regain
-its initial status.  Only messages which are already deleted may be
-undeleted.  This command may be abbreviated to
-.b u .
-.pp
-In order to edit individual messages using the text editor, the
-.b edit
-command is provided.  The
-.b edit
-command takes a list of message as described under the
-.b type
-command and processes each by writing it into the file
-Message\c
-.i x
-where
-.i x
-is the message number being edited and executing the text editor on it.
-When you have edited the message to your satisfaction, write the message
-out and quit, upon which
+~p
+.)l
+which will print a line of dashes, the recipients of your message, and
+the text of the message so far.
+Since
 .i Mail
-will read the message back and remove the file.
-.b Edit
-may be abbreviated to
-.b e .
+requires two consecutive \s-2RUBOUT\s0's to abort a letter, you
+can use a single \s-2RUBOUT\s0 to abort the output of ~p or any other
+~ escape without killing your letter.
 .pp
-It is often useful to be able to invoke one of two editors,
-based on the type of terminal one is using.  To invoke
-a display oriented editor, you can use the
-.b visual
-command.  The operation of the
-.b visual
-command is otherwise identical to that of the
-.b edit
-command.
-.pp
-Both the
-.b edit
-and
-.b visual
-commands assume some default text editors.  These default editors
-can be overriden by the valued options
-.q EDITOR
-and
-.q VISUAL
-for the standard and screen editors.  You might want to do:
+If you are dissatisfied with the message as
+it stands, you can invoke the text editor on it using the escape
 .(l
-set EDITOR=/usr/ucb/ex VISUAL=/usr/ucb/vi
-.pp
-The
-.b chdir
-and
-.b shell
-commands allow you to change your current directory and
-escape to the shell, respectively.
-.b Chdir
-takes a single argument, which is taken to be the pathname of
-the directory to change to.  If no argument is given,
-.b chdir
-changes to your home directory.
-.b Shell
-invokes an interactive shell and allows you to type commands to it.
-When you leave the shell, you will return to
+~e
+.)l
+which causes the message to be copied into a temporary file and an
+instance of the editor to be spawned.  After modifying the message to
+your satisfaction, write it out and quit the editor. 
+.i Mail
+will respond
+by typing
+.(l
+(continue)
+.)l
+after which you may continue typing text which will be appended to your
+message, or type <control-d> to end the message.
+A standard text editor is provided by
 .i Mail .
-The shell used is a default assumed by
-.i Mail ;
-you can override this default by setting the valued option
-.q SHELL,
-eg:
-.(l
-set SHELL=/bin/csh
-.)L
-.pp
-When you start up
-.i Mail
-to read your mail, it lists the message headers that you have.
-These headers tell you who each message is from, when they were
-sent, how many lines and characters each message is, and the
-.q "Subject:"
-header field of each message, if present.  In addition,
-.i Mail
-tags the message header of each message which has been the object
-of the
-.b preserve
-command with a
-.q P.
-Messages which have been
-.b saved
-or
-.b written
-are flagged with a
-.q *.
-Finally,
-.b deleted
-messages are not printed at all.  If you wish to reprint the current
-list of message headers, you can do so with the
-.b headers
-command.  The
-.b headers
-command (and thus the initial header listing)
-only lists the first 18 message headers.
-.i Mail
-maintains a notion of the current
-.q window
-into your messages for the purposes of printing headers.  You can
-move
-.i Mail's
-attention forward to the next window by giving the
-.(l
-headers +
-.)L
-command.  Analogously, you can move to the previous window with:
-.(l
-headers \-
-.)L
-Finally, you can move
-.i Mail's
-notion of the current window directly to a particular message by
-using, for example,
-.(l
-headers 40
-.)L
-to move
-.i Mail's
-attention to the messages around message 40.  The
-.b headers
-command can be abbreviated to
-.b h .
-.pp
-The
-.b from
-command takes a list of messages and prints out the header lines for each one;
-hence
-.(l
-from joe
-.)L
-is the easy way to display all the message headers from \*(lqjoe.\*(rq
-.pp
-The
-.b top
-command takes a message list and prints the first five lines
-of each addressed message.  It may be abbreviated to
-.b to .
-If you wish, you can change the number of lines that
-.b top
-prints out by setting the valued option
-.q "toplines."
-On a CRT terminal,
-.(l
-set toplines=10
-.)L
-might be preferred.
-.pp
-The
-.b dt
-command deletes the current message and prints the next message.
-It is useful for quickly reading and disposing of mail.
-.sh 2 "Message lists"
-.pp
-The
-.b type
-and
-.b delete
-commands described in section two take a list of messages as argument,
-as do many of the commands described in section six.  This section
-describes the construction of message lists in general.
-.pp
-A
-.i "message list"
-consists of a list of message numbers, ranges, and names,
-separated by spaces or tabs.  Message numbers may be either
-decimal numbers, which directly specify messages, or one of the
-special characters
-.q \(ua
-.q "."
-or
-.q "$"
-to specify the first relevant, current, or last
-relevant message, respectively.
-.i Relevant
-here means, for most commands
-.q "not deleted"
-and
-.q "deleted"
-for the
-.b undelete
-command.
-.pp
-A range of messages consists of two message numbers (of the form
-described in the previous paragraph) separated by a dash.
-Thus, to print the first four messages, use
-.(l
-type 1\-4
-.)L
-and to print all the messages from the current message to the last
-message, use
-.(l
-type .\-$
-.)L
-.pp
-A
-.i name
-is a user name.  All of the user names given in the message list are
-collected together and each message selected by other means
-is checked to make sure it was sent by one of the named users.
-If the message consists entirely of user names, then every
-message sent by one those users which is
-.i relevant
-(in the sense described earlier)
-is selected.  Thus, to print every message sent to you by
-.q root,
-do
-.(l
-type root
-.)L
-.pp
-As a shorthand notation, you can specify simply
-.q *
-to get every
-.i relevant
-(same sense)
-message.  Thus,
-.(l
-type *
-.)L
-prints all undeleted messages,
-.(l
-delete *
-.)L
-deletes all undeleted messages, and
-.(l
-undelete *
-.)L
-undeletes all deleted messages.
-.sh 2 "Other options"
-.pp
-Throughout this manual, we have seen examples of binary and valued options.
-This section describes each of the options in alphabetical order, including
-some which you have not seen yet.
-To avoid confusion, please note that all of the options are either
-all lower case letters or all upper case letters.  When I start a sentence
-such as:
-.q "Ask"
-causes
-.i Mail
-to prompt you for a subject header,
-I am only capitalizing
-.q ask
-as a courtesy to English.
-.pp
-The
-.q append
-option is binary and
-causes messages saved in
-.i mbox
-to be appended to the end rather than prepended.
-Normally,
-.i Mail will put messages in
-.i mbox
-in the same order that the system puts messages in your system mailbox.
-By setting
-.q append,
-you are requesting that
-.i mbox
-be appended to regardless.  It is in any event quicker to append.
-.pp
-.q "Ask"
-is a binary option which
-causes
-.i Mail
-to prompt you for the subject of each message you send.
-If you respond with simply a newline, no subject field will be sent.
-.pp
-.q Askcc
-is a binary option which
-causes you to be prompted for additional carbon copy recipients at the
-end of each message.  Responding with a newline indicates your
-satisfaction with the current list.
-.pp
-.q Autoprint
-is a binary option which
-causes the
-.b delete
-command to behave like
-.b dp
-\*- thus, after deleting a message, the next one will be typed
-automatically.  This is useful to quickly scanning and deleting
-messages in your mailbox.
-.pp
-The binary option
-.q ignore
-causes \s-2RUBOUT\s0 characters from your terminal to be ignored and echoed
-as @'s while you are sending mail.  \s-2RUBOUT\s0 characters retain their
-original meaning in
-.i Mail
-command mode.
-.pp
-When sending mail to an alias,
-.i Mail
-makes sure that if you are included in the alias, that mail will not
-be sent to you.  This is useful if a single alias is being used by
-all members of the group.  If however, you wish to receive a copy of
-all the messages you send to the alias, you can set the binary option
-.q metoo.
-.pp
-The binary option
-.q quiet
-suppresses the printing of the version when
-.i Mail
-is first invoked,
-as well as printing the for example
-.q "Message 4:"
-from the
-.b type
-command.
-.pp
-Normally,
-when you abort a message with two \s-2RUBOUTs\s0,
-.i Mail
-copies the partial letter to the file
-.q dead.letter
-in your home directory.  Setting the binary option
-.q nosave
-prevents this.
-.pp
-The valued option
+You can override this default by setting the valued option
 .q EDITOR
-defines the pathname of the text editor to be used in the
-.b edit
-command and ~e.  If not defined, a standard editor is used.
+to something else.  For example, you might prefer:
+.(l
+set EDITOR=/usr/ucb/ex
+.)l
 .pp
-The valued option
-.q SHELL
-gives the path name of your shell.  This shell is used for the
-.b !
-command and ~! escape.  In addition, this shell is used to expand
-file names with shell metacharacters like * and ? in them.
-.pp
-The valued option
+Many systems offer a screen editor as an alternative to the standard
+text editor, such as the
+.i vi
+editor from UC Berkeley.
+To use the screen, or
+.i visual
+editor, on your current message, you can use the escape,
+.(l
+~v
+.)l
+~v works like ~e, except that the screen editor is invoked instead.
+A default screen editor is defined by
+.i Mail .
+If it does not suit you, you can set the valued option
 .q VISUAL
-defines the pathname of your screen editor for use in the
-.b visual
-command
-and ~v escape.  A standard screen editor is used if you do not define one.
+to the path name of a different editor.
 .pp
-In order to allow you to change the escape character used when sending
-mail, you can set the valued option
-.q escape.
-Only the first character of the
+It is often useful to be able to include the contents of some
+file in your message; the escape
+.(l
+~r filename
+.)l
+is provided for this purpose, and causes the named file to be appended
+to your current message. 
+.i Mail
+complains if the file doesn't exist
+or can't be read.  If the read is successful, the number of lines and
+characters appended to your message is printed, after which you may continue
+appending text.  The filename may contain shell metacharacters like * and ?
+which are expanded according to the conventions of your shell.
+.pp
+As a special case of ~r, the escape
+.(l
+~d
+.)l
+reads in the file
+.q dead.letter
+in your home directory.  This is often useful since
+.i Mail
+copies the text
+of your message there when you abort a message with \s-2RUBOUT\s0.
+.pp
+To save the current text of your message on a file you may use the
+.(l
+~w filename
+.)l
+escape. 
+.i Mail
+will print out the number of lines and characters written
+to the file, after which you may continue appending text to your message.
+Shell metacharacters may be used in the filename, as in ~r and are expanded
+with the conventions of your shell.
+.pp
+If you are sending mail from within
+.i Mail's
+command mode
+you can read a message sent to you into the message
+you are constructing with the escape:
+.(l
+~m 4
+.)l
+which will read message 4 into the current message, shifted right by
+one tab stop.  You can name any non-deleted message, or list of messages.
+Messages can also be forwarded without shifting by a tab stop with ~f.
+This is the usual way to forward a message.
+.pp
+If, in the process of composing a message, you decide to add additional
+people to the list of message recipients, you can do so with the escape
+.(l
+~t name1 name2 ...
+.)l
+You may name as few or many additional recipients as you wish.  Note
+that the users originally on the recipient list will still receive
+the message; you cannot remove someone from the recipient
+list with ~t.
+.pp
+If you wish, you can associate a subject with your message by using the
+escape
+.(l
+~s Arbitrary string of text
+.)l
+which replaces any previous subject with
+.q "Arbitrary string of text."
+The subject, if given, is sent near the
+top of the message prefixed with
+.q "Subject:"
+You can see what the message will look like by using ~p.
+.pp
+For political reasons, one occasionally prefers to list certain
+people as recipients of carbon copies of a message rather than
+direct recipients.  The escape
+.(l
+~c name1 name2 ...
+.)l
+adds the named people to the
+.q "Cc:"
+list, similar to ~t.
+Again, you can execute ~p to see what the message will look like.
+.pp
+The recipients of the message together constitute the
+.q "To:"
+field, the subject the
+.q "Subject:"
+field, and the carbon copies the
+.q "Cc:"
+field.  If you wish to edit these in ways impossible with the ~t, ~s,
+and ~c escapes, you can use the escape
+.(l
+~h
+.)l
+which prints
+.q "To:"
+followed by the current list of recipients and leaves the cursor
+(or printhead) at the end of the line.  If you type in ordinary
+characters, they are appended to the end of the current list of
+recipients.  You can also use your erase character to erase back into
+the list of recipients, or your kill character to erase them altogether.
+Thus, for example, if your erase and kill characters are the standard
+# and @ symbols,
+.(l
+~h
+To: root kurt####bill
+.)l
+would change the initial recipients
+.q "root kurt"
+to
+.q "root bill."
+When you type a newline,
+.i Mail
+advances to the
+.q "Subject:"
+field, where the same rules apply.  Another newline brings you to
+the
+.q "Cc:"
+field, which may be edited in the same fashion.  Another newline
+leaves you appending text to the end of your message.  You can use
+~p to print the current text of the header fields and the body
+of the message.
+.pp
+To effect a temporary escape to the shell, the escape
+.(l
+~!command
+.)l
+is used, which executes
+.i command
+and returns you to mailing mode without altering the text of
+your message.  If you wish, instead, to filter the body of your
+message through a shell command, then you can use
+.(l
+~|command
+.)l
+which pipes your message through the command and uses the output
+as the new text of your message.  If the command produces no output,
+.i Mail
+assumes that something is amiss and retains the old version
+of your message.  A frequently-used filter is the command
+.i fmt ,
+designed to format outgoing mail.
+.pp
+To effect a temporary escape to
+.i Mail
+command mode instead, you can use the
+.(l
+~:\fIMail command\fP
+.)l
+escape.  This is especially useful for retyping the message you are
+replying to, using, for example:
+.(l
+~:t
+.)l
+It is also useful for setting options and modifying aliases.
+.pp
+If you wish (for some reason) to send a message that contains
+a line beginning with a tilde, you must double it.  Thus, for example,
+.(l
+~~This line begins with a tilde.
+.)l
+sends the line
+.(l
+~This line begins with a tilde.
+.)l
+.pp
+Finally, the escape
+.(l
+~?
+.)l
+prints out a brief summary of the available tilde escapes.
+.pp
+On some terminals (particularly ones with no lower case)
+tilde's are difficult to type.
+.i Mail
+allows you to change the escape character with the
 .q escape
-option is used, and it must be doubled if it is to appear literally as
-the first character of a line of your message.  If you change your escape
-character, then ~ loses all its special meaning, and need no longer be doubled
-at the beginning of a line.
+option.  For example, I set
+.(l
+set escape=]
+.)l
+and use a right bracket instead of a tilde.  If I ever need to
+send a line beginning with right bracket, I double it, just as for ~.
+Changing the escape character removes the special meaning of ~.
+.sh 2 "Network access"
 .pp
-If you love to keep records, then the
-valued option
-.q record
-can be set to the name of a file to save all of your outgoing mail.
-Each new message you send is appended to the end of the file.
+This section describes how to send mail to people on other machines.
+Recall that sending to a plain login name sends mail to that person
+on your machine.  If your machine is directly (or sometimes, even,
+indirectly) connected to the Arpanet, you can send messages to people
+on the Arpanet using a name of the form
+.(l
+name@host
+.)l
+where
+.i name
+is the login name of the person you're trying to reach and
+.i host
+is the name of the machine where he logs in on the Arpanet.
 .pp
-The valued option
-.q toplines
-defines the number of lines that the
-.q top
-command will print out instead of the default five lines.
+If your recipient logs in on a machine connected to yours by
+UUCP (the Bell Laboratories supplied network that communicates
+over telephone lines), sending mail to him is a bit more complicated.
+You must know the list of machines through which your message must
+travel to arrive at his site.  So, if his machine is directly connected
+to yours, you can send mail to him using the syntax:
+.(l
+host!name
+.)l
+where, again,
+.i host
+is the name of his machine and
+.i name
+is his login name.
+If your message must go through an intermediate machine first, you
+must use the syntax:
+.(l
+intermediate!host!name
+.)l
+and so on.  It is actually a feature of UUCP that the map of all
+the systems in the network is not known anywhere (except where people
+decide to write it down for convenience).  Talk to your system administrator
+about the machines connected to your site.
+.pp
+If you want to send a message to a recipient on the Berkeley network
+(Berknet), you use the syntax:
+.(l
+host:name
+.)l
+where
+.i host
+is his machine name and
+.i name
+is his login name.  Unlike UUCP, you need not know the names of the
+intermediate machines.
+.pp
+When you use the
+.b reply
+command to respond to a letter, there is a problem of figuring out the
+names of the users in the
+.q "To:"
+and
+.q "Cc:"
+lists
+.i "relative to the current machine" .
+If the original letter was sent to you by someone on the local machine,
+then this problem does not exist, but if the message came from a remote
+machine, the problem must be dealt with.
+.i Mail
+uses a heuristic to build the correct name for each user relative
+to the local machine.  So, when you
+.b reply
+to remote mail, the names in the
+.q "To:"
+and
+.q "Cc:"
+lists may change somewhat.
+.sh 2 "Special recipients"
+.pp
+As described previously, you can send mail to either user names or
+.b alias
+names.  It is also possible to send messages directly to files or to
+programs, using special conventions.  If a recipient name has a
+`/' in it or begins with a `+', it is assumed to be the
+path name of a file into which
+to send the message.  If the file already exists, the message is
+appended to the end of the file.  If you want to name a file in
+your current directory (ie, one for which a `/' would not usually
+be needed) you can precede the name with `./'
+So, to send mail to the file
+.q memo
+in the current directory, you can give the command:
+.(l
+% Mail ./memo
+.)l
+If the name begins with a `+,' it is expanded into the full path name
+of the folder name in your folder directory.
+This ability to send mail to files can be used for a variety of
+purposes, such as maintaining a journal and keeping a record of
+mail sent to a certain group of users.  The second example can be
+done automatically by including the full pathname of the record
+file in the
+.b alias
+command for the group.  Using our previous
+.b alias
+example, you might give the command:
+.(l
+alias project sam sally steve susan /usr/project/mail_record
+.)l
+Then, all mail sent to "project" would be saved on the file
+.q /usr/project/mail_record
+as well as being sent to the members of the project.  This file
+can be examined using
+.i "Mail \-f" .
+.pp
+It is sometimes useful to send mail directly to a program, for
+example one might write a project billboard program and want to access
+it using
+.i Mail .
+To send messages to the billboard program, one can send mail
+to the special name `|billboard' for example.
+.i Mail
+treats recipient names that begin with a `|' as a program to send
+the mail to.  An
+.b alias
+can be set up to reference a `|' prefaced name if desired.
+.i Caveats :
+the shell treats `|' specially, so it must be quoted on the command
+line.  Also, the `| program' must be presented as a single argument to
+mail.  The safest course is to surround the entire name with double
+quotes.  This also applies to usage in the
+.b alias
+command.  For example, if we wanted to alias `rmsgs' to `rmsgs \-s'
+we would need to say:
+.(l
+alias rmsgs "| rmsgs -s"
+.)l

@@ -5,9 +5,8 @@
  */
 
 #ifndef makedev
-# include <sys/types.h>
+#include	<sys/types.h>
 #endif
-typedef unsigned size_t;
 
 struct psout {
 	dev_t	o_ttyd;		/* u_ttyd */
@@ -29,23 +28,6 @@ struct psout {
 	time_t	o_cutime;	/* u_cutime */
 	time_t	o_cstime;	/* u_cstime */
 	short	o_pgrp;		/* p_pgrp */
-#ifdef VFLAG
-	size_t	o_dsize;	/* p_dsize */
-	size_t	o_ssize;	/* p_ssize */
-	size_t	o_rssize;	/* p_rssize */
-	char	o_time;		/* p_time */
-	char	o_slptime;	/* p_slptime */
-	unsigned o_stksize;	/* computed - size of stack */
-	int	o_minorflt;	/* u_minorflt */
-	int	o_majorflt;	/* u_majorflt */
-	short	o_aveflt;	/* p_aveflt */
-	char	*o_text;	/* p_textp */
-	size_t	o_swrss;	/* p_swrss */
-	size_t	o_xsize;	/* xp_size from text.h */
-	short	o_xrssize;	/* xp_rssize from text.h */
-	short	o_xswrss;	/* xp_swrss */
-	short	o_xccount;	/* xp_ccount */
-#endif
 	int	o_sigs;		/* sum of SIGINT & SIGQUIT,
 				   if == 2 proc is ignoring both.*/
 	char	o_comm[15];	/* u_comm */

@@ -1,4 +1,0 @@
-This header file for spell will produce the normal spell programs unless
-NONSEPARATE is defined (should be done in <sys/localopts.h> if PDP11=40;
-this is all gotten through <whoami.h>).  In that case, the hash table
-and functions are reduced sufficiently to load -n for an 11/40 or 11/34.

@@ -48,8 +48,8 @@ intro.2.tbl: intro.2
 appen.A.tbl: appen.A
 	tbl appen.A > appen.A.tbl
 
-vfontedpr: vfontedpr.c vgrindefs.c regexp.c
-	${CC} ${CFLAGS} -o vfontedpr vfontedpr.c vgrindefs.c regexp.c
+vfontedpr: vfontedpr.c
+	${CC} ${CFLAGS} -o vfontedpr vfontedpr.c
 
 spell: ${SOURCE}
 	/bin/csh ./Spellit ${SOURCE} ${DOCS}

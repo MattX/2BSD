@@ -1,4 +1,0 @@
-/etc/mknod mt0 b 3 0
-/etc/mknod nmt0 b 3 128
-/etc/mknod rmt0 c 12 0
-/etc/mknod nrmt0 c 12 128

@@ -11,7 +11,7 @@ use the shell
 command:
 .(l
 % Mail root
-.)L
+.)l
 then type your message.  When you reach the end of the message, type
 an EOT (control\-d) at the beginning of a line, which will cause
 .i Mail
@@ -19,7 +19,7 @@ to echo \*(lqEOT\*(rq and return you to the Shell.  When the user you sent mail
 to next logs in, he will receive the message:
 .(l
 You have mail.
-.)L
+.)l
 to alert him to the existence of your message.
 .pp
 If, while you are composing the message
@@ -30,7 +30,7 @@ causes
 to print
 .(l
 (Interrupt -- one more to kill letter)
-.)L
+.)l
 Typing a second
 \s-2RUBOUT\s0 causes
 .i Mail
@@ -38,7 +38,7 @@ to save your partial letter on the file
 .q dead.letter
 in your home directory and abort the letter.
 Once you have
-in fact sent mail to someone, there is no way to undo the act, so be
+sent mail to someone, there is no way to undo the act, so be
 careful.
 .pp
 The message your recipient reads will consist of the message you
@@ -47,7 +47,7 @@ and the date and time it
 was sent.
 .pp
 If you want to send the same message to several other people, you can list
-all of their login names on the command line.
+their login names on the command line.
 Thus,
 .(l
 % Mail sam bob john
@@ -55,22 +55,38 @@ Tuition fees are due next Friday.  Don't forget!!
 <Control\-d>
 EOT
 %
-.)L
+.)l
 will send the reminder to sam, bob, and john.
 .pp
 If, when you log in, you see the message,
 .(l
 You have mail.
-.)L
+.)l
 you can read the mail by typing simply:
 .(l
 % Mail
-.)L
+.)l
 .i Mail
 will respond by typing its version number and date and then listing
-the messages you have waiting.  Then it will type an underscore and await
+the messages you have waiting.  Then it will type a prompt and await
 your command.  The messages are assigned numbers starting with 1 \*- you
 refer to the messages with these numbers.
+.i Mail
+keeps tack of which messages are
+.i new
+(have been sent since you last read your mail) and
+.i read
+(have been read by you).  New messages have an
+.b N
+next to them in the header listing and old, but unread messages have
+a
+.b U
+next to them.
+.i Mail
+keeps track of new/old and read/unread messages by putting a
+header field called
+.q Status
+into your messages.
 .pp
 To look at a specific message, use the
 .b type
@@ -78,13 +94,13 @@ command, which may be abbreviated to simply
 .b t .
 For example, if you had the following messages:
 .(l
-   1 root     Wed Sep 21 09:21  "Tuition fees"
-   2 sam      Tue Sep 20 22:55
-.)L
+N 1 root     Wed Sep 21 09:21  "Tuition fees"
+N 2 sam      Tue Sep 20 22:55
+.)l
 you could examine the first message by giving the command:
 .(l
 type 1
-.)L
+.)l
 which might cause
 .i Mail
 to respond with, for example:
@@ -92,35 +108,36 @@ to respond with, for example:
 Message  1:
 From root  Wed Sep 21 09:21:45 1978
 Subject: Tuition fees
+Status: R
 
 Tuition fees are due next Wednesday.  Don't forget!!
 
-.)L
+.)l
 Many
 .i Mail
-commands which operate on messages take a message number as an
+commands that operate on messages take a message number as an
 argument like the
 .b type
-command.  For all of these commands, there is a notion of a current
+command.  For these commands, there is a notion of a current
 message.  When you enter the
 .i Mail
 program, the current message is initially the first one.  Thus,
 you can often omit the message number and use, for example,
 .(l
 t
-.)L
+.)l
 to type the current message.  As a further shorthand, you can type a message
 by simply giving its message number.  Hence,
 .(l
 1
-.)L
+.)l
 would type the first message.
 .pp
 Frequently, it is useful to read the messages in your mailbox in order,
 one after another.  You can read the next message in
 .i Mail
 by simply typing a newline.  As a special case, you can type a newline
-as your very first command to
+as your first command to
 .i Mail
 to type the first message.
 .pp
@@ -137,26 +154,31 @@ then begins a message addressed to the user who sent you the message.
 You may then type in your letter in reply, followed by a <control-d>
 at the beginning of a line, as before.
 .i Mail
-will type EOT, then type the underscore prompt to indicate its readiness
+will type EOT, then type the ampersand prompt to indicate its readiness
 to accept another command.  In our example, if, after typing the
 first message, you wished to reply to it, you might give the command:
 .(l
 reply
-.)L
+.)l
 .i Mail
 responds by typing:
 .(l
 To: root
-Subject: Tuition fees
-.)L
-and waiting for you to enter your letter.  Note that it copies the subject
+Subject: Re: Tuition fees
+.)l
+and waiting for you to enter your letter.
+You are now in the message collection mode described at the beginning
+of this section and
+.i Mail
+will gather up your message up to a control\-d.
+Note that it copies the subject
 header from the original message.  This is useful in that correspondence
 about a particular matter will tend to retain the same subject heading,
 making it easy to recognize.  If there are other header fields in
 the message, the information found will also be used.
 For example, if the letter had a
 .q "To:"
-header listing a number of recipients,
+header listing several recipients,
 .i Mail
 would arrange to send your replay to the same people as well.
 Similarly, if the original message contained a
@@ -173,10 +195,10 @@ even if you appear in the
 .q "To:"
 or
 .q "Cc:"
-field, unless you ask to included explicitly.  See section 3 for more
+field, unless you ask to be included explicitly.  See section 4 for more
 details.
 .pp
-After typing in your letter, the dialogue with
+After typing in your letter, the dialog with
 .i Mail
 might look like the following:
 .(l
@@ -186,8 +208,8 @@ Subject: Tuition fees
 
 Thanks for the reminder
 EOT
-\(ul
-.)L
+&
+.)l
 .pp
 The
 .b reply
@@ -198,6 +220,15 @@ users receiving copies of the conversation.  The
 .b reply
 command can be abbreviated to
 .b r .
+.pp
+Sometimes you will receive a message that has been sent to
+several people and wish to reply
+.i only
+to the person who sent it.
+.b Reply
+with a capital
+.b R
+replies to a message, but sends a copy to the sender only.
 .pp
 If you wish, while reading your mail, to send a message to someone,
 but not as a reply to one of your messages, you can send the message
@@ -211,8 +242,8 @@ you would do:
 mail frank
 This is to confirm our meeting next Friday at 4.
 EOT
-\(ul
-.)L
+&
+.)l
 The
 .b mail
 command can be abbreviated to
@@ -232,7 +263,7 @@ you can delete it using the
 command.  In our example,
 .(l
 delete 1
-.)L
+.)l
 will prevent
 .i Mail
 from saving message 1 (from root) in
@@ -246,7 +277,7 @@ altogether, along with its number.  The
 command can be abbreviated to simply
 .b d .
 .pp
-A number of features of
+Many features of
 .i Mail
 can be tailored to your liking with the
 .b set
@@ -269,7 +300,23 @@ To set the
 option, you would type
 .(l
 set ask
-.)L
+.)l
+.pp
+Another useful
+.i Mail
+option is
+.q hold.
+Unless told otherwise,
+.i Mail
+moves the messages from your system mailbox to the file
+.i mbox
+in your home directory when you leave
+.i Mail .
+If you want
+.i Mail
+to keep your letters in the system mailbox instead, you can set the
+.q hold
+option.
 .pp
 Valued options are values which
 .i Mail
@@ -280,12 +327,32 @@ option tells
 which shell you like to use, and is specified by
 .(l
 set SHELL=/bin/csh
-.)L
+.)l
 for example.  Note that no spaces are allowed in
 .q "SHELL=/bin/csh."
 A complete list of the
 .i Mail
-options appears in section 4.
+options appears in section 5.
+.pp
+Another important valued option is
+.q crt.
+If you use a fast video terminal, you will find that when you
+print long messages, they fly by too quickly for you to read them.
+With the
+.q crt
+option, you can make
+.i Mail
+print any message larger than a given number of lines by sending
+it through the paging program
+.i more .
+For example, most CRT users should do:
+.(l
+set crt=24
+.)l
+to paginate messages that will not fit on their screens.
+.i More
+prints a screenful of information, then types --MORE--.  Type
+a space to see the next screenful.
 .pp
 Another adaptation to user needs that
 .i Mail
@@ -294,14 +361,14 @@ provides is that of
 An alias is simply a name which stands for one or more
 real user names.
 .i Mail
-sent to an alias is actually sent to the list of real users
+sent to an alias is really sent to the list of real users
 associated with it.  For example, an alias can be defined for the
 members of a project, so that you can send mail to the whole project
 by sending mail to just a single name.  The
 .b alias
 command in
 .i Mail
-is used to define an alias.  Suppose that the users in a project are
+defines an alias.  Suppose that the users in a project are
 named Sam, Sally, Steve, and Susan.  To define an alias called
 .q project
 for them, you would use the
@@ -309,7 +376,7 @@ for them, you would use the
 command:
 .(l
 alias project sam sally steve susan
-.)L
+.)l
 The
 .b alias
 command can also be used to provide a convenient name for someone
@@ -320,7 +387,7 @@ had the login name
 you might want to use:
 .(l
 alias bob anderson
-.)L
+.)l
 so that you could send mail to the shorter name,
 .q bob.
 .pp
@@ -339,68 +406,61 @@ a system wide file
 .q /usr/lib/Mail.rc,
 then a user specific file,
 .q .mailrc,
-which is found in the user's home directory.  The system wide file
+which is found in the user's home directory.
+The system wide file
 is maintained by the system administrator and
-is usually used to define
-aliases that are of general interest, such as the list of users which
-constitutes the system staff.  The
+contains
+.b set
+commands that are applicable to all users of the system.
+The
 .q .mailrc
-file is usually used by each user to set options the way he likes.
+file is usually used by each user to set options the way he likes
+and define individual aliases.
 For example, my .mailrc file looks like this:
 .(l
 set ask nosave SHELL=/bin/csh
-.)L
+.)l
 As you can see, it is possible to set many options in the
 same
 .b set
 command.  The
 .q nosave
-option is described in section 4.
+option is described in section 5.
+.pp
+Mail aliasing is implemented
+at the system-wide level
+by the mail delivery
+system
+.i delivermail .
+These aliases are stored in the file /usr/lib/aliases and are
+accessible to all users of the system.
+The lines in /usr/lib/aliases are of
+the form:
+.(l
+alias: name\*<1\*>, name\*<2\*>, name\*<3\*>
+.)l
+where
+.i alias
+is the mailing list name and the
+.i name\*<i\*>
+are the members of the list.  Long lists can be continued onto the next
+line by starting the next line with a space or tab.  Remember that you
+must execute the shell command
+.i newaliases
+after editing /usr/lib/aliases since the delivery system
+uses an indexed file created by
+.i newaliases .
 .pp
 We have seen that
 .i Mail
 can be invoked with command line arguments which are people
 to send the message to, or with no arguments to read mail.
-In addition, there are two flag arguments to
-.i Mail
-which are useful.
-First, unreliable terminal connections (such as poor connections
-over a phone line) cause spurious \s-2RUBOUT\s0 characters to
-be produced.  \s-2RUBOUT\s0  characters cause
-.i Mail
-to terminate a message, as described previously.
-To prevent these spurious \s-2RUBOUT\s0 characters from causing
-trouble, you can give the
-.rb \-i
-flag to ignore them.  For example,
-.(l
-% Mail \-i
-.)L
-reads your mail with \s-2RUBOUT\s0 characters ignored, and
-.(l
-% Mail \-i bob joe sarah
-.)L
-mails to the named people with \s-2RUBOUT\s0  characters ignored.
-Unfortunately, even if
-.i Mail
-ignores \s-2RUBOUT\s0's, the system discards all text typed on the
-current line when it receives a  \s-2RUBOUT\s0.  To warn the user
-that this has happened,
-.i Mail
-echoes \s-2RUBOUT\s0s as @'s.  If, when using
-.rb \-i
-an @ at appears on your terminal, you must retype the text on
-the line you were typing.  If the @ appears at the beginning
-of a line, you can safely ignore it.
-.pp
-The other
-.i Mail
-flag is
+Specifying the
 .rb \-f
-which allows you to use
+flag on the command line causes
 .i Mail
-to examine a file of messages other than your default system
-mailbox.  For example, if you have a collection of messages in
+to read messages from a file other than your system mailbox.
+For example, if you have a collection of messages in
 the file
 .q letters
 you can use
@@ -408,8 +468,8 @@ you can use
 to read them with:
 .(l
 % Mail \-f letters
-.)L
-You can use all of
+.)l
+You can use all
 the
 .i Mail
 commands described in this document to examine, modify, or delete
@@ -428,14 +488,13 @@ in your home directory by default, you can read
 in your home directory by using simply
 .(l
 % Mail \-f
-.)L
+.)l
 .pp
-Normally, messages which you examine using the
+Normally, messages that you examine using the
 .b type
 command are saved in the file
 .q mbox
-in your home directory
-if you leave
+in your home directory if you leave
 .i Mail
 with the
 .b quit
@@ -453,16 +512,16 @@ command accepts a list of message numbers, just like
 and may be abbreviated to
 .b pre .
 .pp
-Messages in your system mailbox which you do not examine are
+Messages in your system mailbox that you do not examine are
 normally retained in your system mailbox automatically.
 If you wish to have such a message saved in
 .i mbox
-without actually reading it, you may use the
+without reading it, you may use the
 .b mbox
 command to have them so saved.  For example,
 .(l
 mbox 2
-.)L
+.)l
 in our example would cause the second message (from sam)
 to be saved in
 .i mbox
@@ -470,14 +529,20 @@ when the
 .b quit
 command is executed.
 .b Mbox
+is also the way to direct messages to your
+.i mbox
+file if you have set the
+.q hold
+option described above.
+.b Mbox
 can be abbreviated to
 .b mb .
 .pp
-When you have perused all of the messages of interest, you can leave
+When you have perused all the messages of interest, you can leave
 .i Mail
 with the
 .b quit
-command, which saves all of the messages you have typed but not
+command, which saves the messages you have typed but not
 deleted in the file
 .i mbox
 in your login directory.  Deleted messages are discarded irretrievably,
@@ -485,7 +550,7 @@ and messages left untouched are preserved in your system mailbox so
 that you will see them the next time you type:
 .(l
 % Mail
-.)L
+.)l
 The
 .b quit
 command can be abbreviated to simply
@@ -508,7 +573,7 @@ can type the command preceded by an exclamation point, just as in the
 text editor.  Thus, for instance:
 .(l
 !date
-.)L
+.)l
 will print the current date without leaving
 .i Mail .
 .pp

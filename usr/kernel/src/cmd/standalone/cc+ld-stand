@@ -1,3 +1,0 @@
-cc -c -O -DSTANDALONE -I../../../include ../$1.c
-ld  -o $1 srt0.o $1.o c.o libsa.a -lc
-rm $1.o
