@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.2 (2.11BSD GTE) 1995/05/08";
+static	char	sccsid[] = "@(#)opset.c 2.3 (2.11BSD GTE) 1997/8/28";
 #endif
 
 #include "defs.h"
@@ -132,7 +132,7 @@ struct optab {
 };
 
 char *systab[] = {
-	"old indir",		/* 0 */
+	"indir",		/* 0 - indir*/
 	"exit",
 	"fork",
 	"read",
@@ -160,25 +160,25 @@ char *systab[] = {
 	"geteuid",		/* 25 */
 	"ptrace",
 	"getppid",
-	NULL,			/* 28 - old fstat */
-	NULL,			/* 29 - old pause */
-	NULL,			/* 30 - old utime */
-	NULL,			/* 31 - old stty */
-	NULL,			/* 32 - old gtty */
+	NULL,			/* 28 - unused */
+	NULL,			/* 29 - unused */
+	NULL,			/* 30 - unused */
+	"sigaction",		/* 31 - sigaction */
+	"sigprocmask",		/* 32 - sigprocmask */
 	"access",
-	NULL,			/* 34 - old nice */
-	NULL,			/* 35 - old ftime */
+	"sigpending",		/* 34 - sigpending */
+	"sigaltstack",		/* 35 - sigaltstack */
 	"sync",
 	"kill",
 	"stat",
-	NULL,			/* 39 - old setpgrp */
+	NULL,			/* 39 - unused */
 	"lstat",
 	"dup",
 	"pipe",
-	NULL,			/* 43 - old times */
+	NULL,			/* 43 - unused */
 	"profil",
 	NULL,			/* 45 - unused */
-	NULL,			/* 46 - old setgid */
+	NULL,			/* 46 - unused */
 	"getgid",
 	"getegid",
 	NULL,			/* 49 - unused */
@@ -188,7 +188,7 @@ char *systab[] = {
 	"lock",
 	"ioctl",
 	"reboot",
-	NULL,			/* 56 - old mpxchan */
+	NULL,			/* 56 - unused */
 	"symlink",
 	"readlink",
 	"execve",
@@ -199,25 +199,25 @@ char *systab[] = {
 	"getpagesize",
 	NULL,			/* 65 - mremap */
 	"vfork",
-	NULL,			/* 67 - old vread */
-	NULL,			/* 68 - old vwrite */
+	NULL,			/* 67 - unused */
+	NULL,			/* 68 - unused */
 	"sbrk",
-	NULL,			/* 70 - old sstk */
-	NULL,			/* 71 - mmap */
-	NULL,			/* 72 - old vadvise */
-	NULL,			/* 73 - munmap */
-	NULL,			/* 74 - mprotect */
-	NULL,			/* 75 - madvise */
+	NULL,			/* 70 - unused */
+	NULL,			/* 71 - unused */
+	NULL,			/* 72 - unused */
+	NULL,			/* 73 - unused */
+	NULL,			/* 74 - unused */
+	NULL,			/* 75 - unused */
 	"vhangup",
-	NULL,			/* 77 - old vlimit */
-	NULL,			/* 78 - mincore */
+	NULL,			/* 77 - unused */
+	NULL,			/* 78 - unused */
 	"getgroups",
 	"setgroups",
 	"getpgrp",
 	"setpgrp",
 	"setitimer",
 	"old wait",
-	NULL,			/* 85 - 4.3 swapon */
+	NULL,			/* 85 - unused */
 	"getitimer",
 	"gethostname",
 	"sethostname",
@@ -239,19 +239,19 @@ char *systab[] = {
 	"bind",
 	"setsockopt",
 	"listen",
-	NULL,			/* 107 - old vtimes */
-	"sigvec",
-	"sigblock",
-	"sigsetmask",
-	"sigpause",
-	"sigstack",
+	"sigsuspend",		/* 107 - sigsuspend */
+	"sigvec",		/* 108 - sigvec COMPAT-43 */
+	"sigblock",		/* 109 - sigblock COMPAT-43 */
+	"sigsetmask",		/* 110 - sigsetmask COMPAT-43 */
+	"sigpause",		/* 111 - sigpause COMPAT-43 */
+	"sigstack",		/* 112 - sigstack COMPAT-43 */
 	"recvmsg",
 	"sendmsg",
-	NULL,			/* 115 - 4.3 vtrace */
+	NULL,			/* 115 - unused */
 	"gettimeofday",
 	"getrusage",
 	"getsockopt",
-	NULL,			/* 119 - old resuba */
+	NULL,			/* 119 - unused */
 	"readv",
 	"writev",
 	"settimeofday",
@@ -271,11 +271,11 @@ char *systab[] = {
 	"mkdir",
 	"rmdir",
 	"utimes",
-	NULL,			/* 139 - 4.2 sigreturn */
+	NULL,			/* 139 - unused */
 	"adjtime",
 	"getpeername",
-	"gethostid",
-	"sethostid",
+	"gethostid",		/* 142 - gethostid COMPAT-43 */
+	"sethostid",		/* 143 - sethostid COMPAT-43 */
 	"getrlimit",
 	"setrlimit",
 	"killpg",
@@ -286,12 +286,11 @@ char *systab[] = {
 	/*
 	 * 2.11BSD special calls
 	 */
-	NULL,			/* 151 - old rtp */
+	NULL,			/* 151 - unused */
 	"nostk",
 	"fetchi",
 	"ucall",
 	"fperr",
-	"gldav",
 };
 
 #define	NUMSYSCALLS	(sizeof (systab) / sizeof (char *))

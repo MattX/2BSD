@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_synch.c	1.3 (2.11BSD GTE) 1997/2/14
+ *	@(#)kern_synch.c	1.4 (2.11BSD GTE) 1997/8/29
  */
 
 #include "param.h"
@@ -37,7 +37,7 @@ schedcpu()
 		if (p->p_time != 127)
 			p->p_time++;
 		/*
-		 * this is where 2.10 does its real time alarms.  4.X uses
+		 * this is where 2.11 does its real time alarms.  4.X uses
 		 * timeouts, since it offers better than second resolution.
 		 * Putting it here allows us to continue using use an int
 		 * to store the number of ticks in the callout structure,

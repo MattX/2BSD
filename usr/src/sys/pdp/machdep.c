@@ -3,13 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep.c	2.2 (2.11BSD) 1995/11/22
+ *	@(#)machdep.c	2.3 (2.11BSD) 1997/8/26
  */
 
 #include "param.h"
 #include "../machine/psl.h"
 #include "../machine/reg.h"
 
+#include "signalvar.h"
 #include "user.h"
 #include "proc.h"
 #include "buf.h"
@@ -56,29 +57,35 @@ sendsig(p, sig, mask)
 	int oonstack;
 	caddr_t n;
 
+#ifdef	DIAGNOSTIC
+	printf("sendsig %d to %d mask=%O action=%o\n", sig, u.u_procp->p_pid,
+		mask, p);
+#endif
 	regs = u.u_ar0;
-	oonstack = u.u_onstack;
+	oonstack = u.u_sigstk.ss_flags & SA_ONSTACK;
 	/*
 	 * Allocate and validate space for the signal frame.
 	 */
-	if (!u.u_onstack && (u.u_sigonstack & sigmask(sig))) {
-		n = (caddr_t)((struct sigframe *)u.u_sigsp - 1);
-		u.u_onstack = 1;
-	} else
-		n = (caddr_t)((struct sigframe *)regs[R6] - 1);
-	if (!u.u_onstack && n < (caddr_t)-ctob(u.u_ssize) && !grow(n)) {
+	if	((u.u_psflags & SAS_ALTSTACK) &&
+		 !(u.u_sigstk.ss_flags & SA_ONSTACK) &&
+		 (u.u_sigonstack & sigmask(sig)))
+		{
+		n = u.u_sigstk.ss_base + u.u_sigstk.ss_size - sizeof (sf);
+		u.u_sigstk.ss_flags |= SA_ONSTACK;
+		}
+	else
+		n = (caddr_t)regs[R6] - sizeof (sf);
+	if	(!(u.u_sigstk.ss_flags & SA_ONSTACK) && 
+		 n < (caddr_t)-ctob(u.u_ssize) && 
+		 !grow(n))
+		{
 		/*
-		 * Process has trashed its stack; give it an segment
-		 * violation to halt it in its tracks.
+		 * Process has trashed its stack; give it an illegal
+		 * instruction violation to halt it in its tracks.
 		 */
-		u.u_signal[SIGILL] = SIG_DFL;
-		mask = sigmask(SIGILL);
-		u.u_procp->p_sigignore &= ~mask;
-		u.u_procp->p_sigcatch &= ~mask;
-		u.u_procp->p_sigmask &= ~mask;
-		psignal(u.u_procp, SIGILL);
+		fatalsig(SIGILL);
 		return;
-	}
+		}
 	/* 
 	 * Build the argument list for the signal handler.
 	 */
@@ -136,9 +143,11 @@ sigreturn()
 		return;
 	}
 	u.u_eosys = JUSTRETURN;
-	u.u_onstack = scp->sc_onstack & 01;
-	u.u_procp->p_sigmask = scp->sc_mask &~
-	    (sigmask(SIGKILL)|sigmask(SIGCONT)|sigmask(SIGSTOP));
+	if	(scp->sc_onstack & SA_ONSTACK)
+		u.u_sigstk.ss_flags |= SA_ONSTACK;
+	else
+		u.u_sigstk.ss_flags &= ~SA_ONSTACK;
+	u.u_procp->p_sigmask = scp->sc_mask & ~sigcantmask;
 	regs[R6] = scp->sc_sp;
 	regs[R5] = scp->sc_fp;
 	regs[R1] = scp->sc_r1;

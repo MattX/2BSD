@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)proc.h	1.2 (2.11BSD GTE) 1/18/95
+ *	@(#)proc.h	1.3 (2.11BSD GTE) 1997/8/28
  */
 
 #ifndef	_SYS_PROC_H_
@@ -111,21 +111,22 @@ int	nproc;
 #define	SSTOP	6		/* process being traced */
 
 /* flag codes */
-#define	SLOAD	0x000001	/* in core */
-#define	SSYS	0x000002	/* swapper or pager process */
-#define	SLOCK	0x000004	/* process being swapped out */
-#define	SSWAP	0x000008	/* save area flag */
-#define	STRC	0x000010	/* process is being traced */
-#define	SWTED	0x000020	/* another tracing flag */
-#define	SULOCK	0x000040	/* user settable lock in core */
-#define	SOMASK	0x000080	/* restore old mask after taking signal */
-#define	SVFORK	0x000100	/* process resulted from vfork() */
-#define	SVFPRNT	0x000200	/* parent in vfork, waiting for child */
-#define	SVFDONE	0x000400	/* parent has released child in vfork */
-#define	STIMO	0x000800	/* timing out during sleep */
-#define	SDETACH	0x001000	/* detached inherited by init */
-#define	SOUSIG	0x002000	/* using old signal mechanism */
-#define	SSEL	0x004000	/* selecting; wakeup/waiting danger */
+#define	SLOAD		0x0001	/* in core */
+#define	SSYS		0x0002	/* swapper or pager process */
+#define	SLOCK		0x0004	/* process being swapped out */
+#define	SSWAP		0x0008	/* save area flag */
+#define	STRC		0x0010	/* process is being traced */
+#define	SWTED		0x0020	/* another tracing flag */
+#define	SULOCK		0x0040	/* user settable lock in core */
+	/*		0x0080	/* used to be SOMASK */
+#define	SVFORK		0x0100	/* process resulted from vfork() */
+#define	SVFPRNT		0x0200	/* parent in vfork, waiting for child */
+#define	SVFDONE		0x0400	/* parent has released child in vfork */
+	/*		0x0800	/* unused */
+#define	SDETACH		0x1000	/* detached inherited by init */
+#define	P_NOCLDSTOP	0x2000	/* no SIGCHLD signal to parent */
+#define	SSEL		0x4000	/* selecting; wakeup/waiting danger */
+	/*		0x8000	/* unused */
 
 #define	S_DATA	0		/* specified segment */
 #define	S_STACK	1

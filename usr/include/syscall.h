@@ -3,8 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.5 (2.11BSD GTE) 1995/12/24
+ *	@(#)syscall.h	5.4.6 (2.11BSD GTE) 1997/8/28
  */
+
+/*
+ * DO NOT place any comments on the same line as a SYS_* definition.  This
+ * causes cpp to leave a trailing tab when expanding macros in pdp/sys/SYS.h
+*/
 
 #define	SYS_exit	1
 #define	SYS_fork	2
@@ -36,11 +41,11 @@
 #define	SYS_statfs	28
 #define	SYS_fstatfs	29
 #define	SYS_getfsstat	30
-				/* 31 is old: stty */
-				/* 32 is old: gtty */
+#define	SYS_sigaction	31
+#define	SYS_sigprocmask	32
 #define	SYS_access	33
-				/* 34 is old: nice */
-				/* 35 is old: ftime */
+#define	SYS_sigpending	34
+#define	SYS_sigaltstack	35
 #define	SYS_sync	36
 #define	SYS_kill	37
 #define	SYS_stat	38
@@ -112,7 +117,10 @@
 #define	SYS_bind	104
 #define	SYS_setsockopt	105
 #define	SYS_listen	106
-				/* 107 was vtimes */
+#define	SYS_sigsuspend	107
+/*
+ * 108 thru 112 are 4.3BSD compatibility syscalls
+*/
 #define	SYS_sigvec	108
 #define	SYS_sigblock	109
 #define	SYS_sigsetmask	110
@@ -165,4 +173,3 @@
 #define	SYS_fetchi	153
 #define	SYS_ucall	154
 #define	SYS_fperr	155
-#define	SYS_gldav	156

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)user.h	1.3 (2.11BSD) 1997/1/30
+ *	@(#)user.h	1.4 (2.11BSD) 1997/8/28
  */
 
 #ifdef KERNEL
@@ -97,9 +97,9 @@ struct user {
 	long	u_sigintr;		/* signals that interrupt syscalls */
 	long	u_oldmask;		/* saved mask from before sigpause */
 	int	u_code;			/* ``code'' to trap */
-	struct	sigstack u_sigstack;	/* sp & on stack state variable */
-#define	u_onstack	u_sigstack.ss_onstack
-#define	u_sigsp		u_sigstack.ss_sp
+	char	dummy2;			/* Room for another flags byte */
+	char	u_psflags;		/* Process Signal flags */
+	struct	sigaltstack u_sigstk;	/* signal stack info */
 
 /* 1.4 - descriptor management */
 	struct	file *u_ofile[NOFILE];	/* file structures for open files */
@@ -138,6 +138,7 @@ struct user {
 		ino_t nc_inumber;	/* inum of cached directory */
 		dev_t nc_dev;		/* dev of cached directory */
 	} u_ncache;
+	char	u_login[MAXLOGNAME];	/* future use (setlogin/getlogin) */
 	short	u_stack[1];		/* kernel stack per user
 					 * extends from u + USIZE*64
 					 * backward not to reach here

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	2.3 (2.11BSD GTE) 1997/2/24
+ *	@(#)init_main.c	2.4 (2.11BSD GTE) 1997/8/29
  */
 
 #include "param.h"
@@ -84,6 +84,10 @@ main()
 	for (i = 0; i < sizeof(u.u_rlimit)/sizeof(u.u_rlimit[0]); i++)
 		u.u_rlimit[i].rlim_cur = u.u_rlimit[i].rlim_max = 
 		    RLIM_INFINITY;
+
+	/* Initialize signal state for process 0 */
+	siginit(p);
+
 	/*
 	 * Initialize tables, protocols, and set up well-known inodes.
 	 */

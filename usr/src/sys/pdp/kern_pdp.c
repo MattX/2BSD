@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_pdp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_pdp.c	1.2 (2.11BSD) 1997/8/27
  */
 
 #include "param.h"
@@ -81,16 +81,6 @@ lock()
 		u.u_procp->p_flag |= SULOCK;
 	else
 		u.u_procp->p_flag &= ~SULOCK;
-}
-
-gldav()
-{
-	struct a {
-		short	*ptr;
-	};
-
-	u.u_error = copyout((caddr_t)avenrun,
-		(caddr_t)(((struct a *)u.u_ap)->ptr),3 * sizeof(short));
 }
 
 /*

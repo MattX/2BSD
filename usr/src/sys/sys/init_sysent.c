@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.9 (2.11BSD GTE) 1995/12/24
+ *	@(#)init_sysent.c	1.10 (2.11BSD GTE) 1997/8/29
  */
 
 /*
@@ -30,13 +30,13 @@ int	lock(),phys(),fetchi(),nostk(),fperr();		/* 2BSD calls */
 
 /* 1.3 signals */
 int	sigvec(),sigblock(),sigsetmask(),sigpause(),sigstack(),sigreturn();
+int	sigaction(), sigprocmask(), sigpending(), sigaltstack(), sigsuspend();
 int	kill(), killpg();
 
 /* 1.4 timing and statistics */
 int	gettimeofday(),settimeofday();
 int	getitimer(),setitimer();
 int	adjtime();
-int	gldav();					/* 2BSD calls */
 
 /* 1.5 descriptors */
 int	getdtablesize(),dup(),dup2(),close();
@@ -115,7 +115,7 @@ struct sysent sysent[] = {
 	3, open,			/*   5 = open */
 	1, close,			/*   6 = close */
 	4, wait4,			/*   7 = wait4 */
-	2, creat,			/*   8 = creat */
+	2, creat,			/*   8 = creat COMPAT-43 */
 	2, link,			/*   9 = link */
 	1, unlink,			/*  10 = unlink */
 	2, execv,			/*  11 = execv */
@@ -138,32 +138,32 @@ struct sysent sysent[] = {
 	2, statfs,			/*  28 = statfs */
 	2, fstatfs,			/*  29 = fstatfs */
 	3, getfsstat,			/*  30 = getfsstat */
-	0, nosys,			/*  31 = was stty */
-	0, nosys,			/*  32 = was gtty */
+	4, sigaction,			/*  31 = sigaction */
+	3, sigprocmask,			/*  32 = sigprocmask */
 	2, saccess,			/*  33 = access */
-	0, nosys,			/*  34 = old nice */
-	0, nosys,			/*  35 = old ftime */
+	1, sigpending,			/*  34 = sigpending */
+	2, sigaltstack,			/*  35 = sigaltstack */
 	0, sync,			/*  36 = sync */
 	2, kill,			/*  37 = kill */
 	2, stat,			/*  38 = stat */
-	0, nosys,			/*  39 = old setpgrp */
+	0, nosys,			/*  39 = unused */
 	2, lstat,			/*  40 = lstat */
 	1, dup,				/*  41 = dup */
 	0, pipe,			/*  42 = pipe */
-	0, nosys,			/*  43 = old times */
+	0, nosys,			/*  43 = unused */
 	4, profil,			/*  44 = profil */
 	0, nosys,			/*  45 = nosys */
-	0, nosys,			/*  46 = old setgid */
+	0, nosys,			/*  46 = unused */
 	0, getgid,			/*  47 = getgid */
 	0, getegid,			/*  48 = getegid */
-	0, nosys,			/*  49 = reserved for USG */
-	0, nosys,			/*  50 = reserved for USG */
+	0, nosys,			/*  49 = unused */
+	0, nosys,			/*  50 = unused */
 	1, sysacct,			/*  51 = turn acct off/on */
 	3, phys,			/*  52 = (2.9) set phys addr */
 	1, lock,			/*  53 = (2.9) lock in core */
 	4, ioctl,			/*  54 = ioctl */
 	1, reboot,			/*  55 = reboot */
-	0, nosys,			/*  56 = old mpxchan */
+	0, nosys,			/*  56 = unused */
 	2, symlink,			/*  57 = symlink */
 	3, readlink,			/*  58 = readlink */
 	3, execve,			/*  59 = execve */
@@ -172,27 +172,27 @@ struct sysent sysent[] = {
 	2, fstat,			/*  62 = fstat */
 	0, nosys,			/*  63 = reserved */
 	0, getpagesize,			/*  64 = getpagesize */
-	0, nosys,			/*  65 = (4.3) mremap */
+	0, nosys,			/*  65 = unused */
 	0, vfork,			/*  66 = vfork */
-	0, nosys,			/*  67 = (4.3) old vread */
-	0, nosys,			/*  68 = (4.3) old vwrite */
+	0, nosys,			/*  67 = unused */
+	0, nosys,			/*  68 = unused */
 	1, sbrk,			/*  69 = sbrk */
-	0, nosys,			/*  70 = (4.3) sstk */
-	0, nosys,			/*  71 = (4.3) mmap */
-	0, nosys,			/*  72 = (4.3) old vadvise */
-	0, nosys,			/*  73 = (4.3) munmap */
-	0, nosys,			/*  74 = (4.3) mprotect */
-	0, nosys,			/*  75 = (4.3) madvise */
+	0, nosys,			/*  70 = unused */
+	0, nosys,			/*  71 = unused */
+	0, nosys,			/*  72 = unused */
+	0, nosys,			/*  73 = unused */
+	0, nosys,			/*  74 = unused */
+	0, nosys,			/*  75 = unused */
 	0, vhangup,			/*  76 = vhangup */
-	0, nosys,			/*  77 = (4.3) old vlimit */
-	0, nosys,			/*  78 = (4.3) mincore */
+	0, nosys,			/*  77 = unused */
+	0, nosys,			/*  78 = unused */
 	2, getgroups,			/*  79 = getgroups */
 	2, setgroups,			/*  80 = setgroups */
 	1, getpgrp,			/*  81 = getpgrp */
 	2, setpgrp,			/*  82 = setpgrp */
 	3, setitimer,			/*  83 = setitimer */
-	0, owait,			/*  84 = wait,wait3 (compatibility) */
-	0, nosys,			/*  85 = (4.3) swapon */
+	0, owait,			/*  84 = wait,wait3 COMPAT */
+	0, nosys,			/*  85 = unused */
 	2, getitimer,			/*  86 = getitimer */
 	2, gethostname,			/*  87 = gethostname */
 	2, sethostname,			/*  88 = sethostname */
@@ -214,19 +214,19 @@ struct sysent sysent[] = {
 	ifnet(3, bind),			/* 104 = bind */
 	ifnet(5, setsockopt),		/* 105 = setsockopt */
 	ifnet(2, listen),		/* 106 = listen */
-	0, nosys,			/* 107 = (4.3) old vtimes */
-	4, sigvec,			/* 108 = sigvec */
-	2, sigblock,			/* 109 = sigblock */
-	2, sigsetmask,			/* 110 = sigsetmask */
-	2, sigpause,			/* 111 = sigpause */
-	2, sigstack,			/* 112 = sigstack */
+	1, sigsuspend,			/* 107 = sigsuspend */
+	4, sigvec,			/* 108 = sigvec COMPAT-43 */
+	2, sigblock,			/* 109 = sigblock COMPAT-43 */
+	2, sigsetmask,			/* 110 = sigsetmask COMPAT-43 */
+	2, sigpause,			/* 111 = sigpause COMPAT-43 */
+	2, sigstack,			/* 112 = sigstack COMPAT-43 */
 	ifnet(3, recvmsg),		/* 113 = recvmsg */
 	ifnet(3, sendmsg),		/* 114 = sendmsg */
-	0, nosys,			/* 115 = (4.3) vtrace */
+	0, nosys,			/* 115 = unused */
 	2, gettimeofday,		/* 116 = gettimeofday */
 	2, getrusage,			/* 117 = getrusage */
 	ifnet(5, getsockopt),		/* 118 = getsockopt */
-	0, nosys,			/* 119 = (4.3) (vax) resuba */
+	0, nosys,			/* 119 = unused */
 	3, readv,			/* 120 = readv */
 	3, writev,			/* 121 = writev */
 	2, settimeofday,		/* 122 = settimeofday */
@@ -246,11 +246,11 @@ struct sysent sysent[] = {
 	2, mkdir,			/* 136 = mkdir */
 	1, rmdir,			/* 137 = rmdir */
 	2, utimes,			/* 138 = utimes */
-	0, nosys,			/* 139 = internal (4.2 sigreturn) */
+	0, nosys,			/* 139 = unused */
 	2, adjtime,			/* 140 = adjtime */
 	ifnet(3, getpeername),		/* 141 = getpeername */
-	0, gethostid,			/* 142 = gethostid */
-	2, sethostid,			/* 143 = sethostid */
+	0, gethostid,			/* 142 = gethostid COMPAT-43 */
+	2, sethostid,			/* 143 = sethostid COMPAT-43 */
 	2, getrlimit,			/* 144 = getrlimit */
 	2, setrlimit,			/* 145 = setrlimit */
 	2, killpg,			/* 146 = killpg */
@@ -267,12 +267,11 @@ struct sysent sysent[] = {
 	/*
 	 * 2BSD special calls
 	 */
-	0, nosys,			/* 151 = unused (old 2.9 rtp) */
+	0, nosys,			/* 151 = unused */
 	0, nostk,			/* 152 = nostk */
 	1, fetchi,			/* 153 = fetchi */
 	4, ucall,			/* 154 = ucall */
 	0, fperr,			/* 155 = fperr */
-	1, gldav,			/* 156 = gldav */
 };
 
 int	nsysent = sizeof (sysent) / sizeof (sysent[0]);

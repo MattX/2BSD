@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.h	1.4 (2.11BSD GTE) 1995/12/24
+ *	@(#)param.h	1.5 (2.11BSD GTE) 1997/9/2
  */
 
 #define	BSD	211		/* 2.11 * 10, as cpp doesn't do floats */
@@ -140,3 +140,8 @@
  * MAXMEM is the maximum core per process is allowed.  First number is Kb.
 */
 #define	MAXMEM		(300*16)
+
+/*
+ * MAXLOGNAME should be >= UT_NAMESIZE (see <utmp.h>)
+ */
+#define	MAXLOGNAME	16		/* max login name length */

@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.6 (2.11BSD GTE) 1997/2/14
+ *	@(#)kern_sysctl.c	8.4.7 (2.11BSD GTE) 1997/9/2
  */
 
 /*
@@ -979,8 +979,8 @@ fill_eproc(p, ep)
  *
  * XXX - We rely on the fact that u_ttyp, u_ttyd, and u_ruid are all within
  * XXX - the first 1kb of the u area.  If this ever changes the logic below
- * XXX - will break (and badly).  At the present time (1/19/95) the u area
- * XXX - is 934 bytes long.
+ * XXX - will break (and badly).  At the present time (97/9/2) the u area
+ * XXX - is 856 bytes long.
 */
 
 fill_from_u(p, rup, ttp, tdp)

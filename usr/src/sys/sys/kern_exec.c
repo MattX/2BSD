@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.6 (2.11BSD GTE) 1997/1/30
+ *	@(#)kern_exec.c	1.6 (2.11BSD GTE) 1997/8/28
  */
 
 #include "param.h"
@@ -22,6 +22,8 @@
 #include "mount.h"
 #include "file.h"
 #include "text.h"
+#include "signalvar.h"
+extern	char	sigprop[];	/* XXX */
 
 /*
  * exec system call, with and without environments.
@@ -336,7 +338,16 @@ badarg:
 		brelse(bp);
 		bp = NULL;
 	}
-	execve1();
+	execsigs(u.u_procp);
+	for	(cp = u.u_pofile, cc = 0; cc <= u.u_lastfile; cc++, cp++)
+		{
+		if	(*cp & UF_EXCLOSE)
+			{
+			(void)closef(u.u_ofile[cc]);
+			u.u_ofile[cc] = NULL;
+			*cp = 0;
+			}
+		}
 	while (u.u_lastfile >= 0 && u.u_ofile[u.u_lastfile] == NULL)
 		u.u_lastfile--;
 
@@ -370,64 +381,42 @@ bad:
 }
 
 /*
- * execve1 is a helper routine to speed up execve.
+ * Reset signals for an exec of the specified process.  In 4.4 this function
+ * was in kern_sig.c but since in 2.11 kern_sig and kern_exec will likely be
+ * in different overlays placing this here potentially saves a kernel overlay
+ * switch.
  */
-static
-execve1()
+void
+execsigs(p)
+	register struct proc *p;
 {
+	register int nc;
+	unsigned long mask;
+
 	/*
-	 * 4.3 source
-	 *
-	 * Reset caught signals.  Held signals
-	 * remain held through p_sigmask.
-	 *
-	 * In an effort to avoid exspensive long masking operations
-	 * we use two integer loops rather than one long loop.
-	 * The constant 16 is the number of bits per int.
-	 *
-	 *	while (u.u_procp->p_sigcatch) {
-	 *		nc = ffs((long)u.u_procp->p_sigcatch);
-	 *		u.u_procp->p_sigcatch &= ~sigmask(nc);
-	 *		u.u_signal[nc] = SIG_DFL;
-	 *	}
+	 * Reset caught signals.  Held signals remain held
+	 * through p_sigmask (unless they were caught,
+	 * and are now ignored by default).
 	 */
-{
-	register int cnt, imask;
-	register int (**sigp)();
-	long mask;
-
-	mask = u.u_procp->p_sigcatch;
-	u.u_procp->p_sigcatch = 0;
-	sigp = &u.u_signal[1];
-	for (cnt = 16, imask = loint(mask); cnt > 0; cnt--, imask >>= 1, sigp++)
-		if (imask&1)
-			*sigp = SIG_DFL;
-	for (cnt = NSIG-16, imask = hiint(mask); cnt > 0; cnt--, imask >>= 1, sigp++)
-		if (imask&1)
-			*sigp = SIG_DFL;
-}
-	/*
-	 * Reset stack state to the user stack.
-	 * Clear set of signals caught on the signal stack.
-	 */
-	u.u_onstack = 0;
-	u.u_sigsp = 0;
-	u.u_sigonstack = 0;
-
-{
-	register int cnt;
-	register struct file **ofilep = u.u_ofile;
-	register char *pofilep = u.u_pofile;
-
-	for (cnt = u.u_lastfile;cnt >= 0; cnt--, ofilep++, pofilep++)
-		if (*pofilep & UF_EXCLOSE) {
-			(void) closef(*ofilep);
-			*ofilep = NULL;
-			*pofilep = 0;
+	while (p->p_sigcatch) {
+		nc = ffs(p->p_sigcatch);
+		mask = sigmask(nc);
+		p->p_sigcatch &= ~mask;
+		if (sigprop[nc] & SA_IGNORE) {
+			if (nc != SIGCONT)
+				p->p_sigignore |= mask;
+			p->p_sig &= ~mask;
 		}
+		u.u_signal[nc] = SIG_DFL;
+	}
+	/*
+	 * Reset stack state to the user stack (disable the alternate stack).
+	 */
+	u.u_sigstk.ss_flags = SA_DISABLE;
+	u.u_sigstk.ss_size = 0;
+	u.u_sigstk.ss_base = 0;
+	u.u_psflags = 0;
 }
-}
-
 /*
  * Read in and set up memory for executed file.
  * u.u_error set on error
