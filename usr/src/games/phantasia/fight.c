@@ -1,5 +1,7 @@
 /*
  * fight.c   Phantasia monster fighting routine
+ *
+ *	1.1	(2.11BSD) 1996/10/26
  */
 
 /*
@@ -16,14 +18,14 @@ bool	fghttofin = FALSE, luckout = FALSE;
 char	aline[80];
 double	monhit, mdamage, sdamage, monspd, maxspd, inflict, monstr, temp, shield;
 int	ch;
-reg	int	whichm, size, howmany, lines;
+reg	int	whichm, size, hwmany, lines;
 struct	mstats	monster;
 
 	fghting = changed = TRUE;
 	shield = 0.0;
 	if (setjmp(fightenv) == 2)
 		shield = roll(100 + (stat->mxn + stat->shd)*6.2,3000);
-	howmany = 0;
+	hwmany = 0;
 	size = (valhala) ? stat->lvl/5 : circ(stat->x,stat->y);
 	if (particular >= 0)
 		whichm = particular;
@@ -47,7 +49,7 @@ CALL:	move(3,0);
 	callmonster(whichm,size,&monster);
 	if (stat->blind)
 		strcpy(monster.name,"a monster");
-	++howmany;
+	++hwmany;
 	if (monster.typ == 1)	/* unicorn */
 		if (stat->vrg)
 			{
@@ -592,7 +594,7 @@ FINISH:	stat->exp += monster.exp;
 		fghttofin = FALSE;
 		goto CALL;
 		}
-	else if (size > 1 && monster.trs && rnd() > pow(0.6,(double) (howmany/3 + size/3)))	/* this takes # of flocks and size into account */
+	else if (size > 1 && monster.trs && rnd() > pow(0.6,(double) (hwmany/3 + size/3)))	/* this takes # of flocks and size into account */
 		{
 		paws(lines);
 		treasure(stat,monster.trs,size);

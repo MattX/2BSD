@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)save.c	1.4 11/7/85";
+static char sccsid[] = "@(#)save.c	1.4.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -41,7 +41,7 @@ restore()
 	fread(notes, sizeof notes, 1, fp);
 	fread(&direction, sizeof direction, 1, fp);
 	fread(&position, sizeof position, 1, fp);
-	fread(&time, sizeof time, 1, fp);
+	fread(&Time, sizeof Time, 1, fp);
 	fread(&fuel, sizeof fuel, 1, fp);
 	fread(&torps, sizeof torps, 1, fp);
 	fread(&carrying, sizeof carrying, 1, fp);
@@ -97,7 +97,7 @@ save()
 	fwrite(notes, sizeof notes, 1, fp);
 	fwrite(&direction, sizeof direction, 1, fp);
 	fwrite(&position, sizeof position, 1, fp);
-	fwrite(&time, sizeof time, 1, fp);
+	fwrite(&Time, sizeof Time, 1, fp);
 	fwrite(&fuel, sizeof fuel, 1, fp);
 	fwrite(&torps, sizeof torps, 1, fp);
 	fwrite(&carrying, sizeof carrying, 1, fp);

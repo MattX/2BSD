@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)com4.c	1.3 4/24/85";
+static char sccsid[] = "@(#)com4.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -34,7 +34,7 @@ unsigned int from[];
 				setbit(inven,value);
 				carrying += objwt[value];
 				encumber += objcumber[value];
-				time++;
+				Time++;
 				if (testbit(from,value))
 					printf("Taken.\n");
 				else
@@ -138,7 +138,7 @@ unsigned int from[];
 					puts("ties it at the waist.  Around her neck hangs a golden amulet.");
 					puts("She bids you to follow her.");
 					pleasure++;
-					followgod = time;
+					followgod = Time;
 					clearbit(location[position].objects,BATHGOD);
 				} else if (!testbit(location[position].objects,BATHGOD))
 					puts("You're in no position to take her.");
@@ -258,7 +258,7 @@ char *name;
 				setbit(location[position].objects,value);
 			else
 				tempwiz = 0;
-			time++;
+			Time++;
 			if (*name == 'K')
 				puts("Drop kicked.");
 			else
@@ -324,16 +324,16 @@ eat()
 			case MANGO:
 
 				printf("%s:\n",objsht[value]);
-				if (testbit(inven,value) && time > ate - CYCLE && testbit(inven,KNIFE)){
+				if (testbit(inven,value) && Time > ate - CYCLE && testbit(inven,KNIFE)){
 					clearbit(inven,value);
 					carrying -= objwt[value];
 					encumber -= objcumber[value];
-					ate = max(time,ate) + CYCLE/3;
+					ate = max(Time,ate) + CYCLE/3;
 					snooze += CYCLE/10;
-					time++;
+					Time++;
 					puts("Eaten.  You can explore a little longer now.");
 				}
-				else if (time < ate - CYCLE)
+				else if (Time < ate - CYCLE)
 					puts("You're stuffed.");
 				else if (!testbit(inven,KNIFE))
 					puts("You need a knife.");

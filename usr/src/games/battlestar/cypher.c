@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)cypher.c	1.3 4/24/85";
+static char sccsid[] = "@(#)cypher.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -256,10 +256,10 @@ cypher()
 				fgets(buffer,10,stdin);
 				if (*buffer != '\n')
 					sscanf(buffer,"%d", &position);
-				printf("Time (was %d) = ",time);
+				printf("Time (was %d) = ",Time);
 				fgets(buffer,10,stdin);
 				if (*buffer != '\n')
-					sscanf(buffer,"%d", &time);
+					sscanf(buffer,"%d", &Time);
 				printf("Fuel (was %d) = ",fuel);
 				fgets(buffer,10,stdin);
 				if (*buffer != '\n')
@@ -297,7 +297,7 @@ cypher()
 			 case SCORE:
 				printf("\tPLEASURE\tPOWER\t\tEGO\n");
 				printf("\t%3d\t\t%3d\t\t%3d\n\n",pleasure,power,ego);
-				printf("This gives you the rating of %s in %d turns.\n",rate(),time);
+				printf("This gives you the rating of %s in %d turns.\n",rate(),Time);
 				printf("You have visited %d out of %d rooms this run (%d%%).\n",card(beenthere,NUMOFROOMS),NUMOFROOMS,card(beenthere,NUMOFROOMS)*100/NUMOFROOMS);
 				break;
 

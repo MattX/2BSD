@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)com6.c	1.3 4/24/85";
+static char sccsid[] = "@(#)com6.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -17,7 +17,7 @@ launch()
 			clearbit(location[position].objects,VIPER);
 			position = location[position].up;
 			notes[LAUNCHED] = 1;
-			time++;
+			Time++;
 			fuel -= 4;
 			puts("You climb into the viper and prepare for launch.");
 			puts("With a touch of your thumb the turbo engines ignite, thrusting you back into\nyour seat.");
@@ -38,7 +38,7 @@ land()
 		position = location[position].down;
 		setbit(location[position].objects,VIPER);
 		fuel -= 2;
-		time++;
+		Time++;
 		puts("You are down.");
 		return(1);
 	}
@@ -62,15 +62,16 @@ live()
 }
 
 #include <sys/time.h>
+
 post(ch)
 char ch;
 {
 	FILE *fp;
 	struct timeval tv;
 	char *date;
-	int s = sigblock(sigmask(SIGINT));
+	long s = sigblock(sigmask(SIGINT));
 
-	gettimeofday(&tv, (struct timezone *)0);	/* can't call time */
+	gettimeofday(&tv, (struct timezone *)0);
 	date = ctime(&tv.tv_sec);
 	date[24] = '\0';
 	if (fp = fopen(logfile,"a")) {
@@ -131,7 +132,7 @@ drive()
 		clearbit(location[position].objects,CAR);
 		setbit(location[position].objects,CRASH);
 		injuries[5] = injuries[6] = injuries[7] = injuries[8] = 1;
-		time += 15;
+		Time += 15;
 		zzz();
 		return(0);
 	}
@@ -166,7 +167,7 @@ light()		/* synonyms = {strike, smoke} */
 {		/* for matches, cigars */
 	if (testbit(inven,MATCHES) && matchcount){
 		puts("Your match splutters to life.");
-		time++;
+		Time++;
 		matchlight = 1;
 		matchcount--;
 		if (position == 217){

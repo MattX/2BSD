@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)com2.c	1.3 4/24/85";
+static char sccsid[] = "@(#)com2.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -54,7 +54,7 @@ wearit()		/* synonyms = {sheathe, sheath} */
 					setbit(wear,value);
 					carrying -= objwt[value];
 					encumber -= objcumber[value];
-					time++;
+					Time++;
 					printf("You are now wearing %s %s.\n",(objsht[value][n-1] == 's' ? "the" : "a"), objsht[value]);
 				}
 				else if (testbit(wear,value))
@@ -102,7 +102,7 @@ use()
 				location[position].down = 160;
 				whichway(location[position]);
 				puts("The waves subside and it is possible to descend to the sea cave now.");
-				time++;
+				Time++;
 				return(-1);
 			}
 		}
@@ -112,7 +112,7 @@ use()
 			position = 224;
 		else
 			position = 229;
-		time++;
+		Time++;
 		return(0);
 	}
 	else if (position == FINAL)
@@ -198,7 +198,7 @@ ravage()
 {
 	while (wordtype[++wordnumber] != NOUNS && wordnumber <= wordcount);
 	if (wordtype[wordnumber] == NOUNS && testbit(location[position].objects,wordvalue[wordnumber])){
-		time++;
+		Time++;
 		switch(wordvalue[wordnumber]){
 			case NORMGOD:
 				puts("You attack the goddess, and she screams as you beat her.  She falls down");
@@ -245,7 +245,7 @@ ravage()
 
 follow()
 {
-	if (followfight == time){
+	if (followfight == Time){
 		puts("The Dark Lord leaps away and runs down secret tunnels and corridoors.");
 		puts("You chase him through the darkness and splash in pools of water.");
 		puts("You have cornered him.  His laser sword extends as he steps forward.");
@@ -255,7 +255,7 @@ follow()
 		setbit(location[position].objects,AMULET);
 		return(0);
 	}
-	else if (followgod == time){
+	else if (followgod == Time){
 		puts("The goddess leads you down a steamy tunnel and into a high, wide chamber.");
 		puts("She sits down on a throne.");
 		position = 268;

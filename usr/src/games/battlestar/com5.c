@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)com5.c	1.3 4/24/85";
+static char sccsid[] = "@(#)com5.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -73,7 +73,7 @@ love()
 				if (!loved)
 					setbit(location[position].objects,MEDALION);
 				loved = 1;
-				time += 10;
+				Time += 10;
 				zzz();
 			}
 			else {
@@ -85,7 +85,7 @@ love()
 			power++;
 			pleasure += 5;
 			printf("Girl:\n");
-			time += 10;
+			Time += 10;
 			zzz();
 		}
 		printf("Loved.\n");
@@ -98,16 +98,16 @@ zzz()
 	int oldtime;
 	register int n;
 
-	oldtime = time;
-	if ((snooze - time) < (0.75 * CYCLE)){
-		time += 0.75 * CYCLE - (snooze - time);
+	oldtime = Time;
+	if ((snooze - Time) < (0.75 * CYCLE)){
+		Time += 0.75 * CYCLE - (snooze - Time);
 		printf("<zzz>");
-		for (n = 0; n < time - oldtime; n++)
+		for (n = 0; n < Time - oldtime; n++)
 			printf(".");
 		printf("\n");
-		snooze += 3 * (time - oldtime);
+		snooze += 3 * (Time - oldtime);
 		if (notes[LAUNCHED]){
-			fuel -= (time - oldtime);
+			fuel -= (Time - oldtime);
 			if (location[position].down){
 				position = location[position].down;
 				crash();
@@ -150,8 +150,8 @@ zzz()
 
 chime()
 {
-	if ((time / CYCLE + 1) % 2 && OUTSIDE)
-		switch((time % CYCLE)/(CYCLE / 7)){
+	if ((Time / CYCLE + 1) % 2 && OUTSIDE)
+		switch((Time % CYCLE)/(CYCLE / 7)){
 			case 0:
 				puts("It is just after sunrise.");
 				break;
@@ -175,7 +175,7 @@ chime()
 				break;
 		}
 	else if (OUTSIDE)
-		switch((time % CYCLE)/(CYCLE / 7)){
+		switch((Time % CYCLE)/(CYCLE / 7)){
 			case 0:
 				puts("It is just after sunset.");
 				break;
@@ -232,7 +232,7 @@ give()
 	}
 	if (result != -1 && (testbit(location[position].objects,obj) || obj == AMULET || obj == MEDALION || obj == TALISMAN)){
 		clearbit(location[position].objects,obj);
-		time++;
+		Time++;
 		ego++;
 		switch(person){
 			case NATIVE:
@@ -261,7 +261,7 @@ give()
 						puts("after having been out drinking with the girls, she kicks the throne particulary");
 						puts("hard and wakes you up.  (If you want to win this game, you're going to have to\nshoot her!)");
 						clearbit(location[position].objects,MEDALION);
-						wintime = time;
+						wintime = Time;
 					}
 				}
 				break;

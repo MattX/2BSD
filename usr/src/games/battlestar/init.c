@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)init.c	1.3 4/24/85";
+static char sccsid[] = "@(#)init.c	1.3.1 1996/10/26";
 #endif
 
 #include "externs.h"
@@ -27,7 +27,7 @@ initialize(startup)
 	if (startup) {
 		location = dayfile;
 		direction = NORTH;
-		time = 0;
+		Time = 0;
 		snooze = CYCLE * 1.5;
 		position = 22;
 		setbit(wear, PAJAMAS);

@@ -4,7 +4,7 @@
  * the terms of the Berkeley Software License Agreement.
  */
 
-/* @(#)externs.h	1.3 4/24/85 */
+/* @(#)externs.h	1.3.1 1996/10/26 */
 
 #include <sys/signal.h>
 #include <stdio.h>
@@ -237,7 +237,7 @@ char *truedirec(), *rate();
 char *getcom(), *getword();
 
 	/* state of the game */
-int time;
+int Time;
 int position;
 int direction;
 int left, right, ahead, back;
