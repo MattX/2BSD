@@ -1,4 +1,4 @@
-#	Makefile	1.1 (2.11BSD GTE) 1995/05/02
+#	Makefile	1.2 (2.11BSD GTE) 1995/06/21
 #
 DESTDIR=
 CFLAGS=	-O
@@ -8,7 +8,7 @@ SEPFLAG= -i
 #
 SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
 	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
-	tip uucp uname yacc
+	tip uucp uname yacc xargs
 
 # Shell scripts that need only be installed and are never removed.
 #

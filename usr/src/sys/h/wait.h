@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)wait.h	7.2 (2.11BSD GTE) 3/10/93
+ *	@(#)wait.h	7.2.1 (2.11BSD GTE) 1995/06/23
  */
 
 /*
@@ -64,6 +64,7 @@ union wait	{
 #define WIFSTOPPED(x)	((x).w_stopval == WSTOPPED)
 #define WIFSIGNALED(x)	((x).w_stopval != WSTOPPED && (x).w_termsig != 0)
 #define WIFEXITED(x)	((x).w_stopval != WSTOPPED && (x).w_termsig == 0)
+#define	WEXITSTATUS(x)	((x).w_retcode)
 
 #define	W_STOPCODE(sig)	((sig << 8) | WSTOPPED)
 #define	W_EXITCODE(ret,sig)	((ret << 8) | (sig))
