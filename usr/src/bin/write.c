@@ -1,5 +1,5 @@
-#ifndef	lint
-static char *sccsid = "@(#)write.c	4.13.1 12/31/93";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)write.c	4.13.2 1996/11/16";
 #endif
 /*
  * write to another user
@@ -11,13 +11,15 @@ static char *sccsid = "@(#)write.c	4.13.1 12/31/93";
 #include <sys/stat.h>
 #include <signal.h>
 #include <utmp.h>
-#include <sys/time.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define	NMAX	sizeof(ubuf.ut_name)
 #define	LMAX	sizeof(ubuf.ut_line)
 
-char	*strcat();
-char	*strcpy();
 struct	utmp ubuf;
 int	signum[] = {SIGHUP, SIGINT, SIGQUIT, 0};
 char	me[NMAX + 1]	= "???";
@@ -26,14 +28,10 @@ char	*mytty;
 char	histty[32];
 char	ttybuf[32];
 char	*histtya;
-char	*ttyname();
-char	*rindex();
 int	logcnt;
 int	eof();
 int	timout();
 FILE	*tf;
-char	*getenv();
-time_t	time();
 
 main(argc, argv)
 	int argc;
@@ -43,10 +41,9 @@ main(argc, argv)
 	register i;
 	register FILE *uf;
 	int c1, c2;
-	long clock = time(0);
+	time_t clock = time(0);
 	int suser = getuid() == 0;
 	int nomesg = 0;
-	struct tm *localtime();
 	struct tm *localclock = localtime( &clock );
 
 	if (argc < 2) {
@@ -56,8 +53,8 @@ main(argc, argv)
 	him = argv[1];
 	if (argc > 2)
 		histtya = argv[2];
-	if ((uf = fopen("/etc/utmp", "r")) == NULL) {
-		perror("write: Can't open /etc/utmp");
+	if ((uf = fopen(_PATH_UTMP, "r")) == NULL) {
+		fprintf(stderr, "write: %s: %s\n", _PATH_UTMP, strerror(errno));
 		if (histtya == 0)
 			exit(10);
 		goto cont;

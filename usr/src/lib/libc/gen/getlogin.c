@@ -1,10 +1,10 @@
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)getlogin.c	5.3 (Berkeley) 5/9/86";
+static char sccsid[] = "@(#)getlogin.c	5.3.1 (2.11BSD) 1996/11/16";
 #endif LIBC_SCCS and not lint
 
 #include <utmp.h>
 
-static	char UTMP[]	= "/etc/utmp";
+static	char UTMP[]	= _PATH_UTMP;
 static	struct utmp ubuf;
 
 char *

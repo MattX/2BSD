@@ -9,10 +9,9 @@
 # software without specific written prior permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.3 (Berkeley) 1/13/88
+#	@(#)Makefile	5.3.1 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-O -DUNIX -DUNIX_BSD4_2
-LIBC=	/lib/libc.a
 SRCS=	curses.c	\
 	hit.c		\
 	init.c		\
@@ -62,7 +61,7 @@ OBJS=	curses.o	\
 
 all: rogue
 
-rogue: ${OBJS} ${LIBC}
+rogue: ${OBJS}
 	${CC} -i ${OBJS} -o $@ -lcurses -ltermlib
 
 clean: FRC

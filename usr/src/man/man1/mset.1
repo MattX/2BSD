@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mset.1	1.3 (Berkeley) 1/11/86
+.\"	@(#)mset.1	1.3.1 (2.11BSD) 1996/11/16
 .\"
-.TH MSET 1 "January 11, 1986"
+.TH MSET 1 "November 16, 1996"
 .UC 6
 .SH NAME
 mset \- retrieve ASCII to IBM 3270 keyboard map
@@ -17,7 +17,7 @@ for the ASCII keyboard to IBM 3270 terminal
 special functions.
 Normally, these mappings are found
 in
-.I /etc/map3270
+.I /usr/share/misc/map3270
 (see
 .IR map3270 (5)).
 This information is used by the
@@ -28,7 +28,7 @@ command (see
 .I Mset
 can be used store the mapping information in the process environment
 in order to avoid scanning
-.I /etc/map3270
+.I /usr/share/misc/map3270
 each time
 .I tn3270
 is invoked.
@@ -45,7 +45,7 @@ first determines the user's terminal type from the environment variable
 Normally
 .I mset
 then uses the file
-.I /etc/map3270
+.I /usr/share/misc/map3270
 to find the keyboard mapping for that terminal.
 However, if the environment variable
 .B MAP3270
@@ -63,7 +63,7 @@ If that search also fails,
 then a default mapping
 is used.
 .SH FILES
-/etc/map3270        keyboard mapping for known terminals
+/usr/share/misc/map3270        keyboard mapping for known terminals
 .SH SEE ALSO
 tn3270(1), map3270(5)
 .SH BUGS

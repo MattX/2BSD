@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)wall.c	5.3.1 (2.11BSD GTE) 12/31/93";
+static char sccsid[] = "@(#)wall.c	5.3.2 (2.11BSD GTE) 1996/11/16";
 #endif
 
 /*
@@ -53,8 +53,8 @@ char *argv[];
 	struct stat statb;
 
 	(void) gethostname(hostname, sizeof (hostname));
-	if ((f = open("/etc/utmp", O_RDONLY, 0)) < 0) {
-		fprintf(stderr, "Cannot open /etc/utmp\n");
+	if ((f = open(_PATH_UTMP, O_RDONLY, 0)) < 0) {
+		fprintf(stderr, "Cannot open %s\n", _PATH_UTMP);
 		exit(1);
 	}
 	clock = time( 0 );

@@ -1,5 +1,5 @@
 #
-# 	#(@)Makefile	1.2.1	(2.11BSD) 1996/10/26
+# 	#(@)Makefile	1.2.2	(2.11BSD) 1996/11/27
 #
 DESTDIR=
 CFLAGS=	-O
@@ -7,7 +7,7 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR= afio cxref ddd less mkovmake mp mtools popper welcome qterm zmodem
+SUBDIR= afio cxref ddd less mkovmake mp mtools welcome qterm zmodem
 
 # C programs that live in the current directory and do not need
 # explicit make lines.

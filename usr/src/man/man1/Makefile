@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	1.5 (2.11BSD) 1996/11/1
+#	@(#)Makefile	1.6 (2.11BSD) 1996/11/27
 #
 MDIR=	/usr/man/cat1
 SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
@@ -43,7 +43,7 @@ SRCS1=	nroff.1 nslookup.1 od.1 pagesize.1 pdx.1 pi.1 pix.1 \
 	tsort.1 tty.1 ul.1 unifdef.1 uniq.1 units.1 uptime.1 users.1 \
 	uucp.1 uuencode.1 uulog.1 uuname.1 uuq.1 uusend.1 uux.1 \
 	vacation.1 vgrind.1 vi.1 vmstat.1 vwidth.1 w.1 wait.1 wall.1 wc.1 \
-	what.1 whatis.1 whereis.1 which.1 who.1 whoami.1 whois.1 window.1 \
+	what.1 whatis.1 which.1 who.1 whoami.1 whois.1 window.1 \
 	write.1 xstr.1 yacc.1 yes.1
 OBJS1=	adb.0 addbib.0 apply.0 apropos.0 as.0 at.0 atq.0 atrm.0 \
 	awk.0 basename.0 bc.0 biff.0 binmail.0 cal.0 calendar.0 cat.0 \
@@ -71,7 +71,7 @@ OBJS2=	nroff.0 nslookup.0 od.0 pagesize.0 pdx.0 pi.0 pix.0 \
 	tsort.0 tty.0 ul.0 unifdef.0 uniq.0 units.0 uptime.0 users.0 \
 	uucp.0 uuencode.0 uulog.0 uuname.0 uuq.0 uusend.0 uux.0 \
 	vacation.0 vgrind.0 vi.0 vmstat.0 vwidth.0 w.0 wait.0 wall.0 wc.0 \
-	what.0 whatis.0 whereis.0 which.0 who.0 whoami.0 whois.0 window.0 \
+	what.0 whatis.0 which.0 who.0 whoami.0 whois.0 window.0 \
 	write.0 xstr.0 yacc.0 yes.0
 
 .SUFFIXES: .1 .0

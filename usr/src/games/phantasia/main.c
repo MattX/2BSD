@@ -570,7 +570,7 @@ struct	utmp	ubuf;
 		|| (tp->tm_hour > 13 && tp->tm_hour < 16))		/* 1-4 pm */
 		return (FALSE);
 	/* check # of users */
-	fp = fopen("/etc/utmp","r");
+	fp = fopen(_PATH_UTMP,"r");
 	while (fread((char *) &ubuf,sizeof(ubuf),1,fp))
 #ifdef	USG5
 		if (ubuf.ut_type == USER_PROCESS)

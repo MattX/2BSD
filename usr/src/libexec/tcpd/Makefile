@@ -1,7 +1,7 @@
-# @(#) Makefile 1.19 1996/1/28
+# @(#) Makefile 1.20 1996/11/16
 #  Tailored and trimmed version created for 2.11BSD on April 7, 1995.
 
-REAL_DAEMON_DIR=/etc
+REAL_DAEMON_DIR=/usr/libexec
 RANLIB	= ranlib	# have ranlib (BSD-ish UNIX)
 ARFLAGS	= rv		# most systems
 AUX_OBJ= environ.o
@@ -48,7 +48,7 @@ all: config-check tcpd tcpdmatch try-from safe_finger tcpdchk tcpd.0 \
 	hosts5access.0 hosts3access.0 hosts_options.0 tcpdchk.0 tcpdmatch.0
 
 install: all
-	install -s -m 1751 -o root -g staff tcpd /etc/tcpd
+	install -s -m 1751 -o root -g staff tcpd /usr/libexec/tcpd
 	install -s -m 751 -o root -g staff tcpdmatch /usr/ucb/tcpdmatch
 	install -s -m 751 -o root -g staff try-from /usr/ucb/try-from
 	install -s -m 751 -o root -g staff safe_finger /usr/ucb/safe_finger

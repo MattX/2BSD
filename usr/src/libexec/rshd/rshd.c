@@ -15,15 +15,13 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983, 1988, 1989 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)rshd.c	5.17.1.3 (Berkeley) 9/11/89";
-#endif /* not lint */
+static char sccsid[] = "@(#)rshd.c	5.17.1.4 (Berkeley) 1996/11/29";
+#endif
 
 /*
  * remote shell server:
@@ -51,12 +49,13 @@ static char sccsid[] = "@(#)rshd.c	5.17.1.3 (Berkeley) 9/11/89";
 #include <syslog.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pathnames.h"
 
 int	errno;
 int	keepalive = 1;
 int	check_all = 0;
-char	*index(), *rindex(), *strncat();
 /*VARARGS1*/
 int	error();
 int	sent_null;
@@ -66,7 +65,6 @@ main(argc, argv)
 	int argc;
 	char **argv;
 {
-	extern int opterr, optind;
 	extern int _check_rhosts_file;
 	struct linger linger;
 	int ch, on = 1, fromlen;

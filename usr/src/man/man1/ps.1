@@ -106,7 +106,7 @@ asks even about processes with no terminal.
 .TP
 .B U
 causes ps to update a private database where is keeps system
-information.  Thus ``ps U'' should be included in the /etc/rc file.
+information.  Thus ``ps \-U'' should be included in the /etc/rc file.
 .TP
 .B #
 A process number may be given,
@@ -195,7 +195,7 @@ so the names cannot be counted on too much.
 .br
 /dev	searched to find swap device and tty names
 .br
-/etc/psdatabase	system namelist and device information
+/var/run/psdatabase	system namelist and device information
 .SH "SEE ALSO"
 kill(1), w(1), pstat(8)
 .SH BUGS

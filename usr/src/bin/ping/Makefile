@@ -4,7 +4,6 @@
 
 CFLAGS=	-O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 SRCS=	ping.c
 OBJS=	ping.o
 MAN=	ping.0
@@ -12,7 +11,7 @@ MANSRC=	ping.8
 
 all: ping ${MAN}
 
-ping: ${LIBC} ${OBJS}
+ping: ${OBJS}
 	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
 ping.0: ${MANSRC}
@@ -28,7 +27,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} ping
-	install -s -o root -g bin -m 4751 ping ${DESTDIR}/etc
+	install -s -o root -g bin -m 4751 ping ${DESTDIR}/bin
 	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
 
 lint: ${SRCS}

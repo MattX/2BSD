@@ -14,11 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.1 (2.11BSD) 1996/1/27
+#	@(#)Makefile	5.4.2 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-I. -O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 SRCS=	passwd.c
 OBJS=	passwd.o
 MAN=	passwd.0
@@ -26,7 +25,7 @@ MANSRC=	passwd.1
 
 all: passwd ${MAN}
 
-passwd: ${LIBC} ${OBJS}
+passwd: ${OBJS}
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
 
 ${MAN}: ${MANSRC}

@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)sysctl.c	8.2.1 (2.11BSD GTE) 1/7/95";
+static char sccsid[] = "@(#)sysctl.c	8.2.2 (2.11BSD GTE) 1996/11/27";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/param.h>
@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)sysctl.c	8.2.1 (2.11BSD GTE) 1/7/95";
 
 extern	int	errno;
 static 
-char _PATH_STDPATH[]="/usr/bin:/bin:/usr/ucb:/usr/local:/usr/new:/etc";
+char _PATH_STDPATH[]="/usr/bin:/bin:/usr/ucb:/sbin:/usr/sbin:/usr/local:/usr/new";
 
 
 int

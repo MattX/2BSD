@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)telnetd.c	5.20.2 (2.11BSD) 1996/3/22";
+static char sccsid[] = "@(#)telnetd.c	5.20.3 (2.11BSD) 1996/11/16";
 #endif
 
 /*
@@ -1229,8 +1229,8 @@ cleanup()
 #include <utmp.h>
 
 struct	utmp wtmp;
-char	wtmpf[]	= "/usr/adm/wtmp";
-char	utmpf[] = "/etc/utmp";
+char	wtmpf[]	= _PATH_WTMP;
+char	utmpf[] = _PATH_UTMP;
 #define SCPYN(a, b)	strncpy(a, b, sizeof(a))
 #define SCMPN(a, b)	strncmp(a, b, sizeof(a))
 

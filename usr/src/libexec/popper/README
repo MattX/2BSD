@@ -1,4 +1,4 @@
-@(#)@(#)README	2.6   2.6 4/2/91
+@(#)@(#)README	2.7   1996/11/29
 
 
 The Post Office Protocol Server:  Installation Guide
@@ -173,7 +173,7 @@ Installation
     source.
 
 4.  Issue the make install command in the directory containing the 
-    popper source to copy the program to /usr/etc.
+    popper source to copy the program to /usr/libexec.
 
 5.  Enable syslogging:
 
@@ -221,20 +221,20 @@ Installation
     +   On BSD 4.3 and SunOS 4.0 systems, add the following line to the 
         /etc/inetd.conf file:
 
-        pop stream tcp nowait root /usr/etc/popper popper
-        pop2 stream tcp nowait root /usr/etc/popper popper
+        pop stream tcp nowait root /usr/libexec/popper popper
+        pop2 stream tcp nowait root /usr/libexec/popper popper
 
     +   On Ultrix systems, add the following line to the 
         /etc/inetd.conf file:
 
-        pop stream tcp nowait /usr/etc/popper popper
-        pop2 stream tcp nowait /usr/etc/popper popper
+        pop stream tcp nowait /usr/libexec/popper popper
+        pop2 stream tcp nowait /usr/libexec/popper popper
 
     +   On SunOS 3.5 systems, add the following line to the 
         /etc/servers file:
 
-        pop tcp /usr/etc/popper
-        pop2 tcp /usr/etc/popper
+        pop tcp /usr/libexec/popper
+        pop2 tcp /usr/libexec/popper
 
         Kill and restart the inetd daemon.
 

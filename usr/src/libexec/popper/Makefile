@@ -1,4 +1,4 @@
-#@(#)@(#)Makefile	2.6 1996/1/28
+#@(#)@(#)Makefile	2.6.1 1996/11/27
 
 DESTDIR		=
 CSRCS		=	pop_dele.c pop_dropcopy.c pop_dropinfo.c \
@@ -35,10 +35,10 @@ MAKEFILE	=	Makefile
 CFLAGS		=	-O -DBIND43
 TARGET		=	popper
 TAR		=	${TARGET}.tar
-INSTALLDIR	=	${DESTDIR}/usr/local
+INSTALLDIR	=	${DESTDIR}/usr/libexec
 MANPAGE		=	popper.8
 CATPAGE		=	popper.0
-MANDIR		=	${DESTDIR}/usr/local/man/cat8
+MANDIR		=	${DESTDIR}/usr/man/cat8
 
 all: ${TARGET} ${CATPAGE}
 

@@ -14,7 +14,7 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.3.6 (2.11BSD) 1996/10/21
+ *	@(#)pathnames.h	5.3.7 (2.11BSD) 1996/11/27
  */
 
 #define	_PATH_BSHELL	"/bin/sh"
@@ -26,6 +26,7 @@
 #define	_PATH_DEVNULL	"/dev/null"
 #define	_PATH_TTY	"/dev/tty"
 #define	_PATH_DEV	"/dev"
+#define	_PATH_NOLOGIN	"/etc/nologin"
 #define	_PATH_LASTLOG	"/usr/adm/lastlog"
 #define	_PATH_TMP	"/tmp/"
 #define	_PATH_VARTMP	"/usr/tmp/"

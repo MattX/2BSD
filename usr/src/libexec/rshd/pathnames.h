@@ -14,10 +14,9 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.2 (Berkeley) 5/9/89
+ *	@(#)pathnames.h	5.2.1 (2.11BSD) 1996/11/29
  */
 
-#define	_PATH_BSHELL	"/bin/sh"
-#define	_PATH_DEFPATH	"PATH=/bin:/usr/ucb:/usr/bin:"
-#define	_PATH_NOLOGIN	"/etc/nologin"
-#define	_PATH_TTY	"/dev/tty"
+#include <paths.h>
+
+#define	_PATH_DEFPATH	"PATH=/bin:/usr/ucb:/usr/bin:/usr/sbin"

@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)ruserpass.c	5.2 (Berkeley) 3/9/86";
+static char sccsid[] = "@(#)ruserpass.c	5.2.1 (2.11BSD) 1996/11/16";
 #endif LIBC_SCCS and not lint
 
 #include <stdio.h>
@@ -14,8 +14,11 @@ static char sccsid[] = "@(#)ruserpass.c	5.2 (Berkeley) 3/9/86";
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-char	*renvlook(), *malloc(), *index(), *getenv(), *getpass(), *getlogin();
+char	*renvlook();
 struct	utmp *getutmp();
 static	FILE *cfile;
 
@@ -28,7 +31,7 @@ ruserpass(host, aname, apass)
 		rnetrc(host, aname, apass);
 	if (*aname == 0) {
 		char *myname = getlogin();
-		*aname = malloc(16);
+		*aname = (char *)malloc(16);
 		printf("Name (%s:%s): ", host, myname);
 		fflush(stdout);
 		if (read(2, *aname, 16) <= 0)
@@ -62,15 +65,15 @@ renv(host, aname, apass)
 	if (comma == 0)
 		return;
 	if (*aname == 0) {
-		*aname = malloc(comma - cp + 1);
+		*aname = (char *)malloc(comma - cp + 1);
 		strncpy(*aname, cp, comma - cp);
 	} else
 		if (strncmp(*aname, cp, comma - cp))
 			return;
 	comma++;
-	cp = malloc(strlen(comma)+1);
+	cp = (char *)malloc(strlen(comma)+1);
 	strcpy(cp, comma);
-	*apass = malloc(16);
+	*apass = (char *)malloc(16);
 	mkpwclear(cp, host[0], *apass);
 }
 
@@ -162,7 +165,7 @@ next:
 		case LOGIN:
 			if (token())
 				if (*aname == 0) { 
-					*aname = malloc(strlen(tokval) + 1);
+					*aname = (char *)malloc(strlen(tokval) + 1);
 					strcpy(*aname, tokval);
 				} else {
 					if (strcmp(*aname, tokval))
@@ -177,7 +180,7 @@ next:
 				exit(1);
 			}
 			if (token() && *apass == 0) {
-				*apass = malloc(strlen(tokval) + 1);
+				*apass = (char *)malloc(strlen(tokval) + 1);
 				strcpy(*apass, tokval);
 			}
 			break;
@@ -716,7 +719,7 @@ char *sttyname;
 
 	if(sttyname == NULL || sttyname[0] == 0)return(NULL);
 
-	fdutmp = fopen("/etc/utmp","r");
+	fdutmp = fopen(_PATH_UTMP,"r");
 	if(fdutmp == NULL)return(NULL);
 
 	while(fread(&utmpstr,1,sizeof utmpstr,fdutmp) == sizeof utmpstr)

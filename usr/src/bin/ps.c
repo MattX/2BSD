@@ -1,4 +1,6 @@
 /*
+ *	1996/11/16 - Move 'psdatabase' in /var/run.
+ *
  *	12/20/94 - Missing casts caused errors in reporting on swapped
  *		   processes - sms
  *	1/7/93 - Heavily revised when the symbol table format changed - sms
@@ -59,11 +61,7 @@
 	int	nproc;
 	int	nchans;
 	int	nttys;
-#ifndef	PSFILE
-	char	*psdb	= "/etc/psdatabase";
-#else
-	char	*psdb	= PSFILE;
-#endif
+	char	*psdb	= "/var/run/psdatabase";
 	int	npr;			/* number of processes found so far */
 	int	twidth;			/* terminal width */
 	int	cmdstart;		/* start position for command field */
@@ -497,7 +495,7 @@ register int np;
 		/*
 		 * If we want names, traverse the password file. For each
 		 * passwd entry, look for it in the processes.
-		 * In case of multiple entries in /etc/passwd, we believe
+		 * In case of multiple entries in the password file we believe
 		 * the first one (same thing ls does).
 		 */
 		while ((pw = getpwent()) != (struct passwd *) NULL) {

@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)process.c	5.4.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)process.c	5.4.2 (2.11BSD GTE) 1996/11/16";
 #endif
 
 /*
@@ -156,8 +156,8 @@ find_user(name, tty)
 	struct stat statb;
 	char ftty[20];
 
-	if ((fd = fopen("/etc/utmp", "r")) == NULL) {
-		perror("Can't open /etc/utmp");
+	if ((fd = fopen(_PATH_UTMP, "r")) == NULL) {
+		warn("Can't open %s", _PATH_UTMP);
 		return (FAILED);
 	}
 #define SCMPN(a, b)	strncmp(a, b, sizeof (a))

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)talk.1	6.2 (Berkeley) 5/5/86
+.\"	@(#)talk.1	6.2.1 (2.11BSD) 1996/11/27
 .\"
-.TH TALK 1 "May 5, 1986"
+.TH TALK 1 "November 27, 1996"
 .UC 5
 .SH NAME
 talk \- talk to another user
@@ -88,7 +88,7 @@ messages in order to prevent messy output.
 .SH FILES
 /etc/hosts	to find the recipient's machine
 .br
-/etc/utmp	to find the recipient's tty
+/var/run/utmp	to find the recipient's tty
 .SH "SEE ALSO"
 mesg(1), who(1), mail(1), write(1)
 .SH BUGS
