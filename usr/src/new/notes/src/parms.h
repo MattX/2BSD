@@ -79,7 +79,7 @@ static char zzparms[] = "$Header: parms.h,v 1.7.0.12 86/08/28 22:55:49 notes Rel
  *		BIGTEXT		change from a u_short to a long counter
  *				to allow longer texts...
  *		SYSLOG		define with a syslog(3) facility to write
- *				errors to /etc/syslogd.  Currently used only
+ *				errors to ``syslogd''.  Currently used only
  *				by newsinput/newsoutput.
  */
 

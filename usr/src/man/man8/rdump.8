@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rdump.8c	6.1 (Berkeley) 4/27/85
+.\"	@(#)rdump.8	6.1.1 (2.11BSD) 1996/11/17
 .\"
-.TH RDUMP 8C "April 27, 1985"
+.TH RDUMP 8 "November 17, 1996"
 .UC 5
 .SH NAME
 rdump \- file system dump across the network
 .SH SYNOPSIS
-.B /etc/rdump
+.B rdump
 [ key [
 .I argument
 \&... ] filesystem ]
@@ -29,12 +29,12 @@ supplied should be of the form
 .PP
 .I Rdump
 creates a remote server,
-.IR /etc/rmt ,
+.IR /usr/sbin/rmt ,
 on the client machine to access the tape
 device.
 .SH "SEE ALSO"
 dump(8),
-rmt(8C)
+rmt(8)
 .SH DIAGNOSTICS
 Same as 
 .IR dump (8)

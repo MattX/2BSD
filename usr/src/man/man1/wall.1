@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)wall.1	6.1 (Berkeley) 4/29/85
+.\"	@(#)wall.1	6.1.1 (2.11BSD) 1996/11/27
 .\"
-.TH WALL 1 "April 29, 1985"
+.TH WALL 1 "November 27, 1996"
 .UC 4
 .SH NAME
 wall \- write to all users
@@ -23,7 +23,7 @@ any protections the users may have invoked.
 .SH FILES
 /dev/tty?
 .br
-/etc/utmp
+/var/run/utmp
 .SH "SEE ALSO"
 mesg(1), write(1)
 .SH DIAGNOSTICS

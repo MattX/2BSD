@@ -28,7 +28,7 @@ remove them these days) then it makes sense to make TMPDIR be /tmp/jove.
 But if you want to recover buffers on system crashes, you should create a
 directory that doesn't get cleared upon reboot, and use that instead.
 You would probably want to clean out that directory periodically with
-/etc/cron.
+``cron''.
 
 For the pdp11 version there is the Ovmakefile.  This has only been tested
 on 2.9bsd.  It works pretty well, actually, and it is possible to turn on

@@ -185,19 +185,19 @@ utility: $(UTILCMDS)
 
 base:
 	-mkdir $(MSTDIR) $(ARCHDIR)
-	-/etc/chown $(NOTES) $(MSTDIR) $(ARCHDIR)
+	-chown $(NOTES) $(MSTDIR) $(ARCHDIR)
 	-chgrp $(NOTESGRP) $(MSTDIR) $(ARCHDIR)
 	(cd $(BIN); touch notes nfprint nfstats checknotes nfpipe)
-	-(cd $(BIN); /etc/chown $(NOTES) notes nfprint nfstats nfpipe checknotes)
+	-(cd $(BIN); chown $(NOTES) notes nfprint nfstats nfpipe checknotes)
 	-(cd $(BIN); chgrp $(NOTESGRP) notes nfprint nfstats nfpipe checknotes)
 #	establish "aliases" for auto-sequencing entry points
 #	make more links with other names if you want them.
 	- ln -s $(BIN)/notes $(BIN)/$(AUTOSEQ)
 	-(cd $(NET); touch nfxmit nfrcv)
-	-(cd $(NET); /etc/chown $(NOTES) nfxmit nfrcv)
+	-(cd $(NET); chown $(NOTES) nfxmit nfrcv)
 	-(cd $(NET); chgrp $(NOTESGRP) nfxmit nfrcv)
 	touch $(LIBDIR)/libnfcom.a
-	-/etc/chown $(NOTES) $(LIBDIR)/libnfcom.a
+	-chown $(NOTES) $(LIBDIR)/libnfcom.a
 	-chgrp $(NOTESGRP) $(LIBDIR)/libnfcom.a
 	touch base
 	@echo base generation done
@@ -210,18 +210,18 @@ boot:	spool $(UNIQID) install
 
 spool:
 	-mkdir $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES)
-	-/etc/chown $(NOTES) $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES)
+	-chown $(NOTES) $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES)
 	-chgrp $(NOTESGRP) $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES)
 	chmod 775 $(MSTDIR) $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES)
 	-mkdir $(UTILITY)/coredump
 	chmod 777 $(UTILITY)/coredump
-	-/etc/chown $(NOTES) $(UTILITY)/coredump
+	-chown $(NOTES) $(UTILITY)/coredump
 	-chgrp $(NOTESGRP) $(UTILITY)/coredump
 #	generate the available notesfile file here - only once!
 	echo "available notesfiles" > $(UTILITY)/avail.notes
 	cp moderators $(UTILITY)/moderators
 	touch $(UTILITY)/Dflt-Seq
-	-/etc/chown $(NOTES) $(UTILITY)/moderators $(UTILITY)/avail.notes $(UTILITY)/Dflt-Seq
+	-chown $(NOTES) $(UTILITY)/moderators $(UTILITY)/avail.notes $(UTILITY)/Dflt-Seq
 	-chgrp $(NOTESGRP) $(UTILITY)/moderators $(UTILITY)/avail.notes $(UTILITY)/Dflt-Seq
 	chmod 664 $(UTILITY)/avail.notes $(UTILITY)/Dflt-Seq
 	touch spool
@@ -230,7 +230,7 @@ spool:
 $(UNIQID):
 	echo 1 > $(UNIQID)
 	chmod 660 $(UNIQID)
-	-/etc/chown $(NOTES) $(UNIQID)
+	-chown $(NOTES) $(UNIQID)
 	-chgrp $(NOTESGRP) $(UNIQID)
 
 #	make sure that all the appropriate directories exist
@@ -240,13 +240,13 @@ dirs:	$(MSTDIR) $(ARCHDIR) $(UTILITY) $(SEQUENCER) $(LOCKS) \
 
 $(MSTDIR) $(ARCHDIR) $(UTILITY) $(SEQUENCER) $(LOCKS) $(ALIASES):
 	-mkdir $@
-	-/etc/chown $(NOTES) $@
+	-chown $(NOTES) $@
 	-chgrp $(NOTESGRP) $@
 	chmod 775 $@
 
 $(UTILITY)/coredump:
 	-mkdir $@
-	-/etc/chown $(NOTES) $@
+	-chown $(NOTES) $@
 	-chgrp $(NOTESGRP) $@
 	chmod 777 $@
 
@@ -257,7 +257,7 @@ install: dirs $(UNIQID) placedoc placelib placebin
 placedoc:	$(HLPFILES)
 	cp $? $(UTILITY)
 	-(cd $(UTILITY); chmod 644 $?)
-	-(cd $(UTILITY); /etc/chown $(NOTES) $?; chgrp $(NOTESGRP) $?)
+	-(cd $(UTILITY); chown $(NOTES) $?; chgrp $(NOTESGRP) $?)
 	@echo notesfile help files installed
 	touch placedoc
 

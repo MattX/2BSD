@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)dumpoptr.c	1.4 (Berkeley) 12/17/80";
+static	char *sccsid = "@(#)dumpoptr.c	1.4.1 (2.11BSD) 1996/11/17";
 #include "dump.h"
 
 struct	group *getgrnam();
@@ -139,8 +139,8 @@ broadcast(message)
 	clock = time((time_t *)0);
 	localclock = localtime(&clock);
 
-	if((f_utmp = fopen("/etc/utmp", "r")) == NULL) {
-		msg("Cannot open /etc/utmp\n");
+	if((f_utmp = fopen(_PATH_UTMP, "r")) == NULL) {
+		msg("Cannot open 'utmp'\n");
 		return;
 	}
 

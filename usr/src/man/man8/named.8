@@ -303,12 +303,12 @@ Turns off debugging completely.
 .nf
 .ta \w'/usr/tmp/named_dump.db   'u
 /etc/named.boot	name server configuration boot file
-/etc/named.pid	the process id
+/var/run/named.pid	the process id
 /usr/tmp/named.run	debug output
 /usr/tmp/named_dump.db	dump of the name server database
 /usr/tmp/named.stats	nameserver statistics data
 .fi
 .SH "SEE ALSO"
-kill(1), gethostbyname(3N), signal(3c), resolver(3), resolver(5), hostname(7),
+kill(1), gethostbyname(3), signal(3), resolver(3), resolver(5), hostname(7),
 RFC882, RFC883, RFC973, RFC974,
 \fIName Server Operations Guide for BIND\fR

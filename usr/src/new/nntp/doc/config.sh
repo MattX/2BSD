@@ -14,8 +14,8 @@
 MINETD=/usr/sbin/inetd
 # the location of the inetd configuration file (usually /etc/inetd.conf)
 MINETDCONFIG=/etc/inetd.conf
-# the location of nntpd following installation (usually /etc/nntpd)
-MNNTPD=/etc/nntpd
+# the location of nntpd following installation (usually /news/lib/nntpd)
+MNNTPD=/news/lib/nntpd
 # the location of the hosts file (usually /etc/hosts)
 MHOSTFILE=/etc/hosts
 # the location of the services file (usually /etc/services)

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)utmp.5	6.2 (Berkeley) 6/23/85
+.\"	@(#)utmp.5	6.2.1 (2.11BSD) 1996/11/27
 .\"
-.TH UTMP 5  "June 23, 1985"
+.TH UTMP 5  "November 27, 1996"
 .UC 4
 .SH NAME
 utmp, wtmp \- login records
@@ -48,7 +48,7 @@ Neither of these programs creates the file,
 so if it is removed record-keeping is turned off.  It is summarized by
 .IR ac (8).
 .SH FILES
-/etc/utmp
+/var/run/utmp
 .br
 /usr/adm/wtmp
 .SH "SEE ALSO"

@@ -33,15 +33,15 @@ nntp		119/tcp		readnews	# Network News Transfer Protocol
 	      of the news server.  On 4.3 BSD machines this should
 	      look like:
 
-nntp	stream	tcp	nowait	root	/etc/nntpd	nntpd
+nntp	stream	tcp	nowait	root	/news/lib/nntpd	nntpd
 
 	      while under Ultrix or 4.2 BSD machines:
 
-nntp	stream	tcp	nowait	/etc/nntpd	nntpd
+nntp	stream	tcp	nowait	/news/lib/nntpd	nntpd
 
 	      On a Sun, the file is /etc/servers; the line looks like:
 
-nntp	tcp	/usr/etc/in.nntpd
+nntp	tcp	/news/lib/in.nntpd
 
 	      Be sure to yppush your /etc/servers file if you run
 	      yellow pages.
@@ -75,7 +75,7 @@ Else, if you're using decnet:
 
 	2. && 3. Define the NNTP object with ncp:
 
-ncp define object NNTP number 0 file /etc/nntpd
+ncp define object NNTP number 0 file /news/lib/nntpd
 ncp define object NNTP default user guest type stream
 
 ncp set object NNTP all			# just once for the running system

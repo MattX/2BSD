@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)routed.8c	6.2 (Berkeley) 5/24/86
+.\"	@(#)routed.8	6.2.1 (2.11BSD) 1996/11/17
 .\"
-.TH ROUTED 8C "May 24, 1986"
+.TH ROUTED 8 "November 17, 1996"
 .UC 5
 .SH NAME
 routed \- network routing daemon
 .SH SYNOPSIS
-.B /etc/routed
+.B routed
 [
 .B \-d
 ] [
@@ -36,7 +36,7 @@ within a cluster of networks.
 In normal operation
 .I routed
 listens on the
-.IR udp (4P)
+.IR udp (4)
 socket for the
 .I route
 service (see
@@ -246,7 +246,7 @@ or
 .IR named (8),
 known to the name server), 
 or an Internet address specified in ``dot'' notation; see
-.IR inet (3N).
+.IR inet (3).
 .PP
 .I Name2
 is the name or address of the gateway to which messages should
@@ -284,7 +284,7 @@ should contact the Computer Systems Research Group at Berkeley.
 ``Internet Transport Protocols'', XSIS 028112, Xerox System Integration
 Standard.
 .br
-udp(4P), XNSrouted(8C), htable(8)
+udp(4), XNSrouted(8), htable(8)
 .SH BUGS
 The kernel's routing tables may not correspond to those of
 .I routed
@@ -295,7 +295,7 @@ process in the kernel.
 .I Routed
 should incorporate other routing protocols,
 such as Xerox NS
-.RI ( XNSrouted (8C))
+.RI ( XNSrouted (8))
 and EGP.
 Using separate processes for each requires configuration options
 to avoid redundant or competing routes.

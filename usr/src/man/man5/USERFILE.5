@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)USERFILE.5	6.1.1 (2.11BSD) 1996/10/22
+.\"	@(#)USERFILE.5	6.1.2 (2.11BSD) 1996/11/27
 .\"
-.TH USERFILE 5 "October 22, 1996"
+.TH USERFILE 5 "November 27, 1996"
 .UC 6
 .SH NAME
 USERFILE \- \s-1UUCP\s0 pathname permissions file
@@ -112,7 +112,7 @@ the following strategy is used to determine the current
 .TP
 1)
 If the process is attached to a terminal, a login entry exists in
-.IR /etc/utmp ,
+.IR /var/run/utmp ,
 and the UID for the
 .I utmp
 name matches the current real UID, then

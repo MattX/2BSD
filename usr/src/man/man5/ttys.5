@@ -1,6 +1,6 @@
-.\"	@(#)ttys.5	6.4 (Berkeley) 5/20/86
+.\"	@(#)ttys.5	6.4.1 (2.11BSD) 1996/11/16
 .\"
-.TH TTYS 5  "May 20, 1986"
+.TH TTYS 5  "November 16, 1996"
 .AT 3
 .SH NAME
 ttys \- terminal initialization data
@@ -60,11 +60,11 @@ field of the ttyent structure.
 Some examples:
 .PP
 .nf
-.ta \w'console\ 'u +\w'"/etc/getty std.9600"\ \ \ 'u +\w'hp2621-nl\ \ \ \ 'u +.7i
-console	"/etc/getty std.1200"	vt100	on secure
-ttyd0	"/etc/getty d1200"	dialup	on	# 555-1234
-ttyh0	"/etc/getty std.9600"	hp2621-nl	on	# 254MC
-ttyh1	"/etc/getty std.9600"	plugboard	on	# John's office
+.ta \w'console\ 'u +\w'"/usr/libexec/getty std.9600"\ \ \ 'u +\w'hp2621-nl\ \ \ \ 'u +.7i
+console	"/usr/libexec/getty std.1200"	vt100	on secure
+ttyd0	"/usr/libexec/getty d1200"	dialup	on	# 555-1234
+ttyh0	"/usr/libexec/getty std.9600"	hp2621-nl	on	# 254MC
+ttyh1	"/usr/libexec/getty std.9600"	plugboard	on	# John's office
 ttyp0	none	network
 ttyp1	none	network	off
 ttyv0	"/usr/new/xterm -L :0"	vs100	on window="/usr/new/Xvs100 0"

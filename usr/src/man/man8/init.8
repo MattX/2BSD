@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)init.8	6.2 (Berkeley) 5/22/86
+.\"	@(#)init.8	6.2.1 (2.11BSD) 1996/11/27
 .\"
-.TH INIT 8 "May 22, 1986"
+.TH INIT 8 "November 27, 1996"
 .UC 4
 .SH NAME
 init \- process control initialization
@@ -42,7 +42,7 @@ To begin such operations, it reads the file
 and
 executes a command for each terminal specified in the file.
 This command will usually be
-.IR /etc/getty .
+.IR /usr/libexec/getty .
 .I Getty
 opens and initializes the terminal line,
 reads the user's name and invokes
@@ -60,9 +60,9 @@ wakes up and removes the appropriate entry from the
 file
 .IR utmp ,
 which records current users, and
-makes an entry in
-.IR /usr/adm/wtmp ,
-which maintains a history
+makes an entry in the
+.IR wtmp ,
+file which maintains a history
 of logins and logouts.
 The
 .I wtmp
@@ -122,7 +122,7 @@ If, at bootstrap time, the
 process cannot be located, the system will loop in user mode at location
 0x13.
 .SH DIAGNOSTICS
-\fB/etc/getty\fP \fIgettyargs\fP\fB failing, sleeping\fP.
+\fB/usr/libexec/getty\fP \fIgettyargs\fP\fB failing, sleeping\fP.
 A process being started to service a line is exiting quickly
 each time it is started.
 This is often caused by a ringing or noisy terminal line.
@@ -135,10 +135,10 @@ which is stuck in a device driver due to a persistent device error condition.
 .SH FILES
 /dev/console,
 /dev/tty*,
-/etc/utmp,
+/var/run/utmp,
 /usr/adm/wtmp,
 /etc/ttys,
 /etc/rc
 .SH "SEE ALSO"
-login(1), kill(1), sh(1), ttys(5), crash(8V), getty(8), rc(8), reboot(8),
+login(1), kill(1), sh(1), ttys(5), crash(8), getty(8), rc(8), reboot(8),
 halt(8), shutdown(8)

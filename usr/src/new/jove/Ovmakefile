@@ -11,7 +11,7 @@
 # But if you want to recover buffers on system crashes, you should create a
 # directory that doesn't get clearned upon reboot, and use that instead.
 # You would probably want to clean out that directory periodically with
-# /etc/cron.  LIBDIR is for online documentation, the PORTSRV process,
+# ``cron''.  LIBDIR is for online documentation, the PORTSRV process,
 # RECOVER, and the system-wide .joverc file.  BINDIR is where to put the
 # executables JOVE and TEACHJOVE.  MANDIR is where the manual pages go for
 # JOVE, RECOVER and TEACHJOVE.  MANEXT is the extension for the man pages,

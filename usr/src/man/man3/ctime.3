@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ctime.3	6.7 (Berkeley) 3/22/87
+.\"	@(#)ctime.3	6.7.1 (2.11BSD) 1996/11/27
 .\"
-.TH CTIME 3  "March 22, 1987"
+.TH CTIME 3  "November 27, 1996"
 .UC 4
 .SH NAME
 ctime, localtime, gmtime, asctime, timezone, tzset \-  convert date and time to ASCII
@@ -57,7 +57,7 @@ such as returned by \fItime\fP(2) into ASCII and returns a pointer
 to a 26-character string in the following form.  All the fields
 have constant width.
 .PP
-    Sun Sep 16 01:03:52 1973\\n\\0
+    Sun Sep 16 01:03:52 1973\\n
 .PP
 .I Localtime
 and
@@ -118,10 +118,10 @@ GMT, and the string \fBGMT+4:30\fP is returned.  Programs that in the
 past used the \fItimezone\fP function should return the zone name as
 set by \fIlocaltime\fP to assure correctness.
 .SH FILES
-.ta \w'/etc/zoneinfo/localtime\0\0'u
-/etc/zoneinfo	time zone information directory
+.ta \w'/usr/share/zoneinfo'u
+/usr/share/zoneinfo	time zone information directory
 .br
-/etc/zoneinfo/localtime	local time zone file
+/etc/localtime	local time zone file
 .SH SEE ALSO
 gettimeofday(2), getenv(3), time(3), tzfile(5), environ(7)
 .SH NOTE

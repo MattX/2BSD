@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)sysexits.h	4.3 (Berkeley) 12/15/87
+ *	@(#)sysexits.h	4.3.1 (2.11BSD) 1996/11/29
  */
 
 /*
@@ -51,7 +51,7 @@
 **		fork", "cannot create pipe", or the like.  It includes
 **		things like getuid returning a user that does not
 **		exist in the passwd file.
-**	EX_OSFILE -- Some system file (e.g., /etc/passwd, /etc/utmp,
+**	EX_OSFILE -- Some system file (e.g., /etc/passwd, /var/run/utmp,
 **		etc.) does not exist, cannot be opened, or has some
 **		sort of error (e.g., syntax error).
 **	EX_CANTCREAT -- A (user specified) output file cannot be

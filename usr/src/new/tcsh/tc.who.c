@@ -77,7 +77,7 @@ struct utmp __ut;
 # ifdef	UTMP_FILE
 #  define _PATH_UTMP UTMP_FILE
 # else
-#  define _PATH_UTMP "/etc/utmp"
+#  define _PATH_UTMP "/var/run/utmp"
 # endif				/* UTMP_FILE */
 #endif				/* _PATH_UTMP */
 
@@ -146,7 +146,7 @@ resetwatch()
 
 /*
  * Karl Kleinpaste, 26 Jan 1984.
- * Watch /etc/utmp for login/logout changes.
+ * Watch /var/run/utmp for login/logout changes.
  */
 void
 watch_login()

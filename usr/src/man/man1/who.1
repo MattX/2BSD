@@ -1,6 +1,6 @@
-.\"	@(#)who.1	6.1 (Berkeley) 4/29/85
+.\"	@(#)who.1	6.1.1 (2.11BSD) 1996/11/27
 .\"
-.TH WHO 1 "April 29, 1985"
+.TH WHO 1 "November 27, 1996"
 .AT 3
 .SH NAME
 who \- who is on the system
@@ -18,7 +18,7 @@ for each current UNIX user.
 Without an argument,
 .I who
 examines the
-.I /etc/utmp
+.I /var/run/utmp
 file to obtain its information.
 If a file is given, that file is examined.
 Typically the given file will be /usr/adm/wtmp,
@@ -42,6 +42,6 @@ as in `who am I' (and also `who are you'),
 .I who
 tells who you are logged in as.
 .SH FILES
-/etc/utmp
+/var/run/utmp
 .SH "SEE ALSO"
 getuid(2), utmp(5)

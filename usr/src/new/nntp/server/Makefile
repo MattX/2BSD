@@ -25,7 +25,7 @@ CFLAGS	= -O
 
 # Where nntpd is going to live
 
-DESTDIR	= /etc
+DESTDIR	= /news/lib
 
 all:	nntpd
 

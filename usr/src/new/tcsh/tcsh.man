@@ -1,5 +1,5 @@
 .\" $Id: tcsh.man,v 3.0 1991/07/04 21:54:11 christos Exp $
-.TH TCSH 1 "23 October 1996"
+.TH TCSH 1 "27 November 1996"
 .SH NAME
 tcsh \- C shell with file name completion and command line editing
 .SH SYNOPSIS
@@ -1437,7 +1437,7 @@ The following sequences are available for the format specification:
 .fi
 .sp
 The %M and %m sequences are only available on systems that store the
-remote hostname in /etc/utmp. If
+remote hostname in /var/run/utmp. If
 .I who
 is not set, the format defaults to "%n has %a %l from %m.", or
 "%n has %a %l." on systems that don't store the hostname.

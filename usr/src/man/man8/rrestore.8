@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rrestore.8c	6.2 (Berkeley) 6/3/86
+.\"	@(#)rrestore.8	6.2.1 (2.11BSD) 1996/11/17
 .\"
-.TH RRESTORE 8C "June 3, 1986"
+.TH RRESTORE 8 "November 17, 1996"
 .UC 5
 .SH NAME
 rrestore \- restore a file system dump across the network
 .SH SYNOPSIS
-.B /etc/rrestore
+.B rrestore
 [ key [
 name ... ]
 .SH DESCRIPTION
@@ -27,12 +27,12 @@ supplied should be of the form
 .PP
 .I Rrestore
 creates a remote server,
-.IR /etc/rmt ,
+.IR rmt ,
 on the client machine to access the tape
 device.
 .SH "SEE ALSO"
 restore(8),
-rmt(8C)
+rmt(8)
 .SH DIAGNOSTICS
 Same as 
 .IR restore (8)

@@ -1,12 +1,12 @@
 .\"
-.\"	@(#)dump.8	1.1 (2.11BSD GTE) 12/10/94
+.\"	@(#)dump.8	1.2 (2.11BSD GTE) 1996/11/17
 .\"
 .TH DUMP 8
 .UC 4
 .SH NAME
 dump \- incremental file system dump
 .SH SYNOPSIS
-.B /etc/dump
+.B dump
 [0123456789BchfusTdWwn [\fIargument\fP\& ...]] [filesystem]
 .SH DESCRIPTION
 .I Dump
@@ -220,7 +220,7 @@ on a set of fresh tapes that is saved forever.
 .DT
 .br
 .SH "SEE ALSO"
-restor(1), dump(5), fstab(5), dumpdir(8)
+restor(8), rdump(8), dump(5), fstab(5), dumpdir(8)
 .SH DIAGNOSTICS
 Many, and verbose.
 .SH BUGS
