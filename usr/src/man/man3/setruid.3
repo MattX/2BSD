@@ -1,4 +1,4 @@
-.\" Copyright (c) 1980, 1991, 1993
+.\" Copyright (c) 1983, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -29,50 +29,47 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)getuid.2	8.1.1 (2.11BSD) 1997/12/2
+.\"     @(#)setruid.3	8.1.1 (2.11BSD) 1997/12/3
 .\"
-.TH GETUID 2 "December 2, 1997"
-.UC 5
+.TH SETRUID 3 "December 3, 1997"
+.UC 4
 .SH NAME
-\fBgetuid\fP, \fBgeteuid\fP \- get user identification
+\fBsetruid\fP, \fBsetrgid\fP \- set user and group ID
 .SH SYNOPSIS
-.nf
-.B #include <unistd.h>
 .B #include <sys/types.h>
+.nf
+\fIint\fP
+\fBsetruid\fP(ruid)
+\ \ \ \ uid_t ruid
 .sp
-\fIuid_t\fP
-\fBgetuid\fP()
-.sp
-\fIuid_t\fP
-\fBgeteuid\fP()
+\fIint\fP
+\fBsetrgid\fP(rgid)
+\ \ \ \ gid_t rgid
 .fi
 .SH DESCRIPTION
 The
-.B getuid
-function returns the real user ID of the calling process.
-The
-.B geteuid
+.B setruid
 function
-returns the effective user ID of the calling process.
+(\fBsetrgid\fP)
+sets the real user ID (group ID) of the
+current process.
+.SH RETURN VALUES
+Upon success, these functions return 0;
+otherwise \-1 is returned.
 .PP
-The real user ID is that of the user who has invoked the program.
-As the effective user ID
-gives the process additional permissions during
-execution of ``\fIset-user-ID\fP''
-mode processes,
-.B getuid
-is used to determine the real-user-id of the calling process.
-.SH ERRORS
-The
-.B getuid
-and
-.B geteuid
-functions are always successful, and no return value is reserved to
-indicate an error.
+If the user is not the super user, or the uid
+specified is not the real or effective ID, these
+functions return \-1.
+.PP
+The use of these calls is not portable.
+Their use is discouraged; they will be removed in the future.
 .SH SEE ALSO
-getgid(2), setreuid(2)
-.SH STANDARDS
-.B Geteuid
+setuid(2), setgid(2), seteuid(2), setegid(2), getuid(2), getgid(2)
+.SH HISTORY
+The
+.B setruid
 and
-.B getuid
-conform to IEEE Std 1003.1-1988 (``POSIX'').
+.B setrgid
+syscalls appeared in 4.2BSD
+and were dropped in
+4.4BSD.

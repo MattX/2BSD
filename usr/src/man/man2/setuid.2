@@ -29,49 +29,98 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)getgid.2	8.1.1 (2.11BSD) 1997/12/2
+.\"     @(#)setuid.2	8.1.1 (2.11BSD) 1997/12/3
 .\"
-.TH GETGID 2 "December 2, 1997"
+.TH SETUID 2 "December 3, 1997"
 .UC 5
 .SH NAME
-\fBgetgid\fP, \fBgetegid\fP \- get group process identification
+\fBsetuid\fP, \fBseteuid\fP,\fBsetgid\fP,\fBsetegid\fP \- set user and group ID
 .SH SYNOPSIS
-.B #include <sys/types.h>
-.sp
 .nf
-\fIgid_t\fP
-\fBgetgid\fP()
+.B #include <sys/types.h>
+.B #include <unistd.h>
 .sp
-\fIgid_t\fP
-\fBgetegid\fP()
+\fIint\fP
+\fBsetuid\fP(uid)
+\ \ \ \ uid_t uid
+.sp
+\fIint\fP
+\fBseteuid\fP(euid)
+\ \ \ \ uid_t euid
+.sp
+\fIint\fP
+\fBsetgid\fP(gid)
+\ \ \ \ gid_t gid
+.sp
+\fIint\fP
+\fBsetegid\fP(egid)
+\ \ \ \ gid_t egid
 .fi
 .SH DESCRIPTION
 The
-.B getgid
-function returns the real group ID of the calling process,
-.B getegid
-returns the effective group ID of the calling process.
-.PP
-The real group ID is specified at login time.
-.PP
-The real group ID is the group of the user who invoked the program.
-As the effective group ID gives the process additional permissions
-during the execution of
-``\fIset-group-ID\fP''
-mode processes,
-.B getgid
-is used to determine the real-user-id of the calling process.
-.SH ERRORS
+.B setuid
+function
+sets the real and effective
+user IDs and the saved set-user-ID of the current process
+to the specified value.
 The
-.B getgid
+.B setuid
+function is permitted if the specified ID is equal to the real user ID
+of the process, or if the effective user ID is that of the super user.
+.PP
+The
+.B setgid
+function
+sets the real and effective
+group IDs and the saved set-group-ID of the current process
+to the specified value.
+The
+.B setgid
+function is permitted if the specified ID is equal to the real group ID
+of the process, or if the effective user ID is that of the super user.
+.PP
+The
+.B seteuid
+function
+(\fBsetegid\fP)
+sets the effective user ID (group ID) of the
+current process.
+The effective user ID may be set to the value
+of the real user ID or the saved set-user-ID (see
+intro(2)
 and
-.B getegid
-functions are always successful, and no return value is reserved to
-indicate an error.
+execve(2);
+in this way, the effective user ID of a set-user-ID executable
+may be toggled by switching to the real user ID, then re-enabled
+by reverting to the set-user-ID value.
+Similarly, the effective group ID may be set to the value
+of the real group ID or the saved set-user-ID.
+.PP
+.SH RETURN VALUES
+Upon success, these functions return 0;
+otherwise \-1 is returned.
+.PP
+If the user is not the super user, or the uid
+specified is not the real, effective ID, or saved ID,
+these functions return \-1.
 .SH SEE ALSO
-getuid(2), setregid(2), setgid(3)
+getuid(2), getgid(2)
 .SH STANDARDS
-.B Getgid
+The
+.B setuid
 and
-.B getegid
-conform to IEEE Std 1003.1-1988 (``POSIX'').
+.B setgid
+functions are compliant with the
+IEEE Std 1003.1-1988 (``POSIX'')
+specification with
+_POSIX_SAVED_IDS
+not defined.
+The
+.B seteuid
+and
+.B setegid
+functions are extensions based on the 
+POSIX
+concept of
+_POSIX_SAVED_IDS ,
+and have been proposed for a future revision of the standard.
