@@ -1,7 +1,8 @@
-#	@(#)services	1.16 (Berkeley) 86/04/20
+#	@(#)services	1.16.1 (2.11BSD) 1996/11/13
 #
 # Network services, Internet style
 #
+tcpmux		1/tcp				# TCP port multiplexer (RFC1078)
 echo		7/tcp
 echo		7/udp
 discard		9/tcp		sink null

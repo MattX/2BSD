@@ -1,5 +1,5 @@
 HOME=/; export HOME
-PATH=/etc:/bin:/usr/ucb:/usr/bin; export PATH
+PATH=/etc:/bin:/sbin:/usr/sbin:/usr/ucb:/usr/bin; export PATH
 
 # If you have a ram disk configured into your system which is listed in
 # /etc/fstab, you'll have to do a mkfs on it here and probably change the
@@ -127,7 +127,7 @@ if [ $INET = YES ]; then
 	if [ "${named-NO}" != NO ]; then
 		named;			echo -n ' named'>/dev/console 2>&1
 	fi
-	inetd;			echo -n ' inetd'	>/dev/console 2>&1
+	/usr/sbin/inetd;		echo -n ' inetd'>/dev/console 2>&1
 
 	# $rwhod is imported from /etc/netstart;
 	# if $rwhod is set to something other than NO, rwhod is run.

@@ -42,7 +42,7 @@ LONG TERM TASKS
 	cleanqueue -- return expired messages; basic consistency
 		checking.
 	smtpserver -- process smtp connections, pass to queueup -- this
-		can probably become a simple service a la /etc/inetd.
+		can probably become a simple service a la 'inetd'.
 	addrtest -- essentially "-bt" mode.
 	verifyaddr -- verify an address list -- "-bv" mode -- needs a
 		"noisy" and a "silent" mode (exit status only).  This

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14.7 (2.11BSD GTE) 1996/10/21
+#	@(#)Makefile	5.14.8 (2.11BSD GTE) 1996/11/13
 #
 DESTDIR=
 CFLAGS=	-O
@@ -24,7 +24,7 @@ SCRIPT= mklost+found
 #
 STD=	ac accton arff bad144 badsect catman chown clri comsat \
 	cron dcheck diskpart dumpfs edquota flcopy \
-	gettable ifconfig icheck inetd init newfs mkfs mknod \
+	gettable ifconfig icheck init newfs mkfs mknod \
 	mkproto ncheck quotaon reboot renice \
 	repquota rexecd rmt route rwhod rxformat sa savecore \
 	shutdown slattach swapon syslogd telnetd tunefs update

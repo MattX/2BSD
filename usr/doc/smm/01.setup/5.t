@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	6.1.1 (2.11BSD) 1996/10/24
+.\"	@(#)5.t	6.1.2 (2.11BSD) 1996/11/14
 .\"
 .ds lq ``
 .ds rq ''
@@ -327,7 +327,7 @@ Network servers
 .PP
 In \*(4B most of the server programs are started up by a
 ``super server'', the Internet daemon.  The Internet
-daemon, \fI/etc/inetd\fP, acts as a master server for
+daemon, \fI/usr/sbin/inetd\fP, acts as a master server for
 programs specified in its configuration file, \fI/etc/inetd.conf\fP,
 listening for service requests for these servers, and starting
 up the appropriate program whenever a request is received.

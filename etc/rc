@@ -143,7 +143,7 @@ if [ $INET = YES ]; then
 	if [ "${named-NO}" != NO ]; then
 		/etc/named;		echo -n ' named'>/dev/console 2>&1
 	fi
-	/etc/inetd;		echo -n ' inetd'	>/dev/console 2>&1
+	/usr/sbin/inetd;		echo -n ' inetd'>/dev/console 2>&1
 
 	# $rwhod is imported from /etc/netstart;
 	# if $rwhod is set to something other than NO, rwhod is run.

@@ -10,8 +10,8 @@
 # ------------- SITE DEPENDENT STUFF ---------------------------
 # (modify these lines to suit your system)
 #
-# the location of inetd on your system (usually /etc/inetd)
-MINETD=/etc/inetd
+# the location of inetd on your system (usually /usr/sbin/inetd)
+MINETD=/usr/sbin/inetd
 # the location of the inetd configuration file (usually /etc/inetd.conf)
 MINETDCONFIG=/etc/inetd.conf
 # the location of nntpd following installation (usually /etc/nntpd)

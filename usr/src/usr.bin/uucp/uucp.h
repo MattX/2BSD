@@ -140,12 +140,12 @@
 /*#define BSD2_9 	/**/
 
 /*
- * If you are using /etc/inetd with 4.2bsd, define BSDINETD
+ * If you are using 'inetd' with 4.2bsd, define BSDINETD
  */
 /* #define BSDINETD	/**/
 
 /*
- * If you are running 4.3bsd or BRL 4.2, you are running the inetd
+ * If you are running 4.3bsd, 2.11bsd or BRL 4.2, you are running 'inetd'
  */
 
 #if (defined(BSD4_3) || defined(BRL4_2)) && !defined(BSDINETD)

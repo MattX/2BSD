@@ -1,13 +1,13 @@
 #
 # Public domain - 1996/10/24 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/10/24
+#	@(#)Makefile	1.1 (2.11BSD) 1996/11/13
 #
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG= -i
 
-SUBDIR=	lpr makewhatis sendmail
+SUBDIR=	inetd lpr makewhatis sendmail
 
 all:	${SUBDIR}
 
