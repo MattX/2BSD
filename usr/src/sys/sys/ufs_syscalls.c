@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.10 (2.11BSD GTE) 1997/2/7
+ *	@(#)ufs_syscalls.c	1.11 (2.11BSD GTE) 1997/8/5
  */
 
 #include "param.h"
@@ -716,7 +716,7 @@ chown1(ip, uid, gid)
 		ip->i_flag |= ICHG;
 	if (ouid != uid && u.u_uid != 0)
 		ip->i_mode &= ~ISUID;
-	if (ogid != gid && u.u_gid != 0)
+	if (ogid != gid && u.u_uid != 0)
 		ip->i_mode &= ~ISGID;
 	return (0);
 }
