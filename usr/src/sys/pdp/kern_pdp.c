@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_pdp.c	1.3 (2.11BSD) 1998/4/3
+ *	@(#)kern_pdp.c	1.4 (2.11BSD) 1998/5/12
  */
 
 #include "param.h"
@@ -242,7 +242,7 @@ cpu_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 					return(EOPNOTSUPP);
 				}
 #endif
-#ifdef	NRAC > 0
+#if	NRAC > 0
 		case	CPU_MSCP:
 		/* All sysctl names at this level are terminal */
 			if	(namelen != 2)
