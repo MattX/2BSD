@@ -62,13 +62,15 @@ gotmon:
 		mtmp->mimic = 1;
 		mtmp->mappearance = ']';
 	}
+	/* FIX -- extended scope off `in_mklev' to cover its following three
+		references */
 	{ extern boolean in_mklev;
 	if(!in_mklev) {
 		if(x == u.ux && y == u.uy && ptr->mlet != ' ')
 			mnexto(mtmp);
 		if(x == 0 && y == 0)
 			rloc(mtmp);
-	}}
+	}
 	if(ptr->mlet == 's' || ptr->mlet == 'S') {
 		mtmp->mhide = mtmp->mundetected = 1;
 		if(in_mklev)
@@ -84,7 +86,7 @@ gotmon:
 	if(ptr->mlet == 'L' || ptr->mlet == 'N'
 	    || (in_mklev && index("&w;", ptr->mlet) && rn2(5))
 	) mtmp->msleep = 1;
-
+	}
 #ifndef NOWORM
 	if(ptr->mlet == 'w' && getwn(mtmp))
 		initworm(mtmp);

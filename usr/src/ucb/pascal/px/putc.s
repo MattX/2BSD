@@ -1,20 +1,20 @@
 / putw/putc -- write words/characters on output file
 
 	.globl	_putc, _putw, _fflush, _fcreat
-	.globl cerror, _werflg
+	.globl	_werflg
 	.comm	_errno,2
 
 _fcreat:
 	mov	r5,-(sp)
 	mov	sp,r5
-	mov	4(r5),0f
 	mov	6(r5),r1
 	mov	pc,(r1)		/ a putatively illegal file desc.
-	sys	0; 9f
-.data
-9:	sys	creat; 0:..; 644
-.text
-	bes	badret
+	mov	$0644,-(sp)
+	mov	4(r5),-(sp)
+	jsr	pc,_creat
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	badret
 	mov	r0,(r1)+
 	clr	(r1)+
 	clr	(r1)+
@@ -66,16 +66,16 @@ fl:
 	mov	r1,r0
 	add	$6,r0
 	mov	r0,-(sp)
-	mov	r0,0f
-	mov	4(r1),0f+2
+	tst	4(r1)
 	beq	1f
-	sub	r0,0f+2
-	mov	(r1),r0
-	sys	0; 9f
-.data
-9:	sys	write; 0:..; ..
-.text
-	bec	1f
+	mov	4(r1),-(sp)
+	sub	r0,(sp)
+	mov	r0,-(sp)
+	mov	(r1),-(sp)
+	jsr	pc,_write
+	add	$6,sp
+	tst	r0
+	bpl	1f
 	mov	r0,_werflg
 1:
 	mov	(sp)+,4(r1)
@@ -83,7 +83,9 @@ fl:
 	rts	pc
 
 badret:
-	jmp	cerror
+	mov	r5,sp
+	mov	(sp)+,r5
+	rts	pc
 
 goodret:
 	clr	_errno

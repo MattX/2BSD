@@ -45,18 +45,17 @@ togopt(c)
  */
 gettime()
 {
-	int stbuf[18];
+	struct stat stbuf;
 
 	stat(filename, stbuf);
-	tvec[0] = stbuf[16];
-	tvec[1] = stbuf[17];
+	tvec = stbuf.st_mtime;
 }
 
 /*
- * Convert a "ctime" into a Pascal styple time line
+ * Convert a "ctime" into a Pascal style time line
  */
 myctime(tv)
-	int *tv;
+	time_t *tv;
 {
 	register char *cp, *dp;
 	char *cpp;
@@ -115,7 +114,7 @@ calloc(num, size)
 	if ((p1 = alloc(nbyte)) == -1 || p1==0)
 		return (-1);
 	p2 = p1;
-	nbyte =>> 1;		/* 2 bytes/word */
+	nbyte >>= 1;		/* 2 bytes/word */
 	do {
 		*p2++ = 0;
 	} while (--nbyte);
@@ -194,9 +193,9 @@ opush(c)
 	register CHAR c;
 {
 
-	c =- 'a';
-	optstk[c] =<< 1;
-	optstk[c] =| opts[c];
+	c -= 'a';
+	optstk[c] <<= 1;
+	optstk[c] |= opts[c];
 	opts[c] = 1;
 #ifdef PI0
 	send(ROPUSH, c);
@@ -207,9 +206,9 @@ opop(c)
 	register CHAR c;
 {
 
-	c =- 'a';
+	c -= 'a';
 	opts[c] = optstk[c] & 1;
-	optstk[c] =>> 1;
+	optstk[c] >>= 1;
 #ifdef PI0
 	send(ROPOP, c);
 #endif

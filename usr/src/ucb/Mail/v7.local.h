@@ -1,30 +1,34 @@
 /*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)v7.local.h	5.2 (Berkeley) 9/19/85
+ */
+
+/*
  * Declarations and constants specific to an installation.
  *
  * Vax/Unix version 7.
- */
- 
-/*
- * Sccs Id = "@(#)v7.local.h	2.5 1/29/83";
  */
 
 #define	GETHOST				/* System has gethostname syscall */
 #ifdef	GETHOST
 #define	LOCAL		EMPTYID		/* Dynamically determined local host */
 #else
-#define	LOCAL		'V'		/* Local host id */
+#define	LOCAL		'j'		/* Local host id */
 #endif	GETHOST
 
 #define	MAIL		"/bin/mail"	/* Name of mail sender */
-/*#define SENDMAIL	"/etc/delivermail"
+#define SENDMAIL	"/usr/lib/sendmail"
 					/* Name of classy mail deliverer */
-#define	EDITOR		"/bin/ex"	/* Name of text editor */
-#define	VISUAL		"/bin/vi"	/* Name of display editor */
+#define	EDITOR		"/usr/ucb/ex"	/* Name of text editor */
+#define	VISUAL		"/usr/ucb/vi"	/* Name of display editor */
 #define	SHELL		"/bin/csh"	/* Standard shell */
 #define	MORE		"/usr/ucb/more"	/* Standard output pager */
 #define	HELPFILE	"/usr/lib/Mail.help"
 					/* Name of casual help file */
-#define	THELPFILE	"/usr/lib/Mail.help.~"
+#define	THELPFILE	"/usr/lib/Mail.tildehelp"
 #define	POSTAGE		"/usr/adm/maillog"
 					/* Where to audit mail sending */
 					/* Name of casual tilde help */

@@ -1,4 +1,12 @@
-/*	@(#)gcd.c	4.1	12/25/82	*/
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)gcd.c	5.2 (Berkeley) 3/13/86";
+#endif not lint
 
 #include <mp.h>
 gcd(a,b,c) MINT *a,*b,*c;
@@ -23,7 +31,7 @@ invert(a, b, c) MINT *a, *b, *c;
 	int i = 0;
 	x.len = y.len = z.len = w.len = Aold.len = 0;
 	Anew.len = 1;
-	Anew.val = xalloc(1);
+	Anew.val = xalloc(1, "invert");
 	*Anew.val = 1;
 	move(b, &x);
 	move(a, &y);

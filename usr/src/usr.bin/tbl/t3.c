@@ -1,6 +1,10 @@
+#ifndef lint
+static char sccsid[] = "@(#)t3.c	4.2 8/11/83";
+#endif
+
  /* t3.c: interpret commands affecting whole table */
 # include "t..c"
-struct optstr {char *optnam; int *optadd;} options [] {
+struct optstr {char *optnam; int *optadd;} options [] = {
 	"expand", &expflg,
 	"EXPAND", &expflg,
 	"center", &ctrflg,

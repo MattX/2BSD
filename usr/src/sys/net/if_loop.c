@@ -1,24 +1,44 @@
-/*	if_loop.c	4.13	82/06/20	*/
+/*
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)if_loop.c	7.2 (Berkeley) 10/28/86
+ */
 
 /*
  * Loopback interface driver for protocol testing and timing.
  */
+#include "loop.h"
+#if NLOOP > 0
 
 #include "param.h"
-#include <sys/systm.h>
-#include <sys/mbuf.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <netinet/ip.h>
-#include <netinet/ip_var.h>
-#include <net/route.h>
+#include "../machine/seg.h"
 
-#define LONET   0x7f000000
-#define	LOHOST	1
+#include "systm.h"
+#include "mbuf.h"
+#include "socket.h"
+#include "domain.h"
+#include "protosw.h"
+#include "errno.h"
+#include "ioctl.h"
+
+#include "../net/if.h"
+#include "../net/netisr.h"
+#include "../net/route.h"
+
+#ifdef	INET
+#include "../netinet/in.h"
+#include "../netinet/in_systm.h"
+#include "../netinet/ip.h"
+#include "../netinet/in_var.h"
+#endif
+
+#ifdef NS
+#include "../netns/ns.h"
+#include "../netns/ns_if.h"
+#endif
+
 #define	LOMTU	(1024+512)
 
 struct	ifnet loif;
@@ -27,30 +47,45 @@ int	looutput(), loioctl();
 loattach()
 {
 	register struct ifnet *ifp = &loif;
-	register struct sockaddr_in *sin;
 
 	ifp->if_name = "lo";
 	ifp->if_mtu = LOMTU;
-	ifp->if_net = htonl((u_long)LONET);
-	ifp->if_host[0] = LOHOST;
-	sin = (struct sockaddr_in *)&ifp->if_addr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(ifp->if_net, LOHOST);
-	ifp->if_flags = IFF_UP | IFF_RUNNING;
+	ifp->if_flags = IFF_LOOPBACK;
 	ifp->if_ioctl = loioctl;
 	ifp->if_output = looutput;
 	if_attach(ifp);
-	if_rtinit(ifp, RTF_UP);
 }
 
 looutput(ifp, m0, dst)
 	struct ifnet *ifp;
-	struct mbuf *m0;
+	register struct mbuf *m0;
 	struct sockaddr *dst;
 {
-	int s = splimp();
+	int s;
 	register struct ifqueue *ifq;
+	struct mbuf *m;
 
+	/*
+	 * Place interface pointer before the data
+	 * for the receiving protocol.
+	 */
+	if (m0->m_off <= MMAXOFF &&
+	    m0->m_off >= MMINOFF + sizeof(struct ifnet *)) {
+		m0->m_off -= sizeof(struct ifnet *);
+		m0->m_len += sizeof(struct ifnet *);
+	} else {
+		MGET(m, M_DONTWAIT, MT_HEADER);
+		if (m == (struct mbuf *)0)
+			return (ENOBUFS);
+		m->m_off = MMINOFF;
+		m->m_len = sizeof(struct ifnet *);
+		m->m_next = m0;
+		m0 = m;
+	}
+	MAPSAVE();
+	*(mtod(m0, struct ifnet **)) = ifp;
+	MAPREST();
+	s = splimp();
 	ifp->if_opackets++;
 	switch (dst->sa_family) {
 
@@ -65,6 +100,19 @@ looutput(ifp, m0, dst)
 		}
 		IF_ENQUEUE(ifq, m0);
 		schednetisr(NETISR_IP);
+		break;
+#endif
+#ifdef NS
+	case AF_NS:
+		ifq = &nsintrq;
+		if (IF_QFULL(ifq)) {
+			IF_DROP(ifq);
+			m_freem(m0);
+			splx(s);
+			return (ENOBUFS);
+		}
+		IF_ENQUEUE(ifq, m0);
+		schednetisr(NETISR_NS);
 		break;
 #endif
 	default:
@@ -82,30 +130,26 @@ looutput(ifp, m0, dst)
 /*
  * Process an ioctl request.
  */
+/* ARGSUSED */
 loioctl(ifp, cmd, data)
 	register struct ifnet *ifp;
 	int cmd;
 	caddr_t data;
 {
-	struct ifreq *ifr = (struct ifreq *)data;
-	struct sockaddr_in *sin;
-	int s = splimp(), error = 0;
+	int error = 0;
 
 	switch (cmd) {
 
 	case SIOCSIFADDR:
-		if (ifp->if_flags & IFF_RUNNING)
-			if_rtinit(ifp, -1);  /* delete previous route */
-		ifp->if_addr = ifr->ifr_addr;
-		sin = (struct sockaddr_in *)&ifp->if_addr;
-		ifp->if_net = in_netof(sin->sin_addr);
-		ifp->if_host[0] = in_lnaof(sin->sin_addr);
-		if_rtinit(ifp, RTF_UP);
+		ifp->if_flags |= IFF_UP;
+		/*
+		 * Everything else is done at a higher level.
+		 */
 		break;
 
 	default:
 		error = EINVAL;
 	}
-	splx(s);
 	return (error);
 }
+#endif

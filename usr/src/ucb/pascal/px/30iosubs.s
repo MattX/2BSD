@@ -127,9 +127,13 @@ put:
 	mov	$EWRITE,_perrno
 	error	EWRITE
 6:
-	mov	$2,r0
-	sys	write; _unit2; 1
-	bes	9b
+	mov	$1,-(sp)
+	mov	$_unit2,-(sp)
+	mov	$2,-(sp)
+	jsr	pc,_write
+	add	$6,sp
+	tst	r0
+	bmi	9b
 	cmp	r0,$1
 	bne	9b
 	rts	pc

@@ -18,48 +18,48 @@ pwrite(opc, subopc, av)
 	switch(opc) {
 		case O_WRIT2:
 			along = ap->pint;
-			ap =+ 2;
+			ap += 2;
 			w = 10;
 			break;
 		case O_WRIT4:
 			along = ap->plong;
-			ap =+ 4;
+			ap += 4;
 			w = 10;
 			break;
 		case O_WRITC:
 			acp = ap;
-			ap =+ 2;
+			ap += 2;
 			w = 1;
 			break;
 		case O_WRITB:
 			i = ap->pint;
-			ap =+ 2;
+			ap += 2;
 			w = 10;
 			break;
 		case O_WRITG:
 			w1 = ap->pint;
-			ap =+ 2;
+			ap += 2;
 			acp = ap;
-			ap =+ (w1 + 1) & ~1;
+			ap += (w1 + 1) & ~1;
 			w = 0;
 			break;
 		case O_WRIT8:
 		case O_WRIT82:
 			adouble = ap->pdouble;
-			ap =+ 8;
+			ap += 8;
 			w = 22;
 			break;
 		case O_WRHEX2:
 		case O_WROCT2:
 			(&along)->pint = 0;
 			(&along)->p2int = ap->pint;
-			ap =+ 2;
+			ap += 2;
 			w = opc == O_WROCT2 ? 11 : 8;
 			break;
 		case O_WRHEX2+1:	/* ugh, cc string table too small */
 		case O_WROCT2+1:	/* ugh, cc string table too small */
 			along = ap->plong;
-			ap =+ 4;
+			ap += 4;
 			w = opc == O_WROCT2+1 ? 11 : 8;
 			break;
 	}
@@ -69,11 +69,11 @@ again:
 			break;
 		case 2:
 			w = ap->pint;
-			ap =+ 2;
+			ap += 2;
 			break;
 		case 4:
 			w = ap->plong;
-			ap =+ 4;
+			ap += 4;
 			break;
 	}
 	if (opc == O_WRIT82 && (i = (subopc >> 3) & 07) != 0) {
@@ -141,7 +141,7 @@ again:
 			if (w <= 9)
 				w = 3;
 			else
-				w =- 6;
+				w -= 6;
 			do
 				pputch(' ');
 			while (--w > 17);
@@ -185,7 +185,7 @@ again:
 					k3 = -decpt;
 				else
 					k3 = w;
-				w =- k3;
+				w -= k3;
 			}
 			while (w1 > 0) {
 				pputch(' ');
@@ -222,8 +222,8 @@ long l;
 	register c;
 
 	c = (&l)->p2int & 07;
-	l =>> 3;
-	(&l)->pint =& 017777;
+	l >>= 3;
+	(&l)->pint &= 017777;
 	if (w > 1 || l != 0)
 		wro(l, w-1);
 	pputch(c | '0');
@@ -235,8 +235,8 @@ long l;
 	register c;
 
 	c = (&l)->p2int & 017;
-	l =>> 4;
-	(&l)->pint =& 07777;
+	l >>= 4;
+	(&l)->pint &= 07777;
 	if (w > 1 || l != 0)
 		wrhex(l, w-1);
 	pputch(c <= 9 ? c | '0' : 'a' + (c - 10));

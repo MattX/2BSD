@@ -1,5 +1,11 @@
-.TH LONG 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)long.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH LONG 3F "May 15, 1985"
+.UC 5
 .SH NAME
 long, short \- integer object conversion
 .SH SYNOPSIS
@@ -14,7 +20,7 @@ long, short \- integer object conversion
 These functions provide conversion between short and long integer objects.
 .I Long
 is useful when constants are used in calls to library routines and
-the code is to be compiled with ``\-I2''.
+the code is to be compiled with ``-i2''.
 .I Short
 is useful in similar context when an otherwise long object must be
 passed as a short integer.

@@ -1,32 +1,34 @@
 DOFORK	deliver.c	/^# define DOFORK(fORKfN) \\$/
-Mmain	main.c	/^main(argc, argv)$/
+KBYTES	stats.c	/^#define KBYTES(x)	(((x) + (ONE_K - 1)) \/ ONE_K)$/
+Mmain	main.c	/^main(argc, argv, envp)$/
 PLURAL	convtime.c	/^# define PLURAL(n)	((n) == 1 ? "" : "s")$/
-REPLYCLASS	usersmtp.c	/^#define REPLYCLASS(r)	(((r) / 10) % 10)	/* second /
-REPLYTYPE	usersmtp.c	/^#define REPLYTYPE(r)	((r) / 100)		/* first digit o/
-_BITBIT	sendmail.h	/^#define _BITBIT(bit)	(1 << (bit % (BYTEBITS * size/
-_BITWORD	sendmail.h	/^#define _BITWORD(bit)	(bit / (BYTEBITS * sizeof (i/
+REPLYTYPE	usersmtp.c	/^#define REPLYTYPE(r)	((r) \/ 100)		\/\* first digit o/
+STRUCTCOPY	sendmail.h	/^#define STRUCTCOPY(s, d)	d = s$/
+Standard	Version.c	/^Format Standard (Draft Report)", prepared for NBS\./
+_BITBIT	sendmail.h	/^#define _BITBIT(bit)	(1 << (bit % (BYTEBITS \* size/
+_BITWORD	sendmail.h	/^#define _BITWORD(bit)	(bit \/ (BYTEBITS \* sizeof (i/
 addheader	headers.c	/^addheader(field, value, e)$/
 alias	alias.c	/^alias(a, sendq)$/
 aliaslookup	alias.c	/^aliaslookup(name)$/
 arpadate	arpadate.c	/^arpadate(ud)$/
 atobool	util.c	/^atobool(s)$/
 atooct	util.c	/^atooct(s)$/
+bcopy	bcopy.c	/^bcopy(s, d, l)$/
 bitintersect	util.c	/^bitintersect(a, b)$/
-bitnset	sendmail.h	/^#define bitnset(bit, map)	((map)[_BITWORD(bit)] & /
+bitnset	sendmail.h	/^#define bitnset(bit, map)	((map)\[_BITWORD(bit)\] & /
 bitzerop	util.c	/^bitzerop(map)$/
 buildaddr	parseaddr.c	/^buildaddr(tv, a)$/
 buildfname	util.c	/^buildfname(p, login, buf)$/
+bzero	bcopy.c	/^bzero(p, l)$/
 capitalize	util.c	/^capitalize(s)$/
 cataddr	parseaddr.c	/^cataddr(pvp, buf, sz)$/
 checkcompat	conf.c	/^checkcompat(to)$/
 chompheader	headers.c	/^chompheader(line, def)$/
-clear	util.c	/^clear(p, l)$/
-clearenvelope	envelope.c	/^clearenvelope(e)$/
-closeall	util.c	/^closeall()$/
+clearenvelope	envelope.c	/^clearenvelope(e, fullclear)$/
 closexscript	envelope.c	/^closexscript(e)$/
-clrbitmap	sendmail.h	/^#define clrbitmap(map)		bzero((char *) map, BITMAP/
-clrbitn	sendmail.h	/^#define clrbitn(bit, map)	(map)[_BITWORD(bit)] &= /
-clrdaemon	daemon4.2.c	/^clrdaemon()$/
+clrbitmap	sendmail.h	/^#define clrbitmap(map)		bzero((char \*) map, BITMAP/
+clrbitn	sendmail.h	/^#define clrbitn(bit, map)	(map)\[_BITWORD(bit)\] &= /
+clrdaemon	daemon.c	/^clrdaemon()$/
 clrevent	clock.c	/^clrevent(ev)$/
 collect	collect.c	/^collect(sayok)$/
 commaize	headers.c	/^commaize(h, p, fp, oldstyle, m)$/
@@ -46,17 +48,19 @@ eatheader	headers.c	/^eatheader(e)$/
 endmailer	deliver.c	/^endmailer(pid, name)$/
 endsleep	clock.c	/^endsleep()$/
 errbody	savemail.c	/^errbody(fp, m, e)$/
+errstring	err.c	/^errstring(errno)$/
 expand	macro.c	/^expand(s, buf, buflim, e)$/
+fconvert	arpadate.c	/^fconvert(a, b)$/
 fdopen	conf.c	/^fdopen(fd, type)$/
 fgetfolded	util.c	/^fgetfolded(buf, n, f)$/
 fileclass	readcf.c	/^fileclass(class, filename, fmt)$/
 finduser	recipient.c	/^finduser(name)$/
 finis	main.c	/^finis()$/
 fixcrlf	util.c	/^fixcrlf(line, stripnl)$/
-fmtmsg	err.c	/^fmtmsg(eb, to, num, fmt, a, b, c, d, e)$/
+fmtmsg	err.c	/^fmtmsg(eb, to, num, eno, fmt, a, b, c, d, e)$/
 forward	alias.c	/^forward(user, sendq)$/
 freeze	main.c	/^freeze(freezefile)$/
-getconnection	daemon.c	/^getconnection()$/
+g	Version.c	/^"\$g   (me)", with three spaces), but does handle t/
 getctladdr	recipient.c	/^getctladdr(a)$/
 getegid	conf.c	/^getegid()$/
 geteuid	conf.c	/^geteuid()$/
@@ -66,6 +70,7 @@ getrgid	conf.c	/^getrgid()$/
 getruid	conf.c	/^getruid()$/
 giveresponse	deliver.c	/^giveresponse(stat, m, e)$/
 greettimeout	usersmtp.c	/^greettimeout()$/
+h	Version.c	/^this doesn't solve the general case (e\.g\., "u at h/
 help	srvrsmtp.c	/^help(topic)$/
 holdsigs	conf.c	/^holdsigs()$/
 hvalue	headers.c	/^hvalue(field)$/
@@ -78,15 +83,16 @@ intsig	main.c	/^intsig()$/
 isatword	headers.c	/^isatword(p)$/
 isheader	headers.c	/^isheader(s)$/
 iswiz	srvrsmtp.c	/^iswiz()$/
-kbytes	stats.c	/^kbytes(bytes)$/
 logdelivery	deliver.c	/^logdelivery(stat)$/
 lower	util.c	/^lower(c)$/
+loweraddr	parseaddr.c	/^loweraddr(a)$/
 macvalue	macro.c	/^macvalue(n, e)$/
 mailfile	deliver.c	/^mailfile(filename, ctladdr)$/
 makeargv	readcf.c	/^makeargv(p)$/
 makeconnection	daemon.c	/^makeconnection(host, port, outfile, infile)$/
 makelower	util.c	/^makelower(p)$/
-makemailer	readcf.c	/^makemailer(line, safe)$/
+makemailer	readcf.c	/^makemailer(line)$/
+maphostname	daemon.c	/^maphostname(hbuf, hbsize)$/
 markfailure	deliver.c	/^markfailure(e, q, rcode)$/
 markstats	stats.c	/^markstats(e, to)$/
 message	err.c	/^message(num, msg, a, b, c, d, e)$/
@@ -97,11 +103,11 @@ newstr	sendmail.h	/^#define newstr(s)	strcpy(xalloc(strlen(s) + 1), s)/
 nmessage	err.c	/^nmessage(num, msg, a, b, c, d, e)$/
 openmailer	deliver.c	/^openmailer(m, pvp, ctladdr, clever, pmfile, prfile/
 openxscript	envelope.c	/^openxscript(e)$/
-orderq	queue.c	/^orderq()$/
+orderq	queue.c	/^orderq(doall)$/
 parseaddr	parseaddr.c	/^parseaddr(addr, a, copyf, delim)$/
 pintvl	convtime.c	/^pintvl(intvl, brief)$/
 poststats	stats.c	/^poststats(sfile)$/
-prescan	parseaddr.c	/^prescan(addr, delim)$/
+prescan	parseaddr.c	/^prescan(addr, delim, pvpbuf)$/
 priencode	headers.c	/^priencode(p)$/
 printaddr	parseaddr.c	/^printaddr(a, follow)$/
 printav	util.c	/^printav(av)$/
@@ -114,21 +120,21 @@ putheader	headers.c	/^putheader(fp, m, e)$/
 putline	util.c	/^putline(l, fp, m)$/
 putmsg	err.c	/^putmsg(msg, holdmsg)$/
 qstrlen	util.c	/^qstrlen(s)$/
-queuename	envelope.c	/^queuename(e, type)$/
+queuename	queue.c	/^queuename(e, type)$/
 queueup	queue.c	/^queueup(e, queueall, announce)$/
 readaliases	alias.c	/^readaliases(aliasfile, init)$/
-readcf	readcf.c	/^readcf(cfname, safe)$/
+readcf	readcf.c	/^readcf(cfname)$/
 readqf	queue.c	/^readqf(e, full)$/
 readtimeout	util.c	/^readtimeout()$/
+reapchild	conf.c	/^reapchild()$/
 recipient	recipient.c	/^recipient(a, sendq)$/
 remotename	parseaddr.c	/^remotename(name, m, senderaddress, canonical)$/
 reply	usersmtp.c	/^reply(m)$/
-returntosender	savemail.c	/^returntosender(msg, returnto, sendbody)$/
+returntosender	savemail.c	/^returntosender(msg, returnq, sendbody)$/
 rewrite	parseaddr.c	/^rewrite(pvp, ruleset)$/
 rlsesigs	conf.c	/^rlsesigs()$/
 runinchild	srvrsmtp.c	/^runinchild(label)$/
 runqueue	queue.c	/^runqueue(forkflag)$/
-s	Version.c	801
 safefile	util.c	/^safefile(fn, uid, mode)$/
 sameaddr	parseaddr.c	/^sameaddr(a, b)$/
 sameword	util.c	/^sameword(a, b)$/
@@ -137,32 +143,35 @@ sendall	deliver.c	/^sendall(e, mode)$/
 sendoff	deliver.c	/^sendoff(e, m, pvp, ctladdr)$/
 sendtoargv	recipient.c	/^sendtoargv(argv)$/
 sendtolist	recipient.c	/^sendtolist(list, ctladdr, sendq)$/
-setbitn	sendmail.h	/^#define setbitn(bit, map)	(map)[_BITWORD(bit)] |= /
+setbitn	sendmail.h	/^#define setbitn(bit, map)	(map)\[_BITWORD(bit)\] |= /
 setclass	readcf.c	/^setclass(class, word)$/
+setdefaults	conf.c	/^setdefaults()$/
 setevent	clock.c	/^setevent(intvl, func, arg)$/
 setoption	readcf.c	/^setoption(opt, val, safe, sticky)$/
+setproctitle	conf.c	/^setproctitle(fmt, a, b, c)$/
 setsender	envelope.c	/^setsender(from)$/
 setstat	sendmail.h	/^#define setstat(s)	{ \\$/
 settime	envelope.c	/^settime()$/
 sfgets	util.c	/^sfgets(buf, siz, fp)$/
-sizeof	sendmail.h	/^typedef int	BITMAP[BITMAPBYTES / sizeof (int)];$/
+shouldqueue	conf.c	/^shouldqueue(pri)$/
+sizeof	sendmail.h	/^typedef int	BITMAP\[BITMAPBYTES \/ sizeof (int)\];$/
 skipword	srvrsmtp.c	/^skipword(p, w)$/
 sleep	clock.c	/^sleep(intvl)$/
 smtp	srvrsmtp.c	/^smtp()$/
 smtpdata	usersmtp.c	/^smtpdata(m, e)$/
 smtpinit	usersmtp.c	/^smtpinit(m, pvp)$/
 smtpmessage	usersmtp.c	/^smtpmessage(f, m, a, b, c)$/
-smtpquit	usersmtp.c	/^smtpquit(name, m)$/
+smtpquit	usersmtp.c	/^smtpquit(m)$/
 smtprcpt	usersmtp.c	/^smtprcpt(to, m)$/
 stab	stab.c	/^stab(name, type, op)$/
+statstring	sysexits.c	/^statstring(stat)$/
 stripquotes	util.c	/^stripquotes(s, qf)$/
 syserr	err.c	/^syserr(fmt, a, b, c, d, e)$/
-syslog	util.c	/^syslog(pri, fmt, args)$/
-tTd	sendmail.h	/^# define tTd(flag, level)	(tTdvect[flag] >= level)/
-tTdlevel	sendmail.h	/^# define tTdlevel(flag)		(tTdvect[flag])$/
-tTf	trace.h	/^# define tTf(flag, level)	(tTVECT[flag] >= level)$/
+tTd	sendmail.h	/^# define tTd(flag, level)	(tTdvect\[flag\] >= level)/
+tTdlevel	sendmail.h	/^# define tTdlevel(flag)		(tTdvect\[flag\])$/
+tTf	trace.h	/^# define tTf(flag, level)	(tTVECT\[flag\] >= level)$/
 tTflag	trace.c	/^tTflag(s)$/
-tTlevel	trace.h	/^# define tTlevel(flag)		(tTVECT[flag])$/
+tTlevel	trace.h	/^# define tTlevel(flag)		(tTVECT\[flag\])$/
 tTsetup	trace.c	/^tTsetup(vect, size, defflags)$/
 tferror	collect.c	/^tferror(tf)$/
 thaw	main.c	/^thaw(freezefile)$/
@@ -173,7 +182,7 @@ trusteduser	envelope.c	/^trusteduser(user)$/
 ttyname	conf.c	/^ttyname(fd)$/
 ttypath	conf.c	/^ttypath()$/
 umask	conf.c	/^umask(nmask)$/
-unlockqueue	envelope.c	/^unlockqueue(e)$/
+unlockqueue	queue.c	/^unlockqueue(e)$/
 username	conf.c	/^username()$/
 usrerr	err.c	/^usrerr(fmt, a, b, c, d, e)$/
 waitfor	util.c	/^waitfor(pid)$/

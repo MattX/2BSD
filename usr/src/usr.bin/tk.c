@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)tk.c	4.2 (Berkeley) 5/15/84";
 /*
  * optimize output for Tek 4014
  */
@@ -18,7 +19,6 @@
 
 int	pl	= 66*LINE;
 int	yyll	= -1;
-char	obuf[BUFSIZ];
 int	xx = XOFF;
 int	xoff = XOFF;
 int	coff = 0;
@@ -65,7 +65,6 @@ char **argv;
 		}
 	}
 	signal(SIGINT, ex);
-	setbuf(stdout, obuf);
 	ncol = maxcol;
 	init();
 	while ((i = getchar()) != EOF) {

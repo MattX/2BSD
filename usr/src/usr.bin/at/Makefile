@@ -3,43 +3,49 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (Berkeley) 6/21/85
+#	@(#)Makefile	5.4 (Berkeley) 10/9/85
 #
 #       Makefile for at, atq, atrm, and atrun
 #
 ALL=		atq atrm at atrun
 SRCS=		atq.c atrm.c at.c atrun.c
-CFLAGS=		-O ${LFLAG}
+CFLAGS=		-O
 INCPATH=
 DESTDIR=
 ATRUNDIR=	/usr/lib
 SPOOLDIRS=	/usr/spool/at /usr/spool/at/past
 SPOOLFILES=	/usr/spool/at/lasttimedone
+SEPFLAG= -i
 
 all: ${ALL}
 
 at: at.c
-	$(CC) $(CFLAGS) -o at at.c
+	$(CC) $(CFLAGS) ${SEPFLAG} -o at at.c
 
 atq: atq.c
-	$(CC) $(CFLAGS) -o atq atq.c
+	$(CC) $(CFLAGS) ${SEPFLAG} -o atq atq.c
 
 atrm: atrm.c
-	$(CC) $(CFLAGS) -o atrm atrm.c
+	$(CC) $(CFLAGS) ${SEPFLAG} -o atrm atrm.c
 
 atrun: atrun.c
-	$(CC) $(CFLAGS) -o atrun atrun.c
+	$(CC) $(CFLAGS) ${SEPFLAG} -o atrun atrun.c
 
 install: all
-	-mkdir $(SPOOLDIRS)
-	chown daemon $(SPOOLDIRS)
-	chgrp daemon $(SPOOLDIRS)
-	chmod 755    $(SPOOLDIRS)
-	-for i in $(SPOOLFILES); do if [ ! -f $$i ]; then echo 0 > $$i; fi; done
-	chown daemon $(SPOOLFILES)
-	chgrp daemon $(SPOOLFILES)
-	install -s atrun $(ATRUNDIR)
-	install -s atq $(DESTDIR)/usr/bin
+	-for i in $(SPOOLDIRS); \
+		do mkdir $(DESTDIR)/$$i; \
+		chown daemon $(DESTDIR)/$$i; \
+		chgrp daemon $(DESTDIR)/$$i; \
+		chmod 755    $(DESTDIR)/$$i; \
+		done
+	-for i in $(SPOOLFILES); \
+		do if [ ! -f $(DESTDIR)/$$i ]; \
+		then echo 0 > $(DESTDIR)/$$i; fi; \
+		chown daemon $(DESTDIR)/$$i; \
+		chgrp daemon $(DESTDIR)/$$i; \
+		done
+	install -s atrun $(DESTDIR)/$(ATRUNDIR)
+	install -s -o daemon -m 4755 atq $(DESTDIR)/usr/bin
 	install -s -o daemon -m 4755 at $(DESTDIR)/usr/bin
 	install -s -o daemon -m 4755 atrm $(DESTDIR)/usr/bin
 

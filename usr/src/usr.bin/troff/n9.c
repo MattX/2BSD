@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n9.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 extern
 #include "d.h"
@@ -247,6 +251,7 @@ int x;
 			j = 0;
 			goto rtn;
 		}
+		v.hp = sumhp();	/* XXX */
 		if((length = ((tabtab[j] & TMASK) - v.hp)) > 0 )break;
 	}
 	type = tabtab[j] & (~TMASK);

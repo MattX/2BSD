@@ -1,5 +1,11 @@
-.TH EX 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)ex.1	6.4 (Berkeley) 6/5/86
+.\"
+.TH EX 1 "June 5, 1986"
+.UC 4
 .SH NAME
 ex, edit \- text editor
 .SH SYNOPSIS
@@ -14,7 +20,7 @@ tag
 ] [
 .B \-r
 ] [
-\fB\+\fIcommand\fP
+\fB+\fIcommand\fR
 ] [
 .B \-l
 ]
@@ -57,12 +63,13 @@ which is a command which focuses on the display editing portion of
 .SH DOCUMENTATION
 The document
 .I "Edit: A tutorial"
-provides a comprehensive introduction to
+(USD:14) provides a comprehensive introduction to
 .I edit
 assuming no previous knowledge of computers or the \s-2UNIX\s0 system.
 .PP
 The
-.I "Ex Reference Manual \- Version 3.5"
+.I "Ex Reference Manual \- Version 3.7"
+(USD:16)
 is a comprehensive and complete manual for the command mode features
 of
 .I ex,
@@ -76,11 +83,11 @@ the material in the introductory and advanced documents works also with
 .I ex.
 .PP
 .I "An Introduction to Display Editing with Vi"
+(USD:15)
 introduces the display editor
 .I vi
 and provides reference material on
 .I vi.
-All of these documents can be found in volume 2c of the Programmer's Manual.
 In addition, the
 .I "Vi Quick Reference"
 card summarizes the commands
@@ -89,26 +96,27 @@ of
 in a useful, functional way, and is useful with the
 .I Introduction.
 .SH FILES
-.ta 2i
-/usr/lib/ex?.?strings	error messages
+.DT
+/usr/lib/ex?.?strings		error messages
 .br
-/usr/lib/ex?.?recover	recover command
+/usr/lib/ex?.?recover		recover command
 .br
-/usr/lib/ex?.?preserve	preserve command
+/usr/lib/ex?.?preserve		preserve command
 .br
-/etc/termcap	describes capabilities of terminals
+/etc/termcap			describes capabilities of terminals
 .br
-~/.exrc	editor startup file
+~/.exrc				editor startup file
 .br
-/tmp/Ex\fInnnnn\fP	editor temporary
+/tmp/Ex\fInnnnn\fR			editor temporary
 .br
-/tmp/Rx\fInnnnn\fP	named buffer temporary
+/tmp/Rx\fInnnnn\fR			named buffer temporary
 .br
-/usr/preserve	preservation directory
+/usr/preserve			preservation directory
 .SH SEE ALSO
-awk(1), ed(1), grep(1), sed(1), vi(1), environ(5), termcap(5)
+awk(1), ed(1), grep(1), sed(1), grep(1), vi(1), termcap(5), environ(7)
 .SH AUTHOR
-Originally written by William Joy.
+Originally written by William Joy
+.br
 Mark Horton has maintained the editor since version 2.7, adding macros,
 support for many unusual terminals,
 and other features such as word abbreviation mode.
@@ -126,7 +134,7 @@ The
 command prints a number of logical rather than physical lines.
 More than a screen full of output may result if long lines are present.
 .PP
-File input/output errors don't print a name if the command line \fB`\-'\fP
+File input/output errors don't print a name if the command line \fB`\-'\fR
 option is used.
 .PP
 There is no easy way to do a single scan ignoring case.

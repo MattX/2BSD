@@ -1,6 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: pen.c,v 1.2 85/08/15 18:36:30 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)pen.c	4.2 (Berkeley) 10/10/85";
+#endif
 
 /*
  *	Speaker's quick and dirty penril hack.  STA 4/1/85.

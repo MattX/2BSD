@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_vops.c	7.1	7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_vops.c	7.7 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_tty.h"
 #include "ex_vis.h"
@@ -626,9 +634,11 @@ voOpen(c, cnt)
 {
 	register int ind = 0, i;
 	short oldhold = hold;
+	long oldmask;
 
 	if (value(SLOWOPEN) || value(REDRAW) && AL && DL)
 		cnt = 1;
+	oldmask = sigblock(sigmask(SIGWINCH));
 	vsave();
 	setLAST();
 	if (value(AUTOINDENT))
@@ -676,6 +686,7 @@ voOpen(c, cnt)
 	cursor = linebuf;
 	linebuf[0] = 0;
 	vappend('o', 1, ind);
+	(void)sigsetmask(oldmask);
 }
 
 /*
@@ -713,7 +724,8 @@ vfilter()
 {
 	register line *addr;
 	register int cnt;
-	char *oglobp, d;
+	char *oglobp;
+	short d;
 
 	if ((cnt = xdw()) < 0)
 		return;
@@ -780,7 +792,7 @@ xdw()
 	}
 	vsave();
 	setLAST();
-	if (dot > wdot) {
+	if (dot > wdot || (dot == wdot && wcursor != 0 && cursor > wcursor)) {
 		register line *addr;
 
 		vcline -= dot - wdot;

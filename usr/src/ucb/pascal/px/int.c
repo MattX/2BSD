@@ -10,7 +10,7 @@
 #include "opcode.h"
 #include "E.h"
 
-int	display[20]	{ display };
+int	display[20]	= { display };
 
 int	onintr();
 
@@ -27,7 +27,7 @@ main(ac, av)
 	randim = 1./randm;
 	setmem();
 	if (av[0][0] == '-' && av[0][1] == 'o') {
-		av[0] =+ 2;
+		av[0] += 2;
 		file = av[0];
 		argv--, argc++;
 		discard++;
@@ -71,7 +71,7 @@ oops:
 	if (file) {
 		read(of, &i, 2);
 		if (i == 0407) {
-			size =- 1024;
+			size -= 1024;
 			lseek(of, (long)1024, 0);
 		} else
 			lseek(of, (long)0, 0);
@@ -89,8 +89,8 @@ oops:
 			ferror("Unexpected end-of-file");
 			exit(1);
 		}
-		rmdr =- bytes;
-		cp =+ bytes;
+		rmdr -= bytes;
+		cp += bytes;
 	}
 	if (read(of, cp, 1) == 1) {
 		ferror("Expected end-of-file");
@@ -122,10 +122,10 @@ Perror(file, mesg)
 /*
  * Initialization of random number "constants"
  */
-long	seed	7774755.;
-double	randa	62605.;
-double	randc	113218009.;
-double	randm	536870912.;
+long	seed	= 7774755.;
+double	randa	= 62605.;
+double	randc	= 113218009.;
+double	randm	= 536870912.;
 
 /*
  * Routine to put a string on the current

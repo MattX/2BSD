@@ -1,5 +1,6 @@
-/* $Header: gio.c,v 1.10 85/05/20 20:01:39 rick Exp $ */
-/* from:  @(#)gio.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)gio.c	5.6 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 #include "pk.h"
@@ -127,7 +128,7 @@ FILE *fp1;
 	}
 	sprintf(text, "sent data %ld bytes %ld.%02d secs",
 				bytes, (long)t2.time, mil/10);
-	sysacct(bytes, t2.time - t1.time);
+	sysacct(bytes, t2.time);
 	if (Retries > 0) 
 		sprintf((char *)text+strlen(text)," %d retries", Retries);
 	DEBUG(1, "%s\n", text);
@@ -181,7 +182,7 @@ FILE *fp2;
 	}
 	sprintf(text, "received data %ld bytes %ld.%02d secs",
 				bytes, (long)t2.time, mil/10);
-	sysacct(bytes, t2.time - t1.time);
+	sysacct(bytes, t2.time);
 	if (Retries > 0) 
 		sprintf((char *)text+strlen(text)," %d retries", Retries);
 	DEBUG(1, "%s\n", text);
@@ -189,9 +190,11 @@ FILE *fp2;
 	return SUCCESS;
 }
 
-/* call ultouch every TC calls to either grdblk or gwrblk -- rti!trt */
+#if !defined(BSD4_2) && !defined(USG)
+/* call ultouch every TC calls to either grdblk or gwrblk */
 #define	TC	20
 static	int tc = TC;
+#endif !BSD4_2 && !USG
 
 /*ARGSUSED*/
 grdblk(blk, len,  fn)
@@ -200,11 +203,13 @@ char *blk;
 {
 	register int i, ret;
 
+#if !defined(BSD4_2) && !defined(USG)
 	/* call ultouch occasionally */
 	if (--tc < 0) {
 		tc = TC;
 		ultouch();
 	}
+#endif !BSD4_2 && !USG
 	for (i = 0; i < len; i += ret) {
 		ret = pkread(Pk, blk, len - i);
 		if (ret < 0)
@@ -220,13 +225,12 @@ char *blk;
 gwrblk(blk, len, fn)
 register char *blk;
 {
-	register int ret;
-
-	/* call ultouch occasionally -- rti!trt */
+#if !defined(BSD4_2) && !defined(USG)
+	/* call ultouch occasionally */
 	if (--tc < 0) {
 		tc = TC;
 		ultouch();
 	}
-	ret = pkwrite(Pk, blk, len);
-	return ret;
+#endif !BSD4_2 && !USG
+	return  pkwrite(Pk, blk, len);
 }

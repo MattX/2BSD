@@ -39,14 +39,14 @@ savdot:	.=.+6
 bufcnt:	.=.+2
 hshsiz = 3001.
 hshtab:	.=2*hshsiz+.
-pof:	.=.+1
 wordf:	.=.+1
-fin:	.=.+1
-fbfil:	.=.+1
 fileflg:.=.+1
 errflg:	.=.+1
 ch:	.=.+1
 .even
+pof:	.=.+2
+fin:	.=.+2
+fbfil:	.=.+2
 symbol:	.=.+8.
 obufc:	.=.+2
 outbuf:	.=.+512.

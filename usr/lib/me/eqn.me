@@ -1,4 +1,5 @@
 .nr _0 \n(c.
+.\"	@(#)eqn.me	2.1	8/18/80
 .\" This version has had comments stripped; an unstripped version is available.
 .de EQ
 .ec
@@ -47,9 +48,8 @@
 .de @q
 .nr _Q \\n(dnu
 .ev
-.br
-.ev 2
 .sp \\n(esu
+.@C 2
 .ie \\n(_d=1 \
 .	in (\\n(.lu+\\n($iu-\\n(dlu)/2u
 .el .ie \\n(_d=2 \
@@ -61,7 +61,6 @@
 .if !"\\n(.z"" \!.ne \\n(_Qu
 .ne \\n(_Qu+\n(.Vu
 .mk _q
-.if \n@>1 .tm --@e: _Q=\\n(_Q _q=\\n(_q nl=\\n(nl |p=\\*(|p
 .if !"\\*(|p"" \
 \{\
 .	rs

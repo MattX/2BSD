@@ -1,4 +1,4 @@
-/*	diff.h	4.4	83/07/01	*/
+/*	diff.h	4.7	85/08/16	*/
 
 /*
  * diff - common declarations
@@ -21,12 +21,18 @@ int	opt;
 #define	D_REVERSE	1	/* Reverse editor script */
 #define	D_CONTEXT	2	/* Diff with context */
 #define	D_IFDEF		3	/* Diff with merged #ifdef's */
+#define	D_NREVERSE	4	/* Reverse ed script with numbered
+				   lines and no trailing . */
+
+int	tflag;			/* expand tabs on output */
 
 /*
  * Algorithm related options
  */
 int	hflag;			/* -h, use halfhearted DIFFH */
-int	bflag;			/* ignore blanks in comparisions */
+int	bflag;			/* ignore blanks in comparisons */
+int	wflag;			/* totally ignore blanks in comparisons */
+int	iflag;			/* ignore case in comparisons */
 
 /*
  * Options on hierarchical diffs.
@@ -70,13 +76,6 @@ char	**diffargv;		/* option list to pass to recursive diffs */
  */
 char	*file1, *file2, *efile1, *efile2;
 struct	stat stb1, stb2;
-struct	stat stb1, stb2;
-
-/*
- * This is allocated early, and used
- * to reset the free storage pointer to effect space compaction.
- */
-char	*dummy;
 
 char	*malloc(), *talloc(), *ralloc();
 char	*savestr(), *splice(), *splicen();

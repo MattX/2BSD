@@ -1,7 +1,17 @@
 /
+/  Sendmail
+/  Copyright (c) 1983  Eric P. Allman
+/  Berkeley, California
+/
+/  Copyright (c) 1983 Regents of the University of California.
+/  All rights reserved.  The Berkeley software License Agreement
+/  specifies the terms and conditions for redistribution.
+/
+/	@(#)bmove.11.s	4.2 (Berkeley) 6/7/85
+/
+/
 /  BMOVE -- block move
 /
-/	@(#)bmove.11.s	4.1	7/25/83
 /
 /	This is a highly optimized version of the old C-language
 /	bmove routine; it's function (should be) identical.

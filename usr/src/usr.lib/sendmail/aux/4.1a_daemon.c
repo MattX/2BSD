@@ -236,6 +236,22 @@ getconnection()
 	}
 }
 /*
+**  CLRDAEMON -- reset the daemon connection
+**
+**	Parameters:
+**		none.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		releases any resources used by the passive daemon.
+*/
+
+clrdaemon()
+{
+}
+/*
 **  MAKECONNECTION -- make a connection to an SMTP socket on another machine.
 **
 **	Parameters:

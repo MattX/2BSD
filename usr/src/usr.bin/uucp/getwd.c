@@ -1,5 +1,6 @@
-/* $Header: getwd.c,v 1.2 85/05/15 18:59:47 rick Exp $ */
-/* from: @(#)gwd.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)getwd.c	5.4 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 

@@ -1,4 +1,7 @@
-/* @(#)ttyname.c	4.3 (Berkeley) 5/7/82 */
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)ttyname.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
  * ttyname(f): return "/dev/ttyXX" which the the name of the
  * tty belonging to file f.

@@ -1,8 +1,7 @@
-#
+/*	sed.h	4.1	85/04/05	*/
+
 /*
  * sed -- stream  editor
- *
- *
  */
 
 #define CBRA	1
@@ -23,8 +22,8 @@
 
 #define NLINES	256
 #define	DEPTH	20
-#define PTRSIZE	100
-#define RESIZE	5000
+#define PTRSIZE	200
+#define RESIZE	10000
 #define	ABUFSIZE	20
 #define	LBSIZE	4000
 #define	ESIZE	256
@@ -35,7 +34,7 @@ FILE	*fin;
 union reptr	*abuf[ABUFSIZE];
 union reptr **aptr;
 char	*lastre;
-char	ibuf[512];
+char	ibuf[BUFSIZ];
 char	*cbp;
 char	*ebp;
 char	genbuf[LBSIZE];
@@ -113,7 +112,7 @@ union	reptr {
 		char	pfl;
 		char	inar;
 		char	negfl;
-	};
+	} A;
 	struct reptr2 {
 		char	*ad1;
 		char	*ad2;
@@ -125,7 +124,7 @@ union	reptr {
 		char	pfl;
 		char	inar;
 		char	negfl;
-	};
+	} B;
 } ptrspace[PTRSIZE], *rep;
 
 

@@ -1,3 +1,6 @@
+INSTALLATION GUIDE
+README	5.6	85/06/24
+
 This version is based on the "rti uucp" that was on the 4.2BSD tape.
 It contains many additional  features and fixes from Usenet,
 Tom Truscott, Guy Harris, Lou Salkind, and many others.
@@ -46,11 +49,6 @@ name is <= 7 characters, you don't have to do anything.
 Rick Adams
 rick@seismo.ARPA
 June 19, 1985
-
-----------------------original 4.2bsd README ----------------------------------
-INSTALLATION GUIDE
-README  4 Oct 84
-from: README	5.2	83/07/19
 
 Tom Truscott, rti!trt,decvax!duke!trt (919)541-6488 Research Triangle Institute
 Bob Gray, gray@berkeley, duke!adiron!bob (315) 336-4989

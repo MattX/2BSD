@@ -1,14 +1,15 @@
-.TH ED 1
+.\"	@(#)ed.1	6.1.1.1 (Berkeley) 8/12/86
+.\"
+.TH ED 1 "August 12, 1986"
+.AT 3
 .if t .ds q \(aa
 .if n .ds q '
 .SH NAME
 ed \- text editor
-.SH SYNTASX
+.SH SYNOPSIS
 .B ed
 [
 .B \-
-] [
-.B \-x
 ] [ name ]
 .SH DESCRIPTION
 .I Ed
@@ -24,19 +25,13 @@ command (see below)\| on the named file; that is to say,
 the file is read into
 .I ed's
 buffer so that it can be edited.
-If '\fB\-\fP'
-is present, an
-.I x
-command is simulated first to handle an encrypted file.
 The optional
 .B \-
 suppresses the printing
-of character counts by
-.I e,
-.I r,
-and
-.I w
-commands.
+of explanatory output
+and should be used
+when the standard input is
+an editor script.
 .PP
 .I Ed
 operates on a copy of any file it is editing; changes made
@@ -70,7 +65,7 @@ to be in
 .I  "input mode."
 In this mode, no commands are recognized;
 all input is merely collected.
-Input mode is left by typing a period `\fB.\fP' alone at the
+Input mode is left by typing a period `\fB.\fR' alone at the
 beginning of a line.
 .PP
 .I Ed
@@ -185,7 +180,7 @@ the command.
 Addresses are constructed as follows.
 .TP
 1.
-The character `\fB.\fP' addresses the current line.
+The character `\fB.\fR' addresses the current line.
 .TP
 2.
 The character `$' addresses the last line of the buffer.
@@ -198,7 +193,7 @@ addresses the
 line of the buffer.
 .TP
 4.
-`\(fm\fIx\fP' addresses the line marked with the name
+`\(fm\fIx\fR' addresses the line marked with the name
 .IR x ,
 which must be a lower-case letter.
 Lines are marked with the
@@ -230,7 +225,7 @@ The plus sign may be omitted.
 8.
 If an address begins with `+' or `\-'
 the addition or subtraction is taken with respect to the current line;
-e.g. `\-5' is understood to mean `\fB.\fP\-5'.
+e.g. `\-5' is understood to mean `\fB.\fR\-5'.
 .TP
 9.
 If an address ends with `+' or `\-',
@@ -257,15 +252,17 @@ If more addresses are given than such a command requires,
 the last one or two (depending on what is accepted)\| are used.
 .PP
 Addresses are separated from each other typically by a comma
-`\fB,\fP'.
+`\fB,\fR'.
 They may also be separated by a semicolon
-`\fB;\fP'.
-In this case the current line `\fB.\fP' is set to
+`\fB;\fR'.
+In this case the current line `\fB.\fR' is set to
 the previous address before the next address is interpreted.
 This feature can be used to determine the starting
 line for forward and backward searches (`/', `?')\|.
 The second address of any two-address sequence
 must correspond to a line following the line corresponding to the first address.
+The special form `%'
+is an abbreviation for the address pair `1,$'.
 .PP
 In the following list of
 .I ed
@@ -282,6 +279,10 @@ or by `l', in which case
 the current line is either
 printed or listed respectively
 in the way discussed below.
+Commands may also be suffixed by `n',
+meaning the output of the command is to
+be line numbered.
+These suffixes may be combined in any order.
 .TP 5
 .RB (\| .\| )\|a
 .br
@@ -295,7 +296,7 @@ in the way discussed below.
 .br
 The append command reads the given text
 and appends it after the addressed line.
-`\fB.\fP' is left
+`\fB.\fR' is left
 on the last line input, if there
 were any, otherwise at the addressed line.
 Address `0' is legal for this command; text is placed
@@ -314,7 +315,7 @@ at the beginning of the buffer.
 The change
 command deletes the addressed lines, then accepts input
 text which replaces these lines.
-`\fB.\fP' is left at the last line input; if there were none,
+`\fB.\fR' is left at the last line input; if there were none,
 it is left at the line preceding the deleted lines.
 .TP 5
 .RB (\| .\| ,\  .\| )\|d
@@ -327,7 +328,7 @@ e filename
 The edit
 command causes the entire contents of the buffer to be deleted,
 and then the named file to be read in.
-`\fB.\fP' is set to the last line of the buffer.
+`\fB.\fR' is set to the last line of the buffer.
 The number of characters read is typed.
 `filename' is remembered for possible use as a default file name
 in a subsequent
@@ -354,7 +355,7 @@ In the global
 command, the first step is to mark every line which matches
 the given regular expression.
 Then for every such line, the
-given command list is executed with `\fB.\fP' initially set to that line.
+given command list is executed with `\fB.\fR' initially set to that line.
 A single command or the first of multiple commands
 appears on the same line with the global command.
 All lines of a multi-line list except the last line must be ended with `\e'.
@@ -363,7 +364,7 @@ All lines of a multi-line list except the last line must be ended with `\e'.
 and
 .I c
 commands and associated input are permitted;
-the `\fB.\fP' terminating input mode may be omitted if it would be on the
+the `\fB.\fR' terminating input mode may be omitted if it would be on the
 last line of the command list.
 The commands
 .I g
@@ -381,7 +382,7 @@ are not permitted in the command list.
 .B .
 .br
 This command inserts the given text before the addressed line.
-`\fB.\fP' is left at the last line input, or, if there were none,
+`\fB.\fR' is left at the last line input, or, if there were none,
 at the line before the addressed line.
 This command differs from the
 .I a
@@ -391,14 +392,14 @@ text.
 .RB (\| .\| ,\  . +1)\|j
 This command joins the addressed lines into a single line;
 intermediate newlines simply disappear.
-`\fB.\fP' is left at the resulting line.
+`\fB.\fR' is left at the resulting line.
 .TP 5
-( \fB. \fP)\|k\fIx\fP
+( \fB. \fR)\|k\fIx\fR
 The mark command marks the addressed line with
 name
 .I x,
 which must be a lower-case letter.
-The address form `\(fm\fIx\fP' then addresses this line.
+The address form `\(fm\fIx\fR' then addresses this line.
 .ne 2.5
 .TP 5
 .RB (\| .\| ,\  .\| )\|l
@@ -420,7 +421,7 @@ The last of the moved lines becomes the current line.
 .TP 5
 .RB (\| .\| ,\  .\| )\|p
 The print command prints the addressed lines.
-`\fB.\fP'
+`\fB.\fR'
 is left at the last line printed.
 The
 .I p
@@ -464,13 +465,13 @@ and causes the
 file to be read at the beginning of the buffer.
 If the read is successful, the number of characters
 read is typed.
-`\fB.\fP' is left at the last line read in from the file.
+`\fB.\fR' is left at the last line read in from the file.
 .TP 5
-(\| \fB.\fP\|, \fB.\fP\|)\|s/regular expression/replacement/       or,
+(\| \fB.\fR\|, \fB.\fR\|)\|s/regular expression/replacement/       or,
 .br
 .ns
 .TP 5
-(\| \fB.\fP\|, \fB.\fP\|)\|s/regular expression/replacement/g
+(\| \fB.\fR\|, \fB.\fR\|)\|s/regular expression/replacement/g
 The substitute command searches each addressed
 line for an occurrence of the specified regular expression.
 On each line in which a match is found,
@@ -479,10 +480,10 @@ if the global replacement indicator `g' appears after the command.
 If the global indicator does not appear, only the first occurrence
 of the matched string is replaced.
 It is an error for the substitution to fail on all addressed lines.
-Any character other than space or new-line
+Any punctuation character
 may be used instead of `/' to delimit the regular expression
 and the replacement.
-`\fB.\fP' is left at the last line substituted.
+`\fB.\fR' is left at the last line substituted.
 .IP
 An ampersand `&' appearing in the replacement
 is replaced by the string matching the regular expression.
@@ -507,6 +508,28 @@ Lines may be split by substituting new-line characters into them.
 The new-line in the
 replacement string
 must be escaped by preceding it by `\e'.
+.IP
+One or two trailing delimiters may be omitted,
+implying the `p' suffix.
+The special form `s' followed by
+.I no
+delimiters
+repeats the most recent substitute command
+on the addressed lines.
+The `s' may be followed by the letters
+.B r
+(use the most recent regular expression for the
+left hand side, instead of the most recent
+left hand side of a substitute command),
+.B p
+(complement the setting of the
+.I p
+suffix from the previous substitution), or
+.B g
+(complement the setting of the
+.I g
+suffix).
+These letters may be combined in any order.
 .TP 5
 .RB (\| .\| ,\  .\| )\|t\|\fIa
 This command acts just like the
@@ -515,19 +538,45 @@ command, except that a copy of the addressed lines is placed
 after address
 .I a
 (which may be 0).
-`\fB.\fP' is left on the last line of the copy.
+`\fB.\fR' is left on the last line of the copy.
 .TP 5
 .RB (\| .\| ,\  .\| )\|u
-The undo command restores the preceding contents
-of the current line, which must be the last line
-in which a substitution was made.
+The undo command restores the buffer to it's state
+before the most recent buffer modifying command.
+The current line is also restored.
+Buffer modifying commands are
+.I a, c, d, g, i, k, m, r, s, t,
+and
+.I v.
+For purposes of undo,
+.I g
+and
+.I v
+are considered to be a single buffer modifying command.
+Undo is its own inverse.
+.IP
+When
+.I ed
+runs out of memory
+(at about 8000 lines on any 16 bit mini-computer
+such as the PDP-11)
+This full undo is not possible, and
+.I u
+can only undo the effect of the most recent
+substitute on the current line.
+This restricted undo also applies to editor scripts
+when
+.I ed
+is invoked with the
+.B -
+option.
 .TP 5
 (1, $)\|v/regular expression/command list
 This command is the same as the global command
 .I g
 except that the command list is executed
 .I g
-with `\fB.\fP' initially set to every line
+with `\fB.\fR' initially set to every line
 .I except
 those
 matching the regular expression.
@@ -537,7 +586,7 @@ matching the regular expression.
 The write command writes the addressed lines onto
 the given file.
 If the file does not exist,
-it is created mode 666 (readable and writable by everyone)\|.
+it is created.
 The file name is remembered if there was no 
 remembered file name already.
 If no file name is given,
@@ -547,54 +596,78 @@ the remembered file name, if any, is used
 and
 .I f
 commands)\|.
-`\fB.\fP' is unchanged.
+`\fB.\fR' is unchanged.
 If the command is successful, the number of characters written is
 printed.
 .TP
-(1,$)W filename
+(1, $)\|W filename
 This command is the same as
 .I w,
 except that the addressed lines are appended to the file.
 .TP 5
-x
-A key string is demanded from the standard input.
-Later
-.I r, e
-and
+(1, $)\|wq filename
+This command is the same as
 .I w
-commands will encrypt and decrypt the text 
-with this key by the algorithm of 
-\fIcrypt\fP\|(1).
-An explicitly empty key turns off encryption.
+except that afterwards a
+.I q
+command is done,
+exiting the editor
+after the file is written.
+.TP 5
+.RB (\| .\| +1)\|z	or,
+.br
+.ns
+.TP 5
+.RB (\| .\| +1)\|z\fIn
+This command scrolls through the buffer starting at the addressed line.
+22 (or
+.I n,
+if given)
+lines are printed.
+The last line printed becomes the current line.
+The value
+.I n
+is sticky, in that it becomes the default for
+future
+.I z
+commands.
 .TP 5
 ($)\|=
 The line number of the addressed line is typed.
-`\fB.\fP' is unchanged by this command.
+`\fB.\fR' is unchanged by this command.
 .TP 5
 !<shell command>
 The remainder of the line after the `!' is sent
 to
-\fIsh\fP\|(1)
+.IR sh (1)
 to be interpreted as a command.
 .RB ` . '
 is unchanged.
 .TP 5
-.RB (\| . +1)\|<newline>
+.RB (\| . +1,\| . +1)\|<newline>
 An address alone on a line causes the addressed line to be printed.
 A blank line alone is equivalent to `.+1p'; it is useful
 for stepping through text.
+If two addresses are present with no
+intervening semicolon,
+.I ed
+prints the range of lines.
+If they are separated by a semicolon,
+the second line is printed.
 .PP
 If an interrupt signal (ASCII DEL)\| is sent,
 .I ed
-prints a `?' and returns to its command level.
+prints `?interrupted'
+and returns to its command level.
 .PP
 Some size limitations:
 512 characters per line,
 256 characters per global command list,
 64 characters per file name,
-and 128K characters in the temporary file.
+and, on mini computers,
+128K characters in the temporary file.
 The limit on the number of lines depends on the amount of core:
-each line takes 1 word.
+each line takes 2 words.
 .PP
 When reading a file,
 .I ed
@@ -604,7 +677,7 @@ It refuses to read files containing non-ASCII characters.
 .SH FILES
 /tmp/e*
 .br
-ed.hup: work is saved here if terminal hangs up
+edhup: work is saved here if terminal hangs up
 .SH "SEE ALSO"
 B. W. Kernighan,
 .I
@@ -613,12 +686,11 @@ A Tutorial Introduction to the ED Text Editor
 B. W. Kernighan,
 .I Advanced editing on UNIX
 .br
-crypt(1), ex(1), sed(1)
+ex(1), sed(1), crypt(1)
 .SH DIAGNOSTICS
 `?name' for inaccessible file;
-`?' for
-errors in commands;
-`?TMP' for temporary file overflow.
+`?self-explanatory message'
+for other errors.
 .PP
 To protect against throwing away valuable work,
 a
@@ -638,18 +710,6 @@ The
 .I l
 command mishandles DEL.
 .br
-A
-.I !
-command cannot be subject to a
-.I g
-command.
-.br
-Because 0 is an illegal address for a
-.I w
-command, it is not possible to
-create an empty file with
-.I ed.
-.br
-Try using \fIex\fP\|(1) instead, since it has none of these problems,
-a good set of error messages, a global undo capability, and
-(most importantly) crash recovery.
+The
+.I undo
+command causes marks to be lost on affected lines.

@@ -1,12 +1,20 @@
-CFLAGS=	-O
-
-all: msgs
-
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.1 (Berkeley) 6/4/85
+#
+#
+CFLAGS=-O
+SEPFLAG= -i
+SRCS = msgs.c msgs.h Makefile
 msgs: msgs.c msgs.h
-	${CC} ${LFLAG} ${CFLAGS} -o msgs msgs.c -ltermcap
-
+	cc ${SEPFLAG} $(CFLAGS) -o msgs msgs.c -ltermlib
 install:
-	install -s -o bin -g bin -m 711 msgs ${DESTDIR}/usr/ucb
-
+	install -s msgs ${DESTDIR}/usr/ucb
 clean:
-	rm -f msg.o ${ALL}
+	-rm -f msgs
+sources: $(SRCS)
+$(SRCS):
+	sccs get $@

@@ -1,4 +1,3 @@
-#
 /*
  *
  *	UNIX debugger
@@ -19,7 +18,7 @@ BKPTR		bkpthead;
 
 CHAR		*lp;
 CHAR		lastc;
-POS		corhdr[512];
+POS		corhdr[ctob(USIZE)/sizeof(POS)];
 POS		*endhdr;
 MAP		txtmap;
 
@@ -42,6 +41,7 @@ subpcs(modif)
 	INT		runmode;
 	REG BKPTR	bkptr;
 	STRING		comptr;
+	CHAR		*sbrk();
 	execsig=0; loopcnt=cntval;
 
 	switch(modif) {
@@ -71,7 +71,7 @@ subpcs(modif)
 		   FI
 		OD
 		IF bkptr==0
-		THEN IF (bkptr=sbrk(sizeof *bkptr)) == -1
+		THEN IF (bkptr=(BKPTR)sbrk(sizeof *bkptr)) == -1
 		     THEN error(SZBKPT);
 		     ELSE bkptr->nxtbkpt=bkpthead;
 			  bkpthead=bkptr;

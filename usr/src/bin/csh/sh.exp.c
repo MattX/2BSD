@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.exp.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.exp.c	5.3 (Berkeley) 6/23/85";
+#endif
 
 #include "sh.h"
 
@@ -344,6 +352,8 @@ exp6(vp, ignore)
 	int ccode, i;
 	register char *cp, *dp, *ep;
 
+	if (**vp == 0)
+		bferr("Expression syntax");
 	if (eq(**vp, "!")) {
 		(*vp)++;
 		cp = exp6(vp, ignore);
@@ -472,7 +482,7 @@ exp6(vp, ignore)
 #ifdef EDEBUG
 	etracc("exp6 default", cp, vp);
 #endif
-	return (ignore&NOGLOB ? cp : globone(cp));
+	return (ignore&NOGLOB ? savestr(cp) : globone(cp));
 }
 
 evalav(v)
@@ -512,31 +522,42 @@ isa(cp, what)
 	if (cp == 0)
 		return ((what & RESTOP) != 0);
 	if (cp[1] == 0) {
-		if ((what & ADDOP) && any(cp[0], "+-"))
+		if (what & ADDOP && (*cp == '+' || *cp == '-'))
 			return (1);
-		if ((what & MULOP) && any(cp[0], "*/%"))
+		if (what & MULOP && (*cp == '*' || *cp == '/' || *cp == '%'))
 			return (1);
-		if ((what & RESTOP) && any(cp[0], "()!~^"))
+		if (what & RESTOP && (*cp == '(' || *cp == ')' || *cp == '!' ||
+				      *cp == '~' || *cp == '^' || *cp == '"'))
 			return (1);
+	} else if (cp[2] == 0) {
+		if (what & RESTOP) {
+			if (cp[0] == '|' && cp[1] == '&')
+				return (1);
+			if (cp[0] == '<' && cp[1] == '<')
+				return (1);
+			if (cp[0] == '>' && cp[1] == '>')
+				return (1);
+		}
+		if (what & EQOP) {
+			if (cp[0] == '=') {
+				if (cp[1] == '=')
+					return (EQEQ);
+				if (cp[1] == '~')
+					return (EQMATCH);
+			} else if (cp[0] == '!') {
+				if (cp[1] == '=')
+					return (NOTEQ);
+				if (cp[1] == '~')
+					return (NOTEQMATCH);
+			}
+		}
 	}
-	if ((what & RESTOP) && (any(cp[0], "|&") || eq(cp, "<<") || eq(cp, ">>")))
-		return (1);
-	if (what & EQOP) {
-		if (eq(cp, "=="))
-			return (EQEQ);
-		if (eq(cp, "!="))
-			return (NOTEQ);
-		if (eq(cp, "=~"))
-			return (EQMATCH);
-		if (eq(cp, "!~"))
-			return (NOTEQMATCH);
+	if (what & RELOP) {
+		if (*cp == '<')
+			return (LSS);
+		if (*cp == '>')
+			return (GTR);
 	}
-	if (!(what & RELOP))
-		return (0);
-	if (*cp == '<')
-		return (LSS);
-	if (*cp == '>')
-		return (GTR);
 	return (0);
 }
 

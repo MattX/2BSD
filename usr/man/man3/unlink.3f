@@ -1,5 +1,11 @@
-.TH UNLINK 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)unlink.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH UNLINK 3F "May 15, 1985"
+.UC 5
 .SH NAME
 unlink \- remove a directory entry
 .SH SYNOPSIS
@@ -19,4 +25,5 @@ The returned value will be zero if successful; a system error code otherwise.
 .SH "SEE ALSO"
 unlink(2), link(3F), filsys(5), perror(3F)
 .SH BUGS
-Pathnames can be no longer than 128 bytes.
+Pathnames can be no longer than MAXPATHLEN as defined in
+.RI < sys/param.h >.

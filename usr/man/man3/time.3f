@@ -1,25 +1,27 @@
-.TH TIME 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)time.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH TIME 3F "May 15, 1985"
+.UC 5
 .SH NAME
 time, ctime, ltime, gmtime \- return system time
 .SH SYNOPSIS
-.B integer*4 function time()
+.B integer function time()
 .sp 1
 .B character*(*) function ctime (stime)
 .br
-.B integer*4 stime
+.B integer stime
 .sp 1
 .B subroutine ltime (stime, tarray)
 .br
-.B integer*4 stime
-.br
-.B integer*2 tarray(9)
+.B integer stime, tarray(9)
 .sp 1
 .B subroutine gmtime (stime, tarray)
 .br
-.B integer*4 stime
-.br
-.B integer*2 tarray(9)
+.B integer stime, tarray(9)
 .SH DESCRIPTION
 .I Time
 returns the time since 00:00:00 GMT, Jan. 1, 1970, measured in seconds.

@@ -1,4 +1,6 @@
-/* $Header: chksum.c,v 1.6 85/05/14 18:23:13 rick Exp $ */
+#ifndef lint
+static char sccsid[] = "@(#)chksum.c	4.2 (Berkeley) 6/19/85";
+#endif
 
 #ifndef pdp11
 chksum (s, n)

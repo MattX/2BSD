@@ -1,6 +1,9 @@
-.TH WHO 1 
+.\"	@(#)who.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH WHO 1 "April 29, 1985"
+.AT 3
 .SH NAME
-who  \-  who is on the system
+who \- who is on the system
 .SH SYNOPSIS
 .B who
 [ who-file ] [
@@ -14,7 +17,8 @@ for each current UNIX user.
 .PP
 Without an argument,
 .I who
-examines the /etc/utmp
+examines the
+.I /etc/utmp
 file to obtain its information.
 If a file is given, that file is examined.
 Typically the given file will be /usr/adm/wtmp,

@@ -1,8 +1,17 @@
 /*
- * sccsid = "@(#)player.h	2.7 2/23/84";
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)player.h	5.1 (Berkeley) 5/29/85
  */
+
 #include <curses.h>
 #include "externs.h"
+
+#ifdef BSD2_10
+#define initscreen initsreen
+#endif
 
 /* sizes and coordinates for the screen */
 

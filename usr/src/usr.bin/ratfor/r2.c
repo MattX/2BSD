@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)r2.c	1.2 (Berkeley) 8/11/83";
+#endif
+
 #include "r.h"
 
 extern int hollerith;

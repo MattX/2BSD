@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t6.c	4.2 2/23/83";
+#endif lint
+
 #include "tdef.h"
 extern
 #include "d.h"
@@ -10,6 +14,7 @@ troff6.c
 width functions, sizes and fonts
 */
 
+extern	int	inchar[LNSIZE], *pinchar;	/* XXX */
 extern int eschar;
 extern int widthp;
 extern int ohc;
@@ -47,8 +52,8 @@ extern int lss1;
 extern int vflag;
 extern int ch0;
 extern int lg;
-char fontfile[] = "/usr/lib/font/ftXX";
-int ffi = 16;
+char *fontfile = "/usr/lib/font/ftXX";
+int ffi = 0;
 extern int bd;
 extern int level;
 extern int ch;
@@ -365,10 +370,15 @@ setwd(){
 	int delim, em, k;
 	int savlevel, savhp, savapts, savapts1, savfont, savfont1,
 		savpts, savpts1;
+        int *savpinchar, *p, *q, tempinchar[LNSIZE];    /* XXX */
 
 	base = v.st = v.sb = wid = v.ct = 0;
 	if((delim = getch() & CMASK) & MOT)return;
 	savhp = v.hp;
+        savpinchar = pinchar;   /* XXX */
+        for (p=inchar, q=tempinchar; p < pinchar; )     /* XXX */
+                *q++ = *p++;    /* XXX */
+        pinchar = inchar;       /* XXX */
 	savlevel = level;
 	v.hp = level = 0;
 	savapts = apts;
@@ -394,6 +404,9 @@ setwd(){
 	nform = 0;
 	setn1(wid);
 	v.hp = savhp;
+        pinchar = savpinchar;   /* XXX */
+        for (p=inchar, q=tempinchar; p < pinchar; )     /* XXX */
+                *p++ = *q++;    /* XXX */
 	level = savlevel;
 	apts = savapts;
 	apts1 = savapts1;
@@ -493,6 +506,9 @@ casefp(){
 	register i, j, k;
 	int x;
 
+	if (ffi == 0)
+		while (fontfile[ffi] != 'X')
+			ffi++;
 	skip();
 	if(((i = (getch() & CMASK) - '0' -1) < 0) || (i >3)){prstr("fp: bad font position\n"); return;}
 	if(skip() || !(j = getrq())){prstr("fp: no font name\n"); return;}
@@ -505,7 +521,7 @@ casefp(){
 		prstr("\n");
 		done(-1);
 	}
-	if(lseek(k,8L * sizeof(int),0) < 0)goto c1;
+	if(lseek(k,8L * sizeof(int),0) < 0)goto c1; 
 	if(read(k,fontab[i],256-32) != 256-32){
 	c1:
 		prstr("Cannot read ");

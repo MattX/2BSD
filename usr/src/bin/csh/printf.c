@@ -1,4 +1,13 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)printf.c	5.2 (Berkeley) 6/6/85";
+#endif
+
 /*
  * Hacked "printf" which prints through putchar.
  * DONT USE WITH STDIO!
@@ -9,7 +18,7 @@ char *fmt;
 	_doprnt(fmt, &args, 0);
 }
 
-_strout(string, count, adjust, foo, fillch)
+_strout(count, string, adjust, foo, fillch)
 register char *string;
 register int count;
 int adjust;

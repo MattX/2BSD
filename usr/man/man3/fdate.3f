@@ -1,5 +1,11 @@
-.TH FDATE 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)fdate.3f	6.2 (Berkeley) 5/27/86
+.\"
+.TH FDATE 3F "May 27, 1986"
+.UC 5
 .SH NAME
 fdate \- return date and time in an ASCII string
 .SH SYNOPSIS
@@ -13,7 +19,7 @@ fdate \- return date and time in an ASCII string
 returns the current date and time as a 24 character string
 in the format described under
 .IR ctime (3).
-Neither 'newline' nor NULL will be included.
+Neither `newline' nor NULL will be included.
 .PP
 .I Fdate
 can be called either as a function or as a subroutine.

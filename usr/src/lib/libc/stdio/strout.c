@@ -1,11 +1,14 @@
-/*	@(#)strout.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)strout.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 #include	<stdio.h>
 
-_strout(string, count, adjust, file, fillch)
+_strout(count, string, adjust, file, fillch)
 register char *string;
 register count;
 int adjust;
-register struct _iobuf *file;
+register FILE *file;
 {
 	while (adjust < 0) {
 		if (*string=='-' && fillch=='0') {

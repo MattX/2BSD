@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)split.c	4.2 (Berkeley) 4/29/83";
 #include <stdio.h>
 
 unsigned count = 1000;
@@ -35,13 +36,12 @@ char *argv[];
 				count = atoi(argv[i]+1);
 				continue;
 			}
-		else
-			if(iflg)
-				ofil = argv[i];
-			else {
-				ifil = argv[i];
-				iflg = 2;
-			}
+		else if(iflg)
+			ofil = argv[i];
+		else {
+			ifil = argv[i];
+			iflg = 2;
+		}
 	if(iflg != 2)
 		is = stdin;
 	else
@@ -68,20 +68,14 @@ loop:
 			fname[f++] = fnumber/26 + 'a';
 			fname[f++] = fnumber%26 + 'a';
 			fname[f] = '\0';
-			if (fnumber++ >= 26 * 26) {
-				fprintf(stderr, "Too many files\n");
-				exit(1);
-			}
+			fnumber++;
 			if((os=fopen(fname,"w")) == NULL) {
-				perror ("write");
+				fprintf(stderr,"Cannot create output\n");
 				exit(1);
 			}
 			f = 0;
 		}
-		if ((putc(c, os) == EOF) && ferror(os))	{
-			perror("write");
-			exit(1);
-		}
+		putc(c, os);
 	} while(c != '\n');
 	fclose(os);
 	goto loop;

@@ -18,11 +18,15 @@ char	*prompt, *list[]; {
 	for (;;) {
 inter:
 		printf(prompt);
-		for (sp = buf; (*sp=getchar()) != '\n'; )
+		for (sp = buf; (*sp=getchar()) != '\n' && !feof(stdin); )
 			if (*sp == -1)	/* check for interupted system call */
 				goto inter;
 			else if (sp != buf || *sp != ' ')
 				sp++;
+		if (feof(stdin)) {
+			clearerr(stdin);
+			continue;
+		}
 		if (buf[0] == '?' && buf[1] == '\n') {
 			printf("Valid inputs are: ");
 			for (i = 0, match = 18; list[i]; i++) {

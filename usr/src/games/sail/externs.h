@@ -1,13 +1,32 @@
 /*
- * @(#)externs.h	2.4 84/02/23
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)externs.h	5.1 (Berkeley) 5/29/85
  */
+
 #include <stdio.h>
-#ifdef pdp11				/* so get correct signals */
-#include <sys/localopts.h>
-#endif pdp11
 #include <signal.h>
 #include <ctype.h>
+#include <setjmp.h>
 #include "machdep.h"
+
+	/* program mode */
+int mode;
+jmp_buf restart;
+#define MODE_PLAYER	1
+#define MODE_DRIVER	2
+#define MODE_LOGGER	3
+
+	/* command line flags */
+char debug;				/* -D */
+char randomize;				/* -x, give first available ship */
+char longfmt;				/* -l, print score in long format */
+char nobells;				/* -b, don't ring bell before Signal */
+
+	/* other initial modes */
+char issetuid;				/* running setuid */
 
 #define die()		((rand() >> 3) % 6 + 1)
 #define sqr(a)		((a) * (a))
@@ -180,11 +199,7 @@ struct scenario {
 	char windchange;		/* 4 */
 	char vessels;			/* 12 */
 	char *name;			/* 14 */
-#ifdef pdp11
 	struct ship ship[NSHIP];	/* 16 */
-#else !pdp11
-	struct ship SC_ship[NSHIP];	/* 16 */
-#endif pdp11
 };
 struct scenario scene[];
 int nscene;
@@ -251,7 +266,6 @@ int turn;
 int game;
 int alive;
 int people;
-char isplayer;
 char hasdriver;
 
 char *info();
@@ -261,6 +275,7 @@ char *saywhat();
 struct ship *closestenemy();
 
 char *calloc();
+char *rindex();
 char *strcpy();
 char *strcat();
 char *strncpy();

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n7.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 extern
 #include "d.h"
@@ -7,7 +11,7 @@ extern
 extern
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 #ifdef NROFF
 #define GETCH gettch
 #endif
@@ -665,7 +669,7 @@ int x;
 			continue;
 		}
 		if(j == ' '){
-			storeword(i,cwidth);
+			storeword(i,width(i));	/* XXX */
 			continue;
 		}
 		break;
@@ -699,7 +703,7 @@ g0:
 			if(hyp > (hyptr+NHYP-1))hyp = hyptr+NHYP-1;
 		}
 	}
-	storeword(i,cwidth);
+	storeword(i,width(i));	/* XXX */
 g1:
 	j = (i = GETCH()) & CMASK;
 	if(j != ' '){

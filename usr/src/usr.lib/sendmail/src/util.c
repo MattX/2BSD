@@ -1,3 +1,17 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)util.c	5.8 (Berkeley) 12/17/85";
+#endif
+
 # include <stdio.h>
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -5,8 +19,6 @@
 # include <errno.h>
 # include <ctype.h>
 # include "sendmail.h"
-
-SCCSID(@(#)util.c	4.2		8/31/83);
 
 /*
 **  STRIPQUOTES -- Strip quotes & quote bits from a string.
@@ -131,8 +143,9 @@ xalloc(sz)
 	register int sz;
 {
 	register char *p;
+	extern char *malloc();
 
-	p = malloc(sz);
+	p = malloc((unsigned) sz);
 	if (p == NULL)
 	{
 		syserr("Out of memory!!");
@@ -173,8 +186,8 @@ copyplist(list, copycont)
 
 	vp++;
 
-	newvp = (char **) xalloc((vp - list) * sizeof *vp);
-	bmove((char *) list, (char *) newvp, (vp - list) * sizeof *vp);
+	newvp = (char **) xalloc((int) (vp - list) * sizeof *vp);
+	bcopy((char *) list, (char *) newvp, (int) (vp - list) * sizeof *vp);
 
 	if (copycont)
 	{
@@ -197,7 +210,6 @@ copyplist(list, copycont)
 **		prints av.
 */
 
-# ifdef DEBUG
 printav(av)
 	register char **av;
 {
@@ -206,12 +218,11 @@ printav(av)
 		if (tTd(0, 44))
 			printf("\n\t%08x=", *av);
 		else
-			putchar(' ');
+			(void) putchar(' ');
 		xputs(*av++);
 	}
-	putchar('\n');
+	(void) putchar('\n');
 }
-# endif DEBUG
 /*
 **  LOWER -- turn letter into lower case.
 **
@@ -246,7 +257,6 @@ lower(c)
 **		output to stdout
 */
 
-# ifdef DEBUG
 xputs(s)
 	register char *s;
 {
@@ -257,25 +267,24 @@ xputs(s)
 		printf("<null>");
 		return;
 	}
-	putchar('"');
+	(void) putchar('"');
 	while ((c = *s++) != '\0')
 	{
 		if (!isascii(c))
 		{
-			putchar('\\');
+			(void) putchar('\\');
 			c &= 0177;
 		}
 		if (c < 040 || c >= 0177)
 		{
-			putchar('^');
+			(void) putchar('^');
 			c ^= 0100;
 		}
-		putchar(c);
+		(void) putchar(c);
 	}
-	putchar('"');
+	(void) putchar('"');
 	(void) fflush(stdout);
 }
-# endif DEBUG
 /*
 **  MAKELOWER -- Translate a line into lower case
 **
@@ -324,35 +333,18 @@ bool
 sameword(a, b)
 	register char *a, *b;
 {
-	while (lower(*a) == lower(*b))
-	{
-		if (*a == '\0')
-			return (TRUE);
-		a++;
-		b++;
-	}
-	return (FALSE);
-}
-/*
-**  CLEAR -- clear a block of memory
-**
-**	Parameters:
-**		p -- location to clear.
-**		l -- number of bytes to clear.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		none.
-*/
+	char ca, cb;
 
-clear(p, l)
-	register char *p;
-	register int l;
-{
-	while (l-- > 0)
-		*p++ = 0;
+	do
+	{
+		ca = *a++;
+		cb = *b++;
+		if (isascii(ca) && isupper(ca))
+			ca = ca - 'A' + 'a';
+		if (isascii(cb) && isupper(cb))
+			cb = cb - 'A' + 'a';
+	} while (ca != '\0' && ca == cb);
+	return (ca == cb);
 }
 /*
 **  BUILDFNAME -- build full name from gecos style entry.
@@ -461,25 +453,6 @@ fixcrlf(line, stripnl)
 	*p = '\0';
 }
 /*
-**  SYSLOG -- fake entry to fool lint
-*/
-
-# ifdef LOG
-# ifdef lint
-
-/*VARARGS2*/
-syslog(pri, fmt, args)
-	int pri;
-	char *fmt;
-{
-	pri = *fmt;
-	args = pri;
-	pri = args;
-}
-
-# endif lint
-# endif LOG
-/*
 **  DFOPEN -- determined file open
 **
 **	This routine has the semantics of fopen, except that it will
@@ -498,7 +471,7 @@ dfopen(filename, mode)
 
 	for (tries = 0; tries < 10; tries++)
 	{
-		sleep(10 * tries);
+		sleep((unsigned) (10 * tries));
 		errno = 0;
 		fp = fopen(filename, mode);
 		if (fp != NULL)
@@ -560,9 +533,9 @@ putline(l, fp, m)
 			svchar = *q;
 			*q = '\0';
 			if (l[0] == '.' && bitnset(M_XDOT, m->m_flags))
-				fputc('.', fp);
+				(void) putc('.', fp);
 			fputs(l, fp);
-			fputc('!', fp);
+			(void) putc('!', fp);
 			fputs(m->m_eol, fp);
 			*q = svchar;
 			l = q;
@@ -572,7 +545,7 @@ putline(l, fp, m)
 		svchar = *p;
 		*p = '\0';
 		if (l[0] == '.' && bitnset(M_XDOT, m->m_flags))
-			fputc('.', fp);
+			(void) putc('.', fp);
 		fputs(l, fp);
 		fputs(m->m_eol, fp);
 		*p = svchar;
@@ -619,7 +592,8 @@ xunlink(f)
 **		fp -- file to read from.
 **
 **	Returns:
-**		NULL on error (including timeout).
+**		NULL on error (including timeout).  This will also leave
+**			buf containing a null string.
 **		buf otherwise.
 **
 **	Side Effects:
@@ -627,6 +601,10 @@ xunlink(f)
 */
 
 static jmp_buf	CtxReadTimeout;
+
+#ifndef ETIMEDOUT
+#define ETIMEDOUT	EINTR
+#endif
 
 char *
 sfgets(buf, siz, fp)
@@ -644,25 +622,36 @@ sfgets(buf, siz, fp)
 		if (setjmp(CtxReadTimeout) != 0)
 		{
 			errno = ETIMEDOUT;
-			syserr("sfgets: timeout on read (mailer may be hung)");
+			syserr("net timeout");
+			buf[0] = '\0';
 			return (NULL);
 		}
 		ev = setevent((time_t) ReadTimeout, readtimeout, 0);
 	}
 
 	/* try to read */
-	do
+	p = NULL;
+	while (p == NULL && !feof(fp) && !ferror(fp))
 	{
 		errno = 0;
 		p = fgets(buf, siz, fp);
-	} while (p == NULL && errno == EINTR);
+		if (errno == EINTR)
+			clearerr(fp);
+	}
 
 	/* clear the event if it has not sprung */
 	clrevent(ev);
 
 	/* clean up the books and exit */
 	LineNumber++;
-	return (p);
+	if (p == NULL)
+	{
+		buf[0] = '\0';
+		return (NULL);
+	}
+	for (p = buf; *p != '\0'; p++)
+		*p &= ~0200;
+	return (buf);
 }
 
 static
@@ -697,19 +686,32 @@ fgetfolded(buf, n, f)
 	register int i;
 
 	n--;
-	while (fgets(p, n, f) != NULL)
+	while ((i = getc(f)) != EOF)
 	{
-		LineNumber++;
-		fixcrlf(p, TRUE);
-		i = fgetc(f);
-		if (i != EOF)
-			ungetc(i, f);
-		if (i != ' ' && i != '\t')
-			return (buf);
-		i = strlen(p);
-		p += i;
-		*p++ = '\n';
-		n -= i + 1;
+		if (i == '\r')
+		{
+			i = getc(f);
+			if (i != '\n')
+			{
+				if (i != EOF)
+					(void) ungetc(i, f);
+				i = '\r';
+			}
+		}
+		if (--n > 0)
+			*p++ = i;
+		if (i == '\n')
+		{
+			LineNumber++;
+			i = getc(f);
+			if (i != EOF)
+				(void) ungetc(i, f);
+			if (i != ' ' && i != '\t')
+			{
+				*--p = '\0';
+				return (buf);
+			}
+		}
 	}
 	return (NULL);
 }
@@ -809,26 +811,6 @@ waitfor(pid)
 	if (i < 0)
 		st = -1;
 	return (st);
-}
-/*
-**  CLOSEALL -- close all extraneous file descriptors
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		Closes all file descriptors except zero, one, and two.
-*/
-
-closeall()
-{
-	int i;
-
-	for (i = 3; i < 50; i++)
-		(void) close(i);
 }
 /*
 **  BITINTERSECT -- tell if two bitmaps intersect

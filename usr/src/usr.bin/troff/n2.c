@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n2.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 #include <sgtty.h>
 extern
@@ -8,7 +12,7 @@ extern
 extern
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 #include <setjmp.h>
 jmp_buf sjbuf;
 
@@ -298,6 +302,7 @@ report(){
 		a.use = paper;
 		a.uid = getuid();
 		write(acctf,(char *)&a,sizeof(a));
+		close(acctf);
 	}
 }
 #endif

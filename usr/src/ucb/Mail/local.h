@@ -1,43 +1,31 @@
 /*
- * Sccs Id = "@(#)local.h	2.1 7/1/81";
- */
-
-/*
- * Declarations and constants specific to an installation.
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
  *
- * Vax/Unix version 7.
- */
- 
-/*
- * Sccs Id = "@(#)v7.local.h	2.5 1/29/83";
+ *	@(#)local.h	5.1 (Berkeley) 6/6/85
  */
 
-#define	GETHOST				/* System has gethostname syscall */
-#ifdef	GETHOST
-#define	LOCAL		EMPTYID		/* Dynamically determined local host */
-#else
-#define	LOCAL		'V'		/* Local host id */
-#endif	GETHOST
+#ifdef V7
+#include "v7.local.h"
+#endif
 
-#define	MAIL		"/bin/mail"	/* Name of mail sender */
-#define SENDMAIL	"/etc/delivermail"
-					/* Name of classy mail deliverer */
-#define	EDITOR		"/bin/ex"	/* Name of text editor */
-#define	VISUAL		"/bin/vi"	/* Name of display editor */
-#define	SHELL		"/bin/csh"	/* Standard shell */
-#define	MORE		"/usr/ucb/more"	/* Standard output pager */
-#define	HELPFILE	"/usr/lib/Mail.help"
-					/* Name of casual help file */
-#define	THELPFILE	"/usr/lib/Mail.help.~"
-#define	POSTAGE		"/usr/adm/maillog"
-					/* Where to audit mail sending */
-					/* Name of casual tilde help */
-#define	UIDMASK		0177777		/* Significant uid bits */
-#define	MASTER		"/usr/lib/Mail.rc"
-#define	APPEND				/* New mail goes to end of mailbox */
-#define CANLOCK				/* Locking protocol actually works */
-#define	UTIME				/* System implements utime(2) */
+#ifdef CORY
+#include "c.local.h"
+#endif
 
-#ifndef VMUNIX
-#include "sigretro.h"			/* Retrofit signal defs */
-#endif VMUNIX
+#ifdef INGRES
+#include "ing.local.h"
+#endif
+
+#ifdef V6
+#include "v6.local.h"
+#endif
+
+#ifdef CC
+#include "cc.local.h"
+#endif
+
+#ifdef V40
+#include "40.local.h"
+#endif

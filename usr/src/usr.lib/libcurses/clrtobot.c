@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)clrtobot.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#if !defined(lint) && !defined(NOSCCS)
+static char sccsid[] = "@(#)clrtobot.c	5.2 (Berkeley) 10/24/85";
+#endif
 
 # include	"curses.ext"
 
@@ -33,7 +33,7 @@ reg WINDOW	*win; {
 				*sp = ' ';
 			}
 		if (minx != _NOCHANGE)
-			touchline(win, y, minx, maxx - &win->_y[y][startx]);
+			touchline(win, y, minx, maxx - &win->_y[y][0]);
 		startx = 0;
 	}
 }

@@ -266,7 +266,7 @@ initnl()
 	hdefnl(*q++, TYPE, nlp-1, 0);	/* "alfa" */
 	hdefnl(*q++, TYPE, nlp+1, 0);	/* "text" */
      p=	defnl(0, FILE, nl+T1CHAR, 0);
-	p->nl_flags =| NFILES;
+	p->nl_flags |= NFILES;
 #ifndef PI0
 	input = hdefnl(*q++, VAR, p, -2);	/* "input" */
 	output = hdefnl(*q++, VAR, p, -4);	/* "output" */
@@ -278,7 +278,7 @@ initnl()
 	/*
 	 * Pre-defined constants
 	 */
-	for (; *q; q =+ 4)
+	for (; *q; q += 4)
 		hdefnl(q[0], CONST, nl+q[1], q[2])->value[1] = q[3];
 
 #ifdef DEBUG
@@ -292,9 +292,9 @@ initnl()
 	 * Built-in procedures and functions
 	 */
 #ifndef PI0
-	for (q++; *q; q =+ 2)
+	for (q++; *q; q += 2)
 		hdefnl(q[0], FUNC, 0, q[1]);
-	for (q++; *q; q =+ 2)
+	for (q++; *q; q += 2)
 		hdefnl(q[0], PROC, 0, q[1]);
 #else
 	for (q++; *q;)
@@ -340,9 +340,9 @@ nlfree(p)
 }
 #endif
 
-char	VARIABLE[]	"variable";
+char	VARIABLE[]	= "variable";
 
-char	*classes[] {
+char	*classes[] = {
 	"undefined",
 	"constant",
 	"type",
@@ -370,7 +370,7 @@ char	*classes[] {
 #endif
 };
 
-char	snark[]	"SNARK";
+char	snark[]	= "SNARK";
 
 #ifdef PI
 #ifdef DEBUG
@@ -668,7 +668,7 @@ enter(np)
 			error("Pre-defined files input and output must not be redefined");
 #endif
 	i = rp->symbol;
-	i =& 077;
+	i &= 077;
 	hp = disptab[i];
 	if (rp->class != BADUSE && rp->class != FIELD)
 	for (p = hp; p != NIL && (p->nl_block & 037) == cbn; p = p->nl_next)
@@ -685,8 +685,8 @@ enter(np)
 }
 #endif
 
-double	MININT		-2147483648.;
-double	MAXINT		2147483647.;
+double	MININT		= -2147483648.;
+double	MAXINT		= 2147483647.;
 
 char *
 alloc(i)

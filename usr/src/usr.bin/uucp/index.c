@@ -1,5 +1,6 @@
-/* $Header: index.c,v 1.3 85/01/03 16:57:20 rick Exp $ */
-/* from: @(#)index.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)index.c	5.2 (Berkeley) 1/22/85";
+#endif
 
 #include <stdio.h>
 

@@ -1,4 +1,7 @@
-.TH SLEEP 1 
+.\"	@(#)sleep.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH SLEEP 1 "April 29, 1985"
+.AT 3
 .SH NAME
 sleep \- suspend execution for an interval
 .SH SYNOPSIS
@@ -9,8 +12,7 @@ time
 suspends execution for
 .I time
 seconds.
-It is used to execute a command
-after a certain amount of time as in:
+It is used to execute a command after a certain amount of time as in:
 .PP
 	(sleep 105; command)&
 .PP
@@ -26,7 +28,7 @@ or to execute a command every so often, as in:
 .br
 	done
 .SH "SEE ALSO"
-alarm(2), sleep(3)
+setitimer(2), alarm(3C), sleep(3)
 .SH BUGS
 .I Time
-must be less than 65536 seconds.
+must be less than 2,147,483,647 seconds.

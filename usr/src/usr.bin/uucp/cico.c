@@ -1,7 +1,6 @@
 #ifndef lint
-static char	*RcsId = "@(#) $Header: cico.c,v 1.49 85/07/19 21:27:50 rick Exp $";
-/* from: @(#)cico.c	5.3 (Berkeley) 10/3/83 */
-#endif !lint
+static char sccsid[] = "@(#)cico.c	5.14 (Berkeley) 4/14/86";
+#endif
 
 #include <signal.h>
 #include "uucp.h"
@@ -39,7 +38,7 @@ char *Stattext[] = {
 	"WRONG TIME TO CALL",
 	"SYSTEM LOCKED",
 	"NO DEVICE",
-	"DIAL FAILED",
+	"CALL FAILED",
 	"LOGIN FAILED",
 	"BAD SEQUENCE"
 };
@@ -56,13 +55,18 @@ int Stattype[] = {
 	SS_BADSEQ
 };
 
+				/* Arguments to setdebug():		     */
+#define DBG_TEMP  0		/*   Create a temporary audit file	     */
+#define DBG_PERM  1		/*   Create a permanent audit file	     */
+#define DBG_CLEAN 2		/*   Cleanup, discard temp file		     */
 
 int ReverseRole = 0;
-int StdErrIsTty = 0;
 int Role = SLAVE;
 int onesys = 0;
 int turntime = 30 * 60;	/* 30 minutes expressed in seconds */
+char *ttyn = NULL;
 extern int LocalOnly;
+extern int errno;
 extern char MaxGrade, DefMaxGrade;
 extern char Myfullname[];
 
@@ -73,43 +77,45 @@ struct termio Savettyb;
 struct sgttyb Savettyb;
 #endif
 
-/*******
- *	cico - this program is used  to place a call to a
+/*
+ *	this program is used  to place a call to a
  *	remote machine, login, and copy files between the two machines.
  */
-
 main(argc, argv)
+int argc;
 register char *argv[];
 {
 	register int ret;
 	int seq;
 	char wkpre[NAMESIZE], file[NAMESIZE];
-	char msg[MAXFULLNAME], *q, **alias;
+	char msg[MAXFULLNAME], *q;
 	register char *p;
-	extern onintr(), timeout(), setdebug();
+	extern onintr(), timeout(), dbg_signal();
 	extern char *pskip();
 	char rflags[MAXFULLNAME];
-	char *ttyn;
 #ifdef NOGETPEER
 	u_long Hostnumber = 0;
 #endif NOGETPEER
 
 	strcpy(Progname, "uucico");
 
+#ifdef BSD4_2
+	sigsetmask(0L);	/* in case we inherit blocked signals */
+#endif BSD4_2
 	signal(SIGINT, onintr);
 	signal(SIGHUP, onintr);
 	signal(SIGQUIT, onintr);
 	signal(SIGTERM, onintr);
 	signal(SIGPIPE, onintr);	/* 4.1a tcp-ip stupidity */
-	signal(SIGFPE, setdebug);
+	signal(SIGFPE, dbg_signal);
 	ret = guinfo(getuid(), User, msg);
 	strcpy(Loginuser, User);
 	uucpname(Myname);
 	ASSERT(ret == 0, "BAD UID", CNULL, ret);
 
-#ifdef BSD4_2
-	setlinebuf(stderr);
-#endif
+	setbuf (stderr, CNULL);
+
+	rflags[0] = '\0';
 	umask(WFMASK);
 	strcpy(Rmtname, Myname);
 	Ifn = Ofn = -1;
@@ -136,11 +142,10 @@ register char *argv[];
 				onesys = 1;
 			break;
 		case 'x':
-			chkdebug();
 			Debug = atoi(&argv[1][2]);
 			if (Debug <= 0)
 				Debug = 1;
-			logent("ENABLED", "DEBUG");
+			strcat(rflags, argv[1]);
 			break;
 		case 't':
 			turntime = atoi(&argv[1][2])*60;/* minutes to seconds */
@@ -161,11 +166,14 @@ register char *argv[];
 	}
 
 	while (argc > 1) {
-		printf("unknown argument %s (ignored)\n", argv[1]);
+		fprintf(stderr, "unknown argument %s (ignored)\n", argv[1]);
 		--argc; argv++;
 	}
 
-	/* Try to run as uucp -- rti!trt */
+	if (Debug && Role == MASTER)
+		chkdebug();
+
+	/* Try to run as uucp */
 	setgid(getegid());
 	setuid(geteuid());
 #ifdef	TIOCNOTTY
@@ -179,7 +187,7 @@ register char *argv[];
 	}
 #endif TIOCNOTTY
 #ifdef BSD4_2
-	if (getpgrp(0) == 0) { /*We have no controlling terminal */
+	if (getpgrp(0) == 0) { /* We have no controlling terminal */
 		setpgrp(0, getpid());
 	}
 #endif BSD4_2
@@ -188,21 +196,31 @@ register char *argv[];
 	ASSERT(ret >= 0, "CHDIR FAILED", Spool, ret);
 	strcpy(Wrkdir, Spool);
 
+	if (Debug) {
+		setdebug ((Role == SLAVE) ? DBG_TEMP : DBG_PERM);
+		if (Debug > 0)
+			logent ("Local Enabled", "DEBUG");
+	}
+
+	/*
+	 * First time through: If we're the slave, do initial checking.
+	 */
 	if (Role == SLAVE) {
 		/* check for /etc/nologin */
-		ultouch();	/* sets nologinflag as a side effect */
-		if (nologinflag) {
+		if (access(NOLOGIN, 0) == 0) {
 			logent(NOLOGIN, "UUCICO SHUTDOWN");
 			if (Debug > 4)
 				logent("DEBUGGING", "continuing anyway");
 			else
 				cleanup(1);
 		}
+		Ifn = 0;
+		Ofn = 1;
 #ifdef	TCPIP
 		/*
 		 * Determine if we are on TCPIP
 		 */
-		if (isatty(0) ==  0) {
+		if (isatty(Ifn) < 0) {
 			IsTcpIp = 1;
 			DEBUG(4, "TCPIP connection -- ioctl-s disabled\n", CNULL);
 		} else
@@ -212,30 +230,22 @@ register char *argv[];
 		onesys = 1;
 		if (!IsTcpIp) {
 #ifdef	USG
-			ret = ioctl(0, TCGETA, &Savettyb);
+			ret = ioctl(Ifn, TCGETA, &Savettyb);
 			Savettyb.c_cflag = (Savettyb.c_cflag & ~CS8) | CS7;
 			Savettyb.c_oflag |= OPOST;
 			Savettyb.c_lflag |= (ISIG|ICANON|ECHO);
 #else !USG
-			ret = ioctl(0, TIOCGETP, &Savettyb);
+			ret = ioctl(Ifn, TIOCGETP, &Savettyb);
 			Savettyb.sg_flags |= ECHO;
 			Savettyb.sg_flags &= ~RAW;
 #endif !USG
+			ttyn = ttyname(Ifn);
 		}
-		Ifn = 0;
-		Ofn = 1;
 		fixmode(Ifn);
-		sprintf(file,"%s/%d", RMTDEBUG, getpid());
-#ifdef VMS
-		/* hold the version number down */
-		unlink(file);
-#endif VMS
-		freopen(file, "w", stderr);
-#ifdef BSD4_2
-		setlinebuf(stderr);
-#else  !BSD4_2
-		setbuf(stderr, NULL);
-#endif !BSD4_2
+
+		/*
+		 * Initial Message -- tell them we're here, and who we are.
+		 */
 		sprintf(msg, "here=%s", Myfullname);
 		omsg('S', msg, Ofn);
 		signal(SIGALRM, timeout);
@@ -244,22 +254,23 @@ register char *argv[];
 			/* timed out */
 			if (!IsTcpIp) {
 #ifdef	USG
-				ret = ioctl(0, TCSETA, &Savettyb);
+				ret = ioctl(Ifn, TCSETA, &Savettyb);
+
 #else	!USG
-				ret = ioctl(0, TIOCSETP, &Savettyb);
+				ret = ioctl(Ifn, TIOCSETP, &Savettyb);
 #endif !USG
 			}
 			cleanup(0);
 		}
 		for (;;) {
 			ret = imsg(msg, Ifn);
-			if (ret != 0) {
+			if (ret != SUCCESS) {
 				alarm(0);
 				if (!IsTcpIp) {
 #ifdef	USG
-					ret = ioctl(0, TCSETA, &Savettyb);
+					ret = ioctl(Ifn, TCSETA, &Savettyb);
 #else	!USG
-					ret = ioctl(0, TIOCSETP, &Savettyb);
+					ret = ioctl(Ifn, TIOCSETP, &Savettyb);
 #endif !USG
 				}
 				cleanup(0);
@@ -272,10 +283,12 @@ register char *argv[];
 		p = pskip(q);
 		strncpy(Rmtname, q, MAXBASENAME);
 		Rmtname[MAXBASENAME] = '\0';
-		sprintf(wkpre,"%s/%s", RMTDEBUG, Rmtname);
-		unlink(wkpre);
-		if (link(file, wkpre) == 0)
-			unlink(file);
+
+		/*
+		 * Now that we know who they are, give the audit file the right
+		 * name.
+		 */
+		setdebug (DBG_PERM);
 		DEBUG(4, "sys-%s\n", Rmtname);
 		/* The versys will also do an alias on the incoming name */
 		if (versys(&Rmtname)) {
@@ -294,7 +307,7 @@ register char *argv[];
 		if (IsTcpIp) {
 			struct hostent *hp;
 			char *cpnt, *inet_ntoa();
-			int len;
+			int fromlen;
 			struct sockaddr_in from;
 			extern char PhoneNumber[];
 
@@ -302,8 +315,8 @@ register char *argv[];
 			from.sin_addr.s_addr = Hostnumber;
 			from.sin_family = AF_INET;
 #else	!NOGETPEER
-			len = sizeof(from);
-			if (getpeername(0, &from, &len) < 0) {
+			fromlen = sizeof(from);
+			if (getpeername(Ifn, &from, &fromlen) < 0) {
 				logent(Rmtname, "NOT A TCP CONNECTION");
 				omsg('R', "NOT TCP", Ofn);
 				cleanup(0);
@@ -311,7 +324,7 @@ register char *argv[];
 #endif	!NOGETPEER
 			hp = gethostbyaddr(&from.sin_addr,
 				sizeof (struct in_addr), from.sin_family);
-			if (hp == 0) {
+			if (hp == NULL) {
 				/* security break or just old host table? */
 				logent(Rmtname, "UNKNOWN IP-HOST Name =");
 				cpnt = inet_ntoa(from.sin_addr),
@@ -321,7 +334,7 @@ register char *argv[];
 				omsg('R' ,wkpre ,Ofn);
 				cleanup(0);
 			}
-			if (Debug>99)
+			if (Debug > 99)
 				logent(Rmtname,"Request from IP-Host name =");
 			/*
 			 * The following is to determine if the name given us by
@@ -372,9 +385,17 @@ register char *argv[];
 			q = pskip(p);
 			switch(*(++p)) {
 			case 'x':
-				Debug = atoi(++p);
-				if (Debug <= 0)
-					Debug = 1;
+				if (Debug == 0) {
+					Debug = atoi(++p);
+					if (Debug <= 0)
+						Debug = 1;
+					setdebug(DBG_PERM);
+					if (Debug > 0)
+						logent("Remote Enabled", "DEBUG");
+				} else {
+					DEBUG(1, "Remote debug request ignored\n",
+					   CNULL);
+				}
 				break;
 			case 'Q':
 				seq = atoi(++p);
@@ -418,15 +439,8 @@ register char *argv[];
 			omsg('R', "BADSEQ", Ofn);
 			cleanup(0);
 		}
-		ttyn = ttyname(Ifn);
 		if (ttyn != NULL)
 			chmod(ttyn, 0600);
-	} else { /* Role == MASTER */
-		struct stat stbuf;
-		if (isatty(fileno(stderr)) || (fstat(fileno(stderr),&stbuf) == 0
-		    && stbuf.st_mode&S_IFREG) )
-			StdErrIsTty =  1;
-		setdebug(0);
 	}
 
 loop:
@@ -439,15 +453,8 @@ loop:
 		sleep(3);
 	}
 	if (!onesys) {
-		struct stat sbuf;
-
-		if (!StdErrIsTty) {
-			sprintf(file, "%s/%s", RMTDEBUG, Rmtname);
-			if (stat(file, &sbuf) == 0 && sbuf.st_size == 0)
-				unlink(file);
-		}
 		ret = gnsys(Rmtname, Spool, CMDPRE);
-		setdebug(0);
+		setdebug(DBG_PERM);
 		if (ret == FAIL)
 			cleanup(100);
 		if (ret == SUCCESS)
@@ -463,8 +470,7 @@ loop:
 	signal(SIGQUIT, SIG_IGN);
 	if (Role == MASTER) {
 		/* check for /etc/nologin */
-		ultouch();	/* sets nologinflag as a side effect */
-		if (nologinflag) {
+		if (access(NOLOGIN, 0) == 0) {
 			logent(NOLOGIN, "UUCICO SHUTDOWN");
 			if (Debug > 4)
 				logent("DEBUGGING", "continuing anyway");
@@ -483,7 +489,7 @@ loop:
 			sleep(3);
 		}
 		sprintf(msg, "call to %s ", Rmtname);
-		if (mlock(Rmtname) != 0) {
+		if (mlock(Rmtname) != SUCCESS) {
 			logent(msg, "LOCKED");
 			US_SST(us_s_lock);
 			goto next;
@@ -508,7 +514,7 @@ loop:
 		/*
 		 * Determine if we are on TCPIP
 		 */
-		if (isatty(Ifn) ==  0) {
+		if (isatty(Ifn) == 0) {
 			IsTcpIp = 1;
 			DEBUG(4, "TCPIP connection -- ioctl-s disabled\n", CNULL);
 		} else
@@ -535,20 +541,12 @@ loop:
 #else !GNXSEQ
 		seq = 0;
 #endif !GNXSEQ
-		if (Debug)
-			sprintf(rflags, "-x%d", Debug);
-		else
-			rflags[0] = '\0';
-
 		if (MaxGrade != '\177') {
-			char buf[MAXFULLNAME];
-			sprintf(buf, " -p%c -vgrade=%c", MaxGrade, MaxGrade);
-			strcat(rflags, buf);
-		}
-
-		sprintf(msg, "%s -Q%d %s", Myname, seq, rflags);
-		if (MaxGrade != '\177')
 			DEBUG(2, "Max Grade this transfer is %c\n", MaxGrade);
+			sprintf(msg, "%s -Q%d -p%c -vgrade=%c %s",
+				Myname, seq, MaxGrade, MaxGrade, rflags);
+		} else
+			sprintf(msg, "%s -Q%d %s", Myname, seq, rflags);
 		omsg('S', msg, Ofn);
 		for (;;) {
 			ret = imsg(msg, Ifn);
@@ -595,6 +593,8 @@ loop:
 	DEBUG(1, "Ifn - %d, ", Ifn);
 	DEBUG(1, "Loginuser - %s\n", Loginuser);
 
+	ttyn = ttyname(Ifn);
+
 	alarm(MAXMSGTIME);
 	if (ret=setjmp(Sjbuf))
 		goto Failure;
@@ -608,7 +608,14 @@ Failure:
 			"STARTUP FAILED");
 		goto next;
 	} else {
-		logent("startup", "OK");
+		if (ttyn != NULL) {
+			char startupmsg[BUFSIZ];
+			extern int linebaudrate;
+			sprintf(startupmsg, "startup %s %d baud", &ttyn[5], 
+				linebaudrate);
+			logent(startupmsg, "OK");
+		} else
+			logent("startup", "OK");
 		US_SST(us_s_gress);
 		systat(Rmtname, SS_INPROGRESS, "TALKING");
 		ret = cntrl(Role, wkpre);
@@ -653,21 +660,16 @@ next:
 struct sgttyb Hupvec;
 #endif
 
-/***
- *	cleanup(code)	cleanup and exit with "code" status
- *	int code;
+/*
+ *	cleanup and exit with "code" status
  */
-
 cleanup(code)
 register int code;
 {
-	register char *ttyn;
-	char bfr[BUFSIZ];
-	struct stat sbuf;
-
 	signal(SIGINT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 	rmlock(CNULL);
+	sleep(5);			/* Wait for any pending output	  */
 	clsacu();
 	logcls();
 	if (Role == SLAVE) {
@@ -683,17 +685,16 @@ register int code;
 			(void) ioctl(0, TIOCSDTR, STBNULL);
 #else !TIOCSDTR
 			(void) ioctl(0, TIOCGETP, &Hupvec);
-#endif !TIOCSDTR
 			Hupvec.sg_ispeed = B0;
 			Hupvec.sg_ospeed = B0;
 			(void) ioctl(0, TIOCSETP, &Hupvec);
+#endif !TIOCSDTR
 			sleep(2);
 			(void) ioctl(0, TIOCSETP, &Savettyb);
 			/* make *sure* exclusive access is off */
 			(void) ioctl(0, TIOCNXCL, STBNULL);
 #endif !USG
 		}
-		ttyn = ttyname(Ifn);
 		if (ttyn != NULL)
 			chmod(ttyn, 0600);
 	}
@@ -711,16 +712,12 @@ register int code;
 		xuuxqt();
 	else
 		DEBUG(1, "exit code %d\n", code);
-	sprintf(bfr, "%s/%s", RMTDEBUG, Rmtname);
-	if (stat(bfr, &sbuf) == 0 && sbuf.st_size == 0)
-		unlink(bfr);
-	sprintf(bfr, "%s/%d", RMTDEBUG, getpid());
-	unlink(bfr);
+	setdebug (DBG_CLEAN);
 	exit(code);
 }
 
-/***
- *	onintr(inter)	interrupt - remove locks and exit
+/*
+ *	on interrupt - remove locks and exit
  */
 
 onintr(inter)
@@ -743,72 +740,136 @@ register int inter;
  * (SIGFPE, ugh), and toggle debugging between 0 and 30.
  * Handy for looking in on long running uucicos.
  */
-setdebug(code)
-int code;
+dbg_signal()
 {
-	char buf[BUFSIZ];
-
-	if (code) {
-		if (Debug == 0)
-			Debug = 30;
-		else
-			Debug = 0;
-	}
-	if (Debug && !StdErrIsTty) {
-		sprintf(buf,"%s/%s", RMTDEBUG, Rmtname);
-		unlink(buf);
-		freopen(buf, "w", stderr);
-#ifdef BSD4_2
-		setlinebuf(stderr);
-#else  !BSD4_2
-		setbuf(stderr, NULL);
-#endif !BSD4_2
-	}
-}
-
-
-/***
- *	fixmode(tty)	fix kill/echo/raw on line
- *
- *	return codes:  none
- */
-
-fixmode(tty)
-register int tty;
-{
-#ifdef	USG
-	struct termio ttbuf;
-#endif
-#ifndef	USG
-	struct sgttyb ttbuf;
-#endif
-
-	if (IsTcpIp)
-		return;
-#ifdef	USG
-	ioctl(tty, TCGETA, &ttbuf);
-	ttbuf.c_iflag = ttbuf.c_oflag = ttbuf.c_lflag = (ushort)0;
-	ttbuf.c_cflag &= (CBAUD);
-	ttbuf.c_cflag |= (CS8|CREAD);
-	ttbuf.c_cc[VMIN] = 6;
-	ttbuf.c_cc[VTIME] = 1;
-	ioctl(tty, TCSETA, &ttbuf);
-#endif
-#ifndef	USG
-	ioctl(tty, TIOCGETP, &ttbuf);
-	ttbuf.sg_flags = (ANYP | RAW);
-	ioctl(tty, TIOCSETP, &ttbuf);
-#endif
-#ifndef	USG
-	ioctl(tty, TIOCEXCL, STBNULL);
-#endif
+	Debug = (Debug == 0) ? 30 : 0;
+	setdebug(DBG_PERM);
+	if (Debug > 0)
+		logent("Signal Enabled", "DEBUG");
 }
 
 
 /*
- *	timeout()	catch SIGALRM routine
+ * Check debugging requests, and open RMTDEBUG audit file if necessary. If an
+ * audit file is needed, the parm argument indicates how to create the file:
+ *
+ *	DBG_TEMP  - Open a temporary file, with filename = RMTDEBUG/pid.
+ *	DBG_PERM  - Open a permanent audit file, filename = RMTDEBUG/Rmtname.
+ *		    If a temp file already exists, it is mv'ed to be permanent.
+ *	DBG_CLEAN - Cleanup; unlink temp files.
+ *
+ * Restrictions - this code can only cope with one open debug file at a time.
+ * Each call creates a new file; if an old one of the same name exists it will
+ * be overwritten.
  */
+setdebug(parm)
+int parm;
+{
+	char buf[BUFSIZ];		/* Buffer for building filenames     */
+	static char *temp = NULL;	/* Ptr to temporary file name	     */
+	static int auditopen = 0;	/* Set to 1 when we open a file	     */
+	struct stat stbuf;		/* File status buffer		     */
 
+	/*
+	 * If movement or cleanup of a temp file is indicated, we do it no
+	 * matter what.
+	 */
+	if (temp != CNULL && parm == DBG_PERM) {
+		sprintf(buf, "%s/%s", RMTDEBUG, Rmtname);
+		unlink(buf);
+		if (link(temp, buf) != 0) {
+			Debug = 0;
+			assert("RMTDEBUG LINK FAIL", temp, errno);
+			cleanup(1);
+		}
+		parm = DBG_CLEAN;
+	}
+	if (parm == DBG_CLEAN) {
+		if (temp != CNULL) {
+			unlink(temp);
+			free(temp);
+			temp = CNULL;
+		}
+		return;
+	}
+
+	if (Debug == 0)
+		return;		/* Gotta be in debug to come here.   */
+
+	/*
+	 * If we haven't opened a file already, we can just return if it's
+	 * alright to use the stderr we came in with. We can if:
+	 *
+	 *	Role == MASTER, and Stderr is a regular file, a TTY or a pipe.
+	 *
+	 * Caution: Detecting when stderr is a pipe is tricky, because the 4.2
+	 * man page for fstat(2) disagrees with reality, and System V leaves it
+	 * undefined, which means different implementations act differently.
+	 */
+	if (!auditopen && Role == MASTER) {
+		if (isatty(fileno(stderr)))
+			return;
+		else if (fstat(fileno(stderr), &stbuf) == 0) {
+#ifdef USG
+			/* Is Regular File or Fifo   */
+			if ((stbuf.st_mode & 0060000) == 0)
+				return;
+#else !USG
+#ifdef BSD4_2
+					/* Is Regular File */
+			if ((stbuf.st_mode & S_IFMT) == S_IFREG ||
+			    stbuf.st_mode == 0)		/* Is a pipe */
+				return;
+#else !BSD4_2
+					 /* Is Regular File or Pipe  */
+			if ((stbuf.st_mode & S_IFMT) == S_IFREG)
+				return;
+#endif BSD4_2
+#endif USG
+		}
+	}
+
+	/*
+	 * We need RMTDEBUG directory to do auditing. If the file doesn't exist,
+	 * then we forget about debugging; if it exists but has improper owner-
+	 * ship or modes, we gripe about it in ERRLOG. 
+	 */
+	if (stat(RMTDEBUG, &stbuf) != SUCCESS) {
+		Debug = 0;
+		return;
+	}
+	if ((geteuid() != stbuf.st_uid) ||	  	/* We must own it    */
+	    ((stbuf.st_mode & 0170700) != 040700)) {	/* Directory, rwx    */
+		Debug = 0;
+		assert("INVALID RMTDEBUG DIRECTORY:", RMTDEBUG, stbuf.st_mode);
+		return;
+	}
+
+	if (parm == DBG_TEMP) {
+		sprintf(buf, "%s/%d", RMTDEBUG, getpid());
+		temp = malloc(strlen (buf) + 1);
+		if (temp == CNULL) {
+			Debug = 0;
+			assert("RMTDEBUG MALLOC ERROR:", temp, errno);
+			cleanup(1);
+		}
+		strcpy(temp, buf);
+	} else
+		sprintf(buf, "%s/%s", RMTDEBUG, Rmtname);
+
+	unlink(buf);
+	if (freopen(buf, "w", stderr) != stderr) {
+		Debug = 0;
+		assert("FAILED RMTDEBUG FILE OPEN:", buf, errno);
+		cleanup(1);
+	}
+	setbuf(stderr, CNULL);
+	auditopen = 1;
+}
+
+/*
+ *	catch SIGALRM routine
+ */
 timeout()
 {
 	extern int HaveSentHup;

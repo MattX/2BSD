@@ -1,5 +1,6 @@
-/* $Header: setline.c,v 1.8 85/05/20 20:48:37 rick Exp $ */
-/* from: @(#)setline.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)setline.c	5.3 (Berkeley) 6/20/85";
+#endif
 
 #include "uucp.h"
 #ifdef	USG

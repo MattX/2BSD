@@ -1,114 +1,136 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static	char *sccsid = "@(#)comsat.c	4.5 82/12/23";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)comsat.c	5.5 (Berkeley) 10/24/85";
+#endif not lint
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <sys/file.h>
+
+#include <netinet/in.h>
 
 #include <stdio.h>
-#include <sys/param.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <sgtty.h>
 #include <utmp.h>
-#include <stat.h>
-#include <wait.h>
 #include <signal.h>
 #include <errno.h>
+#include <netdb.h>
+#include <syslog.h>
 
 /*
  * comsat
  */
-#define	dprintf	if (0) printf
-
-#define MAXUTMP 100		/* down from init */
+int	debug = 0;
+#define	dprintf	if (debug) printf
 
 struct	sockaddr_in sin = { AF_INET };
-struct	sockaddr_in ifrom;
 extern	errno;
 
-struct	utmp utmp[100];
+char	hostname[32];
+struct	utmp *utmp = NULL;
 int	nutmp;
 int	uf;
-unsigned utmpmtime;			/* last modification time for utmp */
+time_t	utmpmtime = 0;			/* last modification time for utmp */
+unsigned utmpsize = 0;			/* last malloced size for utmp */
 int	onalrm();
-struct	servent *sp;
-char	myname[32];
+int	reapchildren();
+time_t	lastmsgtime;
+char 	*malloc(), *realloc();
 
+#define	MAXIDLE	120
 #define NAMLEN (sizeof (uts[0].ut_name) + 1)
 
 main(argc, argv)
-char **argv;
+	int argc;
+	char *argv[];
 {
-	register cc;
+	register int cc;
 	char buf[BUFSIZ];
-	int s;
+	char msgbuf[100];
+	struct sockaddr_in from;
+	int fromlen;
 
-	sp = getservbyname("biff", "udp");
-	if (sp == 0) {
-		fprintf(stderr, "comsat: biff/udp: unknown service\n");
-		exit(1);
+	/* verify proper invocation */
+	fromlen = sizeof (from);
+	if (getsockname(0, &from, &fromlen) < 0) {
+		fprintf(stderr, "%s: ", argv[0]);
+		perror("getsockname");
+		_exit(1);
 	}
-	sin.sin_port = htons(sp->s_port);
-	gethostname(myname, sizeof myname);
-#ifndef DEBUG
-	if (fork())
-		exit(0);
-	{ int s;
-	  for (s = 0; s < 10; s++)
-		(void) close(s);
-	  (void) open("/", 0);
-	  (void) dup2(0, 1);
-	  (void) dup2(0, 2);
-	  s = open("/dev/tty", 2);
-	  if (s >= 0) {
-		ioctl(s, TIOCNOTTY, 0);
-		(void) close(s);
-	  }
-	}
-#endif
 	chdir("/usr/spool/mail");
-	if((uf = open("/etc/utmp",0)) < 0)
-		perror("/etc/utmp"), exit(1);
-#ifndef DEBUG
-	while (fork())
-		wait(0);
-#endif
-	sleep(10);
-	onalrm();
-	sigset(SIGALRM, onalrm);
-	sigignore(SIGTTOU);
-	s = socket(SOCK_DGRAM, 0, &sin, SO_ACCEPTCONN);
-	if (s < 0) {
-		perror("socket");
+	if ((uf = open("/etc/utmp",0)) < 0) {
+		openlog("comsat", 0, LOG_DAEMON);
+		syslog(LOG_ERR, "/etc/utmp: %m");
+		(void) recv(0, msgbuf, sizeof (msgbuf) - 1, 0);
 		exit(1);
 	}
+	lastmsgtime = time(0);
+	gethostname(hostname, sizeof (hostname));
+	onalrm();
+	signal(SIGALRM, onalrm);
+	signal(SIGTTOU, SIG_IGN);
+	signal(SIGCHLD, reapchildren);
 	for (;;) {
-		char msgbuf[BUFSIZ];
-		int cc;
-
-		cc = receive(s, &ifrom, msgbuf, sizeof (msgbuf) - 1);
+		cc = recv(0, msgbuf, sizeof (msgbuf) - 1, 0);
 		if (cc <= 0) {
 			if (errno != EINTR)
 				sleep(1);
 			errno = 0;
 			continue;
 		}
+		sigblock(sigmask(SIGALRM));
 		msgbuf[cc] = 0;
+		lastmsgtime = time(0);
 		mailfor(msgbuf);
+		sigsetmask(0L);
 	}
+}
+
+reapchildren()
+{
+
+	while (wait3((struct wait *)0, WNOHANG, (struct rusage *)0) > 0)
+		;
 }
 
 onalrm()
 {
 	struct stat statbf;
-	struct utmp *utp;
 
+	if (time(0) - lastmsgtime >= MAXIDLE)
+		exit(0);
 	dprintf("alarm\n");
 	alarm(15);
-	fstat(uf,&statbf);
+	fstat(uf, &statbf);
 	if (statbf.st_mtime > utmpmtime) {
 		dprintf(" changed\n");
 		utmpmtime = statbf.st_mtime;
+		if (statbf.st_size > utmpsize) {
+			utmpsize = statbf.st_size + 10 * sizeof(struct utmp);
+			if (utmp)
+				utmp = (struct utmp *)realloc(utmp, utmpsize);
+			else
+				utmp = (struct utmp *)malloc(utmpsize);
+			if (! utmp) {
+				dprintf("malloc failed\n");
+				exit(1);
+			}
+		}
 		lseek(uf, 0, 0);
-		nutmp = read(uf,utmp,sizeof(utmp))/sizeof(struct utmp);
+		nutmp = read(uf,utmp,(int)statbf.st_size)/sizeof(struct utmp);
 	} else
 		dprintf(" ok\n");
 }
@@ -119,48 +141,32 @@ mailfor(name)
 	register struct utmp *utp = &utmp[nutmp];
 	register char *cp;
 	char *rindex();
-	char *from, *subject;
+	int offset;
 
 	dprintf("mailfor %s\n", name);
 	cp = name;
-	while (*cp && *cp != '\01')
+	while (*cp && *cp != '@')
 		cp++;
 	if (*cp == 0) {
 		dprintf("bad format\n");
 		return;
 	}
 	*cp = 0;
-	from = ++cp;
-	while (*cp && *cp != '\01')
-		cp++;
-	if (*cp == 0) {
-		dprintf("bad format\n");
-		return;
-	}
-	*cp = 0;
-	subject = ++cp;
-
+	offset = atoi(cp+1);
 	while (--utp >= utmp)
 		if (!strncmp(utp->ut_name, name, sizeof(utmp[0].ut_name)))
-			if (fork() == 0) {
-				signal(SIGALRM, SIG_DFL);
-				alarm(30);
-				notify(utp, from, subject), exit(0);
-			} else
-				while (wait2(0, WNOHANG, 0) > 0)
-					continue;
+			notify(utp, offset);
 }
 
+char	*cr;
 
-notify(utp, from, subject)
+notify(utp, offset)
 	register struct utmp *utp;
-	char *from, *subject;
 {
 	FILE *tp;
-	char tty[20];
+	struct sgttyb gttybuf;
+	char tty[20], name[sizeof (utmp[0].ut_name) + 1];
 	struct stat stb;
-	struct hostent *hp;
-	char *fhost;
 
 	strcpy(tty, "/dev/");
 	strncat(tty, utp->ut_line, sizeof(utp->ut_line));
@@ -169,21 +175,77 @@ notify(utp, from, subject)
 		dprintf("wrong mode\n");
 		return;
 	}
+	if (fork())
+		return;
+	signal(SIGALRM, SIG_DFL);
+	alarm(30);
 	if ((tp = fopen(tty,"w")) == 0) {
 		dprintf("fopen failed\n");
-		return;
+		exit(-1);
 	}
-	hp = gethostbyaddr(&ifrom.sin_addr.s_addr, 4, AF_INET);
-	if (hp)
-		fhost = hp->h_name;
-	else
-		fhost = inet_ntoa(ifrom.sin_addr.s_addr);
-	if (!strcmp(fhost, myname))
-		fprintf(tp, "\r\n\007[Mail from %s, Subject: %s]\r\n",
-		    from, subject);
-	else
-		fprintf(tp, "\r\n\007[Mail on %s from %s, Subject: %s]\r\n",
-		    fhost, from, subject);
-	fclose(tp);
+	ioctl(fileno(tp), TIOCGETP, &gttybuf);
+	cr = (gttybuf.sg_flags&CRMOD) && !(gttybuf.sg_flags&RAW) ? "" : "\r";
+	strncpy(name, utp->ut_name, sizeof (utp->ut_name));
+	name[sizeof (name) - 1] = '\0';
+	fprintf(tp,"%s\n\007New mail for %s@%.*s\007 has arrived:%s\n",
+	    cr, name, sizeof (hostname), hostname, cr);
+	fprintf(tp,"----%s\n", cr);
+	jkfprintf(tp, name, offset);
+	exit(0);
 }
 
+jkfprintf(tp, name, offset)
+	register FILE *tp;
+{
+	register FILE *fi;
+	register int linecnt, charcnt;
+	char line[BUFSIZ];
+	int inheader;
+
+	dprintf("HERE %s's mail starting at %d\n",
+	    name, offset);
+	if ((fi = fopen(name,"r")) == NULL) {
+		dprintf("Cant read the mail\n");
+		return;
+	}
+	fseek(fi, offset, L_SET);
+	/* 
+	 * Print the first 7 lines or 560 characters of the new mail
+	 * (whichever comes first).  Skip header crap other than
+	 * From, Subject, To, and Date.
+	 */
+	linecnt = 7;
+	charcnt = 560;
+	inheader = 1;
+	while (fgets(line, sizeof (line), fi) != NULL) {
+		register char *cp;
+		char *index();
+		int cnt;
+
+		if (linecnt <= 0 || charcnt <= 0) {  
+			fprintf(tp,"...more...%s\n", cr);
+			return;
+		}
+		if (strncmp(line, "From ", 5) == 0)
+			continue;
+		if (inheader && (line[0] == ' ' || line[0] == '\t'))
+			continue;
+		cp = index(line, ':');
+		if (cp == 0 || (index(line, ' ') && index(line, ' ') < cp))
+			inheader = 0;
+		else
+			cnt = cp - line;
+		if (inheader &&
+		    strncmp(line, "Date", cnt) &&
+		    strncmp(line, "From", cnt) &&
+		    strncmp(line, "Subject", cnt) &&
+		    strncmp(line, "To", cnt))
+			continue;
+		cp = index(line, '\n');
+		if (cp)
+			*cp = '\0';
+		fprintf(tp,"%s%s\n", line, cr);
+		linecnt--, charcnt -= strlen(line);
+	}
+	fprintf(tp,"----%s\n", cr);
+}

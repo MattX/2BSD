@@ -1,21 +1,49 @@
+#ifndef lint
+static char sccsid[] = "@(#)learn.c	4.4	(Berkeley)	5/15/86";
+#endif not lint
+
 #include "stdio.h"
-#include "lrndef"
-#include "lrnref"
+#include "lrnref.h"
 #include "signal.h"
 
+char	*direct	= "/usr/lib/learn";	/* CHANGE THIS ON YOUR SYSTEM */
+int	more;
+char	*level;
+int	speed;
+char	*sname;
+char	*todo;
+FILE	*incopy	= NULL;
+int	didok;
+int	sequence	= 1;
+int	comfile	= -1;
+int	status;
+int	wrong;
+char	*pwline;
+char	*dir;
+FILE	*scrin;
+int	logging	= 1;	/* set to 0 to turn off logging */
+int	ask;
+int	again;
+int	skip;
+int	teed;
+int	total;
+
 main(argc,argv)
+int argc;
 char *argv[];
 {
 	extern hangup(), intrpt();
-	extern char * getlogin();
-	extern char _sobuf;
-	char *malloc();
+	extern char * getlogin(), *malloc();
 
 	speed = 0;
 	more = 1;
 	pwline = getlogin();
-	setbuf(stdout, _sobuf);
+#ifndef BSD4_2
+	setbuf(stdout, malloc(BUFSIZ));
+	setbuf(stderr, malloc(BUFSIZ));
+#endif
 	selsub(argc, argv);
+	chgenv();
 	signal(SIGHUP, hangup);
 	signal(SIGINT, intrpt);
 	while (more) {
@@ -42,7 +70,7 @@ intrpt()
 	while (read(0, p, 1) == 1 && *p != '\n')
 		p++;
 	if (response[0] != 'y')
-		wrapup(1);
+		wrapup(0);
 	ungetc('\n', stdin);
 	signal(SIGINT, intrpt);
 }

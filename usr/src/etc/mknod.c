@@ -1,9 +1,12 @@
-#
-	char	*sccsid = "@(#)mknod.c	2.3";
+#ifndef lint
+static char *sccsid = "@(#)mknod.c	4.2 (Berkeley) 8/28/85";
+#endif not lint
+
+#include <stdio.h>
 
 main(argc, argv)
-int argc;
-char **argv;
+	int argc;
+	char **argv;
 {
 	int m, a, b;
 
@@ -22,8 +25,10 @@ char **argv;
 	b = number(argv[4]);
 	if(b < 0)
 		goto usage;
-	if(mknod(argv[1], m, (a<<8)|b) < 0)
-		perror("mknod");
+	if(mknod(argv[1], m, (a<<8)|b) < 0) {
+		fprintf(stderr, "mknod: ");
+		perror(argv[1]);
+	}
 	exit(0);
 
 usage:

@@ -1,5 +1,13 @@
-static	char *sccsid = "@(#)errorinput.c	1.7 (Berkeley) 83/02/09";
-#include <sys/types.h>
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)errorinput.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 #include <ctype.h>
 #include "error.h"
@@ -13,7 +21,7 @@ int	language;
 Errorclass	onelong();
 Errorclass	cpp();
 Errorclass	pccccom();	/* Portable C Compiler C Compiler */
-Errorclass	ritchieccom();	/* Ritchie Compiler for 11 */
+Errorclass	richieccom();	/* Richie Compiler for 11 */
 Errorclass	lint0();
 Errorclass	lint1();
 Errorclass	lint2();
@@ -22,6 +30,8 @@ Errorclass	make();
 Errorclass	f77();
 Errorclass	pi();
 Errorclass	ri();
+Errorclass	troff();
+Errorclass	mod2();
 /*
  *	Eat all of the lines in the input file, attempting to categorize
  *	them by their various flavors
@@ -44,11 +54,11 @@ eaterrors(r_errorc, r_errorv)
 	 *	of 0 based.
 	 */
 	wordv -= 1;
-	if ( 0
-	   || (( errorclass = onelong() ) != C_UNKNOWN)
+	if ( wordc > 0 &&
+	   ((( errorclass = onelong() ) != C_UNKNOWN)
 	   || (( errorclass = cpp() ) != C_UNKNOWN)
 	   || (( errorclass = pccccom() ) != C_UNKNOWN)
-	   || (( errorclass = ritchieccom() ) != C_UNKNOWN)
+	   || (( errorclass = richieccom() ) != C_UNKNOWN)
 	   || (( errorclass = lint0() ) != C_UNKNOWN)
 	   || (( errorclass = lint1() ) != C_UNKNOWN)
 	   || (( errorclass = lint2() ) != C_UNKNOWN)
@@ -57,6 +67,8 @@ eaterrors(r_errorc, r_errorv)
 	   || (( errorclass = f77() ) != C_UNKNOWN)
 	   || ((errorclass = pi() ) != C_UNKNOWN)
 	   || (( errorclass = ri() )!= C_UNKNOWN)
+	   || (( errorclass = mod2() )!= C_UNKNOWN)
+	   || (( errorclass = troff() )!= C_UNKNOWN))
 	) ;
 	else
 		errorclass = catchall();
@@ -129,7 +141,7 @@ Errorclass onelong()
 		 *	c)	Random noise
 		 */
 		wordc = 0;
-		if (strcmp(wordv[2], "Stop.") == 0){
+		if (strcmp(wordv[1], "Stop.") == 0){
 			language = INMAKE; return(C_SYNC);
 		}
 		if (strcmp(wordv[1], "Assembler:") == 0){
@@ -206,6 +218,7 @@ Errorclass pccccom()
 		clob_last(wordv[3], '\0');	/* drop : on line number */
 		wordv[2] = wordv[1];	/* overwrite "line" */
 		wordv++;		/*compensate*/
+		wordc--;
 		currentfilename = wordv[1];
 		language = INCC;
 		return(C_TRUE);
@@ -213,7 +226,7 @@ Errorclass pccccom()
 	return(C_UNKNOWN);
 }	/* end of ccom */
 /*
- *	Do the error message from the Ritchie C Compiler for the PDP11,
+ *	Do the error message from the Richie C Compiler for the PDP11,
  *	which has this source:
  *
  *	if (filename[0])
@@ -221,7 +234,7 @@ Errorclass pccccom()
  *	fprintf(stderr, "%d: ", line);
  *
  */
-Errorclass ritchieccom()
+Errorclass richieccom()
 {
 	reg	char	*cp;
 	reg	char	**nwordv;
@@ -265,7 +278,6 @@ Errorclass lint0()
 			clob_last(wordv[1], '\0'); /* colon */
 			if (persperdexplode(wordv[1], &line, &file)){
 				nwordv = wordvsplice(1, wordc, wordv+1);
-unquote(file);
 				nwordv[0] = file;	/* file name */
 				nwordv[1] = line;	/* line number */
 				wordc += 1;
@@ -305,10 +317,8 @@ Errorclass lint1()
 		     && (persperdexplode(wordv[wordc-2], &line1, &file1)) ){
 			nwordv1 = wordvsplice(2, wordc, wordv+1);
 			nwordv2 = wordvsplice(2, wordc, wordv+1);
-			unquote(file1);
 			nwordv1[0] = file1; nwordv1[1] = line1;
 			erroradd(wordc+2, nwordv1, C_TRUE, C_DUPL); /* takes 0 based*/
-			unquote(file2);
 			nwordv2[0] = file2; nwordv2[1] = line2;
 			wordc = wordc + 2;
 			wordv = nwordv2 - 1;	/* 1 based */
@@ -337,7 +347,6 @@ Errorclass lint2()
 		language = INLINT;
 		if (persperdexplode(wordv[3], &line, &file)){
 			nwordv = wordvsplice(2, wordc, wordv+1);
-unquote(file);
 			nwordv[0] = file; nwordv[1] = line;
 			wordc = wordc + 2;
 			wordv = nwordv - 1;	/* 1 based */
@@ -365,6 +374,7 @@ Errorclass lint3()
 char	*F77_fatal[3] = {"Compiler", "error", "line"};
 char	*F77_error[3] = {"Error", "on", "line"};
 char	*F77_warning[3] = {"Warning", "on", "line"};
+char    *F77_no_ass[3] = {"Error.","No","assembly."};
 f77()
 {
 	char	**nwordv;
@@ -376,7 +386,12 @@ f77()
 	 *		Compiler error line %d of %s: %s
 	 *		Error on line %d of %s: %s
 	 *		Warning on line %d of %s: %s
+	 *		Error.  No assembly.
 	 */
+	if (wordc == 3 && wordvcmp(wordv+1, 3, F77_no_ass) == 0) {
+		wordc = 0;
+		return(C_SYNC);
+	}
 	if (wordc < 6)
 		return(C_UNKNOWN);
 	if (	(lastchar(wordv[6]) == ':')
@@ -454,3 +469,51 @@ Errorclass catchall()
 	language = INUNKNOWN;
 	return(C_NONSPEC);
 } /* end of catch all*/
+
+Errorclass troff()
+{
+	/*
+	 *	troff source error message, from eqn, bib, tbl...
+	 *	Just like pcc ccom, except uses `'
+	 */
+	if (   (firstchar(wordv[1]) == '`')
+	    && (lastchar(wordv[1]) == ',')
+	    && (next_lastchar(wordv[1]) == '\'')
+	    && (strcmp(wordv[2],"line") == 0)
+	    && (isdigit(firstchar(wordv[3])))
+	    && (lastchar(wordv[3]) == ':') ){
+		clob_last(wordv[1], '\0');	/* drop last , */
+		clob_last(wordv[1], '\0');	/* drop last " */
+		wordv[1]++;			/* drop first " */
+		clob_last(wordv[3], '\0');	/* drop : on line number */
+		wordv[2] = wordv[1];	/* overwrite "line" */
+		wordv++;		/*compensate*/
+		currentfilename = wordv[1];
+		language = INTROFF;
+		return(C_TRUE);
+	}
+	return(C_UNKNOWN);
+}
+Errorclass mod2()
+{
+	/*
+	 *	for decwrl modula2 compiler (powell)
+	 */
+	if (   (  (strcmp(wordv[1], "!!!") == 0)	/* early version */
+	        ||(strcmp(wordv[1], "File") == 0))	/* later version */
+	    && (lastchar(wordv[2]) == ',')	/* file name */
+	    && (strcmp(wordv[3], "line") == 0)
+	    && (isdigit(firstchar(wordv[4])))	/* line number */
+	    && (lastchar(wordv[4]) == ':')	/* line number */
+	){
+		clob_last(wordv[2], '\0');	/* drop last , on file name */
+		clob_last(wordv[4], '\0');	/* drop last : on line number */
+		wordv[3] = wordv[2];		/* file name on top of "line" */
+		wordv += 2;
+		wordc -= 2;
+		currentfilename = wordv[1];
+		language = INMOD2;
+		return(C_TRUE);
+	}
+	return(C_UNKNOWN);
+}

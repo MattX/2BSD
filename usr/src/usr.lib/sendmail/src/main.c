@@ -1,10 +1,31 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)main.c	5.11 (Berkeley) 1/30/86";
+#endif
+
 # define  _DEFINE
 # include <signal.h>
-# include <sys/ioctl.h>
+# include <sgtty.h>
 # include "sendmail.h"
-# include <sys/file.h>
 
-SCCSID(@(#)main.c	4.2		8/28/83);
+# ifdef lint
+char	edata, end;
+# endif lint
 
 /*
 **  SENDMAIL -- Post mail to a set of destinations.
@@ -41,10 +62,24 @@ SCCSID(@(#)main.c	4.2		8/28/83);
 
 
 
-int		NextMailer = 0;	/* "free" index into Mailer struct */
+int		NextMailer;	/* "free" index into Mailer struct */
 char		*FullName;	/* sender's full name */
 ENVELOPE	BlankEnvelope;	/* a "blank" envelope */
 ENVELOPE	MainEnvelope;	/* the envelope around the basic letter */
+ADDRESS		NullAddress =	/* a null address */
+		{ "", "", "" };
+
+/*
+**  Pointers for setproctitle.
+**	This allows "ps" listings to give more useful information.
+**	These must be kept out of BSS for frozen configuration files
+**		to work.
+*/
+
+# ifdef SETPROCTITLE
+char		**Argv = NULL;		/* pointer to argument vector */
+char		*LastArgv = NULL;	/* end of argv */
+# endif SETPROCTITLE
 
 #ifdef DAEMON
 #ifndef SMTP
@@ -57,9 +92,10 @@ ERROR %%%%   Cannot have daemon mode without SMTP   %%%% ERROR
 
 
 
-main(argc, argv)
+main(argc, argv, envp)
 	int argc;
 	char **argv;
+	char **envp;
 {
 	register char *p;
 	char **av;
@@ -69,11 +105,11 @@ main(argc, argv)
 	typedef int (*fnptr)();
 	STAB *st;
 	register int i;
-	bool readconfig = FALSE;
-	bool safecf = TRUE;		/* this conf file is sys default */
+	bool readconfig = TRUE;
 	bool queuemode = FALSE;		/* process queue requests */
+	bool nothaw;
 	static bool reenter = FALSE;
-	char jbuf[30];			/* holds HostName */
+	char jbuf[30];			/* holds MyHostName */
 	extern bool safefile();
 	extern time_t convtime();
 	extern putheader(), putbody();
@@ -81,6 +117,7 @@ main(argc, argv)
 	extern intsig();
 	extern char **myhostname();
 	extern char *arpadate();
+	extern char **environ;
 
 	/*
 	**  Check to see if we reentered.
@@ -95,13 +132,31 @@ main(argc, argv)
 	}
 	reenter = TRUE;
 
+	/* Enforce use of local time */
+	unsetenv("TZ");
+  
 	/*
 	**  Be sure we have enough file descriptors.
 	*/
 
-	for (i = 3; i < 20; i++)
+	for (i = 3; i < 50; i++)
 		(void) close(i);
 	errno = 0;
+
+	/*
+	**  Set default values for variables.
+	**	These cannot be in initialized data space.
+	*/
+
+	setdefaults();
+
+	/* set up the blank envelope */
+	BlankEnvelope.e_puthdr = putheader;
+	BlankEnvelope.e_putbody = putbody;
+	BlankEnvelope.e_xfp = NULL;
+	STRUCTCOPY(NullAddress, BlankEnvelope.e_from);
+	CurEnv = &BlankEnvelope;
+	STRUCTCOPY(NullAddress, MainEnvelope.e_from);
 
 	/*
 	**  Do a quick prescan of the argument list.
@@ -113,13 +168,50 @@ main(argc, argv)
 
 	argv[argc] = NULL;
 	av = argv;
-	while (*++av != NULL)
+	nothaw = FALSE;
+	while ((p = *++av) != NULL)
 	{
-		if (strncmp(*av, "-C", 2) == 0 || strncmp(*av, "-bz", 3) == 0)
-			break;
+		if (strncmp(p, "-C", 2) == 0)
+		{
+			ConfFile = &p[2];
+			if (ConfFile[0] == '\0')
+				ConfFile = "sendmail.cf";
+			(void) setgid(getrgid());
+			(void) setuid(getruid());
+			nothaw = TRUE;
+		}
+		else if (strncmp(p, "-bz", 3) == 0)
+			nothaw = TRUE;
+# ifdef DEBUG
+		else if (strncmp(p, "-d", 2) == 0)
+		{
+			tTsetup(tTdvect, sizeof tTdvect, "0-99.1");
+			tTflag(&p[2]);
+			setbuf(stdout, (char *) NULL);
+			printf("Version %s\n", Version);
+		}
+# endif DEBUG
 	}
-	if (*av == NULL)
+	if (!nothaw)
 		readconfig = !thaw(FreezeFile);
+
+	/* reset the environment after the thaw */
+	for (i = 0; i < MAXUSERENVIRON && envp[i] != NULL; i++)
+		UserEnviron[i] = newstr(envp[i]);
+	UserEnviron[i] = NULL;
+	environ = UserEnviron;
+
+# ifdef SETPROCTITLE
+	/*
+	**  Save start and extent of argv for setproctitle.
+	*/
+
+	Argv = argv;
+	if (i > 0)
+		LastArgv = envp[i - 1] + strlen(envp[i - 1]);
+	else
+		LastArgv = argv[argc - 1] + strlen(argv[argc - 1]);
+# endif SETPROCTITLE
 
 	/*
 	**  Now do basic initialization
@@ -140,37 +232,41 @@ main(argc, argv)
 	FullName = getenv("NAME");
 # endif V6
 
-	/* set up the blank envelope */
-	BlankEnvelope.e_puthdr = putheader;
-	BlankEnvelope.e_putbody = putbody;
-	BlankEnvelope.e_xfp = NULL;
-	CurEnv = &BlankEnvelope;
-
-	/* make sure we have a clean slate */
-	closeall();
-
 # ifdef LOG
-	openlog("sendmail", LOG_PID);
+	openlog("sendmail", LOG_PID, LOG_MAIL);
 # endif LOG
 	errno = 0;
 	from = NULL;
 
-	/* initialize some macros, etc. */
-	initmacros();
-
-	/* hostname */
-	av = myhostname(jbuf, sizeof jbuf);
-	if (jbuf[0] != '\0')
+	if (readconfig)
 	{
-		p = newstr(jbuf);
-		define('w', p, CurEnv);
-		setclass('w', p);
-	}
-	while (av != NULL && *av != NULL)
-		setclass('w', *av++);
+		/* initialize some macros, etc. */
+		initmacros();
 
-	/* version */
-	define('v', Version, CurEnv);
+		/* hostname */
+		av = myhostname(jbuf, sizeof jbuf);
+		if (jbuf[0] != '\0')
+		{
+#ifdef DEBUG
+			if (tTd(0, 4))
+				printf("canonical name: %s\n", jbuf);
+#endif DEBUG
+			p = newstr(jbuf);
+			define('w', p, CurEnv);
+			setclass('w', p);
+		}
+		while (av != NULL && *av != NULL)
+		{
+#ifdef DEBUG
+			if (tTd(0, 4))
+				printf("\ta.k.a.: %s\n", *av);
+#endif DEBUG
+			setclass('w', *av++);
+		}
+
+		/* version */
+		define('v', Version, CurEnv);
+	}
 
 	/* current time */
 	define('b', arpadate((char *) NULL), CurEnv);
@@ -187,6 +283,8 @@ main(argc, argv)
 		OpMode = MD_INITALIAS;
 	else if (strcmp(p, "mailq") == 0)
 		OpMode = MD_PRINT;
+	else if (strcmp(p, "smtpd") == 0)
+		OpMode = MD_DAEMON;
 	while ((p = *++av) != NULL && p[0] == '-')
 	{
 		switch (p[1])
@@ -220,19 +318,14 @@ main(argc, argv)
 			}
 			break;
 
-		  case 'C':	/* select configuration file */
-			ConfFile = &p[2];
-			if (ConfFile[0] == '\0')
-				ConfFile = "sendmail.cf";
-			safecf = FALSE;
+		  case 'C':	/* select configuration file (already done) */
 			break;
 
 # ifdef DEBUG
-		  case 'd':	/* debug */
+		  case 'd':	/* debugging -- redo in case frozen */
 			tTsetup(tTdvect, sizeof tTdvect, "0-99.1");
 			tTflag(&p[2]);
 			setbuf(stdout, (char *) NULL);
-			printf("Version %s\n", Version);
 			break;
 # endif DEBUG
 
@@ -254,7 +347,7 @@ main(argc, argv)
 				syserr("More than one \"from\" person");
 				break;
 			}
-			from = p;
+			from = newstr(p);
 			break;
 
 		  case 'F':	/* set full name */
@@ -265,7 +358,7 @@ main(argc, argv)
 				av--;
 				break;
 			}
-			FullName = p;
+			FullName = newstr(p);
 			break;
 
 		  case 'h':	/* hop count */
@@ -328,12 +421,17 @@ main(argc, argv)
 	**	Extract special fields for local use.
 	*/
 
-	if (!safecf || OpMode == MD_FREEZE || readconfig)
-		readcf(ConfFile, safecf);
+	if (OpMode == MD_FREEZE || readconfig)
+		readcf(ConfFile);
 
 	switch (OpMode)
 	{
 	  case MD_FREEZE:
+		/* this is critical to avoid forgeries of the frozen config */
+		(void) setgid(getgid());
+		(void) setuid(getuid());
+
+		/* freeze the configuration */
 		freeze(FreezeFile);
 		exit(EX_OK);
 
@@ -353,8 +451,8 @@ main(argc, argv)
 	}
 
 	/* our name for SMTP codes */
-	expand("$j", jbuf, &jbuf[sizeof jbuf - 1], CurEnv);
-	HostName = jbuf;
+	expand("\001j", jbuf, &jbuf[sizeof jbuf - 1], CurEnv);
+	MyHostName = jbuf;
 
 	/* the indices of local and program mailers */
 	st = stab("local", ST_MAILER, ST_FIND);
@@ -376,11 +474,13 @@ main(argc, argv)
 	}
 
 	/*
-	**  If printing the queue, go off and do that.
+	**  Do operation-mode-dependent initialization.
 	*/
 
-	if (OpMode == MD_PRINT)
+	switch (OpMode)
 	{
+	  case MD_PRINT:
+		/* print the queue */
 #ifdef QUEUE
 		dropenvelope(CurEnv);
 		printqueue();
@@ -389,15 +489,21 @@ main(argc, argv)
 		usrerr("No queue to print");
 		finis();
 #endif QUEUE
-	}
 
-	/*
-	**  Initialize aliases.
-	*/
-
-	initaliases(AliasFile, OpMode == MD_INITALIAS);
-	if (OpMode == MD_INITALIAS)
+	  case MD_INITALIAS:
+		/* initialize alias database */
+		initaliases(AliasFile, TRUE);
 		exit(EX_OK);
+
+	  case MD_DAEMON:
+		/* don't open alias database -- done in srvrsmtp */
+		break;
+
+	  default:
+		/* open the alias database */
+		initaliases(AliasFile, FALSE);
+		break;
+	}
 
 # ifdef DEBUG
 	if (tTd(0, 15))
@@ -416,7 +522,7 @@ main(argc, argv)
 				m->m_maxsize);
 			for (j = '\0'; j <= '\177'; j++)
 				if (bitnset(j, m->m_flags))
-					putchar(j);
+					(void) putchar(j);
 			printf(" E=");
 			xputs(m->m_eol);
 			printf("\n");
@@ -444,11 +550,10 @@ main(argc, argv)
 		{
 			register char **pvp;
 			char *q;
-			extern char **prescan();
 			extern char *DelimChar;
 
 			printf("> ");
-			fflush(stdout);
+			(void) fflush(stdout);
 			if (fgets(buf, sizeof buf, stdin) == NULL)
 				finis();
 			for (p = buf; isspace(*p); *p++)
@@ -461,7 +566,10 @@ main(argc, argv)
 			*p = '\0';
 			do
 			{
-				pvp = prescan(++p, ',');
+				extern char **prescan();
+				char pvpbuf[PSBUFSIZE];
+
+				pvp = prescan(++p, ',', pvpbuf);
 				if (pvp == NULL)
 					continue;
 				rewrite(pvp, 3);
@@ -555,7 +663,11 @@ main(argc, argv)
 
 	if (OpMode != MD_ARPAFTP && *av == NULL && !GrabTo)
 	{
-		usrerr("Usage: /etc/sendmail [flags] addr...");
+		usrerr("Recipient names must be specified");
+
+		/* collect body for UUCP return */
+		if (OpMode != MD_VERIFY)
+			collect(FALSE);
 		finis();
 	}
 	if (OpMode == MD_VERIFY)
@@ -686,15 +798,18 @@ struct metamac
 
 struct metamac	MetaMacros[] =
 {
-	/* these are important on the LHS */
+	/* LHS pattern matching characters */
 	'*', MATCHZANY,	'+', MATCHANY,	'-', MATCHONE,	'=', MATCHCLASS,
 	'~', MATCHNCLASS,
 
 	/* these are RHS metasymbols */
 	'#', CANONNET,	'@', CANONHOST,	':', CANONUSER,	'>', CALLSUBR,
 
-	/* and finally the conditional operations */
+	/* the conditional operations */
 	'?', CONDIF,	'|', CONDELSE,	'.', CONDFI,
+
+	/* and finally the hostname lookup characters */
+	'[', HOSTBEGIN,	']', HOSTEND,
 
 	'\0'
 };
@@ -741,6 +856,8 @@ union frz
 	{
 		time_t	frzstamp;	/* timestamp on this freeze */
 		char	*frzbrk;	/* the current break */
+		char	*frzedata;	/* address of edata */
+		char	*frzend;	/* address of end */
 		char	frzver[252];	/* sendmail version */
 	} frzinfo;
 };
@@ -750,7 +867,7 @@ freeze(freezefile)
 {
 	int f;
 	union frz fhdr;
-	extern char edata;
+	extern char edata, end;
 	extern char *sbrk();
 	extern char Version[];
 
@@ -769,12 +886,14 @@ freeze(freezefile)
 	/* build the freeze header */
 	fhdr.frzinfo.frzstamp = curtime();
 	fhdr.frzinfo.frzbrk = sbrk(0);
-	strcpy(fhdr.frzinfo.frzver, Version);
+	fhdr.frzinfo.frzedata = &edata;
+	fhdr.frzinfo.frzend = &end;
+	(void) strcpy(fhdr.frzinfo.frzver, Version);
 
 	/* write out the freeze header */
 	if (write(f, (char *) &fhdr, sizeof fhdr) != sizeof fhdr ||
-	    write(f, (char *) &edata, fhdr.frzinfo.frzbrk - &edata) !=
-					(fhdr.frzinfo.frzbrk - &edata))
+	    write(f, (char *) &edata, (int) (fhdr.frzinfo.frzbrk - &edata)) !=
+					(int) (fhdr.frzinfo.frzbrk - &edata))
 	{
 		syserr("Cannot freeze");
 	}
@@ -801,8 +920,9 @@ thaw(freezefile)
 {
 	int f;
 	union frz fhdr;
-	extern char edata;
+	extern char edata, end;
 	extern char Version[];
+	extern caddr_t brk();
 
 	if (freezefile == NULL)
 		return (FALSE);
@@ -816,7 +936,9 @@ thaw(freezefile)
 	}
 
 	/* read in the header */
-	if (read(f, (char *) &fhdr, sizeof fhdr) < sizeof fhdr ||
+	if (read(f, (char *) &fhdr, sizeof fhdr) < (int)sizeof fhdr ||
+	    fhdr.frzinfo.frzedata != &edata ||
+	    fhdr.frzinfo.frzend != &end ||
 	    strcmp(fhdr.frzinfo.frzver, Version) != 0)
 	{
 		(void) close(f);
@@ -824,7 +946,7 @@ thaw(freezefile)
 	}
 
 	/* arrange to have enough space */
-	if (brk(fhdr.frzinfo.frzbrk) < 0)
+	if (brk(fhdr.frzinfo.frzbrk) == (caddr_t) -1)
 	{
 		syserr("Cannot break to %x", fhdr.frzinfo.frzbrk);
 		(void) close(f);
@@ -832,11 +954,11 @@ thaw(freezefile)
 	}
 
 	/* now read in the freeze file */
-	if (read(f, (char *) &edata, fhdr.frzinfo.frzbrk - &edata) !=
-					(fhdr.frzinfo.frzbrk - &edata))
+	if (read(f, (char *) &edata, (int) (fhdr.frzinfo.frzbrk - &edata)) !=
+					(int) (fhdr.frzinfo.frzbrk - &edata))
 	{
 		/* oops!  we have trashed memory..... */
-		write(2, "Cannot read freeze file\n", 24);
+		(void) write(2, "Cannot read freeze file\n", 24);
 		_exit(EX_SOFTWARE);
 	}
 
@@ -878,9 +1000,9 @@ disconnect(fulldrop)
 #endif DEBUG
 
 	/* be sure we don't get nasty signals */
-	signal(SIGHUP, SIG_IGN);
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
+	(void) signal(SIGHUP, SIG_IGN);
+	(void) signal(SIGINT, SIG_IGN);
+	(void) signal(SIGQUIT, SIG_IGN);
 
 	/* we can't communicate with our caller, so.... */
 	HoldErrs = TRUE;
@@ -916,9 +1038,10 @@ disconnect(fulldrop)
 		fd = open("/dev/tty", 2);
 		if (fd >= 0)
 		{
-			(void) ioctl(fd, TIOCNOTTY, 0);
+			(void) ioctl(fd, TIOCNOTTY, (char *) 0);
 			(void) close(fd);
 		}
+		(void) setpgrp(0, 0);
 		errno = 0;
 	}
 #endif TIOCNOTTY

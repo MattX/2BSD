@@ -1,4 +1,7 @@
-/*	@(#)puts.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)puts.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 #include	<stdio.h>
 
 puts(s)

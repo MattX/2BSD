@@ -1,3 +1,8 @@
+#ifndef lint
+static char sccsid[] = "@(#)fault.c	4.3 8/11/83";
+#endif
+
+#
 /*
  * UNIX shell
  *
@@ -6,18 +11,12 @@
  *
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)fault.c	4.3 8/11/83";
-#endif
-
 #include	"defs.h"
 
 
 STRING		trapcom[MAXTRAP];
 BOOL		trapflg[MAXTRAP];
-#ifndef	pdp11
 BOOL		trapjmp[MAXTRAP];
-#endif	!pdp11
 
 /* ========	fault handling routines	   ======== */
 
@@ -27,9 +26,6 @@ VOID	fault(sig)
 {
 	REG INT		flag;
 
-#ifdef	pdp11
-	signal(sig,fault);
-#endif	pdp11
 	IF sig==MEMF
 	THEN	IF setbrk(brkincr) == -1
 		THEN	error(nospace);
@@ -42,13 +38,11 @@ VOID	fault(sig)
 		trapnote |= flag;
 		trapflg[sig] |= flag;
 	FI
-#ifndef	pdp11
 	IF trapjmp[sig] ANDF sig==INTR
 	THEN
 		trapjmp[sig] = 0;
 		longjmp(INTbuf, 1);
 	FI
-#endif	!pdp11
 }
 
 stdsigs()

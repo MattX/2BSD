@@ -1,5 +1,6 @@
-/* $Header: sysacct.c,v 1.5 85/05/20 20:02:26 rick Exp $ */
-/* from: @(#)sysacct.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)sysacct.c	5.3 (Berkeley) 6/23/85";
+#endif
 
 #include <sys/types.h>
 
@@ -8,6 +9,7 @@
 /*
  *	output accounting info
  */
+
 /*ARGSUSED*/
 sysacct(bytes, time)
 time_t time;

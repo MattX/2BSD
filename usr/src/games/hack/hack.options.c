@@ -1,10 +1,9 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.options.c - version 1.0.2 */
+/* hack.options.c - version 1.0.3 */
 
 #include "config.h"
 #include "hack.h"
 extern char *eos();
-boolean female;		/* should have been flags.female */
 
 initoptions()
 {
@@ -14,9 +13,10 @@ initoptions()
 	flags.time = flags.nonews = flags.notombstone = flags.end_own =
 	flags.standout = flags.nonull = FALSE;
 	flags.no_rest_on_space = TRUE;
+	flags.invlet_constant = TRUE;
 	flags.end_top = 5;
 	flags.end_around = 4;
-	female = FALSE;			/* players are usually male */
+	flags.female = FALSE;			/* players are usually male */
 
 	if(opts = getenv("HACKOPTIONS"))
 		parseoptions(opts,TRUE);
@@ -41,12 +41,12 @@ boolean from_env;
 	}
 	if(!*opts) return;
 	negated = FALSE;
-	while((*opts == '!') || !strncmp(opts, "no", 2)) {
-		if(*opts == '!') opts++; else opts += 2;
+	while((*opts == '!') || !strncmp(opts, "no", STRLEN("no"))) {
+		if(*opts == '!') opts++; else opts += STRLEN("no");
 		negated = !negated;
 	}
 	
-	if(!strncmp(opts,"standout",8)) {
+	if(!strncmp(opts,"standout",STRLEN("standout"))) {
 		flags.standout = !negated;
 		return;
 	}
@@ -61,12 +61,12 @@ boolean from_env;
 		return;
 	}
 
-	if(!strncmp(opts,"news",4)) {
+	if(!strncmp(opts,"news",STRLEN("news"))) {
 		flags.nonews = negated;
 		return;
 	}
 
-	if(!strncmp(opts,"time",4)) {
+	if(!strncmp(opts,"time",STRLEN("time"))) {
 		flags.time = !negated;
 		flags.botl = 1;
 		return;
@@ -77,17 +77,25 @@ boolean from_env;
 		return;
 	}
 
-	if(!strncmp(opts,"male",4)) {
-		female = negated;
+	if(!strncmp(opts,"fixinv",4)) {
+		if(from_env)
+			flags.invlet_constant = !negated;
+		else
+			pline("The fixinvlet option must be in HACKOPTIONS.");
 		return;
 	}
-	if(!strncmp(opts,"female",6)) {
-		female = !negated;
+
+	if(!strncmp(opts,"male",STRLEN("male"))) {
+		flags.female = negated;
+		return;
+	}
+	if(!strncmp(opts,"female",STRLEN("female"))) {
+		flags.female = !negated;
 		return;
 	}
 
 	/* name:string */
-	if(!strncmp(opts,"name",4)) {
+	if(!strncmp(opts,"name",STRLEN("name"))) {
 		extern char plname[PL_NSIZ];
 		if(!from_env) {
 		  pline("The playername can be set only from HACKOPTIONS.");
@@ -134,10 +142,10 @@ boolean from_env;
 	}
 bad:
 	if(!from_env) {
-		if(!strncmp(opts, "help", 4)) {
+		if(!strncmp(opts, "help", STRLEN("help"))) {
 			pline("%s%s%s",
 "To set options use `HACKOPTIONS=\"<options>\"' in your environment, or ",
-"give the command 'o' followed by the line `<options>' while playing. ",
+"give the command 'O' followed by the line `<options>' while playing. ",
 "Here <options> is a list of <option>s separated by commas." );
 			pline("%s%s%s",
 "Simple (boolean) options are rest_on_space, news, time, ",
@@ -152,7 +160,7 @@ bad:
 			return;
 		}
 		pline("Bad option: %s.", opts);
-		pline("Type `o help<cr>' for help.");
+		pline("Type `O help<cr>' for help.");
 		return;
 	}
 	puts("Bad syntax in HACKOPTIONS.");
@@ -169,9 +177,9 @@ doset()
 
 	pline("What options do you want to set? ");
 	getlin(buf);
-	if(!buf[0]) {
+	if(!buf[0] || buf[0] == '\033') {
 	    (void) strcpy(buf,"HACKOPTIONS=");
-	    (void) strcat(buf,female ? "female," : "male,");
+	    (void) strcat(buf, flags.female ? "female," : "male,");
 	    if(flags.standout) (void) strcat(buf,"standout,");
 	    if(flags.nonull) (void) strcat(buf,"nonull,");
 	    if(flags.nonews) (void) strcat(buf,"nonews,");

@@ -1,4 +1,6 @@
-/* $Header: lastpart.c,v 1.7 85/05/20 20:02:00 rick Exp $ */
+#ifndef lint
+static char sccsid[] = "@(#)lastpart.c	5.4 (Berkeley) 6/20/85";
+#endif
 
 #include "uucp.h"
 

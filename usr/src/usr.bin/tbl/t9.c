@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t9.c	4.2 8/11/83";
+#endif
+
  /* t9.c: write lines for tables over 200 lines */
 # include "t..c"
 static useln;

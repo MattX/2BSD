@@ -1,10 +1,14 @@
 /*
- * A bunch of global variable declarations lie herein.
- * def.h must be included first.
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)glob.h	5.1 (Berkeley) 6/6/85
  */
 
 /*
- * Sccs Id = "@(#)glob.h	2.9 1/29/83;
+ * A bunch of global variable declarations lie herein.
+ * def.h must be included first.
  */
 
 int	msgCount;			/* Count of messages read in */
@@ -54,6 +58,8 @@ struct	message	*message;		/* The actual message structure */
 struct	var	*variables[HSHSIZE];	/* Pointer to active var list */
 struct	grouphead	*groups[HSHSIZE];/* Pointer to active groups */
 struct	ignore		*ignore[HSHSIZE];/* Pointer to ignored fields */
+struct	ignore		*retain[HSHSIZE];/* Pointer to retained fields */
+int	nretained;			/* Number of retained fields */
 char	**altnames;			/* List of alternate names for user */
 char	**localnames;			/* List of aliases for our local host */
 int	debug;				/* Debug flag set */

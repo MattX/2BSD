@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)lib.c	4.4 9/17/84";
+#endif
+
 #include "stdio.h"
 #include "awk.def"
 #include "awk.h"
@@ -5,17 +9,17 @@
 
 FILE	*infile	= NULL;
 char	*file;
-#define	RECSIZE	512
+#define	RECSIZE	(5 * 512)
 char	record[RECSIZE];
 char	fields[RECSIZE];
 char	EMPTY[] = "";
 
-#define	MAXFLD	50
+#define	MAXFLD	100
 int	donefld;	/* 1 = implies rec broken into fields */
 int	donerec;	/* 1 = record is valid (no flds have changed) */
 int	mustfld;	/* 1 = NF seen, so always break*/
 
-#define	FINIT	{0, NULL, 0.0, FLD|STR}
+#define	FINIT	{EMPTY, EMPTY, 0.0, FLD|STR}
 cell fldtab[MAXFLD] = {	/*room for fields */
 	{ "$record", record, 0.0, STR|FLD},
 	FINIT, FINIT, FINIT, FINIT, FINIT, FINIT, FINIT,
@@ -73,8 +77,14 @@ getrec()
 		*rr = 0;
 		if (mustfld)
 			fldbld();
-		if (c != EOF)	/* normal record */
+		if (c != EOF || rr > record) {	/* normal record */
+			recloc->tval &= ~NUM;
+			recloc->tval |= STR;
+			++nrloc->fval;
+			nrloc->tval &= ~STR;
+			nrloc->tval |= NUM;
 			return(1);
+		}
 		/* EOF arrived on this file; set up next */
 		if (infile != stdin)
 			fclose(infile);
@@ -106,6 +116,7 @@ fldbld()
 
 	r = record;
 	fr = fields;
+	i = 0;	/* number of fields accumulated here */
 	if ((sep = **FS) == ' ')
 		for (i = 0; ; ) {
 			while (*r == ' ' || *r == '\t' || *r == '\n')
@@ -116,7 +127,7 @@ fldbld()
 			if (i >= MAXFLD)
 				error(FATAL, "record `%.20s...' has too many fields", record);
 			if (!(fldtab[i].tval&FLD))
-				xfree(fldtab[i].sval);
+				strfree(fldtab[i].sval);
 			fldtab[i].sval = fr;
 			fldtab[i].tval = FLD | STR;
 			do
@@ -124,36 +135,36 @@ fldbld()
 			while (*r != ' ' && *r != '\t' && *r != '\n' && *r != '\0');
 			*fr++ = 0;
 		}
-	else
-		for (i = 0; ; ) {
+	else if (*r != 0)	/* if 0, it's a null field */
+		for (;;) {
 			i++;
 			if (i >= MAXFLD)
 				error(FATAL, "record `%.20s...' has too many fields", record);
 			if (!(fldtab[i].tval&FLD))
-				xfree(fldtab[i].sval);
+				strfree(fldtab[i].sval);
 			fldtab[i].sval = fr;
 			fldtab[i].tval = FLD | STR;
 			while (*r != sep && *r != '\n' && *r != '\0')	/* \n always a separator */
 				*fr++ = *r++;
-			*fr++ = '\0';
-			if (*r == 0) break;
-			r++;
+			*fr++ = 0;
+			if (*r++ == 0)
+				break;
 		}
 	*fr = 0;
-	for (j=maxfld; j>i; j--) {	/* clean out junk from previous record */
+	for (j=MAXFLD-1; j>i; j--) {	/* clean out junk from previous record */
 		if (!(fldtab[j].tval&FLD))
-			xfree(fldtab[j].sval);
+			strfree(fldtab[j].sval);
 		fldtab[j].tval = STR | FLD;
-		fldtab[j].sval = NULL;
+		fldtab[j].sval = EMPTY;
 	}
 	maxfld = i;
 	donefld = 1;
 	for(i=1; i<=maxfld; i++)
-		if(isnumber(fldtab[i].sval))
-		{	fldtab[i].fval = atof(fldtab[i].sval);
+		if(isnumber(fldtab[i].sval)) {
+			fldtab[i].fval = atof(fldtab[i].sval);
 			fldtab[i].tval |= NUM;
 		}
-	setfval(lookup("NF", symtab), (awkfloat) maxfld);
+	setfval(lookup("NF", symtab, 0), (awkfloat) maxfld);
 	if (dbg)
 		for (i = 0; i <= maxfld; i++)
 			printf("field %d: |%s|\n", i, fldtab[i].sval);
@@ -200,7 +211,7 @@ error(f, s, a1, a2, a3, a4, a5, a6, a7) {
 	fprintf(stderr, "awk: ");
 	fprintf(stderr, s, a1, a2, a3, a4, a5, a6, a7);
 	fprintf(stderr, "\n");
-	if (*NR > 0)
+	if (NR && *NR > 0)
 		fprintf(stderr, " record number %g\n", *NR);
 	if (f)
 		exit(2);
@@ -219,6 +230,8 @@ register char *s;
 	int point;
 	char *es;
 
+	if (s == NULL) 
+		return (0);
 	d1 = d2 = point = 0;
 	while (*s == ' ' || *s == '\t' || *s == '\n')
 		s++;
@@ -229,17 +242,17 @@ register char *s;
 	if (!isdigit(*s) && *s != '.')
 		return(0);
 	if (isdigit(*s)) {
-		d1++;
 		do {
+			d1++;
 			s++;
 		} while (isdigit(*s));
 	}
+	if(d1 >= MAXEXPON)
+		return(0);	/* too many digits to convert */
 	if (*s == '.') {
 		point++;
 		s++;
 	}
-	if (d1 == 0 && point == 0)
-		return(0);
 	if (isdigit(*s)) {
 		d2++;
 		do {

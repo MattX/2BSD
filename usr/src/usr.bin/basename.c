@@ -1,4 +1,6 @@
-#include	"stdio.h"
+static char *sccsid = "@(#)basename.c	4.2 (Berkeley) 10/20/82";
+
+#include	<stdio.h>
 
 main(argc, argv)
 char **argv;

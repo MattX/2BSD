@@ -1,7 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: uux.c,v 1.18 85/07/19 21:59:50 rick Exp $";
-/* from @(#)uux.c	5.1 (Berkeley) 7/2/83	*/
-#endif !lint
+static char sccsid[] = "@(#)uux.c	5.6 (Berkeley) 1/24/86";
+#endif
 
 #include "uucp.h"
 
@@ -12,11 +11,20 @@ static char	*RcsId = "$Header: uux.c,v 1.18 85/07/19 21:59:50 rick Exp $";
 #define RQUOTE ')'
 
 #define APPCMD(d) {\
-char *p; for (p = d; *p != '\0';) *cmdp++ = *p++; *cmdp++ = ' '; *cmdp = '\0';}
+register char *p; for (p = d; *p != '\0';)\
+	{*cmdp++ = *p++;\
+		if(cmdp>(sizeof(cmd)+&cmd[0])){\
+			fprintf(stderr,"argument list too long\n");\
+			cleanup(EX_SOFTWARE);\
+		}\
+	}\
+	*cmdp++ = ' '; *cmdp = '\0';}
 
 #define GENSEND(f, a, b, c, d, e) {\
-fprintf(f, "S %s %s %s -%s %s 0666\n", a, b, c, d, e); }
+	fprintf(f, "S %s %s %s -%s %s 0666\n", a, b, c, d, e); }
 #define GENRCV(f, a, b, c) {fprintf(f, "R %s %s %s - \n", a, b, c);}
+
+struct timeb Now;
 
 main(argc, argv)
 char *argv[];
@@ -35,15 +43,15 @@ char *argv[];
 	int Copy = 1;		/* Copy spool files */
 #endif !DONTCOPY
 	int Linkit = 0;		/* Try link before copy */
-	char buf[BUFSIZ];
-	char inargs[BUFSIZ];
+	char buf[2*BUFSIZ];
+	char inargs[2*BUFSIZ];
 	int pipein = 0;
 	int startjob = 1;
 	char Grade = 'A';
 	char path[MAXFULLNAME];
-	char cmd[BUFSIZ];
+	char cmd[2*BUFSIZ];
 	char *ap, *cmdp;
-	char prm[BUFSIZ];
+	char prm[2*BUFSIZ];
 	char syspart[MAXBASENAME+1], rest[MAXFULLNAME];
 	char Xsys[MAXBASENAME+1], local[MAXBASENAME+1];
 	char *xsys = Xsys;
@@ -116,12 +124,10 @@ char *argv[];
 		}
 		--argc;  argv++;
 	}
-	if (argc > 2) {
-		ap = getwd(Wrkdir);
-		if (ap == 0) {
-			fprintf(stderr, "can't get working directory; will try to continue\n");
-			strcpy(Wrkdir, "/UNKNOWN");
-		}
+	ap = getwd(Wrkdir);
+	if (ap == 0) {
+		fprintf(stderr, "can't get working directory; will try to continue\n");
+		strcpy(Wrkdir, "/UNKNOWN");
 	}
 
 	DEBUG(4, "\n\n** %s **\n", "START");
@@ -188,11 +194,22 @@ char *argv[];
 		while (!feof(stdin)) {
 			ret = fread(buf, 1, BUFSIZ, stdin);
 			fwrite(buf, 1, ret, fpd);
+			if (ferror(stdin)) {
+				perror("stdin");
+				cleanup(EX_IOERR);
+			}
+			if (ferror(fpd)) {
+				perror(dfile);
+				cleanup(EX_IOERR);
+			}
 		}
 		fclose(fpd);
 		strcpy(tfile, dfile);
 		if (strcmp(local, xsys) != SAME) {
-			tfile[strlen(local) + 2] = 'S';
+			register int Len = strlen(local);
+			if (Len > SYSNSIZE)
+				Len = SYSNSIZE;
+			tfile[Len + 2] = 'S';
 			GENSEND(fpc, dfile, tfile, User, "", dfile);
 			cflag++;
 		}
@@ -379,11 +396,15 @@ char *argv[];
 		if (*ap == '!') {
 			fprintf(stderr, "uux handles only adjacent sites.\n");
 			fprintf(stderr, "Try uusend for multi-hop delivery.\n");
-			cleanup(1);
+			cleanup(EX_USAGE);
 		}
 
 	fprintf(fprx, "%c %s\n", X_CMD, cmd);
-	logent(cmd, "XQT QUE'D");
+	if (ferror(fprx)) {
+		logent(cmd, "COULD NOT QUEUE XQT");
+		cleanup(EX_IOERR);
+	} else
+		logent(cmd, "XQT QUE'D");
 	fclose(fprx);
 
 	gename(XQTPRE, local, Grade, tfile);
@@ -401,6 +422,8 @@ char *argv[];
 		cflag++;
 	}
 
+	if (ferror(fpc))
+		cleanup(EX_IOERR);
 	fclose(fpc);
 	if (cflag) {
 		gename(CMDPRE, xsys, Grade, cfile);

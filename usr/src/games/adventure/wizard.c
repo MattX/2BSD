@@ -29,7 +29,7 @@ start(n)
 {       int d,t,delay;
 	datime(&d,&t);
 	delay=(d-saved)*1440+(t-savet); /* good for about a month       */
-	if (delay>=latncy || setup >= 0)
+	if (delay>=latncy || delay < 0 || setup >= 0)
 	{       saved= -1;
 		return(FALSE);
 	}

@@ -1,8 +1,11 @@
-/*	@(#)rew.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)rew.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 #include	<stdio.h>
 
 rewind(iop)
-	register struct _iobuf *iop;
+register FILE *iop;
 {
 	fflush(iop);
 	lseek(fileno(iop), 0L, 0);

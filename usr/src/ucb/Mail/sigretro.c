@@ -1,11 +1,17 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sigretro.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 #include <signal.h>
 #include <errno.h>
 #include <setjmp.h>
 #include "sigretro.h"
-
-static	char	*SccsID = "@(#)sigretro.c	1.2	3/22/82";
 
 /*
  * Retrofit new signal interface to old signal primitives.

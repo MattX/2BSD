@@ -1,3 +1,4 @@
+/* @(#)m4y.y	1.1 (Berkeley) 12/15/82 */
 %{
 extern long	evalval;
 #define	YYSTYPE	long
@@ -82,6 +83,8 @@ yylex() {
 
 peek(c, r1, r2)
 {
+	extern char *pe;
+
 	if (*++pe != c)
 		return(r2);
 	++pe;

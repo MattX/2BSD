@@ -55,7 +55,7 @@ A number or range of numbers may be given after the
 .B \-p
 to start or end the check at a specified pass number.
 A single number specifies the starting pass (e.g. \-p2 or \-p2\-);
-a range specifies the starting and ending passes (\-p2\-4).
+a range specifies the starting and endig passes (\-p2\-4).
 A missing start means to start with pass 1 (\-p\-2).
 These can be used to stop fsck to mount a temporary file system
 before continuing the check on larger file systems requiring scratch files.
@@ -99,7 +99,8 @@ kernel changes are required to limit the types of inconsistencies,
 and
 .B "fsck \-p"
 makes assumptions about the kernel's actions in repairing these.
-Vmunix and PDP-11 Unix kernels with the UCB_FSFIX option have the
+Vmunix, PDP-11 2.9BSD with the UCB_FSFIX option
+and PDP-11 2.10BSD Unix kernels have the
 appropriate modifications;
 the
 .B \-p
@@ -317,7 +318,8 @@ fsck
 is executed).
 .IR Mkfs (8)
 will automatically create a
-.IR lost+found directory.
+.I lost+found
+directory.
 .PP
 Checking the raw device is almost always faster.
 The root device should not be checked using the raw device,

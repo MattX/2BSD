@@ -1,5 +1,13 @@
-/* Copyright (c) 1979 Regents of the University of California */
-static char *sccsid = "@(#)ex_unix.c	6.1 10/18/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_unix.c	7.6 (Berkeley) 10/22/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_temp.h"
 #include "ex_tty.h"
@@ -234,6 +242,7 @@ filter(mode)
 	static int pvec[2];
 	ttymode f;	/* mjm: was register */
 	register int lines = lineDOL();
+	struct stat statb;
 
 	mode++;
 	if (mode & 2) {
@@ -266,6 +275,13 @@ filter(mode)
 	if (mode & 1) {
 		if(FIXUNDO)
 			undap1 = undap2 = addr2+1;
+		if (fstat(io, &statb) < 0)
+			bsize = LBSIZE;
+		else {
+			bsize = statb.st_blksize;
+			if (bsize <= 0)
+				bsize = LBSIZE;
+		}
 		ignore(append(getfile, addr2));
 #ifdef TRACE
 		if (trace)
@@ -313,18 +329,14 @@ recover()
  */
 waitfor()
 {
+	int stat = 0;
 
-	do
-		rpid = wait(&status);
-	while (rpid != pid && rpid != -1);
-	if (!(status & 0377)) {
-		status = (status >> 8) & 0377;
-	} else {
-		printf("%d: terminated with signal %d",pid,status & 0177);
-		if (status & 0200)
-			printf(" -- core dumped");
-		putchar('\n');
-	}
+	do {
+		rpid = wait(&stat);
+		if (rpid == pid)
+			status = stat;
+	} while (rpid != -1);
+	status = (status >> 8) & 0377;
 }
 
 /*

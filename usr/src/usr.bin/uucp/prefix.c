@@ -1,5 +1,6 @@
-/* $Header: prefix.c,v 1.4 85/05/20 20:02:18 rick Exp $ */
-/* from: @(#)prefix.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)prefix.c	5.3 (Berkeley) 6/20/85";
+#endif
 
 /*LINTLIBRARY*/
 

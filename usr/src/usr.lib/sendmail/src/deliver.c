@@ -1,9 +1,22 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)deliver.c	5.10 (Berkeley) 3/2/86";
+#endif
+
 # include <signal.h>
 # include <errno.h>
 # include "sendmail.h"
 # include <sys/stat.h>
-
-SCCSID(@(#)deliver.c	4.2		8/28/83);
+# include <netdb.h>
 
 /*
 **  DELIVER -- Deliver a message to a list of addresses.
@@ -102,7 +115,7 @@ deliver(e, firstto)
 	*/
 
 	/* rewrite from address, using rewriting rules */
-	expand("$f", buf, &buf[sizeof buf - 1], e);
+	expand("\001f", buf, &buf[sizeof buf - 1], e);
 	(void) strcpy(tfrombuf, remotename(buf, m, TRUE, TRUE));
 
 	define('g', tfrombuf, e);		/* translated sender address */
@@ -118,7 +131,7 @@ deliver(e, firstto)
 			*pvp++ = "-f";
 		else
 			*pvp++ = "-r";
-		expand("$g", buf, &buf[sizeof buf - 1], e);
+		expand("\001g", buf, &buf[sizeof buf - 1], e);
 		*pvp++ = newstr(buf);
 	}
 
@@ -131,7 +144,7 @@ deliver(e, firstto)
 
 	for (mvp = m->m_argv; (p = *++mvp) != NULL; )
 	{
-		while ((p = index(p, '$')) != NULL)
+		while ((p = index(p, '\001')) != NULL)
 			if (*++p == 'u')
 				break;
 		if (p != NULL)
@@ -189,7 +202,7 @@ deliver(e, firstto)
 			continue;
 
 		/* avoid overflowing tobuf */
-		if (sizeof tobuf - (strlen(to->q_paddr) + strlen(tobuf) + 2) < 0)
+		if ((int)sizeof tobuf - (strlen(to->q_paddr) + strlen(tobuf) + 2) < 0)
 			break;
 
 # ifdef DEBUG
@@ -368,8 +381,8 @@ deliver(e, firstto)
 				}
 				else
 				{
-					strcat(tobuf, ",");
-					strcat(tobuf, to->q_paddr);
+					(void) strcat(tobuf, ",");
+					(void) strcat(tobuf, to->q_paddr);
 				}
 			}
 
@@ -383,7 +396,7 @@ deliver(e, firstto)
 			}
 
 			/* now close the connection */
-			smtpquit(pv[0], m);
+			smtpquit(m);
 		}
 	}
 	else
@@ -488,12 +501,13 @@ markfailure(e, q, rcode)
 {\
 	register int i;\
 \
-	for (i = NFORKTRIES; i-- > 0; )\
+	for (i = NFORKTRIES; --i >= 0; )\
 	{\
 		pid = fORKfN();\
 		if (pid >= 0)\
 			break;\
-		sleep(NFORKTRIES - i);\
+		if (i > 0)\
+			sleep((unsigned) NFORKTRIES - i);\
 	}\
 }
 /*
@@ -615,9 +629,9 @@ endmailer(pid, name)
 	/* see if it died a horrid death */
 	if ((st & 0377) != 0)
 	{
-		syserr("endmailer %s: stat %o", name, st);
-		ExitStat = EX_UNAVAILABLE;
-		return (EX_UNAVAILABLE);
+		syserr("mailer %s died with signal %o", name, st);
+		ExitStat = EX_TEMPFAIL;
+		return (EX_TEMPFAIL);
 	}
 
 	/* normal death -- return status */
@@ -668,6 +682,8 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 # endif DEBUG
 	errno = 0;
 
+	CurHostName = m->m_mailer;
+
 	/*
 	**  Deal with the special case of mail handled through an IPC
 	**  connection.
@@ -689,19 +705,43 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 
 	if (strcmp(m->m_mailer, "[IPC]") == 0)
 	{
+#ifdef HOSTINFO
+		register STAB *st;
+		extern STAB *stab();
+#endif HOSTINFO
 #ifdef DAEMON
 		register int i;
 		register u_short port;
 
+		CurHostName = pvp[1];
 		if (!clever)
 			syserr("non-clever IPC");
 		if (pvp[2] != NULL)
 			port = atoi(pvp[2]);
 		else
 			port = 0;
+#ifdef HOSTINFO
+		/* see if we have already determined that this host is fried */
+		st = stab(pvp[1], ST_HOST, ST_FIND);
+		if (st == NULL || st->s_host.ho_exitstat == EX_OK)
+			i = makeconnection(pvp[1], port, pmfile, prfile);
+		else
+		{
+			i = st->s_host.ho_exitstat;
+			errno = st->s_host.ho_errno;
+		}
+#else HOSTINFO
 		i = makeconnection(pvp[1], port, pmfile, prfile);
+#endif HOSTINFO
 		if (i != EX_OK)
 		{
+#ifdef HOSTINFO
+			/* enter status of this host */
+			if (st == NULL)
+				st = stab(pvp[1], ST_HOST, ST_ENTER);
+			st->s_host.ho_exitstat = i;
+			st->s_host.ho_errno = errno;
+#endif HOSTINFO
 			ExitStat = i;
 			return (-1);
 		}
@@ -734,11 +774,17 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 	/*
 	**  Actually fork the mailer process.
 	**	DOFORK is clever about retrying.
+	**
+	**	Dispose of SIGCHLD signal catchers that may be laying
+	**	around so that endmail will get it.
 	*/
 
 	if (CurEnv->e_xfp != NULL)
 		(void) fflush(CurEnv->e_xfp);		/* for debugging */
 	(void) fflush(stdout);
+# ifdef SIGCHLD
+	(void) signal(SIGCHLD, SIG_DFL);
+# endif SIGCHLD
 	DOFORK(XFORK);
 	/* pid is set by DOFORK */
 	if (pid < 0)
@@ -758,6 +804,9 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 	}
 	else if (pid == 0)
 	{
+		int i;
+		extern int DtableSize;
+
 		/* child -- set up input & exec mailer */
 		/* make diagnostic output be standard output */
 		(void) signal(SIGINT, SIG_IGN);
@@ -792,7 +841,7 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 		(void) close(mpvect[0]);
 		if (!bitnset(M_RESTR, m->m_flags))
 		{
-			if (ctladdr->q_uid == 0)
+			if (ctladdr == NULL || ctladdr->q_uid == 0)
 			{
 				(void) setgid(DefGid);
 				(void) setuid(DefUid);
@@ -804,33 +853,28 @@ openmailer(m, pvp, ctladdr, clever, pmfile, prfile)
 			}
 		}
 
-		/*
-		**  We have to be careful with vfork - we can't mung up the
-		**  memory but we don't want the mailer to inherit any extra
-		**  open files.  Chances are the mailer won't
-		**  care about an extra file, but then again you never know.
-		**  Actually, we would like to close(fileno(pwf)), but it's
-		**  declared static so we can't.  But if we fclose(pwf), which
-		**  is what endpwent does, it closes it in the parent too and
-		**  the next getpwnam will be slower.  If you have a weird
-		**  mailer that chokes on the extra file you should do the
-		**  endpwent().			-MRH
-		**
-		**  Similar comments apply to log.  However, openlog is
-		**  clever enough to set the FIOCLEX mode on the file,
-		**  so it will be closed automatically on the exec.
-		*/
-
-		closeall();
+		/* arrange for all the files to be closed */
+		for (i = 3; i < DtableSize; i++)
+#ifdef FIOCLEX
+			(void) ioctl(i, FIOCLEX, 0);
+#else FIOCLEX
+			(void) close(i);
+#endif FIOCLEX
 
 		/* try to execute the mailer */
-		execv(m->m_mailer, pvp);
+		execve(m->m_mailer, pvp, UserEnviron);
 
-		/* syserr fails because log is closed */
-		/* syserr("Cannot exec %s", m->m_mailer); */
+#ifdef FIOCLEX
+		syserr("Cannot exec %s", m->m_mailer);
+#else FIOCLEX
 		printf("Cannot exec '%s' errno=%d\n", m->m_mailer, errno);
 		(void) fflush(stdout);
-		_exit(EX_UNAVAILABLE);
+#endif FIOCLEX
+		if (m == LocalMailer || errno == EIO || errno == EAGAIN ||
+		    errno == ENOMEM || errno == EPROCLIM)
+			_exit(EX_TEMPFAIL);
+		else
+			_exit(EX_UNAVAILABLE);
 	}
 
 	/*
@@ -898,27 +942,43 @@ giveresponse(stat, m, e)
 	}
 	else if (stat == EX_TEMPFAIL)
 	{
-		extern char *sys_errlist[];
-		extern int sys_nerr;
-
 		(void) strcpy(buf, SysExMsg[i]);
-		if (errno != 0)
+		if (h_errno == TRY_AGAIN)
 		{
-			(void) strcat(buf, ": ");
-			if (errno > 0 && errno < sys_nerr)
-				(void) strcat(buf, sys_errlist[errno]);
+			extern char *errstring();
+
+			statmsg = errstring(h_errno+MAX_ERRNO);
+		}
+		else
+		{
+			if (errno != 0)
+			{
+				extern char *errstring();
+
+				statmsg = errstring(errno);
+			}
 			else
 			{
-				char xbuf[30];
+#ifdef SMTP
+				extern char SmtpError[];
 
-				(void) sprintf(xbuf, "Error %d", errno);
-				(void) strcat(buf, xbuf);
+				statmsg = SmtpError;
+#else SMTP
+				statmsg = NULL;
+#endif SMTP
 			}
+		}
+		if (statmsg != NULL && statmsg[0] != '\0')
+		{
+			(void) strcat(buf, ": ");
+			(void) strcat(buf, statmsg);
 		}
 		statmsg = buf;
 	}
 	else
+	{
 		statmsg = SysExMsg[i];
+	}
 
 	/*
 	**  Print the message as appropriate
@@ -951,6 +1011,7 @@ giveresponse(stat, m, e)
 		e->e_message = newstr(&statmsg[4]);
 	}
 	errno = 0;
+	h_errno = 0;
 }
 /*
 **  LOGDELIVERY -- log the delivery in the system log
@@ -980,11 +1041,10 @@ logdelivery(stat)
 **
 **	This can be made an arbitrary message separator by changing $l
 **
-**	One of the ugliest hacks seen by human eyes is
-**	contained herein: UUCP wants those stupid
-**	"emote from <host>" lines.  Why oh why does a
-**	well-meaning programmer such as myself have to
-**	deal with this kind of antique garbage????
+**	One of the ugliest hacks seen by human eyes is contained herein:
+**	UUCP wants those stupid "remote from <host>" lines.  Why oh why
+**	does a well-meaning programmer such as myself have to deal with
+**	this kind of antique garbage????
 **
 **	Parameters:
 **		fp -- the file to output to.
@@ -1001,7 +1061,7 @@ putfromline(fp, m)
 	register FILE *fp;
 	register MAILER *m;
 {
-	char *template = "$l\n";
+	char *template = "\001l\n";
 	char buf[MAXLINE];
 
 	if (bitnset(M_NHDR, m->m_flags))
@@ -1013,14 +1073,14 @@ putfromline(fp, m)
 		char *bang;
 		char xbuf[MAXLINE];
 
-		expand("$g", buf, &buf[sizeof buf - 1], CurEnv);
+		expand("\001g", buf, &buf[sizeof buf - 1], CurEnv);
 		bang = index(buf, '!');
 		if (bang == NULL)
 			syserr("No ! in UUCP! (%s)", buf);
 		else
 		{
 			*bang++ = '\0';
-			(void) sprintf(xbuf, "From %s  $d remote from %s\n", bang, buf);
+			(void) sprintf(xbuf, "From %s  \001d remote from %s\n", bang, buf);
 			template = xbuf;
 		}
 	}
@@ -1069,7 +1129,12 @@ putbody(fp, m, e)
 	{
 		rewind(e->e_dfp);
 		while (!ferror(fp) && fgets(buf, sizeof buf, e->e_dfp) != NULL)
+		{
+			if (buf[0] == 'F' && bitnset(M_ESCFROM, m->m_flags) &&
+			    strncmp(buf, "From", 4) == 0)
+				(void) putc('>', fp);
 			putline(buf, fp, m);
+		}
 
 		if (ferror(e->e_dfp))
 		{
@@ -1137,7 +1202,7 @@ mailfile(filename, ctladdr)
 		(void) signal(SIGINT, SIG_DFL);
 		(void) signal(SIGHUP, SIG_DFL);
 		(void) signal(SIGTERM, SIG_DFL);
-		umask(OldUmask);
+		(void) umask(OldUmask);
 		if (stat(filename, &stb) < 0)
 		{
 			errno = 0;
@@ -1219,9 +1284,9 @@ sendall(e, mode)
 	/* determine actual delivery mode */
 	if (mode == SM_DEFAULT)
 	{
-		extern int QueueLA;
+		extern bool shouldqueue();
 
-		if (getla() > QueueLA)
+		if (shouldqueue(e->e_msgpriority))
 			mode = SM_QUEUE;
 		else
 			mode = SendMode;

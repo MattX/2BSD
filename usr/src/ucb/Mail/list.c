@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)list.c	5.4 (Berkeley) 11/2/85";
+#endif not lint
 
 #include "rcv.h"
 #include <ctype.h>
@@ -8,8 +16,6 @@
  *
  * Message list handling.
  */
-
-static char *SccsId = "@(#)list.c	2.2 1/22/83";
 
 /*
  * Convert the user string of message numbers and
@@ -128,22 +134,28 @@ number:
 				printf("Non-numeric second argument\n");
 				return(-1);
 			}
-			if (valdot < msgCount)
-				mark(valdot+1);
-			else {
-				printf("Referencing beyond EOF\n");
-				return(-1);
-			}
+			i = valdot;
+			do {
+				i++;
+				if (i > msgCount) {
+					printf("Referencing beyond EOF\n");
+					return(-1);
+				}
+			} while ((message[i - 1].m_flag & MDELETED) != f);
+			mark(i);
 			break;
 
 		case TDASH:
 			if (beg == 0) {
-				if (valdot > 1)
-					mark(valdot-1);
-				else {
-					printf("Referencing before 1\n");
-					return(-1);
-				}
+				i = valdot;
+				do {
+					i--;
+					if (i <= 0) {
+						printf("Referencing before 1\n");
+						return(-1);
+					}
+				} while ((message[i - 1].m_flag & MDELETED) != f);
+				mark(i);
 			}
 			break;
 
@@ -208,7 +220,7 @@ number:
 
 	if ((np > namelist || colmod != 0) && mc == 0)
 		for (i = 1; i <= msgCount; i++)
-			if ((message[i-1].m_flag & (MSAVED|MDELETED)) == f)
+			if ((message[i-1].m_flag & MDELETED) == f)
 				mark(i);
 
 	/*
@@ -330,15 +342,18 @@ check(mesg, f)
  * for a RAWLIST.
  */
 
-getrawlist(line, argv)
+getrawlist(line, argv, argc)
 	char line[];
 	char **argv;
+	int  argc;
 {
 	register char **ap, *cp, *cp2;
 	char linebuf[BUFSIZ], quotec;
+	register char **last;
 
 	ap = argv;
 	cp = line;
+	last = argv + argc - 1;
 	while (*cp != '\0') {
 		while (any(*cp, " \t"))
 			cp++;
@@ -358,6 +373,10 @@ getrawlist(line, argv)
 		*cp2 = '\0';
 		if (cp2 == linebuf)
 			break;
+		if (ap >= last) {
+			printf("Too many elements in the list; excess discarded\n");
+			break;
+		}
 		*ap++ = savestr(linebuf);
 	}
 	*ap = NOSTR;
@@ -539,11 +558,20 @@ sender(str, mesg)
 	char *str;
 {
 	register struct message *mp;
-	register char *cp;
+	register char *cp, *cp2, *backup;
 
 	mp = &message[mesg-1];
-	cp = nameof(mp, 0);
-	return(icequal(cp, str));
+	backup = cp2 = nameof(mp, 0);
+	cp = str;
+	while (*cp2) {
+		if (*cp == 0)
+			return(1);
+		if (raise(*cp++) != raise(*cp2++)) {
+			cp2 = ++backup;
+			cp = str;
+		}
+	}
+	return(*cp == 0);
 }
 
 /*

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)sum.c	4.1 (Berkeley) 10/1/80";
 /*
  * Sum bytes in file mod 2^16
  */

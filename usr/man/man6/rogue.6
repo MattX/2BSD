@@ -1,11 +1,26 @@
-.TH ROGUE 6
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)rogue.6	6.2 (Berkeley) 5/6/86
+.\"
+.TH ROGUE 6 "May 6, 1986"
+.UC 4
 .SH NAME
 rogue \- Exploring The Dungeons of Doom
 .SH SYNOPSIS
-.B rogue
+.B /usr/games/rogue
+[
+.B \-r
+]
 [
 .I save_file
+]
+[
+.B \-s
+]
+[
+.B \-d
 ]
 .SH DESCRIPTION
 .PP
@@ -21,9 +36,11 @@ will give you a list of the available commands and the command
 .B /
 will identify the things you see on the screen.
 .PP
-To win the game (as opposed to merely playing to beat other people high
+To win the game (as opposed to merely playing to beat other people's high
 scores) you must locate the Amulet of Yendor which is somewhere below
-the 20th level of the dungeon and get it out.
+the 20th level of the dungeon and get it out.  Nobody has achieved this
+yet and if somebody does, they will probably go down in history as a hero
+among heroes.
 .PP
 When the game ends, either by your death, when you quit, or if you (by
 some miracle) manage to win,
@@ -32,19 +49,45 @@ will give you a list of the top-ten scorers.  The scoring is based entirely
 upon how much gold you get.  There is a 10% penalty for getting yourself
 killed.
 .PP
+If
+.I save_file
+is specified,
+rogue will be restored from the specified saved game file.
+If the
+.B \-r
+option is used, the save game file is presumed to be the default.
+.PP
+The
+.B \-s
+option will print out the list of scores.
+.PP
+The
+.B \-d
+option will kill you and try to add you to the score file.
+.PP
 For more detailed directions, read the document
 .I "A Guide to the Dungeons of Doom."
+.SH AUTHORS
+Michael C. Toy,
+Kenneth C. R. C. Arnold,
+Glenn Wichman
 .SH FILES
-.ta 2i
+.DT
+.ta \w'/usr/games/lib/rogue_roll\ \ \ 'u
 /usr/games/lib/rogue_roll	Score file
 .br
-~/rogue.sav	Default save file
-.DT
+\fB~\fP/rogue.save	Default save file
 .SH SEE ALSO
-Michael C. Toy,
-.I "A Guide to the Dungeons of Doom"
+Michael C. Toy
+and
+Kenneth C. R. C. Arnold,
+.I "A guide to the Dungeons of Doom"
 .SH BUGS
 .PP
-Probably infinite.  Currently known bugs are: Sometimes you are still hungry
-even after you eat food and sometimes you get a monster on the screen in
-reverse video which may or may not cause a core dump.
+Probably infinite
+(although countably infinite).
+However,
+that Ice Monsters sometimes transfix you permanently is
+.I not
+a bug.
+It's a feature.

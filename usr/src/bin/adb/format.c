@@ -1,4 +1,3 @@
-#
 /*
  *
  *	UNIX debugger
@@ -85,11 +84,11 @@ STRING		ifp;
 	L_INT		savdot, wx;
 	STRING		fp;
 	CHAR		c, modifier, longpr;
-	L_REAL		fw;
 	struct{
 		L_INT	sa;
 		INT	sb,sc;
-	};
+	}
+			fw;
 
 	WHILE fcount>0
 	DO	fp = ifp; c = *fp;
@@ -192,14 +191,14 @@ STRING		ifp;
 			printf("%-16D", wx); break;
 
 		    case 'f':
-			fw = 0;
+			*(L_REAL *)&fw = 0.0;
 			fw.sa = wx;
-			printf("%-16.9f", fw);
+			printf("%-16.9f", *(L_REAL *)&fw);
 			dotinc=4; break;
 
 		    case 'F':
 			fw.sa = wx;
-			printf("%-32.18F", fw);
+			printf("%-32.18F", *(L_REAL *)&fw);
 			dotinc=8; break;
 
 		    case 'n': case 'N':
@@ -235,7 +234,7 @@ STRING		ifp;
 unox()
 {
 	INT		rc, status, unixpid;
-	STRING		argp lp;
+	STRING		argp = lp;
 
 	WHILE lastc!=EOR DO rdc(); OD
 	IF (unixpid=fork())==0
@@ -244,7 +243,7 @@ unox()
 		exit(16);
 	ELIF unixpid == -1
 	THEN	error(NOFORK);
-	ELSE	signal(SIGINT,1);
+	ELSE	signal(SIGINT,SIG_IGN);
 		WHILE (rc = wait(&status)) != unixpid ANDF rc != -1 DONE
 		signal(SIGINT,sigint);
 		prints("!"); lp--;

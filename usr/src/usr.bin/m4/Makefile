@@ -1,28 +1,12 @@
-#
-# m4 makefile
-#
+# @(#)Makefile	1.1 (Berkeley) 12/15/82
 
-CFLAGS=	-O
-LFLAG=	-i
-ALL=	m4
-OBJS=	m4.o m4y.o
+CFLAGS=-O
+SEPFLAG= -i
+m4:	m4.o m4y.o
+	$(CC) ${SEPFLAG} -o m4 m4.o m4y.o
 
-all:	${ALL}
-
-m4:	${OBJS}
-	${CC} ${LFLAG} -o $@ ${OBJS}
-
-install: m4
-	install -s -o bin -g bin -m 711 m4 ${DESTDIR}/usr/bin
+install:
+	install -s m4 $(DESTDIR)/usr/bin
 
 clean:
-	rm -f ${ALL} ${OBJS}
-
-.c.o:
-	${CC} ${CFLAGS} -c $*.c
-
-m4.o:	m4.c
-m4y.o:	m4y.y
-	yacc m4y.y
-	mv y.tab.c m4y.c
-	${CC} ${CFLAGS} -c m4y.c
+	rm -f *.o

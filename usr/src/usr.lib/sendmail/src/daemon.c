@@ -1,30 +1,37 @@
-# include <whoami.h>
-# include <sys/types.h>
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+
 # include <errno.h>
 # include "sendmail.h"
 
-# if	pdp11
-# define	wait3(a,b,c)	wait2(a,b)
-# endif	pdp11
-
-#ifndef DAEMON
-SCCSID(@(#)4.1a_daemon.c	3.35+		12/5/82	(w/o daemon mode));
-#else
-
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <wait.h>
+# ifndef DAEMON
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)daemon.c	5.19 (Berkeley) 5/6/86	(w/o daemon mode)";
+# endif
+# else
 
 # include <netdb.h>
+# include <sys/signal.h>
+# include <sys/wait.h>
+# include <sys/time.h>
+# include <sys/resource.h>
 
-SCCSID(@(#)4.1a_daemon.c	3.35+		12/5/82	(with daemon mode));
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)daemon.c	5.19 (Berkeley) 5/6/86 (with daemon mode)";
+# endif
 
 /*
 **  DAEMON.C -- routines to use when running as a daemon.
 **
-**	4.1a BSD version -- this version is not well supported.
-**
-**	This entire file is highly dependent on the 4.1a BSD
+**	This entire file is highly dependent on the 4.2 BSD
 **	interprocess communication primitives.  No attempt has
 **	been made to make this file portable to Version 7,
 **	Version 6, MPX files, etc.  If you should try such a
@@ -35,14 +42,21 @@ SCCSID(@(#)4.1a_daemon.c	3.35+		12/5/82	(with daemon mode));
 **		Opens a port and initiates a connection.
 **		Returns in a child.  Must set InChannel and
 **		OutChannel appropriately.
+**	clrdaemon()
+**		Close any open files associated with getting
+**		the connection; this is used when running the queue,
+**		etc., to avoid having extra file descriptors during
+**		the queue run and to avoid confusing the network
+**		code (if it cares).
 **	makeconnection(host, port, outfile, infile)
 **		Make a connection to the named host on the given
 **		port.  Set *outfile and *infile to the files
 **		appropriate for communication.  Returns zero on
 **		success, else an exit status describing the
 **		error.
-**
-**	The semantics of both of these should be clean.
+**	maphostname(hbuf, hbufsize)
+**		Convert the entry in hbuf into a canonical form.  It
+**		may not be larger than hbufsize.
 */
 /*
 **  GETREQUESTS -- open mail IPC port and get requests.
@@ -57,29 +71,112 @@ SCCSID(@(#)4.1a_daemon.c	3.35+		12/5/82	(with daemon mode));
 **		Waits until some interesting activity occurs.  When
 **		it does, a child is created to process it, and the
 **		parent waits for completion.  Return from this
-**		routine is always in the child.
+**		routine is always in the child.  The file pointers
+**		"InChannel" and "OutChannel" should be set to point
+**		to the communication channel.
 */
+
+struct sockaddr_in	SendmailAddress;/* internet address of sendmail */
+
+int	DaemonSocket	= -1;		/* fd describing socket */
+char	*NetName;			/* name of home (local?) network */
 
 getrequests()
 {
-	union wait status;
+	int t;
+	register struct servent *sp;
+	int on = 1;
+	extern reapchild();
+
+	/*
+	**  Set up the address for the mailer.
+	*/
+
+	sp = getservbyname("smtp", "tcp");
+	if (sp == NULL)
+	{
+		syserr("server \"smtp\" unknown");
+		goto severe;
+	}
+	SendmailAddress.sin_family = AF_INET;
+	SendmailAddress.sin_addr.s_addr = INADDR_ANY;
+	SendmailAddress.sin_port = sp->s_port;
+
+	/*
+	**  Try to actually open the connection.
+	*/
+
+# ifdef DEBUG
+	if (tTd(15, 1))
+		printf("getrequests: port 0x%x\n", SendmailAddress.sin_port);
+# endif DEBUG
+
+	/* get a socket for the SMTP connection */
+	DaemonSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (DaemonSocket < 0)
+	{
+		/* probably another daemon already */
+		syserr("getrequests: can't create socket");
+	  severe:
+# ifdef LOG
+		if (LogLevel > 0)
+			syslog(LOG_ALERT, "cannot get connection");
+# endif LOG
+		finis();
+	}
+
+#ifdef DEBUG
+	/* turn on network debugging? */
+	if (tTd(15, 15))
+		(void) setsockopt(DaemonSocket, SOL_SOCKET, SO_DEBUG, (char *)&on, sizeof on);
+#endif DEBUG
+
+	(void) setsockopt(DaemonSocket, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof on);
+	(void) setsockopt(DaemonSocket, SOL_SOCKET, SO_KEEPALIVE, (char *)&on, sizeof on);
+
+	if (bind(DaemonSocket, &SendmailAddress, sizeof SendmailAddress) < 0)
+	{
+		syserr("getrequests: cannot bind");
+		(void) close(DaemonSocket);
+		goto severe;
+	}
+	if (listen(DaemonSocket, 10) < 0)
+	{
+		syserr("getrequests: cannot listen");
+		(void) close(DaemonSocket);
+		goto severe;
+	}
+
+	(void) signal(SIGCHLD, reapchild);
+
+# ifdef DEBUG
+	if (tTd(15, 1))
+		printf("getrequests: %d\n", DaemonSocket);
+# endif DEBUG
 
 	for (;;)
 	{
 		register int pid;
-		register int port;
+		auto int lotherend;
+		struct sockaddr_in otherend;
+		extern int RefuseLA;
 
-		/*
-		**  Wait for a connection.
-		*/
+		/* see if we are rejecting connections */
+		while (getla() > RefuseLA)
+			sleep(5);
 
-		while ((port = getconnection()) < 0)
+		/* wait for a connection */
+		do
 		{
-# ifdef LOG
-			if (LogLevel > 0)
-				syslog(LOG_SALERT, "cannot get connection");
-# endif LOG
-			finis();
+			errno = 0;
+			lotherend = sizeof otherend;
+			t = accept(DaemonSocket, &otherend, &lotherend);
+		} while (t < 0 && errno == EINTR);
+		if (t < 0)
+		{
+			syserr("getrequests: accept");
+			sleep(5);
+			continue;
 		}
 
 		/*
@@ -88,7 +185,7 @@ getrequests()
 
 # ifdef DEBUG
 		if (tTd(15, 2))
-			printf("getrequests: forking (port = %d)\n", port);
+			printf("getrequests: forking (fd = %d)\n", t);
 # endif DEBUG
 
 		pid = fork();
@@ -96,19 +193,52 @@ getrequests()
 		{
 			syserr("daemon: cannot fork");
 			sleep(10);
-			(void) close(port);
+			(void) close(t);
 			continue;
 		}
 
 		if (pid == 0)
 		{
+			extern struct hostent *gethostbyaddr();
+			register struct hostent *hp;
+			char buf[MAXNAME];
+
 			/*
 			**  CHILD -- return to caller.
+			**	Collect verified idea of sending host.
 			**	Verify calling user id if possible here.
 			*/
 
-			InChannel = fdopen(port, "r");
-			OutChannel = fdopen(port, "w");
+			(void) signal(SIGCHLD, SIG_DFL);
+
+			/* determine host name */
+			hp = gethostbyaddr((char *) &otherend.sin_addr, sizeof otherend.sin_addr, AF_INET);
+			if (hp != NULL)
+			{
+				(void) strcpy(buf, hp->h_name);
+				if (NetName != NULL && NetName[0] != '\0' &&
+				    index(hp->h_name, '.') == NULL)
+				{
+					(void) strcat(buf, ".");
+					(void) strcat(buf, NetName);
+				}
+			}
+			else
+			{
+				extern char *inet_ntoa();
+
+				/* produce a dotted quad */
+				(void) sprintf(buf, "[%s]",
+					inet_ntoa(otherend.sin_addr));
+			}
+
+			/* should we check for illegal connection here? XXX */
+
+			RealHostName = newstr(buf);
+
+			(void) close(DaemonSocket);
+			InChannel = fdopen(t, "r");
+			OutChannel = fdopen(dup(t), "w");
 # ifdef DEBUG
 			if (tTd(15, 2))
 				printf("getreq: returning\n");
@@ -120,130 +250,10 @@ getrequests()
 			return;
 		}
 
-		/*
-		**  PARENT -- wait for child to terminate.
-		**	Perhaps we should allow concurrent processing?
-		*/
-
-# ifdef DEBUG
-		if (tTd(15, 2))
-		{
-			sleep(2);
-			printf("getreq: parent waiting\n");
-		}
-# endif DEBUG
-
 		/* close the port so that others will hang (for a while) */
-		(void) close(port);
-
-		/* pick up old zombies; implement load limiting */
-		while (wait3(&status, WNOHANG, 0) > 0)
-			continue;
+		(void) close(t);
 	}
-}
-/*
-**  GETCONNECTION -- make a connection with the outside world
-**
-**	This routine is horribly contorted to try to get around a bunch
-**	of 4.1a IPC bugs.  There appears to be nothing we can do to make
-**	it "right" -- the code to interrupt accepts just doesn't work
-**	right.  However, this is an attempt to minimize the probablity
-**	of problems.
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		The port for mail traffic.
-**
-**	Side Effects:
-**		Waits for a connection.
-*/
-
-#define IPPORT_PLAYPORT	3055		/* random number */
-
-struct sockaddr_in SendmailAddress = { AF_INET, IPPORT_SMTP };
-int DaemonSocket;
-
-getconnection()
-{
-	int s;
-#ifdef NVMUNIX
-	int t;
-#endif NVMUNIX
-	struct sockaddr otherend;
-
-	/*
-	**  Set up the address for the mailer.
-	*/
-
-	SendmailAddress.sin_addr.s_addr = 0;
-	SendmailAddress.sin_port = IPPORT_SMTP;
-# ifdef DEBUG
-	if (tTd(15, 15))
-		SendmailAddress.sin_port = IPPORT_PLAYPORT;
-# endif DEBUG
-	SendmailAddress.sin_port = htons(SendmailAddress.sin_port);
-
-	/*
-	**  Try to actually open the connection.
-	*/
-
-# ifdef DEBUG
-	if (tTd(15, 1))
-		printf("getconnection\n");
-# endif DEBUG
-
-	for (;; sleep(15))
-	{
-		int i;
-
-		/* get a socket for the SMTP connection */
-#ifdef NVMUNIX
-		s = socket(AF_INET, SOCK_STREAM, 0, 0);
-		bind(s, &SendmailAddress, sizeof SendmailAddress, 0);
-		listen(s, 10);
-#else NVMUNIX
-		/* do loop is to avoid 4.1b kernel bug (?) */
-		i = 60;
-		do
-		{
-			s = socket(SOCK_STREAM, 0, &SendmailAddress, SO_ACCEPTCONN);
-			if (s < 0)
-				sleep(10);
-		} while (--i > 0 && s < 0);
-#endif NVMUNIX
-		if (s < 0)
-		{
-			/* probably another daemon already */
-			syserr("getconnection: can't create socket");
-			return (-1);
-		}
-		DaemonSocket = s;
-
-# ifdef DEBUG
-		if (tTd(15, 1))
-			printf("getconnection: %d\n", s);
-# endif DEBUG
-
-		/* wait for a connection */
-		do
-		{
-			errno = 0;
-#ifdef NVMUNIX
-			lotherend = sizeof otherend;
-			t = accept(s, &otherend, &lotherend, 0);
-			if (t >= 0)
-				return (t);
-#else NVMUNIX
-			if (accept(s, &otherend) >= 0)
-				return (s);
-#endif NVMUNIX
-		} while (errno == EINTR);
-		syserr("getconnection: accept");
-		sleep(5);
-		(void) close(s);
-	}
+	/*NOTREACHED*/
 }
 /*
 **  CLRDAEMON -- reset the daemon connection
@@ -282,6 +292,8 @@ clrdaemon()
 **		none.
 */
 
+int	h_errno;	/*this will go away when code implemented*/
+
 makeconnection(host, port, outfile, infile)
 	char *host;
 	u_short port;
@@ -289,28 +301,28 @@ makeconnection(host, port, outfile, infile)
 	FILE **infile;
 {
 	register int s;
+	int sav_errno;
 
 	/*
 	**  Set up the address for the mailer.
 	**	Accept "[a.b.c.d]" syntax for host name.
 	*/
 
+	h_errno = 0;
+	errno = 0;
+
 	if (host[0] == '[')
 	{
-		long hid = 0;
-		int i, j;
-		register char *p = host;
+		long hid;
+		register char *p = index(host, ']');
 
-		for (i = 3; i >= 0 && *p != ']' && *p != '\0'; i--)
+		if (p != NULL)
 		{
-			j = 0;
-			while (isdigit(*++p))
-				j = j * 10 + (*p - '0');
-			if (*p != (i == 0 ? ']' : '.') || j > 255 || j < 0)
-				break;
-			hid |= j << ((3 - i) * 8);
+			*p = '\0';
+			hid = inet_addr(&host[1]);
+			*p = ']';
 		}
-		if (i >= 0 || *p != ']' || *++p != '\0')
+		if (p == NULL || hid == -1)
 		{
 			usrerr("Invalid numeric domain spec \"%s\"", host);
 			return (EX_NOHOST);
@@ -319,20 +331,40 @@ makeconnection(host, port, outfile, infile)
 	}
 	else
 	{
-		struct hostent *hp;
+		register struct hostent *hp = gethostbyname(host);
 
-		if ((hp = gethostbyname(host)) == NULL)
+		if (hp == NULL)
+		{
+			if (errno == ETIMEDOUT || h_errno == TRY_AGAIN)
+				return (EX_TEMPFAIL);
+
+			/*
+			**  XXX Should look for mail forwarder record here
+			**  XXX if (h_errno == NO_ADDRESS).
+			*/
+
 			return (EX_NOHOST);
-		SendmailAddress.sin_addr.s_addr = *((long *) hp->h_addr);
+		}
+		bcopy(hp->h_addr, (char *) &SendmailAddress.sin_addr, hp->h_length);
 	}
-#ifdef	notdef
-	else if ((SendmailAddress.sin_addr.s_addr = rhost(&host)) == -1)
-		return (EX_NOHOST);
-#endif	notdef
 
-	if (port == 0)
-		port = IPPORT_SMTP;
-	SendmailAddress.sin_port = htons(port);
+	/*
+	**  Determine the port number.
+	*/
+
+	if (port != 0)
+		SendmailAddress.sin_port = htons(port);
+	else
+	{
+		register struct servent *sp = getservbyname("smtp", "tcp");
+
+		if (sp == NULL)
+		{
+			syserr("makeconnection: server \"smtp\" unknown");
+			return (EX_OSFILE);
+		}
+		SendmailAddress.sin_port = sp->s_port;
+	}
 
 	/*
 	**  Try to actually open the connection.
@@ -343,46 +375,56 @@ makeconnection(host, port, outfile, infile)
 		printf("makeconnection (%s)\n", host);
 # endif DEBUG
 
-#ifdef NVMUNIX
-	s = socket(AF_INET, SOCK_STREAM, 0, 0);
-#else NVMUNIX
-	s = socket(SOCK_STREAM, 0, (struct sockaddr_in *) 0, 0);
-#endif NVMUNIX
+	s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s < 0)
 	{
-		int saverr = errno;
-
 		syserr("makeconnection: no socket");
-		errno = saverr;
+		sav_errno = errno;
 		goto failure;
 	}
 
 # ifdef DEBUG
 	if (tTd(16, 1))
 		printf("makeconnection: %d\n", s);
+
+	/* turn on network debugging? */
+	if (tTd(16, 14))
+	{
+		int on = 1;
+		(void) setsockopt(DaemonSocket, SOL_SOCKET, SO_DEBUG, (char *)&on, sizeof on);
+	}
 # endif DEBUG
 	(void) fflush(CurEnv->e_xfp);			/* for debugging */
-#ifdef NVMUNIX
-	bind(s, &SendmailAddress, sizeof SendmailAddress, 0);
-	if (connect(s, &SendmailAddress, sizeof SendmailAddress, 0) < 0)
-#else NVMUNIX
-	if (connect(s, &SendmailAddress) < 0)
-#endif NVMUNIX
+	errno = 0;					/* for debugging */
+	SendmailAddress.sin_family = AF_INET;
+	if (connect(s, &SendmailAddress, sizeof SendmailAddress) < 0)
 	{
+		sav_errno = errno;
+		(void) close(s);
 		/* failure, decide if temporary or not */
 	failure:
-		switch (errno)
+		switch (sav_errno)
 		{
 		  case EISCONN:
 		  case ETIMEDOUT:
 		  case EINPROGRESS:
 		  case EALREADY:
 		  case EADDRINUSE:
+		  case EHOSTDOWN:
 		  case ENETDOWN:
 		  case ENETRESET:
 		  case ENOBUFS:
 		  case ECONNREFUSED:
+		  case ECONNRESET:
+		  case EHOSTUNREACH:
+		  case ENETUNREACH:
 			/* there are others, I'm sure..... */
+			return (EX_TEMPFAIL);
+
+		  case EPERM:
+			/* why is this happening? */
+			syserr("makeconnection: funny failure, addr=%lx, port=%x",
+				SendmailAddress.sin_addr.s_addr, SendmailAddress.sin_port);
 			return (EX_TEMPFAIL);
 
 		  default:
@@ -394,9 +436,8 @@ makeconnection(host, port, outfile, infile)
 	*outfile = fdopen(s, "w");
 	*infile = fdopen(s, "r");
 
-	return (0);
+	return (EX_OK);
 }
-
 /*
 **  MYHOSTNAME -- return the name of this host.
 **
@@ -406,7 +447,6 @@ makeconnection(host, port, outfile, infile)
 **
 **	Returns:
 **		A list of aliases for this host.
-**		NULL if it can't find an alias list.
 **
 **	Side Effects:
 **		none.
@@ -417,23 +457,102 @@ myhostname(hostbuf, size)
 	char hostbuf[];
 	int size;
 {
-	register char *p;
+	extern struct hostent *gethostbyname();
+	struct hostent *hp;
 
-	gethostname(hostbuf, size);
-	for (p = hostbuf; *p != '\0'; p++)
-		if (islower(*p))
-			*p -= 'a' - 'A';
-
-	/* now where would we find an alias list? */
-	return (NULL);
+	if (gethostname(hostbuf, size) < 0)
+	{
+		(void) strcpy(hostbuf, "localhost");
+	}
+	hp = gethostbyname(hostbuf);
+	if (hp != NULL)
+	{
+		(void) strcpy(hostbuf, hp->h_name);
+		return (hp->h_aliases);
+	}
+	else
+		return (NULL);
 }
+/*
+**  MAPHOSTNAME -- turn a hostname into canonical form
+**
+**	Parameters:
+**		hbuf -- a buffer containing a hostname.
+**		hbsize -- the size of hbuf.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Looks up the host specified in hbuf.  If it is not
+**		the canonical name for that host, replace it with
+**		the canonical name.  If the name is unknown, or it
+**		is already the canonical name, leave it unchanged.
+*/
 
+maphostname(hbuf, hbsize)
+	char *hbuf;
+	int hbsize;
+{
+	register struct hostent *hp;
+	extern struct hostent *gethostbyname();
+
+	/*
+	**  If first character is a bracket, then it is an address
+	**  lookup.  Address is copied into a temporary buffer to
+	**  strip the brackets and to preserve hbuf if address is
+	**  unknown.
+	*/
+
+	if (*hbuf == '[')
+	{
+		extern struct hostent *gethostbyaddr();
+		u_long in_addr;
+		char ptr[256];
+		char *bptr;
+
+		(void) strcpy(ptr, hbuf);
+		bptr = index(ptr,']');
+		*bptr = '\0';
+		in_addr = inet_addr(&ptr[1]);
+		hp = gethostbyaddr((char *) &in_addr, sizeof(struct in_addr), AF_INET);
+		if (hp == NULL)
+			return;
+	}
+	else
+	{
+		makelower(hbuf);
+		hp = gethostbyname(hbuf);
+	}
+	if (hp != NULL)
+	{
+		int i = strlen(hp->h_name);
+
+		if (i >= hbsize)
+			hp->h_name[--i] = '\0';
+		(void) strcpy(hbuf, hp->h_name);
+	}
+}
+
 # else DAEMON
+/* code for systems without sophisticated networking */
+
+#ifdef BSD2_10
+# include <short_names.h>
+# include <netdb.h>
+# include <sys/signal.h>
+# include <sys/wait.h>
+# include <sys/time.h>
+# include <sys/resource.h>
+#endif
+
 
 /*
 **  MYHOSTNAME -- stub version for case of no daemon code.
 **
 **	Can't convert to upper case here because might be a UUCP name.
+**
+**	Mark, you can change this to be anything you want......
 */
 
 char **
@@ -441,6 +560,23 @@ myhostname(hostbuf, size)
 	char hostbuf[];
 	int size;
 {
+#ifdef BSD2_10
+	extern struct hostent *gethostbyname();
+	struct hostent *hp;
+
+	if (gethostname(hostbuf, size) < 0)
+	{
+		(void) strcpy(hostbuf, "localhost");
+	}
+	hp = gethostbyname(hostbuf);
+	if (hp != NULL)
+	{
+		(void) strcpy(hostbuf, hp->h_name);
+		return (hp->h_aliases);
+	}
+	else
+		return (NULL);
+#else !BSD2_10
 	register FILE *f;
 
 	hostbuf[0] = '\0';
@@ -452,6 +588,31 @@ myhostname(hostbuf, size)
 		(void) fclose(f);
 	}
 	return (NULL);
+#endif BSD2_10
+}
+/*
+**  MAPHOSTNAME -- turn a hostname into canonical form
+**
+**	Parameters:
+**		hbuf -- a buffer containing a hostname.
+**		hbsize -- the size of hbuf.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Looks up the host specified in hbuf.  If it is not
+**		the canonical name for that host, replace it with
+**		the canonical name.  If the name is unknown, or it
+**		is already the canonical name, leave it unchanged.
+*/
+
+/*ARGSUSED*/
+maphostname(hbuf, hbsize)
+	char *hbuf;
+	int hbsize;
+{
+	return;
 }
 
 #endif DAEMON

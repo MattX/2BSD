@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)head.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 #include "rcv.h"
 
@@ -7,8 +15,6 @@
  *
  * Routines for processing and detecting headlines.
  */
-
-static char *SccsId = "@(#)head.c	2.2 3/3/83";
 
 /*
  * See if the passed line buffer is a mail header.
@@ -223,13 +229,13 @@ nextword(wp, wbuf)
 	cp2 = wbuf;
 	while (!any(*cp, " \t") && *cp != '\0')
 		if (*cp == '"') {
-			*cp2++ = *cp++;
-			while (*cp != '\0' && *cp != '"')
-				*cp2++ = *cp++;
-			if (*cp == '"')
-				*cp2++ = *cp++;
-		} else
-			*cp2++ = *cp++;
+ 			*cp2++ = *cp++;
+ 			while (*cp != '\0' && *cp != '"')
+ 				*cp2++ = *cp++;
+ 			if (*cp == '"')
+ 				*cp2++ = *cp++;
+ 		} else
+ 			*cp2++ = *cp++;
 	*cp2 = '\0';
 	while (any(*cp, " \t"))
 		cp++;

@@ -1,4 +1,12 @@
-/*	@(#)mout.c	4.2	6/14/83	*/
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)mout.c	5.2 (Berkeley) 3/13/86";
+#endif not lint
 
 #include <stdio.h>
 #include <mp.h>
@@ -17,7 +25,7 @@ m_in(a,b,f) MINT *a; FILE *f;
 	while((c=getc(f))!=EOF)
 	switch(c)
 	{
-	case '\\':	getc(f);
+	case '\\':	(void)getc(f);
 		continue;
 	case '\t':
 	case '\n': a->len *= sign;
@@ -46,7 +54,7 @@ m_out(a,b,f) MINT *a; FILE *f;
 {	int sign,xlen,i;
 	short r;
 	MINT x;
-	char *obuf;
+	char *obuf, *malloc();
 	register char *bp;
 	sign=1;
 	xlen=a->len;
@@ -61,12 +69,12 @@ m_out(a,b,f) MINT *a; FILE *f;
 	x.len=xlen;
 	x.val=xalloc(xlen,"m_out");
 	for(i=0;i<xlen;i++) x.val[i]=a->val[i];
-	obuf=(char *)malloc(7*xlen);
+	obuf=malloc(7*(unsigned)xlen);
 	bp=obuf+7*xlen-1;
 	*bp--=0;
 	while(x.len>0)
 	{	for(i=0;i<10&&x.len>0;i++)
-		{	sdiv(&x,b,&x,&r);
+		{	sdiv(&x,(short)b,&x,&r);
 			*bp--=r+'0';
 		}
 		if(x.len>0) *bp--=' ';
@@ -77,7 +85,7 @@ m_out(a,b,f) MINT *a; FILE *f;
 	FREE(x)
 	return;
 }
-sdiv(a,n,q,r) MINT *a,*q; short *r;
+sdiv(a,n,q,r) MINT *a,*q; short n; short *r;
 {	MINT x,y;
 	int sign;
 	sign=1;
@@ -98,7 +106,7 @@ sdiv(a,n,q,r) MINT *a,*q; short *r;
 	*r = *r*sign;
 	return;
 }
-s_div(a,n,q,r) MINT *a,*q; short *r;
+s_div(a,n,q,r) MINT *a,*q; short n; short *r;
 {	int qlen,i;
 	long int x;
 	short *qval;

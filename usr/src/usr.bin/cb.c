@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)cb.c	4.3 (Berkeley) 2/17/86";
 #include <stdio.h>
 int	slevel[10];
 int	clevel	= 0;
@@ -36,6 +37,7 @@ int	peek	= -1;
 int	tabs	= 0;
 int	lastchar;
 int	c;
+int	getstr();
 main(argc,argv) int argc;
 char argv[];
 {
@@ -48,13 +50,6 @@ char argv[];
 				if(sflg == 0 || j > 0)string[j++] = c;
 				puts();
 				sflg = 0;
-				if(getnl() == 1){
-					puts();
-					printf("\n");
-					sflg = 1;
-					pflg[level]++;
-					tabs++;
-				}
 				continue;
 			}
 			if(sflg == 0 || j > 0)string[j++] = c;
@@ -223,10 +218,10 @@ char argv[];
 			string[j++] = c;
 			paren++;
 			if(lookup(wfor) == 1){
-				while((c = gets()) != ';');
+				while((c = getstr()) != ';');
 				ct=0;
 cont:
-				while((c = gets()) != ')'){
+				while((c = getstr()) != ')'){
 					if(c == '(') ct++;
 				}
 				if(ct != 0){
@@ -304,7 +299,7 @@ char *tab[];
 	}
 	return(0);
 }
-gets(){
+getstr(){
 	char ch;
 beg:
 	if((ch = string[j++] = getch()) == '\\'){
@@ -350,15 +345,19 @@ getnl(){
 	return(0);
 }
 comment(){
-rep:
-	while((c = string[j++] = getch()) != '*')
-		if(c == '\n'){
+	int i = j;
+
+	while ((c = getch()) != EOF) {
+		string[j++] = c;
+		switch(c) {
+		case '/':
+			if (j > i + 1 && string[j-2] == '*')
+				return;
+			break;
+		case '\n':
 			puts();
 			sflg = 1;
+			break;
 		}
-gotstar:
-	if((c = string[j++] = getch()) != '/'){
-		if(c == '*')goto gotstar;
-		goto rep;
 	}
 }

@@ -1,0 +1,3 @@
+# csh logout script - 5/17/86
+
+set  savehist = $history

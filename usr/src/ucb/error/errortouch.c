@@ -1,4 +1,13 @@
-static	char *sccsid = "@(#)errortouch.c	1.5 (Berkeley) 11/20/82";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)errortouch.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -238,20 +247,24 @@ hackfile(name, files, ix, nerrors)
 	Eptr	**files;
 	int	ix;
 {
-	boolean	seen;
+	boolean	previewed;
 	int	errordest;	/* where errors go*/
 
-	seen = preview(name, nerrors, files, ix);
-
-	errordest = settotouch(name);
+	if (!oktotouch(name)) {
+		previewed = FALSE;
+		errordest = TOSTDOUT;
+	} else {
+		previewed = preview(name, nerrors, files, ix);
+		errordest = settotouch(name);
+	}
 
 	if (errordest != TOSTDOUT)
 		touchedfiles[ix] = TRUE;
 
-	if (seen && (errordest == TOSTDOUT))
+	if (previewed && (errordest == TOSTDOUT))
 		return;
 
-	diverterrors(name, errordest, files, ix, seen, nerrors);
+	diverterrors(name, errordest, files, ix, previewed, nerrors);
 
 	if (errordest == TOTHEFILE){
 		/*
@@ -270,18 +283,16 @@ boolean preview(name, nerrors, files, ix)
 	int	back;
 	reg	Eptr	*erpp;
 
-	if (!oktotouch(name))
-		return(false);
 	if (nerrors <= 0)
-		return(false);
-	back = false;
+		return(FALSE);
+	back = FALSE;
 	if(query){
 		switch(inquire(terse
 		    ? "Preview? "
 		    : "Do you want to preview the errors first? ")){
 		case Q_YES:
 		case Q_yes:
-			back = true;
+			back = TRUE;
 			EITERATE(erpp, files, ix){
 				errorprint(stdout, *erpp, TRUE);
 			}
@@ -341,12 +352,12 @@ int settotouch(name)
 	return(dest);
 }
 
-diverterrors(name, dest, files, ix, seen, nterrors)
+diverterrors(name, dest, files, ix, previewed, nterrors)
 	char	*name;
 	int	dest;
 	Eptr	**files;
 	int	ix;
-	boolean	seen;
+	boolean	previewed;
 	int	nterrors;
 {
 	int	nerrors;
@@ -356,7 +367,7 @@ diverterrors(name, dest, files, ix, seen, nterrors)
 	nerrors = files[ix+1] - files[ix];
 
 	if (   (nerrors != nterrors)
-	    && (!seen) ){
+	    && (!previewed) ){
 		fprintf(stdout, terse
 			? "Uninserted errors\n"
 			: ">>Uninserted errors for file \"%s\" follow.\n",
@@ -366,14 +377,14 @@ diverterrors(name, dest, files, ix, seen, nterrors)
 	EITERATE(erpp, files, ix){
 		errorp = *erpp;
 		if (errorp->error_e_class != C_TRUE){
-			if (seen || touchstatus == Q_NO)
+			if (previewed || touchstatus == Q_NO)
 				continue;
 			errorprint(stdout, errorp, TRUE);
 			continue;
 		}
 		switch (dest){
 		case TOSTDOUT:
-			if (seen || touchstatus == Q_NO)
+			if (previewed || touchstatus == Q_NO)
 				continue;
 			errorprint(stdout,errorp, TRUE);
 			break;
@@ -647,6 +658,8 @@ mustwrite(base, n, preciousfile)
 			mustwrite(base + nwrote, n - nwrote, preciousfile);
 			return(1);
 		}
+	default:
+		return(0);
 	}
 }
 
@@ -690,6 +703,9 @@ int inquire(fmt, a1, a2)
 	/*VARARGS1*/
 {
 	char	buffer[128];
+
+	if (queryfile == NULL)
+		return(0);
 	for(;;){
 		do{
 			fflush(stdout);

@@ -29,8 +29,13 @@ error:
 	movb	r3,-(r0)
 	mov	r2,r3
 	sob	r1,2b
-	mov	$1,r0
-	sys	write; 1f; 7
+
+	mov	$7,-(sp)		/ write(1, 1f, 7)
+	mov	$1f,-(sp)		/	mov	$1,r0
+	mov	$1,-(sp)		/	sys	write; 1f; 7
+	jsr	pc,_write
+	add	$6,sp
+
 	mov	(sp)+,r3
 	mov	(sp)+,r2
 	mov	(sp)+,r1
@@ -51,7 +56,6 @@ betwen:
 	tst	(r5)+
 2:
 	rts	r5
-
 putw:
 	tst	ifflg
 	beq	1f
@@ -63,9 +67,16 @@ putw:
 	cmp	obufp,$outbuf+512.
 	blo	2f
 	mov	$outbuf,obufp
-	movb	pof,r0
-	sys	write; outbuf; 512.
-	jes	wrterr
+
+	mov	r1,-(sp)			/ protect r1 from library
+	mov	$512.,-(sp)			/ write(pof, outbuf, 512)
+	mov	$outbuf,-(sp)			/	movb	pof,r0
+	mov	pof,-(sp)			/	sys	write; outbuf; 512.
+	jsr	pc,_write			/	jes	wrterr
+	add	$6,sp
+	mov	(sp)+,r1
+	tst	r0
+	jmi	wrterr
 2:
 	rts	pc
 

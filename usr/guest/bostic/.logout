@@ -1,0 +1,2 @@
+/usr/games/fortune -a
+rm -f ~/dead.letter

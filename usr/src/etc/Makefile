@@ -1,171 +1,115 @@
 #
-# etc makefile
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
 #
-
+#	@(#)Makefile	5.14 (Berkeley) 5/16/86
+#
+DESTDIR=
 CFLAGS=	-O
+SEPFLAG= -i
 
-ac: ac.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that live in subdirectories, and have makefiles of their own.
+#
+SUBDIR=	config dump fsck ftpd getty htable implog named restor \
+	routed talkd termcap tftpd timed tzone XNSrouted
 
-pstat: pstat.o
-	${CC} ${LFLAG} $@.o -o $@
+# Shell scripts that need only be installed and are never removed.
+#
+SCRIPT=	mklost
 
-sa: sa.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and do not need
+# explicit make lines.
+#
+STD=	ac accton arff bad144 badsect catman chown clri comsat \
+	cron dcheck diskpart dumpfs edquota fingerd flcopy \
+	gettable ifconfig icheck inetd init newfs mkfs mknod \
+	mkproto mount ncheck quotaon quotacheck reboot renice \
+	repquota rexecd rlogind rmt route rshd rwhod rxformat sa savecore \
+	shutdown slattach swapon syslogd telnetd tunefs umount update vipw \
+	mkpasswd
 
-accton: accton.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and need explicit make lines.
+#
+NSTD=
 
-bad144: bad144.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that must run setuid to root
+#
+SETUID=	ping
 
-catman: catman.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that must run set-group-id kmem.
+#
+#KMEM=	pstat arp dmesg kgmon trpt
+KMEM=	arp dmesg kgmon trpt
 
-badsect: badsect.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that must run set-group-id operator.
+#
+OPERATOR= quot
 
-chown: chown.o
-	${CC} ${LFLAG} $@.o -o $@
+# optional: not always made
+OPTIONAL= mkhosts
 
-cron: cron.o
-	${CC} ${LFLAG} $@.o -o $@
+all:	${SUBDIR} ${STD} ${NSTD} ${OPTIONAL} ${KMEM} ${SETUID} ${OPERATOR}
 
-dmesg: dmesg.o
-	${CC} ${LFLAG} $@.o -o $@
+${SUBDIR}: FRC
+	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
 
-file: file.o
-	${CC} ${LFLAG} $@.o -o $@
+${STD} ${KMEM} ${SETUID} ${OPERATOR}:
+	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-fsck: fsck.o
-	${CC} ${LFLAG} $@.o -o $@
+install:
+	-for i in ${SUBDIR}; do \
+		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+	-for i in ${SCRIPT}; do (install -c $$i.sh ${DESTDIR}/etc/$$i); done
+	install -s ${STD} ${NSTD} ${DESTDIR}/etc
+	-for i in ${OPTIONAL}; do \
+		(if [ -f $$i ]; then install -s $$i ${DESTDIR}/etc; fi); done
+	-for i in ${SETUID}; do \
+		(install -o root -m 4755 -s $$i ${DESTDIR}/etc/$$i); done
+	-for i in ${KMEM}; do \
+		(install -g kmem -m 2755 -s $$i ${DESTDIR}/etc/$$i); done
+	-for i in ${OPERATOR}; do \
+		(install -g operator -m 2755 -s $$i ${DESTDIR}/etc/$$i); done
+	-chown root.operator ${DESTDIR}/etc/shutdown
+	-chmod 4750 ${DESTDIR}/etc/shutdown
+	-rm -f ${DESTDIR}/etc/quotaoff
+	-ln ${DESTDIR}/etc/quotaon ${DESTDIR}/etc/quotaoff
+	-rm -f ${DESTDIR}/etc/fastboot ${DESTDIR}/etc/halt
+	-ln ${DESTDIR}/etc/reboot ${DESTDIR}/etc/fastboot
+	-ln ${DESTDIR}/etc/reboot ${DESTDIR}/etc/halt
+	-mkdir ${DESTDIR}/usr/spool/rwho
+	-chmod 700 ${DESTDIR}/etc/init
 
-getty: getty.o
-	${CC} ${LFLAG} $@.o -o $@
+clean:
+	-rm -f a.out core *.s *.o
+	-for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
+	-rm -f ${STD} ${NSTD} ${KMEM} ${SETUID}
 
-init: init.o
-	${CC} ${LFLAG} $@.o -o $@
+FRC:
 
-mkfs: mkfs.o
-	${CC} ${LFLAG} $@.o -o $@
+depend:
+	for i in ${STD} ${NSTD} ${KMEM} ${SETUID}; do \
+	    cc -M ${INCPATH} $$i.c | sed 's/\.o//' | \
+	    awk ' { if ($$1 != prev) { print rec; rec = $$0; prev = $$1; } \
+		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
+		else rec = rec " " $$2 } } \
+		END { print rec } ' >> makedep; done
+	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
+	echo '$$r makedep' >>eddep
+	echo 'w' >>eddep
+	cp Makefile Makefile.bak
+	ed - Makefile < eddep
+	rm eddep makedep
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
+	echo '# see make depend above' >> Makefile
 
-mknod: mknod.o
-	${CC} ${LFLAG} $@.o -o $@
+# Files listed in ${NSTD} and ${OPTIONAL} have explicit make lines given below.
 
-mount: mount.o
-	${CC} ${LFLAG} $@.o -o $@
+mkhosts:
+	@echo "Mkhosts only works with the dbm version of the hostent routines."
+	@echo "If gethosts() is not in libc, mkhosts isn't installed."
+	-cc ${CFLAGS} -o mkhosts mkhosts.c || rm mkhosts
 
-quot: quot.o
-	${CC} ${LFLAG} $@.o -o $@
+# DO NOT DELETE THIS LINE -- make depend uses it
 
-reboot: reboot.o
-	${CC} ${LFLAG} $@.o -o $@
-
-savecore: savecore.o
-	${CC} ${LFLAG} $@.o -o $@
-
-shutdown: shutdown.o
-	${CC} ${LFLAG} $@.o -o $@
-
-umount: umount.o
-	${CC} ${LFLAG} $@.o -o $@
-
-update: update.o
-	${CC} ${LFLAG} $@.o -o $@
-
-dump: dump.o
-	${CC} ${LFLAG} $@.o -o $@
-
-dumpdir: dumpdir.o
-	${CC} ${LFLAG} $@.o -o $@
-
-renice: renice.o
-	${CC} ${LFLAG} $@.o -o $@
-
-restor: restor.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rlogind: rlogind.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rshd: rshd.o
-	${CC} ${LFLAG} $@.o -o $@
-
-route: route.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rexecd: rexecd.o
-	${CC} ${LFLAG} $@.o -o $@
-
-trpt: trpt.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rmt: rmt.o
-	${CC} ${LFLAG} $@.o -o $@
-
-ifconfig: ifconfig.o
-	${CC} ${LFLAG} $@.o -o $@
-
-comsat: comsat.o
-	${CC} ${LFLAG} $@.o -o $@
-
-arp: arp.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rwhod: rwhod.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tftpd: tftpd.c
-	${CC} -S ${CFLAGS} tftpd.c
-	sed -f ../asm.sed tftpd.s > tftpd.S
-	as - -o tftpd.o tftpd.S
-	rm -f tftpd.s tftpd.S
-	${CC} ${LFLAG} $@.o -o $@
-
-telnetd: telnetd.c
-	${CC} -S ${CFLAGS} telnetd.c
-	sed -f ../asm.sed telnetd.s > telnetd.S
-	as - -o telnetd.o telnetd.S
-	rm -f telnetd.s telnetd.S
-	${CC} ${LFLAG} $@.o -o $@
-
-.c.o:
-	${CC} ${CFLAGS} ${FP} -c $*.c
-
-ac.o:		ac.c
-pstat.o:	pstat.c
-sa.o:		sa.c
-accton.o:	accton.c
-bad144.o:	bad144.c
-badsect.o:	badsect.c
-catman.o:	catman.c
-chown.o:	chown.c
-cron.o:		cron.c
-dmesg.o:	dmesg.c
-file.o:		file.c
-fsck.o:		fsck.c
-getty.o:	getty.c
-init.o:		init.c
-mkfs.o:		mkfs.c
-mknod.o:	mknod.c
-mount.o:	mount.c
-quot.o:		quot.c
-reboot.o:	reboot.c
-savecore.o:	savecore.c
-shutdown.o:	shutdown.c
-umount.o:	umount.c
-update.o:	update.c
-dump.o:		dump.c
-dumpdir.o:	dumpdir.c
-renice.o:	renice.c
-restor.o:	restor.c
-rlogind.o:	rlogind.c
-rshd.o:		rshd.c
-rwhod.o:	rwhod.c
-arp.o:		arp.c
-comsat.o:	comsat.c
-ifconfig.o:	ifconfig.c
-rexecd.o:	rexecd.c
-rmt.o:		rmt.c
-trpt.o:		trpt.c
-route.o:	route.c

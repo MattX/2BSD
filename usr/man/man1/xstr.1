@@ -1,4 +1,10 @@
-.TH XSTR 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)xstr.1	6.2 (Berkeley) 5/7/86
+.\"
+.TH XSTR 1 "May 7, 1986"
 .UC
 .SH NAME
 xstr \- extract strings from C programs to implement shared strings
@@ -23,7 +29,7 @@ are also read-only.
 The command
 .PP
 .DT
-	\fBxstr \-c\fP name
+	\fBxstr \-c\fR name
 .PP
 will extract the strings from the C source in name, replacing
 string references by expressions of the form (&xstr[number])
@@ -47,7 +53,7 @@ declaring the common
 space can be created by a command of the form
 .PP
 .DT
-	\fBxstr\fP
+	\fBxstr\fR
 .PP
 This
 .I xs.c
@@ -61,7 +67,7 @@ can also be used on a single file.
 A command
 .PP
 .DT
-	\fBxstr\fP name
+	\fBxstr\fR name
 .PP
 creates files
 .I x.c
@@ -84,9 +90,9 @@ after the C preprocessor is:
 .PP
 .nf
 .DT
-	\fBcc \-E\fP name.c | \fBxstr \-c\fP \-
-	\fBcc \-c\fP x.c
-	\fBmv\fP x.o name.o
+	\fBcc \-E\fR name.c | \fBxstr \-c\fR \-
+	\fBcc \-c\fR x.c
+	\fBmv\fR x.o name.o
 .fi
 .PP
 .I Xstr
@@ -98,19 +104,17 @@ can avoid remaking
 .I xs.o
 unless truly necessary.
 .SH FILES
-.ta 2i
-strings	Data base of strings
+.DT
+strings		Data base of strings
 .br
-x.c	massaged C source
+x.c		Massaged C source
 .br
-xs.c	C source for definition of array `xstr'
+xs.c		C source for definition of array `xstr'
 .br
-/tmp/xs*	temporary file for ``xstr name''
+/tmp/xs*	Temp file when `xstr name' doesn't touch
 .I strings
 .SH "SEE ALSO"
 mkstr(1)
-.SH AUTHOR
-Bill Joy
 .SH BUGS
 If a string is a suffix of another string in the data base,
 but the shorter string is seen first by

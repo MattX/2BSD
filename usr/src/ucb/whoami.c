@@ -1,26 +1,34 @@
-#include <stdio.h>
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)whoami.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <pwd.h>
-#include <grp.h>
-struct passwd *getpwuid();
-struct group  *getgrgid();
+/*
+ * whoami
+ */
+struct	passwd *getpwuid();
 
 main()
 {
-	struct passwd *pp;
-	struct group  *gn;
-	int uid, gid;
+	register struct passwd *pp;
 
-	pp=getpwuid(uid = getuid());
-	gn=getgrgid(gid = getgid());
-
-	if (pp == NULL)
-		printf("%d", uid);
-	else
-		printf("%s", pp->pw_name);
-
-	if (gn == NULL)
-		printf(".%d\n", gid);
-	else
-		printf(".%s\n", gn->gr_name);
-
+	pp = getpwuid(geteuid());
+	if (pp == 0) {
+		printf("Intruder alert.\n");
+		exit(1);
+	}
+	printf("%s\n", pp->pw_name);
+	exit(0);
 }

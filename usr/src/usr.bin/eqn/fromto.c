@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)fromto.c	4.3 8/11/83";
+#endif
+
 # include "e.h"
 
 fromto(p1, p2, p3) int p1, p2, p3; {
@@ -29,7 +33,11 @@ fromto(p1, p2, p3) int p1, p2, p3; {
 		printf("\\h'-\\n(%du-\\n(%du/2u'\\v'%du'\\\n", 
 			yyval, p2, -(eht[p2]-ebase[p2]+b1));
 	}
+#ifndef NEQN
 	printf("\\h'\\n(%du-\\n(%du/2u'\\*(%d\\h'\\n(%du-\\n(%du/2u'\\\n", 
+#else NEQN
+	printf("\\h'\\n(%du-\\n(%du/2u'\\*(%d\\h'\\n(%du-\\n(%du+2u/2u'\\\n", 
+#endif NEQN
 		yyval, p1, p1, yyval, p1);
 	if( p3>0 ) {
 		printf("\\v'%du'\\h'-\\n(%du-\\n(%du/2u'\\s%d\\*(%d\\s%d\\h'\\n(%du-\\n(%du/2u'\\v'%du'\\\n", 

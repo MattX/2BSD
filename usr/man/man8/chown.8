@@ -1,16 +1,20 @@
-.TH CHOWN 8
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)chown.8	6.2 (Berkeley) 5/22/86
+.\"
+.TH CHOWN 8 "May 22, 1986"
+.UC 4
 .SH NAME
-chown, chgrp \- change owner or group
+chown \- change owner
 .SH SYNOPSIS
-.B chown
-owner file ...
-.PP
-.B chown
-owner.group file ...
-.PP
-.B chgrp
-group file ...
+.B /etc/chown
+[
+.B \-f
+.B \-R
+]
+owner[.group] file ...
 .SH DESCRIPTION
 .I Chown
 changes the owner of the
@@ -19,25 +23,27 @@ to
 .IR owner .
 The owner may be either a decimal UID or
 a login name found in the password file.
-If the second form is given both the owner
-and the group are changed.
-.PP
-.I Chgrp
-changes the group-ID of the
-.I files
-to
-.IR group .
+An optional group may also be specified.
 The group may be either a decimal GID or
 a group name found in the group-ID file.
 .PP
-Only the super-user can change owner or group,
-in order to simplify as yet unimplemented accounting procedures.
+Only the super-user can change owner,
+in order to simplify accounting procedures.
+No errors are reported when the
+.B \-f
+(force) option is given.
+.PP
+When the
+.B \-R
+option is given, 
+.I chown
+recursively descends its directory arguments
+setting the specified owner.
+When symbolic links are encountered, their ownership is changed,
+but they are not traversed.
 .SH FILES
 /etc/passwd
-.br
-/etc/group
 .SH "SEE ALSO"
-chown(2), group(5), passwd(5)
-.SH "BUGS"
-If the owner's name contains a '.', chown must be done with 
-numeric user-id.
+chgrp(1),
+chown(2),
+passwd(5), group(5)

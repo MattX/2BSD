@@ -56,7 +56,7 @@ main(argc, argv)
 		}
 		argv[ac] = 0;
 		argv[0] = name - 2;
-		execv("/usr/bin/pi", argv);
+		execv("/usr/ucb/pi", argv);
 		write(2, "Can't find pi\n", 14);
 		onintr();
 	}
@@ -75,7 +75,7 @@ main(argc, argv)
 	argv[ac] = name - 2;
 	argv[argc] = 0;
 	/* Temporary to allow accounting to distinguish pix's and px's */
-	execv("/usr/bin/px", &argv[ac]);
+	execv("/usr/ucb/px", &argv[ac]);
 	write(2, "Can't find px\n", 14);
 	onintr();
 }

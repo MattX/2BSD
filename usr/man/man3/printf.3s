@@ -1,5 +1,7 @@
-.TH PRINTF 3S 
-.UC
+.\"	@(#)printf.3s	6.3 (Berkeley) 6/5/86
+.\"
+.TH PRINTF 3S "June 5, 1986"
+.AT 3
 .SH NAME
 printf, fprintf, sprintf \- formatted output conversion
 .SH SYNOPSIS
@@ -23,81 +25,125 @@ arg ] ...
 .br
 .B char *format;
 .PP
-.B char *sprintf(s, format
+.B sprintf(s, format
 .RB [ ,
 arg ] ...
 .B )
 .br
 .B char *s, format;
+.PP
+.B #include <varargs.h>
+.br
+.B _doprnt(format, args, stream)
+.br
+.B char *format;
+.br
+.B va_list *args;
+.br
+.B FILE *stream;
 .SH DESCRIPTION
 .I Printf
 places output on the standard output stream
-.IR stdout .
+.BR stdout .
 .I Fprintf
 places output on the named output
 .IR stream .
 .I Sprintf
 places `output' in the string
-.I s,
+.IR s ,
 followed by the character `\\0'.
+All of these routines work by calling the internal
+routine
+.B _doprnt,
+using the variable-length argument facilities of
+.IR varargs (3).
 .PP
-Each of these functions 
-converts, formats, and prints its arguments after the first
-under control of the first argument.
-The first argument is a character string
-which contains
-two types of objects:
-plain characters, which are simply copied to the
-output stream,
-and conversion specifications,
-each of which causes conversion and printing
+Each of these functions converts, formats, and prints its arguments after
+the first under control of the first argument.
+The first argument is a character string which contains two types of objects:
+plain characters, which are simply copied to the output stream,
+and conversion specifications, each of which causes conversion and printing
 of the next successive
 .I arg
 .IR printf .
 .PP
-Each conversion specification is introduced by
-the character
+Each conversion specification is introduced by the character
 .BR % .
-Following the
-.BR % ,
-there may be
+The remainder of the conversion specification includes
+in the following order
 .TP
-\-
-an optional minus sign `\-' which specifies
+.B \(bu
+Zero or more of following flags:
+.RS
+.TP
+.B \(bu
+a `#' character
+specifying that the value should be converted to an ``alternate form''.
+For 
+.BR c ,
+.BR d ,
+.BR s ,
+and
+.BR u ,
+conversions, this option has no effect.  For 
+.B o
+conversions, the precision of the number is increased to force the first
+character of the output string to a zero.  For 
+.BR x ( X )
+conversion, a non-zero result has the string 
+.BR 0x ( 0X )
+prepended to it.  For 
+.BR e ,
+.BR E ,
+.BR f ,
+.BR g ,
+and
+.BR G ,
+conversions, the result will always contain a decimal point, even if no
+digits follow the point (normally, a decimal point only appears in the
+results of those conversions if a digit follows the decimal point).  For
+.B g
+and
+.B G
+conversions, trailing zeros are not removed from the result as they
+would otherwise be.
+.TP
+.B \(bu
+a minus sign `\-' which specifies
 .I "left adjustment"
-of the converted value
-in the
-indicated field;
+of the converted value in the indicated field;
 .TP
-\-
+.B \(bu
+a `+' character specifying that there should always be
+a sign placed before the number when using signed conversions.
+.TP
+.B \(bu
+a space specifying that a blank should be left before a positive number
+during a signed conversion.  A `+' overrides a space if both are used.
+.RE
+.TP
+.B \(bu
 an optional digit string specifying a
 .I "field width;"
-if the converted value has fewer characters
-than the field width
+if the converted value has fewer characters than the field width
 it will be blank-padded on the left (or right,
-if the left-adjustment indicator has been
-given) to make up the field width;
+if the left-adjustment indicator has been given) to make up the field width;
 if the field width begins with a zero,
 zero-padding will be done instead of blank-padding;
 .TP
-\-
+.B \(bu
 an optional period
 .RB ` . '
-which serves to
-separate the field width from the
-next digit string;
+which serves to separate the field width from the next digit string;
 .TP
-\-
-an optional digit string
-specifying a
+.B \(bu
+an optional digit string specifying a
 .I precision
-which specifies
-the number of digits to appear after the
-decimal point, for e- and f-conversion,
-or the maximum number of characters
+which specifies the number of digits to appear after the
+decimal point, for e- and f-conversion, or the maximum number of characters
 to be printed from a string;
 .TP
-\-
+.B \(bu
 the character
 .B l
 specifying that a following
@@ -107,11 +153,9 @@ specifying that a following
 or
 .B u
 corresponds to a long integer
-.I arg.
-(A capitalized conversion code accomplishes
-the same thing.)
+.IR arg .
 .TP
-\-
+.B \(bu
 a character which indicates the type of
 conversion to be applied.
 .PP
@@ -134,7 +178,7 @@ hexadecimal notation respectively.
 The float or double
 .I arg
 is converted to decimal notation
-in the style `[\fB\-\fP]ddd.ddd'
+in the style `[\fB\-\fR]ddd.ddd'
 where the number of d's after the decimal point
 is equal to the precision specification
 for the argument.
@@ -148,7 +192,7 @@ no decimal point are printed.
 The float or double
 .I arg
 is converted in the style
-`[\fB\-\fP]d\fB.\fPddd\fBe\fP\(+-dd'
+`[\fB\-\fR]d\fB.\fRddd\fBe\fR\(+-dd'
 where there is one digit before the decimal point and
 the number after is equal to the
 precision specification for the argument;
@@ -171,7 +215,6 @@ whichever gives full precision in minimum space.
 The character
 .I arg
 is printed.
-Null characters are ignored.
 .TP
 .B s
 .I Arg
@@ -188,12 +231,13 @@ The unsigned integer
 .I arg
 is converted to decimal
 and printed (the result will be in the
-range 0 to 65535).
+range 0 through MAXUINT, where MAXUINT equals 4294967295 on a VAX-11
+and 65535 on a PDP-11).
 .TP
 .B %
 Print a `%'; no argument is converted.
 .PP
-In no case does a nonexistent or small field width
+In no case does a non-existent or small field width
 cause truncation of a field;
 padding takes place only if the specified field
 width exceeds the actual width.
@@ -224,6 +268,8 @@ to 5 decimals:
 .IP
 printf("pi = %.5f", 4*atan(1.0));
 .SH "SEE ALSO"
-ecvt(3), putc(3S), scanf(3S)
+putc(3S),
+scanf(3S),
+ecvt(3)
 .SH BUGS
 Very wide fields (>128 characters) fail.

@@ -9,7 +9,7 @@
 #include "0.h"
 #include "tree.h"
 
-STATIC	int typecnt -1;
+STATIC	int typecnt = -1;
 /*
  * Type declaration part
  */

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)initgroups.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)initgroups.c	5.3 (Berkeley) 4/27/86";
+#endif LIBC_SCCS and not lint
 
 /*
  * initgroups
@@ -44,7 +44,7 @@ toomany:
 	endgrent();
 	if (setgroups(ngroups, groups) < 0) {
 		perror("setgroups");
-		return (1);
+		return (-1);
 	}
 	return (0);
 }

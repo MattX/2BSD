@@ -1,5 +1,6 @@
-/* $Header: gnamef.c,v 1.6 85/05/20 20:01:45 rick Exp $ */
-/* from: @(#)gnamef.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)gnamef.c	5.4 (Berkeley) 6/20/85";
+#endif
 
 #include "uucp.h"
 #ifdef	NDIR

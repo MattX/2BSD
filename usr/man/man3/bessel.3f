@@ -1,5 +1,11 @@
-.TH BESSEL 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)bessel.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH BESSEL 3F "May 15, 1985"
+.UC 5
 .SH NAME
 bessel functions \- of two kinds for integer orders
 .SH SYNOPSIS
@@ -48,4 +54,4 @@ negative value. The system error code will be set to EDOM (33).
 .ie \nM /usr/ucb/lib/libF77.a
 .el /usr/lib/libF77.a
 .SH "SEE ALSO"
-j0(3m), perror(3F)
+j0(3M), perror(3F)

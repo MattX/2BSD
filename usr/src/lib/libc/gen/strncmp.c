@@ -1,4 +1,7 @@
-/*	@(#)strncmp.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)strncmp.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
  * Compare strings (at most n bytes):  s1>s2: >0  s1==s2: 0  s1<s2: <0
  */

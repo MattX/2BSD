@@ -1,5 +1,6 @@
-/* $Header: gnxseq.c,v 1.9 85/05/28 18:30:35 rick Exp $ */
-/* from: @(#)gnxseq.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)gnxseq.c	5.4 (Berkeley) 6/20/85";
+#endif
 
 #include "uucp.h"
 #ifdef BSD4_2

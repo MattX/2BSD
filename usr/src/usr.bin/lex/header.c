@@ -1,3 +1,6 @@
+#ifndef lint
+static char sccsid[] = "@(#)header.c	4.1 (Berkeley) 8/11/83";
+#endif
 # include "ldefs.c"
 phead1(){
 	ratfor ? rhd1() : chd1();

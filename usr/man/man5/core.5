@@ -1,39 +1,64 @@
-.TH CORE 5 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)core.5	2.3 (Berkeley) 1/26/87
+.\"
+.TH CORE 5 "January 26, 1987"
+.UC 2
 .SH NAME
-core \- format of core image file
+core \- format of memory image file
+.SH SYNOPSIS
+.B #include <sys/param.h>
 .SH DESCRIPTION
-UNIX
-writes out a core image of a terminated
-process when any of various errors occur.
-See
-.IR signal (2)
-for the list of reasons;
-the most common are memory violations, illegal
-instructions, bus errors, and user-generated
-quit signals.
-The core image is called
-.I core
-and is written in the process's
-working directory (provided it can be; normal
-access controls apply).
+The UNIX System writes out a memory image of a terminated
+process when any of various errors occur.  See
+.IR sigvec (2)
+for the list of reasons; the most common are memory violations, illegal
+instructions, bus errors, and user-generated quit signals.
+The memory image is called `core' and is written in the process's
+working directory (provided it can be; normal access controls apply).
 .PP
-The first 1024 bytes of the core image
-are a copy of the system's per-user
-data for the process, including the registers
-as they were at the time of the fault;
+The core file consists of the
+.I u.
+area, whose size (in 64 byte `clicks') is
+defined by the USIZE manifest in the
+.RI < sys/param.h >
+file.  The 
+.I u.
+area starts with a 
+.I user
+structure as given in
+.RI < sys/user.h >.
+The rest of the
+.I u.
+area consists of the kernel stack for the terminated process which includes
+(among other things) the processor registers at the time of the fault;
 see the system listings for the format of this area.
-The
-remainder represents the actual contents of
-the user's core area when the core image
-was written.
-If the text segment
-is write-protected and shared,
-it is not dumped; otherwise the entire
-address space is dumped.
+The remainder of the core file consists first of the data pages and then
+the stack pages of the process image.
+The amount of data space image in the core file is given (in clicks) by the
+variable
+.I u_dsize
+in the
+.I u.
+area.
+If the text segment was not write-only and and shared it is included
+as the first
+.I etext
+bytes of the data image where
+.I etext
+is taken from the symbol table of the object file which generated the
+memory image.
+The amount of stack image in the core file is given (in clicks) by the
+variable 
+.I u_ssize
+in the 
+.I u.
+area.
 .PP
 In general the debugger
 .IR adb (1)
 is sufficient to deal with core images.
 .SH "SEE ALSO"
-adb(1), pstat(1), signal(2)
+adb(1), sigvec(2), stack(5)

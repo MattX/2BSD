@@ -1,6 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: vmacs.c,v 1.4 85/08/15 18:44:06 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)vmacs.c	4.3 (Berkeley) 10/10/85";
+#endif
 
 #include "../condevs.h"
 #ifdef	VMACS

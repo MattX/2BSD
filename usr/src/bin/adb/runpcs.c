@@ -1,4 +1,3 @@
-#
 /*
  *
  *      UNIX debugger
@@ -62,7 +61,7 @@ runpcs(runmode, execsig)
 	THEN userpc=shorten(dot);
 	FI
 	if (overlay)
-		choverlay((U *)corhdr->u_ovdata.uo_curov);
+		choverlay(((U*)corhdr)->u_ovdata.uo_curov);
 	printf("%s: running\n", symfil);
 
 	WHILE (loopcnt--)>0
@@ -146,6 +145,11 @@ doexec()
 	ap=argl; p=args;
 	*ap++=symfil;
 	REP     IF rdc()==EOR THEN break; FI
+		/*
+		 * If we find an argument beginning with a `<' or a `>', open
+		 * the following file name for input and output, respectively
+		 * and back the argument collocation pointer, p, back up.
+		 */
 		*ap = p;
 		WHILE lastc!=EOR ANDF lastc!=SP ANDF lastc!=TB DO *p++=lastc; readchar(); OD
 		*p++=0; filnam = *ap+1;
@@ -154,11 +158,13 @@ doexec()
 			IF open(filnam,0)<0
 			THEN    printf("%s: cannot open\n",filnam); exit(0);
 			FI
+			p = *ap;
 		ELIF **ap=='>'
 		THEN    close(1);
 			IF creat(filnam,0666)<0
 			THEN    printf("%s: cannot create\n",filnam); exit(0);
 			FI
+			p = *ap;
 		ELSE    ap++;
 		FI
 	PER lastc!=EOR DONE
@@ -202,7 +208,7 @@ OVTAG ovno;
 {
 	errno = 0;
 	if (overlay && pid && ovno>0 && ovno<=NOVL)
-		ptrace(WUREGS,pid,&((U *)0->u_ovdata.uo_curov),ovno);
+		ptrace(WUREGS,pid,&(((U*)0)->u_ovdata.uo_curov),ovno);
 	IF errno
 	THEN printf("cannot change to overlay %d\n", ovno);
 	FI
@@ -238,7 +244,7 @@ bpwait()
 	REG INT w;
 	INT stat;
 
-	signal(SIGINT, 1);
+	signal(SIGINT, SIG_IGN);
 	WHILE (w = wait(&stat))!=pid ANDF w != -1 DONE
 	signal(SIGINT,sigint);
 	gtty(0,&usrtty);
@@ -272,8 +278,9 @@ readregs()
 	REG i;
 	FOR i=0; i<NREG; i++
 	DO uar0[reglist[i].roffs] =
-		    ptrace(RUREGS, pid, (int)&uar0[reglist[i].roffs]-
-			(int)&corhdr, 0);
+		    ptrace(RUREGS, pid,
+ 		        (int *)((int)&uar0[reglist[i].roffs] - (int)&corhdr),
+ 			0);
 	OD
 	/* if overlaid, get ov */
 	IF overlay

@@ -1,3 +1,6 @@
+#ifndef lint
+static char sccsid[] = "@(#)hytab.c	4.1 6/7/82";
+#endif lint
 /*
  * Hyphenation digram tables
  */

@@ -1,21 +1,26 @@
-.TH LOGIN 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)login.1	6.2 (Berkeley) 5/8/86
+.\"
+.TH LOGIN 1 "May 8, 1986"
+.UC 4
 .SH NAME
 login \- sign on
-.SH SYNTAX
+.SH SYNOPSIS
 .B login
-[ username ]
-.br
-.B login
-[ username.groupname ]
+[ \-p ] [ username ]
 .SH DESCRIPTION
 The
 .I login
 command
 is used when a user initially
-signs on, or it may be used at any time to change from one user to another.
-The latter case is summarized above and
-described below.
+signs on, or it may be used at any time to change
+from one user to another.
+The latter case is the one summarized above and
+described here.
+See \*(lqHow to Get Started\*(rq for how to dial up initially.
 .PP
 If
 .I login
@@ -26,43 +31,48 @@ Echoing is turned off (if possible) during the typing of the password,
 so it will not appear on the written record of the
 session.
 .PP
-After a successful \fIlogin\fP,
+After a successful login,
 accounting files are updated and
-the user is informed of the time and terminal he last logged in on.
-The message of the day is displayed,
-followed by any
-.I .broadcast
-files in the directories leading to the user's home directory.
-If there is a
-.I .reminder
-file in the user's home directory, it will be printed.
-Finally, \fIlogin\fP notifies the user if there is mail in his mailbox.
-.I login
+the user is informed of the
+existence of mail.
+The message of the day is printed,
+as is the time of his last login.
+Both are suppressed if he has a \*(lq.hushlogin\*(rq
+file in his home directory; this
+is mostly used to make life easier for non-human users, such as
+.IR uucp .
+.PP
+.I Login
 initializes the user and group IDs and the working directory,
-and sets the HOME, PATH, TERM, SHELL and USER environment variables.
-It then executes a command interpreter (usually \fIsh\fP\|(1) or \fIcsh\fP\|(1)),
+then executes a command interpreter (usually
+.IR  csh (1))
 according to specifications found in a password file.
-If the command interpreter is
-.IR /bin/csh ,
-the new line discipline is entered,
-otherwise the terminal stop characters are set to be undefined (see
-.IR stty (1).
-Argument 0 of the command interpreter starts with a `\-'.
+Argument 0 of the command interpreter is
+the name of the command interpreter with
+a leading dash (\*(lq\-\*(rq).
 .PP
-\fILogin\fP is recognized by \fIsh\fP\|(1) and \fIcsh\fP\|(1)
+Login also modifies the
+environment
+.IR environ (7)
+with information specifying home directory, command interpreter, terminal
+type (if available) and user name.
+The `\-p' argument causes the remainder of the environment to be preserved,
+otherwise any previous environment is discarded.
+.PP
+If the file /etc/nologin exists,
+.I login
+prints its contents on the user's terminal and exits. This is
+used by
+.IR shutdown (8)
+to stop users logging in when the system is about to go down.
+.PP
+Login is recognized by
+.IR sh (1)
+and
+.IR csh (1)
 and executed directly (without forking).
-.PP
-During special session (see \fIinit\fP\|(8)), \fIlogin\fP does not allow
-any logins of normal users.
-Also, if the file
-.I /etc/nologin
-exists, that message is displayed and the login is not allowed if the
-user is not superuser.
 .SH FILES
-\".nr 00 \w'/usr/spool/mail/*\ \ '
-\".if \w'/usr/adm/wtmp\ \ '>\n(00 .nr 00 \w'/usr/adm/wtmp\ \ '
-\".ta \n(00u
-.ta 2i
+.ta \w'/usr/spool/mail/*\ \ 'u
 /etc/utmp	accounting
 .br
 /usr/adm/wtmp	accounting
@@ -71,25 +81,30 @@ user is not superuser.
 .br
 /etc/motd	message-of-the-day
 .br
-/etc/nologin	message inhibiting new logins
-.br
 /etc/passwd	password file
+.br
+/etc/nologin	stops logins
+.br
+\&.hushlogin	makes login quieter
 .SH "SEE ALSO"
-Mail(1), mail(1), newgrp(1), passwd(1), environ(5), passwd(5),
-getty(8), init(8), shutdown(8)
+init(8), getty(8), mail(1), passwd(1), passwd(5), environ(7),
+shutdown(8), rlogin(1c)
 .SH DIAGNOSTICS
-`Login incorrect',
-if the name or the password is bad, or if a group was specified
-and the user is not a member of the named group.
+\*(lqLogin incorrect,\*(rq
+if the name or the password is bad.
 .br
-`No shell', `cannot open password file', `no directory':
+\*(lqNo Shell\*(rq, \*(lqcannot open password file\*(rq,
+\*(lqno directory\*(rq:
 consult a programming counselor.
-.br
-`Sorry. You cannot login at this time', if UNIX is running in 
-special session.
 .SH BUGS
-Changes the login name of a user when invoked from a shell.
-Many systems do not allow its use in this way, for that reason.
-.br
-It is not possible to use a login name with an embedded `.' if
-the `name.group' syntax is allowed.
+An undocumented option,
+.B \-r
+is used by the remote login server,
+.IR rlogind (8C)
+to force
+.I login
+to enter into an initial connection protocol.
+.B \-h is used by
+.IR telnetd (8C)
+and other servers to list the host from which
+the connection was received.

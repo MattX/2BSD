@@ -1,60 +1,80 @@
-/* @(#)popen.c	4.4 (Berkeley) 9/25/83 */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)popen.c	5.4 (Berkeley) 3/26/86";
+#endif LIBC_SCCS and not lint
+
 #include <stdio.h>
 #include <signal.h>
+
 #define	tst(a,b)	(*mode == 'r'? (b) : (a))
 #define	RDR	0
 #define	WTR	1
-static	int	popen_pid[_NFILE];
+
+extern	char *malloc();
+
+static	int *popen_pid;
+static	int nfiles;
 
 FILE *
 popen(cmd,mode)
-char	*cmd;
-char	*mode;
+	char *cmd;
+	char *mode;
 {
 	int p[2];
-	register myside, hisside, pid;
+	int myside, hisside, pid;
 
-	if(pipe(p) < 0)
-		return NULL;
+	if (nfiles <= 0)
+		nfiles = getdtablesize();
+	if (popen_pid == NULL) {
+		popen_pid = (int *)malloc(nfiles * sizeof *popen_pid);
+		if (popen_pid == NULL)
+			return (NULL);
+		for (pid = 0; pid < nfiles; pid++)
+			popen_pid[pid] = -1;
+	}
+	if (pipe(p) < 0)
+		return (NULL);
 	myside = tst(p[WTR], p[RDR]);
 	hisside = tst(p[RDR], p[WTR]);
-	if((pid = fork()) == 0) {
+	if ((pid = vfork()) == 0) {
 		/* myside and hisside reverse roles in child */
 		close(myside);
 		if (hisside != tst(0, 1)) {
 			dup2(hisside, tst(0, 1));
 			close(hisside);
 		}
-		execl("/bin/sh", "sh", "-c", cmd, 0);
-		_exit(1);
+		execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+		_exit(127);
 	}
-	if(pid == -1) {
+	if (pid == -1) {
 		close(myside);
 		close(hisside);
-		return NULL;
+		return (NULL);
 	}
 	popen_pid[myside] = pid;
 	close(hisside);
-	return(fdopen(myside, mode));
+	return (fdopen(myside, mode));
 }
 
 pclose(ptr)
-FILE *ptr;
+	FILE *ptr;
 {
-	register f, r, (*hstat)(), (*istat)(), (*qstat)();
-	int status;
+	int child, pid, status;
+	long omask;
 
-	f = fileno(ptr);
+	child = popen_pid[fileno(ptr)];
+	popen_pid[fileno(ptr)] = -1;
 	fclose(ptr);
-	istat = signal(SIGINT, SIG_IGN);
-	qstat = signal(SIGQUIT, SIG_IGN);
-	hstat = signal(SIGHUP, SIG_IGN);
-	while((r = wait(&status)) != popen_pid[f] && r != -1)
+	if (child == -1)
+		return (-1);
+	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
+	while ((pid = wait(&status)) != child && pid != -1)
 		;
-	if(r == -1)
-		status = -1;
-	signal(SIGINT, istat);
-	signal(SIGQUIT, qstat);
-	signal(SIGHUP, hstat);
-	return(status);
+	(void) sigsetmask(omask);
+	return (pid == -1 ? -1 : status);
 }

@@ -3,9 +3,9 @@
 #include "string_defs"
 
 #ifdef	C_OVERLAY
-#define	yyerror(x)	{fprintf(diagfile, "%s\n", x); done(3); exit(3);}
+#define	yyerror(x)	{fprintf(diagfile, "Error on line %d of %s: %s\n", lineno, infname, x); nerr++;}
 #else
-#define	yyerror(x)	error(x, 0, 0, FATAL)
+#define	yyerror(x)	error(x, 0, 0, YYERR)
 #endif
 
 static int nstars;

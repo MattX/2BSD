@@ -1,6 +1,8 @@
-#include "r.h"
+#ifndef lint
+static char sccsid[] = "@(#)r1.c	1.3 (Berkeley) 8/11/83";
+#endif
 
-extern int blockif;
+#include "r.h"
 
 #define	wasbreak	brkused[brkptr]==1 || brkused[brkptr]==3
 #define	wasnext	brkused[brkptr]==2 || brkused[brkptr]==3
@@ -49,48 +51,19 @@ untils(p1,un) int p1,un; {
 ifcode() {
 	transfer = 0;
 	outtab();
-	if (blockif)
-		outcode("if");
-	else
-		outcode("if(.not.");
+	outcode("if(.not.");
 	balpar();
-	if (blockif) {
-		outcode(" then");
-		outdon();
-	}
-	else {
-		outcode(")");
-		outgoto(yyval=genlab(2));
-	}
+	outcode(")");
+	outgoto(yyval=genlab(2));
 	indent++;
 }
 
 elsecode(p1) {
-	if (! blockif)
-		outgoto(p1+1);
+	outgoto(p1+1);
 	indent--;
-	if (blockif) {
-		outtab();
-		outcode("else");
-		outdon();
-	}
-	else
-		putcom("else");
+	putcom("else");
 	indent++;
-	if (! blockif)
-		outcont(p1);
-}
-
-endifcode(p1) {
-	if (blockif) {
-		outtab();
-		outcode("endif");
-		outdon();
-	}
-	else {
-		putcom("endif");
-		outcont(p1);
-	}
+	outcont(p1);
 }
 
 whilecode() {
@@ -229,19 +202,22 @@ forcode(){
 	}
 	if (gnbtok(scrat) == ';')	/* empty condition */
 		outcont(yyval);
-	else {				/* non-empty condition */
+	else {	/* non-empty condition */
 		pbstr(scrat);
 		outnum(yyval);
 		outtab();
 		outcode("if(.not.(");
-		for (lpar=0; lpar >= 0; ) {
+		for (lpar=0; lpar >= 0;) {
 			if ((t = gnbtok(scrat)) == ';')
 				break;
 			if (t == '(')
 				lpar++;
-			else if (t == ')'  &&  --lpar < 0) {
-				error("missing left paren in FOR condition");
-				return;
+			else if (t == ')') {
+				lpar--;
+				if (lpar < 0) {
+					error("missing left paren in FOR clause");
+					return;
+				}
 			}
 			if (t != '\n')
 				outcode(scrat);
@@ -252,15 +228,11 @@ forcode(){
 			error("invalid FOR clause");
 	}
 	ps = scrat;
-	for (lpar=0; lpar >= 0; ) {
+	for (lpar=0; lpar >= 0;) {
 		if ((t = gtok(ps)) == '(')
 			lpar++;
 		else if (t == ')')
 			lpar--;
-		else if (t == EOF) {
-			error("missing right parenthesis in FOR");
-			return;
-		}
 		if (lpar >= 0 && t != '\n')
 			while(*ps)
 				ps++;
@@ -276,20 +248,20 @@ forcode(){
 forstat(p1) int p1; {
 	char *bp, *q;
 	bp = forstk[--forptr];
-	if (wasnext)
+	if (wasnext) {
 		outnum(p1+1);
+		transfer = 0;
+	}
 	if (nonblank(bp)){
 		outtab();
 		outcode(bp);
 		outdon();
 	}
-	transfer = 0;
 	outgoto(p1);
 	indent--;
 	putcom("endfor");
 	outcont(p1+2);
-	for (q=bp; *q++; )
-		;
+	for (q=bp; *q++;);
 	free(bp);
 	brkptr--;
 }
@@ -385,8 +357,9 @@ int	errorflag	= 0;
 error(s1) char *s1; {
 	if (errorflag == 0)
 		fprintf(stderr, "ratfor:");
-	fprintf(stderr, "error at line %d, file %s:  %s\n",
-		linect[infptr], curfile[infptr], s1);
+	fprintf(stderr, "error at line %d, file %s: ",linect[infptr],curfile[infptr]);
+	fprintf(stderr, s1);
+	fprintf(stderr, "\n");
 	errorflag = 1;
 }
 

@@ -1,3 +1,5 @@
+/*	sed1.c	4.2	85/04/05	*/
+
 #include	<stdio.h>
 #include "sed.h"
 
@@ -617,6 +619,7 @@ union reptr	*ipc;
 		wcom:
 		case WCOM:
 			fprintf(ipc->fcode, "%s\n", linebuf);
+			fflush(ipc->fcode);
 			break;
 		case XCOM:
 			p1 = linebuf;
@@ -651,7 +654,7 @@ char	*addr;
 	p2 = cbp;
 	for (;;) {
 		if (p2 >= ebp) {
-			if ((c = read(f, ibuf, 512)) <= 0) {
+			if ((c = read(f, ibuf, BUFSIZ)) <= 0) {
 				return(badp);
 			}
 			p2 = ibuf;
@@ -659,7 +662,7 @@ char	*addr;
 		}
 		if ((c = *p2++) == '\n') {
 			if(p2 >=  ebp) {
-				if((c = read(f, ibuf, 512)) <= 0) {
+				if((c = read(f, ibuf, BUFSIZ)) <= 0) {
 					close(f);
 					if(eargc == 0)
 							dolflag = 1;

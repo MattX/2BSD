@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)msg.c	4.2 8/11/83";
+static char sccsid[] = "@(#)msg.c	4.4 5/22/85";
 #endif
 
 #
@@ -71,7 +71,7 @@ MSG	profile		= ".profile";
 
 
 /* tables */
-SYSTAB reserved {
+SYSTAB reserved = {
 		{"in",		INSYM},
 		{"esac",	ESSYM},
 		{"case",	CASYM},
@@ -90,7 +90,7 @@ SYSTAB reserved {
 		{0,	0},
 };
 
-STRING	sysmsg[] {
+STRING	sysmsg[] = {
 		0,
 		"Hangup",
 		0,	/* Interrupt */
@@ -107,12 +107,29 @@ STRING	sysmsg[] {
 		0,	/* Broken pipe */
 		"Alarm call",
 		"Terminated",
-		"Signal 16",
+		"Urgent condition",
+		"Stopped",
+		"Stopped from terminal",
+		"Continued",
+		"Child terminated",
+		"Stopped on terminal input",
+		"Stopped on terminal output",
+		"Asynchronous I/O",
+		"Exceeded cpu time limit",
+		"Exceeded file size limit",
+		"Virtual time alarm",
+		"Profiling time alarm",
+		"Window changed",
+		"Signal 29",
+		"User defined signal 1",
+		"User defined signal 2",
+		"Signal 32",
 };
+INT		num_sysmsg = (sizeof sysmsg / sizeof sysmsg[0]);
 
 MSG		export = "export";
 MSG		readonly = "readonly";
-SYSTAB	commands {
+SYSTAB	commands = {
 		{"cd",		SYSCD},
 		{"read",	SYSREAD},
 /*
@@ -125,9 +142,6 @@ SYSTAB	commands {
 		{"wait",	SYSWAIT},
 		{"eval",	SYSEVAL},
 		{".",		SYSDOT},
-#ifdef	pdp11
-		{"newgrp",	SYSLOGIN},
-#endif	pdp11
 		{readonly,	SYSRDONLY},
 		{export,	SYSXPORT},
 		{"chdir",	SYSCD},

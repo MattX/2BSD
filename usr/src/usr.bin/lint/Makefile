@@ -1,74 +1,49 @@
-#
-# lint makefile
-#
-
-CFLAGS=	-O
 M=	../../lib/mip
-ALL=	lpass1 lpass2
-OVALL=	ovlpass1 lpass2
-OBJ=	cgram.o xdefs.o scan.o comm1.o pftn.o trees.o optim.o lint.o
-OVOBJ=	cgram.o xdefs.o scan.o comm1.o pftn1.o pftn2.o filbuf.o \
-	trees.o optim.o lint.o
+LOAD1=-i
+LOAD2=-n
+CFLAGS=-O
 
-all: ${ALL}
-
-ovall: ${OVALL}
-
-lpass1: ${OBJ}
-	${CC} ${LFLAG} ${OBJ} -o $@
-
-ovlpass1: ${OVOBJ}
-	ld -X ${CRT} ${LFLAG} -o lpass1 \
-	-Z cgram.o pftn1.o -Z comm1.o lint.o optim.o \
-	-Z pftn2.o -Z scan.o filbuf.o -Z trees.o xdefs.o -L -lovc
-
-lpass2: lpass2.o
-	${CC} -o $@ ${LFLAG} lpass2.o
+all:	head
 
 clean:
-	rm -f ${OBJ} ${OVOBJ} ${ALL} lpass2.o
+	rm -f *.o lpass?
 
-install: ${ALL}
-	install -s -o bin -g bin -m 711 lpass2 ${DESTDIR}/usr/lib/lint2
-	install -s -o bin -g bin -m 711 lpass1 ${DESTDIR}/usr/lib/lint1
-	install -c -o bin -g bin -m 755 SHELL ${DESTDIR}/usr/bin/lint
+cmp:	head
+	cmp lpass1 ${DESTDIR}/usr/lib/lint1
+	cmp lpass2 ${DESTDIR}/usr/lib/lint2
+	cmp SHELL ${DESTDIR}/usr/bin/lint
 
+head: lpass1 lpass2 ;
+lpass1: cgram.o xdefs.o scan.o comm1.o pftn.o trees.o optim.o lint.o
+	cc $(LOAD1) cgram.o xdefs.o scan.o comm1.o pftn.o trees.o optim.o lint.o
+	mv a.out lpass1
 trees.o: $M/manifest macdefs $M/mfile1 $M/trees.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/trees.c
-
+	cc -c $(CFLAGS) -I$M -I. $M/trees.c
 optim.o: $M/manifest macdefs $M/mfile1 $M/optim.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/optim.c
-
+	cc -c $(CFLAGS) -I$M -I. $M/optim.c
 pftn.o: $M/manifest macdefs $M/mfile1 $M/pftn.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/pftn.c
-
-pftn1.o: $M/manifest macdefs $M/mfile1 $M/pftn1.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/pftn1.c
-
-pftn2.o: $M/manifest macdefs $M/mfile1 $M/pftn2.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/pftn2.c
-
+	cc -c $(CFLAGS) -I$M -I. $M/pftn.c
 lint.o: $M/manifest macdefs $M/mfile1 lmanifest
-	${CC} -c ${CFLAGS} -I$M -I. lint.c
-
+	cc -c $(CFLAGS) -I$M -I. lint.c
 scan.o: $M/manifest macdefs $M/mfile1 $M/scan.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/scan.c
-
+	cc -c $(CFLAGS) -I$M -I. $M/scan.c
 xdefs.o: $M/manifest $M/mfile1 macdefs $M/xdefs.c
-	${CC} -c ${CFLAGS} -I$M -I. $M/xdefs.c
-
+	cc -c $(CFLAGS) -I$M -I. $M/xdefs.c
 cgram.o: $M/manifest $M/mfile1 macdefs cgram.c
-	${CC} -c ${CFLAGS} -I$M -I. cgram.c
-
+	cc -c $(CFLAGS) -I$M -I. cgram.c
 cgram.c: $M/cgram.y
 	yacc $M/cgram.y
 	mv y.tab.c cgram.c
-
 comm1.o: $M/manifest $M/mfile1 $M/common macdefs $M/comm1.c
-	${CC} -c ${CFLAGS} -I. -I$M $M/comm1.c
-
+	cc -c $(CFLAGS) -I. -I$M $M/comm1.c
+lpass2: lpass2.o
+	cc -o lpass2 $(LOAD2) lpass2.o
 lpass2.o: $M/manifest lmanifest
-	${CC} ${CFLAGS} -c -I$M -I. lpass2.c
+	cc $(CFLAGS) -c -I$M -I. lpass2.c
+lintall:	cgram.c
+	lint -hpv -I. -I$M  cgram.c $M/xdefs.c $M/scan.c $M/pftn.c $M/trees.c $M/optim.c lint.c $M/reader.c local2.c order.c $M/match.c $M/allo.c $M/comm1.c table.c
 
-filbuf.o: /usr/lib/libovc.a
-	@ar x /usr/lib/libovc.a $@
+install:
+	install -s lpass1 ${DESTDIR}/usr/lib/lint/lint1
+	install -s lpass2 ${DESTDIR}/usr/lib/lint/lint2
+	install -c -m 755 SHELL ${DESTDIR}/usr/bin/lint

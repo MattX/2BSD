@@ -1,16 +1,26 @@
-/*	raw_cb.c	4.9	82/06/20	*/
+/*
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)raw_cb.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
 
 #include "param.h"
-#include <sys/systm.h>
-#include <sys/mbuf.h>
-#include <sys/socket.h>
-#include <sys/socketvar.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <net/raw_cb.h>
-#include <netpup/pup.h>
-#include <errno.h>
+#include "../machine/seg.h"
+
+#include "systm.h"
+#include "mbuf.h"
+#include "socket.h"
+#include "socketvar.h"
+#include "domain.h"
+#include "protosw.h"
+#include "errno.h"
+
+#include "if.h"
+#include "route.h"
+#include "raw_cb.h"
+#include "../netinet/in.h"
 
 /*
  * Routines to manage the raw protocol control blocks. 
@@ -25,74 +35,27 @@
  * Allocate a control block and a nominal amount
  * of buffer space for the socket.
  */
-raw_attach(so, addr)
+raw_attach(so, proto)
 	register struct socket *so;
-	struct sockaddr *addr;
+	int proto;
 {
 	register struct rawcb *rp;
+	int error;
 
-	if (ifnet == 0)
-		return (EADDRNOTAVAIL);
-	/*
-	 * Should we verify address not already in use?
-	 * Some say yes, others no.
-	 */
-	if (addr) switch (addr->sa_family) {
-
-	case AF_IMPLINK:
-	case AF_INET:
-		if (((struct sockaddr_in *)addr)->sin_addr.s_addr &&
-		    if_ifwithaddr(addr) == 0)
-			return (EADDRNOTAVAIL);
-		break;
-
-#ifdef PUP
-	/*
-	 * Curious, we convert PUP address format to internet
-	 * to allow us to verify we're asking for an Ethernet
-	 * interface.  This is wrong, but things are heavily
-	 * oriented towards the internet addressing scheme, and
-	 * converting internet to PUP would be very expensive.
-	 */
-	case AF_PUP: {
-		struct sockaddr_pup *spup = (struct sockaddr_pup *)addr;
-		struct sockaddr_in inpup;
-
-		bzero((caddr_t)&inpup, sizeof(inpup));
-		inpup.sin_family = AF_INET;
-		inpup.sin_addr.s_net = spup->sp_net;
-		inpup.sin_addr.s_impno = spup->sp_host;
-		if (inpup.sin_addr.s_addr &&
-		    if_ifwithaddr((struct sockaddr *)&inpup) == 0)
-			return (EADDRNOTAVAIL);
-		break;
-	}
-#endif
-
-	default:
-		return (EAFNOSUPPORT);
-	}
-	MSGET(rp, struct rawcb, 1);
+	MSGET(rp, struct rawcb, M_CLEAR);
 	if (rp == 0)
-		return (ENOBUFS);
-	if (sbreserve(&so->so_snd, RAWSNDQ) == 0)
-		goto bad;
-	if (sbreserve(&so->so_rcv, RAWRCVQ) == 0)
-		goto bad2;
+		return(ENOBUFS);
+	if (error = soreserve(so, RAWSNDQ, RAWRCVQ)) {
+		MSFREE(rp);
+		return (error);
+	}
 	rp->rcb_socket = so;
-	insque(rp, &rawcb);
 	so->so_pcb = (caddr_t)rp;
 	rp->rcb_pcb = 0;
-	if (addr) {
-		bcopy((caddr_t)addr, (caddr_t)&rp->rcb_laddr, sizeof(*addr));
-		rp->rcb_flags |= RAW_LADDR;
-	}
+	rp->rcb_proto.sp_family = so->so_proto->pr_domain->dom_family;
+	rp->rcb_proto.sp_protocol = proto;
+	insque(rp, &rawcb);
 	return (0);
-bad2:
-	sbrelease(&so->so_snd);
-bad:
-	MSFREE(rp);
-	return (ENOBUFS);
 }
 
 /*
@@ -104,9 +67,13 @@ raw_detach(rp)
 {
 	struct socket *so = rp->rcb_socket;
 
+	if (rp->rcb_route.ro_rt)
+		rtfree(rp->rcb_route.ro_rt);
 	so->so_pcb = 0;
 	sofree(so);
 	remque(rp);
+	if (rp->rcb_options)
+		m_freem(dtom(rp->rcb_options));
 	MSFREE(rp);
 }
 
@@ -117,18 +84,56 @@ raw_disconnect(rp)
 	struct rawcb *rp;
 {
 	rp->rcb_flags &= ~RAW_FADDR;
-	if (rp->rcb_socket->so_state & SS_USERGONE)
+	if (rp->rcb_socket->so_state & SS_NOFDREF)
 		raw_detach(rp);
+}
+
+raw_bind(so, nam)
+	register struct socket *so;
+	struct mbuf *nam;
+{
+	struct sockaddr *addr = MTOD(nam, struct sockaddr *);
+	register struct rawcb *rp;
+
+	if (ifnet == 0)
+		return (EADDRNOTAVAIL);
+/* BEGIN DUBIOUS */
+	/*
+	 * Should we verify address not already in use?
+	 * Some say yes, others no.
+	 */
+	switch (addr->sa_family) {
+
+#ifdef INET
+	case AF_IMPLINK:
+	case AF_INET: {
+		if (((struct sockaddr_in *)addr)->sin_addr.s_addr &&
+		    ifa_ifwithaddr(addr) == 0)
+			return (EADDRNOTAVAIL);
+		break;
+	}
+#endif
+
+	default:
+		return (EAFNOSUPPORT);
+	}
+/* END DUBIOUS */
+	rp = sotorawcb(so);
+	bcopy((caddr_t)addr, (caddr_t)&rp->rcb_laddr, sizeof (*addr));
+	rp->rcb_flags |= RAW_LADDR;
+	return (0);
 }
 
 /*
  * Associate a peer's address with a
  * raw connection block.
  */
-raw_connaddr(rp, addr)
+raw_connaddr(rp, nam)
 	struct rawcb *rp;
-	struct sockaddr *addr;
+	struct mbuf *nam;
 {
+	struct sockaddr *addr = MTOD(nam, struct sockaddr *);
+
 	bcopy((caddr_t)addr, (caddr_t)&rp->rcb_faddr, sizeof(*addr));
 	rp->rcb_flags |= RAW_FADDR;
 }

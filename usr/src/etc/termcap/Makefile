@@ -1,4 +1,9 @@
-# @(#)Makefile	1.10	(Berkeley) 7/1/83
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.2 (Berkeley) 3/3/86
 #
 # reorder gives an editor command for most common terminals
 # (in reverse order from n'th to 1'st most commonly used)
@@ -7,20 +12,20 @@
 DESTDIR =
 
 termcap: reorder termcap.src
-#	ex - termcap.src < reorder
-#something is fucked...
-	cp termcap.seismo termcap
+	ex - termcap.src < reorder
 
 install: termcap tabset
-	install -m 664 termcap ${DESTDIR}/etc/termcap
+	install -m 444 termcap ${DESTDIR}/etc/termcap
 
-tabset:
+tabset: FRC
 	rm -fr ${DESTDIR}/usr/lib/tabset
 	mkdir ${DESTDIR}/usr/lib/tabset
 	cp tabset/* ${DESTDIR}/usr/lib/tabset
 
 clean:
 	rm -f termcap
+
+FRC:
 
 installall:
 	cp termcap /etc/termcap

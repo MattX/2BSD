@@ -1,13 +1,18 @@
-/* Copyright (c) 1982 Regents of the University of California */
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
-static char sccsid[] = "@(#)ruserpass.c 4.2 10/10/82";
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)ruserpass.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
 
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <utmp.h>
 #include <ctype.h>
-#include <netdb.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
 
 char	*renvlook(), *malloc(), *index(), *getenv(), *getpass(), *getlogin();

@@ -1,25 +1,32 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)strings.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <a.out.h>
 #include <ctype.h>
+#include <sys/file.h>
 
 long	ftell();
 
 /*
- * Strings - extract strings from an object file for whatever
- *
- * Bill Joy UCB 
- * April 22, 1978
- *
- * The algorithm is to look for sequences of "non-junk" characters
- * The variable "minlen" is the minimum length string printed.
- * This helps get rid of garbage.
- * Default minimum string length is 4 characters.
+ * strings
  */
 
 struct	exec header;
-struct ovlhdr	ovlbuf;
 
 char	*infile = "Standard input";
 int	oflg;
@@ -31,8 +38,6 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	register i;
-	off_t off;
 
 	argc--, argv++;
 	while (argc > 0 && argv[0][0] == '-') {
@@ -51,7 +56,7 @@ main(argc, argv)
 
 		default:
 			if (!isdigit(argv[0][i])) {
-				fprintf(stderr, "Usage: strings [ - ] [ -o ] [ -# ] [ file ... ]\n");
+				fprintf(stderr, "Usage: strings [ -a ] [ -o ] [ -# ] [ file ... ]\n");
 				exit(1);
 			}
 			minlength = argv[0][i] - '0';
@@ -71,21 +76,31 @@ main(argc, argv)
 			infile = argv[0];
 			argc--, argv++;
 		}
-		fseek(stdin, (long) 0, 0);
+		fseek(stdin, (long) 0, L_SET);
 		if (asdata ||
 		    fread((char *)&header, sizeof header, 1, stdin) != 1 || 
 		    N_BADMAG(header)) {
-			fseek(stdin, (long) 0, 0);
+			fseek(stdin, (long) 0, L_SET);
 			find((long) 100000000L);
 			continue;
 		}
-		off	= (long) N_TXTOFF(header) + (long) header.a_text;
-		if (header.a_magic == A_MAGIC5 || header.a_magic == A_MAGIC6) {
-			fread ((char *) &ovlbuf, sizeof ovlbuf, 1, stdin);
-			for (i = 0; i < NOVL; i++)
-				off	+= ovlbuf.ov_siz[i];
+#ifdef BSD2_10
+		{
+			register int ovlcnt;
+			struct	ovlhdr ovlbuf;
+			off_t off;
+
+			off = (long)N_TXTOFF(header) + (long)header.a_text;
+			if (header.a_magic == A_MAGIC5 || header.a_magic == A_MAGIC6) {
+				fread ((char *)&ovlbuf, sizeof(ovlbuf), 1, stdin);
+				for (ovlcnt = 0; ovlcnt < NOVL; ovlcnt++)
+					off += ovlbuf.ov_siz[ovlcnt];
+			}
+			fseek(stdin, off, L_SET);
 		}
-		fseek(stdin, off, 0);
+#else !BSD2_10
+		fseek(stdin, (long) N_TXTOFF(header)+header.a_text, L_SET);
+#endif BSD2_10
 		find((long) header.a_data);
 	} while (argc > 0);
 }

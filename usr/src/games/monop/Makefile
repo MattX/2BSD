@@ -13,7 +13,8 @@ HEADERS=monop.h deck.h
 BINDIR=	${DESTDIR}/usr/games
 LIBDIR=	${DESTDIR}/usr/games/lib
 LIB=
-CFLAGS=	-O -Dpdp11
+CFLAGS=	-O -w
+SEPFLAG= -i
 DAT=	brd.dat monop.dat prop.dat
 CC=	cc
 XSTR=	xstr
@@ -33,12 +34,11 @@ CTAGS=	ctags
 it:	monop cards.pck
 
 monop:	${OBJS}
-	${CC} -o monop -n ${OBJS} ${LIB}
+	${CC} -o monop ${SEPFLAG} ${OBJS} ${LIB}
 
 install: monop cards.pck
-	${RM} -f ${BINDIR}/monop ${LIBDIR}/cards.pck
-	strip monop
-	mv monop ${BINDIR}
+	${RM} ${BINDIR}/monop ${LIBDIR}/cards.pck
+	install -s monop ${BINDIR}
 	mv cards.pck ${LIBDIR}
 
 new:	clean ctags monop
@@ -61,7 +61,7 @@ cards.o: deck.h
 	mv x.o cards.o
 
 newone:
-	${CC} -o monop ${CFLAGS} ${CFILES} ${LIB}
+	${CC} ${SEPFLAG} -o monop ${CFLAGS} ${CFILES} ${LIB}
 
 ctags:
 	${CTAGS} ${CFILES} monop.h deck.h monop.def initdeck.c
@@ -76,7 +76,7 @@ monop.tar:
 	tar crvf monop.tar ${CFILES} ${DATFILES} ${HEADERS} :rofix Makefile cards.inp initdeck.c monop.def monop.ext
 
 clean:
-	${RM} ${OBJS} monop core tags x.c x.o monop.tar
+	${RM} ${OBJS} monop core tags x.c x.o monop.tar initdeck cards.pck errs
 	cp /dev/null strings
 
 printall:

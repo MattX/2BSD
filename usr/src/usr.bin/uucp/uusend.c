@@ -1,5 +1,6 @@
-/* $Header: uusend.c,v 1.3 85/01/02 20:36:05 rick Exp $ */
-/* from: @(#)uusend.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)uusend.c	5.2 (Berkeley) 1/22/85";
+#endif
 
 /*
  * uusend: primitive operation to allow uucp like copy of binary files

@@ -1,11 +1,13 @@
-.TH SOELIM 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)soelim.1	6.2 (Berkeley) 5/7/86
+.\"
+.TH SOELIM 1 "May 7, 1986"
 .UC
 .SH NAME
-soelim \- eliminate source directives from a
-.I nroff
-or
-.I troff
-stream
+soelim \- eliminate \&.so's from nroff input
 .SH SYNOPSIS
 .B soelim
 [
@@ -24,12 +26,15 @@ directives of the form
 when they appear at the beginning of input lines.
 This is useful since programs such as
 .I tbl
-do not normally do this;
-it allows the placement of individual tables
+do not normally do this; it allows the placement of individual tables
 in separate files to be run as a part of a large document.
 .PP
-Note that inclusion can be suppressed by using
-`\'' instead of `\.', i.e.
+An argument consisting of a single minus
+.RB ( \- )
+is taken to be
+a file name corresponding to the standard input.
+.PP
+Note that inclusion can be suppressed by using `\'' instead of `\.', i.e.
 .PP
 .DT
 	\'so /usr/lib/tmac.s
@@ -38,14 +43,9 @@ A sample usage of
 .I soelim
 would be
 .PP
-	soelim exum?\&.n | tbl | nroff \-ms | colcrt | more
+	soelim exum?.n | tbl | nroff \-ms | col | lpr
 .SH SEE\ ALSO
-colcrt(1)
-.SH AUTHOR
-William Joy
+colcrt(1), more(1)
 .SH BUGS
 The format of the source commands must involve no strangeness \-
-exactly one
-blank must precede and no blanks follow the file name.
-.br
-Recognizes .so even when it is not at the beginning of a line.
+exactly one blank must precede and no blanks follow the file name.

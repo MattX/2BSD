@@ -1,5 +1,6 @@
-/* $Header: gnsys.c,v 1.7 85/05/29 20:52:48 rick Exp $ */
-/* from: @(#)gnsys.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)gnsys.c	5.4 (Berkeley) 6/20/85";
+#endif
 
 #include "uucp.h"
 #ifdef	NDIR

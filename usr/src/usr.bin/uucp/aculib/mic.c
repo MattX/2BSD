@@ -1,6 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: mic.c,v 1.1 85/01/08 19:58:45 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)mic.c	4.1 (Berkeley) 1/22/85";
+#endif
 
 #include "../condevs.h"
 #ifdef MICOM

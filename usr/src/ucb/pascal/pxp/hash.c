@@ -29,7 +29,7 @@ struct ht {
  * token values, which are hashed into the table
  * by inithash.
  */
-struct kwtab yykey[] {
+struct kwtab yykey[] = {
 	"and",		YAND,
 	"array",	YARRAY,
 	"assert",	YASSERT,
@@ -72,7 +72,7 @@ struct kwtab yykey[] {
 	0
 };
 
-char	*lastkey	&yykey[sizeof yykey/sizeof yykey[0]];
+char	*lastkey	= &yykey[sizeof yykey/sizeof yykey[0]];
 
 /*
  * Inithash initializes the hash table routines
@@ -93,7 +93,7 @@ inithash(hshtab)
 
 	htab[0].ht_low = hshtab;
 	htab[0].ht_high = &hshtab[HASHINC];
-	for (ip = yykey; *ip; ip =+ 2)
+	for (ip = yykey; *ip; ip += 2)
 		hash(ip[0], 0)[0] = ip;
 }
 
@@ -177,10 +177,10 @@ int *hash(s, save)
 				sym = *sym;
 			if (sym->pchar == *cp && strcmp(sym, cp) == 0)
 				return (h);
-			h =+ i;
-			i =+ 2;
+			h += i;
+			i += 2;
 			if (h >= htp->ht_high)
-				h =- HASHINC;
+				h -= HASHINC;
 		} while (i < HASHINC);
 	}
 	yerror("Ran out of hash tables");

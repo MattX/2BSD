@@ -1,6 +1,5 @@
 #ifndef lint
-static char	*RcsId = "$Header: uudecode.c,v 1.3 85/03/20 15:56:11 rick Exp $";
-/* from: @(#)uudecode.c	5.1 (Berkeley) 7/2/83 */
+static char sccsid[] = "@(#)uudecode.c	5.3 (Berkeley) 4/10/85";
 #endif
 
 /*

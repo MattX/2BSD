@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)text.c	4.3 8/11/83";
+#endif
+
 # include "e.h"
 # include "e.def"
 
@@ -16,7 +20,11 @@ text(t,p1) int t; char *p1; {
 
 	yyval = oalloc();
 	ebase[yyval] = 0;
+#ifndef NEQN
 	eht[yyval] = VERT(6 * ((ps>6)?ps:6));	/* ht in machine units */
+#else NEQN
+	eht[yyval] = VERT(2);	/* 2 half-spaces */
+#endif NEQN
 	lfont[yyval] = rfont[yyval] = ROM;
 	if (t == QTEXT)
 		p = p1;

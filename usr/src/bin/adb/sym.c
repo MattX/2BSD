@@ -26,7 +26,7 @@ L_INT		symbas;
 L_INT		symcnt;
 L_INT		symnum;
 L_INT		localval;
-char		symrqd -1;
+char		symrqd = -1;
 SYMTAB		symbuf[SYMSIZ];
 SYMPTR		symnxt;
 SYMPTR		symend;

@@ -18,8 +18,8 @@
  * as string space is never freed.
  */
 STATIC	char strings[STRINC];
-STATIC	char *strng strings;
-STATIC	char *strngp strings;
+STATIC	char *strng = strings;
+STATIC	char *strngp = strings;
 
 /*
 initstring()
@@ -54,6 +54,6 @@ esavestr(cp)
 	char *cp;
 {
 
-	strngp = (strngp + 1) &~ 1;
+	strngp = (char *)((unsigned)(strngp + 1) &~ 1);
 	return (savestr(cp));
 }

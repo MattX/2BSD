@@ -47,17 +47,20 @@ flush:
 	mov	(r5)+,r2
 	cmp	(r2)+,(r2)+
 flush1:
-	mov	(r2)+,0f
-	mov	(r2)+,r1
-	mov	r1,0f+2		/ seek address
-	mov	fout,r0
-	sys	indir; 9f
-	.data
-9:	sys	lseek; 0:..; ..; 0
-	.text
+
+	clr	-(sp)			/ lseek(fout, (r2)L+, L_SET)
+	mov	2(r2),-(sp)		/	mov	(r2)+,0f
+	mov	(r2)+,-(sp)		/	mov	(r2)+,r1
+	tst	(r2)+			/	mov	r1,0f+2		/ seek address
+	mov	fout,-(sp)		/	mov	fout,r0
+	jsr	pc,_lseek		/	sys	indir; 9f
+	add	$8.,sp			/	.data
+					/9:	sys	lseek; 0:..; ..; 0
+					/	.text
+	cmp	-(sp),-(sp)		/ write(fout, <buf>, <len>)
 	bic	$!777,r1
 	add	r2,r1		/ write address
-	mov	r1,0f
+	mov	r1,-(sp)		/ { <buf> }
 	mov	r2,r0
 	bis	$777,-(r2)
 	add	$1,(r2)		/ new seek addr
@@ -65,21 +68,30 @@ flush1:
 	cmp	-(r2),-(r2)
 	sub	(r2),r1
 	neg	r1
-	mov	r1,0f+2		/ count
+	mov	r1,2(sp)	/ count
 	mov	r0,(r2)		/ new next slot
-	mov	fout,r0
-	sys	indir; 9f
-	jes	wrterr
-	.data
-9:	sys	write; 0:..; ..
-	.text
+
+	mov	fout,-(sp)
+	mov	r1,6(sp)		/ protect r1 from library
+	jsr	pc,_write
+	add	$6,sp
+	mov	(sp)+,r1
+	tst	r0
+	jmi	wrterr
+
 	rts	r5
 
 wrterr:
-	mov	$1,r0
-	sys	write; 9f; 8f-9f
+	mov	$8f-9f,-(sp)		/ write(1, ERRMSG, strlen(ERRMSG))
+	mov	$9f,-(sp)		/	mov	$1,r0
+	mov	$1,-(sp)		/	sys	write; 9f; 8f-9f
+	jsr	pc,_write
+	add	$6,sp
+
 	jmp	saexit
-9:	<as: write error on output\n>; 8:
+.data
+9:	<as: write error on output\n>; 8: .even
+.text
 
 readop:
 	mov	savop,r4
@@ -107,9 +119,17 @@ getw:
 getw1:
 	dec	ibufc
 	bgt	1f
-	movb	fin,r0
-	sys	read; inbuf; 512.
-	bes	3f
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	$512.,-(sp)		/ read(fin, inbuf, 512)
+	mov	$inbuf,-(sp)		/	movb	fin,r0
+	mov	fin,-(sp)		/	sys	read; inbuf; 512.
+	jsr	pc,_read		/	bes	3f
+	add	$6,sp
+	mov	(sp)+,r1
+	tst	r0
+	jmi	3f
+
 	asr	r0
 	mov	r0,ibufc
 	bne	2f

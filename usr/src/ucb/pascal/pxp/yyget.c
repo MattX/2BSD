@@ -60,7 +60,7 @@ getchar()
  * had been printed before this nesting occurred;
  * and yyline is the line we were on on the previous file.
  */
-int	*ibp ibuf;
+int	*ibp = ibuf;
 
 #define	MAXINC	10
 
@@ -74,7 +74,7 @@ struct inc {
 
 extern	char printed;
 
-int	inclev	-1;
+int	inclev	= -1;
 
 #ifdef PXP
 /*
@@ -83,9 +83,9 @@ int	inclev	-1;
  * Otherwise they are destroyed by the initial
  * call to getline.
  */
-char	charbuf[CBSIZE]	" program x(output);\n";
-int	yycol 8;
-char	*bufp charbuf;
+char	charbuf[CBSIZE]	= " program x(output);\n";
+int	yycol = 8;
+char	*bufp = charbuf;
 
 #endif
 /*

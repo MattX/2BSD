@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)te.c	4.2 8/11/83";
+#endif
+
  /* te.c: error message control, input line count */
 # include "t..c"
 error(s)
@@ -19,12 +23,12 @@ gets1(s)
 char *p;
 int nbl = 0;
 iline++;
-p=fgets(s,512,tabin);
+p=fgets(s,BUFSIZ,tabin);
 while (p==0)
 	{
 	if (swapin()==0)
 		return(0);
-	p = fgets(s,512,tabin);
+	p = fgets(s,BUFSIZ,tabin);
 	}
 
 while (*s) s++;

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)uniq.c	4.1 (Berkeley) 10/1/80";
 /*
  * Deal with duplicated lines in a file
  */

@@ -1,5 +1,7 @@
-.TH FCLOSE 3S 
-.UC
+.\"	@(#)fclose.3s	6.1 (Berkeley) 5/15/85
+.\"
+.TH FCLOSE 3S  "May 15, 1985"
+.AT 3
 .SH NAME
 fclose, fflush \- close or flush a stream
 .SH SYNOPSIS
@@ -27,7 +29,7 @@ are freed.
 .I Fclose
 is performed automatically upon
 calling
-.IR  exit (2).
+.IR  exit (3).
 .PP
 .I Fflush
 causes any buffered data for the named output
@@ -35,7 +37,9 @@ causes any buffered data for the named output
 to be written to that file.
 The stream remains open.
 .SH "SEE ALSO"
-close(2), fopen(3S), setbuf(3S)
+close(2),
+fopen(3S),
+setbuf(3S)
 .SH DIAGNOSTICS
 These routines return
 .SM

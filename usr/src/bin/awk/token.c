@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)token.c	4.3 (Berkeley) 12/8/84";
+#endif
+
 #include "awk.h"
 struct tok
 {	char *tnm;
@@ -58,36 +62,29 @@ struct tok
 "SUBSTR", 309,
 "LSUBSTR", 310,
 "INDEX", 311,
-"RELOP", 312,
-"MATCHOP", 313,
-"OR", 314,
-"STRING", 315,
-"DOT", 316,
-"CCL", 317,
-"NCCL", 318,
-"CHAR", 319,
-"CAT", 320,
-"STAR", 321,
-"PLUS", 322,
-"QUEST", 323,
-"POSTINCR", 324,
-"PREINCR", 325,
-"POSTDECR", 326,
-"PREDECR", 327,
-"INCR", 328,
-"DECR", 329,
-"FIELD", 330,
-"INDIRECT", 331,
-"LASTTOKEN", 332,
+"GETLINE", 312,
+"RELOP", 313,
+"MATCHOP", 314,
+"OR", 315,
+"STRING", 316,
+"DOT", 317,
+"CCL", 318,
+"NCCL", 319,
+"CHAR", 320,
+"CAT", 321,
+"STAR", 322,
+"PLUS", 323,
+"QUEST", 324,
+"POSTINCR", 325,
+"PREINCR", 326,
+"POSTDECR", 327,
+"PREDECR", 328,
+"INCR", 329,
+"DECR", 330,
+"FIELD", 331,
+"INDIRECT", 332,
+"LASTTOKEN", 333,
 };
-ptoken(n)
-{
-	if(n<128) printf("lex: %c\n",n);
-	else	if(n<=256) printf("lex:? %o\n",n);
-	else	if(n<LASTTOKEN) printf("lex: %s\n",tok[n-257].tnm);
-	else	printf("lex:? %o\n",n);
-	return;
-}
 
 char *tokname(n)
 {

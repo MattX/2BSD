@@ -82,7 +82,7 @@ savestr(cp)
 #ifndef PI01
 #ifndef PXP
 		*stract++ = strngp;
-		strmax =+ STRINC;
+		strmax += STRINC;
 #endif
 #endif
 		strng = strngp;
@@ -124,7 +124,7 @@ soffset(cp)
 	for (i = STRINC, sp = strp; sp < stract; sp++) {
 		if (cp >= *sp && cp < (*sp + STRINC))
 			return (i + (cp - *sp));
-		i =+ STRINC;
+		i += STRINC;
 	}
 	i = nlfund(cp);
 	if (i != 0)

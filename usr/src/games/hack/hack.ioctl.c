@@ -1,6 +1,8 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* hack.ioctl.c - version 1.0.2 */
 
+/* KLUDGE -- vars s/ltchars/ltc/ -- our C doesn't distinguish past 7 chars */
+
 /* This cannot be part of hack.tty.c (as it was earlier) since on some
    systems (e.g. MUNIX) the include files <termio.h> and <sgtty.h>
    define the same constants, and the C preprocessor complains. */
@@ -8,7 +10,7 @@
 #include "config.h"
 #ifdef BSD
 #include	<sgtty.h>
-struct ltchars ltchars, ltchars0;
+struct ltchars ltc, ltc0;
 #else
 #include	<termio.h>	/* also includes part of <sgtty.h> */
 struct termio termio;
@@ -16,18 +18,18 @@ struct termio termio;
 
 getioctls() {
 #ifdef BSD
-	(void) ioctl(fileno(stdin), (int) TIOCGLTC, (char *) &ltchars);
-	(void) ioctl(fileno(stdin), (int) TIOCSLTC, (char *) &ltchars0);
+	(void) ioctl(fileno(stdin), TIOCGLTC, (char *) &ltc);
+	(void) ioctl(fileno(stdin), TIOCSLTC, (char *) &ltc0);
 #else
-	(void) ioctl(fileno(stdin), (int) TCGETA, &termio);
+	(void) ioctl(fileno(stdin), TCGETA, &termio);
 #endif BSD
 }
 
 setioctls() {
 #ifdef BSD
-	(void) ioctl(fileno(stdin), (int) TIOCSLTC, (char *) &ltchars);
+	(void) ioctl(fileno(stdin), TIOCSLTC, (char *) &ltc);
 #else
-	(void) ioctl(fileno(stdin), (int) TCSETA, &termio);
+	(void) ioctl(fileno(stdin), TCSETA, &termio);
 #endif BSD
 }
 

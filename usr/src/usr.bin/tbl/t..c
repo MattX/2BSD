@@ -1,10 +1,16 @@
+/*	t..c	4.3	85/09/14	*/
+
 /* t..c : external declarations */
 
 # include "stdio.h"
 # include "ctype.h"
 
 # define MAXLIN 200
+#ifdef BSD2_10
 # define MAXHEAD 30
+#else !BSD2_10
+# define MAXHEAD 100
+#endif BSD2_10
 # define MAXCOL 20
 # define MAXCHS 2000
 # define MAXRPT 100
@@ -39,6 +45,7 @@ extern int rightl;
 struct colstr {char *col, *rcol;};
 extern struct colstr *table[];
 extern char *cspace, *cstore;
+extern char *chspace();
 extern char *exstore, *exlim;
 extern int sep[];
 extern int used[], lused[], rused[];

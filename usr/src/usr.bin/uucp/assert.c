@@ -1,5 +1,6 @@
-/* $Header: assert.c,v 1.9 85/05/20 20:00:16 rick Exp $ */
-/* from: @(#)assert.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)assert.c	5.5 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 #include <sys/time.h>

@@ -16,21 +16,21 @@ reg int	(*func)(); {
 
 	int	temp;
 
-	(*func)(file, &Debug, sizeof Debug);
-	(*func)(file, &Finished, sizeof Finished);
-	(*func)(file, &Order, sizeof Order);
-	(*func)(file, &End, sizeof End);
-	(*func)(file, &On_exit, sizeof On_exit);
-	(*func)(file, &Handstart, sizeof Handstart);
-	(*func)(file, &Numgos, sizeof Numgos);
-	(*func)(file,  Numseen, sizeof Numseen);
-	(*func)(file, &Play, sizeof Play);
-	(*func)(file, &Window, sizeof Window);
-	(*func)(file,  Deck, sizeof Deck);
-	(*func)(file, &Discard, sizeof Discard);
-	(*func)(file,  Player, sizeof Player);
+	(*func)(file, (char *) &Debug, sizeof Debug);
+	(*func)(file, (char *) &Finished, sizeof Finished);
+	(*func)(file, (char *) &Order, sizeof Order);
+	(*func)(file, (char *) &End, sizeof End);
+	(*func)(file, (char *) &On_exit, sizeof On_exit);
+	(*func)(file, (char *) &Handstart, sizeof Handstart);
+	(*func)(file, (char *) &Numgos, sizeof Numgos);
+	(*func)(file, (char *)  Numseen, sizeof Numseen);
+	(*func)(file, (char *) &Play, sizeof Play);
+	(*func)(file, (char *) &Window, sizeof Window);
+	(*func)(file, (char *)  Deck, sizeof Deck);
+	(*func)(file, (char *) &Discard, sizeof Discard);
+	(*func)(file, (char *)  Player, sizeof Player);
 	if (func == read) {
-		read(file, &temp, sizeof temp);
+		read(file, (char *) &temp, sizeof temp);
 		Topcard = &Deck[temp];
 		if (Debug) {
 			char	buf[80];
@@ -42,11 +42,12 @@ over:
 				goto over;
 			}
 			if (strcmp(buf, "/dev/null") != 0)
-				setbuf(outf, 0);
+				setbuf(outf, NULL);
 		}
 	}
 	else {
 		temp = Topcard - Deck;
-		write(file, &temp, sizeof temp);
+		write(file, (char *) &temp, sizeof temp);
 	}
 }
+

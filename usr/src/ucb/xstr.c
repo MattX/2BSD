@@ -1,10 +1,24 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)xstr.c	5.3 (Berkeley) 1/13/86";
+#endif not lint
+
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <signal.h>
 
-int	lseek();	/* Chicanery */
 /*
  * xstr - extract and hash strings in a C program
  *
@@ -12,7 +26,7 @@ int	lseek();	/* Chicanery */
  * November, 1978
  */
 
-#define	ignore(a)	Ignore((char *) a)
+#define	ignore(a)	((void) a)
 
 char	*calloc();
 off_t	tellpt;
@@ -84,15 +98,17 @@ main(argc, argv)
 	exit(0);
 }
 
+char linebuf[BUFSIZ];
+
 process(name)
 	char *name;
 {
 	char *cp;
-	char linebuf[BUFSIZ];
 	register int c;
 	register int incomm = 0;
+	int ret;
 
-	printf("char\txstr[];\n");
+	printf("extern char\txstr[];\n");
 	for (;;) {
 		if (fgets(linebuf, sizeof linebuf, stdin) == NULL) {
 			if (ferror(stdin)) {
@@ -113,7 +129,9 @@ process(name)
 		case '"':
 			if (incomm)
 				goto def;
-			printf("(&xstr[%d])", (int) yankstr(&cp));
+			if ((ret = (int) yankstr(&cp)) == -1)
+				goto out;
+			printf("(&xstr[%d])", ret);
 			break;
 
 		case '\'':
@@ -147,6 +165,7 @@ def:
 			break;
 		}
 	}
+out:
 	if (ferror(stdout))
 		perror("x.c"), onintr();
 }
@@ -172,8 +191,18 @@ yankstr(cpp)
 			c = *cp++;
 			if (c == 0)
 				break;
-			if (c == '\n')
+			if (c == '\n') {
+				if (fgets(linebuf, sizeof linebuf, stdin) 
+				    == NULL) {
+					if (ferror(stdin)) {
+						perror("x.c");
+						exit(3);
+					}
+					return(-1);
+				}
+				cp = linebuf;
 				continue;
+			}
 			for (tp = "b\bt\tr\rn\nf\f\\\\\"\""; ch = *tp++; tp++)
 				if (c == ch) {
 					c = *tp;
@@ -270,7 +299,10 @@ hashit(str, new)
 		if (i >= 0)
 			return (hp->hpt + i);
 	}
-	hp = (struct hash *) calloc(1, sizeof (*hp));
+	if ((hp = (struct hash *) calloc(1, sizeof (*hp))) == NULL) {
+		perror("xstr");
+		exit(8);
+	}
 	hp->hpt = mesgpt;
 	hp->hstr = savestr(str);
 	mesgpt += strlen(hp->hstr) + 1;
@@ -295,11 +327,9 @@ flushsh()
 				old++;
 	if (new == 0 && old != 0)
 		return;
-	mesgwrit = fopen(strings, old ? "a" : "w");
-	if (mesgwrit == (FILE *) NULL) {
-		perror(strings);
-		exit(8);
-	}
+	mesgwrit = fopen(strings, old ? "r+" : "w");
+	if (mesgwrit == NULL)
+		perror(strings), exit(4);
 	for (i = 0; i < BUCKETS; i++)
 		for (hp = bucket[i].hnext; hp != NULL; hp = hp->hnext) {
 			found(hp->hnew, hp->hpt, hp->hstr);
@@ -310,7 +340,8 @@ flushsh()
 					perror(strings), exit(4);
 			}
 		}
-	ignore(fclose(mesgwrit));
+	if (fclose(mesgwrit) == EOF)
+		perror(strings), exit(4);
 }
 
 found(new, off, str)
@@ -318,8 +349,6 @@ found(new, off, str)
 	off_t off;
 	char *str;
 {
-	register char *cp;
-
 	if (vflg == 0)
 		return;
 	if (!new)
@@ -384,23 +413,13 @@ char *
 savestr(cp)
 	register char *cp;
 {
-	register char *dp = (char *) calloc(1, strlen(cp) + 1);
+	register char *dp;
 
+	if ((dp = (char *) calloc(1, strlen(cp) + 1)) == NULL) {
+		perror("xstr");
+		exit(8);
+	}
 	return (strcpy(dp, cp));
-}
-
-Ignore(a)
-	char *a;
-{
-
-	a = a;
-}
-
-ignorf(a)
-	int (*a)();
-{
-
-	a = a;
 }
 
 lastchr(cp)
@@ -425,7 +444,7 @@ istail(str, of)
 onintr()
 {
 
-	ignorf(signal(SIGINT, SIG_IGN));
+	ignore(signal(SIGINT, SIG_IGN));
 	if (strings[0] == '/')
 		ignore(unlink(strings));
 	ignore(unlink("x.c"));

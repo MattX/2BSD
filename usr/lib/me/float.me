@@ -1,4 +1,5 @@
 .nr _0 \n(c.
+.\"	@(#)float.me	2.2	2/26/81
 .\" This version has had comments stripped; an unstripped version is available.
 .de (z
 .@D 4 \\$1 \\$2
@@ -11,14 +12,19 @@
 .rr _0
 .if !\\n(?b \
 .	nr dn +(\\n(ppu*\\n($ru)/2u+\\n(zsu
-.ie ((\\n(dn+\n(.V)>=\\n(.t):(\\n(?a) \
+.nr dl -\n(.H
+.ie ((\\n(dn+\n(.V)>=\\n(.t):(\\n(?a):((\\n(dl>\\n($l)&(\\n($c>1)) \
 \{\
 .	nr ?a 1
+.	if (\\n(dl>\\n($l)&(\\n($m>1) \
+.		nr ?w 1
 .	ds |x |t
 .\}
 .el \
 \{\
 .	nr ?b 1
+.	if (\\n(dl>\\n($l)&(\\n($m>1) \
+.		nr ?W 1
 .	nr _b +\\n(dnu
 .	ch @f -\\n(_bu
 .	ds |x |b
@@ -28,13 +34,10 @@
 .ls 1
 .nr ?k 1
 \!.if \\\\n(nl>(\\\\n(tm+2v) .ne \\n(dnu-\\n(zsu
-.eo
-.cc @
-@|k
-@cc
+.|k\"
 .ec
 .nr ?k 0
-.rm |k
+.rm |k\"
 .da
 .in 0
 .ls 1

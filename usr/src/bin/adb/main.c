@@ -1,4 +1,3 @@
-#
 /*
  *
  *	UNIX debugger
@@ -16,8 +15,8 @@ INT		infile;
 CHAR		*lp;
 INT		maxoff;
 INT		maxpos;
-INT		sigint;
-INT		sigqit;
+INT		(*sigint)();
+INT		(*sigqit)();
 INT		wtflag;
 INT		kernel;
 L_INT		maxfile;
@@ -40,8 +39,9 @@ INT		lastcom;
 L_INT		var[36];
 STRING		symfil;
 STRING		corfil;
-CHAR		printbuf[];
 CHAR		*printptr;
+
+char	*Ipath = "/usr/lib/adb";
 
 
 L_INT	round(a,b)
@@ -65,7 +65,7 @@ error(n)
 	STRING		n;
 {
 	errflg=n;
-	iclose(); oclose();
+	iclose(0, 1); oclose();
 	longjmp(erradb,1);
 }
 
@@ -83,7 +83,17 @@ main(argc, argv)
 REG STRING	*argv;
 REG INT		argc;
 {
-	maxfile=1L<<24; maxstor=1L<<16;
+	static char	*myname;	/* program name */
+	short	mynamelen;		/* length of program name */
+	char	*C,
+		*rindex();
+
+	maxfile = 1L << 24;
+	maxstor = 1L << 16;
+	IF (isatty(0))
+	THEN	myname = *argv;
+		mynamelen = strlen(myname);
+	FI
 
 	gtty(0,&adbtty);
 	gtty(0,&usrtty);
@@ -92,6 +102,8 @@ REG INT		argc;
 		THEN	wtflag=2; argc--; argv++; continue;
 		ELIF eqstr("-k",argv[1])
 		THEN	kernel++; argc--; argv++; continue;
+		ELIF eqstr("-I",argv[1])
+		THEN	Ipath = argv[1]+2; argc--; argv++; continue;
 		ELSE	break;
 		FI
 	OD
@@ -114,10 +126,12 @@ REG INT		argc;
 	THEN	var[VARO] = ovlsiz;
 	FI
 
-	IF (sigint=signal(SIGINT,01))!=01
+	IF (sigint=signal(SIGINT,SIG_IGN))!=SIG_IGN
 	THEN	sigint=fault; signal(SIGINT,fault);
 	FI
-	sigqit=signal(SIGQUIT,1);
+	sigqit=signal(SIGQUIT,SIG_IGN);
+	siginterrupt(SIGINT, 1);
+	siginterrupt(SIGQUIT, 1);
 	setjmp(erradb);
 	IF executing THEN delbp(); FI
 	executing=FALSE;
@@ -125,16 +139,23 @@ REG INT		argc;
 	LOOP	flushbuf();
 		IF errflg
 		THEN printf("%s\n",errflg);
-		     exitflg=errflg;
+		     exitflg=(INT)errflg;
 		     errflg=0;
 		FI
 		IF mkfault
-		THEN	mkfault=0; printc(EOR); prints(DBNAME);
+		THEN	mkfault=0; printc(EOR);
+			IF !myname
+			THEN prints(DBNAME);
+			FI
+		FI
+		IF myname ANDF !infile
+		THEN	write(1,myname,mynamelen);
+			write(1,"> ",2);
 		FI
 		lp=0; rdc(); lp--;
 		IF eof
 		THEN	IF infile
-			THEN	iclose(); eof=0; longjmp(erradb,1);
+			THEN	iclose(-1, 0); eof=0; longjmp(erradb,1);
 			ELSE	done();
 			FI
 		ELSE	exitflg=0;

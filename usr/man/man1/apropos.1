@@ -1,5 +1,7 @@
-.TH APROPOS 1
-.UC
+.\"	@(#)apropos.1	6.4 (Berkeley) 6/5/86
+.\"
+.TH APROPOS 1 "June 5, 1986"
+.AT 3
 .SH NAME
 apropos \- locate commands by keyword lookup
 .SH SYNOPSIS
@@ -10,8 +12,8 @@ keyword ...
 shows which manual sections contain instances of any of the given
 keywords in their title.
 Each word is considered separately and case of letters is ignored.
-Words which are part of other words are considered thus looking for
-compile will hit all instances of `compiler' also.
+Words which are part of other words are considered; thus, when looking for
+compile, \fIapropos\fP will find all instances of `compiler' also.
 Try
 .IP
 apropos password
@@ -33,8 +35,8 @@ option to the
 .IR man (1)
 command.
 .SH FILES
-.ta 2i
-/usr/lib/whatis	data base
+.DT
+/usr/man/whatis		data base
 .SH "SEE ALSO"
 man(1), whatis(1), catman(8)
 .SH AUTHOR

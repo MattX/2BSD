@@ -1,5 +1,11 @@
-/* Copyright (c) 1981 Regents of the University of California */
-/* sccs id:	@(#)ex_temp.h	7.3	8/2/81  */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)ex_temp.h	7.4 (Berkeley) 5/31/85
+ */
+
 /*
  * The editor uses a temporary file for files being edited, in a structure
  * similar to that of ed.  The first block of the file is used for a header

@@ -170,7 +170,7 @@ repcost(what, with)
 	 * semantics by something which doesn't.
 	 */
 	if (nullsem(what) == NIL && nullsem(with) != NIL)
-		c =+ 4;
+		c += 4;
 	return (c);
 }
 
@@ -213,7 +213,7 @@ delcost(what)
 /*
  * Routine to print out costs with "-C" option.
  */
-char	yysyms[]	";,:=*+/-|&()[]<>~^";
+char	yysyms[]	= ";,:=*+/-|&()[]<>~^";
 
 
 yycosts()

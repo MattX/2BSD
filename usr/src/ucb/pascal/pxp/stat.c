@@ -10,7 +10,7 @@
 #include "tree.h"
 
 int cntstat;
-int cnts 2;
+int cnts = 2;
 
 statlist(r)
 	int *r;

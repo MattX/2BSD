@@ -1,14 +1,20 @@
-.TH A.OUT 5 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)a.out.5	2.3 (Berkeley) 1/26/87
+.\"
+.TH A.OUT 5 "January 26, 1987"
+.UC 2
 .SH NAME
-a.out \- assembler and loader output
+a.out \- assembler and link editor output
 .SH SYNOPSIS
 .B #include <a.out.h>
 .SH DESCRIPTION
 .I A.out
 is the output file of the assembler
 .IR as (1)
-and the loader
+and the link editor
 .IR ld (1).
 Both programs make
 .I a.out
@@ -17,70 +23,52 @@ errors and no unresolved external references.
 Layout information as given in the include file for the PDP11 is:
 .PP
 .nf
-.ta 8n +9n +11n
-.PP
-#define NOVL	7
-
-#define	A_MAGIC1	0407       	/* normal */
-#define	A_MAGIC2	0410       	/* read-only text */
-#define	A_MAGIC3	0411       	/* separated I&D */
-#define	A_MAGIC4	0405       	/* overlay */
-#define	A_MAGIC5	0430       	/* auto-overlay (nonseparate) */
-#define	A_MAGIC6	0431       	/* auto-overlay (separate)  */
-
+.ta \w'#define  'u +\w'unsigned int  'u +\w'ov_siz[NOVL]  'u
+/*
+ * Header prepended to each a.out file.
+ */
 struct	exec {
-	int     	a_magic;	/* magic number */
-	unsigned	a_text; 	/* size of text segment */
-	unsigned	a_data; 	/* size of initialized data */
-	unsigned	a_bss;  	/* size of uninitialized data */
-	unsigned	a_syms; 	/* size of symbol table */
-	unsigned	a_entry; 	/* entry point */
-	unsigned	a_unused;	/* not used */
-	unsigned	a_flag; 	/* relocation info stripped */
+	int	a_magic;	/* magic number */
+	unsigned int	a_text;		/* size of text segment */
+	unsigned int	a_data;		/* size of initialized data */
+	unsigned int	a_bss;		/* size of uninitialized data */
+	unsigned int	a_syms;		/* size of symbol table */
+	unsigned int	a_entry; 	/* entry point */
+	unsigned int	a_unused;	/* not used */
+	unsigned int	a_flag; 	/* relocation info stripped */
 };
 
+#define	NOVL	15		/* number of overlays */
 struct	ovlhdr {
-	int		max_ovl;	/* maximum ovl size */
-	unsigned	ov_siz[NOVL];	/* size of i'th overlay */
+	int	max_ovl;	/* maximum overlay size */
+	unsigned int	ov_siz[NOVL];	/* size of i'th overlay */
 };
 
-struct	nlist {
-	char    	n_name[8];	/* symbol name */
-	int     	n_type;    	/* type flag */
-	unsigned	n_value;	/* value */
-};
+#define	A_MAGIC1	0407	/* normal */
+#define	A_MAGIC2	0410	/* read-only text */
+#define	A_MAGIC3	0411	/* separated I&D */
+#define	A_MAGIC4	0405	/* overlay */
+#define	A_MAGIC5	0430	/* auto-overlay (nonseparate) */
+#define	A_MAGIC6	0431	/* auto-overlay (separate) */
 
 /*
  * Macros which take exec structures as arguments and tell whether
  * the file has a reasonable magic number or offset to text.
  */
-#define	N_BADMAG(x) \\
-    (((x).a_magic)!=A_MAGIC1 && ((x).a_magic)!=A_MAGIC2 && \\
-     ((x).a_magic)!=A_MAGIC3 && ((x).a_magic)!=A_MAGIC4 && \\
-     ((x).a_magic)!=A_MAGIC5 && ((x).a_magic)!=A_MAGIC6)
+#define	N_BADMAG(x) \e
+	(((x).a_magic)!=A_MAGIC1 && ((x).a_magic)!=A_MAGIC2 && \e
+	((x).a_magic)!=A_MAGIC3 && ((x).a_magic)!=A_MAGIC4 && \e
+	((x).a_magic)!=A_MAGIC5 && ((x).a_magic)!=A_MAGIC6)
 
-#define	N_TXTOFF(x) \\
-	((x).a_magic==A_MAGIC5 || (x).a_magic==A_MAGIC6 ? \\
-	 sizeof (struct ovlhdr) + sizeof (struct exec) : sizeof (struct exec))
-
-		/* values for type flag */
-#define	N_UNDF	0	/* undefined */
-#define	N_ABS	01	/* absolute */
-#define	N_TEXT	02	/* text symbol */
-#define	N_DATA	03	/* data symbol */
-#define	N_BSS	04	/* bss symbol */
-#define	N_TYPE	037	/* mask for type flag */
-#define	N_REG	024	/* register name */
-#define	N_FN	037	/* file name symbol */
-#define	N_EXT	040	/* external bit, or'ed in */
-#define	FORMAT	"%06o"	/* to print a value */
+#define	N_TXTOFF(x) \e
+	((x).a_magic==A_MAGIC5 || (x).a_magic==A_MAGIC6 ? \e
+	sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
 .fi
 .PP
 The file has four sections:
-a header, the program and data text,
-relocation information, and a symbol table
-(in that order).
-The last two may be empty
+a header, the program text and data,
+relocation information, and a symbol table (in that order).
+The last two may be omitted
 if the program was loaded
 with the `\-s' option
 of
@@ -94,57 +82,107 @@ The size of the header is not included in any of the other sizes.
 .PP
 When an
 .I a.out
-file is loaded into core for execution, three or four logical segments are
+file is executed, three or four logical segments are
 set up: the text segment, a possible text overlay segment, the data segment
 (with uninitialized data, which starts off as all 0, following
 initialized),
 and a stack.
 The text segment begins at 0
 in the core image; the header is not loaded.
-If the magic number in the header is 0407(8), it indicates that the text
+.PP
+.IR "Non-overlaid objects" :
+If the magic number in the header is A_MAGIC1 (0407),
+it indicates that the text
 segment is not to be write-protected and shared,
 so the data segment is immediately contiguous
 with the text segment.
-If the magic number is 0410,
+This is the oldest kind of executable program and is the default;
+it should not be used for production binaries.
+If the magic number is A_MAGIC2 (0410),
 the data segment begins at the first 0 mod 8K byte
 boundary following the text segment,
 and the text segment is not writable by the program;
 if other processes are executing the same file,
 they will share the text segment.
-If the magic number is 0411,
+If the magic number is A_MAGIC3 (0411),
 the text segment is again pure, write-protected, and shared,
 and moreover instruction and data space are separated;
 the text and data segment both begin at location 0.
-If the magic number is 0405, the text segment
-is overlaid on an existing (0411 or 0405) text segment
-and the existing data segment is preserved.
+This format is only runnable on processors which support
+separate instruction and data space but can provide significantly
+more data space than an A_MAGIC2 format of the same object.
 .PP
-If the magic number is 0430, the base text segment is
+.I "Text replacement objects" :
+If the magic number is A_MAGIC4 (0405), the text segment
+is overlaid on an existing non-overlaid pure (A_MAGIC2 or A_MAGIC3)
+or text replacement (A_MAGIC4)
+text segment and the existing data segment is preserved.
+The text segment of the previous memory image must be the same size as
+that of the text replacement object being loaded.
+There is, unfortunately, no loader support to help achieve this requirement.
+The text replacement format is useful for objects which need a large
+amount of data space on non-separate I&D processors.
+.PP
+.I "Overlaid objects" :
+If the magic number is A_MAGIC5 (0430), a base text segment is
 write-protected and shared and is followed by a text overlay segment.
-There are a maximum of 7 overlays, all pure and shared.
+There are a maximum of NOVL overlays, all pure and shared.
 The base segment runs from 0 to txtsiz.
-At the next 0 mod 8k boundary is the overlay region,
+The overlay region begins at the next 0 mod 8k byte boundary,
 which is as large as the largest overlay.
-When running, any one of the 7 overlays can be mapped into this region.
-At the following 0 mod 8k byte boundary the data segment begins.
-If the magic number is 0431, the situation is the same as for
-type 0430 except that instruction and data spaces are separated
+When running, any one of the overlays can be mapped into this region.
+The data segment begins at the following 0 mod 8k byte boundary.
+If the magic number is A_MAGIC6 (0431), the situation is the same as for
+type A_MAGIC5 except that instruction and data spaces are separated
 and both begin at location 0.
-Both 0430 and 0431 executable files have a second header between
+As with the A_MAGIC3 format, an
+.I a.out
+in A_MAGIC6 format can only be run on a processor which supports
+separate I&D, but again can provide significantly more data space
+than A_MAGIC5 format.
+Both A_MAGIC5 and A_MAGIC6 executable files have a second header between
 the normal a.out header and the start of the text image;
-it contains the maximum overlay size and the sizes of each of the
-seven overlays.
-The text images of the overlays follow the text in the object
-file, and are followed by the initialized data.
+it contains the maximum overlay size and the sizes of each of the overlays.
+The text images of the overlays follow the text in the object file.
 .PP
 The stack segment will occupy the highest possible locations
-in the core image: from 0177776(8) and growing downwards.
+in the core image: growing downwards from 0177776(8).
 The stack segment is automatically extended as required.
 The data segment is only extended as requested by
 .IR brk (2).
 .PP
 The layout of a symbol table entry and the principal flag values
-that distinguish symbol types are given in the include file.
+that distinguish symbol types are given in the include file as follows:
+.PP
+.nf
+.ta \w'#define  'u +\w'unsigned int  'u +\w'n_name[8]  'u
+.PP
+struct	nlist {
+	char	n_name[8];	/* symbol name */
+	int	n_type;		/* type flag */
+	unsigned int	n_value;	/* value */
+};
+
+/*
+ * Simple values for n_type.
+ */
+#define	N_UNDF	0x0		/* undefined */
+#define	N_ABS	0x1		/* absolute */
+#define	N_TEXT	0x2		/* text symbol */
+#define	N_DATA	0x3		/* data symbol */
+#define	N_BSS	0x4		/* bss symbol */
+#define	N_REG	0x14		/* register name */
+#define	N_FN	0x1f		/* file name symbol */
+
+#define	N_EXT	0x20		/* external bit, or'ed in */
+#define	N_TYPE	0x1f		/* mask for all the type bits */
+
+/*
+ * Format for namelist values.
+ */
+#define	N_FORMAT	"%06o"
+.fi
+.PP
 Other flag values may occur if an assembly language program
 defines machine instructions.
 .PP
@@ -157,15 +195,14 @@ the name of a common region
 whose size is indicated by the value of the
 symbol.
 .PP
-The value of a word in the text or data portions which is not
-a reference to an undefined external symbol
-is exactly that value which will appear in core
+The value of a word in the text or data which is not
+a portion of a reference to an undefined external symbol
+is exactly that value which will appear in memory
 when the file is executed.
-If a word in the text or data portion
+If a word in the text or data
 involves a reference to an undefined external symbol,
-as indicated by the relocation information
-for that word,
-then the value of the word as stored in the file
+as indicated by the relocation information,
+then the value stored in the file
 is an offset from the associated external symbol.
 When the file is processed by the
 link editor and the external symbol becomes
@@ -177,10 +214,10 @@ information is present, it amounts to one word per
 word of program text or initialized data.
 There is no relocation information if the `relocation info stripped'
 flag in the header is on.
-Automatic-overlay (0430 and 0431) files do not contain relocation
+Automatic-overlay (A_MAGIC5 and A_MAGIC6) files do not contain relocation
 information.
 .PP
-Bits 3-1 of a relocation word indicate the segment referred
+Bits 1-3 of a relocation word indicate the segment referred
 to by the text or data word associated with the relocation
 word:
 .TP
@@ -220,4 +257,45 @@ contains a symbol number in the case of external
 references, and is unused otherwise.
 The first symbol is numbered 0, the second 1, etc.
 .SH "SEE ALSO"
-as(1), ld(1), nm(1)
+as(1), ld(1), nm(1), strip(1), nlist(3)
+.SH BUGS
+The fixed maximum of eight characters for symbol names in
+.I a.out
+files leads to naming collisions between symbols which aren't unique
+within the first eight characters.  The problem is compounded by the C
+compiler which prefaces all external symbol names with a `_' causing
+external names not unique within the first seven characters to
+collide.  The compiler will note name collisions when they occur within
+a single file.  The loader
+.I ld
+will not flag name collisions of any kind between separate objects even when
+an error is obvious.
+.PP
+There is really little that can be done about this.  Some thought is being
+given to modifying the loader to flag detectable collisions, but the real
+solution would be to change over to the
+.I 4BSD a.out
+format.  This would involve modifying the compiler
+.RI ( /lib/c[012] ),
+assembler
+.RI ( /bin/as " and " /lib/as2 )
+and
+.IR adb (1)
+and then simply porting the 4.3BSD
+.IR ld (1),
+.IR nm (1),
+.IR ranlib (1),
+.IR strip "(1) and"
+.IR nlist (3).
+Or perhaps simply porting the entire 4.3BSD suite might be best ...  Anyone
+interested in a project?
+.PP
+In the meantime, letting the compiler catch any collisions it can and then
+scanning the loaded object file for symbol names eight characters long and
+then using that list to rescan the source seems to be the best method for
+finding collisions.  Once a list of collisions is build, the C preprocessor
+.I cpp
+can be used to translate the offending names into shorter unique names since
+.I cpp
+uses
+.IR FLEXNAMES .

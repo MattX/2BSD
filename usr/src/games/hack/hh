@@ -18,17 +18,19 @@ O	set	set options
 v	version	print version number
 ^R	redraw	redraw the screen (^R denotes the symbol CTRL/R)
 ^P	print	repeat last message  (subsequent ^P's repeat earlier messages)
+#		introduces a long command; not really implemented
 
 Game commands:
+^T	teleport teleport
 a	apply, use  use something (a key, camera, etc.)
 c	call	give a name to a class of objects
 d	drop	drop an object. d7a: drop seven items of object a.
 e	eat	eat something
-I	invent	list the inventory (all objects you are carrying)
-i	invent	list selected parts of the inventory
-		iu: list unpaid objects
-		ix: list unpaid but used up items
-		i$: count your money
+i	invent	list the inventory (all objects you are carrying)
+I	invent	list selected parts of the inventory
+		IU: list unpaid objects
+		IX: list unpaid but used up items
+		I$: count your money
 p	pay	pay your bill
 q	drink	quaff a potion
 r	read	read a scroll

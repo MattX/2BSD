@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t4.c	4.2 8/11/83";
+#endif
+
  /* t4.c: read table specification */
 # include "t..c"
 int oncol;

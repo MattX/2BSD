@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)rev.c	4.1 (Berkeley) 10/1/80";
 #include <stdio.h>
 
 /* reverse lines of a file */

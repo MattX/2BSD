@@ -1,6 +1,20 @@
-# include "sendmail.h"
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
-SCCSID(@(#)err.c	4.1		7/25/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)err.c	5.7 (Berkeley) 11/22/85";
+#endif
+
+# include "sendmail.h"
+# include <errno.h>
+# include <netdb.h>
 
 /*
 **  SYSERR -- Print error message.
@@ -31,32 +45,33 @@ char	MsgBuf[BUFSIZ*2];	/* text of most recent message */
 syserr(fmt, a, b, c, d, e)
 	char *fmt;
 {
+	register char *p;
+	int olderrno = errno;
 	extern char Arpa_PSyserr[];
 	extern char Arpa_TSyserr[];
-	register char *p;
 
 	/* format and output the error message */
-	if (errno == 0)
+	if (olderrno == 0)
 		p = Arpa_PSyserr;
 	else
 		p = Arpa_TSyserr;
-	fmtmsg(MsgBuf, (char *) NULL, p, fmt, a, b, c, d, e);
+	fmtmsg(MsgBuf, (char *) NULL, p, olderrno, fmt, a, b, c, d, e);
 	puterrmsg(MsgBuf);
 
 	/* determine exit status if not already set */
 	if (ExitStat == EX_OK)
 	{
-		if (errno == 0)
+		if (olderrno == 0)
 			ExitStat = EX_SOFTWARE;
 		else
 			ExitStat = EX_OSERR;
 	}
 
-	/* insure that we have a queue id for logging */
-	(void) queuename(CurEnv, '\0');
 # ifdef LOG
 	if (LogLevel > 0)
-		syslog(LOG_ERR, "%s: SYSERR: %s", CurEnv->e_id, &MsgBuf[4]);
+		syslog(LOG_CRIT, "%s: SYSERR: %s",
+			CurEnv->e_id == NULL ? "NOQUEUE" : CurEnv->e_id,
+			&MsgBuf[4]);
 # endif LOG
 	errno = 0;
 	if (QuickAbort)
@@ -84,11 +99,12 @@ usrerr(fmt, a, b, c, d, e)
 {
 	extern char SuprErrs;
 	extern char Arpa_Usrerr[];
+	extern int errno;
 
 	if (SuprErrs)
 		return;
 
-	fmtmsg(MsgBuf, CurEnv->e_to, Arpa_Usrerr, fmt, a, b, c, d, e);
+	fmtmsg(MsgBuf, CurEnv->e_to, Arpa_Usrerr, errno, fmt, a, b, c, d, e);
 	puterrmsg(MsgBuf);
 
 	if (QuickAbort)
@@ -116,7 +132,7 @@ message(num, msg, a, b, c, d, e)
 	register char *msg;
 {
 	errno = 0;
-	fmtmsg(MsgBuf, CurEnv->e_to, num, msg, a, b, c, d, e);
+	fmtmsg(MsgBuf, CurEnv->e_to, num, 0, msg, a, b, c, d, e);
 	putmsg(MsgBuf, FALSE);
 }
 /*
@@ -127,7 +143,7 @@ message(num, msg, a, b, c, d, e)
 **	Parameters:
 **		num -- the default ARPANET error number (in ascii)
 **		msg -- the message (printf fmt) -- if it begins
-**			with a digit, this number overrides num.
+**			with three digits, this number overrides num.
 **		a, b, c, d, e -- printf arguments
 **
 **	Returns:
@@ -143,7 +159,7 @@ nmessage(num, msg, a, b, c, d, e)
 	register char *msg;
 {
 	errno = 0;
-	fmtmsg(MsgBuf, (char *) NULL, num, msg, a, b, c, d, e);
+	fmtmsg(MsgBuf, (char *) NULL, num, 0, msg, a, b, c, d, e);
 	putmsg(MsgBuf, FALSE);
 }
 /*
@@ -167,9 +183,9 @@ putmsg(msg, holdmsg)
 	char *msg;
 	bool holdmsg;
 {
-	/* output to transcript */
-	if (CurEnv->e_xfp != NULL)
-		fprintf(CurEnv->e_xfp, "%s\n", OpMode == MD_SMTP ? msg : &msg[4]);
+	/* output to transcript if serious */
+	if (CurEnv->e_xfp != NULL && (msg[0] == '4' || msg[0] == '5'))
+		fprintf(CurEnv->e_xfp, "%s\n", msg);
 
 	/* output to channel if appropriate */
 	if (!holdmsg && (Verbose || msg[0] != '0'))
@@ -213,6 +229,7 @@ puterrmsg(msg)
 **		eb -- error buffer to get result.
 **		to -- the recipient tag for this message.
 **		num -- arpanet error number.
+**		en -- the error number to display.
 **		fmt -- format of string.
 **		a, b, c, d, e -- arguments.
 **
@@ -223,18 +240,19 @@ puterrmsg(msg)
 **		none.
 */
 
-/*VARARGS4*/
+/*VARARGS5*/
 static
-fmtmsg(eb, to, num, fmt, a, b, c, d, e)
+fmtmsg(eb, to, num, eno, fmt, a, b, c, d, e)
 	register char *eb;
 	char *to;
 	char *num;
+	int eno;
 	char *fmt;
 {
 	char del;
 
 	/* output the reply code */
-	if (isdigit(*fmt))
+	if (isdigit(fmt[0]) && isdigit(fmt[1]) && isdigit(fmt[2]))
 	{
 		num = fmt;
 		fmt += 4;
@@ -267,14 +285,85 @@ fmtmsg(eb, to, num, fmt, a, b, c, d, e)
 		*eb++ &= 0177;
 
 	/* output the error code, if any */
-	if (errno != 0)
+	if (eno != 0)
 	{
-		extern int sys_nerr;
-		extern char *sys_errlist[];
-		if (errno < sys_nerr && errno > 0)
-			(void) sprintf(eb, ": %s", sys_errlist[errno]);
-		else
-			(void) sprintf(eb, ": error %d", errno);
+		extern char *errstring();
+
+		(void) sprintf(eb, ": %s", errstring(eno));
 		eb += strlen(eb);
 	}
+}
+/*
+**  ERRSTRING -- return string description of error code
+**
+**	Parameters:
+**		errno -- the error number to translate
+**
+**	Returns:
+**		A string description of errno.
+**
+**	Side Effects:
+**		none.
+*/
+
+char *
+errstring(errno)
+	int errno;
+{
+	extern char *sys_errlist[];
+	extern int sys_nerr;
+	static char buf[100];
+# ifdef SMTP
+	extern char *SmtpPhase;
+# endif SMTP
+
+# ifdef DAEMON
+# ifdef VMUNIX
+	/*
+	**  Handle special network error codes.
+	**
+	**	These are 4.2/4.3bsd specific; they should be in daemon.c.
+	*/
+
+	switch (errno)
+	{
+	  case ETIMEDOUT:
+	  case ECONNRESET:
+		(void) strcpy(buf, sys_errlist[errno]);
+		if (SmtpPhase != NULL)
+		{
+			(void) strcat(buf, " during ");
+			(void) strcat(buf, SmtpPhase);
+		}
+		if (CurHostName != NULL)
+		{
+			(void) strcat(buf, " with ");
+			(void) strcat(buf, CurHostName);
+		}
+		return (buf);
+
+	  case EHOSTDOWN:
+		if (CurHostName == NULL)
+			break;
+		(void) sprintf(buf, "Host %s is down", CurHostName);
+		return (buf);
+
+	  case ECONNREFUSED:
+		if (CurHostName == NULL)
+			break;
+		(void) sprintf(buf, "Connection refused by %s", CurHostName);
+		return (buf);
+
+	  case (TRY_AGAIN+MAX_ERRNO):
+		(void) sprintf(buf, "Host Name Lookup Failure");
+		return (buf);
+	}
+# endif VMUNIX
+# endif DAEMON
+
+	if (errno > 0 && errno < sys_nerr)
+		return (sys_errlist[errno]);
+
+	(void) sprintf(buf, "Error %d", errno);
+	return (buf);
 }

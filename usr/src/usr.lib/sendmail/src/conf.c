@@ -1,5 +1,22 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)conf.c	5.14 (Berkeley) 1/10/86";
+#endif
+
 # include <pwd.h>
 # include <sys/ioctl.h>
+# ifdef sun
+# include <sys/param.h>
+# endif sun
 # include "sendmail.h"
 
 /*
@@ -34,10 +51,6 @@
 
 
 
-SCCSID(@(#)conf.c	4.4		8/28/83);
-
-
-
 /*
 **  Header info table
 **	Final (null) entry contains the flags used for any other field.
@@ -53,8 +66,10 @@ struct hdrinfo	HdrInfo[] =
 		/* originator fields, most to least significant  */
 	"resent-sender",	H_FROM|H_RESENT,
 	"resent-from",		H_FROM|H_RESENT,
+	"resent-reply-to",	H_FROM|H_RESENT,
 	"sender",		H_FROM,
 	"from",			H_FROM,
+	"reply-to",		H_FROM,
 	"full-name",		H_ACHECK,
 	"return-receipt-to",	H_FROM,
 	"errors-to",		H_FROM,
@@ -103,12 +118,40 @@ char	*FreezeFile =	"/usr/lib/sendmail.fc";	/* frozen version of above */
 
 
 /*
-**  Some other configuration....
+**  Miscellaneous stuff.
 */
 
-char	SpaceSub =	'.';	/* character to replace <lwsp> in addrs */
-int	QueueLA =	8;	/* load avg > QueueLA -> just queue */
-int	RefuseLA =	12;	/* load avg > RefuseLA -> refuse connections */
+int	DtableSize =	50;		/* max open files; reset in 4.2bsd */
+/*
+**  SETDEFAULTS -- set default values
+**
+**	Because of the way freezing is done, these must be initialized
+**	using direct code.
+**
+**	Parameters:
+**		none.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Initializes a bunch of global variables to their
+**		default values.
+*/
+
+setdefaults()
+{
+	QueueLA = 8;
+	QueueFactor = 10000;
+	RefuseLA = 12;
+	SpaceSub = ' ';
+	WkRecipFact = 1000;
+	WkClassFact = 1800;
+	WkTimeFact = 9000;
+	FileMode = 0644;
+	DefUid = 1;
+	DefGid = 1;
+}
 
 # ifdef V6
 /*
@@ -313,9 +356,41 @@ getrgid()
 char *
 username()
 {
+	static char *myname = NULL;
 	extern char *getlogin();
+	register struct passwd *pw;
+	extern struct passwd *getpwuid();
 
-	return (getlogin());
+	/* cache the result */
+	if (myname == NULL)
+	{
+		myname = getlogin();
+		if (myname == NULL || myname[0] == '\0')
+		{
+
+			pw = getpwuid(getruid());
+			if (pw != NULL)
+				myname = pw->pw_name;
+		}
+		else
+		{
+
+			pw = getpwnam(myname);
+			if(getuid() != pw->pw_uid)
+			{
+				pw = getpwuid(getuid());
+				if (pw != NULL)
+					myname = pw->pw_name;
+			}
+		}
+		if (myname == NULL || myname[0] == '\0')
+		{
+			syserr("Who are you?");
+			myname = "postmaster";
+		}
+	}
+
+	return (myname);
 }
 /*
 **  TTYPATH -- Get the path of the user's tty
@@ -472,6 +547,17 @@ rlsesigs()
 */
 
 #ifdef VMUNIX
+#ifdef BSD2_10
+
+getla()
+{
+	double avenrun[3];
+
+	loadav(avenrun);
+	return(avenrun[0]);
+}
+
+#else !BSD2_10
 
 #include <nlist.h>
 
@@ -485,23 +571,37 @@ struct	nlist Nl[] =
 getla()
 {
 	static int kmem = -1;
+# ifdef sun
+	long avenrun[3];
+# else
 	double avenrun[3];
+# endif
+	extern off_t lseek();
 
 	if (kmem < 0)
 	{
-		kmem = open("/dev/kmem", 0);
+		kmem = open("/dev/kmem", 0, 0);
 		if (kmem < 0)
 			return (-1);
-		(void) ioctl(kmem, FIOCLEX, 0);
-		nlist("/unix", Nl);
+		(void) ioctl(kmem, FIOCLEX, (char *) 0);
+		nlist("/vmunix", Nl);
 		if (Nl[0].n_type == 0)
 			return (-1);
 	}
-	(void) lseek(kmem, (long) Nl[X_AVENRUN].n_value, 0);
-	(void) read(kmem, avenrun, sizeof(avenrun));
+	if (lseek(kmem, (off_t) Nl[X_AVENRUN].n_value, 0) == -1 ||
+	    read(kmem, (char *) avenrun, sizeof(avenrun)) < (int)sizeof(avenrun))
+	{
+		/* thank you Ian */
+		return (-1);
+	}
+# ifdef sun
+	return ((int) (avenrun[0] + FSCALE/2) >> FSHIFT);
+# else
 	return ((int) (avenrun[0] + 0.5));
+# endif
 }
 
+#endif BSD2_10
 #else VMUNIX
 
 getla()
@@ -510,3 +610,106 @@ getla()
 }
 
 #endif VMUNIX
+/*
+**  SHOULDQUEUE -- should this message be queued or sent?
+**
+**	Compares the message cost to the load average to decide.
+**
+**	Parameters:
+**		pri -- the priority of the message in question.
+**
+**	Returns:
+**		TRUE -- if this message should be queued up for the
+**			time being.
+**		FALSE -- if the load is low enough to send this message.
+**
+**	Side Effects:
+**		none.
+*/
+
+bool
+shouldqueue(pri)
+	long pri;
+{
+	int la;
+
+	la = getla();
+	if (la < QueueLA)
+		return (FALSE);
+	return (pri > (QueueFactor / (la - QueueLA + 1)));
+}
+/*
+**  SETPROCTITLE -- set process title for ps
+**
+**	Parameters:
+**		fmt -- a printf style format string.
+**		a, b, c -- possible parameters to fmt.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Clobbers argv of our main procedure so ps(1) will
+**		display the title.
+*/
+
+/*VARARGS1*/
+setproctitle(fmt, a, b, c)
+	char *fmt;
+{
+# ifdef SETPROCTITLE
+	register char *p;
+	register int i;
+	extern char **Argv;
+	extern char *LastArgv;
+	char buf[MAXLINE];
+
+	(void) sprintf(buf, fmt, a, b, c);
+
+	/* make ps print "(sendmail)" */
+	p = Argv[0];
+	*p++ = '-';
+
+	i = strlen(buf);
+	if (i > LastArgv - p - 2)
+	{
+		i = LastArgv - p - 2;
+		buf[i] = '\0';
+	}
+	(void) strcpy(p, buf);
+	p += i;
+	while (p < LastArgv)
+		*p++ = ' ';
+# endif SETPROCTITLE
+}
+/*
+**  REAPCHILD -- pick up the body of my child, lest it become a zombie
+**
+**	Parameters:
+**		none.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Picks up extant zombies.
+*/
+
+# ifdef VMUNIX
+# include <sys/wait.h>
+# endif VMUNIX
+
+reapchild()
+{
+# ifdef WNOHANG
+	union wait status;
+
+	while (wait3(&status, WNOHANG, (struct rusage *) NULL) > 0)
+		continue;
+# else WNOHANG
+	auto int status;
+
+	while (wait(&status) > 0)
+		continue;
+# endif WNOHANG
+}

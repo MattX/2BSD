@@ -1,7 +1,13 @@
-.TH NICE 1 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)nice.1	6.2 (Berkeley) 5/8/86
+.\"
+.TH NICE 1 "May 8, 1986"
+.UC 4
 .SH NAME
-nice, nohup \- run a command at low priority
+nice, nohup \- run a command at low priority (\fIsh\fR only)
 .SH SYNOPSIS
 .B nice
 [
@@ -40,11 +46,32 @@ prevent it from responding to interrupts by or
 stealing the input from
 the next person who logs in on the same terminal.
 .SH FILES
-.ta 2i
 nohup.out	standard output and standard error file under
 .I nohup
 .SH "SEE ALSO"
-csh(1), nice(1), renice(1), nice(2), renice(2)
+csh(1), setpriority(2), renice(8)
 .SH DIAGNOSTICS
 .I Nice
 returns the exit status of the subject command.
+.SH BUGS
+.I Nice
+and
+.I nohup
+are particular to
+.IR sh (1).
+If you use
+.IR csh (1),
+then commands executed with ``&'' are automatically immune to hangup
+signals while in the background.
+There is a builtin command
+.I nohup
+which provides immunity from terminate, but it does not
+redirect output to
+.I nohup.out.
+.PP
+.I Nice
+is built into
+.IR csh (1)
+with a slightly different syntax than described here.  The form
+``nice +10'' nices to positive nice, and ``nice \-10'' can be used
+by the super-user to give a process more of the processor.

@@ -1,9 +1,0 @@
-ex  termcap.src < reorder
-"termcap.src" 2123 lines, 99191 characters
-        :am:le=^H:bs:cl=^Z:li#24:ma=^K^P:co#80:
-        :ma=^Hh^Jj^Kk^Ll^^H:se=\EG:sg#1:so=\EG:tc=adm3aplus:
-8 lines moved
-        :se=\EG0:so=\EG1:up=^K:us=\EG1:ue=\EG0:
-        :le=^H:bs:cm=\E=%+ %+ :cl=1^Z:co#80:ho=^^:li#24:ma=^K^P:nd=^L:up=^K:
-10 lines moved
-        :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)ping.c	4.6 (Berkeley) 10/30/86";
+#endif
+
 /*
  *			P I N G . C
  *
@@ -8,27 +12,21 @@
  *	Mike Muuss
  *	U. S. Army Ballistic Research Laboratory
  *	December, 1983
- *
- * Target System -
- *	4.2 BSD with MIT and BRL fixes to /sys/netinet/ip_icmp.c et.al.
+ * Modified at Uc Berkeley
  *
  * Status -
  *	Public Domain.  Distribution Unlimited.
  *
  * Bugs -
- *	Divide by zero if no packets return.
  *	More statistics could always be gathered.
  *	This program has to run SUID to ROOT to access the ICMP socket.
  */
-#ifndef lint
-static char RCSid[] = "@(#)$Header: ping.c,v 1.5 84/02/24 23:17:14 mike Exp $ (BRL)";
-#endif
 
 #include <stdio.h>
-#include <sys/param.h>
 #include <errno.h>
 #include <sys/time.h>
 
+#include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/file.h>
 
@@ -36,8 +34,15 @@ static char RCSid[] = "@(#)$Header: ping.c,v 1.5 84/02/24 23:17:14 mike Exp $ (B
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <netdb.h>
 
-#define MAXPACKET	4096
+#define	MAXWAIT		10	/* max time to wait for response, sec. */
+#define	MAXPACKET	4096	/* max packet size */
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN	64
+#endif
+
+int	verbose;
 u_char	packet[MAXPACKET];
 int	options;
 extern	int errno;
@@ -49,20 +54,22 @@ struct timezone tz;	/* leftover */
 struct sockaddr whereto;/* Who to ping */
 int datalen;		/* How much data */
 
-char usage[] = "Usage:  ping [-d] host [data size]\n";
+char usage[] = "Usage:  ping [-drv] host [data size] [npackets]\n";
 
 char *hostname;
-char hnamebuf[64];
+char hnamebuf[MAXHOSTNAMELEN];
+char *inet_ntoa();
 
-int ntransmitted = 1;		/* sequence # for outbound packets = #sent */
+int npackets;
+int ntransmitted = 0;		/* sequence # for outbound packets = #sent */
 int ident;
 
 int nreceived = 0;		/* # of packets we got back */
 int timing = 0;
-int tmin = 999999999;
-int tmax = 0;
-int tsum = 0;			/* sum of all times, for doing average */
-int finish();
+long tmin = 99999999;
+long tmax = 0;
+long tsum = 0;			/* sum of all times, for doing average */
+int finish(), catcher();
 
 /*
  * 			M A I N
@@ -72,58 +79,88 @@ char *argv[];
 {
 	struct sockaddr_in from;
 	char **av = argv;
+	char *toaddr = NULL;
 	struct sockaddr_in *to = (struct sockaddr_in *) &whereto;
+	int on = 1;
+	struct protoent *proto;
 
-	if (argc > 0 && !strcmp(argv[1], "-d"))  {
-		options |= SO_DEBUG;
+	argc--, av++;
+	while (argc > 0 && *av[0] == '-') {
+		while (*++av[0]) switch (*av[0]) {
+			case 'd':
+				options |= SO_DEBUG;
+				break;
+			case 'r':
+				options |= SO_DONTROUTE;
+				break;
+			case 'v':
+				verbose++;
+				break;
+		}
 		argc--, av++;
 	}
-	
-	if( argc < 2 || argc > 3 )  {
+	if( argc < 1)  {
 		printf(usage);
 		exit(1);
 	}
 
 	bzero( (char *)&whereto, sizeof(struct sockaddr) );
-	hp = gethostbyname(av[1]);
-	if (hp) {
-		to->sin_family = hp->h_addrtype;
-		bcopy(hp->h_addr, (caddr_t)&to->sin_addr, hp->h_length);
-		hostname = hp->h_name;
-	} else {
-		to->sin_family = AF_INET;
-		to->sin_addr.s_addr = inet_addr(av[1]);
-		if (to->sin_addr.s_addr == -1) {
-			printf("ping: unknown host %s\n", av[1]);
-			return;
-		}
-		strcpy(hnamebuf, argv[1]);
+	to->sin_family = AF_INET;
+	to->sin_addr.s_addr = inet_addr(av[0]);
+	if (to->sin_addr.s_addr != -1) {
+		strcpy(hnamebuf, av[0]);
 		hostname = hnamebuf;
+	} else {
+		hp = gethostbyname(av[0]);
+		if (hp) {
+			to->sin_family = hp->h_addrtype;
+			bcopy(hp->h_addr, (caddr_t)&to->sin_addr, hp->h_length);
+			hostname = hp->h_name;
+			toaddr = inet_ntoa(to->sin_addr.s_addr);
+		} else {
+			printf("%s: unknown host %s\n", argv[0], av[0]);
+			exit(1);
+		}
 	}
 
-	if( argc == 3 )
-		datalen = atoi( argv[2] );
+	if( argc >= 2 )
+		datalen = atoi( av[1] );
 	else
 		datalen = 64-8;
-	if( datalen > MAXPACKET )  {
-		printf("ping:  packet size too big\n");
+	if (datalen > MAXPACKET) {
+		fprintf(stderr, "ping: packet size too large\n");
 		exit(1);
 	}
 	if (datalen >= sizeof(struct timeval))
 		timing = 1;
+	if (argc > 2)
+		npackets = atoi(av[2]);
 
 	ident = getpid() & 0xFFFF;
 
-	while ((s = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
-		perror("ping: socket");
-		sleep(5);
+	if ((proto = getprotobyname("icmp")) == NULL) {
+		fprintf(stderr, "icmp: unknown protocol\n");
+		exit(10);
 	}
+	if ((s = socket(AF_INET, SOCK_RAW, proto->p_proto)) < 0) {
+		perror("ping: socket");
+		exit(5);
+	}
+	if (options & SO_DEBUG)
+		setsockopt(s, SOL_SOCKET, SO_DEBUG, &on, sizeof(on));
+	if (options & SO_DONTROUTE)
+		setsockopt(s, SOL_SOCKET, SO_DONTROUTE, &on, sizeof(on));
 
-	printf("PING %s: %d data bytes\n", hostname, datalen );
+	printf("PING %s", hostname);
+	if (toaddr)
+		printf(" (%s)", toaddr);
+	printf(": %d data bytes\n", datalen);
+				
 
 	setlinebuf( stdout );
 
 	signal( SIGINT, finish );
+	signal(SIGALRM, catcher);
 
 	catcher();	/* start things going */
 
@@ -132,7 +169,6 @@ char *argv[];
 		int fromlen = sizeof (from);
 		int cc;
 
-		/* cc = recvfrom(s, buf, len, flags, from, fromlen) */
 		if ( (cc=recvfrom(s, packet, len, 0, &from, &fromlen)) < 0) {
 			if( errno == EINTR )
 				continue;
@@ -140,6 +176,8 @@ char *argv[];
 			continue;
 		}
 		pr_pack( packet, cc, &from );
+		if (npackets && nreceived >= npackets)
+			finish();
 	}
 	/*NOTREACHED*/
 }
@@ -157,9 +195,21 @@ char *argv[];
  */
 catcher()
 {
-	signal( SIGALRM, catcher );
+	int waittime;
+
 	pinger();
-	alarm(1);
+	if (npackets == 0 || ntransmitted < npackets)
+		alarm(1);
+	else {
+		if (nreceived) {
+			waittime = 2 * tmax / 1000;
+			if (waittime == 0)
+				waittime = 1;
+		} else
+			waittime = MAXWAIT;
+		signal(SIGALRM, finish);
+		alarm(waittime);
+	}
 }
 
 /*
@@ -173,7 +223,7 @@ catcher()
  */
 pinger()
 {
-	static u_char outpack[1024];
+	static u_char outpack[MAXPACKET];
 	register struct icmp *icp = (struct icmp *) outpack;
 	int i, cc;
 	register struct timeval *tp = (struct timeval *) &outpack[8];
@@ -187,7 +237,7 @@ pinger()
 
 	cc = datalen+8;			/* skips ICMP portion */
 
-	if( timing )
+	if (timing)
 		gettimeofday( tp, &tz );
 
 	for( i=8; i<datalen; i++)	/* skip 8 for time */
@@ -250,37 +300,56 @@ register int t;
  * which arrive ('tis only fair).  This permits multiple copies of this
  * program to be run without having intermingled output (or statistics!).
  */
-pr_pack( icp, cc, from )
-register struct icmp *icp;
+pr_pack( buf, cc, from )
+char *buf;
 int cc;
 struct sockaddr_in *from;
 {
+	struct ip *ip;
+	register struct icmp *icp;
 	register long *lp = (long *) packet;
 	register int i;
 	struct timeval tv;
-	struct timeval *tp = (struct timeval *) &packet[8];
-	int triptime;
+	struct timeval *tp;
+	int hlen;
+	long triptime;
 
 	from->sin_addr.s_addr = ntohl( from->sin_addr.s_addr );
 	gettimeofday( &tv, &tz );
 
+	ip = (struct ip *) buf;
+	hlen = ip->ip_hl << 2;
+	if (cc < hlen + ICMP_MINLEN) {
+		if (verbose)
+			printf("packet too short (%d bytes) from %s\n", cc,
+				inet_ntoa(ntohl(from->sin_addr.s_addr)));
+		return;
+	}
+	cc -= hlen;
+	icp = (struct icmp *)(buf + hlen);
 	if( icp->icmp_type != ICMP_ECHOREPLY )  {
-		printf("%d bytes from x%x: ", cc, from->sin_addr.s_addr);
-		printf("icmp_type=%d (%s)\n",
-			icp->icmp_type, pr_type(icp->icmp_type) );
-		for( i=0; i<12; i++)
-			printf("x%2.2x: x%8.8x\n", i*sizeof(long), *lp++ );
-		printf("icmp_code=%d\n", icp->icmp_code );
+		if (verbose) {
+			printf("%d bytes from %s: ", cc,
+				inet_ntoa(ntohl(from->sin_addr.s_addr)));
+			printf("icmp_type=%d (%s)\n",
+				icp->icmp_type, pr_type(icp->icmp_type) );
+			for( i=0; i<12; i++)
+			    printf("x%2.2x: x%8.8lx\n", i*sizeof(long), *lp++ );
+			printf("icmp_code=%d\n", icp->icmp_code );
+		}
+		return;
 	}
 	if( icp->icmp_id != ident )
 		return;			/* 'Twas not our ECHO */
 
-	printf("%d bytes from x%x: ", cc, from->sin_addr.s_addr);
+	tp = (struct timeval *)&icp->icmp_data[0];
+	printf("%d bytes from %s: ", cc,
+		inet_ntoa(ntohl(from->sin_addr.s_addr)));
 	printf("icmp_seq=%d. ", icp->icmp_seq );
 	if (timing) {
 		tvsub( &tv, tp );
 		triptime = tv.tv_sec*1000+(tv.tv_usec/1000);
-		printf("time=%d. ms\n", triptime );
+		printf("time=%ld. ms\n", triptime );
 		tsum += triptime;
 		if( triptime < tmin )
 			tmin = triptime;
@@ -289,91 +358,46 @@ struct sockaddr_in *from;
 	} else
 		putchar('\n');
 	nreceived++;
-	fflush(stdout);
 }
 
 
 /*
  *			I N _ C K S U M
  *
- * Checksum routine for Internet Protocol family headers (VAX Version).
+ * Checksum routine for Internet Protocol family headers (C Version)
  *
- * Shamelessly pilfered from /sys/vax/in_cksum.c, with all the MBUF stuff
- * ripped out.
  */
 in_cksum(addr, len)
 u_short *addr;
 int len;
 {
-	register int nleft = len;	/* on vax, (user mode), r11 */
-	register int xxx;		/* on vax, (user mode), r10 */
-	register u_short *w = addr;	/* on vax, known to be r9 */
-	register int sum = 0;		/* on vax, known to be r8 */
-
+	register int nleft = len;
+	register u_short *w = addr;
+	register u_short answer;
+	long sum = 0;
 
 	/*
-	 * Force to long boundary so we do longword aligned
-	 * memory operations.  It is too hard to do byte
-	 * adjustment, do only word adjustment.
+	 *  Our algorithm is simple, using a 32 bit accumulator (sum),
+	 *  we add sequential 16 bit words to it, and at the end, fold
+	 *  back all the carry bits from the top 16 bits into the lower
+	 *  16 bits.
 	 */
-	if (((int)w&0x2) && nleft >= 2) {
+	while( nleft > 1 )  {
 		sum += *w++;
 		nleft -= 2;
 	}
-	/*
-	 * Do as much of the checksum as possible 32 bits at at time.
-	 * In fact, this loop is unrolled to make overhead from
-	 * branches &c small.
-	 *
-	 * We can do a 16 bit ones complement sum 32 bits at a time
-	 * because the 32 bit register is acting as two 16 bit
-	 * registers for adding, with carries from the low added
-	 * into the high (by normal carry-chaining) and carries
-	 * from the high carried into the low on the next word
-	 * by use of the adwc instruction.  This lets us run
-	 * this loop at almost memory speed.
-	 *
-	 * Here there is the danger of high order carry out, and
-	 * we carefully use adwc.
-	 */
-	while ((nleft -= 32) >= 0) {
-#undef ADD
-		asm("clrl r0");		/* clears carry */
-#define ADD		asm("adwc (r9)+,r8;");
-		ADD; ADD; ADD; ADD; ADD; ADD; ADD; ADD;
-		asm("adwc $0,r8");
-	}
-	nleft += 32;
-	while ((nleft -= 8) >= 0) {
-		asm("clrl r0");
-		ADD; ADD;
-		asm("adwc $0,r8");
-	}
-	nleft += 8;
-	/*
-	 * Now eliminate the possibility of carry-out's by
-	 * folding back to a 16 bit number (adding high and
-	 * low parts together.)  Then mop up trailing words
-	 * and maybe an odd byte.
-	 */
-	{ asm("ashl $-16,r8,r0; addw2 r0,r8");
-	  asm("adwc $0,r8; movzwl r8,r8"); }
-	while ((nleft -= 2) >= 0) {
-		asm("movzwl (r9)+,r0; addl2 r0,r8");
-	}
-	if (nleft == -1) {
+
+	/* mop up an odd byte, if necessary */
+	if( nleft == 1 )
 		sum += *(u_char *)w;
-	}
 
 	/*
-	 * Add together high and low parts of sum
-	 * and carry to get cksum.
-	 * Have to be careful to not drop the last
-	 * carry here.
+	 * add back carry outs from top 16 bits to low 16 bits
 	 */
-	{ asm("ashl $-16,r8,r0; addw2 r0,r8; adwc $0,r8");
-	  asm("mcoml r8,r8; movzwl r8,r8"); }
-	return (sum);
+	sum = (sum >> 16) + (sum & 0xffffL);	/* add hi 16 to low 16 */
+	sum += (sum >> 16);			/* add carry */
+	answer = ~sum;				/* truncate to 16 bits */
+	return (answer);
 }
 
 /*
@@ -404,18 +428,17 @@ register struct timeval *out, *in;
  */
 finish()
 {
-	ntransmitted--;		/* we will never hear the last one */
-
 	printf("\n----%s PING Statistics----\n", hostname );
 	printf("%d packets transmitted, ", ntransmitted );
 	printf("%d packets received, ", nreceived );
 	if (ntransmitted)
-	    printf("%d%% packet loss\n",
+	    printf("%d%% packet loss",
 		(int) (((ntransmitted-nreceived)*100) / ntransmitted ) );
-	if( nreceived && timing )
-	    printf("round-trip (ms)  min/avg/max = %d/%d/%d\n",
+	printf("\n");
+	if (nreceived && timing)
+	    printf("round-trip (ms)  min/avg/max = %ld/%ld/%ld\n",
 		tmin,
-		tsum / nreceived,
+		(long)(tsum / nreceived),
 		tmax );
 	fflush(stdout);
 	exit(0);

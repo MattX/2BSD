@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)uuq.c	4.6 (Berkeley) 10/9/85";
+#endif
+
 /*
  * uuq - looks at uucp queues
  *
@@ -5,10 +9,6 @@
  * New York University
  *
  */
-
-#ifndef lint
-static char	*RcsId = "$Header: uuq.c,v 1.13 85/06/06 13:06:07 rick Exp $";
-#endif !lint
 
 #include "uucp.h"
 #include <stdio.h>
@@ -66,6 +66,7 @@ float baudrate = 1200.;
 char Username[BUFSIZ];
 char Filename[BUFSIZ];
 int Maxulen = 0;
+struct timeb Now;
 
 main(argc, argv)
 char **argv;
@@ -130,13 +131,14 @@ char **argv;
 			/* The 80 * njobs is because of the uucp handshaking */
 			minutes = (float)(sp->s_bytes + 80 * sp->s_njobs)/baudrate;
 			hours = minutes/60;
-			printf(", %d bytes, ", sp->s_bytes);
+			printf(", %ld bytes, ", sp->s_bytes);
 			if (minutes > 60){
 				printf("%d hour%s, ",hours,
 					hours > 1 ? "s": "");
 				minutes -= 60 * hours;
 			}
-			printf("%3.1f minutes (@ effective baudrate of %d)",minutes,(int)baudrate/6);
+			printf("%3.1f minutes (@ effective baudrate of %d)",
+				minutes,(int)baudrate/6);
 		}
 		putchar('\n');
 		if (hflag)
@@ -150,7 +152,7 @@ char **argv;
 		for (i = 0; i < sp->s_njobs; i++) {
 			jp = sortjob[i];
 			if (lflag) {
-				printf("%s %2d %-*s%7d%5.1f %-12.12s %c %.*s\n",
+				printf("%s %2d %-*s%7ld%5.1f %-12.12s %c %.*s\n",
 	jp->j_jobno, jp->j_files, Maxulen, jp->j_user, jp->j_bytes, jp->j_bytes/baudrate,
 	ctime(&jp->j_date) + 4, jp->j_flags, sizeof (jp->j_fname), jp->j_fname
 				);

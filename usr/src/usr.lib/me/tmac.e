@@ -7,14 +7,20 @@
 .\"*		Eric Allman						*
 .\"*		Electronics Research Laboratory				*
 .\"*		U.C. Berkeley.						*
+.\"*	current address:						*
+.\"*		Britton-Lee, Inc.					*
+.\"*		1919 Addison Street Suite 105				*
+.\"*		Berkeley, California  94704				*
 .\"*									*
-.\"*	VERSION 1.1	First Release: 11 Sept 1978			*
+.\"*	VERSION 2.28	First Release: 11 Sept 1978			*
 .\"*	See file \*(||/revisions for revision history			*
 .\"*									*
 .\"*	Documentation is available.					*
 .\"*									*
 .\"**********************************************************************
-.\" %beginstrip%
+.\"
+.\"	@(#)tmac.e	2.28	5/12/86
+.\"	%beginstrip%
 .\"
 .\"	Code on .de commands:
 .\"		***	a user interface macro.
@@ -37,7 +43,7 @@
 .nr _F \\n(.f
 .nr _I \\n(.i
 .ev \\$1
-.ps \\n(_Su
+.ps \\n(_S
 .vs \\n(_Vu
 .ft \\n(_F
 'in \\n(_Iu
@@ -65,6 +71,7 @@
 .	ds |p "\\$2
 ..
 .de @z			\" --- end macro
+.if \n@>1 .tm >> @z, .z=\\n(.z ?a=\\n(?a
 .if !"\\n(.z"" \
 \{\
 .	tm Line \\n(c. -- Unclosed block, footnote, or other diversion (\\n(.z)
@@ -74,10 +81,11 @@
 .if \\n(?a \
 .	bp			\" force out final table
 .rm bp
-.rm @b				\" don't start another page
+.rm @b\"			\" don't start another page
 .if t \
 .	wh -1p @m
 .br
+.if \n@>1 .tm << @z
 ..
 .de @I			\" --- initialize processor
 .rm th
@@ -145,7 +153,7 @@
 ..
 .\"		*** INTERNAL HEADER AND FOOTER MACROS ***
 .de @h			\" --- header
-.if \n@>0 .tm >> @h %=\\n% ?a=\\n(?a ?b=\\n(?b
+.if \n@>1 .tm >> @h %=\\n% ?a=\\n(?a ?b=\\n(?b ?w=\\n(?w
 .if (\\n(.i+\\n(.o)>=\\n(.l \
 .	tm Line \\n(c. -- Offset + indent exceeds line length
 .if t .if (\\n(.l+\\n(.o)>7.75i \
@@ -160,6 +168,7 @@
 .rn |6 |2
 .rn |7 |3
 .nr _w 0			\" reset max footnote width
+.nr ?W 0			\" no wide floats this page (yet)
 .nr ?I 1
 .\" begin actual header stuff
 .ev 2
@@ -167,7 +176,6 @@
 .if t .@m			\" output cut mark
 .if \\n(hm>0 \
 .	sp |\\n(hmu		\" move to header position
-.if \\n($T=2 \\!.
 .@t $h				\" output header title
 .if \\n(tm<=0 \
 .	nr tm \n(.Vu
@@ -185,20 +193,23 @@
 .\}
 .el \
 .	@n			\" begin the column
-.if \n@>1 .tm << @h
+.if \n@>2 .tm << @h
 ..
-.de @m			\" --- output cut mark
-.@O 0
-.lt 7.5i
-.tl '\(rn''\(rn'
-.@O
-.lt
+.if \nv=2 \
+\{\
+.	de @m		\" --- output cut mark (only on C/A/T-style)
+.	@O 0
+.	lt 7.5i
+.	tl '\(rn''\(rn'
+.	@O
+.	lt
 ..
+.\}
 .de @n			\" --- new column or page
 .if \n@>3 .tm >> @n nl=\\n(nl %=\\n% ?f=\\n(?f ?o=\\n(?o
 .if \\n(bm<=0 \
 .	nr bm \\n(.Vu
-.if \\n(_w<=\\n($l \
+.if (\\n(_w<=\\n($l)&(\\n(?W=0) \
 \{\
 .	nr _b (\\n(ppu*\\n($ru)/2u	\" compute fudge factor (must be < 1P)
 .	if \\n(_bu>((\\n(bmu-\\n(fmu-(\\n(tpu*\\n($ru))/2u) \
@@ -208,10 +219,12 @@
 .nr _B \\n(_bu
 .ch @f
 .wh -\\n(_bu @f
+.nr _b +(\\n(ppu*\\n($ru)	\" add 1 paragraph v in case of sweep past
+.if \n@>2 .tm @n .p=\\n(.p bm=\\n(bm _b=\\n(_b _B=\\n(_B
 .nr ?f 0			\" reset footnote flag
 .if \\n(?o \
 \{\
-.	(f			\" reprocess footnotes which run off page
+.	(f _			\" reprocess footnotes which run off page
 .	nf
 .	|o
 .	fi
@@ -229,17 +242,22 @@
 .	mk #T			\" for tbl commands
 .	ns
 .\}
-.if \\n(?a \
+.if (\\n(?a)&((\\n($c<2):(\\n(?w=0)) \
 \{\
 .	nr ?a 0			\" output floating keep
 .	@k |t
+.	if \\n(?w \
+.		mk _k		\" don't overstrike wide keeps
+.	nr ?w 0
 .\}
 .os
 .$H				\" special column header macro
 .ns
 ..
 .de @f			\" --- footer
-.if \n@>0 .tm >> @f %=\\n% nl=\\n(nl ?a=\\n(?a ?b=\\n(?b
+.if \n@>1 .tm >> @f %=\\n% nl=\\n(nl ?a=\\n(?a ?b=\\n(?b ?f=\\n(?f
+.if \n@>2 .nr VL \\n(.pu-\\n(nlu
+.if \n@>2 .tm @f bm=\\n(bm _B=\\n(_B _b=\\n(_b .p-nl=\\n(VL
 .ec
 .if \\n(?T \
 \{\
@@ -252,7 +270,7 @@
 .if \\n(?b \
 \{\
 .	nr ?b 0
-.	@k |b			\" output bottom of page tables
+.	@k |b\"			\" output bottom of page tables
 .\}
 .if \\n(?f \
 .	@o			\" output footnote if present
@@ -267,10 +285,13 @@
 .nf
 .ls 1
 .in 0
+.if \n@>2 .tm @o last printed text = \\n(nl placing @r trap at -\\n(_B
 .wh -\\n(_Bu @r
 .|f
 .fi
+.if \n@>2 .tm @o triggered @r (?o) = \\n(?o
 .if \\n(?o \
+\{\
 .	di			\" just in case triggered @r
 .	if \\n(dn=0 \
 \{\
@@ -466,16 +487,34 @@
 .if \\n(.$>1 \
 .	nr _0 \\$2n
 .@p \\n(_0u
-.if \\w'\\$1' \
+.if \\w"\\$1" \
 \{\
 .	ti -\\n(_0u
-\&\\$1\h'|\\n(_0u'\c
+.	ie \\w"\\$1">=\\n(_0 \
+\{\
+\&\\$1
+.		br
+.	\}
+.	el \&\\$1\h'|\\n(_0u'\c
 .\}
 .rr _0
 ..
 .de np			\" *** numbered paragraph
-.nr $p +1
-.ip (\\n($p)
+.if \\n($p<0 \
+.	nr $p 0			\" reset number after .bu
+.nr $p +1			\" increment paragraph number
+.@p \w'\0(000)\0'u
+.ti -\w'\0(000)\0'u
+\0(\\n($p)\h'|\w'\0(000)\0'u'\c
+..
+.de bu			\" *** bulleted paragraph
+.br
+.if \\n($p<0 \
+.	ns			\" don't space between .bu paragraphs
+.nr $p 0-1			\" mark "bulleted paragraph" mode
+.@p \w'\0\(bu\0'u
+.ti -\w'\0\(bu\0'u
+\0\(bu\0\c
 ..
 .de @p			\" --- initialize for paragraph
 .@I				\" initialize macro processor
@@ -486,7 +525,7 @@
 .ce 0
 .fi
 .@F \\n(pf
-.sz \\n(ppu
+.sz \\n(pp
 .sp \\n(psu
 .ne \\n(.Lv+\\n(.Vu
 .ns
@@ -511,16 +550,16 @@
 .	el \
 .		ti +\\n(sou
 .	@F \\n(sf
-.	sz \\n(spu
+.	sz \\n(sp
 .	if \\$3>0 \
 .		$\\$3
 .	if \w"\\$2">0 \\$2.
-.	if \w"\\$1">0 \\$1\f1\ \  \"
+.	if \w"\\$1">0 \\$1\f1\ \ \&
 .\}
 .el \
 .	sp \\n(psu
 .@F \\n(pf
-.sz \\n(ppu
+.sz \\n(pp
 ..
 .de uh			\" *** unnumbered section heading
 .rn uh @T
@@ -557,10 +596,10 @@
 ..
 .\"		*** FLOATING TABLES AND NONFLOATING BLOCKS ***
 .de (z			\" &&& begin floating keep
-.rn (z @T
+.rn (z @V
 .so \\*(||/float.me
 .(z \\$1 \\$2
-.rm @T
+.rm @V
 ..
 .de )z			\" &&& end floating keep
 .tm Line \\n(c. -- unmatched .)z
@@ -631,6 +670,7 @@
 ..
 .de )c			\" *** end block centered text
 .if !"\\n(.z"|c" .tm Line \\n(c. -- Unmatched .)c
+.br				\" force out final line
 .di
 .if \n@>4 .tm >> .)c .l=\\n(.l .i=\\n(.i $i=\\n($i dl=\\n(dl
 .ev 1
@@ -674,17 +714,100 @@
 .nr ?k 0
 ..
 .\"		*** PREPROCESSOR SUPPORT ***
+.\"
+.\"	EQN
+.\"
 .de EQ			\" &&& begin equation
 .rn EQ @T
 .so \\*(||/eqn.me
 .EQ \\$1 \\$2
 .rm @T
 ..
+.\"
+.\"	TBL
+.\"
 .de TS			\" &&& begin table
-.rn TS @T
+.rn TS @W
 .so \\*(||/tbl.me
 .TS \\$1 \\$2
-.rm @T
+.rm @W
+..
+.\"
+.\"	REFER
+.\"
+.de ]-			\" &&& initialize reference
+.rn ]- @]
+.so \\*(||/refer.me
+.]-
+.rm @]
+..
+.de ]<			\" &&& initialize reference
+.rn ]< @]
+.so \\*(||/refer.me
+.]<
+.rm @]
+..
+.if n .ds [. " [
+.if t .ds [. \s-2\v'-.4m'\f1
+.if n .ds .] ]
+.if t .ds .] \v'.4m'\s+2\fP
+.if n .ds <. "
+.if t .ds <. .
+.if n .ds >. .
+.if t .ds >. "
+.\"
+.\"	IDEAL
+.\"
+.de IS			\" *** start ideal picture
+.nr g7 \\n(.u
+.ls 1
+..
+.de IF
+.if \\n(g7 .fi
+.ls
+..
+.de IE			\" *** end ideal picture
+.if \\n(g7 .fi
+.ls
+..
+.\"
+.\"	PIC
+.\"
+.de PS			\" *** start picture: $1=height, $2=width in units
+.if t \
+.	sp 0.3
+.in (\\n(.lu-\\$2u)/2u
+.ne \\$1u
+.nr g7 \\n(.u
+.ls 1
+..
+.de PE			\" *** end picture
+.ls
+.in
+.if \\n(g7 .fi
+.if t .sp .6
+..
+.\"
+.\"	GREMLIN
+.\"
+.de GS			\" *** start gremlin picture
+.nr g7 (\\n(.lu-\\n(g1u)/2u
+.if "\\$1"L" .nr g7 \\n(.iu
+.if "\\$1"R" .nr g7 \\n(.lu-\\n(g1u
+.in \\n(g7u
+.nr g7 \\n(.u
+.ls 1
+.nf
+.ne \\n(g2u
+..
+.de GE			\" *** end gremlin picture
+.GF
+.if t .sp .6
+..
+.de GF			\" *** finish gremlin picture; stay at top
+.ls
+.in
+.if \\n(g7 .fi
 ..
 .\"		*** FONT AIDS ***
 .de sz			\" *** set point size and vertical spacing
@@ -709,13 +832,8 @@
 .de b			\" *** enter boldface (underline in NROFF)
 .nr _F \\n(.f
 .ul 0
-.ie t \
-.	ft 3
-.el \
-.	ul 10000
+.ft \\n($b
 .if \\n(.$ \&\\$1\f\\n(_F\\$2
-.if \\n(.$ \
-.	ul 0
 .rr _F
 ..
 .de rb			\" *** enter real boldface (not underlined in NROFF)
@@ -733,34 +851,33 @@
 ..
 .de bi			\" *** enter word in bold italics
 .ft 2
-.ie t \&\k~\\$1\h'|\\n~u+(\\n(.su/3u)'\\$1\fP\\$2
+.ie t \&\k~\\$1\h'|\\n~u+(\\w' 'u/4u)'\\$1\fP\\$2
 .el \&\\$1\fP\\$2
 ..
 .de bx			\" *** enter boxed word
 .ie \\n($T \&\f2\\$1\fP\\$2
 .el \k~\(br\|\\$1\|\(br\l'|\\n~u\(rn'\l'|\\n~u\(ul'\^\\$2
 ..
+.de sm			\" *** print in smaller font
+\s-1\\$1\\s0\\$2
+..
 .de @F			\" --- change font (8 -> underlined, 0 -> no change)
 .nr ~ \\$1
 .if \\n~>0 \
 \{\
 .	ul 0
-.	ie \\n~>4 \
-\{\
-.		if n .ul 10000
-.		if t .ft 3
-.	\}
-.	el \
-.		ft \\n~
+.	if \\n~>4 \
+.		nr ~ \\n($b
+.	ft \\n~
 .\}
 .rr ~
 ..
 .\"		*** FOOTNOTING ***
 .de (f			\" &&& begin footnote
-.rn (f @T
+.rn (f @U
 .so \\*(||/footnote.me
 .(f \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )f			\" &&& end footnote
 .tm Line \\n(c. -- unmatched .)f
@@ -772,20 +889,20 @@
 ..
 .\"		*** DELAYED TEXT ***
 .de (d			\" &&& begin delayed text
-.rn (d @T
+.rn (d @U
 .so \\*(||/deltext.me
 .(d \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )d			\" &&& end delayed text
 .tm Line \\n(c. -- unmatched .)d
 ..
 .\"		*** INDEXES (TABLE OF CONTENTS) ***
 .de (x			\" &&& begin index
-.rn (x @T
+.rn (x @U
 .so \\*(||/index.me
 .(x \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )x			\" &&& end index entry
 .tm Line \\n(c. -- unmatched .)x
@@ -905,6 +1022,9 @@
 .so \\*(||/local.me
 .rm lo
 ..
+.de lh			\" *** letterhead
+.so \\*(||/letterhead.me
+..
 .\"		*** DATES ***
 .if \n(mo=1 .ds mo January
 .if \n(mo=2 .ds mo February
@@ -939,7 +1059,7 @@
 .nr tf 3			\" title font: (real) Times Bold
 .nr tp 10			\" title point size
 .hy 14
-.nr bi 4n			\" indent for blocks
+.nr bi 4m			\" indent for blocks
 .nr pi 5n			\" indent for paragraphs
 .nr pf 1			\" normal text font
 .nr pp 10			\" normal text point size
@@ -952,29 +1072,34 @@
 .if \n@>0 .ds || .
 .bd S B 3
 .\"		*** OTHER INITIALIZATION ***
-.ds [ \u
+.ds [ \u\x'-0.25v'
 .ds ] \d
-.ds < \d
+.ds < \d\x'0.25v'
 .ds > \u
 .ds - --
 .if t \
 \{\
-.	ds [ \v'-0.4m'\s-3
+.	ds [ \v'-0.4m'\x'-0.2m'\s-3
 .	ds ] \s0\v'0.4m'
-.	ds < \v'0.4m'\s-3
+.	ds < \v'0.4m'\x'0.2m'\s-3
 .	ds > \s0\v'-0.4m'
-.	ds - \-
+.	ds - \(em
+.	nr fi 0.3i
+.\}
+.if n \
+\{\
+.	nr fi 3n
 .\}
 .nr _o \n(.o
 .if n .po 1i
 .if \n(.V=1v \
 .	nr $T 2
-.if \n(.T=0 \
+.if n .if \n(.T=0 \
 .	nr $T 1
-.if t \
+.if \nv=2 \
 \{\
 .	nr $T 0
-.	po -0.5i		\" make ugly line on LHS
+.	po -0.5i		\" make ugly line on LHS on C/A/T typesetters
 .\}
 .if \n($T \
 \{\
@@ -984,6 +1109,13 @@
 .	ds ] ]
 .	ds < <
 .	ds > >
+.\}
+.nr $b \nb			\" figure the real font 8 font
+.rr b
+.if \n($b=0 \
+\{\
+.	if n .nr $b 2		\" italic
+.	if t .nr $b 3		\" bold
 .\}
 .nr ps 0.5v			\" paragraph pre/post spacing
 .if \n($T \

@@ -1,58 +1,46 @@
-#ifndef lint
-static char *sccsid = "@@(#)hostname.c	1.4 (Berkeley) 8/11/83"; 
-#endif
 /*
- * hostname - get (or set) hostname
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
  */
 
-#include	<stdio.h>
-#include	<sys/param.h>
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)hostname.c	5.1 (Berkeley) 4/30/85";
+#endif not lint
+
+/*
+ * hostname -- get (or set hostname)
+ */
+#ifdef BSD2_10
+#include <short_names.h>
+#endif BSD2_10
+
+#include <stdio.h>
 
 char hostname[32];
 extern int errno;
 
-main(argc, argv)
-char	*argv[];
+main(argc,argv)
+	char *argv[];
 {
-	int myerrno;
+	int	myerrno;
 
 	argc--;
 	argv++;
 	if (argc) {
-#ifdef	UCB_NET
-		strcpy(hostname, *argv);
-		if (sethostname(hostname, strlen(hostname)+1) < 0)
-#else
-		if (sethostname(*argv))
-#endif	UCB_NET
+		if (sethostname(*argv,strlen(*argv)))
 			perror("sethostname");
-		myerrno	= errno;
-	}
-	else	{
+		myerrno = errno;
+	} else {
 		gethostname(hostname,sizeof(hostname));
 		myerrno = errno;
-		printf("%s\n", hostname);
+		printf("%s\n",hostname);
 	}
 	exit(myerrno);
 }
-
-#ifndef	UCB_NET
-sethostname(s)
-char *s;
-{
-	FILE	*fopen();
-	register FILE	*fp;
-
-	if ((fp = fopen("/etc/localhostname", "w")) != (FILE *) NULL) {
-		fprintf(fp, "%s\n", s);
-		fclose(fp);
-		(void) chmod("/etc/localhostname", 0644);
-		if (ferror(fp))
-			return(-1);
-		else
-			return(0);
-	}
-	else
-		return(-1);
-}
-#endif	UCB_NET

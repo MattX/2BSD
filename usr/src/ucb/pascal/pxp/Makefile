@@ -2,63 +2,70 @@
 # pxp makefile
 #
 
+DESTDIR=
+
 ED=	-ed
-AS=	as
+AS=	as -V -
+EYACC=	../eyacc/eyacc
 
-BINDIR= /usr/bin
-LIBDIR= /usr/lib
+DEFS=		-DPXP
+CFLAGS=		-O -w
+LDFLAGS=	-X
+SEPFLAG=	-i
 
-VERSION= version
-EYACC=	/usr/ucb/eyacc -v
-CFLAGS=	-O -DPXP
-OBJS=	call.o case.o const.o cset.o error.o fdec.o func.o hash.o lab.o \
-	lval.o main.o nl.o pmon.o pp.o proc.o rec.o rval.o stat.o string.o \
-	subr.o tree.o type.o var.o y.tab.o yycomm.o yycosts.o yyerror.o \
-	yyget.o yyid.o yylex.o yymain.o yypanic.o yyparse.o yyprint.o \
-	yyput.o yyrecover.o yyseman.o yytree.o
+HDRS=	0.h opcode.h tree.h yy.h
 
-#  On a separate I/D machine without floating point,
-#  you will have to use ../utililities/fpterp/fp.o instead of
-#  ../utilities/fpnofetchi/fp.o; see the comments in ../utilities/fpterp.
+SRCS=	TRdata.c Version.c call.c case.c const.c cset.c error.c fdec.c \
+	func.c hash.c lab.c lval.c main.c nl.c pmon.c pp.c proc.c rec.c \
+	rval.c stat.c string.c subr.c tree.c type.c var.c yycomm.c yycosts.c \
+	yyerror.c yyget.c yyid.c yylex.c yymain.c yypanic.c yyparse.c \
+	yyprint.c yyput.c yyrecover.c yyseman.c yytree.c
 
-OBJS2=	printf.o treen.o yycopy.o ../utilities/fpnofetchi/fp.o \
-	TRdata.o ../px/getc.o ../px/putc.o
+OTHERS=	gram.ex how_pxp pas.y printf.s treen.s yycopy.s \
+	../px/getc.s ../px/putc.s
+
+OBJS=	TRdata.o Version.o call.o case.o const.o cset.o error.o fdec.o \
+	func.o hash.o lab.o lval.o main.o nl.o pmon.o pp.o proc.o rec.o \
+	rval.o stat.o string.o subr.o tree.o type.o var.o yycomm.o yycosts.o \
+	yyerror.o yyget.o yyid.o yylex.o yymain.o yypanic.o yyparse.o \
+	yyprint.o yyput.o yyrecover.o yyseman.o yytree.o
+
+OBJS2=	printf.o treen.o yycopy.o y.tab.o getc.o putc.o
+
+VPATH=.:../px
 
 all: pxp
 
+.c.o:
+	${CC} ${CFLAGS} ${DEFS} -c $*.c
+
+.s.o:
+	${AS} -o $*.o $*.s
+
+pxp: y.tab.h ${OBJS} ${OBJS2}
+	${CC} ${CFLAGS} ${DEFS} -c Version.c
+	${CC} ${SEPFLAG} ${LDFLAGS} -o pxp ${OBJS} ${OBJS2} Version.o
+
+y.tab.c y.tab.h: pas.y
+	${EYACC} -v pas.y
+	${ED} - y.tab.c < gram.ex
+
 install:
-	install -s -o bin -g bin -m 711 pxp ${DESTDIR}${BINDIR}/pxp
-	install -c -o bin -g bin -m 644 how_pxp ${DESTDIR}${BINDIR}
+	install -s pxp ${DESTDIR}/usr/ucb/pxp
+	install -c how_pxp ${DESTDIR}/usr/lib/how_pxp
 
-pxp:	${OBJS} ${OBJS2}
-	${CC} -c Version.c
-	${CC} ${LFLAG} -o pxp ${OBJS} ${OBJS2} Version.o
+tags: FRC
+	ctags ${HDRS} ${SRCS}
 
-y.tab.c: pas.y
-	${EYACC} pas.y
-	${ED} - y.tab.c < gram
-
-../utilities/fpterp/fp.o:
-	cd ../utilities/fpterp; make fp.o
-
-../utilities/fpnofetchi/fp.o:
-	cd ../utilities/fpnofetchi; make fp.o
-
-../px/getc.o: ../px/getc.s
-	cd ../px; make getc.o
-
-../px/putc.o: ../px/putc.s
-	cd ../px; make putc.o
+FRC:
 
 clean:
-	rm -f pi1.2strings a.out core y.tab.c y.output *.o x*
+	rm -f pi1.2strings a.out core y.tab.c y.output *.o x* tags
 
 print:
-	@pr makefile READ_ME
 	@ls -ls | pr
-	@size a.out *.o | pr
-	-@cxref *.c | pr
+	@pr READ_ME Makefile
 	@pr 0.h main.c pas.y
 	@pr yy.h yy*.c
 	@pr [a-ln-x]*.c
-	@pr putn.s treen.s yycopy.s
+	@pr treen.s yycopy.s

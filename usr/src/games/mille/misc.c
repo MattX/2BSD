@@ -1,11 +1,17 @@
 #include	"mille.h"
+#ifndef	unctrl
+#include	"unctrl.h"
+#endif
+
+# include	<sys/file.h>
+
 # ifdef	attron
 #	include	<term.h>
 #	define	_tty	cur_term->Nttyb
 # endif	attron
 
 /*
- * @(#)misc.c	1.3 (Berkeley) 7/2/83
+ * @(#)misc.c	1.2 (Berkeley) 3/28/83
  */
 
 #define	NUMSAFE	4
@@ -26,14 +32,14 @@ char	*str;
 CARD
 getcard()
 {
-	reg char	c, c1;
+	reg int		c, c1;
 
 	for (;;) {
 		while ((c = readch()) == '\n' || c == '\r' || c == ' ')
 			continue;
 		if (islower(c))
 			c = toupper(c);
-		if (c == _tty.sg_kill || c == _tty.sg_erase)
+		if (c == killchar() || c == erasechar())
 			return -1;
 		addstr(unctrl(c));
 		clrtoeol();
@@ -56,9 +62,9 @@ getcard()
 		refresh();
 		if (c >= 0) {
 			while ((c1=readch()) != '\r' && c1 != '\n' && c1 != ' ')
-				if (c1 == _tty.sg_kill)
+				if (c1 == killchar())
 					return -1;
-				else if (c1 == _tty.sg_erase) {
+				else if (c1 == erasechar()) {
 					addch('\b');
 					clrtoeol();
 					refresh();
@@ -78,7 +84,7 @@ reg bool	forcomp; {
 
 	if (End == 700)
 		if (Play == PLAYER) {
-			if (getyn("Extension? ")) {
+			if (getyn(EXTENSIONPROMPT)) {
 extend:
 				if (!forcomp)
 					End = 1000;
@@ -126,15 +132,15 @@ done:
  *	Get a yes or no answer to the given question.  Saves are
  * also allowed.  Return TRUE if the answer was yes, FALSE if no.
  */
-getyn(prompt)
-reg char	*prompt; {
+getyn(promptno)
+register int	promptno; {
 
 	reg char	c;
 
 	Saved = FALSE;
 	for (;;) {
 		leaveok(Board, FALSE);
-		mvaddstr(MOVE_Y, MOVE_X, prompt);
+		prompt(promptno);
 		clrtoeol();
 		refresh();
 		switch (c = readch()) {
@@ -169,12 +175,11 @@ reg char	*prompt; {
  */
 check_more() {
 
-	raw();	/* Flush input */
-	noraw();
+	flush_input();
 
 	On_exit = TRUE;
 	if (Player[PLAYER].total >= 5000 || Player[COMP].total >= 5000)
-		if (getyn("Another game? "))
+		if (getyn(ANOTHERGAMEPROMPT))
 			return;
 		else {
 			/*
@@ -188,9 +193,9 @@ check_more() {
 			Player[PLAYER].total = 0;
 		}
 	else
-		if (getyn("Another hand? "))
+		if (getyn(ANOTHERHANDPROMPT))
 			return;
-	if (!Saved && getyn("Save game? "))
+	if (!Saved && getyn(SAVEGAMEPROMPT))
 		if (!save())
 			return;
 	die();
@@ -205,4 +210,15 @@ readch()
 		if (cnt > 100)
 			exit(1);
 	return c;
+}
+
+flush_input()
+{
+# ifdef	TIOCFLUSH
+	static int	ioctl_args = FREAD;
+
+	(void) ioctl(fileno(stdin), TIOCFLUSH, &ioctl_args);
+# else
+	fflush(stdin);
+# endif
 }

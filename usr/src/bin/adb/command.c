@@ -24,14 +24,14 @@ INT		mkfault;
 STRING		errflg;
 
 CHAR		lastc;
-CHAR		eqformat[128] "o";
-CHAR		stformat[128] "o\"= \"^i";
-POS		*corhdr, *uar0;
+CHAR		eqformat[512] = "o";
+CHAR		stformat[512] = "o\"= \"^i";
+POS		corhdr[], *uar0;
 
 L_INT		dot;
 L_INT		ditto;
 INT		dotinc;
-INT		lastcom '=';
+INT		lastcom = '=';
 L_INT		var[];
 L_INT		locval;
 L_INT		locmsk;

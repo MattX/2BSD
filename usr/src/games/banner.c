@@ -1,3 +1,6 @@
+
+static char sccsid[] = "	banner.c	4.1	82/10/24	";
+
 /*
  * banner - prints large signs
  * banner [-w#] [-d] [-t] message ...

@@ -1,7 +1,17 @@
-/* Copyright (c) 1983 Regents of the University of California */
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
 #ifndef lint
-static char sccsid[] = "@(#)cfscores.c	4.1	(Berkeley)	5/12/83";
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)cfscores.c	5.1 (Berkeley) 5/29/85";
 #endif not lint
 
 #include <pwd.h>
@@ -85,7 +95,7 @@ printuser(pw, printfail)
 		perror("read");
 		return;
 	}
-	if (total.hand == 0) {
+	if (i == 0 || total.hand == 0) {
 		if (printfail)
 			printf("%s has never played canfield.\n", pw->pw_name);
 		return;

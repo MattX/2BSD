@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t1.c	4.2 8/11/83";
+#endif
+
  /* t1.c: main control and input switching */
 #
 # include "t..c"
@@ -9,8 +13,8 @@ extern FILE *_f[];
 # endif
 
 # ifdef unix
-# define MACROS "/usr/lib/tmac/tmac.s"
-# define PYMACS "/usr/lib/tmac/tmac.m"
+# define MACROS "/usr/lib/tmac.s"
+# define PYMACS "/usr/lib/tmac.m"
 # endif
 
 # ifdef gcos
@@ -37,7 +41,7 @@ exit(tbl(argc,argv));
 tbl(argc,argv)
 	char *argv[];
 {
-char line[512];
+char line[BUFSIZ];
 /* required by GCOS because "stdout" is set by troff preprocessor */
 tabin=stdin; tabout=stdout;
 setinp(argc,argv);
@@ -63,8 +67,9 @@ setinp(argc,argv)
 }
 swapin()
 {
-	while (sargc>0 && **sargv=='-')
+	while (sargc>0 && **sargv=='-') /* Mem fault if no test on sargc */
 		{
+		if (sargc<=0) return(0);
 		if (match("-ms", *sargv))
 			{
 			*sargv = MACROS;
@@ -99,7 +104,7 @@ swapin()
 # ifdef unix
 badsig()
 {
-signal(SIGPIPE, 1);
+signal(SIGPIPE, SIG_IGN);
  exit(0);
 }
 # endif

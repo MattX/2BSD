@@ -1,16 +1,18 @@
 #include	"mille.h"
+#ifndef	unctrl
+#include	"unctrl.h"
+#endif
+
 # ifdef	attron
 #	include	<term.h>
 #	define	_tty	cur_term->Nttyb
 # endif	attron
 
 /*
- * @(#)move.c	1.3 (Berkeley) 7/2/83
+ * @(#)move.c	1.2 (Berkeley) 3/28/83
  */
 
-#ifdef CTRL
-#undef CTRL
-#endif
+#undef	CTRL
 #define	CTRL(c)		(c - 'A' + 1)
 
 char	*Movenames[] = {
@@ -39,6 +41,11 @@ domove()
 				else
 					error("no card there");
 			else {
+				if (issafety(pp->hand[Card_no])) {
+					error("discard a safety?");
+					goodplay = FALSE;
+					break;
+				}
 				Discard = pp->hand[Card_no];
 				pp->hand[Card_no] = C_INIT;
 				Next = TRUE;
@@ -298,12 +305,10 @@ getmove()
 	}
 #endif
 	for (;;) {
-		stand(MOVE_Y, MOVE_X, moveprompt);
-		clrtoeol();
-		move(MOVE_Y, MOVE_X + sizeof moveprompt);
+		prompt(MOVEPROMPT);
 		leaveok(Board, FALSE);
 		refresh();
-		while ((c = readch()) == _tty.sg_kill || c == _tty.sg_erase)
+		while ((c = readch()) == killchar() || c == erasechar())
 			continue;
 		if (islower(c))
 			c = toupper(c);
@@ -311,8 +316,7 @@ getmove()
 			addch(c);
 			refresh();
 		}
-		switch (c)
-		{
+		switch (c) {
 		  case 'P':		/* Pick */
 			Movetype = M_DRAW;
 			goto ret;
@@ -324,6 +328,15 @@ getmove()
 			goto ret;
 		  case 'O':		/* Order */
 			Order = !Order;
+			if (Window == W_SMALL) {
+				if (!Order)
+					mvwaddstr(Score, 12, 21,
+						  "o: order hand");
+				else
+					mvwaddstr(Score, 12, 21,
+						  "o: stop ordering");
+				wclrtoeol(Score);
+			}
 			Movetype = M_ORDER;
 			goto ret;
 		  case 'Q':		/* Quit */
@@ -337,9 +350,7 @@ getmove()
 			break;
 		  case 'R':		/* Redraw screen */
 		  case CTRL('L'):
-			clearok(curscr, TRUE);
-			newboard();
-			prboard();
+			wrefresh(curscr);
 			break;
 		  case 'S':		/* Save game */
 			On_exit = FALSE;
@@ -370,15 +381,14 @@ getmove()
 				if (!Debug && outf == NULL) {
 					char	buf[40];
 over:
-					mvaddstr(MOVE_Y, MOVE_X, "file: ");
-					clrtoeol();
+					prompt(FILEPROMPT);
 					leaveok(Board, FALSE);
 					refresh();
 					sp = buf;
 					while ((*sp = readch()) != '\n') {
-						if (*sp == _tty.sg_kill)
+						if (*sp == killchar())
 							goto over;
-						else if (*sp == _tty.sg_erase) {
+						else if (*sp == erasechar()) {
 							if (--sp < buf)
 								sp = buf;
 							else {
@@ -396,7 +406,7 @@ over:
 					leaveok(Board, TRUE);
 					if ((outf = fopen(buf, "w")) == NULL)
 						perror(buf);
-					setbuf(outf, 0);
+					setbuf(outf, NULL);
 				}
 				Debug = !Debug;
 				break;
@@ -457,11 +467,41 @@ reg CARD	card; {
 		}
 }
 
+prompt(promptno)
+int	promptno;
+{
+	static char	*names[] = {
+				">>:Move:",
+				"Really?",
+				"Another hand?",
+				"Another game?",
+				"Save game?",
+				"Same file?",
+				"file:",
+				"Extension?",
+				"Overwrite file?",
+			};
+	static int	last_prompt = -1;
+
+	if (promptno == last_prompt)
+		move(MOVE_Y, MOVE_X + strlen(names[promptno]) + 1);
+	else {
+		move(MOVE_Y, MOVE_X);
+		if (promptno == MOVEPROMPT)
+			standout();
+		addstr(names[promptno]);
+		if (promptno == MOVEPROMPT)
+			standend();
+		addch(' ');
+		last_prompt = promptno;
+	}
+	clrtoeol();
+}
+
 sort(hand)
 reg CARD	*hand;
 {
 	reg CARD	*cp, *tp;
-	reg int		j;
 	reg CARD	temp;
 
 	cp = hand;
@@ -474,3 +514,4 @@ reg CARD	*hand;
 				*tp = temp;
 			}
 }
+

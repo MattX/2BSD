@@ -9,7 +9,7 @@
 #include "0.h"
 #include "tree.h"
 
-STATIC	int varcnt -1;
+STATIC	int varcnt = -1;
 /*
  * Var declaration part
  */

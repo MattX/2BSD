@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)checknr.c	4.4 (Berkeley) 5/13/81";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)checknr.c	5.2 (Berkeley) 12/5/85";
+#endif not lint
+
 /*
  * checknr: check an nroff/troff input file for matching macro calls.
  * we also attempt to match size and font changes, but only the embedded
@@ -8,7 +21,6 @@ static char *sccsid = "@(#)checknr.c	4.4 (Berkeley) 5/13/81";
  * later but for now think of these restrictions as contributions to
  * structured typesetting.
  */
-#include <sys/types.h>
 #include <stdio.h>
 #include <ctype.h>
 
@@ -54,6 +66,7 @@ struct brstr {
 	"VL",	"LE",
 	/* the -ms package */
 	"AB",	"AE",
+	"BD",	"DE",
 	"CD",	"DE",
 	"DS",	"DE",
 	"FS",	"FE",
@@ -65,6 +78,8 @@ struct brstr {
 	"QS",	"QE",
 	"RS",	"RE",
 	"SM",	"NL",
+	"XA",	"XE",
+	"XS",	"XE",
 	/* The -me package */
 	"(b",	")b",
 	"(c",	")c",
@@ -91,32 +106,33 @@ char *knowncmds[MAXCMDS] = {
 "(x", "(z", ")b", ")c", ")d", ")f", ")l", ")q", ")t", ")x", ")z", "++",
 "+c", "1C", "1c", "2C", "2c", "@(", "@)", "@C", "@D", "@F", "@I", "@M",
 "@c", "@e", "@f", "@h", "@m", "@n", "@o", "@p", "@r", "@t", "@z", "AB",
-"AE", "AF", "AI", "AL", "AS", "AT", "AU", "AX", "B",  "B1", "B2", "BD",
-"BE", "BG", "BL", "BS", "BT", "BX", "C1", "C2", "CD", "CM", "CT", "D", 
-"DA", "DE", "DF", "DL", "DS", "DT", "EC", "EF", "EG", "EH", "EM", "EN", "EQ",
-"EX", "FA", "FD", "FE", "FG", "FJ", "FK", "FL", "FN", "FO", "FQ", "FS",
-"FV", "FX", "H",  "HC", "HM", "HO", "HU", "I",  "ID", "IE", "IH", "IM",
-"IP", "IZ", "KD", "KE", "KF", "KQ", "KS", "LB", "LC", "LD", "LE", "LG",
-"LI", "LP", "MC", "ME", "MF", "MH", "ML", "MR", "MT", "ND", "NE", "NH",
-"NL", "NP", "NS", "OF", "OH", "OK", "OP", "P",  "PF", "PH", "PP", "PT",
-"PY", "QE", "QP", "QS", "R",  "RA", "RC", "RE", "RL", "RP", "RQ", "RS",
-"RT", "S",  "S0", "S2", "S3", "SA", "SG", "SH", "SK", "SM", "SP", "SY",
-"TA", "TB", "TC", "TD", "TE", "TH", "TL", "TM", "TP", "TQ", "TR", "TS",
-"TX", "UL", "US", "UX", "VL", "WC", "WH", "XD", "XF", "XK", "XP", "[",  "[-",
-"[0", "[1", "[2", "[3", "[4", "[5", "[<", "[>", "[]", "]",  "]-", "]<", "]>",
+"AE", "AF", "AI", "AL", "AM", "AS", "AT", "AU", "AX", "B",  "B1", "B2",
+"BD", "BE", "BG", "BL", "BS", "BT", "BX", "C1", "C2", "CD", "CM", "CT",
+"D",  "DA", "DE", "DF", "DL", "DS", "DT", "EC", "EF", "EG", "EH", "EM",
+"EN", "EQ", "EX", "FA", "FD", "FE", "FG", "FJ", "FK", "FL", "FN", "FO",
+"FQ", "FS", "FV", "FX", "H",  "HC", "HD", "HM", "HO", "HU", "I",  "ID",
+"IE", "IH", "IM", "IP", "IX", "IZ", "KD", "KE", "KF", "KQ", "KS", "LB",
+"LC", "LD", "LE", "LG", "LI", "LP", "MC", "ME", "MF", "MH", "ML", "MR",
+"MT", "ND", "NE", "NH", "NL", "NP", "NS", "OF", "OH", "OK", "OP", "P",
+"P1", "PF", "PH", "PP", "PT", "PX", "PY", "QE", "QP", "QS", "R",  "RA",
+"RC", "RE", "RL", "RP", "RQ", "RS", "RT", "S",  "S0", "S2", "S3", "SA",
+"SG", "SH", "SK", "SM", "SP", "SY", "T&", "TA", "TB", "TC", "TD", "TE",
+"TH", "TL", "TM", "TP", "TQ", "TR", "TS", "TX", "UL", "US", "UX", "VL",
+"WC", "WH", "XA", "XD", "XE", "XF", "XK", "XP", "XS", "[",  "[-", "[0",
+"[1", "[2", "[3", "[4", "[5", "[<", "[>", "[]", "]",  "]-", "]<", "]>",
 "][", "ab", "ac", "ad", "af", "am", "ar", "as", "b",  "ba", "bc", "bd",
 "bi", "bl", "bp", "br", "bx", "c.", "c2", "cc", "ce", "cf", "ch", "cs",
 "ct", "cu", "da", "de", "di", "dl", "dn", "ds", "dt", "dw", "dy", "ec",
 "ef", "eh", "el", "em", "eo", "ep", "ev", "ex", "fc", "fi", "fl", "fo",
-"fp", "ft", "fz", "hc", "he", "hl", "hp", "ht", "hw", "hx", "hy", "i", 
+"fp", "ft", "fz", "hc", "he", "hl", "hp", "ht", "hw", "hx", "hy", "i",
 "ie", "if", "ig", "in", "ip", "it", "ix", "lc", "lg", "li", "ll", "ln",
 "lo", "lp", "ls", "lt", "m1", "m2", "m3", "m4", "mc", "mk", "mo", "n1",
 "n2", "na", "ne", "nf", "nh", "nl", "nm", "nn", "np", "nr", "ns", "nx",
 "of", "oh", "os", "pa", "pc", "pi", "pl", "pm", "pn", "po", "pp", "ps",
 "q",  "r",  "rb", "rd", "re", "rm", "rn", "ro", "rr", "rs", "rt", "sb",
 "sc", "sh", "sk", "so", "sp", "ss", "st", "sv", "sz", "ta", "tc", "th",
-"ti", "tl", "tm", "tp", "tr", "u",  "uf", "uh", "ul", "vs", "wh", "xp", "yr",
-0
+"ti", "tl", "tm", "tp", "tr", "u",  "uf", "uh", "ul", "vs", "wh", "xp",
+"yr", 0
 };
 
 int	lineno;		/* current line number in input file */
@@ -139,8 +155,6 @@ char **argv;
 	char *cp;
 	char b1[4];
 
-	if (argc <= 1)
-		usage();
 	/* Figure out how many known commands there are */
 	while (knowncmds[ncmds])
 		ncmds++;
@@ -175,7 +189,6 @@ char **argv;
 				if (cp[2] && cp[2] != '.')
 					usage();
 				strncpy(b1, cp, 2);
-				b1[3] = '\0';
 				addmac(b1);
 			}
 			break;
@@ -256,7 +269,7 @@ FILE *f;
 			if (eq(mac, "de"))
 				addcmd(line);
 
-			chkcmd(mac);
+			chkcmd(line, mac);
 		}
 
 		/*
@@ -340,10 +353,11 @@ prop(i)
 	}
 }
 
-chkcmd(mac)
-register char *mac;
+chkcmd(line, mac)
+char *line;
+char *mac;
 {
-	register int i;
+	register int i, n;
 
 	/*
 	 * Check to see if it matches top of stack.
@@ -428,12 +442,12 @@ char *s1, *s2;
 }
 
 /* print the first part of an error message, given the line number */
-pe(linenum)
-int linenum;
+pe(lineno)
+int lineno;
 {
 	if (nfiles > 1)
 		printf("%s: ", cfilename);
-	printf("%d: ", linenum);
+	printf("%d: ", lineno);
 }
 
 checkknown(mac)
@@ -454,18 +468,18 @@ char *mac;
 /*
  * We have a .de xx line in "line".  Add xx to the list of known commands.
  */
-addcmd(linebuf)
-char *linebuf;
+addcmd(line)
+char *line;
 {
 	char *mac;
 
 	/* grab the macro being defined */
-	mac = linebuf+4;
+	mac = line+4;
 	while (isspace(*mac))
 		mac++;
 	if (*mac == 0) {
 		pe(lineno);
-		printf("illegal define: %s\n", linebuf);
+		printf("illegal define: %s\n", line);
 		return;
 	}
 	mac[2] = 0;
@@ -490,7 +504,12 @@ char *mac;
 {
 	register char **src, **dest, **loc;
 
-	(void) binsrch(mac);	/* it's OK to redefine something */
+	if (binsrch(mac) >= 0){	/* it's OK to redefine something */
+#ifdef DEBUG
+		printf("binsrch(%s) -> already in table\n", mac);
+#endif DEBUG
+		return;
+	}
 	/* binsrch sets slot as a side effect */
 #ifdef DEBUG
 printf("binsrch(%s) -> %d\n", mac, slot);

@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)from.c	4.1 (Berkeley) 10/1/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)from.c	5.2 (Berkeley) 11/4/85";
+#endif not lint
+
 #include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
@@ -8,8 +21,8 @@ static char *sccsid = "@(#)from.c	4.1 (Berkeley) 10/1/80";
 struct	passwd *getpwuid();
 
 main(argc, argv)
-int argc;
-register char **argv;
+	int argc;
+	register char **argv;
 {
 	char lbuf[BUFSIZ];
 	char lbuf2[BUFSIZ];
@@ -17,6 +30,7 @@ register char **argv;
 	int stashed = 0;
 	register char *name;
 	char *sender;
+	char *getlogin();
 
 	if (argc > 1 && *(argv[1]) == '-' && (*++argv)[1] == 's') {
 		if (--argc <= 1) {
@@ -29,14 +43,14 @@ register char **argv;
 			if (isupper(*name))
 				*name = tolower(*name);
 
-	}
-	else
+	} else
 		sender = NULL;
 	if (chdir("/usr/spool/mail") < 0)
 		exit(1);
 	if (argc > 1)
 		name = argv[1];
 	else {
+		name = getlogin ();
 		if (name == NULL || strlen(name) == 0) {
 			pp = getpwuid(getuid());
 			if (pp == NULL) {
@@ -46,14 +60,15 @@ register char **argv;
 			name = pp->pw_name;
 		}
 	}
-	if (freopen(name, "r", stdin) == NULL)
+	if (freopen(name, "r", stdin) == NULL) {
+		fprintf(stderr, "Can't open /usr/spool/mail/%s\n", name);
 		exit(0);
-	while(fgets(lbuf, sizeof lbuf, stdin) != NULL)
+	}
+	while (fgets(lbuf, sizeof lbuf, stdin) != NULL)
 		if (lbuf[0] == '\n' && stashed) {
 			stashed = 0;
 			printf("%s", lbuf2);
-		}
-		else if (bufcmp(lbuf, "From ", 5) &&
+		} else if (strncmp(lbuf, "From ", 5) == 0 &&
 		    (sender == NULL || match(&lbuf[4], sender))) {
 			strcpy(lbuf2, lbuf);
 			stashed = 1;
@@ -63,18 +78,8 @@ register char **argv;
 	exit(0);
 }
 
-bufcmp (b1, b2, n)
-register char *b1, *b2;
-register int n;
-{
-	while (n-- > 0)
-		if (*b1++ != *b2++)
-			return (0);
-	return (1);
-}
-
 match (line, str)
-register char *line, *str;
+	register char *line, *str;
 {
 	register char ch;
 

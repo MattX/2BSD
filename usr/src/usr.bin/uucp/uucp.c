@@ -1,7 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: uucp.c,v 1.15 85/07/19 21:33:16 rick Exp $";
-/* from: @(#)uucp.c	5.1 (Berkeley) 7/2/83 */
-#endif !lint
+static char sccsid[] = "@(#)uucp.c	5.5 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>
@@ -20,6 +19,7 @@ int Copy = 0;
 int Copy = 1;
 #endif !DONTCOPY
 char Nuser[32];
+struct timeb Now;
 
 /* variables used to check if talking to more than one system. */
 int	xsflag = -1;

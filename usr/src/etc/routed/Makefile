@@ -1,35 +1,36 @@
-# Makefile 10/14/82
-ALL=	routed query trace
-CFLAGS= -O
-LIBC=
+#
+# Copyright (c) 1983 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.2 (Berkeley) 2/7/86
+#
+ALL=	routed
+OBJS=	af.o if.o input.o main.o output.o startup.o tables.o timer.o \
+	trace.o inet.o
+CFLAGS=
+C2=	/lib/c2
+INLINE= /sys/machine/inline/inline
+DESTDIR=
+LDFLAGS=
 
-.c.o:
-	${CC} -S ${CFLAGS} $*.c
-	sed -f ../../asm.sed $*.s > $*.S
-	as - -o $*.o $*.S
-	rm -f $*.s $*.S
+all:	${ALL}
 
-all:	$(ALL)
+routed: ${OBJS}
+	${CC} -o routed ${LDFLAGS} ${OBJS}
 
-routed: routed.o af.o
-	${CC} -o routed ${LFLAG} routed.o af.o
+install: routed
+	install -s routed ${DESTDIR}/etc
 
-query:	query.o
-	${CC} -o query ${LFLAG} query.o
-
-trace:	trace.o
-	${CC} -o trace ${LFLAG} trace.o
-
-routed.o query.o: rip.h
-routed.o af.o: router.h
-
-install: $(ALL)
-	install -s -o bin -g bin -m 755 routed ${DESTDIR}/etc
-	install -s -o bin -g bin -m 755 query ${DESTDIR}/etc
-	install -s -o bin -g bin -m 755 trace ${DESTDIR}/etc
-
-lint:
-	lint -hbxn routed.c af.c
+# The following can be deleted where not appropriate to use the kernel's
+# inline code expansions.
+#.c.o:
+#	${CC} -S ${CFLAGS} $*.c
+#	${C2} $*.s | ${INLINE} | ${AS} -o $*.o
+#	rm -f $*.s
 
 clean:
-	rm -f $(ALL) *.[os] core a.out
+	rm -f routed *.o core a.out t.c linterrs typescript errs
+
+${OBJS}: defs.h af.h defs.h interface.h table.h trace.h \
+	/usr/include/protocols/routed.h

@@ -1,5 +1,6 @@
-/* $Header: cpmv.c,v 1.6 85/05/20 20:01:19 rick Exp $ */
-/* from: @(#)cpmv.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)cpmv.c	5.5 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>
@@ -9,9 +10,8 @@
 /*
  *	copy f1 to f2
  *
- *	return - 0 ok  |  FAIL failed
+ *	return - SUCCESS | FAIL
  */
-
 xcp(f1, f2)
 char *f1, *f2;
 {
@@ -19,7 +19,7 @@ char *f1, *f2;
 	register int len;
 	register int fp1, fp2;
 	char *lastpart();
-	char full[100];
+	char full[MAXFULLNAME];
 	struct stat s;
 
 	if ((fp1 = open(subfile(f1), 0)) < 0)
@@ -50,17 +50,16 @@ char *f1, *f2;
 
 
 /*
- *	xmv(f1, f2)	move f1 to f2
- *	char * f1, *f2;
+ *	move f1 to f2
  *
  *	return  0 ok  |  FAIL failed
  */
-
 xmv(f1, f2)
 register char *f1, *f2;
 {
 	register int ret;
 
+	(void) unlink(subfile(f2));
 	if (link(subfile(f1), subfile(f2)) < 0) {
 		/*  copy file  */
 		ret = xcp(f1, f2);
@@ -68,6 +67,6 @@ register char *f1, *f2;
 			unlink(subfile(f1));
 		return ret;
 	}
-	unlink(subfile(f1));
+	(void) unlink(subfile(f1));
 	return 0;
 }

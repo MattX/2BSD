@@ -1,13 +1,25 @@
-#ifndef	lint
-static char *sccsid ="@(#)stty.c	4.7 (Berkeley) 7/18/81";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)stty.c	5.4 (Berkeley) 4/4/86";
+#endif not lint
+
 /*
  * set teletype modes
  */
 
-#include <whoami.h>
 #include <stdio.h>
-#include <sgtty.h>
+#include <sys/ioctl.h>
 
 struct
 {
@@ -30,7 +42,9 @@ struct
 	"4800",	B4800,
 	"9600",	B9600,
 	"exta",	EXTA,
+	"19200", EXTA,
 	"extb",	EXTB,
+	"38400", EXTB,
 	0,
 };
 struct
@@ -102,16 +116,18 @@ struct
 	"-mdmbuf",	0, 0, 0, LMDMBUF,
 	"litout",	0, 0, LLITOUT, 0,
 	"-litout",	0, 0, 0, LLITOUT,
+	"pass8",	0, 0, LPASS8, 0,
+	"-pass8",	0, 0, 0, LPASS8,
 	"tostop",	0, 0, LTOSTOP, 0,
 	"-tostop",	0, 0, 0, LTOSTOP,
 	"flusho",	0, 0, LFLUSHO, 0,
 	"-flusho",	0, 0, 0, LFLUSHO,
 	"nohang",	0, 0, LNOHANG, 0,
 	"-nohang",	0, 0, 0, LNOHANG,
+#ifdef notdef
 	"etxack",	0, 0, LETXACK, 0,
 	"-etxack",	0, 0, 0, LETXACK,
-	"intrup",	0, 0, LINTRUP, 0,
-	"-intrup",	0, 0, 0, LINTRUP,
+#endif
 	"ctlecho",	0, 0, LCTLECH, 0,
 	"-ctlecho",	0, 0, 0, LCTLECH,
 	"pendin",	0, 0, LPENDIN, 0,
@@ -126,30 +142,29 @@ struct
 struct tchars tc;
 struct ltchars ltc;
 struct sgttyb mode;
+struct winsize win;
 int	lmode;
 int	oldisc, ldisc;
-
-#define	CTRL(x)		('x'&037)
 
 struct	special {
 	char	*name;
 	char	*cp;
 	char	def;
 } special[] = {
-	"erase",	&mode.sg_erase,		CTRL(h),
-	"kill",		&mode.sg_kill,		'@',
-	"intr",		&tc.t_intrc,		0177,
-	"quit",		&tc.t_quitc,		CTRL(\\\\),
-	"start",	&tc.t_startc,		CTRL(q),
-	"stop",		&tc.t_stopc,		CTRL(s),
-	"eof",		&tc.t_eofc,		CTRL(d),
-	"brk",		&tc.t_brkc,		0377,
-	"susp",		&ltc.t_suspc,		CTRL(z),
-	"dsusp",	&ltc.t_dsuspc,		CTRL(y),
-	"rprnt",	&ltc.t_rprntc,		CTRL(r),
-	"flush",	&ltc.t_flushc,		CTRL(o),
-	"werase",	&ltc.t_werasc,		CTRL(w),
-	"lnext",	&ltc.t_lnextc,		CTRL(v),
+	"erase",	&mode.sg_erase,		CERASE,
+	"kill",		&mode.sg_kill,		CKILL,
+	"intr",		&tc.t_intrc,		CINTR,
+	"quit",		&tc.t_quitc,		CQUIT,
+	"start",	&tc.t_startc,		CSTART,
+	"stop",		&tc.t_stopc,		CSTOP,
+	"eof",		&tc.t_eofc,		CEOF,
+	"brk",		&tc.t_brkc,		CBRK,
+	"susp",		&ltc.t_suspc,		CSUSP,
+	"dsusp",	&ltc.t_dsuspc,		CDSUSP,
+	"rprnt",	&ltc.t_rprntc,		CRPRNT,
+	"flush",	&ltc.t_flushc,		CFLUSH,
+	"werase",	&ltc.t_werasc,		CWERASE,
+	"lnext",	&ltc.t_lnextc,		CLNEXT,
 	0
 };
 char	*arg;
@@ -166,12 +181,13 @@ char	**iargv;
 	setbuf(stderr, obuf);
 	argc = iargc;
 	argv = iargv;
-	gtty(1, &mode);
-	ioctl(1, TIOCGETD, (struct sgttyb *) &ldisc);
+	ioctl(1, TIOCGETP, &mode);
+	ioctl(1, TIOCGETD, &ldisc);
 	oldisc = ldisc;
-	ioctl(1, TIOCGETC, (struct sgttyb *) &tc);
-	ioctl(1, TIOCLGET, (struct sgttyb *) &lmode);
-	ioctl(1, TIOCGLTC, (struct sgttyb *) &ltc);
+	ioctl(1, TIOCGETC, &tc);
+	ioctl(1, TIOCLGET, &lmode);
+	ioctl(1, TIOCGLTC, &ltc);
+	ioctl(1, TIOCGWINSZ, &win);
 	if(argc == 1) {
 		prmodes(0);
 		exit(0);
@@ -199,7 +215,7 @@ char	**iargv;
 		}
 		if (eq("new")){
 			ldisc = NTTYDISC;
-			if (ioctl(1, TIOCSETD, (struct sgttyb *) &ldisc)<0)
+			if (ioctl(1, TIOCSETD, &ldisc)<0)
 				perror("ioctl");
 			continue;
 		}
@@ -209,7 +225,7 @@ char	**iargv;
 			lmode |= LCRTBS|LCTLECH;
 			if (mode.sg_ospeed >= B1200)
 				lmode |= LCRTERA|LCRTKIL;
-			if (ioctl(1, TIOCSETD, (struct sgttyb *) &ldisc)<0)
+			if (ioctl(1, TIOCSETD, &ldisc)<0)
 				perror("ioctl");
 			continue;
 		}
@@ -221,8 +237,8 @@ char	**iargv;
 			continue;
 		}
 		if (eq("old")){
-			ldisc = OTTYDISC;
-			if (ioctl(1, TIOCSETD, (struct sgttyb *) &ldisc)<0)
+			ldisc = 0;
+			if (ioctl(1, TIOCSETD, &ldisc)<0)
 				perror("ioctl");
 			continue;
 		}
@@ -235,7 +251,7 @@ char	**iargv;
 			lmode |= LCRTBS|LCTLECH|LDECCTQ;
 			if (mode.sg_ospeed >= B1200)
 				lmode |= LCRTERA|LCRTKIL;
-			if (ioctl(1, TIOCSETD, (struct sgttyb *) &ldisc)<0)
+			if (ioctl(1, TIOCSETD, &ldisc)<0)
 				perror("ioctl");
 			continue;
 		}
@@ -258,8 +274,23 @@ char	**iargv;
 			continue;
 		}
 		if (eq("hup")) {
-			ioctl(1, TIOCHPCL, (struct sgttyb *) NULL);
+			ioctl(1, TIOCHPCL, NULL);
 			continue;
+		}
+		if (eq("rows")) {
+			if (--argc == 0)
+				goto done;
+			win.ws_row = atoi(*++argv);
+		}
+		if (eq("cols") || eq("columns")) {
+			if (--argc == 0)
+				goto done;
+			win.ws_col = atoi(*++argv);
+		}
+		if (eq("size")) {
+			ioctl(open("/dev/tty", 0), TIOCGWINSZ, &win);
+			printf("%d %d\n", win.ws_row, win.ws_col);
+			exit(0);
 		}
 		for(i=0; speeds[i].string; i++)
 			if(eq(speeds[i].string)) {
@@ -267,7 +298,7 @@ char	**iargv;
 				goto cont;
 			}
 		if (eq("speed")) {
-			gtty(open("/dev/tty", 0), &mode);
+			ioctl(open("/dev/tty", 0), TIOCGETP, &mode);
 			for(i=0; speeds[i].string; i++)
 				if (mode.sg_ospeed == speeds[i].speed) {
 					printf("%s\n", speeds[i].string);
@@ -289,10 +320,11 @@ cont:
 		;
 	}
 done:
-	ioctl(1, TIOCSETN, (struct sgttyb *) &mode);
-	ioctl(1, TIOCSETC, (struct sgttyb *) &tc);
-	ioctl(1, TIOCSLTC, (struct sgttyb *) &ltc);
-	ioctl(1, TIOCLSET, (struct sgttyb *) &lmode);
+	ioctl(1, TIOCSETN, &mode);
+	ioctl(1, TIOCSETC, &tc);
+	ioctl(1, TIOCSLTC, &ltc);
+	ioctl(1, TIOCLSET, &lmode);
+	ioctl(1, TIOCSWINSZ, &win);
 }
 
 eq(string)
@@ -328,6 +360,8 @@ prmodes(all)
 		prspeed("output speed ", mode.sg_ospeed);
 	} else
 		prspeed("speed ", mode.sg_ispeed);
+	if (all)
+		fprintf(stderr, ", %d rows, %d columns", win.ws_row, win.ws_col);
 	fprintf(stderr, all==2 ? "\n" : "; ");
 	m = mode.sg_flags;
 	if(all==2 || (m&(EVENP|ODDP))!=(EVENP|ODDP)) {
@@ -367,6 +401,7 @@ prmodes(all)
 		int newcrt = (lmode&(LCTLECH|LCRTBS)) == (LCTLECH|LCRTBS) &&
 		    (lmode&(LCRTERA|LCRTKIL)) ==
 		      ((mode.sg_ospeed > B300) ? LCRTERA|LCRTKIL : 0);
+		int nothing = 1;
 		if (newcrt) {
 			if (all==2)
 				fprintf(stderr, "crt: (crtbs crterase crtkill ctlecho) ");
@@ -381,32 +416,36 @@ prmodes(all)
 			lpit(LPRTERA, "-prterase ");
 		}
 		lpit(LTOSTOP, "-tostop ");
-		lpit(LINTRUP, "-intrup ");
 		if (all==2) {
 			fprintf(stderr, "\n");
 			any = 0;
+			nothing = 0;
 		}
 		lpit(LTILDE, "-tilde ");
 		lpit(LFLUSHO, "-flusho ");
 		lpit(LMDMBUF, "-mdmbuf ");
 		lpit(LLITOUT, "-litout ");
+		lpit(LPASS8, "-pass8 ");
 		lpit(LNOHANG, "-nohang ");
 		if (any) {
 			fprintf(stderr,"\n");
 			any = 0;
+			nothing = 0;
 		}
+#ifdef notdef
 		lpit(LETXACK, "-etxack ");
+#endif
 		lpit(LPENDIN, "-pendin ");
 		lpit(LDECCTQ, "-decctlq ");
 		lpit(LNOFLSH, "-noflsh ");
-		if (any)
+		if (any || nothing)
 			fprintf(stderr,"\n");
 	} else if (!all)
 		fprintf(stderr,"\n");
 	if (all) {
 		switch (ldisc) {
 
-		case OTTYDISC:
+		case 0:
 			fprintf(stderr,"\
 erase  kill   intr   quit   stop   eof\
 \n");
@@ -440,15 +479,16 @@ erase  kill   werase rprnt  flush  lnext  susp   intr   quit   stop   eof\
 	} else if (ldisc != NETLDISC) {
 		register struct special *sp;
 		int first = 1;
+
 		for (sp = special; sp->name; sp++) {
 			if ((*sp->cp&0377) != (sp->def&0377)) {
-				pit((unsigned) (*sp->cp), sp->name, first ? "" : ", ");
+				pit(*sp->cp, sp->name, first ? "" : ", ");
 				first = 0;
 			};
-			if (sp->cp == &tc.t_brkc && ldisc == OTTYDISC)
+			if (sp->cp == &tc.t_brkc && ldisc == 0)
 				break;
 		}
-		if (first == 0)
+		if (!first)
 			fprintf(stderr, "\n");
 	}
 }
@@ -527,7 +567,7 @@ char *s;
 }
 
 int	speed[] = {
-	0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,0,0
+	0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,19200,38400
 };
 
 prspeed(c, s)

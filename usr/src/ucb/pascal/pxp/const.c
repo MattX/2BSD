@@ -9,7 +9,7 @@
 #include "0.h"
 #include "tree.h"
 
-STATIC	int constcnt -1;
+STATIC	int constcnt = -1;
 
 /*
  * The const declaration part

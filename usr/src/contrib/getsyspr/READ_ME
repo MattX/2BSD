@@ -1,4 +1,0 @@
-getsyspr is a program to read out kernel profiling information
-from the kernel memory and construct mon.out files for use with
-the user-level profiling stuff.
-Contributed by Walter S. Scott.

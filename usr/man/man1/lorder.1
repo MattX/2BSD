@@ -1,4 +1,11 @@
-.TH LORDER 1 
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)lorder.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH LORDER 1 "April 29, 1985"
+.UC 4
 .SH NAME
 lorder \- find ordering relation for an object library
 .SH SYNOPSIS
@@ -8,7 +15,7 @@ file ...
 The input
 is one or more object or library archive (see
 .IR ar (1))
-.IR file s.
+.I files.
 The standard output
 is a list of pairs of object file names,
 meaning that the first file of the pair refers to
@@ -23,11 +30,20 @@ This brash one-liner intends to build a new library
 from existing `.o' files.
 .IP
 ar cr library \`\|lorder *.o | tsort\`
+.PP
+The need for lorder may be vitiated by use of 
+.IR ranlib (1),
+which converts an ordered archive into a randomly
+accessed library.
 .SH FILES
-.ta 2i
-*symref, *symdef	temporary files
+*symref, *symdef
+.br
+nm(1), sed(1), sort(1), join(1)
 .SH "SEE ALSO"
-ar(1), join(1), ld(1), nm(1), sed(1), sort(1), tsort(1)
+tsort(1),
+ld(1),
+ar(1),
+ranlib(1)
 .SH BUGS
 The names of object files, in and out of libraries, must end with `.o';
 nonsense results otherwise.

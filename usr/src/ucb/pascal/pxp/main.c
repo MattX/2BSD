@@ -26,12 +26,15 @@
  * declarations being implemented.
  */
 
-char	usagestr[]
+char	usagestr[] =
 	"pxp [ -acdefjntuw_ ] [ -23456789 ] [ -z [ name ... ] ] name.p";
-char	*howfile	"/usr/lib/how_pxp";
-char	*stdoutn	"Standard output";
 
-int	unit	4;
+char	*how_file	= "/usr/lib/how_pxp";
+int	how_pathlen	= 9;	/* "/usr/lib/" */
+
+char	*stdoutn	= "Standard output";
+
+int	unit	= 4;
 
 extern	int ibuf[259];
 extern	char errout;
@@ -49,10 +52,10 @@ main(argc, argv)
 	register c;
 
 	if (argv[0][0] == 'a')
-		howfile =+ 9;
+		how_file += how_pathlen;
 	argc--, argv++;
 	if (argc == 0) {
-		execl("/bin/cat", "cat", howfile, 0);
+		execl("/bin/cat", "cat", how_file, 0);
 		goto usage;
 	}
 	while (argc > 0) {
@@ -173,8 +176,8 @@ usage:
 
 		cp = (stdoutn = "/tmp/pxp00000") + 13;
 		signal(2, onintr);
-		for (c = getpid(); c; c =/ 10)
-			*--cp =| (c % 10);
+		for (c = getpid(); c; c /= 10)
+			*--cp |= (c % 10);
 		if (fcreat(stdoutn, fout) < 0)
 bad:
 			perror(stdoutn), exit(1);
@@ -211,12 +214,12 @@ header()
 	}
 	reenter++;
 	if (profile || table) {
-		printf("Berkeley Pascal PXP -- Version 1.1 (%s)\n\n%s  %s\n\n", version, myctime(tvec), filename);
-		printf("Profiled %s\n\n", myctime(ptvec));
+		printf("Berkeley Pascal PXP -- Version 1.1 (%s)\n\n%s  %s\n\n", version, myctime(&tvec), filename);
+		printf("Profiled %s\n\n", myctime(&ptvec));
 	}
 }
 
-char	ugh[]	"Fatal error in pxp\n";
+char	ugh[]	= "Fatal error in pxp\n";
 /*
  * Exit from the Pascal system.
  * We throw in an ungraceful termination

@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)names.c	5.3 (Berkeley) 11/10/85";
+#endif not lint
 
 /*
  * Mail -- a mail program
@@ -7,8 +15,6 @@
  */
 
 #include "rcv.h"
-
-static char *SccsId = "@(#)names.c	2.8 1/22/83";
 
 /*
  * Allocate a single element of a name list,
@@ -150,14 +156,25 @@ yankword(ap, wbuf)
 {
 	register char *cp, *cp2;
 
+	cp = ap;
 	do {
-		for (cp = ap; *cp && any(*cp, " \t,"); cp++)
-			;
+		while (*cp && any(*cp, " \t,"))
+			cp++;
 		if (*cp == '(') {
-			while (*cp && *cp != ')')
-				cp++;
-			if (*cp)
-				cp++;
+			register int nesting = 0;
+
+			while (*cp != '\0') {
+				switch (*cp++) {
+				case '(':
+					nesting++;
+					break;
+				case ')':
+					--nesting;
+					break;
+				}
+				if (nesting <= 0)
+					break;
+			}
 		}
 		if (*cp == '\0')
 			return(NOSTR);

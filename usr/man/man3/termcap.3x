@@ -1,5 +1,11 @@
-.TH TERMCAP 3X
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)termcap.3x	6.1 (Berkeley) 5/15/85
+.\"
+.TH TERMCAP 3X "May 15, 1985"
+.UC 4
 .SH NAME
 tgetent, tgetnum, tgetflag, tgetstr, tgoto, tputs \- terminal independent operation routines
 .SH SYNOPSIS
@@ -30,8 +36,6 @@ tgetent, tgetnum, tgetflag, tgetstr, tgoto, tputs \- terminal independent operat
 .B register char *cp;
 .B int affcnt;
 .B int (*outc)();
-.sp
-.B cc ... \-ltermcap
 .fi
 .SH DESCRIPTION
 These functions extract and use capabilities from the terminal capability data
@@ -82,16 +86,18 @@ returning \-1 if is not given for the terminal.
 returns 1 if the specified capability is present in
 the terminal's entry, 0 if it is not.
 .I Tgetstr
-gets the string value of capability
+returns the string value of the capability
 .I id,
-placing it in the buffer at
+places it in the buffer at
 .I area,
-advancing the
+and advances the
 .I area
 pointer.
 It decodes the abbreviations for this field described in
 .IR termcap (5),
 except for cursor addressing and padding information.
+.I Tgetstr
+returns NULL if the capability was not found.
 .PP
 .I Tgoto
 returns a cursor addressing string decoded from
@@ -102,24 +108,26 @@ in line
 .I destline.
 It uses the external variables
 .B UP
-(from the \fBup\fP capability)
+(from the \fBup\fR capability)
 and
 .B BC
-(if \fBbc\fP is given rather than \fBbs\fP)
-if necessary to avoid placing \fB\en\fP, \fB^D\fP or \fB^@\fP in
+(if \fBbc\fR is given rather than \fBbs\fR)
+if necessary to avoid placing \fB\en\fR, \fB^D\fR or \fB^@\fR in
 the returned string.
 (Programs which call tgoto should be sure to turn off the XTABS bit(s),
-since tgoto may now output a tab.
+since
+.I tgoto
+may now output a tab.
 Note that programs using termcap should in general turn off XTABS
 anyway since some terminals use control I for other functions,
 such as nondestructive space.)
-If a \fB%\fP sequence is given which is not understood, then
+If a \fB%\fR sequence is given which is not understood, then
 .I tgoto
 returns \*(lqOOPS\*(rq.
 .PP
 .I Tputs
 decodes the leading padding information of the string
-.I cp;
+.IR cp ;
 .I affcnt
 gives the number of lines affected by the operation, or 1 if this is
 not applicable,
@@ -128,13 +136,13 @@ is a routine which is called with each character in turn.
 The external variable
 .I ospeed
 should contain the output speed of the terminal as encoded by
-.IR stty (2).
+.IR stty (3).
 The external variable
 .B PC
-should contain a pad character to be used (from the \fBpc\fP capability)
-if a null (\fB^@\fP) is inappropriate.
+should contain a pad character to be used (from the \fBpc\fR capability)
+if a null (\fB^@\fR) is inappropriate.
 .SH FILES
-.ta 2i
+.ta \w'/usr/lib/libtermcap.a  'u
 /usr/lib/libtermcap.a	\-ltermcap library
 .br
 /etc/termcap	data base

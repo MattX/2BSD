@@ -1,0 +1,34 @@
+bind-to-key replace-in-region ^[^R
+bind-to-key prefix-1 `
+bind-to-key pause-jove ^Z
+bind-to-key save-file ^Xw
+bind-to-key write-file ^XW
+bind-to-key delete-current-window ^X0
+bind-to-key grow-window ^Xg
+bind-to-key shrink-window ^Xs
+bind-to-key describe-key ^X/
+bind-to-key describe-command ^X?
+bind-to-key apropos ^X\\
+bind-to-key buffer-position ^X=
+bind-to-key fill-comment ^Xj
+bind-to-key scroll-up ^[n
+bind-to-key scroll-down ^[p
+bind-to-key set-mark ^[@
+bind-to-key pop-mark ^[!
+set right-margin 75
+set scroll-step 1
+set mark-threshold 10000
+set visible-bell on
+set match-regular-expressions on
+set mode-line %M %m*  %[%b%] %f %(%d %C%s%t %)%e
+read-macros-from-file ~/.jove/macros
+bind-macro-to-key scroll-window-halfway-up ^[N
+bind-macro-to-key scroll-window-halfway-down ^[P
+bind-macro-to-key scroll-next-window-up ^[^N
+bind-macro-to-key scroll-next-window-down ^[^P
+bind-macro-to-key kill-region-to-named-buffer ^[^W
+bind-macro-to-key copy-region-to-named-buffer ^[W
+bind-macro-to-key yank-from-named-buffer ^[^Y
+bind-macro-to-key kill-region-to-named-buffer ^[^W
+bind-macro-to-key copy-region-to-named-buffer ^[W
+bind-macro-to-key yank-from-named-buffer ^[^Y

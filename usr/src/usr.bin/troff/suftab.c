@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)suftab.c	4.1 6/7/82";
+#endif lint
+
 /*
  * Suffix table
  */

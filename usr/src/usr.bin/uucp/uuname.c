@@ -1,18 +1,18 @@
 #ifndef lint
-static char	*RcsId = "$Header: uuname.c,v 1.3 84/09/26 16:04:24 rick Exp $";
-/* from: @(#)uuname.c	5.1 (Berkeley) 7/2/83 */
+static char sccsid[] = "@(#)uuname.c	5.3 (Berkeley) 10/9/85";
 #endif
 
 #include "uucp.h"
 #include <signal.h>
 
-/*******
- *      uuname  -  return list of all remote systems 
- *		   recognized by uucp, or  (with -l) the local
- *		   uucp name.
+/*
+ *      return list of all remote systems 
+ *	recognized by uucp, or  (with -l) the local  uucp name.
  *
  *      return codes: 0 | 1  (can't read)
  */
+
+struct timeb Now;
  
 main(argc,argv)
 char *argv[];

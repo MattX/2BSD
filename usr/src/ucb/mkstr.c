@@ -1,9 +1,20 @@
-#ifndef	lint
-static char *sccsid = "@(#)mkstr.c	4.1 (Berkeley) 10/1/80";
-#endif
-#include <sys/types.h>
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)mkstr.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
-#include <sys/stat.h>
 
 #define	ungetchar(c)	ungetc(c, stdin)
 
@@ -77,6 +88,7 @@ main(argc, argv)
 
 process()
 {
+	register char *cp;
 	register c;
 
 	for (;;) {
@@ -193,7 +205,7 @@ inithash()
 
 	rewind(mesgread);
 	while (fgetNUL(buf, sizeof buf, mesgread) != NULL) {
-		(void) hashit(buf, 0, (unsigned) mesgpt);
+		hashit(buf, 0, mesgpt);
 		mesgpt += strlen(buf) + 2;
 	}
 }
@@ -221,14 +233,14 @@ hashit(str, really, fakept)
 		fflush(mesgwrite);
 	for (cp = str; *cp;)
 		hashval = (hashval << 1) + *cp++;
-	i = /*NOSTRICT*/ hashval % NBUCKETS;
+	i = hashval % NBUCKETS;
 	if (i < 0)
 		i += NBUCKETS;
 	if (really != 0)
 		for (hp = bucket[i]; hp != 0; hp = hp->hnext)
 		if (hp->hval == hashval) {
 			fseek(mesgread, (long) hp->hpt, 0);
-			(void) fgetNUL(buf, sizeof buf, mesgread);
+			fgetNUL(buf, sizeof buf, mesgread);
 /*
 			fprintf(stderr, "Got (from %d) %s\n", hp->hpt, buf);
 */
@@ -239,7 +251,7 @@ hashit(str, really, fakept)
 		hp = (struct hash *) calloc(1, sizeof *hp);
 		hp->hnext = bucket[i];
 		hp->hval = hashval;
-		hp->hpt = (unsigned) (really ? ftell(mesgwrite) : fakept);
+		hp->hpt = really ? ftell(mesgwrite) : fakept;
 		if (really) {
 			fwrite(str, sizeof (char), strlen(str) + 1, mesgwrite);
 			fwrite("\n", sizeof (char), 1, mesgwrite);
@@ -251,6 +263,9 @@ hashit(str, really, fakept)
 */
 	return (hp->hpt);
 }
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 fgetNUL(obuf, rmdr, file)
 	char *obuf;

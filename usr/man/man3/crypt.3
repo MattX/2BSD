@@ -1,18 +1,20 @@
-.TH CRYPT 3 
+.\"	@(#)crypt.3	6.1.1.1 (Berkeley) 8/12/86
+.\"
+.TH CRYPT 3  "August 12, 1986"
+.AT 3
 .SH NAME
 crypt, setkey, encrypt \- DES encryption
 .SH SYNOPSIS
+.nf
 .B char *crypt(key, salt)
-.br
 .B char *key, *salt;
 .PP
 .B setkey(key)
-.br
 .B char *key;
 .PP
 .B encrypt(block, edflag)
-.br
 .B char *block;
+.fi
 .SH DESCRIPTION
 .I Crypt
 is the password encryption routine.
@@ -22,7 +24,7 @@ implementations of the DES for key search.
 .PP
 The first argument to
 .I crypt
-is a user's typed password.
+is normally a user's typed password.
 The second is a 2-character string chosen from the
 set [a-zA-Z0-9./].
 The
@@ -53,14 +55,13 @@ to a similar array
 representing the bits of the argument after having been
 subjected to the DES algorithm using the key set by
 .I setkey.
-If
+The
 .I edflag
-is 0, the argument is encrypted;
-if non-zero,
-it is decrypted.
+flag is ignored;
+the argument can only be encrypted.
 .SH "SEE ALSO"
-login(1), passwd(1), getpass(3), passwd(5)
+passwd(1), passwd(5), login(1), getpass(3)
 .SH BUGS
 The return value
-points to static data whose contents are overwritten
+points to static data whose content is overwritten
 by each call.

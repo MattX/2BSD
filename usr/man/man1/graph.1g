@@ -1,4 +1,7 @@
-.TH GRAPH 1G 
+.\"	@(#)graph.1g	6.1 (Berkeley) 4/29/85
+.\"
+.TH GRAPH 1G "April 29, 1985"
+.AT 3
 .SH NAME
 graph \- draw a graph
 .SH SYNOPSIS
@@ -26,7 +29,7 @@ labels never contain newlines.
 The following options are recognized,
 each as a separate argument.
 .TP
-.B  \-\^a
+.B  \-a
 Supply abscissas automatically (they are missing from
 the input); spacing is given by the next
 argument (default 1).
@@ -34,31 +37,31 @@ A second optional argument is the starting point for
 automatic abscissas (default 0 or lower limit given by
 .BR \-x ).
 .TP
-.B  \-\^b
+.B  \-b
 Break (disconnect) the graph after each label in the input.
 .TP
-.B  \-\^c
+.B  \-c
 Character string given by next argument
 is default label for each point.
 .TP
-.B  \-\^g
+.B  \-g
 Next argument is grid style,
 0 no grid, 1 frame with ticks, 2 full grid (default).
 .TP
-.B  \-\^l
+.B  \-l
 Next argument is label for graph.
 .TP
-.B  \-\^m
+.B  \-m
 Next argument is mode (style)
 of connecting lines:
 0 disconnected, 1 connected (default).
 Some devices give distinguishable line styles
 for other small integers.
 .TP
-.B  \-\^s
+.B  \-s
 Save screen, don't erase before plotting.
 .TP
-\fB\-\^x\fP [ \fBl\fP ]
+\fB\-x\fR [ \fBl\fR ]
 If
 .B l
 is present, x axis is logarithmic.
@@ -70,23 +73,23 @@ Third argument, if present, is grid spacing on
 axis.
 Normally these quantities are determined automatically.
 .TP
-\fB\-\^y\fP [ \fBl\fP ]
+\fB\-y\fR [ \fBl\fR ]
 Similarly for
 .IR y .
 .TP
-.B  \-\^h
+.B  \-h
 Next argument is fraction of space for height.
 .TP
-.B  \-\^w
+.B  \-w
 Similarly for width.
 .TP
-.B  \-\^r
+.B  \-r
 Next argument is fraction of space to move right before plotting.
 .TP
-.B  \-\^u
+.B  \-u
 Similarly to move up before plotting.
 .TP
-.B  \-\^t
+.B  \-t
 Transpose horizontal and vertical axes.
 (Option
 .B \-x
@@ -101,7 +104,7 @@ If a specified lower limit exceeds the upper limit,
 the axis
 is reversed.
 .SH "SEE ALSO"
-plot(1G), spline(1G)
+spline(1G), plot(1G)
 .SH BUGS
 .I Graph
 stores all points internally and drops those for which

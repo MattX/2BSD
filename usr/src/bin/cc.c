@@ -1,365 +1,252 @@
-#ifndef lint
-static	char	sccsid[] = "@(#)cc.c	2.6";	/*	SCCS id keyword	*/
-static char rcsid[] =
-    "$Id: cc.c,v 1.3 85/05/13 16:07:56 ach Exp $";
-#endif lint
-
-/* $Log:	cc.c,v $
- * Revision 1.3  85/05/13  16:07:56  ach
- * Fixed bug where seperate I/D with floating point instructions simultated
- * failed, due to not loading "fcrt0.o". -sku
- * 
- * Revision 1.2  85/04/30  19:54:27  ach
- * "-i" wasn't passed to "ld", thus nothing compiled split I/D. -sku
- * 
+static	char sccsid[] = "@(#)cc.c 4.13 9/18/85";
+/*
+ * cc - front end for C compiler
  */
-# include <stdio.h>
-# include <ctype.h>
-# include <signal.h>
-# include <whoami.h>
+#include <sys/param.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <signal.h>
+#include <sys/dir.h>
 
-/* cc command */
+char	*cpp = "/lib/cpp";
+char	*ccom = "/lib/c0";
+char	*ccom1 = "/lib/c1";
+char	*c2 = "/lib/c2";
+char	*as = "/bin/as";
+char	*ld = "/bin/ld";
+char	*crt0 = "/lib/crt0.o";
 
-# define MAXINC 10
-# define MAXFIL 100
-# define MAXLIB 100
-# define MAXOPT 100
-char	*tmp0;
-char	*tmp1;
-char	*tmp2;
-char	*tmp3;
-char	*tmp4;
-char	*tmp5;
+char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
+char	*tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
 char	*outfile;
-# define CHSPACE 1000
-char	ts[CHSPACE+50];
-char	*tsa = ts;
-char	*tsp = ts;
-char	*av[50];
-char	*clist[MAXFIL];
-char	*llist[MAXLIB];
-int	pflag;
-int	sflag;
-int	cflag;
-int	eflag;
-int	iflag;
-int	vflag;
-int	exflag;
-int	oflag;
-int	proflag;
-#ifdef MENLO_OVLY
-int	ovlyflag;
-	/*
-	 * Predefined constant always true for an overlay compilation.
-	 * Useful for sorting through include files...
-	 */
-#define	OVL_DEF	"-DC_OVERLAY"
-#define OVLIBC	"-lovc"
-#endif MENLO_OVLY
-#define LD	"/bin/ld"
-#define AS	"/bin/as"
-#define LIBC	"-lc"
-int	noflflag;
-char	*chpass ;
-char	*npassname ;
-char	pass0[20] = "/lib/c0";
-char	pass1[20] = "/lib/c1";
-char	pass2[20] = "/lib/c2";
-char	passp[20] = "/lib/cpp";
-char	*pref = "/lib/crt0.o";
-char	*copy();
-char	*setsuf();
-char	*strcat();
-char	*strcpy();
+char	*savestr(), *strspl(), *setsuf();
+int	idexit();
+char	**av, **clist, **llist, **plist;
+int	cflag, eflag, oflag, pflag, sflag, wflag, exflag, proflag;
+int	Mflag, debug;
+int	exfail;
+char	*chpass;
+char	*npassname;
+
+int	nc, nl, np, nxo, na;
+
+#define	cunlink(s)	if (s) unlink(s)
 
 main(argc, argv)
-char *argv[]; 
+	char **argv;
 {
 	char *t;
-	char *savetsp;
 	char *assource;
-	char **pv, *ptemp[MAXOPT], **pvt;
-	int nc, nl, i, j, c, f20, nxo, na;
-	int idexit();
+	int i, j, c;
 
-	i = nc = nl = f20 = nxo = 0;
-	setbuf(stdout, (char *)NULL);
-	pv = ptemp;
-	while(++i < argc) {
-		if(*argv[i] == '-') switch (argv[i][1]) {
-		default:
-			goto passa;
+	/* ld currently adds upto 5 args; 10 is room to spare */
+	av = (char **)calloc(argc+10, sizeof (char **));
+	clist = (char **)calloc(argc, sizeof (char **));
+	llist = (char **)calloc(argc, sizeof (char **));
+	plist = (char **)calloc(argc, sizeof (char **));
+	for (i = 1; i < argc; i++) {
+		if (*argv[i] == '-') switch (argv[i][1]) {
+
 		case 'S':
 			sflag++;
 			cflag++;
-			break;
+			continue;
 		case 'o':
 			if (++i < argc) {
 				outfile = argv[i];
-				if ((c=getsuf(outfile))=='c'||c=='o') {
-					error("Would overwrite %s", outfile);
+				switch (getsuf(outfile)) {
+
+				case 'c':
+					error("-o would overwrite %s",
+					    outfile);
 					exit(8);
 				}
 			}
-			break;
+			continue;
 		case 'O':
 			oflag++;
-			break;
+			continue;
 		case 'p':
 			proflag++;
-			break;
-#ifdef MENLO_OVLY
-		case 'V':
-			ovlyflag++;
-			*pv++ = OVL_DEF;
-			if (pv >= ptemp+MAXOPT) {
-				error("Too many DIUC options", (char *)NULL);
-				--pv;
-			}
-			break;
-#endif MENLO_OVLY
+			crt0 = "/lib/mcrt0.o";
+			if (argv[i][2] == 'g')
+				crt0 = "/usr/lib/gcrt0.o";
+			continue;
+		case 'w':
+			wflag++;
+			continue;
 		case 'E':
 			exflag++;
 		case 'P':
 			pflag++;
-			*pv++ = argv[i];
+			if (argv[i][1]=='P')
+				fprintf(stderr,
+	"cc: warning: -P option obsolete; you should use -E instead\n");
+			plist[np++] = argv[i];
 		case 'c':
 			cflag++;
-			break;
-
-		case 'f':
-			noflflag++;
-			if (npassname || chpass)
-				error("-f overwrites earlier option", (char *)NULL);
-			npassname = "/lib/f";
-			chpass = "1";
-			break;
-
-		case '2':
-			if(argv[i][2] == '\0')
-				pref = "/lib/crt2.o";
-			else {
-				pref = "/lib/crt20.o";
-				f20 = 1;
-			}
-			break;
+			continue;
+		case 'M':
+			exflag++;
+			pflag++;
+			Mflag++;
+			/* and fall through */
 		case 'D':
 		case 'I':
 		case 'U':
 		case 'C':
-			*pv++ = argv[i];
-			if (pv >= ptemp+MAXOPT) {
-				error("Too many DIUC options", (char *)NULL);
-				--pv;
-			}
-			break;
+			plist[np++] = argv[i];
+			continue;
+		case 'L':
+			llist[nl++] = argv[i];
+			continue;
 		case 't':
 			if (chpass)
-				error("-t overwrites earlier option", (char *)NULL);
+				error("-t overwrites earlier option", 0);
 			chpass = argv[i]+2;
 			if (chpass[0]==0)
 				chpass = "012p";
-			break;
-
+			continue;
 		case 'B':
 			if (npassname)
-				error("-B overwrites earlier option", (char *)NULL);
+				error("-B overwrites earlier option", 0);
 			npassname = argv[i]+2;
 			if (npassname[0]==0)
-				npassname = "/usr/src/cmd/c/o";
-			break;
-
-		case 'v':
-			vflag++;
-			break;
-
-		case 'i':
-			iflag++;
-			break;
-		} 
-		else {
-passa:
-			t = argv[i];
-			if((c=getsuf(t))=='c' || c=='s'|| exflag) {
-				clist[nc++] = t;
-				if (nc>=MAXFIL) {
-					error("Too many source files", (char *)NULL);
-					exit(1);
-				}
-				t = setsuf(t, 'o');
+				npassname = "/usr/c/o";
+			continue;
+		case 'd':
+			if (argv[i][2] == '\0') {
+				debug++;
+				continue;
 			}
-			if (nodup(llist, t)) {
-				llist[nl++] = t;
-				if (nl >= MAXLIB) {
-					error("Too many object/library files", (char *)NULL);
-					exit(1);
-				}
-				if (getsuf(t)=='o')
-					nxo++;
-			}
+			continue;
+		}
+		t = argv[i];
+		c = getsuf(t);
+		if (c=='c' || c=='s' || exflag) {
+			clist[nc++] = t;
+			t = setsuf(t, 'o');
+		}
+		if (nodup(llist, t)) {
+			llist[nl++] = t;
+			if (getsuf(t)=='o')
+				nxo++;
 		}
 	}
 	if (npassname && chpass ==0)
 		chpass = "012p";
 	if (chpass && npassname==0)
-		npassname = "/usr/src/cmd/c/";
+		npassname = "/usr/new";
 	if (chpass)
-		for (t=chpass; *t; t++) {
-			switch (*t) {
-			case '0':
-				strcpy (pass0, npassname);
-				strcat (pass0, "c0");
-				continue;
-			case '1':
-				strcpy (pass1, npassname);
-				strcat (pass1, "c1");
-				continue;
-			case '2':
-				strcpy (pass2, npassname);
-				strcat (pass2, "c2");
-				continue;
-			case 'p':
-				strcpy (passp, npassname);
-				strcat (passp, "cpp");
-				continue;
-			}
-		}
-	if (noflflag)
-		pref = proflag ? "/lib/fmcrt0.o" : "/lib/fcrt0.o";
-	else if (proflag)
-		pref = "/lib/mcrt0.o";
-	if(nc==0)
-		goto nocom;
-	if (pflag==0) {
-		char FD;
+	for (t=chpass; *t; t++) {
+		switch (*t) {
 
-		tmp0 = copy("/tmp/ctm0XXXXX");
-		mktemp (tmp0);
-		FD = creat (tmp0);
-		if (FD < 0)
-		{
-			error("cc: cannot create temp", NULL);
-			exit(1);
+		case '0':
+			ccom = strspl(npassname, "c0");
+			continue;
+		case '1':
+			ccom1 = strspl(npassname, "c1");
+			continue;
+		case '2':
+			c2 = strspl(npassname, "c2");
+			continue;
+		case 'p':
+			cpp = strspl(npassname, "cpp");
+			continue;
 		}
-		close (FD);
 	}
+	if (nc==0)
+		goto nocom;
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, idexit);
 	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
 		signal(SIGTERM, idexit);
-	(tmp1 = copy(tmp0))[8] = '1';
-	(tmp2 = copy(tmp0))[8] = '2';
-	(tmp3 = copy(tmp0))[8] = '3';
-	if (oflag)
-		(tmp5 = copy(tmp0))[8] = '5';
+	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
+		signal(SIGHUP, idexit);
 	if (pflag==0)
-		(tmp4 = copy(tmp0))[8] = '4';
-	pvt = pv;
+		sprintf(tmp0, "/tmp/ctm%05.5d", getpid());
+	tmp1 = strspl(tmp0, "1");
+	tmp2 = strspl(tmp0, "2");
+	tmp3 = strspl(tmp0, "3");
+	if (pflag==0)
+		tmp4 = strspl(tmp0, "4");
+	if (oflag)
+		tmp5 = strspl(tmp0, "5");
 	for (i=0; i<nc; i++) {
-		if (nc>1 || vflag)
+		if (nc > 1 && !Mflag) {
 			printf("%s:\n", clist[i]);
-		if (getsuf(clist[i])=='s') {
+			fflush(stdout);
+		}
+		if (!Mflag && getsuf(clist[i]) == 's') {
 			assource = clist[i];
 			goto assemble;
-		} 
-		else
+		} else
 			assource = tmp3;
 		if (pflag)
 			tmp4 = setsuf(clist[i], 'i');
-		savetsp = tsp;
-		av[0] = "cpp";
-		av[1] = clist[i];
-		av[2] = exflag ? "-" : tmp4;
-		na = 3;
-		for(pv=ptemp; pv <pvt; pv++)
-			av[na++] = *pv;
-		av[na++]=0;
-		if(vflag)
-			doecho(passp, av);
-		if (callsys(passp, av)) {
-			cflag++;
-			eflag++;
-			continue;
-		}
-		av[1] = tmp4;
-		tsp = savetsp;
-		av[0]= "c0";
-		if (pflag) {
-			cflag++;
-			continue;
-		}
+		av[0] = "cpp"; av[1] = clist[i];
 		na = 2;
-		av[na++] = tmp1;
-		av[na++] = tmp2;
+		if (!exflag)
+			av[na++] = tmp4;
+		for (j = 0; j < np; j++)
+			av[na++] = plist[j];
+		av[na++] = 0;
+		if (callsys(cpp, av)) {
+			exfail++;
+			eflag++;
+		}
+		if (pflag || exfail) {
+			cflag++;
+			continue;
+		}
+		if (sflag) {
+			if (nc==1 && outfile)
+				tmp3 = outfile;
+			else
+				tmp3 = setsuf(clist[i], 's');
+			assource = tmp3;
+		}
+		av[0] = "c0";
+		av[1] = tmp4; av[2] = tmp1; av[3] = tmp2; na = 4;
 		if (proflag)
 			av[na++] = "-P";
-#ifdef MENLO_OVLY
-		if (ovlyflag)
-			av[na++] = "-V";
-#endif
-		av[na++] = 0;
-		if(vflag)
-			doecho(pass0, av);
-		if (callsys(pass0, av)) {
+		if (wflag)
+			av[na++] = "-w";
+		av[na] = 0;
+		if (callsys(ccom, av)) {
 			cflag++;
 			eflag++;
 			continue;
 		}
-		av[0] = "c1";
-		av[1] = tmp1;
-		av[2] = tmp2;
-		if (sflag)
-			assource = tmp3 = setsuf(clist[i], 's');
-		av[3] = tmp3;
-		if (oflag)
-			av[3] = tmp5;
-		na = 4;
-#ifdef MENLO_OVLY
-		if (ovlyflag)
-			av[na++] = "-V";
-#endif
-		av[na++] = 0;
-		if(vflag)
-			doecho(pass1, av);
-		if(callsys(pass1, av)) {
+		av[0] = "c1"; av[1] = tmp1; av[2] = tmp2;
+		av[3] = oflag ? tmp5 : tmp3;
+		av[4] = 0;
+		if (callsys(ccom1, av)) {
 			cflag++;
 			eflag++;
 			continue;
 		}
 		if (oflag) {
-			av[0] = "c2";
-			av[1] = tmp5;
-			av[2] = tmp3;
-			av[3] = 0;
-			if(vflag)
-				doecho(pass2, av);
-			if (callsys(pass2, av)) {
+			av[0] = "c2"; av[1] = tmp5; av[2] = tmp3; av[3] = 0;
+			if (callsys(c2, av)) {
 				unlink(tmp3);
 				tmp3 = assource = tmp5;
-			} 
-			else
+			} else
 				unlink(tmp5);
 		}
 		if (sflag)
 			continue;
-assemble:
-		av[0] = "as";
-		av[1] = "-u";
-		na = 2;
-#ifdef	MENLO_OVLY
-		if (ovlyflag)
-			av[na++] = "-V";
-#endif	MENLO_OVLY
-		av[na++] = "-o";
-		av[na++] = setsuf(clist[i], 'o');
-		av[na++] = assource;
-		av[na++] = 0;
-		cunlink(tmp1);
-		cunlink(tmp2);
-		cunlink(tmp4);
-		if(vflag)
-			doecho(AS, av);
-		if (callsys(AS, av) > 1) {
+	assemble:
+		cunlink(tmp1); cunlink(tmp2); cunlink(tmp4);
+		av[0] = "as"; av[1] = "-V";
+		av[2] = "-u"; av[3] = "-o";
+		if (cflag && nc==1 && outfile)
+			av[4] = outfile;
+		else
+			av[4] = setsuf(clist[i], 'o');
+		av[5] = assource;
+		av[6] = 0;
+		if (callsys(as, av) > 1) {
 			cflag++;
 			eflag++;
 			continue;
@@ -368,51 +255,35 @@ assemble:
 nocom:
 	if (cflag==0 && nl!=0) {
 		i = 0;
-		av[0] = "ld";
-		av[1] = "-X";
-		j = 2;
-		if (iflag)
-			av[j++] = "-i";
-		av[j++] = pref;
-		if (noflflag) {
-			if (iflag)
-				av[j++] = "-lfpsim_sep";
-			else
-				av[j++] = "-lfpsim";
-		}
+		av[0] = "ld"; av[1] = "-X"; av[2] = crt0; na = 3;
 		if (outfile) {
-			av[j++] = "-o";
-			av[j++] = outfile;
+			av[na++] = "-o";
+			av[na++] = outfile;
 		}
-		while(i<nl)
-			av[j++] = llist[i++];
-		if(f20)
-			av[j++] = "-l2";
-		else {
-#ifdef MENLO_OVLY
-			av[j++] = ovlyflag ? OVLIBC : LIBC;
-#else
-			av[j++] = LIBC;
-#endif MENLO_OVLY
-		}
-		av[j++] = 0;
-		if(vflag)
-			doecho(LD, av);
-		eflag |= callsys(LD, av);
+		while (i < nl)
+			av[na++] = llist[i++];
+		if (proflag)
+			av[na++] = "-lc_p";
+		else
+			av[na++] = "-lc";
+		av[na++] = 0;
+		eflag |= callsys(ld, av);
 		if (nc==1 && nxo==1 && eflag==0)
-			cunlink(setsuf(clist[0], 'o'));
+			unlink(setsuf(clist[0], 'o'));
 	}
 	dexit();
 }
 
 idexit()
 {
+
 	eflag = 100;
 	dexit();
 }
 
 dexit()
 {
+
 	if (!pflag) {
 		cunlink(tmp1);
 		cunlink(tmp2);
@@ -420,22 +291,22 @@ dexit()
 			cunlink(tmp3);
 		cunlink(tmp4);
 		cunlink(tmp5);
-		cunlink(tmp0);
 	}
 	exit(eflag);
 }
 
 error(s, x)
-char *s, *x;
+	char *s, *x;
 {
-	fprintf(exflag?stderr:stdout, s, x);
-	putc('\n', exflag? stderr : stdout);
+	FILE *diag = exflag ? stderr : stdout;
+
+	fprintf(diag, "cc: ");
+	fprintf(diag, s, x);
+	putc('\n', diag);
+	exfail++;
 	cflag++;
 	eflag++;
 }
-
-
-
 
 getsuf(as)
 char as[];
@@ -446,113 +317,121 @@ char as[];
 
 	s = as;
 	c = 0;
-	while(t = *s++)
+	while (t = *s++)
 		if (t=='/')
 			c = 0;
 		else
 			c++;
 	s -= 3;
-	if (c<=14 && c>2 && *s++=='.')
-		return(*s);
-	return(0);
+	if (c <= MAXNAMLEN && c > 2 && *s++ == '.')
+		return (*s);
+	return (0);
 }
 
 char *
 setsuf(as, ch)
-char *as;
+	char *as;
 {
 	register char *s, *s1;
 
-	s = s1 = copy(as);
-	while(*s)
+	s = s1 = savestr(as);
+	while (*s)
 		if (*s++ == '/')
 			s1 = s;
 	s[-1] = ch;
-	return(s1);
+	return (s1);
 }
 
 callsys(f, v)
-char f[], *v[]; 
+	char *f, **v;
 {
 	int t, status;
+	char **cpp;
 
-	if ((t=fork())==0) {
+	if (debug) {
+		fprintf(stderr, "%s:", f);
+		for (cpp = v; *cpp != 0; cpp++)
+			fprintf(stderr, " %s", *cpp);
+		fprintf(stderr, "\n");
+	}
+	t = vfork();
+	if (t == -1) {
+		printf("No more processes\n");
+		return (100);
+	}
+	if (t == 0) {
 		execv(f, v);
 		printf("Can't find %s\n", f);
-		exit(100);
-	} else
-		if (t == -1) {
-			printf("Try again\n");
-			return(100);
-		}
-	while(t!=wait(&status))
+		fflush(stdout);
+		_exit(100);
+	}
+	while (t != wait(&status))
 		;
-	if (t = status&0377) {
-		if (t!=SIGINT) {
+	if ((t=(status&0377)) != 0 && t!=14) {
+		if (t!=2) {
 			printf("Fatal error in %s\n", f);
 			eflag = 8;
 		}
 		dexit();
 	}
-	return((status>>8) & 0377);
-}
-
-char *
-copy(as)
-char *as;
-{
-	char *malloc();
-	register char *otsp, *s;
-
-	otsp = tsp;
-	s = as;
-	while (*tsp++ = *s++)
-		;
-	if (tsp > tsa+CHSPACE) {
-		tsp = tsa = malloc(CHSPACE+50);
-		if (tsp==NULL) {
-			error("no space for file names", (char *)NULL);
-			dexit();
-		}
-	}
-	return(otsp);
+	return ((status>>8) & 0377);
 }
 
 nodup(l, os)
-char **l, *os;
+	char **l, *os;
 {
 	register char *t, *s;
 	register int c;
 
 	s = os;
 	if (getsuf(s) != 'o')
-		return(1);
-	while(t = *l++) {
-		while(c = *s++)
+		return (1);
+	while (t = *l++) {
+		while (c = *s++)
 			if (c != *t++)
 				break;
-		if (*t=='\0' && c=='\0')
-			return(0);
+		if (*t==0 && c==0)
+			return (0);
 		s = os;
 	}
-	return(1);
+	return (1);
 }
 
-cunlink(f)
-char *f;
+#define	NSAVETAB	1024
+char	*savetab;
+int	saveleft;
+
+char *
+savestr(cp)
+	register char *cp;
 {
-	if (f==NULL)
-		return;
-	unlink(f);
+	register int len;
+
+	len = strlen(cp) + 1;
+	if (len > saveleft) {
+		saveleft = NSAVETAB;
+		if (len > saveleft)
+			saveleft = len;
+		savetab = (char *)malloc(saveleft);
+		if (savetab == 0) {
+			fprintf(stderr, "ran out of memory (savestr)\n");
+			exit(1);
+		}
+	}
+	strncpy(savetab, cp, len);
+	cp = savetab;
+	savetab += len;
+	saveleft -= len;
+	return (cp);
 }
 
-doecho(s, v)
-char *s;
-register char **v;
+char *
+strspl(left, right)
+	char *left, *right;
 {
-	printf ("%s", s);
-	while (*v)
-		printf (" %s", *v++);
-	putchar ('\n');
-	fflush (stdout);
+	char buf[BUFSIZ];
+
+	strcpy(buf, left);
+	strcat(buf, right);
+	return (savestr(buf));
 }

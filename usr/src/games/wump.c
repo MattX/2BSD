@@ -13,7 +13,11 @@ static char sccsid[] = "	wump.c	4.1	82/10/24	";
 #define	NROOM	20
 #define	NTUNN	3
 #define	NPIT	3
+#ifdef pdp11
+#define	BIGINT 32768.0
+#else
 #define BIGINT 2147483648.0
+#endif
 
 struct room
 {

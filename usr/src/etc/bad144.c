@@ -18,10 +18,10 @@
  * general since UNIX doesn't have on-line formatters to write the BSE
  * error in the header.
  */
-#include <whoami.h>
-#ifndef	BADSECT
+#include <sys/param.h>
+#ifndef BADSECT
 #define BADSECT
-#endif
+#endif !BADSECT
 #include <sys/types.h>
 #include <sys/dkbad.h>
 #include <stdio.h>
@@ -37,10 +37,14 @@ struct diskinfo {
 	"rm02",		32*5*823L,	32,	5,
 	"rm03",		32*5*823L,	32,	5,
 	"rm05",		32*19*823L,	32,	19,
-	"rp06",		22*19*815L,	22,	19,
-	"rm80",		31*14*559L,	31,	14,
+	"cdc9766",	32*19*823L,	32,	19,
+	"rp04",		22*19*411L,	22,	19,
 	"rp05",		22*19*411L,	22,	19,
-	"rp07",		50*32*630L,	50,	32,
+	"rp06",		22*19*815L,	22,	19,
+	"fuji160",	32*10*823L,	32,	10,
+	"diva",		33*19*815L,	33,	19,
+	"ampex9300",	33*19*815L,	33,	19,
+	"si_eagle",	48*20*842L,	48,	20,
 	0,
 };
 union {
@@ -55,7 +59,7 @@ main(argc, argv)
 	char **argv;
 {
 	register struct diskinfo *di;
-	register struct bt_b *bt;
+	register struct bt_bad *bt;
 	char name[BUFSIZ];
 	int i, f, errs;
 	daddr_t bad;

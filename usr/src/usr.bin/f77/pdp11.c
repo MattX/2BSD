@@ -281,31 +281,38 @@ int i, argslot, proflab;
 register chainp p;
 register struct nameblock *q;
 register struct dimblock *dp;
+char *funcname;
 struct constblock *mkaddcon();
 
-if(procclass == CLMAIN)
-	prentry("MAIN__");
+if(procclass == CLMAIN) {
+	funcname = "MAIN__";
+	prentry(funcname);
+}
 
-if(ep->entryname)
-	prentry( varstr(XL, ep->entryname->extname) );
+if(ep->entryname) {
+	funcname = varstr(XL, ep->entryname->extname);
+	prentry(funcname);
+}
 
 if(procclass == CLBLOCK)
 	return;
 if(profileflag)
 	proflab = newlabel();
 #if FAMILY == SCJ
+	p2pass(sprintf(textline, "\tjsr\tr5,csv"));
 	if(profileflag)
 		{
-		fprintf(asmfile, "L%d:\t. = .+2\n", proflab);
+		fprintf(asmfile, ".data\nL%d:\t_%s+1\n.bss\n", proflab, funcname);
 		p2pass(sprintf(textline, "\tmov\t$L%d,r0", proflab));
 		p2pass(sprintf(textline, "\tjsr\tpc,mcount"));
 		}
-	p2pass(sprintf(textline, "\tjsr\tr5,csv"));
 	p2pass(sprintf(textline, "\tsub\t$.F%d,sp", procno));
 #else
-	if(profileflag)
-		p2op2(P2PROFIL, proflab);
 	p2op(P2SAVE);
+	if(profileflag) {
+		p2op2(P2PROFIL, proflab);
+		p2str(funcname);
+	}
 	p2op2(P2SETSTK, ( (((int) autoleng)+1) & ~01) );
 #endif
 

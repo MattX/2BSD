@@ -1,5 +1,11 @@
-.TH TRAPER 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)traper.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH TRAPER 3F  "May 15, 1985"
+.UC 5
 .SH NAME
 traper \- trap arithmetic errors
 .SH SYNOPSIS
@@ -17,7 +23,7 @@ Therefore, this routine must be called
 each subprogram in which these conditions should be trapped.
 If the condition occurs and trapping is enabled,
 signal SIGFPE is sent to the process. (See
-.IR signal (2))
+.IR signal (3C))
 .PP
 The argument has the following meaning:
 .nf
@@ -34,4 +40,4 @@ The previous value of these bits is returned.
 .ie \nM /usr/ucb/lib/libF77.a
 .el /usr/lib/libF77.a
 .SH "SEE ALSO"
-signal(2), signal(3f)
+signal(3C), signal(3F)

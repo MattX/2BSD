@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)cmdtab.c	5.3 (Berkeley) 9/15/85";
+#endif not lint
 
 #include "def.h"
 
@@ -8,8 +16,6 @@
  * Define all of the command names and bindings.
  */
 
-static char *SccsId = "@(#)cmdtab.c	2.9 1/29/83";
-
 extern int type(), preserve(), delete(), undelete(), next(), shell(), schdir();
 extern int save(), help(), headers(), pdot(), strace(), respond(), editor();
 extern int edstop(), rexit(), pcmdlist(), sendmail(), from(), copycmd();
@@ -17,7 +23,8 @@ extern int messize(), psalloc(), deltype(), unset(), set(), source();
 extern int pversion(), group(), top(), core(), null(), stouch(), visual();
 extern int swrite(), dosh(), file(), echo(), Respond(), scroll(), ifcmd();
 extern int elsecmd(), endifcmd(), mboxit(), clobber(), alternates();
-extern int local(), folders(), igfield(), Type();
+extern int local(), folders(), igfield(), Type(), retfield(), more(), More();
+extern int unread();	/* , Header(); */
 
 struct cmd cmdtab[] = {
 	"next",		next,		NDMLIST,	0,	MMNDEL,
@@ -37,6 +44,14 @@ struct cmd cmdtab[] = {
 	"unset",	unset,		M|RAWLIST,	1,	1000,
 	"mail",		sendmail,	R|M|I|STRLIST,	0,	0,
 	"mbox",		mboxit,		W|MSGLIST,	0,	0,
+	"more",		more,		MSGLIST,	0,	MMNDEL,
+	"page",		more,		MSGLIST,	0,	MMNDEL,
+	"More",		More,		MSGLIST,	0,	MMNDEL,
+	"Page",		More,		MSGLIST,	0,	MMNDEL,
+	"unread",	unread,		MSGLIST,	0,	MMNDEL,
+	"Unread",	unread,		MSGLIST,	0,	MMNDEL,
+	"new",		unread,		MSGLIST,	0,	MMNDEL,
+	"New",		unread,		MSGLIST,	0,	MMNDEL,
 	"!",		shell,		I|STRLIST,	0,	0,
 	"copy",		copycmd,	M|STRLIST,	0,	0,
 	"chdir",	schdir,		M|STRLIST,	0,	0,
@@ -76,6 +91,8 @@ struct cmd cmdtab[] = {
 	"alternates",	alternates,	M|RAWLIST,	0,	1000,
 	"ignore",	igfield,	M|RAWLIST,	0,	1000,
 	"discard",	igfield,	M|RAWLIST,	0,	1000,
+	"retain",	retfield,	M|RAWLIST,	0,	1000,
+/*	"Header",	Header,		STRLIST,	0,	1000,	*/
 	"core",		core,		M|NOLIST,	0,	0,
 	"#",		null,		M|NOLIST,	0,	0,
 	"clobber",	clobber,	M|RAWLIST,	0,	1,

@@ -1,6 +1,19 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)msgs.c	4.12 (Berkeley) 9/12/83";
-#endif lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)msgs.c	5.2 (Berkeley) 4/10/86";
+#endif not lint
+
 /*
  * msgs - a user bulletin board program
  *
@@ -19,6 +32,7 @@ static char sccsid[] = "@(#)msgs.c	4.12 (Berkeley) 9/12/83";
  *	s[-][<num>] [<filename>]	save message
  *	m[-][<num>]	mail with message in temp mbox
  *	x	exit without flushing this message
+ *	<num>	print message number <num>
  */
 
 #define V7		/* will look for TERM in the environment */
@@ -27,9 +41,8 @@ static char sccsid[] = "@(#)msgs.c	4.12 (Berkeley) 9/12/83";
 			   (OBJECT must be defined also) */
 /* #define UNBUFFERED	/* use unbuffered output */
 
-#include <whoami.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <sys/param.h>
 #include <signal.h>
 #include <sys/dir.h>
 #include <sys/stat.h>
@@ -46,7 +59,7 @@ static char sccsid[] = "@(#)msgs.c	4.12 (Berkeley) 9/12/83";
 #define DAEMON		1	/* daemon uid */
 #define NLINES	24		/* default number of lines/crt screen */
 #define NDAYS	21		/* default keep time for messages */
-#define DAYS	*24*60*60	/* seconds/day */
+#define DAYS	*24L*60L*60L	/* seconds/day */
 #define TEMP	"/tmp/msgXXXXXX"
 #define MSGSRC	".msgsrc"	/* user's rc file */
 #define BOUNDS	"bounds"	/* message bounds file */
@@ -77,13 +90,13 @@ bool	mailing = NO;
 bool	quitit = NO;
 bool	sending = NO;
 bool	intrpflg = NO;
-bool	tstpflg = NO;
+bool	tstpflag = NO;
 int	uid;
 int	msg;
 int	prevmsg;
 int	lct;
 int	nlines;
-int	Lpp = NLINES;
+int	Lpp = 0;
 time_t	t;
 time_t	keep;
 struct	sgttyb	otty;
@@ -119,10 +132,7 @@ int argc; char *argv[];
 	int blast = 0;
 	FILE *bounds, *msgsrc;
 
-#ifndef UNBUFFERED
-	char obuf[BUFSIZ];
-	setbuf(stdout, obuf);
-#else
+#ifdef UNBUFFERED
 	setbuf(stdout, NULL);
 #endif
 
@@ -209,12 +219,13 @@ int argc; char *argv[];
 		keep = t - (rcback? rcback : NDAYS) DAYS;
 
 	if (clean || bounds == NULL) {	/* relocate message bounds */
-		struct direct dirent;
+		struct direct *dp;
 		struct stat stbuf;
 		bool seenany = NO;
+		DIR	*dirp;
 
-		FILE *d = fopen(USRMSGS, "r");
-		if (d == NULL) {
+		dirp = opendir(USRMSGS);
+		if (dirp == NULL) {
 			perror(USRMSGS);
 			exit(errno);
 		}
@@ -222,11 +233,13 @@ int argc; char *argv[];
 		firstmsg = 32767;
 		lastmsg = 0;
 
-		while (fread(&dirent, sizeof dirent, 1, d) == 1) {
-			register char *cp = dirent.d_name;
+		for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)){
+			register char *cp = dp->d_name;
 			register int i = 0;
 
-			if (dirent.d_ino == 0)
+			if (dp->d_ino == 0)
+				continue;
+			if (dp->d_namlen == 0)
 				continue;
 
 			if (clean)
@@ -253,7 +266,7 @@ int argc; char *argv[];
 				firstmsg = i;
 			seenany = YES;
 		}
-		fclose(d);
+		closedir(dirp);
 
 		if (!seenany) {
 			if (blast != 0)	/* never lower the upper bound! */
@@ -349,20 +362,31 @@ int argc; char *argv[];
 		newrc = NO;
 		fscanf(msgsrc, "%d\n", &nextmsg);
 		fclose(msgsrc);
-		if (!rcfirst)
+		if (nextmsg > lastmsg+1) {
+			printf("Warning: bounds have been reset (%d, %d)\n",
+				firstmsg, lastmsg);
+			ftruncate(fileno(msgsrc), 0L);
+			newrc = YES;
+		}
+		else if (!rcfirst)
 			rcfirst = nextmsg - rcback;
 	}
-	else {
+	else
 		newrc = YES;
-		nextmsg = 0;
-	}
 	msgsrc = fopen(fname, "a");
 	if (msgsrc == NULL) {
 		perror(fname);
 		exit(errno);
 	}
-	if (rcfirst && rcfirst > firstmsg)
-		firstmsg = rcfirst;		/* don't set below first msg */
+	if (rcfirst) {
+		if (rcfirst > lastmsg+1) {
+			printf("Warning: the last message is number %d.\n",
+				lastmsg);
+			rcfirst = nextmsg;
+		}
+		if (rcfirst > firstmsg)
+			firstmsg = rcfirst;	/* don't set below first msg */
+	}
 	if (newrc) {
 		nextmsg = firstmsg;
 		fseek(msgsrc, 0L, 0);
@@ -372,9 +396,14 @@ int argc; char *argv[];
 
 #ifdef V7
 	if (totty) {
-		if (tgetent(inbuf, getenv("TERM")) <= 0
-		    || (Lpp = tgetnum("li")) <= 0) {
-			Lpp = NLINES;
+		struct winsize win;
+		if (ioctl(fileno(stdout), TIOCGWINSZ, &win) != -1)
+			Lpp = win.ws_row;
+		if (Lpp <= 0) {
+			if (tgetent(inbuf, getenv("TERM")) <= 0
+			    || (Lpp = tgetnum("li")) <= 0) {
+				Lpp = NLINES;
+			}
 		}
 	}
 #endif
@@ -562,8 +591,10 @@ int length;
 
 	while (fgets(inbuf, sizeof inbuf, newmsg)) {
 		fputs(inbuf, outf);
-		if (ferror(outf))
+		if (ferror(outf)) {
+			clearerr(outf);
 			break;
+		}
 	}
 
 	if (outf != stdout) {
@@ -605,10 +636,13 @@ onintr()
  */
 onsusp()
 {
+
 	signal(SIGTSTP, SIG_DFL);
+	sigsetmask(0L);
 	kill(0, SIGTSTP);
 	signal(SIGTSTP, onsusp);
-	longjmp(tstpbuf);
+	if (!mailing)
+		longjmp(tstpbuf);
 }
 
 linecnt(f)

@@ -1,157 +1,88 @@
+#	Makefile	4.39.1.1	86/08/12
 #
-# usr.bin makefile
-#
-
+DESTDIR=
 CFLAGS=	-O
+SEPFLAG= -i
 
-512dumpdir: 512dumpdir.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that live in subdirectories, and have makefiles of their own.
+#
+#SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
+#	m4 neqn nroff plot prof ratfor refer spell struct tbl tip troff uucp \
+#	yacc
+SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex \
+	m4 neqn nroff plot prof ratfor refer spell tbl tip troff uucp \
+	yacc
 
-at: at.o
-	${CC} ${LFLAG} $@.o -o $@
+# Shell scripts that need only be installed and are never removed.
+#
+SCRIPT=	lorder mkdep nohup
 
-basename: basename.o
-	${CC} ${LFLAG} $@.o -o $@
+# C source that lives in the current directory
+#
+SRCS=	basename.c cal.c cb.c checkeq.c col.c comm.c crypt.c deroff.c \
+	fgrep.c file.c install.c iostat.c join.c look.c mesg.c ptx.c \
+	ranlib.c rev.c sleep.c sort.c spline.c split.c sum.c tabs.c \
+	tc.c tk.c touch.c tr.c tsort.c tty.c uniq.c units.c
 
-cal: cal.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and do not need
+# explicit make lines.
+#
+STD=	basename cal cb checkeq col comm crypt deroff fgrep file join look \
+	mesg ptx ranlib rev sleep sort spline split sum tabs tc tk touch tr \
+	tsort tty uniq units
 
-cb: cb.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and need explicit make lines.
+# (make depend has special rules for these files)
+#
+NSTD=	bc egrep
 
-checkeq: checkeq.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that must run set-group-id kmem.
+#
+#KMEM=	iostat
 
-checkobj: checkobj.o
-	${CC} ${LFLAG} $@.o -o $@
+all: ${SUBDIR} ${STD} ${NSTD} ${KMEM} xinstall
 
-col: col.o
-	${CC} ${LFLAG} $@.o -o $@
+${SUBDIR}: FRC
+	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
 
-comm: comm.o
-	${CC} ${LFLAG} $@.o -o $@
+FRC:
 
-crypt: crypt.o
-	${CC} ${LFLAG} $@.o -o $@
+${STD} ${KMEM}:
+	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-cu: cu.o
-	${CC} ${LFLAG} $@.o -o $@
+install:
+	-for i in ${SUBDIR}; do \
+		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+	-for i in ${SCRIPT}; do \
+		(install -c -m 555 $$i.sh ${DESTDIR}/usr/bin/$$i); done
+#	-for i in ${KMEM}; do \
+#		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
+	install -s ${STD} ${NSTD} ${DESTDIR}/usr/bin
+	install -s -m 755 xinstall ${DESTDIR}/usr/bin/install
+	install -c -m 755 units.lib ${DESTDIR}/usr/lib/units
 
-cu.3451A: cu.3451A.o
-	${CC} ${LFLAG} $@.o -o $@
+clean:
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
+	rm -f a.out core *.s *.o y.tab.c ${STD} ${NSTD} ${KMEM}
 
-deroff: deroff.o
-	${CC} ${LFLAG} $@.o -o $@
+depend:
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} depend); done
+	mkdep -p ${CFLAGS} ${SRCS}
 
-diffh: diffh.o
-	${CC} ${LFLAG} $@.o -o $@
+FRC:
 
-find: find.o
-	${CC} ${LFLAG} $@.o -o $@
+# Files listed in ${NSTD} have explicit make lines given below.
 
-join: join.o
-	${CC} ${LFLAG} $@.o -o $@
+bc egrep:
+	${YACC} ${YFLAGS} $@.y
+	${CC} -c ${CFLAGS} y.tab.c
+	mv y.tab.o $@.o
+	${CC} ${SEPFLAG} -o $@ $@.o
+	rm -f $@.o
 
-look: look.o
-	${CC} ${LFLAG} $@.o -o $@
+# Can't have two "install" targets in a makefile now, can we?
+xinstall: install.c
+	${CC} ${CFLAGS} ${SEPFLAG} -o xinstall install.c
 
-mesg: mesg.o
-	${CC} ${LFLAG} $@.o -o $@
+# DO NOT DELETE THIS LINE -- make depend uses it
 
-ptx: ptx.o
-	${CC} ${LFLAG} $@.o -o $@
-
-ranlib: ranlib.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rev: rev.o
-	${CC} ${LFLAG} $@.o -o $@
-
-sleep: sleep.o
-	${CC} ${LFLAG} $@.o -o $@
-
-split: split.o
-	${CC} ${LFLAG} $@.o -o $@
-
-sum: sum.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tabs: tabs.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tc: tc.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tk: tk.o
-	${CC} ${LFLAG} $@.o -o $@
-
-touch: touch.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tr: tr.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tsort: tsort.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tty: tty.o
-	${CC} ${LFLAG} $@.o -o $@
-
-uniq: uniq.o
-	${CC} ${LFLAG} $@.o -o $@
-
-512restor: 512restor.o
-	${CC} ${LFLAG} $@.o -o $@
-
-fgrep: fgrep.o
-	${CC} ${LFLAG} $@.o -o $@
-
-sort: sort.o
-	${CC} ${LFLAG} $@.o -o $@
-
-iostat: iostat.o
-	${CC} ${LFLAG} $@.o -o $@
-
-units: units.o
-	${CC} ${LFLAG} $@.o -o $@
-
-.c.o:
-	${CC} ${CFLAGS} ${FP} -c $*.c
-
-512dumpdir.o:	512dumpdir.c
-at.o:		at.c
-basename.o:	basename.c
-cal.o:		cal.c
-cb.o:		cb.c
-checkeq.o:	checkeq.c
-checkobj.o:	checkobj.c
-col.o:		col.c
-comm.o:		comm.c
-crypt.o:	crypt.c
-cu.o:		cu.c
-cu.3451A.o:	cu.3451A.c
-deroff.o:	deroff.c
-diffh.o:	diffh.c
-find.o:		find.c
-join.o:		join.c
-look.o:		look.c
-mesg.o:		mesg.c
-ptx.o:		ptx.c
-ranlib.o:	ranlib.c
-rev.o:		rev.c
-sleep.o:	sleep.c
-split.o:	split.c
-sum.o:		sum.c
-tabs.o:		tabs.c
-tc.o:		tc.c
-tk.o:		tk.c
-touch.o:	touch.c
-tr.o:		tr.c
-tsort.o:	tsort.c
-tty.o:		tty.c
-uniq.o:		uniq.c
-512restor.o:	512restor.c
-fgrep.o:	fgrep.c
-sort.o:		sort.c
-iostat.o:	iostat.c
-units.o:	units.c

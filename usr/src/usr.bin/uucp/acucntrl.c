@@ -1,6 +1,7 @@
 #ifndef lint
-static char	*RcsId = "$Header: acucntrl.c,v 1.8 85/08/15 17:13:35 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)acucntrl.c	5.8 (Berkeley) 2/12/86";
+#endif
+
 /*  acucntrl - turn around tty line between dialin and dialout
  * 
  * Usage:	acucntrl {enable,disable} /dev/ttydX
@@ -59,9 +60,7 @@ static char	*RcsId = "$Header: acucntrl.c,v 1.8 85/08/15 17:13:35 rick Exp $";
 #include <utmp.h>
 #include <pwd.h>
 #include <stdio.h>
-#ifdef BSD4_3
 #include <sys/file.h>
-#endif BSD4_3
 
 #define NDZLINE	8	/* lines/dz */
 #define NDHLINE	16	/* lines/dh */
@@ -243,16 +242,16 @@ int argc; char *argv[];
 			exit(1);
 		}
 		/* Try one last time to hang up */
-		if (ioctl(devfile, (int)TIOCCDTR, (char *)0) < 0)
+		if (ioctl(devfile, TIOCCDTR, (char *)0) < 0)
 			fprintf(stderr, "On TIOCCDTR ioctl: %s\n",
 				sys_errlist[errno]);
 
-		if (ioctl(devfile, (int)TIOCNXCL, (char *)0) < 0)
+		if (ioctl(devfile, TIOCNXCL, (char *)0) < 0)
 			fprintf(stderr,
 			    "Cannot clear Exclusive Use on %s: %s\n",
 				device, sys_errlist[errno]);
 
-		if (ioctl(devfile, (int)TIOCHPCL, (char *)0) < 0)
+		if (ioctl(devfile, TIOCHPCL, (char *)0) < 0)
 			fprintf(stderr,
 			    "Cannot set hangup on close on %s: %s\n",
 				device, sys_errlist[errno]);
@@ -312,11 +311,11 @@ int argc; char *argv[];
 			pokeinit(device, Uname, enable);
 		}
 		post(device, Uname);
-		if((devfile = open(device, 1)) < 0) {
+		if((devfile = open(device, O_RDWR|O_NDELAY)) < 0) {
 			fprintf(stderr, "On %s open: %s\n",
 				device, sys_errlist[errno]);
 		} else {
-			if(ioctl(devfile, (int)TIOCSDTR, (char *)0) < 0)
+			if(ioctl(devfile, TIOCSDTR, (char *)0) < 0)
 				fprintf(stderr,
 				    "Cannot set DTR on %s: %s\n",
 					device, sys_errlist[errno]);
@@ -418,13 +417,18 @@ char *device;
 	}
 
 	ndevice = strlen(device);
+#ifndef BRL4_2
 	utmploc = sizeof(utmp);
+#else BRL4_2
+	utmploc = 0;
+#endif BRL4_2
 
 	while(fgets(linebuf, sizeof(linebuf) - 1, ttysfile) != NULL) {
 		if(strncmp(device, linebuf, ndevice) == 0)
 			return;
 		ttyslnbeg += strlen(linebuf);
-		utmploc += sizeof(utmp);
+		if (linebuf[0] != '#' && linebuf[0] != '\0')
+			utmploc += sizeof(utmp);
 		if (fputs(linebuf, nttysfile) == NULL) {
 			fprintf(stderr, "On %s write: %s\n",
 				Etcttys, sys_errlist[errno]);
@@ -453,10 +457,19 @@ int enable;
 	}
 	/* format is now */
 	/* ttyd0 std.100 dialup on secure # comment */
+	/* except, 2nd item may have embedded spaces inside quotes, Hubert */
 	cp = lbuf;
 	for (i=0;*cp && i<3;i++) {
-		while (*cp && *cp != ' ' && *cp != '\t')
+		if (*cp == '"') {
 			cp++;
+			while (*cp && *cp != '"')
+				cp++;
+			if (*cp != '\0')
+				cp++;
+		}else {
+			while (*cp && *cp != ' ' && *cp != '\t')
+				cp++;
+		}
 		while (*cp && (*cp == ' ' || *cp == '\t'))
 			cp++;
 	}

@@ -1,55 +1,35 @@
 #
-# nroff/troff makefile
+#	@(#)Makefile	1.4 3/30/83
 #
-# CFLAGS=	"-O -DNROFF" for nroff
+DESTDIR =
+SEPFLAG= -i
+SRCS = \
+	ni.c nii.c n1.c n2.c \
+	n3.c n4.c n5.c t6.c \
+	n7.c n8.c n9.c t10.c \
+	hytab.c ntab.c suftab.c \
+	d.h tw.h v.h tdef.h sdef.h
 
-CFLAGS=	-O
-NOBJ=	n1.o n2.o n3.o n4.o n5.o n6.o n7.o n8.o \
-	n9.o n10.o ni.o nii.o ntab.o hytab.o suftab.o
-TOBJ=	n1.o n2.o n3.o n4.o n5.o t6.o n7.o n8.o n9.o \
-	t10.o ni.o nii.o tab3.o hytab.o suftab.o
+# Use the following flag set for 4.3BSD
+# CFLAGS = -O -DVMUNIX
 
-nroff: clean ${NOBJ}
-	${CC} ${LFLAG} -o $@ ${NOBJ}
+# Use the following flag set for 2.10BSD
+CFLAGS = -O
 
-troff: clean ${TOBJ}
-	${CC} ${LFLAG} -o $@ ${TOBJ}
+c = ni.o nii.o n1.o n2.o n3.o n4.o n5.o t6.o n7.o n8.o n9.o t10.o
+s = hytab.o suftab.o tab3.o
 
-install: ${ALL}
-	install -s -o bin -g bin -m 711 nroff ${DESTDIR}/usr/bin
-	install -s -o bin -g bin -m 711 troff ${DESTDIR}/usr/bin
-
-clean:
-	rm -f ${NOBJ} ${TOBJ}
-
-.c.o:
-	${CC} ${CFLAGS} -c $*.c
-
-n1.o:	tdef.h d.h v.h tw.h s.h n1.c
-n2.o:	tdef.h d.h v.h tw.h s.h n2.c
-n3.o:	tdef.h d.h v.h tw.h s.h n3.c
-n4.o:	tdef.h d.h v.h tw.h s.h n4.c
-n5.o:	tdef.h d.h v.h tw.h s.h n5.c
-n6.o:	tdef.h d.h v.h tw.h s.h n6.c
-t6.o:	tdef.h d.h v.h tw.h s.h t6.c
-n7.o:	tdef.h d.h v.h tw.h s.h n7.c
-n8.o:	tdef.h d.h v.h tw.h s.h n8.c
-n9.o:	tdef.h d.h v.h tw.h s.h n9.c
-n10.o:	tdef.h d.h v.h tw.h s.h n10.c
-t10.o:	tdef.h d.h v.h tw.h s.h t10.c
-ni.o:	tdef.h d.h v.h tw.h s.h ni.c
-nii.o:	tdef.h d.h v.h tw.h s.h nii.c
-tab3.o:	tab3.c
-ntab.o:	ntab.c
+troff: $c $s
+	$(CC) ${SEPFLAG} -o troff $s $c
 
 hytab.o: hytab.c
-	${CC} -S hytab.c
-	ed hytab.s <textscript
-	as -o hytab.o hytab.s
-	rm hytab.s
+	$(CC) -c hytab.c
 
 suftab.o: suftab.c
-	${CC} -S suftab.c
-	ed suftab.s <textscript
-	as -o suftab.o suftab.s
-	rm suftab.s
+	$(CC) -c suftab.c
+
+install: troff
+	install -s troff ${DESTDIR}/usr/bin
+
+clean:
+	rm -f *.o troff

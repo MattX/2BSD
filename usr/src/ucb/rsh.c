@@ -1,16 +1,31 @@
-#ifndef lint
-static char sccsid[] = "@(#)rsh.c	4.8 83/06/10";
-#endif
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
-#include <stdio.h>
-#include <sys/param.h>
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)rsh.c	5.4 (Berkeley) 8/28/85";
+#endif not lint
+
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
+
 #include <netinet/in.h>
+
+#include <stdio.h>
 #include <errno.h>
 #include <signal.h>
 #include <pwd.h>
+#include <netdb.h>
 
 /*
  * rsh - remote shell
@@ -26,7 +41,7 @@ int	options;
 int	rfd2;
 int	sendsig();
 
-#define	mask(s)	(1 << ((s) - 1))
+#define	mask(s)	(1L << ((s) - 1))
 
 main(argc, argv0)
 	int argc;
@@ -38,8 +53,9 @@ main(argc, argv0)
 	int asrsh = 0;
 	struct passwd *pwd;
 	long readfrom, ready;
-	int one = 1;
+	long one = 1;
 	struct servent *sp;
+	long omask;
 
 	host = rindex(argv[0], '/');
 	if (host)
@@ -70,10 +86,24 @@ another:
 		goto another;
 	}
 	/*
-	 * Ignore the -e flag to allow aliases with rlogin
+	 * Ignore the -L, -w, -e and -8 flags to allow aliases with rlogin
 	 * to work
+	 *
+	 * There must be a better way to do this! -jmb
 	 */
+	if (argc > 0 && !strncmp(*argv, "-L", 2)) {
+		argv++, argc--;
+		goto another;
+	}
+	if (argc > 0 && !strncmp(*argv, "-w", 2)) {
+		argv++, argc--;
+		goto another;
+	}
 	if (argc > 0 && !strncmp(*argv, "-e", 2)) {
+		argv++, argc--;
+		goto another;
+	}
+	if (argc > 0 && !strncmp(*argv, "-8", 2)) {
 		argv++, argc--;
 		goto another;
 	}
@@ -115,10 +145,20 @@ another:
 		fprintf(stderr, "rsh: can't establish stderr\n");
 		exit(2);
 	}
+	if (options & SO_DEBUG) {
+		if (setsockopt(rem, SOL_SOCKET, SO_DEBUG, &one, sizeof (one)) < 0)
+			perror("setsockopt (stdin)");
+		if (setsockopt(rfd2, SOL_SOCKET, SO_DEBUG, &one, sizeof (one)) < 0)
+			perror("setsockopt (stderr)");
+	}
 	(void) setuid(getuid());
-	sigset(SIGINT, sendsig);
-	sigset(SIGQUIT, sendsig);
-	sigset(SIGTERM, sendsig);
+	omask = sigblock(mask(SIGINT)|mask(SIGQUIT)|mask(SIGTERM));
+	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+		signal(SIGINT, sendsig);
+	if (signal(SIGQUIT, SIG_IGN) != SIG_IGN)
+		signal(SIGQUIT, sendsig);
+	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
+		signal(SIGTERM, sendsig);
         pid = fork();
         if (pid < 0) {
 		perror("fork");
@@ -127,10 +167,7 @@ another:
 	ioctl(rfd2, FIONBIO, &one);
 	ioctl(rem, FIONBIO, &one);
         if (pid == 0) {
-		char *bp;
-		long rembits;
-		int wc;
-
+		char *bp; long rembits; int wc;
 		(void) close(rfd2);
 	reread:
 		errno = 0;
@@ -139,15 +176,15 @@ another:
 			goto done;
 		bp = buf;
 	rewrite:
-		rembits = 1<<rem;
-		if (select(20, 0L, &rembits, 100000L) < 0) {
+		rembits = 1L<<rem;
+		if (select(16, 0, &rembits, 0, 0) < 0) {
 			if (errno != EINTR) {
 				perror("select");
 				exit(1);
 			}
 			goto rewrite;
 		}
-		if ((rembits & (1<<rem)) == 0)
+		if ((rembits & (1L<<rem)) == 0)
 			goto rewrite;
 		wc = write(rem, bp, cc);
 		if (wc < 0) {
@@ -160,34 +197,35 @@ another:
 			goto reread;
 		goto rewrite;
 	done:
-		{ int flags = 1; ioctl(rem, SIOCDONE, &flags); }
+		(void) shutdown(rem, 1);
 		exit(0);
 	}
-	readfrom = (1<<rfd2) | (1<<rem);
+	sigsetmask(omask);
+	readfrom = (1L<<rfd2) | (1L<<rem);
 	do {
 		ready = readfrom;
-		if (select(20, &ready, 0L, 1000000L) < 0) {
+		if (select(16, &ready, 0, 0, 0) < 0) {
 			if (errno != EINTR) {
 				perror("select");
 				exit(1);
 			}
 			continue;
 		}
-		if (ready & (1<<rfd2)) {
+		if (ready & (1L<<rfd2)) {
 			errno = 0;
 			cc = read(rfd2, buf, sizeof buf);
 			if (cc <= 0) {
 				if (errno != EWOULDBLOCK)
-					readfrom &= ~(1<<rfd2);
+					readfrom &= ~(1L<<rfd2);
 			} else
 				(void) write(2, buf, cc);
 		}
-		if (ready & (1<<rem)) {
+		if (ready & (1L<<rem)) {
 			errno = 0;
 			cc = read(rem, buf, sizeof buf);
 			if (cc <= 0) {
 				if (errno != EWOULDBLOCK)
-					readfrom &= ~(1<<rem);
+					readfrom &= ~(1L<<rem);
 			} else
 				(void) write(1, buf, cc);
 		}
@@ -196,13 +234,13 @@ another:
 	exit(0);
 usage:
 	fprintf(stderr,
-	    "usage: rsh host [ -l login ] [ -p passwd ] command\n");
+	    "usage: rsh host [ -l login ] [ -n ] command\n");
 	exit(1);
 }
 
 sendsig(signo)
-	int signo;
+	char signo;
 {
 
-	(void) write(rfd2, (char *)&signo, 1);
+	(void) write(rfd2, &signo, 1);
 }

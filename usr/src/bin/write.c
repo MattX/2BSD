@@ -1,15 +1,21 @@
-static char *sccsid = "@(#)write.c	4.7 3/1/83";
+#ifndef	lint
+static char *sccsid = "@(#)write.c	4.13 3/13/86";
+#endif
 /*
  * write to another user
  */
 
-#include <whoami.h>
+#ifdef BSD2_10
+#include <short_names.h>
+#endif BSD2_10
+
 #include <stdio.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <utmp.h>
-#include <time.h>
+#include <sys/time.h>
 
 #define	NMAX	sizeof(ubuf.ut_name)
 #define	LMAX	sizeof(ubuf.ut_line)
@@ -18,10 +24,11 @@ char	*strcat();
 char	*strcpy();
 struct	utmp ubuf;
 int	signum[] = {SIGHUP, SIGINT, SIGQUIT, 0};
-char	me[10]	= "???";
+char	me[NMAX + 1]	= "???";
 char	*him;
 char	*mytty;
 char	histty[32];
+char	ttybuf[32];
 char	*histtya;
 char	*ttyname();
 char	*rindex();
@@ -30,7 +37,6 @@ int	eof();
 int	timout();
 FILE	*tf;
 char	*getenv();
-time_t	time();
 
 main(argc, argv)
 	int argc;
@@ -40,33 +46,39 @@ main(argc, argv)
 	register i;
 	register FILE *uf;
 	int c1, c2;
-	time_t clock = time((time_t *) 0);
+	long clock = time(0);
+	int suser = getuid() == 0;
+	int nomesg = 0;
 	struct tm *localtime();
 	struct tm *localclock = localtime( &clock );
 
 	if (argc < 2) {
-		printf("usage: write user [ttyname]\n");
+		fprintf(stderr, "Usage: write user [ttyname]\n");
 		exit(1);
 	}
 	him = argv[1];
 	if (argc > 2)
 		histtya = argv[2];
 	if ((uf = fopen("/etc/utmp", "r")) == NULL) {
-		printf("cannot open /etc/utmp\n");
+		perror("write: Can't open /etc/utmp");
+		if (histtya == 0)
+			exit(10);
 		goto cont;
 	}
 	mytty = ttyname(2);
 	if (mytty == NULL) {
-		printf("Can't find your tty\n");
+		fprintf(stderr, "write: Can't find your tty\n");
 		exit(1);
 	}
 	if (stat(mytty, &stbuf) < 0) {
-		printf("Can't stat your tty\n");
+		perror("write: Can't stat your tty");
 		exit(1);
 	}
-	if ((stbuf.st_mode&02) == 0) {
-		printf("You have write permission turned off.\n");
-		exit(1);
+	if ((stbuf.st_mode&020) == 0) {
+		fprintf(stderr,
+			"write: You have write permission turned off\n");
+		if (!suser)
+			exit(1);
 	}
 	mytty = rindex(mytty, '/') + 1;
 	if (histtya) {
@@ -86,7 +98,8 @@ main(argc, argv)
 					break;
 			}
 		}
-		if (him[0] != '-' || him[1] != 0)
+		if (him[0] == '-' && him[1] == 0)
+			goto nomat;
 		for (i=0; i<NMAX; i++) {
 			c1 = him[i];
 			c2 = ubuf.ut_name[i];
@@ -96,50 +109,61 @@ main(argc, argv)
 			if (c1 != c2)
 				goto nomat;
 		}
+		if (histtya && strncmp(histtya, ubuf.ut_line,
+		    sizeof(ubuf.ut_line)))
+			continue;
 		logcnt++;
-		if (histty[0]==0) {
-			strcpy(histty, "/dev/");
-			strcat(histty, ubuf.ut_line);
+		if (histty[0]==0 || nomesg && histtya == 0) {
+			strcpy(ttybuf, "/dev/");
+			strcat(ttybuf, ubuf.ut_line);
+			if (histty[0]==0)
+				strcpy(histty, ttybuf);
+			if (access(ttybuf, 0) < 0 || stat(ttybuf, &stbuf) < 0 ||
+			    (stbuf.st_mode&020) == 0)
+				nomesg++;
+			else {
+				strcpy(histty, ttybuf);
+				nomesg = 0;
+			}
 		}
 	nomat:
 		;
 	}
-cont:
-	if (logcnt==0 && histty[0]=='\0') {
-		printf("%s not logged in.\n", him);
-		exit(1);
-	}
 	fclose(uf);
-	if (histtya==0 && logcnt > 1) {
-		printf("%s logged more than once\nwriting to %s\n", him, histty+5);
-	}
-	if (histty[0] == 0) {
-		printf(him);
-		if (logcnt)
-			printf(" not on that tty\n"); else
-			printf(" not logged in\n");
+	if (logcnt==0) {
+		fprintf(stderr, "write: %s not logged in%s\n", him,
+			histtya ? " on that tty" : "");
 		exit(1);
 	}
+	if (histtya==0 && logcnt > 1) {
+		fprintf(stderr,
+		"write: %s logged in more than once ... writing to %s\n",
+			him, histty+5);
+	}
+cont:
 	if (access(histty, 0) < 0) {
-		printf("No such tty\n");
+		fprintf(stderr, "write: No such tty\n");
 		exit(1);
 	}
 	signal(SIGALRM, timout);
 	alarm(5);
-	if ((tf = fopen(histty, "w")) == NULL)
-		goto perm;
+	if ((tf = fopen(histty, "w")) == NULL) {
+		fprintf(stderr, "write: Permission denied\n");
+		exit(1);
+	}
 	alarm(0);
-	if (fstat(fileno(tf), &stbuf) < 0)
-		goto perm;
-	if ((stbuf.st_mode&02) == 0)
-		goto perm;
 	sigs(eof);
-	fprintf(tf, "\r\nMessage from %s on %s at %d:%02d ...\r\n\007\007\007",
-	      me, mytty, localclock->tm_hour, localclock->tm_min);
+	{ char hostname[32];
+	  gethostname(hostname, sizeof (hostname));
+	  fprintf(tf,
+	      "\r\nMessage from %s@%s on %s at %d:%02d ...\r\n\007\007\007",
+	      me, hostname, mytty, localclock->tm_hour, localclock->tm_min);
 	fflush(tf);
+	}
 	for (;;) {
-		char buf[128];
-		i = read(0, buf, 128);
+		char buf[BUFSIZ];
+		register char *bp;
+		i = read(0, buf, sizeof buf);
 		if (i <= 0)
 			eof();
 		if (buf[0] == '!') {
@@ -147,22 +171,40 @@ cont:
 			ex(buf);
 			continue;
 		}
-		if (write(fileno(tf), buf, i) != i) {
-			printf("\n\007Write failed (%s logged out?)\n", him);
-			exit(1);
+		for (bp = buf; --i >= 0; bp++) {
+			if (*bp == '\n')
+				putc('\r', tf);
+
+			if (!isascii(*bp)) {
+				putc('M', tf);
+				putc('-', tf);
+				*bp = toascii(*bp);
+			}
+
+			if (isprint(*bp) ||
+			    *bp == ' ' || *bp == '\t' || *bp == '\n') {
+				putc(*bp, tf);
+			} else {
+				putc('^', tf);
+				putc(*bp ^ 0100, tf);
+			}
+
+			if (*bp == '\n')
+				fflush(tf);
+
+			if (ferror(tf) || feof(tf)) {
+				printf("\n\007Write failed (%s logged out?)\n",
+					him);
+				exit(1);
+			}
 		}
-		if (buf[i-1] == '\n')
-			write(fileno(tf), "\r", 1);
 	}
-perm:
-	printf("Permission denied\n");
-	exit(1);
 }
 
 timout()
 {
 
-	printf("Timeout opening their tty\n");
+	fprintf(stderr, "write: Timeout opening their tty\n");
 	exit(1);
 }
 
@@ -185,6 +227,8 @@ ex(bp)
 		goto out;
 	}
 	if (i == 0) {
+		fclose(tf);		/* Close his terminal */
+		setgid(getgid());	/* Give up effective group privs */
 		sigs((int (*)())0);
 		execl(getenv("SHELL") ?
 		    getenv("SHELL") : "/bin/sh", "sh", "-c", bp+1, 0);

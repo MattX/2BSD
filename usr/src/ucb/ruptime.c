@@ -1,13 +1,25 @@
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)ruptime.c	4.14 (Berkeley) 83/07/01";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)ruptime.c	5.3 (Berkeley) 1/7/86";
+#endif not lint
 
 #include <sys/param.h>
 #include <stdio.h>
 #include <sys/dir.h>
 #include <protocols/rwhod.h>
 
-DIR	*etc;
+DIR	*dirp;
 
 #define	NHOSTS	100
 int	nhosts;
@@ -25,55 +37,62 @@ char	*interval();
 time_t	now;
 char	*malloc(), *sprintf();
 int	aflg;
+int 	rflg = 1;
 
-#define down(h)		(now - (h)->hs_wd->wd_recvtime > 5 * 60)
+#define down(h)		(now - (h)->hs_wd->wd_recvtime > 11 * 60)
 
 main(argc, argv)
 	int argc;
 	char **argv;
 {
 	struct direct *dp;
-	int f, i, t;
-	char buf[BUFSIZ]; int cc;
+	int f, i;
+	time_t t;
+	char buf[sizeof(struct whod)]; int cc;
+	char *name;
 	register struct hs *hsp = hs;
 	register struct whod *wd;
 	register struct whoent *we;
 	int maxloadav = 0;
 	int (*cmp)() = hscmp;
 
+	name = *argv;
+	while (*++argv) 
+		while (**argv)
+			switch (*(*argv)++) {
+			case 'a':
+				aflg++;
+				break;
+			case 'l':
+				cmp = lcmp;
+				break;
+			case 'u':
+				cmp = ucmp;
+				break;
+			case 't':
+				cmp = tcmp;
+				break;
+			case 'r':
+				rflg = -rflg;
+				break;
+			case '-':
+				break;
+			default: 
+				fprintf(stderr, "Usage: %s [ -ar [ lut ] ]\n",
+					name);
+				exit (1);
+			}
 	time(&t);
-	argc--, argv++;
-again:
-	if (argc && !strcmp(*argv, "-a")) {
-		aflg++;
-		argc--, argv++;
-		goto again;
-	}
-	if (argc && !strcmp(*argv, "-l")) {
-		cmp = lcmp;
-		argc--, argv++;
-		goto again;
-	}
-	if (argc && !strcmp(*argv, "-u")) {
-		cmp = ucmp;
-		argc--, argv++;
-		goto again;
-	}
-	if (argc && !strcmp(*argv, "-t")) {
-		cmp = tcmp;
-		argc--, argv++;
-		goto again;
-	}
 	if (chdir(RWHODIR) < 0) {
 		perror(RWHODIR);
 		exit(1);
 	}
-	etc = opendir(".");
-	if (etc == NULL) {
-		perror("/etc");
+	dirp = opendir(".");
+	if (dirp == NULL) {
+		perror(RWHODIR);
 		exit(1);
 	}
-	while (dp = readdir(etc)) {
+	while (dp = readdir(dirp)) {
 		if (dp->d_ino == 0)
 			continue;
 		if (strncmp(dp->d_name, "whod.", 5))
@@ -84,7 +103,7 @@ again:
 		}
 		f = open(dp->d_name, 0);
 		if (f > 0) {
-			cc = read(f, buf, BUFSIZ);
+			cc = read(f, buf, sizeof(struct whod));
 			if (cc >= WHDRSIZE) {
 				hsp->hs_wd = (struct whod *)malloc(WHDRSIZE);
 				wd = (struct whod *)buf;
@@ -134,13 +153,13 @@ again:
 
 char *
 interval(time, updown)
-	time_t time;
+	long time;
 	char *updown;
 {
 	static char resbuf[32];
 	long days, hours, minutes;
 
-	if (time < 0 || time > 7776000L) {
+	if (time < 0 || time > 365L*24L*60L*60L) {
 		(void) sprintf(resbuf, "   %s ??:??", updown);
 		return (resbuf);
 	}
@@ -160,7 +179,7 @@ hscmp(h1, h2)
 	struct hs *h1, *h2;
 {
 
-	return (strcmp(h1->hs_wd->wd_hostname, h2->hs_wd->wd_hostname));
+	return (rflg * strcmp(h1->hs_wd->wd_hostname, h2->hs_wd->wd_hostname));
 }
 
 /*
@@ -174,11 +193,12 @@ lcmp(h1, h2)
 		if (down(h2))
 			return (tcmp(h1, h2));
 		else
-			return (1);
+			return (rflg);
 	else if (down(h2))
-		return (-1);
+		return (-rflg);
 	else
-		return (h2->hs_wd->wd_loadav[0] - h1->hs_wd->wd_loadav[0]);
+		return (rflg * 
+			(h2->hs_wd->wd_loadav[0] - h1->hs_wd->wd_loadav[0]));
 }
 
 /*
@@ -192,11 +212,11 @@ ucmp(h1, h2)
 		if (down(h2))
 			return (tcmp(h1, h2));
 		else
-			return (1);
+			return (rflg);
 	else if (down(h2))
-		return (-1);
+		return (-rflg);
 	else
-		return (h2->hs_nusers - h1->hs_nusers);
+		return (rflg * (h2->hs_nusers - h1->hs_nusers));
 }
 
 /*
@@ -207,11 +227,11 @@ tcmp(h1, h2)
 {
 	long t1, t2;
 
-	return (
+	return (rflg * (
 		(down(h2) ? h2->hs_wd->wd_recvtime - now
 			  : h2->hs_wd->wd_sendtime - h2->hs_wd->wd_boottime)
 		-
 		(down(h1) ? h1->hs_wd->wd_recvtime - now
 			  : h1->hs_wd->wd_sendtime - h1->hs_wd->wd_boottime)
-	);
+	));
 }

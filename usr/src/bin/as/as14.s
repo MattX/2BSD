@@ -49,8 +49,13 @@ rname:
 	add	$2*hshsiz,r1
 	tst	timesaround
 	beq	3f
-	mov	$1,r0
-	sys	write; 9f; 8f-9f
+
+	mov	$8f-9f,-(sp)			/ write(1, ERRMSG, strlen(ERRMSG))
+	mov	$9f,-(sp)			/	mov	$1,r0
+	mov	$1,-(sp)			/	sys	write; 9f; 8f-9f
+	jsr	pc,_write
+	add	$6,sp
+
 	jmp	aexit
 	.data
 timesaround:
@@ -82,10 +87,15 @@ timesaround:
 	cmp	r4,0f
 	blos	4f
 	add	$512.,0f
-	sys	indir; 9f
-	.data
-9:	sys	break; 0:end
-	.text
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	0f,-(sp)		/ brk(0f)
+	jsr	pc,_brk			/	sys	indir; 9f
+	tst	(sp)+			/	.data
+	mov	(sp)+,r1		/9:	sys	sbreak; 0:end
+.data					/	.text
+0:	end
+.text
 4:
 	mov	(sp)+,r4
 	mov	(r2)+,(r4)+
@@ -185,19 +195,31 @@ rch:
 	beq	1b
 	rts	pc
 2:
-	movb	fin,r0
+	mov	fin,r0
 	beq	3f
-	sys	read; inbuf;512.
-	bcs	2f
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	$512.,-(sp)		/ read(fin, inbuf, 512)
+	mov	$inbuf,-(sp)		/	sys	read; inbuf;512.
+	mov	r0,-(sp)		/	bcs	2f
+	jsr	pc,_read		/	tst	r0
+	add	$6,sp
+	mov	(sp)+,r1
 	tst	r0
+	jmi	2f
+
 	beq	2f
 	mov	r0,inbfcnt
 	mov	$inbuf,inbfp
 	br	1b
 2:
-	movb	fin,r0
-	clrb	fin
-	sys	close
+	mov	fin,r0
+	clr	fin
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	r0,-(sp)		/ close(r0)
+	jsr	pc,_close		/	sys	close
+	tst	(sp)+
+	mov	(sp)+,r1
 3:
 	decb	nargs
 	bgt	2f
@@ -211,19 +233,25 @@ rch:
 2:
 	mov	curarg,r0
 	tst	(r0)+
-	mov	(r0),0f
-	mov	r0,curarg
-	incb	fileflg
-	sys	indir; 9f
-	.data
-9:	sys	open; 0:0; 0
-	.text
-	bec	2f
-	mov	0b,r0
+
+	mov	r1,-(sp)		/ protect r1 from library
+	clr	-(sp)			/ open((r0), O_RDONLY, 0)
+	clr	-(sp)			/	mov	(r0),0f
+	mov	(r0),-(sp)		/	mov	r0,curarg
+	mov	r0,curarg		/	incb	fileflg
+	incb	fileflg			/	sys	indir; 9f
+	jsr	pc,_open		/	.data
+	add	$6,sp			/9:	sys	open; 0:0; 0
+	mov	(sp)+,r1		/	.text
+	tst	r0			/	bec	2f
+	jpl	2f			/	mov	0b,r0
+	mov	curarg,r0
+	mov	(r0),r0
+
 	jsr	r5,filerr; <?\n>
 	jmp	aexit
 2:
-	movb	r0,fin
+	mov	r0,fin
 	mov	$1,line
 	mov	r4,-(sp)
 	mov	r1,-(sp)

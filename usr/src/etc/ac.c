@@ -1,40 +1,43 @@
+#ifndef lint
+static char *sccsid = "@(#)ac.c	4.7 (Berkeley) 7/2/83";
+#endif
 /*
- * acct [ -w wtmp ] [ -d ] [ -p ] [ people ]
+ * ac [ -w wtmp ] [ -d ] [ -p ] [ people ]
  */
-static char *sccsid = "@(#)ac.c	4.3 (Berkeley) 7/2/81";
 
 #include <stdio.h>
 #include <ctype.h>
-#include <time.h>
 #include <utmp.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
 
 #define NMAX sizeof(ibuf.ut_name)
 #define LMAX sizeof(ibuf.ut_line)
 
-#define	TSIZE	128		/* maximum number of ttys */
+/*
+#define	TSIZE	1000
+*/
+#define TSIZE  6242
 #define	USIZE	500
 struct  utmp ibuf;
 
 struct ubuf {
 	char	uname[NMAX];
-	time_t	utime;
+	long	utime;
 } ubuf[USIZE];
 
 struct tbuf {
 	struct	ubuf	*userp;
-	char	ttnames[LMAX];
-	time_t	ttime;
+	long	ttime;
 } tbuf[TSIZE];
 
-int	umax, tmax;
 char	*wtmp;
 int	pflag, byday;
-time_t	dtime;
-time_t	midnight;
-time_t	lastime;
-time_t	day	= 86400L;
+long	dtime;
+long	midnight;
+long	lastime;
+long	day	= 86400L;
 int	pcount;
 char	**pptr;
 
@@ -97,10 +100,9 @@ char **argv;
 
 loop()
 {
-	register int i;
+	register i;
 	register struct tbuf *tp;
 	register struct ubuf *up;
-	static int complained = 0;
 
 	if(ibuf.ut_line[0] == '|') {
 		dtime = ibuf.ut_time;
@@ -109,7 +111,7 @@ loop()
 	if(ibuf.ut_line[0] == '{') {
 		if(dtime == 0)
 			return;
-		for(tp = tbuf; tp <= tmax; tp++)
+		for(tp = tbuf; tp < &tbuf[TSIZE]; tp++)
 			tp->ttime += ibuf.ut_time-dtime;
 		dtime = 0;
 		return;
@@ -123,7 +125,7 @@ loop()
 		upall(1);
 		print();
 		newday();
-		for (up=ubuf; up <= &ubuf[umax]; up++)
+		for (up=ubuf; up < &ubuf[USIZE]; up++)
 			up->utime = 0;
 	}
 	if (ibuf.ut_line[0] == '~') {
@@ -131,34 +133,42 @@ loop()
 		upall(0);
 		return;
 	}
-	for (i = 0; i < TSIZE; i++) {
-		if (tbuf[i].ttnames[0] == 0) {
-			strncpy(tbuf[i].ttnames, ibuf.ut_line,
-			    sizeof(ibuf.ut_line));
-			tmax = i;
-			break;
-		}
-		if (!strncmp(tbuf[i].ttnames, ibuf.ut_line,
-		    sizeof(ibuf.ut_line)))
-			break;
+	/*
+	if (ibuf.ut_line[0]=='t')
+		i = (ibuf.ut_line[3]-'0')*10 + (ibuf.ut_line[4]-'0');
+	else
+		i = TSIZE-1;
+	if (i<0 || i>=TSIZE)
+		i = TSIZE-1;
+	*/
+
+	/*
+	 * Correction contributed by Phyllis Kantar @ Rand-unix
+	 *
+	 * Fixes long standing problem with tty names other than 00-99
+	 */
+	if (ibuf.ut_line[0]=='t') {
+		i = (ibuf.ut_line[3]-'0');
+		if(ibuf.ut_line[4])
+			i = i*79 + (ibuf.ut_line[4]-'0');
+	} else
+		i = TSIZE-1;
+	if (i<0 || i>=TSIZE) {
+		i = TSIZE-1;
+		printf("ac: Bad tty name: %s\n", ibuf.ut_line);
 	}
-	if (i == TSIZE) {
-		if (!complained)
-			fprintf(stderr, "Too many ttys, some ignored\n");
-		complained = 1;
-		return;
-	}
+
 	tp = &tbuf[i];
 	update(tp, 0);
 }
 
 print()
 {
-	register int i;
-	time_t ttime, t;
+	int i;
+	long ttime, t;
 
 	ttime = 0;
-	for (i=0; i <= umax; i++) {
+	for (i=0; i<USIZE; i++) {
 		if(!among(i))
 			continue;
 		t = ubuf[i].utime;
@@ -179,17 +189,16 @@ upall(f)
 {
 	register struct tbuf *tp;
 
-	for (tp=tbuf; tp <= tmax; tp++)
+	for (tp=tbuf; tp < &tbuf[TSIZE]; tp++)
 		update(tp, f);
 }
 
 update(tp, f)
 struct tbuf *tp;
 {
-	register int j;
-	register struct ubuf *up;
-	time_t t, t1;
-	static int complained;
+	int j;
+	struct ubuf *up;
+	long t, t1;
 
 	if (f)
 		t = midnight;
@@ -208,19 +217,11 @@ struct tbuf *tp;
 		return;
 	}
 	for (up=ubuf; up < &ubuf[USIZE]; up++) {
-		if (up->uname[0] == '\0') {
-			umax = up - ubuf;
+		if (up->uname[0] == '\0')
 			break;
-		}
 		for (j=0; j<NMAX && up->uname[j]==ibuf.ut_name[j]; j++);
 		if (j>=NMAX)
 			break;
-	}
-	if (up == &ubuf[USIZE]) {
-		if (!complained)
-			fprintf(stderr, "Too many users, some omitted\n");
-		complained = 1;
-		return;
 	}
 	for (j=0; j<NMAX; j++)
 		up->uname[j] = ibuf.ut_name[j];
@@ -249,14 +250,14 @@ among(i)
 
 newday()
 {
-	time_t ttime;
+	long ttime;
 	struct timeb tb;
 	struct tm *localtime();
 
 	time(&ttime);
 	if (midnight == 0) {
 		ftime(&tb);
-		midnight = 60*(time_t)tb.b_timezone;
+		midnight = 60*(long)tb.timezone;
 		if (localtime(&ttime)->tm_isdst)
 			midnight -= 3600;
 	}
@@ -266,7 +267,7 @@ newday()
 
 pdate()
 {
-	time_t x;
+	long x;
 	char *ctime();
 
 	if (byday==0)

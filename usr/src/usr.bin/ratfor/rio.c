@@ -1,6 +1,9 @@
+#ifndef lint
+static char sccsid[] = "@(#)rio.c	1.2 (Berkeley) 8/11/83";
+#endif
+
 #include "r.h"
-#define	BUFSIZE	512
-char	ibuf[BUFSIZE];
+char	ibuf[BUFSIZ];
 char	*ip = ibuf;
 
 char	type[] = {
@@ -190,7 +193,7 @@ register char *str;
 	p = str;
 	while (*p++);
 	--p;
-	if (ip >= &ibuf[BUFSIZE]) {
+	if (ip >= &ibuf[BUFSIZ]) {
 		error("pushback overflow");
 		exit(1);
 	}

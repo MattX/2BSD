@@ -98,7 +98,7 @@ yyoutfl(toseqid)
 	}
 }
 
-int	yygetunit -1;
+int	yygetunit = -1;
 char	*yygetfile;
 
 /*
@@ -232,7 +232,7 @@ graphic(ch)
 
 extern	int nopflg;
 
-char	printed 1;
+char	printed = 1;
 /*
  * Set the current file name to be file,
  * printing the name, or a header on a new
@@ -250,7 +250,7 @@ yysetfile(file)
 	if (lastname == file)
 		return;
 	if (file == filename && opt('n') && (printed & 02) == 0) {
-		printed =| 02;
+		printed |= 02;
 		header();
 	} else
 		yyputfn(file);

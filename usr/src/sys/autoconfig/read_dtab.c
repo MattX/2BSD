@@ -1,166 +1,108 @@
 /*
- * Read the device table into internal structures
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)read_dtab.c	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
-#include	<stdio.h>
-#include	<ctype.h>
-#include	<sys/autoconfig.h>
-#include	"dtab.h"
-#include	"uprobe.h"
+#include <machine/autoconfig.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <ctype.h>
+#include "dtab.h"
+#include "uprobe.h"
 
-static int	line;		/* Line number in dtab file */
-FILE		*dtab_fp;	/* File pointer to dtab file */
-int		guess_ndev = 0;	/* Guess as to size of nlist table */
-char	*malloc();
+extern UPROBE	uprobe[];
 
-otoi(cp)
-char *cp;
-{
-	int res;
-
-	sscanf(cp, "%o", &res);
-	return res;
-}
-
-int	last_ch;	/* last character read by getword */
-
-#define read_while(expr) while ((ch = getc(dtab_fp)) != EOF && (expr))
-char *getword()
-{
-	static char buf[80];
-	register int ch;
-	register char *cp;
-
-	if (feof(dtab_fp))
-		return NULL;
-	/* First skip any white space */
-skip:
-	last_ch = EOF;
-	read_while(isspace(ch))
-		;
-	if (ch == EOF)
-		return NULL;
-	
-	/* If its a comment, skip it too */
-	if (ch == '#') {
-		read_while(ch != '\n')
-			;
-		if (ch == EOF)
-			return NULL;
-		goto skip;
-	}
-	cp = buf;
-	do {
-		*cp++ = ch;
-		*cp = '\0';
-		if ((ch = getc(dtab_fp)) == EOF)
-			return buf;
-	} while (!isspace(ch));
-	last_ch = ch;
-	return buf;
-}
-
-char *nextword()
-{
-	register char *cp;
-
-	if ((cp = getword()) == NULL) {
-		fprintf(stderr, "Syntax error, not enough data on line %d\n", line);
-		exit(AC_SINGLE);
-	}
-	return cp;
-}
+int	guess_ndev = 0;		/* Guess as to size of nlist table */
+#define STRSAVE(str)	(strcpy(malloc((u_int)(strlen(str) + 1)),str))
 
 /*
- * Format of lines in the device table are:
- *	DNAME NUM ADDR VEC BR (HANDLER ...) SEMICOLON COMMENT
- * From a '#' to end of line is also considered a comment
+ * read the device table (/etc/dtab) into internal structures
+ * format of lines in the device table are:
+ *	device_name unit_number address vector br handler[0-3]	; comment
+ *								# comment
  */
-
 read_dtab()
 {
-	char *cp;
-	register struct dtab_s *dp, *cdp;
-	struct handler_s *sp;
-	struct uprobe *up;
-	int nhandlers;
+	register DTAB	*dp,
+			*cdp;
+	UPROBE	*up;
+	HAND	*sp;
+	int	nhandlers,	/* number of handlers per line */
+		line;		/* line number in dtab file */
+	short	cnt;		/* general counter */
+	char	*cp,		/* traveling char pointer */
+		*save,		/* save string position */
+		buf[80],	/* line buffer */
+		name[20],	/* device name */
+		unit[5],	/* unit number */
+		*malloc(), *strcpy(), *gets();
 
-	line = 0;
-	devs = NULL;
-	while ((cp = getword()) != NULL) {
-		line++;
-		dp = malloc(sizeof *dp);
-		dp->dt_name = strsave(cp);
-		if (*(cp = nextword()) == '?')
-			dp->dt_unit = -1;
-		else
-			dp->dt_unit = atoi(cp);
-		dp->dt_addr = otoi(nextword());
-		dp->dt_vector = otoi(nextword());
-		dp->dt_br = otoi(nextword());
-		dp->dt_probe = dp->dt_attach = 0;
-		dp->dt_handlers = NULL;
-		nhandlers = 0;
-		while (strcmp((cp = nextword()), ";")) {
-			if (++nhandlers == 4)
-				fprintf(stderr, "Warning, more than three handlers for device %s on line %d.\n", dp->dt_name, line);
-			addent(&dp->dt_handlers, strsave(cp));
-			guess_ndev++;
+	if (!(freopen(dtab_name,"r",stdin))) {
+		perror(dtab_name);
+		exit(AC_SETUP);
+	}
+	for (line = 1,devs = NULL;gets(buf);++line) {
+		for (cp = buf;isspace(*cp);++cp);
+		if (!*cp || cp == ';' || *cp == '#')
+			continue;
+		dp = (DTAB *)malloc(sizeof(DTAB));
+		if (sscanf(buf," %s %s %o %o %o ",name,unit,&dp->dt_addr,&dp->dt_vector,&dp->dt_br) != 5) {
+			fprintf(stderr,"%s: missing information on line %d.\n",myname,line);
+			exit(AC_SINGLE);
 		}
-		guess_ndev += 2;
-		for (up = uprobe; up->up_name; up++) {
-			if (!strcmp(dp->dt_name, up->up_name)) {
+		dp->dt_name = STRSAVE(name);
+		dp->dt_unit = *unit == '?' ? -1 : atoi(unit);
+		for (cnt = 0;cnt < 5;++cnt) {
+			for (;!isspace(*cp);++cp);
+			for (;isspace(*cp);++cp);
+		}
+		dp->dt_probe = dp->dt_attach = (NLIST *)0;
+		dp->dt_handlers = (HAND *)0;
+		for (nhandlers = 0;;nhandlers) {
+			if (!*cp || *cp == ';' || *cp == '#')
+				break;
+			if (++nhandlers == 4)
+				fprintf(stderr,"%s: warning: more than three handlers for device %s on line %d.\n",myname,dp->dt_name,line);
+			for (save = cp;!isspace(*cp);++cp);
+			*cp = EOS;
+			addent(&dp->dt_handlers,STRSAVE(save));
+			for (++cp;isspace(*cp);++cp);
+		}
+		guess_ndev += nhandlers + 2;
+		for (up = uprobe;up->up_name;++up)
+			if (!strcmp(dp->dt_name,up->up_name)) {
 				dp->dt_uprobe = up->up_func;
 				break;
 			}
-		}
-		/*
-		 * Skip the rest of the line (comment field).
-		 */
-		while (last_ch != '\n' && last_ch != EOF)
-			last_ch = getc(dtab_fp);
 		dp->dt_next = NULL;
-		if (devs == NULL)
+		if (!devs)
 			devs = cdp = dp;
 		else {
 			cdp->dt_next = dp;
 			cdp = dp;
 		}
 	}
-	fclose(dtab_fp);
 }
 
+static
 addent(listp, cp)
-struct handler_s **listp;
-char *cp;
+HAND	**listp;
+char	*cp;
 {
-	struct handler_s *el;
-	struct handler_s *sp;
+	HAND	*el,
+		*sp;
+	char	*malloc();
 
-	el = malloc(sizeof *el);
+	el = (HAND *)malloc(sizeof(HAND));
 	el->s_str = cp;
 	el->s_next = NULL;
-	if (*listp == NULL)
+	if (!*listp)
 		*listp = el;
 	else {
-		for (sp = *listp; sp->s_next != NULL; sp = sp->s_next)
-			;
+		for (sp = *listp;sp->s_next; sp = sp->s_next);
 		sp->s_next = el;
 	}
-}
-
-inlist(list, str)
-register struct handler_s *list;
-register char *str;
-{
-	for (; list != NULL; list = list->s_next)
-		if (strcmp(list->s_str, str) == 0)
-			return 1;
-	return 0;
-}
-
-static char *
-strsave(cp)
-{
-	return strcpy(malloc(strlen(cp) + 1), cp);
 }

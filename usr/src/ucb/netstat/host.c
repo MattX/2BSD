@@ -1,19 +1,20 @@
 /*
- *	NOTE: not converted to the 11 !!!!
- *	dgc, tek, 2/83
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)host.c	4.1 82/08/25";
-#endif
+static char sccsid[] = "@(#)host.c	5.2 (Berkeley) 9/27/85";
+#endif not lint
 
-#include <whoami.h>
-#if	NIMP > 0
-#include <sys/types.h>
+#include <sys/param.h>
+#if NIMP > 0
 #include <sys/mbuf.h>
-#include <net/in.h>
-#include <net/if_imp.h>
-#include <net/if_imphost.h>
+
+#include <netinet/in.h>
+#include <netimp/if_imp.h>
+#include <netimp/if_imphost.h>
 #define	h_addr	h_xaddr
 #include <netdb.h>
 #undef	h_addr
@@ -33,7 +34,6 @@ hostpr(hostsaddr)
 	register struct mbuf *m;
 	register struct hmbuf *mh;
 	register struct host *hp;
-	struct hostent *p;
 	char flagbuf[10], *flags;
 	int first = 1;
 
@@ -77,4 +77,4 @@ hostpr(hostsaddr)
 		m = m->m_next;
 	}
 }
-#endif	NIMP
+#endif NIMP

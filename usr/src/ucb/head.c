@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)head.c	4.1 (Berkeley) 10/1/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)head.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
  * head - give the first few lines of a stream or of each of a set of files
@@ -9,17 +22,17 @@ static char *sccsid = "@(#)head.c	4.1 (Berkeley) 10/1/80";
  */
 
 int	linecnt	= 10;
+int	argc;
 
 main(Argc, argv)
-	register int Argc;
-	register char *argv[];
+	int Argc;
+	char *argv[];
 {
 	register int argc;
 	char *name;
+	register char *argp;
 	static int around;
-	char obuf[BUFSIZ];
 
-	setbuf(stdout, obuf);
 	Argc--, argv++;
 	argc = Argc;
 	do {
@@ -52,6 +65,7 @@ main(Argc, argv)
 copyout(cnt)
 	register int cnt;
 {
+	register int c;
 	char lbuf[BUFSIZ];
 
 	while (cnt > 0 && fgets(lbuf, sizeof lbuf, stdin) != 0) {

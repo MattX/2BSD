@@ -10,8 +10,7 @@ init() {
 	reg int		i, j;
 	reg CARD	card;
 
-	for (j = 0; j < C_RIGHT_WAY; j++)
-		Numseen[j] = 0;
+	bzero(Numseen, sizeof Numseen);
 	Numgos = 0;
 
 	for (i = 0; i < 2; i++) {
@@ -68,42 +67,74 @@ shuffle() {
 
 newboard() {
 
-	werase(Board);
-	werase(Score);
-	mvaddstr(5, 0, "--HAND--");
-	mvaddch(6, 0, 'P');
-	mvaddch(7, 0, '1');
-	mvaddch(8, 0, '2');
-	mvaddch(9, 0, '3');
-	mvaddch(10, 0, '4');
-	mvaddch(11, 0, '5');
-	mvaddch(12, 0, '6');
-	mvaddstr(13, 0, "--BATTLE--");
-	mvaddstr(15, 0, "--SPEED--");
-	mvaddstr(5, 20, "--DECK--");
-	mvaddstr(7, 20, "--DISCARD--");
-	mvaddstr(13, 20, "--BATTLE--");
-	mvaddstr(15, 20, "--SPEED--");
-	wmove(Miles, 0, 0);
-	if (winch(Miles) != '-') {
-		werase(Miles);
+	register int	i;
+	register PLAY	*pp;
+	static int	first = TRUE;
+
+	if (first) {
+		werase(Board);
+		werase(Score);
+		mvaddstr(5, 0, "--HAND--");
+		mvaddch(6, 0, 'P');
+		mvaddch(7, 0, '1');
+		mvaddch(8, 0, '2');
+		mvaddch(9, 0, '3');
+		mvaddch(10, 0, '4');
+		mvaddch(11, 0, '5');
+		mvaddch(12, 0, '6');
+		mvaddstr(13, 0, "--BATTLE--");
+		mvaddstr(15, 0, "--SPEED--");
+		mvaddstr(5, 20, "--DECK--");
+		mvaddstr(7, 20, "--DISCARD--");
+		mvaddstr(13, 20, "--BATTLE--");
+		mvaddstr(15, 20, "--SPEED--");
 		mvwaddstr(Miles, 0, 0, "--MILEAGE--");
 		mvwaddstr(Miles, 0, 41, "--MILEAGE--");
+		Sh_discard = -1;
+		for (pp = Player; pp <= &Player[COMP]; pp++) {
+			for (i = 0; i < HAND_SZ; i++)
+				pp->sh_hand[i] = -1;
+			pp->sh_battle = -1;
+			pp->sh_speed = -1;
+			pp->sh_mileage = -1;
+		}
+		first = FALSE;
 	}
 	else {
+		for (i = 0; i < 5; i++) {
+			move(i, 0);
+			clrtoeol();
+		}
 		wmove(Miles, 1, 0);
 		wclrtobot(Miles);
+		wmove(Board, MOVE_Y + 1, MOVE_X);
+		wclrtoeol(Board);
+		wmove(Board, MOVE_Y + 2, MOVE_X);
+		wclrtoeol(Board);
+	}
+	Sh_discard = -1;
+	for (pp = Player; pp <= &Player[COMP]; pp++) {
+		for (i = 0; i < NUM_SAFE; i++)
+			pp->sh_safety[i] = FALSE;
+		for (i = 0; i < NUM_MILES; i++)
+			pp->sh_nummiles[i] = 0;
+		pp->sh_safescore = -1;
 	}
 	newscore();
-	stdscr = Board;
 }
 
 newscore() {
 
-	reg int	i;
+	reg int		i, new;
+	register PLAY	*pp;
+	static int	was_full = -1;
+	static int	last_win = -1;
 
+	if (was_full < 0)
+		was_full = (Window != W_FULL);
 	stdscr = Score;
 	move(0, 22);
+	new = FALSE;
 	if (inch() != 'Y') {
 		erase();
 		mvaddstr(0, 22,  "You   Comp   Value");
@@ -114,47 +145,70 @@ newscore() {
 		mvaddstr(2, 37, "100");
 		mvaddstr(3, 37, "300");
 		mvaddstr(4, 37, "300");
+		new = TRUE;
 	}
-	else {
+	else if (((Window == W_FULL || Finished) ^ was_full) ||
+		 pp->was_finished != Finished) {
 		move(5, 1);
 		clrtobot();
+		new = TRUE;
 	}
-	for (i = 0; i < SCORE_Y; i++)
-		mvaddch(i, 0, '|');
-	move(SCORE_Y - 1, 1);
-	while (addch('_') != ERR)
-		continue;
+	else if (Window != last_win)
+		new = TRUE;
+	if (new) {
+		for (i = 0; i < SCORE_Y; i++)
+			mvaddch(i, 0, '|');
+		move(SCORE_Y - 1, 1);
+		while (addch('_') != ERR)
+			continue;
+		for (pp = Player; pp <= &Player[COMP]; pp++) {
+			pp->sh_hand_tot = -1;
+			pp->sh_total = -1;
+			pp->sh_games = -1;
+			pp->sh_safescore = -1;
+		}
+	}
+	Player[PLAYER].was_finished = !Finished;
+	Player[COMP].was_finished = !Finished;
 	if (Window == W_FULL || Finished) {
-		mvaddstr(5, 5, "Trip Completed");
-		mvaddstr(6, 10, "Safe Trip");
-		mvaddstr(7, 5, "Delayed Action");
-		mvaddstr(8, 10, "Extension");
-		mvaddstr(9, 11, "Shut-Out");
-		mvaddstr(10, 21, "----   ----   -----");
-		mvaddstr(11, 9, "Hand Total");
-		mvaddstr(12, 20, "-----  -----");
-		mvaddstr(13, 6, "Overall Total");
-		mvaddstr(14, 15, "Games");
-		mvaddstr(5, 37, "400");
-		mvaddstr(6, 37, "300");
-		mvaddstr(7, 37, "300");
-		mvaddstr(8, 37, "200");
-		mvaddstr(9, 37, "500");
+		if (!was_full || new) {
+			mvaddstr(5, 5, "Trip Completed");
+			mvaddstr(6, 10, "Safe Trip");
+			mvaddstr(7, 5, "Delayed Action");
+			mvaddstr(8, 10, "Extension");
+			mvaddstr(9, 11, "Shut-Out");
+			mvaddstr(10, 21, "----   ----   -----");
+			mvaddstr(11, 9, "Hand Total");
+			mvaddstr(12, 20, "-----  -----");
+			mvaddstr(13, 6, "Overall Total");
+			mvaddstr(14, 15, "Games");
+			mvaddstr(5, 37, "400");
+			mvaddstr(6, 37, "300");
+			mvaddstr(7, 37, "300");
+			mvaddstr(8, 37, "200");
+			mvaddstr(9, 37, "500");
+		}
 	}
-	else {
-		mvaddstr(5, 21, "----   ----   -----");
-		mvaddstr(6, 9, "Hand Total");
-		mvaddstr(7, 20, "-----  -----");
-		mvaddstr(8, 6, "Overall Total");
-		mvaddstr(9, 15, "Games");
-		mvaddstr(11, 2, "p: pick");
-		mvaddstr(12, 2, "u: use #");
-		mvaddstr(13, 2, "d: discard #");
-		mvaddstr(14, 2, "w: toggle window");
-		mvaddstr(11, 21, "q: quit");
-		mvaddstr(12, 21, "o: order hand");
-		mvaddstr(13, 21, "s: save");
-		mvaddstr(14, 21, "r: reprint");
-	}
+	else
+		if (was_full || new) {
+			mvaddstr(5, 21, "----   ----   -----");
+			mvaddstr(6, 9, "Hand Total");
+			mvaddstr(7, 20, "-----  -----");
+			mvaddstr(8, 6, "Overall Total");
+			mvaddstr(9, 15, "Games");
+			mvaddstr(11, 2, "p: pick");
+			mvaddstr(12, 2, "u: use #");
+			mvaddstr(13, 2, "d: discard #");
+			mvaddstr(14, 2, "w: toggle window");
+			mvaddstr(11, 21, "q: quit");
+			if (!Order)
+				mvaddstr(12, 21, "o: order hand");
+			else
+				mvaddstr(12, 21, "o: stop ordering");
+			mvaddstr(13, 21, "s: save");
+			mvaddstr(14, 21, "r: reprint");
+		}
 	stdscr = Board;
+	was_full = (Window == W_FULL || Finished);
+	last_win = Window;
 }

@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)aux.c	5.4 (Berkeley) 1/13/86";
+#endif not lint
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -9,8 +17,6 @@
  *
  * Auxiliary functions.
  */
-
-static char *SccsId = "@(#)aux.c	2.10 6/28/83";
 
 /*
  * Return a pointer to a dynamic copy of the argument.
@@ -163,20 +169,6 @@ offsetof(off)
 
 	a = off & 0777;
 	return((int) a);
-}
-
-/*
- * Determine if the passed file is actually a tty, via a call to
- * gtty.  This is not totally reliable, but . . .
- */
-
-isatty(f)
-{
-	struct sgttyb buf;
-
-	if (gtty(f, &buf) < 0)
-		return(0);
-	return(1);
 }
 
 /*
@@ -384,7 +376,7 @@ struct sstack {
 	FILE	*s_file;		/* File we were in. */
 	int	s_cond;			/* Saved state of conditionals */
 	int	s_loading;		/* Loading .mailrc, etc. */
-} sstack[_NFILE];
+} sstack[NOFILE];
 
 /*
  * Pushdown current input file and switch to a new one.
@@ -404,7 +396,7 @@ source(name)
 		perror(cp);
 		return(1);
 	}
-	if (ssp >= _NFILE-2) {
+	if (ssp >= NOFILE - 2) {
 		printf("Too much \"sourcing\" going on.\n");
 		fclose(fi);
 		return(1);
@@ -503,7 +495,7 @@ blankline(linebuf)
 	register char *cp;
 
 	for (cp = linebuf; *cp; cp++)
-		if (!any(*cp, " \t"))
+		if (*cp != ' ' && *cp != '\t')
 			return(0);
 	return(1);
 }
@@ -532,7 +524,7 @@ nameof(mp, reptype)
 }
 
 /*
- * Skin an arpa net address according to the RFC 733 interpretation
+ * Skin an arpa net address according to the RFC 822 interpretation
  * of "host-phrase."
  */
 char *
@@ -541,8 +533,10 @@ skin(name)
 {
 	register int c;
 	register char *cp, *cp2;
+	char *bufend;
 	int gotlt, lastsp;
 	char nbuf[BUFSIZ];
+	int nesting;
 
 	if (name == NOSTR)
 		return(NOSTR);
@@ -551,13 +545,58 @@ skin(name)
 		return(name);
 	gotlt = 0;
 	lastsp = 0;
-	for (cp = name, cp2 = nbuf; c = *cp++; ) {
+	bufend = nbuf;
+	for (cp = name, cp2 = bufend; c = *cp++; ) {
 		switch (c) {
 		case '(':
-			while (*cp != ')' && *cp != 0)
+			/*
+			 * Start of a "comment".
+			 * Ignore it.
+			 */
+			nesting = 1;
+			while ((c = *cp) != 0) {
 				cp++;
-			if (*cp)
+				switch (c) {
+				case '\\':
+					if (*cp == 0)
+						goto outcm;
+					cp++;
+					break;
+				case '(':
+					nesting++;
+					break;
+
+				case ')':
+					--nesting;
+					break;
+				}
+
+				if (nesting <= 0)
+					break;
+			}
+		outcm:
+			lastsp = 0;
+			break;
+
+		case '"':
+			/*
+			 * Start of a "quoted-string".
+			 * Copy it in its entirety.
+			 */
+			while ((c = *cp) != 0) {
 				cp++;
+				switch (c) {
+				case '\\':
+					if ((c = *cp) == 0)
+						goto outqs;
+					cp++;
+					break;
+				case '"':
+					goto outqs;
+				}
+				*cp2++ = c;
+			}
+		outqs:
 			lastsp = 0;
 			break;
 
@@ -572,14 +611,23 @@ skin(name)
 			break;
 
 		case '<':
-			cp2 = nbuf;
+			cp2 = bufend;
 			gotlt++;
 			lastsp = 0;
 			break;
 
 		case '>':
-			if (gotlt)
-				goto done;
+			if (gotlt) {
+				gotlt = 0;
+				while (*cp != ',' && *cp != 0)
+					cp++;
+				if (*cp == 0 )
+					goto done;
+				*cp2++ = ',';
+				*cp2++ = ' ';
+				bufend = cp2;
+				break;
+			}
 
 			/* Fall into . . . */
 
@@ -616,12 +664,10 @@ name1(mp, reptype)
 	register FILE *ibuf;
 	int first = 1;
 
-#ifndef	SENDMAIL
 	if ((cp = hfield("from", mp)) != NOSTR)
 		return(cp);
 	if (reptype == 0 && (cp = hfield("sender", mp)) != NOSTR)
 		return(cp);
-#endif
 	ibuf = setinput(mp);
 	copy("", namebuf);
 	if (readline(ibuf, linebuf) <= 0)
@@ -744,38 +790,34 @@ index(str, ch)
 }
 
 /*
- * String compare two strings of bounded length.
- */
-
-strncmp(as1, as2, an)
-	char *as1, *as2;
-{
-	register char *s1, *s2;
-	register int n;
-
-	s1 = as1;
-	s2 = as2;
-	n = an;
-	while (--n >= 0 && *s1 == *s2++)
-		if (*s1++ == '\0')
-			return(0);
-	return(n<0 ? 0 : *s1 - *--s2);
-}
-
-/*
  * See if the given header field is supposed to be ignored.
  */
 isign(field)
 	char *field;
 {
 	char realfld[BUFSIZ];
-	register int h;
+
+	/*
+	 * Lower-case the string, so that "Status" and "status"
+	 * will hash to the same place.
+	 */
+	istrcpy(realfld, field);
+
+	if (nretained > 0)
+		return (!member(realfld, retain));
+	else
+		return (member(realfld, ignore));
+}
+
+member(realfield, table)
+	register char *realfield;
+	register struct ignore **table;
+{
 	register struct ignore *igp;
 
-	istrcpy(realfld, field);
-	h = hash(realfld);
-	for (igp = ignore[h]; igp != 0; igp = igp->i_link)
-		if (strcmp(igp->i_field, realfld) == 0)
-			return(1);
-	return(0);
+	for (igp = table[hash(realfield)]; igp != 0; igp = igp->i_link)
+		if (equal(igp->i_field, realfield))
+			return (1);
+
+	return (0);
 }

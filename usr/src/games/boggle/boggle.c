@@ -1,6 +1,18 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)boggle.c	4.1 12/24/82";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)boggle.c	5.1 (Berkeley) 5/30/85";
+#endif not lint
 
 #include <ctype.h>
 #include <errno.h>
@@ -53,7 +65,7 @@ extern char *ctime(), *getlogin();
 extern long lseek();
 
 /* dictionary interface */
-char defname[] = "/usr/games/bogdict";
+char defname[] = "/usr/games/lib/bogdict";
 char *dictname = &defname[0];
 FILE *dict;
 
@@ -128,7 +140,7 @@ int stat;
 clearscreen ()
 {
 	stty (fileno(stdin), &tempttyb);
-	printf("\n\033\f\r");
+	printf("\n\f\r");
 }
 
 compare (a, b)
@@ -179,7 +191,7 @@ printinst ()
 		printf("'break'.  While entering words, your erase character is only  effective\n");
 		printf("within the current word and your line kill character is ignored.\n");
 		printf("     Advanced players may wish to invoke the program with 1 or 2 +'s as\n");
-		printf("the  first argument.  The first + removes the restriction that postions\n");
+		printf("the  first argument.  The first + removes the restriction that positions\n");
 		printf("can only be used once in each word.  The second + causes a position  to\n");
 		printf("be  considered  adjacent  to itself as well as its (up to) 8 neighbors.\n");
 		printf("Hit any key to begin.\n");
@@ -507,7 +519,7 @@ char **argv;
 		goodbye(0);
 	signal (SIGINT, interrupt);
 	timein = time(0L);
-	if (argv[0][0] != 'a' && (logfile = open("/usr/games/boglog", 1)) >= 0) {
+	if (argv[0][0] != 'a' && (logfile = open("/usr/games/lib/boglog", 1)) >= 0) {
 		p = &logbuff[5];
 		q = getlogin();
 		while (*p++ = *q++);

@@ -1,6 +1,18 @@
-# include "sendmail.h"
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
-SCCSID(@(#)parseaddr.c	4.1		7/25/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)parseaddr.c	5.6 (Berkeley) 4/2/86";
+#endif
+
+# include "sendmail.h"
 
 /*
 **  PARSEADDR -- Parse an address
@@ -41,7 +53,7 @@ SCCSID(@(#)parseaddr.c	4.1		7/25/83);
 */
 
 /* following delimiters are inherent to the internal algorithms */
-# define DELIMCHARS	"$()<>,;\\\"\r\n"	/* word delimiters */
+# define DELIMCHARS	"\001()<>,;\\\"\r\n"	/* word delimiters */
 
 ADDRESS *
 parseaddr(addr, a, copyf, delim)
@@ -52,6 +64,7 @@ parseaddr(addr, a, copyf, delim)
 {
 	register char **pvp;
 	register struct mailer *m;
+	char pvpbuf[PSBUFSIZE];
 	extern char **prescan();
 	extern ADDRESS *buildaddr();
 
@@ -65,7 +78,7 @@ parseaddr(addr, a, copyf, delim)
 		printf("\n--parseaddr(%s)\n", addr);
 # endif DEBUG
 
-	pvp = prescan(addr, delim);
+	pvp = prescan(addr, delim, pvpbuf);
 	if (pvp == NULL)
 		return (NULL);
 
@@ -113,24 +126,26 @@ parseaddr(addr, a, copyf, delim)
 	}
 	else
 		a->q_paddr = addr;
+
+	if (a->q_user == NULL)
+		a->q_user = "";
+	if (a->q_host == NULL)
+		a->q_host = "";
+
 	if (copyf >= 0)
 	{
-		if (a->q_host != NULL)
-			a->q_host = newstr(a->q_host);
-		else
-			a->q_host = "";
+		a->q_host = newstr(a->q_host);
 		if (a->q_user != a->q_paddr)
 			a->q_user = newstr(a->q_user);
 	}
 
 	/*
-	**  Do UPPER->lower case mapping unless inhibited.
+	**  Convert host name to lower case if requested.
+	**	User name will be done later.
 	*/
 
 	if (!bitnset(M_HST_UPPER, m->m_flags))
 		makelower(a->q_host);
-	if (!bitnset(M_USR_UPPER, m->m_flags))
-		makelower(a->q_user);
 
 	/*
 	**  Compute return value.
@@ -145,6 +160,27 @@ parseaddr(addr, a, copyf, delim)
 # endif DEBUG
 
 	return (a);
+}
+/*
+**  LOWERADDR -- map UPPER->lower case on addresses as requested.
+**
+**	Parameters:
+**		a -- address to be mapped.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		none.
+*/
+
+loweraddr(a)
+	register ADDRESS *a;
+{
+	register MAILER *m = a->q_mailer;
+
+	if (!bitnset(M_USR_UPPER, m->m_flags))
+		makelower(a->q_user);
 }
 /*
 **  PRESCAN -- Prescan name and make it canonical
@@ -166,13 +202,16 @@ parseaddr(addr, a, copyf, delim)
 **		addr -- the name to chomp.
 **		delim -- the delimiter for the address, normally
 **			'\0' or ','; \0 is accepted in any case.
+**			If '\t' then we are reading the .cf file.
+**		pvpbuf -- place to put the saved text -- note that
+**			the pointers are static.
 **
 **	Returns:
 **		A pointer to a vector of tokens.
 **		NULL on error.
 **
 **	Side Effects:
-**		none.
+**		sets DelimChar to point to the character matching 'delim'.
 */
 
 /* states and character types */
@@ -205,9 +244,10 @@ static short StateTab[NSTATES][NSTATES] =
 char	*DelimChar;		/* set to point to the delimiter */
 
 char **
-prescan(addr, delim)
+prescan(addr, delim, pvpbuf)
 	char *addr;
 	char delim;
+	char pvpbuf[];
 {
 	register char *p;
 	register char *q;
@@ -219,10 +259,13 @@ prescan(addr, delim)
 	char *tok;
 	int state;
 	int newstate;
-	static char buf[MAXNAME+MAXATOM];
 	static char *av[MAXATOM+1];
+	extern int errno;
 
-	q = buf;
+	/* make sure error messages don't have garbage on them */
+	errno = 0;
+
+	q = pvpbuf;
 	bslashmode = FALSE;
 	cmntcnt = 0;
 	anglecnt = 0;
@@ -235,7 +278,7 @@ prescan(addr, delim)
 	{
 		printf("prescan: ");
 		xputs(p);
-		putchar('\n');
+		(void) putchar('\n');
 	}
 # endif DEBUG
 
@@ -248,13 +291,15 @@ prescan(addr, delim)
 			/* store away any old lookahead character */
 			if (c != NOCHAR)
 			{
-				/* squirrel it away */
-				if (q >= &buf[sizeof buf - 5])
+				/* see if there is room */
+				if (q >= &pvpbuf[PSBUFSIZE - 5])
 				{
 					usrerr("Address too long");
 					DelimChar = p;
 					return (NULL);
 				}
+
+				/* squirrel it away */
 				*q++ = c;
 			}
 
@@ -262,17 +307,20 @@ prescan(addr, delim)
 			c = *p++;
 			if (c == '\0')
 				break;
+			c &= ~0200;
+
 # ifdef DEBUG
 			if (tTd(22, 101))
 				printf("c=%c, s=%d; ", c, state);
 # endif DEBUG
 
 			/* chew up special characters */
-			c &= ~0200;
 			*q = '\0';
 			if (bslashmode)
 			{
-				c |= 0200;
+				/* kludge \! for naive users */
+				if (c != '!')
+					c |= 0200;
 				bslashmode = FALSE;
 			}
 			else if (c == '\\')
@@ -345,7 +393,7 @@ prescan(addr, delim)
 			{
 				printf("tok=");
 				xputs(tok);
-				putchar('\n');
+				(void) putchar('\n');
 			}
 # endif DEBUG
 			if (avp >= &av[MAXATOM])
@@ -391,7 +439,7 @@ toktype(c)
 	if (firstime)
 	{
 		firstime = FALSE;
-		expand("$o", buf, &buf[sizeof buf - 1], CurEnv);
+		expand("\001o", buf, &buf[sizeof buf - 1], CurEnv);
 		(void) strcat(buf, DELIMCHARS);
 	}
 	if (c == MATCHCLASS || c == MATCHREPL || c == MATCHNCLASS)
@@ -630,49 +678,128 @@ rewrite(pvp, ruleset)
 			register char **pp;
 
 			rp = *rvp;
-			if (*rp != MATCHREPL)
+			if (*rp == MATCHREPL)
 			{
+				/* substitute from LHS */
+				m = &mlist[rp[1] - '1'];
+				if (m >= mlp)
+				{
+					syserr("rewrite: ruleset %d: replacement out of bounds", ruleset);
+					return;
+				}
+# ifdef DEBUG
+				if (tTd(21, 15))
+				{
+					printf("$%c:", rp[1]);
+					pp = m->first;
+					while (pp <= m->last)
+					{
+						printf(" %x=\"", *pp);
+						(void) fflush(stdout);
+						printf("%s\"", *pp++);
+					}
+					printf("\n");
+				}
+# endif DEBUG
+				pp = m->first;
+				while (pp <= m->last)
+				{
+					if (avp >= &npvp[MAXATOM])
+					{
+						syserr("rewrite: expansion too long");
+						return;
+					}
+					*avp++ = *pp++;
+				}
+			}
+			else
+			{
+				/* vanilla replacement */
 				if (avp >= &npvp[MAXATOM])
 				{
+	toolong:
 					syserr("rewrite: expansion too long");
 					return;
 				}
 				*avp++ = rp;
-				continue;
-			}
-
-			/* substitute from LHS */
-			m = &mlist[rp[1] - '1'];
-# ifdef DEBUG
-			if (tTd(21, 15))
-			{
-				printf("$%c:", rp[1]);
-				pp = m->first;
-				while (pp <= m->last)
-				{
-					printf(" %x=\"", *pp);
-					(void) fflush(stdout);
-					printf("%s\"", *pp++);
-				}
-				printf("\n");
-			}
-# endif DEBUG
-			pp = m->first;
-			while (pp <= m->last)
-			{
-				if (avp >= &npvp[MAXATOM])
-				{
-					syserr("rewrite: expansion too long");
-					return;
-				}
-				*avp++ = *pp++;
 			}
 		}
 		*avp++ = NULL;
-		if (**npvp == CALLSUBR)
+
+		/*
+		**  Check for any hostname lookups.
+		*/
+
+		for (rvp = npvp; *rvp != NULL; rvp++)
 		{
-			bmove((char *) &npvp[2], (char *) pvp,
-				(avp - npvp - 2) * sizeof *avp);
+			char **hbrvp;
+			char **xpvp;
+			int trsize;
+			char *olddelimchar;
+			char buf[MAXNAME + 1];
+			char *pvpb1[MAXATOM + 1];
+			char pvpbuf[PSBUFSIZE];
+			extern char *DelimChar;
+
+			if (**rvp != HOSTBEGIN)
+				continue;
+
+			/*
+			**  Got a hostname lookup.
+			**
+			**	This could be optimized fairly easily.
+			*/
+
+			hbrvp = rvp;
+
+			/* extract the match part */
+			while (*++rvp != NULL && **rvp != HOSTEND)
+				continue;
+			if (*rvp != NULL)
+				*rvp++ = NULL;
+
+			/* save the remainder of the input string */
+			trsize = (int) (avp - rvp + 1) * sizeof *rvp;
+			bcopy((char *) rvp, (char *) pvpb1, trsize);
+
+			/* look it up */
+			cataddr(++hbrvp, buf, sizeof buf);
+			maphostname(buf, sizeof buf);
+
+			/* scan the new host name */
+			olddelimchar = DelimChar;
+			xpvp = prescan(buf, '\0', pvpbuf);
+			DelimChar = olddelimchar;
+			if (xpvp == NULL)
+			{
+				syserr("rewrite: cannot prescan canonical hostname: %s", buf);
+				return;
+			}
+
+			/* append it to the token list */
+			for (avp = --hbrvp; *xpvp != NULL; xpvp++)
+			{
+				*avp++ = newstr(*xpvp);
+				if (avp >= &npvp[MAXATOM])
+					goto toolong;
+			}
+
+			/* restore the old trailing information */
+			for (xpvp = pvpb1; (*avp++ = *xpvp++) != NULL; )
+				if (avp >= &npvp[MAXATOM])
+					goto toolong;
+
+			break;
+		}
+
+		/*
+		**  Check for subroutine calls.
+		*/
+
+		if (*npvp != NULL && **npvp == CALLSUBR)
+		{
+			bcopy((char *) &npvp[2], (char *) pvp,
+				(int) (avp - npvp - 2) * sizeof *avp);
 # ifdef DEBUG
 			if (tTd(21, 3))
 				printf("-----callsubr %s\n", npvp[1]);
@@ -681,8 +808,8 @@ rewrite(pvp, ruleset)
 		}
 		else
 		{
-			bmove((char *) npvp, (char *) pvp,
-				(avp - npvp) * sizeof *avp);
+			bcopy((char *) npvp, (char *) pvp,
+				(int) (avp - npvp) * sizeof *avp);
 		}
 # ifdef DEBUG
 		if (tTd(21, 4))
@@ -727,7 +854,7 @@ buildaddr(tv, a)
 
 	if (a == NULL)
 		a = (ADDRESS *) xalloc(sizeof *a);
-	clear((char *) a, sizeof *a);
+	bzero((char *) a, sizeof *a);
 
 	/* figure out what net/mailer to use */
 	if (**tv != CANONNET)
@@ -762,7 +889,7 @@ buildaddr(tv, a)
 	}
 	if (m == NULL)
 	{
-		syserr("buildaddr: unknown net %s", *tv);
+		syserr("buildaddr: unknown mailer %s", *tv);
 		return (NULL);
 	}
 	a->q_mailer = m;
@@ -790,7 +917,14 @@ buildaddr(tv, a)
 		syserr("buildaddr: no user");
 		return (NULL);
 	}
-	rewrite(++tv, 4);
+
+	/* rewrite according recipient mailer rewriting rules */
+	rewrite(++tv, 2);
+	if (m->m_r_rwset > 0)
+		rewrite(tv, m->m_r_rwset);
+	rewrite(tv, 4);
+
+	/* save the result for the command line/RCPT argument */
 	cataddr(tv, buf, sizeof buf);
 	a->q_user = buf;
 
@@ -823,7 +957,7 @@ cataddr(pvp, buf, sz)
 
 	if (pvp == NULL)
 	{
-		strcpy(buf, "");
+		(void) strcpy(buf, "");
 		return;
 	}
 	p = buf;
@@ -964,6 +1098,7 @@ remotename(name, m, senderaddress, canonical)
 	char *oldg = macvalue('g', CurEnv);
 	static char buf[MAXNAME];
 	char lbuf[MAXNAME];
+	char pvpbuf[PSBUFSIZE];
 	extern char **prescan();
 	extern char *crackaddr();
 
@@ -982,7 +1117,7 @@ remotename(name, m, senderaddress, canonical)
 	*/
 
 	if (canonical)
-		fancy = "$g";
+		fancy = "\001g";
 	else
 		fancy = crackaddr(name);
 
@@ -994,7 +1129,7 @@ remotename(name, m, senderaddress, canonical)
 	**	domain will be appended.
 	*/
 
-	pvp = prescan(name, '\0');
+	pvp = prescan(name, '\0', pvpbuf);
 	if (pvp == NULL)
 		return (name);
 	rewrite(pvp, 3);

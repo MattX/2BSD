@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)diffdir.c	4.7 (Berkeley) 7/1/83";
+static	char *sccsid = "@(#)diffdir.c	4.9 (Berkeley) 8/28/84";
 
 #include "diff.h"
 /*
@@ -13,8 +13,8 @@ static	char *sccsid = "@(#)diffdir.c	4.7 (Berkeley) 7/1/83";
 
 struct dir {
 	u_long	d_ino;
-	u_short	d_reclen;
-	u_short	d_namlen;
+	short	d_reclen;
+	short	d_namlen;
 	char	*d_entry;
 };
 
@@ -354,8 +354,10 @@ calldiff(wantpr)
 		perror(diff);
 		done();
 	}
-	close(pv[0]);
-	close(pv[1]);
+	if (wantpr) {
+		close(pv[0]);
+		close(pv[1]);
+	}
 	while (wait(&status) != pid)
 		continue;
 	while (wait(&status2) != -1)
@@ -397,8 +399,12 @@ useless(cp)
 register char *cp;
 {
 
-	if (cp[0] == '.')
-		return (1);
+	if (cp[0] == '.') {
+		if (cp[1] == '\0')
+			return (1);	/* directory "." */
+		if (cp[1] == '.' && cp[2] == '\0')
+			return (1);	/* directory ".." */
+	}
 	if (start && strcmp(start, cp) > 0)
 		return (1);
 	return (0);

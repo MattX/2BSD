@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)tsort.c	4.2 (Berkeley) 10/20/82";
 /*	topological sort
  *	input is sequence of pairs of items (blank-free strings)
  *	nonidentical pair is a directed edge in graph
@@ -5,18 +6,14 @@
  *	output is ordered list of items consistent with
  *	the partial ordering specified by the graph
 */
-#include "stdio.h"
+#include <stdio.h>
 
 /*	the nodelist always has an empty element at the end to
  *	make it easy to grow in natural order
-*/
-
-struct nodelist {
-	struct nodelist *nextnode;
-	struct predlist *inedges;
-	char *name;
-	enum {DEAD, LIVE, ONCE, TWICE} live;
-} firstnode = {NULL, NULL, NULL, DEAD};
+ *	states of the "live" field:*/
+#define DEAD 0	/* already printed*/
+#define LIVE 1	/* not yet printed*/
+#define VISITED 2	/*used only in findloop()*/
 
 /*	a predecessor list tells all the immediate
  *	predecessors of a given node
@@ -25,6 +22,13 @@ struct predlist {
 	struct predlist *nextpred;
 	struct nodelist *pred;
 };
+
+struct nodelist {
+	struct nodelist *nextnode;
+	struct predlist *inedges;
+	char *name;
+	int live;
+} firstnode = {NULL, NULL, NULL, DEAD};
 
 struct nodelist *index();
 struct nodelist *findloop();
@@ -162,35 +166,41 @@ struct nodelist *
 findloop()
 {
 	register struct nodelist *i, *j;
-	register struct predlist *p;
 	for(i= &firstnode; i->nextnode!=NULL; i=i->nextnode)
 		if(i->live==LIVE)
 			break;
-	note("cycle in reverse order",empty);
-	while(i->live==LIVE) {
-		i->live = ONCE;
-		for(p=i->inedges; ; p=p->nextpred) {
-			if(p==NULL)
-				error("error 1");
-			i = p->pred;
-			if(i->live!=DEAD)
-				break;
-		}
-	}
-	while(i->live==ONCE) {
-		i->live = TWICE;
-		note(i->name,empty);
-		for(p=i->inedges; ; p=p->nextpred) {
-			if(p==NULL)
-				error("error 2");
-			i = p->pred;
-			if(i->live!=DEAD)
-				break;
-		}
-	}
+	note("cycle in data",empty);
+	i = mark(i);
+	if(i==NULL)
+		error("program error",empty);
 	for(j= &firstnode; j->nextnode!=NULL; j=j->nextnode)
-		if(j->live!=DEAD)
+		if(j->live==VISITED)
 			j->live = LIVE;
 	return(i);
 }
 
+/*	depth-first search of LIVE predecessors
+ *	to find some element of a cycle;
+ *	VISITED is a temporary state recording the
+ *	visits of the search
+*/
+struct nodelist *
+mark(i)
+register struct nodelist *i;
+{
+	register struct nodelist *j;
+	register struct predlist *t;
+	if(i->live==DEAD)
+		return(NULL);
+	if(i->live==VISITED)
+		return(i);
+	i->live = VISITED;
+	for(t=i->inedges; t!=NULL; t=t->nextpred) {
+		j = mark(t->pred);
+		if(j!=NULL) {
+			note(i->name,empty);
+			return(j);
+		}
+	}
+	return(NULL);
+}

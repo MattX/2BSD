@@ -29,12 +29,3 @@ static char *liblist [ ] =
 	"-lm",
 	"-lc",
 	NULL };
-
-static char *ovliblist [ ] =
-	{
-	"-lovU77",
-	"-lovF77",
-	"-lovI77",
-	"-lovm",
-	"-lovc",
-	NULL };

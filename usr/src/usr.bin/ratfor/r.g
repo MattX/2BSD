@@ -1,3 +1,4 @@
+/* @(#)r.g	1.1 (Berkeley) 12/15/82 */
 %{
 extern int transfer;
 extern	int	indent;

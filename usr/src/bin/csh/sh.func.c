@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.func.c 4.5 81/06/19";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.func.c	5.3 (Berkeley) 5/13/86";
+#endif
 
 #include "sh.h"
 #include <sys/ioctl.h>
@@ -9,11 +17,10 @@ static	char *sccsid = "@(#)sh.func.c 4.5 81/06/19";
 
 struct biltins *
 isbfunc(t)
-	register struct command *t;
+	struct command *t;
 {
 	register char *cp = t->t_dcom[0];
-	register char *dp;
-	register struct biltins *bp;
+	register struct biltins *bp, *bp1, *bp2;
 	int dolabel(), dofg1(), dobg1();
 	static struct biltins label = { "", dolabel, 0, 0 };
 	static struct biltins foregnd = { "%job", dofg1, 0, 0 };
@@ -28,15 +35,26 @@ isbfunc(t)
 			t->t_dflg &= ~FAND;
 			backgnd.bname = cp;
 			return (&backgnd);
-		} 
+		}
 		foregnd.bname = cp;
 		return (&foregnd);
 	}
-	for (bp = bfunc; dp = bp->bname; bp++) {
-		if (dp[0] == cp[0] && eq(dp, cp))
-			return (bp);
-		if (dp[0] > cp[0])
-			break;
+	/*
+	 * Binary search
+	 * Bp1 is the beginning of the current search range.
+	 * Bp2 is one past the end.
+	 */
+	for (bp1 = bfunc, bp2 = bfunc + nbfunc; bp1 < bp2;) {
+		register i;
+
+		bp = bp1 + (bp2 - bp1 >> 1);
+		if ((i = *cp - *bp->bname) == 0 &&
+		    (i = strcmp(cp, bp->bname)) == 0)
+			return bp;
+		if (i < 0)
+			bp2 = bp;
+		else
+			bp1 = bp + 1;
 	}
 	return (0);
 }
@@ -75,16 +93,16 @@ doonintr(v)
 	cp = gointr, gointr = 0, xfree(cp);
 	if (vv == 0) {
 		if (setintr)
-			sighold(SIGINT);
+			(void) sigblock(sigmask(SIGINT));
 		else
-			sigset(SIGINT, SIG_DFL);
+			(void) signal(SIGINT, SIG_DFL);
 		gointr = 0;
 	} else if (eq((vv = strip(vv)), "-")) {
-		sigset(SIGINT, SIG_IGN);
+		(void) signal(SIGINT, SIG_IGN);
 		gointr = "-";
 	} else {
 		gointr = savestr(vv);
-		sigset(SIGINT, pintr);
+		(void) signal(SIGINT, pintr);
 	}
 }
 
@@ -94,7 +112,7 @@ donohup()
 	if (intty)
 		bferr("Can't from terminal");
 	if (setintr == 0) {
-		signal(SIGHUP, SIG_IGN);
+		(void) signal(SIGHUP, SIG_IGN);
 #ifdef CC
 		submit(getpid());
 #endif
@@ -155,24 +173,27 @@ dologin(v)
 {
 
 	islogin();
-	signal(SIGTERM, parterm);
+	rechist();
+	(void) signal(SIGTERM, parterm);
 	execl("/bin/login", "login", v[1], 0);
 	untty();
 	exit(1);
 }
 
+#ifdef NEWGRP
 donewgrp(v)
 	char **v;
 {
 
 	if (chkstop == 0 && setintr)
 		panystop(0);
-	signal(SIGTERM, parterm);
+	(void) signal(SIGTERM, parterm);
 	execl("/bin/newgrp", "newgrp", v[1], 0);
 	execl("/usr/bin/newgrp", "newgrp", v[1], 0);
 	untty();
 	exit(1);
 }
+#endif
 
 islogin()
 {
@@ -314,7 +335,7 @@ doexit(v)
 	}
 	btoeof();
 	if (intty)
-		close(SHIN);
+		(void) close(SHIN);
 }
 
 doforeach(v)
@@ -333,7 +354,7 @@ doforeach(v)
 	if (v[0][0] != '(' || v[blklen(v) - 1][0] != ')')
 		bferr("Words not ()'ed");
 	v++;
-	gflag = 0, rscan(v, tglob);
+	gflag = 0, tglob(v);
 	v = glob(v);
 	if (v == 0)
 		bferr("No match");
@@ -397,10 +418,10 @@ preread()
 
 	whyles->w_end = -1;
 	if (setintr)
-		sigrelse(SIGINT);
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGINT));
 	search(ZBREAK, 0);
 	if (setintr)
-		sighold(SIGINT);
+		(void) sigblock(sigmask(SIGINT));
 	whyles->w_end = btell();
 }
 
@@ -447,20 +468,21 @@ dorepeat(v, kp)
 	struct command *kp;
 {
 	register int i;
+	register long omask;
 
 	i = getn(v[1]);
 	if (setintr)
-		sighold(SIGINT);
+		omask = sigblock(sigmask(SIGINT)) & ~sigmask(SIGINT);
 	lshift(v, 2);
 	while (i > 0) {
 		if (setintr)
-			sigrelse(SIGINT);
+			(void) sigsetmask(omask);
 		reexecute(kp);
 		--i;
 	}
 	donefds();
 	if (setintr)
-		sigrelse(SIGINT);
+		(void) sigsetmask(omask);
 }
 
 doswbrk()
@@ -472,11 +494,24 @@ doswbrk()
 srchx(cp)
 	register char *cp;
 {
-	register struct srch *sp;
+	register struct srch *sp, *sp1, *sp2;
+	register i;
 
-	for (sp = srchn; sp->s_name; sp++)
-		if (eq(cp, sp->s_name))
-			return (sp->s_value);
+	/*
+	 * Binary search
+	 * Sp1 is the beginning of the current search range.
+	 * Sp2 is one past the end.
+	 */
+	for (sp1 = srchn, sp2 = srchn + nsrchn; sp1 < sp2;) {
+		sp = sp1 + (sp2 - sp1 >> 1);
+		if ((i = *cp - *sp->s_name) == 0 &&
+		    (i = strcmp(cp, sp->s_name)) == 0)
+			return sp->s_value;
+		if (i < 0)
+			sp2 = sp;
+		else
+			sp1 = sp + 1;
+	}
 	return (-1);
 }
 
@@ -495,11 +530,12 @@ search(type, level, goal)
 
 	Stype = type; Sgoal = goal;
 	if (type == ZGOTO)
-		bseek(0l);
+		bseek((off_t)0);
 	do {
 		if (intty && fseekp == feobp)
 			printf("? "), flush();
-		aword[0] = 0, getword(aword);
+		aword[0] = 0;
+		(void) getword(aword);
 		switch (srchx(aword)) {
 
 		case ZELSE:
@@ -558,7 +594,7 @@ search(type, level, goal)
 		case ZCASE:
 			if (type != ZSWITCH || level != 0)
 				break;
-			getword(aword);
+			(void) getword(aword);
 			if (lastchr(aword) == ':')
 				aword[strlen(aword) - 1] = 0;
 			cp = strip(Dfix1(aword));
@@ -572,7 +608,7 @@ search(type, level, goal)
 				level = -1;
 			break;
 		}
-		getword(NOSTR);
+		(void) getword(NOSTR);
 	} while (level >= 0);
 }
 
@@ -604,7 +640,7 @@ getword(wp)
 			c = readc(1);
 			if (c == '\\' && (c = readc(1)) == '\n')
 				c = ' ';
-			if (any(c, "'\""))
+			if (c == '\'' || c == '"')
 				if (d == 0)
 					d = c;
 				else if (d == c)
@@ -696,18 +732,18 @@ echo(sep, v)
 	int nonl = 0;
 
 	if (setintr)
-		sigrelse(SIGINT);
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGINT));
 	v++;
 	if (*v == 0)
 		return;
-	gflag = 0; rscan(v, tglob);
+	gflag = 0, tglob(v);
 	if (gflag) {
 		v = glob(v);
 		if (v == 0)
 			bferr("No match");
 	} else
-		scan(v, trim);
-	if (sep == ' ' && !strcmp(*v, "-n"))
+		trim(v);
+	if (sep == ' ' && *v && !strcmp(*v, "-n"))
 		nonl++, v++;
 	while (cp = *v++) {
 		register int c;
@@ -722,7 +758,7 @@ echo(sep, v)
 	else
 		flush();
 	if (setintr)
-		sighold(SIGINT);
+		(void) sigblock(sigmask(SIGINT));
 	if (gargv)
 		blkfree(gargv), gargv = 0;
 }
@@ -732,10 +768,22 @@ char	**environ;
 dosetenv(v)
 	register char **v;
 {
-	char *lp = globone(v[2]);
+	char *vp, *lp;
 
-	setenv(v[1], lp);
-	if (eq(v[1], "PATH")) {
+	v++;
+	if ((vp = *v++) == 0) {
+		register char **ep;
+
+		if (setintr)
+			(void) sigsetmask(sigblock(0L) & ~ sigmask(SIGINT));
+		for (ep = environ; *ep; ep++)
+			printf("%s\n", *ep);
+		return;
+	}
+	if ((lp = *v++) == 0)
+		lp = "";
+	setenv(vp, lp = globone(lp));
+	if (eq(vp, "PATH")) {
 		importpath(lp);
 		dohash();
 	}
@@ -752,8 +800,8 @@ dounsetenv(v)
 	while (*v);
 }
 
-setenv(name, value)
-	char *name, *value;
+setenv(name, val)
+	char *name, *val;
 {
 	register char **ep = environ;
 	register char *cp, *dp;
@@ -764,17 +812,17 @@ setenv(name, value)
 			continue;
 		if (*cp != 0 || *dp != '=')
 			continue;
-		cp = strspl("=", value);
+		cp = strspl("=", val);
 		xfree(*ep);
 		*ep = strspl(name, cp);
 		xfree(cp);
-		scan(ep, trim);
+		trim(ep);
 		return;
 	}
 	blk[0] = strspl(name, "="); blk[1] = 0;
 	environ = blkspl(environ, blk);
 	xfree((char *)oep);
-	setenv(name, value);
+	setenv(name, val);
 }
 
 unsetenv(name)
@@ -807,7 +855,7 @@ doumask(v)
 
 	if (cp == 0) {
 		i = umask(0);
-		umask(i);
+		(void) umask(i);
 		printf("%o\n", i);
 		return;
 	}
@@ -816,24 +864,23 @@ doumask(v)
 		i = i * 8 + *cp++ - '0';
 	if (*cp || i < 0 || i > 0777)
 		bferr("Improper mask");
-	umask(i);
+	(void) umask(i);
 }
-#ifdef LIMITS
-#include <sys/vlimit.h>
 
+
+#ifndef NOLIMITS
 struct limits {
 	int	limconst;
 	char	*limname;
 	int	limdiv;
 	char	*limscale;
 } limits[] = {
-	LIM_NORAISE,	"noraise",	1,	"",
-	LIM_CPU,	"cputime",	1,	"seconds",
-	LIM_FSIZE,	"filesize",	1024,	"kbytes",
-	LIM_DATA,	"datasize",	1024,	"kbytes",
-	LIM_STACK,	"stacksize",	1024,	"kbytes",
-	LIM_CORE,	"coredumpsize",	1024,	"kbytes",
-	LIM_MAXRSS,	"memoryuse",	1024,	"kbytes",
+	RLIMIT_CPU,	"cputime",	1,	"seconds",
+	RLIMIT_FSIZE,	"filesize",	1024,	"kbytes",
+	RLIMIT_DATA,	"datasize",	1024,	"kbytes",
+	RLIMIT_STACK,	"stacksize",	1024,	"kbytes",
+	RLIMIT_CORE,	"coredumpsize",	1024,	"kbytes",
+	RLIMIT_RSS,	"memoryuse",	1024,	"kbytes",
 	-1,		0,
 };
 
@@ -853,31 +900,38 @@ findlim(cp)
 	if (res)
 		return (res);
 	bferr("No such limit");
+	/*NOTREACHED*/
 }
 
 dolimit(v)
 	register char **v;
 {
 	register struct limits *lp;
-	register int limit;
+	register long limit;
+	long getval();
+	char hard = 0;
 
 	v++;
+	if (*v && eq(*v, "-h")) {
+		hard = 1;
+		v++;
+	}
 	if (*v == 0) {
-		for (lp = limits+1; lp->limconst >= 0; lp++)
-			plim(lp);
-		if (vlimit(LIM_NORAISE, -1) && getuid())
-			printf("Limits cannot be raised\n");
+		for (lp = limits; lp->limconst >= 0; lp++)
+			plim(lp, hard);
 		return;
 	}
 	lp = findlim(v[0]);
 	if (v[1] == 0) {
-		plim(lp);
+		plim(lp,  hard);
 		return;
 	}
 	limit = getval(lp, v+1);
-	setlim(lp, limit);
+	if (setlim(lp, hard, limit) < 0)
+		error(NOSTR);
 }
 
+long
 getval(lp, v)
 	register struct limits *lp;
 	char **v;
@@ -891,33 +945,31 @@ getval(lp, v)
 		cp++;
 	if (*cp == 0) {
 		if (*v == 0)
-			return ((int)(f+0.5) * lp->limdiv);
+			return ((long)(f+0.5) * lp->limdiv);
 		cp = *v;
 	}
-	if (lp->limconst == LIM_NORAISE)
-		goto badscal;
 	switch (*cp) {
 
 	case ':':
-		if (lp->limconst != LIM_CPU)
+		if (lp->limconst != RLIMIT_CPU)
 			goto badscal;
-		return ((int)(f * 60.0 + atof(cp+1)));
+		return ((long)(f * 60.0 + atof(cp+1)));
 
 	case 'h':
-		if (lp->limconst != LIM_CPU)
+		if (lp->limconst != RLIMIT_CPU)
 			goto badscal;
 		limtail(cp, "hours");
 		f *= 3600.;
 		break;
 
 	case 'm':
-		if (lp->limconst == LIM_CPU) {
+		if (lp->limconst == RLIMIT_CPU) {
 			limtail(cp, "minutes");
 			f *= 60.;
 			break;
 		}
 	case 'M':
-		if (lp->limconst == LIM_CPU)
+		if (lp->limconst == RLIMIT_CPU)
 			goto badscal;
 		*cp = 'm';
 		limtail(cp, "megabytes");
@@ -925,13 +977,13 @@ getval(lp, v)
 		break;
 
 	case 's':
-		if (lp->limconst != LIM_CPU)
+		if (lp->limconst != RLIMIT_CPU)
 			goto badscal;
 		limtail(cp, "seconds");
 		break;
 
 	case 'k':
-		if (lp->limconst == LIM_CPU)
+		if (lp->limconst == RLIMIT_CPU)
 			goto badscal;
 		limtail(cp, "kbytes");
 		f *= 1024;
@@ -939,13 +991,13 @@ getval(lp, v)
 
 	case 'u':
 		limtail(cp, "unlimited");
-		return (INFINITY);
+		return (RLIM_INFINITY);
 
 	default:
 badscal:
 		bferr("Improper or unknown scale factor");
 	}
-	return ((int)(f+0.5));
+	return ((long)(f+0.5));
 }
 
 limtail(cp, str0)
@@ -959,19 +1011,22 @@ limtail(cp, str0)
 		error("Bad scaling; did you mean ``%s''?", str0);
 }
 
-plim(lp)
+plim(lp, hard)
 	register struct limits *lp;
+	char hard;
 {
-	register int lim;
+	struct rlimit rlim;
+	long limit;
 
 	printf("%s \t", lp->limname);
-	lim = vlimit(lp->limconst, -1);
-	if (lim == INFINITY)
+	(void) getrlimit(lp->limconst, &rlim);
+	limit = hard ? rlim.rlim_max : rlim.rlim_cur;
+	if (limit == RLIM_INFINITY)
 		printf("unlimited");
-	else if (lp->limconst == LIM_CPU)
-		psecs((long)lim);
+	else if (lp->limconst == RLIMIT_CPU)
+		psecs((long)limit);
 	else
-		printf("%d %s", lim / lp->limdiv, lp->limscale);
+		printf("%ld %s", limit / lp->limdiv, lp->limscale);
 	printf("\n");
 }
 
@@ -979,57 +1034,82 @@ dounlimit(v)
 	register char **v;
 {
 	register struct limits *lp;
+	int err = 0;
+	char hard = 0;
 
 	v++;
+	if (*v && eq(*v, "-h")) {
+		hard = 1;
+		v++;
+	}
 	if (*v == 0) {
-		for (lp = limits+1; lp->limconst >= 0; lp++)
-			setlim(lp, INFINITY);
+		for (lp = limits; lp->limconst >= 0; lp++)
+			if (setlim(lp, hard, (long)RLIM_INFINITY) < 0)
+				err++;
+		if (err)
+			error(NOSTR);
 		return;
 	}
 	while (*v) {
 		lp = findlim(*v++);
-		setlim(lp, INFINITY);
+		if (setlim(lp, hard, (long)RLIM_INFINITY) < 0)
+			error(NOSTR);
 	}
 }
 
-setlim(lp, limit)
+setlim(lp, hard, limit)
 	register struct limits *lp;
+	char hard;
+	long limit;
 {
+	struct rlimit rlim;
 
-	if (vlimit(lp->limconst, limit) < 0)
-		Perror(bname);
+	(void) getrlimit(lp->limconst, &rlim);
+	if (hard)
+		rlim.rlim_max = limit;
+  	else if (limit == RLIM_INFINITY && geteuid() != 0)
+ 		rlim.rlim_cur = rlim.rlim_max;
+ 	else
+ 		rlim.rlim_cur = limit;
+	if (setrlimit(lp->limconst, &rlim) < 0) {
+		printf("%s: %s: Can't %s%s limit\n", bname, lp->limname,
+		    limit == RLIM_INFINITY ? "remove" : "set",
+		    hard ? " hard" : "");
+		return (-1);
+	}
+	return (0);
 }
-#endif
+#endif !NOLIMITS
 
 dosuspend()
 {
-	int old, ldisc;
-	short ctpgrp;
+	int ldisc, ctpgrp;
+	int (*old)();
 
 	if (loginsh)
 		error("Can't suspend a login shell (yet)");
 	untty();
-	old = sigsys(SIGTSTP, SIG_DFL);
-	kill(0, SIGTSTP);
+	old = signal(SIGTSTP, SIG_DFL);
+	(void) kill(0, SIGTSTP);
 	/* the shell stops here */
-	sigsys(SIGTSTP, old);
+	(void) signal(SIGTSTP, old);
 	if (tpgrp != -1) {
 retry:
-		ioctl(FSHTTY, TIOCGPGRP, &ctpgrp);
+		(void) ioctl(FSHTTY, TIOCGPGRP, (char *)&ctpgrp);
 		if (ctpgrp != opgrp) {
-			old = sigsys(SIGTTIN, SIG_DFL);
-			kill(0, SIGTTIN);
-			sigsys(SIGTTIN, old);
+			old = signal(SIGTTIN, SIG_DFL);
+			(void) kill(0, SIGTTIN);
+			(void) signal(SIGTTIN, old);
 			goto retry;
 		}
-		ioctl(FSHTTY, TIOCSPGRP, &shpgrp);
-		setpgrp(0, shpgrp);
+		(void) ioctl(FSHTTY, TIOCSPGRP, (char *)&shpgrp);
+		(void) setpgrp(0, shpgrp);
 	}
-	ioctl(FSHTTY, TIOCGETD, &oldisc);
+	(void) ioctl(FSHTTY, TIOCGETD, (char *)&oldisc);
 	if (oldisc != NTTYDISC) {
 		printf("Switching to new tty driver...\n");
 		ldisc = NTTYDISC;
-		ioctl(FSHTTY, TIOCSETD, &ldisc);
+		(void) ioctl(FSHTTY, TIOCSETD, (char *)&ldisc);
 	}
 }
 
@@ -1045,7 +1125,7 @@ doeval(v)
 	v++;
 	if (*v == 0)
 		return;
-	gflag = 0; rscan(v, tglob);
+	gflag = 0, tglob(v);
 	if (gflag) {
 		gv = v = glob(v);
 		gargv = 0;
@@ -1053,7 +1133,7 @@ doeval(v)
 			error("No match");
 		v = copyblk(v);
 	} else
-		scan(v, trim);
+		trim(v);
 	getexit(osetexit);
 	reenter = 0;
 	setexit();

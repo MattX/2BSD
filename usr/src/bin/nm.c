@@ -11,14 +11,12 @@
 #include	<stdio.h>
 #include	<ctype.h>
 
-#ifdef	MENLO_OVLY
 struct	nnlist {	/* symbol table entry */
-	char    	n_name[8];	/* symbol name */
-	char     	nn_type;    	/* type flag */
+	char		n_name[8];	/* symbol name */
+	char		nn_type;	/* type flag */
 	char		nn_ovno;
-	unsigned	n_value;	/* value */
+	unsigned int	n_value;	/* value */
 };
-#endif	MENLO_OVLY
 #define	SELECT	arch_flg ? arp.ar_name : *argv
 int	numsort_flg;
 int	undef_flg;
@@ -102,19 +100,13 @@ char **argv;
 		do {
 			long o;
 			register i, n, c;
-#ifdef	MENLO_OVLY
 			struct nnlist sym;
 			struct nnlist *symp = NULL;
 			unsigned ovsizes[1 + NOVL];
-#else
-			struct nlist sym;
-			struct nlist *symp = NULL;
-#endif	MENLO_OVLY
 
 			fread((char *)&exp, 1, sizeof(struct exec), fi);
 			if (N_BADMAG(exp))		/* archive element not in  */
 				continue;	/* proper format - skip it */
-#ifdef	MENLO_OVLY
 			if (exp.a_magic == A_MAGIC5 || exp.a_magic == A_MAGIC6) {
 				fread((char *)ovsizes, 1, sizeof ovsizes, fi);
 				o	= 0L;
@@ -122,32 +114,15 @@ char **argv;
 					o	+= (long) ovsizes[i];
 				fseek(fi, o, 1);
 			}
-#endif	MENLO_OVLY
 			o = (long)exp.a_text + exp.a_data;
 			if ((exp.a_flag & 01) == 0)
 				o *= 2;
 			fseek(fi, o, 1);
-			n = exp.a_syms / sizeof(struct nlist);
-			if (n == 0) {
-				fprintf(stderr, "nm: %s-- no name list\n", SELECT);
-				continue;
-			}
 			i = 0;
-			while (--n >= 0) {
-				fread((char *)&sym, 1, sizeof(sym), fi);
-#ifndef MENLO_OVLY
-				if (globl_flg && (sym.n_type&N_EXT)==0)
-#else MENLO_OVLY
+			while (fread((char *)&sym, sizeof(sym), 1, fi) == 1) {
 				if (globl_flg && (sym.nn_type&N_EXT)==0)
-#endif	MENLO_OVLY
 					continue;
-#ifndef MENLO_OVLY
-				switch (sym.n_type&N_TYPE)
-#else MENLO_OVLY
-				switch (sym.nn_type&N_TYPE)
-#endif	MENLO_OVLY
-					{
-
+				switch (sym.nn_type&N_TYPE) {
 					case N_UNDF:
 						c = 'u';
 						if (sym.n_value)
@@ -181,35 +156,23 @@ char **argv;
 				}
 				if (undef_flg && c!='u')
 					continue;
-#ifndef MENLO_OVLY
-				if (sym.n_type&N_EXT)
-#else MENLO_OVLY
 				if (sym.nn_type&N_EXT)
-#endif	MENLO_OVLY
 					c = toupper(c);
-#ifndef MENLO_OVLY
-				sym.n_type = c;
-#else MENLO_OVLY
 				sym.nn_type = c;
-#endif	MENLO_OVLY
 				if (symp==NULL)
-#ifdef	MENLO_OVLY
 					symp = (struct nnlist *)malloc(sizeof(struct nlist));
-#else
-					symp = (struct nlist *)malloc(sizeof(struct nlist));
-#endif	MENLO_OVLY
 				else {
-#ifdef	MENLO_OVLY
 					symp = (struct nnlist *)realloc(symp, (i+1)*sizeof(struct nlist));
-#else
-					symp = (struct nlist *)realloc(symp, (i+1)*sizeof(struct nlist));
-#endif	MENLO_OVLY
 				}
 				if (symp == NULL) {
 					fprintf(stderr, "nm: out of memory on %s\n", *argv);
 					exit(2);
 				}
 				symp[i++] = sym;
+			}
+			if (i == 0) {
+				fprintf(stderr, "nm: %s-- no name list\n", SELECT);
+				continue;
 			}
 			if (nosort_flg==0)
 				qsort(symp, i, sizeof(struct nlist), compare);
@@ -221,28 +184,20 @@ char **argv;
 						printf("%s:", *argv);
 					printf("%s:", SELECT);
 				}
-#ifdef	MENLO_OVLY
 				c = symp[n].nn_type;
-#else
-				c = symp[n].n_type;
-#endif	MENLO_OVLY
 				if (!undef_flg) {
 					if (c=='u' || c=='U')
 						printf("      ");
 					else
-						printf(FORMAT, symp[n].n_value);
+						printf(N_FORMAT, symp[n].n_value);
 					printf(" %c ", c);
 				}
-#ifndef MENLO_OVLY
-				printf("%.8s\n", symp[n].n_name);
-#else MENLO_OVLY
 				if (symp[n].nn_ovno)
 					printf("%-8.8s %d", symp[n].n_name,
 					   symp[n].nn_ovno);
 				else
 					printf("%.8s", symp[n].n_name);
 				printf("\n");
-#endif	MENLO_OVLY
 			}
 			if (symp)
 				free((char *)symp);

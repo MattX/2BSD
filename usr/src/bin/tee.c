@@ -1,3 +1,6 @@
+#ifndef lint
+static char *sccsid = "@(#)tee.c	5.4 (Berkeley) 12/14/85";
+#endif
 /*
  * tee-- pipe fitting
  */
@@ -6,14 +9,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+#define	BUFSIZ	8192
 int openf[20] = { 1 };
 int n = 1;
 int t = 0;
 int aflag;
 
-char in[512];
+char in[BUFSIZ];
 
-char out[512];
+char out[BUFSIZ];
 
 extern errno;
 long	lseek();
@@ -60,14 +65,14 @@ char **argv;
 	}
 	r = w = 0;
 	for(;;) {
-		for(p=0;p<512;) {
+		for(p=0;p<BUFSIZ;) {
 			if(r>=w) {
 				if(t>0&&p>0) break;
-				w = read(0,in,512);
+				w = read(0,in,BUFSIZ);
 				r = 0;
 				if(w<=0) {
 					stash(p);
-					exit (w < 0);
+					exit(0);
 				}
 			}
 			out[p++] = in[r++];

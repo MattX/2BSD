@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static	char *sccsid = "@(#)misc.c	2.3 84/02/23";
-#endif
+static char sccsid[] = "@(#)misc.c	5.1 (Berkeley) 5/29/85";
+#endif not lint
+
 #include "externs.h"
 
 #define distance(x,y) (abs(x) >= abs(y) ? abs(x) + abs(y)/2 : abs(y) + abs(x)/2)

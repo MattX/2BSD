@@ -1,12 +1,27 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+
 # include <errno.h>
 # include "sendmail.h"
 # include <signal.h>
 
 # ifndef SMTP
-SCCSID(@(#)srvrsmtp.c	4.3		8/28/83	(no SMTP));
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)srvrsmtp.c	5.18 (Berkeley) 1/5/86	(no SMTP)";
+# endif
 # else SMTP
 
-SCCSID(@(#)srvrsmtp.c	4.3		8/28/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)srvrsmtp.c	5.18 (Berkeley) 1/5/86";
+# endif
 
 /*
 **  SMTP -- run the SMTP protocol.
@@ -45,7 +60,6 @@ struct cmd
 # define CMDDBGKILL	13	/* kill -- kill sendmail */
 # define CMDDBGWIZ	14	/* wiz -- become a wizard */
 # define CMDONEX	15	/* onex -- sending one transaction only */
-# define CMDDBGSHELL	16	/* shell -- give us a shell */
 
 static struct cmd	CmdTab[] =
 {
@@ -64,20 +78,20 @@ static struct cmd	CmdTab[] =
 # ifdef DEBUG
 	"showq",	CMDDBGQSHOW,
 	"debug",	CMDDBGDEBUG,
-	"kill",		CMDDBGKILL,
-	"wiz",		CMDDBGWIZ,
-	"shell",	CMDDBGSHELL,
 # endif DEBUG
+# ifdef WIZ
+	"kill",		CMDDBGKILL,
+# endif WIZ
+	"wiz",		CMDDBGWIZ,
 	NULL,		CMDERROR,
 };
 
-# ifdef DEBUG
+# ifdef WIZ
 bool	IsWiz = FALSE;			/* set if we are a wizard */
-char	*WizWord = NULL;		/* the wizard word to compare against */
-# endif DEBUG
+# endif WIZ
+char	*WizWord;			/* the wizard word to compare against */
 bool	InChild = FALSE;		/* true if running in a subprocess */
 bool	OneXact = FALSE;		/* one xaction only this run */
-char	*RealHostName = NULL;		/* verified hostname, set in daemon.c */
 
 #define EX_QUIT		22		/* special code for QUIT command */
 
@@ -89,19 +103,20 @@ smtp()
 	extern char *skipword();
 	extern bool sameword();
 	bool hasmail;			/* mail command received */
-	int rcps;			/* number of recipients */
 	auto ADDRESS *vrfyqueue;
 	ADDRESS *a;
 	char inp[MAXLINE];
+	char cmdbuf[100];
 	extern char Version[];
 	extern tick();
 	extern bool iswiz();
 	extern char *arpadate();
 	extern char *macvalue();
 	extern ADDRESS *recipient();
+	extern ENVELOPE BlankEnvelope;
+	extern ENVELOPE *newenvelope();
 
 	hasmail = FALSE;
-	rcps = 0;
 	if (OutChannel != stdout)
 	{
 		/* arrange for debugging output to go to remote host */
@@ -109,8 +124,19 @@ smtp()
 		(void) dup(fileno(OutChannel));
 	}
 	settime();
-	expand("$e", inp, &inp[sizeof inp], CurEnv);
+	if (RealHostName != NULL)
+	{
+		CurHostName = RealHostName;
+		setproctitle("srvrsmtp %s", CurHostName);
+	}
+	else
+	{
+		/* this must be us!! */
+		CurHostName = MyHostName;
+	}
+	expand("\001e", inp, &inp[sizeof inp], CurEnv);
 	message("220", inp);
+	SmtpPhase = "startup";
 	for (;;)
 	{
 		/* arrange for backout */
@@ -131,7 +157,8 @@ smtp()
 		if (p == NULL)
 		{
 			/* end of file, just die */
-			message("421", "%s Lost input channel", HostName);
+			message("421", "%s Lost input channel to %s",
+				MyHostName, CurHostName);
 			finis();
 		}
 
@@ -146,15 +173,18 @@ smtp()
 		for (p = inp; isspace(*p); p++)
 			continue;
 		cmd = p;
-		while (*++p != '\0' && !isspace(*p))
-			continue;
-		if (*p != '\0')
-			*p++ = '\0';
+		for (cmd = cmdbuf; *p != '\0' && !isspace(*p); )
+			*cmd++ = *p++;
+		*cmd = '\0';
+
+		/* throw away leading whitespace */
+		while (isspace(*p))
+			p++;
 
 		/* decode command */
 		for (c = CmdTab; c->cmdname != NULL; c++)
 		{
-			if (sameword(c->cmdname, cmd))
+			if (sameword(c->cmdname, cmdbuf))
 				break;
 		}
 
@@ -162,27 +192,31 @@ smtp()
 		switch (c->cmdcode)
 		{
 		  case CMDHELO:		/* hello -- introduce yourself */
-			if (sameword(p, HostName))
+			SmtpPhase = "HELO";
+			setproctitle("%s: %s", CurHostName, inp);
+			if (sameword(p, MyHostName))
 			{
 				/* connected to an echo server */
 				message("553", "%s I refuse to talk to myself",
-					HostName);
+					MyHostName);
 				break;
 			}
 			if (RealHostName != NULL && !sameword(p, RealHostName))
 			{
-				char buf[MAXNAME];
+				char hostbuf[MAXNAME];
 
-				(void) sprintf(buf, "%s (%s)", p, RealHostName);
-				define('s', newstr(buf), CurEnv);
+				(void) sprintf(hostbuf, "%s (%s)", p, RealHostName);
+				define('s', newstr(hostbuf), CurEnv);
 			}
 			else
 				define('s', newstr(p), CurEnv);
 			message("250", "%s Hello %s, pleased to meet you",
-				HostName, p);
+				MyHostName, p);
 			break;
 
 		  case CMDMAIL:		/* mail -- designate sender */
+			SmtpPhase = "MAIL";
+
 			/* force a sending host even if no HELO given */
 			if (RealHostName != NULL && macvalue('s', CurEnv) == NULL)
 				define('s', RealHostName, CurEnv);
@@ -203,6 +237,8 @@ smtp()
 			if (runinchild("SMTP-MAIL") > 0)
 				break;
 			initsys();
+			setproctitle("%s %s: %s", CurEnv->e_id,
+				CurHostName, inp);
 
 			/* child -- go do the processing */
 			p = skipword(p, "from");
@@ -219,6 +255,9 @@ smtp()
 			break;
 
 		  case CMDRCPT:		/* rcpt -- designate recipient */
+			SmtpPhase = "RCPT";
+			setproctitle("%s %s: %s", CurEnv->e_id,
+				CurHostName, inp);
 			if (setjmp(TopFrame) > 0)
 			{
 				CurEnv->e_flags &= ~EF_FATALERRS;
@@ -231,6 +270,7 @@ smtp()
 			a = parseaddr(p, (ADDRESS *) NULL, 1, '\0');
 			if (a == NULL)
 				break;
+			a->q_flags |= QPRIMARY;
 			a = recipient(a, &CurEnv->e_sendqueue);
 			if (Errors != 0)
 				break;
@@ -245,22 +285,25 @@ smtp()
 				message("550", "Addressee unknown");
 			}
 			CurEnv->e_to = NULL;
-			rcps++;
 			break;
 
 		  case CMDDATA:		/* data -- text of mail */
+			SmtpPhase = "DATA";
 			if (!hasmail)
 			{
 				message("503", "Need MAIL command");
 				break;
 			}
-			else if (rcps <= 0)
+			else if (CurEnv->e_nrcpts <= 0)
 			{
 				message("503", "Need RCPT (recipient)");
 				break;
 			}
 
 			/* collect the text of the message */
+			SmtpPhase = "collect";
+			setproctitle("%s %s: %s", CurEnv->e_id,
+				CurHostName, inp);
 			collect(TRUE);
 			if (Errors != 0)
 				break;
@@ -283,7 +326,8 @@ smtp()
 			**	We goose error returns by clearing error bit.
 			*/
 
-			if (rcps != 1)
+			SmtpPhase = "delivery";
+			if (CurEnv->e_nrcpts != 1)
 			{
 				HoldErrs = TRUE;
 				ErrorMode = EM_MAIL;
@@ -295,6 +339,9 @@ smtp()
 			sendall(CurEnv, SM_DEFAULT);
 			CurEnv->e_to = NULL;
 
+			/* save statistics */
+			markstats(CurEnv, (ADDRESS *) NULL);
+
 			/* issue success if appropriate and reset */
 			if (Errors == 0 || HoldErrs)
 				message("250", "Ok");
@@ -304,6 +351,12 @@ smtp()
 			/* if in a child, pop back to our parent */
 			if (InChild)
 				finis();
+
+			/* clean up a bit */
+			hasmail = 0;
+			dropenvelope(CurEnv);
+			CurEnv = newenvelope(CurEnv);
+			CurEnv->e_flags = BlankEnvelope.e_flags;
 			break;
 
 		  case CMDRSET:		/* rset -- reset state */
@@ -315,6 +368,7 @@ smtp()
 		  case CMDVRFY:		/* vrfy -- verify address */
 			if (runinchild("SMTP-VRFY") > 0)
 				break;
+			setproctitle("%s: %s", CurHostName, inp);
 			vrfyqueue = NULL;
 			QuickAbort = TRUE;
 			sendtolist(p, (ADDRESS *) NULL, &vrfyqueue);
@@ -363,13 +417,14 @@ smtp()
 			break;
 
 		  case CMDQUIT:		/* quit -- leave mail */
-			message("221", "%s closing connection", HostName);
+			message("221", "%s closing connection", MyHostName);
 			if (InChild)
 				ExitStat = EX_QUIT;
 			finis();
 
 		  case CMDVERB:		/* set verbose mode */
 			Verbose = TRUE;
+			SendMode = SM_DELIVER;
 			message("200", "Verbose mode");
 			break;
 
@@ -389,7 +444,9 @@ smtp()
 			tTflag(p);
 			message("200", "Debug set");
 			break;
+# endif DEBUG
 
+# ifdef WIZ
 		  case CMDDBGKILL:	/* kill the parent */
 			if (!iswiz())
 				break;
@@ -399,48 +456,28 @@ smtp()
 				message("500", "Can't kill Mom");
 			break;
 
-		  case CMDDBGSHELL:	/* give us an interactive shell */
-			if (!iswiz())
-				break;
-			if (fileno(InChannel) != 0)
-			{
-				(void) close(0);
-				(void) dup(fileno(InChannel));
-				if (fileno(InChannel) != fileno(OutChannel))
-					(void) fclose(InChannel);
-				InChannel = stdin;
-			}
-			if (fileno(OutChannel) != 1)
-			{
-				(void) close(1);
-				(void) dup(fileno(OutChannel));
-				(void) fclose(OutChannel);
-				OutChannel = stdout;
-			}
-			(void) close(2);
-			(void) dup(1);
-			execl("/bin/csh", "sendmail", 0);
-			execl("/bin/sh", "sendmail", 0);
-			message("500", "Can't");
-			exit(EX_UNAVAILABLE);
-
 		  case CMDDBGWIZ:	/* become a wizard */
 			if (WizWord != NULL)
 			{
 				char seed[3];
 				extern char *crypt();
 
-				strncpy(seed, WizWord, 2);
-				if (strcmp(WizWord, crypt(p, seed)) != 0)
+				(void) strncpy(seed, WizWord, 2);
+				if (strcmp(WizWord, crypt(p, seed)) == 0)
 				{
-					message("500", "You are no wizard!");
+					IsWiz = TRUE;
+					message("200", "Please pass, oh mighty wizard");
 					break;
 				}
 			}
-			IsWiz = TRUE;
-			message("200", "Please pass, oh mighty wizard");
+			message("500", "You are no wizard!");
 			break;
-# endif DEBUG
+
+# else WIZ
+		  case CMDDBGWIZ:	/* try to become a wizard */
+			message("500", "You wascal wabbit!  Wandering wizards won't win!");
+			break;
+# endif WIZ
 
 		  case CMDERROR:	/* unknown command */
 			message("500", "Command unrecognized");
@@ -574,6 +611,8 @@ help(topic)
 **		Prints a 500 exit stat if we are not a wizard.
 */
 
+#ifdef WIZ
+
 bool
 iswiz()
 {
@@ -581,6 +620,8 @@ iswiz()
 		message("500", "Mere mortals musn't mutter that mantra");
 	return (IsWiz);
 }
+
+#endif WIZ
 /*
 **  RUNINCHILD -- return twice -- once in the child, then in the parent again
 **
@@ -600,37 +641,42 @@ runinchild(label)
 {
 	int childpid;
 
-	if (OneXact)
-		return (0);
-
-	childpid = dofork();
-	if (childpid < 0)
+	if (!OneXact)
 	{
-		syserr("%s: cannot fork", label);
-		return (1);
-	}
-	if (childpid > 0)
-	{
-		auto int st;
+		childpid = dofork();
+		if (childpid < 0)
+		{
+			syserr("%s: cannot fork", label);
+			return (1);
+		}
+		if (childpid > 0)
+		{
+			auto int st;
 
-		/* parent -- wait for child to complete */
-		st = waitfor(childpid);
-		if (st == -1)
-			syserr("%s: lost child", label);
+			/* parent -- wait for child to complete */
+			st = waitfor(childpid);
+			if (st == -1)
+				syserr("%s: lost child", label);
 
-		/* if we exited on a QUIT command, complete the process */
-		if (st == (EX_QUIT << 8))
-			finis();
+			/* if we exited on a QUIT command, complete the process */
+			if (st == (EX_QUIT << 8))
+				finis();
 
-		return (1);
+			return (1);
+		}
+		else
+		{
+			/* child */
+			InChild = TRUE;
+			QuickAbort = FALSE;
+			clearenvelope(CurEnv, FALSE);
+		}
 	}
-	else
-	{
-		/* child */
-		InChild = TRUE;
-		clearenvelope(CurEnv);
-		return (0);
-	}
+
+	/* open alias database */
+	initaliases(AliasFile, FALSE);
+
+	return (0);
 }
 
 # endif SMTP

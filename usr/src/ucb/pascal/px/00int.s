@@ -6,18 +6,12 @@ HZ = 60.
 .globl _pcttot, _pdattim, _alloc, _free, _error, _fflush, _maxstk
 .globl _pputch, _pmessage, _pwrite, _pwril
 .globl _atan, _cos, _exp, _log, _sin, _sqrt
-.globl fptrap
 .globl _display, _dp, _lino, _draino
 .globl _seed, _randa, _randc, _randm, _randim
 .globl _atof
 .globl _argc, _argv, _errno
 .globl _file, _nodump, _pxpbuf, _pmflush
-.if FP
-fptrap:
-	4
-.endif
 /
-indir = 0
 return = 115		/ jmp (lp)
 times = 43.
 lp = r5
@@ -27,15 +21,20 @@ error = 104000 ^ sys
 ONE = 040200		/$1.0
 HALF = 040000		/$.5
 /
+SIGILL = 4.
+SIGEMT = 7.
+SIG_DFL = 0.
+/
 _interpret:
 	setl
-	sys	signal; 7.; onemt
-.if !FP
-	sys	signal; 4.; fptrap
-.endif
-.if FP
-	sys	signal; 4.; 0
-.endif
+	mov	$onemt,-(sp)
+	mov	$SIGEMT,-(sp)
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
+	clr	-(sp)	/ SIG_DFL
+	mov	$SIGILL,-(sp)
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
 	mov	$_display,_dp
 	mov	$loop,lp
 	mov	2(sp),lc
@@ -78,7 +77,9 @@ onemt:
 /	mov	(sp)+,r0
 /	sub	$2,r0
 /.if SEPID
-/	sys	61.		/fetchi
+/	mov	r0,-(sp)
+/	jsr	pc,_fetchi
+/	tst	(sp)+
 /.endif
 /.if !SEPID
 /	mov	(r0),r0
@@ -139,8 +140,14 @@ _END:
 	jsr	pc,_fflush
 	jsr	pc,_pmflush
 	clr	r0
-/	sys	creat; cntdata; 0644
-/	sys	write; cntab; 1024.
+/	mov	$0644,-(sp)
+/	mov	$cntdata,-(sp)
+/	jsr	pc,_creat
+/	cmp	(sp)+,(sp)+
+/	mov	$1024.,-(sp)
+/	mov	$cntab,-(sp)
+/	mov	r0,-(sp)
+/	jsr	pc,_write
 /.data
 /cntdata: <counts\0>
 /.even
@@ -268,20 +275,22 @@ blkexit:
 	mov	FUNIT(r2),r0
 	bmi	3f
 	bic	$!17,r0
-	sys	close
-	bec	3f
+	mov	r0,-(sp)
+	jsr	pc,_close
+	tst	(sp)+
+	tst	r0
+	bpl	3f
 	mov	PFNAME(r2),_file
 	mov	$ECLOSE,_perrno
 	error	ECLOSE
 3:
 	bit	$TEMP,FUNIT(r2)
 	beq	4f
-	mov	PFNAME(r2),0f
-	sys	indir;8f
-.data
-8:	sys	unlink;0: ..
-.text
-	bec	4f
+	mov	PFNAME(r2),-(sp)
+	jsr	pc,_unlink
+	tst	(sp)+
+	tst	r0
+	bpl	4f
 	mov	PFNAME(r2),_file
 	mov	$EREMOVE,_perrno
 	error	EREMOVE
@@ -301,22 +310,30 @@ blkexit:
 _pmflush:
 	tst	_pxpbuf
 	beq	1f
-	sys	creat; pmonout; 644
-	bcs	9f
-	sys	indir; 8f
+	mov	$0644,-(sp)
+	mov	$pmonout,-(sp)
+	jsr	pc,_creat
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	9f
+	mov	_pxpsize,-(sp)
+	mov	_pxpbuf,-(sp)
+	mov	r0,-(sp)
+	jsr	pc,_write
+	add	$6,sp
+	tst	r0
 .data
-8:	sys	write; _pxpbuf: ..; _pxpsize: ..
+_pxpbuf:	0
+_pxpsize:	0
 pmonout: <pmon.out\0>
 .even
 .text
-	bcs	9f
+	bmi	9f
 1:
 	rts	pc
 9:
-.globl	_errno
-	mov	r0,_errno
 	mov	$pmonout,-(sp)
 .globl	_perror
 	jsr	pc,_perror
-	mov	$1,r0
-	sys	exit
+	mov	$1,-(sp)
+	jsr	pc,__exit

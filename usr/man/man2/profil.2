@@ -1,18 +1,27 @@
-.TH PROFIL 2 
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)profil.2	6.3 (Berkeley) 5/6/87
+.\"
+.TH PROFIL 2 "May 6, 1987"
+.UC 2
 .SH NAME
 profil \- execution time profile
 .SH SYNOPSIS
+.nf
 .B profil(buff, bufsiz, offset, scale)
-.br
 .B char *buff;
-.br
-.B unsigned bufsiz, offset, scale;
+.B int bufsiz, offset, scale;
+.fi
 .SH DESCRIPTION
 .I Buff
 points to an area of core whose length (in bytes) is given by
 .IR bufsiz .
 After this call, the user's program counter (pc)
-is examined each clock tick (60th second);
+is examined each clock tick
+(VAX and TAHOE: 100 ticks/second = 10 milliseconds per tick;
+60 ticks/second ~= 16 milliseconds per tick);
 .I offset
 is subtracted from it, and the result multiplied by
 .IR scale .
@@ -22,15 +31,12 @@ inside
 that word is incremented.
 .PP
 The scale is interpreted as an unsigned,
-fixed-point fraction with binary point at the
-left: 0177777(8) gives a 1-1 mapping of pc's to words
+fixed-point fraction with 16 bits of fraction:
+0xffff gives a 1-1 mapping of pc's to words
 in
 .I buff;
-077777(8) maps each pair of instruction words
+0x7fff maps each pair of instruction words
 together.
-02(8) maps all instructions onto the beginning of
-.I buff
-(producing a non-interrupting core clock).
 .PP
 Profiling is turned off by giving a
 .I scale
@@ -40,16 +46,14 @@ ineffective by giving a
 .I bufsiz
 of 0.
 Profiling is turned off when an
-.I exec
+.I execve
 is executed, but remains on in child and parent both
 after a
 .IR fork .
-Profiling may be turned off if an update in
+Profiling is turned off if an update in
 .I buff
 would cause a memory fault.
+.SH "RETURN VALUE
+A 0, indicating success, is always returned.
 .SH "SEE ALSO"
-prof(1), monitor(3)
-.SH ASSEMBLER
-(profil = 44.)
-.br
-.B sys profil; buff; bufsiz; offset; scale
+gprof(1), prof(1), setitimer(2), monitor(3)

@@ -1,200 +1,174 @@
-static	char *sccsid = "@(#)reboot.c	4.5 (Berkeley) 4/21/81";
 /*
- * Reboot
- *   Required signal handling:
- *	/etc/init must go to idle mode when sent a SIGQUIT.
- *	A subsequent SIGHUP sends init back to normal mode.
- *	The kernel must exempt the current process from kill(-1,SIGKILL).
- *   The reboot system call must be implemented!
+ * Copyright (c) 1980,1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
  */
-#include <whoami.h>
-#include <sys/param.h>
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980,1986 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)reboot.c	5.5 (Berkeley) 8/2/87";
+#endif not lint
+
+/*
+ * Reboot ...
+ */
+
 #include <stdio.h>
-#include <sys/reboot.h>
 #include <errno.h>
-#include <signal.h>
-#include <time.h>
+#include <pwd.h>
+#include <sysexits.h>
+#include <sys/syslog.h>
+#include <sys/file.h>
+#include <sys/reboot.h>
+#include <sys/signal.h>
 
-#define SHUTDOWNLOG "/usr/adm/shutdownlog"
-#define DEVDIR "/dev/"
-#define	KMEM	"/dev/kmem"
-
-int halt;
+#ifdef BSD2_10
+#	define	OPTS	"lqnhdarsf"
+#else
+#	define	OPTS	"lqnhdarsfk"
+#endif
 
 main(argc, argv)
 	int argc;
 	char **argv;
 {
-	register howto;
-	register char *argp;
-	register i;
-	int qflag = 0;
-	dev_t	bootdev=NODEV, getdev(), rootdev();
+	int howto;		/* reboot options argument */
+	int needlog = 1;	/* tell syslog what's happening */
+	int quickly = 0;	/* go down quickly & ungracefully */
+	char *myname;		/* name we were invoked as */
+	char args[20], *ap;	/* collected arguments for syslog */
+	int i;
+	char *rindex();
 
-	argc--, argv++;
-	howto = 0;
-	while (argc > 0) {
-		if (!strcmp(*argv, "-q"))
-			qflag++;
-		else if (!strcmp(*argv, "-n"))
-			howto |= RB_NOSYNC;
-		else if (!strcmp(*argv, "-a"))
-			howto |= (RB_ASKNAME | RB_SINGLE);
-		else if (!strcmp(*argv,"-f"))
-			howto |= RB_NOFSCK;
-		else if (!strcmp(*argv,"-d"))
-			howto |= RB_DUMP;
-		else if (!strcmp(*argv,"-h")) {
-			howto |= RB_HALT;
-			halt++;
-		} else if ((bootdev=getdev(*argv)) == NODEV) {
-			fprintf(stderr,
-	      "usage: reboot [ -n ][ -q ][ -f ][ -a ][ -d ][ -h ][ dev ]\n");
-			exit(1);
+	if (myname = rindex(argv[0], '/'))
+		myname++;
+	else
+		myname = argv[0];
+	if (strcmp(myname, "halt") == 0)
+		howto = RB_HALT;
+	else if (strcmp(myname, "fasthalt") == 0)
+		howto = RB_HALT|RB_NOFSCK;
+	else if (strcmp(myname, "fastboot") == 0)
+		howto = RB_NOFSCK;
+	else
+		howto = 0;
+
+	ap = args;
+	*ap++ = '-';
+	*ap = '\0';
+	while ((i = getopt(argc, argv, OPTS)) != EOF) {
+		switch((char)i) {
+			case 'l':  needlog = 0;		break;
+			case 'q':  quickly++;		break;
+			case 'n':  howto |= RB_NOSYNC;	break;
+			case 'h':  howto |= RB_HALT;	break;
+			case 'd':  howto |= RB_DUMP;	break;
+			case 'a':  howto |= RB_ASKNAME;	break;
+			case 'r':  howto |= RB_RDONLY;	break;
+			case 's':  howto |= RB_SINGLE;	break;
+			case 'f':  howto |= RB_NOFSCK;	break;
+#ifndef BSD2_10
+			case 'k':  howto |= RB_KDB;	break;
+#endif
+			case '?':
+				fprintf(stderr,
+					"usage: %s [-%s]\n", myname, OPTS);
+				exit(EX_USAGE);
+				/*NOTREACHED*/
 		}
-		argc--, argv++;
+		if (index(args+1, (char)i) == 0) {
+			*ap++ = (char)i;
+			*ap = '\0';
+		}
 	}
 
-	if (bootdev==NODEV)
-		bootdev = rootdev();
-	for (i = 1; i < NSIG; i++)
-		signal(i, SIG_IGN);
+	if ((howto & (RB_NOSYNC|RB_NOFSCK)) == (RB_NOSYNC|RB_NOFSCK)
+	    && !(howto & RB_HALT)) {
+		fprintf(stderr, 
+			"%s: no sync and no fsck are a dangerous combination; no fsck ignored.\n",
+			myname);
+		howto &= ~RB_NOFSCK;
+	}
+	if (needlog) {
+		char *user, *getlogin();
+		struct passwd *pw, *getpwuid();
 
-	if (kill(1, SIGQUIT) == -1) {
-		fprintf(stderr, "reboot: can't idle init\n");
-		exit(1);
+		user = getlogin();
+		if (user == (char *)0 && (pw = getpwuid(getuid())))
+			user = pw->pw_name;
+		if (user == (char *)0)
+			user = "root";
+		openlog(myname, 0, LOG_AUTH);
+		syslog(LOG_CRIT, "%s; %s by %s",
+ 			args, (howto&RB_HALT)?"halted":"rebooted", user);
 	}
 
-	if (!qflag) for (i = 1; ; i++) {
-		if (kill(-1, SIGKILL) == -1) {
-			extern int errno;
+	(void) signal(SIGHUP, SIG_IGN);	/* for remote connections */
+	if (kill(1, SIGTSTP) == -1) {
+		fprintf(stderr, "%s: can\'t idle init\n", myname);
+		exit(EX_NOPERM);
+	}
+	sleep(1);
+	(void) kill(-1, SIGTERM);	/* one chance to catch it */
+	sleep(5);
 
-			if (errno == ESRCH)
+	if (!quickly)
+		for (i = 1; ; i++) {
+			if (kill(-1, SIGKILL) == -1) {
+				extern int errno;
+
+				if (errno == ESRCH)
+					break;
+
+				perror(myname);
+				kill(1, SIGHUP);
+				exit(EX_OSERR);
+			}
+			if (i > 5) {
+				fprintf(stderr,
+				    "CAUTION: some process(es) wouldn\'t die\n");
 				break;
+			}
+			sleep(2 * i);
+		}
 
-			perror("reboot: kill");
-			kill(1, SIGHUP);
-			exit(1);
-		}
-		if (i > 5) {
-	fprintf(stderr, "CAUTION: some process(es) wouldn't die\n");
-			break;
-		}
-		setalarm(2 * i);
-		pause();
+	if (!quickly && (howto & RB_NOSYNC) == 0) {
+		markdown();
+		sync();
+		sleep(5);
 	}
-
-	if ((howto & RB_NOSYNC) == 0)
-		log_entry();
-	if (!qflag) {
-		if (!(howto & RB_NOSYNC)) {
-			markdown();
-			sync();
-			sync();
-		}
-		setalarm(5);
-		pause();
-	}
-	reboot(bootdev, howto);
-	perror("reboot");
-	/*
-	 *  Reboot failed.  Tell init to go back to work.
-	 */
+	reboot(howto);
+	perror(myname);
 	kill(1, SIGHUP);
-	exit(1);
+	exit(EX_OSERR);
 }
 
-dingdong()
-{
-	/* RRRIIINNNGGG RRRIIINNNGGG */
-}
 
-setalarm(n)
-{
-	signal(SIGALRM, dingdong);
-	alarm(n);
-}
-
+/*
+ * Make shutdown entry in /usr/adm/utmp.
+ */
 #include <utmp.h>
-#define SCPYN(a, b)	strncpy(a, b, sizeof(a))
-char	wtmpf[]	= "/usr/adm/wtmp";
-struct utmp wtmp;
+
+#define	SCPYN(a, b)	strncpy(a, b, sizeof(a))
+#define	WTMPF		"/usr/adm/wtmp"
 
 markdown()
 {
-	register f = open(wtmpf, 1);
+	struct utmp wtmp;
+	register int f = open(WTMPF, O_WRONLY|O_APPEND);
+
 	if (f >= 0) {
-		lseek(f, 0L, 2);
+		bzero((char *)&wtmp, sizeof(wtmp));
 		SCPYN(wtmp.ut_line, "~");
 		SCPYN(wtmp.ut_name, "shutdown");
-		time(&wtmp.ut_time);
+		SCPYN(wtmp.ut_host, "");
+		(void) time(&wtmp.ut_time);
 		write(f, (char *)&wtmp, sizeof(wtmp));
 		close(f);
 	}
-}
-
-char *days[] = {
-	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-};
-
-char *months[] = {
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-	"Oct", "Nov", "Dec"
-};
-
-log_entry()
-{
-	FILE *fp;
-	struct tm *tm, *localtime();
-	time_t now;
-
-	time(&now);
-	tm = localtime(&now);
-	fp = fopen(SHUTDOWNLOG, "a");
-	if (fp == NULL)
-		return;
-	fseek(fp, 0L, 2);
-	fprintf(fp, "%02d:%02d  %s %s %2d, %4d.  %s.\n", tm->tm_hour,
-		tm->tm_min, days[tm->tm_wday], months[tm->tm_mon],
-		tm->tm_mday, tm->tm_year + 1900,
-		halt? "Halted": "Shutdown for reboot");
-	fclose(fp);
-}
-
-#include <sys/stat.h>
-char dev[2*MAXNAMLEN] = DEVDIR;
-/*
- * Figure out the dev for a given string, e.g. "hp0a".
- * Returns NODEV if device doesn't exist, or isn't a block device.
- */
-dev_t
-getdev(s)
-char *s;
-{
-	struct stat statbuf;
-	char *index();
-
-	if (index(s,'/')==NULL) {
-		strcat(dev,s);
-		s = dev;
-	}
-	if (stat(s,&statbuf) == -1)
-		return(NODEV);
-	if ((statbuf.st_mode&S_IFMT) != S_IFBLK)
-		return(NODEV);
-	return(statbuf.st_rdev);
-}
-
-/*
- * get the dev for the root filesystem.
- */
-dev_t
-rootdev() {
-	struct stat statbuf;
-
-	if (stat("/",&statbuf) == -1) {
-		fprintf(stderr,"Can't stat root\n");
-		exit(1);
-	}
-	return(statbuf.st_dev);
 }

@@ -1,4 +1,7 @@
-/*	@(#)ftell.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)ftell.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
  * Return file offset.
  * Coordinates with buffering.
@@ -9,16 +12,16 @@ long	lseek();
 
 
 long ftell(iop)
-FILE *iop;
+register FILE *iop;
 {
-	long tres;
+	register long tres;
 	register adjust;
 
 	if (iop->_cnt < 0)
 		iop->_cnt = 0;
 	if (iop->_flag&_IOREAD)
 		adjust = - iop->_cnt;
-	else if(iop->_flag&(_IOWRT|_IORW)) {
+	else if (iop->_flag&(_IOWRT|_IORW)) {
 		adjust = 0;
 		if (iop->_flag&_IOWRT && iop->_base && (iop->_flag&_IONBF)==0)
 			adjust = iop->_ptr - iop->_base;

@@ -20,7 +20,7 @@ extern	int yyline;
 extern	char errout;
 #endif
 
-char	errpfx	'E';
+char	errpfx	= 'E';
 extern	int yyline;
 /*
  * Panic is called when impossible
@@ -84,7 +84,7 @@ error(a1, a2, a3, a4)
 #ifdef PI
 	if (errpfx == ' ') {
 		printf("  ");
-		for (i = line; i >= 10; i =/ 10)
+		for (i = line; i >= 10; i /= 10)
 			putchar(' ');
 		printf("... ");
 	} else if (Enoline)

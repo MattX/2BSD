@@ -50,8 +50,10 @@ blew_it:
 	for (i = 0; i < num_play; i++) {
 over:
 		printf("Player %d's name: ", i + 1);
-		for (sp = buf; (*sp=getchar()) != '\n'; sp++)
+		for (sp = buf; (*sp=getchar()) != '\n' && !feof(stdin); sp++)
 			continue;
+		if (feof(stdin))
+			clearerr(stdin);
 		if (sp == buf)
 			goto over;
 		*sp++ = '\0';

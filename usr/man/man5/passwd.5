@@ -1,5 +1,7 @@
-.TH PASSWD 5
-.UC
+.\"	@(#)passwd.5	6.2 (Berkeley) 1/8/86
+.\"
+.TH PASSWD 5  "January 8, 1986"
+.AT 3
 .SH NAME
 passwd \- password file
 .SH DESCRIPTION
@@ -61,8 +63,7 @@ does the necessary locking.
 .SH FILES
 /etc/passwd
 .SH "SEE ALSO"
-chfn(1), finger(1), login(1), passwd(1), crypt(3), getpwent(3), group(5), vipw(8)
+getpwent(3), login(1), crypt(3), passwd(1), group(5), chfn(1), finger(1),
+vipw(8), adduser(8)
 .SH BUGS
-A binary indexed file format should be available for fast access.
-.PP
 User information (name, office, etc.) should be stored elsewhere.

@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)cmd2.c	5.3 (Berkeley) 9/10/85";
+#endif not lint
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -8,8 +16,6 @@
  *
  * More user commands.
  */
-
-static char *SccsId = "@(#)cmd2.c	2.10 10/21/82";
 
 /*
  * If any arguments were given, go to the next applicable argument
@@ -144,7 +150,7 @@ save1(str, mark)
 	if ((file = expand(file)) == NOSTR)
 		return(1);
 	printf("\"%s\" ", file);
-	flush();
+	fflush(stdout);
 	if (stat(file, &statb) >= 0)
 		disp = "[Appended]";
 	else
@@ -209,7 +215,7 @@ swrite(str)
 	if (f && getmsglist(str, msgvec, 0) < 0)
 		return(1);
 	printf("\"%s\" ", file);
-	flush();
+	fflush(stdout);
 	if (stat(file, &statb) >= 0)
 		disp = "[Appended]";
 	else
@@ -224,8 +230,12 @@ swrite(str)
 		touch(mesg);
 		mp = &message[mesg-1];
 		mesf = setinput(mp);
-		t = mp->m_lines - 2;
-		readline(mesf, linebuf);
+		t = mp->m_lines - 1;
+		while (t-- > 0) {
+			readline(mesf, linebuf);
+			if (blankline(linebuf))
+				break;
+		}
 		while (t-- > 0) {
 			fgets(linebuf, BUFSIZ, mesf);
 			fputs(linebuf, obuf);
@@ -443,6 +453,67 @@ clob1(n)
 	for (cp = buf; cp < &buf[512]; *cp++ = 0xFF)
 		;
 	clob1(n - 1);
+}
+
+/*
+ * Add the given header fields to the retained list.
+ * If no arguments, print the current list of retained fields.
+ */
+retfield(list)
+	char *list[];
+{
+	char field[BUFSIZ];
+	register int h;
+	register struct ignore *igp;
+	char **ap;
+
+	if (argcount(list) == 0)
+		return(retshow());
+	for (ap = list; *ap != 0; ap++) {
+		istrcpy(field, *ap);
+
+		if (member(field, retain))
+			continue;
+
+		h = hash(field);
+		igp = (struct ignore *) calloc(1, sizeof (struct ignore));
+		igp->i_field = calloc(strlen(field) + 1, sizeof (char));
+		strcpy(igp->i_field, field);
+		igp->i_link = retain[h];
+		retain[h] = igp;
+		nretained++;
+	}
+	return(0);
+}
+
+/*
+ * Print out all currently retained fields.
+ */
+retshow()
+{
+	register int h, count;
+	struct ignore *igp;
+	char **ap, **ring;
+	int igcomp();
+
+	count = 0;
+	for (h = 0; h < HSHSIZE; h++)
+		for (igp = retain[h]; igp != 0; igp = igp->i_link)
+			count++;
+	if (count == 0) {
+		printf("No fields currently being retained.\n");
+		return(0);
+	}
+	ring = (char **) salloc((count + 1) * sizeof (char *));
+	ap = ring;
+	for (h = 0; h < HSHSIZE; h++)
+		for (igp = retain[h]; igp != 0; igp = igp->i_link)
+			*ap++ = igp->i_field;
+	*ap = 0;
+	qsort(ring, count, sizeof (char *), igcomp);
+	for (ap = ring; *ap != 0; ap++)
+		printf("%s\n", *ap);
+	return(0);
 }
 
 /*

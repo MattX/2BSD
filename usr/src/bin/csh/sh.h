@@ -1,10 +1,24 @@
-/* sh.h 4.1 10/9/80 */
-int erf;	/* error file descriptor */
-#define er(s)	write(erf,s,sizeof(s))
-#ifdef VMUNIX
-#include <sys/vtimes.h>
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)sh.h	5.3 (Berkeley) 3/29/86
+ */
+
+#ifdef BSD2_10
+#include "short_names.h"
+#endif BSD2_10
+
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/signal.h>
+#include <errno.h>
+#include <setjmp.h>
 #include "sh.local.h"
+#include "sh.char.h"
 
 /*
  * C shell
@@ -15,18 +29,8 @@ int erf;	/* error file descriptor */
  * Jim Kulp, IIASA, Laxenburg Austria
  * April, 1980
  */
-#include <sys/param.h>
-#include <sys/stat.h>
-#define KERNEL
-#include <sys/dir.h>
-#undef KERNEL
 
 #define	isdir(d)	((d.st_mode & S_IFMT) == S_IFDIR)
-
-#include <errno.h>
-#include <setjmp.h>
-#include <signal.h>
-#include <sys/times.h>
 
 typedef	char	bool;
 
@@ -36,7 +40,6 @@ typedef	char	bool;
  * Global flags
  */
 bool	chkstop;		/* Warned of stopped jobs... allow exit */
-bool	didcch;			/* Have closed unused fd's for child */
 bool	didfds;			/* Have setup i/o fd's for child */
 bool	doneinp;		/* EOF indicator after reset from readc */
 bool	exiterr;		/* Exit if error or non-zero exit status */
@@ -50,8 +53,11 @@ bool	neednote;		/* Need to pnotify() */
 bool	noexec;			/* Don't execute, just syntax check */
 bool	pjobs;			/* want to print jobs if interrupted */
 bool	setintr;		/* Set interrupts on/off -> Wait intr... */
-bool	setstop;		/* Set stops on/off, if allowing tty stops */
 bool	timflg;			/* Time the next waited for command */
+bool	havhash;		/* path hashing is available */
+#ifdef FILEC
+bool	filec;			/* doing filename expansion */
+#endif
 
 /*
  * Global i/o info
@@ -63,7 +69,8 @@ char	*file;			/* Name of shell file for $0 */
 char	*err;			/* Error message from scanner/parser */
 int	errno;			/* Error from C library routines */
 char	*shtemp;		/* Temp name for << shell files in /tmp */
-time_t	time0;			/* Time at which the shell started */
+struct	timeval time0;		/* Time at which the shell started */
+struct	rusage ru0;
 
 /*
  * Miscellany
@@ -71,12 +78,11 @@ time_t	time0;			/* Time at which the shell started */
 char	*doldol;		/* Character pid for $$ */
 int	uid;			/* Invokers uid */
 time_t	chktim;			/* Time mail last checked */
-short	shpgrp;			/* Pgrp of shell */
-short	tpgrp;			/* Terminal process group */
+int	shpgrp;			/* Pgrp of shell */
+int	tpgrp;			/* Terminal process group */
 /* If tpgrp is -1, leave tty alone! */
-short	opgrp;			/* Initial pgrp and tty pgrp */
+int	opgrp;			/* Initial pgrp and tty pgrp */
 int	oldisc;			/* Initial line discipline or -1 */
-struct	tms shtimes;		/* shell and child times for process timing */
 
 /*
  * These are declared here because they want to be
@@ -88,13 +94,13 @@ struct	biltins {
 	int	(*bfunct)();
 	short	minargs, maxargs;
 } bfunc[];
-
-#define	INF	1000
+extern int nbfunc;
 
 struct srch {
 	char	*s_name;
 	short	s_value;
 } srchn[];
+extern int nsrchn;
 
 /*
  * To be able to redirect i/o for builtins easily, the shell moves the i/o
@@ -119,8 +125,8 @@ short	OLDSTD;			/* Old standard input (def for cmds) */
 
 jmp_buf	reslab;
 
-#define	setexit()	setjmp(reslab)
-#define	reset()		longjmp(reslab)
+#define	setexit()	((void) setjmp(reslab))
+#define	reset()		longjmp(reslab, 0)
 	/* Should use structure assignment here */
 #define	getexit(a)	copy((char *)(a), (char *)reslab, sizeof reslab)
 #define	resexit(a)	copy((char *)reslab, ((char *)(a)), sizeof reslab)
@@ -160,7 +166,11 @@ struct	Bin {
 #define	fblocks	B.Bfblocks
 #define	fbuf	B.Bfbuf
 
+#define btell()	fseekp
+
+#ifndef btell
 off_t	btell();
+#endif
 
 /*
  * The shell finds commands in loops by reseeking the input
@@ -170,7 +180,6 @@ off_t	btell();
 off_t	lineloc;
 
 #ifdef	TELL
-off_t	tell();
 bool	cantell;			/* Is current source tellable ? */
 #endif
 
@@ -204,11 +213,7 @@ struct	wordent {
  * process id's from `$$', and modified variable values (from qualifiers
  * during expansion in sh.dol.c) here.
  */
-#ifdef VMUNIX
 char	labuf[BUFSIZ];
-#else
-char	labuf[256];
-#endif
 
 char	*lap;
 
@@ -302,13 +307,21 @@ struct	whyle {
 /*
  * Variable structure
  *
- * Lists of aliases and variables are sorted alphabetically by name
+ * Aliases and variables are stored in AVL balanced binary trees.
  */
 struct	varent {
 	char	**vec;		/* Array of words which is the value */
-	char	*name;		/* Name of variable/alias */
-	struct	varent *link;
+	char	*v_name;	/* Name of variable/alias */
+	struct	varent *v_link[3];	/* The links, see below */
+	int	v_bal;		/* Balance factor */
 } shvhed, aliases;
+#define v_left		v_link[0]
+#define v_right		v_link[1]
+#define v_parent	v_link[2]
+
+struct varent *adrof1();
+#define adrof(v)	adrof1(v, &shvhed)
+#define value(v)	value1(v, &shvhed)
 
 /*
  * The following are for interfacing redo substitution in
@@ -327,14 +340,10 @@ short	gflag;				/* After tglob -> is globbing needed? */
  * A reasonable limit on number of arguments would seem to be
  * the maximum number of characters in an arg list / 6.
  */
-#ifdef	VMUNIX
-#define	GAVSIZ	NCARGS / 6
+#ifdef BSD2_10
+#define	GAVSIZ	NCARGS / 12
 #else
-/*
- * Even at NCARGS/8, the total number of characters will be limiting
- * unless the average argument length is 5 characters or less.
- */
-#define	GAVSIZ	NCARGS / 8
+#define	GAVSIZ	NCARGS / 6
 #endif
 
 /*
@@ -378,13 +387,25 @@ int	lastev;				/* Last event reference (default) */
 char	HIST;				/* history invocation character */
 char	HISTSUB;			/* auto-substitute character */
 
+/*
+ * In lines for frequently called functions
+ */
+#define XFREE(cp) { \
+	extern char end[]; \
+	char stack; \
+	if ((cp) >= end && (cp) < &stack) \
+		free(cp); \
+}
+char	*alloctmp;
+#define xalloc(i) ((alloctmp = malloc(i)) ? alloctmp : (char *)nomem(i))
+
 char	*Dfix1();
-struct	varent *adrof(), *adrof1();
 char	**blkcat();
 char	**blkcpy();
 char	**blkend();
 char	**blkspl();
 char	*calloc();
+char	*malloc();
 char	*cname();
 char	**copyblk();
 char	**dobackp();
@@ -402,15 +423,20 @@ char	*getenv();
 char	*getinx();
 struct	varent *getvx();
 struct	passwd *getpwnam();
+struct	wordent *gethent();
 struct	wordent *getsub();
 char	*getwd();
-char	*globone();
-struct	biltins *isbfunc();
 char	**glob();
+char	*globone();
+char	*index();
+struct	biltins *isbfunc();
+off_t	lseek();
 char	*operate();
+int	phup();
 int	pintr();
 int	pchild();
 char	*putn();
+char	*rindex();
 char	**saveblk();
 char	*savestr();
 char	*strcat();
@@ -427,9 +453,7 @@ struct	command *syn1a();
 struct	command *syn1b();
 struct	command *syn2();
 struct	command *syn3();
-int	tglob();
-int	trim();
-char	*value(), *value1();
+char	*value1();
 char	*xhome();
 char	*xname();
 char	*xset();
@@ -440,16 +464,12 @@ char	*xset();
  * setname is a macro to save space (see sh.err.c)
  */
 char	*bname;
-#define	setname(a)	bname = (a);
+#define	setname(a)	(bname = (a))
 
 #ifdef VFORK
 char	*Vsav;
 char	**Vav;
 char	*Vdp;
-#endif
-
-#ifdef VMUNIX
-struct	vtimes zvms;
 #endif
 
 char	**evalvec;

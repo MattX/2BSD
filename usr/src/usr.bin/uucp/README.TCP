@@ -1,3 +1,10 @@
+The rest of this file is oriented to updating a vanilla 4.2 system.
+As 4.3 comes configured, all you have to do is uncomment the "uucpd"
+line in /etc/inetd.conf (and of course update your L.sys as needed).
+If you want to turn off logging uucp logins in wtmp, set the "user"
+field in inetd.conf to "uucp", who doesn't have write permission on wtmp.
+
+----------------------------------------------------------------------
 Basically, to run UUCP on top of TCP, the code had to be changed to
 not do ioctl's on sockets,etc. Also, a new protocl 't' was added.
 This is because the 'g' protocol maxes out at about 9000 baud

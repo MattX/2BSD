@@ -1,5 +1,21 @@
+/*
+ * Copyright (c) 1983,1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static	char *sccsid = "@(#)shutdown.c	4.20 (Berkeley) 84/02/02";
+char copyright[] =
+"@(#) Copyright (c) 1983,1986 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)shutdown.c	5.6 (Berkeley) 5/26/86";
+#endif not lint
+
+#ifdef BSD2_10
+#include <short_names.h>
 #endif
 
 #include <stdio.h>
@@ -7,9 +23,12 @@ static	char *sccsid = "@(#)shutdown.c	4.20 (Berkeley) 84/02/02";
 #include <signal.h>
 #include <setjmp.h>
 #include <utmp.h>
+#include <pwd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/syslog.h>
+
 /*
  *	/etc/shutdown when [messages]
  *
@@ -18,28 +37,29 @@ static	char *sccsid = "@(#)shutdown.c	4.20 (Berkeley) 84/02/02";
  *	and shut it down automatically
  *	and even reboot or halt the machine if they desire
  */
-#ifdef DEBUG
-#define LOGFILE "shutdown.log"
-#else
-#define LOGFILE "/usr/adm/shutdownlog"
-#endif
+
 #define	REBOOT	"/etc/reboot"
 #define	HALT	"/etc/halt"
 #define MAXINTS 20
 #define	HOURS	*3600
 #define MINUTES	*60
 #define SECONDS
-#define NLOG		20		/* no of args possible for message */
+#define NLOG		600		/* no of bytes possible for message */
 #define	NOLOGTIME	5 MINUTES
 #define IGNOREUSER	"sleeper"
 
-char	hostname[32];
+char	hostname[MAXHOSTNAMELEN];
 
-int	timeout(), finish();
-time_t	getsdt(), time();
+int	timeout();
+time_t	getsdt();
 
 extern	char *ctime();
 extern	struct tm *localtime();
+extern	long time();
+
+extern	char *strcpy();
+extern	char *strncat();
+extern	off_t lseek();
 
 struct	utmp utmp;
 int	sint;
@@ -47,16 +67,21 @@ int	stogo;
 char	tpath[] =	"/dev/";
 int	nlflag = 1;		/* nolog yet to be done */
 int	killflg = 1;
-int	reboot = 0;
+int	doreboot = 0;
 int	halt = 0;
+int     fast = 0;
+char    *nosync = NULL;
+char    nosyncflag[] = "-n";
 char	term[sizeof tpath + sizeof utmp.ut_line];
 char	tbuf[BUFSIZ];
 char	nolog1[] = "\n\nNO LOGINS: System going down at %5.5s\n\n";
-char	*nolog2[NLOG+1];
+char	nolog2[NLOG+1];
 #ifdef	DEBUG
 char	nologin[] = "nologin";
+char    fastboot[] = "fastboot";
 #else
 char	nologin[] = "/etc/nologin";
+char	fastboot[] = "/fastboot";
 #endif
 time_t	nowtime;
 jmp_buf	alarmbuf;
@@ -83,53 +108,69 @@ main(argc,argv)
 	int argc;
 	char **argv;
 {
-	extern char	*optarg;
-	extern int	optind;
 	register i, ufd;
-	register char **mess, *f;
-	char *ts, c;
+	register char *f;
+	char *ts;
 	time_t sdt;
 	int h, m;
 	int first;
 	FILE *termf;
+	struct passwd *pw, *getpwuid();
+	extern char *strcat();
+	extern uid_t geteuid();
 
 	shutter = getlogin();
-	gethostname(hostname, sizeof (hostname));
-	while((c = getopt(argc,argv,"krh")) != EOF)
-		switch((char)c) {
-			case 'k':
-				killflg = 0;
-				break;
-			case 'r':
-				reboot = 1;
-				break;
-			case 'h':
-				halt = 1;
-				break;
-			case '?':
-				argc = 0;
-				break;
+	if (shutter == 0 && (pw = getpwuid(getuid())))
+		shutter = pw->pw_name;
+	if (shutter == 0)
+		shutter = "???";
+	(void) gethostname(hostname, sizeof (hostname));
+	openlog("shutdown", 0, LOG_AUTH);
+	argc--, argv++;
+	while (argc > 0 && (f = argv[0], *f++ == '-')) {
+		while (i = *f++) switch (i) {
+		case 'k':
+			killflg = 0;
+			continue;
+		case 'n':
+			nosync = nosyncflag;
+			continue;
+		case 'f':
+			fast = 1;
+			continue;
+		case 'r':
+			doreboot = 1;
+			continue;
+		case 'h':
+			halt = 1;
+			continue;
+		default:
+			fprintf(stderr, "shutdown: '%c' - unknown flag\n", i);
+			exit(1);
 		}
-	if (argc - optind < 1) {
-		printf("Usage: %s [ -krh ] shutdowntime [ message ]\n",
-		    argv[0]);
+		argc--, argv++;
+	}
+	if (argc < 1) {
+	        /* argv[0] is not available after the argument handling. */
+		printf("Usage: shutdown [ -krhfn ] shutdowntime [ message ]\n");
 		finish();
 	}
-	argv += optind;
-#ifndef DEBUG
+	if (fast && (nosync == nosyncflag)) {
+	        printf ("shutdown: Incompatible switches 'fast' & 'nosync'\n");
+		finish();
+	}
 	if (geteuid()) {
 		fprintf(stderr, "NOT super-user\n");
 		finish();
 	}
-#endif !DEBUG
-	nowtime = time((time_t *)0);
+	nowtime = time((long *)0);
 	sdt = getsdt(argv[0]);
 	argc--, argv++;
-	i = 0;
-	while (argc-- > 0)
-		if (i < NLOG)
-			nolog2[i++] = *argv++;
-	nolog2[i] = NULL;
+	nolog2[0] = '\0';
+	while (argc-- > 0) {
+		(void) strcat(nolog2, " ");
+		(void) strcat(nolog2, *argv++);
+	}
 	m = ((stogo = sdt - nowtime) + 30)/60;
 	h = m/60; 
 	m %= 60;
@@ -139,24 +180,22 @@ main(argc,argv)
 		printf("%d hour%s ", h, h != 1 ? "s" : "");
 	printf("%d minute%s) ", m, m != 1 ? "s" : "");
 #ifndef DEBUG
-	signal(SIGHUP, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGINT, SIG_IGN);
+	(void) signal(SIGHUP, SIG_IGN);
+	(void) signal(SIGQUIT, SIG_IGN);
+	(void) signal(SIGINT, SIG_IGN);
 #endif
-	signal(SIGTTOU, SIG_IGN);
-	signal(SIGTERM, finish);
-	signal(SIGALRM, timeout);
-#ifndef pdp11
-	setpriority(PRIO_PROCESS, 0, PRIO_MIN);
-#endif !pdp11
-	fflush(stdout);
+	(void) signal(SIGTTOU, SIG_IGN);
+	(void) signal(SIGTERM, finish);
+	(void) signal(SIGALRM, timeout);
+	(void) setpriority(PRIO_PROCESS, 0, PRIO_MIN);
+	(void) fflush(stdout);
 #ifndef DEBUG
 	if (i = fork()) {
 		printf("[pid %d]\n", i);
 		exit(0);
 	}
 #else
-	putc('\n', stdout);
+	(void) putc('\n', stdout);
 #endif
 	sint = 1 HOURS;
 	f = "";
@@ -177,69 +216,78 @@ main(argc,argv)
 		}
 		if (sint >= stogo || sint == 0)
 			f = "FINAL ";
-		nowtime = time((time_t *) 0);
-		lseek(ufd, 0L, 0);
-		while (read(ufd,&utmp,sizeof utmp)==sizeof utmp)
+		nowtime = time((long *)0);
+		(void) lseek(ufd, 0L, 0);
+		while (read(ufd,(char *)&utmp,sizeof utmp)==sizeof utmp)
 		if (utmp.ut_name[0] &&
 		    strncmp(utmp.ut_name, IGNOREUSER, sizeof(utmp.ut_name))) {
 			if (setjmp(alarmbuf))
 				continue;
-			strcpy(term, tpath);
-			strncat(term, utmp.ut_line, sizeof utmp.ut_line);
-			alarm(3);
+			(void) strcpy(term, tpath);
+			(void) strncat(term, utmp.ut_line, sizeof utmp.ut_line);
+			(void) alarm(3);
 #ifdef DEBUG
 			if ((termf = stdout) != NULL)
 #else
 			if ((termf = fopen(term, "w")) != NULL)
 #endif
 			{
-				alarm(0);
+				(void) alarm(0);
 				setbuf(termf, tbuf);
 				fprintf(termf, "\n\r\n");
 				warn(termf, sdt, nowtime, f);
 				if (first || sdt - nowtime > 1 MINUTES) {
 					if (*nolog2)
-						fprintf(termf, "\t...");
-					for (mess = nolog2; *mess; mess++)
-						fprintf(termf, " %s", *mess);
+						fprintf(termf, "\t...%s", nolog2);
 				}
-				fputc('\r', termf);
-				fputc('\n', termf);
-				alarm(5);
+				(void) fputc('\r', termf);
+				(void) fputc('\n', termf);
+				(void) alarm(5);
 #ifdef DEBUG
-				fflush(termf);
+				(void) fflush(termf);
 #else
-				fclose(termf);
+				(void) fclose(termf);
 #endif
-				alarm(0);
+				(void) alarm(0);
 			}
 		}
 		if (stogo <= 0) {
-	printf("\n\007\007System shutdown time has arrived\007\007\n");
-			log_entry(sdt);
-			unlink(nologin);
+			printf("\n\007\007System shutdown time has arrived\007\007\n");
+			syslog(LOG_CRIT, "%s by %s: %s",
+			    doreboot ? "reboot" : halt ? "halt" : "shutdown",
+			    shutter, nolog2);
+			sleep(2);
+			(void) unlink(nologin);
 			if (!killflg) {
 				printf("but you'll have to do it yourself\n");
 				finish();
 			}
+			if (fast)
+				doitfast();
 #ifndef DEBUG
-			kill(-1, SIGTERM);	/* terminate everyone */
-			sleep(5);		/* & wait while they die */
-			if (reboot)
-				execle(REBOOT, "reboot", 0, 0);
+			if (doreboot)
+				execle(REBOOT, "reboot", "-l", nosync, 0, 0);
 			if (halt)
-				execle(HALT, "halt", 0, 0);
-			kill(1, SIGTERM);	/* sync */
-			kill(1, SIGTERM);	/* sync */
-			sleep(20);
+				execle(HALT, "halt", "-l", nosync, 0, 0);
+			(void) kill(1, SIGTERM);	/* to single user */
 #else
-			printf("EXTERMINATE EXTERMINATE\n");
+			if (doreboot)
+				printf("REBOOT");
+			if (halt)
+				printf(" HALT");
+			if (fast)
+				printf(" -l %s (without fsck's)\n", nosync);
+			else
+				printf(" -l %s\n", nosync);
+			else
+				printf("kill -HUP 1\n");
+
 #endif
 			finish();
 		}
-		stogo = sdt - time((time_t *) 0);
+		stogo = sdt - time((long *) 0);
 		if (stogo > 0 && sint > 0)
-			sleep(sint<stogo ? sint : stogo);
+			sleep((unsigned)(sint<stogo ? sint : stogo));
 		stogo -= sint;
 		first = 0;
 	}
@@ -267,7 +315,7 @@ getsdt(s)
 		if (t <= 0)
 			t = 5;
 		t *= 60;
-		tim = time((time_t *) 0) + t;
+		tim = time((long *) 0) + t;
 		return(tim);
 	}
 	t = 0;
@@ -285,7 +333,7 @@ getsdt(s)
 		goto badform;
 	tim += t; 
 	tim *= 60;
-	t1 = time((time_t *) 0);
+	t1 = time((long *) 0);
 	lt = localtime(&t1);
 	t = lt->tm_sec + lt->tm_min*60 + lt->tm_hour*3600;
 	if (tim < t || tim >= (24*3600)) {
@@ -297,6 +345,7 @@ getsdt(s)
 badform:
 	printf("Bad time format\n");
 	finish();
+	/*NOTREACHED*/
 }
 
 warn(term, sdt, now, type)
@@ -311,14 +360,9 @@ warn(term, sdt, now, type)
 		while (delay % 5)
 			delay++;
 
-	if (shutter)
-		fprintf(term,
+	fprintf(term,
 	    "\007\007\t*** %sSystem shutdown message from %s@%s ***\r\n\n",
 		    type, shutter, hostname);
-	else
-		fprintf(term,
-		    "\007\007\t*** %sSystem shutdown message (%s) ***\r\n\n",
-		    type, hostname);
 
 	ts = ctime(&sdt);
 	if (delay > 10 MINUTES)
@@ -333,69 +377,38 @@ warn(term, sdt, now, type)
 		fprintf(term, "System going down IMMEDIATELY\r\n");
 }
 
+doitfast()
+{
+	FILE *fastd;
+
+	if ((fastd = fopen(fastboot, "w")) != NULL) {
+		putc('\n', fastd);
+		(void) fclose(fastd);
+	}
+}
+
 nolog(sdt)
 	time_t sdt;
 {
 	FILE *nologf;
-	register char **mess;
 
-	unlink(nologin);			/* in case linked to std file */
+	(void) unlink(nologin);			/* in case linked to std file */
 	if ((nologf = fopen(nologin, "w")) != NULL) {
 		fprintf(nologf, nolog1, (ctime(&sdt)) + 11);
-		putc('\t', nologf);
-		for (mess = nolog2; *mess; mess++)
-			fprintf(nologf, " %s", *mess);
-		putc('\n', nologf);
-		fclose(nologf);
+		if (*nolog2)
+			fprintf(nologf, "\t%s\n", nolog2 + 1);
+		(void) fclose(nologf);
 	}
 }
 
 finish()
 {
-	signal(SIGTERM, SIG_IGN);
-	unlink(nologin);
+	(void) signal(SIGTERM, SIG_IGN);
+	(void) unlink(nologin);
 	exit(0);
 }
 
 timeout()
 {
 	longjmp(alarmbuf, 1);
-}
-
-/*
- * make an entry in the shutdown log
- */
-
-char *days[] = {
-	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-};
-
-char *months[] = {
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-	"Oct", "Nov", "Dec"
-};
-
-log_entry(now)
-	time_t now;
-{
-	register FILE *fp;
-	register char **mess;
-	struct tm *tm, *localtime();
-
-	tm = localtime(&now);
-	fp = fopen(LOGFILE, "a");
-	if (fp == NULL) {
-		printf("Shutdown: log entry failed\n");
-		return;
-	}
-	fseek(fp, 0L, 2);
-	fprintf(fp, "%02d:%02d  %s %s %2d, %4d.  Shutdown:", tm->tm_hour,
-		tm->tm_min, days[tm->tm_wday], months[tm->tm_mon],
-		tm->tm_mday, tm->tm_year + 1900);
-	for (mess = nolog2; *mess; mess++)
-		fprintf(fp, " %s", *mess);
-	if (shutter)
-		fprintf(fp, " (by %s!%s)", hostname, shutter);
-	fputc('\n', fp);
-	fclose(fp);
 }

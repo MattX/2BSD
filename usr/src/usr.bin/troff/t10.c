@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t10.c	4.1	(Berkeley)	82/12/03";
+#endif
+
 #include "tdef.h"
 extern
 #include "d.h"

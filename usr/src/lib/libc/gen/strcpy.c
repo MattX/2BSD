@@ -1,4 +1,7 @@
-/*	@(#)strcpy.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)strcpy.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
  * Copy string s2 to s1.  s1 must be large enough.
  * return s1

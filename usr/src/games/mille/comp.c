@@ -6,17 +6,17 @@
 
 # define	V_VALUABLE	40
 
-calcmove() {
-
-	reg CARD	card;
-	reg int		*value;
-	reg PLAY	*pp, *op;
-	reg bool	foundend, cango, canstop, foundlow;
-	reg unsgn int	i, count200, badcount, nummin, nummax, diff;
-	reg int		curmin, curmax;
-	reg CARD	safe, oppos;
-	int		valbuf[HAND_SZ], count[NUM_CARDS];
-	bool		playit[HAND_SZ];
+calcmove()
+{
+	register CARD		card;
+	register int		*value;
+	register PLAY		*pp, *op;
+	register bool		foundend, cango, canstop, foundlow;
+	register unsgn int	i, count200, badcount, nummin, nummax, diff;
+	register int		curmin, curmax;
+	register CARD		safe, oppos;
+	int			valbuf[HAND_SZ], count[NUM_CARDS];
+	bool			playit[HAND_SZ];
 
 	wmove(Score, ERR_Y, ERR_X);	/* get rid of error messages	*/
 	wclrtoeol(Score);
@@ -56,8 +56,8 @@ norm:
 			break;
 		  case C_GAS_SAFE:	case C_DRIVE_SAFE:
 		  case C_SPARE_SAFE:	case C_RIGHT_WAY:
-			if (pp->battle == opposite(card)
-			   || (pp->speed == C_LIMIT && card == C_RIGHT_WAY)) {
+			if (pp->battle == opposite(card) ||
+			    (pp->speed == C_LIMIT && card == C_RIGHT_WAY)) {
 				Movetype = M_PLAY;
 				Card_no = i;
 				return;
@@ -73,21 +73,26 @@ norm:
 		return;
 	}
 	if (Debug)
-		fprintf(outf, "CALCMOVE: cango = %d, canstop = %d, safe = %d\n", cango, canstop, safe);
+		fprintf(outf, "CALCMOVE: cango = %d, canstop = %d, safe = %d\n",
+			cango, canstop, safe);
 	if (foundend)
 		foundend = !check_ext(TRUE);
 	for (i = 0; safe && i < HAND_SZ; i++) {
 		if (issafety(pp->hand[i])) {
 			if (onecard(op) || (foundend && cango && !canstop)) {
 				if (Debug)
-					fprintf(outf, "CALCMOVE: onecard(op) = %d, foundend = %d\n", onecard(op), foundend);
+					fprintf(outf,
+						"CALCMOVE: onecard(op) = %d, foundend = %d\n",
+						onecard(op), foundend);
 playsafe:
 				Movetype = M_PLAY;
 				Card_no = i;
 				return;
 			}
 			oppos = opposite(pp->hand[i]);
-			if (Numseen[oppos] == Numcards[oppos])
+			if (Numseen[oppos] == Numcards[oppos] &&
+			    !(pp->hand[i] == C_RIGHT_WAY &&
+			      Numseen[C_LIMIT] != Numcards[C_LIMIT]))
 				goto playsafe;
 			else if (!cango
 			    && (op->can_go || !pp->can_go || Topcard < Deck)) {
@@ -95,7 +100,9 @@ playsafe:
 				if ((!pp->mileage) != (!op->mileage))
 					card -= 7;
 				if (Debug)
-					fprintf(outf, "CALCMOVE: card = %d, DECK_SZ / 4 = %d\n", card, DECK_SZ / 4);
+					fprintf(outf,
+						"CALCMOVE: card = %d, DECK_SZ / 4 = %d\n",
+						card, DECK_SZ / 4);
 				if (card < DECK_SZ / 4)
 					goto playsafe;
 			}
@@ -121,7 +128,8 @@ redoit:
 		card = pp->hand[i];
 		if (issafety(card) || playit[i] == (cango != 0)) {
 			if (Debug)
-				fprintf(outf, "CALCMOVE: switch(\"%s\")\n", C_name[card]);
+				fprintf(outf, "CALCMOVE: switch(\"%s\")\n",
+					C_name[card]);
 			switch (card) {
 			  case C_25:	case C_50:
 				diff = End - pp->mileage;
@@ -170,8 +178,10 @@ miles:
 				break;
 			  case C_END_LIMIT:
 				if (pp->safety[S_RIGHT_WAY] != S_UNKNOWN)
-					*value = (pp->safety[S_RIGHT_WAY] == S_PLAYED ? -1 : 1);
-				else if (pp->speed == C_LIMIT && End - pp->mileage <= 50)
+					*value = (pp->safety[S_RIGHT_WAY] ==
+						  S_PLAYED ? -1 : 1);
+				else if (pp->speed == C_LIMIT &&
+					 End - pp->mileage <= 50)
 					*value = 1;
 				else if (pp->speed == C_LIMIT
 				    || Numseen[C_LIMIT] != Numcards[C_LIMIT]) {
@@ -188,16 +198,20 @@ miles:
 				safe = safety(card) - S_CONV;
 				oppos = opposite(card);
 				if (pp->safety[safe] != S_UNKNOWN)
-					*value = (pp->safety[safe] == S_PLAYED ? -1 : 1);
+					*value = (pp->safety[safe] ==
+						  S_PLAYED ? -1 : 1);
 				else if (pp->battle != oppos
-				    && (Numseen[oppos] == Numcards[oppos] || Numseen[oppos] + count[card] > Numcards[oppos])) {
+				    && (Numseen[oppos] == Numcards[oppos] ||
+					Numseen[oppos] + count[card] >
+					Numcards[oppos])) {
 					*value = 0;
 					--count[card];
 				}
 				else {
 repair:
 					*value = Numcards[oppos] * 6;
-					*value += (Numseen[card] - Numseen[oppos]);
+					*value += Numseen[card] -
+						  Numseen[oppos];
 					if (!cango)
 					    *value /= (count[card]*count[card]);
 					count[card]--;
@@ -205,7 +219,8 @@ repair:
 				break;
 			  case C_GO:
 				if (pp->safety[S_RIGHT_WAY] != S_UNKNOWN)
-					*value = (pp->safety[S_RIGHT_WAY] == S_PLAYED ? -1 : 2);
+					*value = (pp->safety[S_RIGHT_WAY] ==
+						  S_PLAYED ? -1 : 2);
 				else if (pp->can_go
 				 && Numgos + count[C_GO] == Numneed[C_GO]) {
 					*value = 0;
@@ -226,7 +241,8 @@ repair:
 				if (canstop || (cango && !op->can_go))
 					*value = 1;
 				else {
-					*value = (pp->safety[S_RIGHT_WAY] != S_UNKNOWN ? 2 : 3);
+					*value = (pp->safety[S_RIGHT_WAY] !=
+						  S_UNKNOWN ? 2 : 3);
 					safe = S_RIGHT_WAY;
 					oppos = C_END_LIMIT;
 					goto normbad;
@@ -240,36 +256,44 @@ normbad:
 				if (op->safety[safe] == S_PLAYED)
 					*value = -1;
 				else {
-				    *value *= (Numneed[oppos] + Numseen[oppos] + 2);
-				    if (!pp->mileage || foundend || onecard(op))
-					*value += 5;
-				    if (op->mileage == 0 || onecard(op))
-					*value += 5;
-				    if (op->speed == C_LIMIT)
-					*value -= 3;
-				    if (cango && pp->safety[safe] != S_UNKNOWN)
-					*value += 3;
-				    if (!cango)
-					*value /= ++badcount;
+					*value *= Numneed[oppos] +
+						  Numseen[oppos] + 2;
+					if (!pp->mileage || foundend ||
+					    onecard(op))
+						*value += 5;
+					if (op->mileage == 0 || onecard(op))
+						*value += 5;
+					if (op->speed == C_LIMIT)
+						*value -= 3;
+					if (cango &&
+					    pp->safety[safe] != S_UNKNOWN)
+						*value += 3;
+					if (!cango)
+						*value /= ++badcount;
 				}
 				break;
 			  case C_STOP:
 				if (op->safety[S_RIGHT_WAY] == S_PLAYED)
 					*value = -1;
 				else {
-				    *value = (pp->safety[S_RIGHT_WAY] != S_UNKNOWN ? 3 : 4);
-				    *value *= (Numcards[C_STOP] + Numseen[C_GO]);
-				    if (!pp->mileage || foundend || onecard(op))
-					*value += 5;
-				    if (!cango)
-					*value /= ++badcount;
-				    if (op->mileage == 0)
-					*value += 5;
-				    if ((card == C_LIMIT
-				      && op->speed == C_LIMIT) || (!op->can_go))
-					*value -= 5;
-				    if (cango && pp->safety[S_RIGHT_WAY] != S_UNKNOWN)
-					*value += 5;
+					*value = (pp->safety[S_RIGHT_WAY] !=
+						  S_UNKNOWN ? 3 : 4);
+					*value *= Numcards[C_STOP] +
+						  Numseen[C_GO];
+					if (!pp->mileage || foundend ||
+					    onecard(op))
+						*value += 5;
+					if (!cango)
+						*value /= ++badcount;
+					if (op->mileage == 0)
+						*value += 5;
+					if ((card == C_LIMIT &&
+					     op->speed == C_LIMIT) ||
+					    !op->can_go)
+						*value -= 5;
+					if (cango && pp->safety[S_RIGHT_WAY] !=
+						     S_UNKNOWN)
+						*value += 5;
 				}
 				break;
 			  case C_GAS_SAFE:	case C_DRIVE_SAFE:
@@ -278,6 +302,7 @@ normbad:
 				break;
 			  case C_INIT:
 				*value = 0;
+				break;
 			}
 		}
 		else
@@ -293,12 +318,14 @@ normbad:
 			}
 		}
 		if (Debug)
-			mvprintw(i+6,2,"%3d %-14s",*value,C_name[pp->hand[i]]);
+			mvprintw(i + 6, 2, "%3d %-14s", *value,
+				 C_name[pp->hand[i]]);
 		value++;
 	}
 	if (!pp->can_go && !isrepair(pp->battle))
 		Numneed[opposite(pp->battle)]++;
 	if (cango) {
+play_it:
 		mvaddstr(MOVE_Y + 1, MOVE_X, "PLAY\n");
 		if (Debug)
 			getmove();
@@ -308,6 +335,10 @@ normbad:
 		}
 	}
 	else {
+		if (issafety(pp->hand[nummin])) { /* NEVER discard a safety */
+			nummax = nummin;
+			goto play_it;
+		}
 		mvaddstr(MOVE_Y + 1, MOVE_X, "DISCARD\n");
 		if (Debug)
 			getmove();
@@ -320,21 +351,22 @@ normbad:
 }
 
 onecard(pp)
-reg PLAY	*pp; {
-
-	reg CARD	bat, spd, card;
+register PLAY	*pp;
+{
+	register CARD	bat, spd, card;
 
 	bat = pp->battle;
 	spd = pp->speed;
 	card = -1;
-	if (pp->can_go || ((isrepair(bat) || bat == C_STOP
-	    || spd == C_LIMIT) && Numseen[S_RIGHT_WAY] != 0)
-	    || Numseen[safety(bat)] != 0)
+	if (pp->can_go || ((isrepair(bat) || bat == C_STOP || spd == C_LIMIT) &&
+			   Numseen[S_RIGHT_WAY] != 0) ||
+	    Numseen[safety(bat)] != 0)
 		switch (End - pp->mileage) {
 		  case 200:
 			if (pp->nummiles[C_200] == 2)
 				return FALSE;
 			card = C_200;
+			/* FALLTHROUGH */
 		  case 100:
 		  case 75:
 			if (card == -1)
@@ -351,19 +383,22 @@ reg PLAY	*pp; {
 }
 
 canplay(pp, op, card)
-reg PLAY	*pp, *op;
-reg CARD	card; {
-
+register PLAY	*pp, *op;
+register CARD	card;
+{
 	switch (card) {
 	  case C_200:
 		if (pp->nummiles[C_200] == 2)
 			break;
+		/* FALLTHROUGH */
 	  case C_75:	case C_100:
 		if (pp->speed == C_LIMIT)
 			break;
+		/* FALLTHROUGH */
 	  case C_50:
 		if (pp->mileage + Value[card] > End)
 			break;
+		/* FALLTHROUGH */
 	  case C_25:
 		if (pp->can_go)
 			return TRUE;
@@ -374,8 +409,9 @@ reg CARD	card; {
 			return TRUE;
 		break;
 	  case C_LIMIT:
-		if (op->speed != C_LIMIT && op->safety[S_RIGHT_WAY] != S_PLAYED
-		    && op->mileage + 50 < End)
+		if (op->speed != C_LIMIT &&
+		    op->safety[S_RIGHT_WAY] != S_PLAYED &&
+		    op->mileage + 50 < End)
 			return TRUE;
 		break;
 	  case C_GAS:	case C_SPARE:	case C_REPAIRS:
@@ -383,8 +419,8 @@ reg CARD	card; {
 			return TRUE;
 		break;
 	  case C_GO:
-		if (!pp->can_go
-		    && (isrepair(pp->battle) || pp->battle == C_STOP))
+		if (!pp->can_go &&
+		    (isrepair(pp->battle) || pp->battle == C_STOP))
 			return TRUE;
 		break;
 	  case C_END_LIMIT:

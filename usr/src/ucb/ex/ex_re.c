@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_re.c	7.2	10/16/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_re.c	7.5 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_re.h"
 
@@ -740,7 +748,7 @@ cerror(s)
 {
 
 	expbuf[0] = 0;
-	error(s);
+	error("%s", s);
 }
 
 same(a, b)
@@ -898,7 +906,7 @@ star:
 		return (0);
 
 	case CBRC:
-		if (lp == expbuf)
+		if (lp == linebuf)
 			continue;
 		if ((isdigit(*lp) || uletter(*lp)) && !uletter(lp[-1]) && !isdigit(lp[-1]))
 			continue;

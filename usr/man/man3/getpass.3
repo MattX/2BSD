@@ -1,10 +1,14 @@
-.TH GETPASS 3
+.\"	@(#)getpass.3	6.1 (Berkeley) 5/15/85
+.\"
+.TH GETPASS 3  "May 15, 1985"
+.AT 3
 .SH NAME
 getpass \- read a password
 .SH SYNOPSIS
+.nf
 .B char *getpass(prompt)
-.br
 .B char *prompt;
+.fi
 .SH DESCRIPTION
 .I Getpass
 reads a password from the file
@@ -21,4 +25,4 @@ of at most 8 characters.
 crypt(3)
 .SH BUGS
 The return value points to static data
-whose contents are overwritten by each call.
+whose content is overwritten by each call.

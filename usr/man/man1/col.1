@@ -1,8 +1,14 @@
-.TH COL 1
+.\"	@(#)col.1	6.2 (Berkeley) 5/16/86
+.\"
+.TH COL 1 "May 16, 1986"
+.AT 3
 .SH NAME
 col \- filter reverse line feeds
 .SH SYNOPSIS
-.B col [\|\-bfx\|]
+.B col
+[
+.B \-bfh
+]
 .SH DESCRIPTION
 .I Col
 reads the standard input and writes the standard output.
@@ -46,21 +52,21 @@ The character set (primary or alternate) associated with each printing
 character read is remembered; on output, SO and SI characters are generated
 where necessary to maintain the correct treatment of each character.
 .PP
-.I Col
-normally converts white space to tabs to shorten printing time.
 If the
-.B \-x
-option is given, this conversion is suppressed.
+.B \-h
+option is given,
+.I col
+converts white space to tabs to shorten printing time.
 .PP
 All control characters are removed from the input except space,
 backspace,
-tab, return, newline, ESC (033) followed by one of 789, SI, SO, and VT
+tab, return, newline, ESC (033) followed by one of 7, 8, 9, SI, SO, and VT
 (013).
 This last character is an alternate form of full reverse line feed, for
 compatibility with some other hardware conventions.
 All other non-printing characters are ignored.
 .SH "SEE ALSO"
-tbl(1), troff(1)
+troff(1), tbl(1)
 .SH BUGS
 Can't back up more than 128 lines.
 .br

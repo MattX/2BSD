@@ -1,5 +1,11 @@
-.TH MOUNT 8 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)mount.8	6.1 (Berkeley) 4/27/85
+.\"
+.TH MOUNT 8 "April 27, 1985"
+.UC 4
 .SH NAME
 mount, umount \- mount and dismount file system
 .SH SYNOPSIS
@@ -71,12 +77,12 @@ systems must be mounted read-only
 or errors will occur when access times are updated,
 whether or not any explicit write is attempted.
 .SH FILES
-.ta 2i
 /etc/mtab	mount table
 .br
 /etc/fstab	file system table
 .SH "SEE ALSO"
-mount(2), fstab(5), mtab(5)
+mount(2),
+mtab(5), fstab(5)
 .SH BUGS
 Mounting file systems full of garbage will crash the system.
 .br

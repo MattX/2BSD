@@ -1,26 +1,38 @@
-:  rc for use with autoreboot
-:  '/etc/rc [ autoboot | fastboot  [ powerfail | "" ] ]'
 HOME=/; export HOME
-PATH=/etc:/bin:/usr/bin; export PATH
-case $2 in 
-powerfail)
+PATH=/bin:/usr/bin
+
+# If you have a ram disk configured into your system which is listed in
+# /etc/fstab, you'll have to do a mkfs on it here.
+RAMSIZE=150
+/etc/mkfs /dev/ram ${RAMSIZE} 1 2
+
+if [ $2x = powerfailx ]
+then
 	echo REBOOTING AFTER POWER FAILURE >/dev/console
-	;;
-esac
-case $1 in
-autoboot)
+fi
+if [ $1x = fastbootx ]
+then
+	echo Fast boot ... skipping disk checks >/dev/console
+elif [ $1x = autobootx ]
+then
 	echo Automatic reboot in progress... >/dev/console
 	date >/dev/console
-	fsck -p -t fsck.tmp >/dev/console 2>&1
+# This will *only* work if fsck can do your root file system without a
+# temporary file, and if the root file system is checked alone on a pass
+# by itself -- be careful!  This can *seriously* mess you up.
+	/etc/fsck -p -t /_FSCK_TMP_FILE >/dev/console
 	case $? in
 	0)
+		date >/dev/console
+		;;
+	2)
+		exit 1
 		;;
 	4)
-		echo "Root was modified-- rebooting." >/dev/console
-		reboot -n
+		/etc/reboot -n
 		;;
 	8)
-		echo "Automatic filesystem check failed... help!" >/dev/console
+		echo "Automatic reboot failed... help!" >/dev/console
 		exit 1
 		;;
 	12)
@@ -32,22 +44,61 @@ autoboot)
 		exit 1
 		;;
 	esac
-;;
-esac
-date >/dev/console
+else
+	date >/dev/console
+fi
+
+# attempt to rationally recover the passwd file if needed
+if [ -s /etc/ptmp ]
+then
+	if [ -s /etc/passwd ]
+	then
+		ls -l /etc/passwd /etc/ptmp >/dev/console
+		rm -f /etc/ptmp		# should really remove the shorter
+	else
+		echo 'passwd file recovered from ptmp' >/dev/console
+		mv /etc/ptmp /etc/passwd
+	fi
+elif [ -r /etc/ptmp ]
+then
+	echo 'removing passwd lock file' >/dev/console
+	rm -f /etc/ptmp
+fi
+
+/etc/umount -a
 cp /dev/null /etc/mtab
-cp /dev/null /etc/utmp
-mount -a			>/dev/console 2>&1
-savecore /usr/sys >/dev/console 2>&1
-/usr/lib/ex3.7preserve -a
-rm -rf /usr/tmp/*
-rm -rf /tmp/*
-rm -f /usr/spool/uucp/LCK..*
-rm -f /usr/spool/lpd/lock
-rm -f /usr/spool/vpd/lock
-/etc/update
-/etc/cron
-ps -U
-/etc/accton /usr/adm/acct
-/etc/hostname hostnameunknown
+/etc/mount -a						>/dev/console 2>&1
+
+/bin/ps -U						>/dev/console 2>&1
+rm -f /etc/nologin
+rm -f /usr/spool/uucp/LCK.*
+chmod 666 /dev/tty[pqrs]*
+
+sh /etc/rc.local
+
+#				echo preserving editor files 	>/dev/console
+#(cd /tmp; /usr/lib/ex3.7preserve -a)
+#				echo clearing /tmp 		>/dev/console
+#(cd /tmp; find . ! -name . ! -name lost+found -exec rm -r {} \; )
+
+				echo -n standard daemons:	>/dev/console
+/etc/update;			echo -n ' update'		>/dev/console
+/etc/cron;			echo -n ' cron'			>/dev/console
+/etc/accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console
+				echo '.'			>/dev/console
+
+echo -n starting network daemons:				>/dev/console
+if [ -f /etc/rwhod ]; then
+	/etc/rwhod;		echo -n ' rwhod'		>/dev/console
+fi
+if [ -f /etc/inetd ]; then
+	/etc/inetd;		echo -n ' inetd'		>/dev/console
+fi
+#if [ -f /usr/lib/lpd ]; then
+#	rm -f /dev/printer
+#	/usr/lib/lpd;		echo -n ' printer'		>/dev/console
+#fi
+				echo '.'			>/dev/console
+
+				date				>/dev/console
 exit 0

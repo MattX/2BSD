@@ -1,24 +1,38 @@
 /*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)dmesg.c	5.4 (Berkeley) 2/20/86";
+#endif not lint
+
+/*
  *	Suck up system messages
+ *	dmesg
+ *		print current buffer
+ *	dmesg -
+ *		print and update incremental history
  */
 
 #include <stdio.h>
 #include <sys/param.h>
-#include <a.out.h>
+#include <nlist.h>
+#include <signal.h>
+#include <sys/file.h>
+#include <sys/vm.h>
+#include <sys/msgbuf.h>
 
-char	msgbuf[MSGBUFS];
+struct	msgbuf msgbuf;
 char	*msgbufp;
 int	sflg;
 int	of	= -1;
 
-struct {
-	char	*omsgflg;
-	int	omindex;
-	char	omsgbuf[MSGBUFS];
-} omesg;
-struct nlist nl[3] = {
-	{"_msgbuf"},
-	{"_msgbufp"}
+struct	msgbuf omesg;
+struct	nlist nl[2] = {
+	{ "_msgbuf" },
+	{ "" }
 };
 
 main(argc, argv)
@@ -26,33 +40,43 @@ char **argv;
 {
 	int mem;
 	register char *mp, *omp, *mstart;
-	int samef;
+	int samef, sawnl, ignore;
 
 	if (argc>1 && argv[1][0] == '-') {
 		sflg++;
 		argc--;
 		argv++;
 	}
-	if (sflg)
-		of = open("/usr/adm/msgbuf", 2);
-	read(of, (char *)&omesg, sizeof(omesg));
-	lseek(of, 0L, 0);
+	if (sflg) {
+		of = open("/usr/adm/msgbuf", O_RDWR | O_CREAT, 0644);
+		if (of < 0)
+			done("Can't open /usr/adm/msgbuf\n");
+		read(of, (char *)&omesg, sizeof(omesg));
+		lseek(of, 0L, 0);
+	}
 	sflg = 0;
+#ifdef BSD2_10
 	nlist(argc>2? argv[2]:"/unix", nl);
+#else !BSD2_10
+	nlist(argc>2? argv[2]:"/vmunix", nl);
+#endif BSD2_10
 	if (nl[0].n_type==0)
-		done("No namelist\n");
-	if ((mem = open((argc>1? argv[1]: "/dev/mem"), 0)) < 0)
-		done("No mem\n");
+		done("Can't get kernel namelist\n");
+	if ((mem = open((argc>1? argv[1]: "/dev/kmem"), 0)) < 0)
+		done("Can't read kernel memory\n");
 	lseek(mem, (long)nl[0].n_value, 0);
-	read(mem, msgbuf, MSGBUFS);
-	lseek(mem, (long)nl[1].n_value, 0);
-	read(mem, (char *)&msgbufp, sizeof(msgbufp));
-	if (msgbufp < (char *)nl[0].n_value || msgbufp >= (char *)nl[0].n_value+MSGBUFS)
-		done("Namelist mismatch\n");
-	msgbufp += msgbuf - (char *)nl[0].n_value;
-	mstart = &msgbuf[omesg.omindex];
-	omp = &omesg.omsgbuf[msgbufp-msgbuf];
-	mp = msgbufp;
+	read(mem, &msgbuf, sizeof (msgbuf));
+#ifndef BSD2_10
+	if (msgbuf.msg_magic != MSG_MAGIC)
+		done("Magic number wrong (namelist mismatch?)\n");
+#endif !BSD2_10
+	if (msgbuf.msg_bufx >= MSG_BSIZE)
+		msgbuf.msg_bufx = 0;
+	if (omesg.msg_bufx >= MSG_BSIZE)
+		omesg.msg_bufx = 0;
+	mstart = &msgbuf.msg_bufc[omesg.msg_bufx];
+	omp = &omesg.msg_bufc[msgbuf.msg_bufx];
+	mp = msgbufp = &msgbuf.msg_bufc[msgbuf.msg_bufx];
 	samef = 1;
 	do {
 		if (*mp++ != *omp++) {
@@ -62,21 +86,27 @@ char **argv;
 			printf("...\n");
 			break;
 		}
-		if (mp == &msgbuf[MSGBUFS])
-			mp = msgbuf;
-		if (omp == &omesg.omsgbuf[MSGBUFS])
-			omp = omesg.omsgbuf;
+		if (mp >= &msgbuf.msg_bufc[MSG_BSIZE])
+			mp = msgbuf.msg_bufc;
+		if (omp >= &omesg.msg_bufc[MSG_BSIZE])
+			omp = omesg.msg_bufc;
 	} while (mp != mstart);
-	if (samef && mstart == msgbufp)
+	if (samef && omesg.msg_bufx == msgbuf.msg_bufx)
 		exit(0);
 	mp = mstart;
+	pdate();
+	sawnl = 1;
 	do {
-		pdate();
-		if (*mp)
+		if (sawnl && *mp == '<')
+			ignore = 1;
+		if (*mp && (*mp & 0200) == 0 && !ignore)
 			putchar(*mp);
+		if (ignore && *mp == '>')
+			ignore = 0;
+		sawnl = (*mp == '\n');
 		mp++;
-		if (mp == &msgbuf[MSGBUFS])
-			mp = msgbuf;
+		if (mp >= &msgbuf.msg_bufc[MSG_BSIZE])
+			mp = msgbuf.msg_bufc;
 	} while (mp != msgbufp);
 	done((char *)NULL);
 }
@@ -86,16 +116,11 @@ char *s;
 {
 	register char *p, *q;
 
-	if (s && s!=omesg.omsgflg && sflg==0) {
+	if (s) {
 		pdate();
 		printf(s);
-	}
-	omesg.omsgflg = s;
-	q = omesg.omsgbuf;
-	for (p = msgbuf; p < &msgbuf[MSGBUFS]; )
-		*q++ = *p++;
-	omesg.omindex = msgbufp - msgbuf;
-	write(of, (char *)&omesg, sizeof(omesg));
+	} else if (of != -1)
+		write(of, (char *)&msgbuf, sizeof(msgbuf));
 	exit(s!=NULL);
 }
 

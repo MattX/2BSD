@@ -13,8 +13,12 @@
 %left STAR PLUS QUEST
 
 %{
+static char *sccsid = "@(#)egrep.y	4.4 (Berkeley) 5/29/85";
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#define BLKSIZE 8192
 #define MAXLIN 350
 #define MAXPOS 4000
 #define NCHARS 128
@@ -23,7 +27,7 @@
 char gotofn[NSTATES][NCHARS];
 int state[NSTATES];
 char out[NSTATES];
-int line 1;
+int line = 1;
 int name[MAXLIN];
 int left[MAXLIN];
 int right[MAXLIN];
@@ -32,13 +36,14 @@ int foll[MAXLIN];
 int positions[MAXPOS];
 char chars[MAXLIN];
 int nxtpos;
-int nxtchar 0;
+int nxtchar = 0;
 int tmpstat[MAXLIN];
 int initstat[MAXLIN];
 int xstate;
 int count;
 int icount;
 char *input;
+FILE *exprfile;
 
 long	lnum;
 int	bflag;
@@ -49,16 +54,14 @@ int	nflag;
 int	hflag	= 1;
 int	sflag;
 int	vflag;
+int	retcode = 0;
 int	nfile;
 long	blkno;
 long	tln;
 int	nsucc;
 
 int	f;
-int	fname;
-int	cantopen;
-
-FILE	*ffile;
+char	*fname;
 %}
 
 %%
@@ -164,7 +167,10 @@ yylex() {
 nextch() {
 	register char c;
 	if (fflag) {
-		if ((c = getc(ffile)) == EOF) return(0);
+		if ((c = getc(exprfile)) == EOF) {
+			fclose(exprfile);
+			return(0);
+		}
 	}
 	else c = *input++;
 	return(c);
@@ -465,8 +471,10 @@ out:
 	if (argc<=0)
 		exit(2);
 	if (fflag) {
-		if ((ffile = fopen(fname = *argv, "r")) == NULL) {
-			perror(fname);
+		fname = *argv;
+		exprfile = fopen(fname, "r");
+		if (exprfile == (FILE *)NULL) {
+			fprintf(stderr, "egrep: can't open %s\n", fname);
 			exit(2);
 		}
 	}
@@ -487,10 +495,7 @@ out:
 		execute(*argv);
 		argv++;
 	}
-	if (cantopen)
-		exit(2);
-	else
-		exit(nsucc == 0);
+	exit(retcode != 0 ? retcode : nsucc == 0);
 }
 
 execute(file)
@@ -499,23 +504,38 @@ char *file;
 	register char *p;
 	register cstat;
 	register ccount;
-	char buf[1024];
+	static char *buf;
+	static int blksize;
+	struct stat stb;
 	char *nlp;
 	int istat;
 	if (file) {
 		if ((f = open(file, 0)) < 0) {
-			perror(file);
-			cantopen++;
+			fprintf(stderr, "egrep: can't open %s\n", file);
+			retcode = 2;
+			return;
 		}
 	}
 	else f = 0;
+	if (buf == NULL) {
+		if (fstat(f, &stb) > 0 && stb.st_blksize > 0)
+			blksize = stb.st_blksize;
+		else
+			blksize = BLKSIZE;
+		buf = (char *)malloc(2*blksize);
+		if (buf == NULL) {
+			fprintf(stderr, "egrep: no memory for %s\n", file);
+			retcode = 2;
+			return;
+		}
+	}
 	ccount = 0;
 	lnum = 1;
 	tln = 0;
+	blkno = 0;
 	p = buf;
 	nlp = p;
-	if ((ccount = read(f,p,512))<=0) goto done;
-	blkno = ccount;
+	if ((ccount = read(f,p,blksize))<=0) goto done;
 	istat = cstat = gotofn[0]['\n'];
 	if (out[cstat]) goto found;
 	for (;;) {
@@ -535,11 +555,10 @@ char *file;
 						}
 						else {
 							if (nfile > 1 && hflag) printf("%s:", file);
-							if (bflag) printf("%ld:", (blkno-ccount-1)/512);
-							if (nflag) printf("%5ld:", lnum);
-/*! added 5 before ld for sorting and other purposes PLWard 7/18/80  USGS*/
+							if (bflag) printf("%ld:", blkno);
+							if (nflag) printf("%ld:", lnum);
 							if (p <= nlp) {
-								while (nlp < &buf[1024]) putchar(*nlp++);
+								while (nlp < &buf[2*blksize]) putchar(*nlp++);
 								nlp = buf;
 							}
 							while (nlp < p) putchar(*nlp++);
@@ -551,19 +570,17 @@ char *file;
 				}
 				cfound:
 				if (--ccount <= 0) {
-					if (p <= &buf[512]) {
-						if ((ccount = read(f, p, 512)) <= 0) goto done;
+					if (p <= &buf[blksize]) {
+						if ((ccount = read(f, p, blksize)) <= 0) goto done;
 					}
-					else if (p == &buf[1024]) {
+					else if (p == &buf[2*blksize]) {
 						p = buf;
-						if ((ccount = read(f, p, 512)) <= 0) goto done;
+						if ((ccount = read(f, p, blksize)) <= 0) goto done;
 					}
 					else {
-						if ((ccount = read(f, p, &buf[1024]-p)) <= 0) goto done;
+						if ((ccount = read(f, p, &buf[2*blksize]-p)) <= 0) goto done;
 					}
-					if(nlp>p && nlp<=p+ccount)
-						nlp = p+ccount;
-					blkno += ccount;
+					blkno += ccount / 512;
 				}
 			}
 		}
@@ -577,19 +594,17 @@ char *file;
 		}
 		brk2:
 		if (--ccount <= 0) {
-			if (p <= &buf[512]) {
-				if ((ccount = read(f, p, 512)) <= 0) break;
+			if (p <= &buf[blksize]) {
+				if ((ccount = read(f, p, blksize)) <= 0) break;
 			}
-			else if (p == &buf[1024]) {
+			else if (p == &buf[2*blksize]) {
 				p = buf;
-				if ((ccount = read(f, p, 512)) <= 0) break;
+				if ((ccount = read(f, p, blksize)) <= 0) break;
 			}
 			else {
-				if ((ccount = read(f, p, &buf[1024] - p)) <= 0) break;
+				if ((ccount = read(f, p, &buf[2*blksize] - p)) <= 0) break;
 			}
-			if(nlp>p && nlp<=p+ccount)
-				nlp = p+ccount;
-			blkno += ccount;
+			blkno += ccount / 512;
 		}
 	}
 done:	close(f);

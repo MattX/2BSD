@@ -1,56 +1,97 @@
-.TH PLOT 1G 
+.\"	@(#)plot.1g	6.3 (Berkeley) 9/21/85
+.\"
+.TH PLOT 1G "September 21, 1985"
+.AT 3
 .SH NAME
 plot \- graphics filters
 .SH SYNOPSIS
 .B plot
 [
 .BR \-T terminal
-[ raster ] ]
+] [
+.BR \-r resolution
+]
+[ files... ]
 .SH DESCRIPTION
 These commands read plotting instructions (see
 .IR  plot (5))
-from the standard input,
+from the standard input or the specified
+.IR files ,
 and in general
 produce plotting instructions suitable for
 a particular
 .I terminal
 on the standard output.
+The
+.B \-r
+flag may be used to specify the device's output resolution
+(currently only the Imagen laser printer understands this option).
 .PP
 If no
 .I terminal
 type is specified, the environment parameter $TERM
 (see
-.IR environ (5))
+.IR environ (7))
 is used.
 Known
 .I terminals
 are:
 .TP
-4014
-Tektronix 4014 storage scope.
+.B 4013
+Tektronix 4013 storage scope.
 .TP
-450
+.BR 4014\  or\  tek
+Tektronix 4014 or 4015 storage scope with Enhanced Graphics Module.
+(Use 4013 for Tektronix 4014 or 4015 without the Enhanced Graphics Module).
+.TP
+.B 450
 DASI Hyterm 450 terminal (Diablo mechanism).
 .TP
-300
+.B 300
 DASI 300 or GSI terminal (Diablo mechanism).
 .TP
-300S
+.B 300S
 DASI 300S terminal (Diablo mechanism).
 .TP
-ver
+.B aed
+AED 512 color graphics terminal.
+.TP
+.BR bitgraph\  or\  bg
+BBN bitgraph graphics terminal.
+.TP
+.B imagen\ or\ ip
+Imagen laser printer (default 240 dots-per-inch resolution).
+.TP
+.B crt
+Any crt terminal capable of running
+.IR vi (1).
+.TP
+.B dumb
+Dumb terminals without cursor addressing or line printers.
+.TP
+.B vt125
+DEC vt125 terminal.
+.TP
+.BR hp2648\  or\  hp\  or\  hp8
+Hewlett Packard 2648 graphics terminal.
+.TP
+.B ver
 Versatec D1200A printer-plotter.
-This version of
+.TP
+.B var
+Benson Varian printer-plotter.
+.IP
+These versions of
 .I plot
-places a scan-converted
-image in `/usr/tmp/raster' and sends the
-result directly to the plotter device rather than to
+use the
+.B \-g
+option of
+.IR lpr (1)
+to send the result directly to the plotter device rather than to
 the standard output.
-The optional argument causes a previously
-scan-converted file
-.I raster
-to be sent to the plotter.
 .SH FILES
+/usr/bin/t4013
+.br
 /usr/bin/tek
 .br
 /usr/bin/t450
@@ -59,11 +100,20 @@ to be sent to the plotter.
 .br
 /usr/bin/t300s
 .br
-/usr/bin/vplot
+/usr/bin/aedplot
 .br
-/usr/tmp/raster 
+/usr/bin/bgplot
+.br
+/usr/bin/crtplot
+.br
+/usr/bin/dumbplot
+.br
+/usr/bin/gigiplot
+.br
+/usr/bin/hpplot
+.br
+/usr/bin/implot
+.br
+/usr/ucb/lpr
 .SH "SEE ALSO"
-plot(3X), plot(5)
-.SH BUGS
-There is no lockout protection
-for /usr/tmp/raster.
+plot(3X), plot(3F), plot(5), lpr(1)

@@ -15,7 +15,7 @@
 #include "0.h"
 #include "yy.h"
 
-int	line 1;
+int	line = 1;
 
 /*
  * Yymain initializes each of the utility
@@ -140,7 +140,7 @@ magic2()
 	pflush();
 	lseek(ofil, (long)0, 0);
 	header.data_size = lc - header.txt_size;
-	header.data_size =- 16;
+	header.data_size -= 16;
 	write(ofil, &header, sizeof header);
 	lseek(ofil, (long)1022, 0);
 	i = ((int) lc) - 1024;

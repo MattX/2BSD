@@ -1,6 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
-static	char	*SccsID[] = "@(#)config.c	1.7 5/24/83";
+#ifndef lint
+static char *sccsid = "@(#)config.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 /*
  * This file contains definitions of network data used by Mail
@@ -24,36 +30,7 @@ char	*metanet = "!^:%@.";
  * not all accessible hosts need be here (fortunately).
  */
 struct netmach netmach[] = {
-	"virus",	'V',		BN,
-	"berkeley",	'7',		AN|SN,
-	"a",		'a',		SN,
-	"b",		'b',		SN,
-	"c",		'c',		SN,
-	"d",		'd',		SN,
-	"e",		'e',		SN,
-	"f",		'f',		SN,
-	"g",		'g',		SN,
-	"ingres",	'i',		SN,
-	"ing70",	'i',		SN,
-	"ingvax",	'j',		SN|BN,
-	"vlsi",		'l',		SN,
-	"image",	'm',		SN,
-	"esvax",	'o',		SN,
-	"sesm",		'o',		SN,
-	"ucbcad",	'p',		SN|BN,
-	"q",		'q',		SN,
-	"kim",		'n',		SN,
-	"research",	'R',		BN,
-	"arpavax",	'r',		SN|BN,
-	"src",		's',		SN,
-	"mathstat",	't',		SN,
-	"vax",		'v',		BN|SN,
-	"ucb",		'v',		BN|SN,
-	"ucbvax",	'v',		BN|SN,
-	"onyx",		'x',		SN,
-	"cory",		'y',		SN,
-	"eecs40",	'z',		SN,
-	EMPTY,		EMPTYID,	SN,	/* Filled in dynamically */
+	EMPTY,		EMPTYID,	AN,	/* Filled in dynamically */
 	0,		0,		0
 };
 

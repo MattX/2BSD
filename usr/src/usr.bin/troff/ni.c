@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)ni.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 char obuf[OBUFSZ];
 char *obufp = obuf;

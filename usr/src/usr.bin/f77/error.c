@@ -42,6 +42,10 @@ oops:
 
 	    case FATAL1:
 	    case FATAL:
+		if (buf[0] != '\0') {
+			fprintf(diagfile, buf, t, u);
+			fprintf(diagfile, "\n");
+		}
 		fprintf(diagfile,"f77 compiler error line %d of %s: ", lineno, infname);
 		fprintf(diagfile,buf,t,u);
 		fputc('\n',diagfile);
@@ -96,6 +100,10 @@ register int type;
 
 	    case FATAL1:
 	    case FATAL:
+		if (str != NULL) {
+			fprintf(diagfile, str, t, u);
+			fprintf(diagfile, "\n");
+		}
 		fprintf(diagfile,"f77 compiler error line %d of %s: ", lineno, infname);
 		if(debugflag)
 			abort();

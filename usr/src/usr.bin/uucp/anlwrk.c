@@ -1,5 +1,6 @@
-/* $Header: anlwrk.c,v 1.12 85/05/28 18:29:21 rick Exp $ */
-/* from: @(#)anlwrk.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)anlwrk.c	5.5 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>
@@ -99,7 +100,7 @@ register char *file, **wvec;
 
 
 /*
- *	 build list of work files for given system
+ *	build list of work files for given system
  *
  *	return value - 1 if work was found, else 0
  *

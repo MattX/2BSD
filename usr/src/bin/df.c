@@ -1,232 +1,225 @@
-#ifndef	lint
-static	char *sccsid = "@(#)df.c	4.6 (Berkeley) 7/8/81";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)df.c	5.1 (Berkeley) 4/30/85";
+#endif not lint
+
 #include <sys/param.h>
+#include <sys/fs.h>
+#include <sys/stat.h>
+#include <errno.h>
+
 #include <stdio.h>
 #include <fstab.h>
-#include <sys/filsys.h>
-#include <sys/ino.h>
-#include <sys/fblk.h>
-#include <sys/stat.h>
+#include <mtab.h>
+
 /*
  * df
  */
+struct	mtab mtab[NMOUNT];
+char	root[32];
+char	*mpath();
 
-#define NFS	20	/* Max number of filesystems */
-
-struct {
-	char path[32];
-	char spec[32];
-} mtab[NFS];
-char root[32];
-
-char *mpath();
-
-daddr_t	blkno	= 1;
-
-int	lflag;
 int	iflag;
 
-struct	filsys sblock;
+union {
+	struct fs iu_fs;
+	char dummy[SBSIZE];
+} sb;
+#define sblock sb.iu_fs
 
 int	fi;
 daddr_t	alloc();
+char	*strcpy();
 
 main(argc, argv)
-register char **argv;
+	int argc;
+	char **argv;
 {
-	register i;
+	int i;
 
-	while (argc >= 1 && argv[1][0]=='-') {
-		switch(argv[1][1]) {
-
-		case 'l':
-			lflag++;
-			break;
+	while (argc > 1 && argv[1][0]=='-') {
+		switch (argv[1][1]) {
 
 		case 'i':
 			iflag++;
 			break;
 
 		default:
-			fprintf(stderr, "usage: df [ -il ] [ filsys... ]\n");
+			fprintf(stderr, "usage: df [ -i ] [ filsys... ]\n");
 			exit(0);
 		}
 		argc--, argv++;
 	}
-
-	if ((i=open("/etc/mtab", 0)) >= 0) {
-		read(i, (char *) mtab, sizeof mtab);	/* Probably returns short */
-		close(i);
+	i = open("/etc/mtab", 0);
+	if (i >= 0) {
+		(void) read(i, (char *)mtab, sizeof (mtab));
+		(void) close(i);
 	}
-	printf("Filesystem  Mounted on  kbytes\t  used\t  free");
-	if (lflag)
-		printf("\thardway");
-	printf("\t%% used");
+	sync();
+	printf("Filesystem    kbytes    used   avail capacity");
 	if (iflag)
-		printf("\tiused\tifree\t%%iused");
-	putchar('\n');
-	if(argc <= 1) {
-		struct	fstab	*fsp;
+		printf(" iused   ifree  %%iused");
+	printf("  Mounted on\n");
+	if (argc <= 1) {
+		struct fstab *fsp;
+
 		if (setfsent() == 0)
 			perror(FSTAB), exit(1);
-		while( (fsp = getfsent()) != 0){
-			if (  (strcmp(fsp->fs_type, FSTAB_RW) != 0)
-			    &&(strcmp(fsp->fs_type, FSTAB_RO) != 0) )
+		while (fsp = getfsent()) {
+			if (strcmp(fsp->fs_type, FSTAB_RW) &&
+			    strcmp(fsp->fs_type, FSTAB_RO) &&
+			    strcmp(fsp->fs_type, FSTAB_RQ))
 				continue;
 			if (root[0] == 0)
-				strcpy(root, fsp->fs_spec);
-			dfree(fsp->fs_spec);
+				(void) strcpy(root, fsp->fs_spec);
+			dfree(fsp->fs_spec, 1);
 		}
 		endfsent();
 		exit(0);
 	}
-
-	for(i=1; i<argc; i++) {
-		dfree(argv[i]);
-	}
+	for (i=1; i<argc; i++)
+		dfree(argv[i], 0);
 }
 
-dfree(file)
-char *file;
+dfree(file, infsent)
+	char *file;
+	int infsent;
 {
-	long	blocks;
-	long	free;
-	long	used;
-	long	hardway;
-	char	*mp;
-	struct	stat stbuf;
+	long totalblks, availblks, avail, free, used;
+	struct stat stbuf;
+	struct fstab *fsp;
 
-	if(stat(file, &stbuf) == 0 && (stbuf.st_mode&S_IFMT) != S_IFCHR
-	  && (stbuf.st_mode&S_IFMT) != S_IFBLK) {
-		int mt = open("/etc/mtab", 0), len;
-		char *str = "/dev/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-		char mountedon[32];
-		struct stat mstbuf;
-		while((len = read(mt, mountedon, 32)) == 32) {
-			read(mt, &str[5], 32);
-			if(stat(str, &mstbuf) == 0 && mstbuf.st_rdev == stbuf.st_dev) {
-				file = str;
-				break;
-			}
-		}
-		close(mt);
-		if(len == 0) {
-			fprintf(stderr, "%s: mounted on unknown device\n", file);
+	if (stat(file, &stbuf) == 0 &&
+	    (stbuf.st_mode&S_IFMT) != S_IFCHR &&
+	    (stbuf.st_mode&S_IFMT) != S_IFBLK) {
+		if (infsent) {
+			fprintf(stderr, "%s: screwy /etc/fstab entry\n", file);
 			return;
 		}
-	}
-	fi = open(file, 0);
-	if(fi < 0) {
-		fprintf(stderr,"cannot open %s\n", file);
+		setfsent();
+		while (fsp = getfsent()) {
+			struct stat stb;
+
+			if (stat(fsp->fs_spec, &stb) == 0 &&
+			    stb.st_rdev == stbuf.st_dev) {
+				file = fsp->fs_spec;
+				endfsent();
+				goto found;
+			}
+		}
+		endfsent();
+		fprintf(stderr, "%s: mounted on unknown device\n", file);
 		return;
 	}
-	if (lflag)
-		sync();
-	bread(1L, (char *)&sblock, sizeof(sblock));
-	printf("%-12.12s%s", file, mp = mpath(file));
-	if (strlen(mp) < 4)
-		putchar('\t');
-
-	blocks = (long) sblock.s_fsize - (long)sblock.s_isize;
-	free = sblock.s_tfree;
-	used = blocks - free;
-
-	printf("\t%6ld", blocks);
-	printf("\t%6ld", used);
-	printf("\t%6ld", free);
-	if (lflag) {
-		hardway = 0;
-		while(alloc())
-			hardway++;
-		printf("\t%6ld", free=hardway);
+found:
+	fi = open(file, 0);
+	if (fi < 0) {
+		perror(file);
+		return;
 	}
-	printf("\t%5.0f%%", 
-	    blocks == 0L ? 0.0 : (double) used / (double)blocks * 100.0);
+	if (bread(SBLOCK, (char *)&sblock, SBSIZE) == 0) {
+		(void) close(fi);
+		return;
+	}
+	printf("%-12.12s", file);
+#ifdef BSD2_10
+	totalblks = (long) sblock.fs_fsize - (long)sblock.fs_isize;
+	free = sblock.fs_tfree;
+	used = totalblks - free;
+	printf("%8ld%8ld%8ld%6.0f%%", totalblks, used, free,
+	    totalblks == 0L ? 0.0 : (double) used / (double)totalblks * 100.0);
 	if (iflag) {
-		long inodes = ((long) (sblock.s_isize - 2)) * ((long) INOPB);
-		used = (double) (inodes - (long) sblock.s_tinode);
-		printf("\t%5ld\t%5d\t%5.0f%%", used, sblock.s_tinode, 
-		    inodes == 0L ? 0.0 : (double)used/(double)inodes*100.0);
-	}
-	printf("\n");
-	close(fi);
+		u_short	inodes = (sblock.fs_isize - 2) * INOPB,
+			iused = inodes - sblock.fs_tinode;
+		printf("%8u%8u%7.0f%%", iused, sblock.fs_tinode,
+		    inodes ? (float)iused / (float)inodes * 100.0 : 0.0);
+#else !BSD2_10
+	totalblks = sblock.fs_dsize;
+	free = sblock.fs_cstotal.cs_nbfree * sblock.fs_frag +
+	    sblock.fs_cstotal.cs_nffree;
+	used = totalblks - free;
+	availblks = totalblks * (100 - sblock.fs_minfree) / 100;
+	avail = availblks > used ? availblks - used : 0;
+	printf("%8d%8d%8d", totalblks * sblock.fs_fsize / 1024,
+	    used * sblock.fs_fsize / 1024, avail * sblock.fs_fsize / 1024);
+	printf("%6.0f%%",
+	    availblks == 0 ? 0.0 : (double) used / (double) availblks * 100.0);
+	if (iflag) {
+		int inodes = sblock.fs_ncg * sblock.fs_ipg;
+		used = inodes - sblock.fs_cstotal.cs_nifree;
+		printf("%8ld%8ld%6.0f%% ", used, sblock.fs_cstotal.cs_nifree,
+		    inodes == 0 ? 0.0 : (double)used / (double)inodes * 100.0);
+#endif BSD2_10
+	} else 
+		printf("  ");
+	printf("  %s\n", mpath(file));
+	(void) close(fi);
 }
 
-daddr_t
-alloc()
-{
-	int i;
-	daddr_t b;
-	struct fblk buf;
-
-	i = --sblock.s_nfree;
-	if(i<0 || i>=NICFREE) {
-		printf("bad free count, b=%D\n", blkno);
-		return(0);
-	}
-	b = sblock.s_free[i];
-	if(b == 0)
-		return(0);
-	if(b<sblock.s_isize || b>=sblock.s_fsize) {
-		printf("bad free block (%D)\n", b);
-		return(0);
-	}
-	if(sblock.s_nfree <= 0) {
-		bread(b, (char *)&buf, sizeof(buf));
-		blkno = b;
-		sblock.s_nfree = buf.df_nfree;
-		for(i=0; i<NICFREE; i++)
-			sblock.s_free[i] = buf.df_free[i];
-	}
-	return(b);
-}
+long lseek();
 
 bread(bno, buf, cnt)
-daddr_t bno;
-char *buf;
+	daddr_t bno;
+	char *buf;
 {
 	int n;
 	extern errno;
 
-	lseek(fi, bno<<BSHIFT, 0);
-	if((n=read(fi, (char *) buf, cnt)) != cnt) {
-		printf("\nread error bno = %ld\n", bno);
-		printf("count = %d; errno = %d\n", n, errno);
-		exit(0);
+	(void) lseek(fi, (long)(bno * DEV_BSIZE), 0);
+	if ((n=read(fi, buf, cnt)) != cnt) {
+		/* probably a dismounted disk if errno == EIO */
+		if (errno != EIO) {
+			printf("\nread error bno = %ld\n", bno);
+			printf("count = %d; errno = %d\n", n, errno);
+		}
+		return (0);
 	}
+	return (1);
 }
 
 /*
  * Given a name like /dev/rrp0h, returns the mounted path, like /usr.
  */
-char *mpath(file)
-char *file;
+char *
+mpath(file)
+	char *file;
 {
-	register int i;
+	register struct mtab *mp;
 
 	if (eq(file, root))
-		return "/";
-	for (i=0; i<NFS; i++)
-		if (eq(file, mtab[i].spec))
-			return mtab[i].path;
+		return ("/");
+	for (mp = mtab; mp < mtab + NMOUNT; mp++)
+		if (eq(file, mp->m_dname))
+			return (mp->m_path);
 	return "";
 }
 
 eq(f1, f2)
-char *f1, *f2;
+	char *f1, *f2;
 {
+
 	if (strncmp(f1, "/dev/", 5) == 0)
 		f1 += 5;
 	if (strncmp(f2, "/dev/", 5) == 0)
 		f2 += 5;
-	if (strcmp(f1, f2) == 0)
-		return 1;
-	if (*f1 == 'r' && strcmp(f1+1, f2) == 0)
-		return 1;
-	if (*f2 == 'r' && strcmp(f1, f2+1) == 0)
-		return 1;
+	if (!strcmp(f1, f2))
+		return (1);
+	if (*f1 == 'r' && !strcmp(f1+1, f2))
+		return (1);
+	if (*f2 == 'r' && !strcmp(f1, f2+1))
+		return (1);
 	if (*f1 == 'r' && *f2 == 'r' && strcmp(f1+1, f2+1) == 0)
-		return 1;
-	return 0;
+		return (1);
+	return (0);
 }

@@ -1,7 +1,19 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)headers.c	5.7 (Berkeley) 9/21/85";
+#endif
+
 # include <errno.h>
 # include "sendmail.h"
-
-SCCSID(@(#)headers.c	4.3		8/21/83);
 
 /*
 **  CHOMPHEADER -- process and save a header line.
@@ -98,9 +110,8 @@ chompheader(line, def)
 		p += 7;
 	if (!def && !QueueRun && strcmp(fname, p) == 0)
 	{
-		ADDRESS fromaddr;
-
-		if (strcmp(fvalue, CurEnv->e_from.q_paddr) == 0)
+		if (CurEnv->e_from.q_paddr != NULL &&
+		    strcmp(fvalue, CurEnv->e_from.q_paddr) == 0)
 			return (hi->hi_flags);
 	}
 
@@ -118,7 +129,7 @@ chompheader(line, def)
 	h->h_field = newstr(fname);
 	h->h_value = NULL;
 	h->h_link = NULL;
-	bcopy(mopts, h->h_mflags, sizeof mopts);
+	bcopy((char *) mopts, (char *) h->h_mflags, sizeof mopts);
 	*hp = h;
 	h->h_flags = hi->hi_flags;
 	if (def)
@@ -325,7 +336,9 @@ eatheader(e)
 	if (p != NULL)
 		e->e_class = priencode(p);
 	if (!QueueRun)
-		e->e_msgpriority = e->e_msgsize - e->e_class * WKPRIFACT;
+		e->e_msgpriority = e->e_msgsize
+				 - e->e_class * WkClassFact
+				 + e->e_nrcpts * WkRecipFact;
 
 	/* return receipt to */
 	p = hvalue("return-receipt-to");
@@ -459,7 +472,7 @@ crackaddr(addr)
 		printf("crackaddr(%s)\n", addr);
 # endif DEBUG
 
-	strcpy(buf, "");
+	(void) strcpy(buf, "");
 	rhs = NULL;
 
 	/* strip leading spaces */
@@ -476,8 +489,8 @@ crackaddr(addr)
 	{
 		/* copy the beginning of the addr field to the buffer */
 		*p = '\0';
-		strcpy(buf, addr);
-		strcat(buf, "<");
+		(void) strcpy(buf, addr);
+		(void) strcat(buf, "<");
 		*p++ = '<';
 
 		/* skip spaces */
@@ -556,7 +569,7 @@ crackaddr(addr)
 			*bp++ = *p;
 		else if (!gotaddr)
 		{
-			strcpy(bp, "$g");
+			(void) strcpy(bp, "\001g");
 			bp += 2;
 			gotaddr = TRUE;
 		}
@@ -573,7 +586,7 @@ crackaddr(addr)
 	if (rhs != NULL)
 	{
 		*rhs = '>';
-		strcpy(bp, rhs);
+		(void) strcpy(bp, rhs);
 	}
 
 # ifdef DEBUG
@@ -732,10 +745,11 @@ commaize(h, p, fp, oldstyle, m)
 		for (;;)
 		{
 			char *oldp;
+			char pvpbuf[PSBUFSIZE];
 			extern bool isatword();
 			extern char **prescan();
 
-			(void) prescan(p, oldstyle ? ' ' : ',');
+			(void) prescan(p, oldstyle ? ' ' : ',', pvpbuf);
 			p = DelimChar;
 
 			/* look to see if we have an at sign */

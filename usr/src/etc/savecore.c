@@ -7,8 +7,8 @@
 #include	<a.out.h>
 #include	<sys/dir.h>
 #include	<sys/stat.h>
-#include	<sys/filsys.h>
-#include	<time.h>
+#include	<sys/fs.h>
+#include	<sys/time.h>
 
 #ifdef	pdp11
 #define	CLICK	ctob(1)		/* size of core units */
@@ -36,7 +36,7 @@ struct nlist nl[] = {
 #define	X_PHYSMEM	4
 	{ "_physmem" },
 #define	X_BOOTIME	5
-	{ "_bootime" },
+	{ "_boottim" },
 #define	X_VERSION	6
 	{ "_version" },
 	{ 0 },
@@ -48,7 +48,7 @@ char	*ddname;			/* name of dump device */
 char	*find_dev();
 dev_t	dumpdev;			/* dump device */
 time_t	dumptime;			/* time the dump was taken */
-time_t	bootime;			/* time we were rebooted */
+time_t	boottime;			/* time we were rebooted */
 daddr_t	dumplo;				/* where dump starts on dumpdev */
 size_t	physmem;			/* amount of memory in machine */
 time_t	now;				/* current date */
@@ -99,17 +99,17 @@ find_dev(dev, type)
 	register dev_t dev;
 	register int type;
 {
-	register int dfd = Open("/dev", 0);
-	struct direct dir;
+	register DIR *dfd = opendir("/dev");
+	struct direct *dir;
 	struct stat statb;
 	static char devname[MAXNAMLEN + 6];
 	char *dp;
 
 	strcpy(devname, "/dev/");
-	while(Read(dfd, (char *)&dir, sizeof dir) > 0) {
-		if (dir.d_ino == 0)
+	while(dir = readdir(dfd)) {
+		if (dir->d_ino == 0)
 			continue;
-		strncpy(devname + 5, dir.d_name, MAXNAMLEN);
+		strncpy(devname + 5, dir->d_name, MAXNAMLEN);
 		devname[MAXNAMLEN + 5] = '\0';
 		if (stat(devname, &statb)) {
 			perror(devname);
@@ -118,13 +118,13 @@ find_dev(dev, type)
 		if ((statb.st_mode&S_IFMT) != type)
 			continue;
 		if (dev == statb.st_rdev) {
-			close(dfd);
-			dp = malloc(strlen(devname)+1);
+			closedir(dfd);
+			dp = (char *)malloc(strlen(devname)+1);
 			strcpy(dp, devname);
 			return (dp);
 		}
 	}
-	close(dfd);
+	closedir(dfd);
 	if (debug)
 		fprintf(stderr, "Can't find device %d,%d\n",
 			major(dev), minor(dev));
@@ -177,9 +177,9 @@ read_kmem()
 	Read(kmem, (char *)&physmem, sizeof physmem);
 	if (nl[X_BOOTIME].n_value != 0) {
 		Lseek(kmem, (long)nl[X_BOOTIME].n_value, 0);
-		Read(kmem, (char *)&bootime, sizeof bootime);
+		Read(kmem, (char *)&boottime, sizeof boottime);
 	}
-	dumplo *= (long)PGSIZE;
+	dumplo *= (long)NBPG;
 	ddname = find_dev(dumpdev, S_IFBLK);
 	if (ddname == NULL)
 		return(0);
@@ -249,9 +249,12 @@ get_crashtime()
 	}
 	if (dumptime > now) {
 		printf("Time was lost: was %s\n", ctime(&now));
-		if (bootime != 0) {
-			now = now - bootime + dumptime;
-			if (stime(&now) == 0)
+		if (boottime != 0) {
+			struct timeval	tp;
+			now = now - boottime + dumptime;
+			tp.tv_sec = now;
+			tp.tv_usec = 0;
+			if (settimeofday(&tp,(struct timezone *)NULL))
 			    printf("\t-- resetting clock to %s\n", ctime(&now));
 		}
 	}
@@ -275,7 +278,7 @@ check_space()
 	struct stat dsb;
 	register char *ddev;
 	register int dfd;
-	struct filsys sblk;
+	struct fs sblk;
 
 	if (stat(dirname, &dsb) < 0) {
 		perror(dirname);
@@ -283,10 +286,10 @@ check_space()
 	}
 	ddev = find_dev(dsb.st_dev, S_IFBLK);
 	dfd = Open(ddev, 0);
-	Lseek(dfd, (long)SUPERB*BSIZE, 0);
+	Lseek(dfd, (long)SUPERB*DEV_BSIZE, 0);
 	Read(dfd, (char *)&sblk, sizeof sblk);
 	close(dfd);
-	if (read_number("minfree") > sblk.s_tfree) {
+	if (read_number("minfree") > sblk.fs_tfree) {
 		fprintf(stderr, "Dump omitted, not enough space on device\n");
 		return (0);
 	}
@@ -340,10 +343,13 @@ save_core()
 		Write(ofd, cp, n);
 		physmem -= n/CLICK;
 	}
-#ifdef	pdp11
+#ifdef notdef
 	/*
-	 *  Copy the saved registers from their current location to location 4
-	 *  (where a tape dump would have put them).
+	 * Copy the saved registers from their current location to location 4
+	 * (where a tape dump would have put them).
+	 *
+	 * Update: we always save in 0300 now; adb and the kernel have been
+	 * fixed.  Casey Leedom
 	 */
 	Lseek(ifd, (off_t)dumplo+REGLOC, 0);
 	Lseek(ofd, (off_t) 4, 0);

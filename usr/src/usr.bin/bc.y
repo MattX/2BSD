@@ -1,4 +1,5 @@
 %{
+static	char *sccsid = "@(#)bc.y	4.3 (Berkeley) 85/11/28";
 	int *getout();
 %}
 %right '='
@@ -290,7 +291,7 @@ constant:
 
 CRS	:
 		={ $$ = cp; *cp++ = crs++; *cp++ = '\0';
-			if(crs == '[')crs=+3;
+			if(crs == '[')crs+=3;
 			if(crs == 'a')crs='{';
 			if(crs >= 0241){yyerror("program too big");
 				getout();
@@ -405,8 +406,8 @@ restart:
 		default:   return( '=' );
 			  gotit:     peekc = -1; return(c);
 		  }
-	case '+':	return( cpeek( '+', INCR, '+' ) );
-	case '-':	return( cpeek( '-', DECR, '-' ) );
+	case '+':	return( cpeek( '+', INCR, cpeek( '=', EQPL, '+') ) );
+	case '-':	return( cpeek( '-', DECR, cpeek( '=', EQMI, '-') ) );
 	case '<':	return( cpeek( '=', LE, '<' ) );
 	case '>':	return( cpeek( '=', GE, '>' ) );
 	case '!':	return( cpeek( '=', NE, '!' ) );
@@ -417,7 +418,17 @@ restart:
 			peekc = -1;
 			goto restart;
 		}
+		else if (peekc == '=') {
+			c=EQDIV;
+			goto gotit;
+		}
 		else return(c);
+	case '*':
+		return( cpeek( '=', EQMUL, '*' ) );
+	case '%':
+		return( cpeek( '=', EQREM, '%' ) );
+	case '^':
+		return( cpeek( '=', EQEXP, '^' ) );
 	case '"':	
 		 yylval = str;
 		 while((c=getch()) != '"'){*str++ = c;
@@ -463,7 +474,7 @@ loop:
 int b_space [ b_sp_max ];
 int * b_sp_nxt = { b_space };
 
-int	bdebug = 0;
+int bdebug = 0;
 bundle(a){
 	int i, *p, *q;
 
@@ -538,8 +549,10 @@ yyinit(argc,argv) int argc; char *argv[];{
 	sargv=argv;
 	sargc= -- argc;
 	if(sargc == 0)in=stdin;
-	else if((in = fopen(sargv[1],"r")) == NULL)
+	else if((in = fopen(sargv[1],"r")) == NULL) {
 		yyerror("cannot open input file");
+		in = stdin;
+	}
 	ifile = 1;
 	ln = 0;
 	ss = sargv[1];

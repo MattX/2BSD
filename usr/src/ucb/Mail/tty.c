@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)tty.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 /*
  * Mail -- a mail program
@@ -7,8 +15,6 @@
  */
 
 #include "rcv.h"
-
-static char *SccsId = "@(#)tty.c	2.5 6/12/83";
 
 static	int	c_erase;		/* Current erase char */
 static	int	c_kill;			/* Current kill char */
@@ -21,6 +27,10 @@ static	int	ttyset;			/* We must now do erase/kill */
 /*
  * Read all relevant header fields.
  */
+
+#ifdef BSD2_10
+int ttycont(), signull();
+#endif
 
 grabh(hp, gflags)
 	struct header *hp;
@@ -154,6 +164,7 @@ readtty(pr, src)
 # ifdef VMUNIX
 	sigset(SIGCONT, ttycont);
 # endif VMUNIX
+	clearerr(stdin);
 	while (cp2 < canonb + BUFSIZ) {
 		c = getc(stdin);
 		if (c == EOF || c == '\n')
@@ -216,7 +227,6 @@ ttycont(s)
 {
 
 	hadcont++;
-	sigrelse(SIGCONT);
 	longjmp(rewrite, 1);
 }
 # endif VMUNIX

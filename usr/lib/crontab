@@ -1,4 +1,9 @@
-0,30	*	*	*	*	/etc/dmesg - >>/usr/adm/messages
-0,5,10,15,20,25,30,35,40,45,50,55 * * * * /usr/lib/atrun
-20	1	*	*	*	/usr/bin/calendar -
-0	4	*	*	*	/usr/ucb/catman
+0,10,20,30,40,50 * * * *	root	/etc/dmesg - >> /usr/adm/messages
+0,15,30,45 * * * *	root /usr/lib/atrun
+00 1 * * *	daemon	/usr/new/lib/news/daily
+0 0 * * *	uucp	/usr/local/lib/uucp.daily
+7 5,12,18 * * *	uucp	/usr/local/lib/uucp.6hours
+0 2 * * *	root	/bin/sh /usr/adm/daily 2>&1 | mail root
+30 3 * * 6	root	/bin/sh /usr/adm/weekly 2>&1 | mail root
+30 5 1 * *	root	/bin/sh /usr/adm/monthly 2>&1 | mail root
+0,30 * * * *	root	/usr/lib/sendmail -q

@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.init.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.init.c	5.2 (Berkeley) 6/6/85";
+#endif
 
 #include "sh.local.h"
 
@@ -29,12 +37,14 @@ extern	int doif();
 extern	int dojobs();
 extern	int dokill();
 extern	int dolet();
-#ifdef	LIMIT
+#ifndef NOLIMITS
 extern	int dolimit();
 #endif
 extern	int dologin();
 extern	int dologout();
+#ifdef NEWGRP
 extern	int donewgrp();
+#endif
 extern	int donice();
 extern	int donotify();
 extern	int donohup();
@@ -50,7 +60,7 @@ extern	int dosuspend();
 extern	int doswbrk();
 extern	int doswitch();
 extern	int dotime();
-#ifdef	LIMIT
+#ifndef NOLIMITS
 extern	int dounlimit();
 #endif
 extern	int doumask();
@@ -78,9 +88,7 @@ struct	biltins {
 } bfunc[] = {
 	"@",		dolet,		0,	INF,
 	"alias",	doalias,	0,	INF,
-#ifdef debug
 	"alloc",	showall,	0,	1,
-#endif
 	"bg",		dobg,		0,	INF,
 	"break",	dobreak,	0,	0,
 	"breaksw",	doswbrk,	0,	0,
@@ -115,12 +123,14 @@ struct	biltins {
 	"if",		doif,		1,	INF,
 	"jobs",		dojobs,		0,	1,
 	"kill",		dokill,		1,	INF,
-#ifdef	LIMIT
+#ifndef NOLIMITS
 	"limit",	dolimit,	0,	3,
 #endif
 	"login",	dologin,	0,	1,
 	"logout",	dologout,	0,	0,
+#ifdef NEWGRP
 	"newgrp",	donewgrp,	1,	1,
+#endif
 	"nice",		donice,		0,	INF,
 	"nohup",	donohup,	0,	INF,
 	"notify",	donotify,	0,	INF,
@@ -133,9 +143,9 @@ struct	biltins {
 	"rehash",	dohash,		0,	0,
 	"repeat",	dorepeat,	2,	INF,
 	"set",		doset,		0,	INF,
-	"setenv",	dosetenv,	2,	2,
+	"setenv",	dosetenv,	0,	2,
 	"shift",	shift,		0,	1,
-	"source",	dosource,	1,	1,
+	"source",	dosource,	1,	2,
 	"stop",		dostop,		1,	INF,
 	"suspend",	dosuspend,	0,	0,
 	"switch",	doswitch,	1,	INF,
@@ -143,15 +153,15 @@ struct	biltins {
 	"umask",	doumask,	0,	1,
 	"unalias",	unalias,	1,	INF,
 	"unhash",	dounhash,	0,	0,
-#ifdef	LIMIT
+#ifndef NOLIMITS
 	"unlimit",	dounlimit,	0,	INF,
 #endif
 	"unset",	unset,		1,	INF,
 	"unsetenv",	dounsetenv,	1,	INF,
 	"wait",		dowait,		0,	0,
 	"while",	dowhile,	1,	INF,
-	0,		0,		0,	0,
 };
+int nbfunc = sizeof bfunc / sizeof *bfunc;
 
 #define	ZBREAK		0
 #define	ZBRKSW		1
@@ -194,8 +204,8 @@ struct srch {
 	"set",		ZSET,
 	"switch",	ZSWITCH,
 	"while",	ZWHILE,
-	0,		0,
 };
+int nsrchn = sizeof srchn / sizeof *srchn;
 
 struct	mesg {
 	char	*iname;
@@ -217,21 +227,21 @@ struct	mesg {
 	"PIPE",	"Broken pipe",
 	"ALRM",	"Alarm clock",
 	"TERM",	"Terminated",
-	0,	"Signal 16",
+	"URG",	"Urgent I/O condition",
 	"STOP",	"Stopped (signal)",
 	"TSTP",	"Stopped",
 	"CONT",	"Continued",
 	"CHLD",	"Child exited",
 	"TTIN", "Stopped (tty input)",
 	"TTOU", "Stopped (tty output)",
-	"TINT", "Tty input interrupt",
+	"IO",	"I/O possible",
 	"XCPU",	"Cputime limit exceeded",
 	"XFSZ", "Filesize limit exceeded",
-	0,	"Signal 26",
-	0,	"Signal 27",
-	0,	"Signal 28",
+	"VTALRM","Virtual timer expired",
+	"PROF",	"Profiling timer expired",
+	"WINCH","Window size changed",
 	0,	"Signal 29",
-	0,	"Signal 30",
-	0,	"Signal 31",
+	"USR1",	"User defined signal 1",
+	"USR2",	"User defined signal 2",
 	0,	"Signal 32"
 };

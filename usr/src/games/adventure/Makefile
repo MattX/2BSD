@@ -1,22 +1,20 @@
-#	Makefile	4.2	82/10/24
+#	Makefile	4.3	85/09/07
 
 DESTDIR=
+SEPFLAG= -i
 CFILES=	done.c init.c io.c main.c save.c subr.c vocab.c wizard.c
 OBJS=	done.o init.o io.o main.o save.o subr.o vocab.o wizard.o
 HFILES = hdr.h
 SRCS = $(CFILES) $(HFILES) glorkz
-CFLAGS=	-O -Dpdp11
-LDFLAGS=-i	# should be -i on small machines, -n on a vax
+CFLAGS=	-O
+LDFLAGS=-n	# should be -i on small machines, -n on a vax
 
 advent:	a.out
 	rm -f advent
 	echo y | ./a.out
 
 a.out: ${OBJS}
-	${CC} ${LDFLAGS} ${CFLAGS} ${OBJS}
-
-main.o:	main.c	# not enough room on pdp11
-	cc -c main.c
+	${CC} ${SEPFLAG} ${LDFLAGS} ${CFLAGS} ${OBJS}
 
 save.o:	save.c	# vax C optimizer bug - infinite loop
 	cc -c save.c
@@ -25,7 +23,7 @@ save.o:	save.c	# vax C optimizer bug - infinite loop
 okplay.o: /tmp
 
 install: advent
-	install advent ${DESTDIR}/usr/games/adventure
+	install -s advent ${DESTDIR}/usr/games/adventure
 #	cp okplay /usr/games/adventure
 #	cp advsaver /usr/games/lib
 #	dd if=/usr/games/lib/adventure of=/usr/games/lib/advheader bs=1 count=16
@@ -38,7 +36,7 @@ install: advent
 #	rm advent a.out okplay 
 
 okplay: okplay.c
-	${CC} ${CFLAGS} -o okplay okplay.c
+	${CC} ${SEPFLAG} ${CFLAGS} -o okplay okplay.c
 
 advsaver: advsaver.s
 	${AS} -o advsaver advsaver.s

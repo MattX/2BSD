@@ -24,6 +24,7 @@ csh(1) history: print history event list.
 csh(1) if: conditional statement.
 csh(1) jobs: print current job list.
 csh(1) kill: kill jobs and processes.
+csh(1) limit: alter per-process resource limitations.
 csh(1) login: login new user.
 csh(1) logout: end session.
 csh(1) nice: run low priority process.
@@ -45,6 +46,7 @@ csh(1) time: time command.
 csh(1) umask: change or display file creation mask.
 csh(1) unalias: remove aliases.
 csh(1) unhash: discard command hash table.
+csh(1) unlimit: remove resource limitiations.
 csh(1) unsetenv: remove environment variables.
 csh(1) unset: discard shell variables.
 csh(1) wait: wait for background processes to complete.

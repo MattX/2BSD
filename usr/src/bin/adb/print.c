@@ -1,12 +1,8 @@
-#
 /*
- *
- *      UNIX debugger
- *
+ * adb: UNIX debugger
  */
 
 #include "defs.h"
-
 
 MSG             LONGFIL;
 MSG             NOTOPEN;
@@ -37,7 +33,7 @@ L_INT           localval;
 /* breakpoints */
 BKPTR           bkpthead;
 
-REGLIST reglist [] {
+REGLIST reglist [] = {
 		"ps", RPS,
 		"pc", PC,
 		"sp", R6,
@@ -59,8 +55,8 @@ REGLIST kregs[] = {
 		"r0", KR0
 };
 
-STRING  ovname  "ov";   /* not in reglist (not from kernel stack) */
-INT             frnames[] { 0, 3, 4, 5, 1, 2 };
+STRING  ovname  = "ov";   /* not in reglist (not from kernel stack) */
+INT             frnames[] = { 0, 3, 4, 5, 1, 2 };
 
 char            lastc;
 POS             corhdr[];
@@ -82,37 +78,6 @@ L_INT           cntval;
 INT             cntflg;
 int             overlay;
 
-STRING          signals[] {
-		"",
-		"hangup",
-		"interrupt",
-		"quit",
-		"illegal instruction",
-		"trace/BPT",
-		"IOT",
-		"EMT",
-		"floating exception",
-		"killed",
-		"bus error",
-		"memory fault",
-		"bad system call",
-		"broken pipe",
-		"alarm call",
-		"terminated",
-		"urgent condition",
-#ifdef  MENLO_JCL
-		"stopped (signal)",
-		"stopped from tty",
-		"continued",            /* adb should never see this */
-		"child stopped",
-		"stopped (input)",
-		"stopped (output)",
-		"input available"
-#endif
-};
-
-int     nsig = sizeof(signals)/sizeof(signal[0]);
-
 
 /* general printing routines ($) */
 
@@ -123,6 +88,7 @@ printtrace(modif)
 	REG BKPTR       bkptr;
 	CHAR            hi, lo;
 	INT             word;
+	INT		stack;
 	STRING          comptr;
 	L_INT           argp, frame, link;
 	SYMPTR          symp;
@@ -133,34 +99,65 @@ printtrace(modif)
 	switch (modif) {
 
 	    case '<':
+			IF cntval == 0
+			THEN	WHILE readchar() != EOR
+				DO OD
+				lp--;
+				break;
+			FI
+			IF rdc() == '<'
+			THEN	stack = 1;
+			ELSE	stack = 0; lp--;
+			FI
+			/* fall thru ... */
 	    case '>':
-		{CHAR           file[64];
-		INT             index;
+		{
+			CHAR		file[64];
+			CHAR		Ifile[128];
+			extern CHAR	*Ipath;
+			INT             index;
 
-		index=0;
-		IF modif=='<'
-		THEN    iclose();
-		ELSE    oclose();
-		FI
-		IF rdc()!=EOR
-		THEN    REP file[index++]=lastc;
-			    IF index>=63 THEN error(LONGFIL); FI
-			PER readchar()!=EOR DONE
-			file[index]=0;
-			IF modif=='<'
-			THEN    infile=open(file,0);
-				IF infile<0
-				THEN    infile=0; error(NOTOPEN);
+			index=0;
+			IF rdc()!=EOR
+			THEN    REP file[index++]=lastc;
+				    IF index>=63 THEN error(LONGFIL); FI
+				PER readchar()!=EOR DONE
+				file[index]=0;
+				IF modif=='<'
+				THEN	IF Ipath THEN
+						strcpy(Ifile, Ipath);
+						strcat(Ifile, "/");
+						strcat(Ifile, file);
+					FI
+					IF strcmp(file, "-") != 0
+					THEN	iclose(stack, 0);
+						infile=open(file,0);
+						IF infile<0
+						THEN	infile = open(Ifile, 0);
+						FI
+					ELSE	lseek(infile, 0L, 0);
+					FI
+					IF infile<0
+					THEN    infile=0; error(NOTOPEN);
+					ELSE	IF cntflg
+						THEN var[9] = cntval;
+						ELSE var[9] = 1;
+						FI
+					FI
+				ELSE    oclose();
+					outfile=open(file,1);
+					IF outfile<0
+					THEN    outfile=creat(file,0644);
+					ELSE    lseek(outfile,0L,2);
+					FI
 				FI
-			ELSE    outfile=open(file,1);
-				IF outfile<0
-				THEN    outfile=creat(file,0644);
-				ELSE    lseek(outfile,0L,2);
+
+			ELSE	IF modif == '<'
+				THEN	iclose(-1, 0);
+				ELSE	oclose();
 				FI
 			FI
-
-		FI
-		lp--;
+			lp--;
 		}
 		break;
 
@@ -218,6 +215,7 @@ printtrace(modif)
 		callpc=(adrflg?get(frame+2,DSP):(kernel?(-2):uar0[PC]));
 		WHILE cntval--
 		DO      chkerr();
+ 			printf("%07O: ", frame); /* Add frame address info */
 			narg = findroutine(frame);
 			printf("%.8s(", symbol.symc);
 			argp = frame+4;
@@ -228,7 +226,20 @@ printtrace(modif)
 			DO      argp += 2;
 				printf(",%o", get(argp, DSP));
 			OD
-			prints(")\n");
+ 			/* Add return-PC info.  Force printout of
+ 			 * symbol+offset (never just a number! ) by using
+ 			 * max possible offset.  Overlay has already been set
+ 			 * properly by findfn.
+ 			 */
+ 			prints(") return-pc ");
+ 			{
+				INT savmaxoff = maxoff;
+
+ 				maxoff = ((unsigned)-1)>>1;
+ 				psymoff((L_INT)callpc,ISYM,"");
+ 				maxoff = savmaxoff;
+ 			}
+ 			prints("\n");
 
 			IF modif=='C'
 			THEN WHILE localsym(frame)
@@ -240,7 +251,7 @@ printtrace(modif)
 
 			lastframe=frame;
 			frame=get(frame, DSP)&EVEN;
-			IF kernel? ((unsigned)frame>((unsigned)0140000+ctob(USIZE))):
+			IF kernel? ((u_int)frame>((u_int)0140000+ctob(USIZE))):
 			    (frame==0)
 				THEN break; FI
 		OD
@@ -347,10 +358,10 @@ printfregs(longpr)
 	L_REAL f;
 	struct Lfp *pfp;
 
-	pfp = (struct Lfp *)&(struct user *)corhdr->u_fpsr;
+	pfp = (struct Lfp *)&((U*)corhdr)->u_fps.u_fpsr;
 	printf("fpsr\t%o\n", pfp->fpsr);
 	FOR i=0; i<FRMAX; i++
-	DO      IF ((U *)corhdr)->u_fpsr&FD ORF longpr /* long mode */
+	DO      IF ((U*)corhdr)->u_fps.u_fpsr&FD ORF longpr /* long mode */
 		THEN    f = pfp->Lfr[frnames[i]];
 		ELSE    f = ((struct Sfp *)pfp)->Sfr[frnames[i]];
 		FI
@@ -414,9 +425,10 @@ printpc()
 
 sigprint()
 {
-	if ((unsigned) signo < nsig)
-		prints(signals[signo]);
-	else
-		prints("unknown signal");
-}
+	extern char	*sys_siglist[];		/* signal list */
 
+	if (signo >= 0 && signo < NSIG)
+		printf("%s",sys_siglist[signo]);
+	else
+		printf("unknown signal %d",signo);
+}

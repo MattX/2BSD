@@ -1,6 +1,9 @@
 # The format of the L-devices file is:
 #	Caller Line Useful Class Dialer [Chat ...]
 #
+# A line beginning with a # is a comment
+# If the last character of a line is \
+# the next line is considered to be a continuation of the first.
 
 #
 # The following lines are hard-wired
@@ -39,3 +42,22 @@ ACU tty47 unused 1200 hayestone
 #
 DIR tty50 unused 9600 direct
 ACU tty50 unused 1200 hayespulse "" "" uest: outmodem 
+#
+#
+# PC Pursuit line
+#
+#	callback_modem is the device that you have connected to
+#	callback_number. callback_number is the phone number of your
+#	modem that PCPursuit will call back on.
+#	their_phone is the number of PC Pursuits computer
+#	my_baud is the baudrate to call them at (it is assumed the
+#	callback will be at the same rate)
+#	my_modem_type is the brand of modem you are using on the
+#	callback number. This is used to hang up the modem in case of
+#	error.
+#
+#	Currently, the outgoing call is made on an available ACU.
+#
+# PCP callback_modem their_phone my_baud my_modem_type my_callback_number
+PCP tty07 6592863 1200 hayes 5281234
+PCP tty07 6592881 1200 hayes 5281234

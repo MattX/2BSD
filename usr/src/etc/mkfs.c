@@ -1,65 +1,69 @@
-
 char	*sccsid = "@(#)mkfs.c	2.5";
 
 /*
  * Make a file system prototype.
  * usage: mkfs filsys proto/size [ m n ]
  */
-#include	<whoami.h>
-#define	NIPB	(BSIZE/sizeof(struct dinode))
-#define	NINDIR	(BSIZE/sizeof(daddr_t))
-#define	NDIRECT	(BSIZE/sizeof(struct direct))
-#define	MAXFN	500
-#ifndef UCB_NKB
-#define	itoo(x)	(int)((x+15)&07)
-#endif
 #include <sys/param.h>
+
 #ifndef STANDALONE
 #include <stdio.h>
 #include <a.out.h>
 #endif
-#include <sys/ino.h>
+
+#include <sys/file.h>
+#include <sys/fs.h>
 #include <sys/inode.h>
-#include <sys/filsys.h>
-#include <sys/fblk.h>
-#define KERNEL
 #include <sys/dir.h>
-#undef KERNEL
+#include <sys/stat.h>
+
+#define	NIPB	(DEV_BSIZE/sizeof(struct dinode))
+#define	NDIRECT	(DEV_BSIZE/sizeof(struct v7direct))
 #define	LADDR	(NADDR-3)
+#define	MAXFN	500
+
 time_t	utime;
+
 #ifndef STANDALONE
 FILE 	*fin;
 #else
 int	fin;
 char	module[] = "Mkfs";
 #endif
+
 int	fsi;
 int	fso;
 char	*charp;
-char	buf[BSIZE];
+char	buf[DEV_BSIZE];
+
 union {
 	struct fblk fb;
-	char pad1[BSIZE];
+	char pad1[DEV_BSIZE];
 } fbuf;
+
 #ifndef STANDALONE
 struct exec head;
 #endif
-char	string[50];
+
 union {
-	struct filsys fs;
-	char pad2[BSIZE];
+	struct fs fs;
+	char pad2[DEV_BSIZE];
 } filsys;
+
+char	string[50];
 char	*fsys;
 char	*proto;
 int	f_n	= 10;
 int	f_m	= 5;
 int	error;
 ino_t	ino;
+
 long	getnum();
 daddr_t	alloc();
 
-main(argc, argv)
-char *argv[];
+main(argc,argv)
+int	argc;
+char	**argv;
 {
 	int f, c;
 	long n;
@@ -125,10 +129,7 @@ char *argv[];
 			}
 			n = n*10 + (c-'0');
 		}
-		filsys.s_fsize = n;
-#ifndef	UCB_NKB
-#define	CLSIZE	1
-#endif
+		filsys.fs.fs_fsize = n;
 		/*
 		 * Minor hack for standalone root and other
 		 * small filesystems: reduce ilist size.
@@ -141,7 +142,7 @@ char *argv[];
 			n = 1;
 		if(n > 65500/NIPB)
 			n = 65500/NIPB;
-		filsys.s_isize = n + 2;
+		filsys.fs.fs_isize = n + 2;
 		printf("isize = %D\n", n*NIPB);
 		charp = "d--777 0 0 $ ";
 		goto f3;
@@ -149,42 +150,39 @@ char *argv[];
 
 #ifndef STANDALONE
 	/*
-	 * get name of boot load program
-	 * and read onto block 0
+	 * Get name of boot load program and read onto block 0.
+	 * Don't fail if the magic number is wrong since some of the boot
+	 * programs have it stripped to save space.  Don't fail if the
+	 * program is too large, either, there might be a reason.  Although
+	 * I can't think of one off-hand.
 	 */
-
 	getstr();
-	f = open(string, 0);
-	if(f < 0) {
-		printf("%s: cannot  open init\n", string);
-		goto f2;
-	}
-	read(f, (char *)&head, sizeof head);
-	if(head.a_magic != A_MAGIC1) {
-		printf("%s: bad format\n", string);
-		goto f1;
-	}
-	c = head.a_text + head.a_data;
-	if(c > BSIZE) {
-		printf("%s: too big\n", string);
-		goto f1;
-	}
-	read(f, buf, c);
-	wtfs((long)0, buf);
+	if ((f = open(string,O_RDONLY)) < 0)
+		perror(string);
+	else {
+		struct stat	sbuf;
 
-f1:
-	close(f);
+		read(f,(char *)&head,sizeof(struct exec));
+		if (head.a_magic != A_MAGIC1) {
+			lseek(f, 0L, L_SET);
+			printf("mkfs: assuming boot is already stripped, magic number is 0%o, not 0%o.\n",head.a_magic,A_MAGIC1);
+			if (!fstat(f,&sbuf) && sbuf.st_size > DEV_BSIZE)
+				printf("mkfs: boot too large at %ld; max is %d.\n",sbuf.st_size,DEV_BSIZE);
+		}
+		else if ((c = head.a_text + head.a_data) > DEV_BSIZE)
+			printf("mkfs: boot too large at %d; max is %d.\n",c,DEV_BSIZE);
+		read(f,buf,DEV_BSIZE);
+		wtfs((long)0,buf);
+		close(f);
+	}
 
 	/*
-	 * get total disk size
-	 * and inode block size
+	 * get total disk size and inode block size
 	 */
-
-f2:
-	filsys.s_fsize = getnum();
+	filsys.fs.fs_fsize = getnum();
 	n = getnum();
 	n /= NIPB;
-	filsys.s_isize = n + 3;
+	filsys.fs.fs_isize = n + 3;
 
 #endif
 f3:
@@ -196,20 +194,20 @@ f3:
 		if(f_m <= 0 || f_m > f_n)
 			f_m = 3;
 	}
-	filsys.s_m = f_m;
-	filsys.s_n = f_n;
+	filsys.fs.fs_step = f_m;
+	filsys.fs.fs_cyl = f_n;
 	printf("m/n = %d %d\n", f_m, f_n);
-	if(filsys.s_isize >= filsys.s_fsize) {
-		printf("%ld/%ld: bad ratio\n", filsys.s_fsize, filsys.s_isize-2);
+	if(filsys.fs.fs_isize >= filsys.fs.fs_fsize) {
+		printf("%ld/%ld: bad ratio\n", filsys.fs.fs_fsize, filsys.fs.fs_isize-2);
 		exit(1);
 	}
-	filsys.s_tfree = 0;
-	filsys.s_tinode = 0;
-	for(c=0; c<BSIZE; c++)
+	filsys.fs.fs_tfree = 0;
+	filsys.fs.fs_tinode = 0;
+	for(c=0; c<DEV_BSIZE; c++)
 		buf[c] = 0;
-	for(n=2; n!=filsys.s_isize; n++) {
+	for(n=2; n!=filsys.fs.fs_isize; n++) {
 		wtfs(n, buf);
-		filsys.s_tinode += NIPB;
+		filsys.fs.fs_tinode += NIPB;
 	}
 	ino = 0;
 
@@ -217,8 +215,8 @@ f3:
 
 	cfile((struct inode *)0, 0);
 
-	filsys.s_time = utime;
-	wtfs((long)1, (char *)&filsys);
+	filsys.fs.fs_time = utime;
+	wtfs((long)1, (char *)&filsys.fs);
 	exit(error);
 }
 
@@ -227,7 +225,7 @@ struct inode *par;
 {
 	struct inode in;
 	int dbc, ibc;
-	char db[BSIZE];
+	char db[DEV_BSIZE];
 	daddr_t ib[NINDIR];
 	int i, f, c;
 
@@ -258,14 +256,14 @@ struct inode *par;
 
 	ino++;
 	in.i_number = ino;
-	for(i=0; i<BSIZE; i++)
+	for(i=0; i<DEV_BSIZE; i++)
 		db[i] = 0;
 	for(i=0; i<NINDIR; i++)
 		ib[i] = (daddr_t)0;
 	in.i_nlink = 1;
 	in.i_size = 0;
 	for(i=0; i<NADDR; i++)
-		in.i_un.i_addr[i] = (daddr_t)0;
+		in.i_addr[i] = (daddr_t)0;
 	if(par == (struct inode *)0) {
 		par = &in;
 		in.i_nlink--;
@@ -287,7 +285,7 @@ struct inode *par;
 			error = 1;
 			break;
 		}
-		while((i=read(f, db, BSIZE)) > 0) {
+		while((i=read(f, db, DEV_BSIZE)) > 0) {
 			in.i_size += i;
 			newblk(&dbc, db, &ibc, ib);
 		}
@@ -303,7 +301,7 @@ struct inode *par;
 
 		i = getnum() & 0377;
 		f = getnum() & 0377;
-		in.i_un.i_addr[0] = (i<<8) | f;
+		in.i_addr[0] = (i<<8) | f;
 		break;
 
 	case IFDIR:
@@ -318,20 +316,20 @@ struct inode *par;
 		in.i_nlink++;
 		entry(in.i_number, ".", &dbc, db, &ibc, ib);
 		entry(par->i_number, "..", &dbc, db, &ibc, ib);
-		in.i_size = 2*sizeof(struct direct);
+		in.i_size = 2*sizeof(struct v7direct);
 		for(;;) {
 			getstr();
 			if(string[0]=='$' && string[1]=='\0')
 				break;
 			entry(ino+1, string, &dbc, db, &ibc, ib);
-			in.i_size += sizeof(struct direct);
+			in.i_size += sizeof(struct v7direct);
 			cfile(&in, reclevel + 1);
 		}
 		break;
 	}
 	if (reclevel == 0) {
 		entry(ino+1, "lost+found", &dbc, db, &ibc, ib);
-		in.i_size += sizeof(struct direct);
+		in.i_size += sizeof(struct v7direct);
 		mklost(&in);
 	}
 	if(dbc != 0)
@@ -415,9 +413,9 @@ char *bf;
 {
 	int n;
 
-	lseek(fsi, bno*BSIZE, 0);
-	n = read(fsi, bf, BSIZE);
-	if(n != BSIZE) {
+	lseek(fsi, bno*DEV_BSIZE, 0);
+	n = read(fsi, bf, DEV_BSIZE);
+	if(n != DEV_BSIZE) {
 		printf("read error: %ld\n", bno);
 		exit(1);
 	}
@@ -429,9 +427,9 @@ char *bf;
 {
 	int n;
 
-	lseek(fso, bno*BSIZE, 0);
-	n = write(fso, bf, BSIZE);
-	if(n != BSIZE) {
+	lseek(fso, bno*DEV_BSIZE, 0);
+	n = write(fso, bf, DEV_BSIZE);
+	if(n != DEV_BSIZE) {
 		printf("write error: %D\n", bno);
 		exit(1);
 	}
@@ -443,17 +441,17 @@ alloc()
 	int i;
 	daddr_t bno;
 
-	filsys.s_tfree--;
-	bno = filsys.s_free[--filsys.s_nfree];
+	filsys.fs.fs_tfree--;
+	bno = filsys.fs.fs_free[--filsys.fs.fs_nfree];
 	if(bno == 0) {
 		printf("out of free space\n");
 		exit(1);
 	}
-	if(filsys.s_nfree <= 0) {
+	if(filsys.fs.fs_nfree <= 0) {
 		rdfs(bno, (char *)&fbuf);
-		filsys.s_nfree = fbuf.df_nfree;
+		filsys.fs.fs_nfree = fbuf.fb.df_nfree;
 		for(i=0; i<NICFREE; i++)
-			filsys.s_free[i] = fbuf.df_free[i];
+			filsys.fs.fs_free[i] = fbuf.fb.df_free[i];
 	}
 	return(bno);
 }
@@ -464,15 +462,15 @@ daddr_t bno;
 	int i;
 
 	if (bno != 0)
-		filsys.s_tfree++;
-	if(filsys.s_nfree >= NICFREE) {
-		fbuf.df_nfree = filsys.s_nfree;
+		filsys.fs.fs_tfree++;
+	if(filsys.fs.fs_nfree >= NICFREE) {
+		fbuf.fb.df_nfree = filsys.fs.fs_nfree;
 		for(i=0; i<NICFREE; i++)
-			fbuf.df_free[i] = filsys.s_free[i];
+			fbuf.fb.df_free[i] = filsys.fs.fs_free[i];
 		wtfs(bno, (char *)&fbuf);
-		filsys.s_nfree = 0;
+		filsys.fs.fs_nfree = 0;
 	}
-	filsys.s_free[filsys.s_nfree++] = bno;
+	filsys.fs.fs_free[filsys.fs.fs_nfree++] = bno;
 }
 
 entry(inum, str, adbc, db, aibc, ib)
@@ -482,10 +480,10 @@ int *adbc, *aibc;
 char *db;
 daddr_t *ib;
 {
-	struct direct *dp;
+	struct v7direct *dp;
 	int i;
 
-	dp = (struct direct *)db;
+	dp = (struct v7direct *)db;
 	dp += *adbc;
 	(*adbc)++;
 	dp->d_ino = inum;
@@ -508,7 +506,7 @@ daddr_t *ib;
 
 	bno = alloc();
 	wtfs(bno, db);
-	for(i=0; i<BSIZE; i++)
+	for(i=0; i<DEV_BSIZE; i++)
 		db[i] = 0;
 	*adbc = 0;
 	ib[*aibc] = bno;
@@ -561,19 +559,19 @@ bflist()
 	in.i_nlink = 0;
 	in.i_size = 0;
 	for(i=0; i<NADDR; i++)
-		in.i_un.i_addr[i] = (daddr_t)0;
+		in.i_addr[i] = (daddr_t)0;
 
 	for(i=0; i<NINDIR; i++)
 		ib[i] = (daddr_t)0;
 	ibc = 0;
 	bfree((daddr_t)0);
-	d = filsys.s_fsize-1;
+	d = filsys.fs.fs_fsize-1;
 	while(d%f_n)
 		d++;
 	for(; d > 0; d -= f_n)
 	for(i=0; i<f_n; i++) {
 		f = d - adr[i];
-		if(f < filsys.s_fsize && f >= filsys.s_isize)
+		if(f < filsys.fs.fs_fsize && f >= filsys.fs.fs_isize)
 			if(badblk(f)) {
 				if(ibc >= NINDIR) {
 					printf("too many bad blocks\n");
@@ -597,9 +595,9 @@ daddr_t *ib;
 	daddr_t d;
 	int i;
 
-	filsys.s_tinode--;
+	filsys.fs.fs_tinode--;
 	d = itod(ip->i_number);
-	if(d >= filsys.s_isize) {
+	if(d >= filsys.fs.fs_isize) {
 		if(error == 0)
 			printf("ilist too small\n");
 		error = 1;
@@ -625,20 +623,20 @@ daddr_t *ib;
 		for(i=0; i<*aibc; i++) {
 			if(i >= LADDR)
 				break;
-			ip->i_un.i_addr[i] = ib[i];
+			ip->i_addr[i] = ib[i];
 		}
 		if(*aibc >= LADDR) {
-			ip->i_un.i_addr[LADDR] = alloc();
+			ip->i_addr[LADDR] = alloc();
 			for(i=0; i<NINDIR-LADDR; i++) {
 				ib[i] = ib[i+LADDR];
 				ib[i+LADDR] = (daddr_t)0;
 			}
-			wtfs(ip->i_un.i_addr[LADDR], (char *)ib);
+			wtfs(ip->i_addr[LADDR], (char *)ib);
 		}
 
 	case IFBLK:
 	case IFCHR:
-		ltol3(dp->di_addr, ip->i_un.i_addr, NADDR);
+		ltol3(dp->di_addr, ip->i_addr, NADDR);
 		break;
 
 	default:
@@ -660,7 +658,7 @@ struct inode *par;
 {
 	struct inode in;
 	int dbc, ibc;
-	char db[BSIZE];
+	char db[DEV_BSIZE];
 	daddr_t ib[NINDIR];
 	int i;
 
@@ -668,12 +666,12 @@ struct inode *par;
 	in.i_uid = 0;
 	in.i_gid = 0;
 	in.i_number = ++ino;
-	for (i = 0; i < BSIZE; i++)
+	for (i = 0; i < DEV_BSIZE; i++)
 		db[i] = 0;
 	for (i = 0; i < NINDIR; i++)
 		ib[i] = (daddr_t) 0;
 	for (i = 0; i < NADDR; i++)
-		in.i_un.i_addr[i] = (daddr_t) 0;
+		in.i_addr[i] = (daddr_t)0;
 	dbc = 0;
 	ibc = 0;
 	in.i_nlink = 2;
@@ -681,7 +679,7 @@ struct inode *par;
 	 * blocks 0, ..., NADDR - 4
 	 * are direct blocks
 	 */
-	in.i_size = (off_t) (BSIZE * (NADDR - 4 + 1));
+	in.i_size = (off_t) (DEV_BSIZE * (NADDR - 4 + 1));
 	par->i_nlink++;
 	entry(in.i_number, ".", &dbc, db, &ibc, ib);
 	entry(par->i_number, "..", &dbc, db, &ibc, ib);

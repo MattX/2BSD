@@ -35,7 +35,7 @@ CHAR		isymbol[8];
 
 CHAR		lastc;
 POS		*uar0;
-POS		*corhdr;
+POS		corhdr[];
 OVTAG		curov, startov;
 OVTAG		lastsymov;
 int		overlay;
@@ -230,7 +230,7 @@ item(a)
 	THEN	d=4; expv=0;
 		WHILE quotchar()
 		DO  IF d--
-		    THEN IF d==1 THEN expv =<<16; FI
+		    THEN IF d==1 THEN expv <<=16; FI
 			 expv |= ((d&1)?lastc:lastc<<8);
 		    ELSE error(BADSYN);
 		    FI

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if !defined(lint) && !defined(NOSCCS)
 static char sccsid[] = "@(#)refresh.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 /*
  * make the current screen look like "win" over the area coverd by

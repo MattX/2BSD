@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.mklev.c - version 1.0.2 */
+/* hack.mklev.c - version 1.0.3 */
 
 #include "hack.h"
 
@@ -29,7 +29,7 @@ xchar xdnstair,xupstair,ydnstair,yupstair;
 /* Definitions used by makerooms() and addrs() */
 #define	MAXRS	50	/* max lth of temp rectangle table - arbitrary */
 struct rectangle {
-	xchar lx,ly,hx,hy;
+	xchar rlx,rly,rhx,rhy;
 } rs[MAXRS+1];
 int rscnt,rsmax;	/* 0..rscnt-1: currently under consideration */
 			/* rscnt..rsmax: discarded */
@@ -46,6 +46,8 @@ makelevel()
 
 	for(x=0; x<COLNO; x++) for(y=0; y<ROWNO; y++)
 		levl[x][y] = zerorm;
+
+	oinit();	/* assign level dependent obj probabilities */
 
 	if(dlevel >= rn1(3, 26)) {	/* there might be several mazes */
 		makemaz();
@@ -143,9 +145,9 @@ int tryct = 0, xlim, ylim;
 	ylim = YLIM + secret;
 	if(nroom == 0) {
 		rsp = rs;
-		rsp->lx = rsp->ly = 0;
-		rsp->hx = COLNO-1;
-		rsp->hy = ROWNO-1;
+		rsp->rlx = rsp->rly = 0;
+		rsp->rhx = COLNO-1;
+		rsp->rhy = ROWNO-1;
 		rsmax = 1;
 	}
 	rscnt = rsmax;
@@ -158,10 +160,10 @@ int tryct = 0, xlim, ylim;
 
 		/* pick a rectangle */
 		rsp = &rs[rn2(rscnt)];
-		hx = rsp->hx;
-		hy = rsp->hy;
-		lx = rsp->lx;
-		ly = rsp->ly;
+		hx = rsp->rhx;
+		hy = rsp->rhy;
+		lx = rsp->rlx;
+		ly = rsp->rly;
 
 		/* find size of room */
 		if(secret)
@@ -218,8 +220,8 @@ register int lowx,lowy,hix,hiy;
 	/* walk down since rscnt and rsmax change */
 	for(rsp = &rs[rsmax-1]; rsp >= rs; rsp--) {
 		
-		if((lx = rsp->lx) > hix || (ly = rsp->ly) > hiy ||
-		   (hx = rsp->hx) < lowx || (hy = rsp->hy) < lowy)
+		if((lx = rsp->rlx) > hix || (ly = rsp->rly) > hiy ||
+		   (hx = rsp->rhx) < lowx || (hy = rsp->rhy) < lowy)
 			continue;
 		if((discarded = (rsp >= &rs[rscnt]))) {
 			*rsp = rs[--rsmax];
@@ -249,8 +251,8 @@ boolean discarded;		/* piece of a discarded area */
 
 	/* check inclusions */
 	for(rsp = rs; rsp < &rs[rsmax]; rsp++) {
-		if(lx >= rsp->lx && hx <= rsp->hx &&
-		   ly >= rsp->ly && hy <= rsp->hy)
+		if(lx >= rsp->rlx && hx <= rsp->rhx &&
+		   ly >= rsp->rly && hy <= rsp->rhy)
 			return;
 	}
 
@@ -267,10 +269,10 @@ boolean discarded;		/* piece of a discarded area */
 		rsp = &rs[rscnt];
 		rscnt++;
 	}
-	rsp->lx = lx;
-	rsp->ly = ly;
-	rsp->hx = hx;
-	rsp->hy = hy;
+	rsp->rlx = lx;
+	rsp->rly = ly;
+	rsp->rhx = hx;
+	rsp->rhy = hy;
 }
 
 comp(x,y)
@@ -306,7 +308,7 @@ gotit:
 	return(ff);
 }
 
-/* if allowable, create a door at [x,y] */
+/* see whether it is allowable to create a door at [x,y] */
 okdoor(x,y)
 register x,y;
 {
@@ -341,13 +343,15 @@ register type;
 	register struct mkroom *broom;
 	register tmp;
 
+	if(!IS_WALL(levl[x][y].typ))	/* avoid SDOORs with '+' as scrsym */
+		type = DOOR;
 	levl[x][y].typ = type;
 	if(type == DOOR)
-		levl[x][y].scrsym ='+';
+		levl[x][y].scrsym = '+';
 	aroom->doorct++;
 	broom = aroom+1;
 	if(broom->hx < 0) tmp = doorindex; else
-	for(tmp = doorindex; tmp > broom->fdoor; tmp--)
+for(tmp = doorindex; tmp > broom->fdoor; tmp--)
 		doors[tmp] = doors[tmp-1];
 	doorindex++;
 	doors[tmp].x = x;
@@ -377,7 +381,7 @@ chk:
 			if(levl[x][y].typ) {
 #ifdef WIZARD
 			    if(wizard && !secret)
-				pline("Strange area [%d,%d] in maker()",x,y);
+				pline("Strange area [%d,%d] in maker().",x,y);
 #endif WIZARD
 				if(!rn2(3)) return(0);
 				if(x < lowx)
@@ -598,7 +602,7 @@ register a,b;
 
 make_niches()
 {
-	register int ct = rn2(nroom/2 + 1)+1;
+	register int ct = rnd(nroom/2 + 1);
 	while(ct--) makeniche(FALSE);
 }
 
@@ -638,17 +642,17 @@ boolean with_trap;
 		if(with_trap) {
 		    ttmp = maketrap(xx, yy+dy, TELEP_TRAP);
 		    ttmp->once = 1;
-		    make_engr_at(xx,yy-dy,"ad ae?ar um");
+		    make_engr_at(xx, yy-dy, "ad ae?ar um");
 		}
-		dosdoor(xx,yy,aroom,SDOOR);
+		dosdoor(xx, yy, aroom, SDOOR);
 	    } else {
 		rm->typ = CORR;
 		rm->scrsym = CORR_SYM;
 		if(rn2(7))
-		    dosdoor(xx,yy,aroom,rn2(5) ? SDOOR : DOOR);
+		    dosdoor(xx, yy, aroom, rn2(5) ? SDOOR : DOOR);
 		else {
-		    mksobj_at(SCR_TELEPORTATION,xx,yy+dy);
-		    if(!rn2(3)) (void) mkobj_at(0,xx,yy+dy);
+		    mksobj_at(SCR_TELEPORTATION, xx, yy+dy);
+		    if(!rn2(3)) (void) mkobj_at(0, xx, yy+dy);
 		}
 	    }
 	    return;

@@ -1,4 +1,4 @@
-static	char sccsid[] = "@(#)diffh.c 4.1 10/9/80";
+static	char sccsid[] = "@(#)diffh.c 4.4 11/27/85";
 
 #include <stdio.h>
 #include <ctype.h>
@@ -77,10 +77,8 @@ char **argv;
 {
 	char *s0,*s1;
 	FILE *dopen();
-	extern char _sobuf[];
-	int status = 0;
+	register int status = 0;
 
-	setbuf(stdout, _sobuf);
 	while(*argv[1]=='-') {
 		argc--;
 		argv++;
@@ -98,9 +96,9 @@ char **argv;
 		if(s0==NULL||s1==NULL)
 			break;
 		if(cmp(s0,s1)!=0) {
-			status = 1;
 			if(!easysynch()&&!hardsynch())
 				progerr("5");
+			status = 1;
 		} else {
 			clrl(0,n0);
 			clrl(1,n1);
@@ -257,7 +255,7 @@ error(s,t)
 char *s,*t;
 {
 	fprintf(stderr,"diffh: %s%s\n",s,t);
-	exit(1);
+	exit(2);
 }
 
 	/*stub for resychronization beyond limits of text buf*/

@@ -1,14 +1,7 @@
-%{
-static char sccsid[] = "@(#)expr.y	1.5 8/31/82";
-
-#define TDATA           /* data in text seg */
-#define NDEBUG          /* no debugging features */
-%}
-
 /* Yacc productions for "expr" command: */
 
 %token OR AND ADD SUBT MULT DIV REM EQ GT GEQ LT LEQ NEQ
-%token A_STRING SUBSTR LENGTH INDEX NOARG MATCH STATUS
+%token A_STRING SUBSTR LENGTH INDEX NOARG MATCH
 
 /* operators listed below in increasing precedence: */
 %left OR
@@ -27,9 +20,6 @@ static char sccsid[] = "@(#)expr.y	1.5 8/31/82";
 expression:	expr NOARG = {
 			printf("%s\n", $1);
 			exit((!strcmp($1,"0")||!strcmp($1,"\0"))? 1: 0);
-			}
-	|       STATUS expr NOARG = {
-			exit((!strcmp($2,"0")||!strcmp($2,"\0"))? 1: 0);
 			}
 	;
 
@@ -71,9 +61,6 @@ char *malloc();
 extern int nbra;
 
 main(argc, argv) char **argv; {
-#ifndef NDEBUG
-	yydebug = EQL(argv[0], "a.out");
-#endif
 	Ac = argc;
 	Argi = 1;
 	Av = argv;
@@ -82,10 +69,10 @@ main(argc, argv) char **argv; {
 
 char *operators[] = { "|", "&", "+", "-", "*", "/", "%", ":",
 	"=", "==", "<", "<=", ">", ">=", "!=",
-	"match", "substr", "length", "index", "status", "\0" };
+	"match", "substr", "length", "index", "\0" };
 int op[] = { OR, AND, ADD,  SUBT, MULT, DIV, REM, MCH,
 	EQ, EQ, LT, LEQ, GT, GEQ, NEQ,
-	MATCH, SUBSTR, LENGTH, INDEX, STATUS };
+	MATCH, SUBSTR, LENGTH, INDEX };
 yylex() {
 	register char *p;
 	register i;
@@ -96,8 +83,8 @@ yylex() {
 
 	if(*p == '(' || *p == ')')
 		return (int)*p;
-	for(i = 0; *operator[i]; ++i)
-		if(EQL(operator[i], p))
+	for(i = 0; *operators[i]; ++i)
+		if(EQL(operators[i], p))
 			return op[i];
 
 	yylval = p;
@@ -105,7 +92,7 @@ yylex() {
 }
 
 char *rel(op, r1, r2) register char *r1, *r2; {
-	register i;
+	register long i;
 
 	if(ematch(r1, "-*[0-9]*$") && ematch(r2, "[0-9]*$"))
 		i = atol(r1) - atol(r2);
@@ -116,7 +103,7 @@ char *rel(op, r1, r2) register char *r1, *r2; {
 	case GT: i = i>0; break;
 	case GEQ: i = i>=0; break;
 	case LT: i = i<0; break;
-	case LEQ: i = i>=0; break;
+	case LEQ: i = i<=0; break;
 	case NEQ: i = i!=0; break;
 	}
 	return i? "1": "0";
@@ -126,7 +113,7 @@ char *arith(op, r1, r2) char *r1, *r2; {
 	long i1, i2;
 	register char *rv;
 
-	if(!(ematch(r1, "[-0-9][0-9]*$") && ematch(r2, "[-0-9][0-9]*$")))
+	if(!(ematch(r1, "[0-9]*$") && ematch(r2, "[0-9]*$")))
 		yyerror("non-numeric argument");
 	i1 = atol(r1);
 	i2 = atol(r2);
@@ -203,15 +190,12 @@ char *index(s, t) char *s, *t; {
 	register i, j;
 	register char *rv;
 
-	for(i = 0; s[i] ; ++i) {
-		for(j = 0; t[j] ; ++j) {
-			if(s[i+j]!=t[j])
-				goto nextc;
-		}
-		sprintf(rv = malloc(8), "%d", ++i);
-		return rv;
-nextc:  ;
-	}
+	for(i = 0; s[i] ; ++i)
+		for(j = 0; t[j] ; ++j)
+			if(s[i]==t[j]) {
+				sprintf(rv = malloc(8), "%d", ++i);
+				return rv;
+			}
 	return "0";
 }
 
@@ -244,7 +228,7 @@ register char *p;
 	register num;
 	extern char *braslist[], *braelist[], *loc2;
 
-	compile(p, expbuf, &expbuf[512], 0);
+	compile(p, expbuf, &expbuf[ESIZE], 0);
 	if(nbra > 1)
 		yyerror("Too many '\\('s");
 	if(advance(s, expbuf)) {
@@ -677,6 +661,7 @@ register	count;
 	return(1);
 }
 
+static char *sccsid = "@(#)expr.y	4.4 (Berkeley) 5/21/84";
 yyerror(s)
 
 {

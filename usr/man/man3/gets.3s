@@ -1,5 +1,7 @@
-.TH GETS 3S 
-.UC
+.\"	@(#)gets.3s	6.1 (Berkeley) 5/15/85
+.\"
+.TH GETS 3S  "May 15, 1985"
+.AT 3
 .SH NAME
 gets, fgets \- get a string from a stream
 .SH SYNOPSIS
@@ -21,7 +23,7 @@ gets, fgets \- get a string from a stream
 reads a string into
 .I s
 from the standard input stream
-.B stdin.
+.BR stdin .
 The string is terminated by a newline
 character, which is replaced in
 .I s
@@ -32,7 +34,7 @@ returns its argument.
 .I Fgets
 reads 
 .IR n \-1
-characters, or up to (and including) a newline
+characters, or up through a newline
 character, whichever comes first,
 from the
 .I stream
@@ -44,7 +46,11 @@ is followed by a null character.
 .I Fgets
 returns its first argument.
 .SH "SEE ALSO"
-ferror(3S), fread(3S), getc(3S), puts(3S), scanf(3S)
+puts(3S),
+getc(3S),
+scanf(3S),
+fread(3S),
+ferror(3S)
 .SH DIAGNOSTICS
 .I Gets
 and

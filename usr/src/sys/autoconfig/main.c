@@ -1,30 +1,40 @@
 /*
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)main.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
+
+/*
  * sysconfig -- Program to auto configure a kernel to the devices which
  * are present.  Needs the ucall() system call and special kernel to work.
  */
 
+#include <machine/autoconfig.h>
 #include <stdio.h>
-#include <sys/autoconfig.h>
 
-char	*nlist_name = "/unix";
+char	*nlist_name = "/unix",		/* kernel */
+	*dtab_name = "/etc/dtab",	/* dtab file */
+	*myname;			/* program name */
 int	kmem,
 	verbose = NO,
 	debug = NO,
 	complain = NO,
 	pflag = NO;
-FILE	*dtab_fp;
 
 main(argc,argv)
 int	argc;
 char	**argv;
 {
 	extern char	*optarg;
-	static char	*dtab_name = "/etc/dtab",
-			*kmem_name = "/dev/kmem";
+	static char	*kmem_name = "/dev/kmem";
 	int	c;
+	char	*C,
+		*rindex();
 
 	setbuf(stdout, NULL);
-
+	myname = (C = rindex(*argv,'/')) ? ++C : *argv;
 	while((c = getopt(argc,argv,"Pcdi:k:n:v")) != EOF)
 		switch((char)c) {
 			case 'P':	/* pflag, ask Mike */
@@ -49,14 +59,12 @@ char	**argv;
 				verbose = YES;
 				break;
 			default:
-				fprintf(stderr,"usage: %s [-c] [-d] [-v] [-i file] [-k file] [-n file]\n",*argv);
-				exit(1);
+				fputs("usage: ",stderr);
+				fputs(myname,stderr);
+				fputs(" [-c] [-d] [-v] [-i file] [-k file] [-n file]\n",stderr);
+				exit(AC_SETUP);
 		}
 
-	if (!(dtab_fp = fopen(dtab_name, "r"))) {
-		perror(dtab_name);
-		exit(AC_SETUP);
-	}
 	if ((kmem = open(kmem_name, 2)) < 0) {
 		perror(kmem_name);
 		exit(AC_SETUP);

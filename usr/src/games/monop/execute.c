@@ -128,9 +128,11 @@ save() {
 	tp = &tme;
 	printf("Which file do you wish to save it in? ");
 	sp = buf;
-	while ((*sp++=getchar()) != '\n')
+	while ((*sp++=getchar()) != '\n' && !feof(stdin))
 		continue;
 	*--sp = '\0';
+	if (feof(stdin))
+		clearerr(stdin);
 
 	/*
 	 * check for existing files, and confirm overwrite if needed
@@ -172,9 +174,11 @@ restore() {
 	reg char	*sp;
 
 	printf("Which file do you wish to restore from? ");
-	for (sp = buf; (*sp=getchar()) != '\n'; sp++)
+	for (sp = buf; (*sp=getchar()) != '\n' && !feof(stdin); sp++)
 		continue;
 	*sp = '\0';
+	if (feof(stdin))
+		clearerr(stdin);
 	rest_f(buf);
 }
 /*

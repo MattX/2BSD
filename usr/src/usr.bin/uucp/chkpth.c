@@ -1,5 +1,6 @@
-/* $Header: chkpth.c,v 1.9 85/05/28 18:29:29 rick Stab $ */
-/* from: @(#)chkpth.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)chkpth.c	5.4 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>

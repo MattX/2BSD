@@ -1,1 +1,0 @@
-#define NDMBB	0

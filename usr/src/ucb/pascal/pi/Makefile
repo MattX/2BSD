@@ -1,6 +1,19 @@
-BINDIR=	/usr/bin
-LIBDIR=	/usr/lib
-LIBS=	-lovm
+#
+# pi Makefile
+#
+
+DESTDIR=
+
+MKSTR=	/usr/ucb/mkstr
+EYACC=	../eyacc/eyacc
+GET=	sccs get
+
+TEMPDIR=	tmp
+
+CFLAGS= -O -w
+DEFS=	-I.
+LDFLAGS= -X
+SEPFLAG= -i
 
 HDRS=	0.h OPnames.h opcode.h tree.h yy.h
 
@@ -11,14 +24,14 @@ SRCS=	ato.c call.c case.c clas.c const.c conv.c cset.c error.c fdec.c \
 	yylex.c yymain.c yyoptions.c yypanic.c yyparse.c yyprint.c yyput.c \
 	yyrecover.c yyseman.c yytree.c
 
+OTHERS=	gram.ex pas.y
+
 OBJS=	ato.o call.o case.o clas.o const.o conv.o cset.o error.o fdec.o \
 	func.o gen.o hash.o lab.o lookup.o lval.o main.o nl.o proc.o put.o \
 	rec.o rval.o stat.o string.o subr.o tree.o type.o var.o Version.o \
 	TRdata.o treen.o putn.o yycopy.o y.tab.o yycosts.o yyerror.o yyget.o \
 	yyid.o yylex.o yymain.o yyoptions.o yypanic.o yyparse.o yyprint.o \
 	yyput.o yyrecover.o yyseman.o yytree.o
-
-OTHERS=	pas.y gram
 
 BASE=	main.o Version.o putn.o rec.o
 OV1=	TRdata.o ato.o call.o case.o clas.o const.o conv.o cset.o stat.o
@@ -31,66 +44,64 @@ OV3=	yycopy.o yycosts.o yyerror.o yyget.o yyid.o yylex.o yymain.o \
 	yytree.o error.o
 OV6=	y.tab.o yyrecover.o
 
-MKSTR=	/usr/ucb/mkstr
-EYACC=	/usr/ucb/eyacc
-GET=	sccs get
-
-CFLAGS=
-LFLAG=	-n
-
-TEMPDIR=	tmp
+INSTALL=	pix px_header.out pi
+UTILS=		version
 ERRORSTRINGS=	pi1.2strings
+ALL=		${INSTALL} ${UTILS} ${ERRORSTRINGS}
 
-all: pix px_header.out pi
-
-ovall: pix px_header.out ovpi
-
-install:
-	install -c -o bin -g bin -m 644 ${ERRORSTRINGS} ${DESTDIR}${LIBDIR}
-	install -c -o bin -g bin -m 644 how_pi ${DESTDIR}${LIBDIR}
-	install -c -o bin -g bin -m 644 how_pix ${DESTDIR}${LIBDIR}
-	dd if=px_header.out of=${DESTDIR}${LIBDIR}/npx_header conv=sync
-	install -s -o bin -g bin -m 711 pi ${DESTDIR}${BINDIR}
-	install -s -o bin -g bin -m 711 pix ${DESTDIR}${BINDIR}
-
-pix: pix.c
-	${CC} ${LFLAG} -O -o pix pix.c
-
-pi: ${OBJS} version
-	./version > Version.c
-	${CC} -o pi ${CFLAGS} ${FP} ${LFLAG} ${OBJS} Version.c
-
-ovpi: ${OBJS} version
-	./version > Version.c
-	${CC} -c Version.c
-	ld -n -X ${CRT} ${BASE} -Z ${OV1} -Z ${OV2} -Z ${OV3} \
-	-Z ${OV4} -Z ${OV5} -Z ${OV6} -L ${LIBS} -lovc -o pi
-	size pi
-
-y.tab.h y.tab.c: pas.y
-	${EYACC} pas.y >pas.eyacc.list
-	ex - y.tab.c < gram
+all: ${ALL}
 
 .c.o:
 	rm -f ${TEMPDIR}/$*.c
 	${MKSTR} - ${ERRORSTRINGS} ${TEMPDIR}/ $*.c
-	cd ${TEMPDIR} ; ${CC} ${CFLAGS} -I.. -c $*.c ; mv $*.o ../$*.o
+	${CC} ${CFLAGS} ${DEFS} -c ${TEMPDIR}/$*.c
 	rm -f ${TEMPDIR}/$*.c
+
+pix: pix.c
+	${CC} ${SEPFLAG} ${CFLAGS} ${DEFS} -o pix pix.c
+
+px_header.out: px_header.c
+	${CC} ${CFLAGS} ${DEFS} -o px_header.out px_header.c
+
+pi: ${OBJS} version
+	./version > Version.c
+	${CC} -c Version.c
+	-if [ X${SEPFLAG} = X-i ]; then \
+		${CC} ${SEPFLAG} ${CFLAGS} -o pi ${OBJS} Version.c; \
+	else \
+		ld ${SEPFLAG} ${LDFLAGS} -o pi /lib/crt0.o ${BASE} \
+		-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4} -Z ${OV5} -Z ${OV6} \
+		-Y -lc; \
+	fi
+	size pi
+
+y.tab.h y.tab.c: pas.y
+	${EYACC} pas.y >pas.eyacc.list
+	ex - y.tab.c < gram.ex
 
 version: version.c
 	${CC} -o version version.c
 
-clean:
-	rm -f *.o ${TEMPDIR}/*.c y.tab.c y.tab.h ${ERRORSTRINGS} \
-		pi core px_header.out *.list obj
+install:
+	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/lib
+	install -c how_pi ${DESTDIR}/usr/lib
+	install -c how_pix ${DESTDIR}/usr/lib
+	dd if=px_header.out of=${DESTDIR}/usr/lib/npx_header conv=sync
+	install -s pi ${DESTDIR}/usr/ucb
+	install -s pix ${DESTDIR}/usr/ucb
 
-px_header.out : px_header.c
-	${CC} -s -O ${LFLAG} -o px_header.out px_header.c
+tags: FRC
+	ctags ${HDRS} ${SRCS}
+
+FRC:
+
+clean:
+	rm -f *.o ${TEMPDIR}/* y.tab.c y.tab.h \
+		${ALL} core *.list tags
 
 print :
-	@pr makefile READ_ME
 	@ls -ls | pr
-	@pr picture
+	@pr READ_ME Makefile
 	@pr 0.h whoami main.c pas.y
 	@pr yy.h yy*.c
 	@pr [a-ln-x]*.c

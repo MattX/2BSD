@@ -18,3 +18,4 @@ main() {
 		printf("%2d %16s -> %5d %5d %4d %s\n", i, C_name[i], Numcards[i], count, Numneed[i], C_name[opposite(i)]);
 	}
 }
+

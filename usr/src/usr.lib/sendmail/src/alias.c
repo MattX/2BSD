@@ -1,14 +1,31 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
 # include <pwd.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <signal.h>
+# include <errno.h>
 # include "sendmail.h"
+# ifdef FLOCK
+# include <sys/file.h>
+# endif FLOCK
 
+#if !defined(lint) && !defined(NOSCCS)
 # ifdef DBM
-SCCSID(@(#)alias.c	4.1		7/25/83	(with DBM));
+static char	SccsId[] = "@(#)alias.c	5.13 (Berkeley) 4/17/86	(with DBM)";
 # else DBM
-SCCSID(@(#)alias.c	4.1		7/25/83	(without DBM));
+static char	SccsId[] = "@(#)alias.c	5.13 (Berkeley) 4/17/86	(without DBM)";
 # endif DBM
+#endif
+
 
 /*
 **  ALIAS -- Compute aliases.
@@ -54,8 +71,6 @@ alias(a, sendq)
 	register char *p;
 	extern char *aliaslookup();
 
-	if (NoAlias)
-		return;
 # ifdef DEBUG
 	if (tTd(27, 1))
 		printf("alias(%s)\n", a->q_paddr);
@@ -71,7 +86,10 @@ alias(a, sendq)
 	**  Look up this name
 	*/
 
-	p = aliaslookup(a->q_user);
+	if (NoAlias)
+		p = NULL;
+	else
+		p = aliaslookup(a->q_user);
 	if (p == NULL)
 		return;
 
@@ -154,14 +172,21 @@ initaliases(aliasfile, init)
 {
 #ifdef DBM
 	int atcnt;
-	char buf[MAXNAME];
 	time_t modtime;
-	int (*oldsigint)();
+	bool automatic = FALSE;
+	char buf[MAXNAME];
 #endif DBM
 	struct stat stb;
+	static bool initialized = FALSE;
 
-	if (stat(aliasfile, &stb) < 0)
+	if (initialized)
+		return;
+	initialized = TRUE;
+
+	if (aliasfile == NULL || stat(aliasfile, &stb) < 0)
 	{
+		if (aliasfile != NULL && init)
+			syserr("Cannot open %s", aliasfile);
 		NoAlias = TRUE;
 		errno = 0;
 		return;
@@ -174,10 +199,31 @@ initaliases(aliasfile, init)
 	**	to us to rebuild it.
 	*/
 
-	dbminit(aliasfile);
-	atcnt = 10;
-	while (SafeAlias && !init && atcnt-- >= 0 && aliaslookup("@") == NULL)
-		sleep(30);
+	if (!init)
+		dbminit(aliasfile);
+	atcnt = SafeAlias * 2;
+	if (atcnt > 0)
+	{
+		while (!init && atcnt-- >= 0 && aliaslookup("@") == NULL)
+		{
+			/*
+			**  Reinitialize alias file in case the new
+			**  one is mv'ed in instead of cp'ed in.
+			**
+			**	Only works with new DBM -- old one will
+			**	just consume file descriptors forever.
+			**	If you have a dbmclose() it can be
+			**	added before the sleep(30).
+			*/
+
+			sleep(30);
+# ifdef NDBM
+			dbminit(aliasfile);
+# endif NDBM
+		}
+	}
+	else
+		atcnt = 1;
 
 	/*
 	**  See if the DBM version of the file is out of date with
@@ -192,68 +238,48 @@ initaliases(aliasfile, init)
 	(void) strcpy(buf, aliasfile);
 	(void) strcat(buf, ".pag");
 	stb.st_ino = 0;
-	if (!init && (atcnt < 0 || stat(buf, &stb) < 0 || stb.st_mtime < modtime))
+	if (!init && (stat(buf, &stb) < 0 || stb.st_mtime < modtime || atcnt < 0))
 	{
 		errno = 0;
 		if (AutoRebuild && stb.st_ino != 0 &&
 		    ((stb.st_mode & 0777) == 0666 || stb.st_uid == geteuid()))
 		{
 			init = TRUE;
+			automatic = TRUE;
 			message(Arpa_Info, "rebuilding alias database");
+#ifdef LOG
+			if (LogLevel >= 7)
+				syslog(LOG_INFO, "rebuilding alias database");
+#endif LOG
 		}
 		else
 		{
-			bool oldverb = Verbose;
-
-			Verbose = TRUE;
+#ifdef LOG
+			if (LogLevel >= 7)
+				syslog(LOG_INFO, "alias database out of date");
+#endif LOG
 			message(Arpa_Info, "Warning: alias database out of date");
-			Verbose = oldverb;
 		}
 	}
 
-	/*
-	**  If initializing, create the new files.
-	**	We should lock the alias file here to prevent other
-	**	instantiations of sendmail from reading an incomplete
-	**	file -- or worse yet, doing a concurrent initialize.
-	*/
-
-	if (init)
-	{
-		oldsigint = signal(SIGINT, SIG_IGN);
-		(void) strcpy(buf, aliasfile);
-		(void) strcat(buf, ".dir");
-		if (close(creat(buf, DBMMODE)) < 0)
-		{
-			syserr("cannot make %s", buf);
-			(void) signal(SIGINT, oldsigint);
-			return;
-		}
-		(void) strcpy(buf, aliasfile);
-		(void) strcat(buf, ".pag");
-		if (close(creat(buf, DBMMODE)) < 0)
-		{
-			syserr("cannot make %s", buf);
-			(void) signal(SIGINT, oldsigint);
-			return;
-		}
-	}
 
 	/*
 	**  If necessary, load the DBM file.
 	**	If running without DBM, load the symbol table.
-	**	After loading the DBM file, add the distinquished alias "@".
 	*/
 
 	if (init)
 	{
-		DATUM key;
+#ifdef LOG
+		if (LogLevel >= 6)
+		{
+			extern char *username();
 
+			syslog(LOG_NOTICE, "alias database %srebuilt by %s",
+				automatic ? "auto" : "", username());
+		}
+#endif LOG
 		readaliases(aliasfile, TRUE);
-		key.dsize = 2;
-		key.dptr = "@";
-		store(key, key);
-		(void) signal(SIGINT, oldsigint);
 	}
 # else DBM
 	readaliases(aliasfile, init);
@@ -283,11 +309,11 @@ readaliases(aliasfile, init)
 	bool init;
 {
 	register char *p;
-	char *p2;
 	char *rhs;
 	bool skipping;
 	int naliases, bytes, longest;
 	FILE *af;
+	int (*oldsigint)();
 	ADDRESS al, bl;
 	register STAB *s;
 	char line[BUFSIZ];
@@ -303,6 +329,51 @@ readaliases(aliasfile, init)
 		return;
 	}
 
+# ifdef DBM
+# ifdef FLOCK
+	/* see if someone else is rebuilding the alias file already */
+	if (flock(fileno(af), LOCK_EX | LOCK_NB) < 0 && errno == EWOULDBLOCK)
+	{
+		/* yes, they are -- wait until done and then return */
+		message(Arpa_Info, "Alias file is already being rebuilt");
+		if (OpMode != MD_INITALIAS)
+		{
+			/* wait for other rebuild to complete */
+			(void) flock(fileno(af), LOCK_EX);
+		}
+		(void) fclose(af);
+		errno = 0;
+		return;
+	}
+# endif FLOCK
+# endif DBM
+
+	/*
+	**  If initializing, create the new DBM files.
+	*/
+
+	if (init)
+	{
+		oldsigint = signal(SIGINT, SIG_IGN);
+		(void) strcpy(line, aliasfile);
+		(void) strcat(line, ".dir");
+		if (close(creat(line, DBMMODE)) < 0)
+		{
+			syserr("cannot make %s", line);
+			(void) signal(SIGINT, oldsigint);
+			return;
+		}
+		(void) strcpy(line, aliasfile);
+		(void) strcat(line, ".pag");
+		if (close(creat(line, DBMMODE)) < 0)
+		{
+			syserr("cannot make %s", line);
+			(void) signal(SIGINT, oldsigint);
+			return;
+		}
+		dbminit(aliasfile);
+	}
+
 	/*
 	**  Read and interpret lines
 	*/
@@ -316,10 +387,12 @@ readaliases(aliasfile, init)
 		int lhssize, rhssize;
 
 		LineNumber++;
+		p = index(line, '\n');
+		if (p != NULL)
+			*p = '\0';
 		switch (line[0])
 		{
 		  case '#':
-		  case '\n':
 		  case '\0':
 			skipping = FALSE;
 			continue;
@@ -354,6 +427,7 @@ readaliases(aliasfile, init)
 			syserr("illegal alias name");
 			continue;
 		}
+		loweraddr(&al);
 
 		/*
 		**  Process the RHS.
@@ -366,32 +440,28 @@ readaliases(aliasfile, init)
 		{
 			register char c;
 
-			if (init)
+			if (init && CheckAliases)
 			{
 				/* do parsing & compression of addresses */
-				c = *p;
-				while (c != '\0')
+				while (*p != '\0')
 				{
-					p2 = p;
-					while (*p != '\n' && *p != ',' && *p != '\0')
+					extern char *DelimChar;
+
+					while (isspace(*p) || *p == ',')
 						p++;
-					c = *p;
-					*p++ = '\0';
-					if (c == '\n')
-						c = '\0';
-					if (*p2 == '\0')
-					{
-						p[-1] = c;
-						continue;
-					}
-					(void) parseaddr(p2, &bl, -1, ',');
-					p[-1] = c;
-					while (isspace(*p))
-						p++;
+					if (*p == '\0')
+						break;
+					if (parseaddr(p, &bl, -1, ',') == NULL)
+						usrerr("%s... bad address", p);
+					p = DelimChar;
 				}
 			}
 			else
+			{
 				p = &p[strlen(p)];
+				if (p[-1] == '\n')
+					*--p = '\0';
+			}
 
 			/* see if there should be a continuation line */
 			c = fgetc(af);
@@ -401,7 +471,6 @@ readaliases(aliasfile, init)
 				break;
 
 			/* read continuation line */
-			p--;
 			if (fgets(p, sizeof line - (p - line), af) == NULL)
 				break;
 			LineNumber++;
@@ -443,11 +512,33 @@ readaliases(aliasfile, init)
 		if (rhssize > longest)
 			longest = rhssize;
 	}
+
+# ifdef DBM
+	if (init)
+	{
+		/* add the distinquished alias "@" */
+		DATUM key;
+
+		key.dsize = 2;
+		key.dptr = "@";
+		store(key, key);
+
+		/* restore the old signal */
+		(void) signal(SIGINT, oldsigint);
+	}
+# endif DBM
+
+	/* closing the alias file drops the lock */
 	(void) fclose(af);
 	CurEnv->e_to = NULL;
 	FileName = NULL;
 	message(Arpa_Info, "%d aliases, longest %d bytes, %d bytes total",
 			naliases, longest, bytes);
+# ifdef LOG
+	if (LogLevel >= 8)
+		syslog(LOG_INFO, "%d aliases, longest %d bytes, %d bytes total",
+			naliases, longest, bytes);
+# endif LOG
 }
 /*
 **  FORWARD -- Try to forward mail
@@ -490,7 +581,7 @@ forward(user, sendq)
 
 	/* good address -- look for .forward file in home */
 	define('z', user->q_home, CurEnv);
-	expand("$z/.forward", buf, &buf[sizeof buf - 1], CurEnv);
+	expand("\001z/.forward", buf, &buf[sizeof buf - 1], CurEnv);
 	if (!safefile(buf, user->q_uid, S_IREAD))
 		return;
 

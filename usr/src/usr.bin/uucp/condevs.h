@@ -1,9 +1,9 @@
-/* $Header: condevs.h,v 1.8 85/05/20 20:03:51 rick Exp $ */
+/*	condevs.h	4.6	86/02/13	*/
 
-#include <signal.h>
 #include "uucp.h"
 #include <errno.h>
 #include <setjmp.h>
+#include <signal.h>
 #include <sgtty.h>
 #ifdef VMSDTR	/* Modem control on vms(works dtr) */
 #include <eunice/eunice.h>
@@ -11,6 +11,16 @@
 #define SS$_NORMAL	0x00000001
 #define IO$_SETMODE	0x00000023
 #define IO$_SENSEMODE	0x00000027
+#endif
+
+#ifdef BSD2_10
+/*
+ * Disambiguate "HAYES" and "HAYES2400" names.
+ */
+#define	hystopn		_hysto
+#define	hyspopn		_hyspo
+#define	hystopn24	_hysto2
+#define	hyspopn24	_hyspo2
 #endif
 
 extern char devSel[];	/* name to pass to delock() in close */
@@ -31,6 +41,10 @@ int dnopn(), dncls();
 int hyspopn(), hystopn(), hyscls();
 #endif HAYES
 
+#ifdef HAYES2400
+int hyspopn24(), hystopn24(), hyscls24();
+#endif HAYES2400
+
 #ifdef HAYESQ
 int hysqopn(), hysqcls();  /* a version of hayes that doesn't use ret codes */
 #endif HAYESQ
@@ -38,6 +52,10 @@ int hysqopn(), hysqcls();  /* a version of hayes that doesn't use ret codes */
 #ifdef NOVATION
 int novopn(), novcls();
 #endif NOVATION
+
+#ifdef CDS224
+int cdsopn224(), cdscls224();
+#endif CDs224
 
 #ifdef DF02
 int df2opn(), df2cls();
@@ -98,4 +116,9 @@ int micopn(), miccls();
 
 #ifdef SYTEK
 int sykopn(), sykcls();
-#endif
+#endif SYTEK
+
+#ifdef ATT2224
+int attopn(), attcls();
+#endif	ATT2224
+

@@ -1,4 +1,6 @@
-/*	$Header: strpbrk.c,v 1.3 85/05/20 20:03:55 rick Exp $	*/
+#ifndef lint
+static char sccsid[] = "@(#)strpbrk.c	5.1 (Berkeley) 6/23/85";
+#endif
 
 /*LINTLIBRARY*/
 

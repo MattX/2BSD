@@ -12,11 +12,7 @@
 # define	unsgn		unsigned
 # define	CARD		short
 
-# ifdef  vax
-#	define	ARNOLD		78	/* my uid			*/
-# else
-#	define	ARNOLD		24601	/* my uid			*/
-# endif
+# define	ARNOLD		214	/* my uid			*/
 
 # define	GURP		28672	/* bad uid			*/
 # define	MAXUSERS	35	/* max # of users for startup	*/
@@ -104,22 +100,62 @@
 # define	C_DRIVE_SAFE	17
 # define	C_RIGHT_WAY	18
 
+/*
+ * prompt types
+ */
+
+# define	MOVEPROMPT		0
+# define	REALLYPROMPT		1
+# define	ANOTHERHANDPROMPT	2
+# define	ANOTHERGAMEPROMPT	3
+# define	SAVEGAMEPROMPT		4
+# define	SAMEFILEPROMPT		5
+# define	FILEPROMPT		6
+# define	EXTENSIONPROMPT		7
+# define	OVERWRITEFILEPROMPT	8
+
+# ifdef	SYSV
+# define	srandom(x)	srand(x)
+# define	random()	rand()
+
+# ifndef	attron
+#	define	erasechar()	_tty.c_cc[VERASE]
+#	define	killchar()	_tty.c_cc[VKILL]
+# endif
+# else
+# ifndef	erasechar
+#	define	erasechar()	_tty.sg_erase
+#	define	killchar()	_tty.sg_kill
+# endif
+# endif	SYSV
+
 typedef struct {
 	bool	coups[NUM_SAFE];
 	bool	can_go;
 	bool	new_battle;
 	bool	new_speed;
 	short	safety[NUM_SAFE];
+	short	sh_safety[NUM_SAFE];
 	short	nummiles[NUM_MILES];
+	short	sh_nummiles[NUM_MILES];
 	CARD	hand[HAND_SZ];
+	CARD	sh_hand[HAND_SZ];
 	CARD	battle;
+	CARD	sh_battle;
 	CARD	speed;
+	CARD	sh_speed;
 	int	mileage;
+	int	sh_mileage;
 	int	hand_tot;
+	int	sh_hand_tot;
 	int	safescore;
+	int	sh_safescore;
 	int	coupscore;
 	int	total;
+	int	sh_total;
 	int	games;
+	int	sh_games;
+	int	was_finished;
 } PLAY;
 
 /*
@@ -143,7 +179,8 @@ extern char	*C_fmt, **C_name, *Fromfile, Initstr[];
 extern int	Card_no, End, Handstart, Movetype, Numcards[], Numgos,
 		Numneed[], Numseen[NUM_CARDS], Play, Value[], Window;
 
-extern CARD	Deck[DECK_SZ], Discard, Opposite[NUM_CARDS], *Topcard;
+extern CARD	Deck[DECK_SZ], Discard, Opposite[NUM_CARDS], Sh_discard,
+		*Topcard;
 
 extern FILE	*outf;
 

@@ -1,13 +1,16 @@
-/*	@(#)ctype_.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)ctype_.c	5.4 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 #include	<ctype.h>
 
-char _ctype_[] = {
+char _ctype_[1 + 256] = {
 	0,
 	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
-	_C,	_S,	_S,	_S,	_S,	_S,	_C,	_C,
+	_C,	_C|_S,	_C|_S,	_C|_S,	_C|_S,	_C|_S,	_C,	_C,
 	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
 	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
-	_S|_P,	_P,	_P,	_P,	_P,	_P,	_P,	_P,
+	_S|_B,	_P,	_P,	_P,	_P,	_P,	_P,	_P,
 	_P,	_P,	_P,	_P,	_P,	_P,	_P,	_P,
 	_N,	_N,	_N,	_N,	_N,	_N,	_N,	_N,
 	_N,	_N,	_P,	_P,	_P,	_P,	_P,	_P,

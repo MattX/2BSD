@@ -1,10 +1,14 @@
+#ifndef lint
+static char sccsid[] = "@(#)n5.c	4.2 6/30/83";
+#endif lint
+
 #include "tdef.h"
 #include <sgtty.h>
 extern
 #include "d.h"
 extern
 #include "v.h"
-#include "s.h"
+#include "sdef.h"
 
 /*
 troff5.c
@@ -12,6 +16,7 @@ troff5.c
 misc processing requests
 */
 
+extern	int	inchar[LNSIZE], *pinchar;	/* XXX */
 extern struct s *frame;
 extern struct s *litlev;
 extern filep ip;
@@ -497,6 +502,7 @@ i1:
 	i2:
 		do{
 		v.hp = 0;
+		pinchar = inchar;	/* XXX */
 		}
 		while(((i = getch()) & CMASK) == ' ');
 		if((i & CMASK) == LEFT)goto i2;
@@ -543,6 +549,7 @@ int delim;
 	if((offset = begin = alloc()) == (filep)0)return(0);
 	cnt = 0;
 	v.hp = 0;
+	pinchar = inchar;	/* XXX */
 	savapts = apts;
 	savapts1 = apts1;
 	savfont = font;
@@ -565,6 +572,7 @@ int delim;
 	pts1 = savpts1;
 	mchbits();
 	v.hp = 0;
+	pinchar = inchar;	/* XXX */
 	while(((j = (i=getch()) & CMASK) != delim) && (j != '\n')){
 		if(rbf0(p) != i){
 			eat(delim);
@@ -645,7 +653,8 @@ caseta(){
 	tabtab[0] = nonumb = 0;
 	for(i=0; ((i < (NTAB-1)) && !nonumb); i++){
 		if(skip())break;
-		tabtab[i] = max(hnumb(&tabtab[max(i-1,0)]),0) & TMASK;
+		tabtab[i] = tabtab[max(i-1,0)] & TMASK;
+		tabtab[i] = max(hnumb(&tabtab[i]),0) & TMASK;
 		if(!nonumb) switch(ch & CMASK){
 			case 'C':
 				tabtab[i] |= CTAB;

@@ -1,6 +1,12 @@
-.TH EQN 1 
+.\"	@(#)eqn.1	6.2 (Berkeley) 5/9/86
+.\"
+.TH EQN 1 "May 9, 1986"
+.AT 3
+.EQ
+delim $$
+.EN
 .SH NAME
-eqn, neqn, checkeq  \-  typeset mathematics
+eqn, neqn, checkeq \- typeset mathematics
 .SH SYNOPSIS
 .B eqn
 [
@@ -17,9 +23,6 @@ eqn, neqn, checkeq  \-  typeset mathematics
 .B checkeq
 [ file ] ...
 .SH DESCRIPTION
-.EQ
-delim $$
-.EN
 .I Eqn
 is a
 troff(1)
@@ -36,7 +39,7 @@ Usage is almost always
 .PP
 If no files are specified, 
 these programs
-reads from the standard input.
+read from the standard input.
 A line beginning with `.EQ' marks the start of an equation;
 the end of an equation
 is marked by a line beginning with `.EN'.
@@ -287,7 +290,7 @@ with
 when all else fails.
 .SH "SEE ALSO"
 .PP
-tbl(1), troff(1), eqnchar(7), ms(7)
+troff(1), tbl(1), ms(7), eqnchar(7)
 .br
 B. W. Kernighan and L. L. Cherry,
 .ul

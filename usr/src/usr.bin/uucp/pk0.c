@@ -1,5 +1,6 @@
-/* $Header: pk0.c,v 1.14 85/05/20 20:02:05 rick Stab $ */
-/* from:  @(#)pk0.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)pk0.c	5.7 (Berkeley) 5/30/86";
+#endif
 
 #include "uucp.h"
 #include "pk.h"
@@ -12,7 +13,14 @@ char next[8] = { 1, 2, 3, 4, 5, 6, 7, 0};	/* packet sequence numbers */
 char mask[8] = { 1, 2, 4, 010, 020, 040, 0100, 0200 };
 
 struct pack *pklines[NPLINES];
-int	pkactive;
+
+int Reacks;
+
+#define PKRTIME 4
+#define PKWTIME 4
+#define PKRSKEW 3
+#define PKWSKEW 2
+extern int pktimeout, pktimeskew, Ntimeout;
 
 /*
  * receive control messages
@@ -72,9 +80,23 @@ register struct pack *pk;
 	case RJ:
 		pk->p_state |= RXMIT;
 		pk->p_msg |= M_RR;
-	case RR:
 		pk->p_rpr = val;
 		(void) pksack(pk);
+		break;
+	case RR:
+		pk->p_rpr = val;
+		if (pk->p_rpr == pk->p_ps) {
+			DEBUG(9, "Reack count is %d\n", ++Reacks);
+			if (Reacks >= 4) {
+				DEBUG(6, "Reack overflow on %d\n", val);
+				pk->p_state |= RXMIT;
+				pk->p_msg |= M_RR;
+				Reacks = 0;
+			}
+		} else {
+			Reacks = 0;
+			(void) pksack(pk);
+		}
 		break;
 	case SRJ:
 		logent("PK0", "srj not implemented");
@@ -219,6 +241,9 @@ int icount;
 
 	xfr = 0;
 	count = 0;
+	pktimeout = PKRTIME;
+	pktimeskew = PKRSKEW;
+	Ntimeout = 0;
 	while (pkaccept(pk) == 0)
 		;
 
@@ -282,6 +307,9 @@ int icount;
 		return -1;
 	}
 
+	pktimeout = PKWTIME;
+	pktimeskew = PKWSKEW;
+	Ntimeout = 0;
 	count = icount;
 	do {
 		while (pk->p_xcount>=pk->p_swindow)  {
@@ -507,7 +535,10 @@ register struct pack *pk;
 		free((char *)bp);
 	}
 	if (rcheck != pk->p_rwindow) {
-		logent("PK0", "pkclose rcheck != p_rwindow");
+		char buf[256];
+
+		sprintf(buf, "PK0: rc %d rw %d", rcheck, pk->p_rwindow);
+		logent(buf, "pkclose rcheck != p_rwindow");
 	}
 	free((char *)pk);
 }

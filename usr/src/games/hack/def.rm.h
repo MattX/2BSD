@@ -43,7 +43,11 @@
  * the size of temporary files and save files.
  */
 struct rm {
-	char scrsym;
+/*
+KLUDGE:  changing scrsym below to `unsigned :8' from `char' cuts the size of
+	the `rm' structure in half
+*/
+	unsigned scrsym:8;
 	unsigned typ:5;
 	unsigned new:1;
 	unsigned seen:1;

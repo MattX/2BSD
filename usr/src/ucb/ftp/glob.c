@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)glob.c	4.2 3/1/83";
-#endif
+static char sccsid[] = "@(#)glob.c	5.2 (Berkeley) 3/7/86";
+#endif not lint
 
 /*
  * C-shell glob for random programs.
@@ -30,8 +36,9 @@ char	*globerr;
 char	*home;
 struct	passwd *getpwnam();
 extern	int errno;
-static	char *strspl(), **copyblk(), *strend();
+static	char *strspl(), *strend();
 char	*malloc(), *strcpy(), *strcat();
+char	**copyblk();
 
 static	int globcnt;
 
@@ -136,9 +143,9 @@ expand(as)
 				*gpathp = 0;
 				if (gethdir(gpath + 1))
 					globerr = "Unknown user name after ~";
-				strcpy(gpath, gpath + 1);
+				(void) strcpy(gpath, gpath + 1);
 			} else
-				strcpy(gpath, home);
+				(void) strcpy(gpath, home);
 			gpathp = strend(gpath);
 		}
 	}
@@ -161,7 +168,7 @@ expand(as)
 		cs++, gpathp++;
 	*gpathp = 0;
 	if (*oldcs == '{') {
-		execbrc(cs, ((char *)0));
+		(void) execbrc(cs, ((char *)0));
 		return;
 	}
 	matchdir(cs);
@@ -177,7 +184,6 @@ matchdir(pattern)
 	struct stat stb;
 	register struct direct *dp;
 	DIR *dirp;
-	register int cnt;
 
 	dirp = opendir(gpath);
 	if (dirp == NULL) {
@@ -260,8 +266,8 @@ pend:
 doit:
 		savec = *pm;
 		*pm = 0;
-		strcpy(lm, pl);
-		strcat(restbuf, pe + 1);
+		(void) strcpy(lm, pl);
+		(void) strcat(restbuf, pe + 1);
 		*pm = savec;
 		if (s == 0) {
 			sgpathp = gpathp;
@@ -502,7 +508,7 @@ rscan(t, f)
 			(*f)(c);
 	}
 }
-
+/*
 static
 scan(t, f)
 	register char **t;
@@ -513,7 +519,7 @@ scan(t, f)
 	while (p = *t++)
 		while (c = *p)
 			*p++ = (*f)(c);
-}
+} */
 
 static
 tglob(c)
@@ -524,14 +530,14 @@ tglob(c)
 		gflag |= c == '{' ? 2 : 1;
 	return (c);
 }
-
+/*
 static
 trim(c)
 	char c;
 {
 
 	return (c & TRIM);
-}
+} */
 
 
 letter(c)
@@ -599,12 +605,11 @@ strspl(cp, dp)
 
 	if (ep == (char *)0)
 		fatal("Out of memory");
-	strcpy(ep, cp);
-	strcat(ep, dp);
+	(void) strcpy(ep, cp);
+	(void) strcat(ep, dp);
 	return (ep);
 }
 
-static
 char **
 copyblk(v)
 	register char **v;
@@ -640,6 +645,6 @@ gethdir(home)
 
 	if (pp == 0)
 		return (1);
-	strcpy(home, pp->pw_dir);
+	(void) strcpy(home, pp->pw_dir);
 	return (0);
 }

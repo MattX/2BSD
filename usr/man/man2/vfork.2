@@ -1,17 +1,25 @@
-.TH VFORK 2
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)vfork.2	6.2 (Berkeley) 6/30/85
+.\"
+.TH VFORK 2 "June 30, 1985"
+.UC 4
 .SH NAME
-vfork \- spawn new process in an efficient way
+vfork \- spawn new process in a virtual memory efficient way
 .SH SYNOPSIS
-.B vfork()
+.B pid = vfork()
+.br
+.B int pid;
 .SH DESCRIPTION
 .I Vfork
 can be used to create new processes without fully copying the address
-space of the old process.
-It is useful when the purpose of
+space of the old process, which is horrendously inefficient in a paged
+environment.  It is useful when the purpose of
 .IR fork (2)
 would have been to create a new system context for an
-.IR exec .
+.IR execve .
 .I Vfork
 differs from
 .I fork
@@ -30,49 +38,43 @@ the parent's context.
 .I Vfork
 can normally be used just like
 .I fork.
-It does not work, however, to return
-from the procedure which called
+It does not work, however, to return while running in the childs context
+from the procedure that called
 .I vfork
-while running in the child's context, since the eventual return from
+since the eventual return from
 .I vfork
-in the parent would then return to a no longer existent stack frame.
+would then return to a no longer existent stack frame.
 Be careful, also, to call
 .I _exit
 rather than
 .I exit
 if you can't
-.IR exec ,
+.IR execve ,
 since
 .I exit
 will flush and close standard I/O channels, and thereby mess up the
-parent process's standard I/O data structures.
+parent processes standard I/O data structures.
 (Even with
 .I fork
 it is wrong to call
 .I exit
 since buffered data would then be flushed twice.)
-.PP
-Similarly when using the new signal mechanism of
-.IR sigset (3)
-mechanism be sure to call
-.I sigsys
-rather than
-.IR signal (2).
+.SH SEE ALSO
+fork(2), execve(2), sigvec(2), wait(2),
 .SH DIAGNOSTICS
 Same as for
 .IR fork .
-.SH SEE ALSO
-execve(2), fork(2), sigsys(2J), wait(2)
 .SH BUGS
-This call is not portable to most dialects of UNIX.
+This system call will be eliminated when proper system sharing
+mechanisms are implemented. 
 Users should not depend on the memory
 sharing semantics of
 .I vfork
-as it could, in that case, be made synonymous to
-.I fork.
+as it will, in that case, be made synonymous to
+.IR fork .
 .PP
 To avoid a possible deadlock situation,
-processes which are children in the middle
+processes that are children in the middle
 of a
 .I vfork
 are never sent SIGTTOU or SIGTTIN signals; rather,

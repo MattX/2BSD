@@ -1,23 +1,24 @@
-# include "sendmail.h"
-
-SCCSID(@(#)stats.c	4.1		7/25/83);
-
 /*
-**  Statistics structure.
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
 */
 
-struct statistics
-{
-	time_t	stat_itime;		/* file initialization time */
-	short	stat_size;		/* size of this structure */
-	long	stat_nf[MAXMAILERS];	/* # msgs from each mailer */
-	long	stat_bf[MAXMAILERS];	/* kbytes from each mailer */
-	long	stat_nt[MAXMAILERS];	/* # msgs to each mailer */
-	long	stat_bt[MAXMAILERS];	/* kbytes to each mailer */
-};
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)stats.c	5.8 (Berkeley) 5/2/86";
+#endif
+
+# include "sendmail.h"
+# include "mailstats.h"
 
 struct statistics	Stat;
-extern long		kbytes();	/* for _bf, _bt */
+
+#define ONE_K		1000		/* one thousand (twenty-four?) */
+#define KBYTES(x)	(((x) + (ONE_K - 1)) / ONE_K)
 /*
 **  MARKSTATS -- mark statistics
 */
@@ -28,13 +29,17 @@ markstats(e, to)
 {
 	if (to == NULL)
 	{
-		Stat.stat_nf[e->e_from.q_mailer->m_mno]++;
-		Stat.stat_bf[e->e_from.q_mailer->m_mno] += kbytes(CurEnv->e_msgsize);
+		if (e->e_from.q_mailer != NULL)
+		{
+			Stat.stat_nf[e->e_from.q_mailer->m_mno]++;
+			Stat.stat_bf[e->e_from.q_mailer->m_mno] +=
+				KBYTES(CurEnv->e_msgsize);
+		}
 	}
 	else
 	{
 		Stat.stat_nt[to->q_mailer->m_mno]++;
-		Stat.stat_bt[to->q_mailer->m_mno] += kbytes(CurEnv->e_msgsize);
+		Stat.stat_bt[to->q_mailer->m_mno] += KBYTES(CurEnv->e_msgsize);
 	}
 }
 /*
@@ -55,7 +60,10 @@ poststats(sfile)
 {
 	register int fd;
 	struct statistics stat;
-	extern long lseek();
+	extern off_t lseek();
+
+	if (sfile == NULL)
+		return;
 
 	(void) time(&Stat.stat_itime);
 	Stat.stat_size = sizeof Stat;
@@ -81,38 +89,10 @@ poststats(sfile)
 		}
 	}
 	else
-		bmove((char *) &Stat, (char *) &stat, sizeof stat);
+		bcopy((char *) &Stat, (char *) &stat, sizeof stat);
 
 	/* write out results */
-	(void) lseek(fd, 0L, 0);
+	(void) lseek(fd, (off_t) 0, 0);
 	(void) write(fd, (char *) &stat, sizeof stat);
 	(void) close(fd);
-}
-/*
-**  KBYTES -- given a number, returns the number of Kbytes.
-**
-**	Used in statistics gathering of message sizes to try to avoid
-**	wraparound (at least for a while.....)
-**
-**	Parameters:
-**		bytes -- actual number of bytes.
-**
-**	Returns:
-**		number of kbytes.
-**
-**	Side Effects:
-**		none.
-**
-**	Notes:
-**		This function is actually a ceiling function to
-**			the nearest K.
-**		Honestly folks, floating point might be better.
-**			Or perhaps a "statistical" log method.
-*/
-
-long
-kbytes(bytes)
-	long bytes;
-{
-	return ((bytes + 999) / 1000);
 }

@@ -1,24 +1,23 @@
-/* UNIX shell
+#ifndef lint
+static char sccsid[] = "@(#)main.c	4.3 3/19/85";
+#endif
+
+#
+/*
+ * UNIX shell
  *
  * S. R. Bourne
  * Bell Telephone Laboratories
  *
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	4.2 8/11/83";
-#endif
-
 #include	"defs.h"
-#include	"dup.h"
 #include	"sym.h"
 #include	"timeout.h"
-#ifdef	pdp11
-#include	<signal.h>
-#endif	pdp11
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #include	<sgtty.h>
+#include	<signal.h>
 
 UFD		output = 2;
 LOCAL BOOL	beenhere = FALSE;
@@ -42,14 +41,11 @@ main(c, v)
 
 	/* initialise storage allocation */
 	stdsigs();
-#ifdef	pdp11
-	signal(SIGTSTP,1);
-#endif	pdp11
 	setbrk(BRKINCR);
 	addblok((POS)0);
 
 	/* set names from userenv */
-	getenv();
+	setupenv();
 
 	/* look for restricted */
 /*	IF c>0 ANDF any('r', *v) THEN rflag=0 FI */
@@ -158,20 +154,13 @@ BOOL		prof;
 			THEN	prs(mailmsg)
 			FI
 			mailtime=statb.st_mtime;
-#ifndef	pdp11
 			prs(ps1nod.namval);
-#else
-			prs(ps1nod.namval); alarm(TIMEOUT); flags |= waiting;
-#endif	!pdp11
 		FI
 
 		trapnote=0; peekc=readc();
 		IF eof
 		THEN	return;
 		FI
-#ifdef	pdp11
-		alarm(0); flags &= ~waiting;
-#endif	pdp11
 		execute(cmd(NL,MTFLG),0);
 		eof |= (flags&oneflg);
 	POOL
@@ -194,7 +183,7 @@ settmp()
 Ldup(fa, fb)
 	REG INT		fa, fb;
 {
-	dup(fa|DUPFLG, fb);
+	dup2(fa, fb);
 	close(fa);
 	ioctl(fb, FIOCLEX, 0);
 }

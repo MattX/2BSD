@@ -1,5 +1,11 @@
-/* Copyright (c) 1981 Regents of the University of California */
-/* sccs id:	@(#)ex.h	7.4	9/3/81  */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)ex.h	7.7.1.1 (Berkeley) 8/12/86
+ */
+
 #ifdef V6
 #include <retrofit.h>
 #endif
@@ -41,14 +47,12 @@
  * of additional terminal descriptions you add to the termcap data base.
  */
 
-#include <whoami.h>
-#include <sys/types.h>
+#include <sys/param.h>
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
 #include <setjmp.h>
 #include <sys/stat.h>
-#include "uparm.h"
 
 #ifndef var
 #define var	extern
@@ -152,6 +156,7 @@ extern	 struct	option options[NOPTS + 1];
  */
 #define	QUOTE	0200
 #define	TRIM	0177
+#undef CTRL
 #define	CTRL(c)	('c' & 037)
 #define	NL	CTRL(j)
 #define	CR	CTRL(m)
@@ -178,7 +183,7 @@ var	short	erfile;		/* Error message file unit */
 #endif
 var	line	*fendcore;	/* First address in line pointer space */
 var	char	file[FNSIZE];	/* Working file name */
-var	char	genbuf[LBSIZE];	/* Working buffer when manipulating linebuf */
+var	char	genbuf[MAXBSIZE]; /* Working buffer when manipulating linebuf */
 var	bool	hush;		/* Command line option - was given, hush up! */
 var	char	*globp;		/* (Untyped) input string to command mode */
 var	bool	holdcm;		/* Don't cursor address */
@@ -222,6 +227,7 @@ var	bool	vcatch;		/* Want to catch an error (open/visual) */
 var	jmp_buf	vreslab;	/* For error throws to a visual catch */
 var	bool	writing;	/* 1 if in middle of a file write */
 var	int	xchng;		/* Suppresses multiple "No writes" in !cmd */
+var	int	bsize;		/* Block size for disk i/o */
 
 /*
  * Macros
@@ -308,21 +314,6 @@ var	line	*undadot;	/* If we saved all lines, dot reverts here */
 #define	UNDNONE		3
 #define	UNDPUT		4
 
-#ifdef CRYPT
-/*
- * Various miscellaneous flags and buffers needed by the encryption routines.
- */
-#define	KSIZE   9       /* key size for encryption */
-#define	KEYPROMPT       "Key: "
-var	int	xflag;		/* True if we are in encryption mode */
-var	int	xtflag;		/* True if the temp file is being encrypted */
-var	int	kflag;		/* True if the key has been accepted */
-var	char	perm[768];
-var	char	tperm[768];
-var	char	*key;
-var	char	crbuf[CRSIZE];
-char	*getpass();
-#endif
 
 /*
  * Function type definitions

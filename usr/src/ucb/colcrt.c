@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)colcrt.c	4.2 (Berkeley) 4/3/81";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)colcrt.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
  * colcrt - replaces col for crts with new nroff esp. when using tbl.
@@ -21,7 +34,6 @@ char	page[267][132];
 int	outline = 1;
 int	outcol;
 
-char	buf[BUFSIZ];
 char	suppresul;
 char	printall;
 
@@ -53,7 +65,6 @@ main(argc, argv)
 		argc--;
 		argv++;
 	}
-	setbuf(stdout, buf);
 	do {
 		if (argc > 0) {
 			close(0);
@@ -61,7 +72,6 @@ main(argc, argv)
 ) < 0) {
 				fflush(stdout);
 				perror(argv[0]);
-				fflush(stdout);
 				exit (1);
 			}
 			argc--;
@@ -156,10 +166,10 @@ int first;
 pflush(ol)
 	int ol;
 {
-	register int i;
+	register int i, j;
 	register char *cp;
 	char lastomit;
-	register l;
+	int l;
 
 	l = ol;
 	lastomit = 0;
@@ -180,12 +190,13 @@ pflush(ol)
 		lastomit = 0;
 		printf("%s\n", cp);
 	}
-	copy((char *) page, (char *) page[ol], (267 - ol) * 132);
-	clear(page[267- ol], ol * 132);
+	bcopy(page[ol], page, (267 - ol) * 132);
+	bzero(page[267- ol], ol * 132);
 	outline -= ol;
 	outcol = 0;
 	first = 1;
 }
+
 move(l, m)
 	int l, m;
 {
@@ -211,26 +222,4 @@ move(l, m)
 				*dp = ' ';
 		page[l][0] = 0;
 	}
-}
-
-copy(to, from, i)
-	register char *to, *from;
-	register int i;
-{
-
-	if (i > 0)
-		do
-			*to++ = *from++;
-		while (--i);
-}
-
-clear(at, cnt)
-	register char *at;
-	register int cnt;
-{
-
-	if (cnt > 0)
-		do
-			*at++ = 0;
-		while (--cnt);
 }

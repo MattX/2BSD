@@ -9,6 +9,9 @@
  * Version 1.1 February 1978
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 /*
  * Option flags
  *
@@ -254,8 +257,8 @@ int	pfcnt;
 
 char	*filename;		/* current source file name */
 char	*lastname;		/* last file name printed */
-int	tvec[2];		/* mod time of the source file */
-int	ptvec[2];		/* time profiled */
+time_t	tvec;			/* mod time of the source file */
+time_t	ptvec;			/* time profiled */
 char	printed;		/* current file has been printed */
 char	hadsome;		/* had some output */
 

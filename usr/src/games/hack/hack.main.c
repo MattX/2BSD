@@ -1,10 +1,15 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.main.c - version 1.0.2 */
+/* hack.main.c - version 1.0.3 */
 
 #include <stdio.h>
 #include <signal.h>
-#include <errno.h>
 #include "hack.h"
+
+#ifdef QUEST
+#define	gamename	"quest"
+#else
+#define	gamename	"hack"
+#endif QUEST
 
 extern char *getlogin(), *getenv();
 extern char plname[PL_NSIZ], pl_character[PL_CSIZ];
@@ -16,14 +21,12 @@ char *occtxt;			/* defined when occupation != NULL */
 int done1();
 int hangup();
 
-char safelock[] = "safelock";
 int hackpid;				/* current pid */
-xchar locknum;				/* max num of players */
+int locknum;				/* max num of players */
 #ifdef DEF_PAGER
 char *catmore;				/* default pager */
 #endif DEF_PAGER
-char SAVEF[PL_NSIZ + 10] = "save/";	/* save/99999player */
-char perm[] = "perm";
+char SAVEF[PL_NSIZ + 11] = "save/";	/* save/99999player */
 char *hname;		/* name of the game (argv[0] of call) */
 char obuf[BUFSIZ];	/* BUFSIZ is defined in stdio.h */
 
@@ -52,10 +55,10 @@ char *argv[];
 	 */
 
 	dir = getenv("HACKDIR");
-	if(argc > 1 && !strncmp(argv[1], "-d", 2)) {
+	if(argc > 1 && !strncmp(argv[1], "-d", STRLEN("-d"))) {
 		argc--;
 		argv++;
-		dir = argv[0]+2;
+		dir = argv[0]+STRLEN("-d");
 		if(*dir == '=' || *dir == ':') dir++;
 		if(!*dir && argc > 1) {
 			argc--;
@@ -93,7 +96,7 @@ char *argv[];
 	 * Now we know the directory containing 'record' and
 	 * may do a prscore().
 	 */
-	if(argc > 1 && !strncmp(argv[1], "-s", 2)) {
+	if(argc > 1 && !strncmp(argv[1], "-s", STRLEN("-s"))) {
 #ifdef CHDIR
 		chdirx(dir,0);
 #endif CHDIR
@@ -110,6 +113,8 @@ char *argv[];
 	setrandom();
 	startup();
 	cls();
+	u.uhp = 1;	/* prevent RIP on early quits */
+	u.ux = FAR;	/* prevent nscr() */
 	(void) signal(SIGHUP, hangup);
 
 	/*
@@ -197,7 +202,7 @@ char *argv[];
 		(void) signal(SIGINT,SIG_IGN);
 		if(!locknum)
 			(void) strcpy(lock,plname);
-		lockcheck();	/* sets lock if locknum != 0 */
+		getlock();	/* sets lock if locknum != 0 */
 #ifdef WIZARD
 	} else {
 		register char *sfoo;
@@ -210,6 +215,9 @@ char *argv[];
 				}
 			}
 		if(sfoo = getenv("GENOCIDED")){
+			/* KLUDGE -- our C doesn't let `extern ...'
+				definitions last for the rest of the file */
+			extern char genocided[], fut_geno[];
 			if(*sfoo == '!'){
 				extern struct permonst mons[CMNUM+2];
 				extern char genocided[], fut_geno[];
@@ -229,16 +237,16 @@ char *argv[];
 	}
 #endif WIZARD
 	setftty();
-	u.uhp = 1;	/* prevent RIP on early quits */
-	u.ux = FAR;	/* prevent nscr() */
-	(void) sprintf(SAVEF, "save/%5d%s", getuid(), plname);
+	(void) sprintf(SAVEF, "save/%d%s", getuid(), plname);
+	regularize(SAVEF+5);		/* avoid . or / in name */
 	if((fd = open(SAVEF,0)) >= 0 &&
 	   (uptodate(fd) || unlink(SAVEF) == 666)) {
 		(void) signal(SIGINT,done1);
-		puts("Restoring old save file...");
+		pline("Restoring old save file...");
 		(void) fflush(stdout);
 		if(!dorecover(fd))
 			goto not_recovered;
+		pline("Hello %s, welcome to %s!", plname, gamename);
 		flags.move = 0;
 	} else {
 not_recovered:
@@ -267,16 +275,15 @@ not_recovered:
 			/* after reading news we did docrt() already */
 #endif NEWS
 			docrt();
+
+		/* give welcome message before pickup messages */
+		pline("Hello %s, welcome to %s!", plname, gamename);
+
 		pickup(1);
 		read_engr_at(u.ux,u.uy);
 		flags.move = 1;
 	}
 
-#ifdef QUEST
-	pline("Hello %s, welcome to quest!", plname);
-#else
-	pline("Hello %s, welcome to hack!", plname);
-#endif QUEST
 	flags.moonphase = phase_of_the_moon();
 	if(flags.moonphase == FULL_MOON) {
 		pline("You are lucky! Full moon tonight.");
@@ -393,53 +400,6 @@ not_recovered:
 	}
 }
 
-lockcheck()
-{
-	extern int errno;
-	register int i = 0, fd;
-
-	/* we ignore QUIT and INT at this point */
-	if (link(perm, safelock) == -1) {
-		perror("safelock");
-		error("Cannot link safelock. (Try again or rm safelock.)");
-	}
-
-	if(locknum > 25) locknum = 25;
-
-	do {
-		if(locknum) lock[0] = 'a' + i++;
-
-		if((fd = open(lock, 0)) == -1) {
-			if(errno == ENOENT) goto gotlock;    /* no such file */
-			(void) unlink(safelock);
-			perror(lock);
-			error("Cannot open %s", lock);
-		}
-		if(veryold(fd))		/* this closes fd and unlinks lock */
-			goto gotlock;
-		(void) close(fd);
-	} while(i < locknum);
-
-	(void) unlink(safelock);
-	error(locknum ? "Too many hacks running now."
-		      : "There is a game in progress under your name.");
-gotlock:
-	fd = creat(lock, FMASK);
-	if(unlink(safelock) == -1)
-		error("Cannot unlink safelock.");
-	if(fd == -1) {
-		error("cannot creat lock file.");
-	} else {
-		if(write(fd, (char *) &hackpid, sizeof(hackpid))
-		    != sizeof(hackpid)){
-			error("cannot write lock");
-		}
-		if(close(fd) == -1) {
-			error("cannot close lock");
-		}
-	}
-}
-
 glo(foo)
 register foo;
 {
@@ -447,11 +407,8 @@ register foo;
 	register char *tf;
 
 	tf = lock;
-	while(*tf && *tf!='.') tf++;
-	if(foo)
-		(void) sprintf(tf, ".%d", foo);
-	else
-		*tf = 0;
+	while(*tf && *tf != '.') tf++;
+	(void) sprintf(tf, ".%d", foo);
 }
 
 /*
@@ -462,8 +419,9 @@ register foo;
 askname(){
 register int c,ct;
 	printf("\nWho are you? ");
+/*	(void) fflush(stdout);	/* readchar already does this */
 	ct = 0;
-	while((c = getchar()) != '\n'){
+	while((c = readchar()) != '\n'){
 		if(c == EOF) error("End of input\n");
 		/* some people get confused when their erase char is not ^H */
 		if(c == '\010') {
@@ -483,7 +441,7 @@ impossible(s,x1,x2)
 register char *s;
 {
 	pline(s,x1,x2);
-	pline("Program in disorder - perhaps you'd better Quit");
+	pline("Program in disorder - perhaps you'd better Quit.");
 }
 
 #ifdef CHDIR

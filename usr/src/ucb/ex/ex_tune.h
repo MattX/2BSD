@@ -1,5 +1,11 @@
-/* Copyright (c) 1981 Regents of the University of California */
-/* sccs id:	@(#)ex_tune.h	7.3	9/3/81  */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)ex_tune.h	7.8 (Berkeley) 5/31/85
+ */
+
 /*
  * Definitions of editor parameters and limits
  */
@@ -9,8 +15,13 @@
  *
  * Only exstrings is looked at "+4", i.e. if you give
  * "/usr/lib/..." here, "/lib" will be tried only for strings.
- * #include "local/uparm.h"
  */
+#define libpath(file) "/usr/lib/file"
+#define loclibpath(file) "/usr/local/lib/file"
+#define binpath(file) "/usr/ucb/file"
+#define usrpath(file) "/usr/file"
+#define E_TERMCAP	"/etc/termcap"
+#define B_CSH		"/bin/csh"
 #define	EXRECOVER	libpath(ex3.7recover)
 #define	EXPRESERVE	libpath(ex3.7preserve)
 #ifndef VMUNIX
@@ -50,7 +61,7 @@
 #endif
 #define	RHSSIZE		256		/* Size of rhs of substitute */
 #define	NBRA		9		/* Number of re \( \) pairs */
-#define	TAGSIZE		32		/* Tag length */
+#define	TAGSIZE		128		/* Tag length */
 #define	ONMSZ		64		/* Option name size */
 #define	GBSIZE		256		/* Buffer size */
 #define	UXBSIZE		128		/* Unix command buffer size */
@@ -76,6 +87,7 @@
  * of the incore line information and could then
  * be reasonably large.
  */
+#undef NCARGS
 #ifndef VMUNIX
 #define	NARGS	100		/* Maximum number of names in "next" */
 #define	NCARGS	LBSIZE		/* Maximum arglist chars in "next" */
@@ -95,19 +107,13 @@
  * hardcopy mode when a line gets longer than 80 characters.
  */
 #ifndef VMUNIX
-#ifdef	NONSEPARATE
-#define	TUBELINES	25	/* Number of screen lines for visual */
-#define	TUBECOLS	160	/* Number of screen columns for visual */
-#define	TUBESIZE	2000	/* Maximum screen size for visual */
-#else
 #define	TUBELINES	60	/* Number of screen lines for visual */
 #define	TUBECOLS	160	/* Number of screen columns for visual */
 #define	TUBESIZE	5000	/* Maximum screen size for visual */
-#endif	NONSEPARATE
 #else
-#define	TUBELINES	66
+#define	TUBELINES	70
 #define	TUBECOLS	160
-#define	TUBESIZE	6600	/* 66 * 100 */
+#define	TUBESIZE	7000	/* 70 * 100 */
 #endif
 
 /*

@@ -1,4 +1,19 @@
-static	char *Sccsid = "@(#)colrm.c	4.2 (Berkeley) 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)colrm.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
 COLRM removes unwanted columns from a file
@@ -9,55 +24,60 @@ COLRM removes unwanted columns from a file
 main(argc,argv)
 char **argv;
 {
-	int first;
-	register ct,last;
-	register char c;
-	char buffer[BUFSIZ];
+	register c, ct, first, last;
 
-	setbuf(stdout, buffer);
-	first = 20000;
-	last  = -1;
-	if (argc>1) {
+	first = 0;
+	last = 0;
+	if (argc > 1)
 		first = getn(*++argv);
-		last = 20000;
-	}
-	if (argc>2)
+	if (argc > 2)
 		last = getn(*++argv);
 
 start:
 	ct = 0;
 loop1:
-	if ((c=getc(stdin))<0)
+	c = getc(stdin);
+	if (feof(stdin))
 		goto fin;
 	if (c == '\t')
-		ct = (ct + 8) &~ 7;
+		ct = (ct + 8) & ~7;
 	else if (c == '\b')
 		ct = ct ? ct - 1 : 0;
 	else
 		ct++;
-	if (c=='\n') {
-		putc(c,stdout);
+	if (c == '\n') {
+		putc(c, stdout);
 		goto start;
 	}
-	if (ct<first) {
-		putc(c,stdout);
+	if (!first || ct < first) {
+		putc(c, stdout);
 		goto loop1;
 	}
 
 /* Loop getting rid of characters */
-	for (;ct<last;ct++) {
-		if ((c=getc(stdin))<0)
+	while (!last || ct < last) {
+		c = getc(stdin);
+		if (feof(stdin))
 			goto fin;
-		if (c=='\n') {
-			putc(c,stdout);
+		if (c == '\n') {
+			putc(c, stdout);
 			goto start;
 		}
+		if (c == '\t')
+			ct = (ct + 8) & ~7;
+		else if (c == '\b')
+			ct = ct ? ct - 1 : 0;
+		else
+			ct++;
 	}
 
 /* Output last of the line */
-	while ((c=getc(stdin))>0) {
-		putc(c,stdout);
-		if (c=='\n')
+	for (;;) {
+		c = getc(stdin);
+		if (feof(stdin))
+			break;
+		putc(c, stdout);
+		if (c == '\n')
 			goto start;
 	}
 fin:

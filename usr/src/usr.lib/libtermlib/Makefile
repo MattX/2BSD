@@ -1,27 +1,28 @@
-#	Makefile	4.1	83/06/27
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.1 (Berkeley) 6/5/85
 #
 CFLAGS=	-O -DCM_N -DCM_GT -DCM_B -DCM_D
 LD = ld
+SRCS=	termcap.c tgoto.c tputs.c
+OBJS=	termcap.o tgoto.o tputs.o
+TAGSFILE=tags
 
 .c.o:
 	$(CC) $(CFLAGS) -c -p $*.c
 	$(LD) $(LDFLAGS) -x -r -o profiled/$*.o $*.o
-	$(CC) $(CFLAGS) -c -V $*.c
-	$(LD) $(LDFLAGS) -X -r -o overlay/$*.o $*.o
 	$(CC) $(CFLAGS) -c $*.c
 	$(LD) $(LDFLAGS) -X -r $*.o
 	mv a.out $*.o
 
-termcap.a termcap_p.a: termcap.o tgoto.o tputs.o
-	ar cr termcap.a termcap.o tgoto.o tputs.o
-	cd profiled; ar cr ../termcap_p.a termcap.o tgoto.o tputs.o
-	cd overlay; ar cr ../ovtermcap.a termcap.o tgoto.o tputs.o
+termcap.a termcap_p.a: ${OBJS}
+	ar cr termcap.a ${OBJS}
+	cd profiled; ar cr ../termcap_p.a ${OBJS}
 
-clean:
-	-rm -f *.o profiled/*.o overlay/*.o
-	-rm -f termcap.a termcap_p.a ovtermcap.a
-
-install: termcap.a termcap_p.a ovtermcap.a
+install: termcap.a termcap_p.a
 	install -c termcap.a ${DESTDIR}/usr/lib/libtermcap.a
 	-rm -f ${DESTDIR}/usr/lib/libtermlib.a
 	ln ${DESTDIR}/usr/lib/libtermcap.a ${DESTDIR}/usr/lib/libtermlib.a
@@ -30,10 +31,16 @@ install: termcap.a termcap_p.a ovtermcap.a
 	-rm -f ${DESTDIR}/usr/lib/libtermlib_p.a
 	ln ${DESTDIR}/usr/lib/libtermcap_p.a ${DESTDIR}/usr/lib/libtermlib_p.a
 	ranlib ${DESTDIR}/usr/lib/libtermcap_p.a
-	install -c ovtermcap.a ${DESTDIR}/usr/lib/libovtermcap.a
-	-rm -f ${DESTDIR}/usr/lib/libovtermlib.a
-	ln ${DESTDIR}/usr/lib/libovtermcap.a ${DESTDIR}/usr/lib/libovtermlib.a
-	ranlib ${DESTDIR}/usr/lib/libovtermcap.a
+
+tags:
+	cwd=`pwd`; \
+	for i in ${SRCS}; do \
+		ctags -a -f ${TAGSFILE} $$cwd/$$i; \
+	done
+
+clean:
+	-rm -f *.o profiled/*.o
+	-rm -f termcap.a termcap_p.a
 
 VGRIND=	csh /usr/ucb/vgrind
 vgrind:

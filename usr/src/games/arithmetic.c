@@ -187,7 +187,7 @@ int temp;
    are assumed to be 16-bit integers. It replaces an old PDP-11 
    assembler language subroutine. -- dks.
 */
-hmul(a,b) { return(a*b >> 16); }
+hmul(a,b) { return((long)a*b >> 16); }
 score()
 {
 	time(&etvec);

@@ -13,7 +13,7 @@ struct topl {
 	struct topl *next_topl;
 	char *topl_text;
 } *old_toplines, *last_redone_topl;
-#define	OTLMAX	20		/* max nr of old toplines remembered */
+#define	OTLMAX	3		/* max nr of old toplines remembered */
 
 doredotopl(){
 	if(last_redone_topl)
@@ -134,7 +134,7 @@ register char *line,*arg1,*arg2,*arg3,*arg4,*arg5,*arg6;
 	n0 = strlen(bp);
 	if(flags.toplin == 1 && tly == 1 &&
 	    n0 + strlen(toplines) + 3 < CO-8 &&  /* leave room for --More-- */
-	    strncmp(bp, "You ", 4)) {
+	    strncmp(bp, "You ", STRLEN("You "))) {
 		(void) strcat(toplines, "  ");
 		(void) strcat(toplines, bp);
 		tlx += 2;

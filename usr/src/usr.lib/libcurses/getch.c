@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)getch.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#if !defined(lint) && !defined(NOSCCS)
+static char sccsid[] = "@(#)getch.c	5.3 (Berkeley) 4/16/86";
+#endif
 
 # include	"curses.ext"
 
@@ -27,7 +27,7 @@ reg WINDOW	*win; {
 	fprintf(outf, "WGETCH: _echoit = %c, _rawmode = %c\n", _echoit ? 'T' : 'F', _rawmode ? 'T' : 'F');
 # endif
 	if (_echoit && !_rawmode) {
-		raw();
+		cbreak();
 		weset++;
 	}
 	inp = getchar();
@@ -35,10 +35,11 @@ reg WINDOW	*win; {
 	fprintf(outf,"WGETCH got '%s'\n",unctrl(inp));
 # endif
 	if (_echoit) {
-		mvwaddch(curscr, win->_cury, win->_curx, inp);
+		mvwaddch(curscr, win->_cury + win->_begy,
+			win->_curx + win->_begx, inp);
 		waddch(win, inp);
 	}
 	if (weset)
-		noraw();
+		nocbreak();
 	return inp;
 }

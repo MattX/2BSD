@@ -1,8 +1,17 @@
 /*
-**  Trace Package.
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
 **
-**	Version:
-**		%W%	%Y%	%G%
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+**
+**	@(#)trace.h	5.1 (Berkeley) 7/14/85
+*/
+
+/*
+**  Trace Package.
 */
 
 typedef u_char	*TRACEV;

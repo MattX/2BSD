@@ -1,38 +1,38 @@
-.TH MTAB 5 
-.UC
+.\"	@(#)mtab.5	6.1 (Berkeley) 5/15/85
+.\"
+.TH MTAB 5  "May 15, 1985"
+.AT 3
 .SH NAME
 mtab \- mounted file system table
 .SH SYNOPSIS
-.B #include <mtab.h>
+.B "#include <fstab.h>
+.br
+.B "#include <mtab.h>"
 .SH DESCRIPTION
 .I Mtab
 resides in directory
 .I /etc
 and contains a table of devices mounted by the
-.IR mount (8)
+.I mount
 command.
-.IR Umount (8)
+.I Umount
 removes entries.
 .PP
-The format of a mount table entry, as given by the include file, is:
-.PP
-.nf
-.ta 8n +9n +11n +11n +11n +11n
-#define	MAXMOUNT	16
-#define	PATHSIZE	32
-#define	DEVSIZE		32
-#define	MOUNTTABLE	"/etc/mtab"
-struct	mtab {
-	dev_t	m_dev;		/* major/minor device numbers */
-	char	m_dname[DEVSIZE];	/* block device pathname */
-	char	m_name[PATHSIZE];	/* mounted on pathname */
-};
-.fi
-.PP
+The table is a series of
+.I mtab
+structures, as defined in
+.IR < mtab.h >.
+Each entry contains the null-padded name of
+the place where the special file is mounted,
+the null-padded name of the special file, and
+a type field, one of those defined in
+.RI < fstab.h >.
 The special file has all its directories
 stripped away;
 that is, everything through the last `/' is thrown
-away.
+away.  The type field indicates if the file system
+is mounted read-only, read-write, or read-write with
+disk quotas enabled.
 .PP
 This table is present only so people can look at it.
 It does not matter to
@@ -44,4 +44,4 @@ if a name cannot be found.
 .SH FILES
 /etc/mtab
 .SH "SEE ALSO"
-fstab(5), mount(8)
+mount(8)

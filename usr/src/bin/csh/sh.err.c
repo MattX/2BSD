@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.err.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.err.c	5.3 (Berkeley) 5/13/86";
+#endif
 
 #include "sh.h"
 #include <sys/ioctl.h>
@@ -20,6 +28,7 @@ char	*onev[2] = { one, NOSTR };
  * be closed in the routine process in sh.c which is the only
  * place error unwinds are ever caught.
  */
+/*VARARGS1*/
 error(s, arg)
 	char *s;
 {
@@ -56,21 +65,21 @@ error(s, arg)
 	errspl = 0;
 
 	/*
+	 * Go away if -e or we are a child shell
+	 */
+	if (exiterr || child)
+		exit(1);
+
+	/*
 	 * Reset the state of the input.
 	 * This buffered seek to end of file will also
 	 * clear the while/foreach stack.
 	 */
 	btoeof();
 
-	/*
-	 * Go away if -e or we are a child shell
-	 */
-	if (exiterr || child)
-		exit(1);
-
 	setq("status", onev, &shvhed);
 	if (tpgrp > 0)
-		ioctl(FSHTTY, TIOCSPGRP, &tpgrp);
+		(void) ioctl(FSHTTY, TIOCSPGRP, (char *)&tpgrp);
 	reset();		/* Unwind */
 }
 
@@ -89,7 +98,7 @@ Perror(s)
 	if (!didfds) {
 		register int oerrno = errno;
 
-		dcopy(SHDIAG, 2);
+		(void) dcopy(SHDIAG, 2);
 		errno = oerrno;
 	}
 	perror(s);

@@ -1,132 +1,121 @@
 /*
- * System parameters.
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)param.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
+
+#include "../h/param.h"
+#include "../h/systm.h"
+#include "../h/buf.h"
+#include "../h/time.h"
+#include "../h/resource.h"
+#include "../h/proc.h"
+#include "../h/text.h"
+#include "../h/file.h"
+#include "../h/inode.h"
+#include "../h/fs.h"
+#include "../h/mount.h"
+#include "../h/callout.h"
+#include "../h/map.h"
+#include "../h/clist.h"
+#include "../machine/seg.h"
+
+/*
+ * System parameter formulae.
  *
  * This file is copied into each directory where we compile
  * the kernel; it should be modified there to suit local taste
  * if necessary.
  *
  */
-#include	"param.h"
-#include	<sys/systm.h>
-#include	<sys/buf.h>
-#include	<sys/tty.h>
-#include	<sys/conf.h>
-#include	<sys/proc.h>
-#include	<sys/text.h>
-#include	<sys/dir.h>
-#include	<sys/user.h>
-#include	<sys/file.h>
-#include	<sys/inode.h>
-#include	<sys/filsys.h>
-#include	<sys/mount.h>
-#include	<sys/callout.h>
-#include	<sys/acct.h>
-#include	<sys/map.h>
-#include	<sys/seg.h>
 
-#define	HZ	60			/* Ticks/second of the clock */
-#define	TIMEZONE (%TIMEZONE% * 60)		/* Minutes westward from Greenwich */
-#define	DSTFLAG	%DST%			/* Daylight Saving Time applies here */
+#define	MAXUSERS %MAXUSERS%
 
-#define	NBUF	(12 + (2 * MAXUSERS))	/* size of buffer cache, must be <=256*/
-#define	NMOUNT	7			/* number of mountable file systems */
-
-#ifdef	UCB_CLIST
-#   ifdef UNIBUS_MAP
-#	define NCLIST	500		/* number of clists, must be <= 512 */
-#   else
-#	define NCLIST	200		/* number of clists */
-#   endif
-#else	UCB_CLIST
-#	define NCLIST	100		/* number of clists */
-#endif	UCB_CLIST
-
-#define	NPROC	(10 + (7 * MAXUSERS))		/* max number of processes */
-#define	NTEXT	(20 + ((3*MAXUSERS) / 2))	/* max number of pure texts */
-#define	NINODE	(NPROC + 20 + (2 * MAXUSERS))	/* number of in-core inodes */
-#define	NFILE	((8 * NINODE/10) + 5)		/* number of file structures */
-#define	NCALL	(4 + MAXUSERS)		/* max simultaneous time callouts */
-#define	NDISK	3			/* number of disks to monitor */
-
-#ifndef	UNIBUS_MAP
-#   define CMAPSIZ NPROC		/* size of core allocation map */
-#   define SMAPSIZ (NPROC+(5*NTEXT/10))	/* size of swap allocation map */
-#else
-#   define CMAPSIZ (NPROC+(8*NTEXT/10)) /* size of core allocation map */
-#   define SMAPSIZ (NPROC+(8*NTEXT/10)) /* size of swap allocation map */
-#endif
-
-int	maxusers = MAXUSERS;
-int	hz	= HZ;
-int	timezone = TIMEZONE;
-bool_t	dstflag	= DSTFLAG;
-int	nmount	= NMOUNT;
-int	nfile	= NFILE;
-int	ninode	= NINODE;
-int	nproc	= NPROC;
-int	ntext	= NTEXT;
-int	nbuf	= NBUF;
-int	nclist	= NCLIST;
+int	hz = LINEHZ;
+struct	timezone tz = { %TIMEZONE%, %DST% };
+#define	NPROC (10 + 7 * MAXUSERS)
+int	nproc = NPROC;
+#define NTEXT (36 + MAXUSERS)
+int	ntext = NTEXT;
+#define NINODE ((NPROC + 16 + MAXUSERS) + 32)
+int	ninode = NINODE;
+#define NFILE ((8 * NINODE / 10) + 5)
+int	nfile = NFILE;
+#define NCALL (16 + MAXUSERS)
 int	ncallout = NCALL;
-int	ndisk	= NDISK;
-int	cmapsiz	= CMAPSIZ;
-int	smapsiz	= SMAPSIZ;
+int	bsize = MAXBSIZE;
+int	nbuf = NBUF;
 
-struct	mount	mount[NMOUNT];
-struct	inode	inode[NINODE];
-struct	buf	buf[NBUF];
-struct	callout	callout[NCALL + 1];	/* last one used as a delimiter */
-struct	buf	bfreelist;
-#ifndef	UCB_CLIST
-struct	cblock	cfree[NCLIST];
-#else
-unsigned clstdesc = ((((btoc(NCLIST*sizeof(struct cblock)))-1) << 8) | RW);
+#define NCLIST (20 + 8 * MAXUSERS)
+#if NCLIST > (8192 / 32)		/* 8K / sizeof(struct cblock) */
+#undef NCLIST
+#define NCLIST (8192 / 32)
 #endif
-long	dk_time[1 << (NDISK)];
-long	dk_numb[NDISK];
-long	dk_wds[NDISK];
-
-struct mapent _coremap[CMAPSIZ];
-struct map coremap[1] = {
-	_coremap,
-	&_coremap[CMAPSIZ],
-	"coremap"
-};
-
-struct mapent _swapmap[SMAPSIZ];
-struct map swapmap[1] = {
-	_swapmap,
-	&_swapmap[SMAPSIZ],
-	"swapmap"
-};
-
-struct	mount	*mountNMOUNT	= &mount[NMOUNT];
-struct	file	*fileNFILE	= &file[NFILE];
-struct	inode	*inodeNINODE	= &inode[NINODE];
-struct	proc	*procNPROC	= &proc[NPROC];
-struct	text	*textNTEXT	= &text[NTEXT];
-/* callNCALL points to the last slot, which must be a terminator */
-struct	callout	*callNCALL	= &callout[NCALL];
-
-char	counted[NTEXT];			/* performance stats */
-
-int	bsize	= BSIZE + BSLOP;	/* size of buffers */
-
-#ifdef ACCT
-struct	acct	acctbuf;
-struct	inode	*acctp;
-#endif
-
-char msgbuf[MSGBUFS]	= {"\0"};
+int	nclist = NCLIST;
 
 /*
- *  Declarations of structures loaded last and allowed to
- *  reside in the 0120000-140000 range (where buffers and clists are
- *  mapped).  These structures must be extern everywhere else,
- *  and the asm output of cc is edited to move these structures
- *  from comm to bss (which is last) (see the script :comm-to-bss).
+ * These have to be allocated somewhere; allocating
+ * them here forces loader errors if this file is omitted
+ * (if they've been externed everywhere else; hah!).
  */
-int	remap_area;	/* start of possibly mapped area; must be first */
-struct	proc	proc[NPROC];
-struct	file	file[NFILE];
-struct	text	text[NTEXT];
+struct	proc *procNPROC;
+struct	text *textNTEXT;
+#ifdef UCB_METER
+char	textcounted[NTEXT];		/* text performance stats */
+#endif
+struct	inode inode[NINODE], *inodeNINODE;
+struct	file *fileNFILE;
+struct	callout callout[NCALL];
+struct	mount mount[NMOUNT];
+struct	buf buf[NBUF], bfreelist[BQUEUES];
+struct	bufhd bufhash[BUFHSZ];
+
+#ifdef UCB_CLIST
+	u_int clstdesc = ((((btoc(NCLIST*sizeof(struct cblock)))-1) << 8) | RW);
+	int ucb_clist = 1;
+#else
+	struct cblock	cfree[NCLIST];
+	int ucb_clist;
+#endif
+
+#ifdef NOKA5
+	int noka5 = 1;
+#else
+	int noka5;
+#endif
+
+#ifdef UNIBUS_MAP
+#define CMAPSIZ	(NPROC+(8*NTEXT/10))	/* size of core allocation map */
+#define SMAPSIZ	(NPROC+(8*NTEXT/10))	/* size of swap allocation map */
+#else
+#define CMAPSIZ	NPROC
+#define SMAPSIZ	(NPROC+(5*NTEXT/10))
+#endif
+
+struct mapent	_coremap[CMAPSIZ];
+struct map	coremap[1] = {
+	_coremap,
+	&_coremap[CMAPSIZ],
+	"coremap",
+};
+
+struct mapent	_swapmap[SMAPSIZ];
+struct map	swapmap[1] = {
+	_swapmap,
+	&_swapmap[SMAPSIZ],
+	"swapmap",
+};
+
+/*
+ * Declarations of structures loaded last and allowed to reside in the
+ * 0120000-140000 range (where buffers and clists are mapped).  These
+ * structures must be extern everywhere else, and the asm output of cc
+ * is edited to move these structures from comm to bss (which is last)
+ * (see the script :comm-to-bss).  They are in capital letters so that
+ * the edit script doesn't find some other occurrence.
+ */
+struct proc	PROC[NPROC];
+struct file	FILE[NFILE];
+struct text	TEXT[NTEXT];

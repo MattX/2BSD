@@ -8,13 +8,11 @@
 / must be removed
 
 / options:
-nohead	= 1		/ 0->normal, 1->this boot must have a.out
-			/   header removed.  Saves 10 bytes.
 readname= 0		/ 1->normal, if default not found, read name
 			/   from console. 0->loop on failure, saves 36 bytes
 prompt	= 0		/ 1->prompt (':') before reading from console
 			/   0-> no prompt, saves 8 bytes
-autoboot= 1		/ 1->code for autoboot. 0->no autoboot, saves 12 bytes
+mxvboot= 1		/ 0->normal, 1->adds check done by MXV11 boot ROMS
 
 / constants:
 CLSIZE	= 2.			/ physical disk blocks per logical block
@@ -25,10 +23,11 @@ NDIRIN	= 4.			/ number of direct inode addresses
 ADDROFF	= 12.			/ offset of first address in inode
 INOPB	= BSIZE\/INOSIZ		/ inodes per logical block
 INOFF	= 31.			/ inode offset = (INOPB * (SUPERB+1)) - 1
+PBSHFT	= -4			/ shift to divide by inodes per block
 WC	= -256.*CLSIZE		/ word count
 
 /  The boot options and device are placed in the last SZFLAGS bytes
-/  at the end of core by the kernel if this is an autoboot.
+/  at the end of core by the kernel for autobooting.
 ENDCORE=	160000		/ end of core, mem. management off
 SZFLAGS=	6		/ size of boot flags
 BOOTOPTS=	2		/ location of options, bytes below ENDCORE
@@ -40,17 +39,17 @@ CHECKWORD=	6
 / entry is made by jsr pc,*$0
 / so return can be rts pc
 
+.if	mxvboot
+	0240			/ These two lines must be present or DEC MXV-11
+	br	start		/ boot ROMs will refuse to run boot block!
+.endif
+
 / establish sp, copy
 / program up to end of core.
 start:
 	mov	$..,sp
 	mov	sp,r1
 	clr	r0
-.if	nohead-1			/ if nohead == 1
-	cmp	(r0),$407
-	bne	1f
-	mov	$20,r0
-.endif
 1:
 	mov	(r0)+,(r1)+
 	cmp	r1,$end
@@ -161,11 +160,9 @@ restart:
 / enter program and
 / restart if return
 2:
-.if	autoboot
 	mov	ENDCORE-BOOTOPTS, r4
 	mov	ENDCORE-BOOTDEV, r3
 	mov	ENDCORE-CHECKWORD, r2
-.endif
 	jsr	pc,*$0
 	br	restart
 
@@ -173,7 +170,7 @@ restart:
 iget:
 	add	$INOFF,r0
 	mov	r0,r5
-	ash	$-4.,r0
+	ash	$PBSHFT,r0
 	bic	$!7777,r0
 	mov	r0,dno
 	clr	r0

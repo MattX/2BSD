@@ -16,35 +16,41 @@ prboard() {
 		pp = &Player[k];
 		temp = k * COMP_STRT + CARD_STRT;
 		for (i = 0; i < NUM_SAFE; i++)
-			if (pp->safety[i] == S_PLAYED) {
+			if (pp->safety[i] == S_PLAYED && !pp->sh_safety[i]) {
 				mvaddstr(i, temp, C_name[i + S_CONV]);
 				if (pp->coups[i])
 					mvaddch(i, temp - CARD_STRT, '*');
+				pp->sh_safety[i] = TRUE;
 			}
-		mvprintw(14, temp, C_fmt, C_name[pp->battle]);
-		mvprintw(16, temp, C_fmt, C_name[pp->speed]);
-		for (i = C_25; i <= C_200; ) {
+		show_card(14, temp, pp->battle, &pp->sh_battle);
+		show_card(16, temp, pp->speed, &pp->sh_speed);
+		for (i = C_25; i <= C_200; i++) {
 			reg char	*name;
 			reg int		end;
 
+			if (pp->nummiles[i] == pp->sh_nummiles[i])
+				continue;
+
 			name = C_name[i];
 			temp = k * 40;
-			end = pp->nummiles[i++];
-			for (j = 0; j < end; j++)
-				mvwaddstr(Miles, i, (j << 2) + temp, name);
+			end = pp->nummiles[i];
+			for (j = pp->sh_nummiles[i]; j < end; j++)
+				mvwaddstr(Miles, i + 1, (j << 2) + temp, name);
+			pp->sh_nummiles[i] = end;
 		}
 	}
 	prscore(TRUE);
 	temp = CARD_STRT;
 	pp = &Player[PLAYER];
 	for (i = 0; i < HAND_SZ; i++)
-		mvprintw(i + 6, temp, C_fmt, C_name[pp->hand[i]]);
+		show_card(i + 6, temp, pp->hand[i], &pp->sh_hand[i]);
 	mvprintw(6, COMP_STRT + CARD_STRT, "%2d", Topcard - Deck);
-	mvprintw(8, COMP_STRT + CARD_STRT, C_fmt, C_name[Discard]);
+	show_card(8, COMP_STRT + CARD_STRT, Discard, &Sh_discard);
 	if (End == 1000) {
-		static char	ext[] = "Extension";
-
-		stand(EXT_Y, EXT_X, ext);
+		move(EXT_Y, EXT_X);
+		standout();
+		addstr("Extension");
+		standend();
 	}
 	wrefresh(Board);
 	wrefresh(Miles);
@@ -52,35 +58,41 @@ prboard() {
 }
 
 /*
- *	Put str at (y,x) in standout mode
+ * show_card:
+ *	Show the given card if it is different from the last one shown
  */
-stand(y, x, str)
-reg int		y, x;
-reg char	*str; {
+show_card(y, x, c, lc)
+int		y, x;
+register CARD	c, *lc;
+{
+	if (c == *lc)
+		return;
 
-	standout();
-	mvaddstr(y, x, str);
-	standend();
-	return TRUE;
+	mvprintw(y, x, C_fmt, C_name[c]);
+	*lc = c;
 }
+
+static char	Score_fmt[] = "%4d";
 
 prscore(for_real)
 reg bool	for_real; {
 
 	reg PLAY	*pp;
 	reg int		x;
-	reg char	*Score_fmt = "%4d";
 
 	stdscr = Score;
 	for (pp = Player; pp < &Player[2]; pp++) {
 		x = (pp - Player) * 6 + 21;
-		mvprintw(1, x, Score_fmt, pp->mileage);
-		mvprintw(2, x, Score_fmt, pp->safescore);
-		if (pp->safescore == 400)
-			mvaddstr(3, x + 1, "300");
-		else
-			mvaddch(3, x + 3, '0');
-		mvprintw(4, x, Score_fmt, pp->coupscore);
+		show_score(1, x, pp->mileage, &pp->sh_mileage);
+		if (pp->safescore != pp->sh_safescore) {
+			mvprintw(2, x, Score_fmt, pp->safescore);
+			if (pp->safescore == 400)
+				mvaddstr(3, x + 1, "300");
+			else
+				mvaddstr(3, x + 1, "  0");
+			mvprintw(4, x, Score_fmt, pp->coupscore);
+			pp->sh_safescore = pp->safescore;
+		}
 		if (Window == W_FULL || Finished) {
 #ifdef EXTRAP
 			if (for_real)
@@ -90,15 +102,31 @@ reg bool	for_real; {
 #else
 			finalscore(pp);
 #endif
-			mvprintw(11, x, Score_fmt, pp->hand_tot);
-			mvprintw(13, x, Score_fmt, pp->total);
-			mvprintw(14, x, Score_fmt, pp->games);
+			show_score(11, x, pp->hand_tot, &pp->sh_hand_tot);
+			show_score(13, x, pp->total, &pp->sh_total);
+			show_score(14, x, pp->games, &pp->sh_games);
 		}
 		else {
-			mvprintw(6, x, Score_fmt, pp->hand_tot);
-			mvprintw(8, x, Score_fmt, pp->total);
-			mvprintw(9, x, Score_fmt, pp->games);
+			show_score(6, x, pp->hand_tot, &pp->sh_hand_tot);
+			show_score(8, x, pp->total, &pp->sh_total);
+			show_score(9, x, pp->games, &pp->sh_games);
 		}
 	}
 	stdscr = Board;
+}
+
+/*
+ * show_score:
+ *	Show a score value if it is different from the last time we
+ *	showed it.
+ */
+show_score(y, x, s, ls)
+int		y, x;
+register int	s, *ls;
+{
+	if (s == *ls)
+		return;
+
+	mvprintw(y, x, Score_fmt, s);
+	*ls = s;
 }

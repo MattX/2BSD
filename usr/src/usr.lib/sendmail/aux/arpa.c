@@ -1,3 +1,23 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char	SccsId[] = "@(#)arpa.c	5.1 (Berkeley) 6/7/85";
+#endif not lint
+
 # include	<stdio.h>
 # include	<ctype.h>
 # include	<signal.h>
@@ -5,9 +25,7 @@
 # include	<whoami.h>
 # include	"useful.h"
 
-static char SccsId[] =	"@(#)arpa.c	4.1		7/25/83";
-
-char Version[] = "@(#)Arpa-mailer version 4.1 of 7/25/83";
+char Version[] = "@(#)Arpa-mailer version 5.1 of 6/7/85";
 
 # define void	int
 

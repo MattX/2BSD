@@ -1,71 +1,438 @@
-# ifndef lint
-static char	SccsId[] = "@(#)SendMail version 4.9 of 8/31/83";
-# endif lint
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
-char	Version[] = "4.9";
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)version.c	5.51 (Berkeley) 5/2/86";
+#endif
+
+char	Version[] = "5.51";
 
 # ifdef COMMENT
 
 SCCS/s.version.c:
 
+D 5.51	86/05/02 16:28:28	bloom	473	472	00000/00000/00015
+statistics structure moved to its own header file so it may be used by 
+aux/mailstats
+
+D 5.50	86/04/17 20:18:12	eric	472	471	00000/00000/00015
+don't ignore aliasing during queue runs in conjunction with -bd
+
+D 5.49	86/04/02 16:02:31	eric	471	470	00000/00000/00015
+don't run around clearing EF_FATALERRS -- this often applies to another
+address.  Drop uid/gid check in sameaddr -- it causes more problems
+than it fixes.
+
+D 5.48	86/03/08 14:12:07	eric	470	469	00000/00000/00015
+improve debugging in queue routines; don't output error addresses that
+are duplicates or otherwise marked as "don't send"
+
+D 5.47	86/03/08 09:28:15	eric	469	468	00000/00000/00015
+do dbminit in a reasonable place
+
+D 5.46	86/03/02 14:07:11	eric	468	467	00000/00000/00015
+always ignore SIGCHLD in openmailer; get SccsId correct in alias.c
+
+D 5.45	86/01/30 11:02:58	eric	467	466	00000/00000/00015
+fix .forward files that include yourself; this was a bug in sameaddr
+that may have caused some other problems
+
+D 5.44	86/01/11 00:18:27	eric	466	465	00000/00000/00015
+only check the RHS of aliases during newalias if the "n" option is set;
+this option should probably be set if you are not running the nameserver
+
+D 5.43	86/01/10 16:34:08	eric	465	464	00000/00000/00015
+adjust WkTimeFact so that -q1h will lower relative priorities of
+jobs over long periods, rather than leave them toward the top of the queue
+
+D 5.42	86/01/10 15:49:40	eric	464	463	00000/00000/00015
+allow multiple words per line in file classes; require a SCANF compilation
+flag to use sscanf in F specs in order to reduce image size
+
+D 5.41	86/01/09 15:19:09	eric	463	462	00000/00000/00015
+apparently European timezones were wrong; thanks to Piet Beertema
+<mcvax!piet@seismo.CSS.GOV> for this one
+
+D 5.40	86/01/09 14:38:45	eric	462	461	00000/00000/00015
+allow underscores in login names
+
+D 5.39	86/01/05 18:49:01	eric	461	460	00000/00000/00015
+rewrite reply-to and resent-reply-to; save errorqueueu in qf file;
+some performance hacking; some alias handling cleanup; delete leading
+spaces from SMTP lines
+
+D 5.38	85/12/17 23:54:45	eric	460	459	00000/00000/00015
+lint
+
+D 5.37	85/12/17 21:35:28	eric	459	458	00000/00000/00015
+patch to clearenvelope to avoid dereferencing garbage pointers
+
+D 5.36	85/12/09 10:29:07	miriam	458	457	00000/00000/00015
+Modify maphostname to do a gethostbyaddr if first character in name 
+is a bracket.
+
+D 5.35	85/12/07 08:17:56	eric	457	456	00000/00000/00015
+several small bugs: don't die if no environment, don't look in
+ESM_DEADLETTER state in savemail; lowercase before getpwnam to
+allow upper case regular names in alias file
+
+D 5.34	85/11/22 11:38:09	miriam	456	455	00000/00000/00015
+Distinguish between temporary failure types.  Now will print the 
+message "Host Name Lookup Failure" when h_errno contains TRY_AGAIN error value.
+
+D 5.33	85/11/22 08:27:48	eric	455	454	00000/00000/00015
+give error if alias file cannot be opened; log a message when aliases
+are rebuilt; consider addresses with different q_uid's different so
+that two recipients forwarding to the same program will work
+
+D 5.32	85/11/21 18:49:02	eric	454	453	00000/00000/00015
+don't duplicate original envelope into error envelope
+
+D 5.31	85/10/24 10:38:28	eric	453	452	00000/00000/00015
+don't create a queue name in syserr; permit trailing blanks and quoted
+commas in aliases.
+
+D 5.30	85/10/19 09:55:01	eric	452	451	00000/00000/00015
+strip spaces from ends of alias addresses so that blanks at end of line works
+
+D 5.29	85/10/13 15:03:36	eric	451	450	00000/00000/00015
+fix botch with reapchild getting queue runs before intended wait
+
+D 5.28	85/09/30 21:34:39	eric	450	449	00000/00000/00015
+clean up some aspects of error message display
+
+D 5.27	85/09/30 21:06:04	eric	449	448	00000/00000/00015
+fixes in setproctitle to avoid problems with titles longer than
+argv + env
+
+D 5.26	85/09/25 11:02:19	eric	448	447	00000/00000/00015
+DO use Ruleset 4 when defining $f -- it's very necessary (fix for <>
+will have to be done in configuration); pretty up mailq -v slightly
+
+D 5.25	85/09/24 15:49:04	eric	447	446	00000/00000/00015
+clean up queue output somewhat (push null jobs to end); set
+SO_REUSEADDR and SO_KEEPALIVE on daemon sockets in the hopes of making
+dead connections disappear faster
+
+D 5.24	85/09/24 15:09:56	eric	446	445	00000/00000/00015
+don't step on user environment
+
+D 5.23	85/09/23 21:19:05	eric	445	444	00000/00000/00015
+deliver directly in SMTP if VERB command has been issued; don't
+externalize name using ruleset 4 when defining $f macro: this turns "<>"
+into "", which confuses local mail
+
+D 5.22	85/09/21 16:35:33	eric	444	443	00000/00000/00015
+yet more cleanup to the process title code
+
+D 5.21	85/09/21 16:24:06	eric	443	442	00000/00000/00015
+don't include ctime as part of priority, since the value affects the results of
+shouldqueue; we go back to adding ctime into the workcmpf in queue.c
+
+D 5.20	85/09/21 15:52:02	eric	442	441	00000/00000/00015
+change sign on WkTimeFact so that is closer to what most people want
+
+D 5.19	85/09/21 15:01:31	eric	441	440	00000/00000/00015
+fix silly botch in SMTP command decoding
+
+D 5.18	85/09/21 14:45:53	eric	440	439	00000/00000/00015
+clean up priority handling, making several of the parameters configurable:
+y - WkRecipFact, z - WkClassFact, Z - WkTimeFact, Y - ForkQueueRuns; improve
+process title labelling; finish "errors to postmaster" option
+
+D 5.17	85/09/21 10:31:27	eric	439	438	00000/00000/00015
+add -v mode to mailq to print priorities as well (this should be extended
+in the future); fix some problems in the savemail state machine.
+
+D 5.16	85/09/20 09:43:20	eric	438	437	00000/00000/00015
+print cute labels on programs communicating with SMTP
+
+D 5.15	85/09/19 23:16:24	eric	437	436	00000/00000/00015
+label child processes more effectively
+
+D 5.14	85/09/19 22:01:02	eric	436	435	00000/00000/00015
+use rename instead of link/unlink
+
+D 5.13	85/09/19 17:43:16	eric	435	434	00000/00000/00015
+fix botch in clearenvelope
+
+D 5.12	85/09/19 15:57:48	eric	434	433	00000/00000/00015
+updates to make it possible to run the queue in one process; this
+permits a database of host status to be built
+
+D 5.11	85/09/19 13:41:13	eric	433	432	00000/00000/00015
+lint
+
+D 5.10	85/09/19 01:25:45	eric	432	431	00000/00000/00015
+incorporate SMI changes -- still experimental
+
+D 5.9	85/09/17 21:46:27	eric	431	430	00000/00000/00015
+use SIGCHLD to catch processes as suggested by Serge Granik
+
+D 5.8	85/09/17 19:24:39	eric	430	429	00000/00000/00015
+facilities in syslog
+
+D 5.7	85/09/03 20:08:54	eric	429	428	00000/00000/00015
+increase MAXNAME and MAXLINE, as requested by Rick Adams, via
+George Goble, via Kirk Smith, via Miriam Amos (why????)
+
+D 5.6	85/09/03 19:50:17	eric	428	427	00000/00000/00015
+Wander WIZ from weariful DEBUG to wonderful WIZ woption
+
+D 5.5	85/06/17 18:53:09	eric	427	426	00000/00000/00015
+From Bill Nowicki: fixes to the statistics
+
+D 5.4	85/06/16 16:04:51	eric	426	425	00000/00000/00015
+arrange for a useful error message if the mailer fork fails
+
+D 5.3	85/06/15 18:52:11	eric	425	424	00000/00000/00015
+fix overzealous removal of df file
+
+D 5.2	85/06/08 10:30:59	eric	424	423	00000/00000/00015
+lint for 4.3 release
+
+D 5.1	85/06/07 15:19:18	dist	423	422	00013/00003/00002
+Add copyright
+
+D 4.56	85/06/02 10:54:52	eric	422	421	00000/00000/00005
+plug another security hole with command line arguments
+
+D 4.55	85/06/01 15:26:40	eric	421	420	00000/00000/00005
+More changes from Bill Nowicki -- file closing and improved logging.
+
+D 4.54	85/05/24 11:00:43	eric	420	419	00000/00000/00005
+Changes from Bill Nowicki <sun!rose!nowicki> and Jay Lepreau <lepreau@utah-cs>:
+Fix "bad file number" problem; improve error reporting; try to keep messages
+closer to their original order.  Also, drop "safe" mode in readcf since we
+never run setuid when -C is specified.
+
+D 4.53	85/05/15 20:26:44	eric	419	418	00000/00000/00005
+reenable signals in an event that may be called to run the queue; this
+allows hung connections to time out properly during a queue run.  This
+fix provided by Bill Nowicki.
+
+D 4.52	85/05/06 20:06:04	eric	418	417	00000/00000/00005
+check syscall return values in a few questions; thanks go to Ian Darwin's
+rudely public ragging on this one.
+
+D 4.51	85/04/29 22:48:37	eric	417	416	00000/00000/00005
+lock alias file while rebuilding if flock system call available
+
+D 4.50	85/04/28 10:46:11	eric	416	415	00000/00000/00005
+stop collecting message on ferror(InChannel); changes to compile even
+if DEBUG isn't defined; avoid sending nonstandard 050 messages unless
+requested; recover from trashed DBM files; use recipient rewriting set
+on user part after ruleset 0 completes
+
+D 4.49	85/04/25 20:06:08	miriam	415	414	00000/00000/00005
+Remove lib/libsys.a references - not used anymore.
+
+D 4.48	85/04/20 15:14:15	eric	414	413	00000/00000/00005
+don't assume that all apparently local senders have passwd entries
+
+D 4.47	85/04/04 17:48:45	miriam	413	412	00000/00000/00005
+Change serverity of LOG_ERR to LOG_MAIL so syslog will place in 
+appropriate log file.
+
+D 4.46	85/02/15 09:28:10	eric	412	411	00000/00000/00005
+fix some bugs with -C flag; one with queuing from Teus
+
+D 4.45	85/02/14 22:43:42	eric	411	410	00000/00000/00005
+"and" file mode bits with 0777
+
+D 4.44	84/12/06 10:35:01	eric	410	409	00000/00000/00005
+back out attempt to use flock in the queue -- we don't in gerneral have
+an open file descriptor available.
+
+D 4.43	84/12/05 23:16:18	eric	409	408	00000/00000/00005
+Try to use flock call (this doesn't work because we don't always have an
+open fd); security and performance fixes from Kirk Smith at Purdue; "a"
+option is now the number of minutes to wait for "@:@" alias; fix bug in
+$[ $] using -t; random cleanup
+
+D 4.42	84/11/13 12:46:05	eric	408	407	00000/00000/00005
+assorted optimizations (no functional changes)
+
+D 4.41	84/09/18 19:53:05	eric	407	406	00000/00000/00005
+fix multiline aliases
+
+D 4.40	84/09/08 17:44:21	eric	406	405	00000/00000/00005
+fix hostname mapping to be repeatable (as required by some .cf files).
+
+D 4.39	84/08/11 23:19:30	eric	405	404	00000/00000/00005
+Add $[ and $] as RHS operators to look up the contents and pass them
+to maphostname; maphostname currently looks them up in /etc/hosts and
+converts them to canonical form, but could be turned into a general
+name server.....   huzzah!!
+
+D 4.38	84/08/11 17:56:24	eric	404	403	00000/00000/00005
+changes from Tom Ferrin <ucsfcgl!tef>: don't drop messages on the floor
+if no local mailer available; give real "errno" message in syserr.
+
+D 4.37	84/08/11 17:50:27	eric	403	402	00000/00000/00005
+Assorted changes from Guy Harris <rlgvax!guy>: mostly lint & USG
+
+D 4.36	84/08/11 16:57:17	eric	402	401	00000/00000/00005
+don't add ".ARPA" (or whatever net name) to names that already have
+a dot in them; pull NetName out of initialized data space so that
+it can be changed in frozen configuration files
+
+D 4.35	84/08/11 16:54:59	eric	401	400	00000/00000/00005
+Changes from Greg Couch <ucsfcgl!gregc> for V7 compatibility and
+miscellaneous bug fixes; "clear" => "bzero" and "bmove" => "bcopy"
+throughout for consistency; bzero is now in bcopy.c (these are
+supplied by libc on 4.2bsd)
+
+D 4.34	84/08/11 14:38:46	eric	400	399	00000/00000/00005
+fixes from Liudvikas Bukys <bukys@rochester.ARPA>:
+allow -M flag to be used more than once;
+handle hosts where "gethostname" does not return the canonical name.
+
+D 4.33	84/08/11 13:23:32	eric	399	398	00000/00000/00005
+add E mailer flag to > escape From lines (for files)
+
+D 4.32	84/08/05 11:01:18	eric	398	397	00000/00000/00005
+add B option to set blank substitution character
+
+D 4.31	84/08/05 10:14:14	eric	397	396	00000/00000/00005
+alway reset uid and gid immediately if alternate config file
+
+D 4.30	84/05/13 15:45:35	eric	396	395	00000/00000/00005
+remove .mailcf hack -- it's been abused.
+
+D 4.29	84/05/13 14:03:01	eric	395	394	00000/00000/00005
+change "returnto" to "returnq" for PDP-11 compilers
+
+D 4.28	84/03/17 16:26:58	eric	394	393	00000/00000/00005
+always fold case on host names; fold case on the LHS of aliases
+
+D 4.27	84/03/11 21:21:31	eric	393	392	00000/00000/00005
+fix argument to gethostname left over from some old interface....
+
+D 4.26	84/03/11 19:58:20	eric	392	391	00000/00000/00005
+disable UPPER->lower case mapping in RHS's of aliases so that upper
+case letters can be used in file names and as args to programs.
+
+D 4.25	84/03/11 16:49:25	eric	391	390	00000/00000/00005
+changes from Bill Nowicki <nowicki@diablo.ARPA> to avoid sending
+errors if a connection is aborted;
+changes from Greg Katz <katz@sri-tsc> to help with PDP-11 versions;
+allow home network name to be changed;
+change macro expansion character from $ to \001 so that $'s can be
+used in headers (.cf unchanged).
+
+D 4.24	83/12/27 22:52:50	eric	390	389	00000/00000/00005
+don't close files immediately before exec of mailer so that we can log;
+use FIOCLEX instead.  Suggested by Tom Ferrin, UCSF CGL.
+
+D 4.23	83/12/27 21:21:47	eric	389	388	00000/00000/00005
+fix bug with un-DBM'ed alias files that adds a newline on the end of
+the last entry in the alias; found by John Gilmore, SMI
+
+D 4.22	83/11/26 18:52:55	eric	388	387	00000/00000/00005
+fix SERIOUS bug allowing anyone to be "wiz" without a password
+if the configuration was frozen
+
+D 4.21	83/11/13 18:08:19	eric	387	386	00000/00000/00005
+Fixes two nasty problems, both pointed out by Bill Nowicki at Stanford:
+I/O errors on input in collect would cause infinite loops, and a protocol
+error (or other error that would call smtpquit abnormally) would cause
+core dumps
+
+D 4.20	83/11/10 09:05:46	eric	386	385	00000/00000/00005
+Be able to override the hostname in the configuration file when frozen
+
+D 4.19	83/10/29 16:46:12	eric	385	384	00000/00000/00005
+declare getpwnam in recipient.c for earlier systems
+
+D 4.18	83/10/29 12:01:44	eric	384	383	00000/00000/00005
+add newline to "deferred" message in usersmtp.c
+
+D 4.17	83/10/23 17:16:56	eric	383	382	00000/00000/00005
+handle dollar signs in headers properly
+
+D 4.16	83/10/16 16:08:08	eric	382	381	00000/00000/00005
+Postpone opening the alias DBM file until after the fork in srvrsmtp so
+that the alias database is as current as possible; thanks to dagobah!efo
+(Eben Ostby) for this one.
+
+D 4.15	83/10/16 15:26:12	eric	381	380	00000/00000/00005
+reset errno in parseaddr so that syserr gives a permanent error code and
+no extraneous information about non-errors
+
+D 4.14	83/10/02 15:31:56	eric	380	379	00000/00000/00005
+Use old environment after the thaw; credit rhc for this.
+
+D 4.13	83/10/01 16:57:57	eric	379	378	00000/00000/00005
+clean up error handling in general; make sure that something gets logged
+in the transcript if the connection cannot be established; clean up Teus
+Hagen's mod to arpadate.c to match the sendmail coding style.
+
+D 4.12	83/09/07 09:45:41	eric	378	377	00000/00000/00005
+Increase timeout for greeting message to five minutes; remember to close
+the connection properly if we get a failure during connection establishment.
+
+D 4.11	83/09/05 15:02:48	eric	377	376	00000/00000/00005
+Fix security hole caused by being able to freeze the configuration
+without owning the .fc file.
+
+D 4.10	83/09/05 14:33:54	eric	376	375	00000/00000/00005
+Cut down the amount of bulk that is sent in SMTP error messages, by
+trying to log only real errors in the transcript.  -v mode is unchanged.
+
 D 4.9	83/08/31 17:42:50	eric	375	374	00000/00000/00005
-MRs:	
 fix problem with timeouts caused by change in EINTR semantics in 4.2bsd;
 add a two minute timeout on the greeting message in user smtp to detect
 hung connections
 
 D 4.8	83/08/28 15:38:15	eric	374	373	00000/00000/00005
-MRs:	
 set FIOCLEX on /dev/kmem file when getting load average
 
 D 4.7	83/08/28 14:45:35	eric	373	372	00000/00000/00005
-MRs:	
 Refuse to talk to yourself (i.e., reject HELO packets with your own name).
 Add two thresholds -- option 'x' is the load average at which messages are
 queued rather than delivered (default 12); option 'X' is the load average
 at which incoming TCP connections are refused (default 25).
 
 D 4.6	83/08/21 15:40:13	eric	372	371	00000/00000/00005
-MRs:	
 Drop "Sender:" hack, since it doesn't work properly when relaying messages.
 
 D 4.5	83/08/21 15:15:09	eric	371	370	00000/00000/00005
-MRs:	
 Insert a Sender: line if a From: line is specified and is different than
 what we would insert; don't send back a separate error message if we have
 diagnosed an error in a RCPT command; fix a *0 problem in some debug code.
 
 D 4.4	83/08/06 10:37:57	eric	370	369	00000/00000/00005
-MRs:	
 Clear errno before trying connect in an attempt to track down EPERM
 problems.
 
 D 4.3	83/07/31 10:46:22	eric	369	368	00000/00000/00005
-MRs:	
 Add EX_NOPERM to sysexits.h for kre
 
 D 4.2	83/07/27 22:56:44	eric	368	367	00000/00000/00005
-MRs:	
 Don't uppercase hostname in myhostname so that it can be used as a
 UUCP name.
 
 D 4.1	83/07/25 19:46:27	eric	367	366	00000/00000/00005
-MRs:	
 4.2 release version
 
 D 3.347	83/07/13 10:38:17	eric	366	365	00000/00000/00005
-MRs:	
 Delete "load limiting" for SMTP connections (a bad ethernet board can
 hang up all incoming mail); use sfgets in collect (same reason); check
 for I/O error in collect (from Bill Nowicki); switch date format to
 RFC822 style.
 
 D 3.346	83/06/14 11:05:18	eric	365	364	00000/00000/00005
-MRs:	
 log the message-id only if non-null
 
 D 3.345	83/06/11 20:59:30	eric	364	363	00000/00000/00005
-MRs:	
 %d => %ld in mailq for PDP-11's
 
 D 3.344	83/06/11 19:28:58	eric	363	362	00000/00000/00005
@@ -75,7 +442,6 @@ don't rearrange input header lines; force Received: lines to be at the
 beginning by always adding new header fields at the end of the header.
 
 D 3.343	83/05/21 11:01:51	eric	362	361	00000/00000/00005
-MRs:	
 Miscellaneous changes for PDP-11's.
 Always send to a login name before a full name.
 
@@ -86,7 +452,6 @@ Don't stack processes when VRFY fails.
 Give an error message on multiple RCPT commands with a bad address.
 
 D 3.341	83/05/18 11:57:09	eric	360	359	00000/00000/00005
-MRs:	
 Change WKTIMEFACT to be negative to force failing jobs to the end of the
 queue rather than to the beginning, giving better overall performance --
 as noted by Jay Lepreau.  Also, clean up the format of the mailq output.
@@ -108,7 +473,6 @@ MRs:	234
 avoid core dumps on messages with very long header fields
 
 D 3.336	83/04/30 15:14:51	eric	355	354	00000/00000/00005
-MRs:	
 lint
 
 D 3.335	83/04/23 12:54:57	eric	354	353	00000/00000/00005
@@ -279,7 +643,6 @@ MRs:	166
 don't call printqueue() if queueing is turned off
 
 D 3.302	83/01/18 20:38:09	eric	321	320	00000/00000/00005
-MRs:	
 pause() after reply error if 18.100 set -- so that Sam can try to track
 down the state of the connection in the CMU-CS-A problem.
 
@@ -299,7 +662,6 @@ define a newline in "nullmailer" so that queue files get written with
 newlines between the "H" lines.
 
 D 3.298	83/01/16 22:08:47	eric	317	316	00000/00000/00005
-MRs:	
 put in socket debugging on a debug flag to help Sam find the CMU-CS-A
 problem -- this probably won't work with early 4.1c systems.
 
@@ -519,25 +881,21 @@ routines in the holy war against global variables; split off envelope
 routines from main.c to envelope.c
 
 D 3.255	82/11/28 16:00:50	eric	274	273	00000/00000/00005
-MRs:	
 implement SMTP auto-shutdown on 421 codes; clean up some error processing
 items, particularly in SMTP; don't reinstantiate error message bodies after
 queueing; other minor changes.  This is all cleanup from 3.253.
 
 D 3.254	82/11/28 10:22:20	eric	273	272	00000/00000/00005
-MRs:	
 fix a number of problems left over from yesterday's delta.  The big
 triumph is being able to delete the parameter from disconnect().
 
 D 3.253	82/11/28 00:22:21	eric	272	271	00000/00000/00005
-MRs:	
 Many changes resulting from a complete code readthrough.  Most of these
 fix minor bugs or change the internal structure for clarity, etc.  There
 should be almost no externally visible changes (other than some cleaner
 error message printouts and the like).
 
 D 3.252	82/11/24 18:44:28	eric	271	270	00000/00000/00005
-MRs:	
 lint it
 
 D 3.251	82/11/24 17:15:30	eric	270	269	00000/00000/00005
@@ -1683,58 +2041,57 @@ D 1.1	80/10/11 13:34:43	eric	1	0	00001/00000/00000
 
 code versions:
 
-conf.o:
-	conf.c	4.4		8/28/83
-main.o:
-	sendmail.h	4.2		8/28/83
-	main.c	4.2		8/28/83
-collect.o:
-	collect.c	4.1		7/25/83
-parseaddr.o:
-	parseaddr.c	4.1		7/25/83
-alias.o:
-	alias.c	4.1		7/25/83	(with DBM)
-deliver.o:
-	deliver.c	4.2		8/28/83
-savemail.o:
-	savemail.c	4.2		8/28/83
-err.o:
-	err.c	4.1		7/25/83
-readcf.o:
-	readcf.c	4.2		8/28/83
-stab.o:
-	stab.c	4.1		7/25/83
-headers.o:
-	headers.c	4.3		8/21/83
-recipient.o:
-	recipient.c	4.1		7/25/83
-stats.o:
-	stats.c	4.1		7/25/83
-daemon.o:
-	daemon.c	4.4		8/28/83	(with daemon mode)
-usersmtp.o:
-	usersmtp.c	4.2		8/31/83
-srvrsmtp.o:
-	srvrsmtp.c	4.3		8/28/83
-queue.o:
-	queue.c	4.1		7/25/83
-macro.o:
-	macro.c	4.1		7/25/83
-util.o:
-	util.c	4.2		8/31/83
-clock.o:
-	clock.c	4.1		7/25/83
-trace.o:
-	trace.c	4.1		7/25/83
-envelope.o:
-	envelope.c	4.2		8/21/83
-sysexits.o:
-	sysexits.c	4.2		7/31/83
-bmove.o:
-	bmove.c	4.1		7/25/83
-arpadate.o:
-	arpadate.c	4.1		7/25/83
-convtime.o:
-	convtime.c	4.1		7/25/83
+conf.o
+	conf.c	5.14 (Berkeley) 1/10/86
+main.o
+	 Copyright (c) 1980 Regents of the University of California.
+	main.c	5.11 (Berkeley) 1/30/86
+	sendmail.h	5.8		1/10/86
+collect.o
+	collect.c	5.2 (Berkeley) 6/8/85
+parseaddr.o
+	parseaddr.c	5.6 (Berkeley) 4/2/86
+alias.o
+	alias.c	5.13 (Berkeley) 4/17/86	(with DBM)
+deliver.o
+	deliver.c	5.10 (Berkeley) 3/2/86
+savemail.o
+	savemail.c	5.7 (Berkeley) 12/7/85
+err.o
+	err.c	5.7 (Berkeley) 11/22/85
+readcf.o
+	readcf.c	5.10 (Berkeley) 1/11/86
+stab.o
+	stab.c	5.2 (Berkeley) 6/7/85
+headers.o
+	headers.c	5.7 (Berkeley) 9/21/85
+recipient.o
+	recipient.c	5.7 (Berkeley) 1/9/86
+stats.o
+	stats.c	5.8 (Berkeley) 5/2/86
+daemon.o
+	daemon.c	5.18 (Berkeley) 4/2/86 (with daemon mode)
+usersmtp.o
+	usersmtp.c	5.7 (Berkeley) 4/2/86
+srvrsmtp.o
+	srvrsmtp.c	5.18 (Berkeley) 1/5/86
+queue.o
+	queue.c	5.21 (Berkeley) 4/17/86
+macro.o
+	macro.c	5.3 (Berkeley) 9/19/85
+util.o
+	util.c	5.8 (Berkeley) 12/17/85
+clock.o
+	clock.c	5.4 (Berkeley) 12/17/85
+trace.o
+	trace.c	5.2 (Berkeley) 6/7/85
+envelope.o
+	envelope.c	5.12 (Berkeley) 12/17/85
+sysexits.o
+	sysexits.c	5.2 (Berkeley) 6/7/85
+arpadate.o
+	arpadate.c	5.4 (Berkeley) 1/9/86
+convtime.o
+	convtime.c	5.1 (Berkeley) 6/7/85
 
 # endif COMMENT

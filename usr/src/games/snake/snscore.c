@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)snscore.c	5.1 (Berkeley) 5/30/85";
+#endif not lint
+
 #include <stdio.h>
 #include <pwd.h>
 char *recfile = "/usr/games/lib/snakerawscores";
@@ -41,7 +51,6 @@ main()
 			}
 			players[noplayers].uids = uid;
 			players[noplayers].scores = score;
-			/* This is faster if passwd is sorted by uid. */
 			p = getpwuid(uid);
 			if (p == NULL)
 				continue;
@@ -71,20 +80,4 @@ main()
 			j = i+2;
 	}
 	exit(0);
-}
-
-struct passwd *
-getpwuid(uid)
-register uid;
-{
-	register struct passwd *p;
-	struct passwd *getpwent();
-
-	while( (p = getpwent()) && p->pw_uid != uid );
-	if (p->pw_uid == uid)
-		return(p);
-	setpwent();
-	while( (p = getpwent()) && p->pw_uid != uid );
-	endpwent();
-	return(p);
 }

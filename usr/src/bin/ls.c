@@ -1,6 +1,18 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static	char *sccsid = "@(#)ls.c	4.20 (Berkeley) 9/22/83";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)ls.c	5.6 (Berkeley) 5/12/86";
+#endif not lint
 
 /*
  * ls
@@ -46,6 +58,9 @@ time_t	now, sixmonthsago;
 
 char	*dotp = ".";
 
+struct	winsize win;
+int	twidth;
+
 struct	afile *gstat();
 int	fcmp();
 char	*cat(), *savestr();
@@ -69,10 +84,13 @@ main(argc, argv)
 	if (getuid() == 0)
 		Aflg++;
 	(void) time(&now); sixmonthsago = now - 6L*30L*24L*60L*60L; now += 60;
+	twidth = 80;
 	if (isatty(1)) {
 		qflg = Cflg = 1;
 		(void) gtty(1, &sgbuf);
-		if ((sgbuf.sg_flags & XTABS) == 0)
+		if (ioctl(1, TIOCGWINSZ, &win) != -1)
+			twidth = (win.ws_col == 0 ? 80 : win.ws_col);
+		if ((sgbuf.sg_flags & XTABS) != XTABS)
 			usetabs = 1;
 	} else
 		usetabs = 1;
@@ -184,12 +202,7 @@ formatd(name, title)
 	register struct afile *fp;
 	register struct subdirs *dp;
 	struct afile *dfp0, *dfplast;
-#ifdef pdp11
-	long	nkb,
-		getdir();
-#else !pdp11
-	int nkb;
-#endif pdp11
+	long nkb, getdir();
 
 	nkb = getdir(name, &dfp0, &dfplast);
 	if (dfp0 == 0)
@@ -202,7 +215,7 @@ formatd(name, title)
 		printf("total %ld\n", nkb);
 	formatf(dfp0, dfplast);
 	if (Rflg)
-		for (fp = dfplast; fp >= dfp0; fp--) {
+		for (fp = dfplast - 1; fp >= dfp0; fp--) {
 			if (fp->ftype != 'd' ||
 			    !strcmp(fp->fname, ".") ||
 			    !strcmp(fp->fname, ".."))
@@ -220,9 +233,7 @@ formatd(name, title)
 	cfree((char *)dfp0);
 }
 
-#ifdef pdp11
 long
-#endif pdp11
 getdir(dir, pfp0, pfplast)
 	char *dir;
 	struct afile **pfp0, **pfplast;
@@ -230,12 +241,8 @@ getdir(dir, pfp0, pfplast)
 	register struct afile *fp;
 	DIR *dirp;
 	register struct direct *dp;
-	int	nent = 20;
-#ifdef pdp11
-	long	nb;
-#else !pdp11
-	int	nb;
-#endif pdp11
+	long nb;
+	int nent = 20;
 
 	dirp = opendir(dir);
 	if (dirp == NULL) {
@@ -282,11 +289,7 @@ gstat(fp, file, statarg, pnb)
 	register struct afile *fp;
 	char *file;
 	int statarg;
-#ifdef pdp11
-	long	*pnb;
-#else !pdp11
-	int	*pnb;
-#endif pdp11
+	long *pnb;
 {
 	int (*statf)() = Lflg ? stat : lstat;
 	char buf[BUFSIZ]; int cc;
@@ -305,11 +308,7 @@ gstat(fp, file, statarg, pnb)
 				return (0);
 			}
 		}
-#ifdef pdp11
-		fp->fblks = btodb(stb.st_size + 1023);
-#else !pdp11
 		fp->fblks = stb.st_blocks;
-#endif pdp11
 		fp->fsize = stb.st_size;
 		switch (stb.st_mode & S_IFMT) {
 
@@ -319,10 +318,8 @@ gstat(fp, file, statarg, pnb)
 			fp->ftype = 'b'; fp->fsize = stb.st_rdev; break;
 		case S_IFCHR:
 			fp->ftype = 'c'; fp->fsize = stb.st_rdev; break;
-#ifndef pdp11
 		case S_IFSOCK:
 			fp->ftype = 's'; fp->fsize = 0; break;
-#endif !pdp11
 		case S_IFLNK:
 			fp->ftype = 'l';
 			if (lflg) {
@@ -339,11 +336,7 @@ gstat(fp, file, statarg, pnb)
 				stb = stb1;
 				fp->ftype = 'd';
 				fp->fsize = stb.st_size;
-#ifdef pdp11
-				fp->fblks = btodb(stb.st_size + 1023);
-#else !pdp11
 				fp->fblks = stb.st_blocks;
-#endif pdp11
 			}
 			break;
 		}
@@ -359,11 +352,7 @@ gstat(fp, file, statarg, pnb)
 		else
 			fp->fmtime = stb.st_mtime;
 		if (pnb)
-#ifdef pdp11
-			*pnb += fp->fblks;
-#else !pdp11
 			*pnb += stb.st_blocks;
-#endif pdp11
 	}
 	return (fp);
 }
@@ -391,7 +380,7 @@ formatf(fp0, fplast)
 			width = (width + 8) &~ 7;
 		else
 			width += 2;
-		columns = 80 / width;
+		columns = twidth / width;
 		if (columns == 0)
 			columns = 1;
 	}
@@ -523,7 +512,7 @@ fmtinum(p)
 {
 	static char inumbuf[8];
 
-	(void) sprintf(inumbuf, "%5d ", p->fnum);
+	(void) sprintf(inumbuf, "%6d ", p->fnum);
 	return (inumbuf);
 }
 
@@ -624,17 +613,21 @@ struct	utmp utmp;
 #define	NMAX	(sizeof (utmp.ut_name))
 #define SCPYN(a, b)	strncpy(a, b, NMAX)
 
-#define NUID	2048
+#define NUID	64	/* power of 2 */
+#define UIDMASK	0x3f
 #define NGID	300
 
-#ifdef pdp11
+#ifdef BSD2_10
 #define outrangename	O_name
 #define outrangeuid	O_uid
 #define outrangegroup	O_group
 #define outrangegid	O_gid
-#endif pdp11
+#endif BSD2_10
 
-char	names[NUID][NMAX+1];
+struct ncache {
+	int	uid;
+	char	name[NMAX+1];
+} nc[NUID];
 char	outrangename[NMAX+1];
 int	outrangeuid = -1;
 char	groups[NGID][NMAX+1];
@@ -645,48 +638,20 @@ char *
 getname(uid)
 {
 	register struct passwd *pw;
-	static init;
 	struct passwd *getpwent();
+	extern int _pw_stayopen;
+	register int cp;
 
-	if (uid >= 0 && uid < NUID && names[uid][0])
-		return (&names[uid][0]);
-	if (uid >= 0 && uid == outrangeuid)
-		return (outrangename);
-rescan:
-	if (init == 2) {
-		if (uid < NUID)
-			return (0);
-		setpwent();
-		while (pw = getpwent()) {
-			if (pw->pw_uid != uid)
-				continue;
-			outrangeuid = pw->pw_uid;
-			SCPYN(outrangename, pw->pw_name);
-			endpwent();
-			return (outrangename);
-		}
-		endpwent();
+	_pw_stayopen = 1;
+	cp = uid & UIDMASK;
+	if (uid >= 0 && nc[cp].uid == uid && nc[cp].name[0])
+		return (nc[cp].name);
+	pw = getpwuid(uid);
+	if (!pw)
 		return (0);
-	}
-	if (init == 0)
-		setpwent(), init = 1;
-	while (pw = getpwent()) {
-		if (pw->pw_uid < 0 || pw->pw_uid >= NUID) {
-			if (pw->pw_uid == uid) {
-				outrangeuid = pw->pw_uid;
-				SCPYN(outrangename, pw->pw_name);
-				return (outrangename);
-			}
-			continue;
-		}
-		if (names[pw->pw_uid][0])
-			continue;
-		SCPYN(names[pw->pw_uid], pw->pw_name);
-		if (pw->pw_uid == uid)
-			return (&names[uid][0]);
-	}
-	init = 2;
-	goto rescan;
+	nc[cp].uid = uid;
+	SCPYN(nc[cp].name, pw->pw_name);
+	return (nc[cp].name);
 }
 
 char *

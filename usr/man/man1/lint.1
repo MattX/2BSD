@@ -1,5 +1,11 @@
-.TH LINT 1 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)lint.1	6.2 (Berkeley) 3/17/86
+.\"
+.TH LINT 1 "March 17, 1986"
+.UC 4
 .SH NAME
 lint \- a C program verifier
 .SH SYNOPSIS
@@ -11,7 +17,7 @@ file ...
 .SH DESCRIPTION
 .I Lint
 attempts to detect features of the C program
-.IR file s
+.I files
 which are
 likely to be bugs, or non-portable, or wasteful.
 It also checks the type usage of the program more strictly
@@ -27,7 +33,7 @@ functions called with varying numbers of arguments,
 and functions whose values are not used.
 .PP
 By default, it is assumed that all the
-.IR file s
+.I files
 are to be loaded together; they are checked for
 mutual compatibility.
 Function definitions for certain libraries are available to
@@ -36,6 +42,24 @@ these libraries are referred to by a
 conventional name,
 such as `\-lm', in the style of
 .IR ld (1).
+Arguments ending in
+.I .ln
+are also treated as library files.  To create lint libraries,
+use the
+.B \-C
+option:
+.IP
+lint \-Cfoo files . . .
+.PP
+where
+.I files
+are the C sources of library
+.I foo.
+The result is a file
+.I llib-lfoo.ln
+in the correct library format suitable for linting programs
+using
+.I foo.
 .PP
 Any number of the options in the following list
 may be used.
@@ -94,6 +118,10 @@ on a subset of files out of a larger program).
 .TP
 .B n
 Do not check compatibility against the standard library.
+.TP
+.B z
+Do not complain about structures that are never defined (e.g.
+using a structure pointer without knowing its contents.).
 .PP
 .IR Exit (2)
 and other functions which do not return
@@ -129,24 +157,31 @@ option for the next function.
 /*LINTLIBRARY*/
 at the beginning of a file shuts off complaints about
 unused functions in this file.
+.SH AUTHOR
+S.C. Johnson.  Lint library construction implemented by Edward Wang.
 .SH FILES
-.ta 2i
-/usr/lib/lint[12]	programs
+.ta \w'/usr/lib/lint/llib-port.ln  'u
+/usr/lib/lint/lint[12]	programs
 .br
-/usr/lib/llib-lc	declarations for standard functions
+/usr/lib/lint/llib-lc.ln	declarations for standard functions
 .br
-/usr/lib/llib-port	declarations for portable functions
+/usr/lib/lint/llib-lc	human readable version of above
+.br
+/usr/lib/lint/llib-port.ln	declarations for portable functions
+.br
+/usr/lib/lint/llib-port	human readable . . .
+.br
+llib-l*.ln	library created with
+.B \-C
 .SH SEE ALSO
 cc(1)
 .br
 S. C. Johnson,
 .I Lint, a C Program Checker
 .SH BUGS
-On nonseparate I/D machines, \fIlint\fP is extremely slow because
-\fI/usr/lib/lint1\fP generates a huge number of overlay traps.
+There are some things you just
+.B can't
+get lint to shut up about.
 .PP
-The standard
-.I lint
-library, /usr/lib/llib-lc, has been changed to correspond to reality (i.e.
-the system source).  This will cause numerous complaints about programs which
-were previously thought to be fluff-free.
+/*NOSTRICT*/
+is not implemented in the current version (alas).

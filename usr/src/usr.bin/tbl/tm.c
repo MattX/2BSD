@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tm.c	4.2 8/11/83";
+#endif
+
  /* tm.c: split numerical fields */
 # include "t..c"
 maknew(str)

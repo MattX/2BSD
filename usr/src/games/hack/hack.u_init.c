@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.u_init.c - version 1.0.2 */
+/* hack.u_init.c - version 1.0.3 */
 
 #include "hack.h"
 #include <stdio.h>
@@ -11,7 +11,6 @@
 extern struct obj *addinv();
 extern char *eos();
 extern char plname[];
-extern boolean female;
 
 struct you zerou;
 char pl_character[PL_CSIZ];
@@ -97,7 +96,7 @@ u_init(){
 register int i;
 char exper = 'y', pc;
 extern char readchar();
-	if(female)		/* should have been set in HACKOPTIONS */
+	if(flags.female)	/* should have been set in HACKOPTIONS */
 		roles[4] = "Cave-woman";
 	for(i = 0; i < NR_OF_ROLES; i++)
 		rolesyms[i] = roles[i][0];
@@ -292,7 +291,15 @@ extern struct obj *mkobj();
 		}
 		if(obj->olet == WEAPON_SYM)
 			if(!uwep) setuwep(obj);
+#ifndef PYRAMID_BUG
 		if(--trop->trquan) continue;	/* make a similar object */
+#else
+		if(trop->trquan) {		/* check if zero first */
+			--trop->trquan;
+			if(trop->trquan)
+				continue;	/* make a similar object */
+		}
+#endif PYRAMID_BUG
 		trop++;
 	}
 }

@@ -13,12 +13,15 @@ reg PLAY	*pp; {
 
 	reg int		temp, tot, num;
 
+	if (pp->was_finished == Finished)
+		return;
+
+	pp->was_finished = Finished;
 	num = pp - Player;
-	temp = num * 6 + 21 + 3;
+	temp = num * 6 + 21 + 1;
 	for (tot = 5; tot <= 9; tot++)
-		mvaddch(tot, temp, '0');
+		mvaddstr(tot, temp, "  0");
 	if (pp->mileage == End) {
-		temp -= 2;
 		mvaddstr(5, temp, "40");
 		tot = SC_TRIP;
 		if (pp->nummiles[C_200] == 0) {
@@ -105,3 +108,4 @@ undoex() {
 	}
 }
 # endif
+

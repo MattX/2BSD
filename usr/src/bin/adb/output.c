@@ -1,4 +1,3 @@
-#
 /*
  *
  *	UNIX debugger
@@ -10,12 +9,14 @@
 
 INT		mkfault;
 INT		infile;
-INT		outfile 1;
+INT		outfile = 1;
 INT		maxpos;
 
 CHAR		printbuf[MAXLIN];
-CHAR		*printptr printbuf;
+CHAR		*printptr = printbuf;
 CHAR		*digitptr;
+MSG		TOODEEP;
+L_INT		var[];
 
 
 eqstr(s1, s2)
@@ -34,7 +35,7 @@ eqstr(s1, s2)
 length(s)
 	STRING		s;
 {
-	INT		n 0;
+	INT		n = 0;
 	WHILE *s++ DO n++; OD
 	return(n);
 }
@@ -71,6 +72,10 @@ printc(c)
 	ELIF c
 	THEN printptr++;
 	FI
+	IF printptr >= &printbuf[MAXLIN-9] THEN
+		write(outfile, printbuf, printptr-printbuf);
+		printptr = printbuf;
+	FI
 }
 
 charpos()
@@ -96,8 +101,9 @@ printf(fmat,a1)
 	INT		x, decpt, n;
 	L_INT		lx;
 	CHAR		digits[64];
+	STRING		ecvt();
 
-	fptr = fmat; vptr = &a1;
+	fptr = fmat; vptr = (INT*)&a1;
 
 	WHILE c = *fptr++
 	DO  IF c!='%'
@@ -106,7 +112,7 @@ printf(fmat,a1)
 		 width=convert(&fptr);
 		 IF *fptr=='.' THEN fptr++; prec=convert(&fptr); ELSE prec = -1; FI
 		 digitptr=digits;
-		 dptr=rptr=vptr; lx = *dptr; x = *vptr++;
+		 dptr=(L_INT*)(rptr=(L_REAL*)vptr); lx = *dptr; x = *vptr++;
 		 s=0;
 		 switch (c = *fptr++) {
 
@@ -133,7 +139,7 @@ printf(fmat,a1)
 		    case 'c':
 			printc(x); break;
 		    case 's':
-			s=x; break;
+			s=(STRING)x; break;
 		    case 'f':
 		    case 'F':
 			vptr += 7;
@@ -189,6 +195,7 @@ printdate(tvec)
 {
 	REG INT		i;
 	REG STRING	timeptr;
+	STRING		ctime();
 	timeptr = ctime(&tvec);
 	FOR i=20; i<24; i++ DO *digitptr++ = *(timeptr+i); OD
 	FOR i=3; i<19; i++ DO *digitptr++ = *(timeptr+i); OD
@@ -249,7 +256,7 @@ printoct(o,s)
 	     FI
 	FI
 	FOR i=0;i<=11;i++
-	DO digs[i] = po&7; po =>> 3; OD
+	DO digs[i] = po&7; po >>= 3; OD
 	digs[10] &= 03; digs[11]=0;
 	FOR i=11;i>=0;i--
 	DO IF digs[i] THEN break; FI OD
@@ -280,10 +287,44 @@ INT lx, ly; char fmat; int base;
 	OD
 }
 
-iclose()
+#define	MAXIFD	5
+struct {
+	INT	fd;
+	L_INT	r9;
+} istack[MAXIFD];
+INT	ifiledepth;
+
+iclose(stack, err)
 {
-	IF infile
-	THEN	close(infile); infile=0;
+	IF err
+	THEN	IF infile
+		THEN	close(infile); infile=0;
+		FI
+		WHILE	--ifiledepth >= 0
+		DO	IF istack[ifiledepth].fd
+			THEN	close(istack[ifiledepth].fd); infile=0;
+			FI
+		OD
+		ifiledepth = 0;
+	ELIF stack == 0
+	THEN	IF infile
+		THEN	close(infile); infile=0;
+		FI
+	ELIF stack > 0
+	THEN	IF ifiledepth >= MAXIFD
+		THEN	error(TOODEEP);
+		FI
+		istack[ifiledepth].fd = infile;
+		istack[ifiledepth].r9 = var[9];
+		ifiledepth++;
+		infile = 0;
+	ELSE	IF infile
+		THEN	close(infile); infile=0;
+		FI
+		IF ifiledepth > 0
+		THEN	infile = istack[--ifiledepth].fd;
+			var[9] = istack[ifiledepth].r9;
+		FI
 	FI
 }
 

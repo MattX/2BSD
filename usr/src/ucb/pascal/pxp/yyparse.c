@@ -22,7 +22,7 @@
 
 int	yystate;	/* Current parser state */
 int	*yypv;
-unsigned yytshifts 1;	/* Number of "true" shifts */
+unsigned yytshifts = 1;	/* Number of "true" shifts */
 
 /*
  * Parse Tables
@@ -92,13 +92,13 @@ actn:
 		if (yychar < 0)
 			yychar = yylex();
 		do
-			if ((n =+ yychar) != 0)
+			if ((n += yychar) != 0)
 				p++;
 		while ((n = *p++) <= 0);
 	}
 #else
 	while ((n = *p++) <= 0)
-		if ((n =+ yychar) != 0)
+		if ((n += yychar) != 0)
 			p++;
 #endif
 	switch (n >> 12) {
@@ -127,17 +127,17 @@ actn:
 		 * Reduce.
 		 */
 		case 3:
-			n =& 07777;
+			n &= 07777;
 			N = yyr2[n];
 			if (N == 1 && OY.Yychar == YID && !yyEactr(n, yypv[0])) {
 				idfail = 1;
 				goto errin;
 			}
 			OY.Yychar = -1;
-			ps =- N;
-			yypv =- N;
+			ps -= N;
+			yypv -= N;
 #ifdef PXP
-			yypw =- N;
+			yypw -= N;
 #endif
 			yyval = yypv[1];
 			yyactr(n);
@@ -146,7 +146,7 @@ actn:
 			 */
 			p = &yygo[yypgo[yyr1[n]]];
 			while (*p != *ps && *p >= 0)
-				p =+ 2;
+				p += 2;
 			yystate = p[1];
 			goto stack;
 
@@ -173,14 +173,14 @@ errin:
 			 * legal shift action.
 			 */
 			if (paniced && yyshifts <= 0 && ps >= panicps) {
-				yypv =- (ps - panicps) + 1;
+				yypv -= (ps - panicps) + 1;
 #ifdef PXP
-				yypw =- (ps - panicps) + 1;
+				yypw -= (ps - panicps) + 1;
 #endif
 				ps = panicps - 1;
 			}
 			while (ps >= yys) {
-				for (p = &yyact[ yypact[*ps+1] ] ; *p <= 0; p=+ 2)
+				for (p = &yyact[ yypact[*ps+1] ] ; *p <= 0; p+= 2)
 					if (*p == -256) {
 						panicps = ps;
 						yystate= p[1] & 07777;

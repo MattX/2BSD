@@ -1,8 +1,12 @@
+#ifndef lint
+static char sccsid[] = "@(#)nii.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 #ifdef NROFF
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 #include "d.h"
 #include "v.h"
 #include <sgtty.h>

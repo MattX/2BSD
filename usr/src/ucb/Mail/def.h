@@ -1,6 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)def.h	5.2 (Berkeley) 11/2/85
+ */
 
-#include <sys/types.h>
+#include <sys/param.h>		/* includes <sys/types.h> */
 #include <signal.h>
 #include <stdio.h>
 #include <sgtty.h>
@@ -8,10 +14,6 @@
 
 #undef isalpha
 #undef isdigit
-
-/*
- * Sccs Id = "@(#)def.h	2.12 6/15/83";
- */
 
 /*
  * Mail -- a mail program
@@ -34,14 +36,14 @@
 
 
 #define	ESCAPE		'~'		/* Default escape for sending */
-#define	NMLSIZE		20		/* max names in a message list */
-#define	PATHSIZE	100		/* Size of pathnames throughout */
-#define	NAMESIZE	20		/* Max size of user name */
-#define	HSHSIZE		19		/* Hash size for aliases and vars */
+#define	NMLSIZE		1024		/* max names in a message list */
+#define	PATHSIZE	1024		/* Size of pathnames throughout */
+#define	NAMESIZE	32		/* Max size of user name */
+#define	HSHSIZE		59		/* Hash size for aliases and vars */
 #define	HDRFIELDS	3		/* Number of header fields */
 #define	LINESIZE	BUFSIZ		/* max readable line width */
 #define	STRINGSIZE	((unsigned) 128)/* Dynamic allocation units */
-#define	MAXARGC		20		/* Maximum list of raw strings */
+#define	MAXARGC		1024		/* Maximum list of raw strings */
 #define	NOSTR		((char *) 0)	/* Null string pointer */
 #define	MAXEXP		25		/* Maximum expansion of aliases */
 #define	equal(a, b)	(strcmp(a,b)==0)/* A nice function to string compare */
@@ -217,7 +219,7 @@ struct ignore {
 #define TPLUS	10			/* A '+' */
 
 #define	REGDEP	2			/* Maximum regret depth. */
-#define	STRINGLEN	64		/* Maximum length of string token */
+#define	STRINGLEN	1024		/* Maximum length of string token */
 
 /*
  * Constants for conditional commands.  These describe whether
@@ -236,17 +238,31 @@ struct ignore {
 #define	reset(x)	longjmp(srbuf, x)
 
 /*
- * VM/UNIX and some 2BSD systems have a vfork system call which is faster
- * than forking.  If we don't have it, fork(2) will do . . .
- *
- *	#ifndef VMUNIX
- *	#define	vfork()	fork()
- *	#endif
+ * VM/UNIX has a vfork system call which is faster than forking.  If we
+ * don't have it, fork(2) will do . . .
  */
 
+#ifndef VMUNIX
+#define	vfork()	fork()
+#endif
 #ifndef	SIGRETRO
 #define	sigchild()
 #endif
+
+/*
+ * 4.2bsd signal interface help...
+ */
+#ifdef VMUNIX
+#define	sigset(s, a)	signal(s, a)
+#define	sigsys(s, a)	signal(s, a)
+#endif
+
+/*
+ * Truncate a file to the last character written. This is
+ * useful just before closing an old file that was opened
+ * for read/write.
+ */
+#define trunc(stream)	ftruncate(fileno(stream), (long) ftell(stream))
 
 /*
  * Forward declarations of routine types to keep lint and cc happy.
@@ -294,7 +310,7 @@ char	*value();
 char	*vcopy();
 char	*yankword();
 off_t	fsize();
-#ifdef	VMUNIX
+#ifndef VMUNIX
 int	(*sigset())();
 #endif
 struct	cmd	*lex();

@@ -1,44 +1,72 @@
-#
-# tbl makefile
-#
+#	Makefile	4.1	83/02/12
 
-CFLAGS=	-O
-ALL=	tbl
-OBJS=	t0.o t1.o t2.o t3.o t4.o t5.o t6.o t7.o t8.o t9.o \
-	tb.o tc.o te.o tf.o tg.o ti.o tm.o ts.o tt.o tu.o tv.o
+CFLAGS=-O
+SEPFLAGS= -i
+o = t0.o t1.o t2.o t3.o t4.o t5.o t6.o t7.o t8.o t9.o\
+    tb.o tc.o te.o tf.o tg.o ti.o tm.o ts.o tt.o tu.o tv.o
 
-all:	${ALL}
+tbl :	$o
+	$(CC) ${SEPFLAG} $o -o tbl
+$o :	t..c
 
-tbl:	${OBJS}
-	${CC} ${LFLAG} ${OBJS} -o $@
+install: 
+	install -s tbl $(DESTDIR)/usr/bin
 
-install: ${ALL}
-	install -s -o bin -g bin tbl ${DESTDIR}/usr/bin/tbl
+clean :
+	rm -f *.o
 
-clean:
-	rm -f ${ALL} ${OBJS}
-
-.c.o:
-	${CC} ${CFLAGS} -c $*.c
-
-t0.o:	t0.c t..c
-t1.o:	t1.c t..c
-t2.o:	t2.c t..c
-t3.o:	t3.c t..c
-t4.o:	t4.c t..c
-t5.o:	t5.c t..c
-t6.o:	t6.c t..c
-t7.o:	t7.c t..c
-t8.o:	t8.c t..c
-t9.o:	t9.c t..c
-tb.o:	tb.c t..c
-tc.o:	tc.c t..c
-te.o:	te.c t..c
-tf.o:	tf.c t..c
-tg.o:	tg.c t..c
-ti.o:	ti.c t..c
-tm.o:	tm.c t..c
-ts.o:	ts.c t..c
-tt.o:	tt.c t..c
-tu.o:	tu.c t..c
-tv.o:	tv.c t..c
+test:
+	sh compr sample01
+	sh compr sample02
+	sh compr sample03
+	sh compr sample04
+	sh compr sample05
+	sh compr sample06
+	sh compr sample07
+	sh compr sample08
+	sh compeq sample09
+	sh compeq sample10
+	sh compeq sample11
+	sh compr sample12
+	sh compr sample13
+	sh compr sample14
+	sh compr sample15
+	sh compr sample16
+	sh compr sample17
+	sh compr sample18
+	sh compr sample19
+	sh compr sample20
+	sh compr sample21
+	sh compr sample22
+	sh compr sample23
+	sh compms sample24
+	sh compr sample25
+	sh compr sample26
+	sh compr sample27
+	sh compr sample28
+	sh compr sample29
+	sh compr sample30
+	sh compr sample31
+	sh compr sample32
+	sh compr sample33
+	sh compms sample34
+	sh compeq sample35
+	sh compeq sample36
+	sh compnr sample37
+	sh compr sample38
+	sh compr sample39
+	sh compr sample40
+	sh compr sample41
+	sh compr sample42
+	sh compr sample43
+	sh compr sample44
+	sh compms sample45
+	sh compms sample46
+	sh compr sample47
+	sh compnr sample48
+	sh compeq /usr/doc/mel/tables
+ichk: /usr/bin/tbl
+	/usr/bin/tbl sample1 >junk1
+	cmp -s junk1 out1
+comp: tbl
+	cmp -s tbl /usr/bin/tbl

@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_subr.c	7.2	7/26/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_subr.c	7.10 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_re.h"
 #include "ex_tty.h"
@@ -384,32 +392,11 @@ merror1(seekpt)
 
 morelines()
 {
-#ifdef	pdp11
-#define	MAXDATA	(56*1024)
-	register char *end;
 
-	if ((int) sbrk(1024 * sizeof (line)) != -1) {
-		endcore += 1024;
-	} else {
-		if (endcore >= MAXDATA)
-			return(-1);
-		end = MAXDATA;
-		/*
-		 * Ask for end+2 since we want end to be last used location.
-		 */
-		while (brk(end+2) == -1)
-			end -= 64;
-		if (end <= (char *)endcore)
-			return(-1);
-		endcore = (line *) end;
-	}
-	return(0);
-#else
 	if ((int) sbrk(1024 * sizeof (line)) == -1)
 		return (-1);
 	endcore += 1024;
 	return (0);
-#endif
 }
 
 nonzero()
@@ -640,61 +627,6 @@ smerror(seekpt, cp)
 		putpad(SE);
 }
 
-#define	std_nerrs (sizeof std_errlist / sizeof std_errlist[0])
-
-#define	error(i)	i
-
-#ifdef lint
-char	*std_errlist[] = {
-#else
-# ifdef VMUNIX
-char	*std_errlist[] = {
-# else
-short	std_errlist[] = {
-# endif
-#endif
-	error("Error 0"),
-	error("Not super-user"),
-	error("No such file or directory"),
-	error("No such process"),
-	error("Interrupted system call"),
-	error("Physical I/O error"),
-	error("No such device or address"),
-	error("Argument list too long"),
-	error("Exec format error"),
-	error("Bad file number"),
-	error("No children"),
-	error("No more processes"),
-	error("Not enough core"),
-	error("Permission denied"),
-	error("Bad address"),
-	error("Block device required"),
-	error("Mount device busy"),
-	error("File exists"),
-	error("Cross-device link"),
-	error("No such device"),
-	error("Not a directory"),
-	error("Is a directory"),
-	error("Invalid argument"),
-	error("File table overflow"),
-	error("Too many open files"),
-	error("Not a typewriter"),
-	error("Text file busy"),
-	error("File too large"),
-	error("No space left on device"),
-	error("Illegal seek"),
-	error("Read-only file system"),
-	error("Too many links"),
-	error("Broken pipe"),
-#ifndef V6
-	error("Math argument"),
-	error("Result too large"),
-#endif
-	error("Quota exceeded")		/* Berkeley quota systems only */
-};
-
-#undef	error
-
 char *
 strend(cp)
 	register char *cp;
@@ -715,12 +647,13 @@ strcLIN(dp)
 syserror()
 {
 	register int e = errno;
+	extern int sys_nerr;
+	extern char *sys_errlist[];
 
 	dirtcnt = 0;
 	putchar(' ');
-	edited = 0;	/* for temp file errors, for example */
-	if (e >= 0 && errno <= std_nerrs)
-		error(std_errlist[e]);
+	if (e >= 0 && e <= sys_nerr)
+		error("%s", sys_errlist[e]);
 	else
 		error("System error %d", e);
 }
@@ -973,12 +906,15 @@ exit(i)
 onsusp()
 {
 	ttymode f;
+	int omask;
+	struct winsize win;
 
 	f = setty(normf);
 	vnfl();
 	putpad(TE);
 	flush();
 
+	(void) sigsetmask(0L);
 	signal(SIGTSTP, SIG_DFL);
 	kill(0, SIGTSTP);
 
@@ -990,6 +926,10 @@ onsusp()
 	if (!inopen)
 		error(0);
 	else {
+		if (ioctl(0, TIOCGWINSZ, &win) >= 0)
+			if (win.ws_row != winsz.ws_row ||
+			    win.ws_col != winsz.ws_col)
+				winch();
 		if (vcnt < 0) {
 			vcnt = -vcnt;
 			if (state == VISUAL)
@@ -1001,5 +941,4 @@ onsusp()
 		vrepaint(cursor);
 	}
 }
-#endif SIGTSTP
-
+#endif

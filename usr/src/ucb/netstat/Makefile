@@ -1,20 +1,20 @@
-# @(#)Makefile	4.3 10/14/82
-CFLAGS=	-DUCB_NET
-OBJS=	host.o inet.o if.o main.o mbuf.o route.o
-
-all: netstat
-
-.c.o:
-	${CC} -S ${CFLAGS} $*.c
-	sed -f ../../asm.sed $*.s > $*.S
-	as - -o $*.o $*.S
-	rm -f $*.s $*.S
+#
+# Copyright (c) 1983 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.5 (Berkeley) 1/18/86
+#
+OBJS=	host.o inet.o if.o main.o mbuf.o route.o unix.o ns.o
+CFLAGS=-O
+LFLAG=	-i
+DESTDIR=
 
 netstat: ${OBJS}
 	${CC} ${LFLAG} ${OBJS} -o netstat
 
 install: netstat
-	install -s -o root -g su -m 4755 netstat ${DESTDIR}/usr/ucb
+	install -s -m 2755 -g kmem netstat ${DESTDIR}/usr/ucb/netstat
 
 clean:
-	rm -f *.[os] core a.out errs
+	rm -f *.o core a.out errs netstat

@@ -1,11 +1,23 @@
-#ifndef	lint
-static char *sccsid = "@(#)expand.c	4.2 (Berkeley) 2/7/81";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)expand.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
  * expand - expand tabs to equivalent spaces
  */
-char	obuf[BUFSIZ];
 int	nstops;
 int	tabstops[100];
 
@@ -16,7 +28,6 @@ main(argc, argv)
 	register int c, column;
 	register int n;
 
-	setbuf(stdout, obuf);
 	argc--, argv++;
 	do {
 		while (argc > 0 && argv[0][0] == '-') {

@@ -1,8 +1,14 @@
-#	Makefile	4.5	83/07/04
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.1 (Berkeley) 5/30/85
 #
 DESTDIR=
-CFLAGS=	-O -Dpdp11
+CFLAGS=	-O
 LFLAGS=	
+SEPFLAG= -i
 SRCS=	abandon.c attack.c autover.c capture.c check_out.c checkcond.c \
 	compkl.c computer.c damage.c damaged.c dcrept.c destruct.c \
 	dock.c dumpgame.c dumpme.c dumpssradio.c events.c externs.c \
@@ -22,7 +28,7 @@ OBJS=	abandon.o attack.o autover.o capture.o check_out.o checkcond.o \
 HDRS=	getpar.h trek.h
 
 trek: 	${OBJS} ${HDRS}
-	cc ${LFLAGS} -o trek ${OBJS} -lm
+	cc ${SEPFLAG} ${LFLAGS} -o trek ${OBJS} -lm
 
 ${OBJS}:
 	${CC} ${CFLAGS} -c $*.c

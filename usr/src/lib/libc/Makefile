@@ -1,46 +1,111 @@
 #
-# C library makefile
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
 #
+#	@(#)Makefile	4.19 (Berkeley) 3/9/86
+#
+#
+# The system has two monitoring schemes, utilizing either ``prof''
+# or ``gprof''. DFLMON determines the default profiler; mon.o
+# specifies that ``prof'' is the default, gmon.o specifies that
+# ``gprof'' is the default.
+#
+# Machine dependent routines are located in a subtree which parallels
+# the top directories.  This subtree is identified by the machine name.
+#
+# Compatibility routines are kept in directories with a prefixing
+# ``compat'' (so they all sort together).  (``com'' in 2.10BSD because
+# of limited filename length)
+# 
+# The C run-time startup code is always machine dependent and expected
+# to be located in ${MACHINE}/csu
+#
+# All files contain sccsid strings, but these are not compiled into
+# library objects by default, as a space-saving measure.  To produce
+# a library that contains these strings in every object except
+# system call stubs, add -DLIBC_SCCS to DEFS below; to put these
+# strings into system call stubs, use -DSYSLIBC_SCCS.
+#
+# To compile a non-floating point version of the standard library add
+# -DNONFP.  To compile a non-separate I&D version add -DNONSEPARATE.
+#
+# There are two possible methods of doing host name look up.  They are
+# to use the name server or /etc/hosts. HOSTLOOKUP defines which method
+# is to be compiled into libc  :
+#								     
+#	defining HOSTLOOKUP to be "named", compiles the         
+#	host lookup routines that use the BIND name server.
+#
+#	defining HOSTLOOKUP to be "hosttable", compiles
+#	the host lookup routines that use /etc/hosts.
+#
+#HOSTLOOKUP=	hosttable
+HOSTLOOKUP=	hosttable
+#							
+DESTDIR=
+INSTALL=install -m 644
+DFLMON=	mon.o
+MACHINE=pdp
+DEFS=
+COMPAT=	com-4.1 com-sys5
+ALL=	gen inet net ns stdio ${MACHINE} ${COMPAT}
+TAGSFILE=tags
 
-LIBS=		stdio pdp net gen compat-4.1 compat-4.3 crt
-OVLIBS=		stdio pdp net gen compat-4.1 compat-4.3 crt overlay
-FLIBS=		stdio pdp net gen compat-4.1 compat-4.3 nonfpcrt
-OVFLIBS=	stdio pdp net gen compat-4.1 compat-4.3 nonfpcrt overlay
-
-libc.a:
-	rm -f libc.a
-	for i in ${LIBS}; do (cd $$i; make libc.a); done
+libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
+	rm -rf tmp
+	-mkdir tmp
+	cd tmp; \
+		for i in ${ALL}; do ar x ../$$i/$${i}lib; done; \
+		ar x ../net/${HOSTLOOKUP}/hostlib; \
+		ar cr ../libc.a `lorder *.o | tsort` \
+			../${MACHINE}/csu/${DFLMON}
 	ar ma findiop.o libc.a exit.o
-	ar ma exit.o libc.a flsbuf.o
-	ar ma flsbuf.o libc.a fakcu.o
-	ranlib libc.a
+	ar ma exit.o libc.a fakcu.o
+	ar ma fltpr.o libc.a doprnt.o
+	ar ma doprnt.o libc.a ffltpr.o
+	ar ma fpsim.o libc.a setfpt.o
+#	ar ma setfpt.o libc.a ffpsim.o
+	rm -rf tmp
+	-mkdir tmp
+	cd tmp; \
+		for i in ${ALL}; do ar x ../$$i/$${i}lib_p; done; \
+		ar x ../net/${HOSTLOOKUP}/hostlib_p; \
+		ar cr ../libc_p.a `lorder *.o | tsort` \
+			../${MACHINE}/csu/${DFLMON}
+	ar ma findiop.o libc_p.a exit.o
+	ar ma exit.o libc_p.a fakcu.o
+	ar ma fltpr.o libc_p.a doprnt.o
+	ar ma doprnt.o libc_p.a ffltpr.o
+	ar ma fpsim.o libc_p.a setfpt.o
+#	ar ma setfpt.o libc_p.a ffpsim.o
+	rm -rf tmp
 
-libovc.a:
-	rm -f libovc.a
-	for i in ${OVLIBS}; do (cd $$i; make OV=-V libovc.a); done
-	ar ma findiop.o libovc.a exit.o
-	ar ma exit.o libovc.a flsbuf.o
-	ar ma flsbuf.o libovc.a fakcu.o
-	ranlib libovc.a
+${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}: FRC
+	cd $@; make ${MFLAGS} DEFS=${DEFS}
 
-flibc.a:
-	rm -f libc.a
-	for i in ${FLIBS}; do (cd $$i; make FP=-f libc.a); done
-	ar ma findiop.o libc.a exit.o
-	ar ma exit.o libc.a flsbuf.o
-	ar ma flsbuf.o libc.a fakcu.o
-	ranlib libc.a
+FRC:
 
-flibovc.a:
-	rm -f libovc.a
-	for i in ${OVFLIBS}; do (cd $$i; make FP=-f OV=-V libovc.a); done
-	ar ma findiop.o libovc.a exit.o
-	ar ma exit.o libovc.a flsbuf.o
-	ar ma flsbuf.o libovc.a fakcu.o
-	ranlib libovc.a
+install: 
+	${INSTALL} libc.a ${DESTDIR}/lib/libc.a
+	ranlib ${DESTDIR}/lib/libc.a
+	${INSTALL} libc_p.a ${DESTDIR}/usr/lib/libc_p.a
+	ranlib ${DESTDIR}/usr/lib/libc_p.a
+	cd ${MACHINE}/csu; make DESTDIR=${DESTDIR} install
 
-install:
-	install -o bin -g bin -m 644 libc.a /lib
-	install -o bin -g bin -m 644 libovc.a /usr/lib
+tags:
+	for i in ${ALL}; do \
+		(cd $$i; make ${MFLAGS} TAGSFILE=../${TAGSFILE} tags); \
+	done
+	cd net/${HOSTLOOKUP}; \
+		make ${MFLAGS} TAGSFILE=../../${TAGSFILE} tags
+
 clean:
-	for i in ${LIBS} nonfpcrt overlay; do (cd $$i; make clean); done
+	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \
+		do (cd $$i; make ${MFLAGS} clean); done
+	rm -f t1 tmp/*.o
+	-rmdir tmp
+
+depend:
+	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \
+		do (cd $$i; make ${MFLAGS} DEFS=${DEFS} depend); done

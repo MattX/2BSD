@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.dol.c 4.2 5/3/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.dol.c	5.3 (Berkeley) 3/29/86";
+#endif
 
 #include "sh.h"
 
@@ -12,7 +20,7 @@ static	char *sccsid = "@(#)sh.dol.c 4.2 5/3/81";
  * input words.  Here we expand variables and turn quoting via ' and " into
  * QUOTE bits on characters (which prevent further interpretation).
  * If the `:q' modifier was applied during history expansion, then
- * some QUOTEing may have occurred already, so we dont "scan(,&trim)" here.
+ * some QUOTEing may have occurred already, so we dont "trim()" here.
  */
 
 int	Dpeekc, Dpeekrd;		/* Peeks for DgetC and Dreadc */
@@ -22,7 +30,7 @@ char	*Dcp, **Dvp;			/* Input vector for Dreadc */
 
 #define	unDgetC(c)	Dpeekc = c
 
-char	*QUOTES = "\\'`\"";
+#define QUOTES		(_Q|_Q1|_ESC)	/* \ ' " ` */
 
 /*
  * The following variables give the information about the current
@@ -36,8 +44,6 @@ int	dolcnt;			/* Count of further words */
 char	dolmod;			/* : modifier character */
 int	dolmcnt;		/* :gx -> 10000, else 1 */
 
-int	Dtest();		/* Test for \ " ` or ' */
-
 /*
  * Fix up the $ expansions and quotations in the
  * argument list to command t.
@@ -45,14 +51,21 @@ int	Dtest();		/* Test for \ " ` or ' */
 Dfix(t)
 	register struct command *t;
 {
+	register char **pp;
+	register char *p;
 
 	if (noexec)
 		return;
-	gflag = 0, rscan(t->t_dcom, Dtest);
-	if (gflag == 0)
-		return;
-	Dfix2(t->t_dcom);
-	blkfree(t->t_dcom), t->t_dcom = gargv, gargv = 0;
+	/* Note that t_dcom isn't trimmed thus !...:q's aren't lost */
+	for (pp = t->t_dcom; p = *pp++;)
+		while (*p)
+			if (cmap(*p++, _DOL|QUOTES)) {	/* $, \, ', ", ` */
+				Dfix2(t->t_dcom);	/* found one */
+				blkfree(t->t_dcom);
+				t->t_dcom = gargv;
+				gargv = 0;
+				return;
+			}
 }
 
 /*
@@ -201,9 +214,9 @@ pack:
 		}
 		if (c == DEOF)
 			goto deof;
-		if (any(c, " '`\"\t\n")) {
+		if (cmap(c, _SP|_NL|_Q|_Q1)) {		/* sp \t\n'"` */
 			unDgetC(c);
-			if (any(c, QUOTES))
+			if (cmap(c, QUOTES))
 				goto loop;
 			*wp++ = 0;
 			goto ret;
@@ -240,7 +253,7 @@ top:
 			goto top;
 		}
 quotspec:
-		if (any(c, QUOTES))
+		if (cmap(c, QUOTES))
 			return (c | QUOTE);
 		return (c);
 	}
@@ -281,7 +294,7 @@ Dgetdol()
 	char name[20];
 	int c, sc;
 	int subscr = 0, lwb = 1, upb = 0;
-	bool dimen = 0, isset = 0;
+	bool dimen = 0, bitset = 0;
 	char wbuf[BUFSIZ];
 
 	dolmod = dolmcnt = 0;
@@ -291,17 +304,17 @@ Dgetdol()
 	if ((c & TRIM) == '#')
 		dimen++, c = DgetC(0);		/* $# takes dimension */
 	else if (c == '?')
-		isset++, c = DgetC(0);		/* $? tests existence */
+		bitset++, c = DgetC(0);		/* $? tests existence */
 	switch (c) {
 	
 	case '$':
-		if (dimen || isset)
+		if (dimen || bitset)
 			goto syntax;		/* No $?$, $#$ */
 		setDolp(doldol);
 		goto eatbrac;
 
 	case '<'|QUOTE:
-		if (dimen || isset)
+		if (dimen || bitset)
 			goto syntax;		/* No $?<, $#< */
 		for (np = wbuf; read(OLDSTD, np, 1) == 1; np++) {
 			if (np >= &wbuf[BUFSIZ-1])
@@ -328,7 +341,7 @@ Dgetdol()
 		goto syntax;
 
 	case '*':
-		strcpy(name, "argv");
+		(void) strcpy(name, "argv");
 		vp = adrof("argv");
 		subscr = -1;			/* Prevent eating [...] */
 		break;
@@ -347,7 +360,7 @@ Dgetdol()
 			if (subscr < 0)
 				goto oob;
 			if (subscr == 0) {
-				if (isset) {
+				if (bitset) {
 					dolp = file ? "1" : "0";
 					goto eatbrac;
 				}
@@ -356,7 +369,7 @@ Dgetdol()
 				setDolp(file);
 				goto eatbrac;
 			}
-			if (isset)
+			if (bitset)
 				goto syntax;
 			vp = adrof("argv");
 			if (vp == 0) {
@@ -380,7 +393,7 @@ syntax:
 		unDredc(c);
 		vp = adrof(name);
 	}
-	if (isset) {
+	if (bitset) {
 		dolp = (vp || getenv(name)) ? "1" : "0";
 		goto eatbrac;
 	}
@@ -419,7 +432,7 @@ syntax:
 				i = i * 10 + *np++ - '0';
 			if ((i < 0 || i > upb) && !any(*np, "-*")) {
 oob:
-				setname(vp->name);
+				setname(vp->v_name);
 				error("Subscript out of range");
 			}
 			lwb = i;
@@ -535,20 +548,11 @@ Dredc()
 	return (' ');
 }
 
-Dtest(c)
-	register int c;
-{
-
-	/* Note that c isn't trimmed thus !...:q's aren't lost */
-	if (any(c, "$\\'`\""))
-		gflag = 1;
-}
-
 Dtestq(c)
 	register int c;
 {
 
-	if (any(c, "\\'`\""))
+	if (cmap(c, QUOTES))
 		gflag = 1;
 }
 
@@ -570,17 +574,17 @@ heredoc(term)
 
 	if (creat(shtemp, 0600) < 0)
 		Perror(shtemp);
-	close(0);
+	(void) close(0);
 	if (open(shtemp, 2) < 0) {
 		int oerrno = errno;
 
-		unlink(shtemp);
+		(void) unlink(shtemp);
 		errno = oerrno;
 		Perror(shtemp);
 	}
-	unlink(shtemp);			/* 0 0 inode! */
+	(void) unlink(shtemp);			/* 0 0 inode! */
 	Dv[0] = term; Dv[1] = NOSTR; gflag = 0;
-	scan(Dv, trim); rscan(Dv, Dtestq); quoted = gflag;
+	trim(Dv); rscan(Dv, Dtestq); quoted = gflag;
 	ocnt = BUFSIZ; obp = obuf;
 	for (;;) {
 		/*
@@ -609,8 +613,8 @@ heredoc(term)
 		 * Compare to terminator -- before expansion
 		 */
 		if (eq(lbuf, term)) {
-			write(0, obuf, BUFSIZ - ocnt);
-			lseek(0, 0l, 0);
+			(void) write(0, obuf, BUFSIZ - ocnt);
+			(void) lseek(0, (off_t)0, 0);
 			return;
 		}
 
@@ -622,7 +626,7 @@ heredoc(term)
 			for (lbp = lbuf; c = *lbp++;) {
 				*obp++ = c;
 				if (--ocnt == 0) {
-					write(0, obuf, BUFSIZ);
+					(void) write(0, obuf, BUFSIZ);
 					obp = obuf; ocnt = BUFSIZ;
 				}
 			}
@@ -684,13 +688,13 @@ heredoc(term)
 			for (mbp = *vp; *mbp; mbp++) {
 				*obp++ = *mbp & TRIM;
 				if (--ocnt == 0) {
-					write(0, obuf, BUFSIZ);
+					(void) write(0, obuf, BUFSIZ);
 					obp = obuf; ocnt = BUFSIZ;
 				}
 			}
 			*obp++ = '\n';
 			if (--ocnt == 0) {
-				write(0, obuf, BUFSIZ);
+				(void) write(0, obuf, BUFSIZ);
 				obp = obuf; ocnt = BUFSIZ;
 			}
 		}

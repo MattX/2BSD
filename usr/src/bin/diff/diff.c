@@ -1,4 +1,4 @@
-static	char sccsid[] = "@(#)diff.c 4.1 10/9/80";
+static	char sccsid[] = "@(#)diff.c 4.6 4/3/86";
 
 #include "diff.h"
 /*
@@ -8,7 +8,6 @@ static	char sccsid[] = "@(#)diff.c 4.1 10/9/80";
 char	diff[] = DIFF;
 char	diffh[] = DIFFH;
 char	pr[] = PR;
-extern	char _sobuf[];
 
 main(argc, argv)
 	int argc;
@@ -19,7 +18,6 @@ main(argc, argv)
 	ifdef1 = "FILE1"; ifdef2 = "FILE2";
 	status = 2;
 	diffargv = argv;
-	setbuf(stdout, _sobuf);
 	argc--, argv++;
 	while (argc > 2 && argv[0][0] == '-') {
 		argp = &argv[0][1];
@@ -59,8 +57,20 @@ main(argc, argv)
 		case 'f':
 			opt = D_REVERSE;
 			continue;
+		case 'n':
+			opt = D_NREVERSE;
+			continue;
 		case 'b':
 			bflag = 1;
+			continue;
+		case 'w':
+			wflag = 1;
+			continue;
+		case 'i':
+			iflag = 1;
+			continue;
+		case 't':
+			tflag = 1;
 			continue;
 		case 'c':
 			opt = D_CONTEXT;
@@ -111,7 +121,7 @@ main(argc, argv)
 	file2 = argv[1];
 	if (hflag && opt) {
 		fprintf(stderr,
-		    "diff: -h doesn't support -e, -f, -c, or -I\n");
+		    "diff: -h doesn't support -e, -f, -n, -c, or -I\n");
 		done();
 	}
 	if (!strcmp(file1, "-"))
@@ -166,7 +176,8 @@ max(a,b)
 
 done()
 {
-	unlink(tempfile);
+	if (tempfile)
+		unlink(tempfile);
 	exit(status);
 }
 
@@ -174,23 +185,20 @@ char *
 talloc(n)
 {
 	register char *p;
-	p = malloc((unsigned)n);
-	if(p!=NULL)
+
+	if ((p = malloc((unsigned)n)) != NULL)
 		return(p);
 	noroom();
 }
 
 char *
-ralloc(p,n)	/*compacting reallocation */
+ralloc(p,n)
 char *p;
 {
 	register char *q;
 	char *realloc();
-	free(p);
-	free(dummy);
-	dummy = malloc(1);
-	q = realloc(p, (unsigned)n);
-	if(q==NULL)
+
+	if ((q = realloc(p, (unsigned)n)) == NULL)
 		noroom();
 	return(q);
 }

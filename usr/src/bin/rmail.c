@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] =	"@(#)rmail.c	4.4 (Berkeley) 8/11/83";
+static char sccsid[] =	"@(#)rmail.c	4.8 (Berkeley) 5/15/86";
 #endif
 
 /*
@@ -21,6 +21,7 @@ typedef char	bool;
 extern FILE	*popen();
 extern char	*index();
 extern char	*rindex();
+
 bool	Debug;
 
 # define MAILER	"/usr/lib/sendmail"
@@ -29,14 +30,14 @@ main(argc, argv)
 	char **argv;
 {
 	FILE *out;	/* output to sendmail */
-	char lbuf[512];	/* one line of the message */
-	char from[512];	/* accumulated path of sender */
-	char ufrom[64];	/* user on remote system */
-	char sys[64];	/* a system in path */
-	char junk[512];	/* scratchpad */
+	char lbuf[1024];	/* one line of the message */
+	char from[512];		/* accumulated path of sender */
+	char ufrom[512];	/* user on remote system */
+	char sys[512];		/* a system in path */
+	char junk[1024];	/* scratchpad */
 	char cmd[2000];
 	register char *cp;
-	register char *uf;	/* ptr into ufrom */
+	register char *uf = ufrom;	/* ptr into ufrom */
 	int i;
 
 # ifdef DEBUG
@@ -64,7 +65,6 @@ main(argc, argv)
 			break;
 		(void) sscanf(lbuf, "%s %s", junk, ufrom);
 		cp = lbuf;
-		uf = ufrom;
 		for (;;)
 		{
 			cp = index(cp+1, 'r');
@@ -99,7 +99,7 @@ main(argc, argv)
 	}
 	(void) strcat(from, uf);
 
-	(void) sprintf(cmd, "%s -odi -em -f %s", MAILER, from); 
+	(void) sprintf(cmd, "%s -ee -f%s -i", MAILER, from);
 	while (*++argv != NULL)
 	{
 		(void) strcat(cmd, " '");

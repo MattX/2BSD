@@ -1,6 +1,18 @@
-/* Copyright (c) 1982 Regents of the University of California */
+/*
+ * Copyright (c) 1982 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
-static char sccsid[] = "@(#)canfield.c 4.9 6/25/83";
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)canfield.c	5.4 (Berkeley) 1/13/86";
+#endif not lint
 
 /*
  * The canfield program
@@ -17,6 +29,14 @@ static char sccsid[] = "@(#)canfield.c 4.9 6/25/83";
 #include <ctype.h>
 #include <signal.h>
 #include <sys/types.h>
+
+#ifdef BSD2_10
+#define	printtopbettingbox	ptopbetx
+#define	printtopinstructions	ptopins
+#define	printbottombettingbox	pbotbetx
+#define	printbottominstructions	pbotinx
+#define	cleanupboard		cleanboard
+#endif
 
 #define	decksize	52
 #define originrow	0
@@ -127,6 +147,7 @@ int status = INSTRUCTIONBOX;
 #define costofrunthroughhand	 5
 #define costofinformation	 1
 #define secondsperdollar	60
+#define maxtimecharge		 3
 #define valuepercardup	 	 5
 /*
  * Variables associated with betting 
@@ -153,14 +174,6 @@ int dbfd = -1;
  *
  * procedure to set the move command box
  */
-
-#ifdef pdp11
-#define printtopbettingbox	P_t_betting
-#define printtopinstructions	P_t_instruct
-#define printbottombettingboxq	P_b_betting
-#define printbottominstructions	P_b_instruct
-#endif pdp11
-
 movebox()
 {
 	switch (status) {
@@ -760,7 +773,9 @@ tabok(cp, des)
 	if ((cp == stock) && (tableau[des] == NIL))
 		return (TRUE);
 	else if (tableau[des] == NIL)
-		if (stock == NIL)
+		if (stock == NIL && 
+		    cp != bottom[0] && cp != bottom[1] && 
+		    cp != bottom[2] && cp != bottom[3])
 			return (TRUE);
 		else 
 			return (FALSE);
@@ -777,6 +792,10 @@ movetotalon()
 {
 	int i, fin;
 
+	if (cinhand <= 3 && cinhand > 0) {
+		move(msgrow, msgcol);
+		printw("Hand is now empty        ");
+	}
 	if (cinhand >= 3)
 		fin = 3;
 	else if (cinhand > 0)
@@ -950,7 +969,7 @@ showcards()
 	register struct cardtype *ptr;
 	int row;
 
-	if (!Cflag)
+	if (!Cflag || cardsoff == 52)
 		return;
 	for (ptr = talon; ptr != NIL; ptr = ptr->next) {
 		ptr->visible = TRUE;
@@ -985,7 +1004,8 @@ showcards()
 	printw("          ");
 	move(row, stockcol - 1);
 	printw("=---=");
-	getcmd(moverow, movecol, "Hit return to exit");
+	if ( cardsoff == 52 )
+		getcmd(moverow, movecol, "Hit return to exit");
 }
 
 /*
@@ -1000,9 +1020,11 @@ updatebettinginfo()
 	time(&now);
 	dollars = (now - acctstart) / secondsperdollar;
 	if (dollars > 0) {
+		acctstart += dollars * secondsperdollar;
+		if (dollars > maxtimecharge)
+			dollars = maxtimecharge;
 		this.thinktime += dollars;
 		total.thinktime += dollars;
-		acctstart += dollars * secondsperdollar;
 	}
 	thiscosts = this.hand + this.inspection + this.game +
 		this.runs + this.information + this.thinktime;
@@ -1093,6 +1115,7 @@ tabprint(sour, des)
  * procedure to move from the tableau to the tableau
  */
 tabtotab(sour, des)
+	register int sour, des;
 {
 	struct cardtype *temp;
 
@@ -1101,6 +1124,8 @@ tabtotab(sour, des)
 			tabprint(sour, des);
 			temp = bottom[sour];
 			bottom[sour] = NIL;
+			if (bottom[des] == NIL)
+				bottom[des] = temp;
 			temp->next = tableau[des];
 			tableau[des] = tableau[sour];
 			tableau[sour] = NIL;
@@ -1513,13 +1538,12 @@ finish()
 	int row, col;
 
 	if (cardsoff == 52) {
+		getcmd(moverow, movecol, "Hit return to exit");
 		clear();
 		refresh();
 		move(originrow, origincol);
 		printw("CONGRATULATIONS!\n");
 		printw("You won the game. That is a feat to be proud of.\n");
-		move(originrow + 4, origincol);
-		printw("Wish to play again?     ");
 		row = originrow + 5;
 		col = origincol;
 	} else {
@@ -1528,14 +1552,12 @@ finish()
 		if (cardsoff > 1)
 			printw("s");
 		printw(" off    ");
-		getcmd(moverow, movecol, "Hit return to continue");
 		move(msgrow, msgcol);
-		printw("Wish to play again?     ");
 		row = moverow;
 		col = movecol;
 	}
 	do {
-		getcmd(row, col, "y or n?");
+		getcmd(row, col, "Play again (y or n)?");
 	} while (srcpile != 'y' && srcpile != 'n');
 	errmsg = TRUE;
 	clearmsg();

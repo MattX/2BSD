@@ -4,10 +4,6 @@
 # include	<ctype.h>
 # include	<signal.h>
 
-#ifdef pdp11
-# include	<sys/tty.h>
-#endif pdp11
-
 # define	MINLEN	6
 # define	MAXERRS	7
 # define	DICT	"/usr/dict/words"

@@ -206,7 +206,7 @@ execute(argt, execflg, pf1, pf2)
 
                                 case SYSUMASK:
                                         if (a1) {
-                                                int c, i
+                                                int c, i;
                                                 i = 0;
                                                 while ((c = *a1++) >= '0' &&
                                                         c <= '7')

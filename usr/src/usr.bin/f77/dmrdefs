@@ -70,8 +70,8 @@
 
 #define P2REAL	2
 #define P2DREAL	3
-#define P2PTR 	010
-#define P2FUNCT	020
+#define P2PTR 	020
+#define P2FUNCT	040
 
 #define P2ITOF	51
 #define P2FTOI	52

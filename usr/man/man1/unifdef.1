@@ -1,5 +1,11 @@
-.TH UNIFDEF 1
-.UC
+.\" Copyright (c) 1985 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)unifdef.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH UNIFDEF 1 "April 29, 1985"
+.UC 6
 .SH NAME
 unifdef \- remove ifdef'ed lines
 .SH SYNOPSIS
@@ -8,8 +14,8 @@ unifdef \- remove ifdef'ed lines
 .B \-t
 .B \-l
 .B \-c
-.BI \-d sym
-.BI \-u sym
+.BI \-D sym
+.BI \-U sym
 .BI \-id sym
 .BI \-iu sym
 ] ...  [ file ]
@@ -25,9 +31,9 @@ quotes of C syntax so that it can do its job, but it doesn't do any including
 or interpretation of macros.
 Neither does it strip out comments, though it recognizes and ignores them.
 You specify which symbols you want defined
-.BI \-d sym
+.BI \-D sym
 or undefined
-.BI \-u sym
+.BI \-U sym
 and the lines inside those ifdefs will be copied to the output or removed as
 appropriate.
 The ifdef, ifndef, else, and endif lines associated with
@@ -61,9 +67,9 @@ but copied out with
 and
 .BI \-iu sym
 similar to
-.BI \-d sym
+.BI \-D sym
 and
-.BI \-u sym
+.BI \-U sym
 above.
 .PP
 If you want to use
@@ -90,12 +96,6 @@ argument is specified, then the operation of
 is complemented,
 i.e. the lines that would have been removed or blanked
 are retained and vice versa.
-.PP
-.I Unifdef
-works nicely with the
-.BI \-i sym
-option recently added to
-.IR diff .
 .SH "SEE ALSO"
 diff(1)
 .SH DIAGNOSTICS

@@ -98,7 +98,7 @@ next:
 			if (opt('s'))
 				for (cp = token; *cp; cp++)
 					if (*cp >= 'A' && *cp <= 'Z') {
-						*cp =| ' ';
+						*cp |= ' ';
 					}
 			yysavc = c;
 			ip = hash(0, 1);

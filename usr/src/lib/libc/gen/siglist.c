@@ -1,4 +1,12 @@
-/*	@(#)siglist.c	4.2 (Berkeley) 2/10/83	*/
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)siglist.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
 
 #include <signal.h>
 
@@ -31,8 +39,8 @@ char	*sys_siglist[NSIG] = {
 	"Filesize limit exceeded",	/* SIGXFSZ */
 	"Virtual timer expired",	/* SIGVTALRM */
 	"Profiling timer expired",	/* SIGPROF */
-	"Signal 28",
+	"Window size changes",		/* SIGWINCH */
 	"Signal 29",
-	"Signal 30",
-	"Signal 31"
+	"User defined signal 1",	/* SIGUSR1 */
+	"User defined signal 2"		/* SIGUSR2 */
 };

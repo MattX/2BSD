@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n8.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 
 /*

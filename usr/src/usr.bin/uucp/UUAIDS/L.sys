@@ -19,6 +19,7 @@
 # The time may be any of the following:
 #	Any		Anytime
 #	Evening		When Evening rates are in effect
+#	NonPeak		Tymnet/Telenets non-peak rates
 #	Night		When Nighttime Phone rates are in effect
 #	Wk		Any Week Day
 #	Mo		Mondays
@@ -31,6 +32,7 @@
 # These time may be suffixed with a time range nnnn-mmmm in thge 24 hour clock
 # E.g. 
 #	Evening = Wk1700-0800,Sa,Su
+#	NonPeak = Wk1800-0700,Sa,Su
 #	Night = Any2300-0800,Sa,Su0800-1700
 #	Wk = Mo,Tu,We,Th,Fr
 #
@@ -110,3 +112,10 @@ seismo Any TCP uucp seismo.CSS.GOV ogin: uucplogin ssword: uucppassword
 # fast as 1 minute. send everything else at night.
 #
 ncsu Evening/Z;1,Night ACU unused 987-6543  ogin:--ogin: Urti  ssword: fatchance
+#
+# Connect to ihnp4 using PC Pursuit
+#
+#	chicago is the PCPursuit City name.
+#	6907171 is the phone number for ihnp4
+#
+ihnp4 NonPeak PCP chicago 6907171 "" \d@ ogin:~5-BREAK-ogin:~5-\r-ogin: UULOGIN ssword: PASWORD

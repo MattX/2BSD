@@ -1,5 +1,11 @@
-.TH SYSTEM 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)system.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH SYSTEM 3F "May 15, 1985"
+.UC 5
 .SH NAME
 system \- execute a \s-2UNIX\s0 command
 .SH SYNOPSIS
@@ -28,7 +34,8 @@ for an explanation of this value.
 .ie \nM /usr/ucb/lib/libU77.a
 .el /usr/lib/libU77.a
 .SH "SEE ALSO"
-execve(2), wait(2), system(3)
+exec(2), wait(2), system(3)
 .SH BUGS
 .I String
-can not be longer than NCARGS\-50 characters, as defined in <sys/param.h>.
+can not be longer than NCARGS\-50 characters, as defined in
+.RI < sys/param.h >.

@@ -1,78 +1,127 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/file.h>
-#include <strfile.h>
+# include	<stdio.h>
+# include	"strfile.h"
+
+# define	TRUE	1
+# define	FALSE	0
 
 /*
- * create the various fortune files from the database file
+ *	This program un-does what "strfile" makes, thereby obtaining the
+ * original file again.  This can be invoked with the name of the output
+ * file, the input file, or both. If invoked with only a single argument
+ * ending in ".dat", it is pressumed to be the input file and the output
+ * file will be the same stripped of the ".dat".  If the single argument
+ * doesn't end in ".dat", then it is presumed to be the output file, and
+ * the input file is that name prepended by a ".dat".  If both are given
+ * they are treated literally as the input and output files.
  *
- *	Keith Bostic
- *		ARPA: keith@seismo
- *		UUCP: seismo!keith
+ *	Ken Arnold		Aug 13, 1978
  */
 
-main(argc,argv)
-int	argc;
-char	**argv;
+# define	DELIM_CH	'-'
+
+char	Infile[100],			/* name of input file */
+	Outfile[100];			/* name of output file */
+
+short	Oflag = FALSE;			/* use order of initial table */
+
+FILE	*Inf, *Outf;
+
+char	*rindex(), *malloc(), *strcat(), *strcpy();
+
+main(ac, av)
+int	ac;
+char	**av;
 {
-	extern char	*optarg;		/* getopts variable */
-	static char	del_str[3] = "%%";	/* delimiter string */
-	register long	choff,			/* fortune offset */
-			off,			/* travel through table */
-			*seekpts;		/* hold table */
-	register int	cnt;			/* general counter */
-	long	hold[SECTIONS + 1];		/* part of table */
-	STRF	*spnt;				/* table structure pointer */
-	int	ch;				/* argument character */
-	short	force = NO;			/* if overwrite files */
-	char	*ffile = OUTFILE;		/* standard fortune file */
+	register char	c;
+	register int	nstr, delim;
+	static STRFILE	tbl;		/* description table */
 
-	while ((ch = getopt(argc,argv,"c:f:o")) != EOF)
-		switch((char)ch) {
-			case 'c':	/* new delimiting char */
-				del_str[0] = del_str[1] = *optarg;
-				break;
-			case 'f':	/* new fortune file */
-				ffile = optarg;
-				break;
-			case 'o':	/* overwrite existing files */
-				force = YES;
-				break;
-			default:
-				fprintf(stderr,"usage: %s [-o] [-cC] [-f file]\n",*argv);
-				exit(ERR);
-		}
-	if (!freopen(ffile,"r",stdin)) {
-		perror(ffile);
-		exit(ERR);
+	getargs(ac, av);
+	if ((Inf = fopen(Infile, "r")) == NULL) {
+		perror(Infile);
+		exit(-1);
+		/* NOTREACHED */
 	}
-
-	/* read the table */
-
-	fread(hold,sizeof(*hold),SECTIONS + 1,stdin);
-	MM(long,seekpts,hold[SECTIONS],char);
-	rewind(stdin);
-	fread(seekpts,sizeof(*seekpts),(int)((hold[SECTIONS] + 1) / sizeof(*seekpts)),stdin);
-
-	/* read the strings, addresses in the table delimit the	*/
-	/* fortunes, not EOS's as original fortune(6) did	*/
-
-	fseek(stdin,seekpts[*seekpts],(long)0);
-	for (spnt = tbl;*spnt->fname;++spnt) {
-		if (!access(spnt->fname,F_OK) && !force) {
-			fprintf(stderr,"%s: %s would get overwritten.\n",*argv,spnt->fname);
-			continue;
-		}
-		if (!freopen(spnt->fname,"w",stdout)) {
-			perror(spnt->fname);
-			exit(ERR);
-		}
-		for (cnt = 0,off = seekpts[spnt->entry];off < seekpts[spnt->entry + 1];++off,++cnt) {
-			for (choff = seekpts[off];choff < seekpts[off + 1];++choff)
-				putchar(getchar());
-			puts(del_str);
-		}
-		fprintf(stderr,"%d\tfortunes placed in %s.\n",cnt,spnt->fname);
+	if ((Outf = fopen(Outfile, "w")) == NULL) {
+		perror(Outfile);
+		exit(-1);
+		/* NOTREACHED */
 	}
-	exit(OK);
+	(void) fread((char *) &tbl, sizeof tbl, 1, Inf);
+	if (Oflag) {
+		order_unstr(&tbl);
+		exit(0);
+		/* NOTREACHED */
+	}
+	nstr = tbl.str_numstr;
+	(void) fseek(Inf, (long) (sizeof (long) * (nstr + 1)), 1);
+	delim = 0;
+	for (nstr = 0; (c = getc(Inf)) != EOF; nstr++)
+		if (c != '\0')
+			putc(c, Outf);
+		else if (nstr != tbl.str_numstr - 1)
+			if (nstr == tbl.str_delims[delim]) {
+				fputs("%-\n", Outf);
+				delim++;
+			}
+			else
+				fputs("%%\n", Outf);
+	exit(0);
+	/* NOTREACHED */
+}
+
+getargs(ac, av)
+register int	ac;
+register char	**av;
+{
+	register char	*sp;
+
+	if (ac > 1 && strcmp(av[1], "-o") == 0) {
+		Oflag++;
+		ac--;
+		av++;
+	}
+	if (ac < 2) {
+		printf("usage: %s datafile[.dat] [ outfile ]\n", av[0]);
+		exit(-1);
+	}
+	(void) strcpy(Infile, av[1]);
+	if (ac < 3) {
+		(void) strcpy(Outfile, Infile);
+		if ((sp = rindex(av[1], '.')) && strcmp(sp, ".dat") == 0)
+			Outfile[strlen(Outfile) - 4] = '\0';
+		else
+			(void) strcat(Infile, ".dat");
+	}
+	else
+		(void) strcpy(Outfile, av[2]);
+}
+
+order_unstr(tbl)
+STRFILE	*tbl;
+{
+	register int	i, c;
+	register int	delim;
+	register long	*seekpts;
+
+	seekpts = (long *) malloc(sizeof *seekpts * tbl->str_numstr);	/* NOSTRICT */
+	if (seekpts == NULL) {
+		perror("malloc");
+		exit(-1);
+		/* NOTREACHED */
+	}
+	(void) fread((char *) seekpts, sizeof *seekpts, tbl->str_numstr, Inf);
+	delim = 0;
+	for (i = 0; i < tbl->str_numstr; i++, seekpts++) {
+		if (i != 0)
+			if (i == tbl->str_delims[delim]) {
+				fputs("%-\n", Outf);
+				delim++;
+			}
+			else
+				fputs("%%\n", Outf);
+		(void) fseek(Inf, *seekpts, 0);
+		while ((c = getc(Inf)) != '\0')
+			putc(c, Outf);
+	}
 }

@@ -1,4 +1,12 @@
-/*	@(#)mdiv.c	4.1	12/25/82	*/
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)mdiv.c	5.1 (Berkeley) 4/30/85";
+#endif not lint
 
 #include <mp.h>
 mdiv(a,b,q,r) MINT *a,*b,*q,*r;
@@ -22,7 +30,8 @@ mdiv(a,b,q,r) MINT *a,*b,*q,*r;
 }
 m_dsb(q,n,a,b) short *a,*b;
 {	long int x,qx;
-	int borrow,j,u;
+	int borrow,j;
+	short u;
 	qx=q;
 	borrow=0;
 	for(j=0;j<n;j++)

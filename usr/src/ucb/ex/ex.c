@@ -1,5 +1,19 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex.c	7.1	7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char *copyright =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char *sccsid = "@(#)ex.c	7.5.1.1 (Berkeley) 8/12/86";
+#endif not lint
+
 #include "ex.h"
 #include "ex_argv.h"
 #include "ex_temp.h"
@@ -148,17 +162,6 @@ main(ac, av)
 		signal(SIGEMT, onemt);
 
 	/*
-	 * Initialize end of core pointers.
-	 * Normally we avoid breaking back to fendcore after each
-	 * file since this can be expensive (much core-core copying).
-	 * If your system can scatter load processes you could do
-	 * this as ed does, saving a little core, but it will probably
-	 * not often make much difference.
-	 */
-	fendcore = (line *) sbrk(0);
-	endcore = fendcore - 2;
-
-	/*
 	 * Process flag arguments.
 	 */
 	ac--, av++;
@@ -227,12 +230,6 @@ main(ac, av)
 				defwind = 10*defwind + *cp - '0';
 			break;
 
-#ifdef CRYPT
-		case 'x':
-			/* -x: encrypted mode */
-			xflag = 1;
-			break;
-#endif
 
 		default:
 			smerror("Unknown option %s\n", av[0]);
@@ -240,6 +237,17 @@ main(ac, av)
 		}
 		ac--, av++;
 	}
+
+	/*
+	 * Initialize end of core pointers.
+	 * Normally we avoid breaking back to fendcore after each
+	 * file since this can be expensive (much core-core copying).
+	 * If your system can scatter load processes you could do
+	 * this as ed does, saving a little core, but it will probably
+	 * not often make much difference.
+	 */
+	fendcore = (line *) sbrk(0);
+	endcore = fendcore - 2;
 
 #ifdef SIGTSTP
 	if (!hush && signal(SIGTSTP, SIG_IGN) == SIG_DFL)
@@ -251,12 +259,6 @@ main(ac, av)
 		ac--, av++;
 	}
 
-#ifdef CRYPT
-	if(xflag){
-		key = getpass(KEYPROMPT);
-		kflag = crinit(key, perm);
-	}
-#endif
 
 	/*
 	 * If we are doing a recover and no filename
@@ -307,8 +309,11 @@ main(ac, av)
 			commands(1,1);
 		else {
 			globp = 0;
-			if ((cp = getenv("HOME")) != 0 && *cp)
-				source(strcat(strcpy(genbuf, cp), "/.exrc"), 1);
+			if ((cp = getenv("HOME")) != 0 && *cp) {
+				(void) strcat(strcpy(genbuf, cp), "/.exrc");
+				if (iownit(genbuf))
+					source(genbuf, 1);
+			}
 		}
 		/*
 		 * Allow local .exrc too.  This loses if . is $HOME,
@@ -316,7 +321,8 @@ main(ac, av)
 		 * like putting a version command in .exrc.  Besides,
 		 * they should be using EXINIT, not .exrc, right?
 		 */
-		source(".exrc", 1);
+		 if (iownit(".exrc"))
+			source(".exrc", 1);
 	}
 	init();	/* moved after prev 2 chunks to fix directory option */
 
@@ -394,12 +400,6 @@ init()
 	for (i = 0; i <= 'z'-'a'+1; i++)
 		names[i] = 1;
 	anymarks = 0;
-#ifdef CRYPT
-        if(xflag) {
-                xtflag = 1;
-                makekey(key, tperm);
-        }
-#endif
 }
 
 /*
@@ -415,4 +415,19 @@ register char *p;
 		if (*p == '/')
 			r = p+1;
 	return(r);
+}
+
+/*
+ * Check ownership of file.  Return nonzero if it exists and is owned by the
+ * user or the option sourceany is used
+ */
+iownit(file)
+char *file;
+{
+	struct stat sb;
+
+	if (stat(file, &sb) == 0 && (value(SOURCEANY) || sb.st_uid == getuid()))
+		return(1);
+	else
+		return(0);
 }

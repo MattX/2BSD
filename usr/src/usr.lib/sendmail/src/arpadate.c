@@ -1,12 +1,35 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)arpadate.c	5.5 (Berkeley) 3/18/87";
+#endif
+
 # include "conf.h"
+# ifdef USG
 # include <time.h>
+# else
+# include <sys/time.h>
 # ifndef V6
 # include <sys/types.h>
 # include <sys/timeb.h>
-# endif
+# endif V6
+# endif USG
 # include "useful.h"
 
-SCCSID(@(#)arpadate.c	4.1		7/25/83);
+# ifdef V6
+# define OLDTIME
+# endif V6
+# ifdef USG
+# define OLDTIME
+# endif USG
 
 /*
 **  ARPADATE -- Create date in ARPANET format
@@ -44,15 +67,20 @@ arpadate(ud)
 	extern char *ctime();
 	register int i;
 	extern struct tm *localtime();
-# ifdef V6
+	extern bool fconvert();
+# ifdef OLDTIME
 	long t;
-	extern char *StdTimezone, *DstTimezone;
 	extern long time();
-# else
+# else OLDTIME
 	struct timeb t;
 	extern struct timeb *ftime();
-	extern char *timezone();
-# endif
+# endif OLDTIME
+# ifdef V6
+	extern char *StdTimezone, *DstTimezone;
+# endif V6
+# ifdef USG
+	extern char *tzname[2];
+# endif USG
 
 	/*
 	**  Get current time.
@@ -60,7 +88,7 @@ arpadate(ud)
 	**	to resolve the timezone.
 	*/
 
-# ifdef V6
+# ifdef OLDTIME
 	(void) time(&t);
 	if (ud == NULL)
 		ud = ctime(&t);
@@ -68,7 +96,7 @@ arpadate(ud)
 	ftime(&t);
 	if (ud == NULL)
 		ud = ctime(&t.time);
-# endif
+# endif OLDTIME
 
 	/*
 	**  Crack the UNIX date line in a singularly unoriginal way.
@@ -113,9 +141,17 @@ arpadate(ud)
 	else
 		p = StdTimezone;
 # else
-	p = timezone(t.timezone, localtime(&t.time)->tm_isdst);
+# ifdef USG
+	if (localtime(&t)->tm_isdst)
+		p = tzname[1];
+	else
+		p = tzname[0];
+# else
+	p = localtime(&t.time)->tm_zone;
+# endif USG
 # endif V6
-	if (p[3] != '\0')
+	if ((strncmp(p, "GMT", 3) == 0 || strncmp(p, "gmt", 3) == 0) &&
+	    p[3] != '\0')
 	{
 		/* hours from GMT */
 		p += 3;
@@ -128,15 +164,75 @@ arpadate(ud)
 		p++;		/* skip ``:'' */
 		*q++ = *p++;
 		*q++ = *p++;
+		*q = '\0';
 	}
-	else
+	else if (!fconvert(p, q))
 	{
 		*q++ = ' ';
 		*q++ = *p++;
 		*q++ = *p++;
 		*q++ = *p++;
+		*q = '\0';
 	}
 
-	*q = '\0';
 	return (b);
+}
+/*
+**  FCONVERT -- convert foreign timezones to ARPA timezones
+**
+**	This routine is essentially from Teus Hagen.
+**
+**	Parameters:
+**		a -- timezone as returned from UNIX.
+**		b -- place to put ARPA-style timezone.
+**
+**	Returns:
+**		TRUE -- if a conversion was made (and b was filled in).
+**		FALSE -- if this is not a recognized local time.
+**
+**	Side Effects:
+**		none.
+*/
+
+/* UNIX to arpa conversion table */
+struct foreign
+{
+	char *f_from; 
+	char *f_to; 
+};
+
+static struct foreign	Foreign[] =
+{
+	{ "EET",	"+0200" },	/* eastern europe */
+	{ "MET",	"+0100" },	/* middle europe */
+	{ "WET",	"GMT"   },	/* western europe */
+	{ "EET DST",	"+0300" },	/* daylight saving times */
+	{ "MET DST",	"+0200" },
+	{ "WET DST",	"+0100" },
+	{ NULL,		NULL	 }
+};
+
+bool
+fconvert(a, b)
+	register char *a;
+	char *b;
+{
+	register struct foreign *euptr;
+	register char *p;
+
+	for (euptr = Foreign; euptr->f_from != NULL; euptr++)
+	{
+		extern bool sameword();
+
+		if (sameword(euptr->f_from, a))
+		{
+			p = euptr->f_to;
+			*b++ = ' ';
+			while (*p != '\0')
+				*b++ = *p++;
+			*b = '\0';
+			return (TRUE);
+		}
+	}
+	return (FALSE);
 }

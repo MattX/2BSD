@@ -1,5 +1,6 @@
-/* $Header: getprm.c,v 1.7 85/07/19 21:32:22 rick Exp $ */
-/* from: @(#)getprm.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)getprm.c	5.4 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 

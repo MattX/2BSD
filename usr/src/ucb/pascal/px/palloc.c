@@ -9,19 +9,19 @@ alloc(need)
 	register cnt, *wp;
 	register char *have;
 
-	need = (need+1) &~ 1;
+	need = (char *)((unsigned)(need+1) &~ 1);
 	if ((have=high-memptr) < need) {
 		if (sbrk(need > have + 1024 ? need-have:1024) == -1)
 			error(EOUTOFMEM);
 		high = sbrk(0);
 	}
 	wp = memptr;
-	cnt = (need >> 1) & 077777;
+	cnt = ((unsigned)need >> 1) & 077777;
 	do {
 		*wp++ = 0;
 	} while (--cnt);
 	wp = memptr;
-	memptr =+ need;
+	memptr += (unsigned)need;
 	stklim();
 	return(wp);
 }
@@ -39,5 +39,5 @@ free(cptr)
 
 stklim()
 {
-	maxstk = ((memptr + 07777) &~ 07777) + 512;
+	maxstk = (char *)((((unsigned)memptr + 07777) &~ 07777) + 512);
 }

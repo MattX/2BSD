@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)spellout.c	4.1 12/18/82";
+#endif
+
 #include "spell.h"
 
 main(argc, argv)

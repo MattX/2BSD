@@ -1,35 +1,42 @@
-.TH DU 1 
-.UC
+.\"	@(#)du.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH DU 1 "April 29, 1985"
+.AT 3
 .SH NAME
-du  \-  summarize disk usage
+du \- summarize disk usage
 .SH SYNOPSIS
 .B du
 [
-.B \-a
-] [
 .B \-s
+] [
+.B \-a
 ] [ name ... ]
 .SH DESCRIPTION
 .I Du
-gives the number of 1024-byte blocks contained in all files
-and (recursively) directories within each specified directory or
-file
+gives the number of kilobytes contained in all files
+and, recursively, directories within each specified
+directory or file
 .IR name .
 If
 .I name
 is missing,
-`\fB.\fP'
-is used.  Options are:
-.TP
-.B \-\^a
-Generate an entry for each file.
-.TP
-.B \-\^s
-Give a grand total only.
+`\fB.\fR'
+is used.
 .PP
+The argument
+.B \-s
+causes only the grand total to
+be given.
+The argument
+.B \-a
+causes an entry to be generated
+for each file.
 Absence of either causes an entry to be generated for
 each directory only.
+.PP
 A file which has two links to it is only counted once.
+.SH "SEE ALSO"
+df(1), quot(8)
 .SH BUGS
 Non-directories
 given as arguments (not under

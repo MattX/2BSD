@@ -1,14 +1,29 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+
 # include "sendmail.h"
 # include <sys/stat.h>
-# include <ndir.h>
+# include <sys/dir.h>
 # include <signal.h>
 # include <errno.h>
 
 # ifndef QUEUE
-SCCSID(@(#)queue.c	4.1		7/25/83	(no queueing));
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)queue.c	5.21 (Berkeley) 4/17/86	(no queueing)";
+# endif
 # else QUEUE
 
-SCCSID(@(#)queue.c	4.1		7/25/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)queue.c	5.21 (Berkeley) 4/17/86";
+# endif
 
 /*
 **  Work queue.
@@ -18,6 +33,7 @@ struct work
 {
 	char		*w_name;	/* name of control file */
 	long		w_pri;		/* priority of message, see below */
+	time_t		w_ctime;	/* creation time of message */
 	struct work	*w_next;	/* next in queue */
 };
 
@@ -68,7 +84,7 @@ queueup(e, queueall, announce)
 
 # ifdef DEBUG
 	if (tTd(40, 1))
-		printf("queueing in %s\n", tf);
+		printf("queueing %s\n", e->e_id);
 # endif DEBUG
 
 	/*
@@ -96,7 +112,8 @@ queueup(e, queueall, announce)
 
 	/*
 	**  Output future work requests.
-	**	Priority should be first, since it is read by orderq.
+	**	Priority and creation time should be first, since
+	**	they are required by orderq.
 	*/
 
 	/* output message priority */
@@ -140,6 +157,13 @@ queueup(e, queueall, announce)
 		}
 	}
 
+	/* output list of error recipients */
+	for (q = e->e_errorqueue; q != NULL; q = q->q_next)
+	{
+		if (!bitset(QDONTSEND, q->q_flags))
+			fprintf(tfp, "E%s\n", q->q_paddr);
+	}
+
 	/*
 	**  Output headers for this message.
 	**	Expand macros completely here.  Queue run will deal with
@@ -154,7 +178,7 @@ queueup(e, queueall, announce)
 	nullmailer.m_r_rwset = nullmailer.m_s_rwset = -1;
 	nullmailer.m_eol = "\n";
 
-	define('g', "$f", e);
+	define('g', "\001f", e);
 	for (h = e->e_header; h != NULL; h = h->h_link)
 	{
 		extern bool bitzerop();
@@ -175,11 +199,11 @@ queueup(e, queueall, announce)
 		{
 			int j;
 
-			putc('?', tfp);
+			(void) putc('?', tfp);
 			for (j = '\0'; j <= '\177'; j++)
 				if (bitnset(j, h->h_mflags))
-					putc(j, tfp);
-			putc('?', tfp);
+					(void) putc(j, tfp);
+			(void) putc('?', tfp);
 		}
 
 		/* output the header: expand macros, convert addresses */
@@ -203,13 +227,13 @@ queueup(e, queueall, announce)
 
 	(void) fclose(tfp);
 	qf = queuename(e, 'q');
-	holdsigs();
-	(void) unlink(qf);
-	if (link(tf, qf) < 0)
-		syserr("cannot link(%s, %s), df=%s", tf, qf, e->e_df);
-	else
-		(void) unlink(tf);
-	rlsesigs();
+	if (tf != NULL)
+	{
+		(void) unlink(qf);
+		if (rename(tf, qf) < 0)
+			syserr("cannot unlink(%s, %s), df=%s", tf, qf, e->e_df);
+		errno = 0;
+	}
 
 # ifdef LOG
 	/* save log info */
@@ -224,7 +248,9 @@ queueup(e, queueall, announce)
 **	order and processes them.
 **
 **	Parameters:
-**		none.
+**		forkflag -- TRUE if the queue scanning should be done in
+**			a child process.  We double-fork so it is not our
+**			child and we don't have to clean up after it.
 **
 **	Returns:
 **		none.
@@ -236,6 +262,23 @@ queueup(e, queueall, announce)
 runqueue(forkflag)
 	bool forkflag;
 {
+	extern bool shouldqueue();
+
+	/*
+	**  If no work will ever be selected, don't even bother reading
+	**  the queue.
+	*/
+
+	if (shouldqueue(-100000000L))
+	{
+		if (Verbose)
+			printf("Skipping queue run -- load average too high\n");
+
+		if (forkflag)
+			return;
+		finis();
+	}
+
 	/*
 	**  See if we want to go off and do other useful work.
 	*/
@@ -247,16 +290,29 @@ runqueue(forkflag)
 		pid = dofork();
 		if (pid != 0)
 		{
+			extern reapchild();
+
 			/* parent -- pick up intermediate zombie */
+#ifndef SIGCHLD
 			(void) waitfor(pid);
+#else SIGCHLD
+			(void) signal(SIGCHLD, reapchild);
+#endif SIGCHLD
 			if (QueueIntvl != 0)
 				(void) setevent(QueueIntvl, runqueue, TRUE);
 			return;
 		}
 		/* child -- double fork */
+#ifndef SIGCHLD
 		if (fork() != 0)
 			exit(EX_OK);
+#else SIGCHLD
+		(void) signal(SIGCHLD, SIG_DFL);
+#endif SIGCHLD
 	}
+
+	setproctitle("running queue");
+
 # ifdef LOG
 	if (LogLevel > 11)
 		syslog(LOG_DEBUG, "runqueue %s, pid=%d", QueueDir, getpid());
@@ -271,6 +327,12 @@ runqueue(forkflag)
 # endif DAEMON
 
 	/*
+	**  Make sure the alias database is open.
+	*/
+
+	initaliases(AliasFile, FALSE);
+
+	/*
 	**  Start making passes through the queue.
 	**	First, read and sort the entire queue.
 	**	Then, process the work in that order.
@@ -278,7 +340,7 @@ runqueue(forkflag)
 	*/
 
 	/* order the existing work requests */
-	(void) orderq();
+	(void) orderq(FALSE);
 
 	/* process them once at a time */
 	while (WorkQ != NULL)
@@ -296,7 +358,10 @@ runqueue(forkflag)
 **  ORDERQ -- order the work queue.
 **
 **	Parameters:
-**		none.
+**		doall -- if set, include everything in the queue (even
+**			the jobs that cannot be run because the load
+**			average is too high).  Otherwise, exclude those
+**			jobs.
 **
 **	Returns:
 **		The number of request in the queue (not necessarily
@@ -306,16 +371,17 @@ runqueue(forkflag)
 **		Sets WorkQ to the queue of available work, in order.
 */
 
-# define WLSIZE		120	/* max size of worklist per sort */
+# define NEED_P		001
+# define NEED_T		002
 
-orderq()
+orderq(doall)
+	bool doall;
 {
 	register struct direct *d;
 	register WORK *w;
-	register WORK **wp;		/* parent of w */
 	DIR *f;
 	register int i;
-	WORK wlist[WLSIZE+1];
+	WORK wlist[QUEUESIZE+1];
 	int wn = -1;
 	extern workcmpf();
 
@@ -352,7 +418,7 @@ orderq()
 			continue;
 
 		/* yes -- open control file (if not too many files) */
-		if (++wn >= WLSIZE)
+		if (++wn >= QUEUESIZE)
 			continue;
 		cf = fopen(d->d_name, "r");
 		if (cf == NULL)
@@ -368,18 +434,39 @@ orderq()
 			wn--;
 			continue;
 		}
-		wlist[wn].w_name = newstr(d->d_name);
+		w = &wlist[wn];
+		w->w_name = newstr(d->d_name);
+
+		/* make sure jobs in creation don't clog queue */
+		w->w_pri = 0x7fffffff;
+		w->w_ctime = 0;
 
 		/* extract useful information */
-		while (fgets(lbuf, sizeof lbuf, cf) != NULL)
+		i = NEED_P | NEED_T;
+		while (i != 0 && fgets(lbuf, sizeof lbuf, cf) != NULL)
 		{
-			if (lbuf[0] == 'P')
+			extern long atol();
+
+			switch (lbuf[0])
 			{
-				(void) sscanf(&lbuf[1], "%ld", &wlist[wn].w_pri);
+			  case 'P':
+				w->w_pri = atol(&lbuf[1]);
+				i &= ~NEED_P;
+				break;
+
+			  case 'T':
+				w->w_ctime = atol(&lbuf[1]);
+				i &= ~NEED_T;
 				break;
 			}
 		}
 		(void) fclose(cf);
+
+		if (!doall && shouldqueue(w->w_pri))
+		{
+			/* don't even bother sorting this job in */
+			wn--;
+		}
 	}
 	(void) closedir(f);
 	wn++;
@@ -388,22 +475,22 @@ orderq()
 	**  Sort the work directory.
 	*/
 
-	qsort(wlist, min(wn, WLSIZE), sizeof *wlist, workcmpf);
+	qsort((char *) wlist, min(wn, QUEUESIZE), sizeof *wlist, workcmpf);
 
 	/*
 	**  Convert the work list into canonical form.
 	**	Should be turning it into a list of envelopes here perhaps.
 	*/
 
-	wp = &WorkQ;
-	for (i = min(wn, WLSIZE); --i >= 0; )
+	WorkQ = NULL;
+	for (i = min(wn, QUEUESIZE); --i >= 0; )
 	{
 		w = (WORK *) xalloc(sizeof *w);
 		w->w_name = wlist[i].w_name;
 		w->w_pri = wlist[i].w_pri;
-		w->w_next = NULL;
-		*wp = w;
-		wp = &w->w_next;
+		w->w_ctime = wlist[i].w_ctime;
+		w->w_next = WorkQ;
+		WorkQ = w;
 	}
 
 # ifdef DEBUG
@@ -424,9 +511,9 @@ orderq()
 **		b -- the second argument.
 **
 **	Returns:
-**		1 if a < b
-**		0 if a == b
-**		-1 if a > b
+**		-1 if a < b
+**		 0 if a == b
+**		+1 if a > b
 **
 **	Side Effects:
 **		none.
@@ -436,12 +523,15 @@ workcmpf(a, b)
 	register WORK *a;
 	register WORK *b;
 {
-	if (a->w_pri == b->w_pri)
+	long pa = a->w_pri + a->w_ctime;
+	long pb = b->w_pri + b->w_ctime;
+
+	if (pa == pb)
 		return (0);
-	else if (a->w_pri > b->w_pri)
-		return (-1);
-	else
+	else if (pa > pb)
 		return (1);
+	else
+		return (-1);
 }
 /*
 **  DOWORK -- do a work request.
@@ -460,6 +550,7 @@ dowork(w)
 	register WORK *w;
 {
 	register int i;
+	extern bool shouldqueue();
 
 # ifdef DEBUG
 	if (tTd(40, 1))
@@ -467,14 +558,32 @@ dowork(w)
 # endif DEBUG
 
 	/*
+	**  Ignore jobs that are too expensive for the moment.
+	*/
+
+	if (shouldqueue(w->w_pri))
+	{
+		if (Verbose)
+			printf("\nSkipping %s\n", w->w_name + 2);
+		return;
+	}
+
+	/*
 	**  Fork for work.
 	*/
 
-	i = fork();
-	if (i < 0)
+	if (ForkQueueRuns)
 	{
-		syserr("dowork: cannot fork");
-		return;
+		i = fork();
+		if (i < 0)
+		{
+			syserr("dowork: cannot fork");
+			return;
+		}
+	}
+	else
+	{
+		i = 0;
 	}
 
 	if (i == 0)
@@ -489,8 +598,7 @@ dowork(w)
 
 		/* set basic modes, etc. */
 		(void) alarm(0);
-		closexscript(CurEnv);
-		CurEnv->e_flags &= ~EF_FATALERRS;
+		clearenvelope(CurEnv, FALSE);
 		QueueRun = TRUE;
 		ErrorMode = EM_MAIL;
 		CurEnv->e_id = &w->w_name[2];
@@ -503,7 +611,7 @@ dowork(w)
 		/* don't use the headers from sendmail.cf... */
 		CurEnv->e_header = NULL;
 
-		/* create the link to the control file during processing */
+		/* lock the control file during processing */
 		if (link(w->w_name, queuename(CurEnv, 'l')) < 0)
 		{
 			/* being processed by another queuer */
@@ -511,7 +619,10 @@ dowork(w)
 			if (LogLevel > 4)
 				syslog(LOG_DEBUG, "%s: locked", CurEnv->e_id);
 # endif LOG
-			exit(EX_OK);
+			if (ForkQueueRuns)
+				exit(EX_OK);
+			else
+				return;
 		}
 
 		/* do basic system initialization */
@@ -527,15 +638,20 @@ dowork(w)
 			sendall(CurEnv, SM_DELIVER);
 
 		/* finish up and exit */
-		finis();
+		if (ForkQueueRuns)
+			finis();
+		else
+			dropenvelope(CurEnv);
 	}
+	else
+	{
+		/*
+		**  Parent -- pick up results.
+		*/
 
-	/*
-	**  Parent -- pick up results.
-	*/
-
-	errno = 0;
-	(void) waitfor(i);
+		errno = 0;
+		(void) waitfor(i);
+	}
 }
 /*
 **  READQF -- read queue file and set up environment.
@@ -557,37 +673,41 @@ readqf(e, full)
 	register ENVELOPE *e;
 	bool full;
 {
-	register FILE *f;
+	char *qf;
+	register FILE *qfp;
 	char buf[MAXFIELD];
 	extern char *fgetfolded();
-	register char *p;
-
-	/*
-	**  Open the file created by queueup.
-	*/
-
-	p = queuename(e, 'q');
-	f = fopen(p, "r");
-	if (f == NULL)
-	{
-		syserr("readqf: no control file %s", p);
-		return;
-	}
-	FileName = p;
-	LineNumber = 0;
+	extern long atol();
 
 	/*
 	**  Read and process the file.
 	*/
 
+	qf = queuename(e, 'q');
+	qfp = fopen(qf, "r");
+	if (qfp == NULL)
+	{
+		syserr("readqf: no control file %s", qf);
+		return;
+	}
+	FileName = qf;
+	LineNumber = 0;
 	if (Verbose && full)
 		printf("\nRunning %s\n", e->e_id);
-	while (fgetfolded(buf, sizeof buf, f) != NULL)
+	while (fgetfolded(buf, sizeof buf, qfp) != NULL)
 	{
+# ifdef DEBUG
+		if (tTd(40, 4))
+			printf("+++++ %s\n", buf);
+# endif DEBUG
 		switch (buf[0])
 		{
 		  case 'R':		/* specify recipient */
 			sendtolist(&buf[1], (ADDRESS *) NULL, &e->e_sendqueue);
+			break;
+
+		  case 'E':		/* specify error recipient */
+			sendtolist(&buf[1], (ADDRESS *) NULL, &e->e_errorqueue);
 			break;
 
 		  case 'H':		/* header */
@@ -613,23 +733,36 @@ readqf(e, full)
 			break;
 
 		  case 'T':		/* init time */
-			(void) sscanf(&buf[1], "%ld", &e->e_ctime);
+			e->e_ctime = atol(&buf[1]);
 			break;
 
 		  case 'P':		/* message priority */
-			(void) sscanf(&buf[1], "%ld", &e->e_msgpriority);
+			e->e_msgpriority = atol(&buf[1]) + WkTimeFact;
+			break;
 
-			/* make sure that big things get sent eventually */
-			e->e_msgpriority -= WKTIMEFACT;
+		  case '\0':		/* blank line; ignore */
 			break;
 
 		  default:
-			syserr("readqf(%s): bad line \"%s\"", e->e_id, buf);
+			syserr("readqf(%s:%d): bad line \"%s\"", e->e_id,
+				LineNumber, buf);
 			break;
 		}
 	}
 
+	(void) fclose(qfp);
 	FileName = NULL;
+
+	/*
+	**  If we haven't read any lines, this queue file is empty.
+	**  Arrange to remove it without referencing any null pointers.
+	*/
+
+	if (LineNumber == 0)
+	{
+		errno = 0;
+		e->e_flags |= EF_CLRQUEUE | EF_FATALERRS | EF_RESPONSE;
+	}
 }
 /*
 **  PRINTQUEUE -- print out a representation of the mail queue
@@ -655,7 +788,7 @@ printqueue()
 	**  Read and order the queue.
 	*/
 
-	nrequests = orderq();
+	nrequests = orderq(TRUE);
 
 	/*
 	**  Print the work list that we have read.
@@ -669,9 +802,12 @@ printqueue()
 	}
 
 	printf("\t\tMail Queue (%d request%s", nrequests, nrequests == 1 ? "" : "s");
-	if (nrequests > WLSIZE)
-		printf(", only %d printed", WLSIZE);
-	printf(")\n--QID-- --Size-- -----Q-Time----- ------------Sender/Recipient------------\n");
+	if (nrequests > QUEUESIZE)
+		printf(", only %d printed", QUEUESIZE);
+	if (Verbose)
+		printf(")\n--QID-- --Size-- -Priority- ---Q-Time--- -----------Sender/Recipient-----------\n");
+	else
+		printf(")\n--QID-- --Size-- -----Q-Time----- ------------Sender/Recipient------------\n");
 	for (w = WorkQ; w != NULL; w = w->w_next)
 	{
 		struct stat st;
@@ -679,22 +815,26 @@ printqueue()
 		long dfsize = -1;
 		char lf[20];
 		char message[MAXLINE];
+		extern bool shouldqueue();
+		extern long atol();
 
-		printf("%7s", w->w_name + 2);
-		strcpy(lf, w->w_name);
-		lf[0] = 'l';
-		if (stat(lf, &st) >= 0)
-			printf("*");
-		else
-			printf(" ");
-		errno = 0;
 		f = fopen(w->w_name, "r");
 		if (f == NULL)
 		{
-			printf(" (finished)\n");
 			errno = 0;
 			continue;
 		}
+		printf("%7s", w->w_name + 2);
+		(void) strcpy(lf, w->w_name);
+		lf[0] = 'l';
+		if (stat(lf, &st) >= 0)
+			printf("*");
+		else if (shouldqueue(w->w_pri))
+			printf("X");
+		else
+			printf(" ");
+		errno = 0;
+
 		message[0] = '\0';
 		while (fgets(buf, sizeof buf, f) != NULL)
 		{
@@ -702,22 +842,30 @@ printqueue()
 			switch (buf[0])
 			{
 			  case 'M':	/* error message */
-				strcpy(message, &buf[1]);
+				(void) strcpy(message, &buf[1]);
 				break;
 
 			  case 'S':	/* sender name */
-				printf("%8ld %.16s %.45s", dfsize,
-					ctime(&submittime), &buf[1]);
+				if (Verbose)
+					printf("%8ld %10ld %.12s %.38s", dfsize,
+					    w->w_pri, ctime(&submittime) + 4,
+					    &buf[1]);
+				else
+					printf("%8ld %.16s %.45s", dfsize,
+					    ctime(&submittime), &buf[1]);
 				if (message[0] != '\0')
-					printf("\n\t\t\t\t  (%.43s)", message);
+					printf("\n\t\t (%.60s)", message);
 				break;
 
 			  case 'R':	/* recipient name */
-				printf("\n\t\t\t\t  %.45s", &buf[1]);
+				if (Verbose)
+					printf("\n\t\t\t\t\t %.38s", &buf[1]);
+				else
+					printf("\n\t\t\t\t  %.45s", &buf[1]);
 				break;
 
 			  case 'T':	/* creation time */
-				sscanf(&buf[1], "%ld", &submittime);
+				submittime = atol(&buf[1]);
 				break;
 
 			  case 'D':	/* data file name */
@@ -729,8 +877,159 @@ printqueue()
 		if (submittime == (time_t) 0)
 			printf(" (no control file)");
 		printf("\n");
-		fclose(f);
+		(void) fclose(f);
 	}
 }
 
 # endif QUEUE
+/*
+**  QUEUENAME -- build a file name in the queue directory for this envelope.
+**
+**	Assigns an id code if one does not already exist.
+**	This code is very careful to avoid trashing existing files
+**	under any circumstances.
+**		We first create an nf file that is only used when
+**		assigning an id.  This file is always empty, so that
+**		we can never accidently truncate an lf file.
+**
+**	Parameters:
+**		e -- envelope to build it in/from.
+**		type -- the file type, used as the first character
+**			of the file name.
+**
+**	Returns:
+**		a pointer to the new file name (in a static buffer).
+**
+**	Side Effects:
+**		Will create the lf and qf files if no id code is
+**		already assigned.  This will cause the envelope
+**		to be modified.
+*/
+
+char *
+queuename(e, type)
+	register ENVELOPE *e;
+	char type;
+{
+	static char buf[MAXNAME];
+	static int pid = -1;
+	char c1 = 'A';
+	char c2 = 'A';
+
+	if (e->e_id == NULL)
+	{
+		char qf[20];
+		char nf[20];
+		char lf[20];
+
+		/* find a unique id */
+		if (pid != getpid())
+		{
+			/* new process -- start back at "AA" */
+			pid = getpid();
+			c1 = 'A';
+			c2 = 'A' - 1;
+		}
+		(void) sprintf(qf, "qfAA%05d", pid);
+		(void) strcpy(lf, qf);
+		lf[0] = 'l';
+		(void) strcpy(nf, qf);
+		nf[0] = 'n';
+
+		while (c1 < '~' || c2 < 'Z')
+		{
+			int i;
+
+			if (c2 >= 'Z')
+			{
+				c1++;
+				c2 = 'A' - 1;
+			}
+			lf[2] = nf[2] = qf[2] = c1;
+			lf[3] = nf[3] = qf[3] = ++c2;
+# ifdef DEBUG
+			if (tTd(7, 20))
+				printf("queuename: trying \"%s\"\n", nf);
+# endif DEBUG
+
+# ifdef QUEUE
+			if (access(lf, 0) >= 0 || access(qf, 0) >= 0)
+				continue;
+			errno = 0;
+			i = creat(nf, FileMode);
+			if (i < 0)
+			{
+				(void) unlink(nf);	/* kernel bug */
+				continue;
+			}
+			(void) close(i);
+			i = link(nf, lf);
+			(void) unlink(nf);
+			if (i < 0)
+				continue;
+			if (link(lf, qf) >= 0)
+				break;
+			(void) unlink(lf);
+# else QUEUE
+			if (close(creat(qf, FileMode)) >= 0)
+				break;
+# endif QUEUE
+		}
+		if (c1 >= '~' && c2 >= 'Z')
+		{
+			syserr("queuename: Cannot create \"%s\" in \"%s\"",
+				qf, QueueDir);
+			exit(EX_OSERR);
+		}
+		e->e_id = newstr(&qf[2]);
+		define('i', e->e_id, e);
+# ifdef DEBUG
+		if (tTd(7, 1))
+			printf("queuename: assigned id %s, env=%x\n", e->e_id, e);
+# ifdef LOG
+		if (LogLevel > 16)
+			syslog(LOG_DEBUG, "%s: assigned id", e->e_id);
+# endif LOG
+# endif DEBUG
+	}
+
+	if (type == '\0')
+		return (NULL);
+	(void) sprintf(buf, "%cf%s", type, e->e_id);
+# ifdef DEBUG
+	if (tTd(7, 2))
+		printf("queuename: %s\n", buf);
+# endif DEBUG
+	return (buf);
+}
+/*
+**  UNLOCKQUEUE -- unlock the queue entry for a specified envelope
+**
+**	Parameters:
+**		e -- the envelope to unlock.
+**
+**	Returns:
+**		none
+**
+**	Side Effects:
+**		unlocks the queue for `e'.
+*/
+
+unlockqueue(e)
+	ENVELOPE *e;
+{
+	/* remove the transcript */
+#ifdef DEBUG
+# ifdef LOG
+	if (LogLevel > 19)
+		syslog(LOG_DEBUG, "%s: unlock", e->e_id);
+# endif LOG
+	if (!tTd(51, 4))
+#endif DEBUG
+		xunlink(queuename(e, 'x'));
+
+# ifdef QUEUE
+	/* last but not least, remove the lock */
+	xunlink(queuename(e, 'l'));
+# endif QUEUE
+}

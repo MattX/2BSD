@@ -226,7 +226,7 @@ indent1(in)
 	if (profile == 0)
 		while (i >= 8) {
 			putchar('\t');
-			i =- 8;
+			i -= 8;
 		}
 	while (i > 0) {
 		putchar(' ');
@@ -275,13 +275,13 @@ ppnumb(s)
 ppgoin(lv)
 {
 
-	pplev[lv] =+ unit;
+	pplev[lv] += unit;
 }
 
 ppgoout(lv)
 {
 
-	pplev[lv] =- unit;
+	pplev[lv] -= unit;
 	if (pplev[lv] < 0)
 		panic("pplev");
 }
@@ -340,8 +340,8 @@ putchar(c)
 			flush();
 			break;
 		case '\t':
-			outcol =+ 8;
-			outcol =& ~07;
+			outcol += 8;
+			outcol &= ~07;
 			break;
 		case '\b':
 			if (outcol)
@@ -373,7 +373,7 @@ pptab()
 /*
 	if (outcol > i + 8) {
 		ppnl();
-		i =+ 8;
+		i += 8;
 	}
 */
 	do

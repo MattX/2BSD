@@ -1,7 +1,19 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)sysexits.c	5.2 (Berkeley) 6/7/85";
+#endif
+
 # include <sysexits.h>
 # include "useful.h"
-
-SCCSID(@(#)sysexits.c	4.2		7/31/83);
 
 /*
 **  SYSEXITS.C -- error messages corresponding to sysexits.h
@@ -26,3 +38,31 @@ char	*SysExMsg[] =
 };
 
 int	N_SysEx = sizeof SysExMsg / sizeof SysExMsg[0];
+/*
+**  STATSTRING -- return string corresponding to an error status
+**
+**	Parameters:
+**		stat -- the status to decode.
+**
+**	Returns:
+**		The string corresponding to that status
+**
+**	Side Effects:
+**		none.
+*/
+
+char *
+statstring(stat)
+	int stat;
+{
+	static char ebuf[100];
+
+	stat -= EX__BASE;
+	if (stat < 0 || stat >= N_SysEx)
+	{
+		(void) sprintf(ebuf, "554 Unknown status %d", stat + EX__BASE);
+		return (ebuf);
+	}
+
+	return (SysExMsg[stat]);
+}

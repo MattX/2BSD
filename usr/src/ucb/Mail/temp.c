@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)temp.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 #include "rcv.h"
 
@@ -7,8 +15,6 @@
  *
  * Give names to all the temporary files that we will need.
  */
-
-static char *SccsId = "@(#)temp.c	2.2 6/24/82";
 
 char	tempMail[14];
 char	tempQuit[14];

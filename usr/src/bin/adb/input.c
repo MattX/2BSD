@@ -11,7 +11,7 @@ INT		mkfault;
 CHAR		line[LINSIZ];
 INT		infile;
 CHAR		*lp;
-CHAR		lastc EOR;
+CHAR		lastc = EOR;
 INT		eof;
 
 /* input routines */

@@ -7,13 +7,19 @@
 .\"*		Eric Allman						*
 .\"*		Electronics Research Laboratory				*
 .\"*		U.C. Berkeley.						*
+.\"*	current address:						*
+.\"*		Britton-Lee, Inc.					*
+.\"*		1919 Addison Street Suite 105				*
+.\"*		Berkeley, California  94704				*
 .\"*									*
-.\"*	VERSION 1.1	First Release: 11 Sept 1978			*
+.\"*	VERSION 2.28	First Release: 11 Sept 1978			*
 .\"*	See file \*(||/revisions for revision history			*
 .\"*									*
 .\"*	Documentation is available.					*
 .\"*									*
 .\"**********************************************************************
+.\"
+.\"	@(#)tmac.e	2.28	5/12/86
 .\" This version has had comments stripped; an unstripped version is available.
 .if !\n(.V .tm You are using the wrong version of NROFF/TROFF!!
 .if !\n(.V .tm This macro package works only on the version seven
@@ -27,7 +33,7 @@
 .nr _F \\n(.f
 .nr _I \\n(.i
 .ev \\$1
-.ps \\n(_Su
+.ps \\n(_S
 .vs \\n(_Vu
 .ft \\n(_F
 'in \\n(_Iu
@@ -64,8 +70,8 @@
 .if \\n(?a \
 .	bp
 .rm bp
-.rm @b
-.if t .if !s \
+.rm @b\"
+.if t \
 .	wh -1p @m
 .br
 ..
@@ -133,7 +139,6 @@
 .\}
 ..
 .de @h
-.if \n@>0 .tm >> @h %=\\n% ?a=\\n(?a ?b=\\n(?b
 .if (\\n(.i+\\n(.o)>=\\n(.l \
 .	tm Line \\n(c. -- Offset + indent exceeds line length
 .if t .if (\\n(.l+\\n(.o)>7.75i \
@@ -147,13 +152,13 @@
 .rn |6 |2
 .rn |7 |3
 .nr _w 0
+.nr ?W 0
 .nr ?I 1
 .ev 2
 .rs
-.if t .if !s .@m
+.if t .@m
 .if \\n(hm>0 \
 .	sp |\\n(hmu
-.if \\n($T=2 \\!.
 .@t $h
 .if \\n(tm<=0 \
 .	nr tm \n(.Vu
@@ -162,7 +167,6 @@
 .mk _k
 .if \\n(?n .nm 1
 .nr $c 1
-.if \n@>4 .tm -- @h >> .ns nl=\\n(nl %=\\n% _k=\\n(_k tm=\\n(tm
 .ie \\n(?s \
 \{\
 .	rr ?s
@@ -171,20 +175,21 @@
 .\}
 .el \
 .	@n
-.if \n@>1 .tm << @h
 ..
-.de @m
-.@O 0
-.lt 7.5i
-.tl '\(rn''\(rn'
-.@O
-.lt
+.if \nv=2 \
+\{\
+.	de @m
+.	@O 0
+.	lt 7.5i
+.	tl '\(rn''\(rn'
+.	@O
+.	lt
 ..
+.\}
 .de @n
-.if \n@>3 .tm >> @n nl=\\n(nl %=\\n% ?f=\\n(?f ?o=\\n(?o
 .if \\n(bm<=0 \
 .	nr bm \\n(.Vu
-.if \\n(_w<=\\n($l \
+.if (\\n(_w<=\\n($l)&(\\n(?W=0) \
 \{\
 .	nr _b (\\n(ppu*\\n($ru)/2u
 .	if \\n(_bu>((\\n(bmu-\\n(fmu-(\\n(tpu*\\n($ru))/2u) \
@@ -194,10 +199,11 @@
 .nr _B \\n(_bu
 .ch @f
 .wh -\\n(_bu @f
+.nr _b +(\\n(ppu*\\n($ru)
 .nr ?f 0
 .if \\n(?o \
 \{\
-.	(f
+.	(f _
 .	nf
 .	|o
 .	fi
@@ -215,17 +221,19 @@
 .	mk #T
 .	ns
 .\}
-.if \\n(?a \
+.if (\\n(?a)&((\\n($c<2):(\\n(?w=0)) \
 \{\
 .	nr ?a 0
 .	@k |t
+.	if \\n(?w \
+.		mk _k
+.	nr ?w 0
 .\}
 .os
 .$H
 .ns
 ..
 .de @f
-.if \n@>0 .tm >> @f %=\\n% nl=\\n(nl ?a=\\n(?a ?b=\\n(?b
 .ec
 .if \\n(?T \
 \{\
@@ -238,7 +246,7 @@
 .if \\n(?b \
 \{\
 .	nr ?b 0
-.	@k |b
+.	@k |b\"
 .\}
 .if \\n(?f \
 .	@o
@@ -247,7 +255,6 @@
 .el \
 .	@e
 .ev
-.if \n@>2 .tm << @f
 ..
 .de @o
 .nf
@@ -257,6 +264,7 @@
 .|f
 .fi
 .if \\n(?o \
+\{\
 .	di
 .	if \\n(dn=0 \
 \{\
@@ -270,7 +278,6 @@
 .ch @r
 ..
 .de @c
-.if \n@>2 .tm	>> @c %=\\n%
 .rs
 .sp |\\n(_ku
 .@O +\\n($lu+\\n($su
@@ -278,7 +285,6 @@
 .@n
 ..
 .de @e
-.if \n@>2 .tm	>> @e
 .@O \\n(_ou
 .rs
 .sp |\\n(.pu-\\n(fmu-(\\n(tpu*\\n($ru)
@@ -325,7 +331,6 @@
 .rm |z
 ..
 .de @r
-.if \n@>3 .tm		>> @r .z=\\n(.z ?f=\\n(?f ?a=\\n(?a ?b=\\n(?b _b=\\n(_b
 .di |o
 .nr ?o 1
 .nr _D \\n(dn
@@ -448,16 +453,34 @@
 .if \\n(.$>1 \
 .	nr _0 \\$2n
 .@p \\n(_0u
-.if \\w'\\$1' \
+.if \\w"\\$1" \
 \{\
 .	ti -\\n(_0u
-\&\\$1\h'|\\n(_0u'\c
+.	ie \\w"\\$1">=\\n(_0 \
+\{\
+\&\\$1
+.		br
+.	\}
+.	el \&\\$1\h'|\\n(_0u'\c
 .\}
 .rr _0
 ..
 .de np
+.if \\n($p<0 \
+.	nr $p 0
 .nr $p +1
-.ip (\\n($p)
+.@p \w'\0(000)\0'u
+.ti -\w'\0(000)\0'u
+\0(\\n($p)\h'|\w'\0(000)\0'u'\c
+..
+.de bu
+.br
+.if \\n($p<0 \
+.	ns
+.nr $p 0-1
+.@p \w'\0\(bu\0'u
+.ti -\w'\0\(bu\0'u
+\0\(bu\0\c
 ..
 .de @p
 .@I
@@ -468,7 +491,7 @@
 .ce 0
 .fi
 .@F \\n(pf
-.sz \\n(ppu
+.sz \\n(pp
 .sp \\n(psu
 .ne \\n(.Lv+\\n(.Vu
 .ns
@@ -492,16 +515,16 @@
 .	el \
 .		ti +\\n(sou
 .	@F \\n(sf
-.	sz \\n(spu
+.	sz \\n(sp
 .	if \\$3>0 \
 .		$\\$3
 .	if \w"\\$2">0 \\$2.
-.	if \w"\\$1">0 \\$1\f1\ \  \"
+.	if \w"\\$1">0 \\$1\f1\ \ \&
 .\}
 .el \
 .	sp \\n(psu
 .@F \\n(pf
-.sz \\n(ppu
+.sz \\n(pp
 ..
 .de uh
 .rn uh @T
@@ -536,10 +559,10 @@
 .sp 24i
 ..
 .de (z
-.rn (z @T
+.rn (z @V
 .so \\*(||/float.me
 .(z \\$1 \\$2
-.rm @T
+.rm @V
 ..
 .de )z
 .tm Line \\n(c. -- unmatched .)z
@@ -610,12 +633,11 @@
 ..
 .de )c
 .if !"\\n(.z"|c" .tm Line \\n(c. -- Unmatched .)c
+.br
 .di
-.if \n@>4 .tm >> .)c .l=\\n(.l .i=\\n(.i $i=\\n($i dl=\\n(dl
 .ev 1
 .ls 1
 .in (\\n(.lu-\\n(.iu-\\n(dlu)/2u
-.if \n@>4 .tm -- .)c << .in .l=\\n(.l .i=\\n(.i dl=\\n(dl
 .nf
 .|c
 .ec
@@ -658,10 +680,75 @@
 .rm @T
 ..
 .de TS
-.rn TS @T
+.rn TS @W
 .so \\*(||/tbl.me
 .TS \\$1 \\$2
-.rm @T
+.rm @W
+..
+.de ]-
+.rn ]- @]
+.so \\*(||/refer.me
+.]-
+.rm @]
+..
+.de ]<
+.rn ]< @]
+.so \\*(||/refer.me
+.]<
+.rm @]
+..
+.if n .ds [. " [
+.if t .ds [. \s-2\v'-.4m'\f1
+.if n .ds .] ]
+.if t .ds .] \v'.4m'\s+2\fP
+.if n .ds <. "
+.if t .ds <. .
+.if n .ds >. .
+.if t .ds >. "
+.de IS
+.nr g7 \\n(.u
+.ls 1
+..
+.de IF
+.if \\n(g7 .fi
+.ls
+..
+.de IE
+.if \\n(g7 .fi
+.ls
+..
+.de PS
+.if t \
+.	sp 0.3
+.in (\\n(.lu-\\$2u)/2u
+.ne \\$1u
+.nr g7 \\n(.u
+.ls 1
+..
+.de PE
+.ls
+.in
+.if \\n(g7 .fi
+.if t .sp .6
+..
+.de GS
+.nr g7 (\\n(.lu-\\n(g1u)/2u
+.if "\\$1"L" .nr g7 \\n(.iu
+.if "\\$1"R" .nr g7 \\n(.lu-\\n(g1u
+.in \\n(g7u
+.nr g7 \\n(.u
+.ls 1
+.nf
+.ne \\n(g2u
+..
+.de GE
+.GF
+.if t .sp .6
+..
+.de GF
+.ls
+.in
+.if \\n(g7 .fi
 ..
 .de sz
 .ps \\$1
@@ -685,13 +772,8 @@
 .de b
 .nr _F \\n(.f
 .ul 0
-.ie t \
-.	ft 3
-.el \
-.	ul 10000
+.ft \\n($b
 .if \\n(.$ \&\\$1\f\\n(_F\\$2
-.if \\n(.$ \
-.	ul 0
 .rr _F
 ..
 .de rb
@@ -709,33 +791,32 @@
 ..
 .de bi
 .ft 2
-.ie t \&\k~\\$1\h'|\\n~u+(\\n(.su/3u)'\\$1\fP\\$2
+.ie t \&\k~\\$1\h'|\\n~u+(\\w' 'u/4u)'\\$1\fP\\$2
 .el \&\\$1\fP\\$2
 ..
 .de bx
 .ie \\n($T \&\f2\\$1\fP\\$2
 .el \k~\(br\|\\$1\|\(br\l'|\\n~u\(rn'\l'|\\n~u\(ul'\^\\$2
 ..
+.de sm
+\s-1\\$1\\s0\\$2
+..
 .de @F
 .nr ~ \\$1
 .if \\n~>0 \
 \{\
 .	ul 0
-.	ie \\n~>4 \
-\{\
-.		if n .ul 10000
-.		if t .ft 3
-.	\}
-.	el \
-.		ft \\n~
+.	if \\n~>4 \
+.		nr ~ \\n($b
+.	ft \\n~
 .\}
 .rr ~
 ..
 .de (f
-.rn (f @T
+.rn (f @U
 .so \\*(||/footnote.me
 .(f \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )f
 .tm Line \\n(c. -- unmatched .)f
@@ -746,19 +827,19 @@
 .	sp 0.3
 ..
 .de (d
-.rn (d @T
+.rn (d @U
 .so \\*(||/deltext.me
 .(d \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )d
 .tm Line \\n(c. -- unmatched .)d
 ..
 .de (x
-.rn (x @T
+.rn (x @U
 .so \\*(||/index.me
 .(x \\$1 \\$2
-.rm @T
+.rm @U
 ..
 .de )x
 .tm Line \\n(c. -- unmatched .)x
@@ -876,6 +957,9 @@
 .so \\*(||/local.me
 .rm lo
 ..
+.de lh
+.so \\*(||/letterhead.me
+..
 .if \n(mo=1 .ds mo January
 .if \n(mo=2 .ds mo February
 .if \n(mo=3 .ds mo March
@@ -908,7 +992,7 @@
 .nr tf 3
 .nr tp 10
 .hy 14
-.nr bi 4n
+.nr bi 4m
 .nr pi 5n
 .nr pf 1
 .nr pp 10
@@ -918,31 +1002,35 @@
 .nr $m 1
 .nr $s 4n
 .ds || /usr/lib/me
-.if \n@>0 .ds || .
 .bd S B 3
-.ds [ \u
+.ds [ \u\x'-0.25v'
 .ds ] \d
-.ds < \d
+.ds < \d\x'0.25v'
 .ds > \u
 .ds - --
 .if t \
 \{\
-.	ds [ \v'-0.4m'\s-3
+.	ds [ \v'-0.4m'\x'-0.2m'\s-3
 .	ds ] \s0\v'0.4m'
-.	ds < \v'0.4m'\s-3
+.	ds < \v'0.4m'\x'0.2m'\s-3
 .	ds > \s0\v'-0.4m'
-.	ds - \-
+.	ds - \(em
+.	nr fi 0.3i
+.\}
+.if n \
+\{\
+.	nr fi 3n
 .\}
 .nr _o \n(.o
 .if n .po 1i
 .if \n(.V=1v \
 .	nr $T 2
-.if \n(.T=0 \
+.if n .if \n(.T=0 \
 .	nr $T 1
-.if t \
+.if \nv=2 \
 \{\
 .	nr $T 0
-.	if !s .po -0.5i
+.	po -0.5i
 .\}
 .if \n($T \
 \{\
@@ -952,6 +1040,13 @@
 .	ds ] ]
 .	ds < <
 .	ds > >
+.\}
+.nr $b \nb
+.rr b
+.if \n($b=0 \
+\{\
+.	if n .nr $b 2
+.	if t .nr $b 3
 .\}
 .nr ps 0.5v
 .if \n($T \

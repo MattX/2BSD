@@ -1,4 +1,10 @@
-/* sh.dir.h 4.1 10/9/80 */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)sh.dir.h	5.2 (Berkeley) 6/6/85
+ */
 
 /*
  * Structure for entries in directory stack.

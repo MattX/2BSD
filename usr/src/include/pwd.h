@@ -1,3 +1,5 @@
+/*	pwd.h	4.1	83/05/03	*/
+
 struct	passwd { /* see getpwent(3) */
 	char	*pw_name;
 	char	*pw_passwd;
@@ -9,3 +11,5 @@ struct	passwd { /* see getpwent(3) */
 	char	*pw_dir;
 	char	*pw_shell;
 };
+
+struct passwd *getpwent(), *getpwuid(), *getpwnam();

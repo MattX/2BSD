@@ -1,5 +1,11 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)events.c	4.2	(Berkeley)	5/27/83";
+static char sccsid[] = "@(#)events.c	5.1 (Berkeley) 5/30/85";
 #endif not lint
 
 # include	"trek.h"
@@ -353,7 +359,7 @@ int	warp;		/* set if called in a time warp */
 			i = (int) Etc.snapshot;
 			i = bmove(Quad, i, sizeof (Quad));
 			i = bmove(Event, i, sizeof (Event));
-			i = bmove(Now, i, sizeof (Now));
+			i = bmove(&Now, i, sizeof (Now));
 			Game.snap = 1;
 			break;
 

@@ -1,6 +1,13 @@
+
 /*
  * Disk usage by user
  */
+#include <stdio.h>
+#include <ctype.h>
+#include <pwd.h>
+#include <sys/param.h>
+#include <sys/inode.h>
+#include <sys/fs.h>
 
 char	*dargv[] = {
 #ifndef MENLO
@@ -11,18 +18,10 @@ char	*dargv[] = {
 	0
 };
 
-#include <stdio.h>
-#include <ctype.h>
-#include <pwd.h>
-#include <sys/param.h>
-#include <sys/ino.h>
-#include <sys/inode.h>
-#include <sys/filsys.h>
-
 #define	ITABSZ	256
-#define	ISIZ	(BSIZE/sizeof(struct dinode))
+#define	ISIZ	(DEV_BSIZE/sizeof(struct dinode))
 #define	NUID	300
-struct	filsys	sblock;
+struct	fs	sblock;
 struct	dinode	itab[ITABSZ];
 struct du
 {
@@ -102,7 +101,7 @@ char *file;
 	printf("%s:\n", file);
 	sync();
 	bread(1, (char *)&sblock, sizeof sblock);
-	nfiles = (sblock.s_isize-2)*(BSIZE/sizeof(struct dinode));
+	nfiles = (sblock.fs_isize-2)*(DEV_BSIZE/sizeof(struct dinode));
 	ino = 0;
 	if (nflg) {
 		if (isdigit(c = getchar()))
@@ -131,7 +130,7 @@ register struct dinode *ip;
 	if (cflg) {
 		if ((ip->di_mode&IFMT)!=IFDIR && (ip->di_mode&IFMT)!=IFREG)
 			return;
-		n = (ip->di_size+BSIZE-1)/BSIZE;
+		n = (ip->di_size+DEV_BSIZE-1)/DEV_BSIZE;
 		if (n >= TSIZE) {
 			overflow += n;
 			n = TSIZE-1;
@@ -141,7 +140,7 @@ register struct dinode *ip;
 	}
 	if (ip->di_uid >= NUID)
 		return;
-	du[ip->di_uid].blocks += (ip->di_size+BSIZE-1)/BSIZE;
+	du[ip->di_uid].blocks += (ip->di_size+DEV_BSIZE-1)/DEV_BSIZE;
 	du[ip->di_uid].nfiles++;
 	if (nflg) {
 	tryagain:
@@ -157,9 +156,9 @@ register struct dinode *ip;
 			goto tryagain;
 		}
 		if (np = du[ip->di_uid].name)
-			printf("%.7s	", np);
+			printf("%.7s\t", np);
 		else
-			printf("%d	", ip->di_uid);
+			printf("%d\t", ip->di_uid);
 		while ((n = getchar())==' ' || n=='\t')
 			;
 		putchar(n);
@@ -176,7 +175,7 @@ unsigned bno;
 char *buf;
 {
 
-	lseek(fi, (long)bno*BSIZE, 0);
+	lseek(fi, (long)bno*DEV_BSIZE, 0);
 	if (read(fi, buf, cnt) != cnt) {
 		printf("read error %u\n", bno);
 		exit(1);
@@ -204,9 +203,9 @@ report()
 		for (i=0; i<TSIZE-1; i++)
 			if (sizes[i]) {
 				t += i*sizes[i];
-				printf("%d	%d	%D\n", i, sizes[i], t);
+				printf("%d\t%d\t%ld\n", i, sizes[i], t);
 			}
-		printf("%d	%d	%D\n", TSIZE-1, sizes[TSIZE-1], overflow+t);
+		printf("%d\t%d\t%ld\n", TSIZE-1, sizes[TSIZE-1], overflow+t);
 		return;
 	}
 	qsort(du, NUID, sizeof(du[0]), qcmp);

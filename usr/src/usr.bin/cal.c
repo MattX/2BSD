@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)cal.c	4.3 (Berkeley) 83/08/11";
+#endif
+
 char	dayw[] = {
 	" S  M Tu  W Th  F  S"
 };

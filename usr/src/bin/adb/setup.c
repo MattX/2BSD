@@ -1,4 +1,3 @@
-#
 /*
  *
  *      UNIX debugger
@@ -9,7 +8,6 @@
 
 
 MSG             BADNAM;
-MSG             DIFMAG;
 MSG             BADFIL;
 
 MAP             txtmap;
@@ -36,11 +34,11 @@ L_INT           var[];
 long tell();
 INT             argcount;
 INT             signo;
-POS             corhdr[ctob(USIZE)];
+POS             corhdr[ctob(USIZE)/sizeof(POS)];
 POS             *uar0 = UAR0;
 
-STRING          symfil  "a.out";
-STRING          corfil  "core";
+STRING          symfil  = "a.out";
+STRING          corfil  = "core";
 
 OVLVEC          ovlseg;
 L_INT           ovlsiz;
@@ -59,6 +57,7 @@ setsym()
 	SYMSLAVE        *symptr;
 	SYMPTR          symp;
 	TXTHDR          txthdr;
+	CHAR		*sbrk();
 
 	fsym=getfile(symfil,1);
 	txtmap.ufd=fsym;
@@ -136,14 +135,14 @@ setsym()
 					symbas = 0;
 		}
 		datbas = txtmap.b2;
-		IF relflg!=1 THEN symbas =<< 1; FI
+		IF relflg!=1 THEN symbas <<= 1; FI
 		symbas += TXTHDRSIZ;
 
 		/* set up symvec */
-		symvec=sbrk(shorten((1+symnum))*sizeof (SYMSLAVE));
+		symvec=(SYMSLAVE *)sbrk(shorten((1+symnum))*sizeof (SYMSLAVE));
 		IF (symptr=symvec)==-1
 		THEN    printf("%s\n",BADNAM);
-			symptr=symvec=sbrk(sizeof (SYMSLAVE));
+			symptr=symvec=(SYMSLAVE *)sbrk(sizeof (SYMSLAVE));
 		ELSE if (symnum != 0) {
 			symset();
 			WHILE (symp=symget()) ANDF errflg==0
@@ -166,9 +165,9 @@ setcor()
 	datmap.ufd=fcor;
 	IF read(fcor, corhdr, sizeof corhdr)==sizeof corhdr
 	THEN    IF !kernel
-		THEN    txtsiz = corhdr->u_tsize << 6;
-			datsiz = corhdr->u_dsize << 6;
-			stksiz = corhdr->u_ssize << 6;
+		THEN    txtsiz = ((U*)corhdr)->u_tsize << 6;
+			datsiz = ((U*)corhdr)->u_dsize << 6;
+			stksiz = ((U*)corhdr)->u_ssize << 6;
 			datmap.f1 = ctob(USIZE);
 			datmap.b2 = maxstor-stksiz;
 			datmap.e2 = maxstor;
@@ -233,21 +232,24 @@ setcor()
 				datmap.f2 = 0;
 		}
 		datbas = datmap.b1;
-		if (!kernel) {
-		    if (magic ANDF magic!=corhdr[0].u_exdata.ux_mag)
-			printf("%s\n",DIFMAG);
-		    else if (magic) {
-			  register POS *ar0;
-			  ar0 = (POS *)(((U *)corhdr)->u_ar0);
-			  if ((ar0>(POS *)0140000) & (ar0<(POS *)0142000)
-			      && !(ar0&01))
-				uar0 = ar0 - 0140000 + (unsigned)corhdr;
-			  if (overlay) {
+		if (!kernel && magic) {
+			/*
+			 * Note that we can no longer compare the magic
+			 * number of the core against that of the object
+			 * since the user structure no longer contains
+			 * the exec header ...
+			 */
+			register POS *ar0;
+			ar0 = (POS *)(((U *)corhdr)->u_ar0);
+			if (ar0 > (POS *)0140000
+			    && ar0 < (POS *)(0140000 + ctob(USIZE))
+			    && !((unsigned)ar0&01))
+				uar0 = (POS *)&corhdr[ar0-(POS *)0140000];
+			if (overlay) {
 				startov = ((U *)corhdr)->u_ovdata.uo_curov;
 				var[VARC] = (long)startov;
 				setovmap(startov);
 			}
-		    }
 			/* else dig out __ovno if overlaid? */
 		}
 	ELSE    datmap.e1 = maxfile;

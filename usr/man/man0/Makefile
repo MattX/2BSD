@@ -1,25 +1,47 @@
-FMTR=	vtroff
+#
+# Copyright (c) 1986 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	6.2 (Berkeley) 5/15/86
+#
+TOCS=	toc1 toc2 toc3 toc3f toc4 toc5 toc6 toc7 toc8 \
+	tocx1 tocx2 tocx3 tocx3f tocx4 tocx5 tocx6 tocx7 tocx8
+MACROS=	-msU
+PRINTER=Pdp
+TROFF=	ditroff -${PRINTER}
 
-trman: cover introduction table-contents permindex
+all: title.urm.${PRINTER} preface.${PRINTER} intro.${PRINTER} \
+     toc.${PRINTER} ptx.${PRINTER} title.prm.${PRINTER}
+	lpr -${PRINTER} -n title.urm.${PRINTER}
+	lpr -${PRINTER} -n preface.${PRINTER}
+	lpr -${PRINTER} -n intro.${PRINTER}
+	lpr -${PRINTER} -n toc.${PRINTER}
+	lpr -${PRINTER} -n ptx.${PRINTER}
+	lpr -${PRINTER} -n title.prm.${PRINTER}
 
-cover:
-	${FMTR} title copyr
+title.urm.${PRINTER}: title.urm
+	${TROFF} -t title.urm >title.urm.${PRINTER}
 
-introduction:
-	${FMTR} -ms pref 
-	${FMTR} -ms intro
+preface.${PRINTER}: preface.ms
+	${TROFF} ${MACROS} -t preface.ms >preface.${PRINTER}
 
-table-contents:	toc1 toc2 toc3 toc4 toc5 toc6 toc7 toc8
-	${FMTR} -n11 contents
+intro.${PRINTER}: intro.ms
+	${TROFF} ${MACROS} -t intro.ms >intro.${PRINTER}
 
-permindex: ptxindex
-	${FMTR} -n21 ptx.in
+toc.${PRINTER}: toc.in ptxx
+	${TROFF} -t toc.in >toc.${PRINTER}
 
-ptxx: 	tocx1 tocx2 tocx3 tocx4 tocx5 tocx6 tocx7 tocx8
-	makeindex t
-	
-tocx1 tocx2 tocx3 tocx4 tocx5 tocx6 tocx7 tocx8: makeindex
-	makeindex all
+ptx.${PRINTER}: ptx.in ptxx
+	${TROFF} -t ptx.in >ptx.${PRINTER}
 
-toc1 toc2 toc3 toc4 toc5 toc6 toc7 toc8: makeindex
-	makeindex all
+title.prm.${PRINTER}: title.prm ptxx
+	${TROFF} -t title.prm >title.prm.${PRINTER}
+
+ptxx:
+	tocrc all
+	tocrc t
+
+clean:
+	rm -f title.urm.[PT]* preface.[PT]* intro.[PT]* toc.[PT]* ptx.[PT]* \
+	title.prm.[PT]* ${TOCS} ptxx *.spell errs Errs make.out

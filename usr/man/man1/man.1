@@ -1,8 +1,25 @@
-.TH MAN 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)man.1	6.5 (Berkeley) 5/9/86
+.\"
+.TH MAN 1 "May 9, 1986"
+.UC 4
 .SH NAME
 man \- find manual information by keywords; print out the manual
 .SH SYNOPSIS
+.br
+.B man
+[
+.B \-
+] [
+.B \-M
+.I path
+] [
+section
+]
+title ...
 .br
 .B man
 .B \-k
@@ -11,16 +28,6 @@ keyword ...
 .B man
 .B \-f
 file ...
-.br
-.B man
-[
-.B \-
-] [
-.B \-t
-] [
-section
-]
-title ...
 .SH DESCRIPTION
 .I Man
 is a program which gives information from the programmers manual.
@@ -34,11 +41,11 @@ When given the option
 and a set of keywords,
 .I man
 prints out a one line synopsis of each manual sections whose
-listing in the table of contents contains that keyword.
+listing in the table of contents contains one of those keywords.
 .PP
 When given the option
 .B \-f
-and a list of file names, \fIman\fP attempts to locate manual
+and a list of file names, \fIman\fR attempts to locate manual
 sections related to those files, printing out the table of contents
 lines for those sections.
 .PP
@@ -54,10 +61,12 @@ If a section specifier is given
 looks in the that section of the manual for the given
 .I titles.
 .I Section
-is an Arabic section number, e.g. 3,
-which may be followed by a single letter classifier, e.g. 1g
-indicating a graphics program in section 1.
-If
+is either
+an Arabic section number (3 for instance), or one of the words ``new,''
+``local,'' ``old,'' or ``public.''
+A section number may be followed by
+a single letter classifier (for instance, 1g,
+indicating a graphics program in section 1).  If
 .I section
 is omitted,
 .I man
@@ -65,31 +74,56 @@ searches all sections of the manual, giving preference to commands
 over subroutines in system libraries, and printing the first section
 it finds, if any.
 .PP
-If the standard output is a teletype, and if the flag
+If the standard output is a teletype, or if the flag
 .B \-
-is not given, then
+is given,
 .I man
-prints its output with
+pipes its output through
 .IR more (1)
-with the
+with the option
 .B \-s
-option to eliminate multiple blank lines,
-to create proper underlines for different terminals,
-to stop after each page on the screen.
+to crush out useless blank lines
+and to stop after each page on the screen.
 Hit a space to continue,
 a control-D to scroll 11 more lines when the output stops.
 .PP
-The
-.B \-t
-flag causes
+Normally
 .I man
-to arrange for the specified section to be
-.IR troff'ed .
+checks in a standard location for manual
+information (/usr/man).  This can be changed by supplying a search
+path (a la the shell) with the
+.B \-M
+flag.  The search path is a colon (`:') separated list
+of directories in which manual subdirectories may be found;
+e.g. ``/usr/local:/usr/man''.  
+.hw MANPATH
+If the environment variable `MANPATH' is set,
+its value is used for the default path.
+If a search path is supplied
+with the 
+.B \-k
+or
+.B \-f
+options, it must be specified first.
+.PP
+.I Man
+will look for the manual page in either of two forms, the nroff source or
+preformatted pages.
+If either version is available, the manual page will be displayed.
+If the preformatted version is available, and it has a more recent modify
+time than the nroff source,  it will be promptly displayed.
+Otherwise, the manual page will be formatted with nroff and displayed.
+If the user has permission, the formatted manual page will be deposited
+in the proper place, so that later invocations of man will not need to
+format the page again.
 .SH FILES
-.ta 2i
-/usr/man/man?	directories for raw manual pages
-.br
-/usr/man/cat?	directories for formatted manual pages
+.nf
+.ta \w'/usr/man/man?/*   'u
+/usr/man	standard manual area
+/usr/man/man?/*	directories containing source for manuals
+/usr/man/cat?/*	directories containing preformatted pages
+/usr/man/whatis	keyword database
+.fi
 .SH SEE\ ALSO
 apropos(1), more(1), whereis(1), catman(8)
 .SH BUGS

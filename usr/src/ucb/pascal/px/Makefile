@@ -1,72 +1,66 @@
+#
+# px makefile
+#
 
-BINDIR= /usr/bin
-AS=	as
-CFLAGS=	-O -DHZ=60.0
-FPTERP = ../utilities/fpnofetchi/fp.o
-STARTUP= ../utilities/assubs/pcrt0.o
+DESTDIR=
 
-ASMS=	00int.s 02rel.s 02relset.s 03bool.s 04as.s 05lv.s  \
+AS=	as -V -
+
+DEFS=		-DHZ=60.0
+CFLAGS=		-O -w
+LDFLAGS=	-X
+SEPFLAG=	-i
+
+SRCS=	00int.s 02rel.s 02relset.s 03bool.s 04as.s 05lv.s  \
 	06add.s 07sub.s 10mul.s 12div.s 13mod.s 14neg.s  \
 	16dvd.s 17ind.s 17rv.s 20con.s 21rang.s 24case.s 24pxp.s 25set.s  \
 	26for.s 27conv.s 30atof.s 30getname.s 30io.s 30iosubs.s 30read.s  \
-	30write.s 34fun.s E.s opcode.s wait.s
+	30write.s 34fun.s opcode.s
+
+OTHERS= Edata Emake.ed exit.c int.c palloc.c pcttot.c pdattim.c perror.c \
+	pwrite.c gather.c
+
 OBJS=	exit.o int.o palloc.o pcttot.o pdattim.o perror.o pwrite.o \
 	getc.o putc.o
 
-all: px.${PDP}
+ALL=	px gather
 
-install:
-	install -s -o bin -g bin -m 711 px ${DESTDIR}${BINDIR}/px
+all: ${ALL}
 
-px.70:	as.o ${OBJS}
-	ld ${LFLAG} -o px ${CRT} as.o ${OBJS} -lm -lc
+.c.o:
+	${CC} ${CFLAGS} ${DEFS} -c $*.c
 
-px.34: as.o ${OBJS}
-	ld ${LFLAG} -o px ${CRT} as.o ${OBJS} -lm -lc
+.s.o:
+	${AS} -o $*.o $*.s
 
-# This used to be loaded -n; to gain almost 8K of data space, omit -n.
-px.40: nofp_as.o ${OBJS} ${FPTERP}
-	ld -o px ${CRT} nofp_as.o ${OBJS} ${FPTERP} -lm -lc
+px: as.o ${OBJS}
+	ld ${SEPFLAG} ${LDFLAGS} -o px /lib/crt0.o as.o ${OBJS} -lm -lc
 
-getc.o: getc.s
-	as -o getc.o /usr/include/sys.s getc.s
+gather: gather.o
+	cc ${SEPFLAG} -o gather gather.o
 
-putc.o: putc.s
-	as -o putc.o /usr/include/sys.s putc.s
-
-as.o:	${ASMS}
-	rm -f 00head.s
-	echo 'FP = 1' > 00head.s
-	rm -f as.o
-	${AS} -o as.o /usr/include/sys.s 00head.s ${ASMS}
-
-nofp_as.o: ${ASMS}
-	rm -f 00head.s
-	echo 'FP = 0' > 00head.s
-	rm -f as.o
-	${AS} -o as.o /usr/include/sys.s 00head.s ${ASMS}
+as.o: E.s ${SRCS}
+	${AS} -o as.o E.s ${SRCS}
 
 int.c palloc.c pcttot.c perror.c: E.h
 
-E.s E.h: Edata
-	ed - Edata < Emake
+E.s E.h: Edata Emake.ed
+	ed - Edata < Emake.ed
 
-../utilities/assubs/pcrt0.o: ../utilities/assubs/pcrt0.s
-	cd ../utilities/assubs; make pcrt0.o
+install:
+	install -s px ${DESTDIR}/usr/ucb/px
+	install -s gather ${DESTDIR}/usr/lib/gather
 
-../utilities/fpterp/fp.o: ../utilities/fpterp/fp*.s
-	cd ../utilities/fpterp; make fp.o
+tags: FRC
 
-../utilities/fpnofetchi/fp.o: ../utilities/fpnofetchi/fp*.s
-	cd ../utilities/fpnofetchi; make fp.o
+FRC:
 
 clean:
-	rm -f a.out core E.h E.s 00head.s *.o
+	rm -f ${ALL} core E.h E.s *.o tags
 
 print:
-	@pr makefile README
 	@ls -ls | pr
-	@pr ../opcodes/picture
+	@pr README Makefile
 	@pr 0x.h int.c exit.c
 	@pr [0-9][0-9]*.s
 	@pr p*.c

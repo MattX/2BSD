@@ -1,6 +1,8 @@
 #include "0x.h"
 #include "opcode.h"
 #include "E.h"
+#include <sys/types.h>
+#include <sys/times.h>
 
 extern	int errno;
 
@@ -149,13 +151,13 @@ error(perrno)
 			sep = "\tCalled by ";
 			pputch('"');
 			ap = *mydp;
-			ap =+ 3;
+			ap += 3;
 			cp = *ap++;
 			i = 8;
 			do
 				pputch(*cp++);
 			while (--i && *cp != ' ');
-			cp =+ i;
+			cp += i;
 			puts("\"+");
 			pwrite(O_WRIT2, 2, lino-cp->pint, 0);
 			puts(" near line ");
@@ -196,14 +198,11 @@ stmts()
 
 stmttime()
 {
-	struct {
-		long utime, stime;
-		long cutime, cstime; 
-	} tbuf;
+	struct tms tbuf;
 	long l;
 
 	times(&tbuf);
-	l = tbuf.utime;
+	l = tbuf.tms_utime;
 	pwrite(O_WRIT82, (2 << 3) | 2, l / HZ + 0.005, 0, 2);
 	puts(" seconds cpu time\n");
 }

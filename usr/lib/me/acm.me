@@ -1,21 +1,36 @@
 .nr _0 \n(c.
+.\"	@(#)acm.me	2.1	8/18/80
 .\" This version has had comments stripped; an unstripped version is available.
 .de ac
-.nr hm 0
-.nr tm 0
-.rm $h
 .ll 8.9i
-.pl 15i
 .nr $s 0.5i
 .if !\\n($T \
 .	po 1.0i
-.nr bm 3i
-.nr fm 0.9i
-.de $f ..
-.ti 0
-\h'|0.5i'\\\\n%\h'|1.25i'\\$2\h'|3i'\\$1
-.br
+.ie "\\$2"*" \
+\{\
+.	nr hm 0.375i
+.	nr tm 1.125i
+.	pl 14.25i
+.	nr bm 1.5i
+.	de $h ..
+.	tl ''%''
 ...
+.	rm $f
+.\}
+.el \
+\{\
+.	nr hm 0
+.	nr tm 0
+.	pl 15i
+.	nr bm 3i
+.	nr fm 0.9i
+.	de $f ..
+.	ti 0
+\h'|0.5i'\\\\n%\h'|1.25i'\\$2\h'|3i'\\$1
+.	br
+...
+.	rm $h
+.\}
 .bp
 .rs
 .sp 0.75i

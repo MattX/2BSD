@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)word.c	4.3 8/11/83";
+static char sccsid[] = "@(#)word.c	4.6 10/31/85";
 #endif
 
 #
@@ -28,7 +28,8 @@ word()
 
 	WHILE (c=nextc(0), space(c)) DONE
 
-	IF c=='#'
+	IF c=='#' ANDF ((flags&prompt)==0 ORF ((flags&ttyflg) ANDF
+	    standin->fstak!=0))
 	THEN	WHILE (c=readc()) ANDF c!=NL DONE
 	FI
 
@@ -128,13 +129,9 @@ LOCAL	readb()
 	REG FILE	f=standin;
 	REG INT		len;
 
-#ifndef	pdp11
 	IF setjmp(INTbuf) == 0 THEN trapjmp[INTR] = 1; FI
-#endif	!pdp11
 	REP	IF trapnote&SIGSET THEN newline(); sigchk() FI
 	PER (len=read(f->fdes,f->fbuf,f->fsiz))<0 ANDF trapnote DONE
-#ifndef	pdp11
 	trapjmp[INTR] = 0;
-#endif	!pdp11
 	return(len);
 }

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tu.c	4.2 8/11/83";
+#endif
+
  /* tu.c: draws horizontal lines */
 # include "t..c"
 makeline(i,c,lintype)

@@ -1,7 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: uuxqt.c,v 1.28 85/05/28 18:31:11 rick Exp $";
-/* from: @(#)uuxqt.c	5.2 (Berkeley) 7/2/83 */
-#endif !lint
+static char sccsid[] = "@(#)uuxqt.c	5.8 (Berkeley) 1/24/86";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>
@@ -36,6 +35,8 @@ extern int Nfiles;
 int TransferSucceeded = 1;
 int notiok = 1;
 int nonzero = 0;
+
+struct timeb Now;
 
 char PATH[MAXFULLNAME] = "PATH=/bin:/usr/bin:/usr/ucb";
 char Shell[MAXFULLNAME];
@@ -178,9 +179,13 @@ doprocess:
 	DEBUG(4, "process %s\n", CNULL);
 	time(&xstart);
 	while (gtxfile(xfile) > 0) {
-		ultouch();
 		/* if /etc/nologin exists, exit cleanly */
+#if defined(BSD4_2) || defined(USG)
+		if (access(NOLOGIN) == 0) {
+#else !BSD4_2 && ! USG
+		ultouch();
 		if (nologinflag) {
+#endif !BSD4_2 && !USG
 			logent(NOLOGIN, "UUXQT SHUTDOWN");
 			if (Debug)
 				logent("debugging", "continuing anyway");
@@ -285,11 +290,6 @@ doprocess:
 		 */
 		if (cmdp > buf && cmdp[0] == '\0' && cmdp[-1] == ' ')
 			*--cmdp = '\0';
-		if (strpbrk(user, BADCHARS) != NULL) {
-			sprintf(lbuf, "%s INVALID CHARACTER IN USERNAME", user);
-			logent(cmd, lbuf);
-			strcpy(user, "postmaster");
-		}
 		if (argnok || badfiles) {
 			sprintf(lbuf, "%s XQT DENIED", user);
 			logent(cmd, lbuf);
@@ -624,25 +624,35 @@ char *user, *rmt, *cmd, *str;
 	char text[MAXFULLNAME];
 	char ruser[MAXFULLNAME];
 
+	if (strpbrk(user, BADCHARS) != NULL) {
+		char lbuf[MAXFULLNAME];
+		sprintf(lbuf, "%s INVALID CHARACTER IN USERNAME", user);
+		logent(cmd, lbuf);
+		strcpy(user, "postmaster");
+	}
 	sprintf(text, "uuxqt cmd (%s) status (%s)", cmd, str);
 	if (prefix(rmt, Myname))
 		strcpy(ruser, user);
 	else
 		sprintf(ruser, "%s!%s", rmt, user);
 	mailst(ruser, text, CNULL);
-	return;
 }
 
 /*
  *	return mail to sender
  *
  */
-
 retosndr(user, rmt, file)
 char *user, *rmt, *file;
 {
 	char ruser[MAXFULLNAME];
 
+	if (strpbrk(user, BADCHARS) != NULL) {
+		char lbuf[MAXFULLNAME];
+		sprintf(lbuf, "%s INVALID CHARACTER IN USERNAME", user);
+		logent(file, lbuf);
+		strcpy(user, "postmaster");
+	}
 	if (strcmp(rmt, Myname) == SAME)
 		strcpy(ruser, user);
 	else
@@ -682,7 +692,6 @@ char *cmd, *fi, *fo;
 		signal(SIGINT, SIG_IGN);
 		signal(SIGHUP, SIG_IGN);
 		signal(SIGQUIT, SIG_IGN);
-		signal(SIGKILL, SIG_IGN);
 		close(Ifn);
 		close(Ofn);
 		close(0);

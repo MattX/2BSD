@@ -79,7 +79,7 @@ getpmon(fp)
 	return;
 }
 
-STATIC	char nospcm[]	"Not enough memory for count buffers\n";
+STATIC	char nospcm[]	= "Not enough memory for count buffers\n";
 
 pmnospac()
 {
@@ -124,7 +124,7 @@ getcore(fp)
 	if (inf.type != 0 && inf.type != 1)
 		goto format;
 	if (inf.type)
-		inf.bp =- inf.off;
+		inf.bp -= inf.off;
 	if (lseek(zfil, (long)inf.bp + 02000, 0) < 0)
 		goto format;
 	if (read(zfil, &pxp, sizeof pxp) != sizeof pxp)
@@ -134,7 +134,7 @@ getcore(fp)
 		exit(1);
 	}
 	if (inf.type)
-		pxp.buf =- inf.off;
+		pxp.buf -= inf.off;
 	if (lseek(zfil, (long)pxp.buf + 02000, 0) < 0)
 		goto format;
 	if (pmread() < 0)
@@ -153,15 +153,14 @@ pmread()
 	struct {
 		int	no;
 		int	no2;
-		int	tvec[2];
+		time_t	tvec;
 	} zmagic;
 
 	if (read(zfil, &zmagic, sizeof zmagic) != sizeof zmagic)
 		return (-1);
 	if (zmagic.no != 0426 || zmagic.no2)
 		return (-1);
-	ptvec[0] = zmagic.tvec[0];
-	ptvec[1] = zmagic.tvec[1];
+	ptvec = zmagic.tvec;
 	if (read(zfil, &zcnt, 2) != 2)
 		return (-1);
 	if (read(zfil, &zpfcnt, 2) != 2)
@@ -174,7 +173,7 @@ pmread()
 		pmnospac();
 	if (read(zfil, zbuf, i) != i)
 		return (-1);
-	zbuf =- 2;
+	zbuf -= 2;
 	return (0);
 }
 
@@ -336,7 +335,7 @@ shudpcnt()
 	return (i == 0);
 }
 
-STATIC	char mism[]	"Program and counter data do not correspond\n";
+STATIC	char mism[]	= "Program and counter data do not correspond\n";
 
 cPANIC()
 {

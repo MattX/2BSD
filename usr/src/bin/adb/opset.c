@@ -1,4 +1,3 @@
-#
 /*
  *
  *      UNIX debugger
@@ -38,7 +37,7 @@ struct optab {
 	int     val;
 	int     itype;
 	char    *iname;
-} optab[] {
+} optab[] = {
 	0107777, 0010000, DOUBLE, "mov",
 	0107777, 0020000, DOUBLE, "cmp",
 	0107777, 0030000, DOUBLE, "bit",
@@ -72,6 +71,8 @@ struct optab {
 	0000077, 0106600, SINGLW, "mtpd",
 	0000077, 0006500, SINGLW, "mfpi",
 	0000077, 0106500, SINGLW, "mfpd",
+	0000077, 0106700, SINGLW, "mfps",
+	0000077, 0106400, SINGLW, "mtps",
 	0000777, 0070000, REVERS, "mul",
 	0000777, 0071000, REVERS, "div",
 	0000777, 0072000, REVERS, "ash",
@@ -130,113 +131,171 @@ struct optab {
 	0177777, 0000000, DFAULT, "<illegal op>",
 };
 
-#define SYSTAB struct systab
-SYSTAB {
-	int     argc;
-	char    *sname;
-} systab[] {
-	1, "indir",
-	0, "exit",
-	0, "fork",
-	2, "read",
-	2, "write",
-	2, "open",
-	0, "close",
-	0, "wait",
-	2, "creat",
-	2, "link",
-	1, "unlink",
-	2, "exec",
-	1, "chdir",
-	0, "time",
-	3, "mknod",
-	2, "chmod",
-	3, "chown",
-	1, "break",
-	2, "stat",
-	3, "seek",
-	0, "getpid",
-	3, "mount",
-	1, "umount",
-	0, "setuid",
-	0, "getuid",
-	0, "stime",
-	3, "ptrace",
-	0, "alarm",
-	1, "fstat",
-	0, "pause",
-	2, "utime",
-	1, "stty",
-	1, "gtty",
-	0, "access",
-	0, "nice",
-	1, "ftime",
-	0, "sync",
-	1, "kill",
-	0, "38",
-	1, "setpgrp",
-	0, "40",
-	0, "dup",
-	0, "pipe",
-	1, "times",
-	4, "profil",
-	0, "45",
-	0, "setgid",
-	0, "getgid",
-	2, "signal",
-	0, "rtp",
-	0, "50",
-	1, "acct",
-	3, "phys",
-	1, "lock",
-	3, "ioctl",
-	2, "reboot",
-	4, "mpxchan",
-	0, "vfork",
-	1, "local",
-	3, "exece",
-	1, "umask",
-	1, "chroot",
-	0, "62",
-	0, "63",
-}, sysloctab[] {
-	0, "nosys",
-	3, "login",
-	2, "lstat",
-	0, "submit",
-	0, "nostk",
-	2, "killbkg",
-	2, "killpg",
-	2, "renice",
-	0, "fetchi",
-	3, "ucall",
-	5, "quota",
-	1, "qfstat",
-	2, "qstat",
-	0, "setpgrp",
-	0, "gldav",
-	0, "fperr",
-	0, "vhangup",
-	0, "17",
-	4, "select",
-	2, "gethostname",
-	2, "sethostname",
-	4, "socket",
-	2, "connect",
-	2, "accept",
-	4, "send",
-	4, "receive",
-	2, "socketaddr",
-	0, "setreuid",
-	0, "setregid",
-	1, "symlink",
-	2, "readlink",
-	0, "gethostid",
-	2, "sethostid"
+char *systab[] = {
+	"old indir (illegal)",
+	"exit",
+	"fork",
+	"read",
+	"write",
+	"open",
+	"close",
+	"old wait",
+	"creat",
+	"link",
+	"unlink",
+	"execv",
+	"chdir",
+	"old time",
+	"mknod",
+	"chmod",
+	"chown",
+	"old sbreak",
+	"old stat",
+	"lseek",
+	"getpid",
+	"mount",
+	"umount",
+	"old setuid",
+	"getuid",
+	"old stime",
+	"ptrace",
+	"alarm",
+	"old fstat",
+	"pause",
+	"old utime",
+	"old stty",
+	"old gtty",
+	"access",
+	"old nice",
+	"old ftime",
+	"sync",
+	"kill",
+	"stat",
+	"old setpgrp",
+	"lstat",
+	"dup",
+	"pipe",
+	"times",
+	"profil",
+	"45 (unused)",
+	"old setgid",
+	"getgid",
+	"signal",
+	"49 (reserved for USG)",
+	"50 (reserved for USG)",
+	"acct",
+	"phys",
+	"lock",
+	"ioctl",
+	"reboot",
+	"old mpxchan",
+	"symlink",
+	"readlink",
+	"execve",
+	"umask",
+	"chroot",
+	"fstat",
+	"63 (reserved)",
+	"getpagesize",
+	"mremap",
+	"vfork",
+	"old vread",
+	"old vwrite",
+	"sbrk",
+	"sstk",
+	"mmap",
+	"old vadvise",
+	"munmap",
+	"mprotect",
+	"madvise",
+	"vhangup",
+	"old vlimit",
+	"mincore",
+	"getgroups",
+	"setgroups",
+	"getpgrp",
+	"setpgrp",
+	"setitimer",
+	"wait",
+	"swapon",
+	"getitimer",
+	"gethostname",
+	"sethostname",
+	"getdtablesize",
+	"dup2",
+	"getdopt",
+	"fcntl",
+	"select",
+	"setdopt",
+	"fsync",
+	"setpriority",
+	"socket",
+	"connect",
+	"accept",
+	"getpriority",
+	"send",
+	"recv",
+	"sigreturn",
+	"bind",
+	"setsockopt",
+	"listen",
+	"old vtimes",
+	"sigvec",
+	"sigblock",
+	"sigsetmask",
+	"sigpause",
+	"sigstack",
+	"recvmsg",
+	"sendmsg",
+	"vtrace",
+	"gettimeofday",
+	"getrusage",
+	"getsockopt",
+	"old (vax) resuba",
+	"readv",
+	"writev",
+	"settimeofday",
+	"fchown",
+	"fchmod",
+	"recvfrom",
+	"setreuid",
+	"setregid",
+	"rename",
+	"truncate",
+	"ftruncate",
+	"flock",
+	"132 (nosys)",
+	"sendto",
+	"shutdown",
+	"socketpair",
+	"mkdir",
+	"rmdir",
+	"utimes",
+	"139 (4.2 sigreturn)",
+	"adjtime",
+	"getpeername",
+	"gethostid",
+	"sethostid",
+	"getrlimit",
+	"setrlimit",
+	"killpg",
+	"147 (nosys)",
+	"quota",
+	"qquota",
+	"getsockname",
+	/*
+	 * BSD2.10 special calls
+	 */
+	"rtp",
+	"nostk",
+	"fetchi",
+	"ucall",
+	"fperr",
+	"gldav",
+	"login",
 };
-int nlocsys = sizeof(sysloctab) / sizeof(sysloctab[0]);
 
-STRING  regname[] { "r0", "r1", "r2", "r3", "r4", "r5", "sp", "pc"};
+STRING  regname[] = { "r0", "r1", "r2", "r3", "r4", "r5", "sp", "pc"};
 
 POS     type, space, incp;
 
@@ -289,51 +348,7 @@ REG INT         ins;
 		break;
 
 	    case SYS:
-		BEGIN
-		   INT          indir;
-		   REG INT      w;
-		   if (idsp == DSP && datmap.ufd == -1)
-			idsp = ISP;
-		   if (f != 2)
-		       printf("%8t%s", systab[ins &= 077].sname);
-		   else if ((ins & 0377) < nlocsys)
-		       printf("%8t%s", sysloctab[ins &= 0377].sname);
-		   else
-		       printf("%8t%d", ins &= 0377);
-		   IF ins==0 ANDF f==0 ANDF idsp!=NSP   /* indir */
-		   THEN w=dot; dot=chkget(inkdot(2),idsp);
-			prints(" {");
-			indir=get(dot,datmap.ufd == -1? ISP : DSP);
-			IF errflg
-			THEN errflg=0; printc('?');
-			ELSE printins(1,DSP,indir);
-			FI
-			printc('}');
-			dot=w; incp=4;
-		   ELIF ins==58 ANDF f==0 ANDF idsp!=NSP        /* local */
-		   THEN w=dot; dot=chkget(inkdot(2),idsp);
-			prints(" {");
-			indir=get(dot,datmap.ufd == -1? ISP : DSP);
-			IF errflg
-			THEN errflg=0; printc('?');
-			ELSE printins(2,DSP,indir);
-			FI
-			printc('}');
-			dot=w; incp=4;
-		   ELSE if (f==2) {
-			    if (ins < nlocsys)
-				w = sysloctab[ins].argc;
-			    else
-				w = 0;
-			} else
-			    w = systab[ins].argc;
-			WHILE w-- ANDF idsp!=NSP
-			DO prints("; ");
-			   psymoff(leng(get(inkdot(incp),idsp)), NSYM, "");
-			   incp += 2;
-			OD
-		   FI
-		END
+		printf("%8t%s", systab[ins]);
 		break;
 
 	    case TRAP:
@@ -387,7 +402,7 @@ REG INT         a;
 	     incp += 2;
 	     return;
 	FI
-	r = regname[r];
+	r = (INT)regname[r];
 	switch (a) {
 	    /* r */
 	    case 000:

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)tc.c	4.2 (Berkeley) 7/6/81";
 /*
  * Simulate typesetter on 4014
 */
@@ -5,7 +6,7 @@
 #include <signal.h>
 #include <stdio.h>
 
-#define	oput(c) if (pgskip==0) putchar(c); else;
+#define	oput(c) if (pgskip==0) putchar(c); else (c);
 #define MAXY 3071
 #define US 037
 #define GS 035
@@ -411,7 +412,7 @@ getch(){
 	return(*ap++);
 }
 
-char *asctab[128] {
+char *asctab[128] = {
 "\0",	/*blank*/
 "h",	/*h*/
 "t",	/*t*/

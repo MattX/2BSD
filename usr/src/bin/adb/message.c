@@ -39,5 +39,4 @@ MSG		BADFIL	=  "bad file format";
 MSG		BADNAM	=  "not enough space for symbols";
 MSG		LONGFIL	=  "filename too long";
 MSG		NOTOPEN	=  "cannot open";
-MSG		DIFMAG	=  "different core magic number";
-
+MSG		TOODEEP =  "$<< nesting too deep";

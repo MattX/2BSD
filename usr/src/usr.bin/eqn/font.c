@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)font.c	4.3 8/11/83";
+#endif
+
 # include "e.h"
 
 setfont(ch1) char ch1; {
@@ -12,7 +16,11 @@ setfont(ch1) char ch1; {
 	else
 		ft = ch1;
 	printf(".ft %c\n", ft);
+#ifndef NEQN
 	if(dbg)printf(".\tsetfont %c %c\n", ch1, ft);
+#else NEQN
+	if(dbg)printf(".\tsetfont %c\n", ft);
+#endif NEQN
 }
 
 font(p1, p2) int p1, p2; {

@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.do_name.c - version 1.0.2 */
+/* hack.do_name.c - version 1.0.3 */
 
 #include "hack.h"
 #include <stdio.h>
@@ -28,7 +28,7 @@ coord cc;
 			pline("Use [hjkl] to move the cursor to %s.", goal);
 			pline("Type a . when you are at the right place.");
 		} else {
-			pline("unknown direction: '%s' (%s)",
+			pline("Unknown direction: '%s' (%s).",
 				visctrl(c),
 				force ? "use hjkl or ." : "aborted");
 			if(force) goto nxtc;
@@ -74,7 +74,8 @@ extern char *lmonnam();
 	pline("What do you want to call %s? ", lmonnam(mtmp));
 	getlin(buf);
 	clrlin();
-	if(!*buf) return(1);
+	if(!*buf || *buf == '\033')
+		return(1);
 	lth = strlen(buf)+1;
 	if(lth > 63){
 		buf[62] = 0;
@@ -102,7 +103,8 @@ char buf[BUFSZ];
 	pline("What do you want to name %s? ", doname(obj));
 	getlin(buf);
 	clrlin();
-	if(!*buf) return;
+	if(!*buf || *buf == '\033')
+		return;
 	lth = strlen(buf)+1;
 	if(lth > 63){
 		buf[62] = 0;
@@ -135,11 +137,15 @@ ddocall()
 {
 	register struct obj *obj;
 
-	pline("Do you want to name an individual object? [yn] ");
-	if(readchar() == 'y'){
+	pline("Do you want to name an individual object? [ny] ");
+	switch(readchar()) {
+	case '\033':
+		break;
+	case 'y':
 		obj = getobj("#", "name");
 		if(obj) do_oname(obj);
-	} else {
+		break;
+	default:
 		obj = getobj("?!=/", "call");
 		if(obj) docall(obj);
 	}
@@ -157,11 +163,13 @@ register struct obj *obj;
 
 	otemp = *obj;
 	otemp.quan = 1;
+	otemp.onamelth = 0;
 	str = xname(&otemp);
 	pline("Call %s %s: ", index(vowels,*str) ? "an" : "a", str);
 	getlin(buf);
 	clrlin();
-	if(!*buf) return;
+	if(!*buf || *buf == '\033')
+		return;
 	str = newstring(strlen(buf)+1);
 	(void) strcpy(str,buf);
 	str1 = &(objects[obj->otyp].oc_uname);
@@ -170,8 +178,9 @@ register struct obj *obj;
 }
 
 char *ghostnames[] = {		/* these names should have length < PL_NSIZ */
-	"adri", "andries", "david", "dirk", "emile", "fred", "hether", "jay",
-	"jon", "kenny", "maud", "michiel", "mike", "robert", "ron",
+	"adri", "andries", "andreas", "bert", "david", "dirk", "emile",
+	"frans", "fred", "greg", "hether", "jay", "john", "jon", "kay",
+	"kenny", "maud", "michiel", "mike", "peter", "robert", "ron",
 	"tom", "wilmar"
 };
 
@@ -237,7 +246,7 @@ register char *adj;
 	register char *bp = monnam(mtmp);
 	static char buf[BUFSZ];		/* %% */
 
-	if(!strncmp(bp, "the ", 4)) bp += 4;
+	if(!strncmp(bp, "the ", STRLEN("the "))) bp += STRLEN("the ");
 	(void) sprintf(buf, "the %s %s", adj, bp);
 	return(buf);
 }
@@ -256,8 +265,8 @@ register char *adj;
 char *
 Xmonnam(mtmp) register struct monst *mtmp; {
 register char *bp = Monnam(mtmp);
-	if(!strncmp(bp, "The ", 4)) {
-		bp += 2;
+	if(!strncmp(bp, "The ", STRLEN("The "))) {
+		bp += STRLEN("The ")-2;
 		*bp = 'A';
 	}
 	return(bp);

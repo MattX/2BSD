@@ -1,4 +1,6 @@
-/* $Header: tio.c,v 1.10 85/05/20 20:03:39 rick Exp $ */
+#ifndef lint
+static char sccsid[] = "@(#)tio.c	4.6 (Berkeley) 1/24/86";
+#endif
 
 #include <signal.h>
 #include "uucp.h"
@@ -107,11 +109,11 @@ FILE *fp1;
 #endif !USG
 	while ((len = read(fileno(fp1), bufr.t_data, TBUFSIZE)) > 0) {
 		bytes += len;
-#if defined(vax) || defined(pdp11)
+#if defined(vax) || defined(pdp11) || defined(ns32000)
 		bufr.t_nbytes = htonl((long)len);
-#else !vax and !pdp11
+#else !vax and !pdp11 and !ns32000
 		bufr.t_nbytes = len;
-#endif !vax and !pdp11
+#endif !vax and !pdp11 and !ns32000
 		DEBUG(8,"twrdata sending %d bytes\n",len);
 		len += sizeof(long);
 		alarm(MAXMSGTIME);
@@ -144,12 +146,11 @@ FILE *fp1;
 	}
 	sprintf(text, "sent data %ld bytes %ld.%02d secs",
 				bytes, (long)t2.time, mil/10);
-	sysacct(bytes, t2.time - t1.time);
+	sysacct(bytes, t2.time);
 	DEBUG(1, "%s\n", text);
 	syslog(text);
 	return SUCCESS;
 }
-
 
 trddata(fn, fp2)
 FILE *fp2;
@@ -176,9 +177,9 @@ FILE *fp2;
 		alarm(0);
 		if (len != sizeof Nbytes)
 			return FAIL;
-#if defined(vax) || defined(pdp11)
+#if defined(vax) || defined(pdp11) || defined(ns32000)
 		Nbytes = ntohl(Nbytes);
-#endif vax or pdp11
+#endif vax or pdp11 or ns32000
 		DEBUG(8,"trddata expecting %ld bytes\n",Nbytes);
 		nread = Nbytes;
 		if (nread == 0)
@@ -217,8 +218,10 @@ FILE *fp2;
 	return SUCCESS;
 }
 
+#if !defined(BSD4_2) && !defined(USG)
 #define	TC	1024
 static	int tc = TC;
+#endif !BSD4_2 && !USG
 
 trdblk(blk, len,  fn)
 register int len;
@@ -226,11 +229,13 @@ char *blk;
 {
 	register int i, ret;
 
+#if !defined(BSD4_2) && !defined(USG)
 	/* call ultouch occasionally */
 	if (--tc < 0) {
 		tc = TC;
 		ultouch();
 	}
+#endif !BSD4_2 && !USG
 	for (i = 0; i < len; i += ret) {
 		ret = read(fn, blk, len - i);
 		if (ret < 0)
@@ -246,12 +251,12 @@ char *blk;
 twrblk(blk, len, fn)
 register char *blk;
 {
-	register int ret;
+#if !defined(BSD4_2) && !defined(USG)
 	/* call ultouch occasionally */
 	if (--tc < 0) {
 		tc = TC;
 		ultouch();
 	}
-	ret = write(fn, blk, len);
-	return ret;
+#endif !BSD4_2 && !USG
+	return write(fn, blk, len);
 }

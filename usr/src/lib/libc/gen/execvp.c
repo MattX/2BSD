@@ -1,4 +1,7 @@
-/*	@(#)execvp.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)execvp.c	5.2 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
  *	execlp(name, arg,...,0)	(like execl, but does path search)
  *	execvp(name, argv)	(like execv, but does path search)
@@ -73,7 +76,7 @@ char *si;
 	register char *s;
 
 	s = si;
-	while (*s1 && *s1 != ':' && *s1 != '-')
+	while (*s1 && *s1 != ':')
 		*s++ = *s1++;
 	if (si != s)
 		*s++ = '/';

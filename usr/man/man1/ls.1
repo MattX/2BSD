@@ -1,23 +1,19 @@
-.TH LS 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)ls.1	6.4 (Berkeley) 5/12/86
+.\"
+.TH LS 1 "May 12, 1986"
 .UC
 .SH NAME
 ls \- list contents of directory
 .SH SYNOPSIS
 .B ls
 [
-.B \-abcdfgilmnqrstux1ACFR
+.B \-acdfgilqrstu1ACLFR
 ] name ...
 .br
-.B l
-[ \fIls\fP options ] name ...
-.ig
-.br
-.B lf
-[ \fIls\fP options ] name ...
-.br
-.B lx
-[ \fIls\fP options ] name ...
-..
 .SH DESCRIPTION
 For each directory argument,
 .I ls
@@ -25,110 +21,68 @@ lists the contents of the directory;
 for each file argument,
 .I ls
 repeats its name and any other information requested.
-The output is sorted alphabetically by default.
+By default, the output is sorted alphabetically.
 When no argument is given, the current directory is listed.
 When several arguments are given,
 the arguments are first sorted appropriately,
-but file arguments appear
+but file arguments are processed
 before directories and their contents.
 .PP
-There are three possible listing formats.
-The format chosen depends on whether the output is going
-to a teletype, and may also be controlled by option flags.
-The default format for a teletype is to list the contents of directories
-in multi-column format, with the entries sorted down the columns.
-(See also the
-.B \-F
-and
-.B \-x
-options below.)
-If the standard output is not a teletype, the default format is to
-list one entry per line.
-Finally, there is a stream output format in which files are listed
-across the page, separated by `,' characters.
-The
-.B \-m
-flag enables this format.
-.PP
-When invoked as
-.I l
-the default is
-.B \-m .
-.ig
-When invoked as
-.I lf
-the default is
-.B \-f .
-When invoked as
-.I lx
-the default is
-.B \-x.
-..
-.PP
-.B "Note:"
-Files which are not the contents of a directory being interpreted
-are always sorted across the page rather than down the page in columns.
-This is because the individual file names may be arbitrarily long.
-.PP
-There are several thousand options:
+There are a large number of options:
 .TP
-.B  \-\^l
+.B \-l
 List in long format, giving mode, number of links, owner,
 size in bytes, and time of last modification
 for each file.
 (See below.)
 If the file is a special file the size field will instead contain
 the major and minor device numbers.
-If the file is a quota node, the current usage, quota,
-and percentage of quota in use are printed.
+If the file is a symbolic link the pathname of
+the linked-to file is printed preceded by ``\->''.
 .TP
-.B  \-\^t
+.B \-g
+Include the group ownership of the file in a long output.
+.TP
+.B \-t
 Sort by time modified (latest first) instead of
-by name, as is normal.
+by name.
 .TP
-.B  \-\^a
-List all entries; usually filenames beginning with
-.RB ` . '
-are suppressed.
+.B \-a
+List all entries; in the absence of this option, entries whose
+names begin with a period
+.RB ( . )
+are
+.I not
+listed.
 .TP
-.B  \-\^A
-List
-.RB ` . '
-entries; but suppress
-.RB ` . '
-and
-.RB ` .. '.
+.B \-s
+Give size in kilobytes of each file.
 .TP
-.B  \-\^s
-Give size in blocks (1024 bytes),
-including indirect blocks, for each entry.
+.B \-d
+If argument is a directory, list only its name;
+often used with \fB\-l\fR to get the status of a directory.
 .TP
-.B  \-\^d
-If argument is a directory, list only its name, not
-its contents (mostly used with
-.B \-l
-to get status
-on directory).
+.B \-L
+If argument is a symbolic link, list the file or directory the link references
+rather than the link itself.
 .TP
-.B  \-\^r
+.B \-r
 Reverse the order of sort to get reverse alphabetic
 or oldest first as appropriate.
 .TP
-.B  \-\^u
+.B \-u
 Use time of last access instead of last
 modification for sorting
-.RB ( \-t )
-or printing
-.RB ( \-l ).
+(with the \fB\-t\fP option)
+and/or printing (with the \fB\-l\fP option).
 .TP
-.B  \-\^c
+.B \-c
 Use time of file creation for sorting or printing.
 .TP
-.B  \-\^i
-Print i-number in first column
-of the report for each file listed.
+.B \-i
+For each file, print the i-number in the first column of the report.
 .TP
-.B  \-\^f
+.B \-f
 Force each argument to be interpreted as a directory
 and list the name found in each slot.
 This option turns off
@@ -141,49 +95,25 @@ turns on
 the order is the order in which entries
 appear in the directory.
 .TP
-.B  \-\^g
-Give group instead of owner in long listing.
+.B \-F
+cause directories to be marked with a trailing `/',
+sockets with a trailing `=',
+symbolic links with a trailing `@', and executable
+files with a trailing `*'.
 .TP
-.B  \-\^n
-With
-.B  \-l
-or
-.B  \-g
-gives group-ID or owner-ID
-instead of owner or group name.
-.TP
-.B  \-\^m
-force stream output format
-.TP
-.B  \-\^1
-force one entry per line output format, e.g. to a teletype
-.TP
-.B  \-\^C
-force multi-column output, e.g. to a file or a pipe
-.TP
-.B  \-\^q
-force printing of non-graphic characters in file names as
-the character `?'; this normally happens only if the output device is
-a teletype
-.TP
-.B  \-\^b
-force printing of non-graphic characters to be in the \eddd
-notation, in octal.
-.TP
-.B  \-\^x
-force columnar printing to be sorted across rather than
-down the page;
-this is the default if the last character of the name the program is invoked
-with is an `x'.
-.TP
-.B  \-\^F
-cause directories to be marked with a trailing `/' and executable
-files to be marked with a trailing `*';
-this is the default if the last character of the name the program is invoked
-with is a `f'.
-.TP
-.B  \-\^R
+.B \-R
 recursively list subdirectories encountered.
+.TP
+.B \-1
+force one entry per line output format; this is the default when
+output is not to a terminal.
+.TP
+.B \-C
+force multi-column output; this is the default when output is to a terminal.
+.TP
+.B \-q
+force printing of non-graphic characters in file names as
+the character `?'; this is the default when output is to a terminal.
 .PP
 The mode printed under the
 .B \-l
@@ -191,6 +121,11 @@ option contains 11 characters
 which are interpreted
 as follows:
 the first character is
+.TP 3
+.B d
+if the entry is a directory;
+.br
+.ns
 .TP 3
 .B b
 if the entry is a block-type special file;
@@ -202,35 +137,29 @@ if the entry is a character-type special file;
 .br
 .ns
 .TP 3
-.B d
-if the entry is a directory;
-.br
-.ns
-.TP 3
 .B l
 if the entry is a symbolic link;
 .br
 .ns
-.TP 3
-.B q
-if the entry is a quota;
+.TP
+.B s
+if the entry is a socket, or
 .br
 .ns
 .TP 3
-.B \-
+.B  \-
 if the entry is a plain file.
 .PP
 The next 9 characters are interpreted
 as three sets of three bits each.
 The first set refers to owner permissions;
-the next to permissions to others in the same user-group;
+the next refers to permissions to others in the same user-group;
 and the last to all others.
 Within each set the three characters indicate
 permission respectively to read, to write, or to
 execute the file as a program.
 For a directory, `execute' permission is interpreted
-to mean permission to search the directory
-for a specified file.
+to mean permission to search the directory.
 The permissions are indicated as follows:
 .TP 3
 .B  r
@@ -254,11 +183,11 @@ if the indicated permission is not granted.
 The group-execute permission character is given
 as
 .B s
-if the file has set-group-ID mode;
+if the file has the set-group-id bit set;
 likewise the user-execute permission character is given
 as
 .B s
-if the file has set-user-ID mode.
+if the file has the set-user-id bit set.
 .PP
 The last character of the mode (normally `x' or `\-') is 
 .B t
@@ -271,48 +200,19 @@ When the sizes of the files in a directory
 are listed, a total count of blocks,
 including indirect blocks is printed.
 .SH FILES
-.ta 2i
-/etc/passwd	to get user ID's for
+/etc/passwd to get user id's for
 `ls \-l'.
 .br
-/etc/group	to get group ID's for
+/etc/group to get group id's for
 `ls \-g'.
-.SH SEE ALSO
-file(1), pq(1), stat(2)
 .SH BUGS
 Newline and tab are considered printing characters in file names.
 .PP
 The output device is assumed to be 80 columns wide.
-Columns are basically 15 characters wide, 20 characters wide if
-.BR \-i " or " "\-s\fP is specified, 25 characters wide if both"
-.BR \-i " and " "\-s\fP are specified."
-In any case where
-.BR \-l ""
-or
-.BR \-n ""
-is specified, we assume
-only one entry will fit per line.
 .PP
 The option setting based on whether the output is a teletype is
-undesirable as:
-.PP
-.DT
-	ls \-s | lpr
-.PP
-is much different from
-.PP
-	ls \-s
-.PP
+undesirable as ``ls\ \-s'' is much different than ``ls\ \-s\ |\ lpr''.
 On the other hand, not doing this setting would make old shell scripts
 which used
 .I ls
-almost certain losers,
-and then one could no longer do, e.g.:
-.PP
-	ls \-s | sort \-nr
-.PP
-but would have to do
-.PP
-	ls \-s \-1 | sort \-nr
-.PP
-Column widths choices are poor for terminals which can tab.
+almost certain losers.

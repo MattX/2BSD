@@ -1,7 +1,11 @@
+#ifndef lint
+static char *sccsid = "@(#)dd.c	4.4 (Berkeley) 1/22/85";
+#endif
+
 #include <stdio.h>
 #include <signal.h>
 
-#define	BIG	32767
+#define	BIG	2147483647
 #define	LCASE	01
 #define	UCASE	02
 #define	SWAB	04
@@ -33,11 +37,6 @@ int	nopr;
 int	ntrunc;
 int	ibf;
 int	obf;
-
-/*! rtrim and rfill options added by PLW 2/11/80*/
-int rtrim;
-int rfill;
-
 char	*op;
 int	nspace;
 char	etoa[] = {
@@ -152,7 +151,7 @@ char	**argv;
 	int (*conv)();
 	register char *ip;
 	register c;
-	int ebcdic(), ibm(), ascii(), null(), cnull(), term();
+	int ebcdic(), ibm(), ascii(), null(), cnull(), term(), block(), unblock();
 	int a;
 
 	conv = null;
@@ -206,7 +205,6 @@ char	**argv;
 				continue;
 			if(match("ebcdic")) {
 				conv = ebcdic;
-                      rfill=0;
 				goto cloop;
 			}
 			if(match("ibm")) {
@@ -215,7 +213,14 @@ char	**argv;
 			}
 			if(match("ascii")) {
 				conv = ascii;
-                      rtrim=0;
+				goto cloop;
+			}
+			if(match("block")) {
+				conv = block;
+				goto cloop;
+			}
+			if(match("unblock")) {
+				conv = unblock;
 				goto cloop;
 			}
 			if(match("lcase")) {
@@ -238,19 +243,9 @@ char	**argv;
 				cflag |= SYNC;
 				goto cloop;
 			}
-                if(match("rtrim")) {
-                      rtrim=1;
-                      conv=ascii;
-                      goto cloop;
-                }
-                if(match("rfill")) {
-                      rfill=1;
-                      conv=ebcdic;
-                      goto cloop;
-                }
 		}
 		fprintf(stderr,"bad arg: %s\n", string);
-		exit(0);
+		exit(1);
 	}
 	if(conv == null && cflag&(LCASE|UCASE))
 		conv = cnull;
@@ -259,8 +254,8 @@ char	**argv;
 	else
 		ibf = dup(0);
 	if(ibf < 0) {
-		fprintf(stderr,"cannot open: %s\n", ifile);
-		exit(0);
+		perror(ifile);
+		exit(1);
 	}
 	if (ofile)
 		obf = creat(ofile, 0666);
@@ -268,7 +263,7 @@ char	**argv;
 		obf = dup(1);
 	if(obf < 0) {
 		fprintf(stderr,"cannot create: %s\n", ofile);
-		exit(0);
+		exit(1);
 	}
 	if (bs) {
 		ibs = obs = bs;
@@ -277,7 +272,7 @@ char	**argv;
 	}
 	if(ibs == 0 || obs == 0) {
 		fprintf(stderr,"counts: cannot be zero\n");
-		exit(0);
+		exit(1);
 	}
 	ibuf = sbrk(ibs);
 	if (fflag)
@@ -287,7 +282,7 @@ char	**argv;
 	sbrk(64);	/* For good measure */
 	if(ibuf == (char *)-1 || obuf == (char *)-1) {
 		fprintf(stderr, "not enough memory\n");
-		exit(0);
+		exit(1);
 	}
 	ibc = 0;
 	obc = 0;
@@ -460,7 +455,34 @@ ascii(cc)
 {
 	register c;
 
-	c = rtrim ? cc : ( etoa[cc] & 0377);
+	c = etoa[cc] & 0377;
+	if(cbs == 0) {
+		cnull(c);
+		return;
+	}
+	if(c == ' ') {
+		nspace++;
+		goto out;
+	}
+	while(nspace > 0) {
+		null(' ');
+		nspace--;
+	}
+	cnull(c);
+
+out:
+	if(++cbc >= cbs) {
+		null('\n');
+		cbc = 0;
+		nspace = 0;
+	}
+}
+
+unblock(cc)
+{
+	register c;
+
+	c = cc & 0377;
 	if(cbs == 0) {
 		cnull(c);
 		return;
@@ -492,14 +514,14 @@ ebcdic(cc)
 		c += 'A'-'a';
 	if(cflag&LCASE && c>='A' && c<='Z')
 		c += 'a'-'A';
-	if(rfill == 0) c = atoe[c] & 0377;
+	c = atoe[c] & 0377;
 	if(cbs == 0) {
 		null(c);
 		return;
 	}
 	if(cc == '\n') {
 		while(cbc < cbs) {
-			null(rfill ? ' ' : atoe[' ']);
+			null(atoe[' ']);
 			cbc++;
 		}
 		cbc = 0;
@@ -529,6 +551,35 @@ ibm(cc)
 	if(cc == '\n') {
 		while(cbc < cbs) {
 			null(atoibm[' ']);
+			cbc++;
+		}
+		cbc = 0;
+		return;
+	}
+	if(cbc == cbs)
+		ntrunc++;
+	cbc++;
+	if(cbc <= cbs)
+		null(c);
+}
+
+block(cc)
+{
+	register c;
+
+	c = cc;
+	if(cflag&UCASE && c>='a' && c<='z')
+		c += 'A'-'a';
+	if(cflag&LCASE && c>='A' && c<='Z')
+		c += 'a'-'A';
+	c &= 0377;
+	if(cbs == 0) {
+		null(c);
+		return;
+	}
+	if(cc == '\n') {
+		while(cbc < cbs) {
+			null(' ');
 			cbc++;
 		}
 		cbc = 0;

@@ -1,7 +1,19 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)collect.c	5.2 (Berkeley) 6/8/85";
+#endif
+
 # include <errno.h>
 # include "sendmail.h"
-
-SCCSID(@(#)collect.c	4.1		7/25/83);
 
 /*
 **  COLLECT -- read & parse message header & make temp file.
@@ -54,8 +66,7 @@ collect(sayok)
 	**  Try to read a UNIX-style From line
 	*/
 
-	if (sfgets(buf, sizeof buf, InChannel) == NULL)
-		return;
+	(void) sfgets(buf, sizeof buf, InChannel);
 	fixcrlf(buf, FALSE);
 # ifndef NOTUNIX
 	if (!SaveFrom && strncmp(buf, "From ", 5) == 0)
@@ -73,16 +84,19 @@ collect(sayok)
 	**	like UNIX "From" lines are deleted in the header.
 	*/
 
-	for (; !feof(InChannel); !feof(InChannel) && !ferror(InChannel) &&
-				 sfgets(buf, MAXFIELD, InChannel) != NULL)
+	do
 	{
-		register char c;
+		int c;
 		extern bool isheader();
+
+		/* drop out on error */
+		if (ferror(InChannel))
+			break;
 
 		/* if the line is too long, throw the rest away */
 		if (index(buf, '\n') == NULL)
 		{
-			while ((c = getc(InChannel)) != '\n')
+			while ((c = getc(InChannel)) != '\n' && c != EOF)
 				continue;
 			/* give an error? */
 		}
@@ -103,7 +117,7 @@ collect(sayok)
 				break;
 			fixcrlf(p, TRUE);
 		}
-		if (!feof(InChannel))
+		if (!feof(InChannel) && !ferror(InChannel))
 			(void) ungetc(c, InChannel);
 
 		CurEnv->e_msgsize += strlen(buf);
@@ -114,7 +128,7 @@ collect(sayok)
 
 		if (bitset(H_EOH, chompheader(buf, FALSE)))
 			break;
-	}
+	} while (sfgets(buf, MAXFIELD, InChannel) != NULL);
 
 # ifdef DEBUG
 	if (tTd(30, 1))
@@ -123,17 +137,13 @@ collect(sayok)
 
 	/* throw away a blank line */
 	if (buf[0] == '\0')
-	{
 		(void) sfgets(buf, MAXFIELD, InChannel);
-		fixcrlf(buf, TRUE);
-	}
 
 	/*
 	**  Collect the body of the message.
 	*/
 
-	for (; !feof(InChannel); !feof(InChannel) && !ferror(InChannel) &&
-				 sfgets(buf, sizeof buf, InChannel) != NULL)
+	do
 	{
 		register char *bp = buf;
 
@@ -157,14 +167,23 @@ collect(sayok)
 		fputs("\n", tf);
 		if (ferror(tf))
 			tferror(tf);
-	}
+	} while (sfgets(buf, MAXFIELD, InChannel) != NULL);
 	if (fflush(tf) != 0)
 		tferror(tf);
 	(void) fclose(tf);
 
 	/* An EOF when running SMTP is an error */
-	if (feof(InChannel) && OpMode == MD_SMTP)
-		syserr("collect: unexpected close");
+	if ((feof(InChannel) || ferror(InChannel)) && OpMode == MD_SMTP)
+	{
+		syserr("collect: unexpected close, from=%s", CurEnv->e_from.q_paddr);
+
+		/* don't return an error indication */
+		CurEnv->e_to = NULL;
+		CurEnv->e_flags &= ~EF_FATALERRS;
+
+		/* and don't try to deliver the partial message either */
+		finis();
+	}
 
 	/*
 	**  Find out some information from the headers.
@@ -274,9 +293,9 @@ eatfrom(fm)
 	{
 		/* skip a word */
 		while (*p != '\0' && *p != ' ')
-			*p++;
+			p++;
 		while (*p == ' ')
-			*p++;
+			p++;
 		if (!isupper(*p) || p[3] != ' ' || p[13] != ':' || p[16] != ':')
 			continue;
 
@@ -301,7 +320,7 @@ eatfrom(fm)
 
 		/* we have found a date */
 		q = xalloc(25);
-		strncpy(q, p, 25);
+		(void) strncpy(q, p, 25);
 		q[24] = '\0';
 		define('d', q, CurEnv);
 		q = arpadate(q);

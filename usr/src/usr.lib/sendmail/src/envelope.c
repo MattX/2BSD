@@ -1,9 +1,21 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)envelope.c	5.12 (Berkeley) 12/17/85";
+#endif
+
 #include <pwd.h>
-#include <time.h>
+#include <sys/time.h>
 #include "sendmail.h"
 #include <sys/stat.h>
-
-SCCSID(@(#)envelope.c	4.2		8/21/83);
 
 /*
 **  NEWENVELOPE -- allocate a new envelope
@@ -24,8 +36,6 @@ ENVELOPE *
 newenvelope(e)
 	register ENVELOPE *e;
 {
-	register HDR *bh;
-	register HDR **nhp;
 	register ENVELOPE *parent;
 	extern putheader(), putbody();
 	extern ENVELOPE BlankEnvelope;
@@ -33,21 +43,16 @@ newenvelope(e)
 	parent = CurEnv;
 	if (e == CurEnv)
 		parent = e->e_parent;
-	clear((char *) e, sizeof *e);
-	bmove((char *) &CurEnv->e_from, (char *) &e->e_from, sizeof e->e_from);
+	clearenvelope(e, TRUE);
+	if (e == CurEnv)
+		bcopy((char *) &NullAddress, (char *) &e->e_from, sizeof e->e_from);
+	else
+		bcopy((char *) &CurEnv->e_from, (char *) &e->e_from, sizeof e->e_from);
 	e->e_parent = parent;
 	e->e_ctime = curtime();
+	e->e_msgpriority = parent->e_msgsize;
 	e->e_puthdr = putheader;
 	e->e_putbody = putbody;
-	bh = BlankEnvelope.e_header;
-	nhp = &e->e_header;
-	while (bh != NULL)
-	{
-		*nhp = (HDR *) xalloc(sizeof *bh);
-		bmove((char *) bh, (char *) *nhp, sizeof *bh);
-		bh = bh->h_link;
-		nhp = &(*nhp)->h_link;
-	}
 	if (CurEnv->e_xfp != NULL)
 		(void) fflush(CurEnv->e_xfp);
 
@@ -128,8 +133,6 @@ dropenvelope(e)
 	if ((!queueit && !bitset(EF_KEEPQUEUE, e->e_flags)) ||
 	    bitset(EF_CLRQUEUE, e->e_flags))
 	{
-		if (e->e_dfp != NULL)
-			(void) fclose(e->e_dfp);
 		if (e->e_df != NULL)
 			xunlink(e->e_df);
 		xunlink(queuename(e, 'q'));
@@ -149,6 +152,8 @@ dropenvelope(e)
 
 	/* make sure that this envelope is marked unused */
 	e->e_id = e->e_df = NULL;
+	if (e->e_dfp != NULL)
+		(void) fclose(e->e_dfp);
 	e->e_dfp = NULL;
 }
 /*
@@ -159,6 +164,9 @@ dropenvelope(e)
 **
 **	Parameters:
 **		e -- the envelope to clear.
+**		fullclear - if set, the current envelope is total
+**			garbage and should be ignored; otherwise,
+**			release any resources it may indicate.
 **
 **	Returns:
 **		none.
@@ -168,52 +176,34 @@ dropenvelope(e)
 **		Marks the envelope as unallocated.
 */
 
-clearenvelope(e)
+clearenvelope(e, fullclear)
 	register ENVELOPE *e;
+	bool fullclear;
 {
-	/* clear out any file information */
-	if (e->e_xfp != NULL)
-		(void) fclose(e->e_xfp);
-	if (e->e_dfp != NULL)
-		(void) fclose(e->e_dfp);
-	e->e_xfp = e->e_dfp = NULL;
+	register HDR *bh;
+	register HDR **nhp;
+	extern ENVELOPE BlankEnvelope;
 
-	/* now expunge names of objects */
-	e->e_df = e->e_id = NULL;
+	if (!fullclear)
+	{
+		/* clear out any file information */
+		if (e->e_xfp != NULL)
+			(void) fclose(e->e_xfp);
+		if (e->e_dfp != NULL)
+			(void) fclose(e->e_dfp);
+	}
 
-	/* and the flags which are now meaningless */
-	e->e_flags = 0;
-}
-/*
-**  UNLOCKQUEUE -- unlock the queue entry for a specified envelope
-**
-**	Parameters:
-**		e -- the envelope to unlock.
-**
-**	Returns:
-**		none
-**
-**	Side Effects:
-**		unlocks the queue for `e'.
-*/
-
-unlockqueue(e)
-	ENVELOPE *e;
-{
-	/* remove the transcript */
-#ifdef DEBUG
-# ifdef LOG
-	if (LogLevel > 19)
-		syslog(LOG_DEBUG, "%s: unlock", e->e_id);
-# endif LOG
-	if (!tTd(51, 4))
-#endif DEBUG
-		xunlink(queuename(e, 'x'));
-
-# ifdef QUEUE
-	/* last but not least, remove the lock */
-	xunlink(queuename(e, 'l'));
-# endif QUEUE
+	/* now clear out the data */
+	STRUCTCOPY(BlankEnvelope, *e);
+	bh = BlankEnvelope.e_header;
+	nhp = &e->e_header;
+	while (bh != NULL)
+	{
+		*nhp = (HDR *) xalloc(sizeof *bh);
+		bcopy((char *) bh, (char *) *nhp, sizeof *bh);
+		bh = bh->h_link;
+		nhp = &(*nhp)->h_link;
+	}
 }
 /*
 **  INITSYS -- initialize instantiation of system
@@ -236,8 +226,10 @@ initsys()
 {
 	static char cbuf[5];			/* holds hop count */
 	static char pbuf[10];			/* holds pid */
+#ifdef TTYNAME
 	static char ybuf[10];			/* holds tty id */
 	register char *p;
+#endif TTYNAME
 	extern char *ttyname();
 	extern char *macvalue();
 	extern char Version[];
@@ -275,6 +267,7 @@ initsys()
 	/* time as integer, unix time, arpa time */
 	settime();
 
+#ifdef TTYNAME
 	/* tty name */
 	if (macvalue('y', CurEnv) == NULL)
 	{
@@ -287,6 +280,7 @@ initsys()
 			define('y', ybuf, CurEnv);
 		}
 	}
+#endif TTYNAME
 }
 /*
 **  SETTIME -- set the current time.
@@ -325,125 +319,6 @@ settime()
 	if (macvalue('a', CurEnv) == NULL)
 		define('a', p, CurEnv);
 	define('b', p, CurEnv);
-}
-/*
-**  QUEUENAME -- build a file name in the queue directory for this envelope.
-**
-**	Assigns an id code if one does not already exist.
-**	This code is very careful to avoid trashing existing files
-**	under any circumstances.
-**		We first create an nf file that is only used when
-**		assigning an id.  This file is always empty, so that
-**		we can never accidently truncate an lf file.
-**
-**	Parameters:
-**		e -- envelope to build it in/from.
-**		type -- the file type, used as the first character
-**			of the file name.
-**
-**	Returns:
-**		a pointer to the new file name (in a static buffer).
-**
-**	Side Effects:
-**		Will create the lf and qf files if no id code is
-**		already assigned.  This will cause the envelope
-**		to be modified.
-*/
-
-char *
-queuename(e, type)
-	register ENVELOPE *e;
-	char type;
-{
-	static char buf[MAXNAME];
-	static int pid = -1;
-	char c1 = 'A';
-	char c2 = 'A';
-
-	if (e->e_id == NULL)
-	{
-		char qf[20];
-		char lf[20];
-		char nf[20];
-
-		/* find a unique id */
-		if (pid != getpid())
-		{
-			/* new process -- start back at "AA" */
-			pid = getpid();
-			c1 = 'A';
-			c2 = 'A' - 1;
-		}
-		(void) sprintf(qf, "qfAA%05d", pid);
-		strcpy(lf, qf);
-		lf[0] = 'l';
-		strcpy(nf, qf);
-		nf[0] = 'n';
-
-		while (c1 < '~' || c2 < 'Z')
-		{
-			int i;
-
-			if (c2 >= 'Z')
-			{
-				c1++;
-				c2 = 'A' - 1;
-			}
-			qf[2] = lf[2] = nf[2] = c1;
-			qf[3] = lf[3] = nf[3] = ++c2;
-# ifdef DEBUG
-			if (tTd(7, 20))
-				printf("queuename: trying \"%s\"\n", nf);
-# endif DEBUG
-# ifdef QUEUE
-			if (access(lf, 0) >= 0 || access(qf, 0) >= 0)
-				continue;
-			errno = 0;
-			i = creat(nf, FileMode);
-			if (i < 0)
-			{
-				(void) unlink(nf);	/* kernel bug */
-				continue;
-			}
-			(void) close(i);
-			i = link(nf, lf);
-			(void) unlink(nf);
-			if (i < 0)
-				continue;
-			if (link(lf, qf) >= 0)
-				break;
-			(void) unlink(lf);
-# else QUEUE
-			if (close(creat(qf, FileMode)) < 0)
-				continue;
-# endif QUEUE
-		}
-		if (c1 >= '~' && c2 >= 'Z')
-		{
-			syserr("queuename: Cannot create \"%s\" in \"%s\"",
-				lf, QueueDir);
-			exit(EX_OSERR);
-		}
-		e->e_id = newstr(&qf[2]);
-		define('i', e->e_id, e);
-# ifdef DEBUG
-		if (tTd(7, 1))
-			printf("queuename: assigned id %s, env=%x\n", e->e_id, e);
-# ifdef LOG
-		if (LogLevel > 16)
-			syslog(LOG_DEBUG, "%s: assigned id", e->e_id);
-# endif LOG
-# endif DEBUG
-	}
-
-	if (type == '\0')
-		return (NULL);
-	(void) sprintf(buf, "%cf%s", type, e->e_id);
-# ifdef DEBUG
-	if (tTd(7, 2))
-		printf("queuename: %s\n", buf);
-# endif DEBUG
-	return (buf);
 }
 /*
 **  OPENXSCRIPT -- Open transcript file
@@ -536,9 +411,11 @@ setsender(from)
 	char *from;
 {
 	register char **pvp;
-	register struct passwd *pw = NULL;
 	char *realname = NULL;
+	register struct passwd *pw;
 	char buf[MAXNAME];
+	char pvpbuf[PSBUFSIZE];
+	extern struct passwd *getpwnam();
 	extern char *macvalue();
 	extern char **prescan();
 	extern bool safefile();
@@ -561,20 +438,6 @@ setsender(from)
 		extern char *username();
 
 		realname = username();
-		errno = 0;
-	}
-	if (realname == NULL || realname[0] == '\0')
-	{
-		extern struct passwd *getpwuid();
-
-		pw = getpwuid(getruid());
-		if (pw != NULL)
-			realname = pw->pw_name;
-	}
-	if (realname == NULL || realname[0] == '\0')
-	{
-		syserr("Who are you?");
-		realname = "root";
 	}
 
 	/*
@@ -595,46 +458,48 @@ setsender(from)
 			/* syserr("%s, you cannot use the -f flag", realname); */
 			from = NULL;
 		}
-		else if (strcmp(from, realname) != 0)
-			pw = NULL;
 	}
 
 	SuprErrs = TRUE;
 	if (from == NULL || parseaddr(from, &CurEnv->e_from, 1, '\0') == NULL)
 	{
+		/* log garbage addresses for traceback */
+		if (from != NULL)
+		{
+# ifdef LOG
+			if (LogLevel >= 1)
+				syslog(LOG_ERR, "Unparseable user %s wants to be %s",
+						realname, from);
+# endif LOG
+		}
 		from = newstr(realname);
-		(void) parseaddr(from, &CurEnv->e_from, 1, '\0');
+		if (parseaddr(from, &CurEnv->e_from, 1, '\0') == NULL &&
+		    parseaddr("postmaster", &CurEnv->e_from, 1, '\0') == NULL)
+		{
+			syserr("setsender: can't even parse postmaster!");
+		}
 	}
 	else
 		FromFlag = TRUE;
 	CurEnv->e_from.q_flags |= QDONTSEND;
+	loweraddr(&CurEnv->e_from);
 	SuprErrs = FALSE;
 
-	if (pw == NULL && CurEnv->e_from.q_mailer == LocalMailer)
+	if (CurEnv->e_from.q_mailer == LocalMailer &&
+	    (pw = getpwnam(CurEnv->e_from.q_user)) != NULL)
 	{
-		extern struct passwd *getpwnam();
+		/*
+		**  Process passwd file entry.
+		*/
 
-		pw = getpwnam(CurEnv->e_from.q_user);
-	}
 
-	/*
-	**  Process passwd file entry.
-	*/
-
-	if (pw != NULL)
-	{
 		/* extract home directory */
 		CurEnv->e_from.q_home = newstr(pw->pw_dir);
+		define('z', CurEnv->e_from.q_home, CurEnv);
 
 		/* extract user and group id */
 		CurEnv->e_from.q_uid = pw->pw_uid;
 		CurEnv->e_from.q_gid = pw->pw_gid;
-
-		/* run user's .mailcf file */
-		define('z', CurEnv->e_from.q_home, CurEnv);
-		expand("$z/.mailcf", buf, &buf[sizeof buf - 1], CurEnv);
-		if (safefile(buf, getruid(), S_IREAD))
-			readcf(buf, FALSE);
 
 		/* if the user has given fullname already, don't redefine */
 		if (FullName == NULL)
@@ -674,7 +539,7 @@ setsender(from)
 	**	links in the net.
 	*/
 
-	pvp = prescan(from, '\0');
+	pvp = prescan(from, '\0', pvpbuf);
 	if (pvp == NULL)
 	{
 		syserr("cannot prescan from (%s)", from);
@@ -687,7 +552,8 @@ setsender(from)
 	define('f', newstr(buf), CurEnv);
 
 	/* save the domain spec if this mailer wants it */
-	if (bitnset(M_CANONICAL, CurEnv->e_from.q_mailer->m_flags))
+	if (CurEnv->e_from.q_mailer != NULL &&
+	    bitnset(M_CANONICAL, CurEnv->e_from.q_mailer->m_flags))
 	{
 		extern char **copyplist();
 

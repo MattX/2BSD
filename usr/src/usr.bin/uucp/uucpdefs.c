@@ -1,5 +1,6 @@
-/* $Header: uucpdefs.c,v 1.14 85/07/16 18:25:49 rick Exp $ */
-/* from:  @(#)uucpdefs.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)uucpdefs.c	5.5 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 

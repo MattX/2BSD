@@ -1,4 +1,7 @@
-/*  "$Header: mkdir.c,v 1.3 85/05/09 16:26:27 rick Exp $" */
+#ifndef lint
+static char sccsid[] = "@(#)mkdir.c	5.2 (Berkeley) 6/20/85";
+#endif
+
 #ifndef BSD4_2
 #include <stdio.h>
 

@@ -1,17 +1,21 @@
-.TH TP 1
+.\"	@(#)tp.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH TP 1 "April 29, 1985"
+.AT 3
 .SH NAME
 tp \- manipulate tape archive
-.SH SYNTAX
+.SH SYNOPSIS
 .B tp
 [ key ] [ name ... ]
 .SH DESCRIPTION
+.PP
 .I Tp
 saves and restores files
 on DECtape or magtape.
 Its actions are controlled by the
 .I key
 argument.
-\fIKey\fP is a string of characters containing
+The key is a string of characters containing
 at most one function letter and possibly
 one or more function modifiers.
 Other arguments to the command are file or directory
@@ -21,9 +25,7 @@ In all cases, appearance of a directory name refers to
 the files and (recursively) subdirectories of that directory.
 .PP
 The function portion of
-the
-.I key
-is specified by one of the following letters:
+the key is specified by one of the following letters:
 .TP 8
 .B  r
 The named files
@@ -34,10 +36,10 @@ already exist, they are replaced.
 `Same' is determined by string comparison, so
 `./abc' can never be the same as `/usr/dmr/abc' even
 if `/usr/dmr' is the current directory.
-If no file argument is given, `\fB.\fP' is the default.
+If no file argument is given, `\fB.\fR' is the default.
 .TP 8
 .B  u
-Updates the tape.
+updates the tape.
 .B u
 is like
 .B r,
@@ -48,19 +50,19 @@ that is to say, if it has changed since it was dumped.
 is the default command if none is given.
 .TP 8
 .B  d
-Deletes the named files from
+deletes the named files from
 the tape.
 At least one name argument must be given.
 This function is not permitted on magtapes.
 .TP 8
 .B  x
-Extracts the named files from the tape to the file system.
+extracts the named files from the tape to the file system.
 The owner and mode are restored.
 If no file argument is given, the entire contents of the
 tape are extracted.
 .TP 8
 .B  t
-Lists the names of the specified files.
+lists the names of the specified files.
 If no file argument is given,
 the entire contents of the tape is listed.
 .PP
@@ -95,7 +97,7 @@ gives more information about the
 tape entries than just the name.
 .TP 10
 .B  c
-Means a fresh dump is being created; the tape directory
+means a fresh dump is being created; the tape directory
 is cleared before beginning.
 Usable only with
 .B r
@@ -113,11 +115,20 @@ Normally, errors cause a return to the command level.
 .B f
 Use the first named file, rather than a tape,
 as the archive.
-This option is known to work only with
-.BR x .
+This option currently acts like 
+.BR m ;
+.I i.e.
+.BR r
+implies 
+.BR c ,
+and neither
+.BR d
+nor
+.BR u
+are permitted.
 .TP 10
 .B  w
-Causes
+causes
 .I tp
 to pause before treating each file, type
 the indicative letter and the file name (as with
@@ -147,10 +158,9 @@ and
 no change has been made to the tape.
 .PP
 .SH FILES
-.ta 2i
-/dev/tap?	DECtape devices
+/dev/tap?
 .br
-/dev/mt?	magtape devices
+/dev/rmt?
 .SH SEE ALSO
 ar(1), tar(1)
 .SH DIAGNOSTICS
@@ -163,5 +173,6 @@ A single file with several links to it is treated like several files.
 Binary-coded control information makes
 magnetic tapes written by
 .I tp
-difficult to carry to other machines; \fItar\fP\|(1)
+difficult to carry to other machines;
+.IR tar (1)
 avoids the problem.

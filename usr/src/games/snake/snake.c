@@ -1,4 +1,20 @@
 /*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)snake.c	5.1 (Berkeley) 5/30/85";
+#endif not lint
+
+/*
  * snake - crt hack game.
  *
  * You move around the screen with arrow keys trying to pick up money
@@ -60,7 +76,7 @@ int long tl, tm=0L;
 int argcount;
 char **argval;
 int moves;
-char str[BSIZE];
+static char str[BSIZE];
 char stri[BSIZE];
 char *p;
 char ch, savec;
@@ -236,7 +252,11 @@ mainloop()
 			fflush(stdout);
 			j = read(0,stri,BSIZE);
 			stri[j] = 0;
-			system(stri);
+			if (fork() == 0) {
+				setuid(getuid());
+				system(stri);
+			} else
+				wait(0);
 			printf("READY?\n");
 			fflush(stdout);
 			raw();
@@ -476,11 +496,12 @@ busy()
 #endif
 }
 
-post(score, flag)
-int	score, flag;
+post(iscore, flag)
+int	iscore, flag;
 {
+	short	score = iscore;
 	int	rawscores;
-	short	uid = getuid();
+	short	uid;
 	short	oldbest=0;
 	short	allbwho=0, allbscore=0;
 	struct	passwd *p, *getpwuid();

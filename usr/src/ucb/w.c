@@ -6,19 +6,17 @@
  *
  * PDP-11 V7 version that does not run off ps -r.
  */
-#include <whoami.h>
-#include <a.out.h>
-#include <core.h>
+#include <sys/param.h>
+#include <nlist.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <utmp.h>
-#include <time.h>
-#include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/proc.h>
-#include <sys/dir.h>
 #include <sys/user.h>
+#include <sys/proc.h>
+#include <sys/ioctl.h>
 #include <sys/tty.h>
+#include <OLD/core.h>
 
 #define ARGWIDTH	33	/* # chars left on 80 col crt for args */
 #define ARGLIST 1024	/* amount of stack to examine for argument list */
@@ -43,7 +41,7 @@ struct	nlist nl[] = {
 #define	X_SWPLO		2
 	{ "_avenrun" },
 #define	X_AVENRUN	3
-	{ "_bootime" },
+	{ "_boottim" },
 #define	X_BOOTIME	4
 	{ "_nproc" },
 #define	X_NPROC		5
@@ -88,7 +86,7 @@ char firstchar;			/* first char of name of prog invoked as */
 time_t	jobtime;		/* total cpu time visible */
 time_t	now;			/* the current time of day */
 struct	tm *nowt;		/* current time as time struct */
-time_t	bootime, uptime;	/* time of last reboot & elapsed time since */
+time_t	boottime, uptime;	/* time of last reboot & elapsed time since */
 int	np;			/* number of processes currently active */
 struct	utmp utmp;
 struct	proc mproc;
@@ -108,9 +106,7 @@ main(argc, argv)
 	register int i, j;
 	char *cp;
 	register int curpid, empty;
-	extern char _sobuf[];
 
-	setbuf(stdout, _sobuf);
 	login = (argv[0][0] == '-');
 	cp = rindex(argv[0], '/');
 	firstchar = login ? argv[0][1] : (cp==0) ? argv[0][0] : cp[1];
@@ -180,12 +176,12 @@ main(argc, argv)
 		if (nl[X_BOOTIME].n_type > 0) {
 			/*
 			 * Print how long system has been up.
-			 * (Found by looking for "bootime" in kernel)
+			 * (Found by looking for "boottime" in kernel)
 			 */
 			lseek(mem, (long)nl[X_BOOTIME].n_value, 0);
-			read(mem, &bootime, sizeof (bootime));
+			read(mem, &boottime, sizeof (boottime));
 
-			uptime = now - bootime;
+			uptime = now - boottime;
 			days = uptime / (60L*60L*24L);
 			uptime %= (60L*60L*24L);
 			hrs = uptime / (60L*60L);
@@ -413,9 +409,7 @@ readpr()
 	int pn, mf, c, nproc;
 	int szpt, pfnum, i;
 	long addr;
-#ifdef	VIRUS_VFORK
 	long daddr, saddr;
-#endif
 	daddr_t swplo;
 	long txtsiz, datsiz, stksiz;
 	int septxt;
@@ -446,7 +440,7 @@ readpr()
 	read(mem, (char *)&nproc, sizeof(nproc));
 	pr = (struct smproc *) malloc(nproc * sizeof(struct smproc));
 	if (pr == (struct smproc *)NULL) {
-		fprintf("Not enough memory for proc table\n");
+		fprintf(stderr,"Not enough memory for proc table\n");
 		exit(1);
 	}
 	/*
@@ -457,31 +451,18 @@ readpr()
 		lseek(mem, (long)(nl[X_PROC].n_value + pn*(sizeof mproc)), 0);
 		pread(mem, &mproc, sizeof mproc, (long)(nl[X_PROC].n_value + pn*(sizeof mproc)));
 		/* decide if it's an interesting process */
-		if (mproc.p_stat==0 || mproc.p_pgrp==0)
+		if (mproc.p_stat==0 || mproc.p_stat==SZOMB || mproc.p_pgrp==0)
 			continue;
-
-#ifdef notdef
-		/*
-		 * The following improves speed on systems with lots of ttys
-		 * by skipping gettys and inits, but loses when root logs in.
-		 */
-		if (mproc.p_ppid == 1 && mproc.p_uid == 0)
-			continue;
-#endif
 		/* find & read in the user structure */
 		if (mproc.p_flag&SLOAD) {
 			addr = ctob((long)mproc.p_addr);
-#ifdef	VIRUS_VFORK
 			daddr = ctob((long)mproc.p_daddr);
 			saddr = ctob((long)mproc.p_saddr);
-#endif
 			file = swmem;
 		} else {
 			addr = (mproc.p_addr+swplo)<<9;
-#ifdef	VIRUS_VFORK
 			daddr = (mproc.p_daddr+swplo)<<9;
 			saddr = (mproc.p_saddr+swplo)<<9;
-#endif
 			file = swap;
 		}
 		lseek(file, addr, 0);
@@ -497,29 +478,17 @@ readpr()
 		septxt = up.u_sep;
 		datmap.b1 = (septxt ? 0 : round(txtsiz,TXTRNDSIZ));
 		datmap.e1 = datmap.b1+datsiz;
-#ifdef	VIRUS_VFORK
 		datmap.f1 = daddr;
-#else
-		datmap.f1 = ctob(USIZE)+addr;
-#endif
 		datmap.b2 = stackbas(stksiz);
 		datmap.e2 = stacktop(stksiz);
-#ifdef	VIRUS_VFORK
 		datmap.f2 = saddr;
-#else
-		datmap.f2 = ctob(USIZE)+(datmap.e1-datmap.b1)+addr;
-#endif
 
 		/* save the interesting parts */
-#ifdef	VIRUS_VFORK
 		pr[np].w_addr = saddr + ctob((long)mproc.p_ssize) - ARGLIST;
-#else
-		pr[np].w_addr = addr + ctob((long)mproc.p_size) - ARGLIST;
-#endif
 		pr[np].w_pid = mproc.p_pid;
-		pr[np].w_igintr = ((up.u_signal[2]==1) + 2*(up.u_signal[2]>1) + 3*(up.u_signal[3]==1)) + 6*(up.u_signal[3]>1);
-		pr[np].w_time = up.u_utime + up.u_stime;
-		pr[np].w_ctime = up.u_cutime + up.u_cstime;
+		pr[np].w_igintr = (int)(((up.u_signal[2]==1) + 2*(up.u_signal[2]>1) + 3*(up.u_signal[3]==1)) + 6*(up.u_signal[3]>1));
+		pr[np].w_time = up.u_ru.ru_utime + up.u_ru.ru_stime;
+		pr[np].w_ctime = up.u_cru.ru_utime + up.u_cru.ru_stime;
 		pr[np].w_tty = up.u_ttyd;
 		up.u_comm[14] = 0;	/* Bug: This bombs next field. */
 		strcpy(pr[np].w_comm, up.u_comm);
@@ -581,7 +550,7 @@ getargs(p)
 
 	lseek(file, addr, 0);
 	if (pread(file, abuf, sizeof(abuf), addr) != sizeof(abuf))
-		return(1);
+		return((char *)1);
 	for (ip = (int *) &abuf[ARGLIST]-2; ip > (int *) abuf;) {
 		/* Look from top for -1 or 0 as terminator flag. */
 		if (*--ip == -1 || *ip == 0) {

@@ -1,21 +1,22 @@
-# Makefile 10/14/82
+#
+# Copyright (c) 1983 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.2 (Berkeley) 2/6/86
+#
 ALL=	tftp
-CFLAGS=	-O
-LFLAG=	-n
+DESTDIR=
+CFLAGS=-O
+SEPFLAG=-i
 
 all: ${ALL}
 
-.c.o:
-	${CC} -S ${CFLAGS} $*.c
-	sed -f ../../asm.sed $*.s > $*.S
-	as - -o $*.o $*.S
-	rm -f $*.s $*.S
-
-tftp:	main.o tftp.o
-	${CC} main.o tftp.o ${LFLAG} -o tftp
+tftp:	main.o tftp.o tftpsubs.o
+	${CC} main.o tftp.o tftpsubs.o ${SEPFLAG} -o tftp
 
 clean:
-	rm -f ${ALL} *.[os] core a.out
+	rm -f ${ALL} *.o *.s errs core a.out t.?
 
-install: ${ALL}
-	install -s -o bin -g bin -m 755 tftp ${DESTDIR}/usr/ucb
+install: 
+	install -s tftp ${DESTDIR}/usr/ucb

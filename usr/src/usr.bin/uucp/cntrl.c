@@ -1,5 +1,6 @@
-/* $Header: cntrl.c,v 1.25 85/08/19 20:05:02 rick Exp $ */
-/* from: @(#)cntrl.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)cntrl.c	5.8 (Berkeley) 1/24/86";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>
@@ -51,7 +52,7 @@ int (*Rdmsg)()=imsg, (*Rddata)();
 int (*Wrmsg)()=omsg, (*Wrdata)();
 int (*Turnon)()=nullf, (*Turnoff)() = nullf;
 
-struct timeb Now, LastTurned;
+struct timeb Now, LastTurned, LastCheckedNoLogin;
 
 static char *YES = "Y";
 static char *NO = "N";
@@ -155,14 +156,17 @@ top:
 		wrkvec[i] = 0;
 	DEBUG(4, "*** TOP ***  -  role=%s\n", role ? "MASTER" : "SLAVE");
 	setupline(RESET);
-	if (nologinflag) {
-		logent(NOLOGIN, "UUCICO SHUTDOWN");
-		if (Debug > 4)
-			logent("DEBUGGING", "continuing anyway");
-		else {
-			WMESG(HUP, YES);
-			RMESG(HUP, msg, 1);
-			goto process;
+	if (Now.time > (LastCheckedNoLogin.time+60)) {
+		LastCheckedNoLogin = Now;
+		if (access(NOLOGIN, 0) == 0) {
+			logent(NOLOGIN, "UUCICO SHUTDOWN");
+			if (Debug > 4)
+				logent("DEBUGGING", "continuing anyway");
+			else {
+				WMESG(HUP, YES);
+				RMESG(HUP, msg, 1);
+				goto process;
+			}
 		}
 	}
 	if (role == MASTER) {
@@ -381,9 +385,7 @@ process:
 			fclose(fp);
 			fp = NULL;
 			/* dont send him files he can't save */
-			if (strcmp(&msg[1], EM_NOTMP) == 0 ||
-			    /* it might be a uucp work file */
-			    index(W_FILE2, '/') == NULL) {
+			if (strcmp(&msg[1], EM_NOTMP) == 0) {
 				WMESG(HUP, "");
 				RMESG(HUP, msg, 1);
 				goto process;
@@ -575,15 +577,14 @@ process:
 			} else
 				WMESG(RQSTCMPT, status ? EM_RMTCP : YES);
 			notify(mailopt, W_USER, filename, Rmtname,
-			  status ? EM_LOCCP : YES);
+				status ? EM_LOCCP : YES);
 			if (status == 0) {
 				sscanf(&msg[2], "%o", &filemode);
 				if (filemode <= 0)
 					filemode = BASEMODE;
 				chmod(subfile(filename), (filemode|BASEMODE)&0777);
 				USRF(USR_COK);
-			}
-			else {
+			} else {
 				logent(_FAILED, "COPY");
 				putinpub(filename, Dfile, W_USER);
 				USRF(USR_LOCCP);
@@ -655,19 +656,16 @@ process:
 }
 
 
-/***
- *	rmesg(c, msg, n)	read message 'c'
- *				try 'n' times
- *	char *msg, c;
+/*
+ *	read message 'c'. try 'n' times
  *
- *	return code:  0  |  FAIL
+ *	return code:  SUCCESS  |  FAIL
  */
-
 rmesg(c, msg, n)
 register char *msg, c;
 register int n;
 {
-	char str[128];
+	char str[MAXFULLNAME];
 
 	DEBUG(4, "rmesg - '%c' ", c);
 	while ((*Rdmsg)(msg, Ifn) != SUCCESS) {
@@ -695,13 +693,11 @@ register int n;
 }
 
 
-/***
- *	wmesg(m, s)	write a message (type m)
- *	char *s, m;
+/*
+ *	write a message (type m)
  *
- *	return codes: 0 - ok | FAIL - ng
+ *	return codes: SUCCESS - ok | FAIL - ng
  */
-
 wmesg(m, s)
 register char *s, m;
 {
@@ -710,17 +706,15 @@ register char *s, m;
 	return (*Wrmsg)(m, s, Ofn);
 }
 
-
-/***
- *	notify		mail results of command
+/*
+ *	mail results of command
  *
  *	return codes:  none
  */
-
 notify(mailopt, user, file, sys, msgcode)
 char *user, *file, *sys, *msgcode;
 {
-	char str[200];
+	char str[BUFSIZ];
 	int i;
 	char *msg;
 
@@ -740,12 +734,11 @@ char *user, *file, *sys, *msgcode;
 	return;
 }
 
-/***
- *	lnotify(user, file, mesg)	- local notify
+/*
+ *	local notify
  *
  *	return code - none
  */
-
 lnotify(user, file, mesg)
 char *user, *file, *mesg;
 {
@@ -755,20 +748,14 @@ char *user, *file, *mesg;
 	return;
 }
 
-
-/***
- *	startup(role)
- *	int role;
- *
- *	startup  -  this routine will converse with the remote
- *	machine, agree upon a protocol (if possible) and start the
- *	protocol.
+/*
+ *	converse with the remote machine, agree upon a protocol (if possible)
+ *	and start the protocol.
  *
  *	return codes:
  *		SUCCESS - successful protocol selection
  *		FAIL - can't find common or open failed
  */
-
 startup(role)
 int role;
 {
@@ -806,36 +793,29 @@ int role;
 	}
 }
 
-
-/*******
- *	char
- *	fptcl(str)
- *	char *str;
- *
- *	fptcl  -  this routine will choose a protocol from
- *	the input string (str) and return the found letter.
+/*
+ *	choose a protocol from the input string (str) and return the it
  *
  *	return codes:
  *		'\0'  -  no acceptable protocol
  *		any character  -  the chosen protocol
  */
-
 char
 fptcl(str)
 register char *str;
 {
 	register struct Proto *p;
-	extern char *Flds[];
+	extern char LineType[];
 
 	for (p = Ptbl; p->P_id != '\0'; p++) {
 #ifdef TCPIP
 		/* Only use 't' on TCP/IP */
-		if (p->P_id == 't' && strcmp("TCP", Flds[F_LINE]))
+		if (p->P_id == 't' && strcmp("TCP", LineType))
 			continue;
 #endif TCPIP
 #ifdef PAD
 		/* only use 'f' protocol on PAD */
-		if (p->P_id == 'f' && strcmp("PAD", Flds[F_LINE]))
+		if (p->P_id == 'f' && strcmp("PAD", LineType))
 			continue;
 #endif PAD
 		if (index(str, p->P_id) != NULL) {
@@ -846,20 +826,9 @@ register char *str;
 	return '\0';
 }
 
-
-/***
- *	char *
- *	blptcl(str)
- *	char *str;
- *
- *	blptcl  -  this will build a string of the
- *	letters of the available protocols and return
- *	the string (str).
- *
- *	return:
- *		a pointer to string (str)
+/*
+ *	build a string of the letters of the available protocols 
  */
-
 char *
 blptcl(str)
 register char *str;
@@ -873,11 +842,8 @@ register char *str;
 	return str;
 }
 
-/***
- *	stptcl(c)
- *	char *c;
- *
- *	stptcl  -  this routine will set up the six routines
+/*
+ *	this routine will set up the six routines
  *	(Rdmsg, Wrmsg, Rddata, Wrdata, Turnon, Turnoff) for the
  *	desired protocol.
  *
@@ -886,7 +852,6 @@ register char *str;
  *		FAIL - no find or failed to open
  *
  */
-
 stptcl(c)
 register char *c;
 {
@@ -911,15 +876,14 @@ register char *c;
 	return FAIL;
 }
 
-/***
- *	putinpub	put file in public place
- *			if successful, filename is modified
+/*
+ *	put file in public place. if successful, filename is modified
  *
- *	return code  0 | FAIL
+ *	return code  SUCCESS | FAIL
  */
 
 putinpub(file, tmp, user)
-register char *file, *user, *tmp;
+register char *file, *tmp, *user;
 {
 	char fullname[MAXFULLNAME];
 	char *lastpart();
@@ -928,6 +892,7 @@ register char *file, *user, *tmp;
 	sprintf(fullname, "%s/%s/", PUBDIR, user);
 	if (mkdirs(fullname) != 0) {
 		/* can not make directories */
+		DEBUG(1, "Cannot mkdirs(%s)\n", fullname);
 		return FAIL;
 	}
 	strcat(fullname, lastpart(file));
@@ -939,8 +904,8 @@ register char *file, *user, *tmp;
 	return status;
 }
 
-/***
- *	unlinkdf(file)	- unlink D. file
+/*
+ *	unlink D. file
  *
  *	return code - none
  */
@@ -953,12 +918,11 @@ register char *file;
 	return;
 }
 
-/***
- *	arrived - notify receiver of arrived file
+/*
+ *	notify receiver of arrived file
  *
  *	return code - none
  */
-
 arrived(opt, file, nuser, rmtsys, rmtuser)
 char *file, *nuser, *rmtsys, *rmtuser;
 {

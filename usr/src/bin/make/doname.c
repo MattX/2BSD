@@ -1,9 +1,7 @@
+static	char *sccsid = "@(#)doname.c	4.9 (Berkeley) 87/06/18";
 #include "defs"
+#include <strings.h>
 #include <signal.h>
-
-char Makecall;			/* flag which says whether to exec $(MAKE) */
-extern char archmem[];
-extern char archname[];
 
 /*  BASIC PROCEDURE.  RECURSIVE.  */
 
@@ -14,666 +12,338 @@ p->done = 2   file already exists in current state
 p->done = 3   file make failed
 */
 
+extern char *sys_siglist[];
 
 doname(p, reclevel, tval)
-register NAMEBLOCK p;
+register struct nameblock *p;
 int reclevel;
 TIMETYPE *tval;
 {
-	register DEPBLOCK q;
-	register LINEBLOCK lp;
-	int errstat;
-	int okdel1;
-	int didwork;
-	TIMETYPE td, td1, tdep, ptime, ptime1, ptime2;
-	extern void appendq();
-	DEPBLOCK suffp, suffp1;
-	NAMEBLOCK p1, p2;
-	SHBLOCK implcom, explcom;
-	LINEBLOCK lp1, lp2;
-	char sourcename[100],prefix[100],temp[100],concsuff[20];
-	CHARSTAR pnamep, p1namep;
-	CHAIN qchain, cochain;
-	int found, onetime;
-	CHARSTAR savenamep = 0;
+int errstat;
+int okdel1;
+int didwork;
+TIMETYPE td, td1, tdep, ptime, ptime1, prestime();
+register struct depblock *q;
+struct depblock *qtemp, *srchdir(), *suffp, *suffp1;
+struct nameblock *p1, *p2;
+struct shblock *implcom, *explcom;
+register struct lineblock *lp;
+struct lineblock *lp1, *lp2;
+#ifdef BSD2_10
+char sourcename[256], prefix[256], temp[256], concsuff[20];
+#else
+char sourcename[BUFSIZ], prefix[BUFSIZ], temp[BUFSIZ], concsuff[20];
+#endif
+char *pnamep, *p1namep, *cp;
+char *mkqlist();
+struct chain *qchain, *appendq();
 
-	if(p == 0)
+{
+	/*
+	 * VPATH= ${PATH1}:${PATH2} didn't work.  This fix is so ugly I don't
+	 * even want to think about it.  Basically it grabs VPATH and
+	 * explicitly does macro expansion before resolving names.  Why
+	 * VPATH didn't get handled correctly I have no idea; the symptom
+	 * was that, while macro expansion got done, the .c files in the
+	 * non-local directories wouldn't be found.
+	 */
+	struct varblock	*vpath_cp, *varptr();
+	static int	vpath_first;
+	char	vpath_exp[INMAX];
+
+	if (!vpath_first) {
+		vpath_first = 1;
+		vpath_cp = varptr("VPATH");
+		if (vpath_cp->varval) {
+			subst(vpath_cp->varval, vpath_exp);
+			setvar("VPATH",vpath_exp);
+		}
+	}
+}
+if(p == 0)
 	{
-		*tval = 0;
-		return(0);
+	*tval = 0;
+	return(0);
 	}
 
-	if(IS_ON(DBUG))
+if(dbgflag)
 	{
-		blprt(reclevel);
-		(void)printf("doname(%s,%d)\n",p->namep,reclevel);
-		(void)fflush(stdout);
+	printf("doname(%s,%d)\n",p->namep,reclevel);
+	fflush(stdout);
 	}
 
-	if(p->done > 0)
+if(p->done > 0)
 	{
-		*tval = p->modtime;
-		return(p->done == 3);
+	*tval = p->modtime;
+	return(p->done == 3);
 	}
 
-	errstat = 0;
-	tdep = 0;
-	implcom = 0;
-	explcom = 0;
-	ptime = exists(p);
-	if(reclevel == 0 && IS_ON(DBUG))
-	{
-		blprt(reclevel);
-		(void)printf("TIME(%s)=%ld\n", p->namep, ptime);
-	}
-	ptime1 = 0;
-	didwork = NO;
-	p->done = 1;	/* avoid infinite loops */
+errstat = 0;
+tdep = 0;
+implcom = 0;
+explcom = 0;
+ptime = exists(p); 
+ptime1 = 0;
+didwork = NO;
+p->done = 1;	/* avoid infinite loops */
 
-	qchain = NULL;
-	cochain = NULL;
+qchain = NULL;
 
-/*
- *	Perform runtime dependency translations.
- */
-	if(p->rundep == 0)
-	{
-		setvar("@", p->namep);
-		dynamicdep(p);
-		setvar("@", Nullstr);
-	}
+/* Expand any names that have embedded metacharaters */
 
-/*
- *	Expand any names that have embedded metacharaters. Must be
- *	done after dynamic dependencies because the dyndep symbols
- *	($(*D)) may contain shell meta characters.
- */
-	expand(p);
-
-
-
-/*
- *	FIRST SECTION -- GO THROUGH DEPENDENCIES
- */
-
-	if(IS_ON(DBUG))
-	{
-		blprt(reclevel);
-		(void)printf("look for explicit deps. %d \n", reclevel);
-	}
-	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
-	{
-		td = 0;
-		for(q = lp->depp ; q!=0 ; q=q->nextdep)
+for(lp = p->linep ; lp ; lp = lp->nxtlineblock)
+	for(q = lp->depp ; q ; q=qtemp )
 		{
-			q->depname->backname = p;
-			errstat += doname(q->depname, reclevel+1, &td1);
-			if (q->depname->mustco)
-				appendq((CHAIN)&cochain, (CHARSTAR)q->depname);
-			if(IS_ON(DBUG))
+		qtemp = q->nxtdepblock;
+		expand(q);
+		}
+
+/* make sure all dependents are up to date */
+
+for(lp = p->linep ; lp ; lp = lp->nxtlineblock)
+	{
+	td = 0;
+	for(q = lp->depp ; q ; q = q->nxtdepblock)
+		{
+		errstat += doname(q->depname, reclevel+1, &td1);
+		if(dbgflag)
+		    printf("TIME(%s)=%ld\n", q->depname->namep, td1);
+		if(td1 > td) td = td1;
+		if(ptime < td1)
+			qchain = appendq(qchain, q->depname->namep);
+		}
+	if(p->septype == SOMEDEPS)
+		{
+		if(lp->shp!=0)
+		     if( ptime<td || (ptime==0 && td==0) || lp->depp==0)
 			{
-			    blprt(reclevel);
-			    (void)printf("TIME(%s)=%ld\n", q->depname->namep, td1);
+			okdel1 = okdel;
+			okdel = NO;
+			setvar("@", p->namep);
+			setvar("?", mkqlist(qchain) );
+			qchain = NULL;
+			if( !questflag )
+				errstat += docom(lp->shp);
+			setvar("@", (char *) NULL);
+			okdel = okdel1;
+			ptime1 = prestime();
+			didwork = YES;
 			}
-			td = max(td1,td);
-			if(ptime < td1)
-				appendq((CHAIN)&qchain, q->depname->namep);
-		}
-		if(p->septype == SOMEDEPS)
-		{
-			if(lp->shp!=0)
-				if( ptime<td || (ptime==0 && td==0) || lp->depp==0)
-				{
-					okdel1 = okdel;
-					okdel = NO;
-					setvar("@", p->namep);
-					if(savenamep)
-						setvar("%", archmem);
-					setvar("?", mkqlist(qchain) );
-					qchain = NULL;
-					if( IS_OFF(QUEST) )
-					{
-						ballbat(p);
-						errstat += docom(lp->shp);
-					}
-					setvar("@", Nullstr);
-					setvar("%", Nullstr);
-					okdel = okdel1;
-					if( (ptime1 = exists(p)) == 0)
-						ptime1 = prestime();
-					didwork = YES;
-				}
 		}
 
-		else
-		{
-			if(lp->shp != 0)
+	else	{
+		if(lp->shp != 0)
 			{
-				if(explcom)
-					(void)fprintf(stderr, "Too many command lines for `%s'\n",
-						p->namep);
-				else
-					explcom = lp->shp;
+			if(explcom)
+				fprintf(stderr, "Too many command lines for `%s'\n",
+					p->namep);
+			else	explcom = lp->shp;
 			}
 
-			tdep = max(tdep, td);
+		if(td > tdep) tdep = td;
 		}
 	}
 
-/*
- *	SECOND SECTION -- LOOK FOR IMPLICIT DEPENDENTS
- */
+/* Look for implicit dependents, using suffix rules */
 
-	if(IS_ON(DBUG))
+for(lp = sufflist ; lp ; lp = lp->nxtlineblock)
+    for(suffp = lp->depp ; suffp ; suffp = suffp->nxtdepblock)
 	{
-		blprt(reclevel);
-		(void)printf("look for implicit rules. %d \n", reclevel);
-	}
-	found = 0; onetime = 0;
-	if(any(p->namep, LPAREN))
-	{
-		savenamep = p->namep;
-		p->namep = copys(archmem);
-		if(IS_ON(DBUG))
+	pnamep = suffp->depname->namep;
+	if(suffix(p->namep , pnamep , prefix))
 		{
-			blprt(reclevel);
-			(void)printf("archmem = %s\n", archmem);
-		}
-		if(IS_ON(DBUG)) 
-		{
-			blprt(reclevel);
-			(void)printf("archname = %s\n", archname);
-		}
-	}
-	else
-		savenamep = 0;
 
-
-	for(lp=sufflist ; lp!=0 ; lp = lp->nextline)
-	for(suffp = lp->depp ; suffp!=0 ; suffp = suffp->nextdep)
-	{
-		pnamep = suffp->depname->namep;
-		if(suffix(p->namep , pnamep , prefix))
-		{
-			if(IS_ON(DBUG)) 
+		srchdir( concat(prefix,"*",temp) , NO, (struct depblock *) NULL);
+		for(lp1 = sufflist ; lp1 ; lp1 = lp1->nxtlineblock)
+		    for(suffp1=lp1->depp ; suffp1 ; suffp1 = suffp1->nxtdepblock)
 			{
-				blprt(reclevel);
-				(void)printf("right match = %s\n",p->namep);
-			}
-			found = 1;
-			if(savenamep)
-				pnamep = ".a";
-searchdir:
-
-			(void)copstr(temp, prefix);
-			addstuff(temp, "*", ".*");
-			(void)srchdir( temp , NO, (DEPBLOCK)NULL, YES);
-			if (srchname("RCS"))
-			{
-				(void)copstr(temp, prefix);
-				addstuff(temp, "RCS/", ".*,v");
-				(void)srchdir(temp, NO, (DEPBLOCK)NULL, NO);
-			}
-			for(lp1 = sufflist ; lp1!=0 ; lp1 = lp1->nextline)
-			for(suffp1=lp1->depp ; suffp1!=0 ; suffp1 = suffp1->nextdep)
-			{
-				p1namep = suffp1->depname->namep;
-				(void)concat(p1namep, pnamep, concsuff);
-				if( (p1=srchname(concsuff)) == 0)
-					continue;
-				if(p1->linep == 0)
-					continue;
-				(void)concat(prefix, p1namep, sourcename);
-				if(any(p1namep, WIGGLE))
+			p1namep = suffp1->depname->namep;
+			if( (p1=srchname(concat(p1namep, pnamep ,concsuff))) &&
+			    (p2=srchname(concat(prefix, p1namep ,sourcename))) )
 				{
-					sourcename[strlen(sourcename) - 1] = CNULL;
-					if(!sdot(sourcename))
-						addstuff(sourcename, "s.", "");
-					if( (p2=srchname(sourcename)) == 0)
-						continue;
-				}
-				else
-				{
-					if( (p2=srchname(sourcename)) == 0)
-					{
-						if (findrcs(sourcename) != 0) {
-							p2 = makename(copys(sourcename));
-							goto checkout;
-						}
-						continue;
-					}
-				}
-checkout:
-				if(equal(sourcename, p->namep))
-					continue;
-/*
- *	FOUND -- left and right match
- */
-
-				found = 2;
-				if(IS_ON(DBUG))
-				{
-				  blprt(reclevel);
-				  (void)printf("%s ---%s--- %s\n",
-					sourcename, concsuff, p->namep);
-				}
-				p2->backname = p;
 				errstat += doname(p2, reclevel+1, &td);
-				if(p2->mustco)
-					appendq((CHAIN)&cochain, (CHARSTAR)p2);
 				if(ptime < td)
-					appendq((CHAIN)&qchain, p2->namep);
-				if(IS_ON(DBUG))
-				{
-					blprt(reclevel);
-					(void)printf("TIME(%s)=%ld\n",p2->namep,td);
-				}
-				tdep = max(tdep, td);
+					qchain = appendq(qchain, p2->namep);
+if(dbgflag) printf("TIME(%s)=%ld\n", p2->namep, td);
+				if(td > tdep) tdep = td;
 				setvar("*", prefix);
-				setvar("<", sourcename);
-				for(lp2=p1->linep ; lp2!=0 ; lp2 = lp2->nextline)
+				if (p2->alias) setvar("<", copys(p2->alias));
+				else setvar("<", copys(p2->namep));
+				for(lp2=p1->linep ; lp2 ; lp2 = lp2->nxtlineblock)
 					if(implcom = lp2->shp) break;
 				goto endloop;
+				}
 			}
-/*
- *	quit search for single suffix rule.
- */
-			if(onetime == 1)
-				goto endloop;
+		cp = rindex(prefix, '/');
+		if (cp++ == 0)
+			cp = prefix;
+		setvar("*", cp);
 		}
 	}
 
 endloop:
 
 
-/*
- * look for a single suffix type rule.
- * only possible if no explicit dependents and no shell rules
- * are found, and nothing has been done so far. (previously, `make'
- * would exit with 'Don't know how to make ...' message.
- */
-	if(found == 0)
-	if(onetime == 0)
-	if(	  p->linep == 0 ||
-		( p->linep->depp == 0 && p->linep->shp == 0))
+if(errstat==0 && (ptime<tdep || (ptime==0 && tdep==0) ) )
 	{
-		onetime = 1;
-		if(IS_ON(DBUG))
-		{
-			blprt(reclevel);
-			(void)printf("Looking for Single suffix rule.\n");
-		}
-		(void)concat(p->namep, "", prefix);
-		pnamep = "";
-		goto searchdir;
-	}
-
-
-/*
- *	THIRD SECTION -- LOOK FOR DEFAULT CONDITION OR DO COMMAND
- */
-	if(errstat==0 && (ptime<tdep || (ptime==0 && tdep==0) ) )
-	{
-		/*
-		 * Check out all the dependencies that are in RCS files.
-		 */
-		for(; cochain != 0; cochain = cochain->nextchain)
-		{
-			p2 = (NAMEBLOCK)cochain->datap;
-			if (p2->mustco) {
-				if (!co(p2->namep, NO)) {
-					errstat++;
-					goto mkdone;
-				}
-				p2->mustco = NO;
-			}
-		}
-		if(savenamep)
-		{
-			setvar("@", archname);
-			setvar("%", archmem);
-		}
-		else
-		{
-			setvar("@", p->namep);
-		}
-		setvar("?", mkqlist(qchain) );
-		ballbat(p);
-		if(explcom)
-			errstat += docom(explcom);
-		else if(implcom)
-			errstat += docom(implcom);
-		else
-		{
-/*
- *	If an RCS file for this file exists (defs,v -> defs), but the
- *	file itself doesn't exist, skip the default rules, lie and say
- *	it's been made, but indicate that it must be checked out.
- */
-			if (ptime == 0)
+	ptime = (tdep>0 ? tdep : prestime() );
+	setvar("@", p->namep);
+	setvar("?", mkqlist(qchain) );
+	if(explcom)
+		errstat += docom(explcom);
+	else if(implcom)
+		errstat += docom(implcom);
+	else if(p->septype == 0)
+		if(p1=srchname(".DEFAULT"))
 			{
-				(void)copstr(temp, p->namep);
-				addstuff(temp, "", ",v");
-				(void)srchdir( temp , NO, (DEPBLOCK)NULL, YES);
-				(void)copstr(temp, p->namep);
-				addstuff(temp, "RCS/", ",v");
-				(void)srchdir( temp , NO, (DEPBLOCK)NULL, NO);
-				if ((ptime2 = findrcs(p->namep)) != 0) {
-					ptime = ptime2;
-					p->mustco = YES;
-					goto mkdone;
-				}
-			}
-			if( (p->septype != SOMEDEPS && IS_OFF(MH_DEP)) ||
-				 (p->septype == 0        && IS_ON(MH_DEP) )    )
-/*
- *	OLD WAY OF DOING TEST is
- *			else if(p->septype == 0)
- *	notice above, a flag has been put in to get the murray hill version.
- *	the flag is "-b".
- */
-			{
-				if(p1=srchname(".DEFAULT"))
-				{
-					if(IS_ON(DBUG))
+			if (p->alias) setvar("<", p->alias);
+			else setvar("<", p->namep);
+			for(lp2 = p1->linep ; lp2 ; lp2 = lp2->nxtlineblock)
+				if(implcom = lp2->shp)
 					{
-						blprt(reclevel);
-						(void)printf("look for DEFAULT rule. %d \n", reclevel);
+					errstat += docom(implcom);
+					break;
 					}
-					setvar("<", p->namep);
-					for(lp2=p1->linep ; lp2!=0 ; lp2 = lp2->nextline)
-						if(implcom = lp2->shp)
-						{
-							errstat += docom(implcom);
-						}
-				}
-				else if(IS_OFF(GET) ||
-					  !get(p->namep, NOCD, (CHARSTAR)0) )
-				{
-					fatal1(" Don't know how to make %s", p->namep);
-				}
 			}
-		}
+		else if(keepgoing)
+			{
+			printf("Don't know how to make %s\n", p->namep);
+			++errstat;
+			}
+		else
+			fatal1(" Don't know how to make %s", p->namep);
 
-		setvar("@", Nullstr);
-		setvar("%", Nullstr);
-		if(IS_ON(NOEX) || (ptime = exists(p)) == 0)
-			ptime = prestime();
+	setvar("@", (char *) NULL);
+	if(noexflag || (ptime = exists(p)) == 0)
+		ptime = prestime();
 	}
 
-	else if(errstat!=0 && reclevel==0)
-		(void)printf("`%s' not remade because of errors\n", p->namep);
+else if(errstat!=0 && reclevel==0)
+	printf("`%s' not remade because of errors\n", p->namep);
 
-	else if(IS_OFF(QUEST) && reclevel==0  &&  didwork==NO)
-		(void)printf("`%s' is up to date.\n", p->namep);
+else if(!questflag && reclevel==0  &&  didwork==NO)
+	printf("`%s' is up to date.\n", p->namep);
 
-mkdone:
-	if(IS_ON(QUEST) && reclevel==0)
-		exit(ndocoms>0 ? -1 : 0);
+if(questflag && reclevel==0)
+	exit(ndocoms>0 ? -1 : 0);
 
-	p->done = (errstat ? 3 : 2);
-	ptime = max(ptime1, ptime);
-	p->modtime = ptime;
-	*tval = ptime;
-	setvar("<", Nullstr);
-	setvar("*", Nullstr);
-	return(errstat);
+p->done = (errstat ? 3 : 2);
+if(ptime1 > ptime) ptime = ptime1;
+p->modtime = ptime;
+*tval = ptime;
+return(errstat);
 }
 
 docom(q)
-SHBLOCK q;
+struct shblock *q;
 {
-	CHARSTAR s;
-	extern CHARSTAR subst();
-	int ign, nopr;
-	char string[OUTMAX];
+char *s;
+struct varblock *varptr();
+int ign, nopr;
+char string[OUTMAX];
+char string2[OUTMAX];
 
-	++ndocoms;
-	if(IS_ON(QUEST))
-		return(0);
+++ndocoms;
+if(questflag)
+	return(NO);
 
-	if(IS_ON(TOUCH))
+if(touchflag)
 	{
-		s = varptr("@")->varval;
-		if(IS_OFF(SIL))
-			(void)printf("touch(%s)\n", s);
-		if(IS_OFF(NOEX))
-			touch(1,s);
+	s = varptr("@")->varval;
+	if(!silflag)
+		printf("touch(%s)\n", s);
+	if(!noexflag)
+		touch(YES, s);
 	}
 
-	else for( ; q!=0 ; q = q->nextsh )
+else for( ; q ; q = q->nxtshblock )
 	{
-/*
- *	Allow recursive makes to execute only if the NOEX flag set
- */
-		if(sindex(q->shbp, "$(MAKE)") != -1 && IS_ON(NOEX))
-			Makecall = YES;
-		else
-			Makecall = NO;
-		(void)subst(q->shbp,string);
+	subst(q->shbp,string2);
+	fixname(string2, string);
 
-		ign = IS_ON(IGNERR) ? YES : NO;
-		nopr = NO;
-		for(s = string ; *s==MINUS || *s==AT ; ++s)
-			if(*s == MINUS)  ign = YES;
-			else nopr = YES;
+	ign = ignerr;
+	nopr = NO;
+	for(s = string ; *s=='-' || *s=='@' ; ++s)
+		if(*s == '-')  ign = YES;
+		else nopr = YES;
 
-		if( docom1(s, ign, nopr) && !ign)
-			if(IS_ON(KEEPGO))
-				return(1);
-			else	fatal((char *)0);
+	if( docom1(s, ign, nopr) && !ign)
+		if(keepgoing)
+			return(YES);
+		else	fatal( (char *) NULL);
 	}
-	return(0);
+return(NO);
 }
 
 
 
 docom1(comstring, nohalt, noprint)
-register CHARSTAR comstring;
+register char *comstring;
 int nohalt, noprint;
 {
-	register int status;
+register int status;
 
-	if(comstring[0] == '\0') return(0);
+if(comstring[0] == '\0') return(0);
 
-	if(IS_OFF(SIL) && (!noprint || IS_ON(NOEX)) )
+if(!silflag && (!noprint || noexflag) )
 	{
-		CHARSTAR p1, ps;
-		CHARSTAR pmt = prompt;
-
-		ps = p1 = comstring;
-		while(1)
-		{
-			while(*p1 && *p1 != NEWLINE) p1++;
-			if(*p1)
-			{
-				*p1 = 0;
-				(void)printf("%s%s\n", pmt, ps);
-				*p1 = NEWLINE;
-				ps = p1 + 1;
-				p1 = ps;
-			}
-			else
-			{
-				(void)printf("%s%s\n", pmt, ps);
-				break;
-			}
-		}
-
-		(void)fflush(stdout);
+	printf("%s%s\n", (noexflag ? "" : prompt), comstring);
+	fflush(stdout);
 	}
 
-	if( status = dosys(comstring, nohalt) )
+if(noexflag) return(0);
+
+if( status = dosys(comstring, nohalt) )
 	{
-		if( status>>8 )
-			(void)printf("*** Error code %d", status>>8 );
+	unsigned sig = status & 0177;
+	if( sig ) {
+		if (sig < NSIG && sys_siglist[sig] != NULL &&
+		    *sys_siglist[sig] != '\0')
+			printf("*** %s", sys_siglist[sig]);
 		else
-		{
-#ifdef BSD4_2
-			extern char *sys_siglist[];
-#else
-			static char *sys_siglist[] = {
-				"Signal 0",
-				"Hangup",
-				"Interrupt",
-				"Quit",
-				"Illegal instruction",
-				"Trace/BPT trap",
-				"Abort",
-				"EMT trap",
-				"Floating exception",
-				"Killed",
-				"Bus error",
-				"Memory fault",
-				"Bad system call",
-				"Broken pipe",
-				"Alarm call",
-				"Terminated",
-				"Signal 16",
-				"Signal 17",
-				"Child death",
-				"Power fail",
-			};
-#endif
-			int coredumped;
+			printf("*** Signal %d", sig);
+		if (status & 0200)
+			printf(" - core dumped");
+	} else
+		printf("*** Exit %d", status>>8 );
 
-			coredumped = status & 0200;
-			status &= 0177;
-			if (status > NSIG)
-				(void)printf("*** Signal %d", status );
-			else
-				(void)printf("*** %s", sys_siglist[status] );
-			if (coredumped)
-				(void)printf(" - core dumped");
-		}
-
-		if(nohalt) (void)printf(" (ignored)\n");
-		else	(void)printf("\n");
-		(void)fflush(stdout);
+	if(nohalt) printf(" (ignored)\n");
+	else	printf("\n");
+	fflush(stdout);
 	}
 
-	return(status);
+return(status);
 }
 
 
 /*
- *	If there are any Shell meta characters in the name,
- *	search the directory, and if the search finds something
- *	replace the dependency in "p"'s dependency chain. srchdir
- *	produces a DEPBLOCK chain whose last member has a null
- *	nextdep pointer or the NULL pointer if it finds nothing.
- *	The loops below do the following: for each dep in each line
- *	if the dep->depname has a shell metacharacter in it and
- *	if srchdir succeeds, replace the dep with the new one
- *	created by srchdir. The Nextdep variable is to skip over
- *	the new stuff inserted into the chain.
+   If there are any Shell meta characters in the name,
+   expand into a list, after searching directory
 */
 
-expand(p)
-NAMEBLOCK p;
+expand(q)
+register struct depblock *q;
 {
-	register DEPBLOCK db;
-	register DEPBLOCK Nextdep;
-	register CHARSTAR s;
-	register DEPBLOCK srchdb;
-	register LINEBLOCK lp;
+register char *s;
+char *s1;
+struct depblock *p, *srchdir();
 
-
-
-	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
-		for(db=lp->depp ; db!=0 ; db=Nextdep )
-		{
-			Nextdep = db->nextdep;
-			if(any( (s=db->depname->namep), STAR) ||
-			   any(s, QUESTN) || any(s, LSQUAR) )
-				if( srchdb = srchdir(s , YES, (DEPBLOCK)NULL, YES) )
-					dbreplace(p, db, srchdb);
-		}
-}
-/*
- *	Replace the odb depblock in np's dependency list with the
- *	dependency chain defined by ndb. This is just a linked list insert
- *	problem. dbreplace assumes the last "nextdep" pointer in
- *	"ndb" is null.
- */
-dbreplace(np, odb, ndb)
-register NAMEBLOCK np;
-register DEPBLOCK odb, ndb;
-{
-	register LINEBLOCK lp;
-	register DEPBLOCK  db;
-	register DEPBLOCK  enddb;
-
-	for(enddb = ndb; enddb->nextdep; enddb = enddb->nextdep);
-
-	for(lp = np->linep; lp; lp = lp->nextline)
-		if(lp->depp == odb)
-		{
-			enddb->nextdep	= lp->depp->nextdep;
-			lp->depp	= ndb;
-			return;
-		}
-		else
-		{
-			for(db = lp->depp; db; db = db->nextdep)
-				if(db->nextdep == odb)
-				{
-					enddb->nextdep	= odb->nextdep;
-					db->nextdep	= ndb;
-					return;
-				}
-		}
-}
-
-
-#define NPREDS 50
-
-ballbat(np)
-NAMEBLOCK np;
-{
-	static char ballb[200];
-	register CHARSTAR p;
-	register NAMEBLOCK npp;
-	register int i;
-	VARBLOCK vp;
-	int npreds=0;
-	NAMEBLOCK circles[NPREDS];
-
-
-	if( *((vp=varptr("!"))->varval) == 0)
-		vp->varval = ballb;
-	p = ballb;
-	p = copstr(p, varptr("<")->varval);
-	p = copstr(p, " ");
-	for(npp = np; npp; npp = npp->backname)
+if (q->depname == NULL)
+	return;
+s1 = q->depname->namep;
+for(s=s1 ; ;) switch(*s++)
 	{
-		for(i = 0; i < npreds; i++)
-		{
-			if(npp == circles[i])
-			{
-				(void)fprintf(stderr,"$! nulled, predecessor circle\n");
-				ballb[0] = CNULL;
-				return;
-			}
-		}
-		circles[npreds++] = npp;
-		if(npreds >= NPREDS)
-		{
-			(void)fprintf(stderr, "$! nulled, too many predecessors\n");
-			ballb[0] = CNULL;
-			return;
-		}
-		p = copstr(p, npp->namep);
-		p = copstr(p, " ");
-	}
-}
+	case '\0':
+		return;
 
-/*
- *	PRINT n BLANKS WHERE n IS THE CURRENT RECURSION LEVEL.
- */
-blprt(n)
-register int n;
-{
-	while(n--)
-		(void)printf("   ");
+	case '*':
+	case '?':
+	case '[':
+		if( p = srchdir(s1 , YES, q->nxtdepblock) )
+			{
+			q->nxtdepblock = p;
+			q->depname = 0;
+			}
+		return;
+	}
 }

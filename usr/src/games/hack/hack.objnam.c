@@ -212,7 +212,7 @@ register int pl = (obj->quan != 1);
 		register char *p;
 
 		for(p = buf; *p; p++) {
-			if(!strncmp(" of ", p, 4)) {
+			if(!strncmp(" of ", p, STRLEN(" of "))) {
 				/* pieces of, cloves of, lumps of */
 				register int c1, c2 = 's';
 
@@ -251,7 +251,7 @@ register char *bp = xname(obj);
 		Strcpy(prefix, "a ");
 	switch(obj->olet) {
 	case AMULET_SYM:
-		if(strncmp(bp, "cheap ", 6))
+		if(strncmp(bp, "cheap ", STRLEN("cheap ")))
 			Strcpy(prefix, "the ");
 		break;
 	case ARMOR_SYM:
@@ -347,15 +347,15 @@ char *un, *dn, *an;
 	an = dn = un = 0;
 	for(p = bp; *p; p++)
 		if('A' <= *p && *p <= 'Z') *p += 'a'-'A';
-	if(!strncmp(bp, "the ", 4)){
+	if(!strncmp(bp, "the ", STRLEN("the "))){
 /*		the = 1; */
-		bp += 4;
-	} else if(!strncmp(bp, "an ", 3)){
+		bp += STRLEN("the ");
+	} else if(!strncmp(bp, "an ", STRLEN("an "))){
 		cnt = 1;
-		bp += 3;
-	} else if(!strncmp(bp, "a ", 2)){
+		bp += STRLEN("an ");
+	} else if(!strncmp(bp, "a ", STRLEN("a "))){
 		cnt = 1;
-		bp += 2;
+		bp += STRLEN("a ");
 	}
 	if(!cnt && digit(*bp)){
 		cnt = atoi(bp);
@@ -391,23 +391,23 @@ char *un, *dn, *an;
 		wand of wishing
 		elven cloak
 	*/
-	for(p = bp; *p; p++) if(!strncmp(p, " named ", 7)) {
+	for(p = bp; *p; p++) if(!strncmp(p, " named ", STRLEN(" named "))) {
 		*p = 0;
-/*		oname = p+7; */
+/*		oname = p+STRLEN(" named "); */
 	}
-	for(p = bp; *p; p++) if(!strncmp(p, " called ", 8)) {
+	for(p = bp; *p; p++) if(!strncmp(p, " called ", STRLEN(" called "))) {
 		*p = 0;
-		un = p+8;
+		un = p+STRLEN(" called ");
 	}
-	for(p = bp; *p; p++) if(!strncmp(p, " labeled ", 9)) {
+	for(p = bp; *p; p++) if(!strncmp(p, " labeled ", STRLEN(" labeled "))) {
 		*p = 0;
-		dn = p+9;
+		dn = p+STRLEN(" labeled ");
 	}
 
 	/* first change to singular if necessary */
 	if(cnt != 1) {
 		/* find "cloves of garlic", "worthless pieces of blue glass" */
-		for(p = bp; *p; p++) if(!strncmp(p, "s of ", 5)){
+		for(p = bp; *p; p++) if(!strncmp(p, "s of ", STRLEN("s of "))){
 			while(*p = p[1]) p++;
 			goto sing;
 		}
@@ -416,20 +416,20 @@ char *un, *dn, *an;
 		if(p[-1] == 's') {
 			if(p[-2] == 'e') {
 				if(p[-3] == 'i') {
-					if(!strcmp(p-7, "cookies"))
+					if(!strcmp(p-STRLEN("cookies"), "cookies"))
 						goto mins;
 					Strcpy(p-3, "y");
 					goto sing;
 				}
 
 				/* note: cloves / knives from clove / knife */
-				if(!strcmp(p-6, "knives")) {
+				if(!strcmp(p-STRLEN("knives"), "knives")) {
 					Strcpy(p-3, "fe");
 					goto sing;
 				}
 
 				/* note: nurses, axes but boxes */
-				if(!strcmp(p-5, "boxes")) {
+				if(!strcmp(p-STRLEN("boxes"), "boxes")) {
 					p[-2] = 0;
 					goto sing;
 				}
@@ -437,12 +437,12 @@ char *un, *dn, *an;
 		mins:
 			p[-1] = 0;
 		} else {
-			if(!strcmp(p-9, "homunculi")) {
+			if(!strcmp(p-STRLEN("homunculi"), "homunculi")) {
 				Strcpy(p-1, "us"); /* !! makes string longer */
 				goto sing;
 			}
-			if(!strcmp(p-5, "teeth")) {
-				Strcpy(p-5, "tooth");
+			if(!strcmp(p-STRLEN("teeth"), "teeth")) {
+				Strcpy(p-STRLEN("teeth"), "tooth");
 				goto sing;
 			}
 			/* here we cannot find the plural suffix */
@@ -454,7 +454,7 @@ sing:
 		goto typfnd;
 	}
 	p = eos(bp);
-	if(!strcmp(p-5, " mail")){	/* Note: ring mail is not a ring ! */
+	if(!strcmp(p-STRLEN(" mail"), " mail")){	/* Note: ring mail is not a ring ! */
 		let = ARMOR_SYM;
 		an = bp;
 		goto srch;
@@ -464,7 +464,7 @@ sing:
 		if(!strncmp(bp, wrp[i], j)){
 			let = wrpsym[i];
 			bp += j;
-			if(!strncmp(bp, " of ", 4)) an = bp+4;
+			if(!strncmp(bp, " of ", STRLEN(" of "))) an = bp+STRLEN(" of ");
 			/* else if(*bp) ?? */
 			goto srch;
 		}
@@ -477,8 +477,8 @@ sing:
 			goto srch;
 		}
 	}
-	if(!strcmp(p-6, " stone")){
-		p[-6] = 0;
+	if(!strcmp(p-STRLEN(" stone"), " stone")){
+		p[-STRLEN(" stone")] = 0;
 		let = GEM_SYM;
 		an = bp;
 		goto srch;
@@ -495,11 +495,14 @@ srch:
 	i = 1;
 	if(let) i = bases[letindex(let)];
 	while(i <= NROFOBJECTS && (!let || objects[i].oc_olet == let)){
-		if(an && strcmp(an, objects[i].oc_name))
+		register char *zn = objects[i].oc_name;
+
+		if(!zn) goto nxti;
+		if(an && strcmp(an, zn))
 			goto nxti;
-		if(dn && strcmp(dn, objects[i].oc_descr))
+		if(dn && (!(zn = objects[i].oc_descr) || strcmp(dn, zn)))
 			goto nxti;
-		if(un && strcmp(un, objects[i].oc_uname))
+		if(un && (!(zn = objects[i].oc_uname) || strcmp(un, zn)))
 			goto nxti;
 		typ = i;
 		goto typfnd;
@@ -533,7 +536,7 @@ typfnd:
 	else if(let == AMULET_SYM)
 		spe = -1;
 	else if(typ == WAN_WISHING && rn2(10))
-		spe = 0;
+		spe = (rn2(10) ? -1 : 0);
 	otmp->spe = spe;
 
 	if(spesgn == -1)

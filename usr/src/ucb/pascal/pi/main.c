@@ -12,6 +12,7 @@ static	char	sccsid[] = "%W%";	/* SCCS id keyword */
 #include "0.h"
 #include "yy.h"
 
+
 /*
  * This version of pi has been in use at Berkeley since May 1977
  * and is very stable, except for the syntactic error recovery which
@@ -26,12 +27,17 @@ char	pixusage[]	= "pix [ -blnpstuw ] [ -i file ... ] name.p [ arg ... ]";
 
 char	*usageis	= piusage;
 char	*obj		= "obj";
+
 /*
  * Be careful changing errfile and howfile.
- * There are the "magic" constants 9 and 15 immediately below.
+ * There are the "magic" constants err_pathlen and how_pathlen
+ * immediately below.
  */
-char	*errfile	= "/usr/lib/pi1.2strings";
-char	*howfile	= "/usr/lib/how_pi\0";
+char    *err_file	= "/usr/lib/pi1.2strings";
+int	err_pathlen	= 9;			/* "/usr/lib/" */
+
+char    *how_file	= "/usr/lib/how_pi\0";	/* room for 'x' in pix */
+int	how_pathlen	= 9;			/* "/usr/lib/" */
 
 int	onintr();
 
@@ -61,11 +67,11 @@ main(argc, argv)
 	int i;
 
 	if (argv[0][0] == 'a')
-		errfile += 9, howfile += 9;
+		err_file += err_pathlen, how_file += how_pathlen;
 	if (argv[0][0] == '-' && argv[0][1] == 'o') {
 		obj = &argv[0][2];
 		usageis = pixusage;
-		howfile[15] = 'x';
+		how_file[strlen(how_file)] = 'x';
 		ofil = 3;
 	} else {
 		ofil = creat(obj, 0755);
@@ -80,7 +86,7 @@ main(argc, argv)
 		if (i == -1)
 			goto usage;
 		if (i == 0) {
-			execl("/bin/cat", "cat", howfile, 0);
+			execl("/bin/cat", "cat", how_file, 0);
 			goto usage;
 		}
 		while (wait(&i) != -1)
@@ -149,9 +155,9 @@ usage:
 	}
 	if (argc != 1)
 		goto usage;
-	efil = open ( errfile, 0 );
+	efil = open ( err_file, 0 );
 	if ( efil < 0 )
-		perror(errfile), pexit(NOSTART);
+		perror(err_file), pexit(NOSTART);
 	filename = argv[0];
 	if (!dotted(filename, 'p')) {
 		Perror(filename, "Name must end in '.p'");
@@ -228,7 +234,7 @@ geterr(seekpt, buf)
 
 	lseek(efil, (long) seekpt, 0);
 	if (read(efil, buf, 256) <= 0)
-		perror(errfile), pexit(DIED);
+		perror(err_file), pexit(DIED);
 }
 
 header()

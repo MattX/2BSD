@@ -249,18 +249,28 @@ start:
 	mov	(sp)+,a.tmp2
 	mov	(sp)+,a.tmp3
 	jsr	r5,ofile; a.tmp1
-	movb	r0,txtfil
+	mov	r0,txtfil
 	jsr	r5,ofile; a.tmp2
-	movb	r0,fbfil
+	mov	r0,fbfil
 	jsr	r5,ofile; a.tmp3
-	movb	r0,symf
-	movb	r0,fin
-	sys	creat; a.outp1:a.out; 666
-	bec	1f
+	mov	r0,symf
+	mov	r0,fin
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	$0666,-(sp)		/ creat(a.outp1, 0666)
+	mov	a.outp1,-(sp)		/	sys	creat; a.outp1:a.out; 666
+	jsr	pc,_creat		/	bec	1f
+	cmp	(sp)+,(sp)+
+	mov	(sp)+,r1
+	tst	r0
+	jpl	1f
+
 	jsr	r5,filerr; a.outp
 1:
-	movb	r0,fout
+	mov	r0,fout
 	jmp	go
+
+a.outp1:	a.out
 
 / overlaid buffer
 inbuf	= start

@@ -95,6 +95,7 @@ int	Card_no,		/* Card number for current move		*/
 	};
 
 CARD	Discard,		/* Top of discard pile			*/
+	Sh_discard,		/* Last discard card shown		*/
 	*Topcard,		/* Pointer to next card to be picked	*/
 	Opposite[NUM_CARDS] = {	/* Opposites of each card		*/
 		C_25, C_50, C_75, C_100, C_200, C_GAS, C_SPARE,
@@ -131,3 +132,4 @@ PLAY	Player[2];		/* Player descriptions			*/
 WINDOW	*Board,			/* Playing field screen			*/
 	*Miles,			/* Mileage screen			*/
 	*Score;			/* Score screen				*/
+

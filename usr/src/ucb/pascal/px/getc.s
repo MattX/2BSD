@@ -4,18 +4,17 @@
 indir = 0
 
 .globl	_getc, _getw, _fopen
-.globl	cerror
 .comm	_errno,2
 
 _fopen:
 	mov	r5,-(sp)
 	mov	sp,r5
-	mov	4(r5),0f
-	sys	0; 9f
-	.data
-9:	sys	open; 0:..; 0
-	.text
-	bes	badret
+	clr	-(sp)
+	mov	4(r5),-(sp)
+	jsr	pc,_open
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	badret
 	mov	6(r5),r1
 	mov	r0,(r1)+
 	clr	(r1)+
@@ -66,18 +65,20 @@ _getc:
 fill:
 	mov	r1,r0
 	add	$6,r0
-	mov	r0,0f
 	mov	r0,4(r1)
-	mov	(r1),r0
-	sys	0; 9f
-.data
-9:	sys	read; 0:..; 512.
-.text
-	bes	badret
+	mov	$512.,-(sp)
+	mov	r0,-(sp)
+	mov	(r1),-(sp)
+	jsr	pc,_read
+	add	$6,sp
+	tst	r0
+	bmi	badret
 	dec	r0
 	bmi	badret
 	mov	r0,2(r1)
 	rts	pc
 
 badret:
-	jmp	cerror
+	mov	r5,sp
+	mov	(sp)+,r5
+	rts	pc

@@ -1,19 +1,25 @@
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)csh.1	6.8 (Berkeley) 6/5/86
+.\"
+.TH CSH 1 "June 5, 1986"
+.UC 4
 .de sh
 .br
 .ne 5
 .PP
-\fB\\$1\fP
+\fB\\$1\fR
 .PP
 ..
-.if n .ds ua \o'^|'
+.if n .ds ua ^
 .if t .ds ua \(ua
 .if n .ds aa '
 .if t .ds aa \(aa
 .if n .ds ga `
 .if t .ds ga \(ga
 .if t .tr *\(**
-.TH CSH 1
-.UC
 .SH NAME
 csh \- a shell (command interpreter) with C-like syntax
 .SH SYNOPSIS
@@ -26,38 +32,22 @@ arg ...
 .SH DESCRIPTION
 .I Csh
 is a first implementation of a command language interpreter
-incorporating a history mechanism (see
-.BR "History Substitutions" ),
-job control facilities
-(see
-.B Jobs)
+incorporating a history mechanism (see \fBHistory Substitutions\fP),
+job control facilities (see \fBJobs\fP), interactive file name
+and user name completion (see \fBFile Name Completion\fP),
 and a C-like syntax.
 So as to be able to use its job control facilities, users of
 .I csh
-must (and automatically do) use the new tty driver summarized in
-.IR newtty (4)
-and fully described in
+must (and automatically) use the new tty driver fully described in
 .IR tty (4).
 This new tty driver allows generation of interrupt characters
-from the keyboard to tell jobs to stop.
-See
+from the keyboard to tell jobs to stop.  See
 .IR stty (1)
 for details on setting options in the new tty driver.
-.IR Login (1)
-normally switches to the new line discipline if the shell is
-specified as
-.IR /bin/csh ;
-otherwise it sets the terminal stop characters to be undefined.
-In this way, users of
-.I /bin/oldcsh
-may use the same shell without job control
-if that name is a link to
-.IR /bin/csh .
 .PP
 An instance of
 .I csh
-begins by executing commands from the file `.cshrc'
-in the
+begins by executing commands from the file `.cshrc' in the
 .I home
 directory of the invoker.
 If this is a login shell then it also executes commands from the file
@@ -75,7 +65,7 @@ containing command scripts will be described later.
 .PP
 The shell then repeatedly performs the following actions:
 a line of command input is read and broken into
-.I words.
+.IR words .
 This sequence of words is placed on the command history list and then parsed.
 Finally each command in the current line is executed.
 .PP
@@ -125,9 +115,9 @@ that the second is to be executed only if the first fails or succeeds
 respectively. (See
 .I Expressions.)
 .sh "Jobs"
-The shell associates a \fIjob\fP with each pipeline.  It keeps
+The shell associates a \fIjob\fR with each pipeline.  It keeps
 a table of current jobs, printed by the
-\fIjobs\fP command, and assigns them small integer numbers.  When
+\fIjobs\fR command, and assigns them small integer numbers.  When
 a job is started asynchronously with `&', the shell prints a line which looks
 like:
 .PP
@@ -138,14 +128,14 @@ indicating that the job which was started asynchronously was job number
 1 and had one (top-level) process, whose process id was 1234.
 .PP
 If you are running a job and wish to do something else you may hit the key
-\fB^Z\fP (control-Z) which sends a STOP signal to the current job.
+\fB^Z\fR (control-Z) which sends a STOP signal to the current job.
 The shell will then normally indicate that the job has been `Stopped',
 and print another prompt.  You can then manipulate the state of this job,
-putting it in the background with the \fIbg\fP command, or run some other
+putting it in the background with the \fIbg\fR command, or run some other
 commands and then eventually bring the job back into the foreground with
-the foreground command \fIfg\fP.  A \fB^Z\fP takes effect immediately and
+the foreground command \fIfg\fR.  A \fB^Z\fR takes effect immediately and
 is like an interrupt in that pending output and unread input are discarded
-when it is typed.  There is another special key \fB^Y\fP which does 
+when it is typed.  There is another special key \fB^Y\fR which does 
 not generate a STOP signal until a program attempts to
 .IR read (2)
 it.
@@ -200,10 +190,92 @@ marks the current process;
 simply say `notify' after starting a background job to mark it.
 .PP
 When you try to leave the shell while jobs are stopped, you will
-be warned that `You have stopped jobs.'  You may use the \fIjobs\fP
+be warned that `You have stopped jobs.'  You may use the \fIjobs\fR
 command to see what they are.  If you do this or immediately try to
 exit again, the shell will not warn you a second time, and the suspended
 jobs will be terminated.
+.sh "File Name Completion"
+When the file name completion feature is enabled by setting
+the shell variable \fIfilec\fP (see \fBset\fP), \fIcsh\fP will
+interactively complete file names and user names from unique
+prefixes, when they are input from the terminal followed by
+the escape character (the escape key, or control-[).  For example,
+if the current directory looks like
+.ta 1i 2i 3i 4i 5i 6i
+.nf
+	DSC.OLD	bin	cmd	lib	xmpl.c
+	DSC.NEW	chaosnet	cmtest	mail	xmpl.o
+	bench	class	dev	mbox	xmpl.out
+.fi
+and the input is
+.br
+	% vi ch<escape>
+.br
+\fIcsh\fP will complete the prefix ``ch''
+to the only matching file name ``chaosnet'', changing the input
+line to
+.br
+	% vi chaosnet
+.br
+However, given
+.br
+	% vi D<escape>
+.br
+\fIcsh\fP will only expand the input to
+.br
+	% vi DSC.
+.br
+and will sound the terminal bell to indicate that the expansion is
+incomplete, since there are two file names matching the prefix ``D''.
+.PP
+If a partial file name is followed by the end-of-file character
+(usually control-D), then, instead of completing the name, \fIcsh\fP
+will list all file names matching the prefix.  For example,
+the input
+.br
+	% vi D<control-D>
+.br
+causes all files beginning with ``D'' to be listed:
+.br
+	DSC.NEW	DSC.OLD
+.br
+while the input line remains unchanged.
+.PP
+The same system of escape and end-of-file can also be used to
+expand partial user names, if the word to be completed
+(or listed) begins with the character ``~''.  For example,
+typing
+.br
+	cd ~ro<control-D>
+.br
+may produce the expansion
+.br
+	cd ~root
+.PP
+The use of the terminal bell to signal errors or multiple matches
+can be inhibited by setting the variable \fInobeep\fP.
+.PP
+Normally, all files in the particular directory are candidates
+for name completion.  Files with certain suffixes can be excluded
+from consideration by setting the variable \fIfignore\fP to the
+list of suffixes to be ignored.  Thus, if \fIfignore\fP is set by
+the command
+.br
+	% set fignore = (.o .out)
+.br
+then typing
+.br
+	% vi x<escape>
+.br
+would result in the completion to
+.br
+	% vi xmpl.c
+.br
+ignoring the files "xmpl.o" and "xmpl.out".
+However, if the only completion possible requires not ignoring these
+suffixes, then they are not ignored.  In addition, \fIfignore\fP
+does not affect the listing of file names by control-D.  All files
+are listed regardless of their suffixes.
 .sh Substitutions
 We now describe the various transformations the shell performs on the
 input in the order in which they occur.
@@ -267,7 +339,7 @@ alone is essentially a
 .PP
 To select words from an event we can follow the event specification by
 a `:' and a designator for the desired words.
-The words of a input line are numbered from 0,
+The words of an input line are numbered from 0,
 the first (usually command) word being 0, the second word (first argument)
 being 1, etc.
 The basic word designators are:
@@ -275,15 +347,15 @@ The basic word designators are:
 .DT
 .nf
 	0	first (command) word
-	\fIn\fP	\fIn\fP\|'th argument
+	\fIn\fR	\fIn\fR\|'th argument
 	\*(ua	first argument,  i.e. `1'
 	$	last argument
-	%	word matched by (immediately preceding) ?\fIs\fP\|? search
-	\fIx\fP\|\-\fIy\fP	range of words
-	\-\fIy\fP	abbreviates `0\-\fIy\fP\|'
+	%	word matched by (immediately preceding) ?\fIs\fR\|? search
+	\fIx\fR\|\-\fIy\fR	range of words
+	\-\fIy\fR	abbreviates `0\-\fIy\fR\|'
 	*	abbreviates `\*(ua\-$', or nothing if only 1 word in event
-	\fIx\fP\|*	abbreviates `\fIx\fP\|\-$'
-	\fIx\fP\|\-	like `\fIx\fP\|*' but omitting word `$'
+	\fIx\fR\|*	abbreviates `\fIx\fR\|\-$'
+	\fIx\fR\|\-	like `\fIx\fR\|*' but omitting word `$'
 .fi
 .PP
 The `:' separating the event specification from the word designator
@@ -298,7 +370,7 @@ The following modifiers are defined:
 	h	Remove a trailing pathname component, leaving the head.
 	r	Remove a trailing `.xxx' component, leaving the root name.
 	e	Remove all but the extension `.xxx' part.
-	s/\fIl\fP\|/\fIr\fP\|/	Substitute \fIl\fP for \fIr\fP
+	s/\fIl\fR\|/\fIr\fR\|/	Substitute \fIl\fR for \fIr\fR
 	t	Remove all leading pathname components, leaving the tail.
 	&	Repeat the previous substitution.
 	g	Apply the change globally, prefixing the above, e.g. `g&'.
@@ -329,7 +401,7 @@ uses the previous string either from a
 or from a
 contextual scan string
 .IR s ""
-in `!?\fIs\fP\|?'.
+in `!?\fIs\fR\|?'.
 The trailing delimiter in the substitution may be omitted if a newline
 follows immediately as may the trailing `?' in a contextual scan.
 .PP
@@ -353,13 +425,12 @@ Thus, after `ls \-ld ~paul' we might do `!{l}a' to do `ls \-ld ~paula',
 while `!la' would look for a command starting `la'.
 .PP
 .if n .ul
-\fBQuotations\ with\ \'\ and\ "\fP
+\fBQuotations\ with\ \'\ and\ "\fR
 .PP
 The quotation of strings by `\'' and `"' can be used
 to prevent all or some of the remaining substitutions.
 Strings enclosed in `\'' are prevented any further interpretation.
-Strings enclosed in `"' are yet variable and command expanded
-as described below.
+Strings enclosed in `"' may be expanded as described below.
 .PP
 In both cases the resulting text becomes (all or part of) a single word;
 only in one special case (see
@@ -453,7 +524,7 @@ and the rest of which become arguments.
 .PP
 Unless enclosed in `"' or given the `:q' modifier the results of variable
 substitution may eventually be command and filename substituted.
-Within `"' a variable whose value consists of multiple words expands to a
+Within `"', a variable whose value consists of multiple words expands to a
 (portion of) a single word, with the words of the variables value
 separated by blanks.
 When the `:q' modifier is applied to a substitution
@@ -482,7 +553,7 @@ starting with a letter.  The underscore character is considered a letter.
 If
 .I name
 is not a shell variable, but is set in the environment, then
-that value is returned (but \fB:\fP modifiers and the other forms
+that value is returned (but \fB:\fR modifiers and the other forms
 given below are not available in this case).
 .HP 5
 $name[selector]
@@ -704,8 +775,7 @@ Uses file
 as standard output like `>' but places output at the end of the file.
 If the variable
 .I noclobber
-is set, then
-it is an error for the file not to exist unless
+is set, then it is an error for the file not to exist unless
 one of the `!' forms is given.
 Otherwise similar to `>'.
 .PP
@@ -725,7 +795,7 @@ remains as the original standard input of the shell.  If this is a terminal
 and if the process attempts to read from the terminal, then the process
 will block and the user will be notified (see
 .B Jobs
-above.)
+above).
 .PP
 Diagnostic output may be directed through a pipe with the standard output.
 Simply use the form `|\|&' rather than just `|'.
@@ -770,7 +840,7 @@ they should be surrounded by spaces.
 .PP
 Also available in expressions as primitive operands are command executions
 enclosed in `{' and `}'
-and file enquiries of the form `\-\fIl\fP  name' where
+and file enquiries of the form `\-\fIl\fR  name' where
 .I  l
 is one of:
 .PP
@@ -854,18 +924,18 @@ or
 .HP 5
 .B  alloc
 .br
-Shows the amount of dynamic core in use, broken down into used and
-free core, and address of the last location in the heap.
-With an argument shows each used and free block on the internal dynamic
-memory chain indicating its address, size, and whether it is used or free.
-This is a debugging command and may not work in production versions of the
-shell; it requires a modified version of the system memory allocator.
+Shows the amount of dynamic memory acquired, broken down into used and
+free memory.
+With an argument shows the number of free and used blocks in each size
+category.  The categories start at size 8 and double at each step.
+This command's output may vary across system types, since
+systems other than the VAX may use a different memory allocator.
 .HP 5
 .B bg
 .br
 .ns
 .HP 5
-\fBbg\ %\fPjob\ ...
+\fBbg\ %\fRjob\ ...
 .br
 Puts the current or specified jobs into the background, continuing them
 if they were stopped.
@@ -908,7 +978,7 @@ statement as discussed below.
 .HP 5
 .BR chdir " name"
 .br
-Change the shells working directory to directory
+Change the shell's working directory to directory
 .I name.
 If no argument is given then change to the home directory of the user.
 .br
@@ -985,12 +1055,13 @@ statements below.
 (As in
 .IR sh (1).)
 The arguments are read as input to the shell and the resulting
-command(s) executed.  This is usually used to execute commands
+command(s) executed in the context of the current shell.
+This is usually used to execute commands
 generated as the result of command or variable substitution, since
 parsing occurs before these substitutions.  See
 .IR tset (1)
 for an example of using
-.I eval.
+.IR eval .
 .HP 5
 .BR exec " command"
 .br
@@ -1012,7 +1083,7 @@ variable (first form) or with the value of the specified
 .br
 .ns
 .HP 5
-\fBfg\ %\fPjob\ ...
+\fBfg\ %\fRjob\ ...
 .br
 Brings the current or specified jobs into the foreground, continuing them if
 they were stopped.
@@ -1091,13 +1162,23 @@ which does not begin with a `/'.
 .HP 5
 .BI "history \-r" " n"
 .br
-Displays the history event list; if \fIn\fP is given only the
+.ns
+.HP 5
+.BI "history \-h" " n"
+.br
+Displays the history event list; if \fIn\fR is given only the
 .I n
 most recent events are printed.
 The
 .B \-r
 option reverses the order of printout to be most recent first
 rather than oldest first.
+The
+.B \-h
+option causes the history list to be printed without leading numbers.
+This is used to produce files suitable for sourceing using the \-h
+option to
+.IR source .
 .HP 5
 .BR if " (expr) command"
 .br
@@ -1127,7 +1208,7 @@ executed (this is a bug).
 .br
 .ns
 .HP 5
-.BR else " " "if\fP (expr2) \fBthen"
+.BR else " " "if\fR (expr2) \fBthen"
 .br
 .ns
 .HP 5
@@ -1149,10 +1230,10 @@ If the specified
 .IR expr ""
 is true then the commands to the first
 .I else
-are executed; else if
+are executed; otherwise if
 .IR expr2 ""
 is true then the commands to the
-second else are executed, etc.
+second \fIelse\fR are executed, etc.
 Any number of
 .I else-if
 pairs are possible; only one
@@ -1181,23 +1262,23 @@ Lists the active jobs; given the
 .B \-l
 options lists process id's in addition to the normal information.
 .HP 5
-\fBkill %\fPjob
+\fBkill %\fRjob
 .br
 .ns
 .HP 5
-\fBkill\ \-\fPsig\ \fB%\fPjob\ ...
+\fBkill\ \-\fRsig\ \fB%\fRjob\ ...
 .br
 .ns
 .HP 5
-\fBkill\fP\ pid
+\fBkill\fR\ pid
 .br
 .ns
 .HP 5
-\fBkill\ \-\fPsig\ pid\ ...
+\fBkill\ \-\fRsig\ pid\ ...
 .br
 .ns
 .HP 5
-\fBkill\ \-l\fP
+\fBkill\ \-l\fR
 .br
 Sends either the TERM (terminate) signal or the
 specified signal to the specified jobs or processes.
@@ -1210,34 +1291,49 @@ send a signal to the current job.
 If the signal being sent is TERM (terminate) or HUP (hangup),
 then the job or process will be sent a CONT (continue) signal as well.
 .HP
-\fBlimit\fP
+\fBlimit\fR
 .br
 .ns
 .HP 5
-\fBlimit\fP \fIresource\fP
+\fBlimit\fR \fIresource\fR
 .br
 .ns
 .HP 5
-\fBlimit\fP \fIresource\fP \fImaximum-use\fP
+\fBlimit\fR \fIresource\fR \fImaximum-use\fR
 .br
-(Vax only.)
+.ns
+.HP 5
+\fBlimit\ \-h\fR
+.br
+.ns
+.HP 5
+\fBlimit\ \-h\fR \fIresource\fR
+.br
+.ns
+.HP 5
+\fBlimit\ \-h\fR \fIresource\fR \fImaximum-use\fR
+.br
 Limits the consumption by the current process and each process
-it creates to not individually exceed \fImaximum-use\fP on the
-specified \fIresource\fP.  If no \fImaximum-use\fP is given, then
-the current limit is printed; if no \fIresource\fP is given, then
-all limitations are given.
+it creates to not individually exceed \fImaximum-use\fR on the
+specified \fIresource\fR.  If no \fImaximum-use\fR is given, then
+the current limit is printed; if no \fIresource\fR is given, then
+all limitations are given.  If the \fB\-h\fR
+flag is given, the hard limits are used instead of the current
+limits.  The hard limits impose a ceiling on the values of
+the current limits.  Only the super-user may raise the hard limits,
+but a user may lower or raise the current limits within the legal range.
 .IP
-Resources controllable currently include \fIcputime\fP (the maximum
-number of cpu-seconds to be used by each process), \fIfilesize\fP
-(the largest single file which can be created), \fIdatasize\fP
+Resources controllable currently include \fIcputime\fR (the maximum
+number of cpu-seconds to be used by each process), \fIfilesize\fR
+(the largest single file which can be created), \fIdatasize\fR
 (the maximum growth of the data+stack region via
 .IR sbrk (2)
-beyond the end of the program text), \fIstacksize\fP (the maximum
-size of the automatically-extended stack region), and \fIcoredumpsize\fP
+beyond the end of the program text), \fIstacksize\fR (the maximum
+size of the automatically-extended stack region), and \fIcoredumpsize\fR
 (the size of the largest core dump that will be created).
 .IP
-The \fImaximum-use\fP may be given as a (floating point or integer)
-number followed by a scale factor.  For all limits other than \fIcputime\fP
+The \fImaximum-use\fR may be given as a (floating point or integer)
+number followed by a scale factor.  For all limits other than \fIcputime\fR
 the default scale is `k' or `kilobytes' (1024 bytes);
 a scale factor of `m' or `megabytes' may also be used.
 For
@@ -1246,7 +1342,7 @@ the default scaling is `seconds', while `m' for minutes
 or `h' for hours, or a time of the form `mm:ss' giving minutes
 and seconds may be used.
 .IP
-For both \fIresource\fP names and scale factors, unambiguous prefixes
+For both \fIresource\fR names and scale factors, unambiguous prefixes
 of the names suffice.
 .HP 5
 .B  login
@@ -1263,19 +1359,11 @@ Especially useful if
 .I ignoreeof
 is set.
 .HP 5
-.B  newgrp
-.br
-Changes the group identification of the caller; for details see
-.IR newgrp (1).
-A new shell is executed by
-.I newgrp
-so that the shell state is lost.
-.HP 5
 .B  nice
 .br
 .ns
 .HP 5
-.BR nice " \+number"
+.BR nice " +number"
 .br
 .ns
 .HP 5
@@ -1283,20 +1371,21 @@ so that the shell state is lost.
 .br
 .ns
 .HP 5
-.BR nice " \+number command"
+.BR nice " +number command"
 .br
 The first form sets the
-.I nice
+scheduling priority
 for this shell to 4.
 The second form sets the
-.I nice
+priority
 to the given number.
 The final two forms run command at priority 4 and
 .I number
 respectively.
-The super-user may specify negative niceness by using `nice \-number ...'.
+The greater the number, the less cpu the process will get.
+The super-user may specify negative priority by using `nice \-number ...'.
 Command is always executed in a sub-shell, and the restrictions
-place on commands in simple
+placed on commands in simple
 .I if
 statements apply.
 .HP 5
@@ -1317,7 +1406,7 @@ All processes detached with `&' are effectively
 .br
 .ns
 .HP 5
-\fBnotify\ %\fPjob\ ...
+\fBnotify\ %\fRjob\ ...
 .br
 Causes the shell to notify the user asynchronously when the status of the
 current or specified jobs changes; normally notification is presented
@@ -1357,7 +1446,7 @@ continue to be ignored by the shell and all invoked commands.
 .BR "popd" " +n"
 .br
 Pops the directory stack, returning to the new top directory.
-With a argument `+\fIn\fP' discards the \fIn\fP\|th
+With an argument `+\fIn\fR' discards the \fIn\fR\|th
 entry in the stack.
 The elements of the directory stack are numbered from 0 starting at the top.
 .HP 5
@@ -1384,7 +1473,7 @@ and pushes the old current working directory
 (as in
 .I csw)
 onto the directory stack.
-With a numeric argument, rotates the \fIn\fP\|th argument of the directory
+With a numeric argument, rotates the \fIn\fR\|th argument of the directory
 stack around to be the top element and changes to it.  The members
 of the directory stack are numbered from the top starting at 0.
 .HP 5
@@ -1460,13 +1549,24 @@ These arguments may be repeated to set multiple values in a single set command.
 Note however, that variable expansion happens for all arguments before any
 setting occurs.
 .HP 5
+.BR setenv
+.br
+.ns
+.HP 5
 .BR setenv " name value"
 .br
-Sets the value of environment variable
+.ns
+.HP 5
+.BR setenv " name"
+.br
+The first form lists all current environment variables.
+The last form sets the value of environment variable
 .I name
 to be
 .I value,
-a single string.
+a single string.  The second form sets
+.I name
+to an empty string.
 The most commonly used environment variable USER, TERM, and PATH
 are automatically imported to and exported from the
 .I csh
@@ -1496,6 +1596,10 @@ The second form performs the same function on the specified variable.
 .HP 5
 .BR source " name"
 .br
+.ns
+.HP 5
+.BR "source \-h" " name"
+.br
 The shell reads commands from
 .I name.
 .I Source
@@ -1506,17 +1610,17 @@ An error in a
 at any level terminates all nested
 .I source
 commands.
-Input during 
+Normally input during 
 .I source
-commands is
-.B never
-placed on the history list.
+commands is not placed on the history list;
+the \-h option causes the commands to be placed in the
+history list without being executed.
 .HP 5
 .B stop
 .br
 .ns
 .HP 5
-\fBstop\ %\fPjob\ ...
+\fBstop\ %\fRjob\ ...
 .br
 Stops the current or specified job which is executing in the background.
 .HP 5
@@ -1524,7 +1628,7 @@ Stops the current or specified job which is executing in the background.
 .br
 .ns
 Causes the shell to stop in its tracks, much as if it had been sent a stop
-signal with \fB^Z\fP.  This is most often used to stop shells started by
+signal with \fB^Z\fR.  This is most often used to stop shells started by
 .IR su (1).
 .HP 5
 .BR switch " (string)"
@@ -1592,8 +1696,7 @@ If arguments are given
 the specified simple command is timed and a time summary
 as described under the
 .I time
-variable is printed.
-If necessary, an extra shell is created to print the time
+variable is printed.  If necessary, an extra shell is created to print the time
 statistic when the command completes.
 .HP 5
 .B umask
@@ -1620,15 +1723,24 @@ It is not an error for nothing to be
 Use of the internal hash table to speed location of executed programs
 is disabled.
 .HP 5
-\fBunlimit\fP \fIresource\fP
+\fBunlimit\fR
 .br
 .ns
 .HP 5
-\fBunlimit\fP
+\fBunlimit\fR \fIresource\fR
 .br
-(Vax only.)
-Removes the limitation on \fIresource\fP.  If no \fIresource\fP
-is specified, then all \fIresource\fP limitations are removed.
+.ns
+.HP 5
+\fBunlimit\ \-h\fR
+.br
+.ns
+.HP 5
+\fBunlimit\ \-h\fR \fIresource\fR
+.br
+Removes the limitation on \fIresource\fR.  If no \fIresource\fR
+is specified, then all \fIresource\fR limitations are removed.  If
+\fB\-h\fR is given, the corresponding hard limits are removed.  Only the
+super-user may do this.
 .HP 5
 .BR unset " pattern"
 .br
@@ -1680,11 +1792,11 @@ Prompting occurs here the first time through the loop as for the
 .I foreach
 statement if the input is a terminal.
 .HP 5
-\fB%\fPjob
+\fB%\fRjob
 .br
 Brings the specified job into the foreground.
 .HP 5
-\fB%\fPjob \fB&\fP
+\fB%\fRjob \fB&\fR
 .br
 Continues the specified job in the background.
 .HP 5
@@ -1723,7 +1835,7 @@ Spaces are, however, mandatory in separating components of
 .I expr
 which would otherwise be single words.
 .IP
-Special postfix `++' and `\-\-' operators increment and decrement
+Special postfix `++' and `\-\|\-' operators increment and decrement
 .I name
 respectively, i.e. `@  i++'.
 .sh "Pre-defined and environment variables"
@@ -1763,11 +1875,6 @@ as inferior
 processes will import the definition of
 .I path
 from the environment, and re-export it if you then change it.
-(It could be set once in the
-.I \&.login
-except that commands through
-.IR net (1)
-would not see the definition.)
 .TP 15
 .B argv
 \c
@@ -1796,6 +1903,18 @@ For non-builtin commands all expansions occur before echoing.
 Builtin commands are echoed before command and filename substitution,
 since these substitutions are then done selectively.
 .TP 15
+.B filec
+Enable file name completion.
+\c
+.TP 15
+.B histchars
+\c
+Can be given a string value to change the characters used in history
+substitution.  The first character of its value is used as the
+history substitution character, replacing the default character !.
+The second character of its value replaces the character \(ua in
+quick substitutions.
+.TP 15
 .B history
 \c
 Can be given a numeric value to control the size of the history list.
@@ -1809,7 +1928,7 @@ The last executed command is always saved on the history list.
 .B home
 \c
 The home directory of the invoker, initialized from the environment.
-The filename expansion of `\fB~\fP' refers to this variable.
+The filename expansion of `\fB~\fR' refers to this variable.
 .TP 15
 .B ignoreeof
 \c
@@ -1898,6 +2017,17 @@ If a `!' appears in the string it will be replaced by the current event number
 unless a preceding `\e' is given.
 Default is `% ', or `# ' for the super-user.
 .TP 15
+.B savehist
+\c
+is given a numeric value to control the number of entries of the
+history list that are saved in ~/.history when the user logs out.
+Any command which has been referenced in this many events will be saved.
+During start up the shell sources ~/.history into the history list
+enabling history to be saved across logins.
+Too large values of
+.I savehist
+will slow down the shell during start up.
+.TP 15
 .B shell
 \c
 The file in which the shell resides.
@@ -1947,7 +2077,7 @@ in a directory if there is a possibility that the command resides there.
 This greatly speeds command location when a large number of directories
 are present in the search path.
 If this mechanism has been turned off (via
-.I unhash),
+.IR unhash ),
 or if the shell was given a
 .B \-c
 or
@@ -1971,7 +2101,7 @@ from affecting the current shell.
 .PP
 If the file has execute permissions but is not an
 executable binary to the system, then it is assumed to be a
-file containing shell commands an a new shell is spawned to read it.
+file containing shell commands and a new shell is spawned to read it.
 .PP
 If there is an
 .I alias
@@ -1992,66 +2122,75 @@ If argument 0 to the shell is `\-' then this
 is a login shell.
 The flag arguments are interpreted as follows:
 .TP 5
-.B  \-\^c
+.B  \-b
+\c
+This flag forces a ``break'' from option processing, causing any further
+shell arguments to be treated as non-option arguments.
+The remaining arguments will not be interpreted as shell options.
+This may be used to pass options to a shell script without confusion
+or possible subterfuge.
+The shell will not run a set-user ID script without this option.
+.TP 5
+.B  \-c
 \c
 Commands are read from the (single) following argument which must
 be present.
 Any remaining arguments are placed in
 .I argv.
 .TP 5
-.B  \-\^e
+.B  \-e
 \c
 The shell exits if any invoked command terminates abnormally
 or yields a non-zero exit status.
 .TP 5
-.B  \-\^f
+.B  \-f
 \c
 The shell will start faster, because it will neither search for nor
 execute commands from the file
-`\&.cshrc' in the invokers home directory.
+`\&.cshrc' in the invoker's home directory.
 .TP 5
-.B  \-\^i
+.B  \-i
 \c
 The shell is interactive and prompts for its top-level input,
 even if it appears to not be a terminal.
 Shells are interactive without this option if their inputs
 and outputs are terminals.
 .TP 5
-.B  \-\^n
+.B  \-n
 \c
 Commands are parsed, but not executed.
-This may aid in syntactic checking of shell scripts.
+This aids in syntactic checking of shell scripts.
 .TP 5
-.B  \-\^s
+.B  \-s
 \c
 Command input is taken from the standard input.
 .TP 5
-.B  \-\^t
+.B  \-t
 \c
 A single line of input is read and executed.
 A `\e' may be used to escape the newline at the end of this
 line and continue onto another line.
 .TP 5
-.B  \-\^v
+.B  \-v
 \c
 Causes the
 .I verbose
 variable to be set, with the effect
 that command input is echoed after history substitution.
 .TP 5
-.B  \-\^x
+.B  \-x
 \c
 Causes the 
 .I echo
 variable to be set, so that commands are echoed immediately before execution.
 .TP 5
-.B  \-\^V
+.B  \-V
 \c
 Causes the
 .I verbose
 variable to be set even before `\&.cshrc' is executed.
 .TP 5
-.B  \-\^X
+.B  \-X
 \c
 Is to
 .B \-x
@@ -2060,13 +2199,13 @@ as
 is to
 .B \-v.
 .PP
-After processing of flag arguments if arguments remain but none of the
+After processing of flag arguments, if arguments remain but none of the
 .B \-c,
 .B \-i,
 .B \-s,
 or
 .B \-t
-options was given the first argument is taken as the name of a file of
+options was given, the first argument is taken as the name of a file of
 commands to be executed.
 The shell opens this file, and saves its name for possible resubstitution
 by `$0'.
@@ -2080,7 +2219,7 @@ Remaining arguments initialize the variable
 The shell normally ignores
 .I quit
 signals.
-Jobs running detached (either by `&' or the \fIbg\fP or \fB%... &\fP
+Jobs running detached (either by `&' or the \fIbg\fR or \fB%... &\fR
 commands) are immune to signals generated from the keyboard, including
 hangups.
 Other signals have the values which the shell inherited from its parent.
@@ -2097,9 +2236,10 @@ In no case are interrupts allowed when a login shell is reading the file
 William Joy.
 Job control and directory stack features first implemented by J.E. Kulp of
 I.I.A.S.A, Laxenburg, Austria,
-with different syntax than that used now.
+with different syntax than that used now.  File name completion
+code written by Ken Greer, HP Labs.
 .SH FILES
-.ta 2i
+.ta 1.75i
 .nf
 ~/.cshrc	Read at beginning of execution by each shell.
 ~/.login	Read by login shell, after `.cshrc' at login.
@@ -2110,19 +2250,17 @@ with different syntax than that used now.
 .fi
 .SH LIMITATIONS
 Words can be no longer than 1024 characters.
-The system limits argument lists to 10240 characters
-(5120 characters on most PDP11 systems).
+The system limits argument lists to 10240 characters.
 The number of arguments to a command which involves filename expansion
 is limited to 1/6'th the number of characters allowed in an argument list.
 Command substitutions may substitute no more characters than are
 allowed in an argument list.
 To detect looping, the shell restricts the number of
 .I alias
-substititutions on a single line to 20.
+substitutions on a single line to 20.
 .SH "SEE ALSO"
-oldcsh(1), sh(1), access(2), execve(2), fork(2), killpg(2),
-pipe(2), sigsys(2),
-umask(2), wait(2), exec(3), jobs(3), sigset(3), tty(4), a.out(5), environ(5),
+sh(1), access(2), execve(2), fork(2), killpg(2), pipe(2), sigvec(2),
+umask(2), setrlimit(2), wait(2), tty(4), a.out(5), environ(7),
 `An introduction to the C shell'
 .SH BUGS
 When a command is restarted from a stop,
@@ -2157,3 +2295,7 @@ to be combined with `|', and to be used with `&' and `;' metasyntax.
 It should be possible to use the `:' modifiers on the output of command
 substitutions.
 All and more than one `:' modifier should be allowed on `$' substitutions.
+.PP
+The way the
+.B filec
+facility is implemented is ugly and expensive.

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)eqnbox.c	4.2 8/11/83";
+#endif
+
 # include "e.h"
 
 eqnbox(p1, p2, lu) {

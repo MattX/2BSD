@@ -1,5 +1,6 @@
-/* $Header: versys.c,v 1.7 85/07/19 21:34:42 rick Exp $ */
-/* from: @(#)versys.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)versys.c	5.5 (Berkeley) 10/9/85";
+#endif
 
 #include "uucp.h"
 #include <stdio.h>

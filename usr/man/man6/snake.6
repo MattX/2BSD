@@ -1,16 +1,32 @@
-.TH SNAKE 6
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)snake.6	6.1 (Berkeley) 5/20/85
+.\"
+.TH SNAKE 6 "May 20, 1985"
+.UC 4
 .SH NAME
-snake \- display chase game
+snake, snscore \- display chase game
 .SH SYNOPSIS
 .B /usr/games/snake
+[
+.BI \-w n
+] [
+.BI \-l n
+]
 .br
 .B /usr/games/snscore
 .SH DESCRIPTION
 Snake is a display-based game which must be played on a CRT terminal
 from among those supported by vi(1).
 The object of the game is to make as much money as possible without
-getting eaten by the snake.
+getting eaten by the snake.  The
+.B \-l
+and
+.B \-w
+options allow you to specify the length and width of the field.
+By default the entire screen (except for the last column) is used.
 .PP
 You are represented on the screen by an I.
 The snake is 6 squares long and is represented by S's.
@@ -24,12 +40,10 @@ Other possibilities include:
 These keys are like hjkl but form a directed pad around the d key.
 .IP HJKL
 These keys move you all the way in the indicated direction to the
-same row or column as the money.
-This does
+same row or column as the money.  This does
 .I not
 let you jump away from the snake, but rather saves you from having
-to type a key repeatedly.
-The snake still gets all his turns.
+to type a key repeatedly.  The snake still gets all his turns.
 .IP SEFC
 Likewise for the upper case versions on the left.
 .IP ATPB
@@ -63,5 +77,17 @@ which appears after the game is worth a bonus.
 To see who wastes time playing snake, run
 .I /usr/games/snscore .
 .SH FILES
-.ta 2i
+.nf
+.ta \w'/usr/games/lib/snakerawscores 'u
 /usr/games/lib/snakerawscores	database of personal bests
+/usr/games/lib/snake.log	log of games played
+/usr/games/busy	program to determine if system too busy
+.DT
+.fi
+.SH BUGS
+.PP
+When playing on a small screen,
+it's hard to tell when you hit the edge of the screen.
+.PP
+The scoring function takes into account the size of the screen.
+A perfect function to do this equitably has not been devised.

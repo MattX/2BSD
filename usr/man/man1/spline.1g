@@ -1,4 +1,7 @@
-.TH SPLINE 1G 
+.\"	@(#)spline.1g	6.1 (Berkeley) 4/29/85
+.\"
+.TH SPLINE 1G "April 29, 1985"
+.AT 3
 .SH NAME
 spline \- interpolate smooth curve
 .SH SYNOPSIS
@@ -25,12 +28,12 @@ example by
 The following options are recognized,
 each as a separate argument.
 .TP 5
-.B  \-\^a
+.B  \-a
 Supply abscissas automatically (they are missing from
 the input); spacing is given by the next
 argument, or is assumed to be 1 if next argument is not a number.
 .TP 5
-.B  \-\^k
+.B  \-k
 The constant
 .IR k ""
 used in the boundary value computation
@@ -48,7 +51,7 @@ used in the boundary value computation
 .ds 12 "\*'
 .nr 12 \w'\*(12'
 'ps 8
-.ds 13 "\fP0\fP
+.ds 13 "\fR0\fP
 .nr 13 \w'\*(13'
 .as 12 \v'18u'\s8\*(13\|\s10\v'-18u'
 'ps 10
@@ -74,7 +77,7 @@ used in the boundary value computation
 .ds 12 "\*'
 .nr 12 \w'\*(12'
 'ps 8
-.ds 13 "\fP1\fP
+.ds 13 "\fR1\fP
 .nr 13 \w'\*(13'
 .as 12 \v'18u'\s8\*(13\|\s10\v'-18u'
 'ps 10
@@ -130,7 +133,7 @@ used in the boundary value computation
 .ds 12 "\*'
 .nr 12 \w'\*(12'
 'ps 8
-.ds 13 "n\|\(mi\|\fP1\fP
+.ds 13 "n\|\(mi\|\fR1\fP
 .nr 13 \w'\*(13'
 .as 12 \v'18u'\s8\*(13\|\s10\v'-18u'
 'ps 10
@@ -155,7 +158,7 @@ By default
 .IR k ""
 = 0.
 .TP 5
-.B  \-\^n
+.B  \-n
 Space output points
 so that approximately
 .I n
@@ -166,12 +169,12 @@ limits.
 .I n
 = 100.)
 .TP 5
-.B  \-\^p
+.B  \-p
 Make output periodic, i.e. match
 derivatives at ends.
 First and last input values should normally agree.
 .TP 5
-.B  \-\^x
+.B  \-x
 Next 
 1 (or 2) arguments are lower (and upper) 
 .I x
@@ -180,9 +183,9 @@ Normally these limits are calculated from the data.
 Automatic abcissas start at lower limit
 (default 0).
 .SH "SEE ALSO"
-graph(1G)
+graph(1G), plot(1G)
 .SH DIAGNOSTICS
-When data are not strictly monotone in
+When data is not strictly monotone in
 .I x,
 .I spline
 reproduces the input without interpolating extra points.

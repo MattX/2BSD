@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)r0.c	1.2 (Berkeley) 8/11/83";
+#endif
+
 #include "r.h"
 
 int	swlevel	= -1;
@@ -9,7 +13,7 @@ swcode() {
 	putcom("switch");
 	swlevel++;
 	if (swlevel >= 5)
-		error("switches nested > 5");
+		error("Switches nested > 5");
 	swexit[swlevel] = yyval = genlab(1);
 	outcode("\tI");
 	outnum(yyval);
@@ -49,12 +53,12 @@ getcase() {
 			outcode(token);
 		} while (lpar >= 0);
 		if (lpar < 0)
-			error("missing left parenthesis in case");
+			error("Missing left parenthesis in case");
 		if (t == ',')
 			outcode(").or.");
 	} while (t != ':');
 	if (lpar != 0)
-		error("missing parenthesis in case");
+		error("Missing parenthesis in case");
 	outcode(")))");
 	nextcase[swlevel] = genlab(1);
 	outgoto(nextcase[swlevel]);
@@ -64,7 +68,7 @@ getcase() {
 getdefault() {
 	char token[20];
 	if (gnbtok(token) != ':')
-		error("missing colon after default");
+		error("Missing colon after default");
 	outgoto(swexit[swlevel]);
 	outcont(nextcase[swlevel]);
 	indent--;
@@ -77,7 +81,7 @@ endsw(n, def) {
 		outcont(nextcase[swlevel]);
 	swlevel--;
 	if (swlevel < -1)
-		error("switches unwound too far");
+		error("Switches unwound too far");
 	indent--;
 	outcont(n);
 }

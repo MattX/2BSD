@@ -1,4 +1,7 @@
-.TH BC 1 
+.\"	@(#)bc.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH BC 1 "April 29, 1985"
+.AT 3
 .SH NAME
 bc \- arbitrary-precision arithmetic language
 .SH SYNOPSIS
@@ -59,7 +62,7 @@ Operators
 .br
 ==  <=  >=  !=  <  >
 .br
-=  =+  =\-  =*  =/  =%  =^
+=  +=  \-=  *=  /=  %=  ^=
 .br
 .HP 6
 Statements
@@ -173,16 +176,16 @@ In this case the
 .I dc
 input is sent to the standard output instead.
 .SH FILES
-.ta 2i
+.ta \w'/usr/lib/lib.b 'u
 /usr/lib/lib.b	mathematical library
 .br
-\fIdc\fP\|(1)	desk calculator proper
+dc(1)	desk calculator proper
 .SH "SEE ALSO"
 dc(1)
 .br
 L. L. Cherry and R. Morris,
 .I
-BC \- An Arbitrary Precision Desk-Calculator Language
+BC \- An arbitrary precision desk-calculator language
 .SH BUGS
 No &&, \(or\|\(or, or ! operators.
 .br

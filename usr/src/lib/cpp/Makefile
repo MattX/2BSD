@@ -5,11 +5,11 @@
 # If you don't have split I/D, you'll have to edit the constant
 # SBSIZE in cpp.c to reflect this.
 
-CFLAGS=-O -Dpdp11=1 -DFLEXNAMES
-LFLAGS=-i
+CFLAGS=-O -Dpdp11=1 -DFLEXNAMES -DBSD2_10
+SEPFLAG=-i
 
 cpp :	cpp.o cpy.o rodata.o
-	$(CC) $(CFLAGS) $(LFLAGS) -o cpp rodata.o cpp.o cpy.o
+	$(CC) $(CFLAGS) $(SEPFLAG) -o cpp rodata.o cpp.o cpy.o
 
 cpy.c : cpy.y
 	yacc cpy.y
@@ -25,7 +25,7 @@ clean :
 	rm -f *.s *.o cpy.c rodata.c
 
 install :
-	install -s -o bin -g bin -m 711 cpp $(DESTDIR)/lib
+	install -s cpp $(DESTDIR)/lib
 
 sources : cpp.c cpy.y yylex.c README
 cpp.c cpy.y yylex.c README :

@@ -1,12 +1,28 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+
 # include <ctype.h>
 # include <sysexits.h>
+# include <errno.h>
 # include "sendmail.h"
 
 # ifndef SMTP
-SCCSID(@(#)usersmtp.c	4.2		8/31/83	(no SMTP));
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)usersmtp.c	5.7 (Berkeley) 4/2/86	(no SMTP)";
+# endif
 # else SMTP
 
-SCCSID(@(#)usersmtp.c	4.2		8/31/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)usersmtp.c	5.7 (Berkeley) 4/2/86";
+# endif
 
 
 
@@ -20,7 +36,9 @@ SCCSID(@(#)usersmtp.c	4.2		8/31/83);
 #define REPLYCLASS(r)	(((r) / 10) % 10)	/* second digit of reply code */
 #define SMTPCLOSING	421			/* "Service Shutting Down" */
 
+char	SmtpMsgBuffer[MAXLINE];		/* buffer for commands */
 char	SmtpReplyBuffer[MAXLINE];	/* buffer for replies */
+char	SmtpError[MAXLINE] = "";	/* save failure error messages */
 FILE	*SmtpOut;			/* output file */
 FILE	*SmtpIn;			/* input file */
 int	SmtpPid;			/* pid of mailer */
@@ -43,6 +61,7 @@ int	SmtpState;			/* connection state, see below */
 **
 **	Returns:
 **		appropriate exit status -- EX_OK on success.
+**		If not EX_OK, it should close the connection.
 **
 **	Side Effects:
 **		creates connection and sends initial protocol.
@@ -70,6 +89,8 @@ smtpinit(m, pvp)
 
 	SmtpIn = SmtpOut = NULL;
 	SmtpState = SMTP_CLOSED;
+	SmtpError[0] = '\0';
+	SmtpPhase = "user open";
 	SmtpPid = openmailer(m, pvp, (ADDRESS *) NULL, TRUE, &SmtpOut, &SmtpIn);
 	if (SmtpPid < 0)
 	{
@@ -78,37 +99,59 @@ smtpinit(m, pvp)
 			printf("smtpinit: cannot open %s: stat %d errno %d\n",
 			   pvp[0], ExitStat, errno);
 # endif DEBUG
+		if (CurEnv->e_xfp != NULL)
+		{
+			register char *p;
+			extern char *errstring();
+			extern char *statstring();
+
+			if (errno == 0)
+			{
+				p = statstring(ExitStat);
+				fprintf(CurEnv->e_xfp,
+					"%.3s %s.%s... %s\n",
+					p, pvp[1], m->m_name, p);
+			}
+			else
+			{
+				fprintf(CurEnv->e_xfp,
+					"421 %s.%s... Deferred: %s\n",
+					pvp[1], m->m_name, errstring(errno));
+			}
+		}
 		return (ExitStat);
 	}
 	SmtpState = SMTP_OPEN;
 
 	/*
 	**  Get the greeting message.
-	**	This should appear spontaneously.  Give it two minutes to
+	**	This should appear spontaneously.  Give it five minutes to
 	**	happen.
 	*/
 
 	if (setjmp(CtxGreeting) != 0)
-		return (EX_TEMPFAIL);
-	gte = setevent((time_t) 120, greettimeout, 0);
+		goto tempfail;
+	gte = setevent((time_t) 300, greettimeout, 0);
+	SmtpPhase = "greeting wait";
 	r = reply(m);
 	clrevent(gte);
 	if (r < 0 || REPLYTYPE(r) != 2)
-		return (EX_TEMPFAIL);
+		goto tempfail;
 
 	/*
 	**  Send the HELO command.
 	**	My mother taught me to always introduce myself.
 	*/
 
-	smtpmessage("HELO %s", m, HostName);
+	smtpmessage("HELO %s", m, MyHostName);
+	SmtpPhase = "HELO wait";
 	r = reply(m);
 	if (r < 0)
-		return (EX_TEMPFAIL);
+		goto tempfail;
 	else if (REPLYTYPE(r) == 5)
-		return (EX_UNAVAILABLE);
+		goto unavailable;
 	else if (REPLYTYPE(r) != 2)
-		return (EX_TEMPFAIL);
+		goto tempfail;
 
 	/*
 	**  If this is expected to be another sendmail, send some internal
@@ -121,13 +164,13 @@ smtpinit(m, pvp)
 		smtpmessage("VERB", m);
 		r = reply(m);
 		if (r < 0)
-			return (EX_TEMPFAIL);
+			goto tempfail;
 
 		/* tell it we will be sending one transaction only */
 		smtpmessage("ONEX", m);
 		r = reply(m);
 		if (r < 0)
-			return (EX_TEMPFAIL);
+			goto tempfail;
 	}
 
 	/*
@@ -135,7 +178,7 @@ smtpinit(m, pvp)
 	**	Designates the sender.
 	*/
 
-	expand("$g", buf, &buf[sizeof buf - 1], CurEnv);
+	expand("\001g", buf, &buf[sizeof buf - 1], CurEnv);
 	if (CurEnv->e_from.q_mailer == LocalMailer ||
 	    !bitnset(M_FROMPATH, m->m_flags))
 	{
@@ -143,17 +186,31 @@ smtpinit(m, pvp)
 	}
 	else
 	{
-		smtpmessage("MAIL From:<@%s%c%s>", m, HostName,
+		smtpmessage("MAIL From:<@%s%c%s>", m, MyHostName,
 			buf[0] == '@' ? ',' : ':', buf);
 	}
+	SmtpPhase = "MAIL wait";
 	r = reply(m);
 	if (r < 0 || REPLYTYPE(r) == 4)
-		return (EX_TEMPFAIL);
+		goto tempfail;
 	else if (r == 250)
 		return (EX_OK);
 	else if (r == 552)
-		return (EX_UNAVAILABLE);
+		goto unavailable;
+
+	/* protocol error -- close up */
+	smtpquit(m);
 	return (EX_PROTOCOL);
+
+	/* signal a temporary failure */
+  tempfail:
+	smtpquit(m);
+	return (EX_TEMPFAIL);
+
+	/* signal service unavailable */
+  unavailable:
+	smtpquit(m);
+	return (EX_UNAVAILABLE);
 }
 
 
@@ -186,6 +243,7 @@ smtprcpt(to, m)
 
 	smtpmessage("RCPT To:<%s>", m, remotename(to->q_user, m, FALSE, TRUE));
 
+	SmtpPhase = "RCPT wait";
 	r = reply(m);
 	if (r < 0 || REPLYTYPE(r) == 4)
 		return (EX_TEMPFAIL);
@@ -227,6 +285,7 @@ smtpdata(m, e)
 
 	/* send the command and check ok to proceed */
 	smtpmessage("DATA", m);
+	SmtpPhase = "DATA wait";
 	r = reply(m);
 	if (r < 0 || REPLYTYPE(r) == 4)
 		return (EX_TEMPFAIL);
@@ -246,6 +305,7 @@ smtpdata(m, e)
 		nmessage(Arpa_Info, ">>> .");
 
 	/* check for the results of the transaction */
+	SmtpPhase = "result wait";
 	r = reply(m);
 	if (r < 0 || REPLYTYPE(r) == 4)
 		return (EX_TEMPFAIL);
@@ -259,7 +319,7 @@ smtpdata(m, e)
 **  SMTPQUIT -- close the SMTP connection.
 **
 **	Parameters:
-**		name -- name of mailer we are quitting.
+**		m -- a pointer to the mailer.
 **
 **	Returns:
 **		none.
@@ -268,8 +328,7 @@ smtpdata(m, e)
 **		sends the final protocol and closes the connection.
 */
 
-smtpquit(name, m)
-	char *name;
+smtpquit(m)
 	register MAILER *m;
 {
 	int i;
@@ -294,9 +353,9 @@ smtpquit(name, m)
 	SmtpState = SMTP_CLOSED;
 
 	/* and pick up the zombie */
-	i = endmailer(SmtpPid, name);
+	i = endmailer(SmtpPid, m->m_argv[0]);
 	if (i != EX_OK)
-		syserr("smtpquit %s: stat %d", name, i);
+		syserr("smtpquit %s: stat %d", m->m_argv[0], i);
 }
 /*
 **  REPLY -- read arpanet reply
@@ -343,6 +402,14 @@ reply(m)
 			extern char MsgBuf[];		/* err.c */
 			extern char Arpa_TSyserr[];	/* conf.c */
 
+			/* if the remote end closed early, fake an error */
+			if (errno == 0)
+# ifdef ECONNRESET
+				errno = ECONNRESET;
+# else ECONNRESET
+				errno = EPIPE;
+# endif ECONNRESET
+
 			message(Arpa_TSyserr, "reply: read error");
 # ifdef DEBUG
 			/* if debugging, pause so we can see state */
@@ -353,16 +420,25 @@ reply(m)
 			syslog(LOG_ERR, "%s", &MsgBuf[4]);
 # endif LOG
 			SmtpState = SMTP_CLOSED;
-			smtpquit("reply error", m);
+			smtpquit(m);
 			return (-1);
 		}
 		fixcrlf(SmtpReplyBuffer, TRUE);
 
-		/* log the input in the transcript for future error returns */
+		if (CurEnv->e_xfp != NULL && index("45", SmtpReplyBuffer[0]) != NULL)
+		{
+			/* serious error -- log the previous command */
+			if (SmtpMsgBuffer[0] != '\0')
+				fprintf(CurEnv->e_xfp, ">>> %s\n", SmtpMsgBuffer);
+			SmtpMsgBuffer[0] = '\0';
+
+			/* now log the message as from the other side */
+			fprintf(CurEnv->e_xfp, "<<< %s\n", SmtpReplyBuffer);
+		}
+
+		/* display the input for verbose mode */
 		if (Verbose && !HoldErrs)
 			nmessage(Arpa_Info, "%s", SmtpReplyBuffer);
-		else if (CurEnv->e_xfp != NULL)
-			fprintf(CurEnv->e_xfp, "%s\n", SmtpReplyBuffer);
 
 		/* if continuation is required, we can go on */
 		if (SmtpReplyBuffer[3] == '-' || !isdigit(SmtpReplyBuffer[0]))
@@ -380,8 +456,12 @@ reply(m)
 		{
 			/* send the quit protocol */
 			SmtpState = SMTP_SSD;
-			smtpquit("SMTP Shutdown", m);
+			smtpquit(m);
 		}
+
+		/* save temporary failure messages for posterity */
+		if (SmtpReplyBuffer[0] == '4' && SmtpError[0] == '\0')
+			(void) strcpy(SmtpError, &SmtpReplyBuffer[4]);
 
 		return (r);
 	}
@@ -406,15 +486,11 @@ smtpmessage(f, m, a, b, c)
 	char *f;
 	MAILER *m;
 {
-	char buf[MAXLINE];
-
-	(void) sprintf(buf, f, a, b, c);
+	(void) sprintf(SmtpMsgBuffer, f, a, b, c);
 	if (tTd(18, 1) || (Verbose && !HoldErrs))
-		nmessage(Arpa_Info, ">>> %s", buf);
-	else if (CurEnv->e_xfp != NULL)
-		fprintf(CurEnv->e_xfp, ">>> %s\n", buf);
+		nmessage(Arpa_Info, ">>> %s", SmtpMsgBuffer);
 	if (SmtpOut != NULL)
-		fprintf(SmtpOut, "%s%s", buf, m->m_eol);
+		fprintf(SmtpOut, "%s%s", SmtpMsgBuffer, m->m_eol);
 }
 
 # endif SMTP

@@ -1,7 +1,14 @@
-.TH DD 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)dd.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH DD 1 "April 29, 1985"
+.UC 4
 .SH NAME
 dd \- convert and copy a file
-.SH SYNTAX
+.SH SYNOPSIS
 .B dd
 [option=value] ...
 .SH DESCRIPTION
@@ -69,7 +76,8 @@ input records before starting copy
 .RI files= n
 copy
 .I n
-files from (tape) input
+input files before terminating (makes sense only
+where input is a magtape or similar device).
 .br
 .ns
 .TP 
@@ -80,7 +88,7 @@ records from beginning of output file before copying
 .br
 .ns
 .TP 
-count=\fIn\fP
+count=\fIn\fR
 copy only
 .IR n ""
 input records
@@ -89,23 +97,23 @@ input records
 .TP 
 conv=ascii
 .ds h \h'\w'conv='u'
-convert EBCDIC to ASCII (includes rtrim)
+convert EBCDIC to ASCII
 .br
 .ns
 .IP \*hebcdic
-convert ASCII to EBCDIC (includes rfill)
+convert ASCII to EBCDIC
 .br
 .ns
 .IP \*hibm
 slightly different map of ASCII to EBCDIC
 .br
 .ns
-.IP \*hrtrim
-delete right blanks in \fIcbs\fP and add a new line
+.IP \*hblock
+convert variable length records to fixed length
 .br
 .ns
-.IP \*hrfill
-remove newline in \fIcbs\fP and pad with blanks
+.IP \*hunblock
+convert fixed length records to variable length
 .br
 .ns
 .IP \*hlcase
@@ -146,19 +154,25 @@ a pair of numbers may be separated by
 to indicate a product.
 .PP
 .I Cbs
-is used if
-\fIascii\fP, \fIrtrim\fP, \fIebcdic\fP, or \fIrfill\fP
+is used only if
+.I ascii,
+.I unblock,
+.I ebcdic,
+.I ibm,
+or
+.I block
 conversion is specified.
-In the former two cases
+In the first two cases,
 .I cbs
-characters are placed into the conversion buffer, converted to
-ASCII for case 1, and trailing blanks trimmed and new-line added
+characters are placed into the conversion buffer, any specified
+character mapping is done,
+trailing blanks trimmed and new-line added
 before sending the line to the output.
-In the latter two cases ASCII characters are read into the
-conversion buffer, converted to EBCDIC for case 3, and blanks added
+In the latter three cases, characters are read into the
+conversion buffer, and blanks added
 to make up an
-output record of size \fIcbs\fP.  Only one of these conversions or
-\fIibm\fP may be used at a time.
+output record of size
+.IR cbs .
 .PP
 After completion,
 .I dd
@@ -167,23 +181,21 @@ blocks.
 .PP
 For example, to read an EBCDIC tape blocked ten 80-byte
 EBCDIC card images per record into the ASCII file
-.IR x :
-.IP ""
+.I x:
+.IP
+.nf
 dd if=/dev/rmt0 of=x ibs=800 cbs=80 conv=ascii,lcase
+.fi
 .PP
 Note the use of raw magtape.
 .I Dd
 is especially suited to I/O on the raw
 physical devices because it allows reading
 and writing in arbitrary record sizes.
-.PP
-To skip over a file before copying from magnetic tape do:
-.IP""
-(dd of=/dev/null; dd of=x) </dev/rmt0
 .SH "SEE ALSO"
-cp(1), mt(1), tar(1), tr(1)
+cp(1), tr(1)
 .SH DIAGNOSTICS
-f+p records in (out): numbers of full and partial records read (written).
+f+p records in(out): numbers of full and partial records read(written)
 .SH BUGS
 The ASCII/EBCDIC conversion tables are
 taken
@@ -192,3 +204,24 @@ the CACM Nov, 1968.
 The `ibm' conversion, while less blessed as a standard,
 corresponds better to certain IBM print train conventions.
 There is no universal solution.
+.br
+One must specify ``conv=noerror,sync'' when copying
+raw disks with bad sectors to insure 
+.I dd
+stays synchronized.
+.PP
+Certain combinations of arguments to 
+.I conv=
+are permitted.
+However, the
+.I block
+or
+.I unblock
+option cannot be combined with
+.IR ascii ,
+.IR ebcdic ""
+or
+.IR ibm .
+Invalid combinations
+.I "silently ignore"
+all but the last mutually-exclusive keyword.

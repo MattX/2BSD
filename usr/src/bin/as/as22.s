@@ -114,15 +114,22 @@ error:
 	mov	r2,-(sp)
 	mov	r1,-(sp)
 	mov	r0,-(sp)
+
+	tst	-(sp)			/ write(1, argb, strlen(argb))
+	mov	$argb,-(sp)
+	mov	$1,-(sp)
 	mov	$argb,r1
+	clr	r0
 1:
-	movb	(r1),ch
-	beq	1f
-	clrb	(r1)+
-	mov	$1,r0
-	sys	write; ch; 1
+	tstb	(r1)+
+	beq	2f
+	inc	r0
 	br	1b
-1:
+2:
+	mov	r0,4(sp)
+	jsr	pc,_write
+	add	$6,sp
+
 	mov	(r5)+,r0
 	movb	r0,0f
 	mov	line,r3
@@ -135,8 +142,13 @@ error:
 	movb	r3,-(r0)
 	mov	r2,r3
 	sob	r1,2b
-	mov	$1,r0
-	sys	write; 0f; 7
+
+	mov	$7,-(sp)		/ write(1, 0f, 7)
+	mov	$0f,-(sp)		/	mov	$1,r0
+	mov	$1,-(sp)		/	sys	write; 0f; 7
+	jsr	pc,_write
+	add	$6,sp
+
 	mov	(sp)+,r0
 	mov	(sp)+,r1
 	mov	(sp)+,r2

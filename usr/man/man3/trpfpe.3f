@@ -1,5 +1,11 @@
-.TH TRPFPE 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)trpfpe.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH TRPFPE 3F "May 15, 1985"
+.UC 5
 .SH NAME
 trpfpe, fpecnt \- trap and repair floating point faults
 .SH SYNOPSIS
@@ -45,7 +51,7 @@ each time a fault occurs.
 .ie \nM /usr/ucb/lib/libF77.a
 .el /usr/lib/libF77.a
 .SH SEE ALSO
-signal(3f), range(3f)
+signal(3F), range(3F)
 .SH BUGS
 This routine works only for
 .IR faults ,
@@ -55,6 +61,6 @@ This is primarily due to the Vax architecture.
 .PP
 If the operation involves changing the stack pointer, it can't be repaired.
 This seldom should be a problem with the f77 compiler, but such an operation
-might be produced by the optomizer.
+might be produced by the optimizer.
 .PP
 The POLY and EMOD opcodes are not dealt with.

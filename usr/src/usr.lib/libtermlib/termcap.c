@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)termcap.c	4.1 (Berkeley) 6/27/83";
-#endif
+static char sccsid[] = "@(#)termcap.c	5.1 (Berkeley) 6/5/85";
+#endif not lint
 
 #define	BUFSIZ		1024
 #define MAXHOP		32	/* max number of tc= indirections */
@@ -40,11 +46,10 @@ tgetent(bp, name)
 	register int c;
 	register int i = 0, cnt = 0;
 	char ibuf[BUFSIZ];
-	char *cp2;
 	int tf;
 
 	tbuf = bp;
-	tf = 0;
+	tf = -1;
 #ifndef V6
 	cp = getenv("TERMCAP");
 	/*
@@ -55,18 +60,19 @@ tgetent(bp, name)
 	 * has to already have the newlines crunched out.
 	 */
 	if (cp && *cp) {
-		if (*cp!='/') {
-			cp2 = getenv("TERM");
-			if (cp2==(char *) 0 || strcmp(name,cp2)==0) {
+		if (*cp == '/') {
+			tf = open(cp, 0);
+		} else {
+			tbuf = cp;
+			c = tnamatch(name);
+			tbuf = bp;
+			if (c) {
 				strcpy(bp,cp);
 				return(tnchktc());
-			} else {
-				tf = open(E_TERMCAP, 0);
 			}
-		} else
-			tf = open(cp, 0);
+		}
 	}
-	if (tf==0)
+	if (tf < 0)
 		tf = open(E_TERMCAP, 0);
 #else
 	tf = open(E_TERMCAP, 0);
@@ -137,15 +143,17 @@ tnchktc()
 		return(1);
 	strcpy(tcname,p+3);
 	q = tcname;
-	while (q && *q != ':')
+	while (*q && *q != ':')
 		q++;
 	*q = 0;
 	if (++hopcount > MAXHOP) {
 		write(2, "Infinite tc= loop\n", 18);
 		return (0);
 	}
-	if (tgetent(tcbuf, tcname) != 1)
+	if (tgetent(tcbuf, tcname) != 1) {
+		hopcount = 0;		/* unwind recursion */
 		return(0);
+	}
 	for (q=tcbuf; *q != ':'; q++)
 		;
 	l = p - holdtbuf + strlen(q);
@@ -155,6 +163,7 @@ tnchktc()
 	}
 	strcpy(p, q+1);
 	tbuf = holdtbuf;
+	hopcount = 0;			/* unwind recursion */
 	return(1);
 }
 

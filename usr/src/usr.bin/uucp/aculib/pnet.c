@@ -1,6 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: pnet.c,v 1.2 85/05/17 12:30:16 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)pnet.c	4.2 (Berkeley) 6/23/85";
+#endif
 
 #include "../condevs.h"
 #ifdef PNET

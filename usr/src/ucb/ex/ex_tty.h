@@ -1,5 +1,11 @@
-/* Copyright (c) 1981 Regents of the University of California */
-/* sccs id:	@(#)ex_tty.h	7.3	9/9/81  */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)ex_tty.h	7.5 (Berkeley) 5/31/85
+ */
+
 /*
  * Capabilities from termcap
  *
@@ -110,6 +116,7 @@ var	bool	UPPERCASE;	/* Ick! */
 extern	short	LINES;		/* Number of lines on screen */
 extern	short	COLUMNS;
 var	short	OCOLUMNS;	/* Save COLUMNS for a hack in open mode */
+var	struct winsize winsz;	/* Save window size for stopping comparisons */
 
 var	short	outcol;		/* Where the cursor is */
 var	short	outline;

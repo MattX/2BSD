@@ -1,3 +1,5 @@
+/*	@(#)spell.h	4.1	12/18/82	*/
+
 #include <sys/localopts.h>	/* for computer type (NONSEPARATE?) */
 #include <stdio.h>
 #include <ctype.h>

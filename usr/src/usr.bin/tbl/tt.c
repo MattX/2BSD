@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tt.c	4.2 8/11/83";
+#endif
+
  /* tt.c: subroutines for drawing horizontal lines */
 # include "t..c"
 ctype(il, ic)

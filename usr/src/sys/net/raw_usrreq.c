@@ -1,17 +1,27 @@
-/*	raw_usrreq.c	4.17	82/06/20	*/
+/*
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)raw_usrreq.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
 
 #include "param.h"
-#include <sys/mbuf.h>
-#include <sys/protosw.h>
-#include <sys/socket.h>
-#include <sys/socketvar.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <net/raw_cb.h>
-#include <errno.h>
+#include "../machine/seg.h"
 
-int	rawqmaxlen = IFQ_MAXLEN;
+#include "mbuf.h"
+#include "domain.h"
+#include "protosw.h"
+#include "socket.h"
+#include "socketvar.h"
+#include "errno.h"
+
+#include "if.h"
+#include "route.h"
+#include "netisr.h"
+#include "raw_cb.h"
+
+#include "../netinet/in_systm.h"
 
 /*
  * Initialize raw connection block q.
@@ -38,18 +48,19 @@ raw_input(m0, proto, src, dst)
 	/*
 	 * Rip off an mbuf for a generic header.
 	 */
-	m = m_get(M_DONTWAIT);
+	m = m_get(M_DONTWAIT, MT_HEADER);
 	if (m == 0) {
 		m_freem(m0);
 		return;
 	}
 	m->m_next = m0;
-	m->m_off = MMINOFF;
 	m->m_len = sizeof(struct raw_header);
+	MAPSAVE();
 	rh = mtod(m, struct raw_header *);
 	rh->raw_dst = *dst;
 	rh->raw_src = *src;
 	rh->raw_proto = *proto;
+	MAPREST();
 
 	/*
 	 * Header now contains enough info to decide
@@ -77,24 +88,23 @@ rawintr()
 	int s;
 	struct mbuf *m;
 	register struct rawcb *rp;
-	register struct protosw *lproto;
 	register struct raw_header *rh;
 	struct socket *last;
+	struct sockaddr src;
 
 next:
 	s = splimp();
 	IF_DEQUEUE(&rawintrq, m);
 	splx(s);
-	if (m == 0)
+	if (m == 0) 
 		return;
 	rh = mtod(m, struct raw_header *);
 	last = 0;
 	for (rp = rawcb.rcb_next; rp != &rawcb; rp = rp->rcb_next) {
-		lproto = rp->rcb_socket->so_proto;
-		if (lproto->pr_family != rh->raw_proto.sp_family)
+		if (rp->rcb_proto.sp_family != rh->raw_proto.sp_family)
 			continue;
-		if (lproto->pr_protocol &&
-		    lproto->pr_protocol != rh->raw_proto.sp_protocol)
+		if (rp->rcb_proto.sp_protocol  &&
+		    rp->rcb_proto.sp_protocol != rh->raw_proto.sp_protocol)
 			continue;
 		/*
 		 * We assume the lower level routines have
@@ -111,51 +121,62 @@ next:
 			continue;
 		if (last) {
 			struct mbuf *n;
-			if ((n = m_copy(m->m_next, 0, (int)M_COPYALL)) == 0)
-				goto nospace;
-			if (sbappendaddr(&last->so_rcv, &rh->raw_src, n)==0) {
-				/* should notify about lost packet */
-				m_freem(n);
-				goto nospace;
+			if (n = m_copy(m->m_next, 0, (int)M_COPYALL)) {
+				src = rh->raw_src;
+				if (sbappendaddr(&last->so_rcv, &src,
+				    n, (struct mbuf *)0) == 0)
+					/* should notify about lost packet */
+					m_freem(n);
+				else
+					sorwakeup(last);
 			}
-			sorwakeup(last);
 		}
-nospace:
 		last = rp->rcb_socket;
 	}
 	if (last) {
-		m = m_free(m);		/* header */
-		if (sbappendaddr(&last->so_rcv, &rh->raw_src, m) == 0)
-			goto drop;
-		sorwakeup(last);
-		goto next;
-	}
-drop:
-	m_freem(m);
+		src = rh->raw_src;
+		if (sbappendaddr(&last->so_rcv, &src,
+		    m->m_next, (struct mbuf *)0) == 0)
+			m_freem(m->m_next);
+		else
+			sorwakeup(last);
+		(void) m_free(m);		/* header */
+	} else
+		m_freem(m);
 	goto next;
 }
 
+/*ARGSUSED*/
 raw_ctlinput(cmd, arg)
 	int cmd;
-	caddr_t arg;
+	struct sockaddr *arg;
 {
 
 	if (cmd < 0 || cmd > PRC_NCMDS)
 		return;
+	/* INCOMPLETE */
 }
 
 /*ARGSUSED*/
-raw_usrreq(so, req, m, addr)
+raw_usrreq(so, req, m, nam, rights)
 	struct socket *so;
 	int req;
-	struct mbuf *m;
-	caddr_t addr;
+	struct mbuf *m, *nam, *rights;
 {
 	register struct rawcb *rp = sotorawcb(so);
-	int error = 0;
+	register int error = 0;
 
-	if (rp == 0 && req != PRU_ATTACH)
-		return (EINVAL);
+	if (req == PRU_CONTROL)
+		return (EOPNOTSUPP);
+	MAPSAVE();
+	if (rights && rights->m_len) {
+		error = EOPNOTSUPP;
+		goto release;
+	}
+	if (rp == 0 && req != PRU_ATTACH) {
+		error = EINVAL;
+		goto release;
+	}
 
 	switch (req) {
 
@@ -165,13 +186,15 @@ raw_usrreq(so, req, m, addr)
 	 * the appropriate raw interface routine.
 	 */
 	case PRU_ATTACH:
-#ifndef SRI
-		if ((so->so_state & SS_PRIV) == 0)
-			return (EACCES);
-#endif
-		if (rp)
-			return (EINVAL);
-		error = raw_attach(so, (struct sockaddr *)addr);
+		if ((so->so_state & SS_PRIV) == 0) {
+			error = EACCES;
+			break;
+		}
+		if (rp) {
+			error = EINVAL;
+			break;
+		}
+		error = raw_attach(so, (int)nam);
 		break;
 
 	/*
@@ -179,8 +202,10 @@ raw_usrreq(so, req, m, addr)
 	 * Flush data or not depending on the options.
 	 */
 	case PRU_DETACH:
-		if (rp == 0)
-			return (ENOTCONN);
+		if (rp == 0) {
+			error = ENOTCONN;
+			break;
+		}
 		raw_detach(rp);
 		break;
 
@@ -191,15 +216,31 @@ raw_usrreq(so, req, m, addr)
 	 * nothing else around it should go to). 
 	 */
 	case PRU_CONNECT:
-		if (rp->rcb_flags & RAW_FADDR)
-			return (EISCONN);
-		raw_connaddr(rp, (struct sockaddr *)addr);
+		if (rp->rcb_flags & RAW_FADDR) {
+			error = EISCONN;
+			break;
+		}
+		raw_connaddr(rp, nam);
 		soisconnected(so);
 		break;
 
+	case PRU_CONNECT2:
+		error = EOPNOTSUPP;
+		goto release;
+
+	case PRU_BIND:
+		if (rp->rcb_flags & RAW_LADDR) {
+			error = EINVAL;			/* XXX */
+			break;
+		}
+		error = raw_bind(so, nam);
+		break;
+
 	case PRU_DISCONNECT:
-		if ((rp->rcb_flags & RAW_FADDR) == 0)
-			return (ENOTCONN);
+		if ((rp->rcb_flags & RAW_FADDR) == 0) {
+			error = ENOTCONN;
+			break;
+		}
 		raw_disconnect(rp);
 		soisdisconnected(so);
 		break;
@@ -216,14 +257,19 @@ raw_usrreq(so, req, m, addr)
 	 * routine handles any massaging necessary.
 	 */
 	case PRU_SEND:
-		if (addr) {
-			if (rp->rcb_flags & RAW_FADDR)
-				return (EISCONN);
-			raw_connaddr(rp, (struct sockaddr *)addr);
-		} else if ((rp->rcb_flags & RAW_FADDR) == 0)
-			return (ENOTCONN);
+		if (nam) {
+			if (rp->rcb_flags & RAW_FADDR) {
+				error = EISCONN;
+				break;
+			}
+			raw_connaddr(rp, nam);
+		} else if ((rp->rcb_flags & RAW_FADDR) == 0) {
+			error = ENOTCONN;
+			break;
+		}
 		error = (*so->so_proto->pr_output)(m, so);
-		if (addr)
+		m = NULL;
+		if (nam)
 			rp->rcb_flags &= ~RAW_FADDR;
 		break;
 
@@ -233,24 +279,45 @@ raw_usrreq(so, req, m, addr)
 		soisdisconnected(so);
 		break;
 
+	case PRU_SENSE:
+		/*
+		 * stat: don't bother with a blocksize.
+		 */
+		MAPUNSAVE();
+		return (0);
+
 	/*
 	 * Not supported.
 	 */
-	case PRU_ACCEPT:
-	case PRU_RCVD:
-	case PRU_CONTROL:
-	case PRU_SENSE:
 	case PRU_RCVOOB:
+	case PRU_RCVD:
+		MAPUNSAVE();
+		return(EOPNOTSUPP);
+
+	case PRU_LISTEN:
+	case PRU_ACCEPT:
 	case PRU_SENDOOB:
 		error = EOPNOTSUPP;
 		break;
 
 	case PRU_SOCKADDR:
-		bcopy(addr, (caddr_t)&rp->rcb_laddr, sizeof (struct sockaddr));
+		bcopy((caddr_t)&rp->rcb_laddr, MTOD(nam, caddr_t),
+		    sizeof (struct sockaddr));
+		nam->m_len = sizeof (struct sockaddr);
+		break;
+
+	case PRU_PEERADDR:
+		bcopy((caddr_t)&rp->rcb_faddr, MTOD(nam, caddr_t),
+		    sizeof (struct sockaddr));
+		nam->m_len = sizeof (struct sockaddr);
 		break;
 
 	default:
 		panic("raw_usrreq");
 	}
+release:
+	if (m != NULL)
+		m_freem(m);
+	MAPREST();
 	return (error);
 }

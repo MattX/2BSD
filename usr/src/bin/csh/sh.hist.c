@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.hist.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.hist.c	5.2 (Berkeley) 6/6/85";
+#endif
 
 #include "sh.h"
 
@@ -10,29 +18,30 @@ savehist(sp)
 	struct wordent *sp;
 {
 	register struct Hist *hp, *np;
-	int histlen;
-	register char *cp;
+	register int histlen = 0;
+	char *cp;
 
-	cp = value("history");
-	if (*cp == 0)
-		histlen = 0;
-	else {
-		while (*cp && digit(*cp))
-			cp++;
-		/* avoid a looping snafu */
-		if (*cp)
-			set("history", "10");
-		histlen = getn(value("history"));
-	}
 	/* throw away null lines */
 	if (sp->next->word[0] == '\n')
 		return;
+	cp = value("history");
+	if (*cp) {
+		register char *p = cp;
+
+		while (*p) {
+			if (!digit(*p)) {
+				histlen = 0;
+				break;
+			}
+			histlen = histlen * 10 + *p++ - '0';
+		}
+	}
 	for (hp = &Histlist; np = hp->Hnext;)
 		if (eventno - np->Href >= histlen || histlen == 0)
 			hp->Hnext = np->Hnext, hfree(np);
 		else
 			hp = np;
-	enthist(++eventno, sp, 1);
+	(void) enthist(++eventno, sp, 1);
 }
 
 struct Hist *
@@ -43,7 +52,7 @@ enthist(event, lp, docopy)
 {
 	register struct Hist *np;
 
-	np = (struct Hist *) calloc(1, sizeof *np);
+	np = (struct Hist *) xalloc(sizeof *np);
 	np->Hnum = np->Href = event;
 	if (docopy)
 		copylex(&np->Hlex, lp);
@@ -69,27 +78,40 @@ hfree(hp)
 dohist(vp)
 	char **vp;
 {
-	int n, rflg = 0;
-
+	int n, rflg = 0, hflg = 0;
 	if (getn(value("history")) == 0)
 		return;
 	if (setintr)
-		sigrelse(SIGINT);
-	vp++;
-	if (*vp && eq(*vp, "-r")) {
-		rflg++;
-		vp++;
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGINT));
+ 	while (*++vp && **vp == '-') {
+ 		char *vp2 = *vp;
+ 
+ 		while (*++vp2)
+ 			switch (*vp2) {
+ 			case 'h':
+ 				hflg++;
+ 				break;
+ 			case 'r':
+ 				rflg++;
+ 				break;
+ 			case '-':	/* ignore multiple '-'s */
+ 				break;
+ 			default:
+ 				printf("Unknown flag: -%c\n", *vp2);
+ 				error("Usage: history [-rh] [# number of events]");
+			}
 	}
 	if (*vp)
 		n = getn(*vp);
-	else
-		n = 1000;
-	dohist1(Histlist.Hnext, &n, rflg);
+	else {
+		n = getn(value("history"));
+	}
+	dohist1(Histlist.Hnext, &n, rflg, hflg);
 }
 
-dohist1(hp, np, rflg)
+dohist1(hp, np, rflg, hflg)
 	struct Hist *hp;
-	int *np;
+	int *np, rflg, hflg;
 {
 	bool print = (*np) > 0;
 top:
@@ -98,21 +120,23 @@ top:
 	(*np)--;
 	hp->Href++;
 	if (rflg == 0) {
-		dohist1(hp->Hnext, np, rflg);
+		dohist1(hp->Hnext, np, rflg, hflg);
 		if (print)
-			phist(hp);
+			phist(hp, hflg);
 		return;
 	}
 	if (*np >= 0)
-		phist(hp);
+		phist(hp, hflg);
 	hp = hp->Hnext;
 	goto top;
 }
 
-phist(hp)
+phist(hp, hflg)
 	register struct Hist *hp;
+	int hflg;
 {
 
-	printf("%6d\t", hp->Hnum);
+	if (hflg == 0)
+		printf("%6d\t", hp->Hnum);
 	prlex(&hp->Hlex);
 }

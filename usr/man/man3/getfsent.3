@@ -1,40 +1,48 @@
-.TH GETFSENT 3
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)getfsent.3	6.3 (Berkeley) 5/12/86
+.\"
+.TH GETFSENT 3  "May 12, 1986"
+.UC 4
 .SH NAME
-getfsent, getfsspec, getfsfile, setfsent, endfsent \- get file system descriptor file entry
+getfsent, getfsspec, getfsfile, getfstype, setfsent, endfsent \- get file system descriptor file entry
 .SH SYNOPSIS
 .nf
 .B #include <fstab.h>
 .PP
 .B struct fstab *getfsent()
 .PP
-.B struct fstab *getfsspec(name)
-.B char *name;
+.B struct fstab *getfsspec(spec)
+.B char *spec;
 .PP
-.B struct fstab *getfsfile(name)
-.B char *name;
+.B struct fstab *getfsfile(file)
+.B char *file;
+.PP
+.B struct fstab *getfstype(type)
+.B char *type;
 .PP
 .B int setfsent()
 .PP
 .B int endfsent()
 .fi
 .SH DESCRIPTION
-.I Getfsent,
-.I getfsspec
+.IR Getfsent ,
+.IR getfsspec ,
+.IR getfstype ,
 and
 .I getfsfile
 each return a pointer to an object with the following structure
 containing the broken-out fields of a line in the file system description file,
-.IR /usr/include/fstab.h .
+.IR < fstab.h >.
 .RS
 .PP
 .nf
-#define	FSNMLG	16
-
-struct fstab{
-	char	fs_spec[FSNMLG];
-	char	fs_file[FSNMLG];
-	char	fs_type[3];
+struct fstab {
+	char	*fs_spec;
+	char	*fs_file;
+	char	*fs_type;
 	int	fs_freq;
 	int	fs_passno;
 };
@@ -61,12 +69,15 @@ and
 sequentially search from the beginning of the file until a matching
 special file name or file system file name is found,
 or until EOF is encountered.
+.I Getfstype
+does likewise, matching on the file system type field.
 .SH FILES
 /etc/fstab
 .SH "SEE ALSO"
 fstab(5)
 .SH DIAGNOSTICS
-Null pointer returned on EOF or error.
+Null pointer
+(0) returned on EOF or error.
 .SH BUGS
 All information is contained in a static area so it must be copied if it is
 to be saved.

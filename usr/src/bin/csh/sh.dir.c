@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.dir.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.dir.c	5.3 (Berkeley) 6/11/85";
+#endif
 
 #include "sh.h"
 #include "sh.dir.h"
@@ -9,6 +17,7 @@ static	char *sccsid = "@(#)sh.dir.c 4.1 10/9/80";
 
 struct	directory *dfind();
 char	*dfollow();
+char	*dcanon();
 struct	directory dhead;		/* "head" of loop */
 int	printd;				/* force name to be printed */
 static	char *fakev[] = { "dirs", NOSTR };
@@ -21,12 +30,17 @@ dinit(hp)
 {
 	register char *cp;
 	register struct directory *dp;
-	char path[BUFSIZ];
+	char path[MAXPATHLEN];
 
 	if (loginsh && hp)
 		cp = hp;
-	else
+	else {
 		cp = getwd(path);
+		if (cp == NULL) {
+			(void) write(2, path, strlen(path));
+			exit(1);
+		}
+	}
 	dp = (struct directory *)calloc(sizeof (struct directory), 1);
 	dp->di_name = savestr(cp);
 	dp->di_count = 0;
@@ -122,20 +136,24 @@ char *
 dfollow(cp)
 	register char *cp;
 {
-	register char **cdp;
+	register char *dp;
 	struct varent *c;
-	
+
 	cp = globone(cp);
-	if (chdir(cp) == 0)
+	if (chdir(cp) >= 0)
 		goto gotcha;
 	if (cp[0] != '/' && !prefix("./", cp) && !prefix("../", cp)
 	    && (c = adrof("cdpath"))) {
-		for (cdp = c->vec; *cdp; cdp++) {
-			char buf[BUFSIZ];
+		char **cdp;
+		register char *p;
+		char buf[MAXPATHLEN];
 
-			strcpy(buf, *cdp);
-			strcat(buf, "/");
-			strcat(buf, cp);
+		for (cdp = c->vec; *cdp; cdp++) {
+			for (dp = buf, p = *cdp; *dp++ = *p++;)
+				;
+			dp[-1] = '/';
+			for (p = cp; *dp++ = *p++;)
+				;
 			if (chdir(buf) >= 0) {
 				printd = 1;
 				xfree(cp);
@@ -144,31 +162,45 @@ dfollow(cp)
 			}
 		}
 	}
-	if (adrof(cp)) {
-		char *dp = value(cp);
-
-		if (dp[0] == '/' || dp[0] == '.')
-			if (chdir(dp) >= 0) {
-				xfree(cp);
-				cp = savestr(dp);
-				printd = 1;
-				goto gotcha;
-			}
+	dp = value(cp);
+	if ((dp[0] == '/' || dp[0] == '.') && chdir(dp) >= 0) {
+		xfree(cp);
+		cp = savestr(dp);
+		printd = 1;
+		goto gotcha;
 	}
-	xfree(cp);
+	xfree(cp);			/* XXX, use after free */
 	Perror(cp);
 
 gotcha:
 	if (*cp != '/') {
-		char *dp = calloc(strlen(cp) + strlen(dcwd->di_name) + 2, 1);
-		strcpy(dp, dcwd->di_name);
-		strcat(dp, "/");
-		strcat(dp, cp);
+		register char *p, *q;
+		int cwdlen;
+
+		/*
+		 * All in the name of efficiency?
+		 */
+		for (p = dcwd->di_name; *p++;)
+			;
+		if ((cwdlen = p - dcwd->di_name - 1) == 1)	/* root */
+			cwdlen = 0;
+		for (p = cp; *p++;)
+			;
+		dp = xalloc((unsigned) (cwdlen + (p - cp) + 1));
+		for (p = dp, q = dcwd->di_name; *p++ = *q++;)
+			;
+		if (cwdlen)
+			p[-1] = '/';
+		else
+			p--;			/* don't add a / after root */
+		for (q = cp; *p++ = *q++;)
+			;
 		xfree(cp);
 		cp = dp;
-	}
-	dcanon(cp);
-	return (cp);
+		dp += cwdlen;
+	} else
+		dp = cp;
+	return dcanon(cp, dp);
 }
 
 /*
@@ -291,46 +323,132 @@ dfree(dp)
  *	we are of course assuming that the file system is standardly
  *	constructed (always have ..'s, directories have links)
  */
-dcanon(cp)
-	char *cp;
+char *
+dcanon(cp, p)
+	register char *cp, *p;
 {
-	register char *p, *sp;
-	register bool slash;
+	register char *sp;
+	register char *p1, *p2;		/* general purpose */
+	bool slash;
 
 	if (*cp != '/')
 		abort();
-	for (p = cp; *p; ) {		/* for each component */
+	while (*p) {			/* for each component */
 		sp = p;			/* save slash address */
-		while(*++p == '/')	/* flush extra slashes */
+		while (*++p == '/')	/* flush extra slashes */
 			;
 		if (p != ++sp)
-			strcpy(sp, p);
-		if (*sp == '\0') {	/* if component is null */
-			if (--sp != cp)
-				*sp = '\0';
-			break;
-		}
+			for (p1 = sp, p2 = p; *p1++ = *p2++;)
+				;
 		p = sp;			/* save start of component */
 		slash = 0;
-		while(*++p)		/* find next slash or end of path */
+		while (*++p)		/* find next slash or end of path */
 			if (*p == '/') {
 				slash = 1;
 				*p = 0;
 				break;
 			}
-		if (eq(".", sp)) {
+		if (*sp == '\0')	/* if component is null */
+			if (--sp == cp)	/* if path is one char (i.e. /) */
+				break;
+			else
+				*sp = '\0';
+		else if (sp[0] == '.' && sp[1] == 0) {
 			if (slash) {
-				strcpy(sp, ++p);
+				for (p1 = sp, p2 = p + 1; *p1++ = *p2++;)
+					;
 				p = --sp;
 			} else if (--sp != cp)
 				*sp = '\0';
-		} else if (eq("..", sp)) {
-			if (--sp != cp)
+		} else if (sp[0] == '.' && sp[1] == '.' && sp[2] == 0) {
+			char link[MAXPATHLEN];
+			int cc;
+			char *newcp;
+
+			/*
+			 * We have something like "yyy/xxx/..", where "yyy"
+			 * can be null or a path starting at /, and "xxx"
+			 * is a single component.
+			 * Before compressing "xxx/..", we want to expand
+			 * "yyy/xxx", if it is a symbolic link.
+			 */
+			*--sp = 0;	/* form the pathname for readlink */
+			if (sp != cp &&
+			    (cc = readlink(cp, link, sizeof link)) >= 0) {
+				link[cc] = '\0';
+				if (slash)
+					*p = '/';
+				/*
+				 * Point p to the '/' in "/..", and restore
+				 * the '/'.
+				 */
+				*(p = sp) = '/';
+				/*
+				 * find length of p
+				 */
+				for (p1 = p; *p1++;)
+					;
+				if (*link != '/') {
+					/*
+					 * Relative path, expand it between
+					 * the "yyy/" and the "/..".
+					 * First, back sp up to the character
+					 * past "yyy/".
+					 */
+					while (*--sp != '/')
+						;
+					sp++;
+					*sp = 0;
+					/*
+					 * New length is
+					 * "yyy/" + link + "/.." and rest
+					 */
+					p1 = newcp = xalloc((unsigned)
+						((sp - cp) + cc + (p1 - p)));
+					/*
+					 * Copy new path into newcp
+					 */
+					for (p2 = cp; *p1++ = *p2++;)
+						;
+					for (p1--, p2 = link; *p1++ = *p2++;)
+						;
+					for (p1--, p2 = p; *p1++ = *p2++;)
+						;
+					/*
+					 * Restart canonicalization at
+					 * expanded "/xxx".
+					 */
+					p = sp - cp - 1 + newcp;
+				} else {
+					/*
+					 * New length is link + "/.." and rest
+					 */
+					p1 = newcp = xalloc((unsigned)
+						(cc + (p1 - p)));
+					/*
+					 * Copy new path into newcp
+					 */
+					for (p2 = link; *p1++ = *p2++;)
+						;
+					for (p1--, p2 = p; *p1++ = *p2++;)
+						;
+					/*
+					 * Restart canonicalization at beginning
+					 */
+					p = newcp;
+				}
+				xfree(cp);
+				cp = newcp;
+				continue;	/* canonicalize the link */
+			}
+			*sp = '/';
+			if (sp != cp)
 				while (*--sp != '/')
 					;
 			if (slash) {
-				strcpy(++sp, ++p);
-				p = --sp;
+				for (p1 = sp + 1, p2 = p + 1; *p1++ = *p2++;)
+					;
+				p = sp;
 			} else if (cp == sp)
 				*++sp = '\0';
 			else
@@ -338,6 +456,7 @@ dcanon(cp)
 		} else if (slash)
 			*p = '/';
 	}
+	return cp;
 }
 
 /*

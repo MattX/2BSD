@@ -1,6 +1,18 @@
-# include "sendmail.h"
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
-SCCSID(@(#)readcf.c	4.2		8/28/83);
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)readcf.c	5.10 (Berkeley) 1/11/86";
+#endif
+
+# include "sendmail.h"
 
 /*
 **  READCF -- read control file.
@@ -24,19 +36,13 @@ SCCSID(@(#)readcf.c	4.2		8/28/83);
 **		Sn		Use rewriting set n.
 **		Rlhs rhs	Rewrite addresses that match lhs to
 **				be rhs.
-**		Mn p f s r a	Define mailer.  n - internal name,
-**				p - pathname, f - flags, s - rewriting
-**				ruleset for sender, s - rewriting ruleset
-**				for recipients, a - argument vector.
+**		Mn arg=val...	Define mailer.  n is the internal name.
+**				Args specify mailer parameters.
 **		Oxvalue		Set option x to value.
 **		Pname=value	Set precedence name to value.
 **
 **	Parameters:
 **		cfname -- control file name.
-**		safe -- set if this is a system configuration file.
-**			Non-system configuration files can not do
-**			certain things (e.g., leave the SUID bit on
-**			when executing mailers).
 **
 **	Returns:
 **		none.
@@ -45,9 +51,8 @@ SCCSID(@(#)readcf.c	4.2		8/28/83);
 **		Builds several internal tables.
 */
 
-readcf(cfname, safe)
+readcf(cfname)
 	char *cfname;
-	bool safe;
 {
 	FILE *cf;
 	int ruleset = 0;
@@ -59,6 +64,7 @@ readcf(cfname, safe)
 	extern char **prescan();
 	extern char **copyplist();
 	char exbuf[MAXLINE];
+	char pvpbuf[PSBUFSIZE];
 	extern char *fgetfolded();
 	extern char *munchstring();
 
@@ -73,6 +79,24 @@ readcf(cfname, safe)
 	LineNumber = 0;
 	while (fgetfolded(buf, sizeof buf, cf) != NULL)
 	{
+		/* map $ into \001 (ASCII SOH) for macro expansion */
+		for (p = buf; *p != '\0'; p++)
+		{
+			if (*p != '$')
+				continue;
+
+			if (p[1] == '$')
+			{
+				/* actual dollar sign.... */
+				(void) strcpy(p, p + 1);
+				continue;
+			}
+
+			/* convert to macro expansion character */
+			*p = '\001';
+		}
+
+		/* interpret this line */
 		switch (buf[0])
 		{
 		  case '\0':
@@ -105,7 +129,7 @@ readcf(cfname, safe)
 			/* expand and save the LHS */
 			*p = '\0';
 			expand(&buf[1], exbuf, &exbuf[sizeof exbuf], CurEnv);
-			rwp->r_lhs = prescan(exbuf, '\t');
+			rwp->r_lhs = prescan(exbuf, '\t', pvpbuf);
 			if (rwp->r_lhs != NULL)
 				rwp->r_lhs = copyplist(rwp->r_lhs, TRUE);
 
@@ -117,7 +141,7 @@ readcf(cfname, safe)
 				p++;
 			*p = '\0';
 			expand(q, exbuf, &exbuf[sizeof exbuf], CurEnv);
-			rwp->r_rhs = prescan(exbuf, '\t');
+			rwp->r_rhs = prescan(exbuf, '\t', pvpbuf);
 			if (rwp->r_rhs != NULL)
 				rwp->r_rhs = copyplist(rwp->r_rhs, TRUE);
 			break;
@@ -180,11 +204,11 @@ readcf(cfname, safe)
 			break;
 
 		  case 'M':		/* define mailer */
-			makemailer(&buf[1], safe);
+			makemailer(&buf[1]);
 			break;
 
 		  case 'O':		/* set option */
-			setoption(buf[1], &buf[2], safe, FALSE);
+			setoption(buf[1], &buf[2], TRUE, FALSE);
 			break;
 
 		  case 'P':		/* set precedence */
@@ -276,7 +300,7 @@ fileclass(class, filename, fmt)
 	char *filename;
 	char *fmt;
 {
-	register FILE *f;
+	FILE *f;
 	char buf[MAXLINE];
 
 	f = fopen(filename, "r");
@@ -289,12 +313,42 @@ fileclass(class, filename, fmt)
 	while (fgets(buf, sizeof buf, f) != NULL)
 	{
 		register STAB *s;
+		register char *p;
+# ifdef SCANF
 		char wordbuf[MAXNAME+1];
 
 		if (sscanf(buf, fmt, wordbuf) != 1)
 			continue;
-		s = stab(wordbuf, ST_CLASS, ST_ENTER);
-		setbitn(class, s->s_class);
+		p = wordbuf;
+# else SCANF
+		p = buf;
+# endif SCANF
+
+		/*
+		**  Break up the match into words.
+		*/
+
+		while (*p != '\0')
+		{
+			register char *q;
+
+			/* strip leading spaces */
+			while (isspace(*p))
+				p++;
+			if (*p == '\0')
+				break;
+
+			/* find the end of the word */
+			q = p;
+			while (*p != '\0' && !isspace(*p))
+				p++;
+			if (*p != '\0')
+				*p++ = '\0';
+
+			/* enter the word in the symbol table */
+			s = stab(q, ST_CLASS, ST_ENTER);
+			setbitn(class, s->s_class);
+		}
 	}
 
 	(void) fclose(f);
@@ -312,7 +366,6 @@ fileclass(class, filename, fmt)
 **			   R -- the recipient rewriting set
 **			   E -- the eol string
 **			The first word is the canonical name of the mailer.
-**		safe -- set if this is a safe configuration file.
 **
 **	Returns:
 **		none.
@@ -321,9 +374,8 @@ fileclass(class, filename, fmt)
 **		enters the mailer into the mailer table.
 */
 
-makemailer(line, safe)
+makemailer(line)
 	char *line;
-	bool safe;
 {
 	register char *p;
 	register struct mailer *m;
@@ -380,8 +432,6 @@ makemailer(line, safe)
 		  case 'F':		/* flags */
 			for (; *p != '\0'; p++)
 				setbitn(*p, m->m_flags);
-			if (!safe)
-				clrbitn(M_RESTR, m->m_flags);
 			break;
 
 		  case 'S':		/* sender rewriting ruleset */
@@ -528,7 +578,7 @@ makeargv(p)
 
 	/* now make a copy of the argv */
 	avp = (char **) xalloc(sizeof *avp * i);
-	bmove((char *) argv, (char *) avp, sizeof *avp * i);
+	bcopy((char *) argv, (char *) avp, sizeof *avp * i);
 
 	return (avp);
 }
@@ -575,7 +625,9 @@ printrules()
 **	Parameters:
 **		opt -- option name.
 **		val -- option value (as a text string).
-**		safe -- if set, this came from a system configuration file.
+**		safe -- set if this came from a configuration file.
+**			Some options (if set from the command line) will
+**			reset the user id to avoid security problems.
 **		sticky -- if set, don't let other setoptions override
 **			this value.
 **
@@ -587,7 +639,12 @@ printrules()
 */
 
 static BITMAP	StickyOpt;		/* set if option is stuck */
+extern char	*NetName;		/* name of home (local) network */
+# ifdef SMTP
+# ifdef WIZ
 extern char	*WizWord;		/* the stored wizard password */
+# endif WIZ
+# endif SMTP
 
 setoption(opt, val, safe, sticky)
 	char opt;
@@ -599,6 +656,8 @@ setoption(opt, val, safe, sticky)
 	extern time_t convtime();
 	extern int QueueLA;
 	extern int RefuseLA;
+	extern bool trusteduser();
+	extern char *username();
 
 # ifdef DEBUG
 	if (tTd(37, 1))
@@ -617,15 +676,30 @@ setoption(opt, val, safe, sticky)
 # endif DEBUG
 		return;
 	}
+
+	/*
+	**  Check to see if this option can be specified by this user.
+	*/
+
+	if (!safe && getruid() == 0)
+		safe = TRUE;
+	if (!safe && index("deiLmorsv", opt) == NULL)
+	{
+# ifdef DEBUG
+		if (tTd(37, 1))
+			printf(" (unsafe)");
+# endif DEBUG
+		if (getruid() != geteuid())
+		{
+			printf("(Resetting uid)\n");
+			(void) setgid(getgid());
+			(void) setuid(getuid());
+		}
+	}
 #ifdef DEBUG
 	else if (tTd(37, 1))
 		printf("\n");
 #endif DEBUG
-	if (sticky)
-		setbitn(opt, StickyOpt);
-
-	if (getruid() == 0)
-		safe = TRUE;
 
 	switch (opt)
 	{
@@ -636,12 +710,25 @@ setoption(opt, val, safe, sticky)
 			AliasFile = newstr(val);
 		break;
 
-	  case 'a':		/* look for "@:@" in alias file */
-		SafeAlias = atobool(val);
+	  case 'a':		/* look N minutes for "@:@" in alias file */
+		if (val[0] == '\0')
+			SafeAlias = 5;
+		else
+			SafeAlias = atoi(val);
+		break;
+
+	  case 'B':		/* substitution for blank character */
+		SpaceSub = val[0];
+		if (SpaceSub == '\0')
+			SpaceSub = ' ';
 		break;
 
 	  case 'c':		/* don't connect to "expensive" mailers */
 		NoConnect = atobool(val);
+		break;
+
+	  case 'C':		/* checkpoint after N connections */
+		CheckPointLimit = atoi(val);
 		break;
 
 	  case 'd':		/* delivery mode */
@@ -689,7 +776,7 @@ setoption(opt, val, safe, sticky)
 		break;
 
 	  case 'F':		/* file mode */
-		FileMode = atooct(val);
+		FileMode = atooct(val) & 0777;
 		break;
 
 	  case 'f':		/* save Unix-style From lines on front */
@@ -697,8 +784,7 @@ setoption(opt, val, safe, sticky)
 		break;
 
 	  case 'g':		/* default gid */
-		if (safe)
-			DefGid = atoi(val);
+		DefGid = atoi(val);
 		break;
 
 	  case 'H':		/* help file */
@@ -718,17 +804,36 @@ setoption(opt, val, safe, sticky)
 
 	  case 'M':		/* define macro */
 		define(val[0], newstr(&val[1]), CurEnv);
+		sticky = FALSE;
 		break;
 
 	  case 'm':		/* send to me too */
 		MeToo = atobool(val);
 		break;
 
+	  case 'n':		/* validate RHS in newaliases */
+		CheckAliases = atobool(val);
+		break;
+
+# ifdef DAEMON
+	  case 'N':		/* home (local?) network name */
+		NetName = newstr(val);
+		break;
+# endif DAEMON
+
 	  case 'o':		/* assume old style headers */
 		if (atobool(val))
 			CurEnv->e_flags |= EF_OLDSTYLE;
 		else
 			CurEnv->e_flags &= ~EF_OLDSTYLE;
+		break;
+
+	  case 'P':		/* postmaster copy address for returned mail */
+		PostMasterCopy = newstr(val);
+		break;
+
+	  case 'q':		/* slope of queue only function */
+		QueueFactor = atoi(val);
 		break;
 
 	  case 'Q':		/* queue directory */
@@ -769,20 +874,20 @@ setoption(opt, val, safe, sticky)
 		break;
 
 	  case 'u':		/* set default uid */
-		if (safe)
-			DefUid = atoi(val);
+		DefUid = atoi(val);
 		break;
 
 	  case 'v':		/* run in verbose mode */
 		Verbose = atobool(val);
 		break;
 
-# ifdef DEBUG
+# ifdef SMTP
+# ifdef WIZ
 	  case 'W':		/* set the wizards password */
-		if (safe)
-			WizWord = newstr(val);
+		WizWord = newstr(val);
 		break;
-# endif DEBUG
+# endif WIZ
+# endif SMTP
 
 	  case 'x':		/* load avg at which to auto-queue msgs */
 		QueueLA = atoi(val);
@@ -792,9 +897,27 @@ setoption(opt, val, safe, sticky)
 		RefuseLA = atoi(val);
 		break;
 
+	  case 'y':		/* work recipient factor */
+		WkRecipFact = atoi(val);
+		break;
+
+	  case 'Y':		/* fork jobs during queue runs */
+		ForkQueueRuns = atobool(val);
+		break;
+
+	  case 'z':		/* work message class factor */
+		WkClassFact = atoi(val);
+		break;
+
+	  case 'Z':		/* work time factor */
+		WkTimeFact = atoi(val);
+		break;
+
 	  default:
 		break;
 	}
+	if (sticky)
+		setbitn(opt, StickyOpt);
 	return;
 }
 /*

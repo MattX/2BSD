@@ -21,11 +21,11 @@ reg char	*av[]; {
 
 	if (strcmp(av[0], "a.out") == 0) {
 		outf = fopen("q", "w");
-		setbuf(outf, 0);
+		setbuf(outf, NULL);
 		Debug = TRUE;
 	}
 	restore = FALSE;
-# ifdef pdp11
+# ifdef LOADAV
 	if (geteuid() != ARNOLD) {
 		loadav(avs);
 		if (avs[2] > 9.0) {
@@ -69,9 +69,9 @@ reg char	*av[]; {
 	leaveok(Miles, TRUE);
 	clearok(curscr, TRUE);
 # ifndef PROF
-	srand(getpid());
+	srandom(getpid());
 # else
-	srand(0);
+	srandom(0);
 # endif
 	crmode();
 	noecho();
@@ -116,8 +116,8 @@ reg char	*av[]; {
  */
 rub() {
 
-	signal(SIGINT, 1);
-	if (getyn("Really? "))
+	signal(SIGINT, SIG_IGN);
+	if (getyn(REALLYPROMPT))
 		die();
 	signal(SIGINT, rub);
 }
@@ -127,10 +127,11 @@ rub() {
  */
 die() {
 
-	signal(SIGINT, 1);
+	signal(SIGINT, SIG_IGN);
 	if (outf)
 		fflush(outf);
 	mvcur(0, COLS - 1, LINES - 1, 0);
 	endwin();
 	exit(1);
 }
+

@@ -1,28 +1,38 @@
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)rexecd.c	4.1 82/04/02";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)rexecd.c	5.4 (Berkeley) 5/9/86";
+#endif not lint
+
+#include <sys/ioctl.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+
+#include <netinet/in.h>
 
 #include <stdio.h>
-#include <sys/param.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <errno.h>
 #include <pwd.h>
-#include <wait.h>
 #include <signal.h>
-#ifdef	pdp11
-#define	wait3(a,b,c) wait2(&a,b)
-#define	inigrp(a,b)
-#endif
+#include <netdb.h>
 
 extern	errno;
-struct	sockaddr_in sin = { AF_INET, IPPORT_EXECSERVER };
 struct	passwd *getpwnam();
-char	*crypt(), *rindex(), *sprintf();
-int	options = SO_ACCEPTCONN|SO_KEEPALIVE;
-/* VARARGS 1 */
+char	*crypt(), *rindex(), *strncat(), *sprintf();
+/*VARARGS1*/
 int	error();
+
 /*
  * remote execute server:
  *	username\0
@@ -30,66 +40,21 @@ int	error();
  *	command\0
  *	data
  */
+/*ARGSUSED*/
 main(argc, argv)
 	int argc;
 	char **argv;
 {
-	union wait status;
-	int f;
 	struct sockaddr_in from;
+	int fromlen;
 
-#ifndef DEBUG
-	if (fork())
-		exit(0);
-	for (f = 0; f < 10; f++)
-		(void) close(f);
-	(void) open("/", 0);
-	(void) dup2(0, 1);
-	(void) dup2(0, 2);
-	{ int t = open("/dev/tty", 2);
-	  if (t >= 0) {
-		ioctl(t, TIOCNOTTY, (char *)0);
-		(void) close(t);
-	  }
+	fromlen = sizeof (from);
+	if (getpeername(0, &from, &fromlen) < 0) {
+		fprintf(stderr, "%s: ", argv[0]);
+		perror("getpeername");
+		exit(1);
 	}
-#endif
-#ifdef	TCP4_1b
-	{
-		struct servent *sp;
-
-		sp = getservbyname("exec","tcp");
-		if (sp)
-			sin.sin_port = sp->s_port;
-	}
-#endif
-/*
-#if	vax || pdp11
-	sin.sin_port = htons(sin.sin_port);
-#endif
-*/
-	argc--, argv++;
-	if (argc > 0 && !strcmp(argv[0], "-d"))
-		options |= SO_DEBUG;
-	for (;;) {
-		errno = 0;
-		f = socket(SOCK_STREAM, 0, &sin, options);
-		if (f < 0) {
-			perror("socket");
-			sleep(5);
-			continue;
-		}
-		if (accept(f, &from) < 0) {
-			perror("accept");
-			(void) close(f);
-			sleep(1);
-			continue;
-		}
-		if (fork() == 0)
-			doit(f, &from);
-		(void) close(f);
-		while(wait3(status, WNOHANG, 0) > 0)
-			continue;
-	}
+	doit(0, &from);
 }
 
 char	username[20] = "USER=";
@@ -129,9 +94,6 @@ doit(f, fromp)
 	dup2(f, 0);
 	dup2(f, 1);
 	dup2(f, 2);
-#if	vax || pdp11
-	fromp->sin_port = ntohs((u_short)fromp->sin_port);
-#endif
 	(void) alarm(60);
 	port = 0;
 	for (;;) {
@@ -144,15 +106,14 @@ doit(f, fromp)
 	}
 	(void) alarm(0);
 	if (port != 0) {
-		s = socket(SOCK_STREAM, 0, &asin, 0);
+		s = socket(AF_INET, SOCK_STREAM, 0);
 		if (s < 0)
 			exit(1);
+		if (bind(s, &asin, sizeof (asin)) < 0)
+			exit(1);
 		(void) alarm(60);
-		fromp->sin_port = port;
-#if	vax || pdp11
-		fromp->sin_port = ntohs(fromp->sin_port);
-#endif
-		if (connect(s, fromp) < 0)
+		fromp->sin_port = htons((u_short)port);
+		if (connect(s, fromp, sizeof (*fromp)) < 0)
 			exit(1);
 		(void) alarm(0);
 	}
@@ -188,24 +149,24 @@ doit(f, fromp)
 		if (pid) {
 			(void) close(0); (void) close(1); (void) close(2);
 			(void) close(f); (void) close(pv[1]);
-			readfrom = (1<<s) | (1<<pv[0]);
+			readfrom = (1L<<s) | (1L<<pv[0]);
 			ioctl(pv[1], FIONBIO, (char *)&one);
 			/* should set s nbio! */
 			do {
 				ready = readfrom;
-				(void) select(32, &ready, 0, (long)1000000);
-				if (ready & (1<<s)) {
+				(void) select(16, &ready, (fd_set *)0,
+				    (fd_set *)0, (struct timeval *)0);
+				if (ready & (1L<<s)) {
 					if (read(s, &sig, 1) <= 0)
-						readfrom &= ~(1<<s);
+						readfrom &= ~(1L<<s);
 					else
 						killpg(pid, sig);
 				}
-				if (ready & (1<<pv[0])) {
+				if (ready & (1L<<pv[0])) {
 					cc = read(pv[0], buf, sizeof (buf));
 					if (cc <= 0) {
-						int done = 1+1;
-						ioctl(s, SIOCDONE, (char *)&done);
-						readfrom &= ~(1<<pv[0]);
+						shutdown(s, 1+1);
+						readfrom &= ~(1L<<pv[0]);
 					} else
 						(void) write(s, buf, cc);
 				}
@@ -218,10 +179,11 @@ doit(f, fromp)
 	}
 	if (*pwd->pw_shell == '\0')
 		pwd->pw_shell = "/bin/sh";
-	(void) close(f);
-	inigrp(pwd->pw_name, pwd->pw_gid);
-	(void) setuid(pwd->pw_uid);
-	(void) setgid(pwd->pw_gid);
+	if (f > 2)
+		(void) close(f);
+	(void) setgid((gid_t)pwd->pw_gid);
+	initgroups(pwd->pw_name, pwd->pw_gid);
+	(void) setuid((uid_t)pwd->pw_uid);
 	environ = envinit;
 	strncat(homedir, pwd->pw_dir, sizeof(homedir)-6);
 	strncat(shell, pwd->pw_shell, sizeof(shell)-7);
@@ -236,7 +198,7 @@ doit(f, fromp)
 	exit(1);
 }
 
-/* VARARGS 1 */
+/*VARARGS1*/
 error(fmt, a1, a2, a3)
 	char *fmt;
 	int a1, a2, a3;

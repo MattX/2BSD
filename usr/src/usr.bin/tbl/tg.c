@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tg.c	4.2 8/11/83";
+#endif
+
  /* tg.c: process included text blocks */
 # include "t..c"
 gettext(sp, ilin,icol, fn, sz)

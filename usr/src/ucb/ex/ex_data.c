@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_data.c	7.1	7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_data.c	7.5 (Berkeley) 8/29/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_tty.h"
 
@@ -50,6 +58,7 @@ struct	option options[NOPTS + 1] = {
 	"list",		0,	ONOFF,		0,	0,	0,
 	"magic",	0,	ONOFF,		1,	1,	0,
 	"mesg",		0,	ONOFF,		1,	1,	0,
+	"modeline",	0,	ONOFF,		0,	0,	0,
 	"number",	"nu",	ONOFF,		0,	0,	0,
 	"open",		0,	ONOFF,		1,	1,	0,
 	"optimize",	"opt",	ONOFF,		0,	0,	0,
@@ -65,6 +74,7 @@ struct	option options[NOPTS + 1] = {
 	"shiftwidth",	"sw",	NUMERIC,	TABS,	TABS,	0,
 	"showmatch",	"sm",	ONOFF,		0,	0,	0,
 	"slowopen",	"slow",	ONOFF,		0,	0,	0,
+	"sourceany",	0,	ONOFF,		0,	0,	0,
 	"tabstop",	"ts",	NUMERIC,	TABS,	TABS,	0,
 	"taglength",	"tl",	NUMERIC,	0,	0,	0,
 	"tags",		"tag",	STRING,		0,	0,	tags,

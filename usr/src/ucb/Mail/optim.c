@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)optim.c	5.5 (Berkeley) 11/2/85";
+#endif not lint
 
 /*
  * Mail -- a program for sending and receiving mail.
@@ -6,11 +14,13 @@
  * Network name modification routines.
  */
 
+#ifdef BSD2_10
+#include <short_names.h>
+#endif
+
 #include "rcv.h"
 #include "configdefs.h"
 #include <ctype.h>
-
-static char *SccsId = "@(#)optim.c	2.8 3/2/83";
 
 /*
  * Map a name into the correct network "view" of the
@@ -61,6 +71,7 @@ rename(str)
 	char buf[BUFSIZ], path[BUFSIZ];
 	register int c, host;
 
+	cp = str;
 	strcpy(path, "");
 	for (;;) {
 		if ((c = *cp++) == 0)
@@ -92,14 +103,15 @@ netlook(machine, attnet)
 {
 	register struct netmach *np;
 	register char *cp, *cp2;
-	char nbuf[20];
+	char nbuf[BUFSIZ];
 
 	/*
 	 * Make into lower case.
 	 */
 
 	for (cp = machine, cp2 = nbuf; *cp; *cp2++ = little(*cp++))
-		;
+		if (cp2 >= &nbuf[sizeof(nbuf)-1])
+			break;
 	*cp2 = 0;
 
 	/*
@@ -340,7 +352,7 @@ xlocate(name)
 		if (strcmp(cp, xp->xh_name) == 0)
 			return(xp);
 		if (h - q < 0)
-			q += XHSIZE;
+			h += XHSIZE;
 		xp = &xtrahash[(h - q) % XHSIZE];
 		if (xp->xh_name == NOSTR)
 			return(xp);
@@ -651,6 +663,7 @@ rpair(str, mach)
 {
 	register char *cp, *last;
 
+	cp = str;
 	last = NOSTR;
 	while (*cp) {
 		if (*cp == mach)

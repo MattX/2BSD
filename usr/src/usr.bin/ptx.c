@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)ptx.c	4.2 (Berkeley) 9/23/85";
 #
 
 /*	permuted title index
@@ -21,7 +22,7 @@
 #include <signal.h>
 #define DEFLTX "/usr/lib/eign"
 #define TILDE 0177
-#define SORT "/bin/sort"
+#define SORT "/usr/bin/sort"
 #define	N 30
 #define	MAX	N*BUFSIZ
 #define LMAX	200
@@ -244,7 +245,9 @@ char **argv;
 
 
 	getsort();
-	onintr();
+	if(*sortfile)
+		unlink(sortfile);
+	exit(0);
 }
 
 msg(s,arg)

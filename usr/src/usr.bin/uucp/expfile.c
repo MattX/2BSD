@@ -1,5 +1,6 @@
-/* $Header: expfile.c,v 1.6 85/05/20 20:01:22 rick Exp $ */
-/* from: @(#)expfile.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)expfile.c	5.5 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 #include <sys/stat.h>

@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)soelim.c	4.1 (Berkeley) 10/1/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)soelim.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
  * soelim - a filter to process n/troff input eliminating .so's
@@ -18,6 +31,7 @@ static char *sccsid = "@(#)soelim.c	4.1 (Berkeley) 10/1/80";
  * This program is more generally useful, it turns out, because
  * the program tbl doesn't understand ".so" directives.
  */
+#define	STDIN_NAME	"-"
 
 main(argc, argv)
 	int argc;
@@ -27,33 +41,38 @@ main(argc, argv)
 	argc--;
 	argv++;
 	if (argc == 0) {
-		fprintf(stderr, "Usage: %s file [ file ... ]\n", argv[-1]);
-		exit(1);
+		(void)process(STDIN_NAME);
+		exit(0);
 	}
 	do {
-		process(argv[0]);
+		(void)process(argv[0]);
 		argv++;
 		argc--;
 	} while (argc > 0);
 	exit(0);
 }
 
-process(file)
+int process(file)
 	char *file;
 {
 	register char *cp;
 	register int c;
 	char fname[BUFSIZ];
 	FILE *soee;
+	int isfile;
 
-	soee = fopen(file, "r");
-	if (soee == NULL) {
-		perror(file);
-		return;
+	if (!strcmp(file, STDIN_NAME)) {
+		soee = stdin;
+	} else {
+		soee = fopen(file, "r");
+		if (soee == NULL) {
+			perror(file);
+			return(-1);
+		}
 	}
 	for (;;) {
 		c = getc(soee);
-		if (c < 0)
+		if (c == EOF)
 			break;
 		if (c != '.')
 			goto simple;
@@ -71,6 +90,7 @@ process(file)
 			c = getc(soee);
 		while (c == ' ' || c == '\t');
 		cp = fname;
+		isfile = 0;
 		for (;;) {
 			switch (c) {
 
@@ -83,6 +103,7 @@ process(file)
 			default:
 				*cp++ = c;
 				c = getc(soee);
+				isfile++;
 				continue;
 			}
 		}
@@ -91,13 +112,22 @@ donename:
 			printf(".so");
 			goto simple;
 		}
-		*cp++ = 0;
-		process(fname);
+		*cp = 0;
+		if (process(fname) < 0)
+			if (isfile)
+				printf(".so %s\n", fname);
 		continue;
 simple:
 		if (c == EOF)
 			break;
 		putchar(c);
+		if (c != '\n') {
+			c = getc(soee);
+			goto simple;
+		}
 	}
-	fclose(soee);
+	if (soee != stdin) {
+		fclose(soee);
+	}
+	return(0);
 }

@@ -1,4 +1,6 @@
 .nr _0 \n(c.
+.\"	@(#)eqn.me	2.1	8/18/80
+.\"	%beginstrip%
 .de EQ			\" *** equation start
 .ec
 .if !\\n(?e \
@@ -46,9 +48,8 @@
 .de @q			\" --- equation output
 .nr _Q \\n(dnu
 .ev
-.br				\" output rest of preceeding text
-.ev 2
-.sp \\n(esu
+.sp \\n(esu			\" output rest of preceeding text
+.@C 2				\" .ev 2 may be jumbled from header
 .ie \\n(_d=1 \
 .	in (\\n(.lu+\\n($iu-\\n(dlu)/2u
 .el .ie \\n(_d=2 \

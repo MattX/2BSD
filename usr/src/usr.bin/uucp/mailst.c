@@ -1,5 +1,6 @@
-/* $Header: mailst.c,v 1.10 85/05/20 20:02:02 rick Exp $ */
-/* from: @(#)mailst.c	5.2 (Berkeley) 7/19/83 */
+#ifndef lint
+static char sccsid[] = "@(#)mailst.c	5.6 (Berkeley) 10/9/85";
+#endif
 
 #include <signal.h>
 #include "uucp.h"
@@ -47,7 +48,7 @@ char *user, *str, *file;
 static	int	popen_pid[20];
 
 FILE *
-rpopen(cmd,mode)
+rpopen(cmd, mode)
 char	*cmd;
 char	*mode;
 {
@@ -62,7 +63,7 @@ char	*mode;
 		/* myside and hisside reverse roles in child */
 		close(myside);
 #ifdef USG
-		close(tst(0, 1);
+		close(tst(0, 1));
 		fcntl(hisside, F_DUPFD, tst(0, 1));
 #else !USG
 		dup2(hisside, tst(0, 1));

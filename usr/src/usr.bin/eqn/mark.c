@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)mark.c	4.2 8/11/83";
+#endif
+
 #include "e.h"
 
 mark(p1) int p1; {

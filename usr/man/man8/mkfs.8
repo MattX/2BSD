@@ -1,15 +1,56 @@
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)mkfs.8	5.0 (Berkeley) 8/13/87
+.\"
 .TH MKFS 8
-.UC
+.UC 2
 .SH NAME
 mkfs \- construct a file system
-.SH SYNTAX
+.SH SYNOPSIS
 .B /etc/mkfs
-special proto [m] [n]
+special size  [ m ] [ n ]
 .br
 .B /etc/mkfs
-special size  [m] [n]
+special proto [ m ] [ n ]
 .SH DESCRIPTION
+.B N.B.:
+file systems are normally created with the
+.IR newfs (8)
+command.
+.PP
 .I Mkfs
+constructs a file system
+by writing on the special file
+.IR special .
+In its first form above,
+.I mkfs
+creates an empty file system.
+The numeric
+.I size
+specifies the number of logical blocks in the file system (logical blocks
+are 1K on 2.10BSD.)  The number of inodes is calculated as a function of
+the filsystem size.  No
+.I lost+found
+directory is created and the boot block is left uninitialized (see
+.IR mklost (8)
+and
+.IR newfs (8).)
+.PP
+The optional flags \fIm\fP and \fIn\fP determine the block interleaving
+of the freelist that will be constructed,
+where \fIm\fP is the distance between successive 1024-byte blocks,
+and \fIn\fP is the number of blocks before the pattern repeats,
+typically one cylinder.
+The optimal values for
+these parameters vary with the speed and geometry of the disk,
+as well as the speed of the processor.
+.IR Newfs (8)
+automates the selection of these parameters in most cases.
+.PP
+In its second form above
+.I mkfs
 constructs a file system
 by writing on the special file
 .I special
@@ -23,7 +64,7 @@ new lines.
 The first token is the name of a file
 to be copied onto block zero as
 the bootstrap program,
-see \fIboot\fP\|(8).
+see \fIreboot\fP\|(8).
 The second token is a number specifying the
 size of the created file system.
 Typically it will be the number of logical blocks on the device
@@ -92,34 +133,11 @@ in the directory.
 The scan is terminated with 
 .BR $ .
 .PP
-If the prototype file cannot be opened and
-its name consists of a string of digits,
-.I mkfs
-builds a file system with an empty directory in it.
-.I Mkfs
-always constructs a lost+found directory.
-The size of the file system, in logical blocks, is the value
-of
-.I proto
-interpreted as a decimal number.
-The number of inodes is calculated
-as a function of the filsystem size.
-The boot program is left uninitialized.
-.PP
-The optional flags \fIm\fP and \fIn\fP determine the block interleaving
-of the freelist that will be constructed,
-where \fIm\fP is the distance between successive 1024-byte blocks,
-and \fIn\fP is the number of blocks before the pattern repeats,
-typically one cylinder.
-The optimal values for
-these parameters vary with the speed and geometry of the disk,
-as well as the speed of the processor.
-.PP
 A sample prototype specification follows:
 .PP
 .nf
 .in +5
-/usr/src/sys/mdec/rkuboot
+/mdec/rkuboot
 2436 55
 d\-\-777 3 1
 usr	d\-\-777 3 1
@@ -134,8 +152,12 @@ $
 .fi
 .SH FILES
 .ta 2.5i
-/usr/src/sys/mdec/*uboot	bootstrap binaries
+/mdec/xxuboot	bootstrap binaries
 .SH "SEE ALSO"
-dir(5), filsys(5), boot(8)
+fs(5),
+dir(5),
+fsck(8),
+mklost(8),
+newfs(8)
 .SH BUGS
 There should be some way to specify links.

@@ -1,98 +1,126 @@
 #
-#	makefile	4.1	10/9/80
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley Software License Agreement
+# specifies the terms and conditions for redistribution.
 #
-# C Shell with process control; PDP-11 separate I/D Makefile
+#	@(#)Makefile	5.3 (Berkeley) 3/29/86
+#
+# C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
 #
-CFLAGS=	-O
+# To profile, put -DPROF in DEFS and -pg in CFLAGS, and recompile.
+#
+# 2.10BSD does have limits, but including them in the csh doesn't really give
+# you that much (at least I've never used them) and forces us to set up
+# overlays for the separate I&D processor which makes the csh slower.  If you
+# really want to have limits in the csh, feel free to take NOLIMITS out of the
+# defines - but you'll have to set up an overlay scheme.
+
+DEFS=	-DTELL -DVFORK -DFILEC -DNOLIMITS
+CFLAGS=	$(DEFS) -O
+SEPFLAG=-i
 XSTR=	/usr/ucb/xstr
-ED=	-ed
-AS=	-as
-RM=	rm
-CXREF=	/usr/ucb/cref
-VGRIND=	csh /usr/ucb/vgrind
+AS=	as
+RM=	-rm
+CXREF=	/usr/ucb/cxref
+VGRIND=	/usr/ucb/vgrind
 CTAGS=	/usr/ucb/ctags
+LIBES=
+SCCS=	sccs
+CPP=	/lib/cpp
+SED=	sed
 
-# strings.o must be last in OBJS since it can change when previous files compile
-OBJS=	sh.o sh.dol.o sh.err.o sh.exec.o sh.exp.o sh.func.o sh.glob.o \
-	sh.hist.o sh.lex.o sh.misc.o sh.parse.o sh.print.o sh.sem.o sh.set.o \
-	sh.proc.o sh.dir.o sh.time.o alloc.o sh.init.o printf.o \
-	doprnt.o strings.o
-
-all: csh
-
-install:
-	install -s -o bin -g bin -m 711 csh ${DESTDIR}/bin/csh
-
-csh: ${OBJS} sh.local.h
-	${CC} ${LFLAG} ${OBJS} -o csh
+OBJS=	alloc11.o doprnt11.o printf.o sh.o sh.char.o sh.dir.o sh.dol.o \
+	sh.err.o sh.exec.o sh.exp.o sh.file.o sh.func.o sh.glob.o sh.hist.o \
+	sh.init.o sh.lex.o sh.misc.o sh.parse.o sh.print.o sh.proc.o sh.sem.o \
+	sh.set.o sh.time.o
 
 # Special massaging of C files for sharing of strings
 .c.o:
 	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
 	${CC} -c ${CFLAGS} x.c 
-	mv x.o $*.o
+	mv -f x.o $*.o
+	rm -f x.c
+
+# strings.o must be last since it can change when previous files compile
+csh: ${OBJS} strings.o
+	rm -f csh
+	-if [ X${SEPFLAG} = X-i ]; then \
+		${CC} ${SEPFLAG} ${CFLAGS} ${OBJS} strings.o -o csh ${LIBES}; \
+	else \
+		@echo "needs overlay scheme"; \
+	fi
+
+.DEFAULT:
+	${SCCS} get $<
+
+# need an old doprnt, whose output we can trap
+doprnt11.o: doprnt11.s
+	${CPP} doprnt11.s | ${SED} '/^#/d' >x.i
+	${AS} -o doprnt11.o x.i
+	rm -f x.i
 
 strings.o: strings
 	${XSTR}
 	${CC} -c xs.c
-	mv xs.o strings.o
-	${RM} -f xs.s
-
-csh.prof: ${OBJS} sh.prof.o sh.local.h mcrt0.o
-	rm -f csh.prof
-	ld -X mcrt0.o ${OBJS} -o csh.prof -lc
-
-sh.o.prof:
-	cp sh.c sh.prof.c
-	${CC} -c ${CFLAGS} -DPROF sh.prof.c
+	mv -f xs.o strings.o
+	rm -f xs.c
 
 lint:
-	lint ${CFLAGS} sh*.c
+	lint -z ${DEFS} sh*.c alloc.c
 
 print:
 	@pr READ_ME
-	@pr makefile makefile.*
+	@pr Makefile Makefile.*
 	@(size -l a.out; size *.o) | pr -h SIZES
+	@${CXREF} sh*.c | pr -h XREF
 	@ls -l | pr 
-	@pr sh*.h sh*.c alloc.c
+	@pr sh*.h [a-rt-z]*.h sh*.c alloc.c
 
 vprint:
-	@pr -l132 makefile 
+	@pr -l84 READ_ME TODO
+	@pr -l84 Makefile Makefile.*
 	@(size -l a.out; size *.o) | pr -l84 -h SIZES
-	@ls -l | pr -l132
-	@pr -l132 sh*.h [a-rt-z]*.h sh*.c alloc.c
+	@${CXREF} sh*.c | pr -l84 -h XREF
+	@ls -l | pr -l84
+	@${CXREF} sh*.c | pr -l84 -h XREF
+	@pr -l84 sh*.h [a-rt-z]*.h sh*.c alloc.c
 
 vgrind:
 	@cp /dev/null index
-	@for i in *.h; do vgrind -t -h "C Shell" $$i >/crp/bill/csh/$$i.t; done
-	@for i in *.c; do vgrind -t -h "C Shell" $$i >/crp/bill/csh/$$i.t; done
-	@vgrind -t -x -h Index index >/crp/bill/csh/index.t
+	@-mkdir grind
+	for i in *.h; do ${VGRIND} -t -h "C Shell" $$i >grind/$$i.t; done
+	for i in *.c; do ${VGRIND} -t -h "C Shell" $$i >grind/$$i.t; done
+	${VGRIND} -t -x -h Index index >grind/index.t
+
+install: csh
+	install -s csh ${DESTDIR}/bin/csh
 
 clean:
-	${RM} -f a.out strings x.c xs.c *.o sh.prof.c
+	${RM} -f a.out strings x.c xs.c csh errs
+	${RM} -f *.o
+	${RM} -rf vgrind
 
-tags:	/tmp
-	${CTAGS} sh*.c
+tags:
+	${CTAGS} -t *.h sh*.c
 
-sh.o:		sh.c
-sh.dol.o:	sh.dol.c
-sh.err.o:	sh.err.c
-sh.exec.o:	sh.exec.c
-sh.exp.o:	sh.exp.c
-sh.func.o:	sh.func.c
-sh.glob.o:	sh.glob.c
-sh.hist.o:	sh.hist.c
-sh.lex.o:	sh.lex.c
-sh.misc.o:	sh.misc.c
-sh.parse.o:	sh.parse.c
-sh.print.o:	sh.print.c
-sh.sem.o:	sh.sem.c
-sh.set.o:	sh.set.c
-sh.proc.o:	sh.proc.c
-sh.dir.o:	sh.dir.c
-sh.time.o:	sh.time.c
-alloc.o:	alloc.c
-sh.init.o:	sh.init.c
-printf.o:	printf.c
-doprnt.o:	doprnt.s
+sh.o: sh.h sh.local.h sh.char.h
+sh.char.o: sh.char.h
+sh.dir.o: sh.h sh.local.h sh.dir.h
+sh.dol.o: sh.h sh.local.h sh.char.h
+sh.err.o: sh.h sh.local.h sh.char.h
+sh.exec.o: sh.h sh.local.h sh.char.h
+sh.exp.o: sh.h sh.local.h sh.char.h
+sh.file.o: sh.h sh.local.h sh.char.h
+sh.func.o: sh.h sh.local.h sh.char.h
+sh.glob.o: sh.h sh.local.h sh.char.h
+sh.hist.o: sh.h sh.local.h sh.char.h
+sh.init.o: sh.local.h
+sh.lex.o: sh.h sh.local.h sh.char.h
+sh.misc.o: sh.h sh.local.h sh.char.h
+sh.parse.o: sh.h sh.local.h sh.char.h
+sh.print.o: sh.h sh.local.h sh.char.h
+sh.proc.o: sh.h sh.local.h sh.dir.h sh.proc.h sh.char.h
+sh.sem.o: sh.h sh.local.h sh.proc.h sh.char.h
+sh.set.o: sh.h sh.local.h sh.char.h
+sh.time.o: sh.h sh.local.h sh.char.h

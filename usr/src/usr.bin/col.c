@@ -1,5 +1,5 @@
+static char *sccsid = "@(#)col.c	4.2 (Berkeley) 5/15/84";
 # include <stdio.h>
-
 # define PL 256
 # define ESC '\033'
 # define RLF '\013'
@@ -10,13 +10,13 @@
 
 char *page[PL];
 char lbuff [LINELN], *line;
-int bflag, xflag, fflag;
+int bflag, hflag, fflag;
 int half;
 int cp, lp;
 int ll, llh, mustwr;
 int pcp = 0;
 char *pgmname;
-char *strcpy();
+char	*strcpy();
 
 main (argc, argv)
 	int argc; char **argv;
@@ -24,9 +24,7 @@ main (argc, argv)
 	int i;
 	int greek;
 	register int c;
-	char fbuff[BUFSIZ];
 
-	setbuf (stdout, fbuff);
 	pgmname = argv[0];
 
 	for (i = 1; i < argc; i++) {
@@ -42,8 +40,8 @@ main (argc, argv)
 				bflag++;
 				break;
 
-			case 'x':
-				xflag++;
+			case 'h':
+				hflag++;
 				break;
 
 			case 'f':
@@ -156,7 +154,7 @@ main (argc, argv)
 		if (page[(mustwr+i)%PL] != 0)
 			emit (page[(mustwr+i) % PL], mustwr+i-PL);
 	emit (" ", (llh + 1) & -2);
-	return 0;
+	exit(0);
 }
 
 outc (c)
@@ -243,10 +241,6 @@ emit (s, lineno)
 	static int gflag = 0;
 
 	if (*s) {
-		if (gflag) {
-			putchar (SI);
-			gflag = 0;
-		}
 		while (cline < lineno - 1) {
 			putchar ('\n');
 			pcp = 0;
@@ -264,7 +258,7 @@ emit (s, lineno)
 		while (*p) {
 			ncp = pcp;
 			while (*p++ == ' ') {
-				if ((++ncp & 7) == 0 && !xflag) {
+				if ((++ncp & 7) == 0 && hflag) {
 					pcp = ncp;
 					putchar ('\t');
 				}

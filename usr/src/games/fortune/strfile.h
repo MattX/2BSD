@@ -1,36 +1,20 @@
+/* @(#)strfile.h	1.2 (Berkeley) 5/14/81 */
+
+# define	MAXDELIMS	3
+
 /*
- * fortune include file
- *
- *	Keith Bostic
- *		ARPA: keith@seismo
- *		UUCP: seismo!keith
+ * bits for flag field
  */
 
-#define OUTFILE		"fortunes.dat"	/* standard output file */
-#define ERR		-1		/* general error condition */
-#define NO		0		/* general no, false */
-#define OK		0		/* general ok condition */
-#define YES		1		/* general yes, true */
+# define	STR_RANDOM	0x1
+# define	STR_ORDERED	0x2
 
-char	*malloc();			/* memory allocation */
-#define MM(cast,store,amount,type)	if (!(store=(cast *)malloc((unsigned)(sizeof(type)*(amount))))){perror("malloc");exit(ERR);}
-
-#define SCENE		0		/* the first is scene fortunes */
-#define OBS		1		/* the second is obscene fortunes */
-#define OBSLIM		2		/* the third is obscene limericks */
-#define END		3		/* end of offsets */
-#define SECTIONS	4		/* number of sections */
-
-struct strf {
-	char	*fname;			/* file name */
-	long	entry,			/* entry into database */
-		number;			/* how many fortunes */
+struct	strfile {		/* information table */
+	unsigned int	str_numstr;		/* # of strings in the file */
+	unsigned int	str_longlen;		/* length of longest string */
+	unsigned int	str_shortlen;		/* length of shortest string */
+	long		str_delims[MAXDELIMS];	/* delimiter markings */
+	int		str_flags;		/* bit field for flags */
 };
-typedef struct strf STRF;
 
-static STRF	tbl[SECTIONS] = {
-	"scene",	SCENE,		0,	/* current table breakup */
-	"obscene",	OBS,		0,
-	"obs.lim",	OBSLIM,		0,
-	"",		END,		0,
-};
+typedef struct strfile	STRFILE;

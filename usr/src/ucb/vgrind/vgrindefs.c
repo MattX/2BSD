@@ -1,9 +1,17 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)vgrindefs.c	5.1 (Berkeley) 6/5/85";
+#endif not lint
+
 #define	BUFSIZ	1024
 #define MAXHOP	32	/* max number of tc= indirections */
 
 #include <ctype.h>
-#include "../ex/uparm.h"
 /*
  * grindcap - routines for dealing with the language definitions data base
  *	(code stolen almost totally from termcap)
@@ -20,6 +28,7 @@
  */
 
 static	char *tbuf;
+static	char *filename;
 static	int hopcount;	/* detect infinite loops in termcap, init 0 */
 char	*tskip();
 char	*tgetstr();
@@ -31,8 +40,8 @@ char	*getenv();
  * from the termcap file.  Parse is very rudimentary;
  * we just notice escaped newlines.
  */
-tgetent(bp, name, filename)
-	char *bp, *name, *filename;
+tgetent(bp, name, file)
+	char *bp, *name, *file;
 {
 	register char *cp;
 	register int c;
@@ -43,6 +52,7 @@ tgetent(bp, name, filename)
 
 	tbuf = bp;
 	tf = 0;
+	filename = file;
 	tf = open(filename, 0);
 	if (tf < 0)
 		return (-1);
@@ -117,7 +127,7 @@ tnchktc()
 		write(2, "Infinite tc= loop\n", 18);
 		return (0);
 	}
-	if (tgetent(tcbuf, tcname) != 1)
+	if (tgetent(tcbuf, tcname, filename) != 1)
 		return(0);
 	for (q=tcbuf; *q != ':'; q++)
 		;

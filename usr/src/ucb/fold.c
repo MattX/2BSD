@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)fold.c	4.1 (Berkeley) 10/1/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)fold.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 /*
  * fold - fold long lines for finite output devices
@@ -15,10 +28,9 @@ main(argc, argv)
 	char *argv[];
 {
 	register c;
-	char obuf[BUFSIZ];
+	FILE *f;
 
 	argc--, argv++;
-	setbuf(stdout, obuf);
 	if (argc > 0 && argv[0][0] == '-') {
 		fold = 0;
 		argv[0]++;

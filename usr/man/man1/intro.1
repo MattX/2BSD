@@ -1,9 +1,11 @@
-.TH INTRO 1 
+.\"	@(#)intro.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH INTRO 1 "April 29, 1985"
+.AT 3
 .SH NAME
 intro \- introduction to commands
 .SH DESCRIPTION
-This section describes publicly accessible commands
-in alphabetic order.
+This section describes publicly accessible commands in alphabetic order.
 Certain distinctions of purpose are made in the headings:
 .TP
 (1)
@@ -15,19 +17,19 @@ Commands for communication with other systems.
 (1G)
 Commands used primarily for graphics and computer-aided design.
 .PP
-The word `local' at the foot of a page means that the
-command is not intended for general distribution.
+N.B.: Commands related to system maintenance used to appear in
+section 1 manual pages and were distinguished by (1M) at the top of the
+page.  These manual pages now appear in section 8.
 .SH SEE ALSO
 Section (6) for computer games.
-.br
+.PP
 .I How to get started,
 in the Introduction.
 .SH DIAGNOSTICS
 Upon termination each command returns two bytes of status,
 one supplied by the system giving the cause for
 termination, and (in the case of `normal' termination)
-one supplied by the program,
-see
+one supplied by the program, see
 .I wait
 and
 .IR exit (2).
@@ -36,5 +38,4 @@ is customarily 0 for successful execution, nonzero
 to indicate troubles such as erroneous parameters, bad or inaccessible data,
 or other inability to cope with the task at hand.
 It is called variously `exit code', `exit status' or
-`return code', and is described only where special
-conventions are involved.
+`return code', and is described only where special conventions are involved.

@@ -1,43 +1,47 @@
+#	Makefile	4.1	83/08/11
 #
-# lex makefile
-#
-# SMALL should be "-DSMALL" for a smaller lex
+CFLAGS = -O
+SEPFLAG= -i
 
-SMALL=
-CFLAGS=	-O
-OBJS=	header.o lmain.o sub1.o sub2.o y.tab.o
-ALL=	lex
-OALL=	ovlex
+all: lex
 
-all: ${ALL}
+lex: lmain.o y.tab.o sub1.o sub2.o header.o
+	-if [ X${SEPFLAG} = X-i ]; then \
+		cc ${SEPFLAG} lmain.o y.tab.o sub1.o sub2.o header.o -o lex; \
+	else \
+		ld ${SEPFLAG} -X /lib/crt0.o \
+		-Z lmain.o y.tab.o \
+		-Z sub2.o \
+		-Z header.o \
+		-Y sub1.o -lc -o lex; \
+	fi
 
-install:
-	install -s -o bin -g bin -m 711 lex ${DESTDIR}/usr/bin
-
-lex: ${OBJS}
-	${CC} ${LFLAG} ${OBJS} -o $@
-
-ovall: ${OALL}
-
-ovlex: ${OBJS}
-	ld -o lex -X ${LFLAG} ${CRT} -Z lmain.o y.tab.o -Z sub2.o \
-	-Z header.o -L sub1.o -lovc
+smallex:
+	-if [ X${SEPFLAG} = X-i ]; then \
+		cc ${SEPFLAG} lmain.o y.tab.o sub1.o sub2.o header.o -o lex; \
+	else \
+		ld ${SEPFLAG} -X /lib/crt0.o \
+		-Z lmain.o y.tab.o \
+		-Z sub2.o \
+		-Z header.o \
+		-Y sub1.o -lc -o lex; \
+	fi
 
 y.tab.c: parser.y
 	yacc parser.y
+lmain.o:lmain.c ldefs.c once.c
+	cc -c -O lmain.c
+sub1.o: sub1.c ldefs.c
+	cc -c -O sub1.c
+sub2.o: sub2.c ldefs.c
+	cc -c -O sub2.c
+header.o: header.c ldefs.c
+	cc -c -O header.c
+
+install: all
+	install -s lex $(DESTDIR)/usr/bin
+	install -c ncform $(DESTDIR)/usr/lib/lex
+	install -c nrform $(DESTDIR)/usr/lib/lex
 
 clean:
-	rm -f ${OBJS} ${ALL} ${OVALL} y.tab.c
-
-.c.o:
-	${CC} ${FP} ${OV} ${SMALL} ${CFLAGS} -c $*.c
-
-lmain.o:	lmain.c
-lmain.o:	ldefs.c
-lmain.o:	once.c
-sub1.o:		sub1.c
-sub1.o:		ldefs.c
-sub2.o:		sub2.c
-sub2.o:		ldefs.c
-header.o:	header.c
-header.o:	ldefs.c
+	rm -f *.o lex y.tab.c

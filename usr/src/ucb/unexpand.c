@@ -1,6 +1,19 @@
-#ifndef	lint
-static char *sccsid = "@(#)unexpand.c	4.1 (Berkeley) 10/1/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)unexpand.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 /*
  * unexpand - put tabs into a file replacing blanks
  */
@@ -17,7 +30,7 @@ main(argc, argv)
 	register char *cp;
 
 	argc--, argv++;
-	if (argv[0][0] == '-') {
+	if (argc > 0 && argv[0][0] == '-') {
 		if (strcmp(argv[0], "-a") != 0) {
 			fprintf(stderr, "usage: unexpand [ -a ] file ...\n");
 			exit(1);

@@ -1,9 +1,8 @@
 /*
- *	SCCS id	@(#)boot.s	1.2 (Berkeley)	9/6/82
+ *	SCCS id	@(#)sc11boot.s	1.2 (Berkeley)	2/19/87
  */
-#include "whoami.h"
+#include "localopts.h"
 
-#ifdef	UCB_AUTOBOOT
 /  The boot options and device are placed in the last SZFLAGS bytes
 /  at the end of core for the bootstrap.
 ENDCORE=	160000		/ end of core, mem. management off
@@ -66,4 +65,3 @@ BOOT=	75
 
 	jmp	*$0
 / no return
-#endif	UCB_AUTOBOOT

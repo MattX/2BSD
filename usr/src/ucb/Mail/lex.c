@@ -1,14 +1,22 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)lex.c	5.4 (Berkeley) 11/2/85";
+#endif not lint
 
 #include "rcv.h"
+#include <sys/stat.h>
+#include <errno.h>
 
 /*
  * Mail -- a mail program
  *
  * Lexical processing of commands.
  */
-
-static char *SccsId = "@(#)lex.c	2.13 6/15/83";
 
 char	*prompt = "& ";
 
@@ -24,12 +32,39 @@ setfile(name, isedit)
 {
 	FILE *ibuf;
 	int i;
+	struct stat stb;
 	static int shudclob;
 	static char efile[128];
 	extern char tempMesg[];
+	extern int errno;
 
 	if ((ibuf = fopen(name, "r")) == NULL)
 		return(-1);
+
+	if (fstat(fileno(ibuf), &stb) < 0) {
+		fclose(ibuf);
+		return (-1);
+	}
+
+	switch (stb.st_mode & S_IFMT) {
+	case S_IFDIR:
+		fclose(ibuf);
+		errno = EISDIR;
+		return (-1);
+
+	case S_IFREG:
+		break;
+
+	default:
+		fclose(ibuf);
+		errno = EINVAL;
+		return (-1);
+	}
+
+	if (!edit && stb.st_size == 0) {
+		fclose(ibuf);
+		return(-1);
+	}
 
 	/*
 	 * Looks like all will be well.  We must now relinquish our
@@ -122,12 +157,12 @@ commands()
 top:
 		if (shudprompt) {
 			printf(prompt);
-			flush();
+			fflush(stdout);
 # ifdef VMUNIX
 			sigset(SIGCONT, contin);
 # endif VMUNIX
 		} else
-			flush();
+			fflush(stdout);
 		sreset();
 
 		/*
@@ -352,7 +387,8 @@ execute(linebuf, contxt)
 		/*
 		 * A vector of strings, in shell style.
 		 */
-		if ((c = getrawlist(cp, arglist)) < 0)
+		if ((c = getrawlist(cp, arglist,
+				sizeof arglist / sizeof *arglist)) < 0)
 			break;
 		if (c < com->c_minargs) {
 			printf("%s requires at least %d arg(s)\n",
@@ -489,6 +525,34 @@ isprefix(as1, as2)
 
 int	inithdr;			/* am printing startup headers */
 
+#ifdef _NFILE
+static
+_fwalk(function)
+	register int (*function)();
+{
+	register FILE *iop;
+
+	for (iop = _iob; iop < _iob + _NFILE; iop++)
+		(*function)(iop);
+}
+#endif
+
+static
+xclose(iop)
+	register FILE *iop;
+{
+	if (iop == stdin || iop == stdout ||
+	    iop == stderr || iop == itf || iop == otf)
+		return;
+
+	if (iop != pipef)
+		fclose(iop);
+	else {
+		pclose(pipef);
+		pipef = NULL;
+	}
+}
+
 stop(s)
 {
 	register FILE *fp;
@@ -503,29 +567,18 @@ stop(s)
 	while (sourcing)
 		unstack();
 	getuserid((char *) -1);
-	for (fp = &_iob[0]; fp < &_iob[_NFILE]; fp++) {
-		if (fp == stdin || fp == stdout)
-			continue;
-		if (fp == itf || fp == otf)
-			continue;
-		if (fp == stderr)
-			continue;
-		if (fp == pipef) {
-			pclose(pipef);
-			pipef = NULL;
-			continue;
-		}
-		fclose(fp);
-	}
+
+	/*
+	 * Walk through all the open FILEs, applying xclose() to them
+	 */
+	_fwalk(xclose);
+
 	if (image >= 0) {
 		close(image);
 		image = -1;
 	}
-	clrbuf(stdout);
-	printf("Interrupt\n");
-# ifdef VMUNIX
-	sigrelse(s);
-# else
+	fprintf(stderr, "Interrupt\n");
+# ifndef VMUNIX
 	signal(s, stop);
 # endif
 	reset(0);
@@ -537,6 +590,10 @@ stop(s)
  */
 
 char	*greeting	= "Mail version %s.  Type ? for help.\n";
+
+#ifdef BSD2_10
+extern char *version;
+#endif
 
 announce(pr)
 {

@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_vget.c	6.3 7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_vget.c	6.8 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_tty.h"
 #include "ex_vis.h"
@@ -48,6 +56,8 @@ peekbr()
 }
 
 short	precbksl;
+jmp_buf	readbuf;
+int	doingread = 0;
 
 /*
  * Get a keystroke, including a ^@.
@@ -102,7 +112,12 @@ getATTN:
 	}
 	flusho();
 again:
-	if ((c=read(slevel == 0 ? 0 : ttyindes, &ch, 1)) != 1) {
+	if (setjmp(readbuf))
+		goto getATTN;
+	doingread = 1;
+	c = read(slevel == 0 ? 0 : ttyindes, &ch, 1);
+	doingread = 0;
+	if (c != 1) {
 		if (errno == EINTR)
 			goto getATTN;
 		error("Input read error");
@@ -621,6 +636,7 @@ vgetcnt()
 fastpeekkey()
 {
 	int trapalarm();
+	int (*Oint)();
 	register int c;
 
 	/*
@@ -638,6 +654,7 @@ fastpeekkey()
 	if (trace)
 		fprintf(trace,"\nfastpeekkey: ",c);
 #endif
+	Oint = signal(SIGINT, trapalarm);
 	if (value(TIMEOUT) && inopen >= 0) {
 		signal(SIGALRM, trapalarm);
 #ifdef MDEBUG
@@ -666,10 +683,12 @@ fastpeekkey()
 	if (trace)
 		fprintf(trace,"[fpk:%o]",c);
 #endif
+	signal(SIGINT,Oint);
 	return(c);
 }
 
 trapalarm() {
 	alarm(0);
-	longjmp(vreslab,1);
+	if (vcatch)
+		longjmp(vreslab,1);
 }

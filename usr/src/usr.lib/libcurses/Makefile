@@ -21,31 +21,31 @@ OBJS=	addch.o addstr.o box.o clear.o clrtobot.o clrtoeol.o cr_put.o \
 	toucholap.o standout.o touchwin.o tstp.o unctrl.o
 
 CTAGS=	ctags
-DEFS=
+DEFS=	-DNOSCCS
 CFLAGS=	-O $(DEFS)
 TAGSFILE=tags
 
 .c.o:
-	${CC} -c -V ${CFLAGS} $*.c
+	${CC} -c -pg ${CFLAGS} $*.c
 	ld -x -r $*.o
-	mv a.out overlay/$*.o
+	mv a.out profiled/$*.o
 	${CC} -c ${CFLAGS} $*.c
 	ld -x -r $*.o
 	mv a.out $*.o
 
-libcurses libovcurses: ${OBJS}
+libcurses libcurses_p: ${OBJS}
 	@echo building profiled libcurses
-	@cd overlay; ar cu ../libovcurses ${OBJS}
-	ranlib libovcurses
+	@cd profiled; ar cu ../libcurses_p ${OBJS}
+	ranlib libcurses_p
 	@echo building normal libcurses
 	@ar cu libcurses ${OBJS}
 	ranlib libcurses
 
-install: libcurses libovcurses
+install: libcurses libcurses_p
 	install -m 644 libcurses ${DESTDIR}/usr/lib/libcurses.a
 	ranlib ${DESTDIR}/usr/lib/libcurses.a
-	install -m 644 libovcurses ${DESTDIR}/usr/lib/libovcurses.a
-	ranlib ${DESTDIR}/usr/lib/libovcurses.a
+	install -m 644 libcurses_p ${DESTDIR}/usr/lib/libcurses_p.a
+	ranlib ${DESTDIR}/usr/lib/libcurses_p.a
 
 tags:
 	cwd=`pwd`; \
@@ -55,7 +55,7 @@ tags:
 
 clean:
 	rm -f ${OBJS} profiled/*.o a.out core test errs \
-	    libcurses libovcurses tags
+	    libcurses libcurses_p tags
 
 ctags:
 	${CTAGS} ${CFILES} curses.h

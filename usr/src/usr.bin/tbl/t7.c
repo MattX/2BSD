@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t7.c	4.3 8/11/83";
+#endif
+
  /* t7.c: control to write table entries */
 # include "t..c"
 # define realsplit ((ct=='a'||ct=='n') && table[ldata][c].rcol)
@@ -58,6 +62,7 @@ fprintf(tabout, "\n");
 ifline(s)
 	char *s;
 {
+if (!point(s)) return(0);
 if (s[0] == '\\') s++;
 if (s[1] ) return(0);
 if (s[0] == '_') return('-');

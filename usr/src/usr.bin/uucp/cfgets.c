@@ -1,5 +1,6 @@
-/* $Header: cfgets.c,v 1.4 85/05/20 20:00:21 rick Exp $ */
-/* from: @(#)cfgets.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)cfgets.c	5.3 (Berkeley) 6/19/85";
+#endif
 
 /*
  * get nonblank, non-comment, (possibly continued) line. Alan S. Watt 

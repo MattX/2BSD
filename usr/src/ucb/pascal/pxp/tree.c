@@ -46,9 +46,9 @@ int	*space, *spacep;
 #define	TREENMAX	6
 
 int	trspace[ITREE];
-int	*space	trspace;
-int	*spacep	trspace;
-struct	tr *tract	ttab;
+int	*space	= trspace;
+int	*spacep	= trspace;
+struct	tr *tract	= ttab;
 
 /*
  * Inittree allocates the first tree slot

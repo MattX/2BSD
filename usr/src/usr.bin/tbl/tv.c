@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tv.c	4.3 8/11/83";
+#endif
+
  /* tv.c: draw vertical lines */
 # include "t..c"
 drawvert(start,end, c, lwid)
@@ -133,6 +137,7 @@ barent(s)
 	char *s;
 {
 if (s==0) return (1);
+if (!point(s)) return(1);
 if (s[0]== '\\') s++;
 if (s[1]!= 0)
 	return(0);

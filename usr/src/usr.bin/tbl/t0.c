@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t0.c	4.2 8/11/83";
+#endif
+
  /* t0.c: storage allocation */
 #
 # include "t..c"

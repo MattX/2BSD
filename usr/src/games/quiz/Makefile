@@ -1,13 +1,14 @@
-#	@(#)Makefile	4.1	(Berkeley)	11/28/82
+#	@(#)Makefile	4.2	(Berkeley)	9/7/85
 #
 DESTDIR=
-CFLAGS=	-O -Dpdp11
+CFLAGS=	-O
+SEPFLAG= -i
 
 quiz: quiz.c
-	cc ${CFLAGS} -o quiz quiz.c
+	cc ${SEPFLAG} ${CFLAGS} -o quiz quiz.c
 
 install:
-	install quiz ${DESTDIR}/usr/games/quiz
+	install -s quiz ${DESTDIR}/usr/games/quiz
 	cp -r quiz.k ${DESTDIR}/usr/games/lib
 
 clean:

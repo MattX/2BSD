@@ -251,10 +251,18 @@ ebsymtab:
 
 
 start:
-	sys	signal; 2; 1
+	mov	$1,-(sp)		/ signal(SIGINT, SIG_IGN)
+	mov	$2,-(sp)		/	sys	signal; 2; 1
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
+
 	ror	r0
 	bcs	1f
-	sys	signal; 2; aexit
+
+	mov	$aexit,-(sp)		/ signal(SIGINT, aexit)
+	mov	$2,-(sp)		/	sys	signal; 2; aexit
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
 1:
 	mov	(sp)+,r0
 	tst	(sp)+
@@ -290,9 +298,9 @@ start:
 	tst	-(sp)
 	mov	sp,curarg
 	jsr	r5,fcreat; a.tmp1
-	movb	r0,pof
+	mov	r0,pof
 	jsr	r5,fcreat; a.tmp2
-	movb	r0,fbfil
+	mov	r0,fbfil
 	jsr	pc,setup
 	jmp	go
 
@@ -331,4 +339,3 @@ setup:
 /overlay buffer
 inbuf	= setup
 .	=inbuf+512.
-

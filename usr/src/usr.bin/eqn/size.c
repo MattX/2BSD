@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)size.c	4.2 8/11/83";
+#endif
+
 # include "e.h"
 
 setsize(p)	/* set size as found in p */

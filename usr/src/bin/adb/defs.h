@@ -41,12 +41,9 @@
  *
  */
 
-#include <whoami.h>
 #include <sys/param.h>
-#include <sys/dir.h>
 #include <sys/user.h>
 #include <sgtty.h>
-#include <a.out.h>
 #include "mac.h"
 #include "mode.h"
 
@@ -98,29 +95,29 @@
 #define EXIT    8
 
 #ifndef NONFP
-#define FROFF   (&(0->u_fpsr))
+#define FROFF   ((INT)&(((U*)0)->u_fps))
 #define FRLEN   25
 #define FRMAX   6
 #endif
 
-#include <sys/reg.h>
+#include <pdp/reg.h>
 #define NOREG   32767           /* impossible return from getreg() */
 #define NREG    9       /* 8 regs + PS from kernel stack */
 /*
  * UAR0 is the value used for subprocesses when there is no core file.
- * If it doesn't correspond to reality, use pstat -u on a core file to get uar0,
- * subtract 0140000, and divide by 2 (sizeof int).
+ * If it doesn't correspond to reality, use pstat -u on a core file to
+ * get uar0, subtract 0140000, and divide by 2 (sizeof int).
  */
-#define UAR0    (&corhdr[509]) /* default address of r0 (u.u_ar0) */
+#define UAR0    (&corhdr[ctob(USIZE)/sizeof(POS) - 3]) /* default address of r0 (u.u_ar0) */
 
-#define KR0     2       /* location of r0 in kernel dump */
-#define KR1     3
-#define KR2     4
-#define KR3     5
-#define KR4     6
-#define KR5     7
-#define KSP     8
-#define KA6     9       /* saved ka6 in kernel dump */
+#define KR0     (0300/2)       /* location of r0 in kernel dump */
+#define KR1     (KR0+1)
+#define KR2     (KR0+2)
+#define KR3     (KR0+3)
+#define KR4     (KR0+4)
+#define KR5     (KR0+5)
+#define KSP     (KR0+6)
+#define KA6     (KR0+7)       /* saved ka6 in kernel dump */
 
 #define MAXOFF  255
 #define MAXPOS  80

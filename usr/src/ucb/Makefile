@@ -1,256 +1,108 @@
 #
-#ucbmakefile
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
 #
-
+#	@(#)Makefile	5.17 (Berkeley) 6/7/86
+#
+DESTDIR=
 CFLAGS=	-O
+SEPFLAG= -i
 
-arcv: arcv.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that live in subdirectories, and have makefiles of their own.
+#
+SUBDIR=	Mail compress dbx error ex fp ftp indent \
+	more msgs netstat pascal rdist sendbug tftp \
+	tset vgrind vlp window
 
-checknr: checknr.o
-	${CC} ${LFLAG} $@.o -o $@
+# Shell scripts that need only be installed and are never removed.
+#
+CSHSCRIPT= which
 
-chfn: chfn.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and do not need
+# explicit make lines.
+#
+STD=	apply biff checknr colcrt colrm ctags expand finger fold \
+	from gprof grep groups head last lastcomm leave lock logger man mkstr \
+	printenv ruptime rwho sccs script soelim strings symorder tail tcopy \
+	telnet unexpand unifdef users whereis whoami whois what wc xstr yes
 
-chsh: chsh.o
-	${CC} ${LFLAG} $@.o -o $@
+# C programs that live in the current directory and need explicit make lines.
+#
+NSTD=	clear ul vacation
 
-ckdir: ckdir.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that must run setuid to root
+#
+SETUID=	quota rlogin rsh
 
-clock: clock.o
-	${CC} ${LFLAG} $@.o -o $@
+# Programs that must run set-group-id kmem.
+#
+#KMEM=	gcore vmstat w
+KMEM=	gcore w
 
-colcrt: colcrt.o
-	${CC} ${LFLAG} $@.o -o $@
+all:	${SUBDIR} ${STD} ${NSTD} ${KMEM} ${SETUID}
 
-colrm: colrm.o
-	${CC} ${LFLAG} $@.o -o $@
+${SUBDIR}: FRC
+	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
 
-ctags: ctags.o
-	${CC} ${LFLAG} $@.o -o $@
+${STD} ${KMEM} ${SETUID}:
+	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-daytime: daytime.o
-	${CC} ${LFLAG} $@.o -o $@
+install:
+	-for i in ${SUBDIR}; do \
+		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+	-for i in ${CSHSCRIPT}; do \
+		(install -m 755 -c $$i.csh ${DESTDIR}/usr/ucb/$$i); done
+	-for i in ${STD} ${NSTD}; do \
+		(install -s $$i ${DESTDIR}/usr/ucb/$$i); done
+	-for i in ${KMEM}; do \
+		(install -g kmem -m 2755 -s $$i ${DESTDIR}/usr/ucb/$$i); done
+	-for i in ${SETUID}; do \
+		(install -o root -m 4755 -s $$i ${DESTDIR}/usr/ucb/$$i); done
+	rm -f ${DESTDIR}/usr/ucb/uptime ${DESTDIR}/usr/ucb/f
+	ln ${DESTDIR}/usr/ucb/w ${DESTDIR}/usr/ucb/uptime
+	ln ${DESTDIR}/usr/ucb/finger ${DESTDIR}/usr/ucb/f
+	rm -f ${DESTDIR}/usr/ucb/apropos ${DESTDIR}/usr/ucb/whatis
+	ln ${DESTDIR}/usr/ucb/man ${DESTDIR}/usr/ucb/apropos
+	ln ${DESTDIR}/usr/ucb/man ${DESTDIR}/usr/ucb/whatis
+	rm -f ${DESTDIR}/usr/ucb/u
+	ln ${DESTDIR}/usr/ucb/users ${DESTDIR}/usr/ucb/u
 
-double: double.o
-	${CC} ${LFLAG} $@.o -o $@
+clean:
+	rm -f a.out core *.s *.o
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
+	rm -f ${STD} ${NSTD} ${SETUID} ${KMEM}
 
-expand: expand.o
-	${CC} ${LFLAG} $@.o -o $@
+FRC:
 
-finger: finger.o
-	${CC} ${LFLAG} $@.o -o $@
+depend:
+	for i in ${STD} ${NSTD} ${SETUID} ${KMEM}; do \
+	    cc -M ${INCPATH} $$i.c | sed 's/\.o//' | \
+	    awk ' { if ($$1 != prev) \
+		{ if (rec != "") print rec; rec = $$0; prev = $$1; } \
+		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
+		else rec = rec " " $$2 } } \
+		END { print rec } ' >> makedep; done
+	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
+	echo '$$r makedep' >>eddep
+	echo 'w' >>eddep
+	cp Makefile Makefile.bak
+	ed - Makefile < eddep
+	rm eddep makedep
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
+	echo '# see make depend above' >> Makefile
 
-fleece: fleece.o
-	${CC} ${LFLAG} $@.o -o $@
+# Files listed in ${NSTD} have explicit make lines given below.
 
-fold: fold.o
-	${CC} ${LFLAG} $@.o -o $@
+clear:
+	${CC} -o clear ${SEPFLAG} ${CFLAGS} clear.c -ltermlib
 
-from: from.o
-	${CC} ${LFLAG} $@.o -o $@
+ul:
+	${CC} -o ul ${SEPFLAG} ${CFLAGS} ul.c -ltermlib
 
-getNAME: getNAME.o
-	${CC} ${LFLAG} $@.o -o $@
+vacation: vacation.c
+	${CC} -o vacation ${SEPFLAG} ${CFLAGS} vacation.c -ldbm
 
-groups: groups.o
-	${CC} ${LFLAG} $@.o -o $@
+# DO NOT DELETE THIS LINE -- make depend uses it
 
-gets: gets.o
-	${CC} ${LFLAG} $@.o -o $@
-
-head: head.o
-	${CC} ${LFLAG} $@.o -o $@
-
-last: last.o
-	${CC} ${LFLAG} $@.o -o $@
-
-leave: leave.o
-	${CC} ${LFLAG} $@.o -o $@
-
-lock: lock.o
-	${CC} ${LFLAG} $@.o -o $@
-
-man: man.o
-	${CC} ${LFLAG} $@.o -o $@
-
-mkstr: mkstr.o
-	${CC} ${LFLAG} $@.o -o $@
-
-printenv: printenv.o
-	${CC} ${LFLAG} $@.o -o $@
-
-prmail: prmail.o
-	${CC} ${LFLAG} $@.o -o $@
-
-pti: pti.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rewind: rewind.o
-	${CC} ${LFLAG} $@.o -o $@
-
-script: script.o
-	${CC} ${LFLAG} $@.o -o $@
-
-setquota: setquota.o
-	${CC} ${LFLAG} $@.o -o $@
-
-soelim: soelim.o
-	${CC} ${LFLAG} $@.o -o $@
-
-sq: sq.o
-	${CC} ${LFLAG} $@.o -o $@
-
-strings: strings.o
-	${CC} ${LFLAG} $@.o -o $@
-
-submit: submit.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tail: tail.o
-	${CC} ${LFLAG} $@.o -o $@
-
-tod: tod.o
-	${CC} ${LFLAG} $@.o -o $@
-
-unexpand: unexpand.o
-	${CC} ${LFLAG} $@.o -o $@
-
-unifdef: unifdef.o
-	${CC} ${LFLAG} $@.o -o $@
-
-untmp: untmp.o
-	${CC} ${LFLAG} $@.o -o $@
-
-users: users.o
-	${CC} ${LFLAG} $@.o -o $@
-
-vmstat: vmstat.o
-	${CC} ${LFLAG} $@.o -o $@
-
-w: w.o
-	${CC} ${LFLAG} $@.o -o $@
-
-wc: wc.o
-	${CC} ${LFLAG} $@.o -o $@
-
-what: what.o
-	${CC} ${LFLAG} $@.o -o $@
-
-whereis: whereis.o
-	${CC} ${LFLAG} $@.o -o $@
-
-whoami: whoami.o
-	${CC} ${LFLAG} $@.o -o $@
-
-xstr: xstr.o
-	${CC} ${LFLAG} $@.o -o $@
-
-yes: yes.o
-	${CC} ${LFLAG} $@.o -o $@
-
-lastcomm: lastcomm.o
-	${CC} ${LFLAG} $@.o -o $@
-
-pq: pq.o
-	${CC} ${LFLAG} $@.o -o $@
-
-la: la.o
-	${CC} ${LFLAG} $@.o -o $@
-
-more: more.o
-	${CC} ${LFLAG} $@.o -o $@ -ltermcap
-
-ul: ul.o
-	${CC} ${LFLAG} $@.o -o $@ -ltermcap
-
-clear: clear.o
-	${CC} ${LFLAG} $@.o -o $@ -ltermcap
-
-sysline: sysline.o
-	${CC} ${LFLAG} $@.o -o $@ -ltermcap -lcurses
-
-rlogin: rlogin.o
-	${CC} ${LFLAG} $@.o -o $@
-
-rsh: rsh.o
-	${CC} ${LFLAG} $@.o -o $@
-
-ruptime: ruptime.o
-	${CC} ${LFLAG} $@.o -o $@
-
-telnet: telnet.c
-	${CC} -S ${CFLAGS} telnet.c
-	sed -f ../asm.sed telnet.s > telnet.S
-	as - -o telnet.o telnet.S
-	rm -f telnet.s telnet.S
-	${CC} ${LFLAG} $@.o -o $@
-
-rwho: rwho.o
-	${CC} ${LFLAG} $@.o -o $@
-
-.c.o:
-	${CC} ${CFLAGS} ${FP} -c $*.c
-
-arcv.o:		arcv.c
-checknr.o:	checknr.c
-chfn.o:		chfn.c
-chsh.o:		chsh.c
-ckdir.o:	ckdir.c
-clock.o:	clock.c
-colcrt.o:	colcrt.c
-colrm.o:	colrm.c
-ctags.o:	ctags.c
-daytime.o:	daytime.c
-double.o:	double.c
-expand.o:	expand.c
-finger.o:	finger.c
-fleece.o:	fleece.c
-fold.o:		fold.c
-from.o:		from.c
-getNAME.o:	getNAME.c
-gets.o:		gets.c
-groups.o:	groups.c
-head.o:		head.c
-last.o:		last.c
-leave.o:	leave.c
-lock.o:		lock.c
-man.o:		man.c
-mkstr.o:	mkstr.c
-printenv.o:	printenv.c
-prmail.o:	prmail.c
-pti.o:		pti.c
-rewind.o:	rewind.c
-script.o:	script.c
-setquota.o:	setquota.c
-soelim.o:	soelim.c
-sq.o:		sq.c
-strings.o:	strings.c
-submit.o:	submit.c
-tail.o:		tail.c
-tod.o:		tod.c
-unexpand.o:	unexpand.c
-unifdef.o:	unifdef.c
-untmp.o:	untmp.c
-users.o:	users.c
-vmstat.o:	vmstat.c
-w.o:		w.c
-wc.o:		wc.c
-what.o:		what.c
-whereis.o:	whereis.c
-whoami.o:	whoami.c
-xstr.o:		xstr.c
-yes.o:		yes.c
-lastcomm.o:	lastcomm.c
-pq.o:		pq.c
-la.o:		la.c
-more.o:		more.c
-ul.o:		ul.c
-clear.o:	clear.c
-sysline.o:	sysline.c
-rlogin.o:	rlogin.c
-rsh.o:		rsh.c
-ruptime.o:	ruptime.c
-rwho.o:		rwho.c

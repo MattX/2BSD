@@ -111,11 +111,7 @@ descend(base, name)
 			mlx++;
 		}
 	}
-#ifdef pdp11
-	blocks = btodb(stb.st_size + 1023);
-#else !pdpd11
 	blocks = stb.st_blocks;
-#endif pdp11
 	if ((stb.st_mode&S_IFMT) != S_IFDIR) {
 		if (aflg)
 			printf("%ld\t%s\n", kb(blocks), base);

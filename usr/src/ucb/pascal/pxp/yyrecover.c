@@ -123,9 +123,9 @@
 #define	CPRLIMIT	50
 #define	CCHIDCOST	3
 
-char	insmult[8]	INFINITY, INFINITY, INFINITY, 15, 8, 6, 3, 1;
-char	repmult[7]	INFINITY, INFINITY, INFINITY, 8, 6, 3, 1;
-char	delmult[6]	INFINITY, INFINITY, INFINITY, 6, 3, 1;
+char	insmult[8]	= { INFINITY, INFINITY, INFINITY, 15, 8, 6, 3, 1 };
+char	repmult[7]	= { INFINITY, INFINITY, INFINITY, 8, 6, 3, 1 };
+char	delmult[6]	= { INFINITY, INFINITY, INFINITY, 6, 3, 1 };
 
 #define	NOCHAR	-1
 
@@ -165,7 +165,7 @@ struct	yytok *YC;
  * the point of error.
  */
 
-char	yyunique	1;
+char	yyunique	= 1;
 
 STATIC	unsigned yyTshifts;
 
@@ -327,7 +327,7 @@ yyrecover(Ps0, idfail)
 
 		ap = &yyact[yypact[*Ps0 + 1]];
 		if (*ap == -ERROR)
-			ap =+ 2;
+			ap += 2;
 		if (ap[0] <= 0 && ap[2] > 0) {
 			cchar = -ap[0];
 			if (cchar == YEOF)
@@ -458,7 +458,7 @@ yyrecover(Ps0, idfail)
 			if (yyrhave == NIL) {
 				yerror("Undefined %s", classes[yyrwant]);
 #ifdef PI
-				i =| ISUNDEF;
+				i |= ISUNDEF;
 #endif
 			} else
 /* old...
@@ -564,13 +564,13 @@ trystate(Ps0, Pv0, flag, insmult, delmult, repmult)
 	 * Error action is always first.
 	 */
 	if (*ap == -ERROR) 
-		ap=+ 2;
+		ap+= 2;
 
 	/*
 	 * Loop through the test actions
 	 * for this state.
 	 */
-	for (actions = ap; *ap <= 0; ap =+ 2) {
+	for (actions = ap; *ap <= 0; ap += 2) {
 		/*
 		 * Extract the token of this action
 		 */
@@ -696,7 +696,7 @@ correct(fchar, origin, c, multvec, Ps0, Pv0)
 		if (ps == NIL) {
 			if (yyredfail && mv > multvec)
 				mv--;
-			c =* *mv;
+			c *= *mv;
 			break;
 		}
 		mv++;
@@ -753,14 +753,14 @@ actn:
 	 * This allows a fast check.
 	 */
 	while ((n = *p++) <= 0)
-		if ((n =+ nchar) != 0)
+		if ((n += nchar) != 0)
 			p++;
 	switch (n >> 12) {
 		/*
 		 * SHIFT
 		 */
 		case 2:
-			n =& 07777;
+			n &= 07777;
 			yyredfail = 0;
 			if (nchar == YID)
 				yyredfail++;
@@ -782,7 +782,7 @@ tipover:
 		 * REDUCE
 		 */
 		case 3:
-			n =& 07777;
+			n &= 07777;
 			if (yyEactr(n, yytipv[yytipct - 1]) == 0) {
 #ifdef DEBUG
 				Tprintf("\tYyEactr objects: have %s id, want %s id\n", classes[yyidhave], classes[yyidwant]);
@@ -795,12 +795,12 @@ tipover:
 			Tprintf("\tReduce, length %d,", i);
 #endif
 			if (i > yytipct) {
-				i =- yytipct;
+				i -= yytipct;
 				yytipct = 0;
-				ps =- i;
-				yCpv =- i;
+				ps -= i;
+				yCpv -= i;
 			} else
-				yytipct =- i;
+				yytipct -= i;
 			if (yytipct >= YYTIPSIZ)
 				goto tipover;
 			/*
@@ -809,7 +809,7 @@ tipover:
 			p = &yygo[yypgo[yyr1[n]]];
 			i = yytipct ? yytips[yytipct - 1] : *ps;
 			while (*p != i && *p >= 0)
-				p =+ 2;
+				p += 2;
 #ifdef DEBUG
 			Tprintf(" new state %d\n", p[1]);
 #endif

@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_vmain.c	7.1	7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_vmain.c	7.7 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_tty.h"
 #include "ex_vis.h"
@@ -19,7 +27,7 @@ vmain()
 	register int c, cnt, i;
 	char esave[TUBECOLS];
 	char *oglobp;
-	char d;
+	short d;
 	line *addr;
 	int ind, nlput;
 	int shouldpo = 0;
@@ -419,7 +427,7 @@ reread:
 		case CTRL(b):
 			vsave();
 			if (one + vcline != dot && vcnt > 2) {
-				addr = dot - vcline - 2 + (cnt-1)*basWLINES;
+				addr = dot - vcline + 2 - (cnt-1)*basWLINES;
 				forbid (addr <= zero);
 				dot = addr;
 				vcnt = vcline = 0;
@@ -875,7 +883,7 @@ gogo:
 		 *	control in kernel.
 		 */
 		case CTRL(z):
-			forbid(dosusp == 0 || ldisc != NTTYDISC);
+			forbid(dosusp == 0 || !ldisc);
 			vsave();
 			oglobp = globp;
 			globp = "stop";
@@ -1122,7 +1130,11 @@ grabtag()
 			if (dp < &lasttag[sizeof lasttag - 2])
 				*dp++ = *cp;
 			cp++;
-		} while (isalpha(*cp) || isdigit(*cp) || *cp == '_');
+		} while (isalpha(*cp) || isdigit(*cp) || *cp == '_'
+#ifdef LISPCODE
+			|| (value(LISP) && *cp == '-')
+#endif LISPCODE
+			);
 		*dp++ = 0;
 	}
 }

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)look.c	4.2 (Berkeley) 7/2/81";
 #include <stdio.h>
 #include <ctype.h>
 
@@ -16,6 +17,8 @@ char **argv;
 {
 	register c;
 	long top,bot,mid;
+	long ftell();
+
 	while(argc>=2 && *argv[1]=='-') {
 		for(;;) {
 			switch(*++argv[1]) {
@@ -109,6 +112,7 @@ char **argv;
 		}
 		break;
 	}
+	exit(0);
 }
 
 compare(s,t)

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)matrix.c	4.2 8/11/83";
+#endif
+
 #include "e.h"
 
 column(type, p1) int type, p1; {

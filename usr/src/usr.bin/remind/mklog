@@ -1,5 +1,0 @@
-cc  main.o globals.o enqueue.o deliver.o send.o time.o misc.o -o remind
-ld:main.o: cannot open
-*** Error code 4
-
-Stop.

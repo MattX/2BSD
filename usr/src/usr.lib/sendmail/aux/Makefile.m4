@@ -1,15 +1,23 @@
 #
-#  Makefile for assorted programs related (perhaps distantly) to Sendmail.
+#  Sendmail
+#  Copyright (c) 1983  Eric P. Allman
+#  Berkeley, California
 #
-#	Version:
-#		@(#)Makefile.m4	4.1		7/25/83
+#  Copyright (c) 1983 Regents of the University of California.
+#  All rights reserved.  The Berkeley software License Agreement
+#  specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile.m4	5.3 (Berkeley) 5/2/86
+#
+#
+#  Makefile for assorted programs related (perhaps distantly) to Sendmail.
 #
 include(../md/config.m4)dnl
 
-ALL=	logger   mconnect   syslog   vacation
-SRCS=	logger.c mconnect.c syslog.c vacation.c
+ALL=	mconnect
+SRCS=	mconnect.c
 
-LIBS=	../lib/libsys.a m4LIBS
+LIBS=	m4LIBS
 DBMLIB=	-ldbm
 CONVTIME=../src/convtime.o
 DESTDIR=
@@ -18,8 +26,9 @@ CHOWN=	-echo chown
 CHMOD=	chmod
 O=	-O
 COPTS=
-CCONFIG=-I../`include' -DDBM -DDEBUG -DLOG m4CONFIG
+CCONFIG=-I../`include' m4CONFIG
 CFLAGS=	$O $(COPTS) $(CCONFIG)
+SEPFLAG=-i
 ASMSED=	../`include'/asm.sed
 AR=	-ar
 ARFLAGS=rvu
@@ -43,25 +52,20 @@ OBJMODE=755
 
 .c.o:
 	cc -S $(CFLAGS) $*.c
-	sed -f $(ASMSED) $*.s | as -o $*.o
-	rm -f $*.s
+	sed -f $(ASMSED) $*.s >_xx.s
+	as -V - -o $*.o _xx.s
+	rm -f $*.s _xx.s
 
 all: $(ALL)
 
-logger: logger.o
-	cc $(COPTS) -o $@ $*.o $(LIBS)
-
 mconnect: mconnect.o
-	cc $(COPTS) -o $@ $*.o
+	cc $(SEPFLAG) $(COPTS) -o $@ mconnect.o
+
+mailstats: mailstats.o
+	cc $(SEPFLAG) $(COPTS) -o $@ mailstats.o
 
 praliases: praliases.o
-	cc $(COPTS) -o $@ $*.o
-
-syslog: syslog.o
-	cc $(COPTS) -o $@ $*.o
-
-vacation: vacation.o
-	cc $(COPTS) $(DBMLIB) -o $@ $*.o $(CONVTIME)
+	cc $(SEPFLAG) $(COPTS) -o $@ praliases.o
 
 sources: $(SRCS)
 
@@ -71,3 +75,5 @@ $(SRCS):
 clean:
 	rm -f $(ALL) core a.out make.out lint.out
 	rm -f *.o ,*
+
+install: all

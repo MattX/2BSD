@@ -1,6 +1,19 @@
-#ifndef	lint
-static	char *sccsid = "@(#)what.c	4.1 (Berkeley) 10/15/80";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)what.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 
 /*
@@ -28,11 +41,14 @@ main(argc, argv)
 		fseek(stdin, (long) 0, 0);
 		find();
 	} while (argc > 0);
+	exit(0);
 }
 
 find()
 {
-	register int c;
+	static char buf[BUFSIZ];
+	register char *cp;
+	register int c, cc;
 	register char *pat;
 
 contin:

@@ -55,9 +55,17 @@ assem:
 	mov	dot,nxtfb+2
 	movb	r0,nxtfb+1
 	mov	dot,curfb(r0)
-	movb	fbfil,r0
-	sys	write; nxtfb; 4
-	jes	wrterr
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	$4,-(sp)		/ write(fbfil, nxtfb, 4)
+	mov	$nxtfb,-(sp)		/	movb	fbfil,r0
+	mov	fbfil,-(sp)		/	sys	write; nxtfb; 4
+	jsr	pc,_write		/	jes	wrterr
+	add	$6,sp
+	mov	(sp)+,r1
+	tst	r0
+	jmi	wrterr
+
 	br	assem
 4:
 	jsr	pc,readop

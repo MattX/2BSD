@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)update.c	4.2 (Berkeley) 10/16/80";
 /*
  * Update the file system every 30 seconds.
  * For cache benefit, open certain system directories.
@@ -7,8 +8,11 @@
 
 char *fillst[] = {
 	"/bin",
+	"/lib",
 	"/usr",
 	"/usr/bin",
+	"/usr/lib",
+	"/usr/ucb",
 	0,
 };
 
@@ -32,5 +36,5 @@ dosync()
 {
 	sync();
 	signal(SIGALRM, dosync);
-	alarm(30);
+	alarm(60);
 }

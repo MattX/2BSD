@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.mkobj.c - version 1.0.2 */
+/* hack.mkobj.c - version 1.0.3 */
 
 #include "hack.h"
 
@@ -124,7 +124,8 @@ letter(c) {
 weight(obj)
 register struct obj *obj;
 {
-register int wt = objects[obj->otyp].oc_weight;
+/* KLUDGE -- our C chokes on the return below if `wt' is register */
+/* register */ int wt = objects[obj->otyp].oc_weight;
 	return(wt ? wt*obj->quan : (obj->quan + 1)/2);
 }
 

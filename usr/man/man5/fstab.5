@@ -1,7 +1,13 @@
-.TH FSTAB 5
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)fstab.5	6.1 (Berkeley) 5/15/85
+.\"
+.TH FSTAB 5  "May 15, 1985"
+.UC 4
 .SH NAME
-fstab \- static information about the file systems
+fstab \- static information about the filesystems
 .SH SYNOPSIS
 .B #include <fstab.h>
 .SH DESCRIPTION
@@ -15,18 +21,9 @@ is only
 by programs, and not written;
 it is the duty of the system administrator to properly create 
 and maintain this file.
-.PP
-These programs use
-.I /etc/fstab:
-.I mount,
-.I umount,
-.I fsck
-and
-.I df.
 The order of records in
 .I /etc/fstab
-is important,
-for
+is important because
 .I fsck,
 .I mount,
 and
@@ -47,21 +44,21 @@ If
 .I fs_type
 is ``rw'' or ``ro'' then the file system whose name is given in the
 .I fs_file
-field is normally mounted read-write or read-only on the specified special
-file.
+field is normally mounted read-write or read-only on the
+specified special file.  If
+.I fs_type
+is ``rq'', then the file system is normally mounted read-write
+with disk quotas enabled.
 The
 .I fs_freq
 field is used for these file systems by the
 .IR dump (8)
-command to determine which file systems need to be dumped
-(this feature is not currently available
-on all PDP11s due to size restrictions).
+command to determine which file systems need to be dumped.
 The
 .I fs_passno
 field is used by the
 .IR fsck (8)
-program (with the \-p option)
-to determine the order in which file system checks are done
+program to determine the order in which file system checks are done
 at reboot time.
 The root file system should be specified with a
 .I fs_passno
@@ -72,48 +69,54 @@ the hardware.
 .PP
 If
 .I fs_type
-is ``sw'' then the special file is assumed to be used for swapping.
+is ``sw'' then the special file is made available as a piece of swap
+space by the
+.IR swapon (8)
+command at the end of the system reboot procedure.
 The fields other than
 .I fs_spec
 and
 .I fs_type
 are not used in this case.
 .PP
-.I Fs_type
-may be specified as ``xx'' to cause an entry to be ignored.
-This is useful to show disk partitions which are currently not
-used but will be used later.
+If
+.I fs_type
+is ``rq'' then at boot time the file system is automatically
+processed by the
+.IR quotacheck (8)
+command and disk quotas are then enabled with
+.IR quotaon (8).
+File system quotas are maintained in a file ``quotas'', which is
+located at the root of the associated file system.
+.PP
+If
+.I fs_type
+is specified as ``xx'' the entry is ignored.
+This is useful to show disk partitions which are currently not used.
 .sp 1
 .nf
-.ta \w'#define 'u +\w'FSTABARG(p) 'u \w'#define 'u+\w'char\ \ 'u+\w'fs_spec[FSNMLG]; 'u
-#define	FSTAB		"/etc/fstab"
-#define	FSNMLG		16
-
-#define	FSTABFMT	"%16s:%16s:%2s:%d:%d\en"
-#define	FSTABARG(p)	(p)\->fs_spec, (p)\->fs_file, \e
-		(p)\->fs_type, &(p)\->fs_freq, &(p)\->fs_passno
-#define	FSTABNARGS	5
-
-#define	FSTAB_RW	"rw"		/* read write device */
-#define	FSTAB_RO	"ro"		/* read only device */
-#define	FSTAB_SW	"sw"		/* swap device */
-#define	FSTAB_XX	"xx"		/* ignore totally */
-
-.ta \w'#define 'u +\w'char\ \ 'u +\w'fs_spec[FSNMLG]; 'u
+.DT
+#define	FSTAB_RW	"rw"	/* read-write device */
+#define	FSTAB_RO	"ro"	/* read-only device */
+#define	FSTAB_RQ	"rq"	/* read-write with quotas */
+#define	FSTAB_SW	"sw"	/* swap device */
+#define	FSTAB_XX	"xx"	/* ignore totally */
+.PP
+.ta \w'#define 'u +\w'char\ \ 'u +\w'fs_passno; 'u
 struct fstab {
-	char	fs_spec[FSNMLG];	/* block special device name */
-	char	fs_file[FSNMLG];	/* file system path prefix */
-	char	fs_type[3];		/* rw,ro,sw or xx */
+	char	*fs_spec;	/* block special device name */
+	char	*fs_file;	/* file system path prefix */
+	char	*fs_type;		/* rw,ro,sw or xx */
 	int	fs_freq;		/* dump frequency, in days */
 	int	fs_passno;		/* pass number on parallel dump */
 };
 .fi
-
 .PP
 The proper way to read records from
 .I /etc/fstab
-is to use the routines getfsent(), getfsspec() or getfsfile().
+is to use the routines getfsent(), getfsspec(), getfstype(),
+and getfsfile().
 .SH FILES
 /etc/fstab
 .SH SEE ALSO
-getfsent(3)
+getfsent(3X)

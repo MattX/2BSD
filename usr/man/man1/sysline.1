@@ -1,27 +1,35 @@
-.TH SYSLINE 1
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)sysline.1	6.3 (Berkeley) 6/5/86
+.\"
+.TH SYSLINE 1 "June 5, 1986"
+.UC 5
 .SH NAME
 sysline \- display system status on status line of a terminal
 .SH SYNOPSIS
 .B sysline
 [
-.B \-bcdehDilmpqrsj
+.B \-bcdewhDilmpqrsj
 ] [
-.B \+N
+.B \-H\ remote
+] [
+.B +N
 ]
 .SH DESCRIPTION
 .I Sysline
 runs in the background and periodically displays system status information
 on the status line of the terminal.
 Not all terminals contain a status line.
-Those that do include the H19, Concept 108, Ann Arbor Ambassador, VT100,
+Those that do include the h19, concept 108, Ann Arbor Ambassador, vt100,
 Televideo 925/950 and Freedom 100.
 If no flags are given,
 .I sysline
 displays the time of day, the current load average, the change in load
 average in the last 5 minutes, the number of users (followed by a `u'),
-the number of runnable  process (followed by a `r'), the number
-of suspended processes (followed by a `s'), 
+the number of runnable  process (followed by a `r')[VAX only], the number
+of suspended processes (followed by a `s')[VAX only], 
 and the users who have logged on and off since the last status report.
 Finally, if new mail has arrived, a summary of it is printed.
 If there is unread mail in your mailbox, an asterisk will appear after the
@@ -37,49 +45,59 @@ feature is to alias chdir, pushd, and popd  to place the current directory
 stack in ~/.who after it changes the new directory.
 .PP
 The following flags may be given on the command line.
-.TP
-.B \-\^b
+.TP 12
+.B \-b
 Beep once every half hour and twice every hour, just like those obnoxious
 watches you keep hearing.
 .TP
-.B \-\^c
+.B \-c
 Clear the status line for 5 seconds before each redisplay.
 .TP
-.B \-\^d
-Debug mode -- print status line data in human readable format
+.B \-d
+Debug mode -- print status line data in human readable format.
 .TP
-.B \-\^e
+.B \-D
+Print out the current day/date before the time.
+.TP
+.B \-e
 Print out only the information.  Do not print out the control commands
 necessary to put the information on the bottom line.  This option is
 useful for putting the output of
 .I sysline
 onto the mode line of an emacs window.
 .TP
-.B \-\^D
-Print out the current day/date before the time.
+.B \-w
+Window mode -- print the status on the current line of the terminal,
+suitable for use inside a one line window.
 .TP
-.B \-\^h
-Print out the host machine's name after the time.
+.B \-H remote
+Print the load average on the remote host \fIremote\fP [VAX only].
+If the host is down, or is not sending out \fIrwhod\fP packets, then
+the down time is printed instead.  If the prefix "ucb" is present,
+then it is removed.
 .TP
-.B \-\^l
+.B \-h
+Print out the host machine's name after the time [VAX only].
+.TP
+.B \-l
 Don't print the names of people who log in and out.
 .TP
-.B \-\^m
+.B \-m
 Don't check for mail. 
 .TP
-.B \-\^p
+.B \-p
 Don't report the number of process which are runnable and suspended.
 .TP
-.B \-\^r
+.B \-r
 Don't display in reverse video.
 .TP
-.B \+N
+.B +N
 Update the status line every N seconds. The default is 60 seconds.
 .TP
-.B \-\^q
+.B \-q
 Don't print out diagnostic messages if something goes wrong when starting up.
 .TP
-.B \-\^i
+.B \-i
 Print out the process id of the
 .I sysline
 process onto standard output upon startup.
@@ -90,7 +108,7 @@ process to cause it to update immediately.
 writes to the standard error, so you can redirect the standard
 output into a file to catch the process id.
 .TP
-.B \-\^s
+.B \-s
 Print "short" form of line by left-justifying
 .I iff
 escapes are not allowed in the status line.
@@ -101,7 +119,7 @@ in the status line.  For these terminals,
 normally uses blanks to cause right-justification.
 This flag will disable the adding of the blanks.
 .TP
-.B \-\^j
+.B \-j
 Force the sysline output to be left justified even on terminals capable of
 cursor movement on the status line.
 .PP
@@ -115,16 +133,15 @@ is created until you are guaranteed that
 .I sysline
 will not write on the screen.
 .SH FILES
-.ta 2i
+.ta 2.4i
 .nf
 /etc/utmp	names of people who are logged in
-/dev/kmem	contains process table
+/dev/kmem	contains process table [VAX only]
+/usr/spool/rwho/whod.*	who/uptime information for remote hosts [VAX only]
 ${HOME}/.who	information to print on bottom line
 ${HOME}/.syslinelock	when it exists, sysline will not print
 .fi
-.SH SEE ALSO
-termcap(3X), termcap(5)
-.SH AUTHOR
+.SH AUTHORS
 John Foderaro
 .br
 Tom Ferrin converted it to use termcap.

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n3.c	4.2 10/28/82";
+#endif lint
+
 #include "tdef.h"
 extern
 #include "d.h"
@@ -7,7 +11,7 @@ extern
 extern
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 
 /*
 troff3.c
@@ -61,8 +65,14 @@ extern struct contab {
 		unsigned mx;
 	}x;
 }contab[NM];
+#ifndef VMUNIX
 int wbuf[BLK];
 int rbuf[BLK];
+#else
+int *wbuf;
+int *rbuf;
+int Buf[NBLIST*BLK + NEV*EVS];
+#endif
 
 caseig(){
 	register i;
@@ -311,6 +321,9 @@ int i;
 	if(!offset)return;
 	if(!woff){
 		woff = offset;
+#ifdef VMUNIX
+		wbuf = &Buf[woff];
+#endif
 		wbfi = 0;
 	}
 	wbuf[wbfi++] = i;
@@ -329,8 +342,10 @@ int i;
 }
 wbfl(){
 	if(woff == 0)return;
+#ifndef VMUNIX
 	lseek(ibf, ((long)woff) * sizeof(int), 0);
 	write(ibf, (char *)wbuf, wbfi * sizeof(int));
+#endif
 	if((woff & (~(BLK-1))) == (roff & (~(BLK-1))))roff = -1;
 	woff = 0;
 }
@@ -357,8 +372,12 @@ filep p;
 
 	if((i = (p & (~(BLK-1)))) != roff){
 		roff = i;
+#ifndef VMUNIX
 		lseek(ibf, ((long)roff) * sizeof(int), 0);
 		if(read(ibf, (char *)rbuf, BLK * sizeof(int)) == 0)return(0);
+#else
+		rbuf = &Buf[roff];
+#endif
 	}
 	return(rbuf[p & (BLK-1)]);
 }
@@ -393,13 +412,20 @@ popi(){
 	ch0 = p->pch0;
 	return(p->pch);
 }
+
+/*
+ *	test that the end of the allocation is above a certain location
+ *	in memory
+ */
+#define SPACETEST(base, size) while ((enda - (size)) <= (char *)(base)){setbrk(DELTA);}
+
 pushi(newip)
 filep newip;
 {
 	register struct s *p;
-	extern char *setbrk();
+	extern char	*setbrk();
 
-	if((enda - sizeof(struct s)) < (char *)nxf)setbrk(DELTA);
+	SPACETEST(nxf, sizeof(struct s));
 	p = nxf;
 	p->pframe = frame;
 	p->pip = ip;
@@ -413,104 +439,165 @@ filep newip;
 	cp = ap = 0;
 	nchar = rchar = pendt = ch0 = ch = 0;
 	frame = nxf;
-	if(nxf->nargs == 0) nxf += 1;
-		else nxf = (struct s *)argtop;
+	if (nxf->nargs == 0) 
+		nxf += 1;
+	else 
+		nxf = (struct s *)argtop;
 	return(ip = newip);
 }
-char *setbrk(x)
-int x;
-{
-	register char *i;
-	char *sbrk();
 
-	if((i = sbrk(x)) == MAXPTR){
+
+char	*setbrk(x)
+int	x;
+{
+	register char	*i;
+	char	*sbrk();
+
+/* ought to be rounded up by sizeof(int) */
+	if (x % 2 == 1) 
+		x++;
+	if ( (i = sbrk(x)) >= (char *)MAXPTR) {
 		prstrfl("Core limit reached.\n");
 		edone(0100);
-	}else{
+	} else {
 		enda = i + x;
 	}
 	return(i);
 }
-getsn(){
+
+
+getsn()
+{
 	register i;
 
-	if((i=getach()) == 0)return(0);
-	if(i == '(')return(getrq());
-		else return(i);
+	if ((i = getach()) == 0)
+		return(0);
+	if (i == '(')
+		return(getrq());
+	else 
+		return(i);
 }
-setstr(){
+
+
+setstr()
+{
 	register i;
 
 	lgf++;
-	if(((i=getsn()) == 0) ||
-	   ((i=findmn(i)) == -1) ||
-	   !(contab[i].rq & MMASK)){
+	if (    ((i = getsn()) == 0)
+	     || ((i = findmn(i)) == -1)
+	     ||  !(contab[i].rq & MMASK)) {
 		lgf--;
 		return(0);
-	}else{
-		if((enda-2) < (char *)nxf)setbrk(DELTA);
+	} else {
+		SPACETEST(nxf, sizeof(struct s));
 		nxf->nargs = 0;
 		strflg++;
 		lgf--;
 		return(pushi(((filep)contab[i].x.mx)<<BLKBITS));
 	}
 }
+
+typedef	int	tchar;
+#define	cbits(x)	((x) & CMASK)
+
 collect()
 {
-	register i;
-	register int *strp;
-	int *lim;
-	int **argpp, **argppend;
-	int quote;
+	register j;
+	tchar i;
+	register tchar *strp;
+	tchar * lim;
+	tchar * *argpp, **argppend;
+	int	quote;
 	struct s *savnxf;
 
 	copyf++;
 	nxf->nargs = 0;
 	savnxf = nxf;
-	if(skip())goto rtn;
-	lim = (int *)(nxf = savnxf + sizeof(struct s)/sizeof(savnxf));
+	if (skip())
+		goto rtn;
+
+	{
+		char *memp;
+		memp = (char *)savnxf;
+		/*
+		 *	1 s structure for the macro descriptor
+		 *	APERMAC tchar *'s for pointers into the strings
+		 *	space for the tchar's themselves
+		 */
+		memp += sizeof(struct s);
+		/*
+		 *	CPERMAC (the total # of characters for ALL arguments)
+		 *	to a macros, has been carefully chosen
+		 *	so that the distance between stack frames is < DELTA 
+		 */
+#define	CPERMAC	200
+#define	APERMAC	9
+		memp += APERMAC * sizeof(tchar *);
+		memp += CPERMAC * sizeof(tchar);
+		nxf = (struct s*)memp;
+	}
+	lim = (tchar *)nxf;
+	argpp = (tchar **)(savnxf + 1);
+	argppend = &argpp[APERMAC];
+	SPACETEST(argppend, sizeof(tchar *));
+	strp = (tchar *)argppend;
+	/*
+	 *	Zero out all the string pointers before filling them in.
+	 */
+	for (j = 0; j < APERMAC; j++){
+		argpp[j] = (tchar *)0;
+	}
+#if 0
+	fprintf(stderr, "savnxf=0x%x,nxf=0x%x,argpp=0x%x,strp=argppend=0x%x,lim=0x%x,enda=0x%x\n",
+		savnxf, nxf, argpp, strp, lim, enda);
+#endif 0
 	strflg = 0;
-	if((argppend =
-		(argpp = (int **)savnxf+(sizeof(struct s)/sizeof(int **))) + (sizeof(struct s)-1))
-		> (int **)enda)setbrk(DELTA);
-	strp = (int *)argppend;
-	for(i=8; i>=0; i--)argpp[i] = 0;
-	while((argpp != argppend) && (!skip())){
+	while ((argpp != argppend) && (!skip())) {
 		*argpp++ = strp;
 		quote = 0;
-		if(((i = getch()) & CMASK) == '"')quote++;
-			else ch = i;
-		while(1){
+		if (cbits(i = getch()) == '"')
+			quote++;
+		else 
+			ch = i;
+		while (1) {
 			i = getch();
-			if( nlflg ||
-			  ((!quote) && ((i & CMASK) == ' ')))break;
-			if(quote && ((i & CMASK) == '"') &&
-			  (((i=getch()) & CMASK) != '"')){
+			if ( nlflg ||  (!quote && cbits(i) == ' '))
+				break;
+			if (   quote
+			    && (cbits(i) == '"')
+			    && (cbits(i = getch()) != '"')) {
 				ch = i;
 				break;
 			}
 			*strp++ = i;
-			if(strflg && (strp >= lim)){
+			if (strflg && (strp >= lim)) {
+#if 0
+				fprintf(stderr, "strp=0x%x, lim = 0x%x\n",
+					strp, lim);
+#endif 0
 				prstrfl("Macro argument too long.\n");
 				copyf--;
 				edone(004);
 			}
-			if((enda-4) <= (char *)strp)setbrk(DELTA);
+			SPACETEST(strp, 3 * sizeof(tchar));
 		}
 		*strp++ = 0;
 	}
 	nxf = savnxf;
-	nxf->nargs = argpp -(int **)(nxf + 1);
+	nxf->nargs = argpp - (tchar **)(savnxf + 1);
 	argtop = strp;
 rtn:
 	copyf--;
 }
+
+
 seta()
 {
 	register i;
 
 	if(((i = (getch() & CMASK) - '0') > 0) &&
-		(i <= 9) && (i <= frame->nargs))ap = *((int **)frame + i-1 + (sizeof(struct s)/sizeof(int **)));
+		(i <= APERMAC) && (i <= frame->nargs))ap = *((int **)frame + i-1 + (sizeof(struct s)/sizeof(int **)));
 }
 caseda(){
 	app++;

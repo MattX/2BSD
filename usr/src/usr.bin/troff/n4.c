@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)n4.c	4.1 6/7/82";
+#endif lint
+
 #include "tdef.h"
 extern
 #include "d.h"
@@ -7,13 +11,14 @@ extern
 extern
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 /*
 troff4.c
 
 number registers, conversion, arithmetic
 */
 
+extern	int	inchar[LNSIZE], *pinchar;	/* XXX */
 extern struct s *frame;
 
 extern int ascii;
@@ -86,7 +91,7 @@ setn()
 			break;
 		case 'u': i = fi;		break;
 		case 'j': i = ad + 2*admod;	break;
-		case 'w': i = cwidth;		break;
+		case 'w': i = width(*(pinchar-1));		break;	/* XXX */
 		case 'x': i = nel;	break;
 		case 'y': i = un;		break;
 		case 'T': i = dotT;		break; /*-Tterm used in nroff*/
@@ -421,7 +426,7 @@ a1:
 	if((field != digits) && (digits > 0))while(digits--)acc /= 10;
 	if(abs){
 		if(dip != d)j = dip->dnl; else j = v.nl;
-		if(!vflag)j = v.hp;
+		if(!vflag)j = v.hp = sumhp();	/* XXX */
 		if(abs == 2)j = -j;
 		acc -= j;
 	}

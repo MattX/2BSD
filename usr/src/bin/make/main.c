@@ -1,3 +1,4 @@
+static	char *sccsid = "@(#)main.c	4.9 (Berkeley) 87/05/21";
 # include "defs"
 /*
 command make to update programs.
@@ -5,310 +6,319 @@ Flags:	'd'  print out debugging comments
 	'p'  print out a version of the input graph
 	's'  silent mode--don't print out commands
 	'f'  the next argument is the name of the description file;
-	     makefile is the default
+	     "makefile" is the default
 	'i'  ignore error codes from the shell
 	'S'  stop after any command fails (normally do parallel work)
 	'n'   don't issue, just print, commands
 	't'   touch (update time of) files but don't issue command
 	'q'   don't do anything, but check if object is up to date;
 	      returns exit code 0 if up to date, -1 if not
+	'e'  environment variables have precedence over makefiles
 */
 
-char makefile[] = "makefile";
-char Nullstr[] = "";
-char Makefile[] =	"Makefile";
-char RELEASE[] = "RELEASE";
+struct nameblock *mainname	= NULL;
+struct nameblock *firstname	= NULL;
+struct lineblock *sufflist	= NULL;
+struct varblock *firstvar	= NULL;
+struct pattern *firstpat	= NULL;
+struct dirhdr *firstod		= NULL;
 
-NAMEBLOCK mainname ;
-NAMEBLOCK firstname;
-LINEBLOCK sufflist;
-VARBLOCK firstvar;
-PATTERN firstpat ;
-OPENDIR firstod;
-
-
-#ifdef unix
 #include <signal.h>
-int (*sigivalue)() = SIG_DFL;
-int (*sigqvalue)() = SIG_DFL;
-int waitpid=0;
+int sigivalue	= 0;
+int sigqvalue	= 0;
+int waitpid	= 0;
+
+int dbgflag	= NO;
+int prtrflag	= NO;
+int silflag	= NO;
+int noexflag	= NO;
+int keepgoing	= NO;
+int noruleflag	= NO;
+int touchflag	= NO;
+int questflag	= NO;
+int ndocoms	= NO;
+int ignerr	= NO;    /* default is to stop on error */
+int okdel	= YES;
+int doenvlast	= NO;
+int inarglist;
+#ifdef pwb
+char *prompt	= ">";	/* other systems -- pick what you want */
+#else
+char *prompt	= "";	/* other systems -- pick what you want */
 #endif
-
-int Mflags=MH_DEP;
-int ndocoms=0;
-int okdel=YES;
-
-CHARSTAR prompt="\t";	/* other systems -- pick what you want */
+int nopdir	= 0;
 char junkname[20];
 char funny[128];
-
-
-
-
-char Makeflags[]="MAKEFLAGS";
+char	options[26 + 1] = { '-' };
 
 main(argc,argv)
 int argc;
-CHARSTAR argv[];
+char *argv[];
 {
-	register NAMEBLOCK p;
-	int i;
-	int descset, nfargs;
-	TIMETYPE tjunk;
-	CHARSTAR s;
+register struct nameblock *p;
+int i, j;
+int descset, nfargs;
+TIMETYPE tjunk;
+char c, *s;
+static char onechar[2] = "X";
 #ifdef unix
-	int intrupt();
-
-
-
+int intrupt();
 #endif
+char *op = options + 1;
+
 
 #ifdef METERFILE
-	meter(METERFILE);
+meter(METERFILE);
 #endif
 
-	descset = 0;
+descset = 0;
 
-	for(s = "#|=^();&<>*?[]:$`'\"\\\n" ; *s ; ++s)
-		funny[*s] |= META;
-	for(s = "\n\t :=;{}&>|" ; *s ; ++s)
-		funny[*s] |= TERMINAL;
-	funny['\0'] |= TERMINAL;
-
-	TURNON(INTRULE);		/* Default internal rules, turned on */
-
-/*
- *	Set command line flags
- */
-
-	getmflgs();				/* Init $(MAKEFLAGS) variable */
-	setflags(argc, argv);
-
-	setvar("$","$");
+funny['\0'] = (META | TERMINAL);
+for(s = "=|^();&<>*?[]:$`'\"\\\n" ; *s ; ++s)
+	funny[*s] |= META;
+for(s = "\n\t :;&>|" ; *s ; ++s)
+	funny[*s] |= TERMINAL;
 
 
-/*
- *	Read command line "=" type args and make them readonly.
- */
-	TURNON(INARGS|EXPORT);
-	if(IS_ON(DBUG))(void)printf("Reading \"=\" type args on command line.\n");
-	for(i=1; i<argc; ++i)
-		if(argv[i]!=0 && argv[i][0]!=MINUS && (eqsign(argv[i]) == YES) )
-			argv[i] = 0;
-	TURNOFF(INARGS|EXPORT);
+inarglist = 1;
+for(i=1; i<argc; ++i)
+	if(argv[i]!=0 && argv[i][0]!='-' && eqsign(argv[i]))
+		argv[i] = 0;
 
-/*
- *	Read internal definitions and rules.
- */
+setvar("$","$");
+inarglist = 0;
 
-	if( IS_ON(INTRULE) )
-	{
-		if(IS_ON(DBUG))(void)printf("Reading internal rules.\n");
-		(void)rdd1((FILE *)NULL);
+for (i=1; i<argc; ++i)
+	if (argv[i]!=0 && argv[i][0]=='-') {
+		for (j=1 ; (c=argv[i][j])!='\0' ; ++j) {
+			*op++ = c;
+			switch (c) {
+
+			case 'd':
+				dbgflag = YES;
+				break;
+
+			case 'p':
+				prtrflag = YES;
+				break;
+
+			case 's':
+				silflag = YES;
+				break;
+
+			case 'i':
+				ignerr = YES;
+				break;
+
+			case 'S':
+				keepgoing = NO;
+				break;
+
+			case 'k':
+				keepgoing = YES;
+				break;
+
+			case 'n':
+				noexflag = YES;
+				break;
+
+			case 'r':
+				noruleflag = YES;
+				break;
+
+			case 't':
+				touchflag = YES;
+				break;
+
+			case 'q':
+				questflag = YES;
+				break;
+
+			case 'f':
+				op--;		/* don't pass this one */
+				if(i >= argc-1)
+				  fatal("No description argument after -f flag");
+				if( rddescf(argv[i+1]) )
+				fatal1("Cannot open %s", argv[i+1]);
+				argv[i+1] = 0;
+				++descset;
+				break;
+
+			case 'e':
+				doenvlast = YES;
+				break;
+
+			default:
+				onechar[0] = c;	/* to make lint happy */
+				fatal1("Unknown flag argument %s", onechar);
+			}
+		}
+		argv[i] = 0;
 	}
 
-/*
- *	Done with internal rules, now.
- */
-	TURNOFF(INTRULE);
+*op++ = '\0';
+if (strcmp(options, "-") == 0)
+	*options = '\0';
+setvar("MFLAGS", options);		/* MFLAGS=options to make */
 
-/*
- *	Read environment args.  Let file args which follow override.
- *	unless 'e' in MAKEFLAGS variable is set.
- */
-	if( any( (varptr(Makeflags))->varval, 'e') )
-		TURNON(ENVOVER);
-	if(IS_ON(DBUG))(void)printf("Reading environment.\n");
-	TURNON(EXPORT);
-	readenv();
-	TURNOFF(EXPORT|ENVOVER);
+setvar("MACHINE", MACHINE);
 
-/*
- *	Read command line "-f" arguments.
- */
-
-	rdmakecomm();
-
-	for(i = 1; i < argc; i++)
-		if( argv[i] && argv[i][0] == MINUS && argv[i][1] == 'f' && argv[i][2] == CNULL)
-		{
-			argv[i] = 0;
-			if(i >= argc-1)
-				fatal("No description argument after -f flag");
-			if( rddescf(argv[++i], YES) )
-				fatal1("Cannot open %s", argv[i]);
-			argv[i] = 0;
-			++descset;
-		}
-
-
-/*
- *	If no command line "-f" args then look for some form of "makefile"
- */
-	if( !descset )
+if( !descset )
 #ifdef unix
-		if( rddescf(makefile, NO))
-		if( rddescf(Makefile, NO))
-		if( rddescf(makefile, YES))
-			(void)rddescf(Makefile, YES);
-
+	if( rddescf("makefile") )  rddescf("Makefile");
 #endif
 #ifdef gcos
-		(void)rddescf(makefile, NO);
+	rddescf("makefile");
 #endif
 
+if (doenvlast == YES)
+	readenv();
 
-	if(IS_ON(PRTR)) printdesc(NO);
+if(prtrflag) printdesc(NO);
 
-	if( srchname(".IGNORE") ) TURNON(IGNERR);
-	if( srchname(".SILENT") ) TURNON(SIL);
-	if(p=srchname(".SUFFIXES")) sufflist = p->linep;
-	if( !sufflist ) (void)fprintf(stderr,"No suffix list.\n");
+if( srchname(".IGNORE") ) ++ignerr;
+if( srchname(".SILENT") ) silflag = 1;
+if(p=srchname(".SUFFIXES")) sufflist = p->linep;
+if( !sufflist ) fprintf(stderr,"No suffix list.\n");
 
 #ifdef unix
-	sigivalue = signal(SIGINT,SIG_IGN);
-	sigqvalue = signal(SIGQUIT,SIG_IGN);
-	enbint(intrupt);
+sigivalue = (int) signal(SIGINT, SIG_IGN) & 01;
+sigqvalue = (int) signal(SIGQUIT, SIG_IGN) & 01;
+enbint(intrupt);
 #endif
 
-	nfargs = 0;
+nfargs = 0;
 
-	for(i=1; i<argc; ++i)
-		if((s=argv[i]) != 0)
+for(i=1; i<argc; ++i)
+	if((s=argv[i]) != 0)
 		{
-			if((p=srchname(s)) == 0)
+		if((p=srchname(s)) == 0)
 			{
-				p = makename(s);
+			p = makename(s);
 			}
-			++nfargs;
-			(void)doname(p, 0, &tjunk);
-			if(IS_ON(DBUG)) printdesc(YES);
+		++nfargs;
+		doname(p, 0, &tjunk);
+		if(dbgflag) printdesc(YES);
 		}
 
 /*
-	If no file arguments have been encountered, make the first
-	name encountered that doesn't start with a dot
-	*/
+If no file arguments have been encountered, make the first
+name encountered that doesn't start with a dot
+*/
 
-	if(nfargs == 0)
-		if(mainname == 0)
-			fatal("No arguments or description file");
-		else
-		{
-			(void)doname(mainname, 0, &tjunk);
-			if(IS_ON(DBUG)) printdesc(YES);
+if(nfargs == 0)
+	if(mainname == 0)
+		fatal("No arguments or description file");
+	else	{
+		doname(mainname, 0, &tjunk);
+		if(dbgflag) printdesc(YES);
 		}
 
-	exit(0);
+exit(0);
 }
 
-
+#include <sys/stat.h>
 
 #ifdef unix
 intrupt()
 {
-	CHARSTAR p;
-	NAMEBLOCK q;
+struct varblock *varptr();
+char *p;
+TIMETYPE exists();
+struct stat sbuf;
 
-	if(okdel && IS_OFF(NOEX) && IS_OFF(TOUCH) &&
-	   (p=varptr("@")->varval) && 
-	   (q=srchname(p)) && 
-	   (exists(q)>0) &&
-	   !isprecious(p) )
-	{
-		if(isdir(p))
-			(void)fprintf(stderr, "\n*** %s NOT REMOVED.",p);
-		else if(unlink(p) == 0)
-			(void)fprintf(stderr, "\n***  %s removed.", p);
-	}
-	if(junkname[0])
-		(void)unlink(junkname);
-	(void)fprintf(stderr, "\n");
-	exit(2);
+if(okdel && !noexflag && !touchflag &&
+	(p = varptr("@")->varval) &&
+	(stat(p, &sbuf) >= 0 && (sbuf.st_mode&S_IFMT) == S_IFREG) &&
+	!isprecious(p) )
+		{
+		fprintf(stderr, "\n***  %s removed.", p);
+		unlink(p);
+		}
+
+if(junkname[0])
+	unlink(junkname);
+fprintf(stderr, "\n");
+exit(2);
 }
 
 
 
 
 isprecious(p)
-CHARSTAR p;
+char *p;
 {
-	register NAMEBLOCK np;
-	register LINEBLOCK lp;
-	register DEPBLOCK dp;
+register struct lineblock *lp;
+register struct depblock *dp;
+register struct nameblock *np;
 
-	if(np = srchname(".PRECIOUS"))
-	    for(lp = np->linep ; lp ; lp = lp->nextline)
-		for(dp = lp->depp ; dp; dp = dp->nextdep)
-			if(equal(p, dp->depname->namep))
+if(np = srchname(".PRECIOUS"))
+	for(lp = np->linep ; lp ; lp = lp->nxtlineblock)
+		for(dp = lp->depp ; dp ; dp = dp->nxtdepblock)
+			if(! unequal(p, dp->depname->namep))
 				return(YES);
 
-	return(NO);
+return(NO);
 }
 
 
 enbint(k)
 int (*k)();
 {
-	if(sigivalue != SIG_IGN)
-		(void)signal(SIGINT,k);
-	if(sigqvalue != SIG_IGN)
-		(void)signal(SIGQUIT,k);
+if(sigivalue == 0)
+	signal(SIGINT,k);
+if(sigqvalue == 0)
+	signal(SIGQUIT,k);
 }
 #endif
 
-extern CHARSTAR builtin[];
+extern char *builtin[];
 
-CHARSTAR *linesptr=builtin;
+char **linesptr	= builtin;
 
 FILE * fin;
+int firstrd	= 0;
 
-rdmakecomm()
+
+rddescf(descfile)
+char *descfile;
 {
-#ifdef PWB
-	register char *nlog;
-	char s[128];
-	CHARSTAR concat(), getenv();
-
-	if((nlog=getenv("HOME")) != NULL)
-	{
-		if(rddescf( concat(nlog,"/makecomm",s), NO))
-			(void)rddescf( concat(nlog,"/Makecomm",s), NO);
-	}
-
-	if(rddescf("makecomm", NO))
-		(void)rddescf("Makecomm", NO);
-#endif
-}
-
-extern int yylineno;
-extern CHARSTAR zznextc;
-rddescf(descfile, flg)
-CHARSTAR descfile;
-int flg;			/* if YES try descfile,v and s.descfile */
-{
-	FILE * k;
+FILE * k;
 
 /* read and parse description */
 
-	if(equal(descfile, "-"))
-		return( rdd1(stdin) );
-
-retry:
-	if( (k = fopen(descfile,"r")) != NULL)
+if( !firstrd++ )
 	{
-		if(IS_ON(DBUG))(void)printf("Reading %s\n", descfile);
-		return( rdd1(k) );
+	if( !noruleflag )
+		rdd1( (FILE *) NULL);
+
+	if (doenvlast == NO)
+		readenv();
+
+#ifdef pwb
+		{
+		char *nlog, s[BUFSIZ];
+		nlog = logdir();
+		if ( (k=fopen( concat(nlog,"/makecomm",s), "r")) != NULL)
+			rdd1(k);
+		else if ( (k=fopen( concat(nlog,"/Makecomm",s), "r")) != NULL)
+			rdd1(k);
+	
+		if ( (k=fopen("makecomm", "r")) != NULL)
+			rdd1(k);
+		else if ( (k=fopen("Makecomm", "r")) != NULL)
+			rdd1(k);
+		}
+#endif
+
 	}
+if(! unequal(descfile, "-"))
+	return( rdd1(stdin) );
 
-	if(flg == NO)
-		return(1);
-	if(co(descfile, YES) == NO &&
-	    get(descfile, CD, varptr(RELEASE)->varval) == NO)
-		return(1);
-	flg = NO;
-	goto retry;
+if( (k = fopen(descfile,"r")) != NULL)
+	return( rdd1(k) );
 
+return(1);
 }
 
 
@@ -317,268 +327,86 @@ retry:
 rdd1(k)
 FILE * k;
 {
-	fin = k;
-	yylineno = 0;
-	zznextc = 0;
+extern int yylineno;
+extern char *zznextc;
 
-	if( yyparse() )
-		fatal("Description file error");
+fin = k;
+yylineno = 0;
+zznextc = 0;
 
-	if(fin != NULL)
-		(void)fclose(fin);
+if( yyparse() )
+	fatal("Description file error");
 
-	return(0);
+if(fin != NULL && fin != stdin)
+	fclose(fin);
+
+return(0);
 }
 
 printdesc(prntflag)
 int prntflag;
 {
-	NAMEBLOCK p;
-	VARBLOCK vp;
-	OPENDIR od;
+struct nameblock *p;
+struct depblock *dp;
+struct varblock *vp;
+struct dirhdr *od;
+struct shblock *sp;
+struct lineblock *lp;
 
 #ifdef unix
-	if(prntflag)
+if(prntflag)
 	{
-		(void)fprintf(stderr,"Open directories:\n");
-		for(od=firstod; od!=0; od = od->nextopendir)
-			(void)fprintf(stderr,"\t%d: %s\n",
-			    od->dirfc ? od->dirfc->dd_fd : 0, od->dirn);
+	printf("Open directories:\n");
+	for (od = firstod; od; od = od->nxtopendir)
+		printf("\t%d: %s\n", od->dirfc->dd_fd, od->dirn);
 	}
 #endif
 
-	if(firstvar != 0) (void)fprintf(stderr,"Macros:\n");
-	for(vp=firstvar; vp!=0; vp=vp->nextvar)
-		if(vp->v_aflg == NO)
-			(void)printf("%s = %s\n" , vp->varname , vp->varval);
-		else
+if(firstvar != 0) printf("Macros:\n");
+for(vp = firstvar; vp ; vp = vp->nxtvarblock)
+	printf("\t%s = %s\n" , vp->varname , vp->varval);
+
+for(p = firstname; p; p = p->nxtnameblock)
+	{
+	printf("\n\n%s",p->namep);
+	if(p->linep != 0) printf(":");
+	if(prntflag) printf("  done=%d",p->done);
+	if(p==mainname) printf("  (MAIN NAME)");
+	for(lp = p->linep ; lp ; lp = lp->nxtlineblock)
 		{
-			CHAIN pch;
-
-			(void)fprintf(stderr,"Lookup chain: %s\n\t", vp->varname);
-			for(pch = (CHAIN)vp->varval; pch; pch = pch->nextchain)
-				(void)fprintf(stderr," %s",
-					((NAMEBLOCK)pch->datap)->namep);
-			(void)fprintf(stderr,"\n");
-		}
-
-	for(p=firstname; p!=0; p = p->nextname)
-		prname(p, prntflag);
-	(void)printf("\n");
-	(void)fflush(stdout);
-}
-
-prname(p, prntflag)
-register NAMEBLOCK p;
-{
-	register LINEBLOCK lp;
-	register DEPBLOCK dp;
-	register SHBLOCK sp;
-
-	(void)fflush(stdout);
-	if(p->linep != 0)
-		(void)printf("\n\n%s:",p->namep);
-	else
-		(void)fprintf(stderr, "\n\n%s", p->namep);
-	if(prntflag)
-	{
-		(void)fprintf(stderr,"  done=%d",p->done);
-	}
-	if(p==mainname) { (void)fflush(stdout); (void)fprintf(stderr,"  (MAIN NAME)");}
-	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
-	{
 		if( dp = lp->depp )
-		{
-			(void)fflush(stdout);
-			(void)fprintf(stderr,"\n depends on:");
-			for(; dp!=0 ; dp = dp->nextdep)
+			{
+			printf("\n depends on:");
+			for(; dp ; dp = dp->nxtdepblock)
 				if(dp->depname != 0)
-				{
-					(void)printf(" %s", dp->depname->namep);
-					(void)printf(" ");
-				}
-		}
+					printf(" %s ", dp->depname->namep);
+			}
+	
 		if(sp = lp->shp)
-		{
-			(void)printf("\n");
-			(void)fflush(stdout);
-			(void)fprintf(stderr," commands:\n");
-			for( ; sp!=0 ; sp = sp->nextsh)
-				(void)printf("\t%s\n", sp->shbp);
+			{
+			printf("\n commands:\n");
+			for( ; sp!=0 ; sp = sp->nxtshblock)
+				printf("\t%s\n", sp->shbp);
+			}
 		}
 	}
+printf("\n");
+fflush(stdout);
 }
 
-
-setflags(ac, av)
-int ac;
-CHARSTAR *av;
+readenv()
 {
-	register int i, j;
-	register char c;
-	int flflg=0;			/* flag to note `-f' option. */
+	register char **ep, *p;
+	extern char **environ;
 
-	for(i=1; i<ac; ++i)
-	{
-		if(flflg)
-		{
-			flflg = 0;
-			continue;
-		}
-		if(av[i]!=0 && av[i][0]==MINUS)
-		{
-			if(any(av[i], 'f'))
-				flflg++;
-			for(j=1 ; (c=av[i][j])!=CNULL ; ++j)
-				optswitch(c);
-			if(flflg)
-				av[i] = "-f";
-			else
-				av[i] = 0;
+	for(ep = environ ; *ep ; ++ep) {
+		for (p = *ep; *p; p++) {
+			if (isalnum(*p))
+				continue;
+			if (*p == '=') {
+				eqsign(*ep);
+			}
+			break;
 		}
 	}
-}
-
-
-/*
- *	Handle a single char option.
- */
-optswitch(c)
-register char c;
-{
-
-	switch(c)
-	{
-
-	case 'e':	/* environment override flag */
-		setmflgs(c);
-		break;
-
-	case 'd':	/* debug flag */
-		TURNON(DBUG);
-		setmflgs(c);
-		break;
-
-	case 'p':	/* print description */
-		TURNON(PRTR);
-		break;
-
-	case 's':	/* silent flag */
-		TURNON(SIL);
-		setmflgs(c);
-		break;
-
-	case 'i':	/* ignore errors */
-		TURNON(IGNERR);
-		setmflgs(c);
-		break;
-
-	case 'S':
-		TURNOFF(KEEPGO);
-		setmflgs(c);
-		break;
-
-	case 'k':
-		TURNON(KEEPGO);
-		setmflgs(c);
-		break;
-
-	case 'n':	/* do not exec any commands, just print */
-		TURNON(NOEX);
-		setmflgs(c);
-		break;
-
-	case 'r':	/* turn off internal rules */
-		TURNOFF(INTRULE);
-		break;
-
-	case 't':	/* touch flag */
-		TURNON(TOUCH);
-		setmflgs(c);
-		break;
-
-	case 'q':	/* question flag */
-		TURNON(QUEST);
-		setmflgs(c);
-		break;
-
-	case 'g':	/* turn default $(GET) of files not found */
-		TURNON(GET);
-		setmflgs(c);
-		break;
-
-	case 'K':	/* keep files extracted with default $(GET)/$(CO) */
-		TURNON(GF_KEEP);
-		setmflgs(c);
-		break;
-
-	case 'm':	/* print memory map */
-		TURNON(MEMMAP);
-		setmflgs(c);
-		break;
-
-	case 'b':	/* use MH version of test for whether a cmd exists */
-		TURNON(MH_DEP);
-		setmflgs(c);
-		break;
-	case 'B':	/* turn off -b flag */
-		TURNOFF(MH_DEP);
-		setmflgs(c);
-		break;
-
-	case 'f':	/* Named makefile; already handled by setflags(). */
-		break;
-
-	default:
-		fatal1("Unknown flag argument %c", c);
-	}
-}
-
-/*
- *	getmflgs() set the cmd line flags into an EXPORTED variable
- *	for future invocations of make to read.
- */
-
-
-getmflgs()
-{
-	register VARBLOCK vpr;
-	register CHARSTAR *pe;
-	register CHARSTAR p;
-
-	vpr = varptr(Makeflags);
-	setvar(Makeflags, "ZZZZZZZZZZZZZZZZ");
-	vpr->varval[0] = CNULL;
-	vpr->envflg = YES;
-	vpr->noreset = YES;
-	optswitch('b');
-	for(pe = environ; *pe; pe++)
-	{
-		if(sindex(*pe, "MAKEFLAGS=") == 0)
-		{
-			for(p = (*pe)+sizeof Makeflags; *p; p++)
-				optswitch(*p);
-			return;
-		}
-	}
-}
-
-/*
- *	setmflgs(c) sets up the cmd line input flags for EXPORT.
- */
-
-setmflgs(c)
-register char c;
-{
-	register VARBLOCK vpr;
-	register CHARSTAR p;
-
-	vpr = varptr(Makeflags);
-	for(p = vpr->varval; *p; p++)
-	{
-		if(*p == c)
-			return;
-	}
-	*p++ = c;
-	*p = CNULL;
 }

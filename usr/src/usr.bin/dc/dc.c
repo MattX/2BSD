@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)dc.c	4.3	(Berkeley)	4/26/86";
+#endif not lint
+
 #include <stdio.h>
 #include <signal.h>
 #include "dc.h"
@@ -883,7 +887,6 @@ char *argv[];
 		printf("can't open file %s\n",svargv[1]);
 		exit(1);
 		}
-	dummy = malloc(1);
 	scalptr = salloc(1);
 	sputc(scalptr,0);
 	basptr = salloc(1);
@@ -909,7 +912,7 @@ char *argv[];
 	readptr = &readstk[0];
 	k=0;
 	sp = sptr = &symlst[0];
-	while(sptr < &symlst[TBLSZ]){
+	while(sptr < &symlst[TBLSZ-1]){
 		sptr->next = ++sp;
 		sptr++;
 	}
@@ -1756,7 +1759,6 @@ struct blk *hptr;
 	nn = hptr->beg+n;
 	if(nn > hptr->last){
 		nbytes += nn - hptr->last;
-		free(hptr->beg);
 		p = realloc(hptr->beg, (unsigned)n);
 		if(p == 0){
 			hptr->beg = realloc(hptr->beg, (unsigned)(hptr->last-hptr->beg));
@@ -1789,12 +1791,11 @@ struct blk *hptr;
 
 	if((size=(hptr->last-hptr->beg)*2) == 0)size=1;
 	nbytes += size/2;
-	free(hptr->beg);
 	p = realloc(hptr->beg, (unsigned)size);
 	if(p == 0){
 		hptr->beg = realloc(hptr->beg, (unsigned)(hptr->last-hptr->beg));
 		garbage("more");
-		if((p = realloc(hptr->beg,size)) == 0)
+		if((p = realloc(hptr->beg,(unsigned)size)) == 0)
 			ospace("more");
 	}
 	hptr->rd = hptr->rd-hptr->beg+p;
@@ -1868,10 +1869,6 @@ struct blk *p;
 		printf("odd ptr %o hdr %o\n",p->beg,p);
 		ospace("redef-bad");
 	}
-	free(p->beg);
-	free(dummy);
-	dummy = malloc(1);
-	if(dummy == NULL)ospace("dummy");
 	newp = realloc(p->beg, (unsigned)(p->last-p->beg));
 	if(newp == NULL)ospace("redef");
 	offset = newp - p->beg;

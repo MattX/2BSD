@@ -1,13 +1,18 @@
 #ifndef lint
-static char	*RcsId = "$Header: hys.c,v 1.10 85/08/15 21:29:10 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)hys.c	4.6 (Berkeley) 2/12/86";
+#endif
 
 #include "../condevs.h"
 
 #ifdef HAYES
-/*#define USR2400	/* U.S. Robotics Courier 2400 */
 #ifdef USR2400
 #define DROPDTR
+/*
+ * The "correct" switch settings for a USR Courier 2400 are
+ * 	Dialin/out:	0 0 1 1 0 0 0 1 0 0
+ *	Dialout only:	0 0 1 1 1 1 0 1 0 0
+ * where 0 = off and 1 = on
+ */
 #endif USR2400
 
 /*
@@ -41,19 +46,19 @@ char *flds[];
 struct Devices *dev;
 int toneflag;
 {
-	int	dh = -1;
 	extern errno;
 	char dcname[20];
 	char cbuf[MAXPH];
 	register char *cp;
 	register int i;
+	int dh = -1, nrings = 0;
 
 	sprintf(dcname, "/dev/%s", dev->D_line);
 	DEBUG(4, "dc - %s\n", dcname);
 	if (setjmp(Sjbuf)) {
 		logent(dcname, "TIMEOUT");
 		if (dh >= 0)
-			close(dh);
+			hyscls(dh);
 		return CF_DIAL;
 	}
 	signal(SIGALRM, alarmtr);
@@ -68,7 +73,7 @@ int toneflag;
 		fixline(dh, dev->D_speed);
 		if (dochat(dev, flds, dh)) {
 			logent(dcname, "CHAT FAILED");
-			close(dh);
+			hyscls(dh);
 			return CF_DIAL;
 		}
 		write(dh, "ATV1E0H\r", 8);
@@ -78,7 +83,7 @@ int toneflag;
 			return CF_DIAL;
 		}
 #ifdef USR2400
-		write(dh, "ATX6\r", 5);
+		write(dh, "ATX6S7=44\r", 10);
 		if (expect("OK\r\n", dh) != 0) {
 			logent(dcname, "HSM seems dead");
 			hyscls(dh);
@@ -88,7 +93,11 @@ int toneflag;
 		if (toneflag)
 			write(dh, "\rATDT", 5);
 		else
+#ifdef USR2400
+			write(dh, "\rATD", 4);
+#else HAYES
 			write(dh, "\rATDP", 5);
+#endif HAYES
 		write(dh, telno, strlen(telno));
 		write(dh, "\r", 1);
 
@@ -99,8 +108,8 @@ int toneflag;
 			return CF_DIAL;
 		}
 		signal(SIGALRM, alarmtr);
+		alarm(2*MAXMSGTIME);
 		do {
-			alarm(MAXMSGTIME);
 			cp = cbuf;
 			while (read(dh, cp ,1) == 1)
 				if (*cp >= ' ')
@@ -112,7 +121,8 @@ int toneflag;
 			if (*cp == '\r')
 				*cp = '\0';
 			DEBUG(4,"\nGOT: %s", cbuf);
-		} while (strncmp(cbuf, "RING", 4) == 0);
+			alarm(MAXMSGTIME);
+		} while (strncmp(cbuf, "RING", 4) == 0 && nrings++ < 5);
 		if (strncmp(cbuf, "CONNECT", 7) != 0) {
 			logent(cbuf, _FAILED);
 			strcpy(devSel, dev->D_line);
@@ -172,11 +182,10 @@ int fd;
 		write(fd, "ATZ\r", 4);
 		if (expect("OK",fd) != 0)
 			logent(devSel, "HSM did not respond to ATZ");
+		write(fd, "ATH\r", 4);
 		sleep(1);
 		close(fd);
 		delock(devSel);
 	}
 }
-
 #endif HAYES
-

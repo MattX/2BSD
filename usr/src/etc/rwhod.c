@@ -1,41 +1,56 @@
-#ifndef lint
-static char sccsid[] = "@(#)rwhod.c	4.19 (Berkeley) 83/07/01";
-#endif
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
 
-#include <stdio.h>
-#include <sys/param.h>
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)rwhod.c	5.9 (Berkeley) 3/5/86";
+#endif not lint
+
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
 
-#include <netinet/in.h>
 #include <net/if.h>
+#include <netinet/in.h>
 
+#include <nlist.h>
+#include <stdio.h>
 #include <signal.h>
 #include <errno.h>
 #include <utmp.h>
 #include <ctype.h>
+#include <netdb.h>
+#include <syslog.h>
 #include <protocols/rwhod.h>
+
+/*
+ * Alarm interval. Don't forget to change the down time check in ruptime
+ * if this is changed.
+ */
+#define AL_INTERVAL (3 * 60)
 
 struct	sockaddr_in sin = { AF_INET };
 
 extern	errno;
+
 time_t	time();
-
 char	myname[32];
-
-struct nlist {
-	char nname[8];
-	int n_type;
-	unsigned n_value;
-	};
 
 struct	nlist nl[] = {
 #define	NL_AVENRUN	0
 	{ "_avenrun" },
 #define	NL_BOOTTIME	1
-	{ "_bootime" },
+	{ "_boottime" },
 	0
 };
 
@@ -69,10 +84,16 @@ int	getkmem();
 main()
 {
 	struct sockaddr_in from;
+	struct stat st;
 	char path[64];
-	int addr;
-	struct hostent *hp;
+	int on = 1;
+	char *cp;
+	extern char *index();
 
+	if (getuid()) {
+		fprintf(stderr, "rwhod: not super user\n");
+		exit(1);
+	}
 	sp = getservbyname("who", "udp");
 	if (sp == 0) {
 		fprintf(stderr, "rwhod: udp/who: unknown service\n");
@@ -94,39 +115,43 @@ main()
 	  }
 	}
 #endif
-	(void) chdir("/dev");
-	(void) signal(SIGHUP, getkmem);
-	if (getuid()) {
-		fprintf(stderr, "rwhod: not super user\n");
+	if (chdir(RWHODIR) < 0) {
+		perror(RWHODIR);
 		exit(1);
 	}
+	(void) signal(SIGHUP, getkmem);
+	openlog("rwhod", LOG_PID, LOG_DAEMON);
 	/*
 	 * Establish host name as returned by system.
 	 */
 	if (gethostname(myname, sizeof (myname) - 1) < 0) {
-		perror("gethostname");
+		syslog(LOG_ERR, "gethostname: %m");
 		exit(1);
 	}
-	strncpy(mywd.wd_hostname, myname, sizeof (mywd.wd_hostname) - 1);
+	if ((cp = index(myname, '.')) != NULL)
+		*cp = '\0';
+	strncpy(mywd.wd_hostname, myname, sizeof (myname) - 1);
 	utmpf = open("/etc/utmp", O_RDONLY);
 	if (utmpf < 0) {
 		(void) close(creat("/etc/utmp", 0644));
 		utmpf = open("/etc/utmp", O_RDONLY);
 	}
 	if (utmpf < 0) {
-		perror("rwhod: /etc/utmp");
+		syslog(LOG_ERR, "/etc/utmp: %m");
 		exit(1);
 	}
 	getkmem();
-	hp = gethostbyname(myname);
-	if (hp == NULL) {
-		fprintf(stderr, "%s: don't know my own name\n", myname);
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		syslog(LOG_ERR, "socket: %m");
 		exit(1);
 	}
-	sin.sin_family = hp->h_addrtype;
+	if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &on, sizeof (on)) < 0) {
+		syslog(LOG_ERR, "setsockopt SO_BROADCAST: %m");
+		exit(1);
+	}
 	sin.sin_port = sp->s_port;
-	if ((s = socket(SOCK_DGRAM, 0, &sin, 0)) < 0) {
-		perror("rwhod: socket");
+	if (bind(s, &sin, sizeof (sin)) < 0) {
+		syslog(LOG_ERR, "bind: %m");
 		exit(1);
 	}
 	if (!configure(s))
@@ -141,17 +166,17 @@ main()
 			&from, &len);
 		if (cc <= 0) {
 			if (cc < 0 && errno != EINTR)
-				perror("rwhod: recv");
+				syslog(LOG_WARNING, "recv: %m");
 			continue;
 		}
 		if (from.sin_port != sp->s_port) {
-			fprintf(stderr, "rwhod: %d: bad from port\n",
+			syslog(LOG_WARNING, "%d: bad from port",
 				ntohs(from.sin_port));
 			continue;
 		}
 #ifdef notdef
 		if (gethostbyname(wd.wd_hostname) == 0) {
-			fprintf(stderr, "rwhod: %s: unknown host\n",
+			syslog(LOG_WARNING, "%s: unknown host",
 				wd.wd_hostname);
 			continue;
 		}
@@ -161,14 +186,18 @@ main()
 		if (wd.wd_type != WHODTYPE_STATUS)
 			continue;
 		if (!verify(wd.wd_hostname)) {
-			fprintf(stderr, "rwhod: malformed host name from %lx\n",from.sin_addr.s_addr);
+			syslog(LOG_WARNING, "malformed host name from %x",
+				from.sin_addr);
 			continue;
 		}
-		(void) sprintf(path, "%s/whod.%s", RWHODIR, wd.wd_hostname);
-		whod = creat(path, 0644);
+		(void) sprintf(path, "whod.%s", wd.wd_hostname);
+		/*
+		 * Rather than truncating and growing the file each time,
+		 * use ftruncate if size is less than previous size.
+		 */
+		whod = open(path, O_WRONLY | O_CREAT, 0644);
 		if (whod < 0) {
-			fprintf(stderr, "rwhod: ");
-			perror(path);
+			syslog(LOG_WARNING, "%s: %m", path);
 			continue;
 		}
 #if vax || pdp11
@@ -192,6 +221,8 @@ main()
 #endif
 		(void) time(&wd.wd_recvtime);
 		(void) write(whod, (char *)&wd, cc);
+		if (fstat(whod, &st) < 0 || st.st_size > cc)
+			ftruncate(whod, (long)cc);
 		(void) close(whod);
 	}
 }
@@ -216,10 +247,9 @@ verify(name)
 
 time_t	utmptime;
 int	utmpent;
-struct	utmp utmp[100];
+int	utmpsize = 0;
+struct	utmp *utmp;
 int	alarmcount;
-
-#define AL_INTERVAL	(5 * 60)
 
 onalrm()
 {
@@ -227,7 +257,7 @@ onalrm()
 	struct stat stb;
 	register struct whoent *we = mywd.wd_we, *wlast;
 	int cc;
-	double avenrun[3];
+	short avenrun[3];
 	time_t now = time(0);
 	register struct neighbor *np;
 
@@ -235,9 +265,22 @@ onalrm()
 		getkmem();
 	alarmcount++;
 	(void) fstat(utmpf, &stb);
-	if (stb.st_mtime != utmptime) {
+	if ((stb.st_mtime != utmptime) || (stb.st_size > utmpsize)) {
+		utmptime = stb.st_mtime;
+		if (stb.st_size > utmpsize) {
+			utmpsize = stb.st_size + 10 * sizeof(struct utmp);
+			if (utmp)
+				utmp = (struct utmp *)realloc(utmp, utmpsize);
+			else
+				utmp = (struct utmp *)malloc(utmpsize);
+			if (! utmp) {
+				fprintf(stderr, "rwhod: malloc failed\n");
+				utmpsize = 0;
+				goto done;
+			}
+		}
 		(void) lseek(utmpf, (long)0, L_SET);
-		cc = read(utmpf, (char *)utmp, sizeof (utmp));
+		cc = read(utmpf, (char *)utmp, (int)stb.st_size);
 		if (cc < 0) {
 			perror("/etc/utmp");
 			goto done;
@@ -257,15 +300,26 @@ onalrm()
 			}
 		utmpent = we - mywd.wd_we;
 	}
+
+	/*
+	 * The test on utmpent looks silly---after all, if no one is
+	 * logged on, why worry about efficiency?---but is useful on
+	 * (e.g.) compute servers.
+	 */
+	if (utmpent && chdir("/dev")) {
+		syslog(LOG_ERR, "chdir(/dev): %m");
+		exit(1);
+	}
 	we = mywd.wd_we;
 	for (i = 0; i < utmpent; i++) {
 		if (stat(we->we_utmp.out_line, &stb) >= 0)
 			we->we_idle = htonl(now - stb.st_atime);
 		we++;
 	}
-	loadav(avenrun);
+	(void) lseek(kmemf, (long)nl[NL_AVENRUN].n_value, L_SET);
+	(void) read(kmemf, (char *)avenrun, sizeof (avenrun));
 	for (i = 0; i < 3; i++)
-		mywd.wd_loadav[i] = htonl((u_long)(avenrun[i] * 100));
+		mywd.wd_loadav[i] = htonl((u_long)(100.0 * avenrun[i]/256.0));
 	cc = (char *)we - (char *)&mywd;
 	mywd.wd_sendtime = htonl(time(0));
 	mywd.wd_vers = WHODVERSION;
@@ -273,33 +327,41 @@ onalrm()
 	for (np = neighbors; np != NULL; np = np->n_next)
 		(void) sendto(s, (char *)&mywd, cc, 0,
 			np->n_addr, np->n_addrlen);
+	if (utmpent && chdir(RWHODIR)) {
+		syslog(LOG_ERR, "chdir(%s): %m", RWHODIR);
+		exit(1);
+	}
 done:
-	signal(SIGALRM, onalrm);
 	(void) alarm(AL_INTERVAL);
 }
 
 getkmem()
 {
-	struct nlist *nlp;
+	static ino_t vmunixino;
+	static time_t vmunixctime;
+	struct stat sb;
 
+	if (stat("/unix", &sb) < 0) {
+		if (vmunixctime)
+			return;
+	} else {
+		if (sb.st_ctime == vmunixctime && sb.st_ino == vmunixino)
+			return;
+		vmunixctime = sb.st_ctime;
+		vmunixino= sb.st_ino;
+	}
 	if (kmemf >= 0)
 		(void) close(kmemf);
 loop:
-	for (nlp = &nl[sizeof (nl) / sizeof (nl[0])]; --nlp >= nl; ) {
-		nlp->n_value = 0;
-		nlp->n_type = 0;
-	}
-	nlist("/unix", nl);
-	if (nl[0].n_value == 0) {
-		fprintf(stderr, "/unix namelist botch\n");
+	if (nlist("/unix", nl)) {
+		syslog(LOG_WARNING, "/unix namelist botch");
 		sleep(300);
 		goto loop;
 	}
 	kmemf = open("/dev/kmem", O_RDONLY);
 	if (kmemf < 0) {
-		perror("/dev/kmem");
-		sleep(300);
-		goto loop;
+		syslog(LOG_ERR, "/dev/kmem: %m");
+		exit(1);
 	}
 	(void) lseek(kmemf, (long)nl[NL_BOOTTIME].n_value, L_SET);
 	(void) read(kmemf, (char *)&mywd.wd_boottime,
@@ -324,7 +386,7 @@ configure(s)
 	ifc.ifc_len = sizeof (buf);
 	ifc.ifc_buf = buf;
 	if (ioctl(s, SIOCGIFCONF, (char *)&ifc) < 0) {
-		perror("rwhod: ioctl (get interface configuration)");
+		syslog(LOG_ERR, "ioctl (get interface configuration)");
 		return (0);
 	}
 	ifr = ifc.ifc_req;
@@ -354,28 +416,35 @@ configure(s)
 		}
 		bcopy((char *)&ifr->ifr_addr, np->n_addr, np->n_addrlen);
 		if (ioctl(s, SIOCGIFFLAGS, (char *)&ifreq) < 0) {
-			perror("rwhod: ioctl (get interface flags)");
+			syslog(LOG_ERR, "ioctl (get interface flags)");
 			free((char *)np);
 			continue;
 		}
-		if ((ifreq.ifr_flags & (IFF_BROADCAST|IFF_POINTOPOINT)) == 0) {
+		if ((ifreq.ifr_flags & IFF_UP) == 0 ||
+		    (ifreq.ifr_flags & (IFF_BROADCAST|IFF_POINTOPOINT)) == 0) {
 			free((char *)np);
 			continue;
 		}
 		np->n_flags = ifreq.ifr_flags;
 		if (np->n_flags & IFF_POINTOPOINT) {
 			if (ioctl(s, SIOCGIFDSTADDR, (char *)&ifreq) < 0) {
-				perror("rwhod: ioctl (get dstaddr)");
+				syslog(LOG_ERR, "ioctl (get dstaddr)");
 				free((char *)np);
 				continue;
 			}
 			/* we assume addresses are all the same size */
-			bcopy((char *)&ifreq.ifr_dstaddr,np->n_addr,np->n_addrlen);
+			bcopy((char *)&ifreq.ifr_dstaddr,
+			  np->n_addr, np->n_addrlen);
 		}
 		if (np->n_flags & IFF_BROADCAST) {
+			if (ioctl(s, SIOCGIFBRDADDR, (char *)&ifreq) < 0) {
+				syslog(LOG_ERR, "ioctl (get broadaddr)");
+				free((char *)np);
+				continue;
+			}
 			/* we assume addresses are all the same size */
-			sin = (struct sockaddr_in *)np->n_addr;
-			sin->sin_addr.s_addr = inet_makeaddr(inet_netof(sin->sin_addr), INADDR_ANY);
+			bcopy((char *)&ifreq.ifr_broadaddr,
+			  np->n_addr, np->n_addrlen);
 		}
 		/* gag, wish we could get rid of Internet dependencies */
 		sin = (struct sockaddr_in *)np->n_addr;
@@ -399,45 +468,53 @@ sendto(s, buf, cc, flags, to, tolen)
 	struct sockaddr_in *sin = (struct sockaddr_in *)to;
 	char *interval();
 
-	printf("sendto %lx.%d\n", ntohl(sin->sin_addr.s_addr), sin->sin_port);
-	printf("hostname %s %s\n", w->wd_hostname,interval(ntohl(w->wd_sendtime) - ntohl(w->wd_boottime), "  up"));
-	printf("load %4.2f, %4.2f, %4.2f\n",ntohl(w->wd_loadav[0]) / 100.0, ntohl(w->wd_loadav[1]) / 100.0,ntohl(w->wd_loadav[2]) / 100.0);
+	printf("sendto %lx.%d\n", ntohl(sin->sin_addr), ntohs(sin->sin_port));
+	printf("hostname %s %s\n", w->wd_hostname,
+	   interval(ntohl(w->wd_sendtime) - ntohl(w->wd_boottime), "  up"));
+	printf("load %4.2f, %4.2f, %4.2f\n",
+	    ntohl(w->wd_loadav[0]) / 100.0, ntohl(w->wd_loadav[1]) / 100.0,
+	    ntohl(w->wd_loadav[2]) / 100.0);
 	cc -= WHDRSIZE;
 	for (we = w->wd_we, cc /= sizeof (struct whoent); cc > 0; cc--, we++) {
 		time_t t = ntohl(we->we_utmp.out_time);
-		printf("%-8.8s %s:%s %.12s",we->we_utmp.out_name,w->wd_hostname, we->we_utmp.out_line,ctime(&t)+4);
+		printf("%-8.8s %s:%s %.12s",
+			we->we_utmp.out_name,
+			w->wd_hostname, we->we_utmp.out_line,
+			ctime(&t)+4);
 		we->we_idle = ntohl(we->we_idle) / 60;
 		if (we->we_idle) {
-			if (we->we_idle >= 100*60) we->we_idle = 100*60 - 1;
-			if (we->we_idle >= 60) printf(" %2ld", we->we_idle / 60);
-			else printf("   ");
-			printf(":%02ld", we->we_idle % 60);
+			if (we->we_idle >= 100*60)
+				we->we_idle = 100*60 - 1;
+			if (we->we_idle >= 60)
+				printf(" %2d", we->we_idle / 60);
+			else
+				printf("   ");
+			printf(":%02d", we->we_idle % 60);
 		}
 		printf("\n");
 	}
-	printf("end\n");
 }
 
 char *
 interval(time, updown)
-	time_t time;
+	long time;
 	char *updown;
 {
 	static char resbuf[32];
-	long days, hours, minutes;
+	int days, hours, minutes;
 
-	if (time < 0 || time > 7776000L) {
+	if (time < 0 || time > 3L*30L*24L*60L*60L) {
 		(void) sprintf(resbuf, "   %s ??:??", updown);
 		return (resbuf);
 	}
-	minutes = (time + 59) / 60;		/* round to minutes */
+	minutes = (time + 59) / 60L;		/* round to minutes */
 	hours = minutes / 60; minutes %= 60;
 	days = hours / 24; hours %= 24;
 	if (days)
-		(void) sprintf(resbuf, "%s %2ld+%02ld:%02ld",
+		(void) sprintf(resbuf, "%s %2d+%02d:%02d",
 		    updown, days, hours, minutes);
 	else
-		(void) sprintf(resbuf, "%s    %2ld:%02ld",
+		(void) sprintf(resbuf, "%s    %2d:%02d",
 		    updown, hours, minutes);
 	return (resbuf);
 }

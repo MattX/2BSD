@@ -1,4 +1,13 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)cmd1.c	5.3 (Berkeley) 9/15/85";
+#endif not lint
+
 #include "rcv.h"
 #include <sys/stat.h>
 
@@ -7,8 +16,6 @@
  *
  * User commands.
  */
-
-static char *SccsId = "@(#)cmd1.c	2.11 6/12/83";
 
 /*
  * Print the current active headings.
@@ -136,6 +143,9 @@ screensize()
 {
 	register char *cp;
 	register int s;
+#ifdef	TIOCGWINSZ
+	struct winsize ws;
+#endif
 
 	if ((cp = value("screen")) != NOSTR) {
 		s = atoi(cp);
@@ -146,6 +156,10 @@ screensize()
 		s = 5;
 	else if (baud == B1200)
 		s = 10;
+#ifdef	TIOCGWINSZ
+	else if (ioctl(fileno(stdout), TIOCGWINSZ, &ws) == 0 && ws.ws_row != 0)
+		s = ws.ws_row - 4;
+#endif
 	else
 		s = 20;
 	return(s);
@@ -179,7 +193,7 @@ printhead(mesg)
 {
 	struct message *mp;
 	FILE *ibuf;
-	char headline[LINESIZE], wcount[10], *subjline, dispc, curind;
+	char headline[LINESIZE], wcount[LINESIZE], *subjline, dispc, curind;
 	char pbuf[BUFSIZ];
 	int s;
 	struct headline hl;
@@ -261,13 +275,32 @@ pcmdlist()
 }
 
 /*
+ * Paginate messages, honor ignored fields.
+ */
+more(msgvec)
+	int *msgvec;
+{
+	return (type1(msgvec, 1, 1));
+}
+
+/*
+ * Paginate messages, even printing ignored fields.
+ */
+More(msgvec)
+	int *msgvec;
+{
+
+	return (type1(msgvec, 0, 1));
+}
+
+/*
  * Type out messages, honor ignored fields.
  */
 type(msgvec)
 	int *msgvec;
 {
 
-	return(type1(msgvec, 1));
+	return(type1(msgvec, 1, 0));
 }
 
 /*
@@ -277,7 +310,7 @@ Type(msgvec)
 	int *msgvec;
 {
 
-	return(type1(msgvec, 0));
+	return(type1(msgvec, 0, 0));
 }
 
 /*
@@ -285,7 +318,7 @@ Type(msgvec)
  */
 jmp_buf	pipestop;
 
-type1(msgvec, doign)
+type1(msgvec, doign, page)
 	int *msgvec;
 {
 	register *ip;
@@ -305,13 +338,19 @@ type1(msgvec, doign)
 		sigset(SIGPIPE, SIG_DFL);
 		return(0);
 	}
-	if (intty && outtty && (cp = value("crt")) != NOSTR) {
-		for (ip = msgvec, nlines = 0; *ip && ip-msgvec < msgCount; ip++)
-			nlines += message[*ip - 1].m_lines;
-		if (nlines > atoi(cp)) {
-			obuf = popen(MORE, "w");
+	if (intty && outtty && (page || (cp = value("crt")) != NOSTR)) {
+		nlines = 0;
+		if (!page) {
+			for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++)
+				nlines += message[*ip - 1].m_lines;
+		}
+		if (page || nlines > atoi(cp)) {
+			cp = value("PAGER");
+			if (cp == NULL || *cp == '\0')
+				cp = MORE;
+			obuf = popen(cp, "w");
 			if (obuf == NULL) {
-				perror(MORE);
+				perror(cp);
 				obuf = stdout;
 			}
 			else {
@@ -342,9 +381,7 @@ type1(msgvec, doign)
 
 brokpipe()
 {
-# ifdef VMUNIX
-	sigrelse(SIGPIPE);
-# else
+# ifndef VMUNIX
 	signal(SIGPIPE, brokpipe);
 # endif
 	longjmp(pipestop, 1);
@@ -461,8 +498,7 @@ folders()
 	case 0:
 		sigchild();
 		execlp("ls", "ls", dirname, 0);
-		clrbuf(stdout);
-		exit(1);
+		_exit(1);
 
 	case -1:
 		perror("fork");

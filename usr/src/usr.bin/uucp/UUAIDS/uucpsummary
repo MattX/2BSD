@@ -1,15 +1,12 @@
+#!/bin/sh
 PATH=:/bin:/usr/bin:/usr/ucb
 export PATH
-rm -f /tmp/callsto /tmp/cmds /tmp/callsfrom
+rm -f /tmp/cmds /tmp/callsto /tmp/callsfrom /tmp/inuse /tmp/outuse
+touch /tmp/cmds /tmp/inuse /tmp/outuse
 cd /usr/spool/uucp
 if [ $# -gt 0 ]
 then
-	if [ -f LOGFILE ]
-	then
-		what="Logfile-DAY Syslog-DAY"
-	else
-		what="LOG/uucico/.* LOG/uux*/.* LOG/xferstats/.*"
-	fi
+	what="$1/uucico/* $1/uux*/* $1/xferstats/*"
 else
 	if [ -f LOGFILE ]
 	then
@@ -21,14 +18,18 @@ fi
 sed -e "s/PATH=.*PATH;//
 /REQUEST/d"  $what |
 /bin/awk '
+BEGIN { fmon = fday = ftime = 99
+	lmon = lday = ltime = 0 }
 $4 ~ /SUCCEEDED|OK/ {
 	t = substr($3,index($3,"-")+1,5)
 	split(t,time,":")
-	if($5 !~ /conversation/)
+	if($5 !~ /conversation/) {
 		startup[$2] = time[1]*60+time[2]
+		date[$2] = substr($3, 2, index($3,"-")-2)
+	}
 } 
 $4 ~ /FAILED|CAUGHT|OK|TIMEOUT/ {
-	if(startup[$2] == 0 || ($4 ~ /OK/ && $5 ~ /startup/))
+	if(startup[$2] == 0 || $5 ~ /startup/)
 		continue
 	t = substr($3,index($3,"-")+1,5)
 	split(t,time,":")
@@ -40,20 +41,21 @@ $4 ~ /FAILED|CAUGHT|OK|TIMEOUT/ {
 	if(callto[$2] ){
 		totcallto[$2] += elapsed
 		numcallto[$2]++
-		printf("%s\t%02d:%02d - %02d:%02d\n",$2,startup[$2]/60,startup[$2]%60,time[1],time[2])>>"/tmp/callsto"
+		printf("%s\t%s\t%02d:%02d - %02d:%02d\n",$2,date[$2],startup[$2]/60,startup[$2]%60,time[1],time[2])>>"/tmp/callsto"
 	}else{
 		totcallby[$2] += elapsed
 		numcallby[$2]++
-		printf("%s\t%02d:%02d - %02d:%02d\n",$2,startup[$2]/60,startup[$2]%60,time[1],time[2])>>"/tmp/callsfrom"
+		printf("%s\t%s\t%02d:%02d - %02d:%02d\n",$2,date[$2],startup[$2]/60,startup[$2]%60,time[1],time[2])>>"/tmp/callsfrom"
 	}
 	callto[$2] = 0
 	startup[$2] = 0
 }
-$4 ~ /SUCCEEDED/{ if ($5 ~ /call/)
+$4 ~ /SUCCEEDED/{
+	if ($5 ~ /call/)
 		callto[$2]++
 }
 $4 ~ /FAILED|CAUGHT/{
-	if ($5 ~ /call|conversation|SIGNAL/)
+	if ($5 ~ /call|conversation|SIGNAL/ )
 		failed[$2]++
 }
 $5 ~ /sent/{
@@ -61,21 +63,31 @@ $5 ~ /sent/{
 	sentfiles[$2] ++
 	seconds[$2] += $9
 	retries[$2] += $11
+	havout = 1
+	outuse[$1] = $1
+	outusebytes[$1] += $7
+	outusefiles[$1] ++
+	outusesecs[$1] += $9
 }
 $5 ~ /received/{
 	recbytes[$2] += $7
 	recfiles[$2] ++
 	seconds[$2] += $9
 	retries[$2] += $11
+	havin = 1
+	inuse[$2 "!" $1] = $2 "!" $1
+	inusebytes[$2 "!" $1] += $7
+	inusefiles[$2 "!" $1] ++
+	inusesecs[$2 "!" $1] += $9
 }
 $5 ~/XQT/{
 	if( $7 ~ /!|@/ && $6 ~ /rmail/)
-		printf("%s\t%s!%s\t%s\n",substr($3,index($3,"-")+1,5),$2,$4,$7)>>"/tmp/cmds"
+		printf("%s\t%s\t%-8s\t%s\n",substr($3,2,index($3,"-")-2),substr($3,index($3,"-")+1,5),$2 "!" $4,$7)>>"/tmp/cmds"
 }
 $4 ~/XQT/{
-	if ($1 ~ /uucp|daemon|root|news/ || $6 !~ /rmail/) 
+	if ($1 ~ /uucp|daemon|root|news/ || $7 != "rmail")
 		continue
-	printf("%s\t%s\t%s!%s\n",substr($3,index($3,"-")+1,5),$1,$2,$7)>>"/tmp/cmds"
+	printf("%s\t%s\t%-8s\t%s!%s\n",substr($3,2,index($3,"-")-2),substr($3,index($3,"-")+1,5),$1,$2,$7)>>"/tmp/cmds"
 }
 $10 ~/secs/ {
 	curtime = substr($4, 5, 6)
@@ -87,20 +99,33 @@ $10 ~/secs/ {
 }
 {
 	n = index ($3, "/")
-	if (n > 0 )
-		lmon = substr($3, 2, n-2)
+	thismon = 0
+	if (n > 0 ) {
+		thismon = int(substr($3, 2, n-2))
+		if (lmon < thismon)
+			lmon = thismon
+		if (thismon < fmon)
+			fmon = thismon
+	}
 	m = index ($3, "-")
 	n++
-	if( (m-n) > 0 )
-		lday = substr($3, n, m-n)
-	ltime = substr($3,m+1,5)
-
-
-	if (fmon == "") {
-		fmon = lmon
-		fday = lday
-		ftime = ltime
+	thisday = 0
+	if( (m-n) > 0 ) {
+		thisday = int(substr($3, n, m-n))
+		if ((lday < thisday) && (lmon == thismon) || ldaymon != lmon) {
+			lday = thisday
+			ldaymon = thismon
+		}
+		if ((thisday < fday) && (fmon == thismon) || fdaymon != fmon) {
+			fday = thisday
+			fdaymon = thismon
+		}
 	}
+	thistime = substr($3,m+1,5)
+	if ((ltime < thistime) && (lmon == thismon) && (lday == thisday))
+		ltime = thistime
+	if ((thistime < ftime) && (fmon == thismon) && (fday == thisday))
+		ftime = thistime
 }
 END{
 	printf("\n\t\t\t\tUUCP Traffic Summary\n\n")
@@ -129,54 +154,35 @@ END{
 		(recbytes[i]+sentbytes[i])*8/seconds[i],\
 		percent)
 	}
+	printf("\n\n\n\t\t\t\tOriginating Users\n\n")
+	printf("User\t\t       Minutes     Files       Bytes\n\n")
+	if (havout == 1) {
+		for (i in outuse) {
+			printf("%-21s %5d    %7d      %8d\n", i,\
+				(outusesecs[i]+30)/60,\
+				outusefiles[i], outusebytes[i]) >> "/tmp/outuse"
+		}
+	}
+	if (havin == 1) {
+		for (i in inuse) {
+			printf("%-21s %5d    %7d      %8d\n", i,\
+				(inusesecs[i]+30)/60,\
+				inusefiles[i], inusebytes[i]) >> "/tmp/inuse"
+		}
+	}
 }'
 
+sort /tmp/outuse
+echo " "
+sort /tmp/inuse
 echo " "
 echo " "
 echo " "
 echo "		Long Distance Calls"
 echo
-echo "To	Start - End		    From    Start - End"
+echo "To	Day	Start - End	    From    Day     Start - End"
 cat >/tmp/$$local<<!!!
-/^rlgvax/d
-/^columbi/d
-/^nbs-amr/d
-/^kobold/d
-/^sdccis/d
-/^hugo/d
-/^umcp-cs/d
-/^elsie/d
-/^gl-red/d
-/^ut-sall/d
-/^nta-vax/d
-/^rochest/d
-/^cmcl2/d
-/^lbl-csa/d
-/^trwatf/d
-/^lognet2/d
-/^prometh/d
-/^andi/d
-/^tardis/d
-/^prcrs/d
-/^uwvax/d
-/^vrdxhq/d
-/^decuac/d
-/^sri-iu/d
-/^utah-cs/d
-/^hadron/d
-/^harvard/d
-/^netword/d
-/^s3sun/d
-/^brl-tgr/d
-/^mordor/d
-/^wuhep/d
-/^janus/d
-/^topaz/d
-/^carto/d
-/^cvl/d
-/^dolqci/d
-/^think/d
-/^tower/d
+/^ut/d
 !!!
 sed -f /tmp/$$local /tmp/callsto | /bin/awk '
 {
@@ -186,7 +192,13 @@ sed -f /tmp/$$local /tmp/callsto | /bin/awk '
 		last = $1
 		pr = $1
 	}
-	printf("%-14s\t%s - %s\n",pr,$2,$4)
+	if (pr == "" && date == $2)
+		pd = ""
+	else {
+		date = $2
+		pd = $2
+	}
+	printf("%s\t%s\t%s - %s\n",pr,pd,$3,$5)
 }'>/tmp/$$a
 sed -f /tmp/$$local /tmp/callsfrom | /bin/awk '
 {
@@ -196,7 +208,13 @@ sed -f /tmp/$$local /tmp/callsfrom | /bin/awk '
 		last = $1
 		pr = $1
 	}
-	printf("%-14s\t%s - %s\n",pr,$2,$4)
+	if (pr == "" && date == $2)
+		pd = ""
+	else {
+		date = $2
+		pd = $2
+	}
+	printf("%s\t%s\t%s - %s\n",pr,pd,$3,$5)
 }'>/tmp/$$b
 pr -t -m /tmp/$$a /tmp/$$b | uniq
 rm -f /tmp/$$[ab]
@@ -216,7 +234,7 @@ then
 	echo " "
 	echo "		Outgoing Mail from Other Sites"
 	echo
-	echo "When	From	To"
+	echo "Day	Time	From		To"
 	cat /tmp/$$c
 fi
-#rm -f /tmp/cmds /tmp/$$* /tmp/callsto /tmp/callsfrom
+rm -f /tmp/cmds /tmp/$$* /tmp/callsto /tmp/callsfrom /tmp/inuse /tmp/outuse

@@ -1,14 +1,12 @@
-.TH FSEEK 3S 
-.UC
+.\"	@(#)fseek.3s	6.3 (Berkeley) 2/24/86
+.\"
+.TH FSEEK 3S  "February 24, 1986"
+.AT 3
 .SH NAME
 fseek, ftell, rewind \- reposition a stream
 .SH SYNOPSIS
 .B #include <stdio.h>
-.br
-.B #include <sys/types.h>
-.br
-.B #include <sys/file.h>
-.sp
+.PP
 .B fseek(stream, offset, ptrname)
 .br
 .SM
@@ -35,7 +33,7 @@ bytes
 from the beginning, the current position, or the end of the file,
 according as 
 .I ptrname
-has the value FSEEK_ABSOLUTE, FSEEK_RELATIVE, or FSEEK_EOF.
+has the value 0, 1, or 2.
 .PP
 .I Fseek
 undoes any effects of
@@ -52,11 +50,13 @@ and the only foolproof way to obtain an
 for
 .IR fseek .
 .PP
-.I Rewind(stream)
+.IR Rewind ( stream )
 is equivalent to
-.I "fseek(stream, 0L, FSEEK_ABSOLUTE)."
+.IR fseek ( stream ,
+0L, 0).
 .SH "SEE ALSO"
-lseek(2), fopen(3S)
+lseek(2),
+fopen(3S)
 .SH DIAGNOSTICS
 .I Fseek
-returns \-1 for improper seeks.
+returns \-1 for improper seeks, otherwise zero.

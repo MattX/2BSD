@@ -1,21 +1,15 @@
+#	Makefile	4.1	85/04/05
 #
-# makefile for sed
-#
+CFLAGS=-O -w
+SEPFLAG=-i
 
-CFLAGS=	-O
-OBJ=	sed0.o sed1.o
-ALL=	sed
+sed:	sed0.o sed1.o
+	cc ${SEPFLAG} -o sed *.o
 
-all: ${ALL}
+sed0.o: sed0.c sed.h
+sed1.o: sed1.c sed.h
 
-sed: ${OBJ}
-	${CC} ${LFLAG} -o sed ${OBJ}
-
+install: sed
+	install -s sed $(DESTDIR)/bin
 clean:
-	rm -f sed ${OBJ} ${ALL}
-
-install:
-	install -o bin -g bin -m 711 sed ${DESTDIR}/bin
-
-sed0.o:	sed0.c sed.h
-sed1.o:	sed1.c sed.h
+	rm -f *.o sed

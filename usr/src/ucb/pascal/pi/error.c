@@ -129,7 +129,7 @@ yysetfile(name)
 
 	if (lastname == name)
 		return;
-	printed =| 1;
+	printed |= 1;
 	printf("%s:\n", name);
 	lastname = name;
 }

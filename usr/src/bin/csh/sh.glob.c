@@ -1,5 +1,15 @@
-static	char *sccsid = "@(#)sh.glob.c 4.2 3/11/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.glob.c	5.4 (Berkeley) 5/13/86";
+#endif
+
 #include "sh.h"
+#include <sys/dir.h>
 
 /*
  * C Shell
@@ -7,14 +17,17 @@ static	char *sccsid = "@(#)sh.glob.c 4.2 3/11/81";
 
 int	globcnt;
 
-char	*globchars =	"`{[*?";
-
 char	*gpath, *gpathp, *lastgpathp;
 int	globbed;
 bool	noglob;
 bool	nonomatch;
 char	*entp;
 char	**sortbas;
+int	sortscmp();
+
+#define sort()	qsort((char *)sortbas, &gargv[gargc] - sortbas, \
+		      sizeof(*sortbas), sortscmp), sortbas = &gargv[gargc]
+
 
 char **
 glob(v)
@@ -61,14 +74,15 @@ collect(as)
 #ifdef GDEBUG
 		printf("doing backp of %s\n", as);
 #endif
-		dobackp(as, 0);
+		(void) dobackp(as, 0);
 #ifdef GDEBUG
 		printf("backp done, acollect'ing\n");
 #endif
 		for (i = 0; i < pargc; i++)
-			if (noglob)
+			if (noglob) {
 				Gcat(pargv[i], "");
-			else
+				sortbas = &gargv[gargc];
+			} else
 				acollect(pargv[i]);
 		if (pargv)
 			blkfree(pargv), pargv = 0;
@@ -98,20 +112,14 @@ acollect(as)
 		sort();
 }
 
-sort()
+/*
+ * String compare for qsort.  Also used by filec code in sh.file.c.
+ */
+sortscmp(a1, a2)
+	char **a1, **a2;
 {
-	register char **p1, **p2, *c;
-	char **Gvp = &gargv[gargc];
 
-	p1 = sortbas;
-	while (p1 < Gvp-1) {
-		p2 = p1;
-		while (++p2 < Gvp)
-			if (strcmp(*p1, *p2) > 0)
-				c = *p1, *p1 = *p2, *p2 = c;
-		p1++;
-	}
-	sortbas = Gvp;
+	 return (strcmp(*a1, *a2));
 }
 
 expand(as)
@@ -132,13 +140,13 @@ expand(as)
 				*gpathp = 0;
 				if (gethdir(gpath + 1))
 					error("Unknown user: %s", gpath + 1);
-				strcpy(gpath, gpath + 1);
+				(void) strcpy(gpath, gpath + 1);
 			} else
-				strcpy(gpath, value("home"));
+				(void) strcpy(gpath, value("home"));
 			gpathp = strend(gpath);
 		}
 	}
-	while (!any(*cs, globchars)) {
+	while (!isglob(*cs)) {
 		if (*cs == 0) {
 			if (!globbed)
 				Gcat(gpath, "");
@@ -157,7 +165,7 @@ expand(as)
 		cs++, gpathp++;
 	*gpathp = 0;
 	if (*oldcs == '{') {
-		execbrc(cs, NOSTR);
+		(void) execbrc(cs, NOSTR);
 		return;
 	}
 	matchdir(cs);
@@ -170,51 +178,36 @@ matchdir(pattern)
 	char *pattern;
 {
 	struct stat stb;
-	struct direct dirbuf[BUFSIZ / sizeof (struct direct)];
-	char d_name[MAXNAMLEN+1];
-	register int dirf, cnt;
+	register struct direct *dp;
+	register DIR *dirp;
 
-	dirf = open(gpath, 0);
-	if (dirf < 0) {
+	dirp = opendir(gpath);
+	if (dirp == NULL) {
 		if (globbed)
 			return;
-		goto patherr;
+		goto patherr2;
 	}
-	if (fstat(dirf, &stb) < 0)
-		goto patherr;
+	if (fstat(dirp->dd_fd, &stb) < 0)
+		goto patherr1;
 	if (!isdir(stb)) {
 		errno = ENOTDIR;
-		goto patherr;
+		goto patherr1;
 	}
-	while ((cnt = read(dirf, (char *) dirbuf, sizeof dirbuf)) >= sizeof dirbuf[0]) {
-		register struct direct *ep = dirbuf;
-
-		for (cnt /= sizeof (struct direct); cnt > 0; cnt--, ep++) {
-			if (ep->d_ino == 0)
-				continue;
-			copdent(d_name, ep->d_name);
-			if (match(d_name, pattern)) {
-				Gcat(gpath, d_name);
-				globcnt++;
-			}
+	while ((dp = readdir(dirp)) != NULL) {
+		if (dp->d_ino == 0)
+			continue;
+		if (match(dp->d_name, pattern)) {
+			Gcat(gpath, dp->d_name);
+			globcnt++;
 		}
 	}
-	close(dirf);
+	closedir(dirp);
 	return;
 
-patherr:
+patherr1:
+	closedir(dirp);
+patherr2:
 	Perror(gpath);
-}
-
-copdent(to, from)
-	register char *to, *from;
-{
-	register int cnt = MAXNAMLEN;
-
-	do
-		*to++ = *from++;
-	while (--cnt);
-	*to = 0;
 }
 
 execbrc(p, s)
@@ -271,8 +264,8 @@ pend:
 doit:
 		savec = *pm;
 		*pm = 0;
-		strcpy(lm, pl);
-		strcat(restbuf, pe + 1);
+		(void) strcpy(lm, pl);
+		(void) strcat(restbuf, pe + 1);
 		*pm = savec;
 		if (s == 0) {
 			sgpathp = gpathp;
@@ -365,7 +358,7 @@ amatch(s, p)
 			return (scc == 0);
 
 		default:
-			if (c != scc)
+			if ((c & TRIM) != scc)
 				return (0);
 			continue;
 
@@ -453,14 +446,24 @@ Gmatch(s, p)
 }
 
 Gcat(s1, s2)
-	register char *s1, *s2;
+	char *s1, *s2;
 {
+	register char *p, *q;
+	int n;
 
-	gnleft -= strlen(s1) + strlen(s2) + 1;
+	for (p = s1; *p++;)
+		;
+	for (q = s2; *q++;)
+		;
+	gnleft -= (n = (p - s1) + (q - s2) - 1);
 	if (gnleft <= 0 || ++gargc >= GAVSIZ)
 		error("Arguments too long");
 	gargv[gargc] = 0;
-	gargv[gargc - 1] = strspl(s1, s2);
+	p = gargv[gargc - 1] = xalloc((unsigned)n);
+	for (q = s1; *p++ = *q++;)
+		;
+	for (p--, q = s2; *p++ = *q++;)
+		;
 }
 
 addpath(c)
@@ -469,7 +472,7 @@ addpath(c)
 
 	if (gpathp >= lastgpathp)
 		error("Pathname too long");
-	*gpathp++ = c;
+	*gpathp++ = c & TRIM;
 	*gpathp = 0;
 }
 
@@ -477,52 +480,37 @@ rscan(t, f)
 	register char **t;
 	int (*f)();
 {
+	register char *p;
+
+	while (p = *t++)
+		while (*p)
+			(*f)(*p++);
+}
+
+trim(t)
+	register char **t;
+{
+	register char *p;
+
+	while (p = *t++)
+		while (*p)
+			*p++ &= TRIM;
+}
+
+tglob(t)
+	register char **t;
+{
 	register char *p, c;
 
 	while (p = *t++) {
-		if (f == tglob)
-			if (*p == '~')
-				gflag |= 2;
-			else if (eq(p, "{") || eq(p, "{}"))
-				continue;
+		if (*p == '~')
+			gflag |= 2;
+		else if (*p == '{' && (p[1] == '\0' || p[1] == '}' && p[2] == '\0'))
+			continue;
 		while (c = *p++)
-			(*f)(c);
+			if (isglob(c))
+				gflag |= c == '{' ? 2 : 1;
 	}
-}
-
-scan(t, f)
-	register char **t;
-	int (*f)();
-{
-	register char *p, c;
-
-	while (p = *t++)
-		while (c = *p)
-			*p++ = (*f)(c);
-}
-
-tglob(c)
-	register char c;
-{
-
-	if (any(c, globchars))
-		gflag |= c == '{' ? 2 : 1;
-	return (c);
-}
-
-trim(c)
-	char c;
-{
-
-	return (c & TRIM);
-}
-
-tback(c)
-	char c;
-{
-
-	if (c == '`')
-		gflag = 1;
 }
 
 char *
@@ -536,7 +524,7 @@ globone(str)
 	gv[0] = str;
 	gv[1] = 0;
 	gflag = 0;
-	rscan(gv, tglob);
+	tglob(gv);
 	if (gflag) {
 		gvp = glob(gv);
 		if (gvp == 0) {
@@ -559,7 +547,7 @@ globone(str)
 */
 		xfree((char *)gargv); gargv = 0;
 	} else {
-		scan(gv, trim);
+		trim(gv);
 		cp = savestr(gv[0]);
 	}
 	return (cp);
@@ -661,14 +649,14 @@ backeval(cp, literal)
 		struct wordent paraml;
 		struct command *t;
 
-		close(pvec[0]);
-		dmove(pvec[1], 1);
-		dmove(SHDIAG, 2);
+		(void) close(pvec[0]);
+		(void) dmove(pvec[1], 1);
+		(void) dmove(SHDIAG, 2);
 		initdesc();
 		arginp = cp;
 		while (*cp)
 			*cp++ &= TRIM;
-		lex(&paraml);
+		(void) lex(&paraml);
 		if (err)
 			error(err);
 		alias(&paraml);
@@ -677,11 +665,14 @@ backeval(cp, literal)
 			error(err);
 		if (t)
 			t->t_dflg |= FPAR;
+		(void) signal(SIGTSTP, SIG_IGN);
+		(void) signal(SIGTTIN, SIG_IGN);
+		(void) signal(SIGTTOU, SIG_IGN);
 		execute(t, -1);
 		exitstat();
 	}
 	xfree(cp);
-	close(pvec[1]);
+	(void) close(pvec[1]);
 	do {
 		int cnt = 0;
 		for (;;) {
@@ -729,7 +720,7 @@ backeval(cp, literal)
 	printf("done in backeval, pvec: %d %d\n", pvec[0], pvec[1]);
 	printf("also c = %c <%o>\n", c, c);
 #endif
-	close(pvec[0]);
+	(void) close(pvec[0]);
 	pwait();
 	prestjob();
 }

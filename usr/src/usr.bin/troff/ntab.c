@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)ntab.c	4.1 6/7/82";
+#endif lint
+
 #define BYTE 8
 #define PAIR(A,B) (A|(B<<BYTE))
 /*

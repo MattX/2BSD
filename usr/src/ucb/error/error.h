@@ -1,6 +1,11 @@
 /*
- *  @(#)error.h	1.2 (Berkeley) 1/22/82
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)error.h	5.1 (Berkeley) 5/31/85
  */
+
 typedef	int	boolean;
 #define	reg	register
 
@@ -31,6 +36,8 @@ typedef	int	boolean;
 #define	INAPL	15
 #define	INMAKE	16
 #define	INRI	17
+#define	INTROFF	18
+#define	INMOD2	19
 
 extern	int	language;
 /*
@@ -123,6 +130,10 @@ extern struct lang_desc lang_table[];
 #define	ASINCOMMENT	"####"
 #define	RIINCOMMENT	CINCOMMENT
 #define	RIOUTCOMMENT	COUTCOMMENT
+#define	TROFFINCOMMENT	".\\\"###"
+#define	TROFFOUTCOMMENT	NEWLINE
+#define	MOD2INCOMMENT	"(*###"
+#define	MOD2OUTCOMMENT	"%%%*)\n"
 /*
  *	Defines and resources for determing if a given line
  *	is to be discarded because it refers to a file not to

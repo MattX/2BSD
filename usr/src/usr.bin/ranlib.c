@@ -1,6 +1,6 @@
-#include	<ar.h>
-#include	<a.out.h>
-#include	<stdio.h>
+#include <ar.h>
+#include <a.out.h>
+#include <stdio.h>
 #define	MAGIC	exp.a_magic
 #define	BADMAG	MAGIC!=A_MAGIC1 && MAGIC!=A_MAGIC2  \
 		&& MAGIC!=A_MAGIC3 && MAGIC!=A_MAGIC4
@@ -68,6 +68,8 @@ char **argv;
 				switch (sym.n_type&N_TYPE) {
 
 				case N_UNDF:
+					if (sym.n_value!=0)
+						stash(&sym);
 					continue;
 
 				default:

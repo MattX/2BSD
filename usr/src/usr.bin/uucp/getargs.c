@@ -1,5 +1,6 @@
-/* $Header: getargs.c,v 1.4 85/05/20 20:01:32 rick Exp $ */
-/* from: @(#)getargs.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)getargs.c	5.3 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 

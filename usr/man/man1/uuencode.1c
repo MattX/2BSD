@@ -1,7 +1,13 @@
-.TH UUENCODE 1C
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)uuencode.1c	6.2 (Berkeley) 4/24/86
+.\"
+.TH UUENCODE 1C "April 24, 1986"
+.UC 4
 .SH NAME
-uuencode, uudecode \- encode/decode a binary file for tranmission via mail
+uuencode, uudecode \- encode/decode a binary file for transmission via mail
 .SH SYNOPSIS
 .B uuencode
 [ source ] remotedest |
@@ -34,28 +40,29 @@ strips off any leading and trailing lines added by mailers,
 and recreates the original file with the specified mode and name.
 .PP
 The intent is that all mail to the user ``decode'' should be filtered
-through the uudecode program.  This way the file is created automatically
+through the
+.I uudecode
+program.  This way the file is created automatically
 without human intervention.
 This is possible on the uucp network by either using
-.I delivermail
+.I sendmail
 or by making
 .I rmail
 be a link to
 .I Mail
 instead of
-.I mail.
+.IR mail .
 In each case, an alias must be created in a master file to get
-the automatic invocation of uudecode.
+the automatic invocation of
+.IR uudecode .
 .PP
 If these facilities are not available, the file can be sent to a
 user on the remote machine who can uudecode it manually.
 .PP
 The encode file has an ordinary text form and can be edited
 by any text editor to change the mode or remote name.
-.SH SEE\ ALSO
-mail(1), uucp(1C), uusend(1C), uux(1C), uuencode(5)
-.SH AUTHOR
-Mark Horton
+.SH SEE ALSO
+atob(n), uusend(1C), uucp(1C), uux(1C), mail(1), uuencode(5)
 .SH BUGS
 The file is expanded by 35% (3 bytes become 4 plus control information)
 causing it to take longer to transmit.
@@ -63,5 +70,5 @@ causing it to take longer to transmit.
 The user on the remote system who is invoking
 .I uudecode
 (often
-.I uucp)
+.IR uucp )
 must have write permission on the specified file.

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)fgrep.c	4.3 (Berkeley) 5/30/85";
 /*
  * fgrep -- print all lines containing any of a set of keywords
  *
@@ -8,7 +9,15 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
+#include <sys/param.h>
+#include <sys/stat.h>
 
+#ifdef BSD2_10
+#define BLKSIZE 1024
+#else
+#define BLKSIZE 8192
+#endif
 #define	MAXSIZ 6000
 #define QSIZE 400
 struct words {
@@ -20,16 +29,16 @@ struct words {
 } w[MAXSIZ], *smax, *q;
 
 long	lnum;
-int	bflag, cflag, fflag, lflag, nflag, vflag, xflag;
+int	bflag, cflag, fflag, lflag, nflag, vflag, xflag, yflag;
 int	hflag	= 1;
 int	sflag;
+int	retcode = 0;
 int	nfile;
 long	blkno;
 int	nsucc;
 long	tln;
 FILE	*wordf;
 char	*argptr;
-int	cantopen;
 
 main(argc, argv)
 char **argv;
@@ -78,6 +87,10 @@ char **argv;
 			xflag++;
 			continue;
 
+		case 'i':		/* Berkeley */
+		case 'y':		/* Btl */
+			yflag++;
+			continue;
 		default:
 			fprintf(stderr, "fgrep: unknown flag\n");
 			continue;
@@ -88,7 +101,7 @@ out:
 	if (fflag) {
 		wordf = fopen(*argv, "r");
 		if (wordf==NULL) {
-			perror(*argv);
+			fprintf(stderr, "fgrep: can't open %s\n", *argv);
 			exit(2);
 		}
 	}
@@ -107,29 +120,44 @@ out:
 		execute(*argv);
 		argv++;
 	}
-	if (cantopen)
-		exit(2);
-	else
-		exit(nsucc == 0);
+	exit(retcode != 0 ? retcode : nsucc == 0);
 }
 
+# define ccomp(a,b) (yflag ? lca(a)==lca(b) : a==b)
+# define lca(x) (isupper(x) ? tolower(x) : x)
 execute(file)
 char *file;
 {
-	register char *p;
 	register struct words *c;
 	register ccount;
-	char buf[1024];
+	register char ch;
+	register char *p;
+	static char *buf;
+	static int blksize;
+	struct stat stb;
 	int f;
 	int failed;
 	char *nlp;
 	if (file) {
 		if ((f = open(file, 0)) < 0) {
-			perror(file);
-			cantopen++;
+			fprintf(stderr, "fgrep: can't open %s\n", file);
+			retcode = 2;
+			return;
 		}
 	}
 	else f = 0;
+	if (buf == NULL) {
+		if (fstat(f, &stb) >= 0 && stb.st_blksize > 0)
+			blksize = stb.st_blksize;
+		else
+			blksize = BLKSIZE;
+		buf = (char *)malloc(2*blksize);
+		if (buf == NULL) {
+			fprintf(stderr, "egrep: no memory for %s\n", file);
+			retcode = 2;
+			return;
+		}
+	}
 	ccount = 0;
 	failed = 0;
 	lnum = 1;
@@ -140,15 +168,15 @@ char *file;
 	c = w;
 	for (;;) {
 		if (--ccount <= 0) {
-			if (p == &buf[1024]) p = buf;
-			if (p > &buf[512]) {
-				if ((ccount = read(f, p, &buf[1024] - p)) <= 0) break;
+			if (p == &buf[2*blksize]) p = buf;
+			if (p > &buf[blksize]) {
+				if ((ccount = read(f, p, &buf[2*blksize] - p)) <= 0) break;
 			}
-			else if ((ccount = read(f, p, 512)) <= 0) break;
+			else if ((ccount = read(f, p, blksize)) <= 0) break;
 			blkno += ccount;
 		}
 		nstate:
-			if (c->inp == *p) {
+			if (ccomp(c->inp, *p)) {
 				c = c->nst;
 			}
 			else if (c->link != 0) {
@@ -161,7 +189,7 @@ char *file;
 				if (c==0) {
 					c = w;
 					istate:
-					if (c->inp == *p) {
+					if (ccomp(c->inp ,  *p)) {
 						c = c->nst;
 					}
 					else if (c->link != 0) {
@@ -174,11 +202,11 @@ char *file;
 		if (c->out) {
 			while (*p++ != '\n') {
 				if (--ccount <= 0) {
-					if (p == &buf[1024]) p = buf;
-					if (p > &buf[512]) {
-						if ((ccount = read(f, p, &buf[1024] - p)) <= 0) break;
+					if (p == &buf[2*blksize]) p = buf;
+					if (p > &buf[blksize]) {
+						if ((ccount = read(f, p, &buf[2*blksize] - p)) <= 0) break;
 					}
-					else if ((ccount = read(f, p, 512)) <= 0) break;
+					else if ((ccount = read(f, p, blksize)) <= 0) break;
 					blkno += ccount;
 				}
 			}
@@ -195,11 +223,10 @@ char *file;
 			}
 			else {
 				if (nfile > 1 && hflag) printf("%s:", file);
-				if (bflag) printf("%ld:", (blkno-ccount-1)/512);
-				if (nflag) printf("%5ld:", lnum);
-/*! added 5 before ld for sorting purposes, etc. PLWard, USGS 7/18/80 */
+				if (bflag) printf("%ld:", (blkno-ccount-1)/DEV_BSIZE);
+				if (nflag) printf("%ld:", lnum);
 				if (p <= nlp) {
-					while (nlp < &buf[1024]) putchar(*nlp++);
+					while (nlp < &buf[2*blksize]) putchar(*nlp++);
 					nlp = buf;
 				}
 				while (nlp < p) putchar(*nlp++);
@@ -308,6 +335,7 @@ cfail() {
 	struct words *queue[QSIZE];
 	struct words **front, **rear;
 	struct words *state;
+	int bstart;
 	register char c;
 	register struct words *s;
 	s = w;
@@ -326,6 +354,7 @@ init:	if ((s->inp) != 0) {
 			front = queue;
 		else front++;
 	cloop:	if ((c = s->inp) != 0) {
+			bstart = 0;
 			*rear = (q = s->nst);
 			if (front < rear)
 				if (rear >= &queue[QSIZE-1])
@@ -335,14 +364,21 @@ init:	if ((s->inp) != 0) {
 			else
 				if (++rear == front) overflo();
 			state = s->fail;
-		floop:	if (state == 0) state = w;
+		floop:	if (state == 0) {
+				state = w;
+				bstart = 1;
+			}
 			if (state->inp == c) {
-				q->fail = state->nst;
+			qloop:	q->fail = state->nst;
 				if ((state->nst)->out == 1) q->out = 1;
-				continue;
+				if ((q = q->link) != 0) goto qloop;
 			}
 			else if ((state = state->link) != 0)
 				goto floop;
+			else if(bstart == 0){
+				state = 0;
+				goto floop;
+			}
 		}
 		if ((s = s->link) != 0)
 			goto cloop;

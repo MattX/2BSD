@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)clear.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 /* load me with -ltermlib */
 /* #include <retrofit.h> on version 6 */
 /*
@@ -38,5 +54,5 @@ main()
 	clear = tgetstr("cl", &clbp);
 	if (clear)
 		tputs(clear, tgetnum("li"), putchar);
-	exit (clear != (char *) 0);
+	exit (clear == (char *) 0);
 }

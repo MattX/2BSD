@@ -1,23 +1,18 @@
 #
-# dc makefile
+#	@(#)Makefile	1.4	(Berkeley)	83/06/30
 #
-
+DESTDIR=
+SRCS=	dc.c dc.h
 CFLAGS=	-O
-ALL=	dc
-OBJS=	dc.o
+SEPFLAG= -i
 
-all: ${ALL}
+all: dc
 
-dc: ${OBJS}
-	${CC} ${LFLAG} -O ${OBJS} -o $@
+dc:	dc.c dc.h
+	${CC} ${CFLAGS} ${SEPFLAG} dc.c -o dc
 
-install: ${ALL}
-	install -s -o bin -g bin -m 711 dc ${DESTDIR}/usr/bin
+install: dc
+	install -s dc ${DESTDIR}/usr/bin/dc
 
 clean:
-	rm -f ${OBJS} ${ALL}
-
-.c.o:
-	${CC} ${CFLAGS} -c $*.c
-
-dc.o:	dc.h dc.c
+	rm -f *.o dc a.out errs core

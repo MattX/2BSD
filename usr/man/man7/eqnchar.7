@@ -1,5 +1,11 @@
-.TH EQNCHAR 7 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)eqnchar.7	6.1 (Berkeley) 5/20/85
+.\"
+.TH EQNCHAR 7 "May 20, 1985"
+.UC 3
 .EQ
 tdefine ciplus % "\o'\(pl\(ci'" %
 ndefine ciplus % O+ %
@@ -25,7 +31,7 @@ tdefine incl % "\s-1\z\(or\h'-.1m'\v'-.45m'\z\(em\v'.7m'\z\(em\v'.2m'\(em\v'-.45
 ndefine incl % C_ %
 tdefine nomem % "\o'\(mo\(sl'" %
 ndefine nomem % C-/ %
-tdefine angstrom % "\fP\zA\v'-.3m'\h'.2m'\(de\v'.3m'\fP\h'.2m'" %
+tdefine angstrom % "\fR\zA\v'-.3m'\h'.2m'\(de\v'.3m'\fP\h'.2m'" %
 ndefine angstrom % A to o %
 tdefine star %{ roman "\v'.5m'\s+3*\s-3\v'-.5m'"}%
 ndefine star % * %
@@ -93,12 +99,12 @@ define !supset % \(ip %
 .SH NAME
 eqnchar \- special character definitions for eqn
 .SH SYNOPSIS
-.B eqn /usr/public/eqnchar
+.B eqn /usr/pub/eqnchar
 [ files ]
 .B \(bv troff
 [ options ]
 .PP
-.B neqn /usr/public/eqnchar
+.B neqn /usr/pub/eqnchar
 [ files ]
 .B \(bv nroff
 [ options ]
@@ -114,8 +120,7 @@ These definitions are primarily intended for use with
 .I eqn
 and
 .IR neqn .
-It contains
-definitions for the following characters
+It contains definitions for the following characters
 .PP
 .nf
 .ta \w'angstrom  'u \n(.lu/3u +\w'angstrom  'u \n(.lu*2u/3u +\w'angstrom  'u
@@ -141,7 +146,7 @@ definitions for the following characters
 "=wig"	=wig	"<=>"	<=>	"member"	member
 .EN
 .EQ
-"star"	star	"|\|"	|<	"nomem"	nomem
+"star"	star	"|\|<"	|<	"nomem"	nomem
 .EN
 .EQ
 "bigstar"	bigstar	"|\|>"	|>	"cup"	cup
@@ -168,11 +173,6 @@ definitions for the following characters
 "angstrom"	angstrom	"degree"	degree
 .EN
 .SH FILES
-/usr/public/eqnchar
+/usr/pub/eqnchar
 .SH SEE ALSO
-.ta 2i
-eqn(1), troff(1)
-.br
-/usr/public/eqnSyms	additional
-.I eqn
-symbols.
+troff(1), eqn(1)

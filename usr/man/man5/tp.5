@@ -1,10 +1,11 @@
-.TH TP 5 
+.\"	@(#)tp.5	6.1 (Berkeley) 5/15/85
+.\"
+.TH TP 5  "May 15, 1985"
+.AT 3
 .SH NAME
 tp \- DEC/mag tape formats
 .SH DESCRIPTION
-The
-command
-.I tp
+.I Tp
 dumps files to and extracts files from
 DECtape and magtape.
 The formats of these tapes are the same except
@@ -12,6 +13,8 @@ that magtapes have larger directories.
 .PP
 Block zero contains a
 copy of a stand-alone bootstrap program.
+See
+.IR reboot (8).
 .PP
 Blocks 1 through 24
 for DECtape (1 through 62 for magtape)
@@ -22,19 +25,21 @@ There are 192 (resp. 496) entries in the directory;
 Each entry has the following format:
 .nf
 .IP ""
+.ta 8n +\w'unsigned short  'u
 struct {
 	char	pathname[32];
-	int	mode;
+	unsigned short	mode;
 	char	uid;
 	char	gid;
 	char	unused1;
 	char	size[3];
 	long	modtime;
-	int	tapeaddr;
+	unsigned short	tapeaddr;
 	char	unused2[16];
-	int	checksum;
+	unsigned short	checksum;
 };
 .fi
+.DT
 .PP
 The path name entry is the path name of the
 file when put on the tape.
@@ -44,7 +49,7 @@ It is at most 32 bytes long and ends in a null byte.
 Mode, uid, gid, size and time modified
 are the same as described under i-nodes 
 (see file system
-.IR filsys (5)).
+.IR fs (5)).
 The tape address is the tape block number of the start of
 the contents of the file.
 Every file
@@ -59,7 +64,7 @@ Blocks above 25 (resp. 63) are available for file storage.
 A fake entry
 has a size of zero.
 .SH "SEE ALSO"
-tp(1), filsys(5)
+fs(5), tp(1)
 .SH BUGS
 The
 .I pathname, uid, gid,

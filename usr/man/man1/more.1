@@ -1,5 +1,11 @@
-.TH MORE 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)more.1	6.4 (Berkeley) 6/5/86
+.\"
+.TH MORE 1 "June 5, 1986"
+.UC 4
 .SH NAME
 more, page \- file perusal filter for crt viewing
 .SH SYNOPSIS
@@ -27,16 +33,16 @@ It normally pauses after each screenful, printing --More--
 at the bottom of the screen.
 If the user then types a carriage return, one more line is displayed.
 If the user hits a space,
-another screenful is displayed.  Other possibilites are enumerated later.
+another screenful is displayed.  Other possibilities are enumerated later.
 .PP
 The command line options are:
 .TP
-.I \-\^n
+.I \-n
 An integer which is the size (in lines) of the window which
 .I more
 will use instead of the default.
 .TP
-.B \-\^c
+.B \-c
 .I More
 will draw each page by beginning at the top of the screen and erasing 
 each line just before it draws on it.
@@ -46,17 +52,19 @@ is writing.
 This option will be ignored if the terminal does not have the ability
 to clear to the end of a line.
 .TP
-.B \-\^d
+.B \-d
 .I More
-will prompt the user with the message "Hit
-space to continue, Rubout to abort" at the end of each screenful.
+will prompt the user with the message "Press
+space to continue, \'q\' to quit." at the end of each screenful,
+and will respond to subsequent illegal user input by
+printing "Press \'h\' for instructions." instead of ringing the bell.
 This is useful if
 .I more
 is being used as a filter in some setting,
 such as a class,
 where many users may be unsophisticated.
 .TP
-.B \-\^f
+.B \-f
 This causes
 .I more
 to count logical, rather than screen lines.
@@ -67,30 +75,30 @@ output is being piped through
 .I ul,
 since the latter may generate escape sequences.
 These escape sequences contain characters which would ordinarily occupy
-screen postions, but which do not print when they are sent to the
+screen positions, but which do not print when they are sent to the
 terminal as part of an escape sequence.
 Thus
 .I more
 may think that lines are longer than they actually are, and fold
 lines erroneously.
 .TP
-.B \-\^l
+.B \-l
 Do
-not treat ^L (form feed) specially.
+not treat ^\&L (form feed) specially.
 If this option is not given,
 .I more
-will pause after any line that contains a ^L, as if the end of a
+will pause after any line that contains a ^\&L, as if the end of a
 screenful had been reached.
 Also, if a file begins with a form feed, the screen will be cleared
 before the file is printed.
 .TP
-.B \-\^s
+.B \-s
 Squeeze multiple blank lines from the output, producing only one blank
 line.  Especially helpful when viewing
 .I nroff
 output, this option maximizes the useful information present on the screen.
 .TP
-.B \-\^u
+.B \-u
 Normally,
 .I more
 will handle underlining such as produced by
@@ -195,6 +203,12 @@ skip \fIi\|\fP lines and print a screenful of lines
 .IP \fIi\|\fPf
 skip \fIi\fP screenfuls and print a screenful of lines
 .PP
+.IP \fIi\|\fPb
+skip back \fIi\fP screenfuls and print a screenful of lines
+.PP
+.IP \fIi\|\fP^B
+same as b
+.PP
 .IP "q or Q"
 Exit from
 .I more.
@@ -226,7 +240,7 @@ Erasing back past the first column cancels the search command.
 .IP \fIi\|\fPn
 search for the \fIi\|\fP-th occurrence of the last regular expression entered.
 .PP
-.IP '
+.IP \'
 (single quote) Go to the point from which the last search started.
 If no search has been performed in the current file, this command
 goes back to the beginning of the file.
@@ -304,12 +318,12 @@ in previewing
 output would be
 .PP
 	nroff \-ms +2 doc.n | more -s
-.SH AUTHOR
-Eric Shienbrood, minor revisions by John Foderaro and Geoffrey Peck
 .SH FILES
-.ta 2i
-/etc/termcap	Terminal data base
+.DT
+/etc/termcap		Terminal data base
 .br
 /usr/lib/more.help	Help file
 .SH "SEE ALSO"
-csh(1), man(1), msgs(1), script(1), sh(1), termcap(3X), environ(5), termcap(5)
+csh(1), man(1), msgs(1), script(1), sh(1), environ(7)
+.SH BUGS
+Skipping backwards is too slow on large files.

@@ -1,7 +1,13 @@
-.TH TSET 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)tset.1	6.2 (Berkeley) 5/5/86
+.\"
+.TH TSET 1 "May 5, 1986"
+.UC 4
 .SH NAME
-tset, reset \- set terminal modes
+tset \- terminal dependent initialization
 .SH SYNOPSIS
 .B tset
 [ options ] [
@@ -9,37 +15,40 @@ tset, reset \- set terminal modes
 [ident][test baudrate]:type ] \&... [ type ]
 .sp 1
 .B reset
-\&...
+[ options ] [
+.B \-m
+[ident][test baudrate]:type ] \&... [ type ]
 .SH DESCRIPTION
 .I Tset
 sets up your terminal when you first log in to a UNIX system.
 It does terminal dependent processing such as setting
 erase and kill characters, setting or resetting delays,
+sending any sequences needed to properly initialized the terminal,
 and the like.
 It first determines the
 .I type
 of terminal involved,
 and then does necessary initializations and mode settings.
 The type of terminal attached to each \s-2UNIX\s0 port is specified in the
-.I /etc/ttytype
+.IR /etc/ttys (5)
 database.
 Type names for terminals may be found in the
-.I /etc/termcap
+.IR termcap (5)
 database.
 If a port is not wired permanently to a specific terminal (not hardwired)
 it will be given an appropriate generic identifier such as
-.I dialup.
+.IR dialup .
 .PP
 In the case where no arguments are specified,
 .I tset
 simply reads the terminal type out of the environment variable TERM
-and reinitializes the terminal.  The rest of this manual concerns
+and re-initializes the terminal.  The rest of this manual concerns
 itself with mode and environment initialization,
 typically done once at login, and options
 used at initialization time to determine the terminal type and set up
 terminal modes.
 .PP
-When used in a startup script (\fI\&.profile\fP for
+When used in a startup script (\fI\&.profile\fR for
 .IR sh (1)
 users or
 .I \&.login
@@ -48,7 +57,7 @@ for
 users) it is desirable to give information about the type of terminal
 you will usually use on ports which are not hardwired.
 These ports are identified in
-.I /etc/ttytype
+.I /etc/ttys
 as
 .I dialup
 or
@@ -100,9 +109,7 @@ must also put a ``\e'' before any ``!'' used here.
 .KS
 Thus
 .IP
-.nf
-tset \-m \'dialup>300:adm3a\' \-m dialup:dw2 \-m \'plugboard:?adm3a\'
-.fi
+tset \-m \'dialup>300:adm3a\' -m dialup:dw2 -m \'plugboard:?adm3a\'
 .KE
 .LP
 causes the terminal type to be set to an
@@ -125,7 +132,7 @@ A null response means to use that type;
 otherwise, another type can be entered which will be used instead.
 Thus, in the above case, the user will be queried on a plugboard port
 as to whether they are actually using an
-.I adm3a.
+.IR adm3a .
 .PP
 If no mapping applies and a final
 .I type
@@ -133,55 +140,45 @@ option, not preceded by a
 .BR \-m ,
 is given on the command line
 then that type is used;
-otherwise the identifier found in the
-.I /etc/ttytype
+otherwise the type found in the
+.I /etc/ttys
 database will be taken to be the terminal type.
 This should always be the case for hardwired ports.
 .PP
 It is usually desirable to return the terminal type, as finally determined by
-.I tset,
+.IR tset ,
 and information about the terminal's capabilities
 to a shell's environment.  This can be done using the
-.B \-s
+.B \-
 option; using the Bourne shell,
 .IR sh (1):
 .IP
-.nf
-eval \`tset \-s \fIoptions...\fP\`
-.fi
+export TERM; TERM=\`tset \- \fIoptions...\fR\`
 .LP
 or using the C shell,
 .IR csh (1):
 .IP
-.nf
-set noglob; eval \`tset \-s \fIoptions...\fP\`
-.fi
+setenv TERM \`tset - \fIoptions...\fR\`
 .PP
-If you have an old csh with no eval command, do the following:
-.IP
-.nf
-tset \-s options > /tmp/tset$$ ; source /tmp/tset$$ ; rm /tmp/tset$$
-.fi
-.PP
-In either
+With
 .I csh
-case, you should probably make an alias in your .cshrc:
+it is preferable to use the following command in your .login file to
+initialize the TERM and TERMCAP environment variables at the same time.
+.IP
+eval \`tset -s \fIoptions...\fR\`
 .PP
-.RS
-alias tset \'set noglob; eval \`tset \-s \!*\`\'
-.br
-or
-.br
-alias tset \'tset \-s \!* > /tmp/tset$$ ; source /tmp/tset$$ ; rm /tmp/tset$$\'
-.RE
-Either of these aliases allow the command
-.RS
+It is also convenient to make an alias in your .cshrc:
+.IP
+alias tset \'eval \`tset \-s \e!*\`\'
+.PP
+This allows the command:
+.IP
 tset 2621
-.RE
-to be invoked at any time from your login csh.
+.PP
+to be invoked at any time to set the terminal and environment.
 .B "Note to Bourne Shell users:"
 It is
-.I not
+.B not
 possible to get this aliasing effect with a shell script,
 because shell scripts cannot set the environment of their parent.
 (If a process could set its parent's environment,
@@ -189,9 +186,9 @@ none of this nonsense would be necessary in the first place.)
 .PP
 These commands cause
 .I tset
-to generate as output a sequence of shell commands which place the variables
-TERM and TERMCAP in the environment; see
-.IR environ (5).
+to place the name of your terminal in the variable
+TERM in the environment; see
+.IR environ (7).
 .PP
 Once the terminal type is known,
 .I tset
@@ -211,7 +208,7 @@ the erase character is changed to \s-2BACKSPACE\s0 (Control-H).
 .PP
 The options are:
 .TP
-.B \-\^e\fIc
+.B \-e\fIc
 set the erase character to be the named character
 .I c
 on all terminals,
@@ -221,7 +218,7 @@ The character
 can either be typed directly, or entered using the hat
 notation used here.
 .TP
-.B \-\^k\fIc
+.B \-k\fIc
 is similar to
 .B \-e
 but for the line kill character rather than the erase character;
@@ -232,57 +229,58 @@ The kill characters is left alone if
 is not specified.
 The hat notation can also be used for this option.
 .TP
-.B \-\^n
+.B \-i\fIc
+is similar to
+.B \-e
+but for the interrupt character rather than the erase character;
+.I c
+defaults to ^C.  The hat notation can also be used for this option.
+.TP
+.B \-
+The name of the terminal finally decided upon is output on the
+standard output.
+This is intended to be captured by the shell and placed in the
+environment variable TERM.
+.TP
+.B \-s
+Print the sequence of
+.I csh
+commands to initialize the environment variables TERM and TERMCAP based on
+the name of the terminal finally decided upon.
+.TP
+.B \-n
 On systems with the Berkeley 4BSD tty driver,
 specifies that the new tty driver modes should be initialized for this terminal.
 For a \s-2CRT\s0,
 the CRTERASE and CRTKILL
 modes are set only if the baud rate is 1200 or greater.
-See newtty(4) for more detail.
+See tty(4) for more detail.
 .TP
-.B \-\^v
-On systems with CB/UNIX virtual terminals, normally
-.I tset
-sets up the tty driver modes and the environment TERMCAP variable
-to use the virtual terminal.
-The
-.B \-v
-option turns off this processing,
-causing tset to not use a virtual terminal.
-.TP
-.B \-\^I
+.B \-I
 suppresses transmitting terminal initialization strings.
 .TP
-.B \-\^Q
-supresses printing the
+.B \-Q
+suppresses printing the
 ``Erase set to'' and ``Kill set to'' messages.
-.TP
-.B \-\^S
-If your shell is
-.IR csh ,
-.I tset
-will output the strings to be assigned to
-TERM and TERMCAP in the environment rather than commands for a shell.
-This is mainly useful to avoid the (slow) source command with an
-old
-.IR csh .
 .PP
 If
-.I tset
+.B tset
 is invoked as
-.IR reset ,
+.BR reset ,
 it will set cooked and echo modes, turn off cbreak and raw modes,
 turn on newline translation, and restore special characters
 to a sensible state before any terminal dependent processing is done.
 Any special character that is found to be \s-2NULL\s0
-or ``\-1'' is reset to it's default value.
+or ``\-1'' is reset to its default value.  All arguments to
+.I tset
+may be used with reset.
 .PP
 This is most useful after a program dies leaving a terminal in a funny
 state. You may have to type ``\s-2<LF>\s0reset\s-2<LF>\s0'' to get it to work
 since \s-2<CR>\s0 may not work in this state. Often none of this will echo.
 .SH EXAMPLES
 .PP
-These examples all assume the Bourne shell and use the \-s option.
+These examples all assume the Bourne shell and use the - option.
 If you use
 .IR csh ,
 use one of the variations described above.
@@ -309,16 +307,12 @@ not for a .profile, unless you are
 .I always
 on a 2621.
 .IP
-.nf
-eval \`tset \-s 2621\`
-.fi
+export TERM; TERM=\`tset \- 2621\`
 .PP
 You have an h19 at home which you dial up on, but your office terminal
-is hardwired and known in /etc/ttytype.
+is hardwired and known in /etc/ttys.
 .IP
-.nf
-eval \`tset \-s \-m dialup:h19\`
-.fi
+export TERM; TERM=\`tset \- \-m dialup:h19\`
 .PP
 You have a switch which connects everything to everything, making
 it nearly impossible to key on what port you are coming in on.
@@ -332,12 +326,12 @@ Note the placement of the question mark, and the quotes
 to protect the greater than and question mark from
 interpretation by the shell.
 .IP
-.nf
-eval \`tset \-s \-m 'switch>1200:?vt100' \-m 'switch<=1200:2621'
-.fi
+export TERM; TERM=\`tset \- \-m 'switch>1200:?vt100' \-m 'switch<=1200:2621'
 .PP
 All of the above entries will fall back on the terminal type
-specified in /etc/ttytype if none of the conditions hold.
+specified in
+.I /etc/ttys
+if none of the conditions hold.
 The following entry is appropriate if
 you always dial up, always at the same baud rate,
 on many different kinds of terminals.
@@ -345,16 +339,14 @@ Your most common terminal is an adm3a.
 It always asks you what kind of terminal you are on,
 defaulting to adm3a.
 .IP
-.nf
-eval \`tset \-s \?adm3a\`
-.fi
+export TERM; TERM=\`tset \- \?adm3a\`
 .PP
-If the file /etc/ttytype is not properly installed and you want to
+If the file
+.I /etc/ttys
+is not properly installed and you want to
 key entirely on the baud rate, the following can be used:
 .IP
-.nf
-eval \`tset \-s \-m '>1200:vt100' 2621\`
-.fi
+export TERM; TERM=\`tset \- \-m '>1200:vt100' 2621\`
 .PP
 Here is a fancy example to illustrate the power of
 .I tset
@@ -366,30 +358,22 @@ most often the terminal in your office, which is a vt100.
 However, sometimes you log in from the university you used to go to,
 over the ARPANET; in this case you are on an ALTO emulating a dm2500.
 You also often log in on various hardwired ports, such as the console,
-all of which are properly entered in /etc/ttytype.
+all of which are properly entered in
+.IR /etc/ttys .
 You want your erase character set to control H,
 your kill character set to control U,
 and don't want
 .I tset
 to print the ``Erase set to Backspace, Kill set to Control U'' message.
 .IP
-.nf
-eval \`tset \-e \-k^U \-Q \-s \-m 'switch<=1200:concept100' \-m 'switch:?vt100'
-	\-m dialup:concept100 \-m arpanet:dm2500\`
-.fi
+export TERM; TERM=\`tset \-e \-k^U \-Q \- \-m 'switch<=1200:concept100' \-m 'switch:?vt100' \-m dialup:concept100 \-m arpanet:dm2500\`
 .SH FILES
-.ta 2i
-/etc/ttytype	port name to terminal type mapping database
+.DT
+/etc/ttys	port name to terminal type mapping database
 .br
 /etc/termcap	terminal capability database
 .SH SEE\ ALSO
-csh(1), sh(1), stty(1), environ(5), termcap(5), ttytype(5)
-.SH AUTHOR
-Eric Allman
-.br
-David Wasley
-.br
-Mark Horton
+csh(1), sh(1), stty(1), ttys(5), termcap(5), environ(7)
 .SH BUGS
 .PP
 The
@@ -405,3 +389,39 @@ either the
 program should do this stuff,
 or a default shell alias should be made,
 or a way to set the environment of the parent should exist.
+.PP
+This program can't intuit personal choices for erase, interrupt
+and line kill characters, so it leaves these set to the local system
+standards.
+.ig
+.SH NOTES
+For compatibility with earlier versions of
+.I tset
+a number of flags are accepted whose use is discouraged:
+.TP 10
+\fB\-d\fR type
+equivalent to
+.B \-m
+dialup:type
+.TP 10
+\fB\-p\fR type
+equivalent to
+.B \-m
+plugboard:type
+.TP 10
+\fB\-a\fR type
+equivalent to
+.B \-m
+arpanet:type
+.TP 10
+\fB\-E\fR c
+Sets the erase character to
+.I c
+only if the terminal can backspace.
+.TP 10
+\fB\-\fR
+prints the terminal type on the standard output
+.TP 10
+\fB\-r\fR
+prints the terminal type on the diagnostic output.
+..

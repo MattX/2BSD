@@ -1,9 +1,9 @@
 static	char	sccsid[] = "@(#)px_header.c	2.2";	/*	SCCS id keyword	*/
 /* Copyright (c) 1979 Regents of the University of California */
+
 extern	errno;
 
 #define	ETXTBSY	26
-
 
 struct header 
     {
@@ -49,8 +49,8 @@ main(argc, argv)
 		while (i != 0) {
 			j = (i > 0 && i < 512) ? i : 512;
 			write(pv[1], ip, j);
-			ip =+ 512 / sizeof ( short );
-			i =- j;
+			ip += 512 / sizeof ( short );
+			i -= j;
 		}
 		exit(1);
 	}
@@ -60,7 +60,7 @@ main(argc, argv)
 		dup(pv[0]);
 		close(pv[0]);
 	}
-	execv("/usr/bin/px", largv);
+	execv("/usr/ucb/px", largv);
 	error("Px not found.\n");
 }
 

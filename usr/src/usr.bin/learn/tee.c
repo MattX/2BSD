@@ -1,3 +1,8 @@
+#ifndef lint
+static char sccsid[] = "@(#)tee.c	4.2	(Berkeley)	4/25/83";
+#endif not lint
+
+#include <stdio.h>
 main()
 {
 	int f, c;
@@ -11,7 +16,7 @@ main()
 	close(f);
 }
 
-static char ln[512];
+static char ln[BUFSIZ];
 char *p = ln;
 put(c, f)
 {

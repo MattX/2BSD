@@ -1,188 +1,187 @@
-# include "defs"
-# include <signal.h>
-#ifndef BSD4_2
-# include <sys/types.h>
-#endif
-# include <sys/stat.h>
+static	char *sccsid = "@(#)dosys.c	4.10 (Berkeley) 12/23/84";
+#include "defs"
+#include <signal.h>
 
-extern char Makecall;
-
-dosys(comstring, nohalt)
-register CHARSTAR comstring;
+dosys(comstring,nohalt)
+register char *comstring;
 int nohalt;
 {
-	register CHARSTAR p;
-	int status;
+register int status;
 
-	p = comstring;
-	while(	*p == BLANK ||
-		*p == TAB) p++;
-	if(!*p)
-		return(-1);
+if(metas(comstring))
+	status = doshell(comstring,nohalt);
+else	status = doexec(comstring);
 
-	if(IS_ON(NOEX) && Makecall == NO)
-		return(0);
-
-	if(metas(comstring))
-		status = doshell(comstring,nohalt);
-	else
-		status = doexec(comstring);
-
-	return(status);
+return(status);
 }
 
 
 
 metas(s)   /* Are there are any  Shell meta-characters? */
-register CHARSTAR s;
+register char *s;
 {
-	while(*s)
-		if( funny[*s++] & META)
-			return(YES);
+register char c;
 
-	return(NO);
+while( (funny[c = *s++] & META) == 0 )
+	;
+return( c );
 }
 
 doshell(comstring,nohalt)
-register CHARSTAR comstring;
-register int nohalt;
+char *comstring;
+int nohalt;
 {
-	register CHARSTAR shell;
-	register CHARSTAR shellname;
-
-	if((waitpid = fork()) == 0)
+#ifdef SHELLENV
+char *getenv(), *rindex();
+char *shellcom = getenv("SHELL");
+char *shellstr;
+#endif
+if((waitpid = vfork()) == 0)
 	{
-		enbint(SIG_DFL);
-		doclose();
+	enbint(SIG_DFL);
+	doclose();
 
-		setenv();
-		shell = varptr("SHELL")->varval;
-		if(shell == 0 || shell[0] == CNULL)
-			shell = SHELLCOM;
-		if ((shellname = strrchr(shell, SLASH)) == NULL)
-			shellname = shell;
-		else
-			shellname++;
-		(void)execl(shell, shellname, (nohalt ? "-c" : "-ce"), comstring, (char *)0);
-		fatal("Couldn't load Shell");
+#ifdef SHELLENV
+	if (shellcom == 0) shellcom = SHELLCOM;
+	shellstr = rindex(shellcom, '/') + 1;
+	execl(shellcom, shellstr, (nohalt ? "-c" : "-ce"), comstring, 0);
+#else
+	execl(SHELLCOM, "sh", (nohalt ? "-c" : "-ce"), comstring, 0);
+#endif
+	fatal("Couldn't load Shell");
 	}
 
-	return( await() );
+return( await() );
 }
 
 
 
+
+int intrupt();
 
 await()
 {
-	int intrupt();
-	int status;
-	int pid;
+int status;
+register int pid;
 
-	enbint(intrupt);
-	while( (pid = wait(&status)) != waitpid)
-		if(pid == -1)
-			fatal("bad wait code");
-	waitpid = 0;
-	return(status);
+enbint(SIG_IGN);
+while( (pid = wait(&status)) != waitpid)
+	if(pid == -1)
+		fatal("bad wait code");
+waitpid = 0;
+enbint(intrupt);
+return(status);
 }
 
-
-
-
-
-
-doclose()	/* Close open directory files before exec'ing */
+/*
+ * Close open directory files before exec'ing
+ */
+doclose()
 {
-	register OPENDIR od;
+register struct dirhdr *od;
 
-	for (od = firstod; od != 0; od = od->nextopendir)
-		if (od->dirfc != NULL)
-			closedir(od->dirfc);
+for (od = firstod; od; od = od->nxtopendir)
+	if (od->dirfc != NULL)
+		/*
+		 * vfork kludge...
+		 * we cannot call closedir since this will modify
+		 * the parents data space; just call close directly.
+		 */
+		close(od->dirfc->dd_fd);
 }
 
 
 
-#define	MAXARGV	500
-
+#define MAXARGV	400
 
 doexec(str)
-register CHARSTAR str;
+register char *str;
 {
-	register CHARSTAR t;
-	register CHARSTAR *p;
-	CHARSTAR argv[MAXARGV];
+register char *t;
+char *argv[MAXARGV];
+register char **p;
 
-	while( *str==BLANK || *str==TAB )
-		++str;
-	if( *str == CNULL )
-		return(-1);	/* no command */
+while( *str==' ' || *str=='\t' )
+	++str;
+if( *str == '\0' )
+	return(-1);	/* no command */
 
-	p = &argv[1];		/* reserve argv[0] in case of execvp failure */
-	for(t = str ; *t ; )
+p = argv;
+for(t = str ; *t ; )
 	{
-		if (p >= &argv[MAXARGV])
-			fatal1("%s: Too many arguments.", str);
-		*p++ = t;
-		while(*t!=BLANK && *t!=TAB && *t!=CNULL)
-			++t;
-		if(*t)
-			for( *t++ = CNULL ; *t==BLANK || *t==TAB  ; ++t);
+	if (p >= argv + MAXARGV)
+		fatal1("%s: Too many arguments.", str);
+	*p++ = t;
+	while(*t!=' ' && *t!='\t' && *t!='\0')
+		++t;
+	if(*t)
+		for( *t++ = '\0' ; *t==' ' || *t=='\t'  ; ++t)
+			;
 	}
 
-	*p = NULL;
+*p = NULL;
 
-	if((waitpid = fork()) == 0)
+if((waitpid = vfork()) == 0)
 	{
-		enbint(SIG_DFL);
-		doclose();
-		setenv();
-		(void)execvp(str, &argv[1]);
-		fatal1("Cannot load %s",str);
+	enbint(SIG_DFL);
+	doclose();
+	enbint(intrupt);
+	execvp(str, argv);
+	fatal1("Cannot load %s",str);
 	}
 
-	return( await() );
+return( await() );
 }
 
-touch(force, name)
-register int force;
-register char *name;
-{
-	extern long lseek();
-	struct stat stbuff;
-	char junk[1];
-	int fd;
+#include <errno.h>
 
-	if( stat(name,&stbuff) < 0)
-		if(force)
-			goto create;
-		else
-		{
-			(void)fprintf(stderr,"touch: file %s does not exist.\n",name);
-			return;
-		}
-	if(stbuff.st_size == 0)
+#include <sys/stat.h>
+
+
+
+touch(force, name)
+int force;
+char *name;
+{
+struct stat stbuff;
+char junk[1];
+int fd;
+
+if( stat(name,&stbuff) < 0)
+	if(force)
 		goto create;
-	if( (fd = open(name, 2)) < 0)
-		goto bad;
-	if( read(fd, junk, 1) < 1)
+	else
+		{
+		fprintf(stderr, "touch: file %s does not exist.\n", name);
+		return;
+		}
+
+if(stbuff.st_size == 0)
+	goto create;
+
+if( (fd = open(name, 2)) < 0)
+	goto bad;
+
+if( read(fd, junk, 1) < 1)
 	{
-		(void)close(fd);
-		goto bad;
+	close(fd);
+	goto bad;
 	}
-	(void)lseek(fd, 0L, 0);
-	if( write(fd, junk, 1) < 1 )
+lseek(fd, 0L, 0);
+if( write(fd, junk, 1) < 1 )
 	{
-		(void)close(fd);
-		goto bad;
+	close(fd);
+	goto bad;
 	}
-	(void)close(fd);
-	return;
+close(fd);
+return;
+
 bad:
-	(void)fprintf(stderr, "Cannot touch %s\n", name);
+	fprintf(stderr, "Cannot touch %s\n", name);
 	return;
+
 create:
 	if( (fd = creat(name, 0666)) < 0)
 		goto bad;
-	(void)close(fd);
+	close(fd);
 }

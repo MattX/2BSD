@@ -1,4 +1,12 @@
-static	char *sccsid = "@(#)sh.parse.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.parse.c	5.3 (Berkeley) 5/13/86";
+#endif
 
 #include "sh.h"
 
@@ -118,7 +126,7 @@ asyn3(p1, p2)
 		char *cp = alout.next->word;
 
 		alout.next->word = strspl("\200", cp);
-		xfree(cp);
+		XFREE(cp)
 	}
 	p1 = freenod(p1, redid ? p2 : p1->next);
 	if (alout.next != &alout) {
@@ -126,8 +134,8 @@ asyn3(p1, p2)
 		alout.prev->prev->next = p1->next;
 		alout.next->prev = p1;
 		p1->next = alout.next;
-		xfree(alout.prev->word);
-		xfree((char *)(alout.prev));
+		XFREE(alout.prev->word)
+		XFREE((char *)alout.prev)
 	}
 	reset();		/* throw! */
 }
@@ -139,9 +147,9 @@ freenod(p1, p2)
 	register struct wordent *retp = p1->prev;
 
 	while (p1 != p2) {
-		xfree(p1->word);
+		XFREE(p1->word)
 		p1 = p1->next;
-		xfree((char *)(p1->prev));
+		XFREE((char *)p1->prev)
 	}
 	retp->next = p2;
 	p2->prev = retp;
@@ -216,7 +224,9 @@ syn0(p1, p2, flags)
 			if (p->word[1] == '&')
 				continue;
 			t1 = syn1(p1, p, flags);
-			if (t1->t_dtyp == TLST) {
+    			if (t1->t_dtyp == TLST ||
+    			    t1->t_dtyp == TAND ||
+    			    t1->t_dtyp == TOR) {
 				t = (struct command *) calloc(1, sizeof (*t));
 				t->t_dtyp = TPAR;
 				t->t_dflg = FAND|FINT;
@@ -491,7 +501,7 @@ again:
 	if (n < 0)
 		n = 0;
 	t = (struct command *) calloc(1, sizeof (*t));
-	av = (char **) calloc(n + 1, sizeof (char **));
+	av = (char **) calloc((unsigned) (n + 1), sizeof (char **));
 	t->t_dcom = av;
 	n = 0;
 	if (p2->word[0] == ')')
@@ -599,8 +609,8 @@ freesyn(t)
 
 	case TCOM:
 		for (v = t->t_dcom; *v; v++)
-			xfree(*v);
-		xfree((char *)(t->t_dcom));
+			XFREE(*v)
+		XFREE((char *)t->t_dcom)
 		goto lr;
 
 	case TPAR:
@@ -608,7 +618,8 @@ freesyn(t)
 		/* fall into ... */
 
 lr:
-		xfree(t->t_dlef), xfree(t->t_drit);
+		XFREE(t->t_dlef)
+		XFREE(t->t_drit)
 		break;
 
 	case TAND:
@@ -618,5 +629,5 @@ lr:
 		freesyn(t->t_dcar), freesyn(t->t_dcdr);
 		break;
 	}
-	xfree((char *)t);
+	XFREE((char *)t)
 }

@@ -1,4 +1,9 @@
+#ifndef lint
+static char sccsid[] = "@(#)sub1.c	4.2 (Berkeley) 2/21/85";
+#endif
+
 # include "ldefs.c"
+char *
 getl(p)	/* return next line of input, throw away trailing '\n' */
 	/* returns 0 if eof is had immediately */
   char *p;
@@ -32,8 +37,8 @@ digit(c)
 }
 error(s,p,d)
 	{
-	if(!eof)fprintf(errorf,"%d: ",yyline);
-	fprintf(errorf,"(Error) ");
+	fprintf(errorf,"\"%s\", line %d: (Error) ",
+		fptr > 0 ? sargv[fptr] : "<stdin>", yyline);
 	fprintf(errorf,s,p,d);
 	putc('\n',errorf);
 # ifdef DEBUG
@@ -52,8 +57,8 @@ error(s,p,d)
 
 warning(s,p,d)
 	{
-	if(!eof)fprintf(errorf,"%d: ",yyline);
-	fprintf(errorf,"(Warning) ");
+	fprintf(errorf,"\"%s\", line %d: (Warning) ",
+		fptr > 0 ? sargv[fptr] : "<stdin>", yyline);
 	fprintf(errorf,s,p,d);
 	putc('\n',errorf);
 	fflush(errorf);
@@ -170,7 +175,7 @@ ctrans(ss)
 	case '\\': c = '\\'; break;
 	case '0': case '1': case '2': case '3':
 	case '4': case '5': case '6': case '7':
-		c =- '0';
+		c -= '0';
 		while ((k = *(*ss+1)) >= '0' && k <= '7')
 			{
 			c = c*8 + k - '0';
@@ -187,7 +192,7 @@ cclinter(sw)
 	int m;
 	if(!sw){		/* is NCCL */
 		for(i=1;i<NCH;i++)
-			symbol[i] =^ 1;			/* reverse value */
+			symbol[i] ^= 1;			/* reverse value */
 		}
 	for(i=1;i<NCH;i++)
 		if(symbol[i]) break;
@@ -246,7 +251,7 @@ usescape(c)
 	case 'f': c = 014; break;		/* form feed for ascii */
 	case '0': case '1': case '2': case '3':
 	case '4': case '5': case '6': case '7':
-		c =- '0';
+		c -= '0';
 		while('0' <= (d=gch()) && d <= '7'){
 			c = c * 8 + (d-'0');
 			if(!('0' <= peek && peek <= '7')) break;
@@ -366,17 +371,25 @@ error("Premature EOF");
 }
 gch(){
 	register int c;
+	static int hadeof;
+
+	if (hadeof) {
+		hadeof = 0;
+		yyline = 0;
+	}
 	prev = pres;
 	c = pres = peek;
 	peek = pushptr > pushc ? *--pushptr : getc(fin);
 	if(peek == EOF && sargc > 1){
+		hadeof = 1;
 		fclose(fin);
 		fin = fopen(sargv[++fptr],"r");
-		if(fin == NULL)
+		if(fin == NULL) {
+			yyline = 0;
 			error("Cannot open file %s",sargv[fptr]);
+		}
 		peek = getc(fin);
 		sargc--;
-		sargv++;
 		}
 	if(c == EOF) {
 		eof = TRUE;
@@ -551,7 +564,7 @@ allprint(c)
 		default:
 			if(!printable(c)){
 				printf("\\%-3o",c);
-				charc =+ 3;
+				charc += 3;
 				}
 			else 
 				putchar(c);

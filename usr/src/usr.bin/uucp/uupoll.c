@@ -1,6 +1,5 @@
 #ifndef lint
-static char	*RcsId = "$Header: uupoll.c,v 1.12 85/06/05 20:22:39 rick Exp $";
-/* from: @(#)uupoll.c	5.1 (Berkeley) 7/2/83 */
+static char sccsid[] = "@(#)uupoll.c	5.5 (Berkeley) 10/9/85";
 #endif
 
 /*
@@ -16,6 +15,7 @@ static char	*RcsId = "$Header: uupoll.c,v 1.12 85/06/05 20:22:39 rick Exp $";
 #include "uucp.h"
 
 int TransferSucceeded = 1;
+struct timeb Now;
 
 main(argc, argv)
 register int argc;

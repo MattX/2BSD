@@ -1,6 +1,11 @@
+#ifndef lint
+static char sccsid[] = "@(#)n1.c	4.6 1/9/85";
+#endif lint
+
+#include "tdef.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "tdef.h"
+#include <sys/time.h>
 extern
 #include "d.h"
 extern
@@ -9,7 +14,7 @@ extern
 extern
 #include "tw.h"
 #endif
-#include "s.h"
+#include "sdef.h"
 #include <setjmp.h>
 jmp_buf sjbuf;
 #include	<sgtty.h>
@@ -20,6 +25,7 @@ consume options, initialization, main loop,
 input routines, escape function calling
 */
 
+int	inchar[LNSIZE], *pinchar = inchar;	/* XXX */
 extern struct s *frame, *stk, *nxf;
 extern struct s *ejl, *litlev;
 extern filep ip;
@@ -193,6 +199,12 @@ options:
 			p = &nextf[nfi];
 			q = &argv[0][2];
 			while((*p++ = *q++) != 0);
+			if (access(nextf, 4) < 0) {
+char *local = "/usr/local/lib/tmac/tmac.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+				strcat(local, &argv[0][2]);
+				if (access(local, 4) == 0)
+					strcpy(nextf, local);
+			}
 			mflg++;
 			continue;
 		case 'o':
@@ -241,6 +253,12 @@ options:
 		case 'g':
 			stop = ptid = gflag = 1;
 			dpn = 0;
+			continue;
+		case 'F':
+			{
+			  extern char *fontfile;
+			  fontfile = &argv[0][2];
+			}
 			continue;
 #endif
 		default:
@@ -366,6 +384,7 @@ init2()
 	olinep = oline;
 	ibufp = eibuf = ibuf;
 	v.hp = init = 0;
+	pinchar = inchar;	/* XXX */
 	ioff = 0;
 	v.nl = -1;
 	cvtime();
@@ -376,12 +395,13 @@ init2()
 }
 cvtime(){
 
-	long tt;
 	register i;
+	struct timeval t;
+	struct timezone tz;
 
-	time(&tt);
-	tt -= 3600*ZONE;	/*5hrs for EST*/
-	v.dy = (tt/86400L) + 1;
+	gettimeofday(&t, &tz);
+	t.tv_sec -= 60*tz.tz_minuteswest;	/* 5hrs for EST */
+	v.dy = (t.tv_sec/86400L) + 1;
 	v.dw = (v.dy + 3)%7 + 1;
 	for(v.yr=70;; v.yr++){
 		if((v.yr)%4)ms[1]=28;else ms[1]=29;
@@ -400,7 +420,7 @@ char *a;
 	register i;
 
 	ibufp = a;
-	eibuf = MAXPTR;
+	eibuf = (char *) MAXPTR;
 	i = atoi();
 	ch = 0;
 	return(i);
@@ -410,6 +430,8 @@ int f;
 {
 	static int mode;
 
+	if (ttyp==0)
+		return;
 	if(!f){
 		stat(ttyp,cbuf);
 		mode = ((struct stat *)(cbuf))->st_mode;
@@ -636,7 +658,7 @@ g0:
 				goto g0;
 			case 'k':	/*mark hor place*/
 				if((i=findr(getsn())) == -1)goto g0;
-				vlist[i] = v.hp;
+				vlist[i] = v.hp = sumhp();	/* XXX */
 				goto g0;
 			case 'j':	/*mark output hor place*/
 				if(!(i=getach()))goto g0;
@@ -664,14 +686,31 @@ g2:
 	if((i & CMASK) == '\n'){
 		nlflg++;
 		v.hp = 0;
+		pinchar = inchar;	/* XXX */
 		if(ip == 0)v.cd++;
 	}
 	if(!--level){
-		j = width(i);
-		v.hp += j;
-		cwidth = j;
+		/* j = width(i); */
+		/* v.hp += j; */
+		/* cwidth = j; */
+		if (pinchar >= inchar + LNSIZE) {	/* XXX */
+			inchar[0] = makem(sumhp());
+			pinchar = &inchar[1];
+		}
+		*pinchar++ = i;	/* XXX */
 	}
 	return(i);
+}
+
+sumhp()	/* XXX - add up widths in inchar array */
+{
+	register int n;
+	register int *p;
+
+	n = 0;
+	for (p = inchar; p < pinchar; p++)
+		n += width(*p);
+	return(n);
 }
 char ifilt[32] = {0,001,002,003,0,005,006,007,010,011,012};
 getch0(){
@@ -696,7 +735,7 @@ again:
 		else i = rbf();
 	}else{
 		if(donef)done(0);
-		if(nx || ((ibufp >= eibuf) && (ibufp != MAXPTR))){
+		if(nx || ((ibufp >= eibuf) && (ibufp != (char *) MAXPTR))){
 			if(nfo)goto g1;
 		g0:
 			if(nextfile()){
@@ -799,6 +838,7 @@ flushi(){
 	}
 	copyf--;
 	v.hp = 0;
+	pinchar = inchar;	/* XXX */
 }
 getach(){
 	register i;
@@ -873,7 +913,7 @@ caseso(){
 
 casecf(){	/* copy file without change */
 	int fd, i, n;
-	char buf[512];
+	char buf[OBUFSZ];
 
 	flusho();
 	lgf++;
@@ -884,7 +924,7 @@ casecf(){	/* copy file without change */
 		prstr("\n");
 		done(02);
 	}
-	while ((n = read(fd, buf, 512)) > 0)
+	while ((n = read(fd, buf, OBUFSZ)) > 0)
 		for (i = 0; i < n; i++)
 			oput(buf[i]);
 	flusho();
@@ -899,7 +939,7 @@ char *a;
 	if((*a & 0177) == 0)return;
 	neg = 0;
 	ibufp = a;
-	eibuf = MAXPTR;
+	eibuf = (char *) MAXPTR;
 	noscale++;
 	while((i = getch() & CMASK) != 0)switch(i){
 		case '+':

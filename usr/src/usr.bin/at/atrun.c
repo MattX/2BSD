@@ -11,7 +11,7 @@ char copyright[] =
 #endif not lint
 
 #ifndef lint
-static char sccsid[] = "@(#)atrun.c	5.1 (Berkeley) 6/6/85";
+static char sccsid[] = "@(#)atrun.c	5.4 (Berkeley) 5/28/86";
 #endif not lint
 
 /*
@@ -27,16 +27,14 @@ static char sccsid[] = "@(#)atrun.c	5.1 (Berkeley) 6/6/85";
  *
  */
 # include <stdio.h>
-# include <sys/param.h>
-#ifndef pdp11
 # include <sys/types.h>
-#endif !pdp11
 # include <sys/dir.h>
 # include <sys/file.h>
 # include <sys/time.h>
-#ifdef UCB_QUOTAS
+# include <sys/param.h>
+#ifdef notdef
 # include <sys/quota.h>
-#endif UCB_QUOTAS
+#endif
 # include <sys/stat.h>
 # include <pwd.h>
 
@@ -152,8 +150,8 @@ char *spoolfile;
 	char mailvar[4];		/* send mail variable ("yes" or "no") */
 	char runfile[100];		/* file sent to forked shell for exec-
 					   ution */
-	char owner[16];			/* owner of job we're going to run */
-	char jobname[100];		/* name of job we're going to run */
+	char owner[128];		/* owner of job we're going to run */
+	char jobname[128];		/* name of job we're going to run */
 	char whichshell[100];		/* which shell should we fork off? */
 	struct passwd *pwdbuf;		/* password info of the owner of job */
 	struct stat errbuf;		/* stats on error file */
@@ -176,12 +174,17 @@ char *spoolfile;
 	}
 
 	/*
-	 * Grab the 3-line header out of the spoolfile.
+	 * Grab the 4-line header out of the spoolfile.
 	 */
-	fscanf(infile,"# owner: %s\n",owner);
-	fscanf(infile,"# jobname: %s\n",jobname);
-	fscanf(infile,"# shell: %s\n",shell);
-	fscanf(infile,"# notify by mail: %s\n",mailvar);
+	if (
+	    (fscanf(infile,"# owner: %127s%*[^\n]\n",owner) != 1) ||
+	    (fscanf(infile,"# jobname: %127s%*[^\n]\n",jobname) != 1) ||
+	    (fscanf(infile,"# shell: %3s%*[^\n]\n",shell) != 1) ||
+	    (fscanf(infile,"# notify by mail: %3s%*[^\n]\n",mailvar) != 1)
+	    ) {
+		fprintf(stderr, "%s: bad spool header\n", spoolfile);
+		exit(1);
+	}
 
 	/*
 	 * Check to see if we should send mail to the owner.
@@ -194,6 +197,11 @@ char *spoolfile;
 	 * of the job.
 	 */
 	pwdbuf = getpwnam(owner);
+	if (pwdbuf == NULL) {
+		fprintf(stderr, "%s: could not find owner in passwd file\n",
+		    spoolfile);
+		exit(1);
+	}
 	if (chown(spoolfile,pwdbuf->pw_uid,pwdbuf->pw_gid) == -1) {
 		perror(spoolfile);
 		exit(1);
@@ -263,11 +271,11 @@ char *spoolfile;
 		}
 		exitstatus = ((errbuf.st_size == 0) ? NORMAL : ABNORMAL);
 
-		/* If errors occured, then we send mail to the owner
+		/* If errors occurred, then we send mail to the owner
 		 * telling him/her that we ran into trouble.  
 		 *
 		 * (NOTE: this could easily be modified so that if any 
-		 * errors occured while running a job, mail is sent regard-
+		 * errors occurred while running a job, mail is sent regard-
 		 * less of whether the -m flag was set or not.
 		 *
 		 * i.e. rather than:
@@ -280,7 +288,7 @@ char *spoolfile;
 		 * It's up to you if you want to implement this.
 		 *
 		 */ 
-		if (notifybymail)
+		if (exitstatus == ABNORMAL || notifybymail)
 			sendmailto(getname(jobbuf.st_uid),jobname,exitstatus);
 
 		/*
@@ -301,9 +309,10 @@ char *spoolfile;
 	/*
 	 * Run the job as the owner of the jobfile
 	 */
-#ifdef UCB_QUOTAS
+#ifdef notdef
+	/* This is no longer needed with the new, stripped-down quota system */
 	quota(Q_SETUID,jobbuf.st_uid,0,0);
-#endif UCB_QUOTAS
+#endif
 	setgid(jobbuf.st_gid);
 	initgroups(getname(jobbuf.st_uid),jobbuf.st_gid);
 	setuid(jobbuf.st_uid);
@@ -325,11 +334,7 @@ char *spoolfile;
 	 */
 	open("/dev/null", 0);
 	open("/dev/null", 1);
-#ifdef pdp11
-	open(errfile,O_WRONLY,00644);
-#else !pdp11
 	open(errfile,O_CREAT|O_WRONLY,00644);
-#endif pdp11
 
 	/*
 	 * Now we fork the shell.
@@ -400,7 +405,7 @@ int exitstatus;
 	/*
 	 * If the job exited abnormally, send a letter notifying the user
 	 * that the job didn't run proberly. Also, send a copy of the errors 
-	 * that occured to the user.
+	 * that occurred to the user.
 	 */
 	else {
 		if (exitstatus == ABNORMAL) {
@@ -411,11 +416,11 @@ int exitstatus;
 			fprintf(mailptr,"\n\nThe job you submitted to at, ");
 			fprintf(mailptr,"\"%s\", ",jobname);
 			fprintf(mailptr,"exited abnormally.\nA list of the ");
-			fprintf(mailptr," errors that occured follows:\n\n\n");
+			fprintf(mailptr," errors that occurred follows:\n\n\n");
 
 			/*
 			 * Open the file containing a log of the errors that
-			 * occured.
+			 * occurred.
 			 */
 			if ((errptr = fopen(errfile,"r")) == NULL) {
 				perror(errfile);
@@ -513,7 +518,7 @@ updatetime()
 	/*
 	 * Record the last update time (in seconds since 1/1/70).
 	 */
-	fprintf(lastimefile, "%d\n", (u_long) time.tv_sec);
+	fprintf(lastimefile, "%ld\n", (u_long) time.tv_sec);
 
 	/*
 	 * Close the record file.

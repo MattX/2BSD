@@ -1,4 +1,10 @@
-#define	MAXPTR	(char *)-1	/* max value of any pointer variable */
+/*	tdef.h	4.6	85/05/05	*/
+
+#ifdef VMUNIX
+#define MAXPTR 0x7fffffff	/* max value of any pointer variable */
+#else
+#define MAXPTR ((char *)-1)
+#endif
 #ifdef NROFF	/*NROFF*/
 #define EM t.Em
 #define HOR t.Hor
@@ -41,25 +47,39 @@
 #define FT 0	/*default font position*/
 #define LL 65*INCH/10	/*line length; 39picas=6.5in*/
 #define VS INCH/6	/*vert space; 12points*/
+#ifdef VMUNIX
+#define NN 528	/*number registers*/
+#else
 #define NN 200	/*number registers*/
-/* NN changed Jan 31 from 132 */
+#endif
+/* #define NN 200	*/
 #define NNAMES 14 /*predefined reg names*/
 #define NIF 15	/*if-else nesting*/
 #define NS 64	/*name buffer*/
 #define NTM 256	/*tm buffer*/
 #define NEV 3	/*environments*/
 #define EVLSZ 10	/*size of ev stack*/
-#define EVS 4*256	/*environment size in words*/
-/* BWK - trying 4*256 instead of 3*256 */
+/* #define EVS 4*256	*/
+#ifdef VMUNIX
+#define NM 600
+#define EVS 6*256	/*environment size in words*/
+#else
 #define NM 300	/*requests + macros*/
+#define EVS 4*256	/*environment size in words*/
+#endif
 #define DELTA 512	/*delta core bytes*/
 #define NHYP 10	/*max hyphens per word*/
 #define NHEX 128	/*byte size of exception word list*/
 #define NTAB 35	/*tab stops*/
 #define NSO 5	/*"so" depth*/
+#ifdef VMUNIX
+#define WDSIZE 340	/*word buffer size*/
+#define LNSIZE 960	/*line buffer size*/
+#else
 #define WDSIZE 170	/*word buffer size*/
 #define LNSIZE 680	/*line buffer size*/
-/* BWK - changed from 480 after EVS changed */
+#endif
+/* #define LNSIZE 680	*/
 #define NDI 5	/*number of diversions*/
 #define DBL 0100000	/*double size indicator*/
 #define MOT 0100000	/*motion character indicator*/
@@ -90,9 +110,13 @@
 #define T_IESC 16 /*initial offset*/
 #define T_STOP 0111
 #define NPP 10	/*pads per field*/
+#ifdef VMUNIX
+#define FBUFSZ 1024
+#else
 #define FBUFSZ 256	/*field buf size words*/
-#define OBUFSZ 512	/*bytes*/
-#define IBUFSZ 512	/*bytes*/
+#endif
+#define OBUFSZ 8192	/*bytes*/
+#define IBUFSZ 8192	/*bytes*/
 #define NC 256	/*cbuf size words*/
 #define NOV 10	/*number of overstrike chars*/
 #define ZONE 5	/*5hrs for EST*/
@@ -109,6 +133,11 @@
 #define PAIR(A,B) (A|(B<<BYTE))
 
 #define BLK  128	/*alloc block words*/
+
+#ifdef VMUNIX
+#define	BIG 1024
+#endif VMUNIX
+
 #ifdef BIG
 typedef long filep;
 #define NBLIST BIG	/*allocation , BIG = 256 per 65k*/
@@ -120,4 +149,3 @@ typedef unsigned filep;
 /* BLK*NBLIST<=65536 words, if filep=unsigned */
 #define BLKBITS 0
 #endif
-

@@ -1,6 +1,18 @@
-#ifndef	lint
-static	char *sccsid = "@(#)mt.c	4.8 (Berkeley) 83/05/08";
-#endif
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)mt.c	5.1 (Berkeley) 4/30/85";
+#endif not lint
 
 /*
  * mt --
@@ -104,13 +116,6 @@ main(argc, argv)
 #include <sundev/arreg.h>
 #endif
 
-#ifdef pdp11
-#include <sys/htreg.h>
-#include <sys/tmreg.h>
-#undef b_repcnt		/* argh */
-#include <sys/tsreg.h>
-#endif
-
 struct tape_desc {
 	short	t_type;		/* type of magtape device */
 	char	*t_name;	/* printing name */
@@ -127,11 +132,6 @@ struct tape_desc {
 #ifdef sun
 	{ MT_ISCPC,	"TapeMaster",	TMS_BITS,	0 },
 	{ MT_ISAR,	"Archive",	ARCH_CTRL_BITS,	ARCH_BITS },
-#endif
-#ifdef pdp11
-	{ MT_ISTS,	"ts11",		0,		TSXS0_BITS },
-	{ MT_ISHT,	"tm03",		HTFS_BITS,	HTER_BITS },
-	{ MT_ISTM,	"tm11",		0,		TMER_BITS },
 #endif
 	{ 0 }
 };
@@ -168,7 +168,10 @@ printreg(s, v, bits)
 	register int i, any = 0;
 	register char c;
 
-	printf("%s=%o", s, v);
+	if (bits && *bits == 8)
+		printf("%s=%o", s, v);
+	else
+		printf("%s=%x", s, v);
 	bits++;
 	if (v && bits) {
 		putchar('<');

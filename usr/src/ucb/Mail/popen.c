@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)popen.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
+
 #include <stdio.h>
 #include <signal.h>
 #include <errno.h>
@@ -5,11 +15,10 @@
 #define	RDR	0
 #define	WTR	1
 static	int	popen_pid[20];
-static	char	*sccsid = "@(#)popen.c	1.6 6/12/83";
 
-# ifndef VMUNIX
-# define vfork	fork
-# endif VMUNIX
+#ifndef VMUNIX
+#define vfork	fork
+#endif VMUNIX
 #ifndef	SIGRETRO
 #define	sigchild()
 #endif
@@ -47,23 +56,20 @@ FILE *ptr;
 {
 	register f, r;
 	int status;
+	long omask;
 	extern int errno;
 
 	f = fileno(ptr);
 	fclose(ptr);
 # ifdef VMUNIX
-	sighold(SIGINT);
-	sighold(SIGQUIT);
-	sighold(SIGHUP);
+	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
 # endif VMUNIX
 	while((r = wait(&status)) != popen_pid[f] && r != -1 && errno != EINTR)
 		;
 	if(r == -1)
 		status = -1;
 # ifdef VMUNIX
-	sigrelse(SIGINT);
-	sigrelse(SIGQUIT);
-	sigrelse(SIGHUP);
+	sigsetmask(omask);
 # endif VMUNIX
 	return(status);
 }

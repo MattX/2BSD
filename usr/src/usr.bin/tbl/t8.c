@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)t8.c	4.2 8/11/83";
+#endif
+
  /* t8.c: write out one line of output table */
 # include "t..c"
 # define realsplit ((ct=='a'||ct=='n') && table[nl][c].rcol)
@@ -68,7 +72,7 @@ for(c=0; c<ncol; c++)
 	{
 	s = table[nl][c].col;
 	if (s==0) continue;
-	chfont |= (font[stynum[nl]][c]);
+	chfont |= (int)(font[stynum[nl]][c]);
 	if (point(s) ) continue;
 	lf=prev(nl);
 	if (lf>=0 && vspen(table[lf][c].col))

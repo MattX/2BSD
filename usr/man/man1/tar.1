@@ -1,5 +1,7 @@
-.TH TAR 1
-.UC
+.\"	@(#)tar.1	6.5 (Berkeley) 5/12/86
+.\"
+.TH TAR 1 "May 12, 1986"
+.AT 3
 .SH NAME
 tar \- tape archiver
 .SH SYNOPSIS
@@ -9,7 +11,7 @@ tar \- tape archiver
 .PP
 .I Tar
 saves and restores multiple files on a single file (usually a magnetic
-tape, but it can be any file).
+tape, but it can be any file).  
 .IR Tar 's
 actions are controlled by the
 .I key
@@ -33,9 +35,7 @@ function implies this.
 The named files are extracted from the tape.  If the named file
 matches a directory whose contents had been written onto the tape, this
 directory is (recursively) extracted.  The owner, modification time, and mode
-are restored (if possible; but see the
-.B p
-flag below).  If no file argument is given, the entire content
+are restored (if possible).  If no file argument is given, the entire content
 of the tape is extracted.  Note that if multiple entries specifying the same
 file are on the tape, the last one overwrites all earlier.
 .TP 8
@@ -52,36 +52,38 @@ already there or have been modified since last put on the tape.
 Create a new tape; writing begins on the beginning of the tape
 instead of after the last file.  This command implies
 .BR r .
-.TP 8
-.B C
-Compare the files on the tape to the named files; do comparisons for all files
-on the tape if there are no arguments.
-.TP 8
-.B X
-The following argument is taken to be the name of a directory whose contents
-are compared to the named files, or all files on the tape if there are no
-additional arguments.
-The files are extracted, compared to those in the specified directory,
-and if they are identical to those in the other directory, they are
-linked to the corresponding files there.
-The named directory must be on the same mounted filesystem as the
-current directory.
 .PP
 The following characters may be used in addition to the letter
 which selects the function desired.
 .TP 10
-.B 0, ..., 7
+.B o
+On output, tar normally places information specifying owner and modes
+of directories in the archive.  Former versions of tar, when encountering
+this information will give error message of the form
+.br
+	"<name>/: cannot create".
+.br
+This modifier will suppress the directory information.
+.TP 10
+.B p
+This modifier says to restore files to their original modes,
+ignoring the present
+.IR umask (2).
+Setuid and sticky information
+will also be restored to the super-user.
+.TP 10
+.B 0, ..., 9
 This modifier selects an alternate drive on which the tape is mounted.
-The default is drive 0 at 1600 bpi, which is normally /dev/rmt1.
+The default is drive 0 at 1600 bpi, which is normally /dev/rmt8.
 .TP 10
 .B v
 Normally
 .I tar
 does its work silently.  The
 .B v
-(verbose) option make
+(verbose) option makes
 .I tar
-type the name of each file it treats preceded by the function
+print the name of each file it treats preceded by the function
 letter.  With the
 .B t
 function, the verbose option
@@ -90,30 +92,29 @@ gives more information about the tape entries than just their names.
 .B w
 .I Tar
 prints the action to be taken followed by file name, then
-wait for user confirmation.  If a word beginning with `y'
-is given, the action is done.  Any other input means don't do it.
+wait for user confirmation. If a word beginning with `y'
+is given, the action is done. Any other input means don't do it.
 .TP 10
 .B f
 .I Tar
 uses the next argument as the name of the archive instead of
-/dev/rmt?.  If the name of the file is `\-', tar writes to standard output or
-reads from standard input, whichever is appropriate.  Thus,
+/dev/rmt?. If the name of the file is `\-', tar writes to standard output or
+reads from standard input, whichever is appropriate. Thus,
 .I tar
 can be used as the head or tail of a filter chain.
 .I Tar
 can also be used to move hierarchies with the command
 .ce 1
-cd fromdir; tar cf \- . | (cd todir; tar xf \-)
+cd fromdir; tar cf - . | (cd todir; tar xf -)
 .TP 10
 .B b
 .I Tar
-uses the next argument as the blocking factor for tape records.  The
-default is 20 (the maximum) for tape files, 2 otherwise.
-This option should only be used with raw magnetic
+uses the next argument as the blocking factor for tape records. The
+default is 20 (the maximum). This option should only be used with raw magnetic
 tape archives (See 
 .B f
 above).  The block size is determined automatically
-when reading tapes (key letters `r', `x' and `t').
+when reading tapes (key letters `x' and `t').
 .TP 10
 .B l
 tells 
@@ -127,23 +128,6 @@ tells
 not to restore the modification times.  The modification time
 will be the time of extraction.
 .TP 10
-.B o
-Tar normally places information specifying owner and modes
-of directories in the archive.  Former versions of tar, when encountering
-this information will give error message of the form
-.br
-	``<name>/: cannot create''.
-.br
-This option will suppress the directory information.
-.TP 10
-.B p
-Preserve all of the mode information.
-Files are restored to their original modes,
-ignoring the present
-.IR umask (2).
-Setuid and sticky information
-will also be restored for the super-user.
-.TP 10
 .B h
 Force 
 .I tar
@@ -151,40 +135,38 @@ to follow symbolic links as if they were normal files or
 directories.  Normally, 
 .I tar
 does not follow symbolic links.
-.PP
-When creating an archive, a
-.BI "\-C " directory
-embedded in the list of filenames instructs
+.TP 10
+.B B
+Forces input and output blocking to 20 blocks per record.  This option
+was added so that 
 .I tar
-to perform a
+can work across a communications channel where the blocking may not
+be maintained.
+.TP 10
+.B C
+If a file name is preceded by 
+.BR \-C ,
+then 
+.I tar
+will perform a
 .IR chdir (2)
-to the named
-.I directory
-before continuing to the next file.
-This allows multiple directories not
+to that file name.  This allows multiple directories not
 related by a close common parent to be archived using short
 relative path names.  For example, to archive files from /usr/include
 and from /etc, one might use
 .ti +0.5i
-tar c \-C /usr include \-C / etc
+tar c -C /usr include -C / etc
 .PP
 Previous restrictions dealing with
 .IR tar 's
-inability to properly update blocked archives have been lifted.
-This is dependent on the use of system tape handlers that support
-tape backspace operations.
-Archives on disk can be updated, but the blocking factor used must agree with
-that used to create the archive (which is difficult to determine);
-such operations are therefore somewhat risky.
-This version of
-.I tar
-uses a blocking factor of 2 by default for both creating and updating
-disk archives.
+inability to properly handle blocked archives have been lifted.
 .PP
 .SH FILES
 /dev/rmt?
 .br
 /tmp/tar*
+.SH "SEE ALSO"
+tar(5)
 .SH DIAGNOSTICS
 Complaints about bad key characters and tape read/write errors.
 .br
@@ -193,16 +175,19 @@ Complaints if enough memory is not available to hold the link tables.
 There is no way to ask for the
 .IR n -th
 occurrence of a file.
-Use the
-.B w
-option to extract the desired file.
 .br
 Tape errors are handled ungracefully.
 .br
 The 
-.BR u , " C " and " X"
-options can be slow.
+.B u
+option can be slow.
 .br
 The current limit on file name length is 100 characters.
 .br
-There is no way to selectively follow symbolic links.
+There is no way selectively to follow symbolic links.
+.br
+When extracting tapes created with the
+.B r
+or
+.B u
+options, directory modification times may not be set correctly.

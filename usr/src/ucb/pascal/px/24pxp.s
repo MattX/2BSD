@@ -14,7 +14,9 @@ _PXPBUF:
 	mov	r0,r2
 	mov	$426,(r2)+
 	clr	(r2)+
-	sys	time
+	clr	-(sp)
+	jsr	pc,_time
+	tst	(sp)+
 	mov	r0,(r2)+
 	mov	r1,(r2)+
 	mov	(lc)+,(r2)+

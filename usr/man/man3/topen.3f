@@ -1,5 +1,11 @@
-.TH TOPEN 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)topen.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH TOPEN 3F "May 15, 1985"
+.UC 5
 .SH NAME
 topen, tclose, tread, twrite, trewin, tskipf, tstate \- f77 tape I/O
 .SH SYNOPSIS
@@ -88,7 +94,7 @@ does not move the tape.
 The normal returned value is 0.
 If the value of the function is negative, an error has occured.
 See
-.IR perror (3f)
+.IR perror (3F)
 for details.
 .PP
 .I Tclose
@@ -172,8 +178,11 @@ It is not allowed to read past EOT although it is allowed to write.
 The value of
 .I tcsr
 will reflect the tape drive control status register.
+See
+.IR ht (4)
+for details.
 .SH FILES
 .ie \nM /usr/ucb/lib/libU77.a
 .el /usr/lib/libU77.a
 .SH "SEE ALSO"
-rewind(1), perror(3f), mt(4)
+ht(4), perror(3F), rewind(1)

@@ -1,8 +1,16 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)send.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 #include "rcv.h"
 #ifdef VMUNIX
-#include <wait.h>
+#include <sys/wait.h>
 #endif
 #include <ctype.h>
 #include <sys/stat.h>
@@ -12,8 +20,6 @@
  *
  * Mail to others.
  */
-
-static char *SccsId = "@(#)send.c	2.12 7/2/83";
 
 /*
  * Send message described by the passed pointer to the
@@ -260,7 +266,7 @@ mail1(hp)
 		grabh(hp, GCC);
 	else if (intty) {
 		printf("EOT\n");
-		flush();
+		fflush(stdout);
 	}
 
 	/*
@@ -338,10 +344,7 @@ topdog:
 	 */
 
 #ifdef VMUNIX
-#ifdef	pdp11
-	while (wait2(&s, WNOHANG) > 0)
-#endif
-#if defined(vax) || defined(sun)
+#if defined(pdp11) || defined(vax) || defined(sun)
 	while (wait3(&s, WNOHANG, 0) > 0)
 #endif
 		;

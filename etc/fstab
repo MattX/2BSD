@@ -1,0 +1,5 @@
+/dev/ra0b:/:rw:7:1
+/dev/ra0c:swap:sw:0:0
+/dev/ra0d:/usr:rw:7:2
+/dev/ra0a:/ULTRIX:xx:7:2
+/dev/ram:/tmp:xx:0:0

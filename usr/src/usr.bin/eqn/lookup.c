@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)lookup.c	4.2 8/11/83";
+#endif
+
 # include "e.h"
 #include "e.def"
 
@@ -159,7 +163,14 @@ struct {
 	"sin",	"\\f1sin\\fP",
 	"cos",	"\\f1cos\\fP",
 	"tan",	"\\f1tan\\fP",
+	"sec",  "\\f1sec\\fP",
+	"csc",  "\\f1csc\\fP",
 	"arc",	"\\f1arc\\fP",
+	"asin", "\\f1asin\\fP",
+	"acos", "\\f1acos\\fP",
+	"atan", "\\f1atan\\fP",
+	"asec", "\\f1asec\\fP",
+	"acsc", "\\f1acsc\\fP",
 	"sinh",	"\\f1sinh\\fP",
 	"coth",	"\\f1coth\\fP",
 	"tanh",	"\\f1tanh\\fP",

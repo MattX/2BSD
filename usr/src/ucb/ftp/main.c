@@ -1,36 +1,49 @@
+/*
+ * Copyright (c) 1985 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)main.c	4.9 (Berkeley) 7/18/83";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1985 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)main.c	5.6 (Berkeley) 3/7/86";
+#endif not lint
 
 /*
  * FTP User Program -- Command Interface.
  */
-#include <stdio.h>
-#include <sys/param.h>
+#include "ftp_var.h"
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 
 #include <arpa/ftp.h>
 
 #include <signal.h>
+#include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include <netdb.h>
 #include <pwd.h>
 
-#include "ftp_var.h"
 
-#define	CTRL(x) 037&'x'
-
+uid_t	getuid();
 int	intr();
 int	lostpeer();
 extern	char *home;
+char	*getlogin();
 
 main(argc, argv)
 	char *argv[];
 {
 	register char *cp;
 	int top;
-	struct passwd *pw;
+	struct passwd *pw = NULL;
 	char homedir[MAXPATHLEN];
 
 	sp = getservbyname("ftp", "tcp");
@@ -72,7 +85,7 @@ main(argc, argv)
 				break;
 
 			default:
-				fprintf(stderr,
+				fprintf(stdout,
 				  "ftp: %c: unknown option\n", *cp);
 				exit(1);
 			}
@@ -82,34 +95,40 @@ main(argc, argv)
 	/*
 	 * Set up defaults for FTP.
 	 */
-	strcpy(typename, "ascii"), type = TYPE_A;
-	strcpy(formname, "non-print"), form = FORM_N;
-	strcpy(modename, "stream"), mode = MODE_S;
-	strcpy(structname, "file"), stru = STRU_F;
-	strcpy(bytename, "8"), bytesize = 8;
+	(void) strcpy(typename, "ascii"), type = TYPE_A;
+	(void) strcpy(formname, "non-print"), form = FORM_N;
+	(void) strcpy(modename, "stream"), mode = MODE_S;
+	(void) strcpy(structname, "file"), stru = STRU_F;
+	(void) strcpy(bytename, "8"), bytesize = 8;
 	if (fromatty)
 		verbose++;
+	cpend = 0;           /* no pending replies */
+	proxy = 0;	/* proxy not active */
+	crflag = 1;    /* strip c.r. on ascii gets */
 	/*
 	 * Set up the home directory in case we're globbing.
 	 */
-	pw = getpwnam(getlogin());
+	cp = getlogin();
+	if (cp != NULL) {
+		pw = getpwnam(cp);
+	}
 	if (pw == NULL)
 		pw = getpwuid(getuid());
 	if (pw != NULL) {
 		home = homedir;
-		strcpy(home, pw->pw_dir);
+		(void) strcpy(home, pw->pw_dir);
 	}
 	if (argc > 0) {
 		if (setjmp(toplevel))
 			exit(0);
-		sigset(SIGINT, intr);
-		sigset(SIGPIPE, lostpeer);
+		(void) signal(SIGINT, intr);
+		(void) signal(SIGPIPE, lostpeer);
 		setpeer(argc + 1, argv - 1);
 	}
 	top = setjmp(toplevel) == 0;
 	if (top) {
-		sigset(SIGINT, intr);
-		sigset(SIGPIPE, lostpeer);
+		(void) signal(SIGINT, intr);
+		(void) signal(SIGPIPE, lostpeer);
 	}
 	for (;;) {
 		cmdscanner(top);
@@ -128,23 +147,33 @@ lostpeer()
 	extern FILE *cout;
 	extern int data;
 
-	if (conned) {
+	if (connected) {
 		if (cout != NULL) {
-			shutdown(fileno(cout), 1+1);
-			fclose(cout);
+			(void) shutdown(fileno(cout), 1+1);
+			(void) fclose(cout);
 			cout = NULL;
 		}
 		if (data >= 0) {
-			shutdown(data, 1+1);
+			(void) shutdown(data, 1+1);
 			(void) close(data);
 			data = -1;
 		}
-		conned = 0;
+		connected = 0;
 	}
-	longjmp(toplevel, 1);
+	pswitch(1);
+	if (connected) {
+		if (cout != NULL) {
+			(void) shutdown(fileno(cout), 1+1);
+			(void) fclose(cout);
+			cout = NULL;
+		}
+		connected = 0;
+	}
+	proxflag = 0;
+	pswitch(0);
 }
 
-char *
+/*char *
 tail(filename)
 	char *filename;
 {
@@ -160,6 +189,11 @@ tail(filename)
 	}
 	return (filename);
 }
+*/
+
+#ifdef BSD2_10
+extern struct cmd cmdtab[];
+#endif
 
 /*
  * Command parser.
@@ -173,22 +207,23 @@ cmdscanner(top)
 	extern int help();
 
 	if (!top)
-		putchar('\n');
+		(void) putchar('\n');
 	for (;;) {
 		if (fromatty) {
 			printf("ftp> ");
-			fflush(stdout);
+			(void) fflush(stdout);
 		}
 		if (gets(line) == 0) {
-			if (!fromatty)
+			if (feof(stdin))
 				quit();
-			clearerr(stdin);
-			putchar('\n');
 			break;
 		}
 		if (line[0] == 0)
 			break;
 		makeargv();
+		if (margc == 0) {
+			continue;
+		}
 		c = getcmd(margv[0]);
 		if (c == (struct cmd *)-1) {
 			printf("?Ambiguous command\n");
@@ -198,17 +233,18 @@ cmdscanner(top)
 			printf("?Invalid command\n");
 			continue;
 		}
-		if (c->c_conn && !conned) {
+		if (c->c_conn && !connected) {
 			printf ("Not connected.\n");
 			continue;
 		}
 		(*c->c_handler)(margc, margv);
 		if (bell && c->c_bell)
-			putchar(CTRL(g));
+			(void) putchar(CTRL(g));
 		if (c->c_handler != help)
 			break;
 	}
-	longjmp(toplevel, 0);
+	(void) signal(SIGINT, intr);
+	(void) signal(SIGPIPE, lostpeer);
 }
 
 struct cmd *
@@ -243,6 +279,9 @@ getcmd(name)
 /*
  * Slice a string up into argc/argv.
  */
+
+int slrflag;
+
 makeargv()
 {
 	char **argp;
@@ -252,6 +291,7 @@ makeargv()
 	argp = margv;
 	stringbase = line;		/* scan from first of buffer */
 	argbase = argbuf;		/* store from first of buffer */
+	slrflag = 0;
 	while (*argp++ = slurpstring())
 		margc++;
 }
@@ -269,10 +309,22 @@ slurpstring()
 	register char *ap = argbase;
 	char *tmp = argbase;		/* will return this if token found */
 
-	if (*sb == '!') {		/* recognize ! as a token for shell */
-		stringbase++;
-		return ("!");
+	if (*sb == '!' || *sb == '$') {	/* recognize ! as a token for shell */
+		switch (slrflag) {	/* and $ as token for macro invoke */
+			case 0:
+				slrflag++;
+				stringbase++;
+				return ((*sb == '!') ? "!" : "$");
+				break;
+			case 1:
+				slrflag++;
+				altarg = stringbase;
+				break;
+			default:
+				break;
+		}
 	}
+
 S0:
 	switch (*sb) {
 
@@ -284,6 +336,17 @@ S0:
 		sb++; goto S0;
 
 	default:
+		switch (slrflag) {
+			case 0:
+				slrflag++;
+				break;
+			case 1:
+				slrflag++;
+				altarg = sb;
+				break;
+			default:
+				break;
+		}
 		goto S1;
 	}
 
@@ -339,8 +402,20 @@ OUT:
 		*ap++ = '\0';
 	argbase = ap;			/* update storage pointer */
 	stringbase = sb;		/* update scan pointer */
-	if (got_one)
+	if (got_one) {
 		return(tmp);
+	}
+	switch (slrflag) {
+		case 0:
+			slrflag++;
+			break;
+		case 1:
+			slrflag++;
+			altarg = (char *) 0;
+			break;
+		default:
+			break;
+	}
 	return((char *)0);
 }
 
@@ -357,7 +432,7 @@ help(argc, argv)
 	register struct cmd *c;
 
 	if (argc == 1) {
-		register int i, j, w;
+		register int i, j, w, k;
 		int columns, width = 0, lines;
 		extern int NCMDS;
 
@@ -376,7 +451,14 @@ help(argc, argv)
 		for (i = 0; i < lines; i++) {
 			for (j = 0; j < columns; j++) {
 				c = cmdtab + j * lines + i;
-				printf("%s", c->c_name);
+				if (c->c_name && (!proxy || c->c_proxy)) {
+					printf("%s", c->c_name);
+				}
+				else if (c->c_name) {
+					for (k=0; k < strlen(c->c_name); k++) {
+						(void) putchar(' ');
+					}
+				}
 				if (c + lines >= &cmdtab[NCMDS]) {
 					printf("\n");
 					break;
@@ -384,7 +466,7 @@ help(argc, argv)
 				w = strlen(c->c_name);
 				while (w < width) {
 					w = (w + 8) &~ 7;
-					putchar('\t');
+					(void) putchar('\t');
 				}
 			}
 		}
@@ -407,7 +489,7 @@ help(argc, argv)
 /*
  * Call routine with argc, argv set from args (terminated by 0).
  */
-/* VARARGS2 */
+/*VARARGS1*/
 call(routine, args)
 	int (*routine)();
 	int args;
@@ -418,10 +500,4 @@ call(routine, args)
 	for (argc = 0, argp = &args; *argp++ != 0; argc++)
 		;
 	(*routine)(argc, &args);
-}
-
-shutdown (fd, how)
-int fd, how;
-{
-	ioctl (fd, SIOCDONE, &how);
 }

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)lmain.c	4.3 (Berkeley) 2/21/85";
+#endif
+
 # include "ldefs.c"
 # include "once.c"
 
@@ -11,8 +15,9 @@ main(argc,argv)
   char **argv; {
 	register int i;
 # ifdef DEBUG
-	signal(10,buserr);
-	signal(11,segviol);
+#include <signal.h>
+	signal(SIGBUS,buserr);
+	signal(SIGSEGV,segviol);
 # endif
 	while (argc > 1 && argv[1][0] == '-' ){
 		i = 0;
@@ -51,7 +56,6 @@ main(argc,argv)
 	if (argc > 1){
 		fin = fopen(argv[++fptr], "r");		/* open argv[1] */
 		sargc--;
-		sargv++;
 		}
 	else fin = stdin;
 	if(fin == NULL)
@@ -62,7 +66,7 @@ main(argc,argv)
 		/* may be gotten: name, left, right, nullstr, parent */
 	scopy("INITIAL",sp);
 	sname[0] = sp;
-	sp =+ slength("INITIAL") + 1;
+	sp += slength("INITIAL") + 1;
 	sname[1] = 0;
 	if(yyparse(0)) exit(1);	/* error return code */
 		/* may be disposed of: def, subs, dchar */
@@ -119,10 +123,10 @@ get1core(){
 	register char *p;
 ccptr =	ccl = myalloc(CCLSIZE,sizeof(*ccl));
 pcptr = pchar = myalloc(pchlen, sizeof(*pchar));
-	def = myalloc(DEFSIZE,sizeof(*def));
-	subs = myalloc(DEFSIZE,sizeof(*subs));
+	def = (char **) myalloc(DEFSIZE,sizeof(*def));
+	subs = (char **) myalloc(DEFSIZE,sizeof(*subs));
 dp =	dchar = myalloc(DEFCHAR,sizeof(*dchar));
-	sname = myalloc(STARTSIZE,sizeof(*sname));
+	sname = (char **) myalloc(STARTSIZE,sizeof(*sname));
 sp = 	schar = myalloc(STARTCHAR,sizeof(*schar));
 	if(ccl == 0 || def == 0 || subs == 0 || dchar == 0 || sname == 0 || schar == 0)
 		error("Too little core to begin");
@@ -135,16 +139,16 @@ free1core(){
 get2core(){
 	register int i, val;
 	register char *p;
-	gotof = myalloc(nstates,sizeof(*gotof));
-	nexts = myalloc(ntrans,sizeof(*nexts));
+	gotof = (int *) myalloc(nstates,sizeof(*gotof));
+	nexts = (int *) myalloc(ntrans,sizeof(*nexts));
 	nchar = myalloc(ntrans,sizeof(*nchar));
-	state = myalloc(nstates,sizeof(*state));
-	atable = myalloc(nstates,sizeof(*atable));
-	sfall = myalloc(nstates,sizeof(*sfall));
+	state = (int **) myalloc(nstates,sizeof(*state));
+	atable = (int *) myalloc(nstates,sizeof(*atable));
+	sfall = (int *) myalloc(nstates,sizeof(*sfall));
 	cpackflg = myalloc(nstates,sizeof(*cpackflg));
 	tmpstat = myalloc(tptr+1,sizeof(*tmpstat));
-	foll = myalloc(tptr+1,sizeof(*foll));
-nxtpos = positions = myalloc(maxpos,sizeof(*positions));
+	foll = (int **) myalloc(tptr+1,sizeof(*foll));
+nxtpos = positions = (int *) myalloc(maxpos,sizeof(*positions));
 	if(tmpstat == 0 || foll == 0 || positions == 0 ||
 		gotof == 0 || nexts == 0 || nchar == 0 || state == 0 || atable == 0 || sfall == 0 || cpackflg == 0 )
 		error("Too little core for state generation");
@@ -167,9 +171,9 @@ free2core(){
 get3core(){
 	register int i, val;
 	register char *p;
-	verify = myalloc(outsize,sizeof(*verify));
-	advance = myalloc(outsize,sizeof(*advance));
-	stoff = myalloc(stnum+2,sizeof(*stoff));
+	verify = (int *) myalloc(outsize,sizeof(*verify));
+	advance = (int *) myalloc(outsize,sizeof(*advance));
+	stoff = (int *) myalloc(stnum+2,sizeof(*stoff));
 	if(verify == 0 || advance == 0 || stoff == 0)
 		error("Too little core for final packing");
 	}
@@ -188,11 +192,11 @@ free3core(){
 # endif
 char *myalloc(a,b)
   int a,b; {
-	register int i;
+	register char *i;
 	i = calloc(a, b);
 	if(i==0)
 		warning("OOPS - calloc returns a 0");
-	else if(i == -1){
+	else if(i == (char *)-1){
 # ifdef DEBUG
 		warning("calloc returns a -1");
 # endif
@@ -222,5 +226,6 @@ segviol(){
 yyerror(s)
 char *s;
 {
-	fprintf(stderr, "%s\n", s);
+	fprintf(stderr, "\"%s\", line %d: %s\n",
+		fptr > 0 ? sargv[fptr] : "<stdin>", yyline, s);
 }

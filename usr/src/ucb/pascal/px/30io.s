@@ -83,9 +83,14 @@ _RESET:
 	bne	1f
 	tst	_unit0+FNAME
 	bne	1f
-	clr	r0
-	sys	lseek; 0; 0; 0
-	bes	9f
+	clr	-(sp)
+	clr	-(sp)
+	clr	-(sp)
+	clr	-(sp)
+	jsr	pc,_lseek
+	add	$8.,sp
+	tst	r0
+	bmi	9f
 	tst	(sp)+
 	tst	(lc)+
 	bic	$EOF+EOLN,_unit0+FUNIT
@@ -93,44 +98,47 @@ _RESET:
 	return
 9:
 	mov	$stdin,_file
-	mov	r0,_errno
 	mov	$ESEEK,_perrno
 	error	ESEEK
 1:
 	jsr	pc,getname
 	mov	r0,r1
 	mov	PFNAME(r1),_file
-	mov	FNAME(r1),openrnm
-	sys	indir; openr
-	bes	eopen
+	clr	-(sp)
+	mov	FNAME(r1),-(sp)
+	jsr	pc,_open
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	eopen
 	mov	r0,*FBUF(r1)
 	bis	$SYNC|FREAD,r0
 	bis	r0,FUNIT(r1)
 	return
 ecreat:
-	mov	r0,_errno
 	mov	$ECREATE,_perrno
 	error	ECREATE
 eopen:
-	mov	r0,_errno
 	mov	$EOPEN,_perrno
 	error	EOPEN
-.data
-openr:	sys	open; openrnm: .. ; 0
-creit:	sys	creat; crenm: ..; 0644
-openw:	sys	open; openwnm: .. ; 1
-.text
 _REWRITE:
 	jsr	pc,getname
 	mov	r0,r1
 	mov	PFNAME(r1),_file
-	mov	FNAME(r1),crenm
-	sys	indir; creit
-	bes	ecreat
-	sys	close
-	mov	FNAME(r1),openwnm
-	sys	indir; openw
-	bes	eopen
+	mov	$0644,-(sp)
+	mov	FNAME(r1),-(sp)
+	jsr	pc,_creat
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	ecreat
+	mov	r0,-(sp)
+	jsr	pc,_close
+	tst	(sp)+
+	mov	$1,-(sp)
+	mov	FNAME(r1),-(sp)
+	jsr	pc,_open
+	cmp	(sp)+,(sp)+
+	tst	r0
+	bmi	eopen
 	mov	r0,*FBUF(r1)
 	bis	$EOF|FWRITE,r0
 	bis	r0,FUNIT(r1)
@@ -156,18 +164,16 @@ _REMOVE:
 	bne	1b
 1:
 	sub	r3,r1
-	mov	r1,1f
 	mov	r1,_file
-	sys	indir; 0f
-	bes	9f
+	mov	r1,-(sp)
+	jsr	pc,_unlink
+	tst	(sp)+
+	tst	r0
+	bmi	9f
 	movb	r2,(r0)
 	return
-.data
-0:	sys	unlink; 1: ..
-.text
 9:
 	mov	_file,sp
-	mov	r0,_errno
 	mov	$EREMOVE,_perrno
 	error	EREMOVE
 _UNITINP:

@@ -93,8 +93,11 @@ gotone:
 	mov	(sp)+,r0
 6:
 	bic	$!17,r0
-	sys	close
-	bes	9f
+	mov	r0,-(sp)
+	jsr	pc,_close
+	tst	(sp)+
+	tst	r0
+	bmi	9f
 	bit	$TEMP,FUNIT(r1)
 	beq	1f
 	tst	r3
@@ -203,12 +206,11 @@ newsp:	.=.+2
 cleanup:
 	mov	r2,-(sp)
 	mov	4(sp),r2
-	mov	PFNAME(r2),0f
-	sys	indir;8f
-.data
-8:	sys	unlink;0: ..
-.text
-	bec	1f
+	mov	PFNAME(r2),-(sp)
+	jsr	pc,_unlink
+	tst	(sp)+
+	tst	r0
+	bpl	1f
 	mov	PFNAME(r2),_file
 	mov	$EREMOVE,_perrno
 	error	EREMOVE

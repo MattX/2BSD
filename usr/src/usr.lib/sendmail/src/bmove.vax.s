@@ -1,7 +1,16 @@
 #
-#  BMOVE.S -- optimized block move routine.
+#  Sendmail
+#  Copyright (c) 1983  Eric P. Allman
+#  Berkeley, California
 #
-#	@(#)bmove.vax.s	4.1	7/25/83
+#  Copyright (c) 1983 Regents of the University of California.
+#  All rights reserved.  The Berkeley software License Agreement
+#  specifies the terms and conditions for redistribution.
+#
+#	@(#)bmove.vax.s	5.1 (Berkeley) 6/7/85
+#
+#
+#  BMOVE.S -- optimized block move routine.
 #
 .globl	_bmove
 _bmove:

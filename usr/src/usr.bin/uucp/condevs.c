@@ -1,5 +1,9 @@
-/* $Header: condevs.c,v 1.34 85/07/19 21:29:33 rick Exp $ */
-/* from: @(#)condevs.c	5.6 (Berkeley) 8/12/83 */
+#ifndef lint
+static char sccsid[] = "@(#)condevs.c	5.15 (Berkeley) 2/12/86";
+#endif
+
+extern int errno;
+extern char *sys_errlist[];
 
 /*
  * Here are various dialers to establish the machine-machine connection.
@@ -51,11 +55,19 @@ struct condev condevs[] = {
 	{ "ACU", "hayestone", Acuopn, hystopn, hyscls },
 	{ "WATS", "hayestone", Acuopn, hystopn, hyscls },
 #endif HAYES
+#ifdef HAYES2400
+	{ "ACU", "hayes2400", Acuopn, hyspopn24, hyscls24 },
+	{ "ACU", "hayes2400pulse", Acuopn, hyspopn24, hyscls24 },
+	{ "ACU", "hayes2400tone", Acuopn, hystopn24, hyscls24 },
+#endif HAYES2400
 #ifdef HAYESQ	/* a version of hayes that doesn't use result codes */
 	{ "ACU", "hayesq", Acuopn, hysqpopn, hysqcls },
 	{ "ACU", "hayesqpulse", Acuopn, hysqpopn, hysqcls },
 	{ "ACU", "hayesqtone", Acuopn, hysqtopn, hysqcls },
 #endif HAYESQ
+#ifdef CDS224
+	{ "ACU", "cds224", Acuopn, cdsopn224, cdscls224},
+#endif CDS224
 #ifdef NOVATION
 	{ "ACU", "novation", Acuopn, novopn, novcls},
 #endif NOVATION
@@ -94,6 +106,10 @@ struct condev condevs[] = {
 #ifdef SYTEK
 	{ "SYTEK", "sytek", sykopn, nulldev, sykcls },
 #endif SYTEK
+#ifdef ATT2224
+	{ "ACU", "att", Acuopn, attopn, attcls },	
+#endif ATT2224
+
 
 	/* Insert new entries before this line */
 	{ NULL, NULL, NULL, NULL, NULL }
@@ -178,14 +194,16 @@ register char *flds[];
 
 	sprintf(dcname, "/dev/%s", dev.D_line);
 	if (setjmp(Sjbuf)) {
+		DEBUG(4, "Open timed out\n", CNULL);
 		delock(dev.D_line);
 		return CF_DIAL;
 	}
 	signal(SIGALRM, alarmtr);
-	alarm(10);
+	/* For PC Pursuit, it could take a while to call back */
+	alarm( strcmp(flds[F_LINE], "PCP") ? 10 : MAXMSGTIME*4 );
 	getnextfd();
 	errno = 0;
-        DEBUG(4,"Opening %s",dcname);
+        DEBUG(4,"Opening %s\n",dcname);
 	dcr = open(dcname, 2); /* read/write */
 #ifdef VMSDTR	/* Modem control on vms(works dtr) */
 	fflush(stdout);
@@ -209,16 +227,19 @@ register char *flds[];
 	}
 #endif VMSDTR
 	next_fd = -1;
-	if (dcr < 0 && errno == EACCES)
-		logent(dcname, "CAN'T OPEN");
 	alarm(0);
 	if (dcr < 0) {
+		if (errno == EACCES)
+			logent(dev.D_line, "CANT OPEN");
+		DEBUG(4, "OPEN FAILED: errno %d\n", errno);
 		delock(dev.D_line);
 		return CF_DIAL;
 	}
 	fflush(stdout);
-	if (fixline(dcr, dev.D_speed) == FAIL)
+	if (fixline(dcr, dev.D_speed) == FAIL) {
+		DEBUG(4, "FIXLINE FAILED\n", CNULL);
 		return CF_DIAL;
+	}
 	strcpy(devSel, dev.D_line);	/* for latter unlock */
 	CU_end = dircls;
 	return dcr;
@@ -338,7 +359,6 @@ register char *flds[];
 	return retval;
 }
 
-#if defined(VENTEL) || defined(NOVATION) || defined(DF112)
 /*
  * intervaldelay:  delay execution for numerator/denominator seconds.
  */
@@ -400,13 +420,60 @@ register char *str;
 	DEBUG(6, "slowrite ", CNULL);
 	while (*str) {
 		DEBUG(6, "%c", *str);
-		uucpdelay(1,10);	/* delay 1/10 second */
+		uucpdelay(1, 10);	/* delay 1/10 second */
 		write(fd, str, 1);
 		str++;
 	}
 	DEBUG(6, "\n", CNULL);
 }
-#endif VENTEL || NOVATION || DF112
+
+#define BSPEED B150
+
+/*
+ *	send a break
+ */
+genbrk(fn, bnulls)
+register int fn, bnulls;
+{
+#ifdef	USG
+	if (ioctl(fn, TCSBRK, STBNULL) < 0)
+		DEBUG(5, "break TCSBRK %s\n", sys_errlist[errno]);
+#else	!USG
+# ifdef	TIOCSBRK
+	if (ioctl(fn, TIOCSBRK, STBNULL) < 0)
+		DEBUG(5, "break TIOCSBRK %s\n", sys_errlist[errno]);
+# ifdef	TIOCCBRK
+	uucpdelay(bnulls, 10);
+	if (ioctl(fn, TIOCCBRK, STBNULL) < 0)
+		DEBUG(5, "break TIOCCBRK %s\n", sys_errlist[errno]);
+# endif TIOCCBRK
+	DEBUG(4, "ioctl %f second break\n", (float) bnulls/10 );
+# else !TIOCSBRK
+	struct sgttyb ttbuf;
+	register int sospeed;
+
+	if (ioctl(fn, TIOCGETP, &ttbuf) < 0)
+		DEBUG(5, "break TIOCGETP %s\n", sys_errlist[errno]);
+	sospeed = ttbuf.sg_ospeed;
+	ttbuf.sg_ospeed = BSPEED;
+	if (ioctl(fn, TIOCSETP, &ttbuf) < 0)
+		DEBUG(5, "break TIOCSETP %s\n", sys_errlist[errno]);
+	if (write(fn, "\0\0\0\0\0\0\0\0\0\0\0\0", bnulls) != bnulls) {
+badbreak:
+		logent(sys_errlist[errno], "BAD WRITE genbrk");
+		alarm(0);
+		longjmp(Sjbuf, 3);
+	}
+	ttbuf.sg_ospeed = sospeed;
+	if (ioctl(fn, TIOCSETP, &ttbuf) < 0)
+		DEBUG(5, "break ioctl %s\n", sys_errlist[errno]);
+	if (write(fn, "@", 1) != 1)
+		goto badbreak;
+	DEBUG(4, "sent BREAK nulls - %d\n", bnulls);
+#endif !TIOCSBRK
+#endif !USG
+}
+
 
 #ifdef DIALINOUT
 /* DIALIN/OUT CODE (WLS) */
@@ -439,7 +506,6 @@ register char *dev;
 	DEBUG(4, "Disable %s\n", rdev);
 	if (enbcall("disable", rdev) == FAIL)
 		return FAIL;
-	logent(rdev, "DISABLED LOGIN");
 	strcpy(enbdev, rdev);
 	return SUCCESS;
 }
@@ -450,7 +516,6 @@ reenable()
 		return;
 	DEBUG(4, "Reenable %s\n", enbdev);
 	(void) enbcall("enable", enbdev);
-	logent(enbdev, "REENABLED LOGIN");
 	enbdev[0] = '\0';
 }
 

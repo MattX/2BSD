@@ -1,36 +1,45 @@
 /*
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)do_config.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
+
+/*
  * Now with all our information, make a configuration
  * Devices without both attach and probe routines will
  * not be configured into the system
  */
 
-#include	<stdio.h>
-#include	<a.out.h>
-#include	<sys/autoconfig.h>
-#include	<sys/trap.h>
-#include	<errno.h>
-#include	<sys/psw.h>
-#include	"dtab.h"
-#include	"ivec.h"
+#include <machine/psl.h>
+#include <machine/trap.h>
+#include <machine/autoconfig.h>
+#include <sys/types.h>
+#include <a.out.h>
+#include <errno.h>
+#include <stdio.h>
+#include "dtab.h"
+#include "ivec.h"
 
-extern int kmem, verbose, debug, errno, complain;
-extern struct nlist *bad_nl, *good_nl, *int_nl, *end_vector, *trap_nl, *sep_nl;
+extern int	kmem, verbose, debug, errno, complain;
+extern NLIST	*bad_nl, *good_nl, *int_nl, *end_vector, *trap_nl, *sep_nl;
 
 grab(where)
-unsigned int where;
+u_int	where;
 {
-	int var;
+	int	var;
 
 	if (debug) {
 		char line[80];
 
-		printf("Grab %o =", where);
-		gets(line);
-		return otoi(line);
+		printf("Grab %o =",where);
+		scanf("%o",&var);
+		return(var);
 	}
-	lseek(kmem, ((long) where) & 0xffffL, 0);
-	read(kmem, &var, sizeof var);
-	return var;
+	lseek(kmem,((long) where) & 0xffffL,0);
+	read(kmem,&var,sizeof(var));
+	return(var);
 }
 
 stuff(var, where)
@@ -50,7 +59,7 @@ unsigned int where;
 }
 
 prdev(dp)
-struct dtab_s *dp;
+DTAB	*dp;
 {
 	printf("%s ", dp->dt_name);
 	if (dp->dt_unit == -1)
@@ -76,29 +85,29 @@ struct dtab_s *dp;
 
 auto_config()
 {
-	register struct dtab_s *dp;
+	register DTAB	*dp;
 	int ret;
 
 	if (intval() != CONF_MAGIC) {
-		fputs("Namelist doesn't match running kernel\n",stderr);
+		fputs(myname,stderr);
+		fputs(": namelist doesn't match running kernel.\n",stderr);
 		exit(AC_SETUP);
 	}
 
 	init_lowcore(bad_nl->n_value);
 
 	for (dp = devs; dp != NULL; dp = dp->dt_next) {
-
-		/* Make sure we have both a probe and attach routine */
+		/*
+		 * Make sure we have both a probe and attach routine
+		 */
 		if (!((dp->dt_uprobe || (dp->dt_probe && dp->dt_probe->n_value))
 		    && (dp->dt_attach && dp->dt_attach->n_value))) {
 			if (debug || verbose) {
 				prdev(dp);
-				puts(" skipped:  No autoconfig routines");
+				puts(" skipped:  No autoconfig routines.");
 			}
 			continue;
-		}
-
-		/* Make sure the CSR is there */
+		}			/* Make sure the CSR is there */
 		errno = 0;
 		grab(dp->dt_addr);
 		if (errno) {
@@ -106,17 +115,15 @@ auto_config()
 				perror("Reading CSR");
 			if (debug || verbose) {
 				prdev(dp);
-				puts(" skipped:  No CSR");
+				puts(" skipped:  No CSR.");
 			}
 			detach(dp);
 			continue;
-		}
-
-		/* Ok, try a probe now */
+		}			/* Ok, try a probe now */
 		if (expect_intr(dp)) {
 			if (complain) {
 				prdev(dp);
-				puts(" interrupt vector already in use");
+				puts(" interrupt vector already in use.");
 			}
 			detach(dp);
 			continue;
@@ -127,7 +134,7 @@ auto_config()
 			case ACP_NXDEV:
 				if (debug || verbose) {
 					prdev(dp);
-					puts(" does not exist");
+					puts(" does not exist.");
 				}
 				detach(dp);
 				break;
@@ -136,14 +143,14 @@ auto_config()
 					case ACI_BADINTR:
 						if (debug || verbose || complain) {
 							prdev(dp);
-							puts(" interrupt vector wrong");
+							puts(" interrupt vector wrong.");
 						}
 						detach(dp);
 						break;
 					case ACI_NOINTR:
 						if (complain) {
 							prdev(dp);
-							puts(" didn't interrupt");
+							puts(" didn't interrupt.");
 						}
 						detach(dp);
 						break;
@@ -152,18 +159,16 @@ auto_config()
 						break;
 					default:
 						prdev(dp);
-						printf(" bad interrupt value %d\n", intval());
+						printf(" bad interrupt value %d.\n", intval());
 						break;
 				}
 				break;
-
 			case ACP_EXISTS:
 				attach(dp);
 				break;
-			
 			default:
 				prdev(dp);
-				printf(" bad probe value %d\n", ret);
+				printf(" bad probe value %d.\n", ret);
 				break;
 		}
 	}
@@ -197,13 +202,13 @@ static int save_vec[9][2], save_p;
  */
 
 expect_intr(dp)
-struct dtab_s *dp;
+DTAB	*dp;
 {
-	struct handler_s *hp;
+	HAND	*hp;
 	int addr;
 
 	addr = dp->dt_vector;
-	for (save_p = 0, hp = dp->dt_handlers; hp != NULL; hp = hp->s_next) {
+	for (save_p = 0, hp = (HAND *)dp->dt_handlers;hp;hp = hp->s_next) {
 		save_vec[save_p][1] = grab(addr + sizeof(int));
 		if (((save_vec[save_p][0] = grab(addr)) != bad_nl->n_value)
 		    && ((save_vec[save_p][0] != hp->s_nl->n_value)
@@ -212,14 +217,14 @@ struct dtab_s *dp;
 			return 1;
 		}
 		save_p ++;
-		write_vector(addr, good_nl->n_value, PS_BR7);
+		write_vector(addr, good_nl->n_value, PSL_BR7);
 		addr += IVSIZE;
 	}
 	return 0;
 }
 
 clear_vec(dp)
-register struct dtab_s *dp;
+register DTAB	*dp;
 {
 	register int addr = dp->dt_vector, n;
 
@@ -238,12 +243,12 @@ init_lowcore(val)
 	for (addr = 0; addr < end_vector->n_value; addr += IVSIZE) {
 		if (grab(addr) || grab(addr + 2))
 			continue;
-		write_vector(addr, val, PS_BR7);
+		write_vector(addr, val, PSL_BR7);
 	}
 }
 
 do_probe(dp, a1)
-register struct dtab_s *dp;
+register DTAB	*dp;
 int a1;
 {
 	int func;
@@ -254,7 +259,7 @@ int a1;
 		char line[80];
 
 		if (func)
-			printf("ucall %o(PS_BR0, %o, 0):", func, a1);
+			printf("ucall %o(PSL_BR0, %o, 0):", func, a1);
 		else
 			printf("probe %s:", dp->dt_name);
 		fputs(" return conf_int:",stdout);
@@ -269,7 +274,7 @@ int a1;
 	 */
 	if (func) {
 		errno = 0;
-		ret = ucall(PS_BR0, func, a1, 0);
+		ret = ucall(PSL_BR0, func, a1, 0);
 		if (errno)
 			perror("ucall");
 		return(ret);
@@ -295,10 +300,10 @@ set_unused()
 		 * at 0 to serve as both a vector and an instruction
 		 * (br 112 is octal 444).
 		 */
-		if ((grab(0110) == bad_nl->n_value) && (grab(0112) == PS_BR7)
-		    && (grab(0444) == bad_nl->n_value) && (grab(0446) == PS_BR7)) {
+		if ((grab(0110) == bad_nl->n_value) && (grab(0112) == PSL_BR7)
+		    && (grab(0444) == bad_nl->n_value) && (grab(0446) == PSL_BR7)) {
 			stuff(0444, 0);			/* br 0112 */
-			stuff(PS_BR7 + ZEROTRAP, 2);
+			stuff(PSL_BR7 + T_ZEROTRAP, 2);
 			stuff(trap_nl->n_value, 0110);	/* trap; 756 (br7+14.)*/
 			stuff(0756, 0112);		/* br 050 */
 			stuff(0137, 0444);		/* jmp $*trap */
@@ -308,6 +313,6 @@ set_unused()
 	for (addr = 0; addr < end_vector->n_value; addr += IVSIZE) {
 		if (grab(addr) != bad_nl->n_value)
 			continue;
-		write_vector(addr, trap_nl->n_value, PS_BR7+RANDOMTRAP);
+		write_vector(addr, trap_nl->n_value, PSL_BR7+T_RANDOMTRAP);
 	}
 }

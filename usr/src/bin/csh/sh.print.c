@@ -1,18 +1,19 @@
-static	char *sccsid = "@(#)sh.print.c 4.1 10/9/80";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)sh.print.c	5.2 (Berkeley) 6/6/85";
+#endif
 
 #include "sh.h"
+#include <sys/ioctl.h>
 
 /*
  * C Shell
  */
-
-p60ths(l)
-	long l;
-{
-
-	l += 3;
-	printf("%d.%d", (int) (l / 60), (int) ((l % 60) / 6));
-}
 
 psecs(l)
 	long l;
@@ -70,9 +71,7 @@ draino()
 flush()
 {
 	register int unit;
-	int lmode = 0;
-
-#include <sys/ioctl.h>
+	int lmode;
 
 	if (linp == linbuf)
 		return;
@@ -81,35 +80,13 @@ flush()
 	else
 		unit = didfds ? 1 : SHOUT;
 #ifdef TIOCLGET
-	if (didfds==0 && ioctl(unit, TIOCLGET, &lmode)==0 &&
-	    lmode & LFLUSHO) {
+	if (didfds == 0 && ioctl(unit, TIOCLGET, (char *)&lmode) == 0 &&
+	    lmode&LFLUSHO) {
 		lmode = LFLUSHO;
-		ioctl(unit, TIOCLBIC, &lmode);
-		write(unit, "\n", 1);
+		(void) ioctl(unit, TIOCLBIC, (char *)&lmode);
+		(void) write(unit, "\n", 1);
 	}
 #endif
-	write(unit, linbuf, linp - linbuf);
+	(void) write(unit, linbuf, linp - linbuf);
 	linp = linbuf;
-}
-
-plist(vp)
-	register struct varent *vp;
-{
-
-	if (setintr)
-		sigrelse(SIGINT);
-	for (vp = vp->link; vp != 0; vp = vp->link) {
-		int len = blklen(vp->vec);
-
-		printf(vp->name);
-		printf("\t");
-		if (len != 1)
-			putchar('(');
-		blkpr(vp->vec);
-		if (len != 1)
-			putchar(')');
-		printf("\n");
-	}
-	if (setintr)
-		sigrelse(SIGINT);
 }

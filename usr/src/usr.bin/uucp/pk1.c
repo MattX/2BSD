@@ -1,5 +1,6 @@
-/* $Header: pk1.c,v 1.21 85/06/21 20:19:00 rick Exp $ */
-/* from:  @(#)pk1.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)pk1.c	5.9 (Berkeley) 5/30/86";
+#endif
 
 #include <signal.h>
 #include "uucp.h"
@@ -17,9 +18,9 @@ int iomask[2];
 #endif VMS
 
 #define PKMAXSTMSG 40
-#define	PKTIME 5
+#define	MAXPKTIME 32	/* was 16 */
 #define CONNODATA 10
-#define NTIMEOUT 30
+#define MAXTIMEOUT 32
 
 extern int errno;
 extern int Retries;
@@ -29,6 +30,8 @@ extern	char *malloc();
 
 int Connodata = 0;
 int Ntimeout = 0;
+int pktimeout = 4;
+int pktimeskew = 2;
 /*
  * packet driver support routines
  *
@@ -48,8 +51,6 @@ int ifn, ofn;
 	register char **bp;
 	register int i;
 
-	if (++pkactive >= NPLINES)
-		return NULL;
 	if ((pk = (struct pack *) malloc(sizeof (struct pack))) == NULL)
 		return NULL;
 	bzero((caddr_t) pk, sizeof (struct pack));
@@ -64,8 +65,10 @@ int ifn, ofn;
 		*bp = (char *) pk->p_ipool;
 		pk->p_ipool = bp;
 	}
-	if (i == 0)
+	if (i == 0) {
+		DEBUG(1, "pkopen: can't malloc i = 0\n", CNULL);
 		return NULL;
+	}
 	pk->p_rwindow = i;
 
 	/* start synchronization */
@@ -76,8 +79,10 @@ int ifn, ofn;
 			break;
 		}
 	}
-	if (i >= NPLINES)
+	if (i >= NPLINES) {
+		DEBUG(1,"pkopen: i>=NPLINES\n", CNULL);
 		return NULL;
+	}
 	pkoutput(pk);
 
 	for (i = 0; i < PKMAXSTMSG; i++) {
@@ -85,8 +90,10 @@ int ifn, ofn;
 		if ((pk->p_state & LIVE) != 0)
 			break;
 	}
-	if (i >= PKMAXSTMSG)
+	if (i >= PKMAXSTMSG) {
+		DEBUG(1, "pkopen: i>= PKMAXSTMSG\n", CNULL);
 		return NULL;
+	}
 
 	pkreset(pk);
 	return pk;
@@ -117,20 +124,18 @@ int pksizes[] = {
  * Pseudo-dma byte collection.
  */
 
-pkgetpack(ipk)
-struct pack *ipk;
+pkgetpack(pk)
+register struct pack *pk;
 {
 	int k, tries, noise;
 	register char *p;
-	register struct pack *pk;
 	register struct header *h;
 	unsigned short sum;
 	int ifn;
 	char **bp;
 	char hdchk;
 
-	pk = ipk;
-	if ((pk->p_state & DOWN) || Connodata > CONNODATA || Ntimeout > NTIMEOUT)
+	if ((pk->p_state & DOWN) || Connodata > CONNODATA || Ntimeout > MAXTIMEOUT)
 		pkfail();
 	ifn = pk->p_ifn;
 
@@ -141,10 +146,11 @@ struct pack *ipk;
 			if (*p++ == SYN) {
 				if (pkcget(ifn, p, HDRSIZ-1) == SUCCESS)
 					break;
-			} else
-				if (noise++ < (3*pk->p_rsize))
+			} else {
+				if (noise++ < 10 || noise < (3*pk->p_rsize))
 					continue;
-			DEBUG(4, "Noisy line - set up RXMIT", "");
+			}
+			DEBUG(4, "Noisy line - set up RXMIT\n", CNULL);
 			noise = 0;
 		}
 		/* set up retransmit or REJ */
@@ -156,12 +162,6 @@ struct pack *ipk;
 		if ((pk->p_state & LIVE) == LIVE)
 			pk->p_state |= RXMIT;
 		pkoutput(pk);
-
-		if (*p != SYN)
-			continue;
-		p++;
-		if (pkcget(ifn, p, HDRSIZ - 1) == SUCCESS)
-			break;
 	}
 	if (tries >= GETRIES) {
 		DEBUG(4, "tries = %d\n", tries);
@@ -169,7 +169,7 @@ struct pack *ipk;
 	}
 
 	Connodata++;
-	h = (struct header * ) &pk->p_ihbuf;
+	h = (struct header *) &pk->p_ihbuf;
 	p = (caddr_t) h;
 	hdchk = p[1] ^ p[2] ^ p[3] ^ p[4];
 	p += 2;
@@ -197,20 +197,24 @@ struct pack *ipk;
 	}
 	if (k && pksizes[k] == pk->p_rsize) {
 		pk->p_rpr = h->cntl & MOD8;
+		DEBUG(7, "end pksack 0%o\n", pk->p_rpr);
 		pksack(pk);
-		Connodata = 0;
 		bp = pk->p_ipool;
 		if (bp == NULL) {
 			DEBUG(7, "bp NULL %s\n", "");
 			return;
 		}
 		pk->p_ipool = (char **) *bp;
-	} else {
+		Connodata = 0;
+	} else
 		return;
-	}
-	if (pkcget(pk->p_ifn, (char *) bp, pk->p_rsize) == SUCCESS)
+
+	if (pkcget(pk->p_ifn, (char *) bp, pk->p_rsize) == SUCCESS) {
 		pkdata(h->cntl, h->sum, pk, (char **) bp);
-	Ntimeout = 0;
+	} else {
+		*bp = (char *)pk->p_ipool;
+		pk->p_ipool = bp;
+	}
 }
 
 pkdata(c, sum, pk, bp)
@@ -246,8 +250,6 @@ slot:
 	pk->p_ib[x] = (char *)bp;
 }
 
-
-
 /*
  * setup input transfers
  */
@@ -273,8 +275,7 @@ register x;
 	if (x < 0) {
 		*p++ = hdchk = 9;
 		checkword = cntl;
-	}
-	else {
+	} else {
 		*p++ = hdchk = pk->p_lpsize;
 		checkword = pk->p_osum[x] ^ (unsigned)(cntl & 0377);
 	}
@@ -295,15 +296,19 @@ register x;
 			logent("PKXSTART write failed", sys_errlist[errno]);
 			longjmp(Sjbuf, 4);
 		}
-	}
-	else {
-		char buf[PKMAXBUF + HDRSIZ], *b;
+	} else {
+		char buf[PKMAXBUF + HDRSIZ + TAILSIZE], *b;
 		int i;
 		for (i = 0, b = buf; i < HDRSIZ; i++)
 			*b++ = *p++;
 		for (i = 0, p = pk->p_ob[x]; i < pk->p_xsize; i++)
 			*b++ = *p++;
-		if (write(pk->p_ofn, buf, pk->p_xsize + HDRSIZ) != (HDRSIZ + pk->p_xsize)) {
+#if TAILSIZE != 0
+		for (i = 0; i < TAILSIZE; i++)
+			*b++ = '\0';
+#endif TAILSIZE
+		if (write(pk->p_ofn, buf, pk->p_xsize + HDRSIZ + TAILSIZE)
+		    != (HDRSIZ + TAILSIZE + pk->p_xsize)) {
 			alarm(0);
 			logent("PKXSTART write failed", sys_errlist[errno]);
 			longjmp(Sjbuf, 5);
@@ -367,13 +372,21 @@ register int n;
 
 	if (setjmp(Getjbuf)) {
 		Ntimeout++;
-		DEBUG(4, "pkcget: alarm %d\n", Ntimeout);
+		DEBUG(4, "pkcget: alarm %d\n", pktimeout * 1000 + Ntimeout);
+		pktimeout += pktimeskew;
+		if (pktimeout > MAXPKTIME)
+			pktimeout = MAXPKTIME;
 		return FAIL;
 	}
 	signal(SIGALRM, cgalarm);
 
-	alarm(PKTIME);
+	alarm(pktimeout);
 	while (n > 0) {
+#ifdef notdef
+	/*
+	 * 2.10BSD XXX - this fdef notdef' should be removed as soon as
+	 * select is implemented properly for 2.10BSD.  Casey.
+	 */
 #ifdef BSD4_2
 		if (linebaudrate > 0) {
 			r = n  * 100000L;
@@ -392,6 +405,7 @@ register int n;
 			}
 		}
 #endif BSD4_2
+#endif notdef
 #ifndef VMS
 		ret = read(fn, b, n);
 #else VMS

@@ -1,29 +1,45 @@
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)rwho.c	4.7 (Berkeley) 83/07/01";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)rwho.c	5.2 (Berkeley) 6/18/85";
+#endif not lint
 
 #include <sys/param.h>
 #include <stdio.h>
 #include <sys/dir.h>
 #include <protocols/rwhod.h>
 
-DIR	*etc;
+DIR	*dirp;
 
 struct	whod wd;
 int	utmpcmp();
-#define	NUSERS	100
+#define	NUSERS	500
 struct	myutmp {
 	char	myhost[32];
-	time_t	myidle;
-	struct	outmp m_myutmp;
+	long	myidle;
+	struct	outmp myutmp;
 } myutmp[NUSERS];
 int	nusers;
 
 #define	WHDRSIZE	(sizeof (wd) - sizeof (wd.wd_we))
 #define	RWHODIR		"/usr/spool/rwho"
+/* 
+ * this macro should be shared with ruptime.
+ */
+#define	down(w,now)	((now) - (w)->wd_recvtime > 11 * 60)
 
 char	*ctime(), *strcpy();
-time_t	now, time();
+int	now;
 int	aflg;
 
 main(argc, argv)
@@ -49,13 +65,13 @@ again:
 		perror(RWHODIR);
 		exit(1);
 	}
-	etc = opendir(".");
-	if (etc == NULL) {
-		perror("/etc");
+	dirp = opendir(".");
+	if (dirp == NULL) {
+		perror(RWHODIR);
 		exit(1);
 	}
 	mp = myutmp;
-	while (dp = readdir(etc)) {
+	while (dp = readdir(dirp)) {
 		if (dp->d_ino == 0)
 			continue;
 		if (strncmp(dp->d_name, "whod.", 5))
@@ -68,14 +84,14 @@ again:
 			(void) close(f);
 			continue;
 		}
-		if (now - w->wd_recvtime > 5 * 60) {
+		if (down(w,now)) {
 			(void) close(f);
 			continue;
 		}
 		cc -= WHDRSIZE;
 		we = w->wd_we;
 		for (n = cc / sizeof (struct whoent); n > 0; n--) {
-			if (aflg == 0 && we->we_idle >= 60*60) {
+			if (aflg == 0 && we->we_idle >= 60L*60L) {
 				we++;
 				continue;
 			}
@@ -83,7 +99,7 @@ again:
 				printf("too many users\n");
 				exit(1);
 			}
-			mp->m_myutmp = we->we_utmp; mp->myidle = we->we_idle;
+			mp->myutmp = we->we_utmp; mp->myidle = we->we_idle;
 			(void) strcpy(mp->myhost, w->wd_hostname);
 			nusers++; we++; mp++;
 		}
@@ -93,32 +109,32 @@ again:
 	mp = myutmp;
 	width = 0;
 	for (i = 0; i < nusers; i++) {
-		int j = strlen(mp->myhost) + 1 + strlen(mp->m_myutmp.out_line);
+		int j = strlen(mp->myhost) + 1 + strlen(mp->myutmp.out_line);
 		if (j > width)
 			width = j;
 		mp++;
 	}
 	mp = myutmp;
 	for (i = 0; i < nusers; i++) {
-		char buf[22];
-		sprintf(buf, "%s:%s", mp->myhost, mp->m_myutmp.out_line);
+		char buf[BUFSIZ];
+		(void)sprintf(buf, "%s:%s", mp->myhost, mp->myutmp.out_line);
 		printf("%-8.8s %-*s %.12s",
-		   mp->m_myutmp.out_name,
+		   mp->myutmp.out_name,
 		   width,
 		   buf,
-		   ctime((time_t *)&mp->m_myutmp.out_time)+4);
-		mp->myidle /= 60;
+		   ctime((time_t *)&mp->myutmp.out_time)+4);
+		mp->myidle /= 60L;
 		if (mp->myidle) {
 			if (aflg) {
-				if (mp->myidle >= 100*60)
-					mp->myidle = 100*60 - 1;
-				if (mp->myidle >= 60)
-					printf(" %2ld", mp->myidle / 60);
+				if (mp->myidle >= 100L*60L)
+					mp->myidle = 100L*60L - 1;
+				if (mp->myidle >= 60L)
+					printf(" %2D", mp->myidle / 60L);
 				else
 					printf("   ");
 			} else
 				printf(" ");
-			printf(":%02ld", mp->myidle % 60);
+			printf(":%02D", mp->myidle % 60L);
 		}
 		printf("\n");
 		mp++;
@@ -131,11 +147,11 @@ utmpcmp(u1, u2)
 {
 	int rc;
 
-	rc = strncmp(u1->m_myutmp.out_name, u2->m_myutmp.out_name, 8);
+	rc = strncmp(u1->myutmp.out_name, u2->myutmp.out_name, 8);
 	if (rc)
 		return (rc);
 	rc = strncmp(u1->myhost, u2->myhost, 8);
 	if (rc)
 		return (rc);
-	return (strncmp(u1->m_myutmp.out_line, u2->m_myutmp.out_line, 8));
+	return (strncmp(u1->myutmp.out_line, u2->myutmp.out_line, 8));
 }

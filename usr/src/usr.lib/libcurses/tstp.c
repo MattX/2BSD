@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if !defined(lint) && !defined(NOSCCS)
 static char sccsid[] = "@(#)tstp.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 # include	<signal.h>
 
@@ -22,7 +22,7 @@ tstp() {
 # ifdef SIGTSTP
 
 	SGTTY	tty;
-	int	omask;
+	long	omask;
 # ifdef DEBUG
 	if (outf)
 		fflush(outf);
@@ -33,10 +33,9 @@ tstp() {
 	fflush(stdout);
 	/* reset signal handler so kill below stops us */
 	signal(SIGTSTP, SIG_DFL);
-#define	mask(s)	(1 << ((s)-1))
-	omask = sigsetmask(sigblock(0) &~ mask(SIGTSTP));
+	omask = sigsetmask(sigblock(0L) &~ sigmask(SIGTSTP));
 	kill(0, SIGTSTP);
-	sigblock(mask(SIGTSTP));
+	sigblock(sigmask(SIGTSTP));
 	signal(SIGTSTP, tstp);
 	_tty = tty;
 	stty(_tty_ch, &_tty);

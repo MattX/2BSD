@@ -1,9 +1,5 @@
 char *xxxvers[] = "\n FORTRAN 77 DRIVER, VERSION 1.13+,   24 SEP 1982\n";
 
-#if	TARGET == PDP11
-#define	MENLO_OVLY	/* use -V option for auto-overlay compatability */
-#endif
-
 #include <stdio.h>
 #include <ctype.h>
 #include "defines"
@@ -42,17 +38,17 @@ static char optzfname[20];
 static char setfname[20];
 
 static char fflags[30]	= "-";
-static char cflags[20]	= "-c";
+static char cflags[20]	= "-c -V";
 #if	TARGET == PDP11
-static char aflags[20]	= "-u";
+static char aflags[20]	= "-u -V";
 #endif
 static char eflags[30]	= "";
 static char rflags[30]	= "";
 static char lflag[3]	= "-x";
 static char *fflagp	= fflags+1;
-static char *cflagp	= cflags+2;
+static char *cflagp	= cflags+5;
 #if	TARGET == PDP11
-static char *aflagp	= aflags+2;
+static char *aflagp	= aflags+5;
 #endif
 static char *eflagp	= eflags;
 static char *rflagp	= rflags;
@@ -69,9 +65,6 @@ static flag verbose	= NO;
 static flag nofloating	= NO;
 static flag fortonly	= NO;
 static flag macroflag	= NO;
-#ifdef	MENLO_OVLY
-static flag ovlyflag	= NO;
-#endif
 
 
 main(argc, argv)
@@ -237,16 +230,8 @@ while(argc>0 && argv[0][0]=='-' && argv[0][1]!='\0')
 				;
 			*rflagp++ = ' ';
 			goto endfor;
-#ifdef	MENLO_OVLY
 		case 'V':
-			ovlyflag++;
-			t = " -V";
-			while (*t) {
-				*cflagp++ = *t;
-				*aflagp++ = *t++;
-			}
 			break;
-#endif
 		default:
 			lflag[1] = *s;
 			*loadp++ = copys(lflag);
@@ -424,12 +409,7 @@ if(verbose)
 	fprintf(diagfile, "PASS2.");
 
 #if FAMILY==DMR
-#ifdef	MENLO_OVLY
-	sprintf(buff, "%s %s - %s %s", pass2name, textfname, asmpass2,
-		ovlyflag? "-V": "");
-#else
-	sprintf(buff, "%s %s - %s", pass2name, textfname, asmpass2);
-#endif
+	sprintf(buff, "%s %s - %s %s", pass2name, textfname, asmpass2, "-V");
 	return( sys(buff) );
 #endif
 
@@ -525,13 +505,8 @@ register char *v0[], *v[];
 char **p;
 int waitpid;
 
-#ifdef	MENLO_OVLY
-for(p = ovlyflag? ovliblist: liblist  ; *p ; *v++ = *p++)
+for(p = liblist  ; *p ; *v++ = *p++)
 	;
-#else
-for(p = liblist ; *p ; *v++ = *p++)
-	;
-#endif
 
 *v++ = "-o";
 *v++ = aoutname;

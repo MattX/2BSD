@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)spell.c	4.2 6/3/86";
+#endif
+
 #include "spell.h"
 #define DLEV 2
 
@@ -70,8 +74,7 @@ struct suftab {
 	{"evit",tion,3,"-e+ive","+ive"},
 	{"ezi",CCe,3,"-e+ize","+ize"},
 	{"pihs",strip,4,"","+ship"},
-	{"dooh",ily,4,"-y+ihood","+hood"},
-	{"luf",ily,3,"-y+iful","+ful"},
+	{"dooh",ily,4,"-y+hood","+hood"},
 	{"ekil",strip,4,"","+like"},
 	0
 };
@@ -151,8 +154,10 @@ char **argv;
 		affix[0] = 0;
 		file = found;
 		for(ep=word;(*ep=j=getchar())!='\n';ep++)
-			if(j == EOF)
+			if(j == EOF) {
+				fclose(found);
 				exit(0);
+			}
 		for(cp=word,dp=original; cp<ep; )
 			*dp++ = *cp++;
 		*dp = 0;

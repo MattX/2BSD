@@ -1,3 +1,23 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char	SccsId[] = "@(#)mconnect.c	5.2 (Berkeley) 7/13/85";
+#endif not lint
+
 # include <stdio.h>
 # include <signal.h>
 # include <ctype.h>
@@ -6,8 +26,6 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <netdb.h>
-
-static char	SccsId[] =	"@(#)mconnect.c	4.1		7/25/83";
 
 struct sockaddr_in	SendmailAddress;
 struct sgttyb		TtyBuf;

@@ -76,9 +76,13 @@ reg char	*prompt; {
 inter:
 		printf(prompt);
 		num = 0;
-		for (sp = buf; (*sp=getchar()) != '\n'; sp++)
+		for (sp = buf; (*sp=getchar()) != '\n' && !feof(stdin); sp++)
 			if (*sp == -1)	/* check for interrupted system call */
 				goto inter;
+		if (feof(stdin)) {
+			clearerr(stdin);
+			continue;
+		}
 		if (sp == buf)
 			continue;
 		for (sp = buf; isspace(*sp); sp++)

@@ -1,5 +1,6 @@
-/* $Header: xqt.c,v 1.9 85/05/28 18:31:25 rick Exp $ */
-/* from: @(#)xqt.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)xqt.c	5.3 (Berkeley) 6/23/85";
+#endif
 
 #include <signal.h>
 #include "uucp.h"

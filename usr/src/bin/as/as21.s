@@ -3,11 +3,25 @@
 
 / a21 -- pdp-11 assembler pass 2 
 
-main:
-	sys	signal; 2; 1
+.data
+.globl _environ				/ for the standard library
+_environ: 0
+.text
+
+.globl	_main
+_main:
+	mov	$1,-(sp)		/ signal(SIGINT, SIG_IGN)
+	mov	$2,-(sp)		/	sys	signal; 2; 1
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
+
 	ror	r0
 	bcs	1f
-	sys	signal; 2; saexit
+
+	mov	$saexit,-(sp)		/ signal(SIGINT, saexit)
+	mov	$2,-(sp)		/	sys	signal; 2; saexit
+	jsr	pc,_signal
+	cmp	(sp)+,(sp)+
 1:
 	jmp	start
 
@@ -49,7 +63,7 @@ go:
 / read in f-b definitions
 
 	mov	r1,fbbufp
-	movb	fbfil,fin
+	mov	fbfil,fin
 	clr	ibufc
 1:
 	jsr	pc,getw
@@ -80,10 +94,15 @@ go:
 	mov	$2,dotrel
 	mov	$..,dotdot
 	clr	brtabp
-	movb	fin,r0
-	sys	close
+
+	mov	r1,-(sp)		/ protect r1 from library
+	mov	fin,-(sp)		/ close(fin)
+	jsr	pc,_close		/	movb	fin,r0
+	tst	(sp)+			/	sys	close
+	mov	(sp)+,r1
+
 	jsr	r5,ofile; a.tmp1
-	movb	r0,fin
+	mov	r0,fin
 	clr	ibufc
 	jsr	pc,setup
 	inc	passno
@@ -152,7 +171,14 @@ go:
 
 	mov	symf,r0
 	mov	r0,fin
-	sys	lseek; 0; 0; 0
+
+	clr	-(sp)			/ lseek(fin, 0L, L_SET)
+	clr	-(sp)			/	sys	lseek; 0; 0; 0
+	clr	-(sp)
+	mov	r0,-(sp)
+	jsr	pc,_lseek
+	add	$8.,sp
+
 	clr	ibufc
 	mov	symseek,r0
 	mov	symseek+2,r1
@@ -183,41 +209,63 @@ go:
 	jsr	r5,flush; txtp
 	jmp	aexit
 
-	.data
 saexit:
 	mov	pc,errflg
 
 aexit:
-	mov	a.tmp1,0f
-	sys	unlink; 0:..
-	mov	a.tmp2,0f
-	sys	unlink; 0:..
-	mov	a.tmp3,0f
-	sys	unlink; 0:..
+	mov	a.tmp1,-(sp)		/ unlink(a.tmp1)
+	jsr	pc,_unlink		/	mov	a.tmp1,0f
+					/	sys	unlink; 0:..
+	mov	a.tmp2,(sp)		/ unlink(a.tmp2)
+	jsr	pc,_unlink		/	mov	a.tmp2,0f
+					/	sys	unlink; 0:..
+	mov	a.tmp3,(sp)		/ unlink(a.tmp3)
+	jsr	pc,_unlink		/	mov	a.tmp3,0f
+					/	sys	unlink; 0:..
 	tst	errflg
-	bne	2f
-	sys	umask; 0
-	bic	r0,outmod
-	sys	chmod; a.outp2:a.out; outmod: 777
-	clr	r0
+	jne	2f
+
+	clr	(sp)			/ umask(0)
+	jsr	pc,_umask		/	sys	umask; 0
+
+	bic	r0,outmod		/ chmod(a.outp2, outmod&umask(0))
+	mov	outmod,(sp)		/	bic	r0,outmod
+	mov	a.outp2,-(sp)		/	sys	chmod; a.outp2:a.out; outmod: 777
+	jsr	pc,_chmod
+	tst	(sp)+
+.data
+a.outp2:	a.out
+outmod:		0777
+.text
+
+	clr	(sp)
 	br	1f
 2:
-	mov	$2,r0
+	mov	$2,(sp)
 1:
-	sys	exit
-	.text
-
+	jsr	pc,__exit		/ _exit(errflg ? 2 : 0)
+					/	sys	exit
 filerr:
 	mov	*(r5),r5
+	tst	-(sp)			/ write(1, r5, strlen(r5))
+	mov	r5,-(sp)
+	mov	$1,-(sp)
+	clr	r0
 1:
-	movb	(r5)+,ch
-	beq	1f
-	mov	$1,r0
-	sys	write; ch; 1
+	tstb	(r5)+
+	beq	2f
+	inc	r0
 	br	1b
-1:
-	mov	$1,r0
-	sys	write; qnl; 2
+2:
+	mov	r0,4(sp)
+	jsr	pc,_write
+	add	$6,sp
+
+	mov	$2,-(sp)		/ write(1, "?\n", 2)
+	mov	$qnl,-(sp)
+	mov	$1,-(sp)
+	jsr	pc,_write
+	add	$6,sp
 	jmp	saexit
 
 doreloc:
@@ -244,10 +292,13 @@ setbrk:
 	cmp	r1,0f
 	blo	1f
 	add	$512.,0f
-	sys	indir; 9f
-	.data
-9:	sys	break; 0: end
-	.text
+
+	mov	0f,-(sp)		/ brk(0f)
+	jsr	pc,_brk			/	sys	indir; 9f
+	tst	(sp)+			/	.data
+.data					/9:	sys	sbreak; 0: end
+0:	end				/	.text
+.text
 1:
 	mov	(sp)+,r1
 	rts	pc
@@ -269,12 +320,16 @@ setup:
 	rts	pc
 
 ofile:
-	mov	*(r5),0f
-	sys	indir; 9f
-	.data
-9:	sys	open; 0:..; 0
-	.text
-	bes	1f
+	mov	r1,-(sp)		/ protect r1 from library
+	clr	-(sp)			/ open(*(r5), O_RDONLY, 0)
+	clr	-(sp)			/	mov	*(r5),0f
+	mov	*(r5),-(sp)		/	sys	indir; 9f
+	jsr	pc,_open		/	.data
+	add	$6,sp			/9:	sys	open; 0:..; 0
+	mov	(sp)+,r1		/	.text
+	tst	r0			/	bes	1f
+	bmi	1f
+
 	tst	(r5)+
 	rts	r5
 1:

@@ -1,4 +1,18 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char *copyright =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char *sccsid = "@(#)main.c	5.3 (Berkeley) 9/15/85";
+#endif not lint
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -8,8 +22,6 @@
  *
  * Startup -- interface with user.
  */
-
-static char *SccsId = "@(#)main.c	2.11 6/12/83";
 
 jmp_buf	hdrjmp;
 
@@ -31,7 +43,6 @@ main(argc, argv)
 	register int i, argp;
 	int mustsend, uflag, hdrstop(), (*prevint)(), f;
 	FILE *ibuf, *ftat;
-	extern char _sobuf[];
 	struct sgttyb tbuf;
 
 #ifdef signal
@@ -60,7 +71,6 @@ main(argc, argv)
 	else
 		baud = B9600;
 	image = -1;
-	setbuf(stdout, _sobuf);
 
 	/*
 	 * Now, determine how we are being used.
@@ -214,6 +224,13 @@ main(argc, argv)
 			assign("verbose", "");
 			break;
 
+		case 'I':
+			/*
+			 * We're interactive
+			 */
+			intty = 1;
+			break;
+
 		default:
 			fprintf(stderr, "Unknown flag: %s\n", argv[i]);
 			exit(1);
@@ -273,7 +290,7 @@ main(argc, argv)
 			fprintf(stderr, "No mail for %s\n", myname);
 		exit(1);
 	}
-	if (!edit && !noheader && value("noheader") == NOSTR) {
+	if (!noheader && value("noheader") == NOSTR) {
 		if (setjmp(hdrjmp) == 0) {
 			if ((prevint = sigset(SIGINT, SIG_IGN)) != SIG_IGN)
 				sigset(SIGINT, hdrstop);
@@ -282,8 +299,6 @@ main(argc, argv)
 			sigset(SIGINT, prevint);
 		}
 	}
-	if (edit)
-		newfileinfo();
 	if (!edit && msgCount == 0) {
 		printf("No mail\n");
 		fflush(stdout);
@@ -305,9 +320,7 @@ main(argc, argv)
 hdrstop()
 {
 
-	clrbuf(stdout);
-	printf("\nInterrupt\n");
 	fflush(stdout);
-	sigrelse(SIGINT);
+	fprintf(stderr, "\nInterrupt\n");
 	longjmp(hdrjmp, 1);
 }

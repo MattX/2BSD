@@ -10,8 +10,8 @@
 /
 _pwril:
 	jsr	r5,csv
-	mov	sp,r3
-	add	$14.,r3			/ 2(r3) = low, (r3) = high
+	mov	r5,r3
+	add	$6,r3		/ 2(r3) = low, (r3) = high
 	mov	sp,r2
 	sub	$14.,sp
 	clr	(r2)

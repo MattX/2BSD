@@ -1,4 +1,5 @@
 %{#
+/*	e.y	4.1	83/02/11	*/
 #include "e.h"
 #
 int	fromflg;

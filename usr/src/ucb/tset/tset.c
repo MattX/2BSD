@@ -1,16 +1,29 @@
-#
-	char	id_tset[] = "@(#)tset.c	1.5 6/7/83";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)tset.c	5.8 (Berkeley) 4/28/86";
+#endif not lint
 
 /*
 **  TSET -- set terminal modes
 **
 **	This program does sophisticated terminal initialization.
-**	I recommend that you include it in your .start_up or .login
+**	I recommend that you include it in your .profile or .login
 **	file to initialize whatever terminal you are on.
 **
 **	There are several features:
 **
-**	A special file or sequence (as controlled by the ttycap file)
+**	A special file or sequence (as controlled by the termcap file)
 **	is sent to the terminal.
 **
 **	Mode bits are set on a per-terminal_type basis (much better
@@ -32,12 +45,10 @@
 **	to be -- if you reply with just a newline, it will default
 **	to the type given.
 **
-**	The htmp file, used by ex, etc., can be updated.
-**
 **	The current terminal type can be queried.
 **
 **	Usage:
-**		tset [-] [-EC] [-eC] [-kC] [-s] [-h] [-u] [-r]
+**		tset [-] [-EC] [-eC] [-kC] [-iC] [-s] [-h] [-u] [-r]
 **			[-m [ident] [test baudrate] :type]
 **			[-Q] [-I] [-S] [type]
 **
@@ -71,18 +82,21 @@
 **			except those which cannot backspace (e.g.,
 **			a TTY 33).  C defaults to control-H.
 **		-eC -- set the erase character to C on all terminals.
-**			C defaults to control-H.  If neither -E or -e
-**			are specified, the erase character is set to
-**			control-H if the terminal can both backspace
-**			and not overstrike (e.g., a CRT).  If the erase
-**			character is NULL (zero byte), it will be reset
-**			to '#' if nothing else is specified.
+**			C defaults to control-H.  If not specified,
+**			the erase character is untouched; however, if
+**			not specified and the erase character is NULL
+**			(zero byte), the erase character  is set to delete.
 **		-kC -- set the kill character to C on all terminals.
 **			Default for C is control-X.  If not specified,
 **			the kill character is untouched; however, if
 **			not specified and the kill character is NULL
-**			(zero byte), the kill character is set to '@'.
-**		-iC -- reserved for setable interrupt character.
+**			(zero byte), the kill character is set to control-U.
+**		-iC -- set the interrupt character to C on all terminals.
+**			Default for C is control-C.  If not specified, the
+**			interrupt character is untouched; however, if
+**			not specified and the interrupt character is NULL
+**			(zero byte), the interrupt character is set to
+**			control-C.
 **		-qC -- reserved for setable quit character.
 **		-m -- map the system identified type to some user
 **			specified type. The mapping can be baud rate
@@ -90,8 +104,8 @@
 **			(-d type  ->  -m dialup:type)
 **			(-p type  ->  -m plug:type)
 **			Syntax:	-m identifier [test baudrate] :type
-**			where: ``identifier'' is whatever is found in
-**			/etc/ttytype for this port, (abscence of an identifier
+**			where: ``identifier'' is terminal type found in
+**			/etc/ttys for this port, (abscence of an identifier
 **			matches any identifier); ``test'' may be any combination
 **			of  >  =  <  !  @; ``baudrate'' is as with stty(1);
 **			``type'' is the actual terminal type to use if the
@@ -135,7 +149,7 @@
 **			the output of -s to use virtual terminal sequences.
 **
 **	Files:
-**		/etc/ttytype
+**		/etc/ttys
 **			contains a terminal id -> terminal type
 **			mapping; used when any user mapping is specified,
 **			or the environment doesn't have TERM set.
@@ -153,7 +167,7 @@
 **		PLUGBOARD -- the type code for a plugboard port.
 **		ARPANET -- the type code for an arpanet port.
 **		BACKSPACE -- control-H, the default for -e.
-**		CTRL('X') -- control-X, the default for -k.
+**		CNTL('X') -- control-X, the default for -k.
 **		OLDERASE -- the system default erase character.
 **		OLDKILL -- the system default kill character.
 **		FILEDES -- the file descriptor to do the operation
@@ -165,7 +179,7 @@
 **			and compiles code to look there.
 **
 **	Requires:
-**		Routines to handle htmp, ttytype, and ttycap.
+**		Routines to handle htmp, ttys, and ttycap.
 **
 **	Compilation Flags:
 **		OLDFLAGS -- must be defined to compile code for any of
@@ -173,11 +187,9 @@
 **		OLDDIALUP -- accept the -d flag.
 **		OLDPLUGBOARD -- accept the -p flag.
 **		OLDARPANET -- accept the -a flag.
-**		FULLLOGIN -- if defined, login sets the ttytype from
-**			/etc/ttytype file.
 **		V6 -- if clear, use environments, not htmp.
 **			also use TIOCSETN rather than stty to avoid flushing
-**		GTTYN -- if set, compiles code to look at /etc/ttytype.
+**		GTTYN -- if set, compiles code to look at /etc/ttys.
 **		UCB_NTTY -- set to handle new tty driver modes.
 **
 **	Trace Flags:
@@ -244,7 +256,7 @@
 **		12/78 -- modified for eventual migration to VAX/UNIX,
 **			so the '-' option is changed to output only
 **			the terminal type to STDOUT instead of
-**			FILEDES.  FULLLOGIN flag added.
+**			FILEDES.
 **		9/78 -- '-' and '-p' options added (now fully
 **			compatible with ttytype!), and spaces are
 **			permitted between the -d and the type.
@@ -254,22 +266,29 @@
 **		10/77 -- Written.
 */
 
+#define UCB_NTTY
+
 # ifdef USG
 #  define index strchr
 #  define rindex strrchr
 #  define curerase mode.c_cc[VERASE]
 #  define curkill mode.c_cc[VKILL]
+#  define curintr mode.c_cc[VINTR]
 #  define olderase oldmode.c_cc[VERASE]
 #  define oldkill oldmode.c_cc[VKILL]
+#  define oldintr oldmode.c_cc[VINTR]
 # else
 #  define curerase mode.sg_erase
 #  define curkill mode.sg_kill
+#  define curintr tchar.t_intrc
 #  define olderase oldmode.sg_erase
 #  define oldkill oldmode.sg_kill
+#  define oldintr oldtchar.t_intrc
 # endif
 
 # ifndef V6
-# define	GTTYN		"/etc/ttytype"
+# define	GTTYN
+# include	<ttyent.h>
 # endif
 
 # ifndef USG
@@ -286,14 +305,40 @@
 
 # define	YES		1
 # define	NO		0
-#undef CTRL
-# define	CTRL(x)		(x ^ 0100)
-# define	BACKSPACE	(CTRL('H'))
+#undef CNTL
+# define	CNTL(c)		((c)&037)
+# define	BACKSPACE	(CNTL('H'))
 # define	CHK(val, dft)	(val<=0 ? dft : val)
 # define	isdigit(c)	(c >= '0' && c <= '9')
-# define	isalnum(c)	(c > ' ' && !(index("<@=>!:|\177", c)) )
+# define	isalnum(c)	(c > ' ' && (index("<@=>!:|\177", c) == NULL))
 # define	OLDERASE	'#'
 # define	OLDKILL		'@'
+# define	OLDINTR		'\177'	/* del */
+
+/* default special characters */
+#ifndef CERASE
+#define	CERASE	'\177'
+#endif
+#ifndef CKILL
+#define	CKILL	CNTL('U')
+#endif
+#ifndef CINTR
+#define	CINTR	CNTL('C')
+#endif
+#ifndef CDSUSP
+#define	CQUIT	034		/* FS, ^\ */
+#define	CSTART	CNTL('Q')
+#define	CSTOP	CNTL('S')
+#define	CEOF	CNTL('D')
+#define	CEOT	CEOF
+#define	CBRK	0377
+#define	CSUSP	CNTL('Z')
+#define	CDSUSP	CNTL('Y')
+#define	CRPRNT	CNTL('R')
+#define	CFLUSH	CNTL('O')
+#define	CWERASE	CNTL('W')
+#define	CLNEXT	CNTL('V')
+#endif
 
 # define	FILEDES		2	/* do gtty/stty on this descriptor */
 # define	STDOUT		1	/* output of -s/-S to this descriptor */
@@ -305,9 +350,9 @@
 # endif
 
 # ifdef UCB_NTTY
-# define	USAGE	"usage: tset [-] [-nrsIQS] [-eC] [-kC] [-m [ident][test speed]:type] [type]\n"
+# define	USAGE	"usage: tset [-] [-nrsIQS] [-eC] [-kC] [-iC] [-m [ident][test speed]:type] [type]\n"
 # else
-# define	USAGE	"usage: tset [-] [-rsIQS] [-eC] [-kC] [-m [ident][test speed]:type] [type]\n"
+# define	USAGE	"usage: tset [-] [-rsIQS] [-eC] [-kC] [-iC] [-m [ident][test speed]:type] [type]\n"
 # endif
 
 # define	OLDFLAGS
@@ -376,6 +421,7 @@ struct
 	"2400",	B2400,	2400,
 	"4800",	B4800,	4800,
 	"9600",	B9600,	9600,
+	"19200",EXTA,	19200,
 	"exta",	EXTA,	19200,
 	"extb",	EXTB,	38400,
 	0,
@@ -409,10 +455,12 @@ struct vterm {
 };
 
 int VirTermNo = -2;
+int	HasAM;			/* True if terminal has automatic margins */
 # endif CBVIRTTERM
 
 char	Erase_char;		/* new erase character */
 char	Kill_char;		/* new kill character */
+char	Intr_char;		/* new interrupt character */
 char	Specialerase;		/* set => Erase_char only on terminals with backspace */
 
 # ifdef	GTTYN
@@ -436,9 +484,8 @@ int	RepOnly;		/* report only */
 int	CmndLine;		/* output full command lines (-s option) */
 int	Ask;			/* ask user for termtype */
 int	DoVirtTerm = YES;	/* Set up a virtual terminal */
-int	New = NO;		/* use new tty discipline */
-int	HasAM;			/* True if terminal has automatic margins */
 int	PadBaud;		/* Min rate of padding needed */
+int	lines, columns;
 
 # define CAPBUFSIZ	1024
 char	Capbuf[CAPBUFSIZ];	/* line from /etc/termcap for this TtyType */
@@ -446,6 +493,9 @@ char	*Ttycap;		/* termcap line from termcap or environ */
 
 char	Aliasbuf[128];
 char	*Alias[16];
+
+extern char *strcpy();
+extern char *index();
 
 struct delay
 {
@@ -458,6 +508,8 @@ struct delay
 # ifndef USG
 struct sgttyb	mode;
 struct sgttyb	oldmode;
+struct tchars	tchar;
+struct tchars	oldtchar;
 # else
 struct termio	mode;
 struct termio	oldmode;
@@ -471,18 +523,21 @@ main(argc, argv)
 int	argc;
 char	*argv[];
 {
-	char		buf[256];
+	char		buf[CAPBUFSIZ];
 	char		termbuf[32];
-	auto	char	*bufp;
+	auto char	*bufp;
 	register char	*p;
 	char		*command;
 	register int	i;
+# ifdef CBVIRTTERM
 	int		j;
+# endif CBVIRTTERM
 	int		Break;
 	int		Not;
 	char		*nextarg();
 	char		*mapped();
 	extern char	*rindex();
+	struct winsize	win;
 # ifdef V6
 	extern char	*hsgettype();
 # else
@@ -508,28 +563,32 @@ char	*argv[];
 	int		lmode;
 	int		ldisc;
 
-	ioctl(FILEDES, TIOCLGET, &lmode);
-	ioctl(FILEDES, TIOCGETD, &ldisc);
+	(void) ioctl(FILEDES, TIOCLGET, (char *)&lmode);
+	(void) ioctl(FILEDES, TIOCGETD, (char *)&ldisc);
 # endif
 
 # ifndef USG
 	if (gtty(FILEDES, &mode) < 0)
 # else
-	if (ioctl(FILEDES, TCGETA, &mode) < 0)
+	if (ioctl(FILEDES, TCGETA, (char *)&mode) < 0)
 # endif
 	{
 		prs("Not a terminal\n");
 		exit(1);
 	}
-	bmove(&mode, &oldmode, sizeof mode);
+	bmove((char *)&mode, (char *)&oldmode, sizeof mode);
+# ifdef TIOCGETC
+	(void) ioctl(FILEDES, TIOCGETC, (char *)&tchar);
+	bmove((char *)&tchar, (char *)&oldtchar, sizeof tchar);
+# endif
 # ifndef USG
 	ospeed = mode.sg_ospeed & 017;
 # else
 	ospeed = mode.c_cflag & CBAUD;
 # endif
-	signal(SIGINT, setmode);
-	signal(SIGQUIT, setmode);
-	signal(SIGTERM, setmode);
+	(void) signal(SIGINT, setmode);
+	(void) signal(SIGQUIT, setmode);
+	(void) signal(SIGTERM, setmode);
 
 	if (command = rindex(argv[0], '/'))
 		command++;
@@ -543,34 +602,30 @@ char	*argv[];
 	 * Very useful after crapping out in raw.
 	 */
 # ifndef V6
-#  ifdef TIOCGETC
-		struct tchars tbuf;
-#  endif TIOCGETC
 #  ifdef UCB_NTTY
 		struct ltchars ltc;
 
 		if (ldisc == NTTYDISC)
 		{
-			ioctl(FILEDES, TIOCGLTC, &ltc);
-			ltc.t_suspc = CHK(ltc.t_suspc, CTRL('Z'));
-			ltc.t_dsuspc = CHK(ltc.t_dsuspc, CTRL('Y'));
-			ltc.t_rprntc = CHK(ltc.t_rprntc, CTRL('R'));
-			ltc.t_flushc = CHK(ltc.t_flushc, CTRL('O'));
-			ltc.t_werasc = CHK(ltc.t_werasc, CTRL('W'));
-			ltc.t_lnextc = CHK(ltc.t_lnextc, CTRL('V'));
-			ioctl(FILEDES, TIOCSLTC, &ltc);
+			(void) ioctl(FILEDES, TIOCGLTC, (char *)&ltc);
+			ltc.t_suspc = CHK(ltc.t_suspc, CSUSP);
+			ltc.t_dsuspc = CHK(ltc.t_dsuspc, CDSUSP);
+			ltc.t_rprntc = CHK(ltc.t_rprntc, CRPRNT);
+			ltc.t_flushc = CHK(ltc.t_flushc, CFLUSH);
+			ltc.t_werasc = CHK(ltc.t_werasc, CWERASE);
+			ltc.t_lnextc = CHK(ltc.t_lnextc, CLNEXT);
+			(void) ioctl(FILEDES, TIOCSLTC, (char *)&ltc);
 		}
 #  endif UCB_NTTY
 #  ifndef USG
 #   ifdef TIOCGETC
-		ioctl(FILEDES, TIOCGETC, &tbuf);
-		tbuf.t_intrc = CHK(tbuf.t_intrc, CTRL('?'));
-		tbuf.t_quitc = CHK(tbuf.t_quitc, CTRL('\\'));
-		tbuf.t_startc = CHK(tbuf.t_startc, CTRL('Q'));
-		tbuf.t_stopc = CHK(tbuf.t_stopc, CTRL('S'));
-		tbuf.t_eofc = CHK(tbuf.t_eofc, CTRL('D'));
+		tchar.t_intrc = CHK(tchar.t_intrc, CINTR);
+		tchar.t_quitc = CHK(tchar.t_quitc, CQUIT);
+		tchar.t_startc = CHK(tchar.t_startc, CSTART);
+		tchar.t_stopc = CHK(tchar.t_stopc, CSTOP);
+		tchar.t_eofc = CHK(tchar.t_eofc, CEOF);
 		/* brkc is left alone */
-		ioctl(FILEDES, TIOCSETC, &tbuf);
+		(void) ioctl(FILEDES, TIOCSETC, (char *)&tchar);
 #   endif TIOCGETC
 		mode.sg_flags &= ~(RAW
 #   ifdef CBREAK
@@ -578,15 +633,16 @@ char	*argv[];
 #   endif CBREAK
 						|VTDELAY|ALLDELAY);
 		mode.sg_flags |= XTABS|ECHO|CRMOD|ANYP;
-		curerase = CHK(curerase, OLDERASE);
-		curkill = CHK(curkill, OLDKILL);
+		curerase = CHK(curerase, CERASE);
+		curkill = CHK(curkill, CKILL);
+		curintr = CHK(curintr, CINTR);
 #  else USG
-		ioctl(FILEDES, TCGETA, &mode);
+		(void) ioctl(FILEDES, TCGETA, (char *)&mode);
 		curerase = CHK(curerase, OLDERASE);
 		curkill = CHK(curkill, OLDKILL);
-		mode.c_cc[VINTR] = CHK(mode.c_cc[VINTR], CTRL('?'));
-		mode.c_cc[VQUIT] = CHK(mode.c_cc[VQUIT], CTRL('\\'));
-		mode.c_cc[VEOF] = CHK(mode.c_cc[VEOF], CTRL('D'));
+		curintr = CHK(curintr, OLDINTR);
+		mode.c_cc[VQUIT] = CHK(mode.c_cc[VQUIT], CQUIT);
+		mode.c_cc[VEOF] = CHK(mode.c_cc[VEOF], CEOF);
 
 		mode.c_iflag |= (BRKINT|ISTRIP|ICRNL|IXON);
 		mode.c_iflag &= ~(IGNBRK|PARMRK|INPCK|INLCR|IGNCR|IUCLC|IXOFF);
@@ -597,7 +653,7 @@ char	*argv[];
 		mode.c_cflag &= ~(CSIZE|PARODD|CLOCAL);
 		mode.c_lflag |= (ISIG|ICANON|ECHO|ECHOK);
 		mode.c_lflag &= ~(XCASE|ECHONL|NOFLSH);
-		ioctl(FILEDES, TCSETAW, &mode);
+		(void) ioctl(FILEDES, TCSETAW, (char *)&mode);
 #  endif USG
 # endif V6
 		Dash_u = YES;
@@ -625,7 +681,7 @@ char	*argv[];
 # ifdef UCB_NTTY
 			  case 'n':
 				ldisc = NTTYDISC;
-				if (ioctl(FILEDES, TIOCSETD, &ldisc)<0)
+				if (ioctl(FILEDES, TIOCSETD, (char *)&ldisc)<0)
 					fatal("ioctl ", "new");
 				continue;
 # endif
@@ -644,20 +700,44 @@ char	*argv[];
 				else
 				{
 					if (*p == '^' && p[1] != NULL)
-						Erase_char = CTRL(*++p);
+						if (*++p == '?')
+							Erase_char = '\177';
+						else
+							Erase_char = CNTL(*p);
 					else
 						Erase_char = *p;
 					p++;
 				}
 				continue;
 
-			  case 'k':	/* kill character */
+# if defined(USG) || defined(TIOCGETC)
+			  case 'i':	/* interrupt character */
 				if (*p == NULL)
-					Kill_char = CTRL('X');
+					Intr_char = CNTL('C');
 				else
 				{
 					if (*p == '^' && p[1] != NULL)
-						Kill_char = CTRL(*++p);
+						if (*++p == '?')
+							Intr_char = '\177';
+						else
+							Intr_char = CNTL(*p);
+					else
+						Intr_char = *p;
+					p++;
+				}
+				continue;
+# endif
+
+			  case 'k':	/* kill character */
+				if (*p == NULL)
+					Kill_char = CNTL('X');
+				else
+				{
+					if (*p == '^' && p[1] != NULL)
+						if (*++p == '?')
+							Kill_char = '\177';
+						else
+							Kill_char = CNTL(*p);
 					else
 						Kill_char = *p;
 					p++;
@@ -842,9 +922,9 @@ mapold:				Map->Ident = NewType;
 	 */
 	bufp = getenv("TERMCAP");
 	if (bufp && *bufp != '/')
-		strcpy(bufp-8, "NOTHING");	/* overwrite only "TERMCAP" */
+		(void) strcpy(bufp-8, "NOTHING"); /* overwrite only "TERMCAP" */
 	/* get current idea of terminal type from environment */
-	if (!Dash_h && !Mapped && TtyType == 0)
+	if (!Dash_h && TtyType == 0)
 		TtyType = getenv("TERM");
 # endif
 
@@ -891,7 +971,12 @@ mapold:				Map->Ident = NewType;
 
 	/* check for dialup or other mapping */
 	if (Mapped)
+	{
+		if (!(Alias[0] && isalias(TtyType)))
+			if (tgetent(Capbuf, TtyType) > 0)
+				makealias(Capbuf);
 		TtyType = mapped(TtyType);
+	}
 
 	/* TtyType now contains a pointer to the type of the terminal */
 	/* If the first character is '?', ask the user */
@@ -904,6 +989,7 @@ mapold:				Map->Ident = NewType;
 	}
 	if (Ask)
 	{
+ask:
 		prs("TERM = (");
 		prs(TtyType);
 		prs(") ");
@@ -938,7 +1024,8 @@ mapold:				Map->Ident = NewType;
 			if (DoSetenv)
 			{
 				TtyType = DEFTYPE;
-				tgetent(Capbuf, TtyType);
+				Alias[0] = '\0';
+				goto ask;
 			}
 			else
 				exit(1);
@@ -970,12 +1057,17 @@ mapold:				Map->Ident = NewType;
 			Erase_char = (bs_char != 0) ? bs_char : BACKSPACE;
 
 		if (curerase == 0)
-			curerase = OLDERASE;
+			curerase = CERASE;
 		if (Erase_char != 0)
 			curerase = Erase_char;
 
+		if (curintr == 0)
+			curintr = CINTR;
+		if (Intr_char != 0)
+			curintr = Intr_char;
+
 		if (curkill == 0)
-			curkill = OLDKILL;
+			curkill = CKILL;
 		if (Kill_char != 0)
 			curkill = Kill_char;
 
@@ -1078,7 +1170,9 @@ mapold:				Map->Ident = NewType;
 				}
 			}
 		}
-		ioctl(FILEDES, TIOCLSET, &lmode);
+		if (IsReset)
+			lmode &= ~(LMDMBUF|LLITOUT|LPASS8);
+		(void) ioctl(FILEDES, TIOCLSET, (char *)&lmode);
 # endif
 
 		/* get pad character */
@@ -1086,6 +1180,17 @@ mapold:				Map->Ident = NewType;
 		if (tgetstr("pc", &bufp) != 0)
 			PC = buf[0];
 
+		columns = tgetnum("co");
+		lines = tgetnum("li");
+
+		/* Set window size */
+		(void) ioctl(FILEDES, TIOCGWINSZ, (char *)&win);
+		if (win.ws_row == 0 && win.ws_col == 0 &&
+		    lines > 0 && columns > 0) {
+			win.ws_row = lines;
+			win.ws_col = columns;
+			(void) ioctl(FILEDES, TIOCSWINSZ, (char *)&win);
+		}
 		/* output startup string */
 		if (!NoInit)
 		{
@@ -1104,21 +1209,23 @@ mapold:				Map->Ident = NewType;
 # endif
 # ifdef CBVIRTTERM
 			block.st_termt = 0;
-			ioctl(FILEDES, LDSETT, &block);
+			(void) ioctl(FILEDES, LDSETT, (char *)&block);
 # endif CBVIRTTERM
 			if (settabs()) {
 				settle = YES;
 				flush();
 			}
 			bufp = buf;
-			if (tgetstr(IsReset? "rs" : "is", &bufp) != 0)
+			if (IsReset && tgetstr("rs", &bufp) != 0 || 
+			    tgetstr("is", &bufp) != 0)
 			{
 				tputs(buf, 0, prc);
 				settle = YES;
 				flush();
 			}
 			bufp = buf;
-			if (tgetstr(IsReset? "rf" : "if", &bufp) != 0)
+			if (IsReset && tgetstr("rf", &bufp) != 0 ||
+			    tgetstr("if", &bufp) != 0)
 			{
 				cat(buf);
 				settle = YES;
@@ -1155,13 +1262,13 @@ mapold:				Map->Ident = NewType;
 
 			if ((sh = getenv("SHELL")) && (i = strlen(sh)) >= 3)
 			{
-				if ((csh = sequal(&sh[i-3], "csh")) && CmndLine)
-					write(STDOUT, "set noglob;\n", 12);
+			    if ((csh = sequal(&sh[i-3], "csh")) && CmndLine)
+				(void) write(STDOUT, "set noglob;\n", 12);
 			}
 			if (!csh)
 # endif
-				/* running Bourne shell */
-				write(STDOUT, "export TERMCAP TERM;\n", 21);
+			    /* running Bourne shell */
+			    (void) write(STDOUT, "export TERMCAP TERM;\n", 21);
 		}
 	}
 
@@ -1179,23 +1286,23 @@ mapold:				Map->Ident = NewType;
 			if (csh)
 			{
 				if (CmndLine)
-					write(STDOUT, "setenv TERM ", 12);
-				write(STDOUT, TtyType, strlen(TtyType));
-				write(STDOUT, " ", 1);
+				    (void) write(STDOUT, "setenv TERM ", 12);
+				(void) write(STDOUT, TtyType, strlen(TtyType));
+				(void) write(STDOUT, " ", 1);
 				if (CmndLine)
-					write(STDOUT, ";\n", 2);
+				    (void) write(STDOUT, ";\n", 2);
 			}
 			else
 			{
-				write(STDOUT, "TERM=", 5);
-				write(STDOUT, TtyType, strlen(TtyType));
-				write(STDOUT, ";\n", 2);
+				(void) write(STDOUT, "TERM=", 5);
+				(void) write(STDOUT, TtyType, strlen(TtyType));
+				(void) write(STDOUT, ";\n", 2);
 			}
 		}
 		else if (Report)
 		{
-			write(STDOUT, TtyType, strlen(TtyType));
-			write(STDOUT, "\n", 1);
+			(void) write(STDOUT, TtyType, strlen(TtyType));
+			(void) write(STDOUT, "\n", 1);
 		}
 		if (Ureport)
 		{
@@ -1209,31 +1316,32 @@ mapold:				Map->Ident = NewType;
 		{
 			if (csh)
 			{
-				if (CmndLine)
-					write(STDOUT, "setenv TERMCAP '", 16);
+			    if (CmndLine)
+				(void) write(STDOUT, "setenv TERMCAP '", 16);
 			}
 			else
-				write(STDOUT, "TERMCAP='", 9);
+			    (void) write(STDOUT, "TERMCAP='", 9);
 			wrtermcap(Ttycap);
 			if (csh)
 			{
 				if (CmndLine)
 				{
-					write(STDOUT, "';\n", 3);
-					write(STDOUT, "unset noglob;\n", 14);
+				    (void) write(STDOUT, "';\n", 3);
+				    (void) write(STDOUT, "unset noglob;\n", 14);
 				}
 			}
 			else
-				write(STDOUT, "';\n", 3);
+				(void) write(STDOUT, "';\n", 3);
 		}
 	}
 
 	if (RepOnly)
 		exit(0);
 
-	/* tell about changing erase and kill characters */
+	/* tell about changing erase, kill and interrupt characters */
 	reportek("Erase", curerase, olderase, OLDERASE);
 	reportek("Kill", curkill, oldkill, OLDKILL);
+	reportek("Interrupt", curintr, oldintr, OLDINTR);
 
 # ifdef V6
 	/* update htmp */
@@ -1272,15 +1380,13 @@ settabs()
 	char *capsp = caps;
 	char *clear_tabs, *set_tab, *set_column, *set_pos;
 	char *tg_out, *tgoto();
-	int columns, lines, c;
+	int c;
 
 	clear_tabs = tgetstr("ct", &capsp);
 	set_tab = tgetstr("st", &capsp);
 	set_column = tgetstr("ch", &capsp);
 	if (set_column == 0)
 		set_pos = tgetstr("cm", &capsp);
-	columns = tgetnum("co");
-	lines = tgetnum("li");
 
 	if (clear_tabs && set_tab) {
 		prc('\r');	/* force to be at left margin */
@@ -1322,36 +1428,55 @@ int	flag;
 # else
 	struct termio *ttymode;
 # endif
+# ifdef TIOCGETC
+	struct tchars *ttytchars;
+# endif
 
-	if (flag < 0)	/* unconditionally reset oldmode (called from init) */
+	if (flag < 0) { /* unconditionally reset oldmode (called from init) */
 		ttymode = &oldmode;
-	else if (!bequal(&mode, &oldmode, sizeof mode))
+# ifdef TIOCGETC
+		ttytchars = &oldtchar;
+# endif
+	} else if (!bequal((char *)&mode, (char *)&oldmode, sizeof mode)) {
 		ttymode = &mode;
-	else		/* don't need it */
+# ifdef TIOCGETC
+		ttytchars = &tchar;
+# endif
+	} else	{	/* don't need it */
 # ifndef USG
 	ttymode = (struct sgttyb *)0;
 # else
 	ttymode = (struct termio *)0;
 # endif
+# ifdef TIOCGETC
+	ttytchars = (struct tchars *)0;
+# endif
+	}
 	
 	if (ttymode)
 	{
 # ifdef USG
-		ioctl(FILEDES, TCSETAW, ttymode);
+		(void) ioctl(FILEDES, TCSETAW, (char *)ttymode);
 # else
 #  ifndef V6
-		ioctl(FILEDES, TIOCSETN, ttymode);     /* don't flush */
+		/* don't flush */
+		(void) ioctl(FILEDES, TIOCSETN, (char *)ttymode);
 #  else
 		stty(FILEDES, ttymode);
 #  endif
 # endif
 	}
+# ifdef TIOCGETC
+	if (ttytchars) {
+		(void) ioctl(FILEDES, TIOCSETC, (char *)ttytchars);
+	}
+# endif
 # ifdef CBVIRTTERM
 	if (VirTermNo != -2) {
 		int r1, r2;
 		extern int errno;
 
-		r1 = ioctl(FILEDES, LDGETT, &block);
+		r1 = ioctl(FILEDES, LDGETT, (char *)&block);
 		block.st_flgs |= TM_SET;
 		block.st_termt = VirTermNo;
 		if (block.st_termt < 0)
@@ -1360,7 +1485,7 @@ int	flag;
 			block.st_flgs |= TM_ANL;
 		else
 			block.st_flgs &= ~TM_ANL;
-		r2 = ioctl(FILEDES, LDSETT, &block);
+		r2 = ioctl(FILEDES, LDSETT, (char *)&block);
 	}
 # endif
 
@@ -1418,7 +1543,7 @@ setdelay(cap, dtab, bits, flags)
 char		*cap;
 struct delay	dtab[];
 int		bits;
-int		*flags;
+short		*flags;
 {
 	register int	i;
 	register struct delay	*p;
@@ -1476,7 +1601,7 @@ char	c;
 flush()
 {
 	if (OutPtr > 0)
-		write(2, OutBuf, OutPtr);
+		(void) write(2, OutBuf, OutPtr);
 	OutPtr = 0;
 }
 
@@ -1499,9 +1624,9 @@ char	*file;
 	}
 
 	while ((i = read(fd, buf, BUFSIZ)) > 0)
-		write(FILEDES, buf, i);
+		(void) write(FILEDES, buf, i);
 
-	close(fd);
+	(void) close(fd);
 }
 
 
@@ -1601,17 +1726,11 @@ char *
 stypeof(ttyid)
 char	*ttyid;
 {
-	static char	typebuf[BUFSIZ];
 	register char	*PortType;
-	register char	*PortName;
 	register char	*TtyId;
-	register char	*p;
-	register FILE	*f;
+	struct ttyent *t;
 
 	if (ttyid == NOTTY)
-		return (DEFTYPE);
-	f = fopen(GTTYN, "r");
-	if (f == NULL)
 		return (DEFTYPE);
 
 	/* split off end of name */
@@ -1621,37 +1740,17 @@ char	*ttyid;
 			TtyId = ttyid;
 
 	/* scan the file */
-	while (fgets(typebuf, sizeof typebuf, f) != NULL)
+	if ((t = getttynam(TtyId)) != NULL)
 	{
-		p = PortType = typebuf;
-		while (*p && isalnum(*p))
-			p++;
-		*p++ = NULL;
-
-		/* skip separator */
-		while (*p && !isalnum(*p))
-			p++;
-
-		PortName = p;
-		/* put NULL at end of name */
-		while (*p && isalnum(*p))
-			p++;
-		*p = NULL;
-
-		/* check match on port name */
-		if (sequal(PortName, TtyId))	/* found it */
-		{
-			fclose (f);
-			/* get aliases from termcap entry */
-			if (Mapped && tgetent(Capbuf, PortType) > 0) {
-				makealias(Capbuf);
-				if (sequal(Alias[0], PortType) && Alias[1])
-					PortType = Alias[1];
-			}
-			return(PortType);
+		PortType = t->ty_type;
+		/* get aliases from termcap entry */
+		if (Mapped && tgetent(Capbuf, PortType) > 0) {
+			makealias(Capbuf);
+			if (sequal(Alias[0], PortType) && Alias[1])
+				PortType = Alias[1];
 		}
+		return (PortType);
 	}
-	fclose (f);
 	return (DEFTYPE);
 }
 # endif
@@ -1667,11 +1766,13 @@ wrtermcap(bp)
 char *bp;
 {
 	char buf[CAPBUFSIZ];
-	register int i;
 	char *p = buf;
 	char *tp;
 	char *putbuf();
 	int space, empty;
+# ifdef CBVIRTTERM
+	register int i;
+# endif CBVIRTTERM
 
 	/* discard names with blanks */
 /** May not be desireable ? **/
@@ -1791,10 +1892,12 @@ char *bp;
 # endif CBVIRTTERM
 		}
 		*p++ = *bp++;
+# ifdef CBVIRTTERM
 contin:		;
+# endif CBVIRTTERM
 	}
 	*p++ = ':';	/* we skipped the last : with the : lookahead hack */
-	write (STDOUT, buf, p-buf);
+	(void) write (STDOUT, buf, p-buf);
 }
 
 cancelled(cap)
@@ -1829,7 +1932,7 @@ char	*str;
 			break;
 		default:
 			if (*str <= ' ') {
-				sprintf(buf, "\\%03o", *str);
+				(void) sprintf(buf, "\\%03o", *str);
 				ptr = putbuf(ptr, buf);
 				str++;
 			} else

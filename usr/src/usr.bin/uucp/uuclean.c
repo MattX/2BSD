@@ -1,5 +1,6 @@
-/* $Header: uuclean.c,v 1.8 85/05/20 20:02:37 rick Exp $ */
-/* from: @(#)uuclean.c	5.2 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)uuclean.c	5.6 (Berkeley) 10/9/85";
+#endif
 
 #include <signal.h>
 #include "uucp.h"
@@ -33,6 +34,7 @@
 #define NOMTIME 72	/* hours to age files before deletion */
 
 int checkprefix = 0;
+struct timeb Now;
 
 main(argc, argv)
 char *argv[];

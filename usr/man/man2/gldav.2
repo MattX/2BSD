@@ -1,11 +1,20 @@
-.TH GLDAV 2 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)gldav.2	2.3 (Berkeley) 1/22/87
+.\"
+.TH GLDAV 2 "January 22, 1987"
+.UC 2
 .SH NAME
-gldav \- get load average
+gldav \- get load average (2BSD)
 .SH SYNOPSIS
-.B gldav(svec)
-.br
-.B short svec[3];
+.nf
+.ft B
+gldav(svec)
+short svec[3];
+.fi
+.ft R
 .SH DESCRIPTION
 .I Gldav
 returns the load average on the system in internal format.
@@ -23,20 +32,12 @@ in a psuedo-floating point format.
 The leftmost 8 bits are to the left of the decimal point,
 the rightmost 8 bits are to the right.
 .SH ERRORS
-.I Gldav
-will fail if:
-.TP 20
+.TP 15
 [EFAULT]
 .I Svec
 points to an address not in the process's allocated address space.
 .SH "SEE ALSO"
-la(1), w(1), loadav(3)
-.SH ASSEMBLER
-.nf
-(local = 58., gldav = 14.)
-(address of vec in r0)
-.B sys local; 9f
-\&. . .
-.B \&.data
-.B 9: sys gldav
-.fi
+w(1), loadav(3)
+.SH BUGS
+.I Gldav
+is unique to the PDP-11 and 2BSD; its use is discouraged.

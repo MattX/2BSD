@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)ts.c	4.2 8/11/83";
+#endif
+
  /* ts.c: minor string processing subroutines */
 match (s1, s2)
 	char *s1, *s2;

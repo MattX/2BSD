@@ -1,24 +1,42 @@
-/*	main.c	4.2	82/10/08	*/
+/*
+ * Copyright (c) 1985 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+char copyright[] =
+"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 2/7/86";
+#endif not lint
+
+/* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
 
 /*
  * TFTP User Program -- Command Interface.
  */
-#include <stdio.h>
-#include <sys/param.h>
-#include <netinet/in.h>
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/file.h>
+
+#include <netinet/in.h>
+
 #include <signal.h>
+#include <stdio.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <ctype.h>
-#ifdef	pdp11
-#define	connected	cnctd
-#endif
+#include <netdb.h>
 
-struct	sockaddr_in sin = { AF_INET };
+#define	TIMEOUT		5		/* secs between rexmt's */
+
+struct	sockaddr_in sin;
 int	f;
-int	options;
-short	port;
+short   port;
 int	trace;
 int	verbose;
 int	connected;
@@ -32,7 +50,8 @@ int	intr();
 struct	servent *sp;
 
 int	quit(), help(), setverbose(), settrace(), status();
-int	get(), put(), setpeer(), setmode();
+int     get(), put(), setpeer(), modecmd(), setrexmt(), settimeout();
+int     setbinary(), setascii();
 
 #define HELPINDENT (sizeof("connect"))
 
@@ -51,16 +70,24 @@ char	shelp[] = "send file";
 char	rhelp[] = "receive file";
 char	mhelp[] = "set file transfer mode";
 char	sthelp[] = "show current status";
+char	xhelp[] = "set per-packet retransmission timeout";
+char	ihelp[] = "set total retransmission timeout";
+char    ashelp[] = "set mode to netascii";
+char    bnhelp[] = "set mode to octet";
 
 struct cmd cmdtab[] = {
 	{ "connect",	chelp,		setpeer },
-	{ "mode",	mhelp,		setmode },
+	{ "mode",       mhelp,          modecmd },
 	{ "put",	shelp,		put },
 	{ "get",	rhelp,		get },
 	{ "quit",	qhelp,		quit },
 	{ "verbose",	vhelp,		setverbose },
 	{ "trace",	thelp,		settrace },
 	{ "status",	sthelp,		status },
+	{ "binary",     bnhelp,         setbinary },
+	{ "ascii",      ashelp,         setascii },
+	{ "rexmt",	xhelp,		setrexmt },
+	{ "timeout",	ihelp,		settimeout },
 	{ "?",		hhelp,		help },
 	0
 };
@@ -73,40 +100,43 @@ char	*rindex();
 main(argc, argv)
 	char *argv[];
 {
+	struct sockaddr_in sin;
+	int top;
+
 	sp = getservbyname("tftp", "udp");
 	if (sp == 0) {
 		fprintf(stderr, "tftp: udp/tftp: unknown service\n");
 		exit(1);
 	}
-	sin.sin_port = htons(sp->s_port);
-	if (argc > 1 && !strcmp(argv[1], "-d")) {
-		options |= SO_DEBUG;
-		argc--, argv++;
-	}
-	f = socket(SOCK_DGRAM, 0, 0, options);
+	f = socket(AF_INET, SOCK_DGRAM, 0);
 	if (f < 0) {
-		perror("socket");
+		perror("tftp: socket");
 		exit(3);
 	}
+	bzero((char *)&sin, sizeof (sin));
+	sin.sin_family = AF_INET;
+	if (bind(f, &sin, sizeof (sin)) < 0) {
+		perror("tftp: bind");
+		exit(1);
+	}
 	strcpy(mode, "netascii");
+	signal(SIGINT, intr);
 	if (argc > 1) {
 		if (setjmp(toplevel) != 0)
 			exit(0);
 		setpeer(argc, argv);
 	}
-	setjmp(toplevel);
+	top = setjmp(toplevel) == 0;
 	for (;;)
-		command(1);
+		command(top);
 }
 
-char	*hostname;
-char	hnamebuf[32];
+char    hostname[100];
 
 setpeer(argc, argv)
 	int argc;
 	char *argv[];
 {
-	register int c;
 	struct hostent *host;
 
 	if (argc < 2) {
@@ -123,30 +153,29 @@ setpeer(argc, argv)
 	}
 	host = gethostbyname(argv[1]);
 	if (host) {
+		sin.sin_family = host->h_addrtype;
 		bcopy(host->h_addr, &sin.sin_addr, host->h_length);
-		hostname = host->h_name;
+		strcpy(hostname, host->h_name);
 	} else {
+		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = inet_addr(argv[1]);
 		if (sin.sin_addr.s_addr == -1) {
 			connected = 0;
 			printf("%s: unknown host\n", argv[1]);
 			return;
 		}
-		strcpy(hnamebuf, argv[1]);
-		hostname = hnamebuf;
+		strcpy(hostname, argv[1]);
 	}
-	sin.sin_port = sp->s_port;
+	port = sp->s_port;
 	if (argc == 3) {
-		sin.sin_port = atoi(argv[2]);
-		if (sin.sin_port < 0) {
+		port = atoi(argv[2]);
+		if (port < 0) {
 			printf("%s: bad port number\n", argv[2]);
 			connected = 0;
 			return;
 		}
+		port = htons(port);
 	}
-#if vax || pdp11
-	port = sin.sin_port = htons(sin.sin_port);
-#endif
 	connected = 1;
 }
 
@@ -155,41 +184,65 @@ struct	modes {
 	char *m_mode;
 } modes[] = {
 	{ "ascii",	"netascii" },
-	{ "binary",	"octet" },
-	{ "mail",	"mail" },
+	{ "netascii",   "netascii" },
+	{ "binary",     "octet" },
+	{ "image",      "octet" },
+	{ "octet",     "octet" },
+/*      { "mail",       "mail" },       */
 	{ 0,		0 }
 };
 
-setmode(argc, argv)
+modecmd(argc, argv)
 	char *argv[];
 {
 	register struct modes *p;
+	char *sep;
 
-	if (argc > 2) {
-		char *sep;
-
-		printf("usage: %s [", argv[0]);
-		sep = " ";
-		for (p = modes; p->m_name; p++) {
-			printf("%s%s", sep, p->m_name);
-			if (*sep == ' ')
-				sep = " | ";
-		}
-		printf(" ]\n");
-		return;
-	}
 	if (argc < 2) {
 		printf("Using %s mode to transfer files.\n", mode);
 		return;
 	}
-	for (p = modes; p->m_name; p++)
-		if (strcmp(argv[1], p->m_name) == 0)
-			break;
-	if (p->m_name)
-		strcpy(mode, p->m_mode);
-	else
+	if (argc == 2) {
+		for (p = modes; p->m_name; p++)
+			if (strcmp(argv[1], p->m_name) == 0)
+				break;
+		if (p->m_name) {
+			setmode(p->m_mode);
+			return;
+		}
 		printf("%s: unknown mode\n", argv[1]);
+		/* drop through and print usage message */
+	}
+
+	printf("usage: %s [", argv[0]);
+	sep = " ";
+	for (p = modes; p->m_name; p++) {
+		printf("%s%s", sep, p->m_name);
+		if (*sep == ' ')
+			sep = " | ";
+	}
+	printf(" ]\n");
+	return;
 }
+
+setbinary(argc, argv)
+char *argv[];
+{       setmode("octet");
+}
+
+setascii(argc, argv)
+char *argv[];
+{       setmode("netascii");
+}
+
+setmode(newmode)
+char *newmode;
+{
+	strcpy(mode, newmode);
+	if (verbose)
+		printf("mode set to %s\n", mode);
+}
+
 
 /*
  * Send file(s).
@@ -198,7 +251,7 @@ put(argc, argv)
 	char *argv[];
 {
 	int fd;
-	register int n, addr;
+	register int n;
 	register char *cp, *targ;
 
 	if (argc < 2) {
@@ -231,36 +284,45 @@ put(argc, argv)
 			printf("%s: Unknown host.\n", cp);
 			return;
 		}
-		bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
+		bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
 		sin.sin_family = hp->h_addrtype;
 		connected = 1;
-		hostname = hp->h_name;
+		strcpy(hostname, hp->h_name);
 	}
 	if (!connected) {
 		printf("No target machine specified.\n");
 		return;
 	}
-	sigset(SIGINT, intr);
 	if (argc < 4) {
 		cp = argc == 2 ? tail(targ) : argv[1];
-		fd = open(cp);
+		fd = open(cp, O_RDONLY);
 		if (fd < 0) {
-			perror(cp);
+			fprintf(stderr, "tftp: "); perror(cp);
 			return;
 		}
-		sendfile(fd, targ);
+		if (verbose)
+			printf("putting %s to %s:%s [%s]\n",
+				cp, hostname, targ, mode);
+		sin.sin_port = port;
+		sendfile(fd, targ, mode);
 		return;
 	}
+				/* this assumes the target is a directory */
+				/* on a remote unix system.  hmmmm.  */
 	cp = index(targ, '\0'); 
 	*cp++ = '/';
 	for (n = 1; n < argc - 1; n++) {
 		strcpy(cp, tail(argv[n]));
-		fd = open(argv[n], 0);
+		fd = open(argv[n], O_RDONLY);
 		if (fd < 0) {
-			perror(argv[n]);
+			fprintf(stderr, "tftp: "); perror(argv[n]);
 			continue;
 		}
-		sendfile(fd, targ);
+		if (verbose)
+			printf("putting %s to %s:%s [%s]\n",
+				argv[n], hostname, targ, mode);
+		sin.sin_port = port;
+		sendfile(fd, targ, mode);
 	}
 }
 
@@ -278,7 +340,7 @@ get(argc, argv)
 	char *argv[];
 {
 	int fd;
-	register int n, addr;
+	register int n;
 	register char *cp;
 	char *src;
 
@@ -294,14 +356,14 @@ get(argc, argv)
 		getusage(argv[0]);
 		return;
 	}
-	if (!connected)
-		for (n = 1; n < argc - 1; n++)
+	if (!connected) {
+		for (n = 1; n < argc ; n++)
 			if (index(argv[n], ':') == 0) {
 				getusage(argv[0]);
 				return;
 			}
-	sigset(SIGINT, intr);
-	for (n = 1; argc == 2 || n < argc - 1; n++) {
+	}
+	for (n = 1; n < argc ; n++) {
 		src = index(argv[n], ':');
 		if (src == NULL)
 			src = argv[n];
@@ -314,37 +376,96 @@ get(argc, argv)
 				printf("%s: Unknown host.\n", argv[n]);
 				continue;
 			}
-			bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
+			bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
 			sin.sin_family = hp->h_addrtype;
 			connected = 1;
-			hostname = hp->h_name;
+			strcpy(hostname, hp->h_name);
 		}
 		if (argc < 4) {
 			cp = argc == 3 ? argv[2] : tail(src);
 			fd = creat(cp, 0644);
 			if (fd < 0) {
-				perror(cp);
+				fprintf(stderr, "tftp: "); perror(cp);
 				return;
 			}
-			recvfile(fd, src);
+			if (verbose)
+				printf("getting from %s:%s to %s [%s]\n",
+					hostname, src, cp, mode);
+			sin.sin_port = port;
+			recvfile(fd, src, mode);
 			break;
 		}
-		cp = index(argv[argc - 1], '\0');
-		*cp++ = '/';
-		strcpy(cp, tail(src));
-		fd = creat(src, 0644);
+		cp = tail(src);         /* new .. jdg */
+		fd = creat(cp, 0644);
 		if (fd < 0) {
-			perror(src);
+			fprintf(stderr, "tftp: "); perror(cp);
 			continue;
 		}
-		recvfile(fd, src);
+		if (verbose)
+			printf("getting from %s:%s to %s [%s]\n",
+				hostname, src, cp, mode);
+		sin.sin_port = port;
+		recvfile(fd, src, mode);
 	}
 }
 
 getusage(s)
+char * s;
 {
 	printf("usage: %s host:file host:file ... file, or\n", s);
 	printf("       %s file file ... file if connected\n", s);
+}
+
+int	rexmtval = TIMEOUT;
+
+setrexmt(argc, argv)
+	char *argv[];
+{
+	int t;
+
+	if (argc < 2) {
+		strcpy(line, "Rexmt-timeout ");
+		printf("(value) ");
+		gets(&line[strlen(line)]);
+		makeargv();
+		argc = margc;
+		argv = margv;
+	}
+	if (argc != 2) {
+		printf("usage: %s value\n", argv[0]);
+		return;
+	}
+	t = atoi(argv[1]);
+	if (t < 0)
+		printf("%s: bad value\n", t);
+	else
+		rexmtval = t;
+}
+
+int	maxtimeout = 5 * TIMEOUT;
+
+settimeout(argc, argv)
+	char *argv[];
+{
+	int t;
+
+	if (argc < 2) {
+		strcpy(line, "Maximum-timeout ");
+		printf("(value) ");
+		gets(&line[strlen(line)]);
+		makeargv();
+		argc = margc;
+		argv = margv;
+	}
+	if (argc != 2) {
+		printf("usage: %s value\n", argv[0]);
+		return;
+	}
+	t = atoi(argv[1]);
+	if (t < 0)
+		printf("%s: bad value\n", t);
+	else
+		maxtimeout = t;
 }
 
 status(argc, argv)
@@ -356,10 +477,14 @@ status(argc, argv)
 		printf("Not connected.\n");
 	printf("Mode: %s Verbose: %s Tracing: %s\n", mode,
 		verbose ? "on" : "off", trace ? "on" : "off");
+	printf("Rexmt-interval: %d seconds, Max-timeout: %d seconds\n",
+		rexmtval, maxtimeout);
 }
 
 intr()
 {
+	signal(SIGALRM, SIG_IGN);
+	alarm(0);
 	longjmp(toplevel, -1);
 }
 
@@ -390,15 +515,17 @@ command(top)
 
 	if (!top)
 		putchar('\n');
-	else
-		sigset(SIGINT, SIG_DFL);
 	for (;;) {
-		sin.sin_port = port;
 		printf("%s> ", prompt);
-		if (gets(line) == 0)
-			break;
+		if (gets(line) == 0) {
+			if (feof(stdin)) {
+				quit();
+			} else {
+				continue;
+			}
+		}
 		if (line[0] == 0)
-			break;
+			continue;
 		makeargv();
 		c = getcmd(margv[0]);
 		if (c == (struct cmd *)-1) {
@@ -410,10 +537,7 @@ command(top)
 			continue;
 		}
 		(*c->handler)(margc, margv);
-		if (c->handler != help)
-			break;
 	}
-	longjmp(toplevel, 1);
 }
 
 struct cmd *
@@ -478,7 +602,6 @@ quit()
 
 /*
  * Help command.
- * Call each command handler with argc == 0 and argv[0] == name.
  */
 help(argc, argv)
 	int argc;
@@ -503,22 +626,6 @@ help(argc, argv)
 		else
 			printf("%s\n", c->help);
 	}
-}
-
-/*
- * Call routine with argc, argv set from args (terminated by 0).
- */
-/* VARARGS2 */
-call(routine, args)
-	int (*routine)();
-	int args;
-{
-	register int *argp;
-	register int argc;
-
-	for (argc = 0, argp = &args; *argp++ != 0; argc++)
-		;
-	(*routine)(argc, &args);
 }
 
 /*VARARGS*/

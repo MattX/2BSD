@@ -1,19 +1,21 @@
+#ifndef lint
+static char sccsid[] = "@(#)expand.c	4.5 8/11/83";
+#endif
+
+#
 /*
- * UNIX shell
+ *	UNIX shell
  *
  *	S. R. Bourne
  *	Bell Telephone Laboratories
  *
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)expand.c	4.5 8/11/83";
-#endif
-
 #include	"defs.h"
 #include	<sys/param.h>
 #include	<sys/stat.h>
 #include	<sys/dir.h>
+
 
 
 /* globals (file name generation)
@@ -79,9 +81,7 @@ INT	expand(as,rflg)
 		REP	IF *rs=='/' THEN rescan=rs; *rs=0; gchain=0 FI
 		PER	*rs++ DONE
 
-#ifndef	pdp11
 		IF setjmp(INTbuf) == 0 THEN trapjmp[INTR] = 1; FI
-#endif	!pdp11
 		WHILE (trapnote&SIGSET) == 0 ANDF (dp = readdir(dirf)) != NULL
 		DO	IF (*dp->d_name=='.' ANDF *cs!='.')
 			THEN	continue;
@@ -90,10 +90,7 @@ INT	expand(as,rflg)
 			THEN	addg(s,dp->d_name,rescan); count++;
 			FI
 		OD
-		closedir(dirf);
-#ifndef	pdp11
-		trapjmp[INTR] = 0;
-#endif	!pdp11
+		closedir(dirf); trapjmp[INTR] = 0;
 
 		IF rescan
 		THEN	REG ARGPTR	rchain;

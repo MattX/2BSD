@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.cmd.c - version 1.0.2 */
+/* hack.cmd.c - version 1.0.3 */
 
 #include	"hack.h"
 #include	"def.func_tab.h"
@@ -9,7 +9,7 @@ doversion(),doweararm(),dowearring(),doremarm(),doremring(),dopay(),doapply(),
 dosave(),dowield(),ddoinv(),dozap(),ddocall(),dowhatis(),doengrave(),dotele(),
 dohelp(),doeat(),doddrop(),do_mname(),doidtrap(),doprwep(),doprarm(),
 doprring(),doprgold(),dodiscovered(),dotypeinv(),dolook(),doset(),
-doup(), dodown(), done1(), donull(), dothrow(), doextcmd(), dodip();
+doup(), dodown(), done1(), donull(), dothrow(), doextcmd(), dodip(), dopray();
 #ifdef SHELL
 int dosh();
 #endif SHELL
@@ -36,8 +36,8 @@ struct func_tab cmdlist[]={
 /*	'f', 'F' : multiple go (might become 'fight') */
 /*	'g', 'G' : UNUSED */
 /*	'h', 'H' : go west */
-	'i', dotypeinv,		/* Robert Viduya */
-	'I', ddoinv,
+	'I', dotypeinv,		/* Robert Viduya */
+	'i', ddoinv,
 /*	'j', 'J', 'k', 'K', 'l', 'L', 'm', 'M', 'n', 'N' : move commands */
 /*	'o', doopen,	*/
 	'O', doset,
@@ -83,6 +83,7 @@ struct func_tab cmdlist[]={
 
 struct ext_func_tab extcmdlist[] = {
 	"dip", dodip,
+	"pray", dopray,
 	(char *) 0, donull
 };
 
@@ -157,7 +158,7 @@ register char *cmd;
 #endif QUEST
 	while(tlist->f_char) {
 		if(*cmd == tlist->f_char){
-			res = (*(tlist->f_funct))(0);
+			res = (*(tlist->f_funct))();
 			if(!res) {
 				flags.move = 0;
 				multi = 0;
@@ -177,7 +178,7 @@ register char *cmd;
 		}
 	  }
 	  *cp++ = 0;
-	  pline("Unknown command '%s'", expcmd);
+	  pline("Unknown command '%s'.", expcmd);
 	}
 	multi = flags.move = 0;
 }
@@ -190,6 +191,8 @@ doextcmd()	/* here after # - now read a full-word command */
 	pline("# ");
 	getlin(buf);
 	clrlin();
+	if(buf[0] == '\033')
+		return(0);
 	while(efp->ef_txt) {
 		if(!strcmp(efp->ef_txt, buf))
 			return((*(efp->ef_funct))());

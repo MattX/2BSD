@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)regexp.c	5.1 (Berkeley) 6/5/85";
+#endif not lint
+
 #include <ctype.h>
 
 typedef int	boolean;
@@ -131,6 +141,7 @@ expconv()
 
     /* let the conversion begin */
     acs = NIL;
+    cs = NIL;
     while (*ure != NIL) {
 	switch (c = *ure++) {
 
@@ -139,7 +150,7 @@ expconv()
 
 	    /* escaped characters are just characters */
 	    default:
-		if ((*cs & STR) == 0) {
+		if (cs == NIL || (*cs & STR) == 0) {
 		    cs = ccre;
 		    *cs = STR;
 		    SCNT(cs) = 1;
@@ -189,7 +200,8 @@ expconv()
 
 	/* mark the last match sequence as optional */
 	case '?':
-	    *cs = *cs | OPT;
+	    if (cs)
+	    	*cs = *cs | OPT;
 	    break;
 
 	/* recurse and define a subexpression */
@@ -244,7 +256,7 @@ expconv()
 
 	/* if its not a metasymbol just build a scharacter string */
 	default:
-	    if ((*cs & STR) == 0) {
+	    if (cs == NIL || (*cs & STR) == 0) {
 		cs = ccre;
 		*cs = STR;
 		SCNT(cs) = 1;

@@ -1,84 +1,97 @@
-/*	route.c	4.11	82/06/20	*/
+/*
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)route.c	1.1 (2.10BSD Berkeley) 12/1/86
+ */
 
 #include "param.h"
-#include <sys/systm.h>
-#include <sys/mbuf.h>
-#include <sys/protosw.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <net/af.h>
-#include <net/route.h>
-#include <errno.h>
+#include "systm.h"
+#include "mbuf.h"
+#include "protosw.h"
+#include "socket.h"
+#include "domain.h"
+#include "user.h"
+#include "ioctl.h"
+#include "errno.h"
+
+#include "if.h"
+#include "af.h"
+#include "route.h"
 
 int	rttrash;		/* routes not in table but not freed */
+struct	sockaddr wildcard;	/* zero valued cookie for wildcard searches */
+int	rthashsize = RTHASHSIZ;	/* for netstat, etc. */
+
 /*
  * Packet routing routines.
  */
 rtalloc(ro)
 	register struct route *ro;
 {
-	register struct rtentry *rt, *rtmin;
-	register u_int hash, (*match)();
-	struct afhash h;
+	register struct rtentry *rt;
+	register u_int hash;
 	struct sockaddr *dst = &ro->ro_dst;
- 	struct sockaddr zeros;		/* "Wildcard" destination BRL*/
-	int af = dst->sa_family;
+	int (*match)(), doinghost, s;
+	struct afhash h;
+	u_int af = dst->sa_family;
+	struct rtentry **table;
 
-	if (ro->ro_rt && ro->ro_rt->rt_ifp)			/* XXX */
-		return;
+	if (ro->ro_rt && ro->ro_rt->rt_ifp && (ro->ro_rt->rt_flags & RTF_UP))
+		return;				 /* XXX */
 	if (af >= AF_MAX)
 		return;
-top:								/* BRL */
-	(*afswitch[af].af_hash)(dst, &h);
-	rtmin = 0, hash = h.afh_hosthash;
-	for (rt = rthost[hash % RTHASHSIZ]; rt; rt = rt->rt_next) {
-		if (rt->rt_hash != hash)
-			continue;
-		if ((rt->rt_flags & RTF_UP) == 0 ||
-		    (rt->rt_ifp->if_flags & IFF_UP) == 0)
-			continue;
-		if (bcmp((caddr_t)&rt->rt_dst, (caddr_t)dst, sizeof (*dst)))
-			continue;
-		if (rtmin == 0 || rt->rt_use < rtmin->rt_use)
-			rtmin = rt;
-	}
-	if (rtmin) 
-		goto found;
 
-	hash = h.afh_nethash;
+	(*afswitch[af].af_hash)(dst, &h);
 	match = afswitch[af].af_netmatch;
-	for (rt = rtnet[hash % RTHASHSIZ]; rt; rt = rt->rt_next) {
+	hash = h.afh_hosthash, table = rthost, doinghost = 1;
+	s = splnet();
+again:
+	for (rt = table[hash % RTHASHSIZ]; rt; rt = rt->rt_next) {
 		if (rt->rt_hash != hash)
 			continue;
 		if ((rt->rt_flags & RTF_UP) == 0 ||
 		    (rt->rt_ifp->if_flags & IFF_UP) == 0)
 			continue;
-		if (rt->rt_dst.sa_family != af || !(*match)(&rt->rt_dst, dst))
-			continue;
-		if (rtmin == 0 || rt->rt_use < rtmin->rt_use)
-			rtmin = rt;
+		if (doinghost) {
+			if (bcmp((caddr_t)&rt->rt_dst, (caddr_t)dst,
+			    sizeof (*dst)))
+				continue;
+		} else {
+			if (rt->rt_dst.sa_family != af ||
+			    !(*match)(&rt->rt_dst, dst))
+				continue;
+		}
+		rt->rt_refcnt++;
+		splx(s);
+		if (dst == &wildcard)
+			rtstat.rts_wildcard++;
+		ro->ro_rt = rt;
+		return;
 	}
-found:
-	ro->ro_rt = rtmin;
-	if (rtmin)
-		rtmin->rt_refcnt++;	/* Success! */
-	else if (dst != &zeros) {
-		/* Look again for "wildcard" route (net 0)  BRL */
-		bzero ((caddr_t) &zeros, sizeof(zeros));
-		zeros.sa_family = dst->sa_family;
-		dst = &zeros;
-		goto top;
+	if (doinghost) {
+		doinghost = 0;
+		hash = h.afh_nethash, table = rtnet;
+		goto again;
 	}
+	/*
+	 * Check for wildcard gateway, by convention network 0.
+	 */
+	if (dst != &wildcard) {
+		dst = &wildcard, hash = 0;
+		goto again;
+	}
+	splx(s);
+	rtstat.rts_unreach++;
 }
 
 rtfree(rt)
 	register struct rtentry *rt;
 {
+
 	if (rt == 0)
-		panic("freeroute");
+		panic("rtfree");
 	rt->rt_refcnt--;
 	if (rt->rt_refcnt == 0 && (rt->rt_flags&RTF_UP) == 0) {
 		rttrash--;
@@ -87,9 +100,105 @@ rtfree(rt)
 }
 
 /*
+ * Force a routing table entry to the specified
+ * destination to go through the given gateway.
+ * Normally called as a result of a routing redirect
+ * message from the network layer.
+ *
+ * N.B.: must be called at splnet or higher
+ *
+ */
+rtredirect(dst, gateway, flags, src)
+	struct sockaddr *dst, *gateway, *src;
+	int flags;
+{
+	struct route ro;
+	register struct rtentry *rt;
+
+	/* verify the gateway is directly reachable */
+	if (ifa_ifwithnet(gateway) == 0) {
+		rtstat.rts_badredirect++;
+		return;
+	}
+	ro.ro_dst = *dst;
+	ro.ro_rt = 0;
+	rtalloc(&ro);
+	rt = ro.ro_rt;
+#define	equal(a1, a2) \
+	(bcmp((caddr_t)(a1), (caddr_t)(a2), sizeof(struct sockaddr)) == 0)
+	/*
+	 * If the redirect isn't from our current router for this dst,
+	 * it's either old or wrong.  If it redirects us to ourselves,
+	 * we have a routing loop, perhaps as a result of an interface
+	 * going down recently.
+	 */
+	if ((rt && !equal(src, &rt->rt_gateway)) || ifa_ifwithaddr(gateway)) {
+		rtstat.rts_badredirect++;
+		if (rt)
+			rtfree(rt);
+		return;
+	}
+	/*
+	 * Create a new entry if we just got back a wildcard entry
+	 * or the the lookup failed.  This is necessary for hosts
+	 * which use routing redirects generated by smart gateways
+	 * to dynamically build the routing tables.
+	 */
+	if (rt &&
+	    (*afswitch[dst->sa_family].af_netmatch)(&wildcard, &rt->rt_dst)) {
+		rtfree(rt);
+		rt = 0;
+	}
+	if (rt == 0) {
+		rtinit(dst, gateway, (int)SIOCADDRT,
+		    (flags & RTF_HOST) | RTF_GATEWAY | RTF_DYNAMIC);
+		rtstat.rts_dynamic++;
+		return;
+	}
+	/*
+	 * Don't listen to the redirect if it's
+	 * for a route to an interface. 
+	 */
+	if (rt->rt_flags & RTF_GATEWAY) {
+		if (((rt->rt_flags & RTF_HOST) == 0) && (flags & RTF_HOST)) {
+			/*
+			 * Changing from route to net => route to host.
+			 * Create new route, rather than smashing route to net.
+			 */
+			rtinit(dst, gateway, (int)SIOCADDRT,
+			    flags | RTF_DYNAMIC);
+			rtstat.rts_dynamic++;
+		} else {
+			/*
+			 * Smash the current notion of the gateway to
+			 * this destination.
+			 */
+			rt->rt_gateway = *gateway;
+		}
+		rtstat.rts_newgateway++;
+	} else
+		rtstat.rts_badredirect++;
+	rtfree(rt);
+}
+
+/*
+ * Routing table ioctl interface.
+ */
+rtioctl(cmd, data)
+	int cmd;
+	caddr_t data;
+{
+	if (cmd != SIOCADDRT && cmd != SIOCDELRT)
+		return (EINVAL);
+	if (!suser())
+		return (u.u_error);
+	return (rtrequest(cmd, (struct route *)data));
+}
+
+/*
  * Carry out a request to change the routing table.  Called by
- * interfaces at boot time to make their ``local routes'' known
- * and for ioctl's.
+ * interfaces at boot time to make their ``local routes'' known,
+ * for ioctl's, and as the result of routing redirects.
  */
 rtrequest(req, entry)
 	int req;
@@ -97,8 +206,11 @@ rtrequest(req, entry)
 {
 	register struct rtentry *rt,**rtprev;
 	struct afhash h;
-	u_int af, s, error = 0, hash, (*match)();
-	struct ifnet *ifp;
+	int s, error = 0, (*match)();
+	u_int af;
+	u_int hash;
+	struct ifaddr *ifa;
+	struct ifaddr *ifa_ifwithdstaddr();
 
 	af = entry->rt_dst.sa_family;
 	if (af >= AF_MAX)
@@ -117,8 +229,6 @@ rtrequest(req, entry)
 		if (rt->rt_hash != hash)
 			continue;
 		if (entry->rt_flags & RTF_HOST) {
-#define	equal(a1, a2) \
-	(bcmp((caddr_t)(a1), (caddr_t)(a2), sizeof (struct sockaddr)) == 0)
 			if (!equal(&rt->rt_dst, &entry->rt_dst))
 				continue;
 		} else {
@@ -126,10 +236,8 @@ rtrequest(req, entry)
 			    (*match)(&rt->rt_dst, &entry->rt_dst) == 0)
 				continue;
 		}
-
 		if (equal(&rt->rt_gateway, &entry->rt_gateway))
 			break;
-
 	}
 	switch (req) {
 
@@ -152,15 +260,35 @@ rtrequest(req, entry)
 			error = EEXIST;
 			goto bad;
 		}
-		ifp = if_ifwithaddr(&entry->rt_gateway);
-		if (ifp == 0) {
-			ifp = if_ifwithnet(&entry->rt_gateway);
-			if (ifp == 0) {
+		if ((entry->rt_flags & RTF_GATEWAY) == 0) {
+			/*
+			 * If we are adding a route to an interface,
+			 * and the interface is a pt to pt link
+			 * we should search for the destination
+			 * as our clue to the interface.  Otherwise
+			 * we can use the local address.
+			 */
+			ifa = 0;
+			if (entry->rt_flags & RTF_HOST) 
+				ifa = ifa_ifwithdstaddr(&entry->rt_dst);
+			if (ifa == 0)
+				ifa = ifa_ifwithaddr(&entry->rt_gateway);
+		} else {
+			/*
+			 * If we are adding a route to a remote net
+			 * or host, the gateway may still be on the
+			 * other end of a pt to pt link.
+			 */
+			ifa = ifa_ifwithdstaddr(&entry->rt_gateway);
+		}
+		if (ifa == 0) {
+			ifa = ifa_ifwithnet(&entry->rt_gateway);
+			if (ifa == 0) {
 				error = ENETUNREACH;
 				goto bad;
 			}
-	}
-		MSGET(rt, struct rtentry, 1);
+		}
+		MSGET(rt, struct rtentry, M_CLEAR);
 		if (rt == 0) {
 			error = ENOBUFS;
 			goto bad;
@@ -169,9 +297,11 @@ rtrequest(req, entry)
 		rt->rt_hash = hash;
 		rt->rt_dst = entry->rt_dst;
 		rt->rt_gateway = entry->rt_gateway;
-		rt->rt_flags =
-		    RTF_UP | (entry->rt_flags & (RTF_HOST|RTF_GATEWAY));
-		rt->rt_ifp = ifp;
+		rt->rt_flags = RTF_UP |
+		    (entry->rt_flags & (RTF_HOST|RTF_GATEWAY|RTF_DYNAMIC));
+		rt->rt_refcnt = 0;
+		rt->rt_use = 0;
+		rt->rt_ifp = ifa->ifa_ifp;
 		break;
 	}
 bad:
@@ -183,20 +313,15 @@ bad:
  * Set up a routing table entry, normally
  * for an interface.
  */
-rtinit(dst, gateway, flags)
+rtinit(dst, gateway, cmd, flags)
 	struct sockaddr *dst, *gateway;
-	int flags;
+	int cmd, flags;
 {
 	struct rtentry route;
 
 	bzero((caddr_t)&route, sizeof (route));
 	route.rt_dst = *dst;
 	route.rt_gateway = *gateway;
-	if (flags == -1) {
-		route.rt_flags = 0;
-		(void) rtrequest((int)SIOCDELRT, &route);
-	} else {
-		route.rt_flags = flags;
-		(void) rtrequest((int)SIOCADDRT, &route);
-	}
+	route.rt_flags = flags;
+	(void) rtrequest(cmd, &route);
 }

@@ -18,6 +18,7 @@
 #include "0.h"
 #include "yy.h"
 
+
 short	line = 1;
 
 /*
@@ -126,7 +127,7 @@ magic()
 {
 
     /*
-     *	this is the size of /usr/lib/npxheader
+     *	this is the size of LIBDIR/npxheader
      */
 #define	HEAD_BYTES	1024
 	short		buf[HEAD_BYTES / sizeof ( short )];
@@ -159,7 +160,7 @@ magic2()
 	pflush();
 	lseek(ofil, 0l, 0);
 	header.data_size = ( unsigned ) lc - header.txt_size;
-	header.data_size =- sizeof header;
+	header.data_size -= sizeof header;
 	write(ofil, &header, sizeof header);
 	lseek(ofil, ( long ) ( HEAD_BYTES - sizeof ( short ) ) , 0);
 	i = ( ( unsigned ) lc) - HEAD_BYTES;

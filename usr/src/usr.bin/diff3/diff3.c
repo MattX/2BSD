@@ -1,5 +1,8 @@
+#ifndef lint
+static char sccsid[] = "@(#)diff3.c	4.4 (Berkeley) 8/27/85";
+#endif
+
 #include <stdio.h>
-#
 
 /* diff3 - 3-way differential file comparison*/
 
@@ -34,11 +37,13 @@ struct diff d23[NC];
 */
 struct diff de[NC];
 char overlap[NC];
+#ifdef BSD2_10
+#define overlapcnt	ovlpcnt
+#endif BSD2_10
 int  overlapcnt =0;
 
 char line[256];
 FILE *fp[3];
-int linct[3] = {0,0,0};
 /*	the number of the last-read line in each file
  *	is kept in cline[0-2]
 */
@@ -85,8 +90,8 @@ char **argv;
 		exit(1);
 	}
         if (oflag) { 
-                sprintf(f1mark,"<<<<<<< %s",argc>=7?argv[6]:argv[3]);
-                sprintf(f3mark,">>>>>>> %s",argc>=8?argv[7]:argv[5]);
+                (void)sprintf(f1mark,"<<<<<<< %s",argc>=7?argv[6]:argv[3]);
+                (void)sprintf(f3mark,">>>>>>> %s",argc>=8?argv[7]:argv[5]);
         }
 
 	m = readin(argv[1],d13);
@@ -146,7 +151,7 @@ struct diff *dd;
 	}
 	dd[i].old.from = dd[i-1].old.to;
 	dd[i].new.from = dd[i-1].new.to;
-	fclose(fp[0]);
+	(void)fclose(fp[0]);
 	return(i);
 }
 
@@ -214,7 +219,7 @@ merge(m1,m2)
 			if(eflag==0) {
 				separate("1");
 				change(1,&d1->old,0);
-				keep(2,&d1->old,&d1->new);
+				keep(2,&d1->new);
 				change(3,&d1->new,0);
 			}
 			d1++;
@@ -224,7 +229,7 @@ merge(m1,m2)
 		if(!t1||t2&&d2->new.to < d1->new.from) {
 			if(eflag==0) {
 				separate("2");
-				keep(1,&d2->old,&d2->new);
+				keep(1,&d2->new);
 				change(2,&d2->old,0);
 				change(3,&d2->new,0);
 			}
@@ -311,8 +316,8 @@ struct range *rold;
 	if(debug)
 		return;
 	i--;
-	skip(i,rold->from,(char *)0);
-	skip(i,rold->to,"  ");
+	(void)skip(i,rold->from,(char *)0);
+	(void)skip(i,rold->to,"  ");
 }
 
 /*	print the range of line numbers, rold.from  thru rold.to
@@ -336,8 +341,8 @@ struct range *rold;
  *	must be ginned up to correspond to the change reported
  *	in the other file
 */
-keep(i,rold,rnew)
-struct range *rold, *rnew;
+keep(i,rnew)
+struct range *rnew;
 {
 	register delta;
 	struct range trange;
@@ -377,8 +382,8 @@ struct range *r1, *r2;
 	int nline;
 	if(r1->to-r1->from != r2->to-r2->from)
 		return(0);
-	skip(0,r1->from,(char *)0);
-	skip(1,r2->from,(char *)0);
+	(void)skip(0,r1->from,(char *)0);
+	(void)skip(1,r2->from,(char *)0);
 	nchar = 0;
 	for(nline=0;nline<r1->to-r1->from;nline++) {
 		do {
@@ -389,7 +394,7 @@ struct range *r1, *r2;
 			nchar++;
 			if(c!=d) {
 				repos(nchar);
-				return;
+				return(0);
 			}
 		} while(c!= '\n');
 	}
@@ -401,7 +406,7 @@ repos(nchar)
 {
 	register i;
 	for(i=0;i<2;i++) 
-		fseek(fp[i], (long)-nchar, 1);
+		(void)fseek(fp[i], (long)-nchar, 1);
 }
 
 trouble()
@@ -439,12 +444,12 @@ edscript(n)
                         prange(&de[n].old);
                 else
                         printf("%da\n=======\n", de[n].old.to -1);
-		fseek(fp[2], (long)de[n].new.from, 0);
+		(void)fseek(fp[2], (long)de[n].new.from, 0);
 		for(k=de[n].new.to-de[n].new.from;k>0;k-= j) {
 			j = k>BUFSIZ?BUFSIZ:k;
 			if(fread(block,1,j,fp[2])!=j)
 				trouble();
-			fwrite(block, 1, j, stdout);
+			(void)fwrite(block, 1, j, stdout);
 		}
                 if (!oflag || !overlap[n]) 
                         printf(".\n");

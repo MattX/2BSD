@@ -1,0 +1,37 @@
+# Initialize the terminal, try to determine the terminal start and stop
+# highlight sequences and "turn on" the prompt.  Note that if the terminal in
+# use uses <whitespace> as part of either sequnce, two calls to termcap will
+# have to be made below.  Note that the manner of highlighting is easily changed
+# just by modifying the termcap call below.
+#
+# A bug in the csh "eval" causes it to scan the entire string for filename
+# expansions *before* evaluating the string.  If the string is of the form
+# "set noglob ; ... ; unset noglob" (as "tset -Qs" is) you're out of luck.
+# So we set noglob just before eval'ing our tset.  The tset itself will
+# unset noglob for us.
+
+stty $STTY
+set  noglob; eval `tset  -Qs`
+if ($status != 0) then
+	setenv  ston  "-- "
+	setenv  stoff ""
+else
+	set  noglob
+	set  temp = `termcap  -q  -l '\r' -s so  -l " "  -s se ce`
+	if  ($#temp != 2)  then
+		set  temp = `termcap  -q  -l '\r' -s us  -l " "  -s ue ce`
+	endif
+	if  ($#temp != 2)  then
+		setenv  ston  "-- "
+		setenv  stoff ""
+	else
+		setenv  ston  $temp[1]
+		setenv  stoff $temp[2]
+	endif
+	unset  noglob temp
+endif
+if ($TERM == "sun" || $TERM == "xterm") then
+	setenv	stoff	"\${ston}%${stoff}"
+	setenv	ston	"]l"
+endif
+setprompt

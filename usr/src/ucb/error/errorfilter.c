@@ -1,5 +1,13 @@
-static	char *sccsid = "@(#)errorfilter.c	1.2 (Berkeley) 1/22/82";
-#include <sys/types.h>
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)errorfilter.c	5.1 (Berkeley) 5/31/85";
+#endif not lint
+
 #include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
@@ -31,10 +39,15 @@ getignored(auxname)
 
 	nignored = 0;
 	if (auxname == 0){	/* use the default */
-		username = "Unknown";
-		uid = getuid();
-		if ( (passwdentry = (struct passwd *)getpwuid(uid)) == NULL){
-			return;
+		if ( (username = (char *)getlogin()) == NULL){
+			username = "Unknown";
+			uid = getuid();
+			if ( (passwdentry = (struct passwd *)getpwuid(uid)) == NULL){
+				return;
+			}
+		} else {
+			if ( (passwdentry = (struct passwd *)getpwnam(username)) == NULL)
+				return;
 		}
 		strcpy(filename, passwdentry->pw_dir);
 		(void)strcat(filename, ERRORNAME);

@@ -1,14 +1,21 @@
+static	char *sccsid = "@(#)sort.c	4.11 (Berkeley) 6/3/86";
 #include <stdio.h>
 #include <ctype.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define	L	1024		/* max line length increased for refer */
+#define	L	1024
 #define	N	7
 #define	C	20
+#ifndef pdp11
+#define	MEM	(128*2048)
+#else
 #define	MEM	(16*2048)
+#endif
 #define NF	10
+
+#define rline(mp)	(fgets((mp)->l, L, (mp)->b) == NULL)
 
 FILE	*is, *os;
 char	*dirtry[] = {"/usr/tmp", "/tmp", NULL};
@@ -167,6 +174,8 @@ char	*setfil();
 char	*sbrk();
 char	*brk();
 
+#define	blank(c)	((c) == ' ' || (c) == '\t')
+
 main(argc, argv)
 char **argv;
 {
@@ -239,11 +248,13 @@ char **argv;
 	lspace = (int *)sbrk(0);
 	while((int)brk(ep) == -1)
 		ep -= 512;
+#ifndef	vax
 	brk(ep -= 512);	/* for recursion */
+#endif
 	a = ep - (char*)lspace;
 	nlines = (a-L);
 	nlines /= (5*(sizeof(char *)/sizeof(char)));
-	ntext = nlines*8;
+	ntext = nlines * 4 * (sizeof(char *)/sizeof(char));
 	tspace = (char *)(lspace + nlines);
 	a = -1;
 	for(dirs=dirtry; *dirs; dirs++) {
@@ -259,11 +270,14 @@ char **argv;
 		exit(1);
 	}
 	close(a);
-	signal(SIGHUP, term);
+	unlink(file);
+	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
+		signal(SIGHUP, term);
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, term);
 	signal(SIGPIPE,term);
-	signal(SIGTERM,term);
+	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
+		signal(SIGTERM,term);
 	nfiles = eargc;
 	if(!mflg && !cflg) {
 		sort();
@@ -288,57 +302,70 @@ sort()
 {
 	register char *cp;
 	register char **lp;
-	register c;
-	int done;
-	int i;
+	register lines, text, len;
+	int done = 0;
+	int i = 0;
 	char *f;
+	char c;
 
-	done = 0;
-	i = 0;
-	c = EOF;
+	if((f = setfil(i++)) == NULL)
+		is = stdin;
+	else if((is = fopen(f, "r")) == NULL)
+		cant(f);
+
 	do {
 		cp = tspace;
 		lp = (char **)lspace;
-		while(lp < (char **)lspace+nlines && cp < tspace+ntext) {
-			*lp++ = cp;
-			while(c != '\n') {
-				if(c != EOF) {
-					*cp++ = c;
-					c = getc(is);
-					continue;
-				} else if(is)
-					fclose(is);
-				if(i < eargc) {
-					if((f = setfil(i++)) == 0)
-						is = stdin;
-					else if((is = fopen(f, "r")) == NULL)
-						cant(f);
-					c = getc(is);
-				} else
+		lines = nlines;
+		text = ntext;
+		while(lines > 0 && text > 0) {
+			if(fgets(cp, L, is) == NULL) {
+				if(i >= eargc) {
+					++done;
 					break;
+				}
+				fclose(is);
+				if((f = setfil(i++)) == NULL)
+					is = stdin;
+				else if((is = fopen(f, "r")) == NULL)
+					cant(f);
+				continue;
 			}
-			*cp++ = '\n';
-			if(c == EOF) {
-				done++;
-				lp--;
-				break;
-			}
-			c = getc(is);
+			*lp++ = cp;
+			len = strlen(cp) + 1; /* null terminate */
+			if(cp[len - 2] != '\n')
+				if (len == L) {
+					diag("line too long (skipped): ", cp);
+					while((c=getc(is)) != EOF && c != '\n')
+						/* throw it away */;
+					--lp;
+					continue;
+				} else {
+					diag("missing newline before EOF in ",
+						f ? f : "standard input");
+					/* be friendly, append a newline */
+					++len;
+					cp[len - 2] = '\n';
+					cp[len - 1] = '\0';
+				}
+			cp += len;
+			--lines;
+			text -= len;
 		}
 		qsort((char **)lspace, lp);
 		if(done == 0 || nfiles != eargc)
 			newfile();
 		else
 			oldfile();
+		clearerr(os);
 		while(lp > (char **)lspace) {
 			cp = *--lp;
 			if(*cp)
-				do
-				if ((putc(*cp, os) == EOF) && ferror(os)) {
-					perror("write");
-					term();
-				}
-				while(*cp++ != '\n');
+				fputs(cp, os);
+			if (ferror(os)) {
+				error = 1;
+				term();
+			}
 		}
 		fclose(os);
 	} while(done == 0);
@@ -392,18 +419,19 @@ merge(a,b)
 		}
 	} while(l);
 
+	clearerr(os);
 	muflg = mflg & uflg | cflg;
 	i = j;
 	while(i > 0) {
 		cp = ibuf[i-1]->l;
-		if(!cflg && (uflg == 0 || muflg ||
-			(*compare)(ibuf[i-1]->l,ibuf[i-2]->l)))
-			do
-				if ((putc(*cp, os) == EOF) && ferror(os)) {
-					perror("write");
-					term();
-				}
-			while(*cp++ != '\n');
+		if (!cflg && (uflg == 0 || muflg || i == 1 ||
+			(*compare)(ibuf[i-1]->l,ibuf[i-2]->l))) {
+			fputs(cp, os);
+			if (ferror(os)) {
+				error = 1;
+				term();
+			}
+		}
 		if(muflg){
 			cp = ibuf[i-1]->l;
 			dp = p->l;
@@ -445,28 +473,6 @@ merge(a,b)
 			unlink(setfil(i));
 	}
 	fclose(os);
-}
-
-rline(mp)
-struct merg *mp;
-{
-	register char *cp;
-	register char *ce;
-	FILE *bp;
-	register c;
-
-	bp = mp->b;
-	cp = mp->l;
-	ce = cp+L;
-	do {
-		c = getc(bp);
-		if(c == EOF)
-			return(1);
-		if(cp>=ce)
-			cp--;
-		*cp++ = c;
-	} while(c!='\n');
-	return(0);
 }
 
 disorder(s,t)
@@ -540,7 +546,7 @@ cant(f)
 char *f;
 {
 
-	diag("can't open ",f);
+	perror(f);
 	term();
 }
 
@@ -565,7 +571,7 @@ term()
 	for(i=eargc; i<=nfiles; i++) {	/*<= in case of interrupt*/
 		unlink(setfil(i));	/*with nfiles not updated*/
 	}
-	exit(error);
+	_exit(error);
 }
 
 cmp(i, j)
@@ -596,6 +602,12 @@ char *i, *j;
 			lb = eol(pb);
 		}
 		if(fp->nflg) {
+			if(tabchar) {
+				if(pa<la&&*pa==tabchar)
+					pa++;
+				if(pb<lb&&*pb==tabchar)
+					pb++;
+			}
 			while(blank(*pa))
 				pa++;
 			while(blank(*pb))
@@ -697,7 +709,8 @@ char *pp;
 				if(*p != '\n')
 					p++;
 				else goto ret;
-			p++;
+			if(i>0||j==0)
+				p++;
 		} else {
 			while(blank(*p))
 				p++;
@@ -707,7 +720,7 @@ char *pp;
 				else goto ret;
 		}
 	}
-	if(fp->bflg[j])
+	if(tabchar==0||fp->bflg[j])
 		while(blank(*p))
 			p++;
 	i = fp->n[j];
@@ -813,13 +826,6 @@ char **ppa;
 		*ppa = pa++;
 	}
 	return(n);
-}
-
-blank(c)
-{
-	if(c==' ' || c=='\t')
-		return(1);
-	return(0);
 }
 
 #define qsexc(p,q) t= *p;*p= *q;*q=t

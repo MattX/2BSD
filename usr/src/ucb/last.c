@@ -1,11 +1,22 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static	char *sccsid = "@(#)last.c	4.8 (Berkeley) 9/25/83";
-#endif
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+#endif not lint
+
+#ifndef lint
+static char sccsid[] = "@(#)last.c	5.3 (Berkeley) 5/15/86";
+#endif not lint
 
 /*
  * last
  */
-#include <sys/localopts.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <signal.h>
@@ -31,9 +42,6 @@ struct	utmp buf[128];
 char	ttnames[MAXTTYS][LMAX+1];
 long	logouts[MAXTTYS];
 
-char	wtmpfil[512] = "/usr/adm/wtmp";
-int	filarg = -1;			/* set to index of -f option */
-
 char	*ctime(), *strspl();
 int	onintr();
 
@@ -41,7 +49,8 @@ main(ac, av)
 	char **av;
 {
 	register int i, k;
-	int bl, wtmp;
+	int wtmp;
+	off_t bl;
 	char *ct;
 	register struct utmp *bp;
 	long otime;
@@ -63,28 +72,21 @@ main(ac, av)
 			nameargs--;
 			continue;
 		}
-		if (!strncmp(argv[i], "-f", 2)) {	/* next is file */
-			if (i == argc-1) {
-				fprintf(stderr,
-					"Need filename following '-f'\n");
-				exit(1);
-			}
-			filarg = i;
-			strcpy(wtmpfil, argv[++i]);   /* alternate wtmp file */
-			nameargs = argc - 2;
-			continue;
-		}
 		if (strlen(argv[i])>2)
 			continue;
 		if (!strcmp(argv[i], "~"))
+			continue;
+		if (!strcmp(argv[i], "ftp"))
+			continue;
+		if (!strcmp(argv[i], "uucp"))
 			continue;
 		if (getpwnam(argv[i]))
 			continue;
 		argv[i] = strspl("tty", argv[i]);
 	}
-	wtmp = open(wtmpfil, 0);
+	wtmp = open("/usr/adm/wtmp", 0);
 	if (wtmp < 0) {
-		perror(wtmpfil);
+		perror("/usr/adm/wtmp");
 		exit(1);
 	}
 	fstat(wtmp, &stb);
@@ -100,8 +102,8 @@ main(ac, av)
 			print = want(bp);
 			if (print) {
 				ct = ctime(&bp->ut_time);
-				printf("%-*.*s", NMAX, NMAX, bp->ut_name);
-				printf("  %-*.*s %-*.*s %10.10s %5.5s ",
+				printf("%-*.*s  %-*.*s %-*.*s %10.10s %5.5s ",
+				    NMAX, NMAX, bp->ut_name,
 				    LMAX, LMAX, bp->ut_line,
 				    HMAX, HMAX, bp->ut_host,
 				    ct, 11+ct);
@@ -121,7 +123,9 @@ main(ac, av)
 				}
 			}
 			if (print) {
-				if (otime == 0)
+				if (lineq(bp->ut_line, "~"))
+					printf("\n");
+				else if (otime == 0)
 					printf("  still logged in\n");
 				else {
 					long delta;
@@ -191,15 +195,9 @@ want(bp)
 		return (1);
 	av = argv;
 	for (ac = 0; ac < argc; ac++, av++) {
-		if (ac == filarg) {	/* this and next are skipped */
-			ac++;
-			av++;
-		}
-		else if (av[0][0] == '-')	/* the -N */
+		if (av[0][0] == '-')
 			continue;
-		else if (nameq(*av, bp->ut_name)
-			|| lineq(*av, bp->ut_line)
-			|| hosteq(*av, bp->ut_host))
+		if (nameq(*av, bp->ut_name) || lineq(*av, bp->ut_line))
 			return (1);
 	}
 	return (0);

@@ -42,8 +42,10 @@ _CLCK:
 	mov	$2,-(sp)
 1:
 	sub	$16.,sp
-	mov	sp,0f
-	sys	indir; 1f
+	mov	sp,r0
+	mov	r0,-(sp)
+	jsr	pc,_times
+	tst	(sp)+
 	mov	sp,r0
 	add	16.(sp),r0
 	mov	(r0),r0
@@ -58,10 +60,6 @@ _CLCK:
 	divf	fr1,fr0
 	movfi	fr0,-(sp)
 	return
-.data
-1:
-	sys	times; 0:..
-.text
 _DATE:
 _TIME:
 	asr	r0
@@ -302,7 +300,9 @@ _UNPACK:
 	mov	$EPACK,_perrno
 	error	EPACK
 _WCLCK:
-	sys	time
+	clr	-(sp)
+	jsr	pc,_time
+	tst	(sp)+
 	mov	r1,-(sp)
 	mov	r0,-(sp)
 	return

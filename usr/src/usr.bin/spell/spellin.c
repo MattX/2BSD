@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)spellin.c	4.1 12/18/82";
+#endif
+
 #include "spell.h"
 /* add entries to hash table for use by spell
    preexisting hash table is first argument

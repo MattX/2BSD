@@ -1,16 +1,14 @@
 /*
- * sccsid = "@(#)machdep.h	2.5 4/28/84";
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)machdep.h	5.1 (Berkeley) 5/29/85
  */
-#define LOGFILE "/usr/games/lib/saillog"
-#define DRIVER1 "driver"
-#define DRIVER2 "/usr/games/lib/saildriver"
-#define DRIVER3 "/usr/public/.driver"
-#define DRIVERNAME "driver"
-#define SETUID			/* player and driver run setuid */
 
-#define TIMEOUT 300		/* Sync() time out */
+#define LOGFILE "/usr/games/lib/saillog"	/* has to match the makefile */
 
-#define BUFSIZE 4096
+#define TIMEOUT 300				/* Sync() timeout in seconds */
 
 /* for 4.2bsd machines */
 #define blockalarm()	((void) sigblock(1 << SIGALRM-1))

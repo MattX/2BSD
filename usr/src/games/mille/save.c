@@ -1,18 +1,20 @@
 #include	"mille.h"
 #include	<sys/types.h>
 #include	<sys/stat.h>
-#include	<sys/time.h>
+#ifndef	unctrl
+#include	"unctrl.h"
+#endif
+
 # ifdef	attron
 #	include	<term.h>
 #	define	_tty	cur_term->Nttyb
 # endif	attron
 
 /*
- * @(#)save.c	1.4 (Berkeley) 7/3/83
+ * @(#)save.c	1.2 (Berkeley) 3/28/83
  */
 
 typedef	struct stat	STAT;
-typedef	struct tm	TIME;
 
 char	*ctime();
 
@@ -28,25 +30,24 @@ save() {
 
 	reg char	*sp;
 	reg int		outf;
-	reg TIME	*tp;
+	reg time_t	*tp;
 	char		buf[80];
-	TIME		tme;
+	time_t		tme;
 	STAT		junk;
 
 	tp = &tme;
-	if (Fromfile && getyn("Same file? "))
+	if (Fromfile && getyn(SAMEFILEPROMPT))
 		strcpy(buf, Fromfile);
 	else {
 over:
-		mvaddstr(MOVE_Y, MOVE_X, "file: ");
-		clrtoeol();
+		prompt(FILEPROMPT);
 		leaveok(Board, FALSE);
 		refresh();
 		sp = buf;
 		while ((*sp = readch()) != '\n') {
-			if (*sp == _tty.sg_kill)
+			if (*sp == killchar())
 				goto over;
-			else if (*sp == _tty.sg_erase) {
+			else if (*sp == erasechar()) {
 				if (--sp < buf)
 					sp = buf;
 				else {
@@ -73,7 +74,7 @@ over:
 	 */
 
 	if (sp == buf || (!Fromfile && stat(buf, &junk) > -1
-	    && getyn("Overwrite File? ") == FALSE))
+	    && getyn(OVERWRITEFILEPROMPT) == FALSE))
 		return FALSE;
 
 	if ((outf = creat(buf, 0644)) < 0) {
@@ -129,3 +130,4 @@ reg char	*file; {
 	Fromfile = file;
 	return !On_exit;
 }
+

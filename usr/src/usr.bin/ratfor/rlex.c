@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)rlex.c	1.2 (Berkeley) 8/11/83";
+#endif
+
 # include "r.h"
 
 char *keyword [] = {
@@ -49,7 +53,6 @@ int	linect[10];
 int	contfld	= CONTFLD;	/* place to put continuation char */
 int	printcom	= 0;	/* print comments if on */
 int	hollerith	= 0;	/* convert "..." to 27H... if on */
-int	blockif	= 0;		/* turn ratfor if's into f77 block if's */
 
 #ifdef	gcos
 char	*ratfor	"tssrat";
@@ -61,27 +64,14 @@ int	bcdbwk[5];
 main(argc,argv) int argc; char **argv; {
 	int i;
 	while(argc>1 && argv[1][0]=='-') {
-		switch (argv[1][1]) {
-		case '6':
+		if(argv[1][1]=='6') {
 			contfld=6;
 			if (argv[1][2]!='\0')
 				contchar = argv[1][2];
-			break;
-#ifdef BLOCKIF
-		case 'B':
-			blockif++;	/* want to emit f77 block if stmts */
-			break;
-#endif BLOCKIF
-		case 'C':
+		} else if (argv[1][1] == 'C')
 			printcom++;
-			break;
-		case 'h':
+		else if (argv[1][1] == 'h')
 			hollerith++;
-			break;
-		default:
-			fprintf(stderr, "ratfor:  unknown option %s; ignored\n",
-				argv[1]);
-		}
 		argc--;
 		argv++;
 	}

@@ -1,4 +1,7 @@
-.TH CMP 1 
+.\"	@(#)cmp.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH CMP 1 "April 29, 1985"
+.AT 3
 .SH NAME
 cmp \- compare two files
 .SH SYNOPSIS
@@ -26,16 +29,16 @@ of the other, that fact is noted.
 .PP
 Options:
 .TP 6
-.B  \-\^l
+.B  \-l
 Print the byte number (decimal) and the
 differing bytes (octal) for each difference.
 .TP 6
-.B  \-\^s
+.B  \-s
 Print nothing for differing files;
 return codes only.
 .dt
 .SH "SEE ALSO"
-comm(1), diff(1)
+diff(1), comm(1)
 .SH DIAGNOSTICS
 Exit code 0 is returned for identical
 files, 1 for different files, and 2 for an

@@ -1,6 +1,9 @@
-.TH TC 1 
+.\"	@(#)tc.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH TC 1 "April 29, 1985"
+.AT 3
 .SH NAME
-tc \- phototypesetter simulator
+tc \- photoypesetter simulator
 .SH SYNOPSIS
 .B tc
 [
@@ -24,7 +27,7 @@ input (standard input default)
 as device codes for a Graphic Systems phototypesetter (cat).
 The standard output of
 .I tc
-is intended for a Tektronix 4015 (a 4014 teminal
+is intended for a Tektronix 4015 (a 4014 terminal
 with ASCII and APL character sets).
 The sixteen typesetter sizes are mapped into the 4014's
 four sizes;
@@ -50,13 +53,13 @@ line will send line to the shell.
 .PP
 The command line options are:
 .TP
-.B  \-\^t
+.B  \-t
 Don't wait between pages; for directing output into a file.
 .TP 
-.BR \-\^s N
+.BR \-s N
 Skip the first N pages.
 .TP 
-.BR \-\^p L
+.BR \-p L
 Set page length to L.
 L may include the scale factors
 .B p
@@ -70,13 +73,17 @@ and
 (picas);
 default is picas.
 .TP
-.BI \(fm\-\^ l\ w \(fm
+.BI \(fm\- l\ w \(fm
 Multiply the default aspect ratio, 1.5, of a displayed page
 by
 .I l/w.
 .SH "SEE ALSO"
-plot(1), troff(1)
+troff(1),
+plot(1G)
 .SH BUGS
 Font distinctions are lost.
+.br
+.IR tc 's
+character set is limited to ASCII in just one size.
 .br
 The aspect ratio option is unbelievable.

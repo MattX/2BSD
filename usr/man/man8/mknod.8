@@ -1,7 +1,14 @@
-.TH MKNOD 8 
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)mknod.8	6.2 (Berkeley) 5/19/86
+.\"
+.TH MKNOD 8 "May 19, 1986"
+.UC 4
 .SH NAME
 mknod \- build special file
-.SH SYNTAX
+.SH SYNOPSIS
 .B /etc/mknod
 name
 [
@@ -32,6 +39,7 @@ device (e.g. unit, drive, or line number).
 .PP
 The assignment of major device numbers is specific to each system.
 They have to be dug out of the
-system source file \fIc.c\fP.
+system source file
+.I conf.c.
 .SH "SEE ALSO"
-mknod(2)
+mknod(2), makedev(8)

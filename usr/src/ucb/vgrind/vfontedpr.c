@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char sccsid[] = "@(#)vfontedpr.c	5.1 (Berkeley) 6/5/85";
+#endif not lint
+
 #include <ctype.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -7,6 +17,8 @@
 #define TRUE 1
 #define FALSE 0
 #define NIL 0
+#define STANDARD 0
+#define ALTERNATE 1
 
 /*
  * Vfontedpr.
@@ -24,6 +36,7 @@
 char	*expmatch();		/* match a string to an expression */
 char	*STRNCMP();		/* a different kindof strncmp */
 char	*convexp();		/* convert expression to internal form */
+char	*tgetstr();
 
 boolean	isproc();
 
@@ -45,6 +58,7 @@ boolean pass = FALSE;		/* when acting as a filter, pass indicates
 				 * input.
 				 */
 boolean prccont;		/* continue last procedure */
+int	comtype;		/* type of comment */
 int	margin;
 int	psptr;			/* the stack index of the current procedure */
 char	pstack[PSMAX][PNAMELEN+1];	/* the procedure name stack */
@@ -62,6 +76,8 @@ char	*l_keywds[BUFSIZ/2];	/* keyword table address */
 char	*l_prcbeg;		/* regular expr for procedure begin */
 char	*l_combeg;		/* string introducing a comment */
 char	*l_comend;		/* string ending a comment */
+char	*l_acmbeg;		/* string introducing a comment */
+char	*l_acmend;		/* string ending a comment */
 char	*l_blkbeg;		/* string begining of a block */
 char	*l_blkend;		/* string ending a block */
 char    *l_strbeg;		/* delimiter for string constant */
@@ -214,6 +230,10 @@ main(argc, argv)
 	cp = buf;
 	l_comend = convexp (tgetstr ("ce", &cp));
 	cp = buf;
+	l_acmbeg = convexp (tgetstr ("ab", &cp));
+	cp = buf;
+	l_acmend = convexp (tgetstr ("ae", &cp));
+	cp = buf;
 	l_strbeg = convexp (tgetstr ("sb", &cp));
 	cp = buf;
 	l_strend = convexp (tgetstr ("se", &cp));
@@ -228,6 +248,7 @@ main(argc, argv)
 	l_escape = '\\';
 	l_onecase = tgetflag ("oc");
 	l_toplex = tgetflag ("tl");
+
 	/* initialize the program */
 
 	incomm = FALSE;
@@ -300,6 +321,7 @@ putScp(os)
     register char *s = os;		/* pointer to unmatched string */
     char dummy[BUFSIZ];			/* dummy to be used by expmatch */
     char *comptr;			/* end of a comment delimiter */
+    char *acmptr;			/* end of a comment delimiter */
     char *strptr;			/* end of a string delimiter */
     char *chrptr;			/* end of a character const delimiter */
     char *blksptr;			/* end of a lexical block start */
@@ -328,18 +350,37 @@ skip:
 	    blkeptr = expmatch (s, l_blkend, dummy);
 	    blksptr = expmatch (s, l_blkbeg, dummy);
 	    comptr = expmatch (s, l_combeg, dummy);
+	    acmptr = expmatch (s, l_acmbeg, dummy);
 	    strptr = expmatch (s, l_strbeg, dummy);
 	    chrptr = expmatch (s, l_chrbeg, dummy);
 
 	    /* start of a comment? */
 	    if (comptr != NIL)
 		if ((comptr < strptr || strptr == NIL)
+		  && (comptr < acmptr || acmptr == NIL)
 		  && (comptr < chrptr || chrptr == NIL)
 		  && (comptr < blksptr || blksptr == NIL)
 		  && (comptr < blkeptr || blkeptr == NIL)) {
 		    putKcp (s, comptr-1, FALSE);
 		    s = comptr;
 		    incomm = TRUE;
+		    comtype = STANDARD;
+		    if (s != os)
+			ps ("\\c");
+		    ps ("\\c\n'+C\n");
+		    continue;
+		}
+
+	    /* start of a comment? */
+	    if (acmptr != NIL)
+		if ((acmptr < strptr || strptr == NIL)
+		  && (acmptr < chrptr || chrptr == NIL)
+		  && (acmptr < blksptr || blksptr == NIL)
+		  && (acmptr < blkeptr || blkeptr == NIL)) {
+		    putKcp (s, acmptr-1, FALSE);
+		    s = acmptr;
+		    incomm = TRUE;
+		    comtype = ALTERNATE;
 		    if (s != os)
 			ps ("\\c");
 		    ps ("\\c\n'+C\n");
@@ -401,14 +442,22 @@ skip:
 
 	/* check for end of comment */
 	} else if (incomm) {
-	    if ((comptr = expmatch (s, l_comend, dummy)) != NIL) {
-		putKcp (s, comptr-1, TRUE);
-		s = comptr;
+	    comptr = expmatch (s, l_comend, dummy);
+	    acmptr = expmatch (s, l_acmend, dummy);
+	    if (((comtype == STANDARD) && (comptr != NIL)) ||
+	        ((comtype == ALTERNATE) && (acmptr != NIL))) {
+		if (comtype == STANDARD) {
+		    putKcp (s, comptr-1, TRUE);
+		    s = comptr;
+		} else {
+		    putKcp (s, acmptr-1, TRUE);
+		    s = acmptr;
+		}
 		incomm = FALSE;
 		ps("\\c\n'-C\n");
 		continue;
 	    } else {
-		putKcp (s, s + strlen(s) -1);
+		putKcp (s, s + strlen(s) -1, TRUE);
 		s = s + strlen(s);
 		continue;
 	    }

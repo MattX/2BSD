@@ -1,63 +1,54 @@
+/*
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
 #ifndef lint
-static char sccsid[] = "@(#)af.c	4.8 10/7/82";
-#endif
+static char sccsid[] = "@(#)af.c	5.4 (Berkeley) 4/20/86";
+#endif not lint
 
-#include <whoami.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include "router.h"
-#include "rip.h"
-
-#define	inet_portmatch	inet_pmatch
-#define	inet_portcheck	inet_pcheck
-#define	null_portmatch	null_pmatch
-#define	null_portcheck	null_pcheck
-extern char packet[MAXPACKETSIZE], *sys_errlist[];
-extern int trace, errno;
-#define	tprintf	if (trace) printf
+#include "defs.h"
 
 /*
  * Address family support routines
  */
-int	null_hash(), null_netmatch(), null_output(),
-	null_portmatch(), null_portcheck(),
-	null_checkhost(), null_canon();
 int	inet_hash(), inet_netmatch(), inet_output(),
 	inet_portmatch(), inet_portcheck(),
-	inet_checkhost(), inet_canon();
-#define NIL \
-	{ null_hash,		null_netmatch,		null_output, \
-	  null_portmatch,	null_portcheck,		null_checkhost, \
-	  null_canon }
-#undef	INET
+	inet_checkhost(), inet_rtflags(), inet_sendsubnet(), inet_canon();
+char	*inet_format();
+
+#define NIL	{ 0 }
 #define	INET \
 	{ inet_hash,		inet_netmatch,		inet_output, \
 	  inet_portmatch,	inet_portcheck,		inet_checkhost, \
-	  inet_canon }
+	  inet_rtflags,		inet_sendsubnet,	inet_canon, \
+	  inet_format \
+	}
 
-struct afswitch afswitch[AF_MAX] =
-	{ NIL, NIL, INET, INET, NIL, NIL, NIL, NIL, NIL, NIL, NIL };
+struct afswitch afswitch[AF_MAX] = {
+	NIL,		/* 0- unused */
+	NIL,		/* 1- Unix domain, unused */
+	INET,		/* Internet */
+};
+
+int af_max = sizeof(afswitch) / sizeof(afswitch[0]);
+
+struct sockaddr_in inet_default = { AF_INET, INADDR_ANY };
 
 inet_hash(sin, hp)
 	register struct sockaddr_in *sin;
 	struct afhash *hp;
 {
-#ifdef	pdp11
-	long l;
-	l = inet_netof(sin->sin_addr);
-	hp->afh_nethash = ((int)l ^ (int)(l>>16)) & 077777;
-	l = sin->sin_addr.s_addr;
-	hp->afh_hosthast = ((int)l ^ (int)(l>>16)) & 077777;
-#else
-	hp->afh_nethash = inet_netof(sin->sin_addr);
-	hp->afh_hosthash = sin->sin_addr.s_addr;
-#if vax || pdp11
-	hp->afh_hosthash = ntohl(hp->afh_hosthash);
-#endif
+	register u_long n;
+
+	n = inet_netof(sin->sin_addr);
+	if (n)
+	    while ((n & 0xff) == 0)
+		n >>= 8;
+	hp->afh_nethash = n;
+	hp->afh_hosthash = ntohl(sin->sin_addr.s_addr);
 	hp->afh_hosthash &= 0x7fffffff;
-#endif
 }
 
 inet_netmatch(sin1, sin2)
@@ -71,14 +62,10 @@ inet_netmatch(sin1, sin2)
  * Verify the message is from the right port.
  */
 inet_portmatch(sin)
-	struct sockaddr_in *sin;
+	register struct sockaddr_in *sin;
 {
-	int port = sin->sin_port;
 	
-#if vax || pdp11
-	port = ntohs(port);
-#endif
-	return (port == IPPORT_ROUTESERVER || port == IPPORT_ROUTESERVER+1);
+	return (sin->sin_port == sp->s_port);
 }
 
 /*
@@ -87,19 +74,15 @@ inet_portmatch(sin)
 inet_portcheck(sin)
 	struct sockaddr_in *sin;
 {
-	int port = sin->sin_port;
 
-#if vax || pdp11
-	port = ntohs(port);
-#endif
-	return (port <= IPPORT_RESERVED);
+	return (ntohs(sin->sin_port) <= IPPORT_RESERVED);
 }
 
 /*
  * Internet output routine.
  */
-inet_output(s, sin, size)
-	int s;
+inet_output(s, flags, sin, size)
+	int s, flags;
 	struct sockaddr_in *sin;
 	int size;
 {
@@ -107,14 +90,10 @@ inet_output(s, sin, size)
 
 	dst = *sin;
 	sin = &dst;
-	if (sin->sin_port == 0) {
-		sin->sin_port = IPPORT_ROUTESERVER;
-#if vax || pdp11
-		sin->sin_port = htons(sin->sin_port);
-#endif
-	}
-	if (send(s, sin, packet, size) < 0)
-		tprintf("send to %x: %s\n", sin->sin_addr, sys_errlist[errno]);
+	if (sin->sin_port == 0)
+		sin->sin_port = sp->s_port;
+	if (sendto(s, packet, size, flags, sin, sizeof (*sin)) < 0)
+		perror("sendto");
 }
 
 /*
@@ -124,70 +103,32 @@ inet_output(s, sin, size)
 inet_checkhost(sin)
 	struct sockaddr_in *sin;
 {
-	return (inet_lnaof(sin->sin_addr) != 0);
+	u_long i = ntohl(sin->sin_addr.s_addr);
+
+#define	IN_BADCLASS(i)	(((long) (i) & 0xe0000000) == 0xe0000000)
+
+	if (IN_BADCLASS(i) || sin->sin_port != 0)
+		return (0);
+	if (i != 0 && (i & 0xff000000) == 0)
+		return (0);
+	for (i = 0; i < sizeof(sin->sin_zero)/sizeof(sin->sin_zero[0]); i++)
+		if (sin->sin_zero[i])
+			return (0);
+	return (1);
 }
 
 inet_canon(sin)
 	struct sockaddr_in *sin;
 {
+
 	sin->sin_port = 0;
 }
 
-/*ARGSUSED*/
-null_hash(addr, hp)
-	struct sockaddr *addr;
-	struct afhash *hp;
+char *
+inet_format(sin)
+	struct sockaddr_in *sin;
 {
+	char *inet_ntoa();
 
-	hp->afh_nethash = hp->afh_hosthash = 0;
-}
-
-/*ARGSUSED*/
-null_netmatch(a1, a2)
-	struct sockaddr *a1, *a2;
-{
-
-	return (0);
-}
-
-/*ARGSUSED*/
-null_output(s, a1, n)
-	int s;
-	struct sockaddr *a1;
-	int n;
-{
-
-	;
-}
-
-/*ARGSUSED*/
-null_portmatch(a1)
-	struct sockaddr *a1;
-{
-
-	return (0);
-}
-
-/*ARGSUSED*/
-null_portcheck(a1)
-	struct sockaddr *a1;
-{
-
-	return (0);
-}
-
-/*ARGSUSED*/
-null_checkhost(a1)
-	struct sockaddr *a1;
-{
-
-	return (0);
-}
-
-/*ARGSUSED*/
-null_canon(a1)
-	struct sockaddr *a1;
-{
-
-	;
+	return (inet_ntoa(sin->sin_addr));
 }

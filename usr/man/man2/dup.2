@@ -1,74 +1,82 @@
-.TH DUP 2 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)dup.2	6.3 (Berkeley) 5/13/86
+.\"
+.TH DUP 2 "May 13, 1986"
+.UC 4
 .SH NAME
-dup, dup2 \- duplicate an open file descriptor
+dup, dup2 \- duplicate a descriptor
 .SH SYNOPSIS
-.B dup(fildes)
-.br
-.B int fildes;
+.nf
+.ft B
+newd = dup(oldd)
+int newd, oldd;
 .PP
-.B dup2(fildes, fildes2)
-.br
-.B int fildes, fildes2;
+.ft B
+dup2(oldd, newd)
+int oldd, newd;
+.fi
 .SH DESCRIPTION
-Given
-a file descriptor returned from
-an
-.I open,
-.I pipe,
-or
-.IR creat (2)
-call,
-.I dup
-allocates another file descriptor
-synonymous
-with
-the original.
-The new file descriptor is returned.
+.I Dup
+duplicates an existing object descriptor.
+The argument \fIoldd\fP is a small non-negative integer index in
+the per-process descriptor table.  The value must be less
+than the size of the table, which is returned by
+.IR getdtablesize (2).
+The new descriptor returned by the call,
+.I newd,
+is the lowest numbered descriptor that is
+not currently in use by the process.
 .PP
-In the second form of the call,
-.I fildes
-is a file descriptor referring to an open file, and
-.I fildes2
-is a non-negative integer less than the maximum value
-allowed for file descriptors (approximately 19).
-.I Dup2
-causes
-.I fildes2
-to refer to the same file as
-.I fildes.
-If
-.I fildes2
-already referred to an open file, it is closed first.
-.SH RETURN VALUE
-Upon successful completion, a value of 0 is returned.  Otherwise, a
-value of \-1 is returned and
+The object referenced by the descriptor does not distinguish
+between references using \fIoldd\fP and \fInewd\fP in any way.
+Thus if \fInewd\fP and \fIoldd\fP are duplicate references to an open
+file,
+.IR read (2),
+.IR write (2)
+and
+.IR lseek (2)
+calls all move a single pointer into the file,
+and append mode, non-blocking I/O and asynchronous I/O options
+are shared between the references.
+If a separate pointer into the file is desired, a different
+object reference to the file must be obtained by issuing an
+additional
+.IR open (2)
+call.
+The close-on-exec flag on the new file descriptor is unset.
+.PP
+In the second form of the call, the value of
+.IR newd
+desired is specified.  If this descriptor is already
+in use, the descriptor is first deallocated as if a
+.IR close (2)
+call had been done first.
+.SH "RETURN VALUE
+The value \-1 is returned if an error occurs in either call.
+The external variable
 .I errno
-is set to indicate the error.
-.SH ERRORS
-.IR Dup " and " dup2
-will fail if:
-.TP 20
+indicates the cause of the error.
+.SH "ERRORS
+.I Dup
+and
+.I dup2
+fail if:
+.TP 15
 [EBADF]
-.I Fildes " or " fildes2
-is not a valid active descriptor.
-.TP 20
+\fIOldd\fP or
+\fInewd\fP is not a valid active descriptor
+.TP 15
 [EMFILE]
 Too many descriptors are active.
 .SH "SEE ALSO"
-close(2), creat(2), open(2), pipe(2)
-.SH ASSEMBLER
-(dup = 41.)
-.br
-(file descriptor in r0)
-.br
-(new file descriptor in r1)
-.br
-.B sys dup
-.br
-(file descriptor in r0)
-.PP
-The
-.I dup2
-entry is implemented by adding 0100 to
-.I fildes.
+accept(2),
+open(2),
+close(2),
+fcntl(2),
+pipe(2),
+socket(2),
+socketpair(2),
+getdtablesize(2)

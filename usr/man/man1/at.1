@@ -1,45 +1,68 @@
-.TH AT 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)at.1	6.2 (Berkeley) 3/20/86
+.\"
+.TH AT 1 "March 20, 1986"
+.UC 4
 .SH NAME
 at \- execute commands at a later time
-.SH SYNTAX
-.B at
-[ \-m ] time
-[
-day
-]
-[
-file
-]
+.SH SYNOPSIS
+.B "at [ -c ] [ -s ] [ -m ]"
+time
+[ day ]
+[ file ]
 .SH DESCRIPTION
 .I At
-squirrels away a copy of the named
+spools away a copy of the named
 .I file
-(standard input default)
-to be used as input to \fIsh\fP\|(1) or \fIcsh\fP\|(1) 
-at a specified later time.
-A csh script must have a '\fB#\fP' as
-the first character.
-If no file is given input is taken from the standard input and the
-shell is determined by the SHELL environment variable.
-A \fIcd\fP\|(1)
-command to the current directory is inserted
-at the beginning,
-followed by assignments to all environment variables except TERMCAP.
-In \fIcsh\fP, the
-users .cshrc file is then run.  
+to be used as input to
+.IR sh (1)
+or
+.IR csh (1).
+If the
+.B \-c
+flag (for 
+.IR (csh (1)))
+or the
+.B \-s
+flag (for
+.IR (sh (1)))
+is specified, then that shell will be used to execute the job;
+if no shell is specified, 
+the current environment shell is used.
+If no file name is specified, 
+.I at
+prompts for commands from standard input until a ^D is typed. 
+.PP
+If the 
+.B \-m
+flag is specified, mail will be sent to the user after the job
+has been run. If errors occur during execution of the job, then
+a copy of the error diagnostics will be sent to the user. If
+no errors occur, then a short message is sent informing the
+user that no errors occurred.
+.PP
+The format of the spool file is as follows:
+A four line header that includes the owner of the job, the name of the job,
+the shell used to run the job, and whether mail will be
+set after the job is executed. The header is followed by a
+.I cd
+command to the current directory and a 
+.I umask
+command to set the modes on any files created by the job.
+Then 
+.I at
+copies all relevant environment variables to the spool file.
 When the script is run, it uses the user and group ID
-of the creator of the copy file.
-Mail is sent to that user stating
-when the file ran and giving any output on stdout or stdin.
-The \fB\-m\fP
-flag causes no mail to be sent.
+of the creator of the spool file.
 .PP
 The
 .I time
 is 1 to 4 digits, with an optional following
 `A', `P', `N' or `M' for
-AM, PM, noon or midnight.  The letters may be upper or lower case.  
+AM, PM, noon or midnight.
 One and two digit numbers are taken to be hours, three and four digits
 to be hours and minutes.
 If no letters follow the digits, a 24 hour clock time is understood.
@@ -49,68 +72,59 @@ The optional
 is either
 (1) a month name followed by a day number,
 or
-(2) a day of the week; if the word `week' follows
-invocation is moved seven days further off.
-If no day is specified, today is assumed if the time is 
-after the current time.
-If the time is before the current
-time, tomorrow is assumed.
+(2) a day of the week; 
+if the word `week' follows, invocation is moved
+seven days further off.
 Names of months and days may be recognizably truncated.
-Examples of legitimate commands are:
+Examples of legitimate commands are
 .IP
-\fBat 8am jan 24
+at 8am jan 24
 .br
-at 1530 fr week\fP
+at -c -m 1530 fr week
+.br
+at -s -m 1200n week
 .PP
 .I At
-scripts are executed by periodic execution
-of the command
-.I /usr/lib/atrun
-from \fIcron\fP\|(8) typically every 5 minutes.
+programs are executed by periodic execution 
+of the command 
+.IR
+/usr/lib/atrun 
+from 
+.IR cron (8).
+The granularity of
+.I at
+depends upon the how often atrun is executed.
+.PP
+Error output is lost unless redirected or the
+.I \-m
+flag is requested, in which case a copy of the errors is sent to
+the user via 
+.IR mail (1).
 .SH FILES
-.ns
-.TP "\w'/usr/lib/atrun\ \ 'u"
-/usr/spool/at/yy.ddd.hhhh.uu
-activity to be performed at hour
-.I hhhh
-of year day
-.I ddd
-of year
-.IR yy .
-.I uu
-is a unique number.
-.ns
-.TP
-/usr/spool/at/lasttimedone
-contains \fIhhhh\fP for last hour of atrun executed.
-.ns
-.TP
-/usr/spool/at/past
-directory of activities now in progress
-.ns
-.TP
-/usr/lib/atrun
-program that executes activities that
-are due
-.ns
-.TP
-\fIpwd\fP\|(1)
-To find current directory
-.TP
-.IR Mail (1)
-To mail output of script
+.nf
+/usr/spool/at                spooling area
+/usr/spool/at/yy.ddd.hhhh.*  job file
+/usr/spool/at/past           directory where jobs are executed from
+/usr/spool/at/lasttimedone   last time atrun was run
+/usr/lib/atrun               executor (run by cron(8))
+.fi
 .SH "SEE ALSO"
+atq(1),
+atrm(1),
 calendar(1),
+sleep(1),
 cron(8)
 .SH DIAGNOSTICS
 Complains about various syntax errors and times out of range.
-.br
-If the process dies during execution look in \fI/usr/spool/at/past\fP for
-the executing file.  The mail file is the same name as the executing file
-except the first number has been changed to 'M'.
 .SH BUGS
-Scripts beginning with a '#' are assumed to be csh scripts;
-this may be inappropriate for scripts that start with "#!/bin/sh".
-.SH AUTHOR
-UNIX Version 7.  Modified for \fBcsh\fP and \fBmail\fP by Peter L. Ward,
-U.S. Geological Survey, Menlo Park, California.
+Due to the granularity of the execution of
+.IR /usr/lib/atrun,
+there may be bugs in scheduling things almost
+exactly 24 hours into the future.
+
+If the system crashes, mail is not sent to the user informing them that
+the job was not completed.
+
+Sometimes old spool files are not removed from the directory
+/usr/spool/at/past. This is usually due to a system crash,
+and requires that they be removed by hand.

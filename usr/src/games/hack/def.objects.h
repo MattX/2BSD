@@ -1,7 +1,7 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* def.objects.h - version 1.0.2 */
+/* def.objects.h - version 1.0.3 */
 
-/* objects have letter " % ) ( 0 _ [ ! ? / = * */
+/* objects have letter " % ) ( 0 _ ` [ ! ? / = * */
 #include "config.h"
 #include "def.objclass.h"
 #define	NULL	(char *)0
@@ -97,7 +97,7 @@ struct objclass objects[] = {
 /* weapons ... - ROCK come several at a time */
 /* weapons ... - (ROCK-1) are shot using idem+(BOW-ARROW) */
 /* weapons AXE, SWORD, THSWORD are good for worm-cutting */
-/* weapons (PICK-)AXE, DAGGER, CRYSKNIFE are good for tin-opening */
+/* weapons (PCK-)AXE, DAGGER, CRYSKNIFE are good for tin-opening */
 #define WEAPON(name,prob,wt,ldam,sdam)	{ name, NULL, NULL, 1, 0 /*%%*/,\
 		WEAPON_SYM, prob, 0, wt, ldam, sdam, 0 }
 
@@ -181,9 +181,7 @@ struct objclass objects[] = {
 
 #define SCROLL(name,text,prob) { name, text, NULL, 0, 1,\
 		SCROLL_SYM, prob, 0, 3, 0, 0, 0 }
-#ifdef MAIL
 	SCROLL("mail",	"KIRJE", 0),
-#endif MAIL
 	SCROLL("enchant armor", "ZELGO MER", 6),
 	SCROLL("destroy armor", "JUYED AWK YACC", 5),
 	SCROLL("confuse monster", "NR 9", 5),

@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)sleep.c	4.1 (Berkeley) 10/1/80";
 main(argc, argv)
 char **argv;
 {

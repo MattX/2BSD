@@ -1212,6 +1212,12 @@ main(argc,argv)
 # if sun
 	varloc=stsym("sun");
 # endif
+# if BSD2_10
+	varloc=stsym("BSD2_10");
+# endif
+# if BSD2_9
+	varloc=stsym("BSD2_9");
+# endif
 	ulnloc=stsym ("__LINE__");
 	uflloc=stsym ("__FILE__");
 

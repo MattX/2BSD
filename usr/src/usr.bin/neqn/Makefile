@@ -1,62 +1,90 @@
-#
-# neqn makefile
-#
-# FP should be -f on machines without floating point
+#	Makefile	4.1	83/02/12
 
-FP=
-LFLAG=	-i
-CFLAGS=	-O -DNEQN
-YFLAGS=	-d
-ALL=	neqn
-SRC=	e.y e.h diacrit.c eqnbox.c font.c fromto.c funny.c glob.c integral.c \
-	io.c lex.c lookup.c mark.c matrix.c move.c over.c paren.c pile.c \
-	shift.c size.c sqrt.c text.c
-OBJ=	e.o diacrit.o eqnbox.o font.o fromto.o funny.o glob.o integral.o \
-	io.o lex.o lookup.o mark.o matrix.o move.o over.o paren.o pile.o \
-	shift.o size.o sqrt.o text.o
+CFLAGS=-O -DNEQN -I../eqn/
+YFLAGS=-d
+SEPFLAG= -i
 
-all: ${ALL}
+SOURCE = e.y e.h diacrit.c eqnbox.c font.c fromto.c funny.c glob.c integral.c \
+ io.c lex.c lookup.c mark.c matrix.c move.c over.c paren.c \
+ pile.c shift.c size.c sqrt.c text.c
 
-install: ${ALL}
-	install -s -o bin -g bin -m 711 neqn ${DESTDIR}/usr/bin/neqn
+FILES = e.o diacrit.o eqnbox.o font.o fromto.o funny.o glob.o integral.o \
+ io.o lex.o lookup.o mark.o matrix.o move.o over.o paren.o \
+ pile.o shift.o size.o sqrt.o text.o
 
-neqn:	$(OBJ)
-	${CC} ${LFLAG} ${CFLAGS} ${OBJ} -o $@
+neqn:	$(FILES)
+	cc ${SEPFLAG} $(CFLAGS) $(FILES) -o neqn
 
-list:
-	pr ${SRC} Makefile
+e.c:	e.def
 
-clean:
-	rm -f ${OBJ} ${ALL}
-
-.c.o:
-	${CC} ${FP} ${OV} ${CFLAGS} -c $*.c
-
-e.o:	e.y
-	yacc -d e.y
+e.def:	../eqn/e.y
+	yacc -d ../eqn/e.y
 	mv y.tab.c e.c
 	mv y.tab.h e.def
-	${CC} ${FP} ${OV} ${CFLAGS} -c e.c
 
-e.def:	e.o
+$(FILES):	../eqn/e.h e.def
+install: neqn
+	install -s neqn $(DESTDIR)/usr/bin
 
-diacrit.o:	e.h e.def diacrit.c
-eqnbox.o:	e.h e.def eqnbox.c
-font.o:		e.h e.def font.c
-fromto.o:	e.h e.def fromto.c
-funny.o:	e.h e.def funny.c
-glob.o:		e.h e.def glob.c
-integral.o:	e.h e.def integral.c
-io.o:		e.h e.def io.c
-lex.o:		e.h e.def lex.c
-lookup.o:	e.h e.def lookup.c
-mark.o:		e.h e.def mark.c
-matrix.o:	e.h e.def matrix.c
-move.o:		e.h e.def move.c
-over.o:		e.h e.def over.c
-paren.o:	e.h e.def paren.c
-pile.o:		e.h e.def pile.c
-shift.o:	e.h e.def shift.c
-size.o:		e.h e.def size.c
-sqrt.o:		e.h e.def sqrt.c
-text.o:		e.h e.def text.c
+clean:
+	rm -f *.o e.c e.def
+
+diacrit.o:	../eqn/diacrit.c
+	$(CC) $(CFLAGS) -c ../eqn/diacrit.c
+
+eqnbox.o:	../eqn/eqnbox.c
+	$(CC) $(CFLAGS) -c ../eqn/eqnbox.c
+
+font.o:	../eqn/font.c
+	$(CC) $(CFLAGS) -c ../eqn/font.c
+
+fromto.o:	../eqn/fromto.c
+	$(CC) $(CFLAGS) -c ../eqn/fromto.c
+
+funny.o:	../eqn/funny.c
+	$(CC) $(CFLAGS) -c ../eqn/funny.c
+
+glob.o:	../eqn/glob.c
+	$(CC) $(CFLAGS) -c ../eqn/glob.c
+
+integral.o:	../eqn/integral.c
+	$(CC) $(CFLAGS) -c ../eqn/integral.c
+
+io.o:	../eqn/io.c
+	$(CC) $(CFLAGS) -c ../eqn/io.c
+
+lex.o:	../eqn/lex.c
+	$(CC) $(CFLAGS) -c ../eqn/lex.c
+
+lookup.o:	../eqn/lookup.c
+	$(CC) $(CFLAGS) -c ../eqn/lookup.c
+
+mark.o:	../eqn/mark.c
+	$(CC) $(CFLAGS) -c ../eqn/mark.c
+
+matrix.o:	../eqn/matrix.c
+	$(CC) $(CFLAGS) -c ../eqn/matrix.c
+
+move.o:	../eqn/move.c
+	$(CC) $(CFLAGS) -c ../eqn/move.c
+
+over.o:	../eqn/over.c
+	$(CC) $(CFLAGS) -c ../eqn/over.c
+
+paren.o:	../eqn/paren.c
+	$(CC) $(CFLAGS) -c ../eqn/paren.c
+
+pile.o:	../eqn/pile.c
+	$(CC) $(CFLAGS) -c ../eqn/pile.c
+
+shift.o:	../eqn/shift.c
+	$(CC) $(CFLAGS) -c ../eqn/shift.c
+
+size.o:	../eqn/size.c
+	$(CC) $(CFLAGS) -c ../eqn/size.c
+
+sqrt.o:	../eqn/sqrt.c
+	$(CC) $(CFLAGS) -c ../eqn/sqrt.c
+
+text.o:	../eqn/text.c
+	$(CC) $(CFLAGS) -c ../eqn/text.c

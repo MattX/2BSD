@@ -1,1 +1,0 @@
-#define NDVHP	0

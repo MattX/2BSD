@@ -11,11 +11,10 @@
  * #ifndef WORD32
  * #define WORD32
  * #endif
+ */
 	/* location of the parser text file */
 # define PARSER "/usr/lib/yaccpar"
 
 	/* basic size of the Yacc implementation */
-/*
- * # define HUGE
- */
-# define MEDIUM
+/* # define HUGE */
+#define MEDIUM

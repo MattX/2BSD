@@ -1,5 +1,11 @@
-.TH DIFF 1 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)diff.1	6.4 (Berkeley) 5/19/86
+.\"
+.TH DIFF 1 "May 19, 1986"
+.UC 4
 .SH NAME
 diff \- differential file and directory comparator
 .SH SYNOPSIS
@@ -11,23 +17,23 @@ diff \- differential file and directory comparator
 ] [
 .B \-s
 ] [
-\fB\-cefh\fP
+\fB\-cefhn\fR
 ] [
-.B \-b
+.B \-biwt
 ] dir1 dir2
 .br
 .B diff
 [
-\fB\-cefh
+\fB\-cefhn
 ] [
-\fB\-b\fP
+\fB\-biwt\fR
 ] file1 file2
 .br
 .B diff
 [
 .BI \-D string
 ] [
-.B \-b
+.B \-biw
 ]
 file1 file2
 .SH DESCRIPTION
@@ -43,7 +49,7 @@ common subdirectories, and files which appear in only one directory
 are listed.
 Options when comparing directories are:
 .TP
-.B \-\^l
+.B \-l
 long output format; each text file
 .I diff
 is piped through
@@ -52,17 +58,17 @@ to paginate it,
 other differences are remembered and summarized
 after all text file differences are reported.
 .TP
-.B \-\^r
+.B \-r
 causes application of
 .I diff
 recursively to common subdirectories encountered.
 .TP
-.B \-\^s
+.B \-s
 causes 
 .I diff
 to report files which are the same, which are otherwise not mentioned.
 .TP
-.B \-\^Sname
+.B \-Sname
 starts a directory
 .I diff
 in the middle beginning with file
@@ -134,12 +140,12 @@ then all the lines that are affected in the second file
 flagged by `>'.
 .PP
 Except for
-.B \-b,
+\fB\-b, -w, -i\fP or \fB-t\fP
 which may be given with any of the others,
 the following options are mutually exclusive:
 .TP 9
-.B \-\^e
-producing a script of
+.B \-e
+produces a script of
 .I "a, c"
 and 
 .I d
@@ -174,14 +180,21 @@ from their state in
 to their state in
 .I dir2.
 .TP 9
-.B \-\^f
+.B \-f
 produces a script similar to that of
 .B \-e,
 not useful with
 .I ed,
 and in the opposite order.
 .TP 9
-.B \-\^c
+.B \-n
+produces a script similar to that of
+.B \-e,
+but in the opposite order and with a count of changed lines on each
+insert or delete command.  This is the form used by
+.IR rcsdiff (1).
+.TP 9
+.B \-c
 produces a diff with lines of context.
 The default is to present 3 lines of context and may be changed, e.g to 10, by
 .BR \-c10 \&.
@@ -193,18 +206,22 @@ their creation dates and then each change is separated
 by a line with a dozen *'s.
 The lines removed from
 .I file1
-are marked with `\(mi'; those added to
+are marked with `\(mi '; those added to
 .I file2
-are marked `+'.  Lines which are changed from one
-file to the other are marked in both files with `!'.
+are marked `+ '.  Lines which are changed from one
+file to the other are marked in both files with with `! '.
+
+Changes which lie within <context> lines of each other are grouped
+together on output.  (This is a change from the previous ``diff -c''
+but the resulting output is usually much easier to interpret.)
 .TP 9
-.B \-\^h
+.B \-h
 does a fast, half-hearted job.
 It works only when changed stretches are short
 and well separated,
 but does work on files of unlimited length.
 .TP
-.B \-\^Dstring
+.B \-Dstring
 causes
 .I diff
 to create a merged version of
@@ -212,39 +229,56 @@ to create a merged version of
 and
 .I file2
 on the standard output, with C preprocessor controls included so that
-a compilation of the result without defining \fIstring\fP is equivalent
+a compilation of the result without defining \fIstring\fR is equivalent
 to compiling
 .I file1,
 while defining
 .I string
 will yield
 .I file2.
-.TP
-.B \-\^b
+.TP 9
+.B \-b
 causes trailing blanks (spaces and tabs) to be ignored, and other
 strings of blanks to compare equal.
+.TP 9
+.B \-w
+is similar to
+.B \-b
+but causes whitespace (blanks and tabs) to be totally ignored.  E.g.,
+``if\ (\ a\ ==\ b\ )'' will compare equal to ``if(a==b)''.
+.TP 9
+.B \-i
+ignores the case of letters.  E.g., ``A'' will compare equal to ``a''.
+.TP 9
+.B \-t
+will expand tabs in output lines.  Normal or
+.B \-c
+output adds character(s) to the front of each line which may screw up
+the indentation of the original source lines and make the output listing
+difficult to interpret.  This option will preserve the original source's
+indentation.
 .SH FILES
-.ta 2i
-/tmp/d?????	temporary files
+/tmp/d?????
 .br
-/usr/lib/diffh	for 
+/usr/lib/diffh for 
 .B \-h
 .br
-/bin/pr	for
-.B \-l
+/bin/diff for directory diffs
+.br
+/bin/pr
 .SH "SEE ALSO"
-cc(1), cmp(1), comm(1), diff3(1), ed(1)
+cmp(1), cc(1), comm(1), ed(1), diff3(1)
 .SH DIAGNOSTICS
 Exit status is 0 for no differences, 1 for some, 2 for trouble.
 .SH BUGS
 Editing scripts produced under the
 .BR \-e " or"
 .BR \-f " option are naive about"
-creating lines consisting of a single `\fB.\fP'.
+creating lines consisting of a single `\fB.\fR'.
 .PP
 When comparing directories with the
-.B \-b
-option specified,
+\fB\-b, -w\fP or \fB-i\fP
+options specified,
 .I diff
 first compares the files ala
 .I cmp,
@@ -253,4 +287,4 @@ and then decides to run the
 algorithm if they are not equal.
 This may cause a small amount of spurious output if the files
 then turn out to be identical because the only differences are
-insignificant blank string differences.
+insignificant blank string or case differences.

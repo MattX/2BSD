@@ -1,7 +1,19 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)clock.c	5.4 (Berkeley) 12/17/85";
+#endif
+
 # include "sendmail.h"
 # include <signal.h>
-
-SCCSID(@(#)clock.c	4.1		7/25/83);
 
 /*
 **  SETEVENT -- set an event to happen at a specific time.
@@ -129,6 +141,7 @@ tick()
 {
 	register time_t now;
 	register EVENT *ev;
+	int mypid = getpid();
 
 	(void) signal(SIGALRM, SIG_IGN);
 	(void) alarm(0);
@@ -140,9 +153,11 @@ tick()
 # endif DEBUG
 
 	while ((ev = EventQueue) != NULL &&
-	       (ev->ev_time <= now || ev->ev_pid != getpid()))
+	       (ev->ev_time <= now || ev->ev_pid != mypid))
 	{
-		int (*f)(), a;
+		int (*f)();
+		int arg;
+		int pid;
 
 		/* process the event on the top of the queue */
 		ev = EventQueue;
@@ -155,10 +170,16 @@ tick()
 
 		/* we must be careful in here because ev_func may not return */
 		(void) signal(SIGALRM, tick);
+#ifdef SIGVTALRM
+		/* reset 4.2bsd signal mask to allow future alarms */
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGALRM));
+#endif SIGVTALRM
+
 		f = ev->ev_func;
-		a = ev->ev_arg;
+		arg = ev->ev_arg;
+		pid = ev->ev_pid;
 		free((char *) ev);
-		if (ev->ev_pid != getpid())
+		if (pid != getpid())
 			continue;
 		if (EventQueue != NULL)
 		{
@@ -167,7 +188,7 @@ tick()
 			else
 				(void) alarm(3);
 		}
-		(*f)(a);
+		(*f)(arg);
 		(void) alarm(0);
 		now = curtime();
 	}
@@ -195,7 +216,7 @@ tick()
 static bool	SleepDone;
 
 sleep(intvl)
-	int intvl;
+	unsigned int intvl;
 {
 	extern endsleep();
 

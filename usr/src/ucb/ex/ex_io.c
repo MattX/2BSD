@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_io.c	7.3	9/3/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_io.c	7.11.1.1 (Berkeley) 8/12/86";
+#endif not lint
+
 #include "ex.h"
 #include "ex_argv.h"
 #include "ex_temp.h"
@@ -342,10 +350,6 @@ rop(c)
 		error(" Directory");
 
 	case S_IFREG:
-#ifdef CRYPT
-		if (xflag)
-			break;
-#endif
 		i = read(io, (char *) &magic, sizeof(magic));
 		lseek(io, 0l, 0);
 		if (i != sizeof(magic))
@@ -413,17 +417,32 @@ rop(c)
 rop2()
 {
 	line *first, *last, *a;
+	struct stat statb;
 
 	deletenone();
 	clrstats();
 	first = addr2 + 1;
+	if (fstat(io, &statb) < 0)
+		bsize = LBSIZE;
+	else {
+		bsize = statb.st_blksize;
+		if (bsize <= 0)
+			bsize = LBSIZE;
+	}
 	ignore(append(getfile, addr2));
 	last = dot;
-	for (a=first; a<=last; a++) {
-		if (a==first+5 && last-first > 10)
-			a = last - 4;
-		getline(*a);
-		checkmodeline(linebuf);
+	/*
+	 *	if the modeline variable is set,
+	 *	check the first and last five lines of the file
+	 *	for a mode line.
+	 */
+	if (value(MODELINE)) {
+		for (a=first; a<=last; a++) {
+			if (a==first+5 && last-first > 10)
+				a = last - 4;
+			getline(*a);
+			checkmodeline(linebuf);
+		}
 	}
 }
 
@@ -462,13 +481,6 @@ other:
 			vcline = 0;
 			vreplace(0, LINES, lineDOL());
 		}
-	}
-	if (laste) {
-#ifdef VMUNIX
-		tlaste();
-#endif
-		laste = 0;
-		sync();
 	}
 }
 
@@ -631,7 +643,7 @@ getfile()
 	fp = nextip;
 	do {
 		if (--ninbuf < 0) {
-			ninbuf = read(io, genbuf, LBSIZE) - 1;
+			ninbuf = read(io, genbuf, bsize) - 1;
 			if (ninbuf < 0) {
 				if (lp != linebuf) {
 					lp++;
@@ -640,17 +652,6 @@ getfile()
 				}
 				return (EOF);
 			}
-#ifdef CRYPT
-			fp = genbuf;
-			while(fp < &genbuf[ninbuf]) {
-				if (*fp++ & 0200) {
-					if (kflag)
-						crblock(perm, genbuf, ninbuf+1,
-cntch);
-					break;
-				}
-			}
-#endif
 			fp = genbuf;
 			cntch += ninbuf+1;
 		}
@@ -685,13 +686,21 @@ int isfilter;
 	line *a1;
 	register char *fp, *lp;
 	register int nib;
+	struct stat statb;
 
 	a1 = addr1;
 	clrstats();
 	cntln = addr2 - a1 + 1;
 	if (cntln == 0)
 		return;
-	nib = BUFSIZ;
+	if (fstat(io, &statb) < 0)
+		bsize = LBSIZE;
+	else {
+		bsize = statb.st_blksize;
+		if (bsize <= 0)
+			bsize = LBSIZE;
+	}
+	nib = bsize;
 	fp = genbuf;
 	do {
 		getline(*a1++);
@@ -699,15 +708,11 @@ int isfilter;
 		for (;;) {
 			if (--nib < 0) {
 				nib = fp - genbuf;
-#ifdef CRYPT
-                		if(kflag && !isfilter)
-                                        crblock(perm, genbuf, nib, cntch);
-#endif
 				if (write(io, genbuf, nib) != nib) {
 					wrerror();
 				}
 				cntch += nib;
-				nib = BUFSIZ - 1;
+				nib = bsize - 1;
 				fp = genbuf;
 			}
 			if ((*fp++ = *lp++) == 0) {
@@ -717,10 +722,6 @@ int isfilter;
 		}
 	} while (a1 <= addr2);
 	nib = fp - genbuf;
-#ifdef CRYPT
-	if(kflag && !isfilter)
-		crblock(perm, genbuf, nib, cntch);
-#endif
 	if (write(io, genbuf, nib) != nib) {
 		wrerror();
 	}
@@ -753,7 +754,8 @@ source(fil, okfail)
 {
 	jmp_buf osetexit;
 	register int saveinp, ointty, oerrno;
-	char savepeekc, *saveglobp;
+	char *saveglobp;
+	short savepeekc;
 
 	signal(SIGINT, SIG_IGN);
 	saveinp = dup(0);
@@ -822,6 +824,7 @@ clrstats()
 iostats()
 {
 
+	(void) fsync(io);
 	close(io);
 	io = -1;
 	if (hush == 0) {
@@ -863,9 +866,14 @@ char *line;
 	beg = index(line, ':');
 	if (beg == NULL)
 		return;
-	if (beg[-2] != 'e' && beg[-2] != 'v') return;
-	if (beg[-1] != 'x' && beg[-1] != 'i') return;
-
+	if (&beg[-3] < line)
+		return;
+	if (!(  ( (beg[-3] == ' ' || beg[-3] == '\t')
+	        && beg[-2] == 'e'
+		&& beg[-1] == 'x')
+	     || ( (beg[-3] == ' ' || beg[-3] == '\t')
+	        && beg[-2] == 'v'
+		&& beg[-1] == 'i'))) return;
 	strncpy(cmdbuf, beg+1, sizeof cmdbuf);
 	end = rindex(cmdbuf, ':');
 	if (end == NULL)

@@ -5,7 +5,7 @@
 
 #define MAXCOM	64
 #define MAXARG	32
-#define LINSIZ	256
+#define LINSIZ	512
 TYPE	int		INT;
 TYPE	int		VOID;
 TYPE	long int	L_INT;

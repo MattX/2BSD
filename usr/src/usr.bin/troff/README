@@ -16,7 +16,3 @@ including /usr/lib/tmac.s, etc.
 
 3. terminal driving tables for nroff are
 in /usr/lib/term/tabxxx instead of /usr/lib/term/xxx.
-
-4. tab3.c has been changed for character widths for
-   the Versatec rather than the phototypsetter.  The
-   original is tab3.c.bel -- 12/7/79  pag

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)curses.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#if !defined(lint) && !defined(NOSCCS)
+static char sccsid[] = "@(#)curses.c	5.2 (Berkeley) 11/8/85";
+#endif
 
 /*
  * Define global variables
@@ -19,7 +19,7 @@ bool	_echoit		= TRUE,	/* set if stty indicates ECHO		*/
 	My_term		= FALSE,/* set if user specifies terminal type	*/
 	_endwin		= FALSE;/* set if endwin has been called	*/
 
-char	ttytype[10],		/* long name of tty			*/
+char	ttytype[50],		/* long name of tty			*/
 	*Def_term	= "unknown";	/* default terminal type	*/
 
 int	_tty_ch		= 1,	/* file channel which is a tty		*/

@@ -1,14 +1,13 @@
 #
-# ex makefile
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
 #
-# FP=-f			# if no floating point unit
-
+#	@(#)Makefile	7.13.1.1 (Berkeley) 8/12/86
+#
 VERSION=3.7
-
-CFLAGS=	-O -DTABS=8 -DCHDIR -DVFORK ${DEB} -I${INCLUDES}
-
 #
-# Ex skeletal makefile for version 7, USGS Overlay system
+# Ex skeletal makefile for VAX VM/Unix 4.2BSD
 #
 # NB: This makefile doesn't indicate any dependencies on header files.
 #
@@ -16,10 +15,7 @@ CFLAGS=	-O -DTABS=8 -DCHDIR -DVFORK ${DEB} -I${INCLUDES}
 # software.  Things that can be turned off to save
 # space include LISPCODE (-l flag, showmatch and lisp options), UCVISUAL
 # (visual \ nonsense on upper case only terminals), CHDIR (the undocumented
-# chdir command.)  CRYPT includes code to handle the -x option to allow
-# encrypted files.  Defining CRYPT drags in most of stdio (from the call
-# to getpass) and makes vi about 4k text and 4k data bigger).
-# VMUNIX makes ex considerably larger, raising many limits
+# chdir command.)  VMUNIX makes ex considerably larger, raising many limits
 # and improving speed and simplicity of maintenance.  It is suitable only
 # for a VAX or other large machine, and then probably only in a paged system.
 #
@@ -27,130 +23,164 @@ CFLAGS=	-O -DTABS=8 -DCHDIR -DVFORK ${DEB} -I${INCLUDES}
 # which is like fork but the two processes have only one data space until the
 # child execs. This speeds up ex by saving the memory copy.
 #
-# If your system expands tabs to 4 spaces you should -DTABS=4 above
-#
-# Make ex.40 for nonseparate I/D machines without floating point,
-# ex.34 for nonseparate I/D machines with floating point,
-# and ex.70 if you have separate I/D (and floating point).
-# Take a look at ex_tune.h and ex_local.h before compiling.
+# If your system expands tabs to 4 spaces you should -DTABS=4 below
 #
 BINDIR=	/usr/ucb
-NBINDIR=/usr/new/bin
+NBINDIR=/usr/new
 LIBDIR=	/usr/lib
-FOLD=	/usr/ucb/fold
-CTAGS=	/usr/ucb/ctags
-XSTR=	/usr/ucb/xstr
-CC=	cc ${OV}
-AS=	as ${OV}
-LD=	ld
-TERMLIB=	-lovtermcap
-DEBUGFLAGS=	-DTRACE
+FOLD=	${BINDIR}/fold
+CTAGS=	${BINDIR}/ctags
+XSTR=	${BINDIR}/xstr
+DEBUGFLAGS=	-DTRACE -g
 NONDEBUGFLAGS=	-O
 DEB=	${NONDEBUGFLAGS}	# or ${DEBUGFLAGS} to to debug
-MKSTR=	/usr/ucb/mkstr
-CXREF=	/usr/ucb/cxref
-# Use ovprintf and ovdoprnt on PDP11's, printf elsewhere
-# PRINTF=	printf.o
-# PRINTFS=printf.c
-PRINTF=	ovprintf.o ovdoprnt.o
-PRINTFS=ovprintf.c ovdoprnt.s
+#OPTIONS= -DLISPCODE -DCHDIR -DUCVISUAL -DVFORK -DVMUNIX -DFASTTAG
+OPTIONS= -DLISPCODE -DCHDIR -DVFORK -DFASTTAG
+CFLAGS=	-DTABS=8 ${OPTIONS} ${DEB}
+LDFLAGS= -X
+SEPFLAG= -i
+TERMLIB=	-ltermcap
+MKSTR=	${BINDIR}/mkstr
+CXREF=	${BINDIR}/cxref
+INCLUDE=/usr/include
 PR=	pr
-GET=	sccs get 
-OBJS=	ex.o ex_addr.o ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_data.o ex_get.o \
-	ex_io.o ex_put.o ex_re.o ex_set.o ex_subr.o ex_temp.o ex_tty.o \
-	ex_unix.o ex_v.o ex_vadj.o ex_vget.o ex_vmain.o ex_voper.o \
-	ex_vops.o ex_vops2.o ex_vops3.o ex_vput.o ex_vwind.o ${PRINTF} \
-	bcopy.o ex_extern.o strings.o
-
-SRCS=	ex.h ex_argv.h ex_re.h ex_temp.h ex_tty.h ex_tune.h ex_vars.h ex_vis.h \
-	ex.c ex_addr.c ex_cmds.c ex_cmds2.c ex_cmdsub.c ex_data.c ex_get.c \
-	ex_io.c ex_put.c ex_re.c ex_set.c ex_subr.c ex_temp.c ex_tty.c \
-	ex_unix.c ex_v.c ex_vadj.c ex_vget.c ex_vmain.c ex_voper.c \
-	ex_vops.c ex_vops2.c ex_vops3.c ex_vput.c ex_vwind.c ${PRINTFS} \
-	bcopy.c
+OBJS=	ex.o ex_addr.o ex_cmds.o ex_cmds2.o ex_cmdsub.o \
+	ex_data.o ex_extern.o ex_get.o ex_io.o ex_put.o ex_re.o \
+	ex_set.o ex_subr.o ex_tagio.o ex_temp.o ex_tty.o ex_unix.o \
+	ex_v.o ex_vadj.o ex_vget.o ex_vmain.o ex_voper.o \
+	ex_vops.o ex_vops2.o ex_vops3.o ex_vput.o ex_vwind.o \
+	printf.o bcopy.o strings.o
+HDRS=	ex.h ex_argv.h ex_re.h ex_temp.h ex_tty.h ex_tune.h ex_vars.h ex_vis.h
+SRC1=	ex.c ex_addr.c ex_cmds.c ex_cmds2.c ex_cmdsub.c
+SRC2=	ex_data.c ex_get.c ex_io.c ex_put.c ex_re.c
+SRC3=	ex_set.c ex_subr.c ex_tagio.c ex_temp.c ex_tty.c ex_unix.c
+SRC4=	ex_v.c ex_vadj.c ex_vget.c ex_vmain.c ex_voper.c
+SRC5=	ex_vops.c ex_vops2.c ex_vops3.c ex_vput.c ex_vwind.c
+SRC6=	printf.c bcopy.c expreserve.c exrecover.c
+MISC=	makefile READ_ME rofix
+VGRIND=	csh /usr/ucb/vgrind
+VHDR=	"Ex Version ${VERSION}"
 
 .c.o:
+# ifdef VMUNIX
+#	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
+# else
 	${MKSTR} - ex${VERSION}strings x $*.c
 	${CC} -E ${CFLAGS} x$*.c | ${XSTR} -c -
 	rm -f x$*.c
+# endif
 	${CC} ${CFLAGS} -c x.c 
 	mv x.o $*.o
 
-all:	ex.${PDP} exrecover expreserve
-
-# install in standard place (/usr/ucb)
-install:
-	rm -f ${DESTDIR}${BINDIR}/ex ${DESTDIR}${BINDIR}/vi \
-		${DESTDIR}${BINDIR}/view ${DESTDIR}${BINDIR}/edit \
-		${DESTDIR}${BINDIR}/e
-	install -s -o bin -g bin -m 1711 ex ${DESTDIR}${BINDIR}/ex
-	install -c -o bin -g bin -m 644 strings ${DESTDIR}/${LIBDIR}/ex${VERSION}strings
-	ln ${DESTDIR}${BINDIR}/ex ${DESTDIR}${BINDIR}/edit
-	ln ${DESTDIR}${BINDIR}/ex ${DESTDIR}${BINDIR}/e
-	ln ${DESTDIR}${BINDIR}/ex ${DESTDIR}${BINDIR}/vi
-	ln ${DESTDIR}${BINDIR}/ex ${DESTDIR}${BINDIR}/view
-	install -s -o bin -g bin -m 711 exrecover ${DESTDIR}${LIBDIR}/ex${VERSION}recover
-	install -s -o bin -g bin -m 711 expreserve ${DESTDIR}${LIBDIR}/ex${VERSION}preserve
-# The following line normally fails.  This is OK.
-	-mkdir ${DESTDIR}/usr/preserve
+all:	a.out exrecover expreserve
 
 # 11/23, 34, 40 and other non split I/D machines
-# each of the 5 overlays must stay less than 16K.
-ex.40: ${OBJS}
-	${LD} -X ${CRT} ${LFLAG} -o ex \
-	    -Z ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_re.o \
-	    -Z ex_vadj.o ex_vmain.o ex_voper.o ex_vwind.o ex_vops3.o\
-	    -Z ex_v.o ex_vget.o ex_vops.o ex_vops2.o ex_vput.o\
-	    -Z ex_get.o ex_io.o ex_temp.o ex_tty.o ex_unix.o ex_addr.o ex.o ex_set.o ${TERMLIB} \
-	    -L ex_put.o ex_subr.o ${PRINTF} strings.o \
-	       ex_data.o ex_extern.o -lovc
+# each of the 6 overlays must stay less than 16K.
 
-ex.34: ${OBJS}
-	${LD} -X ${CRT} ${LFLAG} -o ex \
-	    -Z ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_re.o \
-	    -Z ex_vadj.o ex_vmain.o ex_voper.o ex_vwind.o ex_vops3.o\
-	    -Z ex_v.o ex_vget.o ex_vops.o ex_vops2.o ex_vput.o\
-	    -Z ex_get.o ex_io.o ex_temp.o ex_tty.o ex_unix.o ex_addr.o ex.o ex_set.o ${TERMLIB} \
-	    -L ex_put.o ex_subr.o ${PRINTF} strings.o \
-	       ex_data.o ex_extern.o -lovc
-
-ex.70: ${OBJS}
-	${LD} -X ${CRT} ${LFLAG} -o ex \
-	    -Z ex_voper.o ex_vget.o ex_vops.o ex_vops2.o ex_vops3.o \
-	    -Z ex_set.o ex_re.o ex_io.o ex_tty.o ex_unix.o ex.o\
-	    -L ex_addr.o ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_get.o ex_temp.o\
-	       ex_v.o ex_vadj.o ex_vmain.o ex_vwind.o\
-	       ex_vput.o ex_put.o ex_subr.o ${PRINTF} strings.o \
-	       ex_data.o ex_extern.o ${TERMLIB} -lovc 
+a.out: ${OBJS}
+	-if [ X${SEPFLAG} = X-i ]; then \
+		ld ${LDFLAGS} /lib/crt0.o ${SEPFLAG} \
+		    -Z ex_voper.o ex_vget.o ex_vops.o ex_vops2.o ex_vops3.o \
+		    -Z ex_set.o ex_re.o ex_io.o ex_tty.o ex_unix.o ex.o ex_v.o \
+		    -Y ex_addr.o ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_tagio.o \
+		       ex_get.o ex_temp.o ex_vadj.o ex_vmain.o ex_vwind.o\
+		       ex_vput.o ex_put.o ex_subr.o printf.o strings.o \
+		       ex_data.o ex_extern.o ${TERMLIB} -lc; \
+	else \
+		ld ${LDFLAGS} /lib/crt0.o ${SEPFLAG} \
+		    -Z ex_cmds.o ex_cmds2.o ex_cmdsub.o ex_tagio.o ex_re.o \
+		    -Z ex_vadj.o ex_vmain.o ex_voper.o ex_vwind.o ex_vops3.o\
+		    -Z ex_v.o ex_vget.o ex_vops.o ex_vops2.o ex_vput.o\
+		    -Z ex_get.o ex_io.o ex_temp.o ex_tty.o ex_unix.o \
+			ex_addr.o ex.o ex_set.o \
+		    -Z ex_put.o ex_subr.o ${TERMLIB} \
+		    -Y ex_data.o ex_extern.o printf.o strings.o -lc; \
+	fi
 
 tags:	/tmp
 	${CTAGS} -w ex.[hc] ex_*.[hc]
 
-# ex_vars.h:
-# 	csh makeoptions ${CFLAGS}
+${OBJS}: ${HDRS}
 
+ex_vars.h:
+	csh makeoptions ${CFLAGS}
+
+bcopy.o:	bcopy.c
+	${CC} -c ${CFLAGS} bcopy.c
+
+# xstr: hands off!
 strings.o: strings
 	${XSTR}
-	${CC} -c -S xs.c
-#	ed - <rofix xs.s
-	${AS} -o strings.o xs.s
-	rm xs.s
-
-exrecover: exrecover.o ex_extern.o
-	${CC} ${FP} exrecover.o ex_extern.o -o exrecover
+	-if [ X${SEPFLAG} = X-i ]; then \
+		${CC} -c -o strings.o xs.c; \
+	else \
+		${CC} -c -S xs.c; \
+		ed - <rofix xs.s; \
+		${AS} -o strings.o xs.s; \
+		rm xs.s; \
+	fi
+	
+exrecover: exrecover.o
+	${CC} ${SEPFLAG} ${CFLAGS} exrecover.o ex_extern.o -o exrecover
 
 exrecover.o: exrecover.c
 	${CC} ${CFLAGS} -c -O exrecover.c
 
-expreserve: expreserve.o ex_extern.o
-	${CC}${FP} expreserve.o ex_extern.o -o expreserve
+expreserve: expreserve.o
+	${CC} ${SEPFLAG} expreserve.o -o expreserve
 
 expreserve.o:
 	${CC} ${CFLAGS} -c -O expreserve.c
 
 clean:
-#	If we dont have ex we cant make it so dont rm ex_vars.h
-	rm -f a.out strings core errs trace *.o x*.[cs]
+#	If we dont have ex we cant make it so don't rm ex_vars.h
+	-rm -f a.out exrecover expreserve ex${VERSION}strings strings
+	-rm -f *.o x*.[cs] core errs trace
+
+# install a new version for testing in /usr/new
+ninstall: a.out
+	-rm -f ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/vi ${DESTDIR}${NBINDIR}/view
+	cp a.out ${DESTDIR}${NBINDIR}/ex
+#	-cp ex${VERSION}strings ${LIBDIR}/ex${VERSION}strings
+	ln ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/vi
+	ln ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/view
+	chmod 1755 ${DESTDIR}${NBINDIR}/ex
+
+# install in standard place (/usr/ucb)
+install: a.out exrecover expreserve
+	-rm -f ${DESTDIR}/${BINDIR}/ex
+	-rm -f ${DESTDIR}/${BINDIR}/vi
+	-rm -f ${DESTDIR}/${BINDIR}/view
+	-rm -f ${DESTDIR}/${BINDIR}/edit
+	-rm -f ${DESTDIR}/${BINDIR}/e
+	-rm -f ${DESTDIR}/usr/bin/ex
+	install -s -m 1755 a.out ${DESTDIR}/${BINDIR}/ex
+	cp ex${VERSION}strings ${DESTDIR}/${LIBDIR}/ex${VERSION}strings
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/vi
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/view
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/usr/bin/ex
+	chmod 1755 ${DESTDIR}/${BINDIR}/ex
+	install -s -o root -m 4755 exrecover ${DESTDIR}/${LIBDIR}/ex${VERSION}recover
+	install -s -o root -m 4755 expreserve ${DESTDIR}/${LIBDIR}/ex${VERSION}preserve
+# The following line normally fails.  This is OK.
+	-mkdir ${DESTDIR}/usr/preserve
+
+# move from /usr/new to /usr/ucb
+newucb: a.out
+	-rm -f ${DESTDIR}/${BINDIR}/ex
+	-rm -f ${DESTDIR}/${BINDIR}/vi
+	-rm -f ${DESTDIR}/${BINDIR}/edit
+	-rm -f ${DESTDIR}/${BINDIR}/e
+	-rm -f ${DESTDIR}/usr/bin/ex
+	mv ${DESTDIR}/${NBINDIR}/ex ${DESTDIR}/${NBINDIR}/ex
+	-rm -f ${DESTDIR}/${NBINDIR}/vi
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/vi
+	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/usr/bin/ex
+	chmod 1755 ${DESTDIR}/${BINDIR}/ex
 
 lint:
 	lint ${CFLAGS} ex.c ex_?*.c
@@ -171,36 +201,14 @@ print:
 	@ls -ls | ${PR}
 	@${CXREF} *.c | ${PR} -h XREF
 	@${PR} *.h *.c
-
-bcopy.o:	bcopy.c
-ex.o:		ex.c
-ex_addr.o:	ex_addr.c
-ex_cmds.o:	ex_cmds.c
-ex_cmds2.o:	ex_cmds2.c
-ex_cmdsub.o:	ex_cmdsub.c
-ex_data.o:	ex_data.c
-ex_extern.o:	ex_extern.c
-ex_get.o:	ex_get.c
-ex_io.o:	ex_io.c
-ex_put.o:	ex_put.c
-ex_re.o:	ex_re.c
-ex_set.o:	ex_set.c
-ex_subr.o:	ex_subr.c
-ex_temp.o:	ex_temp.c
-ex_tty.o:	ex_tty.c
-ex_unix.o:	ex_unix.c
-ex_v.o:		ex_v.c
-ex_vadj.o:	ex_vadj.c
-ex_vget.o:	ex_vget.c
-ex_vmain.o:	ex_vmain.c
-ex_voper.o:	ex_voper.c
-ex_vops.o:	ex_vops.c
-ex_vops2.o:	ex_vops2.c
-ex_vops3.o:	ex_vops3.c
-ex_vput.o:	ex_vput.c
-ex_vwind.o:	ex_vwind.c
-expreserve.o:	expreserve.c
-exrecover.o:	exrecover.c
-ovdoprnt.o:	ovdoprnt.s
-ovprintf.o:	ovprintf.c
-printf.o:	printf.c
+vgrind:
+	tee index < /dev/null
+	${VGRIND} -h ${VHDR} ${HDRS}
+	${VGRIND} -h ${VHDR} ${SRC1}
+	${VGRIND} -h ${VHDR} ${SRC2}
+	${VGRIND} -h ${VHDR} ${SRC3}
+	${VGRIND} -h ${VHDR} ${SRC4}
+	${VGRIND} -h ${VHDR} ${SRC5}
+	${VGRIND} -h ${VHDR} ${SRC6}
+	${VGRIND} -n -h ${VHDR} ${MISC}
+	${VGRIND} -i -h ${VHDR} index

@@ -1,5 +1,6 @@
-/* $Header: systat.c,v 1.10 85/05/29 20:52:54 rick Exp $ */
-/* from: @(#)systat.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)systat.c	5.4 (Berkeley) 6/23/85";
+#endif
 
 #include "uucp.h"
 

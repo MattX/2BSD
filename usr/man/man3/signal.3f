@@ -1,5 +1,11 @@
-.TH SIGNAL 3F
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)signal.3f	6.1 (Berkeley) 5/15/85
+.\"
+.TH SIGNAL 3F "May 15, 1985"
+.UC 5
 .SH NAME
 signal \- change the action for a signal
 .SH SYNOPSIS
@@ -10,7 +16,7 @@ signal \- change the action for a signal
 .B external proc
 .SH DESCRIPTION
 When a process incurs a signal (see
-.IR signal (2))
+.IR signal (3C))
 the default action
 is usually to clean up and abort.
 The user may choose to write an alternative signal handling routine.
@@ -20,7 +26,7 @@ is the way this alternate action is specified to the system.
 .PP
 .I Signum
 is the signal number (see
-.IR signal (2)).
+.IR signal (3C)).
 If
 .I flag
 is negative, then
@@ -53,7 +59,7 @@ A negative returned value is the negation of a system error code.
 .ie \nM /usr/ucb/lib/libU77.a
 .el /usr/lib/libU77.a
 .SH "SEE ALSO"
-signal(2), kill(3F), kill(1)
+signal(3C), kill(3F), kill(1)
 .SH NOTES
 .B f77
 arranges to trap certain signals when a process is started.
@@ -62,15 +68,6 @@ The only way to restore the default
 action is to save the returned
 value from the first call to
 .I signal.
-.PP
-When a user signal handling routine is called, UNIX resets the signal action
-definition to its original default value.
-Thus it is necessary to call
-.IR signal (3F)
-from within the user signal handler in order to catch subsequent occurrences
-of the same signal. See
-.IR signal (2)
-for a fuller explanation.
 .PP
 If the user signal handler is called, it will be passed the signal number
 as an integer argument.

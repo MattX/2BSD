@@ -1,14 +1,18 @@
-.TH ABORT 3
+.\"	@(#)abort.3	6.3 (Berkeley) 5/27/86
+.\"
+.TH ABORT 3 "May 27, 1986"
+.AT 3
 .SH NAME
-abort \- generate IOT fault
-.SH SYNTAX
-.B abort()
+abort \- generate a fault
 .SH DESCRIPTION
 .I Abort
-executes the PDP-11 IOT instruction.
+executes an instruction which is illegal in user mode.
 This causes a signal that normally terminates
 the process with a core dump, which may be used for debugging.
 .SH SEE ALSO
-adb(1), exit(2), signal(2)
+adb(1), sigvec(2), exit(2)
 .SH DIAGNOSTICS
-Usually `IOT trap \- core dumped' from the shell.
+Usually ``Illegal instruction \- core dumped'' from the shell.
+.SH BUGS
+The abort() function does not flush standard I/O buffers.  Use
+\fIfflush\fP\|(3S).

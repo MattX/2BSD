@@ -1,7 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: uusnap.c,v 1.21 85/06/19 19:47:43 rick Stab $";
-/* from: @(#)uusnap.c	5.2 (Berkeley) 7/2/83 */
-#endif !lint
+static char sccsid[] = "@(#)uusnap.c	5.7 (Berkeley) 10/9/85";
+#endif
 
 /*
  *	Uusnap - displays a snapshot of the uucp system.
@@ -210,7 +209,7 @@ char *sdir;
 		exit(1);
 	}
 	while ((dentp = readdir(dirp)) != NULL) {
-		if (strcmp(dentp->d_name, X_LOCK) == SAME) {
+		if (strcmp(&dentp->d_name[5], X_LOCK) == SAME) {
 			xqtisrunning++;
 			continue;
 		}

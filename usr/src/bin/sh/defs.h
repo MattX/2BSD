@@ -1,4 +1,4 @@
-/*	defs.h	4.2	83/06/10	*/
+/*	defs.h	4.4	85/03/19	*/
 
 #
 /*
@@ -106,7 +106,7 @@ VOID		printnam();
 VOID		printflg();
 VOID		prs();
 VOID		prc();
-VOID		getenv();
+VOID		setupenv();
 STRING		*setenv();
 
 #define attrib(n,f)	(n->namflg |= f)
@@ -216,23 +216,21 @@ MSG		devnull;
 #define		execpr	04000
 #define		readpr	010000
 #define		keyflg	020000
+#define		batchflg	040000
 INT		flags;
 
 /* error exits from various parts of shell */
 #include	<setjmp.h>
 jmp_buf		subshell;
 jmp_buf		errshell;
-
-#ifndef	pdp11
 jmp_buf		INTbuf;
-#endif	!pdp11
 
 /* fault handling */
 #include	"brkincr.h"
 POS		brkincr;
 
 #define MINTRAP	0
-#define MAXTRAP	17
+#define MAXTRAP	32
 
 #define INTR	2
 #define QUIT	3
@@ -247,10 +245,7 @@ VOID		fault();
 BOOL		trapnote;
 STRING		trapcom[];
 BOOL		trapflg[];
-
-#ifndef	pdp11
 BOOL		trapjmp[];
-#endif	!pdp11
 
 /* name tree and words */
 STRING		*environ;

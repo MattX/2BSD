@@ -1,27 +1,16 @@
+static char *sccsid = "@(#)checkeq.c	4.2 (Berkeley) 4/29/83";
 #include <stdio.h>
 FILE	*fin;
-int	delim	= 0;
-/* today's version assumes no delimiters;
-they must be explicitly set
-*/
+int	delim	= '$';
 
 main(argc, argv) char **argv; {
 
-	while (argc > 1 && argv[1][0] == '-') {
-		switch (argv[1][1]) {
-		case 'd':
-			delim = argv[1][2];
-			break;
-		}
-		argc--;
-		argv++;
-	}
 	if (argc <= 1)
 		check(stdin);
 	else
 		while (--argc > 0) {
 			if ((fin = fopen(*++argv, "r")) == NULL) {
-				printf("Can't open %s\n", *argv);
+				perror(*argv);
 				exit(1);
 			}
 			printf("%s:\n", *argv);
@@ -61,10 +50,8 @@ FILE	*f;
 				if (*p != ' ') {
 					if (*p == 'o' && *(p+1) == 'f')
 						delim = 0;
-					else {
+					else
 						delim = *p;
-						ndel = totdel = 0;
-					}
 					break;
 				}
 			if (delim == 0)

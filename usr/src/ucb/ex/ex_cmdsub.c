@@ -1,5 +1,13 @@
-/* Copyright (c) 1981 Regents of the University of California */
-static char *sccsid = "@(#)ex_cmdsub.c	7.1	7/8/81";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)ex_cmdsub.c	7.7 (Berkeley) 6/7/85";
+#endif not lint
+
 #include "ex.h"
 #include "ex_argv.h"
 #include "ex_temp.h"
@@ -83,7 +91,7 @@ pargs()
 
 	for (ac = 0; ac < argc0; ac++) {
 		if (ac != 0)
-			putchar(' ');
+			putchar(' ' | QUOTE);
 		if (ac + argc == argc0 - 1)
 			printf("[");
 		lprintf("%s", as);
@@ -469,20 +477,12 @@ tagfind(quick)
 	int tfcount = 0;
 	int omagic;
 	char *fn, *fne;
-#ifdef STDIO		/* mjm: was VMUNIX */
-	/*
-	 * We have lots of room so we bring in stdio and do
-	 * a binary search on the tags file.
-	 */
-# undef EOF
-# include <stdio.h>
-# undef getchar
-# undef putchar
-	FILE *iof;
-	char iofbuf[BUFSIZ];
+	struct stat sbuf;
+#ifdef FASTTAG
+	int iof;
+	char iofbuf[MAXBSIZE];
 	long mid;	/* assumed byte offset */
 	long top, bot;	/* length of tag file */
-	struct stat sbuf;
 #endif
 
 	omagic = value(MAGIC);
@@ -520,15 +520,14 @@ badtag:
 			fne = 0;	/* done, quit after this time */
 		else
 			*fne = 0;	/* null terminate filename */
-#ifdef STDIO		/* mjm: was VMUNIX */
-		iof = fopen(fn, "r");
-		if (iof == NULL)
+#ifdef FASTTAG
+		iof = topen(fn, iofbuf);
+		if (iof == -1)
 			continue;
 		tfcount++;
-		setbuf(iof, iofbuf);
-		fstat(fileno(iof), &sbuf);
+		fstat(iof, &sbuf);
 		top = sbuf.st_size;
-		if (top == 0L || iof == NULL)
+		if (top == 0L )
 			top = -1L;
 		bot = 0L;
 		while (top >= bot) {
@@ -540,6 +539,13 @@ badtag:
 		if (io<0)
 			continue;
 		tfcount++;
+		if (fstat(io, &sbuf) < 0)
+			bsize = LBSIZE;
+		else {
+			bsize = sbuf.st_blksize;
+			if (bsize <= 0)
+				bsize = LBSIZE;
+		}
 		while (getfile() == 0) {
 #endif
 			/* loop for each tags file entry */
@@ -547,22 +553,25 @@ badtag:
 			register char *lp = lasttag;
 			char *oglobp;
 
-#ifdef STDIO		/* mjm: was VMUNIX */
+#ifdef FASTTAG
 			mid = (top + bot) / 2;
-			fseek(iof, mid, 0);
+			tseek(iof, mid);
 			if (mid > 0)	/* to get first tag in file to work */
 				/* scan to next \n */
-				if(fgets(linebuf, sizeof linebuf, iof)==NULL)
+				if(tgets(linebuf, sizeof linebuf, iof)==NULL)
 					goto goleft;
 			/* get the line itself */
-			if(fgets(linebuf, sizeof linebuf, iof)==NULL)
+			if(tgets(linebuf, sizeof linebuf, iof)==NULL)
 				goto goleft;
-			linebuf[strlen(linebuf)-1] = 0;	/* was '\n' */
+#ifdef TDEBUG
+			printf("tag: %o %o %o %s\n", bot, mid, top, linebuf);
+#endif
 #endif
 			while (*cp && *lp == *cp)
 				cp++, lp++;
-			if ((*lp || !iswhite(*cp)) && (value(TAGLENGTH)==0 || lp-lasttag < value(TAGLENGTH))) {
-#ifdef STDIO		/* mjm: was VMUNIX */
+			if ((*lp || !iswhite(*cp)) && (value(TAGLENGTH)==0 ||
+			    lp-lasttag < value(TAGLENGTH))) {
+#ifdef FASTTAG
 				if (*lp > *cp)
 					bot = mid + 1;
 				else
@@ -576,8 +585,8 @@ goleft:
 			/*
 			 * We found the tag.  Decode the line in the file.
 			 */
-#ifdef STDIO		/* mjm: was VMUNIX */
-			fclose(iof);
+#ifdef FASTTAG
+			tclose(iof);
 #else
 			close(io);
 #endif
@@ -658,8 +667,8 @@ badtags:
 		/*
 		 * No such tag in this file.  Close it and try the next.
 		 */
-#ifdef STDIO		/* mjm: was VMUNIX */
-		fclose(iof);
+#ifdef FASTTAG
+		tclose(iof);
 #else
 		close(io);
 #endif
@@ -1261,7 +1270,7 @@ char c;
 	char macbuf[BUFSIZ];
 	line *ad, *a1, *a2;
 	char *oglobp;
-	char pk;
+	short pk;
 	bool oinglobal;
 
 	lastmac = c;

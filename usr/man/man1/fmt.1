@@ -1,4 +1,10 @@
-.TH FMT 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)fmt.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH FMT 1 "April 29, 1985"
 .UC
 .SH NAME
 fmt \- simple text formatter
@@ -19,8 +25,19 @@ and interword spacing.
 .I Fmt
 is meant to format mail messages prior to sending, but may also be useful
 for other simple tasks.
+For instance,
+within visual mode of the
+.I ex
+editor (e.g.
+.IR vi )
+the command
+.br
+	!}fmt
+.br
+will reformat a paragraph,
+evening the lines.
 .SH "SEE ALSO"
-Mail(1), nroff(1), roff(1)
+nroff(1), mail(1)
 .SH AUTHOR
 Kurt Shoens
 .SH BUGS

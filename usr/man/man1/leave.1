@@ -1,10 +1,16 @@
-.TH LEAVE 1
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)leave.1	6.2 (Berkeley) 5/7/86
+.\"
+.TH LEAVE 1 "May 7, 1986"
 .UC
 .SH NAME
 leave \- remind you when you have to leave
 .SH SYNOPSIS
 .B leave
-[ hhmm ]
+[ [+]hhmm ]
 .SH DESCRIPTION
 .I Leave
 waits until the specified time, then reminds you that you
@@ -21,6 +27,9 @@ hours (on a 12 or 24 hour clock).
 All times are converted to a 12 hour clock, and assumed to
 be in the next 12 hours.
 .PP
+If the time is preceeded by `+', the alarm will go off in hours and minutes
+from the current time.
+.PP
 If no argument is given,
 .I leave
 prompts with "When do you
@@ -34,9 +43,7 @@ or
 .I .profile.
 .PP
 Leave ignores interrupts, quits, and terminates.
-To get rid of it you should either log off or use ``kill -9''
+To get rid of it you should either log off or use ``kill \-9''
 giving its process id.
 .SH SEE ALSO
 calendar(1)
-.SH AUTHOR
-Mark Horton

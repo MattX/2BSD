@@ -1,5 +1,7 @@
-superuser::0:root
-daemon::1:daemon
-sys::2:bin,sys
-bin::3:bin,sys
-uucp::4:
+wheel:*:0:root,bostic,jbj,casey
+daemon:*:1:daemon
+kmem:*:2:root,bostic,jbj,casey
+sys:*:3:root
+tty:*:4:root
+operator:*:5:root
+staff:*:10:root,bostic,jbj,casey

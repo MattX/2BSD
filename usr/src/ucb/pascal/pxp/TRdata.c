@@ -3,7 +3,7 @@
 #include "0.h"
 #ifdef	PI1
 #ifdef	DEBUG
-char	*trnames[]
+char	*trnames[] =
 {
 	0,
 	"MINUS",
@@ -91,7 +91,7 @@ char	*trnames[]
 #endif
 #endif
 
-char	*trdesc[]
+char	*trdesc[] =
 {
 	0,
 	"dp",
@@ -176,7 +176,7 @@ char	*trdesc[]
 	"npp",
 	"x"
 };
-char	*opnames[]
+char	*opnames[] =
 {
 	0,
 	"unary -",

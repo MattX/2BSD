@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cr_tty.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+#if !defined(lint) && !defined(NOSCCS)
+static char sccsid[] = "@(#)cr_tty.c	5.2 (Berkeley) 11/8/85";
+#endif
 
 /*
  * Terminal initialization routines.
@@ -134,7 +134,8 @@ reg char	*type; {
 
 	PC = _PC ? _PC[0] : FALSE;
 	aoftspace = _tspace;
-	strcpy(ttytype, longname(genbuf, type));
+	strncpy(ttytype, longname(genbuf, type), sizeof(ttytype) - 1);
+	ttytype[sizeof(ttytype) - 1] = '\0';
 	if (unknown)
 		return ERR;
 	return OK;

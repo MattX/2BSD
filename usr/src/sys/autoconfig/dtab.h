@@ -1,24 +1,38 @@
 /*
- * Internal structure used to store info from the device table
+ * Copyright (c) 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)dtab.h	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
-struct handler_s {
-	struct handler_s *s_next;
-	char *s_str;
-	struct nlist *s_nl;
-};
+/*
+ * Internal structure used to store info from the device table
+ */
+typedef struct nlist	NLIST;
 
-struct dtab_s {
+typedef struct handler_s {
+	struct handler_s	*s_next;
+	char	*s_str;
+	NLIST	*s_nl;
+} HAND;
+
+typedef struct dtab_s {
 	struct dtab_s	*dt_next;	/* Next device in list */
 	char	*dt_name;		/* Two character device name */
 	int	dt_unit;		/* Unit number, -1 is wildcard */
 	int	dt_addr;		/* CSR address */
 	int	dt_vector;		/* Interrupt vector */
-	struct handlers_s *dt_handlers;	/* Interrupt handlers */
+	HAND	*dt_handlers;		/* Interrupt handlers */
 	int	dt_br;			/* Priority */
 	int	(*dt_uprobe)();		/* User-level (internal) probe */
-	struct nlist *dt_probe;		/* Address of probe function */
-	struct nlist *dt_attach;	/* Address of attach function */
-};
+	NLIST	*dt_probe,		/* Address of probe function */
+		*dt_attach;		/* Address of attach function */
+} DTAB;
 
-struct dtab_s *devs;			/* Head of device list */
+DTAB	*devs;				/* Head of device list */
+
+#define EOS	'\0'			/* end of string */
+#define ERR	-1			/* general error */
+extern char	*myname,		/* program name */
+		*dtab_name;		/* dtab file name */

@@ -131,8 +131,10 @@ fnd:
 
 	pline("Suddenly one of the Vault's guards enters!");
 	pmon(guard);
-	pline("\"Hello stranger, who are you?\" - ");
-	getlin(buf);
+	do {
+		pline("\"Hello stranger, who are you?\" - ");
+		getlin(buf);
+	} while (!letter(buf[0]));
 
 	if(!strcmp(buf, "Croesus") || !strcmp(buf, "Kroisos")) {
 		pline("\"Oh, yes - of course. Sorry to have disturbed you.\"");

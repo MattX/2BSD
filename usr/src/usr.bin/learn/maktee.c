@@ -1,6 +1,10 @@
+#ifndef lint
+static char sccsid[] = "@(#)maktee.c	4.2	(Berkeley)	4/25/83";
+#endif not lint
+
 #include "stdio.h"
 #include "signal.h"
-#include "lrnref"
+#include "lrnref.h"
 
 static int oldout;
 static char tee[50];
@@ -10,7 +14,7 @@ maktee()
 	int fpip[2], in, out;
 
 	if (tee[0] == 0)
-		sprintf(tee, "%s/tee", direct);
+		sprintf(tee, "%s/bin/lrntee", direct);
 	pipe(fpip);
 	in = fpip[0];
 	out= fpip[1];
@@ -21,15 +25,18 @@ maktee()
 		dup(in);
 		close(in);
 		execl (tee, "lrntee", 0);
-		fprintf(stderr, "Tee exec failed\n");
+		perror(tee);
+		fprintf(stderr, "Maktee:  lrntee exec failed\n");
 		exit(1);
 	}
 	close(in);
 	fflush(stdout);
 	oldout = dup(1);
 	close(1);
-	if (dup(out) != 1)
-		fprintf(stderr, "Error making tee for copyout\n");
+	if (dup(out) != 1) {
+		perror("dup");
+		fprintf(stderr, "Maktee:  error making tee for copyout\n");
+	}
 	close(out);
 	return(1);
 }

@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tc.c	4.2 8/11/83";
+#endif
+
  /* tc.c: find character not in table to delimit fields */
 # include "t..c"
 choochar()

@@ -1,7 +1,15 @@
-static char sccsid[] = "	message.c	4.1	82/05/11	";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved. The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char Msccsid[] = "@(#)Mesgfix	5.2 (Berkeley) 1/8/86";
+static char sccsid[] = "@(#)message.c	4.3 (Berkeley) 1/11/86";
+#endif not lint
 
 char	*message[] = {
-	"Last update on Wednesday, May 8, 1985.",
-	"Check the file /usr/public/gammon.news for details.",
+	"Last update on Thursday, June 5, 1986.",
 	0
 };

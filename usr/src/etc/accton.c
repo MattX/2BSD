@@ -1,6 +1,4 @@
-#
-	char	*sccsid = "@(#)accton.c	2.3";
-
+static char *sccsid = "@(#)accton.c	4.1 (Berkeley) 10/1/80";
 main(argc, argv)
 char **argv;
 {

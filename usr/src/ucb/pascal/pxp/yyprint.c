@@ -82,7 +82,7 @@ tokname(tp)
 			if (tp->Yychar < 256) {
 				cp = "'x'\0'x'";
 				if (bounce = ((bounce + 1) & 1))
-					cp =+ 4;
+					cp += 4;
 				cp[1] = tp->Yychar;
 				break;
 			}

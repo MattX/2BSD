@@ -1,5 +1,11 @@
-.TH PSIGNAL 3
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)psignal.3	6.1 (Berkeley) 5/15/85
+.\"
+.TH PSIGNAL 3 "May 15, 1985"
+.UC 5
 .SH NAME
 psignal, sys_siglist \- system signal messages
 .SH SYNOPSIS
@@ -39,4 +45,5 @@ it should be checked because new
 signals may be added to the system before
 they are added to the table.
 .SH "SEE ALSO"
-signal(2), perror(3)
+sigvec(2),
+perror(3)

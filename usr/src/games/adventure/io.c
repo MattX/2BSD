@@ -19,6 +19,10 @@ char **wrd1,**wrd2;                     /* no prompt, usually           */
 	for (s=wd1buf, first=1, numch=0;;)
 	{       if ((*s=getchar())>='A' && *s <='Z') *s = *s - ('A' -'a');
 					/* convert to upper case        */
+		if (feof(stdin)) {
+			clearerr(stdin);
+			continue;
+		}
 		switch(*s)              /* start reading from user      */
 		{   case '\n':
 			*s=0;

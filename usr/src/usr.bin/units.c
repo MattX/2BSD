@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)units.c	4.1 (Berkeley) 10/1/80";
 #include <stdio.h>
 
 #define	NDIM	10
@@ -288,7 +289,7 @@ init()
 l0:
 	c = get();
 	if(c == 0) {
-		printf("%l units; %l bytes\n\n", i, cp-names);
+		printf("%d units; %d bytes\n\n", i, cp-names);
 		if(dumpflg)
 		for(tp = &table[0]; tp < &table[NTAB]; tp++) {
 			if(tp->name == 0)
@@ -443,6 +444,7 @@ char *name;
 	np = name;
 	while(*np)
 		h = h*57 + *np++ - '0';
+	if( ((int)h)<0) h= -(int)h;
 	h %= NTAB;
 	tp = &table[h];
 l0:

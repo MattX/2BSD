@@ -1,5 +1,6 @@
-/* $Header: ioctl.c,v 1.3 84/12/18 18:37:53 rick Exp $ */
-/* from: @(#)ioctl.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)ioctl.c	5.2 (Berkeley) 1/22/85";
+#endif
 
 #include "uucp.h"
 #include <sgtty.h>

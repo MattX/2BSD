@@ -1,3 +1,5 @@
+/*	sed0.c	4.2	85/06/19	*/
+
 #include <stdio.h>
 #include "sed.h"
 
@@ -439,7 +441,13 @@ jtcommon:
 					exit(2);
 				}
 				if(p == rep->re1) {
-					rep->re1 = op;
+					if(op)
+					    rep->re1 = op;
+					else {
+					    fprintf(stderr, 
+						"First RE may not be null\n");
+					    exit(2);
+					}
 				} else {
 					op = rep->re1;
 				}
@@ -939,7 +947,7 @@ char	*expbuf;
 	for(tsp = cp; *tsp != seof; tsp++) {
 		if(*tsp == '\\')
 			tsp++;
-		if(*tsp == '\n' || *tsp == '\0')
+		if(*tsp == '\n')
 			return(badp);
 	}
 	tsp++;
@@ -966,4 +974,3 @@ char	*expbuf;
 
 	return(ep + 0200);
 }
-

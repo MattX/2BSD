@@ -87,7 +87,7 @@ yybaduse(cp, line, kindmask)
 	oldp = p;
 	if (p == NIL || p->class != BADUSE)
 		p = enter(defnl(cp, BADUSE, 0, 0));
-	p->value[NL_KINDS] =| kindmask;
+	p->value[NL_KINDS] |= kindmask;
 	yybadref(p, line);
 	return (oldp);
 }

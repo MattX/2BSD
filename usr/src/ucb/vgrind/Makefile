@@ -1,21 +1,32 @@
-CFLAGS=-O
-ALL=	vfontedpr retest
-ROBJS=	retest.o regexp.o
-VOBJS=	vfontedpr.o vgrindefs.o regexp.o
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.1 (Berkeley) 6/6/85
+#
+DESTDIR=
+CFLAGS=-O 
+SEPFLAG= -i
+SOURCES=vfontedpr.c vgrindefs.c regexp.c retest.c
+CMDS=vfontedpr retest
+OBJS=retest.o regexp.o vfontedpr.o vgrindefs.o
 
-all:	${ALL}
+all:	$(CMDS) ${OBJS}
 
-vfontedpr: ${VOBJS}
-	${CC} ${LFLAG} ${FP} -o $@ ${VOBJS}
+vfontedpr: vfontedpr.o vgrindefs.o regexp.o
+	cc ${SEPFLAG} ${CFLAGS} -o vfontedpr vfontedpr.o vgrindefs.o regexp.o
+retest: retest.o regexp.o
+	cc ${SEPFLAG} ${CFLAGS} -o retest retest.c regexp.o
 
-retest: ${ROBJS}
-	${CC} ${LFLAG} -o $@ ${ROBJS}
-
-install:
-	install -s -o bin -g bin -m 711 vfontedpr ${DESTDIR}/usr/lib
-	install -c -o bin -g bin -m 755 vgrind.sh ${DESTDIR}/usr/ucb/vgrind
-	install -c -o bin -g bin -m 644 vgrindefs.src ${DESTDIR}/usr/lib/vgrindefs
-	install -c -o bin -g bin -m 644 tmac.vgrind ${DESTDIR}/usr/lib
+install: all
+	install -s vfontedpr ${DESTDIR}/usr/lib/vfontedpr
+	install -c vgrind.sh ${DESTDIR}/usr/ucb/vgrind
+	install -c vgrindefs.src ${DESTDIR}/usr/lib/vgrindefs
+	install -c tmac.vgrind ${DESTDIR}/usr/lib/tmac/tmac.vgrind
 
 clean:
-	rm -f ${ROBJS} ${VOBJS} ${ALL}
+	rm -f ${CMDS} ${OBJS}
+
+vprintall:
+	csh /usr/ucb/vprint ${SOURCES}

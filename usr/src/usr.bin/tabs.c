@@ -1,3 +1,4 @@
+static char *sccsid = "@(#)tabs.c	4.1 (Berkeley) 10/1/80";
 #include <stdio.h>
 #include <sgtty.h>
 
@@ -59,6 +60,7 @@ int argc; char **argv;
 {
 	struct sgttyb tb;
 	int type;
+	char *getenv();
 
 	type=0;
 	if (argc>=2 && strcmp(argv[1],"-n")==0) {
@@ -66,6 +68,8 @@ int argc; char **argv;
 	}
 	if (argc>=2) {
 		type=syslook(argv[1]);
+	} else {
+		type=syslook(getenv("TERM"));
 	}
 
 	switch(type) {

@@ -1,4 +1,7 @@
-.TH GETC 3S 
+.\"	@(#)getc.3s	6.2 (Berkeley) 5/14/86
+.\"
+.TH GETC 3S  "May 14, 1986"
+.AT 3
 .SH NAME
 getc, getchar, fgetc, getw \- get character or word from stream
 .SH SYNOPSIS
@@ -28,19 +31,20 @@ getc, getchar, fgetc, getw \- get character or word from stream
 returns the next character from the named input
 .IR stream .
 .PP
-.I Getchar()
+.IR Getchar ()
 is identical to 
-.IR getc(stdin) .
+.IR getc ( stdin ) .
 .PP
 .I Fgetc
 behaves like 
-.I getc,
+.IR getc ,
 but is a genuine function, not a macro;
 it may be used to save object text.
 .PP
 .I Getw
 returns the next
-word from the named input
+.B int
+(a 32-bit integer on a VAX-11) from the named input
 .IR stream .
 It returns the constant
 .SM
@@ -55,17 +59,27 @@ should be used to check the success of
 .I Getw
 assumes no special alignment in the file.
 .SH "SEE ALSO"
-fopen(3S), fread(3S), gets(3S), putc(3S), scanf(3S), ungetc(3S)
+clearerr(3S),
+fopen(3S),
+putc(3S),
+gets(3S),
+scanf(3S),
+fread(3S),
+ungetc(3S)
 .SH DIAGNOSTICS
 These functions return the integer constant
 .SM
 .B EOF
-at end of file or upon read error.
+at end of file, upon read error,
+or if an attempt is made to read a file not opened by
+.IR fopen .
+The end-of-file condition is remembered,
+even on a terminal,
+and all subsequent attempts to read will return
+.B EOF
+until the condition is cleared with
+.IR clearerr (3S).
 .SH BUGS
-The end-of-file return from
-.I getchar
-is incompatible with that in UNIX editions 1-6.
-.PP
 Because it is implemented as a macro,
 .I getc
 treats a

@@ -1,73 +1,159 @@
-.TH QUOTA 2
-.UC
+.\" Copyright (c) 1983 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)quota.2	6.7 (Berkeley) 5/15/86
+.\"
+.TH QUOTA 2 "May 15, 1986"
+.UC 5
 .SH NAME
-quota \- set quota parameters
+quota \- manipulate disk quotas
 .SH SYNOPSIS
-.ft B
-#include <sys/types.h>
-.sp
-quota(name, current, max)
-.br
-char *name;
-.br
-daddr_t current, max;
-.ft R
+.nf
+.B #include <sys/quota.h>
+.PP
+.B quota(cmd, uid, arg, addr)
+.B int cmd, uid, arg;
+.B char *addr;
+.fi
 .SH DESCRIPTION
-.I Name
-points to a null-terminated string naming
-a quota file;
-.I current
+The
+.I quota
+call manipulates disk quotas for file systems
+that have had quotas enabled with
+.IR setquota (2).
+The
+.I cmd
+parameter indicates a command to be applied to
+the user ID
+.IR uid .
+.I Arg
+is a command specific argument and
+.I addr
+is the address of an optional, command specific, data structure
+that is copied in or out of the system.  The interpretation of
+.I arg
 and
-.I max
-are integers which describe the current and maximum usage in disk
-sectors (512-byte blocks).
-.sp
-This system call is used for setting quota information
-and may be executed only by the super-user.
+.I addr
+is given with each command below.
+.TP
+Q_SETDLIM
+Set disc quota limits and current usage for the user with ID
+.IR uid .
+.I Arg
+is a major-minor device indicating a particular file system.
+.I Addr
+is a pointer to a struct dqblk structure (defined in 
+.RI < sys/quota.h >).
+This call is restricted to the super-user.
+.TP
+Q_GETDLIM
+Get disc quota limits and current usage for the user with ID
+.IR uid .
+The remaining parameters are as for Q_SETDLIM.
+.TP
+Q_SETDUSE
+Set disc usage limits for the user with ID
+.IR uid .
+.I Arg
+is a major-minor device indicating a particular file system.
+.I Addr
+is a pointer to a struct dqusage structure (defined in
+.RI < sys/quota.h >).
+This call is restricted to the super-user.
+.TP
+Q_SYNC
+Update the on-disc copy of quota usages.
+.I Arg
+is a major-minor device indicating the file system to be sync'ed.
+If the
+.I arg
+parameter is specified as NODEV, all file systems that have
+disc quotas will be sync'ed.
+The \fIuid\fP and \fIaddr\fP parameters are ignored.
+.TP
+Q_SETUID
+Change the calling process's quota limits to those of the
+user with ID
+.IR uid .
+The 
+.I arg
+and
+.I addr
+parameters are ignored.  This call is restricted to the super-user.
+.TP
+Q_SETWARN
+Alter the disc usage warning limits for the user with ID
+.IR uid .
+.I Arg
+is a major-minor device indicating a particular file system.
+.I Addr
+is a pointer to a struct dqwarn structure (defined in
+.RI < sys/quota.h >).
+This call is restricted to the super-user.
+.TP
+Q_DOWARN
+Warn the user with user ID
+.I uid
+about excessive disc usage.
+This call causes the system to check its current disc usage
+information and print a message on the terminal of
+the caller for each file system on which the user is over quota.
+If the user is under quota, his warning count is reset to MAX_*_WARN
+(defined in
+.RI < sys/quota.h >).
+If the
+.I arg
+parameter is specified as NODEV, all file systems that have
+disc quotas will be checked.  Otherwise, 
+.I arg
+indicates a specific major-minor device to be checked.
+This call is restricted to the super-user.
+.SH "RETURN VALUE"
+A successful call returns 0,
+otherwise the value \-1 is returned and the global variable
+.I errno
+indicates the reason for the failure.
 .SH ERRORS
-.I Quota
-will fail and no quota node will be created if:
-.TP 20
+A \fIquota\fP call will fail when one of the following occurs:
+.TP 15
 [EINVAL]
-The path name contains a non-ASCII byte.
-.TP 20
+The kernel has not been compiled with the QUOTA option.
+.TP 15
+[EINVAL]
+.I Cmd
+is invalid.
+.TP 15
+[ESRCH]
+No disc quota is found for the indicated user.
+.TP 15
 [EPERM]
-The process's effective user ID is not the super-user.
-.TP 20
-[ENOTDIR]
-A component of the path prefix is not a directory.
-.TP 20
-[EACCES]
-A component of the path prefix denies search permission.
-.TP 20
-[EACCES]
-The named file is not a quota node.
-.TP 20
-[ENOENT]
-The named file does not exist.
-.TP 20
-[EISDIR]
-The named file is a directory.
-.TP 20
-[EROFS]
-The directory in which the file is to be created is on a read-only
-file system.
-.TP 20
+The call is priviledged and the caller was not the super-user.
+.TP 15
+[ENODEV]
+The 
+.I arg
+parameter is being interpreted as a major-minor
+device and it indicates an unmounted file system.
+.TP 15
 [EFAULT]
-.I Name
-points outside the process's allocated address space.
-.TP 20
-[ELOOP]
-Too many symbolic links were encountered in translating the path name.
+An invalid
+.I addr
+is supplied; the associated structure could not be copied in or out
+of the kernel.
+.TP 15
+[EUSERS]
+The quota table is full.
 .SH "SEE ALSO"
-du(1), file(1), ls(1), pq(1), mknod(2), qfstat(2), qstat(2), setquota(8)
-.SH ASSEMBLER
-(local = 58., quota = 10.)
-.br
-.B sys local; 9f
-.br
-\&. . .
-.br
-.B \&.data
-.br
-.B 9: sys quota; name; current; max
+setquota(2), quotaon(8), quotacheck(8)
+.SH BUGS
+There should be some way to integrate this call with the resource
+limit interface provided by
+.IR setrlimit (2)
+and
+.IR getrlimit (2).
+.PP
+The Australian spelling of
+.I disk
+is used throughout the quota facilities in honor of
+the implementors.

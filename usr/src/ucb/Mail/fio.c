@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)fio.c	5.3 (Berkeley) 9/5/85";
+#endif not lint
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -9,8 +17,6 @@
  *
  * File I/O.
  */
-
-static char *SccsId = "@(#)fio.c	2.15 6/17/83";
 
 /*
  * Set up the input pointers while copying the mail file into
@@ -40,19 +46,7 @@ setptr(ibuf)
 	maybe = 1;
 	flag = MUSED|MNEW;
 	for (;;) {
-		cp = linebuf;
-		c = getc(ibuf);
-		while (c != EOF && c != '\n') {
-			if (cp - linebuf >= LINESIZE - 1) {
-				ungetc(c, ibuf);
-				*cp = 0;
-				break;
-			}
-			*cp++ = c;
-			c = getc(ibuf);
-		}
-		*cp = 0;
-		if (cp == linebuf && c == EOF) {
+		if (fgets(linebuf, LINESIZE, ibuf) == NULL) {
 			this.m_flag = flag;
 			flag = MUSED|MNEW;
 			this.m_offset = offsetof(offset);
@@ -68,10 +62,11 @@ setptr(ibuf)
 			close(mestmp);
 			return;
 		}
-		count = cp - linebuf + 1;
-		for (cp = linebuf; *cp;)
-			putc(*cp++, otf);
-		putc('\n', otf);
+		count = strlen(linebuf);
+		fputs(linebuf, otf);
+		cp = linebuf + (count - 1);
+		if (*cp == '\n')
+			*cp = 0;
 		if (ferror(otf)) {
 			perror("/tmp");
 			exit(1);
@@ -94,14 +89,10 @@ setptr(ibuf)
 		}
 		if (linebuf[0] == 0)
 			inhead = 0;
-		if (inhead && index(linebuf, ':')) {
-			cp = linebuf;
-			cp2 = wbuf;
-			while (isalpha(*cp))
-				*cp2++ = *cp++;
-			*cp2 = 0;
-			if (icequal(wbuf, "status")) {
-				cp = index(linebuf, ':');
+		if (inhead && (cp = index(linebuf, ':'))) {
+			*cp = 0;
+			if (icequal(linebuf, "status")) {
+				++cp;
 				if (index(cp, 'R'))
 					flag |= MREAD;
 				if (index(cp, 'O'))
@@ -139,38 +130,6 @@ putline(obuf, linebuf)
 }
 
 /*
- * Quickly read a line from the specified input into the line
- * buffer; return characters read.
- */
-
-freadline(ibuf, linebuf)
-	register FILE *ibuf;
-	register char *linebuf;
-{
-	register int c;
-	register char *cp;
-
-	c = getc(ibuf);
-	cp = linebuf;
-	while (c != '\n' && c != EOF) {
-		if (c == 0) {
-			c = getc(ibuf);
-			continue;
-		}
-		if (cp - linebuf >= BUFSIZ-1) {
-			*cp = 0;
-			return(cp - linebuf + 1);
-		}
-		*cp++ = c;
-		c = getc(ibuf);
-	}
-	if (c == EOF && cp == linebuf)
-		return(0);
-	*cp = 0;
-	return(cp - linebuf + 1);
-}
-
-/*
  * Read up a line from the specified input into the line
  * buffer.  Return the number of characters read.  Do not
  * include the newline at the end.
@@ -180,23 +139,15 @@ readline(ibuf, linebuf)
 	FILE *ibuf;
 	char *linebuf;
 {
-	register char *cp;
-	register int c;
+	register int n;
 
-	do {
-		clearerr(ibuf);
-		c = getc(ibuf);
-		for (cp = linebuf; c != '\n' && c != EOF; c = getc(ibuf)) {
-			if (c == 0)
-				continue;
-			if (cp - linebuf < LINESIZE-2)
-				*cp++ = c;
-		}
-	} while (ferror(ibuf) && ibuf == stdin);
-	*cp = 0;
-	if (c == EOF && cp == linebuf)
+	clearerr(ibuf);
+	if (fgets(linebuf, LINESIZE, ibuf) == NULL)
 		return(0);
-	return(cp - linebuf + 1);
+	n = strlen(linebuf);
+	if (n >= 1 && linebuf[n-1] == '\n')
+		linebuf[n-1] = '\0';
+	return(n);
 }
 
 /*
@@ -351,12 +302,13 @@ edstop()
 		remove(tempname);
 	}
 	printf("\"%s\" ", editfile);
-	flush();
-	if ((obuf = fopen(editfile, "w")) == NULL) {
+	fflush(stdout);
+	if ((obuf = fopen(editfile, "r+")) == NULL) {
 		perror(editfile);
 		relsesigs();
 		reset(0);
 	}
+	trunc(obuf);
 	c = 0;
 	for (mp = &message[0]; mp < &message[msgCount]; mp++) {
 		if ((mp->m_flag & MDELETED) != 0)
@@ -387,13 +339,14 @@ edstop()
 	}
 	else
 		printf("complete\n");
-	flush();
+	fflush(stdout);
 
 done:
 	relsesigs();
 }
 
 static int sigdepth = 0;		/* depth of holdsigs() */
+static long omask = 0;
 /*
  * Hold signals SIGHUP - SIGQUIT.
  */
@@ -402,8 +355,7 @@ holdsigs()
 	register int i;
 
 	if (sigdepth++ == 0)
-		for (i = SIGHUP; i <= SIGQUIT; i++)
-			sighold(i);
+		omask = sigblock(sigmask(SIGHUP)|sigmask(SIGINT)|sigmask(SIGQUIT));
 }
 
 /*
@@ -414,21 +366,7 @@ relsesigs()
 	register int i;
 
 	if (--sigdepth == 0)
-	    for (i = SIGHUP; i <= SIGQUIT; i++)
-		    sigrelse(i);
-}
-
-/*
- * Empty the output buffer.
- */
-
-clrbuf(buf)
-	register FILE *buf;
-{
-
-	buf = stdout;
-	buf->_ptr = buf->_base;
-	buf->_cnt = BUFSIZ;
+		sigsetmask(omask);
 }
 
 /*
@@ -453,16 +391,6 @@ opentemp(file)
 	}
 	remove(file);
 	return(f);
-}
-
-/*
- * Flush the standard output.
- */
-
-flush()
-{
-	fflush(stdout);
-	fflush(stderr);
 }
 
 /*

@@ -1,3 +1,7 @@
+#ifndef lint
+static char yaccpar_sccsid[] = "@(#)yaccpar	4.1	(Berkeley)	2/11/83";
+#endif not lint
+
 #
 # define YYFLAG -1000
 # define YYERROR goto yyerrlab
@@ -6,7 +10,9 @@
 
 /*	parser for yacc output	*/
 
+#ifdef YYDEBUG
 int yydebug = 0; /* 1 for debugging */
+#endif
 YYSTYPE yyv[YYMAXDEPTH]; /* where the values are stored */
 int yychar = -1; /* current input token number */
 int yynerrs = 0;  /* number of errors */
@@ -30,7 +36,9 @@ yyparse() {
 
  yystack:    /* put a state and value onto the stack */
 
+#ifdef YYDEBUG
 	if( yydebug  ) printf( "state %d, char 0%o\n", yystate, yychar );
+#endif
 		if( ++yyps> &yys[YYMAXDEPTH] ) { yyerror( "yacc stack overflow" ); return(1); }
 		*yyps = yystate;
 		++yypv;
@@ -96,7 +104,9 @@ yyparse() {
 
 			   /* the current yyps has no shift onn "error", pop stack */
 
+#ifdef YYDEBUG
 			   if( yydebug ) printf( "error recovery pops state %d, uncovers %d\n", *yyps, yyps[-1] );
+#endif
 			   --yyps;
 			   --yypv;
 			   }
@@ -109,7 +119,9 @@ yyparse() {
 
 		case 3:  /* no shift yet; clobber input char */
 
+#ifdef YYDEBUG
 			if( yydebug ) printf( "error recovery discards char %d\n", yychar );
+#endif
 
 			if( yychar == 0 ) goto yyabort; /* don't discard EOF, quit */
 			yychar = -1;
@@ -121,7 +133,9 @@ yyparse() {
 
 	/* reduction by production yyn */
 
+#ifdef YYDEBUG
 		if( yydebug ) printf("reduce %d\n",yyn);
+#endif
 		yyps -= yyr2[yyn];
 		yypvt = yypv;
 		yypv -= yyr2[yyn];

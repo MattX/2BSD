@@ -1,5 +1,6 @@
-/* $Header: getpwinfo.c,v 1.6 85/06/05 20:22:12 rick Exp $ */
-/* from: #)getpwinfo.c	5.1 (Berkeley) 7/2/83 */
+#ifndef lint
+static char sccsid[] = "@(#)getpwinfo.c	5.3 (Berkeley) 6/19/85";
+#endif
 
 #include "uucp.h"
 #include <pwd.h>

@@ -1,7 +1,13 @@
-#	Makefile	1.3	82/11/27
-
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.4 (Berkeley) 1/11/86
+#
 DESTDIR=
-CFLAGS= -O -DV7
+SEPFLAG= -i
+CFLAGS= -O -DV7 -w
 OBJS= allow.o board.o check.o extra.o fancy.o init.o main.o move.o\
 	odds.o one.o save.o subs.o table.o text.o message.o
 TOBJS= allow.o board.o check.o data.o fancy.o init.o odds.o one.o save.o subs.o\
@@ -15,12 +21,12 @@ all: backgammon teachgammon backgammon.doc
 #	Backgammon program
 backgammon: $(OBJS)
 	-rm -f backgammon
-	cc -o backgammon $(OBJS) -ltermlib
+	cc ${SEPFLAG} -o backgammon $(OBJS) -ltermlib
 
 #	Backgammon rules and tutorial
 teachgammon: ${TOBJS}
 	-rm -f teachgammon
-	cc -o teachgammon $(TOBJS) -ltermlib
+	cc ${SEPFLAG} -o teachgammon $(TOBJS) -ltermlib
 
 #	Header files back.h and tutor.h
 allow.o board.o check.o extra.o fancy.o main.o move.o odds.o one.o save.o\
@@ -37,9 +43,9 @@ backgammon.doc: backgammon.src
 	nroff -man -Tcrt backgammon.src > backgammon.doc
 
 #	Installation
-install: backgammon teachgammon
-	install backgammon ${DESTDIR}/usr/games/backgammon
-	install teachgammon ${DESTDIR}/usr/games/teachgammon
+install:
+	install -s backgammon ${DESTDIR}/usr/games/backgammon
+	install -s teachgammon ${DESTDIR}/usr/games/teachgammon
 
 clean:
-	rm -f ${OBJS} ${TOBJS}
+	rm -f ${OBJS} ${TOBJS} backgammon teachgammon backgammon.doc errs

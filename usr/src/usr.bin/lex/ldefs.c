@@ -1,3 +1,5 @@
+/*	ldefs.c	4.1	83/08/11	*/
+
 # include <stdio.h>
 # define PP 1
 # ifdef unix
@@ -34,12 +36,12 @@
 # define STARTCHAR 100
 # define STARTSIZE 256
 # define CCLSIZE 1000
-# ifdef SMALL		/* Sizes reduced SRS 11-16-81 */
-# define TREESIZE 600	/* from 600  */
-# define NTRANS 1500	/* from 1500 */
-# define NSTATES 300	/* from 300  */
-# define MAXPOS 1500	/* from 1500 */
-# define NOUTPUT 1500	/* from 1500 */
+# ifdef SMALL
+# define TREESIZE 600
+# define NTRANS 1500
+# define NSTATES 300
+# define MAXPOS 1500
+# define NOUTPUT 1500
 # endif
 
 # ifndef SMALL

@@ -46,7 +46,7 @@ Version 3.7  October 16, 1981
 	handle long lines correctly.
 
 	Some internal changes have been made so that vi can run under UNIX
-	on the Bell Labs 3B machine and the IBM 370.
+	on the Bell Labs 3B machine, the BBN C/70, and the IBM 370.
 
 Version 3.6  October 30, 1980
 

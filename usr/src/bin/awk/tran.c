@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[] = "@(#)tran.c	4.4 12/9/83";
+#endif
+
 #include "stdio.h"
 #include "awk.def"
 #include "awk.h"
@@ -20,17 +24,19 @@ cell	*nfloc;		/* NF */
 syminit()
 {
 	setsymtab("0", tostring("0"), 0.0, NUM|STR|CON|FLD, symtab);
+	/* this one is used for if(x)... tests: */
+	setsymtab("$zero&null", tostring(""), 0.0, NUM|STR|CON|FLD, symtab);
 	recloc = setsymtab("$record", record, 0.0, STR|FLD, symtab);
-	dprintf("recloc %o lookup %o\n", recloc, lookup("$record", symtab), NULL);
+	dprintf("recloc %o lookup %o\n", recloc, lookup("$record", symtab, 0), NULL);
 	FS = &setsymtab("FS", tostring(" "), 0.0, STR|FLD, symtab)->sval;
 	RS = &setsymtab("RS", tostring("\n"), 0.0, STR|FLD, symtab)->sval;
 	OFS = &setsymtab("OFS", tostring(" "), 0.0, STR|FLD, symtab)->sval;
 	ORS = &setsymtab("ORS", tostring("\n"), 0.0, STR|FLD, symtab)->sval;
 	OFMT = &setsymtab("OFMT", tostring("%.6g"), 0.0, STR|FLD, symtab)->sval;
-	FILENAME = &setsymtab("FILENAME", NULL, 0.0, STR|FLD, symtab)->sval;
-	nfloc = setsymtab("NF", NULL, 0.0, NUM, symtab);
+	FILENAME = &setsymtab("FILENAME", EMPTY, 0.0, STR|FLD, symtab)->sval;
+	nfloc = setsymtab("NF", EMPTY, 0.0, NUM, symtab);
 	NF = &nfloc->fval;
-	nrloc = setsymtab("NR", NULL, 0.0, NUM, symtab);
+	nrloc = setsymtab("NR", EMPTY, 0.0, NUM, symtab);
 	NR = &nrloc->fval;
 }
 
@@ -39,11 +45,11 @@ cell **makesymtab()
 	int i;
 	cell **cp;
 
-	cp = (char *) malloc(MAXSYM * sizeof(cell *));
+	cp = (cell **) malloc(MAXSYM * sizeof(cell *));
 	if (cp == NULL)
 		error(FATAL, "out of space in makesymtab");
 	for (i = 0; i < MAXSYM; i++)
-		*((cell **) cp + i) = 0;
+		cp[i] = 0;
 	return(cp);
 }
 
@@ -58,8 +64,8 @@ cell *ap;
 	tp = (cell **) ap->sval;
 	for (i = 0; i < MAXSYM; i++) {
 		for (cp = tp[i]; cp != NULL; cp = cp->nextval) {
-			xfree(cp->nval);
-			xfree(cp->sval);
+			strfree(cp->nval);
+			strfree(cp->sval);
 			free(cp);
 		}
 	}
@@ -76,8 +82,8 @@ cell **tab;
 	register cell *p;
 	cell *lookup();
 
-	if (n != NULL && (p = lookup(n, tab)) != NULL) {
-		xfree(s);
+	if (n != NULL && (p = lookup(n, tab, 0)) != NULL) {
+		if (s != EMPTY ) xfree(s); /* careful here */
 		dprintf("setsymtab found %o: %s", p, p->nval, NULL);
 		dprintf(" %s %g %o\n", p->sval, p->fval, p->tval);
 		return(p);
@@ -98,7 +104,7 @@ cell **tab;
 }
 
 hash(s)	/* form hash value for string s */
-register char *s;
+register unsigned char *s;
 {
 	register int hashval;
 
@@ -107,14 +113,15 @@ register char *s;
 	return(hashval % MAXSYM);
 }
 
-cell *lookup(s, tab)	/* look for s in tab */
+cell *lookup(s, tab, flag)	/* look for s in tab, flag must match*/
 register char *s;
 cell **tab;
 {
 	register cell *p;
 
 	for (p = tab[hash(s)]; p != NULL; p = p->nextval)
-		if (strcmp(s, p->nval) == 0)
+		if (strcmp(s, p->nval) == 0 &&
+			(flag == 0 || flag == p->tval))
 			return(p);	/* found it */
 	return(NULL);	/* not found */
 }
@@ -147,7 +154,7 @@ char *s;
 	if ((vp->tval & FLD) && isnull(vp->nval))
 		donerec = 0;
 	if (!(vp->tval&FLD))
-		xfree(vp->sval);
+		strfree(vp->sval);
 	vp->tval &= ~FLD;
 	return(vp->sval = tostring(s));
 }
@@ -155,7 +162,6 @@ char *s;
 awkfloat getfval(vp)
 register cell *vp;
 {
-	awkfloat atof();
 
 	if (vp->sval == record && donerec == 0)
 		recbld();
@@ -189,7 +195,7 @@ register cell *vp;
 	checkval(vp);
 	if ((vp->tval & STR) == 0) {
 		if (!(vp->tval&FLD))
-			xfree(vp->sval);
+			strfree(vp->sval);
 		if ((long)vp->fval==vp->fval)
 			sprintf(s, "%.20g", vp->fval);
 		else
@@ -217,10 +223,17 @@ register char *s;
 {
 	register char *p;
 
-	p = malloc(strlen(s)+1);
-	if (p == NULL)
-		error(FATAL, "out of space in tostring on %s", s);
-	strcpy(p, s);
+	if (s==NULL){
+		p = malloc(1);
+		if (p == NULL)
+			error(FATAL, "out of space in tostring on %s", s);
+		*p = '\0';
+	} else {
+		p = malloc(strlen(s)+1);
+		if (p == NULL)
+			error(FATAL, "out of space in tostring on %s", s);
+		strcpy(p, s);
+	}
 	return(p);
 }
 #ifndef yfree

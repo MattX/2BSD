@@ -1,8 +1,20 @@
+/*
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)recipient.c	5.7 (Berkeley) 1/9/86";
+#endif
+
 # include <pwd.h>
 # include "sendmail.h"
 # include <sys/stat.h>
-
-SCCSID(@(#)recipient.c	4.1		7/25/83);
 
 /*
 **  SENDTOLIST -- Designate a send list.
@@ -163,8 +175,14 @@ recipient(a, sendq)
 	**  Finish setting up address structure.
 	*/
 
+	/* set the queue timeout */
 	a->q_timeout = TimeOut;
 
+	/* map user & host to lower case if requested on non-aliases */
+	if (a->q_alias == NULL)
+		loweraddr(a);
+
+	/* get unquoted user for file, program or user.name check */
 	(void) strcpy(buf, a->q_user);
 	for (p = buf; *p != '\0' && !quoted; p++)
 	{
@@ -216,6 +234,7 @@ recipient(a, sendq)
 	/* add address on list */
 	*pq = a;
 	a->q_next = NULL;
+	CurEnv->e_nrcpts++;
 
 	/*
 	**  Alias the name and handle :include: specs.
@@ -327,33 +346,34 @@ struct passwd *
 finduser(name)
 	char *name;
 {
-	extern struct passwd *getpwent();
 	register struct passwd *pw;
 	register char *p;
+	extern struct passwd *getpwent();
+	extern struct passwd *getpwnam();
 
-	/*
-	**  Make name canonical.
-	*/
+	/* map upper => lower case */
+	for (p = name; *p != '\0'; p++)
+	{
+		if (isascii(*p) && isupper(*p))
+			*p = tolower(*p);
+	}
 
+	/* look up this login name using fast path */
+	if ((pw = getpwnam(name)) != NULL)
+		return (pw);
+
+	/* search for a matching full name instead */
 	for (p = name; *p != '\0'; p++)
 	{
 		if (*p == (SpaceSub & 0177) || *p == '_')
 			*p = ' ';
 	}
-
-	/* look up this login name */
-	if ((pw = getpwnam(name)) != NULL)
-		return (pw);
-
-	/* search for a matching full name instead */
-	setpwent();
+	(void) setpwent();
 	while ((pw = getpwent()) != NULL)
 	{
 		char buf[MAXNAME];
 		extern bool sameword();
 
-		if (strcmp(pw->pw_name, name) == 0)
-			return (pw);
 		buildfname(pw->pw_gecos, pw->pw_name, buf);
 		if (index(buf, ' ') != NULL && sameword(buf, name))
 		{
@@ -512,7 +532,7 @@ sendtoargv(argv)
 		{
 			char nbuf[MAXNAME];
 
-			if (strlen(p) + strlen(argv[1]) + 2 > sizeof nbuf)
+			if (strlen(p) + strlen(argv[1]) + 2 > (int)sizeof nbuf)
 				usrerr("address overflow");
 			else
 			{

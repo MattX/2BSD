@@ -1,7 +1,0 @@
-#
-# UCSFSSU printcap
-#
-# DecWriter over a tty line.
-lp|la180|LA-180 DecWriter III:\
-	:lp=/dev/ttyha:br#9600:fs#00330:tr=\f:pl#66:\
-	:lf=/usr/adm/lp.err:of=/usr/lib/lpfilter:

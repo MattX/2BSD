@@ -1,6 +1,6 @@
 #ifndef lint
-static char	*RcsId = "$Header: df2.c,v 1.3 85/05/28 18:26:08 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)df2.c	4.2 (Berkeley) 6/23/85";
+#endif
 
 #include "../condevs.h"
 #ifdef DF02

@@ -1,6 +1,7 @@
 #ifndef lint
-static char	*RcsId = "$Header: uucpd.c,v 1.17 85/06/05 20:21:48 rick Exp $";
-#endif !lint
+static char sccsid[] = "@(#)uucpd.c	5.4 (Berkeley) 6/23/85";
+#endif
+
 /*
  * 4.2BSD or 2.9BSD TCP/IP server for uucico
  * uucico's TCP channel causes this server to be run at the remote end.

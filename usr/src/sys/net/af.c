@@ -1,11 +1,17 @@
-/*	af.c	4.6	82/06/13	*/
+/*
+ * Copyright (c) 1983, 1986 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)af.c	7.2 (Berkeley) 10/28/86
+ */
 
 #include "param.h"
-#include <sys/mbuf.h>
-#include <sys/protosw.h>
-#include <sys/socket.h>
-#include <sys/socketvar.h>
-#include <net/af.h>
+#include "mbuf.h"
+#include "protosw.h"
+#include "socket.h"
+#include "socketvar.h"
+#include "af.h"
 
 /*
  * Address family support routines
@@ -22,24 +28,38 @@ extern int inet_hash(), inet_netmatch();
 #define	AFINET	AFNULL
 #endif
 
-#ifdef PUP
-extern int pup_hash(), pup_netmatch();
-#define	AFPUP \
-	{ pup_hash,	pup_netmatch }
+#ifdef NS
+extern int ns_hash(), ns_netmatch();
+#define	AFNS \
+	{ ns_hash,	ns_netmatch }
 #else
-#define	AFPUP	AFNULL
+#define	AFNS	AFNULL
 #endif
 
 struct afswitch afswitch[AF_MAX] = {
-	AFNULL,	AFNULL,	AFINET,	AFINET,	AFPUP,
-	AFNULL,	AFNULL,	AFNULL,	AFNULL, AFNULL,
-	AFNULL
+	AFNULL,	AFNULL,	AFINET,	AFINET,	AFNULL,
+	AFNULL,	AFNS,	AFNULL,	AFNULL,	AFNULL,
+	AFNULL, AFNULL, AFNULL, AFNULL, AFNULL,
+	AFNULL, AFNULL,					/* through 16 */
 };
 
+null_init()
+{
+	register struct afswitch *af;
+
+	for (af = afswitch; af < &afswitch[AF_MAX]; af++)
+		if (af->af_hash == (int (*)())NULL) {
+			af->af_hash = null_hash;
+			af->af_netmatch = null_netmatch;
+		}
+}
+
+/*ARGSUSED*/
 null_hash(addr, hp)
 	struct sockaddr *addr;
 	struct afhash *hp;
 {
+
 	hp->afh_nethash = hp->afh_hosthash = 0;
 }
 
@@ -47,5 +67,6 @@ null_hash(addr, hp)
 null_netmatch(a1, a2)
 	struct sockaddr *a1, *a2;
 {
+
 	return (0);
 }

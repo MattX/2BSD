@@ -1,11 +1,20 @@
-.TH LOADAV 3 
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)loadav.3	2.3 (Berkeley) 1/22/87
+.\"
+.TH LOADAV 3 "January 22, 1987"
+.UC 2
 .SH NAME
-loadav \- get load average
+loadav \- get load average (2BSD)
 .SH SYNOPSIS
-.B loadav(vec)
-.br
-.B double vec[3];
+.nf
+.ft B
+loadav(vec)
+double vec[3];
+.fi
+.ft R
 .SH DESCRIPTION
 .I Loadav
 returns the load average on the system.
@@ -18,8 +27,11 @@ The higher the load, the more loaded the system.
 The different numbers can be used to give some indication of whether the
 load is going up or down.
 .SH "SEE ALSO"
-la(1), w(1), gldav(2)
+w(1), gldav(2)
 .SH BUGS
 Only measures the load on the CPU.
 If the system is I/O bound,
 it won't indicate the true load.
+.PP
+.I Loadav
+is unique to the PDP-11 and 2BSD; its use is discouraged.

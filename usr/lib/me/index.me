@@ -1,25 +1,45 @@
 .nr _0 \n(c.
+.\"	@(#)index.me	2.8	3/19/81
 .\" This version has had comments stripped; an unstripped version is available.
 .de (x
 .ds |X x
-.if \\n(.$ \
+.if \\n(.$>0 \
 .	ds |X \\$1
-.am %\\*(|X )x
-.sp \\n(xsu
+.ie !"\\n(.z"" \
+\{\
+.	ev 2
+\!.(x \\*(|X
+.rm |X
+.\}
+.el \
+\{\
+.	am %\\*(|X )x
+.	sp \\n(xsu
+.	ti -\\n(piu
+.\}
 ..
 .de )x
-.ds |x \\n%
-.if \\n(.$ \
-.	ds |x \\$1
-.if "\\*(|x"_" \
-.	ig ..
-.am %\\*(|X ..
-.if \w'\\$2'>(\\n(.l-\\n(.i-\\n(.k) \
-.	ti +\\n(xuu
+.ie "\\n(.z"" \
+\{\
+.	ds |x \\n%
+.	if \\n(.$>0 \
+.		ds |x \\$1
+.	if "\\*(|x"_" \
+.		ig ..
+.	am %\\*(|X ..
+.	if \w"\\$2">(\\n(.l-\\n(.i-\\n(.k) \
+.		ti +\\n(xuu
 \\\\a\\\\t\\$2\\*(|x
 ...
-.rm |x
-.rm |X
+.	rm |x
+.	rm |X
+.\}
+.el \
+\{\
+\!.)x \\$1 \\$2
+.	br
+.	ev
+.\}
 ..
 .de xp
 .br
@@ -27,8 +47,9 @@
 .ls 1
 .vs \\n(.su*\\n($Ru
 .fi
+.in +\\n(piu
 .ds |X x
-.if \\n(.$ \
+.if \\n(.$>0 \
 .	ds |X \\$1
 .xl -(\\n(xuu+\w'...'u)
 .di |x

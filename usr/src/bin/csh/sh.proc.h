@@ -1,4 +1,10 @@
-/* sh.proc.h 4.1 10/9/80 */
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley Software License Agreement
+ * specifies the terms and conditions for redistribution.
+ *
+ *	@(#)sh.proc.h	5.2 (Berkeley) 6/6/85
+ */
 
 /*
  * C shell - process structure declarations
@@ -19,16 +25,12 @@ struct process	{
 	short	unsigned p_flags;	/* various job status flags */
 	char	p_reason;		/* reason for entering this state */
 	char	p_index;		/* shorthand job index */
-	short	p_pid;
-	short	p_jobid;		/* pid of job leader */
+	int	p_pid;
+	int	p_jobid;		/* pid of job leader */
 	/* if a job is stopped/background p_jobid gives its pgrp */
-	time_t	p_btime;		/* begin time */
-	time_t	p_etime;		/* end time */
-	long	p_stime;		/* system cpu time */
-	long	p_utime;		/* user cpu time */
-#ifdef VMUNIX
-	struct	vtimes p_vtimes;
-#endif
+	struct	timeval p_btime;	/* begin time */
+	struct	timeval p_etime;	/* end time */
+	struct	rusage p_rusage;
 	char	*p_command;		/* first PMAXLEN chars of command */
 };
 
@@ -75,8 +77,6 @@ struct	process	*pcurrent;		/* current job in table */
 struct	process *pprevious;		/* previous job in table */
 
 short	pmaxindex;			/* current maximum job index */
-
-bool	timesdone;			/* shtimes buffer full ? */
 
 int	psigint();
 struct	process	*pgetcurr();

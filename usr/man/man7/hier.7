@@ -1,46 +1,59 @@
-.TH HIER 7
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)hier.7	6.1 (Berkeley) 5/20/85
+.\"
+.TH HIER 7 "May 20, 1985"
+.UC 4
 .SH NAME
 hier \- file system hierarchy
 .SH DESCRIPTION
-The following outline gives a quick tour through
-a representative directory hierarchy.
+The following outline gives a quick tour through a representative
+directory hierarchy.
 .na
 .nh
 .IP /
 root
 .PD 0
+.IP /vmunix
+the kernel binary (UNIX itself)
+.IP /lost+found
+directory for connecting detached files for
+.IR fsck (8)
 .IP /dev/
 devices (4)
 .RS
+.IP MAKEDEV
+shell script to create special files
+.IP MAKEDEV.local
+site specific part of MAKEDEV
 .IP console
 main console,
 .IR tty (4)
 .IP tty*
 terminals,
 .IR tty (4)
-.IP cat
-phototypesetter
-.IR cat (4)
-.IP rp*
+.IP hp*
 disks,
-.I rp,
 .IR hp (4)
-.IP rrp*
+.IP rhp*
 raw disks,
-.I rp,
 .IR hp (4)
+.IP up*
+UNIBUS disks
+.IR up (4)
 .IP ...
 .RE
 .IP /bin/
 utility programs, cf /usr/bin/ (1)
 .RS
 .IP as
-assembler first pass,
-cf /usr/lib/as2
+assembler
 .IP cc
-C compiler executive,
-cf /usr/lib/c[012]
+C compiler executive, cf /lib/ccom, /lib/cpp, /lib/c2
+.IP csh
+C shell
 .IP ...
 .RE
 .IP /lib/
@@ -48,23 +61,21 @@ object libraries and other stuff, cf /usr/lib/
 .RS
 .IP libc.a
 system calls, standard I/O, etc. (2,3,3S)
-.IP libm.a
-math routines (3M)
-.IP libplot.a
-plotting routines,
-.IR plot (3X)
 .IP ...
-.IP as2
-second pass of
-.IR as (1)
-.IP c[012]
-passes of
-.IR cc (1)
+.IP ccom
+C compiler proper
+.IP cpp
+C preprocessor
+.IP c2
+C code improver
 .IP ...
 .RE
 .IP /etc/
-essential data and dangerous maintenance utilities
+essential data and maintenance utilities; sect (8)
 .RS
+.IP dump
+dump program
+.IR dump (8)
 .IP passwd
 password file,
 .IR passwd (5)
@@ -74,15 +85,43 @@ group file,
 .IP motd
 message of the day,
 .IR login (1)
+.IP termcap
+description of terminal capabilities,
+.IR termcap (5)
+.IP ttytype
+table of what kind of terminal is on each port,
+.IR ttytype (5)
 .IP mtab
 mounted file table,
 .IR mtab (5)
-.IP dtab
-device table for
-.IR autoconfig (8)
-.IP ddate
+.IP dumpdates
 dump history,
 .IR dump (8)
+.IP fstab
+file system configuration table
+.IR fstab (5)
+.IP disktab
+disk characteristics and partition tables,
+.IR disktab (5)
+.IP hosts
+host name to network address mapping file,
+.IR hosts (5)
+.IP networks
+network name to network number mapping file,
+.IR networks (5)
+.IP protocols
+protocol name to protocol number mapping file,
+.IR protocols (5)
+.IP services
+network services definition file,
+.IR services (5)
+.IP remote
+names and description of remote hosts for 
+.IR tip (1C),
+.IR remote (5)
+.IP phones
+private phone numbers for remote hosts, as described in
+.IR phones (5)
 .IP ttys
 properties of terminals,
 .IR ttys (5)
@@ -91,18 +130,89 @@ part of
 .IR login ,
 .IR getty (8)
 .IP init
-the father of all processes,
+the parent of all processes,
 .IR init (8)
 .IP rc
 shell program to bring the system up
+.IP rc.local
+site dependent portion of 
+.I rc
 .IP cron
 the clock daemon,
 .IR cron (8)
 .IP mount
 .IR mount (8)
-.IP wall
-.IR wall (8)
 .IP ...
+.RE
+.IP /sys/
+system source
+.RS
+.IP h/
+header (include) files
+.RS
+.IP acct.h
+.IR acct (5)
+.IP stat.h
+.IR stat (2)
+.IP ...
+.RE
+.IP sys/
+machine independent system source 
+.RS
+.IP init_main.c
+.IP uipc_socket.c
+.IP ufs_syscalls.c
+.IP ...
+.RE
+.IP conf/
+site configuration files
+.RS
+.IP GENERIC
+.IP ...
+.RE
+.IP net/
+general network source
+.IP netinet/
+DARPA Internet network source
+.IP netimp/
+network code related to use of an IMP
+.RS
+.IP if_imp.c
+.IP if_imphost.c
+.IP if_imphost.h
+.IP ...
+.RE
+.IP vax/
+source specific to the VAX
+.RS
+.IP locore.s
+.IP machdep.c
+.IP ...
+.RE
+.IP vaxuba/
+device drivers for hardware which resides on the UNIBUS
+.RS
+.IP uba.c
+.IP dh.c
+.IP up.c
+.IP ...
+.RE
+.IP vaxmba/
+device drivers for hardware which resides on the MASBUS
+.RS
+.IP mba.c
+.IP hp.c
+.IP ht.c
+.IP ...
+.RE
+.IP vaxif
+network interface drivers for the VAX
+.RS
+.IP if_en.c
+.IP if_ec.c
+.IP if_vv.c
+.IP ...
+.RE
 .RE
 .IP /tmp/
 temporary files, usually on a fast device, cf /usr/tmp/
@@ -129,9 +239,14 @@ hardware error messages
 .IP tracct
 phototypesetter accounting,
 .IR troff (1)
-.IP vpacct
+.IP lpacct
 line printer accounting
 .IR lpr (1)
+.IP "vaacct, vpacct"
+varian and versatec accounting
+.IR vpr (1),
+.IR vtroff (1),
+.IR pac (8)
 .RE
 .RE
 .IP /usr\t/bin
@@ -145,7 +260,7 @@ used by
 .IR sort (1)
 .IP raster
 used by
-.IR plot (1)
+.IR plot (1G)
 .RE
 .IP dict/
 word lists, etc.
@@ -159,9 +274,10 @@ history file for
 .RE
 .IP games/
 .RS
-.IP bj
-blackjack
 .IP hangman
+.IP lib/
+library of stuff for the games
+.RS
 .IP quiz.k/
 what
 .IR quiz (6)
@@ -175,6 +291,8 @@ countries and capitals
 .RE
 .IP ...
 .RE
+.IP ...
+.RE
 .IP include/
 standard #include files
 .RS
@@ -183,39 +301,37 @@ object file layout,
 .IR a.out (5)
 .IP stdio.h
 standard I/O,
-.IR stdio (3)
+.IR intro (3S)
 .IP math.h
 (3M)
 .IP ...
 .IP sys/
-system-defined layouts
-.RS
-.IP acct.h
-process accounts,
-.IR acct (5)
-.IP buf.h
-internal system buffers
+system-defined layouts, cf /sys/h
+.IP net/
+symbolic link to sys/net
+.IP machine/
+symbolic link to sys/machine
 .IP ...
-.RE
 .RE
 .IP lib/
 object libraries and stuff, to keep /lib/ small
 .RS
+.IP atrun
+scheduler for
+.IR at (1)
+.IP lint/
+utility files for lint
+.RS
 .IP lint[12]
 subprocesses for
 .IR lint (1)
-.IP libF77.a
-Fortran runtime support
-.IP libI77.a
-Fortran I/O
 .IP llib-lc
 dummy declarations for /lib/libc.a, used by
 .IR lint (1)
 .IP llib-lm
-dummy declarations for /lib/libm.a
-.IP atrun
-scheduler for
-.IR at (1)
+dummy declarations for /lib/libc.m
+.IP ...
+.RE
 .IP struct/
 passes of
 .IR struct (1)
@@ -236,15 +352,15 @@ macros for
 fonts for
 .IR troff (1)
 .RS
-.IP R
+.IP ftR
 Times Roman
-.IP B
+.IP ftB
 Times Bold
 .IP ...
 .RE
 .IP uucp/
 programs and data for
-.IR uucp (1)
+.IR uucp (1C)
 .RS
 .IP L.sys
 remote system names and numbers
@@ -260,6 +376,8 @@ list of English words to be ignored by
 .IR ptx (1)
 .RE
 .RE
+.br
+.ne 5
 .IP /usr/\tman/
 .RS
 volume 1 of this manual,
@@ -272,24 +390,34 @@ general
 introduction to volume 1,
 .IR ms (7)
 format
-.IP template
+.IP xx
 template for manual page
 .RE
 .IP man1/
 chapter 1
 .RS
 .IP as.1
-.IP at.1
+.IP mount.1m
 .IP ...
 .RE
+.IP ...
 .IP cat1/
-preprinted pages for man1/
-.RS
-.IP as.1
-.IP at.1
-.RE
+preformatted pages for section 1
 .IP ...
 .RE
+.IP msgs/
+messages, cf
+.IR msgs (1)
+.RS
+.IP bounds
+highest and lowest message
+.RE
+.IP new/
+binaries of new versions of programs
+.IP preserve/
+editor temporaries preserved here after crashes/hangups
+.IP public/
+binaries of user programs - write permission to everyone
 .IP spool/
 delayed execution files
 .RS
@@ -314,22 +442,42 @@ is working
 .RE
 .IP uucp/
 work files and staging area for 
-.IR uucp (1)
+.IR uucp (1C)
 .RS
 .IP LOGFILE
 summary log
 .IP LOG.*
 log file for one transaction
 .RE
-.RE
 .IP mail/
 mailboxes for
 .IR mail (1)
 .RS
 .TP
-.I uid
+.I name
 mail file for user
-.I uid
+.I name
+.TP
+.IR name .lock
+lock file while
+.I name
+is receiving mail
+.RE
+.IP secretmail/
+like
+.IR mail /
+.IP uucp/
+work files and staging area for 
+.IR uucp (1C)
+.RS
+.IP LOGFILE
+summary log
+.IP LOG.*
+log file for one transaction
+.IP mqueue/
+mail queue for 
+.IR sendmail (8)
+.RE
 .RE
 .TP
 .I wd
@@ -342,7 +490,36 @@ is the user's login name
 .BR . profile
 set environment for
 .IR sh (1),
-.IR environ (5)
+.IR environ (7)
+.TP
+.BR . project
+what you are doing (used by (
+.IR finger (1)
+)
+.TP
+.BR . cshrc
+startup file for
+.IR csh (1)
+.TP
+.BR . exrc
+startup file for
+.IR ex (1)
+.TP
+.BR . plan
+what your short-term plans are (used by
+.IR finger (1)
+)
+.TP
+.BR . netrc
+startup file for various network programs
+.TP
+.BR . msgsrc
+startup file for
+.IR msgs (1)
+.TP
+.BR . mailrc
+startup file for
+.IR mail (1)
 .IP calendar
 user's datebook for
 .IR calendar (1)
@@ -359,37 +536,31 @@ C manual
 .IP ...
 .RE
 .RE
+.RE
 .IP /usr/\tsrc/
 .RS
+.IP
 source programs for utilities, etc.
 .RS
-.IP cmd/
-source of commands
+.IP bin/
+source of commands in /bin
 .RS
 .IP as/
 assembler
-.RS
-.IP makefile
-recipe for rebuilding the assembler
-.IP as1?.s
-source of pass1
-.RE
 .IP ar.c
 source for
 .IR ar (1)
 .IP ...
+.RE
+.IP usr.bin/
+source for commands in /usr/bin
+.RS
 .IP troff/
 source for
 .I nroff
 and
 .IR troff (1)
 .RS
-.IP nmake
-makefile for
-.I nroff
-.IP tmake
-makefile for
-.I troff
 .IP font/
 source for font tables, /usr/lib/font/
 .RS
@@ -407,76 +578,16 @@ DASI 300
 .IP ...
 .RE
 .RE
-.IP sys/
-system source
+.IP ucb
+source for programs in /usr/ucb
+.IP games/
+source for /usr/games
+.IP lib/
+source for programs and archives in /lib
 .RS
-.IP dev/
-device drivers
+.IP libc/
+C runtime library
 .RS
-.IP bio.c
-common code
-.IP cat.c
-.IR cat (4)
-.IP dh.c
-DH11,
-.IR tty (4)
-.IP tty
-.IR tty (4)
-.IP ...
-.RE
-.IP MACHINEID/
-hardware-dependent code for machine MACHINEID
-.RS
-.IP ioconf.c
-local device specifications
-.IP l.s
-interrupt vectors
-.IP param.c
-tunable parameters
-.IP ...
-.RE
-.IP sys/
-source for system proper
-.RS
-.IP main.c
-.IP pipe.c
-.IP sysent.c
-system entry points
-.IP ...
-.RE
-.IP stand/
-source for standalone utilities
-.RS
-.IP restor.c
-.IP libsa/
-.IP mtboot.s
-.RE
-.IP bootstrap/
-source for second-stage boot
-.RS
-.IP boot.c
-.IP M.s
-.RE
-.IP mdec/
-source for device-dependent first-stage boot
-.RS
-.IP hpuboot.s
-.IP rkuboot.s
-.IP ...
-.RE
-.RE
-.IP lib/c/
-source for functions in /lib/libc.a
-.RS
-.IP crt/
-C runtime support
-.RS
-.IP ldiv.s
-division into a long
-.IP lmul.s
-multiplication to produce long
-.IP ...
-.RE
 .IP csu/
 startup and wrapup routines needed with every C program
 .RS
@@ -490,8 +601,9 @@ modified startup for
 system calls (2)
 .RS
 .IP access.s
-.IP alarm.s
+.IP brk.s
 .IP ...
+.RE
 .RE
 .IP stdio/
 standard I/O functions (3S)
@@ -504,24 +616,54 @@ standard I/O functions (3S)
 other functions in (3)
 .RS
 .IP abs.c
-.IP atof.c
 .IP ...
 .RE
-.IP compall
-shell procedure to compile libc
-.IP mklib
-shell procedure to make /lib/libc.a
-.RE
-.IP lib/libI77/
-source for /usr/lib/libI77.a
-.IP lib/libF77/
+.IP net/
+network functions in (3N)
+.RS
+.IP gethostbyname.c
 .IP ...
-.IP games/
-source for /usr/games
+.RE
+.RE
+.IP local/
+source which isn't normally distributed
+.IP new/
+source for new versions of commands and library routines
+.IP old/
+source for old versions of commands and library routines
+.IP ucb/
+binaries of programs developed at UCB
+.RS
+.IP ...
+.IP edit
+editor for beginners
+.IP ex
+command editor for experienced users
+.IP ...
+.IP mail
+mail reading/sending subsystem
+.IP man
+on line documentation
+.IP ...
+.IP pi
+Pascal translator
+.IP px
+Pascal interpreter
+.IP ...
+.IP vi
+visual editor
 .RE
 .RE
 .ad
 .SH SEE ALSO
-find(1), grep(1), ls(1), ncheck(8), 
+ls(1),
+apropos(1),
+whatis(1),
+whereis(1),
+finger(1),
+which(1),
+ncheck(8),
+find(1),
+grep(1)
 .SH BUGS
 The position of files is subject to change without notice.

@@ -37,7 +37,7 @@ outrip(){
 	(void) sprintf(buf, "%ld AU", u.ugold);
 	center(7, buf);
 	(void) sprintf(buf, "killed by%s",
-		!strncmp(killer, "the ", 4) ? "" :
+		!strncmp(killer, "the ", STRLEN("the ")) ? "" :
 		!strcmp(killer, "starvation") ? "" :
 		index(vowels, *killer) ? " an" : " a");
 	center(8, buf);

@@ -1,5 +1,11 @@
-.TH ERROR 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)error.1	6.2 (Berkeley) 5/5/86
+.\"
+.TH ERROR 1 "May 5, 1986"
+.UC 4
 .SH NAME
 error \- analyze and disperse compiler error messages
 .SH SYNOPSIS
@@ -30,15 +36,15 @@ without machinations of multiple windows in a screen editor.
 .PP
 .I Error
 looks at the error messages,
-either from the specified file \fIname\fP
+either from the specified file \fIname\fR
 or from the standard input,
 and attempts to determine which
 language processor produced each error message,
 determines the source file and line number to which the error message refers,
 determines if the error message is to be ignored or not,
 and inserts the (possibly slightly modified) error message into
-the source file as a comment on the line preceeding the
-line to which the error message refers.
+the source file as a comment on the line preceding to which the
+line the error message refers.
 Error messages which can't be categorized by language processor
 or content are not inserted into any file,
 but are sent to the standard output.
@@ -92,9 +98,10 @@ knows about the error messages produced by:
 .I ld,
 .I lint,
 .I pi,
-.I pc
+.I pc,
+.I f77,
 and
-.I f77.
+.I DEC Western Research Modula-2.
 .I Error
 knows a standard format for error messages produced by
 the language processors,
@@ -175,7 +182,7 @@ Other error messages are consumed entirely by
 or are written to the standard output.
 .I Error
 inserts the error messages into the source file on the line
-preceeding the line the language processor found in error.
+preceding the line the language processor found in error.
 Each error message is turned into a one line comment for the
 language,
 and is internally flagged
@@ -193,20 +200,21 @@ For poorly formatted source programs in free format languages,
 such as C or Pascal,
 it is possible to insert a comment into another comment,
 which can wreak havoc with a future compilation.
-To avoid this, format the source program so there are no
-language statements on the same line as the end of a comment.
+To avoid this, programs with comments and source
+on the same line should be formatted
+so that language statements appear before comments.
 .PP
 Options available with
 .I error
 are:
 .TP 5
-.B \-\^n
+.B \-n
 Do
 .I not
 touch any files; all error messages are sent to the
 standard output.
 .TP 5
-.B \-\^q
+.B \-q
 The user is
 .I queried
 whether s/he wants to touch the file.
@@ -214,10 +222,10 @@ A ``y'' or ``n'' to the question is necessary to continue.
 Absence of the
 .B \-q
 option implies that all referenced files
-(except those refering to discarded error messages)
+(except those referring to discarded error messages)
 are to be touched.
 .TP 5
-.B \-\^v
+.B \-v
 After all files have been touched,
 overlay the visual editor
 .I vi
@@ -231,10 +239,10 @@ or
 .I ed
 from standard places.
 .TP 5
-.B \-\^t
+.B \-t
 Take the following argument as a suffix list.
-Files whose suffices do not appear in the suffix list are not touched.
-The suffix list is dot seperated, and ``*'' wildcards work.
+Files whose suffixes do not appear in the suffix list are not touched.
+The suffix list is dot separated, and ``*'' wildcards work.
 Thus the suffix list:
 .IP
 \&     ".c.y.foo*.h"
@@ -243,7 +251,7 @@ allows
 .I error
 to touch files ending with ``.c'', ``.y'', ``.foo*'' and ``.y''.
 .TP 5
-.B \-\^s
+.B \-s
 Print out 
 .I statistics
 regarding the error categorization.

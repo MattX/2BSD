@@ -1,16 +1,30 @@
-/*	@(#)swab.c	2.1	SCCS id keyword	*/
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)swab.c	5.3 (Berkeley) 3/9/86";
+#endif LIBC_SCCS and not lint
+
 /*
- * Swap bytes in 16-bit [half-]words
+ * Swab bytes
+ * Jeffrey Mogul, Stanford
  */
 
-swab(pf, pt, n)
-register short *pf, *pt;
-register n;
+swab(from, to, n)
+	register char *from, *to;
+	register int n;
 {
-
-	n /= 2;
+#ifdef pdp11
+	register int temp;
+#else !pdp11
+	register unsigned long temp;
+#endif pdp11
+	
+	n >>= 1; n++;
+#define	STEP	temp = *from++,*to++ = *from++,*to++ = temp
+	/* round to multiple of 8 */
+	while ((--n) & 07)
+		STEP;
+	n >>= 3;
 	while (--n >= 0) {
-		*pt++ = (*pf << 8) + ((*pf >> 8) & 0377);
-		pf++;
+		STEP; STEP; STEP; STEP;
+		STEP; STEP; STEP; STEP;
 	}
 }

@@ -1,5 +1,11 @@
-.TH COLRM 1
-.UC
+.\" Copyright (c) 1980 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)colrm.1	6.2 (Berkeley) 5/7/86
+.\"
+.TH COLRM 1 "May 7, 1986"
+.UC 4
 .SH NAME
 colrm \- remove columns from a file
 .SH SYNOPSIS
@@ -12,8 +18,7 @@ endcol
 ]
 .SH DESCRIPTION
 .I Colrm
-removes selected columns from a file.
-Input is taken from standard input.
+removes selected columns from a file.  Input is taken from standard input.
 Output is sent to standard output.
 .PP
 If called with one parameter the columns
@@ -22,7 +27,5 @@ If called with two parameters the columns from the first column
 to the last column will be removed.
 .PP
 Column numbering starts with column 1.
-.SH SEE\ ALSO
+.SH "SEE ALSO"
 expand(1)
-.SH AUTHOR
-Jeff Schriebman

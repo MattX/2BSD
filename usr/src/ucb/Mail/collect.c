@@ -1,4 +1,12 @@
-#
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#ifndef lint
+static char *sccsid = "@(#)collect.c	5.2 (Berkeley) 6/21/85";
+#endif not lint
 
 /*
  * Mail -- a mail program
@@ -6,8 +14,6 @@
  * Collect input from standard input, handling
  * ~ escapes.
  */
-
-static char *SccsId = "@(#)collect.c	2.14 6/12/83";
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -42,13 +48,13 @@ collect(hp)
 	struct header *hp;
 {
 	FILE *ibuf, *fbuf, *obuf;
-	long lc, cc;
-	int escape, collrub(), intack(), collhup, collcont(), eof;
+	int lc, cc, escape, collrub(), intack(), collhup, collcont(), eof;
 	register int c, t;
 	char linebuf[LINESIZE], *cp;
 	extern char tempMail[];
 	int notify();
 	extern collintsig(), collhupsig();
+	char getsub;
 
 	noreset++;
 	ibuf = obuf = NULL;
@@ -59,9 +65,9 @@ collect(hp)
 	hadintr = 0;
 # ifdef VMUNIX
 	if ((savesig = sigset(SIGINT, SIG_IGN)) != SIG_IGN)
-		sigset(SIGINT, hf ? intack : collrub), sighold(SIGINT);
+		sigset(SIGINT, hf ? intack : collrub), sigblock(sigmask(SIGINT));
 	if ((savehup = sigset(SIGHUP, SIG_IGN)) != SIG_IGN)
-		sigset(SIGHUP, collrub), sighold(SIGHUP);
+		sigset(SIGHUP, collrub), sigblock(sigmask(SIGHUP));
 	savecont = sigset(SIGCONT, collcont);
 # else VMUNIX
 	savesig = signal(SIGINT, SIG_IGN);
@@ -90,31 +96,35 @@ collect(hp)
 	 */
 
 	t = GTO|GSUBJECT|GCC|GNL;
-	c = 0;
+	getsub = 0;
 	if (intty && sflag == NOSTR && hp->h_subject == NOSTR && value("ask"))
-		t &= ~GNL, c++;
+		t &= ~GNL, getsub++;
 	if (hp->h_seq != 0) {
 		puthead(hp, stdout, t);
 		fflush(stdout);
 	}
-	if (c)
-		grabh(hp, GSUBJECT);
 	escape = ESCAPE;
 	if ((cp = value("escape")) != NOSTR)
 		escape = *cp;
 	eof = 0;
 	for (;;) {
+		long omask = sigblock(0L) &~ (sigmask(SIGINT)|sigmask(SIGHUP));
+
 		setjmp(coljmp);
 # ifdef VMUNIX
-		sigrelse(SIGINT);
-		sigrelse(SIGHUP);
+		sigsetmask(omask);
 # else VMUNIX
 		if (savesig != SIG_IGN)
 			signal(SIGINT, hf ? intack : collintsig);
 		if (savehup != SIG_IGN)
 			signal(SIGHUP, collhupsig);
 # endif VMUNIX
-		flush();
+		fflush(stdout);
+		if (getsub) {
+			grabh(hp, GSUBJECT);
+			getsub = 0;
+			continue;
+		}
 		if (readline(stdin, linebuf) <= 0) {
 			if (intty && value("ignoreeof") != NOSTR) {
 				if (++eof > 35)
@@ -276,7 +286,7 @@ collect(hp)
 				break;
 			}
 			printf("\"%s\" ", cp);
-			flush();
+			fflush(stdout);
 			lc = 0;
 			cc = 0;
 			while (readline(fbuf, linebuf) > 0) {
@@ -288,7 +298,7 @@ collect(hp)
 				cc += t;
 			}
 			fclose(fbuf);
-			printf("%ld/%ld\n", lc, cc);
+			printf("%d/%d\n", lc, cc);
 			break;
 
 		case 'w':
@@ -390,7 +400,6 @@ collect(hp)
 			ibuf = newi;
 			printf("(continue)\n");
 			break;
-			break;
 		}
 	}
 eofl:
@@ -400,6 +409,7 @@ eofl:
 	sigset(SIGHUP, savehup);
 # ifdef VMUNIX
 	sigset(SIGCONT, savecont);
+	sigsetmask(0L);
 # endif VMUNIX
 	noreset = 0;
 	return(ibuf);
@@ -413,6 +423,7 @@ err:
 	sigset(SIGHUP, savehup);
 # ifdef VMUNIX
 	sigset(SIGCONT, savecont);
+	sigsetmask(0L);
 # endif VMUNIX
 	noreset = 0;
 	return(NULL);
@@ -485,6 +496,10 @@ exwrite(name, ibuf, f)
  *
  * On return, make the edit file the new temp file.
  */
+
+#ifdef BSD2_10
+extern char tempMail[], tempEdit[];
+#endif
 
 FILE *
 mesedit(ibuf, obuf, c)
@@ -794,11 +809,8 @@ collrub(s)
 
 	if (s == SIGINT && hadintr == 0) {
 		hadintr++;
-		clrbuf(stdout);
-		printf("\n(Interrupt -- one more to kill letter)\n");
-# ifdef	VMUNIX
-		sigrelse(s);
-# endif VMUNIX
+		fflush(stdout);
+		fprintf(stderr, "\n(Interrupt -- one more to kill letter)\n");
 		longjmp(coljmp, 1);
 	}
 	fclose(newo);

@@ -1,25 +1,33 @@
-CFLAGS= -O
+#
+# Copyright (c) 1980 Regents of the University of California.
+# All rights reserved.  The Berkeley software License Agreement
+# specifies the terms and conditions for redistribution.
+#
+#	@(#)Makefile	5.3 (Berkeley) 4/30/86
+#
+CFLAGS=-O
+TAGSFILE=tags
 
-.c.o:
-	$(CC) -V $(CFLAGS) -c $*.c
-	-ld -x -r $*.o
-	mv a.out overlay/$*.o
-	$(CC) $(CFLAGS) -c $*.c
-	-ld -x -r $*.o
-	mv a.out $*.o
+all: libdbm.a libdbm_p.a
 
-all: libdbm.a libovdbm.a
+libdbm.a: dbm.c
+	${CC} -c ${CFLAGS} dbm.c
+	ld -r -o libdbm.a -x dbm.o
+	rm -f dbm.o
 
-libdbm.a: dbm.o
-	$(CC) -c ${CFLAGS} dbm.o
-	mv dbm.o libdbm.a
+libdbm_p.a: dbm.c
+	${CC} -p -c ${CFLAGS} dbm.c
+	ld -r -o libdbm_p.a -X dbm.o
+	rm -f dbm.o
 
-libovdbm.a: dbm.o
-	mv overlay/dbm.o libovdbm.a
+install: all
+	install -m 644 libdbm.a $(DESTDIR)/usr/lib
+	install -m 644 libdbm_p.a $(DESTDIR)/usr/lib
+	-cmp -s dbm.h $(DESTDIR)/usr/include/dbm.h || \
+		install -c -m 444 dbm.h $(DESTDIR)/usr/include
 
-install:
-	install -o bin -g bin -m 644 libdbm.a ${DESTDIR}/usr/lib
-	install -o bin -g bin -m 644 libovdbm.a ${DESTDIR}/usr/lib
+tags:
+	ctags -a -f ${TAGSFILE} `pwd`/dbm.c
 
 clean:
-	rm -f *.o ${ALL} overlay/*.o
+	rm -f *.o libdbm.a libdbm_p.a errs a.out core

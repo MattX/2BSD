@@ -1,4 +1,7 @@
-.TH EXPR 1 
+.\"	@(#)expr.1	6.1 (Berkeley) 4/29/85
+.\"
+.TH EXPR 1 "April 29, 1985"
+.AT 3
 .SH NAME
 expr \- evaluate arguments as an expression
 .SH SYNOPSIS
@@ -39,14 +42,20 @@ are integers, otherwise lexicographic.
 .TP
 .IR expr " + " expr
 .br
-.IR expr " - " expr
+.ns
+.TP
+.IR expr " \- " expr
 .br
 addition or subtraction of the arguments.
 .TP
 .IR expr " * " expr
 .br
+.ns
+.TP
 .IR expr " / " expr
 .br
+.ns
+.TP
 .IR expr " % " expr
 .br
 multiplication, division, or remainder of the arguments.
@@ -69,7 +78,7 @@ parentheses for grouping.
 .PP
 Examples:
 .PP
-To add 1 to the shell variable
+To add 1 to the Shell variable
 .IR a :
 .IP
 a=\`expr $a + 1\`
@@ -81,9 +90,9 @@ which may or may not contain `/':
 .IP
 expr $a : \'.*/\e(\^.*\e)\' \'\^|\' $a
 .LP
-Note the quoted shell metacharacters.
+Note the quoted Shell metacharacters.
 .SH "SEE ALSO"
-ed(1), sh(1), test(1)
+sh(1), test(1)
 .SH DIAGNOSTICS
 .I Expr
 returns the following exit codes:
