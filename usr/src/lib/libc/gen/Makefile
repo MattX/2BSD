@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.7 (2.11BSD) 1997/06/27
+#	@(#)Makefile	5.7.8 (2.11BSD) 1997/06/29
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -28,7 +28,7 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
 	syserrlst.c \
 	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
-	valloc.c strdup.c strsep.c uname.c wait.c wait3.c waitpid.c
+	valloc.c strdup.c uname.c wait.c wait3.c waitpid.c
 STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o \
 	execvp.o fakcu.o \
@@ -44,7 +44,7 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
 	syserrlst.o \
 	telldir.o time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o \
-	valloc.o strdup.o strsep.o uname.o wait.o wait3.o waitpid.o
+	valloc.o strdup.o uname.o wait.o wait3.o waitpid.o
 
 TAGSFILE=tags
 
@@ -298,7 +298,6 @@ usleep.o: usleep.c /usr/include/sys/time.h /usr/include/time.h
 usleep.o: /usr/include/signal.h
 valloc.o: valloc.c
 strdup.o: strdup.c /usr/include/sys/types.h /usr/include/stdio.h
-strsep.o: strsep.c /usr/include/stdio.h
 uname.o: uname.c /usr/include/sys/param.h /usr/include/sys/localopts.h
 uname.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
 uname.o: /usr/include/signal.h /usr/include/sys/types.h
