@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.4 (2.11BSD) 1997/9/26
+#	@(#)Makefile	1.5 (2.11BSD) 1997/11/30
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -23,14 +23,15 @@ NORM1= __sysctl.o accept.o access.o acct.o adjtime.o bind.o chdir.o chflags.o \
 	chmod.o chown.o chroot.o close.o connect.o dup.o dup2.o \
 	execve.o fchdir.o fchflags.o fchmod.o fchown.o fcntl.o flock.o fstat.o \
 	fsync.o ftruncate.o getdtablesize.o getgroups.o getitimer.o \
-	_getlogin.o gethostname.o getsockname.o sethostname.o \
+	_getlogin.o getsockname.o \
 	getpeername.o getpriority.o getrlimit.o getrusage.o getsockopt.o \
 	gettimeofday.o ioctl.o kill.o killpg.o link.o listen.o lstat.o mkdir.o
 
 NORM2=  mknod.o mount.o open.o quota.o read.o readlink.o readv.o reboot.o \
 	recv.o recvfrom.o recvmsg.o rename.o rmdir.o select.o send.o sendmsg.o \
 	sendto.o setgroups.o setitimer.o setpgrp.o setpriority.o setquota.o \
-	setregid.o setreuid.o setrlimit.o setsockopt.o settimeofday.o \
+	setuid.o seteuid.o setgid.o setegid.o \
+	setrlimit.o setsockopt.o settimeofday.o \
 	shutdown.o sigaltstack.o socket.o socketpair.o stat.o symlink.o \
 	sigprocmask.o sigstack.o \
 	statfs.o fstatfs.o getfsstat.o \

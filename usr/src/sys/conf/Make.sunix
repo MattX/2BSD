@@ -1,4 +1,3 @@
-OPTS=-DGENERIC -DSOFUB_MAP
 #
 # Copyright (c) 1988 Regents of the University of California.
 # All rights reserved.
@@ -10,7 +9,7 @@ OPTS=-DGENERIC -DSOFUB_MAP
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.11 (2.11BSD GTE) 1997/8/29
+#	2.12 (2.11BSD GTE) 1997/11/28
 #
 #########################################################
 # Non-network, but separate I/D kernel			#
@@ -48,7 +47,7 @@ CONF=	scb.o \
 
 BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	kern_descrip.o kern_mman.o kern_proc.o kern_sig.o kern_subr.o \
-	kern_synch.o lp.o machdep.o ra.o ram.o si.o \
+	kern_prot2.o kern_synch.o lp.o machdep.o ra.o ram.o si.o \
 	subr_rmap.o subr_xxx.o sys_inode.o trap.o tty.o \
 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
@@ -59,13 +58,13 @@ OV3=	clock.o cons.o kern_time.o \
 	machdep2.o quota_sys.o subr_prf.o sys_process.o \
 	syscalls.o ufs_mount.o
 OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
-	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
+	quota_ufs.o vm_swp.o vm_swap.o vm_proc.o
 OV5=	ht.o tm.o ts.o
 OV6=	tmscp.o tmscpdump.o
 OV7=	rl.o mch_fpsim.o ingreslock.o ufs_disksubr.o
 OV8=	rx.o kern_sysctl.o vm_sched.o vm_text.o
 OV9=	kern_pdp.o kern_xxx.o ufs_syscalls2.o mem.o ufs_subr.o rk.o sys_pipe.o \
-	kern_sig2.o
+	kern_sig2.o toy.o subr_log.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

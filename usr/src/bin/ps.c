@@ -1,4 +1,6 @@
 /*
+ *	1997/12/16 - Fix coredump when processing -U.
+ *
  *	1996/11/16 - Move 'psdatabase' in /var/run.
  *
  *	12/20/94 - Missing casts caused errors in reporting on swapped
@@ -679,7 +681,7 @@ nlist()
 			addchan(name + 1, nbuf.n_value);
 		if	(nllen)
 			{
-			for	(nnn = nl; *nnn->n_un.n_name; nnn++)
+			for	(nnn = nl; nnn->n_un.n_name; nnn++)
 				{
 				if	(!strcmp(nnn->n_un.n_name, name))
 					{

@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.9	(2.11BSD GTE) 1997/8/29
+#	2.10	(2.11BSD GTE) 1997/11/28
 #
 #########################################################
 # Networking, separate I/D kernel			#
@@ -58,7 +58,7 @@ NCONF=	net_copy.o net_csv.o \
 
 BASE=	br.o cons.o dh.o dhu.o dhv.o dr.o dz.o hk.o ht.o init_sysent.o \
 	kern_clock.o kern_descrip.o kern_mman.o kern_proc.o kern_prot.o \
-	kern_subr.o kern_synch.o lp.o machdep.o ra.o ram.o \
+	kern_prot2.o kern_subr.o kern_synch.o lp.o machdep.o ra.o ram.o \
 	rk.o rl.o rx.o si.o subr_rmap.o sys_inode.o sys_kern.o \
 	tm.o ts.o tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o \
 	ufs_bio.o ufs_fio.o ufs_inode.o ufs_namei.o \

@@ -18,6 +18,7 @@ CFILES=	${S}/init_main.c ${S}/init_sysent.c ${S}/kern_acct.c		\
 	${S}/kern_clock.c ${S}/kern_descrip.c ${S}/kern_exec.c		\
 	${S}/kern_exit.c ${S}/kern_fork.c ${S}/kern_mman.c		\
 	${S}/kern_proc.c ${S}/kern_prot.c ${S}/kern_resource.c		\
+	${S}/kern_prot2.c						\
 	${S}/kern_sig.c ${S}/kern_subr.c ${S}/kern_sysctl.c		\
 	${S}/kern_sig2.c						\
 	${S}/kern_synch.c ${S}/kern_time.c ${S}/kern_xxx.c		\
@@ -38,7 +39,7 @@ CFILES=	${S}/init_main.c ${S}/init_sysent.c ${S}/kern_acct.c		\
 OBJS=	init_main.o init_sysent.o kern_acct.o kern_clock.o		\
 	kern_descrip.o kern_exec.o kern_exit.o kern_fork.o kern_mman.o	\
 	kern_proc.o kern_prot.o kern_resource.o kern_sig.o kern_sysctl.o \
-	kern_sig2.o							\
+	kern_prot2.o kern_sig2.o					\
 	kern_subr.o kern_synch.o kern_time.o kern_xxx.o quota_sys.o	\
        quota_kern.o quota_ufs.o quota_subr.o subr_log.o subr_prf.o subr_rmap.o \
 	ingreslock.o							\

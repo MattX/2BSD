@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.7 (2.11BSD GTE) 1997/9/26
+ *	@(#)syscall.h	5.4.8 (2.11BSD GTE) 1997/11/30
  */
 
 /*
@@ -18,7 +18,7 @@
 #define	SYS_open	5
 #define	SYS_close	6
 #define	SYS_wait4	7
-#define	SYS_creat	8
+				/* 8 - old creat */
 #define	SYS_link	9
 #define	SYS_unlink	10
 #define	SYS_execv	11
@@ -55,12 +55,12 @@
 #define	SYS_pipe	42
 #define	SYS_setlogin	43
 #define	SYS_profil	44
-				/* 45 is unused */
-				/* 46 is old: setgid */
+#define	SYS_setuid	45
+#define	SYS_seteuid	46
 #define	SYS_getgid	47
 #define	SYS_getegid	48
-				/* 49 is unused */
-				/* 50 is unused */
+#define	SYS_setgid	49
+#define	SYS_setegid	50
 #define	SYS_acct	51
 #define	SYS_phys	52
 #define	SYS_lock	53
@@ -119,13 +119,15 @@
 #define	SYS_listen	106
 #define	SYS_sigsuspend	107
 /*
- * 108 thru 112 are 4.3BSD compatibility syscalls
+ * 108 thru 112 are 4.3BSD compatibility syscalls.  sigstack has to remain
+ * defined because no replacement routine exists.  Sigh.
 */
-#define	SYS_sigvec	108
-#define	SYS_sigblock	109
-#define	SYS_sigsetmask	110
-#define	SYS_sigpause	111
+				/* 108 - old sigvec */
+				/* 109 - old sigblock */
+				/* 110 - old sigsetmask */
+				/* 111 - old sigpause */
 #define	SYS_sigstack	112
+
 #define	SYS_recvmsg	113
 #define	SYS_sendmsg	114
 				/* 115 is old vtrace */
@@ -139,8 +141,8 @@
 #define	SYS_fchown	123
 #define	SYS_fchmod	124
 #define	SYS_recvfrom	125
-#define	SYS_setreuid	126
-#define	SYS_setregid	127
+				/* 126 - old setreuid */
+				/* 127 - old setregid */
 #define	SYS_rename	128
 #define	SYS_truncate	129
 #define	SYS_ftruncate	130
@@ -155,8 +157,8 @@
 				/* 139 is unused */
 #define	SYS_adjtime	140
 #define	SYS_getpeername	141
-#define	SYS_gethostid	142
-#define	SYS_sethostid	143
+				/* 142 - old gethostid */
+				/* 143 - old sethostid */
 #define	SYS_getrlimit	144
 #define	SYS_setrlimit	145
 #define	SYS_killpg	146

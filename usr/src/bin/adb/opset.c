@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.4 (2.11BSD GTE) 1997/9/26";
+static	char	sccsid[] = "@(#)opset.c 2.5 (2.11BSD GTE) 1997/11/30";
 #endif
 
 #include "defs.h"
@@ -140,7 +140,7 @@ char *systab[] = {
 	"open",
 	"close",
 	"wait4",
-	"creat",
+	"old creat",		/* 8 - old creat COMPAT-43 */
 	"link",
 	"unlink",		/* 10 */
 	"execv",
@@ -177,12 +177,12 @@ char *systab[] = {
 	"pipe",
 	"setlogin",		/* 43 - unused */
 	"profil",
-	NULL,			/* 45 - unused */
-	NULL,			/* 46 - unused */
+	"setuid",		/* 45 - setuid */
+	"seteuid",		/* 46 - seteuid */
 	"getgid",
 	"getegid",
-	NULL,			/* 49 - unused */
-	NULL,			/* 50 - unused */
+	"setgid",		/* 49 - setgid */
+	"setegid",		/* 50 - setegid */
 	"acct",
 	"phys",
 	"lock",
@@ -216,11 +216,11 @@ char *systab[] = {
 	"getpgrp",
 	"setpgrp",
 	"setitimer",
-	"old wait",
+	"old wait",		/* 84 - old wait COMPAT-43 */
 	NULL,			/* 85 - unused */
 	"getitimer",
-	"gethostname",
-	"sethostname",
+	"old gethostname",	/* 87 - old gethostname COMPAT-43 */
+	"old sethostname",	/* 88 - old sethostname COMPAT-43 */
 	"getdtablesize",
 	"dup2",
 	NULL,			/* 91 - unused */
@@ -240,11 +240,11 @@ char *systab[] = {
 	"setsockopt",
 	"listen",
 	"sigsuspend",		/* 107 - sigsuspend */
-	"sigvec",		/* 108 - sigvec COMPAT-43 */
-	"sigblock",		/* 109 - sigblock COMPAT-43 */
-	"sigsetmask",		/* 110 - sigsetmask COMPAT-43 */
-	"sigpause",		/* 111 - sigpause COMPAT-43 */
-	"sigstack",		/* 112 - sigstack COMPAT-43 */
+	"old sigvec",		/* 108 - sigvec COMPAT-43 */
+	"old sigblock",		/* 109 - sigblock COMPAT-43 */
+	"old sigsetmask",	/* 110 - sigsetmask COMPAT-43 */
+	"old sigpause",		/* 111 - sigpause COMPAT-43 */
+	"old sigstack",		/* 112 - sigstack COMPAT-43 */
 	"recvmsg",
 	"sendmsg",
 	NULL,			/* 115 - unused */
@@ -258,8 +258,8 @@ char *systab[] = {
 	"fchown",
 	"fchmod",
 	"recvfrom",
-	"setreuid",
-	"setregid",
+	"old setreuid",		/* 126 - old setreuid COMPAT-43 */
+	"old setregid",		/* 127 - old setregid COMPAT-43 */
 	"rename",
 	"truncate",
 	"ftruncate",
@@ -274,8 +274,8 @@ char *systab[] = {
 	NULL,			/* 139 - unused */
 	"adjtime",
 	"getpeername",
-	"gethostid",		/* 142 - gethostid COMPAT-43 */
-	"sethostid",		/* 143 - sethostid COMPAT-43 */
+	"old gethostid",	/* 142 - gethostid COMPAT-43 */
+	"old sethostid",	/* 143 - sethostid COMPAT-43 */
 	"getrlimit",
 	"setrlimit",
 	"killpg",

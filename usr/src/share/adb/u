@@ -4,7 +4,7 @@
 +/"qsave"n
 +$<<label
 +/"val1"8t"val2"n2on
-+/"u_error"8t"u_eosys"n2bn"uid"8t"ruid"8t"gid"8t"rgid"n4un"groups"n16u
++/"u_error"8t"u_eosys"n2bn"uid"8t"svuid"8t"ruid"8t"svgid"8t"rgid"8tn"groups"n16u
 +/"tsize"8t"dsize"8t"ssize"n3un
 +/"ssave"n
 +$<<label

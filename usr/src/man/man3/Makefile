@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.14 (2.11BSD) 1997/10/3
+#	@(#)Makefile	5.4.15 (2.11BSD) 1997/12/8
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -30,9 +30,9 @@ SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	malloc.3 math.3 mktemp.3 monitor.3 mp.3 ndbm.3 nice.3 nlist.3 ns.3 \
 	pause.3 perror.3 plot.3 popen.3 printf.3 psignal.3 putc.3 puts.3 \
 	qsort.3 rand.3 random.3 rcmd.3 regex.3 resolver.3 rexec.3 scandir.3 \
-	scanf.3 setbuf.3 setjmp.3 setuid.3 siginterrupt.3 signal.3 sin.3 \
+	scanf.3 setbuf.3 setjmp.3 siginterrupt.3 signal.3 sin.3 \
 	sinh.3 sleep.3 sqrt.3 stdio.3 strftime.3 string.3 strtok.3 stty.3 \
-	setmode.3 sigsetops.3 \
+	setmode.3 setruid.3 sigsetops.3 \
 	strcspn.3 strpbrk.3 strsep.3 strspn.3 strtol.3 strtoul.3 strstr.3 \
 	swab.3 sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 uname.3 ungetc.3 \
@@ -51,9 +51,9 @@ OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	malloc.0 math.0 mktemp.0 monitor.0 mp.0 ndbm.0 nice.0 nlist.0 ns.0 \
 	pause.0 perror.0 plot.0 popen.0 printf.0 psignal.0 putc.0 puts.0 \
 	qsort.0 rand.0 random.0 rcmd.0 regex.0 resolver.0 rexec.0 scandir.0 \
-	scanf.0 setbuf.0 setjmp.0 setuid.0 siginterrupt.0 signal.0 sin.0 \
+	scanf.0 setbuf.0 setjmp.0 siginterrupt.0 signal.0 sin.0 \
 	sinh.0 sleep.0 sqrt.0 stdio.0 strftime.0 string.0 strtok.0 stty.0 \
-	setmode.0 sigsetops.0 \
+	setmode.0 setruid.0 sigsetops.0 \
 	strcspn.0 strpbrk.0 strsep.0 strspn.0 strtol.0 strtoul.0 strstr.0 \
 	swab.0 sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 uname.0 ungetc.0 \
@@ -78,8 +78,8 @@ REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
 	_setjmp.0 acosh.0 alloca.0 atanh.0 cabs.0 calloc.0 ceil.0 \
 	closelog.0 fabs.0 fdopen.0 free.0 freopen.0 fscanf.0 \
 	ftell.0 fwrite.0 index.0 initstate.0 longjmp.0 mkstemp.0 openlog.0  \
-	realloc.0 remque.0 rewind.0 rindex.0 rint.0 setegid.0 seteuid.0 \
-	setgid.0 setlogmask.0 setrgid.0 setruid.0 setstate.0 srandom.0 \
+	realloc.0 remque.0 rewind.0 rindex.0 rint.0 \
+	setlogmask.0 setstate.0 setrgid.0 srandom.0 \
 	sscanf.0 strcat.0 strcmp.0 strcpy.0 strlen.0 strncat.0 strncmp.0 \
 	strncpy.0 strcasecmp.0 strncasecmp.0 \
 	strerror.0 \
@@ -287,12 +287,7 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/fseek.0 ${DESTDIR}${MDIR}/rewind.0
 	ln ${DESTDIR}${MDIR}/string.0 ${DESTDIR}${MDIR}/rindex.0
 	ln ${DESTDIR}${MDIR}/floor.0 ${DESTDIR}${MDIR}/rint.0
-	ln ${DESTDIR}${MDIR}/setuid.0 ${DESTDIR}${MDIR}/setegid.0
-	ln ${DESTDIR}${MDIR}/setuid.0 ${DESTDIR}${MDIR}/seteuid.0
-	ln ${DESTDIR}${MDIR}/setuid.0 ${DESTDIR}${MDIR}/setgid.0
 	ln ${DESTDIR}${MDIR}/syslog.0 ${DESTDIR}${MDIR}/setlogmask.0
-	ln ${DESTDIR}${MDIR}/setuid.0 ${DESTDIR}${MDIR}/setrgid.0
-	ln ${DESTDIR}${MDIR}/setuid.0 ${DESTDIR}${MDIR}/setruid.0
 	ln ${DESTDIR}${MDIR}/random.0 ${DESTDIR}${MDIR}/setstate.0
 	ln ${DESTDIR}${MDIR}/random.0 ${DESTDIR}${MDIR}/srandom.0
 	ln ${DESTDIR}${MDIR}/scanf.0 ${DESTDIR}${MDIR}/sscanf.0
@@ -395,5 +390,6 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/sleep.0 ${DESTDIR}${MDIR}/usleep.0
 	ln ${DESTDIR}${MDIR}/getenv.0 ${DESTDIR}${MDIR}/setenv.0
 	ln ${DESTDIR}${MDIR}/getenv.0 ${DESTDIR}${MDIR}/unsetenv.0
+	ln ${DESTDIR}${MDIR}/setruid.0 ${DESTDIR}${MDIR}/setrgid.0
 
 FRC:

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.9 (2.11BSD) 1997/08/28
+#	@(#)Makefile	5.7.10 (2.11BSD) 1997/11/30
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -17,14 +17,14 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	ctime.c ctype_.c daemon.c devname.c disklabel.c err.c \
 	execvp.c fakcu.c \
 	fstab.c gcvt.c getenv.c getgrent.c getgrgid.c getgrnam.c getlogin.c \
-	getgrouplist.c \
+	getgrouplist.c gethostname.c \
 	getpass.c getpwent.c getloadavg.c getmntinfo.c \
 	getttyent.c getttynam.c getusershell.c getwd.c \
 	initgroups.c isatty.c malloc.c mktemp.c ndbm.c nlist.c \
 	opendir.c perror.c popen.c psignal.c qsort.c random.c readdir.c \
-	regex.c scandir.c seekdir.c setgid.c setegid.c setrgid.c setuid.c \
-	setmode.c \
-	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
+	regex.c scandir.c seekdir.c \
+	setmode.c sethostname.c \
+	setenv.c siglist.c signal.c siginterrupt.c \
 	sigsetops.c \
 	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
 	syserrlst.c \
@@ -34,14 +34,14 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o \
 	execvp.o fakcu.o \
 	fstab.o gcvt.o getenv.o getgrent.o getgrgid.o getgrnam.o getlogin.o \
-	getgrouplist.o \
+	getgrouplist.o gethostname.o \
 	getpass.o getpwent.o getloadavg.o getmntinfo.o \
 	getttyent.o getttynam.o getusershell.o getwd.o \
 	initgroups.o isatty.o malloc.o mktemp.o ndbm.o nlist.o \
 	opendir.o perror.o popen.o psignal.o qsort.o random.o readdir.o \
-	regex.o scandir.o seekdir.o setgid.o setegid.o setrgid.o setuid.o \
-	setmode.o \
-	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
+	regex.o scandir.o seekdir.o \
+	setmode.o sethostname.o \
+	setenv.o siglist.o signal.o siginterrupt.o \
 	sigsetops.o \
 	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
 	syserrlst.o \
@@ -246,13 +246,7 @@ seekdir.o: seekdir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
 seekdir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
 seekdir.o: /usr/include/signal.h /usr/include/sys/types.h
 seekdir.o: /usr/include/sys/dir.h
-setgid.o: setgid.c
-setegid.o: setegid.c
-setrgid.o: setrgid.c
-setuid.o: setuid.c
 setenv.o: setenv.c /usr/include/sys/types.h /usr/include/stdio.h
-seteuid.o: seteuid.c
-setruid.o: setruid.c
 siglist.o: siglist.c /usr/include/signal.h
 signal.o: signal.c /usr/include/signal.h
 siginterrupt.o: siginterrupt.c /usr/include/signal.h

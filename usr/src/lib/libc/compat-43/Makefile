@@ -1,11 +1,13 @@
 #
 # Public domain 1997/8/28
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1997/8/28
+#	@(#)Makefile	1.1 (2.11BSD) 1997/11/30
 #
 CFLAGS=	-O ${DEFS}
-SRCS= creat.c gethostid.c sethostid.c sigcompat.c
-OBJS= creat.o gethostid.o sethostid.o sigcompat.o
+SRCS= creat.c gethostid.c sethostid.c sigcompat.c \
+	setregid.c setreuid.c setrgid.c setruid.c
+OBJS= creat.o gethostid.o sethostid.o sigcompat.o \
+	setregid.o setreuid.o setrgid.o setruid.o
 
 .c.o:
 	${CC} -p ${CFLAGS} -c $*.c

@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.8 (2.11BSD GTE) 1997/8/29
+#	2.9 (2.11BSD GTE) 1997/11/28
 #
 #########################################################
 # Non-networking, non-separate I/D kernel		#
@@ -52,6 +52,7 @@ BASE=	br.o clock.o cons.o dh.o dhu.o dhv.o dkbad.o dn.o dr.o dz.o hk.o ht.o  \
 	init_main.o init_sysent.o kern_acct.o kern_clock.o kern_descrip.o \
 	kern_exec.o kern_exit.o kern_fork.o kern_mman.o kern_pdp.o \
 	kern_proc.o kern_prot.o kern_resource.o kern_sig.o kern_sig2.o \
+	kern_prot2.o \
 	kern_subr.o kern_synch.o kern_time.o kern_xxx.o lp.o machdep.o \
 	machdep2.o mem.o quota_kern.o quota_subr.o quota_sys.o \
 	quota_ufs.o ra.o ram.o rk.o rl.o rx.o si.o subr_prf.o subr_rmap.o \
