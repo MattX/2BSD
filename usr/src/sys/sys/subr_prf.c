@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)subr_prf.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)subr_prf.c	1.2 (2.11BSD) 1998/12/5
  */
 
 #include "param.h"
@@ -101,7 +101,7 @@ tprintf(tp, fmt, x1)
 	if (ttycheckoutq(tp, 0) == 0)
 		flags = TOLOG;
 	prf(fmt, &x1, flags, tp);
-	logwakeup();
+	logwakeup(logMSG);
 }
 
 /*
@@ -115,14 +115,13 @@ log(level, fmt, x1)
 	unsigned x1;
 {
 	register s = splhigh();
-	extern int log_open;
 
 	logpri(level);
 	prf(fmt, &x1, TOLOG, (struct tty *)0);
 	splx(s);
-	if (!log_open)
+	if (!logisopen(logMSG))
 		prf(fmt, &x1, TOCONS, (struct tty *)0);
-	logwakeup();
+	logwakeup(logMSG);
 }
 
 logpri(level)
@@ -293,7 +292,7 @@ panic(s)
 tablefull(tab)
 	char *tab;
 {
-	log(LOG_ERR, "%s: table is full\n", tab);
+	log(LOG_ERR, "%s: table full\n", tab);
 }
 
 /*
@@ -314,11 +313,9 @@ harderr(bp, cp)
  * are saved in msgbuf for inspection later.
  */
 putchar(c, flags, tp)
-	register int c;
-	struct tty *tp;
+	int c, flags;
+	register struct tty *tp;
 {
-	extern char *panicstr;
-	segm  s5;
 
 	if (flags & TOTTY) {
 		register int s = spltty();
@@ -332,17 +329,8 @@ putchar(c, flags, tp)
 		}
 		splx(s);
 	}
-	if ((flags & TOLOG) && c != '\0' && c != '\r' && c != 0177) {
-		if (msgbuf.msg_magic != MSG_MAGIC)
-			goto docons;
-		saveseg5(s5);
-		mapseg5(msgbuf.msg_click, (btoc(MSG_BSIZE) << 8) | RW);
-		msgbuf.msg_bufc[msgbuf.msg_bufx++] = c;
-		if (msgbuf.msg_bufx < 0 || msgbuf.msg_bufx >= MSG_BSIZE)
-			msgbuf.msg_bufx = 0;
-		restorseg5(s5);
-	}
-docons:
+	if ((flags & TOLOG) && c != '\0' && c != '\r' && c != 0177)
+		logwrt(&c, 1, logMSG);
 	if ((flags & TOCONS) && c != '\0')
 		cnputc(c);
 }

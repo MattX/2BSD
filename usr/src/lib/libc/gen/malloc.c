@@ -1,4 +1,4 @@
-/*	@(#)malloc.c	2.2	(2.11BSD) 1996/4/11 */
+/*	@(#)malloc.c	2.3	(2.11BSD) 1999/1/18 */
 
 #include <unistd.h>
 
@@ -100,6 +100,8 @@ malloc(nbytes)
 	register nw;
 	static int temp;	/* coroutines assume no auto */
 
+	if (nbytes == 0)
+		return(NULL);
 	if (allocs[0].ptr == 0) {	/* first time */
 		allocs[0].ptr = setbusy(&allocs[1]);
 		allocs[1].ptr = setbusy(&allocs[0]);

@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.6 (2.11BSD) 1997/12/31
+#	@(#)Makefile	1.7 (2.11BSD) 1999/2/19
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -19,7 +19,7 @@ PDPOBJS= _exit.o brk.o execl.o execle.o execv.o fork.o pipe.o ptrace.o sbrk.o \
 # these are generated with a second argument to SYSCALL of 'norm'.  Have to
 # split into more than one list because 'make' only permits 80 "lefts".
 
-NORM1= __sysctl.o accept.o access.o acct.o adjtime.o bind.o chdir.o chflags.o \
+NORM1= __sysctl.o accept.o access.o adjtime.o bind.o chdir.o chflags.o \
 	chmod.o chown.o chroot.o close.o connect.o dup.o dup2.o \
 	execve.o fchdir.o fchflags.o fchmod.o fchown.o fcntl.o flock.o fstat.o \
 	fsync.o ftruncate.o getdtablesize.o getgroups.o getitimer.o \

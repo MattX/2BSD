@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.8 (2.11BSD GTE) 1997/12/31
+ *	@(#)syscall.h	5.4.9 (2.11BSD) 1999/2/19
  */
 
 /*
@@ -61,7 +61,7 @@
 #define	SYS_getegid	48
 #define	SYS_setgid	49
 #define	SYS_setegid	50
-#define	SYS_acct	51
+				/* 51 was acct */
 #define	SYS_phys	52
 #define	SYS_lock	53
 #define	SYS_ioctl	54

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.2 (2.11BSD GTE) 1997/1/30
+ *	@(#)kern_exit.c	2.3 (2.11BSD) 1999/2/23
  */
 
 #include "param.h"
@@ -23,6 +23,8 @@
 #include "quota.h"
 #endif
 #include "ingres.h"
+
+extern	int	Acctopen;	/* kern_acct.c */
 
 /*
  * exit system call: pass back caller's arg
@@ -72,7 +74,8 @@ exit(rv)
 		iput(u.u_rdir);
 	}
 	u.u_rlimit[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
-	(void) acct();
+	if	(Acctopen)
+		(void) acct();
 #ifdef QUOTA
 	QUOTAMAP();
 	qclean();

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)msgbuf.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)msgbuf.h	1.2 (2.11BSD) 1998/12/5
  */
 
 #define	MSG_MAGIC	0x063061
@@ -16,6 +16,7 @@ struct	msgbuf {
 	u_short	msg_click;
 	char	*msg_bufc;
 };
-#if defined(KERNEL) && !defined(SUPERVISOR)
-struct	msgbuf msgbuf;
-#endif
+
+#define	logMSG	0		/* /dev/klog */
+#define	logDEV	1		/* /dev/erlg */
+#define	logACCT	2		/* /dev/acct */

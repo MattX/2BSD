@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.13 (2.11BSD GTE) 1997/12/31
+ *	@(#)init_sysent.c	1.14 (2.11BSD) 1999/2/22
  */
 
 /*
@@ -52,7 +52,7 @@ int	setquota(),qquota();
 
 /* 1.7 system operation support */
 int	umount(),smount();
-int	sync(),reboot(),sysacct(), __sysctl();
+int	sync(),reboot(),__sysctl();
 
 /* 2.1 generic operations */
 int	read(),write(),readv(),writev(),ioctl();
@@ -162,7 +162,7 @@ struct sysent sysent[] = {
 	0, getegid,			/*  48 = getegid */
 	1, setgid,			/*  49 = setgid */
 	1, setegid,			/*  50 = setegid */
-	1, sysacct,			/*  51 = turn acct off/on */
+	0, nosys,			/*  51 = unused */
 	3, phys,			/*  52 = (2.9) set phys addr */
 	1, lock,			/*  53 = (2.9) lock in core */
 	4, ioctl,			/*  54 = ioctl */

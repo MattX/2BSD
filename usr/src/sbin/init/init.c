@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)init.c	5.6.3 (2.11BSD GTE) 1996/5/9";
+static char sccsid[] = "@(#)init.c	5.6.4 (2.11BSD) 1999/2/23";
 #endif
 
 #include <sys/param.h>
@@ -190,7 +190,6 @@ shutend()
 {
 	register i, f;
 
-	acct(0);
 	signal(SIGALRM, SIG_DFL);
 	for (i = 0; i < 10; i++)
 		close(i);

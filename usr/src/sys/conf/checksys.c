@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)checksys.c	1.5 (2.11BSD GTE) 8/28/94
+ *	@(#)checksys.c	1.6 (2.11BSD) 1998/12/5
  */
 
 /*
@@ -19,6 +19,7 @@
 #include "a.out.h"
 #include "stdio.h"
 #include "namei.h"
+#include "msgbuf.h"
 
 /* Round up to a click boundary. */
 #define	cround(bytes)	((bytes + ctob(1) - 1) / ctob(1) * ctob(1));
@@ -36,7 +37,8 @@
 #define	N_QUOTDESC	17
 #define	N_NAMECACHE	18
 #define	N_IOSIZE	19
-#define	N_NUMSYMS	20
+#define	N_NLOG		20
+#define	N_NUMSYMS	21
 
 	struct	nlist	nl[N_NUMSYMS];
 
@@ -60,7 +62,8 @@ char	*names[] = {
 	"_xitdesc",			/* 16 */
 	"_quotdesc",			/* 17 */
 	"_namecache",			/* 18 */
-	"__iosize"			/* 19 */
+	"__iosize",			/* 19 */
+	"_nlog"				/* 20 */
 	};
 
 static struct exec obj;
@@ -229,6 +232,8 @@ checkov:
 		totsize += (ninode * sizeof(struct namecache));
 	if (nl[N_IOSIZE].n_type)
 		totsize += getval(N_IOSIZE);
+	if (nl[N_NLOG].n_type)
+		totsize += (getval(N_NLOG) * MSG_BSIZE);
 	totsize += ctob(USIZE);
 	printf("System will occupy %ld bytes of memory (including buffers and clists).\n", totsize);
 	for (i = 0; i < N_NUMSYMS; i++) {

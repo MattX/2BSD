@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.8 (2.11BSD) 1998/3/2
+ *	@(#)machdep2.c	2.9 (2.11BSD) 1999/2/19
  */
 
 #include "param.h"
@@ -221,13 +221,10 @@ register int B;
 		panic("buffers");
 #undef B
 
-#define	C	(btoc(MSG_BSIZE))
-	if ((msgbuf.msg_click = malloc(coremap, C)) == 0)
-		panic("msgbuf");
-	msgbuf.msg_magic = MSG_MAGIC;
-	msgbuf.msg_bufc = SEG5;
-	msgbuf.msg_bufx = msgbuf.msg_bufr = 0;
-#undef	C
+/*
+ * Now initialize the log driver (kernel logger, error logger and accounting)
+*/
+	loginit();
 
 #define	C	(btoc(sizeof (struct xmount)))
 	for	(i = 0; i < NMOUNT; i++)

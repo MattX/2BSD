@@ -7,7 +7,7 @@
 .TH SA 8 "November 16, 1996"
 .UC 4
 .SH NAME
-sa, accton \- system accounting
+sa \- system accounting
 .SH SYNOPSIS
 .B sa
 [
@@ -19,17 +19,7 @@ sa, accton \- system accounting
 savacctfile ] [
 .B \-U
 usracctfile ] [ file ]
-.PP
-.B accton 
-[ file ]
 .SH DESCRIPTION
-With an argument naming an existing
-.I file,
-.I accton
-causes system accounting information for
-every process executed to be placed at the end of the file.
-If no argument is given, accounting is turned off.
-.PP
 .I Sa
 reports on, cleans up, and generally maintains accounting files.
 .PP
@@ -146,6 +136,6 @@ to accumulate the per-user statistics printed by the \-m option.
 .br
 /usr/adm/usracct	per-user summary
 .SH "SEE ALSO"
-ac(8), acct(2)
+ac(8), accton(8), acctd(8)
 .SH BUGS
 The number of options to this program is absurd.

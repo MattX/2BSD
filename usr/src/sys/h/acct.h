@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)acct.h	2.1	(2.11BSD) 1997/11/28
+ *	@(#)acct.h	2.2	(2.11BSD) 1999/2/19
  */
 
 /*
@@ -41,3 +41,12 @@ struct	acct
  * comp_t fields.  This is not necessarily equal to hz.
  */
 #define AHZ 64
+
+#ifndef	KERNEL
+#define	_PATH_ACCTD	"/usr/libexec/acctd"
+#define	_PATH_ACCTFILE "/usr/adm/acct"
+#define	_PATH_ACCTDPID "/var/run/acctd.pid"
+#define	_PATH_ACCTDCF "/etc/acctd.cf"
+#define	_PATH_DEVALOG "/dev/acctlog"
+#endif
+

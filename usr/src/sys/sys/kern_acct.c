@@ -3,122 +3,23 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	2.6 (2.11BSD) 1997/8/1
+ *	@(#)kern_acct.c	3.0 (2.11BSD) 1999/2/19
  *
- * This module is a real mishmash of FreeBSD, 4.3BSD, and home brewed code.
+ * This module is a shadow of its former self.  This comment:
+ *
+ * 	SHOULD REPLACE THIS WITH A DRIVER THAT CAN BE READ TO SIMPLIFY.
+ *
+ * is all that is left of the original kern_acct.c module.
  */
 
 #include "param.h"
 #include "systm.h"
-#include "fs.h"
-#include "dir.h"
-#include "inode.h"
 #include "user.h"
-#include "namei.h"
-#include "proc.h"
-#include <sys/file.h>
-#include "acct.h"
+#include "msgbuf.h"
 #include "kernel.h"
-#include "syslog.h"
+#include "acct.h"
 
-/*
- * SHOULD REPLACE THIS WITH A DRIVER THAT CAN BE READ TO SIMPLIFY.
- */
-short	acctsuspend = 2;	/* stop accounting when < 2% free space left */
-short	acctresume = 4;		/* resume when free space risen to > 4% */
-short	acctchkfreq = 15;	/* frequency to check space for accounting */
-short	acctdisabled = 0;	/* 0 = not disabled */
-struct	inode *acctp;
-comp_t	compress();
-static	int	chkfreesp();
-
-/*
- * Perform process accounting functions.
- */
-sysacct()
-	{
-	register struct inode *ip = NULL;
-	register struct a {
-		char	*fname;
-	} *uap = (struct a *)u.u_ap;
-	struct	nameidata nd;
-	register struct nameidata *ndp = &nd;
-	int	error;
-
-	if	(!suser())
-		{
-		error = u.u_error;	/* XXX */
-		goto out;
-		}
-/*
- * If accounting is to be started to a file, "open" that file for
- * writing.  We don't check that the file is 'normal' because while it may
- * be strange to write to a tape or (unmounted) disk why should it be
- * prohibited?
-*/
-	if	(uap->fname != NULL)
-		{
-		NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
-		if	((error = vn_open(ndp, FFLAGS(O_WRONLY), 0)) != 0)
-			goto	out;
-		ip = ndp->ni_ip;
-		}
-/*
- * Swap the accounting files.
-*/
-	error = swapacctf(ip);
-
-out:
-	return(u.u_error = error);
-	}
-
-/*
- * This was broken out into a function of its own so that it could be 
- * called from elsewhere in the kernel.  The experiment that was done for
- * didn't work out but it doesn't hurt anything to retain this function 
- * (it might come in handy in the future).
-*/
-swapacctf(ip)
-	register struct inode *ip;
-	{
-	register struct inode *oacctp;
-
-	oacctp = acctp;
-	acctp = ip;
-	if	(oacctp)
-		(void)vn_close(oacctp, FWRITE);
-	if	(acctp)
-		acctwatch();
-	return(0);
-	}
-
-acctwatch()
-	{
-	register struct fs *fs;
-	static	time_t	acctchecktime;
-
-	if	(acctp == NULL || time.tv_sec < acctchecktime)
-		return;		/* do not refresh timer */
-	acctchecktime = time.tv_sec + acctchkfreq;
-	fs = acctp->i_fs;
-
-	if	(acctdisabled)
-		{
-		if	(chkfreesp(fs, acctresume) > 0)
-			{
-			acctdisabled = 0;
-			log(LOG_NOTICE, "Acct resume\n");
-			}
-		}
-	else
-		{
-		if	(chkfreesp(fs, acctsuspend) <= 0)
-			{
-			log(LOG_NOTICE, "Acct suspend\n");
-			acctdisabled = 1;
-			}
-		}
-	}
+	comp_t	compress();
 
 /*
  * On exit, write a record on the accounting file.
@@ -126,15 +27,9 @@ acctwatch()
 acct()
 	{
 	struct	acct acctbuf;
-	register struct inode *ip;
 	register struct acct *ap = &acctbuf;
-	int	resid;
+	static	short acctcnt = 0;
 
-	acctwatch();
-
-	if	((ip = acctp) == NULL || acctdisabled)
-		return;
-	ilock(ip);
 	bcopy(u.u_comm, ap->ac_comm, sizeof(acctbuf.ac_comm));
 /*
  * The 'user' and 'system' times need to be converted from 'hz' (linefrequency)
@@ -157,21 +52,18 @@ acct()
 	else
 		ap->ac_tty = NODEV;
 	ap->ac_flag = u.u_acflag;
-	u.u_error = 0;			/* XXX */
-	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), ip->i_size,
-			UIO_SYSSPACE, IO_UNIT|IO_APPEND, (int *)&resid);
-	if	(u.u_error)
-		{
 /*
- * The only time this should happen is when a physical error occurs on the
- * disk drive.  The freespace check has been made earlier so an error at this
- * time is I/O related.  The message is terse to save space (D-space doesn't
- * grow on trees you know ;)).
+ * Not a lot that can be done if logwrt fails so ignore any errors.  Every
+ * 10 commands call the wakeup routine.  This isn't perfect but does cut 
+ * down the overhead of issuing a wakeup to the accounting daemon every 
+ * single accounting record.
 */
-		log(LOG_NOTICE,"acct %d %d\n", u.u_error, resid);
-		acctdisabled = 1;
+	logwrt(ap, sizeof (*ap), logACCT);
+	if	(acctcnt++ > 10)
+		{
+		logwakeup(logACCT);
+		acctcnt = 0;
 		}
-	iunlock(ip);
 	}
 
 /*
@@ -194,24 +86,4 @@ compress(mant)
 		if	(mant < (1L << MANTSIZE))
 			return(mant | (exp << MANTSIZE));
 	return(~0);
-	}
-
-/*
- * A helper function since freespace's generated code is so voluminous.  All
- * we really want is an indication if there is the desired amount of space
- * available (greater than or equal, less than zero).
-*/
-static int
-chkfreesp(fs, percent)
-	register struct fs *fs;
-	int	percent;
-	{
-	daddr_t	l;
-
-	l = freespace(fs, percent);
-	if	(l < 0)
-		return(-1);
-	else if	(l == 0)
-		return(0);
-	return(1);
 	}
