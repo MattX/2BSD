@@ -1,56 +1,71 @@
-/*
- * Copyright (c) 1987 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+/*-
+ * Copyright (c) 1987, 1990, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)update.c	4.3 (Berkeley) 3/28/87";
+#if	!defined(lint) && defined(DOSCCS)
+static char copyright[] =
+"@(#) Copyright (c) 1987, 1990, 1993\n\
+	The Regents of the University of California.  All rights reserved.\n";
+
+static char sccsid[] = "@(#)update.c	8.1 (Berkeley) 6/6/93";
 #endif
 
-/*
- * Update the file system every 30 seconds.
- * For cache benefit, open certain system directories.
- */
-
 #include <sys/time.h>
-#include <sys/file.h>
-#include <sys/signal.h>
-#include <syslog.h>
+#include <signal.h>
 #include <stdio.h>
-
-char *fillst[] = {
-	"/bin",
-	"/lib",
-	"/usr",
-	"/usr/bin",
-	"/usr/lib",
-	"/usr/ucb",
-	0,
-};
 
 main()
 {
-	struct itimerval	value;
-	register char	**f;
-	extern int	sync();
+	struct itimerval value;
+	void mysync();
 
-	if (fork())
-		exit(0);
-	(void)close(0);
-	(void)close(1);
-	(void)close(2);
-	for (f = fillst; *f; f++)
-		(void)open(*f, O_RDONLY, 0);
-	(void)signal(SIGALRM, sync);
-	value.it_interval.tv_sec = 60;
+	daemon(0, 0);
+
+	(void)signal(SIGALRM, mysync);
+
+	value.it_interval.tv_sec = 30;
 	value.it_interval.tv_usec = 0;
 	value.it_value = value.it_interval;
-	if (setitimer(ITIMER_REAL, &value, (struct itimerval *)NULL)) {
+	if (setitimer(ITIMER_REAL, &value, NULL)) {
 		perror("update: setitimer");
 		exit(1);
 	}
 	for (;;)
-		pause();
-	/*NOTREACHED*/
+		sigpause(sigblock(0L));
+	/* NOTREACHED */
+}
+
+void
+mysync()
+{
+	(void)sync();
 }

@@ -1,4 +1,4 @@
-#	Makefile	4.39.1.2	95/02/4
+#	Makefile	1.1 (2.11BSD GTE) 1995/05/02
 #
 DESTDIR=
 CFLAGS=	-O
@@ -7,8 +7,8 @@ SEPFLAG= -i
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
-	m4 neqn plot prof ranlib ratfor refer roff spell struct tbl tip uucp \
-	uname yacc
+	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
+	tip uucp uname yacc
 
 # Shell scripts that need only be installed and are never removed.
 #

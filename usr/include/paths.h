@@ -14,13 +14,14 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.3.3 (2.11BSD) 1995/04/01
+ *	@(#)pathnames.h	5.3.4 (2.11BSD) 1995/04/10
  */
 
 #define	_PATH_BSHELL	"/bin/sh"
 #define	_PATH_CSHELL	"/bin/csh"
 #define	_PATH_CP	"/bin/cp"
 #define	_PATH_RSH	"/usr/ucb/rsh"
+#define	_PATH_VI	"/usr/ucb/vi"
 #define	_PATH_CONSOLE	"/dev/console"
 #define	_PATH_DEVNULL	"/dev/null"
 #define	_PATH_TTY	"/dev/tty"
