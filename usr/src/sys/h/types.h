@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)types.h	1.3 (2.11BSD Berkeley) 11/26/94
+ *	@(#)types.h	1.4 (2.11BSD Berkeley) 1996/1/12
  */
 
 #ifndef _TYPES_
@@ -40,6 +40,7 @@ typedef	char *	caddr_t;
 typedef	u_short	ino_t;
 typedef	long	swblk_t;
 typedef	u_int	size_t;
+typedef	int	ssize_t;
 typedef	long	time_t;
 typedef	short	dev_t;
 typedef	long	off_t;

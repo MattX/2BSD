@@ -1,7 +1,7 @@
 /*
  * Public domain, June 1995
  *
- *	@(#)disklabel.c	1.2 (2.11BSD GTE) 1995/07/10
+ *	@(#)disklabel.c	1.3 (2.11BSD GTE) 1996/1/21
 */
 
 #define	DKTYPENAMES
@@ -423,7 +423,7 @@ dopartmods(lp, part)
 				if	(i < 0)
 					break;
 				if	(cyl)
-					off = lp->d_secpercyl * cyl;
+					off = (long)lp->d_secpercyl * cyl;
 				else
 					off = 0;
 				off += sec;
@@ -438,7 +438,7 @@ dopartmods(lp, part)
 				if	(i < 0)
 					break;
 				if	(cyl)
-					size = lp->d_secpercyl * cyl;
+					size = (long)lp->d_secpercyl * cyl;
 				else
 					size = 0;
 				size += sec;

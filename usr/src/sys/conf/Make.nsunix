@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.5	(2.11BSD GTE) 1995/12/24
+#	2.6	(2.11BSD GTE) 1996/1/11
 #
 #########################################################
 # Networking, separate I/D kernel			#
@@ -47,17 +47,12 @@ SUB=	sys pdp pdpuba pdpmba net pdpnet
 # NCONF	Network (network space) assembly binaries.  net_scb.o
 #		doesn't have to be first.
 
-CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
-	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_udiv.o libc_uldiv.o libc_ulsh.o \
-	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
+CONF=	scb.o \
+	mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_KScall.o mch_profile.o \
 	mch_start.o mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
 
-NCONF=	libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o libc_htonl.o \
-	libc_htons.o libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o \
-	libc_uldiv.o libc_ulsh.o \
-	libc_remque.o libc_strlen.o libc_udiv.o net_copy.o net_csv.o \
+NCONF=	net_copy.o net_csv.o \
 	net_mbuf.o net_scb.o net_SKcall.o net_trap.o net_xxx.o
 
 BASE=	br.o cons.o dh.o dhu.o dhv.o dr.o dz.o hk.o ht.o init_sysent.o \
@@ -90,7 +85,7 @@ LD_KOBJ=${CONF} ${BASE} \
 	-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4} -Z ${OV5} -Z ${OV6} \
 	-Z ${OV7} -Z ${OV8} -Z ${OV9} -Z ${OV10} -Z ${OV11} -Z ${OV12} \
 	-Z ${OV13} -Z ${OV14} -Z ${OV15} -Y \
-	enable34.o vers.o param.o
+	enable34.o vers.o -lkern param.o
 
 NETOBJ=	${NCONF} af.o idp_usrreq.o if.o if_acc.o if_css.o if_de.o \
 	if_dmc.o if_ec.o if_en.o if_ether.o if_il.o if_imp.o if_imphost.o \
@@ -111,7 +106,7 @@ unix: ${SUB} ${KERNOBJ} d.unix.o checksys
 	size unix
 	@echo Compacting symbol table
 	-symcompact unix
-	@echo Compacting strings table - this will take a few minutes
+	@echo Compacting strings table
 	-strcompact unix
 	@echo rearranging symbols
 	-symorder ../pdp/symbols.sort unix
@@ -119,7 +114,7 @@ unix: ${SUB} ${KERNOBJ} d.unix.o checksys
 
 # d.netnix.o must be the last object file in the dependency list!
 netnix: d.netnix.o
-	-ld -X -i -o netnix ${NETOBJ} d.netnix.o
+	-ld -X -i -o netnix ${NETOBJ} -lkern d.netnix.o
 	size netnix
 	@echo Compacting symbol table
 	-symcompact netnix
@@ -134,7 +129,7 @@ netnix: d.netnix.o
 # have enough table space.
 d.unix.o d.netnix.o: netbind FRC
 	ld -q -r -d -X -i -o unix.o ${LD_KOBJ}
-	ld -q -r -d -X -i -o netnix.o ${NETOBJ}
+	ld -q -r -d -X -i -o netnix.o ${NETOBJ} -lkern
 	./netbind unix.o netnix.o
 	rm unix.o netnix.o
 	${AS} - -o d.unix.o d.unix.s

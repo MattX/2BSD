@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota.h	7.1 (Berkeley) 6/4/86
+ *	@(#)quota.h	7.1.1 (2.11BSD) 1996/1/23
  */
 
 /*
@@ -115,6 +115,9 @@ struct	dquot *dquot, *dquotNDQUOT;
 int	ndquot;
 struct	dquot *discquota(), *inoquota(), *dqalloc(), *dqp();
 #endif
+
+#define	QUOTAFILENAME	"quotas"
+#define	QUOTAGROUP	"operator"
 
 /*
  * Definitions for the 'quota' system call.

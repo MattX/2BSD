@@ -40,10 +40,8 @@ SUB=	sys pdp pdpuba pdpmba
 # CONF	Non-network assembly binaries.  scb.o must be first!
 #		boot.o should be close to the end.
 
-CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
-	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_udiv.o libc_uldiv.o libc_ulsh.o \
-	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
+CONF=	scb.o \
+	mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_profile.o mch_start.o \
 	mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
 
@@ -76,7 +74,7 @@ LD_KOBJ=${CONF} ${BASE} \
 	-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4} -Z ${OV5} -Z ${OV6} \
 	-Z ${OV7} -Z ${OV8} -Z ${OV9} -Z ${OV10} -Z ${OV11} -Z ${OV12} \
 	-Z ${OV13} -Z ${OV14} -Z ${OV15} -Y \
-	vers.o param.o
+	vers.o -lkern param.o
 
 all: unix
 
@@ -85,7 +83,7 @@ unix: ${SUB} ${KERNOBJ} checksys
 	size unix
 	@echo Compacting symbol table
 	-symcompact unix
-	@echo Compacting strings table - this will take a few minutes
+	@echo Compacting strings table
 	-strcompact unix
 	@echo rearranging symbols
 	-symorder ../pdp/symbols.sort unix
