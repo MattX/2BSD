@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_put.c	7.9 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_put.c	7.9.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "ex.h"
@@ -91,8 +91,7 @@ listchar(c)
 }
 
 /*
- * Format c for printing.  Handle funnies of upper case terminals
- * and crocky hazeltines which don't have ~.
+ * Format c for printing.
  */
 normchar(c)
 	register short c;
@@ -100,10 +99,6 @@ normchar(c)
 	register char *colp;
 
 	c &= (TRIM|QUOTE);
-	if (c == '~' && HZ) {
-		normchar('\\');
-		c = '^';
-	}
 	if (c & QUOTE)
 		switch (c) {
 
@@ -119,19 +114,6 @@ normchar(c)
 		}
 	else if (c < ' ' && (c != '\b' || !OS) && c != '\n' && c != '\t' || c == DELETE)
 		putchar('^'), c = ctlof(c);
-	else if (UPPERCASE)
-		if (isupper(c)) {
-			outchar('\\');
-			c = tolower(c);
-		} else {
-			colp = "({)}!|^~'`";
-			while (*colp++)
-				if (c == *colp++) {
-					outchar('\\');
-					c = colp[-2];
-					break;
-				}
-		}
 	outchar(c);
 }
 

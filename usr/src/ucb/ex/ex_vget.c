@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_vget.c	6.8 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_vget.c	6.8.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "ex.h"
@@ -14,9 +14,8 @@ static char *sccsid = "@(#)ex_vget.c	6.8 (Berkeley) 6/7/85";
 
 /*
  * Input routines for open/visual.
- * We handle upper case only terminals in visual and reading from the
- * echo area here as well as notification on large changes
- * which appears in the echo area.
+ * We handle reading from the echo area here as well as notification on 
+ * large changes which appears in the echo area.
  */
 
 /*
@@ -65,9 +64,6 @@ int	doingread = 0;
  * comes back first.  Next comes unread input (e.g.
  * from repeating commands with .), and finally new
  * keystrokes.
- *
- * The hard work here is in mapping of \ escaped
- * characters on upper case only terminals.
  */
 getbr()
 {
@@ -144,50 +140,6 @@ again:
 	}
 #endif
 
-#ifdef UCVISUAL
-	/*
-	 * The algorithm here is that of the UNIX kernel.
-	 * See the description in the programmers manual.
-	 */
-	if (UPPERCASE) {
-		if (isupper(c))
-			c = tolower(c);
-		if (c == '\\') {
-			if (precbksl < 2)
-				precbksl++;
-			if (precbksl == 1)
-				goto again;
-		} else if (precbksl) {
-			d = 0;
-			if (islower(c))
-				d = toupper(c);
-			else {
-				colp = "({)}!|^~'~";
-				while (d = *colp++)
-					if (d == c) {
-						d = *colp++;
-						break;
-					} else
-						colp++;
-			}
-			if (precbksl == 2) {
-				if (!d) {
-					Peekkey = c;
-					precbksl = 0;
-					c = '\\';
-				}
-			} else if (d)
-				c = d;
-			else {
-				Peekkey = c;
-				precbksl = 0;
-				c = '\\';
-			}
-		}
-		if (c != '\\')
-			precbksl = 0;
-	}
-#endif
 #ifdef TRACE
 	if (trace) {
 		if (!techoin) {

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_tty.c	7.10 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_tty.c	7.10.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "ex.h"
@@ -28,7 +28,6 @@ gettmode()
 		value(SLOWOPEN) = tty.sg_ospeed < B1200;
 	ospeed = tty.sg_ospeed;
 	normf = tty.sg_flags;
-	UPPERCASE = (tty.sg_flags & LCASE) != 0;
 	GT = (tty.sg_flags & XTABS) != XTABS && !XT;
 	NONL = (tty.sg_flags & CRMOD) == 0;
 #else
@@ -38,7 +37,6 @@ gettmode()
 		value(SLOWOPEN) = (tty.c_cflag & CBAUD) < B1200;
 	ospeed = tty.c_cflag & CBAUD;
 	normf = tty;
-	UPPERCASE = (tty.c_iflag & IUCLC) != 0;
 	GT = (tty.c_oflag & TABDLY) != TAB3 && !XT;
 	NONL = (tty.c_oflag & ONLCR) == 0;
 #endif
@@ -53,7 +51,7 @@ char **sstrs[] = {
 	&AL_PARM, &DL_PARM, &UP_PARM, &DOWN_PARM, &LEFT_PARM, &RIGHT_PARM
 };
 bool *sflags[] = {
-	&AM, &BS, &DA, &DB, &EO, &HC, &HZ, &IN, &MI, &NC, &NS, &OS, &UL,
+	&AM, &BS, &DA, &DB, &EO, &HC, &IN, &MI, &NC, &NS, &OS, &UL,
 	&XB, &XN, &XT, &XX
 };
 char **fkeys[10] = {
@@ -187,7 +185,7 @@ zap()
 	register bool **fp;
 	register char ***sp;
 
-	namp = "ambsdadbeohchzinmincnsosulxbxnxtxx";
+	namp = "ambsdadbeohcinmincnsosulxbxnxtxx";
 	fp = sflags;
 	do {
 		*(*fp++) = tgetflag(namp);

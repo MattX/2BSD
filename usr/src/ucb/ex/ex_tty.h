@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ex_tty.h	7.5 (Berkeley) 5/31/85
+ *	@(#)ex_tty.h	7.5.1 (2.11BSD GTE) 12/9/94
  */
 
 /*
@@ -94,7 +94,6 @@ var	bool	DB;		/* Display may be retained below */
 var	bool	EO;		/* Can erase overstrikes with ' ' */
 var	bool	GT;		/* Gtty indicates tabs */
 var	bool	HC;		/* Hard copy terminal */
-var	bool	HZ;		/* Hazeltine ~ braindamage */
 var	bool	IN;		/* Insert-null blessing */
 var	bool	MI;		/* can move in insert mode */
 var	bool	NC;		/* No Cr - \r snds \r\n then eats \n (dm2500) */
@@ -112,7 +111,6 @@ var	bool	XX;		/* Tektronix 4025 insert line */
  * From the tty modes...
  */
 var	bool	NONL;		/* Terminal can't hack linefeeds doing a CR */
-var	bool	UPPERCASE;	/* Ick! */
 extern	short	LINES;		/* Number of lines on screen */
 extern	short	COLUMNS;
 var	short	OCOLUMNS;	/* Save COLUMNS for a hack in open mode */

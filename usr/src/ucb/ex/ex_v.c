@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_v.c	7.8 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_v.c	7.8.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "ex.h"
@@ -24,8 +24,7 @@ static char *sccsid = "@(#)ex_v.c	7.8 (Berkeley) 6/7/85";
  *		updating of screen after changes.
  *
  * ex_vget.c	input of single keys and reading of input lines
- *		from the echo area, handling of \ escapes on input for
- *		uppercase only terminals, handling of memory for repeated
+ *		from the echo area, handling of memory for repeated
  *		commands and small saved texts from inserts and partline
  *		deletes, notification of multi line changes in the echo
  *		area.

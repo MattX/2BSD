@@ -3,21 +3,19 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	7.13.1.1 (Berkeley) 8/12/86
+#	@(#)Makefile	7.13.1.2 (2.11BSD GTE) 12/9/94
 #
 VERSION=3.7
-#
-# Ex skeletal makefile for VAX VM/Unix 4.2BSD
 #
 # NB: This makefile doesn't indicate any dependencies on header files.
 #
 # Ex is very large - this version will not fit on PDP-11's without overlay
 # software.  Things that can be turned off to save
-# space include LISPCODE (-l flag, showmatch and lisp options), UCVISUAL
-# (visual \ nonsense on upper case only terminals), CHDIR (the undocumented
-# chdir command.)  VMUNIX makes ex considerably larger, raising many limits
-# and improving speed and simplicity of maintenance.  It is suitable only
-# for a VAX or other large machine, and then probably only in a paged system.
+# space include LISPCODE (-l flag, showmatch and lisp options), CHDIR (the 
+# undocumented chdir command.)  VMUNIX makes ex considerably larger, raising 
+# many limits and improving speed and simplicity of maintenance.  It is 
+# suitable only for a VAX or other large machine, and then probably only in 
+# a paged system.
 #
 # Don't define VFORK unless your system has the VFORK system call,
 # which is like fork but the two processes have only one data space until the
@@ -34,7 +32,7 @@ XSTR=	${BINDIR}/xstr
 DEBUGFLAGS=	-DTRACE -g
 NONDEBUGFLAGS=	-O
 DEB=	${NONDEBUGFLAGS}	# or ${DEBUGFLAGS} to to debug
-#OPTIONS= -DLISPCODE -DCHDIR -DUCVISUAL -DVFORK -DVMUNIX -DFASTTAG
+#OPTIONS= -DLISPCODE -DCHDIR -DVFORK -DVMUNIX -DFASTTAG
 OPTIONS= -DLISPCODE -DCHDIR -DVFORK -DFASTTAG
 CFLAGS=	-DTABS=8 ${OPTIONS} ${DEB}
 LDFLAGS= -X
@@ -49,15 +47,15 @@ OBJS=	ex.o ex_addr.o ex_cmds.o ex_cmds2.o ex_cmdsub.o \
 	ex_set.o ex_subr.o ex_tagio.o ex_temp.o ex_tty.o ex_unix.o \
 	ex_v.o ex_vadj.o ex_vget.o ex_vmain.o ex_voper.o \
 	ex_vops.o ex_vops2.o ex_vops3.o ex_vput.o ex_vwind.o \
-	printf.o bcopy.o strings.o
+	printf.o strings.o
 HDRS=	ex.h ex_argv.h ex_re.h ex_temp.h ex_tty.h ex_tune.h ex_vars.h ex_vis.h
 SRC1=	ex.c ex_addr.c ex_cmds.c ex_cmds2.c ex_cmdsub.c
 SRC2=	ex_data.c ex_get.c ex_io.c ex_put.c ex_re.c
 SRC3=	ex_set.c ex_subr.c ex_tagio.c ex_temp.c ex_tty.c ex_unix.c
 SRC4=	ex_v.c ex_vadj.c ex_vget.c ex_vmain.c ex_voper.c
 SRC5=	ex_vops.c ex_vops2.c ex_vops3.c ex_vput.c ex_vwind.c
-SRC6=	printf.c bcopy.c expreserve.c exrecover.c
-MISC=	makefile READ_ME rofix
+SRC6=	printf.c expreserve.c exrecover.c
+MISC=	makefile READ_ME
 VGRIND=	csh /usr/ucb/vgrind
 VHDR=	"Ex Version ${VERSION}"
 
@@ -105,20 +103,10 @@ ${OBJS}: ${HDRS}
 ex_vars.h:
 	csh makeoptions ${CFLAGS}
 
-bcopy.o:	bcopy.c
-	${CC} -c ${CFLAGS} bcopy.c
-
 # xstr: hands off!
 strings.o: strings
 	${XSTR}
-	-if [ X${SEPFLAG} = X-i ]; then \
-		${CC} -c -o strings.o xs.c; \
-	else \
-		${CC} -c -S xs.c; \
-		ed - <rofix xs.s; \
-		${AS} -o strings.o xs.s; \
-		rm xs.s; \
-	fi
+	${CC} -c -o strings.o xs.c
 	
 exrecover: exrecover.o ex_extern.o
 	${CC} ${SEPFLAG} ${CFLAGS} exrecover.o ex_extern.o -o exrecover
@@ -137,27 +125,18 @@ clean:
 	-rm -f a.out exrecover expreserve ex${VERSION}strings strings
 	-rm -f *.o x*.[cs] core errs trace
 
-# install a new version for testing in /usr/new
-ninstall: a.out
-	-rm -f ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/vi ${DESTDIR}${NBINDIR}/view
-	cp a.out ${DESTDIR}${NBINDIR}/ex
-#	-cp ex${VERSION}strings ${LIBDIR}/ex${VERSION}strings
-	ln ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/vi
-	ln ${DESTDIR}${NBINDIR}/ex ${DESTDIR}${NBINDIR}/view
-	chmod 1755 ${DESTDIR}${NBINDIR}/ex
-
 # install in standard place (/usr/ucb)
 install: a.out exrecover expreserve
 	-rm -f ${DESTDIR}/${BINDIR}/ex
 	-rm -f ${DESTDIR}/${BINDIR}/vi
 	-rm -f ${DESTDIR}/${BINDIR}/view
-	-rm -f ${DESTDIR}/${BINDIR}/edit
-	-rm -f ${DESTDIR}/${BINDIR}/e
+#	-rm -f ${DESTDIR}/${BINDIR}/edit
+#	-rm -f ${DESTDIR}/${BINDIR}/e
 	-rm -f ${DESTDIR}/usr/bin/ex
 	install -s -m 1755 a.out ${DESTDIR}/${BINDIR}/ex
 	cp ex${VERSION}strings ${DESTDIR}/${LIBDIR}/ex${VERSION}strings
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
+#	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
+#	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/vi
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/view
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/usr/bin/ex
@@ -166,21 +145,6 @@ install: a.out exrecover expreserve
 	install -s -o root -m 4755 expreserve ${DESTDIR}/${LIBDIR}/ex${VERSION}preserve
 # The following line normally fails.  This is OK.
 	-mkdir ${DESTDIR}/usr/preserve
-
-# move from /usr/new to /usr/ucb
-newucb: a.out
-	-rm -f ${DESTDIR}/${BINDIR}/ex
-	-rm -f ${DESTDIR}/${BINDIR}/vi
-	-rm -f ${DESTDIR}/${BINDIR}/edit
-	-rm -f ${DESTDIR}/${BINDIR}/e
-	-rm -f ${DESTDIR}/usr/bin/ex
-	mv ${DESTDIR}/${NBINDIR}/ex ${DESTDIR}/${NBINDIR}/ex
-	-rm -f ${DESTDIR}/${NBINDIR}/vi
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/vi
-	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/usr/bin/ex
-	chmod 1755 ${DESTDIR}/${BINDIR}/ex
 
 lint:
 	lint ${CFLAGS} ex.c ex_?*.c
@@ -201,6 +165,7 @@ print:
 	@ls -ls | ${PR}
 	@${CXREF} *.c | ${PR} -h XREF
 	@${PR} *.h *.c
+
 vgrind:
 	tee index < /dev/null
 	${VGRIND} -h ${VHDR} ${HDRS}

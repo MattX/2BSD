@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_vput.c	7.4 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_vput.c	7.4.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "ex.h"
@@ -58,7 +58,7 @@ vclrlin(l, tp)
 
 	vigoto(l, 0);
 	if ((hold & HOLDAT) == 0)
-		putchar(tp > dol ? ((UPPERCASE || HZ) ? '^' : '~') : '@');
+		putchar(tp > dol ? '~' : '@');
 	if (state == HARDOPEN)
 		sethard();
 	vclreol();
