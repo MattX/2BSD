@@ -1,5 +1,7 @@
 /*
  *	 C object code improver
+ *
+ *	@(#)	c20.c	2.0	(2.11BSD)	1996/6/12
  */
 
 #include "c2.h"
@@ -76,7 +78,8 @@ char **argv;
 	int nflag;
 	char	stspace[NSTK],
 		buf1[BUFSIZ],
-		buf2[BUFSIZ];
+		buf2[BUFSIZ],
+		stderrbuf[80];
 
 	if (argc>1 && argv[1][0]=='+') {
 		argc--;
@@ -89,6 +92,8 @@ char **argv;
 		argv++;
 		nflag++;
 	}
+	setbuffer(stderr, stderrbuf, sizeof (stderrbuf));
+
 	if (argc>1) {
 		if (freopen(argv[1], "r", stdin) == NULL) {
 			fprintf(stderr, "C2: can't find %s\n", argv[1]);

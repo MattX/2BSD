@@ -1,4 +1,4 @@
-/* static char sccsid[] = "@(#)cpp.c	1.8 5/16/84"; */
+/* static char sccsid[] = "@(#)cpp.c	1.8.1 1996/6/12"; */
 
 #ifdef FLEXNAMES
 #define	NCPS	128
@@ -165,7 +165,7 @@ STATIC 	FILE *mout;	/* file to place dependencies on */
 #define CONT  2
 #define BACK  3
 STATIC	int	ifno;
-# define NPREDEF 20
+# define NPREDEF 30
 STATIC	char *prespc[NPREDEF];
 STATIC	char **predef = prespc;
 STATIC	char *punspc[NPREDEF];
