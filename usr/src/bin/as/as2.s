@@ -1,10 +1,13 @@
+/ Sept 10, 1997 - fix coredump caused by using wrong error reporting
+/	calling convention in three places.
+
 	.globl	_signal, _close, _lseek, _unlink, _umask, _chmod, __exit
 	.globl	_write, _read, _brk, _end, _open, _creat, _realloc, _fchmod
 	.globl	pass1, hshsiz, outmod, dot, dotdot, error
 	.globl	checkeos, curfb, savdot, ch, line, savop, inbuf, errflg
 	.globl	fbptr, fbtbl, symnum, hshtab, symblk, symleft, dotrel
 	.globl	symtab, aexit, overlaid, defund, a.outp, passno, filerr
-	.globl	wrterr, argb, errore, errora, curfb, nxtfb, usymtab
+	.globl	wrterr, argb, curfb, nxtfb, usymtab
 	.globl	fin, fout, a.tmp1, ibufc, ibufp, obufp, outbuf, symbol
 	.globl	PSTENTSZ, SYMENTSZ, SYMBLKSZ, Newsym
 
@@ -1117,7 +1120,8 @@ opl11:					/ sys
 	cmp	r3,$1
 	ble	1f
 0:
-	jsr	pc,errora
+	mov	$'a,-(sp)
+	jsr	pc,error
 1:
 	bis	(sp)+,r2
 	jsr	pc,outw
@@ -1355,7 +1359,8 @@ checkreg:
 2:
 	rts	pc
 1:
-	jsr	pc,errora
+	mov	$'a,-(sp)
+	jsr	pc,error
 	clr	r2
 	clr	r3
 	rts	pc
@@ -1502,7 +1507,8 @@ esw1:
 binop:
 	cmpb	(sp),$'+
 	beq	1f
-	jsr	pc,errore
+	mov	$'e,-(sp)
+	jsr	pc,error
 1:
 	movb	r4,(sp)
 	br	advanc
