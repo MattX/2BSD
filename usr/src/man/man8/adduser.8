@@ -13,16 +13,16 @@
 .\" IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 .\" WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 .\"
-.\"	@(#)adduser.8	6.6 (Berkeley) 3/15/89
+.\"	@(#)adduser.8	6.6.1 (2.11BSD) 1996/10/23
 .\"
-.TH ADDUSER 8 "March 15, 1989"
+.TH ADDUSER 8 "October 23, 1996"
 .UC 4
 .SH NAME
 adduser \- procedure for adding new users
 .SH DESCRIPTION
 A new user must choose a login name, which must not already appear in
 .IR /etc/passwd or
-.IR /usr/lib/aliases .
+.IR /etc/aliases .
 It must also not begin with the hyphen (``-'') character.
 It is strongly recommended that it be all lower-case, and not contain
 the dot (``.'') character, as that tends to confuse mailers.

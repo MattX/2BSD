@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rdist.1	6.6 (Berkeley) 5/13/86
+.\"	@(#)rdist.1	6.6.1 (2.11BSD) 1996/10/22
 .\"
-.TH RDIST 1 "May 13, 1986"
+.TH RDIST 1 "October 22, 1996"
 .UC 6
 .ad
 .SH NAME
@@ -306,7 +306,7 @@ ${FILES} -> ${HOSTS}
 	install -R ;
 	except /usr/lib/${EXLIB} ;
 	except /usr/games/lib ;
-	special /usr/lib/sendmail "/usr/lib/sendmail -bz" ;
+	special /usr/sbin/sendmail "/usr/sbin/sendmail -bz" ;
 
 srcs:
 /usr/src/bin -> arpa

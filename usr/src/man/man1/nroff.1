@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)nroff.1	6.1 (Berkeley) 4/29/85
+.\"	@(#)nroff.1	6.1.1 (2.11BSD) 1996/10/22
 .\"
-.TH NROFF 1 "April 29, 1985"
+.TH NROFF 1 "October 22, 1996"
 .UC 5
 .SH NAME
 nroff \- text formatting
@@ -70,7 +70,7 @@ to allow paper loading or changing, and will resume upon receipt of a newline.
 .TP
 .BI \-m name
 Prepend the macro file
-.BI /usr/lib/tmac/tmac. name
+.BI /usr/share/tmac/tmac. name
 to the input
 .IR files .
 .TP
@@ -112,12 +112,12 @@ Use output tabs during horizontal spacing
 to speed output and reduce output character count.
 Tab settings are assumed to be every 8 nominal character widths.
 .SH FILES
-.ta \w'/usr/lib/tmac/tmac.*  'u
+.ta \w'/usr/share/tmac/tmac.*  'u
 /tmp/ta*	temporary file
 .br
-/usr/lib/tmac/tmac.*	standard macro files
+/usr/share/tmac/tmac.*	standard macro files
 .br
-/usr/lib/term/*	terminal driving tables for
+/usr/share/term/*	terminal driving tables for
 .I nroff
 .br
 .SH "SEE ALSO"

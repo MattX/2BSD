@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)bugfiler.8	6.2 (Berkeley) 5/20/86
+.\"	@(#)bugfiler.8	6.2.1 (2.11BSD) 1996/10/23
 .\"
-.TH BUGFILER 8 "May 20, 1986"
+.TH BUGFILER 8 "October 23, 1996"
 .UC 5
 .SH NAME
 bugfiler \- file bug reports in folders automatically
@@ -20,7 +20,7 @@ It is designed to be compatible with the Rand MH mail system.
 .I Bugfiler
 is normally invoked by the mail delivery program through
 .IR aliases (5)
-with a line such as the following in /usr/lib/aliases.
+with a line such as the following in /etc/aliases.
 .PP
 .DT
 	bugs:"|bugfiler /usr/bugs/mail"
@@ -73,9 +73,9 @@ The list may be continued onto multiple lines by ending each but the last
 with a backslash (`\e').
 .SH FILES
 .ta 2.5i
-/usr/lib/sendmail	mail delivery program
+/usr/sbin/sendmail	mail delivery program
 .br
-/usr/lib/unixtomh	converts unix mail format to mh format
+/usr/libexec/unixtomh	converts unix mail format to mh format
 .br
 maildir/.ack	the message sent in acknowledgement
 .br

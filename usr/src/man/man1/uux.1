@@ -1,6 +1,6 @@
-.\"	@(#)uux.1c	6.3 (Berkeley) 4/24/86
+.\"	@(#)uux.1	6.3.1 (2.11BSD) 1996/10/22
 .\"
-.TH UUX 1C "April 24, 1986"
+.TH UUX 1 "October 22, 1996"
 .AT 3
 .SH NAME
 uux \- unix to unix command execution
@@ -129,7 +129,7 @@ is the lowest grade.
 The default is 
 .BR A ;
 by comparison
-.IR uucp (1C)
+.IR uucp (1)
 defaults to
 .B n
 and mail is usually sent at grade
@@ -175,11 +175,11 @@ calls to be made to local sites only (see
 /usr/spool/uucp
 spool directories
 .TP
-/usr/lib/uucp/\(**
-UUCP configuration data and daemons
+/etc/uucp/\(**
+UUCP configuration data.
 .PD
 .SH SEE ALSO
-uucp(1C), uucico(8C), uuxqt(8C).
+uucp(1), uucico(8), uuxqt(8).
 .SH WARNING
 For security reasons, many installations will
 limit the list of

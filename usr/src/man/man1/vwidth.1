@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)vwidth.1	6.1 (Berkeley) 4/29/85
+.\"	@(#)vwidth.1	6.1.1 (2.11BSD) 1996/10/22
 .\"
-.TH VWIDTH 1 "April 29, 1985"
+.TH VWIDTH 1 "October 22, 1996"
 .UC 5
 .SH NAME
 vwidth \- make troff width table for a font
@@ -13,7 +13,7 @@ vwidth \- make troff width table for a font
 fontfile pointsize > ft\fIxx\fP.c
 .br
 .B cc -c ft\fIxx\fP.c
-mv ft\fIxx\fP.o /usr/lib/font/ft\fIxx\fP
+mv ft\fIxx\fP.o /usr/share/font/ft\fIxx\fP
 .SH DESCRIPTION
 .I Vwidth
 translates from the width information stored in the vfont style
@@ -39,7 +39,7 @@ and vwidth run.
 Vwidth produces a C program on its standard output.
 This program should be run through the C compiler and
 the object (that is, the .o file) saved.
-The resulting file should be placed in /usr/lib/font
+The resulting file should be placed in /usr/share/font
 in the file
 .RI ft xx
 where
@@ -47,7 +47,7 @@ where
 is a one or two letter code that is the logical (internal to troff)
 font name.
 This name can be found by looking in the file
-.RI /usr/lib/fontinfo/ fname *
+.RI /usr/share/fontinfo/ fname *
 where
 .I fname
 is the external name of the font.

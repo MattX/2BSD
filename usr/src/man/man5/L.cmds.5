@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)L.cmds.5	6.1 (Berkeley) 4/24/86
+.\"	@(#)L.cmds.5	6.1.1 (2.11BSD) 1996/10/22
 .\"
-.TH L.CMDS 5 "April 24, 1986"
+.TH L.CMDS 5 "October 22, 1996"
 .UC 6
 .SH NAME
 L.cmds \- UUCP remote command permissions file
@@ -13,7 +13,7 @@ The
 .I L.cmds
 file contains a list of commands, one per line, that are permitted
 for remote execution via
-.IR uux (1C).
+.IR uux (1).
 .PP
 The default search path is /bin:/usr/bin:/usr/ucb. To change the path,
 include anywhere in the file a line of the form:
@@ -67,16 +67,16 @@ and
 are extreme risks.
 .PP
 It is common (but hazardous) to include
-.IR uucp (1C)
+.IR uucp (1)
 in
 .IR L.cmds ;
 see the NOTES section of
 .IR USERFILE .
 .SH FILES
-.ta \w'/usr/lib/uucp/UUAIDS/L.cmds   'u
+.ta \w'/etc/uucp/UUAIDS/L.cmds   'u
 .nf
-/usr/lib/uucp/L.cmds
-/usr/lib/uucp/UUAIDS/L.cmds	L.cmds example.
+/etc/uucp/L.cmds
+/etc/uucp/UUAIDS/L.cmds	L.cmds example.
 .fi
 .SH SEE ALSO
-uucp(1C), uux(1C), USERFILE(5), uucico(8C), uuxqt(8C)
+uucp(1), uux(1), USERFILE(5), uucico(8), uuxqt(8)

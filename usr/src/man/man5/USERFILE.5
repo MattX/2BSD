@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)USERFILE.5	6.1 (Berkeley) 4/24/86
+.\"	@(#)USERFILE.5	6.1.1 (2.11BSD) 1996/10/22
 .\"
-.TH USERFILE 5 "April 24, 1986"
+.TH USERFILE 5 "October 22, 1996"
 .UC 6
 .SH NAME
 USERFILE \- \s-1UUCP\s0 pathname permissions file
@@ -51,11 +51,11 @@ and/or
 .IR system .
 .PP
 When
-.IR uucico (8C)
+.IR uucico (8)
 runs in master role or
-.IR uucp (1C)
+.IR uucp (1)
 or
-.IR uux (1C)
+.IR uux (1)
 are run by local users, the permitted pathnames are those on the
 first line with a
 .I loginname
@@ -140,13 +140,13 @@ that matches the real UID.
 4)
 If all of the above fail, the utility aborts.
 .SH FILES
-.ta \w'/usr/lib/uucp/UUAIDS/USERFILE   'u
+.ta \w'/etc/uucp/UUAIDS/USERFILE   'u
 .nf
-/usr/lib/uucp/USERFILE
-/usr/lib/uucp/UUAIDS/USERFILE	USERFILE example
+/etc/uucp/USERFILE
+/etc/uucp/UUAIDS/USERFILE	USERFILE example
 .fi
 .SH SEE ALSO
-uucp(1C), uux(1C), L.cmds(5), L.sys(5), uucico(8C), uuxqt(8C)
+uucp(1), uux(1), L.cmds(5), L.sys(5), uucico(8), uuxqt(8)
 .SH NOTES
 The \s-1UUCP\s0 utilities
 .RI ( uucico ,
@@ -185,9 +185,9 @@ If the wrong holes are left in other \s-1UUCP\s0 control files (notably
 .IR L.cmds ),
 it can be easy for an intruder to open files anywhere in the file system.
 Arguments to
-.IR uucp (1C)
+.IR uucp (1)
 are safe, since it assumes all of its non-option arguments are files.
-.IR Uux (1C)
+.IR Uux (1)
 cannot make such assumptions; hence, it is more dangerous.
 .SH BUGS
 The
@@ -209,5 +209,5 @@ as a valid path on the
 line used by
 .IR uuxqt .
 Otherwise, all
-.IR uux (1C)
+.IR uux (1)
 requests are rejected with a "PERMISSION DENIED" message.

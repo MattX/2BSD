@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)lpr.1	6.1 (Berkeley) 4/29/85
+.\"	@(#)lpr.1	6.1.1 (2.11BSD) 1996/10/22
 .\"
-.TH LPR 1 "April 29, 1985"
+.TH LPR 1 "October 22, 1996"
 .UC 4
 .SH NAME
 lpr \- off line print
@@ -163,13 +163,13 @@ The option
 .B \-1234
 Specifies a font to be mounted on font position \fIi\fR.  The daemon
 will construct a \fI.railmag\fR file referencing
-\fI/usr/lib/vfont/name.size\fR.
+\fI/usr/share/vfont/name.size\fR.
 .SH FILES
 .nf
 .ta \w'/usr/spool/*/cf*       'u
 /etc/passwd	personal identification
 /etc/printcap	printer capabilities data base
-/usr/lib/lpd*	line printer daemons
+/usr/sbin/lpd	line printer daemon
 /usr/spool/*	directories used for spooling
 /usr/spool/*/cf*	daemon control files
 /usr/spool/*/df*	data files specified in "cf" files

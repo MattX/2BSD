@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)vgrind.1	6.2 (Berkeley) 5/5/86
+.\"	@(#)vgrind.1	6.2.1 (2.11BSD) 1996/10/22
 .\"
-.TH VGRIND 1 "May 5, 1986"
+.TH VGRIND 1 "October 22, 1996"
 .UC 4
 .SH NAME
 vgrind \- grind nice listings of programs
@@ -114,7 +114,7 @@ specifies a particular header to put on every output page (default is
 the file name)
 .IP \fB\-d\fP
 specifies an alternate language definitions
-file (default is /usr/lib/vgrindefs)
+file (default is /usr/share/misc/vgrindefs)
 .IP \fB\-l\fP
 specifies the language to use.  Currently known are PASCAL
 .RB ( \-lp ),
@@ -139,11 +139,11 @@ and ICON
 .ta 2i
 index	file where source for index is created
 .br
-/usr/lib/tmac/tmac.vgrind	macro package
+/usr/share/tmac/tmac.vgrind	macro package
 .br
-/usr/lib/vfontedpr		preprocessor
+/usr/libexec/vfontedpr		preprocessor
 .br
-/usr/lib/vgrindefs		language descriptions
+/usr/share/misc/vgrindefs		language descriptions
 .SH AUTHOR
 Dave Presotto & William Joy
 .SH SEE ALSO

@@ -1,6 +1,6 @@
-.\"	@(#)man.7	6.3 (Berkeley) 5/15/86
+.\"	@(#)man.7	6.3.1 (2.11BSD) 1996/10/22
 .\"
-.TH MAN 7 "May 15, 1986"
+.TH MAN 7 "October 22, 1996"
 .AT 3
 .SH NAME
 man \- macros to typeset manual
@@ -15,7 +15,7 @@ file ...
 .SH DESCRIPTION
 These macros are used to lay out pages of this manual.
 A skeleton page may be found in the file 
-/usr/man/man0/xx.
+/usr/man/man.template.
 .PP
 Any text argument
 .I t
@@ -56,9 +56,9 @@ These strings are predefined by
 .IP \e*S
 Change to default type size.
 .SH FILES
-/usr/lib/tmac/tmac.an
+/usr/share/tmac/tmac.an
 .br
-/usr/man/man0/xx
+/usr/man/man.template
 .SH SEE ALSO
 troff(1), man(1)
 .SH BUGS

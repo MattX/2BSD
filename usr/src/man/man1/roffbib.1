@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)roffbib.1	6.2 (Berkeley) 5/7/86
+.\"	@(#)roffbib.1	6.2.1 (2.11BSD) 1996/10/22
 .\"
-.TH ROFFBIB 1 "May 7, 1986"
+.TH ROFFBIB 1 "October 22, 1996"
 .UC 5
 .SH NAME
 roffbib \- run off bibliographic database
@@ -69,7 +69,7 @@ There should be a space between the
 .B \-m
 and the macro filename.
 This set of macros will replace the ones
-defined in /usr/lib/tmac/tmac.bib.
+defined in /usr/share/tmac/tmac.bib.
 The
 .B \-V
 flag will send output to the Versatec; the
@@ -105,9 +105,9 @@ and
 flags
 the default page offset is already one inch.
 .SH FILES
-.ta \w'/usr/lib/tmac/tmac.bib\0\0'u
+.ta \w'/usr/share/tmac/tmac.bib\0\0'u
 .nf
-/usr/lib/tmac/tmac.bib	file of macros used by \fInroff/troff\fP
+/usr/share/tmac/tmac.bib	file of macros used by \fInroff/troff\fP
 .fi
 .SH SEE ALSO
 refer(1), addbib(1), sortbib(1), indxbib(1), lookbib(1)

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)msgs.1	6.3 (Berkeley) 5/9/86
+.\"	@(#)msgs.1	6.3.1 (2.11BSD) 1996/10/22
 .\"
-.TH MSGS 1 "May 9, 1986"
+.TH MSGS 1 "October 22, 1996"
 .UC 4
 .SH NAME
 msgs \- system messages and junk mail program
@@ -108,7 +108,7 @@ option is used for setting up the posting of messages.  The line
 msgs: "| /usr/ucb/msgs \-s"
 .PP
 should be include in
-.I /usr/lib/aliases
+.I /etc/aliases
 to enable posting of messages.
 .PP
 The
@@ -118,7 +118,7 @@ option is used for performing cleanup on
 An entry with the
 .B \-c
 option should be placed in
-.I /usr/lib/crontab
+.I /etc/crontab
 to run every night.  This will remove all messages over 21 days old.
 A different expiration may be specified on the command line to override
 the default.

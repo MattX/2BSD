@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mkstr.1	6.2 (Berkeley) 5/7/86
+.\"	@(#)mkstr.1	6.2.1 (2.11BSD) 1996/10/22
 .\"
-.TH MKSTR 1 "May 7, 1986"
+.TH MKSTR 1 "October 22, 1996"
 .UC
 .SH NAME
 mkstr \- create an error message file by massaging C source
@@ -59,7 +59,7 @@ pointer into the file which can be used to retrieve the message, i.e.:
 .IP
 .DT
 .nf
-\fBchar\fR	efilname[] =  "/usr/lib/pi_strings";
+\fBchar\fR	efilname[] =  "/usr/share/pascal/pi_strings";
 \fBint\fR	efil = -1;
 .sp
 error(a1, a2, a3, a4)

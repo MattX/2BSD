@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)L.aliases.5	6.2 (Berkeley) 5/10/86
+.\"	@(#)L.aliases.5	6.2.1 (2.11BSD) 1996/10/22
 .\"
-.TH L.ALIASES 5 "May 10, 1986"
+.TH L.ALIASES 5 "October 22, 1996"
 .UC 6
 .SH NAME
 L.aliases \- UUCP hostname alias file
@@ -33,7 +33,7 @@ All occurrences of
 are mapped to
 .I real_name
 by
-.IR uucico (8C),
+.IR uucico (8),
 .IR uucp (1),
 and
 .IR uux (1).
@@ -50,10 +50,10 @@ Aliased system names should not be placed in
 .IR L.sys ;
 they will not be used.
 .SH FILES
-.ta \w'/usr/lib/uucp/UUAIDS/L.aliases   'u
+.ta \w'/etc/uucp/UUAIDS/L.aliases   'u
 .nr
-/usr/lib/uucp/L.aliases
-/usr/lib/uucp/UUAIDS/L.aliases	L.aliases example
+/etc/uucp/L.aliases
+/etc/uucp/UUAIDS/L.aliases	L.aliases example
 .fi
 .SH SEE ALSO
-uucp(1C), uux(1C), L.sys(5), uucico(8C)
+uucp(1), uux(1), L.sys(5), uucico(8)

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mail.1	6.6 (Berkeley) 5/9/86
+.\"	@(#)mail.1	6.6.1 (2.11BSD) 1996/10/22
 .\"
-.TH MAIL 1 "May 9, 1986"
+.TH MAIL 1 "October 22, 1996"
 .UC 4
 .SH NAME
 mail \- send and receive mail
@@ -73,7 +73,7 @@ particularly useful when using
 on noisy phone lines.
 The
 .B \-n
-flag inhibits the reading of /usr/lib/Mail.rc.
+flag inhibits the reading of /etc/Mail.rc.
 .PP
 .I "Sending mail.\ "
 To send a message to one or more people,
@@ -208,7 +208,7 @@ The current list of such aliases can be displayed with the
 command in
 .IR mail .
 System wide distribution lists can be created by editing
-/usr/lib/aliases, see
+/etc/aliases, see
 .IR aliases (5)
 and
 .IR sendmail (8);
@@ -658,9 +658,8 @@ The binary options include the following:
 Causes messages saved in
 .I mbox
 to be appended to the end rather than prepended.
-(This is set in
-/usr/lib/Mail.rc
-on version 7 systems.)
+(This is set in /etc/Mail.rc
+on 2.11BSD systems.)
 .TP
 .B ask
 Causes
@@ -817,9 +816,9 @@ command; normally, the first five lines are printed.
 .br
 /tmp/R#	temporary for editor escape
 .br
-/usr/lib/Mail.help*	help files
+/usr/share/misc/Mail.help*	help files
 .br
-/usr/lib/Mail.rc	system initialization file
+/etc/Mail.rc	system initialization file
 .br
 Message*	temporary for editing messages
 .SH "SEE ALSO"

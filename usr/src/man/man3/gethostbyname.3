@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)gethostbyname.3	6.9 (Berkeley) 4/5/88
+.\"	@(#)gethostbyname.3	6.9.1 (2.11BSD) 1996/10/30
 .\"
-.TH GETHOSTBYNAME 3N "April 5, 1988"
+.TH GETHOSTBYNAME 3 "October 30, 1996"
 .UC 5
 .SH NAME
 gethostbyname, gethostbyaddr, gethostent, sethostent, endhostent, herror \- get network host entry
@@ -87,7 +87,7 @@ When using the nameserver,
 .I gethostbyname
 will search for the named host in the current domain and its parents
 unless the name ends in a dot.
-If the name contains no dot, and if the environment variable ``HOSTALAIASES''
+If the name contains no dot, and if the environment variable ``HOSTALIASES''
 contains the name of an alias file, the alias file will first be searched
 for an alias matching the input name.
 See
