@@ -4,14 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)mv.c	5.3 (Berkeley) 5/15/86";
+static char sccsid[] = "@(#)mv.c	5.3.1 (2.11BSD) 1996/1/5";
 #endif not lint
 
 /*
@@ -40,7 +38,6 @@ char	*dname();
 struct	stat s1, s2;
 int	iflag = 0;	/* interactive mode */
 int	fflag = 0;	/* force overwriting */
-extern	unsigned errno;
 
 main(argc, argv)
 	register char *argv[];
