@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.3 (2.11BSD GTE) 1/6/95
+ *	@(#)sys_inode.c	1.5 (2.11BSD GTE) 1995/05/21
  */
 
 #include "param.h"
@@ -486,7 +486,7 @@ ino_close(fp)
 			u.u_error = EINTR;	/* ??? */
 		return;
 	}
-	(*cfunc)(dev, flag);
+	(*cfunc)(dev, flag, mode);
 }
 
 /*
@@ -640,7 +640,7 @@ openi(ip, mode)
 					return(EPERM);
 			}
 		}
-		return ((*cdevsw[maj].d_open)(dev, mode));
+		return ((*cdevsw[maj].d_open)(dev, mode, S_IFCHR));
 
 	case IFBLK:
 		if ((u_int)maj >= nblkdev)
@@ -667,7 +667,7 @@ openi(ip, mode)
 		if (securelevel > 0 && (error = ufs_mountedon(dev)))
 			return(error);
 #endif
-		return ((*bdevsw[maj].d_open)(dev, mode));
+		return ((*bdevsw[maj].d_open)(dev, mode, S_IFBLK));
 	}
 	return (0);
 }

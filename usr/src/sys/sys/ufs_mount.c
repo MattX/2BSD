@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.3 (2.11BSD GTE) 1/6/95
+ *	@(#)ufs_mount.c	1.5 (2.11BSD GTE) 1995/05/21
  */
 
 #include "param.h"
@@ -18,6 +18,7 @@
 #include "file.h"
 #include "namei.h"
 #include "conf.h"
+#include "stat.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
@@ -81,7 +82,7 @@ mountfs(dev, flags, ip)
 	int needclose = 0;
 
 	error =
-	    (*bdevsw[major(dev)].d_open)(dev, ronly ? FREAD : FREAD|FWRITE);
+	    (*bdevsw[major(dev)].d_open)(dev, ronly ? FREAD : FREAD|FWRITE, S_IFBLK);
 	if (error)
 		goto out;
 	needclose = 1;
@@ -133,7 +134,8 @@ out:
 	if (tp)
 		brelse(tp);
 	if (needclose) {
-		(*bdevsw[major(dev)].d_close)(dev, ronly? FREAD : FREAD|FWRITE);
+		(*bdevsw[major(dev)].d_close)(dev, 
+			ronly? FREAD : FREAD|FWRITE, S_IFBLK);
 		binval(dev);
 	}
 	u.u_error = error;
@@ -189,7 +191,7 @@ found:
 	irele(ip);
 	mp->m_inodp = 0;
 	mp->m_dev = 0;
-	(*bdevsw[major(dev)].d_close)(dev, 0);
+	(*bdevsw[major(dev)].d_close)(dev, 0, S_IFBLK);
 	binval(dev);
 	return (0);
 }

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	1.7 (2.11BSD GTE) 1/6/95
+ *	@(#)init_main.c	1.9 (2.11BSD GTE) 1995/05/22
  */
 
 #include "param.h"
@@ -14,9 +14,11 @@
 #include "mount.h"
 #include "map.h"
 #include "proc.h"
+#include "ioctl.h"
 #include "inode.h"
 #include "conf.h"
 #include "buf.h"
+#include "fcntl.h"
 #include "vm.h"
 #include "clist.h"
 #include "uba.h"
@@ -24,6 +26,8 @@
 #include "systm.h"
 #include "kernel.h"
 #include "namei.h"
+#include "disklabel.h"
+#include "stat.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
@@ -57,6 +61,8 @@ main()
 	register struct fs *fs;
 	time_t  toytime, toyclk();
 	daddr_t swsize;
+	int	(*ioctl)();
+	struct	partinfo dpart;
 
 	startup();
 
@@ -147,10 +153,24 @@ main()
  * 'swplo' was a hack which has _finally_ gone away!  It was never anything
  * but 0 and caused a number of double word adds in the kernel.
 */
-	(*bdevsw[major(swapdev)].d_open)(swapdev, B_READ|B_WRITE);
+	(*bdevsw[major(swapdev)].d_open)(swapdev, FREAD|FWRITE, S_IFBLK);
 	swsize = (*bdevsw[major(swapdev)].d_psize)(swapdev);
-	if	(swsize < 0)
-		panic("swsize");	/* don't want to panic, but what ? */
+	if	(swsize <= 0)
+		panic("swsiz");		/* don't want to panic, but what ? */
+
+/*
+ * Next we make sure that we do not swap on a partition unless it is of
+ * type FS_SWAP.  If the driver does not have an ioctl entry point or if
+ * retrieving the partition information fails then the driver does not 
+ * support labels and we proceed normally, otherwise the partition must be
+ * a swap partition (so that we do not swap on top of a filesystem by mistake).
+*/
+	ioctl = cdevsw[major(swapdev)].d_ioctl;
+	if	(ioctl && !(*ioctl)(swapdev, DIOCGPART, (caddr_t)&dpart, FREAD))
+		{
+		if	(dpart.part->p_fstype != FS_SWAP)
+			panic("swtyp");
+		}
 	if	(swsize > (daddr_t)65535)
 		swsize = 65535;
 	nswap = swsize;
@@ -180,7 +200,7 @@ main()
 
 #ifdef INET
 	if (netoff = netinit())
-		printf("Network init failed\n");
+		printf("netinit failed\n");
 	else
 		NETSTART();
 #endif
