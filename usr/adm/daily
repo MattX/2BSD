@@ -1,12 +1,12 @@
 #! /bin/sh -
-PATH=/usr/local:/usr/ucb:/bin:/usr/bin:/etc
+PATH=/usr/sbin:/usr/local:/usr/ucb:/bin:/usr/bin
 echo "Subject: daily run output"
 echo ""
 msgs -c
 
 echo ""
 echo "Purging accounting records:"
-/etc/sa -sfv10 > /dev/null
+sa -sfv10 > /dev/null
 
 echo ""
 echo "Running calendar:"
@@ -57,7 +57,7 @@ mv debuglog    debuglog.0
 cp /dev/null debuglog
 chmod 644    debuglog
 
-kill -1 `cat /etc/syslog.pid`
+kill -1 `cat /var/run/syslog.pid`
 cd /
 
 echo ""

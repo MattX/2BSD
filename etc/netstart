@@ -1,8 +1,8 @@
 #!/bin/sh -
 
-#	@(#)netstart	5.2 (Berkeley) 7/16/88
+#	@(#)netstart	5.2.1 (2.11BSD) 1996/11/16
 
-INET=`/etc/testnet`
+INET=`testnet`
 if [ $INET = YES ]; then
 	echo Assuming NETWORKING system ...		>/dev/console 2>&1
 else

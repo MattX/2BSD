@@ -1,10 +1,10 @@
 #! /bin/sh -
-PATH=/usr/local:/usr/ucb:/bin:/usr/bin:/etc
+PATH=/usr/sbin:/usr/local:/usr/ucb:/bin:/usr/bin
 echo "Subject: monthly run output"
 
 echo ""
 echo "Doing login accounting:"
-/etc/ac -p | sort -nr +1
+ac -p | sort -nr +1
 
 echo ""
 echo "Rotating wtmp file:"
