@@ -14,13 +14,12 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.4 (2.11BSD GTE) 1/2/94
+# @(#)Makefile	5.4.1 (2.11BSD GTE) 1995/04/13
 #
 
-# DEFS=	-DLIBC_SCCS
 CFLAGS=	-O ${DEFS}
-SRCS=	login.c logout.c logwtmp.c
-OBJS=	login.o logout.o logwtmp.o
+SRCS=	login.c logout.c logwtmp.c dkcksum.c
+OBJS=	login.o logout.o logwtmp.o dkcksum.o
 
 .c.o:
 	@${CC} -p ${CFLAGS} -c $*.c
