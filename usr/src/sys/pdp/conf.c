@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.4 (2.11BSD GTE) 2/15/95
+ *	@(#)conf.c	2.7 (2.11BSD GTE) 1995/06/19
  */
 
 #include "param.h"
@@ -94,13 +94,13 @@ int	htopen(), htclose(), htstrategy(), htioctl();
 
 #include "rl.h"
 #if NRL > 0
-int	rlopen(), rlstrategy(), rlroot();
+int	rlopen(), rlstrategy(), rlroot(), rlclose(), rlioctl();
 daddr_t	rlsize();
-#define	rlclose		nulldev
 #else
 #define	rlroot		nulldev
 #define	rlopen		nodev
 #define	rlclose		nodev
+#define	rlioctl		nodev
 #define	rlstrategy	nodev
 #define	rlsize		NULL
 #endif
@@ -140,12 +140,12 @@ daddr_t	sisize();
 
 #include "ra.h"
 #if NRAC > 0
-int	rastrategy(), raroot(), raopen();
+int	rastrategy(), raroot(), raopen(), raclose(), raioctl();
 daddr_t	rasize();
-#define	raclose		nulldev
 #else
 #define	raopen		nodev
 #define	raclose		nodev
+#define	raioctl		nodev
 #define	raroot		nulldev
 #define	rastrategy	nodev
 #define	rasize		nodev
@@ -411,7 +411,7 @@ struct cdevsw	cdevsw[] = {
 	hkstrategy,
 /* ra = 14 */
 	raopen,		raclose,	rawrw,		rawrw,
-	nodev,		nulldev,	0,		seltrue,
+	raioctl,	nulldev,	0,		seltrue,
 	rastrategy,
 /* rk = 15 */
 	rkopen,		rkclose,	rawrw,		rawrw,
@@ -419,7 +419,7 @@ struct cdevsw	cdevsw[] = {
 	rkstrategy,
 /* rl = 16 */
 	rlopen,		rlclose,	rawrw,		rawrw,
-	nodev,		nulldev,	0,		seltrue,
+	rlioctl,	nulldev,	0,		seltrue,
 	rlstrategy,
 /* rx = 17 */
 	rxopen,		rxclose,	rawrw,		rawrw,

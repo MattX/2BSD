@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.3 (2.11BSD GTE) 2/15/95
+ *	@(#)machdep2.c	2.4 (2.11BSD GTE) 1995/05/01
  */
 
 #include "param.h"
@@ -30,6 +30,7 @@
 #include "ra.h"
 #include "tms.h"
 #include "ingres.h"
+#include "disklabel.h"
 
 #if	NINGRES > 0
 #include <sys/ingreslock.h>
@@ -193,6 +194,11 @@ register int B;
 		Locktabseg.se_desc = ((C - 1) << 8) | RW;
 #undef  C
 #endif
+
+/*
+ * Allocate the initial disklabels.
+*/
+	(void) initdisklabels();
 
 #if NRAM > 0
 	ramsize = raminit();
@@ -440,3 +446,31 @@ _iomap(addr)
 	return(((ubadr_t)(addr - _iostart) << 6) + _ioumr);
 	}
 #endif NRAC
+
+#define	NLABELS	6
+
+	memaddr	_dlabelbase;
+	int	_dlabelnum = NLABELS;
+
+void
+initdisklabels()
+	{
+#define	C	(NLABELS * (btoc(sizeof (struct disklabel))))
+
+	_dlabelbase = malloc(coremap, C);
+	}
+
+memaddr
+disklabelalloc()
+	{
+	register memaddr base;
+
+	if	(--_dlabelnum)
+		{
+		base = _dlabelbase;
+		_dlabelbase += btoc(sizeof (struct disklabel));
+		return(base);
+		}
+	base = malloc(coremap, btoc (sizeof (struct disklabel)));
+	return(base);
+	}
