@@ -1,4 +1,4 @@
-char *xxxvers[] = "\n FORTRAN 77 DRIVER, VERSION 1.13+,   24 SEP 1982\n";
+char *xxxvers[] = "\n FORTRAN 77 DRIVER, VERSION 1.13.1+,   09 JUN 1995\n";
 
 #include <stdio.h>
 #include <ctype.h>
@@ -268,7 +268,8 @@ for(i = 0 ; i<argc ; ++i)
 
 			if(macroflag)
 				{
-				if(sys(sprintf(buff, "%s %s >%s", macroname, infname, prepfname) ))
+				sprintf(buff, "%s %s >%s", macroname, infname, prepfname);
+				if (sys(buff))
 					{
 					rmf(prepfname);
 					erred = YES;
@@ -442,10 +443,14 @@ obj = setdoto(s);
 #ifdef PASS2OPT
 if(optimflag)
 	{
-	if( sys(sprintf(buff, "%s %s %s", PASS2OPT, asmpass2, optzfname)) )
+	sprintf(buff, "%s %s %s", PASS2OPT, asmpass2, optzfname);
+	if (sys(buff))
 		rmf(optzfname);
 	else
-		sys(sprintf(buff,"mv %s %s", optzfname, asmpass2));
+		{
+		sprintf(buff,"mv %s %s", optzfname, asmpass2);
+		sys(buff);
+		}
 	}
 #endif
 #endif
@@ -454,11 +459,11 @@ if(saveasmflag)
 	{
 	*lastc = 's';
 #if TARGET == INTERDATA
-	sys( sprintf(buff, "cat %s %s %s >%s",
-		asmfname, setfname, asmpass2, obj) );
+	sprintf(buff, "cat %s %s %s >%s", asmfname, setfname, asmpass2, obj);
+	sys(buff);
 #else
-	sys( sprintf(buff, "cat %s %s >%s",
-			asmfname, asmpass2, obj) );
+	sprintf(buff, "cat %s %s >%s", asmfname, asmpass2, obj);
+	sys(buff);
 #endif
 	*lastc = 'o';
 	}
@@ -472,7 +477,8 @@ else
 
 #if TARGET == VAX
 	/* vax assembler currently accepts only one input file */
-	sys(sprintf(buff, "cat %s >>%s", asmpass2, asmfname));
+	sprintf(buff, "cat %s >>%s", asmpass2, asmfname);
+	sys(buff);
 	sprintf(buff, "%s -o %s %s", asmname, obj, asmfname);
 #endif
 
@@ -536,9 +542,10 @@ if(debugflag)
 #if HERE==INTERDATA
 	if(optimflag)
 		{
-		char buff[100];
-		if( sys(sprintf(buff, "nopt %s -o junk.%d", aoutname, pid))
-		 || sys(sprintf(buff, "mv junk.%d %s", pid, aoutname)) )
+		char bufa[100], bufb[100];
+		sprintf(bufa, "nopt %s -o junk.%d", aoutname, pid);
+		sprintf(bufb, "mv junk.%d %s", pid, aoutname);
+		if (sys(bufa) || sys(bufb))
 			err("bad optimization");
 		}
 #endif
@@ -961,7 +968,8 @@ static fatal1(t,d)
 char *t, *d;
 {
 char buff[100];
-fatal( sprintf(buff, t, d) );
+sprintf(buff, t, d);
+fatal(buff);
 }
 
 
@@ -1006,7 +1014,8 @@ ovlen = 0;
 totlen = 0;
 nch = 0;
 
-if(status = sys( sprintf(buff, "sort %s >%s", initfname, sortfname) ) )
+sprintf(buff, "sort %s >%s", initfname, sortfname);
+if (status = sys(buff))
 	fatal1("call sort status = %d", status);
 if( (sortfile = fopen(sortfname, "r")) == NULL)
 	badfile(sortfname);

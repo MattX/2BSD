@@ -1,3 +1,8 @@
+/*
+ * 1995/06/09.  sprintf() returns an int (since patch #233) rather
+ * 	   a "char *".  
+*/
+
 #include "defs"
 #include "string_defs"
 #if FAMILY == DMR
@@ -29,7 +34,8 @@ int type;
 	p2op(P2RETURN);
 #endif
 #if FAMILY==SCJ
-	p2pass(sprintf(textline, "\tjmp\tcret"));
+	sprintf(textline, "\tjmp\tcret");
+	p2pass(textline);
 #endif
 }
 
@@ -70,7 +76,8 @@ int m, n;
 	putstmt();
 #endif
 #if FAMILY == SCJ
-	p2pass(sprintf(textline, "\tmov\t%d.(r5),%d.(r4)", m, n));
+	sprintf(textline, "\tmov\t%d.(r5),%d.(r4)", m, n);
+	p2pass(textline);
 #endif
 }
 
@@ -154,16 +161,22 @@ putforce(p->vtype, p);
 if(p->vtype == TYLONG)
 	{
 	regno = 1;
-	p2pass(sprintf(textline, "\ttst\tr0"));
-	p2pass(sprintf(textline, "\tbne\tL%d", skiplabel));
+	sprintf(textline, "\ttst\tr0");
+	p2pass(textline);
+	sprintf(textline, "\tbne\tL%d", skiplabel);
+	p2pass(textline);
 	}
 else
 	regno = 0;
 
-p2pass(sprintf(textline, "\tcmp\tr%d,$%d.", regno, nlab));
-p2pass(sprintf(textline, "\tbhi\tL%d", skiplabel));
-p2pass(sprintf(textline, "\tasl\tr%d", regno));
-p2pass(sprintf(textline, "\tjmp\t*L%d(r%d)", labarray, regno));
+sprintf(textline, "\tcmp\tr%d,$%d.", regno, nlab);
+p2pass(textline);
+sprintf(textline, "\tbhi\tL%d", skiplabel);
+p2pass(textline);
+sprintf(textline, "\tasl\tr%d", regno);
+p2pass(textline);
+sprintf(textline, "\tjmp\t*L%d(r%d)", labarray, regno);
+p2pass(textline);
 }
 
 
@@ -176,23 +189,34 @@ register int ptype;
 putforce( ptype = p->vtype, p);
 if( ISINT(ptype) )
 	{
-	p2pass(sprintf(textline, "\ttst\tr0"));
-	p2pass(sprintf(textline, "\tjlt\tL%d", neg));
-	p2pass(sprintf(textline, "\tjgt\tL%d", pos));
+	sprintf(textline, "\ttst\tr0");
+	p2pass(textline);
+	sprintf(textline, "\tjlt\tL%d", neg);
+	p2pass(textline);
+	sprintf(textline, "\tjgt\tL%d", pos);
+	p2pass(textline);
 	if(ptype != TYSHORT)
 		{
-		p2pass(sprintf(textline, "\ttst\tr1"));
-		p2pass(sprintf(textline, "\tjeq\tL%d", zer));
+		sprintf(textline, "\ttst\tr1");
+		p2pass(textline);
+		sprintf(textline, "\tjeq\tL%d", zer);
+		p2pass(textline);
 		}
-	p2pass(sprintf(textline, "\tjbr\tL%d", pos));
+	sprintf(textline, "\tjbr\tL%d", pos);
+	p2pass(textline);
 	}
 else
 	{
-	p2pass(sprintf(textline, "\ttstf\tr0"));
-	p2pass(sprintf(textline, "\tcfcc"));
-	p2pass(sprintf(textline, "\tjeq\tL%d", zer));
-	p2pass(sprintf(textline, "\tjlt\tL%d", neg));
-	p2pass(sprintf(textline, "\tjmp\tL%d", pos));
+	sprintf(textline, "\ttstf\tr0");
+	p2pass(textline);
+	sprintf(textline, "\tcfcc");
+	p2pass(textline);
+	sprintf(textline, "\tjeq\tL%d", zer);
+	p2pass(textline);
+	sprintf(textline, "\tjlt\tL%d", neg);
+	p2pass(textline);
+	sprintf(textline, "\tjmp\tL%d", pos);
+	p2pass(textline);
 	}
 }
 
@@ -265,7 +289,8 @@ prendproc()
 prtail()
 {
 #if FAMILY == SCJ
-	p2pass(sprintf(textline, "\t.globl\tcsv,cret"));
+	sprintf(textline, "\t.globl\tcsv,cret");
+	p2pass(textline);
 #else
 	p2op(P2EOF);
 #endif
@@ -299,14 +324,18 @@ if(procclass == CLBLOCK)
 if(profileflag)
 	proflab = newlabel();
 #if FAMILY == SCJ
-	p2pass(sprintf(textline, "\tjsr\tr5,csv"));
+	sprintf(textline, "\tjsr\tr5,csv");
+	p2pass(textline);
 	if(profileflag)
 		{
 		fprintf(asmfile, ".data\nL%d:\t_%s+1\n.bss\n", proflab, funcname);
-		p2pass(sprintf(textline, "\tmov\t$L%d,r0", proflab));
-		p2pass(sprintf(textline, "\tjsr\tpc,mcount"));
+		sprintf(textline, "\tmov\t$L%d,r0", proflab);
+		p2pass(textline);
+		sprintf(textline, "\tjsr\tpc,mcount");
+		p2pass(textline);
 		}
-	p2pass(sprintf(textline, "\tsub\t$.F%d,sp", procno));
+	sprintf(textline, "\tsub\t$.F%d,sp", procno);
+	p2pass(textline);
 #else
 	p2op(P2SAVE);
 	if(profileflag) {
@@ -376,7 +405,8 @@ prentry(s)
 char *s;
 {
 #if FAMILY == SCJ
-	p2pass(sprintf(textline, "_%s:", s));
+	sprintf(textline, "_%s:", s);
+	p2pass(textline);
 #else
 	p2op(P2RLABEL);
 	putc('_', textfile);
@@ -391,8 +421,10 @@ addreg(k)
 int k;
 {
 #if FAMILY == SCJ
-	p2pass(sprintf(textline, "\tmov\tr5,r4"));
-	p2pass(sprintf(textline, "\tadd\t$%d.,r4", k));
+	sprintf(textline, "\tmov\tr5,r4");
+	p2pass(textline);
+	sprintf(textline, "\tadd\t$%d.,r4", k);
+	p2pass(textline);
 #else
 	p2reg(ARGREG, P2SHORT);
 	p2reg(AUTOREG, P2SHORT);
@@ -449,9 +481,9 @@ if(procclass != CLBLOCK)
 for(hp = hashtab ; hp<lasthash ; ++hp)
     if(p = hp->varp)
 	{
-	s = NULL;
+	buff[0] = '\0';
 	if(p->vstg == STGARG)
-		s = sprintf(buff, "%o", p->vardesc.varno+argloc);
+		sprintf(buff, "%o", p->vardesc.varno+argloc);
 	else if(p->vclass == CLVAR)
 		switch(p->vstg)
 			{
@@ -460,20 +492,20 @@ for(hp = hashtab ; hp<lasthash ; ++hp)
 			case STGEQUIV:
 				t = memname(p->vstg, p->vardesc.varno);
 				if(p->voffset)
-					s = sprintf(buff, "%s+%o", t, p->voffset);
+					sprintf(buff, "%s+%o", t, p->voffset);
 				else
-					s = sprintf(buff, "%s", t);
+					sprintf(buff, "%s", t);
 				break;
 
 			case STGAUTO:
-				s = sprintf(buff, "%o", p->voffset);
+				sprintf(buff, "%o", p->voffset);
 				break;
 
 			default:
 				break;
 			}
-	if(s)
-		fprintf(asmfile, "~%s = %s\n", varstr(VL,p->varname), s);
+	if (buff[0])
+		fprintf(asmfile, "~%s = %s\n", varstr(VL,p->varname), buff);
 	}
 fprintf(asmfile, "~~:\n");
 }

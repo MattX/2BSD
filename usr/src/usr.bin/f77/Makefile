@@ -2,7 +2,7 @@
 #	generating code for the PDP11,
 #	using the Ritchie pass 2
 #
-#	3/8/85  WEB
+#	1995/06/09 - 2.11BSD
 #
 
 AS=		as -V
@@ -73,14 +73,10 @@ gram.c:		gram.head gram.dcl gram.expr gram.exec gram.io tokdefs
 #	Remove error strings
 		mkstr - f77_strings xx $*.c
 		${CC} -S ${CFLAGS} xx$*.c
-		mv xx$*.s $*.s
 #	Move switch code to text space
-		-if [ X${SEPFLAG} = X-n ]; then ed - $*.s < :rofix; fi
-		rm xx$*.c
-		${C2} $*.s x.s
-		mv x.s $*.s
-		${AS} - -o $*.o $*.s
-		rm $*.s
+		-if [ X${SEPFLAG} = X-n ]; then ed - xx$*.s < :rofix; fi
+		${C2} xx$*.s | ${AS} -u -o $*.o
+		rm xx$*.c xx$*.s
 
 driver.o:
 pdp11x.o:
