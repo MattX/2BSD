@@ -1,0 +1,71 @@
+50c50
+< OV6 =	ts.o xp.o dh.o hs.o
+---
+> OV6 =	ts.o xp.o dh.o hs.o ra.o rd.o r5.o cn.o pc.o prostuff.o
+140,141c140,141
+< c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h
+< c.o: lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+---
+> c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dz.h cn.h pc.h hk.h ra.h rd.h
+> c.o: r5.h hp.h pty.h tm.h xp.h kl.h
+148,149c148,149
+< ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h
+< ioconf.o: ${I}/sys/hpreg.h
+---
+> ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h ra.h
+> ioconf.o: rd.h r5.h pc.h cn.h ${I}/sys/hpreg.h
+601a602
+> vp.o: ${I}/sys/proc.h ${I}/sys/vcmd.h
+605a607,658
+> 
+> ra.o: ../dev/ra.c
+> ra.o: ra.h ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/buf.h
+> ra.o: ${I}/sys/conf.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/inline.h
+> ra.o: ${I}/sys/map.h ${I}/sys/vm.h ${I}/sys/rareg.h
+> 	${C} ../dev/ra.c
+> 	${E} ra.s
+> 	${A} ra.o ra.s
+> 	-rm ra.s
+> 
+> rd.o: ../dev/rd.c
+> rd.o: rd.h ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/buf.h
+> rd.o: ${I}/sys/dir.h ${I}/sys/conf.h ${I}/sys/user.h ${I}/sys/seg.h
+> rd.o: ${I}/sys/inline.h ${I}/sys/dkbad.h ${I}/sys/ivecpos.h
+> rd.o: ${I}/sys/rdreg.h
+> 	${C} ../dev/rd.c
+> 	${E} rd.s
+> 	${A} rd.o rd.s
+> 	-rm rd.s
+> 
+> r5.o: ../dev/r5.c
+> r5.o: r5.h ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/buf.h
+> r5.o: ${I}/sys/dir.h ${I}/sys/conf.h ${I}/sys/user.h ${I}/sys/seg.h
+> r5.o: ${I}/sys/inline.h ${I}/sys/r5reg.h ${I}/sys/r5io.h
+> r5.o: ${I}/sys/ivecpos.h
+> 	${C} ../dev/r5.c
+> 	${E} r5.s
+> 	${A} r5.o r5.s
+> 	-rm r5.s
+> 
+> cn.o: ../dev/cn.c
+> cn.o: cn.h ${I}/sys/param.h ${I}/sys/conf.h ${I}/sys/dir.h
+> cn.o: ${I}/sys/user.h ${I}/sys/tty.h ${I}/sys/systm.h ${I}/sys/seg.h
+> cn.o: ${I}/sys/buf.h ${I}/sys/ivecpos.h ${I}/sys/cnreg.h ${I}/sys/cnio.h
+> 	${C} ../dev/cn.c
+> 	${E} cn.s
+> 	${A} cn.o cn.s
+> 	-rm cn.s
+> 
+> pc.o: ../dev/pc.c
+> pc.o: pc.h ${I}/sys/param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/tty.h
+> 	${C} ../dev/pc.c
+> 	${E} pc.s
+> 	${A} pc.o pc.s
+> 	-rm pc.s
+> 
+> prostuff.o: ../dev/prostuff.c
+> prostuff.o: ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/ivecpos.h
+> 	${C} ../dev/prostuff.c
+> 	${E} prostuff.s
+> 	${A} prostuff.o prostuff.s
+> 	-rm prostuff.s

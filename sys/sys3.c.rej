@@ -1,0 +1,47 @@
+***************
+*** 259,281
+  	register struct inode *ip;
+  	register struct mount *mp;
+  	register struct buf *bp;
+  	struct buf *dp;
+  
+  	dev = getmdev();
+  	if (u.u_error || !suser())
+  		return;
+  	xumount(dev);	/* remove unused sticky files from text table */
+  	update();
+- #if	PDP11 <= 22
+- 	delay(2);
+- #endif
+  	for (mp = mount; mp < mountNMOUNT; mp++)
+  		if (mp->m_inodp != NULL && dev == mp->m_dev) {
+  			for(ip = inode; ip < inodeNINODE; ip++)
+  				if (ip->i_number != 0 && dev == ip->i_dev) {
+  					u.u_error = EBUSY;
+  					return;
+  				}
+  			(*bdevsw[major(dev)].d_close)(dev, 0);
+  			dp = bdevsw[major(dev)].d_tab;
+  			for (bp = dp->b_forw; bp != dp; bp = bp->b_forw) {
+
+--- 259,278 -----
+  	register struct inode *ip;
+  	register struct mount *mp;
+  	register struct buf *bp;
+  	struct buf *dp;
+  
+  	dev = getmdev();
+  	if (u.u_error || !suser())
+  		return;
+  	xumount(dev);	/* remove unused sticky files from text table */
+  	update();
+  	for (mp = mount; mp < mountNMOUNT; mp++)
+  		if (mp->m_inodp != NULL && dev == mp->m_dev) {
+  			for(ip = inode; ip < inodeNINODE; ip++)
+  				if (ip->i_number != 0 && dev == ip->i_dev) {
+  					u.u_error = EBUSY;
+  					return;
+  				}
+  			(*bdevsw[major(dev)].d_close)(dev, 0);
+  			dp = bdevsw[major(dev)].d_tab;
+  			for (bp = dp->b_forw; bp != dp; bp = bp->b_forw) {

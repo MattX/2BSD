@@ -1,0 +1,47 @@
+***************
+*** 61,83
+  stime()
+  {
+  	register struct a {
+  		time_t	time;
+  	} *uap;
+  
+  	if (suser()) {
+  		uap = (struct a *)u.u_ap;
+  		bootime += uap->time - time;
+  		time = uap->time;
+- #if	PDP11 == 21
+- 		sdtime();
+- #endif
+  	}
+  }
+  
+  setuid()
+  {
+  	register uid;
+  	struct a {
+  		int	uid;
+  	};
+  
+
+--- 61,80 -----
+  stime()
+  {
+  	register struct a {
+  		time_t	time;
+  	} *uap;
+  
+  	if (suser()) {
+  		uap = (struct a *)u.u_ap;
+  		bootime += uap->time - time;
+  		time = uap->time;
+  	}
+  }
+  
+  setuid()
+  {
+  	register uid;
+  	struct a {
+  		int	uid;
+  	};
+  

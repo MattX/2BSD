@@ -1,0 +1,93 @@
+***************
+*** 70,93
+  caddr_t pc;
+  {
+  	register a;
+  	mapinfo	map;
+  	extern caddr_t waitloc;
+  	extern char *panicstr;
+  
+  	/*
+  	 * restart clock
+  	 */
+- #if	PDP11 == 21
+- 	while (*((int *)0173024) & 0200) ;
+- 	a = *((int *)0173030);
+- #else
+  	if(lks)
+  		*lks = 0115;
+  #endif
+  	/*
+  	 * ensure normal mapping of kernel data
+  	 */
+  	savemap(map);
+  
+  #ifdef	DISPLAY
+  	/*
+
+--- 70,89 -----
+  caddr_t pc;
+  {
+  	register a;
+  	mapinfo	map;
+  	extern caddr_t waitloc;
+  	extern char *panicstr;
+  
+  	/*
+  	 * restart clock
+  	 */
+  	if(lks)
+  		*lks = 0115;
+  	/*
+  	 * ensure normal mapping of kernel data
+  	 */
+  	savemap(map);
+  
+  #ifdef	DISPLAY
+  	/*
+  	 * display register
+***************
+*** 76,96
+  
+  	/*
+  	 * restart clock
+  	 */
+  #if	PDP11 == 21
+  	while (*((int *)0173024) & 0200) ;
+  	a = *((int *)0173030);
+  #else
+  	if(lks)
+  		*lks = 0115;
+- #endif
+  	/*
+  	 * ensure normal mapping of kernel data
+  	 */
+  	savemap(map);
+  
+  #ifdef	DISPLAY
+  	/*
+  	 * display register
+  	 */
+  	display();
+
+--- 72,91 -----
+  	register a;
+  	mapinfo	map;
+  	extern caddr_t waitloc;
+  	extern char *panicstr;
+  
+  	/*
+  	 * restart clock
+  	 */
+  	if(lks)
+  		*lks = 0115;
+  	/*
+  	 * ensure normal mapping of kernel data
+  	 */
+  	savemap(map);
+  
+  #ifdef	DISPLAY
+  	/*
+  	 * display register
+  	 */
+  	display();

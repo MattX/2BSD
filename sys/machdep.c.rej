@@ -1,0 +1,185 @@
+***************
+*** 110,129
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  		if (!ubmap && i >= 3968)
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+
+--- 116,138 -----
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
++ #if PDP11 <= 22
++ 		if (!ubmap && i >= 0xff80)
++ #else
+  		if (!ubmap && i >= 3968)
+  #endif
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+***************
+*** 111,130
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  		if (!ubmap && i >= 3968)
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+  #undef	B
+
+--- 120,140 -----
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  #if PDP11 <= 22
+  		if (!ubmap && i >= 0xff80)
+  #else
+  		if (!ubmap && i >= 3968)
++ #endif
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+  #undef	B
+***************
+*** 328,347
+  
+  bad:
+  	u.u_error = EINVAL;
+  }
+  
+  /*
+   * Determine whether clock is attached. If so, start it.
+   */
+  clkstart()
+  {
+  	lks = LKS;
+  	if (fioword((caddr_t)lks) == -1) {
+  		lks = KW11P_CSR;
+  		if (fioword((caddr_t)lks) == -1) {
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+
+--- 338,361 -----
+  
+  bad:
+  	u.u_error = EINVAL;
+  }
+  
+  /*
+   * Determine whether clock is attached. If so, start it.
+   */
+  clkstart()
+  {
++ #if	PDP11 == 21
++ 	proclock();
++ 	lks = 0;
++ #else
+  	lks = LKS;
+  	if (fioword((caddr_t)lks) == -1) {
+  		lks = KW11P_CSR;
+  		if (fioword((caddr_t)lks) == -1) {
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+***************
+*** 342,361
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+  		}
+  	}
+  	if (lks)
+  		*lks = 0115;
+  }
+  
+  #ifndef	ENABLE34
+  /*
+   * Fetch a word from an address on the I/O page,
+   * returning -1 if address does not exist.
+   */
+  fioword(addr)
+  {
+  	register val, saveUI7, saveUD7;
+
+--- 356,376 -----
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+  		}
+  	}
+  	if (lks)
+  		*lks = 0115;
++ #endif
+  }
+  
+  #ifndef	ENABLE34
+  /*
+   * Fetch a word from an address on the I/O page,
+   * returning -1 if address does not exist.
+   */
+  fioword(addr)
+  {
+  	register val, saveUI7, saveUD7;

@@ -1,0 +1,279 @@
+***************
+*** 84,106
+  
+  
+  /*
+   * Machine dependent startup code
+   */
+  startup()
+  {
+  	register memaddr i, freebase;
+  	extern	end;
+  
+- #if	PDP11 == 21
+- 	ivinit();
+- #endif
+  #ifndef	NOKA5
+  	saveseg5(seg5);		/* must be done before clear() is called */
+  	if (&remap_area > SEG5)
+  		panic("&remap_area > 0120000");
+  #else
+  	if (&end > SEG5)
+  		panic("_end > 0120000");
+  #endif
+  
+  #if PDP11 <= 22
+
+--- 84,103 -----
+  
+  
+  /*
+   * Machine dependent startup code
+   */
+  startup()
+  {
+  	register memaddr i, freebase;
+  	extern	end;
+  
+  #ifndef	NOKA5
+  	saveseg5(seg5);		/* must be done before clear() is called */
+  	if (&remap_area > SEG5)
+  		panic("&remap_area > 0120000");
+  #else
+  	if (&end > SEG5)
+  		panic("_end > 0120000");
+  #endif
+  
+  	/*
+***************
+*** 96,118
+  #endif
+  #ifndef	NOKA5
+  	saveseg5(seg5);		/* must be done before clear() is called */
+  	if (&remap_area > SEG5)
+  		panic("&remap_area > 0120000");
+  #else
+  	if (&end > SEG5)
+  		panic("_end > 0120000");
+  #endif
+  
+- #if PDP11 <= 22
+- 	*SSR3 = 020;		/* Enable 22 bit memory mgmnt */
+- #endif
+  	/*
+  	 * zero and free all of core
+  	 */
+  	i = freebase = *ka6 + USIZE;
+  	UISD[0] = ((stoc(1) - 1) << 8) | RW;
+  	for (;;) {
+  		UISA[0] = i;
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+
+--- 93,112 -----
+  
+  #ifndef	NOKA5
+  	saveseg5(seg5);		/* must be done before clear() is called */
+  	if (&remap_area > SEG5)
+  		panic("&remap_area > 0120000");
+  #else
+  	if (&end > SEG5)
+  		panic("_end > 0120000");
+  #endif
+  
+  	/*
+  	 * zero and free all of core
+  	 */
+  	i = freebase = *ka6 + USIZE;
+  	UISD[0] = ((stoc(1) - 1) << 8) | RW;
+  	for (;;) {
+  		UISA[0] = i;
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+***************
+*** 116,138
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+- #if PDP11 <= 22
+- 		if (!ubmap && i >= 0xff80)
+- #else
+  		if (!ubmap && i >= 3968)
+  #endif
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+
+--- 110,129 -----
+  		if (fuibyte((caddr_t)0) < 0)
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  		if (!ubmap && i >= 3968)
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+***************
+*** 120,140
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  #if PDP11 <= 22
+  		if (!ubmap && i >= 0xff80)
+  #else
+  		if (!ubmap && i >= 3968)
+- #endif
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+  #undef	B
+
+--- 111,130 -----
+  			break;
+  		maxmem++;
+  		i++;
+  		/*
+  		 * avoid testing locations on the IO page if possible,
+  		 * since some people have dz's at 0160000 (0760000).
+  		 * (3968 is btoc(248K); the macro doesn't do longs.)
+  		 * (65408 is btoc(4088K))
+  		 */
+  		if (!ubmap && i >= 3968)
+  			break;
+  	}
+  	clear(freebase, i - freebase);
+  	mfree(coremap, i - freebase, freebase);
+  	physmem = i;
+  #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
+  	if ((bpaddr = malloc(coremap, B)) == 0)
+  		panic("buffers");
+  	maxmem -= B;
+  #undef	B
+***************
+*** 338,361
+  
+  bad:
+  	u.u_error = EINVAL;
+  }
+  
+  /*
+   * Determine whether clock is attached. If so, start it.
+   */
+  clkstart()
+  {
+- #if	PDP11 == 21
+- 	proclock();
+- 	lks = 0;
+- #else
+  	lks = LKS;
+  	if (fioword((caddr_t)lks) == -1) {
+  		lks = KW11P_CSR;
+  		if (fioword((caddr_t)lks) == -1) {
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+
+--- 328,347 -----
+  
+  bad:
+  	u.u_error = EINVAL;
+  }
+  
+  /*
+   * Determine whether clock is attached. If so, start it.
+   */
+  clkstart()
+  {
+  	lks = LKS;
+  	if (fioword((caddr_t)lks) == -1) {
+  		lks = KW11P_CSR;
+  		if (fioword((caddr_t)lks) == -1) {
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+***************
+*** 356,376
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+  		}
+  	}
+  	if (lks)
+  		*lks = 0115;
+- #endif
+  }
+  
+  #ifndef	ENABLE34
+  /*
+   * Fetch a word from an address on the I/O page,
+   * returning -1 if address does not exist.
+   */
+  fioword(addr)
+  {
+  	register val, saveUI7, saveUD7;
+
+--- 342,361 -----
+  #ifndef	SHORTPRT
+  			printf("no clock??\n");
+  #else
+  			printf("nocl\n");
+  #endif	SHORTPRT
+  			lks = 0;
+  		}
+  	}
+  	if (lks)
+  		*lks = 0115;
+  }
+  
+  #ifndef	ENABLE34
+  /*
+   * Fetch a word from an address on the I/O page,
+   * returning -1 if address does not exist.
+   */
+  fioword(addr)
+  {
+  	register val, saveUI7, saveUD7;

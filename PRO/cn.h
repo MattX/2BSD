@@ -1,0 +1,1 @@
+#define NCN   1
