@@ -1,6 +1,9 @@
 /*
  *	U N I X   2 . 9 B S D   C R A S H   A N A L Y Z E R   S U B S
  *
+ * Another proc struct flag went away.  Program still doesn't run or
+ * compile ;-(  1999/8/11
+ *
  * The proc structure flags cleaned up.  This program still doesn't run
  * (or compile) under the current system.  1997/9/2
  *
@@ -575,7 +578,7 @@ long *sigm;
 procflg(flgs)
 int *flgs;
 {
-#define	PROC_FLAGS "\0\1SLOAD\2SSYS\3SLOCK\4SSWAP\5STRC\6SWTED\7SULOCK\11SVFORK\12SVFPRNT\13SVFDONE\15SDETACH\16P_NOCLDSTOP\17SSEL"
+#define	PROC_FLAGS "\0\1SLOAD\2SSYS\3SLOCK\4SSWAP\5STRC\6SWTED\7SULOCK\11SVFORK\12SVFPRNT\13SVFDONE\16P_NOCLDSTOP\17SSEL"
 	printb((u_long) *flgs, PROC_FLAGS);
 }
 

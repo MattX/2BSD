@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.9 (2.11BSD GTE) 1997/11/28
+ *	@(#)kern_sig.c	1.10 (2.11BSD) 1999/8/10
  */
 
 #include "param.h"
@@ -17,6 +17,40 @@
 #include "acct.h"
 #include "signalvar.h"
 extern	char	sigprop[];	/* XXX - defined in kern_sig2.c */
+
+/*
+ * Can the current process send the signal `signum' to process `q'?
+ * This is complicated by the need to access the `real uid' of `q'.
+ * The 'real uid' is in the u area and `q' may be (but usually is not) swapped 
+ * out.  Use the routine `fill_from_u' which the sysctl() call uses.  See the
+ * notes in kern_sysctl.c
+ *
+ * The previous checks for a process to post a signal to another process
+ * checked _only_ the effective userid.  With the implementation of the
+ * 'saved id' feature and the ability of a setuid program to assume either
+ * uid that check was inadequate.
+ *
+ * The 'c'urrent process is allowed to send a signal to a 't'arget process if 
+ * 1) either the real or effective user ids match OR 2) if the signal is 
+ * SIGCONT and the target process is a descendant of the current process
+*/
+cansignal(q,signum)
+	register struct proc *q;
+	int	signum;
+	{
+	register struct proc *curp = u.u_procp;
+	uid_t	ruid;
+
+	fill_from_u(q, &ruid, NULL, NULL);	/* XXX */
+	if	(curp->p_uid == 0 ||		/* c effective root */
+		 u.u_ruid == ruid ||		/* c real = t real */
+		 curp->p_uid == ruid ||		/* c effective = t real */
+		 u.u_ruid == q->p_uid ||	/* c real = t effective */
+		 curp->p_uid == q->p_uid ||	/* c effective = t effective */
+		 (signum == SIGCONT && inferior(q)))
+		return(1);
+	return(0);
+	}
 
 /*
  * 4.3 Compatibility
@@ -195,13 +229,7 @@ kill()
 			error = ESRCH;
 			goto out;
 		}
-		/*
-		 * Fix to allow a non-root process to send SIGCONT to
-		 * one of its own decendants which happens to be running
-		 * with a different uid.
-		 */
-		if (u.u_uid && u.u_uid != p->p_uid &&
-		    (uap->signo != SIGCONT || !inferior(p)))
+		if (!cansignal(p))
 			error = EPERM;
 		else if (uap->signo)
 			psignal(p, uap->signo);
@@ -257,8 +285,7 @@ killpg1(signo, pgrp, all)
 		if ((p->p_pgrp != pgrp && !all) || p->p_ppid == 0 ||
 		    (p->p_flag&SSYS) || (all && p == u.u_procp))
 			continue;
-		if (u.u_uid != 0 && u.u_uid != p->p_uid &&
-		    (signo != SIGCONT || !inferior(p))) {
+		if (!cansignal(p)) {
 			if (!all)
 				error = EPERM;
 			continue;

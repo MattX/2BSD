@@ -1,4 +1,7 @@
 /*
+ *	1999/8/11 - Remove reference to SDETACH.  It was removed from the kernel
+ *		    (finally) because it was not needed.
+ *
  *	1997/12/16 - Fix coredump when processing -U.
  *
  *	1996/11/16 - Move 'psdatabase' in /var/run.
@@ -252,7 +255,7 @@ char	**argv;
 			if (procp->p_pgrp == 0 && xflg == 0)
 				continue;
 			/* skip group leaders on a tty unless -g, -x, or -t.. */
-			if (!tptr && !gflg && !xflg && procp->p_ppid == 1 && (procp->p_flag & SDETACH) == 0)
+			if (!tptr && !gflg && !xflg && procp->p_ppid == 1)
 				continue;
 			/* -g also skips those where **argv is "-" - see savcom */
 			puid = procp->p_uid;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_fork.c	1.5 (2.11BSD GTE) 1997/11/28
+ *	@(#)kern_fork.c	1.6 (2.11BSD) 1999/8/11
  */
 
 #include "param.h"
@@ -163,7 +163,7 @@ again:
 #endif
 	rpp->p_stat = SIDL;
 	rpp->p_realtimer.it_value = 0;
-	rpp->p_flag = SLOAD | (rip->p_flag & SDETACH);
+	rpp->p_flag = SLOAD;
 	rpp->p_uid = rip->p_uid;
 	rpp->p_pgrp = rip->p_pgrp;
 	rpp->p_nice = rip->p_nice;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)proc.h	1.3 (2.11BSD GTE) 1997/8/28
+ *	@(#)proc.h	1.4 (2.11BSD) 1999/8/11
  */
 
 #ifndef	_SYS_PROC_H_
@@ -123,7 +123,7 @@ int	nproc;
 #define	SVFPRNT		0x0200	/* parent in vfork, waiting for child */
 #define	SVFDONE		0x0400	/* parent has released child in vfork */
 	/*		0x0800	/* unused */
-#define	SDETACH		0x1000	/* detached inherited by init */
+	/*		0x1000	/* used to be SDETACH */
 #define	P_NOCLDSTOP	0x2000	/* no SIGCHLD signal to parent */
 #define	SSEL		0x4000	/* selecting; wakeup/waiting danger */
 	/*		0x8000	/* unused */

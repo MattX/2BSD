@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.3 (2.11BSD) 1999/2/23
+ *	@(#)kern_exit.c	2.4 (2.11BSD) 1999/8/11
  */
 
 #include "param.h"
@@ -142,12 +142,6 @@ again:
 					psignal(q, SIGHUP);
 					psignal(q, SIGCONT);
 				}
-				/*
-				 * Protect this process from future
-				 * tty signals, clear TSTP/TTIN/TTOU if pending.
-				 * 2.11 also sets SDETACH bit.
-				 */
-				spgrp(q);
 			}
 		if (!doingzomb) {
 			doingzomb = 1;

@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.10 (2.11BSD) 1999/4/29
+ *	@(#)kern_sysctl.c	8.4.11 (2.11BSD) 1999/8/11
  */
 
 /*
@@ -979,10 +979,10 @@ fill_from_u(p, rup, ttp, tdp)
 
 	if	(p->p_stat == SZOMB)
 		{
-		*rup = (uid_t)-2;
-		*ttp = NULL;
-		*tdp = NODEV;
-		return;
+		ruid = (uid_t)-2;
+		ttyp = NULL;
+		ttyd = NODEV;
+		goto out;
 		}
 	if	(p->p_flag & SLOAD)
 		{
@@ -1021,7 +1021,11 @@ fill_from_u(p, rup, ttp, tdp)
 		brelse(bp);
 		u.u_error = 0;		/* XXX */
 		}
-	*rup = ruid;
-	*ttp = ttyp;
-	*tdp = ttyd;
+out:
+	if	(rup)
+		*rup = ruid;
+	if	(ttp)
+		*ttp = ttyp;
+	if	(tdp)
+		*tdp = ttyd;
 	}
