@@ -1,5 +1,5 @@
 /*
- * 	@(#) 	ufs_syscalls2.c	  1.1 (2.11BSD) 1995/12/29
+ * 	@(#) 	ufs_syscalls2.c	  1.2 (2.11BSD) 1995/12/31
  *
  * ufs_syscalls was getting too large.  New UFS related system calls are
  * placed in this file.
@@ -31,7 +31,7 @@ statfs()
 	if	(!ip)
 		return(u.u_error);
 	mp = (struct mount *)((int)ip->i_fs - offsetof(struct mount, m_filsys));
-	irele(ip);
+	iput(ip);
 	u.u_error = statfs1(mp, uap->buf);
 	return(u.u_error);
 	}

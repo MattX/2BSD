@@ -1,4 +1,4 @@
-/*	@(#)tmscp.c	7.1.2 (2.11BSD GTE) 1995/06/08 */
+/*	@(#)tmscp.c	7.1.3 (2.11BSD GTE) 1995/12/31 */
 
 /****************************************************************
  *        Licensed from Digital Equipment Corporation           *
@@ -50,16 +50,14 @@
  * Parameters for the communications area
  * (Only 1 cmd & 1 rsp packet)
  */
-#define	NRSPL2	0
-#define	NCMDL2	0
-#define	NRSP	(1<<NRSPL2)
-#define	NCMD	(1<<NCMDL2)
+#define	NRSPL2	0			/* Define these before including */
+#define	NCMDL2	0			/*   tmscpreg.h and tmscp.h below */
 
+#include "sys/buf.h"
 #include "../pdpuba/tmscpreg.h"
 #include "../pdp/tmscp.h"
 
 #define	NTMS	2
-#define	TMSDENS(dev) ((minor(dev) >> 3) & 3)	/* unused for now */
 
 	struct	tmscpdevice *TMScsr[NTMS + 1] =
 		{
@@ -68,11 +66,7 @@
 		(struct tmscpdevice *)-1
 		};
  
-struct tmscp {
-	struct tmscpca	tmscp_ca;
-	struct mscp	tmscp_rsp;
-	struct mscp	tmscp_cmd;
-	} tmscp[NTMS];
+struct tmscp tmscp[NTMS];
  
 u_char tmsoffline[NTMS] = {1, 1};	/* Flag to prevent multiple STCON */
 u_char tms_offline[NTMS][4] = {{1,1,1,1},
@@ -144,7 +138,7 @@ tmscpopen(io)
 			}
 		tmsoffline[ctlr] = 0;
 		}
-	tms->tmscp_cmd.mscp_unit = unit;
+	tms->tmscp_cmd[0].mscp_unit = unit;
 	/* 
 	 * Has this unit been issued an ONLIN?
 	 */
@@ -163,11 +157,11 @@ tmscpopen(io)
 		 * Skip forward the appropriate number of files on the tape.
 		 */
 		{
-		tms->tmscp_cmd.mscp_tmkcnt = io->i_part;
-		tms->tmscp_cmd.mscp_buffer_h = 0;
-		tms->tmscp_cmd.mscp_bytecnt = 0;
+		tms->tmscp_cmd[0].mscp_tmkcnt = io->i_part;
+		tms->tmscp_cmd[0].mscp_buffer_h = 0;
+		tms->tmscp_cmd[0].mscp_bytecnt = 0;
 		tmscpcmd(ctlr, M_OP_REPOS, 0);
-		tms->tmscp_cmd.mscp_tmkcnt = 0;
+		tms->tmscp_cmd[0].mscp_tmkcnt = 0;
 		}
 	return(0);
 }
@@ -180,10 +174,10 @@ tmscpclose(io)
 {
 	register struct tmscp *tms = &tmscp[io->i_ctlr];
 
-	tms->tmscp_cmd.mscp_buffer_l = 0;	/* tmkcnt */
-	tms->tmscp_cmd.mscp_buffer_h = 0;
-	tms->tmscp_cmd.mscp_bytecnt = 0;
-	tms->tmscp_cmd.mscp_unit = io->i_unit;
+	tms->tmscp_cmd[0].mscp_buffer_l = 0;	/* tmkcnt */
+	tms->tmscp_cmd[0].mscp_buffer_h = 0;
+	tms->tmscp_cmd[0].mscp_bytecnt = 0;
+	tms->tmscp_cmd[0].mscp_unit = io->i_unit;
 	tmscpcmd(io->i_ctlr, M_OP_REPOS, M_MD_REWND | M_MD_CLSEX);
 }
  
@@ -203,25 +197,25 @@ tmscpcmd(ctlr, op,mod)
 	/*
 	 * Init cmd & rsp area
 	 */
-	iomapadr(&tms->tmscp_cmd.mscp_cmdref, &bae, &lo16);
+	iomapadr(&tms->tmscp_cmd[0].mscp_cmdref, &bae, &lo16);
 	tms->tmscp_ca.ca_cmddsc[0].lsh = lo16;
 	tms->tmscp_ca.ca_cmddsc[0].hsh = bae;
-	tms->tmscp_cmd.mscp_dscptr = (long *)tms->tmscp_ca.ca_cmddsc;
-	tms->tmscp_cmd.mscp_header.tmscp_vcid = 1;	/* for tape */
+	tms->tmscp_cmd[0].mscp_dscptr = (long *)tms->tmscp_ca.ca_cmddsc;
+	tms->tmscp_cmd[0].mscp_header.tmscp_vcid = 1;	/* for tape */
 
-	iomapadr(&tms->tmscp_rsp.mscp_cmdref, &bae, &lo16);
+	iomapadr(&tms->tmscp_rsp[0].mscp_cmdref, &bae, &lo16);
 	tms->tmscp_ca.ca_rspdsc[0].lsh = lo16;
 	tms->tmscp_ca.ca_rspdsc[0].hsh = bae;
-	tms->tmscp_rsp.mscp_dscptr = (long *)tms->tmscp_ca.ca_rspdsc;
-	tms->tmscp_cmd.mscp_cntflgs = 0;
+	tms->tmscp_rsp[0].mscp_dscptr = (long *)tms->tmscp_ca.ca_rspdsc;
+	tms->tmscp_cmd[0].mscp_cntflgs = 0;
 
-	tms->tmscp_cmd.mscp_opcode = op;
-	tms->tmscp_cmd.mscp_modifier = mod;
-	tms->tmscp_cmd.mscp_header.tmscp_msglen = mscp_msglen;
+	tms->tmscp_cmd[0].mscp_opcode = op;
+	tms->tmscp_cmd[0].mscp_modifier = mod;
+	tms->tmscp_cmd[0].mscp_header.tmscp_msglen = mscp_msglen;
 	tms->tmscp_ca.ca_cmddsc[0].hsh |= TMSCP_OWN;	/* | TMSCP_INT */
-	tms->tmscp_rsp.mscp_header.tmscp_msglen = mscp_msglen;
+	tms->tmscp_rsp[0].mscp_header.tmscp_msglen = mscp_msglen;
 	tms->tmscp_ca.ca_rspdsc[0].hsh |= TMSCP_OWN;	/* | TMSCP_INT */
-	tms->tmscp_cmd.mscp_zzz2 = 0;
+	tms->tmscp_cmd[0].mscp_zzz2 = 0;
  
 	i = TMScsr[ctlr]->tmscpip;
 	for (;;)
@@ -248,7 +242,7 @@ tmscpcmd(ctlr, op,mod)
 			break;
 		}
 	tms->tmscp_ca.ca_rspint = 0;
-	mp = &tms->tmscp_rsp;
+	mp = &tms->tmscp_rsp[0];
 	if (mp->mscp_opcode != (op|M_OP_END) ||
 	   (mp->mscp_status&M_ST_MASK) != M_ST_SUCC) {
 		/* Detect hitting tape mark.  This signifies the end of the
@@ -279,7 +273,7 @@ tmscpstrategy(io, func)
 	register struct tmscp *tms = &tmscp[ctlr];
 	register struct mscp *mp;
  
-	mp = &tms->tmscp_cmd;
+	mp = &tms->tmscp_cmd[0];
 	mp->mscp_lbn_l = loint(io->i_bn);
 	mp->mscp_lbn_h = hiint(io->i_bn);
 	mp->mscp_unit = unit;
@@ -314,10 +308,10 @@ tmscpseek(io, space)
 		}
 	else
 		mod = 0;
-	tms->tmscp_cmd.mscp_buffer_l = 0;
-	tms->tmscp_cmd.mscp_buffer_h = 0;
-	tms->tmscp_cmd.mscp_unit = io->i_unit;
-	tms->tmscp_cmd.mscp_reccnt = space;
+	tms->tmscp_cmd[0].mscp_buffer_l = 0;
+	tms->tmscp_cmd[0].mscp_buffer_h = 0;
+	tms->tmscp_cmd[0].mscp_unit = io->i_unit;
+	tms->tmscp_cmd[0].mscp_reccnt = space;
 	tmscpcmd(io->i_ctlr, M_OP_REPOS, mod | M_MD_OBJCT);
 	return(0);
 	}

@@ -1,6 +1,6 @@
 /* @(#)tmscpreg.h	7.1 (Berkeley) 6/5/86 */
 
-/*	@(#)tmscpreg.h	1.2	(2.11BSD) 1995/12/14 */
+/*	@(#)tmscpreg.h	1.3	(2.11BSD) 1995/12/31 */
 
 /****************************************************************
  *								*
@@ -63,8 +63,13 @@ typedef struct {		/* swap shorts for TMSCP controller */
  * These defines were moved here so they could be shared between the
  * driver and the crash dump module.
 */
+#ifndef	NRSPL2
 #define	NRSPL2	3	/* log2 number of response packets */
+#endif
+#ifndef	NCMDL2
 #define	NCMDL2	3	/* log2 number of command packets */
+#endif
+
 #define	NRSP	(1<<NRSPL2)
 #define	NCMD	(1<<NCMDL2)
 #define	RINGBASE	(4 * sizeof (short))
