@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_click.s	1.3 (2.11BSD GTE) 3/16/93
+ *	@(#)mch_click.s	1.4 (2.11BSD GTE) 1995/11/22
  */
 
 #include "DEFS.h"
@@ -99,7 +99,6 @@ ENTRY(clear)
 	mov	(sp)+,KDSA5		/ restore seg5
 	jmp	cret
 
-#ifdef INET
 /*
  * copyv(fromaddr, toaddr, count)
  *	virtual_addr	fromaddr,
@@ -172,8 +171,6 @@ ENTRY(copyv)
 4:
 	clr	r0			/ clear r0 and r1 (why?)
 	rts	pc			/   and return
-#endif
-
 
 /*
  * fmove(par, pdr, from, to, length)

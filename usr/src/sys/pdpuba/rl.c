@@ -3,11 +3,18 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.6 (2.11BSD GTE) 1995/08/01
+ *	@(#)rl.c	1.7 (2.11BSD GTE) 1995/11/27
  */
 
 /*
  *  RL01/RL02 disk driver
+ *
+ * Date: November 27, 1995
+ * Add support for using the software unibus/qbus map.  This allows 3rd
+ * party 18bit RL controllers (DSD-880) to be used in a 22bit Qbus system.
+ * NOTE:  I have been told that the DEC RLV11 does not properly monitor
+ * the I/O Page signal which means the RLV11 still can not be used.
+ *
  * Date: August 1, 1995
  * Fix bug which prevented labeling disks with no label or a corrupted label.
  * Correct typographical error, the raclose() routine was being called by
@@ -52,8 +59,11 @@ error to have more than 4 drives - only 1 controller is supported.
 
 struct	rldevice *RLADDR;
 
-static	int	q22bae = 1;
-
+static	char	q22bae;
+static	char	rlsoftmap = -1;	/* -1 = OK to change during attach
+				 *  0 = Never use soft map
+				 *  1 = Always use soft map
+				 */
 	daddr_t	rlsize();
 	int	rlstrategy();
 	void	rldfltlbl();
@@ -103,6 +113,12 @@ rlattach(addr, unit)
 		return (0);
 	if ((addr != (struct rldevice *)NULL) && (fioword(addr) != -1)) {
 		RLADDR = addr;
+		if (fioword(&addr->rlbae) == -1)
+			q22bae = -1;
+#ifdef	SOFUB_MAP
+		if (q22bae != 0 && !ubmap && rlsoftmap == -1)
+			rlsoftmap = 1;
+#endif
 		return (1);
 	}
 	RLADDR = (struct rldevice *)NULL;
@@ -343,7 +359,15 @@ rlstrategy(bp)
 		bp->b_error = EROFS;
 		goto bad;
 		}
-	mapalloc(bp);
+#ifdef	SOFUB_MAP
+	if	(rlsoftmap == 1)
+		{
+		if	(sofub_alloc(bp) == 0)
+			return;
+		}
+	else
+#endif
+		mapalloc(bp);
 
 	bp->av_forw = NULL;
 	bp->b_cylin = (int)(bp->b_blkno/20L);
@@ -471,6 +495,10 @@ rlintr()
 	if((bp != NULL)&&(rlutab[rl.dn].b_actf != NULL))
 		rlseek((int)(rlutab[rl.dn].b_actf->b_blkno/20l),rl.dn);
 #endif
+#ifdef	SOFUB_MAP
+	if	(rlsoftmap == 1)
+		sofub_relse(bp, bp->b_bcount);
+#endif
 	iodone(bp);
 	rlstart();
 }
@@ -485,8 +513,6 @@ rlio()
 	rladdr->rlda = (rl.chn << 6) | rl.sn;
 	rladdr->rlba = (caddr_t)rl.rl_un.w[1];
 	rladdr->rlmp = -(rl.bpart >> 1);
-	if	(q22bae == 1)
-		q22bae = (fioword(&rladdr->rlbae) == -1 ? -1 : 0);
 	if	(q22bae == 0)
 		rladdr->rlbae = rl.rl_un.w[0];
 	rladdr->rlcs = rl.com | (rl.rl_un.w[0] & 03) << 4;
@@ -625,6 +651,8 @@ rldump(dev)
 		return(ENXIO);
 	if	(pi->p_fstype != FS_SWAP)
 		return(EFTYPE);
+	if	(rlsoftmap == 1)	/* No crash dumps via soft map */
+		return(EFAULT);
 
 	dumpsize = rlsize(dev) - dumplo;
 	memblks = ctod(physmem);
@@ -666,8 +694,6 @@ rldump(dev)
 			rladdr->rlba = 0;
 		} else {
 			rladdr->rlba = loint(paddr);
-			if	(q22bae == 1)
-				q22bae = (fioword(&rladdr->rlbae) == -1 ? -1:0);
 			if	(q22bae == 0)
 				rladdr->rlbae = hiint(paddr);
 			com |= (hiint(paddr) & 03) << 4;

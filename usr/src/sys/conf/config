@@ -8,6 +8,8 @@
 #		  end, rely instead on the system administrator's choice of
 #		  umask.
 #	2/14/95 - added ingres lock driver.  removed vax cruft.
+#
+#	1995/11/22 - added software map (SOFUB_MAP) option.
 
 LO=../h/localopts.h
 
@@ -147,6 +149,9 @@ if [ $UCB_CLIST = YES ]; then
 fi
 if [ $PROFILE = YES ]; then
 	OPTS="$OPTS -DPROFILE"
+fi
+if [ $SOFUB_MAP = YES ]; then
+	OPTS="$OPTS -DSOFUB_MAP"
 fi
 
 echo "Creating device header files."

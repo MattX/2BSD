@@ -3,13 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rxreg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rxreg.h	1.2 (2.11BSD GTE) 1995/11/21
  */
 
 struct	rxdevice	{
 	short	rxcs;			/* command and status register */
 	short	rxdb;			/* multipurpose register: */
 #define	rxba	rxdb			/* 	bus address register */
+#define rxqa	rxdb			/*	Q22 high-bits */
 #define	rxta	rxdb			/*	track address register */
 #define	rxsa	rxdb			/*	sector address register */
 #define	rxwc	rxdb			/*	word count register */
@@ -23,7 +24,7 @@ struct	rxdevice	{
 /* bits 13-12 are the extension bits */
 #define	RX_RX02		0004000		/* rx02 (read only) */
 
-/* bit 10 is unused (bit 9 is also unused in the standard rx11) */
+#define RX_Q22		0002000		/* enable 22-bit mode (DSD MXV-22) */
 #define	RX_HD		0001000		/* DSD 480 head select */
 #define	RX_DD		0000400		/* double density */
 #define	RX_XREQ		0000200		/* transfer request */
@@ -48,7 +49,7 @@ struct	rxdevice	{
 #define	RXIOC_FORMAT	_IO(r, 1)	/* format media */
 
 #define	RX_BITS	\
-"\10\20ERR\17INIT\14RX02\12HD\11DD\10XREQ\7IE\6DONE\5UNIT1\1GO"
+"\10\20ERR\17INIT\14RX02\13QBUS\12HD\11DD\10XREQ\7IE\6DONE\5UNIT1\1GO"
 
 /* bits in rxes */
 /* bits 15-12 are unused in the standard rx11 */

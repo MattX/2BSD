@@ -105,6 +105,11 @@ EXTERNALITIMES	YES			# map out inode time values
 UCB_CLIST	NO			# clists moved from kernel data space
 QUOTA		NO			# dynamic file system quotas
 					# NOTE -- *very* expensive
+SOFUB_MAP	YES			# Software UNIBUS/QBUS map.  Permits
+					# use of 18 bit controllers in a 22 bit
+					# Qbus system.  Normally NO except for
+					# the GENERIC kernel or if you actually
+					# have an 18 bit RX02 on a Qbus system.
 
 # UCB_METER is fairly expensive, but various programs (iostat, vmstat, etc)
 # use it.

@@ -3,11 +3,24 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rx.c	1.3 (2.11BSD GTE) 1/2/93
+ *	@(#)rx.c	1.4 (2.11BSD GTE) 1995/11/27
  */
 
 /*
  * RX02 floppy disk device driver
+ *
+ * sms - November 26, 1995.
+ * Actually got it working with a 18 bit controller on a 22 bit Qbus.
+ *
+ * sms - November 21, 1995.  
+ * Moved from OTHERS/rx02/#2 into the supported directory: sys/pdpuba.
+ * Added conditionalized support for a "software unibus/qbus map" so that
+ * 18 bit controllers could be supported in 22 bit Qbus systems.
+ *
+ * Date: Sun, 8 May 88 18:42:38 CDT
+ * uunet!nuchat!steve@rutgers.edu (Steve Nuchia)
+ * The rx02 driver as distributed didn't even come close to working
+ * on a Q22 machine - probe was wrong and it got worse from there.
  *
  * This driver was written by Bill Shannon and distributed on the
  * DEC v7m UNIX tape.  It has been modified for 2BSD and has been
@@ -36,6 +49,8 @@
 #include "tty.h"
 #include "rxreg.h"
 #include "errno.h"
+#include "map.h"
+#include "uba.h"
 
 struct	rxdevice *RXADDR;
 
@@ -48,12 +63,25 @@ struct	rxdevice *RXADDR;
 #define	NBPS	((minor(bp->b_dev)&2) ? 256 : 128)	/* bytes per sector */
 #define	DENSITY	(minor(bp->b_dev)&2)	/* Density: 0 = single, 2 = double */
 #define	UNIT	(minor(bp->b_dev)&1)	/* Unit Number: 0 = left, 1 = right */
+#define	RXGID	(RX_GO | RX_IE | (DENSITY << 7))
 
 #define	rxwait()	while (((RXADDR->rxcs) & RX_XREQ) == 0)
 #define	seccnt(bp)	((int)((bp)->b_seccnt))
 
 struct	buf	rxtab;
 struct	buf	crxbuf;		/* buffer header for control functions */
+
+/*
+ * DEC controllers do not do 22 bit DMA but 3rd party (Sigma MXV-22) can.
+ * 'rxsoftmap' can be patched (via 'adb') as indicated below to inhibit
+ * the probing (checking bit 10 in the CSR) for 22 bit controllers.
+*/
+
+static	char	mxv22;		/* MXV22 can do native 22 bit DMA */
+static	char	rxsoftmap = -1;	/* -1 = OK to check for soft map
+				 *  0 = Never use soft map
+				 *  1 = Always use soft map
+				*/
 
 /*
  *	states of driver, kept in b_state
@@ -68,12 +96,21 @@ struct	buf	crxbuf;		/* buffer header for control functions */
 rxattach(addr, unit)
 	struct rxdevice *addr;
 	u_int unit;
-{
-	if (unit != 0)
-		return (0);
+	{
+
+	if	(unit != 0)
+		return(0);
 	RXADDR = addr;
-	return (1);
-}
+	if	(addr->rxcs & RX_Q22)	/* 22 bit capable? */
+		mxv22 = 1;
+/*
+ * If it is not a 22 bit controller and there is no Unibus map and
+ * it is permitted to switch to a soft map then set the "use soft map" flag.
+*/
+	if	(!mxv22 && !ubmap && rxsoftmap == -1)
+		rxsoftmap = 1;
+	return(1);
+	}
 
 /*ARGSUSED*/
 rxopen(dev, flag)
@@ -91,7 +128,6 @@ rxstrategy(bp)
 
 	if (minor(bp->b_dev) >= 4 || !RXADDR)
 		goto bad;
-	mapalloc(bp);
 	if (bp->b_blkno >= NRXBLKS) {
 		if (bp->b_flags&B_READ)
 			bp->b_resid = bp->b_bcount;
@@ -102,13 +138,24 @@ bad:			bp->b_flags |= B_ERROR;
 		iodone(bp);
 		return;
 	}
+
+#ifdef	SOFUB_MAP
+	if	(rxsoftmap == 1)
+		{
+		if	(sofub_alloc(bp) == 0)
+			return;
+		}
+	else
+#endif
+		mapalloc(bp);
+
 	bp->av_forw = (struct buf *) NULL;
 
 	/*
 	 * seccnt is actually the number of floppy sectors transferred,
 	 * incremented by one after each successful transfer of a sector.
 	 */
-	bp->b_seccnt = 0;
+	seccnt(bp) = 0;
 
 	/*
 	 * We'll modify b_resid as each piece of the transfer
@@ -130,8 +177,8 @@ bad:			bp->b_flags |= B_ERROR;
 rxstart()
 {
 	register struct buf *bp;
-	int sector, track;
-	char *addr, xmem;
+	int addr, xmem, cmd;
+	int n, sector, track;
 
 	if ((bp = rxtab.b_actf) == NULL) {
 		rxtab.b_state = NULL;
@@ -140,34 +187,46 @@ rxstart()
 
 	if (bp == &crxbuf) {		/* is it a control request ? */
 		rxtab.b_state = SFORMAT;
-		RXADDR->rxcs = RX_SMD | RX_GO | RX_IE | (UNIT << 4) | (DENSITY << 7);
+		RXADDR->rxcs = RX_SMD | RXGID | (UNIT << 4);
 		rxwait();
-		RXADDR->rxdb = 'I';
+		RXADDR->rxdb = 0111;
 	} else
 	if (bp->b_flags & B_READ) {
 		rxtab.b_state = SREAD;
 		rxfactr((int)bp->b_blkno * NSPB + seccnt(bp), &sector, &track);
-		RXADDR->rxcs = RX_RSECT | RX_GO | RX_IE | (UNIT << 4) | (DENSITY << 7);
+		RXADDR->rxcs = RX_RSECT | RXGID | (UNIT << 4);
 		rxwait();
 		RXADDR->rxsa = sector;
 		rxwait();
 		RXADDR->rxta = track;
 	} else {
 		rxtab.b_state = SFILL;
-		rxaddr(bp, &addr, &xmem);
-		RXADDR->rxcs = RX_FILL | RX_GO | RX_IE | ((u_int)xmem << 12) | (DENSITY << 7);
+		n = bp->b_resid >= NBPS ? NBPS : bp->b_resid;
+		rxaddr ( bp, &addr, &xmem );
+		if	(rxsoftmap <= 0)
+			cmd = RX_Q22;
+		else
+			cmd = 0;
+		RXADDR->rxcs = RX_FILL | RXGID | ((xmem & 3) << 12) | cmd;
 		rxwait();
-		RXADDR->rxwc = (bp->b_resid >= NBPS ? NBPS : bp->b_resid) >> 1;
+		RXADDR->rxwc = n >> 1;
 		rxwait();
-		RXADDR->rxba = (short)addr;
+		RXADDR->rxba = addr;
+		if	(rxsoftmap <= 0)
+			{
+			rxwait();
+			RXADDR->rxba = xmem;
+			}
 	}
 }
 
 rxintr()
 {
 	register struct buf *bp;
-	int sector, track;
-	char *addr, xmem;
+	int n, sector, track, cmd;
+static	rxerr[4];
+	char	*decode;
+	int addr, xmem;
 
 	if (rxtab.b_state == SINIT) {
 		rxstart();
@@ -177,14 +236,41 @@ rxintr()
 	if ((bp = rxtab.b_actf) == NULL)
 		return;
 
-	if (RXADDR->rxcs < 0) {
+	if (RXADDR->rxcs & RX_ERR) {
 		if (rxtab.b_errcnt++ > 10 || rxtab.b_state == SFORMAT) {
 			bp->b_flags |= B_ERROR;
 			harderr(bp, "rx");
 			printf("cs=%b er=%b\n", RXADDR->rxcs, RX_BITS,
 				RXADDR->rxes, RXES_BITS);
+			RXADDR->rxcs = RX_RDEC | RX_GO;
+			rxwait();
+			RXADDR->rxba = (short) rxerr;
+			while ( ! (RXADDR->rxcs & RX_DONE) );
+			switch ( rxerr[0] )
+			{
+			case 0040: decode = "bad track"; break;
+			case 0050: decode = "found home"; break;
+			case 0070: decode = "no sch sctr"; break;
+			case 0120: decode = "no preamble"; break;
+			case 0150: decode = "ozone headers"; break;
+			case 0160: decode = "too many IDAM"; break;
+			case 0170: decode = "data AM missing"; break;
+			case 0200: decode = "CRC error"; break;
+			case 0240: decode = "density error"; break;
+			case 0250: decode = "bad fmt key"; break;
+			case 0260: decode = "bad data AM"; break;
+			case 0270: decode = "POK while write"; break;
+			case 0300: decode = "drv not ready"; break;
+			case 0310: decode = "write protected"; break;
+			default: decode = "unknown error"; break;
+			}
+			printf("rx: err %o=%s\n", rxerr[0], decode );
 			rxtab.b_errcnt = 0;
 			rxtab.b_actf = bp->av_forw;
+#ifdef	SOFUB_MAP
+			if	(rxsoftmap == 1)
+				sofub_relse(bp, bp->b_bcount);
+#endif
 			iodone(bp);
 		}
 		RXADDR->rxcs = RX_INIT;
@@ -196,26 +282,36 @@ rxintr()
 
 	case SREAD:			/* read done, start empty */
 		rxtab.b_state = SEMPTY;
-		rxaddr(bp, &addr, &xmem);
-		RXADDR->rxcs = RX_EMPTY | RX_GO | RX_IE | ((u_int)xmem << 12) | (DENSITY << 7);
+		n = bp->b_resid >= NBPS? NBPS : bp->b_resid;
+		rxaddr ( bp, &addr, &xmem );
+		if	(rxsoftmap <= 0)
+			cmd = RX_Q22;
+		else
+			cmd = 0;
+		RXADDR->rxcs = RX_EMPTY | RXGID | ((xmem & 3) << 12) | cmd;
 		rxwait();
-		RXADDR->rxwc = (bp->b_resid >= NBPS? NBPS : bp->b_resid) >> 1;
+		RXADDR->rxwc = n >> 1;
 		rxwait();
-		RXADDR->rxba = (short)addr;
+		RXADDR->rxba = addr;
+		if	(rxsoftmap <= 0)
+			{
+			rxwait();
+			RXADDR->rxba = xmem;
+			}
 		return;
 
 	case SFILL:			/* fill done, start write */
 		rxtab.b_state = SWRITE;
 		rxfactr((int)bp->b_blkno * NSPB + seccnt(bp), &sector, &track);
-		RXADDR->rxcs = RX_WSECT | RX_GO | RX_IE | (UNIT << 4) | (DENSITY << 7);
+		RXADDR->rxcs = RX_WSECT | RXGID | (UNIT << 4);
 		rxwait();
 		RXADDR->rxsa = sector;
 		rxwait();
 		RXADDR->rxta = track;
 		return;
 
-	case SWRITE:			/* write done, start next fill */
 	case SEMPTY:			/* empty done, start next read */
+	case SWRITE:			/* write done, start next fill */
 		/*
 		 * increment amount remaining to be transferred.
 		 * if it becomes positive, last transfer was a
@@ -227,12 +323,16 @@ done:
 			bp->b_resid = 0;
 			rxtab.b_errcnt = 0;
 			rxtab.b_actf = bp->av_forw;
+#ifdef	SOFUB_MAP
+			if	(rxsoftmap == 1)
+				sofub_relse(bp, bp->b_bcount);
+#endif
 			iodone(bp);
 			break;
 		}
 
 		bp->b_resid -= NBPS;
-		bp->b_seccnt++;
+		seccnt(bp)++;
 		break;
 
 	case SFORMAT:			/* format done (whew!!!) */
@@ -288,11 +388,11 @@ rxfactr(sectr, psectr, ptrck)
 static
 rxaddr(bp, addr, xmem)
 	register struct buf *bp;
-	register char **addr, *xmem;
+	register u_int *addr, *xmem;
 {
-	*addr = bp->b_un.b_addr + seccnt(bp) * NBPS;
+	*addr = (u_int)bp->b_un.b_addr + (seccnt(bp) * NBPS);
 	*xmem = bp->b_xmem;
-	if (*addr < bp->b_un.b_addr)		/* overflow, bump xmem */
+	if (*addr < (u_int)bp->b_un.b_addr)	/* overflow, bump xmem */
 		(*xmem)++;
 }
 

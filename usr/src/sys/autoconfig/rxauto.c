@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rxauto.c	1.2 (2.11BSD GTE) 12/30/92
+ *	@(#)rxauto.c	1.2 (2.11BSD GTE) 1995/11/21
  */
 
 #include "param.h"
@@ -15,11 +15,13 @@
 /*
  * rxprobe - check for rx
  */
-rxprobe(addr,vector)
+rxprobe(addr)
 	struct rxdevice *addr;
-	int vector;
 {
-	stuff(RX_INIT | RX_IE, (&(addr)->rxcs));
+	stuff(RX_INIT, (&(addr)->rxcs));
+	stuff(RX_IE, (&(addr)->rxcs));
+	DELAY(200000L);
+	stuff(RX_IE, (&(addr)->rxcs));
 	DELAY(1000L);
 	stuff(0, (&(addr)->rxcs));
 	return(ACP_IFINTR);
