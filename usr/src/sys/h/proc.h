@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)proc.h	1.4 (2.11BSD) 1999/8/11
+ *	@(#)proc.h	1.5 (2.11BSD) 1999/9/5
  */
 
 #ifndef	_SYS_PROC_H_
@@ -43,7 +43,7 @@ struct	proc {
 		char	P_time;		/* resident time for scheduling */
 		char	P_nice;		/* nice for cpu usage */
 		char	P_slptime;	/* secs sleeping */
-		char	P_cursig;
+		char	P_ptracesig;	/* used between parent & traced child */
 		struct proc *P_hash;	/* hashed based on p_pid */
 		long	P_sigmask;	/* current signal mask */
 		long	P_sigignore;	/* signals being ignored */
@@ -71,7 +71,7 @@ struct	proc {
 #define	p_nice		p_un.p_alive.P_nice
 #define	p_slptime	p_un.p_alive.P_slptime
 #define	p_hash		p_un.p_alive.P_hash
-#define	p_cursig	p_un.p_alive.P_cursig
+#define	p_ptracesig	p_un.p_alive.P_ptracesig
 #define	p_sigmask	p_un.p_alive.P_sigmask
 #define	p_sigignore	p_un.p_alive.P_sigignore
 #define	p_sigcatch	p_un.p_alive.P_sigcatch
@@ -115,17 +115,17 @@ int	nproc;
 #define	SSYS		0x0002	/* swapper or pager process */
 #define	SLOCK		0x0004	/* process being swapped out */
 #define	SSWAP		0x0008	/* save area flag */
-#define	STRC		0x0010	/* process is being traced */
-#define	SWTED		0x0020	/* another tracing flag */
+#define	P_TRACED	0x0010	/* process is being traced */
+#define	P_WAITED	0x0020	/* another tracing flag */
 #define	SULOCK		0x0040	/* user settable lock in core */
-	/*		0x0080	/* used to be SOMASK */
+#define	P_SINTR		0x0080	/* sleeping interruptibly */
 #define	SVFORK		0x0100	/* process resulted from vfork() */
 #define	SVFPRNT		0x0200	/* parent in vfork, waiting for child */
 #define	SVFDONE		0x0400	/* parent has released child in vfork */
 	/*		0x0800	/* unused */
-	/*		0x1000	/* used to be SDETACH */
+#define	P_TIMEOUT	0x1000	/* tsleep timeout expired */
 #define	P_NOCLDSTOP	0x2000	/* no SIGCHLD signal to parent */
-#define	SSEL		0x4000	/* selecting; wakeup/waiting danger */
+#define	P_SELECT	0x4000	/* selecting; wakeup/waiting danger */
 	/*		0x8000	/* unused */
 
 #define	S_DATA	0		/* specified segment */

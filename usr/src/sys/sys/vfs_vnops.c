@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)vfs_vnops.c	8.14.3 (2.11BSD) 1997/2/7
+ *	@(#)vfs_vnops.c	8.14.4 (2.11BSD) 1999/9/13
  */
 
 #include <sys/param.h>
@@ -147,8 +147,7 @@ vn_open(ndp, fmode, cmode)
 	iunlock(ip);		/* because namei returns a locked inode */
 	if	(setjmp(&u.u_qsave))
 		{
-		if	((error = u.u_error) == 0)
-			error = EINTR;
+		error = EINTR;	/* opens are not restarted after signals */
 		goto lbad;
 		}
 	if	(error = openi(ip, fmode))

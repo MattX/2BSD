@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep.c	2.3 (2.11BSD) 1997/8/26
+ *	@(#)machdep.c	2.4 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -142,7 +142,7 @@ sigreturn()
 		u.u_error = EINVAL;
 		return;
 	}
-	u.u_eosys = JUSTRETURN;
+	u.u_error = EJUSTRETURN;
 	if	(scp->sc_onstack & SA_ONSTACK)
 		u.u_sigstk.ss_flags |= SA_ONSTACK;
 	else

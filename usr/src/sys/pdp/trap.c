@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)trap.c	1.5 (2.11BSD GTE) 1997/8/26
+ *	@(#)trap.c	1.6 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -298,8 +298,8 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	}
 	psignal(p, i);
 out:
-	if (p->p_cursig || ISSIG(p))
-		postsig();
+	while (i = CURSIG(p))
+		postsig(i);
 	curpri = setpri(p);
 	if (runrun) {
 		setrq(u.u_procp);
@@ -328,6 +328,7 @@ syscall(dev, sp, r1, ov, nps, r0, pc, ps)
 	register struct sysent *callp;
 	time_t syst;
 	register caddr_t opc;	/* original pc for restarting syscalls */
+	int	i;
 
 #ifdef UCB_METER
 	cnt.v_syscall++;
@@ -347,32 +348,33 @@ syscall(dev, sp, r1, ov, nps, r0, pc, ps)
 		copyin(sp+2, (caddr_t)u.u_arg, callp->sy_narg*NBPW);
 	u.u_r.r_val1 = 0;
 	u.u_r.r_val2 = r1;
-	if (setjmp(&u.u_qsave)) {
-		if (u.u_error == 0 && u.u_eosys != RESTARTSYS)
-			u.u_error = EINTR;
-	} else {
-		u.u_eosys = NORMALRETURN;
+	if	(setjmp(&u.u_qsave) == 0)
+		{
 		(*callp->sy_call)();
-#ifdef DIAGNOSTIC
-		if (hasmap)
+#ifdef	DIAGNOSTIC
+		if	(hasmap)
 			panic("hasmap");
 #endif
-	}
-	if (u.u_eosys == NORMALRETURN) {
-		if (u.u_error) {
-			ps |= PSL_C;
-			r0 = u.u_error;
-		} else {
+		}
+	switch	(u.u_error)
+		{
+		case	0:
 			ps &= ~PSL_C;
 			r0 = u.u_r.r_val1;
 			r1 = u.u_r.r_val2;
+			break;
+		case	ERESTART:
+			pc = opc;
+			break;
+		case	EJUSTRETURN:
+			break;
+		default:
+			ps |= PSL_C;
+			r0 = u.u_error;
+			break;
 		}
-	} else if (u.u_eosys == RESTARTSYS)
-		pc = opc;	/* back up pc to restart syscall */
-	/* else if (u.u_eosys == JUSTRETURN) */
-		/* nothing to do */
-	if (u.u_procp->p_cursig || ISSIG(u.u_procp))
-		postsig();
+	while	(i = CURSIG(u.u_procp))
+		postsig(i);
 	curpri = setpri(u.u_procp);
 	if (runrun) {
 		setrq(u.u_procp);

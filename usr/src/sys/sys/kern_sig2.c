@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sig.c	8.14.1 (2.11BSD) 1997/9/11
+ *	@(#)kern_sig.c	8.14.2 (2.11BSD) 1999/9/9
  */
 
 /*
@@ -296,9 +296,10 @@ sigsuspend()
 	u.u_oldmask = p->p_sigmask;
 	u.u_psflags |= SAS_OLDMASK;
 	p->p_sigmask = nmask &~ sigcantmask;
-	for	(;;)
-		sleep((caddr_t)&u, PSLEP);
-	/* NOTREACHED */
+	while	(tsleep((caddr_t)&u, PPAUSE|PCATCH, 0) == 0)
+		;
+	/* always return EINTR rather than ERESTART */
+	return(u.u_error = EINTR);
 	}
 
 int
@@ -340,3 +341,39 @@ sigaltstack()
 out:
 	return(u.u_error = error);
 }
+
+int
+sigwait()
+	{
+	register struct a {
+		sigset_t *set;
+		int *sig;
+		} *uap = (struct a *)u.u_ap;
+	sigset_t wanted, sigsavail;
+	register struct proc *p = u.u_procp;
+	int	signo, error;
+
+	if	(uap->set == 0 || uap->sig == 0)
+		{
+		error = EINVAL;
+		goto out;
+		}
+	if	(error = copyin(uap->set, &wanted, sizeof (sigset_t)))
+		goto out;
+	
+	wanted |= sigcantmask;
+	while	((sigsavail = (wanted & p->p_sig)) == 0)
+		tsleep(&u.u_signal[0], PPAUSE | PCATCH, 0);
+	
+	if	(sigsavail & sigcantmask)
+		{
+		error = EINTR;
+		goto out;
+		}
+
+	signo = ffs(sigsavail);
+	p->p_sig &= ~sigmask(signo);
+	error = copyout(&signo, uap->sig, sizeof (int));
+out:
+	return(u.u_error = error);
+	}

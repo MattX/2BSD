@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_sched.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vm_sched.c	1.2 (2.11BSD) 1999/9/10
  */
 
 #include "param.h"
@@ -79,7 +79,7 @@ sched()
 	/*
 	 * None found.  Look around for core: 1) kick out dead wood
 	 * (processes asleep longer than maxslp+10); or 2) select out
-	 * of the processes sleeping at bad priority the process with
+	 * of the processes sleeping interruptibly the process with
 	 * maximum f(size, slptime); or 3) if none, select the oldest.
 	 * If we can find someone to swap out we try to swap someone
 	 * else (hopefully) in, possibly causing someone else to get
@@ -104,7 +104,7 @@ sched()
 		if (rp->p_textp && rp->p_textp->x_flag & XLOCK)
 			continue;
 		if (rp->p_stat == SSLEEP &&
-		    rp->p_pri > PZERO || rp->p_stat == SSTOP) {
+		    (rp->p_flag & P_SINTR) || rp->p_stat == SSTOP) {
 			register int size;
 
 			if (rp->p_slptime > maxslp+10) {
@@ -137,7 +137,7 @@ sched()
 	noop();
 	(void)_splhigh();
 	/*
-	 * Swap found user out if sleeping at bad pri, or if he has spent at
+	 * Swap found user out if sleeping interruptibly, or if he has spent at
 	 * least 1 second in core and the swapped-out process has spent at
 	 * least 2 seconds out.  Otherwise wait a bit and try again.
 	 */
@@ -235,11 +235,11 @@ vmtotal()
 
 			case SSLEEP:
 			case SSTOP:
-				if (p->p_pri <= PZERO && p->p_stat == SSLEEP)
+				if (!(p->p_flag & P_SINTR) && p->p_stat == SSLEEP)
 					nrun++;
 #ifdef UCB_METER
 				if (p->p_flag & SLOAD) {
-					if (p->p_pri <= PZERO)
+					if	(!(p->p_flag & P_SINTR))
 						total.t_dw++;
 					else if (p->p_slptime < maxslp)
 						total.t_sl++;

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)select.2	6.5 (Berkeley) 5/15/86
+.\"	@(#)select.2	6.5.1 (2.11BSD) 1999/9/10
 .\"
-.TH SELECT 2 "May 15, 1986"
+.TH SELECT 2 "September 10, 1999"
 .UC 5
 .SH NAME
 select \- synchronous I/O multiplexing
@@ -144,3 +144,10 @@ Thus, it is unwise to assume that the timeout value will be unmodified
 by the
 .I select
 call.
+.PP
+In 2BSD the timeout is implemented in the kernel using the \fIcallout\fP
+table.  Since a \fIcallout\fP structure only has a signed short to 
+store the number of ticks till expiration the maximum value of a kernel
+timeout is 32767 ticks.  In the US (60hz power) this gives a maximum
+timeout of approximately 9 minutes.  In countries using 50hz power 
+the maximum timeout is about 13 minutes.

@@ -15,9 +15,11 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)comsat.c	5.11.1 (2.11BSD) 1996/11/16";
+static char sccsid[] = "@(#)comsat.c	5.11.2 (2.11BSD) 1999/9/15";
 #endif
 
+#include <unistd.h>
+#include <stdlib.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -57,6 +59,7 @@ main(argc, argv)
 	char msgbuf[100];
 	struct sockaddr_in from;
 	int fromlen, reapchildren(), onalrm();
+	sigset_t set, oset;
 
 	/* verify proper invocation */
 	fromlen = sizeof (from);
@@ -84,24 +87,25 @@ main(argc, argv)
 	for (;;) {
 		cc = recv(0, msgbuf, sizeof (msgbuf) - 1, 0);
 		if (cc <= 0) {
-			if (errno != EINTR)
-				sleep(1);
-			errno = 0;
+			sleep(1);
 			continue;
 		}
 		if (!nutmp)		/* no one has logged in yet */
 			continue;
-		sigblock(sigmask(SIGALRM));
+		sigemptyset(&set);
+		sigaddset(&set, SIGALRM);
+		sigprocmask(SIG_BLOCK, &set, &oset);
 		msgbuf[cc] = 0;
 		(void)time(&lastmsgtime);
 		mailfor(msgbuf);
-		sigsetmask(0L);
+		sigprocmask(SIG_SETMASK, &oset, NULL);
 	}
 }
 
 reapchildren()
 {
-	while (wait3((union wait *)NULL, WNOHANG, (struct rusage *)NULL) > 0);
+	while (wait4(-1, NULL, WNOHANG, NULL) > 0)
+		;
 }
 
 onalrm()
@@ -109,8 +113,6 @@ onalrm()
 	static u_int utmpsize;		/* last malloced size for utmp */
 	static u_int utmpmtime;		/* last modification time for utmp */
 	struct stat statbf;
-	off_t lseek();
-	char *malloc(), *realloc();
 
 	if (time((time_t *)NULL) - lastmsgtime >= MAXIDLE)
 		exit(0);
@@ -139,7 +141,7 @@ mailfor(name)
 {
 	register struct utmp *utp = &utmp[nutmp];
 	register char *cp;
-	off_t offset, atol();
+	off_t offset;
 
 	if (!(cp = index(name, '@')))
 		return;
@@ -194,9 +196,8 @@ jkfprintf(tp, name, offset)
 {
 	register char *cp;
 	register FILE *fi;
-	register int linecnt, charcnt, inheader;
+	int linecnt, charcnt, inheader;
 	char line[BUFSIZ];
-	off_t fseek();
 
 	if ((fi = fopen(name, "r")) == NULL)
 		return;

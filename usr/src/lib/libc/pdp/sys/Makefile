@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.7 (2.11BSD) 1999/2/19
+#	@(#)Makefile	1.8 (2.11BSD) 1999/9/10
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -33,7 +33,7 @@ NORM2=  mknod.o mount.o open.o quota.o read.o readlink.o readv.o reboot.o \
 	setuid.o seteuid.o setgid.o setegid.o \
 	setrlimit.o setsockopt.o settimeofday.o \
 	shutdown.o sigaltstack.o socket.o socketpair.o stat.o symlink.o \
-	sigprocmask.o sigstack.o \
+	sigprocmask.o sigstack.o sigwait.o \
 	statfs.o fstatfs.o getfsstat.o \
 	truncate.o umount.o unlink.o utimes.o wait4.o write.o writev.o
 

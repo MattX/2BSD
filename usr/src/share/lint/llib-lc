@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.46 (2.11BSD GTE) 1997/9/26 */
+/*	@(#)llib-lc	1.47 (2.11BSD) 1999/9/9 */
 
 /* LINTLIBRARY */
 
@@ -163,6 +163,7 @@ long	sigsetmask(m) long m; { return (m); }
 int	sigreturn(scp) struct sigcontext *scp; { return -1; }
 int	sigstack(ss, oss) struct sigstack *ss, *oss; { return 0 ; }
 int	sigsuspend(f) sigset_t *f; { return 0;}
+int	sigwait(f,s) sigset_t *f; int *s; { return 0;}
 int	socket( a, t, p) {return 1;}
 int	socketpair( d, t, p, s ) int s[2]; { return 0; }
 int	stat(s, b) char *s; struct stat *b; { return(0); }

@@ -3,27 +3,18 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.h	1.5 (2.11BSD GTE) 1997/9/2
+ *	@(#)param.h	1.6 (2.11BSD) 1999/9/5
  */
 
 #define	BSD	211		/* 2.11 * 10, as cpp doesn't do floats */
 
-#ifdef KERNEL
-#include "localopts.h"
-#else
 #include <sys/localopts.h>
-#endif
-
 #include <sys/stddef.h>		/* for 'offsetof' */
 
 /*
  * Machine type dependent parameters.
  */
-#ifdef KERNEL
-#include "../machine/machparam.h"
-#else
 #include <machine/machparam.h>
-#endif
 
 /*
  * Machine-independent constants
@@ -46,29 +37,27 @@
 #define	PRIUBA	24
 #define	PZERO	25
 #define	PPIPE	26
+#define	PSOCK	26
 #define	PWAIT	30
 #define	PLOCK	35
-#define	PSLEP	40
+#define	PPAUSE	40
 #define	PUSER	50
 
 #define	NZERO	0
 
+#define	PRIMASK	0xff
+#define	PCATCH	0x100
+
 /*
  * Signals
  */
-#ifdef KERNEL
-#include "signal.h"
-#else
 #include <signal.h>
-#endif
-
-#define	ISSIG(p) \
-	((p)->p_sig && ((p)->p_flag&STRC || \
-	 ((p)->p_sig &~ ((p)->p_sigignore | (p)->p_sigmask))) && issig())
 
 #define	NBPW	sizeof(int)	/* number of bytes in an integer */
 
+#ifndef	NULL
 #define	NULL	0
+#endif
 #define	CMASK	026		/* default mask for file creation */
 #define	NODEV	(dev_t)(-1)
 
@@ -86,11 +75,7 @@
 #define	CBSIZE	(CBLOCK - sizeof(struct cblock *))	/* data chars/clist */
 #define	CROUND	(CBLOCK - 1)				/* clist rounding */
 
-#ifndef KERNEL
 #include	<sys/types.h>
-#else
-#include	"types.h"
-#endif
 
 /*
  * File system parameters and macros.

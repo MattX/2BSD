@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_descrip.c	1.5 (2.11BSD) 1999/3/9
+ *	@(#)kern_descrip.c	1.6 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -374,6 +374,7 @@ flock()
 		int	how;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
+	int error;
 
 	if ((fp = getf(uap->fd)) == NULL)
 		return;
@@ -393,7 +394,8 @@ flock()
 	if ((fp->f_flag & FEXLOCK) && (uap->how & LOCK_EX) ||
 	    (fp->f_flag & FSHLOCK) && (uap->how & LOCK_SH))
 		return;
-	u.u_error = ino_lock(fp, uap->how);
+	error = ino_lock(fp, uap->how);
+	return(u.u_error = error);
 }
 
 /*

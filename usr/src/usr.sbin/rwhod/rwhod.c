@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)rwhod.c	5.9.2 (2.11BSD) 1996/11/16";
+static char sccsid[] = "@(#)rwhod.c	5.9.3 (2.11BSD) 1999/9/14";
 #endif
 
 #include <sys/param.h>
@@ -152,7 +152,7 @@ main()
 		cc = recvfrom(s, (char *)&wd, sizeof (struct whod), 0,
 			&from, &len);
 		if (cc <= 0) {
-			if (cc < 0 && errno != EINTR)
+			if (cc < 0)
 				syslog(LOG_WARNING, "recv: %m");
 			continue;
 		}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.14 (2.11BSD) 1999/2/22
+ *	@(#)init_sysent.c	1.15 (2.11BSD) 1999/9/5
  */
 
 /*
@@ -35,7 +35,7 @@ int	lock(),phys(),fetchi(),nostk(),fperr();		/* 2BSD calls */
 /* 1.3 signals */
 int	sigvec(),sigblock(),sigsetmask(),sigpause(),sigstack(),sigreturn();
 int	sigaction(), sigprocmask(), sigpending(), sigaltstack(), sigsuspend();
-int	kill(), killpg();
+int	sigwait(), kill(), killpg();
 
 /* 1.4 timing and statistics */
 int	gettimeofday(),settimeofday();
@@ -167,7 +167,7 @@ struct sysent sysent[] = {
 	1, lock,			/*  53 = (2.9) lock in core */
 	4, ioctl,			/*  54 = ioctl */
 	1, reboot,			/*  55 = reboot */
-	0, nosys,			/*  56 = unused */
+	2, sigwait,			/*  56 = sigwait */
 	2, symlink,			/*  57 = symlink */
 	3, readlink,			/*  58 = readlink */
 	3, execve,			/*  59 = execve */

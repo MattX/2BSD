@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)user.h	1.5 (2.11BSD) 1997/11/28
+ *	@(#)user.h	1.6 (2.11BSD) 1999/9/13
  */
 
 #ifdef KERNEL
@@ -62,7 +62,7 @@ struct user {
 		time_t	r_time;
 	} u_r;
 	char	u_error;		/* return error code */
-	char	u_eosys;		/* special action on end of syscall */
+	char	u_dummy0;
 
 /* 1.1 - processes and protection */
 	uid_t	u_uid;			/* effective user id */
@@ -147,16 +147,7 @@ struct user {
 					 */
 };
 
-#define	JUSTRETURN	1
-#define	RESTARTSYS	2
-#define	NORMALRETURN	3
-
-/* u_error codes */
-#ifdef KERNEL
-#include "errno.h"
-#else
-#include <errno.h>
-#endif
+#include <sys/errno.h>
 
 #ifdef KERNEL
 extern	struct user u;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uipc_syscalls.c	7.1.2 (2.11BSD GTE) 12/2/94
+ *	@(#)uipc_syscalls.c	7.1.3 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -224,11 +224,11 @@ connect()
 	 * sleep()" loop.
 	 */
 	s = splnet();
-	if (setjmp(&u.u_qsave)) {
-		if (u.u_error == 0)
-			u.u_error = EINTR;
+	if (setjmp(&u.u_qsave))
+		{
+		u.u_error = EINTR;
 		goto bad2;
-	}
+		}
 	u.u_error = CONNWHILE(so);
 bad2:
 	splx(s);
@@ -246,19 +246,13 @@ socketpair()
 	struct socket *so1, *so2;
 	int sv[2];
 
-#ifndef pdp11
-	if (useracc((caddr_t)uap->rsv, 2 * sizeof (int), B_WRITE) == 0) {
-		u.u_error = EFAULT;
-		return;
-	}
-#endif
-	if (netoff)
+	if	(netoff)
 		return(u.u_error = ENETDOWN);
 	u.u_error = SOCREATE(uap->domain, &so1, uap->type, uap->protocol);
-	if (u.u_error)
+	if	(u.u_error)
 		return;
 	u.u_error = SOCREATE(uap->domain, &so2, uap->type, uap->protocol);
-	if (u.u_error)
+	if	(u.u_error)
 		goto free;
 	fp1 = falloc();
 	if (fp1 == NULL)
@@ -397,23 +391,12 @@ sendit(s, mp, flags)
 	auio.uio_resid = 0;
 	auio.uio_rw = UIO_WRITE;
 	iov = mp->msg_iov;
-	for (i = 0; i < mp->msg_iovlen; i++, iov++) {
-#ifndef	pdp11
-		if (iov->iov_len < 0) {
-			u.u_error = EINVAL;
-			return;
-		}
-#endif
-		if (iov->iov_len == 0)
+	for	(i = 0; i < mp->msg_iovlen; i++, iov++)
+		{
+		if	(iov->iov_len == 0)
 			continue;
-#ifndef	pdp11
-		if (useracc(iov->iov_base, (u_int)iov->iov_len, B_READ) == 0) {
-			u.u_error = EFAULT;
-			return;
-		}
-#endif
 		auio.uio_resid += iov->iov_len;
-	}
+		}
 	if (mp->msg_name) {
 		to = (struct mbuf *)sabuf;
 		MBZAP(to, mp->msg_namelen, MT_SONAME);
@@ -435,7 +418,15 @@ sendit(s, mp, flags)
 	} else
 		rights = 0;
 	len = auio.uio_resid;
-	u.u_error = SOSEND(fp->f_socket, to, &auio, flags, rights);
+	if	(setjmp(&u.u_qsave))
+		{
+		if	(auio.uio_resid == len)
+			return;
+		else
+			u.u_error = 0;
+		}
+	else
+		u.u_error = SOSEND(fp->f_socket, to, &auio, flags, rights);
 	u.u_r.r_val1 = len - auio.uio_resid;
 }
 
@@ -542,26 +533,25 @@ recvit(s, mp, flags, namelenp, rightslenp)
 	auio.uio_resid = 0;
 	auio.uio_rw = UIO_READ;
 	iov = mp->msg_iov;
-	for (i = 0; i < mp->msg_iovlen; i++, iov++) {
-#ifndef	pdp11
-		if (iov->iov_len < 0) {
-			u.u_error = EINVAL;
-			return;
-		}
-#endif
-		if (iov->iov_len == 0)
+	for	(i = 0; i < mp->msg_iovlen; i++, iov++)
+		{
+		if	(iov->iov_len == 0)
 			continue;
-#ifndef	pdp11
-		if (useracc(iov->iov_base, (u_int)iov->iov_len, B_WRITE) == 0) {
-			u.u_error = EFAULT;
-			return;
-		}
-#endif
 		auio.uio_resid += iov->iov_len;
-	}
+		}
 	len = auio.uio_resid;
-	u.u_error = 
-	    SORECEIVE((struct socket *)fp->f_data, &from, &auio,flags, &rights);
+	if	(setjmp(&u.u_qsave))
+		{
+		if	(auio.uio_resid == len)
+			return;
+		else
+			u.u_error = 0;
+		}
+	else
+		u.u_error = SORECEIVE((struct socket *)fp->f_data,
+					&from, &auio,flags, &rights);
+	if	(u.u_error)
+		return;
 	u.u_r.r_val1 = len - auio.uio_resid;
 	if (mp->msg_name) {
 		len = mp->msg_namelen;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.12 (2.11BSD GTE) 1997/11/28
+ *	@(#)ufs_syscalls.c	1.13 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -19,7 +19,7 @@
 #include "quota.h"
 #endif
 
-static	void	copen();
+static	int	copen();
 
 /*
  * Change current working directory (``.'').
@@ -110,7 +110,7 @@ open()
 		int	crtmode;
 	} *uap = (struct a *) u.u_ap;
 
-	copen(uap->mode, uap->crtmode, uap->fname);
+	u.u_error = copen(uap->mode, uap->crtmode, uap->fname);
 }
 
 /*
@@ -123,7 +123,7 @@ creat()
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
 
-	copen(O_WRONLY|O_CREAT|O_TRUNC, uap->fmode, uap->fname);
+	u.u_error = copen(O_WRONLY|O_CREAT|O_TRUNC, uap->fmode, uap->fname);
 }
 
 /*
@@ -131,7 +131,7 @@ creat()
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
  */
-static void
+static int
 copen(mode, arg, fname)
 	int mode;
 	int arg;
@@ -145,7 +145,7 @@ copen(mode, arg, fname)
 
 	fp = falloc();
 	if	(fp == NULL)
-		return;
+		return(u.u_error);	/* XXX */
 	flags = FFLAGS(mode);	/* convert from open to kernel flags */
 	fp->f_flag = flags & FMASK;
 	fp->f_type = DTYPE_INODE;
@@ -174,12 +174,10 @@ copen(mode, arg, fname)
 			  (error = dupfdopen(indx,u.u_dupfd,flags,error) == 0))
 			{
 			u.u_r.r_val1 = indx;
-			u.u_error = 0;
-			return;
+			return(0);
 			}
 		u.u_ofile[indx] = NULL;
-		u.u_error = error;	/* XXX */
-		return;
+		return(error);
 		}
 	ip = ndp->ni_ip;
 	u.u_dupfd = 0;
@@ -201,8 +199,7 @@ copen(mode, arg, fname)
 			u.u_ofile[indx] = NULL;
 			}
 		}
-	u.u_error = error;
-	return;
+	return(error);
 	}
 
 /*

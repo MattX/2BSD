@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)errno.h	7.1.2 (2.11BSD GTE) 1995/12/26
+ *	@(#)errno.h	7.1.3 (2.11BSD) 1999/9/6
  */
 
 #ifndef	KERNEL
@@ -113,3 +113,9 @@ extern	int	errno;			/* global error number */
 #define	EAUTH		80		/* Authentication error */
 #define	ENEEDAUTH	81		/* Need authenticator */
 #define	ELAST		81		/* Must be equal largest errno */
+
+#ifdef	KERNEL
+/* pseudo-errors returned inside kernel to modify return back to user mode */
+#define	ERESTART	-1		/* restart syscall */
+#define	EJUSTRETURN	-2		/* don't modify regs, just return */
+#endif

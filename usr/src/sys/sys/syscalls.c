@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.10 (2.11BSD GTE) 1997/12/31
+ *	@(#)syscalls.c	1.11 (2.11BSD) 1999/9/5
  */
 
 /*
@@ -62,12 +62,12 @@ char *syscallnames[] = {
 	"getegid",		/*  48 = getegid */
 	"setgid",		/*  49 = setgid */
 	"setegid",		/*  50 = setegid */
-	"acct",			/*  51 = turn acct off/on */
+	"#51",			/*  51 - unused */
 	"phys",			/*  52 = (2.9) set phys addr */
 	"lock",			/*  53 = (2.9) lock in core */
 	"ioctl",		/*  54 = ioctl */
 	"reboot",		/*  55 = reboot */
-	"#56",			/*  56 = unused */
+	"sigwait",		/*  56 = sigwait */
 	"symlink",		/*  57 = symlink */
 	"readlink",		/*  58 = readlink */
 	"execve",		/*  59 = execve */

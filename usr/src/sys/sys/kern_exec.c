@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.7 (2.11BSD GTE) 1997/11/28
+ *	@(#)kern_exec.c	1.8 (2.11BSD) 1999/9/6
  */
 
 #include "param.h"
@@ -85,7 +85,7 @@ execve()
   again:
 	if (access(ip, IEXEC))
 		goto bad;
-	if ((u.u_procp->p_flag&STRC) && access(ip, IREAD))
+	if ((u.u_procp->p_flag & P_TRACED) && access(ip, IREAD))
 		goto bad;
 	if ((ip->i_mode & IFMT) != IFREG ||
 	    (ip->i_mode & (IEXEC|(IEXEC>>3)|(IEXEC>>6))) == 0) {
@@ -603,7 +603,7 @@ getxfile(ip, ep, nargc, uid, gid)
 		/*
 		 * set SUID/SGID protections, if no tracing
 		 */
-		if ((u.u_procp->p_flag&STRC)==0) {
+		if ((u.u_procp->p_flag & P_TRACED)==0) {
 			u.u_uid = uid;
 			u.u_procp->p_uid = uid;
 			u.u_groups[0] = gid;
