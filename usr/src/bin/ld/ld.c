@@ -1,8 +1,15 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)ld.c	4.5 1997/10/31";
+static char *sccsid = "@(#)ld.c	4.6 1998/01/19";
 #endif
 
 /*
+ * 4.6 1998/01/19 - Tim Shoppa (shoppa@triumf.ca)
+ *      Minor bug fix: when tsize was being incremented by THUNKSZ,
+ *      no check was being made for 16-bit overflow.  Fix was to
+ *      call add().  Same was done for the round up to the nearest
+ *      0100 on tsize.  Modify add()'s error reporting to reduce memory 
+ *	usage - sms.
+ *
  * 4.5 1997/10/31 - sms
  *	Minor cleanup.  Use unistd.h and stdlib.h instead of local definitions.
  *	Correct comment about number of VM pages.
@@ -938,9 +945,9 @@ register struct vseg *seg;
 		}
 
 	if (libflg==0 || ndef) {
-		tsize = add(tsize,filhdr.e.a_text,"text overflow");
-		dsize = add(dsize,filhdr.e.a_data,"data overflow");
-		bsize = add(bsize,filhdr.e.a_bss,"bss overflow");
+		tsize = add(tsize,filhdr.e.a_text,"text");
+		dsize = add(dsize,filhdr.e.a_data,"data");
+		bsize = add(bsize,filhdr.e.a_bss,"bss");
 		ssize += nlocal;
 		return (1);
 	}
@@ -1030,7 +1037,7 @@ middle()
 				sp->n_value = csize;
 				sp->n_type = N_EXT+N_COMM;
 				VMMODIFY(seg);
-				csize = add(csize, t, "bss overflow");
+				csize = add(csize, t, "bss");
 			}
 		}
 	}
@@ -1046,7 +1053,7 @@ middle()
 				sp->sovalue = sp->n_value;
 				sp->n_value = tsize;
 				VMMODIFY(seg);
-				tsize += THUNKSIZ;
+				tsize = add(tsize, THUNKSIZ, "text");
 				if (trace)
 					printf("relocating %.*s in overlay %d from %o to %o\n",
 						NNAMESIZE,sp->n_name,sp->n_ovly,
@@ -1058,7 +1065,7 @@ middle()
 	 * Now set symbols to their final value
 	 */
 	if (nflag || iflag)
-		tsize = (tsize + 077) & ~077;
+		tsize = add(tsize, 077, "text") & ~077;
 	ttsize = tsize;
 	if (numov) {
 		register int i;
@@ -1141,7 +1148,7 @@ middle()
 	}
 	if (sflag || xflag)
 		ssize = 0;
-	bsize = add(bsize, csize, "bss overflow");
+	bsize = add(bsize, csize, "bss");
 	nsym = ssize / (sizeof cursym);
 }
 
@@ -2004,10 +2011,16 @@ int a, b;
 char *s;
 {
 	long r;
+	register char *ap;
 
 	r = (long)(u_int)a + (u_int)b;
 	if (r >= 0200000)
-		error(1,s);
+		{
+		ap = (char *)alloca(strlen(s) + 1 + sizeof (" overflow"));
+		strcpy(ap, s);
+		strcat(ap, " overflow");
+		error(1, ap);
+		}
 	return(r);
 }
 
