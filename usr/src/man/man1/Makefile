@@ -14,6 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
+#	@(#)Makefile	1.2 (2.11BSD) 1995/03/13
 #
 MDIR=	/usr/man/cat1
 SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
@@ -23,7 +24,7 @@ SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
 	dd.1 deroff.1 df.1 diction.1 diff.1 diff3.1 du.1 echo.1 ed.1 \
 	efl.1 eqn.1 error.1 ex.1 expand.1 expr.1 f77.1 false.1 file.1 \
 	find.1 fmt.1 fold.1 fpr.1 from.1 fsplit.1 gcore.1 \
-	graph.1 grep.1 groups.1 head.1 hostid.1 hostname.1 indent.1 \
+	graph.1 grep.1 groups.1 head.1 hostid.1 indent.1 \
 	install.1 intro.1 iostat.1 join.1 kill.1 last.1 lastcomm.1 ld.1 \
 	learn.1 leave.1 lex.1 lint.1 lisp.1 ln.1 logger.1 login.1 \
 	look.1 lookbib.1 lorder.1 lpq.1 lpr.1 lprm.1 lptest.1 ls.1 \
@@ -37,7 +38,7 @@ SRCS1=	nroff.1 nslookup.1 od.1 pagesize.1 pc.1 pdx.1 pi.1 pix.1 \
 	sort.1 sortbib.1 spell.1 spline.1 split.1 strcompact.1 strings.1 \
 	strip.1 struct.1 stty.1 style.1 su.1 sum.1 symcompact.1 symorder.1 \
 	sysline.1 tabs.1 tail.1 talk.1 \
-	tar.1 tbl.1 tc.1 tcopy.1 tee.1 telnet.1 test.1 time.1 \
+	tar.1 tbl.1 tc.1 tcopy.1 tee.1 telnet.1 time.1 \
 	tip.1 tk.1 tn3270.1 touch.1 tp.1 tr.1 troff.1 true.1 tset.1 \
 	tsort.1 tty.1 ul.1 unifdef.1 uniq.1 units.1 uptime.1 users.1 \
 	uucp.1 uuencode.1 uulog.1 uuname.1 uuq.1 uusend.1 uux.1 \
@@ -51,7 +52,7 @@ OBJS1=	adb.0 addbib.0 apply.0 apropos.0 as.0 at.0 atq.0 atrm.0 \
 	dd.0 deroff.0 df.0 diction.0 diff.0 diff3.0 du.0 echo.0 ed.0 \
 	efl.0 eqn.0 error.0 ex.0 expand.0 expr.0 f77.0 false.0 file.0 \
 	find.0 fmt.0 fold.0 fpr.0 from.0 fsplit.0 gcore.0 \
-	graph.0 grep.0 groups.0 head.0 hostid.0 hostname.0 indent.0 \
+	graph.0 grep.0 groups.0 head.0 hostid.0 indent.0 \
 	install.0 intro.0 iostat.0 join.0 kill.0 last.0 lastcomm.0 ld.0 \
 	learn.0 leave.0 lex.0 lint.0 lisp.0 ln.0 logger.0 login.0 \
 	look.0 lookbib.0 lorder.0 lpq.0 lpr.0 lprm.0 lptest.0 ls.0 \
@@ -65,7 +66,7 @@ OBJS2=	nroff.0 nslookup.0 od.0 pagesize.0 pc.0 pdx.0 pi.0 pix.0 \
 	sort.0 sortbib.0 spell.0 spline.0 split.0 strcompact.0 strings.0 \
 	strip.0 struct.0 stty.0 style.0 su.0 sum.0 symcompact.0 symorder.0 \
 	sysline.0 tabs.0 tail.0 talk.0 \
-	tar.0 tbl.0 tc.0 tcopy.0 tee.0 telnet.0 test.0 time.0 \
+	tar.0 tbl.0 tc.0 tcopy.0 tee.0 telnet.0 time.0 \
 	tip.0 tk.0 tn3270.0 touch.0 tp.0 tr.0 troff.0 true.0 tset.0 \
 	tsort.0 tty.0 ul.0 unifdef.0 uniq.0 units.0 uptime.0 users.0 \
 	uucp.0 uuencode.0 uulog.0 uuname.0 uuq.0 uusend.0 uux.0 \

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stat.h	7.1.2 (2.11BSD GTE) 11/25/94
+ *	@(#)stat.h	7.1.4 (2.11BSD) 1995/03/13
  */
 
 #ifndef	_STAT_H_
@@ -44,6 +44,27 @@ struct	stat
 #define	S_IREAD	0000400		/* read permission, owner */
 #define	S_IWRITE 0000200	/* write permission, owner */
 #define	S_IEXEC	0000100		/* execute/search permission, owner */
+
+/*
+ * Definitions of flags in mode that are 4.4 compatible.
+ */
+
+#define S_IFIFO 0010000		/* named pipe (fifo) - Not used by 2.11BSD */
+
+#define S_IRWXU 0000700		/* RWX mask for owner */
+#define S_IRUSR 0000400		/* R for owner */
+#define S_IWUSR 0000200		/* W for owner */
+#define S_IXUSR 0000100		/* X for owner */
+
+#define S_IRWXG 0000070		/* RWX mask for group */
+#define S_IRGRP 0000040		/* R for group */
+#define S_IWGRP 0000020		/* W for group */
+#define S_IXGRP 0000010		/* X for group */
+
+#define S_IRWXO 0000007		/* RWX mask for other */
+#define S_IROTH 0000004		/* R for other */
+#define S_IWOTH 0000002		/* W for other */
+#define S_IXOTH 0000001		/* X for other */
 
 /*
  * Definitions of flags stored in file flags word.  Different from 4.4 because

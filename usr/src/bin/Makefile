@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.19.4 (2.11BSD GTE) 1/15/95
+#	@(#)Makefile	5.19.5 (2.11BSD GTE) 1995/03/13
 #
 DESTDIR=
 CFLAGS=	-O
@@ -11,8 +11,8 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	adb ar as awk chflags chpass csh diff ld login ls make nm passwd \
-	sed sh sysctl tp
+SUBDIR=	adb ar as awk chflags chpass csh diff hostname ld login ls make nm 
+	passwd sed sh sysctl test tp
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -22,8 +22,8 @@ SCRIPT=	false true
 # explicit make lines.
 #
 STD=	cat cc chgrp chmod cmp cp date dd du echo ed grep hostid \
-	hostname kill ln mkdir mt mv nice od pagesize pr \
-	pwd rm rmail rmdir size stty sync tar tee test time who
+	kill ln mkdir mt mv nice od pagesize pr \
+	pwd rm rmail rmdir size stty sync tar tee time who
 
 # C programs that live in the current directory and need explicit make lines.
 #
@@ -76,7 +76,6 @@ install: ${BINS}
 		(install -g tty -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
 	-install -s -m 751 -g staff strip ${DESTDIR}/bin/xstrip
 	-mv ${DESTDIR}/bin/xstrip ${DESTDIR}/bin/strip
-	rm -f ${DESTDIR}/bin/[; ln ${DESTDIR}/bin/test ${DESTDIR}/bin/[
 	rm -f ${DESTDIR}/bin/e; ln ${DESTDIR}/bin/ed ${DESTDIR}/bin/e
 
 clean:
