@@ -1,6 +1,6 @@
 #define	TMSDEBUG	1
 
-/*	@(#)tmscp.c	1.5 (2.11BSD GTE) 1995/12/08 */
+/*	@(#)tmscp.c	1.6 (2.11BSD GTE) 1996/5/14 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -33,6 +33,12 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
  * tmscp.c - TMSCP (TK50/TU81) tape device driver
  * 
  * Modification History:
+ *
+ * 14-May-96 - sms
+ *	Missing parens caused mtflush,mtcache,mtnocache to be always skipped.
+ *	The use cache bit was being cleared in tmscpopen(). The use cache bit
+ *	is sticky in that once set via MTCACHE it stays set until cleared by
+ *	MTNOCACHE.
  *
  * 14-Dec-95 - sms@wlv...
  *	Success!  But the size of the driver is even more of a problem now.
@@ -475,7 +481,7 @@ tmsintr(dev)
 	    bzero(&mp->mscp_time, sizeof (mp->mscp_time));
 	    mp->mscp_cntdep = 0;
 	    mp->mscp_opcode = M_OP_STCON;
-	    ((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
+	    ((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN|TMSCP_INT);
 	    i = tmscpaddr->tmscpip;      /* initiate polling */
 	    restorseg5(seg5);
 	    return;
@@ -625,7 +631,7 @@ tmscpopen(dev, flag)
 		mp->mscp_unit = unit;		/* unit? */
 		mp->mscp_cmdref = (u_short)&tms->tms_type;
 					    /* need to sleep on something */
-		((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN | TMSCP_INT;
+		((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN | TMSCP_INT);
 		normalseg5();
 		i = tmscpaddr->tmscpip;
 		/* 
@@ -650,7 +656,8 @@ oops:		tms->Tflags = 0;
  * such as density choices, cache presence, etc.
 */
 	tms->tms_flags = 0;
-	tms->Tflags = _ONLINE | _INUSE;		/* Clear all other flags */
+	i = tms->Tflags & _CACHE_ON;
+	tms->Tflags = _ONLINE | _INUSE | i;	/* Clear all other flags */
 	tmscpcommand(dev, TMS_SENSE, 1);
 	if	(!(tms->Tflags & _ONLINE))
 		goto oops;
@@ -936,7 +943,7 @@ tmsstart(sc)
 		mp->mscp_unit = unit;
 		dp->b_active = 2;
 		sc->sc_ctab.b_actf = dp->b_forw; /* remove from controller q */
-		((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
+		((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN|TMSCP_INT);
 		if	(tmscpaddr->tmscpsa&TMSCP_ERR)
 			log(LOG_INFO, tmscpfatalerr, sc->sc_unit,
 					TMSUNIT(bp->b_dev), tmscpaddr->tmscpsa);
@@ -1039,7 +1046,7 @@ tmsstart(sc)
 		mp->mscp_modifier |= M_MD_CLSEX;
 		}
 
-	((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
+	((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN|TMSCP_INT);
 	i = tmscpaddr->tmscpip;              /* initiate polling */
 	dp->b_qsize++;
 	/*
@@ -1338,8 +1345,8 @@ tmscpioctl(dev, cmd, data, flag)
 		case	MTFLUSH:
 		case	MTCACHE:
 		case	MTNOCACHE:
-			if	((tms->Tflags & _HASCACHE|_ONLINE) !=
-				 _HASCACHE|_ONLINE)
+			if	((tms->Tflags & (_HASCACHE|_ONLINE)) !=
+				 (_HASCACHE|_ONLINE))
 				return(0);
 		case	MTREW:
 		case	MTOFFL:
