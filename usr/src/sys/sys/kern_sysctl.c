@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.8 (2.11BSD GTE) 1998/1/28
+ *	@(#)kern_sysctl.c	8.4.9 (2.11BSD GTE) 1998/9/15
  */
 
 /*
@@ -275,9 +275,9 @@ hw_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 	void *newp;
 	size_t newlen;
 {
-	char m[10], c[10];
+	char c[10];
 	char *cpu2str();
-	extern	size_t physmem;
+	extern	size_t physmem;			/* machdep2.c */
 
 	/* all sysctl names at this level are terminal */
 	if (namelen != 1)
@@ -285,8 +285,7 @@ hw_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 
 	switch (name[0]) {
 	case HW_MACHINE:
-		m[0]='P';m[1]='D';m[2]='P';m[3]='1';m[4]='1';m[5]='\0';
-		return (sysctl_rdstring(oldp, oldlenp, newp, m));
+		return (sysctl_rdstring(oldp, oldlenp, newp, "pdp11"));
 	case HW_MODEL:
 		return (sysctl_rdstring(oldp, oldlenp, newp,
 				cpu2str(c,sizeof (c))));

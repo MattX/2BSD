@@ -1,5 +1,7 @@
-/* static	char *sccsid = "@(#)main.c	4.9 (Berkeley) 87/05/21"; */
-# include "defs"
+/* static	char *sccsid = "@(#)main.c	4.10 (2.11BSD) 98/9/15"; */
+
+#include "defs"
+
 /*
 command make to update programs.
 Flags:	'd'  print out debugging comments
@@ -161,7 +163,7 @@ if (strcmp(options, "-") == 0)
 	*options = '\0';
 setvar("MFLAGS", options);		/* MFLAGS=options to make */
 
-setvar("MACHINE", MACHINE);
+setmachine();
 
 if( !descset )
 #ifdef unix
@@ -410,3 +412,18 @@ readenv()
 		}
 	}
 }
+
+#include <sys/utsname.h>
+
+/*
+ * This is done in a function by itself because 'uname()' uses a 640
+ * structure which we do not want permanently allocated on main()'s stack.
+*/
+setmachine()
+	{
+	struct	utsname foo;
+
+	if	(uname(&foo) < 0)
+		strcpy(foo.machine, "?");
+	setvar("MACHINE", foo.machine);
+	}
