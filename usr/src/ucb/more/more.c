@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)more.c	5.4.1 (2.11BSD) 1996/10/23";
+static char sccsid[] = "@(#)more.c	5.4.2 (2.11BSD) 1997/10/18";
 #endif
 
 /*
@@ -22,13 +22,17 @@ static char sccsid[] = "@(#)more.c	5.4.1 (2.11BSD) 1996/10/23";
 */
 
 #include <stdio.h>
+#undef	putchar			/* force use of function rather than macro */
 #include <sys/types.h>
 #include <ctype.h>
 #include <signal.h>
 #include <errno.h>
+#include <paths.h>
 #include <sgtty.h>
 #include <setjmp.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define HELPFILE	"/usr/share/misc/more.help"
 #define VI		"/usr/ucb/vi"
@@ -96,8 +100,6 @@ int		Wrap = 1;	/* set if automargins */
 int		soglitch;	/* terminal has standout mode glitch */
 int		ulglitch;	/* terminal has underline mode glitch */
 int		pstate = 0;	/* current UL state */
-long		fseek();
-char		*getenv();
 struct {
     long chrctr, line;
 } context, screen_start;
@@ -591,9 +593,9 @@ int args;
 */
 
 printd (n)
-int n;
+register int n;
 {
-    int a, nchars;
+    register int a, nchars;
 
     if (a = n/10)
 	nchars = 1 + printd(a);
@@ -616,8 +618,9 @@ char *str;
 }
 
 Sprintf (n)
+register int n;
 {
-    int a;
+    register int a;
 
     if (a = n/10)
 	Sprintf (a);
@@ -625,17 +628,6 @@ Sprintf (n)
 }
 
 static char bell = ctrl(G);
-
-strlen (s)
-char *s;
-{
-    register char *p;
-
-    p = s;
-    while (*p++)
-	;
-    return (p - s - 1);
-}
 
 /* See whether the last component of the path name "path" is equal to the
 ** string "string"
@@ -1272,8 +1264,8 @@ register int n;
     register long line2 = startline;
     register long line3 = startline;
     register int lncount;
-    int saveln, rv, re_exec();
-    char *s, *re_comp();
+    int saveln, rv;
+    char *s;
 
     context.line = saveln = Currline;
     context.chrctr = startline;
@@ -1529,14 +1521,14 @@ retry:
 
 	}
 	if ((shell = getenv("SHELL")) == NULL)
-	    shell = "/bin/sh";
+	    shell = _PATH_BSHELL;
     }
     no_intty = gtty(fileno(stdin), &otty);
     gtty(fileno(stderr), &otty);
     savetty = otty;
     ospeed = otty.sg_ospeed;
     slow_tty = ospeed < B1200;
-    hardtabs = (otty.sg_flags & TBDELAY) != XTABS;
+    hardtabs = !(otty.sg_flags & XTABS);
     if (!no_tty) {
 	otty.sg_flags &= ~ECHO;
 	if (MBIT == CBREAK || !slow_tty)
@@ -1547,7 +1539,6 @@ retry:
 readch ()
 {
 	char ch;
-	extern int errno;
 
 	if (read (2, &ch, 1) <= 0)
 		if (errno != EINTR)
