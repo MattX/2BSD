@@ -28,15 +28,11 @@ start:
 	mov	r0,environ		/save environment pointer
 	sys	SYS_getuid.		/setuid back to user's
 	mov	r0,-(sp)
-	mov	r0,-(sp)
-	tst	-(sp)
-	sys	SYS_setreuid.
-	cmp	(sp)+,(sp)+
+	clr	-(sp)
+	sys	SYS_setuid.
 	sys	SYS_getgid.
-	mov	r0,(sp)
-	mov	r0,-(sp)
-	tst	-(sp)
-	sys	SYS_setregid.
+	mov	r0,2(sp)
+	sys	SYS_setgid.
 	cmp	(sp)+,(sp)+
 
 	clr	(sp)
@@ -44,7 +40,7 @@ start:
 	mov	$7,-(sp)		/7 is EMT
 	mov	$sigtramp,-(sp)
 	tst	-(sp)
-	sys	SYS_sigvec.		/intercept EMTs
+	sys	SYS_sigaction.		/intercept EMTs
 	add	$10,sp
 
 	mov	$timval,-(sp)
@@ -72,7 +68,7 @@ start:
 	jmp	*$17332
 
 sigtramp:
-	jsr	pc,(r0)			/Signal trampoline for sigvec
+	jsr	pc,(r0)			/Signal trampoline for sigaction
 	mov	sp,r0
 	add	$6,r0
 	mov	r0,-(sp)
@@ -219,9 +215,10 @@ prom:	<!\n\>>			/input prompt characters
 child:
 	clr	-(sp)
 	mov	$sigdef,-(sp)
-	mov	$2,-(sp)
-	cmp	-(sp),-(sp)		/2.10 system interface for sigvec
-	sys	SYS_sigvec.		/enable break
+	mov	$2,-(sp)		/SIGQUIT
+	clr	-(sp)			/no trampoline routine
+	clr	-(sp)			/2.11 interface (return @)
+	sys	SYS_sigaction.
 	add	$12,sp
 
 	mov	environ,-(sp)		/set environ pointer
@@ -246,12 +243,22 @@ sharg1:	<-t\0>
 
 save:
 	tst	-(sp)
-	mov	$600,-(sp)
-	mov	$savfil,-(sp)
-	tst	-(sp)
-	sys	SYS_creat.		/create output file
-	bcs	serr			/oops
-	add	$10,sp
+	mov	$600,-(sp)		/mode
+	mov	$601,-(sp)		/O_CREAT|O_TRUNC|O_WRONLY
+	mov	$savfil,-(sp)		/path
+	tst	-(sp)			/2.11 syscall convention
+	sys	SYS_open.		/create output file
+	bcc	1f			/oops
+
+/ this bit of nonsense is needed because 'serr' insists that all syscalls
+/ take 10(8) bytes of stack.  SYS_open takes 12 so we advance sp by 2 if the
+/ open failed.  Stuff a -1 in the return value so the check for failure can /
+/ be made.  Isn't assembly fun?! <grin>.
+
+	tst	(sp)+
+	br	serr
+1:
+	add	$12,sp
 	mov	r0,(pc)+		/save "save" file discriptor
 sfd:	-1				/ "save" file discriptor
 	mov	$17812.,-(sp)

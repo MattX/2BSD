@@ -1,4 +1,4 @@
-# @(#)Makefile	1.5 Makefile 1997/2/6
+# @(#)Makefile	1.6 Makefile 1997/12/28
 
 DESTDIR=
 
@@ -42,8 +42,7 @@ MANDIR=		${DESTDIR}/usr/man/cat8
 all:		zdump zic ${ZICMAN} ${ZDUMAN}
 
 install:	zic $(DATA) $(MAN)
-		umask 22
-		./zic -d ${SHARDIR} $(DATA)
+		(umask 22; ./zic -d ${SHARDIR} $(DATA))
 		install -c -m 444 -o bin -g bin ${SHARDIR}/${LOCALTIME} ${DESTDIR}/etc/localtime
 		install -c -m 444 -o bin -g bin $(ZICMAN) ${MANDIR}/${ZICMAN}
 		install -c -m 444 -o bin -g bin $(ZDUMAN) ${MANDIR}/${ZDUMAN}

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)hk.4	6.3 (2.11BSD GTE) 1/3/93
+.\"	@(#)hk.4	6.4 (2.11BSD GTE) 1997/12/28
 .\"
-.TH HK 4 "January 3, 1993"
+.TH HK 4 "December 28, 1997"
 .UC 2
 .SH NAME
 hk \- RK6-11/RK06 and RK07 moving head disk
@@ -52,45 +52,21 @@ Likewise
 .I seek
 calls should specify a multiple of 512 bytes.
 .SH "DISK SUPPORT"
-The origin and size (in sectors) of the
-pseudo-disks on each drive are as follows:
-.nf
-.ta .5i +\w'disk  'u +\w'000000  'u +\w'000000  'u +\w'000 - 000  'u
+Disks must be labeled using either the standalone \fIdisklabel\fP program on
+the boot tape or with the \fIdisklabel\fP(8) program.  There are no partition
+tables coded into the \fIhk\fP drivers, these must be placed on the drive with
+\fIdisklabel\fP.
 .PP
-.ne 10
-RK06 partitions:
-	disk	 start	length	     cyls	comments
-	hk?a	     0	  8316	  0 - 125	root
-	hk?b	  8316	  8316	126 - 251	swap
-	hk?c	     0   27126	  0 - 410*	whole pack plus badsect track
-	hk?d	unused
-	hk?e	unused
-	hk?f	unused
-	hk?g	 16632	 10428	251 - 409	tmp
-	hk?h	     0	 27060	  0 - 409	whole pack minus badsect track
+Traditionally the \fIhk?a\fP partition is used for the root filesystem, the
+\fIb\fP partition as a swap area and the \fIc\fP partition for disk to disk
+copying (it spans the entire disk).
 .PP
-.ne 10
-RK07 partitions:
-	disk	 start	length	     cyls	comments
-	hk?a	     0	  8316	  0 - 125	root
-	hk?b	  8316	  8316	126 - 251	swap
-	hk?c	     0	 53790	  0 - 814*	whole pack plus badsect track
-	hk?d	unused
-	hk?e	unused
-	hk?f	unused
-	hk?g	 16632	 37092	252 - 813
-	hk?h	     0	 53724	  0 - 814	whole pack minus badsect track
-.DT
-.fi
-.PP
-Those partitions marked with an asterisk (``*'') allow access to bad block
+The kernel uses the \fIc\fP partition to access the bad block
 information stored at the end of some packs.  Extreme care must be taken when
-creating file systems on these partitions to avoid overwriting any bad block
-information present.  I general it's best to use
-.IR newfs (8)
-to create file systems since it uses the ``safe'' partition sizes recored in
-.IR /etc/disktab .
-.PP
+creating file systems on this partition to avoid overwriting any bad block
+information present.  User data should use the \fIh\fP partition
+which should be at least one track (one cylinder might be best) shorter 
+than the \fIc\fP partition.
 .SH FILES
 .ta \w'/dev/MAKEDEV.local  'u
 /dev/hk[0-7][a-h]	block files
@@ -102,7 +78,7 @@ to create file systems since it uses the ``safe'' partition sizes recored in
 /dev/MAKEDEV.local	script to localize special files
 .DT
 .SH "SEE ALSO"
-ra(4),
+ra(4)
 ram(4),
 rk(4),
 rl(4),
@@ -110,7 +86,8 @@ rx(4),
 si(4),
 xp(4),
 dtab(5),
-autoconfig(8)
+autoconfig(8),
+disklabel(8)
 .SH DIAGNOSTICS
 \fBhk%d%c: hard error sn%d cs2=%b ds=%b er=%b\fR.  An unrecoverable
 error occurred during transfer of the specified sector of the specified
@@ -158,7 +135,3 @@ DEC-standard error logging should be supported.
 .PP
 A program to analyze the logged error information (even in its
 present reduced form) is needed.
-.PP
-The partition tables for the file systems should be read off of each
-pack, as they are never quite what any single installation would prefer,
-and this would make packs more portable.

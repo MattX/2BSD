@@ -1,4 +1,4 @@
-#	Makefile	4.3.1	1996/1/28
+#	Makefile	4.3.2	1997/12/27
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
@@ -190,7 +190,6 @@ BASE=			\
 	ed.xmap.o	\
 	glob.o		\
 	sh.char.o	\
-	sh.err.o	\
 	sh.exp.o	\
 	sh.hist.o	\
 	sh.init.o	\
@@ -213,6 +212,7 @@ BASE=			\
 OV1=			\
 	ed.chared.o	\
 	ed.refresh.o	\
+	sh.err.o	\
 	sh.dol.o
 
 OV2=			\
