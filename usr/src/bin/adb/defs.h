@@ -2,6 +2,8 @@
  *
  *      UNIX debugger - common definitions
  *
+ *	1998/4/21 - remove local redefinitions used with ptrace
+ *
  *      Layout of a.out file (fsym):
  *
  *	This has changed over time - see a.out.h, sys/exec.h and nlist.h
@@ -13,7 +15,9 @@
 #include <machine/reg.h>
 #include <sgtty.h>
 #include <setjmp.h>
+#include <unistd.h>
 #include <a.out.h>
+#include <sys/ptrace.h>
 
 #define	MAXSYMLEN	32
 #define MAXCOM	64
@@ -105,16 +109,6 @@ struct reglist {
 	int	roffs;
 };
 
-struct Sfp {
-	int	fpsr;
-	float	Sfr[6];
-};
-
-struct Lfp {
-	int	fpsr;
-	double	Lfr[6];
-};
-
 /*
  * Internal variables ---
  *  They are addressed by name. (e.g. (`0'-`9', `a'-`b'))
@@ -145,21 +139,6 @@ struct Lfp {
 #define BKPTEXEC 2
 
 #define BPT     03
-#define FD      0200
-#define SETTRC  0
-#define RDUSER  2
-#define RIUSER  1
-#define WDUSER  5
-#define WIUSER  4
-#define RUREGS  3
-#define WUREGS  6
-#define CONTIN  7
-#define SINGLE  9
-#define EXIT    8
-
-#define FROFF   ((int)&(((U*)0)->u_fps))
-#define FRLEN   25
-#define FRMAX   6
 
 #define NOREG   32767           /* impossible return from getreg() */
 #define NREG    9       /* 8 regs + PS from kernel stack */
@@ -217,4 +196,3 @@ BKPTR           scanbkpt();
 
 struct sgttyb adbtty, usrtty;
 jmp_buf erradb;
-extern	off_t	lseek();

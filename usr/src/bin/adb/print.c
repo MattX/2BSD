@@ -22,7 +22,6 @@ extern	struct	SYMbol	*symbol;
 	int	octal;
 	long	localval;
 	BKPTR   bkpthead;
-static	char	frnames[] = { 0, 3, 4, 5, 1, 2 };
 	char    lastc;
 	u_int	corhdr[];
 	u_int	*uar0;
@@ -333,22 +332,29 @@ printmap(s,amap)
 	printc(EOR);
 }
 
-printfregs(longpr)
-{
-	register int i;
-	double f;
-	struct Lfp *pfp;
+/*
+ * ARGH.  Completely incorrect.  Apparently the way the FP regs were stored
+ * in the U area changed between V7 and 2.10/2.11BSD and adb was never fixed.
+ * The kernel always saves the FP regs as 'double' and saves the registers in
+ * order (0 thru 5) now.  Tended to 1998/4/21
+*/
 
-	pfp = (struct Lfp *)&((U*)corhdr)->u_fps.u_fpsr;
-	printf("fpsr\t%o\n", pfp->fpsr);
-	FOR i=0; i<FRMAX; i++
-	DO      IF ((U*)corhdr)->u_fps.u_fpsr&FD ORF longpr /* long mode */
-		THEN    f = pfp->Lfr[frnames[i]];
-		ELSE    f = ((struct Sfp *)pfp)->Sfr[frnames[i]];
-		FI
-		printf("fr%-8d%-32.18f\n", i, f);
-	OD
-}
+printfregs(longpr)
+	int	longpr;
+	{
+	register int i;
+	int	prec;
+	register struct fps *pfp;
+
+	pfp = (struct fps *)&((U*)corhdr)->u_fps;
+	printf("fpsr\t%o\n", pfp->u_fpsr);
+	if	(longpr || (pfp->u_fpsr & 0200))
+		prec = 16;
+	else
+		prec = 8;
+	for	(i = 0; i < 6; i++)
+		printf("fr%d\t%-24.*f\n", i, prec, pfp->u_fpregs[i]);
+	}
 
 printregs()
 {

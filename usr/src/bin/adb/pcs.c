@@ -93,12 +93,12 @@ subpcs(modif)
 		endpcs();
 		setup();
 		setbp();
-		runmode=CONTIN;
+		runmode=PT_CONTINUE;
 		break;
 
 	    /* single step */
 	    case 's': case 'S':
-		runmode=SINGLE;
+		runmode=PT_STEP;
 		IF pid
 		THEN execsig=getsig(signo);
 		ELSE setup(); loopcnt--;
@@ -108,7 +108,7 @@ subpcs(modif)
 	    /* continue with optional signal */
 	    case 'c': case 'C': case 0:
 		IF pid==0 THEN error(NOPCS); FI
-		runmode=CONTIN;
+		runmode=PT_CONTINUE;
 		execsig=getsig(signo);
 		break;
 

@@ -12,7 +12,7 @@ adb: ${OFILES}
 	${CC} ${SEPFLAG} ${LDFLAGS} -o adb ${OFILES}
 
 install: adb
-	install -s adb ${DESTDIR}/bin
+	install -m 755 -s adb ${DESTDIR}/bin
 
 clean:
 	-rm -f adb ${OFILES}

@@ -13,9 +13,6 @@
 	char	curov;
 	int	overlay;
 	long	var[];
-
-extern	int     errno;
-
 	static	within();
 
 /* file handling and access routines */
@@ -55,7 +52,7 @@ acces(mode,adr,space,value)
 
 	IF pid          /* tracing on? */
 	THEN IF (adr&01) ANDF !rd THEN error(ODDADR); FI
-	     pmode = (space&DSP?(rd?RDUSER:WDUSER):(rd?RIUSER:WIUSER));
+	     pmode = (space&DSP?(rd?PT_READ_D:PT_WRITE_D):(rd?PT_READ_I:PT_WRITE_I));
 	     if (bkptr=scanbkpt((u_int)adr)) {
 		if (rd) {
 		    return(bkptr->ins);

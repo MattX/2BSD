@@ -176,7 +176,7 @@ command(buf,defcom)
 		lastcom=0; savc=rdc();
 		IF (regptr=getreg(savc)) != NOREG
 		THEN uar0[regptr]=shorten(dot);
-		     ptrace(WUREGS,pid,(int)&uar0[regptr]-(int)&corhdr,
+		     ptrace(PT_WRITE_U,pid,(int)&uar0[regptr]-(int)&corhdr,
 			uar0[regptr]);
 		     IF (uar0+regptr) == &(((U*)corhdr)->u_ovdata.uo_curov)
 		     THEN var[VARC]=dot; setovmap((char)dot); FI

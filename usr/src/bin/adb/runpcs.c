@@ -27,7 +27,6 @@
 	long	loopcnt;
 	long	var[];
 	int	userpc=1;
-extern	int	errno;
 
 /* service routines for sub process control */
 
@@ -79,7 +78,7 @@ endpcs()
 	register BKPTR       bkptr;
 
 	IF pid
-	THEN ptrace(EXIT,pid,0,0); pid=0; userpc=1;
+	THEN ptrace(PT_KILL,pid,0,0); pid=0; userpc=1;
 	     FOR bkptr=bkpthead; bkptr; bkptr=bkptr->nxtbkpt
 	     DO IF bkptr->flag
 		THEN bkptr->flag=BKPTSET;
@@ -93,7 +92,7 @@ setup()
 
 	close(fsym); fsym = -1;
 	IF (pid = fork()) == 0
-	THEN ptrace(SETTRC,0,0,0);
+	THEN ptrace(PT_TRACE_ME,0,0,0);
 	     signal(SIGINT,sigint); signal(SIGQUIT,sigqit);
 	     doexec(); exit(0);
 	ELIF pid == -1
@@ -115,11 +114,11 @@ BKPTR   bkptr;
 	printf("exbkpt: %d\n",bkptr->count);
 #endif
 	bkptloc = bkptr->loc;
-	ptrace(WIUSER,pid,bkptloc,bkptr->ins);
+	ptrace(PT_WRITE_I,pid,bkptloc,bkptr->ins);
 	stty(0,&usrtty);
-	ptrace(SINGLE,pid,bkptloc,0);
+	ptrace(PT_STEP,pid,bkptloc,0);
 	bpwait(); chkerr();
-	ptrace(WIUSER,pid,bkptloc,BPT);
+	ptrace(PT_WRITE_I,pid,bkptloc,BPT);
 	bkptr->flag=BKPTSET;
 }
 
@@ -188,7 +187,7 @@ BKPTR bkptr;
 {
 	if (bkptr->ovly)
 		choverlay(bkptr->ovly);
-	ptrace(WIUSER,pid,bkptr->loc,bkptr->ins);
+	ptrace(PT_WRITE_I,pid,bkptr->loc,bkptr->ins);
 }
 
 /* change overlay in subprocess */
@@ -197,7 +196,7 @@ choverlay(ovno)
 {
 	errno = 0;
 	if (overlay && pid && ovno>0 && ovno<=NOVL)
-		ptrace(WUREGS,pid,&(((U*)0)->u_ovdata.uo_curov),ovno);
+		ptrace(PT_WRITE_U,pid,&(((U*)0)->u_ovdata.uo_curov),ovno);
 	IF errno
 	THEN printf("cannot change to overlay %d\n", ovno);
 	FI
@@ -221,8 +220,8 @@ BKPTR bkptr;
 	a = bkptr->loc;
 	if (bkptr->ovly)
 		choverlay(bkptr->ovly);
-	bkptr->ins = ptrace(RIUSER, pid, a, 0);
-	ptrace(WIUSER, pid, a, BPT);
+	bkptr->ins = ptrace(PT_READ_I, pid, a, 0);
+	ptrace(PT_WRITE_I, pid, a, BPT);
 	IF errno
 	THEN printf("cannot set breakpoint: ");
 	     psymoff(leng(bkptr->loc),ISYM,"\n");
@@ -265,26 +264,35 @@ bpwait()
 readregs()
 {
 	/*get REG values from pcs*/
-	register int i;
+	register u_int i, *afp;
 	char	ovno;
 
 	FOR i=0; i<NREG; i++
 	DO uar0[reglist[i].roffs] =
-		    ptrace(RUREGS, pid,
+		    ptrace(PT_READ_U, pid,
  		        (int *)((int)&uar0[reglist[i].roffs] - (int)&corhdr),
  			0);
 	OD
 	/* if overlaid, get ov */
 	IF overlay
 	THEN
-		ovno = ptrace(RUREGS, pid,
+		ovno = ptrace(PT_READ_U, pid,
 		    &(((struct user *)0)->u_ovdata.uo_curov),0);
 		var[VARC] = ovno;
 		((U *)corhdr)->u_ovdata.uo_curov = ovno;
 		setovmap(ovno);
 	FI
-
-	/* REALing poINT                */
-	FOR i=FROFF; i<FRLEN+FROFF; i++
-	DO corhdr[i] = ptrace(RUREGS,pid,i,0); OD
+/*
+ * The following section was totally and completely broken.  It had been that
+ * way since V7.  If you've ever wondered why the FP regs couldn't be displayed
+ * for a traced program that was the reason.  The reading of the FP regs was
+ * redone 1998/4/21 for 2.11BSD.
+*/
+	i = offsetof(struct user, u_fps);
+	afp = (u_int *)&((U *)corhdr)->u_fps;
+	while	(i < offsetof(struct user, u_fps) + sizeof (struct fps))
+		{
+		*afp++ = ptrace(PT_READ_U, pid, i, 0);
+		i += sizeof (u_int);
+		}
 }
