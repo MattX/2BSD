@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys.c	2.2 (2.11BSD) 1995/06/08
+ *	@(#)sys.c	2.3 (2.11BSD) 1995/08/23
  */
 
 #include "../h/param.h"
@@ -500,8 +500,9 @@ gotdev:
  * The unit number must be less than 8.
  *
  * The partition number is also used to specify the tapefile to be loaded.  
- * When loading a tapefile the  filename' must not be specified.  The partition
- * number must be less than 8.
+ * When loading a tapefile the 'filename' must not be specified.  The partition
+ * number must be less than 8.  This means that the number of standalone
+ * programs is limited to 7.
 */
 
 	*cp++ = '(';
@@ -558,7 +559,6 @@ badoff:
 		file->i_flgs = 0;
 		return(-1);
 		}
-	file->i_boff = 0;		/* tapes don't want this */
 	if (*cp == '\0') {
 		file->i_flgs |= how+1;
 		goto comret;
@@ -665,6 +665,13 @@ genopen(maxctlr, io)
 	if (csr == 0)
 		return(-1);
 	dp->dv_csr[ctlr] = (caddr_t *)csr;
+/*
+ * Tapes don't need this.  Disk drivers which support labels do not need
+ * this either but disk drivers which do not support labels _do_ need this.
+ * Doing it here is safe for everyone because label capable drivers will
+ * load i_boff from the label _after_ calling this routine.
+*/
+	io->i_boff = 0;
 	return(0);
 	}
 
