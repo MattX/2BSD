@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)udp_var.h	7.3.1 (2.11BSD GTE) 2/20/94
+ *	@(#)udp_var.h	7.3.2 (2.11BSD GTE) 1995/10/09
  */
 
 /*
@@ -46,7 +46,18 @@ struct	udpstat {
 	long	udps_opackets;		/* total output packets */
 };
 
-#define	UDP_TTL		30		/* deflt time to live for UDP packets */
+/*
+ * Names for UDP sysctl objects
+ */
+#define	UDPCTL_CHECKSUM		1	/* checksum UDP packets */
+#define UDPCTL_MAXID		2
+
+#ifndef	KERNEL
+#define UDPCTL_NAMES { \
+	{ 0, 0 }, \
+	{ "checksum", CTLTYPE_INT }, \
+}
+#endif
 
 #ifdef SUPERVISOR
 struct	inpcb udb;

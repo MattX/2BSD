@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_net.c	1.3 (2.11BSD GTE) 12/15/94
+ *	@(#)sys_net.c	1.4 (2.11BSD GTE) 1995/10/09
  *
  * Change uiomove calling convention.  The r/w type is now encapsulated
  * in the uio structure now. sms - 11/26/94
@@ -255,6 +255,28 @@ suser()
 	}
 	u.u_error = EPERM;
 	return (0);
+}
+
+/* copied from kern_sysctl.c */
+sysctl_int(oldp, oldlenp, newp, newlen, valp)
+	void *oldp;
+	size_t *oldlenp;
+	void *newp;
+	size_t newlen;
+	int *valp;
+{
+	int error = 0;
+
+	if (oldp && *oldlenp < sizeof(int))
+		return (ENOMEM);
+	if (newp && newlen != sizeof(int))
+		return (EINVAL);
+	*oldlenp = sizeof(int);
+	if (oldp)
+		error = copyout(valp, oldp, sizeof(int));
+	if (error == 0 && newp)
+		error = copyin(newp, valp, sizeof(int));
+	return (error);
 }
 
 /*

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip.h	7.6.1.1 (Berkeley) 3/15/88
+ *	@(#)ip.h	7.6.1.2 (2.11BSD) 1995/10/09
  */
 #ifndef BYTE_ORDER
 /*
@@ -147,6 +147,7 @@ struct	ip_timestamp {
  * Internet implementation parameters.
  */
 #define	MAXTTL		255		/* maximum time to live (seconds) */
+#define	IPDEFTTL	64		/* default ttl, from RFC 1340 */
 #define	IPFRAGTTL	60		/* time to live for frags, slowhz */
 #define	IPTTLDEC	1		/* subtracted when forwarding */
 

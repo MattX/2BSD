@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.2 (2.11BSD GTE) 3/06/95
+ *	@(#)kern_sysctl.c	8.4.2 (2.11BSD GTE) 1995/10/09
  */
 
 /*
@@ -64,7 +64,8 @@ sysctlfn debug_sysctl;
 #endif
 sysctlfn vm_sysctl;
 sysctlfn fs_sysctl;
-sysctlfn net_sysctl;
+sysctlfn NET_SYSCTL;
+extern	int	net_sysctl();	/* In supervisor space */
 sysctlfn cpu_sysctl;
 
 /*
@@ -115,7 +116,7 @@ __sysctl()
 		fn = vm_sysctl;
 		break;
 	case CTL_NET:
-		fn = net_sysctl;
+		fn = NET_SYSCTL;
 		break;
 #ifdef notyet
 	case CTL_FS:
@@ -375,7 +376,7 @@ debug_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 */
 
 int
-net_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
+NET_SYSCTL(name, namelen, oldp, oldlenp, newp, newlen)
 	int *name;
 	u_int namelen;
 	void *oldp;
@@ -383,7 +384,8 @@ net_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 	void *newp;
 	size_t newlen;
 {
-	return(EOPNOTSUPP);	/* Not yet. */
+	return(KScall(net_sysctl, 6 * sizeof (int),
+			name, namelen, oldp, oldlenp, newp, newlen));
 }
 
 /*

@@ -9,8 +9,11 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)socket.h	7.2.1 (2.11BSD GTE) 12/31/93
+ *	@(#)socket.h	7.2.2 (2.11BSD GTE) 1995/10/11
  */
+
+#ifndef	_SYS_SOCKET_H_
+#define	_SYS_SOCKET_H_
 
 /*
  * Definitions related to sockets: types, address families, options.
@@ -128,6 +131,38 @@ struct sockproto {
 #define	PF_MAX		AF_MAX
 
 /*
+ * Definitions for network related sysctl, CTL_NET.
+ *
+ * Second level is protocol family.
+ * Third level is protocol number.
+ *
+ * Further levels are defined by the individual families below.
+ */
+#define NET_MAXID	AF_MAX
+
+#ifndef	KERNEL
+#define CTL_NET_NAMES { \
+	{ 0, 0 }, \
+	{ "unix", CTLTYPE_NODE }, \
+	{ "inet", CTLTYPE_NODE }, \
+	{ "implink", CTLTYPE_NODE }, \
+	{ "pup", CTLTYPE_NODE }, \
+	{ "chaos", CTLTYPE_NODE }, \
+	{ "xerox_ns", CTLTYPE_NODE }, \
+	{ "iso", CTLTYPE_NODE }, \
+	{ "emca", CTLTYPE_NODE }, \
+	{ "datakit", CTLTYPE_NODE }, \
+	{ "ccitt", CTLTYPE_NODE }, \
+	{ "ibm_sna", CTLTYPE_NODE }, \
+	{ "decnet", CTLTYPE_NODE }, \
+	{ "dec_dli", CTLTYPE_NODE }, \
+	{ "lat", CTLTYPE_NODE }, \
+	{ "hylink", CTLTYPE_NODE }, \
+	{ "appletalk", CTLTYPE_NODE }, \
+}
+#endif
+
+/*
  * Maximum queue length specifiable by listen.
  */
 #define	SOMAXCONN	5
@@ -149,3 +184,4 @@ struct msghdr {
 #define	MSG_DONTROUTE	0x4		/* send without using routing tables */
 
 #define	MSG_MAXIOVLEN	16
+#endif	/* _SYS_SOCKET_H_ */

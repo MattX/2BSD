@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in_proto.c	7.2 (Berkeley) 12/7/87
+ *	@(#)in_proto.c	7.2.1 (2.11BSD) 1995/10/09
  */
 
 #include "param.h"
@@ -20,14 +20,15 @@
 
 #include "in.h"
 #include "in_systm.h"
+#include "ip.h"
 
 /*
  * TCP/IP protocol family: IP, ICMP, UDP, TCP.
  */
 int	ip_output(),ip_ctloutput();
-int	ip_init(),ip_slowtimo(),ip_drain();
-int	icmp_input();
-int	udp_input(),udp_ctlinput();
+int	ip_init(),ip_slowtimo(),ip_drain(), ip_sysctl();
+int	icmp_input(), icmp_sysctl();
+int	udp_input(),udp_ctlinput(), udp_sysctl();
 int	udp_usrreq();
 int	udp_init();
 int	tcp_input(),tcp_ctlinput();
@@ -55,12 +56,12 @@ struct protosw inetsw[] = {
 { 0,		&inetdomain,	0,		0,
   0,		ip_output,	0,		0,
   0,
-  ip_init,	0,		ip_slowtimo,	ip_drain,
+  ip_init,	0,		ip_slowtimo,	ip_drain,	ip_sysctl
 },
 { SOCK_DGRAM,	&inetdomain,	IPPROTO_UDP,	PR_ATOMIC|PR_ADDR,
   udp_input,	0,		udp_ctlinput,	ip_ctloutput,
   udp_usrreq,
-  udp_init,	0,		0,		0,
+  udp_init,	0,		0,		0,		udp_sysctl
 },
 { SOCK_STREAM,	&inetdomain,	IPPROTO_TCP,	PR_CONNREQUIRED|PR_WANTRCVD,
   tcp_input,	0,		tcp_ctlinput,	tcp_ctloutput,
@@ -75,7 +76,7 @@ struct protosw inetsw[] = {
 { SOCK_RAW,	&inetdomain,	IPPROTO_ICMP,	PR_ATOMIC|PR_ADDR,
   icmp_input,	rip_output,	0,		rip_ctloutput,
   raw_usrreq,
-  0,		0,		0,		0,
+  0,		0,		0,		0,		icmp_sysctl
 },
 #ifdef NSIP
 { SOCK_RAW,	&inetdomain,	IPPROTO_IDP,	PR_ATOMIC|PR_ADDR,
@@ -130,4 +131,31 @@ struct protosw hysw[] = {
 
 struct domain hydomain =
     { AF_HYLINK, "hy", 0, 0, 0, hysw, &hysw[sizeof (hysw)/sizeof(hysw[0])] };
+#endif
+
+#ifndef	IPFORWARDING
+#define	IPFORWARDING	1
+#endif
+
+#ifndef	IPSENDREDIRECTS
+#define	IPSENDREDIRECTS	1
+#endif
+
+#ifndef	IPFORWARDSRCRT
+#if	!defined(IPFORWARDING)
+#define	IPFORWARDSRCRT	0
+#else
+#define	IPFORWARDSRCRT	1
+#endif
+#endif
+
+int	ipforwarding = IPFORWARDING;
+int	ipsendredirects = IPSENDREDIRECTS;
+int	ipforward_srcrt = IPFORWARDSRCRT;
+int	ip_defttl = IPDEFTTL;
+
+#ifdef	GATEWAY
+int	icmpmaskrepl = 1;
+#else
+int	icmpmaskrepl = 0;
 #endif

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)tcp_subr.c	7.13.2 (2.11BSD GTE) 2/20/94
+ *	@(#)tcp_subr.c	7.13.3 (2.11BSD GTE) 1995/10/10
  */
 
 #include "param.h"
@@ -36,8 +36,6 @@
 #include "tcp_timer.h"
 #include "tcp_var.h"
 #include "tcpip.h"
-
-int	tcp_ttl = TCP_TTL;
 
 /*
  * Tcp initialization
@@ -156,7 +154,7 @@ tcp_respond(tp, ti, ack, seq, flags)
 	ti->ti_urp = 0;
 	ti->ti_sum = in_cksum(m, sizeof (struct tcpiphdr) + tlen);
 	((struct ip *)ti)->ip_len = sizeof (struct tcpiphdr) + tlen;
-	((struct ip *)ti)->ip_ttl = tcp_ttl;
+	((struct ip *)ti)->ip_ttl = ip_defttl;
 	(void) ip_output(m, (struct mbuf *)0, ro, 0);
 }
 

@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)sysctl.c	8.1.2 (2.11BSD GTE) 2/3/95";
+static char sccsid[] = "@(#)sysctl.c	8.1.3 (2.11BSD GTE) 1995/10/11";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -283,14 +283,12 @@ parse(string, flags)
 		return;
 
 	case CTL_NET:
-#ifdef	notyet
 		if (mib[1] == PF_INET) {
 			len = sysctl_inet(string, &bufp, mib, flags, &type);
 			if (len >= 0)
 				break;
 			return;
 		}
-#endif
 		if (flags == 0)
 			return;
 		fprintf(stderr, "Use netstat to view %s information\n", string);
@@ -462,8 +460,6 @@ debuginit()
 	}
 }
 
-#ifdef	notyet
-
 struct ctlname inetname[] = CTL_IPPROTO_NAMES;
 struct ctlname ipname[] = IPCTL_NAMES;
 struct ctlname icmpname[] = ICMPCTL_NAMES;
@@ -529,7 +525,6 @@ sysctl_inet(string, bufpp, mib, flags, typep)
 	*typep = lp->list[indx].ctl_type;
 	return (4);
 }
-#endif /* notyet */
 
 /*
  * Scan a list of names searching for a particular name.

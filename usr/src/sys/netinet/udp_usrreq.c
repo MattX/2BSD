@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)udp_usrreq.c	7.5.1 (2.11BSD GTE) 2/20/94
+ *	@(#)udp_usrreq.c	7.5.2 (2.11BSD GTE) 1995/10/09
  */
 
 #include "param.h"
@@ -50,7 +50,6 @@ int	udpcksum = 1;
 #else
 int	udpcksum = 0;		/* XXX */
 #endif
-int	udp_ttl = UDP_TTL;
 
 struct	sockaddr_in udp_in = { AF_INET };
 
@@ -260,7 +259,7 @@ udp_output(inp, m0, addr, control)
 		ui->ui_sum = 0xffff;
 	}
 	((struct ip *)ui)->ip_len = sizeof (struct udpiphdr) + len;
-	((struct ip *)ui)->ip_ttl = udp_ttl;
+	((struct ip *)ui)->ip_ttl = ip_defttl;
 	udpstat.udps_opackets++;
 	error = ip_output(m, inp->inp_options, &inp->inp_route,
 	    inp->inp_socket->so_options & (SO_DONTROUTE | SO_BROADCAST));
@@ -420,4 +419,28 @@ udp_detach(inp)
 		udp_last_inpcb = &udb;
 	in_pcbdetach(inp);
 	splx(s);
+}
+
+/*
+ * Sysctl for udp variables.
+ */
+udp_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
+	int *name;
+	u_int namelen;
+	void *oldp;
+	size_t *oldlenp;
+	void *newp;
+	size_t newlen;
+{
+	/* All sysctl names at this level are terminal. */
+	if (namelen != 1)
+		return (ENOTDIR);
+
+	switch (name[0]) {
+	case UDPCTL_CHECKSUM:
+		return (sysctl_int(oldp, oldlenp, newp, newlen, &udpcksum));
+	default:
+		return (ENOPROTOOPT);
+	}
+	/* NOTREACHED */
 }

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in.c	7.7 (Berkeley) 4/3/88
+ *	@(#)in.c	7.7.1 (2.11BSD) 1995/10/10
  */
 
 #include "param.h"
@@ -187,7 +187,6 @@ in_canforward(in)
 	return (1);
 }
 
-int	in_interfaces;		/* number of external internet interfaces */
 extern	struct ifnet loif;
 
 /*
@@ -244,8 +243,6 @@ in_control(so, cmd, data, ifp)
 				ifp->if_addrlist = (struct ifaddr *) ia;
 			ia->ia_ifp = ifp;
 			IA_SIN(ia)->sin_family = AF_INET;
-			if (ifp != &loif)
-				in_interfaces++;
 		}
 		break;
 

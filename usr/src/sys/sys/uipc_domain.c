@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)uipc_domain.c	7.2 (Berkeley) 12/30/87
+ *	@(#)uipc_domain.c	7.2.1 (2.11BSD) 1995/10/09
  */
 
 #include "param.h"
@@ -19,6 +19,7 @@
 #include "domain.h"
 #include "time.h"
 #include "kernel.h"
+#include "errno.h"
 
 #define	ADDDOMAIN(x)	{ \
 	extern struct domain x/**/domain; \
@@ -99,6 +100,42 @@ found:
 			maybe = pr;
 	}
 	return (maybe);
+}
+
+net_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
+	int *name;
+	u_int namelen;
+	void *oldp;
+	size_t *oldlenp;
+	void *newp;
+	size_t newlen;
+{
+	register struct domain *dp;
+	register struct protosw *pr;
+	int family, protocol;
+
+	/*
+	 * All sysctl names at this level are nonterminal;
+	 * next two components are protocol family and protocol number,
+	 * then at least one addition component.
+	 */
+	if (namelen < 3)
+		return (EISDIR);		/* overloaded */
+	family = name[0];
+	protocol = name[1];
+
+	if (family == 0)
+		return (0);
+	for (dp = domains; dp; dp = dp->dom_next)
+		if (dp->dom_family == family)
+			goto found;
+	return (ENOPROTOOPT);
+found:
+	for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW; pr++)
+		if (pr->pr_protocol == protocol && pr->pr_sysctl)
+			return ((*pr->pr_sysctl)(name + 2, namelen - 2,
+			    oldp, oldlenp, newp, newlen));
+	return (ENOPROTOOPT);
 }
 
 pfctlinput(cmd, sa)

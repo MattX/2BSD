@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)tcp_output.c	7.13.1.3 (Berkeley) 3/24/88
+ *	@(#)tcp_output.c	7.13.1.4 (Berkeley) 1995/10/10
  */
 
 #include "param.h"
@@ -389,7 +389,7 @@ send:
 	 * send to IP level.
 	 */
 	((struct ip *)ti)->ip_len = sizeof (struct tcpiphdr) + optlen + len;
-	((struct ip *)ti)->ip_ttl = TCP_TTL;
+	((struct ip *)ti)->ip_ttl = ip_defttl;	/* XXX */
 #if BSD>=43
 	error = ip_output(m, tp->t_inpcb->inp_options, &tp->t_inpcb->inp_route,
 	    so->so_options & SO_DONTROUTE);

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip_input.c	7.9.1 (2.11BSD GTE) 12/31/93
+ *	@(#)ip_input.c	7.9.2 (2.11BSD GTE) 1995/10/09
  */
 
 #include "param.h"
@@ -34,8 +34,10 @@
 #include "ip_icmp.h"
 #include "tcp.h"
 
+extern	int	ipforwarding, ipsendredirects, ipforward_srcrt, ip_defttl;
 u_char	ip_protox[IPPROTO_MAX];
 int	ipqmaxlen = IFQ_MAXLEN;
+int	ipprintfs = 0;
 struct	in_ifaddr *in_ifaddr;			/* first inet address */
 
 /*
@@ -228,7 +230,11 @@ next:
 	/*
 	 * Not for us; forward if possible and desirable.
 	 */
-	ip_forward(ip, ifp);
+	if (ipforwarding == 0) {
+		ipstat.ips_cantforward++;
+		m_freem(m);
+	} else
+		ip_forward(ip, ifp, 0);
 	goto next;
 
 ours:
@@ -520,7 +526,7 @@ ip_dooptions(ip, ifp)
 	struct ifnet *ifp;
 {
 	register u_char *cp;
-	int opt, optlen, cnt, off, code, type = ICMP_PARAMPROB;
+	int opt, optlen, cnt, off, code, type = ICMP_PARAMPROB, forward = 0;
 	register struct ip_timestamp *ipt;
 	register struct in_ifaddr *ia;
 	struct in_addr *sin;
@@ -600,6 +606,11 @@ ip_dooptions(ip, ifp)
 			bcopy((caddr_t)&(IA_SIN(ia)->sin_addr),
 			    (caddr_t)(cp + off), sizeof(struct in_addr));
 			cp[IPOPT_OFFSET] += sizeof(struct in_addr);
+/*
+ * Since 2.11 will never have multicasting so the following line from 4.4
+ * is effectively always 1.
+*/
+			forward = !IN_MULTICAST(ip->ip_dst.s_addr);
 			break;
 
 		case IPOPT_RR:
@@ -674,8 +685,18 @@ ip_dooptions(ip, ifp)
 			ipt->ipt_ptr += sizeof(n_time);
 		}
 	}
+	if (forward) {
+		if (ipforward_srcrt == 0) {
+			type = ICMP_UNREACH;
+			code = ICMP_UNREACH_SRCFAIL;
+			goto bad;
+		}
+		ip_forward(ip, ifp, 1);
+		return(1);
+	}
 	return (0);
 bad:
+	ip->ip_len -= ip->ip_hl << 2;	/* XXX icmp_error adds in hdr length */
 	icmp_error(ip, type, code, ifp);
 	return (1);
 }
@@ -723,7 +744,6 @@ save_rte(option, dst)
 	struct in_addr dst;
 {
 	unsigned olen;
-	extern ipprintfs;
 
 	olen = option[IPOPT_OLEN];
 	if (olen > sizeof(ip_srcrt) - 1) {
@@ -815,16 +835,7 @@ u_char inetctlerrmap[PRC_NCMDS] = {
 	ENOPROTOOPT
 };
 
-#ifndef	IPFORWARDING
-#define	IPFORWARDING	1
-#endif
-#ifndef	IPSENDREDIRECTS
-#define	IPSENDREDIRECTS	1
-#endif
-int	ipprintfs = 0;
-int	ipforwarding = IPFORWARDING;
 extern	int in_interfaces;
-int	ipsendredirects = IPSENDREDIRECTS;
 
 /*
  * Forward a packet.  If some error occurs return the sender
@@ -836,10 +847,14 @@ int	ipsendredirects = IPSENDREDIRECTS;
  * network), just drop the packet.  This could be confusing if ipforwarding
  * was zero but some routing protocol was advancing us as a gateway
  * to somewhere.  However, we must let the routing protocol deal with that.
+ *
+ * The srcrt parameter indicates whether the packet is being forwarded
+ * via a source route.
  */
-ip_forward(ip, ifp)
+ip_forward(ip, ifp, srcrt)
 	register struct ip *ip;
 	struct ifnet *ifp;
+	int srcrt;
 {
 	register int error, type = 0, code;
 	register struct sockaddr_in *sin;
@@ -851,31 +866,16 @@ ip_forward(ip, ifp)
 		printf("forward: src %X dst %X ttl %x\n", ntohl(ip->ip_src),
 			ntohl(ip->ip_dst), ip->ip_ttl);
 	ip->ip_id = htons(ip->ip_id);
-	if (ipforwarding == 0 || in_interfaces <= 1) {
-		ipstat.ips_cantforward++;
-#ifdef GATEWAY
-		type = ICMP_UNREACH, code = ICMP_UNREACH_NET;
-		goto sendicmp;
-#else
-		m_freem(dtom(ip));
-		return;
-#endif
-	}
 	if (in_canforward(ip->ip_dst) == 0) {
+		ipstat.ips_cantforward++;
 		m_freem(dtom(ip));
 		return;
 	}
-	if (UCHAR(ip->ip_ttl) < IPTTLDEC) {
+	if (ip->ip_ttl < IPTTLDEC) {
 		type = ICMP_TIMXCEED, code = ICMP_TIMXCEED_INTRANS;
 		goto sendicmp;
 	}
 	ip->ip_ttl -= IPTTLDEC;
-
-	/*
-	 * Save at most 64 bytes of the packet in case
-	 * we need to generate an ICMP message to the src.
-	 */
-	mcopy = m_copy(dtom(ip), 0, MIN((int)ip->ip_len, 64));
 
 	sin = (struct sockaddr_in *)&ipforward_rt.ro_dst;
 	if (ipforward_rt.ro_rt == 0 ||
@@ -888,7 +888,19 @@ ip_forward(ip, ifp)
 		sin->sin_addr = ip->ip_dst;
 
 		rtalloc(&ipforward_rt);
+		if (ipforward_rt.ro_rt == 0) {
+			ip->ip_len -= ip->ip_hl << 2;	/* icmp_error assumes this */
+			icmp_error(ip,ICMP_UNREACH,ICMP_UNREACH_HOST,ifp,dest);
+			return;
+		}
 	}
+
+	/*
+	 * Save at most 64 bytes of the packet in case
+	 * we need to generate an ICMP message to the src.
+	 */
+	mcopy = m_copy(dtom(ip), 0, MIN((int)ip->ip_len, 64));
+
 	/*
 	 * If forwarding packet using same interface that it came in on,
 	 * perhaps should send a redirect to sender to shortcut a hop.
@@ -901,7 +913,7 @@ ip_forward(ip, ifp)
 	if (ipforward_rt.ro_rt && ipforward_rt.ro_rt->rt_ifp == ifp &&
 	    (ipforward_rt.ro_rt->rt_flags & (RTF_DYNAMIC|RTF_MODIFIED)) == 0 &&
 	    satosin(&ipforward_rt.ro_rt->rt_dst)->sin_addr.s_addr != 0 &&
-	    ipsendredirects && ip->ip_hl == (sizeof(struct ip) >> 2)) {
+	    ipsendredirects && !srcrt && ip->ip_hl == (sizeof(struct ip) >> 2)){
 		struct in_ifaddr *ia;
 		u_long src = ntohl(ip->ip_src.s_addr);
 		u_long dst = ntohl(ip->ip_dst.s_addr);
@@ -983,5 +995,40 @@ ip_forward(ip, ifp)
 		break;
 	}
 sendicmp:
+	ip->ip_len -= ip->ip_hl << 2;	/* icmp_error assumes this */
 	icmp_error(ip, type, code, ifp, dest);
+}
+
+int
+ip_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
+	int *name;
+	u_int namelen;
+	void *oldp;
+	size_t *oldlenp;
+	void *newp;
+	size_t newlen;
+{
+	/* All sysctl names at this level are terminal. */
+	if (namelen != 1)
+		return (ENOTDIR);
+
+	switch (name[0]) {
+	case IPCTL_FORWARDING:
+		return (sysctl_int(oldp, oldlenp, newp, newlen, &ipforwarding));
+	case IPCTL_SENDREDIRECTS:
+		return (sysctl_int(oldp, oldlenp, newp, newlen,
+			&ipsendredirects));
+	case IPCTL_DEFTTL:
+		return (sysctl_int(oldp, oldlenp, newp, newlen, &ip_defttl));
+#ifdef notyet
+	case IPCTL_DEFMTU:
+		return (sysctl_int(oldp, oldlenp, newp, newlen, &ip_mtu));
+#endif
+	case IPCTL_FORWSRCRT:
+		return (sysctl_int(oldp, oldlenp, newp, newlen,
+		    &ipforward_srcrt));
+	default:
+		return (EOPNOTSUPP);
+	}
+	/* NOTREACHED */
 }

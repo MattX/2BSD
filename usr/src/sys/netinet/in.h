@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in.h	7.5.2 (2.11BSD GTE) 2/20/94
+ *	@(#)in.h	7.5.3 (2.11BSD GTE) 1995/10/09
  */
 
 /*
@@ -106,6 +106,65 @@ struct sockaddr_in {
  * Options for use with [gs]etsockopt at the IP level.
  */
 #define	IP_OPTIONS	1		/* set/get IP per-packet options */
+
+/*
+ * Definitions for inet sysctl operations.
+ *
+ * Third level is protocol number.
+ * Fourth level is desired variable within that protocol.
+ */
+#define	IPPROTO_MAXID	(IPPROTO_IDP + 1)	/* don't list to IPPROTO_MAX */
+
+#ifndef	KERNEL
+#define	CTL_IPPROTO_NAMES { \
+	{ "ip", CTLTYPE_NODE }, \
+	{ "icmp", CTLTYPE_NODE }, \
+	{ "igmp", CTLTYPE_NODE }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ "tcp", CTLTYPE_NODE }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ "udp", CTLTYPE_NODE }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ 0, 0 }, \
+	{ "idp", CTLTYPE_NODE }, \
+}
+#endif /* KERNEL */
+
+/*
+ * Names for IP sysctl objects
+ */
+#define	IPCTL_FORWARDING	1	/* act as router */
+#define	IPCTL_SENDREDIRECTS	2	/* may send redirects when forwarding */
+#define	IPCTL_DEFTTL		3	/* default TTL */
+#ifdef notyet
+#define	IPCTL_DEFMTU		4	/* default MTU */
+#endif
+#define	IPCTL_FORWSRCRT		5	/* forward source-routed dgrams */
+#define	IPCTL_MAXID		6
+
+#ifndef	KERNEL
+#define	IPCTL_NAMES { \
+	{ 0, 0 }, \
+	{ "forwarding", CTLTYPE_INT }, \
+	{ "redirect", CTLTYPE_INT }, \
+	{ "ttl", CTLTYPE_INT }, \
+	{ "mtu", CTLTYPE_INT }, \
+	{ "forwsrcrt", CTLTYPE_INT }, \
+}
+#endif /* KERNEL */
 
 /*
  * Macros for number representation conversion.

@@ -115,6 +115,7 @@ struct	ipstat {
 struct	ipstat	ipstat;
 struct	ipq	ipq;			/* ip reass. queue */
 u_short	ip_id;				/* ip packet ctr, for ids */
+int	ip_defttl;			/* default IP ttl */
 
 struct	mbuf *ip_srcroute();
 #endif

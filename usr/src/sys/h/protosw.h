@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)protosw.h	7.2.1 (2.11BSD GTE) 2/20/94
+ *	@(#)protosw.h	7.2.2 (2.11BSD GTE) 1995/10/09
  */
 
 /*
@@ -51,6 +51,7 @@ struct protosw {
 	int	(*pr_fasttimo)();	/* fast timeout (200ms) */
 	int	(*pr_slowtimo)();	/* slow timeout (500ms) */
 	int	(*pr_drain)();		/* flush any excess space possible */
+	int	(*pr_sysctl)();		/* sysctl for protocol */
 };
 
 #define	PR_SLOWHZ	2		/* 2 slow timeouts per second */

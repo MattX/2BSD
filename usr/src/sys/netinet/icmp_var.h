@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)icmp_var.h	7.3.1 (2.11BSD GTE) 12/31/93
+ *	@(#)icmp_var.h	7.3.2 (2.11BSD GTE) 1995/10/09
  */
 
 /*
@@ -31,6 +31,19 @@ struct	icmpstat {
 	long	icps_reflect;		/* number of responses */
 	long	icps_inhist[ICMP_MAXTYPE + 1];
 };
+
+/*
+ * Names for ICMP sysctl objects
+ */
+#define	ICMPCTL_MASKREPL	1	/* allow replies to netmask requests */
+#define ICMPCTL_MAXID		2
+
+#ifndef	KERNEL
+#define ICMPCTL_NAMES { \
+	{ 0, 0 }, \
+	{ "maskrepl", CTLTYPE_INT }, \
+}
+#endif
 
 #ifdef SUPERVISOR
 struct	icmpstat icmpstat;

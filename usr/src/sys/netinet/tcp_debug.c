@@ -9,15 +9,21 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)tcp_debug.c	7.2 (Berkeley) 12/7/87
+ *	@(#)tcp_debug.c	7.2.1 (2.11BSD) 1995/10/11
  */
+
+#ifdef	TCPDEBUG
+#define	TCPTIMERS
+#define	TANAMES
+#define PRUREQUESTS
+#define TCPSTATES
+#endif
 
 #include "param.h"
 #include "systm.h"
 #include "mbuf.h"
 #include "socket.h"
 #include "socketvar.h"
-#define PRUREQUESTS
 #include "protosw.h"
 #include "errno.h"
 
@@ -31,17 +37,17 @@
 #include "ip.h"
 #include "ip_var.h"
 #include "tcp.h"
-#define TCPSTATES
 #include "tcp_fsm.h"
 #include "tcp_seq.h"
-#define	TCPTIMERS
 #include "tcp_timer.h"
 #include "tcp_var.h"
 #include "tcpip.h"
-#define	TANAMES
 #include "tcp_debug.h"
 
+#ifdef	TCPDEBUG
 int	tcpconsdebug = 0;
+#endif
+
 /*
  * Tcp debug routines
  */
@@ -70,6 +76,7 @@ tcp_trace(act, ostate, tp, ti, req)
 	else
 		bzero((caddr_t)&td->td_ti, sizeof (*ti));
 	td->td_req = req;
+#ifdef	TCPDEBUG
 	if (tcpconsdebug == 0)
 		return;
 	if (tp)
@@ -127,4 +134,5 @@ tcp_trace(act, ostate, tp, ti, req)
 	    tp->snd_max);
 	printf("\tsnd_(wl1,wl2,wnd) (%X,%X,%x)\n",
 	    tp->snd_wl1, tp->snd_wl2, tp->snd_wnd);
+#endif /* TCPDEBUG */
 }

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip_icmp.c	7.7.1 (2.11BSD GTE) 2/20/94
+ *	@(#)ip_icmp.c	7.7.2 (2.11BSD GTE) 1995/10/10
  */
 
 #include "param.h"
@@ -19,6 +19,7 @@
 #include "socket.h"
 #include "time.h"
 #include "kernel.h"
+#include "errno.h"
 
 #include "../net/route.h"
 #include "../net/if.h"
@@ -31,6 +32,7 @@
 #include "ip_icmp.h"
 #include "icmp_var.h"
 
+extern	int	icmpmaskrepl;
 #ifdef ICMPPRINTFS
 /*
  * ICMP routines: error generation, receive packet processing, and
@@ -256,8 +258,21 @@ icmp_input(m, ifp)
 		goto reflect;
 
 	case ICMP_MASKREQ:
+		if (icmpmaskrepl == 0)
+			break;
+		/*
+		 * We are not able to respond with all ones broadcast
+		 * unless we receive it over a point-to-point interface.
+		 * This check is a 'switch' in 4.4BSD but 2.11's C compiler
+		 * does not allow "long"s in a switch statement.
+		*/
 		if (icmplen < ICMP_MASKLEN || (ia = ifptoia(ifp)) == 0)
 			break;
+		if ((ip->ip_dst.s_addr == INADDR_BROADCAST ||
+		     ip->ip_dst.s_addr == INADDR_ANY))
+			icmpdst.sin_addr = ip->ip_src;
+		else
+			icmpdst.sin_addr = ip->ip_dst;
 		icp->icmp_type = ICMP_MASKREPLY;
 		icp->icmp_mask = htonl(ia->ia_subnetmask);
 		if (ip->ip_src.s_addr == 0) {
@@ -437,4 +452,27 @@ iptime()
 	  + (long)mfkd(&lbolt) * 1000L / (long)hz;
 	splx(s);
 	return (htonl(t));
+}
+
+int
+icmp_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
+	int *name;
+	u_int namelen;
+	void *oldp;
+	size_t *oldlenp;
+	void *newp;
+	size_t newlen;
+{
+
+	/* All sysctl names at this level are terminal. */
+	if (namelen != 1)
+		return (ENOTDIR);
+
+	switch (name[0]) {
+	case ICMPCTL_MASKREPL:
+		return (sysctl_int(oldp, oldlenp, newp, newlen, &icmpmaskrepl));
+	default:
+		return (ENOPROTOOPT);
+	}
+	/* NOTREACHED */
 }
