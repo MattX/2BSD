@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.8 (2.11BSD GTE) 1997/1/18
+ *	@(#)ufs_syscalls.c	1.9 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -136,105 +136,83 @@ copen(mode, arg, fname)
 	int mode;
 	int arg;
 	caddr_t fname;
-{
+	{
 	register struct inode *ip;
 	register struct file *fp;
 	struct	nameidata nd;
 	register struct	nameidata *ndp = &nd;
-	int indx, type;
+	int indx, type, flags, cmode, error;
 
-	mode = FFLAGS(mode);	/* convert from open to kernel flags */
 	fp = falloc();
-	if (fp == NULL)
+	if	(fp == NULL)
 		return;
-	indx = u.u_r.r_val1;
-	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, fname);
-	if (mode & O_CREAT) {
-		if (mode & O_EXCL)
-			ndp->ni_nameiop = CREATE;
-		else
-			ndp->ni_nameiop = CREATE | FOLLOW;
-		ip = namei(ndp);
-		if (ip == NULL) {
-			if (u.u_error)
-				goto bad1;
-			ip = maknode(arg&07777&(~ISVTX), ndp);
-			if (ip == NULL)
-				goto bad1;
-			mode &= ~O_TRUNC;
-		} else {
-			if (mode & O_EXCL) {
-				u.u_error = EEXIST;
-				goto bad;
-			}
-			mode &= ~O_CREAT;
-		}
-	} else {
-		ndp->ni_nameiop = LOOKUP | FOLLOW;
-		ip = namei(ndp);
-		if (ip == NULL)
-			goto bad1;
-	}
-	if ((ip->i_mode & IFMT) == IFSOCK) {
-		u.u_error = EOPNOTSUPP;
-		goto bad;
-	}
-	if ((ip->i_flags & APPEND) && (mode & (FWRITE|O_APPEND)) == FWRITE) {
-		u.u_error = EPERM;
-		goto bad;
-	}
-	if ((mode& O_CREAT) == 0) {
-		if (mode&FREAD)
-			if (access(ip, IREAD))
-				goto bad;
-		if (mode&(FWRITE|O_TRUNC)) {
-			if (access(ip, IWRITE))
-				goto bad;
-			if ((ip->i_mode&IFMT) == IFDIR) {
-				u.u_error = EISDIR;
-				goto bad;
-			}
-		}
-	}
-	if (mode & O_TRUNC)
-		itrunc(ip, (u_long)0, mode & O_FSYNC ? IO_SYNC : 0);
-	iunlock(ip);
-	fp->f_flag = mode&FMASK;
+	flags = FFLAGS(mode);	/* convert from open to kernel flags */
+	fp->f_flag = flags & FMASK;
 	fp->f_type = DTYPE_INODE;
-	fp->f_data = (caddr_t)ip;
-	if (setjmp(&u.u_qsave)) {
-		if (u.u_error == 0)
-			u.u_error = EINTR;
-bad2:
+	cmode = (arg & 077777) & ~ISVTX;
+	indx = u.u_r.r_val1;
+	u.u_dupfd = -indx - 1;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, fname);
+
+/*
+ * ENODEV is returned by the 'fdopen()' routine - see the comments in that
+ * routine for details about the hack being used.
+ *
+ * ENXIO only comes out of the 'portal fs' code (which 2.11BSD does not have).
+ * It probably should have been removed during the port of the 'file descriptor
+ * driver' since it's a "can not happen" event.
+ *
+ * u.u_dupfd is used because there the space in the proc structure is at a
+ * premium in 2.11 while space in the u structure is relatively free.  Also
+ * there were more unused (pad) fields available in 'u' as compared to 'proc'.
+*/
+	if	(error = vn_open(ndp, flags, cmode))
+		{
+		fp->f_count = 0;
+		if	((error == ENODEV || error == ENXIO) && 
+			  u.u_dupfd >= 0 &&
+			  (error = dupfdopen(indx,u.u_dupfd,flags,error) == 0))
+			{
+			u.u_r.r_val1 = indx;
+			u.u_error = 0;
+			return;
+			}
 		u.u_ofile[indx] = NULL;
-		closef(fp);
+		u.u_error = error;	/* XXX */
 		return;
-	}
-	u.u_error = openi(ip, mode);
-	if (u.u_error == 0) {
-		if (mode & O_EXLOCK)
-			mode &= ~O_SHLOCK;
-		type = 0;
-		if (mode & O_SHLOCK)
-			type |= LOCK_SH;
-		if (mode & O_EXLOCK)
-			type |= LOCK_EX;
-		if (!type)
-			return;
-		if (mode & O_NONBLOCK)
+		}
+	ip = ndp->ni_ip;
+#ifdef	DIAGNOSTIC
+	if	(!ip)
+		{
+		printf("copen(%o,%o,%s) !ni_ip u_error %d\n", mode, 
+			arg, fname,u.u_error);
+   		}
+#endif
+	u.u_dupfd = 0;
+
+/* Don't need to do this here because 'vn_open' returns an unlocked inode */
+/*	iunlock(ip);	*/
+	fp->f_data = (caddr_t)ip;
+
+	if	(flags & (O_EXLOCK | O_SHLOCK))
+		{
+		if	(flags & O_EXLOCK)
+			type = LOCK_EX;
+		else
+			type = LOCK_SH;
+		if	(flags & FNONBLOCK)
 			type |= LOCK_NB;
-		u.u_error = ino_lock(fp, type);
-		if (u.u_error == 0)
-			return;
-		goto bad2;
+		error = ino_lock(fp, type);
+		if	(error)
+			{
+			closef(fp);
+			u.u_ofile[indx] = NULL;
+			}
+		}
+	u.u_error = error;
+	return;
 	}
-	ilock(ip);
-bad:
-	iput(ip);
-bad1:
-	u.u_ofile[indx] = NULL;
-	fp->f_count--;
-}
 
 /*
  * Mknod system call
@@ -752,33 +730,6 @@ chown1(ip, uid, gid)
 	return (0);
 }
 
-utimes()
-{
-	register struct a {
-		char	*fname;
-		struct	timeval *tptr;
-	} *uap = (struct a *)u.u_ap;
-	register struct inode *ip;
-	struct	nameidata nd;
-	register struct nameidata *ndp = &nd;
-	struct timeval tv[2];
-	struct vattr vattr;
-
-	VATTR_NULL(&vattr);
-	if (uap->tptr == NULL) {
-		tv[0].tv_sec = tv[1].tv_sec = time.tv_sec;
-		vattr.va_vaflags |= VA_UTIMES_NULL;
-	} else if (u.u_error = copyin((caddr_t)uap->tptr,(caddr_t)tv,sizeof(tv)))
-		return;
-	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
-	if ((ip = namei(ndp)) == NULL)
-		return;
-	vattr.va_atime = tv[0].tv_sec;
-	vattr.va_mtime = tv[1].tv_sec;
-	u.u_error = ufs_setattr(ip, &vattr);
-	iput(ip);
-}
-
 /*
  * Truncate a file given its path name.
  */
@@ -830,23 +781,6 @@ ftruncate()
 	VATTR_NULL(&vattr);
 	vattr.va_size = uap->length;
 	u.u_error = ufs_setattr(ip, &vattr);
-	iunlock(ip);
-}
-
-/*
- * Synch an open file.
- */
-fsync()
-{
-	register struct a {
-		int	fd;
-	} *uap = (struct a *)u.u_ap;
-	register struct inode *ip;
-
-	if ((ip = getinode(uap->fd)) == NULL)
-		return;
-	ilock(ip);
-	syncip(ip);
 	iunlock(ip);
 }
 
@@ -1224,6 +1158,7 @@ register struct nameidata *ndp;
 		iput(ip);
 		return (NULL);
 	}
+	ndp->ni_ip = ip;
 	return (ip);
 }
 

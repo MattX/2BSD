@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)user.h	1.2 (2.11BSD) 1997/1/18
+ *	@(#)user.h	1.3 (2.11BSD) 1997/1/30
  */
 
 #ifdef KERNEL
@@ -119,7 +119,7 @@ struct user {
 	struct	k_itimerval u_timer[2];	/* profile/virtual timers */
 	long	u_start;
 	char	u_acflag;
-	char	dummy2;			/* room for another char */
+	char	u_dupfd;		/* XXX - see kern_descrip.c/fdopen */
 
 	struct uprof {			/* profile arguments */
 		short	*pr_base;	/* buffer base */

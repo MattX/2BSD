@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.9 (2.11BSD GTE) 1995/12/24
+ *	@(#)conf.c	3.0 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -350,6 +350,7 @@ int	ingres_open(), ingres_write();
 #define	ingres_ioctl	nodev
 #endif
 
+int	fdopen();
 int	ttselect(), seltrue();
 
 struct cdevsw	cdevsw[] = {
@@ -457,6 +458,10 @@ struct cdevsw	cdevsw[] = {
 	ingres_open,	ingres_close,	ingres_read,	ingres_write,
 	ingres_ioctl,	nulldev,	0,		seltrue,
 	nulldev,
+/* fd = 26 */
+	fdopen,		nodev,		nodev,		nodev,
+	nodev,		nodev,		0,		nodev,
+	nodev,
 };
 
 int	nchrdev = sizeof(cdevsw) / sizeof(cdevsw[0]);
@@ -515,7 +520,7 @@ isdisk(dev, type)
 	/* NOTREACHED */
 }
 
-#define MAXDEV	26
+#define MAXDEV	27
 static char chrtoblktbl[MAXDEV] =  {
       /* CHR */      /* BLK */
 	/* 0 */		NODEV,
@@ -543,7 +548,8 @@ static char chrtoblktbl[MAXDEV] =  {
 	/* 22 */	NODEV,
 	/* 23 */	12,		/* tmscp */
 	/* 24 */	NODEV,
-	/* 25 */	NODEV
+	/* 25 */	NODEV,
+	/* 26 */	NODEV
 };
 
 /*

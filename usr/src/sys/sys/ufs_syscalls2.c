@@ -1,5 +1,5 @@
 /*
- * 	@(#) 	ufs_syscalls2.c	  1.4 (2.11BSD) 1997/1/18
+ * 	@(#) 	ufs_syscalls2.c	  1.5 (2.11BSD) 1997/1/31
  *
  * ufs_syscalls was getting too large.  Various UFS related system calls were
  * relocated to this file.
@@ -239,4 +239,48 @@ lseek()
 		return;
 	}
 	u.u_r.r_off = fp->f_offset;
+}
+
+/*
+ * Synch an open file.
+ */
+fsync()
+{
+	register struct a {
+		int	fd;
+	} *uap = (struct a *)u.u_ap;
+	register struct inode *ip;
+
+	if ((ip = getinode(uap->fd)) == NULL)
+		return;
+	ilock(ip);
+	syncip(ip);
+	iunlock(ip);
+}
+
+utimes()
+{
+	register struct a {
+		char	*fname;
+		struct	timeval *tptr;
+	} *uap = (struct a *)u.u_ap;
+	register struct inode *ip;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
+	struct timeval tv[2];
+	struct vattr vattr;
+
+	VATTR_NULL(&vattr);
+	if (uap->tptr == NULL) {
+		tv[0].tv_sec = tv[1].tv_sec = time.tv_sec;
+		vattr.va_vaflags |= VA_UTIMES_NULL;
+	} else if (u.u_error = copyin((caddr_t)uap->tptr,(caddr_t)tv,sizeof(tv)))
+		return;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
+	if ((ip = namei(ndp)) == NULL)
+		return;
+	vattr.va_atime = tv[0].tv_sec;
+	vattr.va_mtime = tv[1].tv_sec;
+	u.u_error = ufs_setattr(ip, &vattr);
+	iput(ip);
 }

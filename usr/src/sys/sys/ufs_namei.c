@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_namei.c	1.4 (2.11BSD GTE) 1996/9/13
+ *	@(#)ufs_namei.c	1.5 (2.11BSD GTE) 1997/1/30
  */
 #include "param.h"
 #include "../machine/seg.h"
@@ -161,7 +161,7 @@ register int i;
 		    (u_int *)0);
 	if (error) {
 		u.u_error = error;
-		return (NULL);
+		goto retNULL;
 	}
 
 	/*
@@ -232,7 +232,7 @@ dirloop2:
 			u.u_error = EISDIR;
 			goto bad;
 		}
-		return (dp);
+		goto retDP;
 	}
 
 	/*
@@ -542,7 +542,7 @@ searchloop:
 		 * directory inode in ndp->ni_pdir.
 		 */
 		ndp->ni_pdir = dp;
-		return (NULL);
+		goto retNULL;
 	}
 	u.u_error = ENOENT;
 	goto bad;
@@ -628,7 +628,7 @@ found:
 				}
 			}
 		}
-		return (dp);
+		goto retDP;
 	}
 
 	/*
@@ -682,7 +682,7 @@ found:
 			iput(ndp->ni_pdir);
 			goto bad;
 		}
-		return (dp);
+		goto retDP;
 	}
 
 	/*
@@ -826,7 +826,10 @@ haveino:
 		ndp->ni_pdir = pdp;
 	else
 		irele(pdp);
+retDP:
+	ndp->ni_ip = dp;
 	return (dp);
+
 bad2:
 	irele(pdp);
 bad:
@@ -836,6 +839,8 @@ bad:
 	}
 	if (dp)
 		iput(dp);
+retNULL:
+	ndp->ni_ip = NULL;
 	return (NULL);
 }
 
@@ -845,7 +850,7 @@ dirbad(ip, offset, how)
 	char *how;
 {
 
-	printf("%s: bad dir ino %u at offset %ld: %s\n",
+	printf("%s: bad dir I=%u off %ld: %s\n",
 	    ip->i_fs->fs_fsmnt, ip->i_number, offset, how);
 }
 
@@ -1193,7 +1198,7 @@ checkpath(source, target)
 
 out:
 	if (error == ENOTDIR)
-		printf("checkpath: .. not a directory\n");
+		printf("checkpath: .. !dir\n");
 	if (ip != NULL)
 		iput(ip);
 	return (error);

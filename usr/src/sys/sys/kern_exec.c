@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.5 (2.11BSD GTE) 1997/1/18
+ *	@(#)kern_exec.c	1.6 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -414,16 +414,6 @@ execve1()
 	u.u_sigsp = 0;
 	u.u_sigonstack = 0;
 
-	/*
-	 *	for (nc = u.u_lastfile; nc >= 0; --nc) {
-	 *		if (u.u_pofile[nc] & UF_EXCLOSE) {
-	 *			closef(u.u_ofile[nc]);
-	 *			u.u_ofile[nc] = NULL;
-	 *			u.u_pofile[nc] = 0;
-	 *		}
-	 *		u.u_pofile[nc] &= ~UF_MAPPED;
-	 *	}
-	 */
 {
 	register int cnt;
 	register struct file **ofilep = u.u_ofile;
@@ -431,7 +421,7 @@ execve1()
 
 	for (cnt = u.u_lastfile;cnt >= 0; cnt--, ofilep++, pofilep++)
 		if (*pofilep & UF_EXCLOSE) {
-			closef(*ofilep);
+			(void) closef(*ofilep);
 			*ofilep = NULL;
 			*pofilep = 0;
 		}

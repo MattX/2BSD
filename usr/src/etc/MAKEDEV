@@ -4,11 +4,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)MAKEDEV	4.27.4 (2.11BSD GTE) 1996/11/16
+#	@(#)MAKEDEV	4.27.5 (2.11BSD GTE) 1997/1/31
 #
 # Device "make" file.  Valid arguments:
 #	std	standard devices
 #	local	configuration specific devices
+#	fd	file descriptor driver
 # Tapes:
 #	ht*	unibus tu77 & te16
 #	tm*	unibus tm11 & te10 emulations (e.g. Emulex tc-11)
@@ -59,6 +60,19 @@ std)
 	mknod zero		c 1 3	; chmod 444 zero
 	mknod tty		c 9 0	; chmod 666 tty
  	mknod klog		c 22 0	; chmod 600 klog
+	;;
+
+fd)
+	umask 0
+	rm -rf fd
+	rm -f stdin stdout stderr
+	mkdir fd
+	chmod 755 fd
+	mknod stdin c 26 0
+	mknod stdout c 26 1
+	mknod stderr c 26 2
+	eval `echo "" | awk '{ for (i = 0; i < 32; i++)
+			printf("mknod fd/%d c 26 %d; ",i,i); }'`
 	;;
 
 ht*|tm*|ts*|tu*)

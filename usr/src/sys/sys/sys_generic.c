@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.4 (2.11BSD GTE) 11/26/94
+ *	@(#)sys_generic.c	1.5 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -512,9 +512,14 @@ sosel(fp, flag)
 socls(fp)
 	register struct file *fp;
 {
+	register int error = 0;
+
 #ifdef	INET
-	return (SOCLOSE((struct socket *)fp->f_socket));
+	if	(fp->f_data)
+		error = SOCLOSE((struct socket *)fp->f_data);
+	fp->f_data = 0;
 #else
-	return (EOPNOTSUPP);
+	error = EOPNOTSUPP;
 #endif
+	return(error);
 }

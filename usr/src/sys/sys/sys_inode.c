@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.8 (2.11BSD GTE) 1996/9/19
+ *	@(#)sys_inode.c	1.9 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -28,9 +28,11 @@
 #include "quota.h"
 #endif
 
-int	ino_rw(), ino_ioctl(), ino_select(), ino_close();
+extern	int	vn_closefile();
+int	ino_rw(), ino_ioctl(), ino_select();
+
 struct 	fileops inodeops =
-	{ ino_rw, ino_ioctl, ino_select, ino_close };
+	{ ino_rw, ino_ioctl, ino_select, vn_closefile };
 
 ino_rw(fp, uio)
 	struct file *fp;
@@ -114,11 +116,7 @@ rwip(ip, uio, ioflag)
 	int error = 0;
 	int flags;
 
-#ifdef	DIAGNOSTIC
-	if (uio->uio_rw != UIO_READ && uio->uio_rw != UIO_WRITE)
-		panic("rwip");
-#endif
-	if (uio->uio_offset < 0)
+	if	(uio->uio_offset < 0)
 		return (EINVAL);
 	type = ip->i_mode&IFMT;
 /*
@@ -433,71 +431,59 @@ ino_stat(ip, sb)
 	return (0);
 }
 
-ino_close(fp)
-	register struct file *fp;
-{
-	register struct inode *ip = (struct inode *)fp->f_data;
+/*
+ * This routine, like its counterpart openi(), calls the device driver for
+ * special (IBLK, ICHR) files.  Normal files simply return early (the default
+ * case in the switch statement).  Pipes and sockets do NOT come here because
+ * they have their own close routines.
+*/
+
+closei(ip, flag)
+	register struct inode *ip;
+	int	flag;
+	{
 	register struct mount *mp;
-	int flag, mode;
-	dev_t dev;
-	int (*cfunc)();
+	register struct file *fp;
+	int	mode, error;
+	dev_t	dev;
+	int	(*cfunc)();
 
-	if (fp->f_flag & (FSHLOCK | FEXLOCK))
-		ino_unlock(fp, FSHLOCK | FEXLOCK);
-	flag = fp->f_flag;
-	dev = (dev_t)ip->i_rdev;
 	mode = ip->i_mode & IFMT;
-	ilock(ip);
-	if (fp->f_type == DTYPE_PIPE) {
-		if (ip->i_rsel) {
-			selwakeup(ip->i_rsel, (long)(ip->i_flag & IRCOLL));
-			ip->i_rsel = 0;
-			ip->i_flag &= ~IRCOLL;
-		}
-		if (ip->i_wsel) {
-			selwakeup(ip->i_wsel, (long)(ip->i_flag & IWCOLL));
-			ip->i_wsel = 0;
-			ip->i_flag &= ~IWCOLL;
-		}
-		ip->i_mode &= ~(IREAD|IWRITE);
-		wakeup((caddr_t)ip+1);
-		wakeup((caddr_t)ip+2);
-	}
-	iput(ip);
-	fp->f_data = (caddr_t) 0;		/* XXX */
-	switch (mode) {
+	dev = ip->i_rdev;
 
-	case IFCHR:
-		cfunc = cdevsw[major(dev)].d_close;
-		break;
-
-	case IFBLK:
+	switch	(mode)
+		{
+		case	IFCHR:
+			cfunc = cdevsw[major(dev)].d_close;
+			break;
+		case	IFBLK:
 		/*
 		 * We don't want to really close the device if it is mounted
 		 */
 /* MOUNT TABLE SHOULD HOLD INODE */
-		for (mp = mount; mp < &mount[NMOUNT]; mp++)
-			if (mp->m_inodp != NULL && mp->m_dev == dev)
-				return;
-		cfunc = bdevsw[major(dev)].d_close;
-		break;
-
-	default:
-		return;
-	}
+			for (mp = mount; mp < &mount[NMOUNT]; mp++)
+				if (mp->m_inodp != NULL && mp->m_dev == dev)
+					return;
+			cfunc = bdevsw[major(dev)].d_close;
+			break;
+		default:
+			return(0);
+		}
 	/*
 	 * Check that another inode for the same device isn't active.
 	 * This is because the same device can be referenced by two
 	 * different inodes.
 	 */
-	for (fp = file; fp < fileNFILE; fp++) {
+	for	(fp = file; fp < fileNFILE; fp++)
+		{
 		if (fp->f_type != DTYPE_INODE)
 			continue;
 		if (fp->f_count && (ip = (struct inode *)fp->f_data) &&
 		    ip->i_rdev == dev && (ip->i_mode&IFMT) == mode)
-			return;
-	}
-	if (mode == IFBLK) {
+			return(0);
+		}
+	if	(mode == IFBLK)
+		{
 		/*
 		 * On last close of a block device (that isn't mounted)
 		 * we must invalidate any in core blocks, so that
@@ -505,18 +491,27 @@ ino_close(fp)
 		 */
 		bflush(dev);
 		binval(dev);
-	}
-	if (setjmp(&u.u_qsave)) {
+		}
+/*
+ * NOTE:  none of the device drivers appear to either set u_error OR return 
+ *	  anything meaningful from their close routines.  It's a good thing
+ *	  programs don't bother checking the error status on close() calls.
+ *	  Apparently the only time "errno" is meaningful after a "close" is
+ *	  when the process is interrupted.
+*/
+	if	(setjmp(&u.u_qsave))
+		{
 		/*
 		 * If device close routine is interrupted,
 		 * must return so closef can clean up.
 		 */
-		if (u.u_error == 0)
-			u.u_error = EINTR;	/* ??? */
-		return;
+		if	((error = u.u_error) == 0)
+			error = EINTR;
+		}
+	else
+		error = (*cfunc)(dev, flag, mode);
+	return(error);
 	}
-	(*cfunc)(dev, flag, mode);
-}
 
 /*
  * Place an advisory lock on an inode.
@@ -574,10 +569,6 @@ again:
 		sleep((caddr_t)&ip->i_shlockc, PLOCK);
 		goto again;
 	}
-#ifdef	DIAGNOSTIC
-	if (fp->f_flag & FEXLOCK)
-		panic("ino_lock");
-#endif
 	if (cmd & LOCK_EX) {
 		cmd &= ~LOCK_SH;
 		ip->i_exlockc++;
@@ -607,8 +598,6 @@ ino_unlock(fp, kind)
 		return;
 	flags = ip->i_flag;
 	if (kind & FSHLOCK) {
-		if ((flags & ISHLOCK) == 0)
-			panic("SHLOCK");
 		if (--ip->i_shlockc == 0) {
 			ip->i_flag &= ~ISHLOCK;
 			if (flags & ILWAIT)
@@ -617,8 +606,6 @@ ino_unlock(fp, kind)
 		fp->f_flag &= ~FSHLOCK;
 	}
 	if (kind & FEXLOCK) {
-		if ((flags & IEXLOCK) == 0)
-			panic("EXLOCK");
 		if (--ip->i_exlockc == 0) {
 			ip->i_flag &= ~(IEXLOCK|ILWAIT);
 			if (flags & ILWAIT)

@@ -32,6 +32,7 @@ CFILES=	${S}/init_main.c ${S}/init_sysent.c ${S}/kern_acct.c		\
 	${S}/ufs_mount.c ${S}/ufs_namei.c ${S}/ufs_subr.c		\
 	${S}/ufs_disksubr.c 						\
 	${S}/ufs_syscalls.c ${S}/uipc_syscalls.c ${S}/vm_proc.c		\
+	${S}/vfs_vnops.c \
 	${S}/vm_sched.c ${S}/vm_swap.c ${S}/vm_swp.c ${S}/vm_text.c
 OBJS=	init_main.o init_sysent.o kern_acct.o kern_clock.o		\
 	kern_descrip.o kern_exec.o kern_exit.o kern_fork.o kern_mman.o	\

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_descrip.c	1.3 (2.11BSD GTE) 11/26/94
+ *	@(#)kern_descrip.c	1.4 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -19,6 +19,7 @@
 #include "socket.h"
 #include "socketvar.h"
 #endif
+#include <syslog.h>
 
 /*
  * Descriptor management.
@@ -65,11 +66,11 @@ dup2()
 	u.u_r.r_val1 = uap->j;
 	if (uap->i == uap->j)
 		return;
-	if (u.u_ofile[uap->j]) {
-		closef(u.u_ofile[uap->j]);
-		if (u.u_error)
-			return;
-	}
+	if (u.u_ofile[uap->j])
+		/*
+		 * dup2 must succeed even if the close has an error.
+		 */
+		(void) closef(u.u_ofile[uap->j]);
 	dupit(uap->j, fp, u.u_pofile[uap->i] &~ UF_EXCLOSE);
 }
 
@@ -225,7 +226,7 @@ close()
 	u.u_ofile[uap->i] = NULL;
 	while (u.u_lastfile >= 0 && u.u_ofile[u.u_lastfile] == NULL)
 		u.u_lastfile--;
-	closef(fp);
+	u.u_error = closef(fp);
 	/* WHAT IF u.u_error ? */
 }
 
@@ -283,19 +284,6 @@ ufalloc(i)
 	u.u_error = EMFILE;
 	return (-1);
 }
-
-/* moved, for supervisory networking, to sys_net.c */
-#ifdef notdef
-ufavail()
-{
-	register int i, avail = 0;
-
-	for (i = 0; i < NOFILE; i++)
-		if (u.u_ofile[i] == NULL)
-			avail++;
-	return (avail);
-}
-#endif
 
 struct	file *lastf;
 /*
@@ -359,15 +347,21 @@ getf(f)
 closef(fp)
 	register struct file *fp;
 {
+	int	error;
 
 	if (fp == NULL)
-		return;
+		return(0);
 	if (fp->f_count > 1) {
 		fp->f_count--;
-		return;
+		return(0);
 	}
-	(*Fops[fp->f_type]->fo_close)(fp);
+
+	if	((fp->f_flag & (FSHLOCK|FEXLOCK)) && fp->f_type == DTYPE_INODE)
+		ino_unlock(fp, FSHLOCK|FEXLOCK);
+
+	error = (*Fops[fp->f_type]->fo_close)(fp);
 	fp->f_count = 0;
+	return(error);
 }
 
 /*
@@ -400,4 +394,114 @@ flock()
 	    (fp->f_flag & FSHLOCK) && (uap->how & LOCK_SH))
 		return;
 	u.u_error = ino_lock(fp, uap->how);
+}
+
+/*
+ * File Descriptor pseudo-device driver (/dev/fd/).
+ *
+ * Opening minor device N dup()s the file (if any) connected to file
+ * descriptor N belonging to the calling process.  Note that this driver
+ * consists of only the ``open()'' routine, because all subsequent
+ * references to this file will be direct to the other driver.
+ */
+/* ARGSUSED */
+fdopen(dev, mode, type)
+	dev_t dev;
+	int mode, type;
+	{
+
+	/*
+	 * XXX Kludge: set u.u_dupfd to contain the value of the
+	 * the file descriptor being sought for duplication. The error 
+	 * return ensures that the vnode for this device will be released
+	 * by vn_open. Open will detect this special error and take the
+	 * actions in dupfdopen below. Other callers of vn_open will
+	 * simply report the error.
+	 */
+	u.u_dupfd = minor(dev);
+	return(ENODEV);
+	}
+
+/*
+ * Duplicate the specified descriptor to a free descriptor.
+ */
+dupfdopen(indx, dfd, mode, error)
+	register int indx, dfd;
+	int mode;
+	int error;
+	{
+	register register struct file *wfp;
+	struct file *fp;
+	
+	/*
+	 * If the to-be-dup'd fd number is greater than the allowed number
+	 * of file descriptors, or the fd to be dup'd has already been
+	 * closed, reject.  Note, check for new == old is necessary as
+	 * falloc could allocate an already closed to-be-dup'd descriptor
+	 * as the new descriptor.
+	 */
+	fp = u.u_ofile[indx];
+	if	(dfd >= NOFILE || (wfp = u.u_ofile[dfd]) == NULL || fp == wfp)
+		return(EBADF);
+
+	/*
+	 * There are two cases of interest here.
+	 *
+	 * For ENODEV simply dup (dfd) to file descriptor
+	 * (indx) and return.
+	 *
+	 * For ENXIO steal away the file structure from (dfd) and
+	 * store it in (indx).  (dfd) is effectively closed by
+	 * this operation.
+	 *
+	 * NOTE: ENXIO only comes out of the 'portal fs' code of 4.4 - since
+	 * 2.11BSD does not implement the portal fs the code is ifdef'd out
+	 * and a short message output.
+	 *
+	 * Any other error code is just returned.
+	 */
+	switch	(error) {
+	case ENODEV:
+		/*
+		 * Check that the mode the file is being opened for is a
+		 * subset of the mode of the existing descriptor.
+		 */
+		if (((mode & (FREAD|FWRITE)) | wfp->f_flag) != wfp->f_flag)
+			return(EACCES);
+		u.u_ofile[indx] = wfp;
+		u.u_pofile[indx] = u.u_pofile[dfd];
+		wfp->f_count++;
+		if	(indx > u.u_lastfile)
+			u.u_lastfile = indx;
+		return(0);
+#ifdef	haveportalfs
+	case ENXIO:
+		/*
+		 * Steal away the file pointer from dfd, and stuff it into indx.
+		 */
+		fdp->fd_ofiles[indx] = fdp->fd_ofiles[dfd];
+		fdp->fd_ofiles[dfd] = NULL;
+		fdp->fd_ofileflags[indx] = fdp->fd_ofileflags[dfd];
+		fdp->fd_ofileflags[dfd] = 0;
+		/*
+		 * Complete the clean up of the filedesc structure by
+		 * recomputing the various hints.
+		 */
+		if (indx > fdp->fd_lastfile)
+			fdp->fd_lastfile = indx;
+		else
+			while (fdp->fd_lastfile > 0 &&
+			       fdp->fd_ofiles[fdp->fd_lastfile] == NULL)
+				fdp->fd_lastfile--;
+			if (dfd < fdp->fd_freefile)
+				fdp->fd_freefile = dfd;
+		return (0);
+#else
+		log(LOG_NOTICE, "dupfdopen");
+		/* FALLTHROUGH */
+#endif
+	default:
+		return(error);
+	}
+	/* NOTREACHED */
 }

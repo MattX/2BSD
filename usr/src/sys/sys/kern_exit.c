@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.1 (2.11BSD GTE) 2/14/95
+ *	@(#)kern_exit.c	2.2 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -63,7 +63,7 @@ exit(rv)
 		f = u.u_ofile[i];
 		u.u_ofile[i] = NULL;
 		u.u_pofile[i] = 0;
-		closef(f);
+		(void) closef(f);
 	}
 	ilock(u.u_cdir);
 	iput(u.u_cdir);

@@ -1,4 +1,4 @@
-#	Makefile	(2.11BSD)	2.1	1997/1/18
+#	Makefile	(2.11BSD)	2.2	1997/1/24
 #
 #	The limitations on program size have been removed.  The addition
 #	of disklabel support pushed 'restor' over the limit.  Even with
@@ -13,10 +13,8 @@
 #	It is still possible to hand craft a version of the utilities by leaving
 #	out all but the necessary drivers. 
 #
-#	If a GENERIC kernel distribution is being created be sure
-#	to install /sys/pdpdist/dtab (or /etc/dtab.save) as ${ROOT}/etc/dtab 
-#	so that the GENERIC kernel can find the tape device.
-#
+# 1997/1/24  - remove 'skel' from lists of directories.
+# 1997/1/18  - add 'makesimtape' target.
 # 1996/10/28 - added usr/sbin, usr/libexec and corresponding src directories.
 # 1995/12/05 - add RX02 driver.
 # 1995/06/05 - add disklabel program to Makefile.
@@ -66,7 +64,7 @@ tmscptape: ${ALL} ${DUMP}
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
 		adm bin crash dict doc games guest hosts include ingres \
 		lib libdata libexec local man msgs new old preserve pub \
-		sbin share skel spool tmp ucb
+		sbin share spool tmp ucb
 	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys include
 	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
@@ -80,7 +78,7 @@ tape1: ${ALL} ${DUMP}
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
 		adm bin crash dict doc games guest hosts include ingres \
 		lib libdata libexec local man msgs new old preserve pub \
-		sbin share skel spool tmp ucb
+		sbin share spool tmp ucb
 	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys include
 

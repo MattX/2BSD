@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_pipe.c	1.3 (2.11BSD GTE) 1997/1/18
+ *	@(#)sys_pipe.c	1.4 (2.11BSD GTE) 1997/1/30
  */
 
 #include "param.h"
@@ -16,10 +16,10 @@
 #include "mount.h"
 #include "uio.h"
 
-extern	int	ino_ioctl(), ino_close();
-	int	pipe_rw(), pipe_select();
+extern	int	ino_ioctl();
+	int	pipe_rw(), pipe_select(), pipe_close();
 	struct	fileops	pipeops =
-		{ pipe_rw, ino_ioctl, pipe_select, ino_close };
+		{ pipe_rw, ino_ioctl, pipe_select, pipe_close };
 
 /*
  * The sys-pipe entry.
@@ -122,7 +122,7 @@ loop:
 		if (fp->f_flag & FNONBLOCK)
 			return (EWOULDBLOCK);
 		ip->i_mode |= IREAD;
-		sleep((caddr_t)ip+2, PPIPE);
+		sleep((caddr_t)ip+4, PPIPE);
 		goto loop;
 	}
 
@@ -139,7 +139,7 @@ loop:
 		ip->i_size = 0;
 		if (ip->i_mode & IWRITE) {
 			ip->i_mode &= ~IWRITE;
-			wakeup((caddr_t)ip+1);
+			wakeup((caddr_t)ip+2);
 		}
 		if (ip->i_wsel) {
 			selwakeup(ip->i_wsel, (long)(ip->i_flag & IWCOLL));
@@ -192,7 +192,7 @@ done:		IUNLOCK(ip);
 	if (ip->i_size >= MAXPIPSIZ) {
 		ip->i_mode |= IWRITE;
 		IUNLOCK(ip);
-		sleep((caddr_t)ip+1, PPIPE);
+		sleep((caddr_t)ip+2, PPIPE);
 		ILOCK(ip);
 		goto loop;
 	}
@@ -209,7 +209,7 @@ done:		IUNLOCK(ip);
 	error = rwip(ip, uio, flag);
 	if (ip->i_mode&IREAD) {
 		ip->i_mode &= ~IREAD;
-		wakeup((caddr_t)ip+2);
+		wakeup((caddr_t)ip+4);
 	}
 	if (ip->i_rsel) {
 		selwakeup(ip->i_rsel, (long)(ip->i_flag & IRCOLL));
@@ -258,3 +258,45 @@ pipe_select(fp, which)
 	IUNLOCK(ip);
 	return(retval);
 }
+
+/*
+ * This routine was pulled out of what used to be called 'ino_close'.  Doing
+ * so saved a test of the inode belonging to a pipe.   We know this is a pipe
+ * because the inode type was DTYPE_PIPE.  The dispatch in closef() can come
+ * directly here instead of the general inode close routine.
+ *
+ * This routine frees the inode by calling 'irele'.  The inode must be
+ * unlocked prior to calling this routine.
+*/
+
+pipe_close(fp)
+	struct	file *fp;
+	{
+	register struct inode *ip = (struct inode *)fp->f_data;
+
+#ifdef	DIAGNOSTIC
+	if	((ip->i_flag & IPIPE) == 0)
+		panic("pipe_close !IPIPE");
+#endif
+	if	(ip->i_rsel)
+		{
+		selwakeup(ip->i_rsel, (long)(ip->i_flag & IRCOLL));
+		ip->i_rsel = 0;
+		ip->i_flag &= ~IRCOLL;
+		}
+	if	(ip->i_wsel)
+		{
+		selwakeup(ip->i_wsel, (long)(ip->i_flag & IWCOLL));
+		ip->i_wsel = 0;
+		ip->i_flag &= ~IWCOLL;
+		}
+	ip->i_mode &= ~(IREAD|IWRITE);
+	wakeup((caddr_t)ip+2);
+	wakeup((caddr_t)ip+4);
+
+/*
+ * And finally decrement the reference count and (likely) release the inode.
+ */
+	irele(ip);
+	return(0);
+	}

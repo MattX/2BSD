@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	sys_kern.c 1.1 (2.11BSD) 1997/1/18
+ *	sys_kern.c 1.2 (2.11BSD) 1997/1/30
  */
 
 #include "param.h"
@@ -169,5 +169,5 @@ unpdisc(fp)
 	struct file *fp;
 {
 	--fp->f_msgcount;
-	closef(fp);
+	return(closef(fp));
 }

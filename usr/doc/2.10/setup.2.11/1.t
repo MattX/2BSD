@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)1.t	2.4 (GTE) 1995/11/27
+.\"	@(#)1.t	2.5 (GTE) 1997/1/24
 .\"
 .ds lq ``
 .ds rq ''
@@ -180,14 +180,14 @@ Tape file	Record size	Records\(ua	Contents
 _
 0	512	1	primary tape boot block
 	512	1	boot block (some tape boot ROMs go for this copy)
-	512	14	standalone \fBboot\fP program
-1	1024	23	standalone \fBdisklabel\fP
-2	1024	28	standalone \fBmkfs\fP(8)
-3	1024	27	standalone \fBrestor\fP(8)
-4	1024	26	standalone \fBicheck\fP(8)
-5	10240	300	\fIdump\fP of ``root'' file system
-6	10240	2300	\fItar\fP dump of /usr, excepting /usr/src
-7	10240	500	\fItar\fP dump of /usr/src/include and /usr/src/sys
+	512	69	standalone \fBboot\fP program
+1	1024	37	standalone \fBdisklabel\fP
+2	1024	33	standalone \fBmkfs\fP(8)
+3	1024	35	standalone \fBrestor\fP(8)
+4	1024	32	standalone \fBicheck\fP(8)
+5	10240	285	\fIdump\fP of ``root'' file system
+6	10240	3368	\fItar\fP dump of /usr, excepting /usr/src
+7	10240	519	\fItar\fP dump of /usr/src/include and /usr/src/sys
 .TE
 
 TAPE 2:
@@ -195,7 +195,7 @@ TAPE 2:
 n n n l.
 Tape file	Record size	Records\(ua	Contents
 _
-0	10240	4500	\fItar\fP dump of /usr/src, excepting include and sys
+0	10240	4092	\fItar\fP dump of /usr/src, excepting include and sys
 .TE
 .DE
 .KE
@@ -216,6 +216,7 @@ The disk and tape names used by the bootstrap and the system are:
 l l.
 RK06, RK07 disks	hk
 RL01, RL02 disks	rl
+RK05	rk
 MSCP disks	ra
 RM02/03/05	xp
 RP04/05/06	xp
