@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.39 (2.11BSD GTE) 1/16/95 */
+/*	@(#)llib-lc	1.40 (2.11BSD GTE) 1995/09/10 */
 
 /* LINTLIBRARY */
 
@@ -22,7 +22,7 @@
 
 #include <arpa/inet.h>
 
-#include <disktab.h>
+#include <sys/disklabel.h>
 #include <fstab.h>
 #include <grp.h>
 #include <ndbm.h>
@@ -245,7 +245,7 @@ int	ffs(i) long i; { return i; }
 double	frexp( v, e) double v; int *e; { return v; }
 	ftime(tp) struct timeb *tp; { ; }
 char *	gcvt(v, n, b) double v; char *b; { return(""); }
-struct disktab *	getdiskbyname(name) char *name; { return (struct disktab *) 0; }
+struct disklabel *	getdiskbyname(name) char *name; { return (struct disklabel *) 0; }
 char *	getenv( n ) char *n; { return n; }
 struct fstab *	getfsent() { return (struct fstab *)NULL; }
 struct fstab *	getfsspec( n ) char *n; { return (struct fstab *)NULL; }
