@@ -1,0 +1,1539 @@
+#
+# CSS Host Database
+#
+127.1	localhost
+#
+# CSS Local Net 192.5.11 -- 10Mb/s proNET
+#
+192.5.11.1	css-sun css-sun.arpa
+192.5.11.2	hugo hugo.arpa
+192.5.11.3	sdccis sdccis.arpa
+192.5.11.4	carto cisclon cisclon.arpa
+192.5.11.5	seismo seismo.arpa
+192.5.11.6	tiu1 css-tiu1
+192.5.11.7	tiu2 css-tiu2
+192.5.11.8	janus janus.arpa
+#
+# CSS Local Net	192.12.25 -- 9.6kb SLIP
+#
+192.12.25.5	css-seismo
+192.12.25.9	css-s3sun s3sun css-s3sun.arpa
+192.12.25.10	css-raisun raisun css-raisun.arpa
+192.12.25.11	kobold css-helios helios css-helios.arpa
+192.12.25.12	css-fault fault css-fault.arpa
+#
+10.0.0.25	seismo.arpa seismo
+10.0.0.111	dcn1.arpa dcn1
+192.5.37.83	rochest
+10.0.0.4	utah-cs utah-cs.arpa
+192.5.46.2	norsar.arpa norsar
+#
+# UCB hosts not in NIC database
+#
+128.32.0.9	ucbesvax esvax
+128.32.0.15	ucbmedea medea
+128.32.0.20	ucboz-en oz-en
+128.32.0.23	ucbturner turner
+128.32.0.24	ucbmiro miro
+128.32.0.25	ucbjade jade
+128.32.0.27	ucbicen icen
+128.32.0.28	ucbcory cory
+128.32.0.29	ucbcartan cartan
+128.32.0.32	ucbshadow shadow shadowvax
+# DoD Internet Host Table
+#  22-Feb-85
+#  Version number 428
+10.2.0.32       xerox.ARPA xerox parc-gw parc
+192.5.2.1       wisc-rsch.ARPA wisc-rsch rsch uwvax
+192.5.12.22     utah-gr.ARPA utah-gr
+10.0.0.4        utah-cs.ARPA utah-cs
+10.2.0.62       ut-sally.ARPA ut-sally sally
+10.2.0.78       ucb-vax.ARPA ucb-vax berkeley berkeley.ARPA ucbvax
+26.0.0.73       sri-nic.ARPA sri-nic nic
+10.5.0.2        sri-iu.ARPA sri-iu iuv
+10.0.0.15       rochester.ARPA rochester ur-gateway
+128.10.0.1      purdue.ARPA purdue purdue-cs purdue-arthur arthur
+192.5.52.2      nlm-vax.ARPA nlm-vax
+26.0.0.88       nlm-mcs.ARPA nlm-mcs nlm mcs
+26.6.0.19       nbs-amrf.ARPA nbs-amrf amrf
+26.2.0.57       maryland.ARPA maryland mimsy umd-csd umd8 umcp-cs
+26.1.0.34       lbl-csam.ARPA lbl-csam
+10.0.0.9        harvard.ARPA harvard harv-10 acl
+26.7.0.16       decwrl.ARPA decwrl dec-wrl decsrc dec-src decwsl dec-wsl
+10.4.0.5        csnet-relay.ARPA csnet-relay rand-relay csnet1 mmcc
+26.0.0.58       nyu.ARPA nyu nyu-cmcl2 cmcl2
+192.5.21.6      brl-vgr.ARPA brl-vgr vgr
+192.5.21.4      brl-tgr.ARPA brl-tgr tgr
+26.0.0.29       brl.ARPA brl
+4.0.0.0         satnet.ARPA satnet
+4.0.0.1         etam-expak.ARPA etam-expak
+4.0.0.2         goonhilly-expak.ARPA goonhilly-expak
+4.0.0.3         tanum-expak.ARPA tanum-expak
+4.0.0.37        satnet-sink.ARPA satnet-sink
+4.0.0.40        satnet-echo.ARPA satnet-echo
+4.0.0.41        etam-monitor.ARPA etam-monitor
+4.0.0.42        goonhilly-monitor.ARPA goonhilly-monitor
+4.0.0.43        tanum-monitor.ARPA tanum-monitor
+4.0.0.62        etam-echo.ARPA etam-echo
+4.0.0.63        goonhilly-echo.ARPA goonhilly-echo
+4.0.0.64        tanum-echo.ARPA tanum-echo
+4.0.0.77        raisting-echo.ARPA raisting-echo
+4.0.0.78        raisting-monitor.ARPA raisting-monitor
+4.0.0.79        raisting-expak.ARPA raisting-expak
+4.0.0.88        fucino.ARPA fucino
+4.0.0.93        fucino-echo.ARPA fucino-echo
+4.0.0.94        fucino-monitor.ARPA fucino-monitor
+4.0.0.95        fucino-expak.ARPA fucino-expak
+6.1.0.1         yuma.ARPA yuma
+7.0.0.3         edn-vax.ARPA edn-vax
+8.0.0.2         bbncca.ARPA bbncca
+8.1.0.2         bbnccb.ARPA bbnccb
+8.3.0.2         bbnccd.ARPA bbnccd
+8.5.0.2         bbncck.ARPA bbncck
+8.7.0.2         bbn-labs-b.ARPA bbn-labs-b bbnlb labs-b
+128.11.1.2      bbn-labs-b.ARPA bbn-labs-b bbnlb labs-b
+8.0.0.3         bbnccg.ARPA bbnccg
+8.2.0.3         bbncc2-tac.ARPA bbncc2-tac bbncc2
+8.3.0.3         bbnccr.ARPA bbnccr
+8.0.0.4         bbnccf.ARPA bbnccf
+8.3.0.4         bbncci.ARPA bbncci
+8.4.0.4         bbnh.ARPA bbnh
+128.11.0.4      bbnh.ARPA bbnh
+8.0.0.5         bbncd2.ARPA bbncd2 cdnoc bbn-cd2
+8.1.0.5         bbncd1.ARPA bbncd1 bbncd bbn-cd bbn-cd1
+8.2.0.5         bbncc1-tac.ARPA bbncc1-tac bbncc1
+8.3.0.5         bbncd3.ARPA bbncd3 bbn-cd3
+8.4.0.5         bbncce.ARPA bbncce
+8.1.0.6         bbn-admin.ARPA bbn-admin admin
+8.2.0.6         bbn-inoc.ARPA bbn-inoc inoc
+8.3.0.6         bbnccw.ARPA bbnccw
+8.0.0.7         bbnccs.ARPA bbnccs
+8.1.0.7         bbnz.ARPA bbnz
+8.2.0.7         bbnccq.ARPA bbnccq
+8.3.0.7         bbncct.ARPA bbncct
+8.4.0.8         bbncch.ARPA bbncch
+8.7.0.8         bbn-ucc.ARPA bbn-ucc ucc
+8.2.0.9         bbncc3-tac.ARPA bbncc3-tac bbncc3 div-5-tac div5-tac d5tac
+8.0.0.10        bbncc4-tac.ARPA bbncc4-tac bbncc4 div-5-tac2 d5tac-tac2 d5tac2
+8.0.0.11        bbncc-washington.ARPA bbncc-washington bbncc-wash bbn-wash
+8.2.0.11        bbncc5-tac.ARPA bbncc5-tac bbncc5tac bbncc5 wash-tac
+8.5.0.11        bbn-wash-vax.ARPA bbn-wash-vax wash-vax wash-tub
+8.0.0.12        bbn-noc3.ARPA bbn-noc3 noc3
+8.1.0.12        bbn-noc3.ARPA bbn-noc3 noc3
+8.3.0.12        bbnccn.ARPA bbnccn
+8.1.0.13        bbnccy.ARPA bbnccy
+8.2.0.13        bbnccv.ARPA bbnccv bbncc-vax
+192.1.7.15      bbnccv.ARPA bbnccv bbncc-vax
+8.0.0.14        bbnj.ARPA bbnj csnet4
+8.1.0.14        bbn-noc.ARPA bbn-noc bbn-nu noc
+8.2.0.14        div6-tac.ARPA div6-tac d6tac div6tac
+8.4.0.14        bbn-noc2.ARPA bbn-noc2 noc2
+8.5.0.14        csnet-dev.ARPA csnet-dev csnet3
+8.6.0.14        div1-tac.ARPA div1-tac div-1-tac
+8.7.0.14        bbnccm.ARPA bbnccm
+8.0.0.15        bbncc-demo.ARPA bbncc-demo ccdemo
+8.2.0.15        bbn-ednoc.ARPA bbn-ednoc ednoc
+8.1.0.16        bbn-rvax.ARPA bbn-rvax rvax
+8.2.0.16        bbn-spca.ARPA bbn-spca spca
+8.3.0.16        bbn-xvax.ARPA bbn-xvax xvax
+8.0.0.17        bbnccc.ARPA bbnccc
+8.1.0.17        bbnccx.ARPA bbnccx
+8.2.0.17        bbnccj.ARPA bbnccj
+8.3.0.17        bbn-labs-admin.ARPA bbn-labs-admin bbn-labs bbnl
+10.0.0.1        ucla-test.ARPA ucla-test
+10.1.0.1        ucla-ccn.ARPA ucla-ccn ccn
+10.2.0.1        ucla-locus.ARPA ucla-locus ucla-security locus ucla-cs ucla-cecs ucla-cs.ARPA
+10.3.0.1        ucla-ats.ARPA ucla-ats ats
+10.0.0.2        sri-sprm.ARPA sri-sprm sri-snv snv
+10.1.0.2        sri-kl.ARPA sri-kl sri kl
+10.2.0.2        sri-csl.ARPA sri-csl csl sri-csla
+10.3.0.2        sri-tsc.ARPA sri-tsc sri-tscb tscb
+128.18.0.200    sri-tsc.ARPA sri-tsc sri-tscb tscb
+10.4.0.2        sri-ai.ARPA sri-ai aic
+192.12.5.10     sri-iu.ARPA sri-iu iuv
+192.5.12.21     utah-cs.ARPA utah-cs
+10.2.0.4        utah-tac.ARPA utah-tac
+10.3.0.4        utah-20.ARPA utah-20
+192.5.12.20     utah-20.ARPA utah-20
+10.1.0.5        bbng.ARPA bbng bbn-tenexg
+192.1.2.67      bbng.ARPA bbng bbn-tenexg
+10.3.0.5        bbna.ARPA bbna bbn
+192.1.2.68      bbna.ARPA bbna bbn
+8.5.0.4         bbna.ARPA bbna bbn
+192.5.58.1      csnet-relay.ARPA csnet-relay rand-relay csnet1 mmcc
+10.7.0.5        bbn-pr-station-1.ARPA bbn-pr-station-1
+10.0.0.6        mit-multics.ARPA mit-multics multics
+10.2.0.6        mit-ai.ARPA mit-ai ai mitai
+10.3.0.6        mit-ml.ARPA mit-ml ml
+10.2.0.7        rand-arpa-tac.ARPA rand-arpa-tac
+10.3.0.7        rand-unix.ARPA rand-unix randvax randvax.ARPA
+192.5.14.33     rand-unix.ARPA rand-unix randvax randvax.ARPA
+192.5.66.1      harvard.ARPA harvard harv-10 acl
+192.5.90.1      harvard.ARPA harvard harv-10 acl
+10.2.0.9        yale.ARPA yale
+128.36.0.1      yale.ARPA yale
+10.0.0.10       ll.ARPA ll
+10.1.0.10       ll-vlsi.ARPA ll-vlsi
+10.2.0.10       ll-xn.ARPA ll-xn
+10.4.0.10       ll-en.ARPA ll-en
+10.6.0.10       ll-sst.ARPA ll-sst sst
+10.0.0.11       su-ai.ARPA su-ai sail suai
+36.36.0.194     su-ai.ARPA su-ai sail suai
+10.2.0.11       su-tac.ARPA su-tac
+10.3.0.11       su-score.ARPA su-score score
+36.36.0.195     su-score.ARPA su-score score
+36.8.0.46       su-score.ARPA su-score score
+10.3.1.11       stanford.ARPA stanford
+10.1.0.14       cmu-cs-a.ARPA cmu-cs-a cmu-10a cmua
+10.3.0.14       cmu-cs-c.ARPA cmu-cs-c cmu-20c cmuc
+10.2.0.20       dcec-arpa-tac.ARPA dcec-arpa-tac
+10.3.0.20       edn-unix.ARPA edn-unix
+10.5.0.20       dcec-psat.ARPA dcec-psat
+10.0.0.22       isi-speech11.ARPA isi-speech11
+10.0.22.22      isi-speech11.ARPA isi-speech11
+10.1.22.27      isi-speech11.ARPA isi-speech11
+10.2.0.23       usc-tac.ARPA usc-tac
+10.0.0.25       seismo.ARPA seismo css-seismo
+192.12.25.5     seismo.ARPA seismo css-seismo
+10.1.0.25       ddn1.ARPA ddn1 ddn-1
+10.0.0.27       usc-isid.ARPA usc-isid isid
+10.1.0.27       isi-png11.ARPA isi-png11 isi-xgp11
+10.1.156.27     isi-png11.ARPA isi-png11 isi-xgp11
+10.1.21.27      isi-mcon.ARPA isi-mcon
+10.0.21.22      isi-mcon.ARPA isi-mcon
+10.1.23.27      isi-wbc11.ARPA isi-wbc11 wbc11
+10.0.23.22      isi-wbc11.ARPA isi-wbc11 wbc11
+10.1.25.27      isi-maint11.ARPA isi-maint11
+10.1.89.27      isi-setting.ARPA isi-setting setting isi-sun2
+10.1.90.27      isi-loretta.ARPA isi-loretta loretta isi-sun1
+10.1.91.27      isi-pallas-athene.ARPA isi-pallas-athene pallas-athene isi-sun3
+10.1.97.27      isi-aikane.ARPA isi-aikane aikane isi-perq1
+10.1.98.27      isi-czar.ARPA isi-czar czar isi-perq2
+10.1.99.27      isi-mycroftxxx.ARPA isi-mycroftxxx mycroftxxx isi-perq3
+10.1.124.27     isi-cmr.ARPA isi-cmr
+10.1.125.27     isi-ihm.ARPA isi-ihm sphinx
+10.1.254.27     isi-echo.ARPA isi-echo
+10.2.0.27       isi-vaxa.ARPA isi-vaxa vaxa
+10.1.33.27      isi-vaxa.ARPA isi-vaxa vaxa
+10.0.0.28       arpa3-tac.ARPA arpa3-tac
+10.0.0.31       cca-unix.ARPA cca-unix cca cca-tenex cca-vms
+10.2.0.31       cca-pli.ARPA cca-pli
+10.3.0.31       cisl-service-multics.ARPA cisl-service-multics mit-devmultics devmultics cisl cisl-multics cisl-service
+192.5.1.1       cisl-service-multics.ARPA cisl-service-multics mit-devmultics devmultics cisl cisl-multics cisl-service
+10.1.0.32       parc-vaxc.ARPA parc-vaxc parcvax
+10.3.0.32       kestrel.ARPA kestrel sci-ics sci kes sct
+10.1.0.37       purdue-asc.ARPA purdue-asc purdue-205-gw
+10.3.0.37       uiuc.ARPA uiuc uiucdcs illinois uofillinois illini
+192.5.69.1      uiuc.ARPA uiuc uiucdcs illinois uofillinois illini
+10.1.0.38       bragg-sta1.ARPA bragg-sta1
+10.2.0.38       bragg-arpa-tac.ARPA bragg-arpa-tac
+10.0.0.44       mit-xx.ARPA mit-xx xx
+10.2.0.44       mit-tstgw.ARPA mit-tstgw
+18.10.0.41      mit-tstgw.ARPA mit-tstgw
+10.3.0.44       mit-mc.ARPA mit-mc mc
+10.0.0.46       collins-pr.ARPA collins-pr
+10.2.0.46       collins-tac.ARPA collins-tac
+10.4.0.46       a-lhi-col-02.ARPA a-lhi-col-02 als02
+10.1.1.51       sri-sta6.ARPA sri-sta6
+10.2.0.51       sri-prmh.ARPA sri-prmh prmh
+192.12.16.101   sri-prmh.ARPA sri-prmh prmh
+10.3.1.51       sri-sta2.ARPA sri-sta2
+10.7.0.51       a-lhi-sri-03.ARPA a-lhi-sri-03 als03
+10.0.0.52       usc-isic.ARPA usc-isic isic
+10.1.0.52       isi-hobgoblin.ARPA isi-hobgoblin hobgoblin
+128.9.0.42      isi-hobgoblin.ARPA isi-hobgoblin hobgoblin
+10.2.0.52       usc-isif.ARPA usc-isif isif
+10.3.0.52       usc-isib.ARPA usc-isib isib
+10.0.0.54       cit-20.ARPA cit-20 caltech
+10.1.0.54       cit-vax.ARPA cit-vax zaphod
+192.5.7.2       cit-vax.ARPA cit-vax zaphod
+192.12.18.1     cit-vax.ARPA cit-vax zaphod
+192.12.19.1     cit-vax.ARPA cit-vax zaphod
+10.3.0.54       jpl-vlsi.ARPA jpl-vlsi jpl-vax
+10.3.1.54       jpl-robotics.ARPA jpl-robotics
+10.0.0.56       sumex-aim.ARPA sumex-aim aim sumex
+36.45.0.87      sumex-aim.ARPA sumex-aim aim sumex
+10.2.0.56       aids-unix.ARPA aids-unix aids-vax aids
+10.0.0.62       ut-ngp.ARPA ut-ngp utexas-ngp
+192.5.89.24     ut-ngp.ARPA ut-ngp utexas-ngp
+10.1.0.62       utexas-20.ARPA utexas-20 ut-r20 utexas
+192.5.89.30     utexas-20.ARPA utexas-20 ut-r20 utexas
+192.5.89.11     ut-sally.ARPA ut-sally sally
+192.12.23.91    ut-sally.ARPA ut-sally sally
+10.3.0.62       mcc.ARPA mcc mcc-ai
+10.0.0.63       bbn-test0-gw.ARPA bbn-test0-gw
+10.1.0.63       bbn-arpa-tac.ARPA bbn-arpa-tac
+10.4.0.63       bbn-psat-ig.ARPA bbn-psat-ig
+10.6.0.63       a-lhi-bbn-01.ARPA a-lhi-bbn-01 alb01
+10.2.0.77       mit-tac.ARPA mit-tac
+10.3.0.77       mit-debugoz.ARPA mit-debugoz
+10.0.0.78       ucb-arpa.ARPA ucb-arpa ucbarpa
+128.32.0.4      ucb-arpa.ARPA ucb-arpa ucbarpa
+128.32.0.10     ucb-vax.ARPA ucb-vax berkeley berkeley.ARPA ucbvax
+10.0.0.79       dec-tops20.ARPA dec-tops20 dec-2136 dec-chip
+192.5.6.1       dec-tops20.ARPA dec-tops20 dec-2136 dec-chip
+10.1.0.79       dec-marlboro.ARPA dec-marlboro dec market
+10.2.0.79       dec-hudson.ARPA dec-hudson
+10.1.0.80       sac-arpa-tac.ARPA sac-arpa-tac
+10.6.0.80       sac-station.ARPA sac-station
+10.0.0.82       bbn-unix.ARPA bbn-unix bbncc bbnu
+8.1.0.4         bbn-unix.ARPA bbn-unix bbncc bbnu
+10.1.0.82       bbn-vax.ARPA bbn-vax bbnv
+8.1.0.8         bbn-vax.ARPA bbn-vax bbnv
+10.3.0.82       bbnccp.ARPA bbnccp
+10.5.0.82       arpanet-mc.ARPA arpanet-mc anoc
+10.7.0.82       csnet-sh.ARPA csnet-sh csnet-cic csnet2 occ
+10.0.0.89       columbia-20.ARPA columbia-20 cucs20
+192.5.43.20     columbia-20.ARPA columbia-20 cucs20
+10.1.0.89       rutgers.ARPA rutgers ru-red
+128.6.0.2       rutgers.ARPA rutgers ru-red
+10.2.0.89       rockefeller.ARPA rockefeller
+10.3.0.89       columbia.ARPA columbia cu
+10.0.0.91       washington.ARPA washington udub uw-ward ward
+192.5.8.24      washington.ARPA washington udub uw-ward ward
+10.2.0.91       washington-tac.ARPA washington-tac
+10.3.0.91       uw-vlsi.ARPA uw-vlsi udub-vlsi
+192.5.8.5       uw-vlsi.ARPA uw-vlsi udub-vlsi
+10.1.0.94       hi-multics.ARPA hi-multics honey cno-multics
+10.0.0.96       udel-louie.ARPA udel-louie louie udel-relay udel
+192.5.39.3      udel-louie.ARPA udel-louie louie udel-relay udel
+10.1.0.96       wharton-10.ARPA wharton-10 wharton
+10.2.0.96       udel-huey.ARPA udel-huey huey udel-ee
+192.5.39.1      udel-huey.ARPA udel-huey huey udel-ee
+10.3.0.96       cornell.ARPA cornell cornell-arpa cu-arpa
+192.5.36.3      cornell.ARPA cornell cornell-arpa cu-arpa
+192.5.51.3      cornell.ARPA cornell cornell-arpa cu-arpa
+192.12.10.3     cornell.ARPA cornell cornell-arpa cu-arpa
+10.2.0.98       purdue-x25.ARPA purdue-x25
+10.2.0.99       vax-x25.ARPA vax-x25
+10.3.0.99       bbn-x25-test3.ARPA bbn-x25-test3
+10.4.0.99       bbn-x25-test4.ARPA bbn-x25-test4
+10.5.0.99       test-host5-x25.ARPA test-host5-x25
+10.2.0.107      sri-spam-test.ARPA sri-spam-test
+10.1.0.111      mitre-gateway.ARPA mitre-gateway mitre-gw
+10.2.0.111      mitre-lan.ARPA mitre-lan
+10.0.0.119      radc-arpa-tac.ARPA radc-arpa-tac
+10.2.0.119      radc-tops20.ARPA radc-tops20 radc-20
+10.1.0.121      usc-eclc.ARPA usc-eclc eclc
+14.0.0.4        ucl-vtest.ARPA ucl-vtest
+14.0.0.6        uk-satnet.ARPA uk-satnet
+14.0.0.16       dfvlr4-x25.ARPA dfvlr4-x25
+14.0.0.18       dfvlr5-x25.ARPA dfvlr5-x25
+18.26.0.1       mit-charmin.ARPA mit-charmin charmin
+18.58.0.1       mit-athena.ARPA mit-athena athena
+18.27.0.2       mit-cezanne.ARPA mit-cezanne cezanne
+18.58.0.2       mit-zeus.ARPA mit-zeus zeus
+18.27.0.3       mit-degas.ARPA mit-degas degas
+18.58.0.3       mit-hera.ARPA mit-hera hera
+18.58.0.4       mit-demeter.ARPA mit-demeter demeter
+18.58.0.5       mit-ares.ARPA mit-ares ares
+18.10.0.6       mit-sludge.ARPA mit-sludge mit-sl sludge
+18.26.0.134     mit-sludge.ARPA mit-sludge mit-sl sludge
+18.58.0.6       mit-poseidon.ARPA mit-poseidon poseidon
+18.62.0.6       mit-eddie.ARPA mit-eddie
+18.2.0.7        mit-bridge.ARPA mit-bridge mit-br bridge
+18.10.0.5       mit-bridge.ARPA mit-bridge mit-br bridge
+18.9.0.8        mit-goofy.ARPA mit-goofy goofy
+18.10.0.8       mit-csr.ARPA mit-csr csr csr2 printer mit-ln ln
+18.26.0.8       mit-melkor.ARPA mit-melkor melkor mel
+18.58.0.8       mit-persephone.ARPA mit-persephone persephone phone
+18.10.0.9       mit-ai-lcs.ARPA mit-ai-lcs ai-lcs mit-gross gross
+128.52.22.9     mit-ai-lcs.ARPA mit-ai-lcs ai-lcs mit-gross gross
+18.58.0.10      mit-apollo.ARPA mit-apollo apollo
+18.58.0.11      mit-artemis.ARPA mit-artemis artemis arty
+18.58.0.12      mit-aphrodite.ARPA mit-aphrodite aphrodite
+18.58.0.13      mit-charon.ARPA mit-charon charon sipbvax
+18.58.0.14      mit-prometheus.ARPA mit-prometheus prometheus prom
+18.58.0.15      mit-atlas.ARPA mit-atlas atlas
+18.27.0.16      mit-tweety-pie.ARPA mit-tweety-pie tweety-pie tweety
+18.20.27.17     mit-bugs-bunny.ARPA mit-bugs-bunny bugs-bunny bunny
+18.27.0.17      mit-bugs-bunny.ARPA mit-bugs-bunny bugs-bunny bunny
+18.123.0.17     proteon.ARPA proteon
+18.2.0.18       mit-alto-509.ARPA mit-alto-509 alto-509
+18.2.0.20       mit-alto-510.ARPA mit-alto-510 alto-510
+18.27.0.20      mit-porky-pig.ARPA mit-porky-pig porky porky-pig
+18.20.27.21     mit-yosemite-sam.ARPA mit-yosemite-sam sam yosemite-sam
+18.27.0.21      mit-yosemite-sam.ARPA mit-yosemite-sam sam yosemite-sam
+18.20.41.21     scrc-riverside.ARPA scrc-riverside
+192.10.41.21    scrc-riverside.ARPA scrc-riverside
+18.27.0.23      mit-daffy-duck.ARPA mit-daffy-duck daffy-duck daffy
+18.10.0.24      mit-nms.ARPA mit-nms nms
+18.26.0.24      mit-baby-blue.ARPA mit-baby-blue baby-blue baby
+18.26.0.25      mit-blue-thunder.ARPA mit-blue-thunder blue-thunder thunder
+18.26.0.26      mit-blue-bayou.ARPA mit-blue-bayou blue-bayou bayou
+18.26.0.27      mit-blue-suede-shoes.ARPA mit-blue-suede-shoes blue-suede-shoes blue-suede
+18.26.0.28      mit-misty-blue.ARPA mit-misty-blue misty-blue misty
+18.26.0.29      mit-car-wash-blues.ARPA mit-car-wash-blues car-wash-blues car-wash
+18.26.0.30      mit-blue-jeans.ARPA mit-blue-jeans blue-jeans jeans
+18.26.0.31      mit-blue-blood.ARPA mit-blue-blood blue-blood blood
+18.2.0.32       mit-alto-524.ARPA mit-alto-524 alto-524 guttag
+18.26.0.34      mit-stormwatch.ARPA mit-stormwatch stormwatch
+18.26.0.35      mit-pluto.ARPA mit-pluto pluto
+18.26.0.38      mit-zud.ARPA mit-zud zud
+18.26.0.39      mit-coke.ARPA mit-coke coke
+18.26.0.40      mit-dr-pepper.ARPA mit-dr-pepper mit-dp dr-pepper dp
+18.26.0.41      mit-pepsi.ARPA mit-pepsi pepsi
+18.26.0.42      mit-seltzer.ARPA mit-seltzer seltzer
+18.26.0.44      mit-guano.ARPA mit-guano guano
+18.26.0.45      mit-cjt.ARPA mit-cjt cjt
+18.2.0.56       mit-alto-214b.ARPA mit-alto-214b alto-214b oa-alto
+18.10.0.64      mit-ajax.ARPA mit-ajax ajax
+18.26.0.64      mit-vaxlet.ARPA mit-vaxlet vaxlet
+18.20.26.64     mit-vaxlet.ARPA mit-vaxlet vaxlet
+18.10.0.65      mit-borax.ARPA mit-borax borax
+18.10.0.66      mit-comet.ARPA mit-comet
+18.10.0.67      mit-dutch.ARPA mit-dutch dutch
+18.10.0.68      mit-mrclean.ARPA mit-mrclean mrclean
+18.10.0.69      mit-bold.ARPA mit-bold bold
+18.10.0.70      mit-fab.ARPA mit-fab fab
+18.10.0.71      mit-prj.ARPA mit-prj prj
+18.2.0.72       mit-alto-511.ARPA mit-alto-511 alto-511
+18.10.0.72      mit-duz.ARPA mit-duz duz
+18.10.0.73      mit-dash.ARPA mit-dash dash
+18.10.0.74      mit-tide.ARPA mit-tide tide
+18.10.0.75      mit-newtowne-variety.ARPA mit-newtowne-variety mit-fla newt
+18.26.0.75      mit-wild-blue-yonder.ARPA mit-wild-blue-yonder wild-blue mit-wby wby
+18.10.0.76      mit-cls.ARPA mit-cls cls
+18.10.0.77      mit-grape-nehi.ARPA mit-grape-nehi grape-nehi c6
+18.10.0.78      mit-heineken.ARPA mit-heineken heineken
+18.10.0.79      mit-oa.ARPA mit-oa oa
+18.2.0.80       mit-muriel.ARPA mit-muriel muriel
+18.10.0.80      mit-macewan.ARPA mit-macewan macewan
+18.10.0.81      mit-kirin.ARPA mit-kirin kirin
+18.10.0.82      mit-molson.ARPA mit-molson molson
+18.10.0.86      mit-milo.ARPA mit-milo milo
+18.10.0.87      mit-opus.ARPA mit-opus opus
+18.10.0.88      mit-rinso.ARPA mit-rinso rinso
+18.26.0.95      mit-vax.ARPA mit-vax
+18.2.0.96       mit-alto-508.ARPA mit-alto-508 alto-508
+18.2.0.100      mit-alto-503.ARPA mit-alto-503 alto-503
+18.2.0.128      mit-spooler.ARPA mit-spooler spooler spool
+18.9.0.128      mit-pcgw.ARPA mit-pcgw pcgw
+18.10.0.40      mit-pcgw.ARPA mit-pcgw pcgw
+18.10.0.128     mit-lcs-hq.ARPA mit-lcs-hq lcs-hq
+18.2.0.129      mit-np-alto.ARPA mit-np-alto np-alto
+18.10.0.129     mit-dm.ARPA mit-dm dm
+18.2.0.130      mit-alto-502.ARPA mit-alto-502 alto-502
+18.2.0.134      mit-alto-828.ARPA mit-alto-828 alto-828 medg
+18.26.0.136     mit-blue-apollo.ARPA mit-blue-apollo blue-apollo
+18.105.0.9      mit-blue-apollo.ARPA mit-blue-apollo blue-apollo
+18.2.0.170      mit-alto-520.ARPA mit-alto-520 alto-520
+18.10.0.192     mit-blue-light.ARPA mit-blue-light blue-light
+18.10.0.193     mit-blue-danube.ARPA mit-blue-danube blue-danube danube
+18.10.0.194     mit-mother.ARPA mit-mother mother
+18.10.0.195     mit-big-blue.ARPA mit-big-blue mit-bigblue big-blue bigblue
+26.0.0.1        minet-obl-em.ARPA minet-obl-em oblem minet-obl obl
+26.1.0.1        minet-obl-tac.ARPA minet-obl-tac obltc
+26.1.0.2        minet-vhn-tac.ARPA minet-vhn-tac vhntc
+26.2.0.2        minet-vhn-em.ARPA minet-vhn-em minet-vhn-noc vhn vhnem vhnnc minet-vhn
+26.3.0.2        dca-eur.ARPA dca-eur
+26.6.0.2        patch.ARPA patch patchnet
+26.0.0.3        nosc.ARPA nosc nosc-bass bass nosc-cc
+128.49.0.2      nosc.ARPA nosc nosc-bass bass nosc-cc
+128.54.0.2      nosc.ARPA nosc nosc-bass bass nosc-cc
+26.1.0.3        ntectsd.ARPA ntectsd
+26.2.0.3        logicon.ARPA logicon
+26.3.0.3        nprdc.ARPA nprdc nprdc-aegean
+192.5.65.1      nprdc.ARPA nprdc nprdc-aegean
+26.1.0.4        minet-hdl-tac.ARPA minet-hdl-tac hdltc
+26.1.0.5        minet-brm-tac.ARPA minet-brm-tac brmtc
+26.1.0.6        minet-rdm-tac.ARPA minet-rdm-tac rmdtc
+26.0.0.7        minet-lon-em.ARPA minet-lon-em lonem minet-lon lon
+26.1.0.7        minet-lon-tac.ARPA minet-lon-tac lontc
+26.0.0.8        nrl-netdev.ARPA nrl-netdev
+26.1.0.8        nrl-aic.ARPA nrl-aic
+26.2.0.8        aspur-csc.ARPA aspur-csc
+26.3.0.8        nrl.ARPA nrl
+26.5.0.8        nardacwash-001.ARPA nardacwash-001
+26.6.0.8        nrl-arctan.ARPA nrl-arctan
+26.7.0.8        nrl-css.ARPA nrl-css
+192.5.17.112    nrl-css.ARPA nrl-css
+26.0.0.9        minet-sig-tac.ARPA minet-sig-tac sigtc
+26.1.0.10       rota-mil-tac.ARPA rota-mil-tac
+26.0.0.12       rand2-mil-tac.ARPA rand2-mil-tac
+26.1.0.13       gunter-adam.ARPA gunter-adam
+26.2.0.13       gunter-tac.ARPA gunter-tac gunt
+26.3.0.13       eds1.ARPA eds1 gu-eds
+26.1.0.15       minet-ram-tac.ARPA minet-ram-tac ramtc
+26.1.0.16       ames-tac.ARPA ames-tac
+26.3.0.16       ames-vmsb.ARPA ames-vmsb ames-11
+26.4.0.16       ames-nas.ARPA ames-nas amelia amelia-ec
+192.5.64.1      ames-nas.ARPA ames-nas amelia amelia-ec
+26.6.0.16       riacs-icarus.ARPA riacs-icarus icarus
+192.5.35.1      riacs-icarus.ARPA riacs-icarus icarus
+128.45.0.1      decwrl.ARPA decwrl dec-wrl decsrc dec-src decwsl dec-wsl
+192.5.58.3      decwrl.ARPA decwrl dec-wrl decsrc dec-src decwsl dec-wsl
+26.0.0.17       mitre.ARPA mitre
+26.2.0.17       mitre-tac.ARPA mitre-tac
+26.5.0.17       ddn-pmo-mil-tac.ARPA ddn-pmo-mil-tac
+26.0.0.18       radc-multics.ARPA radc-multics radc
+26.2.0.18       radc-tac.ARPA radc-tac radt
+26.5.0.18       radc-lonex.ARPA radc-lonex lnx
+26.6.0.18       ge-crd.ARPA ge-crd ge
+26.0.0.19       nbs-vms.ARPA nbs-vms nbs-10 nbs
+26.1.0.19       nbs-sdc.ARPA nbs-sdc
+26.2.0.19       nbs-snad.ARPA nbs-snad
+26.3.0.19       nbs-pl.ARPA nbs-pl
+26.7.0.19       nbs-ssi.ARPA nbs-ssi
+26.2.0.20       dcec-tac.ARPA dcec-tac
+26.0.0.21       lll-tis.ARPA lll-tis lll-unix
+26.1.0.21       lll-mfe.ARPA lll-mfe mfe
+26.2.0.21       lll-zdivision.ARPA lll-zdivision
+26.3.0.21       lll-crg.ARPA lll-crg gluteus
+26.0.0.24       nadc.ARPA nadc
+26.0.0.26       pentagon-tac.ARPA pentagon-tac
+26.1.0.26       igmirs-daig.ARPA igmirs-daig
+26.3.0.26       tcaccis-csc.ARPA tcaccis-csc
+26.1.0.27       minet-hlh-tac.ARPA minet-hlh-tac hlhtc
+26.1.0.29       apg-1.ARPA apg-1
+26.2.0.29       brl-tac.ARPA brl-tac
+26.4.0.29       apg-3.ARPA apg-3
+26.6.0.29       apg-2.ARPA apg-2
+26.8.0.29       apg-4.ARPA apg-4
+26.0.0.30       brooks-afb-tac.ARPA brooks-afb-tac afsc-hrl-tac
+26.1.0.30       afmpc-2.ARPA afmpc-2
+26.0.0.33       nps.ARPA nps
+26.2.0.33       nps-tac.ARPA nps-tac
+26.3.0.33       fnoc-secure.ARPA fnoc-secure fnwc-secure
+26.0.0.34       lbl.ARPA lbl lbl-ws
+26.2.0.34       mcclellan.ARPA mcclellan sacramento-unix
+26.0.0.35       nosc-secure2.ARPA nosc-secure2 usc-isir1 isir1
+26.1.0.35       nosc-tecr.ARPA nosc-tecr tecr
+26.2.0.35       accat-tac.ARPA accat-tac nelc-tip
+26.3.0.35       nosc-secure3.ARPA nosc-secure3
+26.4.0.35       nosc-f4.ARPA nosc-f4
+26.6.0.35       nardac-sandiego.ARPA nardac-sandiego
+26.1.0.36       hawaii-emh.ARPA hawaii-emh
+26.3.0.36       hawaii2-tac.ARPA hawaii2-tac
+26.0.0.39       edwards-vax.ARPA edwards-vax evax
+26.1.0.39       edwards-2060.ARPA edwards-2060
+26.3.0.39       edward-mil-tac.ARPA edward-mil-tac
+26.0.0.40       bbn-mil-tac.ARPA bbn-mil-tac
+26.1.0.41       micom-test.ARPA micom-test
+26.2.0.41       micom-tac.ARPA micom-tac
+26.3.0.41       ornl-msr.ARPA ornl-msr
+26.5.0.41       usarec-2.ARPA usarec-2
+26.0.0.43       office-1.ARPA office-1 of1
+26.1.0.43       office-15.ARPA office-15 of15
+26.2.0.43       office-3.ARPA office-3 of3
+26.3.0.43       office-7.ARPA office-7 of7
+26.0.0.45       ardc-tac.ARPA ardc-tac
+26.1.0.45       ardc.ARPA ardc ardc-ms pica arradcom
+26.2.0.45       tcaccis-bay.ARPA tcaccis-bay
+26.3.0.45       pica-qa.ARPA pica-qa
+26.4.0.45       pica-lca.ARPA pica-lca
+26.1.0.47       wpafb-afwal.ARPA wpafb-afwal avsail wpafb-afal
+26.2.0.47       wpafb-tac.ARPA wpafb-tac
+26.3.0.47       wpafb-info1.ARPA wpafb-info1
+26.4.0.47       wpafb-jalcf.ARPA wpafb-jalcf
+26.5.0.47       wpafb-afita.ARPA wpafb-afita afit
+26.6.0.47       wpafb-fdl.ARPA wpafb-fdl
+26.7.0.47       cmu-cs-b.ARPA cmu-cs-b cmub
+26.8.0.47       lognet2.ARPA lognet2
+26.1.0.48       afwl.ARPA afwl
+26.2.0.48       afwl-tac.ARPA afwl-tac
+26.6.0.49       minet-tc2-em.ARPA minet-tc2-em tc2 tc2em minet-tc2
+26.0.0.50       amc-hq.ARPA amc-hq darcom-hq
+26.1.0.50       ari-hq1.ARPA ari-hq1
+26.2.0.50       darcom-tac.ARPA darcom-tac
+26.3.0.50       lssa-db1.ARPA lssa-db1
+26.6.0.50       usadhq2.ARPA usadhq2
+26.7.0.50       etl-ai.ARPA etl-ai usaetl etl
+26.0.0.53       afsc-ad.ARPA afsc-ad eglin
+26.3.0.53       afsc-ad-tac.ARPA afsc-ad-tac eglin-tac
+26.4.0.53       ncsc.ARPA ncsc ncsl
+26.5.0.53       martin.ARPA martin mmc
+26.6.0.53       eglin-vax.ARPA eglin-vax
+26.1.0.55       anl-mcs.ARPA anl-mcs
+26.2.0.55       gswd-vms.ARPA gswd-vms cc-vms dti
+26.0.0.57       tycho.ARPA tycho
+26.1.0.57       coins-gateway.ARPA coins-gateway coins
+128.8.0.8       maryland.ARPA maryland mimsy umd-csd umd8 umcp-cs
+192.5.15.129    nyu.ARPA nyu nyu-cmcl2 cmcl2
+26.1.0.58       bnl.ARPA bnl brookhaven
+26.1.0.59       scott-tac.ARPA scott-tac
+26.0.0.60       cecom-2.ARPA cecom-2
+26.1.0.60       coradcom-tac.ARPA coradcom-tac
+26.2.0.60       coradcom2-tac.ARPA coradcom2-tac
+26.3.0.60       cecom-1.ARPA cecom-1 ce cecom
+26.4.0.60       monmouth-eisn.ARPA monmouth-eisn
+26.6.0.60       joins-emhost1.ARPA joins-emhost1
+26.0.0.61       stl-host1.ARPA stl-host1 stl1
+26.1.0.61       almsa-1.ARPA almsa-1 almsa
+26.2.0.61       stla-tac.ARPA stla-tac stl-tip
+26.4.0.61       usarec-4.ARPA usarec-4 stl-host3
+26.0.0.64       igmirs-ftgillm.ARPA igmirs-ftgillm ftgillem-csc igmirs-ftgillem-csc
+26.1.0.64       martin-b.ARPA martin-b mmc-b
+26.2.0.64       robins-tac.ARPA robins-tac wralc-tac
+26.3.0.64       robins-unix.ARPA robins-unix
+26.4.0.64       igmirs-forscom.ARPA igmirs-forscom forscom-ig
+26.5.0.64       tcaccis-ftstewart.ARPA tcaccis-ftstewart
+26.0.0.65       afsc-sd.ARPA afsc-sd afsd
+26.1.0.65       afsc-sd-tac.ARPA afsc-sd-tac sd-tip
+26.2.0.65       aerospace.ARPA aerospace aero
+26.3.0.65       martin-ed.ARPA martin-ed mmc-ed
+26.4.0.65       jpl-milvax.ARPA jpl-milvax
+26.5.0.65       usc-ecl.ARPA usc-ecl ecl usc-ecla ecla
+26.6.0.65       acc.ARPA acc
+26.7.0.65       usc-eclb.ARPA usc-eclb eclb
+26.1.0.66       afgl.ARPA afgl
+26.2.0.66       afgl-tac.ARPA afgl-tac
+26.3.0.66       mitre-bedford.ARPA mitre-bedford mitre-b bedford
+26.0.0.67       afsc-hq.ARPA afsc-hq hqafsc
+26.1.0.67       afsc-hq-tac.ARPA afsc-hq-tac hqafsc-tac
+26.2.0.67       igmirs-cidc.ARPA igmirs-cidc
+26.3.0.67       igmirs-darcom.ARPA igmirs-darcom darcom-ig igmirs-darcom-ig
+26.0.0.69       usgs2-multics.ARPA usgs2-multics denver
+26.1.0.69       usgs2-tac.ARPA usgs2-tac
+26.2.0.69       ftcarson-ig.ARPA ftcarson-ig
+26.0.0.70       usgs3-vms.ARPA usgs3-vms menlo
+26.1.0.70       usgs3-tac.ARPA usgs3-tac
+26.0.0.71       okc-unix.ARPA okc-unix
+26.1.0.71       igmirs-sill-ig.ARPA igmirs-sill-ig ftsill-ig
+26.2.0.71       tinker-mil-tac.ARPA tinker-mil-tac
+26.3.0.71       satods.ARPA satods
+26.2.0.72       ddn2.ARPA ddn2 ddn-2 ddn
+10.0.0.51       sri-nic.ARPA sri-nic nic
+26.1.0.73       sri-warf.ARPA sri-warf warf tscf
+26.3.0.73       sri-mil-tac.ARPA sri-mil-tac
+26.4.0.73       sri-naurs.ARPA sri-naurs sri-f4
+26.0.0.74       simtel20.ARPA simtel20 sands-20 simtel-20
+26.1.0.74       wsmr.ARPA wsmr wsmr01 wsmr-01 wsmra usarec usarec-5
+26.2.0.74       wsmr-tac.ARPA wsmr-tac
+26.4.0.74       igmirs-ftbliss.ARPA igmirs-ftbliss ftbliss-ig
+26.2.0.75       yuma-tac.ARPA yuma-tac
+26.1.0.80       bragg-mil-tac.ARPA bragg-mil-tac
+26.0.0.81       nems.ARPA nems
+26.1.0.81       nalcon.ARPA nalcon dtix
+26.2.0.81       david-tac.ARPA david-tac
+26.3.0.81       dtrc.ARPA dtrc nsrdcoa
+26.0.0.84       nswc-dl.ARPA nswc-dl
+26.1.0.84       nswc-g.ARPA nswc-g
+26.2.0.84       nswc-tac.ARPA nswc-tac
+26.3.0.84       nswc-oas.ARPA nswc-oas
+26.4.0.84       igmirs-tradoc.ARPA igmirs-tradoc tradoc-ig
+26.0.0.85       nwc-141a.ARPA nwc-141a nwc-387a
+26.1.0.85       nwc-3603.ARPA nwc-3603 caep
+26.2.0.85       nwc-tac.ARPA nwc-tac
+26.3.0.85       nwc-143b.ARPA nwc-143b nwc-387b
+26.0.0.87       sandia-cad.ARPA sandia-cad sandia snl
+26.1.0.87       afotec.ARPA afotec
+192.5.52.1      nlm-mcs.ARPA nlm-mcs nlm mcs
+26.0.0.90       lanl.ARPA lanl
+26.0.0.91       minet-cpo-em.ARPA minet-cpo-em cpo cpoem minet-cpo
+26.1.0.91       minet-cpo-tac.ARPA minet-cpo-tac cpotc
+26.0.0.92       ntecfrey.ARPA ntecfrey tacdew
+26.1.0.92       nusc-ada.ARPA nusc-ada
+26.2.0.92       nusc-npt.ARPA nusc-npt
+26.3.0.92       nusc.ARPA nusc
+26.4.0.92       navdaf-newport.ARPA navdaf-newport
+26.0.0.93       office-8.ARPA office-8 of8
+26.1.0.93       office-10.ARPA office-10 of10
+26.2.0.93       office-2.ARPA office-2 of2 office off
+26.1.0.95       s1-a.ARPA s1-a s1 s1a s-1 s1-coprolite
+26.2.0.95       s1-b.ARPA s1-b s1-angband angband
+128.15.0.2      s1-b.ARPA s1-b s1-angband angband
+26.3.0.95       s1-c.ARPA s1-c s1-mordor mordor
+128.15.0.3      s1-c.ARPA s1-c s1-mordor mordor
+26.2.0.97       paxrv-nes.ARPA paxrv-nes pax
+26.3.0.97       pax-rv-tac.ARPA pax-rv-tac
+26.0.0.101      afmpc-1.ARPA afmpc-1
+26.0.0.102      nswc-wo.ARPA nswc-wo
+26.1.0.103      usc-isie.ARPA usc-isie isie
+26.2.0.103      ada-vax.ARPA ada-vax isi-vaxb ajpo vaxb
+26.3.0.103      usc-isi.ARPA usc-isi usc-isia isia isi
+26.5.0.103      radc-bunker-ram.ARPA radc-bunker-ram
+26.1.0.104      dcec-lsus2.ARPA dcec-lsus2 dcec2
+26.2.0.104      dcec-mil-tac.ARPA dcec-mil-tac
+26.3.0.104      csc-oa.ARPA csc-oa
+26.4.0.104      dcec-lsus.ARPA dcec-lsus dcec1
+26.5.0.104      dca-ems.ARPA dca-ems dcems
+26.1.0.105      sac1-mil-tac.ARPA sac1-mil-tac
+26.7.0.105      sac2-mil-tac.ARPA sac2-mil-tac
+26.1.0.106      arpa1-mil-tac.ARPA arpa1-mil-tac
+26.2.0.106      arpa2-mil-tac.ARPA arpa2-mil-tac
+26.3.0.106      arpa-png11.ARPA arpa-png11 arpa-xgp11
+26.4.0.108      norfolk-miltac.ARPA norfolk-miltac
+26.6.0.108      unic.ARPA unic nrdcnrva
+26.2.0.109      norl-mil-tac.ARPA norl-mil-tac
+26.3.0.109      nrdcnola-u1100.ARPA nrdcnola-u1100 nrdcnola
+26.4.0.110      jax1-mil-tac.ARPA jax1-mil-tac
+26.6.0.110      nardac-jax.ARPA nardac-jax
+26.7.0.110      splice-tandem.ARPA splice-tandem splice-jax
+26.0.0.112      stl-host2.ARPA stl-host2
+26.1.0.112      igmirs-camp-ig.ARPA igmirs-camp-ig
+26.0.0.113      anad.ARPA anad
+26.2.0.113      annis-mil-tac.ARPA annis-mil-tac
+26.1.0.114      cda-pdp01.ARPA cda-pdp01 cda
+26.2.0.114      ncad-mil-tac.ARPA ncad-mil-tac
+26.5.0.114      ncad2-mil-tac.ARPA ncad2-mil-tac
+26.2.0.115      tacom-tac.ARPA tacom-tac
+26.0.0.116      frankfurt-mil-tac.ARPA frankfurt-mil-tac
+26.1.0.116      igmirs-kaiserslautern.ARPA igmirs-kaiserslautern
+26.2.0.116      igmirs-moehringer.ARPA igmirs-moehringer vii-ig
+26.3.0.116      igmirs-frankfurt.ARPA igmirs-frankfurt vcorps-ig
+26.4.0.116      igmirs-heidelburg.ARPA igmirs-heidelburg usareur-ig
+26.9.0.116      seckenheim-emh.ARPA seckenheim-emh secken
+26.0.0.117      korea-emh.ARPA korea-emh
+26.2.0.117      korea-tac.ARPA korea-tac
+26.0.0.118      scott2-mil-tac.ARPA scott2-mil-tac sc2tc
+26.4.0.118      afcc-1.ARPA afcc-1
+26.5.0.118      afcc-2.ARPA afcc-2
+26.6.0.118      afcc-3.ARPA afcc-3
+26.7.0.118      afcc-4.ARPA afcc-4
+26.0.0.120      dugway-mil-tac.ARPA dugway-mil-tac
+26.1.0.120      dpg-1.ARPA dpg-1 dpg
+26.1.0.122      fth-1.ARPA fth-1
+26.2.0.122      huac-mil-tac.ARPA huac-mil-tac
+26.0.0.124      eds2.ARPA eds2 wp-eds
+26.2.0.124      wpafb-info3.ARPA wpafb-info3
+26.4.0.124      wpafb-info2.ARPA wpafb-info2
+26.5.0.124      wpafb-info4.ARPA wpafb-info4
+26.6.0.125      lvn-mil-tac.ARPA lvn-mil-tac
+32.2.0.42       ucl-tac.ARPA ucl-tac london-tac
+36.44.0.1       su-safe.ARPA su-safe safe
+36.47.0.1       su-ardvax.ARPA su-ardvax ardvax
+36.2.0.5        su-helens.ARPA su-helens helens
+36.10.0.5       su-star.ARPA su-star star
+36.8.0.8        su-pescadero.ARPA su-pescadero pescadero
+36.36.0.101     su-pescadero.ARPA su-pescadero pescadero
+36.9.0.9        su-russell.ARPA su-russell russell
+36.47.0.9       su-hpp-3600-1.ARPA su-hpp-3600-1 hpp-3600-1
+36.47.0.10      su-hpp-3600-2.ARPA su-hpp-3600-2 hpp-3600-2
+36.8.0.11       su-gregorio.ARPA su-gregorio gregorio
+36.36.0.102     su-gregorio.ARPA su-gregorio gregorio
+36.9.0.11       su-lindy.ARPA su-lindy lindy
+36.47.0.11      su-hpp-3670-3.ARPA su-hpp-3670-3 hpp-3670-3
+36.9.0.12       su-forsythe.ARPA su-forsythe forsythe
+36.47.0.12      su-hpp-3670-4.ARPA su-hpp-3670-4 hpp-3670-4
+36.10.0.14      su-mojave.ARPA su-mojave mojave
+36.22.0.20      su-amadeus.ARPA su-amadeus amadeus
+36.18.0.93      su-csli.ARPA su-csli csli turing su-turing
+36.40.0.99      su-sonoma.ARPA su-sonoma sonoma
+36.40.0.192     su-shasta.ARPA su-shasta shasta
+36.10.0.1       su-shasta.ARPA su-shasta shasta
+36.45.0.193     su-aimvax.ARPA su-aimvax aimvax su-diablo diablo su-hnv
+36.40.0.200     su-dit.ARPA su-dit dit su-dsn su-dsn.ARPA dsn
+36.40.0.201     su-isl.ARPA su-isl isl
+36.36.0.203     su-navajo.ARPA su-navajo navajo su-na-vax
+36.18.0.204     su-whitney.ARPA su-whitney whitney su-robotics
+36.12.0.3       su-whitney.ARPA su-whitney whitney su-robotics
+36.40.0.205     su-glacier.ARPA su-glacier glacier su-icl
+36.40.0.206     su-fuji.ARPA su-fuji fuji
+36.19.0.209     su-gsb-why.ARPA su-gsb-why why
+36.19.0.210     su-gsb-how.ARPA su-gsb-how how
+36.40.0.213     su-sierra.ARPA su-sierra sierra
+36.10.0.13      su-sierra.ARPA su-sierra sierra
+36.18.0.215     su-coyote.ARPA su-coyote coyote
+36.35.0.216     su-cascade.ARPA su-cascade cascade
+128.16.9.0      ucl-sam.ARPA ucl-sam
+128.4.0.1       dcn1.ARPA dcn1 pogo
+10.0.0.111      dcn1.ARPA dcn1 pogo
+128.5.0.1       ford1.ARPA ford1 ford
+128.5.32.1      ford-wdl1.ARPA ford-wdl1 facc
+128.5.33.1      ford-scf1.ARPA ford-scf1
+128.5.34.1      ford-cos1.ARPA ford-cos1
+128.5.35.1      ford-hou1.ARPA ford-hou1
+128.5.37.1      ford-mac1.ARPA ford-mac1
+128.7.0.1       dfvlr1.ARPA dfvlr1 oberpfaffenhofen
+128.8.0.1       umd1.ARPA umd1 umd
+10.0.0.37       purdue.ARPA purdue purdue-cs purdue-arthur arthur
+192.5.48.1      purdue.ARPA purdue purdue-cs purdue-arthur arthur
+128.16.9.1      ucl-probe.ARPA ucl-probe
+128.18.0.1      sri-med.ARPA sri-med med
+128.18.10.1     sri-vax.ARPA sri-vax sri-crvax crvax
+128.19.1.1      edn-host1.ARPA edn-host1
+128.20.2.1      brl-tac1.ARPA brl-tac1
+128.20.3.1      amsaa.ARPA amsaa
+128.20.4.1      amsaa-vms.ARPA amsaa-vms
+128.32.138.1    ucbugs.ARPA ucbugs ugs
+128.42.2.1      rice-goliath.ARPA rice-goliath goliath
+128.42.3.1      rice-mimas.ARPA rice-mimas mimas
+128.42.4.1      rice-zeta.ARPA rice-zeta zeta
+128.44.0.1      wsmr03.ARPA wsmr03 wsmr-03
+128.44.1.1      wsmr04.ARPA wsmr04 wsmr-04
+128.44.2.1      wsmr05.ARPA wsmr05 wsmr-05
+128.46.135.1    purdue-newton.ARPA purdue-newton purdue-physics
+128.46.136.1    purdue-newton.ARPA purdue-newton purdue-physics
+128.49.0.1      nosc-bugs.ARPA nosc-bugs bugs
+128.49.1.1      nosc-shark.ARPA nosc-shark shark
+128.49.129.1    nosc-frog.ARPA nosc-frog frog
+128.54.0.1      sdcsvax.ARPA sdcsvax ucsd
+128.54.7.1      sdamos.ARPA sdamos amos
+128.54.132.1    sdcarl.ARPA sdcarl carl
+128.2.251.2     cmu-ee-faraday.ARPA cmu-ee-faraday
+128.4.0.2       dcn2.ARPA dcn2 boombah
+128.5.0.2       ford2.ARPA ford2
+128.5.32.2      ford-wdl2.ARPA ford-wdl2
+128.5.34.2      ford-cos2.ARPA ford-cos2
+128.5.37.2      ford-mac2.ARPA ford-mac2
+128.7.0.2       dfvlr2.ARPA dfvlr2
+128.8.0.2       umd2.ARPA umd2 umd-univac univac
+128.10.0.2      purdue-mordred.ARPA purdue-mordred mordred
+192.5.48.2      purdue-mordred.ARPA purdue-mordred mordred
+128.11.0.2      bbn-cvax.ARPA bbn-cvax cvax
+128.16.3.2      ucl-terminal-gateway.ARPA ucl-terminal-gateway
+128.16.9.2      ucl-tg.ARPA ucl-tg
+14.0.0.5        ucl-tg.ARPA ucl-tg
+128.18.0.2      sri-coral.ARPA sri-coral coral
+128.18.10.2     sri-ovax.ARPA sri-ovax ovax
+128.20.1.2      brl-hep.ARPA brl-hep
+128.20.2.2      brl-tac2.ARPA brl-tac2
+128.20.3.2      brl-voc.ARPA brl-voc voc
+192.5.22.18     brl-voc.ARPA brl-voc voc
+128.20.4.2      brl-vat.ARPA brl-vat vat
+128.21.32.2     sri-spam.ARPA sri-spam spam
+192.5.38.3      sri-spam.ARPA sri-spam spam
+128.36.0.2      yale-ring.ARPA yale-ring
+128.42.1.2      rice-rhea.ARPA rice-rhea rhea
+128.42.3.2      rice-tethys.ARPA rice-tethys tethys
+128.44.1.2      wsmr06.ARPA wsmr06 wsmr-06
+128.44.2.2      wsmr07.ARPA wsmr07 wsmr-07
+128.44.3.2      wsmr09.ARPA wsmr09 wsmr-09
+128.44.4.2      wsmr10.ARPA wsmr10 wsmr-10
+128.46.135.2    purdue-galileo.ARPA purdue-galileo
+128.54.132.2    sdcarla.ARPA sdcarla carla
+128.2.251.3     cmu-ee-maxwell.ARPA cmu-ee-maxwell
+128.4.0.3       dcn3.ARPA dcn3 albert
+128.5.0.3       ford3.ARPA ford3
+128.5.32.3      ford-wdl3.ARPA ford-wdl3
+128.5.34.3      ford-cos3.ARPA ford-cos3
+128.5.37.3      ford-mac3.ARPA ford-mac3
+128.6.0.3       ru-green.ARPA ru-green
+128.7.0.3       dfvlr3.ARPA dfvlr3
+128.8.0.3       umd3.ARPA umd3
+128.11.0.3      bbn-clxx.ARPA bbn-clxx clxx
+10.0.0.5        bbn-clxx.ARPA bbn-clxx clxx
+128.16.9.3      ucl-cs.ARPA ucl-cs ucl
+14.0.0.9        ucl-cs.ARPA ucl-cs ucl
+128.18.0.3      sri-arabian.ARPA sri-arabian arabian
+128.18.10.3     sri-unix.ARPA sri-unix sri-prism prism
+128.20.0.3      brl-tbd.ARPA brl-tbd tbd
+128.20.2.3      brl-tac3.ARPA brl-tac3
+128.26.32.3     sac-vax.ARPA sac-vax sri-spud spud
+10.0.0.80       sac-vax.ARPA sac-vax sri-spud spud
+128.32.134.3    ucbeast.ARPA ucbeast beast east hackvax
+128.36.0.3      yale-penguin.ARPA yale-penguin penguin
+128.39.0.3      ntare1.ARPA ntare1 ntare
+128.42.1.3      rice-janus.ARPA rice-janus rice-vms rice-780
+128.42.3.3      rice-hyperion.ARPA rice-hyperion hyperion hyp
+128.44.0.3      wsmr08.ARPA wsmr08 wsmr-08
+128.44.1.3      wsmr02.ARPA wsmr02 wsmr-02 wsmrb wsmr70b
+128.44.3.3      miser.ARPA miser
+128.49.0.3      nosc-guppy.ARPA nosc-guppy guppy
+128.54.132.3    sdfelix.ARPA sdfelix
+128.2.251.4     cmu-ee-gauss.ARPA cmu-ee-gauss
+128.4.0.4       dcn4.ARPA dcn4 howland
+128.5.0.4       ford4.ARPA ford4
+128.5.32.4      ford-wdl4.ARPA ford-wdl4
+128.5.37.4      ford-mac4.ARPA ford-mac4
+128.6.0.4       ru-blue.ARPA ru-blue
+128.7.0.4       dfvlr4.ARPA dfvlr4
+128.8.0.4       cvl.ARPA cvl umd4
+128.16.9.4      ucl-niftp.ARPA ucl-niftp
+128.18.0.4      sri-china.ARPA sri-china china
+128.18.10.4     sri-stripe.ARPA sri-stripe stripe
+128.20.0.4      brl-lfd.ARPA brl-lfd lfd
+128.20.2.4      brl-tac4.ARPA brl-tac4
+128.21.48.4     sri-rolm.ARPA sri-rolm
+128.36.0.4      yale-cheops.ARPA yale-cheops cheops
+128.42.1.4      rice-iapetus.ARPA rice-iapetus iapetus iap
+128.42.3.4      rice-phobos.ARPA rice-phobos phobos
+128.49.0.4      nosc-marlin.ARPA nosc-marlin marlin
+128.54.132.4    sdsluggo.ARPA sdsluggo sluggo
+128.4.0.5       dcn5.ARPA dcn5 hepzibah
+128.5.32.5      ford-wdl5.ARPA ford-wdl5
+128.5.37.5      ford-mac5.ARPA ford-mac5
+128.7.0.5       dfvlr5.ARPA dfvlr5 fgan
+128.8.0.5       umd5.ARPA umd5
+128.18.10.5     sri-gizmo.ARPA sri-gizmo gizmo
+128.20.0.5      hel-ace.ARPA hel-ace ace
+128.20.1.5      hel-cpx.ARPA hel-cpx cpx
+128.32.0.5      ucbcad.ARPA ucbcad
+128.39.0.5      oslo-vax.ARPA oslo-vax oslo
+128.42.1.5      rice-ceres.ARPA rice-ceres ceres
+128.42.4.5      rice-cleo.ARPA rice-cleo cleo
+128.49.0.5      nosc-cod.ARPA nosc-cod cod
+128.52.22.5     mit-tinman.ARPA mit-tinman tinman mit-htjr htjr
+128.54.132.5    sdgumby.ARPA sdgumby
+128.2.251.6     cmu-ee-henry.ARPA cmu-ee-henry
+128.4.0.6       dcn6.ARPA dcn6 backroom
+128.5.32.6      ford-wdl6.ARPA ford-wdl6
+128.8.0.6       umd6.ARPA umd6
+128.10.0.6      purdue-merlin.ARPA purdue-merlin merlin
+192.5.48.3      purdue-merlin.ARPA purdue-merlin merlin
+128.18.0.6      sri-bozo.ARPA sri-bozo bozo
+128.20.0.6      crdc.ARPA crdc
+128.20.1.6      crdc-vax2.ARPA crdc-vax2 crdc2
+128.20.2.6      crdc-tac.ARPA crdc-tac
+128.20.3.6      crdc-padea.ARPA crdc-padea padea
+128.32.0.6      ucbernie.ARPA ucbernie
+128.42.1.6      rice-pallas.ARPA rice-pallas pallas
+128.42.4.6      rice-gimel.ARPA rice-gimel gimel
+128.49.0.6      nosc-perch.ARPA nosc-perch perch
+128.4.0.7       dcn7.ARPA dcn7 snavely
+128.8.0.7       umd7.ARPA umd7
+128.32.0.7      ucbmonet.ARPA ucbmonet
+128.36.0.7      yale-apvax.ARPA yale-apvax
+128.42.1.7      rice-vesta.ARPA rice-vesta vesta
+128.46.129.7    purdue-ecn-ec.ARPA purdue-ecn-ec ecn-ec
+128.46.131.7    purdue-ecn-ec.ARPA purdue-ecn-ec ecn-ec
+128.49.0.7      nosc-trout.ARPA nosc-trout trout
+128.4.0.8       dcn8.ARPA dcn8 porkypine
+128.5.0.8       ford-lab.ARPA ford-lab ford8
+128.5.32.8      ford-wdl8.ARPA ford-wdl8
+128.36.0.8      yale-navax.ARPA yale-navax
+128.42.1.8      rice-nexus.ARPA rice-nexus nexus
+128.46.129.8    purdue-ecn-ma.ARPA purdue-ecn-ma ecn-ma
+128.46.131.8    purdue-ecn-ma.ARPA purdue-ecn-ma ecn-ma
+128.49.0.8      nosc-eel.ARPA nosc-eel eel
+128.4.0.9       dcn9.ARPA dcn9 churchy
+128.5.0.9       ford-vax.ARPA ford-vax ford9
+128.5.32.9      ford-wdl9.ARPA ford-wdl9
+128.8.0.9       umd9.ARPA umd9
+128.11.0.9      bbn-meta.ARPA bbn-meta meta
+128.16.9.9      stc.ARPA stc
+128.36.0.9      yale-lm1.ARPA yale-lm1
+128.42.1.9      rice-eesun.ARPA rice-eesun eesun
+128.49.0.9      nosc-peanuts.ARPA nosc-peanuts peanuts
+128.5.0.10      ford-res.ARPA ford-res forda ford-20
+128.5.32.10     ford-wdl10.ARPA ford-wdl10
+128.8.0.10      umda.ARPA umda umdvma
+128.18.0.10     sri-inagi.ARPA sri-inagi inagi
+128.36.0.10     yale-lm2.ARPA yale-lm2
+128.42.1.10     rice-invader.ARPA rice-invader invader mkdsun
+128.46.131.10   purdue-ecn-ca.ARPA purdue-ecn-ca ecn-ca
+128.46.132.10   purdue-ecn-ca.ARPA purdue-ecn-ca ecn-ca
+128.5.0.11      ford-ecc.ARPA ford-ecc fordb
+128.8.0.11      umdb.ARPA umdb umdvmb
+128.32.0.11     ucbkim.ARPA ucbkim
+128.36.0.11     yale-lm3.ARPA yale-lm3
+128.42.1.11     rice-enceladus.ARPA rice-enceladus enceladus enc
+128.46.131.11   purdue-ecn-ga.ARPA purdue-ecn-ga ecn-ga
+128.46.133.11   purdue-ecn-ga.ARPA purdue-ecn-ga ecn-ga
+128.5.0.12      ford-srl.ARPA ford-srl fordc
+128.8.0.12      umdc.ARPA umdc
+128.32.0.12     ucbcalder.ARPA ucbcalder
+128.36.0.12     yale-lm4.ARPA yale-lm4
+128.42.1.12     rice-juno.ARPA rice-juno juno
+128.46.129.12   purdue-ecn-ed.ARPA purdue-ecn-ed ecn-ed
+128.46.131.12   purdue-ecn-ed.ARPA purdue-ecn-ed ecn-ed
+128.5.0.13      ford-ers.ARPA ford-ers fordd dearborn
+128.8.0.13      umdd.ARPA umdd
+128.32.0.13     ucbdali.ARPA ucbdali
+128.36.0.13     yale-mtrans.ARPA yale-mtrans
+128.42.1.13     rice-polaris.ARPA rice-polaris polaris
+128.46.131.13   purdue-ecn-pb.ARPA purdue-ecn-pb ecn-pb purdue-cidmac
+128.46.133.13   purdue-ecn-pb.ARPA purdue-ecn-pb ecn-pb purdue-cidmac
+128.3.254.14    lbl-ux4.ARPA lbl-ux4
+128.5.0.14      ford-eed.ARPA ford-eed forde dptc
+128.8.0.14      umde.ARPA umde
+128.32.0.14     ucbmatisse.ARPA ucbmatisse
+128.36.0.14     yale-ptrans.ARPA yale-ptrans
+128.42.1.14     rice-themis.ARPA rice-themis themis
+128.46.131.14   purdue-ecn-ka.ARPA purdue-ecn-ka ecn-ka
+128.52.22.14    mit-prep.ARPA mit-prep prep prep-vax
+128.3.254.15    lbl-ux5.ARPA lbl-ux5
+128.4.0.15      dcn-echo.ARPA dcn-echo
+128.5.0.15      ford-foe.ARPA ford-foe fordf dunton
+128.8.0.15      umdf.ARPA umdf umd-univac-test
+128.36.0.15     yale-eli.ARPA yale-eli
+128.42.1.15     rice-rn01.ARPA rice-rn01 rn01
+128.46.129.15   purdue-ecn-ee.ARPA purdue-ecn-ee ecn-ee purdue-ecn ecn pur-ee purdue-ecn.ARPA
+128.46.131.15   purdue-ecn-ee.ARPA purdue-ecn-ee ecn-ee purdue-ecn ecn pur-ee purdue-ecn.ARPA
+128.46.136.15   purdue-ecn-ee.ARPA purdue-ecn-ee ecn-ee purdue-ecn ecn pur-ee purdue-ecn.ARPA
+128.46.137.15   purdue-ecn-ee.ARPA purdue-ecn-ee ecn-ee purdue-ecn ecn pur-ee purdue-ecn.ARPA
+128.3.254.16    lbl-ux6.ARPA lbl-ux6
+128.8.128.16    gymble.ARPA gymble umd-gymble
+128.15.0.16     s1-atlantis.ARPA s1-atlantis atlantis
+128.36.0.16     yale-mbuild.ARPA yale-mbuild
+128.42.1.16     rice-eos.ARPA rice-eos eos
+128.46.131.16   purdue-ecn-cb.ARPA purdue-ecn-cb ecn-cb
+128.46.132.16   purdue-ecn-cb.ARPA purdue-ecn-cb ecn-cb
+128.5.32.17     ford-wdl17.ARPA ford-wdl17
+128.8.128.17    amanda.ARPA amanda umd-amanda
+128.9.0.17      isi-danny.ARPA isi-danny
+128.36.0.17     yale-comix.ARPA yale-comix
+128.42.1.17     rice-chiron.ARPA rice-chiron chiron
+128.46.129.17   purdue-ecn-mb.ARPA purdue-ecn-mb ecn-mb
+128.46.131.17   purdue-ecn-mb.ARPA purdue-ecn-mb ecn-mb
+128.5.32.18     ford-wdl18.ARPA ford-wdl18
+128.36.0.18     yale-vlsivax.ARPA yale-vlsivax
+128.42.1.18     rice-thule.ARPA rice-thule thule
+128.46.129.18   purdue-ecn-ef.ARPA purdue-ecn-ef ecn-ef
+128.46.130.18   purdue-ecn-ef.ARPA purdue-ecn-ef ecn-ef
+128.46.131.18   purdue-ecn-ef.ARPA purdue-ecn-ef ecn-ef
+128.46.138.18   purdue-ecn-ef.ARPA purdue-ecn-ef ecn-ef
+128.5.32.19     ford-wdl19.ARPA ford-wdl19
+128.32.0.19     ucbingres.ARPA ucbingres
+128.36.0.19     yale-zoo.ARPA yale-zoo
+128.42.1.19     rice-aten.ARPA rice-aten aten
+128.46.131.19   purdue-ecn-pc.ARPA purdue-ecn-pc ecn-pc
+128.46.133.19   purdue-ecn-pc.ARPA purdue-ecn-pc ecn-pc
+128.46.134.19   purdue-ecn-pc.ARPA purdue-ecn-pc ecn-pc
+128.2.253.20    cmu-cc-vd.ARPA cmu-cc-vd
+128.5.32.20     ford-wdl20.ARPA ford-wdl20
+128.42.1.20     rice-endymion.ARPA rice-endymion endymion
+128.46.129.20   purdue-ecn-eg.ARPA purdue-ecn-eg ecn-eg
+128.46.131.20   purdue-ecn-eg.ARPA purdue-ecn-eg ecn-eg
+128.3.0.21      lbl-g.ARPA lbl-g
+128.5.32.21     ford-wdl21.ARPA ford-wdl21
+128.42.1.21     rice-hektor.ARPA rice-hektor hektor
+128.46.131.21   purdue-ecn-aa.ARPA purdue-ecn-aa ecn-aa
+128.2.250.22    cmu-cs-sc.ARPA cmu-cs-sc
+128.3.0.22      lbl-h.ARPA lbl-h
+128.5.32.22     ford-wdl22.ARPA ford-wdl22
+128.32.0.22     ucbdegas.ARPA ucbdegas
+128.42.1.22     rice-cerberus.ARPA rice-cerberus cerberus
+128.52.22.22    mit-htvax.ARPA mit-htvax htvax mit-ht ht
+128.2.250.23    cmu-cs-ft.ARPA cmu-cs-ft
+128.5.32.23     ford-wdl23.ARPA ford-wdl23
+128.42.1.23     rice-proserpina.ARPA rice-proserpina proserpina
+128.5.32.24     ford-wdl24.ARPA ford-wdl24
+128.8.128.24    chessie.ARPA chessie umd-chessie
+128.9.0.24      isi-accutest.ARPA isi-accutest
+128.32.0.24     ucbmiro.ARPA ucbmiro miro
+128.42.1.24     rice-astraea.ARPA rice-astraea astraea
+128.46.131.24   purdue-ecn-gb.ARPA purdue-ecn-gb ecn-gb
+128.46.133.24   purdue-ecn-gb.ARPA purdue-ecn-gb ecn-gb
+128.46.134.24   purdue-bmec.ARPA purdue-bmec
+128.3.255.25    lbl-k.ARPA lbl-k
+128.5.32.25     ford-wdl25.ARPA ford-wdl25
+128.42.1.25     rice-ariadne.ARPA rice-ariadne ariadne
+128.46.129.25   purdue-ecn-eh.ARPA purdue-ecn-eh ecn-eh
+128.46.131.25   purdue-ecn-eh.ARPA purdue-ecn-eh ecn-eh
+128.5.32.26     ford-wdl26.ARPA ford-wdl26
+128.42.1.26     rice-hypatia.ARPA rice-hypatia hypatia
+128.5.32.27     ford-wdl27.ARPA ford-wdl27
+128.42.1.27     rice-diomedes.ARPA rice-diomedes diomedes
+128.5.32.28     ford-wdl28.ARPA ford-wdl28
+128.42.1.28     rice-euphrosene.ARPA rice-euphrosene euphrosene
+128.5.32.29     ford-wdl29.ARPA ford-wdl29
+128.42.1.29     rice-urania.ARPA rice-urania urania
+128.8.128.30    umd-echo.ARPA umd-echo
+128.42.1.30     rice-titan.ARPA rice-titan titan
+128.46.129.30   purdue-ecn-ei.ARPA purdue-ecn-ei ecn-ei
+128.46.130.30   purdue-ecn-ei.ARPA purdue-ecn-ei ecn-ei
+128.32.0.31     ucbrenoir.ARPA ucbrenoir
+128.42.1.31     rice-phoebe.ARPA rice-phoebe phoebe
+128.46.130.31   purdue-malcolm.ARPA purdue-malcolm
+128.32.0.32     ucbshadow.ARPA ucbshadow shadow shadowvax oinkvax
+128.42.1.32     rice-ra.ARPA rice-ra ra
+128.46.130.32   purdue-zaphod.ARPA purdue-zaphod
+128.32.131.33   ucbmike.ARPA ucbmike
+128.46.130.33   purdue-trillian.ARPA purdue-trillian
+128.46.130.34   purdue-dipl.ARPA purdue-dipl
+128.9.0.35      isi-vaxc.ARPA isi-vaxc vaxc
+128.46.134.35   purdue-vlsi.ARPA purdue-vlsi puvlsi
+128.46.130.36   purdue-chem.ARPA purdue-chem purchem
+128.2.253.37    cmu-cc-te.ARPA cmu-cc-te
+128.52.22.37    mit-hermes.ARPA mit-hermes hermes mit-yak yak
+128.9.0.41      isi-elvira.ARPA isi-elvira elvira
+128.8.128.42    tove.ARPA tove umd-tove
+128.18.8.42     sri-thx1138.ARPA sri-thx1138 thx1138 thx
+128.3.254.43    lbl-nmc.ARPA lbl-nmc lbl-nmm
+128.9.0.43      isi-vlsie.ARPA isi-vlsie vlsie
+128.3.254.44    lbl-pdm.ARPA lbl-pdm
+128.9.0.44      isi-troll.ARPA isi-troll troll
+128.3.254.45    lbl-igm.ARPA lbl-igm
+128.9.0.45      isi-vlsif.ARPA isi-vlsif vlsif isi-curly curly
+128.9.0.46      isi-shemp.ARPA isi-shemp shemp
+128.9.0.47      isi-vlsid.ARPA isi-vlsid vlsid
+128.9.0.48      isi-vlsic.ARPA isi-vlsic vlsic
+128.9.0.49      isi-vlsia.ARPA isi-vlsia vlsia
+128.9.0.50      isi-vlsib.ARPA isi-vlsib vlsib
+128.18.0.50     ncna.ARPA ncna sri-ncna
+128.3.255.51    lbl-hiss.ARPA lbl-hiss
+128.18.0.51     ncnb.ARPA ncnb sri-ncnb
+128.21.0.59     sri-station1.ARPA sri-station1
+128.16.1.67     ucl-lsih.ARPA ucl-lsih
+128.21.0.67     sri-station2.ARPA sri-station2
+128.3.255.68    lbl-rtsg.ARPA lbl-rtsg
+128.21.0.75     sri-station3.ARPA sri-station3
+128.8.128.77    gyre.ARPA gyre umd-gyre
+128.9.0.92      isi-dawn.ARPA isi-dawn dawn isi-sun5
+128.9.0.93      isi-rising.ARPA isi-rising rising isi-sun4
+128.9.0.94      isi-helios.ARPA isi-helios helios isi-sun6
+128.9.0.95      isi-babette.ARPA isi-babette babette isi-sun7
+128.9.0.96      isi-fifi.ARPA isi-fifi fifi isi-sun8
+128.3.254.99    lbl-adv2.ARPA lbl-adv2
+128.11.0.100    loki.ARPA loki bbn-loki
+128.18.0.100    sri-sol.ARPA sri-sol
+128.18.0.101    sri-mercury.ARPA sri-mercury
+128.3.254.102   lbl-acal2.ARPA lbl-acal2
+128.18.0.102    sri-venus.ARPA sri-venus
+128.3.255.103   lbl-acal3.ARPA lbl-acal3
+128.3.255.104   lbl-acal4.ARPA lbl-acal4
+128.18.0.104    sri-mars.ARPA sri-mars mars
+128.3.255.105   lbl-acal5.ARPA lbl-acal5
+128.18.0.105    sri-jupiter.ARPA sri-jupiter jupiter
+128.16.1.106    ucl-lsil.ARPA ucl-lsil
+128.18.0.106    sri-saturn.ARPA sri-saturn
+128.18.0.107    sri-neptune.ARPA sri-neptune
+128.26.0.107    sac-station-2.ARPA sac-station-2
+128.18.0.109    sri-moon.ARPA sri-moon moon
+128.16.1.110    ucl-lsim.ARPA ucl-lsim
+128.16.2.241    ucl-lsim.ARPA ucl-lsim
+128.18.0.110    sri-gemini.ARPA sri-gemini gemini
+128.18.0.111    sri-leo.ARPA sri-leo leo
+128.3.254.112   lbl-gen.ARPA lbl-gen
+128.9.0.112     isi-spanky.ARPA isi-spanky spanky
+128.16.1.112    ucl-lsii.ARPA ucl-lsii
+128.9.0.113     isi-alfalfa.ARPA isi-alfalfa alfalfa
+128.16.1.113    ucl-lsij.ARPA ucl-lsij
+128.16.2.174    ucl-lsij.ARPA ucl-lsij
+128.9.0.114     isi-darla.ARPA isi-darla darla
+128.9.0.115     isi-buckwheat.ARPA isi-buckwheat buckwheat
+128.16.1.115    ucl-lsik.ARPA ucl-lsik
+128.26.0.115    sac-station-3.ARPA sac-station-3
+128.9.0.116     isi-stymie.ARPA isi-stymie stymie
+128.9.0.117     isi-farina.ARPA isi-farina farina
+128.9.0.118     isi-pete.ARPA isi-pete pete pete-the-pup
+128.9.0.119     isi-froggie.ARPA isi-froggie froggie
+128.9.0.121     isi-wab2.ARPA isi-wab2
+128.9.0.122     isi-randy.ARPA isi-randy
+128.9.0.123     isi-rag2.ARPA isi-rag2
+128.2.254.128   cmu-cs-ius.ARPA cmu-cs-ius cmu-cs-ius1
+128.9.0.128     isi-annette.ARPA isi-annette annette
+128.2.254.129   cmu-cs-vlsi.ARPA cmu-cs-vlsi
+128.9.0.129     isi-gg.ARPA isi-gg gg
+128.2.254.130   cmu-cs-ps1.ARPA cmu-cs-ps1
+128.2.254.131   cmu-cs-zog.ARPA cmu-cs-zog
+128.9.0.131     isi-taraxacum.ARPA isi-taraxacum isi-boom boom
+128.2.254.132   cmu-cs-g.ARPA cmu-cs-g
+128.2.254.133   cmu-cs-cad.ARPA cmu-cs-cad
+128.2.254.134   cmu-psy-a.ARPA cmu-psy-a
+128.2.254.137   cmu-cs-k.ARPA cmu-cs-k
+128.2.254.138   cmu-ri-fas.ARPA cmu-ri-fas
+128.2.254.139   cmu-cs-spice.ARPA cmu-cs-spice
+128.2.254.140   cmu-cs-gandalf.ARPA cmu-cs-gandalf
+128.9.0.140     isi-nova.ARPA isi-nova nova
+128.2.254.141   cmu-ri-leg.ARPA cmu-ri-leg
+128.2.254.143   cmu-ri-isl1.ARPA cmu-ri-isl1 cmu-ri-isl
+128.2.254.144   cmu-cs-j.ARPA cmu-cs-j
+128.2.254.145   cmu-cs-speech.ARPA cmu-cs-speech cmu-cs-speech1
+128.2.254.146   cmu-cs-ps2.ARPA cmu-cs-ps2
+128.2.254.147   cmu-ri-sensor.ARPA cmu-ri-sensor
+128.2.254.150   cmu-cs-unh.ARPA cmu-cs-unh
+128.2.254.151   cmu-ri-arm.ARPA cmu-ri-arm
+128.2.254.152   cmu-ri-isl2.ARPA cmu-ri-isl2
+128.2.254.153   cmu-cs-cfs.ARPA cmu-cs-cfs
+128.2.254.154   cmu-ri-isl3.ARPA cmu-ri-isl3
+128.2.254.155   cmu-cs-pt.ARPA cmu-cs-pt
+128.2.254.156   cmu-cs-h.ARPA cmu-cs-h
+128.2.254.157   cmu-ri-rover.ARPA cmu-ri-rover
+128.2.254.158   cmu-ri-vi.ARPA cmu-ri-vi
+128.2.254.159   cmu-cs-ps3.ARPA cmu-cs-ps3
+128.2.254.176   cmu-cs-ius2.ARPA cmu-cs-ius2
+128.2.254.177   cmu-ri-cive.ARPA cmu-ri-cive
+128.2.254.178   cmu-ri-ml.ARPA cmu-ri-ml
+128.2.254.179   cmu-cs-speech2.ARPA cmu-cs-speech2
+128.6.0.194     topaz.ARPA topaz ru-topaz
+128.6.0.195     opal.ARPA opal ru-opal
+128.18.0.201    sri-tsca.ARPA sri-tsca tsca
+128.18.0.202    sri-joyce.ARPA sri-joyce joyce srijoyce
+192.5.1.0       cisl-development-multics.ARPA cisl-development-multics
+192.5.8.1       uw-beaver.ARPA uw-beaver beaver theodore
+192.5.19.1      uci-icsa.ARPA uci-icsa uci uci-750a ucia uci-ics
+192.5.21.1      brl-bmd.ARPA brl-bmd bmd70
+192.5.26.1      dtnsrdc3.ARPA dtnsrdc3
+192.5.27.1      dtnsrdc1.ARPA dtnsrdc1
+192.5.38.1      sri-dimsun.ARPA sri-dimsun dimsun dim
+192.5.40.1      pucc-c.ARPA pucc-c puccc
+192.5.43.1      cu-garfield.ARPA cu-garfield garfield gar
+192.5.51.1      lasspvax.ARPA lasspvax
+192.5.56.1      tl-20b.ARPA tl-20b tartan
+192.5.88.1      yale-ee-cesun1.ARPA yale-ee-cesun1 cesun1
+128.36.0.5      yale-ee-cesun1.ARPA yale-ee-cesun1 cesun1
+192.12.5.1      sri-darwin.ARPA sri-darwin darwin
+192.12.9.1      cadre.ARPA cadre cadre-vax
+192.12.13.1     hopkins-eecs-alpha.ARPA hopkins-eecs-alpha alpha
+192.12.17.1     lll-tisa.ARPA lll-tisa tislethe tis-lethe lethe
+192.5.2.2       wisc-db.ARPA wisc-db dbvax
+192.5.6.2       dec-ether.ARPA dec-ether
+192.5.8.2       uw-lumpy.ARPA uw-lumpy lumpy clarence
+192.5.9.2       paero1.ARPA paero1
+192.5.18.2      ipto.ARPA ipto ipto2
+192.5.19.2      uci-icsb.ARPA uci-icsb uci-750b ucib
+192.5.21.2      brl-vld.ARPA brl-vld vld70
+192.5.27.2      dtnsrdc2.ARPA dtnsrdc2
+192.5.29.2      rsre.ARPA rsre
+192.5.35.2      riacs.ARPA riacs riacs-daedalus daedalus
+192.5.38.2      sri-wonton.ARPA sri-wonton wonton won
+192.5.39.2      udel-dewey.ARPA udel-dewey dewey
+192.5.40.2      pucc-d.ARPA pucc-d puccd
+192.5.43.2      cu-heathcliff.ARPA cu-heathcliff heathcliff hea
+192.5.51.2      devvax.ARPA devvax
+192.5.56.2      tl-20a.ARPA tl-20a
+192.5.58.2      purdue-asc-tn.ARPA purdue-asc-tn
+192.5.64.2      orville-ec.ARPA orville-ec orville
+192.5.65.2      nprdc-pacific.ARPA nprdc-pacific
+192.5.66.2      talcott.ARPA talcott
+192.5.69.2      uiucdcsb.ARPA uiucdcsb uiuccsb
+192.5.88.2      yale-ee-cesun2.ARPA yale-ee-cesun2 cesun2
+192.5.90.2      hu-chimera.ARPA hu-chimera chimera
+192.12.9.2      cadre-sol.ARPA cadre-sol prodigal
+192.12.13.2     hopkins-eecs-bravo.ARPA hopkins-eecs-bravo hopkins bravo
+128.20.5.1      hopkins-eecs-bravo.ARPA hopkins-eecs-bravo hopkins bravo
+192.12.17.2     lll-tisb.ARPA lll-tisb tisstyx tis-styx styx
+192.12.19.2     cit-sys.ARPA cit-sys
+192.5.6.3       dec-ronco.ARPA dec-ronco
+192.5.7.3       cit-750.ARPA cit-750 peewee
+192.12.18.2     cit-750.ARPA cit-750 peewee
+192.5.8.3       uw-wally.ARPA uw-wally wally
+192.5.9.3       aero2.ARPA aero2 el-segundo
+192.5.18.3      ipto3.ARPA ipto3
+192.5.19.3      uci-icsc.ARPA uci-icsc uci-750c ucic
+192.5.21.3      brl-mis.ARPA brl-mis
+192.5.35.3      ames-hjulian.ARPA ames-hjulian hjulian
+192.5.40.3      pucc-e.ARPA pucc-e pucce
+192.5.43.3      cu-tom.ARPA cu-tom tom
+192.5.56.3      tl-vaxa.ARPA tl-vaxa
+192.5.65.3      nprdc-suna.ARPA nprdc-suna
+192.5.66.3      wjh12.ARPA wjh12
+192.5.69.3      uiucdcsc.ARPA uiucdcsc uiuccsc
+192.5.88.3      yale-ee-cesun3.ARPA yale-ee-cesun3 cesun3
+192.5.90.3      hu-dasy.ARPA hu-dasy
+192.12.7.3      nyu-setl1.ARPA nyu-setl1 setl1
+192.12.12.3     wisc-gosset.ARPA wisc-gosset gosset
+192.5.6.4       dec-latour.ARPA dec-latour
+192.5.8.4       uw-june.ARPA uw-june june
+192.5.18.4      ipto4.ARPA ipto4
+192.5.19.4      uci-icsd.ARPA uci-icsd uci-750d ucid
+192.5.36.4      cornell-pvax.ARPA cornell-pvax
+192.5.38.4      sri-imagen.ARPA sri-imagen aitad-imagen
+192.5.40.4      pucc-h.ARPA pucc-h pucch
+192.5.43.4      cu-sylvester.ARPA cu-sylvester sylvester syl
+192.5.51.4      amvax.ARPA amvax
+192.5.65.4      nprdc-sunb.ARPA nprdc-sunb
+192.5.88.4      yale-ee-cesun4.ARPA yale-ee-cesun4 cesun4
+192.12.10.4     imapvm.ARPA imapvm
+192.12.18.4     cit-vlsi.ARPA cit-vlsi
+192.12.19.4     cit-ssdp.ARPA cit-ssdp
+192.5.2.5       wisc-pokey.ARPA wisc-pokey pokey
+192.5.9.5       aero3.ARPA aero3
+192.5.15.5      nyu-cmcl1.ARPA nyu-cmcl1 cmcl1
+192.5.18.5      ipto5.ARPA ipto5
+192.5.19.5      uci-icse.ARPA uci-icse uci-750e ucie
+192.5.36.5      cornell-gvax.ARPA cornell-gvax gvax
+192.5.40.5      pucc-i.ARPA pucc-i pucci
+128.10.0.4      pucc-i.ARPA pucc-i pucci
+192.5.43.5      cu-cheshire.ARPA cu-cheshire cheshire che
+192.5.48.5      purdue-pendragon.ARPA purdue-pendragon pendragon
+192.5.51.5      lnsvax.ARPA lnsvax
+192.5.65.5      nprdc-sunc.ARPA nprdc-sunc
+192.5.88.5      yale-ee-cesun5.ARPA yale-ee-cesun5 cesun5
+192.12.5.5      sri-unicorn.ARPA sri-unicorn unicorn
+192.12.10.5     maevax.ARPA maevax
+192.12.12.5     wisc-madsun.ARPA wisc-madsun madsun
+192.12.18.5     cit-adel.ARPA cit-adel cit-tingduck
+192.5.8.6       uw-eddie.ARPA uw-eddie eddie
+192.5.15.6      nyu-acf1.ARPA nyu-acf1 acf1
+192.5.18.6      ipto6.ARPA ipto6
+192.5.19.6      uci-cip1.ARPA uci-cip1 ucic1
+128.20.1.1      brl-vgr.ARPA brl-vgr vgr
+192.5.23.6      brl-vgr.ARPA brl-vgr vgr
+192.5.36.6      cornell-gidney.ARPA cornell-gidney gidney
+192.5.40.6      pucc-j.ARPA pucc-j puccj
+192.5.43.6      cu-felix.ARPA cu-felix felix fel
+192.5.58.6      rice.ARPA rice rice-dione dione
+128.42.1.1      rice.ARPA rice rice-dione dione
+192.5.65.6      nprdc-sund.ARPA nprdc-sund
+192.12.5.6      sri-mendel.ARPA sri-mendel mendel
+192.5.2.7       wisc-crys.ARPA wisc-crys crystal wisconsin uwisc
+192.5.8.7       uw-bluechip.ARPA uw-bluechip bluechip uw-larry larry
+192.5.18.7      ipto7.ARPA ipto7
+192.5.19.7      uci-cip2.ARPA uci-cip2 ucic2
+192.5.36.7      cu-robotics.ARPA cu-robotics rocky
+192.5.40.7      pucc-k.ARPA pucc-k pucck
+192.5.66.7      h-sc4.ARPA h-sc4
+192.12.5.7      sri-tioga.ARPA sri-tioga tioga
+192.12.10.7     cheme.ARPA cheme
+192.5.2.8       wisc-stat.ARPA wisc-stat statistics stat
+192.5.8.8       uw-tahiti.ARPA uw-tahiti tahiti
+192.5.15.8      nyu-acf3.ARPA nyu-acf3 acf3
+192.5.18.8      ipto8.ARPA ipto8
+192.5.19.8      uci-cip3.ARPA uci-cip3 ucic3
+192.5.23.8      brl-sem.ARPA brl-sem sem
+192.5.46.8      nta-vax.ARPA nta-vax nta tundra
+192.5.66.8      h-sc7.ARPA h-sc7
+192.5.2.9       wisc-gumby.ARPA wisc-gumby gumby
+192.5.8.9       uw-fiji.ARPA uw-fiji fiji
+192.5.15.9      nyu-acf2.ARPA nyu-acf2 nyu-ada acf2
+192.5.18.9      ipto9.ARPA ipto9
+192.5.58.9      cadmus.ARPA cadmus cadmusv cadmus-vax
+192.12.0.1      cadmus.ARPA cadmus cadmusv cadmus-vax
+192.12.1.1      cadmus.ARPA cadmus cadmusv cadmus-vax
+192.12.2.1      cadmus.ARPA cadmus cadmusv cadmus-vax
+192.12.25.9     css-s3sun.ARPA css-s3sun s3sun corn
+192.1.7.10      bbnv1.ARPA bbnv1
+192.5.2.10      wisc-dream.ARPA wisc-dream dream vlsi
+192.5.8.10      uw-bali.ARPA uw-bali bali
+192.5.15.10     nyu-cims1.ARPA nyu-cims1 cims1
+192.5.18.10     ipto10.ARPA ipto10
+192.5.43.10     cu-betelgeuze.ARPA cu-betelgeuze betelgeuze betalgeuze beta
+192.5.66.10     h-sc8.ARPA h-sc8
+192.5.69.10     uiucdcsp.ARPA uiucdcsp uiuccsp
+192.12.18.10    cit-sol.ARPA cit-sol sol
+192.12.25.10    css-raisun.ARPA css-raisun raisun barley
+192.1.7.11      srn-vax.ARPA srn-vax suran-vax suran
+192.5.2.11      wisc-pipe.ARPA wisc-pipe pipe uwpipe
+192.5.8.11      uw-sumatra.ARPA uw-sumatra sumatra
+192.5.15.11     nyu-lsp1.ARPA nyu-lsp1 lsp1
+192.5.18.11     ipto11.ARPA ipto11
+192.12.5.11     sri-huxley.ARPA sri-huxley huxley
+192.12.18.11    cit-saturn.ARPA cit-saturn saturn
+192.1.5.12      bbnv8.ARPA bbnv8
+192.5.8.12      uw-maui.ARPA uw-maui maui
+192.5.18.12     ipto12.ARPA ipto12
+192.5.43.12     cu-rigel.ARPA cu-rigel rigel
+192.5.66.12     tardis.ARPA tardis
+192.5.89.12     ut-ratliff.ARPA ut-ratliff ratliff
+192.12.18.12    cit-neptune.ARPA cit-neptune neptune
+192.5.8.13      uw-ceylon.ARPA uw-ceylon ceylon
+192.5.15.13     nyu-acf5.ARPA nyu-acf5 acf5
+192.5.18.13     ipto13.ARPA ipto13
+192.5.58.13     omni-lax.ARPA omni-lax
+192.5.66.13     h-ma1.ARPA h-ma1
+192.12.5.13     sri-bishop.ARPA sri-bishop bishop
+192.12.18.13    cit-mercury.ARPA cit-mercury mercury
+192.12.22.13    ut-eyebeam.ARPA ut-eyebeam eyebeam
+192.12.23.93    ut-eyebeam.ARPA ut-eyebeam eyebeam
+192.5.8.14      uw-java.ARPA uw-java java
+192.5.18.14     ipto14.ARPA ipto14
+192.12.5.14     sri-goddard.ARPA sri-goddard goddard
+192.12.18.14    cit-venus.ARPA cit-venus venus
+192.12.22.14    ut-lawnurd.ARPA ut-lawnurd lawnurd
+192.5.8.15      uw-kauai.ARPA uw-kauai kauai
+192.5.18.15     ipto15.ARPA ipto15
+192.5.66.15     pitirim.ARPA pitirim
+192.12.5.15     sri-ritter.ARPA sri-ritter ritter
+192.12.18.15    cit-io.ARPA cit-io io
+192.12.22.15    ut-vernon.ARPA ut-vernon vernon
+192.5.2.16      wisc-ai.ARPA wisc-ai uwai
+192.5.8.16      uw-timor.ARPA uw-timor timor
+192.5.18.16     ipto16.ARPA ipto16
+192.5.23.16     brl-zap.ARPA brl-zap
+192.12.5.16     sri-lassen.ARPA sri-lassen lassen
+192.12.18.16    cit-callisto.ARPA cit-callisto callisto
+192.12.22.16    ut-shortbread.ARPA ut-shortbread shortbread
+192.1.7.17      netman.ARPA netman sru-nm
+192.5.8.17      uw-tulagi.ARPA uw-tulagi tulagi
+192.5.18.17     ipto17.ARPA ipto17
+192.12.18.17    cit-europa.ARPA cit-europa europa
+192.12.22.17    ut-snuff.ARPA ut-snuff snuff
+192.5.8.18      uw-borneo.ARPA uw-borneo borneo
+192.5.89.18     ut-hank.ARPA ut-hank hank
+192.5.8.19      uw-koro.ARPA uw-koro koro
+192.5.22.19     brl-cyber.ARPA brl-cyber mfa
+192.5.89.19     ut-duffy.ARPA ut-duffy duffy
+192.5.8.20      uw-tasman.ARPA uw-tasman tasman
+192.12.5.20     sri-warbucks.ARPA sri-warbucks warbucks
+192.5.8.21      uw-tanga.ARPA uw-tanga tanga
+192.5.89.21     ut-icv1.ARPA ut-icv1
+192.12.5.21     sri-evolution.ARPA sri-evolution evolution
+192.5.8.22      uw-moala.ARPA uw-moala moala
+192.5.89.22     ut-icv2.ARPA ut-icv2
+192.12.5.22     sri-whitney.ARPA sri-whitney
+192.5.8.23      uw-oahu.ARPA uw-oahu oahu
+192.5.12.23     utah-sp.ARPA utah-sp
+192.5.89.23     ut-icv3.ARPA ut-icv3
+192.12.5.23     sri-pincushion.ARPA sri-pincushion pincushion
+192.5.2.24      wiscvm.ARPA wiscvm wisc-ibm
+192.5.58.8      wiscvm.ARPA wiscvm wisc-ibm
+192.5.12.24     utah-ug.ARPA utah-ug
+192.12.5.24     sri-forester.ARPA sri-forester forester
+192.5.12.25     utah-orion.ARPA utah-orion
+192.12.5.25     sri-kiowa.ARPA sri-kiowa kiowa
+192.12.5.26     sri-juniper.ARPA sri-juniper juniper
+192.12.5.27     sri-kearsarge.ARPA sri-kearsarge kearsarge
+192.10.41.30    scrc-pern.ARPA scrc-pern pern
+192.12.5.30     sri-newcomb.ARPA sri-newcomb newcomb
+192.5.89.31     ut-a20.ARPA ut-a20
+192.12.5.31     sri-olmstead.ARPA sri-olmstead olmstead
+192.12.5.32     sri-quail.ARPA sri-quail quail
+192.12.5.33     sri-sonora.ARPA sri-sonora sonora
+192.5.14.34     randgr.ARPA randgr rand-gr
+192.12.5.34     sri-vogelsang.ARPA sri-vogelsang vogelsang
+192.12.5.35     sri-yosemite.ARPA sri-yosemite yosemite
+192.5.89.39     ut-a3081.ARPA ut-a3081 ut-ibm
+192.5.89.41     capella.ARPA capella
+192.5.89.42     gauss.ARPA gauss
+192.5.89.50     kentarus.ARPA kentarus
+192.5.89.51     tauceti.ARPA tauceti
+192.5.2.55      wisc-spool.ARPA wisc-spool loops needle
+192.12.12.1     wisc-spool.ARPA wisc-spool loops needle
+192.5.89.61     zotz.ARPA zotz soats
+192.5.89.62     tzec.ARPA tzec zake
+192.5.89.63     xul.ARPA xul shool
+192.12.5.63     sri-marvin.ARPA sri-marvin marvin
+192.5.89.64     yaxkin.ARPA yaxkin yoshkeen
+192.5.89.65     mol.ARPA mol mole
+192.1.2.66      bbnf.ARPA bbnf bbn-tenexf
+8.4.0.12        bbnf.ARPA bbnf bbn-tenexf
+192.5.89.66     kankin.ARPA kankin conkeen
+192.5.89.67     zip.ARPA zip seep
+192.5.89.68     pop.ARPA pop pope
+192.5.89.69     muan.ARPA muan mwahn
+192.5.89.70     uo.ARPA uo woe
+192.5.89.71     bun.ARPA bun
+192.5.89.72     fun.ARPA fun
+192.5.89.73     nun.ARPA nun
+192.5.89.74     run.ARPA run
+192.5.89.78     albopurpurea.ARPA albopurpurea
+192.5.89.79     nepalensis.ARPA nepalensis
+192.5.89.81     keynes.ARPA keynes
+192.5.22.82     brl-aos.ARPA brl-aos aos rucker-vax
+192.5.89.82     zoo.ARPA zoo
+192.5.37.83     ur-seneca.ARPA ur-seneca ur-filter-queen
+192.5.89.83     godel.ARPA godel
+192.5.89.84     escher.ARPA escher
+192.5.89.85     bach.ARPA bach
+192.12.23.98    utastro.ARPA utastro
+192.5.89.40     utastro.ARPA utastro
+192.5.12.99     utah-vms.ARPA utah-vms
+192.12.23.99    mcc-dbvax.ARPA mcc-dbvax
+192.5.12.100    utah-arches.ARPA utah-arches
+192.5.89.100    van-maanen.ARPA van-maanen
+192.5.12.101    utah-yampa.ARPA utah-yampa
+192.5.58.101    chalmers-sunet.ARPA chalmers-sunet
+192.5.17.103    nrl-mms.ARPA nrl-mms
+192.5.17.104    nrl-speech.ARPA nrl-speech
+192.5.17.105    nrl-graphics.ARPA nrl-graphics
+192.5.12.127    utah-apollo.ARPA utah-apollo utah-ap
+192.5.43.128    cu20b.ARPA cu20b
+192.5.15.131    nyu-csd1.ARPA nyu-csd1 csd1
+192.12.7.1      nyu-csd1.ARPA nyu-csd1 csd1
+192.5.15.132    nyu-csd2.ARPA nyu-csd2 csd2
+192.12.7.2      nyu-csd2.ARPA nyu-csd2 csd2
+192.5.15.133    nyu-acf4.ARPA nyu-acf4 acf4
+192.5.15.134    nyu-tut.ARPA nyu-tut tut
+192.5.15.135    nyu-bay-ridge.ARPA nyu-bay-ridge bay-ridge bay
+192.10.41.136   scrc-quabbin.ARPA scrc-quabbin
+192.10.41.144   scrc-stony-brook.ARPA scrc-stony-brook scrc symbolics
+192.5.17.153    nrl-ostc.ARPA nrl-ostc
+192.5.89.180    ut-lonestar.ARPA ut-lonestar lonestar
+192.5.89.181    ut-pearl.ARPA ut-pearl pearl
+192.5.89.182    ut-shiner.ARPA ut-shiner shiner
+192.5.89.200    ut-alonzo.ARPA ut-alonzo alonzo
+192.5.89.201    ut-haskell.ARPA ut-haskell haskell
+192.5.89.202    ut-barkley.ARPA ut-barkley barkley
+192.5.89.203    ut-emil.ARPA ut-emil emil
+192.5.89.204    ut-gottlob.ARPA ut-gottlob gottlob
+192.5.89.205    ut-thoralf.ARPA ut-thoralf thoralf
+192.5.89.206    ut-isaac.ARPA ut-isaac isaac
+192.5.89.207    ut-jacques.ARPA ut-jacques jacques
+192.5.37.209    ur-cayuga.ARPA ur-cayuga ur-electrolux
+192.5.37.210    ur-keuka.ARPA ur-keuka ur-kirby
+192.5.37.211    ur-canandaigua.ARPA ur-canandaigua ur-hoover
+192.5.37.212    ur-skaneateles.ARPA ur-skaneateles ur-eureka
+10.0.0.4        utah-gateway	# gateway
+10.2.0.5        bbn-fibera-gw	# gateway
+10.4.0.5        csnet-pdn-gw	# gateway
+10.5.0.5        bbn-milnet-gw milbbn bbn-milnet-gwy	# gateway
+10.6.0.5        bbn-pr-gw	# gateway
+10.0.0.9        harvard-gw	# gateway
+10.2.0.9        yale-gw	# gateway
+10.3.0.10       ll-psat-ig ll-11	# gateway
+10.5.0.10       ll-gw	# gateway
+10.1.0.11       stanford-gateway	# gateway
+10.2.0.14       cmu-gateway	# gateway
+10.0.0.15       ur-cs-gw	# gateway
+10.1.0.20       dcec-gateway edn-gateway	# gateway
+10.5.0.20       dcec-psat-ig	# gateway
+10.7.0.20       dcec-milnet-gw mildcec dcec-milnet-gwy	# gateway
+10.1.0.22       isi-mcon-gw	# gateway
+10.2.0.22       isi-milnet-gw milisi isi-milnet-gwy	# gateway
+10.3.0.22       isi-psat-ig	# gateway
+10.0.0.25       css-ring-gw	# gateway
+10.2.0.25       css-gateway	# gateway
+10.3.0.27       isi-gateway isi-gw	# gateway
+10.1.0.28       ipto-gw	# gateway
+10.2.0.28       arpa-milnet-gw milarpa arpa-milnet-gwy	# gateway
+10.2.0.37       purdue-cs-gw	# gateway
+10.0.0.38       bragg-pr-gw1	# gateway
+10.3.0.38       bragg-pr-gw2	# gateway
+10.1.0.51       sri-prm-gw	# gateway
+10.3.0.51       sri-psat-ig	# gateway
+10.4.0.51       sri-milnet-gw milsri sri-milnet-gwy	# gateway
+10.5.0.51       sri-gw	# gateway
+10.1.0.54       cit-cs-gw	# gateway
+10.5.0.63       bbn-van-gw	# gateway
+10.7.0.63       bbnnet2-arpanet-gw bbn2	# gateway
+10.0.0.68       lbl-milnet-gw millbl	# gateway
+10.0.0.77       mit-gw mit-gateway	# gateway
+10.2.0.80       sac-milnet-gw milsac sac-milnet-gwy	# gateway
+10.3.0.80       sac-gateway sac-gw sac-gw1	# gateway
+10.5.0.80       sac-gw-2	# gateway
+10.4.0.82       bbn-net-gateway bbn-rcc-gateway	# gateway
+10.6.0.82       bbn-cronus-gw cgtwy cronus	# gateway
+10.1.0.89       rutgers-gw	# gateway
+10.3.0.89       columbia-gw	# gateway
+10.3.0.91       uw-vlsi-gw	# gateway
+10.0.0.94       wisc-gateway	# gateway
+10.0.0.96       udel-gw	# gateway
+10.3.0.96       cornell-gw	# gateway
+10.0.0.99       bbn-x25-gw bbnx25	# gateway
+10.0.0.107      sri-pr-gw3	# gateway
+10.1.0.107      sri-c3ether-gw	# gateway
+10.0.0.111      dcn-gateway	# gateway
+10.3.0.111      louie-gw	# gateway
+10.4.0.111      mica-aleph-gw	# gateway
+10.5.0.111      mica-beth-gw	# gateway
+10.6.0.111      mica-gimel-gw	# gateway
+10.7.0.111      mica-daleth-gw	# gateway
+10.1.0.119      radc-psat-ig	# gateway
+10.5.0.4        fsnap-gw	# gateway
+4.0.0.5         rsre-service-gw rsre-sg rsre-gw	# gateway
+4.0.0.38        ntare-gateway nta-gateway ndre-gateway tanum	# gateway
+4.0.0.60        ucl-gateway goonhilly	# gateway
+192.5.28.7      ucl-gateway goonhilly	# gateway
+4.0.0.72        dfvlr-gateway	# gateway
+8.2.0.12        bbn-fiberb-gw	# gateway
+192.1.2.7       bbn-fiberb-gw	# gateway
+8.0.0.13        bbn-fiber-gateway bbn-fiber fiber	# gateway
+192.1.2.1       bbn-fiber-gateway bbn-fiber fiber	# gateway
+18.10.0.9       mit-ai-lcs-gw ai-lcs-gw	# gateway
+18.20.41.21     scrc-riverside-gw	# gateway
+18.26.0.64      mit-vaxlet-gw	# gateway
+18.20.26.64     mit-vaxlet-gw	# gateway
+26.0.0.3        nosc-gw	# gateway
+26.3.0.3        nprdc-gw	# gateway
+26.7.0.8        nrl-css-gw	# gateway
+26.4.0.16       ames-nas-gw	# gateway
+26.6.0.16       riacs-gw	# gateway
+26.7.0.16       decwrl-gw	# gateway
+192.5.58.3      decwrl-gw	# gateway
+26.1.0.17       huey-gw	# gateway
+26.0.0.29       brl-gateway2	# gateway
+26.3.0.29       brl-gateway	# gateway
+128.20.0.1      brl-gateway	# gateway
+26.1.0.40       bbn-minet-a-gw minabbn	# gateway
+26.2.0.57       maryland-gw	# gateway
+128.8.0.8       maryland-gw	# gateway
+26.0.0.58       nyu-gw	# gateway
+26.5.0.60       tactnet-gw	# gateway
+26.8.0.65       aeronet-gw	# gateway
+26.7.0.74       wsmr-net-gw	# gateway
+26.3.0.75       yuma-gw	# gateway
+26.0.0.81       dtnsrdc-gw	# gateway
+26.3.0.81       nsrdcoa-gw	# gateway
+26.0.0.88       nlm-gw	# gateway
+26.2.0.95       s1-b-gw	# gateway
+128.10.0.2      purdue-cs-il-gw	# gateway
+128.10.0.4      pucc-net-a-gw	# gateway
+128.36.0.5      yale-ee-gw	# gateway
+128.9.0.42      isi-uci-gw	# gateway
+128.2.254.192   cmu-cs-tl-gw	# gateway
+128.2.254.193   cmu-cs-cadre-gw	# gateway
+192.1.3.1       bbn-jericho-gw	# gateway
+192.1.2.5       bbn-jericho-gw	# gateway
+192.1.2.4       bbn-rcce-gw	# gateway
+192.1.7.1       bbn-rcce-gw	# gateway
+192.1.2.6       bbn-fiber-test-gw	# gateway
+192.5.58.6      rice-gateway	# gateway
+192.5.21.7      brl-test-gw	# gateway
+128.20.7.1      brl-test-gw	# gateway
+192.5.58.9      cadmus-gw cadmus-gateway	# gateway
+192.5.29.10     rsre-exp-gw	# gateway
+192.5.2.55      wisc-ether-gw	# gateway

@@ -1,0 +1,10 @@
+Compiling...
+===== uucp:
+Update uucp/uucp.h and uucp/Makefile before making uucp.
+cc -O -c uucpd.c
+/usr/include/sys/localopts.h: 102: MENLO_KOV redefined
+cc -o uucpd -i uucpd.o 
+cc -O -c uuq.c
+cc -o uuq -i uuq.o uulib.a 
+cc -O -c acucntrl.c
+cc -o acucntrl -i acucntrl.o 

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)iget.c	2.1 (Berkeley)	9/1/83
+ *	SCCS id	@(#)iget.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -16,15 +16,6 @@
 #include <sys/quota.h>
 #endif
 #include <sys/inline.h>
-
-
-#ifdef	UCB_QUOTAS
-#define	IFREE(dev, ip, bn)		qfree(ip, bn)
-#define	TLOOP(dev, bn, f1, f2, ip)	tloop(dev, bn, f1, f2, ip)
-#else
-#define	IFREE(dev, ip, bn)		free(dev, bn)
-#define	TLOOP(dev, bn, f1, f2, ip)	tloop(dev, bn, f1, f2)
-#endif
 
 
 #ifdef	UCB_IHASH
@@ -222,11 +213,8 @@ register struct dinode *dp;
 }
 
 /*
- * Decrement reference count of
- * an inode structure.
- * On the last reference,
- * write the inode out and if necessary,
- * truncate and deallocate the file.
+ * Decrement reference count of an inode structure.  On the last reference,
+ * write the inode out and if necessary, truncate and deallocate the file.
  */
 iput(ip)
 register struct inode *ip;
@@ -343,12 +331,7 @@ int waitfor;
 		p2 = (char *)ip->i_un.i_addr;
 		for(i=0; i<NADDR; i++) {
 			*p1++ = *p2++;
-#ifdef	MPX_FILS
-			if(*p2++ != 0 && (ip->i_mode&IFMT)!=IFMPC
-			   && (ip->i_mode&IFMT)!=IFMPB)
-#else
 			if(*p2++ != 0)
-#endif
 			   printf("iaddr[%d] > 2^24(%D), inum = %d, dev = %d\n",
 				i, ip->i_un.i_addr[i], ip->i_number, ip->i_dev);
 			*p1++ = *p2++;
@@ -361,6 +344,7 @@ int waitfor;
 		if(ip->i_flag&ICHG)
 			dp->di_ctime = time;
 		ip->i_flag &= ~(IUPD|IACC|ICHG);
+
 		mapout(bp);
 #ifdef UCB_FSFIX
 		if (waitfor)
@@ -391,11 +375,7 @@ register struct inode *ip;
 #endif
 
 	i = ip->i_mode & IFMT;
-#ifndef UCB_SYMLINKS
-	if (i!=IFREG && i!=IFDIR)
-#else
 	if (i!=IFREG && i!=IFDIR && i!=IFLNK)
-#endif
 		return;
 
 #ifdef UCB_FSFIX
@@ -426,19 +406,35 @@ register struct inode *ip;
 		switch(i) {
 
 		default:
-			IFREE(dev, ip, bn);
+#ifdef	UCB_QUOTAS
+			qfree(ip, bn);
+#else
+			free(dev, bn);
+#endif
 			break;
 
 		case NADDR-3:
-			TLOOP(dev, bn, 0, 0, ip);
+#ifdef	UCB_QUOTAS
+			tloop(dev, bn, 0, 0, ip);
+#else
+			tloop(dev, bn, 0, 0);
+#endif
 			break;
 
 		case NADDR-2:
-			TLOOP(dev, bn, 1, 0, ip);
+#ifdef	UCB_QUOTAS
+			tloop(dev, bn, 1, 0, ip);
+#else
+			tloop(dev, bn, 1, 0);
+#endif
 			break;
 
 		case NADDR-1:
-			TLOOP(dev, bn, 1, 1, ip);
+#ifdef	UCB_QUOTAS
+			tloop(dev, bn, 1, 1, ip);
+#else
+			tloop(dev, bn, 1, 1);
+#endif
 		}
 	}
 	ip->i_size = 0;
@@ -485,13 +481,25 @@ struct inode	*ip;
 		if(f1) {
 			brelse(bp);
 			bp = NULL;
-			TLOOP(dev, nb, f2, 0, ip);
+#ifdef	UCB_QUOTAS
+			tloop(dev, nb, f2, 0, ip);
+#else
+			tloop(dev, nb, f2, 0);
+#endif
 		} else
-			IFREE(dev, ip, nb);
+#ifdef	UCB_QUOTAS
+			qfree(ip, nb);
+#else
+			free(dev, nb);
+#endif
 	}
 	if(bp != NULL)
 		brelse(bp);
-	IFREE(dev, ip, bn);
+#ifdef	UCB_QUOTAS
+	qfree(ip, bn);
+#else
+	free(dev, bn);
+#endif
 }
 
 /*
@@ -514,21 +522,22 @@ maknode(mode)
 	ip->i_nlink = 1;
 	ip->i_uid = u.u_uid;
 	ip->i_gid = u.u_gid;
-
+	if (groupmember(u.u_pdir->i_gid))
+		ip->i_gid = u.u_pdir->i_gid;
+	else if (ip->i_mode & ISGID)
+		ip->i_mode &= ~ISGID;
 #ifdef UCB_FSFIX
 	/*
 	 * Make sure inode goes to disk before directory entry.
 	 */
 	iupdat(ip, &time, &time, 1);
 #endif
-
 	wdir(ip);
 	return(ip);
 }
 
 /*
- * Write a directory entry with
- * parameters left as side effects
+ * Write a directory entry with parameters left as side effects
  * to a call to namei.
  */
 wdir(ip)
@@ -540,7 +549,7 @@ struct inode *ip;
 		goto out;
 	}
 	u.u_dent.d_ino = ip->i_number;
-	bcopy((caddr_t)u.u_dbuf, (caddr_t)u.u_dent.d_name, DIRSIZ);
+	bcopy((caddr_t)u.u_dbuf, (caddr_t)u.u_dent.d_name, MAXNAMLEN);
 	u.u_count = sizeof(struct direct);
 	u.u_segflg = 1;
 	u.u_base = (caddr_t)&u.u_dent;

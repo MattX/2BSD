@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)enable34.c	2.1 (Berkeley)	11/20/83
+ *	SCCS id	@(#)enable34.c	2.1 (Berkeley)	8/5/83
  */
 
 /*
@@ -48,7 +48,7 @@
 #define	KD	KI				/* DEC Kernel D PARs */
 #endif
 #define	UI	((u_short *) 0177640)		/* DEC User I PARs */
-#ifndef	NONSEPARATE
+#ifdef	NONSEPARATE
 #define	UD	((u_short *) 0177660)		/* DEC User D PARs */
 #else
 #define	UD	UI				/* DEC User D PARs */
@@ -70,7 +70,7 @@ enableon()
 
 	for (i = 0; i < 31; i++)
 		A[i]	= (u_short) 0200 * (u_short) i;
-	A[31]	= (u_short) 0200 * (u_short) 511;
+	A[31]	= (u_short) 0200 * (u_short) 0511;
 
 	/*
 	 *	Ok so far because the ENABLE mapping is not turned on.

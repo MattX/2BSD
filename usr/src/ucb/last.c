@@ -1,30 +1,38 @@
-#ifndef	lint
-static	char *sccsid = "@(#)last.c	4.3 (Berkeley) 2/28/81";
+#ifndef lint
+static	char *sccsid = "@(#)last.c	4.8 (Berkeley) 9/25/83";
 #endif
+
 /*
  * last
  */
+#include <sys/localopts.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <signal.h>
-#include <stat.h>
+#include <sys/stat.h>
 #include <utmp.h>
 
 #define NMAX	sizeof(buf[0].ut_name)
 #define LMAX	sizeof(buf[0].ut_line)
+#define	HMAX	sizeof(buf[0].ut_host)
 #define	SECDAY	(24*60*60)
 
 #define	lineq(a,b)	(!strncmp(a,b,LMAX))
 #define	nameq(a,b)	(!strncmp(a,b,NMAX))
+#define	hosteq(a,b)	(!strncmp(a,b,HMAX))
 
 #define MAXTTYS 256
 
 char	**argv;
 int	argc;
+int	nameargs;
 
 struct	utmp buf[128];
 char	ttnames[MAXTTYS][LMAX+1];
 long	logouts[MAXTTYS];
+
+char	wtmpfil[512] = "/usr/adm/wtmp";
+int	filarg = -1;			/* set to index of -f option */
 
 char	*ctime(), *strspl();
 int	onintr();
@@ -32,21 +40,40 @@ int	onintr();
 main(ac, av)
 	char **av;
 {
-	register int i;
-	long bl;
-	int wtmp;
+	register int i, k;
+	int bl, wtmp;
 	char *ct;
 	register struct utmp *bp;
 	long otime;
 	struct stat stb;
 	int print;
 	char * crmsg = (char *)0;
+	long crtime;
+	long outrec = 0;
+	long maxrec = 0x7fffffffL;
  
 	time(&buf[0].ut_time);
 	ac--, av++;
-	argc = ac;
+	nameargs = argc = ac;
 	argv = av;
 	for (i = 0; i < argc; i++) {
+		if (argv[i][0] == '-' &&
+		    argv[i][1] >= '0' && argv[i][1] <= '9') {
+			maxrec = atoi(argv[i]+1);
+			nameargs--;
+			continue;
+		}
+		if (!strncmp(argv[i], "-f", 2)) {	/* next is file */
+			if (i == argc-1) {
+				fprintf(stderr,
+					"Need filename following '-f'\n");
+				exit(1);
+			}
+			filarg = i;
+			strcpy(wtmpfil, argv[++i]);   /* alternate wtmp file */
+			nameargs = argc - 2;
+			continue;
+		}
 		if (strlen(argv[i])>2)
 			continue;
 		if (!strcmp(argv[i], "~"))
@@ -55,9 +82,9 @@ main(ac, av)
 			continue;
 		argv[i] = strspl("tty", argv[i]);
 	}
-	wtmp = open("/usr/adm/wtmp", 0);
+	wtmp = open(wtmpfil, 0);
 	if (wtmp < 0) {
-		perror("/usr/adm/wtmp");
+		perror(wtmpfil);
 		exit(1);
 	}
 	fstat(wtmp, &stb);
@@ -67,15 +94,17 @@ main(ac, av)
 		signal(SIGQUIT, onintr);
 	}
 	for (bl--; bl >= 0; bl--) {
-		lseek(wtmp, (off_t)bl * sizeof (buf), 0);
-		bp = &buf[read(wtmp, (char *) buf, sizeof (buf)) / sizeof(buf[0]) - 1];
+		lseek(wtmp, bl * sizeof (buf), 0);
+		bp = &buf[read(wtmp, buf, sizeof (buf)) / sizeof(buf[0]) - 1];
 		for ( ; bp >= buf; bp--) {
 			print = want(bp);
 			if (print) {
 				ct = ctime(&bp->ut_time);
-				printf("%-*.*s  %-*.*s  %10.10s %5.5s ",
-				    NMAX, NMAX, bp->ut_name,
-				    LMAX, LMAX, bp->ut_line, ct, 11+ct);
+				printf("%-*.*s", NMAX, NMAX, bp->ut_name);
+				printf("  %-*.*s %-*.*s %10.10s %5.5s ",
+				    LMAX, LMAX, bp->ut_line,
+				    HMAX, HMAX, bp->ut_host,
+				    ct, 11+ct);
 			}
 			for (i = 0; i < MAXTTYS; i++) {
 				if (ttnames[i][0] == 0) {
@@ -92,9 +121,7 @@ main(ac, av)
 				}
 			}
 			if (print) {
-				if (lineq(bp->ut_line, "~"))
-					printf("\n");
-				else if (otime == 0)
+				if (otime == 0)
 					printf("  still logged in\n");
 				else {
 					long delta;
@@ -114,6 +141,8 @@ main(ac, av)
 						asctime(gmtime(&delta))+11);
 				}
 				fflush(stdout);
+				if (++outrec >= maxrec)
+					exit(0);
 			}
 			if (lineq(bp->ut_line, "~")) {
 				for (i = 0; i < MAXTTYS; i++)
@@ -139,6 +168,7 @@ onintr(signo)
 		signal(SIGQUIT, onintr);
 	ct = ctime(&buf[0].ut_time);
 	printf("\ninterrupted %10.10s %5.5s \n", ct, ct + 11);
+	fflush(stdout);
 	if (signo == SIGINT)
 		exit(1);
 }
@@ -151,15 +181,26 @@ want(bp)
 
 	if (bp->ut_line[0] == '~' && bp->ut_name[0] == '\0')
 		strcpy(bp->ut_name, "reboot");		/* bandaid */
+	if (strncmp(bp->ut_line, "ftp", 3) == 0)
+		bp->ut_line[3] = '\0';
+	if (strncmp(bp->ut_line, "uucp", 4) == 0)
+		bp->ut_line[4] = '\0';
 	if (bp->ut_name[0] == 0)
 		return (0);
-	if (argc == 0)
+	if (nameargs == 0)
 		return (1);
 	av = argv;
-	for (ac = 0; ac < argc; ac++) {
-		if (nameq(*av, bp->ut_name) || lineq(*av, bp->ut_line))
+	for (ac = 0; ac < argc; ac++, av++) {
+		if (ac == filarg) {	/* this and next are skipped */
+			ac++;
+			av++;
+		}
+		else if (av[0][0] == '-')	/* the -N */
+			continue;
+		else if (nameq(*av, bp->ut_name)
+			|| lineq(*av, bp->ut_line)
+			|| hosteq(*av, bp->ut_host))
 			return (1);
-		av++;
 	}
 	return (0);
 }

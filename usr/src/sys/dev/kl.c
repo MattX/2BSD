@@ -11,7 +11,7 @@
 #include <sys/klreg.h>
 
 /*
- *	SCCS id	@(#)kl.c	2.1 (Berkeley)	9/1/83
+ *	SCCS id	@(#)kl.c	2.1 (Berkeley)	8/5/83
  */
 
 extern	struct	dldevice *KLADDR;
@@ -75,7 +75,10 @@ klclose(dev, flag)
 dev_t	dev;
 int	flag;
 {
-	ttyclose(&kl11[minor(dev)]);
+	register struct tty *tp;
+
+	tp = &kl11[minor(dev)];
+	ttyclose(tp);
 }
 
 klread(dev)
@@ -104,12 +107,14 @@ dev_t	dev;
 	tp = &kl11[minor(dev)];
 	ttstart(tp);
 	if (tp->t_state & ASLEEP && tp->t_outq.c_cc <= TTLOWAT(tp))
-#ifdef	MPX_FILS
-		if (tp->t_chan)
-			mcstart(tp->t_chan, (caddr_t) &tp->t_outq);
-		else
-#endif
 			wakeup((caddr_t) &tp->t_outq);
+#ifdef	UCB_NET
+	if (tp->t_wsel) {
+		selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
+		tp->t_wsel = 0;
+		tp->t_state &= ~TS_WCOLL;
+	}
+#endif	UCB_NET
 }
 
 klrint(dev)

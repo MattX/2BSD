@@ -1,24 +1,21 @@
 CFILES=		link.c pass2.c in.c sup.c 
 OBJS=		link.o pass2.o in.o sup.o 
 CFLAGS=		-O
-LFLAGS=		-n -s
+LFLAG=		-n -s
 
 all: 		l11
 
-cp:		l11
-		cp l11 $(DESTDIR)/usr/ucb/l11
-
-cmp:		l11
-		cmp l11 $(DESTDIR)/usr/ucb/l11
+install:
+	install -s -o bin -g bin -m 711 l11 $(DESTDIR)/usr/ucb
 
 l11:		$(OBJS)
-		cc -o l11 $(LFLAGS) link.o pass2.o in.o sup.o
+		${CC} -o l11 $(LFLAG) link.o pass2.o in.o sup.o
 
-lint:	
+lint:
 		lint link.c pass2.c in.c sup.c > FLUFF
 
 obint:		obint.o in.o sup.o
-		cc -o obint obint.o in.o sup.o
+		${CC} ${LFLAG} -o obint obint.o in.o sup.o
 
 tags:		$(CFILES)
 		ctags $(CFILES)

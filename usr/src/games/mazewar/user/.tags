@@ -1,0 +1,95 @@
+/v/src/local/games/mazewar/user/work.c
+work()582
+/v/src/local/games/mazewar/user/wintext.c
+mvaddch(pr, x, y, c)222
+mvaddstr(pr, x, y, string)417
+mvprintf(pr, x, y, format, args)710
+/v/src/local/games/mazewar/user/viewwin.c
+draw_view(view, dist, dir)511
+/v/src/local/games/mazewar/user/util.c
+unctrl(c)537
+do_more()769
+/v/src/local/games/mazewar/user/ualarm.c
+ualarm(usecs, reload)347
+/v/src/local/games/mazewar/user/setkeyok.c
+setkeyok()289
+/v/src/local/games/mazewar/user/service.c
+service()433
+action_beep()1132
+action_redraw(input)1175
+action_forward(input)1295
+action_shoot(input)1357
+action_quit(input)1441
+action_180turn(input)1475
+action_left(input)1536
+action_right(input)1593
+action_left_peek(input)1652
+action_stop_peek(input)1705
+action_right_peek(input)1758
+action_back_up(input)1812
+quit(status)1896
+/v/src/local/games/mazewar/user/send.c
+sendstat(flags)351
+sendaction(flag, slot, from)813
+sendquit()1352
+/v/src/local/games/mazewar/user/redraw.c
+screen_redraw()265
+linebox(x, y, w, h)707
+/v/src/local/games/mazewar/user/prmaze.c
+main()196
+/v/src/local/games/mazewar/user/player.c
+draw_other_player(x, y, size, dir)273
+/v/src/local/games/mazewar/user/packet.c
+read_packet(fd)287
+userpacket(p)959
+actionpacket(p)1751
+statepacket(p)3423
+/v/src/local/games/mazewar/user/main.c
+main(argc, argv)341
+initsigs()2853
+findhost()3332
+/v/src/local/games/mazewar/user/ioctls.c
+setioctls()385
+unsetioctls()686
+takill()786
+/v/src/local/games/mazewar/user/initplayer.c
+initplayer(player)291
+initposition(player)1024
+/v/src/local/games/mazewar/user/initpix.c
+sun_init_screen()692
+initpix()1895
+endpix()2249
+/v/src/local/games/mazewar/user/init.c
+init_screen()681
+draw_maze()863
+draw_player(x, y, dir)1363
+debugs(string)2828
+srefresh()3154
+draw_others()3732
+draw_nearest()4204
+nearest(medir, mex, mey)5810
+draw_status(i)6597
+draw_rats()7581
+draw_hall(dir, mex, mey)7818
+relative_dir(me, him)8784
+/v/src/local/games/mazewar/user/getsocket.c
+getsocket()349
+/v/src/local/games/mazewar/user/death.c
+draw_my_death()261
+ascii_death()364
+ascii_explosion(w, r, c, maxr, ch)583
+sun_death()1573
+/v/src/local/games/mazewar/user/comm.c
+forward()248
+bturn()797
+rturn()971
+lturn()1073
+fire()1152
+back()1808
+/v/src/local/games/mazewar/user/calldaemon.c
+initearsin(host, port)635
+calldaemon(player, host)1118
+/v/src/local/games/mazewar/user/actions.c
+set_default_actions(beep)827
+set_action(key, action)2124
+parse_action_string(string)2730

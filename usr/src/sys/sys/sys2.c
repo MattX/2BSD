@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)sys2.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)sys2.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -10,9 +10,7 @@
 #include <sys/file.h>
 #include <sys/inode.h>
 #include <sys/quota.h>
-#ifdef	MENLO_JCL
 #include <sys/proc.h>
-#endif
 #include <sys/inline.h>
 
 
@@ -65,12 +63,10 @@ register mode;
 	u.u_base = (caddr_t)uap->cbuf;
 	u.u_count = uap->count;
 	u.u_segflg = 0;
-#ifdef	MENLO_JCL
 	if ((u.u_procp->p_flag & SNUSIG) && save(u.u_qsav)) {
 		if (u.u_count == uap->count)
 			u.u_eosys = RESTARTSYS;
 	} else
-#endif
 #ifdef  UCB_NET
 	if (fp->f_flag & FSOCKET) {
 		if (mode == FREAD)
@@ -79,32 +75,24 @@ register mode;
 			u.u_error = sosend(fp->f_socket, (struct sockaddr *)0);
 	} else
 #endif
-		if((fp->f_flag & FPIPE) != 0) {
-			if(mode == FREAD)
-				readp(fp);
-			else
-				writep(fp);
-		} else {
-			ip = fp->f_inode;
-#ifdef	MPX_FILS
-			if (fp->f_flag & FMP)
-				u.u_offset = 0;
-			else
-#endif
-				u.u_offset = fp->f_un.f_offset;
-			if((ip->i_mode & (IFCHR & IFBLK)) == 0)
-				plock(ip);
-			if(mode == FREAD)
-				readi(ip);
-			else
-				writei(ip);
-			if((ip->i_mode & (IFCHR & IFBLK)) == 0)
-				prele(ip);
-#ifdef	MPX_FILS
-			if ((fp->f_flag & FMP) == 0)
-#endif
-				fp->f_un.f_offset += uap->count-u.u_count;
-		}
+	if((fp->f_flag & FPIPE) != 0) {
+		if(mode == FREAD)
+			readp(fp);
+		else
+			writep(fp);
+	} else {
+		ip = fp->f_inode;
+			u.u_offset = fp->f_un.f_offset;
+		if((ip->i_mode & (IFCHR & IFBLK)) == 0)
+			plock(ip);
+		if(mode == FREAD)
+			readi(ip);
+		else
+			writei(ip);
+		if((ip->i_mode & (IFCHR & IFBLK)) == 0)
+			prele(ip);
+			fp->f_un.f_offset += uap->count-u.u_count;
+	}
 	u.u_r.r_val1 = uap->count-u.u_count;
 }
 
@@ -120,11 +108,7 @@ open()
 	} *uap;
 
 	uap = (struct a *)u.u_ap;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
 	if(ip == NULL)
 		return;
 	open1(ip, ++uap->rwmode, 0);
@@ -142,11 +126,7 @@ creat()
 	} *uap;
 
 	uap = (struct a *)u.u_ap;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, CREATE);
-#else
 	ip = namei(uchar, CREATE, 1);
-#endif
 	if(ip == NULL) {
 		if(u.u_error)
 			return;
@@ -171,6 +151,11 @@ register mode;
 	int i;
 
 	if(trf != 2) {
+#ifdef  RAND_XO
+		if(mode & FXOPENM)
+			if(ip->i_xopen)
+				u.u_error = ETXTBSY;
+#endif
 		if(mode & FREAD)
 			access(ip, IREAD);
 		if(mode & FWRITE) {
@@ -190,8 +175,15 @@ register mode;
 	fp->f_inode = ip;
 	i = u.u_r.r_val1;
 	openi(ip, mode & FWRITE);
-	if(u.u_error == 0)
+	if(u.u_error == 0) {
+#ifdef  RAND_XO
+		if(mode&FXOPENM) {
+			fp->f_flag |= FXOPEN;
+			ip->i_xopen = 1;
+		}
+#endif
 		return;
+	}
 	u.u_ofile[i] = NULL;
 	fp->f_count--;
 
@@ -255,11 +247,7 @@ seek()
 		return;
 	}
 #endif
-#ifdef	MPX_FILS
-	if(fp->f_flag & (FPIPE|FMP))
-#else
 	if(fp->f_flag & FPIPE)
-#endif
 		{
 		u.u_error = ESPIPE;
 		return;
@@ -284,11 +272,7 @@ link()
 	} *uap;
 
 	uap = (struct a *)u.u_ap;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
 	if(ip == NULL)
 		return;
 #ifdef UCB_QUOTAS
@@ -296,7 +280,7 @@ link()
 #else
 	if((ip->i_mode & IFMT)==IFDIR && !suser())
 #endif
-		goto out;
+		goto out1;
 	
 	ip->i_nlink++;
 	ip->i_flag |= ICHG;
@@ -307,30 +291,27 @@ link()
 #endif
 	prele(ip);
 	u.u_dirp = (caddr_t)uap->linkname;
-#ifndef	UCB_SYMLINKS
-	xp = namei(uchar, CREATE);
-#else
 	xp = namei(uchar, CREATE, 0);
-#endif
 	if(xp != NULL) {
 		u.u_error = EEXIST;
 		iput(xp);
-	} else {
-		if (u.u_error)
-			goto err;
-		if (u.u_pdir->i_dev != ip->i_dev) {
-			iput(u.u_pdir);
-			u.u_error = EXDEV;
-		} else
-			wdir(ip);
+		goto out;
 	}
+	if (u.u_error)
+		goto out;
+	if(u.u_pdir->i_dev != ip->i_dev) {
+		iput(u.u_pdir);
+		u.u_error = EXDEV;
+		goto out;
+	}
+	wdir(ip);
 
+out:
 	if (u.u_error) {
-err:
 		ip->i_nlink--;
 		ip->i_flag |= ICHG;
 	}
-out:
+out1:
 	iput(ip);
 }
 
@@ -343,34 +324,34 @@ mknod()
 	register struct a {
 		char	*fname;
 		int	fmode;
-		int	dev;
+		u_int	dev;
 	} *uap;
 
+	uap = (struct a *)u.u_ap;
 	if(suser()) {
-		uap = (struct a *)u.u_ap;
-#ifndef	UCB_SYMLINKS
-		ip = namei(uchar, CREATE);
-#else
 		ip = namei(uchar, CREATE, 0);
-#endif
 		if(ip != NULL) {
 			u.u_error = EEXIST;
 			goto out;
 		}
-		ip = maknode(uap->fmode);
-		if (ip == NULL)
+		if(u.u_error)
 			return;
+	}
+	else
+		return;
+	ip = maknode(uap->fmode);
+	if (ip == NULL)
+		return;
 #ifdef	UCB_FSFIX
-		if (uap->dev) {
-			ip->i_un.i_rdev = (dev_t)uap->dev;
-			ip->i_flag |= IACC|IUPD|ICHG;
-		}
+	if (uap->dev) {
+		ip->i_un.i_rdev = (daddr_t)uap->dev;
+		ip->i_flag |= IACC|IUPD|ICHG;
+	}
 #else
-		ip->i_un.i_rdev = (dev_t)uap->dev;
+	ip->i_un.i_rdev = (daddr_t)uap->dev;
 #endif
 out:
-		iput(ip);
-	}
+	iput(ip);
 }
 
 /*
@@ -390,11 +371,7 @@ saccess()
 	svgid = u.u_gid;
 	u.u_uid = u.u_ruid;
 	u.u_gid = u.u_rgid;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
 	if (ip != NULL) {
 		if ((uap->fmode & FACCESS_READ) && access(ip, IREAD))
 			goto done;

@@ -11,6 +11,7 @@
 static int	line;		/* Line number in dtab file */
 FILE		*dtab_fp;	/* File pointer to dtab file */
 int		guess_ndev = 0;	/* Guess as to size of nlist table */
+char	*malloc();
 
 otoi(cp)
 char *cp;
@@ -156,4 +157,10 @@ register char *str;
 		if (strcmp(list->s_str, str) == 0)
 			return 1;
 	return 0;
+}
+
+static char *
+strsave(cp)
+{
+	return strcpy(malloc(strlen(cp) + 1), cp);
 }

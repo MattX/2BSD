@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)machdep.c	2.1 (Berkeley)	11/20/83
+ *	SCCS id %W% (Berkeley)	%G%
  */
 
 #include "param.h"
@@ -20,18 +20,18 @@
 #include <sys/uba.h>
 #include <sys/iopage.h>
 
-extern	memaddr	bpaddr;
+extern	memaddr bpaddr;
 
-#ifndef	NOKA5
+#ifndef NOKA5
 segm	seg5;			/* filled in by initialization */
 #endif
 
 #ifdef	UCB_CLIST
-extern	memaddr	clststrt;
+extern	memaddr clststrt;
 #else
 extern	struct	cblock	cfree[];
 #endif	UCB_CLIST
-extern	ubadr_t	clstaddr;
+extern	ubadr_t clstaddr;
 #ifdef	UCB_NET
 extern	memaddr mbbase;
 extern	int mbsize;
@@ -63,7 +63,7 @@ int	icode[] =
 	0000164,
 	RB_SINGLE,	/* bootopts:  RB_SINGLE */
 	0000000
-#define	ICODE_OPTS	12	/* location of bootopts in icode */
+#define ICODE_OPTS	12	/* location of bootopts in icode */
 #else
 	0104413,	/* sys exec; init; initp */
 	0000014,
@@ -78,7 +78,7 @@ int	icode[] =
 	0000164,
 #endif	UCB_AUTOBOOT
 };
-int	szicode	= sizeof (icode);
+int	szicode = sizeof (icode);
 
 size_t	physmem;	/* total amount of physical memory (for savecore) */
 
@@ -91,7 +91,7 @@ startup()
 	register memaddr i, freebase;
 	extern	end;
 
-#ifndef	NOKA5
+#ifndef NOKA5
 	saveseg5(seg5);		/* must be done before clear() is called */
 	if (&remap_area > SEG5)
 		panic("&remap_area > 0120000");
@@ -122,6 +122,8 @@ startup()
 			break;
 	}
 	clear(freebase, i - freebase);
+	mem_parity();			/* enable parity checking */
+	clear(freebase, i - freebase);	/* quick check for parities */
 	mfree(coremap, i - freebase, freebase);
 	physmem = i;
 #define B  (size_t)(((long)nbuf * (bsize)) / ctob(1))
@@ -131,7 +133,7 @@ startup()
 #undef	B
 
 #ifdef	UCB_CLIST
-#define	C	(nclist * sizeof(struct cblock))
+#define C	(nclist * sizeof(struct cblock))
 	if ((clststrt = malloc(coremap, btoc(C))) == 0)
 		panic("clists");
 	maxmem -= btoc(C);
@@ -141,9 +143,9 @@ startup()
 	clstaddr = (ubadr_t) &cfree;
 #endif	UCB_CLIST
 
-#if	defined(PROFILE) && !defined(ENABLE34)
+#if defined(PROFILE) && !defined(ENABLE34)
 	maxmem -= msprof();
-#endif	defined(PROFILE) && !defined(ENABLE34)
+#endif defined(PROFILE) && !defined(ENABLE34)
 
 #ifdef	UCB_NET
 	if ((mbbase = malloc(coremap, btoc(mbsize))) == 0)
@@ -165,10 +167,10 @@ startup()
 #endif	UCB_AUTOBOOT
 }
 
-#if	defined(PROFILE) && !defined(ENABLE34)
+#if defined(PROFILE) && !defined(ENABLE34)
 /*
  *  Allocate memory for system profiling.  Called
- *  once at boot time.  Returns number of clicks
+ *  once at boot time.	Returns number of clicks
  *  used by profiling.
  *
  *  The system profiler uses supervisor I space registers 2 and 3
@@ -207,7 +209,7 @@ esprof()
 	isprof();
 	printf("profiling on\n");
 }
-#endif	defined(PROFILE) && !defined(ENABLE34)
+#endif defined(PROFILE) && !defined(ENABLE34)
 
 #ifdef	UNIBUS_MAP
 /*
@@ -331,7 +333,7 @@ clkstart()
 		*lks = 0115;
 }
 
-#ifndef	ENABLE34
+#ifndef ENABLE34
 /*
  * Fetch a word from an address on the I/O page,
  * returning -1 if address does not exist.
@@ -372,25 +374,20 @@ caddr_t p;
 		 * Blow him away.
 		 */
 		u.u_signal[SIGSEGV] = SIG_DFL;
-#ifdef	MENLO_JCL
 		u.u_procp->p_cursig = SIGSEGV;
 		psig();
-#else
-		psignal(u.u_procp, SIGSEGV);
-#endif
 	}
 }
 
-#ifdef	MENLO_JCL
 /*
  * Simulate a return from interrupt on return from the syscall.
  * after popping n words of the users stack.
  */
 dorti(n)
 {
-        register int opc, ops;
+	register int opc, ops;
 
-        u.u_ar0[R6] += n * sizeof(int);
+	u.u_ar0[R6] += n * sizeof(int);
 
 	if (((opc = fuword((caddr_t)u.u_ar0[R6])) == -1)
 	    || ((ops = fuword((caddr_t)(u.u_ar0[R6] + sizeof(int)))) == -1))
@@ -403,48 +400,38 @@ dorti(n)
 		u.u_ar0[RPS] = ops;
 	}
 }
-#endif	MENLO_JCL
 
 #ifdef	UNIBUS_MAP
 
 int	ub_wantmr;
-
-#define	UMAPSIZ	10
+#define UMAPSIZ	10
 struct	mapent	_ubmap[UMAPSIZ];
 struct	map	ub_map[1] = {
 	&_ubmap[0],	&_ubmap[UMAPSIZ],	"ub_map"
 };
 
 #ifdef	UCB_METER
-struct	ubmeter {
-	long	ub_requests;		/* total # of calls to mapalloc */
-	long	ub_remaps;		/* total # of buffer remappings */
-	long	ub_failures;		/* total # of allocation failures */
-	long	ub_pages;		/* total # of pages allocated */
-
-} ub_meter;
-#endif
+struct ubmeter	ub_meter;
+#endif	UCB_METER
 
 /*
- * Routine to allocate the UNIBUS map
- * and initialize for a UNIBUS device.
- * For buffers already mapped by the UNIBUS map,
- * perform the physical-to-UNIBUS-virtual address translation.
+ * Routine to allocate the UNIBUS map and initialize for a UNIBUS device.
+ * For buffers already mapped by the UNIBUS map, perform the physical to
+ * UNIBUS-virtual address translation.
  */
 mapalloc(bp)
 register struct buf *bp;
 {
 	long	paddr;
-	ubadr_t	ubaddr;
+	ubadr_t ubaddr;
 	int	s, ub_nregs;
 	register ub_first;
 	register struct ubmap *ubp;
-	extern	memaddr	bpaddr;
+	extern	memaddr bpaddr;
 
-	if (!ubmap)
-		return;
-#if	defined(UNIBUS_MAP) && defined(UCB_METER)
-	ub_meter.ub_requests++;
+	if (!ubmap) return;
+#if defined(UNIBUS_MAP) && defined(UCB_METER)
+	++ub_meter.ub_calls;
 #endif
 	paddr = ((long) ((unsigned) bp->b_xmem)) << 16
 		| ((long) ((unsigned) bp->b_un.b_addr));
@@ -454,8 +441,8 @@ register struct buf *bp;
 		 * Change the buffer's physical address
 		 * into a UNIBUS address for the driver.
 		 */
-#if	defined(UNIBUS_MAP) && defined(UCB_METER)
-		ub_meter.ub_remaps++;
+#if defined(UNIBUS_MAP) && defined(UCB_METER)
+		++ub_meter.ub_remaps;
 #endif
 		ubaddr = paddr - (((ubadr_t) bpaddr) << 6) + BUF_UBADDR;
 		bp->b_un.b_addr = loint(ubaddr);
@@ -467,15 +454,15 @@ register struct buf *bp;
 		 * Allocate a section of the UNIBUS map.
 		 */
 		ub_nregs = (int) btoub(bp->b_bcount);
-#if	defined(UNIBUS_MAP) && defined(UCB_METER)
-		ub_meter.ub_pages	+= ub_nregs;
+#if defined(UNIBUS_MAP) && defined(UCB_METER)
+		ub_meter.ub_pages += ub_nregs;
 #endif
 		s = spl6();
 		while ((ub_first = malloc(ub_map, ub_nregs)) == NULL) {
-			ub_wantmr = 1;
-#if	defined(UNIBUS_MAP) && defined(UCB_METER)
-			ub_meter.ub_failures++;
+#if defined(UNIBUS_MAP) && defined(UCB_METER)
+			++ub_meter.ub_fails;
 #endif
+			ub_wantmr = 1;
 			sleep(ub_map, PSWP + 1);
 		}
 		splx(s);
@@ -495,12 +482,12 @@ register struct buf *bp;
 }
 
 mapfree(bp)
-register struct	buf *bp;
+register struct buf *bp;
 {
 	register s;
 	extern	memaddr bpaddr;
 	long	paddr;
-	ubadr_t	ubaddr;
+	ubadr_t ubaddr;
 
 	if (bp->b_flags & B_MAP) {
 		/*
@@ -531,7 +518,7 @@ register struct	buf *bp;
 }
 #endif	UNIBUS_MAP
 
-#ifndef	NOKA5
+#ifndef NOKA5
 /*
  * Save the current kernel mapping and set it to the normal map.
  * Called at interrupt time to access proc, text or file structures
@@ -561,8 +548,8 @@ register mapinfo map;
 Restormap(map)
 register mapinfo map;
 {
-	*KDSA5 = map[0].se_addr;
 	*KDSD5 = map[0].se_desc;
+	*KDSA5 = map[0].se_addr;
 	if (map[1].se_desc != NOMAP) {
 		*KDSD6 = map[1].se_desc;
 		*KDSA6 = map[1].se_addr;
@@ -628,7 +615,7 @@ register struct buf *bp;
 	}
 	hasmap = (struct buf *) NULL;
 #endif
-#ifndef	UCB_NET
+#ifndef UCB_NET
 	normalseg5();
 #else
 	restorseg5(Bmapsave);
@@ -706,7 +693,7 @@ dumpsys()
 			printf("I/O error\n");
 			break;
 		default:
-			printf("error(?)\n");
+			printf("unknown error\n");
 			break;
 		case 0:
 			printf("succeeded\n");
@@ -735,4 +722,47 @@ syslock()
 		if (((struct a *)u.u_ap)->flag)
 			p->p_flag |= SULOCK;
 	}
+}
+
+static
+mem_parity()
+{
+	register int i;
+	for(i=0;i<16;i++) {
+		if(fioword((caddr_t)(MEMSYSMCR+i))== -1) {
+			break;
+		}
+		*(MEMSYSMCR+i) = MEMMCR_EIE; /* enable parity interrupts */
+	}
+}
+
+/*
+ * copy in bytes reasonably, copyin and copyout on PDPs
+ * don't work for misaligned references.
+ */
+vcopyin(from, to, count)
+caddr_t from, to;
+unsigned count;
+{
+	int t;
+	unsigned int i;
+
+	for(i=0; i<count; i++) {
+		if((t = fubyte(from++)) < 0)
+			return(-1);
+		*to++ = t;
+	}
+	return(0);
+}
+
+vcopyout(from, to, count)
+caddr_t from, to;
+unsigned count;
+{
+	unsigned int i;
+
+	for(i=0; i<count; i++)
+		if(subyte(to++, *from++) < 0)
+			return(-1);
+	return(0);
 }

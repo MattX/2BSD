@@ -164,11 +164,6 @@ register struct tty *tp;
 		}
 		if ((tp->t_outq.c_cc <= TTLOWAT(tp)) && (tp->t_state & ASLEEP)) {
 			tp->t_state &= ~ASLEEP;
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				mcstart(tp->t_chan, (caddr_t) &tp->t_outq);
-			else
-#endif
 				wakeup((caddr_t) &tp->t_outq);
 		}
 	} else

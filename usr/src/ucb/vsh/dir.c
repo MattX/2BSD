@@ -58,7 +58,7 @@ if (chdir (newdir)) {
 }
 
 if (entermode == STOP);			/* change to "." */
-else if (entermode == BACKWARDS) {	/* change to ".." */
+else if (entermode == BACKWARD) {	/* change to ".." */
 	todotdot (wdname);
 	if (ISROOT (wdname)) chdir (SLASH);
 }

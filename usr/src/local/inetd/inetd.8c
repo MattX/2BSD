@@ -1,0 +1,50 @@
+.TH INETD 8C 1/27/83
+.UC 4
+.SH NAME
+inetd \- DARPA little protocol server
+.SH SYNOPSIS
+.in +.5i
+.ti -.5i
+.B /etc/inetd
+\%[\-d]
+\%[\-f\ program]
+\%[\-o\ options]
+\%[\-q\ program]
+protocol/service ...
+.in -.5i
+.SH DESCRIPTION
+The \fIinetd\fR server implements a number of the so\-called
+\*(lqlittle\*(rq protocols in the IP/TCP protocol suite.
+In particular, the following protocols are implemented at this time:
+.PP
+.nf
+.ta \w'Service        'u +\w'RFC  'u
+\fBService	RFC  Description\fP
+echo	862	sends back whatever you send it
+sink	863	throws away whatever you send it
+daytime	867	provides the day and time in ASCII
+time	868	provides the number of seconds from a reference time
+users	866	lists the currently active users
+chargen	864	sends you ASCII data
+qotd	865	sends you a short ASCII message
+finger	742	provides information on the activity of a user
+.fi
+.PP
+See \fIservices\fR\0(5) for the list of ports that \fIinetd\fR will operate at.
+The \fIinetd\fR server supports these services using both TCP and UDP
+(see \fIprotocols\fR\0(5)).
+.PP
+If the `\-d' option is specified,
+each socket created by \fIinetd\fR will have debugging enabled
+(see SO_DEBUG in \fIsocket\fR\0(2)).
+If the `\-f' option is given,
+the following argument is taken to be the pathname of the program to
+run when servicing \fIfinger\fR requests.
+Similarly, if the `\-o' option is given,
+the following argument is take to be the options that should be given
+to this program.
+Finally, if the `\-q' option is given,
+the following argument is taken to be the pathname of the program to
+run when servicing \fIqotd\fR requests.
+.SH "SEE ALSO"
+rfinger(1C)

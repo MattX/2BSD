@@ -1,0 +1,14 @@
+#		Device Configuration Table
+#	Clock and console are pre-configured and should not be listed here
+#
+# Dev#	Addr	Vector	Br	Handler(s)	; Comment
+rm ?	176700	254	5	rmio		; SMD disk (RP04/5/6, RM)
+rl ?    174400  160     5       rlio            ; RL01/02
+
+tm ?	172520	224	5	tmio		; TM-11
+
+dh ?    160020  340     5       dhin    dhou    ; DH11 terminal mux
+dh ?    160040  350     5       dhin    dhou    ; DH11 terminal mux
+dm ?    170500  300     4       dmin            ; DM-11 BB DH Modem Control
+# kl 1	176500	300	5	klin	klou	; DL-11
+

@@ -1,0 +1,39 @@
+From ada@PURDUE.ARPA Mon Nov 28 09:05:24 1983
+Received: from purdue.ARPA by utah-cs.ARPA (4.19/3.33.3)
+	id AA05795; Mon, 28 Nov 83 09:05:18 mst
+Date: Mon, 28 Nov 83 11:06:47 EST
+From: Anthony D Andrews <ada@PURDUE.ARPA>
+Message-Id: <8311281606.AA11601@purdue.ARPA>
+Received: by purdue.ARPA; Mon, 28 Nov 83 11:06:47 EST
+To: lepreau@UTAH-CS
+Subject: make
+Status: RO
+
+Jay,
+
+Sorry for the delay, but there were some bug fixes I wanted to get into
+make before getting a copy to you. I think we`ve got it to a pretty stable
+state now. It`s been used on 4.1 and 4.2 systems here for several weeks.
+
+If you can ftp it over, I`ll just leave an archive here for you to pick up.
+Right now it contains the RCS (release 3) files for the sources, the makefile,
+and a technical report on the augmented system III make on which this version
+is based. If that format is a problem, let me know.
+
+About the only thing to look out for when compiling is the location of the
+directory compatibility routines if you`re running 4.1. My makefile assumes
+they are included in libc. The dir.h (or ndir.h) file is included from
+defs.h so you may need to change the location of it as well. If you are
+running 4.2 it should drop right in.
+
+The archive file will be /usr/ada/MAKE.
+
+BTW, the changes for RCS were really written by Charlie LaBrec in the
+physics department here at Purdue. I wanted to take advantage of the
+features of the augmented sysIII make so I transferred his changes to
+it.
+
+--tony
+
+
+

@@ -1,13 +1,13 @@
 /*
- *	SCCS id	@(#)rm.c	2.1 (Berkeley)	9/1/83
- */
-
-/*
- *	RJM02/RWM03 disk driver
+ * RJM02/RWM03, RM05 disk driver
+ * For simplicity we use hpreg.h instead of an rmreg.h.  The bits
+ * are the same.  Only the register names have been changed to
+ * protect the innocent.
  *
- *	For simplicity we use hpreg.h instead of an rmreg.h.  The bits
- *	are the same.  Only the register names have been changed to
- *	protect the innocent.
+ * Added RM_RM05 ifdef (RM_NTRAC gets updated) for RM05 type drive.
+ * Put this define in the rm.h file.  If you have more than one drive
+ * on the controller, you'll want to define UCB_DBUFS (also in rm.h).
+ * This allows parallel disk transfers.
  */
 
 #include "rm.h"
@@ -26,6 +26,7 @@
 #include <sys/seg.h>
 #endif
 #include <sys/uba.h>
+#include <sys/dkbad.h>
 
 extern	struct	hpdevice *RMADDR;
 extern	struct	size rm_sizes[];
@@ -39,7 +40,12 @@ int	rm_offset[] =
 };
 
 #define	RM_NSECT	32
-#define	RM_NTRAC	5
+#ifdef	RM_RM05
+#define	RM_NTRAC	19		/* RM05 */
+#else
+#define	RM_NTRAC	5		/* RM02/03 */
+#endif
+#define RM_NCYL		823
 #define	RM_SDIST	2
 #define	RM_RDIST	6
 
@@ -51,6 +57,11 @@ struct	buf	rrmbuf;
 #endif
 #if	NRM > 1
 struct	buf	rmutab[NRM];
+#endif
+#ifdef BADSECT
+struct	dkbad	rmbad[NRM];
+struct	buf	brmbuf[NRM];
+bool_t	rm_init[NRM];
 #endif
 
 #ifdef	INTRLVE
@@ -162,10 +173,35 @@ register unit;
 	 * If drive has just come up,
 	 * set up the pack.
 	 */
-	if ((rmaddr->hpds & HPDS_VV) == 0) {
+#ifdef BADSECT
+	if (((rmaddr->hpds & HPDS_VV) == 0) || (rm_init[unit] == 0))
+#else
+	if ((rmaddr->hpds & HPDS_VV) == 0)
+#endif
+	{
+#ifdef BADSECT
+		struct buf *bbp = &brmbuf[unit];
+		rm_init[unit] = 1;
+#endif
 		/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
 		rmaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
 		rmaddr->hpof = HPOF_FMT22;
+#ifdef BADSECT
+		bbp->b_flags = B_READ | B_BUSY | B_PHYS;
+		bbp->b_dev = bp->b_dev;
+		bbp->b_bcount = sizeof(struct dkbad);
+		bbp->b_un.b_addr = (caddr_t)&rmbad[unit];
+		bbp->b_blkno = (daddr_t)RM_NCYL * (RM_NSECT*RM_NTRAC)
+		    - RM_NSECT;
+		bbp->b_cylin = RM_NCYL - 1;
+#ifdef	UNIBUS_MAP
+		if ((rmtab.b_flags & B_RH70) == 0)
+			mapalloc(bbp);
+#endif	UNIBUS_MAP
+		dp->b_actf = bbp;
+		bbp->av_forw = bp;
+		bp = bbp;
+#endif	BADSECT
 	}
 	/*
 	 * If drive is offline, forget about positioning.
@@ -250,11 +286,6 @@ loop:
 	rmtab.b_active++;
 	unit = minor(bp->b_dev) & 077;
 	dn = dkunit(bp);
-	bn = dkblock(bp);
-	cn = bn / (RM_NSECT * RM_NTRAC) + rm_sizes[unit & 07].cyloff;
-	sn = bn % (RM_NSECT * RM_NTRAC);
-	tn = sn / RM_NSECT;
-	sn = sn % RM_NSECT;
 
 	/*
 	 * Select drive.
@@ -265,12 +296,42 @@ loop:
 	 * If drive has just come up,
 	 * set up the pack.
 	 */
-	if ((rmaddr->hpds & HPDS_VV) == 0) {
+#ifdef BADSECT
+	if (((rmaddr->hpds & HPDS_VV) == 0) || (rm_init[dn] == 0))
+#else
+	if ((rmaddr->hpds & HPDS_VV) == 0)
+#endif
+	{
+#ifdef BADSECT
+		struct buf *bbp = &brmbuf[dn];
+		rm_init[dn] = 1;
+#endif
 		/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
 		rmaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
 		rmaddr->hpof = HPOF_FMT22;
+#ifdef BADSECT
+		bbp->b_flags = B_READ | B_BUSY | B_PHYS;
+		bbp->b_dev = bp->b_dev;
+		bbp->b_bcount = sizeof(struct dkbad);
+		bbp->b_un.b_addr = (caddr_t)&rmbad[dn];
+		bbp->b_blkno = (daddr_t)RM_NCYL * (RM_NSECT*RM_NTRAC)
+		    - RM_NSECT;
+		bbp->b_cylin = RM_NCYL - 1;
+#ifdef	UNIBUS_MAP
+		if ((rmtab.b_flags & B_RH70) == 0)
+			mapalloc(bbp);
+#endif	UNIBUS_MAP
+		dp->b_actf = bbp;
+		bbp->av_forw = bp;
+		bp = bbp;
+#endif	BADSECT
 	}
 #endif
+	bn = dkblock(bp);
+	cn = bp->b_cylin;
+	sn = bn % (RM_NSECT * RM_NTRAC);
+	tn = sn / RM_NSECT;
+	sn = sn % RM_NSECT;
 	/*
 	 * Check that it is ready and online.
 	 */
@@ -300,10 +361,17 @@ loop:
 	 * Warning:  unit is being used as a temporary.
 	 */
 	unit = ((bp->b_xmem & 3) << 8) | HP_IE | HP_GO;
+#ifdef	RM_FORMAT
+	if (minor(bp->b_dev) & 0200)
+		unit |= bp->b_flags & B_READ? HP_RHDR : HP_WHDR;
+	else
+		unit |= bp->b_flags & B_READ? HP_RCOM : HP_WCOM;
+#else
 	if (bp->b_flags & B_READ)
 		unit |= HP_RCOM;
 	else
 		unit |= HP_WCOM;
+#endif
 	rmaddr->hpcs1.w = unit;
 
 #ifdef	RM_DKN
@@ -337,6 +405,11 @@ rmintr()
 		dp = &rmtab;
 #endif
 		bp = dp->b_actf;
+#ifdef BADSECT
+		if (bp->b_flags&B_BAD)
+			if (rmecc(bp, CONT))
+				return;
+#endif
 		unit = dkunit(bp);
 		rmaddr->hpcs2.c[0] = unit;
 		/*
@@ -352,13 +425,27 @@ rmintr()
 				 */
 				printf("rm%d: write locked\n", unit);
 				bp->b_flags |= B_ERROR;
+#ifdef	BADSECT
+			} else if (rmaddr->rmer2 & RMER2_BSE) {
+#ifdef	RM_FORMAT
+				/*
+				 * Allow this error on format devices.
+				 */
+				if (minor(bp->b_dev) & 0200)
+					goto errdone;
+#endif
+				if (rmecc(bp, BSE))
+					return;
+				else
+					goto hard;
+#endif	BADSECT
 			} else {
 				/*
 				 * After 28 retries (16 without offset and
 				 * 12 with offset positioning), give up.
 				 */
 				if (++rmtab.b_errcnt > 28) {
-				    bp->b_flags |= B_ERROR;
+hard:
 #ifdef	UCB_DEVERR
 				    harderr(bp, "rm");
 				    printf("cs2=%b er1=%b\n", rmaddr->hpcs2.w,
@@ -366,6 +453,7 @@ rmintr()
 #else
 				    deverror(bp, rmaddr->hpcs2.w, rmaddr->hper1);
 #endif
+				    bp->b_flags |= B_ERROR;
 				} else
 				    rmtab.b_active = 0;
 			}
@@ -376,9 +464,10 @@ rmintr()
 			 * Otherwise, fall through and retry the transfer.
 			 */
 			if((rmaddr->hper1 & (HPER1_DCK|HPER1_ECH)) == HPER1_DCK)
-				if (rmecc(bp))
+				if (rmecc(bp, ECC))
 					return;
 #endif
+errdone:
 			rmaddr->hpcs1.w = HP_TRE | HP_IE | HP_DCLR | HP_GO;
 			if ((rmtab.b_errcnt & 07) == 4) {
 				rmaddr->hpcs1.w = HP_RECAL | HP_IE | HP_GO;
@@ -466,7 +555,7 @@ dev_t	dev;
  * the correction may be going to an odd memory address base
  * and the transfer may cross a sector boundary.
  */
-rmecc(bp)
+rmecc(bp, flag)
 register struct	buf *bp;
 {
 	register struct hpdevice *rmaddr = RMADDR;
@@ -481,54 +570,105 @@ register struct	buf *bp;
 #ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
 #endif
+	int	unit;
 
 	/*
 	 *	ndone is #bytes including the error
 	 *	which is assumed to be in the last disk page transferred.
 	 */
-	wc = rmaddr->hpwc;
-	ndone = (wc * NBPW) + bp->b_bcount;
-	npx = ndone / PGSIZE;
-	printf("rm%d%c:  soft ecc bn %D\n",
-		dkunit(bp), 'a' + (minor(bp->b_dev) & 07),
-		bp->b_blkno + (npx - 1));
-	wrong = rmaddr->hpec2;
-	if (wrong == 0) {
-		rmaddr->hpof = HPOF_FMT22;
-		rmaddr->hpcs1.w |= HP_IE;
-		return (0);
-	}
-
-	/*
-	 *	Compute the byte/bit position of the err
-	 *	within the last disk page transferred.
-	 *	Hpec1 is origin-1.
-	 */
-	byte = rmaddr->hpec1 - 1;
-	bit = byte & 07;
-	byte >>= 3;
-	byte += ndone - PGSIZE;
-	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
-	wrong <<= bit;
-
-	/*
-	 *	Correct until mask is zero or until end of transfer,
-	 *	whichever comes first.
-	 */
-	while (byte < bp->b_bcount && wrong != 0) {
-		addr = bb + byte;
-#ifdef	UNIBUS_MAP
-		if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
-			/*
-			 * Simulate UNIBUS map if UNIBUS transfer
-			 */
-			ubp = UBMAP + ((addr >> 13) & 037);
-			addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
-		}
+	unit = dkunit(bp);
+#ifdef	BADSECT
+	if (flag == CONT) {
+		npx = bp->b_error;
+		bp->b_error = 0;
+		ndone = npx * PGSIZE;
+		wc = ((int)(ndone - bp->b_bcount)) / NBPW;
+	} else
 #endif
-		putmemc(addr, getmemc(addr) ^ (int) wrong);
-		byte++;
-		wrong >>= 8;
+	{
+		wc = rmaddr->hpwc;
+		ndone = (wc * NBPW) + bp->b_bcount;
+		npx = ndone / PGSIZE;
+	}
+	ocmd = (rmaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
+	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
+	bn = dkblock(bp);
+	cn = bp->b_cylin - bn / (RM_NSECT * RM_NTRAC);
+	bn += npx;
+	cn += bn / (RM_NSECT * RM_NTRAC);
+	sn = bn % (RM_NSECT * RM_NTRAC);
+	tn = sn / RM_NSECT;
+	sn %= RM_NSECT;
+
+	switch (flag) {
+	case ECC:
+		printf("rm%d%c: soft ecc bn %D\n",
+			unit, 'a' + (minor(bp->b_dev) & 07),
+			bp->b_blkno + (npx - 1));
+		wrong = rmaddr->hpec2;
+		if (wrong == 0) {
+			rmaddr->hpof = HPOF_FMT22;
+			rmaddr->hpcs1.w |= HP_IE;
+			return (0);
+		}
+
+		/*
+		 *	Compute the byte/bit position of the err
+		 *	within the last disk page transferred.
+		 *	Hpec1 is origin-1.
+		 */
+		byte = rmaddr->hpec1 - 1;
+		bit = byte & 07;
+		byte >>= 3;
+		byte += ndone - PGSIZE;
+		wrong <<= bit;
+
+		/*
+		 *	Correct until mask is zero or until end of transfer,
+		 *	whichever comes first.
+		 */
+		while (byte < bp->b_bcount && wrong != 0) {
+			addr = bb + byte;
+#ifdef	UNIBUS_MAP
+			if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
+				/*
+				 * Simulate UNIBUS map if UNIBUS transfer.
+				 */
+				ubp = UBMAP + ((addr >> 13) & 037);
+				addr = exadr(ubp->ub_hi, ubp->ub_lo)
+				    + (addr & 017777);
+			}
+#endif
+			putmemc(addr, getmemc(addr) ^ (int) wrong);
+			byte++;
+			wrong >>= 8;
+		}
+		break;
+#ifdef BADSECT
+	case BSE:
+		if ((bn = isbad(&rmbad[unit], cn, tn, sn)) < 0)
+			return(0);
+		bp->b_flags |= B_BAD;
+		bp->b_error = npx + 1;
+		bn = (daddr_t)RM_NCYL * (RM_NSECT * RM_NTRAC)
+		    - RM_NSECT - 1 - bn;
+		cn = bn/(RM_NSECT * RM_NTRAC);
+		sn = bn%(RM_NSECT * RM_NTRAC);
+		tn = sn/RM_NSECT;
+		sn %= RM_NSECT;
+#ifdef DEBUG
+		printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
+#endif
+		wc = -(512 / NBPW);
+		break;
+
+	case CONT:
+		bp->b_flags &= ~B_BAD;
+#ifdef DEBUG
+		printf("rmecc CONT: bn %D cn %d tn %d sn %d\n", bn, cn, tn, sn);
+#endif
+		break;
+#endif	BADSECT
 	}
 
 	rmtab.b_active++;
@@ -540,23 +680,13 @@ register struct	buf *bp;
 	 * and compute the position where the transfer is to continue.
 	 * We have completed npx sectors of the transfer already.
 	 */
-	ocmd = (rmaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
-	rmaddr->hpcs2.w = dkunit(bp);
+	rmaddr->hpcs2.w = unit;
 	rmaddr->hpcs1.w = HP_TRE | HP_DCLR | HP_GO;
 
-	bn = dkblock(bp);
-	cn = bp->b_cylin - bn / (RM_NSECT * RM_NTRAC);
-	bn += npx;
 	addr = bb + ndone;
-
-	cn += bn / (RM_NSECT * RM_NTRAC);
-	sn = bn % (RM_NSECT * RM_NTRAC);
-	tn = sn / RM_NSECT;
-	sn %= RM_NSECT;
-
 	rmaddr->hpdc = cn;
 	rmaddr->hpda = (tn << 8) + sn;
-	rmaddr->hpwc = ((int)(ndone - bp->b_bcount)) / NBPW;
+	rmaddr->hpwc = wc;
 	rmaddr->hpba = (int) addr;
 #if	PDP11 == 70 || PDP11 == GENERIC
 	if (rmtab.b_flags & B_RH70)

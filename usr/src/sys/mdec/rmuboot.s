@@ -7,7 +7,7 @@
 / assembled size must be <= 512; if > 494, the 16-byte a.out header
 / must be removed
 
-RM05	= 0		/ 0-> RM02/03, 1-> RM05
+RM05	= 1		/ 0-> RM02/03, 1-> RM05
 drive	= 0		/ unit to boot from
 cyl	= 0.		/ cylinder offset of filesys to read from
 

@@ -39,22 +39,14 @@ register struct inode *ip;
 	ip->i_flag |= IACC;
 	dev = (dev_t)ip->i_un.i_rdev;
 	type = ip->i_mode&IFMT;
-#ifdef	MPX_FILS
-	if (type==IFCHR || type==IFMPC)
-#else
 	if (type==IFCHR)
-#endif
 		return((*cdevsw[major(dev)].d_read)(dev));
 
 	do {
 		lbn = bn = u.u_offset >> BSHIFT;
 		on = u.u_offset & BMASK;
 		n = MIN((unsigned)(BSIZE-on), u.u_count);
-#ifdef	MPX_FILS
-		if (type!=IFBLK && type!=IFMPB)
-#else
 		if (type!=IFBLK)
-#endif
 			{
 			diff = ip->i_size - u.u_offset;
 			if(diff <= 0)
@@ -123,11 +115,7 @@ register struct inode *ip;
 	}
 	dev = (dev_t)ip->i_un.i_rdev;
 	type = ip->i_mode&IFMT;
-#ifdef	MPX_FILS
-	if (type==IFCHR || type==IFMPC)
-#else
 	if (type==IFCHR)
-#endif
 		{
 		ip->i_flag |= IUPD|ICHG;
 		(*cdevsw[major(dev)].d_write)(dev);
@@ -139,11 +127,7 @@ register struct inode *ip;
 		bn = u.u_offset >> BSHIFT;
 		on = u.u_offset & BMASK;
 		n = MIN((unsigned)(BSIZE-on), u.u_count);
-#ifdef	MPX_FILS
-		if (type!=IFBLK && type!=IFMPB)
-#else
 		if (type!=IFBLK)
-#endif
 			{
 #ifdef UCB_QUOTAS
 			if ((bn = bmap(ip, bn, B_WRITE)) == 0)
@@ -207,11 +191,7 @@ register struct inode *ip;
 			bdwrite(bp);
 #endif	UCB_FSFIX
 		}
-#ifndef	UCB_SYMLINKS
-		if (u.u_offset > ip->i_size && (type == IFDIR || type == IFREG))
-#else
 		if (u.u_offset > ip->i_size && (type == IFDIR || type == IFREG || type == IFLNK))
-#endif
 			ip->i_size = u.u_offset;
 		ip->i_flag |= IUPD|ICHG;
 	} while(u.u_error == 0 && u.u_count != 0);

@@ -1,0 +1,4 @@
+Compiling...
+===== du:
+	cc -O  -c du.c
+	cc -i du.o -o du

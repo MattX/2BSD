@@ -1,201 +1,123 @@
-# include	<stdio.h>
-# include	"strfile.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/file.h>
+#include <strfile.h>
 
 /*
- *	This program takes a file composed of strings seperated by
- * lines starting with two consecutive delimiting character (default
- * character is '%') and creates another file which consists of a table
- * describing the file (structure from "strfile.h"), a table of seek
- * pointers to the start of the strings, and the strings, each terinated
- * by a null byte.  Usage:
+ * create the database from the various fortune files
  *
- *	% strfile [ - ] [ -cC ] [ -sv ] sourcefile [ datafile ]
- *
- *	- - Give a usage summary useful for jogging the memory
- *	c - Change delimiting character from '%' to 'C'
- *	s - Silent.  Give no summary of data processed at the end of
- *	    the run.
- *	v - Verbose.  Give summary of data processed.  (Default)
- *
- *		Ken Arnold	Sept. 7, 1978
- *
- *	Added method to indicate dividers.  A "%-" will cause the address
- * to be added to the structure in one of the pointer elements.
+ *	Keith Bostic
+ *		ARPA: keith@seismo
+ *		UUCP: seismo!keith
  */
 
-# define	reg	register
+#define LSIZE		100		/* max single line length */
 
-# define	DELIM_CH	'-'
+main(argc,argv)
+int	argc;
+char	**argv;
+{
+	extern char	*optarg;	/* getopts variable */
+	static char	del_str[3] = "%%";	/* delimiter string */
+	register long	*lp,			/* pointer for seek table */
+			*seekpts;		/* seek table */
+	register int	len;			/* length of fortune */
+	STRF	*spnt;			/* file table */
+	long	thold,			/* hold a time */
+		time(), ftell();
+	int	ch,			/* argument character */
+		longest,		/* longest fortune */
+		numforts,		/* total number of fortunes */
+		shortest;		/* shortest fortune */
+	short	match = NO;		/* flag for empty fortunes */
+	char	*ffile = OUTFILE,	/* standard output file */
+		lbuf[LSIZE],		/* hold each line of fortune */
+		*ctime();
 
-char	*infile		= 0,		/* input file name		*/
-	outfile[100]	= "",		/* output file name		*/
-	delimch		= '%',		/* delimiting character		*/
-	*usage[]	= {		/* usage summary		*/
-       "usage:	strfile [ - ] [ -cC ] [ -sv ] inputfile [ datafile ]",
-       "	- - Give this usage summary",
-       "	c - Replace delimiting character with 'C'",
-       "	s - Silent.  Give no summary",
-       "	v - Verbose.  Give summary.  (default)",
-       "	Default \"datafile\" is inputfile.dat",
-	0
-	},
-	*fgets();
-
-short	sflag		= 0;		/* silent run flag		*/
-
-long	ftell(), *calloc();
-
-STRFILE	tbl;				/* statistics table		*/
-
-main(ac, av)
-int	ac;
-char	*av[]; {
-
-	reg char	*sp, dc;
-	reg long	*lp;
-	char		string[257];
-	int		curseek,	/* number of strings		*/
-			delim;		/* current delimiter number	*/
-	long		*seekpts,li;	/* table of seek pointers	*/
-	FILE		*inf, *outf;
-
-	getargs(ac, av);		/* evalute arguments		*/
-
-	/*
-	 * initial counting of input file
-	 */
-
-	dc = delimch;
-	if ((inf = fopen(infile, "r")) == NULL) {
-		perror(infile);
-		exit(-1);
-	}
-	for (curseek = 0; (sp = fgets(string, 256, inf)) != NULL; )
-		if (*sp++ == dc && (*sp == dc || *sp == DELIM_CH))
-			curseek++;
-	curseek++;
-
-	/*
-	 * save space at begginning of file for tables
-	 */
-
-	if ((outf = fopen(outfile, "w")) == NULL) {
-		perror(outfile);
-		exit(-1);
-	}
-	if ((seekpts = calloc(sizeof *seekpts, curseek)) == NULL) {
-		perror("calloc");
-		exit(-1);
-	}
-	fwrite(&tbl, sizeof tbl, 1, outf);
-	fwrite(seekpts, sizeof *seekpts, curseek, outf);
-	*seekpts = ftell(outf);
-	fseek(inf, (long) 0, 0);		/* goto start of input	*/
-
-	/*
-	 * write the strings onto the file
-	 */
-
-	tbl.str_longlen = -1;
-	tbl.str_shortlen = 0077777;
-	lp = seekpts;
-	do {
-		sp = fgets(string, 256, inf);
-		if (sp == NULL
-		    || (*sp == dc && (sp[1] == dc || sp[1] == DELIM_CH))) {
-			putc('\0', outf);
-			lp++;
-			if (sp != NULL)
-				*lp = ftell(outf);
-			li = ftell(outf) - lp[-1] - 1;
-			if (tbl.str_longlen < li)
-				tbl.str_longlen = li;
-			if (tbl.str_shortlen > li)
-				tbl.str_shortlen = li;
-			if (sp[1] == DELIM_CH && delim < MAXDELIMS)
-				tbl.str_delims[delim++] = lp - seekpts;
+	while ((ch = getopt(argc,argv,"c:f:")) != EOF)
+		switch((char)ch) {
+			case 'c':	/* new delimiting char */
+				del_str[0] = del_str[1] = *optarg;
+				break;
+			case 'f':	/* new output file name */
+				ffile = optarg;
+				break;
+			default:
+				fprintf(stderr,"usage: %s [-cC] [-f file]\n",*argv);
+				exit(ERR);
 		}
-		else
-			fputs(sp, outf);
-	} while (sp != NULL);
 
-	/*
-	 * write the tables in
-	 */
+	time(&thold);			/* print pretty label */
+	fprintf(stderr,"==== FORTUNE FILE ==== %s",ctime(&thold));
 
-	fclose(inf);
-	tbl.str_numstr = curseek;
-	fseek(outf, (long) 0, 0);
-	fwrite(&tbl, sizeof tbl, 1, outf);
-	fwrite(seekpts, sizeof *seekpts, curseek, outf);
-	fclose(outf);
-	if (!sflag) {
-		printf("\"%s\" converted to \"%s\"\n", infile, outfile);
-		if (curseek == 1)
-			puts("There was 1 string");
-		else
-			printf("There were %d strings\n", curseek);
-		printf("Longest string: %d byte%s", tbl.str_longlen, tbl.str_longlen == 1 ? "\n" : "s\n");
-		printf("Shortest string: %d byte%s", tbl.str_shortlen, tbl.str_shortlen == 1 ? "\n" : "s\n");
-	}
-}
-/*
- *	This routine evaluates arguments from the command line
- */
-getargs(ac, av)
-int	ac;
-char	*av[]; {
+	/* pass 1: find out how many strings there are */
 
-	reg char	**argv, *sp;
-	reg int		i;
-	int		bad, j;
-
-	bad = 0;
-	argv = &av[0];
-	for (i = 1; i < ac; i++)
-		if (*argv[i] == '-')
-			if (argv[i][1]) for (sp = &argv[i][1]; *sp; sp++)
-				switch (*sp) {
-				case 'c': /* new delimiting char	*/
-					if ((delimch = *++sp) == '\0') {
-						--sp;
-						delimch = *argv[++i];
-					}
-					if (delimch <= 0 || delimch > '~' || delimch == DELIM_CH) {
-						printf("bad delimiting character: \\%o\n", delimch);
-						bad++;
-					}
-					break;
-				case 's':	/* silent		*/
-					sflag++;
-					break;
-				case 'v':	/* verbose		*/
-					sflag = 0;
-					break;
-				default:	/* unknown flag		*/
-					bad++;
-					printf("bad flag: '%c'\n", *sp);
-					break;
+	for (numforts = 0,spnt = tbl;*spnt->fname;++spnt) {
+		if (access(spnt->fname,F_OK)) {
+			fprintf(stderr,"%s: unable to find the file.\n",spnt->fname);
+			exit(ERR);
+		}
+		if (!(freopen(spnt->fname,"r",stdin))) {
+			perror(spnt->fname);
+			exit(ERR);
+		}			/* try to ignore empty ones */
+		for (match = YES;gets(lbuf);)
+			if (!strcmp(lbuf,del_str)) {
+				if (!match) {
+					++numforts;
+					match = YES;
 				}
-			else {
-				for (j = 0; usage[j]; j++)
-					puts(usage[j]);
-				exit(0);
 			}
-		else if (infile)
-			strcpy(outfile, argv[i]);
-		else
-			infile = argv[i];
-	if (!infile) {
-		bad++;
-		puts("No input file name");
+			else match = NO;
+		if (!match) {		/* what if just some empty lines? */
+			fprintf(stderr,"there are lines at the end of file %s not preceding a delimiter.\n",spnt->fname);
+			exit(ERR);
+		}
 	}
-	if (*outfile == '\0' && !bad) {
-		strcpy(outfile, infile);
-		strcat(outfile, ".dat");
+
+	/* save space at beginning of file for tables */
+
+	if (!(freopen(ffile,"w",stdout))) {
+		perror(ffile);
+		exit(ERR);
 	}
-	if (bad) {
-		puts("use \"strfile -\" to get usage");
-		exit(-1);
-	}
+	MM(long,seekpts,numforts + SECTIONS + 1,long);
+	fseek(stdout,(long)((numforts + SECTIONS + 1) * sizeof(*seekpts)),0);
+
+	/* pass 2: write the strings into the file, set offsets */
+	/* again, ignore empty fortunes; will go away after "unstr". */
+
+	for (lp = seekpts + SECTIONS,spnt = tbl;*spnt->fname;++spnt)
+		if (!(freopen(spnt->fname,"r",stdin))) {
+			perror(spnt->fname);
+			exit(ERR);
+		}
+		else {
+			seekpts[spnt->entry] = lp - seekpts;
+			for (*lp = ftell(stdout);gets(lbuf);)
+				if (strcmp(lbuf,del_str)) {
+					puts(lbuf);
+					match = NO;
+				}
+				else if (!match) {
+					match = YES;
+					++lp;
+					len = (*lp = ftell(stdout)) - lp[-1] - 1;
+					if (lp > seekpts + SECTIONS + 1) {
+						if (longest < len) longest = len;
+						else if (shortest > len) shortest = len;
+					}
+					else longest = shortest = len;
+					++spnt->number;
+				}
+			fprintf(stderr,"%ld\tfortunes in section %ld (%s)\n",spnt->number,spnt->entry + 1,spnt->fname);
+		}
+	seekpts[spnt->entry] = lp - seekpts;
+	fprintf(stderr,"%d\tcharacters in the longest fortune.\n%d\tcharacters in the shortest fortune.\n",longest,shortest);
+
+	/* write the tables into the file */
+
+	rewind(stdout);
+	fwrite(seekpts,sizeof(*seekpts),numforts + SECTIONS + 1,stdout);
+	exit(OK);
 }

@@ -9,12 +9,12 @@
 #include	<sys/autoconfig.h>
 #include	<sys/param.h>
 #include	"dtab.h"
-#include	"args.h"
 
 extern char	*nlist_name;	/* File we read the namelist from */
 extern int	guess_ndev;	/* Number of lines read from dtab */
 extern int	debug;
 extern int	kmem;
+extern int	pflag;
 struct nlist	*nl, *np;	/* Pointers to nlist structures */
 struct nlist *int_nl, *good_nl, *bad_nl, *add_nlist(), *end_vector;
 struct nlist *trap_nl, *sep_nl, *vers_nl;
@@ -68,7 +68,7 @@ read_nlist()
 		exit(AC_SETUP);
 	}
 	nlist(nlist_name, nl);
-	if (debug || bools('P')) {
+	if (debug || pflag) {
 		for (np = nl; *np->n_name; np++)
 			printf("%.8s = %o\n", np->n_name, np->n_value);
 	}

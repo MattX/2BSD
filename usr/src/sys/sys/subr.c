@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)subr.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)subr.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -218,6 +218,14 @@ nodev()
 {
 
 	u.u_error = ENODEV;
+}
+
+/*
+ * Null routine; placed in insignificant entries
+ * in the bdevsw and cdevsw tables.
+ */
+nulldev()
+{
 }
 
 /*

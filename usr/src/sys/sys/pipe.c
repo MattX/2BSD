@@ -226,18 +226,14 @@ register struct inode *ip;
 }
 
 /*
- * Unlock a pipe.
- * If WANT bit is on,
- * wakeup.
- * This routine is also used
- * to unlock inodes in general.
+ * Unlock a pipe.  If WANT bit is on, wakeup.
+ * This routine is also used to unlock inodes in general.
  */
 prele(ip)
 register struct inode *ip;
 {
-
 	ip->i_flag &= ~ILOCK;
-	if(ip->i_flag&IWANT) {
+	if(ip->i_flag & IWANT) {
 		ip->i_flag &= ~IWANT;
 		wakeup((caddr_t)ip);
 	}

@@ -1,42 +1,25 @@
-SOURCE=	fortune.c strfile.h strfile.c unstr.c scene obscene
-LIBDIR=	/usr/games/lib
-BINDIR=	/usr/games
-GRP=	arpa
-CFLAGS=	-O -n -s
-TARF=	fortunes.tar
+# Define OLD for all systems not having the "random()" call.
 
-all: fortune strfile unstr fortunes.dat
+CFLAGS= -O -I. -DOLD -Dpdp11
+LDFLAGS=
+PROGS=	fortune strfile unstr
 
-fortune: strfile.h fortune.c
-	${CC} ${CFLAGS} -DFORTFILE='"${LIBDIR}/fortunes.dat"' -o fortune fortune.c
-	
-strfile: strfile.h strfile.c
-	${CC} ${CFLAGS} -o strfile strfile.c
+all: $(PROGS)
 
-unstr: strfile.h unstr.c
-	${CC} ${CFLAGS} -o unstr unstr.c
+fortune: strfile.h fortune.o
+	$(CC) $(LDFLAGS) -o $@ fortune.o
 
-fortunes.dat: fortunes strfile
-	strfile -s fortunes
+strfile: strfile.h strfile.o
+	$(CC) $(LDFLAGS) -o $@ strfile.o
 
-fortunes: scene obscene
-	cat scene > fortunes
-	echo "%-" >> fortunes
-	cat obscene >> fortunes
-	echo "%%" >> fortunes
+unstr: strfile.h unstr.o
+	$(CC) $(LDFLAGS) -o $@ unstr.o
 
 install: all
-	mv fortunes.dat ${LIBDIR}/fortunes.dat
-	chown ${OWN} ${LIBDIR}/fortunes.dat
-	chgrp ${GRP} ${LIBDIR}/fortunes.dat
-	chmod 600 ${LIBDIR}/fortunes.dat
-	mv fortune ${BINDIR}
-	chown ${OWN} ${BINDIR}/fortune
-	chgrp ${GRP} ${BINDIR}/fortune
-	chmod 4711 ${BINDIR}/fortune
-
-tar:
-	tar crvf ${TARF} Makefile ${SOURCE} fortune.6
+	install -s -m 711 -o bin -g bin fortune /usr/games
+	install -m 644 -o bin -g bin fortunes.dat /usr/games/lib
 
 clean:
-	rm -f fortunes.dat fortune strfile unstr fortunes
+	rm -f $(PROGS) *.o core a.out
+tar:
+	tar cvf fort.src.tar Makefile README do_sort fortune.6 fortune.c strfile.c strfile.h unstr.c

@@ -1,0 +1,41 @@
+# The format of the L-devices file is:
+#	Caller Line Useful Class Dialer [Chat ...]
+#
+
+#
+# The following lines are hard-wired
+#
+DIR ttyh3 unused 300 direct
+DIR ttyh3 unused 1200 direct
+
+#
+# The following lines are ACUs
+#
+ACU cul0 cua0 1200 dn11
+ACU cul1 cua1 1200 dn11
+ACU tty49 unused 1200 ventel
+ACU tty49 unused 300 ventel
+ACU tty48 unused V1200 vadic
+
+#
+# For hayes smartmodems, specify 'hayestone' for touch tone,
+# 'hayespulse' for pulse dialing.  'hayes' means 'hayespulse'
+#
+ACU tty47 unused 1200 hayestone
+
+#
+# The following port is to a Develcon DataSwitch.
+# The 'DIR' line is used to talk to other machines on the switch.
+# See how it is used in L.sys.
+# The 'ACU' line is used to talk to a call-out modem on the switch.
+# In this case the modem is a hayes.  The 'chat' script
+# makes the connection to the modem so the normal hayes modem code
+# in condevs.c can be used.  Here the chat script
+# 'expects nothing', 'sends a return', 'expects uest:'
+# (the DataSwitch's prompt), 'sends outmodem',
+# and expects control-g (the DataSwitch's connection prompt).
+# Note, it is a current nit that the control-g has to be typed as is
+# rather than as ^g or as \07.  Sorry.
+#
+DIR tty50 unused 9600 direct
+ACU tty50 unused 1200 hayespulse "" "" uest: outmodem 

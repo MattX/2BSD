@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)rl.c	2.1 (Berkeley)	11/20/83
+ *	SCCS id	%W% (Berkeley)	%G%
  */
 
 /*
@@ -44,6 +44,17 @@ struct 	rl_softc {
 
 } rl = {-1,-1,-1,-1, -1,-1,-1,-1}; /* initialize cn[] and type[] */
 
+/*
+void
+rlprobe(reg)
+{
+	((struct rldevice *) reg)->rlcs = RL_IE | RL_NOP;
+	DELAY(10);
+	((struct rldevice *) reg)->rlcs = 0;
+	return (1);
+}
+*/
+
 rlattach(addr, unit)
 struct rldevice *addr;
 {
@@ -63,27 +74,32 @@ register struct	buf *bp;
 		bp->b_error = ENXIO;
 		goto bad;
 	}
-
-	/*
-	 * We must determine what type of drive we are talking to in order 
-	 * to determine how many blocks are on the device.  The rl.type[]
-	 * array has been initialized with -1's so that we may test first
-	 * contact with a particular drive and do this determination only once.
-	 *
-	 * For some unknown reason the RL02 (seems to be
-	 * only drive 1) does not return a valid drive status
-	 * the first time that a GET STATUS request is issued
-	 * for the drive, in fact it can take up to three or more
-	 * GET STATUS requests to obtain the correct status.
-	 * In order to overcome this "HACK" the driver has been
-	 * modified to issue a GET STATUS request, validate the
-	 * drive status returned, and then use it to determine the
-	 * drive type. If a valid status is not returned after eight
-	 * attempts, then an error message is printed.
-	 */
+/*
+ * We must determine what type of drive we are talking to in order to determine
+ * how many blocks are on the device.  The rl.type[] array has been initialized
+ * with -1's so that we may test first contact with a particular drive and do
+ * this determination only once.
+ *
+ * For some unknown reason the RL02 (seems to be only drive 1) does not return
+ * a valid drive status the first time that a GET STATUS request is issued for
+ * the drive, in fact it can take up to three or more GET STATUS requests to
+ * obtain the correct status.  In order to overcome this "HACK" the driver has
+ * been modified to issue a GET STATUS request, validate the drive status
+ * returned, and then use it to determine the drive type. If a valid status is
+ * not returned after eight attempts, then an error message is printed.
+ *
+ * At the beginning of that [rlstrategy] routine, the code senses whether or
+ * not the drive being accessed has been touched yet (critical detail:  the
+ * trashing happens when I mount a second RL01), and if not, does a STATUS
+ * operation to get the drive type and head position.  ...it does so without
+ * checking that the controller is ready.  If an operation is already underway,
+ * well, OOPS!  Added "rlwait(rp)" just before the loop that issues the
+ * STATUS command in rlstrategy().
+ */
 	if (rl.type[minor(bp->b_dev)] < 0) {
 		drive = minor(bp->b_dev);
 		ctr = 0;
+		rlwait(rp);
 		do { /* get status and reset when first touching this drive */
 			rp->rlda = RLDA_RESET | RLDA_GS;
 			rp->rlcs = (drive << 8) | RL_GETSTATUS;	/* set up csr */

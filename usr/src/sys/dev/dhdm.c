@@ -1,6 +1,9 @@
 /*
  *	DM-BB driver
  */
+#include "dmbb.h"
+#if NDMBB > 0
+
 #include "param.h"
 #include <sys/tty.h>
 #include <sys/file.h>
@@ -127,3 +130,4 @@ dmint(dev)
 		addr->dmcsr = IENABLE|SCENABL;
 	}
 }
+#endif NDMBB

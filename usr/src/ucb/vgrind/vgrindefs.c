@@ -3,7 +3,7 @@
 #define MAXHOP	32	/* max number of tc= indirections */
 
 #include <ctype.h>
-#include "local/uparm.h"
+#include "../ex/uparm.h"
 /*
  * grindcap - routines for dealing with the language definitions data base
  *	(code stolen almost totally from termcap)

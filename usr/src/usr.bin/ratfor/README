@@ -1,0 +1,64 @@
+					March 15, 1985
+
+
+This directory contains the source files needed to build the Ratfor
+preprocessor.  The following changes have been made:
+
+1)  Invalid command line flags, previously silently ignored, now
+    produce the message "ratfor:  unknown option -?; ignored" on the
+    stderr file.  The argument-handling code was rewritten as a switch
+    statement in lieu of an if...else if...else sequence.
+
+2)  A new option, -B, was added to instruct the preprocessor to
+    emit Fortran-77 block if statements instead of the sequence needed
+    to simulate this behavior under Fortran-66.
+
+    For small f77 compilers, this has the advantage of requiring fewer
+    labels; large programs have consistently run the compiler out of
+    internal space to store labels.  It is likely that some Fortran-77
+    compilers may produce ever-so-slightly better code as a result.
+    However, note that the struct program does not understand block if
+    statements (i.e., you can't go home again).
+
+    Implementing this feature required a new internal flag (blockif),
+    two lines (in rlex.c) to interpret the -B argument, a new routine
+    (endifcode, in r1.c) to emit the endif statement closing a block
+    if, a minor revision to the semantics associated (in rgram.y,
+    formerly named r.g) with the grammar of an if statement so that
+    endifcode is properly invoked, and minor additions (to ifcode and
+    elsecode, in r1.c) to interrogate the blockif flag and emit the
+    right thing.
+
+    This new feature may be disabled by unsetting the BLOCKIF macro in
+    the Makefile, removing (if necessary) ratfor and rlex.o, and then
+    remaking ratfor.
+
+3)  The Makefile itself has been reworked.
+
+4)  One bug arising from a missing right parenthesis at the end of
+    an input FOR statement has been corrected.  Ratfor used to go into
+    an infinite loop in this case, reading past EOF; now a diagnostic
+    will be issued.
+
+    Note that this preprocessor is hopelessly optimistic about its
+    input quality vis-a-vis EOF encountered in unusual places (such as
+    that described above).  Right now, I'm not interested in fixing
+    this in its full generality.
+
+5)  It is known that this preprocessor does not always check against
+    the upper limits of some of its internal tables (e.g., table of
+    nested loops).  I'm not interested right now in pursuing this
+    either.
+
+
+Any further comments, suggestions, and improvements will be welcomed.
+For whatever it's worth, the original sources (save only for SCCS
+identifying strings) seemed to be essentially identical to those
+currently distributed with System V.
+
+			Dr. Walter E. Brown
+			Computer Science Dept.
+			Moravian College
+			Bethlehem, PA  18018
+			(215) 861-1441
+			...!{aluxp, brl-bmd, ihnp4}!mc70!brown

@@ -1,6 +1,3 @@
-#  PDP is set to 70 for separate I/D, 34 for nonseparate I/D with hardware
-#  floating point, or 40 for nonseparate, no floating point.
-PDP =	70
 
 BINDIR= /usr/bin
 AS=	as
@@ -18,51 +15,54 @@ OBJS=	exit.o int.o palloc.o pcttot.o pdattim.o perror.o pwrite.o \
 
 all: px.${PDP}
 
-cp: px.${PDP}
-	cp px.${PDP} $DESTDIR}${BINDIR}/px
-	rm px.${PDP} *.o
+install:
+	install -s -o bin -g bin -m 711 px ${DESTDIR}${BINDIR}/px
 
-cmp: px.${PDP}
-	cmp px.${PDP} $DESTDIR}${BINDIR}/px
-	rm *.o
+px.70:	as.o ${OBJS}
+	ld ${LFLAG} -o px ${CRT} as.o ${OBJS} -lm -lc
 
-px.70:	as.o ${OBJS} ${STARTUP}
-	ld -X -i -o px.70 ${STARTUP} as.o ${OBJS} -lm -lc
-
-px.34: as.o ${OBJS} ${STARTUP}
-	ld -n -X -o px.34 ${STARTUP} as.o ${OBJS} -lm -lc
+px.34: as.o ${OBJS}
+	ld ${LFLAG} -o px ${CRT} as.o ${OBJS} -lm -lc
 
 # This used to be loaded -n; to gain almost 8K of data space, omit -n.
-px.40: nofp_as.o ${OBJS} ${STARTUP} ${FPTERP}
-	ld -X -o px.40 ${STARTUP} nofp_as.o ${OBJS}
-	${FPTERP} -lm -lc
+px.40: nofp_as.o ${OBJS} ${FPTERP}
+	ld -o px ${CRT} nofp_as.o ${OBJS} ${FPTERP} -lm -lc
 
 getc.o: getc.s
 	as -o getc.o /usr/include/sys.s getc.s
+
 putc.o: putc.s
 	as -o putc.o /usr/include/sys.s putc.s
+
 as.o:	${ASMS}
 	rm -f 00head.s
 	echo 'FP = 1' > 00head.s
 	rm -f as.o
 	${AS} -o as.o /usr/include/sys.s 00head.s ${ASMS}
+
 nofp_as.o: ${ASMS}
 	rm -f 00head.s
 	echo 'FP = 0' > 00head.s
 	rm -f as.o
 	${AS} -o as.o /usr/include/sys.s 00head.s ${ASMS}
+
 int.c palloc.c pcttot.c perror.c: E.h
+
 E.s E.h: Edata
 	ed - Edata < Emake
+
 ../utilities/assubs/pcrt0.o: ../utilities/assubs/pcrt0.s
 	cd ../utilities/assubs; make pcrt0.o
+
 ../utilities/fpterp/fp.o: ../utilities/fpterp/fp*.s
 	cd ../utilities/fpterp; make fp.o
+
 ../utilities/fpnofetchi/fp.o: ../utilities/fpnofetchi/fp*.s
 	cd ../utilities/fpnofetchi; make fp.o
+
 clean:
-	rm a.out core E.h E.s 00head.s
-	rm *.o
+	rm -f a.out core E.h E.s 00head.s *.o
+
 print:
 	@pr makefile README
 	@ls -ls | pr
@@ -70,9 +70,3 @@ print:
 	@pr 0x.h int.c exit.c
 	@pr [0-9][0-9]*.s
 	@pr p*.c
-install:
-	cp a.out /usr/bin/px
-	chmod 711 /usr/bin/px
-installNOID:
-	cp a.outNOID /usr/bin/px
-	chmod 711 /usr/bin/px

@@ -1,0 +1,39 @@
+	cd src; make  install
+	cc -o lpd -i lpd.o lpdchar.o printcap.o
+	cc -o lpr -i lpr.o printcap.o
+	cc -o lpq -i lpq.o printcap.o
+	cc -o lprm -i lprm.o printcap.o
+	cc -o lpdrestart -i lpdrestart.o
+	cc -o ulf -O -i ulf.o printcap.o
+	install -s -o bin -g bin lpd /usr/lib/lpd
+	install -s -o bin -g bin lpr /usr/bin/lpr
+	install -s -o bin -g bin ulf /usr/lib/ulf
+	install -s -o bin -g bin lpq  /usr/bin/lpq
+	install -s -o bin -g bin lprm  /usr/bin/lprm
+	install -s -o bin -g bin lpdrestart /etc
+	cat /dev/null >> /usr/adm/lp.err
+	cat /dev/null >> /usr/adm/lpacct
+	rm -f /usr/bin/opr /usr/bin/print /usr/lib/lp /usr/lib/slp
+	ln /usr/bin/lpr /usr/bin/print
+	ln /usr/bin/lpr /usr/bin/opr
+	ln /usr/lib/ulf /usr/lib/lp
+	chown root /usr/bin/lpr /usr/bin/lpq \
+			/etc/lpdrestart
+	chown daemon /usr/bin/lprm /usr/lib/lpd /usr/spool/lpd \
+			/usr/adm/lp.err /usr/adm/lpacct
+	chgrp daemon /usr/lib/lpd /usr/bin/lpr /usr/bin/lprm \
+			/usr/bin/lpq /usr/spool/lpd /usr/adm/lp.err /usr/adm/lpacct
+	chgrp sys /etc/lpdrestart
+	chmod 6711 /usr/lib/lpd /usr/bin/lpr /usr/bin/lprm
+	chmod 4710 /etc/lpdrestart
+	chmod 2711 /usr/bin/lpq
+	chmod 775 /usr/spool/lpd
+	chmod 664 /usr/adm/lp.err /usr/adm/lpacct
+	chmod 644 /etc/printcap
+chmod: can't access /etc/printcap
+*** Error code 1
+
+Stop.
+*** Error code 1
+
+Stop.

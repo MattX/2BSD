@@ -1,0 +1,90 @@
+.TH "RCSH" 1R
+.UC 4
+.SH NAME
+rcsh \- remote access version
+.SH SYNOPSIS
+Same as
+.I csh
+but with remote access.
+.SH DESCRIPTION
+Same as described in UNIX Programmer's Manual (1), except that
+remote file name
+.I [host:]path
+can be used in name substitution and I/O
+redirection.
+.PP
+.B Name substitution (globbing):
+the characters `*', `?', `[' and `{' in
+.I path
+are expanded on the machine
+.I host
+if
+.I host:
+is present or on the local machine if
+.I host:
+is omitted.
+However, `~' can be expanded only if
+.I host:
+is missing (i.e. as the first character of the whole file name).
+No substitution is allowed in the
+.I host
+part.
+.PP
+.B I/O redirection:
+standard input, standard output and diagnostic output can be redirected
+to remote files in the same way as to local files.
+.PP
+The other functions such as command interpretation, history substitution,
+alias substitution and variable substitution are the same as described
+in UNIX Programmer's Manual (1).
+.SH RESTRICTIONS
+.I Rcsh
+supports remote file access but not remote command execution.
+The commands are always executed locally.  The default input/output is
+the local terminal.  For example, the following commands are legal:
+.PP
+.DT
+	cat mordred:... arthur:... | pg
+.PP
+.DT
+	ls -l mordred:... | grep ... > arthur:...
+.PP
+But
+.PP
+.DT
+	ls ... | mordred:grep ...
+.PP
+does not work.
+.PP
+There is no remote current working directory.  Therefore,
+.PP
+.DT
+	cd
+.I host:path ,
+or
+.PP
+.DT
+	pushd
+.I host:path
+.PP
+does not work.
+.SH BUGS
+The built-in commands
+do not accept remote files as arguments or input/output redirection.
+For example,
+.PP
+.DT
+	echo "..." >mordred:... , or
+.PP
+.DT
+	exec ls arthur:...
+.PP
+does not work.
+.SH "SEE ALSO"
+commands(1R), libra.a(3R)
+.PP
+csh(1), rsh(1)
+.PP
+Walter F. Tichy and Zuwang Ruan,
+.I "Towards a Distributed File System,"
+Proceedings of USENIX 1984 Summer Conference.

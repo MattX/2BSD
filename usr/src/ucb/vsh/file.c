@@ -130,7 +130,7 @@ getfname (inname, outname) char *inname, *outname; {
 */
 pathgen (old, change, new) char *old, *change, *new; {
 
-char element [DIRSIZ + 1];
+char element [MAXNAMLEN + 1];
 char chgbuf  [STRMAX];
 register len;
 
@@ -167,8 +167,8 @@ if (eltlen == 0) {
 	strcpy (element, DOT);
 }
 else {
-	strncpy (element, path, DIRSIZ);
-	element [min (eltlen, DIRSIZ)] = 0;
+	strncpy (element, path, MAXNAMLEN);
+	element [min (eltlen, MAXNAMLEN)] = 0;
 }
 if (*cp) shift (path, eltlen + 1);
 else path [0] = 0;

@@ -1,0 +1,41 @@
+Mquery	query.c	/^main(argc, argv)$/
+Mrouted	routed.c	/^main(argc, argv)$/
+Mtrace	trace.c	/^main(argc, argv)$/
+addrouteforif	routed.c	/^addrouteforif(ifp)$/
+equal	routed.c	/^#define equal(a1, a2) \\$/
+gwkludge	routed.c	/^gwkludge()$/
+if_ifwithaddr	routed.c	/^if_ifwithaddr(addr)$/
+if_ifwithnet	routed.c	/^if_ifwithnet(addr)$/
+ifinit	routed.c	/^ifinit()$/
+inet_canon	af.c	/^inet_canon(sin)$/
+inet_checkhost	af.c	/^inet_checkhost(sin)$/
+inet_hash	af.c	/^inet_hash(sin, hp)$/
+inet_netmatch	af.c	/^inet_netmatch(sin1, sin2)$/
+inet_output	af.c	/^inet_output(s, sin, size)$/
+inet_portcheck	af.c	/^inet_portcheck(sin)$/
+inet_portmatch	af.c	/^inet_portmatch(sin)$/
+insque	routed.c	/^#define	insque(q,p)	_insque((caddr_t)q,(caddr_t)p)/
+log	routed.c	/^log(operation, rt)$/
+min	routed.c	/^#define	min(a,b)	((a)>(b)?(b):(a))$/
+null_canon	af.c	/^null_canon(a1)$/
+null_checkhost	af.c	/^null_checkhost(a1)$/
+null_hash	af.c	/^null_hash(addr, hp)$/
+null_netmatch	af.c	/^null_netmatch(a1, a2)$/
+null_output	af.c	/^null_output(s, a1, n)$/
+null_portcheck	af.c	/^null_portcheck(a1)$/
+null_portmatch	af.c	/^null_portmatch(a1)$/
+query	query.c	/^query(host)$/
+remque	routed.c	/^#define	remque(q)	_remque((caddr_t)q)$/
+rip_input	query.c	/^rip_input(from, size)$/
+rtadd	routed.c	/^rtadd(dst, gate, metric, state)$/
+rtchange	routed.c	/^rtchange(rt, gate, metric)$/
+rtdelete	routed.c	/^rtdelete(rt)$/
+rtfind	routed.c	/^rtfind(dst)$/
+rtinit	routed.c	/^rtinit()$/
+rtlookup	routed.c	/^rtlookup(dst)$/
+sendmsg	routed.c	/^sendmsg(dst, dontroute)$/
+supply	routed.c	/^supply(dst, dontroute)$/
+swap	routed.c	/^#define	swap(f,a) if (!((f)&RTF_HOST)) ((struct so/
+timer	routed.c	/^timer()$/
+toall	routed.c	/^toall(f)$/
+wait3	routed.c	/^#define	wait3(a,b)	wait2(&a,b)$/

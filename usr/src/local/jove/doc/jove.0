@@ -1,0 +1,3146 @@
+From usna!tcs Tue Apr  9 12:55:08 1985
+Received: from usna.UUCP by seismo.ARPA with UUCP; Tue, 9 Apr 85 12:53:03 EST
+From: usna!tcs
+Message-Id: <8504091753.AA06459@seismo.ARPA>
+To: seismo!keith
+Subject:  jove doc
+Date:     Tue, 9 Apr 85 8:33:59 EST
+Original: From:     Terry Slattery  <tcs@usna>
+Original: To:       keith@seismo
+Status: R
+
+Unpack this into /a/local/jove/doc.
+	-tcs
+
+# This is a shell archive.  Remove anything before this line, then
+# unpack it by saving it in a file and typing "sh file".  (Files
+# unpacked will be owned by you and have default permissions.)
+#
+# This archive contains:
+# Makefile README commands.1 describe.com jove.1 jove.n list.func primer sed.com tailoring teach-jove
+
+echo x - Makefile
+cat > "Makefile" << '//E*O*F Makefile//'
+default:	jove.nr describe.com tailoring.nr primer.nr
+
+nroff:	jove.nr tailoring.nr primer.nr describe.com
+
+troff:	jove.tr tailoring.tr
+
+jove.nr:	jove.1 commands.1
+	nroff -man jove.1 > jove.nr
+
+jove.tr:	jove.1 commands.1
+	troff -t -man jove.1 > jove.tr
+
+tailoring.nr:	tailoring
+	nroff -ms tailoring > tailoring.nr
+
+tailoring.tr:	tailoring
+	troff -t -ms tailoring > tailoring.tr
+
+primer.nr:	primer
+	nroff primer > primer.nr
+
+# Warning:  The sed command below should be "s/.^H//g",
+#	    Note that ^H means a REAL control H (as in backspace).
+describe.com:	commands.1
+	nroff commands.1 | sed -e "s/.//g" > describe.com
+//E*O*F Makefile//
+
+echo x - README
+cat > "README" << '//E*O*F README//'
+jove.1 contains an over all description of jove.
+commands.1 contains the description of all the commands.
+describe.com contains the description of all the commands WITHOUT
+	any backspaces (nroff) in the file.  Findcom looks in THIS
+	file for the name of the command.  This file should be created
+	by "nroff -man commands.1 | sed -e '1,$s/.^H//g' > describe.com".
+findcom.c is the source for findcom which is used by the describe-command
+	command in jove.
+//E*O*F README//
+
+echo x - commands.1
+cat > "commands.1" << '//E*O*F commands.1//'
+.de FN
+.sp 1
+\fI\\$1	\fB\\$2\fR	\" command name, and key binding
+.br
+..
+.ll 6.5i
+.ta 4.5i
+.ad
+.in .5i
+.FN Prefix\-1 ESC
+The next character typed will be interpreted on the basis that it was
+preceded by the command \fIPrefix\-1\fR.  This is one of two such commands
+whose purpose in life is to increase the number of commands that can be
+bound to keys and thus easily invoked.  If you are too slow to supply the
+second character, \fBJOVE\fR displays "M\-" on the message line as a
+reminder that it wants another character.
+The default ESC\-? sequences are case insensitive (ESC\-b = ESC\-B).
+The user is of course free to change this.
+.FN Prefix\-2 ^X
+The next character typed will be interpreted on the basis that it was
+preceded by the command \fIPrefix\-2\fR.  This is one of two such commands
+whose purpose in life is to increase the number of commands that can be
+bound to keys and thus easily invoked.  If you are too slow to supply the
+second character, \fBJOVE\fR displays "C\-X" on the message line as a
+reminder that it wants another character.
+The default ^X\-? sequences are case insensitive (^X\-b = ^X\-B).
+.FN append\-region [unbound]
+Appends the region bounded by the point and mark to the named file.  If
+the file does not exist it is created.
+.FN apropos ESC\-h
+This command prompts for a keyword (or partial string) and lists all
+the commands that contain that string at the top of the screen.
+.FN backward\-character ^B
+Moves the point backward one character in the buffer.  If the point is
+at the beginning of the line, it moves it to the end of the previous line.
+.FN backward\-paren ESC\-^B
+This moves the point to the matching open parenthesis (brace) of the
+close parenthesis (brace) just before the point.  If there is no match,
+an error is reported (with a "bell")
+and the point remains unchanged.
+.FN backward\-word ESC\-b
+If in the middle of a word, the point moves to the beginning of the
+word.  Otherwise it moves the point to the beginning of the previous
+word.
+.FN beginning\-of\-file ESC\-<
+Moves the point to the beginning of the current buffer so that the
+character after the point is the first character of the buffer.
+.FN beginning\-of\-line ^A
+Moves the point to the beginning of the current line.
+.FN beginning\-of\-sentence ESC\-a
+Moves the point to the beginning of the current sentence.
+.FN beginning\-of\-window ESC\-,
+Moves the point to the first character in the window.
+.FN bind\-macro\-to\-key [unbound]
+Binds a macro to a key so that future hits on that key will run the
+macro.
+.FN bind\-to\-key [unbound]
+Binds a command to a key so that future hits on that key will run the
+command.  For example, the command \fInext\-line\fR is normally
+bound to the key
+\fB^N\fR.
+.FN buffer\-position [unbound]
+Prints the line and column of the point in the current buffer.
+.FN case\-char\-upper ^C
+Changes the next character to upper case if it is a character,
+and in any case, moves forward one character.
+.FN case\-region\-lower ^X\-^L
+Changes all the letters between the point and mark to lower case.
+.FN case\-region\-upper ^X\-^U
+Changes all the letters between the point and mark to upper case.
+.FN case\-word\-capitalize ESC\-c
+If the point is in the middle of a word, it capitalizes the letter after
+the point and changes the rest of the word to lower case.  Otherwise it
+capitalizes the first letter of the next word and changes the rest of
+the word to lower case.  In any case the point is left at the end of
+the word.
+.FN case\-word\-lower ESC\-l
+If the point is in the middle of a word, it changes the rest of the word
+to lower case.  Otherwise it changes the next word to lower case.  In
+either case the point is left at the end of the affected word.
+.FN case\-word\-upper ESC\-u
+If the point is in the middle of a word, it changes the rest of the word
+to upper case.  Otherwise it changes the next word to upper case.  In
+either case the point is left at the end of the affected word.
+.FN char\-to\-octal\-insert [unbound]
+Reads a character from the terminal and inserts its octal
+ASCII value preceded
+by a back\-slash '\\' into the text at the point.  For example if the
+character ESC is then typed, the string "\fB\\033\fR" is inserted.
+.FN clear\-and\-redraw ^L
+Clears and redraws the screen without changing
+the screen contents or position.
+This is useful if the screen gets garbaged by output from another program
+or by someone writing to you.
+.FN copy\-region ESC\-w
+Saves the region bounded by the point and mark
+in the \fIkill stack\fR.  The
+next call to \fIyank\fR will yank (insert) the region just saved.
+.FN c\-tab [unbound]
+When in \fIc\-mode\fR, the command \fIc\-tab\fR is automatically bound to
+the tab key, and when invoked, the point is tabbed to the "right" place
+for C programs.
+.FN delete\-next\-char ^D
+The character after the point is deleted and the
+right-hand portion of the line moves one position to the left,
+leaving the point unchanged.  If at the end of the line,
+the line boundary is deleted, thereby joining the current line with the next
+line.
+.FN delete\-next\-word ESC\-d
+If the point is in the middle of a word, it deletes to the end of the
+word.  Otherwise it deletes the entire next word.  In either case, the
+point doesn't move, and the deleted text is saved in the \fIkill stack\fR.
+.FN delete\-other\-windows ^X\-1
+Makes the current window
+(the window the cursor is in)
+the only window by deleting all the other
+windows.  The window grows to fill the screen as it is when the editor
+starts up.
+.FN delete\-previous\-char DELETE
+Deletes the character before the point and moves the right-hand portion
+of the line one position to the left.
+If the point is at the beginning of a line, the current
+line is joined with the previous line and the point is
+positioned after what used
+to be the end of the previous line.
+(DELETE may be labeled RUBOUT on some terminals)
+.FN delete\-previous\-word "ESC\-DELETE
+.FN "" "ESC\-^H or ^W"
+If the point is in the middle of a word, it deletes to the beginning of
+that word.  Otherwise it deletes the entire previous word.  In either
+case, the deleted text is saved in the \fIkill stack\fR.
+(DELETE may be labeled RUBOUT on some terminals)
+.FN delete\-to\-killbuffer ^X\-^K
+Deletes all the text between the point and mark, saving it in the
+\fIkill stack\fR.  This is one of the the ways to move text from one
+place in the buffer to another.  The \fIyank\fR command will insert the
+most recently deleted text at the point.  \fBJOVE\fR remembers 10 separate
+kills in a \fIkill stack\fR.
+The \fIyank\-pop\fR command can be used to go
+through the stack one at a time.
+.FN delete\-white\-space ESC\-\\\\
+Deletes all tabs and space around the point on the current line.  This
+does not cross line boundaries.
+.FN describe\-command ESC\-?
+Prompts for the name of a command and puts a description
+of what the command does
+into a buffer.
+.FN describe\-key ^X\-?
+Prompts for a key and prints the command that is bound to that key.
+.FN delete\-current\-window ^X\-d
+If there is more than one window on the screen, the current window is
+deleted and the cursor
+is moved to a neighboring window.  The space from the deleted
+window is given to the new current window.
+.FN end\-of\-file ESC\->
+Moves the point to the end of the buffer (just after the
+the last character in the buffer).
+.FN end\-of\-line ^E
+Moves the point to the end of the current line.
+.FN end\-of\-sentence ESC\-e
+Moves the point to the end of the sentence.
+.FN end\-of\-window ESC\-.
+Moves the point to the last character in the window.
+.FN erase\-buffer [unbound]
+Prompts for a buffer name, and deletes all the text in that buffer.  If
+the buffer is modified, the user is asked for confirmation.
+.FN exchange\-point\-and\-mark ^X\-^X
+Sets the mark to the point location and the point to the mark location.
+Typing this command twice is a handy way to see where the mark
+is without modifying anything.
+.FN execute\-extended\-command ESC\-x
+Prompts for a command to run using command completion.  This is how all
+commands would be run if not for the \fIbind\-to\-key\fR command. (Space
+will cause auto-command-completion, RETURN will execute the command)
+.FN execute\-keyboard\-macro [unbound]
+All the characters that were remembered with the \fIstart\-remembering\fR
+command are executed as if they were typed at the keyboard.
+.FN execute\-macro [unbound]
+This is the same as \fIexecute\-keyboard\-macro\fR except that it prompts
+for the name of a macro to execute.
+.FN exit\-jove ^X\-^C
+Exits \fBJOVE\fR.  It asks for confirmation if there are any modified buffers
+which have not been written to files (except for SCRATCH buffers).
+.FN filter\-region [unbound]
+Prompts for a UNIX command to send a region to.  The region will be
+replaced with the output from the command.  For example to format a C
+procedure, a region around the procedure could be defined and the 
+\fIfilter\-region\fR
+command used to send the region through the UNIX C
+beautifier.
+.FN find\-file ^X\-^F or ^X-^V
+Prompts for a file to find.  If that file is not already in a buffer, it
+creates a new buffer and reads the file into that buffer.  If the
+file is already in another buffer, that buffer will be selected instead.
+In any event the current buffer becomes
+the buffer with that file in it.
+.FN find\-file\-in\-other\-window ^X\-4
+Do a \fIfind-file\fR into another window.  If there is only one window, it is
+split.  If there is more than one window, one of the windows that is
+not the current window is used instead.
+.FN find\-tag ^X\-^T
+Finds the file with the C tag which is prompted for.  The UNIX program
+\fBctags(1)\fR should be used to create a database with the necessary
+information to find the file which contains the tag.  If the tag cannot
+be found, the point and buffer are unchanged and no new files are read in.
+.FN first\-non\-blank ESC\-m
+Moves the point to the first non-blank character in the current line.
+.FN forward\-char ^F
+Moves the point forward one character in the buffer.  If at the end of
+the current line the point is moved to the beginning of the next line.
+.FN forward\-paren ESC\-^F
+Moves the point to the matching close parenthesis (brace) of the open
+parenthesis (brace) right after the point.  If there is no match,
+an error is reported and the point remains unchanged.
+.FN forward\-word ESC\-f
+If the point is in the middle of a word, it moves to the end of the
+current word.  Otherwise it moves to the end of the next word.
+.FN four\-times ^U
+Multiply the numeric argument by four.  The sequence \fB^U\-^U\-^N\fR runs
+the command \fInext\-line\fR 16 times.
+.FN goto\-line ESC\-g
+Moves the point to the numeric argument line in the buffer.  If no
+argument is supplied, the point moves to the first line in the
+buffer.
+.FN grow\-window ^X\-^
+Makes the current window one line larger if it can.  There has to be more
+than one window, and the window which would get smaller has to be big
+enough to get smaller.
+.FN i\-search\-forward "^S or ^\\\\"
+Incremental search forward.  This is an interactive search command.
+It prompts for a search string (without containing search patterns)
+and starts searching forwards with each character typed
+to find the next line
+with that (growing) pattern.
+Once started, ^S or ^\\ will search forward for the next
+occurrence of the current
+pattern, ^R will search backward for the
+previous occurrence of the current pattern, ^H or DELETE will shorten
+the pattern, ^G will end the search and return to the starting
+point, and any other character will stop the search without returning
+to the starting point.  Carriage return will terminate the search
+and leave the cursor at its current position.
+.FN i\-search\-reverse ^R
+Incremental search reverse.  This is an interactive search command.
+It prompts for a search string (without containing search patterns)
+and starts searching backwards with each character typed
+to find the next line
+with that (growing) pattern.
+Once started, ^S or ^\\ will search forward for the next
+occurrence of the current
+pattern, ^R will search backward for the
+previous occurrence of the current pattern, ^H or DELETE will shorten
+the pattern, ^G will end the search and return to the starting
+point, and any other character will stop the search without returning
+to the starting point.  Carriage return will terminate the search
+and leave the cursor at its current position.
+.FN insert\-file ^X\-^I
+If the named file exists and can be read, its contents are inserted
+into the current buffer at the point.  Otherwise an error is reported
+and the point is unchanged.
+.FN init\-bindings [unbound]
+Initialize the bindings to the way they were at the beginning of the
+edit session.
+.FN justify\-paragraph ESC\-j
+Justifies a paragraph surrounding the point.
+Paragraphs are bounded by
+blank lines or lines that begin with a period (such as NROFF control lines).
+The \fImargin\-length\fR variable determines the length of each
+line in the paragraph.
+.FN kill\-buffer ^X\-k
+Deletes a named buffer.  This command is not reversible; once the
+buffer is deleted, it is gone forever.  It is useful when the editor
+runs out of space and there is a buffer which you no longer need.
+.FN kill\-to\-end\-of\-line ^K
+Kill all the text from the point to the end of the line.  If the point
+is at the end of the line, the current line is joined with the next
+line.  If a numeric count is given, the next count lines are deleted.
+The saved text can be yanked back with the \fIyank\fR command (see
+\fIdelete\-to\-killbuffer\fR).  If this command is run several times in a
+row all the kills are merged into
+the same \fIkill stack\fR entry; thus running
+the yank command will yank all of them back instead of just the last
+one.
+.FN list\-buffers ^X\-^B
+Creates a buffer called \fIBuffer list\fR that contains a list of all
+the buffers
+that \fBJOVE\fR currently knows about.  Each line tells each buffer's
+number, type, associated file, name, and a \fB*\fR if the
+buffer has been modified.
+.FN make ^X\-^E
+Writes all the modified buffers and runs the UNIX program \fImake\fR
+with output captured in
+a buffer called \fBErrors\fR.  After the make is completed, the
+buffer is parsed for CC-style error messages to be used by the
+\fInext\-error\fR command.
+.FN make\-buffer\-unmodified ESC\-~
+Makes the editor forget that the buffer has been modified.  The \fB*\fR
+on the mode line will disappear.
+.FN name\-keyboard\-macro [unbound]
+A new macro is defined with the name supplied by the user.  The current
+definition of the keyboard macro is copied into this new macro, making
+it possible to then
+change the keyboard macro without losing the old version.
+Now it is possible to run the new macro by binding the macro to a key,
+or with the \fIexecute\-macro\fR command.  Note that only named macros
+are saved with the \fIwrite\-macros\-to\-file\fR command, so to remember
+macros from one \fBJOVE\fR
+execution to another, one must give the macro a name, execute
+the \fIwrite\-macros\-to\-file\fR command, and upon invocation of a new
+\fBJOVE\fR the \fIread\-macros\-from\-file\fR command should be executed.
+.FN newline RETURN
+Divides the current line at the point moving the point to the beginning
+of the newly created line.  It is usually bound to the RETURN key.
+.FN newline\-and\-backup ^O
+Divides the current line at the point like the \fInewline\fR command, but
+leaves the point unchanged.  Sometimes called "opening" a line.
+.FN newline\-and\-indent NEWLINE
+Same as \fInewline\fR except that it inserts white space at the
+beginning of the newline copying the indent of the previous line.
+.FN next\-error ^X\-^N
+Takes the next error message
+(as returned by the commands \fIparse\-C\-errors\fI
+and \fIparse\-LINT\-errors\fR), finds
+the file in which the error occurred, and sets the the point to the line
+on which the error occurred.  The error message will be displayed at the
+top of the \fBErrors\fR buffer.  (The \fImake\fR command
+automatically runs the \fIparse\-C\-errors\fR and the \fInext\-error\fR
+commands).
+.FN next\-line ^N
+Moves the point to the next line keeping the column as close to
+the "current"
+column as possible.
+.FN next\-page ^V
+Puts the bottom line of the window at the top of the window, moving the
+point to the top of the window and to the beginning of the line.
+.FN next\-window ^X\-n
+Moves to the next window in the screen.  If the current window is the
+last window, it moves to the first window.  It is an error to
+attempt to move to the
+next window when there is only one window on the screen.
+.FN number\-lines\-in\-window [unbound]
+Each line in the current window is displayed with its line number to
+the left.  The line
+numbers are not part of the buffer and will disappear when
+this command is executed again (it toggles).
+.FN page\-next\-window ESC\-^V
+This command does a \fInext\-page\fR on the next window.  If there is
+only one window the editor complains.
+.FN paren\-flash [unbound]
+When the variable \fIshow\-match\fR is non\-zero, the close
+parenthesis/brace keys are bound to this command.  When invoked, this
+command inserts the character typed and temporarily
+moves the cursor to the
+matching open parenthesis/brace for about one second.
+.FN parse\-C\-errors [unbound]
+This command takes C compiler (or similar in format) errors and sets
+the editor up for subsequent invocations of the \fInext\-error\fR
+command.  Giving the UNIX command \fBgrep(1)\fR the \fB\-n\fR option prints
+its output in the same format as C compiler
+error messages, thus running
+\fBgrep \-n\fR into a buffer makes it possible to parse its output.
+This is a
+very useful way to look at all the occurrences of certain strings in
+several files.
+.FN parse\-LINT\-errors [unbound]
+This is the same as \fIparse\-C\-errors\fR
+except that it parses \fBlint\fR(1) errors.
+.FN pause\-jove ESC\-p
+If the system has the Berkeley job control features, control is
+returned to the superior shell.  Otherwise an inferior shell is spawned.
+.FN previous\-line ^P
+Moves the point to the previous line trying to keep the column the
+same.
+.FN previous\-page ESC\-v
+Moves the top line of the window to the bottom line, leaving the point
+at the top of the window and at the beginning of the top line.
+.FN previous\-window ^X\-p
+Move to the previous window in the screen.  If currently in the first
+window, moves to the last window.  It is an error 
+to attempt to move to the previous
+window when there is only one window on the screen.
+.FN print [unbound]
+Prompts for a variable name and prints its value.
+(See "Variables and Modes" later in this document.)
+.FN query\-replace\-search ESC\-q
+Upon receipt of a search and a
+replacement string, the editor replaces all
+occurrences of the search string with the replacement string.  For each
+occurrence the editor asks the user what to do.  The choices are:
+.nf
+.sp 1
+.ta 1i 2.5i
+	' ' or 'y'	to replace this occurrence.
+	'.'	to replace and stop.
+	DELETE or 'n'	to skip this occurrence.
+	'r'	to recursive edit.
+	'p'	to proceed to replace all occurrences.
+	RETURN	to stop.
+.ta 4.5i
+.sp 1
+.fi
+When there are no more occurrences, the point is moved back to its
+initial position.  Recursive edit makes it possible to temporarily
+suspend the \fIquery\-replace\-search\fR, let the user go off and do
+some editing, and then return to the search after the editing is
+finished.  Executing the command \fIexit\-jove\fR returns from the
+recursive edit.
+.FN quote\-char "^Q or ^~"
+Quotes the next character typed for insertion.  This is used to insert
+special characters which otherwise would be interpreted as commands.
+The second version (^~) is included for terminals that may usurp ^Q
+for flow control purposes.
+.FN read\-file ^X\-^R
+Prompts for a file to read into the current buffer.  It will erase the
+old contents, so if the buffer has been modified but not saved \fBJOVE\fR
+complains and asks for confirmation.
+.FN read\-macros\-from\-file [unbound]
+Prompts for a file that was previously written with the
+\fIwrite\-macros\-to\-file\fR command, and reads
+the macros back into the editor.
+.FN redraw\-display ESC\-^L
+Redraws the window with the current line in the middle
+of the window.  If a numeric
+argument is provided the current line is moved to the \fIargument\fR
+line. If the current line is in the same place as before, the window is
+cleared and redrawn.
+.FN reinitialize\-terminal [unbound]
+If the value of the variable \fIallow\-^S\-and\-^Q\fR is changed, this
+command should be called to make the necessary changes to the terminal.
+.FN replace\-search ESC\-^E
+This is the same as \fIquery\-replace\-search\fR except the editor does
+not ask whether to replace matched strings; it always does.
+.FN ring\-the\-bell ^G
+Exactly what is says.  It is useful when it is not apparent what the
+editor is currently doing.
+If a prompt or prefix is active, this key
+also aborts the command in progress.
+.FN scroll\-down ESC\-z
+Scrolls the current window down one line.  If the current line moves off the
+bottom of the window, the cursor is moved to the middle of the window.
+.FN scroll\-up ^Z
+Scrolls the current window up one line.  If the current line moves off
+the top of the window, the cursor is moved to the middle of the
+window.
+.FN search\-forward ESC\-s
+Prompts for a string to search for and searches for the next instance of
+that string in the buffer (see \fBSearching\fR above).
+The second version (^\\) is included for terminals that may usurp ^S
+for flow control purposes.
+.FN search\-reverse ESC\-r
+Prompts for a string to search for and searches for the previous instance
+of that string in the buffer (see \fBSearching\fR above).
+.FN select\-buffer ^X\-b
+Prompts for a buffer name and makes that buffer the current buffer.  If
+the buffer does not exist, a new buffer is created with nothing in
+it.  If a number is supplied instead of a name and a buffer exists with
+that number, that buffer is selected.  Otherwise, a new buffer is created
+with that number as a name.
+.FN self\-insert [very\-bound]
+This is bound to all the keys that should be inserted when typed.  This
+command does not work unless bound to a key.  Running this command
+manually will probably cause a random character to be inserted.
+.FN set [unbound]
+Prompts for a variable name and a value, and sets the variable to that
+value.
+.FN set\-mark "^@ or ^SPACE"
+Sets the mark to the current buffer location.
+Which of the two commands you use will depend on your terminal.
+.FN set\-quote\-chars [unbound]
+Prompts for a string of characters to be used as the
+quote characters that will invoke the function "quote\-char".
+The characters ^Q and ^~ are the default quote characters.
+.FN shell\-command ^X\-!
+Prompts for a UNIX shell command to be run, placing the output from the
+command into a buffer called the name of the command.  If a numeric
+argument is provided, the buffer is left alone before the UNIX command
+is started.  Otherwise the buffer is emptied.
+.FN shell\-command\-to\-buffer [unbound]
+The same as \fIshell\-command\fR except that it asks for a specific buffer
+to place the output in instead of a buffer called the name of the command.
+.FN source [unbound]
+This prompts for a file name which contains editor
+commands.  These commands typically set variables or bind commands to
+keys.  Running \fIsource\fR
+on a file which does not have editor commands in
+it will very likely cause the editor to crash.
+.FN shrink\-window [unbound]
+Shrink the current window by one line if the resulting window would not
+be too small.  It is an error to run this command when there is only one
+window.
+.FN spell\-buffer [unbound]
+Sends the entire buffer to the UNIX spell program.  \fBJOVE\fR will go through
+the list of spelling errors and asks whether or not a word is spelled
+correctly.  If it is not, \fBJOVE\fR remembers where each occurrence of the
+misspelled word is.  The point in the buffer being spelled is positioned
+at the end of the current misspelled word. The \fInext\-error\fR command
+moves to the next occurrence of the current word, or to the first
+occurrence of the next word.
+.FN split\-current\-window ^X\-2
+Splits the current window into two smaller windows, if the resulting
+windows would not be too small.  The two windows have the same buffer
+associated with them, namely the one that the original window had.
+.FN start\-remembering [unbound]
+This tells \fBJOVE\fR to start remembering all the following keystrokes until
+the \fIstop\-remembering\fR
+command is executed.  The saved commands are saved
+as the keyboard macro, and can be re\-executed with the
+\fIexecute\-keyboard\-macro\fR command.  This is useful when it is
+necessary to run the same command lots of times.
+.FN stop\-remembering [unbound]
+This terminates the definition of a macro.  See \fIstart\-remembering\fR
+for more details.
+.FN string\-length ^X\-c
+Prints, on the message line, the number of characters between two
+quotes. The point must be between two quotes or the editor
+complains.
+.FN sub\-shell ESC\-!
+Causes \fBJOVE\fR to suspend and fork an interactive subshell.  When
+the subshell exits, \fBJOVE\fR will redraw the screen and pick
+up where it left off.  If the SHELL environment variable is
+set, the program referenced by it will be used as the shell to be run,
+otherwise /bin/sh will be used.
+.FN suspend\-jove [unbound]
+Same as \fIpause\-jove\fR.
+.FN text\-insert [unbound]
+When the variable \fItext\-fill\fR is non-zero, the self-insert keys
+are bound to this command.  This inserts characters like \fIself\-insert\fR
+does but when the line gets to a certain length, a newline is automatically
+inserted before the word being typed.
+This makes it possible to type in a paper without having to
+remember to hit return, i.e the editor does it automatically.
+.FN transpose\-char ^T
+Exchanges the characters on opposite sides of the point, namely the
+character before the cursor and the character under the cursor.
+.FN unbound [unbound]
+The \fIunbound\fR function is bound to all the keys that don't run
+commands.  It is essentially a no-op.
+.FN vt100\-arrow\-keys ESC\-[
+This makes the arrow keys work on the vt100 terminal.  This is a special
+command that looks at the next character and performs the appropriate
+action.  Users of terminals other than vt100's will not need to use this
+command and vt100 users will only use it implicitly via the arrow keys.
+.FN write\-current\-file "^X\-^S or ^X\-^\\\\"
+This writes the current buffer to the file associated with the buffer,
+without asking.  If there is currently no file associated with the
+buffer, the editor complains. (See the \fIwrite\-named\-file\fR command
+below).
+The second version (^X\-^\\) is included for terminals that may usurp ^S
+for flow control purposes.
+.FN write\-macros\-to\-file [unbound]
+Prompts for a file and writes all the currently defined macros to that
+file.  The macros can be read back into the editor with the
+\fIread\-macros\-from\-file\fR command.
+.FN write\-modified\-files "^X\-^M or ^X\-RETURN"
+Writes all the buffers that have been modified but not been saved.
+A numeric argument causes each modified buffer to be displayed
+in turn and asks for confirmation before writing
+(except for SCRATCH buffers).
+.FN write\-named\-file ^X\-^W
+Prompts for a file name and writes the current buffer to that file. If
+the file already exists and is not the current file name, the user is
+informed and asked if he really wants to do it.  Writing a file erases
+the old contents of the file.
+.FN write\-region [unbound]
+Takes the region between the point and the mark and writes it to a named
+file.
+.FN yank ^Y
+Inserts, at the point, all the text that was most recently deleted with
+a delete command that saves the text it deleted to the \fIkill stack\fR.  The
+point moves to the end of the inserted region.
+.FN yank\-pop ESC\-y
+Goes through the \fIkill stack\fR inserting each entry one at a time,
+substituting it for the previous \fIyank-pop\fR insertion.
+The
+previous command has to have been the \fIyank\fR command or the
+\fIyank\-pop\fR command.
+//E*O*F commands.1//
+
+echo x - describe.com
+cat > "describe.com" << '//E*O*F describe.com//'
+
+     Prefix-1                                     ESC
+     The next character typed will be interpreted  on  the  basis
+     that  it  was preceded by the command Prefix-1.  This is one
+     of two such commands whose purpose in life  is  to  increase
+     the  number  of  commands that can be bound to keys and thus
+     easily invoked.  If you are too slow to  supply  the  second
+     character,  JOVE displays "M-" on the message line as a rem-
+     inder that it wants another character.   The  default  ESC-?
+     sequences are case insensitive (ESC-b = ESC-B).  The user is
+     of course free to change this.
+
+     Prefix-2                                     ^X
+     The next character typed will be interpreted  on  the  basis
+     that  it  was preceded by the command Prefix-2.  This is one
+     of two such commands whose purpose in life  is  to  increase
+     the  number  of  commands that can be bound to keys and thus
+     easily invoked.  If you are too slow to  supply  the  second
+     character, JOVE displays "C-X" on the message line as a rem-
+     inder that it wants another character.  The default ^X-? se-
+     quences are case insensitive (^X-b = ^X-B).
+
+     append-region                                [unbound]
+     Appends the region bounded by the  point  and  mark  to  the
+     named file.  If the file does not exist it is created.
+
+     apropos                                      ESC-h
+     This command prompts for a keyword (or partial  string)  and
+     lists  all  the commands that contain that string at the top
+     of the screen.
+
+     backward-character                           ^B
+     Moves the point backward one character in  the  buffer.   If
+     the  point  is  at the beginning of the line, it moves it to
+     the end of the previous line.
+
+     backward-paren                               ESC-^B
+     This moves  the  point  to  the  matching  open  parenthesis
+     (brace)  of  the  close  parenthesis (brace) just before the
+     point.  If there is no match, an error is reported  (with  a
+     "bell") and the point remains unchanged.
+
+     backward-word                                ESC-b
+     If in the middle of a word, the point moves to the beginning
+     of  the word.  Otherwise it moves the point to the beginning
+     of the previous word.
+
+     beginning-of-file                            ESC-<
+     Moves the point to the beginning of the  current  buffer  so
+     that the character after the point is the first character of
+     the buffer.
+
+     beginning-of-line                            ^A
+     Moves the point to the beginning of the current line.
+
+     beginning-of-sentence                        ESC-a
+     Moves the point to the beginning of the current sentence.
+
+     beginning-of-window                          ESC-,
+     Moves the point to the first character in the window.
+
+     bind-macro-to-key                            [unbound]
+     Binds a macro to a key so that future hits on that key  will
+     run the macro.
+
+     bind-to-key                                  [unbound]
+     Binds a command to a key so that future  hits  on  that  key
+     will run the command.  For example, the command next-line is
+     normally bound to the key ^N.
+
+     buffer-position                              [unbound]
+     Prints the line and column  of  the  point  in  the  current
+     buffer.
+
+     case-region-lower                            ^X-^L
+     Changes all the letters between the point and mark to  lower
+     case.
+
+     case-region-upper                            ^X-^U
+     Changes all the letters between the point and mark to  upper
+     case.
+
+     case-word-capitalize                         ESC-c
+     If the point is in the middle of a word, it capitalizes  the
+     letter  after  the point and changes the rest of the word to
+     lower case.  Otherwise it capitalizes the  first  letter  of
+     the  next  word  and  changes  the rest of the word to lower
+     case.  In any case the point is left at the end of the word.
+
+     case-word-lower                              ESC-l
+     If the point is in the middle of a word, it changes the rest
+     of  the  word  to lower case.  Otherwise it changes the next
+     word to lower case.  In either case the point is left at the
+     end of the affected word.
+
+     case-word-upper                              ESC-u
+     If the point is in the middle of a word, it changes the rest
+     of  the  word  to upper case.  Otherwise it changes the next
+     word to upper case.  In either case the point is left at the
+     end of the affected word.
+
+     char-to-octal-insert                         [unbound]
+     Reads a character from the terminal and  inserts  its  octal
+     ASCII  value  preceded  by a back-slash '\' into the text at
+     the point.  For example if the character ESC is then  typed,
+     the string "\033" is inserted.
+
+     clear-and-redraw                             ^L
+     Clears and redraws the screen without  changing  the  screen
+     contents  or  position.   This  is useful if the screen gets
+     garbaged by output from another program or by someone  writ-
+     ing to you.
+
+     copy-region                                  ESC-w
+     Saves the region bounded by the point and mark in  the  kill
+     stack.   The next call to yank will yank (insert) the region
+     just saved.
+
+     c-tab                                        [unbound]
+     When in c-mode, the command c-tab is automatically bound  to
+     the  tab  key,  and when invoked, the point is tabbed to the
+     "right" place for C programs.
+
+     delete-next-char                             ^D
+     The character after the point is deleted and the  right-hand
+     portion  of the line moves one position to the left, leaving
+     the point unchanged.  If at the end of the  line,  the  line
+     boundary  is  deleted, thereby joining the current line with
+     the next line.
+
+     delete-next-word                             ESC-d
+     If the point is in the middle of a word, it deletes  to  the
+     end of the word.  Otherwise it deletes the entire next word.
+     In either case, the point doesn't move, and the deleted text
+     is saved in the kill stack.
+
+     delete-other-windows                         ^X-1
+     Makes the current window (the window the cursor is  in)  the
+     only  window  by deleting all the other windows.  The window
+     grows to fill the screen as it is when the editor starts up.
+
+     delete-previous-char                         DELETE
+     Deletes the character before the point and moves the  right-
+     hand  portion  of the line one position to the left.  If the
+     point is at the beginning of a line,  the  current  line  is
+     joined  with  the  previous line and the point is positioned
+     after what used to be the end of the previous line.  (DELETE
+     may be labeled RUBOUT on some terminals)
+
+     delete-previous-word                         ESC-DELETE
+     If the point is in the middle of a word, it deletes  to  the
+     beginning  of  that  word.   Otherwise it deletes the entire
+     previous word.  In either case, the deleted text is saved in
+     the  kill stack.  (DELETE may be labeled RUBOUT on some ter-
+     minals)
+
+     delete-to-killbuffer                         ^X-^K
+     Deletes all the text between the point and mark,  saving  it
+     in the kill stack.  This is one of the the ways to move text
+     from place in the buffer to another.  The yank command  will
+     insert  the  most  recently deleted text at the point.  JOVE
+     remembers 10 separate kills in a kill stack.   The  yank-pop
+     command can be used to go through the stack one at a time.
+
+     delete-white-space                           ESC-\
+     Deletes all tabs and space around the point on  the  current
+     line.  This does not cross line boundaries.
+
+     describe-command                             [unbound]
+     Prompts for the name of a command and puts a description  of
+     what the command does into a buffer.
+
+     describe-key                                 [unbound]
+     Prompts for a key and prints the command that  is  bound  to
+     that key.
+
+     delete-current-window                        ^X-d
+     If there is more than one window on the screen, the  current
+     window  is  deleted and the cursor is moved to a neighboring
+     window.  The space from the deleted window is given  to  the
+     new current window.
+
+     end-of-file                                  ESC->
+     Moves the point to the end of the buffer (just after the the
+     last character in the buffer).
+
+     end-of-line                                  ^E
+     Moves the point to the end of the current line.
+
+     end-of-sentence                              ESC-e
+     Moves the point to the end of the sentence.
+
+     end-of-window                                ESC-.
+     Moves the point to the last character in the window.
+
+     erase-buffer                                 [unbound]
+     Prompts for a buffer name, and deletes all the text in  that
+     buffer.   If  the  buffer is modified, the user is asked for
+     confirmation.
+
+     exchange-point-and-mark                      ^X-^X
+     Sets the mark to the point location and  the  point  to  the
+     mark  location.  Typing this command twice is a handy way to
+     see where the mark is without modifying anything.
+
+     execute-extended-command                     ESC-x
+     Prompts for a command to run using command completion.  This
+     is  how all commands would be run if not for the bind-to-key
+     command. (Space will cause  auto-command-completion,  RETURN
+     will execute the command)
+
+     execute-keyboard-macro                       [unbound]
+     All  the  characters   that   were   remembered   with   the
+     start-remembering command are executed as if they were typed
+     at the keyboard.
+
+     execute-macro                                [unbound]
+     This is the same as execute-keyboard-macro  except  that  it
+     prompts for the name of a macro to execute.
+
+     exit-jove                                    ^X-^C
+     Exits JOVE.  It asks for confirmation if there are any modi-
+     fied  buffers  which  have not been written to files (except
+     for SCRATCH buffers).
+
+     filter-region                                [unbound]
+     Prompts for a UNIX command to send a region to.  The  region
+     will  be replaced with the output from the command.  For ex-
+     ample to format a C procedure, a region around the procedure
+     could  be defined and the filter-region command used to send
+     the region through the UNIX C beautifier.
+
+     find-file                                    ^X-^F
+     Prompts for a file to find.  If that file is not already  in
+     a  buffer,  it  creates a new buffer and reads the file into
+     that buffer.  If the file is already in another buffer, that
+     buffer  will  be selected instead.  In any event the current
+     buffer becomes the buffer with that file in it.
+
+     find-file-in-other-window                    ^X-4
+     Do a find-file into another window.  If there  is  only  one
+     window,  it is split.  If there is more than one window, one
+     of the windows that is not the current window  is  used  in-
+     stead.
+
+     find-tag                                     ^X-^T
+     Finds the file with the C tag which is  prompted  for.   The
+     UNIX  program  ctags(1)  should be used to create a database
+     with the necessary information to find the file  which  con-
+     tains  the  tag.   If the tag cannot be found, the point and
+     buffer are unchanged and no new files are read in.
+
+     first-non-blank                              ESC-m
+     Moves the point to the  first  non-blank  character  in  the
+     current line.
+
+     forward-char                                 ^F
+     Moves the point forward one character in the buffer.  If  at
+     the end of the current line the point is moved to the begin-
+     ning of the next line.
+
+     forward-paren                                ESC-^F
+     Moves the point to the matching close parenthesis (brace) of
+     the  open  parenthesis  (brace)  right  after the point.  If
+     there is no match,  an  error  is  reported  and  the  point
+     remains unchanged.
+
+     forward-word                                 ESC-f
+     If the point is in the middle of a word, it moves to the end
+     of  the  current word.  Otherwise it moves to the end of the
+     next word.
+
+     four-times                                   ^U
+     Multiple  the  numeric  argument  by  four.   The   sequence
+     ^U-^U-^N runs the command next-line 16 times.
+
+     goto-line                                    ESC-g
+     Moves the point to the numeric argument line in the  buffer.
+     If  no  argument  is  supplied, the point moves to the first
+     line in the buffer.
+
+     grow-window                                  ^X-^
+     Makes the current window one line larger if it  can.   There
+     has  to  be more than one window, and the window which would
+     get smaller has to be big enough to get smaller.
+
+     i-search-forward                             ^S or ^\
+     Incremental search forward.  This is an  interactive  search
+     command.  It prompts for a search string (without containing
+     search patterns) and starts  searching  forwards  with  each
+     character  typed  to  find the next line with that (growing)
+     pattern.  Once started, ^S or ^\ will search forward for the
+     next occurrence of the current pattern, ^R will search back-
+     ward for the previous occurrence of the current pattern,  ^H
+     or  DELETE  will shorten the pattern, ^G will end the search
+     and return to the starting point, and  any  other  character
+     will  stop  the  search  without  returning  to the starting
+     point.
+
+     i-search-reverse                             ^R
+     Incremental search reverse.  This is an  interactive  search
+     command.  It prompts for a search string (without containing
+     search patterns) and starts searching  backwards  with  each
+     character  typed  to  find the next line with that (growing)
+     pattern.  Once started, ^S or ^\ will search forward for the
+     next occurrence of the current pattern, ^R will search back-
+     ward for the previous occurrence of the current pattern,  ^H
+     or  DELETE  will shorten the pattern, ^G will end the search
+     and return to the starting point, and  any  other  character
+     will  stop  the  search  without  returning  to the starting
+     point.
+
+     insert-file                                  ^X-^I
+     If the named file exists and can be read, its  contents  are
+     inserted into the current buffer at the point.  Otherwise an
+     error is reported and the point is unchanged.
+
+     init-bindings                                [unbound]
+     Initialize the bindings to the way they were at  the  begin-
+     ning of the edit session.
+
+     justify-paragraph                            ESC-j
+     Justifies a paragraph surrounding the point.  Paragraphs are
+     bounded  by  blank  lines  or lines that begin with a period
+     (such as NROFF control lines).  The  margin-length  variable
+     determines the length of each line in the paragraph.
+
+     kill-buffer                                  ^X-k
+     Deletes a named buffer.  This  command  is  not  reversible;
+     once  the buffer is deleted, it is gone forever.  It is use-
+     ful when the editor runs out of space and there is a  buffer
+     which you no longer need.
+
+     kill-to-end-of-line                          ^K
+     Kill all the text from the point to the end of the line.  If
+     the  point  is  at  the end of the line, the current line is
+     joined with the next line.  If a numeric count is given, the
+     next  count lines are deleted.  The saved text can be yanked
+     back with the yank command (see  delete-to-killbuffer).   If
+     this command is run several times in a row all the kills are
+     merged into the same kill stack entry; thus running the yank
+     command  will yank all of them back instead of just the last
+     one.
+
+     list-buffers                                 ^X-^B
+     Creates a buffer called Buffer list that contains a list  of
+     all  the buffers that JOVE currently knows about.  Each line
+     tells each buffer's number, type, associated file, name, and
+     a * if the buffer has been modified.
+
+     make                                         ^X-^E
+     Writes all the modified buffers and runs  the  UNIX  program
+     make  with output captured in a buffer called Errors.  After
+     the make is completed, the buffer is parsed for CC-style er-
+     ror messages to be used by the next-error command.
+
+     make-buffer-unmodified                       ESC-~
+     Makes the editor forget that the buffer has  been  modified.
+     The * on the mode line will disappear.
+
+     name-keyboard-macro                          [unbound]
+     A new macro is defined with the name supplied by  the  user.
+     The  current definition of the keyboard macro is copied into
+     this new macro, making it possible to then change  the  key-
+     board  macro without losing the old version.  Now it is pos-
+     sible to run the new macro by binding the macro to a key, or
+     with the execute-macro command.  Note that only named macros
+     are saved  with  the  write-macros-to-file  command,  so  to
+     remember macros from one JOVE execution to another, one must
+     give the macro a name, execute the write-macros-to-file com-
+     mand,    and   upon   invocation   of   a   new   JOVE   the
+     read-macros-from-file command should be executed.
+
+     newline                                      RETURN
+     Divides the current line at the point moving  the  point  to
+     the  beginning  of  the  newly  created line.  It is usually
+     bound to the RETURN key.
+
+     newline-and-backup                           ^O
+     Divides the current line at the point like the newline  com-
+     mand,  but  leaves  the  point  unchanged.  Sometimes called
+     "opening" a line.
+
+     newline-and-indent                           NEWLINE
+     Same as newline except that it inserts white  space  at  the
+     beginning  of the newline copying the indent of the previous
+     line.
+
+     next-error                                   ^X-^N
+     Takes the next error message (as returned  by  the  commands
+     parse-C-errors  and  parse-LINT-errors),  finds  the file in
+     which the error occurred, and sets the the point to the line
+     on  which  the  error  occurred.   The error message will be
+     displayed at the top of the Errors buffer.  (The  make  com-
+     mand   automatically   runs   the   parse-C-errors  and  the
+     next-error commands).
+
+     next-line                                    ^N
+     Moves the point to the next line keeping the column as close
+     to the "current" column as possible.
+
+     next-page                                    ^V
+     Puts the bottom line of the window at the top of the window,
+     moving  the point to the top of the window and to the begin-
+     ning of the line.
+
+     next-window                                  ^X-n
+     Moves to the next window in the screen.  If the current win-
+     dow is the last window, it moves to the first window.  It is
+     an error to attempt to move to the next window when there is
+     only one window on the screen.
+
+     number-lines-in-window                       [unbound]
+     Each line in the current window is displayed with  its  line
+     number  to  the  left.  The line numbers are not part of the
+     buffer and will disappear  when  this  command  is  executed
+     again (it toggles).
+
+     page-next-window                             ESC-^V
+     This command does a next-page on the next window.  If  there
+     is only one window the editor complains.
+
+     paren-flash                                  [unbound]
+     When  the  variable  show-match  is  non-zero,   the   close
+     parenthesis/brace  keys are bound to this command.  When in-
+     voked, this command inserts the  character  typed  and  tem-
+     porarily   moves   the   cursor   to   the   matching   open
+     parenthesis/brace for about one second.
+
+     parse-C-errors                               [unbound]
+     This command takes C compiler (or similar in format)  errors
+     and  sets  the  editor  up for subsequent invocations of the
+     next-error command.  Giving the UNIX command grep(1) the  -n
+     option  prints  its  output in the same format as C compiler
+     error messages, thus running grep -n into a buffer makes  it
+     possible  to parse its output.  This is a very useful way to
+     look at all the occurrences of certain  strings  in  several
+     files.
+
+     parse-LINT-errors                            [unbound]
+     This is the same as parse-C-errors  except  that  it  parses
+     lint(1) errors.
+
+     pause-jove                                   ESC-p
+     If the system has the Berkeley job control features, control
+     is  returned  to  the superior shell.  Otherwise an inferior
+     shell is spawned.
+
+     previous-line                                ^P
+     Moves the point to the previous  line  trying  to  keep  the
+     column the same.
+
+     previous-page                                ESC-v
+     Moves the top line of the window to the bottom line, leaving
+     the  point  at the top of the window and at the beginning of
+     the top line.
+
+     previous-window                              ^X-p
+     Move to the previous window in the screen.  If currently  in
+     the  first window, moves to the last window.  It is an error
+     to attempt to move to the previous window when there is only
+     one window on the screen.
+
+     print                                        [unbound]
+     Prompts for a variable name  and  prints  its  value.   (See
+     "Variables and Modes" later in this document.)
+
+     query-replace-search                         ESC-q
+     Upon receipt of a search and a replacement string, the  edi-
+     tor  replaces  all occurrences of the search string with the
+     replacement string.  For each occurrence the editor asks the
+     user what to do.  The choices are:
+
+               ' ' or 'y'     to replace this occurrence.
+               '.'            to replace and stop.
+               DELETE or 'n'  to skip this occurrence.
+               'r'            to recursive edit.
+               'p'            to proceed to replace all occurrences.
+               RETURN         to stop.
+
+     When there are no more occurrences, the point is moved  back
+     to  its  initial position.  Recursive edit makes it possible
+     to temporarily suspend  the  query-replace-search,  let  the
+     user  go  off  and  do  some editing, and then return to the
+     search after the editing is finished.  Executing the command
+     exit-jove returns from the recursive edit.
+
+     quote-char                                   ^Q or ^~
+     Quotes the next character typed for insertion.  This is used
+     to insert special characters which otherwise would be inter-
+     preted as commands.  The second version (^~) is included for
+     terminals that may usurp ^Q for flow control purposes.
+
+     read-file                                    ^X-^R
+     Prompts for a file to read into the current buffer.  It will
+     erase  the  old contents, so if the buffer has been modified
+     but not saved JOVE complains and asks for confirmation.
+
+     read-macros-from-file                        [unbound]
+     Prompts for a file that  was  previously  written  with  the
+     write-macros-to-file command, and reads the macros back into
+     the editor.
+
+     redraw-display                               ESC-^L
+     Redraws the window with the current line in  the  middle  of
+     the  window.   If a numeric argument is provided the current
+     line is moved to the argument line. If the current  line  is
+     in  the  same  place  as  before,  the window is cleared and
+     redrawn.
+
+     reinitialize-terminal                        [unbound]
+     If the value of the  variable  allow-^S-and-^Q  is  changed,
+     this  command should be called to make the necessary changes
+     to the terminal.
+
+     replace-search                               ESC-^E
+     This is the same as query-replace-search except  the  editor
+     does  not  ask whether to replace matched strings; it always
+     does.
+
+     ring-the-bell                                ^G
+     Exactly what is says.  It is useful when it is not  apparent
+     what  the  editor is currently doing.  If a prompt or prefix
+     is active, this key also aborts the command in progress.
+
+     scroll-one-line-down                         ESC-z
+     Scrolls the current window down one line.   If  the  current
+     line moves off the bottom of the window, the cursor is moved
+     to the middle of the window.
+
+     scroll-one-line-up                           ^Z
+     Scrolls the current window up one line.  If the current line
+     moves  off the top of the window, the cursor is moved to the
+     middle of the window.
+
+     search-forward                               ESC-s
+     Prompts for a string to search for and searches for the next
+     instance of that string in the buffer (see Searching above).
+     The second version (^\) is included for terminals  that  may
+     usurp ^S for flow control purposes.
+
+     search-reverse                               ESC-r
+     Prompts for a string to search for and searches for the pre-
+     vious  instance  of that string in the buffer (see Searching
+     above).
+
+     select-buffer                                ^X-b
+     Prompts for a buffer name and makes that buffer the  current
+     buffer.   If  the  buffer  does  not  exist, a new buffer is
+     created with nothing in it.  If a number is supplied instead
+     of  a name and a buffer exists with that number, that buffer
+     is selected.  Otherwise, a new buffer is created  with  that
+     number as a name.
+
+     self-insert                                  [very-bound]
+     This is bound to all the keys that should be  inserted  when
+     typed.   This  command  does not work unless bound to a key.
+     Running this command manually will probably cause  a  random
+     character to be inserted.
+
+     set                                          [unbound]
+     Prompts for a variable name and a value, and sets the  vari-
+     able to that value.
+
+     set-mark                                     ^@ or ^SPACE
+     Sets the mark to the current buffer location.  Which of  the
+     two commands you use will depend on your terminal.
+
+     set-quote-chars                              [unbound]
+     Prompts for a string of characters to be used as  the  quote
+     characters  that will invoke the function "quote-char".  The
+     characters ^Q and ^~ are the default quote characters.
+
+     shell-command                                ^X-!
+     Prompts for a UNIX shell command to be run, placing the out-
+     put  from  the  command into a buffer called the name of the
+     command.  If a numeric argument is provided, the  buffer  is
+     left  alone  before  the UNIX command is started.  Otherwise
+     the buffer is emptied.
+
+     shell-command-to-buffer                      [unbound]
+     The same as shell-command except that it asks for a specific
+     buffer to place the output in instead of a buffer called the
+     name of the command.
+
+     source                                       [unbound]
+     This prompts for a file name which contains editor commands.
+     These  commands  typically set variables or bind commands to
+     keys.  Running source on a file which does not  have  editor
+     commands in it will very likely cause the editor to crash.
+
+     shrink-window                                [unbound]
+     Shrink the current window by one line if the resulting  win-
+     dow would not be too small.  It is an error to run this com-
+     mand when there is only one window.
+
+     spell-buffer                                 [unbound]
+     Sends the entire buffer to the  UNIX  spell  program.   JOVE
+     will go through the list of spelling errors and asks whether
+     or not a word is spelled correctly.   If  it  is  not,  JOVE
+     remembers  where  each occurrence of the misspelled word is.
+     The point in the buffer being spelled is positioned  at  the
+     end  of  the current misspelled word. The next-error command
+     moves to the next occurrence of the current word, or to  the
+     first occurrence of the next word.
+
+     split-current-window                         ^X-2
+     Splits the current window into two smaller windows,  if  the
+     resulting  windows  would not be too small.  The two windows
+     have the same buffer associated with them,  namely  the  one
+     that the original window had.
+
+     start-remembering                            [unbound]
+     This tells JOVE to start remembering all the following keys-
+     trokes  until the stop-remembering command is executed.  The
+     saved commands are saved as the keyboard macro, and  can  be
+     re-executed  with  the execute-keyboard-macro command.  This
+     is useful when it is necessary to run the same command  lots
+     of times.
+
+     stop-remembering                             [unbound]
+     This  terminates   the   definition   of   a   macro.    See
+     start-remembering for more details.
+
+     string-length                                ^X-c
+     Prints, on  the  message  line,  the  number  of  characters
+     between  two quotes. The point must be between two quotes or
+     the editor complains.
+
+     sub-shell                                    ESC-!
+     Causes JOVE to suspend and  fork  an  interactive  subshell.
+     When  the  subshell  exits,  JOVE will redraw the screen and
+     pick up where it left off.  If the SHELL  environment  vari-
+     able  is  set,  the program referenced by it will be used as
+     the shell to be run, otherwise /bin/sh will be used.
+
+     suspend-jove                                 [unbound]
+     Same as pause-jove.
+
+     text-insert                                  [unbound]
+     When the variable text-fill  is  non-zero,  the  self-insert
+     keys  are  bound  to  this command.  This inserts characters
+     like self-insert does but when the line gets  to  a  certain
+     length,  a newline is automatically inserted before the word
+     being typed.  This makes it possible  to  type  in  a  paper
+     without  having  to  remember  to hit return, i.e the editor
+     does it automatically.
+
+     transpose-char                               ^T
+     Exchanges the characters on opposite  sides  of  the  point,
+     namely  the  character  before  the cursor and the character
+     under the cursor.
+
+     unbound                                      [unbound]
+     The unbound function is bound to all the keys that don't run
+     commands.  It is essentially a no-op.
+
+     vt100-arrow-keys                             ESC-[
+     This makes the arrow keys work on the vt100 terminal.   This
+     is  a  special  command that looks at the next character and
+     performs the appropriate action.  Users of  terminals  other
+     than  vt100's  will  not  need to use this command and vt100
+     users will only use it implicitly via the arrow keys.
+
+     write-current-file                           ^X-^S or ^X-^\
+     This writes the current buffer to the file  associated  with
+     the  buffer,  without asking.  If there is currently no file
+     associated with the buffer, the editor complains.  (See  the
+     write-named-file command below).  The second version (^X-^\)
+     is included for terminals that may usurp ^S for flow control
+     purposes.
+
+     write-macros-to-file                         [unbound]
+     Prompts for a file and writes all the currently defined mac-
+     ros to that file.  The macros can be read back into the edi-
+     tor with the read-macros-from-file command.
+
+     write-modified-files                         ^X-^M        or
+     ^X-RETURN
+     Writes all the buffers that have been modified but not  been
+     saved.
+
+     write-named-file                             ^X-^W
+     Prompts for a file name and writes  the  current  buffer  to
+     that file. If the file already exists and is not the current
+     file name, the user is informed and asked if he really wants
+     to  do  it.   Writing  a file erases the old contents of the
+     file.
+
+     write-region                                 [unbound]
+     Takes the region between the point and the mark  and  writes
+     it to a named file.
+
+     yank                                         ^Y
+     Inserts, at the point, all the text that was  most  recently
+     deleted with a delete command that saves the text it deleted
+     to the kill stack.  The point moves to the end  of  the  in-
+     serted region.
+
+     yank-pop                                     ESC-y
+     Goes through the kill stack inserting each entry  one  at  a
+     time,  substituting  if for the previous yank-pop insertion.
+     The previous command has to have been the  yank  command  or
+     the yank-pop command.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//E*O*F describe.com//
+
+echo x - jove.1
+cat > "jove.1" << '//E*O*F jove.1//'
+.de FN
+.sp 1
+\fB\\$1	\\$2\fR	\" command name, and key binding
+.sp 0	\" To fool the filling
+..
+.TH JOVE 1B
+.SH NAME
+jove \- EMACS style screen editor
+.SH SYNOPSIS
+.B jove
+[\fB\-t\fI tagname\fR] [+\fIline\fR] [\fIfile1 file2\fR ... ]
+.SH DESCRIPTION
+.ll 65
+.ad
+.PP
+\fBJOVE\fR is an interactive display oriented editor which allows one to
+modify text easily.  \fBJOVE\fR stands for \fBJonathan's Own Version of
+Emacs\fR. This editor is modeled after the EMACS written at MIT by
+Richard  Stallman.  \fBJOVE\fR has tried to stick to the conventions of real
+EMACS, but has strayed away from them in several places.  The real EMACS
+is extensible, which means the user can change the way the editor
+behaves to his own liking. He can do this by changing the commands that
+each key invokes or by writing new commands.  Although new commands
+cannot be written in \fBJOVE\fR, existing commands can be \fIbound\fR
+to any key or commands can be combined into a \fImacro\fR that can
+be invoked like a standard command.
+There are several concepts a user needs to understand before
+he can use the editor to his full advantage. The three most important
+are \fIbuffers\fR, \fIwindows\fR, and \fIcommand binding\fR.
+.SH Buffers and Files
+.PP
+In most cases, \fBJOVE\fR is used to edit already existing files.
+\fBJOVE\fR reads
+files into \fIbuffers\fR.  A \fIbuffer\fR is where \fBJOVE\fR stores its
+version of the file; changes made in the editor are made to the buffer,
+not the original file.  If the user makes a change but wishes he did
+not,  he can simply reread the file from the disk into a fresh buffer.
+If \fBJOVE\fR is given no files to edit it creates an empty buffer with no
+file associated with it.  When the user has finished editing and is
+satisfied with his changes, he can save the buffer to a file with the
+\fIwrite-named-file\fR command. This command asks for a file name and
+writes the contents of the buffer to that file.  Once a buffer is
+written to a file, the previous
+contents of the file are gone forever, so be
+careful!!
+\fBJOVE\fR complains if the buffer is modified and an attempt is
+made to leave before saving the changes.  It says "\fIModified buffers
+exist.  Leave anyway?\fR".  Answering \fBno\fR to this question will
+leave the user in the editor so that he can write the buffers.
+If he wants to exit, e.g. he made a mistake, he should answer
+\fByes\fR.
+One note of caution, if you modify a buffer and then remove the change,
+\fBJOVE\fR will still consider the buffer to have been modified.
+.PP
+The current position in a buffer is indicated by the terminal's
+"cursor" and is called the "point".
+The cursor is normally a solid or blinking square or underline.
+The
+\fIpoint\fR should not be thought of as being on a character, rather
+as being between two characters, namely the character before the cursor
+and the character under the cursor.
+Most buffer-oriented commands apply to the buffer containing the point.
+.PP
+\fBJOVE\fR supports multiple buffers.  This means that more than one file can
+be edited at a time, each file having its own buffer.  \fBJOVE\fR remembers
+what each buffer looks like while it is not in use.  This makes it
+possible to jump around from one buffer to another without losing any
+previous changes and without having to save the changes each time a new
+buffer is selected.  Each buffer has its own set of characteristics that
+\fBJOVE\fR also remembers, so switching from one buffer to another can change
+the way the editor behaves.  \fBJOVE\fR uses \fIwindows\fR to show what
+the buffer looks like at any time.
+.SH Windows
+.PP
+Usually files are too large to fit on the terminal screen all at once.
+While in the editor, the screen acts as a \fIwindow\fR into a buffer,
+always showing what the buffer looks like.  If the point is moved past the
+top or bottom of the window, the window moves to follow the point.
+When a line is too long to fit on the terminal, \fBJOVE\fR shows this
+by putting an \fB!\fR at the end of the line.  Moving the point to a
+position that is off the screen horizontally causes the line containing
+the point to be \fIscrolled\fR to the right or the left such that the
+\fIpoint\fR is visible.  Only the current line is ever scrolled.  If the
+line containing the point is scrolled and the point moves to a different
+line, the scrolled line automatically moved back to its normal
+position.  The window reflects what is being done as it is being done, so
+what you see is ALWAYS what you get.
+.PP
+Initially there is only one window, but it is possible to divide a
+window so that there are two or more smaller windows.
+The smaller windows are
+exactly the same as the original window except for the amount of the
+buffer each can show at a time. Sometimes the same buffer will be shown
+in more than one window, and other times there will be a different
+buffer in each window.
+.SH Invocation
+.PP
+\fBJOVE\fR is invoked by simply typing \fBjove\fR to either the \fBshell\fR
+or the Berkeley
+\fBC-shell\fR.  If arguments are provided on the command line, \fBJOVE\fR
+treats each as a file to be read, and reads it into its own buffer.
+The current buffer will be the first file read in, and the point will be
+at the beginning of the buffer.  There is one exception.  If \fBJOVE\fR sees a
+\fB-t\fR on the command line it takes the next argument to be a C language
+program tag and 
+reads in the file containing that tag.
+The tag is looked up in the file "tags" in the current directory.
+The \fItags\fR file is produced by the \fBctags\fR program.  This progam
+may not be available on all systems.
+Inexperienced users need not 
+worry about this option.
+.PP
+If a file is preceded by an argument of the form "+\fInumber\fR",
+the cursor is initially placed on the specified line of the following
+file.  For example, "jove +100 /etc/passwd" would edit /etc/passwd and
+\fBJOVE\fR would start up with the cursor sitting on line 100.
+.SH The Mode Line
+.PP
+At the bottom of each window is the \fImode
+line\fR associated with that window.  A typical mode line might look
+like this:
+.sp 1
+.nf
+   \fBJOVE (RE-TE)   2: jove.1   "jove.1" *\fR
+.fi
+.sp 1
+The mode line always says \fBJOVE\fR.  The \fBRE-TE\fR inside the
+parentheses means the editor has
+regular expressions enabled and is in \fItext-fill\fR mode
+(see \fBVariables and Modes\fR below).
+In this example the name of the buffer is \fBjove.1\fR and
+the name inside the quotes is the file.  In this case the file is
+\fBjove.1\fR; in general the buffer name and the file name are the
+same. The \fB*\fR at the end of the line indicates that the buffer
+has been modified but not saved.
+.SP The Message Line
+.PP
+The very bottom line on the screen is
+the \fImessage line\fR, where \fBJOVE\fR prints any messages and
+where \fBJOVE\fR prompts the user for more input.  For example, when the user
+wants to save the buffer, \fBJOVE\fR would ask on this line
+for a file name to use.
+Responses to \fBJOVE\fR prompts should be normally be
+terminated by a newline (the RETURN key).  You can abort any input
+function by using the standard abort character, \fB^G\fR (control-G).
+.PP
+When prompting for the names of commands, variables, or
+predefined macros, \fBJOVE\fR will provide a feature called
+"automatic command completion".  If you have typed as much
+of the command as is necessary to make it unique, you can
+type a space and \fBJOVE\fR will fill in the rest of the
+command, variable, or macro name.  If no additional input
+is necessary, \fBJOVE\fR will proceed to carry out the command.
+.SH Using \fBJOVE\fR
+.PP
+Once invoked, \fBJOVE\fR is ready to accept commands from the user.  Many of
+the editor commands move the point around in the buffer and others
+change what the buffer looks like.  These commands operate on single
+characters, words, lines, and regions.  One of the more common
+editor commands is the \fIself-insert\fR command.
+.PP
+The \fIself-insert\fR command simply inserts the character that invoked it
+into the buffer at the point.  Because the point is really
+between two characters, inserting a character at the point pushes all the
+characters, from the point to the end of the line, over to the right to
+make room for the new character. The point moves one to the right
+staying just ahead of the newly inserted character.  This means that if
+the user wants to insert a word, he can just type the word.
+Characters
+which are not self inserting, for example those which are other editor
+commands, also can be inserted but must be \fIquoted\fR first. This is
+done with the \fIquote-char\fR command which inserts the next character
+typed no matter what character it is.
+.PP
+Most commands in \fBJOVE\fR are invoked by
+either \fIcontrol characters\fR or \fIescape sequences\fR.
+\fBControl-F\fR (that is the \fBCTRL\fR key held down while
+the \fBF\fR key is typed) is an example of a \fIcontrol\fR character
+and is used for the \fIforward-character\fR function.  \fB^F\fR
+is shorthand for \fBControl-F\fR.  Many of the editor commands are
+\fIbound\fR to control keys initially.
+\fIEscape\fR sequences
+differ from control characters in that they are typed in two
+keysstrokes, namely the \fBESCAPE\fR key followed by any other key.  If
+there is not a command bound to the \fBESCAPE-<character>\fR sequence,
+the editor will complain.
+The "ESCAPE" character is an example of a "command prefix" because it is
+the first part of a two-character command.
+The character \fIControl-X\fR is also used as the "prefix" for many
+commands.
+For example, \fB^X^F\fR (\fIcontrol-X followed by a \fIcontrol-F\fR) is
+normally used to run the command \fIfind-file\fR.
+To sum up, there are three forms for commands for \fBJOVE\fR: 1) vanilla
+control characters like \fB^F\fR, 2) commands prefixed by ESCAPE,
+and 3) commands prefixed by \fB^X\fR.
+.SH Some Standard Commands
+.PP
+The commands \fIforward-character\fR and \fIbackward-character\fR
+are bound to the keys \fB^F\fR and \fB^B\fR respectively.
+At the end of each line of text is an invisible NEWLINE character;
+moving forwards across this advances the point
+to the begining of the next line.
+They move
+forward and backward one character position in the buffer.
+The commands
+\fIforward-word\fR and \fIbackward-word\fR are bound to the keys
+\fBESCAPE-F\fR and \fBESCAPE-B\fR respectively.  They are the same as
+the \fB^F\fR and \fB^B\fR commands except that they operate on
+\fBwords\fR
+(words are continuous
+strings of alphabetic characters).
+The commands \fInext-line\fR and \fIprevious-line\fR are
+examples of commands that operate on lines. There are commands that
+delete text in units of characters, words, and lines also.
+\fIDelete-next-character\fR deletes the character after the point and
+\fIdelete-previous-character\fR deletes the character before the point.
+\fIDelete-next-word\fR and \fIdelete-previous-word\fR are the same as the
+two delete character functions except that they operate on words.
+.SH Numeric Arguments
+.PP
+Sometimes it is useful to run a command a specific number of times.
+\fBESCAPE\fR followed by a \fInumber\fR,
+followed by a command, runs that
+command \fInumber\fR times.
+For example: to move down 10 lines,
+the sequence \fBESC-10-^N\fR will work, if
+\fB^N\fR is bound to the \fInext-line\fR command.
+This is called giving the command a /fInumeric argument/fR.
+Some of the commands ignore
+numeric arguments, for example \fIread-file\fR, but most of the commands
+make use of the optional numeric argument.
+If a numeric argument is not given, a value of 1 is assumed.
+.SH Marks and Regions
+.PP
+A \fIregion\fR is defined as all the text between two buffer positions.
+\fIMarks\fR provide a way to remember a position in the buffer other
+than the point.  The \fIset-mark\fR command sets a mark to where the
+point is at the time the command is invoked.  Once a mark is set, the
+user can move the point anywhere else and later use various commands to
+manipulate the mark.
+Each buffer can have any number of marks, but usually two
+suffice.
+Each mark has a number differentiating it from other marks.
+Providing a numeric argument to a mark command uses the mark whose
+number is the numeric argument.  If no argument is given, the 0th
+mark is assumed.
+For example, to delete the region between mark 4 and the point,
+the command ESC\-4\-^X\-^K will work (assuming delete-to-killbuffer
+is bound to ^X\-^K).
+.SH Searching
+.PP
+It is sometimes necessary to get from one place in a buffer to another 
+quickly.  Using the primitive motion commands would work but would be
+rather slow. \fISearch commands\fR provide a quick and easy way to move
+over large portions of text.  The user is prompted for a string to
+search for.  The search starts from the point, so forward searches will
+not find any matches that are before the point, and reverse searches
+will not find any matches after the point.  If the search was forward
+and the editor manages to find the string, the point moves to the end of
+the string.  If the search was backward and the editor finds the string,
+the point moves to the beginning of the string. Otherwise the user will
+be informed of the failure and left where he was.  \fBJOVE\fR supports
+\fIregular expressions\fR also which
+provides a powerful but compicated pattern matching facility; for
+complete documentation see the article for \fBed\fR in the
+\fBUnix Users Manual\fR, section 1. Another useful
+command is the \fIquery-replace-search\fR command (ESC\-q).
+This command prompts the
+user for a search string, then prompts for a replacement string, and
+then searches the buffer for the search string replacing selected
+occurrences
+with the replacement string; at each occurrence, the user is prompted;
+the user can choose to replace this occurrence, skip this occurrence,
+exit query-replace, recursively edit, or replace all remaining
+occurrences without further prompts.
+There is another version of the replace command
+called \fIreplace-search\fR (ESC\-^E) which prompts for a search string
+and a replacement string and then replaces all occurrences without
+further ado.
+.SH Binding Commands
+.PP
+There are many commands built into \fBJOVE\fR, many of which are not
+bound to specific keys.
+The command handler in
+\fBJOVE\fR is used to invoke these functions and is activated
+by \fIexecute-extended-command\fR function (ESC\-x).
+When the name of a command typed in is
+unambiguous, that command will be executed.
+Since it is very slow to have
+to type in the name of each command every time it is needed, \fBJOVE\fR makes
+it possible to \fIbind\fR commands to keys.  When a command is
+\fIbound\fR to a key any future hits on that key will invoke that
+command.  All the printing characters are \fBinitially\fR bound to the
+function \fIself-insert\fR so that typing any one of the printing
+characters causes it to be inserted into the text.  Any of the existing
+commands can be bound to any key.
+(A \fIkey\fR may actually be a \fIcontrol character\fR
+or an \fIescape sequence\fR as explained previously under
+"Using JOVE".)
+.PP
+Since there are more commands than
+there are keys, two keys are treated as \fBprefix\fR commands.  When a
+key bound to one of the prefix commands is typed, the next character
+typed is interpreted on the basis that it was preceded by one of the
+prefix keys.  Initially \fB^X\fR and \fBESC\fR are the prefix keys, and
+as you will see, many of the built in commands are initially bound to
+these "two stroke" keys.  (For historical reasons, the ESCAPE key
+is often referred to as "Meta".)
+.PP
+Users will likely want to modify the default key bindings to their
+liking.  Since it would be quite annoying
+to have to set up the bindings
+each time \fBJOVE\fR is started up, \fBJOVE\fR has the ability to read in
+a "startup" file.
+Whenever \fBJOVE\fR is started, it reads commands from the
+file \fI.joverc\fR in the user's home directory.
+These commands are read as
+if they were typed to the command handler (ESC-x)
+during an edit.  There can
+be only one command per line in the startup file.
+If there is a file \fI/usr/lib/jove/joverc\fR, then this file
+will be read before the user's \fI.joverc\fR file.  This can be used
+to set up a system-wide default startup mode for \fBJOVE\fR
+that is tailored
+to the needs of that system.
+For more information on using \fI.joverc\fR files and tailoring
+in general, see the document "Tailoring the JOVE Editor".
+.PP
+The \fIsource\fR
+command can be used to read commands from a specified file
+at any time during an editing session,
+even from inside the \fI.joverc\fR file.
+This
+means that a macro can be used to change the key bindings, e.g. to
+enter a mode, by reading from a specified file which contains all the
+new bindings.
+.bp
+.SH Command Descriptions
+.PP
+Here is a list of all the commands, with a short description of each
+and the key that the command is initially bound to.  If the key is
+listed as "\fB[unbound]\fR", then that function is not initially
+bound to any \fIcontrol\fR or \fIescape\fR key.  Any of the functions
+could be bound to keys of the user's choosing by his own ".joverc" file.
+.PP
+.so commands.1
+.ta 4 12
+.sp 2
+.bp
+.SH Variables and Modes
+.PP
+The following is a list of variables which change the way the editor
+behaves.  All the variables and the effect they have on the behavior of
+the editor are listed below.
+Some variables contain numeric values such as the tab stop spacing,
+while other variables simply act as flags to indicate whether modes
+or features are on or off.
+When certain variables are set to non-zero
+values, \fBJOVE\fR prints their
+abbreviations (in parentheses) on the mode line.
+For example, the line
+.sp 1
+.nf
+   \fBJOVE (C-SM-AI)   2: jove.c   "jove.c" *\fR
+.fi
+.sp 1
+indicates the variables \fIc-mode\fR, \fIshow-match\fR,
+and \fIauto-indent\fR are
+all non-zero which enables their respective modes.
+.PP
+To put the editor in one of these modes, use the \fIset\fR command.
+The set command prompts for one of the mode variables to set.  A
+non-zero value means the mode is on, and a value of 0 means the mode is
+off.  To find out what the value of a particular variable is,
+you can use the \fIprint\fR command.
+.sp 2
+.ta 30
+.FN allow-^S-and-^Q (not-shown)
+When set to non-zero, \fBJOVE\fR disables the ^S (XOFF) and ^Q (XON)
+flow control
+characters, thus making it possible to bind editor commands to those
+keys.  
+When this variable is set, \fIsearch-forward\fR
+can be bound to \fB^S\fR, and \fIquote-char\fR can be bound to \fB^Q\fR,
+like they are in real EMACS.  Some terminals require flow control
+in which case this mode must remain off (e.g. DEC VT100).
+.FN auto-indent (AI)
+This variable affects the way the \fBRETURN\fR key works. Normally
+typing \fBRETURN\fR divides the
+current line at the point moving the point down
+to the next line. That still happens in this mode but the line is also
+automatically indented the same as the previous line. This is useful for
+block-structured programming languages such as C and PASCAL.
+.FN backup-files (not-shown)
+This is integer variable that controls the making of backup files.
+If \fIbackup-files\fR is 0, no backup files will be made.
+If \fIbackup-files\fR is 1, \fBJOVE\fR will ask if the user wants
+a backup file whenever a file is written out and a copy of the file
+already existed.
+If \fIbackup-files\fR is 2, then \fBJOVE\fR will always make backup
+files when possible (and without asking).
+The effect of a
+value of \fIbackup-files\fR other than those listed is undefined.
+.FN c-mode (C)
+This mode affects the behavior
+of the tab character, the \fB')'\fR, and the \fB'}'\fR.
+Instead of just inserting
+the tab, the editor determines where the tab "ought" to be for the C
+language and tabs to there instead.  The same thing happens with the
+close brace and close parenthesis;
+they are tabbed to the "right" place and then inserted.
+This mode is automatically entered if the file being edited
+ends in ".c" unless the \fIc-mode\fR variable is negative.
+.FN case-independent-search (CIS)
+This affects the way search works.  When in this mode, \fBJOVE\fR ignores the
+difference between upper case and lower case so
+that \fBa\fR matches \fBA\fR
+as well as \fBa\fR.
+.FN fast-prompt (not-shown)
+When this variable is non-zero, \fBJOVE\fR will not delay before
+printing the prompts "M-" and "C-X " below the status line.
+This variable is normally 0 (disabled) so that the efficiency
+of only updating the bottom line once for the
+prefix and the following character will speed up screen updates.
+.FN files-should-end-with-newline (not-shown)
+This causes \fBJOVE\fR to ensure that edited files end with a newline.
+This is the default behavior and
+is recommended for normal use.  To disable this feature, set the
+variable to 0.
+.FN internal-tabstop (not-shown)
+This tells \fBJOVE\fR how many spaces a tab should take up when it is printed.
+The default is 8.
+.FN make-all-at-once 
+Tells the editor to run \fBmake\fR with the \fB-k\fR option when running
+the \fBJOVE\fR command \fImake\fR.  This allows detecting more errors in
+the \fBmake\fI process.  This defaults to off.
+.FN over-write (OV)
+This mode changes the way self-inserting characters work. Instead of
+pushing the rest of the line over, the character after the point is
+replaced.
+.FN physical-tabstop (not-shown)
+This tells \fBJOVE\fR how big the tab
+stops are for the specific terminal.
+When the terminal is in \fItabs\fR mode (see \fBstty\fR(1)), \fBJOVE\fR will
+take advantage of that fact and optimize
+the cursor motion using hardware tabs.
+.FN regular-expressions (RE)
+This mode makes regular expressions available.  This is not the default
+for new users because certain characters in regular
+expression search strings do
+not do what one might expect.
+.FN right-margin (not-shown)
+This is used by the \fIjustify-paragraph\fR command
+and \fItext-fill\fR mode, and says how long
+it should try to make each line.
+The default \fIright-margin\fR is 72.
+.FN show-match (SM)
+This affects the close parenthesis (brace) characters. When one of those
+is typed in this mode it is inserted normally. Then the cursor flashes
+to the matching open parenthesis (brace) for one second and then moves
+back to the point. If the match was not on the screen, nothing happens.
+If there is no match in the
+buffer, the user is informed of the error.
+.FN scroll-step
+This changes the way the editor behaves when the point moves out of the
+range of a window.  Instead of centering the line containing the point,
+the editor scrolls the screen by the number value of \fIscroll-step\fR
+and leaves the cursor on the line that was just off the edge of the
+screen.
+This is useful if the
+terminal is being used at a slow baud rate.
+.FN text-fill (TE)
+When in this mode, the editor will automatically insert line breaks
+when lines reach the right margin.
+.FN visible-bell (not-shown)
+When using this mode, \fBJOVE\fR will try to use the
+"visible bell" feature of a terminal if it has that capability.
+.FN write-files-on-make (not-shown)
+When non-zero, \fBJOVE\fR writes all the modified buffers when the
+\fImake\fR command is invoked (default is non-zero).
+.SH FILES
+.nf
+.ta 1.5i
+/tmp	where the temporary files are stored.
+/usr/lib/jove	help files, documentation and system-wide joverc
+$HOME/.joverc	user's personal JOVE tailoring file
+.fi
+.SH SEE ALSO
+ed(1), "A JOVE Primer", "Tailoring the JOVE Editor"
+.SH DIAGNOSTICS
+\fBJOVE\fR diagnostics are meant to be self-explanatory.
+.SH BUGS
+It doesn't garbage-collect the tmp file so it could run out of tmp
+space when it doesn't have to.
+.sp 1
+There should be one bind-to-key command that works for both macros and
+built in commands.
+.sp 1
+There should be a way to abort \fIread-file\fR and the
+non-interactive search commands.
+.sp 1
+\fBJOVE\fR should not blow up when it tries to source a file which doesn't
+have editor commands in it.
+.sp 1
+\fIParse-LINT-errors\fR does not work well with some
+newer versions of lint(1).
+//E*O*F jove.1//
+
+echo x - jove.n
+cat > "jove.n" << '//E*O*F jove.n//'
+.nf
+
+.ce
+\fBQuick Introduction To The JOVE Screen Editor\fR
+
+.ft I
+ENTERING jove
+.ft R	
+   jove name	Start jove editor with file    name.
+   	
+.ft I
+LEAVING jove
+.ft R	
+
+   CTRL-x CTRL-\  Saves your changes.  This should be done before
+		    exiting jove.  Note: this is two keystrokes.
+
+   CTRL-x CTRL-c  Exits jove.  If your file has not been saved 
+		    jove will ask if you really want to exit.  Answer 'y'
+		    if you don't want to save your changes; 'n' returns
+		    to jove to allow you to save your changes.
+.ft I
+INSERTING TEXT
+.ft R	
+		Anything you type (except control characters) is
+		inserted into jove's copy of your file.  The changes
+		are saved by using the CTRL-x CTRL-\ command.
+.ft I
+CURSOR POSITIONING
+.ft R	
+   CTRL-f	Moves forward one character position.
+   CTRL-b	Moves backward one character position.
+   CTRL-p	Moves to the previous line.
+   CTRL-n	Moves to the next line.
+   ESC f	Moves forward one word.
+   ESC b	Moves backward one word.
+   CTRL-v	Moves forward one page.
+   ESC v  	Moves back one page.
+   CTRL-e	Moves to the end of the line.
+   CTRL-a	Moves to the beginning of the line.
+   ESC <	Moves to the beginning of the file.
+   ESC > 	Moves to the end of the file.
+
+.ft I
+TEXT MODIFICATION
+.ft R	
+   CTRL-d	Delete one character at the cursor position.
+   ESC d	Delete one word.
+   CTRL-k	Delete (kill) the characters from the cursor
+		  position to the end of the line.
+   CTRL-y	Put back what was just deleted at the current cursor
+		  position.
+   ESC q	String replace. The following questions will appear:
+		  query-replace-search this<CR>
+		  Replace "this" with that<CR>  The cursor will then go
+		  to each occurrence of 'this' and change it to 'that' 
+		  upon the response of the user.  (i.e. 'y' to replace,
+		  'n' to skip, <CR> to quit, 'R' or 'r' to replace the
+		  rest of the occurrences without a prompt to the user.)
+   RUB or DELETE Delete the previous character at the cursor position.
+
+.ft I
+PATTERN SEARCHING
+.ft R	
+   ESC s string		Will find the next occurrence of string from the
+			cursor position to the end of the file.
+   ESC r string		Will find the next occurrence of string from the
+			cursor position to the beginning of the file.
+			(reverse search)
+.ft I
+NOTES:
+.ft R	
+   ESC		Press the ESC key as a separate key stroke.
+   CTRL-	Hold the CTRL-key and press the following key simultaneously.
+   RUB & DELETE The RUBOUT or DELETE key on different terminals
+   CTRL-g	Will get you out of most hung up situations.
+   CTRL-q  	Will restart output to your terminal if you accidentally
+		press CTRL-s.
+.bp
+.nf
+
+.ce
+\fBAdvanced Editing with JOVE\fR
+
+.ft I
+CURSOR MOVEMENT:
+.ft R
+
+   ESC f		move forward by words
+   ESC b		move backward by words
+   ESC num ESC g	ESC followed by a number, then ESC-g moves to line
+			  number 'num'.  ESC 5 ESC g moves to line # 5.
+
+.ft I
+TEXT MODIFICATION
+.ft R
+
+   ESC d	Delete the next word.
+   ESC delete	Delete the previous word.  (Type ESC then press the DELETE
+		  or RUB key.)
+
+.ft I
+WINDOW COMMANDS
+.ft R
+
+   CTRL-x 4	Edit another file in a second window.  JOVE prompts for
+		  the second file name and automatically splits the screen.
+		  The cursor is placed in the second window.
+   CTRL-x o	Move the cursor to the other window.
+   CTRL-x 1	Make the current window the only one. (delete other windows)
+		  (This is CTRL-x followed by the number 1.)
+
+.ft I
+MISCELLANEOUS
+.ft R
+
+   CTRL-x CTRL-f  Edit another file without exiting JOVE.
+   CTRL-x CTRL-i  Insert the contents of another file at the current 
+		    position.
+   ESC !	Execute a Unix command and return to JOVE.  Note that this
+		  can be used to run a sub-shell.
+   ESC x make	Execute the 'make' program in a second window and capture
+		  the errors in that window.  Type two returns to start
+		  'make'.  This lets one view the file and the compiler
+		  errors simultaneously.
+   ESC j	Justify the paragraph the cursor is in.  Default line width
+		  is 72 characters.
+   CTRL-y	Restore text inadvertently deleted.
+
+
+//E*O*F jove.n//
+
+echo x - list.func
+cat > "list.func" << '//E*O*F list.func//'
+Buffer Manipulation
+   buffer-position
+   list-buffers             ^X ^B
+   make-buffer-unmodified   M- ~
+   select-buffer            ^X b
+
+Deleting
+   delete-blank-lines       ^X ^O
+   delete-current-window    ^X d
+   delete-next-char         ^D
+   delete-next-word         M- d
+   delete-other-windows     ^X 1
+   delete-previous-char     DEL
+   delete-previous-char     ^H
+   delete-previous-word     M- DEL
+   delete-previous-word     M- ^H
+   delete-previous-word     ^W
+   delete-to-killbuffer     ^X ^K
+   delete-white-space       M- \\
+   kill-to-end-of-line      ^K
+   kill-buffer              ^X k
+
+File Manipulation
+   find-file                ^X ^F
+   find-file                ^X ^V
+   find-file-in-other-window ^X 4
+   find-tag                 ^X ^T
+   insert-file              ^X ^I
+   read-file                ^X ^R
+   write-current-file       ^X ^S
+   write-current-file       ^X ^\\
+   write-modified-files     ^X ^M
+   write-named-file         ^X ^W
+
+Help and Terminal Commands
+   apropos                  M- H
+   apropos                  M- h
+   clear-and-redraw         ^L
+   describe-command	    M- ?
+   describe-key		    ^X ?
+   redraw-display           M- ^L
+   reinitialize-terminal
+
+Marks
+   exchange-point-and-mark  ^X ^X
+   set-mark                 ^@
+
+Miscellaneous JOVE Functions
+   init-bindings
+   execute-extended-command M- x
+   four-times               ^U
+   next-error               ^X ^N
+   parse-C-errors
+   parse-LINT-errors
+   source
+
+Movement (Small)
+   backward-char            ^B
+   backward-paren           M- ^B
+   backward-word            M- b
+   beginning-of-line        ^A
+   beginning-of-sentence    M- a
+   end-of-line              ^E
+   end-of-sentence          M- e
+   forward-char             ^F
+   forward-paren            M- ^F
+   forward-word             M- f
+   next-line                ^N
+   previous-line            ^P
+   scroll-down              M- z
+   scroll-up                ^Z
+
+Movement (Large)
+   beginning-of-file        M- <
+   beginning-of-window      M- ,
+   end-of-file              M- >
+   end-of-window            M- .
+   goto-line                M- g
+   next-page                ^V
+   previous-page            M- v
+
+Process Control
+   exit-jove                ^X ^C
+   make                     ^X ^E
+   pause-jove               M- P
+   pause-jove               M- p
+   shell-command            ^X !
+   shell-command-to-buffer
+   spell-buffer
+   sub-shell                M- !
+   suspend-jove (== pause-jove)
+
+Region Manipulation (From Mark to Cursor)
+   append-region
+   copy-region              M- w
+   filter-region
+   write-region
+
+Searching and Replacing
+   first-non-blank          M- m
+   i-search-forward         ^S
+   i-search-forward         ^\\
+   i-search-reverse         ^R
+   query-replace-search     M- q
+   replace-search           M- r
+   search-forward           M- S
+   search-forward           M- s
+   search-reverse           M- R
+   search-reverse           M- r
+
+Tailoring (Binding, Macros and Variables)
+   bind-macro-to-key
+   bind-to-key
+   execute-keyboard-macro
+   execute-macro
+   name-keyboard-macro
+   print (variable)
+   quote-char               ^Q
+   quote-char               ^^
+   read-macros-from-file
+   set (variable)
+   start-remembering
+   stop-remembering
+   write-macros-to-file
+
+Text Modification
+   case-char-upper          ^C
+   case-region-lower        ^X ^L
+   case-region-upper        ^X ^U
+   case-word-capitalize     M- c
+   case-word-lower          M- l
+   case-word-upper          M- u
+   character-to-octal-insert
+   justify-paragraph        M- j
+   newline-and-indent       NEWLINE
+   newline                  RETURN
+   newline-and-backup       ^O
+   string-length            ^X c
+   transpose-chars          ^T
+
+Undeleting
+   yank                     ^Y
+   yankPop                  M- y
+
+Windows
+   grow-window              ^X ^
+   next-window              ^X n
+   number-lines-in-window
+   page-next-window         M- ^V
+   previous-window          ^X o
+   previous-window          ^X p
+   shrink-window
+   split-current-window     ^X 2
+
+Variables
+      allow-^S-and-^Q
+      auto-indent
+      c-mode
+      case-independent-search
+      fast-prompt
+      files-should-end-with-newline
+      internal-tabstop
+      make-all-at-once
+      over-write
+      physical-tabstop
+      regular-expressions
+      right-margin
+      show-match
+      scroll-step
+      text-fill
+      use-temporary-buffers
+      visible-bell
+      write-files-on-make
+//E*O*F list.func//
+
+echo x - primer
+cat > "primer" << '//E*O*F primer//'
+.nf
+.sp
+.ce
+\fBA Jove Primer\fR
+.sp
+In the following instructions
+     ^   means hold down Control key while pushing specified character
+     M-  means push the Escape key before pushing specified character
+
+CREATE or EDIT a file using JOVE:       jove \fIfilename\fR
+
+REDRAW a garbled screen:                ^l
+
+ABORT a JOVE command:                   ^g
+
+WRITE new file:                         ^x ^w \fIfilename\fR
+SAVE an updated file:                   ^x ^\\
+
+EXIT the JOVE editor:                   ^x^c
+
+.ft I
+POSITIONING the Cursor:
+.ft R
+    M- <    go to first line of file
+    M- v    go back to previous page
+
+                           ^p (previous)
+                                ^
+                                | 
+^a     <----           ^b  <----|---->  ^f             ---->   ^e
+                                |
+(first column)                  v                   (last column)
+                             ^n (next)
+
+                                      go to the next page --->    ^v
+                                  go to last line of file --->    M- >
+
+.ft I
+SEARCH
+.ft R
+     Search forward  for text:       ^\\
+     Search backward for text:       ^r
+
+.ft I
+To INSERT text:
+.ft R
+     Inserting a new line               ^o
+
+     Replacing text:                    M- q
+         to confirm replacement:            y or SPACE
+         to skip without replacement:       n or DEL
+
+.ft I
+MOVE text:
+.ft R
+     1.  Position cursor to beginning of text to be moved
+         Set the "mark":                          ^@ or ^SPACE
+    
+     2.  Position cursor at end of text to be moved,
+         Store text between "mark" and cursor into kill-stack:  ^x ^k
+         (To store text without deleting (e.g. to duplicate)):  M- w
+
+     3.  Position cursor where text is to be inserted and
+         yank the text from kill-stack into buffer:             ^y
+
+.ft I
+DELETE Text:
+.ft R
+                 <--- DEL      ^d --->
+
+           delete from cursor to end of line --->  ^k
+//E*O*F primer//
+
+echo x - sed.com
+cat > "sed.com" << '//E*O*F sed.com//'
+1,$s/.//g
+//E*O*F sed.com//
+
+echo x - tailoring
+cat > "tailoring" << '//E*O*F tailoring//'
+.TL
+.LG
+Tailoring the JOVE Editor
+.SM
+.AU
+Douglas P. Kingston III
+.AI
+Ballistics Research Laboratory
+US Army, AMCCOM
+.PP
+The JOVE Editor as is comes is quite nice, but as
+with any editor, it may not be just what you want or
+it may not work well with your terminal.
+As with most other EMACS-like editors, JOVE has the ability
+to be "tailored" by the user.
+The user can tailor JOVE in several ways.
+First there is key binding which controls what happens when you
+type a key.
+You can change which functions get invoked by what keys.
+Next, the user can create "macros" which are simply collections
+of commands that can get executed as a group by a single command.
+These are essentially editor scripts.
+Finally, there are a number of variables that control
+how JOVE behaves in various situations.
+The user can change the default settings for these variables.
+Normally all of this tailoring is placed in the user's
+JOVE initialization file which must be in
+his home directory and called ".joverc".
+.PP
+JOVE has the idea that every key is bound to a function and this
+includes all the "extended keys" which are generated by prefixing
+a key with Escape or ^X.
+Some of the functions are pretty trivial like \fIself-insert\fR
+which just causes the character to be put on the screen.
+All of the printable characters are bound to \fIself-insert\fR.
+The \fIbind-to-key\fR function is used to change the bindings of
+keys.
+Normally the function \fIreplace-search\fR is bound to the
+key M-^E (Escape-^E).  This function replaces all occurences
+without asking.
+Let's say you really dislike this command and prefer the
+command \fIquery-replace-search\fR which
+prompts you before making each replacement.
+You can change the function of M-^E by binding the \fIquery-replace-search\fR
+function to that key.
+The command to do this would be
+.sp
+        M-x bind-to-key query-replace-search ^[^E
+.sp
+where "^[" is the symbol for an Escape character
+which means that you really have to put an escape character into
+the file.  You can do this by typing ^~ (Control-~) followed by the
+Escape key.
+Remember that when Escape is used as a command prefix we will use
+the M- notation to represent it.
+When this command is put in the ".joverc" file, the M-x is left off
+and each line is expected to have one command on it.
+You can save yourself a great deal of typing by remembering to use
+the auto-command-completion feature of JOVE.
+To use it, just type the start of a command and then hit a SPACE.
+JOVE will type as much of the rest of the command as is unique.
+If you have specified the command uniquely, JOVE will do the command
+or prompt for further input if for example, the command needs a filename
+or another command name like the \fIbind-to-key\fR command.
+In the ".joverc" file, you can also take advantage of the auto-completion
+by only typing enough of the command names to make the name unique.
+As an example, the command we just gave a few lines ago could also
+be given in a ".joverc" file as:
+.sp
+        bind-to query ^[r
+.sp
+.PP
+As another example, lets say you have been
+an EMACS user and you would like the \fInext-window\fR command to be
+on the "key" ^X-^O (Control X, Control O).
+The command to make this binding would be
+.sp
+        M-x bind-to-key next-window ^X^O
+.sp
+where both ^X and ^O are really control characters entered by prefixing
+them with the "quote" character ^~.
+.PP
+A common use of binding is to place some of the more esoteric
+functions which are normally "unbound" (see the JOVE manual) onto
+keys to make running them less keystrokes.
+The binding mechanism allows the user to decide what functions he or
+she wants most accessible.
+It is also possible to disable the function of a key by binding the
+key to the pseudo function \fIunbound\fR.  For example, if you don't
+want the \fIkill-buffer\fR which is normally bound to ^X-k and you
+don't want to bind that key to any other function, you could give
+the following command:
+.sp
+        M-x bind-to-key unbound ^Xk
+.sp
+which would make the "key" ^X-k essentially do-nothing key (it will beep
+when you push it to tell it does nothing).
+Remember, if a key is already bound to a function and you issue a command to
+bind it to some other function, it will forget the previous binding and
+use yours.
+.PP
+The use of macros is another powerful tool for making the
+editor do what you want it to.
+JOVE has a commands to scroll the screen by one line up or down.
+The commands
+\fIscroll-one-line-up\fR and \fIscroll-one-line-down\fR
+are bound to ^Z and M-z respectively.
+When these commands are used, the cursor moves so that it will remain
+on the same line of text.
+If you wanted the cursor to stay in the same place on the screen
+you would have to combine a \fIscroll-one-line-up\fR command
+with a \fInext-line\fR command to move the cursor back to the
+starting line.  Likewise, you would need to combine
+a \fIscroll-one-line-down\fR command with a \fIprevious-line\fR
+command.
+This is a perfect job for a macro.
+.PP
+Macros are created using JOVE.
+You first issue the \fIstart-remembering\fR command
+and then type the characters you want in the macro,
+and then you issue the \fIstop-remembering\fR command.
+The keystrokes you gave (except for the start and stop
+commands) are remembered as the "keyboard macro".
+You now give the macro a name with the \fIname-keyboard-macro\fR
+command.
+The macro is now saved in JOVE's memory and you can define
+another macro.
+The sequence to build our two scrolling macros would be as follows:
+.nf
+.sp
+        M-x start-remembering
+        ^Z^N
+        M-x stop-remembering
+        M-x name-keyboard-macro scrollup
+        M-x start-remembering
+        M-z^P
+        M-x stop-remembering
+        M-x name-keyboard-macro scrolldown
+.sp
+.fi
+We now have two macros defined.
+We could have saved some typing by abbreviating the
+start and stop commands as "start" and "stop".
+We can run either of our new macros by
+giving the \fIexecute-macro\fR command followed by either
+"scrollup" or "scrolldown" but this would get quite tiring
+after a short amount of time.
+We might instead want to bind these macros to a key.
+It is possible to bind user-defined macros to a key
+just the way you can bind internal JOVE functions to a key.
+To bind our scrollup macro to the key M-u, we would give
+the following command:
+.sp
+        M-x bind-macro-to-key scrollup M-u
+.sp
+If this was in the ".joverc" file, you would leave off the M-x.
+Now if you type M-u, the screen should scroll, but the cursor will
+stay in the same place!
+The same type of command would be give to bind the scrolldown
+macro to some other key.
+.PP
+There is one other thing to be done with macros, and that is
+to save them to and restore them from files.
+This is accomplished with the \fIwrite-macros-to-file\fR
+and \fIread-macros-from-file\fR commands.
+They both expect to be followed by file names.
+A common sequence is to build some macros in JOVE,
+save the macros to a file like $HOME/.jovemacros,
+and then modify your ".joverc" start up file to read in your macros
+every time you run JOVE.
+.PP
+Finally there are a number of variables that control
+JOVE behavior.
+These variables are listed and described in the end of the jove
+manual, but they are mentioned here because many users
+may always want to override the defaults for some variables.
+For instance, the variable "regular-expressions" controls the availability
+of regular expression matching.  I for one, always want to be
+able to use regular expressions, so I turn on "regular-expressions" mode
+in my ".joverc" by the following command:
+.sp
+        set regular-expressions 1
+.sp
+I also turn on the variable "make-all-at-once" with the
+command:
+.sp
+        set make-all-at-once 1
+.sp
+You may wish to set up other variables like "backup-files",
+"allow-^S-and-^Q", and "show-match".
+You can also give the \fIset\fR command as a keyboard command
+but you must give the M-x command first (unless
+you bound the \fIset\fR function to a key!).
+Remember, as with
+commands, you only have to type as much of the variable
+name as is necessary to make it unique, so for example
+"allow" is good enough to identify the variable "allow-^S-and-^Q".
+.PP
+I hope this tutorial will be of help in getting started
+and at home with the JOVE editor.  If you have any suggestions
+on how to improve this or other JOVE documents, please
+send your suggestions to your support staff and your
+comments should find their way to myself or others who
+will consider you contributions.
+.bp
+.SH
+Appendix:  A sample ".joverc"
+.PP
+This ".joverc" was taken straight from my login directory
+and inserted into this document.  All I have done is to
+change all the control characters and Escapes into
+two character sequence that look like ^? like you
+would see if you edited the file with jove.  But remember, JOVE
+really needs to have the actual control characters in the real file.
+.sp 2
+.nf
+set allow 1
+set regular-expressions 1
+set make-all-at-once 1
+set show-match 1
+bind-to-key shell-command ^[$
+bind-to-key shell-command-to-buffer ^[#
+bind-to-key i-search-forward ^[^S
+bind-to-key i-search-reverse ^[^R
+bind-to-key search-forward ^S
+bind-to-key search-reverse ^R
+bind-to-key grow-window ^X^
+bind-to-key select-buffer ^X^B
+bind-to-key select-buffer ^Xb
+bind-to-key select-buffer ^XB
+bind-to-key previous-window ^X^O
+bind-to-key previous-window ^Xo
+bind-to-key quote-char ^Q
+bind-to-key scroll-up ^[Z
+bind-to-key execute-extended-command ^[^[
+read-macros-from-file /d/dpk/.jove-macros
+bind-macro-to-key scrolldown ^X<
+bind-macro-to-key scrollup ^X>
+.fi
+.sp 2
+.PP
+Many of the commands in this ".joverc" could have been
+shortened and still worked, but I chose to keep the long
+names for the sake of clarity and readability.
+I chose to bind several commands on new keys in addition
+to the default bindings.  For instance, the \fIexecute-extended-command\fR
+function which is normally on M-x has also been bound to Escape-Escape
+(M-M- ??, M-^[ ??, notation sometimes gets confusing) because that
+double key combination is fast to type.
+Note how I bind the macros AFTER I read them in!
+//E*O*F tailoring//
+
+echo x - teach-jove
+cat > "teach-jove" << '//E*O*F teach-jove//'
+You are looking at the JOVE tutorial.  Comments on this document
+should be sent to DPK@BRL and JPAYNE@BBN-UNIX.   (30 September 83)
+
+JOVE commands generally involve the CONTROL key (sometimes labelled
+CTRL or CTL) or the META key (generally labelled ESCAPE).  Rather than
+write out META or CONTROL each time we want you to prefix a character,
+we'll use the following abbreviations:
+
+ C-<chr>  means hold the CONTROL key while typing the character <chr>
+	  Thus, C-F would be: hold the CONTROL key and type F.
+ M-<chr>  means type the META (ESCAPE) key and release it, then type
+	  the character <chr>.  The <chr> can be upper or lower case
+	  and it will have the same meaning.
+
+Important note: if you must exit at some point, type C-X C-C.
+The characters ">>" at the left margin indicate directions for you to
+try using a command.  For instance:
+
+>>  Now type C-V (View next screen) to move to the next screen.
+	(go ahead, do it by depressing the control key and V together).
+	From now on, you'll be expected to do this whenever you finish
+	reading the screen.
+
+Note that there is an overlap when going from screen to screen; this
+provides some continuity when moving through the file.
+
+The first thing that you need to know is how to move around from
+place to place in the file.  You already know how to move forward a
+screen, with C-V.  To move backwards a screen, type M-V (depress the
+META key and type V, or type <ESC>V if you don't have a META or EDIT
+key).
+
+>>  Try typing M-V and then C-V to move back and forth a few times.
+
+
+SUMMARY
+-------
+
+The following commands are useful for viewing screenfuls:
+
+	C-V	Move forward one screenful
+	M-V	Move backward one screenful
+	M- C-L	Clear screen and redisplay everything
+		 putting the text near the cursor at the center.
+	
+>> find the cursor and remember what text is near it.
+   Then type a M- C-L.
+   Find the cursor again and see what text is near it now.
+
+
+BASIC CURSOR CONTROL
+--------------------
+
+Getting from screenful to screenful is useful, but how do you
+reposition yourself within a given screen to a specific place?
+There are several ways you can do this.  One way (not the best, but
+the most basic) is to use the commands previous, backward, forward
+and next.  As you can imagine these commands (which are given to
+JOVE as C-P, C-B, C-F, and C-N  respectively) move the cursor from
+where it currently is to a new place in the given direction.  Here,
+in a more graphical form are the commands:
+ 
+			  Previous line, C-P
+				  :
+				  :
+   Backward, C-B .... Current cursor position .... Forward, C-F
+				  :
+				  :
+			  Next line, C-N
+
+You'll probably find it easy to think of these by letter.  P for
+previous, N for next, B for backward and F for forward.  These are
+the basic cursor positioning commands and you'll be using them ALL
+the time so it would be of great benefit if you learn them now.
+
+>> Do a few C-N's to bring the cursor down to this line.
+
+>> Move into the line with C-F's and then up with C-P's.
+   See what C-P does when the cursor is in the middle of the line.
+
+Lines are separated by a single Linefeed character, which is what
+Unix calls a Newline.
+
+>> Try to C-B at the beginning of a line.  Do a few more C-B's.
+   Then do C-F's back to the end of the line and beyond.
+
+When you go off the top or bottom of the screen, the text beyond
+the edge is shifted onto the screen so that your instructions can
+be carried out while keeping the cursor on the screen.
+
+>> Try to move the cursor off the bottom of the screen with C-N and
+   see what happens.
+
+If moving by characters is too slow, you can move by words.  M-F
+(Meta-F) moves forward a word and M-B moves back a word.
+
+>> Type a few M-F's and M-B's.  Intersperse them with C-F's and C-B's.
+
+Notice the parallel between C-F and C-B on the one hand, and M-F and
+M-B on the other hand.  Very often Meta characters are used for
+operations related to English text whereas Control characters operate
+on the basic textual units that are independent of what you are
+editing (characters, lines, etc).  There is a similar parallel between
+lines and sentences: C-A and C-E move to the beginning or end of a
+line, and M-A and M-E move to the beginning or end of a sentence.
+
+>> Try a couple of C-A's, and then a couple of C-E's.
+   Try a couple of M-A's, and then a couple of M-E's.
+
+See how repeated C-A's do nothing, but repeated M-A's
+keep moving farther.  Do you think that this is right?
+
+Two other simple cursor motion commands are M-< (Meta Less-than),
+which moves to the beginning of the file, and M-> (Meta Greater-than),
+which moves to the end of the file.  You probably don't need to try
+them, since finding this spot again will be boring.  If you need the
+shift key to type a "<", then you must also use the shift key to type
+M-<.  Otherwise, you would be typing M-, .
+
+The location of the cursor in the text is also called "point".  To
+paraphrase, the cursor shows on the screen where point is located in
+the text.
+
+Here is a summary of simple moving operations including
+the word and sentence moving commands:
+
+	C-F	Move forward a character
+	C-B	Move backward a character
+
+	M-F	Move forward a word
+	M-B	Move backward a word
+
+	C-N	Move to next line
+	C-P	Move to previous line
+
+	C-A	Move to beginning of line
+	C-E	Move to end of line
+
+	M-A	Move back to beginning of sentence
+	M-E	Move forward to end of sentence
+
+	M-<	Go to beginning of file
+	M->	Go to end of file
+
+>> Try all of these commands now a few times for practice.
+   Since the last two will take you away from this screen,
+   you can come back here with M-V's and C-V's.  These are
+   the most often used commands.
+
+Like all other commands in JOVE, these commands can be given
+arguments which cause them to be executed repeatedly.  The way you
+give a command a repeat count is by typing META and then the digits
+before you type the command.  (Remember META is ususally called ESCAPE)
+
+For instance, META 8 C-F moves forward eight characters.
+	
+>> Try giving a suitable argument to C-N or C-P to come as close
+   as you can to this line in one jump.
+
+The only apparent exception to this is the screen moving commands,
+C-V and M-V.  When given an argument, they scroll the screen up or
+down by that many lines, rather than screenfuls.  This proves to be
+much more useful.  As a special case, typing just C-U before either
+of these two commands causes them to scroll the screen exactly half
+way up or half way down.
+
+>> Try typing M-8 C-V now.
+
+Did it scroll the screen up by 8 lines?  If you would like to
+scroll it down you can give an argument to M-V.
+
+
+QUITTING FROM COMMANDS
+----------------------
+
+The character in JOVE used to quit out of all commands which request
+input is C-G.  For example, you can use C-G to discard a numeric argument
+or the beginning of a command that you don't want to finish.
+
+>> Type M-100 to make a numeric arg of 100, then type C-G.
+   Now type C-F.  How many characters does it move?
+   If you have typed an <ESC> by mistake, you can get rid of it
+   with a C-G.
+
+
+ERRORS
+------
+
+Sometimes you may do something which JOVE doesn't allow.  If it is
+something simple, such as typing a control key sequence which is not
+associated with any command, JOVE will just beep at you.  Otherwise,
+JOVE will also display an informative error message at the bottom of
+the screen.  To get rid of the error message, just type a space.  If
+you type anything else, what you type will both erase the error message
+and be executed as a command.
+
+Some versions of JOVE do not have all the features described in this
+tutorial implemented yet.  If you come across such an unimplemented
+feature, you may get an error message when you try to use it.  Just
+type a space and proceed on to the next section of the tutorial.
+
+
+INSERTING AND DELETING
+----------------------
+
+If you want to type text, just do it.  Characters which you can see,
+such as A, 7, *, etc. are taken by JOVE as text and inserted
+immediately.  Type <Return> (the carriage-return key) to insert a line
+separator.
+
+You can delete the last character you typed by typing <Delete>.
+<Delete> is a key on the keyboard, which may be labeled "Rubout"
+instead of "Delete" on some terminals.  More generally, <Delete>
+deletes the character immediately before the current cursor position.
+
+>> Do this now, type a few characters and then delete them
+   by typing <Delete> a few times.  Don't worry about this file
+   being changed; you won't affect the master tutorial.  This is just
+   a copy of it.
+
+>> Now start typing text until you reach the right margin, and keep
+   typing.  When a line of text gets too big for one line on the
+   screen, the line of text is "continued" off the edge of the screen
+   The exclamation mark at the right margin indicates a line which has
+   been continued.  The line will slide over if you move off the edge
+   on either side.
+
+>> The following line actually goes off the edge.  Trying typing enough
+   C-F's that you move off the right hand end of this line.... This is a long line of text that the jove editor extends to the right.
+
+>> Use <Delete>s to delete the text until the line fits on one screen
+   line again.  The continuation "!" will go away.
+
+>> Move the cursor to the beginning of a line and type <Delete>.  This
+   deletes the line separator before the line and merges the line onto
+   the previous line.  The resulting line may be too long to fit, in
+   which case it has a continuation indication.
+>> Type <Return> to insert the separator again.
+
+Remember that most JOVE commands can be given a repeat count;  Note
+that this includes characters which insert themselves.
+
+>>  Try that now -- type M- 8 * and see what happens.
+
+If you want to create a blank line in between two lines, move to the
+second of the two lines and type C-O.
+
+>>  Try moving to a line and typing C-O now.
+
+You've now learned the most basic way of typing something in
+JOVE and correcting errors.  You can delete by words or lines
+as well.  Here is a summary of the delete operations:
+
+	<Delete>     delete the character just before the cursor
+	C-D   	     delete the next character after the cursor
+
+	M-<Delete>   kill the word immediately before the cursor
+	M-D	     kill the next word after the cursor
+
+	C-K	     kill from the cursor position to end of line
+
+Notice that <Delete> and C-D vs M-<Delete> and M-D extend the parallel
+started by C-F and M-F (well, <Delete> isn't really a control
+character, but let's not worry about that).
+
+Now suppose you kill something, and then you decide that you want to
+get it back?  Well, whenever you kill something bigger than a
+character, JOVE saves it for you.  To yank it back, use C-Y.  Note
+that you don't have to be in the same place to do C-Y; This is a good
+way to move text around.  Also note that the difference between
+"Killing" and "Deleting" something is that "Killed" things can be
+yanked back, and "Deleted" things cannot.  Generally, the commands
+that can destroy a lot of text save it, while the ones that attack
+only one character, or nothing but blank lines and spaces, do not
+save.
+
+For instance, type C-N a couple times to postion the cursor
+at some line on this screen.
+
+>> Do this now, move the cursor and kill that line with C-K.
+
+Note that a single C-K kills the contents of the line, and a second
+C-K kills the line itself, and make all the other lines move up.  If
+you give C-K a repeat count, it kills that many lines AND their
+contents.
+
+The text that has just disappeared is saved so that you can
+retrieve it.  To retrieve the last killed text and put it where
+the cursor currently is, type C-Y.
+
+>> Try it; type C-Y to yank the text back.
+
+Think of C-Y as if you were yanking something back that someone
+took away from you.  Notice that if you do several C-K's in a row
+the text that is killed is all saved together so that one C-Y will
+yank all of the lines.
+
+>> Do this now, type C-K several times.
+
+Now to retrieve that killed text:
+
+>> Type C-Y.  Then move the cursor down a few lines and type C-Y
+   again.  You now see how to copy some text.
+
+What do you do if you have some text you want to yank back, and then
+you kill something else?  C-Y would yank the more recent kill.  But
+the previous text is not lost.  You can get back to it using the M-Y
+command.  After you have done C-Y to get the most recent kill, typing
+M-Y replaces that yanked text with the previous kill.  Typing M-Y
+again and again brings in earlier and earlier kills.  When you
+have reached the text you are looking for, you can just go away and
+leave it there.  If you M-Y enough times, you come back to the
+starting point (the most recent kill).
+
+>> Kill a line, move around, kill another line.
+   Then do C-Y to get back the second killed line.
+   Then do M-Y and it will be replaced by the first killed line.
+   Do more M-Y's and see what you get.  Keep doing them until
+   the second kill line comes back, and then a few more.
+   If you like, you can try giving M-Y positive and negative
+   arguments.
+
+
+FILES
+-----
+
+In order to make the text you edit permanent, you must put it in a
+file.  Otherwise, it will go away when your invocation of JOVE goes
+away.  While you are editing a file in JOVE, your changes are actually
+being made to a private "scratch" copy of the file.  However, the changes
+still don't become permanent until you "save" the file.  This is so you
+can have control to avoid leaving a half-changed file around when you
+don't want to.
+
+If you look near the botton of the screen you will see a line that
+starts with "JOVE (NORMAL)  2: teach-jove" and continues with the
+filename (normally "/usr/lib/jove/teach-jove").
+This is the name of your own
+temporary copy of the text of the JOVE tutorial; the file you are
+now editing.  Whatever file you edit, that file's name will appear
+in that precise spot.
+
+The commands for finding and saving files are unlike the other
+commands you have learned in that they consist of two characters.
+They both start with the character Control-X.  There is a whole series
+of commands that start with Control-X; many of them have to do with
+files, buffers, and related things, and all of them consist of
+Control-X followed by some other character.  As with M- the character
+interpreted the same regardless of case.
+
+Another thing about the command for finding a file is that you have
+to say what file name you want.  We say the command "reads an argument
+from the terminal" (in this case, the argument is the name of the
+file).  After you type the command
+
+	C-X C-F   Find a file
+
+JOVE will ask you for the file name.  You should end the name with
+the Return key.  After this command, you will see the contents of the
+file in your JOVE.  You can edit the contents.  When you wish to make
+the changes permanent, issue the command
+
+	C-X C-\   Save the file
+
+A new version of the file will be created.  When the operation is
+finished, JOVE prints the name and number of lines saved.
+
+If you forget to save and edit a different file and then decide to quit,
+JOVE will remind you that you made changes that have not been save and
+then ask you whether you really want to quit.  (If you don't save them,
+they will be thrown away.  That might be what you want!)  You should
+answer with a "N" to save them or a "Y" to throw the changes away.
+
+To make a new file, just edit it "as if" it already existed.  Then
+start typing in the text.  When you ask to "save" the file, JOVE
+will really create the file with the text that you have inserted.
+>From then on, you can consider yourself to be editing an already
+existing file.
+
+It is not easy for you to try out editing a file and continue with
+the tutorial.  But you can always come back into the tutorial by
+starting it over and skipping forward.  So, when you feel ready, you
+should try editing a file named "FOO", putting some text in it, and
+saving it; then exit from JOVE and look at the file to be sure that
+it worked.
+
+EXTENDING THE COMMAND SET
+-------------------------
+
+There are many, many more JOVE commands than could possibly be put
+on all the control and meta characters.  JOVE gets around this with
+the X (eXtend) command.  This comes in two flavors:
+
+	C-X	Character eXtend.  Followed by one character.
+	M-X	Named command eXtend.  Followed by a long name.
+
+These are commands that are generally useful but used less than the
+commands you have already learned about.  You have already seen two
+of them: the file commands C-X C-F to Find and C-X C-\ to Save.
+Another example is the command to tell JOVE that you'd
+like to stop editing.  The command to do this is C-X C-C.
+
+There are many C-X commands.  The ones you need immediately are:
+
+	C-X C-F		Find or visit a file.
+	C-X C-\		Save a file.
+	C-X C-C		Quit JOVE.  This does not save your files auto-
+			matically, though if your files have been modi-
+			fied, JOVE asks if you really want to quit.  The
+			standard way to save and exit is C-X C-\ followed
+			by C-X C-C.
+
+Named eXtended commands are commands which are used even less
+frequently, or commands which are used only in certain modes.  These
+commands are usually called "functions".  An example is the function
+"apropos", which prompts for a keyword and then gives the names of all
+the functions that apropos for that keyword.  When you type M-X, JOVE
+prompts you at the bottom of the screen with ":" and you should type the
+name of the function you wish to call; in this case, "apropos".
+Just type "apr<Space>" and JOVE will complete the name.  JOVE
+will ask you for a keyword or phrase and you type the
+string that you want ask about.
+
+>> Try typing M-X, followed by "apropos" or "apr" and then Return.
+   Then try typing "file" followed by a Return.
+
+
+TEXT REPLACEMENT
+---- -----------
+
+>> Move the cursor to the blank line two lines below this one.
+   Then type M-r changed<Return>altered<Return>.
+
+   Notice how this line has changed: you've replaced
+   the word c-h-a-n-g-e-d with "altered" wherever it occurs
+   after the cursor.
+
+The more customary command for replacing strings is the interactive
+command query-replace-search, which has several options.  In essence, it
+shows each occurance of the first string and asks you if you want to
+replace it or not.  You can also choose to edit around the string, or go
+on and replace all occurances without asking further.  It is described
+in detail in the JOVE manual.
+
+
+MODE LINE
+---------
+
+If JOVE sees that you are typing commands slowly it shows them to you
+at the bottom of the screen in an area called the echo area.  The echo
+area contains the bottom line of the screen.  The line immediately above
+them is called the MODE LINE.  The mode line says something like
+
+   JOVE (NORMAL)  2: buffername   "filename" *
+
+This is a very useful "information" line.
+
+The number before the colon is the number of this buffer.  It can be
+used to refer to the buffer instead of the buffername. The buffername is
+the name JOVE gave to the buffer, and it is usually related to the
+filename.  You already know what the filename means -- it is the file
+you have edited.
+
+The star means that you have made changes to the text.  Right after
+you visit or save a file, there is no star.
+
+The part of the mode line inside the parentheses is to tell you what
+modes you are in.  The default mode is NORMAL which is what you are in
+now.  It is an example of a "major mode".  There are several major modes
+in JOVE for editing different languages and text, such as C mode, Text
+mode, etc.  At any time one and only one major mode is active, and its
+two-letter code can always be found in the mode line just where "NORMAL"
+is now.  Each major mode makes a few commands behave differently.  For
+example, there are commands for creating comments in a program, and
+since each programming language has a different idea of what a should
+look like, each major mode has to insert comments differently. Each
+major mode is controlled by a JOVE variable which can be manipulated
+and queried with the "set" and "print" extended commands.  For more
+information on modes and variables, see the JOVE manual.
+
+Major modes are called major because there are also minor modes.
+They are called minor because they aren't alternatives to the major
+modes, just minor modifications of them.  Each minor mode can be
+turned on or off by itself, regardless of what major mode you are in,
+and regardless of the other minor modes.  So you can use no minor
+modes, or one minor mode, or any combination of several minor modes.
+
+One minor mode which is very useful, especially for editing English
+text, is "text-fill" mode.  When this mode is on, JOVE breaks the line
+in between words automatically whenever the line gets too long.  You
+can turn this mode on by doing M-X set text-fill 1<Return>.  When the
+mode is on, you can turn it off by doing M-X set text-fill 0<Return>.
+For variables that are just used to indicate if something is on or off,
+1 means on, and 0 means off.  Text-fill is such an on/off variable.
+
+>> Type "M-X set text-fill 1<Return>" now.  Then insert a line of "asdf "
+   over again until you see it divide into two lines.  You must put in
+   spaces between them because Auto Fill breaks lines only at spaces.
+   Notice that "TE" (the code for text-fill) appears in the mode line
+   to indicate that you are in text-fill mode.
+
+
+The margin is usually set at 72 characters, but you can change it
+with the set command.  The margin is kept in a variable just like the
+mode values.
+You should give the margin setting you want
+just as you would give a 1 or 0 to turn a mode on or off.
+
+>> Type "M-X set right-margin 20", then type in some text and see
+   JOVE fill lines of 20 characters with it.  Then set the margin
+   back to 72 using M-X set again.
+
+
+SEARCHING
+---------
+
+JOVE can do searches for strings (these are groups of contiguous
+characters or words) either forward through the file or backward
+through it.  To search for the string means that you are trying to
+locate it somewhere in the file and have JOVE show you where the
+occurrences of the string exist.  This type of search is somewhat
+different from what you may be familiar with.  It is a search that is
+performed as you type in the thing to search for.  The command to
+initiate a search is C-\ for forward search, and C-R for reverse
+search.	 BUT WAIT!  Don't do them now.	When you type C-\ you'll
+notice that the string "I-search:" appears as a prompt on the
+bottom line.  This tells you that JOVE is waiting for you to type
+the thing that you want to search for.    The `I' stands for "incremental".
+A search string is terminated by any other JOVE command or a carriage
+return.
+
+>> Now type C-\ to start a search.  Type the word 'cursor', then Return.
+
+>> Type C-\  Return to find the next occurrence of "cursor".
+
+The C-\ starts a search that looks for any occurrence of the search
+string AFTER the current cursor position.  But what if you want to
+search for something earlier in the text?  To do this one should
+type C-R for Reverse search.  Everything that applies to C-\ applies
+to C-R except that the direction of the search is reversed.
+
+
+GETTING MORE HELP
+-----------------
+
+In this tutorial we have tried to supply just enough information to
+get you started using JOVE.  There is so much available in JOVE that
+it would be impossible to explain it all here.  However, you may want
+to learn more about JOVE since it has numerous desirable features
+that you don't know about yet.  JOVE has a some internal documentation.
+
+The most basic HELP feature is the describe-key function which is
+available by typing C-X ? and then a command character. JOVE prints
+one line line on the bottom of the screen tell what function is bound to
+that key.  You can then get further information on that function
+using...
+
+The describe-command function M-? will prompt for the name of a function
+and print out the section from the manual about that command in a separate
+buffer.  When you are finished reading it, you can kill the buffer using
+M- C-K, or just switch back to one window with C-X 1.
+
+>> Type C-X ? Control-P.  The message at the bottom of the screen should
+   be something like "^P is bound to previous-line".
+
+Multi-character commands such as C-X C-C and <ESC>V are also allowed
+after C-X ?.
+
+Now lets get more information about the previous-line command.
+
+>> Type M-? previous-line.  When you are finished reading the
+   output, type a Space.
+
+The "name of the function" is important for people who are customizing
+JOVE.  It is what appears in the JOVE CHART as the documentation for
+the command character.
+
+One other form of help is the "apropos" command.  We have already tried
+using this command in an earlier part of this tutorial, but it should
+be mentioned again here.  Apropos prompts for a word or phrase and
+lists all the commands that contain that string.  If you couldn't
+remember the name of a certain command to read file, you could run
+the apropos command with the keyword "file" and it would list all the
+commands that contain "file".  To run apropos you would type
+
+	M-H file<Return>
+
+		or
+
+	M-X apr<Space>file<Return>
+
+CONCLUSION
+----------
+
+Remember, to exit use C-X C-C.
+
+This tutorial is meant to be understandable to all new users, so if
+you found something unclear, don't sit and blame yourself - complain!
+
+You'll probably find that if you use JOVE for a few days you won't
+be able to give it up.  Initially it may give you trouble.  But remember
+that this is the case with any editor, especially one that can do many,
+many things.  And JOVE can do practically everything.
+
+
+Acknowledgement
+---------------
+
+	This tutorial is a modified version of the tutorial "Teach-Emacs"
+from MIT as modified by Steve Zimmerman at CCA-UNIX and then modified again
+by Doug Kingston at the Ballistics Research Laboratory (BRL) for the JOVE
+editor written by Jonathan Payne at LSRHS/BBN.
+
+//E*O*F teach-jove//
+
+exit 0
+

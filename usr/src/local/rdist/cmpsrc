@@ -1,0 +1,6 @@
+HOSTS = ( dali )
+
+FILES = ( bin etc games lib ucb usr.bin usr.lib )
+
+/usr/src/${FILES} -> ${HOSTS}
+	install -b -r -v ;

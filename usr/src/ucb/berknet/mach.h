@@ -315,7 +315,7 @@ int	(*signal())();
 # define ANYP 0300
 # define ECHO 010
 # define ROOTINO 1
-# define DIRSIZ 14
+# define MAXNAMLEN 14
 # define TIOCEXCL 0
 # define SIGHUP		1
 # define SIGINT 	2
@@ -346,7 +346,7 @@ struct stat {
 	};
 struct direct {
 	int d_ino;
-	char d_name[DIRSIZ];
+	char d_name[MAXNAMLEN];
 	};
 struct tms {				/* see times - sect 2 */
 	int	tms_utime;		/* user time */

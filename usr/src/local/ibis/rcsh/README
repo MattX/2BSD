@@ -1,0 +1,12 @@
+
+This directory contains the rcsh, the remore access version of csh.  With rcsh,
+we can do remote name substitution and I/O redirection as well as other functions
+of csh.  It ds the csh to do name substitution and I/O redirection remotely.
+It is also an example of reloading existing programs with libra.a.
+
+Those source codes which are unchanged are not listed in this directory.  Users
+should make symbolic links to their source files (in /usr/src/bin/csh)
+before running the Makefile.
+
+See also the manual page rcsh(1R).
+

@@ -1,0 +1,417 @@
+#
+# make file for net objects
+#
+
+NET=	af.o if.o if_acc.o if_css.o if_dmc.o if_ec.o if_en.o if_ether.o \
+	if_il.o if_imp.o if_imphost.o if_loop.o if_sri.o if_uba.o if_un.o \
+	in.o in_pcb.o ip_icmp.o ip_input.o ip_output.o pup.o raw_cb.o \
+	if_vv.o raw_imp.o raw_ip.o raw_pup.o raw_usrreq.o route.o tcp_debug.o \
+	tcp_input.o tcp_output.o tcp_subr.o tcp_timer.o tcp_usrreq.o \
+	udp_usrreq.o
+
+# SPLFIX should be one of :splfix.movb, :splfix.mtps or :splfix.spl
+SPLFIX=	:splfix.spl
+
+I=	/usr/include
+AS=	as ${OV}
+DEFS=	-DKERNEL -Dpdp11
+INC=	-I. -I${I}
+CFLAGS=	-O ${OV} ${DEFS} ${INC}
+CPP=	/lib/cpp -P ${DEFS} ${INC}
+C=	${CC} ${CFLAGS} -S
+E=	ed - < ${SPLFIX}
+A=	${AS} - -o
+
+all: ${NET} in_cksum.o
+
+in_cksum.o: ../net/in_cksum.c ../net/cksum-fix param.h
+	${C} ../net/in_cksum.c
+	ed - <../net/cksum-fix >/dev/null in_cksum.s
+	${E} in_cksum.s
+	${AS} - -o in_cksum.o in_cksum.s
+	-rm in_cksum.s
+
+# DO NOT DELETE THIS LINE
+af.o: ../net/af.c
+af.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+af.o: ${I}/sys/socketvar.h ${I}/net/af.h
+	${C} ../net/af.c
+	${E} af.s
+	${A} af.o af.s
+	rm -f af.s
+
+if.o: ../net/if.c
+if.o: param.h ${I}/sys/systm.h ${I}/sys/socket.h ${I}/sys/protosw.h
+if.o: ${I}/sys/ioctl.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/errno.h
+if.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if.o: ${I}/net/af.h
+	${C} ../net/if.c
+	${E} if.s
+	${A} if.o if.s
+	rm -f if.s
+
+if_acc.o: ../net/if_acc.c
+if_acc.o: acc.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_acc.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_acc.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_acc.o: ${I}/vaxif/if_acc.h ${I}/netimp/if_imp.h ${I}/vaxif/if_uba.h
+	${C} ../net/if_acc.c
+	${E} if_acc.s
+	${A} if_acc.o if_acc.s
+	rm -f if_acc.s
+
+if_css.o: ../net/if_css.c
+if_css.o: css.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_css.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_css.o: ${I}/vaxif/if_css.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+if_css.o: ${I}/net/if.h ${I}/netimp/if_imp.h ${I}/vaxif/if_uba.h
+	${C} ../net/if_css.c
+	${E} if_css.s
+	${A} if_css.o if_css.s
+	rm -f if_css.s
+
+if_dmc.o: ../net/if_dmc.c
+if_dmc.o: dmc.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_dmc.o: ${I}/sys/tty.h ${I}/sys/protosw.h ${I}/sys/socket.h
+if_dmc.o: ${I}/sys/ubavar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+if_dmc.o: ${I}/net/if.h ${I}/vaxif/if_uba.h ${I}/vaxif/if_dmc.h
+if_dmc.o: ${I}/netinet/ip.h ${I}/netinet/ip_var.h ${I}/net/route.h
+if_dmc.o: ${I}/errno.h
+	${C} ../net/if_dmc.c
+	${E} if_dmc.s
+	${A} if_dmc.o if_dmc.s
+	rm -f if_dmc.s
+
+if_ec.o: ../net/if_ec.c
+if_ec.o: ec.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_ec.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_ec.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_ec.o: ${I}/vaxif/if_ec.h ${I}/vaxif/if_uba.h ${I}/netinet/ip.h
+if_ec.o: ${I}/netinet/ip_var.h ${I}/netpup/pup.h ${I}/net/route.h
+if_ec.o: ${I}/errno.h
+	${C} ../net/if_ec.c
+	${E} if_ec.s
+	${A} if_ec.o if_ec.s
+	rm -f if_ec.s
+
+if_en.o: ../net/if_en.c
+if_en.o: en.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_en.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_en.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_en.o: ${I}/vaxif/if_en.h ${I}/vaxif/if_uba.h ${I}/netinet/ip.h
+if_en.o: ${I}/netinet/ip_var.h ${I}/netpup/pup.h ${I}/net/route.h
+if_en.o: ${I}/errno.h
+	${C} ../net/if_en.c
+	${E} if_en.s
+	${A} if_en.o if_en.s
+	rm -f if_en.s
+
+if_ether.o: ../net/if_ether.c
+if_ether.o: eth.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h
+if_ether.o: ${I}/sys/socket.h ${I}/net/if.h ${I}/netinet/in.h
+if_ether.o: ${I}/vaxif/if_il.h ${I}/netinet/in_systm.h ${I}/errno.h
+	${C} ../net/if_ether.c
+	${E} if_ether.s
+	${A} if_ether.o if_ether.s
+	rm -f if_ether.s
+
+if_il.o: ../net/if_il.c
+if_il.o: il.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_il.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_il.o: ${I}/sys/ilreg.h ${I}/sys/ioctl.h ${I}/netinet/in.h
+if_il.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/vaxif/if_il.h
+if_il.o: ${I}/vaxif/if_uba.h ${I}/netinet/ip.h ${I}/netinet/ip_var.h
+if_il.o: ${I}/netpup/pup.h ${I}/net/route.h ${I}/errno.h
+	${C} ../net/if_il.c
+	${E} if_il.s
+	${A} if_il.o if_il.s
+	rm -f if_il.s
+
+if_imp.o: ../net/if_imp.c
+if_imp.o: imp.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_imp.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_imp.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_imp.o: ${I}/netimp/if_imp.h ${I}/netimp/if_imphost.h ${I}/netinet/ip.h
+if_imp.o: ${I}/netinet/ip_var.h ${I}/net/route.h ${I}/errno.h
+	${C} ../net/if_imp.c
+	${E} if_imp.s
+	${A} if_imp.o if_imp.s
+	rm -f if_imp.s
+
+if_imphost.o: ../net/if_imphost.c
+if_imphost.o: imp.h param.h ${I}/sys/mbuf.h ${I}/netinet/in.h
+if_imphost.o: ${I}/netinet/in_systm.h ${I}/netimp/if_imp.h
+if_imphost.o: ${I}/netimp/if_imphost.h
+	${C} ../net/if_imphost.c
+	${E} if_imphost.s
+	${A} if_imphost.o if_imphost.s
+	rm -f if_imphost.s
+
+if_loop.o: ../net/if_loop.c
+if_loop.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+if_loop.o: ${I}/errno.h ${I}/sys/ioctl.h ${I}/netinet/in.h
+if_loop.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+if_loop.o: ${I}/netinet/ip_var.h ${I}/net/route.h
+	${C} ../net/if_loop.c
+	${E} if_loop.s
+	${A} if_loop.o if_loop.s
+	rm -f if_loop.s
+
+if_sri.o: ../net/if_sri.c
+if_sri.o: sri.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_sri.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_sri.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_sri.o: ${I}/vaxif/if_sri.h ${I}/netimp/if_imp.h ${I}/vaxif/if_uba.h
+	${C} ../net/if_sri.c
+	${E} if_sri.s
+	${A} if_sri.o if_sri.s
+	rm -f if_sri.s
+
+if_uba.o: ../net/if_uba.c
+if_uba.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_uba.o: ${I}/sys/ubavar.h ${I}/sys/map.h ${I}/sys/uba.h
+if_uba.o: ${I}/sys/socket.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+if_uba.o: ${I}/net/if.h ${I}/vaxif/if_uba.h
+	${C} ../net/if_uba.c
+	${E} if_uba.s
+	${A} if_uba.o if_uba.s
+	rm -f if_uba.s
+
+if_un.o: ../net/if_un.c
+if_un.o: un.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_un.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_un.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+if_un.o: ${I}/vaxif/if_un.h ${I}/vaxif/if_uba.h ${I}/netinet/ip.h
+if_un.o: ${I}/netinet/ip_var.h ${I}/net/route.h ${I}/errno.h
+	${C} ../net/if_un.c
+	${E} if_un.s
+	${A} if_un.o if_un.s
+	rm -f if_un.s
+
+in.o: ../net/in.c
+in.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+in.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+in.o: ${I}/net/if.h ${I}/net/route.h ${I}/net/af.h
+	${C} ../net/in.c
+	${E} in.s
+	${A} in.o in.s
+	rm -f in.s
+
+in_pcb.o: ../net/in_pcb.c
+in_pcb.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+in_pcb.o: ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+in_pcb.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/if.h
+in_pcb.o: ${I}/net/route.h ${I}/netinet/in_pcb.h ${I}/sys/protosw.h
+	${C} ../net/in_pcb.c
+	${E} in_pcb.s
+	${A} in_pcb.o in_pcb.s
+	rm -f in_pcb.s
+
+ip_icmp.o: ../net/ip_icmp.c
+ip_icmp.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+ip_icmp.o: ${I}/sys/socket.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+ip_icmp.o: ${I}/netinet/ip.h ${I}/netinet/ip_icmp.h
+	${C} ../net/ip_icmp.c
+	${E} ip_icmp.s
+	${A} ip_icmp.o ip_icmp.s
+	rm -f ip_icmp.s
+
+ip_input.o: ../net/ip_input.c
+ip_input.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+ip_input.o: ${I}/sys/socket.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+ip_input.o: ${I}/net/if.h ${I}/netinet/ip.h ${I}/netinet/ip_var.h
+ip_input.o: ${I}/netinet/ip_icmp.h ${I}/netinet/tcp.h
+ip_input.o: ${I}/netinet/ip_acct.h ${I}/errno.h
+	${C} ../net/ip_input.c
+	${E} ip_input.s
+	${A} ip_input.o ip_input.s
+	rm -f ip_input.s
+
+ip_output.o: ../net/ip_output.c
+ip_output.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+ip_output.o: ${I}/sys/socketvar.h ${I}/netinet/in.h
+ip_output.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+ip_output.o: ${I}/netinet/ip_var.h ${I}/net/route.h
+ip_output.o: ${I}/netinet/ip_acct.h ${I}/errno.h
+	${C} ../net/ip_output.c
+	${E} ip_output.s
+	${A} ip_output.o ip_output.s
+	rm -f ip_output.s
+
+pup.o: ../net/pup.c
+pup.o: pup.h param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+pup.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+pup.o: ${I}/net/af.h ${I}/netpup/pup.h
+	${C} ../net/pup.c
+	${E} pup.s
+	${A} pup.o pup.s
+	rm -f pup.s
+
+raw_cb.o: ../net/raw_cb.c
+raw_cb.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+raw_cb.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+raw_cb.o: ${I}/net/if.h ${I}/net/raw_cb.h ${I}/netpup/pup.h ${I}/errno.h
+	${C} ../net/raw_cb.c
+	${E} raw_cb.s
+	${A} raw_cb.o raw_cb.s
+	rm -f raw_cb.s
+
+if_vv.o: ../net/if_vv.c
+if_vv.o: vv.h param.h ${I}/sys/systm.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+if_vv.o: ${I}/sys/buf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+if_vv.o: ${I}/sys/ubavar.h ${I}/sys/ioctl.h ${I}/netinet/in.h
+if_vv.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/vaxif/if_vv.h
+if_vv.o: ${I}/vaxif/if_uba.h ${I}/netinet/ip.h ${I}/netinet/ip_var.h
+if_vv.o: ${I}/net/route.h ${I}/errno.h
+	${C} ../net/if_vv.c
+	${E} if_vv.s
+	${A} if_vv.o if_vv.s
+	rm -f if_vv.s
+
+raw_imp.o: ../net/raw_imp.c
+raw_imp.o: imp.h param.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+raw_imp.o: ${I}/sys/protosw.h ${I}/sys/socketvar.h ${I}/netinet/in.h
+raw_imp.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netimp/if_imp.h
+raw_imp.o: ${I}/net/raw_cb.h ${I}/errno.h
+	${C} ../net/raw_imp.c
+	${E} raw_imp.s
+	${A} raw_imp.o raw_imp.s
+	rm -f raw_imp.s
+
+raw_ip.o: ../net/raw_ip.c
+raw_ip.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/protosw.h
+raw_ip.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/net/if.h
+raw_ip.o: ${I}/netinet/in_systm.h ${I}/netinet/ip.h ${I}/netinet/ip_var.h
+raw_ip.o: ${I}/net/raw_cb.h ${I}/net/route.h ${I}/errno.h
+	${C} ../net/raw_ip.c
+	${E} raw_ip.s
+	${A} raw_ip.o raw_ip.s
+	rm -f raw_ip.s
+
+raw_pup.o: ../net/raw_pup.c
+raw_pup.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/protosw.h
+raw_pup.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+raw_pup.o: ${I}/netpup/pup.h ${I}/net/raw_cb.h ${I}/net/if.h ${I}/errno.h
+	${C} ../net/raw_pup.c
+	${E} raw_pup.s
+	${A} raw_pup.o raw_pup.s
+	rm -f raw_pup.s
+
+raw_usrreq.o: ../net/raw_usrreq.c
+raw_usrreq.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+raw_usrreq.o: ${I}/sys/socket.h ${I}/sys/socketvar.h ${I}/netinet/in.h
+raw_usrreq.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/net/raw_cb.h
+raw_usrreq.o: ${I}/errno.h
+	${C} ../net/raw_usrreq.c
+	${E} raw_usrreq.s
+	${A} raw_usrreq.o raw_usrreq.s
+	rm -f raw_usrreq.s
+
+route.o: ../net/route.c
+route.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+route.o: ${I}/sys/socket.h ${I}/sys/ioctl.h ${I}/netinet/in.h
+route.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/net/af.h
+route.o: ${I}/net/route.h ${I}/errno.h
+	${C} ../net/route.c
+	${E} route.s
+	${A} route.o route.s
+	rm -f route.s
+
+tcp_debug.o: ../net/tcp_debug.c
+tcp_debug.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_debug.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ${I}/netinet/in.h
+tcp_debug.o: ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_debug.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+tcp_debug.o: ${I}/netinet/ip_var.h ${I}/netinet/tcp.h
+tcp_debug.o: ${I}/netinet/tcp_fsm.h ${I}/netinet/tcp_seq.h
+tcp_debug.o: ${I}/netinet/tcp_timer.h ${I}/netinet/tcp_var.h
+tcp_debug.o: ${I}/netinet/tcpip.h ${I}/netinet/tcp_debug.h ${I}/errno.h
+	${C} ../net/tcp_debug.c
+	${E} tcp_debug.s
+	${A} tcp_debug.o tcp_debug.s
+	rm -f tcp_debug.s
+
+tcp_input.o: ../net/tcp_input.c
+tcp_input.o: param.h ${I}/sys/systm.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+tcp_input.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+tcp_input.o: ${I}/netinet/in.h ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_input.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+tcp_input.o: ${I}/netinet/ip_var.h ${I}/netinet/tcp.h
+tcp_input.o: ${I}/netinet/tcp_fsm.h ${I}/netinet/tcp_seq.h
+tcp_input.o: ${I}/netinet/tcp_timer.h ${I}/netinet/tcp_var.h
+tcp_input.o: ${I}/netinet/tcpip.h ${I}/netinet/tcp_debug.h ${I}/errno.h
+	${C} ../net/tcp_input.c
+	${E} tcp_input.s
+	${A} tcp_input.o tcp_input.s
+	rm -f tcp_input.s
+
+tcp_output.o: ../net/tcp_output.c
+tcp_output.o: param.h ${I}/sys/systm.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+tcp_output.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+tcp_output.o: ${I}/netinet/in.h ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_output.o: ${I}/netinet/in_systm.h ${I}/netinet/ip.h
+tcp_output.o: ${I}/netinet/ip_var.h ${I}/netinet/tcp.h
+tcp_output.o: ${I}/netinet/tcp_fsm.h ${I}/netinet/tcp_seq.h
+tcp_output.o: ${I}/netinet/tcp_timer.h ${I}/netinet/tcp_var.h
+tcp_output.o: ${I}/netinet/tcpip.h ${I}/netinet/tcp_debug.h ${I}/errno.h
+	${C} ../net/tcp_output.c
+	${E} tcp_output.s
+	${A} tcp_output.o tcp_output.s
+	rm -f tcp_output.s
+
+tcp_subr.o: ../net/tcp_subr.c
+tcp_subr.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_subr.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ${I}/netinet/in.h
+tcp_subr.o: ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_subr.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+tcp_subr.o: ${I}/netinet/ip_var.h ${I}/netinet/ip_icmp.h
+tcp_subr.o: ${I}/netinet/tcp.h ${I}/netinet/tcp_fsm.h
+tcp_subr.o: ${I}/netinet/tcp_seq.h ${I}/netinet/tcp_timer.h
+tcp_subr.o: ${I}/netinet/tcp_var.h ${I}/netinet/tcpip.h ${I}/errno.h
+	${C} ../net/tcp_subr.c
+	${E} tcp_subr.s
+	${A} tcp_subr.o tcp_subr.s
+	rm -f tcp_subr.s
+
+tcp_timer.o: ../net/tcp_timer.c
+tcp_timer.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_timer.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ${I}/netinet/in.h
+tcp_timer.o: ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_timer.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+tcp_timer.o: ${I}/netinet/ip_var.h ${I}/netinet/tcp.h
+tcp_timer.o: ${I}/netinet/tcp_fsm.h ${I}/netinet/tcp_seq.h
+tcp_timer.o: ${I}/netinet/tcp_timer.h ${I}/netinet/tcp_var.h
+tcp_timer.o: ${I}/netinet/tcpip.h ${I}/errno.h
+	${C} ../net/tcp_timer.c
+	${E} tcp_timer.s
+	${A} tcp_timer.o tcp_timer.s
+	rm -f tcp_timer.s
+
+tcp_usrreq.o: ../net/tcp_usrreq.c
+tcp_usrreq.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_usrreq.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ${I}/netinet/in.h
+tcp_usrreq.o: ${I}/net/route.h ${I}/netinet/in_pcb.h
+tcp_usrreq.o: ${I}/netinet/in_systm.h ${I}/net/if.h ${I}/netinet/ip.h
+tcp_usrreq.o: ${I}/netinet/ip_var.h ${I}/netinet/tcp.h
+tcp_usrreq.o: ${I}/netinet/tcp_fsm.h ${I}/netinet/tcp_seq.h
+tcp_usrreq.o: ${I}/netinet/tcp_timer.h ${I}/netinet/tcp_var.h
+tcp_usrreq.o: ${I}/netinet/tcpip.h ${I}/netinet/tcp_debug.h ${I}/errno.h
+	${C} ../net/tcp_usrreq.c
+	${E} tcp_usrreq.s
+	${A} tcp_usrreq.o tcp_usrreq.s
+	rm -f tcp_usrreq.s
+
+udp_usrreq.o: ../net/udp_usrreq.c
+udp_usrreq.o: param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/mbuf.h
+udp_usrreq.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+udp_usrreq.o: ${I}/netinet/in.h ${I}/net/if.h ${I}/net/route.h
+udp_usrreq.o: ${I}/netinet/in_pcb.h ${I}/netinet/in_systm.h
+udp_usrreq.o: ${I}/netinet/ip.h ${I}/netinet/ip_var.h
+udp_usrreq.o: ${I}/netinet/ip_icmp.h ${I}/netinet/udp.h
+	${C} ../net/udp_usrreq.c
+	${E} udp_usrreq.s
+	${A} udp_usrreq.o udp_usrreq.s
+	rm -f udp_usrreq.s
+
+# DEPENDENCIES MUST END HERE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY

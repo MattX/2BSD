@@ -1,0 +1,3 @@
+(rdist.man) -> (csd2)
+	install ~sullivan/rdist.man;
+	notify sullivan@cmcl2;

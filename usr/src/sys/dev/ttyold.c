@@ -12,9 +12,6 @@
 #include <sys/user.h>
 #include <sys/tty.h>
 #include <sys/proc.h>
-#ifdef	MPX_FILS
-#include <sys/mx.h>
-#endif
 #include <sys/inode.h>
 #include <sys/file.h>
 #include <sys/reg.h>
@@ -116,9 +113,6 @@ register c;
 register struct tty *tp;
 {
 	register int t_flags;
-#ifdef	MPX_FILS
-	struct chan *cp;
-#endif
 
 	tk_nin += 1;
 	c &= 0377;
@@ -150,11 +144,6 @@ register struct tty *tp;
 			if ((tp->t_local & LNOFLSH) == 0)
 				flushtty(tp, FREAD|FWRITE);
 			c = (c==tun.t_intrc) ? SIGINT:SIGQUIT;
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				scontrol(tp->t_chan, M_SIG, c);
-			else
-#endif
 				gsignal(tp->t_pgrp, c);
 			return;
 		}
@@ -171,12 +160,11 @@ register struct tty *tp;
 	if (t_flags&(RAW|CBREAK)||(c=='\n'||c==tun.t_eofc||c==tun.t_brkc)) {
 		if ((t_flags&(RAW|CBREAK))==0 && putc(0377, &tp->t_rawq)==0)
 			tp->t_delct++;
-#ifdef	MPX_FILS
-		if ((cp=tp->t_chan)!=NULL)
-			(void) sdata(cp);
-		else
-#endif
+#ifdef UCB_NET				/* Make select(1) work on the old */
+			otwakeup(tp);	/* tty driver. */
+#else
 			wakeup((caddr_t)&tp->t_rawq);
+#endif
 	}
 	if (t_flags&ECHO) {
 		ttyoutput(c, tp);
@@ -331,12 +319,9 @@ register s;
 	s = spl5();
 	if (tp->t_canq.c_cc==0) {
 		while ((canon(tp)<0) && (tp->t_state&CARR_ON)) {
-			if ((tp->t_state&CARR_ON)==0 ||
-#ifdef	MPX_FILS
-			    (tp->t_chan!=NULL) ||
-#endif
+			if ((tp->t_state&CARR_ON)==0
 #ifdef	UCB_NET
-			    (tp->t_state&TS_NBIO)
+			    || (tp->t_state&TS_NBIO)
 #endif
 			    ) {
 				splx(s);
@@ -364,6 +349,9 @@ register struct tty *tp;
 	int cc, i;
 	char obuf[OBUFSIZ];
 	int hiwat = TTHIWAT(tp);
+#ifdef UCB_NET
+	int cnt = u.u_count;	/* For NBIO on the old tty. */
+#endif
 
 	if ((tp->t_state&CARR_ON)==0)
 		return(NULL);
@@ -383,15 +371,6 @@ register struct tty *tp;
 			}
 #endif
 			tp->t_state |= ASLEEP;
-#ifdef	MPX_FILS
-			if (tp->t_chan) {
-				u.u_base -= cc;
-				u.u_offset -= cc;
-				u.u_count += cc;
-				(void) _spl0();
-				return((caddr_t)&tp->t_outq);
-			}
-#endif
 			sleep((caddr_t)&tp->t_outq, TTOPRI);
 		}
 		(void) _spl0();
@@ -404,8 +383,8 @@ register struct tty *tp;
 			if (tp->t_flags&RAW)
 				ce=cc;
 			else {
-				ce=0;
-				while(((partab[(*(cp+ce))&0177]&077)==0)&&(ce<cc))
+				ce=0;	/* clear parity bit on non-raw output */
+				while(ce<cc && !(partab[(*(cp+ce))&=0177]&077))
 					ce++;
 				if (ce==0) {
 					ttyoutput(*cp++,tp);
@@ -426,6 +405,10 @@ check:
 					ttstart(tp);
 #ifdef	UCB_NET
 					if (tp->t_state&TS_NBIO) {
+						u.u_base -= cc;
+						u.u_offset -= cc;
+						u.u_count += cc;
+						if (u.u_count == cnt)
 						u.u_error = EWOULDBLOCK;
 						return(NULL);
 					}
@@ -441,4 +424,16 @@ check:
 	return(NULL);
 }
 
+#ifdef UCB_NET
+otwakeup(tp)
+	struct tty *tp;
+{
+	if (tp->t_rsel) {
+		selwakeup(tp->t_rsel, tp->t_state&TS_RCOLL);
+		tp->t_state &= ~TS_RCOLL;
+		tp->t_rsel = 0;
+	}
+	wakeup((caddr_t)&tp->t_rawq);
+}
+#endif
 #endif	OLDTTY

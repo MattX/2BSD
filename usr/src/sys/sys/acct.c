@@ -38,11 +38,7 @@ sysacct()
 			u.u_error = EBUSY;
 			return;
 		}
-#ifndef	UCB_SYMLINKS
-		ip = namei(uchar, LOOKUP);
-#else
 		ip = namei(uchar, LOOKUP, 1);
-#endif
 		if(ip == NULL)
 			return;
 		if((ip->i_mode & IFMT) != IFREG) {

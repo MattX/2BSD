@@ -1,0 +1,1 @@
+#define NDMBB	%NDMBB%

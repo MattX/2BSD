@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)clock.c	2.1 (Berkeley)	9/1/83
+ *	SCCS id	@(#)clock.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -10,18 +10,18 @@
 #include <sys/user.h>
 #include <sys/proc.h>
 #include <sys/reg.h>
-#ifdef UCB_METER
+#ifdef	UCB_METER
 #include <sys/text.h>
 #include <sys/vm.h>
-#endif
-#ifdef UCB_NET
+#endif	UCB_METER
+#ifdef	UCB_NET
 	/*
 	 * shifted to keep "make depend" from finding these for now...
 	 */
 #	include <sys/protosw.h>
 #	include <sys/socket.h>
-#	include "../net/if.h"
-#	include "../net/in_systm.h"
+#	include <net/if.h>
+#	include <netinet/in_systm.h>
 #endif
 
 #ifdef UCB_FRCSWAP
@@ -121,7 +121,7 @@ caddr_t pc;
 		/*
 		 * if ps is high, just return
 		 */
-		if (!BASEPRI(ps))
+		if (BASEPRI(ps))
 			goto out;
 
 		/*
@@ -169,7 +169,7 @@ out:
 	 * lightning bolt time-out
 	 * and time of day
 	 */
-	if ((++lbolt >= hz) && (BASEPRI(ps))) {
+	if ((++lbolt >= hz) && (!BASEPRI(ps))) {
 		register struct proc *pp;
 
 		lbolt -= hz;
@@ -178,7 +178,7 @@ out:
 #endif
 		++time;
 		(void) _spl1();
-#if defined(UCB_LOAD) || defined(UCB_METER)
+#if	defined(UCB_LOAD) || defined(UCB_METER)
 		meter();
 #endif
 		runrun++;
@@ -192,14 +192,18 @@ out:
 				if (pp->p_slptime != 127)
 					pp->p_slptime++;
 #endif	UCB_METER
+#ifndef UCB_NET
+			if(pp->p_clktim)
+				if(--pp->p_clktim == 0)
+					psignal(pp, SIGALRM);
+#else
+			/*
+			 * If process has clock counting down, and it
+			 * expires, set it running (if this is a tsleep()),
+			 * or give it an SIGALRM (if the user process
+			 * is using alarm signals.
+			 */
 			if (pp->p_clktim && --pp->p_clktim == 0)
-#ifdef	UCB_NET
-				/*
-				 * If process has clock counting down, and it
-				 * expires, set it running (if this is a
-				 * tsleep()), or give it an SIGALRM (if the user
-				 * process is using alarm signals.
-				 */
 				if (pp->p_flag & STIMO) {
 					a = spl6();
 					switch (pp->p_stat) {
@@ -215,9 +219,9 @@ out:
 					pp->p_flag &= ~STIMO;
 					splx(a);
 				} else
-#endif
 					psignal(pp, SIGALRM);
-			a = (pp->p_cpu & 0377) * SCHMAG + pp->p_nice - NZERO;
+#endif
+			a = (pp->p_cpu & 0377)*SCHMAG + pp->p_nice - NZERO;
 			if(a < 0)
 				a = 0;
 			if(a > 255)
@@ -293,16 +297,16 @@ short avenrun[3];	/* internal load average in psuedo-floating point */
 
 meter()
 {
-#ifdef UCB_METER
+#ifdef	UCB_METER
 	register unsigned *cp, *rp;
 	register long *sp;
 
 	ave(avefree, ctok(freemem), 5);
-#endif
+#endif	UCB_METER
 
 	if (time % 5 == 0) {
 		vmtotal();
-#ifdef UCB_METER
+#ifdef	UCB_METER
 		cp = &cnt.v_first; rp = &rate.v_first; sp = &sum.vs_first;
 		while (cp <= &cnt.v_last) {
 			*rp = *cp;
@@ -310,7 +314,7 @@ meter()
 			*cp = 0;
 			rp++, cp++, sp++;
 		}
-#endif
+#endif	UCB_METER
 	}
 }
 
@@ -320,7 +324,7 @@ vmtotal()
 	register struct proc *p;
 	register struct text *xq;
 	register nrun = 0;
-#ifdef UCB_METER
+#ifdef	UCB_METER
 	int nt;
 
 	total.t_vmtxt = 0;
@@ -343,7 +347,7 @@ vmtotal()
 	total.t_dw = 0;
 	total.t_sl = 0;
 	total.t_sw = 0;
-#endif
+#endif	UCB_METER
 	for (p = &proc[1]; p <= maxproc; p++) {
 		if (p->p_stat) {
 #ifdef UCB_METER
@@ -355,15 +359,15 @@ vmtotal()
 			total.t_vm += p->p_dsize + p->p_ssize + USIZE;
 			if (p->p_flag & SLOAD)
 				total.t_rm += p->p_dsize + p->p_ssize + USIZE;
-#endif
-#endif
+#endif	!VIRUS_VFORK
+#endif	UCB_METER
 			switch (p->p_stat) {
 
 			case SSLEEP:
 			case SSTOP:
 				if (p->p_pri <= PZERO)
 					nrun++;
-#ifdef UCB_METER
+#ifdef	UCB_METER
 				if (p->p_flag & SLOAD) {
 					if (p->p_pri <= PZERO)
 						total.t_dw++;
@@ -373,7 +377,7 @@ vmtotal()
 					total.t_sw++;
 				if (p->p_slptime < MAXSLP)
 					goto active;
-#endif
+#endif	UCB_METER
 				break;
 
 			case SRUN:
@@ -394,7 +398,7 @@ active:
 				if (p->p_flag & SLOAD)
 					total.t_arm +=
 						p->p_dsize + p->p_ssize + USIZE;
-#endif
+#endif	!VIRUS_VFORK
 				if (p->p_textp) {
 					total.t_avmtxt += p->p_textp->x_size;
 					nt = p->p_textp-text;
@@ -405,18 +409,18 @@ active:
 							    p->p_textp->x_size;
 					}
 				}
-#endif
+#endif	UCB_METER
 				break;
 			}
 		}
 	}
-#ifdef UCB_METER
+#ifdef	UCB_METER
 	total.t_vm += total.t_vmtxt;
 	total.t_avm += total.t_avmtxt;
 	total.t_rm += total.t_rmtxt;
 	total.t_arm += total.t_armtxt;
 	total.t_free = avefree;
-#endif
+#endif	UCB_METER
 	loadav(avenrun, nrun);
 }
 
@@ -474,4 +478,5 @@ loadav(avg, n)
 	for (i = 0; i < 3; i++)
 		avg[i] = (cexp[i] * (avg[i]-(n<<8)) + (((long)n)<<16)) >> 8;
 }
-#endif
+#endif defined(UCB_LOAD) || defined(UCB_METER)
+

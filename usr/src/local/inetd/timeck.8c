@@ -1,0 +1,27 @@
+.TH TIMECK 8C 1/27/83
+.UC 4
+.SH NAME
+timeck \- poll the localnet for the current time
+.SH SYNOPSIS
+.B /etc/timeck
+\%[\-s]
+.SH DESCRIPTION
+The \fItimeck\fR program sends a broadcast message to the localnet
+(as defined in \fI/etc/networks\fR, see \fInetworks\fR\0(5)),
+requesting the current time
+(as defined in \fI/etc/services\fR, see \fIservices\fR\0(5)).
+.PP
+If the `\-s' option is specified,
+then \fItimeck\fR will set the current host's time
+to the time reported by the first host responding.
+.SH "SEE ALSO"
+inetd(8C)
+.SH BUGS
+If the local network doesn't support broadcasting,
+\fItimeck\fR should consult \fI/etc/hosts\fR (see \fIhosts\fR\0(5))
+and send a message to each host it finds there that resides on the
+local network.
+.PP
+It is a feature, not a bug,
+that the name and address of the local net are determined
+by looking at \fI/etc/networks\fR instead of \fI/dev/kmem\fR.

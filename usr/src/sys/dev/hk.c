@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)hk.c	2.1 (Berkeley)	12/21/83
+ *	SCCS id	@(#)hk.c	2.1 (Berkeley)	9/1/83
  */
 
 /*
@@ -38,7 +38,7 @@ extern	struct hkdevice *HKADDR;
 int	hkpip;		/* DEBUG */
 int	hknosval;	/* DEBUG */
 #ifdef HKDEBUG
-int	hkdebug;
+int	hkdebug = 1;
 #endif
 
 int	hk_offset[] =

@@ -1,15 +1,13 @@
-#include "param.h"
-#include <sys/systm.h>
-#include <sys/map.h>
-#ifdef UCB_METER
-#include <sys/vm.h>
-#endif
-
-
 /*
  *	SCCS id	@(#)malloc.c	2.1 (Berkeley)	8/5/83
  */
 
+#include "param.h"
+#include <sys/systm.h>
+#include <sys/map.h>
+#ifdef	UCB_METER
+#include <sys/vm.h>
+#endif	UCB_METER
 
 /*
  * Resource map handling routines.
@@ -79,7 +77,7 @@ again:
 #ifdef	UCB_METER
 			if (mp == coremap)
 				freemem -= size;
-#endif
+#endif	UCB_METER
 			return (addr);
 		}
 	}
@@ -95,6 +93,7 @@ again:
 	return (0);
 }
 
+#define	DIAGNOSTIC
 /*
  * Free the previously allocated space at addr
  * of size units into the specified map.
@@ -119,7 +118,7 @@ register memaddr addr;
 	 */
 	if (addr == 0)
 		goto badmfree;
-#endif
+#endif	DIAGNOSTIC
 	if (mp == coremap) {
 		if (runin) {
 			runin = 0;
@@ -127,7 +126,7 @@ register memaddr addr;
 		}
 #ifdef	UCB_METER
 		freemem += size;
-#endif
+#endif	UCB_METER
 	}
 	/*
 	 * Locate the piece of the map which starts after the
@@ -179,7 +178,7 @@ register memaddr addr;
 #ifdef	DIAGNOSTIC
 		if (addr+size > bp->m_addr)
 			goto badmfree;
-#endif
+#endif	DIAGNOSTIC
 		bp->m_addr -= size;
 		bp->m_size += size;
 		goto done;
@@ -289,7 +288,7 @@ again:
 #ifdef	UCB_METER
 			if (mp == coremap)
 				freemem -= sizes[next];
-#endif
+#endif	UCB_METER
 		}
 		/*
 		 * Find the first segment with 0 size.

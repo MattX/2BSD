@@ -1,3 +1,4 @@
+#! /bin/csh -f
 #
 #	which : tells you which program you get
 #	hacked to do aliases (from .cshrc file only!)

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)syslocal.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)syslocal.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -28,8 +28,8 @@
 #include <sys/socketvar.h>
 #include <sys/ubavar.h>
 #include <sys/map.h>
-#include "../net/if.h"
-#include "../net/in_systm.h"
+#include <net/if.h>
+#include <netinet/in_systm.h>
 #endif
 
 /*
@@ -94,11 +94,7 @@ quota()
 
 	if (!suser())
 		return;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
 	if (ip == NULL)
 		return;
 	else
@@ -152,11 +148,7 @@ qstat()
 		struct	qstat *sb;
 	};
 
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 0);
-#endif
 	if(ip == (struct inode *) NULL)
 		return;
 	qstat1(ip, ((struct a *) u.u_ap)->sb);
@@ -203,29 +195,12 @@ struct inode *ub;
 }
 #endif
 
-#ifndef MENLO_JCL
-/*
- * killpg -- send all processes the specified
- *	     process group the given signal.
- */
-
-killpg()
-{
-	struct a {
-		int	pgrp;
-		int	sig;
-	};
-
-	killgrp(((struct a *) u.u_ap)->pgrp, ((struct a *) u.u_ap)->sig, 0);
-}
-#endif
 
 #ifdef UCB_SUBM
 /*
  * killbkg -- signal processes in the specified group that
  *	      have not been blessed by a submit call
  */
-
 killbkg()
 {
 	struct a {
@@ -235,9 +210,7 @@ killbkg()
 
 	killgrp(((struct a *) u.u_ap)->pgrp, ((struct a *) u.u_ap)->sig, SSUBM);
 }
-#endif
 
-#if	defined(UCB_SUBM) || !defined(MENLO_JCL)
 /*
  * common code for killpg and killbkg
  *
@@ -245,7 +218,6 @@ killbkg()
  * only to processes whose (p_flag & mask)
  * is zero.
  */
-
 killgrp(pgrp, sig, mask)
 register pgrp;
 register sig;
@@ -277,37 +249,23 @@ register sig;
 	if(count == 0)
 		u.u_error = ESRCH;
 }
-#endif
 
-#ifdef	UCB_SUBM
 /*
  * submit -- mark the specified process to allow execution after logout
  */
-
 submit()
 {
 	register struct proc *p;
-#ifndef	MENLO_JCL
-	register group;
-#endif
 	register pid;
 	struct a {
 		int	pid;
 	};
 
 	pid = ((struct a *) u.u_ap)->pid;
-#ifndef	MENLO_JCL
-	group = u.u_procp->p_pgrp;
-#endif
 	for(p = &proc[2]; p <= maxproc; p++)
 		if(p->p_pid == pid) {
-#ifndef	MENLO_JCL
-			if(p->p_pgrp != group && !suser())
-				return;
-#else
 			if (p->p_uid != u.u_uid && !suser())
 				return;
-#endif
 			p->p_flag |= SSUBM;
 			return;
 		}
@@ -334,22 +292,7 @@ login()
 			u.u_crn[i] = ((struct a *) u.u_ap)->crn[i];
 	}
 }
-#endif
-
-#ifndef MENLO_JCL
-/*
- * establish a new process group
- */
-setpgrp()
-{
-	register struct proc *pp;
-
-	if (suser()) {
-		pp = u.u_procp;
-		pp->p_pgrp = pp->p_pid;
-	}
-}
-#endif
+#endif	UCB_LOGIN
 
 #ifdef	UCB_LOAD
 /*
@@ -366,9 +309,9 @@ gldav()
 	    3 * sizeof(short)) < 0)
 		u.u_error = EFAULT;
 }
-#endif
+#endif	UCB_LOAD
 
-#ifndef NONFP
+#ifndef	NONFP
 /*
  * fperr - return floating point error registers
  */
@@ -377,7 +320,7 @@ fperr()
 	u.u_r.r_val1 = u.u_fperr.f_fec;
 	u.u_r.r_val2 = u.u_fperr.f_fea;
 }
-#endif
+#endif	!NONFP
 
 #ifdef	UCB_VHANGUP
 /*
@@ -453,7 +396,7 @@ renice()
 }
 #endif	UCB_RENICE
 
-int conf_int = CONF_MAGIC; /* Used to pass result from int service to probe() */
+int conf_int = CONF_MAGIC;/* Used to pass result from int service to probe() */
 
 /*
  * Routine to allow user level code to call various internal
@@ -465,26 +408,26 @@ ucall()
 	register struct a {
 		int priority;
 		int (*routine)();
-		int arg0;
 		int arg1;
+		int arg2;
 	} *uap;
 
-	if (suser()) {
-		uap = (struct a *) u.u_ap;
-		(void) splx(uap->priority);
-		u.u_r.r_val1 = (*uap->routine)(uap->arg0, uap->arg1);
-		(void) _spl0();
-	}
+	if (!suser()) return;
+	uap = (struct a *) u.u_ap;
+	(void) splx(uap->priority);
+	u.u_r.r_val1 = (*uap->routine)(uap->arg1, uap->arg2);
+	(void) _spl0();
 }
 
-#ifdef  UCB_NET
+
+#ifdef	UCB_NET
 
 extern	u_long LocalAddr;	/* Generic local net address	*/
 
-int	nlbase;         /* net error log area in clicks */
+int	nlbase;			/* net error log area in clicks */
 int	nlsize = 01000;
-int	nlclick, nlbyte;
-
+int	nlclick;
+int	nlbyte;
 int	netoff = 0;
 int	protoslow;
 int	protofast;
@@ -500,14 +443,12 @@ netinit()
 	register struct uba_driver *udp;
 	register struct uba_device *ui = &ubdinit;
 
-	if (netoff)
-		return;
-	nlbase = nlclick = malloc(coremap, nlsize);  /* net error log */
+	if(netoff) return;
+	nlbase = nlclick = malloc(coremap,nlsize);  /* net error log */
 	MAPSAVE();
 	mbinit();
-	for (ui = &ubdinit ; udp = ui->ui_driver ; ui++) {
-		if (badaddr(ui->ui_addr, 2))
-			continue;
+	for(ui = &ubdinit ; udp = ui->ui_driver ; ui++) {
+		if(badaddr(ui->ui_addr,2)) continue;
 		ui->ui_alive = 1;
 		udp->ud_dinfo[ui->ui_unit] = ui;
 		(*udp->ud_attach)(ui);
@@ -527,15 +468,15 @@ netinit()
 netintr()
 {
 	int onetisr;
-	mapinfo map;
+	segm save5;
 
-	savemap(map);
-	while (spl7(), (onetisr = netisr)) {
+	saveseg5(save5);
+	while(spl7(),(onetisr = netisr)) {
 		netisr = 0;
 		splnet();
-		if (onetisr & (1 << NETISR_RAW))
+		if (onetisr & (1<<NETISR_RAW))
 			rawintr();
-		if (onetisr & (1 << NETISR_IP))
+		if (onetisr & (1<<NETISR_IP))
 			ipintr();
 		if (protofast <= 0) {
 			protofast = hz / PR_FASTHZ;
@@ -550,17 +491,17 @@ netintr()
 			if_slowtimo();
 		}
 	}
-	restormap(map);
+	restorseg5(save5);
 }
 
-int	nprint = 0;            /* enable nprintf */
+int	enprint = 0;		/* enable nprintf */
 
 /*
  * net printf.  prints to net log area in memory (nlbase, nlsize).
  */
-nprintf(fmt, x1)
-char *fmt;
-unsigned x1;
+nprintf (fmt, x1)
+char	*fmt;
+unsigned int	x1;
 {
 	if (enprint)
 		prf(fmt, &x1, 4);
@@ -589,11 +530,10 @@ select()
 		u.u_error = EBADF;
 		return;
 	}
-	if (ap->rp && copyin((caddr_t)ap->rp, (caddr_t)&rd, sizeof(fd_set)))
+	if (ap->rp && copyin((caddr_t)ap->rp,(caddr_t)&rd,sizeof(fd_set)))
 		return;
-	if (ap->wp && copyin((caddr_t)ap->wp, (caddr_t)&wr, sizeof(fd_set)))
+	if (ap->wp && copyin((caddr_t)ap->wp,(caddr_t)&wr,sizeof(fd_set)))
 		return;
-
 retry:
 	ncoll = nselcoll;
 	u.u_procp->p_flag |= SSEL;
@@ -605,7 +545,7 @@ retry:
 		goto done;
 	if (readable || writeable)
 		goto done;
-	rem = (ap->timo + 999) / 1000 - (time - t);
+	rem = (ap->timo+999)/1000 - (time - t);
 	if (ap->timo == 0 || rem <= 0)
 		goto done;
 	s = spl6();
@@ -615,19 +555,19 @@ retry:
 		goto retry;
 	}
 	u.u_procp->p_flag &= ~SSEL;
-	tsel = tsleep((caddr_t)&selwait, PZERO + 1, rem);
+	tsel = tsleep((caddr_t)&selwait, PZERO+1, rem);
 	splx(s);
 	switch (tsel) {
 
-		case TS_OK:
-			goto retry;
+	case TS_OK:
+		goto retry;
 
-		case TS_SIG:
-			u.u_error = EINTR;
-			return;
+	case TS_SIG:
+		u.u_error = EINTR;
+		return;
 
-		case TS_TIME:
-			break;
+	case TS_TIME:
+		break;
 	}
 done:
 	rd.fds_bits[0] = readable;
@@ -657,8 +597,8 @@ selscan(nfd, fds, nfdp, flag)
 	while (i = ffs(bits)) {
 		if (i >= nfd)
 			break;
-		bits &= ~(1L << (i - 1));
-		fp = u.u_ofile[i - 1];
+		bits &= ~(1L<<(i-1));
+		fp = u.u_ofile[i-1];
 		if (fp == NULL) {
 			u.u_error = EBADF;
 			return (0);
@@ -669,20 +609,20 @@ selscan(nfd, fds, nfdp, flag)
 			ip = fp->f_inode;
 			switch (ip->i_mode & IFMT) {
 
-				case IFCHR:
-					able = (*cdevsw[major(ip->i_un.i_rdev)].d_select)
-						((int)ip->i_un.i_rdev, flag);
-					break;
+			case IFCHR:
+				able = (*cdevsw[major(ip->i_un.i_rdev)].d_select)
+					((int)ip->i_un.i_rdev, flag);
+				break;
 
-				case IFBLK:
-				case IFREG:
-				case IFDIR:
-					able = 1;
-					break;
+			case IFBLK:
+			case IFREG:
+			case IFDIR:
+				able = 1;
+				break;
 			}
 		}
 		if (able) {
-			res |= (1L << (i - 1));
+			res |= (1L<<(i-1));
 			(*nfdp)++;
 		}
 	}
@@ -695,17 +635,15 @@ ffs(mask)
 	register int i;
 	register imask;
 
-	if (mask == 0)
-		return (0);
-
+	if (!mask) return(0);
 	imask = loint(mask);
-	for (i = 1; i < 16; i++) {
+	for(i=1; i<=16; i++) {
 		if (imask & 1)
 			return (i);
 		imask >>= 1;
 	}
 	imask = hiint(mask);
-	for(; i <= 32; i++) {
+	for(; i<=32; i++) {
 		if (imask & 1)
 			return (i);
 		imask >>= 1;
@@ -718,6 +656,7 @@ seltrue(dev, flag)
 	dev_t dev;
 	int flag;
 {
+
 	return (1);
 }
 
@@ -726,19 +665,21 @@ selwakeup(p, coll)
 	int coll;
 {
 	int s;
+	mapinfo map;
 
+	savemap(map);
 	if (coll) {
 		nselcoll++;
-		wakeup((caddr_t) &selwait);
+		wakeup((caddr_t)&selwait);
 	}
 	s = spl6();
 	if (p)
-		if (p->p_wchan == (caddr_t) &selwait)
+		if (p->p_wchan == (caddr_t)&selwait)
 			setrun(p);
-		else
-			if (p->p_flag & SSEL)
-				p->p_flag &= ~SSEL;
+		else if (p->p_flag & SSEL)
+			p->p_flag &= ~SSEL;
 	splx(s);
+	restormap(map);
 }
 
 char	hostname[32] = "hostnameunknown";
@@ -749,13 +690,13 @@ gethostname()
 	register struct a {
 		char	*hostname;
 		int	len;
-	} *uap = (struct a *) u.u_ap;
+	} *uap = (struct a *)u.u_ap;
 	register int len;
 
 	len = uap->len;
-	if (len > hostnamelen)
-		len = hostnamelen;
-	if (copyout((caddr_t) hostname, (caddr_t) uap->hostname, len))
+	if (len > hostnamelen + 1)
+		len = hostnamelen + 1;
+	if (vcopyout((caddr_t)hostname, (caddr_t)uap->hostname, len))
 		u.u_error = EFAULT;
 }
 
@@ -764,17 +705,18 @@ sethostname()
 	register struct a {
 		char	*hostname;
 		int	len;
-	} *uap = (struct a *) u.u_ap;
+	} *uap = (struct a *)u.u_ap;
 
-	if (suser()) {
-		if (uap->len > sizeof (hostname) - 1) {
-			u.u_error = EINVAL;
-			return;
-		}
-		hostnamelen = uap->len;
-		if (copyin((caddr_t) uap->hostname, hostname, uap->len + 1))
-			u.u_error = EFAULT;
+	if (!suser())
+		return;
+	if (uap->len > sizeof (hostname) - 1) {
+		u.u_error = EINVAL;
+		return;
 	}
+	hostnamelen = uap->len;
+	if (vcopyin((caddr_t)uap->hostname, hostname, uap->len))
+		u.u_error = EFAULT;
+	hostname[hostnamelen] = 0;
 }
 
 /*
@@ -800,25 +742,25 @@ tsleep(chan, pri, seconds)
 	n = spl7();
 	sec = 0;
 	rval = 0;
-	if (pp->p_clktim && pp->p_clktim < seconds)
+	if (pp->p_clktim && pp->p_clktim<seconds)
 		seconds = 0;
 	if (seconds) {
 		pp->p_flag |= STIMO;
-		sec = pp->p_clktim - seconds;
+		sec = pp->p_clktim-seconds;
 		pp->p_clktim = seconds;
 	}
-	bcopy((caddr_t) u.u_qsav, (caddr_t) lqsav, sizeof (label_t));
+	bcopy((caddr_t)u.u_qsav, (caddr_t)lqsav, sizeof (label_t));
 	if (save(u.u_qsav))
 		rval = TS_SIG;
 	else {
 		sleep(chan, pri);
-		if ((pp->p_flag & STIMO) == 0 && seconds)
+		if ((pp->p_flag&STIMO)==0 && seconds)
 			rval = TS_TIME;
 		else
 			rval = TS_OK;
 	}
 	pp->p_flag &= ~STIMO;
-	bcopy((caddr_t) lqsav, (caddr_t) u.u_qsav, sizeof (label_t));
+	bcopy((caddr_t)lqsav, (caddr_t)u.u_qsav, sizeof (label_t));
 	if (sec > 0)
 		pp->p_clktim += sec;
 	else
@@ -835,12 +777,11 @@ long n;
 {
 	register hi,low;
 
-	low = (n & 0177777);
-	hi = n >> 16;
-	if (hi == 0)
-		hi = 1;
+	low = (n&0177777);
+	hi = n>>16;
+	if(hi==0) hi=1;
 	do {
-		do { } while (--low);
+		do { } while(--low);
 	} while(--hi);
 }
 
@@ -852,16 +793,14 @@ register char *s1, *s2;
 register n;
 {
 	do
-		if (*s1++ != *s2++)
-			break;
-	while (--n);
-
+		if(*s1++ != *s2++) break;
+	while(--n);
 	return(n);
 }
 
-struct	vaxque {		/* queue format expected by VAX queue instr's */
-	struct	vaxque	*vq_next;
-	struct	vaxque	*vq_prev;
+struct vaxque {                 /* queue format expected by VAX queue instr's */
+	struct vaxque *vq_next;
+	struct vaxque *vq_prev;
 };
 
 /*
@@ -894,7 +833,7 @@ setreuid()
 	} *uap;
 	register int ruid, euid;
 
-	uap = (struct a *) u.u_ap;
+	uap = (struct a *)u.u_ap;
 	ruid = uap->ruid;
 	if (ruid == -1)
 		ruid = u.u_ruid;
@@ -921,7 +860,7 @@ setregid()
 	} *uap;
 	register int rgid, egid;
 
-	uap = (struct a *) u.u_ap;
+	uap = (struct a *)u.u_ap;
 	rgid = uap->rgid;
 	if (rgid == -1)
 		rgid = u.u_rgid;
@@ -932,10 +871,8 @@ setregid()
 		egid = u.u_gid;
 	if (u.u_rgid != egid && u.u_gid != egid && !suser())
 		return;
-	if (u.u_rgid != rgid)
-		u.u_rgid = rgid;
-	if (u.u_gid != egid)
-		u.u_gid = egid;
+	u.u_rgid = rgid;
+	u.u_gid = egid;
 }
 
 /*
@@ -944,16 +881,16 @@ setregid()
  */
 gethostid()
 {
-	u.u_r.r_off = (off_t) LocalAddr;
+	u.u_r.r_off = (off_t)LocalAddr;
 }
 
 sethostid()
 {
 	struct a {
 		u_long	hostid;
-	} *uap = (struct a *) u.u_ap;
+	} *uap = (struct a *)u.u_ap;
 
 	if (suser())
 		LocalAddr = uap->hostid;
 }
-#endif	UCB_NET
+#endif UCB_NET

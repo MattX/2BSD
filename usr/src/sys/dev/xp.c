@@ -1,19 +1,27 @@
-/*
- *	SCCS id	@(#)xp.c	2.1 (Berkeley)	8/23/83
+/* SCCS id @(#)xp.c        2.1 (Berkeley)  8/23/83
+ * This driver has been modified to perform bad-sector forwarding.
+ * It has not been tested after that modification.
+ * If you want to use it, install it instead of the normal xp driver,
+ * AND TEST BOTH BAD-SECTOR FORWARDING AND ECC CORRECTION.
+ * Also, if you are using XP_PROBE (xpslave determines drive type),
+ * you will have to force the selection of the number of cylinders for RP's
+ * to RP06_CYL or RP04_CYL, assuming that you have only one or the other,
+ * or else punt.
  */
 
+#define	HP_CYL	RP06_CYL
+
 /*
- *	RM02/03/05, RP04/05/06, DIVA disk driver.
- *	SI Eagle added 9/20/83.
- *	This driver will handle most variants of SMD drives
- *	on one or more controllers.
- *	If XP_PROBE is defined, it includes a probe routine
- *	that will determine the number and type of drives attached
- *	to each controller; otherwise, the data structures must be
- *	initialized.
+ * RM02/03/05, RP04/05/06, DIVA, SI Eagle driver.
+ * This driver will handle most variants of SMD drives
+ * on one or more controllers.
+ * If XP_PROBE is defined, it includes a probe routine
+ * that will determine the number and type of drives attached
+ * to each controller; otherwise, the data structures must be
+ * initialized.
  *
- *	For simplicity we use hpreg.h instead of an xpreg.h.  The bits
- *	are the same.
+ * For simplicity we use hpreg.h instead of an xpreg.h.  The bits
+ * are the same.
  */
 
 #include "xp.h"
@@ -32,6 +40,7 @@
 #ifdef	UNIBUS_MAP
 #include <sys/uba.h>
 #endif
+#include <sys/dkbad.h>
 
 #define	XP_SDIST	2
 #define	XP_RDIST	6
@@ -56,29 +65,32 @@ struct	xp_controller xp_controller[NXP_CONTROLLER];
 struct	buf	xptab;
 struct	buf	rxpbuf[NXP];
 struct	buf	xputab[NXP];
+#ifdef BADSECT
+struct	dkbad	xpbad[NXP];
+struct	buf	bxpbuf[NXP];
+bool_t	xp_init[NXP];
+#endif
 
 #ifdef	INTRLVE
 extern	daddr_t	dkblock();
 #endif
 
-/*
- *  Attach controllers whose addresses are known at boot time.
+/*  Attach controllers whose addresses are known at boot time.
  *  Stop at the first not found, so that the drive numbering
  *  won't get confused.
  */
 xproot()
 {
-	register i;
-	register struct hpdevice *xpaddr;
+    register i;
+    register struct hpdevice *xpaddr;
 
-	for (i = 0; i < NXP_CONTROLLER; i++)
-		if (((xpaddr = xp_controller[i].xp_addr) == 0)
-		    || (xpattach(xpaddr, i) == 0))
-			break;
+    for (i = 0; i < NXP_CONTROLLER; i++)
+	if (((xpaddr = xp_controller[i].xp_addr) == 0)
+	    || (xpattach(xpaddr, i) == 0))
+	    break;
 }
 
-/*
- *  Attach controller at xpaddr.
+/*  Attach controller at xpaddr.
  *  Mark as nonexistent if xpaddr is 0;
  *  otherwise attach slaves if probing.
  *  NOTE: if probing for drives, this routine must be called
@@ -87,605 +99,690 @@ xproot()
 xpattach(xpaddr, unit)
 register struct hpdevice *xpaddr;
 {
-	register struct xp_controller *xc = &xp_controller[unit];
+    register struct xp_controller *xc = &xp_controller[unit];
 #ifdef	XP_PROBE
-	static int last_attached = -1;
-#endif
+    static int last_attached = -1;
+#endif	XP_PROBE
 
-	if ((unsigned) unit >= NXP_CONTROLLER)
-		return(0);
-	if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
-		xc->xp_addr = xpaddr;
+    if ((unsigned) unit >= NXP_CONTROLLER)
+	return(0);
+    if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
+	xc->xp_addr = xpaddr;
 #if	PDP11 == 70 || PDP11 == GENERIC
-		if (fioword(&(xpaddr->hpbae)) != -1)
-			xc->xp_flags |= XP_RH70;
+	if (fioword(&(xpaddr->hpbae)) != -1)
+	    xc->xp_flags |= XP_RH70;
 #endif
 #ifdef	XP_PROBE
-		/*
-		 *  If already attached, ignore (don't want to renumber drives)
-		 */
-		if (unit > last_attached) {
-			last_attached = unit;
-			xpslave(xpaddr, xc);
-		}
-#endif
-		return(1);
+	/*
+	 *  If already attached, ignore (don't want to renumber drives)
+	 */
+	if (unit > last_attached) {
+	    last_attached = unit;
+	    xpslave(xpaddr, xc);
 	}
-	xc->xp_addr = 0;
-	return(0);
+#endif	XP_PROBE
+	return(1);
+    }
+    xc->xp_addr = 0;
+    return(0);
 }
 
 #ifdef	XP_PROBE
-/*
- *  Determine what drives are attached to a controller;
- *  guess their types and fill in the drive structures.
+/* Determine what drives are attached to a controller;
+ * guess their types and fill in the drive structures.
  */
 xpslave(xpaddr, xc)
 register struct hpdevice *xpaddr;
 struct xp_controller *xc;
 {
-	register struct xp_drive *xd;
-	int j,  dummy;
-	static int nxp = 0;
-	extern	struct size dv_sizes[], hp_sizes[], rm_sizes[], rm5_sizes[], si_sizes[];
+    register struct xp_drive *xd;
+    int j, dummy;
+    static int nxp = 0;
+	extern	struct size rm5_sizes[], dv_sizes[], hp_sizes[],
+	rm_sizes[], si_sizes[];
 
-	for (j = 0; j < 8; j++) {
-		xpaddr->hpcs1.w = 0;
-		xpaddr->hpcs2.w = j;
-		dummy = xpaddr->hpds;
-		if (xpaddr->hpcs2.w & HPCS2_NED) {
-			xpaddr->hpcs2.w = HPCS2_CLR;
-			continue;
-		}
-		if (nxp < NXP) {
-			xd = &xp_drive[nxp++];
-			xd->xp_ctlr = xc;
-			xd->xp_unit = j;
-			/*
-			 * If drive type is initialized,
-			 * believe it.
-			 */
-			if (xd->xp_type == 0)
-				xd->xp_type = xpaddr->hpdt & 077;
-			switch (xd->xp_type) {
-
-			case RM02:
-			case RM03:
-				xd->xp_nsect = RM_SECT;
-				xd->xp_ntrack = RM_TRAC;
-				xd->xp_nspc = RM_SECT * RM_TRAC;
-				xd->xp_sizes = &rm_sizes;
-				xd->xp_ctlr->xp_flags |= XP_NOCC;
-				break;
-
-			case RM05:
-			case RM5X:
-				if ((xpaddr->hpsn & SI_SN_MSK) == SI_SN_DT) {
-				    xd->xp_nsect = SI_SECT;
-				    xd->xp_ntrack = SI_TRAC;
-				    xd->xp_nspc = SI_SECT * SI_TRAC;
-				    xd->xp_sizes = &si_sizes;
-				    xd->xp_ctlr->xp_flags |= XP_NOCC;
-				} else {
-				    xd->xp_nsect = RM5_SECT;
-				    xd->xp_ntrack = RM5_TRAC;
-				    xd->xp_nspc = RM5_SECT * RM5_TRAC;
-				    xd->xp_sizes = &rm5_sizes;
-				    xd->xp_ctlr->xp_flags |= XP_NOCC;
-				}
-				break;
-
-			case RP:
-				xd->xp_nsect = HP_SECT;
-				xd->xp_ntrack = HP_TRAC;
-				xd->xp_nspc = HP_SECT * HP_TRAC;
-				xd->xp_sizes = &hp_sizes;
-				break;
-
-			case DV:
-				xd->xp_nsect = DV_SECT;
-				xd->xp_ntrack = DV_TRAC;
-				xd->xp_nspc = DV_SECT * DV_TRAC;
-				xd->xp_sizes = &dv_sizes;
-				xd->xp_ctlr->xp_flags |= XP_NOSEARCH;
-				break;
-
-			default:
-			    printf("xp%d: drive type %o unrecognized\n",
-				nxp - 1, xd->xp_type);
-				xd->xp_ctlr = NULL;
-				break;
-			}
-		}
+    for (j = 0; j < 8; j++) {
+	xpaddr->hpcs1.w = 0;
+	xpaddr->hpcs2.w = j;
+	xpaddr->hpcs1.w = HP_GO;	/* testing.. */
+	{
+	    register x = 2000;
+	    do {
+	    	;
+	    } while (--x);		/* delay */
 	}
+	dummy = xpaddr->hpds;
+	if (xpaddr->hpcs2.w & HPCS2_NED) {
+	    xpaddr->hpcs2.w = HPCS2_CLR;
+	    continue;
+	}
+	if (nxp < NXP) {
+	    xd = &xp_drive[nxp++];
+	    xd->xp_ctlr = xc;
+	    xd->xp_unit = j;
+	    /* If drive type is initialized, believe it. */
+	    if (xd->xp_type == 0)
+		xd->xp_type = xpaddr->hpdt & 077;
+	    switch (xd->xp_type) {
+
+	    case RM02:
+	    case RM03:
+		xd->xp_nsect = RM_SECT;
+		xd->xp_ntrack = RM_TRAC;
+		xd->xp_nspc = RM_SECT * RM_TRAC;
+#ifdef BADSECT
+		xd->xp_ncyl = RM_CYL;
+#endif BADSECT
+		xd->xp_sizes = &rm_sizes;
+		xd->xp_ctlr->xp_flags |= XP_NOCC;
+		break;
+
+	    case RM5X:
+#ifdef BADSECT
+		xd->xp_ncyl = RM5X_CYL;
+#endif BADSECT
+		goto rm5;
+	    case RM05:
+#ifdef BADSECT
+		xd->xp_ncyl = RM5_CYL;
+#endif BADSECT
+	    rm5:
+		if ((xpaddr->hpsn & SI_SN_MSK) == SI_SN_DT) {
+		    xd->xp_nsect = SI_SECT;
+		    xd->xp_ntrack = SI_TRAC;
+#ifdef BADSECT
+		    xd->xp_ncyl = SI_CYL;
+#endif BADSECT
+		    xd->xp_nspc = SI_SECT * SI_TRAC;
+		    xd->xp_sizes = &si_sizes;
+		    xd->xp_ctlr->xp_flags |= XP_NOCC;
+		} else {
+		    xd->xp_nsect = RM5_SECT;
+		    xd->xp_ntrack = RM5_TRAC;
+		    xd->xp_nspc = RM5_SECT * RM5_TRAC;
+		    xd->xp_sizes = &rm5_sizes;
+		    xd->xp_ctlr->xp_flags |= XP_NOCC;
+#ifdef BADSECT
+		    xd->xp_ncyl = RM5_CYL;
+#endif BADSECT
+		}
+		break;
+
+	    case RP:
+		xd->xp_nsect = HP_SECT;
+		xd->xp_ntrack = HP_TRAC;
+		xd->xp_nspc = HP_SECT * HP_TRAC;
+#ifdef BADSECT
+		xd->xp_ncyl = HP_CYL;
+#endif BADSECT
+		xd->xp_sizes = &hp_sizes;
+		break;
+
+	    case DV:
+		xd->xp_nsect = DV_SECT;
+		xd->xp_ntrack = DV_TRAC;
+		xd->xp_nspc = DV_SECT * DV_TRAC;
+#ifdef BADSECT
+		xd->xp_ncyl = DV_CYL;
+#endif BADSECT
+		xd->xp_sizes = &dv_sizes;
+		xd->xp_ctlr->xp_flags |= XP_NOSEARCH;
+		break;
+
+	    default:
+		printf("xp%d: drive type %o unrecognized\n",
+		nxp - 1, xd->xp_type);
+		xd->xp_ctlr = NULL;
+		break;
+	    }
+	}
+    }
 }
 #endif	XP_PROBE
-
 xpstrategy(bp)
 register struct buf *bp;
 {
-	register struct xp_drive *xd;
-	register unit;
-	struct buf *dp;
-	short	pseudo_unit;
-	int	s;
-	long	bn;
+    register struct xp_drive *xd;
+    register unit;
+    struct buf *dp;
+    short pseudo_unit;
+    int	s;
+    long bn;
 
-	unit = dkunit(bp);
-	pseudo_unit = minor(bp->b_dev) & 07;
+    unit = dkunit(bp);
+    pseudo_unit = minor(bp->b_dev) & 07;
 
-	if ((unit >= NXP) || ((xd = &xp_drive[unit])->xp_ctlr == 0) ||
-	   (xd->xp_ctlr->xp_addr == 0)) { 
-		bp->b_error = ENXIO;
-		goto errexit;
-	}
-	if ((bp->b_blkno < 0) ||
-	   ((bn = dkblock(bp)) + ((bp->b_bcount + 511) >> 9)
-	     > xd->xp_sizes[pseudo_unit].nblocks)) {
-		bp->b_error = EINVAL;
+    if ((unit >= NXP) || ((xd = &xp_drive[unit])->xp_ctlr == 0) ||
+       (xd->xp_ctlr->xp_addr == 0)) {
+	bp->b_error = ENXIO;
+	goto errexit;
+    }
+    if ((bp->b_blkno < 0) || ((bn = dkblock(bp)) + ((bp->b_bcount + 511) >> 9)
+		> xd->xp_sizes[pseudo_unit].nblocks)) {
+	bp->b_error = EINVAL;
 errexit:
-		bp->b_flags |= B_ERROR;
-		iodone(bp);
-		return;
-	}
+	bp->b_flags |= B_ERROR;
+	iodone(bp);
+	return;
+    }
 #ifdef	UNIBUS_MAP
-	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
-		mapalloc(bp);
+    if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
+	mapalloc(bp);
 #endif	UNIBUS_MAP
-	bp->b_cylin = bn / xd->xp_nspc
-		+ xd->xp_sizes[pseudo_unit].cyloff;
-	dp = &xputab[unit];
-	s = spl5();
-	disksort(dp, bp);
-	if (dp->b_active == 0) {
-		xpustart(unit);
-		if (xd->xp_ctlr->xp_active == 0)
-			xpstart(xd->xp_ctlr);
-	}
-	splx(s);
+    bp->b_cylin = bn / xd->xp_nspc + xd->xp_sizes[pseudo_unit].cyloff;
+    dp = &xputab[unit];
+    s = spl5();
+    disksort(dp, bp);
+    if (dp->b_active == 0) {
+	xpustart(unit);
+	if (xd->xp_ctlr->xp_active == 0)
+	    xpstart(xd->xp_ctlr);
+    }
+    splx(s);
 }
 
-/*
- * Unit start routine.
- * Seek the drive to where the data are
- * and then generate another interrupt
- * to actually start the transfer.
- * If there is only one drive
- * or we are very close to the data, don't
- * bother with the search.  If called after
- * searching once, don't bother to look
+/* Unit start routine.
+ * Seek the drive to where the data are and then generate another interrupt
+ * to actually start the transfer. If there is only one drive
+ * or we are very close to the data, don't bother with the search.
+ * If called after searching once, don't bother to look
  * where we are, just queue for transfer (to avoid
  * positioning forever without transferring).
  */
 xpustart(unit)
 int unit;
 {
-	register struct xp_drive *xd;
-	register struct hpdevice *xpaddr;
-	register struct buf *dp;
-	struct	buf *bp;
-	daddr_t	bn;
-	int	sn, cn, csn;
+    register struct xp_drive *xd;
+    register struct hpdevice *xpaddr;
+    register struct buf *dp;
+    struct buf *bp;
+    daddr_t bn;
+    int	sn, cn, csn;
 
-	xd = &xp_drive[unit];
-	xpaddr = xd->xp_ctlr->xp_addr;
-	xpaddr->hpcs2.w = xd->xp_unit;
-	xpaddr->hpcs1.c[0] = HP_IE;
-	xpaddr->hpas = 1 << xd->xp_unit;
+    xd = &xp_drive[unit];
+    xpaddr = xd->xp_ctlr->xp_addr;
+    xpaddr->hpcs2.w = xd->xp_unit;
+    xpaddr->hpcs1.c[0] = HP_IE;
+    xpaddr->hpas = 1 << xd->xp_unit;
 
-	if (unit >= NXP)
-		return;
+    if (unit >= NXP)
+	return;
 #ifdef	XP_DKN
-	dk_busy &= ~(1 << (unit + XP_DKN));
+    dk_busy &= ~(1 << (unit + XP_DKN));
 #endif
-	dp = &xputab[unit];
-	if ((bp=dp->b_actf) == NULL)
-		return;
-	/*
-	 * If we have already positioned this drive,
-	 * then just put it on the ready queue.
-	 */
-	if (dp->b_active)
-		goto done;
-	dp->b_active++;
-	/*
-	 * If drive has just come up,
-	 * set up the pack.
-	 */
-	if ((xpaddr->hpds & HPDS_VV) == 0) {
-		/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
-		xpaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
-		xpaddr->hpof = HPOF_FMT22;
-	}
+    dp = &xputab[unit];
+    if ((bp=dp->b_actf) == NULL)
+	return;
+    /* If we have already positioned this drive,
+     * then just put it on the ready queue.
+     */
+    if (dp->b_active)
+	goto done;
+    dp->b_active++;
+    /* If drive has just come up,
+     * set up the pack.
+     */
+#ifdef BADSECT
+    if (((xpaddr->hpds & HPDS_VV) == 0) || (xp_init[unit] == 0))
+#else
+    if ((xpaddr->hpds & HPDS_VV) == 0)
+#endif BADSECT
+    {
+#ifdef BADSECT
+	struct buf *bbp = &bxpbuf[unit];
+#endif BADSECT
+	/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
+#ifdef	XP_DEBUG
+    	printf("preset-unit=%d\n", unit);
+#endif	XP_DEBUG
+	xpaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
+#ifdef	XP_DEBUG
+    	printf("preset done\n");
+#endif	XP_DEBUG
+	xpaddr->hpof = HPOF_FMT22;
+#ifdef BADSECT
+	xp_init[unit] = 1;
+	bbp->b_flags = B_READ | B_BUSY | B_PHYS;
+	bbp->b_dev = bp->b_dev | 7;	/* "h" partition whole disk */
+	bbp->b_bcount = sizeof(struct dkbad);
+	bbp->b_un.b_addr = (caddr_t)&xpbad[unit];
+	bbp->b_blkno = (daddr_t)xd->xp_ncyl * xd->xp_nspc - xd->xp_nsect;
+	bbp->b_cylin = xd->xp_ncyl - 1;
+#ifdef	UNIBUS_MAP
+	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
+	    mapalloc(bbp);
+#endif	UNIBUS_MAP
+	dp->b_actf = bbp;
+	bbp->av_forw = bp;
+	bp = bbp;
+#endif	BADSECT
+    }
 #if	NXP > 1
-	/*
-	 * If drive is offline, forget about positioning.
-	 */
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
-		goto done;
+/* If drive is offline, forget about positioning. */
+    if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
+	goto done;
+    /* Figure out where this transfer is going to
+     * and see if we are close enough to justify not searching.
+     */
+    bn = dkblock(bp);
+    cn = bp->b_cylin;
+    sn = bn % xd->xp_nspc;
+    sn += xd->xp_nsect - XP_SDIST;
+    sn %= xd->xp_nsect;
 
-	/*
-	 * Figure out where this transfer is going to
-	 * and see if we are close enough to justify not searching.
-	 */
-	bn = dkblock(bp);
-	cn = bp->b_cylin;
-	sn = bn % xd->xp_nspc;
-	sn += xd->xp_nsect - XP_SDIST;
-	sn %= xd->xp_nsect;
-
-	if (((xd->xp_ctlr->xp_flags & XP_NOCC) && (xd->xp_cc != cn))
-	    || xpaddr->hpcc != cn)
-		goto search;
-	if (xd->xp_ctlr->xp_flags & XP_NOSEARCH)
-		goto done;
-	csn = (xpaddr->hpla >> 6) - sn + XP_SDIST - 1;
-	if (csn < 0)
-		csn += xd->xp_nsect;
-	if (csn > xd->xp_nsect - XP_RDIST)
-		goto done;
+    if (((xd->xp_ctlr->xp_flags & XP_NOCC) && (xd->xp_cc != cn))
+	|| xpaddr->hpcc != cn)
+	goto search;
+    if (xd->xp_ctlr->xp_flags & XP_NOSEARCH)
+	goto done;
+    csn = (xpaddr->hpla >> 6) - sn + XP_SDIST - 1;
+    if (csn < 0)
+	csn += xd->xp_nsect;
+    if (csn > xd->xp_nsect - XP_RDIST)
+	goto done;
 
 search:
-	xpaddr->hpdc = cn;
-	xpaddr->hpda = sn;
-	xpaddr->hpcs1.c[0] = (xd->xp_ctlr->xp_flags & XP_NOSEARCH)?
-		(HP_IE | HP_SEEK | HP_GO) : (HP_IE | HP_SEARCH | HP_GO);
-	xd->xp_cc = cn;
+    xpaddr->hpdc = cn;
+    xpaddr->hpda = sn;
+    xpaddr->hpcs1.c[0] = (xd->xp_ctlr->xp_flags & XP_NOSEARCH) ?
+	(HP_IE | HP_SEEK | HP_GO) : (HP_IE | HP_SEARCH | HP_GO);
+    xd->xp_cc = cn;
 #ifdef	XP_DKN
-	/*
-	 * Mark unit busy for iostat.
-	 */
-	unit += XP_DKN;
-	dk_busy |= 1 << unit;
-	dk_numb[unit]++;
+    /* Mark unit busy for iostat. */
+    unit += XP_DKN;
+    dk_busy |= 1 << unit;
+    dk_numb[unit]++;
 #endif	XP_DKN
-	return;
+    return;
 #endif	NXP > 1
 
 done:
-	/*
-	 * Device is ready to go.
-	 * Put it on the ready queue for the controller.
-	 */
-	dp->b_forw = NULL;
-	if (xd->xp_ctlr->xp_actf == NULL)
-		xd->xp_ctlr->xp_actf = dp;
-	else
-		xd->xp_ctlr->xp_actl->b_forw = dp;
-	xd->xp_ctlr->xp_actl = dp;
+    /* Device is ready to go.
+     * Put it on the ready queue for the controller.
+     */
+    dp->b_forw = NULL;
+    if (xd->xp_ctlr->xp_actf == NULL)
+	xd->xp_ctlr->xp_actf = dp;
+    else
+	xd->xp_ctlr->xp_actl->b_forw = dp;
+    xd->xp_ctlr->xp_actl = dp;
 }
 
-/*
- * Start up a transfer on a controller.
- */
+/* Start up a transfer on a controller. */
 xpstart(xc)
 register struct xp_controller *xc;
 {
-	register struct hpdevice *xpaddr;
-	register struct buf *bp;
-	struct xp_drive *xd;
-	struct	buf *dp;
-	int	unit;
-	short	pseudo_unit;
-	daddr_t	bn;
-	int	sn, tn, cn;
+    register struct hpdevice *xpaddr;
+    register struct buf *bp;
+    struct xp_drive *xd;
+    struct buf *dp;
+    int	unit;
+    short pseudo_unit;
+    daddr_t bn;
+    int	sn, tn, cn;
 
-	xpaddr = xc->xp_addr;
+    xpaddr = xc->xp_addr;
 loop:
-	/*
-	 * Pull a request off the controller queue.
-	 */
-	if ((dp = xc->xp_actf) == NULL)
-		return;
-	if ((bp = dp->b_actf) == NULL) {
-		xc->xp_actf = dp->b_forw;
-		goto loop;
-	}
-	/*
-	 * Mark controller busy and
-	 * determine destination of this request.
-	 */
-	xc->xp_active++;
-	pseudo_unit = minor(bp->b_dev) & 07;
-	unit = dkunit(bp);
-	xd = &xp_drive[unit];
-	bn = dkblock(bp);
-	cn = xd->xp_sizes[pseudo_unit].cyloff;
-	cn += bn / xd->xp_nspc;
-	sn = bn % xd->xp_nspc;
-	tn = sn / xd->xp_nsect;
-	sn = sn % xd->xp_nsect;
+    /* Pull a request off the controller queue. */
+    if ((dp = xc->xp_actf) == NULL)
+	return;
+    if ((bp = dp->b_actf) == NULL) {
+	xc->xp_actf = dp->b_forw;
+	goto loop;
+    }
+    /* Mark controller busy and
+     * determine destination of this request.
+     */
+    xc->xp_active++;
+    pseudo_unit = minor(bp->b_dev) & 07;
+    unit = dkunit(bp);
+    xd = &xp_drive[unit];
+    bn = dkblock(bp);
+/*  cn = bp->b_cylin;		/* older than next 2 lines */
+    cn = xd->xp_sizes[pseudo_unit].cyloff;
+    cn += bn / xd->xp_nspc;
+    sn = bn % xd->xp_nspc;
+    tn = sn / xd->xp_nsect;
+    sn = sn % xd->xp_nsect;
 
-	/*
-	 * Select drive.
-	 */
-	xpaddr->hpcs2.w = xd->xp_unit;
-	/*
-	 * Check that it is ready and online.
-	 */
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL)) {
-		xc->xp_active = 0;
-		dp->b_errcnt = 0;
-		dp->b_actf = bp->av_forw;
-		bp->b_flags |= B_ERROR;
-		iodone(bp);
-		goto loop;
-	}
-	if (dp->b_errcnt >= 16 && (bp->b_flags & B_READ)) {
-		xpaddr->hpof = xp_offset[dp->b_errcnt & 017] | HPOF_FMT22;
-		xpaddr->hpcs1.w = HP_OFFSET | HP_GO;
-		while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
-			;
-	}
-	xpaddr->hpdc = cn;
-	xpaddr->hpda = (tn << 8) + sn;
-	xpaddr->hpba = bp->b_un.b_addr;
+    /* Select drive. */
+    xpaddr->hpcs2.w = xd->xp_unit;
+    /* Check that it is ready and online. */
+    if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL)) {
+	xc->xp_active = 0;
+	dp->b_errcnt = 0;
+	dp->b_actf = bp->av_forw;
+	bp->b_flags |= B_ERROR;
+	iodone(bp);
+	goto loop;
+    }
+    if (dp->b_errcnt >= 16 && (bp->b_flags & B_READ)) {
+	xpaddr->hpof = xp_offset[dp->b_errcnt & 017] | HPOF_FMT22;
+	xpaddr->hpcs1.w = HP_OFFSET | HP_GO;
+	while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
+	    ;
+    }
+    xpaddr->hpdc = cn;
+    xpaddr->hpda = (tn << 8) + sn;
+    xpaddr->hpba = bp->b_un.b_addr;
 #if	PDP11 == 70 || PDP11 == GENERIC
-	if (xc->xp_flags & XP_RH70)
-		xpaddr->hpbae = bp->b_xmem;
+    if (xc->xp_flags & XP_RH70)
+	xpaddr->hpbae = bp->b_xmem;
 #endif
-	xpaddr->hpwc = -(bp->b_bcount >> 1);
+    xpaddr->hpwc = -(bp->b_bcount >> 1);
 
-	/*
-	 * Warning:  unit is being used as a temporary.
-	 */
-	unit = ((bp->b_xmem & 3) << 8) | HP_IE | HP_GO;
-	if (bp->b_flags & B_READ)
-		unit |= HP_RCOM;
-	else
-		unit |= HP_WCOM;
-	xpaddr->hpcs1.w = unit;
+    /* Warning:  unit is being used as a temporary. */
+    unit = ((bp->b_xmem & 3) << 8) | HP_IE | HP_GO;
+#ifdef	XP_FORMAT
+    if (minor(bp->b_dev) & 0200)
+	unit |= bp->b_flags & B_READ ? HP_RHDR : HP_WHDR;
+    else
+	unit |= bp->b_flags & B_READ ? HP_RCOM : HP_WCOM;
+#else
+    if (bp->b_flags & B_READ)
+	unit |= HP_RCOM;
+    else
+	unit |= HP_WCOM;
+#endif	XP_FORMAT
+    xpaddr->hpcs1.w = unit;
 
 #ifdef	XP_DKN
-	unit = xc - &xp_controller[0] + XP_DKN + NXP;
-	dk_busy |= 1 << unit;
-	dk_numb[unit]++;
-	dk_wds[unit] += bp->b_bcount >> 6;
+    unit = xc - &xp_controller[0] + XP_DKN + NXP;
+    dk_busy |= 1 << unit;
+    dk_numb[unit]++;
+    dk_wds[unit] += bp->b_bcount >> 6;
 #endif
 }
 
-/*
- * Handle a disk interrupt.
- */
+/* Handle a disk interrupt. */
 xpintr(dev)
 int dev;
 {
-	register struct	hpdevice *xpaddr;
-	register struct buf *dp;
-	struct xp_controller *xc;
-	struct xp_drive *xd;
-	struct	buf *bp;
-	register unit;
-	int	as, i, j;
+    register struct hpdevice *xpaddr;
+    register struct buf *dp;
+    struct xp_controller *xc;
+    struct xp_drive *xd;
+    struct buf *bp;
+    register unit;
+    int	as, i, j;
 
-	xc = &xp_controller[dev];
-	xpaddr = xc->xp_addr;
-	as = xpaddr->hpas & 0377;
-	if (xc->xp_active) {
+    xc = &xp_controller[dev];
+    xpaddr = xc->xp_addr;
+    as = xpaddr->hpas & 0377;
+    if (xc->xp_active) {
 #ifdef	XP_DKN
-		dk_busy &= ~(1 << (dev + XP_DKN + NXP));
+	dk_busy &= ~(1 << (dev + XP_DKN + NXP));
 #endif
-		/*
-		 * Get device and block structures.  Select the drive.
+	/* Get device and block structures.  Select the drive. */
+	dp = xc->xp_actf;
+	bp = dp->b_actf;
+#ifdef BADSECT
+	if (bp->b_flags & B_BAD)
+	    if (xpecc(bp, CONT))
+		return;
+#endif
+	unit = dkunit(bp);
+	xd = &xp_drive[unit];
+	xpaddr->hpcs2.c[0] = xd->xp_unit;
+	/* Check for and process errors. */
+	if (xpaddr->hpcs1.w & HP_TRE) {
+	    while ((xpaddr->hpds & HPDS_DRY) == 0)
+		;
+	    if (xpaddr->hper1 & HPER1_WLE) {
+		/* Give up on write locked deviced immediately. */
+		printf("xp%d: write locked\n", unit);
+		bp->b_flags |= B_ERROR;
+#ifdef	BADSECT
+	    } else if ((xpaddr->rmer2 & RMER2_BSE)
+		    || (xpaddr->hper1 & HPER1_FER)) {
+#ifdef	XP_FORMAT
+		/* Allow this error on format devices. */
+		if (minor(bp->b_dev) & 0200)
+		    goto errdone;
+#endif	XP_FORMAT
+		if (xpecc(bp, BSE))
+		    return;
+		else
+		    goto hard;
+#endif	BADSECT
+	    } else {
+		/* After 28 retries (16 without offset and
+		 * 12 with offset positioning), give up.
 		 */
-		dp = xc->xp_actf;
-		bp = dp->b_actf;
-		unit = dkunit(bp);
-		xd = &xp_drive[unit];
-		xpaddr->hpcs2.c[0] = xd->xp_unit;
-		/*
-		 * Check for and process errors.
-		 */
-		if (xpaddr->hpcs1.w & HP_TRE) {
-			while ((xpaddr->hpds & HPDS_DRY) == 0)
-				;
-			if (xpaddr->hper1 & HPER1_WLE) {
-				/*
-				 *	Give up on write locked deviced
-				 *	immediately.
-				 */
-				printf("xp%d: write locked\n", unit);
-				bp->b_flags |= B_ERROR;
-			} else {
-				/*
-				 * After 28 retries (16 without offset and
-				 * 12 with offset positioning), give up.
-				 */
-				if (++dp->b_errcnt > 28) {
+		if (++dp->b_errcnt > 28) {
+hard:
 #ifdef	UCB_DEVERR
-				    harderr(bp, "xp");
-				    printf("cs2=%b er1=%b\n", xpaddr->hpcs2.w,
-					HPCS2_BITS, xpaddr->hper1, HPER1_BITS);
+		    harderr(bp, "xp");
+#ifdef	XP_DEBUG	/* for RM drives */
+		    printf("cs2=%b er1=%b er2=%b\n",
+		    xpaddr->hpcs2.w, HPCS2_BITS,
+		    xpaddr->hper1, HPER1_BITS,
+		    xpaddr->rmer2, RMER2_BITS);
 #else
-				    deverror(bp, xpaddr->hpcs2.w, xpaddr->hper1);
-#endif
-				    bp->b_flags |= B_ERROR;
-				} else
-				    xc->xp_active = 0;
-			}
+		    printf("cs2=%b er1=%b\n",
+		    xpaddr->hpcs2.w, HPCS2_BITS,
+		    xpaddr->hper1, HPER1_BITS);
+#endif	XP_DEBUG
+#else
+		    deverror(bp, xpaddr->hpcs2.w, xpaddr->hper1);
+#endif	UCB_DEVERR
+		    bp->b_flags |= B_ERROR;
+		} else
+		    xc->xp_active = 0;
+	    }
 #ifdef UCB_ECC
-			/*
-			 * If soft ecc, correct it (continuing
-			 * by returning if necessary).
-			 * Otherwise, fall through and retry the transfer.
-			 */
-			if((xpaddr->hper1 & (HPER1_DCK|HPER1_ECH)) == HPER1_DCK)
-				if (xpecc(bp))
-					return;
-#endif
-			xpaddr->hpcs1.w = HP_TRE | HP_IE | HP_DCLR | HP_GO;
-			if ((dp->b_errcnt & 07) == 4) {
-				xpaddr->hpcs1.w = HP_RECAL | HP_IE | HP_GO;
-				while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
-					;
-			}
-			xd->xp_cc = -1;
-		}
-		if (xc->xp_active) {
-			if (dp->b_errcnt) {
-				xpaddr->hpcs1.w = HP_RTC | HP_GO;
-				while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
-					;
-			}
-			xc->xp_active = 0;
-			xc->xp_actf = dp->b_forw;
-			dp->b_active = 0;
-			dp->b_errcnt = 0;
-			dp->b_actf = bp->b_actf;
-			xd->xp_cc = bp->b_cylin;
-			bp->b_resid = - (xpaddr->hpwc << 1);
-			iodone(bp);
-			xpaddr->hpcs1.w = HP_IE;
-			if (dp->b_actf)
-				xpustart(unit);
-		}
-		as &= ~(1 << xp_drive[unit].xp_unit);
-	} else
-		{
-		if (as == 0)
-			xpaddr->hpcs1.w = HP_IE;
-		xpaddr->hpcs1.c[1] = HP_TRE >> 8;
+	    /* If soft ecc, correct it (continuing
+	     * by returning if necessary).
+	     * Otherwise, fall through and retry the transfer.
+	     */
+	    if((xpaddr->hper1 & (HPER1_DCK|HPER1_ECH)) == HPER1_DCK)
+		if (xpecc(bp, ECC))
+		    return;
+#endif UCB_ECC
+errdone:
+	    xpaddr->hpcs1.w = HP_TRE | HP_IE | HP_DCLR | HP_GO;
+	    if ((dp->b_errcnt & 07) == 4) {
+		xpaddr->hpcs1.w = HP_RECAL | HP_IE | HP_GO;
+		while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
+		    ;
+	    }
+	    xd->xp_cc = -1;
 	}
-	for (unit = 0; unit < NXP; unit++)
-		if ((xp_drive[unit].xp_ctlr == xc) && 
-			(as & (1 << xp_drive[unit].xp_unit)))
-				xpustart(unit);
-	xpstart(xc);
+	if (xc->xp_active) {
+	    if (dp->b_errcnt) {
+		xpaddr->hpcs1.w = HP_RTC | HP_GO;
+		while ((xpaddr->hpds & (HPDS_PIP | HPDS_DRY)) != HPDS_DRY)
+		    ;
+	    }
+	    xc->xp_active = 0;
+	    xc->xp_actf = dp->b_forw;
+	    dp->b_active = 0;
+	    dp->b_errcnt = 0;
+	    dp->b_actf = bp->b_actf;
+	    xd->xp_cc = bp->b_cylin;
+	    bp->b_resid = - (xpaddr->hpwc << 1);
+	    iodone(bp);
+	    xpaddr->hpcs1.w = HP_IE;
+	    if (dp->b_actf)
+		xpustart(unit);
+	}
+	as &= ~(1 << xp_drive[unit].xp_unit);
+    } else {
+	if (as == 0)
+	    xpaddr->hpcs1.w = HP_IE;
+	xpaddr->hpcs1.c[1] = HP_TRE >> 8;
+    }
+    for (unit = 0; unit < NXP; unit++)
+	if ((xp_drive[unit].xp_ctlr == xc) &&
+	    (as & (1 << xp_drive[unit].xp_unit)))
+		xpustart(unit);
+    xpstart(xc);
 }
 
 xpread(dev)
 dev_t	dev;
 {
-	physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_READ);
+    physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_READ);
 }
 
 xpwrite(dev)
 dev_t	dev;
 {
-	physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_WRITE);
+    physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_WRITE);
 }
 
 
 #ifdef	UCB_ECC
 #define	exadr(x,y)	(((long)(x) << 16) | (unsigned)(y))
 
-/*
- * Correct an ECC error and restart the i/o to complete
+/* Correct an ECC error and restart the i/o to complete
  * the transfer if necessary.  This is quite complicated because
  * the correction may be going to an odd memory address base
  * and the transfer may cross a sector boundary.
  */
-xpecc(bp)
+xpecc(bp, flag)
 register struct	buf *bp;
 {
-	register struct xp_drive *xd;
-	register struct	hpdevice *xpaddr;
-	register unsigned byte;
-	ubadr_t	bb, addr;
-	long	wrong;
-	int	bit, wc;
-	unsigned ndone, npx;
-	int	ocmd;
-	int	cn, tn, sn;
-	daddr_t	bn;
+    register struct xp_drive *xd;
+    register struct hpdevice *xpaddr;
+    register unsigned byte;
+    ubadr_t bb, addr;
+    long wrong;
+    int	bit, wc;
+    unsigned ndone, npx;
+    int	ocmd;
+    int	cn, tn, sn;
+    daddr_t bn;
 #ifdef	UNIBUS_MAP
-	struct	ubmap *ubp;
+    struct ubmap *ubp;
 #endif
-	int	unit;
+    int	unit;
 
-	/*
-	 *	ndone is #bytes including the error
-	 *	which is assumed to be in the last disk page transferred.
-	 */
-	unit = dkunit(bp);
-	xd = &xp_drive[unit];
-	xpaddr = xd->xp_ctlr->xp_addr;
+    /*	ndone is #bytes including the error
+     *	which is assumed to be in the last disk page transferred.
+     */
+    unit = dkunit(bp);
+    xd = &xp_drive[unit];
+    xpaddr = xd->xp_ctlr->xp_addr;
+#ifdef	BADSECT
+    if (flag == CONT) {
+	npx = bp->b_error;
+	bp->b_error = 0;
+	ndone = npx * PGSIZE;
+	wc = ((int)(ndone - bp->b_bcount)) / NBPW;
+    } else
+#endif	BADSECT
+    {
 	wc = xpaddr->hpwc;
 	ndone = (wc * NBPW) + bp->b_bcount;
 	npx = ndone / PGSIZE;
+    }
+    ocmd = (xpaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
+    bb = exadr(bp->b_xmem, bp->b_un.b_addr);
+    bn = dkblock(bp);
+    cn = bp->b_cylin - (bn / xd->xp_nspc);
+    bn += npx;
+    cn += bn / xd->xp_nspc;
+    sn = bn % xd->xp_nspc;
+/*  tn = sn / xd->xp_nsect;	 /* CC complains about this ??? */
+    tn = sn;
+    tn /= xd->xp_nsect;
+    sn %= xd->xp_nsect;
+
+    switch (flag) {
+    case ECC:
 	printf("xp%d%c: soft ecc bn %D\n",
-		unit, 'a' + (minor(bp->b_dev) & 07),
-		bp->b_blkno + (npx - 1));
+	    unit, 'a' + (minor(bp->b_dev) & 07),
+	    bp->b_blkno + (npx - 1));
 	wrong = xpaddr->hpec2;
 	if (wrong == 0) {
-		xpaddr->hpof = HPOF_FMT22;
-		xpaddr->hpcs1.w |= HP_IE;
-		return (0);
+	    xpaddr->hpof = HPOF_FMT22;
+	    xpaddr->hpcs1.w |= HP_IE;
+	    return (0);
 	}
-
-	/*
-	 *	Compute the byte/bit position of the err
-	 *	within the last disk page transferred.
-	 *	Hpec1 is origin-1.
+	/* Compute the byte/bit position of the err
+	 * within the last disk page transferred.
+	 * Hpec1 is origin-1.
 	 */
 	byte = xpaddr->hpec1 - 1;
 	bit = byte & 07;
 	byte >>= 3;
 	byte += ndone - PGSIZE;
-	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
 	wrong <<= bit;
 
-	/*
-	 *	Correct until mask is zero or until end of transfer,
-	 *	whichever comes first.
+	/* Correct until mask is zero or until end of transfer,
+	 * whichever comes first.
 	 */
 	while (byte < bp->b_bcount && wrong != 0) {
-		addr = bb + byte;
+	    addr = bb + byte;
 #ifdef	UNIBUS_MAP
-		if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
-			/*
-			 * Simulate UNIBUS map if UNIBUS transfer.
-			 */
-			ubp = UBMAP + ((addr >> 13) & 037);
-			addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
-		}
-#endif
-		putmemc(addr, getmemc(addr) ^ (int) wrong);
-		byte++;
-		wrong >>= 8;
+	    if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
+		/* Simulate UNIBUS map if UNIBUS transfer. */
+		ubp = UBMAP + ((addr >> 13) & 037);
+		addr = exadr(ubp->ub_hi, ubp->ub_lo)
+		    + (addr & 017777);
+	    }
+#endif	UNIBUS_MAP
+	    putmemc(addr, getmemc(addr) ^ (int) wrong);
+	    byte++;
+	    wrong >>= 8;
 	}
-
-	xd->xp_ctlr->xp_active++;
-	if (wc == 0)
-		return (0);
-
-	/*
-	 * Have to continue the transfer.  Clear the drive
-	 * and compute the position where the transfer is to continue.
-	 * We have completed npx sectors of the transfer already.
-	 */
-	ocmd = (xpaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
-	xpaddr->hpcs2.w = xd->xp_unit;
-	xpaddr->hpcs1.w = HP_TRE | HP_DCLR | HP_GO;
-
-	bn = dkblock(bp);
-	cn = bp->b_cylin - (bn / xd->xp_nspc);
-	bn += npx;
-	addr = bb + ndone;
-
-	cn += bn / xd->xp_nspc;
-	sn = bn % xd->xp_nspc;
-/*	tn = sn / xd->xp_nsect;  CC complains about this ??? */
+	break;
+#ifdef BADSECT
+    case BSE:
+	if ((bn = isbad(&xpbad[unit], cn, tn, sn)) < 0)
+	    return(0);
+	bp->b_flags |= B_BAD;
+	bp->b_error = npx + 1;
+	bn = (daddr_t)xd->xp_ncyl * xd->xp_nspc - xd->xp_nsect - 1 - bn;
+	cn = bn/xd->xp_nspc;
+	sn = bn%xd->xp_nspc;
+/*	tn = sn/xd->xp_nsect; /* CC can't hack this */
 	tn = sn;
 	tn /= xd->xp_nsect;
 	sn %= xd->xp_nsect;
+#ifdef DEBUG
+	printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
+#endif DEBUG
+	wc = -(512 / NBPW);
+	break;
 
-	xpaddr->hpdc = cn;
-	xpaddr->hpda = (tn << 8) + sn;
-	xpaddr->hpwc = ((int)(ndone - bp->b_bcount)) / NBPW;
-	xpaddr->hpba = (int) addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
-	if (xd->xp_ctlr->xp_flags & XP_RH70)
-		xpaddr->hpbae = (int) (addr >> 16);
+    case CONT:
+	bp->b_flags &= ~B_BAD;
+#ifdef DEBUG
+	printf("xpecc CONT: bn %D cn %d tn %d sn %d\n", bn, cn, tn, sn);
 #endif
-	xpaddr->hpcs1.w = ocmd;
-	return (1);
+	break;
+#endif	BADSECT
+    }
+
+    xd->xp_ctlr->xp_active++;
+    if (wc == 0)
+	return (0);
+
+    /* Have to continue the transfer.  Clear the drive
+     * and compute the position where the transfer is to continue.
+     * We have completed npx sectors of the transfer already.
+     */
+    xpaddr->hpcs2.w = xd->xp_unit;
+    xpaddr->hpcs1.w = HP_TRE | HP_DCLR | HP_GO;
+
+    addr = bb + ndone;
+    xpaddr->hpdc = cn;
+    xpaddr->hpda = (tn << 8) + sn;
+    xpaddr->hpwc = wc;
+    xpaddr->hpba = (int) addr;
+#if	PDP11 == 70 || PDP11 == GENERIC
+    if (xd->xp_ctlr->xp_flags & XP_RH70)
+	xpaddr->hpbae = (int) (addr >> 16);
+#endif
+    xpaddr->hpcs1.w = ocmd;
+    return (1);
 }
 #endif	UCB_ECC
 
 #if	defined(XP_DUMP) && defined(UCB_AUTOBOOT)
-/*
- *  Dump routine.
+/*  Dump routine.
  *  Dumps from dumplo to end of memory/end of disk section for minor(dev).
  *  It uses the UNIBUS map to dump all of memory if there is a UNIBUS map
  *  and this isn't an RH70.  This depends on UNIBUS_MAP being defined.
@@ -700,83 +797,78 @@ register struct	buf *bp;
 xpdump(dev)
 dev_t dev;
 {
-	/* ONLY USE 2 REGISTER VARIABLES, OR C COMPILER CHOKES */
-	register struct xp_drive *xd;
-	register struct hpdevice *xpaddr;
-	daddr_t	bn, dumpsize;
-	long	paddr;
-	int	sn, count;
+/* ONLY USE 2 REGISTER VARIABLES, OR C COMPILER CHOKES */
+    register struct xp_drive *xd;
+    register struct hpdevice *xpaddr;
+    daddr_t bn, dumpsize;
+    long paddr;
+    int	sn, count;
 #ifdef	UNIBUS_MAP
-	extern	bool_t ubmap;
-	struct ubmap *ubp;
+    extern bool_t ubmap;
+    struct ubmap *ubp;
 #endif
 
-	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
-	    || ((dev=minor(dev)) > (NXP << 3)))
-		return(EINVAL);
-	xd = &xp_drive[dev >> 3];
-	dev &= 07;
-	if (xd->xp_ctlr == 0)
-		return(EINVAL);
-	xpaddr = xd->xp_ctlr->xp_addr;
-	dumpsize = xd->xp_sizes[dev].nblocks;
-	if ((dumplo < 0) || (dumplo >= dumpsize))
-		return(EINVAL);
-	dumpsize -= dumplo;
+    if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
+		|| ((dev=minor(dev)) > (NXP << 3)))
+	return(EINVAL);
+    xd = &xp_drive[dev >> 3];
+    dev &= 07;
+    if (xd->xp_ctlr == 0)
+	return(EINVAL);
+    xpaddr = xd->xp_ctlr->xp_addr;
+    dumpsize = xd->xp_sizes[dev].nblocks;
+    if ((dumplo < 0) || (dumplo >= dumpsize))
+	return(EINVAL);
+    dumpsize -= dumplo;
 
-	xpaddr->hpcs2.w = xd->xp_unit;
-	if ((xpaddr->hpds & HPDS_VV) == 0) {
-		xpaddr->hpcs1.w = HP_DCLR | HP_GO;
-		xpaddr->hpcs1.w = HP_PRESET | HP_GO;
-		xpaddr->hpof = HPOF_FMT22;
-	}
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
-		return(EFAULT);
+    xpaddr->hpcs2.w = xd->xp_unit;
+    if ((xpaddr->hpds & HPDS_VV) == 0) {
+	xpaddr->hpcs1.w = HP_DCLR | HP_GO;
+	xpaddr->hpcs1.w = HP_PRESET | HP_GO;
+	xpaddr->hpof = HPOF_FMT22;
+    }
+    if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
+	return(EFAULT);
 #ifdef	UNIBUS_MAP
-	ubp = &UBMAP[0];
-#endif
-	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
-		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
-		bn = dumplo + (paddr >> PGSHIFT);
-		xpaddr->hpdc = bn / xd->xp_nspc
-			+ xd->xp_sizes[dev].cyloff;
-		sn = bn % xd->xp_nspc;
-		xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
-		xpaddr->hpwc = -(count << (PGSHIFT - 1));
+    ubp = &UBMAP[0];
+#endif	UNIBUS_MAP
+    for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
+	count = dumpsize>DBSIZE? DBSIZE: dumpsize;
+	bn = dumplo + (paddr >> PGSHIFT);
+	xpaddr->hpdc = bn / xd->xp_nspc + xd->xp_sizes[dev].cyloff;
+	sn = bn % xd->xp_nspc;
+	xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
+	xpaddr->hpwc = -(count << (PGSHIFT - 1));
 #ifdef	UNIBUS_MAP
-		/*
-		 *  If UNIBUS_MAP exists, use
-		 *  the map, unless on an 11/70 with RH70.
-		 */
-		if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
-			ubp->ub_lo = loint(paddr);
-			ubp->ub_hi = hiint(paddr);
-			xpaddr->hpba = 0;
-			xpaddr->hpcs1.w = HP_WCOM | HP_GO;
-		}
-		else
-#endif
-			{
-			/*
-			 *  Non-UNIBUS map, or 11/70 RH70 (MASSBUS)
-			 */
-			xpaddr->hpba = loint(paddr);
+	/* If UNIBUS_MAP exists, use
+	 * the map, unless on an 11/70 with RH70.
+	 */
+	if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
+	    ubp->ub_lo = loint(paddr);
+	    ubp->ub_hi = hiint(paddr);
+	    xpaddr->hpba = 0;
+	    xpaddr->hpcs1.w = HP_WCOM | HP_GO;
+	} else
+#endif	UNIBUS_MAP
+	    {
+	    /* Non-UNIBUS map, or 11/70 RH70 (MASSBUS) */
+	    xpaddr->hpba = loint(paddr);
 #if	PDP11 == 70 || PDP11 == GENERIC
-			if (xd->xp_ctlr->xp_flags & XP_RH70)
-				xpaddr->hpbae = hiint(paddr);
+	    if (xd->xp_ctlr->xp_flags & XP_RH70)
+		xpaddr->hpbae = hiint(paddr);
 #endif
-			xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
-		}
-		while (xpaddr->hpcs1.w & HP_GO)
-			;
-		if (xpaddr->hpcs1.w & HP_TRE) {
-			if (xpaddr->hpcs2.w & HPCS2_NEM)
-				return(0);	/* made it to end of memory */
-			return(EIO);
-		}
-		paddr += (DBSIZE << PGSHIFT);
+	    xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
 	}
-	return(0);		/* filled disk minor dev */
+	while (xpaddr->hpcs1.w & HP_GO)
+	    ;
+	if (xpaddr->hpcs1.w & HP_TRE) {
+	    if (xpaddr->hpcs2.w & HPCS2_NEM)
+		return(0);	/* made it to end of memory */
+	    return(EIO);
+	}
+	paddr += (DBSIZE << PGSHIFT);
+    }
+    return(0);		/* filled disk minor dev */
 }
 #endif	XP_DUMP
 #endif	NXP

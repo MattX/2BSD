@@ -1,0 +1,83 @@
+.TH LIBRA.A  3R
+.UC 4
+.SH NAME
+System calls with remote access:
+.PP
+access, chdir, chmod, close, creat, dup, dup2, fchmod, flock,
+fork, fstat, fsync, ftruncate, link, lseek, lstat,
+mkdir, open, read, readlink, rename, rmdir, stat, symlink,
+truncate, umask, unlink, write
+.PP
+Stdio functions with remote access:
+.PP
+clearerr, fclose, feof, ferror, fflush, fgetc, fgets, fileno,
+fprintf, fputc, fputs, fread, fscanf, fseek, ftell, fwrite,
+getc, getchar, gets, getw, printf, putc, putchar, puts, putw,
+rewind, scanf, setbuf, setbuffer, setlinebuf, sprintf, sscanf, ungetc
+.PP
+Other library functions with remote access:
+.PP
+closedir, opendir, perror, popen, readdir, rewinddir,
+scandir, seekdir, telldir
+.SH SYNOPSIS
+Same as those in UNIX Programmer's Manual (2) and (3).
+.SH DESCRIPTION
+The functions listed in the first paragraph abive mimic the system calls
+for file manipulation.  The semantics are the same as described in
+UNIX Programmer's Manual (2), except for accepting remote file names or
+remote file descriptors.
+.PP
+.I Open/creat
+a remote file or
+.I dup
+a remote file descriptor returns a remote file descriptor, which can be
+used later on in
+.I read, write, lseek, fstat, dup, ...
+in the same way as an ordinary file descriptor.
+Remote file descriptors are inherited upon
+.I fork
+(in libra.a),
+.I vfork
+and
+.I exceve
+as long as the program to be
+.I exceve'd
+also uses the remote access versions of the system calls/library functions.
+.PP
+When an error occurs remotely during a system call, the
+.I errno
+is copied to the external variable
+.I errno
+of the client process to indicate the error condition.
+.PP
+The functions listed in the second and third paragraphs above are
+the same as those in libc.a, invoke the functions in the first
+paragraph instead of the standard system calls.
+.SH RESTRICTIONS
+Most other system calls and library functions are not in the
+.I libra.a
+because they have nothing to do with remote access.
+There are a few exceptions which might accept remote file name/descriptor
+but whose remote versions are unavailable.  Such system calls include
+.I chown, chroot, fchown, fcntl, mknod, mount
+and
+.I umount.
+.SH FILES
+/usr/ruan/ra/lib/libra.a
+.SH AUTHOR
+Zuwang Ruan
+.SH "SEE ALSO"
+rcsh(1R), commands(1R)
+.PP
+intro(2), access(2), chdir(2), chmod(2), close(2), creat(2), dup(2),
+flock(2), fork(2), fsync(2), link(2), lseek(2), mkdir(2), open(2),
+read(2), readlink(2), rename(2), rmdir(2), stat(2), symlink(2),
+truncate(2), umask(2), unlink(2), write(2)
+.PP
+intro(3), directory(3), perror(3), popen(3), scandir(3)
+.PP
+intro(3S) and the whole section (3S)
+.PP
+Walter F. Tichy and Zuwang Ruan,
+.I "Towards a Distributed File System,"
+Proceedings of USENIX 1984 Summer Conference.

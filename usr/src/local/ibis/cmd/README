@@ -1,0 +1,12 @@
+
+This directory contains ten sample commands as examples of reloading programs
+with libra.a.  They are cat, chmod, cp, diff, ln, ls, mkdir, mv, rm and rmdir.
+There are lots more commands/utilities reloaded with libra.a, and you will
+develop your own application programs by using libra.a.
+
+Those source codes which are unchanged are not listed in this directory.  Users
+should make symbolic links to their source files (in /usr/src/bin, for example)
+before running the Makefile.
+
+See also the manual page cmds(1R).
+

@@ -1,16 +1,12 @@
-CFLAGS=	-n -O -I${INCLUDES} -s
-INCLUDES=
+CFLAGS=	-O
 
 all: msgs
 
-cp: msgs
-	cp msgs ${DESTDIR}/usr/ucb
-
-cmp: msgs
-	cmp msgs ${DESTDIR}/usr/ucb
-
 msgs: msgs.c msgs.h
-	cc $(CFLAGS) -o msgs msgs.c -ltermcap
+	${CC} ${LFLAG} ${CFLAGS} -o msgs msgs.c -ltermcap
+
+install:
+	install -s -o bin -g bin -m 711 msgs ${DESTDIR}/usr/ucb
 
 clean:
-	-rm -f *.o msgs
+	rm -f msg.o ${ALL}

@@ -1,0 +1,1 @@
+#define NCAT	0

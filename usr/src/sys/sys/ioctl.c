@@ -11,9 +11,6 @@
 #include <sys/user.h>
 #include <sys/tty.h>
 #include <sys/proc.h>
-#ifdef	MPX_FILS
-#include <sys/mx.h>
-#endif
 #include <sys/inode.h>
 #include <sys/file.h>
 #include <sys/reg.h>
@@ -76,11 +73,7 @@ ioctl()
 #endif
 	ip = fp->f_inode;
 	fmt = ip->i_mode & IFMT;
-#ifdef	MPX_FILS
-	if (fmt != IFCHR && fmt != IFMPC)
-#else
 	if (fmt != IFCHR)
-#endif
 		{
 #ifdef	UCB_NTTY
 		if (uap->cmd==FIONREAD && (fmt == IFREG || fmt == IFDIR)) {
@@ -100,12 +93,10 @@ ioctl()
 	}
 	dev = ip->i_un.i_rdev;
 	u.u_r.r_val1 = 0;
-#ifdef	MENLO_JCL
 	if ((u.u_procp->p_flag&SNUSIG) && save(u.u_qsav)) {
 		u.u_eosys = RESTARTSYS;
 		return;
 	}
-#endif
 	(*cdevsw[major(dev)].d_ioctl)(dev, uap->cmd, uap->cmarg, fp->f_flag);
 }
 

@@ -14,9 +14,6 @@
 #include <sys/user.h>
 #include <sys/tty.h>
 #include <sys/proc.h>
-#ifdef	MPX_FILS
-#include <sys/mx.h>
-#endif
 #include <sys/inode.h>
 #include <sys/file.h>
 #include <sys/reg.h>
@@ -148,7 +145,6 @@ register struct tty *tp;
 			}
 			ttstart(tp);
 			return;
-#ifdef	MENLO_JCL
 		} else if (c==tlun.t_suspc || c==tun.t_intrc ||
 			   c==tun.t_quitc) {
 				if ((tp->t_local & LNOFLSH) == 0)
@@ -156,18 +152,6 @@ register struct tty *tp;
 			ntyecho(c, tp);
 			c = c==tun.t_intrc ? SIGINT :
 				((c==tun.t_quitc) ? SIGQUIT : SIGTSTP);
-#else
-		} else if (c==tun.t_intrc || c==tun.t_quitc) {
-				if ((tp->t_local & LNOFLSH) == 0)
-					flushtty(tp, FREAD|FWRITE);
-			ntyecho(c, tp);
-			c = c==tun.t_intrc ? SIGINT : SIGQUIT;
-#endif
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				scontrol(tp->t_chan, M_SIG, c);
-			else
-#endif
 				ttsignal(tp, c);
 	/* check for buffer editing functions - cooked mode */
 		} else if ((t_flags&CBREAK) == 0) {
@@ -226,16 +210,9 @@ register struct tty *tp;
 				} else {
 					tp->t_rocount = 0;
 					catq(&tp->t_rawq, &tp->t_canq);
-#ifdef	MPX_FILS
-					if (tp->t_chan)
-						(void) sdata(tp->t_chan);
-					else
-#endif
 						ttwakeup(tp);
-#ifdef	MENLO_JCL
 					if (tp->t_local&LINTRUP)
 						ttsignal(tp, SIGTINT);
-#endif
 				}
 				tp->t_lstate &= ~LSQUOT;
 				if (c == '\\')
@@ -259,15 +236,8 @@ register struct tty *tp;
 			if (tp->t_outq.c_cc < TTHIWAT(tp))
 				(void) ntyoutput(CTRL(g), tp);
 		} else if (putc(c, &tp->t_rawq) >= 0) {
-#ifdef	MENLO_JCL
 			if (tp->t_local&LINTRUP)
 				ttsignal(tp, SIGTINT);
-#endif
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				(void) sdata(tp->t_chan);
-			else
-#endif
 				ttwakeup(tp);
 			ntyecho(c, tp);
 		}
@@ -276,15 +246,8 @@ register struct tty *tp;
 		flushtty(tp, FREAD|FWRITE);
 	else {
 		if (putc(c, &tp->t_rawq) >= 0) {
-#ifdef	MENLO_JCL
 			if (tp->t_local&LINTRUP)
 				ttsignal(tp, SIGTINT);
-#endif
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				(void) sdata(tp->t_chan);
-			else
-#endif
 				ttwakeup(tp);
 		}
 		ntyecho(c, tp);
@@ -459,7 +422,6 @@ loop:
 	if (tp->t_local&LPENDIN)
 		ttypend(tp);
 	(void) _spl0();
-#ifdef	MENLO_JCL
 	while (tp == u.u_ttyp && u.u_procp->p_pgrp != tp->t_pgrp) {
 		if (u.u_signal[SIGTTIN] == SIG_IGN ||
 		    u.u_signal[SIGTTIN] == SIG_HOLD ||
@@ -468,15 +430,10 @@ loop:
 		gsignal(u.u_procp->p_pgrp, SIGTTIN);
 		sleep((caddr_t)&lbolt, TTIPRI);
 	}
-#endif
 	if (tp->t_flags&RAW) {
 		(void) _spl5();
 		if (tp->t_rawq.c_cc <= 0) {
-#ifdef	MPX_FILS
-			if ((tp->t_state&CARR_ON)==0 || tp->t_chan!=NULL
-#else
 			if ((tp->t_state&CARR_ON)==0
-#endif
 #ifdef	UCB_NET
 			    || (tp->t_state&TS_NBIO)
 #endif
@@ -485,14 +442,12 @@ loop:
 				(void) _spl0();
 				return (0);
 			}
-#ifdef	MENLO_JCL
 			if (tp->t_local&LINTRUP &&
 			    u.u_signal[SIGTINT] != SIG_DFL) {
 				u.u_error = EWOULDBLOCK;
 				(void) _spl0();
 				return (0);
 			}
-#endif
 			sleep((caddr_t)&tp->t_rawq, TTIPRI);
 			(void) _spl0();
 			goto loop;
@@ -504,11 +459,7 @@ loop:
 		qp = tp->t_flags & CBREAK ? &tp->t_rawq : &tp->t_canq;
 		(void) _spl5();
 		if (qp->c_cc <= 0) {
-#ifdef	MPX_FILS
-			if ((tp->t_state&CARR_ON)==0 || tp->t_chan!=NULL
-#else
 			if ((tp->t_state&CARR_ON)==0
-#endif
 #ifdef	UCB_NET
 			   || (tp->t_state&TS_NBIO)
 #endif
@@ -517,14 +468,12 @@ loop:
 				(void) _spl0();
 				return (0);
 			}
-#ifdef	MENLO_JCL
 			if (tp->t_local&LINTRUP &&
 			    u.u_signal[SIGTINT] != SIG_DFL) {
 				u.u_error = EWOULDBLOCK;
 				(void) _spl0();
 				return (0);
 			}
-#endif
 			sleep((caddr_t)&tp->t_rawq, TTIPRI);
 			(void) _spl0();
 			goto loop;
@@ -545,7 +494,6 @@ loop:
 					tp->t_lstate |= LSBKSL;
 					continue;
 				}
-#ifdef	MENLO_JCL
 			if (c == tlun.t_dsuspc) {
 				ttsignal(tp, SIGTSTP);
 				if (first) {
@@ -554,7 +502,6 @@ loop:
 				}
 				break;
 			}
-#endif
 			if (c == tun.t_eofc && (tp->t_flags&CBREAK)==0)
 				break;
 			if (passc(c & 0177) < 0)
@@ -604,7 +551,6 @@ register struct tty *tp;
 	if ((tp->t_state&CARR_ON)==0)
 		return (NULL);
 loop:
-#ifdef	MENLO_JCL
 	while (u.u_procp->p_pgrp != tp->t_pgrp && tp == u.u_ttyp &&
 	    (tp->t_local&LTOSTOP) && 
 	    u.u_signal[SIGTTOU] != SIG_IGN &&
@@ -613,7 +559,6 @@ loop:
 		gsignal(u.u_procp->p_pgrp, SIGTTOU);
 		sleep((caddr_t)&lbolt, TTIPRI);
 	}
-#endif
 	while (u.u_count) {
 		cc = MIN(u.u_count, OBUFSIZ);
 		cp = obuf;
@@ -695,12 +640,6 @@ ovhiwat:
 	}
 #endif
 	tp->t_state |= ASLEEP;
-#ifdef	MPX_FILS
-	if (tp->t_chan) {
-		(void) _spl0();
-		return ((caddr_t)&tp->t_outq);
-	}
-#endif
 	sleep((caddr_t)&tp->t_outq, TTOPRI);
 	(void) _spl0();
 	goto loop;

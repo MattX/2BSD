@@ -1,0 +1,91 @@
+
+Instructions for Retrieving Ibis
+================================
+
+
+Ibis is copyrighted.  This means that you can only use (and modify) it at
+your institution or lab, but not redistribute it in any form, or by any
+means without the authors' permission.  In particular, you cannot make Ibis
+part of another package and distribute it, unless we have reached a
+licensing agreement (regardless of whether that package is for free or
+not).
+
+If your friends want Ibis, ask them to send us a message.  This way we can add
+them to the mailing list for updates.  You may, however, use copies of Ibis
+on another machine that belongs to your institution (university, lab, or firm).
+
+Report problems to ruan@purdue (purdue!ruan).  We may not reply directly,
+but send out announcements of bug fixes.  Comments and suggestions are
+welcome.
+
+
+Retrieving Ibis
+===============
+
+Normally you should retrieve Ibis through network.  The best way is to use FTP.
+You can ftp to Purdue (10.0.0.37, 128.10.0.1), using ftp as your login name,
+and your own login name as the password.  Be sure to make your transfers in
+8-bit image mode.
+
+There are four tape archive files in the directory /usr/ftp/pub/ibis:
+
+    ra.tar      the remote access package which generates libra.a, start
+		and rfiled;
+
+    cmd.tar     sample commands reloaded with libra.a;
+
+    rcsh.tar    the remote access version of csh and
+
+    man.tar     the manual pages of libra.a, commands and rcsh.
+
+The cmd.tar and rcsh.tar are optional.  They just show you that most existing
+programs can be reloaded with libra.a, subject to no or minor changes in
+their source codes.
+
+If you have no network access, we can send you a tape.  However, there is
+a handling charge of $100 per tape.  Send us a check payable to
+Department of Computer Sciences, Purdue University.
+
+
+Environment
+===========
+
+Ibis is running on UNIX 4.2BSD.  It will NOT work on other versions of UNIX.
+In particular, Ibis uses the authentication checking mechanism based on
+'previleded port number' used by rlogin and rsh of UNIX 4.2BSD.  If you want
+host A accessible from host B, the name of host B must appear in the file
+/etc/hosts.equiv on host A.
+
+This version of Ibis assumes that each user has the SAME login name in
+different hosts (similar to rlogin or rsh without -l option).  The next
+version will have no such restriction.
+
+
+Installation
+============
+
+Extract files from archives.  For example,
+
+    tar xf ra.tar ra
+
+generates the directory ra and all of its subdirectories and files.
+
+The file README in each directory contains the installation instructions.
+
+See also: Walter F. Tichy and Zuwang Ruan, "Towards a Distributed File
+System", Proceedings of USENIX 1984 Summer Conference.
+
+
+
+					Zuwang Ruan
+					Department of Computer Sciences
+					Purdue University
+					West Lafayette, IN 47907
+
+					(317) 494-6531
+
+					ruan@purdue
+					decvax!pur-ee!purdue!ruan
+
+
+~c ruan

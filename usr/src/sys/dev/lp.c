@@ -1,8 +1,9 @@
 /*
- *	SCCS id	@(#)lp.c	2.1 (Berkeley)	10/6/83
+ *	SCCS id	@(#)lp.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "lp.h"
+
 #if NLP > 0
 #include "param.h"
 #include <sys/systm.h>
@@ -65,15 +66,11 @@ int	flag;
 	register int	unit;
 	register struct	lp_softc *sc;
 
-	if (((unit = LPUNIT(dev)) >= NLP) || (lp_addr[unit] == 0)) {
+	if (((unit = LPUNIT(dev)) >= NLP) || (lp_addr[unit] == 0)
+	    || ((sc = &lp_softc[unit])->sc_state & OPEN)) {
 		u.u_error = ENXIO;
 		return;
 	}
-	else
-		if ((sc = &lp_softc[unit])->sc_state & OPEN) {
-			u.u_error = EBUSY;
-			return;
-		}
 	if (lp_addr[unit]->lpcs & LP_ERR) {
 		u.u_error = EIO;
 		return;
@@ -279,3 +276,4 @@ dev_t	dev;
 		lpintr(LPUNIT(dev));			/* ready to go */
 	timeout(lptout, (caddr_t)dev, 10 * hz);
 }
+#endif NLP > 0

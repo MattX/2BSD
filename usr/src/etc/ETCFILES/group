@@ -1,0 +1,6 @@
+superuser::0:root
+daemon::1:daemon
+sys::2:bin,sys,scooter
+bin::3:bin,sys
+uucp::4:UUCP,uucp,uucpclean
+guest::9:guest

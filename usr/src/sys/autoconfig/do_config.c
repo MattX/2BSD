@@ -54,7 +54,7 @@ struct dtab_s *dp;
 {
 	printf("%s ", dp->dt_name);
 	if (dp->dt_unit == -1)
-		printf("?");
+		putchar('?');
 	else
 		printf("%d", dp->dt_unit);
 	printf(" csr %o vector %o", dp->dt_addr, dp->dt_vector);
@@ -80,7 +80,7 @@ auto_config()
 	int ret;
 
 	if (intval() != CONF_MAGIC) {
-		fprintf(stderr, "Namelist doesn't match running kernel\n");
+		fputs("Namelist doesn't match running kernel\n",stderr);
 		exit(AC_SETUP);
 	}
 
@@ -93,7 +93,7 @@ auto_config()
 		    && (dp->dt_attach && dp->dt_attach->n_value))) {
 			if (debug || verbose) {
 				prdev(dp);
-				printf(" skipped:  No autoconfig routines\n");
+				puts(" skipped:  No autoconfig routines");
 			}
 			continue;
 		}
@@ -106,7 +106,7 @@ auto_config()
 				perror("Reading CSR");
 			if (debug || verbose) {
 				prdev(dp);
-				printf(" skipped:  No CSR\n");
+				puts(" skipped:  No CSR");
 			}
 			detach(dp);
 			continue;
@@ -116,7 +116,7 @@ auto_config()
 		if (expect_intr(dp)) {
 			if (complain) {
 				prdev(dp);
-				printf(" interrupt vector already in use\n");
+				puts(" interrupt vector already in use");
 			}
 			detach(dp);
 			continue;
@@ -127,7 +127,7 @@ auto_config()
 			case ACP_NXDEV:
 				if (debug || verbose) {
 					prdev(dp);
-					printf(" does not exist\n");
+					puts(" does not exist");
 				}
 				detach(dp);
 				break;
@@ -136,14 +136,14 @@ auto_config()
 					case ACI_BADINTR:
 						if (debug || verbose || complain) {
 							prdev(dp);
-							printf(" interrupt vector wrong\n");
+							puts(" interrupt vector wrong");
 						}
 						detach(dp);
 						break;
 					case ACI_NOINTR:
 						if (complain) {
 							prdev(dp);
-							printf(" didn't interrupt\n");
+							puts(" didn't interrupt");
 						}
 						detach(dp);
 						break;
@@ -257,7 +257,7 @@ int a1;
 			printf("ucall %o(PS_BR0, %o, 0):", func, a1);
 		else
 			printf("probe %s:", dp->dt_name);
-		printf(" return conf_int:");
+		fputs(" return conf_int:",stdout);
 		gets(line);
 		sscanf(line, "%o%o", &ret, &conf_int);
 		return ret;

@@ -1,20 +1,22 @@
-all:		libfpsim.a libfpsim_sep.a
+#
+# libfpsim makefile
+#
 
-libfpsim.a:	fpsim.o
-		mv fpsim.o libfpsim.a
+SRC1=	fp1.s fp2.s fp3.s fpx.s
+SRC2=	fp1_sep.s fp2.s fp3.s fpx_sep.s
 
-fpsim.o:	fp1.s fp2.s fp3.s fpx.s
-		as -o fpsim.o fp1.s fp2.s fp3.s fpx.s
+all: libfpsim.a libfpsim_sep.a
 
-libfpsim_sep.a:	fpsim_sep.o
-		mv fpsim_sep.o libfpsim_sep.a
+libfpsim.a: ${SRC1}
+	as -o $@ ${SRC1}
 
-fpsim_sep.o:	fp1_sep.s fp2.s fp3.s fpx_sep.s
-		as -o fpsim_sep.o fp1_sep.s fp2.s fp3.s fpx_sep.s
+libfpsim_sep.a: ${SRC2}
+	as -o $@ ${SRC2}
 
-cp:		libfpsim.a libfpsim_sep.a
-		cp libfpsim.a ${DESTDIR}/lib/libfpsim.a
-		cp libfpsim_sep.a ${DESTDIR}/lib/libfpsim_sep.a
+install:
+	install -o bin -g bin -m 644 libfpsim.a ${DESTDIR}/lib
+	install -o bin -g bin -m 644 libfpsim_sep.a ${DESTDIR}/lib
 
 clean:
-		-rm -f *.o libfpsim.a libfpsim_sep.a
+	rm -f libfpsim.a libfpsim_sep.a
+

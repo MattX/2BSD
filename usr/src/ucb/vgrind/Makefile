@@ -1,24 +1,21 @@
-CFLAGS=-O -I${INCLUDES}
-INCLUDES=
-SOURCES=vfontedpr.c vgrindefs.c regexp.c retest.c
-OBJS=vfontedpr retest
+CFLAGS=-O
+ALL=	vfontedpr retest
+ROBJS=	retest.o regexp.o
+VOBJS=	vfontedpr.o vgrindefs.o regexp.o
 
-all:	$(OBJS)
+all:	${ALL}
 
-vfontedpr: vfontedpr.o vgrindefs.o regexp.o
-	cc -f -O -o vfontedpr vfontedpr.o vgrindefs.o regexp.o
-retest: retest.o regexp.o
-	cc -o retest retest.c regexp.o
+vfontedpr: ${VOBJS}
+	${CC} ${LFLAG} ${FP} -o $@ ${VOBJS}
 
-cp: all
-	cp vfontedpr ${DESTDIR}/usr/lib/vfontedpr
-	cp vgrind.sh ${DESTDIR}/usr/ucb/vgrind
-	chmod +x ${DESTDIR}/usr/ucb/vgrind
-	cp vgrindefs.src ${DESTDIR}/usr/lib/vgrindefs
-	cp tmac.vgrind ${DESTDIR}/usr/lib/tmac/tmac.vgrind
+retest: ${ROBJS}
+	${CC} ${LFLAG} -o $@ ${ROBJS}
+
+install:
+	install -s -o bin -g bin -m 711 vfontedpr ${DESTDIR}/usr/lib
+	install -c -o bin -g bin -m 755 vgrind.sh ${DESTDIR}/usr/ucb/vgrind
+	install -c -o bin -g bin -m 644 vgrindefs.src ${DESTDIR}/usr/lib/vgrindefs
+	install -c -o bin -g bin -m 644 tmac.vgrind ${DESTDIR}/usr/lib
 
 clean:
-	rm -f ${OBJS}
-
-vprintall:
-	csh /usr/ucb/vprint ${SOURCES}
+	rm -f ${ROBJS} ${VOBJS} ${ALL}

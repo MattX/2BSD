@@ -128,7 +128,7 @@ dev_t	dev;
 	dz = unit >> 3;
 	dz_addr[dz]->dzbrk = (dz_brk[dz] &= ~(1 << (unit&07)));
 #endif
-	if (tp->t_state & HUPCLS)
+	if (tp->t_state&HUPCLS || (tp->t_state&ISOPEN)==0)
 		dzmodem(unit, DZ_OFF);
 	ttyclose(tp);
 }
@@ -342,11 +342,6 @@ register struct tty *tp;
 	if (tp->t_outq.c_cc<=TTLOWAT(tp)) {
 		if (tp->t_state & ASLEEP) {
 			tp->t_state &= ~ASLEEP;
-#if	MPX_FILS
-			if (tp->t_chan)
-				mcstart(tp->t_chan, (caddr_t) &tp->t_outq);
-			else
-#endif
 			wakeup((caddr_t) &tp->t_outq);
 		}
 #ifdef UCB_NET
@@ -416,11 +411,6 @@ out:
 		if (tp->t_outq.c_cc<=TTLOWAT(tp)) {
 			if (tp->t_state & ASLEEP) {
 				tp->t_state &= ~ASLEEP;
-#if	MPX_FILS
-				if (tp->t_chan)
-					mcstart(tp->t_chan, (caddr_t) &tp->t_outq);
-				else
-#endif
 				wakeup((caddr_t) &tp->t_outq);
 			}
 #ifdef UCB_NET

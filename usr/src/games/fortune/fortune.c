@@ -1,166 +1,115 @@
-#ifdef UCB_SCCSID
-	char	*sccsid = "@(#)fortune.c	2.6";
-#endif
-# include	<stdio.h>
-# include	"strfile.h"
+#include <stdio.h>
+#include <sys/param.h>
+#include <strfile.h>
 
-# define	MINW	6		/* minimum wait if desired	*/
-# define	CPERS	20		/* # of chars for each sec	*/
-# define	SLEN	160		/* # of chars in short fortune	*/
-
-# define	reg	register
-
-short	wflag		= 0,		/* wait desired after fortune	*/
-	sflag		= 0,		/* short fortune desired	*/
-	lflag		= 0,		/* long fortune desired		*/
-	oflag		= 0,		/* offensive fortunes only	*/
-	aflag		= 0;		/* any fortune allowed		*/
-
-char	fortfile[100]	= FORTFILE,	/* fortune database		*/
-	*usage[]	= {
-       "usage:  fortune [ - ] [ -wsloa ] [ file ]",
-       "	- - give this summary of usage",
-       "	w - have program wait after printing message in order",
-       "	    to give time to read",
-       "	s - short fortune only",
-       "	l - long fortune only",
-       "	o - offensive fortunes only",
-       "	a - any fortune",
-       "		Mail suggested fortunes to \"fortune\""
-	};
-
-long	seekpts[2];			/* seek pointers to fortunes	*/
-
-main(ac, av)
-int	ac;
-char	*av[]; {
-
-	reg char	c;
-	reg int		nchar = 0;
-	reg FILE	*inf;
-	int		numforts,	/* number of fortunes		*/
-			fortune;	/* fortune number		*/
-	STRFILE		tbl;		/* input table			*/
-
-	getargs(ac, av);
-	srand(getpid());
-	if ((inf = fopen(fortfile, "r")) == NULL) {
-		perror(fortfile);
-		exit(-1);
-	}
-	fread(&tbl, (sizeof tbl), 1, inf);
-	numforts = tbl.str_numstr - 1;	 /* always a null string at the end */
-	if (tbl.str_longlen < SLEN && lflag) {
-		puts("Sorry, no long strings in this file");
-		exit(0);
-	}
-	if (tbl.str_shortlen > SLEN && sflag) {
-		puts("Sorry, no short strings in this file");
-		exit(0);
-	}
-	if (oflag)
-		numforts -= (int) (tbl.str_delims[0]);
-	else if (!aflag)
-		numforts = (int)(tbl.str_delims[0]);
-	do {
-		fortune = roll(1, numforts) - 1;
-		if (oflag && !aflag)
-			fortune += tbl.str_delims[0];
-		fseek(inf, (long)(sizeof seekpts[0]) * (long) fortune + (long) sizeof tbl, 0);
-		fread(seekpts, (sizeof seekpts[0]), 2, inf);
-	} while ((sflag && seekpts[1] - seekpts[0] > SLEN)
-	       || (lflag && seekpts[1] - seekpts[0] < SLEN));
-	fseek(inf, seekpts[0], 0);
-	while (c = getc(inf)) {
-		nchar++;
-		putchar(c);
-	}
-	fflush(stdout);
-	if (wflag)
-		sleep(max((int) nchar/CPERS, MINW));
-}
 /*
- *	This routine evaluates the arguments on the command line
+ * produce a fortune from the database
+ *
+ *	Keith Bostic
+ *		ARPA: keith@seismo
+ *		UUCP: seismo!keith
  */
-getargs(ac, av)
-int		ac;
-reg char	*av[]; {
 
-	reg short	bad = 0;
-	reg int		i, j;
+#define CPERS		20		/* # of chars for each sec */
+#define MAXTRY		20		/* try 20 times, then fuck it */
+#define MINW		6		/* minimum sleep wait */
+#define SLEN		80		/* # of chars in short fortune */
+#define LLEN		240		/* # of chars in longer fortune */
+#define FFILE		"/usr/games/lib/fortunes.dat"
 
-	for (i = 1; i < ac; i++)  {
-		if (av[i][0] != '-')
-			strcpy(fortfile, av[i]);
-		else
-			switch (av[i][1]) {
-			  case '\0':	/* give usage			*/
-				for (j = 0; j < sizeof usage / sizeof (char *); j++)
-					puts(usage[j]);
-				exit(0);
-			  case 'w':	/* give time to read		*/
-				wflag++;
+main(argc,argv)
+int	argc;
+char	**argv;
+{
+	extern char	*optarg;	/* getopt variable */
+	static char	*ffile = FFILE;	/* fortune file */
+	register long	len,		/* length of the fortune */
+			cnt;		/* general counter */
+	long	bottom,			/* low fortune */
+		num,			/* number of fortunes to choose from */
+		try,			/* random number to try */
+		*seekpts,		/* point to all of table */
+		hold[SECTIONS + 1];	/* hold first part of table */
+	int	ch;			/* argument character */
+	short	do_all = NO,		/* all fortunes */
+		do_lim = NO,		/* limericks */
+		do_long = NO,		/* long fortune */
+		do_off = NO,		/* offensive */
+		do_shrt = NO,		/* short fortune */
+		do_wait = NO;		/* wait afterward */
+
+#ifdef OLD				/* try to handle old versions */
+	long	time();			/* of random number generators */
+#define srandom	srand
+#define random	rand
+#else !OLD
+	long	random();
+#endif OLD
+
+	while ((ch = getopt(argc,argv,"af:lmosw")) != EOF)
+		switch((char)ch) {
+			case 'a':	/* obscene, scene, limericks  */
+				do_all = YES;
 				break;
-			  case 's':	/* short ones only		*/
-				sflag++;
+			case 'f':	/* different fortune file */
+				ffile = optarg;
 				break;
-			  case 'l':	/* long ones only		*/
-				lflag++;
+			case 'l':	/* long */
+				do_long = YES;
 				break;
-			  case 'o':	/* offensive ones only		*/
-				oflag++;
+			case 'm':	/* limericks */
+				do_lim = YES;
 				break;
-			  case 'a':	/* any fortune			*/
-				aflag++;
+			case 'o':	/* offensive */
+				do_off = YES;
 				break;
-			  default:
-				printf("unknown flag: '%c'\n", av[1][1]);
-				bad++;
+			case 's':	/* short */
+				do_shrt = YES;
 				break;
-			}
+			case 'w':	/* wait afterward */
+				do_wait = YES;
+				break;
+			default:
+				fprintf(stderr,"usage: %s [-a] [-f file] [-l] [-m] [-o] [-s] [-w]\n",*argv);
+				exit(ERR);
+		}
+
+	if (!(freopen(ffile,"r",stdin))) {
+		perror(ffile);
+		exit(ERR);
 	}
-	if (bad) {
-		printf("use \"%s -\" to get usage\n", av[0]);
-		exit(-1);
+
+	/* read in the table of addresses */
+
+	fread(hold,sizeof(*hold),SECTIONS + 1,stdin);
+	MM(long,seekpts,hold[SECTIONS],char);
+	rewind(stdin);
+	fread(seekpts,sizeof(*seekpts),(int)((hold[SECTIONS] + 1) / sizeof(*seekpts)),stdin);
+
+	/* decide range of random number to generate */
+
+	if (do_all) num = hold[END] - (bottom = hold[SCENE]);
+	else if (do_off)
+		if (do_lim) num = hold[END] - (bottom = hold[OBS]);
+		else num = hold[OBSLIM] - (bottom = hold[OBS]);
+	else if (do_lim) num = hold[END] - (bottom = hold[OBSLIM]);
+	else num = hold[OBS] - (bottom = hold[SCENE]);
+
+	/* get entries until MAXTRYs or find one that works */
+	/* if can't find one, just give the user last one tested */
+
+	srandom((int)time((long *)NULL));
+	for (cnt = 0;cnt < MAXTRY;++cnt) {
+		try = random() % num;
+		len = seekpts[bottom + try + 1] - seekpts[bottom + try];
+		if (do_shrt && len <= SLEN || do_long && len >= LLEN) break;
 	}
+
+	/* go to chosen fortune, dump it out */
+	/* sleep if user requested it */
+
+	fseek(stdin,seekpts[bottom + try],(int)0);
+	for (cnt = len;cnt--;) putchar(getchar());
+	if (do_wait) sleep(MAX(len/CPERS,MINW));
+	exit(OK);
 }
-
-max(i, j)
-reg int	i, j; {
-
-	return (i >= j ? i : j);
-}
-
-# ifndef vax
-# define	MAXRAND	32767L
-
-roll(ndie, nsides)
-int	ndie, nsides; {
-
-	reg long	tot;
-	reg unsigned	n;
-
-	tot = 0;
-	n = ndie;
-	while (n--)
-		tot += rand();
-	return (int) ((tot * (long) nsides) / ((long) MAXRAND + 1)) + ndie;
-}
-
-# else
-
-roll(ndie, nsides)
-reg int	ndie, nsides; {
-
-	reg int		tot, r;
-	reg double	num_sides;
-
-	num_sides = nsides;
-	tot = 0;
-	while (ndie--)
-		tot += rand() * (num_sides / 017777777777) + 1;
-	return tot;
-}
-# endif
-
-

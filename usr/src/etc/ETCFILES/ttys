@@ -1,0 +1,52 @@
+00 name		comments
+34console
+00 Able DH/DM
+39ttyh0		Scooter's terminal (vt200)
+19ttyh1		Rick's terminal (vt100)
+19ttyh2		DJ's terminal (vt100)
+19ttyh3		Mary's terminal (vt220)
+19ttyh4		Tom's terminal (vt100)
+19ttyh5		Secretary's terminal (vt220)
+09ttyh6		Secretary's dtc
+09ttyh7
+09ttyh8
+09ttyh9
+09ttyha		la120
+13ttyd0		dialup0
+13ttyd1		dialup1
+09ttyhd
+09ttyhe
+09ttyhf
+00 Able DH/DM #1
+19ttyi0		Caryn's terminal (vt220)
+17ttyi1		Orthopaedic Appliance facility
+19ttyi2		Jackie's terminal (vt220)
+09ttyi3		NEC
+19ttyi4		Patti's terminal (vt220)
+09ttyi5
+09ttyi6
+07ttyi7
+09ttyi8
+09ttyi9
+09ttyia
+09ttyib		DMP-29 Plotter
+09ttyic		Nova3 printer
+09ttyid
+09ttyie		Nova3 interconnect
+09ttyif		Pdp8 interconnect
+0pttyp0
+0pttyp1
+0pttyp2
+0pttyp3
+0pttyp4
+0pttyp5
+0pttyp6
+0pttyp7
+0pttyp8
+0pttyp9
+0pttypa 
+0pttypb
+0pttypc
+0pttypd
+0pttype
+0pttypf

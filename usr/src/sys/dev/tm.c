@@ -21,9 +21,8 @@ struct	tmdevice *TMADDR;
 struct	buf	tmtab;
 struct	buf	ctmbuf;
 /*
- * Raw tape operations use rtmbuf.  The driver
- * notices when rtmbuf is being used and allows the user
- * program to continue after errors and read records
+ * Raw tape operations use rtmbuf.  The driver notices when rtmbuf is being
+ * used and allows the user program to continue after errors and read records
  * not of the standard length (BSIZE).
  */
 struct	buf	rtmbuf;

@@ -1,0 +1,271 @@
+.TH RDIST 1 "22 November 1983"
+.UC 4
+.ad
+.SH NAME
+rdist \- remote file distribution program
+.SH SYNOPSIS
+.B rdist
+[ \-nqbRvwy ]
+[ \-f distfile ] [ \-d var=value ]
+[ name ... ]
+.PP
+.B rdist
+[ \-nqbRvwy ] -c name ... host[.login][:dest]
+.SH DESCRIPTION
+.I Rdist
+is a program to maintain identical copies of files over multiple hosts. 
+It preserves the owner, group, mode, and mtime of files if possible and
+can update programs that are executing.
+.I Rdist
+reads commands from
+.I distfile
+to direct the updating of files and/or directories.
+If
+.I distfile
+is `\-', the standard input is used.
+If no
+.B \-f
+option is present, the file `distfile' is used for input.
+If no names are specified on the command line,
+.I rdist
+will update all of the files and directories listed in
+.IR distfile .
+Otherwise, only the listed files will be updated.
+.PP
+The
+.B \-c
+option forces
+.I rdist
+to interpret the remaining arguments as a small
+.IR distfile .
+The equivalent distfile is as follows.
+.nf
+
+.ti +.5i
+( \fIname\fP ... ) -> \fIhost\fP[.\fIlogin\fP]
+.ti +1i
+install	\fIdest\fP ;
+
+.fi
+.PP
+Other options:
+.TP
+.B \-d
+Define
+.I var
+to have
+.IR value .
+The
+.B \-d
+option is used to define or override variable definitions in the
+.IR distfile .
+.I Value
+can be the empty string, one name, or a list of names surrounded by
+parentheses and separated by tabs and/or spaces.
+.TP
+.B \-n
+Print the commands without executing them. This option is
+useful for debugging
+.IR distfile .
+.TP
+.B \-q
+Quiet mode. Files that are being modified are normally
+printed on standard output. The
+.B \-q
+option suppresses this.
+.TP
+.B \-R
+Remove extraneous files. If a directory is being updated, any files that exist
+on the remote host that do not exist in the master directory are removed.
+This is useful for maintaining truely identical copies of directories.
+.TP
+.B \-v
+Verify that the files are up to date on all the hosts. Any files
+that are out of date will be displayed but no files will be changed
+nor any mail sent.
+.TP
+.B \-w
+Whole mode. The whole file name is appended to the destination directory
+name. Normally, only the last component of a name is used when renaming files.
+This will preserve the directory structure of the files being
+copied instead of flattening the directory structure.
+.TP
+.B \-y
+Younger mode. Files are normally updated if their
+.I mtime
+and
+.I size
+(see
+.IR stat (2))
+disagree. The
+.B \-y
+option causes
+.I rdist
+to only update files that are younger than the master copy. This can be used
+to prevent newer copies on other hosts from being replaced.
+A warning message is printed for files which are newer than the master copy.
+.TP
+.B \-b
+Binary comparison. Perform a binary comparison and update files if they differ
+rather than comparing dates and sizes.
+.PP
+.I Distfile
+contains a sequence of entries that specify the files
+to be copied, the destination hosts, and what operations to perform
+to do the updating. Each entry has one of the following formats.
+.nf
+
+.in +.5i
+<variable name> `=' <name list>
+<source list> `\->' <destination list> <command list>
+<source list> `::' <time_stamp file> <command list>
+.in
+
+.fi
+The first format is used for defining variables.
+The second format is used for distributing files to other hosts.
+The third format is used for making lists of files that have been changed
+since some given date.
+The \fIsource list\fP specifies a
+list of files and/or directories on the local host which are to be used
+as the master copy for distribution.
+The \fIdestination list\fP is the list of hosts these files are to be
+copied to.  Each file in the source list is added to a list of changes
+if the file is out of date on the host being updated (second format) or
+the file is newer than the time stamp file (third format).
+.PP
+Newlines, tabs, and blanks are only used as separators and are
+otherwise ignored. Comments begin with `#' and end with a newline.
+.PP
+The source and destination lists have the following format:
+.nf
+
+.ti +.5i
+<name>
+or
+.ti +.5i
+`(' <zero or more names separated by white-space> `)'
+
+.fi
+The shell meta-characters `[', `]', `{', `}', `*', and `?'
+are recognized and expanded (on the local host only) in the same way as
+.IR csh (1).
+The `~' character is also expanded in the same way as
+.IR csh
+but is expanded separately on the local and destination hosts.
+When the
+.B \-w
+option is used with a file name that begins with `~', everything except the
+home directory is appended to the destination name.
+.PP
+The command list consists of zero or more commands of the following
+format.
+.nf
+
+.in +.5i
+.ta \w'install    'u +\w'name list    'u
+`install'	<options>	opt_dest_name `;'
+`notify'	<name list>	`;'
+`except'	<name list>	`;'
+`special'	<name list>	string `;'
+.in
+
+.fi
+.PP
+The
+.I install
+command is used to copy out of date files and/or directories.
+Each source file is copied to each host in the destination list.
+Directories are recursively copied in the same way.
+.I Opt_dest_name
+is an optional parameter to rename files.
+If no
+.I install
+command appears in the command list or
+the destination name is not specified,
+the source file name is used.
+Directories in the path name will be created if they
+do not exist on the remote host.
+The
+.I options
+are `\-R', `\-v', `\-w', `\-y', and `\-b' and have the same semantics as
+options on the command line except they only apply to the files
+in the source list.
+The login name used on the destination host is the same as the local host
+unless the destination name is of the format ``host.login".
+.PP
+The
+.I notify
+command is used to mail the list of files updated (and any errors
+that may have occured) to the listed names.
+If no `@' appears in the name, the destination host is appended to
+the name
+(e.g., name1@host, name2@host, ...).
+.PP
+The
+.I except
+command is used to update all of the files in the source list
+.B except
+for the files listed in \fIname list\fP.
+This is mostly used to copy everything in a directory except certain files.
+.PP
+The
+.I special
+command is used to specify shell commands that are to be executed on the
+remote host after the file in \fIname list\fP is updated or installed.
+.I String
+starts and ends with `"' and can cross multiple lines in
+.I distfile.
+Multiple commands to the shell should be separated by `;'.
+The
+.I special
+command can be used to create links, rebuild private databases, etc.
+after a program has been updated.
+.PP
+The following is a small example.
+.nf
+
+.in +.5i
+HOSTS = ( matisse arpa.root )
+
+FILES = ( /bin /lib /usr/bin /usr/games
+	/usr/include/{*.h,{stand,sys,vax*,pascal,machine}/*.h}
+	/usr/lib /usr/man/man? /usr/ucb /usr/local/rdist )
+
+EXLIB = ( Mail.rc aliases aliases.dir aliases.pag crontab dshrc
+	sendmail.cf sendmail.fc sendmail.hf sendmail.st uucp vfont )
+
+${FILES} -> ${HOSTS}
+	install -r ;
+	except /usr/lib/${EXLIB} ;
+	except /usr/games/lib ;
+	except /usr/ucb/f ;
+	special /usr/ucb/finger "rm /usr/ucb/f; ln /usr/ucb/finger /usr/ucb/f" ;
+
+IMAGEN = (ips dviimp catdvi)
+/usr/local/${IMAGEN} -> arpa
+	install /usr/local/lib ;
+	notify ralph ;
+
+${FILES} :: stamp.cory
+	notify root@cory ;
+.in
+
+.fi
+.SH FILES
+.nf
+.ta \w'/tmp/rdist*    'u
+distfile	input command file
+/tmp/rdist*	temporary file for update lists
+.fi
+.SH "SEE ALSO"
+csh(1), stat(2)
+.SH AUTHOR
+Ralph Campbell
+.SH BUGS
+Source files must reside on the local host where rdist is executed.
+.PP
+The names used to update specific files from
+.I distfile
+must match the expanded name (i.e. rdist "${FILES}" will not work).
+

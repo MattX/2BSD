@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)sys1.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)sys1.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -14,8 +14,8 @@
 #include <sys/seg.h>
 #include <sys/acct.h>
 #include <sys/file.h>
+#include <a.out.h>
 #include <wait.h>
-
 
 /*
  * exec system call, with and without environments.
@@ -38,76 +38,82 @@ exece()
 	register char *cp;
 	register struct buf *bp;
 	register struct execa *uap;
-	memaddr	bno;
-	int na, ne, ucp, ap, c;
-	struct inode *ip;
-#ifdef	UCB_SCRIPT
-#define	SCRMAG	'#!'
+	int	na, ne, ucp, ap, c;
+	int	indir, uid, gid;
+	char	*sharg;
+	struct inode	*ip;
+	char cfname[MAXNAMLEN];
+	char cfarg[SHSIZE + 1];
 	extern int schar();
-	int uid, gid, indir;
-#endif
+	memaddr	bno;
 
-#ifndef UCB_SYMLINKS
-	if ((ip = namei(uchar, LOOKUP)) == NULL)
-#else
 	if ((ip = namei(uchar, LOOKUP, 1)) == NULL)
-#endif
 		return;
 	bno = 0;
-	bp = (struct buf *) NULL;
-#ifdef	UCB_SCRIPT
+	bp = 0;
 	indir = 0;
 	uid = u.u_uid;
 	gid = u.u_gid;
-	if (ip->i_mode&ISUID)
-	    uid = ip->i_uid;
-	if (ip->i_mode&ISGID)
-	    gid = ip->i_gid;
+	if (ip->i_mode & ISUID)
+		uid = ip->i_uid;
+	if (ip->i_mode & ISGID)
+		gid = ip->i_gid;
 again:
-#endif
 	if (access(ip, IEXEC))
 		goto bad;
-	if ((ip->i_mode & IFMT) != IFREG ||
-	   (ip->i_mode & (IEXEC | (IEXEC >> 3) | (IEXEC >> 6))) == 0) {
+	if ((ip->i_mode & IFMT) != IFREG || (ip->i_mode & (IEXEC | (IEXEC >> 3) | (IEXEC >> 6))) == 0) {
 		u.u_error = EACCES;
 		goto bad;
 	}
-#ifdef	UCB_SCRIPT
-	/* moved from getxfile() */
 	u.u_base = (caddr_t) &u.u_exdata;
 	u.u_count = sizeof u.u_exdata;
 	u.u_offset = 0;
 	u.u_segflg = 1;
+	u.u_exdata.ux_shell[0] = 0;	/* for zero length files */
 	readi(ip);
 	u.u_segflg = 0;
 	if (u.u_error)
-	    goto bad;
-	/* check if script.  one level only */
-	if (indir == 0
-	   && u.u_exdata.ux_mag == SCRMAG
-	   && u.u_count < sizeof u.u_exdata - sizeof u.u_exdata.ux_mag)
-	{
-	    indir++;
-	    cp = (char *) &u.u_exdata + sizeof u.u_exdata.ux_mag;
-	    while (*cp == ' ' && cp < (char *)&u.u_exdata + sizeof u.u_exdata-1)
-		cp++;
-	    u.u_dirp = cp;
-	    while (cp < (char *) &u.u_exdata + sizeof u.u_exdata - 1
-	          && *cp != '\n')
-		cp++;
-	    *cp = '\0';
-	    iput(ip);
-#ifndef UCB_SYMLINKS
-	    if ((ip = namei(schar, LOOKUP)) == NULL)
-#else
-	    if ((ip = namei(schar, LOOKUP, 1)) == NULL)
-#endif
-		return;
-	    goto again;
+		goto bad;	 /* check if script.  one level only */
+	if (u.u_exdata.ux_shell[0] == '#' && u.u_exdata.ux_shell[1] == '!') {
+		cp = &u.u_exdata.ux_shell[2];
+		while (cp < &u.u_exdata.ux_shell[SHSIZE]) {
+			if (*cp == '\t')
+				*cp = ' ';
+			else if (*cp == '\n') {
+				*cp = '\0';
+				break;
+			}
+			cp++;
+		}
+		if (*cp != '\0') {
+			u.u_error = ENOEXEC;
+			goto bad;
+		}
+		cp = &u.u_exdata.ux_shell[2];
+		while (*cp == ' ')
+			cp++;
+		u.u_dirp = cp;
+		while (*cp && *cp != ' ')
+			cp++;
+		sharg = NULL;
+		if (*cp) {
+			*cp++ = '\0';
+			while (*cp == ' ')
+				cp++;
+			if (*cp) {
+				bcopy((caddr_t)cp, (caddr_t)cfarg, SHSIZE);
+				sharg = cfarg;
+			}
+		}
+		bcopy((caddr_t)u.u_dbuf, (caddr_t)cfname, MAXNAMLEN);
+		indir = 1;
+		iput(ip);
+		ip = namei(schar, LOOKUP, 1);
+		if (ip == NULL)
+			return;
+		goto again;
 	}
-	/*other magic numbers are described in getxfile()*/
-#endif
-	
+
 	/*
 	 * Collect arguments on "file" in swap space.
 	 */
@@ -117,20 +123,15 @@ again:
 	uap = (struct execa *)u.u_ap;
 #ifndef	UCB_NKB
 	if ((bno = malloc(swapmap, (NCARGS + BSIZE - 1) / BSIZE)) == 0)
-		panic("Out of swap");
 #else	UCB_NKB
 	if ((bno = malloc(swapmap, ctod((int) btoc(NCARGS + BSIZE)))) == 0)
-		panic("Out of swap");
 #endif	UCB_NKB
+		panic("Out of swap");
 	if (uap->argp) for (;;) {
 		ap = NULL;
-#ifdef	UCB_SCRIPT
-		/* insert script path name as first arg */
-		if (indir && na == 1)
-		    ap = uap->fname;
-		else
-#endif
-		if (uap->argp) {
+		if (indir && (na == 1 || na == 2 && sharg))
+			ap = (int)uap->fname;
+		else if (uap->argp) {
 			ap = fuword((caddr_t)uap->argp);
 			uap->argp++;
 		}
@@ -141,7 +142,7 @@ again:
 			uap->envp++;
 			ne++;
 		}
-		if (ap==NULL)
+		if (ap == NULL)
 			break;
 		na++;
 		if (ap == -1)
@@ -149,10 +150,20 @@ again:
 		do {
 			if (nc >= NCARGS - 1)
 				u.u_error = E2BIG;
-			if ((c = fubyte((caddr_t) ap++)) < 0)
+			if (indir && na == 2 && sharg != NULL)
+				c = *sharg++ & 0377;
+			else if ((c = fubyte((caddr_t)ap++)) < 0)
 				u.u_error = EFAULT;
-			if (u.u_error)
-				goto bad;
+			if (u.u_error) {
+				nc = (nc + NBPW - 1) & ~(NBPW - 1);
+				if (bp) {
+					mapout(bp);
+					bp->b_flags |= B_AGE;
+					bp->b_flags &= ~B_DELWRI;
+					brelse(bp);
+				}
+				goto flshblks;
+			}
 			if ((nc & BMASK) == 0) {
 				if (bp) {
 					mapout(bp);
@@ -161,10 +172,11 @@ again:
 #ifndef	UCB_NKB
 				bp = getblk(swapdev, swplo + bno + (nc >> BSHIFT));
 #else
-				bp = getblk(swapdev,
-				  dbtofsb(clrnd(swplo + bno)) + (nc >> BSHIFT));
-#endif
+				bp = getblk(swapdev, dbtofsb(clrnd(swplo + bno)) + (nc >> BSHIFT));
+#endif	UCB_NKB
 				cp = mapin(bp);
+				if (indir && !nc)
+					bcopy(cp, (caddr_t)u.u_dbuf, MAXNAMLEN);
 			}
 			nc++;
 			*cp++ = c;
@@ -176,13 +188,25 @@ again:
 	}
 	bp = 0;
 	nc = (nc + NBPW - 1) & ~(NBPW - 1);
-#ifndef	UCB_SCRIPT
-	if (getxfile(ip, (na * NBPW) + nc) || u.u_error)
-		goto bad;
+	if (indir)
+		bcopy((caddr_t)cfname, (caddr_t)u.u_dbuf, MAXNAMLEN);
+	if (getxfile(ip, (na+4) * NBPW + nc, uid, gid) || u.u_error) {
+flshblks:				/* release swap blocks */
+		for (c = 0;c < nc; c += BSIZE)
+#ifndef	UCB_NKB
+			if (incore(swapdev, swplo + bno + (c >> BSHIFT))) {
+				bp = bread(swapdev, swplo + bno + (c >> BSHIFT));
 #else
-	if (getxfile(ip, (na * NBPW) + nc, uid, gid) || u.u_error)
+			if (incore(swapdev,dbtofsb(clrnd(swplo + bno)) + (c >> BSHIFT))) {
+				bp = bread(swapdev,dbtofsb(clrnd(swplo + bno)) + (c >> BSHIFT));
+#endif	UCB_NKB
+				bp->b_flags |= B_AGE;		/* throw away */
+				bp->b_flags &= ~B_DELWRI;	/* cancel io */
+				brelse(bp);
+				bp = 0;
+			}
 		goto bad;
-#endif
+	}
 
 	/*
 	 * copy back arglist
@@ -191,52 +215,39 @@ again:
 	ucp = -nc - NBPW;
 	ap = ucp - na * NBPW - 3 * NBPW;
 	u.u_ar0[R6] = ap;
-	suword((caddr_t)ap, na - ne);
+	(void) suword((caddr_t)ap, na - ne);
 	nc = 0;
 	for (;;) {
 		ap += NBPW;
-		if (na == ne) {
-			suword((caddr_t)ap, 0);
+		if (na==ne) {
+			(void) suword((caddr_t)ap, 0);
 			ap += NBPW;
 		}
 		if (--na < 0)
 			break;
-		suword((caddr_t)ap, ucp);
+		(void) suword((caddr_t)ap, ucp);
 		do {
 			if ((nc & BMASK) == 0) {
 				if (bp) {
 					mapout(bp);
-					bp->b_flags |= B_AGE;
 					brelse(bp);
 				}
 #ifndef	UCB_NKB
 				bp = bread(swapdev, swplo + bno + (nc>>BSHIFT));
 #else
-				bp = bread(swapdev,
-				  dbtofsb(clrnd(swplo + bno)) + (nc >> BSHIFT));
+				bp = bread(swapdev, dbtofsb(clrnd(swplo + bno)) + (nc >> BSHIFT));
 #endif
-				bp->b_flags &= ~B_DELWRI;
+				bp->b_flags |= B_AGE;		/* throw away */
+				bp->b_flags &= ~B_DELWRI;	/* cancel io */
 				cp = mapin(bp);
-#ifdef	UCB_SCRIPT
-				/* stick in interpreter name for accounting */
-				if (indir && nc == 0)
-					bcopy(cp, (caddr_t)u.u_dbuf, DIRSIZ);
-#endif
 			}
-			subyte((caddr_t)ucp++, (c = *cp++));
+			(void) subyte((caddr_t)ucp++, (c = *cp++));
 			nc++;
-		} while(c & 0377);
+		} while(c&0377);
 	}
-	suword((caddr_t) ap, 0);
-	suword((caddr_t) (-NBPW), 0);
-	if (bp) {
-		mapout(bp);
-		bp->b_flags |= B_AGE;
-		brelse(bp);
-		bp = 0;
-	}
+	(void) suword((caddr_t) ap, 0);
+	(void) suword((caddr_t) (-NBPW), 0);
 	setregs();
-
 bad:
 	if (bp) {
 		mapout(bp);
@@ -257,62 +268,27 @@ bad:
  * Zero return is normal;
  * non-zero means only the text is being replaced
  */
-#ifdef	UCB_SCRIPT
 getxfile(ip, nargc, uid, gid)
 int nargc, uid, gid;
-#else
-getxfile(ip, nargc)
-#endif
 register struct inode *ip;
 {
-	register unsigned ds;
+	register unsigned int ds;
 	register sep;
-	register unsigned ts, ss;
-	register i, overlay;
-#ifdef	MENLO_OVLY
-	register ovflag,ovmax;
-	struct u_ovd sovdata;
-	unsigned ovhead[1 + NOVL];
-#endif
+	register unsigned int ts, ss;
+	register int i, overlay;
 	long lsize;
-
-#ifndef	UCB_SCRIPT
-	/*
-	 * read in first few bytes
-	 * of file for segment
-	 * sizes:
-	 * ux_mag = A_MAGIC1/A_MAGIC2/A_MAGIC3/A_MAGIC4
-	 *  A_MAGIC1 is plain executable
-	 *  A_MAGIC2 is RO text
-	 *  A_MAGIC3 is separated ID
-	 *  A_MAGIC4 is overlaid text
-	 */
 #ifdef	MENLO_OVLY
-	/*
-	 * ux_mag = A_MAGIC1/A_MAGIC2/A_MAGIC3/A_MAGIC4/A_MAGIC5/A_MAGIC6
-	 *  A_MAGIC5 is nonseparate auto-overlay
-	 *  A_MAGIC6 is separate auto overlay
-	 */
-#endif
+	register int ovflag = 0;
+	register int ovmax;
+	struct u_ovd sovdata;
+	unsigned int ovhead[NOVL + 1];
+#endif	MENLO_OVLY
+#ifdef	VIRUS_VFORK
+	unsigned int numc;
+	caddr_t startc;
+#endif	VIRUS_VFORK
 
-	u.u_base = (caddr_t) &u.u_exdata;
-	u.u_count = sizeof(u.u_exdata);
-	u.u_offset = 0;
-	u.u_segflg = 1;
-	readi(ip);
-	u.u_segflg = 0;
-	if (u.u_error)
-		goto bad;
-	if (u.u_count != 0) {
-		u.u_error = ENOEXEC;
-		goto bad;
-	}
-#endif
-	sep = 0;
-	overlay = 0;
-#ifdef	MENLO_OVLY
-	ovflag = 0;
-#endif
+	overlay = sep = 0;
 	if (u.u_exdata.ux_mag == A_MAGIC1) {
 		lsize = (long) u.u_exdata.ux_dsize + u.u_exdata.ux_tsize;
 		u.u_exdata.ux_dsize = lsize;
@@ -332,7 +308,7 @@ register struct inode *ip;
 		sep++;
 		ovflag++;
 	}
-#endif
+#endif	MENLO_OVLY
 	else if (u.u_exdata.ux_mag != A_MAGIC2) {
 		u.u_error = ENOEXEC;
 		goto bad;
@@ -343,8 +319,7 @@ register struct inode *ip;
 	}
 
 	/*
-	 * find text and data sizes
-	 * try them out for possible
+	 * find text and data sizes try; them out for possible
 	 * overflow of max sizes
 	 */
 	ts = btoc(u.u_exdata.ux_tsize);
@@ -355,8 +330,8 @@ register struct inode *ip;
 	}
 	ds = btoc(lsize);
 	ss = SSIZE + btoc(nargc);
-#ifdef	MENLO_OVLY
 
+#ifdef	MENLO_OVLY
 	/*
 	 * if auto overlay get second header
 	 */
@@ -394,7 +369,7 @@ register struct inode *ip;
 		 * from ov_offst[i-1] to ov_offst[i].
 		 */
 		u.u_ovdata.uo_ov_offst[0] = ts;
-		for (i = 1; i < 1 + NOVL; i++) {
+		for (i = 1; i <= NOVL; i++) {
 			register t;
 			/* check if any overlay is larger than ovmax */
 			if ((t=btoc(ovhead[i])) > ovmax) {
@@ -406,8 +381,7 @@ register struct inode *ip;
 				t + u.u_ovdata.uo_ov_offst[i - 1];
 		}
 	}
-
-#endif
+#endif	MENLO_OVLY
 	if (overlay) {
 		if (u.u_sep == 0 && ctos(ts) != ctos(u.u_tsize) || nargc) {
 			u.u_error = ENOMEM;
@@ -423,16 +397,15 @@ register struct inode *ip;
 		if (estabur(ts, ds, ss, sep, RO)) {
 #ifdef	MENLO_OVLY
 			u.u_ovdata = sovdata;
-#endif
+#endif	MENLO_OVLY
 			goto bad;
 		}
 
 		/*
-		 * allocate and clear core
-		 * at this point, committed
+		 * allocate and clear core at this point, committed
 		 * to the new image
 		 */
-	
+
 		u.u_prof.pr_scale = 0;
 #ifdef	VIRUS_VFORK
 		if (u.u_procp->p_flag & SVFORK)
@@ -440,7 +413,11 @@ register struct inode *ip;
 		else
 			xfree();
 		expand(ds, S_DATA);
-		clear(u.u_procp->p_daddr, ds);
+		startc = btoc(u.u_exdata.ux_dsize);	/* clear BSS only */
+		if (startc != 0)
+			startc--;
+		numc = ds - startc;
+		clear(u.u_procp->p_daddr+startc, numc);
 		expand(ss,S_STACK);
 		clear(u.u_procp->p_saddr, ss);
 #else
@@ -448,9 +425,9 @@ register struct inode *ip;
 		i = USIZE + ds + ss;
 		expand(i);
 		clear(u.u_procp->p_addr + USIZE, i - USIZE);
-#endif
+#endif	VIRUS_VFORK
 		xalloc(ip);
-	
+
 		/*
 		 * read in data segment
 		 */
@@ -466,7 +443,7 @@ register struct inode *ip;
 		}
 		else
 			u.u_offset += u.u_exdata.ux_tsize;
-#endif
+#endif	!MENLO_OVLY
 		u.u_count = u.u_exdata.ux_dsize;
 		readi(ip);
 
@@ -474,19 +451,9 @@ register struct inode *ip;
 		 * set SUID/SGID protections, if no tracing
 		 */
 		if ((u.u_procp->p_flag & STRC) == 0) {
-#ifndef	UCB_SCRIPT
-			if (ip->i_mode & ISUID)
-				if (u.u_uid != 0) {
-					u.u_uid = ip->i_uid;
-					u.u_procp->p_uid = ip->i_uid;
-				}
-			if (ip->i_mode&ISGID)
-				u.u_gid = ip->i_gid;
-#else
 			u.u_uid = uid;
 			u.u_procp->p_uid = uid;
 			u.u_gid = gid;
-#endif
 		} else
 			psignal(u.u_procp, SIGTRAP);
 	}
@@ -504,20 +471,11 @@ bad:
  */
 setregs()
 {
-#ifdef	MENLO_JCL
 	register int (**rp)();
 	long sigmask;
-#else
-	register int *rp;
-#endif
 	register char *cp;
 	register i;
 
-#ifndef	MENLO_JCL
-	for(rp = &u.u_signal[0]; rp < &u.u_signal[NSIG]; rp++)
-		if ((*rp & 1) == 0)
-			*rp = 0;
-#else
 	u.u_procp->p_flag &= ~SNUSIG;
 	for(rp = &u.u_signal[1], sigmask = 1L; rp < &u.u_signal[NSIG];
 	    sigmask <<= 1, rp++) {
@@ -548,7 +506,6 @@ setregs()
 			continue;
 		}
 	}
-#endif
 	for(cp = &regloc[0]; cp < &regloc[6];)
 		u.u_ar0[*cp++] = 0;
 	u.u_ar0[PC] = u.u_exdata.ux_entloc & ~01;
@@ -567,13 +524,13 @@ setregs()
 			u.u_pofile[i] &= ~EXCLOSE;
 		}
 	}
+	/*
+	 * Remember file name for accounting.
+	 */
 #ifdef	ACCT
 	u.u_acflag &= ~AFORK;
 #endif
-	/*
-	 * Remember file name.
-	 */
-	bcopy((caddr_t)u.u_dbuf, (caddr_t)u.u_comm, DIRSIZ);
+	bcopy((caddr_t)u.u_dbuf, (caddr_t)u.u_comm, MAXNAMLEN);
 }
 
 /*
@@ -614,7 +571,6 @@ exit(rv)
 	if (rtpp != NULL && rtpp == p)
 		rtpp = NULL;
 #endif
-#ifdef	MENLO_JCL
 	(void) _spl6();
 	if ((int)SIG_IGN & 1)
 		p->p_siga0 = ~0L;
@@ -625,7 +581,6 @@ exit(rv)
 	else
 		p->p_siga1 = 0L;
 	(void) _spl0();
-#endif
 	for(i=0; i<NSIG; i++)
 		u.u_signal[i] = SIG_IGN;
 	for(i=0; i<NOFILE; i++) {
@@ -672,8 +627,8 @@ exit(rv)
 			for (;;)
 				idle();
 		}
-		else
-			panic("init died");
+	else
+		panic("init died");
 	}
 	p->p_un.xp_xstat = rv;
 	p->p_un.xp_utime = u.u_cutime + u.u_utime;
@@ -681,7 +636,6 @@ exit(rv)
 #ifdef	UCB_LOGIN
 	p->p_un.xp_login = u.u_login;
 #endif
-#ifdef	MENLO_JCL
 	for(q = &proc[0]; q <= maxproc; q++)
 		if (q->p_pptr == p) {
 			q->p_pptr = &proc[1];
@@ -711,21 +665,6 @@ exit(rv)
 		}
 	wakeup((caddr_t)p->p_pptr);
 	psignal(p->p_pptr, SIGCHLD);
-#else
-	for(q = &proc[0]; q <= maxproc; q++)
-		if (q->p_ppid == p->p_pid) {
-			wakeup((caddr_t)&proc[1]);
-			q->p_ppid = 1;
-			if (q->p_stat==SSTOP)
-				setrun(q);
-		}
-	for(q = &proc[0]; q <= maxproc; q++)
-		if (p->p_ppid == q->p_pid) {
-			wakeup((caddr_t)q);
-			swtch();
-			/* no return */
-		}
-#endif
 	swtch();
 }
 
@@ -740,32 +679,24 @@ wait()
 {
 	register f;
 	register struct proc *p;
-#ifdef	MENLO_JCL
 	register options;
 
 	options = (u.u_ar0[RPS] & PS_ALLCC) == PS_ALLCC ?  u.u_ar0[R0] : 0;
-#endif
 	f = 0;
 
 loop:
 	for(p = &proc[0]; p <= maxproc; p++)
-#ifdef	MENLO_JCL
 	if (p->p_pptr == u.u_procp)
-#else
-	if (p->p_ppid == u.u_procp->p_pid)
-#endif
 		{
 		f++;
 		if (p->p_stat == SZOMB) {
 			u.u_r.r_val1 = p->p_pid;
 			u.u_r.r_val2 = p->p_un.xp_xstat;
-#ifdef	MENLO_JCL
 			p->p_un.xp_xstat = 0;
 			p->p_pptr = 0;
 			p->p_siga0 = 0L;
 			p->p_siga1 = 0L;
 			p->p_cursig = 0;
-#endif
 			u.u_cutime += p->p_un.xp_utime;
 			u.u_cstime += p->p_un.xp_stime;
 			p->p_pid = 0;
@@ -782,22 +713,15 @@ loop:
 		}
 		if (p->p_stat == SSTOP && (p->p_flag & SWTED) == 0 &&
 		   (p->p_flag & STRC
-#ifdef	MENLO_JCL
 				|| options & WUNTRACED
-#endif
 					)){
 			p->p_flag |= SWTED;
 			u.u_r.r_val1 = p->p_pid;
-#ifdef	MENLO_JCL
 			u.u_r.r_val2 = (p->p_cursig << 8) | 0177;
-#else
-			u.u_r.r_val2 = (fsig(p) << 8) | 0177;
-#endif
 			return;
 		}
 	}
 	if (f) {
-#ifdef	MENLO_JCL
 		if (options & WNOHANG) {
 			u.u_r.r_val1 = 0;
 			return;
@@ -809,10 +733,6 @@ loop:
 			sleep((caddr_t)u.u_procp, PWAIT);
 			goto loop;
 		}
-#else
-		sleep((caddr_t) u.u_procp, PWAIT);
-		goto loop;
-#endif
 	}
 	u.u_error = ECHILD;
 }
@@ -889,7 +809,15 @@ fork()
 	 */
 	if (p2 == NULL)
 		tablefull("proc");
+#ifdef	UCB_PGRP
+#ifdef	MAXSPRC
+	if (p2 == NULL || (u.u_uid != 0 && (p2 == procNPROC-1 || a > (pg ? MAXUPRC : MAXSPRC)))){
+#else
 	if (p2 == NULL || (u.u_uid != 0 && (p2 == procNPROC-1 || a > MAXUPRC))){
+#endif	MAXSPRC
+#else
+	if (p2 == NULL || (u.u_uid != 0 && (p2 == procNPROC-1 || a > MAXUPRC))){
+#endif	UCB_PGRP
 		u.u_error = EAGAIN;
 		goto out;
 	}

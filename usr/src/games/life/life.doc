@@ -1,0 +1,386 @@
+			The Game of LIFE
+			program by David I. Bell
+
+
+If you do not know what the game of life is, see the appendix at the end.
+Except in that appendix, the remainder of this document assumes that you
+know the rules and terms of the game.
+
+This program plays the game of life on a practically infinite board by using
+sparse matrices.  Therefore there is no hard limit on the size of a life
+object except for its memory requirements.  The memory requirements depend
+on the number of live cells of the object, and not on their locality.  The
+time needed to compute one generation also depends on the number of live cells.
+The speed is such that on a VAX 750, an object with 2000 live cells takes
+about 1 second of run time per generation.  Typical objects run much faster.
+
+Life programs are limited by the size of their display.  On special kinds of
+terminals, very large objects can be seen directly.  However, this program
+is designed to run on the vast majority of terminals, most of which have
+displays which are limited to showing 24 by 80 characters.  The program gets
+around this limitation by doing two things.  Firstly, the standard display
+can show any portion of an object.  As the cursor is moved around the object,
+the view scrolls as necessary in any direction so that the location of the
+cursor remains visible.  Thus you can move to any point in the object and
+see what is nearby.  Secondly, the display can be scaled by any amount up
+to 1000.  This means that each position on the screen can represent an area
+which is up to 1000 by 1000 cells of the object.  Obviously, information must
+be lost when this is done.  So the program displays the number of live cells
+in each region, from 1 to 9 (or * for 10 or more).  In practice this display
+is perfectly adequate for seeing what is happening.  Once you have moved the
+cursor to an interesting location, you can reduce the scale to see what is
+actually there in detail.  The 's' command sets the viewing scale as desired,
+and 'S' sets auto-scale mode, which keeps an object visible as it grows.
+Both commands recenter the view around the current cursor position.  When
+you are trying to count the number of cells between two parts of an object,
+the ';grid' command is useful.  It changes the display of dead cells from
+blanks to another character (typically periods).
+
+This program can simulaneously handle more than one object.  Each object is
+distinct and has its own name, and you can move between objects to select the
+one currently being edited.  The ';create name' command creates a new object,
+and the ';edit name' switches between objects (defaulting to the previously
+edited object if no name is given).  Cells can be copied or moved between
+objects.  This allows you to make backups of an object, compare two objects,
+or split up and edit the parts of a single object.  The ';copy' command
+copies the current object to another object.  The ';insert' command inserts
+another object into the current object.  This is done in such as way that the
+two object's cursor locations match.  The ';list' command will display data
+about all objects whose names do not begin with a period (adding '-a' to the
+command will show even those).  Objects with names beginning with '..' are
+reserved, and have special uses like temporary object manipulation, the saving
+of deleted objects, and for implementing undo.
+
+Most commands (and the viewpoint), are based on the current cursor location.
+To change the viewpoint, or to point at a location in the object that you
+wish to modify, you must move the cursor around in the object.  To do this,
+you can use some single character commands.  The directions for movement
+are like in rogue, so that for example, 'h' moves left, 'j' moves down, 'y'
+moves to the upper left, and so on.  The commands are multiplied by the scale
+factor, so that you can move about in large objects easily.  In addition,
+they accept an optional preceeding numeric argument, which multiplies their
+movement by the given amount.  Also, space (or period) moves to the right,
+while return moves down to the next line and back to the column of the pointer.
+The pointer is simply a location that is remembered in an object, and only a
+few commands use it.  The '@' command sets the pointer to the cursor location.
+The movement commands when capitalized perform a shift of both the cursor
+and the viewing region together by 1/4 of the screen size.  This is useful
+to shift the view slightly to see an object on the edge better.
+
+The simplest commands for changing an object are 'o', 'x', 't', and 'i'.
+The 'o' command creates a live cell and moves the cursor to the right.
+The 'x' command creates a dead cell and moves the cursor to the right.
+Both of these commands can accept a numeric argument which replicates their
+action by the given amount (as an example, the command string '25o' creates
+a row of 25 live cells).  The 't' command toggles the current cell from
+dead to alive, or from alive to dead, without moving the cursor.  The 'i'
+command sets a mode in which some of the movement commands described in
+the previous paragraph automatically insert or delete cells.  This makes it
+easy to create lines of cells in any direction.
+
+A very useful feature is the use of 'selections'.  You can select any group
+of cells of an object, and handle them specially, leaving the rest of the
+cells unchanged.  For example, you can save the selected cells as a different
+object, or can move them around, or can delete them.  Selected cells appear
+differently in the display (as hash marks), so that you can recognize which
+cells are selected.  Selections are set based on where the cursor is.  You
+can select all the cells in any quadrant or half-plane around the cursor.
+You can also select all the cells which are king-wise connected to your cursor
+location.  Each selection command adds to the set of selected cells.  The 'M'
+command removes all current selections so you can start a new set.  There are
+several commands which act on a selection in interesting ways.  For example,
+if the cursor is on a glider, the command 'dd' will delete just the glider.
+The commands which flip or rotate selections do so with respect to the current
+cursor location.
+
+To compute generations, you use the 'g' or 'G' commands.   The 'g' command
+computes a single generation of the current object, or as many generations
+as you specified in its preceeding argument.  The 'G' command simply means
+run for an infinite number of generations.  If the object dies or becomes
+stable, computations automatically stop.  However, loops of period 2 or
+greater are not detected.  While generations are being computed, you can use
+the movement or scaling commands to wander around the object.  But attempts
+to change the object while it is running will be rejected.  If you wish to
+wait until the indicated computations are complete before the next command is
+executed, use the ';wait' command (this is often used inside of a command
+macro or loop).  To stop the computations for an object, use the 'g' command
+again to reset the count to zero.  Normally each generation will be displayed.
+To speed up the computations when you don't want to see every generation, use
+the ';frequency n' command to set how often the screen is updated.
+
+This program can read commands from a file.  It can also save objects out to
+a file.  When writing an object to a file, what is actually written is a
+sequence of commands which regenerates the object.  The choice of commands is
+such that for small objects, the commands look like a picture of the object.
+Thus, the object is written using the commands '.' (to move right), 'o' (to
+insert cells), and '\n' (to move to the next line).  (Periods are used instead
+of spaces so that you can count the spaces between live cells easily.  However,
+spaces or tabs could also be used and will act reasonably.)  Thus for small
+objects, you can create a picture of an object in an editor, and then the
+object can be read in by the life program.  Lines beginning with '!' or '#'
+are ignored, so you can comment your objects.  When writing out an object, if
+it is too large to be typed to your screen or edited easily, the output will
+contain numeric arguments as necessary in order to compress the resulting file.
+The command ';write filename' is used to save an object.
+
+When reading an input file, the program looks for six different file names in
+sequence.  It starts by looking for the file name as given.  Then it looks for
+the name with an '.l' extension appended.  Then, if the environment variable
+LIFELIB is defined, it looks in that directory for the file, and then for the
+file with the '.l' extension.  Finally, it looks in /usr/games/lib/life for
+the file, and then for the file with the '.l' extension.  Thus there is a
+standard library of interesting life objects, and you can create your own
+life library.  The ';read filename' command reads back a command file.  In
+addition, when the life program is started, you can specify a filename on the
+command line which will be read before any commands are read from the terminal.
+This is useful when you want to immediately read a life object from a library.
+
+Command loops and macros can be defined using the '<' and '>' commands.  If
+a numeric argument is specified, a loop is being defined.  If no argument is
+given, a macro is being defined.  While defining a macro or loop, the commands
+you type are executed normally, so that you can see how the definition will
+execute.  This is useful when you define a macro to create an object, since
+you can easily see how to create the object.  Loops and macros can contain
+both line mode and character mode style commands.  While you are defining a
+loop or macro, the status line will indicate this and give the current depth
+of loop or macro nesting.
+
+When defining a macro, the next letter after the '<' is the macro name being
+defined (the name must be a lower case letter).  All of the commands between
+the '<' and the '>' (except for the macro name character) are saved.  Once a
+macro has been defined, it is used by typing the ESCAPE character followed by
+the macro letter.  As an example, the command string '<gththtuktntj>' defines
+a macro named 'g' which causes a glider to be inserted at the current cursor
+position every time you type '<ESC>g'.  The ';dumpmacros file' command writes
+out the definitions of all macros so that you can read them back in later.
+
+If a loop is being defined, the loop is executed the number of times specifed
+by the argument to '<'.  If two arguments are specifed, the loop runs from
+the first to the second argument (backwards if the second argument is less
+than the first argument).  The value of the loop counter is available in the
+loop itself by using '%' as you would a number.  As an example of a loop,
+the command string '3,7<%o >' inserts five strings of cells spaced apart by
+one cell, where the first string contains three cells, and the last string
+contains seven cells.  When nesting loops, supplying an argument to '%' can
+obtain the loop counter values for the outside loops while in the inner loop.
+Thus, '2%' obtains the loop value for the next-to-innermost loop level.
+
+While defining a loop or macro, you can request user intervention by using
+the ';ttyinput' command.  This will suspend the execution of the loop or macro
+and notify the user that input is desired by displaying 'tty-input' in the
+status line.  The user can then execute any commands of his choice.  When he
+is ready to proceed, he uses the ';endinput' (or a control-D) command to 
+continue execution where it had paused.  Different commands can be given by
+the user each time the loop or macro asks for terminal input.  If the command
+';ttyinput -c' is used, terminal commands will only be asked for if there
+is any terminal input available to be read.
+
+While a macro or loop is executing, there is no screen updating.  Thus a
+complicated command sequence can be executed without letting the user see
+what is occuring until it is finished.  However, if you wish to update the
+screen in the middle of execution, the ';updateview' command will do this.
+Commands from the terminal automatically do an update whenever no more
+input is available.
+
+There is a set of variables which you can use to influence your commands.
+They come in two kinds.  The first kind is the single-character variable.
+There are 52 of these variables (the lower and upper case letters).  These
+variables are used with a leading dollar sign.  Any command which accepts an
+argument can accept '$c' to mean the value of variable 'c'.  These variables
+can be set using the ';set' command, which takes a variable name followed by
+an expression.  (As a shortcut, the '+c' command increments variable c.)
+The initial values of all variables are zero.  These variables are useful
+inside a macro in order to execute a command string over and over again with
+only small differences each time (such as to vary the placement of two objects
+with respect to each other).  As an example of the use of a single-character
+variable, the command string '$al' moves the cursor to the right by the number
+of cells given by the value of variable 'a'.
+
+The other kind of variables are the multi-character variables.  These are
+a fixed set of names, and their values are specific things, and cannot be
+changed.  For example, the 'cx' variable returns the x coordinate of the
+current cursor position.  You can see the complete set of variables using
+the ';variables' command.  Since the parser must be able to distinguish
+variable names from command letters, you cannot use them without surrounding
+them with a pair of parenthesis.  The parenthesis can actually contain any
+expression, including single-character variables.  When inside parenthesis
+or as part of a line mode command, variables do not need the leading '$'.
+As an example of multi-character variables used with an expression, the
+command string '((vmaxx-vminx)/2)l' shifts the cursor to the right by an
+amount equal to half of the screen width.
+
+The rules of life can be changed to some degree.  This allows you to explore
+alternative life universes.  You can specify how many live cells are required
+for a cell to be born, or to stay alive.  However, you cannot change the
+neighborhood used for counting live cells (the program always counts all of
+the eight neighboring cells).  To change the cells needed for birth or death,
+use the ';rules <born> <live>' line mode command.  The <born> string lists
+those counts of neighbors which are required for a new cell to be born.  The
+<live> string lists those counts of neighbors which are required for an
+existing cell to stay alive.  The standard rules are thus described by the
+command ';rules 3 23'.
+
+There are two kinds of commands to life.  Line mode commands begin with a
+colon or semi-colon character, and are terminated by an end of line character.
+Many of these have already been described above.  Use the ';help' command to
+list all of the line mode commands.  They are reasonably self-documenting.
+Here are some of the remaining useful line mode commands.  The ';quit' command
+exits the program.  The ';zero' command clears all cells of an object and
+resets the scaling factor and cursor position.  The ';copyselection name' and
+';moveselection name' commands copy or move selected cells to another object.
+Finally, the ';undo' command will undo the most recent change to the current
+object.  This can undo deletions, insertions, and running of generations,
+among other things.  But you get only one level of backup  (A related backup
+feature is the 'p' command, which will reinsert the last deleted object to
+the current cursor location.)
+
+Character mode commands are executed immediately when complete.  Until it is
+complete, it can be edited using the normal erase and kill characters.  The
+character mode commands can be preceeded by zero, one, or two arguments.
+These arguments are generally used as a count of how many times the command
+is to be executed.  Missing arguments are defaulted to 1 (with the exceptions
+noted in the tables below).  If two arguments are specified, they are separated
+by a comma.  So a character mode command can take one of the following forms:
+
+                <cmd>		Both arguments defaulted.
+         <arg1> <cmd>		First argument given, second is defaulted.
+<arg1> , <arg2> <cmd>		Both arguments given.
+
+The following table specifies the character mode commands, arranged in
+useful catagories.  Many of these have been described in detail above.
+
+
+	--- MOVEMENT COMMANDS ---
+
+SPACE	move right <arg1> cells
+.	move right <arg1> cells
+h	move left <arg1> cells
+l	move right <arg1> cells
+k	move up <arg1> cells
+j	move down <arg1> cells
+y	move upper left <arg1> cells
+u	move upper right <arg1> cells
+b	move lower left <arg1> cells
+n	move lower right <arg1> cells
+LF	move to next "line"
+TAB	move to next "tab stop"
+@	remember current location as the pointer
+c	return to location of the pointer
+/	move cursor to next object
+
+
+	--- SCREEN COMMANDS ---
+
+s	set viewing scale to <arg1> and center view (default current scale)
+S	turn on auto-scaling and center view
+H	shift view left by width/4
+L	shift view right by width/4
+K	shift view up by height/4
+J	shift view down by height/4
+Y	shift view left and up
+U	shift view right and up
+B	shift view left and down
+N	shift view right and down
+^L	refresh the screen
+
+
+	--- SINGLE CELL COMMANDS --
+
+o	insert <arg1> cells and move cursor right
+O	insert <arg1> cells and move cursor right
+x	kill <arg1> cells and move cursor right
+t	toggle cell at current location
+i	toggle movement mode to move, insert, or delete
+
+
+	--- MULTIPLE CELL COMMANDS ---
+
+d<sel>	delete cells described by <sel>
+p	place last deleted object at current location
+f<sel>	flip cells left-to-right as described by <sel>
+r<sel>	rotate cells 90 degrees clockwise as described by <sel>
+m<sel>	mark (select) cells as described by <sel>
+M	remove all marks (selections)
+
+
+	--- LOOP, VARIABLE, AND MACRO COMMANDS ---
+
+<	begin loop which executes from <arg1> to <arg2> times (if <arg1> given)
+<<ch>	begin definition of macro named <ch> (if <arg1> not given)
+>	end loop or macro definition
+ESC<ch>	execute a macro command named <ch>
++<ch>	increment the value of the single-character variable <ch> by arg1
+
+
+	--- MISCELLANEOUS COMMANDS ---
+
+g	compute <arg1> generations (or stop if running)
+G	compute infinite generations
+z	set generation number to <arg1> (default zero)
+!	ignore characters until end of line
+#	ignore character until end of line
+:<line>	execute a line mode command
+;<line>	execute a line mode command
+
+
+Arguments specified above as <arg1> and <arg2> can be any of the following:
+$<var>	value of variable <var>, where <var> is a lower or upper case letter
+(expr)	an arithmetic expression containing constants, variables, or operators
+%	current loop counter value
+<num>	explicit numeric value
+
+
+Those commands above referencing <sel> take one of the following letters.
+The command affects only those cells selected.  As a special case, repeating
+the command letter is equivilant to selecting 'o' (the connected object).
+Example: 'dd' deletes the connected object the cursor is on.
+a	all cells
+c	cell at current location
+o	cells in the king-wise connected object at current location
+h	cells to left of cursor
+l	cells to right of cursor
+k	cells above cursor
+j	cells below cursor
+b	cells below and left of cursor
+n	cells below and right of cursor
+u	cells above and right of cursor
+y	cells above and left of cursor
+p	cells in rectangle determined by pointer and cursor
+m	cells which are marked
+v	cells visible in window
+
+
+				APPENDIX
+
+This is a short introduction to life.  Life is played on an infinitely large
+board divided into squares.  Each square is called a cell.  Each cell can be
+either dead or alive.  Dead cells are seen as blanks, whereas live cells are
+seen as non-blanks.  You begin to play by choosing some arbitrary set of
+live and dead cells.  This configuration is called generation 0.  There is
+a set of rules which transforms this set of cells into another set of cells,
+called generation 1.  These same rules are then reapplied to generation 1 to
+produce generation 2.  This process continues indefinitely.  The 'purpose' of
+the game is to find starting patterns such that 'interesting things' result.
+
+The rules which are applied are as follows.  Take any cell of a generation,
+and call it the current cell.  Consider the eight cells immediately adjacent
+to the current cell.  Count the number of these eight cells which are alive.
+If the current cell is dead and the count is 3, then the current cell changes
+to a live cell in the next generation.  If the current cell is alive and the
+count is NOT 2 or 3, then the current cell changes to a dead cell in the next
+generation.  Otherwise the cell remains unchanged in the next generation.
+This rule is applied to every cell of a generation SIMULTANEOUSLY.  Thus to
+rephrase, 3 live neighbors causes a new cell to be born, whereas 2 or 3 live
+neighbors keeps a cell alive.
+
+To see how these rules work in practice, run the program and start with some
+number of live cells in some arrangement, and watch the generations change.
+If you can predict what the changes will be, then you understand the rules.
+The following are some objects to try, along with some descriptive names.
+Warning: the last example gets complicated!!
+
+  O         O          O                  O             O          OO
+   O        O         OO       OO         OO             O          OO
+  O         O         O        O          O            OOO          O
+
+doomed   blinker   beehive   block   traffic lights   glider   r-pentomino

@@ -7,7 +7,7 @@
 #include <sys/seg.h>
 
 /*
- *	SCCS id	@(#)ureg.c	2.1 (Berkeley)	8/29/83
+ *	SCCS id	@(#)ureg.c	2.1 (Berkeley)	8/5/83
  */
 
 /*
@@ -35,9 +35,8 @@ sureg()
 	if ((tp=u.u_procp->p_textp) != NULL)
 		taddr = tp->x_caddr;
 #ifndef NONSEPARATE
-	if (sep_id)
-		limudp = &u.u_uisd[16];
-	else
+	limudp = &u.u_uisd[16];
+	if (!sep_id)
 #endif
 		limudp = &u.u_uisd[8];
 	rap = (int *) UISA;
@@ -104,7 +103,7 @@ unsigned nt, nd, ns;
 		if(ctos(ts) + ctos(nd) + ctos(ns) > 8)
 			goto err;
 	if (u.u_ovdata.uo_ovbase && nt)
-		ts = u.u_ovdata.uo_ov_offst[NOVL];
+		ts = u.u_ovdata.uo_ov_offst[7];
 	if(ts + nd + ns + USIZE > maxmem)
 		goto err;
 #else

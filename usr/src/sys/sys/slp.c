@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)slp.c	2.1 (Berkeley)	8/29/83
+ *	SCCS id	@(#)slp.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -15,10 +15,10 @@
 #include <sys/seg.h>
 #ifdef	UCB_METER
 #include <sys/vm.h>
-#endif
+#endif	UCB_METER
 #include <sys/inline.h>
 
-#ifdef	UCB_FRCSWAP
+#ifdef UCB_FRCSWAP
 extern	int	idleflg	;	/* If set, allow incore forks and expands */
 				/* Set before idle(), cleared in clock.c */
 #endif
@@ -37,64 +37,33 @@ int	wantrtp;	/* Set when the real-time process is runnable */
 struct	proc	*slpque[SQSIZE];
 
 /*
- * Give up the processor till a wakeup occurs
- * on chan, at which time the process
- * enters the scheduling queue at priority pri.
- * The most important effect of pri is that when
- * pri<=PZERO a signal cannot disturb the sleep;
- * if pri>PZERO signals will be processed.
- * Callers of this routine must be prepared for
- * premature return, and check that the reason for
- * sleeping has gone away.
+ * Give up the processor till a wakeup occurs on chan, at which time the
+ * process enters the scheduling queue at priority pri.  The most important
+ * effect of pri is that when pri <= PZERO a signal cannot disturb the sleep;
+ * if pri > PZERO signals will be processed.  Callers of this routine must be
+ * prepared for premature return, and check that the reason for sleeping has
+ * gone away.
  */
 sleep(chan, pri)
 caddr_t chan;
 {
 	register struct proc *rp;
-#ifdef	MENLO_JCL
 	register struct proc **hp;
-#else
-	register h;
-	struct proc *q;
-#endif
 	register s;
 
 	rp = u.u_procp;
 	s = spl6();
-#ifdef	MENLO_JCL
-	if (chan==0 || rp->p_stat != SRUN)
+	if (chan==0 || rp->p_stat != SRUN )
 		panic("sleep");
-#else
-	if (chan==0)
-		panic("sleep");
-	rp->p_stat = SSLEEP;
-#endif
 	rp->p_wchan = chan;
 #ifdef	UCB_METER
 	rp->p_slptime = 0;
-#endif
+#endif	UCB_METER
 	rp->p_pri = pri;
-#ifdef	MENLO_JCL
 	hp = &slpque[HASH(chan)];
 	rp->p_link = *hp;
 	*hp = rp;
-#else
-	h = HASH(chan);
-	/*
-	 * remove this diagnostic loop
-	 * when you're sure it can't happen
-	 */
-	for(q=slpque[h]; q!=NULL; q=q->p_link)
-		if(q == rp) {
-			printf("proc asleep %d\n", rp->p_pid);
-			goto cont;
-		}
-	rp->p_link = slpque[h];
-	slpque[h] = rp;
-cont:
-#endif
 	if(pri > PZERO) {
-#ifdef	MENLO_JCL
 		if(ISSIG(rp)) {
 			if (rp->p_wchan)
 				unsleep(rp);
@@ -105,37 +74,20 @@ cont:
 		if (rp->p_wchan == 0)
 			goto out;
 		rp->p_stat = SSLEEP;
-#else
-		if(issig()) {
-			rp->p_wchan = 0;
-			rp->p_stat = SRUN;
-			slpque[h] = rp->p_link;
-			(void) _spl0();
-			goto psig;
-		}
-#endif
 		(void) _spl0();
 		if(runin != 0) {
 			runin = 0;
 			wakeup((caddr_t)&runin);
 		}
 		swtch();
-#ifdef	MENLO_JCL
 		if(ISSIG(rp))
-#else
-		if(issig())
-#endif
 			goto psig;
 	} else {
-#ifdef	MENLO_JCL
 		rp->p_stat = SSLEEP;
-#endif
 		(void) _spl0();
 		swtch();
 	}
-#ifdef	MENLO_JCL
 out:
-#endif
 	splx(s);
 	return;
 
@@ -150,8 +102,6 @@ psig:
 	resume(u.u_procp->p_addr, u.u_qsav);
 	/*NOTREACHED*/
 }
-
-#ifdef	MENLO_JCL
 
 /*
  * Remove a process from its wait queue
@@ -173,12 +123,9 @@ register struct proc *p;
 	splx(s);
 }
 
-#endif
-
 /*
  * Wake up all processes sleeping on chan.
  */
-
 wakeup(chan)
 register caddr_t chan;
 {
@@ -205,7 +152,7 @@ restart:
 			*q = p->p_link;
 #ifdef	UCB_METER
 			p->p_slptime = 0;
-#endif
+#endif	UCB_METER
 			if (p->p_stat == SSLEEP) {
 				setrun(p);
 				goto restart;
@@ -246,7 +193,6 @@ out:
 }
 
 
-#ifdef	MENLO_JCL
 /*
  * Remove runnable job from run queue.
  * This is done when a runnable job is swapped
@@ -275,7 +221,6 @@ done:
 	}
 	splx(s);
 }
-#endif
 
 /*
  * Set the process running;
@@ -284,7 +229,6 @@ done:
 setrun(p)
 register struct proc *p;
 {
-#ifdef	MENLO_JCL
 	register s;
 
 	s = spl6();
@@ -298,6 +242,10 @@ register struct proc *p;
 	case SIDL:
 		break;
 
+	case 0:
+	case SWAIT:
+	case SRUN:
+	case SZOMB:
 	default:
 		panic("setrun");
 	}
@@ -305,32 +253,16 @@ register struct proc *p;
 	if (p->p_flag & SLOAD)
 		setrq(p);
 	splx(s);
-#else
-	register caddr_t w;
-
-	if (p->p_stat==0 || p->p_stat==SZOMB)
-		panic("setrun");
-	/*
-	 * The assignment to w is necessary because of
-	 * race conditions. (Interrupt between test and use)
-	 */
-	if (w = p->p_wchan) {
-		wakeup(w);
-		return;
-	}
-	p->p_stat = SRUN;
-	setrq(p);
-#endif
 
 #ifdef	CGL_RTP
-	if (p == rtpp) {
+	if (p == rtpp)
 		wantrtp++;
+	if(p->p_pri < curpri || p==rtpp)
 		runrun++;
-	}
-	else
+#else
+	if(p->p_pri < curpri)
+		runrun++;
 #endif
-		if (p->p_pri < curpri)
-			runrun++;
 	if(runout != 0 && (p->p_flag&SLOAD) == 0) {
 		runout = 0;
 		wakeup((caddr_t)&runout);
@@ -348,7 +280,8 @@ register struct proc *pp;
 {
 	register p;
 
-	p = ((pp->p_cpu & 0377) / 16) + PUSER + pp->p_nice - NZERO;
+	p = (pp->p_cpu & 0377)/16;
+	p += PUSER + pp->p_nice - NZERO;
 	if(p > 127)
 		p = 127;
 	if(p < curpri)
@@ -434,7 +367,7 @@ loop:
 	p = NULL;
 	maxsize = 0;
 	inage = -1;
-	for (rp = &proc[1]; rp <= maxproc; rp++) {
+	for (rp = &proc[0]; rp <= maxproc; rp++) {
 		if (rp->p_stat==SZOMB
 		 || (rp->p_flag&(SSYS|SLOCK|SULOCK|SLOAD))!=SLOAD)
 			continue;
@@ -474,15 +407,11 @@ loop:
 	 * Otherwise wait a bit and try again.
 	 */
 	if (maxsize>0 || (outage>=3 && inage>=2)) {
-#ifdef	MENLO_JCL
 		(void) _spl6();
 		p->p_flag &= ~SLOAD;
 		if(p->p_stat == SRUN)
 			remrq(p);
 		(void) _spl0();
-#else
-		p->p_flag &= ~SLOAD;
-#endif
 #ifdef	VIRUS_VFORK
 		(void) xswap(p, X_FREECORE, X_OLDSIZE, X_OLDSIZE);
 #else
@@ -585,10 +514,8 @@ register struct proc *p;
 	p->p_addr = a;
 #endif	VIRUS_VFORK
 
-#ifdef	MENLO_JCL
 	if (p->p_stat == SRUN)
 		setrq(p);
-#endif
 	p->p_flag |= SLOAD;
 	p->p_time = 0;
 	return(1);
@@ -607,20 +534,19 @@ qswtch()
 
 /*
  * This routine is called to reschedule the CPU.
- * if the calling process is not in the RUN state,
+ * if the calling process is not in RUN state,
  * arrangements for it to restart must have
  * been made elsewhere, usually by calling via sleep.
  * There is a race here. A process may become
  * ready after it has been examined.
  * In this case, idle() will be called and
  * will return in at most 1hz time.
- * i.e. it's not worth putting an spl() in.
+ * i.e. its not worth putting an spl() in.
  */
 swtch()
 {
 	register n;
-	register struct proc *p, *q;
-	struct proc *pp, *pq;
+	register struct proc *p, *q, *pp, *pq;
 
 #if defined(DIAGNOSTIC) && !defined(NOKA5)
 	extern struct buf *hasmap;
@@ -658,7 +584,7 @@ swtch()
 		return;
 #ifdef	UCB_METER
 	cnt.v_swtch++;
-#endif
+#endif	UCB_METER
 loop:
 	(void) _spl6();
 	runrun = 0;
@@ -703,13 +629,13 @@ loop:
 	 */
 	p = pp;
 	if(p == NULL) {
-#ifdef	UCB_FRCSWAP
+#ifdef UCB_FRCSWAP
 		idleflg++;
 #endif
 		idle();
 		goto loop;
 	}
-#ifdef	CGL_RTP
+#ifdef CGL_RTP
 runem:
 #endif
 	q = pq;
@@ -754,8 +680,10 @@ newproc()
 	 */
 retry:
 	mpid++;
-	if(mpid >= 30000)
-		mpid = 1;
+	if(mpid >= 30000) {
+		mpid = 0;
+		goto retry;
+	}
 	for(rip = proc; rip < procNPROC; rip++) {
 		if(rip->p_stat == NULL && rpp==NULL)
 			rpp = rip;
@@ -771,10 +699,6 @@ retry:
 
 	rip = u.u_procp;
 	rpp->p_clktim = 0;
-#ifndef	MENLO_JCL
-	rpp->p_stat = SRUN;
-	rpp->p_flag = SLOAD;
-#else
 	rpp->p_stat = SIDL;
 	rpp->p_flag = SLOAD | (rip->p_flag & (SDETACH|SNUSIG));
 	rpp->p_pptr = rip;
@@ -782,7 +706,6 @@ retry:
 	rpp->p_siga1 = rip->p_siga1;
 	rpp->p_cursig = 0;
 	rpp->p_wchan = 0;
-#endif
 #ifdef	UCB_SUBM
 	rpp->p_flag |= rip->p_flag & SSUBM;
 #endif
@@ -796,7 +719,7 @@ retry:
 	rpp->p_cpu = 0;
 #ifdef	UCB_METER
 	rpp->p_slptime = 0;
-#endif
+#endif	UCB_METER
 	if (rpp > maxproc)
 		maxproc = rpp;
 
@@ -851,7 +774,7 @@ retry:
 		a[2] = NULL;
 		if (idleflg)
 #endif
-			(void) malloc3(coremap,rip->p_dsize,rip->p_ssize,USIZE,a);
+		    (void) malloc3(coremap,rip->p_dsize,rip->p_ssize,USIZE,a);
 	}
 	/*
 	 * If there is not enough core for the
@@ -861,9 +784,7 @@ retry:
 	if(a[2] == NULL) {
 		rip->p_stat = SIDL;
 		rpp->p_addr = a1;
-#ifdef	MENLO_JCL
 		rpp->p_stat = SRUN;
-#endif
 		(void) xswap(rpp, X_DONTFREE, X_OLDSIZE, X_OLDSIZE);
 		rip->p_stat = SRUN;
 		u.u_procp = rip;
@@ -889,16 +810,11 @@ retry:
 			rpp->p_saddr = a[1];
 			copy(rip->p_saddr, rpp->p_saddr, rpp->p_ssize);
 		}
-#ifdef	MENLO_JCL
 		(void) _spl6();
 		rpp->p_stat = SRUN;
 		setrq(rpp);
 		(void) _spl0();
-#endif
 	}
-#ifndef	MENLO_JCL
-	setrq(rpp);
-#endif
 	rpp->p_flag |= SSWAP;
 	if (isvfork) {
 		/*
@@ -955,9 +871,7 @@ retry:
 	if(a2 == NULL) {
 		rip->p_stat = SIDL;
 		rpp->p_addr = a1;
-#ifdef	MENLO_JCL
 		rpp->p_stat = SRUN;
-#endif
 		(void) xswap(rpp, X_DONTFREE, X_OLDSIZE);
 		rip->p_stat = SRUN;
 #ifdef	CGL_RTP
@@ -984,20 +898,13 @@ retry:
 #else
 		copy(a1, a2, n);
 #endif
-#ifdef	MENLO_JCL
 		(void) _spl6();
 		rpp->p_stat = SRUN;
 		setrq(rpp);
 		(void) _spl0();
-#endif
 	}
 #ifndef	CGL_RTP
 	u.u_procp = rip;
-#endif
-#ifndef	MENLO_JCL
-	(void) _spl6();
-	setrq(rpp);
-	(void) _spl0();
 #endif
 	rpp->p_flag |= SSWAP;
 	return(0);
@@ -1011,8 +918,7 @@ retry:
  * The child must be locked in core
  * so it will be in core when the parent runs.
  */
-endvfork()
-{
+endvfork() {
 	register struct proc *rip, *rpp;
 
 	rpp = u.u_procp;
@@ -1113,7 +1019,7 @@ expand(newsize)
 		u.u_fpsaved = 1;
 	}
 #endif
-#ifdef	UCB_FRCSWAP
+#ifdef UCB_FRCSWAP
 	/*
 	 * Stack must be copied either way, might as well not swap.
 	 */
@@ -1130,11 +1036,7 @@ expand(newsize)
 		else
 			(void) xswap(p, X_FREECORE, X_OLDSIZE, n);
 		p->p_flag |= SSWAP;
-#ifdef	MENLO_JCL
 		swtch();
-#else
-		qswtch();
-#endif
 		/* NOTREACHED */
 	}
 	if (segment == S_STACK) {
@@ -1169,7 +1071,7 @@ expand(newsize)
 		u.u_fpsaved = 1;
 	}
 #endif
-#ifdef	UCB_FRCSWAP
+#ifdef UCB_FRCSWAP
 	if(idleflg)
 		a2 = malloc(coremap, newsize);
 	else
@@ -1180,11 +1082,7 @@ expand(newsize)
 	if(a2 == NULL) {
 		(void) xswap(p, X_FREECORE, n);
 		p->p_flag |= SSWAP;
-#ifdef	MENLO_JCL
 		swtch();
-#else
-		qswtch();
-#endif
 		/*NOTREACHED*/
 	}
 #ifdef	CGL_RTP

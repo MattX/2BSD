@@ -1,0 +1,1 @@
+#define NETH	0

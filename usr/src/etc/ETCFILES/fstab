@@ -1,0 +1,10 @@
+/dev/rm0a:/:rw:7:1
+/dev/rm0c:/usr:rw:7:2
+/dev/rm1a:/tmp:rw:7:3
+/dev/rm1c:/usr/src:rw:7:4
+/dev/rm2a:/backuproot:xx:0:6	# Backup root
+/dev/rm2c:/u:rw:0:7		# User file structure
+/dev/rm3a:swap:sw:0:0		# Swap area
+/dev/rm3d:/u/dept:rw:0:8	# Special structure for the department
+/dev/rm3e:/usr/spool:rw:7:9
+/dev/rl0:/mnt:xx:0:0

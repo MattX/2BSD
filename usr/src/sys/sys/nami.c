@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)nami.c	2.1 (Berkeley)	8/21/83
+ *	SCCS id	@(#)nami.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -12,10 +12,8 @@
 #include <sys/buf.h>
 #include <sys/quota.h>
 
-#ifdef	UCB_SYMLINKS
 #ifndef	saveseg5
 #include <sys/seg.h>
-#endif
 #endif
 
 /*
@@ -28,44 +26,33 @@
  *	flag =	LOOKUP if name is sought
  *		CREATE if name is to be created
  *		DELETE if name is to be deleted
-#ifdef	UCB_SYMLINKS
- * follow = 1 if to follow links at end of name
-#endif
+ *	follow = 1 if to follow links at end of name
  */
 struct inode *
-#ifdef	UCB_SYMLINKS
-namei(func, flag, follow)
-#else
-namei(func, flag)
-#endif
-int (*func)();
+namei(func,flag,follow)
+int	(*func)(),
+	flag,
+	follow;
 {
-	register struct direct *dirp;
-	struct inode *dp;
-	register c;
-	register char *cp;
-	struct buf *bp;
-#if	defined(UCB_QUOTAS) || defined(UCB_SYMLINKS)
-	struct buf *temp;
-#endif
-#ifdef	UCB_SYMLINKS
-	int nlink;
-#endif
-	int i;
-	dev_t d;
-	off_t eo;
+	register int	c;
+	struct inode	*dp;
+	struct direct	*dirp;
+	struct buf	*bp,
+			*temp;
+	dev_t	d;
+	off_t	eo;
+	int	nlink;
+	short	i;
+	char	*cp;
 
-#ifdef	UCB_SYMLINKS
-	nlink = 0;
-	u.u_sbuf = 0;
-#endif
+	u.u_sbuf = nlink = 0;
+
 	/*
-	 * If name starts with '/' start from
-	 * root; otherwise start from current dir.
+	 * If name starts with '/' start from root;
+	 * otherwise start from current dir.
 	 */
-
 	dp = u.u_cdir;
-	if((c=(*func)()) == '/')
+	if((c = (*func)()) == '/')
 		if ((dp = u.u_rdir) == NULL)
 			dp = rootdir;
 	iget(dp->i_dev, dp->i_number);
@@ -73,84 +60,57 @@ int (*func)();
 		c = (*func)();
 	if(c == '\0' && flag != LOOKUP)
 		u.u_error = ENOENT;
-
 cloop:
 	/*
-	 * Here dp contains pointer
-	 * to last component matched.
+	 * Here dp contains pointer to last component matched.
 	 */
-
 	if(u.u_error)
 		goto out;
 	if(c == '\0')
 		return(dp);
-
 	/*
-	 * If there is another component,
-	 * Gather up name into
+	 * If there is another component, gather up name into
 	 * users' dir buffer.
 	 */
-
 	cp = &u.u_dbuf[0];
 	while (c != '/' && c != '\0' && u.u_error == 0 ) {
-#ifdef	MPX_FILS
-		if (mpxip!=NULL && c=='!')
-			break;
-#endif
-		if(cp < &u.u_dbuf[DIRSIZ])
+		if(cp < &u.u_dbuf[MAXNAMLEN])
 			*cp++ = c;
 		c = (*func)();
 	}
-	while(cp < &u.u_dbuf[DIRSIZ])
+	while(cp < &u.u_dbuf[MAXNAMLEN])
 		*cp++ = '\0';
 	while(c == '/')
 		c = (*func)();
-#ifdef	MPX_FILS
-	if (c == '!' && mpxip != NULL) {
-		iput(dp);
-		plock(mpxip);
-		mpxip->i_count++;
-		return(mpxip);
-	}
-#endif
-
 	/*
-	 * dp must be a directory and
-	 * must have X permission.
+	 * dp must be a directory and must have X permission.
 	 */
-
 	access(dp, IEXEC);
 seloop:
 	if((dp->i_mode&IFMT) != IFDIR)
 		u.u_error = ENOTDIR;
 	if(u.u_error)
 		goto out;
-
 	/*
 	 * set up to search a directory
 	 */
-	u.u_offset = 0;
+	eo = u.u_offset = 0;
 	u.u_segflg = 1;
-	eo = 0;
 	bp = NULL;
-
- 	if (dp == u.u_rdir && u.u_dbuf[0] == '.' &&
- 	    u.u_dbuf[1] == '.' && u.u_dbuf[2] == 0)
- 		goto cloop;
+	if (dp == u.u_rdir && u.u_dbuf[0] == '.' &&
+		u.u_dbuf[1] == '.' && u.u_dbuf[2] == 0)
+			goto cloop;
 eloop:
-
 	/*
-	 * If at the end of the directory,
-	 * the search failed. Report what
+	 * If at the end of the directory, the search failed. Report what
 	 * is appropriate as per flag.
 	 */
-
 	if(u.u_offset >= dp->i_size) {
 		if(bp != NULL) {
 			mapout(bp);
 			brelse(bp);
 		}
-		if(flag==CREATE && c=='\0') {
+		if(flag == CREATE && c == '\0') {
 			if(access(dp, IWRITE))
 				goto out;
 			u.u_pdir = dp;
@@ -163,120 +123,99 @@ eloop:
 		u.u_error = ENOENT;
 		goto out;
 	}
-
 	/*
-	 * If offset is on a block boundary,
-	 * read the next directory block.
+	 * If offset is on a block boundary, read the next directory block.
 	 * Release previous if it exists.
 	 */
-
-	if((u.u_offset&BMASK) == 0) {
+	if((u.u_offset & BMASK) == 0) {
 		if(bp != NULL) {
 			mapout(bp);
 			brelse(bp);
 		}
-		bp = bread(dp->i_dev,
-			bmap(dp, (daddr_t)(u.u_offset>>BSHIFT), B_READ));
+		bp = bread(dp->i_dev, bmap(dp, (daddr_t)(u.u_offset>>BSHIFT), B_READ));
 		if (bp->b_flags & B_ERROR) {
 			brelse(bp);
 			goto out;
 		}
 		dirp = (struct direct *)mapin(bp);
 	}
-
 	/*
-	 * Note first empty directory slot
-	 * in eo for possible creat.
-	 * String compare the directory entry
-	 * and the current component.
-	 * If they do not match, go back to eloop.
+	 * Search for the directory entry.
+	 * Note first empty directory slot in eo for possible creat.
 	 */
-
 	u.u_offset += sizeof(struct direct);
-	if(dirp->d_ino == 0) {
+	if(!dirp->d_ino) {
 		dirp++;
 		if(eo == 0)
 			eo = u.u_offset;
 		goto eloop;
 	}
 #ifdef UCB_QUOTAS
-	/*
-	 * See if this could be a quota node.
-	 */
-	if((dirp->d_name[0] == '.') && 
-	   (dirp->d_name[1] == 'q') && 
-	   (dirp->d_name[2] == '\0'))
-	{
+	if((dirp->d_name[0] == '.') && (dirp->d_name[1] == 'q') && (dirp->d_name[2] == '\0')) {
 		cp = dp->i_quot;
-		/*
-		 * If no quota is associated yet or a new quot is
-		 * around, then . . .
-		 */
+	/* If no quota is associated yet or a new quot is around, then... */
 		if (cp == NULL || cp->i_number != dirp->d_ino) {
 			u.u_dent.d_ino = dirp->d_ino;
 			mapout(bp);
 			cp = iget(dp->i_dev, u.u_dent.d_ino);
 			if (cp != NULL) {
 				prele(cp);
-				/*
-				 * If not really a quota node then just put away
-				 */
+	/* If not really a quota node then just put away */
 				if (!isquot(cp)) {
 					iput(cp);
 					cp = NULL;
 				}
 			}
-			/*
-			 * The value of dirp is still valid because
-			 * the buffer can not have been released
-			 * between the mapout() above and here,
-			 * and there is a static relationship between
-			 * buffer headers and the buffers proper.
-			 */
+	/*
+	 * The value of dirp is still valid because the buffer can not
+	 * have been released between the mapout() above and here, and
+	 * there is a static relationship between buffer headers and the
+	 * buffers proper.
+	 */
 			mapin(bp);
 			if (cp != NULL) {
-				/*
-				 * set up hierarchical inode chains
-				 * NOTE: this is done wrong since this may
-				 *	 overwrite an inode which has not
-				 *	 been put away yet
-				 */
+	/*
+	 * Set up hierarchical inode chains.  NOTE: this is done wrong since
+	 * this may overwrite an inode which has not been put away yet.
+	 */
 				cp->i_quot = dp->i_quot;
 				dp->i_quot = cp;
 			}
 		}
-		if (cp != NULL) {
-			/*
-			 * Mark the directory as being the original
-			 * owner of the quota.  This is necessary so
-			 * that quotas do not get copied up the tree.
-			 */
+	/*
+	 * Mark the directory as being the original owner of the quota.
+	 * This is necessary so that quotas do not get copied up the tree.
+	 */
+		if (cp != NULL)
 			dp->i_flag |= IQUOT;
-
-		}
 	}
-#endif
-	for(i=0; i<DIRSIZ; i++) {
-		if(u.u_dbuf[i] != dirp->d_name[i])
-		{
-			dirp++;
+#endif UCB_QUOTAS
+	/*
+	 * This loop does a string compare with the directory entry and
+	 * the current component.  If they don't match, go to eloop.
+	 * The loop is unrolled to make it as fast as possible, notice
+	 * also, we're comparing 7 shorts rather than 14 chars.
+	 */
+	{
+		register short	*p1 = u.u_dbuf,
+				*p2 = dirp->d_name;
+		if (*p1++ != *p2++ || *p1++ != *p2++ || *p1++ != *p2++ ||
+		*p1++ != *p2++ || *p1++ != *p2++ || *p1++ != *p2++ ||
+		*p1++ != *p2++) {
+			++dirp;
 			goto eloop;
 		}
-		if (u.u_dbuf[i] == '\0')
-			break;
 	}
 	u.u_dent = *dirp;
 	/*
-	 * Here a component matched in a directory.
-	 * If there is more pathname, go back to
-	 * cloop, otherwise return.
+	 * Here a component matched in a directory.  If there is more
+	 * pathname, go back to cloop, otherwise return.
 	 */
-
 	if(bp != NULL) {
 		mapout(bp);
 		brelse(bp);
 	}
-	if(flag==DELETE && c=='\0') {
+	if(flag == DELETE && c == '\0') {
 		if(access(dp, IWRITE))
 			goto out;
 		return(dp);
@@ -285,8 +224,7 @@ eloop:
 	if ((u.u_dent.d_ino == ROOTINO) && (dp->i_number == ROOTINO)
 	    && (u.u_dent.d_name[1] == '.'))
 		for(i=1; i<nmount; i++)
-			if ((mount[i].m_inodp != NULL)
-			    && (mount[i].m_dev == d)) {
+			if ((mount[i].m_inodp != NULL) && (mount[i].m_dev == d)) {
 				iput(dp);
 				dp = mount[i].m_inodp;
 				dp->i_count++;
@@ -296,7 +234,6 @@ eloop:
 				 */
 				goto seloop;
 			}
-#if	defined(UCB_QUOTAS) || defined(UCB_SYMLINKS)
 	prele(dp);
 	temp = cp = iget(d, u.u_dent.d_ino);
 	if (cp == NULL) {
@@ -306,7 +243,6 @@ eloop:
 			iput(dp);
 		goto out1;
 	}
-#ifdef	UCB_SYMLINKS
 	if ((((struct inode *)temp)->i_mode&IFMT)==IFLNK && (follow || c)) {
 		struct inode *pdp;
 
@@ -363,7 +299,6 @@ eloop:
 		dp = (struct inode *)temp;
 	}
 #endif
-#endif	UCB_SYMLINKS
 #ifdef	UCB_QUOTAS
 	/*
 	 * Make sure not to copy the quota node up the tree past
@@ -382,23 +317,15 @@ eloop:
 		iput(dp);
 	dp = temp;
 #endif
-#else
-	iput(dp);
-	dp = iget(d, u.u_dent.d_ino);
-	if(dp == NULL)
-		goto out1;
-#endif
 	goto cloop;
 
 out:
 	iput(dp);
 out1:
-#ifdef	UCB_SYMLINKS
 	if (u.u_sbuf) {
 		brelse(u.u_sbuf);
 		u.u_sbuf = u.u_slength = u.u_soffset = 0;
 	}
-#endif
 	return(NULL);
 }
 
@@ -420,7 +347,7 @@ register struct inode *dp, *ip;
 	if (++(qp->i_count) == 0)
 		panic ("qcopy");
 }
-#endif
+#endif UCB_QUOTAS
 
 /*
  * Return the next character from the
@@ -428,7 +355,6 @@ register struct inode *dp, *ip;
  */
 schar()
 {
-#ifdef	UCB_SYMLINKS
 	register c;
 
 	if (u.u_sbuf) {
@@ -436,7 +362,6 @@ schar()
 		if (c >= 0)
 			return(c);
 	}
-#endif	UCB_SYMLINKS
 	return(*u.u_dirp++ & 0377);
 }
 
@@ -448,13 +373,11 @@ uchar()
 {
 	register c;
 
-#ifdef	UCB_SYMLINKS
 	if (u.u_sbuf) {
 		c = symchar();
 		if (c >= 0)
 			return(c);
 	}
-#endif	UCB_SYMLINKS
 	c = fubyte(u.u_dirp++);
 	if(c == -1)
 		u.u_error = EFAULT;
@@ -463,7 +386,6 @@ uchar()
 	return(c);
 }
 
-#ifdef	UCB_SYMLINKS
 /*
  *	Get a character from the symbolic name buffer
  */
@@ -494,4 +416,3 @@ symchar()
 	}
 	return(c);
 };	/* end of symchar */
-#endif	UCB_SYMLINKS

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)main.c	2.1 (Berkeley)	8/29/83
+ *	SCCS id	@(#)main.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -42,6 +42,10 @@ int	idleflg	= 1;
 main()
 {
 	extern char version[];
+#ifdef	UNIBUS_MAP
+	extern	bool_t ubmap;
+#endif
+	short	cnt;
 
 	printf("\n%s", version);
 	startup();
@@ -59,6 +63,9 @@ main()
 	u.u_procp = &proc[0];
 	u.u_cmask = CMASK;
 
+	for (cnt = 0; cnt < NGROUPS; cnt++)
+		u.u_groups[cnt] = NOGROUP;
+
 	/*
 	 * Initialize devices and
 	 * set up 'known' i-nodes
@@ -70,7 +77,8 @@ main()
 	cinit();
 	binit();
 #ifdef	UNIBUS_MAP
-	(void) ubinit();
+	if (ubmap)
+		(void) ubinit();
 #endif	UNIBUS_MAP
 #ifdef	UCB_NET
 	netinit();
@@ -111,14 +119,12 @@ main()
 }
 
 /*
- * Iinit is called once (from main)
- * very early in initialization.
- * It reads the root's super block
- * and initializes the current date
+ * Iinit is called once (from main) very early in initialization.
+ * It reads the root's super block and initializes the current date
  * from the last modified date.
  *
- * panic: iinit -- cannot read the super
- * block (usually because of an IO error).
+ * panic: iinit -- cannot read the super block
+ * (usually because of an IO error).
  */
 iinit()
 {

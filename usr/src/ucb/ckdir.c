@@ -1,9 +1,11 @@
 /* Copyright (c) 1979 Regents of the University of California */
-#include <retrofit.h>
-#include <sys/types.h>
-#include <sys/dir.h>
-#include <sys/stat.h>
 #include <stdio.h>
+#include <sys/param.h>
+#include <retrofit.h>
+#define KERNEL
+#include <sys/dir.h>
+#undef KERNEL
+#include <sys/stat.h>
 
 /*
  * Checksum the indicated directory, creating the file "check.sum"
@@ -50,7 +52,7 @@ checkout(dir)
 	char dir[];
 {
 	int s, pid;
-	char ename[DIRSIZ+1], linebuf[BUFSIZ];
+	char ename[MAXNAMLEN+1], linebuf[BUFSIZ];
 	FILE *cf, *df, *ef;
 	register int sum, c;
 	struct direct dirent;
@@ -116,7 +118,7 @@ checkout(dir)
 		if (dirent.d_ino == 0)
 			continue;
 		for (cp = dirent.d_name, cp2 = ename; *cp &&
-		    cp-dirent.d_name < DIRSIZ; *cp2++ = *cp++)
+		    cp-dirent.d_name < MAXNAMLEN; *cp2++ = *cp++)
 			;
 		*cp2 = '\0';
 		if (equal(ename, cname))

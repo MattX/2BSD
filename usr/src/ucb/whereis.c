@@ -1,22 +1,25 @@
-#ifndef	lint
-static char *sccsid = "@(#)whereis.c	4.1 (Berkeley) 10/1/80";
+#ifndef lint
+static char *sccsid = "@(#)whereis.c	4.11 (Berkeley) 2/22/84";
 #endif
 
-#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/dir.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/dir.h>
-#include <whoami.h>
 
 static char *bindirs[] = {
 	"/etc",
 	"/bin",
-	"/usr/ucb",
 	"/usr/bin",
 	"/usr/games",
 	"/lib",
+	"/usr/ucb",
 	"/usr/lib",
 	"/usr/local",
+	"/usr/new",
+	"/usr/old",
+	"/usr/hosts",
+	"/usr/include",
 	0
 };
 static char *mandirs[] = {
@@ -30,18 +33,30 @@ static char *mandirs[] = {
 	"/usr/man/man8",
 	"/usr/man/manl",
 	"/usr/man/mann",
-	"/usr/man/manp",
-	"/usr/man/manu",
+	"/usr/man/mano",
 	0
 };
 static char *srcdirs[]  = {
-	"/usr/src/cmd",
+	"/usr/src/bin",
+	"/usr/src/usr.bin",
+	"/usr/src/etc",
 	"/usr/src/ucb",
 	"/usr/src/games",
-	"/usr/src/lib/c/gen",
-	"/usr/src/lib/c/stdio",
-	"/usr/src/lib/c/sys",
+	"/usr/src/usr.lib",
+	"/usr/src/lib",
 	"/usr/src/local",
+	"/usr/src/new",
+	"/usr/src/old",
+	"/usr/src/include",
+	"/usr/src/lib/libc/gen",
+	"/usr/src/lib/libc/stdio",
+	"/usr/src/lib/libc/sys",
+	"/usr/src/lib/libc/net/common",
+	"/usr/src/lib/libc/net/inet",
+	"/usr/src/lib/libc/net/misc",
+	"/usr/src/ucb/pascal",
+	"/usr/src/ucb/pascal/utilities",
+	"/usr/src/undoc",
 	0
 };
 
@@ -63,6 +78,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
+
 	argc--, argv++;
 	if (argc == 0) {
 usage:
@@ -244,28 +260,26 @@ find(dirs, cp)
 findin(dir, cp)
 	char *dir, *cp;
 {
-	register FILE *d;
-	struct direct direct;
+	DIR *dirp;
+	struct direct *dp;
 
-	d = fopen(dir, "r");
-	if (d == NULL)
+	dirp = opendir(dir);
+	if (dirp == NULL)
 		return;
-	while (fread(&direct, sizeof direct, 1, d) == 1) {
-		if (direct.d_ino == 0)
-			continue;
-		if (itsit(cp, direct.d_name)) {
+	while ((dp = readdir(dirp)) != NULL) {
+		if (itsit(cp, dp->d_name)) {
 			count++;
 			if (print)
-				printf(" %s/%.14s", dir, direct.d_name);
+				printf(" %s/%s", dir, dp->d_name);
 		}
 	}
-	fclose(d);
+	closedir(dirp);
 }
 
 itsit(cp, dp)
 	register char *cp, *dp;
 {
-	register int i = DIRSIZ;
+	register int i = strlen(dp);
 
 	if (dp[0] == 's' && dp[1] == '.' && itsit(cp, dp+2))
 		return (1);

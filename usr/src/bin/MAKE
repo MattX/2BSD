@@ -1,0 +1,139 @@
+ALL="ar cat cc chgrp chmod clri cmp cp date dcheck dd df du echo ed \
+	expr grep icheck kill ld ln login ls mail mkdir mt mv ncheck newgrp \
+	nice nm od passwd pr pwd rddate rm rmail rmdir size strip stty su \
+	sync tar tee test time wall who write hostname hostid rcp"
+DIRS="adb as awk c csh diff make ps sed sh v6 make_small"
+REST=
+SCRIPT=
+IGNORE=
+
+if [ X$1 = Xclean ]
+then
+	for each in $DIRS $IGNORE
+	do
+		(cd $each;make clean)
+	done
+	/bin/rm -f core *.o $ALL
+	exit
+elif [ X$1 = Xinstall ]
+then
+	install=1
+	shift
+fi
+
+. ../DESC
+
+if [ $1 ]
+then
+	LIST=$*
+else
+	LIST="$ALL $DIRS $REST $SCRIPT"
+fi
+
+if [ $install ]
+then
+	echo "Installing..."
+	for each in $LIST
+	do
+		echo ===== $each:
+		case $each in
+			df | login | mkdir | newgrp | passwd | pwd | \
+			su | rmdir | mail | rcp)
+				install -s -o root -g su -m 4711 $each /bin ;;
+			ps)
+				(cd $each;make install) ;;
+			test)
+				install -s -o bin -g bin -m 711 $each /bin
+				/bin/rm -f '/bin/['
+				ln -s /bin/test '/bin/[' ;;
+			mv)
+				strip mv
+				/bin/rm -f /bin/mv
+				/bin/cp mv /bin/mv
+				/bin/rm -f mv
+				chown root /bin/mv
+				chgrp su /bin/mv
+				chmod 4711 /bin/mv ;;
+			cp)
+				strip cp
+				/bin/rm -f /bin/cp
+				./cp cp /bin/cp
+				/bin/rm -f cp
+				chown bin /bin/cp
+				chgrp bin /bin/cp
+				chmod 711 /bin/cp ;;
+			rm)
+				strip rm
+				./rm -f /bin/rm
+				/bin/cp ./rm /bin/rm
+				/bin/rm -f ./rm
+				chown bin /bin/rm
+				chgrp bin /bin/rm
+				chmod 711 /bin/rm ;;
+			strip)
+				/bin/strip ./strip
+				install -o bin -g bin -m 711 strip /bin ;;
+			ar | cat | cc | chgrp | chmod | clri | cmp | \
+			date | dcheck | dd | du | echo | ed | expr | grep | \
+			icheck | kill | ld | ln | ls | mt | ncheck | nice | \
+			nm | od | pr | rddate | rmail | size | stty | sync | \
+			tar | tee | time | wall | who | write | hostname | \
+			hostid)
+				install -s -o bin -g bin -m 711 $each /bin ;;
+			csh)
+				rm -f /bin/$each.bak
+				/bin/mv /bin/$each /bin/$each.bak
+				(cd $each;make install) ;;
+			sh)
+				rm -f /bin/$each.bak
+				/bin/mv /bin/$each /bin/$each.bak
+				strip sh/sh
+				/bin/mv sh/sh /bin/sh
+				chown bin /bin/sh
+				chgrp bin /bin/sh
+				chmod 711 /bin/sh ;;
+			make)
+				(cd $each;make_small install) ;;
+			adb | as | awk | c | diff | make_small | sed | v6)
+				(cd $each;make install) ;;
+			*)
+				echo "don't know how to install $each." ;;
+		esac
+	done
+	exit
+fi
+
+MK="make FP=$FP LFLAG=$LFLAG"
+CDMK="make LFLAG=$LFLAG CRT=$CRT FP=$FP all"
+CDOVMK="make OV=-V LFLAG=$LFLAG CRT=$CRT FP=$FP ovall"
+
+echo 'Compiling...'
+for each in $LIST
+do
+	echo ===== $each:
+	case $each in
+		ar | cat | cc | chgrp | chmod | clri | cmp | cp | date | dd | \
+		du | echo | ed | grep | kill | ld | ln | login | ls | mkdir | \
+		mt | mv | newgrp | nice | nm | od | passwd | pr | pwd | \
+		rddate | rm | rmail | rmdir | size | strip | stty | su | \
+		sync | tar | tee | test | time | wall | who | write | df | \
+		mail | dcheck | icheck | ncheck | hostname | hostid | rcp)
+			$MK $each ;;
+		as | diff | ps | sed | sh | v6 | adb | c | awk | make | \
+		make_small)
+			(cd $each; $CDMK) ;;
+		expr)
+			yacc $each.y
+			cc -O $FP $LFLAG y.tab.c -o $each
+			/bin/rm -f y.tab.c ;;
+		csh)
+			if [ $PDP = 70 ]
+			then
+				(cd csh; make LFLAG=$LFLAG CRT=$CRT FP=$FP all)
+			else
+				(cd csh; make -f Ovmakefile OV=-V LFLAG=$LFLAG CRT=$CRT FP=$FP all)
+			fi ;;
+		*)
+			echo "don't know how to make $each." ;;
+	esac
+done

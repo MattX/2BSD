@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)trap.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)trap.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -9,9 +9,9 @@
 #include <sys/proc.h>
 #include <sys/reg.h>
 #include <sys/seg.h>
-#ifdef UCB_METER
+#ifdef	UCB_METER
 #include <sys/vm.h>
-#endif
+#endif	UCB_METER
 #include <sys/trap.h>
 #include <sys/inline.h>
 #include <sys/iopage.h>
@@ -79,13 +79,13 @@ dev_t	dev;
 		/* guarantee normal kernel mapping */
 		savemap(kernelmap);
 	syst = u.u_stime;
-#ifndef NONFP
+#ifndef	NONFP
 	u.u_fpsaved = 0;
-#endif
+#endif	NONFP
 	u.u_ar0 = &r0;
-#ifdef UCB_METER
+#ifdef	UCB_METER
 	cnt.v_trap++;
-#endif
+#endif	UCB_METER
 	switch(minor(dev)) {
 
 	/*
@@ -262,12 +262,6 @@ kernelout:
 	 * more efficient in the case of SIGILL and floating-point
 	 * simulation.
 	 */
-#ifndef	MENLO_JCL
-	if (((int)u.u_signal[i] &~ (int)SIG_IGN) && !(u.u_procp->p_flag & STRC))
-		sendsig(u.u_signal[i]);
-	else
-		psignal(u.u_procp, i);
-#else	MENLO_JCL
 	{
 	long sigmask = 1L << (i - 1);
 	if (!(u.u_procp->p_ignsig & sigmask) && (u.u_signal[i] != SIG_DFL)
@@ -276,14 +270,9 @@ kernelout:
 	else
 		psignal(u.u_procp, i);
 	}
-#endif	MENLO_JCL
 
 out:
-#ifndef	MENLO_JCL
-	if(issig())
-#else
 	if(u.u_procp->p_cursig || ISSIG(u.u_procp))
-#endif
 		psig();
 	curpri = setpri(u.u_procp);
 	if (runrun)
@@ -316,22 +305,19 @@ int *pc;
 	register struct sysent *callp;
 	int (*fetch)(), fuword(), fuiword();
 	time_t syst;
-#ifdef	MENLO_JCL
 	int *opc;	/* save original pc in case we must restart syscall */
-#endif
 
 	if (!USERMODE(ps))
 		panic("syscall");
 	syst = u.u_stime;
-#ifndef NONFP
+#ifndef	NONFP
 	u.u_fpsaved = 0;
-#endif
+#endif	NONFP
 	u.u_ar0 = &r0;
-#ifdef UCB_METER
+#ifdef	UCB_METER
 	cnt.v_syscall++;
-#endif
+#endif	UCB_METER
 	u.u_error = 0;
-#ifdef	MENLO_JCL
 	opc = pc - 1;		/* opc now points at syscall */
 	i = fuiword((caddr_t) opc);
 	callp = &sysent[i & 077];
@@ -339,13 +325,9 @@ int *pc;
 		a = sp;
 		fetch = fuword;
 	} else
-#endif
 		{
 		a = pc;
 		fetch = fuiword;
-#ifndef	MENLO_JCL
-		callp = &sysent[fuiword((caddr_t) (a - 1)) & 077];
-#endif
 		pc += callp->sy_narg - callp->sy_nrarg;
 	}
 	if (callp == &sysent[SYSINDIR]) { /* indirect */
@@ -374,18 +356,6 @@ int *pc;
 	u.u_r.r_val1 = u.u_ar0[R0];
 	u.u_r.r_val2 = u.u_ar0[R1];
 	u.u_ap = u.u_arg;
-#ifndef	MENLO_JCL
-	if (save(u.u_qsav)) {
-		if (u.u_error==0)
-			u.u_error = EINTR;
-	} else {
-		(*callp->sy_call)();
-#if	defined(DIAGNOSTIC) && !defined(NOKA5)
-		if(hasmap != (struct buf *) NULL)
-			panic("hasmap");
-#endif
-	}
-#else	MENLO_JCL
 	if (save(u.u_qsav)) {
 		if (u.u_error == 0 && u.u_eosys == JUSTRETURN)
 			u.u_error = EINTR;
@@ -403,7 +373,6 @@ int *pc;
 		dorti(fuiword((caddr_t)opc) & 0200 ?
 		      callp->sy_narg - callp->sy_nrarg : 0);
 	else
-#endif	MENLO_JCL
 		if (u.u_error) {
 			ps |= PS_C;
 			u.u_ar0[R0] = u.u_error;
@@ -412,11 +381,7 @@ int *pc;
 			u.u_ar0[R0] = u.u_r.r_val1;
 			u.u_ar0[R1] = u.u_r.r_val2;
 		}
-#ifndef	MENLO_JCL
-	if(issig())
-#else
 	if(u.u_procp->p_cursig || ISSIG(u.u_procp))
-#endif
 		psig();
 	curpri = setpri(u.u_procp);
 	if (runrun)
@@ -435,4 +400,11 @@ int *pc;
 nosys()
 {
 	u.u_error = EINVAL;
+}
+
+/*
+ * Ignored system call
+ */
+nullsys()
+{
 }

@@ -1,0 +1,46 @@
+Mtalk	talk.c	/^main(argc, argv)$/
+Mtalkd	talkd.c	/^main(argc)$/
+ann_invite	invite.c	/^ann_invite()$/
+ann_proc	announce.c	/^ann_proc(request, remote_machine)$/
+announce	announce.c	/^announce(request, remote_machine)$/
+check_local	look_up.c	/^check_local()$/
+ctl_transact	ctl_transact.c	/^ctl_transact(target, msg, type, response)$/
+delete	table.c	/^delete(ptr)$/
+delete_invite	table.c	/^delete_invite(id_num)$/
+disp_msg	msgs.c	/^disp_msg()$/
+display	display.c	/^display(win, text, size)$/
+do_announce	process.c	/^do_announce(request, response)$/
+end_msgs	msgs.c	/^end_msgs()$/
+find_match	table.c	/^CTL_MSG *find_match(request)$/
+find_request	table.c	/^CTL_MSG *find_request(request)$/
+find_user	process.c	/^find_user(name, tty)$/
+get_addrs	get_addrs.c	/^get_addrs(my_machine_name, his_machine_name)$/
+get_names	get_names.c	/^get_names(argc, argv)$/
+getsockname	ctl.h	/^#define getsockname(s,addr,len) socketaddr(s,addr)/
+init_display	init_disp.c	/^init_display()$/
+insert_table	table.c	/^insert_table(request, response)$/
+invite_remote	invite.c	/^invite_remote()$/
+look_for_invite	look_up.c	/^look_for_invite(response)$/
+max	announce.c	/^#define max(a,b) ( (a) > (b) ? (a) : (b) )$/
+message	io.c	/^message(string)$/
+new_id	table.c	/^new_id()$/
+open_ctl	ctl.c	/^open_ctl() $/
+open_sockt	ctl.c	/^open_sockt()$/
+p_addr	ctl.c	/^p_addr(addr)$/
+p_error	talkd.c	/^p_error(string)$/
+p_mesg	announce.c	/^p_mesg(tf, request, remote_machine)$/
+p_request	print.c	/^p_request(request)$/
+p_response	print.c	/^p_response(response)$/
+pro_request	process.c	/^pro_request(request, response)$/
+quit	init_disp.c	/^quit()$/
+re_invite	invite.c	/^void re_invite()$/
+readwin	display.c	/^readwin(win, line, col)$/
+recvfrom	ctl.h	/^#define recvfrom(s,r,sr,q,f,sf) receive(s,f,r,sr)$/
+send_delete	invite.c	/^send_delete()$/
+sendto	ctl.h	/^#define sendto(s,r,sr,q,f,sf) send(s,f,r,sr)$/
+set_edit_chars	init_disp.c	/^set_edit_chars()$/
+setup_desc	talkd.c	/^setup_desc()$/
+sig_sent	init_disp.c	/^sig_sent()$/
+start_msgs	msgs.c	/^start_msgs()$/
+talk	io.c	/^talk()$/
+xscroll	display.c	/^xscroll(win, flag)$/

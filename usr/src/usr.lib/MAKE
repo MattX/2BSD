@@ -1,0 +1,69 @@
+ALL="atrun.c calendar.c makekey.c"
+DIRS="libF77 libI77 libU77 libcurses libdbm libm libmp libtermlib lpr"
+REST=
+SCRIPT="makewhatis"
+IGNORE="sendmail libplot me delivermail"
+
+if [ X$1 = Xclean ]
+then
+	for each in $DIRS
+	do
+		(cd $each;make clean)
+	done
+	rm -f core *.o $ALL
+	exit
+elif [ X$1 = Xinstall ]
+then
+	install=1
+	shift
+fi
+
+. ../DESC
+
+if [ $1 ]
+then
+	LIST=$*
+else
+	LIST="$ALL $DIRS $REST $SCRIPT"
+fi
+
+if [ $install ]
+then
+	echo "Installing..."
+	for each in $LIST
+	do
+		echo ===== $each:
+		case $each in
+			atrun | calendar | makekey)
+				install -s -o bin -g bin -m 711 $each /usr/lib ;;
+			libF77 | libI77 | libU77 | libcurses | libdbm | \
+			libm | libmp | libtermlib | lpr | \
+			makewhatis)
+				install -c -o bin -g bin -m 755 $each.sh /usr/lib/$each ;;
+			*)
+				echo "don't know how to install $each." ;;
+		esac
+	done
+	exit
+fi
+
+MK="make FP=$FP LFLAG=$LFLAG"
+CDMK="make LFLAG=$LFLAG CRT=$CRT FP=$FP"
+CDOVMK="make OV=-V LFLAG=$LFLAG CRT=$CRT FP=$FP ovall"
+
+echo 'Compiling...'
+for each in $LIST
+do
+	echo ===== $each:
+	case $each in
+		atrun | calendar | makekey)
+			$MK $each ;;
+		libF77 | libI77 | libU77 | libcurses | libm | libmp | \
+		libdbm | lpr | libtermlib)
+			(cd $each; $CDMK) ;;
+		makewhatis)
+			echo "$each is a shell script ($each.sh)." ;;
+		*)
+			echo "don't know how to make $each." ;;
+	esac
+done

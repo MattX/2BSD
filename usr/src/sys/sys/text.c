@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)text.c	2.1 (Berkeley)	8/29/83
+ *	SCCS id	@(#)text.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -212,7 +212,7 @@ again:
 	u.u_offset = sizeof(u.u_exdata);
 #ifdef MENLO_OVLY
 	if (u.u_ovdata.uo_ovbase)
-		u.u_offset += (1 + NOVL) * sizeof(unsigned);
+		u.u_offset += (NOVL + 1) * sizeof(unsigned);
 #endif
 	u.u_base = 0;
 	u.u_segflg = 2;
@@ -222,11 +222,10 @@ again:
 	/* read in overlays if necessary */
 
 	if (u.u_ovdata.uo_ovbase) {
-		register i;
-		for (i = 1; i < 1 + NOVL; i++) {
+		register int i;
+		for (i = 1; i <= NOVL; i++) {
 			u.u_ovdata.uo_curov = i;
-			u.u_count = ctob(u.u_ovdata.uo_ov_offst[i]
-				  - u.u_ovdata.uo_ov_offst[i-1]);
+			u.u_count = ctob(u.u_ovdata.uo_ov_offst[i] - u.u_ovdata.uo_ov_offst[i-1]);
 			u.u_base = ctob(stoc(u.u_ovdata.uo_ovbase));
 			if( u.u_count != 0) {
 				choverlay(RW);
@@ -268,11 +267,7 @@ register struct text *xp;
 #endif
 	xunlock(xp);
 	u.u_procp->p_flag |= SSWAP;
-#ifdef	MENLO_JCL
 	swtch();
-#else
-	qswtch();
-#endif
 	/* NOTREACHED */
 }
 

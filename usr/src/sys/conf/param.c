@@ -29,7 +29,7 @@
 #define	DSTFLAG	%DST%			/* Daylight Saving Time applies here */
 
 #define	NBUF	(12 + (2 * MAXUSERS))	/* size of buffer cache, must be <=256*/
-#define	NMOUNT	5			/* number of mountable file systems */
+#define	NMOUNT	7			/* number of mountable file systems */
 
 #ifdef	UCB_CLIST
 #   ifdef UNIBUS_MAP
@@ -108,9 +108,7 @@ struct	text	*textNTEXT	= &text[NTEXT];
 /* callNCALL points to the last slot, which must be a terminator */
 struct	callout	*callNCALL	= &callout[NCALL];
 
-#ifdef	UCB_METER
-char	counted[NTEXT];
-#endif
+char	counted[NTEXT];			/* performance stats */
 
 int	bsize	= BSIZE + BSLOP;	/* size of buffers */
 

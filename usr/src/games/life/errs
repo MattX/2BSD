@@ -1,0 +1,14 @@
+	cc -O -c alloc.c
+	cc -O -c cell.c
+	cc -O -c cmd.c
+	cc -O -c cmdl.c
+	cc -O -c debug.c
+	cc -O -c gen.c
+	cc -O -c io.c
+	cc -O -c main.c
+	cc -O -c mark.c
+	cc -O -c object.c
+	cc -O -c scan.c
+	cc -O -c vars.c
+	cc -O -c view.c
+	cc -O -o life alloc.o cell.o cmd.o cmdl.o debug.o gen.o io.o main.o mark.o object.o scan.o vars.o view.o -ldpy -ltermlib

@@ -55,12 +55,14 @@ static char rcsid[]
 /* turn this on if you are running on 4.1c or greater */
 /* # define NEW_BOOTTIME */
 
+extern char	*_unctrl[];
+#define	unctrl(ch)	(_unctrl[(unsigned) ch])
+
 #include <sys/param.h>
 #include <signal.h>
 #include <stdio.h>
 #include <utmp.h>
 #include <ctype.h>
-#include <unctrl.h>
 #include <time.h>
 #include <sys/stat.h>
 #ifdef VMUNIX

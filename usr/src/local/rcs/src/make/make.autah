@@ -1,0 +1,8031 @@
+!<arch>
+Makefile,v      438879204   702   0     100444  3687      `
+head     1.3;
+access   ;
+symbols  ;
+locks    ;
+comment  @# @;
+
+
+1.3
+date     83.11.28.09.53.11;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.07.08.36.18;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.40.17;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.3
+log
+@*** empty log message ***
+@
+text
+@# $Header$
+
+#	@@(#)/usr/src/cmd/make/make.mk	3.5
+
+#	@@(#)make.mk	3.1
+
+# Description file for the Make command
+# To build the Columbus make just type "make -f make.mk"
+# For systems without the getu() system call type "make -f make.mk GETU="
+# For pwb use
+#	make -f make.mk GETU= RULES=pwbrules CFLAGS="-O -DPWB" LIBES=-lpw
+# The rules.c file can be modified locally for people who still like
+#	things like fortran.
+# If the markfile is not present the compilation can be turned of with
+#	"make -f make.mk MARKFILE="
+# For people interested in finding out how the markfile is generated
+# 	contact E. G. Bradford.
+
+#	There is an internal rule (rules.c) which can make
+#	and object file "markfile.o" from "markfile" if the
+#	"markfile" has a what(1) string in it.
+#	Disable the $(MARKFILE) macro if the internal: rule
+#	doesn't work on your system.
+MARKFILE =
+
+#	Turn off the GETU variable if you system does not have the
+#	getu system call as documented in the CB unix manual.
+GETU	=
+
+#	RULES is defined to be the Columbus rules. It can be defined to
+#	be the pwb rules by typing:
+#		make -f make.mk RULES=pwbrules
+#
+RULES	= rules
+
+#	For PWB systems the PWB define symbol must be in the CFLAGS macro.
+#	Thus for pwb systems:
+#	    make -f make.mk CFLAGS="-O -DPWB" GETU= RULES=pwbrules LIBES=-lpw
+#	will make a version of "make" for PWB systems.
+
+#	For Berkeley 4.1 Systems, BSD should be set to -DBSD.  This is
+#	necessary due to a change in the structure definition for a.out
+#	headers in /u/include/a.out.h.  With the two include files,
+#	./ar.h and ./ar11.h, both formats of archives should be represented.
+#	ar.h contains the 4.1BSD ASCII archive format, and ar11.h
+#	contains the V7 binary archive format.  These were so named
+#	because all the 11's at pur-ee run V7.  To compile on V7, these
+#	structures should have unique member names.
+#	These changes may or may not hold for Berkeley 4.2 Distribution
+#	or beyond.
+#
+#	Define BSD42 to change the location of the directory include file
+#	from /usr/include/ndir.h to /usr/include/sys/dir.h
+#
+BSD	= -DBSD -DBSD42
+
+#BSD	= -DBSD
+
+
+OBJECTS =  \
+	main.o \
+	doname.o \
+	misc.o \
+	files.o \
+	$(RULES).o \
+	dosys.o \
+	dyndep.o \
+	prtmem.o \
+	gram.o
+
+CFLAGS = -O $(GETU) $(BSD) 
+
+all:  make
+	@@echo MAKE is up to date.
+
+make:  $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS)  $(LIBES) -o make
+
+
+$(OBJECTS): defs.h ar.h ar11.h
+
+install:
+	install -c -s make $(DESTDIR)/bin/make 
+
+clean cleanup:
+	-rm -f *.o
+
+print:
+	list="defs main.c doname.c dosys.c files.c $(RULES).c misc.c dyndep.c prtmem.c gram.y make.mk test.mk test.mk?" \
+	pr -o1 -w120 -l66 $list
+@
+
+
+1.2
+log
+@minor mods
+@
+text
+@a18 7
+TESTDIR = .
+YACCRM = rm -f
+IFLAG = -i
+RC =
+INS = /etc/install -o
+INSDIR = /bin
+
+d55 1
+a55 1
+#BSD	= -DBSD -DBSD42
+d57 1
+a57 1
+BSD	= -DBSD
+a66 1
+	gram.o \
+d69 1
+a69 1
+	$(MARKFILE)
+d76 2
+a77 3
+make:  $(OBJECTS) $(RC)
+	$(CC) $(IFLAG) $(LDFLAGS) $(OBJECTS)  $(LIBES)
+	mv a.out $(TESTDIR)/make
+a78 1
+gram.c:	gram.y
+d80 1
+a80 1
+gram.o: gram.c
+d82 2
+a83 1
+$(OBJECTS):  defs.h
+a84 9
+v6:
+	make -f make.mk CC=occ LIBES="-lcb -li1 -l7 -lS"
+
+test:
+	make -f test.mk
+
+install: all
+	$(INS) -n $(INSDIR) $(TESTDIR)/make
+
+a87 4
+clobber: clean
+	-rm -f $(TESTDIR)/make
+	$(YACCRM) gram.c
+
+a90 5
+
+RC:
+
+.DEFAULT:
+	$(GET) $(GFLAGS) -p s.$< > $<
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+d58 6
+a86 1
+	@@size make
+@
+
+ar.h,v          435872503   702   10    100664  427       `
+head     1.1;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.1
+date     83.09.26.15.39.23;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@archive include file
+@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#define	ARMAG	"!<arch>\n"
+#define	SARMAG	8
+
+#define	ARFMAG	"`\n"
+
+struct ar_hdr {
+	char	ar_name[16];
+	char	ar_date[12];
+	char	ar_uid[6];
+	char	ar_gid[6];
+	char	ar_mode[8];
+	char	ar_size[10];
+	char	ar_fmag[2];
+};
+@
+
+ar11.h,v        435872503   702   10    100664  373       `
+head     1.1;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.1
+date     83.09.26.15.39.40;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@version 7 archive include file
+@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#define	ARMAG11	0177545
+struct	ar_hdr11 {
+	char	ar11_name[14];
+	long	ar11_date;
+	char	ar11_uid;
+	char	ar11_gid;
+	int	ar11_mode;
+	long	ar11_size;
+};
+@
+
+defs.h,v        436636437   702   10    100664  8174      `
+head     1.7;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.7
+date     83.11.01.20.44.32;  author tony;  state Exp;
+branches ;
+next     1.6;
+
+1.6
+date     83.10.24.14.39.03;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.11.12.56.07;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.07.08.36.31;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.11.50;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.11.02.25;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.39.56;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@Definitions...
+@
+
+
+1.7
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@/* $Header: /r/tony/make/new/RCS/defs.h,v 1.6 83/10/24 14:39:03 tony Exp $
+ *
+ * $Log:	defs.h,v $
+ * Revision 1.6  83/10/24  14:39:03  tony
+ * Removed CO_CMD and RM_CMD since this is now done via a rule.
+ * 
+ * Revision 1.5  83/10/11  12:56:07  tony
+ * Added definition of standard remove command. (RM_CMD)
+ * 
+ * Revision 1.4  83/10/07  08:36:31  tony
+ * Changed name of macro to determine dir.h location.
+ * 
+ * Revision 1.3  83/10/06  16:11:50  tony
+ * Changed declarations for conversion to new directory
+ * routines.
+ * 
+ * Revision 1.2  83/10/06  11:02:25  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)/usr/src/cmd/make/defs	3.2	*/
+
+/*	@@(#)defs	3.1	*/
+
+#include <sys/types.h>
+#include <stdio.h>
+
+#ifdef	BSD42
+#	include <sys/dir.h>
+#else
+#	include <ndir.h>
+#endif
+
+#define NEWLINE	'\n'
+#define CNULL	'\0'
+#define BLANK	' '
+#define TAB	'\t'
+#define DOT	'.'
+#define WIGGLE	'~'
+#define AT	'@@'
+#define MINUS	'-'
+#define EQUALS	'='
+#define SLASH	'/'
+#define STAR	'*'
+#define LCURLY	'{'
+#define RCURLY	'}'
+#define LPAREN	'('
+#define RPAREN	')'
+#define LSQUAR	'['
+#define RSQUAR	']'
+#define QUESTN	'?'
+#define KOLON	':'
+#define SKOLON	';'
+#define DOLLAR	'$'
+#define GREATR	'>'
+#define POUND	'#'
+#define BACKSLASH	'\\'
+
+
+/*
+ *	Flags
+ */
+
+#define ALLOC(x) (struct x *) intalloc(sizeof(struct x))
+
+
+#define TURNON(a)	(Mflags |= (a))
+#define TURNOFF(a)	(Mflags &= (~(a)))
+#define IS_ON(a)	(Mflags&(a))
+#define IS_OFF(a)	(!(IS_ON(a)))
+
+#define DBUG	0000001		/* debug flag */
+#define ENVOVER	0000002		/* environ overides file defines */
+#define EXPORT	0000004		/* put current variable in environ */
+#define PRTR	0000010		/* set `-p' flag */
+#define SIL	0000020		/* set `-s' flag */
+#define NOEX	0000040		/* set `-n' flag */
+#define INTRULE	0000100		/* use internal rules */
+#define TOUCH	0000200		/* set `-t' flag */
+#define GET	0000400		/* do a $(GET) if file not found */
+#define QUEST	0001000		/* set `-q' flag */
+#define INARGS	0002000		/* currently reading cmd args */
+#define IGNERR	0004000		/* set `-i' flag */
+#define KEEPGO	0010000		/* set `-k' flag */
+#define GF_KEEP	0020000		/* keep auto get files */
+#define MH_DEP	0040000		/* use old question about whether cmd exists */
+#define MEMMAP	0100000		/* print memory map */
+#define	COFLAG	0200000		/* check out RCS files as necessary */
+#define	RMFLAG	0400000		/* remove any checked out files when done */
+
+typedef char *CHARSTAR;
+typedef int  *INTSTAR;
+typedef long int TIMETYPE;
+typedef struct gothead *GOTHEAD;
+typedef struct gotf *GOTF;
+typedef struct chain *CHAIN;
+typedef struct opendir *OPENDIR;
+typedef struct pattern *PATTERN;
+typedef struct varblock *VARBLOCK;
+typedef struct shblock *SHBLOCK;
+typedef struct depblock *DEPBLOCK;
+typedef struct lineblock *LINEBLOCK;
+typedef struct nameblock *NAMEBLOCK;
+
+extern CHARSTAR *environ;
+extern long Mflags;
+extern FILE *fin;
+extern CHARSTAR *linesptr;
+/*
+ *	flags for get()
+ */
+#define CD	0
+#define NOCD	1
+
+
+#define max(a,b)	((a)>(b)?(a):(b))
+#define SHELLCOM "/bin/sh"
+
+#define	RCS	"RCS"			/* RCS files are in this dir or . */
+#define	RCS_SUF	",v"			/* suffix of RCS files */
+
+extern	char	*RCSdir;
+extern	struct	shblock	*co_cmd;
+extern	char	*RCSsuf;		/* suffix of RCS files */
+extern	int	dotRCS;			/* true if ./RCS exists */
+
+#ifdef unix
+/*  to install metering, add a statement like */
+/*******
+#define METERFILE "/usr/sif/make/Meter"
+******/
+/* to turn metering on, set external variable meteron to 1 */
+#endif
+
+/* define FSTATIC to be static on systems with C compilers
+   supporting file-static; otherwise define it to be null
+*/
+#define FSTATIC static
+
+#define NO 0
+#define YES 1
+
+#define equal(a,b)	(a[0] == b[0] ? !strcmp((a),(b)) : NO )
+#define HASHSIZE 809
+#define NLEFTS 100
+#define INMAX 2500
+#define OUTMAX 2500
+#define	MAXDIR	10
+
+#define ALLDEPS  1
+#define SOMEDEPS 2
+
+#define META 01
+#define TERMINAL 02
+extern char funny[128];
+
+
+
+extern int sigivalue;
+extern int sigqvalue;
+extern int sighvalue;
+extern int sigtvalue;
+extern int waitpid;
+extern int ndocoms;
+extern int okdel;
+extern CHARSTAR prompt;
+extern char junkname[ ];
+extern char RELEASE[];
+
+extern	int	nopdir;
+
+
+struct nameblock
+{
+	NAMEBLOCK nextname;		/* pointer to next nameblock */
+	NAMEBLOCK backname;		/* pointer to predecessor */
+	CHARSTAR namep;		/* ASCII name string */
+	CHARSTAR alias;		/* ASCII alias (when namep translates to another
+				 * pathstring.
+				 */
+	LINEBLOCK linep; /* pointer to dependents */
+	int done:3;		/* flag used to tell when finished */
+	int septype:3;		/* distinguishes between single and double : */
+	int rundep:1;		/* flag indicating runtime translation done */
+	char *RCSnamep;		/* name of RCS file, if needed */
+	TIMETYPE modtime;	/* set by exists() */
+};
+
+
+extern NAMEBLOCK mainname ;
+extern NAMEBLOCK firstname;
+
+struct lineblock
+{
+	LINEBLOCK nextline;
+	DEPBLOCK depp;
+	SHBLOCK shp;
+};
+
+extern LINEBLOCK sufflist;
+
+struct depblock
+{
+	DEPBLOCK nextdep;
+	NAMEBLOCK depname;
+};
+
+struct shblock
+{
+	SHBLOCK nextsh;
+	CHARSTAR shbp;
+};
+
+struct varblock
+{
+	VARBLOCK nextvar;
+	CHARSTAR varname;
+	CHARSTAR varval;
+	int noreset:1;
+	int used:1;
+	int envflg:1;
+	int v_aflg:1;
+};
+
+extern VARBLOCK firstvar;
+
+struct pattern
+{
+	PATTERN nextpattern;
+	CHARSTAR patval;
+};
+
+extern PATTERN firstpat;
+
+struct	opendir
+{
+	OPENDIR nextopendir;
+	DIR	* dirfc;
+	CHARSTAR dirn;
+};
+extern OPENDIR firstod;
+
+
+struct chain
+{
+	CHAIN nextchain;
+	CHARSTAR datap;
+};
+
+extern	struct	chain	*rmchain;
+
+
+/*
+ *	The following two structures are used to cleanup after
+ *	`make' does an automatic get of a file. See get() and
+ *	cleanup().
+ */
+struct gotf			/* list of files */
+{
+	GOTF gnextp;
+	CHARSTAR gnamep;
+};
+
+struct gothead			/* first member of list of files */
+{
+	GOTF gnextp;
+	CHARSTAR gnamep;
+	GOTF endp;
+};
+
+char Nullstr[];
+CHARSTAR badptr;
+CHARSTAR copys();
+CHARSTAR copstr();
+CHARSTAR concat();
+CHARSTAR colontrans();
+CHARSTAR dftrans();
+CHARSTAR straightrans();
+CHARSTAR mkqlist();
+CHARSTAR findfl();
+CHARSTAR addstars();
+CHARSTAR strshift();
+INTSTAR  intalloc();
+VARBLOCK varptr();
+VARBLOCK srchvar();
+TIMETYPE exists();
+DEPBLOCK srchdir();
+NAMEBLOCK srchname(), makename();
+LINEBLOCK runtime();
+TIMETYPE getrcs();
+char	*rindex();
+char	*ncat();
+@
+
+
+1.6
+log
+@Removed CO_CMD and RM_CMD since this is now done via a rule.
+@
+text
+@d1 1
+a1 1
+/* $Header: /o/tony/make/new/RCS/defs.h,v 1.5 83/10/11 12:56:07 tony Exp $
+d4 3
+d125 2
+a146 2
+#define NCHARS 500
+#define NINTS  250
+d162 2
+d186 1
+a186 1
+	int isrcs:1;		/* this file needs to be co`ed */
+d287 1
+a287 1
+TIMETYPE prestime(), exists();
+d292 2
+@
+
+
+1.5
+log
+@Added definition of standard remove command. (RM_CMD)
+@
+text
+@d1 1
+a1 1
+/* $Header: /o/tony/make/new/RCS/defs.h,v 1.4 83/10/07 08:36:31 tony Exp $
+d4 3
+a118 2
+#define	CO_CMD	"$(CO) $(COFLAGS) "	/* command to check out RCS files */
+#define	RM_CMD	"$(RM) $(RMFLAGS) "	/* command to remove co`d files */
+d121 1
+d181 1
+@
+
+
+1.4
+log
+@Changed name of macro to determine dir.h location.
+@
+text
+@d1 1
+a1 1
+/* $Header: /o/tony/make/new/RCS/defs.h,v 1.3 83/10/06 16:11:50 tony Exp $
+d4 3
+d117 1
+@
+
+
+1.3
+log
+@Changed declarations for conversion to new directory
+routines.
+@
+text
+@d1 1
+a1 1
+/* $Header: /o/tony/make/new/RCS/defs.h,v 1.2 83/10/06 11:02:25 tony Exp $
+d4 4
+d20 1
+a20 1
+#ifdef	4_2BSD
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d1 1
+a1 1
+/* $Header$
+d3 4
+a6 1
+ * $Log$
+d13 1
+d16 6
+d136 1
+d156 1
+d223 1
+a223 1
+	FILE * dirfc;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 5
+d66 2
+d84 1
+a84 1
+extern int Mflags;
+d97 6
+d223 3
+d263 1
+@
+doname.c,v      436636411   702   10    100664  17086     `
+head     1.6;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.6
+date     83.11.01.20.45.32;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.24.14.32.37;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.11.13.49.15;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.11.12.09.49;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.49.56;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.37.49;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.6
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@static	char	*rcsid =
+	"$Header";
+
+/*	@@(#)/usr/src/cmd/make/doname.c	3.5	*/
+
+/*
+ * $Log:	doname.c,v $
+ * Revision 1.5  83/10/24  14:32:37  tony
+ * Removed CO_CMD and RM_CMD since these are now done via a rule.
+ * 
+ * Revision 1.4  83/10/11  13:49:15  tony
+ * Added fix so that makes that imply a simple check-out will work.
+ * Previously make gave "f.c is up to date" without doing anything.
+ * Now the file is checked out, but not marked for deletion. This
+ * involved a new argument to co().
+ * 
+ * Revision 1.3  83/10/11  12:09:49  tony
+ * Added fix from crl to prevent prepending the RCS directory string
+ * on implicit rules if the name contains a slash.
+ * 
+ * Revision 1.2  83/10/06  10:49:56  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+#include "defs.h"
+
+
+char Makecall;			/* flag which says whether to exec $(MAKE) */
+extern char archmem[];
+extern char archname[];
+
+/*  BASIC PROCEDURE.  RECURSIVE.  */
+
+/*
+p->done = 0   don't know what to do yet
+p->done = 1   file in process of being updated
+p->done = 2   file already exists in current state
+p->done = 3   file make failed
+*/
+
+
+doname(p, reclevel, tval,ochain)
+register NAMEBLOCK p;
+int reclevel;
+TIMETYPE *tval;
+struct chain **ochain;
+{
+	register DEPBLOCK q;
+	register LINEBLOCK lp;
+	int errstat;
+	int okdel1;
+	int didwork;
+	int setimpl;				/* set implicit vars */
+	TIMETYPE td, td1, tdep, ptime, ptime1;
+	DEPBLOCK qtemp, suffp, suffp1;
+	NAMEBLOCK p1, p2;
+	SHBLOCK implcom, explcom;
+	LINEBLOCK lp1, lp2;
+	char sourcename[100],prefix[100],temp[100],concsuff[20];
+	CHARSTAR pnamep, p1namep;
+	CHAIN qchain;
+	CHAIN cochain;
+	int found, onetime;
+	CHARSTAR savenamep;
+
+	if(p == 0)
+	{
+		*tval = 0;
+		return(0);
+	}
+
+	if(IS_ON(DBUG))
+	{
+		blprt(reclevel);
+		printf("doname(%s,%d)\n",p->namep,reclevel);
+		fflush(stdout);
+	}
+
+	if(p->done > 0)
+	{
+		/* if we want to check out RCS files, and we have previously
+		 * determined that we can, then append it to the previous
+		 * level`s cochain.
+		 */
+		if (p->RCSnamep)
+			*ochain = appendq(*ochain,p->namep);
+
+		*tval = p->modtime;
+		return(p->done == 3);
+	}
+
+	cochain = NULL;
+	errstat = 0;
+	tdep = 0;
+	implcom = 0;
+	explcom = 0;
+	ptime = exists(p,ochain);
+	if(reclevel == 0 && IS_ON(DBUG))
+	{
+		blprt(reclevel);
+		printf("TIME(%s)=%ld\n", p->namep, ptime);
+	}
+	ptime1 = 0;
+	didwork = NO;
+	p->done = 1;	/* avoid infinite loops */
+
+	qchain = NULL;
+
+/*
+ *	Perform runtime dependency translations.
+ */
+	if(p->rundep == 0)
+	{
+		setvar("@@", p->namep);
+		dynamicdep(p);
+		setvar("@@", 0);
+	}
+
+/*
+ *	Expand any names that have embedded metacharaters. Must be
+ *	done after dynamic dependencies because the dyndep symbols
+ *	($(*D)) may contain shell meta characters.
+ */
+	expand(p);
+
+
+
+/*
+ *	FIRST SECTION -- GO THROUGH DEPENDENCIES
+ */
+
+	if(IS_ON(DBUG))
+	{
+		blprt(reclevel);
+		printf("look for explicit deps. %d \n", reclevel);
+	}
+	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
+	{
+		td = 0;
+		for(q = lp->depp ; q!=0 ; q=q->nextdep)
+		{
+			q->depname->backname = p;
+			errstat += doname(q->depname, reclevel+1,&td1,&cochain);
+			if(IS_ON(DBUG))
+			{
+			    blprt(reclevel);
+			    printf("TIME(%s)=%ld\n", q->depname->namep, td1);
+			}
+			td = max(td1,td);
+			if(ptime < td1)
+				appendq(&qchain, q->depname->namep);
+		}
+		if(p->septype == SOMEDEPS)
+		{
+			if(lp->shp!=0)
+				if( ptime<td || (ptime==0 && td==0) || lp->depp==0)
+				{
+					okdel1 = okdel;
+					okdel = NO;
+					if( IS_OFF(QUEST) )
+					{
+						ballbat(p, reclevel);
+						if (cochain)
+							co(cochain);
+						setvar("@@",p->namep);
+						setvar("?",mkqlist(qchain));
+						errstat += docom(lp->shp);
+						setvar("@@", (char *) NULL);
+					}
+					qchain  = NULL;
+					cochain = NULL;
+					okdel = okdel1;
+					if( (ptime1 = exists(p,NULL)) == 0)
+						ptime1 = time(0);
+					didwork = YES;
+				}
+		}
+
+		else
+		{
+			if(lp->shp != 0)
+			{
+				if(explcom)
+					fprintf(stderr, "Too many command lines for `%s'\n",
+						p->namep);
+				else
+					explcom = lp->shp;
+			}
+
+			tdep = max(tdep, td);
+		}
+	}
+
+/*
+ *	SECOND SECTION -- LOOK FOR IMPLICIT DEPENDENTS
+ */
+
+	if(IS_ON(DBUG))
+	{
+		blprt(reclevel);
+		printf("look for implicit rules. %d \n", reclevel);
+	}
+	found = 0; onetime = 0;
+	if(any(p->namep, LPAREN))
+	{
+		savenamep = p->namep;
+		p->namep = copys(archmem);
+		if(IS_ON(DBUG))
+		{
+			blprt(reclevel);
+			printf("archmem = %s\n", archmem);
+		}
+		if(IS_ON(DBUG)) 
+		{
+			blprt(reclevel);
+			printf("archname = %s\n", archname);
+		}
+	}
+	else
+		savenamep = 0;
+
+
+	setimpl = 0;
+	for(lp=sufflist ; lp!=0 ; lp = lp->nextline)
+	for(suffp = lp->depp ; suffp!=0 ; suffp = suffp->nextdep)
+	{
+		pnamep = suffp->depname->namep;
+		if(suffix(p->namep , pnamep , prefix))
+		{
+			if(IS_ON(DBUG)) 
+			{
+				blprt(reclevel);
+				printf("right match = %s\n",p->namep);
+			}
+			found = 1;
+			if(savenamep)
+				pnamep = ".a";
+searchdir:
+
+			copstr(temp, prefix);
+			addstars(temp);
+			srchdir( temp , NO, NULL,YES);
+
+
+#ifdef	RCS
+			srchRCS(temp);
+#endif	RCS
+			for(lp1 = sufflist ; lp1!=0 ; lp1 = lp1->nextline)
+			for(suffp1=lp1->depp ; suffp1!=0 ; suffp1 = suffp1->nextdep)
+			{
+				p1namep = suffp1->depname->namep;
+				concat(p1namep, pnamep, concsuff);
+				if( (p1=srchname(concsuff)) == 0)
+					continue;
+				if(p1->linep == 0)
+					continue;
+				concat(prefix, p1namep, sourcename);
+				if(any(p1namep, WIGGLE))
+				{
+					sourcename[strlen(sourcename) - 1] = CNULL;
+					if(is_sccs(sourcename) == NO)
+						trysccs(sourcename);
+				}
+				if( (p2=srchname(sourcename)) == 0)
+					continue;
+				if(equal(sourcename, p->namep))
+					continue;
+/*
+ *	FOUND -- left and right match
+ */
+
+				found = 2;
+				if(IS_ON(DBUG))
+				{
+				  blprt(reclevel);
+				  printf("%s ---%s--- %s\n",
+					sourcename, concsuff, p->namep);
+				}
+				p2->backname = p;
+				errstat += doname(p2, reclevel+1,&td,&cochain);
+				if(ptime < td)
+					appendq(&qchain, p2->namep);
+				if(IS_ON(DBUG))
+				{
+					blprt(reclevel);
+					printf("TIME(%s)=%ld\n",p2->namep,td);
+				}
+				tdep = max(tdep, td);
+				setimpl++;
+				for(lp2=p1->linep ; lp2!=0 ; lp2 = lp2->nextline)
+					if(implcom = lp2->shp) break;
+				goto endloop;
+			}
+/*
+ *	quit search for single suffix rule.
+ */
+			if(onetime == 1)
+				goto endloop;
+		}
+	}
+
+endloop:
+
+
+/*
+ * look for a single suffix type rule.
+ * only possible if no explicit dependents and no shell rules
+ * are found, and nothing has been done so far. (previously, `make'
+ * would exit with 'Don't know how to make ...' message.
+ */
+	if(found == 0)
+	if(onetime == 0)
+	if(	  p->linep == 0 ||
+		( p->linep->depp == 0 && p->linep->shp == 0))
+	{
+		onetime = 1;
+		if(IS_ON(DBUG))
+		{
+			blprt(reclevel);
+			printf("Looking for Single suffix rule.\n");
+		}
+		concat(p->namep, "", prefix);
+		pnamep = "";
+		goto searchdir;
+	}
+
+	if(IS_ON(DBUG)) {
+		printf("CO(%s): %s\n",p->namep,mkqlist(cochain));
+		fflush(stdout);
+	}
+
+	if (p->RCSnamep && (explcom || implcom)) {
+		if(IS_ON(KEEPGO)) {
+			errstat++;
+			printf("%s has both an RCS file and rules\n",
+				p->namep);
+		} else
+			fatal1("%s has both an RCS file and rules",p->namep);
+	}
+
+/*
+ *	THIRD SECTION -- LOOK FOR DEFAULT CONDITION OR DO COMMAND
+ */
+	if(errstat==0 && (ptime<tdep || (ptime==0 && tdep==0) ) )
+	{
+		if (cochain)
+			co(cochain);
+
+		if (setimpl) {
+			setvar("*",prefix);
+			setvar("<",sourcename);
+		}
+
+		if(savenamep)
+		{
+			setvar("@@", archname);
+			setvar("%", archmem);
+		}
+		else
+		{
+			setvar("@@", p->namep);
+		}
+		setvar("?", mkqlist(qchain) );
+		ballbat(p, reclevel);
+		if(explcom)
+			errstat += docom(explcom);
+		else if(implcom)
+			errstat += docom(implcom);
+		else if( (p->septype != SOMEDEPS && IS_OFF(MH_DEP)) ||
+			 (p->septype == 0        && IS_ON(MH_DEP) )    )
+/*
+ *	OLD WAY OF DOING TEST is
+ *		else if(p->septype == 0)
+ *	notice above, a flag has been put in to get the murray hill version.
+ *	the flag is "-b" (for botch).
+ */
+			if(p1=srchname(".DEFAULT"))
+			{
+				if(IS_ON(DBUG))
+				{
+					blprt(reclevel);
+					printf("look for DEFAULT rule. %d \n", reclevel);
+				}
+				setvar("<", p->namep);
+				for(lp2=p1->linep ; lp2!=0 ; lp2=lp2->nextline)
+					if(implcom = lp2->shp)
+					{
+						errstat += docom(implcom);
+					}
+			}
+			else if(IS_OFF(GET) ||
+				  !get(p->namep, NOCD, 0) )
+			{
+				fatal1(" Don't know how to make %s", p->namep);
+			}
+
+		setvar("@@", 0);
+		setvar("%", 0);
+		if(IS_ON(NOEX) || (ptime = exists(p,NULL)) == 0)
+			ptime = time(0);
+	}
+
+	else if(errstat!=0 && reclevel==0)
+		printf("`%s' not remade because of errors\n", p->namep);
+
+	else if(IS_OFF(QUEST) && reclevel==0  &&  didwork==NO) {
+			printf("`%s' is up to date.\n", p->namep);
+	}
+
+	if(IS_ON(QUEST) && reclevel==0)
+		exit(ndocoms>0 ? -1 : 0);
+
+	p->done = (errstat ? 3 : 2);
+	ptime = max(ptime1, ptime);
+	p->modtime = ptime;
+	*tval = ptime;
+	setvar("<", 0);
+	setvar("*", 0);
+	return(errstat);
+}
+
+docom(q)
+SHBLOCK q;
+{
+	CHARSTAR s;
+	int status;
+	int ign, nopr;
+	char string[OUTMAX];
+
+	++ndocoms;
+	if(IS_ON(QUEST))
+		return(0);
+
+	if(IS_ON(TOUCH))
+	{
+		s = varptr("@@")->varval;
+		if(IS_OFF(SIL))
+			printf("touch(%s)\n", s);
+		if(IS_OFF(NOEX))
+			touch(s);
+	}
+
+	else {
+		for( status = 0; q!=0 ; q = q->nextsh ) {
+/*
+ *	Allow recursive makes to execute only if the NOEX flag set
+ */
+			if(sindex(q->shbp, "$(MAKE)") != -1 && IS_ON(NOEX))
+				Makecall = YES;
+			else
+				Makecall = NO;
+			subst(q->shbp,string);
+
+			ign = IS_ON(IGNERR) ? YES : NO;
+			nopr = NO;
+			for(s = string ; *s==MINUS || *s==AT ; ++s)
+				if(*s == MINUS)  ign = YES;
+				else nopr = YES;
+
+			if( docom1(s, ign, nopr) && !ign)
+				if(IS_ON(KEEPGO))
+					return(1);
+				else	fatal(0);
+		}
+	}
+	return(0);
+}
+
+
+
+docom1(comstring, nohalt, noprint)
+register CHARSTAR comstring;
+int nohalt, noprint;
+{
+	register int status;
+
+	if(comstring[0] == '\0') return(0);
+
+	if(IS_OFF(SIL) && (!noprint || IS_ON(NOEX)) )
+	{
+		CHARSTAR p1, ps;
+		CHARSTAR pmt = prompt;
+
+		ps = p1 = comstring;
+		while(1)
+		{
+			while(*p1 && *p1 != NEWLINE) p1++;
+			if(*p1)
+			{
+				*p1 = 0;
+				printf("%s%s\n", pmt, ps);
+				*p1 = NEWLINE;
+				ps = p1 + 1;
+				p1 = ps;
+			}
+			else
+			{
+				printf("%s%s\n", pmt, ps);
+				break;
+			}
+		}
+
+		fflush(stdout);
+	}
+
+	if( status = dosys(comstring, nohalt) )
+	{
+		if( status>>8 )
+			printf("*** Error code %d", status>>8 );
+		else	printf("*** Termination code %d", status );
+
+		if(nohalt) printf(" (ignored)\n");
+		else	printf("\n");
+		fflush(stdout);
+	}
+
+	return(status);
+}
+
+
+/*
+ *	If there are any Shell meta characters in the name,
+ *	search the directory, and if the search finds something
+ *	replace the dependency in "p"'s dependency chain. srchdir
+ *	produces a DEPBLOCK chain whose last member has a null
+ *	nextdep pointer or the NULL pointer if it finds nothing.
+ *	The loops below do the following: for each dep in each line
+ *	if the dep->depname has a shell metacharacter in it and
+ *	if srchdir succeeds, replace the dep with the new one
+ *	created by srchdir. The Nextdep variable is to skip over
+ *	the new stuff inserted into the chain.
+*/
+
+expand(p)
+NAMEBLOCK p;
+{
+	register DEPBLOCK db;
+	register DEPBLOCK Nextdep;
+	register CHARSTAR s;
+	register DEPBLOCK srchdb;
+	register LINEBLOCK lp;
+
+
+
+	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
+		for(db=lp->depp ; db!=0 ; db=Nextdep )
+		{
+			Nextdep = db->nextdep;
+			if(any( (s=db->depname->namep), STAR) ||
+			   any(s, QUESTN) || any(s, LSQUAR) )
+				if( srchdb = srchdir(s , YES, NULL,YES) )
+					dbreplace(p, db, srchdb);
+		}
+}
+/*
+ *	Replace the odb depblock in np's dependency list with the
+ *	dependency chain defined by ndb. This is just a linked list insert
+ *	problem. dbreplace assumes the last "nextdep" pointer in
+ *	"ndb" is null.
+ */
+dbreplace(np, odb, ndb)
+register NAMEBLOCK np;
+register DEPBLOCK odb, ndb;
+{
+	register LINEBLOCK lp;
+	register DEPBLOCK  db;
+	register DEPBLOCK  enddb;
+
+	for(enddb = ndb; enddb->nextdep; enddb = enddb->nextdep);
+
+	for(lp = np->linep; lp; lp = lp->nextline)
+		if(lp->depp == odb)
+		{
+			enddb->nextdep	= lp->depp->nextdep;
+			lp->depp	= ndb;
+			return;
+		}
+		else
+		{
+			for(db = lp->depp; db; db = db->nextdep)
+				if(db->nextdep == odb)
+				{
+					enddb->nextdep	= odb->nextdep;
+					db->nextdep	= ndb;
+					return;
+				}
+		}
+}
+
+
+#define NPREDS 50
+
+ballbat(np, reclevel)
+NAMEBLOCK np;
+{
+	static char ballb[200];
+	register CHARSTAR p;
+	register NAMEBLOCK npp;
+	register int i;
+	VARBLOCK vp;
+	int npreds=0;
+	NAMEBLOCK circles[NPREDS];
+
+
+	if( (vp=varptr("!"))->varval == 0)
+		vp->varval = ballb;
+	p = ballb;
+	p = copstr(p, varptr("<")->varval);
+	p = copstr(p, " ");
+	for(npp = np; npp; npp = npp->backname)
+	{
+		for(i = 0; i < npreds; i++)
+		{
+			if(npp == circles[i])
+			{
+				fprintf(stderr,"$! nulled, predecessor circle\n");
+				ballb[0] = CNULL;
+				return;
+			}
+		}
+		circles[npreds++] = npp;
+		if(npreds >= NPREDS)
+		{
+			fprintf(stderr, "$! nulled, too many predecessors\n");
+			ballb[0] = CNULL;
+			return;
+		}
+		p = copstr(p, npp->namep);
+		p = copstr(p, " ");
+	}
+}
+
+/*
+ *	PRINT n BLANKS WHERE n IS THE CURRENT RECURSION LEVEL.
+ */
+blprt(n)
+register int n;
+{
+	while(n--)
+		printf("   ");
+}
+@
+
+
+1.5
+log
+@Removed CO_CMD and RM_CMD since these are now done via a rule.
+@
+text
+@d8 3
+d54 1
+d76 1
+a76 2
+		printf("doname(%s,%d) co: %s\n",p->namep,
+						reclevel,mkqlist(*ochain));
+d86 2
+a87 2
+		if (IS_ON(COFLAG) && p->isrcs)
+			exists(p,ochain);
+a160 5
+					setvar("@@", p->namep);
+					if(savenamep)
+						setvar("%", archmem);
+					setvar("?", mkqlist(qchain) );
+					qchain = NULL;
+d166 2
+d169 1
+d171 1
+a172 2
+					setvar("@@", 0);
+					setvar("%", 0);
+d175 1
+a175 1
+						ptime1 = prestime();
+d224 1
+d243 1
+a243 1
+			srchdir( temp , NO, NULL);
+d245 1
+d247 1
+a247 4
+			if(RCSdir && index(prefix,'/') == NULL) {
+				sprintf(temp,"%s/%s*",RCSdir,prefix);
+				srchdir(temp, NO, NULL);
+			}
+d290 1
+a290 2
+				setvar("*", prefix);
+				setvar("<", sourcename);
+d329 1
+a329 1
+		printf("CO: %s\n",mkqlist(cochain));
+d333 1
+a333 1
+	if (p->isrcs && (explcom || implcom)) {
+d350 5
+d401 1
+a401 1
+			ptime = prestime();
+d552 1
+a552 1
+				if( srchdb = srchdir(s , YES, NULL) )
+@
+
+
+1.4
+log
+@Added fix so that makes that imply a simple check-out will work.
+Previously make gave "f.c is up to date" without doing anything.
+Now the file is checked out, but not marked for deletion. This
+involved a new argument to co().
+@
+text
+@d8 6
+a50 1
+	int isrcs;
+d79 6
+a84 2
+		if(IS_ON(COFLAG) && access(p->namep,0) < 0)
+			getrcs(p->namep, ochain);
+d95 1
+a95 1
+	ptime = exists(p,&cochain);
+d166 3
+a168 1
+						errstat += docom(lp->shp,cochain);
+a333 1
+	isrcs = 0;
+d335 8
+a342 2
+	if(IS_ON(COFLAG) && access(p->namep,0) < 0)
+		isrcs = getrcs(p->namep,ochain) != 0;
+d349 3
+d364 1
+a364 1
+			errstat += docom(explcom,cochain);
+d366 1
+a366 1
+			errstat += docom(implcom,cochain);
+d383 1
+a383 1
+				for(lp2=p1->linep ; lp2!=0 ; lp2 = lp2->nextline)
+d386 1
+a386 1
+						errstat += docom(implcom,NULL);
+a404 3
+		if(isrcs && cochain)
+			co(cochain,NO);		/* don`t mark for deletion */
+		else
+d420 1
+a420 1
+docom(q,ch)
+a421 1
+struct	chain *ch;		/* list of files to $(CO) */
+a441 3
+		if(ch)
+			co(ch,YES);
+
+@
+
+
+1.3
+log
+@Added fix from crl to prevent prepending the RCS directory string
+on implicit rules if the name contains a slash.
+@
+text
+@d8 4
+d385 6
+a390 2
+	else if(IS_OFF(QUEST) && reclevel==0  &&  didwork==NO)
+		printf("`%s' is up to date.\n", p->namep);
+d428 1
+a428 1
+			co(ch);
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d7 4
+a10 1
+ * $Log$
+d230 1
+a230 1
+			if(RCSdir) {
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 3
+d6 3
+a8 1
+#include "defs"
+d10 1
+d12 1
+d27 1
+a27 1
+doname(p, reclevel, tval)
+d31 1
+d38 1
+d47 1
+d60 2
+a61 1
+		printf("doname(%s,%d)\n",p->namep,reclevel);
+d67 3
+d74 1
+d79 1
+a79 1
+	ptime = exists(p);
+d125 1
+a125 1
+			errstat += doname(q->depname, reclevel+1, &td1);
+d150 1
+a150 1
+						errstat += docom(lp->shp);
+d152 1
+d156 1
+a156 1
+					if( (ptime1 = exists(p)) == 0)
+d225 7
+d264 1
+a264 1
+				errstat += doname(p2, reclevel+1, &td);
+d312 5
+d318 3
+d338 1
+a338 1
+			errstat += docom(explcom);
+d340 1
+a340 1
+			errstat += docom(implcom);
+d360 1
+a360 1
+						errstat += docom(implcom);
+d371 1
+a371 1
+		if(IS_ON(NOEX) || (ptime = exists(p)) == 0)
+d393 1
+a393 1
+docom(q)
+d395 1
+d415 5
+a419 2
+	else for( status = 0; q!=0 ; q = q->nextsh )
+	{
+d423 5
+a427 5
+		if(sindex(q->shbp, "$(MAKE)") != -1 && IS_ON(NOEX))
+			Makecall = YES;
+		else
+			Makecall = NO;
+		subst(q->shbp,string);
+d429 5
+a433 5
+		ign = IS_ON(IGNERR) ? YES : NO;
+		nopr = NO;
+		for(s = string ; *s==MINUS || *s==AT ; ++s)
+			if(*s == MINUS)  ign = YES;
+			else nopr = YES;
+d435 5
+a439 4
+		if( docom1(s, ign, nopr) && !ign)
+			if(IS_ON(KEEPGO))
+				return(1);
+			else	fatal(0);
+@
+dosys.c,v       438879849   702   0     100444  4123      `
+head     1.4;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.4
+date     83.11.28.10.03.27;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.07.10;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.50.24;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.12;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.4
+log
+@Installed a bug fix that came in on net.unix-wizards. The old code
+is ifdef`d out to make the intent of the routine apparent.
+@
+text
+@static	char	*rcsid =
+	"$Header: /usr/src/bin/make/RCS/dosys.c,v 1.3 83/10/06 16:07:10 tony Exp $";
+
+/*	@@(#)/usr/src/cmd/make/dosys.c	3.2	*/
+
+/*	@@(#)dosys.c	3.1	*/
+
+/*
+ * $Log:	dosys.c,v $
+ * Revision 1.3  83/10/06  16:07:10  tony
+ * Converted to use new directory routines. Call closedir
+ * instead of fclose in routine doclose.
+ * 
+ * Revision 1.2  83/10/06  10:50:24  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+# include "defs.h"
+
+extern char Makecall;
+
+
+dosys(comstring, nohalt)
+register CHARSTAR comstring;
+int nohalt;
+{
+	register CHARSTAR p;
+	register int i;
+	int status;
+
+	p = comstring;
+	while(	*p == BLANK ||
+		*p == TAB ||
+		*p == AT ||
+		*p == MINUS ||
+		*p == NULL) p++;
+
+	if(IS_ON(NOEX) && Makecall == NO)
+		return(0);
+
+	if(metas(comstring))
+		status = doshell(comstring,nohalt);
+	else
+		status = doexec(comstring);
+
+	return(status);
+}
+
+
+
+metas(s)   /* Are there are any  Shell meta-characters? */
+register CHARSTAR s;
+{
+	while(*s)
+		if( funny[*s++] & META)
+			return(YES);
+
+	return(NO);
+}
+
+doshell(comstring,nohalt)
+register CHARSTAR comstring;
+register int nohalt;
+{
+	register CHARSTAR shell;
+
+	if((waitpid = fork()) == 0)
+	{
+		enbint(0);
+		doclose();
+
+		setenv();
+		shell = varptr("SHELL")->varval;
+		if(shell == 0 || shell[0] == CNULL)
+			shell = SHELLCOM;
+		execl(shell, "sh", (nohalt ? "-c" : "-ce"), comstring, 0);
+		fatal("Couldn't load Shell");
+	}
+
+	return( await() );
+}
+
+
+
+
+await()
+{
+	int intrupt();
+	int status;
+	int pid;
+
+	enbint(intrupt);
+	while( (pid = wait(&status)) != waitpid)
+		if(pid == -1)
+			fatal("bad wait code");
+	waitpid = 0;
+	return(status);
+}
+
+
+
+
+
+
+doclose()	/* Close open directory files before exec'ing */
+{
+	register OPENDIR od;
+
+#ifdef	FOOBAR
+	for (od = firstod; od != 0; od = od->nextopendir)
+		if (od->dirfc != NULL) {
+			closedir(od->dirfc);
+			od->dirfc = NULL;
+		}
+#else
+	/* This fix comes from sdcsvax!greg via net.unix-wizards 
+	 *
+	 * We have done a vfork, so we can`t do anything to stomp on our
+	 * paren`t address space.  Unfortunately, the code above doesn`t
+	 * work since our parent`s files remain open. And we can`t just
+	 * do a closedir, since it will free a dynamically-allocated table
+	 * entry. So we use this hack, calling close directly. If the
+	 * interface ever changes, we are going to be out of luck.
+	 */
+
+	 for (od = firstod; od ;od = od->nextopendir)
+		if (od->dirfc != NULL)
+			close(od->dirfc->dd_fd);
+#endif	FOOBAR
+}
+
+
+
+
+
+doexec(str)
+register CHARSTAR str;
+{
+	register CHARSTAR t;
+	register CHARSTAR *p;
+	CHARSTAR argv[200];
+	int status;
+
+	while( *str==BLANK || *str==TAB )
+		++str;
+	if( *str == CNULL )
+		return(-1);	/* no command */
+
+	p = argv;
+	for(t = str ; *t ; )
+	{
+		*p++ = t;
+		while(*t!=BLANK && *t!=TAB && *t!=CNULL)
+			++t;
+		if(*t)
+			for( *t++ = CNULL ; *t==BLANK || *t==TAB  ; ++t);
+	}
+
+	*p = NULL;
+
+	if((waitpid = fork()) == 0)
+	{
+		enbint(0);
+		doclose();
+		setenv();
+		execvp(str, argv);
+		fatal1("Cannot load %s",str);
+	}
+
+	return( await() );
+}
+
+touch(s)
+register CHARSTAR s;
+{
+	if(junkname[0] == 0)
+		sprintf(junkname,  "MAKEJUNK%d", getpid() );
+
+	link(s, junkname);
+	unlink(junkname);
+	sleep(1);
+}
+@
+
+
+1.3
+log
+@Converted to use new directory routines. Call closedir
+instead of fclose in routine doclose.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/dosys.c,v 1.2 83/10/06 10:50:24 tony Exp $";
+d10 4
+d110 1
+d112 16
+d129 2
+a130 1
+			closedir(od->dirfc);
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d9 4
+a12 1
+ * $Log$
+d108 1
+a108 1
+			fclose(od->dirfc);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 3
+d8 5
+a12 1
+# include "defs"
+@
+
+dyndep.c,v      435872484   702   10    100664  2502      `
+head     1.2;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.2
+date     83.10.06.10.50.37;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.15;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@static	char	*rcsid =
+	"$Header$";
+
+/*
+ * $Log$
+ */
+
+/*	@@(#)/usr/src/cmd/make/dyndep.c	3.4	*/
+/*	@@(#)dyndep.c	3.3	*/
+#include "defs.h"
+/*
+ *	Dynamicdep() checks each dependency by calling runtime().
+ *	Runtime() determines if a dependent line contains "$@@"
+ *	or "$(@@F)" or "$(@@D)". If so, it makes a new dependent line
+ *	and insert it into the dependency chain of the input name, p.
+ *	Here, "$@@" gets translated to p->namep. That is
+ *	the current name on the left of the colon in the
+ *	makefile.  Thus,
+ *		xyz:	s.$@@.c
+ *	translates into
+ *		xyz:	s.xyz.c
+ *
+ *	Also, "$(@@F)" translates to the same thing without a prededing
+ *	directory path (if one exists).
+ *	Note, to enter "$@@" on a dependency line in a makefile
+ *	"$$@@" must be typed. This is because `make' expands
+ *	macros upon reading them.
+ */
+
+#define is_dyn(a)		(any( (a), DOLLAR) )
+
+
+dynamicdep(p)
+register NAMEBLOCK p;
+{
+	register LINEBLOCK lp, nlp;
+	LINEBLOCK backlp=0;
+
+	p->rundep = 1;
+
+	for(lp = p->linep; lp != 0; lp = lp->nextline)
+	{
+		if( (nlp=runtime(p, lp)) != 0)
+			if(backlp)
+				backlp->nextline = nlp;
+			else
+				p->linep = nlp;
+
+		backlp = (nlp == 0) ? lp : nlp;
+	}
+}
+
+
+LINEBLOCK runtime(p, lp)
+NAMEBLOCK p;
+register LINEBLOCK lp;
+{
+	register union
+	{
+		int u_i;
+		NAMEBLOCK u_nam;
+	} temp;
+	register DEPBLOCK q, nq;
+	LINEBLOCK nlp;
+	NAMEBLOCK pc;
+	CHARSTAR pc1;
+	char c;
+	CHARSTAR pbuf;
+	char buf[128];
+
+	temp.u_i = NO;
+	for(q = lp->depp; q != 0; q = q->nextdep)
+	{
+		if((pc=q->depname) != 0)
+		{
+			if(is_dyn(pc->namep))
+			{
+				temp.u_i = YES;
+				break;
+			}
+		}
+	}
+
+	if(temp.u_i == NO)
+	{
+		return(0);
+	}
+
+	nlp = ALLOC(lineblock);
+	nq  = ALLOC(depblock);
+
+	nlp->nextline = lp->nextline;
+	nlp->shp   = lp->shp;
+	nlp->depp  = nq;
+
+	for(q = lp->depp; q != 0; q = q->nextdep)
+	{
+		pc1 = q->depname->namep;
+		if(is_dyn(pc1))
+		{
+			subst(pc1, buf);
+			temp.u_nam = srchname(buf);
+			if(temp.u_nam == 0)
+				temp.u_nam = makename(copys(buf));
+			nq->depname = temp.u_nam;
+		}
+		else
+		{
+			nq->depname = q->depname;
+		}
+
+		if(q->nextdep == 0)
+			nq->nextdep = 0;
+		else
+			nq->nextdep = ALLOC(depblock);
+
+		nq = nq->nextdep;
+	}
+	return(nlp);
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d10 1
+a10 1
+#include "defs"
+@
+files.c,v       438879002   702   0     100444  21517     `
+head     1.12;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.12
+date     83.11.28.09.49.39;  author tony;  state Exp;
+branches ;
+next     1.11;
+
+1.11
+date     83.11.02.21.18.50;  author crl;  state Exp;
+branches ;
+next     1.10;
+
+1.10
+date     83.11.02.10.30.47;  author tony;  state Exp;
+branches ;
+next     1.9;
+
+1.9
+date     83.11.01.20.47.54;  author tony;  state Exp;
+branches ;
+next     1.8;
+
+1.8
+date     83.10.24.14.33.36;  author tony;  state Exp;
+branches ;
+next     1.7;
+
+1.7
+date     83.10.14.14.14.13;  author tony;  state Exp;
+branches ;
+next     1.6;
+
+1.6
+date     83.10.12.11.05.51;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.11.13.51.17;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.11.12.50.59;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.08.25;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.50.46;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.17;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.12
+log
+@Copied in Charlie`s newest version.
+@
+text
+@static	char	*rcsid =
+	"$Header: /src/sysv/make/RCS/files.c,v 1.14 83/11/25 14:02:18 crl Exp $";
+
+/*
+ * $Log:	/src/sysv/make/RCS/files.c,v $
+ * Revision 1.14  83/11/25  14:02:18  crl
+ * Re-installed a change I had removed--to be safe, in srchdir(), check to
+ * 	make sure dirf is non-null before rewinddir().
+ * 
+ * Revision 1.13  83/11/21  12:58:43  crl
+ * In fixing the problem mentioned below (1.12), I broke the directory search
+ * 	for implicits.  The directory was not searched the first time it
+ * 	was opened.
+ * 
+ * Revision 1.12  83/11/18  23:22:39  crl
+ * Fixed bug in srchdir():  if the RCS dir wasn't present, the dir was
+ * 	entered in the open dir chain anyways, causing the second reference
+ * 	to the directory to think it was already open.
+ * 
+ * Revision 1.11  83/11/02  21:18:50  crl
+ * Fixes bug where RCS files in . were not handled properly
+ * 
+ * Revision 1.10  83/11/02  10:30:47  tony
+ * Fixed an old bug that was aggravated by Charlie`s changes.
+ * 
+ * Revision 1.9  83/11/01  20:47:54  tony
+ * Added crl`s latest changes (11/1/83)
+ * 
+ * Revision 1.8  83/10/24  14:33:36  tony
+ * Added Charlie`s latest changes to :
+ * 	1. set isrcs inside exists().
+ * 	2. co() now uses docom() and ".CO" target.
+ * 	3. rm() now uses docom() and ".CLEANUP" target.
+ * 
+ * Revision 1.7  83/10/14  14:14:13  tony
+ * Added code to interpret '@@' and '-' characters on the CO and RM
+ * commands and call docom1 accordingly.
+ * 
+ * Revision 1.6  83/10/12  11:05:51  tony
+ * Fixed bug in srchdir that caused files in RCS subdirectories
+ * to be overlooked unless mentioned in another rule in the makefile.
+ * 
+ * Revision 1.5  83/10/11  13:51:17  tony
+ * Added a new argument to co() that tells whether or not to mark a
+ * checked out file for later deletion.
+ * 
+ * Revision 1.4  83/10/11  12:50:59  tony
+ * Changed rm() routine to use the command "$(RM) $(RMFLAGS) file"
+ * and call docom1 so that the way a file is removed is consistent
+ * with the way it is checked out.
+ * 
+ * Revision 1.3  83/10/06  16:08:25  tony
+ * Converted to use new directory routines.
+ * 
+ * Revision 1.2  83/10/06  10:50:46  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)/usr/src/cmd/make/files.c	3.4	*/
+
+#ifndef	MAXPATH
+#define	MAXPATH	1024
+#endif
+
+#include "defs.h"
+#include <sys/stat.h>
+#include <pwd.h>
+#include "ar.h"
+#include "ar11.h"
+#include <a.out.h>
+/* UNIX DEPENDENT PROCEDURES */
+
+
+
+
+TIMETYPE exists(pname,ch)
+NAMEBLOCK pname;
+struct	chain **ch;
+{
+	register CHARSTAR s;
+	struct stat buf;
+	TIMETYPE lookarch();
+	CHARSTAR filename;
+	time_t tmp;
+
+	filename = pname->namep;
+
+	if(any(filename, LPAREN))
+		return(lookarch(filename));
+
+	if(stat(filename,&buf) < 0) 
+	{
+		if(IS_ON(COFLAG) && ch)
+			return(getrcs(pname,ch));
+		s = findfl(filename);
+		if(s != (CHARSTAR )-1)
+		{
+			pname->alias = copys(s);
+			if(stat(pname->alias, &buf) == 0)
+				return(buf.st_mtime);
+		}
+		return(0);
+	}
+	else
+		return(buf.st_mtime);
+}
+
+
+FSTATIC char nbuf[MAXNAMLEN+1];
+FSTATIC CHARSTAR nbufend = &nbuf[MAXNAMLEN];
+
+
+
+DEPBLOCK srchdir(pat, mkchain, nextdbl,die)
+register CHARSTAR pat;		/* pattern to be matched in directory */
+int mkchain;			/* nonzero if results to be remembered */
+DEPBLOCK nextdbl;		/* final value for chain */
+int die;
+{
+	DIR *dirf;
+	int i, nread, cldir;
+	CHARSTAR dirname, dirpref, endir, filepat, p;
+	char temp[MAXPATH];
+	char fullname[MAXPATH];
+	CHARSTAR p1, p2;
+	NAMEBLOCK q;
+	DEPBLOCK thisdbl;
+	OPENDIR od;
+	PATTERN patp;
+	char temp2[MAXPATH],*RCSpref;
+
+	struct direct *dptr;
+
+	thisdbl = 0;
+
+	if(mkchain == NO)
+		for(patp=firstpat ; patp!=0 ; patp = patp->nextpattern)
+			if(equal(pat,patp->patval))
+				return(0);
+
+	patp = ALLOC(pattern);
+	patp->nextpattern = firstpat;
+	firstpat = patp;
+	patp->patval = copys(pat);
+
+	if((endir = rindex(pat,'/')) == NULL)
+	{
+		dirname = ".";
+		dirpref = "";
+		filepat = pat;
+	}
+	else
+	{
+		dirname = pat;
+		*endir = CNULL;
+		dirpref = concat(pat, "/", temp);
+		filepat = endir+1;
+	}
+
+	RCSpref = NULL;
+	if(IS_ON(COFLAG) && !mkchain) {
+		if(suffix(dirname,RCSdir,temp2))
+			RCSpref = temp2;
+	}
+
+	dirf = NULL;
+	cldir= NO;
+
+	for(od=firstod ; od!=0; od = od->nextopendir)
+		if(equal(dirname, od->dirn))
+		{
+			if ((dirf = od->dirfc) != NULL)
+				rewinddir(dirf); /* start over */
+			break;
+		}
+
+	if(dirf == NULL)
+	{
+		if ((dirf = opendir(dirname)) == NULL) {
+			if(die) {
+				fprintf(stderr, "Directory %s: ", dirname);
+				fatal("Cannot open");
+			}
+			if (endir)
+				*endir = '/';
+			return(NULL);
+		}
+		if(nopdir >= MAXDIR)
+			cldir = YES;
+		else {
+			++nopdir;
+			od = ALLOC(opendir);
+			od->nextopendir = firstod;
+			firstod = od;
+			od->dirfc = dirf;
+			od->dirn = copys(dirname);
+		}
+	}
+	for(dptr = readdir(dirf); dptr != NULL; dptr = readdir(dirf)) {
+		p1 = dptr->d_name;
+		p2 = nbuf;
+		while((p2<nbufend) && (*p2++ = *p1++) != CNULL)
+			;
+		if(amatch(nbuf,filepat)) {
+			concat(dirpref,nbuf,fullname);
+			if( (q=srchname(fullname)) ==0)
+				q = makename(copys(fullname));
+			if(mkchain) {
+				thisdbl = ALLOC(depblock);
+				thisdbl->nextdep = nextdbl;
+				thisdbl->depname = q;
+				nextdbl = thisdbl;
+			}
+	/* if RCSpref is non-null, it is the dirpref
+	 * without the "RCS/". This, along with RCS_SUF
+	 * is stripped so implicit rules can find the
+	 * corresponding files.
+	 */
+
+			if(!suffix(nbuf,RCSsuf,nbuf)) 
+				continue;
+			if (RCSpref)
+				p1 = ncat(fullname,RCSpref,-1);
+			else
+				p1 = fullname;
+			ncat(p1,nbuf,-1);
+
+			if(srchname(fullname) == NULL)
+				makename(copys(fullname));
+		}
+	}
+
+	if(endir != 0)
+		*endir = SLASH;
+
+	if(cldir) {
+		closedir(dirf);
+		dirf = NULL;
+	}
+
+	return(thisdbl);
+}
+
+/* stolen from glob through find */
+
+amatch(s, p)
+CHARSTAR s, p;
+{
+	register int cc, scc, k;
+	int c, lc;
+
+	scc = *s;
+	lc = 077777;
+	switch (c = *p)
+	{
+
+	case LSQUAR:
+		k = 0;
+		while (cc = *++p)
+		{
+			switch (cc)
+			{
+
+			case RSQUAR:
+				if (k)
+					return(amatch(++s, ++p));
+				else
+					return(0);
+
+			case MINUS:
+				k |= lc <= scc & scc <= (cc=p[1]);
+			}
+			if(scc==(lc=cc))
+				k++;
+		}
+		return(0);
+
+	case QUESTN:
+	caseq:
+		if(scc)
+			return(amatch(++s, ++p));
+		return(0);
+	case STAR:
+		return(umatch(s, ++p));
+	case 0:
+		return(!scc);
+	}
+	if(c==scc)
+		goto caseq;
+	return(0);
+}
+
+umatch(s, p)
+register CHARSTAR s, p;
+{
+	if(*p==0)
+		return(1);
+	while(*s)
+		if(amatch(s++,p))
+			return(1);
+	return(0);
+}
+
+#ifdef METERFILE
+int meteron 0;	/* default: metering off */
+
+meter(file)
+CHARSTAR file;
+{
+	TIMETYPE tvec;
+	CHARSTAR p, ctime();
+	FILE * mout;
+	struct passwd *pwd, *getpwuid();
+
+	if(file==0 || meteron==0)
+		return;
+
+	pwd = getpwuid(getuid());
+
+	time(&tvec);
+
+	if( (mout=fopen(file,"a")) != NULL )
+	{
+		p = ctime(&tvec);
+		p[16] = CNULL;
+		fprintf(mout,"User %s, %s\n",pwd->pw_name,p+4);
+		fclose(mout);
+	}
+}
+#endif
+
+
+/* look inside archives for notations a(b) and a((b))
+	a(b)	is file member   b   in archive a
+	a((b))	is entry point  _b  in object archive a
+*/
+
+static struct ar_hdr   arhead;
+static struct ar_hdr11 arhead11;
+
+static long arflen;
+static long arfdate;
+static char arfname[16];
+
+char archmem[16];
+char archname[64];		/* name of archive library */
+int  ascarch;			/* flag indicating ascii archive format	*/
+
+FILE *arfd;
+long int arpos, arlen;
+
+static struct exec objhead;
+
+static struct nlist objentry;
+
+
+TIMETYPE lookarch(filename)
+register CHARSTAR filename;
+{
+	register int i;
+	CHARSTAR p, q, send;
+	char s[15];
+	int nc, nsym, objarch;
+
+	for(p = filename; *p!= LPAREN ; ++p);
+	q = p++;
+
+	if(*p == LPAREN)
+	{
+		objarch = YES;
+		nc = 8;
+		++p;
+	}
+	else
+	{
+		objarch = NO;
+		nc = 14;
+		for(i = 0; i < 14; i++)
+		{
+			if(p[i] == RPAREN)
+			{
+				i--;
+				break;
+			}
+			archmem[i] = p[i];
+		}
+		archmem[++i] = 0;
+	}
+	*q = CNULL;
+	copstr(archname, filename);
+	i = openarch(filename);
+	*q = LPAREN;
+	if(i == -1)
+		return(0);
+	send = s + nc;
+
+	for( q = s ; q<send && *p!=CNULL && *p!=RPAREN ; *q++ = *p++ );
+
+	while(q < send)
+		*q++ = CNULL;
+	while(getarch())
+	{
+		if(objarch)
+		{
+			getobj();
+			nsym = objhead.a_syms / sizeof(objentry);
+			for(i = 0; i<nsym ; ++i)
+			{
+				fread(&objentry, sizeof(objentry),1,arfd);
+				if( (objentry.n_type & N_EXT)
+				   && ((objentry.n_type & ~N_EXT) || objentry.n_value)
+#ifdef	BSD
+				   && eqstr(objentry.n_un.n_name,s,nc))
+#else
+				   && eqstr(objentry.n_name,s,nc))
+#endif
+				{
+					for(i = 0; i < 14; i++)
+						archmem[i] = arfname[i];
+					archmem[++i] = 0;
+	out:
+					clarch();
+					return(arfdate);
+				}
+			}
+		}
+
+		else if( eqstr(arfname, s, nc))
+			goto out;
+	}
+
+	clarch();
+	return( 0L);
+}
+
+
+clarch()
+{
+	fclose( arfd );
+}
+
+
+
+openarch(f)
+register CHARSTAR f;
+{
+	char magic[SARMAG];
+	int word = 0;
+	struct stat buf;
+
+	if(stat(f, &buf) == -1)
+		return(-1);
+	arlen = buf.st_size;
+
+	arfd = fopen(f, "r");
+	if(arfd == NULL)
+		return(-1);
+	fread(&word, sizeof(word), 1, arfd);
+	if(word == ARMAG11) {
+		arpos = sizeof(word);
+		ascarch = 0;
+		arflen = 0;
+		return(0);
+	}
+	fseek(arfd, 0L, 0);
+	fread(magic, SARMAG, 1, arfd);
+	if( eqstr(magic, ARMAG, SARMAG) ) {
+		arpos = SARMAG;
+		ascarch = 1;
+		arflen = 0;
+		return(0);
+	}
+	fatal1("%s is not an archive", f);
+}
+
+
+
+getarch()
+{
+	char	*s;
+	long atol();
+	arpos += (arflen +1) & ~1L; /* round archived file length up to even */
+	if(arpos >= arlen)
+		return(0);
+	fseek(arfd, arpos, 0);
+	if (ascarch) {
+		fread(&arhead, sizeof(arhead), 1, arfd);
+		arpos += sizeof(arhead);
+		strncpy(arfname,arhead.ar_name,sizeof(arhead.ar_name));
+		arflen = atol(arhead.ar_size);
+		arfdate = atol(arhead.ar_date);
+		for (s=arfname+sizeof(arhead.ar_name)-1;*s == ' ';s--)
+			*s = CNULL;
+	}
+	else {
+		fread(&arhead11, sizeof(arhead11), 1, arfd);
+		arpos += sizeof(arhead11);
+		strncpy(arfname,arhead11.ar11_name,sizeof(arhead11.ar11_name));
+		arflen = arhead11.ar11_size;
+		arfdate = arhead11.ar11_date;
+	}
+	return(1);
+}
+
+
+getobj()
+{
+	long int skip;
+
+	fread(&objhead, sizeof(objhead), 1, arfd);
+#ifdef	N_BADMAG
+	if( N_BADMAG(objhead) )
+#else
+	if( objhead.a_magic != A_MAGIC1 &&
+	    objhead.a_magic != A_MAGIC2 &&
+	    objhead.a_magic != A_MAGIC3 )
+#endif
+			fatal1("%s is not an object module", arfname);
+	skip = objhead.a_text + objhead.a_data;
+#ifdef vax
+	skip += objhead.a_trsize + objhead.a_drsize;
+#else
+	if(! objhead.a_flag )
+		skip *= 2;
+#endif
+	fseek(arfd, skip, 1);
+}
+
+
+eqstr(a,b,n)
+register CHARSTAR a, b;
+register int n;
+{
+	register int i;
+	for(i = 0 ; i < n ; ++i)
+		if(*a++ != *b++)
+			return(NO);
+	return(YES);
+}
+
+/*
+ * Try to find an RCS file corresponding to 'filename', and return
+ *	the modified time of the RCS file.
+ * If ch is non-null, then append it on the chain for later check-out
+ */
+time_t
+getrcs(p, ch)
+register struct nameblock *p;
+struct chain **ch;
+{
+	struct stat sbuf;
+	char temp[MAXPATH];
+	register char *tail;
+	register char *s;
+	int headlen;
+	struct	chain	*appendq();
+
+	if ((tail = rindex(p->namep,'/')) == NULL) {
+		headlen = 0;
+		tail = p->namep;
+	} else
+		headlen = ++tail - p->namep;
+	s = ncat(temp,p->namep,headlen);
+	s = ncat(s,RCSdir,-1);
+	*s++ = '/';
+	s = ncat(s,tail,-1);
+	ncat(s,RCSsuf,-1);
+	if(stat(temp,&sbuf) < 0) {
+		concat(p->namep,RCSsuf,temp);
+		if(stat(temp,&sbuf) < 0)
+			return(0);
+	}
+	p->RCSnamep = copys(temp);
+	if (ch)
+		*ch = appendq(*ch, p->namep);
+	return(sbuf.st_mtime);
+}
+
+/*
+ * Try to check-out the files specified in ch, if they do not
+ *	already exist.  If rmflag is true, mark successful attempts
+ *	for automatic deletion.
+ * Try to make the modified time of the file the same as that of the
+ *	RCS file.
+ */
+co(ch)
+register struct chain *ch;
+{
+	register struct nameblock *p;
+	register char *file;
+	char	*RCSfile;
+	struct	stat	sbuf;
+	int	i;
+	time_t tm[2];
+
+	for ( ; ch; ch = ch->nextchain) {
+	if ((file=ch->datap) == NULL || (p=srchname(file)) == NULL)
+			continue;
+		if (stat(file, &sbuf) == 0)
+			continue;		/* don't do it again */
+
+		RCSfile = p->RCSnamep;
+		p->RCSnamep = NULL;
+		setvar("@@",file);
+		setvar("<",RCSfile);
+		i = docom(co_cmd);
+		setvar("@@",NULL);	/* so it doesn`t get deleted */
+		if(i)
+			continue;	/* docom() failed */
+		/*
+		 * since we succeeded, mark it for later deletion
+		 */
+		if (IS_ON(RMFLAG) && !isprecious(file))
+			rmchain = appendq(rmchain, file);
+		/*
+		 * try to set modified time on file
+		 */
+		 if(stat(RCSfile,&sbuf) == 0) {
+			tm[0] = time(0);
+			tm[1] = sbuf.st_mtime;
+			utime(file, tm);
+		}
+	}
+}
+
+/*
+ * delete the files listed in rmchain
+ */
+
+rm()
+{
+	register struct chain *q;
+	struct nameblock *p;
+	register struct lineblock *lp;
+	register struct shblock *sp;
+	static int once = 0;
+	
+	if (once || (q = rmchain) == NULL)  /* only if we should */
+		return;
+
+	once = 1;
+	if ((p = srchname(".CLEANUP")) == NULL)
+		return;
+	sp = NULL;
+	for (lp = p->linep; lp ;lp=lp->nextline)
+		if (sp = lp->shp)
+			break;
+	if (sp == NULL)			/* no or NULL .CLEANUP */
+		return;
+	setvar("?",mkqlist(q));
+	docom(sp);
+}
+
+/*
+ * Do the srchdir for RCS files. For a pattern a/b, it searches
+ * a/RCS/b, without generating an error it it doesn`t exist.
+ */
+srchRCS(pat)
+register char *pat;
+{
+	char	temp[MAXPATH];
+	int	headlen;
+	register char *tail, *s;
+
+	if((tail = rindex(pat,'/')) == NULL) {
+					/* quick search for "." */
+		if(dotRCS) {
+			s = ncat(temp,RCSdir,-1);
+			*s++ = '/';
+			ncat(s,pat,-1);
+			srchdir(temp,NO,NULL,NO);
+		}
+		return;
+	} else
+		tail++;
+	headlen = tail - pat;
+	s = ncat(temp,pat,headlen);
+	s = ncat(s,RCSdir,-1);
+	*s++ = '/';
+	ncat(s,tail,-1);
+	srchdir(temp,NO,NULL,NO);
+}
+@
+
+
+1.11
+log
+@More fixes from Charlie....
+@
+text
+@d2 1
+a2 1
+	"$Header: /src/bin/make5/RCS/files.c,v 1.11 83/11/02 21:18:50 crl Exp $";
+d5 15
+a19 1
+ * $Log:	/src/bin/make5/RCS/files.c,v $
+d173 1
+a173 2
+			dirf = od->dirfc;
+			if(dirf != NULL)
+d180 9
+a188 1
+		dirf = opendir(dirname);
+d200 1
+a200 13
+
+	if(dirf == NULL)
+	{
+		if(die) {
+			fprintf(stderr, "Directory %s: ", dirname);
+			fatal("Cannot open");
+		}
+		if (endir)
+			*endir = '/';
+		return(NULL);
+	}
+
+	else for(dptr=readdir(dirf); dptr != NULL ;dptr=readdir(dirf)) {
+@
+
+
+1.10
+log
+@Fixed an old bug that was aggravated by Charlie`s changes.
+@
+text
+@d2 1
+a2 1
+	"$Header: /r/tony/make/new/RCS/files.c,v 1.9 83/11/01 20:47:54 tony Exp $";
+d5 7
+a11 1
+ * $Log:	files.c,v $
+d212 1
+a212 1
+			if(RCSpref == NULL) {
+d214 4
+a217 7
+			}
+			if(!suffix(nbuf,RCSsuf,nbuf)) {
+				continue;
+			}
+			p1 = ncat(fullname,RCSpref,-1);
+			if(*RCSpref)
+				*p1++ = '/';
+@
+
+
+1.9
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@d2 1
+a2 1
+	"$Header: /r/tony/make/new/RCS/files.c,v 1.8 83/10/24 14:33:36 tony Exp $";
+d6 3
+a114 1
+
+d135 1
+a138 1
+		dirname = temp;
+d206 1
+a206 1
+			if(RCSpref == NULL)
+d208 2
+a209 1
+			if(!suffix(nbuf,RCSsuf,nbuf))
+d211 1
+d216 1
+@
+
+
+1.8
+log
+@Added Charlie`s latest changes to :
+	1. set isrcs inside exists().
+	2. co() now uses docom() and ".CO" target.
+	3. rm() now uses docom() and ".CLEANUP" target.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.7 83/10/14 14:14:13 tony Exp $";
+d6 6
+d39 4
+d71 2
+a72 5
+		if(IS_ON(COFLAG) && ch) {
+			if (tmp = getrcs(pname->namep, ch))
+				pname->isrcs = 1;
+			return(tmp);
+		}
+a84 9
+
+
+TIMETYPE prestime()
+{
+	TIMETYPE t;
+	time(&t);
+	return(t);
+}
+
+d92 1
+a92 1
+DEPBLOCK srchdir(pat, mkchain, nextdbl)
+d96 1
+d101 2
+a102 2
+	char temp[100];
+	char fullname[100];
+d108 1
+d125 1
+a125 7
+	endir = 0;
+
+	for(p=pat; *p!=CNULL; ++p)
+		if(*p==SLASH)
+			endir = p;
+
+	if(endir==0)
+d139 6
+d174 7
+a180 2
+		fprintf(stderr, "Directory %s: ", dirname);
+		fatal("Cannot open");
+d198 5
+d204 1
+a204 1
+			if(IS_OFF(COFLAG) || mkchain)
+d206 1
+a206 5
+			if(RCSdir&&strncmp(dirname,RCSdir,strlen(RCSdir))==0)
+				p=fullname+strlen(RCSdir)+1;
+			else if(strcmp(dirname,".")==0)
+				p = fullname;
+			else
+d208 6
+a213 4
+			if(!suffix(p,RCS_SUF,p))
+				continue;
+			if((q=srchname(p))==NULL)
+				makename(copys(p));
+d531 2
+a532 2
+getrcs(filename, ch)
+register char *filename;
+a534 1
+	register char *p, *q;
+d536 4
+a539 1
+	char temp[512];
+d542 14
+a555 6
+	p = temp;
+	if (q = RCSdir) {
+		while (*p++ = *q++)
+			;
+		*--p = '/';
+		p++;
+d557 1
+a557 9
+	q = filename;
+	while (*p++ = *q++)
+		;
+	q = RCS_SUF;
+	p--;
+	while (*p++ = *q++)
+		;
+	if (stat(temp, &sbuf) < 0)
+		return(0);
+d559 1
+a559 1
+		*ch = appendq(*ch, filename);
+d573 1
+a573 1
+	struct nameblock *p;
+d575 3
+a578 1
+	int	ign,nopr;
+d581 1
+a581 4
+		file = ch->datap;
+		if ((p = srchname(file)))
+			p->isrcs = 0;
+		else				/* shouldn`t happen */
+d583 1
+a583 1
+		if (access(file, 0) == 0)
+d586 8
+a593 3
+		setvar("<", file);
+		if (docom(co_cmd))
+			continue;		/* failed */
+d602 3
+a604 2
+		if (tm[1] = getrcs(file, NULL)) {
+			tm[2] = time(0);
+d636 30
+@
+
+
+1.7
+log
+@Added code to interpret '@@' and '-' characters on the CO and RM
+commands and call docom1 accordingly.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.6 83/10/12 11:05:51 tony Exp $";
+d6 4
+d52 1
+d61 5
+a65 2
+		if(IS_ON(COFLAG) && ch)
+			return(getrcs(filename,ch));
+d205 1
+a205 1
+				q=makename(copys(p));
+d524 1
+a524 1
+char *filename;
+d560 1
+a560 1
+co(ch,markit)
+a561 1
+int	markit;
+d563 1
+a563 1
+	char str[OUTMAX];
+a566 2
+	register char *p;
+	
+d570 4
+d575 1
+a575 2
+			continue;	/* don't do it again */
+		strcpy(subst(CO_CMD, str), file); 	/* append filename */
+d577 3
+a579 9
+		ign = nopr = NO;
+		for(p = str; *p==MINUS || *p==AT ;p++)
+			if(*p == MINUS)
+				ign = YES;
+			else
+				nopr = YES;
+
+		if (docom1(str, ign, nopr))
+			continue;	/* failed */
+d583 1
+a583 1
+		if (IS_ON(RMFLAG) && markit)
+d602 4
+a605 3
+	register char *p;
+	char	str[OUTMAX];
+	int	ign,nopr;
+d607 1
+a607 1
+	if ((q = rmchain) == NULL)  /* only if we should */
+a608 9
+	for ( ; q; q = q->nextchain) {
+		p = q->datap;
+		if (isprecious(p))
+			continue;
+		if (IS_ON(DBUG)) {
+			printf("unlinking %s\n", p);
+			fflush(stdout);
+		}
+		strcpy(subst(RM_CMD,str),p);
+d610 11
+a620 9
+		ign = nopr = NO;
+		for(p = str; *p==MINUS || *p==AT ;p++)
+			if(*p == MINUS)
+				ign = YES;
+			else
+				nopr = YES;
+
+		docom1(p, ign, nopr);
+	}
+@
+
+
+1.6
+log
+@Fixed bug in srchdir that caused files in RCS subdirectories
+to be overlooked unless mentioned in another rule in the makefile.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.5 83/10/11 13:51:17 tony Exp $";
+d6 4
+d559 2
+d568 9
+a576 1
+		if (docom1(str, 1, 0))
+d602 1
+d615 9
+a623 1
+		docom1(str,1,0);
+@
+
+
+1.5
+log
+@Added a new argument to co() that tells whether or not to mark a
+checked out file for later deletion.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.4 83/10/11 12:50:59 tony Exp $";
+d6 4
+d184 1
+a184 1
+			if(RCSdir&&strcmp(dirname,RCSdir)==0)
+@
+
+
+1.4
+log
+@Changed rm() routine to use the command "$(RM) $(RMFLAGS) file"
+and call docom1 so that the way a file is removed is consistent
+with the way it is checked out.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.3 83/10/06 16:08:25 tony Exp $";
+d6 5
+d544 1
+a544 1
+co(ch)
+d546 1
+d563 1
+a563 1
+		if (IS_ON(RMFLAG))
+@
+
+
+1.3
+log
+@Converted to use new directory routines.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/files.c,v 1.2 83/10/06 10:50:46 tony Exp $";
+d6 3
+d577 1
+d589 2
+a590 1
+		unlink(p);
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d5 4
+a8 1
+ * $Log$
+a13 1
+#include <sys/types.h>
+a14 1
+#include <sys/dir.h>
+d65 2
+a66 2
+FSTATIC char n15[15];
+FSTATIC CHARSTAR n15end = &n15[14];
+d75 2
+a76 2
+	FILE * dirf;
+	int i, nread;
+d86 1
+a86 1
+	struct direct entry[32];
+d122 1
+d128 2
+a129 1
+			fseek(dirf,0L,0); /* start over at the beginning  */
+d135 11
+a145 6
+		dirf = fopen(dirname, "r");
+		od = ALLOC(opendir);
+		od->nextopendir = firstod;
+		firstod = od;
+		od->dirfc = dirf;
+		od->dirn = copys(dirname);
+d154 15
+a168 22
+	else	do
+		{
+			nread = fread(entry,sizeof(entry[0]),32,dirf) ;
+			for(i=0; i<nread; ++i)
+				if(entry[i].d_ino!= 0)
+				{
+					p1 = entry[i].d_name;
+					p2 = n15;
+					while( (p2<n15end) &&
+					  (*p2++ = *p1++)!=CNULL );
+					if( amatch(n15,filepat) )
+					{
+						concat(dirpref,n15,fullname);
+						if( (q=srchname(fullname)) ==0)
+							q = makename(copys(fullname));
+						if(mkchain)
+						{
+							thisdbl = ALLOC(depblock);
+							thisdbl->nextdep = nextdbl;
+							thisdbl->depname = q;
+							nextdbl = thisdbl;
+						}
+d170 14
+a183 15
+						if(IS_OFF(COFLAG) || mkchain)
+							continue;
+						if(RCSdir&&strcmp(dirname,RCSdir)==0)
+							p=fullname+strlen(RCSdir)+1;
+						else if(strcmp(dirname,".")==0)
+							p = fullname;
+						else
+							continue;
+						if(!suffix(p,RCS_SUF,p))
+							continue;
+						if((q=srchname(p))==NULL)
+							q=makename(copys(p));
+					}
+				}
+		} while(nread==32);
+d187 5
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d10 1
+a10 1
+#include "defs"
+d23 1
+a23 1
+TIMETYPE exists(pname)
+d25 1
+d39 2
+d168 13
+d488 14
+d503 80
+@
+
+gram.y,v        435872504   702   10    100664  9617      `
+head     1.3;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.3
+date     83.10.14.09.02.22;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.11.02.57;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.40.08;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@Makefile grammar
+@
+
+
+1.3
+log
+@Fixed a bug that produced a syntax error on blank lines following
+a comment inside a shell list. The problem was in nextlin().
+@
+text
+@%{
+static	char	*rcsid =
+	"$Header: /o/tony/make/new/RCS/gram.y,v 1.2 83/10/06 11:02:57 tony Exp $";
+%}
+
+/*
+ * $Log:	gram.y,v $
+ * Revision 1.2  83/10/06  11:02:57  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)gram.y	3.6	*/
+%{#include "defs.h"
+%}
+
+%term NAME SHELLINE START COLON DOUBLECOLON EQUAL A_STRING VERSION
+
+%union
+	{
+	SHBLOCK yshblock;
+	DEPBLOCK ydepblock;
+	NAMEBLOCK ynameblock;
+	CHARSTAR ycharstring;
+	}
+
+%type	<yshblock>	SHELLINE, shlist, shellist
+%type	<ynameblock>	NAME, namelist, name
+%type	<ydepblock>	deplist, dlist
+%type	<ycharstring>	A_STRING
+
+
+%%
+
+%{
+DEPBLOCK pp;
+FSTATIC SHBLOCK prevshp;
+
+FSTATIC NAMEBLOCK lefts[NLEFTS];
+NAMEBLOCK leftp;
+FSTATIC int nlefts;
+
+LINEBLOCK lp, lpp;
+FSTATIC DEPBLOCK prevdep;
+FSTATIC int sepc;
+%}
+
+
+file:
+	| file comline
+	;
+
+comline:  START
+	| START macrodef
+	| START namelist deplist shellist = {
+	    if(mainname == NULL && IS_OFF(INTRULE))
+		if(lefts[0]->namep[0] != DOT || any(lefts[0]->namep, SLASH) )
+			mainname = lefts[0];
+	    while( --nlefts >= 0)
+	    {
+		leftp = lefts[nlefts];
+		if(leftp->septype == 0)
+			leftp->septype = sepc;
+		else if(leftp->septype != sepc)
+			fprintf(stderr, "Inconsistent rules lines for `%s'\n",
+				leftp->namep);
+		else if(sepc==ALLDEPS && *(leftp->namep)!=DOT && $4!=0)
+		{
+			for(lp=leftp->linep; lp->nextline!=0; lp=lp->nextline)
+			    if(lp->shp)
+				fprintf(stderr, "Multiple rules lines for `%s'\n",
+				    leftp->namep);
+		}
+
+		lp = ALLOC(lineblock);
+		lp->nextline = 0;
+		lp->depp = $3;
+		lp->shp = $4;
+
+		if(equal(leftp->namep, ".SUFFIXES") && $3==0)
+			leftp->linep = 0;
+		else if(leftp->linep == 0)
+			leftp->linep = lp;
+		else
+		{
+			for(lpp = leftp->linep; lpp->nextline!=0;
+				lpp = lpp->nextline) ;
+				if(sepc==ALLDEPS && leftp->namep[0]==DOT)
+					lpp->shp = 0;
+			lpp->nextline = lp;
+		}
+	    }
+	}
+	| error
+	;
+
+macrodef:	NAME EQUAL A_STRING =
+	{
+		setvar($1, $3);
+	}
+	;
+
+namelist: name	= { lefts[0] = $1; nlefts = 1; }
+	| namelist name	= { lefts[nlefts++] = $2;
+	    	if(nlefts>NLEFTS) fatal("Too many lefts"); }
+	;
+
+name:	NAME =
+	{
+	if(($$ = srchname($1)) == 0)
+		$$ = makename($1);
+	}
+	| NAME VERSION = 
+	{
+	if(($$ = srchname($1)) == 0)
+		$$ = makename($1);
+	}
+	;
+
+deplist:	= { fatal1("Must be a separator on rules line %d", yylineno); }
+	| dlist
+	;
+
+dlist:  sepchar	= { prevdep = 0;  $$ = 0; }
+	| dlist name	= {
+			  pp = ALLOC(depblock);
+			  pp->nextdep = 0;
+			  pp->depname = $2;
+			  if(prevdep == 0) $$ = pp;
+			  else  prevdep->nextdep = pp;
+			  prevdep = pp;
+			  }
+	;
+
+sepchar:  COLON 	= { sepc = ALLDEPS; }
+	| DOUBLECOLON	= { sepc = SOMEDEPS; }
+	;
+
+shellist:	= {$$ = 0; }
+	| shlist = { $$ = $1; }
+	;
+
+shlist:	SHELLINE   = { $$ = $1;  prevshp = $1; }
+	| shlist SHELLINE = { $$ = $1;
+			prevshp->nextsh = $2;
+			prevshp = $2;
+			}
+	;
+
+
+%%
+
+/*	@@(#)lex.c	3.1	*/
+
+#include "ctype.h"
+CHARSTAR zznextc;	/* zero if need another line; otherwise points to next char */
+int yylineno;
+static char inmacro = NO;
+
+yylex()
+{
+	register CHARSTAR p;
+	register CHARSTAR q;
+	static char word[128];
+	CHARSTAR pword;
+
+	pword = word;
+	if(zznextc == 0)
+		return( nextlin() );
+
+	while( isspace(*zznextc) )
+		++zznextc;
+
+	if(inmacro == YES)
+	{
+		inmacro = NO;
+		yylval.ycharstring = copys(zznextc);
+		zznextc = 0;
+		return(A_STRING);
+	}
+
+	if(*zznextc == CNULL)
+		return( nextlin() );
+
+	if(*zznextc == KOLON)
+	{
+		if(*++zznextc == KOLON)
+		{
+			++zznextc;
+			return(DOUBLECOLON);
+		}
+		else
+			return(COLON);
+	}
+
+	if(*zznextc == EQUALS)
+	{
+		inmacro = YES;
+		++zznextc;
+		return(EQUAL);
+	}
+
+	if(*zznextc == SKOLON)
+		return( retsh(zznextc) );
+
+	p = zznextc;
+	q = word;
+
+	while( ! ( funny[*p] & TERMINAL) )
+		*q++ = *p++;
+
+	if(p != zznextc)
+	{
+		*q = CNULL;
+		yylval.ycharstring = copys(pword);
+		if(*p == RCURLY)
+		{
+			zznextc = p+1;
+			return(VERSION);
+		}
+		if(*p == LCURLY)
+			p++;
+		zznextc = p;
+		return(NAME);
+		}
+
+	else
+	{
+		fprintf(stderr,"Bad character %c (octal %o), line %d",
+			*zznextc,*zznextc,yylineno);
+		fatal(Nullstr);
+	}
+	return(0);	/* never executed */
+}
+
+
+retsh(q)
+register CHARSTAR q;
+{
+	register CHARSTAR p;
+	register int c;
+	extern CHARSTAR *linesptr;
+	SHBLOCK sp;
+
+	for(p=q+1 ; *p==BLANK||*p==TAB ; ++p)  ;
+
+	sp = ALLOC(shblock);
+	sp->nextsh = 0;
+	sp->shbp = (fin == NULL ? p : copys(p) );
+	yylval.yshblock = sp;
+	zznextc = 0;
+/*
+ *	The following if-else "thing" eats up newlines within
+ *	shell blocks.
+ */
+	if(fin == NULL)
+	{
+		if(linesptr[0])
+			while(linesptr[1] && equal(linesptr[1], "\n"))
+			{
+				yylineno++;
+				linesptr++;
+			}
+	}
+	else
+	{
+		while((c = GETC()) == NEWLINE)
+			yylineno++;
+		if(c != EOF)
+			ungetc(c, fin);
+	}
+	return(SHELLINE);
+}
+
+nextlin()
+{
+	register char c;
+	register CHARSTAR p, t;
+	static char yytext[INMAX];
+	static CHARSTAR yytextl = yytext+INMAX;
+	CHARSTAR text;
+	char templin[INMAX];
+	char lastch;
+	CHARSTAR lastchp;
+	extern CHARSTAR *linesptr;
+	int incom;
+	int kc;
+	int nflg;
+	int poundflg;
+
+again:
+	incom = 0;
+	zznextc = 0;
+	poundflg = 0;
+
+	if(fin == NULL)
+	{
+		if( (text = *linesptr++) == 0)
+			return(0);
+		++yylineno;
+		copstr(yytext, text);
+	}
+
+	else
+	{
+		yytext[0] = CNULL;
+		for(p=yytext ; ; ++p)
+		{
+			if(p > yytextl)
+				fatal("line too long");
+			kc = GETC();
+			if(kc == EOF)
+			{
+				*p = CNULL;
+				return(0);
+			}
+			else if(kc == SKOLON)
+				++incom;
+			else if (kc == TAB && p == yytext)
+				++incom;
+			else if (kc==POUND && !incom && yytext[0] != TAB)
+			{
+				poundflg++;
+				kc = CNULL;
+			}
+			else if (kc == NEWLINE)
+			{
+				++yylineno;
+				if(p==yytext)
+					goto again;
+				if(p[-1]!=BACKSLASH)
+					break;
+				if(incom || yytext[0] == TAB)
+					*p++ = NEWLINE;
+				else
+					p[-1] = BLANK;
+				nflg = YES;
+				while( kc = GETC())
+				{
+					if(kc != TAB && kc != BLANK && kc != NEWLINE)
+						break;
+					if(incom || yytext[0] == TAB)
+					{
+						if(nflg == YES && kc == TAB)
+						{
+							nflg = NO;
+							continue;
+						}
+						if(kc == NEWLINE)
+						{
+							nflg = YES;
+						}
+
+						*p++ = kc;
+					}
+					if(kc == NEWLINE)
+						++yylineno;
+				}
+
+				if(kc == EOF)
+				{
+					*p = CNULL;
+					return(0);
+				}
+			}
+			*p = kc;
+		}
+		*p = CNULL;
+		text = yytext;
+	}
+
+	c = text[0];
+
+	if(c == TAB)  
+		return( retsh(text) );
+
+/*
+ *	DO include FILES HERE.
+ */
+	if(sindex(text, "include") == 0 && (text[7] == BLANK || text[7] == TAB))
+	{
+		CHARSTAR pfile;
+
+		for(p = &text[8]; *p != CNULL; p++)
+			if(*p != TAB ||
+			   *p != BLANK)
+				break;
+		pfile = p;
+		for(;	*p != CNULL	&&
+			*p != NEWLINE	&&
+			*p != TAB	&&
+			*p != BLANK; p++);
+		if(*p != CNULL)
+			*p = CNULL;
+
+/*
+ *	Start using new file.
+ */
+		fstack(pfile, &fin, &yylineno);
+		goto again;
+	}
+	if(isalpha(c) || isdigit(c) || c==BLANK || c==DOT)
+		for(p=text+1; *p!=CNULL; p++)
+			if(*p == KOLON || *p == EQUALS)
+				break;
+
+/* substtitute for macros on dependency line up to the semicolon if any */
+	if(*p != EQUALS)
+	{
+		for(t = yytext ; *t!=CNULL && *t!=SKOLON ; ++t);
+
+		lastchp = t;
+		lastch = *t;
+		*t = CNULL;
+
+		subst(yytext, templin);	/* Substitute for macros on dep lines */
+
+		if(lastch)
+		{
+			for(t = templin ; *t ; ++t);
+			*t = lastch;
+			while( *++t = *++lastchp ) ;
+		}
+
+		p = templin;
+		t = yytext;
+		while( *t++ = *p++ );
+	}
+
+	if(poundflg == 0 || yytext[0] != CNULL)
+	{
+		zznextc = text;
+		return(START);
+	}
+	else
+		goto again;
+}
+
+#include "stdio.h"
+
+/*
+ *	GETC automatically unravels stacked include files. That is,
+ *	during include file processing, when a new file is encountered
+ *	fstack will stack the FILE pointer argument. Subsequent
+ *	calls to GETC with the new FILE pointer will get characters
+ *	from the new file. When an EOF is encountered, GETC will
+ *	check to see if the file pointer has been stacked. If so,
+ *	a character from the previous file will be returned.
+ *	The external references are "GETC()" and "fstack(fname,stream,lno)".
+ *	"Fstack(stfname,ream,lno)" is used to stack an old file pointer before
+ *	the new file is assigned to the same variable. Also stacked are the
+ *	file name and the old current lineno, generally, yylineno.
+ */
+
+
+
+static int morefiles;
+static struct sfiles
+{
+	char sfname[64];
+	FILE *sfilep;
+	int syylno;
+} sfiles[20];
+
+GETC()
+{
+	register int c;
+
+	c = getc(fin);
+	while(c == EOF && morefiles)
+	{
+		fclose(fin);
+		yylineno = sfiles[--morefiles].syylno;
+		fin = sfiles[morefiles].sfilep;
+		c = getc(fin);
+	}
+	return(c);
+}
+fstack(newname, oldfp, oldlno)
+register char *newname;
+register FILE **oldfp;
+register int *oldlno;
+{
+	if(access(newname, 4) != 0)
+/*
+ *	This get line can be removed if used elsewhere than make.
+ */
+	if(get(newname, CD, Nullstr) == NO)
+		fatal1("Cannot read or get %s", newname);
+	if(IS_ON(DBUG))
+		printf("Include file: \"%s\"\n", newname);
+/*
+ *	Stack the new file name, the old file pointer and the
+ *	old yylineno;
+ */
+	strcat(sfiles[morefiles].sfname, newname);
+	sfiles[morefiles].sfilep = *oldfp;
+	sfiles[morefiles++].syylno = *oldlno;
+	yylineno = 0;
+	if((*oldfp=fopen(newname, "r")) == NULL)
+		fatal1("Cannot open %s", newname);
+}
+
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d3 1
+a3 1
+	"$Header$";
+d7 4
+a10 1
+ * $Log$
+d329 3
+a331 1
+				if(p==yytext || p[-1]!=BACKSLASH)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 4
+d6 4
+d11 1
+a11 1
+%{#include "defs"
+@
+
+main.c,v        438311249   702   0     100444  15913     `
+head     1.8;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.8
+date     83.11.21.20.06.06;  author tony;  state Exp;
+branches ;
+next     1.7;
+
+1.7
+date     83.11.03.11.13.57;  author crl;  state Exp;
+branches ;
+next     1.6;
+
+1.6
+date     83.11.01.20.48.54;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.24.14.36.00;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.06.16.16.59;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.09.43;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.51.55;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.22;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.8
+log
+@Added code in the interrupt routine to make sure that the file
+to be removed is a regular file. This has to be done because
+root is allowed to unlink directories, which can have disasterous
+consequences.
+@
+text
+@static	char	*rcsid =
+	"$Header: /usr/src/bin/make/RCS/main.c,v 1.7 83/11/03 11:13:57 crl Exp $";
+
+/*
+ * $Log:	main.c,v $
+ * Revision 1.7  83/11/03  11:13:57  crl
+ * More fixes from Charlie...
+ * 
+ * Revision 1.7  83/11/03  11:13:57  crl
+ * Fixed bug in finding co_cmd due to a transcription error.
+ * Half of the printf's under the -p option went to stderr, the rest to stdout,
+ * 	so I made them all go to stdout.
+ * 
+ * Revision 1.6  83/11/01  20:48:54  tony
+ * Added crl`s latest changes (11/1/83)
+ * 
+ * Revision 1.5  83/10/24  14:36:00  tony
+ * Initialize co_cmd from the ".CO" target and turn off COFLAG
+ * if null.
+ * 
+ * Revision 1.4  83/10/06  16:16:59  tony
+ * Made the default shell (/bin/sh) take precedence over the
+ * environment. This was done because so many people use csh
+ * as a login shell but use sh in shell scripts and makefiles.
+ * The SHELL variable can still be changed inside the makefile.
+ * 
+ * Revision 1.3  83/10/06  16:09:43  tony
+ * Converted to use new directory routines.
+ * 
+ * Revision 1.2  83/10/06  10:51:55  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)/usr/src/cmd/make/main.c	3.4	*/
+#include "defs.h"
+/*
+command make to update programs.
+Flags:	'd'  print out debugging comments
+	'p'  print out a version of the input graph
+	's'  silent mode--don't print out commands
+	'f'  the next argument is the name of the description file;
+	     makefile is the default
+	'i'  ignore error codes from the shell
+	'S'  stop after any command fails (normally do parallel work)
+	'n'   don't issue, just print, commands
+	't'   touch (update time of) files but don't issue command
+	'q'   don't do anything, but check if object is up to date;
+	      returns exit code 0 if up to date, -1 if not
+
+	'c'  don`t check out files
+	'C'  check out RCS files as needed (default)
+	'u'  don`t remove checked out files when done
+	'U'  remove checked out files (default)
+*/
+
+char makefile[] = "makefile";
+char Nullstr[]  = "";
+char Makefile[] = "Makefile";
+char RELEASE[]  = "RELEASE";
+CHARSTAR badptr = (CHARSTAR)-1;
+
+NAMEBLOCK mainname ;
+NAMEBLOCK firstname;
+LINEBLOCK sufflist;
+VARBLOCK firstvar;
+PATTERN firstpat ;
+OPENDIR firstod;
+CHAIN	rmchain = NULL;
+struct	shblock *co_cmd = NULL;
+
+#include <signal.h>
+int sigivalue=0;
+int sigqvalue=0;
+int sighvalue=0;
+int sigtvalue=0;
+int waitpid=0;
+
+long Mflags = MH_DEP | COFLAG | RMFLAG;
+int  ndocoms=0;
+int  okdel=YES;
+
+CHARSTAR prompt="\t";	/* other systems -- pick what you want */
+char junkname[20];
+char funny[128];
+
+int	nopdir = 0;
+
+#include <sys/stat.h>
+char	*RCSdir = RCS;
+char	*RCSsuf = RCS_SUF;
+int	dotRCS  = NO;
+
+
+char Makeflags[]="MAKEFLAGS";
+
+main(argc,argv)
+int argc;
+CHARSTAR argv[];
+{
+	register NAMEBLOCK p;
+	int i, j;
+	int descset, nfargs;
+	TIMETYPE tjunk;
+	char c;
+	CHARSTAR s, *e;
+	struct	lineblock *lp;
+	struct	stat	sbuf;
+
+	struct	chain	*ch;
+
+#ifdef unix
+	int intrupt();
+#endif
+
+#ifdef METERFILE
+	meter(METERFILE);
+#endif
+
+	descset = 0;
+
+	for(s = "|=^();&<>*?[]:$`'\"\\\n" ; *s ; ++s)
+		funny[*s] |= META;
+	for(s = "\n\t :=;{}&>|" ; *s ; ++s)
+		funny[*s] |= TERMINAL;
+	funny['\0'] |= TERMINAL;
+
+	TURNON(INTRULE);		/* Default internal rules, turned on */
+
+/*
+ *	Set command line flags
+ */
+
+	getmflgs();				/* Init $(MAKEFLAGS) variable */
+	setflags(argc, argv);
+
+	setvar("$","$");
+
+
+/*
+ *	Read command line "=" type args and make them readonly.
+ */
+	TURNON(INARGS|EXPORT);
+	if(IS_ON(DBUG))printf("Reading \"=\" type args on command line.\n");
+	for(i=1; i<argc; ++i)
+		if(argv[i]!=0 && argv[i][0]!=MINUS && (eqsign(argv[i]) == YES) )
+			argv[i] = 0;
+	TURNOFF(INARGS|EXPORT);
+
+/*
+ *	Read internal definitions and rules.
+ */
+
+	if( IS_ON(INTRULE) )
+	{
+		if(IS_ON(DBUG))printf("Reading internal rules.\n");
+		rdd1(NULL);
+	}
+
+/*
+ *	Done with internal rules, now.
+ */
+	TURNOFF(INTRULE);
+
+/*
+ *	Read environment args.  Let file args which follow override.
+ *	unless 'e' in MAKEFLAGS variable is set.
+ */
+	if( any( (varptr(Makeflags))->varval, 'e') )
+		TURNON(ENVOVER);
+	if(IS_ON(DBUG))printf("Reading environment.\n");
+	TURNON(EXPORT);
+	readenv();
+	TURNOFF(EXPORT|ENVOVER);
+
+/****	BEWARE - the SHELL is handled as a special case ****/
+
+	setvar("SHELL","/bin/sh");	/* default shell overrides env. */
+
+/*
+ *	Read command line "-f" arguments.
+ */
+
+	rdmakecomm();
+
+	for(i = 1; i < argc; i++)
+		if( argv[i] && argv[i][0] == MINUS && argv[i][1] == 'f' && argv[i][2] == CNULL)
+		{
+			argv[i] = 0;
+			if(i >= argc-1)
+				fatal("No description argument after -f flag");
+			if( rddescf(argv[++i], YES) )
+				fatal1("Cannot open %s", argv[i]);
+			argv[i] = 0;
+			++descset;
+		}
+
+
+/*
+ *	If no command line "-f" args then look for some form of "makefile"
+ */
+	if( !descset )
+#ifdef unix
+		if( rddescf(makefile, NO))
+		if( rddescf(Makefile, NO))
+		if( rddescf(makefile, YES))
+			rddescf(Makefile, YES);
+
+#endif
+#ifdef gcos
+		rddescf(makefile, NO);
+#endif
+
+
+	if(IS_ON(PRTR)) printdesc(NO);
+
+	if (p = srchname(".CO")) {
+		for (lp = p->linep; lp ; lp = lp->nextline)
+			if ((co_cmd = lp->shp) != NULL)
+				break;
+		if (co_cmd == NULL)
+			TURNOFF(COFLAG);
+	} else
+		TURNOFF(COFLAG);
+
+	if( srchname(".IGNORE") ) TURNON(IGNERR);
+	if( srchname(".SILENT") ) TURNON(SIL);
+	if(p=srchname(".SUFFIXES")) sufflist = p->linep;
+	if( !sufflist )
+		printf("No suffix list.\n");
+
+#ifdef unix
+	sigivalue = (int)signal(SIGINT,SIG_IGN) == SIG_IGN;
+	sigqvalue = (int)signal(SIGQUIT,SIG_IGN) == SIG_IGN;
+	sighvalue = (int)signal(SIGHUP,SIG_IGN) == SIG_IGN;
+	sigtvalue = (int)signal(SIGTERM,SIG_IGN) == SIG_IGN;
+	enbint(intrupt);
+#endif
+
+	if(stat(RCSdir,&sbuf) == 0 && (sbuf.st_mode & S_IFMT) == S_IFDIR)
+		dotRCS = YES;	/* fast check for ./RCS */
+
+
+	nfargs = 0;
+
+	for(i=1; i<argc; ++i)
+		if((s=argv[i]) != 0)
+		{
+			if((p=srchname(s)) == 0)
+			{
+				p = makename(s);
+			}
+			++nfargs;
+			ch = NULL;
+			doname(p, 0, &tjunk,&ch);
+			if(IS_ON(DBUG)) printdesc(YES);
+		}
+
+/*
+	If no file arguments have been encountered, make the first
+	name encountered that doesn't start with a dot
+	*/
+
+	if(nfargs == 0)
+		if(mainname == 0)
+			fatal("No arguments or description file");
+		else
+		{
+			ch = NULL;
+			doname(mainname, 0, &tjunk,&ch);
+			if(IS_ON(DBUG)) printdesc(YES);
+		}
+
+	exit(0);
+}
+
+
+
+#ifdef unix
+intrupt()
+{
+	CHARSTAR p;
+	struct	stat sb;
+
+	if(okdel && IS_OFF(NOEX) && IS_OFF(TOUCH) &&
+		(p = varptr("@@")->varval) && exists(srchname(p))>0 &&
+		!isprecious(p) )
+	{
+		if(getuid() != 0) {
+			if(unlink(p) == 0)
+				printf("\n***  %s removed.", p);
+		}
+		else {
+			if((stat(p,&sb) == 0) && (sb.st_mode&S_IFMT == S_IFREG))
+				if(unlink(p) == 0)
+					printf("\n***  %s removed.", p);
+		}
+	}
+
+	if(junkname[0])
+		unlink(junkname);
+	printf("\n");
+	exit(2);
+}
+
+
+
+
+isprecious(p)
+CHARSTAR p;
+{
+	register NAMEBLOCK np;
+	register LINEBLOCK lp;
+	register DEPBLOCK dp;
+
+	if(np = srchname(".PRECIOUS"))
+	    for(lp = np->linep ; lp ; lp = lp->nextline)
+		for(dp = lp->depp ; dp; dp = dp->nextdep)
+			if(equal(p, dp->depname->namep))
+				return(YES);
+
+	return(NO);
+}
+
+
+enbint(k)
+int (*k)();
+{
+	if(sigivalue == 0)
+		signal(SIGINT,k);
+	if(sigqvalue == 0)
+		signal(SIGQUIT,k);
+	if(sighvalue == 0)
+		signal(SIGHUP,k);
+	if(sigtvalue == 0)
+		signal(SIGTERM,k);
+}
+#endif
+
+extern CHARSTAR builtin[];
+
+CHARSTAR *linesptr=builtin;
+
+FILE * fin;
+int firstrd=0;
+
+rdmakecomm()
+{
+#ifdef PWB
+	register char *nlog;
+	char s[128];
+
+	if(rddescf( concat((nlog=getenv("HOME")),"/makecomm",s), NO))
+		rddescf( concat(nlog,"/Makecomm",s), NO);
+
+	if(rddescf("makecomm", NO))
+		rddescf("Makecomm", NO);
+#endif
+}
+
+extern int yylineno;
+extern CHARSTAR zznextc;
+rddescf(descfile, flg)
+CHARSTAR descfile;
+int flg;			/* if YES try s.descfile */
+{
+	FILE * k;
+
+/* read and parse description */
+
+	if(equal(descfile, "-"))
+		return( rdd1(stdin) );
+
+retry:
+	if( (k = fopen(descfile,"r")) != NULL)
+	{
+		if(IS_ON(DBUG))printf("Reading %s\n", descfile);
+		return( rdd1(k) );
+	}
+
+	if(flg == NO)
+		return(1);
+	if(get(descfile, CD, varptr(RELEASE)->varval) == NO)
+		return(1);
+	flg = NO;
+	goto retry;
+
+}
+
+
+
+
+rdd1(k)
+FILE * k;
+{
+	fin = k;
+	yylineno = 0;
+	zznextc = 0;
+
+	if( yyparse() )
+		fatal("Description file error");
+
+	if(fin != NULL)
+		fclose(fin);
+
+	return(0);
+}
+
+printdesc(prntflag)
+int prntflag;
+{
+	NAMEBLOCK p;
+	DEPBLOCK dp;
+	VARBLOCK vp;
+	OPENDIR od;
+	SHBLOCK sp;
+	LINEBLOCK lp;
+
+#ifdef unix
+	if(prntflag)
+	{
+		printf("Open directories:\n");
+		for(od=firstod; od!=0; od = od->nextopendir)
+			printf("\t%s\n", od->dirn);
+	}
+#endif
+
+	if(firstvar != 0) printf("Macros:\n");
+	for(vp=firstvar; vp!=0; vp=vp->nextvar)
+		if(vp->v_aflg == NO)
+			printf("\t%s = %s\n" , vp->varname , vp->varval);
+		else
+		{
+			CHAIN pch;
+
+			printf("Lookup chain: %s\n\t", vp->varname);
+			for(pch = (CHAIN)vp->varval; pch; pch = pch->nextchain)
+				printf(" %s", ((NAMEBLOCK)pch->datap)->namep);
+			printf("\n");
+		}
+
+	for(p=firstname; p!=0; p = p->nextname)
+		prname(p, prntflag);
+	printf("\n");
+	fflush(stdout);
+}
+
+prname(p, prntflag)
+register NAMEBLOCK p;
+{
+	register LINEBLOCK lp;
+	register DEPBLOCK dp;
+	register SHBLOCK sp;
+
+	if(p->linep != 0)
+		printf("\n\n%s:",p->namep);
+	else
+		printf("\n\n%s", p->namep);
+	if(prntflag)
+	{
+		printf("  done=%d",p->done);
+	}
+	if(p==mainname)
+		printf("  (MAIN NAME)");
+	for(lp = p->linep ; lp!=0 ; lp = lp->nextline)
+	{
+		if( dp = lp->depp )
+		{
+			printf("\n depends on:");
+			for(; dp!=0 ; dp = dp->nextdep)
+				if(dp->depname != 0)
+				{
+					printf(" %s", dp->depname->namep);
+					printf(" ");
+				}
+		}
+		if(sp = lp->shp)
+		{
+			printf("\n");
+			printf(" commands:\n");
+			for( ; sp!=0 ; sp = sp->nextsh)
+				printf("\t%s\n", sp->shbp);
+		}
+	}
+}
+
+
+setflags(ac, av)
+int ac;
+CHARSTAR *av;
+{
+	register int i, j;
+	register char c;
+	int flflg=0;			/* flag to note `-f' option. */
+
+	for(i=1; i<ac; ++i)
+	{
+		if(flflg)
+		{
+			flflg = 0;
+			continue;
+		}
+		if(av[i]!=0 && av[i][0]==MINUS)
+		{
+			if(any(av[i], 'f'))
+				flflg++;
+			for(j=1 ; (c=av[i][j])!=CNULL ; ++j)
+				optswitch(c);
+			if(flflg)
+				av[i] = "-f";
+			else
+				av[i] = 0;
+		}
+	}
+}
+
+
+/*
+ *	Handle a single char option.
+ */
+optswitch(c)
+register char c;
+{
+
+	switch(c)
+	{
+
+	case 'e':	/* environment override flag */
+		setmflgs(c);
+		break;
+
+	case 'd':	/* debug flag */
+		TURNON(DBUG);
+		setmflgs(c);
+		break;
+
+	case 'p':	/* print description */
+		TURNON(PRTR);
+		break;
+
+	case 's':	/* silent flag */
+		TURNON(SIL);
+		setmflgs(c);
+		break;
+
+	case 'i':	/* ignore errors */
+		TURNON(IGNERR);
+		setmflgs(c);
+		break;
+
+	case 'S':
+		TURNOFF(KEEPGO);
+		setmflgs(c);
+		break;
+
+	case 'k':
+		TURNON(KEEPGO);
+		setmflgs(c);
+		break;
+
+	case 'n':	/* do not exec any commands, just print */
+		TURNON(NOEX);
+		setmflgs(c);
+		break;
+
+	case 'r':	/* turn off internal rules */
+		TURNOFF(INTRULE);
+		break;
+
+	case 't':	/* touch flag */
+		TURNON(TOUCH);
+		setmflgs(c);
+		break;
+
+	case 'q':	/* question flag */
+		TURNON(QUEST);
+		setmflgs(c);
+		break;
+
+	case 'g':	/* turn default $(GET) of files not found */
+		TURNON(GET);
+		setmflgs(c);
+		break;
+
+	case 'm':	/* print memory map */
+		TURNON(MEMMAP);
+		setmflgs(c);
+		break;
+
+	case 'b':	/* use MH version of test for whether a cmd exists */
+		TURNON(MH_DEP);
+		setmflgs(c);
+		break;
+	case 'B':	/* turn off -b flag */
+		TURNOFF(MH_DEP);
+		setmflgs(c);
+		break;
+	case 'c':
+		TURNOFF(COFLAG);
+		setmflgs(c);
+		break;
+	case 'C':
+		TURNON(COFLAG);
+		setmflgs(c);
+		break;
+	case 'u':
+		TURNOFF(RMFLAG);
+		setmflgs(c);
+		break;
+	case 'U':
+		TURNON(RMFLAG);
+		setmflgs(c);
+		break;
+
+	case 'f':	/* Named makefile; already handled by setflags(). */
+		break;
+
+	default:
+		fatal1("Unknown flag argument %c", c);
+	}
+}
+
+/*
+ *	getmflgs() set the cmd line flags into an EXPORTED variable
+ *	for future invocations of make to read.
+ */
+
+
+getmflgs()
+{
+	register VARBLOCK vpr;
+	register CHARSTAR *pe;
+	register CHARSTAR p;
+
+	vpr = varptr(Makeflags);
+	setvar(Makeflags, "ZZZZZZZZZZZZZZZZ");
+	vpr->varval[0] = CNULL;
+	vpr->envflg = YES;
+	vpr->noreset = YES;
+	optswitch('b');
+	for(pe = environ; *pe; pe++)
+	{
+		if(sindex(*pe, "MAKEFLAGS=") == 0)
+		{
+			for(p = (*pe)+sizeof Makeflags; *p; p++)
+				optswitch(*p);
+			return;
+		}
+	}
+}
+
+/*
+ *	setmflgs(c) sets up the cmd line input flags for EXPORT.
+ */
+
+setmflgs(c)
+register char c;
+{
+	register VARBLOCK vpr;
+	register CHARSTAR p;
+
+	vpr = varptr(Makeflags);
+	for(p = vpr->varval; *p; p++)
+	{
+		if(*p == c)
+			return;
+	}
+	*p++ = c;
+	*p = CNULL;
+}
+@
+
+
+1.7
+log
+@More fixes from Charlie...
+@
+text
+@d2 1
+a2 1
+	"$Header: /src/bin/make5/RCS/main.c,v 1.7 83/11/03 11:13:57 crl Exp $";
+d5 1
+a5 1
+ * $Log:	/src/bin/make5/RCS/main.c,v $
+d7 3
+d283 1
+d289 9
+a297 2
+		if(unlink(p) == 0)
+			printf("\n***  %s removed.", p);
+@
+
+
+1.6
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@d2 1
+a2 1
+	"$Header: /r/tony/make/new/RCS/main.c,v 1.5 83/10/24 14:36:00 tony Exp $";
+d5 9
+a13 1
+ * $Log:	main.c,v $
+d215 1
+a215 1
+		for (lp = p->linep; lp ;lp->nextline)
+d226 2
+a227 1
+	if( !sufflist ) fprintf(stderr,"No suffix list.\n");
+d286 1
+a286 1
+			fprintf(stderr, "\n***  %s removed.", p);
+d291 1
+a291 1
+	fprintf(stderr, "\n");
+d411 1
+a411 1
+		fprintf(stderr,"Open directories:\n");
+d413 1
+a413 1
+			fprintf(stderr,"\t%s\n", od->dirn);
+d417 1
+a417 1
+	if(firstvar != 0) fprintf(stderr,"Macros:\n");
+d425 1
+a425 1
+			fprintf(stderr,"Lookup chain: %s\n\t", vp->varname);
+d427 2
+a428 3
+				fprintf(stderr," %s",
+					((NAMEBLOCK)pch->datap)->namep);
+			fprintf(stderr,"\n");
+d447 1
+a447 1
+		fprintf(stderr, "\n\n%s", p->namep);
+d450 1
+a450 1
+		fprintf(stderr,"  done=%d",p->done);
+d452 2
+a453 1
+	if(p==mainname) fprintf(stderr,"  (MAIN NAME)");
+d458 1
+a458 1
+			fprintf(stderr,"\n depends on:");
+d469 1
+a469 1
+			fprintf(stderr," commands:\n");
+@
+
+
+1.5
+log
+@Initialize co_cmd from the ".CO" target and turn off COFLAG
+if null.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/main.c,v 1.4 83/10/06 16:16:59 tony Exp $";
+d6 4
+d64 2
+d80 2
+d221 4
+a224 2
+	sigivalue = (int)signal(SIGINT,1) & 01;
+	sigqvalue = (int)signal(SIGQUIT,1) & 01;
+d228 2
+a229 2
+	if(stat(RCSdir,&sbuf) < 0 || (sbuf.st_mode & S_IFDIR) == 0)
+		RCSdir = NULL;
+d313 4
+@
+
+
+1.4
+log
+@Made the default shell (/bin/sh) take precedence over the
+environment. This was done because so many people use csh
+as a login shell but use sh in shell scripts and makefiles.
+The SHELL variable can still be changed inside the makefile.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/main.c,v 1.3 83/10/06 16:09:43 tony Exp $";
+d6 6
+d55 1
+d88 1
+a88 1
+
+a94 3
+
+
+
+d197 9
+@
+
+
+1.3
+log
+@Converted to use new directory routines.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/main.c,v 1.2 83/10/06 10:51:55 tony Exp $";
+d6 3
+d152 4
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d5 4
+a8 1
+ * $Log$
+d60 2
+a61 1
+#include <sys/types.h>
+d370 1
+a370 1
+			fprintf(stderr,"\t%d: %s\n", fileno(od->dirfc), od->dirn);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d9 1
+a9 1
+# include "defs"
+d23 5
+d31 3
+a33 3
+char Nullstr[] = "";
+char Makefile[] =	"Makefile";
+char RELEASE[] = "RELEASE";
+d42 1
+a43 1
+
+d49 3
+a51 3
+int Mflags=MH_DEP;
+int ndocoms=0;
+int okdel=YES;
+d57 3
+a61 1
+
+d74 5
+d194 4
+d208 2
+a209 1
+			doname(p, 0, &tjunk);
+d223 2
+a224 1
+			doname(mainname, 0, &tjunk);
+d538 16
+@
+
+make.tm,v       435872511   702   10    100664  34728     `
+head     1.1;
+access   ;
+symbols  ;
+locks    ; strict;
+comment  @@;
+
+
+1.1
+date     83.10.07.08.49.24;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@Technical memorandum on the augmented system III make.
+@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@'\"	@@(#)/usr/src/cmd/make/make.tm	3.2
+.po 5
+.nr Pt 0
+.ND "July 1, 1979"
+.TL 49579-210 40320-1
+An Augmented Version of Make
+.AU "E. G. Bradford" EGB CB 5255 2804 1C-249
+.TM 79-5255-1 5255-790701.01MF
+.AS
+.P
+This paper describes an augmented version
+of the \fBmake\fR command supplied with UNIX/TS.
+With one debatable exception, this version
+is completely upward compatible with the
+UNIX/TS version.
+In this paper, I describe and give examples only
+of additional features. The reader is
+assumed to have read or have available the
+original \fBmake\fR paper by S. I. Feldman.
+'\*F
+'.FS
+(
+Feldman, S. I., MAKE, A Program for Maintaining Computer Programs,
+Computing Science Technical Report Number 57
+)
+'.FE
+Further developments for \fBmake\fR are also discussed.
+.AE
+.OK "make" "program building"
+.MT 1
+.bp
+.H 1 "INTRODUCTION"
+This paper will describe in some detail
+an augmented version of the \fBmake\fR program
+now running on the Columbus operating systems group
+UNIX machine.
+I will give some justification for the chosen
+implementation and describe with examples
+the additional features.
+.H 1 "MOTIVATION FOR THE CURRENT IMPLEMENTATION"
+The \fBmake\fR program was originally written
+for personal use by S. I. Feldman.
+However, it became popular on the
+research UNIX machine and a more formal version
+was built and installed for general use.
+For the purpose of maintaining executable programs
+in the Center 127 environment, it has served this purpose
+well.
+Further developments of \fBmake\fR have not been necessary
+and thus have not been done.
+.P
+In Columbus \fBmake\fR was perceived as an excellent
+program administrative tool and has been used
+extensively in at least one project (NOCS)
+for over two years. 
+However, \fBmake\fR had many shortcomings:
+handling of libraries was tedious;
+handling of the SCCS filename format was difficult or impossible;
+environment variables are completely ignored by \fBmake\fR;
+and the general lack of ability to maintain files in a remote directory.
+These shortcomings hindered large scale use of \fBmake\fR
+as a program support tool.
+.P
+There were at least two avenues  for solving the
+above problems. The first was a complete redesign.
+This would probably mean a new syntax and of necessity
+force new makefiles to be incompatible with old ones.
+The advantages however would be a more general implementation
+that would be \fIgrowable\fR. This point of view was not
+chosen because of the compatibility problem.
+The second and more tame point of view was to modify
+the current implementation to handle the problems above.
+This point of view had the advantage that if done carefully
+it could be completely upward compatible. It was this second
+avenue which was chosen.
+.P
+The additional features are within the original syntactic framework
+of \fBmake\fR and few if any new syntactical entities have been introduced.
+A notable exception is the \fIinclude\fR file capability.
+Further, most of the additions result in a "Don't know how to make ..."
+message from the old version of \fBmake\fR.
+.H 1 "THE ADDITIONAL FEATURES"
+The following paragraphs describe with examples the additional features
+of the \fBmake\fR program.
+In general, the examples are taken from existing
+\fImakefiles\fR.  Also, the appendices are working
+\fImakefiles\fR.
+.H 2 "The Environment Variables"
+Environment variables are read and added to the
+macro definitions each time \fBmake\fR executes. Precedence
+is a prime consideration in doing this properly.  Thus,
+if the environment variable \fBCC\fR is set to \fBocc\fR,
+does it override the command line? Does it override the
+definition in the makefile?
+To answer these questions I need to describe the order
+in which \fBmake\fR does the macro assignments.
+.P
+First, a new macro, \fBMAKEFLAGS\fR, must be described.
+\fBMAKEFLAGS\fR is maintained by \fBmake\fR. It
+It is defined as the collection of
+all input flag arguments into a string (without the minus sign).
+It is exported, and
+thus accessible to further invocations of \fBmake\fR.
+Command line flags and assignments in the "makefile"
+update \fBMAKEFLAGS\fR.
+Thus, to describe how the environment
+interacts with \fBmake\fR, we also need to consider
+the \fBMAKEFLAGS\fR macro (environment variable).
+.P
+When executed \fBmake\fR assigns macro definitions in the following
+order:
+.AL 1 12
+.LI
+read the \fBMAKEFLAGS\fR environment variable. If it
+is not present or null, the internal \fBmake\fR variable
+\fBMAKEFLAGS\fR is set to the null string.
+Otherwise, each letter in \fBMAKEFLAGS\fR is assumed to
+be an input flag argument and is processed as such.
+(The only exceptions are the "-f", "-p", and "-r" flags.)
+.LI
+read and set the input flags from the command line.
+The command line adds to the previous settings from
+the \fBMAKEFLAGS\fR environment variable.
+.LI
+read macro definitions from the command line.
+These are made
+\fInot resettable\fR. Thus any further assignments to these
+names are ignored.
+.LI
+read the internal list of macro definitions.
+These are found
+in the file \fIfiles.c\fR of the source for \fBmake\fR.
+(See Appendix A for the complete makefile which represents
+the internally defined macros and rules.)
+They give default definitions for the C compiler
+(CC=cc), the assembler (AS=as), etc.
+.LI
+read the environment. The environment variables are
+treated as macro definitions and marked as \fIexported\fR
+(in the shell sense). Note, \fBMAKEFLAGS\fR will get read
+again and set again.
+However, since it is not an internally
+defined variable (in \fIfiles.c\fR), this has the effect
+of doing the same assignment twice. The exception
+to this is when \fBMAKEFLAGS\fR is assigned on the
+command line.
+(The reason it was read previously, was to be able to turn
+the debug flag on before anything else was done.)
+.LI
+read the \fImakefile\fR(s). The assignments in the \fImakefile(s)\fR
+will override
+the environment. This order was chosen so when
+one reads a makefile and executes \fBmake\fR one
+knows what to expect.
+That is, one gets what one sees unless the "-e" flag is used.
+The "-e" is an additional command line flag which
+tells \fBmake\fR  to
+have the environment override the \fImakefile\fR assignments.
+Thus if \fBmake -e ...\fR is typed, the variables
+in the environment override the definitions in the \fImakefile\fR.
+(Note, there is no way to override the command
+line assignments.)
+Also note that if \fBMAKEFLAGS\fR is assigned it will override
+the environment.
+(This would be useful for further invocations of \fBmake\fR
+from the current "makefile".)
+.LE
+.P
+This description may be hard to follow. No doubt it is. It might
+be more useful to list the precedence of assignments.
+Thus, in order from least binding to most binding, we have:
+.AL 1 12 1
+.LI
+internal definitions (from \fIfiles.c\fR)
+.LI
+environment
+.LI
+"makefile(s)"
+.LI
+command line
+.LE
+.P
+The "-e" flag has the effect of changing the order to:
+.AL 1 12 1
+.LI
+internal definitions (from \fIfiles.c\fR)
+.LI
+"makefile(s)"
+.LI
+environment
+.LI
+command line
+.LE
+
+This ordering is general enough to allow
+a programmer to define a "makefile" or set of "makefiles"
+whose parameters are dynamically definable.
+.H 2 "Recursive Makefiles"
+One other useful feature was added to \fBmake\fR concerning
+the environment and recursive invocations.
+If the sequence "$(MAKE)" appears anywhere in a shell
+command line, the line will be executed even if
+the "-n" flag is set. Since the "-n" flag is exported across
+invocations of \fBmake\fR, (through the \fBMAKEFLAGS\fR variable)
+the only thing which
+will actually get executed is the \fBmake\fR command
+itself. This feature is useful when a hierarchy
+of \fImakefile(s)\fR describes a set of software
+subsystems.  For testing purposes, \fBmake -n ...\fR
+can be executed and everything that would have been done
+will get printed out;
+including output from lower level invocations of \fBmake\fR.
+.H 2 "Format of Shell commands within \fBmake\fR"
+\fBMake\fR remembers embedded newlines and tabs in shell
+command sequences. Thus, if the programmer puts a
+\fIfor\fR loop in the makefile with indentation, when
+\fBmake\fR prints it out, it still has the indentation
+and the backslashes in it. The output is still pipe-able to
+the shell and is readable.
+This is obviously a cosmetic change; no new
+functionality is gained.
+.H 2 "Archive Libraries"
+\fBMake\fR has an intelligent interface to archive libraries.
+Due to a lack of documentation,
+most people are probably not aware of the current syntax
+of addressing members of archive libraries.
+The UNIX/TS version allows a user to name a member of a library
+in the following manner:
+.nf
+
+	lib(object.o)
+
+or
+
+	lib((_localtime))
+
+.fi
+where the second method actually refers to an
+entry point of an object file within the library.
+(\fBMake\fR looks through the library,
+locates the entry point and translates it to the correct
+object file name.)
+.P
+To use the UNIX/TS \fBmake\fR to maintain
+an archive library, the following type of \fBmakefile\fR is
+required:
+.nf
+
+	lib::	lib(ctime.o)
+		$(CC) -c -O ctime.c
+		ar rv lib ctime.o
+		rm ctime.o
+	lib::	lib(fopen.o)
+		$(CC) -c -O fopen.c
+		ar rv lib fopen.o
+		rm fopen.o
+	...and so on for each object ...
+
+.fi
+This is tedious and error prone. Obviously,
+the command sequences for adding a C file to a library
+are the same for each invocation, the filename being the only
+difference each time. (This is true in most cases.)
+Similarly for assembler and YACC and LEX files.
+.P
+The current version gives the user access to a rule for
+building libraries. The "handle" for the rule is the
+".a" suffix. Thus a ".c.a" rule is the rule for
+compiling a C source file and adding it to the library
+and removing the ".o" cadaver.
+Similarly, the ".y.a", the ".s.a" and the ".l.a" rules
+rebuild YACC, assembler, and LEX files respectively.
+The current archive rules defined internally are
+".c.a", ".c~.a", and .s~.a". (The wiggle (~) syntax will
+be described shortly.)
+The user may define in his makefile any other rules
+he may need.
+.P
+The above two-member library is then maintained with the
+following shorter makefile:
+.nf
+
+	lib:	lib(ctime.o) lib(fopen.o)
+		@@echo lib up-to-date.
+
+.fi
+The internal rules are already defined to complete the
+preceding library maintenance.
+The actual ".c.a" rules is as follows:
+.nf
+
+	.c.a:
+		$(CC) -c $(CFLAGS) $<
+		ar rv $@@ $*.o
+		rm -f $*.o
+
+.fi
+Thus, the "$@@" macro is the ".a" target (\fBlib\fR) and the "$<" and "$*"
+macros are set to the out-of-date C file and the filename
+sans suffix respectively (\fBctime.c\fR and \fBctime\fR).
+The "$<" macro (in the preceding rule)
+could have been changed to "$*.c".
+.P
+It might be useful to go into some detail about exactly
+what \fBmake\fR thinks about when it sees  the construction
+.nf
+
+	lib:	lib(ctime.o)
+		@@echo lib up-to-date
+
+.fi
+Assume the object in the library is out of date with respect
+to \fIctime.c\fR. Also, there is no \fIctime.o\fR file.
+To itself, \fBmake\fR thinks
+.AL 1 12
+.LI
+I must do \fIlib\fR.
+.LI
+To do \fIlib\fR, I must do each dependent of \fIlib\fR.
+.LI
+I must do \fIlib(ctime.o)\fR.
+.LI
+To do \fIlib(ctime.o)\fR I must do each dependent
+of \fIlib(ctime.o)\fR. (There are none).
+.LI
+Use my internal rules to try to build \fIlib(ctime.o)\fR.
+(There is no explicit rule.)
+Note that \fIlib(ctime.o)\fR has a parenthesis, '(', in the
+name so I identify the target suffix as ".a".
+(This is the key. There is no explicit ".a" at the end of the
+\fIlib\fR library name. The parenthesis forces the ".a" suffix.)
+In this sense, the ".a" is hardwired into \fBmake\fR.
+.LI
+Since I am working on a ".a" suffix I must break
+the name \fIlib(ctime.o)\fR up into \fIlib\fR and \fIctime.o\fR.
+I now define the two macros "$@@" (=\fIlib\fR) and "$*" (=\fIctime\fR).
+.LI
+Look for a rule ".X.a" and a file "$*.X".
+The first "X" (in the .SUFFIXES list) which fulfills these conditions is "c" so
+the rule is ".c.a" and the file is \fIctime.c\fR.
+I set "$<" to be \fIctime.c\fR and execute the rule.
+(In fact, \fBmake\fR must then do "ctime.c". However,
+the search of the current directory yields no other
+candidates, whence, the search ends.)
+.LI
+The library has been updated. I must now
+do the rule associated with the "lib:" dependency; namely
+.nf
+
+	echo lib up-to-date
+
+.fi
+.LE
+It should be noted that to let \fIctime.o\fR have dependencies
+the following syntax is required:
+.nf
+
+	lib(ctime.o):	$(INCDIR)/stdio.h
+
+.fi
+Thus, explicit references to ".o" files are unnecessary. There is also
+a new macro for referencing the archive member name when this form
+is used. "$%" is evaluated each time "$@@" is evaluated. If there
+is no current archive member, "$%" is null. If an archive member
+exists, then "$%" evaluates to the expression between the parenthesis.
+.P
+An example makefile for a larger library is given in Appendix B.
+The reader will note also, that there are no \fIlingering\fR
+"*.o" files left around.
+The result is a library maintained directly from the
+source files (or more generally from the SCCS files!).
+.H 2 "SCCS File Names -- The Wiggle"
+The syntax of \fBmake\fR does not directly
+permit referencing of prefixes. For most types
+of files on UNIX machines this is acceptable since
+nearly everyone uses a suffix to distinguish different
+types of files. SCCS files are the exception.
+Here, "s." precedes the filename part of the complete pathname.
+.P
+To allow \fBmake\fR easy access
+to the prefix "s." requires either
+a redefinition of the rule naming syntax of \fBmake\fR or
+a \fItrick\fR.
+I used a trick.
+The trick is to use the wiggle (~) as an identifier
+of SCCS files. Hence, ".c~.o" refers to the rule
+which transforms an SCCS C source file into an object.
+Specifically, the internal rule is:
+.nf
+
+	.c~.o:
+		$(GET) $(GFLAGS) -p $< > $*.c
+		$(CC) $(CFLAGS) -c $*.c
+		-rm -f $*.c
+
+.fi
+(The motivation for the "-p" flag associated
+with the $(GET) command above is obscure and debatable.
+For the purpose of this discussion
+we can assume the following apparently equivalent rule:
+.nf
+
+	.c~.o:
+		$(GET) $(GFLAGS) $<
+		$(CC) $(CFLAGS) -c $*.c
+		-rm -f $*.c
+
+.fi
+Suffice it to say, that when doing a generic
+build, the "make" should not fail because a file happens
+to be left out in the SCCS directory.)
+.P
+Thus the wiggle appended to any suffix transforms the
+file search into an SCCS filename search with the actual suffix
+named by the dot and all characters up to (but not including)
+the wiggle.
+.P
+The following SCCS suffixes are internally defined:
+.nf
+
+		.c~
+		.y~
+		.s~
+		.sh~
+		.h~
+
+.fi
+
+The following rules involving SCCS transformations
+are internally defined:
+.nf
+
+		.c~:
+		.sh~:
+		.c~.o:
+		.s~.o:
+		.y~.o:
+		.l~.o:
+		.y~.c:
+		.c~.a:
+		.s~.a:
+		.h~.h:
+
+.fi
+.P
+Obviously, the user can define other rules and suffixes which
+may prove useful. The \fIwiggle\fR gives him a handle on
+the SCCS filename format so that this is possible.
+.H 2 "The Null Suffix"
+In the UNIX/TS source code, there are many
+commands which consist of a single source file.
+\fIcat.c\fR, \fIdd.c\fR, \fIecho.c\fR, and \fIdate.c\fR are a few
+well known ones. It seemed a pity to maintain an object
+of such files for \fBmake\fR's pleasure.
+The current implementation supports single suffix rules,
+or if one prefers, a null suffix. Thus, to maintain the
+above files one needs a \fImakefile\fR of the following form:
+.nf
+
+	.c:
+		$(CC) -n -O $< -o $@@
+
+.fi
+(In fact, this ".c:" rule is internally
+defined so no \fImakefile\fR is necessary at all!)
+One then need only type
+.nf
+
+	make cat dd echo date
+
+.fi
+and all four C source files are passed through
+the above shell command line associated with the ".c:" rule.
+The internally defined single suffix
+rules are:
+.nf
+
+		.c:
+		.c~:
+		.sh:
+		.sh~:
+
+.fi
+
+Others may be added in the \fImakefile\fR by the user.
+.H 2 "Include Files"
+\fBMake\fR has an include file capability. If the string "include"
+appears as the first seven letters of a line in a \fImakefile\fR
+and is followed
+by a blank or a tab
+the following string
+is assumed to be a file name which
+the current invocation of \fBmake\fR
+will read.
+The file descriptors are stacked for reading
+\fIinclude\fR files so no more that about sixteen levels of
+nested includes is supported.
+Does that bother anyone?
+.H 2 "Invisible SCCS \fIMakefiles\fR"
+SCCS \fImakefiles\fR are invisible to \fBmake\fR.
+That is, if \fBmake\fR is typed and only a file named
+\fIs.makefile\fR exists, \fBmake\fR will \fIget(I)\fR it,
+read it and remove it.
+Likewise for "-f"
+arguments and \fIinclude\fR files.
+.H 2 "Dynamic Dependency Parameters"
+A new dependency parameter has been defined.
+It has meaning only on the dependency line in a makefile.
+It is "$$@@".
+"$$@@" refers to the current "thing" at the left of
+the colon (which is "$@@"). Also the form "$$(@@F)" exists
+which allows access to the file part of "$@@".
+Thus, in the following:
+.nf
+
+	cat:	$$@@.c
+
+.fi
+the dependency is translated at execution time to
+the string "cat.c". This is useful for building a whole
+raft of executable files, each of which has only one source file.
+For instance the UNIX/TS command directory would have a \fImakefile\fR
+like:
+.nf
+
+	CMDS = cat dd echo date cc cmp comm ar ld chown
+
+	$(CMDS):	$$@@.c
+		$(CC) -O $? -o $@@
+
+.fi
+Obviously, this is a subset of all the single file programs.
+For multiple file programs, usually a directory is
+allocated and a separate \fImakefile\fR is made.
+For any particular file which has a peculiar
+compilation procedure, a specific entry must be made in
+the \fImakefile\fR.
+.P
+The second useful form of the dependency parameter is "$$(@@F)".
+It represents the filename part of "$$@@". Again,
+it is evaluated at execution time. Its usefulness
+shows up when trying to maintain the "/usr/include"
+directory from a makefile in the "/usr/src/head" directory.
+Thus the "/usr/src/head/makefile" would look like:
+.nf
+
+	INCDIR = /usr/include
+
+	INCLUDES = \\
+		$(INCDIR)/stdio.h \\
+		$(INCDIR)/pwd.h \\
+		$(INCIDR)/dir.h \\
+		$(INCDIR)/a.out.h
+
+	$(INCLUDES):	$$(@@F)
+		cp $? $@@
+		chmod 0444 $@@
+
+.fi
+would completely maintain the "/usr/include" directory
+whenever one of the above files in "/usr/src/head" was updated.
+.H 2 "Extensions of $*, $@@, and $<"
+The internally generated macros "$*", "$@@", and "$<"
+are useful generic terms for current targets
+and out-of-date relatives.
+To this list has been added the following related
+macros: "$(@@D)", "$(@@F)", "$(*D)", "$(*F)", "$(<D)",
+and "$(<F)".
+The "D" refers to the directory part of the
+single letter macro.
+The "F" refers to the filename part of the
+single letter macro.
+These additions are
+useful when building hierarchical makefiles.
+They allow access to directory names for purposes
+of using the `cd' command of the shell.
+Thus, a shell command can be:
+.nf
+
+	cd $(<D); $(MAKE) $(<F)
+
+.fi
+An interesting example of the use of these features can
+be found in the set of \fImakefiles\fR which maintain
+the Columbus UNIX operating system.
+They may be seen in Appendix C.
+.H 2 "Output Translations"
+Macros in shell commands can now be translated when evaluated.
+The form is as follows:
+.nf
+	$(macro:string1=string2)
+.fi
+The meaning is as follows: $(macro) is evaluated.
+For each appearance of string1 in the evaluated macro
+string2 is substituted. The meaning of finding string1 in $(macro)
+is that the evaluated $(macro) is considered  as a bunch of strings
+each delimited by whitespace (blanks or tabs).
+Thus the occurrence of string1 in $(macro) means that a regular expression
+of the following form has been found:
+.nf
+	.*<string1>[TAB|BLANK]
+.fi
+This particular form was chosen because \fBmake\fR usually concerns itself
+with suffixes. A more general regular expression match could be implemented
+if the need arises.
+The usefulness of this type of translation occurs when maintaining
+archive libraries. Now, all that is necessary is to accumulate the
+out-of-date members and write a shell script which can handle all the
+C programs (i.e. those file ending in ".c"). Thus the following
+fragment will optimize the executions of make for maintaining and
+archive library:
+.nf
+	$(LIB):	$(LIB)(a.o) $(LIB)(b.o) $(LIB)c.o)
+		$(CC) -c $(CFLAGS) $(?:.o=.c)
+		ar rv $(LIB) $?
+		rm $?
+.fi
+Here, finally, is a legitimate use for the double colon. A dependency
+of the preceding form would be necessary for each of the different
+types of source files (suffices) which define the archive library.
+These translations are added in an effort to make more general
+use of the wealth of information which \fBmake\fR generates.
+.H 2 "The Test \fBmakefile\fR"
+A test \fImakefile\fR was written to explicitly
+test each of the new features. When shipped to a
+new machine and compiled, \fBmake\fR is assumed to
+work if the test \fImakefile\fR executes without error.
+.H 1 "INCOMPATIBILITIES WITH OLD VERSION"
+The only known incompatibility with UNIX/TS \fBmake\fR
+is seen in the following example makefile:
+.nf
+
+	all:	cat dd
+
+	dd:	dd.o
+		$(CC) -o $@@ $?
+
+	cat:	cat.o
+		$(CC) -o $@@ $?
+
+.fi
+UNIX/TS \fBmake\fR
+will not complain that \fIall\fR does not have a rule associated
+with it. The current version will.  The current version is
+a strict interpretation of the original paper by
+S. I. Feldman
+and as such is described by his paper. The UNIX/TS \fBmake\fR
+is wrong (according to Feldman's paper) but people have
+learned (through trial and error) to use it in this fashion
+and would resist the change.
+The differences amount to one line of code in the
+file \fIdoname.c\fR which is noted in my source code.
+Furthermore, the "-b" option tells \fBmake\fR to revert
+to the old method, whereby old makefiles can be run with
+this new version of \fBmake\fR.
+Any other differences are unintentional.
+.H 1 "FUTURE DEVELOPMENTS"
+Further developments of the \fBmake\fR program that have
+been considered include redefinition of the colon, some
+other type of comparison that "newer versus older",
+searching out include files, and looking for source files
+in "other" directories.
+I will try to address each of these features.
+.P
+Redefinition of the colon would effectively give
+the user the ability to provide \fBmake\fR with
+information from a file, other than the time.
+Within the current syntax of \fBmake\fR this does not
+seem too difficult:
+.nf
+
+	make :=program ...
+
+.fi
+However, I can not see (nor has anyone pointed out to me)
+a use for such a feature.
+This would apparently be related to the second item above;
+namely, a different comparison
+other than the difference between
+two long integers, (the comparison by time).
+The basic problem, as I see it, is that
+when it comes time to do the ":" thing,
+\fBmake\fR does not know what information to
+pass to the program. \fBMake\fR looks at
+each dependency individually and not in subsets.
+This prevents passing information like:
+.nf
+
+	program cat cat.c
+
+.fi
+to a user defined \fIcolon\fR routine because \fBmake\fR
+does not know both \fIcat\fR and \fIcat.c\fR at the same time.
+(There is an interesting "hidden" variable in
+this version of \fBmake\fR: "$!". It represents the
+current predecessor tree. In the following \fImakefile\fR:
+.nf
+
+	all:	cat
+		@@echo cat up-to-date
+
+	cat:	cat.c
+		echo $!
+
+.fi
+when the "echo $!" is executed, "$!" evaluates to
+.nf
+
+	cat.c cat all
+
+.fi
+which is not \fIall\fR that useful! Further, it occasionally
+prints a message
+.nf
+
+	$! nulled, predecessor circle
+
+.fi
+This message means that the predecessors of a file
+are circular. The actual evaluation
+of the "$!" macro was aborted, and its value set to null. Otherwise
+there is no effect.)
+.P
+The searching out of include files has been mentioned
+many times as an improvement. This would require \fBmake\fR
+to look through every line of every source file
+mentioned in the makefile every time it is executed.
+This would slow \fBmake\fR down to a slow crawl and
+slowly defeat its usefulness.
+.P
+Having \fBmake\fR look in other directories for
+file entries sounds useful.
+However, interesting problems arise when this is considered.
+What if the file in a remote directory is
+out of date with respect to a file in the current directory?
+Does \fBmake\fR rebuild the remote file?
+(The user may not have write permission in that directory.)
+Also, how are the shell commands parameterized
+to be able to "see" the remote files.
+Further, how does \fBmake\fR (or the programmer) guarantee
+the resulting target file is in the remote
+directory? (CC leaves the object in the current directory, which
+would mean that part of a command line might have to refer to
+a remote file while the rest of it would refer to
+a relative in the current directory.)
+I do not deny the usefulness of using remote directories,
+but cannot see a consistent solution to locating results.
+(I would be glad to here from anyone who
+can clear up the mess.)
+.H 1 CONCLUSION
+The development described herein, produced a version of \fBmake\fR
+which now serves the Columbus operating system group for
+maintenance of all of the UNIX source files.
+The \fImakefiles\fR supplied from the UNIX/TS
+support group are edited slightly (for the annoying incompatibility
+described above) and used intact. When a large improvement
+can be made, they are rewritten. When no makefile exists,
+(C library and
+most of the "cmd" directory)
+a \fImakefile\fR is written.
+There are no "*.rc" files left in the source.
+This gives a single interface to rebuilding parts
+or all of the UNIX software.
+.P
+I feel that although the size of \fBmake\fR has grown from
+.nf
+
+	16320+3772+6352 = 26444b = 063514b
+
+.fi
+on the Center 127 machine to
+.nf
+
+	21632+4850+8748 = 35230b = 0104636b
+
+.fi
+on the Columbus machine, the trade of size for
+functionality is worthwhile.
+The unfortunate by product of such a development
+is that there are two versions of the
+\fBmake\fR program.
+I leave it to the reader to decide on the merits or lack of same
+on this issue.
+.SG egb
+.NS 4
+Appendix A-Internal Definitions
+Appendix B-Example Library Makefile
+Appendix C-Example Recursive Use of Makefiles
+.NE
+.bp
+.DS 2
+APPENDIX A
+.DE
+.P
+The following \fImakefile\fR
+will exactly reproduce the internal
+rules of the current version of
+\fBmake\fR. Thus if \fBmake -r ...\fR
+is typed and a \fImakefile\fR includes
+this \fImakefile\fR the results would be identical
+to excluding the "-r" option and the \fIinclude\fR
+line in the makefile.
+.nf
+
+	#	LIST OF SUFFIXES
+	.SUFFIXES: .o .c .c~ .y .y~ .l .l~ .s .s~ .sh .sh~ .h .h~
+	
+	#	PRESET VARIABLES
+	MAKE=make
+	YACC=yacc
+	YFLAGS=
+	LEX=lex
+	LFLAGS=
+	LD=ld
+	LDFLAGS=
+	CC=cc
+	CFLAGS=-O
+	AS=as
+	ASFLAGS=
+	GET=get
+	GFLAGS=
+	
+	#	SINGLE SUFFIX RULES
+	.c:
+		$(CC) -n -O $< -o $@@
+	.c~:
+		$(GET) $(GFLAGS) -p $< > $*.c
+		$(CC) -n -O $*.c -o $*
+		-rm -f $*.c
+	.sh:
+		cp $< $@@
+	.sh~:
+		$(GET) $(GFLAGS) -p $< > $*.sh
+		cp $*.sh $*
+		-rm -f $*.sh
+	
+	#	DOUBLE SUFFIX RULES
+	.c.o:
+		$(CC) $(CFLAGS) -c $<
+	.c~.o:
+		$(GET) $(GFLAGS) -p $< > $*.c
+		$(CC) $(CFLAGS) -c $*.c
+		-rm -f $*.c
+	.c~.c:
+		$(GET) $(GFLAGS) -p $< > $*.c
+	.s.o:
+		$(AS) $(ASFLAGS) -o $@@ $<
+	.s~.o:
+		$(GET) $(GFLAGS) -p $< > $*.s
+		$(AS) $(ASFLAGS) -o $*.o $*.s
+		-rm -f $*.s
+	.y.o:
+		$(YACC) $(YFLAGS) $<
+		$(CC) $(CFLAGS) -c y.tab.c
+		rm y.tab.c
+		mv y.tab.o $@@
+	.y~.o:
+		$(GET) $(GFLAGS) -p $< > $*.y
+		$(YACC) $(YFLAGS) $*.y
+		$(CC) $(CFLAGS) -c y.tab.c
+		rm -f y.tab.c $*.y
+		mv y.tab.o $*.o
+	.l.o:
+		$(LEX) $(LFLAGS) $<
+		$(CC) $(CFLAGS) -c lex.yy.c
+		rm lex.yy.c
+		mv lex.yy.o $@@
+	.l~.o:
+		$(GET) $(GFLAGS) -p $< > $*.l
+		$(LEX) $(LFLAGS) $*.l
+		$(CC) $(CFLAGS) -c lex.yy.c
+		rm -f lex.yy.c $*.l
+		mv lex.yy.o $*.o
+	.y.c :
+		$(YACC) $(YFLAGS) $<
+		mv y.tab.c $@@
+	.y~.c :
+		$(GET) $(GFLAGS) -p $< > $*.y
+		$(YACC) $(YFLAGS) $*.y
+		mv y.tab.c $*.c
+		-rm -f $*.y
+	.l.c :
+		$(LEX) $<
+		mv lex.yy.c $@@
+	.c.a:
+		$(CC) -c $(CFLAGS) $<
+		ar rv $@@ $*.o
+		rm -f $*.o
+	.c~.a:
+		$(GET) $(GFLAGS) -p $< > $*.c
+		$(CC) -c $(CFLAGS) $*.c
+		ar rv $@@ $*.o
+		rm -f $*.[co]
+	.s~.a:
+		$(GET) $(GFLAGS) -p $< > $*.s
+		$(AS) $(ASFLAGS) -o $*.o $*.s
+		ar rv $@@ $*.o
+		-rm -f $*.[so]
+	.h~.h:
+		$(GET) $(GFLAGS) -p $< > $*.h
+
+.fi
+.bp
+.DS 2
+APPENDIX B
+.DE
+.P
+The following library maintaining makefile
+is from my current work on LSX. It
+completely maintains the LSX operating system
+library.
+.nf
+
+	#	@@(#)/usr/src/cmd/make/make.tm	3.2
+	LIB = lsxlib
+	
+	#	I have a banner printing pr.
+	PR = vpr -b LSX
+	
+	INSDIR = /r1/flop0/
+	INS = eval
+	
+	lsx::	$(LIB) low.o mch.o
+		ld -x low.o mch.o $(LIB)
+		mv a.out lsx
+		@@size lsx
+	
+	#	Here, I have used $(INS) as either `:' or `eval'.
+	lsx::
+		$(INS) 'cp lsx $(INSDIR)lsx && \\
+			strip $(INSDIR)lsx  && \\
+			ls -l $(INSDIR)lsx'
+	
+	print:
+		$(PR) header.s low.s mch.s *.h *.c Makefile
+	
+	$(LIB): \\
+		$(LIB)(clock.o) \\
+		$(LIB)(main.o) \\
+		$(LIB)(tty.o) \\
+		$(LIB)(trap.o) \\
+		$(LIB)(sysent.o) \\
+		$(LIB)(sys2.o) \\
+		$(LIB)(sys3.o) \\
+		$(LIB)(sys4.o) \\
+		$(LIB)(sys1.o) \\
+		$(LIB)(sig.o) \\
+		$(LIB)(fio.o) \\
+		$(LIB)(kl.o) \\
+		$(LIB)(alloc.o) \\
+		$(LIB)(nami.o) \\
+		$(LIB)(iget.o) \\
+		$(LIB)(rdwri.o) \\
+		$(LIB)(subr.o) \\
+		$(LIB)(bio.o) \\
+		$(LIB)(decfd.o) \\
+		$(LIB)(slp.o) \\
+		$(LIB)(space.o) \\
+		$(LIB)(puts.o)
+		@@echo $(LIB) now up-to-date.
+	
+	
+	.s.o:
+		as -o $*.o header.s $*.s
+	.o.a:
+		ar rv $@@ $<
+		rm -f $<
+	
+	.s.a:
+		as -o $*.o header.s $*.s
+		ar rv $@@ $*.o
+		rm -f $*.o
+	
+	.PRECIOUS:	$(LIB)
+
+.fi
+.bp
+.DS 2
+APPENDIX C
+.DE
+.P
+The following set of \fImakefiles\fR
+maintain the UNIX operating system
+for Columbus UNIX. They reside in the following
+relative directories on the Columbus operating
+systems group machine: "ucb", "ucb/os", "ucb/io", "ucb/head/sys".
+Each one is named "70.mk".
+The following command forces a complete rebuild of the operating
+system:
+.nf
+
+	FRC=FRC make -f 70.mk
+
+.fi
+where the current directory is "ucb".
+Here, I have used some of the conventions described
+in A. Chellis' paper, \fIProposed Structure for UNIX/TS
+and UNIX/RT Makefiles\fR (MF78-8234-73).
+FRC is a convention for \fIF\fRo\fIRC\fRing
+\fBmake\fR to completely rebuild a target starting
+from scratch.
+.bp
+.DS 2
+./ucb makefile
+.DE
+.nf
+
+	#	@@(#)/usr/src/cmd/make/make.tm	3.2
+	#	ucb/70.mk makefile
+	
+	VERSION = 70
+	
+	DEPS = \\
+		os/low.$(VERSION).o \\
+		os/mch.$(VERSION).o \\
+		os/conf.$(VERSION).o \\
+		os/lib1.$(VERSION).a \\
+		io/lib2.$(VERSION).a
+	
+	#	This makefile will re-load unix.$(VERSION) if any
+	#	of the $(DEPS) is out-of-date wrt unix.$(VERSION).
+	#	Note, it will not go out and check each member
+	#	of the libraries. To do this, the FRC macro must
+	#	be defined.
+
+	unix.$(VERSION):	$(DEPS) $(FRC)
+		load -s $(VERSION)
+	
+	$(DEPS):	$(FRC)
+		cd $(@@D); $(MAKE) -f $(VERSION).mk $(@@F)
+	
+	all:	unix.$(VERSION)
+		@@echo unix.$(VERSION) up-to-date.
+	
+	includes:
+		cd head/sys; $(MAKE) -f $(VERSION).mk
+	
+	FRC:	includes;
+
+.fi
+.bp
+.DS 2
+./ucb/os makefile
+.DE
+.nf
+
+	
+	#	@@(#)/usr/src/cmd/make/make.tm	3.2
+	#	ucb/os/70.mk makefile
+	
+	VERSION = 70
+	
+	LIB = lib1.$(VERSION).a
+	COMPOOL=
+	
+	LIBOBJS = \\
+		$(LIB)(main.o) \\
+		$(LIB)(alloc.o) \\
+		$(LIB)(iget.o) \\
+		$(LIB)(prf.o) \\
+		$(LIB)(rdwri.o) \\
+		$(LIB)(slp.o) \\
+		$(LIB)(subr.o) \\
+		$(LIB)(text.o) \\
+		$(LIB)(trap.o) \\
+		$(LIB)(sig.o) \\
+		$(LIB)(sysent.o) \\
+		$(LIB)(sys1.o) \\
+		$(LIB)(sys2.o) \\
+		$(LIB)(sys3.o) \\
+		$(LIB)(sys4.o) \\
+		$(LIB)(sys5.o) \\
+		$(LIB)(syscb.o) \\
+		$(LIB)(maus.o) \\
+		$(LIB)(messag.o) \\
+		$(LIB)(nami.o) \\
+		$(LIB)(fio.o) \\
+		$(LIB)(clock.o) \\
+		$(LIB)(acct.o) \\
+		$(LIB)(errlog.o)
+	
+	
+	ALL = \\
+		conf.$(VERSION).o \\
+		low.$(VERSION).o \\
+		mch.$(VERSION).o \\
+		$(LIB)
+	
+	all:	$(ALL)
+		@@echo \`$(ALL)\' now up-to-date.
+	
+	$(LIB)::	$(LIBOBJS)
+	
+	$(LIBOBJS):	$(FRC)
+	
+	FRC:
+		rm -f $(LIB)
+	
+	clobber:	cleanup
+		-rm -f $(LIB)
+	
+	clean cleanup:
+	
+	install:	all
+	
+	.PRECIOUS:	$(LIB)
+
+.fi
+.bp
+.DS 2
+./ucb/io makefile
+.DE
+.nf
+
+	
+	#	@@(#)/usr/src/cmd/make/make.tm	3.2
+	#	ucb/io/70.mk makefile
+	
+	VERSION = 70
+	
+	LIB = lib2.$(VERSION).a
+	COMPOOL=
+	
+	LIB2OBJS = \\
+		$(LIB)(mx1.o) \\
+		$(LIB)(mx2.o) \\
+		$(LIB)(bio.o) \\
+		$(LIB)(tty.o) \\
+		$(LIB)(malloc.o) \\
+		$(LIB)(pipe.o) \\
+		$(LIB)(dhdm.o) \\
+		$(LIB)(dh.o) \\
+		$(LIB)(dhfdm.o) \\
+		$(LIB)(dj.o) \\
+		$(LIB)(dn.o) \\
+		$(LIB)(ds40.o) \\
+		$(LIB)(dz.o) \\
+		$(LIB)(alarm.o) \\
+		$(LIB)(hf.o) \\
+		$(LIB)(hps.o) \\
+		$(LIB)(hpmap.o) \\
+		$(LIB)(hp45.o) \\
+		$(LIB)(hs.o) \\
+		$(LIB)(ht.o) \\
+		$(LIB)(jy.o) \\
+		$(LIB)(kl.o) \\
+		$(LIB)(lfh.o) \\
+		$(LIB)(lp.o) \\
+		$(LIB)(mem.o) \\
+		$(LIB)(nmpipe.o) \\
+		$(LIB)(rf.o) \\
+		$(LIB)(rk.o) \\
+		$(LIB)(rp.o) \\
+		$(LIB)(rx.o) \\
+		$(LIB)(sys.o) \\
+		$(LIB)(trans.o) \\
+		$(LIB)(ttdma.o) \\
+		$(LIB)(tec.o) \\
+		$(LIB)(tex.o) \\
+		$(LIB)(tm.o) \\
+		$(LIB)(vp.o) \\
+		$(LIB)(vs.o) \\
+		$(LIB)(vtlp.o) \\
+		$(LIB)(vt11.o) \\
+		$(LIB)(fakevtlp.o) \\
+		$(LIB)(vt61.o) \\
+		$(LIB)(vt100.o) \\
+		$(LIB)(vtmon.o) \\
+		$(LIB)(vtdbg.o) \\
+		$(LIB)(vtutil.o) \\
+		$(LIB)(vtast.o) \\
+		$(LIB)(partab.o) \\
+		$(LIB)(rh.o) \\
+		$(LIB)(devstart.o) \\
+		$(LIB)(dmc11.o) \\
+		$(LIB)(rop.o) \\
+		$(LIB)(ioctl.o) \\
+		$(LIB)(fakemx.o)
+	
+	all:	$(LIB)
+		@@echo $(LIB) is now up-to-date.
+	
+	$(LIB)::	$(LIB2OBJS)
+	
+	$(LIB2OBJS):	$(FRC)
+	
+	FRC:
+		rm -f $(LIB)
+	
+	clobber: cleanup
+		-rm -f $(LIB) *.o
+	
+	clean cleanup:
+	
+	install:	all
+	
+	.PRECIOUS:	$(LIB)
+	
+	.s.a:
+		$(AS) $(ASFLAGS) -o $*.o $<
+		ar rcv $@@ $*.o
+		rm $*.o
+
+.fi
+.bp
+.DS 2
+./ucb/head/sys makefile
+.DE
+.nf
+
+	
+	#	@@(#)/usr/src/cmd/make/make.tm	3.2
+	#	ucb/head/sys/70.mk makefile
+	
+	COMPOOL = /usr/include/sys
+	
+	HEADERS = \\
+		$(COMPOOL)/buf.h \\
+		$(COMPOOL)/bufx.h \\
+		$(COMPOOL)/conf.h \\
+		$(COMPOOL)/confx.h \\
+		$(COMPOOL)/crtctl.h \\
+		$(COMPOOL)/dir.h \\
+		$(COMPOOL)/dm11.h \\
+		$(COMPOOL)/elog.h \\
+		$(COMPOOL)/file.h \\
+		$(COMPOOL)/filex.h \\
+		$(COMPOOL)/filsys.h \\
+		$(COMPOOL)/ino.h \\
+		$(COMPOOL)/inode.h \\
+		$(COMPOOL)/inodex.h \\
+		$(COMPOOL)/ioctl.h \\
+		$(COMPOOL)/ipcomm.h \\
+		$(COMPOOL)/ipcommx.h \\
+		$(COMPOOL)/lfsh.h \\
+		$(COMPOOL)/lock.h \\
+		$(COMPOOL)/maus.h \\
+		$(COMPOOL)/mx.h \\
+		$(COMPOOL)/param.h \\
+		$(COMPOOL)/proc.h \\
+		$(COMPOOL)/procx.h \\
+		$(COMPOOL)/reg.h \\
+		$(COMPOOL)/seg.h \\
+		$(COMPOOL)/sgtty.h \\
+		$(COMPOOL)/sigdef.h \\
+		$(COMPOOL)/sprof.h \\
+		$(COMPOOL)/sprofx.h \\
+		$(COMPOOL)/stat.h \\
+		$(COMPOOL)/syserr.h \\
+		$(COMPOOL)/sysmes.h \\
+		$(COMPOOL)/sysmesx.h \\
+		$(COMPOOL)/systm.h \\
+		$(COMPOOL)/text.h \\
+		$(COMPOOL)/textx.h \\
+		$(COMPOOL)/timeb.h \\
+		$(COMPOOL)/trans.h \\
+		$(COMPOOL)/tty.h \\
+		$(COMPOOL)/ttyx.h \\
+		$(COMPOOL)/types.h \\
+		$(COMPOOL)/user.h \\
+		$(COMPOOL)/userx.h \\
+		$(COMPOOL)/version.h \\
+		$(COMPOOL)/votrax.h \\
+		$(COMPOOL)/vt11.h \\
+		$(COMPOOL)/vtmn.h
+	
+	all:	$(FRC) $(HEADERS)
+		@@echo Headers are now up to date.
+	
+	$(HEADERS):	s.$$/
+		$(GET) -s -p $(GFLAGS) $? > xtemp
+		move xtemp 444 src sys $@@
+	
+	FRC:
+		rm -f $(HEADERS)
+	
+	.PRECIOUS:	$(HEADERS)
+	
+	
+	.h~.h:
+		get -s $<
+	
+	.DEFAULT:
+		cpmv $? 444 src sys $@@
+
+.fi
+.if t .CS 22
+.if n .CS 24
+@
+misc.c,v        436636430   702   10    100664  18606     `
+head     1.4;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.4
+date     83.11.01.20.49.36;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.10.22;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.52.18;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.26;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.4
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@static	char	*rcsid =
+	"$Header: /o/tony/make/new/RCS/misc.c,v 1.3 83/10/06 16:10:22 tony Exp $";
+
+/*
+ * $Log:	misc.c,v $
+ * Revision 1.3  83/10/06  16:10:22  tony
+ * Converted to use new directory routines.
+ * 
+ * Revision 1.2  83/10/06  10:52:18  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)/usr/src/cmd/make/misc.c	3.4	*/
+
+/*	@@(#)misc.c	3.2	*/
+
+#include "defs.h"
+#include "ctype.h"
+
+
+
+FSTATIC CHARSTAR nextchar=0;
+FSTATIC CHARSTAR lastchar=0;
+
+FSTATIC int *nextint=0;
+FSTATIC int *lastint=0;
+
+FSTATIC NAMEBLOCK hashtab[HASHSIZE];
+int nhashed=0;
+
+
+/* simple linear hash.  hash function is sum of
+   characters mod hash table size.
+*/
+hashloc(s)
+CHARSTAR s;
+{
+	register int i;
+	register int hashval;
+	register CHARSTAR t;
+
+	hashval = 0;
+
+	for(t=s; *t!=CNULL ; ++t)
+		hashval += *t;
+
+	hashval %= HASHSIZE;
+
+	for(i=hashval;
+		hashtab[i]!=0 && !equal(s,hashtab[i]->namep);
+		i = (i+1)%HASHSIZE ) ;
+
+	return(i);
+}
+
+
+NAMEBLOCK srchname(s)
+register CHARSTAR s;
+{
+	return( hashtab[hashloc(s)] );
+}
+
+
+
+
+NAMEBLOCK makename(s)
+register CHARSTAR s;
+{
+/* make a name entry; `s' is presumed to already to have been saved */
+
+	register NAMEBLOCK p;
+	register CHARSTAR t;
+
+	if(nhashed++ > HASHSIZE-3)
+		fatal("Hash table overflow");
+
+	p = ALLOC(nameblock);
+	p->nextname = firstname;
+	p->backname = NULL;
+
+	p->namep = s;
+	p->linep = 0;
+	p->done = 0;
+	p->septype = 0;
+	p->rundep  = 0;
+	p->modtime = 0;
+
+	firstname = p;
+
+	hashtab[hashloc(s)] = p;
+
+	return(p);
+}
+
+
+
+
+
+
+
+#define NOTSHORT sizeof (struct nameblock)
+
+extern CHARSTAR end;		/* loader value of end of core */
+
+CHARSTAR copys(s)
+register CHARSTAR s;
+{
+	register CHARSTAR t;
+	register struct
+	{
+		int i_i;
+		CHARSTAR i_s;
+	} i;
+
+	i.i_i = strlen(s) + 1;
+	if(i.i_i > NOTSHORT)
+	{
+		i.i_i = (i.i_i + 1)&~1;
+		t = (CHARSTAR )calloc(i.i_i, sizeof (*s));
+		if(t == NULL)
+			goto fat;
+		i.i_s = t;
+		while(*t++ = *s++);
+		return(i.i_s);
+	}
+
+	if( i.i_i >= (lastchar-nextchar) )
+	{
+		i.i_i = (i.i_i + 1)&~1;
+		if( (nextchar=(CHARSTAR )calloc(i.i_i, sizeof (*s) )) == NULL)
+fat:
+			fatal("Cannot allocate memory");
+		lastchar = nextchar + i.i_i;
+	}
+
+	t = nextchar;
+	while(*nextchar++ = *s++);
+	return(t);
+}
+
+
+CHARSTAR concat(a,b,c)   /* c = concatenation of a and b */
+register CHARSTAR a, b;
+register CHARSTAR c;
+{
+	register CHARSTAR t;
+	t = c;
+
+	while(*t = *a++) t++;
+	while(*t++ = *b++);
+	return(c);
+}
+
+suffix(a,b,p)  /* is b the suffix of a?  if so, set p = prefix */
+register CHARSTAR a, b, p;
+{
+	CHARSTAR a0, b0;
+	a0 = a;
+	b0 = b;
+
+	if(!a || !b)
+		return(0);
+
+	while(*a++);
+	while(*b++);
+
+	if( (a-a0) < (b-b0) )
+		return(0);
+
+	while(b>b0)
+		if(*--a != *--b)
+			return(0);
+
+	while(a0<a)
+		*p++ = *a0++;
+	*p = CNULL;
+
+	return(1);
+}
+
+
+
+int *intalloc(n)
+register int n;
+{
+	register INTSTAR p;
+
+	if( p = (int *) calloc(1,n) )
+		return(p);
+
+	fatal("out of memory");
+}
+
+/* copy string a into b, substituting for arguments */
+extern NAMEBLOCK cur_name;
+
+CHARSTAR subst(a,b)
+register CHARSTAR a, b;
+{
+	register CHARSTAR s;
+	register VARBLOCK vbp;
+	static depth=0;
+	char vname[100];
+	char closer;
+
+	if(++depth > 100)
+		fatal("infinitely recursive macro?");
+	if(a!=0)
+	{
+		while(*a)
+		{
+			if(*a != DOLLAR)
+				*b++ = *a++;
+			else if(*++a==CNULL || *a==DOLLAR)
+				*b++ = *a++;
+			else
+			{
+				s = vname;
+				if( *a==LPAREN || *a==LCURLY )
+				{
+					closer=(*a==LPAREN ? RPAREN : RCURLY);
+					++a;
+					while(*a == BLANK)
+						++a;
+					while(	*a!=BLANK  &&
+						*a!=closer &&
+						*a!=CNULL)
+						*s++ = *a++;
+					while(*a!=closer && *a!=CNULL)
+						++a;
+					if(*a == closer)
+						++a;
+				}
+				else
+					*s++ = *a++;
+
+				*s = CNULL;
+				if(amatch(&vname[0], "*:*=*"))
+				{
+					b = colontrans(b, vname);
+				}
+				else if(amatch(vname, "[@@*<%][DF]"))
+				{
+					b = dftrans(b, vname);
+				}
+				else
+				{
+					b = straightrans(b, vname);
+				}
+			}
+		}
+	}
+
+	*b = CNULL;
+	--depth;
+	return(b);
+}
+
+
+/*
+ *	Translate the $(name:*=*) type things.
+ */
+
+CHARSTAR colontrans(b, vname)
+register CHARSTAR b;
+char vname[];
+{
+	register int i;
+	register CHARSTAR ps1;
+	int fromlen;
+	char from[30], to[70];
+	char dftemp[128];
+	char tmp, nextchr;
+	CHARSTAR psave, pcolon;
+	VARBLOCK vbp;
+
+/*
+ *	Mark off the name (up to colon), the from expression (up to '='),
+ *	and the to expresion (up to CNULL).
+ */
+	i = 0;
+	for(ps1 = &vname[0]; *ps1 != KOLON; ps1++);
+	pcolon = ps1;
+	*pcolon = CNULL;
+	while(*++ps1 != EQUALS)
+		from[i++] = *ps1;
+	from[i] = CNULL;
+	fromlen = i;
+	i = 0;
+	while(*++ps1)
+		to[i++] = *ps1;
+	to[i] = CNULL;
+
+/*
+ *	Now, tanslate.
+ */
+
+	if(amatch(vname, "[@@*<%][DF]"))
+	{
+		dftrans(dftemp, vname);
+		ps1 = dftemp;
+	}
+	else
+	{
+		if((vbp = srchvar(vname)) == NULL)
+		{
+			return(b);
+		}
+		ps1 = vbp->varval;
+	}
+	if(ps1 != NULL && *ps1 != NULL)
+	{
+		psave = ps1;
+		while((i = sindex(ps1, from)) >= 0)
+		{
+			ps1 = &ps1[i];
+			tmp = *ps1;
+			*ps1 = CNULL;
+			nextchr = *(ps1+fromlen);
+			if(	nextchr == TAB ||
+				nextchr == BLANK ||
+				nextchr == CNULL)
+			{
+				b = copstr(b, psave);
+				b = copstr(b, to);
+				*ps1 = tmp;
+				ps1 += fromlen;
+			}
+			else
+			{
+				b = copstr(b, psave);
+				*b++ = tmp;
+				*ps1 = tmp;
+				ps1++;
+			}
+			psave = ps1;
+		}
+		b = copstr(b, ps1);
+	}
+	*pcolon = KOLON;
+	return(b);
+}
+
+/*
+ *	Do the $(@@D) type translations.
+ */
+
+CHARSTAR dftrans(b, vname)
+register CHARSTAR b;
+char vname[];
+{
+	char c, c1;
+	CHARSTAR p1, p2;
+	VARBLOCK vbp;
+
+	c1 = vname[1];
+	vname[1] = CNULL;
+	vbp = srchvar(vname);
+	if(vbp != 0 && vbp->varval != 0)
+	{
+		for(p1=p2=vbp->varval;*p1;p1++)
+			if(*p1 == SLASH)
+				p2 = p1;
+		if(*p2 == SLASH)
+		{
+			if(c1 == 'D')
+			{
+				if(p2 == vbp->varval)
+					p2++;
+				c = *p2;
+				*p2 = CNULL;
+				b = copstr(b,vbp->varval);
+				*p2 = c;
+			}
+			else
+			{
+				b = copstr(b, p2+1);
+			}
+		}
+		else
+		{
+			if(c1 == 'D')
+				b = copstr(b, ".");
+			else
+				b = copstr(b, p2);
+		}
+	}
+	vname[1] = c1;
+	return(b);
+}
+
+
+/*
+ *	Standard trnaslation, nothing fancy.
+ */
+
+CHARSTAR straightrans(b, vname)
+register CHARSTAR b;
+char vname[];
+{
+	register VARBLOCK vbp;
+	register CHAIN pchain;
+	register NAMEBLOCK pn;
+
+	vbp = srchvar(vname);
+	if( vbp != 0 && vbp->varval != 0)
+	{
+		if(vbp->v_aflg == YES)
+		{
+			pchain = (CHAIN)vbp->varval;
+			for(; pchain; pchain = pchain->nextchain)
+			{
+				pn = (NAMEBLOCK)pchain->datap;
+				if(pn->alias)
+					b=copstr(b, pn->alias);
+				else
+					b=copstr(b,pn->namep);
+				*b++ = BLANK;
+			}
+		}
+		else
+		{
+			b = subst(vbp->varval, b);
+		}
+		vbp->used = YES;
+	}
+	return(b);
+}
+
+
+
+/* copy s into t, return the location of the next free character in s */
+CHARSTAR copstr(s, t)
+register CHARSTAR s, t;
+{
+	if(t == 0)
+		return(s);
+	while (*t)
+		*s++ = *t++;
+	*s = CNULL;
+	return(s);
+}
+
+setvar(v,s)
+register CHARSTAR v, s;
+{
+	register VARBLOCK p;
+
+	p = srchvar(v);
+	if(p == 0)
+	{
+		p = varptr(v);
+	}
+	if (p->noreset == NO)
+	{
+		if(IS_ON(EXPORT))
+			p->envflg = YES;
+		p->varval = s;
+		if(IS_ON(INARGS) || IS_ON(ENVOVER))
+			p->noreset = YES;
+		else
+			p->noreset = NO;
+if(IS_ON(DBUG))printf("setvar: %s = %s noreset = %d envflg = %d Mflags = 0%o\n",
+	v, p->varval, p->noreset, p->envflg, Mflags);
+
+		if(p->used && !amatch(v, "[@@*<?!%]") )
+			if(IS_ON(DBUG))
+				fprintf(stderr, "Warning: %s changed after being used\n",v);
+	}
+}
+
+
+eqsign(a)
+register CHARSTAR a;
+{
+	register CHARSTAR p;
+
+	for(p = ":@@;=$\n\t"; *p; p++)
+		if(any(a, *p))
+		{
+			callyacc(a);
+			return(YES);
+		}
+	return(NO);
+}
+
+
+VARBLOCK varptr(v)
+register CHARSTAR v;
+{
+	register VARBLOCK vp;
+
+	if((vp = srchvar(v)) != 0)
+		return(vp);
+
+	vp = ALLOC(varblock);
+	vp->nextvar = firstvar;
+	firstvar = vp;
+	vp->varname = copys(v);
+	vp->varval = 0;
+	return(vp);
+}
+
+VARBLOCK srchvar(vname)
+register CHARSTAR vname;
+{
+	register VARBLOCK vp;
+
+	for(vp=firstvar; vp != 0 ; vp = vp->nextvar)
+		if(equal(vname, vp->varname))
+			return(vp);
+	return(NO);
+}
+
+
+fatal1(s,t)
+CHARSTAR s, t;
+{
+	char buf[100];
+	sprintf(buf, s, t);
+	fatal(buf);
+}
+
+
+
+fatal(s)
+CHARSTAR s;
+{
+	if(s)
+		fprintf(stderr, "Make: %s.  Stop.\n", s);
+	else
+		fprintf(stderr, "\nStop.\n");
+#ifdef unix
+	exit(1);
+#endif
+#ifdef gcos
+	exit(0);
+#endif
+}
+
+
+
+yyerror(s)
+CHARSTAR s;
+{
+	char buf[50];
+	extern int yylineno;
+
+	sprintf(buf, "line %d: %s", yylineno, s);
+	fatal(buf);
+}
+
+
+
+CHAIN appendq(head,tail)
+register CHAIN head;
+register CHARSTAR tail;
+{
+	register CHAIN p,q;
+
+	p = ALLOC(chain);
+	p->datap = tail;
+	if(head) {
+		for(q=head; q->nextchain ;q = q->nextchain)
+			;
+		q->nextchain = p;
+		return(head);
+	}
+	else
+		return(p);
+}
+
+
+
+
+
+CHARSTAR mkqlist(p)
+register CHAIN p;
+{
+	register CHARSTAR qbufp, s;
+	static char qbuf[OUTMAX];
+
+	qbufp = qbuf;
+
+	for( ; p ; p = p->nextchain)
+	{
+		s = p->datap;
+		if(qbufp != qbuf)
+			*qbufp++ = BLANK;
+		if(qbufp+strlen(s) > &qbuf[OUTMAX-3])
+		{
+			fprintf(stderr, "$? list too long\n");
+			break;
+		}
+		while (*s)
+			*qbufp++ = *s++;
+	}
+	*qbufp = CNULL;
+	return(qbuf);
+}
+
+any(s,c)
+register CHARSTAR s;
+register char c;
+{
+	register char d;
+
+	while(d = *s++)
+	{
+		if(d==c)
+			return(1);
+	}
+	return(0);
+}
+
+
+sindex(s1,s2)
+CHARSTAR s1;
+CHARSTAR s2;
+{
+	register CHARSTAR p1;
+	register CHARSTAR p2;
+	register int flag;
+	int ii;
+
+	p1 = &s1[0];
+	p2 = &s2[0];
+	flag = -1;
+	for(ii = 0; ; ii++)
+	{
+		while(*p1 == *p2)
+		{
+			if(flag < 0)
+				flag = ii;
+			if(*p1++ == CNULL)
+				return(flag);
+			p2++;
+		}
+		if(*p2 == CNULL)
+			return(flag);
+		if(flag >= 0)
+		{
+			flag = -1;
+			p2 = &s2[0];
+		}
+		if(*s1++ == CNULL)
+			return(flag);
+		p1 = s1;
+	}
+}
+
+
+#include "sys/stat.h"
+
+/*
+ *	findfl(name)	(like execvp, but does path search and finds files)
+ */
+static char fname[128];
+
+char	*execat();
+
+CHARSTAR findfl(name)
+register CHARSTAR name;
+{
+	register CHARSTAR p;
+	register VARBLOCK cp;
+
+	if(name[0] == SLASH)
+		return(name);
+	cp = varptr("VPATH");
+	if(cp->varval == 0)
+		p = ":";
+	else
+		p = cp->varval;
+
+	do
+	{
+		p = execat(p, name, fname);
+		if(access(fname, 4) == 0)
+			return(fname);
+	} while (p);
+	return((CHARSTAR )-1);
+}
+
+CHARSTAR execat(s1, s2, si)
+register CHARSTAR s1, s2;
+CHARSTAR si;
+{
+	register CHARSTAR s;
+
+	s = si;
+	while (*s1 && *s1 != KOLON && *s1 != MINUS)
+		*s++ = *s1++;
+	if (si != s)
+		*s++ = SLASH;
+	while (*s2)
+		*s++ = *s2++;
+	*s = CNULL;
+	return(*s1? ++s1: 0);
+}
+
+
+/*
+ *	change xx to s.xx or /x/y/z to /x/y/s.z
+ */
+CHARSTAR trysccs(str)
+register CHARSTAR str;
+{
+	register CHARSTAR sstr;
+	register int i = 2;
+
+	sstr = str;
+	for(; *str; str++);
+	str[2] = CNULL;
+	str--;
+	for(;str >= sstr; str--)
+	{
+		if(*str == SLASH)
+			if(i == 2)
+			{
+				i = 0;
+				*(str+2) = DOT;
+				*(str+1) = 's';
+			}
+		*(str+i) = *str;
+	}
+	if(i == 2)
+	{
+		*(str+2) = DOT;
+		*(str+1) = 's';
+	}
+	return(sstr);
+}
+
+
+is_sccs(filename)
+register CHARSTAR filename;
+{
+	register CHARSTAR p;
+
+	for(p = filename; *p; p++)
+		if(*p == 's')
+			if(p == filename && p[1] == DOT)
+				return(YES);
+			else if(p[-1] == SLASH && p[1] == DOT)
+				return(YES);
+	return(NO);
+}
+
+/*
+ *	change pfx to /xxx/yy/*zz.* or *zz.*
+ */
+CHARSTAR addstars(pfx)
+register CHARSTAR pfx;
+{
+	register CHARSTAR p1, p2;
+
+	for(p1 = pfx; *p1; p1++);
+	p2 = p1 + 3;			/* 3 characters, '*', '.', and '*'. */
+	p1--;
+
+	*p2-- = CNULL;
+	*p2-- = STAR;
+	*p2-- = DOT;
+	while(p1 >= pfx)
+	{
+		if(*p1 == SLASH)
+		{
+			*p2 = STAR;
+			return(pfx);
+		}
+		*p2-- = *p1--;
+	}
+	*p2 = STAR;
+	return(p2);
+}
+
+
+#define NENV	300
+extern CHARSTAR *environ;
+
+/*
+ *	This routine is called just before and exec.
+ */
+
+setenv()
+{
+	register CHARSTAR *ea;
+	register int nenv = 0;
+	register CHARSTAR p;
+	CHARSTAR *es;
+	VARBLOCK vp;
+	int length;
+
+	if(firstvar == 0)
+		return;
+
+	es=ea=(CHARSTAR *)calloc(NENV, sizeof *ea);
+	if(es == (CHARSTAR *)-1)
+		fatal("Cannot alloc mem for envp.");
+
+	for(vp=firstvar; vp != 0; vp=vp->nextvar)
+		if(vp->envflg)
+		{
+			if(++nenv >= NENV)
+				fatal("Too many env parameters.");
+			length = strlen(vp->varname) + strlen(vp->varval) + 2;
+			if((*ea = (CHARSTAR )calloc(length, sizeof **ea)) == (CHARSTAR )-1)
+				fatal("Cannot alloc mem for env.");
+			p = copstr(*ea++, vp->varname);
+			p = copstr(p, "=");
+			p = copstr(p, vp->varval);
+		}
+	*ea = 0;
+	if(nenv > 0)
+		environ=es;
+	if(IS_ON(DBUG))
+		printf("nenv = %d\n", nenv);
+}
+
+
+/*
+ *	Called in main
+ *	If a string like "CC=" occurs then CC is not put in environment.
+ *	This is because there is no good way to remove a variable
+ *	from the environment within the shell.
+ */
+
+readenv()
+{
+	register CHARSTAR *ea;
+	register CHARSTAR p;
+
+	ea=environ;
+	for(;*ea; ea++)
+	{
+		for(p = *ea; *p && *p != EQUALS; p++);
+		if(*p == EQUALS)
+			if(*(p+1))
+				eqsign(*ea);
+	}
+}
+
+
+sccstrip(pstr)
+register CHARSTAR pstr;
+{
+	register CHARSTAR p2;
+	register CHARSTAR sstr;
+
+	sstr = pstr;
+	for(; *pstr ; pstr++)
+		if(*pstr == RCURLY)
+		{
+			if(isdigit(pstr[1]))
+			if(pstr != sstr)
+			if(pstr[-1] != DOLLAR)
+			{
+				for(p2 = pstr; *p2 && (*p2 != LCURLY); p2++);
+				if(*p2 == CNULL)
+					break;
+				strshift(pstr, -(int)(p2-pstr+1) );
+			}
+		}
+}
+
+/*
+ *	Shift a string `pstr' count places. negative is left, pos is right
+ *	Negative shifts cause char's at front to be lost.
+ *	Positive shifts assume enough space!
+ */
+CHARSTAR strshift(pstr, count)
+register CHARSTAR pstr;
+register int count;
+{
+	register CHARSTAR sstr;
+
+	sstr = pstr;
+	if(count < 0)
+	{
+		count = -count;
+		while(pstr[count])
+			*pstr = pstr++[count];
+		*pstr = 0;
+		return(sstr);
+	}
+	for(; *pstr; pstr++);
+	pstr--[count] = 0;
+	while(pstr != sstr)
+		pstr[count] = *pstr--;
+	pstr[count] = *pstr;
+
+	return(sstr);
+
+}
+
+
+/*
+ *	execlp(name, arg,...,0)	(like execl, but does path search)
+ *	execvp(name, argv)	(like execv, but does path search)
+ */
+#include <errno.h>
+#define	NULL	0
+
+CHARSTAR execat();
+extern	errno;
+
+execlp(name, argv)
+CHARSTAR name, argv;
+{
+	return(execvp(name, &argv));
+}
+
+execvp(name, argv)
+CHARSTAR name, *argv;
+{
+	register etxtbsy = 1;
+	register eacces = 0;
+	register CHARSTAR cp;
+	CHARSTAR pathstr;
+	CHARSTAR shell;
+	char fname[128];
+
+	pathstr = varptr("PATH")->varval;
+	if(pathstr == 0 || *pathstr == CNULL)
+		pathstr = ":/bin:/usr/bin";
+	shell = varptr("SHELL")->varval;
+	if(shell == 0 || *shell == CNULL)
+		shell = "/bin/sh";
+	cp = strchr(name, SLASH)? "": pathstr;
+
+	do
+	{
+		cp = execat(cp, name, fname);
+	retry:
+		execv(fname, argv);
+		switch(errno)
+		{
+		case ENOEXEC:
+			*argv = fname;
+			*--argv = "sh";
+			execv(shell, argv);
+			return(-1);
+		case ETXTBSY:
+			if (++etxtbsy > 5)
+				return(-1);
+			sleep(etxtbsy);
+			goto retry;
+		case EACCES:
+			eacces++;
+			break;
+		case ENOMEM:
+		case E2BIG:
+			return(-1);
+		}
+	} while (cp);
+	if (eacces)
+		errno = EACCES;
+	return(-1);
+}
+
+/*
+ *	get() does an SCCS get on the file ssfile.
+ *	For the get command, get() uses the value of the variable "GET".
+ *	If ssfile has a slash in it, get() does a "chdir" to the appropriate
+ *	directory if the cdflag is set to CD. This assures
+ *	the program finds the ssfile where it belongs when necessary.
+ *	If the rlse string variable is set, get() uses it in the
+ *	get command sequence.
+ *	Thus a possible sequence is:
+ *		set -x;
+ *		cd ../sys/head;
+ *		get -r2.3.4.5 s.stdio.h
+ *
+ */
+
+/*
+ *	The gothead and gotf structures are used to remember
+ *	the names of the files `make' automatically gets so
+ *	`make' can remove them upon exit.
+ */
+GOTHEAD gotfiles;
+
+get(ssfile, cdflag, rlse)
+register CHARSTAR ssfile;
+int cdflag;
+CHARSTAR rlse;
+{
+	register CHARSTAR pr;
+	register CHARSTAR pr1;
+	char gbuf[128];
+	char sfile[128];
+	int retval;
+	GOTF gf;
+
+	copstr(sfile, ssfile);
+	if(!is_sccs(sfile))
+		trysccs(sfile);
+	if(access(sfile, 4) != 0 && IS_OFF(GET))
+		return(NO);
+
+	pr = gbuf;
+	if(IS_OFF(SIL))
+		pr = copstr(pr, "set -x;\n");
+
+	if(cdflag == CD)
+	if(any(sfile, SLASH))
+	{
+		pr = copstr(pr, "cd ");
+		for(pr1 = sfile; *pr1; pr1++);
+		while(*pr1 != SLASH)
+			pr1--;
+		*pr1 = CNULL;
+		pr = copstr(pr, sfile);
+		pr = copstr(pr, ";\n");
+		*pr1 = SLASH;
+	}
+
+	pr = copstr(pr, varptr("GET")->varval);
+	pr = copstr(pr, " ");
+	pr = copstr(pr, varptr("GFLAGS")->varval);
+	pr = copstr(pr, " ");
+
+	pr1 = rlse;
+	if(pr1 != NULL && pr1[0] != CNULL)
+	{
+		if(pr1[0] != MINUS)	/* RELEASE doesn't have '-r' */
+			pr = copstr(pr, "-r");
+		pr = copstr(pr, pr1);
+		pr = copstr(pr, " ");
+	}
+
+	pr = copstr(pr, sfile);
+/*
+ *	exit codes are opposite of error codes so do the following:
+ */
+	retval = (system(gbuf) == 0) ? YES : NO ;
+	if(retval == YES)
+	{
+		if(gotfiles == 0)
+		{
+			gotfiles = ALLOC(gothead);
+			gf = (GOTF)gotfiles;
+			gotfiles->gnextp = 0;
+			gotfiles->endp = (GOTF)gotfiles;
+		}
+		else
+		{
+			gf = gotfiles->endp;
+			gf->gnextp = ALLOC(gotf);
+			gf = gf->gnextp;
+			gf->gnextp = 0;
+		}
+		gf->gnamep = copys(sfile+2);	/* `+2' skips `s.' */
+		gotfiles->endp = gf;
+	}
+	return(retval);
+}
+
+/*
+ *	subroutine to actually remove to gotten files.
+ */
+rm_gots()
+{
+	register GOTF gf;
+
+	if(IS_ON(GF_KEEP))
+		return;
+	for(gf = (GOTF)gotfiles; gf ; gf=gf->gnextp)
+		if(gf->gnamep)
+		{
+			if(IS_ON(DBUG))printf("rm_got: %s\n", gf->gnamep);
+			unlink(gf->gnamep);
+		}
+}
+callyacc(str)
+register CHARSTAR str;
+{
+	CHARSTAR lines[2];
+	FILE *finsave;
+	CHARSTAR *lpsave;
+
+	finsave = fin;
+	lpsave = linesptr;
+	fin = 0;
+	lines[0] = str;
+	lines[1] = 0;
+	linesptr = lines;
+	yyparse();
+	fin = finsave;
+	linesptr = lpsave;
+}
+
+/*
+ *	exit routine for removing the files `make' automatically
+ *	got.
+ */
+exit(arg)
+{
+	rm_gots();
+
+	if(IS_ON(RMFLAG))	/* if flag set, remove co`d files */
+		rm();
+
+	if(IS_ON(MEMMAP))
+	{
+		prtmem();
+	}
+	_exit(arg);
+}
+
+strchr(s,c)
+char *s;
+char c;
+{
+	for ( ; *s && (*s != c) ; s++)
+		;
+	return(*s ? s : NULL);
+}
+
+/*
+ * ncat copies n chars of string b at a, returning a pointer to the
+ * null terminating a. This way, it can be used to daisy-chain.
+ * If n < 0, all chars of b will be copied.
+ */
+char *
+ncat(a,b,n)
+register char *a, *b;
+register int  n;
+{
+	if (n < 0) {
+		while(*a++ = *b++)
+			;
+		return(--a);
+	} else {
+		if (n != 0)
+			do {
+				if((*a++ = *b++) == '\0')
+					return(--a);
+			} while (--n);
+		*a = '\0';
+		return(a);
+	}
+}
+@
+
+
+1.3
+log
+@Converted to use new directory routines.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/misc.c,v 1.2 83/10/06 10:52:18 tony Exp $";
+d6 3
+d1120 25
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d5 4
+a8 1
+ * $Log$
+a650 1
+#include "sys/types.h"
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d12 1
+a12 1
+#include "defs"
+d554 1
+a554 1
+	register CHAIN p;
+d558 8
+a565 3
+	while(head->nextchain)
+		head = head->nextchain;
+	head->nextchain = p;
+d1097 4
+@
+prtmem.c,v      435872498   702   10    100664  1105      `
+head     1.1;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.1
+date     83.09.26.15.38.47;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*	@@(#)/usr/src/cmd/make/prtmem.c	3.3	*/
+
+#ifdef GETU
+#define udsize u[0]
+#define ussize u[1]
+#endif
+
+
+prtmem()
+{
+#ifdef GETU
+#include "stdio.h"
+#include "sys/param.h"
+#include "sys/user.h"
+	unsigned u[2];
+	register int i;
+
+	if(getu( &(struct user *)0->u_dsize, &u, sizeof u) > 0)
+	{
+		udsize *= 64;
+		ussize *= 64;
+		printf("mem: data = %u(0%o) stack = %u(0%o)\n",
+			udsize, udsize, ussize, ussize);
+/*
+ *	The following works only when `make' is compiled
+ *	with I&D space separated (i.e. cc -i ...).
+ *	(Notice the hard coded `65' below!)
+ */
+		udsize /= 1000;
+		ussize /= 1000;
+		printf("mem:");
+		for(i=1; i<=udsize;i++)
+		{
+			if((i%10) == 0)
+				printf("___");
+			printf("d");
+		}
+		for(;i<=65-ussize;i++)
+		{
+			if((i%10) == 0)
+				printf("___");
+			printf(".");
+		}
+		for(;i<=65;i++)
+		{
+			if((i%10) == 0)
+				printf("___");
+			printf("s");
+		}
+		printf("\n");
+		fflush(stdout);
+	}
+#endif
+}
+@
+
+pwbrules.c,v    435872481   702   10    100664  3879      `
+head     1.2;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.2
+date     83.10.07.08.39.08;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.38.53;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.2
+log
+@Changed defs to defs.h
+@
+text
+@/*	@@(#)/usr/src/cmd/make/pwbrules.c	3.1	*/
+#include "defs.h"
+/* DEFAULT RULES FOR UNIX */
+
+
+/*
+ *	These are the internal rules that "make" trucks around with it at
+ *	all times. One could completely delete this entire list and just
+ *	conventionally define a global "include" makefile which had these
+ *	rules in it. That would make the rules dynamically changeable
+ *	without recompiling make. This file may be modified to local
+ *	needs. There are currently two versions of this file with the
+ *	source; namely, rules.c (which is the version running in Columbus)
+ *	and pwbrules.c which is my attempt at satisfying the requirements
+ *	of PWB systems.
+ *	The makefile for make (make.mk) is parameterized for a different
+ *	rules file. The macro $(RULES) defined in "make.mk" can be set
+ *	to another file and when "make" is "made" the procedure will
+ *	use the new file. The recommended way to do this is on the
+ *	command line as follows:
+ *		"make -f make.mk RULES=pwbrules"
+ */
+
+CHARSTAR builtin[] =
+	{
+	".SUFFIXES: .L .o .c .c~ .y .y~ .l .l~ .s .s~ .sh .sh~ .h .h~ .z .x .t",
+
+/* PRESET VARIABLES */
+	"MAKE=make",
+	"YACC=yacc",
+	"YFLAGS=",
+	"LEX=lex",
+	"LFLAGS=",
+	"LD=ld",
+	"LDFLAGS=",
+	"CC=cc",
+	"CFLAGS=-O",
+	"AS=as",
+	"ASFLAGS=",
+	"GET=get",
+	"GFLAGS=",
+	"SCOMP=scomp",
+	"SCFLAGS=",
+	"CMDICT=cmdict",
+	"CMFLAGS=",
+
+/* SINGLE SUFFIX RULES */
+	".c:",
+		"\t$(CC) -n -O $< -o $@@",
+	".c~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -n -O $*.c -o $*",
+		"\t-rm -f $*.c",
+	".sh:",
+		"\tcp $< $@@",
+	".sh~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.sh",
+		"\tcp $*.sh $*",
+		"\t-rm -f $*.sh",
+
+/* DOUBLE SUFFIX RULES */
+	".c.o:",
+		"\t$(CC) $(CFLAGS) -c $<",
+	".c~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) $(CFLAGS) -c $*.c",
+		"\t-rm -f $*.c",
+	".c~.c:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+	".s.o:",
+		"\t$(AS) $(ASFLAGS) -o $@@ $<",
+	".s~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\t-rm -f $*.s",
+	".y.o:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm y.tab.c",
+		"\tmv y.tab.o $@@",
+	".y~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm -f y.tab.c $*.y",
+		"\tmv y.tab.o $*.o",
+	".l.o:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm lex.yy.c",
+		"\tmv lex.yy.o $@@",
+	".l~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.l",
+		"\t$(LEX) $(LFLAGS) $*.l",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm -f lex.yy.c $*.l",
+		"\tmv lex.yy.o $*.o",
+	".y.c :",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\tmv y.tab.c $@@",
+	".y~.c :",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\tmv y.tab.c $*.c",
+		"\t-rm -f $*.y",
+	".l.c :",
+		"\t$(LEX) $<",
+		"\tmv lex.yy.c $@@",
+	".c.a:",
+		"\t$(CC) -c $(CFLAGS) $<",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.o",
+	".c~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -c $(CFLAGS) $*.c",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.[co]",
+	".s~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\tar rv $@@ $*.o",
+		"\t-rm -f $*.[so]",
+	".h~.h:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.h",
+	".o.L .c.L .t.L:",
+		"\t$(SCOMP) $(SCFLAGS) $<",
+	".t.o:",
+		"\t$(SCOMP) $(SCFLAGS) -c $<",
+	".t.c:",
+		"\t$(SCOMP) $(SCFLAGS) -t $<",
+	".h.z .t.z:",
+		"\t$(CMDICT) $(CMFLAGS) -c $<",
+	".h.x .t.x:",
+		"\t$(CMDICT) $(CMFLAGS) -c $<",
+
+	"markfile.o:	markfile",
+		"\tA=@@;echo \"static char _sccsid[] = \\042$$A(#)`what markfile | sed 1d`\\042;\" > markfile.c",
+		"\tcc -c markfile.c",
+		"\trm -f markfile.c",
+	0 };
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+#include "defs"
+@
+
+rules.c,v       438879088   702   0     100444  7798      `
+head     1.8;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.8
+date     83.11.28.09.51.06;  author tony;  state Exp;
+branches ;
+next     1.7;
+
+1.7
+date     83.11.01.20.51.02;  author tony;  state Exp;
+branches ;
+next     1.6;
+
+1.6
+date     83.10.24.14.37.46;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.11.12.54.47;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.06.16.54.38;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.52.29;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.52.54;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.39.02;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.8
+log
+@Added LOADLIBES to the .c single suffix rule.
+@
+text
+@static	char	*rcsid =
+	"$Header: /usr/src/bin/make/RCS/rules.c,v 1.7 83/11/01 20:51:02 tony Exp $";
+
+/*
+ * $Log:	rules.c,v $
+ * Revision 1.7  83/11/01  20:51:02  tony
+ * Added crl`s latest changes (11/1/83)
+ * 
+ * Revision 1.6  83/10/24  14:37:46  tony
+ * Added default rules for ".CO" and ".CLEANUP"
+ * 
+ * Revision 1.5  83/10/11  12:54:47  tony
+ * Added default values for RM and RMFLAGS which are used when
+ * removing files that were checked out previously.
+ * 
+ * Revision 1.4  83/10/06  16:54:38  tony
+ * fixed minor bug in the format of a rule.
+ * 
+ * Revision 1.3  83/10/06  16:52:29  tony
+ * Added rules from the 4.2 make for fortran, pascal, etc.
+ * 
+ * Revision 1.2  83/10/06  10:52:54  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)rules.c	3.1	*/
+#include "defs.h"
+/* DEFAULT RULES FOR UNIX */
+
+/*
+ *	These are the internal rules that "make" trucks around with it at
+ *	all times. One could completely delete this entire list and just
+ *	conventionally define a global "include" makefile which had these
+ *	rules in it. That would make the rules dynamically changeable
+ *	without recompiling make. This file may be modified to local
+ *	needs. There are currently two versions of this file with the
+ *	source; namely, rules.c (which is the version running in Columbus)
+ *	and pwbrules.c which is my attempt at satisfying the requirements
+ *	of PWB systems.
+ *	The makefile for make (make.mk) is parameterized for a different
+ *	rules file. The macro $(RULES) defined in "make.mk" can be set
+ *	to another file and when "make" is "made" the procedure will
+ *	use the new file. The recommended way to do this is on the
+ *	command line as follows:
+ *		"make -f make.mk RULES=pwbrules"
+ */
+
+CHARSTAR builtin[] =
+	{
+	".SUFFIXES: .out .o .c .c~ .F .f .e .r .y .y~ .yr .ye .l .l~ .s .s~ .cl .p .sh .sh~ .h .h~",
+
+/* PRESET VARIABLES */
+	"MAKE=make",
+	"YACC=yacc",
+	"YACCR=yacc -r",
+	"YACCE=yacc -e",
+	"YFLAGS=",
+	"LEX=lex",
+	"LFLAGS=",
+	"LD=ld",
+	"LDFLAGS=",
+	"CC=cc",
+	"CFLAGS=-O",
+	"AS=as",
+	"ASFLAGS=",
+	"PC=pc",
+	"PFLAGS=",
+	"RC=f77",
+	"RFLAGS=",
+	"FC=f77",
+	"EFLAGS=",
+	"FFLAGS=",
+	"LOADLIBES=",
+	"GET=get",
+	"GFLAGS=",
+
+	"CO=co",
+	"COFLAGS=-q",
+	"RM=rm",
+	"RMFLAGS=-f",
+
+	".CO :",			/* rule to check out a file */
+		"\t$(CO) $(COFLAGS) $@@",
+	".CLEANUP :",			/* rule to remove co`ed files */
+		"\t$(RM) $(RMFLAGS) $?",
+
+/* SINGLE SUFFIX RULES */
+
+	".c:",
+		"\t$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@@ $(LOADLIBES)",
+	".c~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -n -O $*.c -o $* $(LOADLIBES)",
+		"\t-rm -f $*.c",
+	".sh:",
+		"\tcp $< $@@",
+	".sh~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.sh",
+		"\tcp $*.sh $*",
+		"\t-rm -f $*.sh",
+
+	".s .o:",
+		"\t$(CC) $(CFLAGS) $< $(LOADLIBES) -o $@@",
+	".f .F .r .e:",
+		"\t$(FC) $(EFLAGS) $(RFLAGS) $(FFLAGS) $< $(LOADLIBES) -o $@@",
+	".y:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) y.tab.c $(LOADLIBES) -ly -o $@@",
+		"\trm y.tab.c",
+	".l:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) lex.yy.c $(LOADLIBES) -ll -o $@@",
+		"\trm lex.yy.c",
+
+/* DOUBLE SUFFIX RULES */
+	".c.o:",
+		"\t$(CC) $(CFLAGS) -c $<",
+	".c~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) $(CFLAGS) -c $*.c",
+		"\t-rm -f $*.c",
+	".c~.c:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+	".p.o:",
+		"\t$(PC) $(PFLAGS) -c $<",
+	".cl.o:",
+		"\tclass -c $<",
+	".e.o .r.o .F.o .f.o :",
+		"\t$(FC) $(RFLAGS) $(EFLAGS) $(FFLAGS) -c $<",
+	".s.o:",
+		"\t$(AS) $(ASFLAGS) -o $@@ $<",
+	".s~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\t-rm -f $*.s",
+	".y.o:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm y.tab.c",
+		"\tmv y.tab.o $@@",
+	".yr.o:",
+		"\t$(YACCR) $(YFLAGS) $<",
+		"\t$(RC) $(RFLAGS) -c y.tab.r",
+		"\trm y.tab.r",
+		"\tmv y.tab.o $@@",
+	".ye.o:",
+		"\t$(YACCE) $(YFLAGS) $<",
+		"\t$(RC) $(RFLAGS) -c y.tab.e",
+		"\trm y.tab.e",
+		"\tmv y.tab.o $@@",
+	".y~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm -f y.tab.c $*.y",
+		"\tmv y.tab.o $*.o",
+	".l.o:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm lex.yy.c",
+		"\tmv lex.yy.o $@@",
+	".l~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.l",
+		"\t$(LEX) $(LFLAGS) $*.l",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm -f lex.yy.c $*.l",
+		"\tmv lex.yy.o $*.o",
+	".y.c :",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\tmv y.tab.c $@@",
+	".y~.c :",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\tmv y.tab.c $*.c",
+		"\t-rm -f $*.y",
+	".l.c :",
+		"\t$(LEX) $<",
+		"\tmv lex.yy.c $@@",
+	".yr.r:",
+		"\t$(YACCR) $(YFLAGS) $<",
+		"\tmv y.tab.r $@@",
+	".ye.e:",
+		"\t$(YACCE) $(YFLAGS) $<",
+		"\tmv y.tab.e $@@",
+	".c.a:",
+		"\t$(CC) -c $(CFLAGS) $<",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.o",
+	".c~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -c $(CFLAGS) $*.c",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.[co]",
+	".s~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\tar rv $@@ $*.o",
+		"\t-rm -f $*.[so]",
+
+	/* Berkeley`s answer to single suffix rules.... */
+
+	".s.out .c.out .o.out:",
+		"\t$(CC) $(CFLAGS) $< $(LOADLIBES) -o $@@",
+	".f.out .F.out .r.out .e.out:",
+		"\t$(FC) $(EFLAGS) $(RFLAGS) $(FFLAGS) $< $(LOADLIBES) -o $@@",
+	".y.out:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) y.tab.c $(LOADLIBES) -ly -o $@@",
+		"\trm y.tab.c",
+	".l.out:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) lex.yy.c $(LOADLIBES) -ll -o $@@",
+		"\trm lex.yy.c",
+
+	".h~.h:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.h",
+	"markfile.o:	markfile",
+		"\tA=@@;echo \"static char _sccsid[] = \\042`grep $$A'(#)' markfile`\\042;\" > markfile.c",
+		"\tcc -c markfile.c",
+		"\trm -f markfile.c",
+	0 };
+
+@
+
+
+1.7
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@d2 1
+a2 1
+	"$Header: /r/tony/make/new/RCS/rules.c,v 1.6 83/10/24 14:37:46 tony Exp $";
+d6 3
+d91 1
+a91 1
+		"\t$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@@",
+d94 1
+a94 1
+		"\t$(CC) -n -O $*.c -o $*",
+@
+
+
+1.6
+log
+@Added default rules for ".CO" and ".CLEANUP"
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.5 83/10/11 12:54:47 tony Exp $";
+d6 3
+d81 1
+a81 1
+		"\t$(CO) $(COFLAGS) $<",
+@
+
+
+1.5
+log
+@Added default values for RM and RMFLAGS which are used when
+removing files that were checked out previously.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.4 83/10/06 16:54:38 tony Exp $";
+d6 4
+d71 1
+d77 5
+d83 1
+@
+
+
+1.4
+log
+@fixed minor bug in the format of a rule.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.3 83/10/06 16:52:29 tony Exp $";
+d6 3
+d69 2
+@
+
+
+1.3
+log
+@Added rules from the 4.2 make for fortran, pascal, etc.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.2 83/10/06 10:52:54 tony Exp $";
+d6 3
+d81 1
+a81 1
+	".s .o",
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d5 4
+a8 1
+ * $Log$
+d35 1
+a35 1
+	".SUFFIXES: .o .c .c~ .y .y~ .l .l~ .s .s~ .sh .sh~ .h .h~",
+d40 2
+d51 8
+d78 13
+d100 6
+d117 10
+d155 6
+d175 16
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d9 1
+a9 1
+#include "defs"
+d48 2
+@

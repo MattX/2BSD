@@ -1,0 +1,45 @@
+From tef@ucsfcgl.UUCP Wed Jan  9 02:02:10 1985
+Received: by ucsfssu.ucsf (4.12/2.4)
+	id AA25087; Wed, 9 Jan 85 02:02:07 pst
+Received: by ucsfcgl.ucsf (4.12/2.4)
+	id AA25698; Tue, 8 Jan 85 11:40:14 pst
+Date: Tue, 8 Jan 85 11:40:14 pst
+From: tef@ucsfcgl.UUCP (Thomas Ferrin)
+Message-Id: <8501081940.AA25698@ucsfcgl.ucsf>
+To: scooter@ucsfssu.ucsf
+Subject: Re:  Subnet changes.
+Status: RO
+
+I've left two tar files in /usr/tmp/scooter.{1,2}.  The first
+is the new routing daemon, which I suspect is substaintially
+different than the one you're running.  The 2nd are the kernel
+changes necessary for subrouting.  The changes here are few,
+but rather than trying to send you diffs, I thought it might
+be easier for you to have the whole file(s).  If you want
+diffs to, please let me know.
+
+You may also need a new /etc/ifconfig (I think this program was
+called something slightly different in 2.9bsd), since there is
+a new "local" flag for the subnet stuff.  The subnet and routing
+changes are really independent of one another, as best as I
+remember right now at least.  I know the new routing daemon is
+needed for sure in our case on CGL, since the old one never
+worked with point to point links and had countless number of
+other bugs as well.  You can't go wrong (did I say that?) with
+the new /etc/routed.  The subnet code simply allows sites that have
+class A or class B networks to break these networks up into a
+number of different nets locally, but still have sites outside the subnet
+see network address as simple class A or class B networks.  Since
+UCSF is a class C network, none of this really applies, although
+since Berkeley is a class B network and the CGL <--> ARPAvax link
+is also a class B subnet, I had to add the subnet changes to CGL.
+I'm not sure you'll need these changes at SSU; install the new routed
+first and see if that fixes your problem.  All network hosts at
+UCSF should be running the new routed; since these are nearly all
+vaxes the binary from cgl:/etc/routed can just be copied to the other
+machines.  If you want to do this on MIS, it's fine by me.  You'll
+need to be root so you can kill of the running routed before doing
+the copy.  Let me know if you have any problems.
+
+--tom
+

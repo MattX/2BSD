@@ -1,0 +1,10 @@
+
+This directory generates I/O routines which used to be in stdio and gen.
+Since the source codes are exactly the same as those in /usr/src/lib/libc/stdio
+and /usr/src/lib/libc/gen, they are not listed here.  Users should make symbolic
+links to the sources before running the Makefile.  An exception is strcmpfold.c
+which is listed here since it's not standard.
+
+Note:  The LIB and BIN given in ./Makefile should be the same as in ../Makefile
+and ../sys/Makefile.
+

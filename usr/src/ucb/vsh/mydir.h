@@ -1,6 +1,6 @@
 /*  Global Defines  */
 
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
 
@@ -55,6 +55,6 @@ extern struct stat scr_stb;
 #define DOTDOT	".."
 #define	SLASH	"/"
 #define dirsize sizeof dirbuf[0]
-#define	dnamesize	DIRSIZ
+#define	dnamesize	MAXNAMLEN
 
 #define	ISROOT(arg)	(arg [1] == 0)

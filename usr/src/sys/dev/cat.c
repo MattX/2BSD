@@ -1,11 +1,8 @@
-#
-/*
- */
-
 /*
  * GP DR11C driver used for C/A/T
  */
-
+#include "cat.h"
+#if NCAT > 0
 #include <sys/param.h>
 #include <sys/dir.h>
 #include <sys/user.h>
@@ -14,7 +11,6 @@
 #ifdef	UCB_SCCSID
 static	char sccs_id[] = "@(#)cat.c	3.1";
 #endif
-
 
 #define	CATADDR	((struct catdev *)0167770)
 #define	PCAT	(PZERO+9)
@@ -77,3 +73,4 @@ catintr()
 		}
 	}
 }
+#endif NCAT > 0

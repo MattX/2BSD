@@ -639,7 +639,7 @@ char *dir, *file;
         if (*(dp-1) != '/')
         *dp++ = '/';
         fp = file;
-        for (i=0; i<DIRSIZ; i++)
+        for (i=0; i<MAXNAMLEN; i++)
                 *dp++ = *fp++;
         *dp = 0;
         return(dfile);
@@ -680,7 +680,7 @@ char *dir;
                         continue;
                 if (ep->lnum != -1)
                         ep->lnum = dentry.d_ino;
-                for (j=0; j<DIRSIZ; j++)
+                for (j=0; j<MAXNAMLEN; j++)
                         ep->ln.lname[j] = dentry.d_name[j];
         }
         fclose(dirf);

@@ -1,4 +1,13 @@
-all:	hkuboot hpuboot rkuboot rluboot rmuboot rpuboot
+LIST=	dvhpuboot hkuboot hpuboot rkuboot rluboot rmuboot rpuboot
+
+all:	${LIST}
+
+dvhpuboot: dvhpuboot.s
+	as -o dvhpuboot.o dvhpuboot.s
+	size dvhpuboot.o
+	strip dvhpuboot.o
+	dd if=dvhpuboot.o of=dvhpuboot bs=8w skip=1
+	rm dvhpuboot.o
 
 hkuboot: hkuboot.s
 	as -o hkuboot.o hkuboot.s
@@ -38,6 +47,9 @@ rpuboot: rpuboot.s
 	strip rpuboot.o
 	dd if=rpuboot.o of=rpuboot bs=8w skip=1
 	rm rpuboot.o
+
+clean:
+	rm -f ${LIST}
 
 .DEFAULT:
 	as -o $@.o $@.s

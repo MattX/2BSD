@@ -1,0 +1,119 @@
+#	Makefile for the Fortran 77 compiler
+#	running on a nonseparate I/D PDP11 using text overlays,
+#	generating code for the PDP11,
+#	using the Ritchie pass 2
+#
+
+AS=		as -V
+C2=		/lib/c2
+CFL=		-DTARGET=PDP11 -DFAMILY=DMR -DHERE=PDP11 -DOUTPUT=BINARY \
+		-DPOLISH=POSTFIX -DOVERLAID
+CFLAGS=		-V ${FP} ${CFL}		# Don't use -O here.
+LD=		ld
+LIBR=		-lovc
+STRINGS=	f77_strings
+PASS1OBJECTS=	data.o equiv.o error.o exec.o expr.o gram.o init.o \
+		intr.o io.o lex.o main.o misc.o pdp11.o pdp11x.o proc.o \
+		put.o putdmr.o
+
+all:		f77 f77pass1
+
+install:
+		install -s -o bin -g bin -m 711 f77 ${DESTDIR}/usr/bin
+		install -s -o bin -g bin -m 711 f77pass1 ${DESTDIR}/lib
+		install -c -o bin -g bin -m 711 ${STRINGS}/ ${DESTDIR}lib
+
+clean:
+		-rm -f f77 f77pass1 *.o x.c xs.c f77_strings strings
+
+driver.o:
+		${CC} -c ${CFLAGS} $*.c
+
+#	Take certain data tables out of data space and put them in
+#	text space (warning-- this doesn't work except with special cases)
+
+gram.o:		gram.c
+		mkstr - f77_strings xx gram.c
+		${CC} -S ${CFLAGS} xxgram.c 
+		mv xxgram.s gram.s
+#	Eliminate yacc data structures
+		ed - gram.s < :gram.fix
+		rm xxgram.c
+		${AS} -u -o gram.o gram.s
+		rm gram.s
+
+.c.o:	$*.s
+#	Remove error strings
+		mkstr - f77_strings xx $*.c
+		${CC} -S ${CFLAGS} xx$*.c
+		mv xx$*.s $*.s
+#	Move switch code to text space
+		ed - $*.s < :rofix
+		rm xx$*.c
+		${C2} $*.s x.s
+		mv x.s $*.s
+		${AS} -u -o $*.o $*.s
+		rm $*.s
+
+.c.s:   
+#	Remove error strings
+		mkstr - f77_strings xx $*.c
+		${CC} -S ${CFLAGS} xx$*.c
+		mv xx$*.s $*.s
+		ed - $*.s < :rofix
+		rm xx$*.c
+
+.s.o:
+		${C2} $*.s x.s
+		mv x.s $*.s
+		${AS} -u -o $*.o $*.s
+		rm $*.s
+
+f77:		driver.c pdp11x.c 
+		${CC} ${LFLAG} ${CFLAGS} driver.c pdp11x.c -o f77
+		@size f77
+
+f77pass1:	${PASS1OBJECTS}
+		${LD} ${CRT} ${LFLAG} -o f77pass1 \
+		-Z main.o init.o equiv.o data.o io.o \
+		-Z gram.o \
+		-Z lex.o proc.o \
+		-Z expr.o \
+		-Z exec.o intr.o \
+		-Z putdmr.o pdp11.o pdp11x.o \
+		-L misc.o error.o put.o ${LIBR}
+		@size f77pass1
+
+gram.c:		gram.head gram.dcl gram.expr gram.exec gram.io tokdefs
+		( sed <tokdefs "s/#define/%token/" ;\
+                cat gram.head gram.dcl gram.expr gram.exec gram.io ) >gram.in
+		${YACC} ${YFLAGS} gram.in
+		mv y.tab.c gram.c
+		rm gram.in
+
+data.o:		defs string_defs data.c
+driver.o:	defs drivedefs driver.c
+equiv.o:	defs string_defs equiv.c
+error.o:	defs string_defs error.c
+exec.o:		defs string_defs exec.c
+expr.o:		defs string_defs expr.c
+gram.o:		defs string_defs gram.c
+init.o:		defs string_defs init.c
+intr.o:		defs string_defs intr.c
+io.o:		defs string_defs io.c
+lex.o:		defs string_defs tokdefs lex.c
+main.o:		defs string_defs main.c
+misc.o:		defs string_defs misc.c
+pdp11.o:	defs string_defs pdp11.c
+proc.o:		defs string_defs proc.c
+put.o:		defs string_defs put.c
+putdmr.o:	defs string_defs dmrdefs putdmr.c
+
+defs:		ftypes defines locdefs
+		touch defs
+
+tokdefs:	tokens
+		grep -n . <tokens | sed "s/\([^:]*\):\(.*\)/#define \2 \1/" >tokdefs
+
+locdefs:	pdp11defs
+		cp pdp11defs locdefs

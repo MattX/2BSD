@@ -167,7 +167,7 @@ netsend(){
 		filesize = getsize(&statbuf);
 		if(lFileLen > filesize){
 			lFileLen = filesize;
-			for(i=0; i<DIRSIZ; i++)
+			for(i=0; i<MAXNAMLEN; i++)
 				jname[i] = dirbuf.d_name[i];
 			uidBest = uid;
 		}

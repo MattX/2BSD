@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)sys3.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)sys3.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -31,14 +31,14 @@ fstat()
 
 	uap = (struct a *)u.u_ap;
 	fp = getf(uap->fdes);
-	if (fp == NULL)
+	if(fp == NULL)
 		return;
 #ifdef  UCB_NET
 	if (fp->f_flag & FSOCKET)
 		u.u_error = sostat(fp->f_socket, uap->sb);
 	else
 #endif
-		stat1(fp->f_inode, uap->sb, fp->f_flag & FPIPE?  fp->f_un.f_offset: (off_t) 0);
+	stat1(fp->f_inode, uap->sb, fp->f_flag & FPIPE?  fp->f_un.f_offset: (off_t) 0);
 }
 
 /*
@@ -53,18 +53,13 @@ stat()
 	} *uap;
 
 	uap = (struct a *)u.u_ap;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
-	if (ip == NULL)
+	if(ip == NULL)
 		return;
 	stat1(ip, uap->sb, (off_t)0);
 	iput(ip);
 }
 
-#ifdef	UCB_SYMLINKS
 /*
  * Lstat system call; like stat but doesn't follow links.
  */
@@ -83,7 +78,6 @@ lstat()
 	stat1(ip, uap->sb, (off_t)0);
 	iput(ip);
 }
-#endif
 
 /*
  * The basic routine for fstat and stat:
@@ -145,7 +139,7 @@ dup()
 	m = uap->fdes & ~077;
 	uap->fdes &= 077;
 	fp = getf(uap->fdes);
-	if (fp == NULL)
+	if(fp == NULL)
 		return;
 	if ((m&0100) == 0) {
 		if ((i = ufalloc()) < 0)
@@ -190,35 +184,31 @@ smount()
 
 	uap = (struct a *)u.u_ap;
 	dev = getmdev();
-	if (u.u_error || !suser())
+	if(u.u_error || !suser())
 		return;
 	u.u_dirp = (caddr_t)uap->freg;
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
-	if (ip == NULL)
+	if(ip == NULL)
 		return;
-	if (ip->i_count != 1 || (ip->i_mode & (IFBLK & IFCHR)) != 0)
+	if(ip->i_count != 1 || (ip->i_mode&(IFBLK&IFCHR)) != 0)
 		goto out;
 	smp = NULL;
 	for(mp = mount; mp < mountNMOUNT; mp++) {
-		if (mp->m_inodp != NULL) {
-			if (dev == mp->m_dev)
+		if(mp->m_inodp != NULL) {
+			if(dev == mp->m_dev)
 				goto out;
 		} else
-			if (smp == NULL)
-				smp = mp;
+		if(smp == NULL)
+			smp = mp;
 	}
 	mp = smp;
-	if (mp == NULL)
+	if(mp == NULL)
 		goto out;
 	(*bdevsw[major(dev)].d_open)(dev, !uap->ronly);
-	if (u.u_error)
+	if(u.u_error)
 		goto out;
 	bp = bread(dev, SUPERB);
-	if (u.u_error) {
+	if(u.u_error) {
 		brelse(bp);
 		goto out1;
 	}
@@ -258,42 +248,46 @@ sumount()
 	dev_t dev;
 	register struct inode *ip;
 	register struct mount *mp;
-	register struct buf *bp;
+	struct buf *bp;
 	struct buf *dp;
+	register struct a {
+		char	*fspec;
+	};
 
 	dev = getmdev();
-	if (u.u_error || !suser())
+	if(u.u_error || !suser())
 		return;
 	xumount(dev);	/* remove unused sticky files from text table */
 	update();
-	for (mp = mount; mp < mountNMOUNT; mp++)
-		if (mp->m_inodp != NULL && dev == mp->m_dev) {
-			for(ip = inode; ip < inodeNINODE; ip++)
-				if (ip->i_number != 0 && dev == ip->i_dev) {
-					u.u_error = EBUSY;
-					return;
-				}
-			(*bdevsw[major(dev)].d_close)(dev, 0);
-			dp = bdevsw[major(dev)].d_tab;
-			for (bp = dp->b_forw; bp != dp; bp = bp->b_forw) {
-				(void) _spl6();
-				if (bp->b_dev == dev) {
-#ifdef UCB_BHASH
-					bunhash(bp);
-#endif
-					bp->b_dev = NODEV;
-				}
-				(void) _spl0();
-			}
-			ip = mp->m_inodp;
-			ip->i_flag &= ~IMOUNT;
-			plock(ip);
-			iput(ip);
-			mp->m_inodp = NULL;
+	for(mp = mount; mp < mountNMOUNT; mp++)
+		if(mp->m_inodp != NULL && dev == mp->m_dev)
+			goto found;
+	u.u_error = EINVAL;
+	return;
+
+found:
+	for(ip = inode; ip < inodeNINODE; ip++)
+		if(ip->i_number != 0 && dev == ip->i_dev) {
+			u.u_error = EBUSY;
 			return;
 		}
-
-	u.u_error = EINVAL;
+	(*bdevsw[major(dev)].d_close)(dev, 0);
+	dp = bdevsw[major(dev)].d_tab;
+	for (bp=dp->b_forw; bp!=dp; bp=bp->b_forw) {
+		(void) _spl6();
+		if (bp->b_dev == dev) {
+#ifdef UCB_BHASH
+			bunhash(bp);
+#endif
+			bp->b_dev = NODEV;
+		}
+		(void) _spl0();
+	}
+	ip = mp->m_inodp;
+	ip->i_flag &= ~IMOUNT;
+	plock(ip);
+	iput(ip);
+	mp->m_inodp = NULL;
 }
 
 /*
@@ -307,23 +301,18 @@ getmdev()
 	register dev_t dev;
 	register struct inode *ip;
 
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
-	if (ip == NULL)
+	if(ip == NULL)
 		return(NODEV);
-	if ((ip->i_mode&IFMT) != IFBLK)
+	if((ip->i_mode&IFMT) != IFBLK)
 		u.u_error = ENOTBLK;
 	dev = (dev_t)ip->i_un.i_rdev;
-	if (major(dev) >= nblkdev)
+	if(major(dev) >= nblkdev)
 		u.u_error = ENXIO;
 	iput(ip);
 	return(dev);
 }
 
-#ifdef	UCB_SYMLINKS
 /*
  * Return target name of a symbolic link
  */
@@ -397,4 +386,3 @@ symlink()
 	writei(ip);
 	iput(ip);
 }
-#endif	UCB_SYMLINKS

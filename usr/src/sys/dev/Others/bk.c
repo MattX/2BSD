@@ -4,9 +4,6 @@
 #include <sys/user.h>
 #include <sys/tty.h>
 #include <sys/proc.h>
-#ifdef	MPX_FILS
-#include <sys/mx.h>
-#endif
 #include <sys/inode.h>
 #include <sys/file.h>
 #include <sys/conf.h>

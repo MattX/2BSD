@@ -1,0 +1,28 @@
+#
+# make file for optional objects
+#
+
+#
+# Optional files
+#
+#OPT=	enable34.o bk.o cr.o dvhp.o rf.o
+
+OPT=
+
+# SPLFIX should be one of :splfix.movb, :splfix.mtps or :splfix.spl
+SPLFIX=	:splfix.spl
+
+I=	/usr/include
+AS=	as ${OV}
+DEFS=	-DKERNEL -Dpdp11
+INC=	-I. -I${I}
+CFLAGS=	-O ${OV} ${DEFS} ${INC}
+CPP=	/lib/cpp -P ${DEFS} ${INC}
+C=	${CC} ${CFLAGS} -S
+E=	ed - < ${SPLFIX}
+A=	${AS} - -o
+
+all: ${OPT}
+
+# DO NOT DELETE THIS LINE
+# DO NOT DELETE THIS LINE

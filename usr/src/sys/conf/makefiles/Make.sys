@@ -1,0 +1,33 @@
+#
+# make file for system objects
+#
+
+CONF=	c.o ioconf.o
+
+SYS=	acct.o alloc.o clock.o fio.o iget.o ioctl.o machdep.o main.o malloc.o \
+	nami.o pipe.o prf.o prim.o rdwri.o sig.o slp.o subr.o sys1.o sys2.o \
+	sys3.o sys4.o sysent.o syslocal.o text.o trap.o ureg.o ipc.o mbuf.o \
+	mbuf11.o proto.o socket.o socketsubr.o
+
+# SPLFIX should be one of :splfix.movb, :splfix.mtps or :splfix.spl
+SPLFIX=	:splfix.spl
+
+I=	/usr/include
+AS=	as ${OV}
+DEFS=	-DKERNEL -Dpdp11
+INC=	-I. -I${I}
+CFLAGS=	-O ${OV} ${DEFS} ${INC}
+CPP=	/lib/cpp -P ${DEFS} ${INC}
+C=	${CC} ${CFLAGS} -S
+E=	ed - < ${SPLFIX}
+A=	${AS} - -o
+
+all: ${SYS} ${CONF} isr.o
+
+isr.o:	../sys/isr.s
+	${CPP} ${CPPFLAGS} ../sys/isr.s > isr.i
+	${AS} -o isr.o isr.i
+	-rm isr.i
+
+# DO NOT DELETE THIS LINE
+# DO NOT DELETE THIS LINE

@@ -58,9 +58,6 @@ register struct file *fp;
 	int flag, mode;
 	dev_t dev;
 	register int (*cfunc)();
-#ifdef	MPX_FILS
-	struct chan *cp;
-#endif
 
 	if(fp == (struct file *) NULL)
 		return;
@@ -82,12 +79,13 @@ register struct file *fp;
 	}
 #endif
 	ip = fp->f_inode;
-#ifdef	MPX_FILS
-	cp = fp->f_un.f_chan;
-#endif
 	dev = (dev_t)ip->i_un.i_rdev;
 	mode = ip->i_mode;
 
+#ifdef  RAND_XO
+	if(flag & FXOPEN)       /* clear i_xopen only if we set it */
+		ip->i_xopen = 0;
+#endif
 	plock(ip);
 	fp->f_count = 0;
 	if(flag & FPIPE) {
@@ -100,29 +98,16 @@ register struct file *fp;
 	switch(mode&IFMT) {
 
 	case IFCHR:
-#ifdef	MPX_FILS
-	case IFMPC:
-#endif
 		cfunc = cdevsw[major(dev)].d_close;
 		break;
 
 	case IFBLK:
-#ifdef	MPX_FILS
-	case IFMPB:
-#endif
 		cfunc = bdevsw[major(dev)].d_close;
 		break;
 	default:
 		return;
 	}
 
-#ifdef	MPX_FILS
-	if ((flag & FMP) == 0)
-		for(fp = file; fp < fileNFILE; fp++)
-			if (fp->f_count && fp->f_inode==ip)
-				return;
-	(*cfunc)(dev, flag, cp);
-#else
 	for(fp = file; fp < fileNFILE; fp++) {
 #ifdef  UCB_NET
 		if (fp->f_flag & FSOCKET)
@@ -132,7 +117,6 @@ register struct file *fp;
 			return;
 	}
 	(*cfunc)(dev, flag);
-#endif
 }
 
 /*
@@ -151,18 +135,12 @@ register struct inode *ip;
 	switch(ip->i_mode&IFMT) {
 
 	case IFCHR:
-#ifdef	MPX_FILS
-	case IFMPC:
-#endif
 		if(maj >= nchrdev)
 			goto bad;
 		(*cdevsw[maj].d_open)(dev, rw);
 		break;
 
 	case IFBLK:
-#ifdef	MPX_FILS
-	case IFMPB:
-#endif
 		if(maj >= nblkdev)
 			goto bad;
 		(*bdevsw[maj].d_open)(dev, rw);
@@ -212,13 +190,12 @@ register struct inode *ip;
 	if(u.u_uid == 0)
 		return(0);
 #ifdef	UCB_GRPMAST
-	if(u.u_uid != ip->i_uid && !(grpmast() && u.u_gid == ip->i_gid))
+	if(u.u_uid != ip->i_uid && !(grpmast() && u.u_gid == ip->i_gid)) {
 #else
-	if(u.u_uid != ip->i_uid)
+	if(u.u_uid != ip->i_uid) {
 #endif
-		{
 		mode >>= 3;
-		if(u.u_gid != ip->i_gid)
+		if(!groupmember(ip->i_gid))
 			mode >>= 3;
 	}
 	if((ip->i_mode&mode) != 0)
@@ -237,20 +214,12 @@ bad:
  * return inode pointer.
  */
 struct inode *
-#ifndef	UCB_SYMLINKS
-owner()
-#else
 owner(follow)
 int follow;
-#endif
 {
 	register struct inode *ip;
 
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, follow);
-#endif
 	if(ip == (struct inode *) NULL)
 		return((struct inode *) NULL);
 #ifdef	UCB_GRPMAST

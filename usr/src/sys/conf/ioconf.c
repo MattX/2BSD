@@ -1,12 +1,33 @@
 #include	"param.h"
 #include	<sys/systm.h>
+#include	"acc.h"
+#include	"bk.h"
+#include	"dh.h"
+#include	"dmc.h"
+#include	"dn.h"
+#include	"dvhp.h"
+#include	"dz.h"
 #include	"hk.h"
 #include	"hp.h"
 #include	"hs.h"
+#include	"ht.h"
+#include	"il.h"
+#include	"imp.h"
+#include	"kl.h"
+#include	"lp.h"
+#include	"pty.h"
+#include	"pup.h"
+#include	"rf.h"
 #include	"rk.h"
 #include	"rl.h"
 #include	"rm.h"
 #include	"rp.h"
+#include	"sri.h"
+#include	"tm.h"
+#include	"ts.h"
+#include	"un.h"
+#include	"vp.h"
+#include	"vv.h"
 #include	"xp.h"
 
 dev_t	rootdev	= %ROOTDEV%;
@@ -24,6 +45,7 @@ dev_t	dumpdev = %DUMPDEV%;
 daddr_t	dumplo	= (daddr_t) %DUMPLO%;
 int	%DUMPROUTINE%();
 int	(*dump)()	= %DUMPROUTINE%;
+
 #endif	UCB_AUTOBOOT
 
 /*
@@ -176,3 +198,34 @@ struct	xp_drive xp_drive[NXP] = {
 #endif	XP_PROBE
 };
 #endif	NXP
+
+#ifdef UCB_NET
+#include <sys/ubavar.h>
+
+u_long	LocalAddr;		/* Internet address for this host */
+
+#if	NIL > 0
+struct uba_driver	ildriver;
+#endif
+#if	NVV > 0
+struct uba_driver	vvdriver;
+#endif
+#if	NSRI > 0
+struct uba_driver	sridriver;
+#endif
+
+struct uba_device ubdinit[] = {
+	/* driver,	unit,	ubanum,	addr,		flags */
+#if	NIL > 0						/* 128.18.0.x */
+	{ &ildriver,	0,	0,	0164000,	0x80120000 },
+#endif
+#if	NSRI > 0					/* 10.0.0.x */
+	{ &sridriver,	0,	0,	0167770,	0x0a000000 },
+#endif
+#if	NVV > 0						/* 192.5.11.x */
+	{ &vvdriver,	0,	0,	0161000,	0xc0050b00 },
+#endif
+	0
+};
+
+#endif UCB_NET

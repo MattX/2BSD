@@ -3,45 +3,30 @@
 #
 # Sccs Id = "@(#)Makefile.11	1.3 10/27/82";
 #
-#
 # Mail is too large to fit on a nonseparate I/D machine without
 # text overlays; use Ovmakefile to do this.
 #
-# If you do not have a vfork system call or do not support
-# job control, you must change the definition of OPTIONS,
-#	SIGRETROSRC, and SIGRETROOBJ.
-#
 
 OPTIONS=	-DV7 -DVMUNIX			# vfork and job control
-#OPTIONS=	-DV7				# no vfork or no job control
-
-LDFLAGS=	-i
-
 CFLAGS=		-O ${OPTIONS} ${INCLUDES}
-
-LIBES=		-ljobs -lc
 
 SIGRETROSRC=					# for those with job control
 SIGRETROOBJ=					# for those with job control
-#SIGRETROSRC=	sigretro.c			# for those without job control
-#SIGRETROOBJ=	sigretro.o			# for those without job control
 
 XSTR=		/usr/ucb/xstr
 CTAGS=		/usr/ucb/ctags -w
 ED=		-ed
 AS=		-as
 RM=		-rm
-OBJS=aux.o cmd1.o cmd2.o cmd3.o cmdtab.o collect.o config.o edit.o fio.o \
-	getname.o head.o v7.local.o lock.o lex.o list.o main.o \
-	names.o optim.o popen.o quit.o send.o strings.o temp.o tty.o \
-	vars.o version.o ${SIGRETROOBJ} str.o
-
-SRCS=aux.c cmd1.c cmd2.c cmd3.c cmdtab.c collect.c config.c edit.c fio.c \
-	getname.c head.c v7.local.c lock.c lex.c list.c main.c \
-	names.c optim.c popen.c quit.c send.c strings.c temp.c tty.c vars.c \
+OBJS=	aux.o cmd1.o cmd2.o cmd3.o cmdtab.o collect.o config.o edit.o fio.o \
+	getname.o head.o v7.local.o lock.o lex.o list.o main.o names.o \
+	optim.o popen.o quit.o send.o strings.o temp.o tty.o vars.o \
+	version.o ${SIGRETROOBJ} str.o
+SRCS=	aux.c cmd1.c cmd2.c cmd3.c cmdtab.c collect.c config.c edit.c fio.c \
+	getname.c head.c v7.local.c lock.c lex.c list.c main.c names.c \
+	optim.c popen.c quit.c send.c strings.c temp.c tty.c vars.c \
 	version.c ${SIGRETROSRC}
-
-HDRS=rcv.h configdefs.h def.h glob.h v7.local.h local.h
+HDRS=	rcv.h configdefs.h def.h glob.h v7.local.h local.h
 
 S = $(SRCS) $(HDRS)
 
@@ -49,36 +34,37 @@ S = $(SRCS) $(HDRS)
 # Special massaging of C files for sharing of strings
 #
 .c.o:
-	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
-	${CC} -c ${CFLAGS} x.c 
+	${CC} -E ${OV} ${CFLAGS} $*.c | ${XSTR} -c -
+	${CC} -c ${OV} ${CFLAGS} x.c
 	mv x.o $*.o
-	@$(RM) -f x.c
+	rm -f x.c
 
 all:	Mail fmt
 
-cp:	Mail fmt
-	-strip Mail fmt
-	cp Mail ${DESTDIR}/usr/ucb
-	cp fmt ${DESTDIR}/usr/ucb
-	cp misc/Mail.help* ${DESTDIR}/usr/lib
-#	cd ${DESTDIR}/usr/ucb; rm -f mail; ln Mail mail
-	rm Mail fmt *.o
+ovall:	ovMail fmt
 
-cmp:	Mail fmt
-	cmp Mail ${DESTDIR}/usr/ucb
-	cmp fmt ${DESTDIR}/usr/ucb
-	rm *.o
+install:
+	install -s -o bin -g bin -m 711 Mail ${DESTDIR}/usr/ucb
+	install -s -o bin -g bin -m 711 fmt ${DESTDIR}/usr/ucb
+	(cd misc;install -c -o bin -g bin -m 644 Mail.help ${DESTDIR}/usr/lib)
 
-Mail:	$S $(OBJS)
+Mail: $(OBJS)
 	$(RM) -f Mail
 	@echo Loading ...
-	@${CC} ${LDFLAGS} -o Mail ${OBJS} ${LIBES}
+	@${CC} ${LFLAG} -o Mail ${OBJS} ${LIBES}
 	@size Mail
 
-$S:
-	sccs get $@;
-
-srcs:	$S
+ovMail: $(OBJS)
+	$(RM) -f Mail
+	@echo Loading ...
+	@ld -X ${CRT} ${LFLAG} -o Mail \
+	-Z	getname.o names.o optim.o popen.o send.o strings.o temp.o \
+		v7.local.o vars.o \
+	-Z	aux.o edit.o head.o lex.o list.o lock.o main.o quit.o tty.o \
+	-Z	cmd1.o cmd2.o cmd3.o collect.o ${SIGRETROOBJ} \
+	-L	cmdtab.o config.o fio.o \
+		str.o version.o -lovc
+	@size Mail
 
 tags:	$(SRCS)
 	${CTAGS} $(SRCS);

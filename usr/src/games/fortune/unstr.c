@@ -1,85 +1,78 @@
-# include	<stdio.h>
-# include	"strfile.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/file.h>
+#include <strfile.h>
 
 /*
- *	This program un-does what "strfile" makes, thereby obtaining the
- * original file again.  This can be invoked with the name of the output
- * file, the input file, or both. If invoked with only a single argument
- * ending in ".dat", it is pressumed to be the input file and the output
- * file will be the same stripped of the ".dat".  If the single argument
- * doesn't end in ".dat", then it is presumed to be the output file, and
- * the input file is that name prepended by a ".dat".  If both are given
- * they are treated literally as the input and output files.
+ * create the various fortune files from the database file
  *
- *	Ken Arnold		Aug 13, 1978
+ *	Keith Bostic
+ *		ARPA: keith@seismo
+ *		UUCP: seismo!keith
  */
 
-# define	reg	register
+main(argc,argv)
+int	argc;
+char	**argv;
+{
+	extern char	*optarg;		/* getopts variable */
+	static char	del_str[3] = "%%";	/* delimiter string */
+	register long	choff,			/* fortune offset */
+			off,			/* travel through table */
+			*seekpts;		/* hold table */
+	register int	cnt;			/* general counter */
+	long	hold[SECTIONS + 1];		/* part of table */
+	STRF	*spnt;				/* table structure pointer */
+	int	ch;				/* argument character */
+	short	force = NO;			/* if overwrite files */
+	char	*ffile = OUTFILE;		/* standard fortune file */
 
-# define	DELIM_CH	'-'
-
-char	infile[50],			/* name of input file		*/
-	outfile[50],			/* name of output file		*/
-	*rindex();
-
-long	*calloc();
-
-main(ac, av)
-int	ac;
-char	*av[]; {
-
-	reg char	c;
-	reg FILE	*inf, *outf;
-	int		nstr, delim;
-	long		*seekpts;
-	STRFILE		tbl;		/* description table		*/
-
-	getargs(ac, av);
-	if ((inf = fopen(infile, "r")) == NULL) {
-		perror(infile);
-		exit(-1);
+	while ((ch = getopt(argc,argv,"c:f:o")) != EOF)
+		switch((char)ch) {
+			case 'c':	/* new delimiting char */
+				del_str[0] = del_str[1] = *optarg;
+				break;
+			case 'f':	/* new fortune file */
+				ffile = optarg;
+				break;
+			case 'o':	/* overwrite existing files */
+				force = YES;
+				break;
+			default:
+				fprintf(stderr,"usage: %s [-o] [-cC] [-f file]\n",*argv);
+				exit(ERR);
+		}
+	if (!freopen(ffile,"r",stdin)) {
+		perror(ffile);
+		exit(ERR);
 	}
-	fread(&tbl,sizeof tbl,1,inf);
-	nstr = tbl.str_numstr;
-	if ((seekpts = calloc(sizeof *seekpts, nstr)) == NULL) {
-		perror("calloc");
-		exit(-1);
-	}
-	fread(seekpts, (sizeof seekpts[0]), nstr, inf);
-	if ((outf = fopen(outfile, "w")) == NULL) {
-		perror(outfile);
-		exit(-1);
-	}
-	delim = 0;
-	while ((c = getc(inf)) != EOF)
-		if (c != '\0')
-			putc(c, outf);
-		else if (--nstr)
-			if (ftell(inf) == tbl.str_delims[delim]) {
-				fputs("%-\n", outf);
-				delim++;
-			}
-			else
-				fputs("%%\n", outf);
-}
-getargs(ac, av)
-reg int		ac;
-reg char	**av; {
 
-	reg char	*sp;
+	/* read the table */
 
-	if (ac < 2) {
-		printf("usage: %s datafile[.dat] [ outfile ]\n",av[0]);
-		exit(-1);
+	fread(hold,sizeof(*hold),SECTIONS + 1,stdin);
+	MM(long,seekpts,hold[SECTIONS],char);
+	rewind(stdin);
+	fread(seekpts,sizeof(*seekpts),(int)((hold[SECTIONS] + 1) / sizeof(*seekpts)),stdin);
+
+	/* read the strings, addresses in the table delimit the	*/
+	/* fortunes, not EOS's as original fortune(6) did	*/
+
+	fseek(stdin,seekpts[*seekpts],(long)0);
+	for (spnt = tbl;*spnt->fname;++spnt) {
+		if (!access(spnt->fname,F_OK) && !force) {
+			fprintf(stderr,"%s: %s would get overwritten.\n",*argv,spnt->fname);
+			continue;
+		}
+		if (!freopen(spnt->fname,"w",stdout)) {
+			perror(spnt->fname);
+			exit(ERR);
+		}
+		for (cnt = 0,off = seekpts[spnt->entry];off < seekpts[spnt->entry + 1];++off,++cnt) {
+			for (choff = seekpts[off];choff < seekpts[off + 1];++choff)
+				putchar(getchar());
+			puts(del_str);
+		}
+		fprintf(stderr,"%d\tfortunes placed in %s.\n",cnt,spnt->fname);
 	}
-	strcpy(infile,av[1]);
-	if (ac < 3) {
-		strcpy(outfile,infile);
-		if ((sp = rindex(av[1])) && strcmp(sp, ".dat") == 0)
-			outfile[strlen(outfile) - 4] = '\0';
-		else
-			strcat(infile, ".dat");
-	}
-	else
-		strcpy(outfile, av[2]);
+	exit(OK);
 }

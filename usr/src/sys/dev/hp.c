@@ -1,5 +1,13 @@
 /*
- *	SCCS id	@(#)hp.c	2.1 (Berkeley)	8/31/83
+ *	SCCS id	@(#)hp.c	2.1 (Berkeley)	8/23/83
+ *	This driver has been modified to perform bad-sector forwarding.
+ *	It has not been tested after that modification.
+ *	If you want to use it, install it instead of the normal hp driver,
+ *	AND TEST BOTH BAD-SECTOR FORWARDING AND ECC CORRECTION.
+ *	The driver does not know how to distinguish RP04's from RP05/6's;
+ *	make sure that the definition of HP_NCYL is correct for all
+ *	of your HP's, or add some way to distinguish (by drive
+ *	number or something).
  */
 
 /*
@@ -19,14 +27,20 @@
 #include <sys/inline.h>
 #endif
 #include <sys/uba.h>
+#include <sys/dkbad.h>
 
-#define	HP_NSECT	22
+#define	HP_NCYL		815
+#define	HP_NSECT	32
 #define	HP_NTRAC	19
 #define	HP_SDIST	2
 #define	HP_RDIST	6
 
 extern	struct	size hp_sizes[];
 extern	struct	hpdevice *HPADDR;
+
+#ifdef	HPDEBUG
+int	hpdebug = 1;
+#endif
 
 int	hp_offset[] =
 {
@@ -43,6 +57,11 @@ struct	buf	rhpbuf[NHP];
 struct	buf	rhpbuf;
 #endif
 struct	buf	hputab[NHP];
+#ifdef BADSECT
+struct	dkbad	hpbad[NHP];
+struct	buf	bhpbuf[NHP];
+bool_t	hp_init[NHP];
+#endif
 
 #ifdef	INTRLVE
 extern	daddr_t	dkblock();
@@ -154,10 +173,35 @@ register unit;
 	 * If drive has just come up,
 	 * set up the pack.
 	 */
-	if ((hpaddr->hpds & HPDS_VV) == 0) {
+#ifdef BADSECT
+	if (((hpaddr->hpds & HPDS_VV) == 0) || (hp_init[unit] == 0))
+#else
+	if ((hpaddr->hpds & HPDS_VV) == 0)
+#endif
+	{
+#ifdef BADSECT
+		struct buf *bbp = &bhpbuf[unit];
+		hp_init[unit] = 1;
+#endif
 		/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
 		hpaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
 		hpaddr->hpof = HPOF_FMT22;
+#ifdef BADSECT
+		bbp->b_flags = B_READ | B_BUSY | B_PHYS;
+		bbp->b_dev = bp->b_dev;
+		bbp->b_bcount = sizeof(struct dkbad);
+		bbp->b_un.b_addr = (caddr_t)&hpbad[unit];
+		bbp->b_blkno = (daddr_t)HP_NCYL * (HP_NSECT*HP_NTRAC)
+		    - HP_NSECT;
+		bbp->b_cylin = HP_NCYL - 1;
+#ifdef	UNIBUS_MAP
+		if ((hptab.b_flags & B_RH70) == 0)
+			mapalloc(bbp);
+#endif	UNIBUS_MAP
+		dp->b_actf = bbp;
+		bbp->av_forw = bp;
+		bp = bbp;
+#endif	BADSECT
 	}
 
 #if	NHP >	1
@@ -280,10 +324,17 @@ loop:
 	 * Warning:  unit is being used as a temporary.
 	 */
 	unit = ((bp->b_xmem & 3) << 8) | HP_IE | HP_GO;
+#ifdef	HP_FORMAT
+	if (minor(bp->b_dev) & 0200)
+		unit |= bp->b_flags & B_READ? HP_RHDR : HP_WHDR;
+	else
+		unit |= bp->b_flags & B_READ? HP_RCOM : HP_WCOM;
+#else
 	if (bp->b_flags & B_READ)
 		unit |= HP_RCOM;
 	else
 		unit |= HP_WCOM;
+#endif
 	hpaddr->hpcs1.w = unit;
 
 #ifdef	HP_DKN
@@ -314,12 +365,26 @@ hpintr()
 		 */
 		dp = hptab.b_actf;
 		bp = dp->b_actf;
+#ifdef BADSECT
+		if (bp->b_flags&B_BAD)
+			if (hpecc(bp, CONT))
+				return;
+#endif
 		unit = dkunit(bp);
 		hpaddr->hpcs2.c[0] = unit;
 		/*
 		 * Check for and process errors.
 		 */
 		if (hpaddr->hpcs1.w & HP_TRE) {
+#ifdef	HPDEBUG
+			if (hpdebug) {
+				printf("cs2=%b ds=%b er=%b\n",
+				    hpaddr->hpcs2.w, HPCS2_BITS,
+				    hpaddr->hpds, HPDS_BITS,
+				    hpaddr->hper1, HPER1_BITS);
+			}
+#endif
+
 			while ((hpaddr->hpds & HPDS_DRY) == 0)
 				;
 			if (hpaddr->hper1 & HPER1_WLE) {
@@ -329,11 +394,27 @@ hpintr()
 				 */
 				printf("hp%d: write locked\n", unit);
 				bp->b_flags |= B_ERROR;
+#ifdef	BADSECT
+			} else if ((hpaddr->hper2 & HPER2_BSE)
+			    || (hpaddr->hper1 & HPER1_FER)) {
+#ifdef	HP_FORMAT
+				/*
+				 * Allow this error on format devices.
+				 */
+				if (minor(bp->b_dev) & 0200)
+					goto errdone;
+#endif
+				if (hpecc(bp, BSE))
+					return;
+				else
+					goto hard;
+#endif	BADSECT
 			} else {
 				/*
 				 * After 28 retries (16 without offset and
 				 * 12 with offset positioning), give up.
 				 */
+hard:
 				if (++hptab.b_errcnt > 28) {
 				    bp->b_flags |= B_ERROR;
 #ifdef	UCB_DEVERR
@@ -353,9 +434,10 @@ hpintr()
 			 * Otherwise, fall through and retry the transfer.
 			 */
 			if((hpaddr->hper1 & (HPER1_DCK|HPER1_ECH)) == HPER1_DCK)
-				if (hpecc(bp))
+				if (hpecc(bp, ECC))
 					return;
 #endif
+errdone:
 			hpaddr->hpcs1.w = HP_TRE | HP_IE | HP_DCLR | HP_GO;
 			if ((hptab.b_errcnt & 07) == 4) {
 				hpaddr->hpcs1.w = HP_RECAL | HP_IE | HP_GO;
@@ -432,7 +514,7 @@ dev_t	dev;
  * the correction may be going to an odd memory address base
  * and the transfer may cross a sector boundary.
  */
-hpecc(bp)
+hpecc(bp, flag)
 register struct	buf *bp;
 {
 	register struct hpdevice *hpaddr = HPADDR;
@@ -447,54 +529,112 @@ register struct	buf *bp;
 #ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
 #endif
+	int	unit;
 
 	/*
 	 *	ndone is #bytes including the error
 	 *	which is assumed to be in the last disk page transferred.
 	 */
-	wc = hpaddr->hpwc;
-	ndone = (wc * NBPW) + bp->b_bcount;
-	npx = ndone / PGSIZE;
-	printf("hp%d%c: soft ecc bn %D\n",
-		dkunit(bp), 'a' + (minor(bp->b_dev) & 07),
-		bp->b_blkno + (npx - 1));
-	wrong = hpaddr->hpec2;
-	if (wrong == 0) {
-		hpaddr->hpof = HPOF_FMT22;
-		hpaddr->hpcs1.w |= HP_IE;
-		return (0);
-	}
-
-	/*
-	 *	Compute the byte/bit position of the err
-	 *	within the last disk page transferred.
-	 *	Hpec1 is origin-1.
-	 */
-	byte = hpaddr->hpec1 - 1;
-	bit = byte & 07;
-	byte >>= 3;
-	byte += ndone - PGSIZE;
-	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
-	wrong <<= bit;
-
-	/*
-	 *	Correct until mask is zero or until end of transfer,
-	 *	whichever comes first.
-	 */
-	while (byte < bp->b_bcount && wrong != 0) {
-		addr = bb + byte;
-#ifdef	UNIBUS_MAP
-		if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
-			/*
-			 * Simulate UNIBUS map if UNIBUS transfer.
-			 */
-			ubp = UBMAP + ((addr >> 13) & 037);
-			addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
-		}
+	unit = dkunit(bp);
+#ifdef	BADSECT
+	if (flag == CONT) {
+		npx = bp->b_error;
+		bp->b_error = 0;
+		ndone = npx * PGSIZE;
+		wc = ((int)(ndone - bp->b_bcount)) / NBPW;
+	} else
 #endif
-		putmemc(addr, getmemc(addr) ^ (int) wrong);
-		byte++;
-		wrong >>= 8;
+	{
+		wc = hpaddr->hpwc;
+		ndone = (wc * NBPW) + bp->b_bcount;
+		npx = ndone / PGSIZE;
+	}
+	ocmd = (hpaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
+	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
+	bn = dkblock(bp);
+	cn = bp->b_cylin - bn / (HP_NSECT * HP_NTRAC);
+	bn += npx;
+	cn += bn / (HP_NSECT * HP_NTRAC);
+	sn = bn % (HP_NSECT * HP_NTRAC);
+	tn = sn / HP_NSECT;
+	sn %= HP_NSECT;
+
+	switch (flag) {
+	case ECC:
+		printf("hp%d%c: soft ecc bn %D\n",
+			unit, 'a' + (minor(bp->b_dev) & 07),
+			bp->b_blkno + (npx - 1));
+		wrong = hpaddr->hpec2;
+		if (wrong == 0) {
+			hpaddr->hpof = HPOF_FMT22;
+			hpaddr->hpcs1.w |= HP_IE;
+			return (0);
+		}
+
+		/*
+		 *	Compute the byte/bit position of the err
+		 *	within the last disk page transferred.
+		 *	Hpec1 is origin-1.
+		 */
+		byte = hpaddr->hpec1 - 1;
+		bit = byte & 07;
+		byte >>= 3;
+		byte += ndone - PGSIZE;
+		wrong <<= bit;
+
+		/*
+		 *	Correct until mask is zero or until end of transfer,
+		 *	whichever comes first.
+		 */
+		while (byte < bp->b_bcount && wrong != 0) {
+			addr = bb + byte;
+#ifdef	UNIBUS_MAP
+			if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
+				/*
+				 * Simulate UNIBUS map if UNIBUS transfer.
+				 */
+				ubp = UBMAP + ((addr >> 13) & 037);
+				addr = exadr(ubp->ub_hi, ubp->ub_lo)
+				    + (addr & 017777);
+			}
+#endif
+			putmemc(addr, getmemc(addr) ^ (int) wrong);
+			byte++;
+			wrong >>= 8;
+		}
+		break;
+#ifdef BADSECT
+	case BSE:
+#ifdef	HPDEBUG
+		if (hpdebug)
+			printf("hpecc: BSE: bn %D cn %d tn %d sn %d\n",
+				bn, cn, tn, sn);
+#endif
+		if ((bn = isbad(&hpbad[unit], cn, tn, sn)) < 0)
+			return(0);
+		bp->b_flags |= B_BAD;
+		bp->b_error = npx + 1;
+		bn = (daddr_t)HP_NCYL * (HP_NSECT * HP_NTRAC)
+		    - HP_NSECT - 1 - bn;
+		cn = bn/(HP_NSECT * HP_NTRAC);
+		sn = bn%(HP_NSECT * HP_NTRAC);
+		tn = sn/HP_NSECT;
+		sn %= HP_NSECT;
+#ifdef HPDEBUG
+	if (hpdebug)
+		printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
+#endif
+		wc = -(512 / NBPW);
+		break;
+
+	case CONT:
+		bp->b_flags &= ~B_BAD;
+#ifdef HPDEBUG
+	if (hpdebug)
+		printf("hpecc, CONT: bn %D cn %d tn %d sn %d\n", bn,cn,tn,sn);
+#endif
+		break;
+#endif	BADSECT
 	}
 
 	hptab.b_active++;
@@ -506,23 +646,13 @@ register struct	buf *bp;
 	 * and compute the position where the transfer is to continue.
 	 * We have completed npx sectors of the transfer already.
 	 */
-	ocmd = (hpaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
-	hpaddr->hpcs2.w = dkunit(bp);
+	hpaddr->hpcs2.w = unit;
 	hpaddr->hpcs1.w = HP_TRE | HP_DCLR | HP_GO;
 
-	bn = dkblock(bp);
-	cn = bp->b_cylin - bn / (HP_NSECT * HP_NTRAC);
-	bn += npx;
 	addr = bb + ndone;
-
-	cn += bn / (HP_NSECT * HP_NTRAC);
-	sn = bn % (HP_NSECT * HP_NTRAC);
-	tn = sn / HP_NSECT;
-	sn %= HP_NSECT;
-
 	hpaddr->hpdc = cn;
 	hpaddr->hpda = (tn << 8) + sn;
-	hpaddr->hpwc = ((int)(ndone - bp->b_bcount)) / NBPW;
+	hpaddr->hpwc = wc;
 	hpaddr->hpba = (int) addr;
 #if	PDP11 == 70 || PDP11 == GENERIC
 	if (hptab.b_flags & B_RH70)
@@ -555,11 +685,14 @@ dev_t	dev;
 	long	paddr;
 	register sn;
 	register count;
+	long mem;
+	extern size_t physmem;	/* number of clicks of real memory */
 #ifdef	UNIBUS_MAP
 	extern	bool_t ubmap;
 	register struct ubmap *ubp;
 #endif
 
+	mem = ((long)physmem) * ctob(1);	/* real memory in bytes */
 	if ((bdevsw[major(dev)].d_strategy != hpstrategy)	/* paranoia */
 	    || ((dev=minor(dev)) > (NHP << 3)))
 		return(EINVAL);
@@ -583,7 +716,7 @@ dev_t	dev;
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
-		hpaddr->hpdc = bn / (HP_NSECT*HP_NTRAC) + hp_sizes[dev].cyloff;
+		hpaddr->hpdc= bn / (HP_NSECT*HP_NTRAC) + hp_sizes[dev].cyloff;
 		sn = bn % (HP_NSECT * HP_NTRAC);
 		hpaddr->hpda = ((sn / HP_NSECT) << 8) | (sn % HP_NSECT);
 		hpaddr->hpwc = -(count << (PGSHIFT - 1));
@@ -619,6 +752,8 @@ dev_t	dev;
 			return(EIO);
 		}
 		paddr += (DBSIZE << PGSHIFT);
+		if (paddr >= mem)
+			return(0);
 	}
 	return(0);		/* filled disk minor dev */
 }

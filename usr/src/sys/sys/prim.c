@@ -76,65 +76,6 @@ register struct clist *p;
 	return(c);
 }
 
-#ifdef	MPX_FILS
-/*
- * copy clist to buffer.
- * return number of bytes moved.
- */
-q_to_b(q, cp, cc)
-register struct clist *q;
-register char *cp;
-{
-	register struct cblock *bp;
-	register int s;
-	char *acp;
-#ifdef UCB_CLIST
-	segm sav5;
-#endif
-
-	if (cc <= 0)
-		return(0);
-	s = spl6();
-	if (q->c_cc <= 0) {
-		q->c_cc = 0;
-		q->c_cf = q->c_cl = NULL;
-		splx(s);
-		return(0);
-	}
-	acp = cp;
-	cc++;
-
-#ifdef UCB_CLIST
-	saveseg5(sav5);
-	mapseg5(clststrt, clstdesc);
-#endif
-	while (--cc) {
-		*cp++ = *q->c_cf++;
-		if (--q->c_cc <= 0) {
-			bp = (struct cblock *)(q->c_cf-1);
-			bp = (struct cblock *)((int)bp & ~CROUND);
-			q->c_cf = q->c_cl = NULL;
-			bp->c_next = cfreelist;
-			cfreelist = bp;
-			break;
-		}
-		if (((int)q->c_cf & CROUND) == 0) {
-			bp = (struct cblock *)(q->c_cf);
-			bp--;
-			q->c_cf = bp->c_next->c_info;
-			bp->c_next = cfreelist;
-			cfreelist = bp;
-		}
-	}
-#ifdef UCB_CLIST
-	restorseg5(sav5);
-#endif
-	splx(s);
-	return(cp-acp);
-}
-#endif	MPX_FILS
-
-
 #if	NDH > 0 || (NDZ > 0 && defined(DZ_PDMA))
 /*
  * Return count of contiguous characters
@@ -406,25 +347,6 @@ register struct clist *p;
 	return(s | (getc(p)<<8));
 }
 #endif	unneeded
-
-#ifdef	MPX_FILS
-putw(c, p)
-register struct clist *p;
-{
-	register s;
-
-	s = spl6();
-	if (cfreelist==NULL) {
-		splx(s);
-		return(-1);
-	}
-	putc(c, p);
-	putc(c>>8, p);
-	splx(s);
-	return(0);
-}
-#endif
-
 
 #ifdef UCB_NTTY
 /*

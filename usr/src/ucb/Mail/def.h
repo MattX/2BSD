@@ -236,13 +236,14 @@ struct ignore {
 #define	reset(x)	longjmp(srbuf, x)
 
 /*
- * VM/UNIX has a vfork system call which is faster than forking.  If we
- * don't have it, fork(2) will do . . .
+ * VM/UNIX and some 2BSD systems have a vfork system call which is faster
+ * than forking.  If we don't have it, fork(2) will do . . .
+ *
+ *	#ifndef VMUNIX
+ *	#define	vfork()	fork()
+ *	#endif
  */
 
-#ifndef VMUNIX
-#define	vfork()	fork()
-#endif
 #ifndef	SIGRETRO
 #define	sigchild()
 #endif

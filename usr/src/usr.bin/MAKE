@@ -1,0 +1,144 @@
+#! /bin/sh
+
+ALL="512dumpdir 512restor basename bc cal cb checkeq checkobj col \
+	comm crypt cu cu.3451A deroff diffh egrep factor fgrep find \
+	iostat join look mesg primes prof ptx ranlib rev sleep sort split \
+	sum tabs tc tk touch tr tsort tty uniq units"
+DIRS="dc diff3 eqn learn lex lint m4 neqn plot prep ratfor remind roff \
+	spell struct tbl tp troff uucp xsend yacc at"
+REST="refer f77"
+SCRIPT="install lookbib"
+IGNORE="yacc_small"
+
+if [ X$1 = Xclean ]
+then
+	for each in $DIRS
+	do
+		(cd $each;make clean)
+	done
+	(cd refer/refer; make clean)
+	(cd refer/util; make clean)
+	(cd f77;make -f Ovmakefile.-i clean)
+	rm -f core y.tab.c lex.yy.c *.o $ALL
+	exit
+elif [ X$1 = Xinstall ]
+then
+	install=1
+	shift
+fi
+
+. ../DESC
+
+if [ $1 ]
+then
+	LIST=$*
+else
+	LIST="$ALL $DIRS $REST $SCRIPT"
+fi
+
+if [ $install ]
+then
+	echo "Installing..."
+	for each in $LIST
+	do
+		echo ===== $each:
+		case $each in
+			512dumpdir | basename | cal | cb | checkeq |\
+			checkobj | col | comm | crypt | cu | cu.3451A | \
+			deroff | diffh | find | join | look | mesg | \
+			ptx | ranlib | rev | sleep | split | sum | tabs | \
+			tc | tk | touch | tr | tsort | tty | uniq | \
+			512restor | bc | egrep | fgrep | factor | iostat | \
+			primes | prof | sort | units)
+				install -s -o bin -g bin -m 711 $each /usr/bin ;;
+			dc | diff3 | eqn | learn | lex | lint | m4 | \
+			neqn | plot | prep | ratfor | remind | roff | spell | \
+			struct | tbl | tp | troff | uucp | xsend | yacc | \
+			yacc_small | at)
+				(cd $each; make install) ;;
+			f77)
+				if [ $PDP = 70 ]
+				then
+					(cd $each; make -f Ovmakefile.-i install)
+				else
+					(cd $each; make -f Ovmakefile.-n install)
+				fi ;;
+			refer)
+				(cd refer/refer;make install)
+				(cd refer/util;make install) ;;
+			install | lookbib)
+				install -c -o bin -g bin -m 755 $each.sh /usr/bin ;;
+			*)
+				echo "don't know how to install $each." ;;
+		esac
+	done
+	exit
+fi
+
+MK="make LFLAG=$LFLAG FP=$FP"
+CDMK="make PDP=$PDP LFLAG=$LFLAG CRT=$CRT FP=$FP all"
+CDOVMK="make OV=-V PDP=$PDP LFLAG=$LFLAG CRT=$CRT FP=$FP ovall"
+
+echo 'Compiling...'
+for each in $LIST
+do
+	echo ===== $each:
+	case $each in
+		512dumpdir | basename | cal | cb | checkeq | checkobj | \
+		col | comm | crypt | cu | cu.3451A | deroff | diffh | \
+		find | join | look | mesg | ptx | ranlib | rev | sleep | \
+		split | sum | tabs | tc | tk | touch | tr | tsort | tty | \
+		uniq | 512restor | fgrep | sort | iostat | units)
+			$MK $each ;;
+		dc | diff3 | learn | m4 | plot | prep | roff | tp | \
+		xsend | eqn | remind | neqn | ratfor | spell | tbl | at)
+			(cd $each; $CDMK) ;;
+		uucp)
+			echo "Update uucp/uucp.h and uucp/Makefile before making uucp."
+			(cd $each; make_small) ;;
+		troff)
+			(cd $each; make CFLAGS=-O FLAG=$LFLAG CRT=$CRT FP=$FP troff)
+			(cd $each; make CFLAGS="-O -DNROFF" LFLAG=$LFLAG CRT=$CRT FP=$FP nroff) ;;
+		bc | egrep)
+			yacc $each.y
+			mv y.tab.c $each.c
+			$MK $each.c -o $each
+			rm $each.c ;;
+		factor)
+			if [ $FP ]
+			then
+				as -o factor.o factor.nofp.s
+				ld -o factor factor.o /lib/libfpsim.a
+				rm factor.o
+			else
+				as -o factor factor.s
+			fi ;;
+		install | lookbib)
+			echo "$each is a shell script ($each.sh)." ;;
+		primes)
+			if [ $FP ]
+			then
+				as -o primes.o /usr/include/sys.s primes.nofp.s
+				ld -o primes primes.o /lib/libfpsim.a
+				rm primes.o
+			else
+				as -o primes /usr/include/sys.s primes.s
+			fi ;;
+		prof)
+			cc -O -Dplot $LFLAG $FP prof.c -lplot -o prof ;;
+		f77)
+			if [ $PDP = 70 ]
+			then
+				(cd $each; make LFLAG=$LFLAG CRT=$CRT FP=$FP -f Ovmakefile.-i)
+			else
+				(cd $each; make LFLAG=$LFLAG CRT=$CRT FP=$FP -f Ovmakefile.-n)
+			fi ;;
+		lex | lint | struct | yacc | yacc_small)
+			(cd $each; $CDOVMK) ;;
+		refer)
+			(cd refer/refer; $CDOVMK)
+			(cd refer/util; $CDMK) ;;
+		*)
+			echo "don't know how to make $each." ;;
+	esac
+done

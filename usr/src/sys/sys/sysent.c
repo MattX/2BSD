@@ -15,11 +15,6 @@
  * and a pointer to the routine.
  */
 int	alarm();
-#ifdef	MPX_FILS
-int	mpxchan();
-#else
-#define	mpxchan		nosys
-#endif
 int	chdir();
 int	chmod();
 int	chown();
@@ -31,7 +26,10 @@ int	exec();
 int	exece();
 int	fork();
 int	fstat();
+int	ftime();
+int	getdtablesize();
 int	getgid();
+int	getgroups();
 int	getpid();
 int	getuid();
 int	gtime();
@@ -39,6 +37,7 @@ int	gtty();
 int	ioctl();
 int	kill();
 int	link();
+int	lstat();
 int	mknod();
 int	nice();
 int	nosys();
@@ -49,21 +48,21 @@ int	pipe();
 int	profil();
 int	ptrace();
 int	read();
-#ifdef	UCB_AUTOBOOT
+int	readlink();
+
+#ifdef UCB_AUTOBOOT
 int	reboot();
 #else
 #define	reboot		nosys
-#endif
+#endif UCB_AUTOBOOT
+
 int	rexit();
 int	saccess();
 int	sbreak();
 int	seek();
 int	setgid();
-#ifdef MENLO_JCL
+int	setgroups();
 int	setpgrp();
-#else
-#define	setpgrp		nosys
-#endif
 int	setuid();
 int	smount();
 int	ssig();
@@ -71,12 +70,14 @@ int	stat();
 int	stime();
 int	stty();
 int	sumount();
-int	ftime();
+int	symlink();
+
 #ifdef ACCT
 int	sysacct();
 #else
 #define	sysacct		nosys
-#endif
+#endif ACCT
+
 int	syslock();
 int	sysphys();
 int	times();
@@ -86,18 +87,20 @@ int	update();
 int	utime();
 int	wait();
 int	write();
+
 #ifdef CGL_RTP
 int	rtp();
 #else
 #define	rtp		nosys
-#endif
-#ifdef	VIRUS_VFORK
+#endif CGL_RTP
+
+#ifdef VIRUS_VFORK
 int	vfork();
 #else
-#define	vfork		nosys
-#endif
+#define	vfork		fork
+#endif VIRUS_VFORK
 
-struct sysent sysent[64] =
+struct sysent sysent[] =
 {
 	1, 0, nullsys,			/*  0 = indir */
 	1, 1, rexit,			/*  1 = exit */
@@ -155,7 +158,7 @@ struct sysent sysent[64] =
 	1, 0, syslock,			/* 53 = lock user in core */
 	3, 0, ioctl,			/* 54 = ioctl */
 	2, 0, reboot,			/* 55 = reboot */
-	4, 0, mpxchan,			/* 56 = creat mpx comm channel */
+	4, 0, nosys,			/* 56 = (mpxchan) creat mpx comm channel */
 	0, 0, vfork,			/* 57 = vfork */
 	1, 0, nosys,			/* 58 = local system calls */
 	3, 0, exece,			/* 59 = exece */
@@ -165,32 +168,32 @@ struct sysent sysent[64] =
 	0, 0, nosys			/* 63 = used internally */
 };
 
-#ifdef	UCB_LOGIN
+#ifdef UCB_LOGIN
 int	login();
 #else
 #define	login		nosys
-#endif
+#endif UCB_LOGIN
+
 #ifdef UCB_SUBM
 int	submit();
 int	killbkg();
 #else
 #define	submit		nosys
 #define	killbkg		nosys
-#endif
+#endif UCB_SUBM
+
 int	nostk();
-#ifndef MENLO_JCL
-int	killpg();
-#else
-#define	killpg		nosys
+
 #undef	setpgrp
 int	setpgrp();
-#endif
+
 #if	!defined(NONSEPARATE) && defined(NONFP)
 int	fetchi();
 #else
 #define	fetchi		nosys
 #endif
-#ifdef	UCB_QUOTAS
+
+#ifdef UCB_QUOTAS
 int	quota();
 int	qfstat();
 int	qstat();
@@ -198,28 +201,34 @@ int	qstat();
 #define	quota		nosys
 #define	qfstat		nosys
 #define	qstat		nosys
-#endif
+#endif UCB_QUOTAS
+
 #ifdef	UCB_LOAD
 int	gldav();
 #else
 #define	gldav		nosys
-#endif
-#ifndef	NONFP
+#endif	UCB_LOAD
+
+#ifndef NONFP
 int	fperr();
 #else
 #define	fperr		nosys
-#endif
-#ifdef	UCB_VHANGUP
+#endif NONFP
+
+#ifdef UCB_VHANGUP
 int	vhangup();
 #else
 #define	vhangup		nosys
-#endif
-#ifdef	UCB_RENICE
+#endif UCB_VHANGUP
+
+#ifdef UCB_RENICE
 int	renice();
 #else
 #define	renice		nosys
-#endif
+#endif UCB_RENICE
+
 int	ucall();
+
 #ifdef  UCB_NET
 int	gethostid();
 int	gethostname();
@@ -234,7 +243,7 @@ int	sreceive();
 int	ssend();
 int	ssocket();
 int	ssocketaddr();
-#else
+#else	!UCB_NET
 #define	gethostid	nosys
 #define	gethostname	nosys
 #define	saccept		nosys
@@ -248,16 +257,7 @@ int	ssocketaddr();
 #define	ssend		nosys
 #define	ssocket		nosys
 #define	ssocketaddr	nosys
-#endif
-#ifdef	UCB_SYMLINKS
-int	lstat();
-int	readlink();
-int	symlink();
-#else
-#define	lstat		nosys
-#define	readlink	nosys
-#define	symlink		nosys
-#endif
+#endif	UCB_NET
 
 struct	sysent	syslocal[] = {
 	0, 0, nosys,			/*  0 = illegal local call */
@@ -266,7 +266,7 @@ struct	sysent	syslocal[] = {
 	1, 1, submit,			/*  3 = submit - allow after logout */
 	0, 0, nostk,			/*  4 = nostk */
 	2, 0, killbkg,			/*  5 = killbkg - kill background */
-	2, 0, killpg,			/*  6 = killpg - kill process group */
+	2, 0, nosys,			/*  6 = killpg - kill process group */
 	2, 0, renice,			/*  7 = renice - change a nice value */
 	1, 1, fetchi,			/*  8 = fetchi */
 	4, 0, ucall,			/*  9 = ucall - call sub from user */
@@ -278,8 +278,7 @@ struct	sysent	syslocal[] = {
 	0, 0, fperr,			/* 15 = fperr - get FP error regs */
 	0, 0, vhangup,			/* 16 = vhangup - close tty files */
 	0, 0, nosys,			/* 17 = unused */
-#ifdef	UCB_NET
-	4, 0, select,			/* 18 = select active file descr */
+	5, 0, select,			/* 18 = select active file descr */
 	2, 0, gethostname,		/* 19 = get host name */
 	2, 0, sethostname,		/* 20 = set host name */
 	4, 0, ssocket,			/* 21 = get socket fd */
@@ -294,7 +293,9 @@ struct	sysent	syslocal[] = {
 	3, 1, readlink,			/* 30 = readlink */
 	0, 0, gethostid,		/* 31 = gethostid */
 	2, 0, sethostid,		/* 32 = sethostid */
-#endif	UCB_NET
+	2, 0, getgroups,		/* 33 = get multigroups */
+	2, 0, setgroups,		/* 34 = set multigroups */
+	0, 0, getdtablesize,		/* 35 = get # of file descriptors */
 };
 
 int	nlocalsys = sizeof(syslocal) / sizeof(syslocal[0]);

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)dh.c	2.1 (Berkeley)	11/20/83
+ *	SCCS id	@(#)dh.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "dh.h"
@@ -141,7 +141,9 @@ int	flag;
 	tp = &dh11[unit];
 	((struct dhdevice *) (tp->t_addr))->dhbreak &= ~(1 << (unit & 017));
 #if	NDM > 0
-	if (tp->t_state & HUPCLS)
+#ifndef	DH_HANGUP
+	if (tp->t_state&HUPCLS || (tp->t_state&ISOPEN)==0)
+#endif
 		dmctl(unit, DML_OFF, DMSET);
 #endif
 	ttyclose(tp);
@@ -403,11 +405,6 @@ register struct tty *tp;
 	if (tp->t_outq.c_cc<=TTLOWAT(tp)) {
 		if (tp->t_state&ASLEEP) {
 			tp->t_state &= ~ASLEEP;
-#ifdef	MPX_FILS
-			if (tp->t_chan)
-				mcstart(tp->t_chan, (caddr_t)&tp->t_outq);
-			else
-#endif
 				wakeup((caddr_t)&tp->t_outq);
 		}
 #ifdef	UCB_NET

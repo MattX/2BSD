@@ -3,29 +3,24 @@ INCLUDES=
 
 all: compact uncompact
 
-cp: compact uncompact
-	cp compact ${DESTDIR}/usr/ucb
-	cp uncompact ${DESTDIR}/usr/ucb
-	cp ccat.sh ${DESTDIR}/usr/ucb/ccat
-	chmod 755 ${DESTDIR}/usr/ucb/ccat
-	rm compact uncompact *.o
-
-cmp: compact uncompact
-	cmp compact ${DESTDIR}/usr/ucb
-	cmp uncompact ${DESTDIR}/usr/ucb
-	rm *.o
+install:
+	install -s -o bin -g bin -m 711 compact ${DESTDIR}/usr/ucb
+	install -s -o bin -g bin -m 711 uncompact ${DESTDIR}/usr/ucb
+	install -c -o bin -g bin -m 755 ccat.sh ${DESTDIR}/usr/ucb/ccat
 
 compact: compact.o tree.o
-	cc -s -n -O compact.o tree.o -o compact
+	${CC} ${LFLAG} -O compact.o tree.o -o compact
 
 uncompact: uncompact.o tree.o
-	cc -s -n -O uncompact.o tree.o -o uncompact
-
-install:
-	install -s compact ${DESTDIR}/usr/ucb
-	install -s uncompact ${DESTDIR}/usr/ucb
-	cp ccat.sh ${DESTDIR}/usr/ucb/ccat
-	chmod 755 ${DESTDIR}/usr/ucb/ccat
+	${CC} ${LFLAG} -O uncompact.o tree.o -o uncompact
 
 clean:
 	rm -f compact.o uncompact.o tree.o
+
+.c.o:
+	${CC} ${CFLAGS} -c $*.c
+
+compact.o:	compact.c
+uncompact.o:	uncompact.c
+tree.o:		tree.c
+

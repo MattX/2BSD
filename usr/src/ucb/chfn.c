@@ -101,9 +101,7 @@ main(argc, argv)
 	(void) signal(SIGHUP, SIG_IGN);
 	(void) signal(SIGINT, SIG_IGN);
 	(void) signal(SIGQUIT, SIG_IGN);
-#ifdef	MENLO_JCL
 	(void) signal(SIGTSTP, SIG_IGN);
-#endif
 	/*
 	 * Race condition -- the locking mechinism is not my idea (ns)
 	 */

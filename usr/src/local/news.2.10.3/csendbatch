@@ -1,0 +1,19 @@
+: '@(#)csendbatch	1.7	4/5/85'
+cflags='-q'
+for rmt in $*
+do
+	case $rmt in
+	-[bBC]*)	cflags="$cflags $rmt";;
+	*)
+	while test $? -eq 0 -a \( -s /usr/spool/batch/$rmt -o -s /usr/spool/batch/$rmt.work \)
+	do
+		(echo "#! cunbatch"; /usr/lib/news/batch /usr/spool/batch/$rmt 100000 | /usr/lib/news/compress $cflags) | \
+			if test -s /usr/spool/batch/$rmt.cmd
+			then
+				/usr/spool/batch/$rmt.cmd
+			else
+				uux - -r -z -n -gd $rmt!rnews
+			fi
+	done;;
+	esac
+done

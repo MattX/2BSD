@@ -1,0 +1,77 @@
+WARNING:
+	DO NOT run the standard Berkeley/AT&T sorts on the fortune files;
+	Some of them are larger than 1024 bytes and will be truncated.
+
+MISCELLANEOUS:
+	To create a new fortune database, you need three files:
+	"obscene", "scene" and "obs.lim", for the obscene fortunes, the
+	clean fortunes and the obscene limericks, respectively.  The only
+	real hard and fast rule is to end each file with a delimiter;
+	just remember that an empty line between two delimiters will
+	create a fortune consisting of an empty line.  The standard delimiter
+	is "%%" by itself on a line, but you can alter that if you wish.
+	Then, run strfile and stand back.
+
+	If you add fortunes, please try to keep to the formats below.  It
+	probably reflects badly on my character, but I actually went through
+	this entire thing once and tried to make everything consistent.
+
+	This is the Ken Arnold/Keith Bostic/Guy Harris memorial fortune file.
+	If you add any fortunes, or, if you have some we don't have,
+	please let us know.  Any problems, feel free to call, we
+	think this works, but hey, what can we say, we'll be glad to bug fix.
+
+	Enjoy...
+
+	guy@sun		keith@seismo
+	sun!guy		seismo!keith
+
+FORTUNE FORMATS:
+
+1:	For credits, DON'T skip a line after the fortune, then,
+	"\t\t--credit#1 [credit2]".  Bracketed items ([example])
+	are usually for more information, for example, some words
+	from a song might be:
+
+	%%
+	These are the words from the song.
+		--The Song Name [Song Writer]
+	%%
+
+	Try to credit everything you can -- it's only fair to the
+	author.
+
+2:	Definitions, are in all caps, colon, carriage return and
+	then indent the rest of the lines.  If definition is credited
+	treat as a non-definition.
+
+3:	Laws, rules, etc.  treat as non-definition.
+
+4:	Dates are [January 4, 1984] or [1832-1865]
+
+EXAMPLES:
+
+	Incidentally, this is what one of the original files
+	("scene" etc.) might look like before you run strfile.
+
+===> start of file
+This is a normal fortune.
+%%
+This is a credited fortune, with 2 credits.
+		--Credit #1 [Credit #2, May 1984]
+%%
+Johns Law:
+	This is a law.
+%%
+Johns Law:
+	This is a credited law.
+		--Bill Johns
+%%
+DEFINITION:
+	This is a definition.
+%%
+Creddef:
+	This is a credited definition.
+		--Joe Schmoe [McCalls Vol. 34, 1984]
+%%
+==> end of file

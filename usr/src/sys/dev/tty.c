@@ -12,15 +12,13 @@
 #include <sys/user.h>
 #include <sys/tty.h>
 #include <sys/proc.h>
-#ifdef	MPX_FILS
-#include <sys/mx.h>
-#endif
 #include <sys/inode.h>
 #include <sys/file.h>
 #include <sys/reg.h>
 #include <sys/conf.h>
 #include <sys/buf.h>
 #include "bk.h"
+#include "dh.h"
 
 extern	char	partab[];
 
@@ -281,7 +279,6 @@ caddr_t addr;
 	 * If the ioctl involves modification,
 	 * hang if in the background.
 	 */
-#ifdef	MENLO_JCL
 	switch(com) {
 
 	case TIOCSETD:
@@ -308,7 +305,6 @@ caddr_t addr;
 		}
 		break;
 	}
-#endif
 
 	/*
 	 * Process the ioctl.
@@ -391,11 +387,6 @@ caddr_t addr;
 #ifdef	DIAGNOSTIC
 					if (tp->t_canq.c_cc)
 						panic("ttioctl canq");
-#endif
-#ifdef MPX_FILS
-					if (tp->t_chan)
-						(void) sdata(tp->t_chan);
-					else
 #endif
 						wakeup((caddr_t)&tp->t_rawq);
 				}
@@ -487,7 +478,7 @@ caddr_t addr;
 			u.u_error = EFAULT;
 		break;
 
-#ifdef	UCB_NTTY
+#ifdef UCB_NTTY
 	/*
 	 * Set/get local special characters.
 	 */
@@ -509,20 +500,20 @@ caddr_t addr;
 
 		switch (tp->t_line) {
 
-#if	NBK > 0
+#if NBK > 0
 		case NETLDISC:
 			nread = tp->t_rec ? tp->t_inbuf : 0;
 			break;
-#endif
+#endif NBK
 
-#ifdef	OLDTTY
+#ifdef OLDTTY
 		case OTTYDISC:
 			(void) _spl5();
 			while (canon(tp)>=0)
 				;
 			(void) _spl0();
 			/* fall into ... */
-#endif
+#endif OLDTTY
 
 		case NTTYDISC:
 #ifdef  UCB_NET
@@ -531,7 +522,7 @@ caddr_t addr;
 			nread = tp->t_canq.c_cc;
 			if (tp->t_flags & (RAW|CBREAK))
 				nread += tp->t_rawq.c_cc;
-#endif
+#endif UCB_NET
 			break;
 
 		}
@@ -592,6 +583,30 @@ caddr_t addr;
 		break;
 
 	/*
+	 * Stop output to the tty.  Like he typed the stop character.
+	 */
+	case TIOCSTOP:
+		(void) _spl5();
+		if ((tp->t_state&TTSTOP) == 0) {
+			tp->t_state |= TTSTOP;
+			(*cdevsw[major(tp->t_dev)].d_stop)(tp, 0);
+		}
+		(void) _spl0();
+		break;
+
+	/*
+	 * Start output to the tty if previously stopped.
+	 */
+	case TIOCSTART:
+		(void) _spl5();
+		if (tp->t_state&TTSTOP) {
+			tp->t_state &= ~TTSTOP;
+			ttstart(tp);
+		}
+		(void) _spl0();
+		break;
+
+	/*
 	 * Simulate typing of a character at the terminal.
 	 */
 	case TIOCSTI:
@@ -601,7 +616,7 @@ caddr_t addr;
 		else
 			(*linesw[tp->t_line].l_input)(c, tp);
 		break;
-#endif
+#endif UCB_NTTY
 
 #ifdef	TEXAS_AUTOBAUD
 	case TIOCSIMG:
@@ -639,7 +654,7 @@ ttselect(dev, rw)
 	dev_t dev;
 	int rw;
 {
-	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)];
+	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)&0177];
 	int nread;
 	int s = spl5();
 
@@ -652,7 +667,9 @@ ttselect(dev, rw)
 		if (tp->t_rsel && tp->t_rsel->p_wchan == (caddr_t)&selwait)
 			tp->t_state |= TS_RCOLL;
 		else
+		{
 			tp->t_rsel = u.u_procp;
+		}
 		break;
 
 	case FWRITE:

@@ -1,0 +1,344 @@
+#
+# make file for system objects
+#
+
+CONF=	c.o ioconf.o
+
+SYS=	acct.o alloc.o clock.o fio.o iget.o ioctl.o machdep.o main.o malloc.o \
+	nami.o pipe.o prf.o prim.o rdwri.o sig.o slp.o subr.o sys1.o sys2.o \
+	sys3.o sys4.o sysent.o syslocal.o text.o trap.o ureg.o ipc.o mbuf.o \
+	mbuf11.o proto.o socket.o socketsubr.o
+
+# SPLFIX should be one of :splfix.movb, :splfix.mtps or :splfix.spl
+SPLFIX=	:splfix.spl
+
+I=	/usr/include
+AS=	as ${OV}
+DEFS=	-DKERNEL -Dpdp11
+INC=	-I. -I${I}
+CFLAGS=	-O ${OV} ${DEFS} ${INC}
+CPP=	/lib/cpp -P ${DEFS} ${INC}
+C=	${CC} ${CFLAGS} -S
+E=	ed - < ${SPLFIX}
+A=	${AS} - -o
+
+all: ${SYS} ${CONF}
+
+#isr.o:	../sys/isr.s
+#	${CPP} ${CPPFLAGS} ../sys/isr.s > isr.i
+#	${AS} -o isr.o isr.i
+#	-rm isr.i
+
+# DO NOT DELETE THIS LINE
+acct.o: ../sys/acct.c
+acct.o: param.h ${I}/sys/systm.h ${I}/sys/acct.h ${I}/sys/dir.h
+acct.o: ${I}/sys/user.h ${I}/sys/inode.h ${I}/sys/proc.h ${I}/sys/seg.h
+	${C} ../sys/acct.c
+	${E} acct.s
+	${A} acct.o acct.s
+	rm -f acct.s
+
+alloc.o: ../sys/alloc.c
+alloc.o: param.h ${I}/sys/systm.h ${I}/sys/filsys.h ${I}/sys/mount.h
+alloc.o: ${I}/sys/fblk.h ${I}/sys/conf.h ${I}/sys/buf.h ${I}/sys/inode.h
+alloc.o: ${I}/sys/ino.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/quota.h
+	${C} ../sys/alloc.c
+	${E} alloc.s
+	${A} alloc.o alloc.s
+	rm -f alloc.s
+
+clock.o: ../sys/clock.c
+clock.o: param.h ${I}/sys/systm.h ${I}/sys/callout.h ${I}/sys/seg.h
+clock.o: ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/proc.h ${I}/sys/reg.h
+clock.o: ${I}/sys/text.h ${I}/sys/vm.h
+	${C} ../sys/clock.c
+	${E} clock.s
+	${A} clock.o clock.s
+	rm -f clock.s
+
+fio.o: ../sys/fio.c
+fio.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+fio.o: ${I}/sys/filsys.h ${I}/sys/file.h ${I}/sys/conf.h ${I}/sys/inode.h
+fio.o: ${I}/sys/reg.h ${I}/sys/acct.h
+	${C} ../sys/fio.c
+	${E} fio.s
+	${A} fio.o fio.s
+	rm -f fio.s
+
+iget.o: ../sys/iget.c
+iget.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+iget.o: ${I}/sys/inode.h ${I}/sys/ino.h ${I}/sys/filsys.h
+iget.o: ${I}/sys/mount.h ${I}/sys/conf.h ${I}/sys/buf.h ${I}/sys/quota.h
+iget.o: ${I}/sys/inline.h
+	${C} ../sys/iget.c
+	${E} iget.s
+	${A} iget.o iget.s
+	rm -f iget.s
+
+ioctl.o: ../sys/ioctl.c
+ioctl.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+ioctl.o: ${I}/sys/tty.h ${I}/sys/proc.h ${I}/sys/inode.h ${I}/sys/file.h
+ioctl.o: ${I}/sys/reg.h ${I}/sys/conf.h
+	${C} ../sys/ioctl.c
+	${E} ioctl.s
+	${A} ioctl.o ioctl.s
+	rm -f ioctl.s
+
+machdep.o: ../sys/machdep.c
+machdep.o: param.h ${I}/sys/systm.h ${I}/sys/acct.h ${I}/sys/dir.h
+machdep.o: ${I}/sys/user.h ${I}/sys/inode.h ${I}/sys/proc.h
+machdep.o: ${I}/sys/seg.h ${I}/sys/map.h ${I}/sys/reg.h ${I}/sys/buf.h
+machdep.o: ${I}/sys/tty.h ${I}/sys/reboot.h ${I}/sys/uba.h
+machdep.o: ${I}/sys/iopage.h
+	${C} ../sys/machdep.c
+	${E} machdep.s
+	${A} machdep.o machdep.s
+	rm -f machdep.s
+
+main.o: ../sys/main.c
+main.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+main.o: ${I}/sys/filsys.h ${I}/sys/mount.h ${I}/sys/map.h ${I}/sys/proc.h
+main.o: ${I}/sys/inode.h ${I}/sys/seg.h ${I}/sys/conf.h ${I}/sys/buf.h
+	${C} ../sys/main.c
+	${E} main.s
+	${A} main.o main.s
+	rm -f main.s
+
+malloc.o: ../sys/malloc.c
+malloc.o: param.h ${I}/sys/systm.h ${I}/sys/map.h ${I}/sys/vm.h
+	${C} ../sys/malloc.c
+	${E} malloc.s
+	${A} malloc.o malloc.s
+	rm -f malloc.s
+
+nami.o: ../sys/nami.c
+nami.o: param.h ${I}/sys/systm.h ${I}/sys/inode.h ${I}/sys/filsys.h
+nami.o: ${I}/sys/mount.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/buf.h
+nami.o: ${I}/sys/quota.h ${I}/sys/seg.h
+	${C} ../sys/nami.c
+	${E} nami.s
+	${A} nami.o nami.s
+	rm -f nami.s
+
+pipe.o: ../sys/pipe.c
+pipe.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+pipe.o: ${I}/sys/inode.h ${I}/sys/file.h ${I}/sys/reg.h ${I}/sys/inline.h
+	${C} ../sys/pipe.c
+	${E} pipe.s
+	${A} pipe.o pipe.s
+	rm -f pipe.s
+
+prf.o: ../sys/prf.c
+prf.o: param.h ${I}/sys/systm.h ${I}/sys/filsys.h ${I}/sys/mount.h
+prf.o: ${I}/sys/seg.h ${I}/sys/buf.h ${I}/sys/conf.h ${I}/sys/inline.h
+prf.o: ${I}/sys/reboot.h
+	${C} ../sys/prf.c
+	${E} prf.s
+	${A} prf.o prf.s
+	rm -f prf.s
+
+prim.o: ../sys/prim.c
+prim.o: param.h dh.h dz.h ${I}/sys/tty.h ${I}/sys/systm.h ${I}/sys/conf.h
+prim.o: ${I}/sys/buf.h ${I}/sys/seg.h ${I}/sys/map.h ${I}/sys/uba.h
+	${C} ../sys/prim.c
+	${E} prim.s
+	${A} prim.o prim.s
+	rm -f prim.s
+
+rdwri.o: ../sys/rdwri.c
+rdwri.o: param.h ${I}/sys/systm.h ${I}/sys/inode.h ${I}/sys/dir.h
+rdwri.o: ${I}/sys/user.h ${I}/sys/buf.h ${I}/sys/conf.h
+	${C} ../sys/rdwri.c
+	${E} rdwri.s
+	${A} rdwri.o rdwri.s
+	rm -f rdwri.s
+
+sig.o: ../sys/sig.c
+sig.o: whoami.h param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+sig.o: ${I}/sys/proc.h ${I}/sys/inode.h ${I}/sys/reg.h ${I}/sys/text.h
+sig.o: ${I}/sys/seg.h ${I}/sys/vm.h
+	${C} ../sys/sig.c
+	${E} sig.s
+	${A} sig.o sig.s
+	rm -f sig.s
+
+slp.o: ../sys/slp.c
+slp.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+slp.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/map.h ${I}/sys/file.h
+slp.o: ${I}/sys/inode.h ${I}/sys/buf.h ${I}/sys/seg.h ${I}/sys/vm.h
+slp.o: ${I}/sys/inline.h
+	${C} ../sys/slp.c
+	${E} slp.s
+	${A} slp.o slp.s
+	rm -f slp.s
+
+subr.o: ../sys/subr.c
+subr.o: param.h ${I}/sys/systm.h ${I}/sys/conf.h ${I}/sys/inode.h
+subr.o: ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/buf.h ${I}/sys/quota.h
+	${C} ../sys/subr.c
+	${E} subr.s
+	${A} subr.o subr.s
+	rm -f subr.s
+
+sys1.o: ../sys/sys1.c
+sys1.o: param.h ${I}/sys/systm.h ${I}/sys/map.h ${I}/sys/dir.h
+sys1.o: ${I}/sys/user.h ${I}/sys/proc.h ${I}/sys/buf.h ${I}/sys/reg.h
+sys1.o: ${I}/sys/inode.h ${I}/sys/seg.h ${I}/sys/acct.h ${I}/sys/file.h
+sys1.o: ${I}/a.out.h ${I}/wait.h
+	${C} ../sys/sys1.c
+	${E} sys1.s
+	${A} sys1.o sys1.s
+	rm -f sys1.s
+
+sys2.o: ../sys/sys2.c
+sys2.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+sys2.o: ${I}/sys/reg.h ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/quota.h
+sys2.o: ${I}/sys/proc.h ${I}/sys/inline.h
+	${C} ../sys/sys2.c
+	${E} sys2.s
+	${A} sys2.o sys2.s
+	rm -f sys2.s
+
+sys3.o: ../sys/sys3.c
+sys3.o: param.h ${I}/sys/systm.h ${I}/sys/ino.h ${I}/sys/reg.h
+sys3.o: ${I}/sys/buf.h ${I}/sys/filsys.h ${I}/sys/mount.h ${I}/sys/dir.h
+sys3.o: ${I}/sys/user.h ${I}/sys/inode.h ${I}/sys/file.h ${I}/sys/conf.h
+sys3.o: ${I}/sys/stat.h ${I}/sys/inline.h
+	${C} ../sys/sys3.c
+	${E} sys3.s
+	${A} sys3.o sys3.s
+	rm -f sys3.s
+
+sys4.o: ../sys/sys4.c
+sys4.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+sys4.o: ${I}/sys/reg.h ${I}/sys/inode.h ${I}/sys/proc.h ${I}/sys/timeb.h
+sys4.o: ${I}/sys/quota.h ${I}/sys/reboot.h ${I}/sys/filsys.h
+	${C} ../sys/sys4.c
+	${E} sys4.s
+	${A} sys4.o sys4.s
+	rm -f sys4.s
+
+sysent.o: ../sys/sysent.c
+sysent.o: param.h ${I}/sys/systm.h ${I}/sys/quota.h
+	${C} ../sys/sysent.c
+	${E} sysent.s
+	${A} sysent.o sysent.s
+	rm -f sysent.s
+
+syslocal.o: ../sys/syslocal.c
+syslocal.o: param.h ${I}/sys/dir.h ${I}/sys/proc.h ${I}/sys/seg.h
+syslocal.o: ${I}/sys/user.h ${I}/sys/systm.h ${I}/sys/inode.h
+syslocal.o: ${I}/sys/ino.h ${I}/sys/file.h ${I}/sys/conf.h
+syslocal.o: ${I}/sys/quota.h ${I}/sys/qstat.h ${I}/sys/buf.h
+syslocal.o: ${I}/sys/tty.h ${I}/sys/autoconfig.h ${I}/sys/mbuf.h
+syslocal.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+syslocal.o: ${I}/sys/ubavar.h ${I}/sys/map.h ${I}/net/if.h
+syslocal.o: ${I}/netinet/in_systm.h
+	${C} ../sys/syslocal.c
+	${E} syslocal.s
+	${A} syslocal.o syslocal.s
+	rm -f syslocal.s
+
+text.o: ../sys/text.c
+text.o: param.h ${I}/sys/systm.h ${I}/sys/map.h ${I}/sys/dir.h
+text.o: ${I}/sys/user.h ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/inode.h
+text.o: ${I}/sys/buf.h ${I}/sys/seg.h
+	${C} ../sys/text.c
+	${E} text.s
+	${A} text.o text.s
+	rm -f text.s
+
+trap.o: ../sys/trap.c
+trap.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+trap.o: ${I}/sys/proc.h ${I}/sys/reg.h ${I}/sys/seg.h ${I}/sys/vm.h
+trap.o: ${I}/sys/trap.h ${I}/sys/inline.h ${I}/sys/iopage.h
+	${C} ../sys/trap.c
+	${E} trap.s
+	${A} trap.o trap.s
+	rm -f trap.s
+
+ureg.o: ../sys/ureg.c
+ureg.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+ureg.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/seg.h
+	${C} ../sys/ureg.c
+	${E} ureg.s
+	${A} ureg.o ureg.s
+	rm -f ureg.s
+
+ipc.o: ../sys/ipc.c
+ipc.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+ipc.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/buf.h
+ipc.o: ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+ipc.o: ${I}/sys/socketvar.h ${I}/netinet/in.h ${I}/netinet/in_systm.h
+	${C} ../sys/ipc.c
+	${E} ipc.s
+	${A} ipc.o ipc.s
+	rm -f ipc.s
+
+mbuf.o: ../sys/mbuf.c
+mbuf.o: param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/proc.h
+mbuf.o: ${I}/sys/mbuf.h ${I}/netinet/in_systm.h
+	${C} ../sys/mbuf.c
+	${E} mbuf.s
+	${A} mbuf.o mbuf.s
+	rm -f mbuf.s
+
+mbuf11.o: ../sys/mbuf11.c
+mbuf11.o: param.h ${I}/sys/seg.h ${I}/sys/mbuf.h ${I}/netinet/in_systm.h
+	${C} ../sys/mbuf11.c
+	${E} mbuf11.s
+	${A} mbuf11.o mbuf11.s
+	rm -f mbuf11.s
+
+proto.o: ../sys/proto.c
+proto.o: param.h ${I}/sys/socket.h ${I}/sys/protosw.h ${I}/sys/mbuf.h
+proto.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h imp.h pup.h
+	${C} ../sys/proto.c
+	${E} proto.s
+	${A} proto.o proto.s
+	rm -f proto.s
+
+socket.o: ../sys/socket.c
+socket.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+socket.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/buf.h
+socket.o: ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+socket.o: ${I}/sys/socketvar.h ${I}/sys/stat.h ${I}/sys/ioctl.h
+socket.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h ${I}/net/route.h
+	${C} ../sys/socket.c
+	${E} socket.s
+	${A} socket.o socket.s
+	rm -f socket.s
+
+socketsubr.o: ../sys/socketsubr.c
+socketsubr.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+socketsubr.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h
+socketsubr.o: ${I}/sys/buf.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+socketsubr.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+socketsubr.o: ${I}/netinet/in.h ${I}/netinet/in_systm.h
+	${C} ../sys/socketsubr.c
+	${E} socketsubr.s
+	${A} socketsubr.o socketsubr.s
+	rm -f socketsubr.s
+
+c.o: c.c
+c.o: param.h ${I}/sys/systm.h ${I}/sys/buf.h ${I}/sys/tty.h ${I}/sys/conf.h
+c.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/dir.h ${I}/sys/user.h
+c.o: ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/acct.h ${I}/sys/map.h
+c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h
+c.o: lp.h pty.h rk.h rl.h rm.h dr.h rp.h tm.h ts.h vp.h xp.h
+	${C} c.c
+	${E} c.s
+	${A} c.o c.s
+	rm -f c.s
+
+ioconf.o: ioconf.c
+ioconf.o: param.h ${I}/sys/systm.h acc.h bk.h dh.h dmc.h dn.h dvhp.h dz.h hk.h
+ioconf.o: hp.h hs.h ht.h il.h imp.h kl.h lp.h pty.h pup.h rf.h rk.h rl.h rm.h
+ioconf.o: rp.h sri.h tm.h ts.h un.h vp.h vv.h xp.h ${I}/sys/hpreg.h
+	${C} ioconf.c
+	${E} ioconf.s
+	${A} ioconf.o ioconf.s
+	rm -f ioconf.s
+
+# DEPENDENCIES MUST END HERE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY

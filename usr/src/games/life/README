@@ -1,0 +1,21 @@
+This is a version of life which was written to run under 4.2 BSD UNIX
+running on a VAX 750.  If you are not running this configuration, you
+will probably have to make modifications.  The only Berkeley specific
+feature used (that I can recall) is the use of the FIONREAD ioctl.  But
+there are many int/long mismatches (some of us on VAXes are rather lax).
+
+This program requires the use of my "dpy" library module for its screen
+updating.  This module was recently posted to net.sources.  If you did
+not receive that module, I can send it to you privately if necessary.
+Changing the life program to use curses would be possible, but painful.
+
+A program like this can have almost an infinite number of features.
+There are still things I would like to include in it, but enough major
+things are implemented to make it very useful.  Suggestions for new
+features or changes are welcome, as are the (to be expected) bug fixes.
+
+Once again, sorry about the the documentation.  Life.doc should be formatted,
+but the life program would probably have waited forever until I did that.
+Enjoy!
+			David I. Bell
+			nsc!daisy!dbell

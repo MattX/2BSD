@@ -1,0 +1,611 @@
+This is the vi tutorial.  Send comments to ach@pucc-h
+
+When you reach the bottom of the screen, type control-F or control-D
+to advance to the next page.  If your screen is half-empty, control-D
+is proabably the best way to go.  More about these commands later.
+
+The purpose of this document is to teach a beginner how to use the 'vi' 
+editor.  Unless specifically stated otherwise, in the rest of this 
+tutorial:
+	1) ^<char> stands for "control-<char>" (hold the 'control' key down,
+		then depress the <char> key.
+	2) when it says type "foo", do NOT type the quotation marks unless
+		specifically told to.
+	3) when the characters ">>" are seen next to the left margin, the
+		paragraph contains directions for you to follow.
+
+And now, on with the lesson! If you need to exit this tutorial, type ":q!".
+The command should be echoed on the last line of the screen.  If this doesn't
+work, type <escape> or <rubout> and try again.  If you ever mess up the file
+so badly that you can't understand it anymore, try "u" or ":e!".  As a last
+resort, quit and restart the tutorial.
+
+
+Adjusting the Screen
+--------- --- ------
+
+The first thing to learn is how to adjust the "window" into your file.  You
+may have just learned how to move forward a page with ^F.  To move backwards,
+the command is ^B.  Note that these commands can be easily remembered by the
+mnemonics "Forward screen" and "Backwards screen".
+
+>>  Try typing a "^B" now to back you up a page, and then "^F" to return
+	you here.  Note that a few lines near the top or bottom of the
+	page appeared on both screenfuls.  This gives a bit of "continuity"
+	when paging through a file.
+
+There are a few other commands that adjust the screen.  A "^D" goes forward
+about half a screenful, while "^U" scrolls down.  These commands are useful
+when you want to see something that is past the top or bottom of the screen
+by a little bit.  Mnemonically, you can think of them as "scroll Down" and
+"scroll Up".  Another pair of commands scroll the screen by just one line
+in either direction.  To get one line at the bottom, type "^E" (Expose a
+line), and to get one at the top, "^Y" (no mnemonic for this one, sorry!).
+On some terminals without an insert line feature, a ^Y acts like an ^U.
+
+>>  Use the commands just described to place this line at the top of the
+	screen.
+
+There are two more commands available that operate on the screen.  These
+are the retype ("^L") and redraw ("^R") commands.  If your screen should be
+garbled due to output from something else or glitches in the line, a "^L"
+should clean things up.  If it doesn't, then the garbage really is in your
+file, probably due to an error of yours. The "^R" command will be discussed
+later.
+
+>>  Try the retype command now.  You should see the screen clear, followed
+	by a retyping of the screen.  If your terminal outputs quickly, all
+	you might see could be just a blink.
+
+Summary
+-------
+
+These commands adjust the screen:
+
+	^F	Forward one screen
+	^B	Backwards one screen
+	^D	Scroll down one-half screen
+	^U	Scroll up one-half screen
+	^E	Expose one more line at the bottom
+	^Y	Expose one more line at the top
+	^L	Retype the screen
+	^R	Eliminate "@" lines (to be explained later)
+
+
+Basic Cursor Control
+----- ------ -------
+
+Now you know how to manipulate the screen, but how do you move around in
+it?  One way is to use the cursor positioning commands.  If you like to
+play Rogue, then the commands are very easy to remember: "h" goes to the
+left, "j" down, "k" up, and "l" forward.  The easiest way to remember these
+is that "h" is leftmost and "l" is rightmost of the four keys, and that
+a control-J is a linefeed, which is like what the "j" command does.
+
+>>  Try these commands now to position the cursor on the period at the end
+	of this sentence.
+
+If your terminal has arrow keys, then you may be able to use them instead
+of the "hjkl" keys.  These commands are used so often that there are other
+synonyms for them.  A <space> is identical to "l", which makes sense since
+it effectively looks like a space.  A "^H" is the same as "h", and "^J" the
+same as "j" for the same reasons.  More mnemonically, "^P" acts like "k"
+and goes up one line (Previous line) and "^N" acts like "j" (Next line).
+
+>>  Position the cursor in the middle of some line, and then use the up and
+	down cursor commands to move it over a blank line.  What happens?
+
+Note that these commands do not necessarily move the cursor in the right
+direction all the time.  If you are on a line and move to one that is
+shorter, then the cursor is placed at the end of the shorter line.  If you
+then immediately move to a longer line, then the cursor will be placed in
+the same column as the original line.  However, if you do something else on
+the shorter line, then if you move up or down, your position on that line
+will be used as the column to move to.
+
+>>  Go to the beginning of a line and try to move left.  Now go to the end
+	of a line and try to move right.  The bell should ring when you do
+	this.
+
+You cannot use the left and right cursor commands to go past the beginning
+or end of a line.
+
+There are two more line-positioning commands that you should be aware of.
+A <carriage return> (CR for short) or a "+" goes to the next line, but also
+positions the cursor at the first non-white character in the line.  A "-"
+does the same, but goes backward a line instead.  The "+" and "-" commands
+are mnemonics in themselves.
+
+>>  Position the cursor in the middle of a line and then try either the "+"
+	or "-" command and see where it puts you.  Then, move the cursor to
+	the middle of the ">> . . ." line above and try the "+" command.
+	See where it puts you?
+
+Summary
+-------
+
+The basic cursor motion commands are:
+
+	h		Cursor left
+	^H	   	   "    "
+	<left-arrow>       "    "
+
+	j		Cursor down
+	^J	   	   "    "
+	^N	   	   "    "
+	<down-arrow>       "    "
+
+	k		Cursor up
+	^P	   	   "    "
+	<up-arrow>	   "    "
+
+	l		Cursor right
+	<space>    	   "     "
+	<right-arrow>	   "     "
+
+	CR		Next line, at first non-white character
+	+		 "     "   "    "    "    "       "
+	-		Previous line, at first non-white character
+
+
+Advanced Cursor Motion
+-------- ------ ------
+
+There are other commands that pertain to cursor motion that move farther
+than one character or one line.  These will be the topic of this section.
+
+Often, it is desirable to go to the beginning or end of a line.  Vi has
+commands that do this.  A "0" (zero, not capital-o) goes to the first
+position in a line.  "^" (an ASCII caret, not the up-arrow key) goes to the
+first non-white character in the current line.  A "$" goes to the end of
+the line (this one is derived from the symbol used in regular
+expressions--if you don't know what a regular expression is, don't worry).
+
+>>  Try these commands now.
+	This line is available to show you the difference between "0" and
+	"^".
+
+Sometimes you know you want to go to a specific line number or column.
+There are two commands that allow you to do this, but before you learn
+them, you must learn the idea of a numeric argument.  
+
+Almost any vi command can be preceded by a number.  Most commands take this
+number to be a repeat count, that is, "10k" does "k" 10 times.  However,
+some do not.  An example of ones that don't are "^D" and "^U".  An argument
+given to these specifies the number of lines to scroll the screen, and that
+argument will be used in the future whenever you say "^D" or "^U" without
+an argument.
+
+Now, back to moving the cursor.  If you want to go to a specific line in
+the file, the command is "<line number>G", where <line number> is the
+line number in decimal, with the first line in the file being line one.
+Likewise, to go to a specific column, the command is "<column number>|".
+
+>>  This is line 182.  Use the "G" command to get here and then move to
+	the tenth column in the line.
+
+There are also ways of positioning the cursor with respect to the screen.
+The "H" (Home) command puts the cursor in the upper left corner of the
+screen, "M" (Middle) puts you at the beginning of the line in the middle
+of the screen, and "L" (Last) puts you on the last line.  Arguments to 
+"H" and "L" put you on the nth line from the top or bottom.  "M" ignores
+arguments.
+
+>>  Try these commands now.
+
+Now we finally get to the most useful cursor motion commands.  These act on
+text objects like words and sentences. First, word motion commands.  To go
+forward to the next beginning of a word, type "w" (Word).  To go backwards,
+type "b" (Backwards word).  And to go forward to the next end of a word, the
+command is "e" (End of Word).  A word is delimited by blanks and punctuation.
+If you want to move over words that have punctuation in them, like a hyphen,
+or words that have, for example, a comma or a period following them, the 
+capitalized versions of the above commands ("W", "B", and "E") consider only
+blank-delimited words.  These commands are able to change the line that the
+cursor is on, unlike the single character commands ("hjkl").
+
+>>  Try the word motion commands now.  Then move down to this line.
+	Here-is-a-word-with-punctuation.  See how the capitalized commands
+	differ from the lower-case ones.
+
+Far less used are commands that move by sentences, paragraphs, and sections.
+They are:  "(" for backwards sentence, ")" for forward sentence; "{" 
+backwards paragraph, "}" forward paragraph; and "[[" backwards section, "]]"
+forwards section.  A sentence is delimited by one of ".?!" followed by two
+spaces.  A paragraph begins after a blank line or at the beginning of 
+an nroff paragraph macro command (if you don't know about nroff, don't 
+concern yourself with it here).  A section begins with an nroff macro, or
+if the file is "C" source code, at the "{" that begins a function block.
+
+>>  You can try the sentence and paragraph motion commands here.  There are
+	no sections in this file, so those commands will simply take you
+	to the beginning and end of the file.
+
+Summary
+-------
+
+The advanced cursor motion commands are:
+
+	0	to the first character in the line
+	^	to the first non-white character
+	$	to the end of the line
+
+	<n>G	to the nth line in the file
+	<n>|	to the nth column in the line
+
+	H	to home position on screen (upper-left corner)
+	M	to middle line on screen
+	L	to last line on screen
+
+	w	forward to next beginning of a word
+	W	   "     "   "      "      " " blank-delimited word
+	b	backward to next beginning of a word
+	B	   "     "   "       "     "  " blank-delimited word
+	e	forward to next end of a word
+	E	   "     "   "   "  "  " blank-delimited word
+
+	(	backwards to next beginning of a sentence
+	)	forwards  "   "       "     "  "    "
+	{	backwards to next beginning of a paragraph
+	}	forwards  "   "       "     "  "    "
+	[[	backwards to next beginning of a section/function
+	]]	forwards  "   "       "     "  "    "       "
+
+
+Searching
+---------
+
+Often you do not know exactly what line in the file you want to go, and you
+don't feel line using "^F" and "^B" to page through it all.  However, it is 
+usually the case that you have an idea as to what is nearby what you are 
+looking for.  For example, suppose you wanted to find this page quickly.
+You probably don't know that this is about 250 lines into the file, so "G"
+doesn't help you.  However, you can probably remember that the word 
+"Searching" begins this section.  So the question is:  How do you find it?
+This is vi's search commands come into play.  To initiate a search from
+the current cursor position forward, type "/".  A "/" will appear on the 
+last line of the screen.  Now any more characters you type will appear after
+the "/".  When you type an "<esc>" or a CR, vi will begin the search, and 
+put the cursor on the first character of the search string, or, if the
+string is nowhere in the file, will ring the bell and tell you.  If you
+want to search from your cursor backwards in the file, instead of "/",
+the command is "?".
+
+>>  Use the search commands to place the cursor on the angle brackets at 
+	the beginning of the line.
+
+Every time you search for something, vi remembers the search string so that
+it is available for you the next time you search.  If you type "/<esc>" or
+"?<esc>" without specifying a search string, vi uses the previous string.
+Another way of repeating a search is to use the "n" command.  It will 
+search forward if the previous search command was "/", or backwards if 
+it was "?".  "N" will reverse the sense of the last search, i.e., backwards
+if it was forwards, and vice versa.
+
+>>  Adjust the screen so that both this and the last ">>" instruction fit
+	on it, then use "H" to go to the home position.  Then search forward
+	for the ">>", and repeat this a couple of times, once using "/<esc>"
+	and also with "n", and then try "N".  If you go far away from this
+	page, You can look for the word "SEARCH" and it will bring you back
+	here.
+
+These searches are actually quite powerful, since you can specify more
+than just a normal string.  Actually, the search uses what is called a 
+regular expression, like the ones taught by the "learn editor" program.
+You should take some time acquainting yourself with this, since this means
+that certain characters are special to the search, and might not do quite
+as expected.  Quickly ".", "*", "^", and "$" do not act as normal characters.
+Precede them with a \ if you want to search for one of them.
+
+There is also a quick one-character search that works on the current line
+only.  Typing "f<x>" where <x> is any character, places the cursor on the 
+next <x> in the current line, while "F<x>" does the same, but backwards.
+A different flavor of this search is "t<x>" and "T<x>" which moves the 
+cursor up 't'o <x>, instead of on it.  When you do a character search, you
+do not affect the string remembered by vi for "/" and "?" searches.  To
+quickly repeat a character search, the command is ";", while "," will
+reverse the direction of the last character search.
+
+>>  Play around with these character searches on this line.  Try looking
+	for e's, since there are quite a few.
+
+Summary
+-------
+
+	/<string>	search forwards for regular expression "<string>"
+	?<string>	search backwards for regular expression "<string>"
+	n		repeat last reg. ex. search ("/" or "?")
+	N		repeat last reg. ex. search, but in opposite direction
+
+	f<x>		find character <x> forward, and place cursor on it
+	F<x>		find character <x> backwards, and place cursor on it
+	t<x>		like "f", but place cursor before <x>
+	T<x>		like "F", but place cursor after <x>
+	;		repeat last character search
+	,		reverse direction of last character search
+
+
+Inserting
+---------
+
+So, now you know how to move around in the file, but not yet how to add 
+anything to it.  This is the first section where you'll be asked to modify
+this file.  Don't worry about destroying it, since you won't be affecting
+the master copy of it.  If you end up totally botching it, just exit (with
+":q!") and try again.
+
+The hardest thing to remember about inserting is where the inserted text
+will go. Also, depending on how "smart" your terminal is, it may appear
+as if the text you are inserting is overwriting the existing text.  This
+is not so.  When you end the insert, the screen will be properly updated. 
+This is to minimize the amount of screen updating the program has to do
+on "dumb" terminals.
+
+The two basic insert commands are "i" and "a".  To start inserting, you type
+one of these, and then the text you want to insert.  To leave insert mode,
+you then type an <esc>.  The difference between these two is that "i" Inserts
+this text before the cursor, and "a" Appends it after the cursor. 
+
+>>  To better see how this works, try them now.  Move the cursor so that
+	it is somewhere that you'll remember, type either "i" or "a", some
+	text that you want to insert, and then an <esc> (Remember, that's
+	the escape key, not the characters "<esc>").
+
+While you are in insert mode, none of the commands described so far work.
+To do something else, like scroll backwards a page, it is necessary to
+first leave insert mode with an <esc>, do the desired command (like ^B),
+and then re-enter insert mode.  There are a few commands, however, that
+do work.  Since it is very possible that you will mistype something, a
+few commands let you erase what you have just typed.  A "^H" or your
+erase character erases the previous character, a "^W" erases the previous
+word, and your kill character (usually "^X") erases the current line.
+However, note that these do NOT let you erase something that you have 
+not typed since you last entered insert mode.  That is,  if you typed
+"Fourscore and seven ", left insert mode to do something, and then returned
+to complete the sentence, once you enter insert mode, you cannot delete 
+the previous characters unless you leave insert mode again. 
+
+>>  See how this works now.  Insert some characters, then use one of the
+	above to erase them.  Try erasing more than you have input and
+	see what happens.  Also, note that characters you erase remain 
+	on the screen until you leave insert mode.
+
+What if you want to type a "^W", for example, into your file?  There are
+two commands that let you quote the next character so that it is taken
+to be input text even if insert mode usually takes it to be a command.
+They are "\" and "^V".  If you type a "\" and the next character is 
+an insert mode command, then the "\" will be replaced by the character.
+However, if it isn't then the "\" and the next character you type will 
+both be inserted into the file.  On the other hand, "^V" always quotes
+the next character, whether or not it is special.  When you type a "^V"
+a "^" will appear at the current cursor position.  The next character
+you type will replace it.
+
+>>  Try these now to see how they differ.  In insert mode, type "\^F\a"
+	and then "^V^F^Va" and see the difference.
+
+There are other flavors of inserting also.  To append to the current line,
+the command is "A", while to insert before the first non-blank in the line,
+the command is "I".  An "o" will open a line below the current one, and
+put you in insert mode, while an "O" will do the same, except that the line
+is opened above.
+
+>>  Try adding another ">" at the beginning of this line, and another
+	period at the end of this one. 
+	Then add some lines above and below this one.
+
+There are two other commands which are related to the insert commands,
+but different in that they replace the current text rather than inserting
+some.  To replace the single character that the cursor is on, type "r<x>"
+where "<x>" is the character you want to replace it with.  To enter a 
+"replace" mode that is identical to insert mode, except that characters
+are overwritten instead, type "R".  You leave this mode by typing an
+<esc> just as before.
+
+>>  I have mestyped a word on this line.  Correct it, and then change
+	this word "foo" to be "bar".
+
+Summary
+-------
+
+The insert commands are:
+
+	i	enter insert mode, insert before cursor
+	a	enter insert mode, append after cursor
+	I	insert before first non-blank in line
+	A	append to end of line
+	o	open line below and enter insert mode
+	O	open line above
+	r<x>	replace character under cursor with <x>
+	R	enter insert mode, except that characters are replaced
+			rather than inserted
+
+The insert mode commands are:
+
+	^H	erase last character
+	erase	(your erase character) same as ^H
+	^W	erase last word
+	kill	(your kill character) erase this insert line
+	\	quote next character if it is an insert mode command
+	^V	quote next character
+	<esc>	terminate insert mode
+	intr	(your interrupt character) terminate insert mode abnormally
+
+
+Deleting and Changing Text
+-------- --- -------- ----
+
+Fine, now you know how to insert the text that you want.  But, unless
+you're perfect, you will probably make some mistakes.  The following
+commands will tell you how to fix them.  To delete the character that 
+your cursor is currently on, type an 'x'.  This is like "x'ing" out
+the characters you don't want.  Likewise, an 'X' will delete the character
+immediately before the cursor.  These two commands are for small changes.
+If you want to delete more than just characters, the 'd' command will
+do it for you.  This command is unlike the ones you have already encountered.
+It is called an "operator".  What this means is that typing 'd' will do
+nothing until you type one more command, which is how you control what to
+delete.  The "one more command" is a motion command of some sort, either
+a horizontal cursor motion or a search.  The 'd' will take this com mand,
+and delete all characters between the cursor and the location that you fi-
+nally end up on.  For example, 'd5l' deletes 5 characters from the cursor
+forward, since '5l' would have put you 5 characters ahead of your current
+position.  Likewise, 'dw' will delete the next word and 'dfz' will delete
+between where you were and the next "z" on the line.  As a special case,
+doubling the delete command, 'dd' deletes an entire line, and 'D' acts like
+'d$', that is, it deletes to the end of the line.  On terminals without the
+capability to delete a line, instead of redrawing the screen correctly,
+it will place a "@" next to the left margin.  This is where the "^R"
+command mentioned earlier comes into play.  It will force vi to eliminate
+those "@" lines.
+
+>>  Ooooops, I seem seem to have made have made some misteaks on
+	this line.  Fix them.
+	this line.  Fix them.
+
+Often you want to just change a certain amount of text.  For example, suppose
+you had typed "foo" instead of "bar".  Of course, you could delete the word
+and then enter insert mode, but the change operator 'c' does it all for you.
+Like the delete operator, it takes a motion command after it to tell it 
+what to change.  It then replaces the last character that would be replaced
+on your screen with a "$", and you are placed in insert mode to make the
+change which you end with an <esc> like a normal insert.  Like the delete
+operator, 'cc' changes an entire line, and 'C' changes to the end of the
+line.  There is a synonym for the 'cc' command called 'S' which does same.
+The substitute command 's' changes only the character the cursor is
+currently on.  Note that this is not just a replace character command, since
+you can substitute a word for the character, for example.  
+
+>>  Play around with these commands a little and change some words and
+	lines.
+
+Summary
+-------
+
+These operators delete and change text:  (double to affect lines)
+
+	d	delete
+	c	change
+
+These commands delete and change text:
+
+	x	delete character at current position
+	X	delete character before cursor
+	C	change rest of line
+	S	substitute all of current line
+	D	delete to end of line
+	s	substitute characters
+
+
+OOPS! (or "How to correct your mistakes")
+-----  --  --- -- ------- ---- --------  
+
+Sometimes you find that you have made a horrible mistake--like deleting
+your entire file.  It is possible to restart your edit from the beginning,
+as long as you haven't rewritten the file (we'll get to this a little later).
+However, suppose you just spent 163 hours in the editor straight without
+exitting.  Doing it all over again probably does not appeal to you.  You
+might ask, "Isn't it possible to correct that 'one' little error?"  Luckily,
+vi is not sadistic.
+
+If the problem was that you deleted something that you didn't really want
+to, there is a way to retrieve your last 9 deletes.  This is the 'put'
+command, invoked with the 'p' or 'P' keys.  To undelete your last block
+of text and put it before the cursor, use 'p', and after the cursor, 'P'.
+If you want to restore your third previous delete, prepend the command
+'"3' to either 'p' or 'P' (yes, this time the command is a double quote).
+
+>> Try deleting and undeleting a few pieces of text.  In particular,
+	try to understand where the "put" commands will place them.
+	There is a difference between undeleting entire lines and
+	parts of lines.
+
+Of course, the problem could have been creating by something other than
+a delete command.  Vi allows you to 'undo' the last command that changed
+your file with the 'u' command.  This can very often be invaluable,
+especially once you learn the more powerful commands that can change every
+line in your file in one fell swoop.  Another type of undo command lets
+you restore the line that you are currently on to what it was when you
+first moved onto it.  This is done by 'U'.  However, remember that once
+you change lines, you can't go back to it to restore it.
+
+>> Change all sorts of things and try using the undo commands to fix them
+	back up again.
+
+Summary
+-------
+
+These commands undo changes:
+
+	p	undelete after cursor
+	P	undelete before cursor
+	u	undo last change to file
+	U	restore current line to initial form
+
+
+File Manipulation
+---- ------------
+
+Strangely enough, vi really has really very few commands that affect
+files.  The commands that work on files really belong to vi's cousin,
+called "ex" which is a line oriented editor like "ed" or "xed", but more
+powerful.  We will not mention this further, except to say that learning
+ex at some time practically adds 50% more power to vi.  All of the
+commands that are part of ex begin with a ':'.  After typing it, vi will
+place a ":" on the last line of the screen, and your cursor after it. 
+Any more characters that you type will appear there.  The command will
+not start executing until you type a carriage return or an <ESC>.  
+
+And now, on to the topic at hand.  The way to exit vi and write your
+changes back to your file is to type either 'ZZ' or ':wq' (remember that
+':' commands have to be terminated with a <CR> or <ESC>).  If you only
+want to write the changes but not exit, type ':w' or ':w name' to write
+the file to a file named "name".  If "name" already exists, you will
+have to use ':w! name' instead.  Vi will warn you about this
+automatically.  If you haven't made any changes and just want to exit,
+type ':q'.  If you've made some changes, vi will warn you about quitting
+without writing the file.  You will have to use ':q!' to quit in this
+case.  This is useful if you've really botched this editting session
+and would like to forget about the whole thing.  However, you should be
+sure you want to do this, because all the changes that you made will be
+lost for all eternity.  Another useful command is ':e'.  This one will
+reread the file that you are editting.  If you've made some changes, vi
+will tell you to use ':e!' instead if you really want to do this.  The
+purpose of this command is like ':q!', that is, to try again if you've
+damaged the file beyond all hope.  Finally, a very useful command is
+':f' or '^G', which will tell you some information about the file that
+you are editting.
+
+>>  The problem with these commands is that most of them will cause you
+	to exit this tutorial.  A safe one to try is writing this
+	tutorial file to a file on your own directory.  Try both it and
+	the '^G' command.
+
+Summary
+-------
+
+These commands affect files:
+
+	ZZ		write file and exit
+	:wq		  "    "    "   "
+
+	:w		write changes
+	:w name 	write file to "name"
+	:w! name	overwrite file "name"
+
+	:e		re-edit file
+	:e!		re-edit file, discarding changes
+
+	:q		quit
+	:q!		quit, discarding changes
+
+
+The Final Word
+--- ----- ----
+
+I hope that you have all found this tutorial useful.  Please send any
+comments to me at physics:crl.  I have not explained all the commands
+that are available, but only what I have found I've used a lot.  Refer
+to the manual for a more complete description.
+
+Happy Hacking!!!

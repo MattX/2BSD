@@ -1,1 +1,0 @@
-awk  '/^#/ {next} $1 != "" { printf "%s=%s\n", $1, $2 }' Foo

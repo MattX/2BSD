@@ -77,9 +77,7 @@ bool	mailing = NO;
 bool	quitit = NO;
 bool	sending = NO;
 bool	intrpflg = NO;
-#ifdef	MENLO_JCL
 bool	tstpflg = NO;
-#endif
 int	uid;
 int	msg;
 int	prevmsg;
@@ -93,9 +91,7 @@ struct	sgttyb	otty;
 char	*ctime();
 char	*nxtfld();
 int	onintr();
-#ifdef	MENLO_JCL
 int	onsusp();
-#endif
 off_t	ftell();
 FILE	*popen();
 struct	passwd	*getpwuid();
@@ -111,9 +107,7 @@ bool	locomode = NO;
 bool	pause = NO;
 bool	clean = NO;
 bool	lastcmd = NO;
-#ifdef	MENLO_JCL
 jmp_buf	tstpbuf;
-#endif
 
 main(argc, argv)
 int argc; char *argv[];
@@ -420,12 +414,10 @@ int argc; char *argv[];
 		/*
 		 * Print header
 		 */
-#ifdef	MENLO_JCL
 again:
 		if (totty)
 			signal(SIGTSTP, onsusp);
 		(void) setjmp(tstpbuf);
-#endif
 		nlines = 2;
 		if (seenfrom) {
 			printf("Message %d:\nFrom %s %s", msg, from, date);
@@ -465,10 +457,8 @@ again:
 			ask(lct? MORE : (msg==lastmsg? NOMORE : NEXT));
 		else
 			inbuf[0] = 'y';
-#ifdef	MENLO_JCL
 		if (totty)
 			signal(SIGTSTP, SIG_DFL);
-#endif
 cmnd:
 		in = inbuf;
 		switch (*in) {
@@ -610,7 +600,6 @@ onintr()
 	}
 }
 
-#ifdef	MENLO_JCL
 /*
  * We have just gotten a susp.  Suspend and prepare to resume.
  */
@@ -621,7 +610,6 @@ onsusp()
 	signal(SIGTSTP, onsusp);
 	longjmp(tstpbuf);
 }
-#endif
 
 linecnt(f)
 FILE *f;

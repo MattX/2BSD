@@ -1,0 +1,2 @@
+	cc -O -c main.c
+	cc cmds.o cmdtab.o ftp.o getpass.o glob.o main.o  -o ftp

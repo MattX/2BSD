@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)sys4.c	2.1 (Berkeley)	9/4/83
+ *	SCCS id	@(#)sys4.c	2.1 (Berkeley)	8/5/83
  */
 
 #include "param.h"
@@ -49,7 +49,7 @@ ftime()
 		t.time++;
 	}
 	t.millitm = (1000*ms)/hz;
-	t.timezone = timezone;
+	t.b_timezone = timezone;
 	t.dstflag = dstflag;
 	if (copyout((caddr_t)&t, (caddr_t)(((struct a *) u.u_ap)->tp), sizeof(t)) < 0)
 		u.u_error = EFAULT;
@@ -147,11 +147,7 @@ unlink()
 {
 	register struct inode *ip, *pp;
 
-#ifndef	UCB_SYMLINKS
-	pp = namei(uchar, DELETE);
-#else
 	pp = namei(uchar, DELETE, 0);
-#endif
 	if (pp == NULL)
 		return;
 	/*
@@ -229,11 +225,7 @@ register struct inode **ipp;
 {
 	register struct inode *ip;
 
-#ifndef	UCB_SYMLINKS
-	ip = namei(uchar, LOOKUP);
-#else
 	ip = namei(uchar, LOOKUP, 1);
-#endif
 	if (ip == NULL)
 		return;
 	if ((ip->i_mode&IFMT) != IFDIR) {
@@ -262,16 +254,15 @@ chmod()
 		int	fmode;
 	} *uap;
 
-#ifndef	UCB_SYMLINKS
-	if ((ip = owner()) == NULL)
-#else
 	if ((ip = owner(1)) == NULL)
-#endif
 		return;
 	ip->i_mode &= ~07777;
 	uap = (struct a *)u.u_ap;
-	if (u.u_uid)
+	if (u.u_uid) {
 		uap->fmode &= ~ISVTX;
+		if (!groupmember(ip->i_gid))
+			uap->fmode &= ~ISGID;
+	}
 	ip->i_mode |= uap->fmode & 07777;
 	ip->i_flag |= ICHG;
 	if (ip->i_flag & ITEXT && (ip->i_mode & ISVTX)==0)
@@ -288,11 +279,7 @@ chown()
 		int	gid;
 	} *uap;
 
-#ifndef	UCB_SYMLINKS
-	if (!suser() || (ip = namei(uchar, LOOKUP)) == NULL)
-#else
 	if (!suser() || (ip = namei(uchar, LOOKUP, 0)) == NULL)
-#endif
 		return;
 	uap = (struct a *)u.u_ap;
 	ip->i_uid = uap->uid;
@@ -303,7 +290,6 @@ chown()
 
 ssig()
 {
-#ifdef	MENLO_JCL
 	register int (*f)();
 	register struct a {
 		int	signo;
@@ -363,28 +349,10 @@ ssig()
 	}
 	if (uap->signo & SIGDORTI)
 		u.u_eosys = SIMULATERTI;
-#else
-	register a;
-	struct a {
-		int	signo;
-		int	fun;
-	} *uap;
-
-	uap = (struct a *)u.u_ap;
-	a = uap->signo;
-	if (a<=0 || a>=NSIG || a==SIGKILL) {
-		u.u_error = EINVAL;
-		return;
-	}
-	u.u_r.r_val1 = u.u_signal[a];
-	u.u_signal[a] = uap->fun;
-	u.u_procp->p_sig &= ~(1<<(a-1));
-#endif
 }
 
 kill()
 {
-#ifdef	MENLO_JCL
 	register struct proc *p;
 	register a, sig;
 	register struct a {
@@ -450,39 +418,6 @@ found:
 		f++;
 		psignal(p, uap->signo);
 	}
-#else
-	register struct proc *p, *q;
-	register a;
-	register struct a {
-		int	pid;
-		int	signo;
-	} *uap;
-	int f, priv;
-
-	f = 0;
-	uap = (struct a *)u.u_ap;
-	a = uap->pid;
-	priv = 0;
-	if (a==-1 && u.u_uid==0) {
-		priv++;
-		a = 0;
-	}
-	q = u.u_procp;
-	for(p = &proc[0]; p <= maxproc; p++) {
-		if (p->p_stat == NULL)
-			continue;
-		if (a != 0 && p->p_pid != a)
-			continue;
-		if (a==0 && ((p->p_pgrp!=q->p_pgrp&&priv==0) || p<=&proc[1]))
-			continue;
-		if (priv && p==u.u_procp)
-			continue;
-		if (u.u_uid != 0 && u.u_uid != p->p_uid)
-			continue;
-		f++;
-		psignal(p, uap->signo);
-	}
-#endif
 	if (f == 0)
 		u.u_error = ESRCH;
 }
@@ -548,12 +483,15 @@ pause()
  */
 umask()
 {
-	struct a {
+	register struct a {
 		int	mask;
-	};
+	} *uap;
+	register t;
 
-	u.u_r.r_val1 = u.u_cmask;
-	u.u_cmask = ((struct a *)u.u_ap)->mask & 0777;
+	uap = (struct a *)u.u_ap;
+	t = u.u_cmask;
+	u.u_cmask = uap->mask & 0777;
+	u.u_r.r_val1 = t;
 }
 
 /*
@@ -569,11 +507,7 @@ utime()
 	register struct inode *ip;
 	time_t tv[2];
 
-#ifndef	UCB_SYMLINKS
-	if ((ip = owner()) == NULL)
-#else
 	if ((ip = owner(1)) == NULL)
-#endif
 		return;
 	if (copyin((caddr_t)((struct a *) u.u_ap)->tptr, (caddr_t)tv, sizeof(tv))) {
 		u.u_error = EFAULT;
@@ -618,7 +552,6 @@ rtp()
 }
 #endif
 
-#ifdef	MENLO_JCL
 /*
  * Setpgrp on specified process and its descendants.
  * Pid of zero implies current process.
@@ -705,8 +638,6 @@ register struct proc *p;
 	return (1);
 }
 
-#endif
-
 #ifdef	UCB_AUTOBOOT
 reboot()
 {
@@ -728,3 +659,85 @@ reboot()
 	}
 }
 #endif
+
+/*
+ * setgroups/getgroups differ from 4.3 because the VAX stores group entries
+ * in the user structure as shorts and has to convert them to the ints
+ * expected by the library routines.  We don't have to do this, so we just
+ * copy in/out the user structure.
+ */
+getgroups()
+{
+	register struct	a {
+		u_int	gidsetsize;
+		int	*gidset;
+	} *uap = (struct a *)u.u_ap;
+	register gid_t *gp;
+
+	for (gp = &u.u_groups[NGROUPS]; gp > u.u_groups; gp--)
+		if (gp[-1] != NOGROUP)
+			break;
+	if (uap->gidsetsize < gp - u.u_groups) {
+		u.u_error = EINVAL;
+		return;
+	}
+	uap->gidsetsize = gp - u.u_groups;
+	if (uap->gidsetsize &&
+		copyout((caddr_t)u.u_groups, (caddr_t)uap->gidset,
+			uap->gidsetsize * sizeof(u.u_groups[0]))) {
+			u.u_error = EFAULT;
+			return;
+	}
+	u.u_r.r_val1 = uap->gidsetsize;
+}
+
+/*
+ * uap->gidsetsize is checked; on the pdp11 a copyin of 0 copies 64K
+ */
+setgroups()
+{
+	register struct	a {
+		u_int	gidsetsize;
+		int	*gidset;
+	} *uap = (struct a *)u.u_ap;
+	register gid_t *gp;
+
+	if (!suser())
+		return;
+	if (uap->gidsetsize > sizeof (u.u_groups) / sizeof (u.u_groups[0])) {
+		u.u_error = EINVAL;
+		return;
+	}
+	if (uap->gidsetsize && copyin((caddr_t)uap->gidset, (caddr_t)u.u_groups,
+		uap->gidsetsize * sizeof (u.u_groups[0]))) {
+		u.u_error = EFAULT;
+		return;
+	}
+	for (gp = &u.u_groups[uap->gidsetsize]; gp < &u.u_groups[NGROUPS]; gp++)		
+		*gp = NOGROUP;
+}
+
+/*
+ * Check if gid is a member of the group set.
+ */
+groupmember(gid)
+	gid_t gid;
+{
+	register gid_t *gp;
+
+	if (u.u_gid == gid)
+		return (1);
+	for (gp = u.u_groups; gp < &u.u_groups[NGROUPS] && *gp != NOGROUP; gp++)
+		if (*gp == gid)
+			return (1);
+	return (0);
+}
+
+/*
+ * System calls on descriptors.
+ */
+getdtablesize()
+{
+
+	u.u_r.r_val1 = NOFILE;
+}

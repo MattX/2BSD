@@ -1,0 +1,395 @@
+head     1.8;
+access   ;
+symbols  ;
+locks    ;
+comment  @ * @;
+
+
+1.8
+date     83.11.28.09.51.06;  author tony;  state Exp;
+branches ;
+next     1.7;
+
+1.7
+date     83.11.01.20.51.02;  author tony;  state Exp;
+branches ;
+next     1.6;
+
+1.6
+date     83.10.24.14.37.46;  author tony;  state Exp;
+branches ;
+next     1.5;
+
+1.5
+date     83.10.11.12.54.47;  author tony;  state Exp;
+branches ;
+next     1.4;
+
+1.4
+date     83.10.06.16.54.38;  author tony;  state Exp;
+branches ;
+next     1.3;
+
+1.3
+date     83.10.06.16.52.29;  author tony;  state Exp;
+branches ;
+next     1.2;
+
+1.2
+date     83.10.06.10.52.54;  author tony;  state Exp;
+branches ;
+next     1.1;
+
+1.1
+date     83.09.26.15.39.02;  author tony;  state Exp;
+branches ;
+next     ;
+
+
+desc
+@@
+
+
+1.8
+log
+@Added LOADLIBES to the .c single suffix rule.
+@
+text
+@static	char	*rcsid =
+	"$Header: /usr/src/bin/make/RCS/rules.c,v 1.7 83/11/01 20:51:02 tony Exp $";
+
+/*
+ * $Log:	rules.c,v $
+ * Revision 1.7  83/11/01  20:51:02  tony
+ * Added crl`s latest changes (11/1/83)
+ * 
+ * Revision 1.6  83/10/24  14:37:46  tony
+ * Added default rules for ".CO" and ".CLEANUP"
+ * 
+ * Revision 1.5  83/10/11  12:54:47  tony
+ * Added default values for RM and RMFLAGS which are used when
+ * removing files that were checked out previously.
+ * 
+ * Revision 1.4  83/10/06  16:54:38  tony
+ * fixed minor bug in the format of a rule.
+ * 
+ * Revision 1.3  83/10/06  16:52:29  tony
+ * Added rules from the 4.2 make for fortran, pascal, etc.
+ * 
+ * Revision 1.2  83/10/06  10:52:54  tony
+ * Added code from physics for RCS.
+ * 
+ */
+
+/*	@@(#)rules.c	3.1	*/
+#include "defs.h"
+/* DEFAULT RULES FOR UNIX */
+
+/*
+ *	These are the internal rules that "make" trucks around with it at
+ *	all times. One could completely delete this entire list and just
+ *	conventionally define a global "include" makefile which had these
+ *	rules in it. That would make the rules dynamically changeable
+ *	without recompiling make. This file may be modified to local
+ *	needs. There are currently two versions of this file with the
+ *	source; namely, rules.c (which is the version running in Columbus)
+ *	and pwbrules.c which is my attempt at satisfying the requirements
+ *	of PWB systems.
+ *	The makefile for make (make.mk) is parameterized for a different
+ *	rules file. The macro $(RULES) defined in "make.mk" can be set
+ *	to another file and when "make" is "made" the procedure will
+ *	use the new file. The recommended way to do this is on the
+ *	command line as follows:
+ *		"make -f make.mk RULES=pwbrules"
+ */
+
+CHARSTAR builtin[] =
+	{
+	".SUFFIXES: .out .o .c .c~ .F .f .e .r .y .y~ .yr .ye .l .l~ .s .s~ .cl .p .sh .sh~ .h .h~",
+
+/* PRESET VARIABLES */
+	"MAKE=make",
+	"YACC=yacc",
+	"YACCR=yacc -r",
+	"YACCE=yacc -e",
+	"YFLAGS=",
+	"LEX=lex",
+	"LFLAGS=",
+	"LD=ld",
+	"LDFLAGS=",
+	"CC=cc",
+	"CFLAGS=-O",
+	"AS=as",
+	"ASFLAGS=",
+	"PC=pc",
+	"PFLAGS=",
+	"RC=f77",
+	"RFLAGS=",
+	"FC=f77",
+	"EFLAGS=",
+	"FFLAGS=",
+	"LOADLIBES=",
+	"GET=get",
+	"GFLAGS=",
+
+	"CO=co",
+	"COFLAGS=-q",
+	"RM=rm",
+	"RMFLAGS=-f",
+
+	".CO :",			/* rule to check out a file */
+		"\t$(CO) $(COFLAGS) $@@",
+	".CLEANUP :",			/* rule to remove co`ed files */
+		"\t$(RM) $(RMFLAGS) $?",
+
+/* SINGLE SUFFIX RULES */
+
+	".c:",
+		"\t$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@@ $(LOADLIBES)",
+	".c~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -n -O $*.c -o $* $(LOADLIBES)",
+		"\t-rm -f $*.c",
+	".sh:",
+		"\tcp $< $@@",
+	".sh~:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.sh",
+		"\tcp $*.sh $*",
+		"\t-rm -f $*.sh",
+
+	".s .o:",
+		"\t$(CC) $(CFLAGS) $< $(LOADLIBES) -o $@@",
+	".f .F .r .e:",
+		"\t$(FC) $(EFLAGS) $(RFLAGS) $(FFLAGS) $< $(LOADLIBES) -o $@@",
+	".y:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) y.tab.c $(LOADLIBES) -ly -o $@@",
+		"\trm y.tab.c",
+	".l:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) lex.yy.c $(LOADLIBES) -ll -o $@@",
+		"\trm lex.yy.c",
+
+/* DOUBLE SUFFIX RULES */
+	".c.o:",
+		"\t$(CC) $(CFLAGS) -c $<",
+	".c~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) $(CFLAGS) -c $*.c",
+		"\t-rm -f $*.c",
+	".c~.c:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+	".p.o:",
+		"\t$(PC) $(PFLAGS) -c $<",
+	".cl.o:",
+		"\tclass -c $<",
+	".e.o .r.o .F.o .f.o :",
+		"\t$(FC) $(RFLAGS) $(EFLAGS) $(FFLAGS) -c $<",
+	".s.o:",
+		"\t$(AS) $(ASFLAGS) -o $@@ $<",
+	".s~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\t-rm -f $*.s",
+	".y.o:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm y.tab.c",
+		"\tmv y.tab.o $@@",
+	".yr.o:",
+		"\t$(YACCR) $(YFLAGS) $<",
+		"\t$(RC) $(RFLAGS) -c y.tab.r",
+		"\trm y.tab.r",
+		"\tmv y.tab.o $@@",
+	".ye.o:",
+		"\t$(YACCE) $(YFLAGS) $<",
+		"\t$(RC) $(RFLAGS) -c y.tab.e",
+		"\trm y.tab.e",
+		"\tmv y.tab.o $@@",
+	".y~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\t$(CC) $(CFLAGS) -c y.tab.c",
+		"\trm -f y.tab.c $*.y",
+		"\tmv y.tab.o $*.o",
+	".l.o:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm lex.yy.c",
+		"\tmv lex.yy.o $@@",
+	".l~.o:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.l",
+		"\t$(LEX) $(LFLAGS) $*.l",
+		"\t$(CC) $(CFLAGS) -c lex.yy.c",
+		"\trm -f lex.yy.c $*.l",
+		"\tmv lex.yy.o $*.o",
+	".y.c :",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\tmv y.tab.c $@@",
+	".y~.c :",
+		"\t$(GET) $(GFLAGS) -p $< > $*.y",
+		"\t$(YACC) $(YFLAGS) $*.y",
+		"\tmv y.tab.c $*.c",
+		"\t-rm -f $*.y",
+	".l.c :",
+		"\t$(LEX) $<",
+		"\tmv lex.yy.c $@@",
+	".yr.r:",
+		"\t$(YACCR) $(YFLAGS) $<",
+		"\tmv y.tab.r $@@",
+	".ye.e:",
+		"\t$(YACCE) $(YFLAGS) $<",
+		"\tmv y.tab.e $@@",
+	".c.a:",
+		"\t$(CC) -c $(CFLAGS) $<",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.o",
+	".c~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.c",
+		"\t$(CC) -c $(CFLAGS) $*.c",
+		"\tar rv $@@ $*.o",
+		"\trm -f $*.[co]",
+	".s~.a:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.s",
+		"\t$(AS) $(ASFLAGS) -o $*.o $*.s",
+		"\tar rv $@@ $*.o",
+		"\t-rm -f $*.[so]",
+
+	/* Berkeley`s answer to single suffix rules.... */
+
+	".s.out .c.out .o.out:",
+		"\t$(CC) $(CFLAGS) $< $(LOADLIBES) -o $@@",
+	".f.out .F.out .r.out .e.out:",
+		"\t$(FC) $(EFLAGS) $(RFLAGS) $(FFLAGS) $< $(LOADLIBES) -o $@@",
+	".y.out:",
+		"\t$(YACC) $(YFLAGS) $<",
+		"\t$(CC) $(CFLAGS) y.tab.c $(LOADLIBES) -ly -o $@@",
+		"\trm y.tab.c",
+	".l.out:",
+		"\t$(LEX) $(LFLAGS) $<",
+		"\t$(CC) $(CFLAGS) lex.yy.c $(LOADLIBES) -ll -o $@@",
+		"\trm lex.yy.c",
+
+	".h~.h:",
+		"\t$(GET) $(GFLAGS) -p $< > $*.h",
+	"markfile.o:	markfile",
+		"\tA=@@;echo \"static char _sccsid[] = \\042`grep $$A'(#)' markfile`\\042;\" > markfile.c",
+		"\tcc -c markfile.c",
+		"\trm -f markfile.c",
+	0 };
+
+@
+
+
+1.7
+log
+@Added crl`s latest changes (11/1/83)
+@
+text
+@d2 1
+a2 1
+	"$Header: /r/tony/make/new/RCS/rules.c,v 1.6 83/10/24 14:37:46 tony Exp $";
+d6 3
+d91 1
+a91 1
+		"\t$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@@",
+d94 1
+a94 1
+		"\t$(CC) -n -O $*.c -o $*",
+@
+
+
+1.6
+log
+@Added default rules for ".CO" and ".CLEANUP"
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.5 83/10/11 12:54:47 tony Exp $";
+d6 3
+d81 1
+a81 1
+		"\t$(CO) $(COFLAGS) $<",
+@
+
+
+1.5
+log
+@Added default values for RM and RMFLAGS which are used when
+removing files that were checked out previously.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.4 83/10/06 16:54:38 tony Exp $";
+d6 4
+d71 1
+d77 5
+d83 1
+@
+
+
+1.4
+log
+@fixed minor bug in the format of a rule.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.3 83/10/06 16:52:29 tony Exp $";
+d6 3
+d69 2
+@
+
+
+1.3
+log
+@Added rules from the 4.2 make for fortran, pascal, etc.
+@
+text
+@d2 1
+a2 1
+	"$Header: /o/tony/make/new/RCS/rules.c,v 1.2 83/10/06 10:52:54 tony Exp $";
+d6 3
+d81 1
+a81 1
+	".s .o",
+@
+
+
+1.2
+log
+@Added code from physics for RCS.
+@
+text
+@d2 1
+a2 1
+	"$Header$";
+d5 4
+a8 1
+ * $Log$
+d35 1
+a35 1
+	".SUFFIXES: .o .c .c~ .y .y~ .l .l~ .s .s~ .sh .sh~ .h .h~",
+d40 2
+d51 8
+d78 13
+d100 6
+d117 10
+d155 6
+d175 16
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 7
+d9 1
+a9 1
+#include "defs"
+d48 2
+@
