@@ -1,5 +1,8 @@
 /*
  *		C compiler, part 2
+ * 
+ * (long)btodb(l) produced 'no code table error for op: >>(17) type: 6'
+ * allow both long and ulong at line ~341.  1996/6/19
 */
 
 #if	!defined(lint) && defined(DOSCCS)
@@ -336,7 +339,7 @@ again:
 	 */
 	case ASULSH:	/* 18 */
 	case ULSH:	/* 17 */
-		if (tree->t.type != UNLONG)
+		if (tree->t.type != LONG && tree->t.type != UNLONG)
 			break;
 		if (tree->t.tr2->t.op==ITOL)
 			tree->t.tr2 = tree->t.tr2->t.tr1;
