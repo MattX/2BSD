@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.12.2 (2.11BSD GTE) 1996/10/24
+#	@(#)Makefile	5.12.3 (2.11BSD GTE) 1996/12/13
 #
 DESTDIR=
 CFLAGS=	-O
@@ -12,7 +12,7 @@ TAGSFILE=tags
 
 # Subdirectories whose routines are included in the making of the
 # master tags file (/usr/lib/tags); the Fortran libraries should
-# be on this list, but we don't control them....
+# be on this list.
 #
 TAGSDIR=libcurses libdbm libln libm libmp libpc libtermlib libutil libvmf \
 	liberrlst
@@ -24,7 +24,7 @@ TAGSDIR=libcurses libdbm libln libm libmp libpc libtermlib libutil libvmf \
 #
 SUBDIR=	lib2648 libF77 libI77 libU77 libcurses libdbm libln \
 	libom libmp libplot libtermlib liby libutil libvmf \
-	liberrlst libstubs
+	liberrlst libident libstubs
 
 # Shell scripts that need only be installed and are never removed.
 #
