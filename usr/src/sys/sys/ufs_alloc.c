@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_alloc.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_alloc.c	1.2 (2.11BSD GTE) 1/11/94
  */
 
 #include "param.h"
@@ -103,7 +103,7 @@ nospace:
 	 * SHOULD RATHER SEND A SIGNAL AND SUSPEND THE PROCESS IN A
 	 * STATE FROM WHICH THE SYSTEM CALL WILL RESTART
 	 */
-	uprintf("\n%s: write failed, file system is full\n", fs->fs_fsmnt);
+	uprintf("\n%s: write failed, file system full\n", fs->fs_fsmnt);
 	{
 		register int i;
 
@@ -136,6 +136,7 @@ ialloc(pip)
 	ino_t inobas;
 	int first;
 	struct inode *ifind();
+	char	*emsg = "no inodes free";
 
 	fs = pip->i_fs;
 	while (fs->fs_ilock)
@@ -157,6 +158,7 @@ loop:
 			return(NULL);
 		if (ip->i_mode == 0) {
 			bzero((caddr_t)ip->i_addr,sizeof(ip->i_addr));
+			ip->i_flags = 0;
 			fs->fs_fmod = 1;
 			fs->fs_tinode--;
 			return(ip);
@@ -217,8 +219,8 @@ fromtop:
 	wakeup((caddr_t)&fs->fs_ilock);
 	if (fs->fs_ninode > 0)
 		goto loop;
-	fserr(fs, "out of inodes");
-	uprintf("\n%s: create/symlink failed, no inodes free\n", fs->fs_fsmnt);
+	fserr(fs, emsg);
+	uprintf("\n%s: create/symlink failed, %s\n", fs->fs_fsmnt, emsg);
 	u.u_error = ENOSPC;
 	return(NULL);
 }

@@ -1,6 +1,7 @@
 /*
  * netbind
  *
+ * 1/6/95 -- remove 8 character limit on undefined symbol printf. sms.
  * 1/8/94 -- revised for new object file format. sms.
  *
  * Resolve undefined inter-address-space references.
@@ -282,7 +283,7 @@ symundef()
 	qsort(symtab, symfree - symtab, sizeof(struct symbol), scmp);
 	for (sp = symtab; sp < symfree; sp++)
 		if ((sp->s_type & N_TYPE) == N_UNDF)
-			printf("%.8s\n", sp->s_name);
+			printf("%s\n", sp->s_name);
 }
 
 scmp(s1, s2)

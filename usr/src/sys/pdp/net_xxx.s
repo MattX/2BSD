@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)net_xxx.s	1.2 (2.11BSD GTE) 10/15/92
+ *	@(#)net_xxx.s	1.3 (2.11BSD GTE) 1/12/95
  */
 
 #include "DEFS.h"
@@ -46,8 +46,8 @@ ENTRY(delay)
  *
  * See if accessing addr with a len type instruction causes a memory fault.
  * Len is length os access (1=byte, 2=short, 4=long).  Returns 0 if the
- * address is OK, -1 on error.  if the address is odd, and make sure that
- * the address is valid.
+ * address is OK, -1 on error.  If either the address or length is odd use
+ * a byte test rather than a word test.
  */
 ENTRY(badaddr)
 	mov	PS,-(sp)		/ save current PS and set previous
@@ -55,8 +55,10 @@ ENTRY(badaddr)
 	mfpd	*$nofault		/ save current nofault and set up
 	mov	$4f,-(sp)		/   our own trap
 	mtpd	*$nofault
-	cmp	10(sp),$1		/ len == 1??
-	beq	1f
+	mov	10(sp),r0		/ if the low bit of either the length
+	bis	6(sp),r0		/   or address is
+	asr	r0			/   on then use a tstb
+	bcc	1f			/ br if word test to be used
 	tstb	*6(sp)			/ yes, just do a tstb on the address
 	br	2f
 1:

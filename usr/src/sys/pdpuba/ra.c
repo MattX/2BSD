@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.4 (2.11BSD GTE) 1/2/93
+ *	@(#)ra.c	2.5 (2.11BSD GTE) 1/11/95
  */
 
  /***********************************************************************
@@ -14,6 +14,9 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	Jan 11, 1995
+ * Remove extra parameter to ra_error() call in radump().
+ *
  * Date:	Dec 1992, Jan 1993
  * Add the partition size routine.  Remove unibus map ifdefs, the run time
  * check for 'ubmap' is sufficient and does the right thing.
@@ -1343,7 +1346,7 @@ racmd(op, unit, sc)
 	sc->sc_com->ra_ca.ca_cmdint = 0;
 	if (rmp->m_opcode != (op | M_O_END)
 	    || (rmp->m_status & M_S_MASK) != M_S_SUCC) {
-		ra_error(unit, rmp);
+		ra_error(rmp);
 		return(0);
 	}
 	return(rmp);
