@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.1 (Berkeley) 5/29/85";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD) 1997/7/29";
+#endif
 
 #include "externs.h"
 
@@ -23,9 +21,9 @@ main(argc, argv)
 {
 	register char *p;
 	int i;
-	extern char _sobuf[];
+	char stdobuf[BUFSIZ];
 
-	setbuf(stdout, _sobuf);
+	setbuf(stdout, stdobuf);
 	(void) srand(getpid());
 	issetuid = getuid() != geteuid();
 	if (p = rindex(*argv, '/'))

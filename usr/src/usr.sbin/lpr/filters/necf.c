@@ -4,24 +4,23 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)necf.c	5.1 (Berkeley) 5/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)necf.c	5.1.1 (2.11BSD) 1997/7/29";
+#endif
 
 #include <stdio.h>
 #include <sgtty.h>
+#include <string.h>
 
 #define PAGESIZE	66
 
 main()
 {
-	extern char _sobuf[BUFSIZ];
-	extern char *rindex();
-	char line[256];
+	char line[256], stdobuf[BUFSIZ];
 	register char c, *cp;
 	register lnumber;
 
-	setbuf(stdout, _sobuf);
+	setbuf(stdout, stdobuf);
 #ifdef SHEETFEEDER
 	printf("\033=\033\033\033O\f");
 #else

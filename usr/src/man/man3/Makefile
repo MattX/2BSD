@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.11 (2.11BSD) 1997/6/27
+#	@(#)Makefile	5.4.12 (2.11BSD) 1997/7/29
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -86,7 +86,7 @@ REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
 	sprintf.0 vfprintf.0 vprintf.0 vsprintf.0 alphasort.0 bcmp.0 bcopy.0 \
 	bzero.0 clearerr.0 feof.0 fflush.0 ffs.0 fileno.0 fprintf.0 gamma.0  \
 	getdiskbyname.0 isatty.0 moncontrol.0 monstartup.0 setbuffer.0 \
-	setlinebuf.0 sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
+	setlinebuf.0 setvbuf.o sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
 	endpwent.0 getfsfile.0 getfsspec.0 getfstype.0 getgrgid.0 
 
 REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
@@ -317,6 +317,7 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/monitor.0 ${DESTDIR}${MDIR}/monstartup.0
 	ln ${DESTDIR}${MDIR}/setbuf.0 ${DESTDIR}${MDIR}/setbuffer.0
 	ln ${DESTDIR}${MDIR}/setbuf.0 ${DESTDIR}${MDIR}/setlinebuf.0
+	ln ${DESTDIR}${MDIR}/setbuf.0 ${DESTDIR}${MDIR}/setvbuf.0
 	ln ${DESTDIR}${MDIR}/psignal.0 ${DESTDIR}${MDIR}/sys_siglist.0
 	ln ${DESTDIR}${MDIR}/ttyname.0 ${DESTDIR}${MDIR}/ttyslot.0
 	ln ${DESTDIR}${MDIR}/getfsent.0 ${DESTDIR}${MDIR}/endfsent.0

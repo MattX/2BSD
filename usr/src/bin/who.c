@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)who.c	5.1.2 (2.11BSD GTE) 1996/11/16";
+static char sccsid[] = "@(#)who.c	5.1.3 (2.11BSD GTE) 1997/7/29";
 #endif
 
 #include <stdio.h>
@@ -17,6 +17,9 @@ static char sccsid[] = "@(#)who.c	5.1.2 (2.11BSD GTE) 1996/11/16";
 #include <pwd.h>
 #include <ctype.h>
 #include <sys/param.h>	/* for MAXHOSTNAMELEN */
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #define NMAX sizeof(utmp.ut_name)
 #define LMAX sizeof(utmp.ut_line)
@@ -24,10 +27,7 @@ static char sccsid[] = "@(#)who.c	5.1.2 (2.11BSD GTE) 1996/11/16";
 
 struct	utmp utmp;
 struct	passwd *pw;
-struct	passwd *getpwuid();
 char	hostname[MAXHOSTNAMELEN];
-
-char	*ttyname(), *rindex(), *ctime(), *strcpy();
 
 main(argc, argv)
 	int argc;
@@ -35,9 +35,7 @@ main(argc, argv)
 {
 	register char *tp, *s;
 	register FILE *fi;
-	extern char _sobuf[];
 
-	setbuf(stdout, _sobuf);
 	s = _PATH_UTMP;
 	if(argc == 2)
 		s = argv[1];

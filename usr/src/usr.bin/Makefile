@@ -1,4 +1,4 @@
-#	Makefile	1.8 (2.11BSD GTE) 1997/6/27
+#	Makefile	1.9 (2.11BSD GTE) 1997/7/26
 #
 DESTDIR=
 CFLAGS=	-O
@@ -6,7 +6,7 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	at calendar dc diction diff3 eqn fstat f77 find graph id learn 
+SUBDIR=	at calendar dc diction diff3 eqn fstat f77 find graph id learn \
 	lex lint \
 	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
 	mkerrlst patch \

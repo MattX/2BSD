@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rlreg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rlreg.h	1.2 (2.11BSD) 1997/7/20
  */
 
 struct	rldevice
@@ -56,7 +56,7 @@ struct	rldevice
 /* bits in rlmp */
 #define	RLMP_WDE	0100000		/* write data error */
 #define	RLMP_HCE	0040000		/* head current error */
-#define	RLMP_WLE	0020000		/* write lock */
+#define	RLMP_WL		0020000		/* write lock */
 #define	RLMP_STIMO	0010000		/* seek timeout */
 #define	RLMP_SPE	0004000		/* spin error */
 #define	RLMP_WGE	0002000		/* write gate error */

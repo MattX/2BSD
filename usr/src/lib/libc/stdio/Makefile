@@ -3,32 +3,29 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 9/5/85
+#	@(#)Makefile	5.4.1 (2.11BSD) 1997/7/29
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # PDP. If you are not running on a VAX or PDP, you should use the original
 # C sources which are included in this directory. Regretably we do not have
 # a C version of doprnt().
 #
-#if !defined(vax) && !defined(pdp11)
 #SRCS=	${STDSRC} ${VAXSRC}
 #OBJS=	${STDOBJ} ${VAXOBJ}
-#else
 SRCS=	${STDSRC} puts.c fputs.c
 OBJS=	${STDOBJ} puts.o fputs.o
-#endif not vax && not pdp11
 
 CFLAGS=	-O ${DEFS}
 
 STDSRC=	clrerr.c doscan.c exit.c fdopen.c filbuf.c findiop.c flsbuf.c fopen.c \
 	fprintf.c fread.c freopen.c fseek.c ftell.c fwrite.c getchar.c getw.c \
-	printf.c putchar.c putw.c rew.c scanf.c setbuf.c setbuffer.c sibuf.c \
-	sobuf.c sprintf.c strout.c ungetc.c vfprintf.c vprintf.c vsprintf.c
+	printf.c putchar.c putw.c rew.c scanf.c setbuf.c setbuffer.c setvbuf.c \
+	sprintf.c strout.c ungetc.c vfprintf.c vprintf.c vsprintf.c
 VAXSRC=	fgetc.c fgets.c fputc.c fputs.c gets.c puts.c
 STDOBJ=	clrerr.o doscan.o exit.o fdopen.o filbuf.o findiop.o flsbuf.o fopen.o \
 	fprintf.o fread.o freopen.o fseek.o ftell.o fwrite.o getchar.o getw.o \
-	printf.o putchar.o putw.o rew.o scanf.o setbuf.o setbuffer.o sibuf.o \
-	sobuf.o sprintf.o strout.o ungetc.o vfprintf.o vprintf.o vsprintf.o
+	printf.o putchar.o putw.o rew.o scanf.o setbuf.o setbuffer.o setvbuf.o \
+	sprintf.o strout.o ungetc.o vfprintf.o vprintf.o vsprintf.o
 VAXOBJ=	fgetc.o fgets.o fputc.o fputs.o gets.o puts.o
 TAGSFILE=tags
 
@@ -102,8 +99,6 @@ rew.o: rew.c /usr/include/stdio.h
 scanf.o: scanf.c /usr/include/stdio.h
 setbuf.o: setbuf.c /usr/include/stdio.h
 setbuffer.o: setbuffer.c /usr/include/stdio.h
-sibuf.o: sibuf.c /usr/include/stdio.h
-sobuf.o: sobuf.c /usr/include/stdio.h
 sprintf.o: sprintf.c /usr/include/stdio.h
 strout.o: strout.c /usr/include/stdio.h
 ungetc.o: ungetc.c /usr/include/stdio.h

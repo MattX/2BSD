@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)snake.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+static char sccsid[] = "@(#)snake.c	5.1.1 (2.11BSD) 1997/7/29";
+#endif
 
 /*
  * snake - crt hack game.
@@ -94,7 +92,7 @@ char **argv;
 	int j;
 	long time();
 	int stop();
-	extern char _sobuf[];
+	char stdbuf[BUFSIZ];
 
 	argcount = argc;
 	argval = argv;
@@ -124,7 +122,7 @@ char **argv;
 	}
 
 	srand((int)tv);
-	setbuf(stdout,_sobuf);
+	setbuf(stdout, stdbuf);
 	i = ((lcnt < ccnt) ? lcnt : ccnt);	/* min screen edge */
 	if (i < 4) {
 		printf("Screen too small for a fair game\n");

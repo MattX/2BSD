@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stdio.h	5.3.1 (2.11BSD) 1996/1/15
+ *	@(#)stdio.h	5.3.2 (2.11BSD) 1997/7/29
  */
 
 # ifndef FILE
@@ -26,6 +26,15 @@ extern	struct	_iobuf {
 #define	_IOSTRG	0100
 #define	_IOLBF	0200
 #define	_IORW	0400
+
+/*
+ * The following definition is for ANSI C, which took them
+ * from System V, which brilliantly took internal interface macros and
+ * made them official arguments to setvbuf(), without renaming them.
+ * Hence, these ugly _IOxxx names are *supposed* to appear in user code.
+*/
+#define	_IOFBF	0	/* setvbuf should set fully buffered */
+			/* _IONBF and _IOLBF are used from the flags above */
 
 #ifndef	NULL
 #define	NULL	0

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char sccsid[] = "@(#)file.c	4.12.2 (2.11BSD) 1996/3/22";
+static	char sccsid[] = "@(#)file.c	4.12.3 (2.11BSD) 1997/7/29";
 #endif
 /*
  * file - determine type of file
@@ -38,10 +38,9 @@ int	ifile;
 main(argc, argv)
 char **argv;
 {
-	FILE *fl;
+	register FILE *fl;
 	register char *p;
 	char ap[MAXPATHLEN + 1];
-	extern char _sobuf[];
 
 	if (argc < 2) {
 		fprintf(stderr, "usage: %s file ...\n", argv[0]);
@@ -79,7 +78,8 @@ char **argv;
 type(file)
 char *file;
 {
-	int j,nl;
+	register int j;
+	int nl;
 	char ch;
 	struct stat mbuf;
 	char slink[MAXPATHLEN + 1];

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 2/1/86
+#	@(#)Makefile	5.5 (2.11BSD) 1997/7/26
 #
 DESTDIR=
 CFLAGS=	-O
@@ -12,6 +12,7 @@ SEPFLAG= -i
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 SUBDIR=	adventure backgammon battlestar boggle btlgammon cribbage fortune \
+	hack \
 	hangman hunt mille monop pdp phantasia quiz robots sail snake \
 	trek warp words
 

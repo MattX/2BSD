@@ -55,8 +55,8 @@ main(argc, argv)
 	char ebuf[128], obuf[256], ibuf[256];
 
 	setbuffer(stdin, ibuf, sizeof ibuf);
-	setbuffer(stdout, obuf, sizeof obuf);
-	setbuffer(stderr, ebuf, sizeof ebuf);
+	setvbuf(stdout, obuf, _IOLBF, sizeof obuf);
+	setvbuf(stderr, ebuf, _IOLBF, sizeof ebuf);
 
 	pw = getpwuid(userid = getuid());
 	if (pw == NULL) {

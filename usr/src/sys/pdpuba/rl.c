@@ -3,11 +3,16 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.9 (2.11BSD GTE) 1997/1/19
+ *	@(#)rl.c	1.10 (2.11BSD GTE) 1997/7/20
  */
 
 /*
  *  RL01/RL02 disk driver
+ *
+ * Date: July 19, 1996
+ * The driver was taking the WRITE LOCK (RLMP_WL) bit to indicate
+ * an error, when all it really does is indicate that the disk is
+ * write protected.  Set up RLMP_MASK to ignore this bit.  (Tim Shoppa)
  *
  * Date: January 7, 1996
  * Fix broken UCB_METER statistics gathering.
@@ -60,6 +65,8 @@ error to have more than 4 drives - only 1 controller is supported.
 
 #define	rlwait(r)	while (((r)->rlcs & RL_CRDY) == 0)
 #define	RLUNIT(x) 	((minor(x) >> 3) & 7)
+#define RLMP_MASK	( ~( RLMP_WL | RLMP_DTYP | RLMP_HSEL ) )
+#define RLMP_OK		( RLMP_HO | RLMP_BH | RLMP_LCKON )
 
 struct	rldevice *RLADDR;
 
@@ -449,7 +456,7 @@ rlintr()
 	if (rladdr->rlcs & RL_CERR) {
 		if (rladdr->rlcs & RL_HARDERR && rltab.b_errcnt > 2) {
 			harderr(bp, "rl");
-			printf("cs=%b da=%b\n", rladdr->rlcs, RL_BITS,
+			log(LOG_ERR, "cs=%b da=%b\n", rladdr->rlcs, RL_BITS,
 				rladdr->rlda, RLDA_BITS);
 		}
 		if (rladdr->rlcs & RL_DRE) {
@@ -459,7 +466,7 @@ rlintr()
 			status = rladdr->rlmp;
 			if(rltab.b_errcnt > 2) {
 				harderr(bp, "rl");
-				printf("mp=%b da=%b\n", status, RLMP_BITS,
+				log(LOG_ERR, "mp=%b da=%b\n", status, RLMP_BITS,
 					rladdr->rlda, RLDA_BITS);
 			}
 			rladdr->rlda = RLDA_RESET | RLDA_GS;
@@ -705,7 +712,7 @@ rldump(dev)
 		if(rladdr->rlcs & RL_CERR) {
 			if(rladdr->rlcs & RL_NXM)
 				return(0);	/* End of memory */
-			printf("rl%d: dmp err, cs=%b da=%b mp=%b\n",
+			log(LOG_ERR, "rl%d: dmp err, cs=%b da=%b mp=%b\n",
 				dev,rladdr->rlcs,RL_BITS,rladdr->rlda,
 				RLDA_BITS, rladdr->rlmp, RLMP_BITS);
 			return(EIO);
@@ -775,10 +782,10 @@ rlgsts(drive)
 		rp->rlda = RLDA_RESET | RLDA_GS;
 		rp->rlcs = (drive << 8) | RL_GETSTATUS;	/* set up csr */
 		rlwait(rp);
-		} while (((rp->rlmp & 0177477) != 035) && (++ctr < 16));
+		} while (((rp->rlmp & RLMP_MASK) != RLMP_OK) && (++ctr < 16));
 	if	(ctr >= 16)
 		{
-		printf("rl%d: !status cs=%b da=%b\n", drive,
+		log(LOG_ERR, "rl%d: !status cs=%b da=%b\n", drive,
 			rp->rlcs, RL_BITS, rp->rlda, RLDA_BITS);
 		rl_dk[drive].dk_flags &= ~DKF_ALIVE;
 		return(-1);

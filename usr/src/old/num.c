@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)num.c	4.2 (Berkeley) 10/13/82";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)num.c	4.2.1 (2.11BSD) 1997/7/29";
+#endif
+
 #include	<stdio.h>
 #define		formfeed 0xc
 
@@ -9,6 +12,7 @@ static char *sccsid = "@(#)num.c	4.2 (Berkeley) 10/13/82";
  *
  * Original Version by William Joy, June 1977
  * Updated October 1979 by M. Kirk McKusick
+ * Updated to version 4.2 10/13/82
  */
 main(ac, av)
 	int ac;
@@ -21,13 +25,13 @@ main(ac, av)
 	register FILE *STDOUT = stdout;
 	register FILE *STDIN = stdin;
 	char line[512];
-	extern char _sibuf[], _sobuf[];
+	char stdobuf[BUFSIZ], stdibuf[BUFSIZ];
 
 	argv++;
 	argc--;
 	lino = 1;
-	setbuf(STDIN,_sibuf);
-	setbuf(STDOUT,_sobuf);
+	setbuf(STDIN,stdibuf);
+	setbuf(STDOUT,stdobuf);
 	do
 		{
 		if (argc)
