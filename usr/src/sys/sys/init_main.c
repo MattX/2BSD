@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	1.6 (2.11BSD GTE) 12/15/94
+ *	@(#)init_main.c	1.7 (2.11BSD GTE) 1/6/95
  */
 
 #include "param.h"
@@ -30,7 +30,7 @@
 
 int	netoff = 1;
 int	cmask = CMASK;
-int	securelevel = -1;
+int	securelevel;
 
 extern	size_t physmem;
 extern	struct	mapent _coremap[];
@@ -156,7 +156,8 @@ main()
 	nswap = swsize;
 	mfree(swapmap, --nswap, 1);
 
-	fs = mountfs(rootdev, boothowto & RB_RDONLY, (struct inode *)0);
+	fs = mountfs(rootdev, boothowto & RB_RDONLY ? MNT_RDONLY : 0,
+			(struct inode *)0);
 	if (!fs)
 		panic("iinit");
 	mount[0].m_inodp = (struct inode *)1;	/* XXX */

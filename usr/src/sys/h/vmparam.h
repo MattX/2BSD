@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vmparam.h	7.1 (Berkeley) 6/4/86
+ *	@(#)vmparam.h	7.1.1 (2.11BSD GTE) 1/14/95
  */
 
 /*
@@ -13,4 +13,23 @@
 #include "../machine/vmparam.h"
 #else
 #include <machine/vmparam.h>
+#endif
+
+/*
+ * CTL_VM identifiers
+ */
+#define	VM_METER	1		/* struct vmmeter */
+#define	VM_LOADAVG	2		/* struct loadavg */
+#define	VM_SWAPMAP	3		/* struct mapent _swapmap[] */
+#define	VM_COREMAP	4		/* struct mapent _coremap[] */
+#define	VM_MAXID	5		/* number of valid vm ids */
+
+#ifndef	KERNEL
+#define CTL_VM_NAMES { \
+	{ 0, 0 }, \
+	{ "vmmeter", CTLTYPE_STRUCT }, \
+	{ "loadavg", CTLTYPE_STRUCT }, \
+	{ "swapmap", CTLTYPE_STRUCT }, \
+	{ "coremap", CTLTYPE_STRUCT }, \
+}
 #endif

@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)text.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)text.h	1.2 (2.11BSD GTE) 1/19/95
  */
+
+#ifndef	_SYS_TEXT_H_
+#define	_SYS_TEXT_H_
 
 /*
  * Text structure.			XXX REF COUNT should be short
@@ -58,3 +61,4 @@ struct xstats {
 	u_long	free_cache;		/*	placed in cache */
 	u_long	free_cacheswap;		/*	swapped out to place in cache */
 };
+#endif /* _SYS_TEXT_H_ */

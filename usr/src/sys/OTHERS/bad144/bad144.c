@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)bad144.c	5.4.1 (2.11BSD GTE) 12/31/93";
+static char sccsid[] = "@(#)bad144.c	5.4.2 (2.11BSD GTE) 1/21/95";
 #endif not lint
 
 /*
@@ -52,7 +52,6 @@ struct	disktab *dp;
 char	name[BUFSIZ];
 char	*malloc();
 off_t	lseek();
-off_t	tell();
 long	atol();
 
 main(argc, argv)

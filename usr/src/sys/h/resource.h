@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)resource.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)resource.h	1.2 (2.11BSD GTE) 1/14/95
  */
+
+#ifndef	_SYS_RESOURCE_H_
+#define	_SYS_RESOURCE_H_
 
 /*
  * Process priority specifications to get/setpriority.
@@ -79,3 +82,10 @@ struct rlimit {
 	long	rlim_cur;		/* current (soft) limit */
 	long	rlim_max;		/* maximum value for rlim_cur */
 };
+
+/* Load average structure. */
+struct loadavg {
+	short ldavg[3];
+	int fscale;
+};
+#endif	/* !_SYS_RESOURCE_H_ */

@@ -3,12 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)file.h	1.2 (2.11BSD GTE) 11/25/94
+ *	@(#)file.h	1.3 (2.11BSD GTE) 1/19/95
  */
 
 #include <fcntl.h>
 
-#ifdef KERNEL
+#ifndef	_SYS_FILE_H_
+#define	_SYS_FILE_H_
+
 /*
  * Descriptor table entry.
  * One for each kernel object.
@@ -25,6 +27,7 @@ struct	file {
 	off_t	f_offset;
 };
 
+#ifdef KERNEL
 struct	fileops {
 	int	(*fo_rw)();
 	int	(*fo_ioctl)();
@@ -70,3 +73,4 @@ struct	file *falloc();
 #define	DTYPE_SOCKET	2	/* communications endpoint */
 #define	DTYPE_PIPE	3	/* I don't want to hear it, okay? */
 #endif
+#endif	/* _SYS_FILE_H_ */

@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)time.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)time.h	1.2 (2.11BSD GTE) 1/14/95
  */
+
+#ifndef	_SYS_TIME_H_
+#define	_SYS_TIME_H_
 
 /*
  * Structure returned by gettimeofday(2) system call,
@@ -59,3 +62,14 @@ struct	itimerval {
 #ifndef KERNEL
 #include <time.h>
 #endif
+
+/*
+ * Getkerninfo clock information structure
+ */
+struct clockinfo {
+	int	hz;		/* clock frequency */
+	int	tick;		/* micro-seconds per hz tick */
+	int	stathz;		/* statistics clock frequency */
+	int	profhz;		/* profiling clock frequency */
+};
+#endif	/* !_SYS_TIME_H_ */

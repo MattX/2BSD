@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.2 (2.11BSD Berkeley) 11/29/94
+ *	@(#)conf.c	2.3 (2.11BSD Berkeley) 12/29/94
  */
 
 #include "param.h"
@@ -12,6 +12,7 @@
 #include "time.h"
 #include "ioctl.h"
 #include "resource.h"
+#include "inode.h"
 #include "proc.h"
 #include "clist.h"
 #include "tty.h"
@@ -441,3 +442,101 @@ struct cdevsw	cdevsw[] = {
 };
 
 int	nchrdev = sizeof(cdevsw) / sizeof(cdevsw[0]);
+
+/*
+ * Routine that identifies /dev/mem and /dev/kmem.
+ *
+ * A minimal stub routine can always return 0.
+ */
+iskmemdev(dev)
+	register dev_t dev;
+{
+
+	if (major(dev) == 1 && (minor(dev) == 0 || minor(dev) == 1))
+		return (1);
+	return (0);
+}
+
+/*
+ * Routine to determine if a device is a disk.
+ *
+ * A minimal stub routine can always return 0.
+ */
+isdisk(dev, type)
+	dev_t dev;
+	register int type;
+{
+
+	switch (major(dev)) {
+	case 3:			/* ram */
+	case 4:			/* hk */
+	case 5:			/* ra */
+	case 6:			/* rk */
+	case 7:			/* rl */
+	case 8:			/* rx */
+	case 9:			/* si */
+	case 10:		/* xp */
+	case 11:		/* br */
+		if (type == IFBLK)
+			return (1);
+		return (0);
+	case 13:		/* rhk */
+	case 14:		/* rra */
+	case 15:		/* rrk */
+	case 16:		/* rrl */
+	case 17:		/* rrx */
+	case 18:		/* rsi */
+	case 19:		/* rxp */
+	case 20:		/* rbr */
+		if (type == IFCHR)
+			return (1);
+		/* fall through */
+	default:
+		return (0);
+	}
+	/* NOTREACHED */
+}
+
+#define MAXDEV	25
+static char chrtoblktbl[MAXDEV] =  {
+      /* CHR */      /* BLK */
+	/* 0 */		NODEV,
+	/* 1 */		NODEV,
+	/* 2 */		NODEV,
+	/* 3 */		NODEV,
+	/* 4 */		NODEV,
+	/* 5 */		NODEV,
+	/* 6 */		0,		/* ht */
+	/* 7 */		1,		/* tm */
+	/* 8 */		2,		/* ts */
+	/* 9 */		NODEV,
+	/* 10 */	NODEV,
+	/* 11 */	NODEV,
+	/* 12 */	NODEV,
+	/* 13 */	4,		/* hk */
+	/* 14 */	5,		/* ra */
+	/* 15 */	6,		/* rk */
+	/* 16 */	7,		/* rl */
+	/* 17 */	8,		/* rx */
+	/* 18 */	9,		/* si */
+	/* 19 */	10,		/* xp */
+	/* 20 */	11,		/* br */
+	/* 21 */	NODEV,
+	/* 22 */	NODEV,
+	/* 23 */	12,		/* tmscp */
+	/* 24 */	NODEV
+};
+/*
+ * Routine to convert from character to block device number.
+ *
+ * A minimal stub routine can always return NODEV.
+ */
+chrtoblk(dev)
+	register dev_t dev;
+{
+	register int blkmaj;
+
+	if (major(dev) >= MAXDEV || (blkmaj = chrtoblktbl[major(dev)]) == NODEV)
+		return (NODEV);
+	return (makedev(blkmaj, minor(dev)));
+}

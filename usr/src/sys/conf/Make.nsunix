@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	%W% (Berkeley) %G%
+#	2.0 (2.11BSD GTE) 1/14/95
 #
 #########################################################
 # Networking, separate I/D kernel			#
@@ -76,7 +76,7 @@ OV5=	quota_kern.o quota_ufs.o quota_sys.o ufs_bmap.o	\
 # OV6 gets the (hopefully) never used routines
 OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o \
 	subr_log.o toy.o
-OV7=	tmscp.o
+OV7=	tmscp.o kern_sysctl.o
 OV8=	mch_fpsim.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \

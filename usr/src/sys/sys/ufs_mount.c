@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.2 (2.10BSD Berkeley) 1/29/90
+ *	@(#)ufs_mount.c	1.3 (2.11BSD GTE) 1/6/95
  */
 
 #include "param.h"
@@ -27,7 +27,7 @@ smount()
 	register struct a {
 		char	*fspec;
 		char	*freg;
-		int	ronly;
+		int	flags;
 	} *uap = (struct a *)u.u_ap;
 	dev_t dev;
 	register struct inode *ip;
@@ -59,7 +59,7 @@ smount()
 		u.u_error = EBUSY;
 		return;
 	}
-	fs = mountfs(dev, uap->ronly, ip);
+	fs = mountfs(dev, uap->flags, ip);
 	if (fs == 0)
 		return;
 	(void) copyinstr(uap->freg, fs->fs_fsmnt, sizeof(fs->fs_fsmnt)-1, &len);
@@ -68,15 +68,16 @@ smount()
 
 /* this routine has races if running twice */
 struct fs *
-mountfs(dev, ronly, ip)
+mountfs(dev, flags, ip)
 	dev_t dev;
-	int ronly;
+	int flags;
 	struct inode *ip;
 {
 	register struct mount *mp = 0;
 	struct buf *tp = 0;
 	register struct fs *fs;
-	register error;
+	register int error;
+	int ronly = flags & MNT_RDONLY;
 	int needclose = 0;
 
 	error =
@@ -115,6 +116,7 @@ found:
 	fs->fs_flock = 0;
 	fs->fs_nbehind = 0;
 	fs->fs_lasti = 1;
+	fs->fs_flags = flags;
 	if (ip) {
 		ip->i_flag |= IMOUNT;
 		cacheinval(ip);

@@ -28,7 +28,7 @@
 #define	SYS_getpid	20
 #define	SYS_mount	21
 #define	SYS_umount	22
-				/* 23 is old: setuid */
+#define	SYS___sysctl	23
 #define	SYS_getuid	24
 				/* 25 is old: stime */
 #define	SYS_ptrace	26

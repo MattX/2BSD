@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)cpu.h	1.2 (2.11BSD GTE) 12/26/92
+ *	@(#)cpu.h	1.3 (2.11BSD GTE) 1/14/95
  */
 
 /*
@@ -13,3 +13,16 @@
  * between cpu types).
 */
 #define	PDP1170_LEAR	((physadr) 0177740)
+
+/*
+ * CTL_MACHDEP definitions.
+ */
+#define	CPU_CONSDEV		1	/* dev_t: console terminal device */
+#define	CPU_MAXID		2	/* number of valid machdep ids */
+
+#ifndef	KERNEL
+#define CTL_MACHDEP_NAMES { \
+	{ 0, 0 }, \
+	{ "console_device", CTLTYPE_STRUCT }, \
+}
+#endif

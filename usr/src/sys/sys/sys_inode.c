@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.2 (2.11BSD GTE) 12/8/94
+ *	@(#)sys_inode.c	1.3 (2.11BSD GTE) 1/6/95
  */
 
 #include "param.h"
@@ -602,26 +602,71 @@ ino_unlock(fp, kind)
 /*
  * Openi called to allow handler of special files to initialize and
  * validate before actual IO.
- *
- * Eventually the check for 'securelevel' and the MNT_NODEV mount option
- * will go here.
  */
 openi(ip, mode)
 	register struct inode *ip;
 {
 	register dev_t dev = ip->i_rdev;
 	register int maj = major(dev);
+	dev_t bdev;
+	int error;
+
+	if (ip->i_fs->fs_flags & MNT_NODEV)
+		return(ENXIO);
 
 	switch (ip->i_mode&IFMT) {
 
 	case IFCHR:
 		if ((u_int)maj >= nchrdev)
 			return (ENXIO);
+		if (mode & FWRITE) {
+			/*
+			 * When running in very secure mode, do not allow
+			 * opens for writing of any disk character devices.
+			 */
+			if (securelevel >= 2 && isdisk(dev, IFCHR))
+				return(EPERM);
+			/*
+			 * When running in secure mode, do not allow opens
+			 * for writing of /dev/mem, /dev/kmem, or character
+			 * devices whose corresponding block devices are
+			 * currently mounted.
+			 */
+			if (securelevel >= 1) {
+				if ((bdev = chrtoblk(dev)) != NODEV &&
+					(error = ufs_mountedon(bdev)))
+						return(error);
+				if (iskmemdev(dev))
+					return(EPERM);
+			}
+		}
 		return ((*cdevsw[maj].d_open)(dev, mode));
 
 	case IFBLK:
 		if ((u_int)maj >= nblkdev)
 			return (ENXIO);
+		/*
+		 * When running in very secure mode, do not allow
+		 * opens for writing of any disk block devices.
+		 */
+		if (securelevel >= 2 && (mode & FWRITE) && isdisk(dev, IFBLK))
+			return(EPERM);
+#ifdef	notyet
+		/*
+		 * Do not allow opens of block devices that are 
+		 * currently mounted.
+		 *
+		 * 2.11BSD must relax this restriction to allow 'fsck' to
+ 		 * open the root filesystem (which is always mounted) during 
+		 * a reboot.  Once in secure or very secure mode the 
+		 * above restriction is fully effective.
+		 *
+		 * Also, 'df' on 2.11BSD opens the device - this check can
+		 * not be enabled until the 'statfs' capability is present.
+		 */
+		if (securelevel > 0 && (error = ufs_mountedon(dev)))
+			return(error);
+#endif
 		return ((*bdevsw[maj].d_open)(dev, mode));
 	}
 	return (0);

@@ -3,19 +3,18 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_fio.c	1.2 (2.11BSD GTE) 12/15/94
+ *	@(#)ufs_fio.c	1.3 (2.11BSD GTE) 12/29/94
  */
 
 #include "param.h"
 #include "user.h"
 #include "fs.h"
 #include "inode.h"
+#include "mount.h"
 #include "namei.h"
 #include "systm.h"
 #include "acct.h"
 #include "stat.h"
-
-extern	int	securelevel;
 
 /*
  * Check mode permission on inode pointer.
@@ -135,11 +134,9 @@ ufs_setattr(ip, vap)
 			return(u.u_error);
 		if	(u.u_uid == 0)
 			{
-#ifdef	not_quite_yet
-			if	((ip->i_flags & (SF_IMMUTABLE|SF_APPEND))) &&
+			if	((ip->i_flags & (SF_IMMUTABLE|SF_APPEND)) &&
 					securelevel > 0)
 				return(EPERM);
-#endif
 			ip->i_flags = vap->va_flags;
 			}
 		else
@@ -186,5 +183,20 @@ ufs_setattr(ip, vap)
 		}
 	if	(vap->va_mode != (mode_t)VNOVAL)
 		return(chmod1(ip, vap->va_mode));
+	return(0);
+	}
+
+ufs_mountedon(dev)
+	dev_t dev;
+	{
+	register struct mount *mp;
+
+	for	(mp = mount; mp < &mount[NMOUNT]; mp++)
+		{
+		if	(mp->m_inodp == NULL)
+			continue;
+		if	(mp->m_dev == dev)
+			return(EBUSY);
+		}
 	return(0);
 	}

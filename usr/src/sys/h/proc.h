@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)proc.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)proc.h	1.2 (2.11BSD GTE) 1/18/95
  */
+
+#ifndef	_SYS_PROC_H_
+#define	_SYS_PROC_H_
 
 /*
  * One structure allocated per active
@@ -126,3 +129,5 @@ int	nproc;
 
 #define	S_DATA	0		/* specified segment */
 #define	S_STACK	1
+
+#endif	/* !_SYS_PROC_H_ */

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.3 (2.11BSD GTE) 11/26/94
+ *	@(#)kern_exec.c	1.4 (2.11BSD GTE) 1/13/95
  */
 
 #include "param.h"
@@ -19,6 +19,7 @@
 #include "acct.h"
 #include "namei.h"
 #include "fs.h"
+#include "mount.h"
 #include "file.h"
 #include "text.h"
 
@@ -70,11 +71,16 @@ execve()
 	indir = 0;
 	uid = u.u_uid;
 	gid = u.u_gid;
-	if (ip->i_mode & ISUID)
-		uid = ip->i_uid;
-	if (ip->i_mode & ISGID)
-		gid = ip->i_gid;
-
+	if (ip->i_fs->fs_flags & MNT_NOEXEC) {
+		u.u_error = EACCES;
+		goto bad;
+	}
+	if ((ip->i_fs->fs_flags & MNT_NOSUID) == 0) {
+		if (ip->i_mode & ISUID)
+			uid = ip->i_uid;
+		if (ip->i_mode & ISGID)
+			gid = ip->i_gid;
+	}
   again:
 	if (access(ip, IEXEC))
 		goto bad;
