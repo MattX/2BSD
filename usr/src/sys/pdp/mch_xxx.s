@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_xxx.s	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)mch_xxx.s	1.5 (2.11BSD GTE) 12/15/94
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
@@ -630,3 +630,27 @@ ENTRY(nextiv)
 	sub	$4,_lastiv		/ adjust last interrupt vector
 	mov	_lastiv,r0		/ put in right place for return value
 	rts	pc			/ return assigned vector
+
+/*
+ * vattr_null()
+ *
+ * Initialize a inode attribute structure.  See the comments in h/inode.h
+ * for more details.  If the vnode/inode attribute structure (which is a
+ * subset of 4.4's) changes then this routine must change also.  The 'sxt'
+ * sequences below are shorter/faster than "mov $VNOVAL,..." since VNOVAL
+ * is -1.
+*/
+ENTRY(vattr_null)
+	mov	2(sp),r0		/ get address of vattr structure
+	mov	$-1,(r0)+		/ va_mode = VNOVAL
+	sxt	(r0)+			/ va_uid = VNOVAL
+	sxt	(r0)+			/ va_gid = VNOVAL
+	sxt	(r0)+			/ va_size - hi = VNOVAL
+	sxt	(r0)+			/ va_size - lo = VNOVAL
+	sxt	(r0)+			/ va_atime - hi = VNOVAL
+	sxt	(r0)+			/ va_atime - lo = VNOVAL
+	sxt	(r0)+			/ va_mtime - hi = VNOVAL
+	sxt	(r0)+			/ va_mtime - lo = VNOVAL
+	sxt	(r0)+			/ va_flags = VNOVAL
+	clr	(r0)+			/ va_vaflags = 0
+	rts	pc

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)trap.c	1.3 (2.11BSD GTE) 8/23/93
+ *	@(#)trap.c	1.4 (2.11BSD GTE) 11/24/94
  */
 
 #include "param.h"
@@ -42,7 +42,7 @@ char regloc[] = {
  * the various FPE_... codes defined in <signal.h>.  On the VAX these come
  * free because those *are* the codes the VAX FP hardware generates.
  */
-static int	pdpfec[16] = {
+static	u_char pdpfec[16] = {
 	FPE_CRAZY,		/*  0: not a legal FEC code */
 	FPE_CRAZY,		/*  1: not a legal FEC code */
 	FPE_OPCODE_TRAP,	/*  2: bad floating point op code */

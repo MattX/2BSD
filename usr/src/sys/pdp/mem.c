@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mem.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)mem.c	1.2 (2.11BSD GTE) 11/29/94
  */
 
 #include "param.h"
@@ -15,31 +15,16 @@
 #include "hk.h"
 #include "xp.h"
 
-mmread(dev, uio)
-	dev_t dev;
-	struct uio *uio;
-{
-
-	return (mmrw(dev, uio, UIO_READ));
-}
-
-mmwrite(dev, uio)
-	dev_t dev;
-	struct uio *uio;
-{
-
-	return (mmrw(dev, uio, UIO_WRITE));
-}
-
 /*
  * This routine is callable only from the high
  * kernel as it assumes normal mapping and doesn't
- * bother to save R5.
+ * bother to save 'seg5'.
  */
-mmrw(dev, uio, rw)
+
+mmrw(dev, uio, flag)
 	dev_t dev;
 	register struct uio *uio;
-	enum uio_rw rw;
+	int flag;
 {
 	register struct iovec *iov;
 	int error = 0;
@@ -63,16 +48,16 @@ register u_int c;
 				   ((btoc(8192)-1)<<8)|RW);
 			on = uio->uio_offset & 077L;
 			c = MIN(iov->iov_len, 8192 - on);
-			error = uiomove(SEG5+on, c, rw, uio);
+			error = uiomove(SEG5+on, c, uio);
 			normalseg5();
 			continue;
 /* minor device 1 is kernel memory */
 		case 1:
-			error = uiomove((caddr_t)uio->uio_offset, iov->iov_len, rw, uio);
+			error = uiomove((caddr_t)uio->uio_offset, iov->iov_len, uio);
 			continue;
 /* minor device 2 is EOF/RATHOLE */
 		case 2:
-			if (rw == UIO_READ)
+			if (uio->uio_rw == UIO_READ)
 				return(0);
 			c = iov->iov_len;
 			break;

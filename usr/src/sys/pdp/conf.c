@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.1 (2.11BSD Berkeley) 12/23/92
+ *	@(#)conf.c	2.2 (2.11BSD Berkeley) 11/29/94
  */
 
 #include "param.h"
@@ -18,7 +18,7 @@
 
 int	nulldev();
 int	nodev();
-int	rawread(), rawwrite();
+int	rawrw();
 
 #include "rk.h"
 #if NRK > 0
@@ -332,7 +332,7 @@ int	dnopen(), dnclose(), dnwrite();
 int	logopen(), logclose(), logread(), logioctl(), logselect();
 int	syopen(), syread(), sywrite(), syioctl(), syselect();
 
-int	mmread(),mmwrite();
+int	mmrw();
 #define	mmselect	seltrue
 
 int	ttselect(), seltrue();
@@ -343,7 +343,7 @@ struct cdevsw	cdevsw[] = {
 	cnioctl,	nulldev,	cons,		ttselect,
 	nulldev,
 /* mem = 1 */
-	nulldev,	nulldev,	mmread,		mmwrite,
+	nulldev,	nulldev,	mmrw,		mmrw,
 	nodev,		nulldev,	0,		mmselect,
 	nulldev,
 /* dz = 2 */
@@ -363,15 +363,15 @@ struct cdevsw	cdevsw[] = {
 	nodev,		nulldev,	0,		nodev,
 	nulldev,
 /* ht = 6 */
-	htopen,		htclose,	rawread,	rawwrite,
+	htopen,		htclose,	rawrw,		rawrw,
 	htioctl,	nulldev,	0,		seltrue,
 	htstrategy,
 /* tm = 7 */
-	tmopen,		tmclose,	rawread,	rawwrite,
+	tmopen,		tmclose,	rawrw,		rawrw,
 	tmioctl,	nulldev,	0,		seltrue,
 	tmstrategy,
 /* ts = 8 */
-	tsopen,		tsclose,	rawread,	rawwrite,
+	tsopen,		tsclose,	rawrw,		rawrw,
 	tsioctl,	nulldev,	0,		seltrue,
 	tsstrategy,
 /* tty = 9 */
@@ -387,39 +387,39 @@ struct cdevsw	cdevsw[] = {
 	ptyioctl,	ptsstop,	pt_tty,		ttselect,
 	nulldev,
 /* dr = 12 */
-	dropen,		drclose,	rawread,	rawwrite,
+	dropen,		drclose,	rawrw,		rawrw,
 	drioctl,	nulldev,	0,		seltrue,
 	drstrategy,
 /* hk = 13 */
-	hkopen,		hkclose,	rawread,	rawwrite,
+	hkopen,		hkclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	hkstrategy,
 /* ra = 14 */
-	raopen,		raclose,	rawread,	rawwrite,
+	raopen,		raclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	rastrategy,
 /* rk = 15 */
-	rkopen,		rkclose,	rawread,	rawwrite,
+	rkopen,		rkclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	rkstrategy,
 /* rl = 16 */
-	rlopen,		rlclose,	rawread,	rawwrite,
+	rlopen,		rlclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	rlstrategy,
 /* rx = 17 */
-	rxopen,		rxclose,	rawread,	rawwrite,
+	rxopen,		rxclose,	rawrw,		rawrw,
 	rxioctl,	nulldev,	0,		seltrue,
 	rxstrategy,
 /* si = 18 */
-	siopen,		siclose,	rawread,	rawwrite,
+	siopen,		siclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	sistrategy,
 /* xp = 19 */
-	xpopen,		xpclose,	rawread,	rawwrite,
+	xpopen,		xpclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	xpstrategy,
 /* br = 20 */
-	bropen,		brclose,	rawread,	rawwrite,
+	bropen,		brclose,	rawrw,		rawrw,
 	nodev,		nulldev,	0,		seltrue,
 	brstrategy,
 /* dn = 21 */
@@ -431,7 +431,7 @@ struct cdevsw	cdevsw[] = {
 	logioctl,	nulldev,	0,		logselect,
 	nulldev,
 /* tmscp = 23 (tu81/tk50) */
-	tmscpopen,	tmscpclose,	rawread,	rawwrite,
+	tmscpopen,	tmscpclose,	rawrw,		rawrw,
 	tmscpioctl,	nulldev,	0,		seltrue,
 	tmscpstrategy,
 /* dhv = 24 */

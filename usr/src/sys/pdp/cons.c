@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)cons.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)cons.c	1.2 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -78,27 +78,30 @@ cnclose(dev, flag)
 {
 	register struct tty *tp = &cons[minor(dev)];
 
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	ttyclose(tp);
 }
 
 /*ARGSUSED*/
-cnread(dev, uio)
+cnread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &cons[minor(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp, uio));
+	return ((*linesw[tp->t_line].l_read)(tp, uio, flag));
 }
 
 /*ARGSUSED*/
-cnwrite(dev, uio)
+cnwrite(dev, uio, flag)
 	dev_t dev;
+	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &cons[minor(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp, uio));
+	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
 }
 
 /*ARGSUSED*/
@@ -124,7 +127,7 @@ cnioctl(dev, cmd, addr, flag)
 	register struct tty *tp = &cons[minor(dev)];
 	register int error;
 
-	error = (*linesw[tp->t_line].l_ioctl)(tp, cmd, addr);
+	error = (*linesw[tp->t_line].l_ioctl)(tp, cmd, addr, flag);
 	if (error >= 0)
 		return (error);
 	error = ttioctl(tp, cmd, addr, flag);
