@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)syslogd.c	5.13.4 (2.11BSD GTE) 1996/11/16";
+static char sccsid[] = "@(#)syslogd.c	5.13.5 (2.11BSD) 1999/5/27";
 #endif
 
 /*
@@ -140,6 +140,7 @@ int	PrevCount = 0;		/* number of times seen */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20;	/* interval between marks in minutes */
 int	MarkSeq = 0;		/* mark sequence number */
+static	sigset_t block_set;	/* Signals to block while logging */
 
 main(argc, argv)
 	int argc;
@@ -152,8 +153,11 @@ main(argc, argv)
 	struct sockaddr_un sun, fromunix;
 	struct sockaddr_in sin, frominet;
 	FILE *fp;
+	struct itimerval itv;
+	sigset_t oset;
+	struct sigaction sigact;
 	char line[MSG_BSIZE + 1];
-	extern int die(), domark(), reapchild();
+	extern int die(), domark(), reapchild(), init();
 
 	while (--argc > 0) {
 		p = *++argv;
@@ -184,17 +188,44 @@ main(argc, argv)
 		}
 	}
 
-	if (!Debug) {
-		if (fork())
-			exit(0);
-		for (i = 0; i < 10; i++)
-			(void) close(i);
-		(void) open("/", 0);
-		(void) dup2(0, 1);
-		(void) dup2(0, 2);
-		untty();
-	} else
+	/* Init signal block set and block signals */
+	(void)sigemptyset(&block_set);
+	(void)sigaddset(&block_set, SIGHUP);
+	(void)sigaddset(&block_set, SIGALRM);
+	sigprocmask(SIG_BLOCK, &block_set, &oset);
+
+	/* Setup signals */
+	sigact.sa_mask = block_set;
+	sigact.sa_flags = SA_NOCLDSTOP;
+	sigact.sa_handler = reapchild;
+	sigaction(SIGCHLD, &sigact, NULL);
+
+	sigact.sa_flags = 0;
+	sigact.sa_handler = die;
+	sigaction(SIGTERM, &sigact, NULL);
+
+	if	(!Debug)
+		sigact.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sigact, NULL);
+	sigaction(SIGQUIT, &sigact, NULL);
+
+	sigact.sa_handler = init;
+	sigaction(SIGHUP, &sigact, NULL);
+
+	sigact.sa_handler = domark;
+	sigaction(SIGALRM, &sigact, NULL);
+
+	if	(!Debug)
+		daemon(0, 0);
+	else
 		setlinebuf(stdout);
+
+	/* Initialize timer */
+	itv.it_interval.tv_sec = MarkInterval * 60 / MARKCOUNT;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = MarkInterval * 60 / MARKCOUNT;
+	itv.it_value.tv_usec = 0;
+	setitimer(ITIMER_REAL, &itv, NULL);
 
 	(void) gethostname(LocalHostName, sizeof LocalHostName);
 	if (p = index(LocalHostName, '.')) {
@@ -203,12 +234,7 @@ main(argc, argv)
 	}
 	else
 		LocalDomain = "";
-	(void) signal(SIGTERM, die);
-	(void) signal(SIGINT, Debug ? die : SIG_IGN);
-	(void) signal(SIGQUIT, Debug ? die : SIG_IGN);
-	(void) signal(SIGCHLD, reapchild);
-	(void) signal(SIGALRM, domark);
-	(void) alarm(MarkInterval * 60 / MARKCOUNT);
+
 	(void) unlink(LogName);
 
 	sun.sun_family = AF_UNIX;
@@ -259,8 +285,10 @@ main(argc, argv)
 
 	dprintf("off & running....\n");
 
-	init();
-	(void) signal(SIGHUP, init);
+	init(0);
+
+	/* Unblock signals now */
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 
 	for (;;) {
 		int nfds;
@@ -433,14 +461,14 @@ logmsg(pri, msg, from, flags)
 	register int l;
 	int fac, prilev;
 	time_t now;
-	long omask;
+	sigset_t oset;
 	struct iovec iov[6];
 	register struct iovec *v = iov;
 	char line[MAXLINE + 1];
 
 	dprintf("logmsg: pri %o, flags %x, from %s, msg %s\n", pri, flags, from, msg);
 
-	omask = sigblock(sigmask(SIGHUP)|sigmask(SIGALRM));
+	(void)sigprocmask(SIG_BLOCK, &block_set, &oset);
 
 	/*
 	 * Check to see if msg looks non-standard.
@@ -456,8 +484,7 @@ logmsg(pri, msg, from, flags)
 			/* we found a match, update the time */
 			(void) strncpy(PrevLine, msg, 15);
 			PrevCount++;
-			(void) sigsetmask(omask);
-			return;
+			goto out;
 		} else {
 			/* new line, save it */
 			flushmsg();
@@ -508,8 +535,7 @@ logmsg(pri, msg, from, flags)
 			(void) close(cfd);
 		}
 		untty();
-		(void) sigsetmask(omask);
-		return;
+		goto out;
 	}
 	for (f = Files; f < &Files[NLOGS]; f++) {
 		/* skip messages that are incorrect priority */
@@ -591,8 +617,8 @@ logmsg(pri, msg, from, flags)
 			break;
 		}
 	}
-
-	(void) sigsetmask(omask);
+out:
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 }
 
 
@@ -721,13 +747,11 @@ cvthname(f)
 
 domark()
 {
-	int pri;
 
 	if ((++MarkSeq % MARKCOUNT) == 0)
 		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
 	else
 		flushmsg();
-	alarm(MarkInterval * 60 / MARKCOUNT);
 }
 
 flushmsg()
@@ -776,7 +800,9 @@ die(sig)
  *  INIT -- Initialize syslogd from configuration table
  */
 
-init()
+/* ARGSUSED */
+init(sig)
+	int	sig;		/* signal number */
 {
 	register int i;
 	register FILE *cf;
@@ -959,8 +985,6 @@ cfline(line, f)
 
 		/* scan facilities */
 		while (*p && !index("\t.;", *p)) {
-			int i;
-
 			for (bp = buf; *p && !index("\t,;.", *p); )
 				*bp++ = *p++;
 			*bp = '\0';
@@ -997,8 +1021,6 @@ cfline(line, f)
 		(void) strcpy(f->f_un.f_forw.f_hname, ++p);
 		hp = gethostbyname(p);
 		if (hp == NULL) {
-			char buf[100];
-
 			(void) sprintf(buf, "unknown host %s", p);
 			errno = 0;
 			logerror(buf);

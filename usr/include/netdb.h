@@ -9,8 +9,10 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)netdb.h	5.9.2 (2.11BSD GTE) 96/7/10
+ *	@(#)netdb.h	5.9.3 (2.11BSD) 99/5/25
  */
+
+extern	int	h_errno;
 
 /*
  * Structures returned by network

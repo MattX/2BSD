@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)unistd.h	8.10.3 (2.11BSD) 1997/10/3
+ *	@(#)unistd.h	8.10.4 (2.11BSD) 1999/5/25
  */
 
 /*
@@ -89,5 +89,8 @@ void	 sync();
 unsigned int	 ualarm();
 void	 usleep();
 pid_t	 vfork();
+
+extern	char	*optarg;		/* getopt(3) external variables */
+extern	int	opterr, optind, optopt;
 
 #endif /* !_UNISTD_H_ */
