@@ -12,7 +12,7 @@ University of California, Berkeley
 Berkeley, California 94720
 .sp
 May 1979
-(revised March 1980)
+(revised November 1996)
 .AB
 This document describes the use of a network
 between a number of
@@ -1007,7 +1007,7 @@ The network commands are too slow on heavily-loaded instructional machines.
 The
 .I net
 command has to read the password file, ``.netrc'' file and the
-``/etc/utmp'' file.
+``/var/run/utmp'' file.
 .IP f)
 The queue files are normally sent shortest-job first.
 Unfortunately, under heavy loading the queue-search becomes

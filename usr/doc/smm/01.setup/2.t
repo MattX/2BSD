@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	6.1.1 (2.11BSD) 1996/10/24
+.\"	@(#)2.t	6.1.2 (2.11BSD) 1996/11/16
 .\"
 .ds lq ``
 .ds rq ''
@@ -60,7 +60,7 @@ by piping the output of \fIdump\fP directly into \fIrestore\fP
 after bringing up \*(4B.
 If you select the latter tack,
 a version of the 4.1BSD dump program that runs under \*(4B is
-provided in \fI/etc/dump.4.1\fP.
+provided as \fIdump.4.1\fP.
 Beware that file systems created under \*(4B can
 use about 5-10% more disk space for file system related information
 than under 4.1BSD.  Thus, before dumping each file system it is
@@ -763,7 +763,7 @@ for information.
 To use the /usr file system, you should now remount it by
 saying
 .DS
-\fB#\fP /etc/mount /dev/${name} /usr
+\fB#\fP mount /dev/${name} /usr
 .DE
 You can then extract the source code for the commands
 (except on RK07's and RM03's this will fit in the /usr file system):

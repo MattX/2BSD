@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)timed.ms	6.1 (Berkeley) 5/23/86
+.\"	@(#)timed.ms	6.1.1 (2.11BSD) 1996/11/16
 .\"
 .TL
 Timed Installation and Operation Guide
@@ -149,7 +149,7 @@ the networks belonging to the local administrative control.
 There are some limitations to the current
 implementation of the time daemon.
 It is expected that these limitations will be removed in future releases.
-The constant NHOSTS in /usr/src/etc/timed/globals.h limits the
+The constant NHOSTS in /usr/src/usr.sbin/timed/globals.h limits the
 maximum number of machines that may be directly controlled by one
 master time daemon.
 The current maximum is 29 (NHOSTS \- 1).
@@ -184,8 +184,8 @@ added to the \fIlocal daemons\fP section in the file \fI/etc/rc.local\fP:
 .sp 2
 .in 1i
 .nf
-if [ -f /etc/timed ]; then
-	/etc/timed \fIflags\fP & echo -n ' timed' >/dev/console
+if [ -f /usr/sbin/timed ]; then
+	timed \fIflags\fP & echo -n ' timed' >/dev/console
 fi
 .fi
 .in -1i

@@ -8,7 +8,7 @@
 .\" software without specific prior written permission. This software
 .\" is provided ``as is'' without express or implied warranty.
 .\"
-.\"	@(#)manage.me	6.5 (Berkeley) 2/28/88
+.\"	@(#)manage.me	6.5.1 (2.11BSD) 1996/11/16
 .\"
 .sh 1 "Domain Management"
 .pp
@@ -21,18 +21,18 @@ using \fIhostname\|(1)\fP.
 The following entry should be added to \fI/etc/rc.local\fP to start
 up \fInamed\fP at system boot time:
 .(b l 
-\fIif [ -f /etc/named ]; then
-	/etc/named\fP [options] \fI& echo -n ' named'	>/dev/console\fP
+\fIif [ -f /usr/sbin/named ]; then
+	named\fP [options] \fI& echo -n ' named'	>/dev/console\fP
 \fIfi\fP
 .)b
 This usually directly follows the lines that start \fIsyslogd\fP.
 \fBDo Not\fP attempt to run \fInamed\fP from \fIinetd\fP.
 This will
 continuously restart the name server and defeat the purpose of having a cache.
-.sh 2 /etc/named.pid
+.sh 2 /var/run/named.pid
 .pp
 When \fInamed\fP is successfully started up it writes its process id
-into the file \fI/etc/named.pid\fP.  This is useful to programs
+into the file \fI/var/run/named.pid\fP.  This is useful to programs
 that want to send signals to \fInamed\fP. The name of this file may be changed
 by defining \fIPIDFILE\fP to the new name when compiling \fInamed\fP.
 .sh 2 /etc/hosts

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	1.8 (GTE) 1996/04/12
+.\"	@(#)2.t	1.9 (GTE) 1996/11/16
 .\"
 .ds lq ``
 .ds rq ''
@@ -587,7 +587,7 @@ for information.
 To use the /usr file system, you should now remount it by
 saying
 .DS
-\fB#\fP /etc/mount /dev/${name} /usr
+\fB#\fP mount /dev/${name} /usr
 .DE
 .NH 3
 Step 7: extracting remaining source from the second tape

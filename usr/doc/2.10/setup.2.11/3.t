@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)3.t	1.5 (2.11BSD GTE) 1996/10/24
+.\"	@(#)3.t	1.6 (2.11BSD GTE) 1996/11/16
 .\"
 .ds lq ``
 .ds rq ''
@@ -72,14 +72,14 @@ l c l.
 /etc/gettytab	\(ua	getty database
 /etc/group	\(ua	group data base
 /etc/hosts	\(ua	for local host information
-/etc/hosts.dir	*	must be rebuilt with /etc/mkhosts
-/etc/hosts.pag	*	must be rebuilt with /etc/mkhosts
+/etc/hosts.dir	*	must be rebuilt with mkhosts
+/etc/hosts.pag	*	must be rebuilt with mkhosts
 /etc/hosts.equiv	\(ua	for local host equivalence information
 /etc/networks	\(ua	for local network information
 /etc/netstart	*	site dependent network startup script
 /etc/passwd	*	must be converted to shadow password file format
-/etc/passwd.dir	*	must be rebuilt with /etc/mkpasswd
-/etc/passwd.pag	*	must be rebuilt with /etc/mkpasswd
+/etc/passwd.dir	*	must be rebuilt with mkpasswd
+/etc/passwd.pag	*	must be rebuilt with mkpasswd
 /etc/printcap	\(ua	line printer database
 /etc/protocols	\(dd	in case you added any local protocols
 /etc/rc	*	for any local additions
@@ -363,7 +363,7 @@ structure.
 .PP
 Note, once your system is installed and running, you
 should make sure that you recompile and reinstall the directory
-\fIusr/src/etc/tzone\fP.  Read through the Makefile first, if you're
+\fI/usr/src/share/zoneinfo\fP.  Read through the Makefile first, if you're
 not located on the West Coast you will have to change it.  This directory
 is an addition since 4.3BSD, and is intended to solve the Daylight
 Savings Time problems once and for all.
@@ -413,8 +413,8 @@ you rebuild
 and
 .I /etc/aliases
 databases via the commands:
-.IR "/etc/mkpasswd /etc/passwd" ,
-.IR "/etc/mkhosts /etc/hosts" ,
+.IR "mkpasswd /etc/passwd" ,
+.IR "mkhosts /etc/hosts" ,
 and
 .IR /usr/ucb/newaliases.
 .NH 3

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	6.1.1 (2.11BSD) 1996/10/24
+.\"	@(#)4.t	6.1.2 (2.11BSD) 1996/11/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -762,7 +762,7 @@ and that the special files for the device have been made by /dev/MAKEDEV.
 Then, enable the appropriate lines of /etc/ttys by setting the ``status''
 field to \fBon\fP (or add new lines).
 Note that lines in \fI/etc/ttys\fP are one-for-one with entries
-in the file of current users (\fI/etc/utmp\fP),
+in the file of current users (\fI/var/run/utmp\fP),
 and therefore it is best to make changes
 while running in single-user mode
 and to add all of the entries for a new device at once.
@@ -783,10 +783,10 @@ with entries requiring embedded white space enclosed in double
 quotes.
 Thus a newly added terminal /dev/tty00 could be added as
 .DS
-tty00 	"/etc/getty std.9600"	vt100	on secure	# mike's office
+tty00 	"/usr/libexec/getty std.9600"	vt100	on secure	# mike's office
 .DE
 The std.9600 parameter provided
-to /etc/getty is used in searching the file /etc/gettytab; it specifies
+to /usr/libexec/getty is used in searching the file /etc/gettytab; it specifies
 a terminal's characteristics (such as baud rate).
 To make custom terminal types, consult 
 .IR gettytab (5)
@@ -830,7 +830,7 @@ from \fBoff\fP to \fBon\fP and sending a hangup signal to \fIinit\fP.
 .PP
 Note that if a special file is inaccessible when \fIinit\fP tries
 to create a process for it, init will log a message to the
-system error logging process (/etc/syslogd)
+system error logging process (/usr/sbin/syslogd)
 and try to reopen the terminal every minute, reprinting the warning
 message every 10 minutes.  Messages of this sort are normally
 printed on the console, though other actions may occur depending
@@ -966,7 +966,7 @@ l l.
 /etc/aliases	mail forwarding information
 /usr/bin/newaliases	command to rebuild binary forwarding database
 /usr/ucb/biff	mail notification enabler
-/etc/comsat	mail notification daemon
+/usr/libexec/comsat	mail notification daemon
 .TE
 .DE
 Mail is normally sent and received using the
@@ -982,7 +982,7 @@ process each piece of mail.
 Local mail is delivered by giving it to the program /bin/mail
 that adds it to the mailboxes in the directory /usr/spool/mail/\fIusername\fP,
 using a locking protocol to avoid problems with simultaneous updates.
-After the mail is delivered, the local mail delivery daemon /etc/comsat
+After the mail is delivered, the local mail delivery daemon /usr/libexec/comsat
 is notified, which in turn notifies
 users who have issued a ``\fIbiff\fP y'' command that mail has arrived.
 .PP

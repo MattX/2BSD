@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	6.4 (Berkeley) 4/14/86
+.\"	@(#)5.t	6.4.1 (2.11BSD) 1996/11/16
 .\"
 .SH
 .LG
@@ -37,7 +37,7 @@ Many new entries were added and older entries fixed.
 The format of the ttys file, \fI/etc/ttys\fP,
 reflects the merger of information previously kept in \fI/etc/ttys\fP,
 \fI/etc/securetty\fP, and \fI/etc/ttytype\fP.
-The new format permits arbitrary programs, not just \fI/etc/getty\fP,
+The new format permits arbitrary programs, not just \fIgetty\fP,
 to be spawned by \fIinit\fP.
 A special \fBwindow\fP field can be used to
 set up a window server before spawning a terminal emulator program.

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	4.3 (Berkeley) 2/1/86
+.\"	@(#)2.t	4.3.1 (2.11BSD) 1996/11/16
 .\"
 .ds RH Overview of the file system
 .NH
@@ -206,7 +206,7 @@ when the buffer is required for another use,
 when a
 .I sync (2)
 is done (at 30 second intervals) by
-.I "/etc/update" "(8),"
+.I "update" "(8),"
 or by manual operator intervention with the
 .I sync (8)
 command.

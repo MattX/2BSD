@@ -14,11 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.1.1 (2.11BSD) 1996/1/27
+#	@(#)Makefile	5.1.2 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-I. -O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 SRCS=	chpass.c field.c util.c
 OBJS=	chpass.o field.o util.o
 MAN=	chpass.0
@@ -26,7 +25,7 @@ MANSRC=	chpass.1
 
 all: chpass ${MAN}
 
-chpass: ${LIBC} ${OBJS}
+chpass: ${OBJS}
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
 
 chpass.0: ${MANSRC}

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)quotas	6.1 (Berkeley) 5/13/86
+.\"	@(#)quotas	6.1.1 (2.11BSD) 1996/11/16
 .\"
 .EH 'SMM:4-%''Disc Quotas in a \s-2UNIX\s+2 Environment'
 .OH 'Disc Quotas in a \s-2UNIX\s+2 Environment''SMM:4-%'
@@ -179,7 +179,7 @@ for details.
 Most sites using the quota system, will include the
 line
 .DS C
-/etc/quotaon -a
+quotaon -a
 .DE
 in \fB/etc/rc.local\fP.
 .PP
@@ -275,7 +275,7 @@ on all filesystems.
 .PP
 A later system was implemented at the University of Melbourne
 by the author, but was not kept highly accurately, eg:
-chown's (etc) did not affect quotas, nor did i/o to a file
+chown's, (etc) did not affect quotas, nor did i/o to a file
 other than one owned by the instigator.
 .PP
 The current system has been running (with only minor modifications)

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)1.t	6.12 (Berkeley) 4/15/86
+.\"	@(#)1.t	6.12.1 (2.11BSD) 1996/11/27
 .\"
 .sp
 .ce
@@ -960,7 +960,7 @@ The new talk rendezvouses at a new port so that the old version
 can still be used during the conversion.
 .I Talkd
 looks for a writable terminal instead of giving up if a user's
-first entry in \fI/etc/utmp\fP is not writable.
+first entry in \fI/var/run/utmp\fP is not writable.
 Root may always interrupt.
 .I Talk
 now runs set-group-id to group \fItty\fP so that it is no longer
@@ -1067,7 +1067,7 @@ Uses the effective user id instead of the real user id.
 A new program that provides multiple windows on ASCII terminals.
 .BP write
 Looks for a writable terminal instead of giving up if a user's
-first entry in \fI/etc/utmp\fP is not writable.
+first entry in \fI/var/run/utmp\fP is not writable.
 Root may always interrupt.
 Non-printable escape sequences can no longer be sent
 to an unsuspecting user's terminal.

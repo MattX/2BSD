@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)6.t	6.1.1 (2.11BSD) 1996/10/24
+.\"	@(#)6.t	6.1.2 (2.11BSD) 1996/11/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -111,7 +111,7 @@ system is taken single-user.  If you wish to come up multi-user again, you
 should do this by:
 .DS
 \fB#\fP cd /
-\fB#\fP /etc/umount -a
+\fB#\fP umount -a
 \fB#\fP ^D
 .DE
 .PP
@@ -466,7 +466,7 @@ and is analyzed and summarized by the program
 If you need to recharge for computing time, you can develop
 procedures based on the information provided by these commands.
 A convenient way to do this is to give commands to the clock daemon
-.I /etc/cron
+.I cron
 to be executed every day at a specified time.  This is done by adding
 lines to \fI/usr/adm/crontab\fP; see
 .IR cron (8)

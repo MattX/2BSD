@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	2.4 (2.11BSD GTE) 1996/11/14
+.\"	@(#)5.t	2.5 (2.11BSD GTE) 1996/11/16
 .\"
 .ds lq ``
 .ds rq ''
@@ -232,7 +232,7 @@ For example, at Berkeley (class B network 128.32) 8 bits
 of the local part have been reserved for defining subnetworks;
 consequently the /etc/rc.local file contains lines of the form
 .DS
-/etc/ifconfig en0 netmask 0xffffff00 128.32.1.7
+ifconfig en0 netmask 0xffffff00 128.32.1.7
 .DE
 This specifies that for interface ``en0'', the upper 24 bits of
 the Internet address should be used in calculating network numbers
@@ -270,7 +270,7 @@ If your environment allows access to networks not directly
 attached to your host you will need to set up routing information
 to allow packets to be properly routed.  Two schemes are
 supported by the system.  The first scheme
-employs the routing table management daemon \fI/etc/routed\fP
+employs the routing table management daemon \fIrouted\fP
 to maintain the system routing tables.  The routing daemon
 uses a variant of the Xerox Routing Information Protocol
 to maintain up to date routing tables in a cluster of local
@@ -297,7 +297,7 @@ gateway and depend on the gateway to provide ICMP routing
 redirect information to dynamically create a routing data
 base.  This is done by adding an entry of the form
 .DS
-/etc/route add default \fIsmart-gateway\fP 1
+route add default \fIsmart-gateway\fP 1
 .DE
 to \fI/etc/rc.local\fP; see
 .IR route (8)
@@ -352,7 +352,7 @@ Network servers
 .PP
 In \*(2B most of the server programs are started up by a
 ``super server'', the Internet daemon.  The Internet
-daemon, \fI/usr/sbin/inetd\fP, acts as a master server for
+daemon, \fIinetd\fP, acts as a master server for
 programs specified in its configuration file, \fI/etc/inetd.conf\fP,
 listening for service requests for these servers, and starting
 up the appropriate program whenever a request is received.
@@ -369,11 +369,11 @@ and their servers are listed as ``internal.''
 For example, an entry for the file
 transfer protocol server would appear as
 .DS
-ftp	stream	tcp	nowait	root	/etc/ftpd	ftpd -l
+ftp	stream	tcp	nowait	root	/usr/libexec/ftpd	ftpd -l
 .DE
 or if you are using the \fItcp_wrapper\fP program as
 .DS
-ftp	stream	tcp	nowait	root	/etc/tcpd	ftpd -l
+ftp	stream	tcp	nowait	root	/usr/libexec/tcpd	ftpd -l
 .DE
 Consult
 .IR inetd (8)
@@ -502,17 +502,17 @@ These include the following:
 l l l.
 Program	Server	Started by
 _
-/etc/rshd	shell server	inetd
-/etc/rexecd	exec server	inetd
-/etc/rlogind	login server	inetd
-/etc/telnetd	TELNET server	inetd
-/etc/ftpd	FTP server	inetd
-/etc/fingerd	Finger server	inetd
-/etc/tftpd	TFTP server	inetd
-/etc/rwhod	system status daemon	/etc/rc
-/etc/syslogd	error logging server	/etc/rc
-/usr/sbin/sendmail	SMTP server	/etc/rc
-/etc/routed	routing table management daemon	/etc/rc
+rshd	shell server	inetd
+rexecd	exec server	inetd
+rlogind	login server	inetd
+telnetd	TELNET server	inetd
+ftpd	FTP server	inetd
+fingerd	Finger server	inetd
+tftpd	TFTP server	inetd
+rwhod	system status daemon	/etc/rc
+syslogd	error logging server	/etc/rc
+sendmail	SMTP server	/etc/rc
+routed	routing table management daemon	/etc/rc
 .TE
 .DE
 Consult the manual pages and accompanying documentation (particularly
@@ -524,8 +524,8 @@ to the Internet daemon's configuration file \fI/etc/inetd.conf\fP, or
 commands similar to the following should be placed in the site dependent
 file \fI/etc/rc.local\fP.
 .DS
-if [ -f /etc/rwhod ]; then
-	/etc/rwhod & echo -n ' rwhod'			>/dev/console
+if [ -f /usr/sbin/rwhod ]; then
+	rwhod & echo -n ' rwhod'			>/dev/console
 f\&i
 .DE
 .NH 3

@@ -14,18 +14,17 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.3.1 (2.11BSD) 1996/1/28
+# @(#)Makefile	5.3.2 (2.11BSD) 1996/12/1
 #
 
 CFLAGS=	-O -i
-LIBC=	/lib/libc.a
 SRCS=	login.c
 OBJS=	login.o
 MAN=
 
 all: login
 
-login: ${LIBC} ${OBJS}
+login: ${OBJS}
 	${CC} -o $@ ${CFLAGS} ${OBJS} -lutil
 
 clean:

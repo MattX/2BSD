@@ -18,7 +18,7 @@ RAMMODE=1777
 
 if [ ${RAMSIZE} != 0 ]
 then
-	/etc/mkfs /dev/ram ${RAMSIZE} 1 2
+	mkfs /dev/ram ${RAMSIZE} 1 2
 fi
 
 if [ "$2" = powerfail ]
@@ -90,11 +90,11 @@ then
 fi
 
 	echo -n 'checking quotas:'	>/dev/console 2>&1
-/etc/quotacheck -a 			>/dev/console 2>&1
+	quotacheck -a 			>/dev/console 2>&1
 	echo ' done.'			>/dev/console 2>&1
-/etc/quotaon -a
+quotaon -a
 
-/etc/dev_mkdb
+dev_mkdb
 
 ps -U					>/dev/console 2>&1
 rm -f /etc/nologin
@@ -108,25 +108,25 @@ chmod 666 /dev/tty[pqrs]*
 if [ $INET = YES ]; then
 			echo 'starting system logger'	>/dev/console 2>&1
 	rm -f /dev/log
-	/etc/syslogd
+	syslogd
 fi
 
 # /etc/crash should be a symbolic link to the crash directory
 # if core dumps are to be saved.
 if [ -d /etc/crash ]; then
 	echo		'checking for core dump... '	>/dev/console 2>&1
-	/etc/savecore /etc/crash			>/dev/console 2>&1
+	savecore /etc/crash			>/dev/console 2>&1
 fi
 
-			echo preserving editor files 	>/dev/console 2>&1
-(cd /tmp; /usr/sbin/expreserve -a)
-			echo clearing /tmp 		>/dev/console 2>&1
+		echo preserving editor files 	>/dev/console 2>&1
+		(cd /tmp; /usr/sbin/expreserve -a)
+		echo clearing /tmp 		>/dev/console 2>&1
 (cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
 
 			echo -n standard daemons:	>/dev/console 2>&1
-/etc/update;		echo -n ' update'		>/dev/console 2>&1
-/etc/cron;		echo -n ' cron'			>/dev/console 2>&1
-/etc/accton /usr/adm/acct;	echo -n ' accounting'	>/dev/console 2>&1
+update;		echo -n ' update'		>/dev/console 2>&1
+cron;		echo -n ' cron'			>/dev/console 2>&1
+accton /usr/adm/acct;	echo -n ' accounting'	>/dev/console 2>&1
 			echo '.'			>/dev/console 2>&1
 
 if [ $INET = YES ]; then
@@ -135,20 +135,20 @@ if [ $INET = YES ]; then
 	# $routedflags is imported from /etc/netstart;
 	# if $routedflags == NO, routed isn't run.
 	if [ "${routedflags-NO}" != NO ]; then
-		/etc/routed $routedflags; echo -n ' routed' >/dev/console 2>&1
+		routed $routedflags; echo -n ' routed' >/dev/console 2>&1
 	fi
 
 	# $named is imported from /etc/netstart;
 	# if $named is set to something other than NO, named is run.
 	if [ "${named-NO}" != NO ]; then
-		/etc/named;		echo -n ' named'>/dev/console 2>&1
+		named;		echo -n ' named'>/dev/console 2>&1
 	fi
 	/usr/sbin/inetd;		echo -n ' inetd'>/dev/console 2>&1
 
 	# $rwhod is imported from /etc/netstart;
 	# if $rwhod is set to something other than NO, rwhod is run.
 	if [ "${rwhod}" != NO ]; then
-		/etc/rwhod;	echo -n ' rwhod'	>/dev/console 2>&1
+		rwhod;	echo -n ' rwhod'	>/dev/console 2>&1
 	fi
 	rm -f /dev/printer
 	/usr/sbin/lpd;		echo -n ' printer'	>/dev/console 2>&1

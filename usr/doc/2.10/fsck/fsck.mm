@@ -722,7 +722,7 @@ See a guru.
 .Hu "Can't open checklist file: \fBF\fP"
 The default file system checklist file
 \fBF\fP (usually
-.I /etc/checklist )
+.I /etc/fstab )
 can not be opened for reading.
 .I Fsck\^
 terminates on this error condition.

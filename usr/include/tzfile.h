@@ -1,13 +1,14 @@
 /*
- *	@(#)tzfile.h	5.2 tzfile.h 3/4/87
+ *	@(#)tzfile.h	5.2.1 (2.11BSD) 1996/11/29
  */
 
 /*
 ** Information about time zone files.
 */
 
-#define	TZDIR		"/etc/zoneinfo"	/* Time zone object file directory */
-#define	TZDEFAULT	"localtime"
+			/* Time zone object file directory */
+#define	TZDIR		"/usr/share/zoneinfo"
+#define	TZDEFAULT	"/etc/localtime"
 
 /*
 ** Each file begins with. . .

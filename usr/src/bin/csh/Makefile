@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley Software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3.2 (2.11BSD GTE) 1996/9/20
+#	@(#)Makefile	5.3.3 (2.11BSD GTE) 1996/12/1
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
@@ -19,7 +19,7 @@ RM=	-rm
 CXREF=	/usr/ucb/cxref
 VGRIND=	/usr/ucb/vgrind
 CTAGS=	/usr/ucb/ctags
-LIBES=  /lib/libc.a
+LIBES=  -lc
 SCCS=	sccs
 CPP=	/lib/cpp
 SED=	sed

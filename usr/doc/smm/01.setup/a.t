@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.t	6.1.1 (2.11BSD) 1996/10/24
+.\"	@(#)a.t	6.1.2 (2.11BSD) 1996/11/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -125,16 +125,16 @@ rm -rf tmp; mkdir tmp
 rm -rf usr; mkdir usr usr/mdec
 rm -rf sys; mkdir sys sys/floppy sys/cassette sys/consolerl
 cp $DISTROOT/etc/disktab etc
-cp $DISTROOT/etc/newfs etc; strip etc/newfs
-cp $DISTROOT/etc/mkfs etc; strip etc/mkfs
-cp $DISTROOT/etc/restore etc; strip etc/restore
+cp $DISTROOT/sbin/newfs etc; strip sbin/newfs
+cp $DISTROOT/sbin/mkfs etc; strip sbin/mkfs
+cp $DISTROOT/sbin/restore etc; strip sbin/restore
 cp $DISTROOT/etc/init etc; strip etc/init
-cp $DISTROOT/etc/mount etc; strip etc/mount
-cp $DISTROOT/etc/mknod etc; strip etc/mknod
-cp $DISTROOT/etc/fsck etc; strip etc/fsck
-cp $DISTROOT/etc/umount etc; strip etc/umount
-cp $DISTROOT/etc/arff etc; strip etc/arff
-cp $DISTROOT/etc/flcopy etc; strip etc/flcopy
+cp $DISTROOT/sbin/mount etc; strip sbin/mount
+cp $DISTROOT/sbin/mknod etc; strip sbin/mknod
+cp $DISTROOT/sbin/fsck etc; strip sbin/fsck
+cp $DISTROOT/sbin/umount etc; strip sbin/umount
+cp $DISTROOT/usr/sbin/arff etc; strip usr/sbin/arff
+cp $DISTROOT/usr/sbin/flcopy etc; strip usr/sbin/flcopy
 cp $DISTROOT/bin/mt bin; strip bin/mt
 cp $DISTROOT/bin/ls bin; strip bin/ls
 cp $DISTROOT/bin/sh bin; strip bin/sh
@@ -250,7 +250,7 @@ echo "Add dump of mini-root file system"
 eval dd if=/dev/r${miniroot} count=205 bs=20b conv=sync ${remote+'|'} \e
 	${remote-"of=$tape"} ${remote+'/usr/local/20b ">" $tape'}
 echo "Add full dump of real file system"
-/etc/${remote+r}dump 0uf $remote${remote+:}${tape} /c/nbsd
+${remote+r}dump 0uf $remote${remote+:}${tape} /c/nbsd
 echo "Add tar image of /usr"
 cd /nbsd/usr; eval tar cf ${tartape} adm bin dict doc games \e
 	guest hosts include lib local man mdec msgs new \e

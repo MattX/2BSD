@@ -14,10 +14,10 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)utmp.h	5.6 (2.11BSD) 5/9/93
+ *	@(#)utmp.h	5.6.1 (2.11BSD) 1996/11/27
  */
 
-#define	_PATH_UTMP	"/etc/utmp"
+#define	_PATH_UTMP	"/var/run/utmp"
 #define	_PATH_WTMP	"/usr/adm/wtmp"
 
 #define	UT_NAMESIZE	15
