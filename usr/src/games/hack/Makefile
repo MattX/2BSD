@@ -1,4 +1,4 @@
-#	#(@)	Makefile	1.1 (2.11BSD)	1996/3/21
+#	#(@)	Makefile	1.2 (2.11BSD)	1997/4/28
 #
 # Hack Overlay Makefile.
 
@@ -7,7 +7,8 @@ TERMLIB = -ltermlib
 
 # make hack
 GAME = hack
-GAMEDIR = /usr/games/lib/hackdir
+BINDIR = /usr/games
+LIBDIR = /usr/games/lib/hackdir
 DESTDIR =
 GAMEUID = daemon
 CFLAGS = -O
@@ -160,9 +161,11 @@ distribution: Makefile
 
 
 install: $(GAME)
-	install -o $(GAMEUID) -m 4711 $(GAME) $(DESTDIR)$(GAMEDIR)/$(GAME)
-	rm -f $(DESTDIR)/$(GAMEDIR)/bones*
-
+	install -o $(GAMEUID) -m 4711 $(GAME) $(DESTDIR)$(BINDIR)/$(GAME)
+	-rm -rf $(DESTDIR)/$(LIBDIR)
+	-mkdir -p ${DESTDIR}/${LIBDIR}
+	chown daemon ${DESTDIR}/${LIBDIR}
+	chmod 700 ${DESTDIR}/${LIBDIR}
 
 #   The make node `depend' has been commented out as the current dependency
 # list is [now] not as simple as it used to be ...  The reason for this is
