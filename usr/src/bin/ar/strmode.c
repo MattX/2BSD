@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)strmode.c	5.3 (Berkeley) 5/18/90";
+static char sccsid[] = "@(#)strmode.c	5.3.1 (2.11BSD GTE) 1/5/95";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -47,7 +47,6 @@ static char sccsid[] = "@(#)strmode.c	5.3 (Berkeley) 5/18/90";
 #define	S_IROTH	(S_IREAD >> 6)
 #define	S_IWOTH	(S_IWRITE >> 6)
 #define	S_IXOTH	(S_IEXEC >> 6)
-typedef	unsigned short mode_t;
 
 void
 strmode(mode, p)

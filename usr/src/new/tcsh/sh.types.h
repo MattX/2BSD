@@ -299,6 +299,7 @@ extern gid_t getgid(), getegid();
  *** I am open to suggestions on how to do this correctly!
  ***/
 #ifndef POSIX
+#ifndef	pdp11
 # ifndef _SIZE_T
 #  define _SIZE_T
    typedef int size_t;		/* As sun comments ??? : meaning I take it */
@@ -308,6 +309,7 @@ extern gid_t getgid(), getegid();
 #  define _PID_T
    typedef int pid_t;
 # endif /* _PID_T */
+#endif /* !pdp11 */
 
 # ifndef _SPEED_T
 #  define _SPEED_T

@@ -16,7 +16,7 @@
 #
 #
 MDIR=	/usr/man/cat1
-SRCS=	adb.1 addbib.1 apply.1 apropos.1 ar.1 as.1 at.1 atq.1 atrm.1 \
+SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
 	awk.1 basename.1 bc.1 biff.1 binmail.1 cal.1 calendar.1 cat.1 \
 	cb.1 cc.1 cd.1 checknr.1 chgrp.1 chmod.1 clear.1 cmp.1 col.1 \
 	colcrt.1 colrm.1 comm.1 compress.1 cp.1 csh.1 ctags.1 date.1 dc.1 \
@@ -31,7 +31,7 @@ SRCS=	adb.1 addbib.1 apply.1 apropos.1 ar.1 as.1 at.1 atq.1 atrm.1 \
 	more.1 mset.1 msgs.1 mt.1 mv.1 netstat.1 newaliases.1 nice.1 nm.1 
 SRCS1=	nroff.1 nslookup.1 od.1 pagesize.1 pc.1 pdx.1 pi.1 pix.1 \
 	plot.1 pmerge.1 pr.1 printenv.1 prof.1 ps.1 ptx.1 pwd.1 px.1 pxp.1 \
-	pxref.1 quota.1 ranlib.1 ratfor.1 rcp.1 rdist.1 refer.1 rev.1 \
+	pxref.1 quota.1 ratfor.1 rcp.1 rdist.1 refer.1 rev.1 \
 	rlogin.1 rm.1 rmail.1 rmdir.1 roffbib.1 rsh.1 ruptime.1 rwho.1 \
 	sccs.1 script.1 sed.1 sendbug.1 sh.1 size.1 sleep.1 soelim.1 \
 	sort.1 sortbib.1 spell.1 spline.1 split.1 strcompact.1 strings.1 \
@@ -44,7 +44,7 @@ SRCS1=	nroff.1 nslookup.1 od.1 pagesize.1 pc.1 pdx.1 pi.1 pix.1 \
 	vacation.1 vgrind.1 vi.1 vmstat.1 vwidth.1 w.1 wait.1 wall.1 wc.1 \
 	what.1 whatis.1 whereis.1 which.1 who.1 whoami.1 whois.1 window.1 \
 	write.1 xstr.1 yacc.1 yes.1
-OBJS1=	adb.0 addbib.0 apply.0 apropos.0 ar.0 as.0 at.0 atq.0 atrm.0 \
+OBJS1=	adb.0 addbib.0 apply.0 apropos.0 as.0 at.0 atq.0 atrm.0 \
 	awk.0 basename.0 bc.0 biff.0 binmail.0 cal.0 calendar.0 cat.0 \
 	cb.0 cc.0 cd.0 checknr.0 chgrp.0 chmod.0 clear.0 cmp.0 col.0 \
 	colcrt.0 colrm.0 comm.0 compress.0 cp.0 csh.0 ctags.0 date.0 dc.0 \
@@ -59,7 +59,7 @@ OBJS1=	adb.0 addbib.0 apply.0 apropos.0 ar.0 as.0 at.0 atq.0 atrm.0 \
 	more.0 mset.0 msgs.0 mt.0 mv.0 netstat.0 newaliases.0 nice.0 nm.0
 OBJS2=	nroff.0 nslookup.0 od.0 pagesize.0 pc.0 pdx.0 pi.0 pix.0 \
 	plot.0 pmerge.0 pr.0 printenv.0 prof.0 ps.0 ptx.0 pwd.0 px.0 pxp.0 \
-	pxref.0 quota.0 ranlib.0 ratfor.0 rcp.0 rdist.0 refer.0 rev.0 \
+	pxref.0 quota.0 ratfor.0 rcp.0 rdist.0 refer.0 rev.0 \
 	rlogin.0 rm.0 rmail.0 rmdir.0 roffbib.0 rsh.0 ruptime.0 rwho.0 \
 	sccs.0 script.0 sed.0 sendbug.0 sh.0 size.0 sleep.0 soelim.0 \
 	sort.0 sortbib.0 spell.0 spline.0 split.0 strcompact.0 strings.0 \
