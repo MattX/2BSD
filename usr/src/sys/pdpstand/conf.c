@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.4 (2.11BSD) 1995/07/17
+ *	@(#)conf.c	2.5 (2.11BSD) 1995/12/05
  */
 
 #include "../h/param.h"
@@ -14,6 +14,7 @@
 extern	int	xpstrategy(), xpopen(), xpclose(), xplabel();
 extern	int	brstrategy(), bropen();
 extern	int	rkstrategy(), rkopen();
+extern  int	rxstrategy(), rxopen();
 extern	int	hkstrategy(), hkopen();
 extern	int	rlstrategy(), rlopen(), rllabel();
 extern	int	sistrategy(), siopen();
@@ -23,7 +24,7 @@ extern	int	htstrategy(), htopen(), htclose(), htseek();
 extern	int	tsstrategy(), tsopen(), tsclose(), tsseek();
 extern	int	tmscpstrategy(), tmscpopen(), tmscpclose(), tmscpseek();
 
-extern	caddr_t	*XPcsr[], *BRcsr[], *RKcsr[], *HKcsr[], *RLcsr[];
+extern	caddr_t	*XPcsr[], *BRcsr[], *RKcsr[], *HKcsr[], *RLcsr[], *RXcsr[];
 extern	caddr_t	*SIcsr[], *RAcsr[], *TMcsr[], *HTcsr[], *TScsr[], *TMScsr[];
 
 /*
@@ -48,7 +49,7 @@ struct devsw devsw[] = {
 	nullsys, nullsys,
 	"rl",	rlstrategy,	rlopen,		nullsys,	RLcsr, /* 7 */
 	rllabel, nullsys,
-	"rx",	nullsys,	nullsys,	nullsys,	0,     /* 8 */
+	"rx",	rxstrategy,	rxopen,		nullsys,	RXcsr, /* 8 */
 	nullsys, nullsys,
 	"si",	sistrategy,	siopen,		nullsys,	SIcsr, /* 9 */
 	nullsys, nullsys,

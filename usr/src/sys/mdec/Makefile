@@ -3,10 +3,11 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	1.1 (2.11BSD GTE) 4/8/94
+#	@(#)Makefile	1.2 (2.11BSD GTE) 1995/12/05
 #
 ALL=	bruboot dvhpuboot hkuboot hpuboot rauboot rkuboot rluboot \
-	rm03uboot rm05uboot si51uboot si94uboot si95uboot
+	rm03uboot rm05uboot si51uboot si94uboot si95uboot rx02uboot \
+	rx01uboot
 
 all: ${ALL}
 
@@ -30,6 +31,8 @@ rm05uboot:	rm05uboot.s
 si51uboot:	si51uboot.s
 si94uboot:	si94uboot.s
 si95uboot:	si95uboot.s
+rx02uboot:	rx02uboot.s
+rx01uboot:	rx01uboot.s
 
 clean:
 	rm -f x.s a.out b.out ${ALL}

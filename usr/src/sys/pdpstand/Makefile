@@ -17,6 +17,7 @@
 #	to install /sys/pdpdist/dtab (or /etc/dtab.save) as ${ROOT}/etc/dtab 
 #	so that the GENERIC kernel can find the tape device.
 #
+# 1995/12/05 - add RX02 driver.
 # 1995/06/05 - add disklabel program to Makefile.
 # 1995/06/01 - use split I/D for icheck and restor.
 # 1995/05/30 - Begin adding disklabel support.
@@ -41,7 +42,7 @@ CFLAGS=	-O ${DEFS}
 BOOT=	M.o boot.o ubmapset.o
 DRIVERS=prf.o sys.o label.o \
 	ht.o tm.o ts.o tmscp.o \
-	xp.o rk.o rl.o br.o hk.o si.o ra.o
+	xp.o rk.o rl.o rx.o br.o hk.o si.o ra.o
 
 ALL=	mtboot boot disklabel mkfs restor icheck maketape toyset
 
@@ -167,6 +168,7 @@ mtboot.o:	mtboot.s
 prf.o:		prf.c
 rk.o:		rk.c
 rl.o:		rl.c
+rx.c:		rx.c
 br.o:		br.c
 srt0.o:		srt0.s
 srt0-i.o:	srt0.s
