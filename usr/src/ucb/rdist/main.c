@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD) 1995/05/09";
+static char sccsid[] = "@(#)main.c	5.1.2 (2.11BSD) 1997/07/03";
 #endif
 
 #include <paths.h>
@@ -52,6 +52,11 @@ main(argc, argv)
 	register char *arg;
 	int cmdargs = 0;
 	char *dhosts[NHOSTS], **hp = dhosts;
+	char ebuf[128], obuf[256], ibuf[256];
+
+	setbuffer(stdin, ibuf, sizeof ibuf);
+	setbuffer(stdout, obuf, sizeof obuf);
+	setbuffer(stderr, ebuf, sizeof ebuf);
 
 	pw = getpwuid(userid = getuid());
 	if (pw == NULL) {

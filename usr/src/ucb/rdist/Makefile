@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.3 (2.11BSD GTE) 1995/05/11
+#	@(#)Makefile	5.1.4 (2.11BSD GTE) 1997/7/3
 #
 DESTDIR=
 SEPFLAG= -i
@@ -21,7 +21,7 @@ CFLAGS= -O
 	rm -f x.c
 
 rdist:	${OBJS} strings.o
-	${CC} ${SEPFLAG} -o rdist ${OBJS} strings.o
+	${CC} ${SEPFLAG} -o rdist ${OBJS} strings.o -lstubs
 
 ${OBJS}:  defs.h
 
