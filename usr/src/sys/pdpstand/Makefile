@@ -1,4 +1,4 @@
-#	Makefile	(2.11BSD)	2.2	1997/1/24
+#	Makefile	(2.11BSD)	2.3	1997/8/11
 #
 #	The limitations on program size have been removed.  The addition
 #	of disklabel support pushed 'restor' over the limit.  Even with
@@ -13,6 +13,7 @@
 #	It is still possible to hand craft a version of the utilities by leaving
 #	out all but the necessary drivers. 
 #
+# 1997/8/11  - add -O to maketape and makesimtape compile commands
 # 1997/1/24  - remove 'skel' from lists of directories.
 # 1997/1/18  - add 'makesimtape' target.
 # 1996/10/28 - added usr/sbin, usr/libexec and corresponding src directories.
@@ -139,10 +140,10 @@ disklabel: srt0.o conf.o libsa.a disklabel.o displaylab.o
 	ld -X -o $@ srt0.o conf.o $@.o displaylab.o libsa.a -lc
 
 maketape: maketape.c
-	cc -o $@ maketape.c
+	cc -O -o $@ maketape.c
 
 makesimtape: makesimtape.c
-	cc -o $@ makesimtape.c
+	cc -O -o $@ makesimtape.c
 
 toyset: toyset.o srt0.o conf.o libsa.a
 	ld -X -o $@ srt0.o conf.o $@.o libsa.a -lc

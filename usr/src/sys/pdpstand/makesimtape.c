@@ -1,7 +1,12 @@
 /*
- *	@(#)makesimtape.c	1.0 (2.11BSD) 1997/1/17
+ *	@(#)makesimtape.c	2.0 (2.11BSD) 1997/8/7
  *		Hacked 'maketape.c' to write a file in a format suitable for
- *		use with Bob Supnik's PDP-11 simulator's emulated tape driver.
+ *		use with Bob Supnik's PDP-11 simulator (V2.3) emulated tape 
+ *		driver.
+ *
+ * 	NOTE: a PDP-11 has to flip the shorts within the long when writing out
+ *	      the record size.  Seems a PDP-11 is neither a little-endian
+ *	      machine nor a big-endian one.
  */
 
 #include <stdio.h>
@@ -16,16 +21,18 @@
 
 	char	buf[MAXB * 512];
 	char	name[50];
-	int	blksz, recsz;
+	long	recsz, flipped, trl();
+	int	blksz;
 	int	mt, fd, cnt;
-	struct	iovec	iovec[2];
+	struct	iovec	iovec[3];
+	struct	iovec	tmark[2];
 	void	usage();
 
 main(argc, argv)
 	int argc;
 	char *argv[];
 	{
-	int i, j = 0, k = 0;
+	int i, j = 0, k = 0, zero = 0;
 	register char	*outfile = NULL, *infile = NULL;
 	FILE *mf;
 	struct	stat	st;
@@ -66,6 +73,9 @@ main(argc, argv)
 		err(1, "Can not open %s", infile);
 		/* NOTREACHED*/
 
+	tmark[0].iov_len = sizeof (long);
+	tmark[0].iov_base = (char *)&zero;
+
 	while	(1)
 		{
 		if	((i = fscanf(mf, "%s %d", name, &blksz))== EOF)
@@ -80,15 +90,20 @@ main(argc, argv)
 			exit(1);
 			}
 		recsz = blksz * 512;	/* convert to bytes */
-		iovec[0].iov_len = sizeof (int);
+		iovec[0].iov_len = sizeof (recsz);
+#ifdef	pdp11
+		iovec[0].iov_base = (char *)&flipped;
+#else
 		iovec[0].iov_base = (char *)&recsz;
-		iovec[1].iov_len = recsz;
+#endif
+		iovec[1].iov_len = (int)recsz;
 		iovec[1].iov_base = buf;
+		iovec[2].iov_len =  iovec[0].iov_len;
+		iovec[2].iov_base = iovec[0].iov_base;
 
 		if	(strcmp(name, "*") == 0)
 			{
-			recsz = 0;
-			if	(writev(mt, iovec, 1) < 0)
+			if	(writev(mt, tmark, 1) < 0)
 				warn(1, "writev of pseudo tapemark failed");
 			k++;
 			continue;
@@ -108,18 +123,24 @@ main(argc, argv)
 		 *  with tape files)
 		 */
 
-		while	((cnt=read(fd, buf, recsz)) == recsz)
+		while	((cnt=read(fd, buf, (int)recsz)) == (int)recsz)
 			{
 			j++;
-			if	(writev(mt, iovec, 2) < 0)
+#ifdef	pdp11
+			flipped = trl(recsz);
+#endif
+			if	(writev(mt, iovec, 3) < 0)
 				err(1, "writev #1");
 				/* NOTREACHED */
 			}
 		if	(cnt > 0)
 			{
 			j++;
-			bzero(buf + cnt, recsz - cnt);
-			if	(writev(mt, iovec, 2) < 0)
+			bzero(buf + cnt, (int)recsz - cnt);
+#ifdef	pdp11
+			flipped = trl(recsz);
+#endif
+			if	(writev(mt, iovec, 3) < 0)
 				err(1, "writev #2");
 				/* NOTREACHED */
 			}
@@ -128,9 +149,25 @@ main(argc, argv)
 /*
  * Write two tape marks to simulate EOT
 */
-	recsz = 0;
-	writev(mt, iovec, 1);
-	writev(mt, iovec, 1);
+	writev(mt, tmark, 1);
+	writev(mt, tmark, 1);
+	}
+
+long
+trl(l)
+	long	l;
+	{
+	union	{
+		long	l;
+		short	s[2];
+		} foo;
+	register short	x;
+
+	foo.l = l;
+	x = foo.s[0];
+	foo.s[0] = foo.s[1];
+	foo.s[1] = x;
+	return(foo.l);
 	}
 
 void

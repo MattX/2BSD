@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	1.9 (GTE) 1996/11/16
+.\"	@(#)2.t	1.10 (GTE) 1997/8/11
 .\"
 .ds lq ``
 .ds rq ''
@@ -93,12 +93,12 @@ address):
 .DS
 .TS
 l l.
-012701	(mov $unit, r1)
+012700	(mov $unit, r0)
 000000	(normally unit 0)
-012700	(mov $172526, r0)
+012701	(mov $172526, r1)
 172526
-010040	(mov r0, -(r0))
-012740	(mov $60003, -(r0))
+010141	(mov r1, -(r1))
+012741	(mov $60003, -(r1))
 060003	(if unit 1 use 060403, etc)
 000777	(br .)
 .TE
@@ -140,7 +140,10 @@ l l.
 .TE
 .DE
 When this is executed, the first block of the tape will be read into memory.
-Halt the CPU and restart at location 0.
+Halt the CPU and restart at location 0.  The register \fBr1\fP \fBMUST\fP
+be left pointing at the device \fIcsr\fP.  For the default/first TM or TS
+this is 0172522.  The register \fBr0\fP \fBMUST\fP contain the unit number
+(usually 0).
 .PP
 The console should type
 .DS
