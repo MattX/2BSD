@@ -1,0 +1,135 @@
+.\" Copyright (c) 1986 Regents of the University of California.
+.\" All rights reserved.  The Berkeley software License Agreement
+.\" specifies the terms and conditions for redistribution.
+.\"
+.\"	@(#)tmscp.4	1.1 (2.11BSD) 7/28/93
+.\"
+.TH TMSCP 4 "July 28, 1993"
+.UC 2
+.SH NAME
+tmscp \- DEC TMSCP magtape interface
+.SH SYNOPSIS
+.ft B
+.nf
+/sys/conf/SYSTEM:
+
+        NTMSCP       1     # TMSCP controllers
+        NTMS         1     # TMSCP drives
+        TMSCP_DEBUG  NO    # debugging code in in TMSCP drive (EXPENSIVE)
+
+/etc/dtab:
+.ta .5i +\w'#Name 'u +\w'Unit# 'u +\w'177777 'u +\w'Vector 'u +\w'Br 'u +\w'xxxxxxx 'u +\w'xxxxxxx 'u
+	#Name	Unit#	Addr	Vector	Br	Handler(s)		# Comments
+	tms	?	174500	260	5	tmsintr		# tmscp driver
+	tms	?	164334	0	5	tmsintr		# alternate
+.DT
+
+major device number(s):
+
+       raw: 23
+       block: 12
+
+minor device encoding:
+
+bit:    |7 | 6 | 5 | 4 | 3 | 2 | 1 | 0|
+        -------------------------------
+         C   C   X   D   D   N   U   U
+
+       C = Controller # (max of 4 controllers)
+       D = Density
+       N = Norewind on close
+       U = Unit (drive) number (max of 4 drives per controller)
+.fi
+.ft R
+.SH DESCRIPTION
+Tape controllers compatible with the DEC
+Tape Mass Storage Control Protocol (TMSCP) architecture
+such as the TU81 and the TK50
+provide a standard tape drive interface 
+as described in
+.IR mtio (4).
+The controller communicates with the host through a packet
+oriented protocol.
+Consult the file
+.IR < pdp/tmscp.h >
+for a detailed 
+description of this protocol.
+.SH FILES
+.ta \w'/dev/MAKEDEV.local  'u
+/dev/MAKEDEV	script to create special files
+.br
+/dev/MAKEDEV.local	script to localize special files
+.DT
+.PP
+The vector specified in \fB/etc/dtab\fP may be given as an explicit
+value in which case \fIautoconfig(8)\fP will attempt to allocate the 
+specified vector.  The vector may also be (if the system is at revision
+level 100 or higher) given as \fB0\fP - in which case \fIautoconfig(8)\fP
+will request the kernel to allocate the next available vector (beginning
+at 01000 and proceeding downward) which \fIautoconfig(8)\fP will
+initialize.
+.PP
+Multiple drives on a single controller are supported.  Multiple controllers
+are also supported.
+.PP
+Density selection is specified by bits 3 and 4 in the minor device number.
+A value of 0 requests the lowest density of a drive and a value of 3
+the highest density.  Values of 1 and 2 are essentially equivalent
+(because because TMSCP only defines values for three densities) and
+request the middle density (for tri-density tape drives).
+.SH DIAGNOSTICS
+.BR "tms controller failed to init" .
+The controller initialization procedure failed.
+This probably indicates a hardware problem.
+.PP
+.BR "tms%d: sa 0%o, state %d" .
+(Additional status information given after a hard I/O error.)
+The values of the controller status register and the internal
+driver state are printed.
+.PP
+.BR "tms%d: random interrupt ignored" .
+An unexpected interrupt was received (e.g. when no i/o was
+pending).  The interrupt is ignored.
+.PP
+.BR "tms%d:  interrupt in unknown state %d ignored" .
+An interrupt was received when the driver was in an unknown
+internal state.  Indicates a hardware problem or a driver bug.
+.PP
+.BR "tms%d:  fatal error (0%o)" .
+The controller detected a ``fatal error'' in the status returned
+to the host.  The contents of the status register are displayed.
+.PP
+.BR OFFLINE .
+(Additional status information given after a hard I/O error.)
+A hard I/O error occurred because the drive was not on-line.
+.PP
+The following errors are interpretations of TMSCP error messages
+returned by the controller to the host.
+Each is preceded by either
+.B "tms%d: hard error"
+or
+.BR "tms%d: soft error" .
+.PP
+.BR "controller error, event 0%o" .
+.PP
+.BR "host memory access error, event 0%o, addr 0%o" .
+.PP
+.BR "tape transfer error, unit %d, grp 0x%x, event 0%o" .
+.PP
+.BR "STI error, unit %d, event 0%o" .
+.PP
+.BR "STI Drive Error Log, unit %d, event 0%o" .
+.PP
+.BR "STI Formatter Error Log, unit %d, event 0%o" .
+.PP
+.BR "unknown error, unit %d, format 0%o, event 0%o" .
+.SH "SEE ALSO"
+mt(1), tar(1), tp(1), mtio(4), tm(4), ts(4), ut(4), dmesg(8), dtab(5),
+autoconfig(8)
+.SH BUGS
+If any non-data error is encountered on non-raw tape, it refuses to do anything
+more until closed.
+.PP
+On quad-density tape drives (the Kennedy 9662 for example) the middle density 
+of 3200bpi is not host selectable (it can be manually selected from the
+drive's front panel) because TMSCP only defines 800, 1600 and 6250bpi.

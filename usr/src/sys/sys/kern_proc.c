@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_proc.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_proc.c	2.0 (2.11BSD GTE) 3/12/93
  */
 
 #include "param.h"
@@ -58,9 +58,9 @@ struct proc *
 pfind(pid)
 	register int pid;
 {
-	register struct proc *p;
+	register struct proc *p = pidhash[PIDHASH(pid)];
 
-	for (p = &proc[pidhash[PIDHASH(pid)]]; p != &proc[0]; p = &proc[p->p_idhash])
+	for (; p; p = p->p_hash)
 		if (p->p_pid == pid)
 			return (p);
 	return ((struct proc *)0);

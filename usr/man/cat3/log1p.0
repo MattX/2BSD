@@ -5,32 +5,32 @@ EXP(3M)             UNIX Programmer's Manual		  EXP(3M)
 
 
 
-NNAAMMEE
+NAME
      exp, expm1, log, log10, log1p, pow - exponential, logarithm,
      power
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee eexxpp((xx))
-     ddoouubbllee xx;;
+     double exp(x)
+     double x;
 
-     ddoouubbllee eexxppmm11((xx))
-     ddoouubbllee xx;;
+     double expm1(x)
+     double x;
 
-     ddoouubbllee lloogg((xx))
-     ddoouubbllee xx;;
+     double log(x)
+     double x;
 
-     ddoouubbllee lloogg1100((xx))
-     ddoouubbllee xx;;
+     double log10(x)
+     double x;
 
-     ddoouubbllee lloogg11pp((xx))
-     ddoouubbllee xx;;
+     double log1p(x)
+     double x;
 
-     ddoouubbllee ppooww((xx,,yy))
-     ddoouubbllee xx,,yy;;
+     double pow(x,y)
+     double x,y;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Exp returns the exponential function of x.
 
      Expm1 returns exp(x)-1 accurately even for tiny x.
@@ -43,7 +43,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      Pow(x,y) returns x**y.
 
-EERRRROORR ((dduuee ttoo RRoouunnddooffff eettcc..))
+ERROR (due to Roundoff etc.)
      exp(x), log(x), expm1(x) and log1p(x) are accurate to within
      an _u_l_p, and log10(x) to within about 2 _u_l_ps; an _u_l_p is one
      _Unit in the _Last _Place.  The error in pow(x,y) is below
@@ -60,7 +60,7 @@ EERRRROORR ((dduuee ttoo RRoouunnddooffff eettcc..))
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 
@@ -71,7 +71,7 @@ EXP(3M)             UNIX Programmer's Manual		  EXP(3M)
 
 
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Exp, expm1 and pow return the reserved operand on a VAX when
      the correct value would overflow, and they set _e_r_r_n_o to
      ERANGE.  Pow(x,y) returns the reserved operand on a VAX and
@@ -80,7 +80,7 @@ DDIIAAGGNNOOSSTTIICCSS
      On a VAX, _e_r_r_n_o is set to EDOM and the reserved operand is
      returned by log unless x > 0, by log1p unless x > -1.
 
-NNOOTTEESS
+NOTES
      The functions exp(x)-1 and log(1+x) are called expm1 and
      logp1 in BASIC on the Hewlett-Packard HP-71B and APPLE
      Macintosh, EXP1 and LN1 in Pascal, exp1 and log1 in C on
@@ -126,7 +126,7 @@ NNOOTTEESS
 
 
 
-Printed 12/28/88	  May 27, 1986				2
+Printed 1/9/94		  May 27, 1986				2
 
 
 
@@ -137,10 +137,10 @@ EXP(3M)             UNIX Programmer's Manual		  EXP(3M)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      math(3M), infnan(3M)
 
-AAUUTTHHOORR
+AUTHOR
      Kwok-Choi Ng, W. Kahan
 
 
@@ -192,7 +192,7 @@ AAUUTTHHOORR
 
 
 
-Printed 12/28/88	  May 27, 1986				3
+Printed 1/9/94		  May 27, 1986				3
 
 
 

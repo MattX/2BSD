@@ -13,5 +13,7 @@ aculib.a: ${OBJS}
 
 ${OBJS}: ../uucp.h ../condevs.h
 
+install: aculib.a
+
 clean:
 	rm -f *.o core errs  aculib.a

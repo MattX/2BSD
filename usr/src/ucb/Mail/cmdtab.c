@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)cmdtab.c	5.3 (Berkeley) 9/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cmdtab.c	5.11 (Berkeley) 6/1/90";
+#endif
 
 #include "def.h"
 
@@ -17,13 +44,14 @@ static char *sccsid = "@(#)cmdtab.c	5.3 (Berkeley) 9/15/85";
  */
 
 extern int type(), preserve(), delete(), undelete(), next(), shell(), schdir();
-extern int save(), help(), headers(), pdot(), strace(), respond(), editor();
-extern int edstop(), rexit(), pcmdlist(), sendmail(), from(), copycmd();
+extern int save(), help(), headers(), pdot(), respond(), editor();
+extern int quitcmd(), rexit(), pcmdlist(), sendmail(), from(), copycmd();
 extern int messize(), psalloc(), deltype(), unset(), set(), source();
 extern int pversion(), group(), top(), core(), null(), stouch(), visual();
 extern int swrite(), dosh(), file(), echo(), Respond(), scroll(), ifcmd();
 extern int elsecmd(), endifcmd(), mboxit(), clobber(), alternates();
-extern int local(), folders(), igfield(), Type(), retfield(), more(), More();
+extern int folders(), igfield(), Type(), retfield(), more(), More();
+extern int saveigfield(), saveretfield();
 extern int unread();	/* , Header(); */
 
 struct cmd cmdtab[] = {
@@ -49,15 +77,12 @@ struct cmd cmdtab[] = {
 	"More",		More,		MSGLIST,	0,	MMNDEL,
 	"Page",		More,		MSGLIST,	0,	MMNDEL,
 	"unread",	unread,		MSGLIST,	0,	MMNDEL,
-	"Unread",	unread,		MSGLIST,	0,	MMNDEL,
-	"new",		unread,		MSGLIST,	0,	MMNDEL,
-	"New",		unread,		MSGLIST,	0,	MMNDEL,
 	"!",		shell,		I|STRLIST,	0,	0,
 	"copy",		copycmd,	M|STRLIST,	0,	0,
-	"chdir",	schdir,		M|STRLIST,	0,	0,
-	"cd",		schdir,		M|STRLIST,	0,	0,
+	"chdir",	schdir,		M|RAWLIST,	0,	1,
+	"cd",		schdir,		M|RAWLIST,	0,	1,
 	"save",		save,		STRLIST,	0,	0,
-	"source",	source,		M|STRLIST,	0,	0,
+	"source",	source,		M|RAWLIST,	1,	1,
 	"set",		set,		M|RAWLIST,	0,	1000,
 	"shell",	dosh,		I|NOLIST,	0,	0,
 	"version",	pversion,	M|NOLIST,	0,	0,
@@ -66,7 +91,7 @@ struct cmd cmdtab[] = {
 	"from",		from,		MSGLIST,	0,	MMNORM,
 	"file",		file,		T|M|RAWLIST,	0,	1,
 	"folder",	file,		T|M|RAWLIST,	0,	1,
-	"folders",	folders,	T|M|RAWLIST,	0,	1,
+	"folders",	folders,	T|M|NOLIST,	0,	0,
 	"?",		help,		M|NOLIST,	0,	0,
 	"z",		scroll,		M|STRLIST,	0,	0,
 	"headers",	headers,	MSGLIST,	0,	MMNDEL,
@@ -78,9 +103,8 @@ struct cmd cmdtab[] = {
 	"respond",	respond,	R|I|MSGLIST,	0,	MMNDEL,
 	"edit",		editor,		I|MSGLIST,	0,	MMNORM,
 	"echo",		echo,		M|RAWLIST,	0,	1000,
-	"quit",		edstop,		NOLIST, 	0,	0,
+	"quit",		quitcmd,	NOLIST,		0,	0,
 	"list",		pcmdlist,	M|NOLIST,	0,	0,
-	"local",	local,		M|RAWLIST,	0,	1000,
 	"xit",		rexit,		M|NOLIST,	0,	0,
 	"exit",		rexit,		M|NOLIST,	0,	0,
 	"size",		messize,	MSGLIST,	0,	MMNDEL,
@@ -92,6 +116,9 @@ struct cmd cmdtab[] = {
 	"ignore",	igfield,	M|RAWLIST,	0,	1000,
 	"discard",	igfield,	M|RAWLIST,	0,	1000,
 	"retain",	retfield,	M|RAWLIST,	0,	1000,
+	"saveignore",	saveigfield,	M|RAWLIST,	0,	1000,
+	"savediscard",	saveigfield,	M|RAWLIST,	0,	1000,
+	"saveretain",	saveretfield,	M|RAWLIST,	0,	1000,
 /*	"Header",	Header,		STRLIST,	0,	1000,	*/
 	"core",		core,		M|NOLIST,	0,	0,
 	"#",		null,		M|NOLIST,	0,	0,

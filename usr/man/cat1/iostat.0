@@ -5,13 +5,13 @@ IOSTAT(1)	    UNIX Programmer's Manual		IOSTAT(1)
 
 
 
-NNAAMMEE
+NAME
      iostat - report I/O statistics
 
-SSYYNNOOPPSSIISS
-     iioossttaatt [ drives ] [ interval [ count ] ]
+SYNOPSIS
+     iostat [ drives ] [ interval [ count ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _I_o_s_t_a_t iteratively reports the number of characters read and
      written to terminals per second, and, for each disk, the
      number of transfers per second, kilobytes transferred per
@@ -45,11 +45,11 @@ DDEESSCCRRIIPPTTIIOONN
      specific drives, their names may be supplied on the command
      line.
 
-FFIILLEESS
+FILES
      /dev/kmem
      /vmunix
 
-SSEEEE AALLSSOO
+SEE ALSO
      vmstat(1)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

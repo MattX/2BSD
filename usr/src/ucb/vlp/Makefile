@@ -10,7 +10,7 @@ OBJS=	vlp.o
 vlp: ${OBJS}
 	${CC} -o vlp ${SEPFLAG} ${OBJS}
 
-install:
+install: vlp
 	install -s vlp ${DESTDIR}/usr/ucb
 
 clean:

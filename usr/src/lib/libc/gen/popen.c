@@ -1,80 +1,130 @@
 /*
- * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1988 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * This code is derived from software written by Ken Arnold and
+ * published in UNIX Review, Vol. 6, No. 8.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)popen.c	5.4 (Berkeley) 3/26/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)popen.c	5.15 (Berkeley) 2/23/91";
+#endif /* LIBC_SCCS and not lint */
 
+#include <errno.h>
+#include <sys/signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <stdio.h>
-#include <signal.h>
 
-#define	tst(a,b)	(*mode == 'r'? (b) : (a))
-#define	RDR	0
-#define	WTR	1
-
-extern	char *malloc();
-
-static	int *popen_pid;
-static	int nfiles;
+static int *pids;
+extern int errno;
 
 FILE *
-popen(cmd,mode)
-	char *cmd;
-	char *mode;
+popen(program, type)
+	char *program;
+	register char *type;
 {
-	int p[2];
-	int myside, hisside, pid;
+	register FILE *iop;
+	int pdes[2], fds, pid;
 
-	if (nfiles <= 0)
-		nfiles = getdtablesize();
-	if (popen_pid == NULL) {
-		popen_pid = (int *)malloc(nfiles * sizeof *popen_pid);
-		if (popen_pid == NULL)
+	if (*type != 'r' && *type != 'w' || type[1])
+		return (NULL);
+
+	if (pids == NULL) {
+		if ((fds = getdtablesize()) <= 0)
 			return (NULL);
-		for (pid = 0; pid < nfiles; pid++)
-			popen_pid[pid] = -1;
+		if ((pids = (int *)malloc((u_int)(fds * sizeof(int)))) == NULL)
+			return (NULL);
+		bzero((char *)pids, fds * sizeof(int));
 	}
-	if (pipe(p) < 0)
+	if (pipe(pdes) < 0)
 		return (NULL);
-	myside = tst(p[WTR], p[RDR]);
-	hisside = tst(p[RDR], p[WTR]);
-	if ((pid = vfork()) == 0) {
-		/* myside and hisside reverse roles in child */
-		close(myside);
-		if (hisside != tst(0, 1)) {
-			dup2(hisside, tst(0, 1));
-			close(hisside);
+	switch (pid = vfork()) {
+	case -1:			/* error */
+		(void) close(pdes[0]);
+		(void) close(pdes[1]);
+		return (NULL);
+		/* NOTREACHED */
+	case 0:				/* child */
+		if (*type == 'r') {
+			if (pdes[1] != fileno(stdout)) {
+				(void) dup2(pdes[1], fileno(stdout));
+				(void) close(pdes[1]);
+			}
+			(void) close(pdes[0]);
+		} else {
+			if (pdes[0] != fileno(stdin)) {
+				(void) dup2(pdes[0], fileno(stdin));
+				(void) close(pdes[0]);
+			}
+			(void) close(pdes[1]);
 		}
-		execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+		execl("/bin/sh", "sh", "-c", program, NULL);
 		_exit(127);
+		/* NOTREACHED */
 	}
-	if (pid == -1) {
-		close(myside);
-		close(hisside);
-		return (NULL);
+	/* parent; assume fdopen can't fail...  */
+	if (*type == 'r') {
+		iop = fdopen(pdes[0], type);
+		(void) close(pdes[1]);
+	} else {
+		iop = fdopen(pdes[1], type);
+		(void) close(pdes[0]);
 	}
-	popen_pid[myside] = pid;
-	close(hisside);
-	return (fdopen(myside, mode));
+	pids[fileno(iop)] = pid;
+	return (iop);
 }
 
-pclose(ptr)
-	FILE *ptr;
+int
+pclose(iop)
+	FILE *iop;
 {
-	int child, pid, status;
+	register int fdes;
 	long omask;
+	union wait pstat;
+	register int pid;
 
-	child = popen_pid[fileno(ptr)];
-	popen_pid[fileno(ptr)] = -1;
-	fclose(ptr);
-	if (child == -1)
+	/*
+	 * pclose returns -1 if stream is not associated with a
+	 * `popened' command, if already `pclosed', or waitpid
+	 * returns an error.
+	 */
+	if (pids == NULL || pids[fdes = fileno(iop)] == 0)
 		return (-1);
+	(void) fclose(iop);
 	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
-	while ((pid = wait(&status)) != child && pid != -1)
-		;
+	do {
+		pid = waitpid(pids[fdes], (int *) &pstat, 0);
+	} while (pid == -1 && errno == EINTR);
 	(void) sigsetmask(omask);
-	return (pid == -1 ? -1 : status);
+	pids[fdes] = 0;
+	return (pid == -1 ? -1 : pstat.w_status);
 }

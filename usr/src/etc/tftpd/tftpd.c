@@ -1,22 +1,29 @@
 /*
  * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that: (1) source distributions retain this entire copyright
+ * notice and comment, and (2) distributions including binaries display
+ * the following acknowledgement:  ``This product includes software
+ * developed by the University of California, Berkeley and its contributors''
+ * in the documentation or other materials provided with the distribution
+ * and in all advertising materials mentioning features or use of this
+ * software. Neither the name of the University nor the names of its
+ * contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)tftpd.c	5.6 (Berkeley) 5/13/86";
-#endif not lint
-
-#ifdef	BSD2_10
-#define	timeoutbuf	to_buf
-#endif
+static char sccsid[] = "@(#)tftpd.c	5.12.1 (2.11BSD GTE) 1/1/94";
+#endif /* not lint */
 
 /*
  * Trivial file transfer protocol server.
@@ -29,18 +36,19 @@ static char sccsid[] = "@(#)tftpd.c	5.6 (Berkeley) 5/13/86";
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/signal.h>
 
 #include <netinet/in.h>
 
 #include <arpa/tftp.h>
 
-#include <signal.h>
+#include <netdb.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
-#include <netdb.h>
-#include <setjmp.h>
 #include <syslog.h>
+#include <string.h>
 
 #define	TIMEOUT		5
 
@@ -56,12 +64,19 @@ char	ackbuf[PKTSIZE];
 struct	sockaddr_in from;
 int	fromlen;
 
-main()
+#define MAXARG	4
+char	*dirs[MAXARG+1];
+
+main(ac, av)
+	char **av;
 {
 	register struct tftphdr *tp;
-	register int n;
+	register int n = 0;
 	int on = 1;
 
+	ac--; av++;
+	while (ac-- > 0 && n < MAXARG)
+		dirs[n++] = *av++;
 	openlog("tftpd", LOG_PID, LOG_DAEMON);
 	if (ioctl(0, FIONBIO, &on) < 0) {
 		syslog(LOG_ERR, "ioctl(FIONBIO): %m\n");
@@ -224,6 +239,9 @@ FILE *file;
  * have no uid or gid, for now require
  * file to exist and be publicly
  * readable/writable.
+ * If we were invoked with arguments
+ * from inetd then the file must also be
+ * in one of the given directory prefixes.
  * Note also, full path name must be
  * given as we have no login directory.
  */
@@ -233,8 +251,20 @@ validate_access(filename, mode)
 {
 	struct stat stbuf;
 	int	fd;
+	char *cp, **dirp;
 
 	if (*filename != '/')
+		return (EACCESS);
+	/*
+	 * prevent tricksters from getting around the directory restrictions
+	 */
+	for (cp = filename + 1; *cp; cp++)
+		if(*cp == '.' && strncmp(cp-1, "/../", 4) == 0)
+			return(EACCESS);
+	for (dirp = dirs; *dirp; dirp++)
+		if (strncmp(filename, *dirp, strlen(*dirp)) == 0)
+			break;
+	if (*dirp==0 && dirp!=dirs)
 		return (EACCESS);
 	if (stat(filename, &stbuf) < 0)
 		return (errno == ENOENT ? ENOTFOUND : EACCESS);
@@ -437,7 +467,6 @@ nak(error)
 	register struct tftphdr *tp;
 	int length;
 	register struct errmsg *pe;
-	extern char *sys_errlist[];
 
 	tp = (struct tftphdr *)buf;
 	tp->th_opcode = htons((u_short)ERROR);
@@ -446,7 +475,7 @@ nak(error)
 		if (pe->e_code == error)
 			break;
 	if (pe->e_code < 0) {
-		pe->e_msg = sys_errlist[error - 100];
+		pe->e_msg = strerror(error - 100);
 		tp->th_code = EUNDEF;   /* set 'undef' errorcode */
 	}
 	strcpy(tp->th_msg, pe->e_msg);

@@ -5,24 +5,24 @@ SHUTDOWN(2)	    UNIX Programmer's Manual	      SHUTDOWN(2)
 
 
 
-NNAAMMEE
+NAME
      shutdown - shut down part of a full-duplex connection
 
-SSYYNNOOPPSSIISS
-     sshhuuttddoowwnn((ss,, hhooww))
-     iinntt ss,, hhooww;;
+SYNOPSIS
+     shutdown(s, how)
+     int s, how;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _s_h_u_t_d_o_w_n call causes all or part of a full-duplex con-
      nection on the socket associated with _s to be shut down.  If
      _h_o_w is 0, then further receives will be disallowed.  If _h_o_w
      is 1, then further sends will be disallowed.  If _h_o_w is 2,
      then further sends and receives will be disallowed.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      A 0 is returned if the call succeeds, -1 if it fails.
 
-EERRRROORRSS
+ERRORS
      The call succeeds unless:
 
      [EBADF]	    _S is not a valid descriptor.
@@ -31,7 +31,7 @@ EERRRROORRSS
 
      [ENOTCONN]     The specified socket is not connected.
 
-SSEEEE AALLSSOO
+SEE ALSO
      connect(2), socket(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

@@ -1,13 +1,9 @@
-#ifndef lint
-static char *sccsid = "@(#)lookbib.c	4.4 (Berkeley) 2/15/84";
+#if	defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)lookbib.c	4.4.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef BSD2_10
-#define instructions	instrs
-#endif BSD2_10
 
 main(argc, argv)	/* look in biblio for record matching keywords */
 int argc;

@@ -12,17 +12,13 @@ static char sccsid[] = "@(#)readdir.c	5.2 (Berkeley) 3/9/86";
 #include <sys/dir.h>
 
 /*
- * read a V7 directory entry and present it as a BSD4.X entry.
- */
-
-/*
  * get next entry in a directory.
  */
 struct direct *
 readdir(dirp)
 	register DIR *dirp;
 {
-	register struct v7direct *dp;
+	register struct direct *dp;
 
 	for (;;) {
 		if (dirp->dd_loc == 0) {
@@ -35,19 +31,13 @@ readdir(dirp)
 			dirp->dd_loc = 0;
 			continue;
 		}
-		dp = (struct v7direct *)(dirp->dd_buf + dirp->dd_loc);
-		dirp->dd_loc += sizeof(struct v7direct);
+		dp = (struct direct *)(dirp->dd_buf + dirp->dd_loc);
+		if (dp->d_reclen <= 0 ||
+		    dp->d_reclen > DIRBLKSIZ + 1 - dirp->dd_loc)
+			return NULL;
+		dirp->dd_loc += dp->d_reclen;
 		if (dp->d_ino == 0)
 			continue;
-		/*
-		 * format V7 directory structure into BSD4.X
-		 */
-		dirp->dd_cur.d_ino = dp->d_ino;
-		bcopy(dp->d_name, dirp->dd_cur.d_name, MAXNAMLEN);
-						/* insure null termination */
-		dirp->dd_cur.d_name[MAXNAMLEN] = '\0';
-		dirp->dd_cur.d_namlen = strlen(dirp->dd_cur.d_name);
-		dirp->dd_cur.d_reclen = DIRBLKSIZ;
-		return (&dirp->dd_cur);
+		return (dp);
 	}
 }

@@ -3,23 +3,22 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 2/4/87
+#	@(#)Makefile	5.6.1 (2.11BSD GTE) 4/9/94
 #
-SRCS=	doprnt.s ffltpr.s fgetc.s fgets.s fltpr.s fputc.s puts.s gets.s
-OBJS=	doprnt.o ffltpr.o fgetc.o fgets.o fltpr.o fputc.o puts.o gets.o
+# SRCS=	doprnt.s ffltpr.s fgetc.s fgets.s fltpr.s fputc.s puts.s gets.s
+# OBJS=	doprnt.o ffltpr.o fgetc.o fgets.o fltpr.o fputc.o puts.o gets.o
+SRCS=	doprnt.s ffltpr.s fgetc.s fgets.s fltpr.s fputc.s gets.s
+OBJS=	doprnt.o ffltpr.o fgetc.o fgets.o fltpr.o fputc.o gets.o
 CFLAGS= -O ${DEFS}
 TAGSFILE=tags
 
 .s.o:
-	/lib/cpp -E -DPROF ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -X -r $*.o
 	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -x -r $*.o
 	mv a.out $*.o
-	rm -f x.s
 
 .c.o:
 	cc -p -c ${CFLAGS} $*.c
@@ -61,12 +60,11 @@ depend:
 # DO NOT DELETE THIS LINE -- make depend uses it
 
 doprnt.o: doprnt.s ./DEFS.h
-fgetc.o: fgetc.s ./DEFS.h ./STDIO.h
-doprnt.o: doprnt.s ./DEFS.h
+ffltpr.o: ffltpr.s
 fgetc.o: fgetc.s ./DEFS.h ./STDIO.h
 fgets.o: fgets.s ./DEFS.h ./STDIO.h
+fltpr.o: fltpr.s ./DEFS.h
 fputc.o: fputc.s ./DEFS.h ./STDIO.h
-puts.o: puts.s ./DEFS.h ./STDIO.h
 gets.o: gets.s ./DEFS.h ./STDIO.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY

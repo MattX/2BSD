@@ -33,5 +33,5 @@ y.tab.h:
 clean:
 	rm -f ${ALL} *.o *.s parse.c scan.c y.tab.h errs
 
-install:
+install: htable
 	install -s htable ${DESTDIR}/etc/htable

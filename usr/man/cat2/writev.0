@@ -5,24 +5,24 @@ WRITE(2)	    UNIX Programmer's Manual		 WRITE(2)
 
 
 
-NNAAMMEE
+NAME
      write, writev - write output
 
-SSYYNNOOPPSSIISS
-     cccc == wwrriittee((dd,, bbuuff,, nnbbyytteess))
-     iinntt cccc,, dd;;
-     cchhaarr **bbuuff;;
-     iinntt nnbbyytteess;;
+SYNOPSIS
+     cc = write(d, buf, nbytes)
+     int cc, d;
+     char *buf;
+     unsigned short nbytes;
 
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//uuiioo..hh>>
+     #include <sys/types.h>
+     #include <sys/uio.h>
 
-     cccc == wwrriitteevv((dd,, iioovv,, iioovvccnntt))
-     iinntt cccc,, dd;;
-     ssttrruucctt iioovveecc **iioovv;;
-     iinntt iioovvccnntt;;
+     cc = writev(d, iov, iovcnt)
+     int cc, d;
+     struct iovec *iov;
+     int iovcnt;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _W_r_i_t_e attempts to write _n_b_y_t_e_s of data to the object refer-
      enced by the descriptor _d from the buffer pointed to by _b_u_f.
      _W_r_i_t_e_v performs the same action, but gathers the output data
@@ -33,7 +33,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 	  struct iovec {
 	       caddr_t	 iov_base;
-	       int  iov_len;
+	       u_short	 iov_len;
 	  };
 
      Each _i_o_v_e_c entry specifies the base address and length of an
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 1, 1987                         1
+Printed 1/9/94		 August 1, 1987                         1
 
 
 
@@ -75,12 +75,12 @@ WRITE(2)	    UNIX Programmer's Manual		 WRITE(2)
      and the remainder of the operation should be retried when
      possible.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion the number of bytes actually
      written is returned.  Otherwise a -1 is returned and the
      global variable _e_r_r_n_o is set to indicate the error.
 
-EERRRROORRSS
+ERRORS
      _W_r_i_t_e and _w_r_i_t_e_v will fail and the file pointer will remain
      unchanged if one or more of the following are true:
 
@@ -121,12 +121,12 @@ EERRRROORRSS
      [EINVAL]	    _I_o_v_c_n_t was less than or equal to 0, or
 		    greater than 16.
 
-     [EINVAL]	    One of the _i_o_v__l_e_n values in the _i_o_v array
-		    was negative.
+     [EINVAL]	    The sum of the _i_o_v__l_e_n values in the _i_o_v
+		    array overflowed a short.
 
 
 
-Printed 12/28/88	 August 1, 1987                         2
+Printed 1/9/94		 August 1, 1987                         2
 
 
 
@@ -137,21 +137,9 @@ WRITE(2)	    UNIX Programmer's Manual		 WRITE(2)
 
 
 
-     [EINVAL]	    The sum of the _i_o_v__l_e_n values in the _i_o_v
-		    array overflowed an integer.
-
-SSEEEE AALLSSOO
+SEE ALSO
      fcntl(2), lseek(2), open(2), pipe(2), select(2)
 
-BBUUGGSS
-     Under _2._1_0_B_S_D _w_r_i_t_e_v is implemented as a compatibility rou-
-     tine in the standard library and is semantically identical
-     to the 4.3BSD _w_r_i_t_e_v on all current descriptors, with the
-     exception of sockets (SOCK_STREAM does work identically how-
-     ever).  The compatibility routine implements _w_r_i_t_e_v non-
-     atomically as multiple _w_r_i_t_e calls.
-
-     Under _2._1_0_B_S_D _n_b_y_t_e_s is actually an uunnssiiggnneedd value.
 
 
 
@@ -192,7 +180,19 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 1, 1987                         3
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 1/9/94		 August 1, 1987                         3
 
 
 

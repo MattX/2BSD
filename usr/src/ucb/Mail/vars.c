@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)vars.c	5.2 (Berkeley) 6/21/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)vars.c	5.6 (Berkeley) 6/1/90";
+#endif
 
 #include "rcv.h"
 
@@ -46,10 +73,10 @@ assign(name, value)
  */
 
 vfree(cp)
-	register char *cp;
+	char *cp;
 {
-	if (!equal(cp, ""))
-		cfree(cp);
+	if (*cp)
+		free(cp);
 }
 
 /*
@@ -61,17 +88,16 @@ char *
 vcopy(str)
 	char str[];
 {
-	register char *top, *cp, *cp2;
+	char *new;
+	unsigned len;
 
-	if (equal(str, ""))
-		return("");
-	if ((top = calloc(strlen(str)+1, 1)) == NULL)
-		panic ("Out of memory");
-	cp = top;
-	cp2 = str;
-	while (*cp++ = *cp2++)
-		;
-	return(top);
+	if (*str == '\0')
+		return "";
+	len = strlen(str) + 1;
+	if ((new = malloc(len)) == NULL)
+		panic("Out of memory");
+	bcopy(str, new, (int) len);
+	return new;
 }
 
 /*
@@ -97,14 +123,12 @@ value(name)
 
 struct var *
 lookup(name)
-	char name[];
+	register char name[];
 {
 	register struct var *vp;
-	register int h;
 
-	h = hash(name);
-	for (vp = variables[h]; vp != NOVAR; vp = vp->v_link)
-		if (equal(vp->v_name, name))
+	for (vp = variables[hash(name)]; vp != NOVAR; vp = vp->v_link)
+		if (*vp->v_name == *name && equal(vp->v_name, name))
 			return(vp);
 	return(NOVAR);
 }
@@ -115,14 +139,12 @@ lookup(name)
 
 struct grouphead *
 findgroup(name)
-	char name[];
+	register char name[];
 {
 	register struct grouphead *gh;
-	register int h;
 
-	h = hash(name);
-	for (gh = groups[h]; gh != NOGRP; gh = gh->g_link)
-		if (equal(gh->g_name, name))
+	for (gh = groups[hash(name)]; gh != NOGRP; gh = gh->g_link)
+		if (*gh->g_name == *name && equal(gh->g_name, name))
 			return(gh);
 	return(NOGRP);
 }
@@ -144,7 +166,7 @@ printgroup(name)
 	printf("%s\t", gh->g_name);
 	for (gp = gh->g_list; gp != NOGE; gp = gp->ge_link)
 		printf(" %s", gp->ge_name);
-	printf("\n");
+	putchar('\n');
 }
 
 /*
@@ -153,16 +175,15 @@ printgroup(name)
  */
 
 hash(name)
-	char name[];
+	register char *name;
 {
-	register unsigned h;
-	register char *cp;
+	register h = 0;
 
-	for (cp = name, h = 0; *cp; h = (h << 2) + *cp++)
-		;
-	if (h < 0)
-		h = -h;
-	if (h < 0)
+	while (*name) {
+		h <<= 2;
+		h += *name++;
+	}
+	if (h < 0 && (h = -h) < 0)
 		h = 0;
-	return(h % HSHSIZE);
+	return (h % HSHSIZE);
 }

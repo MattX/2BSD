@@ -5,13 +5,13 @@ CRIBBAGE(6)	    UNIX Programmer's Manual	      CRIBBAGE(6)
 
 
 
-NNAAMMEE
+NAME
      cribbage - the card game cribbage
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//ccrriibbbbaaggee [ --rreeqq ] _n_a_m_e ...
+SYNOPSIS
+     /usr/games/cribbage [ -req ] _n_a_m_e ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _C_r_i_b_b_a_g_e plays the card game cribbage, with the program
      playing one hand and the user the other.  The program will
      initially ask the user if the rules of the game are needed -
@@ -20,15 +20,15 @@ DDEESSCCRRIIPPTTIIOONN
 
      _C_r_i_b_b_a_g_e options include:
 
-     --ee   When the player makes a mistake scoring his hand or
+     -e   When the player makes a mistake scoring his hand or
 	  crib, provide an explanation of the correct score.
 	  (This is especially useful for beginning players.)
 
-     --qq   Print a shorter form of all messages - this is only
+     -q   Print a shorter form of all messages - this is only
 	  recommended for users who have played the game without
 	  specifying this option.
 
-     --rr   Instead of asking the player to cut the deck, the pro-
+     -r   Instead of asking the player to cut the deck, the pro-
 	  gram will randomly cut the deck.
 
      _C_r_i_b_b_a_g_e first asks the player whether he wishes to play a
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 6, 1986				1
+Printed 1/9/94		   May 6, 1986				1
 
 
 
@@ -103,10 +103,10 @@ CRIBBAGE(6)	    UNIX Programmer's Manual	      CRIBBAGE(6)
      of d", "k diamonds", "k of diamonds", "king diamonds", or
      "king of diamonds".
 
-FFIILLEESS
+FILES
      /usr/games/cribbage
 
-AAUUTTHHOORRSS
+AUTHORS
      Earl T. Cohen wrote the logic.  Ken Arnold added the screen
      oriented interface.
 
@@ -126,7 +126,7 @@ AAUUTTHHOORRSS
 
 
 
-Printed 12/28/88	   May 6, 1986				2
+Printed 1/9/94		   May 6, 1986				2
 
 
 

@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)misc.c	4.4 (Berkeley) 87/05/21";
+/* static	char *sccsid = "@(#)misc.c	4.4 (Berkeley) 87/05/21"; */
 #include "defs"
 
 FSTATIC struct nameblock *hashtab[HASHSIZE];

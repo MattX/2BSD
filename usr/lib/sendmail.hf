@@ -1,22 +1,8 @@
-@(#)	sendmail.hf	4.2	6/7/85
-cpyr	
-cpyr	Sendmail
-cpyr	Copyright (c) 1983  Eric P. Allman
-cpyr	Berkeley, California
-cpyr	
-cpyr	Copyright (c) 1983 Regents of the University of California.
-cpyr	All rights reserved.  The Berkeley software License Agreement
-cpyr	specifies the terms and conditions for redistribution.
-cpyr	
-cpyr	@(#)sendmail.hf	4.2 (Berkeley) 6/7/85
-cpyr	
+@(#)	sendmail.hf	3.2	11/21/81
 smtp	Commands:
 smtp		HELO	MAIL	RCPT	DATA	RSET
-smtp		NOOP	QUIT	HELP	VRFY	EXPN
+smtp		NOOP	QUIT	HELP	VRFY
 smtp	For more info use "HELP <topic>".
-smtp	To report bugs in the implementation contact eric@Berkeley.ARPA
-smtp	or eric@UCB-ARPA.ARPA.
-smtp	For local information contact postmaster at this site.
 help	HELP [ <topic> ]
 help		The HELP command gives help info.
 helo	HELO <hostname>
@@ -30,14 +16,12 @@ data	DATA
 data		Following text is collected as the message.
 data		End with a single dot.
 rset	RSET
-rset		Resets the system.
+rset		Resets the system -- same as QUIT in this implementation.
 quit	QUIT
-quit		Exit sendmail (SMTP).
+quit		Exit sendmail
 vrfy	VRFY <recipient>
 vrfy		Not implemented to protocol.  Gives some sexy
 vrfy		information.
-expn	EXPN <recipient>
-expn		Same as VRFY in this implementation.
 noop	NOOP
 noop		Do nothing.
 send	SEND FROM: <sender>
@@ -51,6 +35,3 @@ saml	SAML FROM: <sender>
 saml		Send and mail.  Send directly to the user's terminal,
 saml		and also mail a letter.  Not supported in this
 saml		implementation.
-turn	TURN
-turn		Reverses the direction of the connection.  Not currently
-turn		implemented.

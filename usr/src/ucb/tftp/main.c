@@ -1,18 +1,31 @@
 /*
- * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that: (1) source distributions retain this entire copyright
+ * notice and comment, and (2) distributions including binaries display
+ * the following acknowledgement:  ``This product includes software
+ * developed by the University of California, Berkeley and its contributors''
+ * in the documentation or other materials provided with the distribution
+ * and in all advertising materials mentioning features or use of this
+ * software. Neither the name of the University nor the names of its
+ * contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #ifndef lint
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif /* not lint */
 
 #ifndef lint
-static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 2/7/86";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.9 (Berkeley) 6/1/90";
+#endif /* not lint */
 
 /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
 
@@ -24,7 +37,6 @@ static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 2/7/86";
 #include <sys/file.h>
 
 #include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include <signal.h>
 #include <stdio.h>
@@ -40,6 +52,9 @@ int	f;
 short   port;
 int	trace;
 int	verbose;
+#ifdef	pdp11
+#define	connected Xconnected
+#endif
 int	connected;
 char	mode[32];
 char	line[200];
@@ -281,8 +296,9 @@ put(argc, argv)
 		targ = index(cp, ':');
 		*targ++ = 0;
 		hp = gethostbyname(cp);
-		if (hp == 0) {
-			printf("%s: Unknown host.\n", cp);
+		if (hp == NULL) {
+			fprintf(stderr, "tftp: %s: ", cp);
+			herror((char *)NULL);
 			return;
 		}
 		bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
@@ -373,8 +389,9 @@ get(argc, argv)
 
 			*src++ = 0;
 			hp = gethostbyname(argv[n]);
-			if (hp == 0) {
-				printf("%s: Unknown host.\n", argv[n]);
+			if (hp == NULL) {
+				fprintf(stderr, "tftp: %s: ", argv[n]);
+				herror((char *)NULL);
 				continue;
 			}
 			bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);

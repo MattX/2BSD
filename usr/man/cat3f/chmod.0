@@ -5,14 +5,14 @@ CHMOD(3F)	    UNIX Programmer's Manual		CHMOD(3F)
 
 
 
-NNAAMMEE
+NAME
      chmod - change mode of a file
 
-SSYYNNOOPPSSIISS
-     iinntteeggeerr ffuunnccttiioonn cchhmmoodd ((nnaammee,, mmooddee))
-     cchhaarraacctteerr**((**)) nnaammee,, mmooddee
+SYNOPSIS
+     integer function chmod (name, mode)
+     character*(*) name, mode
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This function changes the filesystem _m_o_d_e of file _n_a_m_e.
      _M_o_d_e can be any specification recognized by _c_h_m_o_d(1).  _N_a_m_e
      must be a single pathname.
@@ -20,14 +20,14 @@ DDEESSCCRRIIPPTTIIOONN
      The normal returned value is 0.  Any other value will be a
      system error number.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
      /bin/chmod          exec'ed to change the mode.
 
-SSEEEE AALLSSOO
+SEE ALSO
      chmod(1)
 
-BBUUGGSS
+BUGS
      Pathnames can be no longer than MAXPATHLEN as defined in
      <_s_y_s/_p_a_r_a_m._h>.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

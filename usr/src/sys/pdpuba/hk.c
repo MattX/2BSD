@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)hk.c	2.0 (2.11BSD GTE) 12/29/92
  */
 
 /*
@@ -11,8 +11,17 @@
  *
  * This driver mimics the 4.1bsd rk driver.
  * It does overlapped seeks, ECC, and bad block handling.
+ * 	salkind@nyu
  *
- * salkind@nyu
+ * Modified to correctly handle 22 bit addressing available on DILOG
+ * DQ615 controller. 05/31/90 -- tymann@oswego.edu
+ *
+ * Removed ifdefs on both Q22 and UNIBUS_MAP, substituting a runtime
+ * test for presence of a Unibus Map.  Reworked the partition logic,
+ * the 'e' partiton no longer overlaps the 'a'+'b' partitions - a separate
+ * 'b' partition is now present.  Old root filesystems can still be used
+ * because the size is the same, but user data will have to be saved and
+ * then reloaded.  12/28/92 -- sms@wlv.iipo.gtegsc.com
  */
 
 #include "hk.h"
@@ -27,6 +36,7 @@
 #include "hkreg.h"
 #include "dkbad.h"
 #include "dk.h"
+#include "syslog.h"
 
 #define	NHK7CYL	815
 #define	NHK6CYL	411
@@ -38,24 +48,31 @@ struct	hkdevice *HKADDR;
 struct size {
 	daddr_t	nblocks;
 	int	cyloff;
-} hk_sizes[8] = {
-	5940,	0,	/* a: cyl   0 -  89 */
-	2376,	90,	/* b: cyl  90 - 125 */
-	45474,	126,	/* c: cyl 126 - 814 */
-	18810,	126,	/* d: cyl 126 - 410 */
-	8316,	0,	/* e: cyl   0 - 125, overlaps a & b */
+} hk6_sizes[8] =
+	{
+	8316,	0,	/* a: cyl    0 - 125 */
+	8316,	90,	/* b: cyl  126 - 251 */
+	27126,	0,	/* c: cyl    0 - 410, whole RK06 */
+	0,	0,	/* d: Not Defined */
+	0,	0,	/* e: Not Defined */
 	0,	0,	/* f: Not Defined */
-	27126,	0,	/* g: cyl   0 - 410, whole RK06 */
-	53790,	0	/* h: cyl   0 - 814, whole RK07 */
+	10428,	252,	/* g: cyl  252 - 409 */
+	27126,	0,	/* h: cyl   0 - 409, whole RK06 less 1 track */
+	},
+hk7_sizes[8] =
+	{
+	8316,	0,	/* a: cyl   0 -  125 */
+	8316,	126,	/* b: cyl  126 - 251 */
+	53790,	0,	/* c: cyl   0 - 814, whole RK07 */
+	0,	0,	/* d: Not Defined */
+	0,	0,	/* e: Not Defined */
+	0,	0,	/* f: Not Defined */
+	37092,	0,	/* g: cyl   252 - 813 */
+	53724,	0	/* h: cyl   0 - 813, whole RK07 less 1 track */
 };
 
-int	hkpip;		/* DEBUG */
-int	hknosval;	/* DEBUG */
-#ifdef HKDEBUG
-int	hkdebug = 1;
-#endif
-
-int	hk_offset[] =
+/* Can be u_char because all are less than 0377 */
+u_char	hk_offset[] =
 {
 	HKAS_P400,	HKAS_M400,	HKAS_P400,	HKAS_M400,
 	HKAS_P800,	HKAS_M800,	HKAS_P800,	HKAS_M800,
@@ -65,7 +82,7 @@ int	hk_offset[] =
 
 int	hk_type[NHK];
 int	hk_cyl[NHK];
-char	hk_mntflg[NHK];
+struct	size *hk_sizes[NHK];
 char	hk_pack[NHK];
 
 struct hk_softc {
@@ -75,7 +92,6 @@ struct hk_softc {
 
 struct	buf	hktab;
 struct	buf	hkutab[NHK];
-struct	buf	rhkbuf[NHK];
 #ifdef BADSECT
 struct	dkbad	hkbad[NHK];
 struct	buf	bhkbuf[NHK];
@@ -87,7 +103,7 @@ static	int		hk_dkn = -1;	/* number for iostat */
 
 #define	hkwait(hkaddr)		while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 #define	hkncyl(unit)		(hk_type[unit] ? NHK7CYL : NHK6CYL)
-#define	hkunit(dev)		((minor(dev) >> 3) & 07)
+#define	hkunit(dev)		(((dev) >> 3) & 07)
 
 void
 hkroot()
@@ -111,20 +127,15 @@ struct hkdevice *addr;
 	return(1);
 }
 
-hkopen(dev)
+hkopen(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register int unit = hkunit(dev);
+	register struct hkdevice *hkaddr = HKADDR;
 
 	if (unit >= NHK || !HKADDR)
 		return (ENXIO);
-	return (0);
-}
-
-hkdsel(unit)
-register unit;
-{
-	register struct hkdevice *hkaddr = HKADDR;
 
 	hk_type[unit] = 0;
 	hkaddr->hkcs1 = HK_CCLR;
@@ -134,15 +145,16 @@ register unit;
 	if((hkaddr->hkcs2&HKCS2_NED) || (hkaddr->hkds&HKDS_SVAL) == 0) {
 		hkaddr->hkcs1 = HK_CCLR;
 		hkwait(hkaddr);
-		return(-1);
+		return(ENXIO);
 	}
 	if((hkaddr->hkcs1&HK_CERR) && (hkaddr->hker&HKER_DTYE)) {
 		hk_type[unit] = HK_CDT;
 		hkaddr->hkcs1 = HK_CCLR;
 		hkwait(hkaddr);
+		hk_sizes[unit] = hk7_sizes;
 	}
-
-	hk_mntflg[unit] = 1;
+	else
+		hk_sizes[unit] = hk6_sizes;
 	hk_cyl[unit] = -1;
 	return(0);
 }
@@ -152,30 +164,24 @@ register struct buf *bp;
 {
 	register struct buf *dp;
 	register unit;
-	int s;
+	int s, part;
 	long bn;
 	long sz;
+	struct size *szp;
 
-	unit = minor(bp->b_dev) & 077;
-	if ((unit >= (NHK << 3)) || (HKADDR == (struct hkdevice *) NULL)) {
+	unit = dkunit(bp);
+	part = bp->b_dev & 7;
+	if (unit >= NHK || !HKADDR  || !(szp = hk_sizes[unit])) {
 		bp->b_error = ENXIO;
 		goto bad;
 	}
 	sz = (bp->b_bcount + (NBPG-1)) >> PGSHIFT;
-	if (bp->b_blkno < 0 || (bn = dkblock(bp))+sz > hk_sizes[unit & 07].nblocks) {
+	if (bp->b_blkno < 0 || (bn = dkblock(bp))+sz > szp[part].nblocks) {
 		bp->b_error = EINVAL;
 		goto bad;
 	}
-	bp->b_cylin = bn / HK_NSPC + hk_sizes[unit & 07].cyloff;
-	unit = dkunit(bp);
-	if (hk_mntflg[unit] == 0) {
-		/* SHOULD BE DONE AT BOOT TIME */
-		if (hkdsel(unit) < 0)
-			goto bad;
-	}
-#ifdef UNIBUS_MAP
+	bp->b_cylin = bn / HK_NSPC + szp[part].cyloff;
 	mapalloc(bp);
-#endif
 	dp = &hkutab[unit];
 	s = splbio();
 	disksort(dp, bp);
@@ -198,8 +204,6 @@ hkustart(unit)
 	register struct buf *bp, *dp;
 	int didie = 0;
 
-	if (unit >= NHK || hk_mntflg[unit] == 0)
-		return(0);
 #ifdef UCB_METER
 	if (hk_dkn >= 0)
 		dk_busy &= ~(1 << (hk_dkn + unit));
@@ -235,9 +239,7 @@ hkustart(unit)
 		bbp->b_un.b_addr = (caddr_t)&hkbad[unit];
 		bbp->b_blkno = (long)hkncyl(unit)*HK_NSPC - HK_NSECT;
 		bbp->b_cylin = hkncyl(unit) - 1;
-#ifdef UNIBUS_MAP
 		mapalloc(bbp);
-#endif
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
@@ -304,16 +306,12 @@ retry:
 	hkaddr->hkcs1 = hk_type[unit] | HK_DCLR | HK_GO;
 	hkwait(hkaddr);
 
-	if ((hkaddr->hkds & HKDS_SVAL) == 0) {
-		hknosval++;
+	if ((hkaddr->hkds & HKDS_SVAL) == 0)
 		goto nosval;
-	}
-	if (hkaddr->hkds & HKDS_PIP) {
-		hkpip++;
+	if (hkaddr->hkds & HKDS_PIP)
 		goto retry;
-	}
 	if ((hkaddr->hkds&HKDS_DREADY) != HKDS_DREADY) {
-		printf("hk%d: not ready", unit);
+		log(LOG_WARNING, "hk%d: not ready\n", unit);
 		if ((hkaddr->hkds&HKDS_DREADY) != HKDS_DREADY) {
 			printf("\n");
 			hkaddr->hkcs1 = hk_type[unit] | HK_DCLR | HK_GO;
@@ -328,8 +326,6 @@ retry:
 			iodone(bp);
 			goto loop;
 		}
-		else
-			printf(" (came back!)\n");
 	}
 nosval:
 	hkaddr->hkcyl = bp->b_cylin;
@@ -337,6 +333,9 @@ nosval:
 	hkaddr->hkda = (tn << 8) + sn;
 	hkaddr->hkwc = -(bp->b_bcount >> 1);
 	hkaddr->hkba = bp->b_un.b_addr;
+	if	(!ubmap)
+		hkaddr->hkxmem=bp->b_xmem;
+
 	cmd = hk_type[unit] | ((bp->b_xmem & 3) << 8) | HK_IE | HK_GO;
 	if (bp->b_flags & B_READ)
 		cmd |= HK_READ;
@@ -382,21 +381,15 @@ hkintr()
 			u_short ds = hkaddr->hkds;
 			u_short cs2 = hkaddr->hkcs2;
 			u_short er = hkaddr->hker;
-#ifdef HKDEBUG
-			if (hkdebug) {
-				printf("cs2=%b ds=%b er=%b\n",
-				    cs2, HKCS2_BITS, ds, 
-				    HKDS_BITS, er, HKER_BITS);
-			}
-#endif
+
 			if (er & HKER_WLE) {
-				printf("hk%d: write locked\n", unit);
+				log(LOG_WARNING, "hk%d: write locked\n", unit);
 				bp->b_flags |= B_ERROR;
 			} else if (++hktab.b_errcnt > 28 ||
 			    ds&HKDS_HARD || er&HKER_HARD || cs2&HKCS2_HARD) {
 hard:
 				harderr(bp, "hk");
-				printf("cs2=%b ds=%b er=%b\n",
+				log(LOG_WARNING, "cs2=%b ds=%b er=%b\n",
 				    cs2, HKCS2_BITS, ds, 
 				    HKDS_BITS, er, HKER_BITS);
 				bp->b_flags |= B_ERROR;
@@ -475,7 +468,7 @@ retry:
 	}
 	for (unit = 0; as; as >>= 1, unit++)
 		if (as & 1) {
-			if (unit < NHK && hk_mntflg[unit]) {
+			if (unit < NHK && hk_sizes[unit]) {
 				if (hkustart(unit))
 					needie = 0;
 			} else {
@@ -493,29 +486,13 @@ retry:
 		hkaddr->hkcs1 = HK_IE;
 }
 
-hkread(dev)
-	dev_t dev;
-{
-	return (physio(hkstrategy, &rhkbuf[hkunit(dev)], dev, B_READ, WORD));
-}
-
-hkwrite(dev)
-	dev_t dev;
-{
-	return (physio(hkstrategy, &rhkbuf[hkunit(dev)], dev, B_WRITE, WORD));
-}
-
 #ifdef HK_DUMP
 /*
  *  Dump routine for RK06/07
  *  Dumps from dumplo to end of memory/end of disk section for minor(dev).
  *  It uses the UNIBUS map to dump all of memory if there is a UNIBUS map.
  */
-#ifdef UNIBUS_MAP
 #define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
-#define DBSIZE	16			/* unit of transfer, same number */
-#endif
 
 hkdump(dev)
 	dev_t dev;
@@ -524,16 +501,15 @@ hkdump(dev)
 	daddr_t	bn, dumpsize;
 	long paddr;
 	register count;
-#ifdef UNIBUS_MAP
 	register struct ubmap *ubp;
-#endif
 	int com, cn, tn, sn, unit;
+	struct size *szp;
 
-	unit = minor(dev) >> 3;
-	if ((bdevsw[major(dev)].d_strategy != hkstrategy)	/* paranoia */
-	    || unit >= NHK)
+	unit = hkunit(dev);
+	szp = hk_sizes[unit];
+	if (unit >= NHK || !szp)
 		return(EINVAL);
-	dumpsize = hk_sizes[minor(dev)&07].nblocks;
+	dumpsize = szp[dev & 7]->nblocks;
 	if ((dumplo < 0) || (dumplo >= dumpsize))
 		return(EINVAL);
 	dumpsize -= dumplo;
@@ -547,13 +523,11 @@ hkdump(dev)
 		hkaddr->hkcs1 = hk_type[unit]|HK_IE|HK_PACK|HK_GO;
 		hkwait(hkaddr);
 	}
-#ifdef UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
-		cn = (bn/HK_NSPC) + hk_sizes[minor(dev)&07].cyloff;
+		cn = (bn/HK_NSPC) + szp[dev & 7]->cyloff;
 		sn = bn%HK_NSPC;
 		tn = sn/HK_NSECT;
 		sn = sn%HK_NSECT;
@@ -561,22 +535,16 @@ hkdump(dev)
 		hkaddr->hkda = (tn << 8) | sn;
 		hkaddr->hkwc = -(count << (PGSHIFT-1));
 		com = hk_type[unit]|HK_GO|HK_WRITE;
-#ifdef UNIBUS_MAP
-		/*
-		 *  If UNIBUS_MAP exists, use the map.
-		 */
 		if (ubmap) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			hkaddr->hkba = 0;
 		} else {
-#endif
 			/* non UNIBUS map */
 			hkaddr->hkba = loint(paddr);
+			hkaddr->hkxmem = hiint(paddr);
 			com |= ((paddr >> 8) & (03 << 8));
-#ifdef UNIBUS_MAP
 		}
-#endif
 		hkaddr->hkcs2 = unit;
 		hkaddr->hkcs1 = com;
 		hkwait(hkaddr);
@@ -641,13 +609,10 @@ register struct	buf *bp;
 		long mask;
 		ubadr_t bb;
 		unsigned o;
-#ifdef	UNIBUS_MAP
 		struct ubmap *ubp;
-#endif
-		printf("hk%d%c:  soft ecc sn %D\n",
-			unit, 'a' + (minor(bp->b_dev) & 07),
-			bp->b_blkno + npx - 1);
 
+		log(LOG_WARNING, "hk%d%c:  soft ecc sn %D\n",
+			unit, 'a' + (bp->b_dev & 07), bp->b_blkno + npx - 1);
 		mask = hkaddr->hkecpt;
 		byte = hkaddr->hkecps - 1;
 		bit = byte & 07;
@@ -656,12 +621,10 @@ register struct	buf *bp;
 		o = (ndone - NBPG) + byte;
 		bb = exadr(bp->b_xmem, bp->b_un.b_addr);
 		bb += o;
-#ifdef	UNIBUS_MAP
-		if (bp->b_flags & (B_MAP|B_UBAREMAP))	{
+		if (ubmap && (bp->b_flags & (B_MAP|B_UBAREMAP))) {
 			ubp = UBMAP + ((bb >> 13) & 037);
 			bb = exadr(ubp->ub_hi, ubp->ub_lo) + (bb & 017777);
 		}
-#endif
 		/*
 		 * Correct until mask is zero or until end of
 		 * sector or transfer, whichever comes first.
@@ -680,11 +643,6 @@ register struct	buf *bp;
 
 #ifdef BADSECT
 	case BSE:
-#ifdef HKDEBUG
-		if (hkdebug)
-			printf("hkecc, BSE: bn %D cn %d tn %d sn %d\n",
-				bn, cn, tn, sn);
-#endif
 		if ((bn = isbad(&hkbad[unit], cn, tn, sn)) < 0)
 			return(0);
 		bp->b_flags |= B_BAD;
@@ -694,10 +652,6 @@ register struct	buf *bp;
 		sn = bn%HK_NSPC;
 		tn = sn/HK_NSECT;
 		sn %= HK_NSECT;
-#ifdef HKDEBUG
-		if (hkdebug)
-			printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
-#endif
 		wc = -(NBPG / NBPW);
 		break;
 
@@ -705,11 +659,6 @@ register struct	buf *bp;
 		bp->b_flags &= ~B_BAD;
 		if (wc == 0)
 			return(0);
-#ifdef HKDEBUG
-		if (hkdebug)
-			printf("hkecc, CONT: bn %D cn %d tn %d sn %d\n",
-				bn, cn, tn, sn);
-#endif
 		break;
 #endif BADSECT
 	}
@@ -730,6 +679,9 @@ register struct	buf *bp;
 	hkaddr->hkda = (tn << 8) + sn;
 	hkaddr->hkwc = wc;
 	hkaddr->hkba = (caddr_t)addr;
+
+	if	(!ubmap)
+		hkaddr->hkxmem=hiint(addr);
 	cmd = hk_type[unit] | ((hiint(addr) & 3) << 8) | HK_IE | HK_GO;
 	if (bp->b_flags & B_READ)
 		cmd |= HK_READ;
@@ -739,4 +691,19 @@ register struct	buf *bp;
 	hktab.b_errcnt = 0;	/* error has been corrected */
 	return (1);
 }
+
+/*
+ * Assumes the 'open' entry point has already been called to validate
+ * the unit number.
+*/
+daddr_t
+hksize(dev)
+	register dev_t dev;
+	{
+	register struct size *szp = hk_sizes[hkunit(dev)];
+
+	if	(!szp)
+		return(-1);
+	return(szp[dev & 7].nblocks);
+	}
 #endif NHK > 0

@@ -3,7 +3,15 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_il.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_il.c	2.0 (2.11BSD GTE) 12/29/92
+ *
+ *	12/29/92 - sms: remove Q22 ifdefs, replacing them with runtime tests
+ *		  for a Unibus Map.
+ *	2.11BSD - Remove ilreset since that's a vax'ism and is never
+ *		  called on a pdp-11.  Since the unibus resources are
+ *		  allocated in the attach routine and ubarelse is a noop
+ *		  remove the second allocation in ilinit.  uballoc calling
+ *		  convention altered - sms 9/7/90
  */
 
 #include "il.h"
@@ -27,6 +35,7 @@
 #include "if_uba.h"
 #include "errno.h"
 #include "../pdpuba/ubavar.h"
+#include "uba.h"
 
 #include "../net/if.h"
 #include "../net/netisr.h"
@@ -51,8 +60,9 @@ u_short ilstd[] = { 0 };
 struct	uba_driver ildriver =
 	{ ilprobe, 0, ilattach, 0, ilstd, "il", ilinfo };
 #define	ILUNIT(x)	minor(x)
-int	ilinit(),iloutput(),ilioctl(),ilreset(),ilwatch();
+int	ilinit(),iloutput(),ilioctl(),ilwatch();
 int	ildebug = 0;
+short	ilub = 0;
 long	startnet = 0;
 
 /*
@@ -125,6 +135,7 @@ ilattach(ui)
 		extern memaddr netdata;
 		startnet = mfkd(&netdata);
 		startnet = ctob(startnet);
+		ilub = mfkd(&ubmap);	/* get copy of kernel UBmap flag */
 	}
 	ifp->if_unit = ui->ui_unit;
 	ifp->if_name = "il";
@@ -138,23 +149,23 @@ ilattach(ui)
 	addr->il_csr = ILC_RESET;
 	(void)ilwait(ui, "reset");
 	
-#ifdef UNIBUS_MAP
-	is->is_ubaddr = uballoc(ui->ui_ubanum, (caddr_t)&is->is_stats,
-	    sizeof (struct il_stats), 0);
-#else
-	is->is_ubaddr = (long)((caddr_t)&is->is_stats) + startnet;
-#endif
+	if	(ilub)
+		{
+		is->is_ubaddr = uballoc((caddr_t)&is->is_stats,sizeof(struct il_stats));
+		addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
+		}
+	else
+		{
+		is->is_ubaddr = (long)((caddr_t)&is->is_stats) + startnet;
+		addr->il_ber = hiint(is->is_ubaddr) & 077;
+		addr->il_csr = ILC_STAT;
+		}
+
 	addr->il_bar = loint(is->is_ubaddr);
 	addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-	addr->il_ber = hiint(is->is_ubaddr) & 077;
-	addr->il_csr = ILC_STAT;
-#else
-	addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
-#endif
 
 	(void)ilwait(ui, "status");
-	ubarelse(ui->ui_ubanum, &is->is_ubaddr);
+	ubarelse(ui->ui_ubanum, &is->is_ubaddr);	/* NOOP on pdp-11 */
 	if (ildebug)
 		printf("il%d: module=%s firmware=%s\n", ui->ui_unit,
 			is->is_stats.ils_module, is->is_stats.ils_firmware);
@@ -165,7 +176,7 @@ ilattach(ui)
 	ifp->if_init = ilinit;
 	ifp->if_output = iloutput;
 	ifp->if_ioctl = ilioctl;
-	ifp->if_reset = ilreset;
+	ifp->if_reset = 0;
 	is->is_ifuba.ifu_flags = UBA_CANTWAIT;
 	if_attach(ifp);
 }
@@ -184,23 +195,6 @@ ilwait(ui, op)
 		return (-1);
 	}
 	return (0);
-}
-
-/*
- * Reset of interface after UNIBUS reset.
- * If interface is on specified uba, reset its state.
- */
-ilreset(unit, uban)
-	int unit, uban;
-{
-	register struct uba_device *ui;
-
-	if (unit >= NIL || (ui = ilinfo[unit]) == 0 || ui->ui_alive == 0 ||
-	    ui->ui_ubanum != uban)
-		return;
-	il_softc[unit].is_if.if_flags &= ~IFF_RUNNING;
-	il_softc[unit].is_flags &= ~ILF_RUNNING;
-	ilinit(unit);
 }
 
 /*
@@ -229,12 +223,10 @@ ilinit(unit)
 			is->is_if.if_flags &= ~IFF_UP;
 			return;
 		}
-#ifdef UNIBUS_MAP
-		is->is_ubaddr = uballoc(ui->ui_ubanum, (caddr_t)&is->is_stats,
-		    sizeof (struct il_stats), 0);
-#else
-		is->is_ubaddr = (long)((caddr_t)&is->is_stats) + startnet;
-#endif
+/*
+ * since is->is_ubaddr is set in ilattach and ubarelse is a NOOP the
+ * allocation of unibus resources here has been removed.
+*/
 	}
 	ifp->if_watchdog = ilwatch;
 	is->is_scaninterval = ILWATCHINTERVAL;
@@ -269,22 +261,25 @@ ilinit(unit)
 							sizeof is->is_addr);
 		addr->il_bar = loint(is->is_ubaddr);
 		addr->il_bcr = sizeof is->is_addr;
-#ifdef Q22
-		addr->il_ber = hiint(is->is_ubaddr) & 077;
-		addr->il_csr = ILC_LDPA;
-#else
-		addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_LDPA;
-#endif
+		if	(!ilub)
+			{
+			addr->il_ber = hiint(is->is_ubaddr) & 077;
+			addr->il_csr = ILC_LDPA;
+			}
+		else
+			addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_LDPA;
 		if (ilwait(ui, "setaddr"))
 			return;
 		addr->il_bar = loint(is->is_ubaddr);
 		addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-		addr->il_ber = hiint(is->is_ubaddr) & 077;
-		addr->il_csr = ILC_STAT;
-#else
-		addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
-#endif
+		if	(!ilub)
+			{
+			addr->il_ber = hiint(is->is_ubaddr) & 077;
+			addr->il_csr = ILC_STAT;
+			}
+		else
+			addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
+
 		if (ilwait(ui, "verifying setaddr"))
 			return;
 		if (bcmp((caddr_t)is->is_stats.ils_addr, (caddr_t)is->is_addr,
@@ -305,13 +300,14 @@ ilinit(unit)
 		;
 	addr->il_bar = loint(is->is_ifuba.ifu_r.ifrw_info);
 	addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-	addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info) & 077;
-	addr->il_csr = ILC_RCV|IL_RIE;
-#else
-	addr->il_csr =
-	    ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
+	if	(!ilub)
+		{
+		addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info) & 077;
+		addr->il_csr = ILC_RCV|IL_RIE;
+		}
+	else
+		addr->il_csr =
+		    ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
 	while ((addr->il_csr & IL_CDONE) == 0)
 		;
 	is->is_flags = ILF_OACTIVE;
@@ -344,12 +340,13 @@ ilstart(dev)
 			return;
 		addr->il_bar = loint(is->is_ubaddr);
 		addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-		addr->il_ber = hiint(is->is_ubaddr) & 077;
-		csr = ILC_STAT|IL_RIE|IL_CIE;
-#else
-		csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT|IL_RIE|IL_CIE;
-#endif
+		if	(!ilub)
+			{
+			addr->il_ber = hiint(is->is_ubaddr) & 077;
+			csr = ILC_STAT|IL_RIE|IL_CIE;
+			}
+		else
+			csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT|IL_RIE|IL_CIE;
 		is->is_flags &= ~ILF_STATPENDING;
 		goto startcmd;
 	}
@@ -366,13 +363,15 @@ ilstart(dev)
 
 	addr->il_bar = loint(is->is_ifuba.ifu_w.ifrw_info);
 	addr->il_bcr = len;
-#ifdef Q22
-	addr->il_ber = hiint(is->is_ifuba.ifu_w.ifrw_info) & 077;
-	csr = ILC_XMIT|IL_CIE|IL_RIE;
-#else
-	csr =
-	  ((is->is_ifuba.ifu_w.ifrw_info >> 2) & IL_EUA)|ILC_XMIT|IL_CIE|IL_RIE;
-#endif
+	if	(!ilub)
+		{
+		addr->il_ber = hiint(is->is_ifuba.ifu_w.ifrw_info) & 077;
+		csr = ILC_XMIT|IL_CIE|IL_RIE;
+		}
+	else
+		csr =
+		  ((is->is_ifuba.ifu_w.ifrw_info >> 2) & IL_EUA)|ILC_XMIT|IL_CIE|IL_RIE;
+
 startcmd:
 	is->is_lastcmd = csr & IL_CMD;
 	addr->il_csr = csr;
@@ -406,13 +405,14 @@ ilcint(unit)
 
 		addr->il_bar = loint(is->is_ifuba.ifu_r.ifrw_info);
 		addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-		addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info) & 077;
-		addr->il_csr = ILC_RCV|IL_RIE;
-#else
-		addr->il_csr =
+		if	(!ilub)
+			{
+			addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info)&077;
+			addr->il_csr = ILC_RCV|IL_RIE;
+			}
+		else
+			addr->il_csr =
 		  ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
 		s = splhigh();
 		while ((addr->il_csr & IL_CDONE) == 0)
 			;
@@ -537,13 +537,14 @@ setup:
 	}
 	addr->il_bar = loint(is->is_ifuba.ifu_r.ifrw_info);
 	addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-	addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info) & 077;
-	addr->il_csr = ILC_RCV|IL_RIE;
-#else
-	addr->il_csr =
-		((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
+	if	(!ilub)
+		{
+		addr->il_ber = hiint(is->is_ifuba.ifu_r.ifrw_info) & 077;
+		addr->il_csr = ILC_RCV|IL_RIE;
+		}
+	else
+		addr->il_csr =
+		  ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
 	s = splhigh();
 	while ((addr->il_csr & IL_CDONE) == 0)
 		;

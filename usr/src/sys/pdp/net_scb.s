@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)net_scb.s	1.1 (2.10BSD Berkeley) 4/3/88
+ *	@(#)net_scb.s	1.2 (2.11BSD GTE) 10/13/92
  */
 
 #include "acc.h"
@@ -12,6 +12,7 @@
 #include "ec.h"
 #include "il.h"
 #include "qe.h"
+#include "qt.h"
 #include "sri.h"
 #include "vv.h"
 
@@ -49,6 +50,10 @@
 
 #if NQE > 0
 	HANDLER(qeintr)
+#endif
+
+#if NQT > 0
+	HANDLER(qtintr)
 #endif
 
 #if NSRI > 0

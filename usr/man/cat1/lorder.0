@@ -5,13 +5,13 @@ LORDER(1)	    UNIX Programmer's Manual		LORDER(1)
 
 
 
-NNAAMMEE
+NAME
      lorder - find ordering relation for an object library
 
-SSYYNNOOPPSSIISS
-     lloorrddeerr file ...
+SYNOPSIS
+     lorder file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The input is one or more object or library archive (see
      _a_r(1)) _f_i_l_e_s. The standard output is a list of pairs of
      object file names, meaning that the first file of the pair
@@ -28,14 +28,14 @@ DDEESSCCRRIIPPTTIIOONN
      which converts an ordered archive into a randomly accessed
      library.
 
-FFIILLEESS
+FILES
      *symref, *symdef
      nm(1), sed(1), sort(1), join(1)
 
-SSEEEE AALLSSOO
+SEE ALSO
      tsort(1), ld(1), ar(1), ranlib(1)
 
-BBUUGGSS
+BUGS
      The names of object files, in and out of libraries, must end
      with `.o'; nonsense results otherwise.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

@@ -7,7 +7,7 @@ SEPFLAG= -i
 quiz: quiz.c
 	cc ${SEPFLAG} ${CFLAGS} -o quiz quiz.c
 
-install:
+install: quiz quiz.k
 	install -s quiz ${DESTDIR}/usr/games/quiz
 	cp -r quiz.k ${DESTDIR}/usr/games/lib
 

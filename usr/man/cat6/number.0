@@ -5,13 +5,13 @@ NUMBER(6)	    UNIX Programmer's Manual		NUMBER(6)
 
 
 
-NNAAMMEE
+NAME
      number - convert Arabic numerals to English
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//nnuummbbeerr
+SYNOPSIS
+     /usr/games/number
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _N_u_m_b_e_r copies the standard input to the standard output,
      changing each decimal number to a fully spelled out version.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 

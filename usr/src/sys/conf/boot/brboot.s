@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)brboot.s	1.2 (Berkeley)	2/19/87
+ *	SCCS id	@(#)brboot.s	2.0 (2.11BSD)	4/13/91
  */
 #include "localopts.h"
 
@@ -8,12 +8,10 @@
 ENDCORE=	160000		/ end of core, mem. management off
 SZFLAGS=	6		/ size of boot flags
 BOOTOPTS=	2		/ location of options, bytes below ENDCORE
-BOOTDEV=	4
+BOOTDEV=	4		/ boot unit
 CHECKWORD=	6
 
-reset= 	5
-
-.globl	_doboot, hardboot
+.globl	_doboot, hardboot, _bootcsr
 .text
 _doboot:
 	mov	4(sp),r4	/ boot options
@@ -35,10 +33,12 @@ _doboot:
 #endif
 
 /  On power fail, hardboot is the entry point (map is already off)
-/  and the args are in r4, r3.
+/  and the args are in r4 (RB_POWRFAIL), r3 (rootdev)
 
 hardboot:
 	mov	r4, ENDCORE-BOOTOPTS
+	ash	$-3,r3		/ shift out the partition number
+	bic	$!7,r3		/ save only the drive number
 	mov	r3, ENDCORE-BOOTDEV
 	com	r4		/ if CHECKWORD == ~bootopts, flags are believed
 	mov	r4, ENDCORE-CHECKWORD
@@ -52,15 +52,21 @@ hardboot:
 
 / BR bootstrap
 
-brda =	176724
+brda =	10
 
-	mov	$brda,r0
-	clr	(r0)		/ disk address
-	clr	-(r0)		/ cylinder address
-	clr	-(r0)		/ bus address
-	mov	$-256.,-(r0)	/ wc
-	mov	$5,-(r0)	/ cs: read+go
-1:	tstb	(r0)		/ wait for ready
+	mov	_bootcsr, r1	/ csr of boot device
+	add	$brda,r1
+	clr	(r1)		/ disk address
+	clr	-(r1)		/ cylinder address
+	clr	-(r1)		/ bus address
+	mov	$-256.,-(r1)	/ wc
+	mov	ENDCORE-BOOTDEV,r0
+	swab	r0		/ unit number to high byte
+	bis	$5,r0		/ read+go
+	mov	r0,-(r1)	/ cs: read+go
+1:	tstb	(r1)		/ wait for ready
 	bge	1b
 
-	jmp	*$0		/ transfer to zero
+	mov	_bootcsr,r1	/ put csr and
+	mov	ENDCORE-BOOTDEV,r0	/  unit where bootblock expects them
+	clr	pc		/ transfer to zero

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_ufs.c	7.1 (Berkeley) 6/5/86
+ *	@(#)quota_ufs.c	7.1.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -39,7 +39,7 @@ inoquota(ip)
 	q = qfind(ip->i_uid);
 	if (q == NOQUOTA) {
 		for (mp = mount; mp < &mount[NMOUNT]; mp++)
-#ifdef BSD2_10
+#ifdef pdp11
 			if (mp->m_inodp && mp->m_dev == ip->i_dev)
 #else
 			if (mp->m_bufp && mp->m_dev == ip->i_dev)
@@ -56,7 +56,7 @@ inoquota(ip)
 		return (NODQUOT);
 	if (q->q_flags & Q_LOCK) {
 		q->q_flags |= Q_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)q, PINOD+1);
 		QUOTAMAP();
@@ -93,7 +93,7 @@ chkdq(ip, change, force)
 
 	if (change == 0)
 		return (0);
-#ifdef BSD2_10
+#ifdef pdp11
 	dq = ix_dquot[ip - inode];
 #else
 	dq = ip->i_dquot;
@@ -112,7 +112,7 @@ chkdq(ip, change, force)
 		if (dq->dq_own == u.u_quota) {
 			uprintf("\nUNDER DISC QUOTA: (%s) by %d Kbytes\n",
 				ip->i_fs->fs_fsmnt,
-#ifdef BSD2_10
+#ifdef pdp11
 				(dq->dq_bsoftlimit + 1023L - (dq->dq_curblocks
 				 + change)) / 1024);
 #else
@@ -190,7 +190,7 @@ chkiq(dev, ip, uid, force)
 		else
 			dq = discquota(uid, mount[getfsx(dev)].m_qinod);
 	} else {			/* free */
-#ifdef BSD2_10
+#ifdef pdp11
 		dq = ix_dquot[ip - inode];
 #else
 		dq = ip->i_dquot;

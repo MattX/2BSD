@@ -4,14 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)bad144.c	5.4 (Berkeley) 3/20/86";
+static char sccsid[] = "@(#)bad144.c	5.4.1 (2.11BSD GTE) 12/31/93";
 #endif not lint
 
 /*
@@ -128,7 +126,7 @@ for(i=0; i<8; i++) {
 exit(0);
 #endif
 	if (argv[1][0] != '/')
-#ifdef	BSD2_10
+#ifdef	pdp11
 		(void)sprintf(name, "/dev/r%sh", argv[1]);
 #else
 		(void)sprintf(name, "/dev/r%sc", argv[1]);

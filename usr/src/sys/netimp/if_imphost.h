@@ -46,9 +46,7 @@ struct host {
  * automatically at the time a structure is free'd.
  */
 #define	HPMBUF	((MLEN - sizeof(int)) / sizeof(struct host))
-#if vax
 #define	HOSTHASH(a)	((((a).s_addr>>8)+(a).s_net) % HPMBUF)
-#endif
 
 /*
  * In-line expansions for queuing operations on

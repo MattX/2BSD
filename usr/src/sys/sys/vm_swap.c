@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_swap.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vm_swap.c	1.3 (2.11BSD GTE) 3/10/93
  */
 
 #include "param.h"
@@ -76,7 +76,6 @@ swapin(p)
 	p->p_flag |= SLOAD;
 	p->p_time = 0;
 #ifdef UCB_METER
-	multprog++;
 	cnt.v_swpin++;
 #endif
 	return(1);
@@ -119,7 +118,6 @@ swapout(p, freecore, odata, ostack)
 		if (freecore == X_FREECORE)
 			mfree(coremap, ostack, p->p_saddr);
 	}
-#ifdef UCB_RUSAGE
 	/*
 	 * Increment u_ru.ru_nswap for process being tossed out of core.
 	 * We can be called to swap out a process other than the current
@@ -141,7 +139,6 @@ swapout(p, freecore, odata, ostack)
 		*KDSA6 = savekdsa6;
 		splx(s);
 	}
-#endif
 	swap(a[2], p->p_addr, USIZE, B_WRITE);
 	if (freecore == X_FREECORE)
 		mfree(coremap, USIZE, p->p_addr);
@@ -152,7 +149,6 @@ swapout(p, freecore, odata, ostack)
 	p->p_time = 0;
 
 #ifdef UCB_METER
-	multprog--;
 	cnt.v_swpout++;
 #endif
 

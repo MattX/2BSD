@@ -5,10 +5,10 @@ GROUP(5)	    UNIX Programmer's Manual		 GROUP(5)
 
 
 
-NNAAMMEE
+NAME
      group - group file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_r_o_u_p contains for each group the following information:
 
      group name
@@ -25,13 +25,13 @@ DDEESSCCRRIIPPTTIIOONN
      mission and can be used, for example, to map numerical group
      ID's to names.
 
-FFIILLEESS
+FILES
      /etc/group
 
-SSEEEE AALLSSOO
+SEE ALSO
      setgroups(2), initgroups(3X), crypt(3), passwd(1), passwd(5)
 
-BBUUGGSS
+BUGS
      The _p_a_s_s_w_d(1) command won't change the passwords.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)exec.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)exec.h	1.2 (2.11BSD GTE) 10/31/93
  */
 
 #ifndef _EXEC_
@@ -27,6 +27,14 @@ struct	ovlhdr {
 	int	max_ovl;	/* maximum overlay size */
 unsigned int	ov_siz[NOVL];	/* size of i'th overlay */
 };
+
+/*
+ * eXtended header definition for use with the new macros in a.out.h
+*/
+struct	xexec {
+	struct	exec	e;
+	struct	ovlhdr	o;
+	};
 
 #define	A_MAGIC1	0407	/* normal */
 #define	A_MAGIC2	0410	/* read-only text */

@@ -172,8 +172,8 @@ var	short	costRP;	/* likewise for RIGHT_PARM */
 # define MAXNOMACS	128	/* max number of macros of each kind */
 # define MAXCHARMACS	2048	/* max # of chars total in macros */
 #else
-# define MAXNOMACS	32	/* max number of macros of each kind */
-# define MAXCHARMACS	512	/* max # of chars total in macros */
+# define MAXNOMACS	48	/* max number of macros of each kind */
+# define MAXCHARMACS	1536	/* max # of chars total in macros */
 #endif
 struct maps {
 	char *cap;	/* pressing button that sends this.. */

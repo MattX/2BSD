@@ -1,39 +1,76 @@
-static char	*sccsid = "@(#)dcheck.c	2.3";
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
+ */
+
+#if	!defined(lint) && defined(DOSCCS)
+char copyright[] =
+"@(#) Copyright (c) 1980 Regents of the University of California.\n\
+ All rights reserved.\n";
+static char sccsid[] = "@(#)dcheck.c	5.1 (Berkeley) 6/6/85";
+#endif
 
 /*
  * dcheck - check directory consistency
  */
-#define	NI	16
+#define	NI	8
+#define	NF	2048
 #define	NB	10
-#define	NDIR	(DEV_BSIZE/sizeof(struct v7direct))
+#define	MAXNINDIR	(MAXBSIZE / sizeof (daddr_t))
 
 #include <sys/param.h>
-#include <stdio.h>
 #include <sys/inode.h>
 #include <sys/fs.h>
 #include <sys/dir.h>
+#include <sys/file.h>
+#include <stdio.h>
 
-struct	fs	sblock;
-struct	dinode	itab[INOPB*NI];
-daddr_t	iaddr[NADDR];
+union {
+	struct	fs fs;
+	char pad[MAXBSIZE];
+} fsun;
+#define	sblock	fsun.fs
+
+struct dirstuff {
+	off_t loc;
+	struct dinode *ip;
+	char dbuf[MAXBSIZE];
+};
+
+struct	dinode	itab[NI * INOPB];
+struct	dinode	*gip;
 ino_t	ilist[NB];
 
 int	fi;
+int	fo;
 ino_t	ino;
-char	*ecount;
+ino_t	ecount[NF];
+ino_t	starti, endi;
+int	edirty;
+char	*tfn = "/tmp/dchkXXXXXX";
 int	headpr;
-unsigned	nfiles;
+ino_t	nfiles;
 
 int	nerror;
 daddr_t	bmap();
-long	atol();
-char	*malloc();
+extern long	atol(), lseek();
+extern char	*malloc();
+extern	int	errno;
 
 main(argc, argv)
 char *argv[];
 {
 	register i;
 	long n;
+
+	mktemp(tfn);
+	fo = open(tfn, O_CREAT|O_RDWR, 0600);
+	if (fo < 0) {
+		fprintf(stderr, "Can't create tmp file: %s\n", tfn);
+		exit(4);
+	}
+	unlink(tfn);
 
 	while (--argc) {
 		argv++;
@@ -45,7 +82,7 @@ char *argv[];
 				n = atol(argv[1]);
 				if(n == 0)
 					break;
-				ilist[i] = n;
+				ilist[i] = (ino_t)n;
 				argv++;
 				argc--;
 			}
@@ -64,8 +101,7 @@ char *argv[];
 check(file)
 char *file;
 {
-	register i;
-	register j;
+	register i, j;
 
 	fi = open(file, 0);
 	if(fi < 0) {
@@ -73,144 +109,195 @@ char *file;
 		nerror++;
 		return;
 	}
+
+	bread(SBLOCK, (char *)&sblock, SBSIZE);
+	nfiles = (sblock.fs_isize - 2) * INOPB;
+	bzero(ecount, sizeof (ecount));
+
+	lseek(fo, 0L, 0);
+	ftruncate(fo, 0L);
+	lseek(fo, (off_t)nfiles * sizeof (u_short), 0);
+	write(fo, ecount, sizeof (ecount));
+
 	headpr = 0;
 	printf("%s:\n", file);
 	sync();
-	bread((daddr_t)1, (char *)&sblock, sizeof(sblock));
-	nfiles = (sblock.fs_isize-2)*INOPB;
-	if (nfiles > 30000) {
-		printf("Only doing 30000 files\n");
-		nfiles = 30000;
-	}
-	ecount = malloc(nfiles+1);
-	if (ecount==NULL) {
-		printf("Not enough core\n");
-		exit(04);
-	}
-	for (i=0; i<=nfiles; i++)
-		ecount[i] = 0;
 	ino = 0;
-	for(i=2;; i+=NI) {
-		if(ino >= nfiles)
+	for (i = 2; ; i += NI) {
+		if (ino >= nfiles)
 			break;
-		bread((daddr_t)i, (char *)itab, sizeof(itab));
-		for(j=0; j<INOPB*NI; j++) {
-			if(ino >= nfiles)
+		bread((daddr_t)i, (char *)itab, sizeof (itab));
+		for (j = 0; j < INOPB * NI; j++) {
+			if (ino >= nfiles)
 				break;
 			ino++;
 			pass1(&itab[j]);
 		}
 	}
 	ino = 0;
-	for(i=2;; i+=NI) {
-		if(ino >= nfiles)
+	for (i = 2; ; i += NI) {
+		if (ino >= nfiles)
 			break;
-		bread((daddr_t)i, (char *)itab, sizeof(itab));
-		for(j=0; j<INOPB*NI; j++) {
-			if(ino >= nfiles)
+		bread((daddr_t)i, (char *)itab, sizeof (itab));
+		for (j = 0; j < INOPB * NI; j++) {
+			if (ino >= nfiles)
 				break;
 			ino++;
-			pass2(&itab[j]);
+			pass1(&itab[j]);
 		}
 	}
-	free(ecount);
 }
 
 pass1(ip)
-register struct dinode *ip;
+	register struct dinode *ip;
 {
-	struct v7direct dbuf[NDIR];
-	long doff;
-	struct v7direct *dp;
-	register i, j;
-	int k;
-	daddr_t d;
-	ino_t kno;
+	register struct direct *dp;
+	struct dirstuff dirp;
+	register int k;
 
 	if((ip->di_mode&IFMT) != IFDIR)
 		return;
-	l3tol(iaddr, ip->di_addr, NADDR);
-	doff = 0;
-	for(i=0;; i++) {
-		if(doff >= ip->di_size)
-			break;
-		d = bmap(i);
-		if(d == 0)
-			break;
-		bread(d, (char *)dbuf, DEV_BSIZE);
-		for(j=0; j<NDIR; j++) {
-			if(doff >= ip->di_size)
-				break;
-			doff += sizeof(struct v7direct);
-			dp = &dbuf[j];
-			kno = dp->d_ino;
-			if(kno == 0)
-				continue;
-			if(kno > nfiles || kno <= 1) {
-				printf("%5u bad; %u/%.14s\n", kno, ino, dp->d_name);
-				nerror++;
-				continue;
-			}
-			for (k=0; ilist[k] != 0; k++)
-				if (ilist[k]==kno) {
-					printf("%5u arg; %u/%.14s\n", kno, ino, dp->d_name);
-					nerror++;
-				}
-			ecount[kno]++;
-			if (ecount[kno] == 0)
-				ecount[kno] = 0377;
+	dirp.loc = 0;
+	dirp.ip = ip;
+	gip = ip;
+	for (dp = readdir(&dirp); dp != NULL; dp = readdir(&dirp)) {
+		if(dp->d_ino == 0)
+			continue;
+		if(dp->d_ino > nfiles || dp->d_ino < ROOTINO) {
+			printf("%u bad; %u/%s\n",
+			    dp->d_ino, ino, dp->d_name);
+			nerror++;
+			continue;
 		}
+		for (k = 0; ilist[k] != 0; k++)
+			if (ilist[k] == dp->d_ino) {
+				printf("%u arg; %u/%s\n",
+				     dp->d_ino, ino, dp->d_name);
+				nerror++;
+			}
+		dolncnt((ino_t)dp->d_ino, 1);
 	}
 }
 
 pass2(ip)
 register struct dinode *ip;
 {
-	register i;
+	register ino_t i;
+	register u_short cnt;
 
 	i = ino;
-	if ((ip->di_mode&IFMT)==0 && ecount[i]==0)
+	cnt = dolncnt(i, 0);
+	if ((ip->di_mode&IFMT)==0 && cnt==0)
 		return;
-	if (ip->di_nlink==((ecount[i])&0377) && ip->di_nlink!=0)
-		return;
-	if (ino < ROOTINO && ip->di_nlink==0 && ecount[i]==0)
+	if (ip->di_nlink==cnt && ip->di_nlink!=0)
 		return;
 	if (headpr==0) {
 		printf("     entries  link cnt\n");
 		headpr++;
 	}
-	printf("%u	%d	%d\n", ino,
-	    ecount[i]&0377, ip->di_nlink);
+	printf("%u\t%d\t%d\n", ino, cnt, ip->di_nlink);
+}
+
+/*
+ * get next entry in a directory.
+ */
+struct direct *
+readdir(dirp)
+	register struct dirstuff *dirp;
+{
+	register struct direct *dp;
+	daddr_t lbn, d;
+
+	for(;;) {
+		if (dirp->loc >= dirp->ip->di_size)
+			return NULL;
+		if ((lbn = lblkno(dirp->loc)) == 0) {
+			d = bmap(lbn);
+			if(d == 0)
+				return NULL;
+			bread(d, dirp->dbuf, DEV_BSIZE);
+		}
+		dp = (struct direct *)(dirp->dbuf + blkoff(dirp->loc));
+		dirp->loc += dp->d_reclen;
+		if (dp->d_ino == 0)
+			continue;
+		return (dp);
+	}
 }
 
 bread(bno, buf, cnt)
 daddr_t bno;
 char *buf;
 {
-	register i;
-	long lseek();
 
-	lseek(fi, bno*DEV_BSIZE, 0);
+	lseek(fi, bno * DEV_BSIZE, 0);
 	if (read(fi, buf, cnt) != cnt) {
-		printf("read error %D\n", bno);
-		for(i=0; i<DEV_BSIZE; i++)
-			buf[i] = 0;
+		printf("read error %ld\n", bno);
+		bzero(buf, cnt);
 	}
 }
 
-
 daddr_t
 bmap(i)
+	daddr_t i;
 {
-	daddr_t ibuf[NINDIR];
+	daddr_t ibuf[MAXNINDIR];
 
-	if(i < NADDR-3)
-		return(iaddr[i]);
-	i -= NADDR-3;
+	if(i < NDADDR)
+		return(gip->di_addr[i]);
+	i -= NDADDR;
 	if(i > NINDIR) {
 		printf("%u - huge directory\n", ino);
 		return((daddr_t)0);
 	}
-	bread(iaddr[NADDR-3], (char *)ibuf, sizeof(ibuf));
+	bread(gip->di_addr[NDADDR], (char *)ibuf, sizeof(ibuf));
 	return(ibuf[i]);
+}
+
+u_short
+dolncnt(i, cnt)
+	register ino_t i;
+	register u_short cnt;
+{
+again:
+	if (i >= starti && i <= endi) {
+		if (cnt)
+			edirty = 1;
+		ecount[i - starti] += cnt;
+		return(ecount[i - starti]);
+	}
+	fill(i);
+	goto again;
+}
+
+flush()
+{
+
+	if (edirty) {
+		edirty = 0;
+		if (lseek(fo, (off_t)(starti / NF) * sizeof (ecount), 0) < 0) {
+			fprintf(stderr, "lseek error %d in tmp file\n", errno);
+			return;
+		}
+		if (write(fo, ecount, sizeof (ecount)) != sizeof (ecount)) {
+			fprintf(stderr, "write error %d in tmp file\n", errno);
+			return;
+		}
+	}
+}
+
+fill(i)
+register ino_t i;
+{
+	flush();
+	starti = (i / NF) * NF;
+	endi = starti + NF - 1;
+	if (lseek(fo, (off_t)(starti/NF) * sizeof (ecount), 0) < 0) {
+		fprintf(stderr, "lseek error %d in tmp file\n", errno);
+		return;
+	}
+	if (read(fo, ecount, sizeof (ecount)) != sizeof (ecount)) {
+		fprintf(stderr, "read error %d in tmp file\n", errno);
+		return;
+	}
 }

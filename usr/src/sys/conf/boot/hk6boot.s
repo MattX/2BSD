@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)hk6boot.s	1.2 (Berkeley)	2/19/87
+ *	SCCS id	@(#)hk6boot.s	2.0 (2.11BSD)	4/13/91
  */
 #include "localopts.h"
 
@@ -8,12 +8,10 @@
 ENDCORE=	160000		/ end of core, mem. management off
 SZFLAGS=	6		/ size of boot flags
 BOOTOPTS=	2		/ location of options, bytes below ENDCORE
-BOOTDEV=	4
+BOOTDEV=	4		/ boot unit
 CHECKWORD=	6
 
-reset= 	5
-
-.globl	_doboot, hardboot
+.globl	_doboot, hardboot, _bootcsr
 .text
 _doboot:
 	mov	4(sp),r4	/ boot options
@@ -35,10 +33,12 @@ _doboot:
 #endif
 
 /  On power fail, hardboot is the entry point (map is already off)
-/  and the args are in r4, r3.
+/  and the args are in r4 (RB_POWRFAIL), r3 (rootdev)
 
 hardboot:
 	mov	r4, ENDCORE-BOOTOPTS
+	ash	$-3,r3		/ shift out the partition number
+	bic	$!7,r3		/ save only the drive number
 	mov	r3, ENDCORE-BOOTDEV
 	com	r4		/ if CHECKWORD == ~bootopts, flags are believed
 	mov	r4, ENDCORE-CHECKWORD
@@ -54,10 +54,10 @@ hardboot:
 
 WC = -256.
 
-hkcs1 = 177440	/ control & status 1
-hkda  = 177446	/ desired track/sector address
-hkcs2 = 177450	/ control & status 2
-hkca  = 177460	/ desired cylinder
+hkcs1 = 0	/ offsets from base csr, control & status 1
+hkda  = 6	/ desired track/sector address
+hkcs2 = 10	/ control & status 2
+hkca  = 20	/ desired cylinder
 
 / RK06 constants.
 ack = 03	/ pack acknowledge
@@ -65,19 +65,22 @@ clear = 040	/ subsystem clear
 iocom = 021	/ read + go
 
 / initialize hk
-	mov	$clear,hkcs2
-	mov	$ack,hkcs1
+	mov	_bootcsr,r1
+	mov	$clear,hkcs2(r1)
+	mov	$ack,hkcs1(r1)
 0:
-	tstb	hkcs1
+	tstb	hkcs1(r1)
 	bpl	0b		/ wait for acknowledge to complete
 
-	clr	hkca
-	mov	$hkda,r1
-	clr	(r1)		/ sector and track
+	clr	hkca(r1)
+	add	$hkcs2,r1
+	mov	ENDCORE-BOOTDEV,(r1)
+	clr	-(r1)		/ sector and track (hkda)
 	clr	-(r1)		/ bus address
 	mov	$WC,-(r1)	/ word count
 	mov	$iocom,-(r1)
 1:
 	tstb	(r1)
 	bge	1b		/ wait for iocom to complete
-	jmp	*$0
+	mov	ENDCORE-BOOTDEV,r0
+	clr	pc

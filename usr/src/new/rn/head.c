@@ -16,6 +16,7 @@
 #include "common.h"
 #include "artio.h"
 #include "bits.h"
+#include "server.h"
 #include "util.h"
 #include "INTERN.h"
 #include "head.h"
@@ -180,6 +181,11 @@ bool current_subject;			/* is it in a parsed header? */
 bool copy;				/* do you want it savestr()ed? */
 {
     char *s = Nullch, *t;
+#ifdef SERVER
+    static int xhdr = 1;		/* Can we use xhdr command? */
+    int eoo;				/* End of server output */
+    char ser_line[256];
+#endif SERVER
 
 #ifdef CACHESUBJ
     if (!subj_list) {
@@ -208,16 +214,67 @@ bool copy;				/* do you want it savestr()ed? */
 	else {
 	    s = safemalloc((MEM_SIZE)256);
 	    *s = '\0';
+#ifdef SERVER
+	    if (xhdr) {
+	    	sprintf(ser_line, "XHDR subject %ld", artnum);
+	    	put_server(ser_line);
+		if (get_server(ser_line, sizeof (ser_line)) >= 0) {
+			if (ser_line[0] == CHAR_FATAL) {
+			    xhdr = 0;
+			} else {
+			    while (get_server(ser_line, sizeof (ser_line)) >= 0) {
+				if (ser_line[0] == '.')
+				    break;
+				else {
+				    t = index(ser_line, ' ');
+				    if (t++) {
+					strcpy(s, t);
+					if (t = index(s, '\r'))
+						*t = '\0';
+				    }
+				}
+			    }
+			}
+		} else {
+		    fprintf(stderr,
+			"rrn: Unexpected close of server socket.\n");
+		    finalize(1);
+		}
+	    }
+
+	    if (!xhdr) {
+		sprintf(ser_line, "HEAD %ld", artnum);
+		put_server(ser_line);
+		eoo = 0;
+		if (get_server(ser_line, 256) >= 0 && ser_line[0] == CHAR_OK) {
+		    do {
+			if (get_server(s, 256) < 0 || (*s == '.')) {
+			strcpy(s, "Title: \n");
+			eoo = 1;
+		        }
+		    } while (strnNE(s,"Title:",6) && strnNE(s,"Subject:",8));
+
+		    if (!eoo)
+			while (get_server(ser_line, sizeof (ser_line)) >= 0 &&
+				ser_line[0] != '.');
+		    t = index(s,':')+1;
+		    while (*t == ' ') t++;
+		    strcpy(s, t);
+	        }
+	    }
+#else not SERVER
 	    if (artopen(artnum) != Nullfp) {
 		do {
 		    if (fgets(s,256,artfp) == Nullch)
 			strcpy(s, "Title: \n");
 		} while (strnNE(s,"Title:",6) && strnNE(s,"Subject:",8));
+
 		s[strlen(s)-1] = '\0';
 		t = index(s,':')+1;
 		while (*t == ' ') t++;
 		strcpy(s, t);
 	    }
+#endif
 	    s = saferealloc(s, (MEM_SIZE)strlen(s)+1);
 #ifdef CACHESUBJ
 	    subj_list[OFFSET(artnum)] = s;

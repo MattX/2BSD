@@ -105,8 +105,9 @@ register struct tty *tp;
  * is waiting.  Our clearing tp->t_rec here allows further input
  * to accumulate.
  */
-bkread(tp)
+bkread(tp, uio)
 register struct tty *tp;
+	struct uio *uio;
 {
 	register int i;
 	register s;
@@ -119,14 +120,14 @@ register struct tty *tp;
 	splx(s);
 	if (tp->t_line != NETLDISC)
 		return (-1);
-	i = MIN(tp->t_inbuf, (int)u.u_count);
-	if (copyout(tp->t_bufp->b_un.b_addr, u.u_base, (unsigned)i)) {
+	i = MIN(tp->t_inbuf, (int)uio->uio_resid);
+	if (copyout(tp->t_bufp->b_un.b_addr, uio->uio_iov->iov_base, (unsigned)i)) {
 		u.u_error = EFAULT;
 		return (-1);
 	}
-	u.u_count -= i;
-	u.u_base += i;
-	u.u_offset += i;
+	uio->uio_resid -= i;
+	uio->uio_iov->iov_base += i;
+	uio->uio_offset += i;
 	tp->t_cp = (char *)tp->t_bufp->b_un.b_addr;
 	tp->t_inbuf = 0;
 	tp->t_rec = 0;
@@ -186,4 +187,3 @@ caddr_t addr;
 }
 #endif UCB_NTTY
 #endif NBK > 0
-

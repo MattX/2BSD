@@ -11,23 +11,23 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	config dump fsck ftpd getty htable implog named restor \
-	routed talkd termcap tftpd timed tzone XNSrouted
+SUBDIR=	chroot config dump fingerd fsck ftpd getty htable implog named restor \
+	routed talkd termcap tftpd timed tzone XNSrouted mkpasswd vipw \
+	rlogind rshd
 
 # Shell scripts that need only be installed and are never removed.
 #
-SCRIPT=	mklost
+SCRIPT= mklost+found
 
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
 STD=	ac accton arff bad144 badsect catman chown clri comsat \
-	cron dcheck diskpart dumpfs edquota fingerd flcopy \
+	cron dcheck diskpart dumpfs edquota flcopy \
 	gettable ifconfig icheck inetd init newfs mkfs mknod \
 	mkproto mount ncheck quotaon quotacheck reboot renice \
-	repquota rexecd rlogind rmt route rshd rwhod rxformat sa savecore \
-	shutdown slattach swapon syslogd telnetd tunefs umount update vipw \
-	mkpasswd
+	repquota rexecd rmt route rwhod rxformat sa savecore \
+	shutdown slattach swapon syslogd telnetd tunefs umount update
 
 # C programs that live in the current directory and need explicit make lines.
 #
@@ -56,7 +56,7 @@ ${SUBDIR}: FRC
 ${STD} ${KMEM} ${SETUID} ${OPERATOR}:
 	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install:
+install: ${STD} ${NSTD} ${SETUID} ${KMEM}  ${OPERATOR}
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do (install -c $$i.sh ${DESTDIR}/etc/$$i); done

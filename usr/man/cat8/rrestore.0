@@ -5,13 +5,13 @@ RRESTORE(8C)	    UNIX Programmer's Manual	     RRESTORE(8C)
 
 
 
-NNAAMMEE
+NAME
      rrestore - restore a file system dump across the network
 
-SSYYNNOOPPSSIISS
-     //eettcc//rrrreessttoorree [ key [ name ... ]
+SYNOPSIS
+     /etc/rrestore [ key [ name ... ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_r_e_s_t_o_r_e obtains from magnetic tape files saved by a previ-
      ous _d_u_m_p(8).  The command is identical in operation to
      _r_e_s_t_o_r_e(8) except the _f key should be specified and the file
@@ -20,10 +20,10 @@ DDEESSCCRRIIPPTTIIOONN
      _R_r_e_s_t_o_r_e creates a remote server, /_e_t_c/_r_m_t, on the client
      machine to access the tape device.
 
-SSEEEE AALLSSOO
+SEE ALSO
      restore(8), rmt(8C)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Same as _r_e_s_t_o_r_e(8) with a few extra related to the network.
 
 
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  June 3, 1986				1
+Printed 1/9/94		  June 3, 1986				1
 
 
 

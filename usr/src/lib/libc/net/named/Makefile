@@ -43,15 +43,15 @@ depend:
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-gethnamadr.o: gethnamadr.c /usr/include/sys/types.h /usr/include/sys/socket.h
-gethnamadr.o: /usr/include/short_names.h /usr/include/netinet/in.h
-gethnamadr.o: /usr/include/short_names.h /usr/include/ctype.h
-gethnamadr.o: /usr/include/netdb.h /usr/include/short_names.h
-gethnamadr.o: /usr/include/stdio.h /usr/include/errno.h
-gethnamadr.o: /usr/include/arpa/inet.h /usr/include/short_names.h
-gethnamadr.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
+gethnamadr.o: gethnamadr.c /usr/include/sys/param.h
+gethnamadr.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
+gethnamadr.o: /usr/include/sys/types.h /usr/include/signal.h
+gethnamadr.o: /usr/include/sys/types.h /usr/include/sys/socket.h
+gethnamadr.o: /usr/include/netinet/in.h /usr/include/ctype.h
+gethnamadr.o: /usr/include/netdb.h /usr/include/stdio.h /usr/include/errno.h
+gethnamadr.o: /usr/include/arpa/inet.h /usr/include/arpa/nameser.h
+gethnamadr.o: /usr/include/resolv.h
 sethostent.o: sethostent.c /usr/include/sys/types.h /usr/include/arpa/nameser.h
-sethostent.o: /usr/include/netinet/in.h /usr/include/short_names.h
-sethostent.o: /usr/include/resolv.h
+sethostent.o: /usr/include/netinet/in.h /usr/include/resolv.h
 
 # IF YOU PUT ANYTHING HERE IT WILL GO AWAY

@@ -2,17 +2,24 @@
  * Copyright (c) 1985 Regents of the University of California.
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
+ * Redistribution and use in source and binary forms are permitted provided
+ * that: (1) source distributions retain this entire copyright notice and
+ * comment, and (2) distributions including binaries display the following
+ * acknowledgement:  ``This product includes software developed by the
+ * University of California, Berkeley and its contributors'' in the
+ * documentation or other materials provided with the distribution and in
+ * all advertising materials mentioning features or use of this software.
+ * Neither the name of the University nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)skip.c	5.4 (Berkeley) 2/17/88";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)skip.c	5.9 (Berkeley) 8/3/90";
+#endif
 
 /*
  *******************************************************************************
@@ -82,7 +89,7 @@ res_skip(msg, numFieldsToSkip, eom)
 	 * skip question records.
 	 */
 	if (n = ntohs(hp->qdcount) ) {
-		while (--n >= 0) {
+		while (--n >= 0 && cp < eom) {
 			tmp = dn_skipname(cp, eom);
 			if (tmp == -1) return(NULL);
 			cp += tmp;
@@ -96,7 +103,7 @@ res_skip(msg, numFieldsToSkip, eom)
 	 * skip authoritative answer records
 	 */
 	if (n = ntohs(hp->ancount)) {
-		while (--n >= 0) {
+		while (--n >= 0 && cp < eom) {
 			cp = res_skip_rr(cp, eom);
 			if (cp == NULL) return(NULL);
 		}
@@ -107,7 +114,7 @@ res_skip(msg, numFieldsToSkip, eom)
 	 * skip name server records
 	 */
 	if (n = ntohs(hp->nscount)) {
-		while (--n >= 0) {
+		while (--n >= 0 && cp < eom) {
 			cp = res_skip_rr(cp, eom);
 			if (cp == NULL) return(NULL);
 		}
@@ -118,7 +125,7 @@ res_skip(msg, numFieldsToSkip, eom)
 	 * skip additional records
 	 */
 	if (n = ntohs(hp->arcount)) {
-		while (--n >= 0) {
+		while (--n >= 0 && cp < eom) {
 			cp = res_skip_rr(cp, eom);
 			if (cp == NULL) return(NULL);
 		}
@@ -152,11 +159,15 @@ res_skip_rr(cp, eom)
 	if ((tmp = dn_skipname(cp, eom)) == -1)
 		return (NULL);			/* compression error */
 	cp += tmp;
+	if ((cp + RRFIXEDSZ) > eom)
+		return (NULL);
 	cp += sizeof(u_short);	/* 	type 	*/
 	cp += sizeof(u_short);	/* 	class 	*/
 	cp += sizeof(u_long);	/* 	ttl 	*/
 	dlen = _getshort(cp);
 	cp += sizeof(u_short);	/* 	dlen 	*/
 	cp += dlen;
+	if (cp > eom)
+		return (NULL);
 	return (cp);
 }

@@ -1,7 +1,16 @@
-# include "mfile1"
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid ="@(#)pftn.c	1.12 (Berkeley) 4/21/86";
+#endif lint
+
+# include "pass1.h"
+
+OFFSZ offsz;
+
+struct symtab *schain[MAXSCOPES];	/* sym chains for clearst */
+int chaintop;				/* highest active entry */
 
 struct instk {
-	int in_sz;   /* size of array element */
+	OFFSZ in_sz; /* size of array element */
 	int in_x;    /* current index for structure member in structure initializations */
 	int in_n;    /* number of initializations seen */
 	int in_s;    /* sizoff */
@@ -22,38 +31,48 @@ struct symtab *relook();
 
 int ddebug = 0;
 
-defid( q, class )  NODE *q; {
+struct symtab * mknonuniq();
+
+defid( q, class ) register NODE *q; register int class; {
 	register struct symtab *p;
 	int idp;
-	TWORD type;
+	register TWORD type;
 	TWORD stp;
-	int scl;
+	register int scl;
 	int dsym, ddef;
 	int slev, temp;
+	int changed;
 
 	if( q == NIL ) return;  /* an error was detected */
 
 	if( q < node || q >= &node[TREESZ] ) cerror( "defid call" );
 
-	idp = q->rval;
+	idp = q->tn.rval;
 
 	if( idp < 0 ) cerror( "tyreduce" );
 	p = &stab[idp];
 
+# ifndef BUG1
 	if( ddebug ){
+#ifndef FLEXNAMES
 		printf( "defid( %.8s (%d), ", p->sname, idp );
-		tprint( q->type );
-		printf( ", %s, (%d,%d) ), level %d\n", scnames(class), q->cdim, q->csiz, blevel );
+#else
+		printf( "defid( %s (%d), ", p->sname, idp );
+#endif
+		tprint( q->in.type );
+		printf( ", %s, (%d,%d) ), level %d\n", scnames(class), q->fn.cdim, q->fn.csiz, blevel );
 		}
+# endif
 
 	fixtype( q, class );
 
-	type = q->type;
+	type = q->in.type;
 	class = fixclass( class, type );
 
 	stp = p->stype;
 	slev = p->slevel;
 
+# ifndef BUG1
 	if( ddebug ){
 		printf( "	modified to " );
 		tprint( type );
@@ -62,12 +81,19 @@ defid( q, class )  NODE *q; {
 		tprint( stp );
 		printf( ", %s, (%d,%d) ), level %d\n", scnames(p->sclass), p->dimoff, p->sizoff, slev );
 		}
+# endif
 
+	if( stp == FTN && p->sclass == SNULL )goto enter;
+		/* name encountered as function, not yet defined */
 	if( stp == UNDEF|| stp == FARG ){
 		if( blevel==1 && stp!=FARG ) switch( class ){
 
 		default:
+#ifndef FLEXNAMES
 			if(!(class&FIELD)) uerror( "declared argument %.8s is missing", p->sname );
+#else
+			if(!(class&FIELD)) uerror( "declared argument %s is missing", p->sname );
+#endif
 		case MOS:
 		case STNAME:
 		case MOU:
@@ -79,14 +105,19 @@ defid( q, class )  NODE *q; {
 			}
 		goto enter;
 		}
+
 	if( type != stp ) goto mismatch;
 	/* test (and possibly adjust) dimensions */
 	dsym = p->dimoff;
-	ddef = q->cdim;
+	ddef = q->fn.cdim;
+	changed = 0;
 	for( temp=type; temp&TMASK; temp = DECREF(temp) ){
 		if( ISARY(temp) ){
-			if( dimtab[dsym] == 0 ) dimtab[dsym] = dimtab[ddef];
-			else if( dimtab[ddef]!=0 && dimtab[dsym] != dimtab[ddef] ){
+			if (dimtab[dsym] == 0) {
+				dimtab[dsym] = dimtab[ddef];
+				changed = 1;
+				}
+			else if (dimtab[ddef]!=0&&dimtab[dsym]!=dimtab[ddef]) {
 				goto mismatch;
 				}
 			++dsym;
@@ -94,22 +125,29 @@ defid( q, class )  NODE *q; {
 			}
 		}
 
+	if (changed) {
+		FIXDEF(p);
+		}
+
 	/* check that redeclarations are to the same structure */
-	if( (temp==STRTY||temp==UNIONTY||temp==ENUMTY) && p->sizoff != q->csiz && (type&TMASK) ) {
+	if( (temp==STRTY||temp==UNIONTY||temp==ENUMTY) && p->sizoff != q->fn.csiz
+		 && class!=STNAME && class!=UNAME && class!=ENAME ){
 		goto mismatch;
 		}
 
 	scl = ( p->sclass );
 
+# ifndef BUG1
 	if( ddebug ){
 		printf( "	previous class: %s\n", scnames(scl) );
 		}
+# endif
 
 	if( class&FIELD ){
 		/* redefinition */
 		if( !falloc( p, class&FLDSIZ, 1, NIL ) ) {
 			/* successful allocation */
-			psave( idp );
+			psave( (OFFSZ)idp );
 			return;
 			}
 		/* blew it: resume at end of switch... */
@@ -146,7 +184,7 @@ defid( q, class )  NODE *q; {
 	case LABEL:
 		if( scl == ULABEL ){
 			p->sclass = LABEL;
-			deflab( p->offset );
+			deflab( (int)p->offset );
 			return;
 			}
 		break;
@@ -172,7 +210,7 @@ defid( q, class )  NODE *q; {
 		if( scl == class ) {
 			if( oalloc( p, &strucoff ) ) break;
 			if( class == MOU ) strucoff = 0;
-			psave( idp );
+			psave( (OFFSZ)idp );
 			return;
 			}
 		break;
@@ -180,7 +218,7 @@ defid( q, class )  NODE *q; {
 	case MOE:
 		if( scl == class ){
 			if( p->offset!= strucoff++ ) break;
-			psave( idp );
+			psave( (OFFSZ)idp );
 			}
 		break;
 
@@ -209,19 +247,55 @@ defid( q, class )  NODE *q; {
 		}
 
 	mismatch:
+	/* allow nonunique structure/union member names */
+
+	if( class==MOU || class==MOS || class & FIELD ){/* make a new entry */
+		register OFFSZ *memp;
+		p->sflags |= SNONUNIQ;  /* old entry is nonunique */
+		/* determine if name has occurred in this structure/union */
+		if (paramno > 0) for( memp = &paramstk[paramno-1];
+			/* while */ *memp>=0 && stab[*memp].sclass != STNAME
+				&& stab[*memp].sclass != UNAME;
+			/* iterate */ --memp){ char *cname, *oname;
+			if( stab[*memp].sflags & SNONUNIQ ){int k;
+				cname=p->sname;
+				oname=stab[*memp].sname;
+#ifndef FLEXNAMES
+				for(k=1; k<=NCHNAM; ++k){
+					if(*cname++ != *oname)goto diff;
+					if(!*oname++)break;
+					}
+#else
+				if (cname != oname) goto diff;
+#endif
+				uerror("redeclaration of: %s",p->sname);
+				break;
+				diff: continue;
+				}
+			}
+		p = mknonuniq( &idp ); /* update p and idp to new entry */
+		goto enter;
+		}
 	if( blevel > slev && class != EXTERN && class != FORTRAN &&
 		class != UFORTRAN && !( class == LABEL && slev >= 2 ) ){
-		q->rval = idp = hide( p );
+		q->tn.rval = idp = hide( p );
 		p = &stab[idp];
 		goto enter;
 		}
+#ifndef FLEXNAMES
 	uerror( "redeclaration of %.8s", p->sname );
+#else
+	uerror( "redeclaration of %s", p->sname );
+#endif
 	if( class==EXTDEF && ISFTN(type) ) curftn = idp;
 	return;
 
 	enter:  /* make a new entry */
 
+# ifndef BUG1
 	if( ddebug ) printf( "	new entry made\n" );
+# endif
+	if( type == UNDEF ) uerror("void type for %s",p->sname);
 	p->stype = type;
 	p->sclass = class;
 	p->slevel = blevel;
@@ -229,16 +303,17 @@ defid( q, class )  NODE *q; {
 	p->suse = lineno;
 	if( class == STNAME || class == UNAME || class == ENAME ) {
 		p->sizoff = curdim;
-		dstash( 0 );  /* size */
-		dstash( -1 ); /* index to members of str or union */
-		dstash( ALSTRUCT );  /* alignment */
+		dstash( (OFFSZ)0 );  /* size */
+		dstash( (OFFSZ)-1 ); /* index to members of str or union */
+		dstash( (OFFSZ)ALSTRUCT );  /* alignment */
+		dstash( (OFFSZ)idp );
 		}
 	else {
 		switch( BTYPE(type) ){
 		case STRTY:
 		case UNIONTY:
 		case ENUMTY:
-			p->sizoff = q->csiz;
+			p->sizoff = q->fn.csiz;
 			break;
 		default:
 			p->sizoff = BTYPE(type);
@@ -247,12 +322,12 @@ defid( q, class )  NODE *q; {
 
 	/* copy dimensions */
 
-	p->dimoff = q->cdim;
+	p->dimoff = q->fn.cdim;
 
 	/* allocate offsets */
 	if( class&FIELD ){
 		falloc( p, class&FLDSIZ, 0, NIL );  /* new entry */
-		psave( idp );
+		psave( (OFFSZ)idp );
 		}
 	else switch( class ){
 
@@ -270,7 +345,7 @@ defid( q, class )  NODE *q; {
 		p->slevel = 2;
 		if( class == LABEL ){
 			locctr( PROG );
-			deflab( p->offset );
+			deflab( (int)p->offset );
 			}
 		break;
 
@@ -284,12 +359,12 @@ defid( q, class )  NODE *q; {
 	case MOS:
 		oalloc( p, &strucoff );
 		if( class == MOU ) strucoff = 0;
-		psave( idp );
+		psave( (OFFSZ)idp );
 		break;
 
 	case MOE:
 		p->offset = strucoff++;
-		psave( idp );
+		psave( (OFFSZ)idp );
 		break;
 	case REGISTER:
 		p->offset = regvar--;
@@ -298,15 +373,29 @@ defid( q, class )  NODE *q; {
 		break;
 		}
 
+	{
+		register int l = p->slevel;
+
+		if( l >= MAXSCOPES )
+			cerror( "scopes nested too deep" );
+
+		p->snext = schain[l];
+		schain[l] = p;
+		if( l >= chaintop )
+			chaintop = l + 1;
+		}
+
 	/* user-supplied routine to fix up new definitions */
 
 	FIXDEF(p);
 
+# ifndef BUG1
 	if( ddebug ) printf( "	dimoff, sizoff, offset: %d, %d, %d\n", p->dimoff, p->sizoff, p->offset );
+# endif
 
 	}
 
-psave( i ){
+psave( i ) OFFSZ i;{
 	if( paramno >= PARAMSZ ){
 		cerror( "parameter stack overflow");
 		}
@@ -339,24 +428,36 @@ ftnend(){ /* end of function */
 	}
 
 dclargs(){
-	register i, j;
+	register i;
+	OFFSZ	j;
 	register struct symtab *p;
 	register NODE *q;
 	argoff = ARGINIT;
+# ifndef BUG1
+	if( ddebug > 2) printf("dclargs()\n");
+# endif
 	for( i=0; i<paramno; ++i ){
 		if( (j = paramstk[i]) < 0 ) continue;
 		p = &stab[j];
+# ifndef BUG1
+		if( ddebug > 2 ){
+			printf("\t%s (%d) ",p->sname, j);
+			tprint(p->stype);
+			printf("\n");
+			}
+# endif
 		if( p->stype == FARG ) {
 			q = block(FREE,NIL,NIL,INT,0,INT);
-			q->rval = j;
+			q->tn.rval = (int)j;
 			defid( q, PARAM );
 			}
+		FIXARG(p); /* local arg hook, eg. for sym. debugger */
 		oalloc( p, &argoff );  /* always set aside space, even for register arguments */
 		}
 	cendarg();
 	locctr(PROG);
 	defalign(ALINT);
-	++ftnno;
+	ftnno = getlab();
 	bfcode( paramstk, paramno );
 	paramno = 0;
 	}
@@ -371,8 +472,8 @@ rstruct( idn, soru ){ /* reference to a structure or union, with no definition *
 	case UNDEF:
 	def:
 		q = block( FREE, NIL, NIL, 0, 0, 0 );
-		q->rval = idn;
-		q->type = (soru&INSTRUCT) ? STRTY : ( (soru&INUNION) ? UNIONTY : ENUMTY );
+		q->tn.rval = idn;
+		q->in.type = (soru&INSTRUCT) ? STRTY : ( (soru&INUNION) ? UNIONTY : ENUMTY );
 		defid( q, (soru&INSTRUCT) ? STNAME : ( (soru&INUNION) ? UNAME : ENAME ) );
 		break;
 
@@ -397,45 +498,49 @@ moedef( idn ){
 	register NODE *q;
 
 	q = block( FREE, NIL, NIL, MOETY, 0, 0 );
-	q -> rval = idn;
+	q->tn.rval = idn;
 	if( idn>=0 ) defid( q, MOE );
 	}
 
 bstruct( idn, soru ){ /* begining of structure or union declaration */
 	register NODE *q;
 
-	psave( instruct );
-	psave( curclass );
+	psave( (OFFSZ)instruct );
+	psave( (OFFSZ)curclass );
 	psave( strucoff );
 	strucoff = 0;
 	instruct = soru;
 	q = block( FREE, NIL, NIL, 0, 0, 0 );
-	q->rval = idn;
+	q->tn.rval = idn;
 	if( instruct==INSTRUCT ){
 		curclass = MOS;
-		q->type = STRTY;
+		q->in.type = STRTY;
 		if( idn >= 0 ) defid( q, STNAME );
 		}
 	else if( instruct == INUNION ) {
 		curclass = MOU;
-		q->type = UNIONTY;
+		q->in.type = UNIONTY;
 		if( idn >= 0 ) defid( q, UNAME );
 		}
 	else { /* enum */
 		curclass = MOE;
-		q->type = ENUMTY;
+		q->in.type = ENUMTY;
 		if( idn >= 0 ) defid( q, ENAME );
 		}
-	psave( q->rval );
+	psave( (OFFSZ)(idn = q->tn.rval) );
+	/* the "real" definition is where the members are seen */
+	if ( idn >= 0 ) stab[idn].suse = lineno;
 	return( paramno-4 );
 	}
 
 NODE *
 dclstruct( oparam ){
 	register struct symtab *p;
-	register i, al, sa, j, sz, szindex;
+	register sa, al;
+	int szindex;
+	OFFSZ sz, i, j;
 	register TWORD temp;
-	register high, low;
+	OFFSZ high, low;
 
 	/* paramstack contains:
 		paramstack[ oparam ] = previous instruct
@@ -447,20 +552,26 @@ dclstruct( oparam ){
 
 		*/
 
-
 	if( (i=paramstk[oparam+3]) < 0 ){
 		szindex = curdim;
-		dstash( 0 );  /* size */
-		dstash( -1 );  /* index to member names */
-		dstash( ALSTRUCT );  /* alignment */
+		dstash( (OFFSZ)0 );  /* size */
+		dstash( (OFFSZ)-1 );  /* index to member names */
+		dstash( (OFFSZ)ALSTRUCT );  /* alignment */
+		dstash( (OFFSZ)-lineno );	/* name of structure */
 		}
 	else {
 		szindex = stab[i].sizoff;
 		}
 
+# ifndef BUG1
 	if( ddebug ){
+#ifndef FLEXNAMES
 		printf( "dclstruct( %.8s ), szindex = %d\n", (i>=0)? stab[i].sname : "??", szindex );
+#else
+		printf( "dclstruct( %s ), szindex = %d\n", (i>=0)? stab[i].sname : "??", szindex );
+#endif
 		}
+# endif
 	temp = (instruct&INSTRUCT)?STRTY:((instruct&INUNION)?UNIONTY:ENUMTY);
 	stwart = instruct = paramstk[ oparam ];
 	curclass = paramstk[ oparam+1 ];
@@ -487,13 +598,17 @@ dclstruct( oparam ){
 			sz = tsize( p->stype, p->dimoff, p->sizoff );
 			}
 		if( sz == 0 ){
-			uerror( "illegal zero sized structure member: %.8s", p->sname );
+#ifndef FLEXNAMES
+			werror( "illegal zero sized structure member: %.8s", p->sname );
+#else
+			werror( "illegal zero sized structure member: %s", p->sname );
+#endif
 			}
 		if( sz > strucoff ) strucoff = sz;  /* for use with unions */
 		SETOFF( al, sa );
 		/* set al, the alignment, to the lcm of the alignments of the members */
 		}
-	dstash( -1 );  /* endmarker */
+	dstash( (OFFSZ)-1 );  /* endmarker */
 	SETOFF( strucoff, al );
 
 	if( temp == ENUMTY ){
@@ -513,14 +628,22 @@ dclstruct( oparam ){
 	if( strucoff == 0 ) uerror( "zero sized structure" );
 	dimtab[ szindex ] = strucoff;
 	dimtab[ szindex+2 ] = al;
+	dimtab[ szindex+3 ] = paramstk[ oparam+3 ];  /* name index */
 
+	FIXSTRUCT( szindex, oparam ); /* local hook, eg. for sym debugger */
+# ifndef BUG1
 	if( ddebug>1 ){
-		printf( "\tdimtab[%d,%d,%d] = %d,%d,%d\n", szindex,szindex+1,szindex+2,
+		printf( "\tdimtab[%d,%d,%d] = %ld,%ld,%ld\n", szindex,szindex+1,szindex+2,
 				dimtab[szindex],dimtab[szindex+1],dimtab[szindex+2] );
-		for( i = dimtab[szindex+1]; dimtab[i] >= 0; ++i ){
-			printf( "\tmember %.8s(%d)\n", stab[dimtab[i]].sname, dimtab[i] );
+		for( i = (int)dimtab[szindex+1]; dimtab[i] >= 0; ++i ){
+#ifndef FLEXNAMES
+			printf( "\tmember %.8s(%ld)\n", stab[dimtab[i]].sname, dimtab[i] );
+#else
+			printf( "\tmember %s(%ld)\n", stab[dimtab[i]].sname, dimtab[i] );
+#endif
 			}
 		}
+# endif
 
 	strucoff = paramstk[ oparam+2 ];
 	paramno = oparam;
@@ -540,12 +663,32 @@ yyaccpt(){
 	}
 
 ftnarg( idn ) {
-	if( stab[idn].stype != UNDEF ){
+	switch( stab[idn].stype ){
+
+	case UNDEF:
+		/* this parameter, entered at scan */
+		break;
+	case FARG:
+#ifndef FLEXNAMES
+		uerror("redeclaration of formal parameter, %.8s",
+#else
+		uerror("redeclaration of formal parameter, %s",
+#endif
+			stab[idn].sname);
+		/* fall thru */
+	case FTN:
+		/* the name of this function matches parm */
+		/* fall thru */
+	default:
 		idn = hide( &stab[idn]);
+		break;
+	case TNULL:
+		/* unused entry, fill it */
+		;
 		}
 	stab[idn].stype = FARG;
 	stab[idn].sclass = PARAM;
-	psave( idn );
+	psave( (OFFSZ)idn );
 	}
 
 talign( ty, s) register unsigned ty; register s; {
@@ -579,7 +722,7 @@ talign( ty, s) register unsigned ty; register s; {
 	case UNIONTY:
 	case ENUMTY:
 	case STRTY:
-		return( dimtab[ s+2 ] );
+		return( (unsigned int) dimtab[ s+2 ] );
 	case CHAR:
 	case UCHAR:
 		return( ALCHAR );
@@ -626,7 +769,10 @@ tsize( ty, d, s )  TWORD ty; {
 		}
 
 	if( dimtab[s]==0 ) {
-		uerror( "unknown size");
+		if( ty == STRTY )
+			uerror( "undefined structure" );
+		else
+			uerror( "unknown size");
 		return( SZINT );
 		}
 	return( dimtab[ s ] * mult );
@@ -672,7 +818,7 @@ inforce( n ) OFFSZ n; {  /* force inoff to have the value n */
 
 	}
 
-vfdalign( n ){ /* make inoff have the offset the next alignment of n */
+vfdalign( n ) OFFSZ n;{ /* make inoff have the offset the next alignment of n */
 	OFFSZ m;
 
 	m = inoff;
@@ -685,6 +831,8 @@ int idebug = 0;
 
 int ibseen = 0;  /* the number of } constructions which have been filled */
 
+int ifull = 0; /* 1 if all initializers have been seen */
+
 int iclass;  /* storage class of thing being initialized */
 
 int ilocctr = 0;  /* location counter for current initialization */
@@ -693,7 +841,9 @@ beginit(curid){
 	/* beginning of initilization; set location ctr and set type */
 	register struct symtab *p;
 
+# ifndef BUG1
 	if( idebug >= 3 ) printf( "beginit(), curid = %d\n", curid );
+# endif
 
 	p = &stab[curid];
 
@@ -718,6 +868,7 @@ beginit(curid){
 
 	inoff = 0;
 	ibseen = 0;
+	ifull = 0;
 
 	pstk = 0;
 
@@ -731,7 +882,9 @@ instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
 	register struct symtab *p;
 
 	for(;;){
-		if( idebug ) printf( "instk((%d, %o,%d,%d, %d)\n", id, t, d, s, off );
+# ifndef BUG1
+		if( idebug ) printf( "instk((%d, %o,%d,%d, %ld)\n", id, t, d, s, off );
+# endif
 
 		/* save information on the stack */
 
@@ -769,7 +922,12 @@ instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
 			continue;
 			}
 		else if( t == STRTY ){
-			id = dimtab[pstk->in_x];
+			if( dimtab[pstk->in_s] == 0 ){
+				uerror( "can't initialize undefined structure" );
+				iclass = -1;
+				return;
+				}
+			id = (int)dimtab[pstk->in_x];
 			p = &stab[id];
 			if( p->sclass != MOS && !(p->sclass&FIELD) ) cerror( "insane structure member list" );
 			t = p->stype;
@@ -796,14 +954,14 @@ getstr(){ /* decide if the string is external or an initializer, and get the con
 		inforce( pstk->in_off );
 		/* if the array is inflexible (not top level), pass in the size and
 			be prepared to throw away unwanted initializers */
-		lxstr((pstk-1)!=instack?dimtab[(pstk-1)->in_d]:0);  /* get the contents */
+		lxstr((pstk-1)!=instack?(int)dimtab[(pstk-1)->in_d]:0);  /* get the contents */
 		irbrace();  /* simulate } */
 		return( NIL );
 		}
 	else { /* make a label, and get the contents and stash them away */
 		if( iclass != SNULL ){ /* initializing */
 			/* fill out previous word, to permit pointer */
-			vfdalign( ALPOINT );
+			vfdalign( (OFFSZ)ALPOINT );
 			}
 		temp = locctr( blevel==0?ISTRNG:STRNG ); /* set up location counter */
 		deflab( l = getlab() );
@@ -811,7 +969,7 @@ getstr(){ /* decide if the string is external or an initializer, and get the con
 		lxstr(0); /* get the contents */
 		locctr( blevel==0?ilocctr:temp );
 		p = buildtree( STRING, NIL, NIL );
-		p->rval = -l;
+		p->tn.rval = -l;
 		return(p);
 		}
 	}
@@ -826,15 +984,19 @@ putbyte( v ){ /* simulate byte v appearing in a list of integer values */
 
 endinit(){
 	register TWORD t;
-	register d, s, n, d1;
+	register d, n, d1;
+	int s;
 
-	if( idebug ) printf( "endinit(), inoff = %d\n", inoff );
+# ifndef BUG1
+	if( idebug ) printf( "endinit(), inoff = %ld\n", inoff );
+# endif
 
 	switch( iclass ){
 
 	case EXTERN:
 	case AUTO:
 	case REGISTER:
+	case -1:
 		return;
 		}
 
@@ -846,7 +1008,7 @@ endinit(){
 	n = pstk->in_n;
 
 	if( ISARY(t) ){
-		d1 = dimtab[d];
+		d1 = (int)dimtab[d];
 
 		vfdalign( pstk->in_sz );  /* fill out part of the last element, if needed */
 		n = inoff/pstk->in_sz;  /* real number of initializers */
@@ -858,6 +1020,7 @@ endinit(){
 		if( d1!=0 && d1!=n ) uerror( "too many initializers");
 		if( n==0 ) werror( "empty array declaration");
 		dimtab[d] = n;
+		if( d1==0 ) FIXDEF(&stab[pstk->in_id]);
 		}
 
 	else if( t == STRTY || t == UNIONTY ){
@@ -869,7 +1032,7 @@ endinit(){
 	else inforce( tsize(t,d,s) );
 
 	paramno = 0;
-	vfdalign( AL_INIT );
+	vfdalign( (OFFSZ)AL_INIT );
 	inoff = 0;
 	iclass = SNULL;
 
@@ -881,8 +1044,10 @@ doinit( p ) register NODE *p; {
 	/* inoff has the current offset (last bit written)
 		in the current word being generated */
 
-	register sz, d, s;
+	register d, s;
+	OFFSZ sz;
 	register TWORD t;
+	int o;
 
 	/* note: size of an individual initializer is assumed to fit into an int */
 
@@ -905,12 +1070,19 @@ doinit( p ) register NODE *p; {
 
 	if( p == NIL ) return;  /* for throwing away strings that have been turned into lists */
 
+	if( ifull ){
+		uerror( "too many initializers" );
+		iclass = -1;
+		goto leave;
+		}
 	if( ibseen ){
 		uerror( "} expected");
 		goto leave;
 		}
 
+# ifndef BUG1
 	if( idebug > 1 ) printf( "doinit(%o)\n", p );
+# endif
 
 	t = pstk->in_t;  /* type required */
 	d = pstk->in_d;
@@ -925,25 +1097,31 @@ doinit( p ) register NODE *p; {
 	inforce( pstk->in_off );
 
 	p = buildtree( ASSIGN, block( NAME, NIL,NIL, t, d, s ), p );
-	p->left->op = FREE;
-	p->left = p->right;
-	p->right = NIL;
-	p->left = optim( p->left );
-	if( p->left->op == UNARY AND ){
-		p->left->op = FREE;
-		p->left = p->left->left;
+	p->in.left->in.op = FREE;
+	p->in.left = p->in.right;
+	p->in.right = NIL;
+	p->in.left = optim( p->in.left );
+	o = p->in.left->in.op;
+	if( o == UNARY AND ){
+		o = p->in.left->in.op = FREE;
+		p->in.left = p->in.left->in.left;
 		}
-	p->op = INIT;
+	p->in.op = INIT;
 
 	if( sz < SZINT ){ /* special case: bit fields, etc. */
-		if( p->left->op != ICON ) uerror( "illegal initialization" );
-		else incode( p->left, sz );
+		if( o != ICON ) uerror( "illegal initialization" );
+		else incode( p->in.left, sz );
 		}
-	else if( p->left->op == FCON ){
-		fincode( p->left->dval, sz );
+	else if( o == FCON ){
+		fincode( p->in.left->fpn.fval, sz );
+		}
+	else if( o == DCON ){
+		fincode( p->in.left->dpn.dval, sz );
 		}
 	else {
-		cinit( optim(p), sz );
+		p = optim(p);
+		if( p->in.left->in.op != ICON ) uerror( "illegal initialization" );
+		else cinit( p, sz );
 		}
 
 	gotscal();
@@ -968,7 +1146,7 @@ gotscal(){
 
 		if( t == STRTY ){
 			ix = ++pstk->in_x;
-			if( (id=dimtab[ix]) < 0 ) continue;
+			if( (id=(int)dimtab[ix]) < 0 ) continue;
 
 			/* otherwise, put next element on the stack */
 
@@ -989,7 +1167,7 @@ gotscal(){
 			}
 
 		}
-
+	ifull = 1;
 	}
 
 ilbrace(){ /* process an initializer's left brace */
@@ -1021,7 +1199,9 @@ ilbrace(){ /* process an initializer's left brace */
 irbrace(){
 	/* called when a '}' is seen */
 
+# ifndef BUG1
 	if( idebug ) printf( "irbrace(): paramno = %d on entry\n", paramno );
+# endif
 
 	if( ibseen ) {
 		--ibseen;
@@ -1039,48 +1219,54 @@ irbrace(){
 		}
 
 	/* these right braces match ignored left braces: throw out */
+	ifull = 1;
 
 	}
 
-upoff( size, alignment, poff ) register alignment, *poff; {
+OFFSZ
+upoff( size, alignment, poff ) OFFSZ size; register alignment; register OFFSZ *poff; {
 	/* update the offset pointed to by poff; return the
 	/* offset of a value of size `size', alignment `alignment',
 	/* given that off is increasing */
 
-	register off;
+	OFFSZ off;
 
 	off = *poff;
 	SETOFF( off, alignment );
+	if( (offsz-off) <  size ){
+		if( instruct!=INSTRUCT )cerror("too many local variables");
+		else cerror("Structure too large");
+		}
 	*poff = off+size;
 	return( off );
 	}
 
-oalloc( p, poff ) register struct symtab *p; register *poff; {
+oalloc( p, poff ) register struct symtab *p; register OFFSZ *poff; {
 	/* allocate p with offset *poff, and update *poff */
-	register al, off, tsz;
-	int noff;
+	OFFSZ al, off, tsz;
+	OFFSZ noff;
 
 	al = talign( p->stype, p->sizoff );
 	noff = off = *poff;
 	tsz = tsize( p->stype, p->dimoff, p->sizoff );
 #ifdef BACKAUTO
 	if( p->sclass == AUTO ){
+		if( (offsz-off) < tsz ) cerror("too many local variables");
 		noff = off + tsz;
 		SETOFF( noff, al );
 		off = -noff;
 		}
 	else
 #endif
-		if( p->sclass == PARAM && (p->stype==CHAR||p->stype==UCHAR||p->stype==SHORT||
-				p->stype==USHORT) ){
-			off = upoff( SZINT, ALINT, &noff );
+		if( p->sclass == PARAM && ( tsz < SZINT ) ){
+			off = upoff( (OFFSZ)SZINT, ALINT, &noff );
 # ifndef RTOLBYTES
 			off = noff - tsz;
 #endif
 			}
 		else
 		{
-		off = upoff( tsz, al, &noff );
+		off = upoff( tsz, (int)al, &noff );
 		}
 
 	if( p->sclass != REGISTER ){ /* in case we are allocating stack space for register arguments */
@@ -1098,15 +1284,15 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 
 	register al,sz,type;
 
-	type = (new<0)? pty->type : p->stype;
+	type = (new<0)? pty->in.type : p->stype;
 
 	/* this must be fixed to use the current type in alignments */
-	switch( new<0?pty->type:p->stype ){
+	switch( new<0?pty->in.type:p->stype ){
 
 	case ENUMTY:
 		{
 			int s;
-			s = new<0 ? pty->csiz : p->sizoff;
+			s = new<0 ? pty->fn.csiz : p->sizoff;
 			al = dimtab[s+2];
 			sz = dimtab[s];
 			break;
@@ -1162,6 +1348,8 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 
 	if( strucoff%al + w > sz ) SETOFF( strucoff, al );
 	if( new < 0 ) {
+		if( (offsz-strucoff) < w )
+			cerror("structure too large");
 		strucoff += w;  /* we know it will fit */
 		return(0);
 		}
@@ -1172,6 +1360,7 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 		if( p->offset != strucoff || p->sclass != (FIELD|w) ) return(1);
 		}
 	p->offset = strucoff;
+	if( (offsz-strucoff) < w ) cerror("structure too large");
 	strucoff += w;
 	p->stype = type;
 	fldty( p );
@@ -1194,15 +1383,39 @@ nidcl( p ) NODE *p; { /* handle unitialized declarations */
 			if( class == EXTERN ) commflag = 1;
 			}
 		}
+#ifdef LCOMM
+	/* hack so stab will come at as LCSYM rather than STSYM */
+	if (class == STATIC) {
+		extern int stabLCSYM;
+		stabLCSYM = 1;
+	}
+#endif
 
 	defid( p, class );
 
-	if( class==EXTDEF || class==STATIC ){
+#ifndef LCOMM
+	if( class==EXTDEF || class==STATIC )
+#else
+	if (class==STATIC) {
+		register struct symtab *s = &stab[p->tn.rval];
+		extern int stabLCSYM;
+		int sz = tsize(s->stype, s->dimoff, s->sizoff)/SZCHAR;
+		
+		stabLCSYM = 0;
+		if (sz % sizeof (int))
+			sz += sizeof (int) - (sz % sizeof (int));
+		if (s->slevel > 1)
+			printf("	.lcomm	L%d,%d\n", s->offset, sz);
+		else
+			printf("	.lcomm	%s,%d\n", exname(s->sname), sz);
+	}else if (class == EXTDEF)
+#endif
+		{
 		/* simulate initialization by 0 */
-		beginit(p->rval);
+		beginit(p->tn.rval);
 		endinit();
 		}
-	if( commflag ) commdec( p->rval );
+	if( commflag ) commdec( p->tn.rval );
 	}
 
 TWORD
@@ -1273,26 +1486,28 @@ tymerge( typ, idp ) NODE *typ, *idp; {
 	register i;
 	extern int eprint();
 
-	if( typ->op != TYPE ) cerror( "tymerge: arg 1" );
+	if( typ->in.op != TYPE ) cerror( "tymerge: arg 1" );
 	if(idp == NIL ) return( NIL );
 
+# ifndef BUG1
 	if( ddebug > 2 ) fwalk( idp, eprint, 0 );
+# endif
 
-	idp->type = typ->type;
-	idp->cdim = curdim;
+	idp->in.type = typ->in.type;
+	idp->fn.cdim = curdim;
 	tyreduce( idp );
-	idp->csiz = typ->csiz;
+	idp->fn.csiz = typ->fn.csiz;
 
-	for( t=typ->type, i=typ->cdim; t&TMASK; t = DECREF(t) ){
+	for( t=typ->in.type, i=typ->fn.cdim; t&TMASK; t = DECREF(t) ){
 		if( ISARY(t) ) dstash( dimtab[i++] );
 		}
 
 	/* now idp is a single node: fix up type */
 
-	idp->type = ctype( idp->type );
+	idp->in.type = ctype( idp->in.type );
 
-	if( (t = BTYPE(idp->type)) != STRTY && t != UNIONTY && t != ENUMTY ){
-		idp->csiz = t;  /* in case ctype has rewritten things */
+	if( (t = BTYPE(idp->in.type)) != STRTY && t != UNIONTY && t != ENUMTY ){
+		idp->fn.csiz = t;  /* in case ctype has rewritten things */
 		}
 
 	return( idp );
@@ -1302,29 +1517,32 @@ tyreduce( p ) register NODE *p; {
 
 	/* build a type, and stash away dimensions, from a parse tree of the declaration */
 	/* the type is build top down, the dimensions bottom up */
-	register o, temp;
+	register o;
+	CONSZ temp;
 	register unsigned t;
 
-	o = p->op;
-	p->op = FREE;
+	o = p->in.op;
+	p->in.op = FREE;
 
 	if( o == NAME ) return;
 
-	t = INCREF( p->type );
+	t = INCREF( p->in.type );
 	if( o == UNARY CALL ) t += (FTN-PTR);
 	else if( o == LB ){
 		t += (ARY-PTR);
-		temp = p->right->lval;
-		p->right->op = FREE;
+		temp = p->in.right->tn.lval;
+		p->in.right->in.op = FREE;
+		if( ( temp == 0 ) & ( p->in.left->tn.op == LB ) )
+			uerror( "Null dimension" );
 		}
 
-	p->left->type = t;
-	tyreduce( p->left );
+	p->in.left->in.type = t;
+	tyreduce( p->in.left );
 
 	if( o == LB ) dstash( temp );
 
-	p->rval = p->left->rval;
-	p->type = p->left->type;
+	p->tn.rval = p->in.left->tn.rval;
+	p->in.type = p->in.left->in.type;
 
 	}
 
@@ -1333,7 +1551,7 @@ fixtype( p, class ) register NODE *p; {
 	register mod1, mod2;
 	/* fix up the types, and check for legality */
 
-	if( (type = p->type) == UNDEF ) return;
+	if( (type = p->in.type) == UNDEF ) return;
 	if( mod2 = (type&TMASK) ){
 		t = DECREF(type);
 		while( mod1=mod2, mod2 = (t&TMASK) ){
@@ -1350,15 +1568,20 @@ fixtype( p, class ) register NODE *p; {
 		}
 
 	/* detect function arguments, watching out for structure declarations */
+	/* for example, beware of f(x) struct [ int a[10]; } *x; { ... } */
+	/* the danger is that "a" will be converted to a pointer */
 
 	if( class==SNULL && blevel==1 && !(instruct&(INSTRUCT|INUNION)) ) class = PARAM;
 	if( class == PARAM || ( class==REGISTER && blevel==1 ) ){
 		if( type == FLOAT ) type = DOUBLE;
 		else if( ISARY(type) ){
-			++p->cdim;
+			++p->fn.cdim;
 			type += (PTR-ARY);
 			}
-		else if( ISFTN(type) ) type = INCREF(type);
+		else if( ISFTN(type) ){
+			werror( "a function is declared as an argument" );
+			type = INCREF(type);
+			}
 
 		}
 
@@ -1366,7 +1589,7 @@ fixtype( p, class ) register NODE *p; {
 		uerror( "function illegal in structure or union" );
 		type = INCREF(type);
 		}
-	p->type = type;
+	p->in.type = type;
 	}
 
 uclass( class ) register class; {
@@ -1456,14 +1679,18 @@ fixclass( class, type ) TWORD type; {
 				uerror( "fortran function has wrong type" );
 				}
 			}
-	case STNAME:
-	case UNAME:
-	case ENAME:
 	case EXTERN:
 	case STATIC:
 	case EXTDEF:
 	case TYPEDEF:
 	case USTATIC:
+		if( blevel == 1 ){
+			uerror( "illegal class" );
+			return( PARAM );
+			}
+	case STNAME:
+	case UNAME:
+	case ENAME:
 		return( class );
 
 	default:
@@ -1473,44 +1700,97 @@ fixclass( class, type ) TWORD type; {
 		}
 	}
 
+struct symtab *
+mknonuniq(idindex) int *idindex; {/* locate a symbol table entry for */
+	/* an occurrence of a nonunique structure member name */
+	/* or field */
+	register i;
+	register struct symtab * sp;
+	char *p,*q;
+
+	sp = & stab[ i= *idindex ]; /* position search at old entry */
+	while( sp->stype != TNULL ){ /* locate unused entry */
+		if( ++i >= SYMTSZ ){/* wrap around symbol table */
+			i = 0;
+			sp = stab;
+			}
+		else ++sp;
+		if( i == *idindex ) cerror("Symbol table full");
+		}
+	sp->sflags = SNONUNIQ | SMOS;
+	p = sp->sname;
+	q = stab[*idindex].sname; /* old entry name */
+#ifdef FLEXNAMES
+	sp->sname = stab[*idindex].sname;
+#endif
+# ifndef BUG1
+	if( ddebug ){
+		printf("\tnonunique entry for %s from %d to %d\n",
+			q, *idindex, i );
+		}
+# endif
+	*idindex = i;
+#ifndef FLEXNAMES
+	for( i=1; i<=NCHNAM; ++i ){ /* copy name */
+		if( *p++ = *q /* assign */ ) ++q;
+		}
+#endif
+	return ( sp );
+	}
+
 lookup( name, s) char *name; { 
-	/* look up name: must agree with s w.r.t. SMOS and SHIDDEN */
+	/* look up name: must agree with s w.r.t. STAG, SMOS and SHIDDEN */
 
 	register char *p, *q;
-	int i, j, ii;
+	unsigned int i, j, ii;
 	register struct symtab *sp;
 
 	/* compute initial hash index */
+# ifndef BUG1
 	if( ddebug > 2 ){
 		printf( "lookup( %s, %d ), stwart=%d, instruct=%d\n", name, s, stwart, instruct );
 		}
+# endif
 
 	i = 0;
+#ifndef FLEXNAMES
 	for( p=name, j=0; *p != '\0'; ++p ){
 		i += *p;
 		if( ++j >= NCHNAM ) break;
 		}
+#else
+	i = (int)name;
+#endif
 	i = i%SYMTSZ;
 	sp = &stab[ii=i];
 
 	for(;;){ /* look for name */
 
 		if( sp->stype == TNULL ){ /* empty slot */
+			sp->sflags = s;  /* set STAG, SMOS if needed, turn off all others */
+#ifndef FLEXNAMES
 			p = sp->sname;
-			sp->sflags = s;  /* set SMOS if needed, turn off all others */
 			for( j=0; j<NCHNAM; ++j ) if( *p++ = *name ) ++name;
+#else
+			sp->sname = name;
+#endif
 			sp->stype = UNDEF;
 			sp->sclass = SNULL;
 			return( i );
 			}
-		if( (sp->sflags & (SMOS|SHIDDEN)) != s ) goto next;
+		if( (sp->sflags & (STAG|SMOS|SHIDDEN)) != s ) goto next;
 		p = sp->sname;
 		q = name;
+#ifndef FLEXNAMES
 		for( j=0; j<NCHNAM;++j ){
 			if( *p++ != *q ) goto next;
 			if( !*q++ ) break;
 			}
 		return( i );
+#else
+		if (p == q)
+			return ( i );
+#endif
 	next:
 		if( ++i >= SYMTSZ ){
 			i = 0;
@@ -1529,15 +1809,23 @@ checkst(lev){
 
 	for( i=0, p=stab; i<SYMTSZ; ++i, ++p ){
 		if( p->stype == TNULL ) continue;
-		j = lookup( p->sname, p->sflags&SMOS );
+		j = lookup( p->sname, p->sflags&(SMOS|STAG) );
 		if( j != i ){
 			q = &stab[j];
 			if( q->stype == UNDEF ||
 			    q->slevel <= p->slevel ){
+#ifndef FLEXNAMES
 				cerror( "check error: %.8s", q->sname );
+#else
+				cerror( "check error: %s", q->sname );
+#endif
 				}
 			}
+#ifndef FLEXNAMES
 		else if( p->slevel > lev ) cerror( "%.8s check at level %d", p->sname, lev );
+#else
+		else if( p->slevel > lev ) cerror( "%s check at level %d", p->sname, lev );
+#endif
 		}
 	}
 #endif
@@ -1548,7 +1836,7 @@ relook(p) register struct symtab *p; {  /* look up p again, and see where it lie
 	register struct symtab *q;
 
 	/* I'm not sure that this handles towers of several hidden definitions in all cases */
-	q = &stab[lookup( p->sname, p->sflags&(SMOS|SHIDDEN) )];
+	q = &stab[lookup( p->sname, p->sflags&(STAG|SMOS|SHIDDEN) )];
 	/* make relook always point to either p or an empty cell */
 	if( q->stype == UNDEF ){
 		q->stype = TNULL;
@@ -1561,73 +1849,81 @@ relook(p) register struct symtab *p; {  /* look up p again, and see where it lie
 	return(q);
 	}
 
-clearst( lev ){ /* clear entries of internal scope  from the symbol table */
-	register struct symtab *p, *q, *r;
-	register int temp, rehash;
+clearst( lev ) register int lev; {
+	register struct symtab *p, *q;
+	register int temp;
+	struct symtab *clist = 0;
 
 	temp = lineno;
 	aobeg();
 
-	/* first, find an empty slot to prevent newly hashed entries from
-	   being slopped into... */
+	/* step 1: remove entries */
+	while( chaintop-1 > lev ){
+		register int type;
 
-	for( q=stab; q< &stab[SYMTSZ]; ++q ){
-		if( q->stype == TNULL )goto search;
-		}
-
-	cerror( "symbol table full");
-
-	search:
-	p = q;
-
-	for(;;){
-		if( p->stype == TNULL ) {
-			rehash = 0;
-			goto next;
-			}
-		lineno = p->suse;
-		if( lineno < 0 ) lineno = - lineno;
-		if( p->slevel>lev ){ /* must clobber */
-			if( p->stype == UNDEF || ( p->sclass == ULABEL && lev < 2 ) ){
+		p = schain[--chaintop];
+		schain[chaintop] = 0;
+		for( ; p; p = q ){
+			q = p->snext;
+			type = p->stype;
+			if( p->stype == TNULL || p->slevel <= lev )
+				cerror( "schain botch" );
+			lineno = p->suse < 0 ? -p->suse : p->suse;
+			if( p->stype==UNDEF || ( p->sclass==ULABEL && lev<2 ) ){
 				lineno = temp;
+#ifndef FLEXNAMES
 				uerror( "%.8s undefined", p->sname );
+#else
+				uerror( "%s undefined", p->sname );
+#endif
 				}
 			else aocode(p);
-			if (ddebug) printf("removing %8s from stab[ %d], flags %o level %d\n",
-				p->sname,p-stab,p->sflags,p->slevel);
-			if( p->sflags & SHIDES ) unhide(p);
+# ifndef BUG1
+			if( ddebug ){
+#ifndef FLEXNAMES
+				printf( "removing %.8s", p->sname );
+#else
+				printf( "removing %s", p->sname );
+#endif
+				printf( " from stab[%d], flags %o level %d\n",
+					p-stab, p->sflags, p->slevel);
+				}
+# endif
+			if( p->sflags & SHIDES )unhide( p );
 			p->stype = TNULL;
-			rehash = 1;
-			goto next;
+			p->snext = clist;
+			clist = p;
 			}
-		if( rehash ){
-			if( (r=relook(p)) != p ){
-				movestab( r, p );
-				p->stype = TNULL;
+		}
+
+	/* step 2: fix any mishashed entries */
+	p = clist;
+	while( p ){
+		register struct symtab *next, **t, *r;
+
+		q = p;
+		next = p->snext;
+		for(;;){
+			if( ++q >= &stab[SYMTSZ] )q = stab;
+			if( q == p || q->stype == TNULL )break;
+			if( (r = relook(q)) != q ) {
+				/* move q in schain list */
+				t = &schain[q->slevel];
+				while( *t && *t != q )
+					t = &(*t)->snext;
+				if( *t )
+					*t = r;
+				else
+					cerror("schain botch 2");
+				*r = *q;
+				q->stype = TNULL;
 				}
 			}
-		next:
-		if( ++p >= &stab[SYMTSZ] ) p = stab;
-		if( p == q ) break;
+		p = next;
 		}
+
 	lineno = temp;
 	aoend();
-	}
-
-movestab( p, q ) register struct symtab *p, *q; {
-	int k;
-	/* structure assignment: *p = *q; */
-	p->stype = q->stype;
-	p->sclass = q->sclass;
-	p->slevel = q->slevel;
-	p->offset = q->offset;
-	p->sflags = q->sflags;
-	p->dimoff = q->dimoff;
-	p->sizoff = q->sizoff;
-	p->suse = q->suse;
-	for( k=0; k<NCHNAM; ++k ){
-		p->sname[k] = q->sname[k];
-		}
 	}
 
 hide( p ) register struct symtab *p; {
@@ -1637,11 +1933,17 @@ hide( p ) register struct symtab *p; {
 		if( q == p ) cerror( "symbol table full" );
 		if( q->stype == TNULL ) break;
 		}
-	movestab( q, p );
+	*q = *p;
 	p->sflags |= SHIDDEN;
-	q->sflags = (p->sflags&SMOS) | SHIDES;
+	q->sflags = (p->sflags&(SMOS|STAG)) | SHIDES;
+#ifndef FLEXNAMES
 	if( hflag ) werror( "%.8s redefinition hides earlier one", p->sname );
+#else
+	if( hflag ) werror( "%s redefinition hides earlier one", p->sname );
+#endif
+# ifndef BUG1
 	if( ddebug ) printf( "	%d hidden in %d\n", p-stab, q-stab );
+# endif
 	return( idname = q-stab );
 	}
 
@@ -1649,7 +1951,7 @@ unhide( p ) register struct symtab *p; {
 	register struct symtab *q;
 	register s, j;
 
-	s = p->sflags & SMOS;
+	s = p->sflags & (SMOS|STAG);
 	q = p;
 
 	for(;;){
@@ -1659,11 +1961,17 @@ unhide( p ) register struct symtab *p; {
 
 		if( q == p ) break;
 
-		if( (q->sflags&SMOS) == s ){
+		if( (q->sflags&(SMOS|STAG)) == s ){
+#ifndef FLEXNAMES
 			for( j =0; j<NCHNAM; ++j ) if( p->sname[j] != q->sname[j] ) break;
 			if( j == NCHNAM ){ /* found the name */
+#else
+			if (p->sname == q->sname) {
+#endif
 				q->sflags &= ~SHIDDEN;
+# ifndef BUG1
 				if( ddebug ) printf( "unhide uncovered %d from %d\n", q-stab,p-stab);
+# endif
 				return;
 				}
 			}

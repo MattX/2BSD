@@ -28,7 +28,7 @@ stak.o:		brkincr.h
 sh:
 	cc ${SEPFLAG} -o sh *.o
 
-install:
+install: all
 	install -s sh $(DESTDIR)/bin
 clean:
 	rm -f sh *.o

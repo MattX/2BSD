@@ -5,10 +5,10 @@ PROTOCOLS(5)	    UNIX Programmer's Manual	     PROTOCOLS(5)
 
 
 
-NNAAMMEE
+NAME
      protocols - protocol name data base
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _p_r_o_t_o_c_o_l_s file contains information regarding the known
      protocols used in the DARPA Internet.  For each protocol a
      single line should be present with the following informa-
@@ -26,13 +26,13 @@ DDEESSCCRRIIPPTTIIOONN
      Protocol names may contain any printable character other
      than a field delimiter, newline, or comment character.
 
-FFIILLEESS
+FILES
      /etc/protocols
 
-SSEEEE AALLSSOO
+SEE ALSO
      getprotoent(3N)
 
-BBUUGGSS
+BUGS
      A name server should be used instead of a static file.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 6, 1986				1
+Printed 1/9/94		   May 6, 1986				1
 
 
 

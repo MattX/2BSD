@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)types.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)types.h	1.2 (2.11BSD Berkeley) 9/23/91
  */
 
 #ifndef _TYPES_
@@ -14,7 +14,7 @@
  */
 
 /* major part of a device */
-#define	major(x)	((int)(((unsigned)(x)>>8)&0377))
+#define	major(x)	((int)(((int)(x)>>8)&0377))
 
 /* minor part of a device */
 #define	minor(x)	((int)((x)&0377))
@@ -25,7 +25,7 @@
 typedef	unsigned char	u_char;
 typedef	unsigned short	u_short;
 typedef	unsigned int	u_int;
-typedef long		u_long;		/* watch out!  no unsigned longs! */
+typedef unsigned long	u_long;		/* see this! unsigned longs at last! */
 typedef	unsigned short	ushort;		/* sys III compat */
 
 #ifdef pdp11

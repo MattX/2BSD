@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)busy.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)busy.c	5.1.1 (2.11BSD GTE) 1/06/93";
+#endif
 
 /*
  * busy: print an indication of how busy the system is for games.
@@ -35,8 +35,7 @@ char **argv;
 	exit(0);
 }
 
-#include <sys/types.h>
-#include <a.out.h>
+#include <nlist.h>
 
 struct	nlist nl[] = {
 	{ "_avenrun" },

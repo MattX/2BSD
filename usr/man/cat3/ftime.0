@@ -5,22 +5,22 @@ TIME(3C)	    UNIX Programmer's Manual		 TIME(3C)
 
 
 
-NNAAMMEE
+NAME
      time, ftime - get date and time
 
-SSYYNNOOPPSSIISS
-     lloonngg ttiimmee((00))
+SYNOPSIS
+     long time(0)
 
-     lloonngg ttiimmee((ttlloocc))
-     lloonngg **ttlloocc;;
+     long time(tloc)
+     long *tloc;
 
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ttiimmeebb..hh>>
-     ffttiimmee((ttpp))
-     ssttrruucctt ttiimmeebb **ttpp;;
+     #include <sys/types.h>
+     #include <sys/timeb.h>
+     ftime(tp)
+     struct timeb *tp;
 
-DDEESSCCRRIIPPTTIIOONN
-     TThheessee iinntteerrffaacceess aarree oobbssoolleetteedd bbyy ggeettttiimmeeooffddaayy((22))..
+DESCRIPTION
+     These interfaces are obsoleted by gettimeofday(2).
 
      _T_i_m_e returns the time since 00:00:00 GMT, Jan. 1, 1970,
      measured in seconds.
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 9, 1985				1
+Printed 1/9/94		   May 9, 1985				1
 
 
 
@@ -71,7 +71,7 @@ TIME(3C)	    UNIX Programmer's Manual		 TIME(3C)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      date(1), gettimeofday(2), settimeofday(2), ctime(3)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 9, 1985				2
+Printed 1/9/94		   May 9, 1985				2
 
 
 

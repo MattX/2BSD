@@ -5,26 +5,26 @@ FLOOR(3M)	    UNIX Programmer's Manual		FLOOR(3M)
 
 
 
-NNAAMMEE
+NAME
      fabs, floor, ceil, rint - absolute value, floor, ceiling,
      and round-to-nearest functions
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee fflloooorr((xx))
-     ddoouubbllee xx;;
+     double floor(x)
+     double x;
 
-     ddoouubbllee cceeiill((xx))
-     ddoouubbllee xx;;
+     double ceil(x)
+     double x;
 
-     ddoouubbllee ffaabbss((xx))
-     ddoouubbllee xx;;
+     double fabs(x)
+     double x;
 
-     ddoouubbllee rriinntt((xx))
-     ddoouubbllee xx;;
+     double rint(x)
+     double x;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Fabs returns the absolute value |x|.
 
      Floor returns the largest integer no greater than x.
@@ -35,7 +35,7 @@ DDEESSCCRRIIPPTTIIOONN
      number) nearest x in the direction of the prevailing round-
      ing mode.
 
-NNOOTTEESS
+NOTES
      On a VAX, rint(x) is equivalent to adding half to the magni-
      tude and then rounding towards zero.
 
@@ -53,14 +53,14 @@ NNOOTTEESS
      than k can accommodate, the value of k and the presence or
      absence of an integer overflow are hard to predict.
 
-SSEEEE AALLSSOO
+SEE ALSO
      abs(3), ieee(3M), math(3M)
 
 
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 

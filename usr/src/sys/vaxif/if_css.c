@@ -1,20 +1,15 @@
 /*
- * Copyright (c) 1982, 1986, 1988 Regents of the University of California.
+ * Copyright (c) 1982,1986,1988 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation,
- * advertising materials, and other materials related to such
- * distribution and use acknowledge that the software was developed
- * by the University of California, Berkeley.  The name of the
- * University may not be used to endorse or promote products derived
- * from this software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)if_css.c	7.6 (Berkeley) 6/29/88
+ *	%W% (Berkeley) %G%
  */
 
 #include "css.h"
@@ -168,7 +163,6 @@ cssreset(unit, uban)
         printf(" css%d", unit);
         sc = &css_softc[unit];
 	sc->css_imp->imp_if.if_flags &= ~IFF_RUNNING;
-	cssoflush(unit);
         /* must go through IMP to allow it to set state */
         (*sc->css_imp->imp_if.if_init)(sc->css_imp->imp_if.if_unit);
 }
@@ -269,28 +263,18 @@ cssdown(unit)
 	int unit;
 {
         register struct cssdevice *addr;
+	int x;
 
 	addr = (struct cssdevice *)(cssinfo[unit]->ui_addr);
         /* reset the imp interface. */
+        x = spl5();
         addr->css_icsr = CSS_CLR;
         addr->css_ocsr = CSS_CLR;
 	DELAY(100);
 	addr->css_icsr = 0;
 	addr->css_ocsr = 0;
-	cssoflush(unit);
+        splx(x);
 	return (1);
-}
-
-cssoflush(unit)
-	int unit;
-{
-	register struct css_softc *sc = &css_softc[unit];
-
-	sc->css_imp->imp_cb.ic_oactive = 0;
-	if (sc->css_ifuba.ifu_xtofree) {
-		m_freem(sc->css_ifuba.ifu_xtofree);
-		sc->css_ifuba.ifu_xtofree = 0;
-	}
 }
 
 /*

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *      @(#)spp_var.h	7.4 (Berkeley) 3/12/88
+ *      @(#)spp_var.h	7.4.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -89,59 +89,6 @@ struct sppcb {
 
 #define	nstosppcb(np)	((struct sppcb *)(np)->nsp_pcb)
 #define	sotosppcb(so)	(nstosppcb(sotonspcb(so)))
-
-#ifdef	BSD2_10
-/* sorry 'bout the unimaginative names, but gads zooks there's a lot of them! */
-#define	spps_connattempt spps_1
-#define	spps_accepts spps_2
-#define	spps_connects spps_3
-#define	spps_drops spps_4
-#define	spps_conndrops spps_5
-#define	spps_closed spps_6
-#define	spps_segstimed spps_7
-#define	spps_rttupdated spps_8
-#define	spps_delack spps_9
-#define	spps_timeoutdrop spps_10
-#define	spps_rexmttimeo spps_11
-#define	spps_persisttimeo spps_12
-#define	spps_keeptimeo spps_13
-#define	spps_keepprobe spps_14
-#define	spps_keepdrops spps_15
-
-#define	spps_sndtotal spps_16
-#define	spps_sndpack spps_17
-#define	spps_sndbyte spps_18
-#define	spps_sndrexmitpack spps_19
-#define	spps_sndrexmitbyte spps_20
-#define	spps_sndacks spps_21
-#define	spps_sndprobe spps_22
-#define	spps_sndurg spps_23
-#define	spps_sndwinup spps_24
-#define	spps_sndctrl spps_25
-#define	spps_sndvoid spps_26
-
-#define	spps_rcvtotal spps_27
-#define	spps_rcvpack spps_28
-#define	spps_rcvbyte spps_29
-#define	spps_rcvbadsum spps_30
-#define	spps_rcvbadoff spps_31
-#define	spps_rcvshort spps_32
-#define	spps_rcvduppack spps_33
-#define	spps_rcvdupbyte spps_34
-#define	spps_rcvpartduppack spps_35
-#define	spps_rcvpartdupbyte spps_36
-#define	spps_rcvoopack spps_37
-#define	spps_rcvoobyte spps_38
-#define	spps_rcvpackafterwin spps_39
-#define	spps_rcvbyteafterwin spps_40
-#define	spps_rcvafterclose spps_41
-#define	spps_rcvwinprobe spps_42
-#define	spps_rcvdupack spps_43
-#define	spps_rcvacktoomuch spps_44
-#define	spps_rcvackpack spps_45
-#define	spps_rcvackbyte spps_46
-#define	spps_rcvwinupd spps_47
-#endif
 
 struct	sppstat {
 	long	spps_connattempt;	/* connections initiated */

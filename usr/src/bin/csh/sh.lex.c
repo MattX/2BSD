@@ -4,7 +4,7 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)sh.lex.c	5.4 (Berkeley) 3/29/86";
 #endif
 
@@ -1193,7 +1193,7 @@ bgetc()
 		}
 		c = fbuf[0][fseekp - fbobp];
 		fseekp++;
-		return (c);
+		return (c & 0377);
 	}
 #endif
 again:
@@ -1256,7 +1256,7 @@ again:
 	}
 	c = fbuf[buf][(int) fseekp % BUFSIZ];
 	fseekp++;
-	return (c);
+	return (c & 0377);
 }
 
 bfree()

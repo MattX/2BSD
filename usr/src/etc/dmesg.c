@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)dmesg.c	5.4 (Berkeley) 2/20/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)dmesg.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  *	Suck up system messages
@@ -41,6 +41,9 @@ char **argv;
 	int mem;
 	register char *mp, *omp, *mstart;
 	int samef, sawnl, ignore;
+#ifdef	pdp11
+	char msgb[MSG_BSIZE];
+#endif
 
 	if (argc>1 && argv[1][0] == '-') {
 		sflg++;
@@ -55,25 +58,28 @@ char **argv;
 		lseek(of, 0L, 0);
 	}
 	sflg = 0;
-#ifdef BSD2_10
+#ifdef pdp11
 	nlist(argc>2? argv[2]:"/unix", nl);
-#else !BSD2_10
+#else
 	nlist(argc>2? argv[2]:"/vmunix", nl);
-#endif BSD2_10
+#endif
 	if (nl[0].n_type==0)
 		done("Can't get kernel namelist\n");
-	if ((mem = open((argc>1? argv[1]: "/dev/kmem"), 0)) < 0)
+	if ((mem = open((argc>1? argv[1]: "/dev/mem"), 0)) < 0)
 		done("Can't read kernel memory\n");
 	lseek(mem, (long)nl[0].n_value, 0);
 	read(mem, &msgbuf, sizeof (msgbuf));
-#ifndef BSD2_10
 	if (msgbuf.msg_magic != MSG_MAGIC)
 		done("Magic number wrong (namelist mismatch?)\n");
-#endif !BSD2_10
 	if (msgbuf.msg_bufx >= MSG_BSIZE)
 		msgbuf.msg_bufx = 0;
 	if (omesg.msg_bufx >= MSG_BSIZE)
 		omesg.msg_bufx = 0;
+#ifdef	pdp11
+	msgbuf.msg_bufc = msgb;
+	lseek(mem, (long)ctob((long)msgbuf.msg_click), 0);
+	read(mem, msgbuf.msg_bufc, MSG_BSIZE);
+#endif
 	mstart = &msgbuf.msg_bufc[omesg.msg_bufx];
 	omp = &omesg.msg_bufc[msgbuf.msg_bufx];
 	mp = msgbufp = &msgbuf.msg_bufc[msgbuf.msg_bufx];

@@ -38,6 +38,7 @@ auth		113/tcp		authentication
 sftp		115/tcp
 uucp-path	117/tcp
 nntp		119/tcp		readnews untp	# USENET News Transfer Protocol
+ntp		123/udp		ntpd ntp	# network time protocol (exp)
 #
 # UNIX specific services
 #
@@ -62,3 +63,5 @@ uucp		540/tcp		uucpd		# uucp daemon
 remotefs	556/tcp		rfs_server rfs	# Brunhoff remote filesystem
 
 ingreslock	1524/tcp
+
+# local definitions follow

@@ -1,12 +1,23 @@
 /*
  * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)rcmd.c	5.11 (Berkeley) 5/6/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)rcmd.c	5.20 (Berkeley) 1/24/89";
+#endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -18,13 +29,12 @@ static char sccsid[] = "@(#)rcmd.c	5.11 (Berkeley) 5/6/86";
 #include <sys/stat.h>
 
 #include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include <netdb.h>
 #include <errno.h>
 
 extern	errno;
-char	*index(), *sprintf();
+char	*index();
 
 rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 	char **ahost;
@@ -38,11 +48,12 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 	char c;
 	int lport = IPPORT_RESERVED - 1;
 	struct hostent *hp;
+	fd_set reads;
 
 	pid = getpid();
 	hp = gethostbyname(*ahost);
 	if (hp == 0) {
-		fprintf(stderr, "%s: unknown host\n", *ahost);
+		herror(*ahost);
 		return (-1);
 	}
 	*ahost = hp->h_name;
@@ -109,6 +120,20 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 			(void) close(s2);
 			goto bad;
 		}
+		FD_ZERO(&reads);
+		FD_SET(s, &reads);
+		FD_SET(s2, &reads);
+		errno = 0;
+		if (select(32, &reads, 0, 0, 0) < 1 ||
+		    !FD_ISSET(s2, &reads)) {
+			if (errno != 0)
+				perror("select: setting up stderr");
+			else
+			    fprintf(stderr,
+				"select: protocol failure in circuit setup.\n");
+			(void) close(s2);
+			goto bad;
+		}
 		s3 = accept(s2, &from, &len, 0);
 		(void) close(s2);
 		if (s3 < 0) {
@@ -119,7 +144,8 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 		*fd2p = s3;
 		from.sin_port = ntohs((u_short)from.sin_port);
 		if (from.sin_family != AF_INET ||
-		    from.sin_port >= IPPORT_RESERVED) {
+		    from.sin_port >= IPPORT_RESERVED ||
+		    from.sin_port < IPPORT_RESERVED / 2) {
 			fprintf(stderr,
 			    "socket: protocol failure in circuit setup.\n");
 			goto bad2;
@@ -179,6 +205,8 @@ rresvport(alport)
 	}
 }
 
+int	_check_rhosts_file = 1;
+
 ruserok(rhost, superuser, ruser, luser)
 	char *rhost;
 	int superuser;
@@ -211,7 +239,7 @@ again:
 		}
 		(void) fclose(hostf);
 	}
-	if (first == 1) {
+	if (first == 1 && (_check_rhosts_file || superuser)) {
 		struct stat sbuf;
 		struct passwd *pwd;
 		char pbuf[MAXPATHLEN];
@@ -223,8 +251,13 @@ again:
 		(void)strcat(pbuf, "/.rhosts");
 		if ((hostf = fopen(pbuf, "r")) == NULL)
 			return(-1);
-		(void)fstat(fileno(hostf), &sbuf);
-		if (sbuf.st_uid && sbuf.st_uid != pwd->pw_uid) {
+		/*
+		 * if owned by someone other than user or root or if
+		 * writeable by anyone but the owner, quit
+		 */
+		if (fstat(fileno(hostf), &sbuf) ||
+		    sbuf.st_uid && sbuf.st_uid != pwd->pw_uid ||
+		    sbuf.st_mode&022) {
 			fclose(hostf);
 			return(-1);
 		}
@@ -233,10 +266,11 @@ again:
 	return (-1);
 }
 
+/* don't make static, used by lpd(8) */
 _validuser(hostf, rhost, luser, ruser, baselen)
-char *rhost, *luser, *ruser;
-FILE *hostf;
-int baselen;
+	char *rhost, *luser, *ruser;
+	FILE *hostf;
+	int baselen;
 {
 	char *user;
 	char ahost[MAXHOSTNAMELEN];
@@ -266,12 +300,14 @@ int baselen;
 	return (-1);
 }
 
+static
 _checkhost(rhost, lhost, len)
-char *rhost, *lhost;
-int len;
+	char *rhost, *lhost;
+	int len;
 {
 	static char ldomain[MAXHOSTNAMELEN + 1];
 	static char *domainp = NULL;
+	static int nodomain = 0;
 	register char *cp;
 
 	if (len == -1)
@@ -282,21 +318,21 @@ int len;
 		return(1);
 	if (*(lhost + len) != '\0')
 		return(0);
+	if (nodomain)
+		return(0);
 	if (!domainp) {
 		if (gethostname(ldomain, sizeof(ldomain)) == -1) {
-			domainp = (char *)1;
+			nodomain = 1;
 			return(0);
 		}
 		ldomain[MAXHOSTNAMELEN] = NULL;
-		if ((domainp = index(ldomain, '.') + 1) == (char *)1)
+		if ((domainp = index(ldomain, '.')) == (char *)NULL) {
+			nodomain = 1;
 			return(0);
-		cp = domainp;
-		while (*cp) {
-			*cp = isupper(*cp) ? tolower(*cp) : *cp;
-			cp++;
 		}
+		for (cp = ++domainp; *cp; ++cp)
+			if (isupper(*cp))
+				*cp = tolower(*cp);
 	}
-	if (domainp == (char *)1)
-		return(0);
 	return(!strcmp(domainp, rhost + len +1));
 }

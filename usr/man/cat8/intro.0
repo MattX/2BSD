@@ -5,11 +5,11 @@ INTRO(8)	    UNIX Programmer's Manual		 INTRO(8)
 
 
 
-NNAAMMEE
+NAME
      intro - introduction to system maintenance and operation
      commands
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This section contains information related to system opera-
      tion and maintenance.  It describes commands used to create
      new file systems, _n_e_w_f_s, verify the integrity of the file
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 29, 1986				1
+Printed 1/9/94		  May 29, 1986				1
 
 
 

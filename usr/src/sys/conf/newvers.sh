@@ -14,9 +14,9 @@ awk ' {
 	date = $4 " " $5 " " $6 " " $7 " " $8 " " $9;
 }\
 END {
-	printf "char sccs[] = \"@(#)2.10.1 BSD #%d: %s (%s@%s:%s)\\n\";\n",\
+	printf "char sccs[] = \"@(#)2.11 BSD #%d: %s (%s@%s:%s)\\n\";\n",\
 		version, date, user, host, dir ;\
-	printf "char version[] = \"2.10.1 BSD UNIX #%d: %s\\n", \
+	printf "char version[] = \"2.11 BSD UNIX #%d: %s\\n", \
 		version, date; \
 	printf "    %s@%s:%s\\n\";\n", user, host, dir;
 	printf "%d\n", version > "version";

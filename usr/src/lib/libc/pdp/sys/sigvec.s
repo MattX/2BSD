@@ -31,13 +31,11 @@ ENTRY(sigvec)
 	mov	(sp),-(sp)	/ push return address down one place
 	mov	$sigtramp,2(sp)	/   to leave a space for the address of
 	SYS(sigvec)		/   sigtramp
-	bes	1f
 	mov	(sp)+,(sp)	/ (clean up stack)
-	rts	pc
-1:
-	mov	(sp)+,(sp)	/ (clean up stack)
+	bec	1f
 	mov	r0,_errno
 	mov	$-1,r0
+1:
 	rts	pc
 
 /*

@@ -5,7 +5,8 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)doprnt.s	5.4 (Berkeley) 1/25/87\0>
+/*	<@(#)doprnt.s	5.4 (Berkeley) 1/25/87\0> */
+	<@(#)doprnt.s	5.5 (GTE) 8/25/92\0>
 	.even
 #endif LIBC_SCCS
 
@@ -34,7 +35,6 @@ swtab:
 	longorunsg;	'l
 	longorunsg;	'L
 	unsigned;	'u
-	remote;		'r
 	long;		'D
 	loct;		'O
 	lhex;		'X
@@ -54,7 +54,7 @@ zfill	= -20.
 
 ENTRY(_doprnt)
 	jsr	r5,csv
-	sub	$128.+12.,sp
+	sub	$300.+12.,sp		/ was 128.
 	mov	4(r5),formp(r5)		/ format
 	mov	6(r5),r4
 loop:
@@ -244,8 +244,6 @@ compute:
 charac:
 	mov	$' ,zfill(r5)
 	mov	(r4)+,r0
-	bic	$!377,r0
-	beq	prbuf
 	movb	r0,(r3)+
 	br	prbuf
 
@@ -282,12 +280,6 @@ scien:
 1:
 	mov	pc,r2
 	jsr	pc,pscien
-	br	prbuf
-
-remote:
-	mov	(r4)+,r4
-	mov	(r4)+,formp(r5)
-	jmp	loop
 
 prbuf:
 	mov	sp,r2

@@ -1,6 +1,13 @@
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid ="@(#)fort.c	4.7 (Berkeley) 8/22/85";
+#endif lint
+
+# ifndef FORT
 # define FORT
-/* this forces larger trees, etc. */
-# include "mfile2"
+/* this may force larger trees, etc. */
+# endif
+
+# include "pass2.h"
 # include "fort.h"
 
 /*	masks for unpacking longs */
@@ -17,7 +24,43 @@
 # define REST(x) (((x)>>16)&0177777)
 # endif
 
+# ifndef FIXINT
+# if SZINT == SZLONG
+# define FIXINT(x) ((x) == LONG || (x) == ULONG ? (x) - 1 : (x))
+# else
+# if SZINT == SZSHORT
+# define FIXINT(x) ((x) == SHORT || (x) == USHORT ? (x) + 1 : (x))
+# else
+# define FIXINT(x) (x)
+# endif
+# endif
+# endif
+
 FILE * lrd;  /* for default reading routines */
+
+# ifndef NOLNREAD
+#ifdef FLEXNAMES
+char *
+lnread()
+{
+	char buf[BUFSIZ];
+	register char *cp = buf;
+	register char *limit = &buf[BUFSIZ];
+
+	for (;;) {
+		if (fread(cp, sizeof (long), 1, lrd) !=  1)
+			cerror("intermediate file read error");
+		cp += sizeof (long);
+		if (cp[-1] == 0)
+			break;
+		if (cp >= limit)
+			cerror("lnread overran string buffer");
+	}
+	return (tstr(buf));
+}
+#endif
+# endif NOLNREAD
+
 # ifndef NOLREAD
 long lread(){
 	static long x;
@@ -50,7 +93,7 @@ lccopy( n ) register n; {
 	register i;
 	static char fbuf[128];
 	if( n > 0 ){
-		if( n > 32 ) cerror( "lccopy asked to copy too much" );
+		if( n > sizeof(fbuf)/4 ) cerror( "lccopy asked to copy too much" );
 		if( fread( fbuf, 4, n, lrd ) != n ) cerror( "intermediate file read error" );
 		for( i=4*n; fbuf[i-1] == '\0' && i>0; --i ) { /* VOID */ }
 		if( i ) {
@@ -60,18 +103,6 @@ lccopy( n ) register n; {
 	}
 # endif
 
-/*	new opcode definitions */
-
-# define FORTOPS 200
-# define FTEXT 200
-# define FEXPR 201
-# define FSWITCH 202
-# define FLBRAC 203
-# define FRBRAC 204
-# define FEOF 205
-# define FARIF 206
-# define LABEL 207
-
 /*	stack for reading nodes in postfix form */
 
 # define NSTACKSZ 250
@@ -79,11 +110,14 @@ lccopy( n ) register n; {
 NODE * fstack[NSTACKSZ];
 NODE ** fsp;  /* points to next free position on the stack */
 
+OFFSZ offsz;
+OFFSZ caloff();
 mainp2( argc, argv ) char *argv[]; {
 	int files;
 	register long x;
 	register NODE *p;
 
+	offsz = caloff();
 	files = p2init( argc, argv );
 	tinit();
 
@@ -146,49 +180,70 @@ mainp2( argc, argv ) char *argv[]; {
 
 		case ICON:
 			p = talloc();
-			p->op = ICON;
-			p->type = REST(x);
-			p->rval = 0;
-			p->lval = lread();
+			p->in.op = ICON;
+			p->in.type = FIXINT(REST(x));
+			p->tn.rval = 0;
+			p->tn.lval = lread();
 			if( VAL(x) ){
-				lcread( p->name, 2 );
+#ifndef FLEXNAMES
+				lcread( p->in.name, 2 );
+#else
+				p->in.name = lnread();
+#endif
 				}
-			else p->name[0] = '\0';
+#ifndef FLEXNAMES
+			else p->in.name[0] = '\0';
+#else
+			else p->in.name = "";
+#endif
 
 		bump:
-			p->su = 0;
-			p->rall = NOPREF;
+			p->in.su = 0;
+			p->in.rall = NOPREF;
 			*fsp++ = p;
 			if( fsp >= &fstack[NSTACKSZ] ) uerror( "expression depth exceeded" );
 			continue;
 
 		case NAME:
 			p = talloc();
-			p->op = NAME;
-			p->type = REST(x);
-			p->rval = 0;
-			if( VAL(x) ) p->lval = lread();
-			else p->lval = 0;
-			lcread( p->name, 2 );
+			p->in.op = NAME;
+			p->in.type = FIXINT(REST(x));
+			p->tn.rval = 0;
+			if( VAL(x) ) p->tn.lval = lread();
+			else p->tn.lval = 0;
+#ifndef FLEXNAMES
+			lcread( p->in.name, 2 );
+#else
+			p->in.name = lnread();
+#endif
 			goto bump;
 
 		case OREG:
 			p = talloc();
-			p->op = OREG;
-			p->type = REST(x);
-			p->rval = VAL(x);
-			p->lval = lread();
-			lcread( p->name, 2 );
+			p->in.op = OREG;
+			p->in.type = FIXINT(REST(x));
+			p->tn.rval = VAL(x);
+			rbusy( p->tn.rval, PTR | p->in.type );
+			p->tn.lval = lread();
+#ifndef FLEXNAMES
+			lcread( p->in.name, 2 );
+#else
+			p->in.name = lnread();
+#endif
 			goto bump;
 
 		case REG:
 			p = talloc();
-			p->op = REG;
-			p->type = REST(x);
-			p->rval = VAL(x);
-			rbusy( p->rval, p->type );
-			p->lval = 0;
-			p->name[0] = '\0';
+			p->in.op = REG;
+			p->in.type = FIXINT(REST(x));
+			p->tn.rval = VAL(x);
+			rbusy( p->tn.rval, p->in.type );
+			p->tn.lval = 0;
+#ifndef FLEXNAMES
+			p->in.name[0] = '\0';
+#else
+			p->in.name = "";
+#endif
 			goto bump;
 
 		case FEXPR:
@@ -212,7 +267,7 @@ mainp2( argc, argv ) char *argv[]; {
 			tcheck();
 			continue;
 
-		case LABEL:
+		case FLABEL:
 			if( VAL(x) ){
 				tlabel();
 				}
@@ -229,26 +284,38 @@ mainp2( argc, argv ) char *argv[]; {
 			/* otherwise, treat as unary */
 			goto def;
 
+		case STASG:
+		case STARG:
+		case STCALL:
+		case UNARY STCALL:
+			    /*
+			     * size and alignment come from next long words
+			     */
+			p = talloc();
+			p -> stn.stsize = lread();
+			p -> stn.stalign = lread();
+			goto defa;
 		default:
 		def:
 			p = talloc();
-			p->op = FOP(x);
-			p->type = REST(x);
+		defa:
+			p->in.op = FOP(x);
+			p->in.type = FIXINT(REST(x));
 
-			switch( optype( p->op ) ){
+			switch( optype( p->in.op ) ){
 
 			case BITYPE:
-				p->right = *--fsp;
-				p->left = *--fsp;
+				p->in.right = *--fsp;
+				p->in.left = *--fsp;
 				goto bump;
 
 			case UTYPE:
-				p->left = *--fsp;
-				p->rval = 0;
+				p->in.left = *--fsp;
+				p->tn.rval = 0;
 				goto bump;
 
 			case LTYPE:
-				uerror( "illegal leaf node: %d", p->op );
+				uerror( "illegal leaf node: %d", p->in.op );
 				exit( 1 );
 				}
 			}

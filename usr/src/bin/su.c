@@ -22,7 +22,7 @@ static char sccsid[] = "@(#)su.c	5.4 (Berkeley) 1/13/86";
 #include <sys/time.h>
 #include <sys/resource.h>
 
-char	userbuf[16]	= "USER=";
+char	userbuf[64]	= "USER=";
 char	homebuf[128]	= "HOME=";
 char	shellbuf[128]	= "SHELL=";
 char	pathbuf[128]	= "PATH=:/usr/ucb:/bin:/usr/bin";

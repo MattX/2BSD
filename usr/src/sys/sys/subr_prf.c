@@ -8,6 +8,7 @@
 
 #include "param.h"
 #include "user.h"
+#include "machine/seg.h"
 #include "buf.h"
 #include "msgbuf.h"
 #include "conf.h"
@@ -15,6 +16,7 @@
 #include "tty.h"
 #include "reboot.h"
 #include "systm.h"
+#include "syslog.h"
 
 #define TOCONS	0x1
 #define TOTTY	0x2
@@ -46,13 +48,12 @@ char	*panicstr;
  *	reg=3<BITTWO,BITONE>
  */
 
-/* copied, for supervisory networking, to sys_net.c */
 /*VARARGS1*/
 printf(fmt, x1)
 	char *fmt;
 	unsigned x1;
 {
-	prf(fmt, &x1, TOCONS | TOLOG);
+	prf(fmt, &x1, TOCONS | TOLOG, (struct tty *)0);
 }
 
 /*
@@ -76,14 +77,68 @@ uprintf(fmt, x1)
 		return;
 
 	if (ttycheckoutq(tp, 1))
-		prf(fmt, &x1, TOTTY);
+		prf(fmt, &x1, TOTTY, tp);
 }
 
-/* copied, for supervisory networking, to sys_net.c */
-prf(fmt, adx, flags)
+/*
+ * tprintf prints on the specified terminal (console if none)
+ * and logs the message.  It is designed for error messages from
+ * single-open devices, and may be called from interrupt level
+ * (does not sleep).
+ */
+/*VARARGS2*/
+tprintf(tp, fmt, x1)
+	register struct tty *tp;
+	char *fmt;
+	unsigned x1;
+{
+	int flags = TOTTY | TOLOG;
+	extern struct tty cons;
+
+	logpri(LOG_INFO);
+	if (tp == (struct tty *)NULL)
+		tp = &cons;
+	if (ttycheckoutq(tp, 0) == 0)
+		flags = TOLOG;
+	prf(fmt, &x1, flags, tp);
+	logwakeup();
+}
+
+/*
+ * Log writes to the log buffer,
+ * and guarantees not to sleep (so can be called by interrupt routines).
+ * If there is no process reading the log yet, it writes to the console also.
+ */
+/*VARARGS2*/
+log(level, fmt, x1)
+	char *fmt;
+	unsigned x1;
+{
+	register s = splhigh();
+	extern int log_open;
+
+	logpri(level);
+	prf(fmt, &x1, TOLOG, (struct tty *)0);
+	splx(s);
+	if (!log_open)
+		prf(fmt, &x1, TOCONS, (struct tty *)0);
+	logwakeup();
+}
+
+logpri(level)
+	int level;
+{
+
+	putchar('<', TOLOG, (struct tty *)0);
+	printn((u_long)level, 10, TOLOG, (struct tty *)0);
+	putchar('>', TOLOG, (struct tty *)0);
+}
+
+prf(fmt, adx, flags, ttyp)
 	register char *fmt;
 	register u_int *adx;
 	int flags;
+	struct tty *ttyp;
 {
 	register int c;
 	u_int b;
@@ -94,7 +149,7 @@ loop:
 	while ((c = *fmt++) != '%') {
 		if (c == '\0')
 			return;
-		putchar(c, flags);
+		putchar(c, flags, ttyp);
 	}
 	c = *fmt++;
 	switch (c) {
@@ -112,9 +167,9 @@ loop:
 				b = 8;
 				goto lnumber;
 			default:
-				putchar('%', flags);
-				putchar('l', flags);
-				putchar(c, flags);
+				putchar('%', flags, ttyp);
+				putchar('l', flags, ttyp);
+				putchar(c, flags, ttyp);
 		}
 		break;
 	case 'X':
@@ -125,7 +180,7 @@ loop:
 		goto lnumber;
 	case 'O':
 		b = 8;
-lnumber:	printn(*(long *)adx, b, flags);
+lnumber:	printn(*(long *)adx, b, flags, ttyp);
 		adx += (sizeof(long) / sizeof(int)) - 1;
 		break;
 	case 'x':
@@ -137,42 +192,42 @@ lnumber:	printn(*(long *)adx, b, flags);
 		goto number;
 	case 'o':
 		b = 8;
-number:		printn((long)*adx, b, flags);
+number:		printn((long)*adx, b, flags, ttyp);
 		break;
 	case 'c':
-		putchar(*adx, flags);
+		putchar(*adx, flags, ttyp);
 		break;
 	case 'b':
 		b = *adx++;
 		s = (char *)*adx;
-		printn((long)b, *s++, flags);
+		printn((long)b, *s++, flags, ttyp);
 		any = 0;
 		if (b) {
 			while (i = *s++) {
 				if (b & (1 << (i - 1))) {
-					putchar(any? ',' : '<', flags);
+					putchar(any? ',' : '<', flags, ttyp);
 					any = 1;
 					for (; (c = *s) > 32; s++)
-						putchar(c, flags);
+						putchar(c, flags, ttyp);
 				} else
 					for (; *s > 32; s++)
 						;
 			}
 			if (any)
-				putchar('>', flags);
+				putchar('>', flags, ttyp);
 		}
 		break;
 	case 's':
 		s = (char *)*adx;
 		while (c = *s++)
-			putchar(c, flags);
+			putchar(c, flags, ttyp);
 		break;
 	case '%':
-		putchar(c, flags);
+		putchar(c, flags, ttyp);
 		break;
 	default:
-		putchar('%', flags);
-		putchar(c, flags);
+		putchar('%', flags, ttyp);
+		putchar(c, flags, ttyp);
 		break;
 	}
 	adx++;
@@ -183,10 +238,10 @@ number:		printn((long)*adx, b, flags);
  * Printn prints a number n in base b.
  * We don't use recursion to avoid deep kernels stacks.
  */
-/* copied, for supervisory networking, to sys_net.c */
-printn(n, b, flags)
+printn(n, b, flags, ttyp)
 	long n;
 	u_int b;
+	struct tty *ttyp;
 {
 	char prbuf[12];
 	register char *cp = prbuf;
@@ -200,7 +255,7 @@ printn(n, b, flags)
 			n++;
 			break;
 		case 10:
-			putchar('-', flags);
+			putchar('-', flags, ttyp);
 			n = -n;
 			break;
 		}
@@ -208,7 +263,7 @@ printn(n, b, flags)
 		*cp++ = "0123456789ABCDEF"[offset + n%b];
 	} while (n = n/b);	/* Avoid  n /= b, since that requires alrem */
 	do
-		putchar(*--cp, flags);
+		putchar(*--cp, flags, ttyp);
 	while (cp > prbuf);
 }
 
@@ -238,7 +293,7 @@ panic(s)
 tablefull(tab)
 	char *tab;
 {
-	printf("%s: table is full\n", tab);
+	log(LOG_ERR, "%s: table is full\n", tab);
 }
 
 /*
@@ -258,14 +313,15 @@ harderr(bp, cp)
  * If destination is console then the last MSGBUFS characters
  * are saved in msgbuf for inspection later.
  */
-putchar(c, flags)
+putchar(c, flags, tp)
 	register int c;
+	struct tty *tp;
 {
 	extern char *panicstr;
+	segm  s5;
 
 	if (flags & TOTTY) {
 		register int s = spltty();
-		register struct tty *tp = u.u_ttyp;
 
 		if (tp && (tp->t_state & (TS_CARR_ON | TS_ISOPEN)) ==
 			(TS_CARR_ON | TS_ISOPEN)) {
@@ -277,10 +333,16 @@ putchar(c, flags)
 		splx(s);
 	}
 	if ((flags & TOLOG) && c != '\0' && c != '\r' && c != 0177) {
+		if (msgbuf.msg_magic != MSG_MAGIC)
+			goto docons;
+		saveseg5(s5);
+		mapseg5(msgbuf.msg_click, (btoc(MSG_BSIZE) << 8) | RW);
 		msgbuf.msg_bufc[msgbuf.msg_bufx++] = c;
 		if (msgbuf.msg_bufx < 0 || msgbuf.msg_bufx >= MSG_BSIZE)
 			msgbuf.msg_bufx = 0;
+		restorseg5(s5);
 	}
+docons:
 	if ((flags & TOCONS) && c != '\0')
 		cnputc(c);
 }

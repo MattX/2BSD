@@ -34,6 +34,7 @@ static char sccsid[] = "@(#)worms.c	5.3 (Berkeley) 7/15/85";
 #include <sgtty.h>
 #endif
 #include <signal.h>
+int fputchar();
 #define cursor(col,row) tputs(tgoto(CM,col,row),1,fputchar)
 extern char *UP;
 extern short ospeed;
@@ -143,7 +144,6 @@ main(argc,argv)
 int argc;
 char *argv[];
 {
-    extern fputchar();
     char *malloc();
     char *getenv();
     char *tgetstr(), *tgoto();

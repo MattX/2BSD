@@ -1,9 +1,7 @@
+MAJOR = 11.			/ major # from bdevsw[]
+
 / BR bootstrap. supports the 32 sec/trk, 19 trk/cyl EATON 1537/1711 
-/	Controller and 1538D drive. 
-/	NOTE: there isn't enough room at present to autoadapt
-/ 	      to the 22 sectored & 5 cylinder 1538A,B,C drive types. The
-/	      appropriate "div" instructions have to be modified to support
-/	      these drive types.
+/	Controller and 1538A/B/C/D drive. 
 /
 / disk boot program to load and transfer
 / to a unix entry.
@@ -12,13 +10,9 @@
 / assembled size must be <= 512; if > 494, the 16-byte a.out header
 / must be removed
 
-cyl	= 0.		/ cylinder offset of filesys to read from
-
-/ options:
-readname= 1		/ 1->normal, if default not found, read name
-			/   from console. 0->loop on failure, saves 36 bytes
-prompt	= 1		/ 1->prompt ('>') before reading from console
-			/   0-> no prompt, saves 8 bytes
+/ options: none.  all options of reading an alternate name or echoing to
+/		  the keyboard had to be removed to make room for the 
+/		  code which understands the new directory structure on disc
 
 / constants:
 CLSIZE	= 2.			/ physical disk blocks per logical block
@@ -47,7 +41,14 @@ CHECKWORD=	6
 
 / establish sp, copy
 / program up to end of core.
+
+	nop			/ These two lines must be present or DEC
+	br	start		/ boot ROMs will refuse to run boot block!
 start:
+	clr	r0		/ XXX - for Rome 11/70, boot card doesn't work
+	mov	$176714,r1	/ XXX - for Rome 11/70, boot card doesn't work
+	movb	r0,unit+1	/ save the unit in high byte (for brcs)
+	mov	r1,csr		/  and csr from the ROMs (not base addr!)
 	mov	$..,sp
 	mov	sp,r1
 	clr	r0
@@ -59,79 +60,91 @@ start:
 
 / On error, restart from here.
 restart:
-
-/ clear core to make things clean
 	clr	r0
+/ clear core to make things clean
 2:
 	clr	(r0)+
 	cmp	r0,sp
 	blo	2b
 
-/ initialize br
-	clr	*$brcs		/ selects drive zero
+/ initialize controller
+	mov	csr,r1
+	mov	unit,brcs(r1)		/ clr addr extension bits, select unit
+	mov	$32.,r0			/ default # of sec/track
+	bit	$2400,brae(r1)		/ is this a 22 sec/track drive
+	beq	9f
+	mov	$22.,r0
+9:
+	mov	$19.,r5			/ default # of tracks/cyl
+	bit	$1400,brae(r1)		/ is this a 5 tr/cy drive?
+	beq	9f			/ no - br
+	mov	$5,r5
+9:
+	mov	r0,sectors
+	mul	r0,r5			/ sectors/cyl
+	mov	r5,seccyl
 
-/ at origin, read pathname
-.if	prompt
-	mov	$'>, r0
-	jsr	pc, putc
-.endif
-
-/ spread out in array 'names', one
-/ component every 14 bytes.
-	mov	$names,r1
-1:
-	mov	r1,r2
-2:
-	jsr	pc,getc
-	cmp	r0,$'\n
-	beq	1f
-	cmp	r0,$'/
-	beq	3f
-	movb	r0,(r2)+
-	br	2b
-3:
-	cmp	r1,r2
-	beq	2b
-	add	$14.,r1
-	br	1b
-
-/ now start reading the inodes
-/ starting at the root and
-/ going through directories
-1:
-	mov	$names,r1
-	mov	$2,r0
-1:
-	clr	bno
+	mov	$bootnm, r1
+	mov	$2,r0			/ ROOTINO
 	jsr	pc,iget
-	tst	(r1)
-	beq	1f
-2:
-	jsr	pc,rmblk
-		br restart
-	mov	$buf,r2
-3:
-	mov	r1,r3
-	mov	r2,r4
-	add	$16.,r2
-	tst	(r4)+
-	beq	5f
-4:
-	cmpb	(r3)+,(r4)+
-	bne	5f
-	cmp	r4,r2
-	blo	4b
-	mov	-16.(r2),r0
-	add	$14.,r1
-	br	1b
-5:
-	cmp	r2,$buf+BSIZE
-	blo	3b
-	br	2b
+	clr	r2			/ offset
+again:
+	jsr	pc,readdir
+	beq	restart			/ error - restart
+	mov	4(r0),r4		/ dp->d_namlen
+	cmp	r4,$bootlen		/ if (bootlen == dp->d_namlen)
+	bne	again			/    nope, go try next entry
+	mov	r0,r3
+	add	$6,r3			/ r3 = dp->d_name
+	mov	r1,r5			/ r5 = filename
+9:
+	cmpb	(r3)+,(r5)+
+	bne	again			/ no match - go read next entry
+	sob	r4,9b
+	mov	(r0),r0			/ r0 = dp->d_ino
+	jsr	pc,iget			/ fetch boot's inode
+	br	loadfile		/ 'boot'- go read it
 
+/ get the inode specified in r0
+iget:
+	add	$INOFF,r0
+	mov	r0,r5
+	ash	$PBSHFT,r0
+	bic	$!7777,r0
+	mov	r0,dno
+	clr	r0
+	jsr	pc,rblk
+	bic	$!17,r5
+	mov	$INOSIZ,r0
+	mul	r0,r5
+	add	$buf,r5
+	mov	$inod,r4
+1:
+	movb	(r5)+,(r4)+
+	sob	r0,1b
+	rts	pc
+
+readdir:
+	bit	$BSIZE-1,r2
+	bne	1f
+	jsr	pc,rmblk		/ read mapped block (bno)
+		br err			/ end of file branch
+	clr	r2			/ start at beginning of buf
+1:
+	mov	$buf,r0
+	add	r2,r0			/ dp = buf+offset
+	add	buf+2(r2),r2		/ dp += dp->d_reclen
+	tst	(r0)			/ dp->d_ino == 0?
+	beq	readdir			/ yes - go look at next
+	rts	pc			/ return with r0 = &dp->d_ino
+err:
+	clr	r0			/ return with
+	rts	pc			/ dp = NULL
+
+loadfile:
+	clr	bno			/ start at block 0 of inode in 'inod'
 / read file into core until
 / a mapping error, (no disk address)
-1:
 	clr	r1
 1:
 	jsr	pc,rmblk
@@ -156,36 +169,19 @@ restart:
 / restart if return
 2:
 	mov	ENDCORE-BOOTOPTS, r4
-	mov	ENDCORE-BOOTDEV, r3
+	movb	unit+1,r3
+	bis	$MAJOR\<8.,r3
 	mov	ENDCORE-CHECKWORD, r2
+	mov	csr,r1
 	jsr	pc,*$0
-	br	restart
-
-/ get the inode specified in r0
-iget:
-	add	$INOFF,r0
-	mov	r0,r5
-	ash	$PBSHFT,r0
-	bic	$!7777,r0
-	mov	r0,dno
-	clr	r0
-	jsr	pc,rblk
-	bic	$!17,r5
-	mul	$INOSIZ,r5
-	add	$buf,r5
-	mov	$inod,r4
-1:
-	mov	(r5)+,(r4)+
-	cmp	r4,$inod+INOSIZ
-	blo	1b
-	rts	pc
+	jmp	restart
 
 / read a mapped block
 / offset in file is in bno.
 / skip if success, no skip if fail
 / the algorithm only handles a single
 / indirect block. that means that
-/ files longer than NDIRIN+128 blocks cannot
+/ files longer than NDIRIN+256 blocks (260kb) cannot
 / be loaded.
 rmblk:
 	add	$2,(sp)
@@ -194,13 +190,9 @@ rmblk:
 	blt	1f
 	mov	$NDIRIN,r0
 1:
-	mov	r0,-(sp)
-	asl	r0
-	add	(sp)+,r0
-	add	$addr+1,r0
-	movb	(r0)+,dno
-	movb	(r0)+,dno+1
-	movb	-3(r0),r0
+	ash	$2,r0
+	mov	addr+2(r0),dno
+	mov	addr(r0),r0
 	bne	1f
 	tst	dno
 	beq	2f
@@ -224,10 +216,14 @@ rmblk:
 read	= 4
 go	= 1
 
-brcs	= 176710
-brda	= 176724
-brca	= 176722
-brba	= 176720
+brds	= -4
+brer	= -2
+brcs	= 0		/ offset from base csr passed by ROMs
+brwc	= 2
+brba	= 4
+brca	= 6
+brda	= 10
+brae	= 12
 / br disk driver.
 / low order address in dno,
 / high order in r0.
@@ -237,69 +233,31 @@ rblk:
 .if	CLSIZE-1
 	ashc	$CLSHFT,r0		/ multiply by CLSIZE
 .endif
-	div	$32.*19.,r0		/ was 20.*10.
-.if	cyl
-	add	$cyl,r0
-.endif
-	mov	r0,*$brca
+	div	seccyl,r0
+	mov	csr,r3
+	mov	r0,brca(r3)
 	clr	r0
-	div	$32.,r0			/ was 10.
+	div	sectors,r0
 	swab	r0
 	bis	r1,r0
-	mov	r0,*$brda
-	mov	$brba,r1
-	mov	$buf,(r1)
-	mov	$WC,-(r1)
-	mov	$read+go,-(r1)
+	mov	r0,brda(r3)
+	mov	$buf,brba(r3)
+	mov	$WC,brwc(r3)
+	mov	unit,r0
+	bis	$read+go,r0
+	mov	r0,(r3)		/ brcs
 1:
-	tstb	(r1)
+	tstb	(r3)		/ brcs
 	bge	1b
 	mov	(sp)+,r1
 	rts	pc
 
-tks = 177560
-tkb = 177562
-/ read and echo a teletype character
-/ if *cp is nonzero, it is the next char to simulate typing
-/ after the defnm is tried once, read a name from the console
-getc:
-	movb	*cp, r0
-	beq	2f
-	inc	cp
-.if	readname
-	br	putc
-2:
-	mov	$tks,r0
-	inc	(r0)
-1:
-	tstb	(r0)
-	bge	1b
-	mov	tkb,r0
-	bic	$!177,r0
-	cmp	r0,$'A
-	blo	2f
-	cmp	r0,$'Z
-	bhi	2f
-	add	$'a-'A,r0
-.endif
-2:
-
-tps = 177564
-tpb = 177566
-/ print a teletype character
-putc:
-	tstb	*$tps
-	bge	putc
-	mov	r0,*$tpb
-	cmp	r0,$'\r
-	bne	1f
-	mov	$'\n,r0
-	br	putc
-1:
-	rts	pc
-
-cp:	defnm
-defnm:	<boot\r\0>
+bootnm:	<boot\0\0>
+bootlen = 4		/ strlen(bootnm)
+unit: 0
+csr: 0
+seccyl: 0
+sectors: 0
 end:
 
 inod = ..-512.-BSIZE		/ room for inod, buf, stack
@@ -307,4 +265,3 @@ addr = inod+ADDROFF		/ first address in inod
 buf = inod+INOSIZ
 bno = buf+BSIZE
 dno = bno+2
-names = dno+2

@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)ldiv.s	2.3 (Berkeley) 8/23/88\0>
+	<@(#)ldiv.s	2.4 (GTE) 12/26/92\0>
 	.even
 #endif LIBC_SCCS
 
@@ -18,7 +18,7 @@
  */
 #include "DEFS.h"
 
-#if !defined(KERNEL) && !defined(NONFP)
+#if !defined(KERNEL)
 /*
  * Ldiv for floating point hardware.  Check for divide by zero.  Don't want
  * floating divide trap in integer math.

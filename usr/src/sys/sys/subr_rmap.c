@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)subr_rmap.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)subr_rmap.c	1.2 (2.11BSD GTE) 12/24/92
  */
 
 #include "param.h"
@@ -96,16 +96,6 @@ again:
 	}
 	return((memaddr)NULL);
 }
-
-#ifdef UCB_NET
-/* corealloc allows the network code to call malloc(). */
-memaddr
-corealloc(n)
-	size_t n;
-{
-	return(malloc(coremap, n));
-}
-#endif
 
 /*
  * Free the previously allocated size units at addr into the specified

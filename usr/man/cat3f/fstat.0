@@ -5,22 +5,22 @@ STAT(3F)	    UNIX Programmer's Manual		 STAT(3F)
 
 
 
-NNAAMMEE
+NAME
      stat, lstat, fstat - get file status
 
-SSYYNNOOPPSSIISS
-     iinntteeggeerr ffuunnccttiioonn ssttaatt ((nnaammee,, ssttaattbb))
-     cchhaarraacctteerr**((**)) nnaammee
-     iinntteeggeerr ssttaattbb((1122))
+SYNOPSIS
+     integer function stat (name, statb)
+     character*(*) name
+     integer statb(12)
 
-     iinntteeggeerr ffuunnccttiioonn llssttaatt ((nnaammee,, ssttaattbb))
-     cchhaarraacctteerr**((**)) nnaammee
-     iinntteeggeerr ssttaattbb((1122))
+     integer function lstat (name, statb)
+     character*(*) name
+     integer statb(12)
 
-     iinntteeggeerr ffuunnccttiioonn ffssttaatt ((lluunniitt,, ssttaattbb))
-     iinntteeggeerr ssttaattbb((1122))
+     integer function fstat (lunit, statb)
+     integer statb(12)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These routines return detailed information about a file.
      _S_t_a_t and _l_s_t_a_t return information about file _n_a_m_e; _f_s_t_a_t
      returns information about the file associated with fortran
@@ -31,13 +31,13 @@ DDEESSCCRRIIPPTTIIOONN
      The value of either function will be zero if successful; an
      error code otherwise.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      stat(2), access(3F), perror(3F), time(3F)
 
-BBUUGGSS
+BUGS
      Pathnames can be no longer than MAXPATHLEN as defined in
      <_s_y_s/_p_a_r_a_m._h>.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

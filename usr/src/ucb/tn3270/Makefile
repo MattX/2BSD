@@ -1,5 +1,5 @@
 # Makefile for tn3270 and friends...
-# @(#)Makefile	2.11	2.11
+# @(#)Makefile	2.11	April 8, 1994
 
 CC	= cc
 SEPFLAG	= -i
@@ -52,9 +52,7 @@ SUBSO = pdpbsubs.o
 
 # PDP-11 assembly rules:
 .s.o:
-	/lib/cpp -E $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
-	rm -f x.s
+	/lib/cpp -E $*.s | sed -e 's;^#;/;' | as -V -o $@
 
 # Vax assembly rules:
 #.s.o:
@@ -80,7 +78,7 @@ tn3270:	$(MOSTO)
 mset:	mset.o map3270.o
 	${CC} ${CFLAGS} ${SEPFLAG} -o mset mset.o map3270.o $(LIBCURSES)
 
-install:
+install: tn3270 mset map3270
 	install -s tn3270 $(BINDIR)
 	install -s mset $(BINDIR)
 	install -c -m 444 map3270 $(ETCDIR)
@@ -126,14 +124,13 @@ depend:
 
 # DO NOT DELETE THIS LINE
 
-asctab.o: shortnames.h ascebc.h
-ebctab.o: shortnames.h ascebc.h
-options.o: shortnames.h options.h
-screen.o: shortnames.h screen.h 3270.h
-datastream.o: shortnames.h ascebc.h 3270.h screen.h
-keyboard.o: shortnames.h m4.out ascebc.h 3270.h screen.h options.h ectype.h
-termin.o: shortnames.h m4.out state.h
-map3270.o: shortnames.h m4.out state.h default.map3270
-ectype.o: shortnames.h ectype.h
-tn3270.o: shortnames.h
-mset.o: shortnames.h state.h m4.out
+asctab.o: ascebc.h
+ebctab.o: ascebc.h
+options.o: options.h
+screen.o: screen.h 3270.h
+datastream.o: ascebc.h 3270.h screen.h
+keyboard.o: m4.out ascebc.h 3270.h screen.h options.h ectype.h
+termin.o: m4.out state.h
+map3270.o: m4.out state.h default.map3270
+ectype.o: ectype.h
+mset.o: state.h m4.out

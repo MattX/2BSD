@@ -5,13 +5,13 @@ MKSTR(1)	    UNIX Programmer's Manual		 MKSTR(1)
 
 
 
-NNAAMMEE
+NAME
      mkstr - create an error message file by massaging C source
 
-SSYYNNOOPPSSIISS
-     mmkkssttrr [ -- ] messagefile prefix file ...
+SYNOPSIS
+     mkstr [ - ] messagefile prefix file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_k_s_t_r is used to create files of error messages.  Its use
      can make programs with large numbers of error diagnostics
      much smaller, and reduce system overhead in running the pro-
@@ -43,16 +43,16 @@ DDEESSCCRRIIPPTTIIOONN
      can be used to retrieve the message, i.e.:
 
 
-	  cchhaarr efilname[] =  "/usr/lib/pi_strings";
-	  iinntt  efil = -1;
+	  char efilname[] =  "/usr/lib/pi_strings";
+	  int  efil = -1;
 
 	  error(a1, a2, a3, a4)
 	  {
-	       cchhaarr buf[256];
+	       char buf[256];
 
-	       iiff (efil < 0) {
+	       if (efil < 0) {
 		    efil = open(efilname, 0);
-		    iiff (efil < 0) {
+		    if (efil < 0) {
 	  oops:
 			 perror(efilname);
 			 exit(1);
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 7, 1986				1
+Printed 1/9/94		   May 7, 1986				1
 
 
 
@@ -72,16 +72,16 @@ MKSTR(1)	    UNIX Programmer's Manual		 MKSTR(1)
 
 
 	       }
-	       iiff (lseek(efil, (long) a1, 0) || read(efil, buf, 256) <= 0)
-		    ggoottoo oops;
+	       if (lseek(efil, (long) a1, 0) || read(efil, buf, 256) <= 0)
+		    goto oops;
 	       printf(buf, a2, a3, a4);
 	  }
 
-     The optional -- causes the error messages to be placed at the
+     The optional - causes the error messages to be placed at the
      end of the specified message file for recompiling part of a
      large _m_k_s_t_red program.
 
-SSEEEE AALLSSOO
+SEE ALSO
      lseek(2), xstr(1)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 7, 1986				2
+Printed 1/9/94		   May 7, 1986				2
 
 
 

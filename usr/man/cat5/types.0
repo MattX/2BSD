@@ -5,33 +5,34 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
 
 
 
-NNAAMMEE
+NAME
      types - primitive system data types
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+SYNOPSIS
+     #include <sys/types.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The data types defined in the include file are used in UNIX
      system code; some data of these types are accessible to user
      code:
 
      /*
-      * Copyright (c) 1982 Regents of the University of California.
+      * Copyright (c) 1986 Regents of the University of California.
       * All rights reserved.  The Berkeley software License Agreement
       * specifies the terms and conditions for redistribution.
       *
-      *       @(#)types.h	7.3 (Berkeley) 6/20/87
+      *       @(#)types.h	1.2 (2.11BSD Berkeley) 9/23/91
       */
 
      #ifndef _TYPES_
      #define  _TYPES_
+
      /*
       * Basic system types and major/minor device constructing/busting macros.
       */
 
      /* major part of a device */
-     #define  major(x)	((int)(((unsigned)(x)>>8)&0377))
+     #define  major(x)	((int)(((int)(x)>>8)&0377))
 
      /* minor part of a device */
      #define  minor(x)	((int)((x)&0377))
@@ -42,25 +43,24 @@ DDEESSCCRRIIPPTTIIOONN
      typedef  unsigned char	u_char;
      typedef  unsigned short	u_short;
      typedef  unsigned int	u_int;
-     typedef  unsigned long	u_long;
+     typedef unsigned long	u_long;/* see this! unsigned longs at last! */
      typedef  unsigned short	ushort;/* sys III compat */
 
-     #if defined(vax) || defined(tahoe)
-     typedef  struct	_physadr { int r[1]; } *physadr;
+     #ifdef pdp11
+     typedef  struct	_physadr { short r[1]; } *physadr;
      typedef  struct	label_t {
-	      int	val[14];
+	      int	val[8]; /* regs 2-7, __ovno and super SP */
      } label_t;
      #endif
      typedef  struct	_quad { long val[2]; } quad;
      typedef  long	daddr_t;
      typedef  char *	caddr_t;
-     typedef  long *	qaddr_t;/* should be typedef quad * qaddr_t; */
-     typedef  u_long	ino_t;
+     typedef  u_short	ino_t;
      typedef  long	swblk_t;
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 
@@ -71,7 +71,7 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
 
 
 
-     typedef  long	size_t;
+     typedef  u_int	size_t;
      typedef  long	time_t;
      typedef  short	dev_t;
      typedef  long	off_t;
@@ -86,7 +86,7 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
       * should be >= NOFILE (param.h).
       */
      #ifndef  FD_SETSIZE
-     #define  FD_SETSIZE	256
+     #define  FD_SETSIZE	32
      #endif
 
      typedef long	fd_mask;
@@ -96,13 +96,17 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
      #endif
 
      typedef  struct fd_set {
-	      fd_mask	fds_bits[howmany(FD_SETSIZE, NFDBITS)];
+	      fd_mask	fds_bits[1];
      } fd_set;
 
-     #define  FD_SET(n, p)	((p)->fds_bits[(n)/NFDBITS] |= (1 << ((n) % NFDBITS)))
-     #define  FD_CLR(n, p)	((p)->fds_bits[(n)/NFDBITS] &= ~(1 << ((n) % NFDBITS)))
-     #define  FD_ISSET(n, p)	((p)->fds_bits[(n)/NFDBITS] & (1 << ((n) % NFDBITS)))
+     #define  FD_SET(n, p)	((p)->fds_bits[(n)/NFDBITS] |= (1L << ((n) % NFDBITS)))
+     #define  FD_CLR(n, p)	((p)->fds_bits[(n)/NFDBITS] &= ~(1L << ((n) % NFDBITS)))
+     #define  FD_ISSET(n, p)	((p)->fds_bits[(n)/NFDBITS] & (1L << ((n) % NFDBITS)))
      #define FD_ZERO(p) bzero((char *)(p), sizeof(*(p)))
+
+     typedef char	bool_t; /* boolean */
+     typedef u_int	memaddr;/* core or swap address */
+     typedef long	ubadr_t;/* unibus address */
 
      #endif
 
@@ -115,18 +119,14 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
      used to save the processor state while another process is
      running.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fs(5), time(3), lseek(2), adb(1)
 
 
 
 
 
-
-
-
-
-Printed 12/28/88	  May 15, 1985				2
+Printed 1/9/94		  May 15, 1985				2
 
 
 

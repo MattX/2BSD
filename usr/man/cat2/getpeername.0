@@ -5,26 +5,26 @@ GETPEERNAME(2)	    UNIX Programmer's Manual	   GETPEERNAME(2)
 
 
 
-NNAAMMEE
+NAME
      getpeername - get name of connected peer
 
-SSYYNNOOPPSSIISS
-     ggeettppeeeerrnnaammee((ss,, nnaammee,, nnaammeelleenn))
-     iinntt ss;;
-     ssttrruucctt ssoocckkaaddddrr **nnaammee;;
-     iinntt **nnaammeelleenn;;
+SYNOPSIS
+     getpeername(s, name, namelen)
+     int s;
+     struct sockaddr *name;
+     int *namelen;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_p_e_e_r_n_a_m_e returns the name of the peer connected to socket
      _s.  The _n_a_m_e_l_e_n parameter should be initialized to indicate
      the amount of space pointed to by _n_a_m_e.  On return it con-
      tains the actual size of the name returned (in bytes).  The
      name is truncated if the buffer provided is too small.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      A 0 is returned if the call succeeds, -1 if it fails.
 
-EERRRROORRSS
+ERRORS
      The call succeeds unless:
 
      [EBADF]	    The argument _s is not a valid descriptor.
@@ -39,7 +39,7 @@ EERRRROORRSS
      [EFAULT]	    The _n_a_m_e parameter points to memory not in a
 		    valid part of the process address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      accept(2), bind(2), socket(2), getsockname(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 13, 1986				1
+Printed 1/9/94		  May 13, 1986				1
 
 
 

@@ -31,7 +31,7 @@ nulldev()
 /*
  * socket(2) and socketpair(2) if networking not available.
  */
-#ifndef UCB_NET
+#ifndef INET
 nonet()
 {
 	u.u_error = EPROTONOSUPPORT;

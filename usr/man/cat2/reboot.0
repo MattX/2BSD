@@ -5,16 +5,16 @@ REBOOT(2)	    UNIX Programmer's Manual		REBOOT(2)
 
 
 
-NNAAMMEE
+NAME
      reboot - reboot system or halt processor
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//rreebboooott..hh>>
+SYNOPSIS
+     #include <sys/reboot.h>
 
-     rreebboooott((hhoowwttoo))
-     iinntt hhoowwttoo;;
+     reboot(howto)
+     int howto;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_e_b_o_o_t reboots the system, and is invoked automatically in
      the event of unrecoverable system failures.  _H_o_w_t_o is a mask
      of options passed to the bootstrap program.  The system call
@@ -50,17 +50,17 @@ DDEESSCCRRIIPPTTIIOONN
 
      Only the super-user may _r_e_b_o_o_t a machine.
 
-RREETTUURRNN VVAALLUUEESS
+RETURN VALUES
      If successful, this call never returns.  Otherwise, a -1 is
      returned and an error is returned in the global variable
      _e_r_r_n_o.
 
-EERRRROORRSS
+ERRORS
      [EPERM]	    The caller is not the super-user.
 
 
 
-Printed 12/28/88	   May 9, 1985				1
+Printed 1/9/94		   May 9, 1985				1
 
 
 
@@ -71,10 +71,10 @@ REBOOT(2)	    UNIX Programmer's Manual		REBOOT(2)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      crash(8), halt(8), init(8), reboot(8)
 
-BBUUGGSS
+BUGS
      The notion of ``console medium'', among other things, is
      specific to the VAX.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 9, 1985				2
+Printed 1/9/94		   May 9, 1985				2
 
 
 

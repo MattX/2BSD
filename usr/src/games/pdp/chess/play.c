@@ -60,9 +60,9 @@ move()
 	int a, *p, *p1;
 
 loop:
-	lmp = done();
+	lmp = (int *) done();
 	a = manual();
-	p = done();
+	p = (int *) done();
 	p1 = p;
 	while(p1 != lmp) {
 		p1++;
@@ -149,7 +149,7 @@ loop:
 	}
 	if(match("repeat")) {
 		if(amp[-1] != -1) {
-			a = amp;
+			a = (int) amp;
 			mantom? wremove(): bremove();
 			decrem();
 			posit(&out1, a);
@@ -226,7 +226,7 @@ done()
 		printf("Stale mate\n");
 		onhup();
 	}
-	return(p);
+	return((int)p);
 }
 
 xplay()

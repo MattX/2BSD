@@ -5,17 +5,17 @@ TRAPOV(3F)	    UNIX Programmer's Manual	       TRAPOV(3F)
 
 
 
-NNAAMMEE
+NAME
      trapov - trap and repair floating point overflow
 
-SSYYNNOOPPSSIISS
-     ssuubbrroouuttiinnee ttrraappoovv ((nnuummeessgg,, rrttnnvvaall))
-     ddoouubbllee pprreecciissiioonn rrttnnvvaall
+SYNOPSIS
+     subroutine trapov (numesg, rtnval)
+     double precision rtnval
 
-DDEESSCCRRIIPPTTIIOONN
-     NNOOTTEE:: TThhiiss rroouuttiinnee aapppplliieess oonnllyy ttoo tthhee oollddeerr VVAAXX 1111//778800''ss..
-     VVAAXX ccoommppuutteerrss mmaaddee oorr uuppggrraaddeedd ssiinnccee sspprriinngg 11998833 hhaannddllee
-     eerrrroorrss ddiiffffeerreennttllyy..  See _t_r_p_f_p_e(3F) for the newer error
+DESCRIPTION
+     NOTE: This routine applies only to the older VAX 11/780's.
+     VAX computers made or upgraded since spring 1983 handle
+     errors differently.  See _t_r_p_f_p_e(3F) for the newer error
      handler.  This routine has always been ineffective on the
      VAX 11/750.  It is a null routine on the PDP11.
 
@@ -34,13 +34,13 @@ DDEESSCCRRIIPPTTIIOONN
      arithmetic error.	_R_t_n_v_a_l must be a double precision value.
      For example, ``0d0'' or ``dflmax()''.
 
-FFIILLEESS
+FILES
      /usr/lib/libF77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      trpfpe(3F), signal(3F), range(3F)
 
-BBUUGGSS
+BUGS
      Other arithmetic exceptions can be trapped but not repaired.
 
      There is no way to distinguish between an integer value of
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

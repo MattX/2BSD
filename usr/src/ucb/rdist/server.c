@@ -1356,16 +1356,27 @@ error(fmt, a1, a2, a3)
 	char *fmt;
 	int a1, a2, a3;
 {
-	nerrs++;
-	strcpy(buf, "\1rdist: ");
-	(void) sprintf(buf+8, fmt, a1, a2, a3);
-	if (!iamremote) {
+	static FILE *fp;
+
+	++nerrs;
+	if (!fp && !(fp = fdopen(rem, "w")))
+		return;
+	if (iamremote) {
+		(void)fprintf(fp, "%crdist: ", 0x01);
+		(void)fprintf(fp, fmt, a1, a2, a3);
+		fflush(fp);
+	}
+	else {
 		fflush(stdout);
-		(void) write(2, buf+1, strlen(buf+1));
-	} else
-		(void) write(rem, buf, strlen(buf));
-	if (lfp != NULL)
-		(void) fwrite(buf+1, 1, strlen(buf+1), lfp);
+		(void)fprintf(stderr, "rdist: ");
+		(void)fprintf(stderr, fmt, a1, a2, a3);
+		fflush(stderr);
+	}
+	if (lfp != NULL) {
+		(void)fprintf(lfp, "rdist: ");
+		(void)fprintf(lfp, fmt, a1, a2, a3);
+		fflush(lfp);
+	}
 }
 
 /*VARARGS1*/
@@ -1373,16 +1384,27 @@ fatal(fmt, a1, a2,a3)
 	char *fmt;
 	int a1, a2, a3;
 {
-	nerrs++;
-	strcpy(buf, "\2rdist: ");
-	(void) sprintf(buf+8, fmt, a1, a2, a3);
-	if (!iamremote) {
+	static FILE *fp;
+
+	++nerrs;
+	if (!fp && !(fp = fdopen(rem, "w")))
+		return;
+	if (iamremote) {
+		(void)fprintf(fp, "%crdist: ", 0x02);
+		(void)fprintf(fp, fmt, a1, a2, a3);
+		fflush(fp);
+	}
+	else {
 		fflush(stdout);
-		(void) write(2, buf+1, strlen(buf+1));
-	} else
-		(void) write(rem, buf, strlen(buf));
-	if (lfp != NULL)
-		(void) fwrite(buf+1, 1, strlen(buf+1), lfp);
+		(void)fprintf(stderr, "rdist: ");
+		(void)fprintf(stderr, fmt, a1, a2, a3);
+		fflush(stderr);
+	}
+	if (lfp != NULL) {
+		(void)fprintf(lfp, "rdist: ");
+		(void)fprintf(lfp, fmt, a1, a2, a3);
+		fflush(lfp);
+	}
 	cleanup();
 }
 

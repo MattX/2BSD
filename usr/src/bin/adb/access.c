@@ -1,70 +1,62 @@
-#
-/*
- *
- *      UNIX debugger
- *
- */
-
 #include "defs.h"
 
+	MSG	ODDADR;
+	MSG	BADDAT;
+	MSG	BADTXT;
+	MAP	txtmap;
+	MAP	datmap;
+	int	wtflag;
+	char	*errflg;
+	int	pid;
+	struct	ovlhdr	ovlseg;
+	long	ovloff[];
+	char	curov;
+	int	overlay;
+	long	var[];
 
-MSG             ODDADR;
-MSG             BADDAT;
-MSG             BADTXT;
-MAP             txtmap;
-MAP             datmap;
-INT             wtflag;
-STRING          errflg;
-INT             errno;
+extern	int     errno;
 
-INT             pid;
-
-struct ovhead           ovlseg;
-L_INT           ovloff[];
-OVTAG           curov;
-int             overlay;
-
-L_INT           var[];
-
-
+	static	within();
 
 /* file handling and access routines */
 
 put(adr,space,value)
-L_INT   adr;
+	long   adr;
 {
-	access(WT,adr,space,value);
+	acces(WT,adr,space,value);
 }
 
-POS     get(adr, space)
-L_INT           adr;
+u_int
+get(adr, space)
+long	adr;
 {
-	return(access(RD,adr,space,0));
+	return(acces(RD,adr,space,0));
 }
 
-POS     chkget(n, space)
-L_INT           n;
+u_int
+chkget(n, space)
+	long	n;
 {
-	REG INT         w;
+	register int w;
 
 	w = get(n, space);
 	chkerr();
 	return(w);
 }
 
-access(mode,adr,space,value)
-L_INT   adr;
+acces(mode,adr,space,value)
+	long	adr;
 {
-	INT             w, w1, pmode, rd, file;
+	int	w, w1, pmode, rd, file;
 	BKPTR   bkptr, scanbkpt();
-	rd = mode==RD;
 
+	rd = mode==RD;
 	IF space == NSP THEN return(0); FI
 
 	IF pid          /* tracing on? */
 	THEN IF (adr&01) ANDF !rd THEN error(ODDADR); FI
 	     pmode = (space&DSP?(rd?RDUSER:WDUSER):(rd?RIUSER:WIUSER));
-	     if (bkptr=scanbkpt((POS)adr)) {
+	     if (bkptr=scanbkpt((u_int)adr)) {
 		if (rd) {
 		    return(bkptr->ins);
 		} else {
@@ -89,20 +81,20 @@ L_INT   adr;
 	IF !chkmap(&adr,space)
 	THEN return(0);
 	FI
-	file=(space&DSP?datmap.ufd:txtmap.ufd);
-	IF longseek(file,adr)==0 ORF
-	   (rd ? read(file,&w,2) : write(file,&value,2)) < 1
-	THEN    errflg=(space&DSP?BADDAT:BADTXT);
-	FI
-	return(w);
 
+	file = (space&DSP ? datmap.ufd : txtmap.ufd);
+	if	(lseek(file,adr, 0) == -1L || 
+			(rd ? read(file,&w,2) : write(file,&value,2)) < 1)
+		errflg = (space & DSP ? BADDAT : BADTXT);
+	return(w);
 }
 
 chkmap(adr,space)
-	REG L_INT       *adr;
-	REG INT         space;
+	register long       *adr;
+	register int	space;
 {
-	REG MAPPTR amap;
+	register MAPPTR amap;
+
 	amap=((space&DSP?&datmap:&txtmap));
 	switch(space&(ISP|DSP|STAR)) {
 
@@ -120,7 +112,7 @@ chkmap(adr,space)
 			IF within(*adr, amap->b2, amap->e2)
 			THEN *adr += (amap->f2) - (amap->b2);
 				break;
-			ELSE goto error;
+			ELSE goto err;
 			FI
 
 		case DSP:
@@ -138,7 +130,7 @@ chkmap(adr,space)
 			/* falls through */
 
 		default:
-		error:
+		err:
 			errflg = (space&DSP ? BADDAT: BADTXT);
 			return(0);
 	}
@@ -146,9 +138,9 @@ chkmap(adr,space)
 }
 
 setovmap(ovno)
-OVTAG ovno;
-{
-	REG MAPPTR amap;
+	char	ovno;
+	{
+	register MAPPTR amap;
 
 	if ((!overlay) || (ovno < 0) || (ovno > NOVL))
 		return;
@@ -156,7 +148,7 @@ OVTAG ovno;
 	IF ovno == 0
 	THEN    amap->eo = amap->bo;
 		amap->fo = 0;
-	ELSE    amap->eo = amap->bo + ovlseg.ov[ovno-1];
+	ELSE    amap->eo = amap->bo + ovlseg.ov_siz[ovno-1];
 		amap->fo = ovloff[ovno-1];
 	FI
 	var[VARC] = curov = ovno;
@@ -164,8 +156,9 @@ OVTAG ovno;
 		choverlay(ovno);
 }
 
+static
 within(adr,lbd,ubd)
-L_INT   adr, lbd, ubd;
+	long	adr, lbd, ubd;
 {
 	return(adr>=lbd && adr<ubd);
 }

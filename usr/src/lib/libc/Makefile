@@ -5,7 +5,6 @@
 #
 #	@(#)Makefile	4.19 (Berkeley) 3/9/86
 #
-#
 # The system has two monitoring schemes, utilizing either ``prof''
 # or ``gprof''. DFLMON determines the default profiler; mon.o
 # specifies that ``prof'' is the default, gmon.o specifies that
@@ -15,8 +14,7 @@
 # the top directories.  This subtree is identified by the machine name.
 #
 # Compatibility routines are kept in directories with a prefixing
-# ``compat'' (so they all sort together).  (``com'' in 2.10BSD because
-# of limited filename length)
+# ``compat'' (so they all sort together).
 # 
 # The C run-time startup code is always machine dependent and expected
 # to be located in ${MACHINE}/csu
@@ -42,7 +40,7 @@
 #	defining HOSTLOOKUP to be "hosttable", compiles
 #	the host lookup routines that use /etc/hosts.
 #
-#HOSTLOOKUP=	hosttable
+#HOSTLOOKUP=	named
 HOSTLOOKUP=	hosttable
 #							
 DESTDIR=
@@ -50,7 +48,7 @@ INSTALL=install -m 644
 DFLMON=	mon.o
 MACHINE=pdp
 DEFS=
-COMPAT=	com-4.1 com-sys5
+COMPAT=	compat-4.1 compat-sys5
 ALL=	gen inet net ns stdio ${MACHINE} ${COMPAT}
 TAGSFILE=tags
 
@@ -84,7 +82,7 @@ ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}: FRC
 
 FRC:
 
-install: 
+install: libc.a libc_p.a
 	${INSTALL} libc.a ${DESTDIR}/lib/libc.a
 	ranlib ${DESTDIR}/lib/libc.a
 	${INSTALL} libc_p.a ${DESTDIR}/usr/lib/libc_p.a

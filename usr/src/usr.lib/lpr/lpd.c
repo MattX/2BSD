@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)lpd.c	5.4 (Berkeley) 5/6/86";
-#endif not lint
+static char sccsid[] = "@(#)lpd.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * lpd -- line printer daemon.
@@ -49,9 +47,7 @@ int	lflag;				/* log requests flag */
 
 int	reapchild();
 int	mcleanup();
-#ifdef BSD2_10
 int	unblock, unpause();
-#endif
 
 main(argc, argv)
 	int argc;
@@ -129,7 +125,6 @@ main(argc, argv)
 	(void) unlink(SOCKETNAME);
 	funix = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (funix < 0) {
-#ifdef BSD2_10
 		if (errno == EPROTONOSUPPORT) {
 			sigblock(sigmask(SIGUSR1));
 			signal(SIGUSR1, unpause);
@@ -141,7 +136,6 @@ main(argc, argv)
 				}
 			}
 		}
-#endif
 		syslog(LOG_ERR, "socket: %m");
 		exit(1);
 	}
@@ -243,12 +237,10 @@ mcleanup()
 	exit(0);
 }
 
-#ifdef BSD2_10
 unpause()
 {
 	unblock++;
 }
-#endif
 
 /*
  * Stuff for handling job specifications

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)machdep.c	2.1 (2.11BSD) 1/3/93
  */
 
 #include "param.h"
@@ -146,8 +146,6 @@ sigreturn()
 	regs[RPS] = scp->sc_ps;
 }
 
-#ifdef UNIBUS_MAP
-
 #define	UMAPSIZ	10
 
 struct	mapent _ubmap[UMAPSIZ];
@@ -262,4 +260,3 @@ mapfree(bp)
 		bp->b_flags &= ~B_UBAREMAP;
 	}
 }
-#endif /* UNIBUS_MAP */

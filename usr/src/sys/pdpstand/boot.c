@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)boot.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)boot.c	2.2 (2.11BSD) 1/1/93
  */
 #include "../h/param.h"
 #include "../machine/seg.h"
@@ -12,14 +12,9 @@
 #include "../h/inode.h"
 #include "../h/reboot.h"
 #include "saio.h"
-
 #include <a.out.h>
 
-#ifndef RB_DEFNAME
-#	define	RB_DEFNAME	"xp(0,0)unix"
-#endif
-
-#undef	btoc
+#undef	btoc			/* to save space */
 #define	KB	* 1024L
 
 #define	KISD0	((u_short *) 0172300)
@@ -34,15 +29,17 @@
 #define	SEG_TEXT	02
 #define	SEG_OVLY	04
 
-extern int	bootopts;	/* boot options from previous incarnation */
-extern int	bootdev;	/* UNIX dev we were booted from (not used) */
-extern int	checkword;	/* one's complements of bootopts */
-extern int	cputype;	/* 24, 40, 44, 45, 70, or 73 */
-extern bool_t	ksep;		/* is kernel mode currently separated */
-extern bool_t	sep_id;		/* does the cpu support separate I/D? */
+extern	caddr_t	*bootcsr;	/* csr of boot controller */
+extern	int	bootopts;	/* boot options from previous incarnation */
+extern	int	bootdev;	/* makedev(major,unit) booted from */
+extern	int	checkword;	/* one's complements of bootopts */
+extern	int	cputype;	/* 24, 40, 44, 45, 70, or 73 */
+extern	bool_t	ksep;		/* is kernel mode currently separated */
+extern	bool_t	sep_id;		/* does the cpu support separate I/D? */
+extern	int	ndevsw;		/* number of devices in devsw[] */
+extern	char	ADJcsr[];	/* adjustments for ROM csr addresses */
 
 char		module[] = "Boot"; /* this program's name (used by trap) */
-char		line[100] = RB_DEFNAME;
 bool_t		overlaid = 0;
 u_short		pdrproto[16 + NOVL] = {0};
 struct exec	exec;
@@ -58,18 +55,6 @@ struct	loadtable {
 	struct	loadmap	*lt_map;
 };
 
-/*
- * The 0401 references below are to a weird ULTRIX magic which signifies a
- * stand alone 0407.  This entry is present so we can boot the ULTRIX boot if
- * necessary (we can't load an ULTRIX kernel and most of the ULTRIX stand alone
- * utilities for instance).
- */
-#define	A_MAGICU	0401
-
-struct	loadmap	load401[] = {
-	SEG_DATA,	56 KB,
-	0,		0  KB
-};
 struct	loadmap	load407[] = {
 	SEG_DATA,	56 KB,
 	0,		0  KB
@@ -126,7 +111,6 @@ struct	loadmap	load431[] = {
 };
 
 struct	loadtable	loadtable[] = {
-	A_MAGICU,	load401,	/* ULTRIX boot */
 	A_MAGIC1,	load407,
 	A_MAGIC2,	load410,
 	A_MAGIC3,	load411,
@@ -136,11 +120,36 @@ struct	loadtable	loadtable[] = {
 
 main()
 {
-	int i, j;
+	register int i, j, maj;
 	int retry = 0;
+	caddr_t	*adjcsr;
 	struct loadtable *setup();
+	struct iob *file;
+	char	line[64], defnam[64], *itoa();
 
-	printf("\nboot: %d%s\n", cputype, module);
+	maj = major(bootdev);
+	if (maj >= ndevsw)
+		_stop("bad major");		/* can't happen */
+	adjcsr = (caddr_t *)((short)bootcsr - ADJcsr[maj]);
+	for (i = 0; devsw[maj].dv_csr != (caddr_t) -1; i++) {
+		if (adjcsr == devsw[maj].dv_csr[i])
+			break;
+		if (devsw[maj].dv_csr[i] == 0) {
+			devsw[maj].dv_csr[i] = adjcsr;
+			break;
+		}
+	}
+	if (devsw[maj].dv_csr[i] == (caddr_t *) -1)
+		_stop("no free csr slots");
+	bootdev &= ~(3 << 6);
+	bootdev |= (i << 6);	/* controller # to bits 6&7 */
+	printf("\n%d%s from %s(%d,0,0%o)\n", cputype, module, 
+		devsw[major(bootdev)].dv_name, minor(bootdev), bootcsr);
+	strcpy(defnam, devsw[major(bootdev)].dv_name);
+	strcat(defnam, "(");
+	strcat(defnam, itoa(minor(bootdev)));
+	strcat(defnam, ",0)unix");
+	strcpy(line, defnam);
 	/*
 	 * The machine language will have gotten the bootopts
 	 * if we're an autoboot and will pass them along.
@@ -156,18 +165,24 @@ main()
 		} else
 			printf(": %s\n", line);
 		if (line[0] == '\0') {
-			printf(": %s\n", RB_DEFNAME);
-			i = open(RB_DEFNAME, 0);
-		} else
-			i = open(line, 0);
+			strcpy(line, defnam);
+			printf(": %s\n", line);
+		}
+		i = open(line, 0);
 		j = -1;
 		if (i >= 0) {
+			file = &iob[i - 3];	/* -3 for pseudo stdin/o/e */
 			j = checkunix(i, setup(i));
 			(void) close(i);
 		}
 		if (++retry > 2)
 			bootopts = RB_SINGLE | RB_ASKNAME;
 	} while (j < 0);
+	i = file->i_ino.i_dev;
+	bootdev = makedev(i, file->i_unit);
+	bootcsr = devsw[i].dv_csr[(file->i_unit >> 6) & 3];
+	bootcsr = (caddr_t *)((short)bootcsr + ADJcsr[i]);
+	printf("%s: bootdev=0%o bootcsr=0%o\n", module, bootdev, bootcsr);
 }
 
 struct loadtable *
@@ -200,7 +215,7 @@ setup(io)
 	for (i = 0; i < sizeof(loadtable) / sizeof(struct loadtable); i++)
 		if (loadtable[i].lt_magic == exec.a_magic)
 			return(&loadtable[i]);
-	printf("Bad magic number 0%o\n", exec.a_magic);
+	printf("Bad magic # 0%o\n", exec.a_magic);
 	return((struct loadtable *) NULL);
 }
 
@@ -220,7 +235,7 @@ checkunix(io, lt)
 	 */
 	if (exec.a_magic == A_MAGIC3 || exec.a_magic == A_MAGIC6)
 		if (!sep_id) {
-			printf("Cannot load separate I & D object files\n");
+			printf("Can't load split I&D files\n");
 			return(-1);
 		} else
 			setsep();
@@ -272,7 +287,7 @@ checkunix(io, lt)
 				/*
 				 * This ``cannot happen.''
 				 */
-				printf("Unknown segment type in load table:  %d\n", segtype);
+				printf("seg type botch: %d\n", segtype);
 				return(-1);
 				/*NOTREACHED*/
 		}
@@ -280,22 +295,22 @@ checkunix(io, lt)
 		seglen = ctob(btoc(seglen));
 		if (((long) seglen) > lm->seg_len) {
 			if (segtype == SEG_OVLY)
-				printf("%s %d too large by %D bytes", segname, ovseg, lm->seg_len -((long) seglen));
+				printf("%s %d over by %D bytes", segname, ovseg, lm->seg_len -((long) seglen));
 			else
-				printf("%s too large by %D bytes", segname, lm->seg_len -((long) seglen));
+				printf("%s over by %D bytes", segname, lm->seg_len -((long) seglen));
 			return(-1);
 		}
 		if (segtype == SEG_TEXT)
 		    switch (exec.a_magic) {
 			case A_MAGIC5:
 			    if (seglen <= 8 KB) {
-				printf("Base segment too small, 8K minimum\n");
+				printf("Base too small, 8K min\n");
 				return(-1);
 			    }
 			    break;
 			case A_MAGIC6:
 			    if (seglen <= 48 KB) {
-				printf("Base segment too small, 48K minimum\n");
+				printf("Base too small, 48K min\n");
 				return(-1);
 			    }
 			    break;
@@ -342,7 +357,7 @@ copyunix(io, lt)
 				 * If this is a 0407 style object, the text
 				 * and data are loaded together.
 				 */
-				if (exec.a_magic != A_MAGIC1 && exec.a_magic != A_MAGICU) {
+				if (exec.a_magic != A_MAGIC1) {
 					segoff += (off_t) exec.a_text;
 					if (overlaid)
 						for (i = 0; i < NOVL; i++)
@@ -539,7 +554,21 @@ setregs(lt)
 
 unsigned
 btoc(nclicks)
-	unsigned nclicks;
+	register unsigned nclicks;
 {
 	return((unsigned)(((((long) nclicks) + ((long) 63)) >> 6)));
+}
+
+char *
+itoa(i)
+	register int i;
+{
+	static char x[8];
+	register char *cp = x+8;
+
+	do {
+		*--cp = (i % 10) + '0';
+		i /= 10;
+	} while (i);
+	return(cp);
 }

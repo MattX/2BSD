@@ -5,24 +5,24 @@ GETSOCKOPT(2)	    UNIX Programmer's Manual	    GETSOCKOPT(2)
 
 
 
-NNAAMMEE
+NAME
      getsockopt, setsockopt - get and set options on sockets
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
 
-     ggeettssoocckkoopptt((ss,, lleevveell,, ooppttnnaammee,, ooppttvvaall,, ooppttlleenn))
-     iinntt ss,, lleevveell,, ooppttnnaammee;;
-     cchhaarr **ooppttvvaall;;
-     iinntt **ooppttlleenn;;
+     getsockopt(s, level, optname, optval, optlen)
+     int s, level, optname;
+     char *optval;
+     int *optlen;
 
-     sseettssoocckkoopptt((ss,, lleevveell,, ooppttnnaammee,, ooppttvvaall,, ooppttlleenn))
-     iinntt ss,, lleevveell,, ooppttnnaammee;;
-     cchhaarr **ooppttvvaall;;
-     iinntt ooppttlleenn;;
+     setsockopt(s, level, optname, optval, optlen)
+     int s, level, optname;
+     char *optval;
+     int optlen;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_s_o_c_k_o_p_t and _s_e_t_s_o_c_k_o_p_t manipulate _o_p_t_i_o_n_s associated with
      a socket.	Options may exist at multiple protocol levels;
      they are always present at the uppermost ``socket'' level.
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/9/94		  May 23, 1986				1
 
 
 
@@ -126,7 +126,7 @@ GETSOCKOPT(2)	    UNIX Programmer's Manual	    GETSOCKOPT(2)
 
 
 
-Printed 12/28/88	  May 23, 1986				2
+Printed 1/9/94		  May 23, 1986				2
 
 
 
@@ -149,10 +149,10 @@ GETSOCKOPT(2)	    UNIX Programmer's Manual	    GETSOCKOPT(2)
      for asynchronous errors on connected datagram sockets or for
      other asynchronous errors.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 is returned if the call succeeds, -1 if it fails.
 
-EERRRROORRSS
+ERRORS
      The call succeeds unless:
 
      [EBADF]		 The argument _s is not a valid descrip-
@@ -169,10 +169,10 @@ EERRRROORRSS
 			 also be returned if _o_p_t_l_e_n is not in a
 			 valid part of the process address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      ioctl(2), socket(2), getprotoent(3N)
 
-BBUUGGSS
+BUGS
      Several of the socket options should be handled at lower
      levels of the system.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 23, 1986				3
+Printed 1/9/94		  May 23, 1986				3
 
 
 

@@ -3,12 +3,8 @@
  * All rights reserved.  The Berkeley Software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sh.h	5.3 (Berkeley) 3/29/86
+ *	@(#)sh.h	5.3.1 (2.11BSD GTE) 1/1/94
  */
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif BSD2_10
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -340,7 +336,7 @@ short	gflag;				/* After tglob -> is globbing needed? */
  * A reasonable limit on number of arguments would seem to be
  * the maximum number of characters in an arg list / 6.
  */
-#ifdef BSD2_10
+#ifdef pdp11
 #define	GAVSIZ	NCARGS / 12
 #else
 #define	GAVSIZ	NCARGS / 6

@@ -5,22 +5,22 @@ FSEEK(3S)	    UNIX Programmer's Manual		FSEEK(3S)
 
 
 
-NNAAMMEE
+NAME
      fseek, ftell, rewind - reposition a stream
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssttddiioo..hh>>
+SYNOPSIS
+     #include <stdio.h>
 
-     ffsseeeekk((ssttrreeaamm,, ooffffsseett,, ppttrrnnaammee))
-     FFIILLEE **ssttrreeaamm;;
-     lloonngg ooffffsseett;;
+     fseek(stream, offset, ptrname)
+     FILE *stream;
+     long offset;
 
-     lloonngg fftteellll((ssttrreeaamm))
-     FFIILLEE **ssttrreeaamm;;
+     long ftell(stream)
+     FILE *stream;
 
-     rreewwiinndd((ssttrreeaamm))
+     rewind(stream)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_s_e_e_k sets the position of the next input or output opera-
      tion on the _s_t_r_e_a_m.  The new position is at the signed dis-
      tance _o_f_f_s_e_t bytes from the beginning, the current position,
@@ -37,10 +37,10 @@ DDEESSCCRRIIPPTTIIOONN
 
      _R_e_w_i_n_d(_s_t_r_e_a_m) is equivalent to _f_s_e_e_k(_s_t_r_e_a_m, 0L, 0).
 
-SSEEEE AALLSSOO
+SEE ALSO
      lseek(2), fopen(3S)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      _F_s_e_e_k returns -1 for improper seeks, otherwise zero.
 
 
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	February 24, 1986			1
+Printed 1/9/94		February 24, 1986			1
 
 
 

@@ -42,8 +42,8 @@ if (!pr1403)
 
 drawline(i, cl, cr, lintype, noheight, shortl)
 {
-	char *exhr, *exhl;
-	int lcount, ln, linpos, oldpos, nodata, lnch;
+	char *exhr, *exhl, *lnch;
+	int lcount, ln, linpos, oldpos, nodata;
 lcount=0;
 exhr=exhl= "";
 switch(lintype)

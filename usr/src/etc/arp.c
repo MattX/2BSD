@@ -1,5 +1,5 @@
-#ifndef lint
-static	char *sccsid = "@(#)arp.c	5.4 (Berkeley) 11/18/87";
+#if	defined(DOSCCS) && !defined(lint)
+static	char *sccsid = "@(#)arp.c	5.4.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 /*
@@ -24,7 +24,7 @@ main(argc, argv)
 	char **argv;
 {
 	if (argc >= 2 && strcmp(argv[1], "-a") == 0) {
-#ifdef BSD2_10
+#ifdef pdp11
 		char *kernel = "/netnix", *mem = "/dev/mem";
 #else
 		char *kernel = "/unix", *mem = "/dev/kmem";
@@ -253,7 +253,7 @@ struct nlist nl[] = {
 	{ "" },
 };
 
-#ifdef BSD2_10
+#ifdef pdp11
 char	unix2_10[] = "/vmunix";
 u_int	base2_10;
 struct nlist kl[] = {
@@ -277,7 +277,7 @@ dump(kernel, mem)
 	extern int h_errno;
 
 	nlist(kernel, nl);
-#ifdef BSD2_10
+#ifdef pdp11
 	nlist(unix2_10, kl);
 	if(kl[X_NETDATA].n_type == 0) {
 		fprintf(stderr, "arp: %s: bad namelist\n", unix2_10);
@@ -293,7 +293,7 @@ dump(kernel, mem)
 		fprintf(fprintf, "arp: cannot open %s\n", mem);
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	lseek(mf, (long)kl[X_NETDATA].n_value, 0);
 	read(mf, &base2_10, sizeof(base2_10));
 	lseek(mf, (long)nl[X_ARPTAB_SIZE].n_value + ctob((long)base2_10), 0);
@@ -311,7 +311,7 @@ dump(kernel, mem)
 		fprintf(stderr, "arp: can't get memory for arptab\n");
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	lseek(mf, (long)nl[X_ARPTAB].n_value + ctob((long)base2_10), 0);
 #else
 	lseek(mf, (long)nl[X_ARPTAB].n_value, 0);

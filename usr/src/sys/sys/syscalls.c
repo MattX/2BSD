@@ -3,13 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)syscalls.c	1.3 (2.11BSD GTE) 4/21/94
  */
 
 /*
  * System call names.
  */
-#ifndef BSD2_10
+#ifndef pdp11
 char *syscallnames[] = {
 	"indir",		/*   0 = indir */
 	"exit",			/*   1 = exit */
@@ -24,7 +24,7 @@ char *syscallnames[] = {
 	"unlink",		/*  10 = unlink */
 	"execv",		/*  11 = execv */
 	"chdir",		/*  12 = chdir */
-	"old time - nosys",	/*  13 = old time */
+	"fchdir",		/*  13 = fchdir */
 	"mknod",		/*  14 = mknod */
 	"chmod",		/*  15 = chmod */
 	"chown",		/*  16 = chown; now 3 args */
@@ -163,4 +163,4 @@ char *syscallnames[] = {
 	"quota",		/* 149 = quota */
 	"getsockname",		/* 150 = getsockname */
 };
-#endif /* !BSD2_10 */
+#endif

@@ -9,17 +9,17 @@ HDRS=	EXTERN.h INTERN.h common.h config.h inp.h patchlevel.h pch.h \
 SRCS=	patch.c pch.c inp.c util.c version.c
 OBJS=	patch.o pch.o inp.o util.o version.o
 
-.SUFFIXES: .1 .0
+.SUFFIXES: .man .0
 
-.1.0:
-	/usr/man/manroff $*.1 > $*.0
+.man.0:
+	/usr/man/manroff $*.man > $*.0
 
 patch: ${OBJS}
 	cc ${SEPFLAG} ${OBJS} -o patch
 
 install: patch patch.0
 	install patch ${DESTDIR}/usr/new
-	install -m 444 patch.0 ${DESTDIR}/usr/new/man/cat1
+	install -m 444 -o bin -g bin patch.0 ${DESTDIR}/usr/new/man/cat1
 
 clean:
 	rm -f *.o *.orig core tags patch *.0

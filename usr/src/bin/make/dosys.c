@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)dosys.c	4.10 (Berkeley) 12/23/84";
+/* static	char *sccsid = "@(#)dosys.c	4.10 (Berkeley) 12/23/84"; */
 #include "defs"
 #include <signal.h>
 
@@ -92,13 +92,13 @@ for (od = firstod; od; od = od->nxtopendir)
 
 
 
-#define MAXARGV	400
+#define MAXARGV	254		/* execvp can only handle 254 anyhow */
 
 doexec(str)
 register char *str;
 {
 register char *t;
-char *argv[MAXARGV];
+static char *argv[MAXARGV];	/* docom() ate most of the stack already */
 register char **p;
 
 while( *str==' ' || *str=='\t' )

@@ -2,14 +2,13 @@
 
 #	@(#)netstart	5.2 (Berkeley) 7/16/88
 
-if grep UCB_NET /usr/include/sys/localopts.h >/dev/null; then
-	UCB_NET=YES
+INET=`/etc/testnet`
+if [ $INET = YES ]; then
 	echo Assuming NETWORKING system ...		>/dev/console 2>&1
 else
-	UCB_NET=NO
-	echo Assumming non-networking system ...	>/dev/console 2>&1
+	echo Assuming non-networking system ...		>/dev/console 2>&1
 fi
-export UCB_NET
+export INET
 
 # DON'T EVEN THINK ABOUT RUNNING ROUTED ON A PDP-11!!!  Just set routedflags
 # to "NO" and set up a default gateway below.
@@ -23,19 +22,23 @@ named=NO
 # my-default-address should be set to some machine where you
 #	want to send all your packets, by default.
 #
-hostname=myname.my.domain
-netmask=my-net-mask
-broadcast=my-broadcast-address
-default=my-default-address
+
+hostname=my.domain.name
+netmask=255.255.255.0
+broadcast=127.255.255.255
+default=127.0.0.0
 
 hostname $hostname					>/dev/console 2>&1
 hostid $hostname					>/dev/console 2>&1
 
-if [ $UCB_NET = YES ]; then
+if [ $INET = YES ]; then
 	# /etc/ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
 	# /etc/ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# /etc/ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up -trailers arp >/dev/console 2>&1
 	# /etc/ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# /etc/ifconfig qe0 inet netmask $netmask 192.26.147.13 broadcast $broadcast up -trailers >/dev/console 2>&1
+	# /etc/ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp -trailers >/dev/console 2>&1
+	# /etc/slattach /dev/ttyS6 9600
 	/etc/ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
 
 	/etc/route add $hostname localhost 0		>/dev/console 2>&1

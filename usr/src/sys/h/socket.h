@@ -9,12 +9,9 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)socket.h	7.2 (Berkeley) 12/30/87
+ *	@(#)socket.h	7.2.1 (2.11BSD GTE) 12/31/93
  */
 
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 /*
  * Definitions related to sockets: types, address families, options.
  */

@@ -10,7 +10,7 @@ OBJS=	fp.o
 fp: ${OBJS}
 	${CC} -o fp ${SEPFLAG} ${OBJS}
 
-install:
+install: fp
 	install -s fp ${DESTDIR}/usr/ucb
 
 clean:

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vmsystm.h	7.1 (Berkeley) 6/4/86
+ *	@(#)vmsystm.h	7.2 (2.11BSD GTE) 3/10/93
  */
 
 /*
@@ -14,7 +14,6 @@
 size_t	freemem;		/* remaining clicks of free memory */
 u_short	avefree;		/* moving average of remaining free clicks */
 u_short	avefree30;		/* 30 sec (avefree is 5 sec) moving average */
-int	multprog;		/* current multiprogramming degree */
 
 /* writable copies of tunables */
 int	maxslp;			/* max sleep time before very swappable */

@@ -16,9 +16,9 @@ all:	getty
 getty:	${OBJS}
 	${CC} ${SEPFLAG} -o getty ${OBJS}
 
-install: all ${DESTDIR}/etc/gettytab
+install: all gettytab
 	install -s getty ${DESTDIR}/etc/getty
-	install -c -m 444 gettytab ${DESTDIR}/etc/gettytab
+	-install -c -m 444 gettytab ${DESTDIR}/etc/gettytab
 
 clean:
 	rm -f getty ${OBJS} a.out core errs

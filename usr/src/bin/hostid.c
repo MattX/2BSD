@@ -4,15 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
-
-#ifndef lint
-static char sccsid[] = "@(#)hostid.c	5.4 (Berkeley) 5/19/86";
-#endif not lint
+static char sccsid[] = "@(#)hostid.c	1.2 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -20,12 +17,7 @@ static char sccsid[] = "@(#)hostid.c	5.4 (Berkeley) 5/19/86";
 #include <netdb.h>
 
 extern	char *index();
-#ifdef BSD2_10
-extern	long inet_addr();
-#else !BSD2_10
 extern	unsigned long inet_addr();
-#endif BSD2_10
-extern	long gethostid();
 
 main(argc, argv)
 	int argc;
@@ -37,7 +29,7 @@ main(argc, argv)
 	struct hostent *hp;
 
 	if (argc < 2) {
-#ifdef BSD2_10
+#ifdef pdp11
 		{
 			long	val;
 			if (val = gethostid())
@@ -45,9 +37,9 @@ main(argc, argv)
 			else
 				puts("0");
 		}
-#else !BSD2_10
+#else
 		printf("%#lx\n", gethostid());
-#endif BSD2_10
+#endif
 		exit(0);
 	}
 

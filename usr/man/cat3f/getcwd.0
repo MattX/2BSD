@@ -5,26 +5,26 @@ GETCWD(3F)	    UNIX Programmer's Manual	       GETCWD(3F)
 
 
 
-NNAAMMEE
+NAME
      getcwd - get pathname of current working directory
 
-SSYYNNOOPPSSIISS
-     iinntteeggeerr ffuunnccttiioonn ggeettccwwdd ((ddiirrnnaammee))
-     cchhaarraacctteerr**((**)) ddiirrnnaammee
+SYNOPSIS
+     integer function getcwd (dirname)
+     character*(*) dirname
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The pathname of the default directory for creating and
      locating files will be returned in _d_i_r_n_a_m_e. The value of the
      function will be zero if successful; an error code other-
      wise.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      chdir(3F), perror(3F)
 
-BBUUGGSS
+BUGS
      Pathnames can be no longer than MAXPATHLEN as defined in
      <_s_y_s/_p_a_r_a_m._h>.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

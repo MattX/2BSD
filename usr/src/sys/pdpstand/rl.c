@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rl.c	2.1 (2.11BSD) 1/2/93
  */
 
 /*
@@ -18,14 +18,21 @@
 #include "../pdpuba/rlreg.h"
 #include "saio.h"
 
-#define RLADDR	((struct rldevice *)0174400)
+#define	NRL	2
+
+	struct	rldevice *RLcsr[NRL + 1] =
+		{
+		(struct rldevice *)0174400,
+		(struct rldevice *)0,
+		(struct rldevice *)-1
+		};
 
 #define	BLKRL1	10240		/* Number of UNIX blocks for an RL01 drive */
 #define BLKRL2	20480		/* Number of UNIX blocks for an RL02 drive */
 #define RLCYLSZ 10240		/* bytes per cylinder */
 #define RLSECSZ 256		/* bytes per sector */
 
-struct 
+struct	Rldrives
 {
 	int	cn[4];		/* location of heads for each drive */
 	int	type[4];	/* parameter dependent upon drive type  (RL01/02) */
@@ -39,7 +46,8 @@ struct
 		long	l;
 	} addr;			/* address of memory for transfer */
 
-}	rl = {-1,-1,-1,-1,-1,-1,-1,-1};  /* initialize cn[] and type[] */
+} rl[NRL] = {{-1,-1,-1,-1,-1,-1,-1,-1},
+	     {-1,-1,-1,-1,-1,-1,-1,-1}};  /* initialize cn[] and type[] */
 
 rlstrategy(io, func)
 	register struct iob *io;
@@ -50,7 +58,9 @@ rlstrategy(io, func)
 	int dif;
 	int head;
 	int ctr;
-
+	int ctlr = CTLRn(io->i_unit);
+	register struct rldevice *rladdr;
+	register struct Rldrives *rlp;
 
 	/*
 	 * We must determine what type of drive we are talking to in order 
@@ -72,92 +82,102 @@ rlstrategy(io, func)
 	 * drive type. If a valid status is not returned after eight
 	 * attempts, then an error message is printed.
 	 */
-	drive = io->i_unit;
-	if (rl.type[drive] < 0) {
+	drive = UNITn(io->i_unit);
+	rladdr = RLcsr[ctlr];
+	rlp = &rl[ctlr];
+
+	if (rlp->type[drive] < 0) {
 		ctr = 0;
 		do {
 			/* load this register; what a dumb controller */
-			RLADDR->rlda = RLDA_RESET|RLDA_GS;
+			rladdr->rlda = RLDA_RESET|RLDA_GS;
 			/* set up csr */
-			RLADDR->rlcs = (drive << 8) | RL_GETSTATUS;
-			while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for it */		
+			rladdr->rlcs = (drive << 8) | RL_GETSTATUS;
+			while ((rladdr->rlcs & RL_CRDY) == 0)	/* wait for it */		
 				continue;
-		} while (((RLADDR->rlmp & 0177477) != 035) && (++ctr < 8));
+		} while (((rladdr->rlmp & 0177477) != 035) && (++ctr < 8));
 		if (ctr >= 8)
-			printf("\nCan't get status of RL unit %d\n", drive);
-		if (RLADDR->rlmp & RLMP_DTYP) 
-			rl.type[drive] = BLKRL2;	/* drive is RL02 */
+			printf("\nCan't get RL%d,%d sts\n", ctlr, drive);
+		if (rladdr->rlmp & RLMP_DTYP) 
+			rlp->type[drive] = BLKRL2;	/* drive is RL02 */
 		else
-			rl.type[drive] = BLKRL1;	/* drive RL01 */
+			rlp->type[drive] = BLKRL1;	/* drive RL01 */
 		/*
 		 * When the device is first touched, find out where the heads are.
 		 */
 		/* find where the heads are */
-		RLADDR->rlcs = (drive << 8) | RL_RHDR;
-		while ((RLADDR->rlcs&RL_CRDY) == 0)
+		rladdr->rlcs = (drive << 8) | RL_RHDR;
+		while ((rladdr->rlcs&RL_CRDY) == 0)
 			continue;
-		rl.cn[drive] = ((RLADDR->rlmp) >> 6) & 01777;
+		rlp->cn[drive] = ((rladdr->rlmp) >> 6) & 01777;
 	}
-	nblocks = rl.type[drive];	/* how many blocks on this drive */
+	nblocks = rlp->type[drive];	/* how many blocks on this drive */
 	if (io->i_bn >= nblocks)
 		return -1;
-	rl.chn = io->i_bn/20;
-	rl.sn = (io->i_bn%20) << 1;
-	rl.bleft = io->i_cc;
-	rl.addr.w[0] = segflag & 3;
-	rl.addr.w[1] = (int)io->i_ma;
-	rl.com = (drive << 8);
+	rlp->chn = io->i_bn/20;
+	rlp->sn = (io->i_bn%20) << 1;
+	rlp->bleft = io->i_cc;
+	rlp->addr.w[0] = segflag;
+	rlp->addr.w[1] = (int)io->i_ma;
+	rlp->com = (drive << 8);
 	if (func == READ)
-		rl.com |= RL_RCOM;
+		rlp->com |= RL_RCOM;
 	else
-		rl.com |= RL_WCOM;
+		rlp->com |= RL_WCOM;
 reading:
 	/*
 	 * One has to seek an RL head, relativily.
 	 */
-	dif =(rl.cn[drive] >> 1) - (rl.chn >>1);
-	head = (rl.chn & 1) << 4;
+	dif =(rlp->cn[drive] >> 1) - (rlp->chn >>1);
+	head = (rlp->chn & 1) << 4;
 	if (dif < 0)
-		RLADDR->rlda = (-dif <<7) | RLDA_SEEKHI | head;
+		rladdr->rlda = (-dif <<7) | RLDA_SEEKHI | head;
 	else
-		RLADDR->rlda = (dif << 7) | RLDA_SEEKLO | head;
-	RLADDR->rlcs = (drive << 8) | RL_SEEK;
-	rl.cn[drive] = rl.chn; 	/* keep current, our notion of where the heads are */
-	if (rl.bleft < (rl.bpart = RLCYLSZ - (rl.sn * RLSECSZ)))
-		rl.bpart = rl.bleft;
-	while ((RLADDR->rlcs&RL_CRDY) == 0)
+		rladdr->rlda = (dif << 7) | RLDA_SEEKLO | head;
+	rladdr->rlcs = (drive << 8) | RL_SEEK;
+	rlp->cn[drive] = rlp->chn; 	/* keep current, our notion of where the heads are */
+	if (rlp->bleft < (rlp->bpart = RLCYLSZ - (rl->sn * RLSECSZ)))
+		rlp->bpart = rlp->bleft;
+	while ((rladdr->rlcs&RL_CRDY) == 0)
 		continue;
-	RLADDR->rlda = (rl.chn << 6) | rl.sn;
-	RLADDR->rlba = (caddr_t) rl.addr.w[1];
-	RLADDR->rlmp = -(rl.bpart >> 1);
-	RLADDR->rlcs = rl.com | rl.addr.w[0] << 4;
-	while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for completion */
+	rladdr->rlda = (rlp->chn << 6) | rlp->sn;
+	rladdr->rlba = (caddr_t) rlp->addr.w[1];
+	rladdr->rlmp = -(rlp->bpart >> 1);
+	rladdr->rlcs = rlp->com | rlp->addr.w[0] << 4;
+	while ((rladdr->rlcs & RL_CRDY) == 0)	/* wait for completion */
 		continue;
-	if (RLADDR->rlcs < 0) {
+	if (rladdr->rlcs < 0) {
 		/* check error bit */
-		if (RLADDR->rlcs & 040000) {
+		if (rladdr->rlcs & 040000) {
 			/* Drive error */
 			/*
 			 * get status from drive
 			 */
-			RLADDR->rlda = RLDA_GS;
-			RLADDR->rlcs = (drive << 8) | RL_GETSTATUS;
-			while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for controller */
+			rladdr->rlda = RLDA_GS;
+			rladdr->rlcs = (drive << 8) | RL_GETSTATUS;
+			while ((rladdr->rlcs & RL_CRDY) == 0)	/* wait for controller */
 				continue;
 		}
-		printf("Rl disk error: cyl=%d, head=%d, sector=%d, rlcs=%o, rlmp=%o\n",
-			rl.chn>>01, rl.chn&01, rl.sn, RLADDR->rlcs, RLADDR->rlmp);
+		printf("RL%d,%d err cy=%d, hd=%d, sc=%d, rlcs=%o, rlmp=%o\n",
+			ctlr, drive, rlp->chn>>01, rlp->chn&01, rlp->sn, 
+			rladdr->rlcs, rladdr->rlmp);
 		return(-1);
 	}
 	/*
 	 * Determine if there is more to read to satisfy this request.
 	 * This is to compensate for the lacl of spiraling reads.
 	 */
-	if ((rl.bleft -= rl.bpart) > 0) {
-		rl.addr.l += rl.bpart;
-		rl.sn = 0;
-		rl.chn++;
+	if ((rlp->bleft -= rlp->bpart) > 0) {
+		rlp->addr.l += rlp->bpart;
+		rlp->sn = 0;
+		rlp->chn++;
 		goto reading;	/* read some more */
 	}
 	return(io->i_cc);
+}
+
+rlopen(io)
+	struct iob *io;
+{
+	return(genopen(NRL, io));
 }

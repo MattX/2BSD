@@ -1,44 +1,40 @@
 /*
  * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)ruserpass.c	1.3 (Berkeley) 3/7/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)ruserpass.c	5.1.1 (2.11BSD) 12/31/93";
+#endif
 
-
-struct macel {
-	char mac_name[9];	/* macro name */
-	char *mac_start;	/* start of macro in macbuf */
-	char *mac_end;		/* end of macro in macbuf */
-};
-
-extern int macnum, proxy;			/* number of defined macros */
-extern struct macel macros[16], *macpt;
-extern char macbuf[4096];
-
+#include <sys/types.h>
 #include <stdio.h>
 #include <utmp.h>
 #include <ctype.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include "ftp_var.h"
 
 char	*renvlook(), *malloc(), *index(), *getenv(), *getpass(), *getlogin();
 char	*strcpy();
 struct	utmp *getutmp();
 static	FILE *cfile;
 
-ruserpass(host, aname, apass, aacct)
-	char *host, **aname, **apass, **aacct;
-{
-
-	/* renv(host, aname, apass, aacct);
-	if (*aname == 0 || *apass == 0) */
-		return(rnetrc(host, aname, apass, aacct));
-}
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64
+#endif
 
 #define	DEFAULT	1
 #define	LOGIN	2
@@ -46,7 +42,7 @@ ruserpass(host, aname, apass, aacct)
 #define	ACCOUNT 4
 #define MACDEF  5
 #define	ID	10
-#define	MACHINE	11
+#define	MACH	11
 
 static char tokval[100];
 
@@ -57,18 +53,19 @@ static struct toktab {
 	"default",	DEFAULT,
 	"login",	LOGIN,
 	"password",	PASSWD,
+	"passwd",	PASSWD,
 	"account",	ACCOUNT,
-	"machine",	MACHINE,
+	"machine",	MACH,
 	"macdef",	MACDEF,
 	0,		0
 };
 
-static
-rnetrc(host, aname, apass, aacct)
+ruserpass(host, aname, apass, aacct)
 	char *host, **aname, **apass, **aacct;
 {
 	char *hdir, buf[BUFSIZ], *tmp;
-	int t, i, c;
+	char myname[MAXHOSTNAMELEN], *mydomain;
+	int t, i, c, usedefault = 0;
 	struct stat stb;
 	extern int errno;
 
@@ -82,17 +79,44 @@ rnetrc(host, aname, apass, aacct)
 			perror(buf);
 		return(0);
 	}
+	if (gethostname(myname, sizeof(myname)) < 0)
+		myname[0] = '\0';
+	if ((mydomain = index(myname, '.')) == NULL)
+		mydomain = "";
 next:
 	while ((t = token())) switch(t) {
 
 	case DEFAULT:
-		(void) token();
-		continue;
+		usedefault = 1;
+		/* FALL THROUGH */
 
-	case MACHINE:
-		if (token() != ID || strcmp(host, tokval))
+	case MACH:
+		if (!usedefault) {
+			if (token() != ID)
+				continue;
+			/*
+			 * Allow match either for user's input host name
+			 * or official hostname.  Also allow match of 
+			 * incompletely-specified host in local domain.
+			 */
+			if (strcasecmp(host, tokval) == 0)
+				goto match;
+			if (strcasecmp(hostname, tokval) == 0)
+				goto match;
+			if ((tmp = index(hostname, '.')) != NULL &&
+			    strcasecmp(tmp, mydomain) == 0 &&
+			    strncasecmp(hostname, tokval, tmp-hostname) == 0 &&
+			    tokval[tmp - hostname] == '\0')
+				goto match;
+			if ((tmp = index(host, '.')) != NULL &&
+			    strcasecmp(tmp, mydomain) == 0 &&
+			    strncasecmp(host, tokval, tmp - host) == 0 &&
+			    tokval[tmp - host] == '\0')
+				goto match;
 			continue;
-		while ((t = token()) && t != MACHINE) switch(t) {
+		}
+	match:
+		while ((t = token()) && t != MACH && t != DEFAULT) switch(t) {
 
 		case LOGIN:
 			if (token())
@@ -105,11 +129,12 @@ next:
 				}
 			break;
 		case PASSWD:
-			if (fstat(fileno(cfile), &stb) >= 0
-			    && (stb.st_mode & 077) != 0) {
+			if (strcmp(*aname, "anonymous") &&
+			    fstat(fileno(cfile), &stb) >= 0 &&
+			    (stb.st_mode & 077) != 0) {
 	fprintf(stderr, "Error - .netrc file not correct mode.\n");
 	fprintf(stderr, "Remove password or correct mode.\n");
-				return(-1);
+				goto bad;
 			}
 			if (token() && *apass == 0) {
 				*apass = malloc((unsigned) strlen(tokval) + 1);
@@ -121,7 +146,7 @@ next:
 			    && (stb.st_mode & 077) != 0) {
 	fprintf(stderr, "Error - .netrc file not correct mode.\n");
 	fprintf(stderr, "Remove account or correct mode.\n");
-				return(-1);
+				goto bad;
 			}
 			if (token() && *aacct == 0) {
 				*aacct = malloc((unsigned) strlen(tokval) + 1);
@@ -130,16 +155,17 @@ next:
 			break;
 		case MACDEF:
 			if (proxy) {
+				(void) fclose(cfile);
 				return(0);
 			}
 			while ((c=getc(cfile)) != EOF && c == ' ' || c == '\t');
 			if (c == EOF || c == '\n') {
 				printf("Missing macdef name argument.\n");
-				return(-1);
+				goto bad;
 			}
 			if (macnum == 16) {
 				printf("Limit of 16 macros have already been defined\n");
-				return(-1);
+				goto bad;
 			}
 			tmp = macros[macnum].mac_name;
 			*tmp++ = c;
@@ -149,7 +175,7 @@ next:
 			}
 			if (c == EOF) {
 				printf("Macro definition missing null line terminator.\n");
-				return(-1);
+				goto bad;
 			}
 			*tmp = '\0';
 			if (c != '\n') {
@@ -157,7 +183,7 @@ next:
 			}
 			if (c == EOF) {
 				printf("Macro definition missing null line terminator.\n");
-				return(-1);
+				goto bad;
 			}
 			if (macnum == 0) {
 				macros[macnum].mac_start = macbuf;
@@ -169,7 +195,7 @@ next:
 			while (tmp != macbuf + 4096) {
 				if ((c=getc(cfile)) == EOF) {
 				printf("Macro definition missing null line terminator.\n");
-					return(-1);
+					goto bad;
 				}
 				*tmp = c;
 				if (*tmp == '\n') {
@@ -183,7 +209,7 @@ next:
 			}
 			if (tmp == macbuf + 4096) {
 				printf("4K macro buffer exceeded\n");
-				return(-1);
+				goto bad;
 			}
 			break;
 		default:
@@ -195,6 +221,9 @@ next:
 done:
 	(void) fclose(cfile);
 	return(0);
+bad:
+	(void) fclose(cfile);
+	return(-1);
 }
 
 static

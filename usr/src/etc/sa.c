@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)sa.c	4.9 (Berkeley) 12/12/84";
+#if	defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)sa.c	4.9.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 /*
@@ -17,7 +17,7 @@ static char *sccsid = "@(#)sa.c	4.9 (Berkeley) 12/12/84";
  *	UC Berkeley
  *	31jan81
  */
-#ifdef BSD2_10
+#ifdef pdp11
 #include <sys/param.h>		/* need LINEHZ for acct.h */
 #endif
 
@@ -280,7 +280,7 @@ int	(*cmp)();
 int	pgdiv;
 #define	pgtok(x)	((x) / pgdiv)
 
-extern	tcmp(), ncmp(), bcmp(), dcmp(), Dcmp(), kcmp(), Kcmp();
+extern	tcmp(), ncmp(), Bcmp(), dcmp(), Dcmp(), kcmp(), Kcmp();
 extern	double sum();
 
 main(argc, argv)
@@ -296,7 +296,7 @@ main(argc, argv)
 	pgdiv = getpagesize() / 1024;
 	if (pgdiv == 0)
 		pgdiv = 1;
-	maxuser = USERSLOP + getmaxuid();
+	maxuser = getmaxuid();
 
 	tabinit();
 	cmp = tcmp;
@@ -317,7 +317,7 @@ main(argc, argv)
 
 		case 'b':
 			bflg++;
-			cmp = bcmp;
+			cmp = Bcmp;
 			break;
 
 		case 'l':
@@ -676,7 +676,7 @@ char *f;
 			*cp = '\0';
 		x = expand(fbuf.ac_utime) + expand(fbuf.ac_stime);
 		y = pgtok((u_short)fbuf.ac_mem);
-#ifdef BSD2_10
+#ifdef pdp11
 		z = expand(fbuf.ac_io);
 #else
 		z = expand(fbuf.ac_io) / AHZ;
@@ -741,7 +741,7 @@ ncmp(p1, p2)
 	return(p2->p.count - p1->p.count);
 }
 
-bcmp(p1, p2)
+Bcmp(p1, p2)
 	cell *p1, *p2;
 {
 	double f1, f2;

@@ -12,7 +12,7 @@
 # If you don't have split I/D, you'll have to edit the constant
 # SBSIZE in cpp.c to reflect this.
 
-CFLAGS=-O -Dpdp11=1 -DFLEXNAMES -DBSD2_10
+CFLAGS=-O -Dpdp11=1 -DFLEXNAMES
 SEPFLAG=-i
 
 cpp :	cpp.o cpy.o rodata.o
@@ -21,7 +21,8 @@ cpp :	cpp.o cpy.o rodata.o
 cpy.c : cpy.y
 	yacc cpy.y
 	../pcc/:yyfix yyexca yyact yypact yypgo yyr1 yyr2 yychk yydef
-	mv y.tab.c cpy.c
+	fgrep -v "static char yaccpar_sccsid" y.tab.c >cpy.c
+	rm -f y.tab.c
 
 cpy.o :	cpy.c yylex.c
 
@@ -31,7 +32,7 @@ rodata.o : cpy.c
 clean :
 	rm -f *.s *.o cpy.c rodata.c
 
-install :
+install : cpp
 	install -s cpp $(DESTDIR)/lib
 
 sources : cpp.c cpy.y yylex.c README

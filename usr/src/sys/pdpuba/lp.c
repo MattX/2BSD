@@ -109,17 +109,18 @@ lpclose(dev, flag)
 	sc->sc_state &= ~OPEN;
 }
 
-lpwrite(dev)
+lpwrite(dev, uio)
 	register dev_t dev;
+	register struct uio *uio;
 {
 	register int n;
 	register char *cp;
 	char inbuf[LPBUFSIZE];
 	int error;
 
-	while (n = MIN(LPBUFSIZE, u.u_count)) {
+	while (n = MIN(LPBUFSIZE, uio->uio_resid)) {
 		cp = inbuf;
-		error = uiomove(cp, (int)n, UIO_WRITE);
+		error = uiomove(cp, (int)n, UIO_WRITE, uio);
 		if (error)
 			return (error);
 		do

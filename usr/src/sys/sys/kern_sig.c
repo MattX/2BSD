@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)kern_sig.c	1.4 (2.11BSD GTE) 4/15/94
  */
 
 #include "param.h"
@@ -91,7 +91,7 @@ setsigvec(sig, sv)
 	/*
 	 * Change setting atomically.
 	 */
-	(void) splhigh();
+	(void) _splhigh();
 	u.u_signal[sig] = sv->sv_handler;
 	u.u_sigmask[sig] = sv->sv_mask &~ cantmask;
 	if (sv->sv_flags & SV_INTERRUPT)
@@ -113,7 +113,7 @@ setsigvec(sig, sv)
 		else
 			p->p_sigcatch |= bit;
 	}
-	(void) spl0();
+	(void) _spl0();
 }
 
 sigblock()
@@ -123,10 +123,10 @@ sigblock()
 	} *uap = (struct a *)u.u_ap;
 	register struct proc *p = u.u_procp;
 
-	(void) splhigh();
+	(void) _splhigh();
 	u.u_r.r_long = p->p_sigmask;
 	p->p_sigmask |= uap->mask &~ cantmask;
-	(void) spl0();
+	(void) _spl0();
 }
 
 sigsetmask()
@@ -136,10 +136,10 @@ sigsetmask()
 	} *uap = (struct a *)u.u_ap;
 	register struct proc *p = u.u_procp;
 
-	(void) splhigh();
+	(void) _splhigh();
 	u.u_r.r_long = p->p_sigmask;
 	p->p_sigmask = uap->mask &~ cantmask;
-	(void) spl0();
+	(void) _spl0();
 }
 
 sigpause()
@@ -195,7 +195,7 @@ kill()
 	} *uap = (struct a *)u.u_ap;
 	register struct proc *p;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	/*
 	 * BSD4.3 botches the comparison against NSIG - it's a good thing for
 	 * them psignal catches the error - however, since psignal is the
@@ -206,9 +206,9 @@ kill()
 	 * checks - start with psig ...
 	 */
 	if (uap->signo < 0 || uap->signo >= NSIG) {
-#else !BSD2_10
+#else
 	if (uap->signo < 0 || uap->signo > NSIG) {
-#endif BSD2_10
+#endif
 		u.u_error = EINVAL;
 		return;
 	}
@@ -219,7 +219,7 @@ kill()
 			u.u_error = ESRCH;
 			return;
 		}
-#ifdef BSD2_10
+#ifdef pdp11
 		/*
 		 * Fix to allow a non-root process to send SIGCONT to
 		 * one of its own decendants which happens to be running
@@ -228,9 +228,9 @@ kill()
 		 */
 		if (u.u_uid && u.u_uid != p->p_uid &&
 		    (uap->signo != SIGCONT || !inferior(p)))
-#else !BSD2_10
+#else
 		if (u.u_uid && u.u_uid != p->p_uid)
-#endif BSD2_10
+#endif
 			u.u_error = EPERM;
 		else if (uap->signo)
 			psignal(p, uap->signo);
@@ -257,12 +257,12 @@ killpg()
 		int	signo;
 	} *uap = (struct a *)u.u_ap;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	/* see comment in kill above */
 	if (uap->signo < 0 || uap->signo >= NSIG) {
-#else !BSD2_10
+#else
 	if (uap->signo < 0 || uap->signo > NSIG) {
-#endif BSD2_10
+#endif
 		u.u_error = EINVAL;
 		return;
 	}
@@ -361,10 +361,10 @@ psignal(p, sig)
 		else
 			action = SIG_DFL;
 	}
-#ifndef BSD2_10
+#ifndef pdp11
 	/* This is nonsense - should simply be ripped out */
 	if (sig) {
-#endif !BSD2_10
+#endif
 		p->p_sig |= mask;
 		switch (sig) {
 
@@ -389,9 +389,9 @@ psignal(p, sig)
 			p->p_sig &= ~sigmask(SIGCONT);
 			break;
 		}
-#ifndef BSD2_10
+#ifndef pdp11
 	}
-#endif !BSD2_10
+#endif
 	/*
 	 * Defer further processing for signals which are held.
 	 */
@@ -735,19 +735,17 @@ psig()
 	/* more nonsense */
 	if (sig == 0)
 		panic("psig");
-#endif DIAGNOSTIC
-#ifndef NONFP
+#endif
 	if (u.u_fpsaved == 0) {
 		savfp(&u.u_fps);
 		u.u_fpsaved = 1;
 	}
-#endif !NONFP
 	action = u.u_signal[sig];
 	if (action != SIG_DFL) {
 #ifdef DIAGNOSTIC
 		if (action == SIG_IGN || (p->p_sigmask & mask))
 			panic("psig action");
-#endif DIAGNOSTIC
+#endif
 		u.u_error = 0;
 		/*
 		 * Set the new mask value and also defer further
@@ -758,17 +756,15 @@ psig()
 		 * mask from before the sigpause is what we want restored
 		 * after the signal processing is completed.
 		 */
-		(void) splhigh();
+		(void) _splhigh();
 		if (p->p_flag & SOMASK) {
 			returnmask = u.u_oldmask;
 			p->p_flag &= ~SOMASK;
 		} else
 			returnmask = p->p_sigmask;
 		p->p_sigmask |= u.u_sigmask[sig] | mask;
-		(void) spl0();
-#ifdef UCB_RUSAGE
+		(void) _spl0();
 		u.u_ru.ru_nsignals++;
-#endif
 		sendsig(action, sig, returnmask);
 		p->p_cursig = 0;
 		return;
@@ -798,14 +794,16 @@ psig()
  * there are probably a wealth of them here
  * when this occurs to a suid command.
  *
- * It writes UPAGES (USIZE for BSD2_10) block of the
+ * It writes UPAGES (USIZE for pdp11) block of the
  * user.h area followed by the entire
  * data+stack segments.
  */
 core()
 {
 	register struct inode *ip;
-	register u_int s;
+	register struct	nameidata *ndp = &u.u_nd;
+	register char *np;
+	char	*cp, name[MAXCOMLEN + 6];
 
 	if (u.u_uid != u.u_ruid || u.u_gid != u.u_rgid)
 		return (0);
@@ -814,15 +812,23 @@ core()
 		return (0);
 	if (u.u_procp->p_textp && access(u.u_procp->p_textp->x_iptr, IREAD))
 		return (0);
+	cp = u.u_comm;
+	np = name;
+	while	(*np++ = *cp++)
+		;
+	cp = ".core";
+	np--;
+	while	(*np++ = *cp++)
+		;
 	u.u_error = 0;
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = "core";
-	ip = namei(CREATE | FOLLOW);
-	u.u_segflg = UIO_USERSPACE;
+	ndp->ni_nameiop = CREATE | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = name;
+	ip = namei(ndp);
 	if (ip == NULL) {
 		if (u.u_error)
 			return (0);
-		ip = maknode(0644);
+		ip = maknode(0644, ndp);
 		if (ip==NULL)
 			return (0);
 	}
@@ -834,27 +840,20 @@ core()
 	}
 	itrunc(ip, (u_long)0);
 	u.u_acflag |= ACORE;
-	u.u_offset = 0;
-	u.u_base = (caddr_t)&u;
-	u.u_count = ctob(USIZE);
-	u.u_segflg = UIO_SYSSPACE;
-	writei(ip);
+	u.u_error = rdwri(UIO_WRITE, ip, &u, ctob(USIZE), (off_t)0,
+			UIO_SYSSPACE, (int *)0);
 	if (u.u_error)
 		goto out;
 
-	s = u.u_dsize;
-	estabur((u_int)0, s, u.u_ssize, 0, RO);
-	u.u_base = 0;
-	u.u_count = ctob(s);
-	u.u_segflg = UIO_USERSPACE;
-	writei(ip);
+	estabur((u_int)0, u.u_dsize, u.u_ssize, 0, RO);
+	u.u_error = rdwri(UIO_WRITE, ip, 0, ctob(u.u_dsize), (off_t)ctob(USIZE),
+			UIO_USERSPACE, (int *)0);
 	if (u.u_error)
 		goto out;
 
-	s = u.u_ssize;
-	u.u_base = (caddr_t)(-(ctob(s)));
-	u.u_count = ctob(s);
-	writei(ip);
+	u.u_error = rdwri(UIO_WRITE, ip, (caddr_t)(-(ctob(u.u_ssize))), ctob(u.u_ssize),
+			(off_t)ctob(USIZE) + (off_t)ctob(u.u_dsize),
+			 UIO_USERSPACE, (int *)0);
 out:
 	iput(ip);
 	return (u.u_error == 0);

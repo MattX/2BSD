@@ -1,14 +1,18 @@
-d--777 0 10
-dev	d--777 0 10
-	MAKE	---755 0 10 /dev/MAKE
+d--755 0 10
+dev	d--755 0 10
+	MAKEDEV	---755 0 10 /dev/MAKEDEV
 	console	c--622 0 10 0 0
 	tty	c--666 0 10 2 0
 	hk0a	b--600 0 10 3 0
 	hk0g	b--600 0 10 3 6
 	rhk0a	c--600 0 10 11 0
 	rhk0g	c--600 0 10 11 6
+	klog	c--600 0 10 22 0
+	kmem	c--640 0 2  1 1
+	mem	c--640 0 2  1 0
+	null	c--666 0 10 1 2
 	$
-bin	d--777 0 10
+bin	d--755 0 10
 	sh	---755 0 10 /bin/sh
 	csh	---755 0 10 /bin/csh
 	ls	---755 0 10 /bin/ls
@@ -18,21 +22,19 @@ bin	d--777 0 10
 	mkdir	---755 0 10 /bin/mkdir
 	pwd	---755 0 10 /bin/pwd
 	$
-etc	d--777 0 10
+etc	d--755 0 10
 	init	---755 0 10 /etc/init
 	mknod	---755 0 10 /etc/mknod
-	nrestor	---755 0 10 /usr/src/etc/restor/restor
-	nmkfs	---755 0 10 /usr/src/etc/mkfs
-	nfsck	---755 0 10 /usr/src/etc/fsck
-	ndumpfs	---755 0 10 /usr/src/etc/dumpfs
-	nicheck	---755 0 10 /usr/src/etc/icheck
-	nncheck	---755 0 10 /usr/src/etc/ncheck
-	ndcheck	---755 0 10 /usr/src/etc/dcheck
-	ndump	---755 0 10 /usr/src/etc/dump/dump
-	nrdump	---755 0 10 /usr/src/etc/dump/rdump
+	restor	---755 0 10 /etc/restor
+	mkfs	---755 0 10 /etc/mkfs
+	fsck	---755 0 10 /etc/fsck
+	icheck	---755 0 10 /etc/icheck
+	ncheck	---755 0 10 /etc/ncheck
+	dcheck	---755 0 10 /etc/dcheck
+	dump	---755 0 10 /etc/dump
 	$
 tmp	d--777 0 10
 	$
-boot	---755 0 10 /sys/stand/boot
-vmunix	---755 0 10 /sys/CALDER/hkvmunix
+boot	---755 0 10 /boot
+unix	---755 0 10 /unix
 $

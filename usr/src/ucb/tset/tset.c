@@ -1369,6 +1369,8 @@ ask:
 	exit(0);
 }
 
+char *tgetstr();
+
 /*
  * Set the hardware tabs on the terminal, using the ct (clear all tabs),
  * st (set one tab) and ch (horizontal cursor addressing) capabilities.

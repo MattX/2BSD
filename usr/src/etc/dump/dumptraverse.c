@@ -1,4 +1,7 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)dumptraverse.c	1.1 (Berkeley) 10/13/80";
+#endif
+
 #include "dump.h"
 
 struct	fs	sblock;		/* disk block */
@@ -47,15 +50,13 @@ struct	dinode	*ip;
 int (*fn1)(), (*fn2)();
 {
 	register i;
-	daddr_t d[NADDR];
 
-	l3tol(&d[0], &ip->di_addr[0], NADDR);
-	(*fn2)(d, NADDR-3);
+	(*fn2)(ip->di_addr, NADDR-3);
 	for(i=0; i<NADDR; i++) {
-		if(d[i] != 0) {
+		if(ip->di_addr[i] != 0) {
 			if(i < NADDR-3)
-				(*fn1)(d[i]); else
-				indir(d[i], fn1, fn2, i-(NADDR-3));
+				(*fn1)(ip->di_addr[i]); else
+				indir(ip->di_addr[i], fn1, fn2, i-(NADDR-3));
 		}
 	}
 }
@@ -190,7 +191,7 @@ spclrec()
 	register i, *ip, s;
 
 	spcl.c_inumber = ino;
-	spcl.c_magic = MAGIC;
+	spcl.c_magic = NFS_MAGIC;
 	spcl.c_checksum = 0;
 	ip = (int *)&spcl;
 	s = 0;
@@ -203,30 +204,38 @@ spclrec()
 dsrch(d)
 daddr_t d;
 {
-	register char *cp;
-	register i;
-	register ino_t in;
-	struct v7direct dblk[DIRPB];
+	register struct direct *dp;
+	register int i;
+	char	dbuf[DEV_BSIZE];
 
 	if(dadded)
 		return;
-	bread(d, (char *)dblk, sizeof(dblk));
-	for(i=0; i<DIRPB; i++) {
-		in = dblk[i].d_ino;
-		if(in == 0)
+	bread(d, dbuf, DEV_BSIZE);
+	for (i = 0; i < DEV_BSIZE; ) {
+		dp = (struct direct *)(dbuf + i);
+		if (dp->d_reclen == 0) {
+/*
+ * following hack is for directories which, although occupying a full fs block
+ * do not have the second DIRBLKSIZ section initialized to an empty dir blk.
+*/
+			if (i != DIRBLKSIZ)	/* XXX */
+				fprintf(stderr,"corrupted directory, inumber %u\n",ino);
+			break;
+		}
+		i += dp->d_reclen;
+		if (dp->d_ino == 0)
 			continue;
-		cp = dblk[i].d_name;
-		if(cp[0] == '.') {
-			if(cp[1] == '\0')
+		if (dp->d_name[0] == '.') {
+			if (dp->d_name[1] == '\0')
 				continue;
-			if(cp[1] == '.' && cp[2] == '\0')
+			if (dp->d_name[1] == '.' && dp->d_name[2] == '\0')
 				continue;
 		}
-		if(BIT(in, nodmap)) {
+		if(BIT(dp->d_ino, nodmap)) {
 			dadded++;
 			return;
 		}
-		if(BIT(in, dirmap))
+		if(BIT(dp->d_ino, dirmap))
 			nsubdir++;
 	}
 }
@@ -266,15 +275,3 @@ bread(da, ba, c)
 		}
 	}
 }
-
-CLR(map)
-register short *map;
-{
-	register n;
-
-	n = MSIZ;
-	do
-		*map++ = 0;
-	while(--n);
-}
-

@@ -5,14 +5,14 @@ LISTEN(2)	    UNIX Programmer's Manual		LISTEN(2)
 
 
 
-NNAAMMEE
+NAME
      listen - listen for connections on a socket
 
-SSYYNNOOPPSSIISS
-     lliisstteenn((ss,, bbaacckklloogg))
-     iinntt ss,, bbaacckklloogg;;
+SYNOPSIS
+     listen(s, backlog)
+     int s, backlog;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      To accept connections, a socket is first created with
      _s_o_c_k_e_t(2), a willingness to accept incoming connections and
      a queue limit for incoming connections are specified with
@@ -27,10 +27,10 @@ DDEESSCCRRIIPPTTIIOONN
      protocol supports retransmission, the request may be ignored
      so that retries may succeed.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 return value indicates success; -1 indicates an error.
 
-EERRRROORRSS
+ERRORS
      The call fails if:
 
      [EBADF]		 The argument _s is not a valid descrip-
@@ -41,10 +41,10 @@ EERRRROORRSS
      [EOPNOTSUPP]	 The socket is not of a type that sup-
 			 ports the operation _l_i_s_t_e_n.
 
-SSEEEE AALLSSOO
+SEE ALSO
      accept(2), connect(2), socket(2)
 
-BBUUGGSS
+BUGS
      The _b_a_c_k_l_o_g is currently limited (silently) to 5.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 14, 1986				1
+Printed 1/9/94		  May 14, 1986				1
 
 
 

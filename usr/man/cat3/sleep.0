@@ -5,14 +5,14 @@ SLEEP(3)	    UNIX Programmer's Manual		 SLEEP(3)
 
 
 
-NNAAMMEE
+NAME
      sleep - suspend execution for interval
 
-SSYYNNOOPPSSIISS
-     sslleeeepp((sseeccoonnddss))
-     uunnssiiggnneedd sseeccoonnddss;;
+SYNOPSIS
+     sleep(seconds)
+     unsigned seconds;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The current process is suspended from execution for the
      number of seconds specified by the argument.  The actual
      suspension time may be up to 1 second less than that
@@ -27,7 +27,7 @@ DDEESSCCRRIIPPTTIIOONN
      only until the signal would have occurred, and the signal is
      sent 1 second later.
 
-SSEEEE AALLSSOO
+SEE ALSO
      setitimer(2), sigpause(2), usleep(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 

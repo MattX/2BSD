@@ -3,7 +3,7 @@
  * pxp - Pascal execution profiler
  *
  * Bill Joy UCB
- * Version 1.2 January 1979
+ * Version 1.2.1 January 1994
  */
 
 #include "0.h"
@@ -31,7 +31,7 @@ funchdr(r)
 		setprint();
 	else
 		printon();
-	if (r[0] == T_PROG && noinclud && bracket)
+	if (r[0] == T_PROG && noinclude && bracket)
 		printoff();
 	if (cbn > 1 && !justify)
 		ppgoin(PRFN);
@@ -184,7 +184,7 @@ funcend(fp, bundle, binfo)
 	blk = bundle[2];
 	rescnt(&pfcnts[cbn]);
 	setprint();
-	if (cbn == 1 && noinclud && bracket)
+	if (cbn == 1 && noinclude && bracket)
 		printoff();
 	if (lastbn > cbn)
 		unprint();

@@ -1,13 +1,9 @@
 #ifndef	lint
-static char *sccsid = "@(#)write.c	4.13 3/13/86";
+static char *sccsid = "@(#)write.c	4.13.1 12/31/93";
 #endif
 /*
  * write to another user
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif BSD2_10
 
 #include <stdio.h>
 #include <ctype.h>
@@ -37,6 +33,7 @@ int	eof();
 int	timout();
 FILE	*tf;
 char	*getenv();
+time_t	time();
 
 main(argc, argv)
 	int argc;

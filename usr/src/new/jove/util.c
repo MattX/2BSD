@@ -689,7 +689,7 @@ jmp_buf	savejmp;
 }
 
 #ifdef LOAD_AV
-# if defined(BSD4_2) && !defined(BSD2_10)
+# if defined(BSD4_2) && !defined(pdp11)
 #   if defined(PURDUE_EE) && (defined(vax) || defined(gould))
 
 void
@@ -744,7 +744,7 @@ double	*dp;
 }
 
 #    endif
-#  else /* !BSD4_2 || BSD2_10 */
+#  else /* !BSD4_2 || pdp11 */
 
 void
 get_la(dp)
@@ -887,7 +887,7 @@ SitFor(delay)
 unsigned int	delay;
 {
 #ifndef MSDOS
-#if defined(BSD4_2) && !defined(BSD2_10)
+#if defined(BSD4_2) && !defined(pdp11)
 #include <sys/time.h>
 
 	struct timeval	timer;

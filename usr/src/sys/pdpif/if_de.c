@@ -1,5 +1,8 @@
 /*
- * SCCSID: @(#)if_de.c	1.0	(BSD2.11)	7/10/88
+ * SCCSID: @(#)if_de.c	1.1	(2.11BSD GTE)	12/31/93
+ *	2.11BSD - Remove dereset since 1) it was never called, and 2)
+ *		  wouldn't work if it were called. Also uballoc and
+ *		  ubmalloc calling convention changed. - sms
  */
 #include "de.h"
 #if NDE > 0
@@ -12,7 +15,6 @@
  * TODO:
  *	timeout routine (get statistics)
  */
-#include "short_names.h"
 
 #include "param.h"
 #include "../machine/seg.h"
@@ -90,8 +92,7 @@ u_char unused_multi[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 extern struct protosw *iftype_to_proto(), *iffamily_to_proto();
 #endif		/* not_on_pdp */
 
-int	deprobe(), deattach(), deintr(),
-	deinit(), deoutput(), deioctl(), dereset();
+int	deprobe(), deattach(), deintr(), deinit(), deoutput(), deioctl();
 
 struct	mbuf *deget();
 
@@ -223,8 +224,7 @@ struct	uba_device *ui;
 	addr->pcsr0 = PCSR0_RSET;
 	(void) dewait(ui, "board reset", YES, NO);
 
-	ds->ds_ubaddr =
-		uballoc(ui->ui_ubanum, INCORE_BASE(ds), INCORE_SIZE, 0);
+	ds->ds_ubaddr = uballoc(INCORE_BASE(ds), INCORE_SIZE);
 	addr->pcsr2 = ds->ds_ubaddr & 0xffff;
 	addr->pcsr3 = (ds->ds_ubaddr >> 16) & 0x3;
 	addr->pclow = CMD_GETPCBB;
@@ -244,55 +244,10 @@ struct	uba_device *ui;
 	ifp->if_init = deinit;
 	ifp->if_output = deoutput;
 	ifp->if_ioctl = deioctl;
-	ifp->if_reset = dereset;
+	ifp->if_reset = 0;
 	ds->ds_deuba.difu_flags = UBA_CANTWAIT;
 
 	if_attach(ifp);
-}
-
-/*
- * Reset the interface after a UNIBUS reset.
- * If interface is on the specified uba, reset its state.
- */
-dereset(unit, uban)
-int unit;
-int uban;
-{
-	register struct uba_device *ui;
-	register struct de_softc   *ds = &de_softc[unit];
-
-	if (unit >= NDE || (ui = deinfo[unit]) == 0 ||
-	    ui->ui_alive == 0 || ui->ui_ubanum != uban)
-		return;
-
-	printf(" de%d", unit);
-	ds->ds_if.if_flags &= ~IFF_RUNNING;
-	ds->ds_flags &= ~(DSF_LOCK | DSF_RUNNING);
-	/*
-	 * This takes care of setting up the UNIBUS map registers
-	 * again, as a UNIBUS reset blasts the old map registers.
-	 * (This should release the old UNIBUS map register from
-	 *  the systems point of view, but I did not find an obvious
-	 *  way to do this. (i.e. - ubarelse() is a stub.))
-	 */
-	ds->ds_ubaddr =
-		uballoc(uban, INCORE_BASE(ds), INCORE_SIZE, 0);
-	/*
-	 * Since all the UNIBUS map registers got blasted, there
-	 * needs to be some additional cleanup done here.  For
-	 * example, the buffers have to be freed, reallocated, and
-	 * remapped through the UNIBUS map.  Allocation and
-	 * mapping go hand in hand in this driver (ubmalloc() &
-	 * uballoc()).
-	 * Since there does not seem to be an obvious/easy way to:
-	 *    a) free the buffer space (no m_iofre())
-	 *    b) free the used UNIBUS mapping registers (no ubrelse())
-	 * We just hope that the eventuality of UNIBUS reset just 
-	 * doesn't happen!
-	 * We call deinit() anyway, which will allocate more resources,
-	 * but will fail on the first call to m_ioget() in de_ubainit().
-	 */
-	deinit(unit);
 }
 
 /*
@@ -338,7 +293,7 @@ deinit(unit)
 	 * Set up the PCBB - this is done in deattach() also, but
 	 * has to be redone here in case the board is reset (PCSR0_RSET)
 	 * and this routine is called.	Note that ds->ds_ubaddr is set
-	 * in deattach() and dereset(), and all we do here is tell the
+	 * in deattach() and all we do here is tell the
 	 * DEUNA/DELUA where it can find its PCBB.
 	 */
 	addr->pcsr2 = ds->ds_ubaddr & 0xffff;
@@ -992,10 +947,10 @@ de_ubainit(ifu, uban, hlen, nmr)
 	}
 	for (i = 0; i < NRCV; i++)
 		ifu->difu_r[i].ifrw_info = 
-			ubmalloc(0, ifu->difu_r[i].ifrw_click, nmr, 0);
+			ubmalloc(ifu->difu_r[i].ifrw_click);
 	for (i = 0; i < NXMT; i++)
 		ifu->difu_w[i].ifrw_info = 
-			ubmalloc(0, ifu->difu_w[i].ifrw_click, nmr, 0);
+			ubmalloc(ifu->difu_w[i].ifrw_click);
 	ifu->ifu_hlen = hlen;
 	return (1);
 }

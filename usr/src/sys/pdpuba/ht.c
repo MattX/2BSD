@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ht.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ht.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -22,10 +22,10 @@
 #include "htreg.h"
 #include "systm.h"
 
-struct	buf	httab;
-struct	buf	rhtbuf;
-struct	buf	chtbuf;
-
+struct	buf	httab, chtbuf;
+static	short	rh70;		/* ht.c was ONLY user of B_RH70 and that bit
+				 * was wanted for something else (B_LOCKED)
+				*/
 struct	htdevice	*HTADDR;
 
 #define	INF	32760
@@ -61,17 +61,12 @@ register struct htdevice *addr;
 	/*
 	 * This driver supports only one controller.
 	 */
-	if (unit != 0)
-		return(0);
-	if ((addr != (struct htdevice *) NULL) && (fioword(addr) != -1)) {
+	if (unit == 0) {
 		HTADDR = addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword(&(addr->htbae)) != -1)
-			httab.b_flags |= B_RH70;
-#endif
+			rh70 = 1;
 		return(1);
 	}
-	HTADDR = (struct htdevice *) NULL;
 	return(0);
 }
 
@@ -84,7 +79,7 @@ dev_t	dev;
 	int olddens, dens;
 
 	httab.b_flags |= B_TAPE;
-	if (HTADDR == (struct htdevice *) NULL || htunit >= NHT)
+	if (!HTADDR || htunit >= NHT)
 		return(ENXIO);
 	if (sc->sc_openf)
 		return(EBUSY);
@@ -174,31 +169,14 @@ dev_t	dev;
 htstrategy(bp)
 register struct	buf *bp;
 {
-	int s;
-	register daddr_t *p;
+	register int s;
 	register struct softc *sc = &tu_softc[TUUNIT(bp->b_dev)];
 
-	if(bp != &chtbuf) {
-#ifdef	UNIBUS_MAP
-		if ((httab.b_flags & B_RH70) == 0)
-			mapalloc(bp);
-#endif
-		p = &sc->sc_nxrec;
-		if(dbtofsb(bp->b_blkno) > *p) {
-			bp->b_flags |= B_ERROR;
-			bp->b_error = ENXIO;
-			iodone(bp);
-			return;
-		}
-		if(dbtofsb(bp->b_blkno) == *p && bp->b_flags & B_READ) {
-			bp->b_resid = bp->b_bcount;
-			iodone(bp);
-			return;
-		}
-		if ((bp->b_flags & B_READ) == 0) {
-			*p = dbtofsb(bp->b_blkno) + 1;
-			sc->sc_lastiow = 1;
-		}
+	if (rh70 == 0)
+		mapalloc(bp);
+	if (bp->b_flags & B_PHYS) {
+		sc->sc_blkno = sc->sc_nxrec = dbtofsb(bp->b_blkno);
+		sc->sc_nxrec++;
 	}
 	bp->av_forw = NULL;
 	s = splbio();
@@ -216,24 +194,22 @@ htstart()
 {
 	register struct buf *bp;
 	register den;
-	int htunit;
 	daddr_t	blkno;
 	register struct softc *sc;
 
     loop:
 	if ((bp = httab.b_actf) == NULL)
 		return;
-	htunit = TUUNIT(minor(bp->b_dev));
-	sc = &tu_softc[htunit];
+	sc = &tu_softc[TUUNIT(bp->b_dev)];
 	sc->sc_erreg = HTADDR->hter;
 	sc->sc_fsreg = HTADDR->htfs;
 	sc->sc_resid = HTADDR->htfc;
 	HTADDR->htcs2 = 0;	/* controller 0 - do we need this? */
 	if ((HTADDR->httc & 03777) != sc->sc_dens)
 		HTADDR->httc = sc->sc_dens;
-	if (HTADDR->htcs2 & HTCS2_NEF || (HTADDR->htfs & HTFS_MOL) == 0)
+	sc->sc_lastiow = 0;
+	if (sc->sc_openf < 0 || HTADDR->htcs2 & HTCS2_NEF || !(HTADDR->htfs & HTFS_MOL))
 		goto abort;
-	blkno = sc->sc_blkno;
 	if (bp == &chtbuf) {
 		if (bp->b_command == HT_SENSE) {
 			bp->b_resid = HTADDR->htfs;
@@ -244,15 +220,26 @@ htstart()
 		HTADDR->htcs1 = bp->b_command | HT_IE | HT_GO;
 		return;
 	}
-	if (sc->sc_openf < 0 || dbtofsb(bp->b_blkno) > sc->sc_nxrec)
+	if (dbtofsb(bp->b_blkno) > sc->sc_nxrec)
 		goto abort;
-	if (blkno == dbtofsb(bp->b_blkno)) {
+	if (dbtofsb(bp->b_blkno) == sc->sc_nxrec && bp->b_flags & B_READ) {
+		/*
+		 * Reading at end of file returns 0 bytes.
+		 * Buffer will be cleared (if written) in rwip.
+		*/
+		bp->b_resid = bp->b_bcount;
+		goto next;
+	}
+	if ((bp->b_flags & B_READ) == 0)
+		/*
+		 * Writing sets EOF
+		*/
+		sc->sc_nxrec = dbtofsb(bp->b_blkno) + 1;
+	if ((blkno = sc->sc_blkno) == dbtofsb(bp->b_blkno)) {
 		httab.b_active = SIO;
 		HTADDR->htba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
-		if(httab.b_flags & B_RH70)
+		if (rh70)
 			HTADDR->htbae = bp->b_xmem;
-#endif
 		HTADDR->htfc = -bp->b_bcount;
 		HTADDR->htwc = -(bp->b_bcount >> 1);
 		den = ((bp->b_xmem & 3) << 8) | HT_IE | HT_GO;
@@ -300,17 +287,19 @@ htintr()
 	if ((bp = httab.b_actf) == NULL)
 		return;
 	htunit = TUUNIT(bp->b_dev);
-	state = httab.b_active;
-	httab.b_active = 0;
 	sc = &tu_softc[htunit];
 	sc->sc_erreg = HTADDR->hter;
 	sc->sc_fsreg = HTADDR->htfs;
 	sc->sc_resid = HTADDR->htfc;
+	if ((bp->b_flags & B_READ) == 0)
+		sc->sc_lastiow = 1;
+	state = httab.b_active;
+	httab.b_active = 0;
 	if (HTADDR->htcs1 & HT_TRE) {
 		err = HTADDR->hter;
 		if (HTADDR->htcs2 & HTCS2_ERR || (err & HTER_HARD))
 			state = 0;
-		if (bp == &rhtbuf)
+		if (bp->b_flags & B_PHYS)
 			err &= ~HTER_FCE;
 		if ((bp->b_flags & B_READ) && (HTADDR->htfs & HTFS_PES))
 			err &= ~(HTER_CSITM | HTER_CORCRC);
@@ -401,31 +390,6 @@ htinit()
 	HTADDR->htcs2 = ocs2;
 	HTADDR->httc = omttc;
 	HTADDR->htcs1 = HT_DCLR | HT_GO;
-}
-
-htread(dev)
-register dev_t	dev;
-{
-	htphys(dev);
-	return (physio(htstrategy, &rhtbuf, dev, B_READ, BYTE));
-}
-
-htwrite(dev)
-register dev_t	dev;
-{
-	htphys(dev);
-	return (physio(htstrategy, &rhtbuf, dev, B_WRITE, BYTE));
-}
-
-htphys(dev)
-dev_t dev;
-{
-	daddr_t a;
-	register struct softc *sc = &tu_softc[TUUNIT(dev)];
-
-	a = dbtofsb(u.u_offset >> 9);
-	sc->sc_blkno = a;
-	sc->sc_nxrec = a + 1;
 }
 
 /*ARGSUSED*/

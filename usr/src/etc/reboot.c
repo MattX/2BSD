@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980,1986 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)reboot.c	5.5 (Berkeley) 8/2/87";
-#endif not lint
+static char sccsid[] = "@(#)reboot.c	5.5.1 (2.11BSD) 1/1/94";
+#endif
 
 /*
  * Reboot ...
@@ -27,7 +25,7 @@ static char sccsid[] = "@(#)reboot.c	5.5 (Berkeley) 8/2/87";
 #include <sys/reboot.h>
 #include <sys/signal.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #	define	OPTS	"lqnhdarsf"
 #else
 #	define	OPTS	"lqnhdarsfk"
@@ -72,7 +70,7 @@ main(argc, argv)
 			case 'r':  howto |= RB_RDONLY;	break;
 			case 's':  howto |= RB_SINGLE;	break;
 			case 'f':  howto |= RB_NOFSCK;	break;
-#ifndef BSD2_10
+#ifndef pdp11
 			case 'k':  howto |= RB_KDB;	break;
 #endif
 			case '?':

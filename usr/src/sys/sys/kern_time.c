@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_time.c	1.2 (2.10BSD Berkeley) 3/30/87
+ *	@(#)kern_time.c	1.3 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -81,7 +81,7 @@ setthetime(tv)
 	s = splhigh();
 	time = *tv; lbolt = time.tv_usec / (1000000L / LINEHZ);
 	splx(s);
-#ifndef BSD2_10
+#ifndef pdp11
 	/*
 	 * if you have a time of day board, use it here
 	 */

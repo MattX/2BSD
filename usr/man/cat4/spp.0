@@ -5,18 +5,18 @@ SPP(4P)             UNIX Programmer's Manual		  SPP(4P)
 
 
 
-NNAAMMEE
+NAME
      spp - Xerox Sequenced Packet Protocol
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
-     ##iinncclluuddee <<nneettnnss//nnss..hh>>
-     ss == ssoocckkeett((AAFF__NNSS,, SSOOCCKK__SSTTRREEAAMM,, 00));;
+SYNOPSIS
+     #include <sys/socket.h>
+     #include <netns/ns.h>
+     s = socket(AF_NS, SOCK_STREAM, 0);
 
-     ##iinncclluuddee <<nneettnnss//sspp..hh>>
-     ss == ssoocckkeett((AAFF__NNSS,, SSOOCCKK__SSEEQQPPAACCKKEETT,, 00));;
+     #include <netns/sp.h>
+     s = socket(AF_NS, SOCK_SEQPACKET, 0);
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The SPP protocol provides reliable, flow-controlled, two-way
      transmission of data.  It is a byte-stream protocol used to
      support the SOCK_STREAM abstraction.  SPP uses the standard
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  July 30, 1985                         1
+Printed 1/9/94		  July 30, 1985                         1
 
 
 
@@ -83,7 +83,7 @@ SPP(4P)             UNIX Programmer's Manual		  SPP(4P)
      with send(..., ..., ..., MSG_OOB) cause the attention bit to
      be set.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -112,7 +112,7 @@ DDIIAAGGNNOOSSTTIICCSS
 			 socket with a network address for which
 			 no network interface exists.
 
-SSOOCCKKEETT OOPPTTIIOONNSS
+SOCKET OPTIONS
      SO_DEFAULT_HEADERS  when set, this determines the data
 			 stream type and whether the end of mes-
 			 sage bit is to be set on every ensuing
@@ -126,7 +126,7 @@ SSOOCCKKEETT OOPPTTIIOONNSS
 
 
 
-Printed 12/28/88	  July 30, 1985                         2
+Printed 1/9/94		  July 30, 1985                         2
 
 
 
@@ -145,10 +145,10 @@ SPP(4P)             UNIX Programmer's Manual		  SPP(4P)
 			 The data argument for the setsockopt
 			 call must be an unsigned short.
 
-SSEEEE AALLSSOO
+SEE ALSO
      intro(4N), ns(4F)
 
-BBUUGGSS
+BUGS
      There should be some way to reflect record boundaries in a
      stream.  For stream mode, there should be an option to get
      the data stream type of the record the user process is about
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  July 30, 1985                         3
+Printed 1/9/94		  July 30, 1985                         3
 
 
 

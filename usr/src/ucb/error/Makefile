@@ -32,7 +32,7 @@ error:	$(OBJS)
 
 $(OBJS): $(HDRS)
 
-install:
+install: error
 	install -s error $(DESTDIR)/usr/ucb
 
 clean:

@@ -5,16 +5,16 @@ FSEEK(3F)	    UNIX Programmer's Manual		FSEEK(3F)
 
 
 
-NNAAMMEE
+NAME
      fseek, ftell - reposition a file on a logical unit
 
-SSYYNNOOPPSSIISS
-     iinntteeggeerr ffuunnccttiioonn ffsseeeekk ((lluunniitt,, ooffffsseett,, ffrroomm))
-     iinntteeggeerr ooffffsseett,, ffrroomm
+SYNOPSIS
+     integer function fseek (lunit, offset, from)
+     integer offset, from
 
-     iinntteeggeerr ffuunnccttiioonn fftteellll ((lluunniitt))
+     integer function ftell (lunit)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _l_u_n_i_t must refer to an open logical unit.	_o_f_f_s_e_t is an
      offset in bytes relative to the position specified by _f_r_o_m.
      Valid values for _f_r_o_m are:
@@ -32,10 +32,10 @@ DDEESSCCRRIIPPTTIIOONN
      returned is negative, it indicates an error and will be the
      negation of the system error code. (See perror(3F))
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      fseek(3S), perror(3F)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 

@@ -1,5 +1,5 @@
 static char *RCSid =
-"$Header: /usr/src/new/rcs/src/RCS/sccstorcs.c,v 1.4 84/10/17 21:12:11 root Exp $";
+"$Header: /usr/src/new/rcs/src/RCS/sccstorcs.c,v 1.4.1 94/1/1 21:12:11 root Exp $";
 
 /*
  * SCCSTORCS - build RCS file from SCCS file preserving deltas.
@@ -38,13 +38,6 @@ static char *RCSid =
  */
 
 #include <stdio.h>
-
-#ifdef BSD2_10
-#define install_userlist uinstall
-#define install_deltas	 dinstall
-#define collect_userlist ucollect
-#define collect_header	 hcollect
-#endif
 
 #define TRUE	1
 #define FALSE	0

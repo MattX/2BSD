@@ -5,14 +5,14 @@ CHROOT(2)	    UNIX Programmer's Manual		CHROOT(2)
 
 
 
-NNAAMMEE
+NAME
      chroot - change root directory
 
-SSYYNNOOPPSSIISS
-     cchhrroooott((ddiirrnnaammee))
-     cchhaarr **ddiirrnnaammee;;
+SYNOPSIS
+     chroot(dirname)
+     char *dirname;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_i_r_n_a_m_e is the address of the pathname of a directory, ter-
      minated by a null byte.  _C_h_r_o_o_t causes this directory to
      become the root directory, the starting point for path names
@@ -23,12 +23,12 @@ DDEESSCCRRIIPPTTIIOONN
 
      This call is restricted to the super-user.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate an error.
 
-EERRRROORRSS
+ERRORS
      _C_h_r_o_o_t will fail and the root directory will be unchanged if
      one or more of the following are true:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -71,7 +71,7 @@ CHROOT(2)	    UNIX Programmer's Manual		CHROOT(2)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      chdir(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 

@@ -5,13 +5,13 @@ MKPROTO(8)	    UNIX Programmer's Manual	       MKPROTO(8)
 
 
 
-NNAAMMEE
+NAME
      mkproto - construct a prototype file system
 
-SSYYNNOOPPSSIISS
-     //eettcc//mmkkpprroottoo special proto
+SYNOPSIS
+     /etc/mkproto special proto
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_k_p_r_o_t_o is used to bootstrap a new file system.  First a new
      file system is created using _n_e_w_f_s(8).  _M_k_p_r_o_t_o is then used
      to copy files from the old file system into the new file
@@ -25,10 +25,10 @@ DDEESSCCRRIIPPTTIIOONN
 
      The mode token for a file is a 6 character string.  The
      first character specifies the type of the file.  (The char-
-     acters --bbccdd specify regular, block special, character spe-
+     acters -bcd specify regular, block special, character spe-
      cial and directory files respectively.) The second character
-     of the type is either uu or -- to specify set-user-id mode or
-     not.  The third is gg or -- for the set-group-id mode.  The
+     of the type is either u or - to specify set-user-id mode or
+     not.  The third is g or - for the set-group-id mode.  The
      rest of the mode is a three digit octal number giving the
      owner, group, and other read, write, execute permissions,
      see _c_h_m_o_d(1).
@@ -43,10 +43,10 @@ DDEESSCCRRIIPPTTIIOONN
      decimal number tokens follow which give the major and minor
      device numbers.
 
-     If the file is a directory, _m_k_p_r_o_t_o makes the entries ..  and
-     .... and then reads a list of names and (recursively) file
+     If the file is a directory, _m_k_p_r_o_t_o makes the entries .  and
+     .. and then reads a list of names and (recursively) file
      specifications for the entries in the directory.  The scan
-     is terminated with the token $$.
+     is terminated with the token $.
 
      A sample prototype specification follows:
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 27, 1985                         1
+Printed 1/9/94		 April 27, 1985                         1
 
 
 
@@ -74,10 +74,10 @@ MKPROTO(8)	    UNIX Programmer's Manual	       MKPROTO(8)
 	       $
 	  $
 
-SSEEEE AALLSSOO
+SEE ALSO
      fs(5), dir(5), fsck(8), newfs(8)
 
-BBUUGGSS
+BUGS
      There should be some way to specify links.
 
      There should be some way to specify bad blocks.
@@ -85,6 +85,8 @@ BBUUGGSS
      Mkproto can only be run on virgin file systems.  It should
      be possible to copy files into existent file systems.
 
+     Mkproto can only copy files up to a single level indirect
+     less 4kb.	This works out to about 252Kb
 
 
 
@@ -124,9 +126,7 @@ BBUUGGSS
 
 
 
-
-
-Printed 12/28/88	 April 27, 1985                         2
+Printed 1/9/94		 April 27, 1985                         2
 
 
 

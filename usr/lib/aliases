@@ -14,7 +14,7 @@
 MAILER-DAEMON:postmaster
 postmaster:root
 help:root
-root:casey
+sysadmin:root
 
 # Aliases to handle mail to msgs and news
 msgs: "|/usr/ucb/msgs -s"

@@ -5,17 +5,17 @@ MKHOSTS(8)	    UNIX Programmer's Manual	       MKHOSTS(8)
 
 
 
-NNAAMMEE
+NAME
      mkhosts - generate hashed host table
 
-SSYYNNOOPPSSIISS
-     //eettcc//mmkkhhoossttss [ --vv ] hostfile
+SYNOPSIS
+     /etc/mkhosts [ -v ] hostfile
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_k_h_o_s_t_s is used to generated the hashed host database used
-     by one version of the library routines ggeetthhoossttbbyyaaddddrr(()) and
-     ggeetthhoossttbbyynnaammee(()).  It is not used if host name translation is
-     performed by _n_a_m_e_d(8).  If the --vv option is supplied, each
+     by one version of the library routines gethostbyaddr() and
+     gethostbyname().  It is not used if host name translation is
+     performed by _n_a_m_e_d(8).  If the -v option is supplied, each
      host will be listed as it is added.  The file _h_o_s_t_f_i_l_e is
      usually /etc/hosts, and in any case must be in the format of
      /etc/hosts (see hosts(5)).  _M_k_h_o_s_t_s will generate database
@@ -25,13 +25,13 @@ DDEESSCCRRIIPPTTIIOONN
      _M_k_h_o_s_t_s will exit with a non-zero exit code if any errors
      are detected.
 
-FFIILLEESS
+FILES
      _h_o_s_t_f_i_l_e.pag	 - real database filenames
      _h_o_s_t_f_i_l_e.dir
      _h_o_s_t_f_i_l_e.new.pag	 - temporary database filenames
      _h_o_s_t_f_i_l_e.new.dir
 
-SSEEEE AALLSSOO
+SEE ALSO
      gethostbyname(3), gettable(8), hosts(5), htable(8), named(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/9/94		  May 23, 1986				1
 
 
 

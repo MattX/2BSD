@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)canfield.c	5.4 (Berkeley) 1/13/86";
-#endif not lint
+static char sccsid[] = "@(#)canfield.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * The canfield program
@@ -29,14 +27,6 @@ static char sccsid[] = "@(#)canfield.c	5.4 (Berkeley) 1/13/86";
 #include <ctype.h>
 #include <signal.h>
 #include <sys/types.h>
-
-#ifdef BSD2_10
-#define	printtopbettingbox	ptopbetx
-#define	printtopinstructions	ptopins
-#define	printbottombettingbox	pbotbetx
-#define	printbottominstructions	pbotinx
-#define	cleanupboard		cleanboard
-#endif
 
 #define	decksize	52
 #define originrow	0

@@ -5,62 +5,62 @@ COMPATS5(3)	    UNIX Programmer's Manual	      COMPATS5(3)
 
 
 
-NNAAMMEE
+NAME
      memccpy, memchr, memcmp, memcpy, memset, strchr, strcspn,
-     strpbrk, strrchr, strspn, strtok, tempnam, tmpfile, tmpnam -
-     System V compatibility routines
+     strpbrk, strrchr, strspn, tempnam, tmpfile, tmpnam - System
+     V compatibility routines
 
-SSYYNNOOPPSSIISS
-     cchhaarr **mmeemmccccppyy((ffrroomm,, ttoo,, cchh,, ccoouunntt))
-     cchhaarr **ffrroomm,, **ttoo;;
-     iinntt cchh,, ccoouunntt;;
+SYNOPSIS
+     char *memccpy(from, to, ch, count)
+     char *from, *to;
+     int ch, count;
 
-     cchhaarr **mmeemmcchhrr((ssttrr,, cchh,, ccoouunntt))
-     cchhaarr **ssttrr;;
-     iinntt cchh,, ccoouunntt;;
+     char *memchr(str, ch, count)
+     char *str;
+     int ch, count;
 
-     iinntt mmeemmccmmpp((ssttrr11,, ssttrr22,, ccoouunntt))
-     cchhaarr **ssttrr11,, **ssttrr22;;
-     iinntt ccoouunntt;;
+     int memcmp(str1, str2, count)
+     char *str1, *str2;
+     int count;
 
-     cchhaarr **mmeemmccppyy((ffrroomm,, ttoo,, ccoouunntt))
-     cchhaarr **ffrroomm,, ttoo;;
-     iinntt ccoouunntt;;
+     char *memcpy(from, to, count)
+     char *from, to;
+     int count;
 
-     cchhaarr **mmeemmsseett((ssttrr,, cchh,, ccoouunntt))
-     cchhaarr **ssttrr;;
-     iinntt cchh,, ccoouunntt;;
+     char *memset(str, ch, count)
+     char *str;
+     int ch, count;
 
-     cchhaarr **ssttrrcchhrr((ssttrr,, cchh));;
-     cchhaarr **ssttrr;;
-     iinntt cchh;;
+     char *strchr(str, ch);
+     char *str;
+     int ch;
 
-     iinntt ssttrrccssppnn((ssttrr,, cchhaarrss))
-     cchhaarr **ssttrr,, **cchhaarrss;;
+     int strcspn(str, chars)
+     char *str, *chars;
 
-     cchhaarr **ssttrrppbbrrkk((ssttrr,, cchhaarrss))
-     cchhaarr **ssttrr,, **cchhaarrss;;
+     char *strpbrk(str, chars)
+     char *str, *chars;
 
-     cchhaarr **ssttrrrrcchhrr((ssttrr,, cchh));;
-     cchhaarr **ssttrr;;
-     iinntt cchh;;
+     char *strrchr(str, ch);
+     char *str;
+     int ch;
 
-     iinntt ssttrrssppnn((ssttrr,, cchhaarrss))
-     cchhaarr **ssttrr,, **cchhaarrss;;
+     int strspn(str, chars)
+     char *str, *chars;
 
-     cchhaarr **ssttrrttookk((ssttrr,, sseepp))
-     cchhaarr **ssttrr,, **sseepp;;
+     char *strtol(str, ptr, base)
+     char *str, **ptr;
+     int base;
 
-     cchhaarr **ssttrrttooll((ssttrr,, ppttrr,, bbaassee))
-     cchhaarr **ssttrr,, ****ppttrr;;
-     iinntt bbaassee;;
+     char *tempnam(tmpdir, prefix)
+     char *tmpdir, *prefix;
 
-     cchhaarr **tteemmppnnaamm((ttmmppddiirr,, pprreeffiixx))
-     cchhaarr **ttmmppddiirr,, **pprreeffiixx;;
-
+     char *tmpfile()
 
 
-Printed 12/28/88	 August 3, 1988                         1
+
+
+Printed 1/9/94		 August 3, 1988                         1
 
 
 
@@ -71,12 +71,10 @@ COMPATS5(3)	    UNIX Programmer's Manual	      COMPATS5(3)
 
 
 
-     cchhaarr **ttmmppffiillee(())
+     char *tmpnam(str)
+     char *str;
 
-     cchhaarr **ttmmppnnaamm((ssttrr))
-     cchhaarr **ssttrr;;
-
-CCOOMMMMEENNTT
+COMMENT
      The #_d_e_f_i_n_e_s _P__t_m_p_d_i_r and _L__t_m_p_n_a_m, used by the routines
      _t_e_m_p_n_a_m, _t_m_p_f_i_l_e, and _t_m_p_n_a_m are not available in <_s_t_d_i_o._h>.
      If the code requires them, just use:
@@ -89,7 +87,7 @@ CCOOMMMMEENNTT
      these functions can start recycling previously used names is
      untrue in this system.
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The above routines are available and behave as in System V.
 
 
@@ -126,7 +124,9 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 3, 1988                         2
+
+
+Printed 1/9/94		 August 3, 1988                         2
 
 
 

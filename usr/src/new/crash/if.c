@@ -4,11 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef UCB_NET
-
-#ifndef lint
+#if	defined(DO_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)if.c	5.3 (Berkeley) 4/23/86";
-#endif not lint
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -294,5 +292,3 @@ loop:
 	/*NOTREACHED*/
 }
 #endif	!CRASH
-
-#endif UCB_NET

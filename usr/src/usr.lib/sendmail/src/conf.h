@@ -7,7 +7,7 @@
 **  All rights reserved.  The Berkeley software License Agreement
 **  specifies the terms and conditions for redistribution.
 **
-**	@(#)conf.h	5.7 (Berkeley) 1/5/86
+**	@(#)conf.h	5.7.1 (2.11BSD GTE) 1/1/94
 */
 
 /*
@@ -15,27 +15,26 @@
 */
 
 
-
 /*
 **  Table sizes, etc....
 **	There shouldn't be much need to change these....
 */
 
-#ifdef BSD2_10
+#ifdef pdp11
 # define MAXLINE	256		/* max line length */
 # define MAXNAME	128		/* max length of a name */
-# define MAXFIELD	512		/* max total length of a hdr field */
+# define MAXFIELD	1024		/* max total length of a hdr field */
 # define MAXPV		30		/* max # of parms to mailers */
 # define MAXHOP		17		/* max value of HopCount */
-# define MAXATOM	40		/* max atoms per address */
-# define MAXMAILERS	12		/* maximum mailers known to system */
+# define MAXATOM	70		/* max atoms per address */
+# define MAXMAILERS	10		/* maximum mailers known to system */
 # define MAXRWSETS	30		/* max # of sets of rewriting rules */
 # define MAXPRIORITIES	25		/* max values for Precedence: field */
 # define MAXTRUST	10		/* maximum number of trusted users */
 # define MAXUSERENVIRON	35		/* max # of items in user environ */
-# define QUEUESIZE	70		/* max # of jobs per queue run */
+# define QUEUESIZE	10		/* max # of jobs per queue run */
 
-#else !BSD2_10
+#else
 
 # define MAXLINE	1024		/* max line length */
 # define MAXNAME	256		/* max length of a name */
@@ -49,7 +48,7 @@
 # define MAXTRUST	30		/* maximum number of trusted users */
 # define MAXUSERENVIRON	40		/* max # of items in user environ */
 # define QUEUESIZE	600		/* max # of jobs per queue run */
-#endif BSD2_10
+#endif pdp11
 
 /*
 **  Compilation options.

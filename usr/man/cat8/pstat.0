@@ -5,22 +5,22 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-NNAAMMEE
+NAME
      pstat - print system facts
 
-SSYYNNOOPPSSIISS
-     //eettcc//ppssttaatt --aaiixxppttuuffTT [ ssuubbooppttiioonnss ] [ ssyysstteemm ] [ ccoorreeffiillee ]
+SYNOPSIS
+     /etc/pstat -aixptufT [ suboptions ] [ system ] [ corefile ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_s_t_a_t interprets the contents of certain system tables.  If
      _c_o_r_e_f_i_l_e is given, the tables are sought there, otherwise in
      /_d_e_v/_k_m_e_m. The required namelist is taken from /_v_m_u_n_i_x
      unless _s_y_s_t_e_m is specified.  Options are
 
-     --aa    Under --pp, describe all process slots rather than just
+     -a    Under -p, describe all process slots rather than just
 	   active ones.
 
-     --ii    Print the inode table with the these headings:
+     -i    Print the inode table with the these headings:
 
      LOC   The core location of this table entry.
      FLAGS Miscellaneous state variables encoded thus:
@@ -49,7 +49,7 @@ DDEESSCCRRIIPPTTIIOONN
 	   Number of bytes in an ordinary file, or major and
 	   minor device of special file.
 
-     --xx    Print the text table with these headings:
+     -x    Print the text table with these headings:
 
      LOC   The core location of this table entry.
      FLAGS Miscellaneous state variables encoded thus:
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 24, 1986				1
+Printed 1/9/94		  May 24, 1986				1
 
 
 
@@ -97,7 +97,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
      BACK  Backward link in free list.
 
-     --pp    Print process table for active processes with these
+     -p    Print process table for active processes with these
 	   headings:
 
      LOC   The core location of this table entry.
@@ -126,7 +126,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-Printed 12/28/88	  May 24, 1986				2
+Printed 1/9/94		  May 24, 1986				2
 
 
 
@@ -174,7 +174,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      TEXTP If text is pure, pointer to location of text table
 	   entry.
 
-     --tt    Print table for terminals with these headings:
+     -t    Print table for terminals with these headings:
 
      RAW   Number of characters in raw input queue.
      CAN   Number of characters in canonicalized input queue.
@@ -192,7 +192,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-Printed 12/28/88	  May 24, 1986				3
+Printed 1/9/94		  May 24, 1986				3
 
 
 
@@ -214,14 +214,14 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   tty'' for NTTYDISC or ``net'' for NETLDISC (see
 	   _b_k(4)).
 
-     --uu    print information about a user process; the next argu-
+     -u    print information about a user process; the next argu-
 	   ment is its address as given by _p_s(1).  The process
 	   must be in main memory, or the file used can be a core
 	   image and the address 0.  Only the fields located in
 	   the first page cluster can be located succesfully if
 	   the process is in main memory.
 
-     --ff    Print the open file table with these headings:
+     -f    Print the open file table with these headings:
 
      LOC   The core location of this table entry.
 
@@ -240,25 +240,25 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      OFFSET
 	   The file offset (see _l_s_e_e_k(2)).
 
-     --ss print information about swap space usage: the number of
+     -s print information about swap space usage: the number of
      (1k byte) pages used and free is given as well as the number
      of used pages which belong to text images.
 
-     --TT prints the number of used and free slots in the several
+     -T prints the number of used and free slots in the several
      system tables and is useful for checking to see how full
      system tables have become if the system is under heavy load.
 
-FFIILLEESS
+FILES
      /vmunix	namelist
      /dev/kmem	default source of tables
 
-SSEEEE AALLSSOO
+SEE ALSO
      iostat(1), ps(1), systat(1), vmstat(1), stat(2), fs(5),
      K. Thompson, _U_N_I_X _I_m_p_l_e_m_e_n_t_a_t_i_o_n
 
 
 
-Printed 12/28/88	  May 24, 1986				4
+Printed 1/9/94		  May 24, 1986				4
 
 
 
@@ -269,9 +269,9 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-BBUUGGSS
+BUGS
      It would be very useful if the system recorded "maximum
-     occupancy" on the tables reported by --TT;; even more useful if
+     occupancy" on the tables reported by -T; even more useful if
      these tables were dynamically allocated.
 
 
@@ -324,7 +324,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 24, 1986				5
+Printed 1/9/94		  May 24, 1986				5
 
 
 

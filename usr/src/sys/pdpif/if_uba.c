@@ -3,7 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_uba.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_uba.c	1.2 (2.11BSD GTE) 4/3/93
+ *
+ *	2.11BSD - uballoc and ubmalloc calling conventions changed.
+ *		  ubmalloc now only performs address computation, the
+ *		  necessary UMRs are allocated at network startup.
+ *		  sms@wlv.imsd.contel.com - 9/8/90
  */
 
 #include "param.h"
@@ -15,12 +20,8 @@
 #include "mbuf.h"
 #include "buf.h"
 #include "pdpuba/ubavar.h"
-
-#ifdef UNIBUS_MAP
 #include "map.h"
 #include "uba.h"
-#endif
-
 #include "socket.h"
 #include "netinet/in.h"
 #include "netinet/in_systm.h"
@@ -29,15 +30,7 @@
 
 /*
  * Routines supporting UNIBUS network interfaces.
- *
- * TODO:
- *	Support interfaces using only one BDP statically.
  */
-
-#define	MBCOPYIN(click, off, m, len) \
-	mbcopyin(click,off,mtod(m,char *), len)
-#define	MBCOPYOUT(m, click, off, len) \
-	mbcopyout(mtod(m,char *), click, off, len)
 
 if_ubainit(ifu, uban, hlen, nmr)
 	register struct ifuba *ifu;
@@ -52,13 +45,8 @@ if_ubainit(ifu, uban, hlen, nmr)
 		ifu->ifu_r.ifrw_click = ifu->ifu_w.ifrw_click = 0;
 		return(0);
 	}
-#ifdef UNIBUS_MAP
-	ifu->ifu_r.ifrw_info = ubmalloc(0, ifu->ifu_r.ifrw_click, nmr+hlen, 0);
-	ifu->ifu_w.ifrw_info = ubmalloc(0, ifu->ifu_w.ifrw_click, nmr+hlen, 0);
-#else
-	ifu->ifu_r.ifrw_info = ((long)ifu->ifu_r.ifrw_click) * 64L;
-	ifu->ifu_w.ifrw_info = ((long)ifu->ifu_w.ifrw_click) * 64L;
-#endif
+	ifu->ifu_r.ifrw_info = ubmalloc(ifu->ifu_r.ifrw_click);
+	ifu->ifu_w.ifrw_info = ubmalloc(ifu->ifu_w.ifrw_click);
 	ifu->ifu_hlen = hlen;
 	return(1);
 }
@@ -97,6 +85,15 @@ if_rubaget(ifu, totlen, off0, ifp)
 			cp = (caddr_t) (ifu->ifu_hlen + off);
 		} else
 			len = totlen;
+		if (len >= NBPG) {
+			if (ifp)
+				goto nopage;
+			MCLGET(m);
+			if (m->m_len != CLBYTES)
+				goto nopage;
+			m->m_len = MIN(len, CLBYTES);
+			goto copy;
+		}
 nopage:
 		m->m_off = MMINOFF;
 		if (ifp) {
@@ -108,7 +105,7 @@ nopage:
 		} else
 			m->m_len = MIN(MLEN, len);
 copy:
-		MBCOPYIN(click, cp, m, (u_int)m->m_len);
+		mbcopyin(click, cp, mtod(m, char *), (u_int)m->m_len);
 		cp += m->m_len;
 nocopy:
 		*mp = m;
@@ -144,15 +141,15 @@ out:
  * header.
  */
 if_wubaput(ifu, m)
-	register struct ifuba *ifu;
+	struct ifuba *ifu;
 	register struct mbuf *m;
 {
 	register struct mbuf *mp;
-	u_short off = 0;
+	register u_short off = 0;
 	u_short click = ifu->ifu_w.ifrw_click;
 
 	while (m) {
-		MBCOPYOUT(m, click, off, (u_int)m->m_len);
+		mbcopyout(mtod(m, char *), click, off, (u_int)m->m_len);
 		off += m->m_len;
 		MFREE(m, mp);
 		m = mp;
@@ -160,22 +157,21 @@ if_wubaput(ifu, m)
 	return(off);
 }
 
-#ifdef UNIBUS_MAP
 #define	KDSA	((u_short *)0172260)	/* supervisor - was 172360.KERNEL */
 
 /*
- *	Map UNIBUS virtual memory over some address in kernel data
+ *	Map UNIBUS virtual memory over some address in supervisor data
  *	space.  We're similar to the "mapalloc" routine used for
- *	raw I/O, but for different objects.
+ *	raw I/O, but for different objects.  The kernel's 'ubmap' is
+ *	tested since the network's "fake" 'ubmap' has gone away (this
+ *	routine was the only one to use it).
  */
-/*ARGSUSED*/
 ubadr_t
-uballoc(ubanum, addr, size, x)
-	int ubanum;				/* NOTUSED */
+uballoc(addr, size)
 	caddr_t addr;
 	u_int size;
 {
-	register int nregs, s;
+	register int nregs;
 	register struct ubmap *ubp;
 	ubadr_t paddr, vaddr;
 	u_int click, first;
@@ -186,10 +182,18 @@ uballoc(ubanum, addr, size, x)
 	click = KDSA[page];
 	paddr = (ubadr_t)click << 6;
 	paddr += offset;
-	if (!ubmap)
+	if (!mfkd(&ubmap))
 		return(paddr);
 	nregs = (int)btoub(size);
-	first = NETUBAA(nregs);
+	first = MALLOC(ub_map, nregs);
+#ifdef	DIAGNOSTIC
+/*
+ * Should never happen since this is only called by initialization routines
+ * in the network drivers.
+*/
+	if	(!first)
+		panic("uballoc");
+#endif
 	ubp = &UBMAP[first];
 	vaddr = (ubadr_t)first << 13;
 	while (nregs--) {
@@ -202,35 +206,19 @@ uballoc(ubanum, addr, size, x)
 }
 
 /*
- *	Now for mapping an arbitrary piece of physical memory into
- *	UNIBUS virtual address space.
+ *	Computes a physical address within the mapped I/O area managed by
+ *	m_ioget.  For a UNIBUS machine, the m_ioget arena is
+ *	already mapped by UMRs and mioumr and miostart have the base
+ *	virtual and click addresses of the mapped arena.  For Q22 machines
+ *	mioumr and miostart are 0, turning the calculation into a ctob
+ * 	of the input click address.
  */
-/*ARGSUSED*/
 ubadr_t
-ubmalloc(ubanum, addr, size, x)
-	int ubanum;		/* NOTUSED */
-	u_int addr, size;	/* pdp11 "clicks" */
+ubmalloc(addr)
+	memaddr addr;		/* pdp11 "clicks" */
 {
-	register struct ubmap *ubp;
-	register int nregs, s;
-	ubadr_t paddr, vaddr;
-	u_int first;
+	extern ubadr_t mioumr;
+	extern memaddr miostart;
 
-	paddr = (ubadr_t)addr << 6;
-
-	if (!ubmap)
-		return(paddr);
-
-	nregs = (int)btoub(size);
-	first = NETUBAA(nregs);
-	ubp = &UBMAP[first];
-	vaddr = (ubadr_t)first << 13;
-	while (nregs--) {
-		ubp->ub_lo = loint(paddr);
-		ubp->ub_hi = hiint(paddr);
-		ubp++;
-		paddr += (ubadr_t) UBPAGE;
-	}
-	return(vaddr);
+	return(((ubadr_t)(addr - miostart) << 6) + mioumr);
 }
-#endif /* UNIBUS_MAP */

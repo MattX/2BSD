@@ -1,23 +1,34 @@
 /*
- * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)perror.c	5.2 (Berkeley) 3/9/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)perror.c	5.7.1 (2.11BSD GTE) 7/8/94";
+#endif /* LIBC_SCCS and not lint */
 
-/*
- * Print the error indicated
- * in the cerror cell.
- */
 #include <sys/types.h>
 #include <sys/uio.h>
 
-int	errno;
-int	sys_nerr;
-char	*sys_errlist[];
+char *strerror();
+int errno;
+extern int sys_nerr;
+extern char *sys_errlist[];
+
+static char ebuf[20];
+
 perror(s)
 	char *s;
 {
@@ -32,10 +43,20 @@ perror(s)
 		v->iov_len = 2;
 		v++;
 	}
-	v->iov_base = errno < sys_nerr ? sys_errlist[errno] : "Unknown error";
+	v->iov_base = strerror(errno);
 	v->iov_len = strlen(v->iov_base);
 	v++;
 	v->iov_base = "\n";
 	v->iov_len = 1;
-	writev(2, iov, (v - iov) + 1);
+	(void)writev(2, iov, (v - iov) + 1);
+}
+
+char *
+strerror(errnum)
+	int errnum;
+{
+	if ((u_int)errnum < sys_nerr)
+		return(sys_errlist[errnum]);
+	(void)sprintf(ebuf, "Unknown error: %d", errnum);
+	return(ebuf);
 }

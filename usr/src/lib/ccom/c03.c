@@ -48,7 +48,6 @@ struct nmlist *tptr;
 	for (;;) {
 		mosflg = isadecl? ismos: 0;
 		o = symbol();
-/* v7.orig	if (o==NAME && csym->hclass==TYPEDEF && tkw<0) { */
 		if (o==NAME && csym->hclass==TYPEDEF) {
 			if (tkw >= 0)
 				error("type clash");
@@ -118,6 +117,8 @@ struct nmlist *tptr;
 					tkw = UNSIGN;
 				else if (tkw==CHAR)
 					tkw = UNCHAR;
+				else if (tkw==LONG)
+					tkw = UNLONG;
 				else
 					error("Misplaced 'unsigned'");
 			}
@@ -126,6 +127,8 @@ struct nmlist *tptr;
 					tkw = DOUBLE;
 				else if (tkw==INT)
 					tkw = LONG;
+				else if (tkw==UNSIGN)
+					tkw = UNLONG;
 				else
 					error("Misplaced 'long'");
 			}
@@ -216,7 +219,7 @@ strdec(mosf, kind)
 		bitoffs = savebits;
 		defsym = ds;
 		if (strp->S.ssize)
-			error("%.*s redeclared", NCPS, ssym->name);
+			error("%s redeclared", ssym->name);
 		strp->S.ssize = elsize;
 		*memlist++ = NULL;
 		strp->S.memlist = (struct nmlist **)Dblock((memlist-mems)*sizeof(*memlist));
@@ -271,7 +274,7 @@ struct nmlist *tptr;
 			abs.nextnm = 0;
 			abs.sparent = 0;
 			abs.hblklev = blklev;
-			strcpy(abs.name, "<none>");
+			abs.name = "<none>";
 			aptr = &abs;
 		} else
 			aptr = NULL;
@@ -372,7 +375,7 @@ struct nmlist *atptr, *absname;
 		if (skw==EXTERN) {
 			for (; dsym!=NULL; dsym = dsym->nextnm) {
 				if (dsym->hclass==EXTERN
-				 && strncmp(dsym->name, defsym->name, NCPS)==0) {
+				 && strcmp(dsym->name, defsym->name)==0) {
 					defsym = dsym;
 					break;
 				}
@@ -511,7 +514,7 @@ struct nmlist *atptr, *absname;
 		isinit = 0;
 	} else if (skw==ENUM) {
 		if (type!=INT)
-			error("Illegal enumeration %.*s", NCPS, dsym->name);
+			error("Illegal enumeration %s", dsym->name);
 		dsym->hclass = ENUMCON;
 		dsym->hoffset = offset;
 		if (isinit)
@@ -717,7 +720,7 @@ decsyn(o)
  */
 redec()
 {
-	error("%.*s redeclared", NCPS, defsym->name);
+	error("%s redeclared", defsym->name);
 }
 
 /*

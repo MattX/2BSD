@@ -621,7 +621,6 @@ char *
 getname(uid)
 	uid_t uid;
 {
-	extern int _pw_stayopen;
 	static struct ncache {
 		uid_t	uid;
 		char	name[NMAX+1];
@@ -629,7 +628,7 @@ getname(uid)
 	register struct passwd *pw;
 	register struct ncache *cp;
 
-	_pw_stayopen = 1;
+	setpassent(1);
 	cp = c_uid + (uid & CAMASK);
 	if (cp->uid == uid && *cp->name)
 		return(cp->name);

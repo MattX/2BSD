@@ -5,23 +5,23 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
-NNAAMMEE
+NAME
      man - macros to typeset manual
 
-SSYYNNOOPPSSIISS
-     nnrrooffff  --mmaann  file ...
+SYNOPSIS
+     nroff  -man  file ...
 
-     ttrrooffff  --mmaann  file ...
+     troff  -man  file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These macros are used to lay out pages of this manual.  A
      skeleton page may be found in the file /usr/man/man0/xx.
 
      Any text argument _t may be zero to six words.  Quotes may be
      used to include blanks in a `word'.  If _t_e_x_t is empty, spe-
      cial treatment is applied to the next input line with text
-     to be printed.  In this way ..I may be used to italicize a
-     whole line, or ..SM may be followed by ..B to make small bold
+     to be printed.  In this way .I may be used to italicize a
+     whole line, or .SM may be followed by .B to make small bold
      letters.
 
      A prevailing indent distance is remembered between succes-
@@ -33,23 +33,23 @@ DDEESSCCRRIIPPTTIIOONN
      paragraph, and after processing font and size setting mac-
      ros.
 
-     These strings are predefined by --mmaann:
+     These strings are predefined by -man:
 
      \*R  `(Reg)', trademark symbol in _t_r_o_f_f.
 
      \*S  Change to default type size.
 
-FFIILLEESS
+FILES
      /usr/lib/tmac/tmac.an
      /usr/man/man0/xx
 
-SSEEEE AALLSSOO
+SEE ALSO
      troff(1), man(1)
 
-BBUUGGSS
+BUGS
      Relative indents don't nest.
 
-RREEQQUUEESSTTSS
+REQUESTS
 Request      Cause If no    Explanation
 	     Break Argument
 .B _t	     no    _t=n.t.l.*Text _t is bold.
@@ -60,7 +60,7 @@ Request      Cause If no    Explanation
 
 
 
-Printed 12/28/88	  May 15, 1986				1
+Printed 1/9/94		  May 15, 1986				1
 
 
 
@@ -126,7 +126,7 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
-Printed 12/28/88	  May 15, 1986				2
+Printed 1/9/94		  May 15, 1986				2
 
 
 

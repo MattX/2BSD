@@ -5,18 +5,18 @@ UTIME(3C)	    UNIX Programmer's Manual		UTIME(3C)
 
 
 
-NNAAMMEE
+NAME
      utime - set file times
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+SYNOPSIS
+     #include <sys/types.h>
 
-     uuttiimmee((ffiillee,, ttiimmeepp))
-     cchhaarr **ffiillee;;
-     ttiimmee__tt ttiimmeepp[[22]];;
+     utime(file, timep)
+     char *file;
+     time_t timep[2];
 
-DDEESSCCRRIIPPTTIIOONN
-     TThhiiss iinntteerrffaaccee iiss oobbssoolleetteedd bbyy uuttiimmeess((22))..
+DESCRIPTION
+     This interface is obsoleted by utimes(2).
 
      The _u_t_i_m_e call uses the `accessed' and `updated' times in
      that order from the _t_i_m_e_p vector to set the corresponding
@@ -26,7 +26,7 @@ DDEESSCCRRIIPPTTIIOONN
      The `inode-changed' time of the file is set to the current
      time.
 
-SSEEEE AALLSSOO
+SEE ALSO
      utimes(2), stat(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 9, 1985				1
+Printed 1/9/94		   May 9, 1985				1
 
 
 

@@ -12,9 +12,7 @@ struct	rldevice
 	caddr_t	rlba;
 	short	rlda;
 	short	rlmp;
-#ifdef Q22
 	short	rlbae;
-#endif
 };
 
 /* bits in rlcs */

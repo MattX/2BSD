@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)inetd.c	5.6 (Berkeley) 4/29/86";
-#endif not lint
+static char sccsid[] = "@(#)inetd.c	5.6.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Inetd - Internet super-server
@@ -104,19 +102,6 @@ struct	servtab {
 	struct	timeval se_time;	/* start of se_count */
 	struct	servtab *se_next;
 } *servtab;
-
-#ifdef	BSD2_10
-#define	echo_stream	st_echo
-#define	discard_stream	st_discard
-#define	machtime_stream	st_machtime
-#define	daytime_stream	st_daytime
-#define	chargen_stream	st_chargen
-#define	echo_dg		dg_echo
-#define	discard_dg	dg_discard
-#define	machtime_dg	dg_machtime
-#define	daytime_dg	dg_daytime
-#define	chargen_dg	dg_chargen
-#endif	BSD2_10
 
 int echo_stream(), discard_stream(), machtime_stream();
 int daytime_stream(), chargen_stream();

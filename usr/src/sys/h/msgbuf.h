@@ -7,14 +7,14 @@
  */
 
 #define	MSG_MAGIC	0x063061
-#ifdef SMALL
-#define	MSG_BSIZE	(128 - 1 * sizeof (long))
-#else
-#define	MSG_BSIZE	(512 - 1 * sizeof (long))
-#endif
+#define	MSG_BSIZE	4096
+
 struct	msgbuf {
-	long	msg_bufx;
-	char	msg_bufc[MSG_BSIZE];
+	long	msg_magic;
+	int	msg_bufx;
+	int	msg_bufr;
+	u_short	msg_click;
+	char	*msg_bufc;
 };
 #if defined(KERNEL) && !defined(SUPERVISOR)
 struct	msgbuf msgbuf;

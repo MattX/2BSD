@@ -95,7 +95,7 @@ tokdefs:	tokens
 locdefs:	pdp11defs
 		cp pdp11defs locdefs
 
-install:
+install: all
 		install -s f77 ${DESTDIR}/usr/bin
 		install -s f77pass1 ${DESTDIR}/lib
 		install -c -m 644 ${STRINGS} ${DESTDIR}/lib

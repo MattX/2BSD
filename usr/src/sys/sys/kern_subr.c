@@ -15,56 +15,71 @@
 #include "uio.h"
 
 /* copied, for supervisory networking, to sys_net.c */
-uiomove(cp, n, rw)
-	register caddr_t cp;
-	register u_int n;
+uiomove(cp, n, rw, uio)
+	caddr_t cp;
+	u_int n;
 	enum uio_rw rw;
+	register struct uio *uio;
 {
-	register int error = 0;
+	register struct iovec *iov;
+	int error = 0;
+	register u_int cnt;
 
-	if (!n)
-		return (0);
-	switch (u.u_segflg) {
-
-	case UIO_USERSPACE:
-		if (n > 100 && cp + n < SEG6)
-			error = uiofmove(cp, n, rw);
-		else if ((n | (int)cp | (int)u.u_base) & 1)
-			if (rw == UIO_READ)
-				error = vcopyout(cp, u.u_base, n);
-			else
-				error = vcopyin(u.u_base, cp, n);
-		else {
-			if (rw == UIO_READ)
-				error = copyout(cp, u.u_base, n);
-			else
-				error = copyin(u.u_base, cp, n);
+	while (n > 0 && uio->uio_resid) {
+		iov = uio->uio_iov;
+		cnt = iov->iov_len;
+		if (cnt == 0) {
+			uio->uio_iov++;
+			uio->uio_iovcnt--;
+			continue;
 		}
-		if (error)
-			return (error);
-		break;
+		if (cnt > n)
+			cnt = n;
+		switch (uio->uio_segflg) {
 
-	case UIO_USERISPACE:
-		if (n > 100 && cp + n < SEG6)
-			error = uiofmove(cp, n, rw);
-		else if (rw == UIO_READ)
-			error = copyiout(cp, u.u_base, n);
-		else
-			error = copyiin(u.u_base, cp, n);
-		if (error)
-			return (error);
-		break;
+		case UIO_USERSPACE:
+			if (cnt > 100 && cp + cnt < SEG6)
+				error = uiofmove(cp, cnt, rw, uio, iov);
+			else if ((cnt | (int)cp | (int)iov->iov_base) & 1)
+				if (rw == UIO_READ)
+					error = vcopyout(cp,iov->iov_base, cnt);
+				else
+					error = vcopyin(iov->iov_base, cp, cnt);
+			else {
+				if (rw == UIO_READ)
+					error = copyout(cp, iov->iov_base, cnt);
+				else
+					error = copyin(iov->iov_base, cp, cnt);
+			}
+			if (error)
+				return (error);
+			break;
 
-	case UIO_SYSSPACE:
-		if (rw == UIO_READ)
-			bcopy((caddr_t)cp, u.u_base, n);
-		else
-			bcopy(u.u_base, (caddr_t)cp, n);
-		break;
+		case UIO_USERISPACE:
+			if (cnt > 100 && cp + cnt < SEG6)
+				error = uiofmove(cp, cnt, rw, uio, iov);
+			else if (rw == UIO_READ)
+				error = copyiout(cp, iov->iov_base, cnt);
+			else
+				error = copyiin(iov->iov_base, cp, cnt);
+			if (error)
+				return (error);
+			break;
+
+		case UIO_SYSSPACE:
+			if (rw == UIO_READ)
+				bcopy((caddr_t)cp, iov->iov_base, cnt);
+			else
+				bcopy(iov->iov_base, (caddr_t)cp, cnt);
+			break;
+		}
+		iov->iov_base += cnt;
+		iov->iov_len -= cnt;
+		uio->uio_resid -= cnt;
+		uio->uio_offset += cnt;
+		cp += cnt;
+		n -= cnt;
 	}
-	u.u_base += n;
-	u.u_count -= n;
-	u.u_offset += n;
 	return (error);
 }
 
@@ -72,28 +87,41 @@ uiomove(cp, n, rw)
 /*
  * Give next character to user as result of read.
  */
-ureadc(c)
+ureadc(c, uio)
 	register int c;
+	register struct uio *uio;
 {
-	switch (u.u_segflg) {
+	register struct iovec *iov;
+
+again:
+	if (uio->uio_iovcnt == 0)
+		panic("ureadc");
+	iov = uio->uio_iov;
+	if (iov->iov_len == 0 || uio->uio_resid == 0) {
+		uio->uio_iovcnt--;
+		uio->uio_iov++;
+		goto again;
+	}
+	switch (uio->uio_segflg) {
 
 	case UIO_USERSPACE:
-		if (subyte(u.u_base, c) < 0)
+		if (subyte(iov->iov_base, c) < 0)
 			return (EFAULT);
 		break;
 
 	case UIO_SYSSPACE:
-		*u.u_base = c;
+		*iov->iov_base = c;
 		break;
 
 	case UIO_USERISPACE:
-		if (suibyte(u.u_base, c) < 0)
+		if (suibyte(iov->iov_base, c) < 0)
 			return (EFAULT);
 		break;
 	}
-	u.u_base++;
-	u.u_count--;
-	u.u_offset++;
+	iov->iov_base++;
+	iov->iov_len--;
+	uio->uio_resid--;
+	uio->uio_offset++;
 	return (0);
 }
 
@@ -101,31 +129,44 @@ ureadc(c)
 /*
  * Get next character written in by user from uio.
  */
-uwritec()
+uwritec(uio)
+	register struct uio *uio;
 {
+	register struct iovec *iov;
 	register int c;
 
-	if (!u.u_count)
+	if (uio->uio_resid == 0)
 		return (-1);
-	switch (u.u_segflg) {
+again:
+	if (uio->uio_iovcnt <= 0)
+		panic("uwritec");
+	iov = uio->uio_iov;
+	if (iov->iov_len == 0) {
+		uio->uio_iov++;
+		if (--uio->uio_iovcnt == 0)
+			return (-1);
+		goto again;
+	}
+	switch (uio->uio_segflg) {
 
 	case UIO_USERSPACE:
-		c = fubyte(u.u_base);
+		c = fubyte(iov->iov_base);
 		break;
 
 	case UIO_SYSSPACE:
-		c = *u.u_base & 0377;
+		c = *iov->iov_base & 0377;
 		break;
 
 	case UIO_USERISPACE:
-		c = fuibyte(u.u_base);
+		c = fuibyte(iov->iov_base);
 		break;
 	}
 	if (c < 0)
 		return (-1);
-	u.u_base++;
-	u.u_count--;
-	u.u_offset++;
+	iov->iov_base++;
+	iov->iov_len--;
+	uio->uio_resid--;
+	uio->uio_offset++;
 	return (c & 0377);
 }
 
@@ -135,10 +176,12 @@ uwritec()
  * language helper routine, fmove, uses segment register 6 to map in the
  * user's memory.
  */
-uiofmove(cp, n, rw)
+uiofmove(cp, n, rw, uio, iov)
 	caddr_t cp;
 	register int n;
 	enum uio_rw rw;
+	struct uio *uio;
+	struct iovec *iov;
 {
 	register short c;
 	short on;
@@ -151,7 +194,7 @@ uiofmove(cp, n, rw)
 	segd = UISD;
 	sega = UISA;
 #else
-	if (u.u_segflg == UIO_USERSPACE && u.u_sep) {
+	if (uio->uio_segflg == UIO_USERSPACE && u.u_sep) {
 		segd = UDSD;
 		sega = UDSA;
 	}
@@ -161,8 +204,8 @@ uiofmove(cp, n, rw)
 	}
 #endif
 
-	segr = (short)u.u_base >> 13 & 07;
-	on = (short)u.u_base & 017777;
+	segr = (short)iov->iov_base >> 13 & 07;
+	on = (short)iov->iov_base & 017777;
 	c = MIN(n, 8192-on);
 	for (;;) {
 		if (rw == UIO_READ)

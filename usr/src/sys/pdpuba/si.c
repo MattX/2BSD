@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)si.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)si.c	1.4 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -59,7 +59,6 @@ struct	sidevice *SIADDR;
 int	si_offset[] = { SI_OFP,	SI_OFM };
 
 struct	buf	sitab;
-struct	buf	rsibuf;
 struct	buf	siutab[NSI];
 
 int	sicc[NSI];	/* Current cylinder */
@@ -101,8 +100,9 @@ register struct sidevice *addr;
 	return(0);
 }
 
-siopen(dev)
+siopen(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register int unit;
 
@@ -134,9 +134,7 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	bp->b_cylin = bn / (SI_NSECT * SI_NTRAC) + rm5_sizes[unit & 07].cyloff;
 	unit = dkunit(bp);
 	dp = &siutab[unit];
@@ -212,7 +210,7 @@ register unit;
 search:
 	siaddr->sisar = (unit << 10) | cn;
 	if(dualsi)
-		donesi();
+		SIADDR->siscr = 0;
 	sicc[unit] = cn;
 #ifdef UCB_METER
 	/*
@@ -368,7 +366,7 @@ siintr()
 		}
 
 		if(dualsi)
-			donesi();
+			SIADDR->siscr = 0;
 		if (sitab.b_active) {
 			sitab.b_active = 0;
 			sitab.b_errcnt = 0;
@@ -400,31 +398,13 @@ siintr()
 	sistart();
 }
 
-siread(dev)
-	dev_t	dev;
-{
-	return (physio(sistrategy, &rsibuf, dev, B_READ, WORD));
-}
-
-siwrite(dev)
-	dev_t	dev;
-{
-	return (physio(sistrategy, &rsibuf, dev, B_WRITE, WORD));
-}
-
 #ifdef SI_DUMP
 /*
  *  Dump routine for SI 9500
  *  Dumps from dumplo to end of memory/end of disk section for minor(dev).
- *  It uses the UNIBUS map to dump all of memory if there is a UNIBUS map
- *  and this isn't an RH70.  This depends on UNIBUS_MAP being defined.
  */
 
-#ifdef	UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
-#define DBSIZE	16			/* unit of transfer, same number */
-#endif
+#define DBSIZE	16			/* number of blocks to write */
 
 sidump(dev)
 dev_t	dev;
@@ -433,9 +413,7 @@ dev_t	dev;
 	daddr_t	bn, dumpsize;
 	long	paddr;
 	register count;
-#ifdef	UNIBUS_MAP
 	register struct ubmap *ubp;
-#endif
 	int cn, tn, sn, unit;
 
 	unit = minor(dev) >> 3;
@@ -451,9 +429,7 @@ dev_t	dev;
 	 * reset the 9500
 	 */
 	siaddr->sicnr = SI_RESET;
-#ifdef	UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -466,11 +442,7 @@ dev_t	dev;
 		siaddr->sipcr = (unit << 10) | cn;
 		siaddr->sihsr = (tn << 5) + sn;
 		siaddr->siwcr = count << (PGSHIFT-1);
-#ifdef	UNIBUS_MAP
-		/*
-		 *  If UNIBUS_MAP exists, use
-		 *  the map.
-		 */
+
 		if (ubmap) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
@@ -478,11 +450,7 @@ dev_t	dev;
 			siaddr->sicnr = SI_WRITE | SI_GO;
 		}
 		else
-#endif
 			{
-			/*
-			 *  Non-UNIBUS map.
-			 */
 			siaddr->simar = loint(paddr);
 			siaddr->sicnr = SI_WRITE|SI_GO|((paddr >> 8)&(03 << 4));
 		}
@@ -510,10 +478,14 @@ getsi()
 	}
 }
 
-donesi()
-{
-	register struct sidevice *siaddr = SIADDR;
+/*
+ * Simple minded but effective. Likely none of these are still around or in use.
+*/
+daddr_t
+sisize(dev)
+	dev_t	dev;
+	{
 
-	siaddr->siscr = 0;
-}
+	return(rm5_sizes[dev & 07].nblocks);
+	}
 #endif NSI

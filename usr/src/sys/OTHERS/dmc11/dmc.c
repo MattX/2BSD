@@ -166,8 +166,9 @@ dev_t dev;
         dp->state = 0;
 }
 
-dmcread(dev)
+dmcread(dev, uio)
 dev_t dev;
+struct uio *uio;
 {
         register struct buf *dp;
         register struct buf *bp, *pbp;
@@ -177,7 +178,7 @@ dev_t dev;
         dp = &dmcutab[unit];
 
         if ((!(dp->state & OPEN))       /* last read after NETCLOSE */
-            || (u.u_count < bp->b_bcount)) {
+            || (uio->uio_resid < bp->b_bcount)) {
                 u.u_error = EINVAL;
                 return;
         }
@@ -199,7 +200,7 @@ dev_t dev;
         (void) _spl0();
 
         if (bp->b_bcount > 0) {
-                iomove(mapin(bp), bp->b_bcount, B_READ);
+                uiomove(mapin(bp), bp->b_bcount, B_READ, uio);
                 mapout(bp);
         }
         dp->inbufq = bp->inbufq;
@@ -210,8 +211,9 @@ dev_t dev;
         dmcitrans(unit,BACC | RFLAG, bp->b_un.b_addr, bp->xcnt);
 }
 
-dmcwrite(dev)
+dmcwrite(dev, uio)
 dev_t dev;
+struct uio *uio;
 {
         register struct buf *bp, *dp, *pbp;
         register int unit;
@@ -219,7 +221,7 @@ dev_t dev;
         if (chkphys(BYTE))
                 return;
         unit = minor(dev);
-        if (u.u_count > BUFSIZ) {
+        if (uio->uio_resid > BUFSIZ) {
                 u.u_error = EINVAL;
                 return;
         }
@@ -261,7 +263,7 @@ dev_t dev;
         dmcitrans(unit, BACC|TFLAG, bp->b_un.b_addr,
                 ((unsigned)bp->b_xmem<<EXTSHFT)|bp->b_bcount);
         iowait(bp);
-        u.u_count = 0;
+        uio->uio_resid = 0;
         bp->b_flags = 0;
         u.u_procp->p_flag &= ~SLOCK;
         bp->tbufq = dp->tbufq;

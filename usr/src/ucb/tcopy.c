@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1985 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)tcopy.c	1.2 (Berkeley) 12/11/85";
-#endif not lint
+static char sccsid[] = "@(#)tcopy.c	1.3 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <stdio.h>
 #include <signal.h>
@@ -21,7 +19,7 @@ static char sccsid[] = "@(#)tcopy.c	1.2 (Berkeley) 12/11/85";
 #include <sys/ioctl.h>
 #include <sys/mtio.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define SIZE	((unsigned)32 * 1024)
 #else
 #define SIZE	(64 * 1024)
@@ -44,7 +42,7 @@ char **argv;
 	register n, nw, inp, outp;
 	struct mtop op;
 
-	if (argc <=1 || argc >= 3) {
+	if (argc <=1 || argc > 3) {
 		fprintf(stderr, "Usage: tcopy src [dest]\n");
 		exit(1);
 	}

@@ -1,5 +1,5 @@
 /*
- * @(#)local.h	3.4 4/24/85
+ * @(#)local.h	3.5 1/1/94
  */
 
 /*
@@ -14,7 +14,7 @@
 
 #define RUNCOM		".windowrc"
 #define ESCAPEC		ctrl(p)
-#ifdef BSD2_10
+#ifdef pdp11
 #define NLINE		3			/* default text buffer size */
 #else
 #define NLINE		48			/* default text buffer size */

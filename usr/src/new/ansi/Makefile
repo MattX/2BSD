@@ -28,8 +28,8 @@ vmsprep: vmsprep.c
 install: vmsprep ansitape ${MOBJ}
 	install -s ansitape ${DESTDIR}/usr/new/ansitape
 	install -s vmsprep ${DESTDIR}/usr/new/vmsprep
-	install -c -m 444 ansitape.0 ${DESTDIR}/usr/new/man/cat1/ansitape.0
-	install -c -m 444 vmsprep.0 ${DESTDIR}/usr/new/man/cat1/vmsprep.0
+	install -m 444 -o bin -g bin ansitape.0 ${DESTDIR}/usr/new/man/cat1
+	install -m 444 -o bin -g bin vmsprep.0 ${DESTDIR}/usr/new/man/cat1
 
 clean:
 	rm -f a.out core errs makefile.bak Makefile.bak ansitape vmsprep *.0

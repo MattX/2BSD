@@ -4,28 +4,18 @@
  * specifies the terms and conditions for redistribution.
  */
 
-/*
- * Modified January 1988 by Joel A. Mussman to be compatible with
- * either 4.3BSD or 2.10BSD systems
- */
-
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)vmstat.c	5.4 (Berkeley) 5/17/86";
-#endif not lint
+static char sccsid[] = "@(#)vmstat.c	5.4.1 (2.11BSD GTE) 12/31/93";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
 #include <nlist.h>
 
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/vm.h>
@@ -34,7 +24,7 @@ static char sccsid[] = "@(#)vmstat.c	5.4 (Berkeley) 5/17/86";
 #include <sys/dir.h>
 #include <sys/inode.h>
 #include <sys/namei.h>
-#ifdef BSD2_10
+#ifdef pdp11
 #include <machine/machparam.h>
 #include <sys/text.h>
 #endif
@@ -57,11 +47,7 @@ struct nlist nl[] = {
 #define	X_MAXFREE	7
 	{ "_maxfree" },
 #define	X_BOOTTIME	8
-#ifdef BSD2_10
-	{ "_boottim" },
-#else
 	{ "_boottime" },
-#endif
 #define	X_DKXFER	9
 	{ "_dk_xfer" },
 #define X_REC		10
@@ -86,7 +72,7 @@ struct nlist nl[] = {
 	{ "_dk_ndrive" },
 #define	X_XSTATS	20
 	{ "_xstats" },
-#ifdef BSD2_10
+#ifdef pdp11
 #define	X_DK_NAME	21
 	{ "_dk_name" },
 #define	X_DK_UNIT	22
@@ -94,17 +80,15 @@ struct nlist nl[] = {
 #define X_FREEMEM	23
 	{ "_freemem" },
 #else
-#ifdef vax
 #define X_MBDINIT	21
 	{ "_mbdinit" },
 #define X_UBDINIT	22
 	{ "_ubdinit" },
 #endif
-#endif
 	{ "" },
 };
 
-#ifdef BSD2_10
+#ifdef pdp11
 char	**dk_name;
 int	*dk_unit;
 struct	xstats	pxstats, cxstats;
@@ -115,14 +99,10 @@ char	**dr_name;
 int	*dr_select;
 int	dk_ndrive;
 int	ndrives = 0;
-#ifdef BSD2_10
+#ifdef pdp11
 char	*defdrives[] = { "rp0", 0 };
 #else
-#ifdef vax
 char	*defdrives[] = { "hp0", "hp1", "hp2",  0 };
-#else
-char	*defdrives[] = { 0 };
-#endif
 #endif
 double	stat1();
 int	firstfree, maxfree;
@@ -138,7 +118,7 @@ struct {
 	int	busy;
 	long	time[CPUSTATES];
 	long	*xfer;
-#ifdef BSD2_10
+#ifdef pdp11
 	struct	vmrate Rate;
 	struct	vmtotal	Total;
 	struct	vmsum Sum;
@@ -156,7 +136,7 @@ struct {
 #define	sum		s.Sum
 #define	forkstat	s.Forkstat
 
-#ifdef BSD2_10
+#ifdef pdp11
 struct	vmsum osum;
 #else
 struct	vmmeter osum;
@@ -218,7 +198,7 @@ main(argc, argv)
 		case 'i':
 			iflag++;
 			break;
-#ifdef BSD2_10
+#ifdef pdp11
 		case 'p':
 			flag29++;
 			break;
@@ -230,7 +210,7 @@ main(argc, argv)
 			exit(1);
 		}
 	}
-#ifndef BSD2_10
+#ifndef pdp11
 	lseek(mf, (long)nl[X_FIRSTFREE].n_value, L_SET);
 	read(mf, &firstfree, sizeof firstfree);
 	lseek(mf, (long)nl[X_MAXFREE].n_value, L_SET);
@@ -313,7 +293,7 @@ main(argc, argv)
 		dr_select[i] = 1;
 		ndrives++;
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	/* handle initial retrieval of the xstats structure */
 	lseek(mf, (long)nl[X_XSTATS].n_value, L_SET);
 	read(mf, &cxstats, sizeof(cxstats));
@@ -328,7 +308,7 @@ loop:
  	read(mf, s.time, sizeof s.time);
 	lseek(mf, (long)nl[X_DKXFER].n_value, L_SET);
 	read(mf, s.xfer, dk_ndrive * sizeof (long));
-#ifdef BSD2_10
+#ifdef pdp11
 	/*
 	 * This would be a whole lot easier if the variables in each
 	 * were all longs...
@@ -386,7 +366,7 @@ loop:
 	}
 	if(etime == 0.)
 		etime = 1.;
-#ifdef BSD2_10
+#ifdef pdp11
 	printf("%2d%2d%2d", total.t_rq, total.t_dw, total.t_sw);
 	/*
 	 * We don't use total.t_free because it slops around too much
@@ -402,7 +382,7 @@ loop:
 #define pgtok(a) ((a)*NBPG/1024)
 	printf("%6d%6d", pgtok(total.t_avm), pgtok(total.t_free));
 #endif
-#ifdef BSD2_10
+#ifdef pdp11
 	if (flag29)
 		printf("%4D%3D  ", rate.v_swpin / nintv, rate.v_swpout / nintv);
 	else {
@@ -426,7 +406,7 @@ loop:
 	for (i = 0; i < dk_ndrive; i++)
 		if (dr_select[i])
 			stats(i);
-#ifdef BSD2_10
+#ifdef pdp11
 	if (flag29)
 		printf("%4D%4D%4D%4D%4D%4D",
 		    rate.v_pdma / nintv, INTS(rate.v_intr / nintv),
@@ -438,7 +418,7 @@ loop:
 	    rate.v_swtch/nintv);
 	for(i=0; i<CPUSTATES; i++) {
 		float f = stat1(i);
-#ifdef BSD2_10
+#ifdef pdp11
 		if (!flag29)
 #endif
 		if (i == 0) {		/* US+NI */
@@ -460,7 +440,7 @@ printhdr()
 {
 	register int i, j;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	if (flag29)
 	    printf(" procs       memory      swap      ");
 	else
@@ -477,7 +457,7 @@ printhdr()
 	i = ndrives * 3 - 6 - i;
 	for (j = 0; j < i; j++)
 		putchar(' ');
-#ifdef BSD2_10
+#ifdef pdp11
 	if (flag29) {
 		printf("              cpu\n");
 		printf(" r b w   avm  tx   fre   i  o   ");
@@ -493,7 +473,7 @@ printhdr()
 	for (i = 0; i < dk_ndrive; i++)
 		if (dr_select[i])
 			printf("%c%c ", dr_name[i][0], dr_name[i][2]);	
-#ifdef BSD2_10
+#ifdef pdp11
 	if (flag29)
 	    printf(" pd  in  sy  tr  ov  cs us ni sy id\n");
 	else
@@ -504,7 +484,7 @@ printhdr()
 
 dotimes()
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	printf("page in/out/reclamation is not applicable to 2.10BSD\n");
 #else
 	lseek(mf, (long)nl[X_REC].n_value, L_SET);
@@ -523,10 +503,8 @@ dotimes()
 
 dosum()
 {
-#ifndef BSD2_10
 	struct nchstats nchstats;
 	long nchtotal;
-#endif
 	struct xstats  xstats;
 
 	lseek(mf, (long)nl[X_SUM].n_value, L_SET);
@@ -535,12 +513,12 @@ dosum()
 	printf("%9D swap outs\n", sum.v_swpout);
 	printf("%9D pages swapped in\n", sum.v_pswpin / CLSIZE);
 	printf("%9D pages swapped out\n", sum.v_pswpout / CLSIZE);
-#ifndef BSD2_10
+#ifndef pdp11
 	printf("%9D total address trans. faults taken\n", sum.v_faults);
 #endif
 	printf("%9D page ins\n", sum.v_pgin);
 	printf("%9D page outs\n", sum.v_pgout);
-#ifndef BSD2_10
+#ifndef pdp11
 	printf("%9D pages paged in\n", sum.v_pgpgin);
 	printf("%9D pages paged out\n", sum.v_pgpgout);
 	printf("%9D sequential process pages freed\n", sum.v_seqfree);
@@ -563,16 +541,15 @@ dosum()
 	printf("%9D cpu context switches\n", sum.v_swtch);
 	printf("%9D device interrupts\n", sum.v_intr);
 	printf("%9D software interrupts\n", sum.v_soft);
-#if defined(vax) || defined(pdp)
+#if defined(vax) || defined(pdp11)
 	printf("%9D pseudo-dma dz interrupts\n", sum.v_pdma);
 #endif
 	printf("%9D traps\n", sum.v_trap);
-#ifdef BSD2_10
+#ifdef pdp11
 	printf("%9D overlay emts\n", sum.v_ovly);
 #endif
 	printf("%9D system calls\n", sum.v_syscall);
 #define	nz(x)	((x) ? (x) : 1)
-#ifndef BSD2_10
 	lseek(mf, (long)nl[X_NCHSTATS].n_value, 0);
 	read(mf, &nchstats, sizeof nchstats);
 	nchtotal = nchstats.ncs_goodhits + nchstats.ncs_badhits +
@@ -583,19 +560,18 @@ dosum()
 	    nchstats.ncs_pass2 * 100 / nz(nchtotal));
 	printf("%9s badhits %D, falsehits %D, toolong %D\n", "",
 	    nchstats.ncs_badhits, nchstats.ncs_falsehits, nchstats.ncs_long);
-#endif
 	lseek(mf, (long)nl[X_XSTATS].n_value, 0);
 	read(mf, &xstats, sizeof xstats);
 	printf("%9D total calls to xalloc (cache hits %D%%)\n",
 	    xstats.alloc, xstats.alloc_cachehit * 100 / nz(xstats.alloc));
-	printf("%9s sticky %d flushed %d unused %d\n", "",
+	printf("%9s sticky %ld flushed %ld unused %ld\n", "",
 	    xstats.alloc_inuse, xstats.alloc_cacheflush, xstats.alloc_unused);
 	printf("%9D total calls to xfree", xstats.free);
 	printf(" (sticky %D cached %D swapped %D)\n",
 	    xstats.free_inuse, xstats.free_cache, xstats.free_cacheswap);
 }
 
-#ifdef BSD2_10
+#ifdef pdp11
 char Pages[] = "clicks";
 #else
 char Pages[] = "pages";
@@ -640,7 +616,7 @@ stat1(row)
 dointr(nintv)
 	long nintv;
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	printf("Device interrupt statistics are not applicable to 2.10BSD\n");
 #else
 	int nintr, inttotal;
@@ -685,7 +661,7 @@ dointr(nintv)
 
 read_names()
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	char two_char[2];
 	register int i;
 
@@ -739,5 +715,5 @@ read_names()
 		    cp[0], cp[1], udev.ui_unit);
 	}
 #endif vax
-#endif /* BSD2_10 */
+#endif /* pdp11 */
 }

@@ -47,8 +47,8 @@ clean: FRC
 depend: ${SRCS} FRC
 	mkdep ${CFLAGS} ${SRCS}
 
-install: FRC
-	install -s -o bin -g bin -m 755 nroff ${DESTDIR}/usr/bin/nroff
+install: nroff
+	install -s -o bin -g bin -m 751 nroff ${DESTDIR}/usr/bin/nroff
 
 lint: ${SRCS} FRC
 	lint ${CFLAGS} ${SRCS}

@@ -20,7 +20,7 @@ JUNKFILES=	battlestar tags
 DIR=		$(DESTDIR)/usr/games
 LIB=		$(DESTDIR)/usr/games/lib
 LOGFILE=	$(LIB)/battlestar.log
-MAN=		$(DESTDIR)/usr/man/man6/battlestar.6
+MAN=		batlestar.0
 
 battlestar: $(OBJS)
 	cc -o battlestar ${SEPFLAG} $(OBJS) $(LIBS)
@@ -58,6 +58,7 @@ lint: $(CFILES)
 
 install: battlestar $(MAN) $(LOGFILE) $(STRINGFILE)
 	install -s battlestar $(DIR)/battlestar
+	install -m 444 -o bin -g bin  battlestar.0 ${DESTDIR}/usr/man/cat6
 
 stringfile $(STRINGFILE): battle_strings
 	install -c -m 644 battle_strings $(LIB)
@@ -66,8 +67,8 @@ logfile $(LOGFILE):
 	cp /dev/null $(LOGFILE)
 	chmod 666 $(LOGFILE)
 
-man $(MAN):
-	install -c battlestar.6 $(MAN)
+man $(MAN): battlestar.6
+	/usr/man/manroff battlestar.6 > battlestar.0
 
 clean:
-	rm -f $(OBJS) $(JUNKFILES) xx* mkstr battle_strings core a.out
+	rm -f $(OBJS) $(JUNKFILES) xx* mkstr battle_strings core a.out ${MAN}

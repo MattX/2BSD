@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)read_nlist.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)read_nlist.c	2.2 (2.11BSD GTE) 1/10/94
  */
 
 /*
@@ -19,20 +19,22 @@
 #include <stdio.h>
 #include "dtab.h"
 
-extern char	*nlist_name;	/* file we read the namelist from */
+extern	char	*strdup();
+extern	char	*nlist_name;	/* file we read the namelist from */
 extern int	guess_ndev;	/* number of lines read from dtab */
 extern int	debug;
 extern int	kmem;
 extern int	pflag;
 NLIST	*nl, *np, *int_nl, *good_nl, *bad_nl, *trap_nl, *sep_nl, *vers_nl,
-	*add_nlist(), *end_vector;
+	*add_nlist(), *end_vector, *next_nl;
 
 #define END_NAME	"endvec"
+#define	NEXTIV_NAME	"_nextiv"	/* floating vector allocator */
 #define INT_NAME	"_conf_int"
 #define GOOD_NAME	"CGOOD"
 #define BAD_NAME	"CBAD"
 #define TRAP_NAME	"trap"
-#define SEPID_NAME	"KERN_NONS"	/* KERN_NONSEP */
+#define SEPID_NAME	"KERN_NONSEP"	/* KERN_NONSEP */
 #define VERSION		"_version"
 
 read_nlist()
@@ -53,37 +55,42 @@ read_nlist()
 		*calloc();
 	NLIST	*add_nlist();
 
-	np = nl = (NLIST *)calloc(guess_ndev + 8,sizeof(NLIST));
+	np = nl = (NLIST *)calloc(guess_ndev + 10,sizeof(NLIST));
 	for (dp = devs; dp != NULL; dp = dp->dt_next) {
 		sprintf(tname, "_%sprobe", dp->dt_name);
 		dp->dt_probe = add_nlist(tname);
 		sprintf(tname, "_%sattach", dp->dt_name);
 		dp->dt_attach = add_nlist(tname);
+		sprintf(tname, "_%sVec", dp->dt_name);
+		dp->dt_setvec = add_nlist(tname);
 		for (sp = dp->dt_handlers;sp;sp = sp->s_next)
 			sp->s_nl = add_nlist(sp->s_str);
 	}
 	end_vector = np++;
-	strncpy(end_vector->n_name,END_NAME,sizeof(end_vector->n_name));
+	end_vector->n_un.n_name = END_NAME;
 	int_nl = np++;
-	strncpy(int_nl->n_name,INT_NAME,sizeof(int_nl->n_name));
+	int_nl->n_un.n_name = INT_NAME;
 	good_nl = np++;
-	strncpy(good_nl->n_name,GOOD_NAME,sizeof(good_nl->n_name));
+	good_nl->n_un.n_name = GOOD_NAME;
 	bad_nl = np++;
-	strncpy(bad_nl->n_name,BAD_NAME,sizeof(bad_nl->n_name));
+	bad_nl->n_un.n_name = BAD_NAME;
+	next_nl = np++;
+	next_nl->n_un.n_name = NEXTIV_NAME;
 	trap_nl = np++;
-	strncpy(trap_nl->n_name,TRAP_NAME,sizeof(trap_nl->n_name));
+	trap_nl->n_un.n_name = TRAP_NAME;
 	vers_nl = np++;
-	strncpy(vers_nl->n_name,VERSION,sizeof(vers_nl->n_name));
+	vers_nl->n_un.n_name = VERSION;
 	sep_nl = np++;
-	strncpy(sep_nl->n_name,SEPID_NAME,sizeof(sep_nl->n_name));
+	sep_nl->n_un.n_name = SEPID_NAME;
+
 	if ((unix_fd = open(nlist_name,O_RDONLY)) < 0) {
 		perror(nlist_name);
 		exit(AC_SETUP);
 	}
 	nlist(nlist_name,nl);
 	if (debug || pflag)
-		for (np = nl; *np->n_name; np++)
-			printf("%.8s = %o\n", np->n_name, np->n_value);
+		for (np = nl; np->n_un.n_name; np++)
+			printf("%s = %o\n", np->n_un.n_name, np->n_value);
 	for (np = end_vector; np <= trap_nl; np++)
 		if (!np->n_value) {
 			fprintf(stderr,"%s: couldn't find symbols in %s.\n",myname,nlist_name);
@@ -128,8 +135,8 @@ char	*name;
 	register NLIST	*n;
 
 	for (n = nl;n < np;++n)
-		if (!strncmp(n->n_name,name,sizeof(n->n_name)))
+		if (!strcmp(n->n_un.n_name, name))
 			return(n);
-	strncpy(np->n_name,name,sizeof(n->n_name));
+	np->n_un.n_name = strdup(name);
 	return(np++);
 }

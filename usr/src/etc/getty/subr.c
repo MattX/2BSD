@@ -431,14 +431,14 @@ portselector()
 char *
 autobaud()
 {
-	int rfds;
+	long rfds;
 	struct timeval timeout;
-	char c, *type = "9600-baud";
+	char c, *type = "1200-baud";
 	int null = 0;
 
 	ioctl(0, TIOCFLUSH, &null);
 	rfds = 1 << 0;
-	timeout.tv_sec = 5;
+	timeout.tv_sec = 30;
 	timeout.tv_usec = 0;
 	if (select(32, &rfds, (int *)0, (int *)0, &timeout) <= 0)
 		return (type);

@@ -1,18 +1,29 @@
 /*
- * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1985, 1989 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && !defined(pdp11)
 char copyright[] =
-"@(#) Copyright (c) 1985 Regents of the University of California.\n\
+"@(#) Copyright (c) 1985, 1989 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.6 (Berkeley) 3/7/86";
-#endif not lint
+#if	!defined(lint) && !defined(pdp11)
+static char sccsid[] = "@(#)main.c	based on 5.13 (Berkeley) 3/14/89";
+#endif /* not lint */
 
 /*
  * FTP User Program -- Command Interface.
@@ -31,6 +42,10 @@ static char sccsid[] = "@(#)main.c	5.6 (Berkeley) 3/7/86";
 #include <netdb.h>
 #include <pwd.h>
 
+
+#if defined(sun) && !defined(FD_SET)
+typedef int uid_t;
+#endif
 
 uid_t	getuid();
 int	intr();
@@ -190,11 +205,6 @@ tail(filename)
 	return (filename);
 }
 */
-
-#ifdef BSD2_10
-extern struct cmd cmdtab[];
-#endif
-
 /*
  * Command parser.
  */
@@ -203,7 +213,6 @@ cmdscanner(top)
 {
 	register struct cmd *c;
 	struct cmd *getcmd();
-	extern struct cmd cmdtab[];
 	extern int help();
 
 	if (!top)
@@ -214,7 +223,7 @@ cmdscanner(top)
 			(void) fflush(stdout);
 		}
 		if (gets(line) == 0) {
-			if (feof(stdin))
+			if (feof(stdin) || ferror(stdin))
 				quit();
 			break;
 		}
@@ -239,7 +248,7 @@ cmdscanner(top)
 		}
 		(*c->c_handler)(margc, margv);
 		if (bell && c->c_bell)
-			(void) putchar(CTRL(g));
+			(void) putchar('\007');
 		if (c->c_handler != help)
 			break;
 	}
@@ -251,6 +260,7 @@ struct cmd *
 getcmd(name)
 	register char *name;
 {
+	extern struct cmd cmdtab[];
 	register char *p, *q;
 	register struct cmd *c, *found;
 	register int nmatches, longest;
@@ -315,7 +325,7 @@ slurpstring()
 				slrflag++;
 				stringbase++;
 				return ((*sb == '!') ? "!" : "$");
-				break;
+				/* NOTREACHED */
 			case 1:
 				slrflag++;
 				altarg = stringbase;
@@ -429,6 +439,7 @@ help(argc, argv)
 	int argc;
 	char *argv[];
 {
+	extern struct cmd cmdtab[];
 	register struct cmd *c;
 
 	if (argc == 1) {
@@ -484,20 +495,4 @@ help(argc, argv)
 			printf("%-*s\t%s\n", HELPINDENT,
 				c->c_name, c->c_help);
 	}
-}
-
-/*
- * Call routine with argc, argv set from args (terminated by 0).
- */
-/*VARARGS1*/
-call(routine, args)
-	int (*routine)();
-	int args;
-{
-	register int *argp;
-	register int argc;
-
-	for (argc = 0, argp = &args; *argp++ != 0; argc++)
-		;
-	(*routine)(argc, &args);
 }

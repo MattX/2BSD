@@ -8,6 +8,7 @@
 
 #include "EXTERN.h"
 #include "common.h"
+#include "server.h"
 #include "INTERN.h"
 #include "artio.h"
 
@@ -23,7 +24,16 @@ FILE *
 artopen(artnum)
 ART_NUM artnum;
 {
-    char artname[8];			/* filename of current article */
+#ifdef SERVER
+    static long our_pid;
+    char ser_line[256];
+#endif SERVER
+    char artname[32];			/* filename of current article */
+
+#ifdef SERVER
+    if (our_pid == 0)
+	our_pid = getpid();
+#endif SERVER
 
     if (artnum < 1)
 	return Nullfp;
@@ -33,12 +43,56 @@ ART_NUM artnum;
     }
     if (artfp != Nullfp) {		/* it was somebody else? */
 	fclose(artfp);			/* put them out of their misery */
+#ifdef SERVER
+	sprintf(artname, "/tmp/rrn%ld.%ld", (long) openart, our_pid);
+	UNLINK(artname);
+#endif SERVER
 	openart = 0;			/* and remember them no more */
     }
+
+#ifdef SERVER
+
+    sprintf(artname,"/tmp/rrn%ld.%ld", (long) artnum, our_pid);
+    artfp = fopen(artname, "w+");	/* create the temporary article */
+    if (artfp == Nullfp) {
+	UNLINK(artname);
+	return Nullfp;
+    }
+    sprintf(ser_line, "ARTICLE %ld", (long)artnum);
+    put_server(ser_line);		/* ask the server for the article */
+    if (get_server(ser_line, sizeof(ser_line)) < 0) {
+	fprintf(stderr, "rrn: Unexpected close of server socket.\n");
+	finalize(1);
+    }
+    if (*ser_line != CHAR_OK) {		/* and get it's reaction */
+	fclose(artfp);
+	artfp = Nullfp;
+	UNLINK(artname);
+        return Nullfp;
+    }
+
+    for (;;) {
+        if (get_server(ser_line, sizeof(ser_line)) < 0) {
+	    fprintf(stderr, "rrn: Unexpected close of server socket.\n");
+	    finalize(1);
+	}
+	if (ser_line[0] == '.' && ser_line[1] == '\0')
+		break;
+	fputs((ser_line[0] == '.' ? ser_line + 1 : ser_line), artfp);
+	putc('\n', artfp);
+    }
+
+    fseek(artfp, 0L, 0);		/* Then get back to the start */
+    openart = artnum;
+
+#else not SERVER
+
     sprintf(artname,"%ld",(long)artnum);
 					/* produce the name of the article */
     if (artfp = fopen(artname,"r"))	/* if we can open it */
 	openart = artnum;		/* remember what we did here */
+
+#endif SERVER
 #ifdef LINKART
     {
 	char tmpbuf[256];

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_descrip.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_descrip.c	1.2 (2.11BSD GTE) 12/24/92
  */
 
 #include "param.h"
@@ -15,7 +15,7 @@
 #include "ioctl.h"
 #include "stat.h"
 #include "conf.h"
-#ifdef UCB_NET
+#ifdef INET
 #include "socket.h"
 #include "socketvar.h"
 #endif
@@ -76,7 +76,7 @@ dup2()
 	if (uap->i == uap->j)
 		return;
 	if (u.u_ofile[uap->j]) {
-		closef(u.u_ofile[uap->j],0);
+		closef(u.u_ofile[uap->j]);
 		if (u.u_error)
 			return;
 	}
@@ -162,7 +162,7 @@ fcntl()
 }
 
 fset(fp, bit, value)
-	struct file *fp;
+register struct file *fp;
 	int bit, value;
 {
 
@@ -171,7 +171,7 @@ fset(fp, bit, value)
 	else
 		fp->f_flag &= ~bit;
 	return (fioctl(fp, (u_int)(bit == FNDELAY ? FIONBIO : FIOASYNC),
-	    (caddr_t)&value));
+			(caddr_t)&value));
 }
 
 fgetown(fp, valuep)
@@ -180,13 +180,13 @@ fgetown(fp, valuep)
 {
 	register int error;
 
-#ifdef UCB_NET
+#ifdef INET
 	if (fp->f_type == DTYPE_SOCKET) {
 		*valuep = mfsd(&fp->f_socket->so_pgrp);
 		return (0);
 	}
 #endif
-	error = ino_ioctl(fp, (u_int)TIOCGPGRP, (caddr_t)valuep);
+	error = fioctl(fp, (u_int)TIOCGPGRP, (caddr_t)valuep);
 	*valuep = -*valuep;
 	return (error);
 }
@@ -196,7 +196,7 @@ fsetown(fp, value)
 	int value;
 {
 
-#ifdef UCB_NET
+#ifdef INET
 	if (fp->f_type == DTYPE_SOCKET) {
 		mtsd(&fp->f_socket->so_pgrp, value);
 		return (0);
@@ -209,19 +209,18 @@ fsetown(fp, value)
 		value = p->p_pgrp;
 	} else
 		value = -value;
-	return (ino_ioctl(fp, (u_int)TIOCSPGRP, (caddr_t)&value));
+	return (fioctl(fp, (u_int)TIOCSPGRP, (caddr_t)&value));
 }
 
+extern	struct	fileops	*Fops[];
+
 fioctl(fp, cmd, value)
-	struct file *fp;
+register struct file *fp;
 	int cmd;
 	caddr_t value;
 {
-#ifdef UCB_NET
-	if (fp->f_type == DTYPE_SOCKET)
-		return (SOO_IOCTL(fp, cmd, value));
-#endif
-	return (ino_ioctl(fp, cmd, value));
+
+	return ((*Fops[fp->f_type]->fo_ioctl)(fp, cmd, value));
 }
 
 close()
@@ -236,7 +235,7 @@ close()
 	u.u_ofile[i] = NULL;
 	while (u.u_lastfile >= 0 && u.u_ofile[u.u_lastfile] == NULL)
 		u.u_lastfile--;
-	closef(fp,0);
+	closef(fp);
 	/* WHAT IF u.u_error ? */
 }
 
@@ -260,7 +259,7 @@ fstat()
 			ub.st_size -= fp->f_offset;
 		break;
 
-#ifdef UCB_NET
+#ifdef INET
 	case DTYPE_SOCKET:
 		u.u_error = SOO_STAT(fp->f_socket, &ub);
 		break;
@@ -365,9 +364,8 @@ getf(f)
  * Internal form of close.
  * Decrement reference count on file structure.
  */
-closef(fp,nouser)
+closef(fp)
 	register struct file *fp;
-	int nouser;
 {
 
 	if (fp == NULL)
@@ -376,22 +374,7 @@ closef(fp,nouser)
 		fp->f_count--;
 		return;
 	}
-	switch (fp->f_type) {
-		case DTYPE_PIPE:
-		case DTYPE_INODE:
-			ino_close(fp);
-			break;
-#ifdef UCB_NET
-		case DTYPE_SOCKET:
-			u.u_error = 0;			/* XXX */
-			SOCLOSE(fp->f_socket);
-			if (nouser == 0 && u.u_error)
-				return;
-			fp->f_socket = 0;
-			u.u_error = 0;
-			break;
-#endif
-	}
+	(*Fops[fp->f_type]->fo_close)(fp);
 	fp->f_count = 0;
 }
 

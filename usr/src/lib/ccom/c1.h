@@ -6,7 +6,6 @@
 #include <setjmp.h>
 
 #define	LTYPE	long	/* change to int for no long consts */
-#define	NCPS	8	/* must match c0.h */
 #define	NULL	0
 #define	TNULL	(union tree *)NULL
 #define	UNS(x)	((unsigned short)(x))
@@ -43,7 +42,7 @@ struct	xtname {
 	char	class;
 	char	regno;
 	int	offset;
-	char	name[NCPS];
+	char	*name;
 };
 
 /*
@@ -303,6 +302,15 @@ int	xlab1, xlab2, xop, xzero;
 #define	UMOD	118
 #define	ASUDIV	119
 #define	ASUMOD	120
+#define	ULTIMES	121	/* present for symmetry */
+#define	ULDIV	122
+#define	ULMOD	123
+#define	ULASTIMES 124	/* present for symmetry */
+#define	ULASDIV	125
+#define	ULASMOD	126
+#define	ULTOF	127
+#define	ULLSHIFT 128	/* << for unsigned long */
+#define	UASLSHL	129	/* <<= for unsigned long */
 
 #define	BDATA	200
 #define	PROG	202

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)trap.c	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)trap.c	1.3 (2.11BSD GTE) 8/23/93
  */
 
 #include "param.h"
@@ -18,9 +18,9 @@
 #include "proc.h"
 #include "vm.h"
 
-extern int fpp;
+extern int fpp, kdj11;
 
-#ifdef UCB_NET
+#ifdef INET
 extern int netoff;
 #endif
 
@@ -94,14 +94,14 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 * futher traps will be handled by looping in place.
 	 */
 	if (once_thru) {
-		(void)splhigh();
+		(void) _splhigh();
 		for(;;);
 	}
 
 	if (USERMODE(ps))
 		dev |= USER;
 	else
-#ifdef UCB_NET
+#ifdef INET
 	if (SUPVMODE(ps))
 		dev |= SUPV;
 	else
@@ -109,9 +109,7 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		savemap(kernelmap);	/* guarantee normal kernel mapping */
 	syst = u.u_ru.ru_stime;
 	p = u.u_procp;
-#ifndef NONFP
 	u.u_fpsaved = 0;
-#endif
 	u.u_ar0 = &r0;
 	switch(minor(dev)) {
 
@@ -140,10 +138,8 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		printf("aps = %o\n", &ps);
 		printf("pc = %o, ps = %o\n", pc, ps);
 		printf("__ovno = %d\n", ov);
-#if PDP11 == 44 || PDP11 == 70 || PDP11 == GENERIC
 		if ((cputype == 70) || (cputype == 44))
 			printf("cpuerr = %o\n", *CPUERR);
-#endif
 		printf("trap type %o\n", dev);
 		splx(i);
 		panic("trap");
@@ -200,14 +196,13 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		i = SIGEMT;
 		break;
 
-#ifndef NONFP
 	/*
 	 * Since the floating exception is an imprecise trap, a user
 	 * generated trap may actually come from kernel mode.  In this
 	 * case, a signal is sent to the current process to be picked
 	 * up later.
 	 */
-#ifdef UCB_NET
+#ifdef INET
 	case T_ARITHTRAP+SUPV:
 #endif
 	case T_ARITHTRAP:
@@ -216,7 +211,6 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		stst(&u.u_fperr);	/* save error code and address */
 		u.u_code = pdpfec[(unsigned)u.u_fperr.f_fec & 0xf];
 		break;
-#endif
 
 	/*
 	 * If the user SP is below the stack segment, grow the stack
@@ -225,20 +219,34 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 * is not the case and the routine backup/mch.s may fail.
 	 * The classic example is on the instruction
 	 *	cmp	-(sp),-(sp)
+	 *
+	 * The KDJ-11 (11/53,73,83,84,93,94) handles the trap when doing
+	 * a double word store differently than the other pdp-11s.  When
+	 * doing:
+	 *	setl
+	 *	movfi fr0,-(sp)
+	 * and the stack segment becomes invalid part way thru then the
+	 * trap is generated (as expected) BUT 'sp' IS NOT LEFT DECREMENTED!
+	 * The 'grow' routine sees that SP is still within the (valid) stack
+	 * segment and does not extend the stack, resulting in a 'segmentation
+	 * violation' rather than a successfull floating to long store.
+	 * The "fix" is to pretend that SP is 4 bytes lower than it really
+	 * is (for KDJ-11 systems only) when calling 'grow'.
 	 */
 	case T_SEGFLT + USER:
 		{
-			caddr_t osp;
+		caddr_t osp;
 
-			osp = sp;
-			if (backup(u.u_ar0) == 0)
-				if (!u.u_onstack && grow((u_int)osp))
-					goto out;
-			i = SIGSEGV;
-			break;
+		osp = sp;
+		if (kdj11)
+			osp -= 4;
+		if (backup(u.u_ar0) == 0)
+			if (!u.u_onstack && grow((u_int)osp))
+				goto out;
+		i = SIGSEGV;
+		break;
 		}
 
-#if PDP11 == 44 || PDP11 == 70 || PDP11 == GENERIC
 	/*
 	 * The code here is a half-hearted attempt to do something with
 	 * all of the PDP11 parity registers.  In fact, there is little
@@ -246,7 +254,7 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 */
 	case T_PARITYFLT:
 	case T_PARITYFLT + USER:
-#ifdef UCB_NET
+#ifdef INET
 	case T_PARITYFLT + SUPV:
 #endif
 		printf("parity\n");
@@ -254,7 +262,7 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 			for(i = 0; i < 4; i++)
 				printf("%o ", MEMERRLO[i]);
 			printf("\n");
-			MEMERRLO[2] = -1;
+			MEMERRLO[2] = MEMERRLO[2];
 			if (dev & USER) {
 				i = SIGBUS;
 				break;
@@ -262,14 +270,13 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		}
 		panic("parity");
 		/*NOTREACHED*/
-#endif
 
 	/*
 	 * Allow process switch
 	 */
 	case T_SWITCHTRAP + USER:
 		goto out;
-#ifdef UCB_NET
+#ifdef INET
 	case T_BUSFLT+SUPV:
 	case T_INSTRAP+SUPV:
 	case T_BPTTRAP+SUPV:
@@ -282,6 +289,10 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	case T_ZEROTRAP+SUPV:
 	case T_RANDOMTRAP+SUPV:
 		i = splhigh();
+		if (!netoff) {
+			netoff = 1;
+			savestate();
+		}
 		printf("Unexpected net code trap (%o)\n", dev-SUPV);
 		printf("ka6 = %o\n", *ka6);
 		printf("aps = %o\n", &ps);
@@ -317,17 +328,13 @@ out:
 	curpri = setpri(p);
 	if (runrun) {
 		setrq(u.u_procp);
-#ifdef UCB_RUSAGE
 		u.u_ru.ru_nivcsw++;
-#endif
 		swtch();
 	}
 	if (u.u_prof.pr_scale)
 		addupc(pc, &u.u_prof, (int) (u.u_ru.ru_stime - syst));
-#ifndef NONFP
 	if (u.u_fpsaved)
 		restfp(&u.u_fps);
-#endif
 }
 
 /*
@@ -351,12 +358,8 @@ syscall(dev, sp, r1, ov, nps, r0, pc, ps)
 	cnt.v_syscall++;
 #endif
 
-	if (!USERMODE(ps))
-		panic("syscall");
 	syst = u.u_ru.ru_stime;
-#ifndef NONFP
 	u.u_fpsaved = 0;
-#endif
 	u.u_ar0 = &r0;
 	u.u_error = 0;
 	opc = pc - 2;			/* opc now points at syscall */
@@ -398,17 +401,13 @@ syscall(dev, sp, r1, ov, nps, r0, pc, ps)
 	curpri = setpri(u.u_procp);
 	if (runrun) {
 		setrq(u.u_procp);
-#ifdef UCB_RUSAGE
 		u.u_ru.ru_nivcsw++;
-#endif
 		swtch();
 	}
 	if (u.u_prof.pr_scale)
 		addupc(pc, &u.u_prof, (int)(u.u_ru.ru_stime - syst));
-#ifndef NONFP
 	if (u.u_fpsaved)
 		restfp(&u.u_fps);
-#endif
 }
 
 /*

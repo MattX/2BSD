@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dh.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dh.c	1.2 (2.10.1BSD Berkeley) 8/25/89
  */
 
 /*
@@ -30,6 +30,7 @@
 #include "systm.h"
 #include "vm.h"
 #include "kernel.h"
+#include "syslog.h"
 #include "proc.h"
 
 int	dhtimer();
@@ -63,7 +64,7 @@ int	dhlowrate = 75;			/* silo off if dhrate < dhlowrate */
 static short timerstarted;
 int	dhstart(), ttrstrt();
 
-#if defined(UNIBUS_MAP) || defined(UCB_CLIST)
+#if defined(UCB_CLIST)
 extern	ubadr_t	clstaddr;
 #define	cpaddr(x)	(clstaddr + (ubadr_t)((x) - (char *)cfree))
 #else
@@ -191,20 +192,22 @@ dhclose(dev, flag)
 	ttyclose(tp);
 }
 
-dhread(dev)
+dhread(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	register struct tty *tp = &dh11[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp));
+	return ((*linesw[tp->t_line].l_read)(tp, uio));
 }
 
-dhwrite(dev)
+dhwrite(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	register struct tty *tp = &dh11[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp));
+	return ((*linesw[tp->t_line].l_write)(tp, uio));
 }
 
 /*
@@ -244,7 +247,7 @@ dhrint(dh)
 			 || (tp->t_flags & (EVENP|ODDP)) == ODDP)
 				continue;
 		if ((c & DH_DO) && overrun == 0) {
-			printf("dh%d: silo overflow\n", dh);
+			log(LOG_WARNING, "dh%d: silo overflow\n", dh);
 			overrun = 1;
 		}
 		if (c & DH_FE)
@@ -256,7 +259,11 @@ dhrint(dh)
 			if (tp->t_flags & RAW)
 				c = 0;
 			else
+#ifdef	OLDWAY
 				c = tp->t_intrc;
+#else
+				c = tp->t_brkc;	/* why have brkc if not used? */
+#endif
 #if NBK > 0
 		if (tp->t_line == NETLDISC) {
 			c &= 0177;
@@ -369,6 +376,8 @@ dhxint(dh)
 	struct uba_device *ui;
 	register int unit;
 	u_short cntr;
+	ubadr_t car;
+	struct dmdevice *dmaddr;
 
 	ui = &dhinfo[dh];
 	addr = (struct dhdevice *)ui->ui_addr;
@@ -390,7 +399,6 @@ dhxint(dh)
 				tp->t_state &= ~TS_FLUSH;
 			else {
 				addr->un.dhcsrl = (unit&017)|DH_IE;
-#if !defined(UCB_CLIST) || defined(UNIBUS_MAP)
 				/*
 				 * Clists are either:
 				 *	1)  in kernel virtual space,
@@ -400,18 +408,18 @@ dhxint(dh)
 				 *
 				 * In either case, the extension bits are 0.
 				 */
-				cntr = (caddr_t)addr->dhcar - cpaddr(tp->t_outq.c_cf);
-				ndflush(&tp->t_outq, (int)cntr);
-#else
-				{
-				ubadr_t car;
+				car = (caddr_t)addr->dhcar;
+				if (!ubmap) {
+#if defined(CS02)
+					dmaddr = (struct dmdevice *)dminfo[dh].ui_addr;
 
-				car = (ubadr_t) addr->dhcar
-				    | (ubadr_t)(addr->dhsilo & 0300) << 10;
-				cntr = car - cpaddr(tp->t_outq.c_cf);
-				ndflush(&tp->t_outq, cntr);
-				}
+					car |= ((ubadr_t)(dmaddr->dmlst_h&077) << 16);
+#else
+					car |= (ubadr_t)((addr->dhsilo & 0300) << 10);
 #endif
+				}
+			cntr = car - cpaddr(tp->t_outq.c_cf);
+			ndflush(&tp->t_outq, cntr);
 			}
 			if (tp->t_line)
 				(*linesw[tp->t_line].l_start)(tp);
@@ -429,7 +437,9 @@ dhstart(tp)
 {
 	register struct dhdevice *addr;
 	register int dh, unit, nch;
-	int s;
+	int s, csrl;
+	ubadr_t uba;
+	struct dmdevice *dmaddr;
 
 	unit = UNIT(tp->t_dev);
 	dh = unit >> 4;
@@ -485,16 +495,21 @@ dhstart(tp)
 	 * If characters to transmit, restart transmission.
 	 */
 	if (nch) {
-#if !defined(UCB_CLIST) || defined (UNIBUS_MAP)
-		addr->un.dhcsrl = (char)((unit&017)|DH_IE);
-		addr->dhcar = (u_short)cpaddr(tp->t_outq.c_cf);
-#else
-		ubadr_t uba;
-
 		uba = cpaddr(tp->t_outq.c_cf);
-		addr->un.dhcsrl = (unit&017) | DH_IE | ((hiint(uba)<<4)&060);
-		addr->dhcar = loint(uba);
+		csrl = (unit&017) | DH_IE;
+		if (ubmap)
+			addr->un.dhcsrl = (char)csrl;
+		else {
+#if defined(CS02)
+			dmaddr = (struct dmdevice *)dminfo[dh].ui_addr;
+			addr->un.dhcsrl = csrl;
+			dmaddr->dmlst_h = hiint(uba) & 077;
+#else
+			addr->un.dhcsrl = csrl | DH_IE | ((hiint(uba)<<4)&060);
 #endif
+		}
+		addr->dhcar = loint(uba);
+
 		{ short word = 1 << unit;
 		dhsar[dh] |= word;
 		addr->dhbcr = -nch;

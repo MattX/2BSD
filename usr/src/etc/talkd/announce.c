@@ -4,12 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)announce.c	5.3 (Berkeley) 3/13/86";
-#endif not lint
-
-#ifdef BSD2_10
-#include "shortnames.h"
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)announce.c	5.3.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #include <sys/types.h>

@@ -4,21 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)arc.c	5.2 (Berkeley) 4/30/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)arc.c	5.2.1 (2.11BSD GTE) 1/1/94";
 #endif not lint
 
 
 #include "bg.h"
-
-#ifdef BSD2_10
-#define	screen_xc	scr_xc
-#define	screen_xbeg	scr_xbeg
-#define	screen_xend	scr_xend
-#define	screen_yc	scr_yc
-#define	screen_ybeg	scr_ybeg
-#define	screen_yend	scr_yend
-#endif
 
 /* should include test for equality? */
 #define side(x,y)	(a*(x)+b*(y)+c > 0.0 ? 1 : -1)

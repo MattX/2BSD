@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)mbuf.h	7.8.1.2 (Berkeley) 2/8/88
+ *	@(#)mbuf.h	7.8.2 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -20,7 +20,7 @@
  *
  * (NMBUFS / 8) + NMBCLUSTERS < 40
  */
-#define	NMBUFS		160			/* number of mbufs */
+#define	NMBUFS		170			/* number of mbufs */
 #define	MSIZE		128			/* size of an mbuf */
 
 #if CLBYTES > 1024
@@ -83,6 +83,7 @@ struct mbuf {
 /* flags to m_get */
 #define	M_DONTWAIT	0
 #define	M_WAIT		1
+#define	M_DONTWAITLONG	2
 
 /* flags to m_pgalloc */
 #define	MPG_MBUFS	0		/* put new mbufs on free list */
@@ -106,7 +107,7 @@ struct mbuf {
 		  mfree = (m)->m_next; (m)->m_next = 0; \
 		  (m)->m_off = MMINOFF; } \
 	  else \
-		(m) = m_more(i, t); \
+		(m) = m_more((((ms&0340) <= 0100) && (i==M_DONTWAIT)) ? M_DONTWAITLONG : i, t); \
 	  splx(ms); }
 /*
  * Mbuf page cluster macros.
@@ -116,7 +117,7 @@ struct mbuf {
  * m->m_len is set to MCLBYTES upon success, and to MLEN on failure.
  * MCLFREE frees clusters allocated by MCLALLOC.
  */
-#ifndef	BSD2_10
+#ifndef	pdp11
 #define	MCLALLOC(m, i) \
 	{ int ms = splimp(); \
 	  if (mclfree == 0) \
@@ -187,7 +188,7 @@ struct	mbuf *mfree, *mclfree;
 char	mclrefcnt[NMBCLUSTERS + 1];
 int	m_want;
 struct	mbuf *m_get(),*m_getclr(),*m_free(),*m_more(),*m_copy(),*m_pullup();
-#ifndef	BSD2_10
+#ifndef	pdp11
 caddr_t	m_clalloc();
 #endif
 #endif

@@ -23,10 +23,6 @@
 	commands to handle the various local options (APL ON, etc.)
  */
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 #include "options.h"
 
 OptInit()

@@ -11,6 +11,7 @@
 
 #include "systm.h"
 #include "conf.h"
+#include "dir.h"
 #include "inode.h"
 #include "user.h"
 #include "buf.h"

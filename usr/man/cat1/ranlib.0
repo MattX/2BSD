@@ -5,42 +5,40 @@ RANLIB(1)	    UNIX Programmer's Manual		RANLIB(1)
 
 
 
-NNAAMMEE
-     ranlib - convert archives to random libraries
+NAME
+     ranlib - table-of-contents for archive libraries
 
-SSYYNNOOPPSSIISS
-     rraannlliibb archive ...
+SYNOPSIS
+     ranlib [-t] file ...
 
-DDEESSCCRRIIPPTTIIOONN
-     _R_a_n_l_i_b converts each _a_r_c_h_i_v_e to a form which can be loaded
-     more rapidly by the loader, by adding a table of contents
-     named ____..SSYYMMDDEEFF to the beginning of the archive.  It uses
-     _a_r(1) to reconstruct the archive, so that sufficient tem-
-     porary file space must be available in the file system con-
-     taining the current directory.
+DESCRIPTION
+     _R_a_n_l_i_b creates a table of external references for archive
+     libraries, normally used by the loader, _l_d(1).  This table
+     is is named ``__.SYMDEF'' and is prepended to the archive.
+     Files in the archive which are not executable and symbols
+     which are uninteresting to the loader are ignored.
 
-SSEEEE AALLSSOO
-     ar(1), ld(1)
+     The options are as follows:
 
-BBUUGGSS
-     Because generation of a library by _a_r and randomization by
-     _r_a_n_l_i_b are separate, phase errors are possible.  The loader
-     _l_d warns when the modification date of a library is more
-     recent than the creation of its dictionary; but this means
-     you get the warning even if you only copy the library.
+     -t   Set the modification time of the __.SYMDEF file.  This
+	  time is compared by the loader with the modification
+	  time of the archive to verify that the table is up-to-
+	  date with respect to the archive.  If the modification
+	  time has been changed without any change to the archive
+	  (for example, by a _c_p(1)), the -_t option can be used to
+	  ``touch'' the modification time so that it appears that
+	  the table is up-to-date.
 
+FILES
+     /tmp	   default temporary file directory
 
+     ranlib.XXXXXX temporary file names
 
+SEE ALSO
+     _a_r(1), _l_d(1), _l_o_r_d_e_r(1), _n_m(1), _r_a_n_l_i_b(5)
 
-
-
-
-
-
-
-
-
-
+HISTORY
+     A _r_a_n_l_i_b command appeared in Version 7 AT&T UNIX.
 
 
 
@@ -60,7 +58,9 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						1
+
+
+Printed 1/15/94            May 9, 1991				1
 
 
 

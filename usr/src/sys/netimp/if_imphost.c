@@ -19,7 +19,7 @@
 #include "param.h"
 #include "mbuf.h"
 #include "domain.h"
-#include "proto.h"
+#include "protosw.h"
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netimp/if_imp.h>

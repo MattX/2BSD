@@ -1,51 +1,64 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)def.h	5.2 (Berkeley) 11/2/85
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ *	@(#)def.h	5.22 (Berkeley) 6/25/90
  */
 
 #include <sys/param.h>		/* includes <sys/types.h> */
-#include <signal.h>
+#include <sys/signal.h>
 #include <stdio.h>
 #include <sgtty.h>
-#include "local.h"
-
-#undef isalpha
-#undef isdigit
-
+#include <ctype.h>
+#include <string.h>
+#include "pathnames.h"
+typedef	int (*sig_t)();
 /*
  * Mail -- a mail program
- *
- * Commands are:
- *	t <message list>		print out these messages
- *	r <message list>		reply to messages
- *	m <user list>			mail to users (analogous to send)
- *	e <message list>		edit messages
- *	c [directory]			chdir to dir or home if none
- *	x				exit quickly
- *	w <message list> file		save messages in file
- *	q				quit, save remaining stuff in mbox
- *	d <message list>		delete messages
- *	u <message list>		undelete messages
- *	h				print message headers
  *
  * Author: Kurt Shoens (UCB) March 25, 1978
  */
 
+#define	APPEND				/* New mail goes to end of mailbox */
 
 #define	ESCAPE		'~'		/* Default escape for sending */
 #define	NMLSIZE		1024		/* max names in a message list */
-#define	PATHSIZE	1024		/* Size of pathnames throughout */
-#define	NAMESIZE	32		/* Max size of user name */
+#define	PATHSIZE	MAXPATHLEN	/* Size of pathnames throughout */
 #define	HSHSIZE		59		/* Hash size for aliases and vars */
-#define	HDRFIELDS	3		/* Number of header fields */
 #define	LINESIZE	BUFSIZ		/* max readable line width */
 #define	STRINGSIZE	((unsigned) 128)/* Dynamic allocation units */
 #define	MAXARGC		1024		/* Maximum list of raw strings */
 #define	NOSTR		((char *) 0)	/* Null string pointer */
 #define	MAXEXP		25		/* Maximum expansion of aliases */
+
 #define	equal(a, b)	(strcmp(a,b)==0)/* A nice function to string compare */
 
 struct message {
@@ -71,6 +84,13 @@ struct message {
 #define	MREAD		(1<<8)		/* message has been read sometime. */
 #define	MSTATUS		(1<<9)		/* message status has changed */
 #define	MBOX		(1<<10)		/* Send this to mbox, regardless */
+
+/*
+ * Given a file address, determine the block number it represents.
+ */
+#define blockof(off)			((int) ((off) / 4096))
+#define offsetof(off)			((int) ((off) % 4096))
+#define positionof(block, offset)	((off_t)(block) * 4096 + (offset))
 
 /*
  * Format of the command description table.
@@ -144,11 +164,11 @@ struct headline {
  */
 
 struct header {
-	char	*h_to;			/* Dynamic "To:" string */
-	char	*h_subject;		/* Subject string */
-	char	*h_cc;			/* Carbon copies string */
-	char	*h_bcc;			/* Blind carbon copies */
-	int	h_seq;			/* Sequence for optimization */
+	struct name *h_to;		/* Dynamic "To:" string */
+	char *h_subject;		/* Subject string */
+	struct name *h_cc;		/* Carbon copies string */
+	struct name *h_bcc;		/* Blind carbon copies */
+	struct name *h_smopts;		/* Sendmail options */
 };
 
 /*
@@ -196,9 +216,12 @@ struct grouphead {
 /*
  * Structure of the hash table of ignored header fields
  */
-struct ignore {
-	struct ignore	*i_link;	/* Next ignored field in bucket */
-	char		*i_field;	/* This ignored field */
+struct ignoretab {
+	int i_count;			/* Number of entries */
+	struct ignore {
+		struct ignore *i_link;	/* Next ignored field in bucket */
+		char *i_field;		/* This ignored field */
+	} *i_head[HSHSIZE];
 };
 
 /*
@@ -217,6 +240,7 @@ struct ignore {
 #define	TOPEN	8			/* An '(' */
 #define	TCLOSE	9			/* A ')' */
 #define TPLUS	10			/* A '+' */
+#define TERROR	11			/* A lexical error */
 
 #define	REGDEP	2			/* Maximum regret depth. */
 #define	STRINGLEN	1024		/* Maximum length of string token */
@@ -238,26 +262,6 @@ struct ignore {
 #define	reset(x)	longjmp(srbuf, x)
 
 /*
- * VM/UNIX has a vfork system call which is faster than forking.  If we
- * don't have it, fork(2) will do . . .
- */
-
-#ifndef VMUNIX
-#define	vfork()	fork()
-#endif
-#ifndef	SIGRETRO
-#define	sigchild()
-#endif
-
-/*
- * 4.2bsd signal interface help...
- */
-#ifdef VMUNIX
-#define	sigset(s, a)	signal(s, a)
-#define	sigsys(s, a)	signal(s, a)
-#endif
-
-/*
  * Truncate a file to the last character written. This is
  * useful just before closing an old file that was opened
  * for read/write.
@@ -268,64 +272,52 @@ struct ignore {
  * Forward declarations of routine types to keep lint and cc happy.
  */
 
+FILE	*Fopen();
 FILE	*Fdopen();
+FILE	*Popen();
 FILE	*collect();
 FILE	*infix();
-FILE	*mesedit();
-FILE	*mespipe();
-FILE	*popen();
+FILE	*run_editor();
 FILE	*setinput();
 char	**unpack();
-char	*addto();
-char	*arpafix();
 char	*calloc();
 char	*copy();
 char	*copyin();
 char	*detract();
 char	*expand();
+char	*getdeadletter();
 char	*gets();
 char	*hfield();
-char	*index();
 char	*name1();
 char	*nameof();
 char	*nextword();
 char	*getenv();
-char	*getfilename();
-char	*hcontents();
-char	*netmap();
-char	*netname();
+char	*getname();
+char	*fgets();
+char	*ishfield();
+char	*malloc();
+char	*mktemp();
 char	*readtty();
 char	*reedit();
-char	*rename();
-char	*revarpa();
-char	*rindex();
-char	*rpair();
 char	*salloc();
 char	*savestr();
 char	*skin();
 char	*snarf();
-char	*strcat();
-char	*strcpy();
+char	*username();
 char	*value();
 char	*vcopy();
 char	*yankword();
 off_t	fsize();
-#ifndef VMUNIX
-int	(*sigset())();
-#endif
+uid_t	getuid();
 struct	cmd	*lex();
 struct	grouphead	*findgroup();
+struct	name	*nalloc();
 struct	name	*cat();
 struct	name	*delname();
 struct	name	*elide();
 struct	name	*extract();
 struct	name	*gexpand();
-struct	name	*map();
 struct	name	*outof();
 struct	name	*put();
 struct	name	*usermap();
-struct	name	*verify();
 struct	var	*lookup();
-long	transmit();
-int	icequal();
-int	cmpdomain();

@@ -3,11 +3,11 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 6/12/88
+#	@(#)Makefile	5.6.1 (2.11BSD GTE) 4/9/94
 #
 # Machine dependent routines for the PDP are located here
 #
-COMPAT=	com-2.9 com-4.1 com-4.3
+COMPAT=	compat-2.9
 ALL=	crt gen net stdio sys ${COMPAT}
 TAGSFILE=tags
 

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in_systm.h	7.2 (Berkeley) 12/7/87
+ *	@(#)in_systm.h	7.2.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -30,7 +30,7 @@ typedef u_long	n_long;			/* long as received from the net */
 
 typedef	u_long	n_time;			/* ms since 00:00 GMT, byte rev */
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define	UCHAR(a)	((u_int)((a)&0xff))
 #endif
 

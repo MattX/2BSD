@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_backup.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_backup.s	1.2 (2.11BSD GTE) 12/26/92
  */
 
 #include "DEFS.h"
@@ -159,12 +159,10 @@ t07:					/ EIS
 
 u0:					/ jmp, swab
 u5:					/ single op
-#ifndef NONFP
 f5:					/ movei, movfi
 ff1:					/ ldfps
 ff2:					/ stfps
 ff3:					/ stst
-#endif /* !NONFP */
 	mov	r1,r0
 	br	setreg
 
@@ -244,7 +242,6 @@ t15:					/ bisb
 
 t17:					/ floating point instructions
 
-#ifndef NONFP
 	clrb	bflg
 	mov	r1,r0
 	swab	r0
@@ -282,7 +279,6 @@ f7:
 	br	f1			/ movof
 
 ff0:					/ cfcc, setf, setd, seti, setl
-#endif /* !NONFP */
 
 u1:					/ br
 u2:					/ br
@@ -313,7 +309,6 @@ setreg:
 	asl	r0
 2:
 
-#ifndef NONFP
 	tstb	fflg
 	beq	3f
 	asl	r0
@@ -322,7 +317,6 @@ setreg:
 	beq	3f
 	asl	r0
 3:
-#endif /* !NONFP */
 
 	bisb	r0,r2
 	rts	pc

@@ -5,14 +5,14 @@ EXIT(2)             UNIX Programmer's Manual		  EXIT(2)
 
 
 
-NNAAMMEE
+NAME
      _exit - terminate a process
 
-SSYYNNOOPPSSIISS
-     __eexxiitt((ssttaattuuss))
-     iinntt ssttaattuuss;;
+SYNOPSIS
+     _exit(status)
+     int status;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      __e_x_i_t terminates a process with the following consequences:
 
      All of the descriptors open in the calling process are
@@ -36,10 +36,10 @@ DDEESSCCRRIIPPTTIIOONN
      forms cleanup actions in the standard I/O library before
      calling __e_x_i_t.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      This call never returns.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fork(2), sigvec(2), wait(2), exit(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 

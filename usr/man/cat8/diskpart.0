@@ -5,17 +5,17 @@ DISKPART(8)	    UNIX Programmer's Manual	      DISKPART(8)
 
 
 
-NNAAMMEE
+NAME
      diskpart - calculate default disk partition sizes
 
-SSYYNNOOPPSSIISS
-     //eettcc//ddiisskkppaarrtt [ --pp ] [ --dd ] disk-type
+SYNOPSIS
+     /etc/diskpart [ -p ] [ -d ] disk-type
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_i_s_k_p_a_r_t is used to calculate the disk partition sizes based
-     on the default rules used at Berkeley.  If the --pp option is
+     on the default rules used at Berkeley.  If the -p option is
      supplied, tables suitable for inclusion in a device driver
-     are produced.  If the --dd option is supplied, an entry suit-
+     are produced.  If the -d option is supplied, an entry suit-
      able for inclusion in the disk description file /_e_t_c/_d_i_s_k_t_a_b
      is generated; c.f.  _d_i_s_k_t_a_b(5).  On disks that use _b_a_d_1_4_4-
      style bad-sector forwarding, space is left in the last par-
@@ -51,16 +51,16 @@ DDEESSCCRRIIPPTTIIOONN
      If an unknown disk type is specified, _d_i_s_k_p_a_r_t will prompt
      for the required disk geometry information.
 
-SSEEEE AALLSSOO
+SEE ALSO
      disktab(5), bad144(8)
 
-BBUUGGSS
+BUGS
      Certain default partition sizes are based on historical
      artifacts (e.g. RP06), and may result in unsatisfactory
 
 
 
-Printed 12/28/88	  May 30, 1986				1
+Printed 1/9/94		  May 30, 1986				1
 
 
 
@@ -126,7 +126,7 @@ DISKPART(8)	    UNIX Programmer's Manual	      DISKPART(8)
 
 
 
-Printed 12/28/88	  May 30, 1986				2
+Printed 1/9/94		  May 30, 1986				2
 
 
 

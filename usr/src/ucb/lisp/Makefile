@@ -10,7 +10,7 @@ OBJS=	lisp.o
 lisp: ${OBJS}
 	${CC} -o lisp ${SEPFLAG} ${OBJS}
 
-install:
+install: lisp
 	install -s -m 711 lisp ${DESTDIR}/usr/ucb
 
 clean:

@@ -24,7 +24,7 @@ LCDIRS=	cat1 cat2 cat3 cat4 cat5 cat6 cat7 cat8
 
 all: scriptinstall FRC
 	for i in ${DIRS}; do \
-		(cd $$i; make ${MFLAGS}); \
+		(cd $$i; echo "Starting $$i"; make ${MFLAGS}); \
 	done
 
 scriptinstall: FRC
@@ -35,9 +35,15 @@ install: FRC
 	for i in ${DIRS}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); \
 	done
-	for file in `find /usr/man -type f -name '*.0' -print`; do \
+	cp /dev/null whatis_tmp
+	for dirext in /usr/man/cat* ; do \
+	echo $$dirext; \
+	for file in `find $$dirext -type f -name '*.0' -print`; do \
 		sed -n -f /usr/man/makewhatis.sed $$file; \
-	done | sort -u > whatis.db
+	done >> whatis_tmp; \
+	done
+	sort -u whatis_tmp > whatis.db
+	-rm -f whatis_tmp
 	install -o bin -g bin -m 444 whatis.db ${DESTDIR}/usr/man/whatis
 	install -c -o bin -g bin -m 444 man.template ${DESTDIR}/usr/man/man.template
 
@@ -45,6 +51,7 @@ clean: FRC
 	for i in ${DIRS}; do \
 		(cd $$i; make ${MFLAGS} clean); \
 	done
+	rm -f whatis_tmp whatis.db
 
 depend:
 lint:

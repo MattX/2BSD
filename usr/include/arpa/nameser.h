@@ -1,10 +1,21 @@
 /*
  * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)nameser.h	5.17 (Berkeley) 11/17/87
- */
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *	@(#)nameser.h	5.20.1 (2.11BSD GTE) 12/31/93
+*/
 
 /*
  * Define constants based on rfc883
@@ -70,6 +81,7 @@
 #define T_HINFO		13		/* host information */
 #define T_MINFO		14		/* mailbox information */
 #define T_MX		15		/* mail routing information */
+#define	T_TXT		16
 	/* non standard */
 #define T_UINFO		100		/* user (finger) information */
 #define T_UID		101		/* user ID */
@@ -87,6 +99,7 @@
 
 #define C_IN		1		/* the arpa internet */
 #define C_CHAOS		3		/* for chaos net at MIT */
+#define	C_HS		4
 	/* Query class values which do not appear in resource records */
 #define C_ANY		255		/* wildcard match */
 
@@ -99,6 +112,29 @@
 #define CONV_BADCKSUM -3
 #define CONV_BADBUFLEN -4
 
+#ifndef BYTE_ORDER
+#define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax) */
+#define	BIG_ENDIAN	4321	/* most-significant byte first (IBM, net) */
+#define	PDP_ENDIAN	3412	/* LSB first in word, MSW first in long (pdp) */
+
+#if defined(vax) || defined(ns32000) || defined(sun386) || \
+    defined(BIT_ZERO_ON_RIGHT)
+#define BYTE_ORDER	LITTLE_ENDIAN
+
+#endif
+#if defined(sel) || defined(pyr) || defined(mc68000) || defined(sparc) || \
+    defined(is68k) || defined (tahoe) || defined (BIT_ZERO_ON_LEFT)
+#define BYTE_ORDER	BIG_ENDIAN
+#endif
+#endif /* BYTE_ORDER */
+#if defined(pdp11)
+#define BYTE_ORDER	PDP_ENDIAN
+#endif
+
+#ifndef BYTE_ORDER
+	/* you must determine what the correct bit order is for your compiler */
+	UNDEFINED_BIT_ORDER;
+#endif
 /*
  * Structure for query header, the order of the fields is machine and
  * compiler dependent, in our case, the bits within a byte are assignd 
@@ -108,9 +144,7 @@
 
 typedef struct {
 	u_short	id;		/* query identification number */
-#if defined (sun) || defined (sel) || defined (pyr) || defined (is68k) \
-|| defined (tahoe) || defined (BIT_ZERO_ON_LEFT)
-	/* Bit zero on left:  Gould and similar architectures */
+#if BYTE_ORDER == BIG_ENDIAN
 			/* fields in third byte */
 	u_char	qr:1;		/* response flag */
 	u_char	opcode:4;	/* purpose of message */
@@ -122,9 +156,8 @@ typedef struct {
 	u_char	pr:1;		/* primary server required (non standard) */
 	u_char	unused:2;	/* unused bits */
 	u_char	rcode:4;	/* response code */
-#else
-#if defined (vax) || defined(ns32000) || defined (BIT_ZERO_ON_RIGHT)
-	/* Bit zero on right:  VAX */
+#endif
+#if BYTE_ORDER == LITTLE_ENDIAN
 			/* fields in third byte */
 	u_char	rd:1;		/* recursion desired */
 	u_char	tc:1;		/* truncated message */
@@ -136,8 +169,8 @@ typedef struct {
 	u_char	unused:2;	/* unused bits */
 	u_char	pr:1;		/* primary server required (non standard) */
 	u_char	ra:1;		/* recursion available */
-#else
-#if defined (pdp11) || defined (BIT_ZERO_ON_RIGHT_BUT_COMPILER_STUPID)
+#endif
+#if BYTE_ORDER == PDP_ENDIAN
 	/* Bit zero on right, compiler doesn't like u_char bit fields:  PDP */
 			/* fields in third byte */
 	u_int	rd:1;		/* recursion desired */
@@ -150,11 +183,6 @@ typedef struct {
 	u_int	unused:2;	/* unused bits */
 	u_int	pr:1;		/* primary server required (non standard) */
 	u_int	ra:1;		/* recursion available */
-#else
-	/* you must determine what the correct bit order is for your compiler */
-	UNDEFINED_BIT_ORDER;
-#endif
-#endif
 #endif
 			/* remaining bytes */
 	u_short	qdcount;	/* number of question entries */

@@ -5,30 +5,30 @@ LOOK(1)             UNIX Programmer's Manual		  LOOK(1)
 
 
 
-NNAAMMEE
+NAME
      look - find lines in a sorted list
 
-SSYYNNOOPPSSIISS
-     llooookk [ --ddff ] string [ file ]
+SYNOPSIS
+     look [ -df ] string [ file ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _L_o_o_k consults a sorted _f_i_l_e and prints all lines that begin
      with _s_t_r_i_n_g.  It uses binary search.
 
-     The options dd and ff affect comparisons as in _s_o_r_t(1):
+     The options d and f affect comparisons as in _s_o_r_t(1):
 
-     dd	 `Dictionary' order: only letters, digits, tabs and
+     d	 `Dictionary' order: only letters, digits, tabs and
 	 blanks participate in comparisons.
 
-     ff	 Fold.	Upper case letters compare equal to lower case.
+     f	 Fold.	Upper case letters compare equal to lower case.
 
      If no _f_i_l_e is specified, /_u_s_r/_d_i_c_t/_w_o_r_d_s is assumed with
-     collating sequence --ddff..
+     collating sequence -df.
 
-FFIILLEESS
+FILES
      /usr/dict/words
 
-SSEEEE AALLSSOO
+SEE ALSO
      sort(1), grep(1)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

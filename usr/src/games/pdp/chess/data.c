@@ -16,7 +16,7 @@ int	wheur3();
 int	wheur4();
 int	wheur5();
 int	wheur6();
-int	wheur[] =
+int	(*wheur[])() =
 {
 	&wheur1,
 	&wheur2,
@@ -33,7 +33,7 @@ int	bheur3();
 int	bheur4();
 int	bheur5();
 int	bheur6();
-int	bheur[] =
+int	(*bheur[])() =
 {
 	&bheur1,
 	&bheur2,

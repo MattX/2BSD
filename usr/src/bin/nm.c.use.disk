@@ -1,6 +1,12 @@
 /*
  * This version of nm will use a disk file, rather than trying to store
  * the entire symbol table in memory.  Useful for some sites.
+ *
+ * 11/25/90 - The ASCII version of archives has been implemented, but this
+ * program was NOT updated.  the normal version of 'nm' not only handles
+ * .a files correctly but can even process /unix. so this program is of even 
+ * less value than before, this program is extremely slow even for cases
+ * which the regular 'nm' works well.
  */
 
 /*

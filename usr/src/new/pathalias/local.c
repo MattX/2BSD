@@ -1,11 +1,7 @@
 /* pathalias -- by steve bellovin, as told to peter honeyman */
 #ifndef lint
-static char	*sccsid = "@(#)local.c	9.1 87/10/04";
+static char	*sccsid = "@(#)local.c	9.1.1 93/12/31";
 #endif /* lint */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 #include <stdio.h>
 #include "config.h"

@@ -1,0 +1,7 @@
+root::0:1::0:0:The Man:/:/bin/csh
+daemon:*:1:1::::The devil himself:/:/bin/sh
+operator:*:2:5::::System &:/usr/guest/operator:/bin/csh
+bin:*:3:20::::Binaries Commands and Source:/:/bin/csh
+nobody:*:32767:31::::Nobody:/nonexistent:/bin/sh
+uucp:*:66:1::0:0:UNIX-to-UNIX Copy:/usr/spool/uucppublic:/usr/lib/uucp/uucico
+sms1:\lWFeNqds9vRA:10:10::0:0:Steven M. Schultz:/user/sms1:/bin/csh

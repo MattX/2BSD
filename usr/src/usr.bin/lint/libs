@@ -1,0 +1,11 @@
+#! /bin/sh -v
+
+cd /usr/lib/lint
+/lib/cpp -C -Dlint llib-port | ./lint1 -puv > llib-port.ln
+/lib/cpp -C -Dlint llib-ldbm | ./lint1 -uv > llib-ldbm.ln
+/lib/cpp -C -Dlint llib-lm | ./lint1 -uv > llib-lm.ln
+/lib/cpp -C -Dlint llib-lmp | ./lint1 -uv > llib-lmp.ln
+/lib/cpp -C -Dlint llib-lplot | ./lint1 -uv > llib-lplot.ln
+/lib/cpp -C -Dlint llib-ltermcap | ./lint1 -uv > llib-ltermcap.ln
+/lib/cpp -C -Dlint llib-lc | ./lint1 -v > llib-lc.ln
+/lib/cpp -C -Dlint llib-lcurses | ./lint1 -v > llib-lcurses.ln

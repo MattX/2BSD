@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ioconf.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ioconf.c	2.0 (2.11BSD GTE) 12/24/92
  */
 
 #include "param.h"
@@ -12,8 +12,6 @@
 dev_t	rootdev = %ROOTDEV%,
 	swapdev = %SWAPDEV%,
 	pipedev = %PIPEDEV%;
-daddr_t swplo = (daddr_t)%SWAPLO%;
-int	nswap = %NSWAP%;
 
 dev_t	dumpdev = %DUMPDEV%;
 daddr_t	dumplo = (daddr_t)%DUMPLO%;

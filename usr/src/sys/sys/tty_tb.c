@@ -120,8 +120,9 @@ tbclose(tp)
  * Read from a tablet line.
  * Characters have been buffered in a buffer and decoded.
  */
-tbread(tp)
+tbread(tp, uio)
 	register struct tty *tp;
+	struct uio *uio;
 {
 	register struct tb *tbp = (struct tb *)tp->T_LINEP;
 	register struct tbconf *tc = &tbconf[tbp->tbflags & TBTYPE];
@@ -129,7 +130,7 @@ tbread(tp)
 
 	if ((tp->t_state&TS_CARR_ON) == 0)
 		return (EIO);
-	ret = uiomove(&tbp->rets, tc->tbc_uiosize, UIO_READ);
+	ret = uiomove(&tbp->rets, tc->tbc_uiosize, UIO_READ, uio);
 	if (tc->tbc_flags&TBF_POL)
 		tbp->rets.polpos.p_key = ' ';
 	return (ret);

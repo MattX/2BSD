@@ -5,13 +5,13 @@ SYSLOGD(8)	    UNIX Programmer's Manual	       SYSLOGD(8)
 
 
 
-NNAAMMEE
+NAME
      syslogd - log systems messages
 
-SSYYNNOOPPSSIISS
-     //eettcc//ssyyssllooggdd [ --ff_c_o_n_f_i_g_f_i_l_e ] [ --mm_m_a_r_k_i_n_t_e_r_v_a_l ] [ --dd ]
+SYNOPSIS
+     /etc/syslogd [ -f_c_o_n_f_i_g_f_i_l_e ] [ -m_m_a_r_k_i_n_t_e_r_v_a_l ] [ -d ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_y_s_l_o_g_d reads and logs messages into a set of files
      described by the configuration file /etc/syslog.conf.  Each
      message is one line.  A message can contain a priority code,
@@ -44,7 +44,7 @@ DDEESSCCRRIIPPTTIIOONN
      Known facilities and levels recognized by _s_y_s_l_o_g_d are those
      listed in _s_y_s_l_o_g(3) without the leading ``LOG_''.	The addi-
      tional facility ``mark'' has a message at priority LOG_INFO
-     sent to it every 20 minutes (this may be changed with the --mm
+     sent to it every 20 minutes (this may be changed with the -m
      flag).  The ``mark'' facility is not enabled by a facility
      field containing an asterisk.  The level ``none'' may be
      used to disable a particular facility.  For example,
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 26, 1986				1
+Printed 1/9/94		  May 26, 1986				1
 
 
 
@@ -108,11 +108,11 @@ SYSLOGD(8)	    UNIX Programmer's Manual	       SYSLOGD(8)
 
      The flags are:
 
-     --ff   Specify an alternate configuration file.
+     -f   Specify an alternate configuration file.
 
-     --mm   Select the number of minutes between mark messages.
+     -m   Select the number of minutes between mark messages.
 
-     --dd   Turn on debugging.
+     -d   Turn on debugging.
 
      _S_y_s_l_o_g_d creates the file /etc/syslog.pid, if possible, con-
      taining a single line with its process id.  This can be used
@@ -121,12 +121,12 @@ SYSLOGD(8)	    UNIX Programmer's Manual	       SYSLOGD(8)
      To bring _s_y_s_l_o_g_d down, it should be sent a terminate signal
      (e.g. kill `cat /etc/syslog.pid`).
 
-FFIILLEESS
+FILES
      /etc/syslog.conf	 the configuration file
 
 
 
-Printed 12/28/88	  May 26, 1986				2
+Printed 1/9/94		  May 26, 1986				2
 
 
 
@@ -141,7 +141,7 @@ SYSLOGD(8)	    UNIX Programmer's Manual	       SYSLOGD(8)
      /dev/log		 Name of the UNIX domain datagram log socket
      /dev/klog		 The kernel log device
 
-SSEEEE AALLSSOO
+SEE ALSO
      logger(1), syslog(3)
 
 
@@ -192,7 +192,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 26, 1986				3
+Printed 1/9/94		  May 26, 1986				3
 
 
 

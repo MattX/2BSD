@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)alrem.s	2.3 (Berkeley) 1/28/87\0>
+	<@(#)alrem.s	2.4 (2.11BSD GTE) 12/26/92\0>
 	.even
 #endif LIBC_SCCS
 
@@ -18,7 +18,6 @@
  */
 #include "DEFS.h"
 
-#ifndef NONFP
 /*
  * Alrem for floating point hardware.  Check for divide by zero.  Don't want
  * floating divide trap in integer math.
@@ -49,7 +48,7 @@ ASENTRY(alrem)
 	mov	(r1),r1
 	seti
 	rts	pc
-#else NONFP
+#ifdef	never
 /*
  * Alrem for fixed point hardware.
  */
@@ -68,4 +67,4 @@ ASENTRY(alrem)
 	mov	r1,(r2)		/   and low
 	mov	(sp)+,r2	/ restore r2
 	rts	pc		/   and return
-#endif NONFP
+#endif

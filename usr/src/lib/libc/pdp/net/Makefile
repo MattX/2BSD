@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 1/25/87
+#	@(#)Makefile	5.6.1 (2.11 BSD) 4/9/94
 #
 SRCS=	htonl.s htons.s
 OBJS=	htonl.o htons.o
@@ -11,15 +11,12 @@ CFLAGS=	${DEFS}
 TAGSFILE=tags
 
 .s.o:
-	/lib/cpp -E -DPROF ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -X -r $*.o
 	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $*.o
 	-ld -x -r $*.o
 	mv a.out $*.o
-	rm -f x.s
 
 .c.o:
 	cc -p -c ${CFLAGS} $*.c

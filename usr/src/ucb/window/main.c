@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)main.c	3.30 8/14/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)main.c	3.31 1/1/94";
 #endif
 
 /*
@@ -14,7 +14,7 @@ static char sccsid[] = "@(#)main.c	3.30 8/14/85";
 #include "string.h"
 #include "char.h"
 #include "local.h"
-#ifdef BSD2_10
+#ifdef pdp11
 #include "tt.h"
 #endif
 
@@ -30,7 +30,7 @@ char **argv;
 	char xflag = 0;
 	char *cmd = 0;
 	char tflag = 0;
-#ifdef BSD2_10
+#ifdef pdp11
 	/* Move some buffers onto the stack to get at the memory */
 	/* The program really doesn't fit, but we make a valiant effort */
 	char inbuf[BUFSIZ];

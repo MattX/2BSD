@@ -46,14 +46,6 @@ struct	ts_softc {
 
 struct	buf	tstab;
 struct	buf	ctsbuf;
-/*
- * Raw tape operations use rtsbuf.  The driver
- * notices when rtsbuf is being used and allows the user
- * program to continue after errors and read records
- * not of the standard length (BSIZE).
- */
-struct	buf	rtsbuf;
-
 struct	tsdevice *TSADDR;
 
 #define	INF		((daddr_t) ((u_short) 65535))
@@ -205,11 +197,21 @@ tsstrategy(bp)
 register struct buf *bp;
 {
 	register s;
+	register struct ts_softc *sc;
 
 #ifdef UNIBUS_MAP
 	if (bp != &ctsbuf)
 		mapalloc(bp);
 #endif
+
+/*
+ * This is almost certainly wrong.  See /sys/pdpuba/ts.c for how it's
+ * really done.
+*/
+	sc = &ts_softc[TSUNIT(bp->b_dev)];
+	sc->sc_blkno = dbtofsb(u.u_offset >> 9);
+	sc->sc_nxrec = sc->sc_blkno + 1;
+
 	bp->av_forw = NULL;
 	s = spl5();
 	if (tstab.b_actf == NULL)
@@ -412,7 +414,7 @@ tsintr()
 				 * was too long or too short, then we don't
 				 * consider this an error.
 				 */
-				if (bp == &rtsbuf && (bp->b_flags & B_READ)
+				if (bp->b_flags & B_PHYS && (bp->b_flags & B_READ)
 				    && sc->sc_sts.s_xs0 & (TS_RLS | TS_RLL))
 					goto ignoreerr;
 					/*NOTREACHED*/
@@ -433,7 +435,7 @@ tsintr()
 					 * Non-i/o errors on non-raw tape
 					 * cause it to close.
 					 */
-					if (sc->sc_openf > 0 && bp != &rtsbuf)
+					if (sc->sc_openf > 0 && !(bp->b_flags & B_PHYS))
 						sc->sc_openf = -1;
 				}
 				break;
@@ -572,32 +574,6 @@ tsinit(tsunit)
 			return (1);
 	}
 	return(0);
-}
-
-tsread(dev)
-register dev_t	dev;
-{
-	tsphys(dev);
-	bphysio(tsstrategy, &rtsbuf, dev, B_READ);
-}
-
-tswrite(dev)
-register dev_t	dev;
-{
-	tsphys(dev);
-	bphysio(tsstrategy, &rtsbuf, dev, B_WRITE);
-}
-
-tsphys(dev)
-dev_t	dev;
-{
-	register struct ts_softc *sc;
-	daddr_t	a;
-
-	sc = &ts_softc[TSUNIT(dev)];
-	a = dbtofsb(u.u_offset >> 9);
-	sc->sc_blkno = a;
-	sc->sc_nxrec = a + 1;
 }
 
 #ifdef	TS_IOCTL

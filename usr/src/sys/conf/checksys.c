@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)checksys.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)checksys.c	1.5 (2.11BSD GTE) 8/28/94
  */
 
 /*
@@ -18,6 +18,7 @@
 #include "clist.h"
 #include "a.out.h"
 #include "stdio.h"
+#include "namei.h"
 
 /* Round up to a click boundary. */
 #define	cround(bytes)	((bytes + ctob(1) - 1) / ctob(1) * ctob(1));
@@ -26,34 +27,41 @@
 #define	KB(val)		((u_int)(val * 1024))
 
 #define	N_END		0
-#define	N_BSIZE		1
-#define	N_NBUF		2
-#define	N_PROC		5
-#define	N_CLIST		15
-#define	N_NOKA5		16
-#define	N_RAM		17
+#define	N_NBUF		1
+#define	N_PROC		4
+#define	N_NINODE	9
+#define	N_CLIST		14
+#define	N_RAM		15
+#define	N_XITDESC	16
+#define	N_QUOTDESC	17
+#define	N_NAMECACHE	18
+#define	N_IOSIZE	19
+#define	N_NUMSYMS	20
 
-struct nlist nl[] = {
-	{ "_end" },			/*  0 */
-	{ "_bsize" },			/*  1 */
-	{ "_nbuf" },			/*  2 */
-	{ "_buf" },			/*  3 */
-	{ "_nproc" },			/*  4 */
-	{ "_proc" },			/*  5 */
-	{ "_ntext" },			/*  6 */
-	{ "_text" },			/*  7 */
-	{ "_nfile" },			/*  8 */
-	{ "_file" },			/*  9 */
-	{ "_ninode" },			/* 10 */
-	{ "_inode" },			/* 11 */
-	{ "_ncallou" },			/* 12 */
-	{ "_callout" },			/* 13 */
-	{ "_ucb_cli" },			/* 14 */
-	{ "_nclist" },			/* 15 */
-	{ "_noka5" },			/* 16 */
-	{ "_ram_siz" },			/* 17 */
-	{ "" },
-};
+	struct	nlist	nl[N_NUMSYMS];
+
+char	*names[] = {
+	"_end",				/*  0 */
+	"_nbuf",			/*  1 */
+	"_buf",				/*  2 */
+	"_nproc",			/*  3 */
+	"_proc",			/*  4 */
+	"_ntext",			/*  5 */
+	"_text",			/*  6 */
+	"_nfile",			/*  7 */
+	"_file",			/*  8 */
+	"_ninode",			/*  9 */
+	"_inode",			/* 10 */
+	"_ncallout",			/* 11 */
+	"_callout",			/* 12 */
+	"_ucb_clist",			/* 13 */
+	"_nclist",			/* 14 */
+	"_ram_size",			/* 15 */
+	"_xitdesc",			/* 16 */
+	"_quotdesc",			/* 17 */
+	"_namecache",			/* 18 */
+	"__iosize"			/* 19 */
+	};
 
 static struct exec obj;
 static struct ovlhdr ovlhdr;
@@ -65,12 +73,17 @@ main(argc, argv)
 {
 	register int i;
 	long size, totsize, ramdisk, getval();
-	int errs = 0, texterrs = 0;
+	int errs = 0, texterrs = 0, ninode;
 
 	if (argc != 2) {
 		fputs("usage: checksys unix-binary\n", stderr);
 		exit(-1);
 	}
+/*
+ * Can't (portably) initialize unions, so we do it at run time
+*/
+	for (i = 0; i < N_NUMSYMS; i++)
+		nl[i].n_un.n_name = names[i];
 	if ((fi = open(argv[1], O_RDONLY)) < 0) {
 		perror(argv[1]);
 		exit(-1);
@@ -177,7 +190,7 @@ checkov:
 			if (i < NOVL-1
 			    && ovlhdr.ov_siz[i] == 0
 			    && ovlhdr.ov_siz[i+1] > 0) {
-				printf("overlay %d is empty and there are non-empty overlays following it.\n", i);
+				printf("overlay %d is empty and there are non-empty overlays following it.\n", i + 1);
 				errs++;
 				texterrs++;
 			}
@@ -191,36 +204,37 @@ checkov:
 
 	(void)nlist(argv[1], nl);
 
-	if (!nl[N_NOKA5].n_type) {
-		puts("\"noka5\" not found in namelist.");
+	if (!nl[N_NINODE].n_type) {
+		puts("\"ninode\" not found in namelist.");
 		exit(-1);
 	}
+	ninode = getval(N_NINODE);
 	if (!texterrs)
-		if (getval(N_NOKA5)) {
-			if (nl[N_END].n_value >= 0120000) {
-				printf("Data extends into the remapping area (0120000-0140000, KDSD5)\nby %u bytes; undefine NOKA5 or reduce data size.\n", nl[N_END].n_value - 0120000);
-				errs++;
+		{
+		if (nl[N_PROC].n_value >= 0120000) {
+			printf("The remapping area (0120000-0140000, KDSD5)\n\tcontains data other than the proc, text and file tables.\n\tReduce other data by %u bytes.\n", nl[N_PROC].n_value - 0120000);
+			errs++;
 			}
 		}
-		else {
-			if (nl[N_PROC].n_value >= 0120000) {
-				printf("The remapping area (0120000-0140000, KDSD5)\n\tcontains data other than the proc, text and file tables.\n\tReduce other data by %u bytes.\n", nl[N_PROC].n_value - 0120000);
-				errs++;
-			}
-			if (nl[N_END].n_value < 0120000)
-				printf("Data ends %u bytes below the remapping area (0120000-0140000, KDSD5)\nyou may define NOKA5.\n", 0120000 - nl[N_END].n_value);
-		}
-	totsize += cround(getval(N_NBUF) * getval(N_BSIZE));
+	totsize += (getval(N_NBUF) * MAXBSIZE);
 	if (nl[N_CLIST].n_value)
 		totsize += cround(getval(N_CLIST) * (long)sizeof(struct cblock));
 	if (nl[N_RAM].n_type)
 		totsize += getval(N_RAM)*512;
+	if (nl[N_QUOTDESC].n_type)
+		totsize += 8192;
+	if (nl[N_XITDESC].n_type)
+		totsize += (ninode * 3 * sizeof (long));
+	if (nl[N_NAMECACHE].n_type)
+		totsize += (ninode * sizeof(struct namecache));
+	if (nl[N_IOSIZE].n_type)
+		totsize += getval(N_IOSIZE);
 	totsize += ctob(USIZE);
 	printf("System will occupy %ld bytes of memory (including buffers and clists).\n", totsize);
-	for (i = 0;nl[i].n_name[0];++i) {
+	for (i = 0; i < N_NUMSYMS; i++) {
 		if (!(i % 3))
 			putchar('\n');
-		printf("\t%7.7s {0%06o}", nl[i].n_name + 1, nl[i].n_value);
+		printf("\t%10.10s {0%06o}", nl[i].n_un.n_name+1, nl[i].n_value);
 	}
 	putchar('\n');
 	if (errs)
@@ -241,7 +255,9 @@ getval(indx)
 
 	if ((nl[indx].n_type&N_TYPE) == N_BSS)
 		return((long)0);
-	offst = nl[indx].n_value + obj.a_text + sizeof(obj);
+	offst = nl[indx].n_value;
+	offst += obj.a_text;
+	offst += sizeof(obj);
 	if (obj.a_magic == A_MAGIC2 || obj.a_magic == A_MAGIC5)
 		offst -= (off_t)round(obj.a_text);
 	if (obj.a_magic == A_MAGIC5 || obj.a_magic == A_MAGIC6) {

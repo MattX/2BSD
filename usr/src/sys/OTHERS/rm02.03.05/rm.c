@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rm.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rm.c	1.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -74,7 +74,6 @@ int	rm_offset[] =
 #define	RM_RDIST	6
 
 struct	buf	rmtab;
-struct	buf	rrmbuf[NRM];
 #if	NRM > 1
 struct	buf	rmutab[NRM];
 #endif
@@ -101,10 +100,8 @@ register struct hpdevice *addr;
 		return(0);
 	if ((addr != (struct hpdevice *) NULL) && (fioword(addr) != -1)) {
 		RMADDR = addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword(&(addr->hpbae)) != -1)
 			rmtab.b_flags |= B_RH70;
-#endif
 		return(1);
 	}
 	RMADDR = (struct hpdevice *) NULL;
@@ -132,10 +129,8 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	if ((rmtab.b_flags & B_RH70) == 0)
 		mapalloc(bp);
-#endif
 	bp->b_cylin = bn / (RM_NSECT * RM_NTRAC) + rm_sizes[unit & 07].cyloff;
 	unit = dkunit(bp);
 #if	NRM > 1
@@ -211,10 +206,8 @@ register unit;
 		bbp->b_blkno = (daddr_t)RM_NCYL * (RM_NSECT*RM_NTRAC)
 		    - RM_NSECT;
 		bbp->b_cylin = RM_NCYL - 1;
-#ifdef	UNIBUS_MAP
 		if ((rmtab.b_flags & B_RH70) == 0)
 			mapalloc(bbp);
-#endif	UNIBUS_MAP
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
@@ -334,10 +327,8 @@ loop:
 		bbp->b_blkno = (daddr_t)RM_NCYL * (RM_NSECT*RM_NTRAC)
 		    - RM_NSECT;
 		bbp->b_cylin = RM_NCYL - 1;
-#ifdef	UNIBUS_MAP
 		if ((rmtab.b_flags & B_RH70) == 0)
 			mapalloc(bbp);
-#endif	UNIBUS_MAP
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
@@ -369,10 +360,8 @@ loop:
 	rmaddr->hpdc = cn;
 	rmaddr->hpda = (tn << 8) + sn;
 	rmaddr->hpba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (rmtab.b_flags & B_RH70)
 		rmaddr->hpbae = bp->b_xmem;
-#endif
 	rmaddr->hpwc = -(bp->b_bcount >> 1);
 	/*
 	 * Warning:  unit is being used as a temporary.
@@ -527,26 +516,6 @@ errdone:
 	rmstart();
 }
 
-rmread(dev)
-	register dev_t dev;
-{
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NRM)
-		return (ENXIO);
-	return (physio(rmstrategy, &rrmbuf[unit], dev, B_READ, WORD));
-}
-
-rmwrite(dev)
-	register dev_t dev;
-{
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NRM)
-		return (ENXIO);
-	return (physio(rmstrategy, &rrmbuf[unit], dev, B_WRITE, WORD));
-}
-
 #define	exadr(x,y)	(((long)(x) << 16) | (unsigned)(y))
 
 /*
@@ -567,9 +536,7 @@ register struct	buf *bp;
 	int	ocmd;
 	int	cn, tn, sn;
 	daddr_t	bn;
-#ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
-#endif
 	int	unit;
 
 	/*
@@ -629,7 +596,6 @@ register struct	buf *bp;
 		 */
 		while (byte < bp->b_bcount && wrong != 0) {
 			addr = bb + byte;
-#ifdef	UNIBUS_MAP
 			if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
 				/*
 				 * Simulate UNIBUS map if UNIBUS transfer.
@@ -638,7 +604,6 @@ register struct	buf *bp;
 				addr = exadr(ubp->ub_hi, ubp->ub_lo)
 				    + (addr & 017777);
 			}
-#endif
 			putmemc(addr, getmemc(addr) ^ (int) wrong);
 			byte++;
 			wrong >>= 8;
@@ -688,10 +653,8 @@ register struct	buf *bp;
 	rmaddr->hpda = (tn << 8) + sn;
 	rmaddr->hpwc = wc;
 	rmaddr->hpba = (caddr_t)addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (rmtab.b_flags & B_RH70)
 		rmaddr->hpbae = (short)(addr >> 16);
-#endif
 	rmaddr->hpcs1.w = ocmd;
 	return (1);
 }
@@ -700,16 +663,9 @@ register struct	buf *bp;
 /*
  *  Dump routine for RM02/RM03.
  *  Dumps from dumplo to end of memory/end of disk section for minor(dev).
- *  It uses the UNIBUS map to dump all of memory if there is a UNIBUS map
- *  and this isn't an RM03.  This depends on UNIBUS_MAP being defined.
- *  If there is no UNIBUS map, it will work with any definitions.
  */
 
-#ifdef	UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
-#define DBSIZE	16			/* unit of transfer, same number */
-#endif
+#define DBSIZE	16			/* number of blocks to write */
 
 rmdump(dev)
 dev_t	dev;
@@ -719,9 +675,7 @@ dev_t	dev;
 	long	paddr;
 	register sn;
 	register count;
-#ifdef	UNIBUS_MAP
 	register struct ubmap *ubp;
-#endif
 
 	if ((bdevsw[major(dev)].d_strategy != rmstrategy)	/* paranoia */
 	    || ((dev=minor(dev)) > (NRM << 3)))
@@ -740,9 +694,7 @@ dev_t	dev;
 	if ((rmaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
 		return(EFAULT);
 	dev &= 07;
-#ifdef	UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -750,11 +702,6 @@ dev_t	dev;
 		sn = bn % (RM_NSECT * RM_NTRAC);
 		rmaddr->hpda = ((sn / RM_NSECT) << 8) | (sn % RM_NSECT);
 		rmaddr->hpwc = -(count << (PGSHIFT - 1));
-		/*
-		 *  If UNIBUS_MAP exists, use
-		 *  the map, unless on an 11/70 with RM03.
-		 */
-#ifdef	UNIBUS_MAP
 		if (ubmap && ((rmtab.b_flags & B_RH70) == 0)) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
@@ -762,16 +709,13 @@ dev_t	dev;
 			rmaddr->hpcs1.w = HP_WCOM | HP_GO;
 		}
 		else
-#endif
 			{
 			/*
 			 *  Non-UNIBUS map, or 11/70 RM03 (MASSBUS)
 			 */
 			rmaddr->hpba = loint(paddr);
-#if	PDP11 == 70 || PDP11 == GENERIC
 			if (rmtab.b_flags & B_RH70)
 				rmaddr->hpbae = hiint(paddr);
-#endif
 			rmaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
 		}
 		while (rmaddr->hpcs1.w & HP_GO)

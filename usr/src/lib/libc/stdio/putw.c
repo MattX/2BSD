@@ -1,6 +1,6 @@
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)putw.c	5.2 (Berkeley) 3/9/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)putw.c	5.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <stdio.h>
 
@@ -16,7 +16,7 @@ register FILE *iop;
 	return(ferror(iop));
 }
 
-#ifdef BSD2_10
+#ifdef pdp11
 putlw(w, iop)
 long w;
 register FILE *iop;
@@ -29,4 +29,4 @@ register FILE *iop;
 		putc(*p++, iop);
 	return(ferror(iop));
 }
-#endif BSD2_10
+#endif

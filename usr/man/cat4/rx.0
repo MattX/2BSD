@@ -5,25 +5,25 @@ RX(4)		    UNIX Programmer's Manual		    RX(4)
 
 
 
-NNAAMMEE
+NAME
      rx - DEC RX02 floppy disk
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNRRXX  _r_x__u_n_i_t_s  ## RRXX0022
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NRX  _r_x__u_n_i_t_s  # RX02
 
-     //eettcc//ddttaabb::
-	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
-	  rrxx	??     117777117700 226644    55  rrxxiinnttrr	       ## rrxx0022
+     /etc/dtab:
+	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
+	  rx	?     177170 264    5  rxintr	       # rx02
 
-     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
-	  rraaww:: 1177
-	  bblloocckk:: 88
-     mmiinnoorr ddeevviiccee eennccooddiinngg::
-	  bbiitt 0011 ssppeecciiffiieess ddrriivvee:: <<rrxx__ddrriivvee>>
-	  bbiitt 0022 ssppeecciiffiieess ddeennssiittyy:: ssiinnggllee:: 00,, ddoouubbllee:: 11
+     major device number(s):
+	  raw: 17
+	  block: 8
+     minor device encoding:
+	  bit 01 specifies drive: <rx_drive>
+	  bit 02 specifies density: single: 0, double: 1
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _r_x device provides access to a DEC RX02 floppy disk unit
      with M8256 interface module (RX211 configuration). The RX02
      uses 8-inch, single-sided, soft-sectored floppy disks (with
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 20, 1987			1
+Printed 1/9/94		 August 20, 1987			1
 
 
 
@@ -78,7 +78,7 @@ RX(4)		    UNIX Programmer's Manual		    RX(4)
      In addition to normal (`block' and `raw') i/o, the driver
      supports formatting of disks for either density.
 
-DDIISSKK SSUUPPPPOORRTT
+DISK SUPPORT
      The _r_x driver does not support pseudo-disks (partitions).
      Each file _r_x?[_a_b] refers to the entire drive as a single
      sequentially addressed file.  The physical disk sector size
@@ -113,11 +113,11 @@ DDIISSKK SSUUPPPPOORRTT
 
      An _i_o_c_t_l(2) call is available is available to format RX02
      disks:
-	  ##iinncclluuddee <<ppddppuubbaa//rrxxrreegg..hh>>
-	  iiooccttll((ffiillddeess,, RRXXIIOOCC__FFOORRMMAATT))
+	  #include <pdpuba/rxreg.h>
+	  ioctl(fildes, RXIOC_FORMAT)
      The density is determined by the device opened.
 
-FFIILLEESS
+FILES
      /dev/rx[01][ab]	 block files
      /dev/rrx[01][ab]	 raw files
      /dev/MAKEDEV	 script to create special files
@@ -126,7 +126,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	 August 20, 1987			2
+Printed 1/9/94		 August 20, 1987			2
 
 
 
@@ -137,19 +137,19 @@ RX(4)		    UNIX Programmer's Manual		    RX(4)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      hk(4), ra(4), ram(4), rk(4), rl(4), rp(4), si(4), xp(4),
      dtab(5), autoconfig(8), rxformat(8V)
 
-DDIIAAGGNNOOSSTTIICCSS
-     rrxx22%%dd:: hhaarrdd eerrrroorr ssnn%%dd ccss==%%bb eerr==%%bb.  An unrecoverable error
+DIAGNOSTICS
+     rx2%d: hard error sn%d cs=%b er=%b.  An unrecoverable error
      occurred during transfer of the specified sector of the
      specified disk.  The contents of the two error registers are
      also printed in octal and symbolically with bits decoded.
      The error was either unrecoverable, or a large number of
      retry attempts could not recover the error.
 
-BBUUGGSS
+BUGS
      In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to disk
      sector size block boundaries (either 128 or 256 bytes
      depending on the selected density), and _w_r_i_t_e scribbles on
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 20, 1987			3
+Printed 1/9/94		 August 20, 1987			3
 
 
 

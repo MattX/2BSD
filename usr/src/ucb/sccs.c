@@ -1106,6 +1106,9 @@ isbranch(sid)
 **		entries are removed from pfile.
 */
 
+char *rindex();
+char *tail();
+
 bool
 unedit(fn)
 	char *fn;

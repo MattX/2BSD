@@ -5,13 +5,13 @@ HTABLE(8)	    UNIX Programmer's Manual		HTABLE(8)
 
 
 
-NNAAMMEE
+NAME
      htable - convert NIC standard format host tables
 
-SSYYNNOOPPSSIISS
-     //eettcc//hhttaabbllee [ --cc _c_o_n_n_e_c_t_e_d-_n_e_t_s ] [ --ll _l_o_c_a_l-_n_e_t_s ] _f_i_l_e
+SYNOPSIS
+     /etc/htable [ -c _c_o_n_n_e_c_t_e_d-_n_e_t_s ] [ -l _l_o_c_a_l-_n_e_t_s ] _f_i_l_e
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _H_t_a_b_l_e is used to convert host files in the format specified
      in Internet RFC 810 to the format used by the network
      library routines.	Three files are created as a result of
@@ -34,15 +34,15 @@ DDEESSCCRRIIPPTTIIOONN
 
      If the gateways file is to be used, a list of networks to
      which the host is directly connected is specified with the
-     --cc flag.  The networks, separated by commas, may be given by
-     name or in Internet-standard dot notation, e.g.  --cc
+     -c flag.  The networks, separated by commas, may be given by
+     name or in Internet-standard dot notation, e.g.  -c
      arpanet,128.32,local-ether-net.  _H_t_a_b_l_e only includes gate-
      ways which are directly connected to one of the networks
      specified, or which can be reached from another gateway on a
      connected net.
 
-     If the --ll option is given with a list of networks (in the
-     same format as for --cc), these networks will be treated as
+     If the -l option is given with a list of networks (in the
+     same format as for -c), these networks will be treated as
      ``local,'' and information about hosts on local networks is
      taken only from the localhosts file.  Entries for local
      hosts from the main database will be omitted.  This allows
@@ -52,15 +52,15 @@ DDEESSCCRRIIPPTTIIOONN
      _H_t_a_b_l_e is best used in conjunction with the _g_e_t_t_a_b_l_e(8C)
      program which retrieves the NIC database from a host.
 
-SSEEEE AALLSSOO
+SEE ALSO
      intro(3N), gettable(8C), named(8)
 
-BBUUGGSS
+BUGS
      If the name-domain system provided network name mapping well
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -126,7 +126,7 @@ HTABLE(8)	    UNIX Programmer's Manual		HTABLE(8)
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 

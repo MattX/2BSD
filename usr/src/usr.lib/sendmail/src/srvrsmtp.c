@@ -15,12 +15,12 @@
 
 # ifndef SMTP
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)srvrsmtp.c	5.18 (Berkeley) 1/5/86	(no SMTP)";
+static char SccsId[] = "@(#)srvrsmtp.c 5.18.1 (2.11BSD GTE) 7/15/94 (no SMTP)";
 # endif
 # else SMTP
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)srvrsmtp.c	5.18 (Berkeley) 1/5/86";
+static char	SccsId[] = "@(#)srvrsmtp.c	5.18.1 (2.11BSD GTE) 7/15/94";
 # endif
 
 /*
@@ -88,8 +88,8 @@ static struct cmd	CmdTab[] =
 
 # ifdef WIZ
 bool	IsWiz = FALSE;			/* set if we are a wizard */
-# endif WIZ
 char	*WizWord;			/* the wizard word to compare against */
+# endif WIZ
 bool	InChild = FALSE;		/* true if running in a subprocess */
 bool	OneXact = FALSE;		/* one xaction only this run */
 
@@ -107,7 +107,6 @@ smtp()
 	ADDRESS *a;
 	char inp[MAXLINE];
 	char cmdbuf[100];
-	extern char Version[];
 	extern tick();
 	extern bool iswiz();
 	extern char *arpadate();

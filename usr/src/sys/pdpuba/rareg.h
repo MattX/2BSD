@@ -25,5 +25,3 @@ typedef	struct	radevice	{
 #define RA_IE		0000200
 #define RA_PI		0000001
 #define RA_GO		0000001
-
-#define RA_VECTOR	0154

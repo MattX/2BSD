@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(KERNEL) && !defined(SUPERVISOR)
-	<@(#)csv.s	2.3 (Berkeley) 4/3/88\0>
+	<@(#)csv.s	2.4 (2.11BSD GTE) 12/24/92\0>
 	.even
 #endif
 
@@ -275,7 +275,7 @@ cret:
 	 */
 	cmp	r4,__ovno	/ current overlay same as old overlay?
 	beq	1b		/   lucked out!
-#if	defined(KERNEL) && defined(UCB_NET)
+#if	defined(KERNEL) && defined(INET)
 	cmp	2(r5),$Kretu	/ must always restore overlays if returning
 	beq	3f		/   from SKcall
 #endif

@@ -16,14 +16,13 @@
 
 # ifndef SMTP
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)usersmtp.c	5.7 (Berkeley) 4/2/86	(no SMTP)";
+static char SccsId[] = "@(#)usersmtp.c	5.7.1 (2.11BSD GTE) 7/15/94 (no SMTP)";
 # endif
 # else SMTP
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)usersmtp.c	5.7 (Berkeley) 4/2/86";
+static char SccsId[] = "@(#)usersmtp.c	5.7.1 (2.11BSD GTE) 7/15/94";
 # endif
-
 
 
 /*
@@ -38,7 +37,7 @@ static char	SccsId[] = "@(#)usersmtp.c	5.7 (Berkeley) 4/2/86";
 
 char	SmtpMsgBuffer[MAXLINE];		/* buffer for commands */
 char	SmtpReplyBuffer[MAXLINE];	/* buffer for replies */
-char	SmtpError[MAXLINE] = "";	/* save failure error messages */
+char	SmtpError[MAXLINE];		/* save failure error messages */
 FILE	*SmtpOut;			/* output file */
 FILE	*SmtpIn;			/* input file */
 int	SmtpPid;			/* pid of mailer */
@@ -400,7 +399,7 @@ reply(m)
 		if (p == NULL)
 		{
 			extern char MsgBuf[];		/* err.c */
-			extern char Arpa_TSyserr[];	/* conf.c */
+			extern char *Arpa_TSyserr;	/* conf.c */
 
 			/* if the remote end closed early, fake an error */
 			if (errno == 0)

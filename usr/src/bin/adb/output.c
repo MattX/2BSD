@@ -1,51 +1,21 @@
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
 
-
-INT		mkfault;
-INT		infile;
-INT		outfile = 1;
-INT		maxpos;
-
-CHAR		printbuf[MAXLIN];
-CHAR		*printptr = printbuf;
-CHAR		*digitptr;
-MSG		TOODEEP;
-L_INT		var[];
-
-
-eqstr(s1, s2)
-	REG STRING	s1, s2;
-{
-	REG STRING	 es1;
-	es1 = s1+8;
-	WHILE *s1++ == *s2
-	DO IF *s2++ == 0 ORF s1>=es1
-	   THEN return(1);
-	   FI
-	OD
-	return(0);
-}
-
-length(s)
-	STRING		s;
-{
-	INT		n = 0;
-	WHILE *s++ DO n++; OD
-	return(n);
-}
+	int	mkfault;
+	int	infile;
+	int	outfile = 1;
+	int	maxpos;
+	char	printbuf[MAXLIN];
+	char	*printptr = printbuf;
+	char	*digitptr;
+	MSG	TOODEEP;
+	long	var[];
 
 printc(c)
-	CHAR		c;
+	char	c;
 {
-	CHAR		d;
-	STRING		q;
-	INT		posn, tabs, p;
+	char	d;
+	char	*q;
+	int	posn, tabs, p;
 
 	IF mkfault
 	THEN	return;
@@ -78,44 +48,56 @@ printc(c)
 	FI
 }
 
-charpos()
-{	return(printptr-printbuf);
-}
-
 flushbuf()
 {	IF printptr!=printbuf
 	THEN printc(EOR);
 	FI
 }
 
+/*VARARGS*/
 printf(fmat,a1)
-	STRING		fmat;
-	STRING		*a1;
+	char	*fmat;
+	char	**a1;
 {
-	STRING		fptr, s;
-	INT		*vptr;
-	L_INT		*dptr;
-	L_REAL		*rptr;
-	INT		width, prec;
-	CHAR		c, adj;
-	INT		x, decpt, n;
-	L_INT		lx;
-	CHAR		digits[64];
-	STRING		ecvt();
+	char	*fptr, *s;
+	int	*vptr;
+	long	*dptr;
+	double	*rptr;
+	int	width, prec;
+	char	c, adj;
+	int	x, decpt, n;
+	long	lx;
+	char	digits[64];
+	char	*ecvt();
 
-	fptr = fmat; vptr = (INT*)&a1;
+	fptr = fmat; vptr = (int *)&a1;
 
 	WHILE c = *fptr++
 	DO  IF c!='%'
 	    THEN printc(c);
 	    ELSE IF *fptr=='-' THEN adj='l'; fptr++; ELSE adj='r'; FI
 		 width=convert(&fptr);
-		 IF *fptr=='.' THEN fptr++; prec=convert(&fptr); ELSE prec = -1; FI
+		 if	(*fptr == '*')
+			{
+			width = *vptr++;
+			fptr++;
+			}
+		 if	(*fptr == '.')
+			{
+			fptr++;
+			prec = convert(&fptr);
+			if	(*fptr == '*')
+				{
+				prec = *vptr++;
+				fptr++;
+				}
+			}
+		else
+			prec = -1;
 		 digitptr=digits;
-		 dptr=(L_INT*)(rptr=(L_REAL*)vptr); lx = *dptr; x = *vptr++;
+		 dptr=(long *)(rptr=(double *)vptr); lx = *dptr; x = *vptr++;
 		 s=0;
 		 switch (c = *fptr++) {
-
 		    case 'd':
 		    case 'u':
 			printnum(x,c,10); break;
@@ -139,7 +121,7 @@ printf(fmat,a1)
 		    case 'c':
 			printc(x); break;
 		    case 's':
-			s=(STRING)x; break;
+			s=(char *)x; break;
 		    case 'f':
 		    case 'F':
 			vptr += 7;
@@ -166,7 +148,7 @@ printf(fmat,a1)
 			ELSE vptr--;
 			FI
 			IF width
-			THEN width -= charpos()%width;
+			THEN width -= ((printptr - printbuf) % width);
 			FI
 			break;
 		    default:
@@ -176,7 +158,7 @@ printf(fmat,a1)
 		IF s==0
 		THEN *digitptr=0; s=digits;
 		FI
-		n=length(s);
+		n = strlen(s);
 		n=(prec<n ANDF prec>=0 ? prec : n);
 		width -= n;
 		IF adj=='r'
@@ -191,48 +173,40 @@ printf(fmat,a1)
 }
 
 printdate(tvec)
-	L_INT		tvec;
+	long	tvec;
 {
-	REG INT		i;
-	REG STRING	timeptr;
-	STRING		ctime();
+	register int i;
+	register char	*timeptr;
+	extern	char	*ctime();
+
 	timeptr = ctime(&tvec);
 	FOR i=20; i<24; i++ DO *digitptr++ = *(timeptr+i); OD
 	FOR i=3; i<19; i++ DO *digitptr++ = *(timeptr+i); OD
-} /*printdate*/
-
-prints(s)
-char *s;
-{	printf("%s",s);
-}
-
-newline()
-{
-	printc(EOR);
 }
 
 convert(cp)
-REG STRING	*cp;
+	register char **cp;
 {
-	REG CHAR	c;
-	INT		n;
-	n=0;
+	register char c;
+	int	n = 0;
+
 	WHILE ((c = *(*cp)++)>='0') ANDF (c<='9') DO n=n*10+c-'0'; OD
 	(*cp)--;
 	return(n);
 }
 
 printnum(n,fmat,base)
-	REG INT		n;
+	register int n;
 {
-	REG CHAR	k;
-	REG INT		*dptr;
-	INT		digs[15];
+	register char k;
+	register int *dptr;
+	int digs[15];
+
 	dptr=digs;
 	IF n<0 ANDF fmat=='d' THEN n = -n; *digitptr++ = '-'; FI
 	WHILE n
-	DO  *dptr++ = ((POS)n)%base;
-	    n=((POS)n)/base;
+	DO  *dptr++ = ((u_int)n)%base;
+	    n=((u_int)n)/base;
 	OD
 	IF dptr==digs THEN *dptr++=0; FI
 	WHILE dptr!=digs
@@ -242,12 +216,12 @@ printnum(n,fmat,base)
 }
 
 printoct(o,s)
-	L_INT		o;
-	INT		s;
+	long	o;
+	int	s;
 {
-	INT		i;
-	L_INT		po = o;
-	CHAR		digs[12];
+	int	i;
+	long	po = o;
+	char	digs[12];
 
 	IF s
 	THEN IF po<0
@@ -265,9 +239,15 @@ printoct(o,s)
 }
 
 printdbl(lx,ly,fmat,base)
-INT lx, ly; char fmat; int base;
-{	int digs[20]; int *dptr; char k;
-	L_REAL f ,g; long q;
+	int	lx, ly;
+	char	fmat;
+	int	base;
+{
+	int digs[20], *dptr;
+	char k;
+	double	f ,g;
+	long q;
+
 	dptr=digs;
 	IF fmat!='D'
 	THEN	f=leng(lx); f *= itol(1,0); f += leng(ly);
@@ -289,10 +269,11 @@ INT lx, ly; char fmat; int base;
 
 #define	MAXIFD	5
 struct {
-	INT	fd;
-	L_INT	r9;
+	int	fd;
+	long	r9;
 } istack[MAXIFD];
-INT	ifiledepth;
+
+	int	ifiledepth;
 
 iclose(stack, err)
 {
@@ -337,7 +318,6 @@ oclose()
 
 endline()
 {
-	IF charpos()>=maxpos
-	THEN printf("\n");
-	FI
+	if	((printptr - printbuf) >= maxpos)
+		printc('\n');
 }

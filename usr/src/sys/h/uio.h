@@ -11,7 +11,7 @@
 
 struct iovec {
 	caddr_t	iov_base;
-	int	iov_len;
+	u_short	iov_len;
 };
 
 struct uio {
@@ -19,7 +19,7 @@ struct uio {
 	int	uio_iovcnt;
 	off_t	uio_offset;
 	int	uio_segflg;
-	int	uio_resid;
+	u_short	uio_resid;
 };
 
 enum	uio_rw { UIO_READ, UIO_WRITE };

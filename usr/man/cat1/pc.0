@@ -5,41 +5,41 @@ PC(1)		    UNIX Programmer's Manual		    PC(1)
 
 
 
-NNAAMMEE
+NAME
      pc - Pascal compiler
 
-SSYYNNOOPPSSIISS
-     ppcc [ option ] [ --ii name ...  ] name ...
+SYNOPSIS
+     pc [ option ] [ -i name ...  ] name ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_c is a Pascal compiler.  If given an argument file ending
-     with ..pp, it will compile the file and load it into an exe-
+     with .p, it will compile the file and load it into an exe-
      cutable file called, by default, _a._o_u_t.
 
-     A program may be separated into more than one ..pp file.  _P_c
-     will compile a number of argument ..pp files into object files
-     (with the extension ..oo in place of ..pp).  Object files may
+     A program may be separated into more than one .p file.  _P_c
+     will compile a number of argument .p files into object files
+     (with the extension .o in place of .p).  Object files may
      then be loaded into an executable _a._o_u_t file.  Exactly one
-     object file must supply a pprrooggrraamm statement to successfully
+     object file must supply a program statement to successfully
      create an executable a.out file.  The rest of the files must
      consist only of declarations which logically nest within the
      program.  References to objects shared between separately
      compiled files are allowed if the objects are declared in
-     iinncclluuddeed header files, whose names must end with ..hh.  Header
+     included header files, whose names must end with .h.  Header
      files may only be included at the outermost level, and thus
-     declare only globally available objects.  To allow ffuunnccttiioonns
-     and pprroocceedduurrees to be declared, an eexxtteerrnnaall directive has
-     been added, whose use is similar to the ffoorrwwaarrdd directive
-     but restricted to appear only in ..hh files.  FFuunnccttiioonn and
-     pprroocceedduurree bodies may not appear in ..hh files.  A binding
+     declare only globally available objects.  To allow functions
+     and procedures to be declared, an external directive has
+     been added, whose use is similar to the forward directive
+     but restricted to appear only in .h files.  Function and
+     procedure bodies may not appear in .h files.  A binding
      phase of the compiler checks that declarations are used con-
      sistently, to enforce the type checking rules of Pascal.
 
      Object files created by other language processors may be
-     loaded together with object files created by _p_c.  The ffuunncc--
-     ttiioonns and pprroocceedduurrees they define must have been declared in
-     ..hh files included by all the ..pp files which call those rou-
-     tines.  Calling conventions are as in C, with vvaarr parameters
+     loaded together with object files created by _p_c.  The func-
+     tions and procedures they define must have been declared in
+     .h files included by all the .p files which call those rou-
+     tines.  Calling conventions are as in C, with var parameters
      passed by address.
 
      See the Berkeley Pascal User's Manual for details.
@@ -47,20 +47,20 @@ DDEESSCCRRIIPPTTIIOONN
      The following options have the same meaning as in _c_c(1) and
      _f_7_7(1).  See _l_d(1) for load-time options.
 
-     --cc    Suppress loading and produce `.o' file(s) from source
+     -c    Suppress loading and produce `.o' file(s) from source
 	   file(s).
 
-     --gg    Have the compiler produce additional symbol table
+     -g    Have the compiler produce additional symbol table
 	   information for _d_b_x(1).
 
-     --ww    Suppress warning messages.
+     -w    Suppress warning messages.
 
-     --pp    Prepare object files for profiling, see _p_r_o_f(1).
-
-
+     -p    Prepare object files for profiling, see _p_r_o_f(1).
 
 
-Printed 12/28/88	 April 29, 1985                         1
+
+
+Printed 1/9/94		 April 29, 1985                         1
 
 
 
@@ -71,34 +71,34 @@ PC(1)		    UNIX Programmer's Manual		    PC(1)
 
 
 
-     --OO    Invoke an object-code improver.
+     -O    Invoke an object-code improver.
 
-     --SS    Compile the named program, and leave the assembler-
+     -S    Compile the named program, and leave the assembler-
 	   language output on the corresponding file suffixed
 	   `.s'.  (No `.o' is created.).
 
-     --oo output
+     -o output
 	   Name the final output file _o_u_t_p_u_t instead of _a._o_u_t.
 
      The following options are peculiar to _p_c.
 
-     --CC    Compile code to perform runtime checks, verify aasssseerrtt
+     -C    Compile code to perform runtime checks, verify assert
 	   calls, and initialize all variables to zero as in _p_i.
 
-     --bb    Block buffer the file _o_u_t_p_u_t.
+     -b    Block buffer the file _o_u_t_p_u_t.
 
-     --ii    Produce a listing for the specified procedures, func-
-	   tions and iinncclluuddee files.
+     -i    Produce a listing for the specified procedures, func-
+	   tions and include files.
 
-     --ll    Make a program listing during translation.
+     -l    Make a program listing during translation.
 
-     --ss    Accept standard Pascal only; non-standard constructs
+     -s    Accept standard Pascal only; non-standard constructs
 	   cause warning diagnostics.
 
-     --tt directory
+     -t directory
 	   Use the given _d_i_r_e_c_t_o_r_y for compiler temporary files.
 
-     --zz    Allow execution profiling with _p_x_p by generating
+     -z    Allow execution profiling with _p_x_p by generating
 	   statement counters, and arranging for the creation of
 	   the profile data file _p_m_o_n._o_u_t when the resulting
 	   object is executed.
@@ -108,7 +108,7 @@ PC(1)		    UNIX Programmer's Manual		    PC(1)
      can also be controlled in comments within the program as
      described in the _B_e_r_k_e_l_e_y _P_a_s_c_a_l _U_s_e_r'_s _M_a_n_u_a_l.
 
-FFIILLEESS
+FILES
      file.p		      pascal source files
      /usr/lib/pc0	      compiler
      /lib/f1		      code generator
@@ -126,7 +126,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	 April 29, 1985                         2
+Printed 1/9/94		 April 29, 1985                         2
 
 
 
@@ -137,27 +137,27 @@ PC(1)		    UNIX Programmer's Manual		    PC(1)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      Berkeley Pascal User's Manual
      pi(1), pxp(1), pxref(1), sdb(1)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      For a basic explanation do
 
-	  ppcc
+	  pc
 
      See _p_i(1).  for an explanation of the error message format.
      Internal errors cause messages containing the word SNARK.
 
-AAUUTTHHOORRSS
+AUTHORS
      Charles B. Haley, William N. Joy, and Ken Thompson
      Retargetted to the second pass of the portable _C compiler by
      Peter Kessler
      Runtime library and inline optimizer by M. Kirk McKusick
      Separate compilation consistency checking by Louise Madrid
 
-BBUUGGSS
-     The keyword ppaacckkeedd is recognized but has no effect.
+BUGS
+     The keyword packed is recognized but has no effect.
 
      The binder is not as strict as described here, with regard
      to the rules about external declarations only in `.h' files
@@ -165,9 +165,9 @@ BBUUGGSS
      will be made to perform these checks in its next incarna-
      tion, so users are warned not to be sloppy.
 
-     The --zz flag doesn't work for separately compiled files.
+     The -z flag doesn't work for separately compiled files.
 
-     Because the --ss option is usurped by the compiler, it is not
+     Because the -s option is usurped by the compiler, it is not
      possible to pass the strip option to the loader.  Thus pro-
      grams which are to be stripped, must be run through _s_t_r_i_p(1)
      after they are compiled.
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         3
+Printed 1/9/94		 April 29, 1985                         3
 
 
 

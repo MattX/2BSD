@@ -5,30 +5,30 @@ UUPOLL(8C)	    UNIX Programmer's Manual	       UUPOLL(8C)
 
 
 
-NNAAMMEE
+NAME
      uupoll - poll a remote UUCP site
 
-SSYYNNOOPPSSIISS
-     uuuuppoollll [ --gg_g_r_a_d_e ] [ --nn ] _s_y_s_t_e_m
+SYNOPSIS
+     uupoll [ -g_g_r_a_d_e ] [ -n ] _s_y_s_t_e_m
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _U_u_p_o_l_l is used to force a poll of a remote system. It queues
      a null job for the remote system and then invokes
      _u_u_c_i_c_o(8C).
 
      The following options are available:
 
-     --gg_g_r_a_d_e Only send jobs of grade _g_r_a_d_e or higher on this
+     -g_g_r_a_d_e Only send jobs of grade _g_r_a_d_e or higher on this
 	     call.
 
-     --nn      Queue the null job, but do not invoke _u_u_c_i_c_o.
+     -n      Queue the null job, but do not invoke _u_u_c_i_c_o.
 
      _U_u_p_o_l_l is usually run by _c_r_o_n(5) or by a user who wants to
      hurry a job along. A typical entry in _c_r_o_n_t_a_b could be:
 
 	  0    0,8,16	 *    *    *	/usr/bin/uupoll ihnp4
 	  0    4,12,20	 *    *    *	/usr/bin/uupoll ucbvax
-     This will poll iihhnnpp44 at midnight, 0800, and 1600, and uuccbbvvaaxx
+     This will poll ihnp4 at midnight, 0800, and 1600, and ucbvax
      at 0400, noon, and 2000.
 
      If the local machine is already running _u_u_c_i_c_o every hour
@@ -42,11 +42,11 @@ DDEESSCCRRIIPPTTIIOONN
      hour; they will be processed by _u_u_c_i_c_o when it runs five
      minutes later.
 
-FFIILLEESS
+FILES
      /usr/lib/uucp/	UUCP internal files/utilities
      /usr/spool/uucp/	Spool directory
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), uucico(8C)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 

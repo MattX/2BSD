@@ -7,7 +7,7 @@ SEPFLAG= -i
 btlgammon: btlgammon.c
 	cc ${SEPFLAG} ${CFLAGS} -o btlgammon btlgammon.c
 
-install:
+install: btlgammon backrules
 	install -s btlgammon ${DESTDIR}/usr/games/btlgammon
 	install -c backrules ${DESTDIR}/usr/games/lib/backrules
 

@@ -100,18 +100,20 @@ unpbind(path, len, ipp, unpsock)
 	register struct inode *ip;
 	char pth[MLEN];
 	int error;
+	register struct	nameidata *ndp = &u.u_nd;
 
 	bcopy(path, pth, len);
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = pth;
-	u.u_dirp[len - 2] = 0;
+	ndp->ni_nameiop = CREATE | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = pth;
+	ndp->ni_dirp[len - 2] = 0;
 	*ipp = 0;
-	ip = namei(CREATE|FOLLOW);
+	ip = namei(ndp);
 	if (ip) {
 		iput(ip);
 		return(EADDRINUSE);
 	}
-	if (u.u_error || !(ip = maknode(IFSOCK | 0777))) {
+	if (u.u_error || !(ip = maknode(IFSOCK | 0777, ndp))) {
 		error = u.u_error;
 		u.u_error = 0;
 		return(error);
@@ -131,14 +133,16 @@ unpconn(path, len, so2, ipp)
 	register struct inode *ip;
 	char pth[MLEN];
 	int error;
+	register struct	nameidata *ndp = &u.u_nd;
 
 	bcopy(path, pth, len);
 	if (!len)
 		return(EINVAL);		/* paranoia */
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = pth;
-	u.u_dirp[len - 2] = 0;
-	ip = namei(LOOKUP | FOLLOW);
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = pth;
+	ndp->ni_dirp[len - 2] = 0;
+	ip = namei(ndp);
 	*ipp = ip;
 	if (!ip || access(ip, IWRITE)) {
 		error = u.u_error;
@@ -169,33 +173,3 @@ unpdisc(fp)
 	--fp->f_msgcount;
 	closef(fp);
 }
-
-#ifdef UNIBUS_MAP
-#include "uba.h"
-
-netubaa(nregs)
-	int nregs;
-{
-	memaddr malloc();
-	register int first, s;
-
-#ifdef UCB_METER
-	extern struct ubmeter ub_meter;
-
-	++ub_meter.ub_calls;
-#endif
-	s = splhigh();
-	while ((first = malloc(ub_map, nregs)) == NULL) {
-#ifdef UCB_METER
-		ub_meter.ub_fails++;
-#endif
-		ub_wantmr = 1;
-		sleep(ub_map, PSWP+1);
-	}
-	splx(s);
-#ifdef UCB_METER
-	ub_meter.ub_pages += nregs;
-#endif
-	return(first);
-}
-#endif /* UNIBUS_MAP */

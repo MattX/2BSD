@@ -5,21 +5,21 @@ SIGSTACK(2)	    UNIX Programmer's Manual	      SIGSTACK(2)
 
 
 
-NNAAMMEE
+NAME
      sigstack - set and/or get signal stack context
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssiiggnnaall..hh>>
+SYNOPSIS
+     #include <signal.h>
 
-     ssttrruucctt ssiiggssttaacckk {{
-	ccaaddddrr__tt     ssss__sspp;;
-	iinntt    ssss__oonnssttaacckk;;
-     }};;
+     struct sigstack {
+	caddr_t     ss_sp;
+	int    ss_onstack;
+     };
 
-     ssiiggssttaacckk((ssss,, oossss));;
-     ssttrruucctt ssiiggssttaacckk **ssss,, **oossss;;
+     sigstack(ss, oss);
+     struct sigstack *ss, *oss;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_i_g_s_t_a_c_k allows users to define an alternate stack on which
      signals are to be processed.  If _s_s is non-zero, it speci-
      fies a _s_i_g_n_a_l _s_t_a_c_k on which to deliver signals and tells
@@ -33,24 +33,24 @@ DDEESSCCRRIIPPTTIIOONN
      execution. If _o_s_s is non-zero, the current signal stack
      state is returned.
 
-NNOOTTEESS
+NOTES
      Signal stacks are not ``grown'' automatically, as is done
      for the normal stack.  If the stack overflows unpredictable
      results may occur.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-EERRRROORRSS
+ERRORS
      _S_i_g_s_t_a_c_k will fail and the signal stack context will remain
      unchanged if one of the following occurs.
 
      [EFAULT]	    Either _s_s or _o_s_s points to memory that is not
 		    a valid part of the process address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sigvec(2), setjmp(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  June 30, 1985                         1
+Printed 1/9/94		  June 30, 1985                         1
 
 
 

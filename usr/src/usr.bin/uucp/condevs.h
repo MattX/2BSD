@@ -1,4 +1,4 @@
-/*	condevs.h	4.6	86/02/13	*/
+/*	condevs.h	4.7	1/1/94	*/
 
 #include "uucp.h"
 #include <errno.h>
@@ -11,16 +11,6 @@
 #define SS$_NORMAL	0x00000001
 #define IO$_SETMODE	0x00000023
 #define IO$_SENSEMODE	0x00000027
-#endif
-
-#ifdef BSD2_10
-/*
- * Disambiguate "HAYES" and "HAYES2400" names.
- */
-#define	hystopn		_hysto
-#define	hyspopn		_hyspo
-#define	hystopn24	_hysto2
-#define	hyspopn24	_hyspo2
 #endif
 
 extern char devSel[];	/* name to pass to delock() in close */

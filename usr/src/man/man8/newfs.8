@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)newfs.8	6.3 (Berkeley) 5/21/86
+.\"	@(#)newfs.8	7.0 (Berkeley) 12/28/91
 .\"
-.TH NEWFS 8 "May 21, 1986"
+.TH NEWFS 8 "December 28, 1991"
 .UC 5
 .SH NAME
 newfs \- construct a new file system
@@ -14,12 +14,15 @@ newfs \- construct a new file system
 .B \-N
 ]
 [
+.B \-m free-gap
+]
+[
 .B \-b
 ]
 [
 .B \-B bootblock
 ]
-.B special disk-type cpu-type
+.B special disk-type
 .SH DESCRIPTION
 .I Newfs
 is a ``friendly'' front-end to the
@@ -34,13 +37,34 @@ calculate the appropriate
 parameters to use in calling
 .IR mkfs ,
 then build the file system by forking \fImkfs\fP.
+.PP
 The
 .I \-N
 option causes the file system parameters to be printed out
 without actually creating the file system.
 .PP
 The
-.IR \-b and \-B
+.I \-m
+option allows the specification of the block interleaving of the free list
+(the
+.I m
+parameter of 
+.IR mkfs ).
+If not specified or outside the range 0 thru 31 then 
+.I m
+is given a value of 2.
+The 
+.I n
+parameter to 
+.I mkfs
+is calcuated by
+.I newfs
+to be 1 cylinder in size.
+.PP
+The
+.IR \-b 
+and
+.IR \-B
 options specify that a primary block zero bootstrap should be installed in
 block zero of
 .IR special .
@@ -51,6 +75,7 @@ is specified,
 .I newfs
 will attempt to use a default boot block (defined in
 .IR /etc/disktab ).
+.PP
 The
 .I \-B
 option allows one to specify the file to read the boot block from
@@ -59,9 +84,6 @@ Note that a boot block can always be copied separately via:
 .PP
 	\fBdd if=\fIbootblock\fB of=\fIspecial\fB bs=512 count=1 conv=sync\fR
 .PP
-\fINewfs\fP without arguments will print a list of the disk and cpu
-types that it is familiar with.
-.PP
 .SH FILES
 /etc/disktab	for disk geometry and file system partition information 
 .br
@@ -69,15 +91,5 @@ types that it is familiar with.
 .br
 /mdec/*	block zero bootstraps
 .SH "SEE ALSO"
-disktab(5), fs(5), diskpart(8), fsck(8), format(8), mkfs(8), tunefs(8)
+disktab(5), fs(5), diskpart(8), fsck(8), format(8), mkfs(8)
 .SH BUGS
-Should figure out the disk and cpu types without the user's help.
-.PP
-The standard 4.3BSD C libarary disktab structure, as declared in
-\fI/usr/include/disktab.h\fP, was not sufficient to convey the
-information the PDP-11 needs, such as the relationship between the cpu
-type and the M/N values.  Therefore, the relevant values were
-extracted from the \fI/etc/disktab\fP file and hardwired into the
-\fInewfs\fP program.  If you have an unknown disk or cpu type, you
-may want to read through \fI/etc/disktab\fP and \fInewfs\fP to find
-a similar disk or cpu.

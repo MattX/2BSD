@@ -10,7 +10,7 @@ OBJS=	dbx.o
 dbx: ${OBJS}
 	${CC} -o dbx ${SEPFLAG} ${OBJS}
 
-install:
+install: dbx
 	install -s dbx ${DESTDIR}/usr/ucb
 
 clean:

@@ -5,17 +5,17 @@ DUP(2)		    UNIX Programmer's Manual		   DUP(2)
 
 
 
-NNAAMMEE
+NAME
      dup, dup2 - duplicate a descriptor
 
-SSYYNNOOPPSSIISS
-     nneewwdd == dduupp((oolldddd))
-     iinntt nneewwdd,, oolldddd;;
+SYNOPSIS
+     newd = dup(oldd)
+     int newd, oldd;
 
-     dduupp22((oolldddd,, nneewwdd))
-     iinntt oolldddd,, nneewwdd;;
+     dup2(oldd, newd)
+     int oldd, newd;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_u_p duplicates an existing object descriptor.  The argument
      _o_l_d_d is a small non-negative integer index in the per-
      process descriptor table.	The value must be less than the
@@ -40,19 +40,19 @@ DDEESSCCRRIIPPTTIIOONN
      descriptor is first deallocated as if a _c_l_o_s_e(2) call had
      been done first.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      The value -1 is returned if an error occurs in either call.
      The external variable _e_r_r_n_o indicates the cause of the
      error.
 
-EERRRROORRSS
+ERRORS
      _D_u_p and _d_u_p_2 fail if:
 
      [EBADF]	    _O_l_d_d or _n_e_w_d is not a valid active descriptor
 
      [EMFILE]	    Too many descriptors are active.
 
-SSEEEE AALLSSOO
+SEE ALSO
      accept(2), open(2), close(2), fcntl(2), pipe(2), socket(2),
      socketpair(2), getdtablesize(2)
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 13, 1986				1
+Printed 1/9/94		  May 13, 1986				1
 
 
 

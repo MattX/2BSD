@@ -13,12 +13,13 @@
 
 extern	struct rcdevice *RCADDR;
 
-rcread(dev) 
+rcread(dev, uio)
 dev_t	dev;
+struct uio *uio;
 {
 	struct tm t;
 
-	if(u.u_count != sizeof(t)) {
+	if(uio->uio_resid != sizeof(t)) {
 		u.u_error = EINVAL;
 		return;
 	}
@@ -32,24 +33,25 @@ dev_t	dev;
 	t.tm_yday = -1;
 	t.tm_isdst = -1;
 
-	if (copyout((caddr_t) &t, (caddr_t) u.u_base, sizeof t) < 0)
+	if (copyout((caddr_t)&t, (caddr_t)uio->uio_iov->iov_base, sizeof t) < 0)
 		  u.u_error = EFAULT;
-	u.u_count -= sizeof t;
+	uio->uio_resid -= sizeof t;
 }
 
-rcwrite(dev)
+rcwrite(dev, uio)
 dev_t	dev;
+struct uio *uio;
 {
 	register ymd;
 	register hm;
 	struct	tm t;
 
 
-	if(u.u_count != sizeof(t)) {
+	if(uio->uio_resid != sizeof(t)) {
 		u.u_error = EINVAL;
 		return;
 	}
-	if (copyin((caddr_t) u.u_base, (caddr_t) &t, sizeof(t)) < 0) {
+	if (copyin((caddr_t)uio->uio_iov->iov_base,(caddr_t)&t,sizeof(t)) < 0) {
 		u.u_error = EINVAL;
 		return;
 	}

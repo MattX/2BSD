@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ht.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ht.c	2.0 (2.11BSD) 4/20/91
  */
 
 /*
@@ -15,13 +15,16 @@
 #include "../pdpuba/htreg.h"
 #include "saio.h"
 
-
-#define	HTADDR	((struct htdevice *)0172440)
-
-#define	TUUNIT(dev)	(minor(dev) & 03)
+#define	NHT		2
 #define	H_NOREWIND	004		/* not used in stand alone driver */
 #define	H_1600BPI	010
 
+	struct	htdevice *HTcsr[NHT + 1] =
+		{
+		(struct htdevice *)0172440,
+		(struct htdevice *)0,
+		(struct htdevice *)-1
+		};
 extern int tapemark;	/* flag to indicate tapemark encountered
 			   (see sys.c as to how it's used) */
 
@@ -29,8 +32,11 @@ htopen(io)
 	register struct iob *io;
 {
 	register skip;
+	register int ctlr = CTLRn(io->i_unit);
 	int i;
 
+	if (genopen(NHT, io) < 0)
+		return(-1);
 	htstrategy(io, HT_REW);
 	skip = io->i_boff;
 	while (skip--) {
@@ -42,6 +48,7 @@ htopen(io)
 			continue;
 		htstrategy(io, HT_SENSE);
 	}
+	return(0);
 }
 
 htclose(io)
@@ -53,43 +60,50 @@ htclose(io)
 htstrategy(io, func)
 	register struct iob *io;
 {
-	register unit, com, errcnt;
+	register unit, com;
+	int errcnt, ctlr;
+	register struct htdevice *htaddr;
 
-	unit = io->i_unit;
+	unit = UNITn(io->i_unit);
+	ctlr = CTLRn(io->i_unit);
+	htaddr = HTcsr[ctlr];
 	errcnt = 0;
 retry:
-	htquiet();
+	while ((htaddr->htcs1 & HT_RDY) == 0)
+		continue;
+	while (htaddr->htfs & HTFS_PIP)
+		continue;
 
-	HTADDR->httc =
-		((unit&H_1600BPI) ? HTTC_1600BPI : HTTC_800BPI)
-		| HTTC_PDP11 | TUUNIT(unit);
-	HTADDR->htba = io->i_ma;
-	HTADDR->htfc = -io->i_cc;
-	HTADDR->htwc = -(io->i_cc >> 1);
+	htaddr->httc =
+		((io->i_unit&H_1600BPI) ? HTTC_1600BPI : HTTC_800BPI)
+		| HTTC_PDP11 | unit;
+	htaddr->htba = io->i_ma;
+	htaddr->htfc = -io->i_cc;
+	htaddr->htwc = -(io->i_cc >> 1);
 	com = ((segflag) << 8) | HT_GO;
 	if (func == READ)
 		com |= HT_RCOM;
 	else if (func == WRITE)
 		com |= HT_WCOM;
 	else if (func == HT_SREV) {
-		HTADDR->htfc = -1;
-		HTADDR->htcs1 = com | HT_SREV;
+		htaddr->htfc = -1;
+		htaddr->htcs1 = com | HT_SREV;
 		return(0);
 	} else
 		com |= func;
-	HTADDR->htcs1 = com;
-	while ((HTADDR->htcs1 & HT_RDY) == 0)
+	htaddr->htcs1 = com;
+	while ((htaddr->htcs1 & HT_RDY) == 0)
 		continue;
-	if (HTADDR->htfs & HTFS_TM) {
+	if (htaddr->htfs & HTFS_TM) {
 		tapemark = 1;
-		htinit();
+		htinit(htaddr);
 		return(0);
 	}
-	if (HTADDR->htcs1 & HT_TRE) {
+	if (htaddr->htcs1 & HT_TRE) {
 		if (errcnt == 0)
-			printf("\nHT unit %d tape error: cs2=%o, er=%o",
-			    unit, HTADDR->htcs2, HTADDR->hter);
-		htinit();
+			printf("\nHT%d,%d err: cs2=%o, er=%o",
+			    ctlr, unit, htaddr->htcs2, htaddr->hter);
+		htinit(htaddr);
 		if (errcnt++ == 10) {
 			printf("\n(FATAL ERROR)\n");
 			return(-1);
@@ -97,28 +111,19 @@ retry:
 		htstrategy(io, HT_SREV);
 		goto retry;
 	}
-	if (errcnt)
-		printf("\n(RECOVERED by retry)\n");
-	return(io->i_cc+HTADDR->htfc);
+	return(io->i_cc+htaddr->htfc);
 }
 
-htinit()
+htinit(htaddr)
+	register struct htdevice *htaddr;
 {
 	register int omt, ocs2;
 
-	omt = HTADDR->httc & 03777;
-	ocs2 = HTADDR->htcs2 & 07;
+	omt = htaddr->httc & 03777;
+	ocs2 = htaddr->htcs2 & 07;
 
-	HTADDR->htcs2 = HTCS2_CLR;
-	HTADDR->htcs2 = ocs2;
-	HTADDR->httc = omt;
-	HTADDR->htcs1 = HT_DCLR|HT_GO;
-}
-
-htquiet()
-{
-	while ((HTADDR->htcs1 & HT_RDY) == 0)
-		continue;
-	while (HTADDR->htfs & HTFS_PIP)
-		continue;
+	htaddr->htcs2 = HTCS2_CLR;
+	htaddr->htcs2 = ocs2;
+	htaddr->httc = omt;
+	htaddr->htcs1 = HT_DCLR|HT_GO;
 }

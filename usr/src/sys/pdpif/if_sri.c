@@ -17,6 +17,7 @@
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "pdpuba/ubavar.h"
@@ -34,13 +35,8 @@ struct  uba_driver sridriver =
 	{ sriprobe, 0, sriattach, 0, sristd, "sri", sriinfo };
 #define	SRIUNIT(x)	minor(x)
 
-#if pdp11
-#define IFRADDR MBX
-#define IFWADDR MBX
-#else
-#define IFRADDR sc->sri_ifuba.ifu_r.ifrw_addr
-#define IFWADDR sc->sri_ifuba.ifu_w.ifrw_addr
-#endif
+#define IFRADDR sc->sri_ifuba.ifu_r.ifrw_info
+#define IFWADDR sc->sri_ifuba.ifu_w.ifrw_info
 
 int	sriinit(), sristart(), srireset();
 
@@ -132,14 +128,14 @@ sriattach(ui)
 		struct	impcb ifimp_impcb;
 	} *ifimp;
 
-	if ((ifimp = (struct ifimpcb *)impattach(ui)) == 0)
+	if ((ifimp = (struct ifimpcb *)impattach(ui, srireset)) == 0)
 		panic("sriattach");
 	sc->sri_if = &ifimp->ifimp_if;
 	ip = &ifimp->ifimp_impcb;
 	sc->sri_ic = ip;
 	ip->ic_init = sriinit;
 	ip->ic_start = sristart;
-	sc->sri_if->if_ubareset = srireset;
+	sc->sri_if->if_reset = srireset;
 	sc->sri_addr = (struct sridevice *) ui->ui_addr;
 }
 
@@ -229,7 +225,7 @@ sriinit(unit)
 	 * Note: IMPMTU includes the leader.
 	 */
 	x = splimp();
-	sc->sri_iba = IFRADDR;
+	sc->sri_iba = (char *)IFRADDR;
 	sc->sri_ibc = IMPMTU;
 	sc->sri_ibusy = -1;     /* skip leading zeros */
 	addr->csr |= (SRI_IINT|SRI_IENB);
@@ -268,17 +264,14 @@ sristart(dev)
 	sc->sri_olen = ((if_wubaput(&sc->sri_ifuba, m) + 1 ) & ~1);
 
 restart:
-	MAPSAVE();
-	mapseg5(sc->sri_oclick, MBMAPSIZE);
 	addr = (struct sridevice *)sriinfo[unit]->ui_addr;
-	sc->sri_oba = IFWADDR;
+	sc->sri_oba = (char *)IFWADDR;
 	sc->sri_obc = sc->sri_olen;
 	sc->sri_oend = OUT_LAST;
 	sc->sri_obc--;
 	addr->csr |= (SRI_OENB|SRI_OINT);
 	addr->obf = (*sc->sri_oba++ & 0377);
 	sc->sri_ic->ic_oactive = 1;
-	MAPREST();
 }
 
 /*
@@ -291,8 +284,6 @@ srixint(unit)
 	int burst,delay;
 	register int x;
 
-	MAPSAVE();
-	mapseg5(sc->sri_oclick, MBMAPSIZE);
 	burst = 0;
 	while(sc->sri_obc > 0) {
 		x = (*sc->sri_oba++ & 0377);
@@ -325,7 +316,7 @@ srixint(unit)
 	if (sc->sri_if->if_snd.ifq_head)
 		sristart(unit);
 out:
-	MAPREST();
+	return;
 }
 
 /*
@@ -340,8 +331,6 @@ srirint(unit)
 	int burst,delay;
 	register int x;
 
-	MAPSAVE();
-	mapseg5(sc->sri_iclick, MBMAPSIZE);
 	burst = 0;
 	for(;;) {
 		addr->csr &= ~SRI_IENB; /* prevents next read from starting */
@@ -401,10 +390,10 @@ srirint(unit)
 	sridump("in ",IFRADDR,len);
 
 	/*
-	 * The last parameter is always 0 since using
+	 * The next to last parameter is always 0 since using
 	 * trailers on the ARPAnet is insane.
 	 */
-	m = if_rubaget(&sc->sri_ifuba, len, 0);
+	m = if_rubaget(&sc->sri_ifuba, len, 0, &sc->sri_if);
 	if (m == 0)
 		goto setup;
 	if ((x & IN_LAST) == 0) {
@@ -425,12 +414,12 @@ setup:
 	/*
 	 * Setup for next message.
 	 */
-	sc->sri_iba = IFRADDR;
+	sc->sri_iba = (char *)IFRADDR;
 	sc->sri_ibc = IMPMTU;
 	sc->sri_ibusy = -1;     /* skip leading zeros */
 	addr->csr |= (SRI_IINT|SRI_IENB);
 out:
-	MAPREST();
+	return;
 }
 
 sridump(str,aba,abc)

@@ -8,7 +8,7 @@
  */
 
 #ifdef FASTTAG
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)ex_tagio.c	7.3 (Berkeley) 1/31/86";
 #endif
 

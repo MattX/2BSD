@@ -5,13 +5,13 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-NNAAMMEE
+NAME
      sail - multi-user wooden ships and iron men
 
-SSYYNNOOPPSSIISS
-     ssaaiill [ --ss [ --ll ] ] [ --xx ] [ --bb ] [ nnuumm ]
+SYNOPSIS
+     sail [ -s [ -l ] ] [ -x ] [ -b ] [ num ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_a_i_l is a computer version of Avalon Hill's game of fighting
      sail originally developed by S. Craig Taylor.
 
@@ -32,16 +32,16 @@ DDEESSCCRRIIPPTTIIOONN
 
      The flags are:
 
-     --ss   Print the names and ships of the top ten sailors.
+     -s   Print the names and ships of the top ten sailors.
 
-     --ll   Show the login name.	Only effective with --ss.
+     -l   Show the login name.	Only effective with -s.
 
-     --xx   Play the first available ship instead of prompting for
+     -x   Play the first available ship instead of prompting for
 	  a choice.
 
-     --bb   No bells.
+     -b   No bells.
 
-IIMMPPLLEEMMEENNTTAATTIIOONN
+IMPLEMENTATION
      _S_a_i_l is really two programs in one.  Each player starts up a
      process which runs his own ship.  In addition, a _d_r_i_v_e_r pro-
      cess is forked (by the first player) to run the computer
@@ -60,7 +60,7 @@ IIMMPPLLEEMMEENNTTAATTIIOONN
 
 
 
-Printed 12/28/88	   May 6, 1986				1
+Printed 1/16/94            May 6, 1986				1
 
 
 
@@ -95,7 +95,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      check program found 3 links between the _S_a_i_l temporary file
      and its link file.
 
-CCOONNSSEEQQUUEENNCCEESS OOFF SSEEPPAARRAATTEE PPLLAAYYEERR AANNDD DDRRIIVVEERR
+CONSEQUENCES OF SEPARATE PLAYER AND DRIVER
      When players do something of global interest, such as moving
      or firing, the driver must coordinate the action with the
      other ships in the game.  For example, if a player wants to
@@ -126,7 +126,7 @@ CCOONNSSEEQQUUEENNCCEESS OOFF SSEEPPAARRAATTEE PPLLAAY
 
 
 
-Printed 12/28/88	   May 6, 1986				2
+Printed 1/16/94            May 6, 1986				2
 
 
 
@@ -149,7 +149,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      seen by the driver.  Movement commands within the same
      update "overwrite" each other, in a sense.
 
-TTHHEE HHIISSTTOORRYY OOFF SSAAIILL
+THE HISTORY OF SAIL
      I wrote the first version of _S_a_i_l on a PDP 11/70 in the fall
      of 1980.  Needless to say, the code was horrendous, not
      portable in any sense of the word, and didn't work.  The
@@ -182,7 +182,7 @@ TTHHEE HHIISSTTOORRYY OOFF SSAAIILL
      cleaner and (?) faster.  He added window movement commands
      and find ship commands.
 
-HHIISSTTOORRIICCAALL IINNFFOO
+HISTORICAL INFO
      Old Square Riggers were very maneuverable ships capable of
      intricate sailing.  Their only disadvantage was an inability
      to sail very close to the wind.  The design of a wooden ship
@@ -192,7 +192,7 @@ HHIISSTTOORRIICCAALL IINNFFOO
 
 
 
-Printed 12/28/88	   May 6, 1986				3
+Printed 1/16/94            May 6, 1986				3
 
 
 
@@ -258,7 +258,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-Printed 12/28/88	   May 6, 1986				4
+Printed 1/16/94            May 6, 1986				4
 
 
 
@@ -292,7 +292,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      dispatches or passengers.	Brigs were something you built
      for land-locked lakes.
 
-SSAAIILL PPAARRTTIICCUULLAARRSS
+SAIL PARTICULARS
      Ships in _S_a_i_l are represented by two characters.  One char-
      acter represents the bow of the ship, and the other
      represents the stern.  Ships have nationalities and numbers.
@@ -324,7 +324,7 @@ SSAAIILL PPAARRTTIICCUULLAARRSS
 
 
 
-Printed 12/28/88	   May 6, 1986				5
+Printed 1/16/94            May 6, 1986				5
 
 
 
@@ -352,7 +352,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      The ultimate example is, of course, an exploding Brit cap-
      tured by an American: "#&".
 
-MMOOVVEEMMEENNTT
+MOVEMENT
      Movement is the most confusing part of _S_a_i_l to many.  Ships
      can head in 8 directions:
 
@@ -390,7 +390,7 @@ MMOOVVEEMMEENNTT
 
 
 
-Printed 12/28/88	   May 6, 1986				6
+Printed 1/16/94            May 6, 1986				6
 
 
 
@@ -447,7 +447,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      move at all.  Ships facing into the wind were said to be "in
      irons".
 
-WWIINNDDSSPPEEEEDD AANNDD DDIIRREECCTTIIOONN
+WINDSPEED AND DIRECTION
      The windspeed and direction is displayed as a little weather
      vane on the side of the screen.  The number in the middle of
      the vane indicates the wind speed, and the + to - indicates
@@ -456,7 +456,7 @@ WWIINNDDSSPPEEEEDD AANNDD DDIIRREECCTTIIOONN
 
 
 
-Printed 12/28/88	   May 6, 1986				7
+Printed 1/16/94            May 6, 1986				7
 
 
 
@@ -477,7 +477,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      gale, 6 = full gale, 7 = hurricane.  If a hurricane shows
      up, all ships are destroyed.
 
-GGRRAAPPPPLLIINNGG AANNDD FFOOUULLIINNGG
+GRAPPLING AND FOULING
      If two ships collide, they run the risk of becoming tangled
      together.	This is called "fouling."  Fouled ships are stuck
      together, and neither can move.  They can unfoul each other
@@ -490,7 +490,7 @@ GGRRAAPPPPLLIINNGG AANNDD FFOOUULLIINNGG
      The number of fouls and grapples you have are displayed on
      the upper right of the screen.
 
-BBOOAARRDDIINNGG
+BOARDING
      Boarding was a very costly venture in terms of human life.
      Boarding parties may be formed in _S_a_i_l to either board an
      enemy ship or to defend your own ship against attack.  Men
@@ -500,7 +500,7 @@ BBOOAARRDDIINNGG
      The boarding strength of a crew depends upon its quality and
      upon the number of men sent.
 
-CCRREEWW QQUUAALLIITTYY
+CREW QUALITY
      The British seaman was world renowned for his sailing abili-
      ties.  American sailors, however, were actually the best
      seamen in the world.  Because the American Navy offered
@@ -515,14 +515,14 @@ CCRREEWW QQUUAALLIITTYY
      per broadside compared to "Mundane" crews.  Don't expect too
      much from "Green" crews.
 
-BBRROOAADDSSIIDDEESS
+BROADSIDES
      Your two broadsides may be loaded with four kinds of shot:
      grape, chain, round, and double.  You have guns and car-
      ronades in both the port and starboard batteries.
 
 
 
-Printed 12/28/88	   May 6, 1986				8
+Printed 1/16/94            May 6, 1986				8
 
 
 
@@ -541,18 +541,18 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
      The types of shot and their advantages are:
 
-RROOUUNNDD
+ROUND
      Range of 10.  Good for hull or rigging hits.
 
-DDOOUUBBLLEE
+DOUBLE
      Range of 1.  Extra good for hull or rigging hits.	Double
      takes two turns to load.
 
-CCHHAAIINN
+CHAIN
      Range of 3.  Excellent for tearing down rigging.  Cannot
      damage hull or guns, though.
 
-GGRRAAPPEE
+GRAPE
      Range of 1.  Sometimes devastating against enemy crews.
 
      On the side of the screen is displayed some vital informa-
@@ -580,7 +580,7 @@ GGRRAAPPEE
      decreases.  "Rigg" shows how much rigging you have on your 3
      or 4 masts.  As rigging is shot away, you lose mobility.
 
-EEFFFFEECCTTIIVVEENNEESSSS OOFF FFIIRREE
+EFFECTIVENESS OF FIRE
      It is very dramatic when a ship fires its thunderous broad-
      sides, but the mere opportunity to fire them does not
      guarantee any hits.  Many factors influence the destructive
@@ -588,7 +588,7 @@ EEFFFFEECCTTIIVVEENNEESSSS OOFF FFIIRREE
 
 
 
-Printed 12/28/88	   May 6, 1986				9
+Printed 1/16/94            May 6, 1986				9
 
 
 
@@ -612,13 +612,13 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      _P_e_l_l_e_w _v_s. _T_h_e _D_r_o_i_t_s _d_e _L'_H_o_m_m_e takes advantage of this
      peculiar circumstance.
 
-RREEPPAAIIRRSS
+REPAIRS
      Repairs may be made to your Hull, Guns, and Rigging at the
      slow rate of two points per three turns.  The message
      "Repairs Completed" will be printed if no more repairs can
      be made.
 
-PPEECCUULLIIAARRIITTIIEESS OOFF CCOOMMPPUUTTEERR SSHHIIPPSS
+PECULIARITIES OF COMPUTER SHIPS
      Computer ships in _S_a_i_l follow all the rules above with a few
      exceptions.  Computer ships never repair damage.  If they
      did, the players could never beat them.  They play well
@@ -630,7 +630,7 @@ PPEECCUULLIIAARRIITTIIEESS OOFF CCOOMMPPUUTTEERR SSHHI
      "score." It seems to work fairly well, although I'll be the
      first to admit it isn't perfect.
 
-HHOOWW TTOO PPLLAAYY
+HOW TO PLAY
      Commands are given to _S_a_i_l by typing a single character.
      You will then be prompted for further input.  A brief sum-
      mary of the commands follows.
@@ -654,7 +654,7 @@ HHOOWW TTOO PPLLAAYY
 
 
 
-Printed 12/28/88	   May 6, 1986			       10
+Printed 1/16/94            May 6, 1986			       10
 
 
 
@@ -665,7 +665,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-CCOOMMMMAANNDD SSUUMMMMAARRYY
+COMMAND SUMMARY
 	 'f'  Fire broadsides if they bear
 	 'l'  Reload
 	 'L'  Unload broadsides (to change ammo)
@@ -692,17 +692,17 @@ CCOOMMMMAANNDD SSUUMMMMAARRYY
 	 'S'	  Toggle window to follow your ship or stay where it is
 
 
-SSCCEENNAARRIIOOSS
+SCENARIOS
      Here is a summary of the scenarios in _S_a_i_l:
 
 
-RRaannggeerr vvss.. DDrraakkee::
+Ranger vs. Drake:
      Wind from the N, blowing a fresh breeze.
 
      (a) Ranger            19 gun Sloop (crack crew) (7 pts)
      (b) Drake		   17 gun Sloop (crack crew) (6 pts)
 
-TThhee BBaattttllee ooff FFllaammbboorroouugghh HHeeaadd::
+The Battle of Flamborough Head:
      Wind from the S, blowing a fresh breeze.
 
      This is John Paul Jones' first famous battle.  Aboard the
@@ -712,7 +712,7 @@ TThhee BBaattttllee ooff FFllaammbboorroouugghh HHeeaad
      (a) Bonhomme Rich	   42 gun Corvette (crack crew) (11 pts)
      (b) Serapis	   44 gun Frigate (crack crew) (12 pts)
 
-AArrbbuutthhnnoott aanndd DDeess TToouucchheess::
+Arbuthnot and Des Touches:
      Wind from the N, blowing a gale.
 
      (b) America	   64 gun Ship of the Line (crack crew) (20 pts)
@@ -720,7 +720,7 @@ AArrbbuutthhnnoott aanndd DDeess TToouucchheess::
 
 
 
-Printed 12/28/88	   May 6, 1986			       11
+Printed 1/16/94            May 6, 1986			       11
 
 
 
@@ -740,7 +740,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      (f) Provence	   64 gun Ship of the Line (average crew) (18 pts)
      (f) Romulus	   44 gun Ship of the Line (average crew) (10 pts)
 
-SSuuffffrreenn aanndd HHuugghheess::
+Suffren and Hughes:
      Wind from the S, blowing a fresh breeze.
 
      (b) Monmouth	   74 gun Ship of the Line (average crew) (24 pts)
@@ -754,30 +754,30 @@ SSuuffffrreenn aanndd HHuugghheess::
      (f) Brilliant	   80 gun Ship of the Line (crack crew) (31 pts)
      (f) Sphinx            80 gun Ship of the Line (average crew) (27 pts)
 
-NNyymmpphhee vvss.. CClleeooppaattrree::
+Nymphe vs. Cleopatre:
      Wind from the S, blowing a fresh breeze.
 
      (b) Nymphe            36 gun Frigate (crack crew) (11 pts)
      (f) Cleopatre	   36 gun Frigate (average crew) (10 pts)
 
-MMaarrss vvss.. HHeerrccuullee::
+Mars vs. Hercule:
      Wind from the S, blowing a fresh breeze.
      (b) Mars		   74 gun Ship of the Line (crack crew) (26 pts)
      (f) Hercule	   74 gun Ship of the Line (average crew) (23 pts)
 
-AAmmbbuussccaaddee vvss.. BBaaiioonnnnaaiissee::
+Ambuscade vs. Baionnaise:
      Wind from the N, blowing a fresh breeze.
 
      (b) Ambuscade	   32 gun Frigate (average crew) (9 pts)
      (f) Baionnaise	   24 gun Corvette (average crew) (9 pts)
 
-CCoonnsstteellllaattiioonn vvss.. IInnssuurrggeenntt::
+Constellation vs. Insurgent:
      Wind from the S, blowing a gale.
 
      (a) Constellation	   38 gun Corvette (elite crew) (17 pts)
      (f) Insurgent	   36 gun Corvette (average crew) (11 pts)
 
-CCoonnsstteellllaattiioonn vvss.. VVeennggeeaannccee::
+Constellation vs. Vengeance:
      Wind from the S, blowing a fresh breeze.
 
      (a) Constellation	   38 gun Corvette (elite crew) (17 pts)
@@ -786,7 +786,7 @@ CCoonnsstteellllaattiioonn vvss.. VVeennggeeaannccee::
 
 
 
-Printed 12/28/88	   May 6, 1986			       12
+Printed 1/16/94            May 6, 1986			       12
 
 
 
@@ -797,7 +797,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-TThhee BBaattttllee ooff LLiissssaa::
+The Battle of Lissa:
      Wind from the S, blowing a fresh breeze.
 
      (b) Amphion	   32 gun Frigate (elite crew) (13 pts)
@@ -811,31 +811,31 @@ TThhee BBaattttllee ooff LLiissssaa::
      (f) Corona            40 gun Frigate (green crew) (12 pts)
      (f) Carolina	   32 gun Frigate (green crew) (7 pts)
 
-CCoonnssttiittuuttiioonn vvss.. GGuueerrrriieerree::
+Constitution vs. Guerriere:
      Wind from the SW, blowing a gale.
 
      (a) Constitution	   44 gun Corvette (elite crew) (24 pts)
      (b) Guerriere	   38 gun Frigate (crack crew) (15 pts)
 
-UUnniitteedd SSttaatteess vvss.. MMaacceeddoonniiaann::
+United States vs. Macedonian:
      Wind from the S, blowing a fresh breeze.
 
      (a) United States	   44 gun Frigate (elite crew) (24 pts)
      (b) Macedonian	   38 gun Frigate (crack crew) (16 pts)
 
-CCoonnssttiittuuttiioonn vvss.. JJaavvaa::
+Constitution vs. Java:
      Wind from the S, blowing a fresh breeze.
 
      (a) Constitution	   44 gun Corvette (elite crew) (24 pts)
      (b) Java		   38 gun Corvette (crack crew) (19 pts)
 
-CChheessaappeeaakkee vvss.. SShhaannnnoonn::
+Chesapeake vs. Shannon:
      Wind from the S, blowing a fresh breeze.
 
      (a) Chesapeake	   38 gun Frigate (average crew) (14 pts)
      (b) Shannon	   38 gun Frigate (elite crew) (17 pts)
 
-TThhee BBaattttllee ooff LLaakkee EErriiee::
+The Battle of Lake Erie:
      Wind from the S, blowing a light breeze.
 
      (a) Lawrence	   20 gun Sloop (crack crew) (9 pts)
@@ -844,7 +844,7 @@ TThhee BBaattttllee ooff LLaakkee EErriiee::
      (b) Detroit	   19 gun Sloop (crack crew) (7 pts)
      (b) Q. Charlotte	   17 gun Sloop (crack crew) (6 pts)
 
-WWaasspp vvss.. RReeiinnddeeeerr::
+Wasp vs. Reindeer:
      Wind from the S, blowing a light breeze.
 
      (a) Wasp		   20 gun Sloop (elite crew) (12 pts)
@@ -852,7 +852,7 @@ WWaasspp vvss.. RReeiinnddeeeerr::
 
 
 
-Printed 12/28/88	   May 6, 1986			       13
+Printed 1/16/94            May 6, 1986			       13
 
 
 
@@ -863,21 +863,21 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-CCoonnssttiittuuttiioonn vvss.. CCyyaannee aanndd LLeevvaanntt::
+Constitution vs. Cyane and Levant:
      Wind from the S, blowing a moderate breeze.
 
      (a) Constitution	   44 gun Corvette (elite crew) (24 pts)
      (b) Cyane		   24 gun Sloop (crack crew) (11 pts) (b)
      Levant	       20 gun Sloop (crack crew) (10 pts)
 
-PPeelllleeww vvss.. DDrrooiittss ddee LL''HHoommmmee::
+Pellew vs. Droits de L'Homme:
      Wind from the N, blowing a gale.
 
      (b) Indefatigable	   44 gun Frigate (elite crew) (14 pts)
      (b) Amazon            36 gun Frigate (crack crew) (14 pts)
      (f) Droits L'Hom	   74 gun Ship of the Line (average crew) (24 pts)
 
-AAllggeecciirraass::
+Algeciras:
      Wind from the SW, blowing a moderate breeze.
 
      (b) Caesar            80 gun Ship of the Line (crack crew) (31 pts)
@@ -891,7 +891,7 @@ AAllggeecciirraass::
      (f) Indomptable	   80 gun Ship of the Line (average crew) (27 pts)
      (f) Desaix            74 gun Ship of the Line (average crew) (24 pts)
 
-LLaakkee CChhaammppllaaiinn::
+Lake Champlain:
      Wind from the N, blowing a fresh breeze.
 
      (a) Saratoga	   26 gun Sloop (crack crew) (12 pts)
@@ -902,7 +902,7 @@ LLaakkee CChhaammppllaaiinn::
      (b) Linnet            16 gun Sloop (elite crew) (10 pts)
      (b) Chubb		   11 gun Brig (crack crew) (5 pts)
 
-LLaasstt VVooyyaaggee ooff tthhee UUSSSS PPrreessiiddeenntt::
+Last Voyage of the USS President:
      Wind from the N, blowing a fresh breeze.
 
      (a) President	   44 gun Frigate (elite crew) (24 pts)
@@ -910,7 +910,7 @@ LLaasstt VVooyyaaggee ooff tthhee UUSSSS PPrreessiiddee
      (b) Pomone            44 gun Frigate (crack crew) (20 pts)
      (b) Tenedos	   38 gun Frigate (crack crew) (15 pts)
 
-HHoorrnnbblloowweerr aanndd tthhee NNaattiivviiddaadd::
+Hornblower and the Natividad:
      Wind from the E, blowing a gale.
 
      A scenario for you Horny fans.  Remember, he sank the
@@ -918,7 +918,7 @@ HHoorrnnbblloowweerr aanndd tthhee NNaattiivviiddaadd:
 
 
 
-Printed 12/28/88	   May 6, 1986			       14
+Printed 1/16/94            May 6, 1986			       14
 
 
 
@@ -934,7 +934,7 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
      (b) Lydia		   36 gun Frigate (elite crew) (13 pts)
      (s) Natividad	   50 gun Ship of the Line (green crew) (14 pts)
 
-CCuurrssee ooff tthhee FFllyyiinngg DDuuttcchhmmaann::
+Curse of the Flying Dutchman:
      Wind from the S, blowing a fresh breeze.
 
      Just for fun, take the Piece of cake.
@@ -942,7 +942,7 @@ CCuurrssee ooff tthhee FFllyyiinngg DDuuttcchhmmaann::
      (s) Piece of Cake	   24 gun Corvette (average crew) (9 pts)
      (f) Flying Dutchy	   120 gun 3 Decker SOL (elite crew) (43 pts)
 
-TThhee SSoouutthh PPaacciiffiicc::
+The South Pacific:
      Wind from the S, blowing a strong breeze.
 
      (a) USS Scurvy	   136 gun 3 Decker SOL (mutinous crew) (27 pts)
@@ -950,7 +950,7 @@ TThhee SSoouutthh PPaacciiffiicc::
      (s) Australian	   32 gun Frigate (average crew) (9 pts)
      (f) Bikini Atoll	   7 gun Brig (crack crew) (4 pts)
 
-HHoorrnnbblloowweerr aanndd tthhee bbaattttllee ooff RRoossaass
+Hornblower and the battle of Rosas
      Wind from the E, blowing a fresh breeze.
 
      The only battle Hornblower ever lost.  He was able to dismast one
@@ -962,7 +962,7 @@ HHoorrnnbblloowweerr aanndd tthhee bbaattttllee ooff RR
      (f) Paris		   112 gun 3 Decker SOL (green crew) (27 pts)
      (f) Napolean	   74 gun Ship of the Line (green crew) (20 pts)
 
-CCaappee HHoorrnn::
+Cape Horn:
      Wind from the NE, blowing a strong breeze.
 
      (a) Concord	   80 gun Ship of the Line (average crew) (27 pts)
@@ -971,7 +971,7 @@ CCaappee HHoorrnn::
      (s) Madrid            112 gun 3 Decker SOL (green crew) (27 pts)
      (f) Musket            80 gun 3 Decker SOL (average crew) (27 pts)
 
-NNeeww OOrrlleeaannss::
+New Orleans:
      Wind from the SE, blowing a fresh breeze.
 
      Watch that little Cypress go!
@@ -984,7 +984,7 @@ NNeeww OOrrlleeaannss::
 
 
 
-Printed 12/28/88	   May 6, 1986			       15
+Printed 1/16/94            May 6, 1986			       15
 
 
 
@@ -995,14 +995,14 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-BBoottaannyy BBaayy::
+Botany Bay:
      Wind from the N, blowing a fresh breeze.
 
      (b) Shark		   64 gun Ship of the Line (average crew) (18 pts)
      (f) Coral Snake	   44 gun Corvette (elite crew) (24 pts)
      (f) Sea Lion	   44 gun Frigate (elite crew) (24 pts)
 
-VVooyyaaggee ttoo tthhee BBoottttoomm ooff tthhee
+Voyage to the Bottom of the
      Wind from the NW, blowing a fresh breeze.
 
      This one is dedicated to Richard Basehart and David Hedison.
@@ -1012,14 +1012,14 @@ VVooyyaaggee ttoo tthhee BBoottttoomm ooff tthhee
      (b) Mermaid	   136 gun 3 Decker SOL (mutinous crew) (27 pts)
      (s) Giant Squid	   112 gun 3 Decker SOL (green crew) (27 pts)
 
-FFrriiggaattee AAccttiioonn::
+Frigate Action:
      Wind from the E, blowing a fresh breeze.
 
      (a) Killdeer	   40 gun Frigate (average crew) (15 pts)
      (b) Sandpiper	   40 gun Frigate (average crew) (15 pts)
      (s) Curlew            38 gun Frigate (crack crew) (16 pts)
 
-TThhee BBaattttllee ooff MMiiddwwaayy::
+The Battle of Midway:
      Wind from the E, blowing a moderate breeze.
 
      (a) Enterprise	   80 gun Ship of the Line (crack crew) (31 pts)
@@ -1030,7 +1030,7 @@ TThhee BBaattttllee ooff MMiiddwwaayy::
      (j) Soryu		   80 gun Ship of the Line (green crew) (23 pts)
 
 
-SSttaarr TTrreekk::
+Star Trek:
      Wind from the S, blowing a fresh breeze.
 
      (a) Enterprise	   450 gun Ship of the Line (elite crew) (75 pts)
@@ -1043,14 +1043,14 @@ SSttaarr TTrreekk::
      (o) Blue Orion	   450 gun Ship of the Line (elite crew) (75 pts)
 
 
-CCOONNCCLLUUSSIIOONN
+CONCLUSION
      _S_a_i_l has been a group effort.
 
 
 
 
 
-Printed 12/28/88	   May 6, 1986			       16
+Printed 1/16/94            May 6, 1986			       16
 
 
 
@@ -1061,26 +1061,26 @@ SAIL(6)             UNIX Programmer's Manual		  SAIL(6)
 
 
 
-KKeenn AArrnnoolldd CCooddee
+Ken Arnold Code
      curses library (pu!)
 
-AAUUTTHHOORR
+AUTHOR
      Dave Riggle
 
-CCOO--AAUUTTHHOORR
+CO-AUTHOR
      Ed Wang
 
-RREEFFIITTTTIINNGG
+REFITTING
      Craig Leres
 
-CCOONNSSUULLTTAANNTTSS
+CONSULTANTS
      Chris Guthrie
      Captain Happy
      Horatio Nelson
      Nancy Reagan
 	  and many valiant others...
 
-RREEFFEERREENNCCEESS
+REFERENCES
      Wooden Ships & Iron Men, by Avalon Hill
      Captain Horatio Hornblower Novels, (13 of them) by C.S. Forester
      Captain Richard Bolitho Novels, (12 of them) by Alexander Kent
@@ -1092,10 +1092,10 @@ RREEFFEERREENNCCEESS
 	  Snarleyyow, or The Dog Fiend
 	  Frank Mildmay, or The Naval Officer
 
-SSEEEE AALLSSOO
+SEE ALSO
      midway(PUBLIC)
 
-BBUUGGSS
+BUGS
      Probably a few, and please report them to "riggle@ernie" and
      "edward@arpa."
 
@@ -1116,7 +1116,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 6, 1986			       17
+Printed 1/16/94            May 6, 1986			       17
 
 
 

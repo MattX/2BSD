@@ -25,9 +25,9 @@ ENTRY(fgetc)
 	mov	2(sp),r1		/ grab iop
 	dec	_CNT(r1)		/ any characters available?
 	blt	1f
-	movb	*_PTR(r1),r0		/ grab the character,
+	clr	r0			/ do an unsigned
+	bisb	*_PTR(r1),r0		/   movb to a register
 	inc	_PTR(r1)		/ bop the pointer on one place,
-	bic	$!377,r0		/ and cast to u_char
 	rts	pc
 1:
 	jmp	__filbuf		/ let _filbuf(iop) handle it

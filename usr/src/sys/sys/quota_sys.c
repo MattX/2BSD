@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_sys.c	7.1 (Berkeley) 6/5/86
+ *	@(#)quota_sys.c	7.1.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -38,19 +38,19 @@ setquota()
 	if (u.u_error)
 		return;
 	for (mp = mount; mp < &mount[NMOUNT]; mp++)
-#ifdef BSD2_10
+#ifdef pdp11
 		if (mp->m_inodp && mp->m_dev == dev) {
 #else
 		if (mp->m_bufp && mp->m_dev == dev) {
 #endif
-#ifdef BSD2_10
+#ifdef pdp11
 			QUOTAMAP();
 #endif
 			if (uap->fname == NULL)
 				closedq(mp);
 			else
 				opendq(mp, (caddr_t)uap->fname);
-#ifdef BSD2_10
+#ifdef pdp11
 			QUOTAUNMAP();
 #endif
 			return;
@@ -78,11 +78,11 @@ qquota()
 #ifdef QUOTA
 	if (uap->uid < 0)
 		uap->uid = u.u_ruid;
-#ifdef BSD2_10
+#ifdef pdp11
 	QUOTAMAP();
 #endif
 	if (uap->uid != u.u_ruid && uap->uid != u.u_quota->q_uid && !suser())
-#ifdef BSD2_10
+#ifdef pdp11
 	{
 		QUOTAUNMAP();
 		return;
@@ -93,7 +93,7 @@ qquota()
 	if (uap->cmd != Q_SYNC && uap->cmd != Q_SETUID) {
 		q = getquota((uid_t)uap->uid, uap->cmd == Q_DOWARN, 0);
 		if (q == NOQUOTA) {
-#ifdef BSD2_10
+#ifdef pdp11
 			QUOTAUNMAP();
 #endif
 			u.u_error = ESRCH;
@@ -126,14 +126,14 @@ qquota()
 	
 	case Q_SYNC:
 		u.u_error = qsync((dev_t)uap->arg);
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 #endif
 		return;
 
 	case Q_SETUID:
 		u.u_error = qsetuid((uid_t)uap->uid, uap->arg);
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 #endif
 		return;
@@ -144,7 +144,7 @@ qquota()
 	}
 bad:
 	delquota(q);
-#ifdef BSD2_10
+#ifdef pdp11
 	QUOTAUNMAP();
 #endif
 #else
@@ -187,7 +187,7 @@ setdlim(q, dev, addr)
 		panic("setdlim");
 	while (dq->dq_flags & DQ_LOCK) {
 		dq->dq_flags |= DQ_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)dq, PINOD+1);
 		QUOTAMAP();
@@ -204,7 +204,7 @@ setdlim(q, dev, addr)
 		dqrele(dq);
 		return (error);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	/* we speak bytes not blocks, so convert the structure here */
 	newlim.dqb_bsoftlimit = (long)dbtob(newlim.dqb_bsoftlimit);
 	newlim.dqb_bhardlimit = (long)dbtob(newlim.dqb_bhardlimit);
@@ -226,14 +226,14 @@ setdlim(q, dev, addr)
 	for (ip = inode; ip < inodeNINODE; ip++)
 		if (ip->i_uid == q->q_uid && ip->i_dev == dev && ip->i_mode) {
 			if (dq == NODQUOT)
-#ifdef BSD2_10
+#ifdef pdp11
 				dqrele(ix_dquot[ip - inode]);
 #else
 				dqrele(ip->i_dquot);
 #endif
 			else
 				dq->dq_cnt++;
-#ifdef BSD2_10
+#ifdef pdp11
 			ix_dquot[ip - inode] = dq;
 #else
 			ip->i_dquot = dq;
@@ -256,7 +256,7 @@ getdlim(q, dev, addr)
 	dq = dqp(q, dev);
 	if (dq == NODQUOT)
 		return (ESRCH);
-#ifdef BSD2_10
+#ifdef pdp11
 	/* we do bytes not blocks, so convert the structure here */
 	{
 		struct dqblk dqb;
@@ -294,7 +294,7 @@ setduse(q, dev, addr)
 		return (ESRCH);
 	while (dq->dq_flags & DQ_LOCK) {
 		dq->dq_flags |= DQ_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)dq, PINOD+1);
 		QUOTAMAP();
@@ -307,7 +307,7 @@ setduse(q, dev, addr)
 	error = copyin(addr, (caddr_t)&usage, sizeof (usage));
 	if (error == 0) {
 		dq->dq_curinodes = usage.du_curinodes;
-#ifdef BSD2_10
+#ifdef pdp11
 		dq->dq_curblocks = dbtob(usage.du_curblocks);
 #else
 		dq->dq_curblocks = usage.du_curblocks;
@@ -342,7 +342,7 @@ setwarn(q, dev, addr)
 		return (ESRCH);
 	while (dq->dq_flags & DQ_LOCK) {
 		dq->dq_flags |= DQ_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)dq, PINOD+1);
 		QUOTAMAP();
@@ -403,7 +403,7 @@ qsync(dev)
 	if (!suser())
 		return (u.u_error);			/* XXX */
 	for (mp = mount, index = 0; mp < &mount[NMOUNT]; mp++, index++)
-#ifdef BSD2_10
+#ifdef pdp11
 		if (mp->m_inodp && mp->m_qinod &&
 #else
 		if (mp->m_bufp && mp->m_qinod &&

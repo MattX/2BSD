@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)envelope.c	5.12 (Berkeley) 12/17/85";
+static char	SccsId[] = "@(#)envelope.c	5.12.1 (2.11BSD GTE) 7/15/94";
 #endif
 
 #include <pwd.h>
@@ -232,7 +232,6 @@ initsys()
 #endif TTYNAME
 	extern char *ttyname();
 	extern char *macvalue();
-	extern char Version[];
 
 	/*
 	**  Give this envelope a reality.

@@ -5,17 +5,17 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
 
-NNAAMMEE
+NAME
      tset - terminal dependent initialization
 
-SSYYNNOOPPSSIISS
-     ttsseett [ options ] [ --mm [ident][test baudrate]:type ] ... [
+SYNOPSIS
+     tset [ options ] [ -m [ident][test baudrate]:type ] ... [
      type ]
 
-     rreesseett [ options ] [ --mm [ident][test baudrate]:type ] ... [
+     reset [ options ] [ -m [ident][test baudrate]:type ] ... [
      type ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_s_e_t sets up your terminal when you first log in to a UNIX
      system.  It does terminal dependent processing such as set-
      ting erase and kill characters, setting or resetting delays,
@@ -43,7 +43,7 @@ DDEESSCCRRIIPPTTIIOONN
      which are not hardwired.  These ports are identified in
      /_e_t_c/_t_t_y_s as _d_i_a_l_u_p or _p_l_u_g_b_o_a_r_d or _a_r_p_a_n_e_t, etc.	To
      specify what terminal type you usually use on these ports,
-     the --mm (map) option flag is followed by the appropriate port
+     the -m (map) option flag is followed by the appropriate port
      type identifier, an optional baud rate specification, and
      the terminal type.  (The effect is to ``map'' from some con-
      ditions to a terminal type, that is, to tell _t_s_e_t ``If I'm
@@ -56,11 +56,11 @@ DDEESSCCRRIIPPTTIIOONN
      A _b_a_u_d_r_a_t_e is specified as with _s_t_t_y(1), and is compared
      with the speed of the diagnostic output (which should be the
      control terminal).  The baud rate _t_e_s_t may be any combina-
-     tion of: >>, @@, <<, and !!; @@ means ``at'' and !! inverts the
+     tion of: >, @, <, and !; @ means ``at'' and ! inverts the
 
 
 
-Printed 12/28/88	   May 5, 1986				1
+Printed 1/9/94		   May 5, 1986				1
 
 
 
@@ -72,7 +72,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
      sense of the test.  To avoid problems with metacharacters,
-     it is best to place the entire argument to --mm within ``'''
+     it is best to place the entire argument to -m within ``'''
      characters; users of _c_s_h(1) must also put a ``\'' before any
      ``!'' used here.
 
@@ -84,7 +84,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
      causes the terminal type to be set to an _a_d_m_3_a if the port
      in use is a dialup at a speed greater than 300 baud; to a
      _d_w_2 if the port is (otherwise) a dialup (i.e. at 300 baud or
-     less).  (NNOOTTEE:: the examples given here appear to take up
+     less).  (NOTE: the examples given here appear to take up
      more than one line, for text processing reasons.  When you
      type in real _t_s_e_t commands, you must enter them entirely on
      one line.) If the _t_y_p_e finally determined by _t_s_e_t begins
@@ -96,7 +96,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
      _a_d_m_3_a.
 
      If no mapping applies and a final _t_y_p_e option, not preceded
-     by a --mm, is given on the command line then that type is
+     by a -m, is given on the command line then that type is
      used; otherwise the type found in the /_e_t_c/_t_t_y_s database
      will be taken to be the terminal type.  This should always
      be the case for hardwired ports.
@@ -104,7 +104,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
      It is usually desirable to return the terminal type, as
      finally determined by _t_s_e_t, and information about the
      terminal's capabilities to a shell's environment.	This can
-     be done using the -- option; using the Bourne shell, _s_h(1):
+     be done using the - option; using the Bourne shell, _s_h(1):
 
 	  export TERM; TERM=`tset - _o_p_t_i_o_n_s...`
 
@@ -126,7 +126,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
 
-Printed 12/28/88	   May 5, 1986				2
+Printed 1/9/94		   May 5, 1986				2
 
 
 
@@ -142,7 +142,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 	  tset 2621
 
      to be invoked at any time to set the terminal and environ-
-     ment.  NNoottee ttoo BBoouurrnnee SShheellll uusseerrss:: It is nnoott possible to get
+     ment.  Note to Bourne Shell users: It is not possible to get
      this aliasing effect with a shell script, because shell
      scripts cannot set the environment of their parent.  (If a
      process could set its parent's environment, none of this
@@ -166,33 +166,33 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
      The options are:
 
-     --ee_c  set the erase character to be the named character _c on
+     -e_c  set the erase character to be the named character _c on
 	  all terminals, the default being the backspace charac-
 	  ter on the terminal, usually ^H.  The character _c can
 	  either be typed directly, or entered using the hat
 	  notation used here.
 
-     --kk_c  is similar to --ee but for the line kill character rather
+     -k_c  is similar to -e but for the line kill character rather
 	  than the erase character; _c defaults to ^X (for purely
 	  historical reasons).	The kill characters is left alone
-	  if --kk is not specified.  The hat notation can also be
+	  if -k is not specified.  The hat notation can also be
 	  used for this option.
 
-     --ii_c  is similar to --ee but for the interrupt character rather
+     -i_c  is similar to -e but for the interrupt character rather
 	  than the erase character; _c defaults to ^C.  The hat
 	  notation can also be used for this option.
 
-     --	  The name of the terminal finally decided upon is output
+     -	  The name of the terminal finally decided upon is output
 	  on the standard output.  This is intended to be cap-
 	  tured by the shell and placed in the environment vari-
 	  able TERM.
 
-     --ss   Print the sequence of _c_s_h commands to initialize the
+     -s   Print the sequence of _c_s_h commands to initialize the
 	  environment variables TERM and TERMCAP based on the
 
 
 
-Printed 12/28/88	   May 5, 1986				3
+Printed 1/9/94		   May 5, 1986				3
 
 
 
@@ -205,19 +205,19 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 	  name of the terminal finally decided upon.
 
-     --nn   On systems with the Berkeley 4BSD tty driver, specifies
+     -n   On systems with the Berkeley 4BSD tty driver, specifies
 	  that the new tty driver modes should be initialized for
 	  this terminal.  For a CRT, the CRTERASE and CRTKILL
 	  modes are set only if the baud rate is 1200 or greater.
 	  See tty(4) for more detail.
 
-     --II   suppresses transmitting terminal initialization
+     -I   suppresses transmitting terminal initialization
 	  strings.
 
-     --QQ   suppresses printing the ``Erase set to'' and ``Kill set
+     -Q   suppresses printing the ``Erase set to'' and ``Kill set
 	  to'' messages.
 
-     If ttsseett is invoked as rreesseett, it will set cooked and echo
+     If tset is invoked as reset, it will set cooked and echo
      modes, turn off cbreak and raw modes, turn on newline trans-
      lation, and restore special characters to a sensible state
      before any terminal dependent processing is done.	Any spe-
@@ -230,13 +230,13 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
      get it to work since <CR> may not work in this state. Often
      none of this will echo.
 
-EEXXAAMMPPLLEESS
+EXAMPLES
      These examples all assume the Bourne shell and use the -
      option.  If you use _c_s_h, use one of the variations described
      above.  Note that a typical use of _t_s_e_t in a .profile or
-     .login will also use the --ee and --kk options, and often the --nn
-     or --QQ options as well.  These options have not been included
-     here to keep the examples small.  (NNOOTTEE:: some of the exam-
+     .login will also use the -e and -k options, and often the -n
+     or -Q options as well.  These options have not been included
+     here to keep the examples small.  (NOTE: some of the exam-
      ples given here appear to take up more than one line, for
      text processing reasons.  When you type in real _t_s_e_t com-
      mands, you must enter them entirely on one line.)
@@ -258,7 +258,7 @@ EEXXAAMMPPLLEESS
 
 
 
-Printed 12/28/88	   May 5, 1986				4
+Printed 1/9/94		   May 5, 1986				4
 
 
 
@@ -313,18 +313,18 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 	  'switch<=1200:concept100' -m 'switch:?vt100' -m
 	  dialup:concept100 -m arpanet:dm2500`
 
-FFIILLEESS
+FILES
      /etc/ttys port name to terminal type mapping database
      /etc/termcap   terminal capability database
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), sh(1), stty(1), ttys(5), termcap(5), environ(7)
 
 
 
 
 
-Printed 12/28/88	   May 5, 1986				5
+Printed 1/9/94		   May 5, 1986				5
 
 
 
@@ -335,7 +335,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
 
-BBUUGGSS
+BUGS
      The _t_s_e_t command is one of the first commands a user must
      master when getting started on a UNIX system.  Unfor-
      tunately, it is one of the most complex, largely because of
@@ -390,7 +390,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 5, 1986				6
+Printed 1/9/94		   May 5, 1986				6
 
 
 

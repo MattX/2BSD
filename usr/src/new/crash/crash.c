@@ -73,7 +73,6 @@
  */
 
 #include <sys/param.h>
-#include <short_names.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/buf.h>
@@ -152,7 +151,6 @@ unsigned bpaddr;	/* Location of actual buffers (clicks) */
 dev_t	rootdev;	/* device of the root */
 dev_t	swapdev;	/* swapping device */
 dev_t	pipedev;	/* pipe device */
-daddr_t	swplo;		/* block number of swap space */
 unsigned bsize;		/* size of buffers */
 int	cputype;	/* type of cpu = 40, 44, 45, 60, or 70 */
 struct	inode	*rootdir;	/* pointer to inode of root directory */
@@ -168,12 +166,10 @@ size_t	physmem;		/* physical memory */
 u_short	*lks;			/* pointer to clock device */
 int	updlock;		/* lock for sync */
 daddr_t	rablock;		/* block to be read ahead */
-#ifdef	UCB_CLIST
 memaddr clststrt;		/* Location of actual clists (clicks) */
-#else
 memaddr cfreebase;		/* base of clists in kernel */
-#endif	UCB_CLIST
-unsigned clsize;	/* Size of clists */
+unsigned clsize;		/* Size of clists */
+short	ucbclist;		/* mapped out clist flag */
 
 /*
  * V7 (Stone knives & bear skins memorial) Clist structures.  "cfree" conflicts
@@ -270,7 +266,6 @@ struct display rv_tab[] = {
 	"\nRoot dev",		(char *) &rootdev,	DEV, 0,
 	"\nSwap Dev",		(char *) &swapdev,	DEV, 0,
 	"\nPipe Dev",		(char *) &pipedev,	DEV, 0,
-	"\nSwap Low Block",	(char *) &swplo,		DEC, 0,
 	"\nSwap Size",		(char *) &nswap,		DEC, 0,
 	"\nupdate() lock",		(char *) &updlock,	DEC, 0,
 	"\nReadahead blk",	(char *) &rablock,	OCT, 0,
@@ -282,11 +277,8 @@ struct display rv_tab[] = {
 	"\nSystem Buffer start click",	(char *) &bpaddr,	OCT, 0,
 	"\tNo. Buffers",	(char *) &nbuf,	DEC, 0,
 	"\tSize",	(char *) &bsize,	OCT, 0,
-#ifdef	UCB_CLIST
 	"\nClist start click",	(char *) &clststrt,		OCT, 0,
-#else
 	"\nClist start address",(char *) &cfreebase,		OCT, 0,
-#endif	UCB_CLIST
 	"\tSize of area",	(char *) &clsize,		DEC, 0,
 	END
 };
@@ -504,11 +496,9 @@ struct fetch fetchtab[] = {
 	"_u",		(char *) &u,		sizeof u,	
 	"_bpaddr",	(char *) &bpaddr,		sizeof bpaddr,
 	"_bsize",	(char *) &bsize,		sizeof bsize,
-#ifdef	UCB_CLIST
+	"_ucb_cli",	(char *) &ucbclist,		sizeof ucbclist,
 	"_clststrt",	(char *) &clststrt,		sizeof clststrt,
-#else
 	"_cfree",	(char *) &cfreebase,		sizeof cfreebase,
-#endif	UCB_CLIST
 	"_ninode",	(char *) &ninode,		sizeof ninode,
 
 	/* Random Variables */
@@ -530,7 +520,6 @@ struct fetch fetchtab[] = {
 	"_rootdev",	(char *) &rootdev,	sizeof rootdev,
 	"_swapdev",	(char *) &swapdev,	sizeof swapdev,
 	"_pipedev",	(char *) &pipedev,	sizeof pipedev,
-	"_swplo",	(char *) &swplo,		sizeof swplo,
 	"_nswap",	(char *) &nswap,		sizeof nswap,
 	"_updlock",	(char *) &updlock,	sizeof updlock,
 	"_rablock",	(char *) &rablock,	sizeof rablock,
@@ -695,11 +684,11 @@ char **argv;
 			printf("could not find _cfreeli\n");
 			exit(1);
 		}
-#ifdef	UCB_CLIST
+	if	(ucbclist)
 		lseek(kmem, (off_t)ctob((long)clststrt), 0); /* clists click */
-#else
+	else
 		lseek(kmem, (off_t) cfreebase, 0);  /* clists in kernel  */
-#endif	UCB_CLIST
+
 		read(kmem, (caddr_t) cfree_, clsize);
 
 		vf("_nkl11", (char *) &nkl11, sizeof nkl11);
@@ -928,10 +917,8 @@ general() {
 		}
 	}
 
-#ifdef	UCB_NET
 	/* Display mbuf status info */
 	dispnet();
-#endif	UCB_NET
 
 	/* Display the Callouts */
 	if( tflg )  {
@@ -1077,11 +1064,11 @@ general() {
 		subhead = "The C-list";
 		newpage();
 		line = 8;
-#ifdef	UCB_CLIST
-		j = (unsigned)0120000;
-#else
-		j = (unsigned)cfreebase;
-#endif	UCB_CLIST
+		if (ucbclist)
+			j = (unsigned)0120000;
+		else
+			j = (unsigned)cfreebase;
+
 		for(cp=cfree_; cp<&cfree_[nclist]; cp++)  {
 			putchar('\n');
 			octout( j );
@@ -1160,11 +1147,11 @@ register struct cblock *headp;
 	register unsigned int cp;
 	memaddr clstp, clstbase, clstend;
 
-#ifdef	UCB_CLIST
-	clstbase = (memaddr)0120000;
-#else
-	clstbase = (memaddr)cfreebase;
-#endif	UCB_CLIST
+	if	(ucbclist)
+		clstbase = (memaddr)0120000;
+	else
+		clstbase = (memaddr)cfreebase;
+
 	clstend = clstbase + clsize;
 	printf("\n----The %s Queue-----\n", msg);
 	line += 2;
@@ -1273,7 +1260,7 @@ dprocs() {
 				continue;
 			}
 			printf("\n Image retrieved from swapdev.\n");
-			baddr = ( swplo + p->p_addr ) * 512L;
+			baddr = ( p->p_addr ) * 512L;
 		}
 
 		lseek( kmem, (off_t) baddr, 0 );

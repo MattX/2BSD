@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_kern.c	7.1 (Berkeley) 6/5/86
+ *	@(#)quota_kern.c	7.1.1 (2.11BSD GTE) 12/31/93
  *
  * I'll say it here and not every other place i've had to hack:
  * Mike Karels was right - " just buy a vax...".  i have traded cpu cycles
@@ -32,19 +32,16 @@
 #include "fs.h"
 #include "mount.h"
 #include "uio.h"
-#ifdef BSD2_10
-#include "namei.h"
-#endif
 
 /*
  * Quota cache - hash chain headers.
  */
-#ifndef BSD2_10
+#ifndef pdp11
 #define	NQHASH		32	/* small power of two */
 #endif
 #define	QHASH(uid)	((unsigned)(uid) & (NQHASH-1))
 
-#ifndef BSD2_10
+#ifndef pdp11
 struct	qhash	{
 	struct	qhash	*qh_forw;	/* MUST be first */
 	struct	qhash	*qh_back;	/* MUST be second */
@@ -64,13 +61,13 @@ typedef	struct quota *Qptr;
 /*
  * Dquot cache - hash chain headers.
  */
-#ifndef BSD2_10		/* and 51 isn't even prime, see quota.h */
+#ifndef pdp11		/* and 51 isn't even prime, see quota.h */
 #define	NDQHASH		51		/* a smallish prime */
 #endif
 #define	DQHASH(uid, dev) \
 	((unsigned)(((int)(dev) * 4) + (uid)) % NDQHASH)
 
-#ifndef BSD2_10
+#ifndef pdp11
 struct	dqhead	{
 	struct	dqhead	*dqh_forw;	/* MUST be first */
 	struct	dqhead	*dqh_back;	/* MUST be second */
@@ -187,7 +184,7 @@ getquota(uid, lookuponly, nodq)
 				if (!nodq)
 				for (dqq = q->q_dq, mp = mount;
 				    dqq < &q->q_dq[NMOUNT]; dqq++, mp++)
-#ifdef BSD2_10
+#ifdef pdp11
 					if (*dqq == LOSTDQUOT && mp->m_inodp) {
 #else
 					if (*dqq == LOSTDQUOT && mp->m_bufp) {
@@ -202,7 +199,7 @@ quick:
 			q->q_cnt++;
 			while (q->q_flags & Q_LOCK) {
 				q->q_flags |= Q_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 				QUOTAUNMAP();
 				sleep((caddr_t) q, PINOD+1);
 				QUOTAMAP();
@@ -259,7 +256,7 @@ quick:
 			putdq(mp, *dqq, 1);
 		}
 	for (mp = mount, dqq = q->q_dq; dqq < &q->q_dq[NMOUNT]; mp++, dqq++)
-#ifdef BSD2_10
+#ifdef pdp11
 		if (!nodq && mp->m_inodp) {
 #else
 		if (!nodq && mp->m_bufp) {
@@ -294,7 +291,7 @@ delquota(q)
 	}
 	if (q->q_flags & Q_LOCK) {
 		q->q_flags |= Q_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)q, PINOD+2);
 		QUOTAMAP();
@@ -318,7 +315,7 @@ delquota(q)
 	if ((q->q_flags & Q_NDQ) == 0) {
 		mp = mount;
 		for (dqq = q->q_dq; dqq < &q->q_dq[NMOUNT]; dqq++, mp++)
-#ifdef BSD2_10
+#ifdef pdp11
 			if (mp->m_inodp)
 #else
 			if (mp->m_bufp)
@@ -402,14 +399,14 @@ discquota(uid, ip)
 	if (dq == NODQUOT)
 		return (dq);
 	dq->dq_flags = DQ_LOCK;
-#ifdef BSD2_10
+#ifdef pdp11
 	{
 		struct dqblk xq;
 
 		QUOTAUNMAP();
 		ILOCK(ip);
 		fail = rdwri(UIO_READ, ip, &xq, sizeof (xq),
-		    (off_t)uid * sizeof (xq), UIO_SYSSPACE);
+		    (off_t)uid * sizeof (xq), UIO_SYSSPACE, (int *)0);
 		QUOTAMAP();
 		dq->dq_dqb = xq;
 	}
@@ -464,7 +461,7 @@ dqalloc(uid, dev)
 	 * is necessary in claiming an entry.
 	 */
 	for (mp = mount; mp < &mount[NMOUNT]; mp++) {
-#ifdef BSD2_10
+#ifdef pdp11
 		if (mp->m_dev == dev && mp->m_inodp) {
 #else
 		if (mp->m_dev == dev && mp->m_bufp) {
@@ -565,7 +562,7 @@ dqrele(dq)
 	 * to sync the quota information to.
 	 */
 	for (mp = mount; mp < &mount[NMOUNT]; mp++)
-#ifdef BSD2_10
+#ifdef pdp11
 		if (mp->m_inodp && mp->m_dev == dq->dq_dev) {
 #else
 		if (mp->m_bufp && mp->m_dev == dq->dq_dev) {
@@ -617,7 +614,7 @@ putdq(mp, dq, free)
 	 */
 	while (dq->dq_flags & DQ_LOCK) {
 		dq->dq_flags |= DQ_WANT;
-#ifdef BSD2_10
+#ifdef pdp11
 		QUOTAUNMAP();
 		sleep((caddr_t)dq, PINOD+2);
 		QUOTAMAP();
@@ -633,7 +630,7 @@ putdq(mp, dq, free)
 	dq->dq_flags |= DQ_LOCK;
 	if ((ip = mp->m_qinod) == NULL)
 		panic("lost quota file");
-#ifdef BSD2_10
+#ifdef pdp11
 	{
 		struct dqblk xq;
 		uid_t uid;
@@ -643,7 +640,7 @@ putdq(mp, dq, free)
 		QUOTAUNMAP();
 		ILOCK(ip);
 		(void)rdwri(UIO_WRITE, ip, &xq, sizeof (xq),
-			(off_t)uid * sizeof (xq), UIO_SYSSPACE);
+			(off_t)uid * sizeof (xq), UIO_SYSSPACE, (int *)0);
 		QUOTAMAP();
 	}
 #else
@@ -700,25 +697,17 @@ opendq(mp, fname)
 	register struct inode *ip;
 	register struct quota *q;
 	struct dquot *dq;
-#ifndef BSD2_10
 	register struct nameidata *ndp = &u.u_nd;
-#endif
 	int i;
 
 	if (mp->m_qinod)
 		closedq(mp);
-#ifdef BSD2_10
 	QUOTAUNMAP();			/* paranoia */
-	u.u_dirp = fname;
-	u.u_segflg = UIO_USERSPACE;
-	ip = namei(LOOKUP | FOLLOW);
-	QUOTAMAP();
-#else
 	ndp->ni_nameiop = LOOKUP | FOLLOW;
 	ndp->ni_segflg = UIO_USERSPACE;
 	ndp->ni_dirp = fname;
 	ip = namei(ndp);
-#endif
+	QUOTAMAP();
 	if (ip == NULL)
 		return;
 	IUNLOCK(ip);
@@ -770,7 +759,7 @@ closedq(mp)
 	 */
 	for (ip = inode; ip < inodeNINODE; ip++)
 		if (ip->i_dev == mp->m_dev) {
-#ifdef BSD2_10
+#ifdef pdp11
 			dq = ix_dquot[ip - inode];
 			ix_dquot[ip - inode] = NODQUOT;
 #else

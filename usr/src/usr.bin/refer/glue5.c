@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)glue5.c	4.2 (Berkeley) 1/9/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)glue5.c	4.2.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #include <stdio.h>
@@ -12,7 +12,7 @@ static char *sccsid = "@(#)glue5.c	4.2 (Berkeley) 1/9/85";
  *		1 - ok, but no matches
  *		2 - some error
  */
-#ifdef BSD2_10
+#ifdef pdp11
 #define	MAXSIZ 350
 #define QSIZE 200
 #else

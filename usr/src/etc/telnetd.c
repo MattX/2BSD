@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)telnetd.c	5.19 (Berkeley) 7/27/87";
-#endif not lint
+static char sccsid[] = "@(#)telnetd.c	5.20.1 (Berkeley) 1/1/94";
+#endif
 
 /*
  * Telnet server.
@@ -66,7 +64,7 @@ char	*neturg = 0;		/* one past last bye of urgent data */
 int	not42 = 1;
 
 
-char BANNER1[] = "\r\n\r\n2.10 BSD UNIX (",
+char BANNER1[] = "\r\n\r\n2.11 BSD UNIX (",
     BANNER2[] = ")\r\n\r\0\r\n\r\0";
 
 		/* buffer for sub-options */
@@ -167,10 +165,6 @@ main(argc, argv)
 	doit(0, &from);
 }
 
-#ifdef BSD2_10
-#define	terminaltype	termtype
-#endif
-
 char	*terminaltype = 0;
 char	*envinit[2];
 int	cleanup();
@@ -253,13 +247,13 @@ doit(f, who)
 		struct stat stb;
 
 		line = "/dev/ptyXX";
-		line[strlen("/dev/pty")] = c;
-		line[strlen("/dev/ptyp")] = '0';
+		line[sizeof("/dev/pty") - 1] = c;
+		line[sizeof("/dev/ptyp") - 1] = '0';
 		if (stat(line, &stb) < 0)
 			break;
 		for (i = 0; i < 16; i++) {
-			line[strlen("/dev/ptyp")] = "0123456789abcdef"[i];
-			p = open(line, 2);
+			line[sizeof("/dev/ptyp") - 1] = "0123456789abcdef"[i];
+			p = open(line, O_RDWR);
 			if (p > 0)
 				goto gotpty;
 		}
@@ -276,7 +270,15 @@ gotpty:
 	}
 	t = open(line, O_RDWR);
 	if (t < 0)
-		fatalperror(f, line, errno);
+		fatalperror(f, line);
+	if (fchmod(t, 0))
+		fatalperror(f, line);
+	(void)signal(SIGHUP, SIG_IGN);
+	vhangup();
+	(void)signal(SIGHUP, SIG_DFL);
+	t = open(line, O_RDWR);
+	if (t < 0)
+		fatalperror(f, line);
 	ioctl(t, TIOCGETP, &b);
 	b.sg_flags = CRMOD|XTABS|ANYP;
 	ioctl(t, TIOCSETP, &b);
@@ -299,7 +301,7 @@ gotpty:
 	getterminaltype();
 
 	if ((i = fork()) < 0)
-		fatalperror(f, "fork", errno);
+		fatalperror(f, "fork");
 	if (i)
 		telnet(f, p);
 	close(f);
@@ -319,7 +321,7 @@ gotpty:
 	 */
 	execl("/bin/login", "login", "-h", host,
 					terminaltype ? "-p" : 0, 0);
-	fatalperror(f, "/bin/login", errno);
+	fatalperror(f, "/bin/login");
 	/*NOTREACHED*/
 }
 
@@ -334,10 +336,9 @@ fatal(f, msg)
 	exit(1);
 }
 
-fatalperror(f, msg, errno)
+fatalperror(f, msg)
 	int f;
 	char *msg;
-	int errno;
 {
 	char buf[BUFSIZ];
 	extern char *sys_errlist[];
@@ -366,7 +367,7 @@ int	s;		/* socket number */
     } while ((value == -1) && (errno == EINTR));
 
     if (value < 0) {
-	fatalperror(pty, "select", errno);
+	fatalperror(pty, "select");
     }
     if (FD_ISSET(s, &excepts)) {
 	return 1;
@@ -386,6 +387,7 @@ telnet(f, p)
 
 	ioctl(f, FIONBIO, &on);
 	ioctl(p, FIONBIO, &on);
+	ioctl(p, TIOCPKT, &on);
 #if	defined(SO_OOBINLINE)
 	setsockopt(net, SOL_SOCKET, SO_OOBINLINE, &on, sizeof on);
 #endif	/* defined(SO_OOBINLINE) */
@@ -557,14 +559,22 @@ telnet(f, p)
 		/*
 		 * Something to read from the pty...
 		 */
-		if (FD_ISSET(p, &ibits)) {
+		if (FD_ISSET(p, &ibits) || FD_ISSET(p, &xbits)) {
 			pcc = read(p, ptyibuf, BUFSIZ);
 			if (pcc < 0 && errno == EWOULDBLOCK)
 				pcc = 0;
 			else {
 				if (pcc <= 0)
 					break;
-				ptyip = ptyibuf;
+				if (ptyibuf[0] & TIOCPKT_FLUSHWRITE) {
+
+					netclear();	/* clear buffer back */
+					*nfrontp++ = IAC;
+					*nfrontp++ = DM;
+					neturg = nfrontp-1; /* off by one XXX */
+			        }
+				pcc--;
+				ptyip = ptyibuf+1;
 			}
 		}
 
@@ -620,6 +630,7 @@ telrcv()
 
 		case TS_CR:
 			state = TS_DATA;
+			/* Strip off \n or \0 after a \r */
 			if ((c == 0) || (c == '\n')) {
 				break;
 			}
@@ -633,19 +644,18 @@ telrcv()
 			if (inter > 0)
 				break;
 			/*
-			 * We map \r\n ==> \n, since \r\n says
+			 * We now map \r\n ==> \r for pragmatic reasons.
+			 * Many client implementations send \r\n when
+			 * the user hits the CarriageReturn key.
+			 *
+			 * We USED to map \r\n ==> \n, since \r\n says
 			 * that we want to be in column 1 of the next
 			 * printable line, and \n is the standard
 			 * unix way of saying that (\r is only good
 			 * if CRMOD is set, which it normally is).
 			 */
 			if ((c == '\r') && (hisopts[TELOPT_BINARY] == OPT_NO)) {
-				if ((ncc > 0) && ('\n' == *netip)) {
-					netip++; ncc--;
-					c = '\n';
-				} else {
-					state = TS_CR;
-				}
+				state = TS_CR;
 			}
 			*pfrontp++ = c;
 			break;

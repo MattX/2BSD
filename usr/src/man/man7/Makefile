@@ -27,15 +27,17 @@ OBJS=	ascii.0 environ.0 eqnchar.0 hier.0 hostname.0 intro.0 mailaddr.0 \
 .7.0:
 	${DESTDIR}/usr/man/manroff $*.7 > $*.0
 
-all: ${OBJS}
+all: _make_01
+
+_make_01: ${OBJS}
 
 clean: FRC
 	rm -f ${OBJS}
 
-install: FRC
-	cd ${DESTDIR}${MDIR}; rm -f *.0
+install: _make_01
 	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
-	ln ${DESTDIR}${MDIR}/intro.0 ${DESTDIR}${MDIR}/miscellaneou.0
+	rm -f ${DESTDIR}${MDIR}/miscellaneous.0
+	ln ${DESTDIR}${MDIR}/intro.0 ${DESTDIR}${MDIR}/miscellaneous.0
 
 FRC:
 

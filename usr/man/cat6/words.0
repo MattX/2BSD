@@ -5,20 +5,20 @@ WORDS(6)	    UNIX Programmer's Manual		 WORDS(6)
 
 
 
-NNAAMMEE
+NAME
      words - word game
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//wwoorrddss
+SYNOPSIS
+     /usr/games/words
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _W_o_r_d_s prints all the uncapitalized words in the word list
      that can be made from letters in _s_t_r_i_n_g.
 
-FFIILLEESS
+FILES
      /usr/dict/words	 the regular word list
 
-BBUUGGSS
+BUGS
      Hyphenated compounds are run together.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 

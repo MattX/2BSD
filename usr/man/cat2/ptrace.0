@@ -5,17 +5,17 @@ PTRACE(2)	    UNIX Programmer's Manual		PTRACE(2)
 
 
 
-NNAAMMEE
+NAME
      ptrace - process trace
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ssiiggnnaall..hh>>
-     ##iinncclluuddee <<ssyyss//ppttrraaccee..hh>>
+SYNOPSIS
+     #include <sys/signal.h>
+     #include <sys/ptrace.h>
 
-     ppttrraaccee((rreeqquueesstt,, ppiidd,, aaddddrr,, ddaattaa))
-     iinntt rreeqquueesstt,, ppiidd,, **aaddddrr,, ddaattaa;;
+     ptrace(request, pid, addr, data)
+     int request, pid, *addr, data;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_t_r_a_c_e provides a means by which a parent process may con-
      trol the execution of a child process, and examine and
      change its core image.  Its primary use is for the implemen-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/9/94		  May 23, 1986				1
 
 
 
@@ -126,7 +126,7 @@ PTRACE(2)	    UNIX Programmer's Manual		PTRACE(2)
 
 
 
-Printed 12/28/88	  May 23, 1986				2
+Printed 1/9/94		  May 23, 1986				2
 
 
 
@@ -140,12 +140,12 @@ PTRACE(2)	    UNIX Programmer's Manual		PTRACE(2)
      On a VAX-11, "word" also means a 32-bit integer, but the
      "even" restriction does not apply.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 value is returned if the call succeeds.  If the call
      fails then a -1 is returned and the global variable _e_r_r_n_o is
      set to indicate the error.
 
-EERRRROORRSS
+ERRORS
      [EIO]	    The request code is invalid.
 
      [ESRCH]	    The specified process does not exist.
@@ -156,10 +156,10 @@ EERRRROORRSS
 
      [EPERM]	    The specified process cannot be traced.
 
-SSEEEE AALLSSOO
+SEE ALSO
      wait(2), sigvec(2), adb(1)
 
-NNOOTTEESS  ((PPDDPP--1111))
+NOTES  (PDP-11)
      On the PDP-11 the PT_WRITE_U request may also write the
      child process's current overlay number in the system data
      area; the T-bit is used to single step the processor and
@@ -167,7 +167,7 @@ NNOOTTEESS  ((PPDDPP--1111))
      "word" means a 16-bit integer, and the "even" restriction
      _d_o_e_s apply.
 
-BBUUGGSS
+BUGS
      _P_t_r_a_c_e is unique and arcane; it should be replaced with a
      special file that can be opened and read and written.  The
      control functions could then be implemented with _i_o_c_t_l(2)
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 23, 1986				3
+Printed 1/9/94		  May 23, 1986				3
 
 
 

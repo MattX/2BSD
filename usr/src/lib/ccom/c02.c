@@ -157,7 +157,7 @@ struct nmlist *anp;
 		np.htype = decref(realtype);
 		np.hsubsp++;
 		if (width==0 && flex==0)
-			error("0-length row: %.*s", NCPS, anp->name);
+			error("0-length row: %s", anp->name);
 		o = length((union tree *)&np);
 		nel = (unsigned)width/o;
 		width = o;
@@ -199,7 +199,7 @@ struct nmlist *anp;
 				rcexpr(*--cp);
 			else if (sclass==ENUMCON) {
 				if (s->t.op!=CON)
-					error("Illegal enum constant for %.*s", NCPS, anp->name);
+					error("Illegal enum constant for %s", anp->name);
 				anp->hoffset = s->c.value;
 			} else
 				rcexpr(block(INIT,np.htype,(int *)NULL,
@@ -224,7 +224,7 @@ struct nmlist *anp;
 		if (flex && nel==0) {
 			np.hsubsp[-1] = ninit;
 		} else
-			error("Too many initializers: %.*s", NCPS, anp->name);
+			error("Too many initializers: %s", anp->name);
 		nel = ninit;
 	}
 	return(nel*width);
@@ -718,7 +718,7 @@ funchead()
 	for (pl=0; pl<HSHSIZ; pl++) {
 		for (cs = hshtab[pl]; cs!=NULL; cs = cs->nextnm) {
 			if (cs->hclass == ARG || cs->hclass==AREG)
-				error("Not an argument: %.*s", NCPS, cs->name);
+				error("Not an argument: %s", cs->name);
 		}
 	}
 	outcode("BN", SETREG, regvar);
@@ -744,25 +744,21 @@ blkend()
 {
 	register struct nmlist *cs, **lcs;
 	register i;
-	int nnames;
 
 	blklev--;
-	nnames = 0;
-	for (i=0; i<HSHSIZ; i++) {
+	for (i = 0; i < HSHSIZ; i++) {
 		lcs = &hshtab[i];
 		cs = *lcs;
 		while (cs) {
 			if (cs->hblklev > blklev
 			 && (((cs->hflag&FLABL)==0 && cs->hclass!=EXTERN) || blklev<=0)) {
 				if (cs->hclass==0)
-					error("%.*s undefined", NCPS, cs->name);
+					error("%s undefined", cs->name);
 				if (cs->hclass==EXTERN)
 					nameconflict(hshtab[i], cs);
 				*lcs = cs->nextnm;
-			} else {
+			} else
 				lcs = &cs->nextnm;
-				nnames++;
-			}
 			cs = cs->nextnm;
 		}
 	}
@@ -773,8 +769,9 @@ register struct nmlist *ocs, *cs;
 {
 
 	for (; ocs!=NULL; ocs = ocs->nextnm) 
-		if (ocs!=cs && ocs->hclass==EXTERN && strncmp(cs->name, ocs->name, 7) == 0)
-			error("names %.*s and %.*s conflict", NCPS, cs->name, NCPS, ocs->name);
+		if (ocs!=cs && ocs->hclass==EXTERN && 
+		    strncmp(cs->name, ocs->name, MAXCPS-1) == 0)
+			error("names %s and %s conflict", cs->name, ocs->name);
 }
 
 /*

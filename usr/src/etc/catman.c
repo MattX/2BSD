@@ -101,7 +101,7 @@ doit(mandir)
 	char *mandir;
 {
 	register char *msp, *csp, *sp;
-	int changed = 0;
+	int changed = 1;
 	int status;
 
 	if (wflag)
@@ -125,8 +125,8 @@ doit(mandir)
 		man[3] = cat[3] = *sp;
 		*msp = *csp = '\0';
 		if ((mdir = opendir(man)) == NULL) {
-			sprintf(buf, "catman: opendir: %s", man);
-			perror(buf);
+			/* sprintf(buf, "catman: opendir: %s", man); */
+			/* perror(buf); */
 			/* exstat = 1; */
 			continue;
 		}

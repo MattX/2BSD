@@ -1,4 +1,7 @@
-static	char *sccsid = "@(#)size.c	4.4 (Berkeley) 4/22/85";
+#if	defined(DOSCCS) && !defined(lint)
+static	char *sccsid = "@(#)size.c	4.4.1 (2.11BSD GTE) 1/1/94";
+#endif
+
 /*
  * size
  */
@@ -16,11 +19,11 @@ char **argv;
 	int gorp,i;
 	int err = 0;
 	FILE *f;
-#ifdef BSD2_10
+#ifdef pdp11
 	struct ovlhdr	ovlbuf;		/* overlay structure */
 	long	coresize;		/* total text size */
 	short	skip;			/* skip over overlay sizes of 0 */
-#endif BSD2_10
+#endif
 
 	if (argc==1) {
 		*argv = "a.out";
@@ -51,7 +54,7 @@ char **argv;
 		printf("%ld\t%lx", sum, sum);
 		if (gorp>2)
 			printf("\t%s", *argv);
-#ifdef BSD2_10
+#ifdef pdp11
 		if (buf.a_magic == A_MAGIC5 || buf.a_magic == A_MAGIC6) {
 			fread(&ovlbuf,sizeof(ovlbuf),1,f);
 			coresize = buf.a_text;
@@ -70,7 +73,7 @@ char **argv;
 				printf("%u", ovlbuf.ov_siz[i]);
 			}
 		}
-#endif BSD2_10
+#endif
 		printf("\n");
 		fclose(f);
 	}

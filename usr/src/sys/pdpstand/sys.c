@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)sys.c	2.1 (2.11BSD) 1/2/93
  */
 
 #include "../h/param.h"
@@ -12,16 +12,23 @@
 #include "../h/inode.h"
 #include "saio.h"
 
+ino_t dlook();
+struct direct *readdir();
+
+struct dirstuff {
+	long loc;
+	struct iob *io;
+	};
+
 /*
  * wfj - mods to trap to explicitly detail why we stopped
  */
 
 int	segflag = 0;
 
-
 static
 openi(n, io)
-	ino_t n;
+	register ino_t n;
 	register struct iob *io;
 {
 	register struct dinode *dp;
@@ -39,9 +46,8 @@ openi(n, io)
 	io->i_ino.i_number = n;
 	io->i_ino.i_mode = dp->di_mode;
 	io->i_ino.i_size = dp->di_size;
-	l3tol((caddr_t)io->i_ino.i_addr, (caddr_t)dp->di_addr, NADDR);
+	bcopy(dp->di_addr, io->i_ino.i_addr, NADDR * sizeof (daddr_t));
 }
-
 
 static
 find(path, file)
@@ -49,15 +55,15 @@ find(path, file)
 	struct iob *file;
 {
 	register char *q;
-	char c;
-	int n;
+	register char c;
+	ino_t n;
 
 	if (path==NULL || *path=='\0') {
 		printf("null path\n");
 		return(0);
 	}
 
-	openi((ino_t) 2, file);
+	openi((ino_t) ROOTINO, file);
 	while (*path) {
 		while (*path == '/')
 			path++;
@@ -66,6 +72,7 @@ find(path, file)
 			q++;
 		c = *q;
 		*q = '\0';
+		if (q == path) path = "." ;	/* "/" means "/." */
 
 		if ((n=dlook(path, file))!=0) {
 			if (c=='\0')
@@ -83,7 +90,6 @@ find(path, file)
 	return(n);
 }
 
-
 static daddr_t
 sbmap(io, bn)
 	register struct iob *io;
@@ -94,9 +100,9 @@ sbmap(io, bn)
 	int j, sh;
 	daddr_t nb, *bap;
 
-	ip = &io->i_ino;;
+	ip = &io->i_ino;
 	if (bn < 0) {
-		printf("bn negative\n");
+		printf("bn < 0\n");
 		return((daddr_t)0);
 	}
 
@@ -134,10 +140,8 @@ sbmap(io, bn)
 	 * fetch the address from the inode
 	 */
 	nb = ip->i_addr[NADDR-j];
-	if (nb == 0) {
-		printf("bn void %D\n", bn);
-		return((daddr_t)0);
-	}
+	if (nb == 0)
+		goto bnvoid;
 
 	/*
 	 * fetch through the indirect blocks
@@ -155,6 +159,7 @@ sbmap(io, bn)
 		i = (bn>>sh) & NMASK;
 		nb = bap[i];
 		if (nb == 0) {
+bnvoid:
 			printf("bn void %D\n", bn);
 			return((daddr_t)0);
 		}
@@ -168,74 +173,76 @@ dlook(s, io)
 	char *s;
 	register struct iob *io;
 {
-	register struct v7direct *dp;
+	register struct direct *dp;
 	register struct inode *ip;
-	daddr_t bn;
-	int n, dc;
-	daddr_t tbn;
+	struct dirstuff dirp;
+	int len;
 
 	if (s==NULL || *s=='\0')
 		return(0);
 	ip = &io->i_ino;
 	if ((ip->i_mode&IFMT)!=IFDIR) {
-		printf("not a directory\n");
-		printf("mode %o, loc %o\n", ip->i_mode, ip);
+		printf("%s: not directory,mode %o ip %o\n",s, ip->i_mode, ip);
 		return(0);
 	}
 
-	n = ip->i_size/sizeof(struct v7direct);
-
-	if (n==0) {
-		printf("zero length directory\n");
+	if (ip->i_size==0) {
+		printf("%s: 0 len directory\n",s);
 		return(0);
 	}
 
-	dc = DEV_BSIZE;
-	bn = (daddr_t)0;
-	while (n--) {
-		if (++dc >= DEV_BSIZE/sizeof(struct v7direct)) {
-			tbn = sbmap(io, bn++);
-			io->i_bn = fsbtodb(tbn) + io->i_boff;
-			io->i_ma = io->i_buf;
-			io->i_cc = DEV_BSIZE;
-			devread(io);
-			dp = (struct v7direct *)io->i_buf;
-			dc = 0;
-		}
-
-		if (match(s, dp->d_name))
+	len = strlen(s);
+	dirp.loc = 0;
+	dirp.io = io;
+	for (dp = readdir(&dirp); dp; dp = readdir(&dirp)) {
+		if (dp->d_ino == 0)
+			continue;
+		if (dp->d_namlen == len && !strcmp(s,dp->d_name))
 			return(dp->d_ino);
-		dp++;
 	}
 	return(0);
 }
 
-static
-match(s1, s2)
-	register char *s1, *s2;
+struct direct *
+readdir(dirp)
+	register struct dirstuff *dirp;
 {
-	register cc;
+	register struct direct *dp;
+	register struct iob *io;
+	daddr_t lbn, d, off;
 
-	cc = MAXNAMLEN;
-	while (cc--) {
-		if (*s1 != *s2)
-			return(0);
-		if (*s1++ && *s2++)
-			continue; else
-			return(1);
+	io = dirp->io;
+	for (;;) {
+		if (dirp->loc >= io->i_ino.i_size)
+			return(NULL);
+		off = blkoff(dirp->loc);
+		if (off == 0) {
+			lbn = lblkno(dirp->loc);
+			d = sbmap(io, lbn);
+			if (d == 0)
+				return(NULL);
+			io->i_bn = fsbtodb(d) + io->i_boff;
+			io->i_ma = io->i_buf;
+			io->i_cc = DEV_BSIZE;
+			devread(io);
+		}
+		dp = (struct direct *)(io->i_buf + off);
+		dirp->loc += dp->d_reclen;
+		if (dp->d_ino == 0)
+			continue;
+		return(dp);
 	}
-	return(1);
 }
 
 lseek(fdesc, addr, ptr)
-	int fdesc;
+	register int fdesc;
 	off_t addr;
 	int ptr;
 {
 	register struct iob *io;
 
 	if (ptr != 0) {
-		printf("Seek not from beginning of file\n");
+		printf("lseek\n");
 		return(-1);
 	}
 	fdesc -= 3;
@@ -317,7 +324,7 @@ getw(fdesc)
 }
 
 read(fdesc, buf, count)
-	int fdesc;
+	register int fdesc;
 	char *buf;
 	int count;
 {
@@ -340,7 +347,7 @@ read(fdesc, buf, count)
 		file->i_cc = count;
 		file->i_ma = buf;
 		i = devread(file);
-		file->i_bn += CLSIZE;
+		file->i_bn += (count / NBPG);
 		return(i);
 	}
 	else {
@@ -356,7 +363,7 @@ read(fdesc, buf, count)
 }
 
 write(fdesc, buf, count)
-	int fdesc;
+	register int fdesc;
 	char *buf;
 	int count;
 {
@@ -377,7 +384,7 @@ write(fdesc, buf, count)
 	file->i_cc = count;
 	file->i_ma = buf;
 	i = devwrite(file);
-	file->i_bn += CLSIZE;
+	file->i_bn += (count / NBPG);
 	return(i);
 }
 
@@ -402,7 +409,7 @@ open(str, how)
 	for (fdesc = 0; fdesc < NFILES; fdesc++)
 		if (iob[fdesc].i_flgs == 0)
 			goto gotfile;
-	_stop("No more file slots");
+	_stop("No file slots");
 gotfile:
 	(file = &iob[fdesc])->i_flgs |= F_ALLOC;
 
@@ -415,7 +422,7 @@ gotfile:
 	}
 	*cp++ = '\0';
 	for (dp = devsw; dp->dv_name; dp++) {
-		if (match(str, dp->dv_name))
+		if (strcmp(str, dp->dv_name) == 0)
 			goto gotdev;
 	}
 	printf("Unknown device\n");
@@ -424,15 +431,13 @@ gotfile:
 gotdev:
 	*(cp-1) = '(';
 	file->i_ino.i_dev = dp-devsw;
-	file->i_unit = *cp++ - '0';
-	if (file->i_unit < 0 || file->i_unit > 7) {
-		printf("Bad unit specifier\n");
-		file->i_flgs = 0;
-		return(-1);
+	for (file->i_unit = 0; *cp >= '0' && *cp <= '9'; cp++) {
+		file->i_unit *= 10;
+		file->i_unit += (*cp - '0');
 	}
 	if (*cp++ != ',') {
 badoff:
-		printf("Missing offset specification\n");
+		printf("Missing offset\n");
 		file->i_flgs = 0;
 		return(-1);
 	}
@@ -444,33 +449,34 @@ badoff:
 			continue;
 		goto badoff;
 	}
-	devopen(file);
+	if (devopen(file) < 0)
+		return(-1);
 	if (*++cp == '\0') {
 		file->i_flgs |= how+1;
-		file->i_cc = 0;
-		file->i_offset = 0;
-		return(fdesc+3);
+		goto comret;
 	}
 	if ((i = find(cp, file)) == 0) {
 		file->i_flgs = 0;
 		return(-1);
 	}
 	if (how != 0) {
-		printf("Can't write files yet.. Sorry\n");
+		printf("Can't write files\n");
 		file->i_flgs = 0;
 		return(-1);
 	}
 	openi(i, file);
+	file->i_flgs |= F_FILE | (how+1);
+comret:
 	file->i_offset = 0;
 	file->i_cc = 0;
-	file->i_flgs |= F_FILE | (how+1);
+	file->i_bn = 0;
 	return(fdesc+3);
 }
 
 close(fdesc)
-	int fdesc;
+	register int fdesc;
 {
-	struct iob *file;
+	register struct iob *file;
 
 	fdesc -= 3;
 	if (fdesc < 0 || fdesc >= NFILES || ((file = &iob[fdesc])->i_flgs&F_ALLOC) == 0)
@@ -529,3 +535,27 @@ trap(r1, r0, nps, pc, ps)
 	for (;;)
 		;
 }
+
+genopen(maxctlr, io)
+	int maxctlr;
+	struct iob *io;
+	{
+	register struct devsw *dp = &devsw[io->i_ino.i_dev];
+	register char *cp;
+	register int ctlr = CTLRn(io->i_unit);
+	int csr;
+	char line[64];
+
+	if (ctlr >= maxctlr)
+		return(-1);
+	if (dp->dv_csr[ctlr])
+		return(0);
+	printf("%s%d csr[0%o]: ", dp->dv_name, ctlr, dp->dv_csr[ctlr]);
+	gets(line);
+	for (csr = 0, cp = line; *cp >= '0' && *cp <= '7'; cp++)
+		csr = csr * 8 + (*cp - '0');
+	if (csr == 0)
+		return(-1);
+	dp->dv_csr[ctlr] = (caddr_t *)csr;
+	return(0);
+	}

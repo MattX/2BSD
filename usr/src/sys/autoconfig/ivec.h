@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ivec.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ivec.h	1.2 (2.11BSD Berkeley) 12/30/92
  */
 
 struct vec_s {
@@ -13,4 +13,8 @@ struct vec_s {
 
 #define	IVSIZE	(sizeof ivec)
 
-#define	NVECTOR	100		/* max. number of vectors we can set */
+/*
+ * increased from 100 to 128 to allow for vectors to be allocated
+ * backwards from 01000 (512) via calls to 'nextiv'
+*/
+#define	NVECTOR	128		/* max. number of vectors we can set */

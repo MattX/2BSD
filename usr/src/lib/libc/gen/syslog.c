@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)syslog.c	5.9 (Berkeley) 5/7/86";
+static char sccsid[] = "@(#)syslog.c	5.9.2 (2.11BSD GTE) 7/8/94";
 #endif LIBC_SCCS and not lint
 
 /*
@@ -33,8 +33,8 @@ static char sccsid[] = "@(#)syslog.c	5.9 (Berkeley) 5/7/86";
 #include <sys/syslog.h>
 #include <strings.h>
 
-#define	MAXLINE	1024			/* max message size */
-#define NULL	0			/* manifest */
+#define	MAXLINE	640		/* max message size */
+#define NULL	0		/* manifest */
 
 #define PRIMASK(p)	(1 << ((p) & LOG_PRIMASK))
 #define PRIFAC(p)	(((p) & LOG_FACMASK) >> 3)
@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)syslog.c	5.9 (Berkeley) 5/7/86";
 
 static char	logname[] = "/dev/log";
 static char	ctty[] = "/dev/console";
-#ifdef BSD2_10
+#ifdef pdp11
 static char	logfile[] = "/usr/adm/messages";
 static int	ToFile = 0;		/* set if logfile is used */
 #endif
@@ -55,8 +55,7 @@ static int	LogFacility = LOG_USER;	/* default facility code */
 
 static struct sockaddr SyslogAddr;	/* AF_UNIX address of local logger */
 
-extern	int errno, sys_nerr;
-extern	char *sys_errlist[];
+extern	int errno;
 
 syslog(pri, fmt, p0, p1, p2, p3, p4)
 	int pri;
@@ -110,10 +109,7 @@ syslog(pri, fmt, p0, p1, p2, p3, p4)
 			*b++ = c;
 			continue;
 		}
-		if ((unsigned)olderrno > sys_nerr)
-			sprintf(b, "error %d", olderrno);
-		else
-			strcpy(b, sys_errlist[olderrno]);
+		strcpy(b, strerror(olderrno));
 		b += strlen(b);
 	}
 	*b++ = '\n';
@@ -124,7 +120,7 @@ syslog(pri, fmt, p0, p1, p2, p3, p4)
 		c = MAXLINE;
 
 	/* output the message to the local logger */
-#ifdef BSD2_10
+#ifdef pdp11
 	if (ToFile) {
 		if (write(LogFile, outline, c) == c)
 			return;
@@ -144,7 +140,7 @@ syslog(pri, fmt, p0, p1, p2, p3, p4)
 		int fd;
 
 		signal(SIGALRM, SIG_DFL);
-		sigsetmask(sigblock(0) & ~sigmask(SIGALRM));
+		sigsetmask(sigblock(0L) & ~sigmask(SIGALRM));
 		alarm(5);
 		fd = open(ctty, O_WRONLY);
 		alarm(0);
@@ -178,7 +174,7 @@ openlog(ident, logstat, logfac)
 	strncpy(SyslogAddr.sa_data, logname, sizeof SyslogAddr.sa_data);
 	if (LogStat & LOG_NDELAY) {
 		LogFile = socket(AF_UNIX, SOCK_DGRAM, 0);
-#ifdef BSD2_10
+#ifdef pdp11
 		if (LogFile < 0) {
 			LogFile = open(logfile, O_WRONLY|O_APPEND);
 			ToFile = 1;

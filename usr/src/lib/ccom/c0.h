@@ -5,13 +5,23 @@
 #include <stdio.h>
 
 /*
- * parameters
- */
+ * This parameter is the _only_ one which affects the recognized length
+ * of symbols.  Symbol names are dynamically allocated and null terminated
+ * now, the define below is the 'cutoff' or maximum length to permit.
+ *
+ * NOTE: there are _exactly_ 4 references to this in all of c0.  There are
+ * _NO_ references to it in c1.  Just make sure that the value is less than
+ * 79 and c1 will be oblivious to the length of a symbol name.
+ *
+ * NOTE: The optimizer (c2) needs to be updated if the size of a symbol
+ * changes.  See the file c2.h
+*/
+
+#define	MAXCPS	32	/* # chars per symbol */
 
 #define	LTYPE	long	/* change to int if no long consts */
 #define	MAXINT	077777	/* Largest positive short integer */
 #define	MAXUINT	0177777	/* largest unsigned integer */
-#define	NCPS	8	/* # chars per symbol */
 #define	HSHSIZ	300	/* # entries in hash table for names */
 #define	CMSIZ	40	/* size of expression stack */
 #define	SSIZE	40	/* size of other expression stack */
@@ -52,7 +62,7 @@ struct nmlist {
 	struct	nmlist *nextnm;	/* next name in chain */
 	union	str *sparent;	/* Structure of which this is member */
 	char	hblklev;	/* Block level of definition */
-	char	name[NCPS];	/* ASCII name */
+	char	*name;		/* ASCII name */
 };
 
 /*
@@ -155,7 +165,7 @@ char	cvtab[4][4];
 char	filename[64];
 int	opdope[];
 char	ctab[];
-char	symbuf[NCPS+2];
+char	symbuf[MAXCPS+2];
 struct	nmlist	*hshtab[HSHSIZ];
 int	kwhash[(HSHSIZ+LNBPW-1)/LNBPW];
 union	tree **cp;

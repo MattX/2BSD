@@ -1,9 +1,12 @@
-# include "mfile2"
+# include "pass2.h"
+extern	int	fltused;
+#define	putstr(s)	fputs((s),stdout)
+
 /* a lot of the machine dependent parts of the second pass */
 
 # define BITMASK(n) ((1L<<n)-1)
 where(c) {
-	printf("where() was called!");
+	fprintf(stderr, "%s, line %d: ", filename, lineno);
 	}
 
 lineid( l, fn ) char *fn; {
@@ -18,7 +21,7 @@ eobl2(){
 	if( spoff >= AUTOINIT ) spoff -= AUTOINIT;
 	spoff /= SZCHAR;
 	SETOFF(spoff,2);
-	printf( "	.F%d = %Ld.\n", ftnno, spoff );
+	printf( "	.F%d = %ld.\n", ftnno, spoff );
 	if( fltused ) {
 		fltused = 0;
 		printf( "	.globl	fltused\n" );
@@ -75,6 +78,25 @@ int rstatus[] = {
 	SBREG, SBREG,
 	};
 
+tlen(p) NODE *p; 
+{
+	switch(p->in.type) {
+		case CHAR:
+		case UCHAR:
+			return(1);
+			
+		case LONG:
+		case ULONG:
+		case FLOAT:
+			return(4);
+
+		case DOUBLE:
+			return(8);
+			
+		default:
+			return(2);
+		}
+	}
 NODE *brnode;
 int brcase;
 
@@ -85,22 +107,22 @@ zzzcode( p, c ) NODE *p; {
 	switch( c ){
 
 	case 'B':	/* output b if type is byte */
-		if( p->type == CHAR || p->type == UCHAR ) printf( "b" );
+		if( p->in.type == CHAR || p->in.type == UCHAR ) printf( "b" );
 		return;
 
 	case 'N':  /* logical ops, turned into 0-1 */
 		/* use register given by register 1 */
 		cbgen( 0, m=getlab(), 'I' );
-		deflab( p->label );
-		printf( "	clr	%s\n", rnames[getlr( p, '1' )->rval] );
-		if( p->type == LONG || p->type == ULONG )
-			printf( "	clr	%s\n", rnames[getlr( p, '1' )->rval + 1] );
+		deflab( p->bn.label );
+		printf( "	clr	%s\n", rnames[getlr( p, '1' )->tn.rval] );
+		if( p->in.type == LONG || p->in.type == ULONG )
+			printf( "	clr	%s\n", rnames[getlr(p, '1')->tn.rval + 1] );
 		deflab( m );
 		return;
 
 	case 'I':
 	case 'F':
-		cbgen( p->op, p->label, c );
+		cbgen( p->in.op, p->bn.label, c );
 		return;
 
 	case 'A':
@@ -117,12 +139,12 @@ zzzcode( p, c ) NODE *p; {
 			register r, l;
 			TWORD t;
 
-			if( p->op == ASG LS ) return;
-			if( p->op != ASG RS ) cerror( "ZH bad" );
-			if( p->left->op != REG ) cerror( "SH left bad" );
+			if( p->in.op == ASG LS ) return;
+			if( p->in.op != ASG RS ) cerror( "ZH bad" );
+			if( p->in.left->in.op != REG ) cerror( "SH left bad" );
 
-			r = p->left->rval;
-			t = p->left->type;
+			r = p->in.left->tn.rval;
+			t = p->in.left->in.type;
 			l = (t==LONG || t == ULONG );
 
 			if( t != UNSIGNED && t != UCHAR && t != ULONG ) return;  /* signed is ok */
@@ -136,9 +158,9 @@ zzzcode( p, c ) NODE *p; {
 			/* in the case where the value is known (rhs a constant),
 				the mask is just computed and put out... */
 
-			if( p->right->op == ICON ){
+			if( p->in.right->in.op == ICON ){
 				int s;
-				s = p->right->lval;
+				s = p->in.right->tn.lval;
 				if( l ){
 					if( s >= 16 ){
 						printf( "	clr	r%d\n", r );
@@ -158,7 +180,7 @@ zzzcode( p, c ) NODE *p; {
 
 			/* general case */
 
-			if( istnode( p->right ) ) q = p->right;
+			if( istnode( p->in.right ) ) q = p->in.right;
 			else q = getlr( p, '1' );  /* where -shift is stored */
 
 			/* first, we store the shifted value on the stack */
@@ -192,9 +214,9 @@ zzzcode( p, c ) NODE *p; {
 		/* sign extend or not -- register is one less than the
 		   left descendent */
 
-		m = p->left->rval - 1;
+		m = p->in.left->tn.rval - 1;
 
-		if( ISUNSIGNED(p->type) ){
+		if( ISUNSIGNED(p->in.type) ){
 			printf( "	clr	r%d\n", m );
 			}
 		else {
@@ -216,23 +238,23 @@ zzzcode( p, c ) NODE *p; {
 
 	case '~':
 		/* complimented CR */
-		p->right->lval = ~p->right->lval;
+		p->in.right->tn.lval = ~p->in.right->tn.lval;
 		conput( getlr( p, 'R' ) );
-		p->right->lval = ~p->right->lval;
+		p->in.right->tn.lval = ~p->in.right->tn.lval;
 		return;
 
 	case 'M':
 		/* negated CR */
-		p->right->lval = -p->right->lval;
+		p->in.right->tn.lval = -p->in.right->tn.lval;
 		conput( getlr( p, 'R' ) );
-		p->right->lval = -p->right->lval;
+		p->in.right->tn.lval = -p->in.right->tn.lval;
 		return;
 
 	case 'L':  /* INIT for long constants */
 		{
 			unsigned hi, lo;
-			lo = p->left->lval & BITMASK(SZINT);
-			hi = ( p->left->lval >> SZINT ) & BITMASK(SZINT);
+			lo = p->in.left->tn.lval & BITMASK(SZINT);
+			hi = ( p->in.left->tn.lval >> SZINT ) & BITMASK(SZINT);
 			printf( "	%o; %o\n", hi, lo );
 			return;
 		}
@@ -242,18 +264,18 @@ zzzcode( p, c ) NODE *p; {
 		    LONG|ULONG -> CHAR|UCHAR|INT|UNSIGNED
 		   increment offset to second word */
 
-		m = p->type;
-		p = p->left;
-		switch( p->op ){
+		m = p->in.type;
+		p = p->in.left;
+		switch( p->in.op ){
 		case NAME:
 		case OREG:
-			p->lval += SZINT/SZCHAR;
+			p->tn.lval += SZINT/SZCHAR;
 			return;
 		case REG:
-			rfree( p->rval, p->type );
-			p->rval += 1;
-			p->type = m;
-			rbusy( p->rval, p->type );
+			rfree( p->tn.rval, p->in.type );
+			p->tn.rval += 1;
+			p->in.type = m;
+			rbusy( p->tn.rval, p->in.type );
 			return;
 		default:
 			cerror( "Illegal ZT type conversion" );
@@ -263,16 +285,16 @@ zzzcode( p, c ) NODE *p; {
 
 	case 'U':
 		/* same as AL for exp under U* */
-		if( p->left->op == UNARY MUL ) {
-			adrput( getlr( p->left, 'L' ) );
+		if( p->in.left->in.op == UNARY MUL ) {
+			adrput( getlr( p->in.left, 'L' ) );
 			return;
 			}
 		cerror( "Illegal ZU" );
 		/* NO RETURN */
 
 	case 'W':	/* structure size */
-		if( p->op == STASG )
-			printf( "%d", p->stsize);
+		if( p->in.op == STASG )
+			printf( "%d", p->stn.stsize);
 		else	cerror( "Not a structure" );
 		return;
 
@@ -281,30 +303,30 @@ zzzcode( p, c ) NODE *p; {
 			register NODE *l, *r;
 			register size, count;
 
-			if( p->op == STASG ){
-				l = p->left;
-				r = p->right;
+			if( p->in.op == STASG ){
+				l = p->in.left;
+				r = p->in.right;
 				}
-			else if( p->op == STARG ){  /* store an arg onto the stack */
-				r = p->left;
+			else if( p->in.op == STARG ){  /* store an arg onto the stack */
+				r = p->in.left;
 				}
 			else cerror( "STASG bad" );
 
-			if( r->op == ICON ) r->op = NAME;
-			else if( r->op == REG ) r->op = OREG;
-			else if( r->op != OREG ) cerror( "STASG-r" );
+			if( r->in.op == ICON ) r->in.op = NAME;
+			else if( r->in.op == REG ) r->in.op = OREG;
+			else if( r->in.op != OREG ) cerror( "STASG-r" );
 
-			size = p->stsize;
+			size = p->stn.stsize;
 			count = size / 2;
 
-			r->lval += size;
-			if( p->op == STASG ) l->lval += size;
+			r->tn.lval += size;
+			if( p->in.op == STASG ) l->tn.lval += size;
 
 			while( count-- ){ /* simple load/store loop */
-				r->lval -= 2;
+				r->tn.lval -= 2;
 				expand( r, FOREFF, "	mov	AR," );
-				if( p->op == STASG ){
-					l->lval -= 2;
+				if( p->in.op == STASG ){
+					l->tn.lval -= 2;
 					expand( l, FOREFF, "AR\n" );
 					}
 				else {
@@ -313,8 +335,8 @@ zzzcode( p, c ) NODE *p; {
 
 				}
 
-			if( r->op == NAME ) r->op = ICON;
-			else if( r->op == OREG ) r->op = REG;
+			if( r->in.op == NAME ) r->in.op = ICON;
+			else if( r->in.op == OREG ) r->in.op = REG;
 
 			}
 		break;
@@ -371,24 +393,26 @@ rewfld( p ) NODE *p; {
 	}
 
 callreg(p) NODE *p; {
-	return( (p->type==DOUBLE||p->type==FLOAT) ? FR0 : R0 );
+	return( (p->in.type==DOUBLE||p->in.type==FLOAT) ? FR0 : R0 );
 	}
 
-shltype( o, p ) NODE *p; {
-	if( o == NAME|| o==REG || o == ICON || o == OREG ) return( 1 );
-	return( o==UNARY MUL && shumul(p->left) );
+canaddr( p ) NODE *p; {
+	register int o = p->in.op;
+
+	if( o==NAME || o==REG || o==ICON || o==OREG || (o==UNARY MUL && shumul(p->in.left)) ) return(1);
+	return(0);
 	}
 
 flshape( p ) register NODE *p; {
-	register o = p->op;
+	register o = p->in.op;
 	if( o==NAME || o==REG || o==ICON || o==OREG ) return( 1 );
-	return( o==UNARY MUL && shumul(p->left)==STARNM );
+	return( o==UNARY MUL && shumul(p->in.left)==STARNM );
 	}
 
 shtemp( p ) register NODE *p; {
-	if( p->op == UNARY MUL ) p = p->left;
-	if( p->op == REG || p->op == OREG ) return( !istreg( p->rval ) );
-	return( p->op == NAME || p->op == ICON );
+	if( p->in.op == UNARY MUL ) p = p->in.left;
+	if( p->in.op == REG || p->in.op == OREG ) return( !istreg( p->tn.rval ) );
+	return( p->in.op == NAME || p->in.op == ICON );
 	}
 
 spsz( t, v ) TWORD t; CONSZ v; {
@@ -423,13 +447,13 @@ spsz( t, v ) TWORD t; CONSZ v; {
 shumul( p ) register NODE *p; {
 	register o;
 
-	o = p->op;
+	o = p->in.op;
 	if( o == NAME || o == OREG || o == ICON ) return( STARNM );
 
 	if( ( o == INCR || o == ASG MINUS ) &&
-	    ( p->left->op == REG && p->right->op == ICON ) &&
-	    p->right->name[0] == '\0' &&
-	    spsz( p->left->type, p->right->lval ) )
+	    ( p->in.left->in.op == REG && p->in.right->in.op == ICON ) &&
+	    p->in.right->in.name[0] == '\0' &&
+	    spsz( p->in.left->in.type, p->in.right->tn.lval ) )
 		return( STARREG );
 
 	return( 0 );
@@ -440,14 +464,14 @@ adrcon( val ) CONSZ val; {
 	}
 
 conput( p ) register NODE *p; {
-	switch( p->op ){
+	switch( p->in.op ){
 
 	case ICON:
 		acon( p );
 		return;
 
 	case REG:
-		printf( "%s", rnames[p->rval] );
+		putstr( rnames[p->tn.rval] );
 		return;
 
 	default:
@@ -464,36 +488,36 @@ upput( p ) NODE *p; {
 	   pair pointed to by p (for LONGs)*/
 	CONSZ save;
 
-	if( p->op == FLD ){
-		p = p->left;
+	if( p->in.op == FLD ){
+		p = p->in.left;
 		}
 
-	save = p->lval;
-	switch( p->op ){
+	save = p->tn.lval;
+	switch( p->in.op ){
 
 	case NAME:
-		p->lval += SZINT/SZCHAR;
+		p->tn.lval += SZINT/SZCHAR;
 		acon( p );
 		break;
 
 	case ICON:
 		/* addressable value of the constant */
-		p->lval &= BITMASK(SZINT);
-		printf( "$" );
+		p->tn.lval &= BITMASK(SZINT);
+		putstr( "$" );
 		acon( p );
 		break;
 
 	case REG:
-		printf( "%s", rnames[p->rval+1] );
+		putstr( rnames[p->tn.rval+1] );
 		break;
 
 	case OREG:
-		p->lval += SZINT/SZCHAR;
-		if( p->rval == R5 ){  /* in the argument region */
-			if( p->name[0] != '\0' ) werror( "bad arg temp" );
+		p->tn.lval += SZINT/SZCHAR;
+		if( p->tn.rval == R5 ){  /* in the argument region */
+			if( p->in.name[0] != '\0' ) werror( "bad arg temp" );
 			}
-		if( p->lval != 0 || p->name[0] != '\0' ) acon( p );
-		printf( "(%s)", rnames[p->rval] );
+		if( p->tn.lval != 0 || p->in.name[0] != '\0' ) acon( p );
+		printf( "(%s)", rnames[p->tn.rval] );
 		break;
 
 	default:
@@ -501,17 +525,17 @@ upput( p ) NODE *p; {
 		break;
 
 		}
-	p->lval = save;
+	p->tn.lval = save;
 
 	}
 
 adrput( p ) register NODE *p; {
 	/* output an address, with offsets, from p */
 
-	if( p->op == FLD ){
-		p = p->left;
+	if( p->in.op == FLD ){
+		p = p->in.left;
 		}
-	switch( p->op ){
+	switch( p->in.op ){
 
 	case NAME:
 		acon( p );
@@ -519,14 +543,14 @@ adrput( p ) register NODE *p; {
 
 	case ICON:
 		/* addressable value of the constant */
-		if( szty( p->type ) == 2 ) {
+		if( szty( p->in.type ) == 2 ) {
 			/* print the high order value */
 			CONSZ save;
-			save = p->lval;
-			p->lval = ( p->lval >> SZINT ) & BITMASK(SZINT);
-			printf( "$" );
+			save = p->tn.lval;
+			p->tn.lval = ( p->tn.lval >> SZINT ) & BITMASK(SZINT);
+			putstr( "$" );
 			acon( p );
-			p->lval = save;
+			p->tn.lval = save;
 			return;
 			}
 		printf( "$" );
@@ -534,25 +558,25 @@ adrput( p ) register NODE *p; {
 		return;
 
 	case REG:
-		printf( "%s", rnames[p->rval] );
+		putstr( rnames[p->tn.rval] );
 		return;
 
 	case OREG:
-		if( p->rval == R5 ){  /* in the argument region */
-			if( p->name[0] != '\0' ) werror( "bad arg temp" );
-			printf( CONFMT, p->lval );
-			printf( ".(r5)" );
+		if( p->tn.rval == R5 ){  /* in the argument region */
+			if( p->in.name[0] != '\0' ) werror( "bad arg temp" );
+			printf( CONFMT, p->tn.lval );
+			putstr( ".(r5)" );
 			return;
 			}
-		if( p->lval != 0 || p->name[0] != '\0' ) acon( p );
-		printf( "(%s)", rnames[p->rval] );
+		if( p->tn.lval != 0 || p->in.name[0] != '\0' ) acon( p );
+		printf( "(%s)", rnames[p->tn.rval] );
 		return;
 
 	case UNARY MUL:
 		/* STARNM or STARREG found */
 		if( tshape(p, STARNM) ) {
-			printf( "*" );
-			adrput( p->left);
+			putstr( "*" );
+			adrput( p->in.left);
 			}
 		else {	/* STARREG - really auto inc or dec */
 			/* turn into OREG so replacement node will
@@ -560,21 +584,25 @@ adrput( p ) register NODE *p; {
 			register i;
 			register NODE *q, *l;
 
-			l = p->left;
-			q = l->left;
-			p->op = OREG;
-			p->rall = q->rall;
-			p->lval = q->lval;
-			p->rval = q->rval;
-			for( i=0; i<NCHNAM; i++ )
-				p->name[i] = q->name[i];
-			if( l->op == INCR ) {
+			l = p->in.left;
+			q = l->in.left;
+			p->in.op = OREG;
+			p->in.rall = q->in.rall;
+			p->tn.lval = q->tn.lval;
+			p->tn.rval = q->tn.rval;
+#ifndef FLEXNAMES
+			for(i=0; i<NCHNAM; ++i)
+				p->in.name[i] = q->in.name[i];
+#else
+			p->in.name = q->in.name;
+#endif
+			if( l->in.op == INCR ) {
 				adrput( p );
-				printf( "+" );
-				p->lval -= l->right->lval;
+				putstr( "+" );
+				p->tn.lval -= l->in.right->tn.lval;
 				}
-			else {	/* l->op == ASG MINUS */
-				printf( "-" );
+			else {	/* l->in.op == ASG MINUS */
+				putstr( "-" );
 				adrput( p );
 				}
 			tfree( l );
@@ -591,16 +619,24 @@ adrput( p ) register NODE *p; {
 
 acon( p ) register NODE *p; { /* print out a constant */
 
-	if( p->name[0] == '\0' ){	/* constant only */
-		printf( CONFMT, p->lval);
+	if( p->in.name[0] == '\0' ){	/* constant only */
+		printf( CONFMT, p->tn.lval);
 		printf( "." );
 		}
-	else if( p->lval == 0 ) {	/* name only */
-		printf( "%.8s", p->name );
+	else if( p->tn.lval == 0 ) {	/* name only */
+#ifndef FLEXNAMES
+		printf( "%.8s", p->in.name );
+#else
+		putstr( p->in.name );
+#endif
 		}
 	else {				/* name + offset */
-		printf( "%.8s+", p->name );
-		printf( CONFMT, p->lval );
+#ifndef	FLEXNAMES
+		printf( "%.8s+", p->in.name );
+#else
+		putstr( p->in.name );
+#endif
+		printf( CONFMT, p->tn.lval );
 		printf( "." );
 		}
 	}
@@ -615,18 +651,18 @@ gencall( p, cookie ) register NODE *p; {
 	register temp;
 	register m;
 
-	if( p->right ) temp = argsize( p->right );
+	if( p->in.right ) temp = argsize( p->in.right );
 	else temp = 0;
 
-	if( p->right ){ /* generate args */
-		genargs( p->right );
+	if( p->in.right ){ /* generate args */
+		genargs( p->in.right );
 		}
 
-	if( !shltype( p->left->op, p->left ) ) {
-		order( p->left, INAREG|SOREG );
+	if( !shltype( p->in.left->in.op, p->in.left ) ) {
+		order( p->in.left, INAREG|SOREG );
 		}
 
-	p->op = UNARY CALL;
+	p->in.op = UNARY CALL;
 	m = match( p, INTAREG|INTBREG );
 	popargs( temp );
 	return(m != MDONE);
@@ -694,7 +730,7 @@ int lbranches[][3] = {
 	};
 
 /* logical relations when compared in reverse order (cmp R,L) */
-#ifdef	FORT
+#ifndef	ONEPASS
 short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
 #else
 extern short revrel[];
@@ -739,7 +775,7 @@ nextcook( p, cookie ) NODE *p; {
 	/* we have failed to match p with cookie; try another */
 	if( cookie == FORREW ) return( 0 );  /* hopeless! */
 	if( !(cookie&(INTAREG|INTBREG)) ) return( INTAREG|INTBREG );
-	if( !(cookie&INTEMP) && asgop(p->op) ) return( INTEMP|INAREG|INTAREG|INTBREG|INBREG );
+	if( !(cookie&INTEMP) && asgop(p->in.op) ) return( INTEMP|INAREG|INTAREG|INTBREG|INBREG );
 	return( FORREW );
 	}
 
@@ -775,8 +811,8 @@ hardops(p)  register NODE *p; {
 	register o;
 	register TWORD t;
 
-	o = p->op;
-	t = p->type;
+	o = p->in.op;
+	t = p->in.type;
 	if( t!=LONG && t!=ULONG ) return;
 
 	for( f=opfunc; f->fop; f++ ) {
@@ -788,38 +824,42 @@ hardops(p)  register NODE *p; {
 	/* WARNING - this won't work for long in a REG */
 	convert:
 	if( asgop( o ) ) {
-		switch( p->left->op ) {
+		switch( p->in.left->in.op ) {
 
 		case UNARY MUL:	/* convert to address */
-			p->left->op = FREE;
-			p->left = p->left->left;
+			p->in.left->in.op = FREE;
+			p->in.left = p->in.left->in.left;
 			break;
 
 		case NAME:	/* convert to ICON pointer */
-			p->left->op = ICON;
-			p->left->type = INCREF( p->left->type );
+			p->in.left->in.op = ICON;
+			p->in.left->in.type = INCREF( p->in.left->in.type );
 			break;
 
 		case OREG:	/* convert OREG to address */
-			p->left->op = REG;
-			p->left->type = INCREF( p->left->type );
-			if( p->left->lval != 0 ) {
+			p->in.left->in.op = REG;
+			p->in.left->in.type = INCREF( p->in.left->in.type );
+			if( p->in.left->tn.lval != 0 ) {
 				q = talloc();
-				q->op = PLUS;
-				q->rall = NOPREF;
-				q->type = p->left->type;
-				q->left = p->left;
-				q->right = talloc();
+				q->in.op = PLUS;
+				q->in.rall = NOPREF;
+				q->in.type = p->in.left->in.type;
+				q->in.left = p->in.left;
+				q->in.right = talloc();
 
-				q->right->op = ICON;
-				q->right->rall = NOPREF;
-				q->right->type = INT;
-				q->right->name[0] = '\0';
-				q->right->lval = p->left->lval;
-				q->right->rval = 0;
+				q->in.right->in.op = ICON;
+				q->in.right->in.rall = NOPREF;
+				q->in.right->in.type = INT;
+#ifdef	FLEXNAMES
+				q->in.right->in.name = "";
+#else
+				q->in.right->in.name[0] = '\0';
+#endif
+				q->in.right->tn.lval = p->in.left->tn.lval;
+				q->in.right->tn.rval = 0;
 
-				p->left->lval = 0;
-				p->left = q;
+				p->in.left->tn.lval = 0;
+				p->in.left = q;
 				}
 			break;
 
@@ -832,22 +872,26 @@ hardops(p)  register NODE *p; {
 
 	/* build comma op for args to function */
 	q = talloc();
-	q->op = CM;
-	q->rall = NOPREF;
-	q->type = INT;
-	q->left = p->left;
-	q->right = p->right;
-	p->op = CALL;
-	p->right = q;
+	q->in.op = CM;
+	q->in.rall = NOPREF;
+	q->in.type = INT;
+	q->in.left = p->in.left;
+	q->in.right = p->in.right;
+	p->in.op = CALL;
+	p->in.right = q;
 
 	/* put function name in left node of call */
-	p->left = q = talloc();
-	q->op = ICON;
-	q->rall = NOPREF;
-	q->type = INCREF( FTN + p->type );
-	strcpy( q->name, f->func );
-	q->lval = 0;
-	q->rval = 0;
+	p->in.left = q = talloc();
+	q->in.op = ICON;
+	q->in.rall = NOPREF;
+	q->in.type = INCREF( FTN + p->in.type );
+#ifndef	FLEXNAMES
+	strcpy( q->in.name, f->func );
+#else
+	q->in.name = f->func;
+#endif
+	q->tn.lval = 0;
+	q->tn.rval = 0;
 
 	return;
 
@@ -858,43 +902,36 @@ optim2( p ) register NODE *p; {
 
 	register NODE *r;
 
-	switch( p->op ) {
+	switch( p->in.op ) {
 
 	case AND:
 		/* commute L and R to eliminate compliments and constants */
-		if( p->left->op==ICON || p->left->op==COMPL ) {
-			r = p->left;
-			p->left = p->right;
-			p->right = r;
+		if( p->in.left->in.op==ICON || p->in.left->in.op==COMPL ) {
+			r = p->in.left;
+			p->in.left = p->in.right;
+			p->in.right = r;
 			}
 	case ASG AND:
 		/* change meaning of AND to ~R&L - bic on pdp11 */
-		r = p->right;
-		if( r->op==ICON ) { /* compliment constant */
-			r->lval = ~r->lval;
+		r = p->in.right;
+		if( r->in.op==ICON ) { /* compliment constant */
+			r->tn.lval = ~r->tn.lval;
 			}
-		else if( r->op==COMPL ) { /* ~~A => A */
-			r->op = FREE;
-			p->right = r->left;
+		else if( r->in.op==COMPL ) { /* ~~A => A */
+			r->in.op = FREE;
+			p->in.right = r->in.left;
 			}
 		else { /* insert complement node */
-			p->right = talloc();
-			p->right->op = COMPL;
-			p->right->rall = NOPREF;
-			p->right->type = r->type;
-			p->right->left = r;
-			p->right->right = NULL;
+			p->in.right = talloc();
+			p->in.right->in.op = COMPL;
+			p->in.right->in.rall = NOPREF;
+			p->in.right->in.type = r->in.type;
+			p->in.right->in.left = r;
+			p->in.right->in.right = NULL;
 			}
 		break;
 
 		}
-	}
-
-myreader(p) register NODE *p; {
-	walkf( p, hardops );	/* convert ops to function calls */
-	canon( p );		/* expands r-vals for fileds */
-	walkf( p, optim2 );
-	toff = 0;  /* stack offset swindle */
 	}
 
 special( p, shape ) register NODE *p; {
@@ -902,12 +939,12 @@ special( p, shape ) register NODE *p; {
 
 	switch( shape ) {
 
-	case SCCON:
-		if( p->op == ICON && p->name[0]=='\0' && p->lval>= -128 && p->lval <=127 ) return( 1 );
+	case SSCON:
+		if( p->in.op == ICON && p->in.name[0]=='\0' && p->tn.lval>= -128 && p->tn.lval <=127 ) return( 1 );
 		break;
 
-	case SICON:
-		if( p->op == ICON && p->name[0]=='\0' && p->lval>= 0 && p->lval <=32767 ) return( 1 );
+	case SCCON:
+		if( p->in.op == ICON && p->in.name[0]=='\0' && p->tn.lval>= 0 && p->tn.lval <=32767 ) return( 1 );
 		break;
 
 	default:
@@ -918,8 +955,28 @@ special( p, shape ) register NODE *p; {
 	return( 0 );
 	}
 
+NODE * addroreg(l) NODE *l;
+				/* OREG was built in clocal()
+				 * for an auto or formal parameter
+				 * now its address is being taken
+				 * local code must unwind it
+				 * back to PLUS/MINUS REG ICON
+				 * according to local conventions
+				 */
+{
+	cerror("address of OREG taken");
+	/*NOTREACHED*/
+}
+
 # ifndef ONEPASS
 main( argc, argv ) char *argv[]; {
 	return( mainp2( argc, argv ) );
 	}
 # endif
+
+myreader(p) register NODE *p; {
+	walkf( p, hardops );	/* convert ops to function calls */
+	canon( p );		/* expands r-vals for fileds */
+	walkf( p, optim2 );
+	toff = 0;  /* stack offset swindle */
+	}

@@ -4,12 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)print.c	5.2 (Berkeley) 3/13/86";
-#endif not lint
-
-#ifdef BSD2_10
-#include "shortnames.h"
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)print.c	5.2.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 /* debug print routines */

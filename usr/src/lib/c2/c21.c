@@ -31,6 +31,7 @@ rmove()
 				p->forw->back = p->back;
 				p->back->forw = p->forw;
 				redunm++;
+				nchange++;
 				continue;
 			}
 		}
@@ -39,6 +40,7 @@ rmove()
 			strcpy(regs[RT1], regs[RT2]);
 			regs[RT2][0] = 0;
 			p->code = copy(1, regs[RT1]);
+			nchange++;
 			goto sngl;
 		}
 		repladdr(p, 0, flt);
@@ -80,23 +82,118 @@ rmove()
 			strcpy(regs[RT1], regs[RT2]);
 			regs[RT2][0] = 0;
 			p->code = copy(1, regs[RT1]);
+			nchange++;
 			goto sngl;
 		}
 		if ((p->op==BIC || p->op==BIS) && equstr(regs[RT1], "$0")) {
 			if (p->forw->op!=CBR) {
 				p->back->forw = p->forw;
 				p->forw->back = p->back;
+				nchange++;
 				continue;
 			}
+		}
+/*
+ * the next block of code looks for the sequences (which extract the
+ * high byte of a word or the low byte respectively):
+ *	ash $-10,r
+ *	bic $-400,r
+ * or 
+ *	mov natural,r
+ *	bic $-400,r
+ * and transforms them into:
+ *	clrb r
+ *	swab r
+ * or
+ *	clr r
+ *	bisb natural,r
+ * These constructs occur often enough in the kernel (dealing with major/minor 
+ * device numbers, etc) it's worth a little extra work at compile time.
+*/
+		if (p->op == BIC && (equstr(regs[RT1],"$-400") || 
+			 equstr(regs[RT1],"$-177400"))) {
+			if (p->back->op == ASH) {
+				r = isreg(regs[RT2]);
+				dualop(p->back);
+				if ((equstr(regs[RT1], "$-10") || 
+				     equstr(regs[RT1], "$177770")) && 
+				    r == isreg(regs[RT2])) {
+					strcpy(regs[RT1], regs[RT2]);
+					regs[RT2][0] = 0;
+					p->back->op = CLR;
+					p->back->subop = BYTE;
+					p->back->code = copy(1, regs[RT1]);
+					p->op = SWAB;
+					p->code = copy(1, regs[RT1]);
+					nchange++;
+					goto sngl;
+				}
+			}
+			else if (p->back->op == MOV && p->forw->op != CBR) {
+				char temp[50];
+
+				r = isreg(regs[RT2]);
+				if (r < 0 && !xnatural(regs[RT2]))
+					goto out;
+				strcpy(temp, regs[RT2]);
+				dualop(p->back);
+				if (isreg(regs[RT2]) == r && natural(regs[RT1])) {
+			 	    if (r < 0 && (!xnatural(regs[RT2]) || !equstr(temp, regs[RT2])))
+					goto out;
+/*
+ * XXX - the sequence "movb rN,rN; bic $-400,rN" can not be transformed
+ * because the 'clr' would lose all information about 'rN'.  The best that can 
+ * be done is to remove the 'movb' instruction and leave the 'bic'.
+*/
+				    if (isreg(regs[RT1]) == r && r >= 0) {
+					    p = p->back;
+					    p->forw->back = p->back;
+					    p->back->forw = p->forw;
+					    nchange++;
+					    continue;
+				    }
+				    dest(regs[RT1], flt);
+				    p->back->op = CLR;
+				    p->back->subop = 0;
+				    p->back->code = copy(1, regs[RT2]);
+				    p->op = BIS;
+				    p->subop = BYTE;
+				    strcat(regs[RT1], ",");
+				    p->code = copy(2, regs[RT1], regs[RT2]);
+				    nchange++;
+				}
+			}
+out:		dualop(p);	/* restore banged up parsed operands */
 		}
 		repladdr(p, 0, flt);
 		source(regs[RT1]);
 		dest(regs[RT2], flt);
-		if (p->op==DIV && (r = isreg(regs[RT2])>=0))
-			regs[r+1][0] = 0;
-		ccloc[0] = 0;
+		if (p->op==DIV && (r = isreg(regs[RT2]))>=0)
+			regs[r|1][0] = 0;
+		switch	(p->op)
+			{
+			case	ADD:
+			case	SUB:
+			case	BIC:
+			case	BIS:
+			case	ASH:
+				setcc(regs[RT2]);
+				break;
+			default:
+				ccloc[0] = 0;
+			}
 		continue;
 
+	case SXT:
+		singop(p);
+		if (p->forw->op == CLR && p->forw->subop != BYTE &&
+			xnatural(regs[RT1]) && !strcmp(p->code, p->forw->code)){
+			p->forw->back = p->back;
+			p->back->forw = p->forw;
+			nchange++;
+			continue;
+		}
+		goto sngl;
 	case CLRF:
 	case NEGF:
 		flt = NREG;
@@ -108,16 +205,20 @@ rmove()
 	case NEG:
 	case ASR:
 	case ASL:
-	case SXT:
+	case SWAB:
 		singop(p);
 	sngl:
 		dest(regs[RT1], flt);
 		if (p->op==CLR && flt==0)
+			{
 			if ((r = isreg(regs[RT1])) >= 0)
 				savereg(r, "$0");
 			else
 				setcon("$0", regs[RT1]);
-		ccloc[0] = 0;
+			ccloc[0] = 0;
+			}
+		else
+			setcc(regs[RT1]);
 		continue;
 
 	case TSTF:
@@ -127,13 +228,37 @@ rmove()
 		singop(p);
 		repladdr(p, 0, flt);
 		source(regs[RT1]);
-		if (equstr(regs[RT1], ccloc)) {
+		if (p->back->op == TST && !flt && not_sp(regs[RT1])) {
+			char rt1[MAXCPS + 2];
+			strcpy(rt1, regs[RT1]);
+			singop(p->back);
+			if (!strcmp("(sp)+", regs[RT1])) {
+				p->back->subop = p->subop;
+				p->back->forw = p->forw;
+				p->forw->back = p->back;
+				p = p->back;
+				p->op = MOV;
+				p->code = copy(2, rt1, ",(sp)+");
+				nrtst++;
+				nchange++;
+				continue;
+			}
+		singop(p);
+		}
+		if (p->back->op == MOV && p->back->subop == BYTE) {
+			dualop(p->back);
+			setcc(regs[RT2]);
+			singop(p);
+		}
+		if (equstr(regs[RT1], ccloc) && p->subop == p->back->subop) {
 			p->back->forw = p->forw;
 			p->forw->back = p->back;
 			p = p->back;
 			nrtst++;
 			nchange++;
 		}
+		else
+			setcc(regs[RT1]); /* XXX - double TST in a row */
 		continue;
 
 	case CMPF:
@@ -212,9 +337,39 @@ rmove()
 				p = p->back;
 				nchange++;
 			}
+/*
+ * If the instruction prior to the conditional branch was a 'tst' then
+ * save the condition code status.  The C construct:
+ * 		if (x) 
+ *		   if (x > 0)
+ * generates "tst _x; jeq ...; tst _x; jmi ...;jeq ...".  The code below removes
+ * the second "tst _x", leaving "tst _x; jeq ...;jmi ...; jeq ...".
+*/
+			if (p->back->op == TST) {
+				singop(p->back);
+				setcc(regs[RT1]);
+				break;
+			}
 		}
+/*
+ * If the previous instruction was also a conditional branch then
+ * attempt to merge the two into a single branch.
+*/
+		if (p->back->op == CBR)
+			fixupbr(p);
 	case CFCC:
 		ccloc[0] = 0;
+		continue;
+
+/*
+ * Unrecognized (unparsed) instructions, assignments (~foo=r2), and
+ * data arrive here.  In order to prevent throwing away information
+ * about register contents just because a local assignment is done
+ * we check for the first character being a tilde.
+*/
+	case 0:
+		if (p->code[0] != '~')
+			clearreg();
 		continue;
 
 	case JBR:
@@ -225,6 +380,56 @@ rmove()
 	}
 	}
 }
+
+/*
+ * This table is used to convert two branches to the same label after a 
+ * 'tst' (which clears the C and V condition codes) into a single branch.
+ * Entries which translate to JBR could eventually cause the 'tst' instruction 
+ * to be eliminated as well, but that can wait for now.  There are unused or
+ * impossible combinations ('tst' followed by 'jlo' for example.  since
+ * 'tst' clears C it makes little sense to 'jlo/bcs') in the table, it 
+ * would have cost more in code to remove them than the entries themselves.
+ *
+ * Example:  "tst _x; jmi L3; jeq L3".  Find the row for 'jmi', then look
+ * at the column for 'jeq', the resulting "opcode" is 'jle'.
+*/
+	char	brtable[12][12] = {
+	/* jeq  jne  jle  jge  jlt  jgt  jlo  jhi  jlos jhis jpl  jmi */
+/* jeq */ {JEQ ,JBR ,JLE ,JGE ,JLE ,JGE ,JEQ ,JBR ,JEQ ,JBR ,JGE ,JLE},
+/* jne */ {JBR ,JNE ,JBR ,JBR ,JNE ,JNE ,JNE ,JNE ,JBR ,JBR ,JBR ,JNE},
+/* jle */ {JLE ,JBR ,JLE ,JBR ,JLE ,JBR ,JLE ,JBR ,JLE ,JBR ,JBR ,JLE},
+/* jge */ {JGE ,JBR ,JBR ,JGE ,JBR ,JGE ,JGE ,JBR ,JGE ,JBR ,JGE ,JBR},
+/* jlt */ {JLE ,JNE ,JLE ,JBR ,JLT ,JNE ,JLT ,JBR ,JLE ,JBR ,JBR ,JLT},
+/* jgt */ {JGE ,JNE ,JBR ,JGE ,JNE ,JGT ,JGT ,JGT ,JBR ,JGE ,JGE ,JNE},
+/* jlo */ {JEQ ,JNE ,JLE ,JGE ,JLT ,JGT ,JLO ,JHI ,JLOS,JHIS,JPL ,JMI},
+/* jhi */ {JBR ,JNE ,JBR ,JBR ,JNE ,JNE ,JNE ,JNE ,JBR ,JBR ,JBR ,JNE},
+/* jlos*/ {JEQ ,JBR ,JLE ,JGE ,JLE ,JGE ,JLE ,JBR ,JEQ ,JBR ,JGE ,JLE},
+/* jhis*/ {JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR},
+/* jpl */ {JGE ,JBR ,JBR ,JGE ,JBR ,JGE ,JGE ,JBR ,JGE ,JBR ,JGE ,JBR},
+/* jmi */ {JLE ,JNE ,JLE ,JBR ,JLT ,JNE ,JLT ,JNE ,JLE ,JLT ,JBR ,JLT}
+	  };
+
+fixupbr(p)
+	register struct node *p;
+{
+	register struct node *p1, *p2;
+	int op;
+
+	p1 = p->back;
+	p2 = p1->back;
+	if (p->labno != p1->labno)
+		return;
+	if (p2->op != TST) {
+		if (p2->op == CBR && p2->back->op == TST)
+			goto ok;
+		return;
+	}
+ok:	p->subop = brtable[p->subop][p1->subop];
+	nchange++;
+	nredunj++;
+	p2->forw = p;
+	p->back = p1->back;
+	}
 
 jumpsw()
 {
@@ -328,6 +533,7 @@ register char *s;
 }
 
 abs(x)
+register int x;
 {
 	return(x<0? -x: x);
 }
@@ -367,7 +573,7 @@ register struct node *p;
 
 struct node *
 nonlab(p)
-struct node *p;
+register struct node *p;
 {
 	CHECK(10);
 	while (p && p->op==LABEL)
@@ -589,12 +795,14 @@ struct node *p;
 			rt1[1] = r + '0';
 			rt1[2] = 0;
 			nsaddr++;
+			nchange++;
 		}
 		if (r1>=0) {
 			rt2[1] = 'r';
 			rt2[2] = r1 + '0';
 			rt2[3] = 0;
 			nsaddr++;
+			nchange++;
 		}
 		p->code = copy(2, rt1, rt2);
 	}
@@ -782,7 +990,7 @@ char *ar1, *ar2;
 equstr(ap1, ap2)
 char *ap1, *ap2;
 {
-	char *p1, *p2;
+	register char *p1, *p2;
 
 	p1 = ap1;
 	p2 = ap2;
@@ -819,5 +1027,23 @@ char *ap;
 	p--;
 	if (*--p == '+' || *p ==')' && *--p != '5')
 		return(0);
+	return(1);
+}
+
+xnatural(ap)
+	char *ap;
+{
+	if (natural(ap))
+		return(1);
+	return(equstr("(sp)", ap));
+}
+
+not_sp(ap)
+	register char *ap;
+{
+	char c;
+
+	while (c = *ap++)
+		if (c == '(') return(*ap == 's' && ap[1] == 'p');
 	return(1);
 }

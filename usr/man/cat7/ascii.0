@@ -5,13 +5,13 @@ ASCII(7)	    UNIX Programmer's Manual		 ASCII(7)
 
 
 
-NNAAMMEE
+NAME
      ascii - map of ASCII character set
 
-SSYYNNOOPPSSIISS
-     ccaatt //uussrr//ppuubb//aasscciiii
+SYNOPSIS
+     cat /usr/pub/ascii
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A_s_c_i_i is a map of the ASCII character set, to be printed as
      needed.  It contains:
 
@@ -49,7 +49,7 @@ DDEESSCCRRIIPPTTIIOONN
      | 70  p | 71  q | 72  r | 73  s | 74  t | 75  u | 76  v | 77  w |
      | 78  x | 79  y | 7a  z | 7b  { | 7c  | | 7d  } | 7e  ~ | 7f del|
 
-FFIILLEESS
+FILES
      /usr/pub/ascii
 
 
@@ -60,7 +60,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 

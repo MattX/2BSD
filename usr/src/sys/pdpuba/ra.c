@@ -3,41 +3,74 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ra.c	2.4 (2.11BSD GTE) 1/2/93
  */
 
  /***********************************************************************
- *									*
  *			Copyright (c) 1983 by				*
  *		Digital Equipment Corporation, Maynard, MA		*
  *			All rights reserved.				*
- *									*
  ***********************************************************************/
 
 /* 
- * uda.c - UDA50A Driver
+ * ra.c - MSCP Driver
+ * Date:	Dec 1992, Jan 1993
+ * Add the partition size routine.  Remove unibus map ifdefs, the run time
+ * check for 'ubmap' is sufficient and does the right thing.
+ *
+ * Date:	Nov 1992
+ * Add raVec() routine.  This is called by autoconfig to set the vector
+ * (from /etc/dtab) for controllers other than the root (1st).  The boot/root
+ * controller's vector is always set to 0154.
+ *
+ * Date:	Jul  1992
+ * Major rework of the partition tables.  Some old (RA60,80,81,RD53) tables 
+ * were retained (the rd54 'c' partition is now 'g' but the sizes stay 
+ * the same) for compatibility.  RC25, RD51, RA82 entries were removed (unlikely
+ * that the RA82 was used since the disktab entry was wrong).  A _brand new_
+ * scheme utilizing 5 "generic" partition tables was created based on the
+ * size of the disc.  This was needed due to the rapid proliferation of
+ * MSCP drive types, it was simply not feasible to have a 64 byte partition
+ * table for each of the (currently 28 to 30) types of MSCP discs.
+ *
+ * More attention is paid to bits in the media id beyond the 7 bit 
+ * numeric id.  These bits can be used to distinquish between a RZ24 and a
+ * RZ24L for example.
+ *
+ * Some of the diagnostic output was trimmed in an attempt to offset the
+ * growth of an already large drive.
+ *
+ * Date:	Dec  18 1991
+ * The controller number (bits 6 and 7 of the minor device) were not
+ * being masked off after using dkunit().  This caused a crash when 
+ * the controller number was other than 0.
+ *
+ * Date:	Sep  22 1991
+ * The read and write entries were removed as part of implementing the 
+ * common rawread and rawwrite routines.
  * 
+ * Date:	Mar  16 1991
+ * The command packets were moved to an external heap which is dynamically
+ * allocated in a manner similar to m_ioget in the networking code.
+ * MSCP controllers used too much valuable kernel D space.  For UNIBUS
+ * machines sufficient UMRs were allocated to map the heap, removing the
+ * need to allocate a UMR per controller at open time.  This has the side
+ * effect of greatly simplifying the physical (Q22) or virtual (UMR) address 
+ * calculation of the command packets.  It also eliminates the need for
+ * 'struct buf racomphys', saving 24 bytes of D space.
+ *
+ * The error message output was rearranged saving another 82 bytes of
+ * kernel D space. Also, there was an extraneous buffer header allocated,
+ * it was removed, saving a further 24 bytes of D space.
+ * sms@wlv.imsd.contel.com
+ *
  * Date:        Jan  30 1984
- *
- * This thing has been beaten beyound belief.  It still has two main problems:
- *
- * When this device is on the same unibus as another DMA device
- * like a versatec or a rk07, the Udstrat routine complains that it still
- * has a buffered data path that it shouldn't.  I don't know why.
- *
+ * This thing has been beaten beyound belief.
  * decvax!rich.
- *
  */
 
 /*
- * RA MSCP disk device driver
- *
- * Should work with the following (at least!):
- *	RUX1  (RX50)
- * 	RQDX? (RD51, RD52, RD53)
- *	UDA50 (RA60, RA80, RA81)
- *	KLESI (RC25)
- *
+ * MSCP disk device driver
  * Tim Tucker, Gould Electronics, Sep 1985
  * Note:  This driver is based on the UDA50 4.3 BSD source.
  */
@@ -52,38 +85,27 @@
 #include "buf.h"
 #include "conf.h"
 #include "map.h"
+#include "syslog.h"
 #include "uba.h"
 #include "rareg.h"
 #include "dk.h"
 #include "errno.h"
 
-#ifndef KDSA0
-#define	KDSA0				((u_short *)0172360)
-#endif
 #define	RACON(x)			((minor(x) >> 6) & 03)
 #define	RAUNIT(x)			((minor(x) >> 3) & 07)
 
 struct	rasizes	{
 	daddr_t nblocks;
 	daddr_t blkoff;
-}  ra25_sizes[8] = {
-	15884,	0,		/* A=blk 0 thru 15883 */
-	10032,	15884,		/* B=blk 15884 thru 25915 */
-	-1,	25916,		/* C=blk 49324 thru 50901 */
-	0,	0,		/* D=unused */
-	0,	0,		/* E=unused */
-	0,	0,		/* F=unused */
-	0,	0,		/* G=unused */
-	-1,	0,		/* H=blk 0 thru end */
-}, rd52_sizes[8] = { 		/* Setup for RX50, RD51, RD52 and RD53 disks */
+} rd52_sizes[8] = { 		/* Setup for RD52 and RD53 disks */
 	9700,	0,		/* A=blk 0 thru 9699 (root for 52 & 53) */
 	17300,	9700,		/* B=blk 9700 thru 26999 (52 & 53 only) */
 	3100,	27000,		/* C=blk 27000 thru 30099 (swap 52 & 53) */
 	-1,	30100,		/* D=blk 30100 thru end (52 & 53 only) */
-	7460,	0,		/* E=blk 0 thru 7459 (root 51) */
-	2240,	7460,		/* F=blk 7460 thru 9699 (swap 51) */
-	-1,	9700,		/* G=blk 9700 thru end (51, 52 & 53) */
-	-1,	0,		/* H=blk 0 thru end (51, 52, 53 & RX50) */
+	0,	0,		/* E=unused */
+	0,	0,		/* F=unused */
+	-1,	9700,		/* G=blk 9700 thru end (52 & 53) */
+	-1,	0,		/* H=blk 0 thru end (52, 53) */
 }, ra60_sizes[8] = {
 	15884,	0,		/* A=blk 0 thru 15883 */
 	33440,	15884,		/* B=blk 15884 thru 49323 */
@@ -111,12 +133,77 @@ struct	rasizes	{
 	-1,	565690,		/* F=blk 565690 thru end */
 	-1,	242606,		/* G=blk 242606 thru end */
 	-1,	0,		/* H=blk 0 thru end */
+}, ra_gen1[8] ={
+	15884,	0,		/* A=blk 0 thru 15883 */
+	8360,	15884,		/* B=blk 15884 thru 24243 */
+	-1,	0,		/* C=blk 0 thru end */
+	0,	0,		/* D=unused */
+	0,	0,		/* E=unused */
+	0,	0,		/* F=unused */
+	-1,	24244,		/* G=blk 24244 thru end */
+	0,	0,		/* H=unused */
+}, ra_gen2[8] ={
+	15884,	0,		/* A=blk 0 thru 15883 */
+	16720,	15884,		/* B=blk 15884 thru 32603 */
+	-1,	0,		/* C=blk 0 thru end */
+	227136,	32604,		/* D=blk 32604 thru 259739 */
+	-1,	259740,		/* E=blk 259740 thru end */
+	0,	0,		/* F=unused */
+	-1,	32604,		/* G=32604 thru end */
+	0,	0,		/* H=unused */
+}, ra_gen3[8] ={
+	-1,	0,		/* A=blk 0 thru end */
+	0,	0,		/* B=unused */
+	-1,	0,		/* C=blk 0 thru end */
+	0,	0,		/* D=unused */
+	0,	0,		/* E=unused */
+	0,	0,		/* F=unused */
+	0,	0,		/* G=unused */
+	0,	0,		/* H=unused */
+}, ra_gen4[8] ={
+	15884,	0,		/* A=blk 0 thru 15883 */
+	16720,	15884,		/* B=blk 15884 thru 32603 */
+	-1,	0,		/* C=blk 0 thru end */
+	227136,	32604,		/* D=blk 32604 thru 259739 */
+	409600,	259740,		/* E=blk 259740 thru 669339 */
+	-1,	669340,		/* F=blk 669340 thru end */
+	-1,	32604,		/* G=blk 32604 thru end */
+	0,	0,		/* H=unused */
+}, ra_gen5[8] ={
+	15884,	0,		/* A=blk 0 thru 15883 */
+	16720,	15884,		/* B=blk 15884 thru 32603 */
+	-1,	0,		/* C=blk 0 thru end */
+	227136,	32604,		/* D=blk 32604 thru 259739 */
+	409600,	259740,		/* E=blk 259740 thru 669339 */
+	182464,	669340,		/* F=blk 669340 thru 851803 */
+	819200,	32604,		/* G=blk 32604 thru 851803 */
+	-1,	851804,		/* H=blk 851804 thru end */
 };
 
-#define RC_RCT	102		/* rc25 rct area */
-#define RD_RCT	32		/* # of sectors in remap area (don't touch) */
-#define RA_RCT	1000		/* Big ra disk rct area */
-/*------------------------------------------------------------------------*/
+#define M15(a,b,c) ((((((a - '@') & 0x1f) << 10) | \
+                      ((b - '@') & 0x1f) <<  5) | \
+                      ((c - '@') & 0x1f) <<  0))
+
+/*
+ * Entries are only placed in this table to over-ride the drive size
+ * based selection of partition tables in radisksetup().  For example:
+ * the RA81 is listed here to keep the "old" partition table rather than
+ * assigning 'ra_gen5' (because the RA81 is > 851804 sectors.
+*/
+
+	struct MEDIA
+		{
+		short	id7;
+		short	name15;
+		struct	rasizes *parts;
+		} Mscptbl[] = {
+	{ 81, M15('R','A','@'), ra81_sizes },
+	{ 60, M15('R','A','@'), ra60_sizes },
+	{ 80, M15('R','A','@'), ra80_sizes },
+	{ 53, M15('R','D','@'), rd52_sizes },
+	{ 52, M15('R','D','@'), rd52_sizes },
+	{ 0, 0, 0 }
+	};
 
 #define	NRSPL2	3		/* log2 number of response packets */
 #define	NCMDL2	3		/* log2 number of command packets */
@@ -150,14 +237,13 @@ typedef	struct {
 	struct raca	ra_ca;		/* communications area */
 	struct mscp	ra_rsp[NRSP];	/* response packets */
 	struct mscp	ra_cmd[NCMD];	/* command packets */
-} ra_comT;
+} ra_comT;				/* 1096 bytes per controller */
 
 typedef	struct	ra_info	{
 	struct  rasizes	*ra_size;	/* Partion tables for drive */
 	daddr_t		ra_dsize;	/* Max user size from online pkt */
 	short		ra_unit;	/* controller unit # */
 	struct	buf	ra_dtab;	/* I/O disk drive queues */
-	struct	buf	ra_rtab;	/* raw I/O disk block header */
 } ra_infoT;
 
 typedef	struct	{
@@ -176,10 +262,10 @@ typedef	struct	{
 } ra_softcT;
 
 ra_softcT		ra_sc[NRAC];	/* Controller table */
-ra_comT			ra_com[NRAC];	/* Communications area table */
+memaddr			ra_com[NRAC];	/* Communications area table */
 ra_infoT		ra_disks[NRAD];	/* Disk table */
-static	struct	buf	racomphys;	/* Communications area phys map */
-struct	buf		ratab;		/* Interface queue (for bio) */
+
+#define	MAPSEGDESC	(((btoc(sizeof (ra_comT))-1)<<8)|RW)
 
 #ifdef UCB_METER
 static	int		ra_dkn = -1;	/* number for iostat */
@@ -207,29 +293,61 @@ static	int		ra_dkn = -1;	/* number for iostat */
 #define PRINTB(x)
 #endif
 
-int		raattach(), raintr();
-int		wakeup();
-long		raphys();
+int	wakeup();
+extern	ubadr_t	_iomap();
 struct	mscp 	*ragetcp();
 
 #define	b_qsize	b_resid		/* queue size per drive, in rqdtab */
 
 /*
- * Setup root MSCP device (use standard address 0172150).
+ * Setup root MSCP device (use bootcsr passed from ROMs).  In the event
+ * the system was not booted from a MSCP drive but swapdev is a MSCP drive
+ * we fake the old behaviour of attaching the first (172150) controller.  If
+ * the system was booted from a MSCP drive then this routine has already been
+ * called with the CSR of the booting controller and the attach routine will
+ * ignore further calls to attach controller 0.
+ *
+ * This whole thing is a hack and should go away somehow.
  */
-raroot()
+raroot(csr)
+	register radeviceT *csr;
 {
-	raattach((radeviceT *)0172150, 0);
+	if (!csr)		/* XXX */
+		csr = (radeviceT *) 0172150;	/* XXX */
+	raattach(csr, 0);
+	raVec(0, 0154);
 }
 
+/*
+ * Called from autoconfig and raroot() to set the vector for a controller.
+ * It is an error to attempt to set the vector more than once except for
+ * the first controller which may have had the vector set from raroot().
+ * In this case the error is ignored and the vector left unchanged.
+*/
+
+raVec(ctlr, vector)
+	register int	ctlr;
+	int	vector;
+	{
+	register ra_softcT *sc = &ra_sc[ctlr];
+
+	if	(ctlr >= NRAC)
+		return(-1);
+	if	(sc->sc_ivec == 0)
+		sc->sc_ivec = vector;
+	else if	(ctlr)
+		return(-1);
+	return(0);
+	}
+	
 /*
  * Attach controller for autoconfig system.
  */
 raattach(addr, unit)
-	radeviceT			*addr;
-	int				unit;
+	register radeviceT *addr;
+	register int	unit;
 {
-	register	ra_softcT	*sc = &ra_sc[unit];
+	register ra_softcT *sc = &ra_sc[unit];
 
 #ifdef UCB_METER
 	if (ra_dkn < 0)
@@ -240,7 +358,8 @@ raattach(addr, unit)
 	if (sc->RAADDR == NULL && addr != NULL) {
 		sc->RAADDR = addr;
 		sc->sc_unit = unit;
-		sc->sc_com = &ra_com[unit];
+		sc->sc_com = (ra_comT *)SEG5;
+		ra_com[unit] = (memaddr)_ioget(sizeof (ra_comT));
 		return(1);
 	}
 
@@ -270,19 +389,19 @@ ragetdd()
  * Open a RA.  Initialize the device and set the unit online.
  */
 raopen(dev, flag)
-	dev_t 				dev;
-	int 				flag;
+	dev_t 	dev;
+	int 	flag;
 {
-	register	ra_infoT	*disk;
-	register	struct	mscp	*mp;
-	register	ra_softcT	*sc = &ra_sc[RACON(dev)];
-	int				unit = RAUNIT(dev);
-	int				s, i;
+	register ra_infoT *disk;
+	register struct	mscp *mp;
+	register ra_softcT *sc = &ra_sc[RACON(dev)];
+	int unit = RAUNIT(dev);
+	int s, i;
 
 	PRINTD(("raopen: dev=%x, flags=%d\n", dev, flag));
 
 	/* Check that controller exists */
-	if (sc->RAADDR == NULL)
+	if (RACON(dev) >= NRAC || sc->RAADDR == NULL)
 		return(ENXIO);
 
 	/* Open device */
@@ -314,30 +433,34 @@ raopen(dev, flag)
 	if ((disk = sc->sc_drives[unit]) == NULL) {
 		PRINTD(("raopen: opening new disk %d\n", unit));
 		s = splbio();
-		while ((mp = ragetcp(sc)) == 0) {
-			++sc->sc_cp_wait;
-			sleep(&sc->sc_cp_wait, PSWP+1);
-			--sc->sc_cp_wait;
-		}
 		/* Allocate disk table entry for disk */
 		if ((disk = ragetdd()) != NULL) {
 			sc->sc_drives[unit] = disk;
 			disk->ra_unit = unit;
 			disk->ra_dsize = -1L;
 		} else {
-			printf("ra%d: out of disk data structures!\n", unit);
+			printf("ra%d: no disk structures\n", unit);
 			splx(s);
 			return(ENXIO);
 		}
-
-		/* Try to online disk unit */
+	}
+	/* Try to online disk unit, it might have gone offline */
+	if (disk->ra_dsize == -1L) {
+	/* In high kernel, don't saveseg5, just use normalseg5 later on. */
+		while ((mp = ragetcp(sc)) == 0) {
+			++sc->sc_cp_wait;
+			sleep(&sc->sc_cp_wait, PSWP+1);
+			--sc->sc_cp_wait;
+		}
+		mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 		mp->m_opcode = M_O_ONLIN;
 		mp->m_unit = unit;
 		mp->m_cmdref = (unsigned)&disk->ra_dsize;
 		((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
+		normalseg5();
 		i = sc->RAADDR->raip;
-		timeout(wakeup, (caddr_t)mp->m_cmdref, 10 * LINEHZ);
-		sleep((caddr_t)mp->m_cmdref, PSWP+1);
+		timeout(wakeup, (caddr_t)&disk->ra_dsize, 10 * LINEHZ);
+		sleep((caddr_t)&disk->ra_dsize, PSWP+1);
 		splx(s);
 	}
 
@@ -351,51 +474,35 @@ raopen(dev, flag)
 		return(ENXIO);
 	}
 	PRINTD(("raopen: disk online\n"));
-
 	return(0);
 }
 
 /*
- * Initialize a RA.  Initialize data structures, and start hardware
+ * Initialize controller, data structures, and start hardware
  * initialization sequence.
  */
 rainit(sc)
-	register	ra_softcT	*sc;
+	register ra_softcT *sc;
 {
-	long				racomaddr;
+	long	adr;
 
 	/*
 	 * Cold init of controller
 	 */
-	sc->sc_ivec = RA_VECTOR + sc->sc_unit * 04;
 	++sc->sc_ctab.b_active;
 	PRINTD(("rainit: unit=%d, vec=%o\n", sc->sc_unit, sc->sc_ivec));
 
 	/*
 	 * Get physical address of RINGBASE
 	 */
-	if (racomphys.b_flags == 0) {
-		long rap = raphys((u_int)ra_com);
-		racomphys.b_un.b_addr = (caddr_t)loint(rap);
-		racomphys.b_xmem = hiint(rap);
-		racomphys.b_bcount = sizeof(ra_com);
-		racomphys.b_flags = B_PHYS;
-#ifdef UNIBUS_MAP
-		mapalloc(&racomphys);
-#endif
-		PRINTD(("rainit: racomphys b_addr=%o, b_xmem=%o\n",
-			racomphys.b_un.b_addr, racomphys.b_xmem));
-	}
-	racomaddr =
-		((u_int)racomphys.b_un.b_addr | ((long)racomphys.b_xmem << 16))
-		+ sizeof(ra_comT) * sc->sc_unit
-		+ (u_int)RINGBASE;
+
+	adr = _iomap(ra_com[sc->sc_unit]) + RINGBASE;
 
 	/*
 	 * Get individual controller RINGBASE physical address 
 	 */
-	sc->sc_ctab.b_un.b_addr = (caddr_t)loint(racomaddr);
-	sc->sc_ctab.b_xmem = hiint(racomaddr);
+	sc->sc_ctab.b_un.b_addr = (caddr_t)loint(adr);
+	sc->sc_ctab.b_xmem = hiint(adr);
 	PRINTD(("rainit: com area addr low=0%o, high=0%o\n",
 		sc->sc_ctab.b_un.b_addr, sc->sc_ctab.b_xmem));
 
@@ -417,33 +524,18 @@ rainit(sc)
 	return(0);
 }
 
-/*
- * Return the physical address corresponding to a virtual data space address.
- * On a separate I&D CPU this is a noop, but it's only called when the first
- * controller is initialized and on a dump.
- */
-long
-raphys(vaddr)
-	register	unsigned	vaddr;
-{
-	register	unsigned	click;
-
-	click = (sep_id ? KDSA0 : KISA0)[(vaddr >> 13) & 07];
-	return(((long)click << 6) + (vaddr & 017777));
-}
-
 rastrategy(bp)
-	register struct	buf 		*bp;
+	register struct	buf *bp;
 {
-	register ra_infoT		*disk;
-	register struct buf 		*dp;
-	ra_softcT			*sc = &ra_sc[RACON(bp->b_dev)];
-	int 				part = minor(bp->b_dev) & 07;
-	daddr_t 			sz, maxsz;
-	int 				s;
+	register ra_infoT *disk;
+	register struct buf *dp;
+	ra_softcT *sc = &ra_sc[RACON(bp->b_dev)];
+	int part = minor(bp->b_dev) & 07;
+	daddr_t sz, maxsz;
+	int s;
 
 	/* Is disk online */
-	if ((disk = sc->sc_drives[dkunit(bp)]) == NULL || disk->ra_dsize <= 0L)
+	if ((disk = sc->sc_drives[dkunit(bp) & 7]) == NULL || disk->ra_dsize <= 0L)
 		goto bad;
 
 	/* Valid block in device partition */
@@ -454,10 +546,8 @@ rastrategy(bp)
 	    || disk->ra_size[part].blkoff >= disk->ra_dsize)
 		goto bad;
 
-#ifdef UNIBUS_MAP
-	/* Get unibus map if we need it */
+	/* Unibus Map buffer if required */
 	mapalloc(bp);
-#endif
 
 	/*
 	 * Link the buffer onto the drive queue
@@ -490,67 +580,27 @@ rastrategy(bp)
 	if (sc->sc_ctab.b_active == 0) {
 		rastart(sc);
 	}
-
 	splx(s);
 	return;
-
 bad:
 	bp->b_flags |= B_ERROR;
 	iodone(bp);
 	return;
 }
 
-ra_infoT	*
-rarawcheck(dev)
-	register	dev_t 		dev;
-{
-	register	ra_softcT	*sc;
-	register	ra_infoT	*disk;
-
-	/* Check controller and disk unit */
-	if (RACON(dev) >= NRAC || (sc = &ra_sc[RACON(dev)])->RAADDR == NULL
-	    || (disk = sc->sc_drives[RAUNIT(dev)]) == NULL
-	    || disk->ra_dsize <= 0L)
-		return(NULL);
-
-	return(disk);
-}
-
-raread(dev)
-	dev_t 				dev;
-{
-	register	ra_infoT	*disk;
-
-	/* Check controller and disk unit */
-	if ((disk = rarawcheck(dev)) == NULL)
-		return(ENXIO);
-
-	return(physio(rastrategy, &disk->ra_rtab, dev, B_READ, WORD));
-}
-
-rawrite(dev)
-	dev_t 				dev;
-{
-	register	ra_infoT	*disk;
-
-	/* Check controller and disk unit */
-	if ((disk = rarawcheck(dev)) == NULL)
-		return(ENXIO);
-
-	return(physio(rastrategy, &disk->ra_rtab, dev, B_WRITE, WORD));
-}
-
 /* Start i/o, must be called at level splbio */
 rastart(sc)
-	register ra_softcT		*sc;
+	register ra_softcT *sc;
 {
-	register struct mscp		*mp;
-	register struct buf		*bp;
-	struct buf			*dp;
-	ra_infoT			*disk;
-	int 				i;
-	long				temp;
+	register struct mscp *mp;
+	register struct buf *bp;
+	struct buf *dp;
+	ra_infoT *disk;
+	int i;
+	long	temp;
+	segm	seg5;
 
+	saveseg5(seg5);		/* save it just once */
 loop:
 	/* 
 	 * Anything left to do on this controller?
@@ -562,7 +612,9 @@ loop:
 		 * Check for response ring transitions lost in race
 		 * condition
 		 */
+		mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 		rarspring(sc);
+		restorseg5(seg5);
 		return(0);
 	}
 
@@ -581,19 +633,22 @@ loop:
 	++sc->sc_ctab.b_active;
 	if (sc->RAADDR->rasa & RA_ERR || sc->sc_state != S_RUN) {
 		harderr(bp, "ra");
-		printf("rasa %o, state %d\n", sc->RAADDR->rasa,
+		log(LOG_INFO, "rasa %o state %d\n", sc->RAADDR->rasa,
 			sc->sc_state);
 		/* Should requeue outstanding requests somehow */
 		rainit(sc);
+out:
+		restorseg5(seg5);
 		return(0);
 	}
 
 	/* Issue command */
+	mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 	if ((mp = ragetcp(sc)) == NULL)
-		return(0);
+		goto out;
 	mp->m_cmdref = (unsigned)bp;	/* pointer to get back */
 	mp->m_opcode = bp->b_flags & B_READ ? M_O_READ : M_O_WRITE;
-	mp->m_unit = dkunit(bp);
+	mp->m_unit = dkunit(bp) & 7;
 	disk = sc->sc_drives[mp->m_unit];
 	temp = bp->b_blkno + disk->ra_size[minor(bp->b_dev) & 7].blkoff;
 	mp->m_lbn_l = loint(temp);
@@ -606,7 +661,7 @@ loop:
 		mp->m_bytecnt, mp->m_buf_h, mp->m_buf_l));
 	((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
 	if (sc->RAADDR->rasa & RA_ERR)
-		printf("ra: Error %d\n", sc->RAADDR->rasa);
+		printf("ra: Err %d\n", sc->RAADDR->rasa);
 	i = sc->RAADDR->raip;		/* initiate polling */
 
 #ifdef UCB_METER
@@ -649,13 +704,16 @@ loop:
 raintr(unit)
 	int				unit;
 {
-	register	ra_softcT	*sc = &ra_sc[unit];
-	register	struct	mscp	*mp;
-	register	struct	buf	*bp;
-	u_int				i;
+	register ra_softcT *sc = &ra_sc[unit];
+	register struct	mscp *mp;
+	register struct	buf *bp;
+	u_int i;
+	segm seg5;
 
 	PRINTD(("raintr%d: state %d, rasa %o\n", unit, sc->sc_state,
 		sc->RAADDR->rasa));
+
+	saveseg5(seg5);		/* save it just once */
 
 	switch (sc->sc_state) {
 	case S_STEP1:
@@ -702,6 +760,7 @@ raintr(unit)
 		/*
 		 * Initialize the data structures.
 		 */
+		mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 		ramsginit(sc, sc->sc_com->ra_ca.ca_rsp, sc->sc_com->ra_rsp,
 			0, NRSP, RA_INT | RA_OWN);
 		ramsginit(sc, sc->sc_com->ra_ca.ca_cmd, sc->sc_com->ra_cmd,
@@ -716,6 +775,7 @@ raintr(unit)
 		mp->m_cntflgs = M_C_ATTN | M_C_MISC | M_C_THIS;	
 		((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
 		i = sc->RAADDR->raip;
+		restorseg5(seg5);
 		return;
 
 	case S_SCHAR:
@@ -723,8 +783,7 @@ raintr(unit)
 		break;
 
 	default:
-		printf("ra: interrupt in unknown state %d ignored\n",
-			sc->sc_state);
+		printf("ra: state %d ignored\n", sc->sc_state);
 		return;
 	}
 
@@ -732,11 +791,13 @@ raintr(unit)
 	 * If this happens we are in BIG trouble!
 	 */
 	if (sc->RAADDR->rasa & RA_ERR) {
-		printf("ra: fatal error (%o)\n", sc->RAADDR->rasa);
+		printf("ra: fatal err %o\n", sc->RAADDR->rasa);
 		sc->sc_state = S_IDLE;
 		sc->sc_ctab.b_active = 0;
 		wakeup((caddr_t)&sc->sc_ctab);
 	}
+
+	mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 
 	/*
 	 * Check for buffer purge request
@@ -762,12 +823,11 @@ raintr(unit)
 		sc->sc_com->ra_ca.ca_cmdint = 0;
 	}
 
-	/*
-	 * Waiting for command?
-	 */
+	restorseg5(seg5);
+
+	/* Waiting for command? */
 	if (sc->sc_cp_wait)
 		wakeup((caddr_t)&sc->sc_cp_wait);
-
 	rastart(sc);
 }
 
@@ -775,21 +835,18 @@ raintr(unit)
  * Init mscp communications area
  */
 ramsginit(sc, com, msgs, offset, length, flags)
-	register	ra_softcT	*sc;
-	register	Trl		*com;
-	register	struct mscp	*msgs;
-	int				offset;
-	int				length;
-	int				flags;
+	register ra_softcT	*sc;
+	register Trl		*com;
+	register struct mscp	*msgs;
+	int offset, length, flags;
 {
-	long				vaddr;
+	long	vaddr;
 
 	/* 
-	 * Figure out virtual address of message 
+	 * Figure out Unibus or physical(Q22) address of message 
 	 * skip comm area and mscp messages header and previous messages
 	 */
-	vaddr = (u_int)racomphys.b_un.b_addr | ((long)racomphys.b_xmem << 16);
-	vaddr += (u_int)sc->sc_com - (u_int)ra_com;	/* unit offset */
+	vaddr = _iomap(ra_com[sc->sc_unit]);		/* base adr in heap */
 	vaddr += sizeof(struct raca)			/* skip comm area */
 		+sizeof(struct mscp_header);		/* m_cmdref disp */
 	vaddr += offset * sizeof(struct mscp);		/* skip previous */
@@ -809,11 +866,14 @@ struct mscp *
 ragetcp(sc)
 	register ra_softcT	*sc;
 {
-	register struct	mscp	*mp;
-	register int 		i;
-	int			s;
+	register struct	mscp	*mp = NULL;
+	register int i;
+	int s;
+	segm seg5;
 
 	s = splbio();
+	saveseg5(seg5);
+	mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 	i = sc->sc_lastcmd;
 	if ((sc->sc_com->ra_ca.ca_cmd[i].hsh & (RA_OWN|RA_INT)) == RA_INT
 	    && sc->sc_credits >= 2) {
@@ -822,17 +882,15 @@ ragetcp(sc)
 		mp = &sc->sc_com->ra_cmd[i];
 		ramsgclear(mp);
 		sc->sc_lastcmd = (i + 1) % NCMD;
-		splx(s);
-		return(mp);
 	}
-
+	restorseg5(seg5);
 	splx(s);
-	return(NULL);
+	return(mp);
 }
 
 /* Clear a mscp command packet */
 ramsgclear(mp)
-	register	struct	mscp	*mp;
+	register struct	mscp *mp;
 {
 	mp->m_unit = mp->m_modifier = mp->m_flags = 
 		mp->m_bytecnt = mp->m_buf_l = mp->m_buf_h = 
@@ -842,9 +900,9 @@ ramsgclear(mp)
 
 /* Scan for response messages */
 rarspring(sc)
-	register	ra_softcT	*sc;
+	register ra_softcT *sc;
 {
-	register	int		i;
+	register int i;
 
 	sc->sc_com->ra_ca.ca_rspint = 0;
 	i = sc->sc_lastrsp; 
@@ -863,13 +921,13 @@ rarspring(sc)
  * Process a response packet
  */
 rarsp(mp, sc)
-	register	struct	mscp	*mp;
-	register	ra_softcT	*sc;
+	register struct	mscp *mp;
+	register ra_softcT *sc;
 {
-	register	struct	buf 	*dp;
-	struct	buf			*bp;
-	ra_infoT			*disk;
-	int 				st;
+	register struct	buf *dp;
+	struct buf *bp;
+	ra_infoT *disk;
+	int st;
 
 	/*
 	 * Reset packet length and check controller credits
@@ -892,7 +950,7 @@ rarsp(mp, sc)
 	 * The controller interrupts as drive ZERO so check for it first.
 	 */
 	st = mp->m_status & M_S_MASK;
-	if ((mp->m_opcode & 0xff) == (M_O_STCON|M_O_END)) {
+	if (mp->m_opcode == (M_O_STCON|M_O_END)) {
 		if (st == M_S_SUCC)
 			sc->sc_state = S_RUN;
 		else
@@ -905,10 +963,10 @@ rarsp(mp, sc)
 	/*
 	 * Check drive and then decode response and take action.
 	 */
-	switch (mp->m_opcode & 0xff) {
+	switch (mp->m_opcode) {
 	case M_O_ONLIN|M_O_END:
 		if ((disk = sc->sc_drives[mp->m_unit]) == NULL) {
-			printf("ra: couldn't ONLINE disk!\n");
+			printf("ra: couldn't ONLINE disk\n");
 			break;
 		}
 		dp = &disk->ra_dtab;
@@ -943,7 +1001,7 @@ rarsp(mp, sc)
 		/* it went offline and we didn't notice */
 		PRINTD(("ra%d: unit %d attention\n", sc->sc_unit, mp->m_unit));
 		if ((disk = sc->sc_drives[mp->m_unit]) != NULL)
-			disk->ra_dsize = 0;
+			disk->ra_dsize = -1L;
 		break;
 
 	case M_O_END:
@@ -955,10 +1013,8 @@ rarsp(mp, sc)
 	case M_O_READ | M_O_END:
 	case M_O_WRITE | M_O_END:
 		/* normal termination of read/write request */
-		if ((disk = sc->sc_drives[mp->m_unit]) == NULL) {
-			printf("ra: r/w no disk table entry\n");
+		if ((disk = sc->sc_drives[mp->m_unit]) == NULL)
 			break;
-		}
 		bp = (struct buf *)mp->m_cmdref;
 
 		/*
@@ -976,21 +1032,15 @@ rarsp(mp, sc)
 		}
 #endif
 		if (st == M_S_OFFLN || st == M_S_AVLBL) {
-			/* 
-			 * mark unit offline 
-			 */
+			/* mark unit offline */
 			disk->ra_dsize = -1L;
 
-			/*
-			 * Link the buffer onto the front of the drive queue
-			 */
+			/* Link the buffer onto the front of the drive queue */
 			if ((bp->av_forw = dp->b_actf) == 0)
 				dp->b_actl = bp;
 			dp->b_actf = bp;
 
-			/*
-			 * Link the drive onto the controller queue
-			 */
+			/* Link the drive onto the controller queue */
 			if (dp->b_active == 0) {
 				dp->b_forw = NULL;
 				if (sc->sc_ctab.b_actf == NULL)
@@ -1004,7 +1054,7 @@ rarsp(mp, sc)
 		}
 		if (st != M_S_SUCC) {
 			harderr(bp, "ra");
-			printf("status %o\n", mp->m_status);
+			log(LOG_INFO, "status %o\n", mp->m_status);
 			bp->b_flags |= B_ERROR;
 		}
 		bp->b_resid = bp->b_bcount - mp->m_bytecnt;
@@ -1015,11 +1065,10 @@ rarsp(mp, sc)
 		break;
 
 	default:
-		printf("ra: unknown packet opcode=0%o\n", mp->m_opcode & 0xff);
+		log(LOG_INFO,"ra: opcode %o\n", mp->m_opcode);
 		ra_error((caddr_t)mp);
 	}
 }
-
 
 /*
  * Init disk info structure from data in mscp packet
@@ -1028,54 +1077,88 @@ radisksetup(disk, mp)
 	register	ra_infoT	*disk;
 	register	struct	mscp	*mp;
 {
+	register struct MEDIA *tp;
+	int	nameid, numid, i;
+	daddr_t	blks;
+
+	nameid = (((loint(mp->m_mediaid) & 0x3f) << 9) | 
+		   ((hiint(mp->m_mediaid) >> 7) & 0x1ff));
+	numid = hiint(mp->m_mediaid) & 0x7f;
+
 	/* Get unit total block count */
 	disk->ra_dsize = mp->m_uslow + ((long)mp->m_ushigh << 16);
-	PRINTD(("ra%d: online, total size=%D, id=%d, rctsize=%d\n",
-	      mp->m_unit, disk->ra_dsize, hiint(mp->m_mediaid) & 0xff,
-	      mp->m_rctsize));
+
+	/* spill the beans about what we have brought online */
+	log(LOG_NOTICE, "ra%d: %c%c%d%c size=%D id: %X\n", mp->m_unit,
+		mx(nameid,2), mx(nameid,1), numid, mx(nameid,0), 
+		disk->ra_dsize, mp->m_mediaid);
 
 	/* 
-	 * Get disk type and from that partition structure.  Adjust
-	 * disk size to reflect revector and maint area.
+	 * Look for override in the table, if found use the partition
+	 * table specified.  Else use a size based rule for assigning on
+	 * of the 5 general purpose tables.
 	 */
-	switch (hiint(mp->m_mediaid) & 0xff) {
-		case 25:/* RC25 removable */
-			disk->ra_size = ra25_sizes;
-			disk->ra_dsize -= RC_RCT;
-			break;
-		case 50:/* RX50 Floppy disk */
-			disk->ra_size = rd52_sizes;
-			break;
-		case 51:
-		case 52:/* RD Hard disks */
-		case 53:
-			disk->ra_size = rd52_sizes;
-			disk->ra_dsize -= RD_RCT;
-			break;
-		case 60:/* RA Hard disks */
-			disk->ra_size = ra60_sizes;
-			disk->ra_dsize -= RA_RCT;
-			break;
-		case 80:
-			disk->ra_size = ra80_sizes;
-			disk->ra_dsize -= RA_RCT;
-			break;
-		case 81:
-			disk->ra_size = ra81_sizes;
-			disk->ra_dsize -= RA_RCT;
-			break;
-		default:
-			printf("ra: disk type %d unknown\n",
-				hiint(mp->m_mediaid) & 0xff);
-	}
+
+	for	(blks = disk->ra_dsize, tp = Mscptbl; tp->id7; tp++)
+		{
+		if	(tp->id7 == numid && tp->name15 == nameid)
+			{
+			disk->ra_size = tp->parts;
+			log(LOG_NOTICE, "ra%d: old table\n", mp->m_unit);
+			return;
+			}
+		}
+	if	(blks < 24244L)
+		{
+		i = 3;			/* < ~12mb = type 3 */
+		disk->ra_size = ra_gen3;
+		}
+	else if	(blks < 259740L)
+		{
+		i = 1;			/* < ~112mb = type 1 */
+		disk->ra_size = ra_gen1;
+		}
+	else if	(blks < 669340L)	/* < ~330mb = type 2 */
+		{
+		i = 2;
+		disk->ra_size = ra_gen2;
+		}
+	else if	(blks < 851804L)	/* < ~420mb = type 4 */
+		{
+		i = 4;
+		disk->ra_size = ra_gen4;
+		}
+	else
+		{
+		i = 5;			/* > ~420mb = type 5 */
+		disk->ra_size = ra_gen5;
+		}
+	log(LOG_NOTICE, "ra%d: type %d partitions\n", mp->m_unit, i);
 }
+
+/*
+ * this is a routine rather than a macro to save space - shifting, etc 
+ * generates a lot of code.
+*/
+
+mx(l, i)
+	int l, i;
+	{
+	register int c;
+
+	c = (l >> (5 * i)) & 0x1f;
+	if	(c == 0)
+		c = ' ' - '@';
+	return(c + '@');
+	}
 
 /*
  * Process an error log message
  *
  * For now, just log the error on the console.  Only minimal decoding is done,
  * only "useful" information is printed.  Eventually should send message to
- * an error logger.
+ * an error logger.  At least 90 bytes of D space were saved without losing
+ * functionality.
  */
 ra_error(mp)
 	register struct mslg *mp;
@@ -1085,33 +1168,26 @@ ra_error(mp)
 
 	switch (mp->me_format) {
 	case M_F_CNTERR:
-		printf("controller error, event 0%o\n", mp->me_event);
+		printf("ctlr");
 		break;
-
 	case M_F_BUSADDR:
-		printf("host memory access error, event 0%o, addr 0%o\n",
-			mp->me_event, mp->me_busaddr);
+		printf("M_F_BUSADDR %o", mp->me_busaddr);
 		break;
-
 	case M_F_DISKTRN:
-		printf("disk transfer error, unit %d, grp 0x%x, hdr 0x%x\n",
+		printf("disk xfer, unit %d grp x%x hdr x%x",
 			mp->me_unit, mp->me_group, mp->me_hdr);
 		break;
-
 	case M_F_SDI:
-		printf("SDI error, unit %d, event 0%o, hdr 0x%x\n",
-			mp->me_unit, mp->me_event, mp->me_hdr);
+		printf("SDI unit %d hdr x%x", mp->me_unit, mp->me_hdr);
 		break;
-
 	case M_F_SMLDSK:
-		printf("small disk error, unit %d, event 0%o, cyl %d\n",
-			mp->me_unit, mp->me_event, mp->me_sdecyl);
+		printf("small disk unit %d cyl %d", mp->me_unit, mp->me_sdecyl);
 		break;
-
 	default:
-		printf("unknown error, unit %d, format 0%o, event 0%o\n",
-			mp->me_unit, mp->me_format, mp->me_event);
+		printf("?, unit %d format %o",mp->me_unit,mp->me_format);
 	}
+
+	printf(", event 0%o\n", mp->me_event);
 
 #ifdef RADEBUG
 	/* If error debug on, do hex dump */
@@ -1130,23 +1206,21 @@ ra_error(mp)
  * RA dump routines (act like stand alone driver)
  */
 #ifdef RA_DUMP
-
-#define DBSIZE	16			/* unit of transfer, same number */
+#define DBSIZE	16			/* number of blocks to write */
 
 radump(dev)
 	dev_t dev;
 {
-	register ra_softcT		*sc;
-	register ra_infoT		*disk;
-	register struct mscp 		*mp;
-	struct mscp 			*racmd();
-	daddr_t				bn, dumpsize;
-	long 				paddr, maddr;
-	int	 			count;
-#ifdef	UNIBUS_MAP
-	struct ubmap 			*ubp;
-#endif
-	int 				unit, partition;
+	register ra_softcT *sc;
+	register ra_infoT *disk;
+	register struct mscp *mp;
+	struct mscp *racmd();
+	daddr_t	bn, dumpsize;
+	long paddr, maddr;
+	int count;
+	struct ubmap *ubp;
+	int 	unit, partition;
+	segm	seg5;
 
 	/* paranoia, space hack */
 	disk = ra_disks;
@@ -1157,23 +1231,17 @@ radump(dev)
 		return(EINVAL);
 
 	/* Init RA controller */
-	paddr = raphys((u_int)ra_com);
-	racomphys.b_un.b_addr = (caddr_t)loint(paddr);
-	racomphys.b_xmem = hiint(paddr);
-#ifdef	UNIBUS_MAP
+	paddr = _iomap(ra_com[sc->sc_unit]);
 	if (ubmap) {
 		ubp = UBMAP;
-		ubp->ub_lo = loint(racomphys.b_un.b_addr);
-		ubp->ub_hi = hiint(racomphys.b_xmem);
-		racomphys.b_un.b_addr = racomphys.b_xmem = 0;
+		ubp->ub_lo = loint(paddr);
+		ubp->ub_hi = hiint(paddr);
 	}
-#endif
 
 	/* Get communications area and clear out packets */
-	paddr = (u_int)racomphys.b_un.b_addr
-		+ ((long)racomphys.b_xmem << 16)
-		+ (u_int)RINGBASE;
-	sc->sc_com = ra_com;
+	paddr += RINGBASE;
+	saveseg5(seg5);
+	mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 	mp = sc->sc_com->ra_rsp;
 	sc->sc_com->ra_ca.ca_cmdint = sc->sc_com->ra_ca.ca_rspint = 0;
 	bzero((caddr_t)mp, 2 * sizeof(*mp));
@@ -1192,10 +1260,9 @@ radump(dev)
 	while ((sc->RAADDR->rasa & RA_STEP4) == 0)
 		/*void*/;
 	sc->RAADDR->rasa = RA_GO;
-	sc->sc_unit = 0;
 	ramsginit(sc, sc->sc_com->ra_ca.ca_rsp, mp, 0, 2, 0);
 	if (!racmd(M_O_STCON, unit, sc)) {
-		PRINTB(("radump: failed to stat controller\n"));
+		PRINTB(("radump: failed to start controller\n"));
 		return(EFAULT);
 	}
 	PRINTB(("radump: controller up ok\n"));
@@ -1217,25 +1284,18 @@ radump(dev)
 	dumpsize -= dumplo;
 
 	/* Save core to dump partition */
-#ifdef	UNIBUS_MAP
 	ubp = &UBMAP[1];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = MIN(dumpsize, DBSIZE);
 		bn = dumplo + (paddr >> PGSHIFT)
 			+ disk->ra_size[partition].blkoff;
 		maddr = paddr;
 
-#ifdef	UNIBUS_MAP
-		/*
-		 *  If UNIBUS_MAP exists, use the map.
-		 */
 		if (ubmap) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			maddr = (u_int)(1 << 13);
 		}
-#endif
 
 		/* Write it to the disk */
 		mp = &sc->sc_com->ra_rsp[1];
@@ -1249,24 +1309,24 @@ radump(dev)
 
 		paddr += (DBSIZE << PGSHIFT);
 	}
-
+	restorseg5(seg5);
 	return(0);
 }
 
 struct	mscp	*
 racmd(op, unit, sc)
-	int 				op, unit;
-	register	ra_softcT	*sc;
+	int op, unit;
+	register ra_softcT *sc;
 {
-	register	struct mscp 	*cmp, *rmp;
-	Trl				*rlp;
-	int 				i;
+	register struct mscp *cmp, *rmp;
+	Trl *rlp;
+	int i;
 
 	cmp = &sc->sc_com->ra_rsp[1];
 	rmp = &sc->sc_com->ra_rsp[0];
 	rlp = &sc->sc_com->ra_ca.ca_rsp[0];
 	cmp->m_opcode = op;
-	cmp->m_unit = unit & 7;
+	cmp->m_unit = unit;
 	cmp->m_header.ra_msglen = rmp->m_header.ra_msglen = sizeof(struct mscp);
 	rlp[0].hsh &= ~RA_INT;
 	rlp[1].hsh &= ~RA_INT;
@@ -1281,7 +1341,7 @@ racmd(op, unit, sc)
 		/*void*/;
 	sc->sc_com->ra_ca.ca_rspint = 0;
 	sc->sc_com->ra_ca.ca_cmdint = 0;
-	if ((rmp->m_opcode & 0xff) != (op | M_O_END)
+	if (rmp->m_opcode != (op | M_O_END)
 	    || (rmp->m_status & M_S_MASK) != M_S_SUCC) {
 		ra_error(unit, rmp);
 		return(0);
@@ -1289,4 +1349,19 @@ racmd(op, unit, sc)
 	return(rmp);
 }
 #endif RA_DUMP
+
+/*
+ * Assumes the 'open' routine has already been called to bring the
+ * drive online and initialize the drive size structures.
+*/
+daddr_t
+rasize(dev)
+	register dev_t dev;
+	{
+	ra_softcT *sc = &ra_sc[RACON(dev)];
+	register ra_infoT *disk;
+
+	disk = sc->sc_drives[RAUNIT(dev)];
+	return(disk->ra_size[dev & 7].nblocks);
+	}
 #endif NRAC > 0 && NRAD > 0

@@ -1,15 +1,42 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)cmd2.c	5.3 (Berkeley) 9/10/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cmd2.c	5.14 (Berkeley) 6/25/90";
+#endif
 
 #include "rcv.h"
-#include <sys/stat.h>
+#include <sys/wait.h>
 
 /*
  * Mail -- a mail program
@@ -105,7 +132,7 @@ save(str)
 	char str[];
 {
 
-	return(save1(str, 1));
+	return save1(str, 1, "save", saveignore);
 }
 
 /*
@@ -115,25 +142,24 @@ copycmd(str)
 	char str[];
 {
 
-	return(save1(str, 0));
+	return save1(str, 0, "copy", saveignore);
 }
 
 /*
  * Save/copy the indicated messages at the end of the passed file name.
  * If mark is true, mark the message "saved."
  */
-save1(str, mark)
+save1(str, mark, cmd, ignore)
 	char str[];
+	char *cmd;
+	struct ignoretab *ignore;
 {
-	register int *ip, mesg;
+	register int *ip;
 	register struct message *mp;
-	char *file, *disp, *cmd;
-	int f, *msgvec, lc, t;
-	long cc;
+	char *file, *disp;
+	int f, *msgvec;
 	FILE *obuf;
-	struct stat statb;
 
-	cmd = mark ? "save" : "copy";
 	msgvec = (int *) salloc((msgCount + 2) * sizeof *msgvec);
 	if ((file = snarf(str, &f)) == NOSTR)
 		return(1);
@@ -151,35 +177,30 @@ save1(str, mark)
 		return(1);
 	printf("\"%s\" ", file);
 	fflush(stdout);
-	if (stat(file, &statb) >= 0)
+	if (access(file, 0) >= 0)
 		disp = "[Appended]";
 	else
 		disp = "[New file]";
-	if ((obuf = fopen(file, "a")) == NULL) {
+	if ((obuf = Fopen(file, "a")) == NULL) {
 		perror(NOSTR);
 		return(1);
 	}
-	cc = 0L;
-	lc = 0;
 	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
-		mesg = *ip;
-		touch(mesg);
-		mp = &message[mesg-1];
-		if ((t = send(mp, obuf, 0)) < 0) {
+		mp = &message[*ip - 1];
+		touch(mp);
+		if (send(mp, obuf, ignore, NOSTR) < 0) {
 			perror(file);
-			fclose(obuf);
+			Fclose(obuf);
 			return(1);
 		}
-		lc += t;
-		cc += mp->m_size;
 		if (mark)
 			mp->m_flag |= MSAVED;
 	}
 	fflush(obuf);
 	if (ferror(obuf))
 		perror(file);
-	fclose(obuf);
-	printf("%s %d/%ld\n", disp, lc, cc);
+	Fclose(obuf);
+	printf("%s\n", disp);
 	return(0);
 }
 
@@ -191,65 +212,8 @@ save1(str, mark)
 swrite(str)
 	char str[];
 {
-	register int *ip, mesg;
-	register struct message *mp;
-	register char *file, *disp;
-	char linebuf[BUFSIZ];
-	int f, *msgvec, lc, cc, t;
-	FILE *obuf, *mesf;
-	struct stat statb;
 
-	msgvec = (int *) salloc((msgCount + 2) * sizeof *msgvec);
-	if ((file = snarf(str, &f)) == NOSTR)
-		return(1);
-	if ((file = expand(file)) == NOSTR)
-		return(1);
-	if (!f) {
-		*msgvec = first(0, MMNORM);
-		if (*msgvec == NULL) {
-			printf("No messages to write.\n");
-			return(1);
-		}
-		msgvec[1] = NULL;
-	}
-	if (f && getmsglist(str, msgvec, 0) < 0)
-		return(1);
-	printf("\"%s\" ", file);
-	fflush(stdout);
-	if (stat(file, &statb) >= 0)
-		disp = "[Appended]";
-	else
-		disp = "[New file]";
-	if ((obuf = fopen(file, "a")) == NULL) {
-		perror(NOSTR);
-		return(1);
-	}
-	cc = lc = 0;
-	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
-		mesg = *ip;
-		touch(mesg);
-		mp = &message[mesg-1];
-		mesf = setinput(mp);
-		t = mp->m_lines - 1;
-		while (t-- > 0) {
-			readline(mesf, linebuf);
-			if (blankline(linebuf))
-				break;
-		}
-		while (t-- > 0) {
-			fgets(linebuf, BUFSIZ, mesf);
-			fputs(linebuf, obuf);
-			cc += strlen(linebuf);
-		}
-		lc += mp->m_lines - 2;
-		mp->m_flag |= MSAVED;
-	}
-	fflush(obuf);
-	if (ferror(obuf))
-		perror(file);
-	fclose(obuf);
-	printf("%s %d/%d\n", disp, lc, cc);
-	return(0);
+	return save1(str, 1, "write", ignoreall);
 }
 
 /*
@@ -275,7 +239,7 @@ snarf(linebuf, flag)
 	 * Strip away trailing blanks.
 	 */
 
-	while (*cp == ' ' && cp > linebuf)
+	while (cp > linebuf && isspace(*cp))
 		cp--;
 	*++cp = 0;
 
@@ -283,13 +247,13 @@ snarf(linebuf, flag)
 	 * Now search for the beginning of the file name.
 	 */
 
-	while (cp > linebuf && !any(*cp, "\t "))
+	while (cp > linebuf && !isspace(*cp))
 		cp--;
 	if (*cp == '\0') {
 		printf("No file specified.\n");
 		return(NOSTR);
 	}
-	if (any(*cp, " \t"))
+	if (isspace(*cp))
 		*cp++ = 0;
 	else
 		*flag = 0;
@@ -303,7 +267,8 @@ snarf(linebuf, flag)
 delete(msgvec)
 	int msgvec[];
 {
-	return(delm(msgvec));
+	delm(msgvec);
+	return 0;
 }
 
 /*
@@ -318,20 +283,16 @@ deltype(msgvec)
 
 	lastdot = dot - &message[0] + 1;
 	if (delm(msgvec) >= 0) {
-		list[0] = dot - &message[0];
-		list[0]++;
+		list[0] = dot - &message[0] + 1;
 		if (list[0] > lastdot) {
-			touch(list[0]);
+			touch(dot);
 			list[1] = NULL;
 			return(type(list));
 		}
 		printf("At EOF\n");
-		return(0);
-	}
-	else {
+	} else
 		printf("No more messages\n");
-		return(0);
-	}
+	return(0);
 }
 
 /*
@@ -344,17 +305,16 @@ delm(msgvec)
 	int *msgvec;
 {
 	register struct message *mp;
-	register *ip, mesg;
+	register *ip;
 	int last;
 
 	last = NULL;
 	for (ip = msgvec; *ip != NULL; ip++) {
-		mesg = *ip;
-		touch(mesg);
-		mp = &message[mesg-1];
+		mp = &message[*ip - 1];
+		touch(mp);
 		mp->m_flag |= MDELETED|MTOUCH;
 		mp->m_flag &= ~(MPRESERVE|MSAVED|MBOX);
-		last = mesg;
+		last = *ip;
 	}
 	if (last != NULL) {
 		dot = &message[last-1];
@@ -384,17 +344,15 @@ undelete(msgvec)
 	int *msgvec;
 {
 	register struct message *mp;
-	register *ip, mesg;
+	register *ip;
 
-	for (ip = msgvec; ip-msgvec < msgCount; ip++) {
-		mesg = *ip;
-		if (mesg == 0)
-			return;
-		touch(mesg);
-		mp = &message[mesg-1];
+	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
+		mp = &message[*ip - 1];
+		touch(mp);
 		dot = mp;
 		mp->m_flag &= ~MDELETED;
 	}
+	return 0;
 }
 
 /*
@@ -403,26 +361,25 @@ undelete(msgvec)
 
 core()
 {
-	register int pid;
-	int status;
+	int pid;
+	extern union wait wait_status;
 
-	if ((pid = vfork()) == -1) {
+	switch (pid = vfork()) {
+	case -1:
 		perror("fork");
 		return(1);
-	}
-	if (pid == 0) {
-		sigchild();
+	case 0:
 		abort();
 		_exit(1);
 	}
 	printf("Okie dokie");
 	fflush(stdout);
-	while (wait(&status) != pid)
-		;
-	if (status & 0200)
-		printf(" -- Core dumped\n");
+	wait_child(pid);
+	if (wait_status.w_coredump)
+		printf(" -- Core dumped.\n");
 	else
-		printf("\n");
+		printf(" -- Can't dump core.\n");
+	return 0;
 }
 
 /*
@@ -438,6 +395,7 @@ clobber(argv)
 	else
 		times = (atoi(argv[0]) + 511) / 512;
 	clob1(times);
+	return 0;
 }
 
 /*
@@ -462,58 +420,8 @@ clob1(n)
 retfield(list)
 	char *list[];
 {
-	char field[BUFSIZ];
-	register int h;
-	register struct ignore *igp;
-	char **ap;
 
-	if (argcount(list) == 0)
-		return(retshow());
-	for (ap = list; *ap != 0; ap++) {
-		istrcpy(field, *ap);
-
-		if (member(field, retain))
-			continue;
-
-		h = hash(field);
-		igp = (struct ignore *) calloc(1, sizeof (struct ignore));
-		igp->i_field = calloc(strlen(field) + 1, sizeof (char));
-		strcpy(igp->i_field, field);
-		igp->i_link = retain[h];
-		retain[h] = igp;
-		nretained++;
-	}
-	return(0);
-}
-
-/*
- * Print out all currently retained fields.
- */
-retshow()
-{
-	register int h, count;
-	struct ignore *igp;
-	char **ap, **ring;
-	int igcomp();
-
-	count = 0;
-	for (h = 0; h < HSHSIZE; h++)
-		for (igp = retain[h]; igp != 0; igp = igp->i_link)
-			count++;
-	if (count == 0) {
-		printf("No fields currently being retained.\n");
-		return(0);
-	}
-	ring = (char **) salloc((count + 1) * sizeof (char *));
-	ap = ring;
-	for (h = 0; h < HSHSIZE; h++)
-		for (igp = retain[h]; igp != 0; igp = igp->i_link)
-			*ap++ = igp->i_field;
-	*ap = 0;
-	qsort(ring, count, sizeof (char *), igcomp);
-	for (ap = ring; *ap != 0; ap++)
-		printf("%s\n", *ap);
-	return(0);
+	return ignore1(list, ignore + 1, "retained");
 }
 
 /*
@@ -523,55 +431,78 @@ retshow()
 igfield(list)
 	char *list[];
 {
+
+	return ignore1(list, ignore, "ignored");
+}
+
+saveretfield(list)
+	char *list[];
+{
+
+	return ignore1(list, saveignore + 1, "retained");
+}
+
+saveigfield(list)
+	char *list[];
+{
+
+	return ignore1(list, saveignore, "ignored");
+}
+
+ignore1(list, tab, which)
+	char *list[];
+	struct ignoretab *tab;
+	char *which;
+{
 	char field[BUFSIZ];
 	register int h;
 	register struct ignore *igp;
 	char **ap;
 
-	if (argcount(list) == 0)
-		return(igshow());
+	if (*list == NOSTR)
+		return igshow(tab, which);
 	for (ap = list; *ap != 0; ap++) {
-		if (isign(*ap))
-			continue;
 		istrcpy(field, *ap);
+		if (member(field, tab))
+			continue;
 		h = hash(field);
 		igp = (struct ignore *) calloc(1, sizeof (struct ignore));
-		igp->i_field = calloc(strlen(field) + 1, sizeof (char));
+		igp->i_field = calloc((unsigned) strlen(field) + 1,
+			sizeof (char));
 		strcpy(igp->i_field, field);
-		igp->i_link = ignore[h];
-		ignore[h] = igp;
+		igp->i_link = tab->i_head[h];
+		tab->i_head[h] = igp;
+		tab->i_count++;
 	}
-	return(0);
+	return 0;
 }
 
 /*
- * Print out all currently ignored fields.
+ * Print out all currently retained fields.
  */
-igshow()
+igshow(tab, which)
+	struct ignoretab *tab;
+	char *which;
 {
-	register int h, count;
+	register int h;
 	struct ignore *igp;
 	char **ap, **ring;
 	int igcomp();
 
-	count = 0;
-	for (h = 0; h < HSHSIZE; h++)
-		for (igp = ignore[h]; igp != 0; igp = igp->i_link)
-			count++;
-	if (count == 0) {
-		printf("No fields currently being ignored.\n");
-		return(0);
+	if (tab->i_count == 0) {
+		printf("No fields currently being %s.\n", which);
+		return 0;
 	}
-	ring = (char **) salloc((count + 1) * sizeof (char *));
+	ring = (char **) salloc((tab->i_count + 1) * sizeof (char *));
 	ap = ring;
 	for (h = 0; h < HSHSIZE; h++)
-		for (igp = ignore[h]; igp != 0; igp = igp->i_link)
+		for (igp = tab->i_head[h]; igp != 0; igp = igp->i_link)
 			*ap++ = igp->i_field;
 	*ap = 0;
-	qsort(ring, count, sizeof (char *), igcomp);
+	qsort((char *) ring, tab->i_count, sizeof (char *), igcomp);
 	for (ap = ring; *ap != 0; ap++)
 		printf("%s\n", *ap);
-	return(0);
+	return 0;
 }
 
 /*
@@ -581,5 +512,5 @@ igcomp(l, r)
 	char **l, **r;
 {
 
-	return(strcmp(*l, *r));
+	return strcmp(*l, *r);
 }

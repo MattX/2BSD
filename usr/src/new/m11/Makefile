@@ -37,7 +37,7 @@ macxrf: macxrf.c
 install: all m11.0
 	install -s m11 ${DESTDIR}/usr/new/m11
 	install -s macxrf ${DESTDIR}/usr/new/macxrf
-	install -c m11.0 ${DESTDIR}/usr/new/man/cat1/m11.0
+	install -c -m 444 -o bin -g bin m11.0 ${DESTDIR}/usr/new/man/cat1/m11.0
 
 cmp: all
 	cmp m11	${DESTDIR}/usr/new/m11

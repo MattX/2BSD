@@ -33,7 +33,7 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
      3/4 % ndefine 3quarter % 3/4 % tdefine degree %  % ndefine
      degree % nothing sup o % tdefine square % [] % ndefine
      square % [] % tdefine circle % O % ndefine circle % O % tde-
-     fine blot % "[[]]" % ndefine blot % HIX % tdefine bullet % o+ %
+     fine blot % "[]" % ndefine blot % HIX % tdefine bullet % o+ %
      ndefine bullet % oxe % tdefine -wig % "~_" % ndefine -wig % -
      to "~" % tdefine wig % ~ % ndefine wig % "~" % tdefine prop
      % oc % ndefine prop % oc % tdefine empty % O/ % ndefine empty
@@ -42,15 +42,15 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
      (= % define supset % =) % define !subset % (=_ % define
      !supset % =_) %
 
-NNAAMMEE
+NAME
      eqnchar - special character definitions for eqn
 
-SSYYNNOOPPSSIISS
-     eeqqnn //uussrr//ppuubb//eeqqnncchhaarr [ files ] || ttrrooffff [ options ]
+SYNOPSIS
+     eqn /usr/pub/eqnchar [ files ] | troff [ options ]
 
-     nneeqqnn //uussrr//ppuubb//eeqqnncchhaarr [ files ] || nnrrooffff [ options ]
+     neqn /usr/pub/eqnchar [ files ] | nroff [ options ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _E_q_n_c_h_a_r contains _t_r_o_f_f and _n_r_o_f_f character definitions for
      constructing characters that are not available on the
      Graphic Systems typesetter.  These definitions are primarily
@@ -63,7 +63,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 
@@ -88,10 +88,10 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
      "oppE"    oppE	   "3quarter"		3quarter  "!supset"!supset
      "angstrom"            angstrom  "degree"	degree
 
-FFIILLEESS
+FILES
      /usr/pub/eqnchar
 
-SSEEEE AALLSSOO
+SEE ALSO
      troff(1), eqn(1)
 
 
@@ -129,7 +129,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 20, 1985				2
+Printed 1/9/94		  May 20, 1985				2
 
 
 

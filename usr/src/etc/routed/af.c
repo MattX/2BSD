@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)af.c	5.4 (Berkeley) 4/20/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)af.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include "defs.h"
 
@@ -40,16 +40,12 @@ inet_hash(sin, hp)
 	register struct sockaddr_in *sin;
 	struct afhash *hp;
 {
-	register u_long n;
+	u_long n;
 
 	n = inet_netof(sin->sin_addr);
 	if (n)
 	    while ((n & 0xff) == 0) {
 		n >>= 8;
-#ifdef BSD2_10
-		/* 2.10BSD compiler doesn't support unsigned longs */
-		n &= 0x00ffffff;
-#endif
 	    }
 	hp->afh_nethash = n;
 	hp->afh_hosthash = ntohl(sin->sin_addr.s_addr);
@@ -114,6 +110,10 @@ inet_checkhost(sin)
 {
 	u_long n = ntohl(sin->sin_addr.s_addr);
 	int i;
+
+#ifdef IN_BADCLASS
+#undef IN_BADCLASS
+#endif IN_BADCLASS
 
 #define	IN_BADCLASS(n)	(((long) (n) & 0xe0000000) == 0xe0000000)
 

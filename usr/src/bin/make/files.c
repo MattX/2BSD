@@ -1,17 +1,17 @@
-static	char *sccsid = "@(#)files.c	4.16 (Berkeley) 87/06/18";
+/* static	char *sccsid = "@(#)files.c	4.16.1 (2.11BSD) 1/3/94"; */
+#include <sys/param.h>
 #include <fcntl.h>
 
 /* UNIX DEPENDENT PROCEDURES */
-
 
 /* DEFAULT RULES FOR UNIX */
 
 char *builtin[] =
 	{
 #ifdef pwb
-	".SUFFIXES : .L .out .o .c .f .e .r .y .yr .ye .l .s .z .x .t .h .cl",
+	".SUFFIXES : .L .out .a .o .c .f .e .r .y .yr .ye .l .s .z .x .t .h .cl",
 #else
-	".SUFFIXES : .out .o .c .F .f .e .r .y .yr .ye .l .s .cl .p",
+	".SUFFIXES : .out .a .o .c .F .f .e .r .y .yr .ye .l .s .cl .p",
 #endif
 	"YACC=yacc",
 	"YACCR=yacc -r",
@@ -40,6 +40,11 @@ char *builtin[] =
 	"CMDICT=cmdict",
 	"CMFLAGS=",
 #endif
+
+	".c.a :",
+	"\t$(CC) $(CFLAGS) -c $<",
+	"\tar r $@ $*.o",
+	"\trm -f $*.o",
 
 	".c.o :",
 	"\t$(CC) $(CFLAGS) -c $<",
@@ -188,17 +193,16 @@ register char *pat; /* pattern to be matched in directory */
 int mkchain;  /* nonzero if results to be remembered */
 struct depblock *nextdbl;  /* final value for chain */
 {
-DIR *dirf;
-register int i;
-int nread, cldir;
-char *dirname, *dirpref, *endir, *filepat, *p, temp[BUFSIZ];
-char fullname[BUFSIZ], *p1, *p2;
+register DIR *dirf;
+int cldir;
+char *dirname, *dirpref, *endir, *filepat, *p, temp[MAXPATHLEN];
+char fullname[MAXPATHLEN], *p1, *p2;
 struct nameblock *q;
 struct depblock *thisdbl;
 struct dirhdr *od;
 struct pattern *patp;
 struct varblock *cp, *varptr();
-char *path, pth[BUFSIZ], *strcpy();
+char *path, pth[MAXPATHLEN], *strcpy();
 struct direct *dptr;
 
 
@@ -401,186 +405,151 @@ if( (mout=fopen(file,"a")) != NULL )
 #endif
 
 
-/* look inside archives for notations a(b) and a((b))
+/* look inside archive for notation a(b)
 	a(b)	is file member   b   in archive a
-	a((b))	is entry point  _b  in object archive a
 */
 
-#ifdef ASCARCH
-#	include <ar.h>
-#else
-#	include <ar.h>
-#endif
-#include <a.out.h>
+#include <ar.h>
+#include "archive.h"	/* from 'ar's directory */
 
-static long arflen;
-static long arfdate;
-static char arfname[16];
-FILE *arfd;
-long int arpos, arlen;
-
-static struct exec objhead;
-
-static struct nlist objentry;
-
+	char arfile[MAXPATHLEN];
+	CHDR	chdr;
+	char *arfname = chdr.name;
+	FILE *arfd;
+	off_t arpos;
 
 TIMETYPE lookarch(filename)
-char *filename;
-{
-char *p, *q, *send, s[MAXNAMLEN + 1];
-int i, nc, nsym, objarch;
-
-for(p = filename; *p!= '(' ; ++p)
-	;
-*p = '\0';
-openarch(filename);
-*p++ = '(';
-
-if(*p == '(')
+	char *filename;
 	{
-	objarch = YES;
-	nc = 8;
-	++p;
-	}
-else
-	{
-	objarch = NO;
-	nc = MAXNAMLEN;
-	}
-send = s + nc;
+	char *p, *q, *send, s[MAXNAMLEN + 1];
 
-for( q = s ; q<send && *p!='\0' && *p!=')' ; *q++ = *p++ )
-	;
-while(q < send)
+	for	(p = filename; *p!= '(' ; ++p)
+		;
+	*p = '\0';
+	strcpy(arfile, filename);
+	openarch(filename);
+	*p++ = '(';
+
+	send = s + sizeof(s);
+
+	for( q = s; q < send && *p!='\0' && *p!=')' ; *q++ = *p++)
+		;
 	*q++ = '\0';
-while(getarch())
-	{
-	if(objarch)
+	while	(getarch())
 		{
-		getobj();
-		nsym = objhead.a_syms / sizeof(objentry);
-		for(i = 0; i<nsym ; ++i)
+		if	(!strcmp(arfname, s))
 			{
-			fread( (char *) &objentry, sizeof(objentry),1,arfd);
-			if( (objentry.n_type & N_EXT)
-			   && ((objentry.n_type & ~N_EXT) || objentry.n_value)
-#ifdef BSD2_10
-			   && eqstr(objentry.n_name,s,nc))
-#else
-			   && eqstr(objentry.n_un.n_name,s,nc))
-#endif
-				{
-				clarch();
-				return(arfdate);
-				}
+			clarch();
+			return(chdr.date);
 			}
+		arpos += (chdr.size + (chdr.size + chdr.lname & 1));
+		arpos += sizeof (struct ar_hdr);
 		}
-
-	else if( eqstr(arfname, s, nc))
-		{
-		clarch();
-		return(arfdate);
-		}
+	strcpy(chdr.name, s);
+	clarch();
+	return(0L);
 	}
-
-clarch();
-return( 0L);
-}
 
 
 clarch()
 {
-fclose( arfd );
+if (arfd)
+	fclose( arfd );
 }
 
 
 openarch(f)
 register char *f;
-{
-#ifdef ASCARCH
-char magic[SARMAG];
-#endif
-int word;
-#include <sys/stat.h>
-struct stat buf;
+	{
+	char	magic[SARMAG];
 
-stat(f, &buf);
-arlen = buf.st_size;
+	arfd = fopen(f, "r");
+	if	(arfd == NULL)
+		return;
 
-arfd = fopen(f, "r");
-if(arfd == NULL)
-	fatal1("cannot open %s", f);
-
-	fread( (char *) &word, sizeof(word), 1, arfd);
-#ifdef ASCARCH
 	fseek(arfd, 0L, 0);
 	fread(magic, SARMAG, 1, arfd);
 	arpos = SARMAG;
-	if( ! eqstr(magic, ARMAG, SARMAG) )
-#else
-	arpos = sizeof(word);
-	if(word != ARMAG)
-#endif
+	if	(strncmp(magic, ARMAG, SARMAG))
 		fatal1("%s is not an archive", f);
+	}
 
-arflen = 0;
+/*
+ * "borrowed" from 'ld' because we didn't want to drag in everything
+ * from 'ar'.  The error checking was also ripped out, basically if any
+ * of the criteria for being an archive are not met then a -1 is returned
+ * and the rest of 'make' figures out what to do (bails out).
+*/
+
+typedef struct ar_hdr HDR;
+extern	long	strtol();
+
+/* Convert ar header field to an integer. */
+#define	AR_ATOI(from, to, len, base) { \
+	bcopy(from, buf, len); \
+	buf[len] = '\0'; \
+	to = strtol(buf, (char **)NULL, base); \
 }
-
-
 
 getarch()
 {
+	char hb[sizeof(HDR) + 1];	/* real header */
 	struct ar_hdr arhead;
-	long atol();
+	register HDR *hdr;
+	register int len;
+	int	nr;
+	register char *p;
+	char buf[20];
 
-arpos += (arflen + 1) & ~1L;	/* round archived file length up to even */
-if(arpos >= arlen)
-	return(0);
-fseek(arfd, arpos, 0);
+	if (!arfd)
+		return(0);
+	fseek(arfd, arpos, 0);
 
-	fread( (char *) &arhead, sizeof(arhead), 1, arfd);
-	arpos += sizeof(arhead);
-#ifdef ASCARCH
-	arflen = atol(arhead.ar_size);
-	arfdate = atol(arhead.ar_date);
-#else
-	arflen = arhead.ar_size;
-	arfdate = arhead.ar_date;
-#endif
-	strncpy(arfname, arhead.ar_name, sizeof(arhead.ar_name));
-return(1);
+	nr = fread(hb, 1, sizeof(HDR), arfd);
+	if (nr != sizeof(HDR))
+		return(0);
+
+	hdr = (HDR *)hb;
+	if (strncmp(hdr->ar_fmag, ARFMAG, sizeof(ARFMAG) - 1))
+		return(0);
+
+	/* Convert the header into the internal format. */
+#define	DECIMAL	10
+#define	OCTAL	 8
+
+	AR_ATOI(hdr->ar_date, chdr.date, sizeof(hdr->ar_date), DECIMAL);
+	AR_ATOI(hdr->ar_uid, chdr.uid, sizeof(hdr->ar_uid), DECIMAL);
+	AR_ATOI(hdr->ar_gid, chdr.gid, sizeof(hdr->ar_gid), DECIMAL);
+	AR_ATOI(hdr->ar_mode, chdr.mode, sizeof(hdr->ar_mode), OCTAL);
+	AR_ATOI(hdr->ar_size, chdr.size, sizeof(hdr->ar_size), DECIMAL);
+
+	/* Leading spaces should never happen. */
+	if (hdr->ar_name[0] == ' ')
+		return(-1);
+
+	/*
+	 * Long name support.  Set the "real" size of the file, and the
+	 * long name flag/size.
+	 */
+	if (!bcmp(hdr->ar_name, AR_EFMT1, sizeof(AR_EFMT1) - 1)) {
+		chdr.lname = len = atoi(hdr->ar_name + sizeof(AR_EFMT1) - 1);
+		if (len <= 0 || len > MAXNAMLEN)
+			return(-1);
+		nr = fread(chdr.name, 1, (size_t)len, arfd);
+		if (nr != len)
+			return(0);
+		chdr.name[len] = 0;
+		chdr.size -= len;
+	} else {
+		chdr.lname = 0;
+		bcopy(hdr->ar_name, chdr.name, sizeof(hdr->ar_name));
+
+		/* Strip trailing spaces, null terminate. */
+		for (p = chdr.name + sizeof(hdr->ar_name) - 1; *p == ' '; --p);
+		*++p = '\0';
+	}
+	return(1);
 }
-
-
-getobj()
-{
-long int skip;
-
-fread( (char *) &objhead, sizeof(objhead), 1, arfd);
-if (N_BADMAG(objhead))
-	fatal1("%s is not an object module", arfname);
-skip = objhead.a_text + objhead.a_data;
-#ifndef pdp11
-skip += objhead.a_trsize + objhead.a_drsize;
-#else
-if(! objhead.a_flag )
-	skip *= 2;
-#endif
-fseek(arfd, skip, 1);
-}
-
-
-eqstr(a,b,n)
-register char *a, *b;
-int n;
-{
-register int i;
-for(i = 0 ; i < n ; ++i)
-	if(*a++ != *b++)
-		return(NO);
-return(YES);
-}
-
 
 /*
  *	findfl(name)	(like execvp, but does path search and finds files)
@@ -593,7 +562,7 @@ char *findfl(name)
 register char *name;
 {
 	register char *p;
-	register struct varblock *cp;
+	struct varblock *cp, *varptr();
 	struct stat buf;
 
 	for (p = name; *p; p++) 
@@ -638,7 +607,7 @@ char *s, *d;
 {
 	register char *r, *q;
 	struct nameblock *pn;
-	char name[BUFSIZ];
+	char name[MAXPATHLEN];
 
 	while (*s) {
 		if (isspace(*s)) *d++ = *s++;

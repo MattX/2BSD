@@ -5,13 +5,13 @@ FISH(6)             UNIX Programmer's Manual		  FISH(6)
 
 
 
-NNAAMMEE
+NAME
      fish - play ``Go Fish''
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//ffiisshh
+SYNOPSIS
+     /usr/games/fish
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_i_s_h plays the game of "Go Fish", a childrens' card game.
      The Object is to accumulate `books' of 4 cards with the same
      face value.  The players alternate turns; each turn begins
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 

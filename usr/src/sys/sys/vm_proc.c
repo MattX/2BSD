@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_proc.c	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)vm_proc.c	1.2 (2.11BSD GTE) 12/24/92
  */
 
 #include "param.h"
@@ -81,23 +81,11 @@ expand(newsize,segment)
 		sureg();
 		return;
 	}
-#ifndef NONFP
 	if (u.u_fpsaved == 0) {
 		savfp(&u.u_fps);
 		u.u_fpsaved = 1;
 	}
-#endif
-#ifdef UCB_FRCSWAP
-	/*
-	 * Stack must be copied either way, might as well not swap.
-	 */
-	if (idleflg || (segment==S_STACK))
-		a2 = malloc(coremap, newsize);
-	else
-		a2 = NULL;
-#else
 	a2 = malloc(coremap, newsize);
-#endif
 	if (a2 == NULL) {
 		if (segment == S_DATA)
 			swapout(p, X_FREECORE, n, X_OLDSIZE);

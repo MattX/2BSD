@@ -5,22 +5,22 @@ LGAMMA(3M)	    UNIX Programmer's Manual	       LGAMMA(3M)
 
 
 
-NNAAMMEE
+NAME
      lgamma - log gamma function
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee llggaammmmaa((xx))
-     ddoouubbllee xx;;
+     double lgamma(x)
+     double x;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Lgamma returns ln|I~(x)|.
 
      The external integer signgam returns the sign of I~(x) .
 
-IIDDIIOOSSYYNNCCRRAASSIIEESS
-     Do nnoott use the expression signgam*exp(lgamma(x)) to compute
+IDIOSYNCRASIES
+     Do not use the expression signgam*exp(lgamma(x)) to compute
      g := I~(x).  Instead use a program like this (in C):
 	  lg = lgamma(x); g = signgam*exp(lg);
 
@@ -60,7 +60,7 @@ IIDDIIOOSSYYNNCCRRAASSIIEESS
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -71,20 +71,20 @@ LGAMMA(3M)	    UNIX Programmer's Manual	       LGAMMA(3M)
 
 
 
-	##iinncclluuddee <<mmaatthh..hh>>
-	ddoouubbllee ggaammmmaa((xx))
-	ddoouubbllee xx;;
-	{{
-	     rreettuurrnn ((llggaammmmaa((xx))));;
+	#include <math.h>
+	double gamma(x)
+	double x;
+	{
+	     return (lgamma(x));
 	}
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The reserved operand is returned on a VAX for negative
      integer arguments, _e_r_r_n_o is set to ERANGE; for very large
      arguments over/underflows will occur inside the _l_g_a_m_m_a rou-
      tine.
 
-SSEEEE AALLSSOO
+SEE ALSO
      math(3M), infnan(3M)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

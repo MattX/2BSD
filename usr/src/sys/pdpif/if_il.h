@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_il.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_il.h	1.2 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -17,10 +17,6 @@ struct	il_rheader {
 	u_char	ilr_shost[6];		/* Source Host */
 	u_short	ilr_type;		/* Type of packet */
 };
-#if BSD2_10
-#define ils_fill1 ils_f1
-#define ils_fill2 ils_f2
-#endif
 
 /*
  * Structure of statistics record

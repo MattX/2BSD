@@ -4,14 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)repquota.c	5.4 (Berkeley) 3/5/86";
+static char sccsid[] = "@(#)repquota.c	5.4.1 (2.11BSD GTE) 1/1/94";
 #endif not lint
 
 /*
@@ -25,14 +23,14 @@ static char sccsid[] = "@(#)repquota.c	5.4 (Berkeley) 3/5/86";
 #include <fstab.h>
 #include <pwd.h>
 
-#define LOGINNAMESIZE 8
+#define LOGINNAMESIZE 14
 struct fileusage {
 	struct fileusage *fu_next;
 	struct dqblk fu_dqblk;
 	u_short	fu_uid;
 	char fu_name[LOGINNAMESIZE + 1];
 };
-#ifdef BSD2_10
+#ifdef pdp11
 #define	FUHASH 337
 #else
 #define FUHASH 997
@@ -162,7 +160,7 @@ repquota(fsdev, fsfile, qffile)
 			printf("%-10s", fup->fu_name);
 		else
 			printf("#%-9d", uid);
-#ifdef BSD2_10
+#ifdef pdp11
 		printf("%c%c%8ld%8ld%8ld %5u   %5u %5u %5u %5u\n",
 #else
 		printf("%c%c%8d%8d%8d %5d   %5d %5d %5d %5d\n",
@@ -173,7 +171,7 @@ repquota(fsdev, fsfile, qffile)
 			fup->fu_dqblk.dqb_isoftlimit &&
 			    fup->fu_dqblk.dqb_curinodes >=
 			    fup->fu_dqblk.dqb_isoftlimit ? '+' : '-',
-#ifdef BSD2_10
+#ifdef pdp11
 			fup->fu_dqblk.dqb_curblocks / 1024,
 			fup->fu_dqblk.dqb_bsoftlimit / 1024,
 			fup->fu_dqblk.dqb_bhardlimit / 1024,

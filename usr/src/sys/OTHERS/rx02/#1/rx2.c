@@ -39,15 +39,8 @@ extern	struct	rx2device *RX2ADDR;
  *	the following defines use some fundamental
  *	constants of the RX02.
  */
-#if	UCB_NKB == 1
 #define	NSPB	((minor(bp->b_dev)&2) ? 4 : 8)		/* sectors per block */
 #define	NRXBLKS	((minor(bp->b_dev)&2) ? 500 : 250)	/* blocks on device */
-#else
-#ifndef	UCB_NKB
-#define	NSPB	((minor(bp->b_dev)&2) ? 2 : 4)		/* sectors per block */
-#define	NRXBLKS	((minor(bp->b_dev)&2) ? 1001 : 500)	/* blocks on device */
-#endif
-#endif	UCB_NKB
 #define	NBPS	((minor(bp->b_dev)&2) ? 256 : 128)	/* bytes per sector */
 #define	DENSITY	(minor(bp->b_dev)&2)	/* Density: 0 = single, 2 = double */
 #define	UNIT	(minor(bp->b_dev)&1)	/* Unit Number: 0 = left, 1 = right */
@@ -57,7 +50,6 @@ extern	struct	rx2device *RX2ADDR;
 #define	seccnt(bp)	((int) ((bp)->b_seccnt))
 
 struct	buf	rx2tab;
-struct	buf	rrx2buf;
 #ifdef RX2_IOCTL
 struct	buf	crx2buf;	/* buffer header for control functions */
 #endif
@@ -83,10 +75,8 @@ dev_t	dev;
 rx2strategy(bp)
 register struct buf *bp;
 {
-#ifdef	UNIBUS_MAP
 	if(bp->b_flags & B_PHYS)
 		mapalloc(bp);
-#endif
 	if(bp->b_blkno >= NRXBLKS) {
 		if(bp->b_flags&B_READ)
 			bp->b_resid = bp->b_bcount;
@@ -296,21 +286,6 @@ register char **addr, **xmem;
 	if (*addr < bp->b_un.b_addr)		/* overflow, bump xmem */
 		(*xmem)++;
 }
-
-
-rx2read(dev)
-dev_t	dev;
-{
-	physio(rx2strategy, &rrx2buf, dev, B_READ, WORD);
-}
-
-
-rx2write(dev)
-dev_t	dev;
-{
-	physio(rx2strategy, &rrx2buf, dev, B_WRITE, WORD);
-}
-
 
 #ifdef RX2_IOCTL
 /*

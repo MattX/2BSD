@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uba.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)uba.h	1.2 (2.11BSD GTE) 1/3/93
  */
 
 /*
@@ -70,10 +70,8 @@ struct	ubmeter {
 				}
 
 #ifdef KERNEL
-extern	bool_t	ubmap;			/* Do we have UNIBUS registers? */
+extern	short	ubmap;			/* Do we have UNIBUS registers? */
 extern	memaddr	bpaddr;			/* physical click-address of buffers */
-#ifdef UNIBUS_MAP
 extern	struct map	ub_map[];
 extern	int	ub_wantmr;
-#endif
 #endif

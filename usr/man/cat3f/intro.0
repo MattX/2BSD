@@ -5,10 +5,10 @@ INTRO(3F)	    UNIX Programmer's Manual		INTRO(3F)
 
 
 
-NNAAMMEE
+NAME
      intro - introduction to FORTRAN library functions
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This section describes those functions that are in the For-
      tran run time library.  The functions listed here provide an
      interface from _f_7_7 programs to the system in the same manner
@@ -41,7 +41,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      in any _f_7_7 module.
 
-LLIISSTT OOFF FFUUNNCCTTIIOONNSS
+LIST OF FUNCTIONS
      _N_a_m_e    _A_p_p_e_a_r_s _o_n _P_a_g_e	_D_e_s_c_r_i_p_t_i_o_n
      abort     abort.3f     abnormal termination
      access    access.3f    determine accessibility of a file
@@ -60,7 +60,7 @@ LLIISSTT OOFF FFUUNNCCTTIIOONNSS
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 
@@ -126,7 +126,7 @@ INTRO(3F)	    UNIX Programmer's Manual		INTRO(3F)
 
 
 
-Printed 12/28/88	  May 27, 1986				2
+Printed 1/9/94		  May 27, 1986				2
 
 
 
@@ -192,7 +192,7 @@ INTRO(3F)	    UNIX Programmer's Manual		INTRO(3F)
 
 
 
-Printed 12/28/88	  May 27, 1986				3
+Printed 1/9/94		  May 27, 1986				3
 
 
 

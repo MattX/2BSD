@@ -164,9 +164,6 @@ copystr()
 			case 'f':
 				c = '\f';
 				break;
-			case '0':
-				c = 0;
-				break;
 			case '\\':
 				break;
 			default:
@@ -176,11 +173,11 @@ copystr()
 				ch = getchar();
 				if (!octdigit(ch))
 					break;
-				c <<= 7, c += ch - '0';
+				c <<= 3, c += ch - '0';
 				ch = getchar();
 				if (!octdigit(ch))
 					break;
-				c <<= 3, c+= ch - '0', ch = -1;
+				c <<= 3, c += ch - '0';
 				break;
 			}
 		}

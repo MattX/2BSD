@@ -16,10 +16,25 @@ puthead(s, class)
 char *s;
 int class;
 {
+
 if( ! headerdone )
 	{
 	p2op2(P2SETREG, ARGREG-maxregvar);
-	p2op(P2PROG);
+	p2op(P2PROG);	/* .text */
+/*
+ * 11/12/92, sms@192.26.147.1 
+ * The optimizer (/lib/c2) works on blocks of code delimited by .globl
+ * statements.  Without the addition below the fortran program ends up
+ * being one huge block which was causing the optimizer to blow up.  Large
+ * functions may still generate more code than /lib/c2 can handle, but for
+ * the most part it is now safe to use "f77 -O".
+*/
+	p2op(P2SYMDEF);	/* .globl */
+	if (s)
+		fprintf(textfile, "_%s", s);
+	p2str("");
+/* end 11/12/92 change */
+
 	headerdone = YES;
 #if TARGET == PDP11
 	/* fake jump to start the optimizer */
@@ -1198,8 +1213,8 @@ int k;
 register char *s;
 s = &k;
 
-putc(*s++, textfile);
-putc(*s, textfile);
+fputc(*s++, textfile);
+fputc(*s, textfile);
 }
 
 
@@ -1208,8 +1223,8 @@ putc(*s, textfile);
 p2op(op)
 int op;
 {
-putc(op, textfile);
-putc(0376, textfile);   /* MAGIC NUMBER */
+fputc(op, textfile);
+fputc(0376, textfile);   /* MAGIC NUMBER */
 }
 
 
@@ -1219,7 +1234,7 @@ p2str(s)
 register char *s;
 {
 do
-	putc(*s, textfile);
+	fputc(*s, textfile);
 		while(*s++);
 }
 

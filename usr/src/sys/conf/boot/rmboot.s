@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)rmboot.s	1.2 (Berkeley)	2/19/87
+ *	SCCS id	@(#)rmboot.s	2.0 (2.11BSD)	4/13/91
  */
 #include "localopts.h"
 
@@ -8,12 +8,10 @@
 ENDCORE=	160000		/ end of core, mem. management off
 SZFLAGS=	6		/ size of boot flags
 BOOTOPTS=	2		/ location of options, bytes below ENDCORE
-BOOTDEV=	4
+BOOTDEV=	4		/ boot unit
 CHECKWORD=	6
 
-reset= 	5
-
-.globl	_doboot, hardboot
+.globl	_doboot, hardboot, _bootcsr
 .text
 _doboot:
 	mov	4(sp),r4	/ boot options
@@ -35,10 +33,12 @@ _doboot:
 #endif
 
 /  On power fail, hardboot is the entry point (map is already off)
-/  and the args are in r4, r3.
+/  and the args are in r4 (RB_POWRFAIL), r3 (rootdev)
 
 hardboot:
 	mov	r4, ENDCORE-BOOTOPTS
+	ash	$-3,r3		/ shift out the partition number
+	bic	$!7,r3		/ save only the drive number
 	mov	r3, ENDCORE-BOOTDEV
 	com	r4		/ if CHECKWORD == ~bootopts, flags are believed
 	mov	r4, ENDCORE-CHECKWORD
@@ -59,23 +59,26 @@ PRESET	= 20
 FMT22	= 10000
 DRIVE	= 0
 
-rmcs1	= 176700
+rmcs1	= 0
 rmda	= rmcs1+6
 rmcs2	= rmcs1+10
 rmds	= rmcs1+12
 rmof	= rmcs1+32
 rmca	= rmcs1+34
 
-	mov	$DRIVE,*$rmcs2
-	mov	$PRESET+GO,*$rmcs1
-	mov	$FMT22,*$rmof
-	clr	*$rmca
-	mov	$rmda,r0
-	clr	(r0)
-	clr	-(r0)
-	mov	$WC,-(r0)
-	mov	$READ+GO,-(r0)
+	mov	_bootcsr,r1
+	mov	ENDCORE-BOOTDEV,rmcs2(r1)
+	mov	$PRESET+GO,rmcs1(r1)
+	mov	$FMT22,rmof(r1)
+	clr	rmca(r1)
+	add	$rmcs2,r1
+	mov	ENDCORE-BOOTDEV,(r1)
+	clr	-(r1)
+	clr	-(r1)
+	mov	$WC,-(r1)
+	mov	$READ+GO,-(r1)
 1:
-	tstb	(r0)
+	tstb	(r1)
 	bge	1b
-	jmp	*$0
+	mov	ENDCORE-BOOTDEV,r0
+	clr	pc

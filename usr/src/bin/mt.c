@@ -2,16 +2,16 @@
  * Copyright (c) 1980 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
+ *
+ * Modified to handle pdp11 930707 /BQT
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)mt.c	5.1 (Berkeley) 4/30/85";
+static char sccsid[] = "@(#)mt.c	2.0 (2.11BSD) 7/6/93";
 #endif not lint
 
 /*
@@ -62,7 +62,7 @@ main(argc, argv)
 		argv += 2;
 	} else
 		if ((tape = getenv("TAPE")) == NULL)
-			tape = DEFTAPE;
+			tape = MT_DEF;
 	if (argc < 2) {
 		fprintf(stderr, "usage: mt [ -f device ] command [ count ]\n");
 		exit(1);
@@ -116,6 +116,16 @@ main(argc, argv)
 #include <sundev/arreg.h>
 #endif
 
+#ifdef pdp11
+#include <pdpuba/htreg.h>
+#include <pdpuba/tmreg.h>
+#undef b_repcnt		/* argh */
+#include <pdpuba/tsreg.h>
+#define NRSP 0
+#define NCMD 0
+#include <pdpuba/tmscpreg.h>
+#endif
+
 struct tape_desc {
 	short	t_type;		/* type of magtape device */
 	char	*t_name;	/* printing name */
@@ -132,6 +142,12 @@ struct tape_desc {
 #ifdef sun
 	{ MT_ISCPC,	"TapeMaster",	TMS_BITS,	0 },
 	{ MT_ISAR,	"Archive",	ARCH_CTRL_BITS,	ARCH_BITS },
+#endif
+#ifdef pdp11
+	{ MT_ISTS,	"ts11",		0,		TSXS0_BITS },
+	{ MT_ISHT,	"tm03",		HTFS_BITS,	HTER_BITS },
+	{ MT_ISTM,	"tm11",		0,		TMER_BITS },
+	{ MT_ISTMSCP,	"tmscp",	0,		0 },
 #endif
 	{ 0 }
 };

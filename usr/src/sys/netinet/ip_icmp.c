@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip_icmp.c	7.7 (Berkeley) 12/7/87
+ *	@(#)ip_icmp.c	7.7.1 (2.11BSD GTE) 2/20/94
  */
 
 #include "param.h"
@@ -186,7 +186,7 @@ icmp_input(m, ifp)
 		goto raw;
 	icmpstat.icps_inhist[icp->icmp_type]++;
 	code = icp->icmp_code;
-	switch (UCHAR(icp->icmp_type)) {
+	switch (icp->icmp_type) {
 
 	case ICMP_UNREACH:
 		if (code > 5)
@@ -224,8 +224,9 @@ icmp_input(m, ifp)
 			printf("deliver to protocol %d\n", icp->icmp_ip.ip_p);
 #endif
 		icmpsrc.sin_addr = icp->icmp_ip.ip_dst;
-		if (ctlfunc = inetsw[ip_protox[UCHAR(icp->icmp_ip.ip_p)]].pr_ctlinput)
-			(*ctlfunc)(code, (struct sockaddr *)&icmpsrc);
+		if (ctlfunc = inetsw[ip_protox[icp->icmp_ip.ip_p]].pr_ctlinput)
+			(*ctlfunc)(code, (struct sockaddr *)&icmpsrc,
+			    (caddr_t)&icp->icmp_ip);
 		break;
 
 	badcode:

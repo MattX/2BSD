@@ -22,6 +22,14 @@
  *	      safe to assume.  Partitions drastically changed to allow room
  *	      on T300 and T200 to hold the source distribution.
  *	      Autoconfigure logic finally added though. -SMS
+ * 2/17/89  - For 2.10.1BSD added old 2.9BSD /usr,/userfiles, and /minkie 
+ *	      partitions as partitions 'e', 'f', and 'g' as an aid in
+ *	      converting the systems.  BE CAREFUL!  For T300 only.
+ * 8/4/89   - Use the log() function to record soft errors.
+ * 9/22/91  - remove read and write entry - use common raw read/write routine.
+ * 12/23/92 - add the partition size routine.
+ * 1/2/93   - remove unibus map ifdefs, the run time check using 'ubmap' is
+ *	      sufficient and does the right thing.
  */
 
 #include "br.h"
@@ -36,14 +44,12 @@
 #include "user.h"
 #include "brreg.h"
 #include "dk.h"
-
-#ifdef UNIBUS_MAP
+#include "syslog.h"
 #include "map.h"
 #include "uba.h"
-#endif
 
 #define	BRADDR ((struct brdevice *) 0176710)
-#define	brunit(dev)	((minor(dev) >> 3) & 7)
+#define	brunit(dev)	((dev >> 3) & 7)
 #define	SECTRK  brc->sectrk
 #define	TRKCYL  brc->trkcyl
 
@@ -59,9 +65,9 @@ struct br_char {
 	12160,	30,		/* cyl 030 - 049 */
 	232256,	50,		/* cyl 050 - 431 */
 	232256,	432,		/* cyl 432 - 813 */
-	0,	 0,
-	0,	 0,
-	0,	 0,
+	154432,	 50,		/* 'e' is old 2.9 'c' partition */
+	154432,	 304,		/* 'f' is old 2.9 'd' partition */
+	154432,	 558,		/* 'g' is old 2.9 'e' partition */
 	495520,	 0,		/* cyl 000 - 814 */
 	32,	 19,		/* 32 sectrk, 19 trkcyl */
  /* T200 */
@@ -110,7 +116,7 @@ static int br_offs[] = {
 #ifdef UCB_METER
 static int br_dkn = -1;
 #endif
-struct buf brtab, rbrbuf;
+struct buf brtab;
 struct br_char *br_disk[NBR];
 struct brdevice *Br_addr;
 
@@ -137,11 +143,18 @@ brattach(braddr, unit)
 	return(0);
 }
 
-bropen(dev)
-	dev_t dev;
+bropen(dev, flag)
+	dev_t	dev;
+	int	flag;
 {
-	if (brunit(dev) >= NBR || !Br_addr)
+	register int dn = brunit(dev);
+
+	if	(dn >= NBR || !Br_addr)
 		return(ENXIO);
+	if	(!br_disk[dn])
+		brinit(dn);
+	if	(!br_disk[dn])
+		return(EIO);
 	return(0);
 }
 
@@ -157,7 +170,7 @@ brstrategy(bp)
 
 	unit = bp->b_dev & 07;
 	drive = brunit(bp->b_dev);
-	if (!(brc = br_disk[drive])) {
+	if	(!(brc = br_disk[drive])) {
 		brinit(drive);
 		if (!(brc = br_disk[drive])) {
 			bp->b_error = ENODEV;
@@ -179,10 +192,8 @@ brstrategy(bp)
 		iodone(bp);
 		return;
 	}
-#ifdef UNIBUS_MAP
 	if (Br_addr->brae >= 0)
 		mapalloc(bp);
-#endif
 	bp->b_cylin = bp->b_blkno/(SECTRK*TRKCYL) + brz->cyloff;
 	s = splbio();
 	dp = &brtab;
@@ -320,7 +331,7 @@ brintr(dev)
 		ctr = 0; 
 		while (((Br_addr->brcs.w&BR_RDY) == 0) && --ctr) ;
 		if (brtab.b_errcnt == 0) {
-			printf("br%d%c ds:%b er:%b cs:%b wc:%o ba:%o ca:%o da:%o bae:%o\n",
+			log(LOG_WARNING,"br%d%c ds:%b er:%b cs:%b wc:%o ba:%o ca:%o da:%o bae:%o\n",
 			    dkunit(bp), 'a'+ (bp->b_dev & 07),
 			    brsave.brds, BRDS_BITS, brsave.brer, BRER_BITS,
 			    brsave.brcs.w, BR_BITS, brsave.brwc,brsave.brba,
@@ -349,36 +360,18 @@ brdone (bp)
 	brstart();
 }
  
-brread(dev)
-	int dev;
-{
-	return(physio(brstrategy, &rbrbuf, dev, B_READ, WORD));
-}
-
-brwrite(dev)
-	int dev;
-{
-	return(physio(brstrategy, &rbrbuf, dev, B_WRITE, WORD));
-}
-
 #ifdef BR_DUMP
 /*
  * Dump routine.  Dumps from dumplo to end of memory/end of disk section for
  * minor(dev).
  */
-#ifdef UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
 #define	DBSIZE	16			/* unit of transfer, same number */
-#endif
 
 brdump(dev)
 	dev_t dev;
 {
 	struct br_char *brc;
-#ifdef UNIBUS_MAP
 	struct ubmap *ubp;
-#endif
 	daddr_t bn, dumpsize;
 	long paddr;
 	int count, cyl, dn, cn, tn, sn, unit, com;
@@ -395,9 +388,7 @@ brdump(dev)
 		return(EINVAL);
 	dumpsize -= dumplo;
 	while (!(Br_addr->brcs.w & BR_RDY));
-#ifdef UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize > DBSIZE ? DBSIZE : dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -409,20 +400,16 @@ brdump(dev)
 		Br_addr->brda = (tn << 8) | sn;
 		Br_addr->brwc = -(count << (PGSHIFT-1));
 		com = (dn << 8) | BR_GO | BR_WCOM;
-#ifdef UNIBUS_MAP
 		if (ubmap && Br_addr->brae >= 0) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			Br_addr->brba = 0;
 		}
 		else {
-#endif
 			Br_addr->brba = (caddr_t)loint(paddr);
 			Br_addr->brae = hiint(paddr);
 			com |= ((hiint(paddr) & 3) << 4);
-#ifdef UNIBUS_MAP
 		}
-#endif
 		Br_addr->brcs.w = com;
 		while (!(Br_addr->brcs.w & BR_RDY));
 		if (Br_addr->brcs.w < 0) {
@@ -435,4 +422,18 @@ brdump(dev)
 	return(0);				/* filled disk */
 }
 #endif /* BR_DUMP */
+
+/*
+ * Assumes the 'open' entry point has been called to validate the unit
+ * number and fill in the drive type structure.
+*/
+daddr_t
+brsize(dev)
+	register dev_t dev;
+	{
+	register struct	br_char *brc;
+
+	brc = br_disk[brunit(dev)];
+	return(brc->br_sizes[dev & 7].nblocks);
+	}
 #endif /* NBR */

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)wall.c	5.3 (Berkeley) 4/20/86";
-#endif not lint
+static char sccsid[] = "@(#)wall.c	5.3.1 (2.11BSD GTE) 12/31/93";
+#endif
 
 /*
  * wall.c - Broadcast a message to all users.
@@ -20,10 +18,6 @@ static char sccsid[] = "@(#)wall.c	5.3 (Berkeley) 4/20/86";
  * This program is not related to David Wall, whose Stanford Ph.D. thesis
  * is entitled "Mechanisms for Broadcast and Selective Broadcast".
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif BSD2_10
 
 #include <stdio.h>
 #include <utmp.h>
@@ -43,7 +37,7 @@ struct	utmp *utmp;
 char	*strcpy();
 char	*strcat();
 char	*malloc();
-char	who[9] = "???";
+char	who[UT_NAMESIZE + 1] = "???";
 long	clock, time();
 struct tm *localtime();
 struct tm *localclock;

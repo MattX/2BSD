@@ -4,19 +4,10 @@
 #	Note that there are limitations on how large a program may
 #	be loaded along with all device drivers.  This is especially
 #	a problem with restor.  Programs should be <= 48K to be safe.
-
-# BPI will compile a primary tape bootstrap capable of supporting 800 (HT and
-# TM), 1600 (HT, some third party TMs, and TS), or 6250 (some third party
-# TMs only).  2.10BSD is only distributed at 1600BPI, but others may have
-# need to make boot tapes at different densities ...
 #
-BPI=	1600
-
-# RB_DEFNAME is the name the secondary boot will go for if you just type
-# carriage return to the boot prompt, or if boot detects boot options passed
-# in and RB_ASKNAME isn't set.
-#
-RB_DEFNAME=xp(0,0)unix
+#	If a GENERIC kernel distribution is being created be sure
+#	to install /sys/pdpdist/dtab (or /etc/dtab.save) as ${ROOT}/etc/dtab 
+#	so that the GENERIC kernel can find the tape device.
 
 # DISK	which disk to take a root dump of for the distribution tape
 # TAPE	which tape to write the distribution on
@@ -32,28 +23,37 @@ MKFS=	${ETCSRC}/mkfs.c
 RESTOR=	${ETCSRC}/restor/restor.c
 ICHECK=	${ETCSRC}/icheck.c
 
-DEFS=	-DBPI=${BPI} -DRB_DEFNAME='"${RB_DEFNAME}"' -DSTANDALONE \
-	-I${ROOT}/usr/include
+DEFS=	-DSTANDALONE -I${ROOT}/usr/include
 CFLAGS=	-O ${DEFS}
 
 BOOT=	M.o boot.o ubmapset.o
 DRIVERS=prf.o sys.o \
-	ht.o tm.o ts.o \
+	ht.o tm.o ts.o tmscp.o \
 	xp.o rk.o rl.o br.o hk.o si.o ra.o
 
-ALL=	mtboot boot mkfs restor icheck maketape
+ALL=	mtboot boot mkfs restor icheck maketape toyset
 
 .c.o:
 	cc ${CFLAGS} -c $*.c
 
 .s.o:
-	/lib/cpp -P ${DEFS} $*.s >_xx.s;
-	as - -V -o $*.o _xx.s;
-	rm -f _xx.s
+	/lib/cpp -P ${DEFS} $< | as -u -V -o $@
 
 all: ${ALL}
 
 distribution: tape1 switch_tapes tape2
+
+tmscptape: ${ALL} ${DUMP}
+	./maketape /dev/nr${TAPE} maketape.data
+	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
+	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
+		adm bin dict doc games guest hosts include ingres lib \
+		local man msgs new old preserve pub skel spool tmp ucb
+	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
+		sys include
+	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
+		Makefile asm.sed asm.sed.pdp asm.sed.vax bin etc games \
+		lib local man new old ucb usr.bin usr.lib
 
 tape1: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data
@@ -71,9 +71,13 @@ switch_tapes: FRC
 FRC:
 
 tape2:
-	cd ${ROOT}/usr/sr; tar cfb /dev/r${TAPE} 20 \
+	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
 		Makefile asm.sed asm.sed.pdp asm.sed.vax bin etc games \
 		lib local man new old ucb usr.bin usr.lib
+
+${DUMP}:
+	@echo "You must make a dump of the root file system first."
+	exit 1
 
 dump:
 	dump 0f ${DUMP} /dev/r${DISK}
@@ -96,7 +100,6 @@ restor.o: ${RESTOR}
 icheck.o: ${ICHECK}
 	cc ${CFLAGS} -c ${ICHECK}
 
-
 mtboot: mtboot.o
 	strip $@.o
 	dd if=$@.o of=mtboot bs=16 skip=1
@@ -114,10 +117,11 @@ restor: srt0.o conf.o libsa.a restor.o
 icheck: srt0.o conf.o libsa.a icheck.o
 	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
 
-
 maketape: maketape.c
 	cc -o $@ maketape.c
 
+toyset: toyset.o srt0.o conf.o libsa.a
+	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
 
 tags: FRC
 	rm -f tags
@@ -134,7 +138,6 @@ FRC:
 clean:
 	rm -f ${ALL} ${AUX} libsa.a *.o tags
 
-
 boot.o:		boot.c
 conf.o:		conf.c
 cat.o:		cat.c
@@ -148,6 +151,7 @@ br.o:		br.c
 srt0.o:		srt0.s
 sys.o:		sys.c
 tm.o:		tm.c
+tmscp.o:	tmscp.c
 ts.o:		ts.c
 ubmapset.o:	ubmapset.c
 xp.o:		xp.c

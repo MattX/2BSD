@@ -5,41 +5,41 @@ PLOT(3F)	    UNIX Programmer's Manual		 PLOT(3F)
 
 
 
-NNAAMMEE
+NAME
      plot: openpl et al. - f77 library interface to _p_l_o_t (3X)
      libraries.
 
-SSYYNNOOPPSSIISS
-     ssuubbrroouuttiinnee ooppeennppll(())
+SYNOPSIS
+     subroutine openpl()
 
-     ssuubbrroouuttiinnee eerraassee(())
+     subroutine erase()
 
-     ssuubbrroouuttiinnee llaabbeell((ssttrr))
-     cchhaarraacctteerr ssttrr**((**))
+     subroutine label(str)
+     character str*(*)
 
-     ssuubbrroouuttiinnee lliinnee((iixx11,, iiyy11,, iixx22,, iiyy22))
+     subroutine line(ix1, iy1, ix2, iy2)
 
-     ssuubbrroouuttiinnee bbooxx((iixx11,, iiyy11,, iixx22,, iiyy22))
+     subroutine box(ix1, iy1, ix2, iy2)
      Draw a rectangle and leave the cursor at ( _i_x_2,_i_y_2).
 
-     ssuubbrroouuttiinnee cciirrccllee((iixx,, iiyy,, iirr))
+     subroutine circle(ix, iy, ir)
 
-     ssuubbrroouuttiinnee aarrcc((iixx,, iiyy,, iixx00,, iiyy00,, iixx11,, iiyy11))
+     subroutine arc(ix, iy, ix0, iy0, ix1, iy1)
 
-     ssuubbrroouuttiinnee mmoovvee((iixx,, iiyy))
+     subroutine move(ix, iy)
 
-     ssuubbrroouuttiinnee ccoonntt((iixx,, iiyy))
+     subroutine cont(ix, iy)
 
-     ssuubbrroouuttiinnee ppooiinntt((iixx,, iiyy))
+     subroutine point(ix, iy)
 
-     ssuubbrroouuttiinnee lliinneemmdd((ssttrr))
-     cchhaarraacctteerr ssttrr**((**))
+     subroutine linemd(str)
+     character str*(*)
 
-     ssuubbrroouuttiinnee ssppaaccee((iixx00,, iiyy00,, iixx11,, iiyy11))
+     subroutine space(ix0, iy0, ix1, iy1)
 
-     ssuubbrroouuttiinnee cclloossppll(())
+     subroutine clospl()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These are interface subroutines, in the library -_l_f_7_7_p_l_o_t,
      allowing _f_7_7 users to call the _p_l_o_t(3X) graphics routines
      which generate graphic output in a relatively device-
@@ -56,11 +56,11 @@ DDEESSCCRRIIPPTTIIOONN
      pile and load a FORTRAN program in _p_r_o_g._f to run on a Tek-
      tronix 4014 terminal:
 
-	  ff7777 pprroogg..ff --llff7777pplloott --ll44001144
+	  f77 prog.f -lf77plot -l4014
 
 
 
-Printed 12/28/88	 April 30, 1986                         1
+Printed 1/9/94		 April 30, 1986                         1
 
 
 
@@ -74,7 +74,7 @@ PLOT(3F)	    UNIX Programmer's Manual		 PLOT(3F)
      See _p_l_o_t(3X) for a complete list of device specific plotting
      libraries.
 
-SSEEEE AALLSSOO
+SEE ALSO
      plot(5), plot(1G), plot(3X), graph(1G)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 30, 1986                         2
+Printed 1/9/94		 April 30, 1986                         2
 
 
 

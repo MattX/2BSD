@@ -306,8 +306,8 @@ build(op)
 			}
 		}
 	} else if (dope&RELAT) {
-		if (op>=LESSEQ && (t1>=PTR||t2>=PTR||(t1==UNSIGN||t2==UNSIGN)
-		 && (t==INT||t==CHAR||t==UNSIGN)))
+		if (op>=LESSEQ && (t1>=PTR||t2>=PTR||(t1==UNSIGN||t1==UNLONG||t2==UNSIGN||t2==UNLONG)
+		 && (t==INT||t==CHAR||t==UNSIGN||t==UNLONG)))
 			op += LESSEQP-LESSEQ;
 		if (cvn==ITP || cvn==PTI)
 			cvn = 0;
@@ -391,7 +391,7 @@ register union tree *p1, *p2;
 		if (np==NULL)
 			break;
 		namesame = 0;
-		if (strncmp(p2->t.tr1->n.name, np->name, NCPS) != 0)
+		if (strcmp(p2->t.tr1->n.name, np->name) != 0)
 			continue;
 		if ((p2->t.tr1->n.hflag&FKIND) != (np->hflag&FMOS))
 			continue;
@@ -401,9 +401,9 @@ register union tree *p1, *p2;
 		vartypes++;
 	}
 	if (vartypes)
-		error("Ambiguous structure reference for %.*s", NCPS, p2->t.tr1->n.name);
+		error("Ambiguous structure reference for %s",p2->t.tr1->n.name);
 	else
-		werror("%.*s not member of cited struct/union", NCPS, p2->t.tr1->n.name);
+		werror("%s not member of cited struct/union",p2->t.tr1->n.name);
 	return(p2);
 }
 
@@ -499,9 +499,11 @@ register union tree *p;
 chkw(p, okt)
 union tree *p;
 {
-	register int t;
+	register int t = p->t.type;
 
-	if ((t=p->t.type)!=INT && t<PTR && t!=CHAR && t!=UNCHAR && t!=UNSIGN && t!=okt)
+	if (t == UNLONG)
+		t = LONG;
+	if (t!=INT && t<PTR && t!=CHAR && t!=UNCHAR && t!=UNSIGN && t!=okt)
 		error("Illegal type of operand");
 	return;
 }
@@ -524,6 +526,7 @@ lintyp(t)
 	case DOUBLE:
 		return(1);
 
+	case UNLONG:
 	case LONG:
 		return(2);
 
@@ -546,8 +549,7 @@ char *s;
 		return;
 	if (filename[0])
 		fprintf(stderr, "%s:", filename);
-	fprintf(stderr, "%d: ", line);
-	fprintf(stderr, "warning: ");
+	fprintf(stderr, "%d: warning: ", line);
 	fprintf(stderr, s, p1, p2, p3, p4, p5, p6);
 	fprintf(stderr, "\n");
 }
@@ -643,7 +645,7 @@ Tblock(n)
 
 	p = treebase;
 	if (p==NULL) {
-		error("c0 internal error: tree not active");
+		error("c0 internal error: Tblock");
 		exit(1);
 	}
 	if ((treebase += n) >= coremax) {
@@ -727,6 +729,7 @@ union tree *p2;
 	if (p1->t.op!=CON)
 		return(0);
 	unsignf = p1->c.type==UNSIGN;
+	unsignf |= p1->c.type==UNLONG;
 	if (op==QUEST) {
 		if (p2->t.tr1->t.op==CON && p2->t.tr2->t.op==CON) {
 			p1->c.value = p1->c.value? p2->t.tr1->c.value: p2->t.tr2->c.value;
@@ -741,6 +744,7 @@ union tree *p2;
 			return(0);
 		v2 = p2->c.value;
 		unsignf |= p2->c.type==UNSIGN;
+		unsignf |= p2->c.type==UNLONG;
 	}
 	v1 = p1->c.value;
 	switch (op) {

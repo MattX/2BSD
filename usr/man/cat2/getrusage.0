@@ -5,21 +5,21 @@ GETRUSAGE(2)	    UNIX Programmer's Manual	     GETRUSAGE(2)
 
 
 
-NNAAMMEE
+NAME
      getrusage - get information about resource utilization
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttiimmee..hh>>
-     ##iinncclluuddee <<ssyyss//rreessoouurrccee..hh>>
+SYNOPSIS
+     #include <sys/time.h>
+     #include <sys/resource.h>
 
-     ##ddeeffiinnee RRUUSSAAGGEE__SSEELLFF      00         //** ccaalllliinngg pprroocceessss **//
-     ##ddeeffiinnee RRUUSSAAGGEE__CCHHIILLDDRREENN  --11	//** tteerrmmiinnaatteedd cchhiilldd pprroocceesssseess **//
+     #define RUSAGE_SELF      0         /* calling process */
+     #define RUSAGE_CHILDREN  -1	/* terminated child processes */
 
-     ggeettrruussaaggee((wwhhoo,, rruussaaggee))
-     iinntt wwhhoo;;
-     ssttrruucctt rruussaaggee **rruussaaggee;;
+     getrusage(who, rusage)
+     int who;
+     struct rusage *rusage;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_r_u_s_a_g_e returns information describing the resources util-
      ized by the current process, or all its terminated child
      processes.  The _w_h_o parameter is one of RUSAGE_SELF or
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 13, 1986				1
+Printed 1/9/94		  May 13, 1986				1
 
 
 
@@ -126,7 +126,7 @@ GETRUSAGE(2)	    UNIX Programmer's Manual	     GETRUSAGE(2)
 
 
 
-Printed 12/28/88	  May 13, 1986				2
+Printed 1/9/94		  May 13, 1986				2
 
 
 
@@ -141,12 +141,12 @@ GETRUSAGE(2)	    UNIX Programmer's Manual	     GETRUSAGE(2)
 		    runnable or because the current process
 		    exceeded its time slice.
 
-NNOOTTEESS
+NOTES
      The numbers _r_u__i_n_b_l_o_c_k and _r_u__o_u_t_b_l_o_c_k account only for real
      I/O; data supplied by the caching mechanism is charged only
      to the first process to read or write the data.
 
-EERRRROORRSS
+ERRORS
      The possible errors for _g_e_t_r_u_s_a_g_e are:
 
      [EINVAL]	    The _w_h_o parameter is not a valid value.
@@ -155,10 +155,10 @@ EERRRROORRSS
 		    is not in a valid part of the process address
 		    space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      gettimeofday(2), wait(2)
 
-BBUUGGSS
+BUGS
      There is no way to obtain information about a child process
      that has not yet terminated.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 13, 1986				3
+Printed 1/9/94		  May 13, 1986				3
 
 
 

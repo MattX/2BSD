@@ -27,17 +27,13 @@
 #include <stdio.h>
 #include <curses.h>
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 #include "ascebc.h"
 #include "3270.h"
 #include "screen.h"
 
-#ifndef	lint
-static char sccsid[] = "@(#)datastream.c	2.12\t12/16/85";
-#endif	/* lint */
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)datastream.c	2.13\t1/1/94";
+#endif
 
 void EmptyTerminal();
 
@@ -81,7 +77,7 @@ StartScreen()
     struct sgttyb ourttyb;
     static int speeds[] = { 0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800,
 		2400, 4800, 9600 };
-#ifndef BSD2_10
+#ifndef pdp11
     static char KSEbuffer[2050];
 #else
     static char KSEbuffer[512];

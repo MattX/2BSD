@@ -4,10 +4,10 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)setjmp.s	1.3 (Berkeley) 1/6/87\0>
+#if	defined(LIBC_SCCS) && !defined(lint)
+	<@(#)setjmp.s	1.4 (2.11BSD GTE) 1/1/94\0>
 	.even
-#endif LIBC_SCCS
+#endif
 
 /*
  * val = setjmp(env)
@@ -59,9 +59,8 @@ ENTRY(setjmp)
 
 SC_FP	= 8.			/ offset of sc_fp in sigcontext
 SC_R0	= 12.			/ offset of sc_r0 in sigcontext
-iot	= 4
 
-.globl	rollback, _sigreturn, __ljerr
+.globl	rollback, _sigreturn, _longjmperror
 ENTRY(longjmp)
 	mov	2(sp),r1	/ r1 = env
 	mov	SC_FP(r1),r0	/ r0 = env->sc_fp
@@ -73,5 +72,5 @@ ENTRY(longjmp)
 	mov	r0,SC_R0(r1)	/ env->sc_r0 = r0 (`return' val)
 	mov	2(sp),-(sp)	/ push env
 	jsr	pc,_sigreturn	/ perform sigreturn(env)
-	jsr	pc,__ljerr	/ if sigreturn returns, it's an error
+	jsr	pc,_longjmperror / if sigreturn returns, it's an error
 	iot			/ and die if longjmperror returns

@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)conf.c	5.14 (Berkeley) 1/10/86";
+static char	SccsId[] = "@(#)conf.c	5.14.2 (2.11BSD GTE) 7/15/94";
 #endif
 
 # include <pwd.h>
@@ -101,10 +101,10 @@ struct hdrinfo	HdrInfo[] =
 **  ARPANET error message numbers.
 */
 
-char	Arpa_Info[] =		"050";	/* arbitrary info */
-char	Arpa_TSyserr[] =	"451";	/* some (transient) system error */
-char	Arpa_PSyserr[] =	"554";	/* some (permanent) system error */
-char	Arpa_Usrerr[] =		"554";	/* some (fatal) user error */
+char	*Arpa_Info =		"050";	/* arbitrary info */
+char	*Arpa_TSyserr =		"451";	/* some (transient) system error */
+char	*Arpa_PSyserr =		"554";	/* some (permanent) system error */
+char	*Arpa_Usrerr =		"554";	/* some (fatal) user error */
 
 
 
@@ -498,40 +498,6 @@ checkcompat(to)
 	return (TRUE);
 }
 /*
-**  HOLDSIGS -- arrange to hold all signals
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		Arranges that signals are held.
-*/
-
-holdsigs()
-{
-}
-/*
-**  RLSESIGS -- arrange to release all signals
-**
-**	This undoes the effect of holdsigs.
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		Arranges that signals are released.
-*/
-
-rlsesigs()
-{
-}
-/*
 **  GETLA -- get the current load average
 **
 **	This code stolen from la.c.
@@ -547,7 +513,7 @@ rlsesigs()
 */
 
 #ifdef VMUNIX
-#ifdef BSD2_10
+#ifdef pdp11
 
 getla()
 {
@@ -557,7 +523,7 @@ getla()
 	return(avenrun[0]);
 }
 
-#else !BSD2_10
+#else
 
 #include <nlist.h>
 
@@ -601,7 +567,7 @@ getla()
 # endif
 }
 
-#endif BSD2_10
+#endif pdp11
 #else VMUNIX
 
 getla()

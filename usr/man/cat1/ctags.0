@@ -5,13 +5,13 @@ CTAGS(1)	    UNIX Programmer's Manual		 CTAGS(1)
 
 
 
-NNAAMMEE
+NAME
      ctags - create a tags file
 
-SSYYNNOOPPSSIISS
-     ccttaaggss [ --BBFFaattuuwwvvxx ] [ --ff _t_a_g_s_f_i_l_e ] name ...
+SYNOPSIS
+     ctags [ -BFatuwvx ] [ -f _t_a_g_s_f_i_l_e ] name ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _C_t_a_g_s makes a tags file for _e_x(1) from the specified C, Pas-
      cal, Fortran, YACC, lex, and lisp sources.  A tags file
      gives the locations of specified objects (in this case func-
@@ -23,28 +23,28 @@ DDEESSCCRRIIPPTTIIOONN
      line, separated by blanks or tabs.  Using the _t_a_g_s file, _e_x
      can quickly find these objects definitions.
 
-     If the --xx flag is given, _c_t_a_g_s produces a list of object
+     If the -x flag is given, _c_t_a_g_s produces a list of object
      names, the line number and file name on which each is
      defined, as well as the text of that line and prints this on
      the standard output.  This is a simple index which can be
      printed out as an off-line readable function index.
 
-     If the --vv flag is given, an index of the form expected by
+     If the -v flag is given, an index of the form expected by
      _v_g_r_i_n_d(1) is produced on the standard output.  This listing
      contains the function name, file name, and page number
      (assuming 64 line pages).	Since the output will be sorted
      into lexicographic order, it may be desired to run the out-
-     put through ssoorrtt --ff.  Sample use:
+     put through sort -f.  Sample use:
 	  ctags -v files | sort -f > index
 	  vgrind -x index
 
      Normally _c_t_a_g_s places the tag descriptions in a file called
-     _t_a_g_s; this may be overridden with the --ff option.
+     _t_a_g_s; this may be overridden with the -f option.
 
-     Files whose names end in ..cc or ..hh are assumed to be C source
+     Files whose names end in .c or .h are assumed to be C source
      files and are searched for C routine and macro definitions.
-     Files whose names end in ..yy are assumed to be YACC source
-     files.  Files whose names end in ..ll are assumed to be either
+     Files whose names end in .y are assumed to be YACC source
+     files.  Files whose names end in .l are assumed to be either
      lisp files if their first non-blank character is `;', `(',
      or `[', or lex files otherwise.  Other files are first exam-
      ined to see if they contain any Pascal or Fortran routine
@@ -53,14 +53,14 @@ DDEESSCCRRIIPPTTIIOONN
 
      Other options are:
 
-     --FF   use forward searching patterns (/.../) (default).
+     -F   use forward searching patterns (/.../) (default).
 
-     --BB   use backward searching patterns (?...?).
-
-
+     -B   use backward searching patterns (?...?).
 
 
-Printed 12/28/88	  May 30, 1985				1
+
+
+Printed 1/9/94		  May 30, 1985				1
 
 
 
@@ -71,13 +71,13 @@ CTAGS(1)	    UNIX Programmer's Manual		 CTAGS(1)
 
 
 
-     --aa   append to tags file.
+     -a   append to tags file.
 
-     --tt   create tags for typedefs.
+     -t   create tags for typedefs.
 
-     --ww   suppressing warning diagnostics.
+     -w   suppressing warning diagnostics.
 
-     --uu   causing the specified files to be _u_p_d_a_t_e_d in tags, that
+     -u   causing the specified files to be _u_p_d_a_t_e_d in tags, that
 	  is, all references to them are deleted, and the new
 	  values are appended to the file.  (Beware: this option
 	  is implemented in a way which is rather slow; it is
@@ -89,19 +89,19 @@ CTAGS(1)	    UNIX Programmer's Manual		 CTAGS(1)
      components also removed.  This makes use of _c_t_a_g_s practical
      in directories with more than one program.
 
-FFIILLEESS
+FILES
      tags      output tags file
 
-SSEEEE AALLSSOO
+SEE ALSO
      ex(1), vi(1)
 
-AAUUTTHHOORR
+AUTHOR
      Ken Arnold; FORTRAN added by Jim Kleckner; Bill Joy added
-     Pascal and --xx,, replacing _c_x_r_e_f; C typedefs added by Ed
+     Pascal and -x, replacing _c_x_r_e_f; C typedefs added by Ed
      Pelegri-Llopart.
 
-BBUUGGSS
-     Recognition of ffuunnccttiioonnss, ssuubbrroouuttiinneess and pprroocceedduurreess for
+BUGS
+     Recognition of functions, subroutines and procedures for
      FORTRAN and Pascal is done is a very simpleminded way.  No
      attempt is made to deal with block structure; if you have
      two Pascal procedures in different blocks with the same name
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 30, 1985				2
+Printed 1/9/94		  May 30, 1985				2
 
 
 

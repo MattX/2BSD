@@ -5,18 +5,18 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
 
 
 
-NNAAMMEE
+NAME
      mount, umount - mount or remove file system
 
-SSYYNNOOPPSSIISS
-     mmoouunntt((ssppeecciiaall,, nnaammee,, rrwwffllaagg))
-     cchhaarr **ssppeecciiaall,, **nnaammee;;
-     iinntt rrwwffllaagg;;
+SYNOPSIS
+     mount(special, name, rwflag)
+     char *special, *name;
+     int rwflag;
 
-     uummoouunntt((ssppeecciiaall))
-     cchhaarr **ssppeecciiaall;;
+     umount(special)
+     char *special;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_o_u_n_t announces to the system that a removable file system
      has been mounted on the block-structured special file _s_p_e_-
      _c_i_a_l; from now on, references to file _n_a_m_e will refer to the
@@ -38,7 +38,7 @@ DDEESSCCRRIIPPTTIIOONN
      longer to contain a removable file system.  The associated
      file reverts to its ordinary interpretation.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      _M_o_u_n_t returns 0 if the action occurred, -1 if _s_p_e_c_i_a_l is
      inaccessible or not an appropriate file, if _n_a_m_e does not
      exist, if _s_p_e_c_i_a_l is already mounted, if _n_a_m_e is in use, or
@@ -49,7 +49,7 @@ RREETTUURRNN VVAALLUUEE
      system, or if there are active files in the mounted file
      system.
 
-EERRRROORRSS
+ERRORS
      _M_o_u_n_t will fail when one of the following occurs:
 
      [ENAMETOOLONG] A component of either pathname exceeded 255
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -126,7 +126,7 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 
@@ -160,10 +160,10 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
      [EFAULT]	    _S_p_e_c_i_a_l points outside the process's allo-
 		    cated address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      mount(8), umount(8)
 
-BBUUGGSS
+BUGS
      Some of the error codes need translation to more obvious
      messages.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 26, 1985			3
+Printed 1/9/94		 August 26, 1985			3
 
 
 

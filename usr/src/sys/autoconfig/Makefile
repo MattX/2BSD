@@ -2,23 +2,19 @@
 # Makefile for the system autoconfiguration program
 #
 DESTDIR=
-N=	../pdpif
-M=	../machine
-D=	../pdpuba
 
 OBJS=	attach.o do_config.o main.o read_dtab.o read_nlist.o uprobe.o	\
 	brauto.o cnauto.o dhauto.o dhuauto.o drauto.o dzauto.o		\
 	hkauto.o htauto.o lpauto.o raauto.o rkauto.o rlauto.o siauto.o	\
-	tmauto.o tsauto.o xpauto.o rxauto.o dnauto.o
+	tmauto.o tsauto.o xpauto.o rxauto.o dnauto.o tmsauto.o dhvauto.o
 SRCS=	attach.c do_config.c main.c read_dtab.c read_nlist.c uprobe.c	\
-	${D}/brauto.c ${M}/cnauto.c ${D}/dhauto.c ${D}/dhuauto.c	\
-	${D}/drauto.c ${D}/dzauto.c ${D}/hkauto.c ${D}/htauto.c		\
-	${D}/lpauto.c ${D}/raauto.c ${D}/rkauto.c ${D}/rlauto.c		\
-	${D}/siauto.c ${D}/tmauto.c ${D}/tsauto.c ${D}/xpauto.c		\
-	${D}/rxauto.c ${D}/dnauto.c
+	brauto.c cnauto.c dhauto.c dhuauto.c	\
+	drauto.c dzauto.c hkauto.c htauto.c		\
+	lpauto.c raauto.c rkauto.c rlauto.c		\
+	siauto.c tmauto.c tsauto.c xpauto.c		\
+	rxauto.c dnauto.c tmsauto.c dhvauto.c
 
-VPATH=	.:../pdpif:../machine:../pdpuba
-CFLAGS=	-O -I. -I../h
+CFLAGS=	-O -I. -I../h -I../pdpuba -I../pdp
 LFLAG=	-i
 
 autoconfig: ${OBJS}

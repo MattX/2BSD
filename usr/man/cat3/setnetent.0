@@ -5,28 +5,28 @@ GETNETENT(3N)	    UNIX Programmer's Manual	    GETNETENT(3N)
 
 
 
-NNAAMMEE
+NAME
      getnetent, getnetbyaddr, getnetbyname, setnetent, endnetent
      - get network entry
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<nneettddbb..hh>>
+SYNOPSIS
+     #include <netdb.h>
 
-     ssttrruucctt nneetteenntt **ggeettnneetteenntt(())
+     struct netent *getnetent()
 
-     ssttrruucctt nneetteenntt **ggeettnneettbbyynnaammee((nnaammee))
-     cchhaarr **nnaammee;;
+     struct netent *getnetbyname(name)
+     char *name;
 
-     ssttrruucctt nneetteenntt **ggeettnneettbbyyaaddddrr((nneett,, ttyyppee))
-     lloonngg nneett;;
-     iinntt ttyyppee;;
+     struct netent *getnetbyaddr(net, type)
+     long net;
+     int type;
 
-     sseettnneetteenntt((ssttaayyooppeenn))
-     iinntt ssttaayyooppeenn;;
+     setnetent(stayopen)
+     int stayopen;
 
-     eennddnneetteenntt(())
+     endnetent()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_n_e_t_e_n_t, _g_e_t_n_e_t_b_y_n_a_m_e, and _g_e_t_n_e_t_b_y_a_d_d_r each return a
      pointer to an object with the following structure containing
      the broken-out fields of a line in the network data base,
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 19, 1986				1
+Printed 1/9/94		  May 19, 1986				1
 
 
 
@@ -80,16 +80,16 @@ GETNETENT(3N)	    UNIX Programmer's Manual	    GETNETENT(3N)
      address and type is found,  or  until  EOF  is  encountered.
      Network numbers are supplied in host order.
 
-FFIILLEESS
+FILES
      /etc/networks
 
-SSEEEE AALLSSOO
+SEE ALSO
      networks(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Null pointer (0) returned on EOF or error.
 
-BBUUGGSS
+BUGS
      All information is contained in a static area so it must  be
      copied  if it is to be saved.  Only Internet network numbers
      are currently understood.	Expecting network numbers to  fit
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 19, 1986				2
+Printed 1/9/94		  May 19, 1986				2
 
 
 

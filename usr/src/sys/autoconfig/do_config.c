@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)do_config.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)do_config.c	2.1 (2.11BSD GTE) 12/30/92
  */
 
 /*
@@ -22,23 +22,19 @@
 #include "dtab.h"
 #include "ivec.h"
 
-extern int	kmem, verbose, debug, errno, complain;
-extern NLIST	*bad_nl, *good_nl, *int_nl, *end_vector, *trap_nl, *sep_nl;
+extern	int	kmem, verbose, debug, errno, complain;
+extern	NLIST	*bad_nl, *good_nl, *int_nl, *end_vector, *trap_nl, *sep_nl;
+extern	NLIST	*next_nl;
 
 grab(where)
 u_int	where;
 {
 	int	var;
 
-	if (debug) {
-		char line[80];
-
-		printf("Grab %o =",where);
-		scanf("%o",&var);
-		return(var);
-	}
 	lseek(kmem,((long) where) & 0xffffL,0);
 	read(kmem,&var,sizeof(var));
+	if (debug)
+		printf("Grab %o = %o",where, var);
 	return(var);
 }
 
@@ -117,7 +113,6 @@ auto_config()
 				prdev(dp);
 				puts(" skipped:  No CSR.");
 			}
-			detach(dp);
 			continue;
 		}			/* Ok, try a probe now */
 		if (expect_intr(dp)) {
@@ -125,10 +120,9 @@ auto_config()
 				prdev(dp);
 				puts(" interrupt vector already in use.");
 			}
-			detach(dp);
 			continue;
 		}
-		ret = do_probe(dp, dp->dt_addr);
+		ret = do_probe(dp);
 		clear_vec(dp);
 		switch (ret) {
 			case ACP_NXDEV:
@@ -136,7 +130,6 @@ auto_config()
 					prdev(dp);
 					puts(" does not exist.");
 				}
-				detach(dp);
 				break;
 			case ACP_IFINTR:
 				switch (intval()) {
@@ -145,14 +138,12 @@ auto_config()
 							prdev(dp);
 							puts(" interrupt vector wrong.");
 						}
-						detach(dp);
 						break;
 					case ACI_NOINTR:
 						if (complain) {
 							prdev(dp);
 							puts(" didn't interrupt.");
 						}
-						detach(dp);
 						break;
 					case ACI_GOODINTR:
 						attach(dp);
@@ -205,9 +196,50 @@ expect_intr(dp)
 DTAB	*dp;
 {
 	HAND	*hp;
-	int addr;
+	register int	addr = dp->dt_vector;
 
-	addr = dp->dt_vector;
+/*
+ * A vector of 0 has special meaning for devices which support programmable
+ * (settable) vectors.  If a xxVec() entry point is present in the driver and
+ * /etc/dtab has a value of 0 for the vector then 'autoconfig' will allocate
+ * one by calling the kernel routine 'nextiv'.
+ *
+ * If multiple handlers are declared for a device (at present there are no 
+ * progammable vector devices with more than 1 handler) the vector passed 
+ * to the driver will be the lowest one (the first handle corresponds to 
+ * the lowest vector).
+*/
+	if (!addr) {
+		if (dp->dt_setvec == 0) {
+			prdev(dp);
+			printf(" vector = 0, %sVec undefined\n", dp->dt_name);
+			return(1);
+		}
+/*
+ * Now count the number of vectors needed.  This has the side effect of
+ * allocating the vectors even if an error occurs later.  At the end of
+ * the scan the last vector assigned will be the lowest one.  In order to
+ * assure adjacency of multiple vectors BR7 is used in the call to the 
+ * kernel and it is assumed that at this point in the system's life 
+ * nothing else is allocating vectors (the networking has already grabbed the
+ * ones it needs by the time autoconfig is run).
+*/
+		for (hp = dp->dt_handlers; hp; hp = hp->s_next) {
+			addr = ucall(PSL_BR7, next_nl->n_value, 0, 0);
+			if (addr <= 0) {
+				printf("'nextiv' error for %s\n",
+					dp->dt_name);
+				return(1);
+			}
+		}
+/*
+ * Now set the lowest vector allocated into the device entry for further
+ * processing.  From this point on the vector will behave just as if it
+ * had been read from /etc/dtab.
+*/
+		dp->dt_vector = addr;
+	}
+
 	for (save_p = 0, hp = (HAND *)dp->dt_handlers;hp;hp = hp->s_next) {
 		save_vec[save_p][1] = grab(addr + sizeof(int));
 		if (((save_vec[save_p][0] = grab(addr)) != bad_nl->n_value)
@@ -216,7 +248,7 @@ DTAB	*dp;
 			clear_vec(dp);
 			return 1;
 		}
-		save_p ++;
+		save_p++;
 		write_vector(addr, good_nl->n_value, PSL_BR7);
 		addr += IVSIZE;
 	}
@@ -247,9 +279,8 @@ init_lowcore(val)
 	}
 }
 
-do_probe(dp, a1)
+do_probe(dp)
 register DTAB	*dp;
-int a1;
 {
 	int func;
 	int ret;
@@ -259,7 +290,7 @@ int a1;
 		char line[80];
 
 		if (func)
-			printf("ucall %o(PSL_BR0, %o, 0):", func, a1);
+			printf("ucall %o(PSL_BR0, %o, 0):", func, dp->dt_addr);
 		else
 			printf("probe %s:", dp->dt_name);
 		fputs(" return conf_int:",stdout);
@@ -270,16 +301,17 @@ int a1;
 	stuff(0, int_nl->n_value);	/* Clear conf_int */
 	/*
 	 * use the kernel's probe routine if it exists,
-	 * otherwise use our internal probe.
+	 * otherwise use our internal probe.  Pass it the first (lowest)
+	 * vector assigned to the device.
 	 */
 	if (func) {
 		errno = 0;
-		ret = ucall(PSL_BR0, func, a1, 0);
+		ret = ucall(PSL_BR0, func, dp->dt_addr, dp->dt_vector);
 		if (errno)
 			perror("ucall");
 		return(ret);
 	}
-	return((*(dp->dt_uprobe))(a1));
+	return((*(dp->dt_uprobe))(dp->dt_addr,  dp->dt_vector));
 }
 
 set_unused()

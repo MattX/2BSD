@@ -3,20 +3,14 @@
 # All rights reserved.  The Berkeley Software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3 (Berkeley) 3/29/86
+#	@(#)Makefile	5.3.1 (2.11BSD GTE) 4/9/94
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
 #
 # To profile, put -DPROF in DEFS and -pg in CFLAGS, and recompile.
-#
-# 2.10BSD does have limits, but including them in the csh doesn't really give
-# you that much (at least I've never used them) and forces us to set up
-# overlays for the separate I&D processor which makes the csh slower.  If you
-# really want to have limits in the csh, feel free to take NOLIMITS out of the
-# defines - but you'll have to set up an overlay scheme.
 
-DEFS=	-DTELL -DVFORK -DFILEC -DNOLIMITS
+DEFS=	-DTELL -DVFORK -DFILEC
 CFLAGS=	$(DEFS) -O
 SEPFLAG=-i
 XSTR=	/usr/ucb/xstr
@@ -25,15 +19,20 @@ RM=	-rm
 CXREF=	/usr/ucb/cxref
 VGRIND=	/usr/ucb/vgrind
 CTAGS=	/usr/ucb/ctags
-LIBES=
+LIBES=  /lib/libc.a
 SCCS=	sccs
 CPP=	/lib/cpp
 SED=	sed
 
-OBJS=	alloc11.o doprnt11.o printf.o sh.o sh.char.o sh.dir.o sh.dol.o \
-	sh.err.o sh.exec.o sh.exp.o sh.file.o sh.func.o sh.glob.o sh.hist.o \
+BASE=	alloc11.o doprnt11.o printf.o sh.char.o sh.dir.o sh.dol.o \
+	sh.err.o sh.exp.o sh.file.o sh.func.o sh.glob.o sh.hist.o \
 	sh.init.o sh.lex.o sh.misc.o sh.parse.o sh.print.o sh.proc.o sh.sem.o \
-	sh.set.o sh.time.o
+	sh.set.o
+OV1= 	sh.o sh.exec.o sh.time.o
+
+OBJS=	${BASE} ${OV1}
+
+LIBOBJS= ndbm.o getpwent.o
 
 # Special massaging of C files for sharing of strings
 .c.o:
@@ -44,21 +43,19 @@ OBJS=	alloc11.o doprnt11.o printf.o sh.o sh.char.o sh.dir.o sh.dol.o \
 
 # strings.o must be last since it can change when previous files compile
 csh: ${OBJS} strings.o
+	ar x /lib/libc.a ${LIBOBJS}
 	rm -f csh
-	-if [ X${SEPFLAG} = X-i ]; then \
-		${CC} ${SEPFLAG} ${CFLAGS} ${OBJS} strings.o -o csh ${LIBES}; \
-	else \
-		@echo "needs overlay scheme"; \
-	fi
+	/bin/ld ${SEPFLAG} /lib/crt0.o ${BASE} \
+		-Z ${OV1} \
+		-Z ${LIBOBJS} \
+		-Y strings.o -o csh ${LIBES};
 
 .DEFAULT:
 	${SCCS} get $<
 
 # need an old doprnt, whose output we can trap
 doprnt11.o: doprnt11.s
-	${CPP} doprnt11.s | ${SED} '/^#/d' >x.i
-	${AS} -o doprnt11.o x.i
-	rm -f x.i
+	${CPP} doprnt11.s | ${SED} '/^#/d' | ${AS} -o doprnt11.o
 
 strings.o: strings
 	${XSTR}

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)edquota.c 5.3 (Berkeley) 11/4/85";
-#endif not lint
+static char sccsid[] = "@(#)edquota.c 5.3.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Disk quota editor.
@@ -171,7 +169,7 @@ getprivs(uid)
 		if (*dqf[i] == '\0')
 			continue;
 		fprintf(fd,
-#ifdef BSD2_10
+#ifdef pdp11
 "fs %s blocks (soft = %ld, hard = %ld) inodes (soft = %u, hard = %u)\n"
 			, dqf[i]
 			, dq[i].dq_bsoftlimit
@@ -221,7 +219,7 @@ putprivs(uid)
 			cp++;
 		strcpy(dqf[i], dp);
 		n = sscanf(cp,
-#ifdef BSD2_10
+#ifdef pdp11
 "blocks (soft = %ld, hard = %ld) inodes (soft = %u, hard = %u)\n"
 #else
 "blocks (soft = %d, hard = %d) inodes (soft = %hd, hard = %hd)\n"
@@ -235,7 +233,7 @@ putprivs(uid)
 			fprintf(stderr, "%s: bad format\n", cp);
 			continue;
 		}
-#ifndef BSD2_10
+#ifndef pdp11
 		dq[i].dq_bsoftlimit = btodb(dq[i].dq_bsoftlimit * 1024);
 		dq[i].dq_bhardlimit = btodb(dq[i].dq_bhardlimit * 1024);
 #endif
@@ -367,7 +365,7 @@ getdiscq(uid, dq, dqf)
 				break;
 
 			case sizeof dqblk:	/* OK */
-#ifdef BSD2_10
+#ifdef pdp11
 				/*
 				 * we have to convert from bytes to disc blocks
 				 * because the quotas file entries use bytes
@@ -404,7 +402,7 @@ putdiscq(uid, dq, dqf)
 	register fd, cnt;
 	struct stat sb;
 	struct fstab *fs;
-#ifdef BSD2_10
+#ifdef pdp11
 	struct dqblk *du;
 #endif
 
@@ -423,7 +421,7 @@ putdiscq(uid, dq, dqf)
 			perror(*dqf);
 		} else {
 			lseek(fd, (long)uid * (long)sizeof (struct dqblk), 0);
-#ifdef BSD2_10
+#ifdef pdp11
 			/*
 			 * have to write bytes not disc blocks to the quotas
 			 * file.

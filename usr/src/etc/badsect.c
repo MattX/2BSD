@@ -7,8 +7,13 @@
  * are not part of the bad file for the pack (see bad144).  For instance,
  * this program can be used if the driver for the file system in question
  * does not support bad block forwarding.
+ *
+ * Bugfix 930802 by Johnny Billquist
+ * Sanity check on sector number August 10,1993 by Steven Schultz
  */
+#include <stdio.h>
 #include <sys/param.h>
+#include <sys/inode.h>
 
 long	atol();
 
@@ -17,11 +22,18 @@ main(argc, argv)
 	char **argv;
 {
 	char nambuf[32];
+	long sector;
 	int errs = 0;
 
 	--argc, argv++;
 	while (argc > 0) {
-		if (mknod(*argv, 0, (u_short)(atol(*argv) / CLSIZE)))
+		sector = atol(*argv);
+		if (sector <= 0 || sector > 131071L) {
+			fprintf(stderr, "Sector %s <= 0 or > 131071\n",
+				*argv);
+			continue;
+		}
+		if (mknod(*argv, IFMT, (u_short)(sector / CLSIZE)))
 			perror("mknod"), errs++;
 		argc--, argv++;
 	}

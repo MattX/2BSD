@@ -7,7 +7,7 @@ SEPFLAG= -i
 calendar: calendar.c
 	${CC} ${CFLAGS} ${SEPFLAG} -o calendar calendar.c
 
-install:
+install: calendar calendar.sh
 	install -s calendar $(DESTDIR)/usr/lib
 	install -c -m 755 calendar.sh $(DESTDIR)/usr/bin/calendar
 

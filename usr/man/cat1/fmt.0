@@ -5,13 +5,13 @@ FMT(1)		    UNIX Programmer's Manual		   FMT(1)
 
 
 
-NNAAMMEE
+NAME
      fmt - simple text formatter
 
-SSYYNNOOPPSSIISS
-     ffmmtt [ name ...  ]
+SYNOPSIS
+     fmt [ name ...  ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_m_t is a simple text formatter which reads the concatenation
      of input files (or standard input if none are given) and
      produces on standard output a version of its input with
@@ -25,13 +25,13 @@ DDEESSCCRRIIPPTTIIOONN
 	  !}fmt
      will reformat a paragraph, evening the lines.
 
-SSEEEE AALLSSOO
+SEE ALSO
      nroff(1), mail(1)
 
-AAUUTTHHOORR
+AUTHOR
      Kurt Shoens
 
-BBUUGGSS
+BUGS
      The program was designed to be simple and fast - for more
      complex operations, the standard text processors are likely
      to be more appropriate.
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

@@ -1,4 +1,6 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)alloc.c 4.1 10/9/80";
+#endif
 
 #include "sh.local.h"
 #ifdef debug

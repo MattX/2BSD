@@ -1,63 +1,100 @@
 #
-# Copyright (c) 1983,1986 Regents of the University of California.
+# Copyright (c) 1980 Regents of the University of California.
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.install	5.3 (Berkeley) 10/13/86
+#	@(#)Makefile	5.16 (2.11BSD GTE) 10/21/93
 #
-# Makefile for /usr/include, used to convert system include subdirectories
-# between symbolic links and copies of kernel headers.
-# May also be used to update copies from kernel header files.
+# Doing a make install builds /usr/include
+#
+# Define SHARED to indicate whether you want
+# symbolic links to the system source (``symlinks''),
+# or a separate copy (``copies'').
+# (latter useful in environments where it's
+# not possible to keep /sys publicly readable)
 #
 # The ``rm -rf''s used below are safe because rm doesn't
 # follow symbolic links.
 #
 DESTDIR=
-#ifdef vax
-#MACHINE=vax
-#MACHDEP=${MACHINE} vaxif vaxmba vaxuba
-#endif
+TOPDIR=
+SUBDIRS=arpa pascal protocols OLD
+STD=	a.out.h ar.h assert.h ctype.h curses.h disktab.h fcntl.h \
+	fstab.h grp.h lastlog.h math.h memory.h mp.h mtab.h ndbm.h \
+	netdb.h nlist.h pcc.h pwd.h ranlib.h resolv.h setjmp.h \
+	sgtty.h short_names.h stab.h stdio.h string.h strings.h \
+	struct.h syscall.h sysexits.h time.h ttyent.h tzfile.h utmp.h \
+	varargs.h vfont.h vmf.h
+LINKS=	errno.h signal.h syslog.h
 MACHINE=pdp
-MACHDEP=${MACHINE} pdpmba pdpuba stand vaxif vaxuba
+MACHDEP=${MACHINE} pdpif pdpuba pdpmba vaxuba
 NETDIRS=net netimp netinet netns netpup
 SYSDIRS=${NETDIRS} ${MACHDEP}
-SYS=/sys
+SHARED=	symlinks
+TAGSFILE=tags
 
 all:
-	@echo "\"make symlinks\", \"make copies\", or \"make update\" only"
-	@false
+
+install: ${SHARED}
+	-for i in ${STD}; do \
+		cmp -s $$i ${DESTDIR}/usr/include/$$i || \
+		    install -c -m 444 $$i ${DESTDIR}/usr/include/$$i; \
+	done
+	-for i in ${SUBDIRS}; do \
+		if [ ! -d ${DESTDIR}/usr/include/$$i ]; \
+		then \
+			mkdir ${DESTDIR}/usr/include/$$i; \
+		fi; \
+		(cd $$i; for j in *.[ih]; do \
+			cmp -s $$j ${DESTDIR}/usr/include/$$i/$$j || \
+			install -c -m 444 $$j ${DESTDIR}/usr/include/$$i/$$j; \
+		done); \
+	done
+	-cmp -s Makefile.install ${DESTDIR}/usr/include/Makefile || \
+	    install -c -m 444 Makefile.install ${DESTDIR}/usr/include/Makefile
+	-for i in ${LINKS}; do \
+		rm -f ${DESTDIR}/usr/include/$$i; \
+		ln -s sys/$$i ${DESTDIR}/usr/include/$$i; \
+	done
+	rm -f ${DESTDIR}/usr/include/machine
+	ln -s ./${MACHINE} ${DESTDIR}/usr/include/machine
+	rm -f ${DESTDIR}/usr/include/frame.h
+	ln -s machine/frame.h ${DESTDIR}/usr/include/frame.h
 
 symlinks:
-	for i in ${SYSDIRS}; do \
-		rm -rf $$i; \
-		ln -s ${SYS}/$$i $$i; \
+	-for i in ${SYSDIRS}; do \
+		rm -rf ${DESTDIR}/usr/include/$$i; \
+		if [ ! -s ${DESTDIR}/usr/include/$$i ]; \
+		then \
+			ln -s ${TOPDIR}/sys/$$i ${DESTDIR}/usr/include/$$i; \
+		else \
+			echo ${DESTDIR}/usr/include/$$i not removed; \
+		fi; \
 	done
-	rm -rf sys
-	ln -s ${SYS}/h sys
+	rm -rf ${DESTDIR}/usr/include/sys
+	-if [ ! -s ${DESTDIR}/usr/include/sys ]; \
+	then \
+		ln -s ${TOPDIR}/sys/h ${DESTDIR}/usr/include/sys; \
+	else \
+		echo ${DESTDIR}/usr/include/sys not removed; \
+	fi
 
 copies:
 	-for i in ${SYSDIRS}; do \
-		rm -rf $$i; \
-		(cd ${SYS}; tar cf - $$i/*.h) | tar xpfB -; \
+		rm -rf ${DESTDIR}/usr/include/$$i; \
+		cd /sys; \
+		tar cf - $$i/*.h | (cd ${DESTDIR}/usr/include; tar xpfB -); \
 	done
-	rm -rf sys;
-	mkdir sys; 
-	chmod 775 sys;
-	-(cd ${SYS}/h; tar cf - *.h) | (cd sys; tar xpfB -)
+	rm -rf ${DESTDIR}/usr/include/sys;
+	mkdir ${DESTDIR}/usr/include/sys; 
+	chmod 775 ${DESTDIR}/usr/include/sys;
+	-(cd /sys/h; tar cf - *.h | (cd ${DESTDIR}/usr/include/sys; tar xpfB -))
 
-update:
-	-for i in ${SYSDIRS}; do \
-		if [ ! -d $$i ]; \
-		then \
-			mkdir $$i; \
-		fi; \
-		for j in `cd ${SYS}/$$i; echo *.[ih]`; do \
-			cmp -s ${SYS}/$$i/$$j $$i/$$j || \
-			install -c -m 444 ${SYS}/$$i/$$j $$i/$$j; \
-		done; \
+tags:
+	cwd=/usr/include; \
+	for i in ${STD} ${LINKS}; do \
+		ctags -a -f ${TAGSFILE} $$cwd/$$i; \
 	done
-	for j in `cd ${SYS}/h; echo *.[ih]`; do \
-		cmp -s ${SYS}/h/$$j sys/$$j || \
-		{ echo "install -c -m 444 ${SYS}/h/$$j sys/$$j"; \
-		install -c -m 444 ${SYS}/h/$$j sys/$$j; } \
-	done;
+
+clean:
+	rm -f tags

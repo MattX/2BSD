@@ -1,4 +1,7 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)dumpoptr.c	1.4 (Berkeley) 12/17/80";
+#endif
+
 #include "dump.h"
 
 struct	group *getgrnam();

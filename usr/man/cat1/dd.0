@@ -5,13 +5,13 @@ DD(1)		    UNIX Programmer's Manual		    DD(1)
 
 
 
-NNAAMMEE
+NAME
      dd - convert and copy a file
 
-SSYYNNOOPPSSIISS
-     dddd [option=value] ...
+SYNOPSIS
+     dd [option=value] ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_d copies the specified input file to the specified output
      with possible conversions.  The standard input and output
      are used by default.  The input and output block size may be
@@ -49,9 +49,9 @@ DDEESSCCRRIIPPTTIIOONN
 	  ... , ... several comma-separated conversions
 
      Where sizes are specified, a number of bytes is expected.	A
-     number may end with kk,, bb or ww to specify multiplication by
+     number may end with k, b or w to specify multiplication by
      1024, 512, or 2 respectively; a pair of numbers may be
-     separated by xx to indicate a product.
+     separated by x to indicate a product.
 
      _C_b_s is used only if _a_s_c_i_i, _u_n_b_l_o_c_k, _e_b_c_d_i_c, _i_b_m, or _b_l_o_c_k
      conversion is specified.  In the first two cases, _c_b_s char-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 
@@ -89,14 +89,14 @@ DD(1)		    UNIX Programmer's Manual		    DD(1)
      on the raw physical devices because it allows reading and
      writing in arbitrary record sizes.
 
-SSEEEE AALLSSOO
+SEE ALSO
      cp(1), tr(1)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      f+p records in(out): numbers of full and partial records
      read(written)
 
-BBUUGGSS
+BUGS
      The ASCII/EBCDIC conversion tables are taken from the 256
      character standard in the CACM Nov, 1968.	The `ibm' conver-
      sion, while less blessed as a standard, corresponds better
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         2
+Printed 1/9/94		 April 29, 1985                         2
 
 
 

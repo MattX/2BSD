@@ -32,7 +32,7 @@ clean: FRC
 depend: FRC
 	mkdep ${CFLAGS} ${SRCS} lcount.c lrntee.c
 
-install: FRC
+install: all
 	install -c -s -m 755 learn ${DESTDIR}/usr/bin/learn
 	install -s -m 755 learn ${LLIB}/learn
 	install -s -m 755 lrntee ${LLIB}/lrntee

@@ -1,4 +1,4 @@
-# Machine configuration file for 2.10BSD distributed kernel.
+# Machine configuration file for 2.11BSD distributed kernel.
 #
 # Format:
 #	name	value		comments
@@ -12,82 +12,18 @@
 #########################################
 
 # Machine type
-# 2.10 runs on:
-#	11/24/34/44/53/60/70/73/83/84
-#	11/23/35/40/45/50/55 with 18 or 22 bit addressing
-# 2.10 WILL NOT run on:
-#	T11, 11/03/04/05/10/15/20/21
-#	11/23/35/40/45/50/55 with 16 bit addressing
-# 2.10 networking will run on:
-#	11/44/53/70/73/83/84
-#	11/45/50/55 with 18 bit addressing
-#
-# Any QBUS machine using an ABLE Microverter should be treated as
-# if it were an 11/70.
-#
-# You should also make a point of having both floating point hardware and
-# at least a megabyte of memory, if possible.  They aren't that expensive,
-# and they make a big difference.
-#
-# Including UNIBUS map support for machines without a UNIBUS will not cause
-# a kernel to die.  It simply includes code to support UNIBUS mapping if
-# present.
-
-# The define UNIBUS_MAP implements kernel support for UNIBUS mapped
-# machines.  However, a kernel compiled with UNIBUS_MAP does *not* have to
-# be run on a UNIBUS machine.  The define simply includes support for UNIBUS
-# mapping if the kernel finds itself on a machine with UNIBUS mapping.
-UNIBUS_MAP	YES			# include support for UNIBUS mapping
-					# always: 11/44/70/84
-					# sometimes: 11/24
-					# never: 11/23/34/35/40/45/50/53/
-					#	55/60/73/83
-
-# The define Q22 states that the configured system is a 22-bit Q-BUS machine
-# (if UNIBUS mapping isn't found) and no 18-bit DMA disk or tape devices
-# exist.  If Q22 is defined and an 18-bit DMA disk or tape does exist, reads
-# and writes to the raw devices will cause DMA transfers to and from user
-# space which might be above 18-bits (256K) which would cause random
-# sections of memory (probably the kernel) to be overwritten (for reads).
-# An 18-bit DH isn't a problem since it never does DMA to user space and
-# clists (even with UCB_CLIST defined) are never above 18-bits.
-#
-# Note, the Q22 define is only effective if the kernel finds itself on a
-# machine without UNIBUS mapping.  Note also that the presence of UNIBUS
-# mapping is only tested for if UNIBUS_MAP is defined.
-Q22		NO			# 22-bit Qbus with no 18-bit devices
-					# always 11/53/73/83
-					# sometimes: 11/23
-					# never: 11/24/34/35/40/44/50/
-					#	55/60/70/84
-
-# Defining NONFP to NO compiles in support for hardware floating point.
-# However, this doesn't require that floating point hardware be present.
-# Defining NONFP to YES will save you a few hundred bytes of text.
-NONFP		NO			# if no floating point hardware
-
-# Defining FPSIM to YES compiles a floating point simulator into the kernel
-# which will catch floating point instruction traps from user space.  Note
-# that defining FPSIM to YES will only cost you text space.  If you actually
-# have floating point hardware, the simulator just won't be used.  The floating
-# point simulator is automatically compiled in if PDP11 (below) is GENERIC.
-FPSIM		NO			# floating point simulator
+# Split I/D and hardware floating point are required.
+# UNIBUS support is always included, it only cost 1kb of text space and
+# 94 bytes of D space for Qbus systems (obviously Unibus systems incur
+# no penalty).
 
 #LINEHZ		50			# clock frequency European
 LINEHZ		60			# clock frequency USA
 
-# To enable profiling, the :splfix script must be changed to use spl6 instead
-# of spl7 (see conf/:splfix.profile), also, you have to have a machine with a
-# supervisor PAR/PDR pair, i.e. an 11/44/45/50/53/55/70/73/83/84, as well
-# as both a KW11-L and a KW11-P.
-#
-# Note that profiling is not currently working.  We don't have any plans on
-# fixing it, so this is essentially a non-supported feature.
-PROFILE		NO			# system profiling with KW11P clock
-
-# PDP-11 machine type; allowable values are GENERIC, 23, 24, 34, 35, 40,
-# 44, 45, 50, 53, 55, 60, 70, 73, 83, 84.  GENERIC should only be used to
-# build a distribution kernel.
+# PDP-11 machine type; allowable values are GENERIC, 44, 70, 73.  GENERIC 
+# should only be used to build a distribution kernel.  The only use of this
+# option is to select the proper in-line PS instructions (references to the
+# PSW use 'spl', 'mfps/mtps' or 'movb' instructions depending on the cpu type).
 PDP11		GENERIC			# distribution kernel
 #PDP11		44			# PDP-11/44
 #PDP11		70			# PDP-11/70
@@ -131,7 +67,6 @@ DST		1			# Daylight Savings Time (1 or 0)
 PIPEDEV		makedev(10,0)		# makedev(10,0) xp0a
 ROOTDEV		makedev(10,0)		# makedev(10,0) xp0a
 SWAPDEV		makedev(10,1)		# makedev(10,1) xp0b
-SWAPLO		0			# swap start address, normally 0
 
 # DUMPROUTINE indicates which dump routine should be used.  DUMPDEV
 # should be in terms of makedev.  If DUMPDEV is NODEV no automatic
@@ -151,34 +86,13 @@ DUMPROUTINE	nulldev			# no dump routine.
 #DUMPROUTINE	sidump			# si driver dump routine
 #DUMPROUTINE	xpdump			# xp driver dump routine
 
-# NSWAP should be set to the 512-byte block length of the swap device, e.g.
-# 9120 for an RM05 B partition.
-#NSWAP		9405			# dvhp?b or xp?b, DIVA COMP V
-#NSWAP		5940			# hk?a, RK611, RK06/07
-NSWAP		2376			# hk?b, RK611, RK06/07
-#NSWAP		8779			# hp?b or xp?b, RP04/05/06
-#NSWAP		4800			# rm?b or xp?b, RM02/03
-#NSWAP		5200			# rp?b, RP03
-#NSWAP		9120			# xp?b, RM05
-#NSWAP		17300			# rd?b, RD51/52/53
-#NSWAP		3100			# rd?c, RD51/52/53
-#NSWAP		10032			# ra?b, RC25
-#NSWAP		33440			# ra?b, RA60/80
-#NSWAP		10240			# rl?, RL01
-#NSWAP		20480			# rl?, RL02
-
 #########################################
 # KERNEL CONFIGURATION			#
 #########################################
 
 BADSECT		YES			# bad-sector forwarding
-CGL_RTP		YES			# allow one real time process
 EXTERNALITIMES	YES			# external inode times
-SMALL		NO			# smaller inode, buf, sched queues
 UCB_CLIST	YES			# clists moved from kernel data space
-UCB_FRCSWAP	YES			# force swap on expand/fork
-NOKA5		NO			# KA5 not used except for buffers
-					# and clists (_end < 0120000);
 QUOTA		YES			# dynamic file system quotas
 					# NOTE -- *very* expensive
 
@@ -189,14 +103,6 @@ QUOTA		YES			# dynamic file system quotas
 # isn't nearly as bad, and should probably be included, although it's not
 # necessary for anything.
 UCB_METER	YES			# vmstat performance metering
-UCB_RUSAGE	YES			# enable more rusage fields
-
-# If your system is *seriously* short of memory, and you're doing a lot of
-# thrashing, 2.10's implementation of vfork can hurt you.  Otherwise, run
-# with it on.  You do not have to recompile any applications when you change
-# it.  You should also get rid of any local code that uses VIRUS_VFORK to
-# decide whether to call fork or vfork, they should just call vfork.
-VIRUS_VFORK	YES			# include vfork system call
 
 # NBUF is the size of the buffer cache, and is directly related to the UNIBUS
 # mapping registers.  There are 32 total mapping registers, of which 30 are
@@ -212,71 +118,10 @@ VIRUS_VFORK	YES			# include vfork system call
 # should be 20 for GENERIC, so room for kernel + large program to run.
 NBUF		60			# buffer cache, *must* be <= 240
 
-# MAXMEM is the maximum core per process is allowed.  First number
-# is Kb.
-MAXMEM		(200*16)		# 200K max per process ...
-
 # DIAGNOSTIC does various run-time checks, some of which are pretty
 # expensive and at a high priority.  Suggested use is when the kernel
 # is crashing and you don't know why, otherwise run with it off.
 DIAGNOSTIC	YES			# misc. diagnostic loops and checks
-
-# The following entries used to be part of the kernel configuration, and,
-# for various reasons, are no longer modifiable.  They are included here
-# for historical information ONLY.  If "YES", they are always included in
-# the kernel, if "NO", they are never included.
-
-# ACCT			YES		# process accounting
-# DISPLAY		NO		# PDP-11/45/70 display routine
-# INSECURE		NO		# don't clear setuid/gid bits on write
-# INTRLVE		NO		# file system/disk interleaving
-# MENLO_JCL		YES		# job control
-# MENLO_KOV		YES		# kernel uses overlaid call sequence
-# MENLO_OVLY		YES		# support user process text overlays
-# MPX_FILS		NO		# hooks for multiplexed files
-# OLDTTY		YES		# old line discipline
-# RAND_XO		YES		# rand file exclusive open (flock(2))
-# TEXAS_AUTOBAUD	YES		# tty image mode to support autobauding
-# UCB_AUTOBOOT		YES		# system is able to reboot itself
-# UCB_BHASH		YES		# hashed buffer accessing
-# UCB_DBUF		YES		# use one buffer per disk
-# UCB_DEVERR		YES		# print device errors in mnemonics
-# UCB_ECC		YES		# disk drivers should do ECC
-# UCB_FSFIX		YES		# crash resistant filesystems
-# UCB_GRPMAST		NO		# group master accounts
-# UCB_IHASH		YES		# hashed inode table
-# UCB_LOAD		YES		# load average and uptime
-# UCB_LOGIN		NO		# login sys call
-# UCB_NTTY		YES		# new tty driver
-# UCB_PGRP		NO		# count process limit by process group
-# UCB_RENICE		YES		# renice system call (setpriority(2))
-# UCB_SCRIPT		YES		# shell scripts can specify interpreter
-# UCB_SUBM		YES		# "submit" processing (stty(1))
-# UCB_SYMLINKS		YES		# symbolic links
-# UCB_UPRINTF		YES		# send error messages to user
-# UCB_VHANGUP		YES		# revoke control tty access
-# UNFAST		NO		# don't use inline.h macro speedups
-
-# DISKMON has been absorbed into UCB_METER.
-# DISKMON		UCB_METER	# iostat disk monitoring
-
-# BSLOP was a #define in param.c for the TIU/Spider.  It seems that
-# particular printer would DMA a few extra characters for you for free.
-# V7 came with a BSLOP of 2, but it was normally set to 0.  Add the
-# following #defines to param.c, then change all occurrences of BSIZE
-# to bsize.
-#
-#			/* BSLOP can be 0 unless you have a TIU/Spider*/
-#	#define BSLOP	0
-#	int	bsize = BSIZE + BSLOP;		/* size of buffers */
-
-# The UCB_NKB flag requires changes to UNIX boot pgms as well as changes to
-# dump, restore, icheck, dcheck, ncheck, mkfs.  It includes the options
-# previously known as UCB_SMINO (smaller inodes, NADDR = 7) and UCB_MOUNT
-# (multiple superblocks per internal buffer).  It's measured in KB byte
-# system buffers, it's not just a boolean.  If you're not hearing what
-# I'm saying, don't even *think* of changing it.
-# UCB_NKB		1		# "n" KB byte system buffers
 
 #########################################
 # PERIPHERALS: DISK DRIVES		#
@@ -332,7 +177,8 @@ NTS		2		# TS11
 NKL		2		# KL11, DL11
 NDH		2		# DH11; NDH is in units of boards (16 each)
 NDM		2		# DM11; NDM is in units of boards (16 each)
-NDHU		2		# DHU11, DHV11
+NDHU		2		# DHU11
+HDHV		2		# DHV11
 NDZ		2		# DZ11; NDZ is in units of boards (8 each)
 
 #########################################
@@ -347,19 +193,18 @@ NDR		2		# DR11-W
 # PSEUDO DEVICES, PROTOCOLS, NETWORKING	#
 #########################################
 # Networking only works with split I/D and SUPERVISOR space, i.e. with the
-# 11/44/45/50/53/55/70/73/83/84.  Note, setting UCB_NET to YES also turns on
-# the option "INET".  NLOOP should be non-zero for any networking system,
-# NETHER should be non-zero for networking systems using any ethernet.
-# CHECKSTACK makes sure the networking stack pointer and the kernel stack
-# pointer don't collide; it's fairly expensive at 4 extra instructions for
-# EVERY function call AND return, normally left NO unless debugging.
-UCB_NET		YES		# TCP/IP
+# 11/44/53/70/73/83/84/93,94.  NETHER should be non-zero for networking
+# systems using any ethernet.  CHECKSTACK makes sure the networking stack
+# pointer and the kernel stack pointer don't collide; it's *very* expensive
+# at 4 extra instructions for EVERY function call AND return, always left
+# NO unless doing serious debugging.
+INET		YES		# TCP/IP
 CHECKSTACK	YES		# Kernel&Supervisor stack pointer checking
 NETHER		1		# ether pseudo-device
 NLOOP		1		# loop-back pseudo-device
 
 # Note, PTY's and the select(2) system call do not require
-# the kernel to be configured for networking (UCB_NET).
+# the kernel to be configured for networking (INET).
 NPTY		8		# pseudo-terminals, in groups of 8
 
 # To make the 3Com Ethernet board work correctly, splimp has to be promoted
@@ -370,22 +215,36 @@ NDE		0		# DEUNA
 NIL		0		# Interlan Ethernet
 NSL		1		# Serial Line IP
 NQE		1		# DEQNA
+NQT		0		# DEQTA (DELQA-YM, DELQA-PLUS)
 
 # The following devices are untested in 2.10BSD; some are untested since
 # before 2.9BSD.  Some won't even compile.  Most will require modification
 # of various Makefiles to include the correct source.  Good luck.
 ENABLE34	NO		# if have the ENABLE34 board
-
 NACC		0		# ACC LH/DH ARPAnet IMP interface
 PLI		YES		# LH/DH is connected to a PLI
-
 NCSS		0		# DEC/CSS IMP11-A ARPAnet IMP interface
 NDMC		0		# DMC11
 NEN		0		# Xerox prototype (3 Mb) Ethernet
 NHY		0		# Hyperchannel
 NIMP		0		# ARPAnet IMP 1822 interface
-NPUP		0		# Xerox PUP-I protocol family
 NS		0		# Xerox NS (XNS)
 NSRI		0		# SRI DR11c ARPAnet IMP
 NTB		0		# RS232 interface for Genisco/Hitachi tablets
 NVV		0		# V2LNI (Pronet)
+
+# To enable profiling, the :splfix script must be changed to use spl6 instead
+# of spl7 (see conf/:splfix.profile), also, you have to have a machine with a
+# supervisor PAR/PDR pair, i.e. an 11/44/45/50/53/55/70/73/83/84, as well
+# as both a KW11-L and a KW11-P.
+#
+# Note that profiling is not currently working.  We don't have any plans on
+# fixing it, so this is essentially a non-supported feature.
+PROFILE		NO			# system profiling with KW11P clock
+
+# Defining FPSIM to YES compiles a floating point simulator into the kernel
+# which will catch floating point instruction traps from user space.  Note
+# that defining FPSIM to YES will only cost you text space.  If you actually
+# have floating point hardware, the simulator just won't be used.  The floating
+# point simulator is automatically compiled in if PDP11 (below) is GENERIC.
+FPSIM		NO			# floating point simulator

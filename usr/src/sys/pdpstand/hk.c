@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)hk.c	2.0 (2.11BSD) 4/20/91
  */
 
 /*
@@ -15,49 +15,54 @@
 #include "../pdpuba/hkreg.h"
 #include "saio.h"
 
-
-#define	HKADDR	((struct hkdevice *)0177440)
-
-#define	NHK	8
+#define	NHK	2
 #define	NSECT	22
 #define	NTRAC	3
 
-int hk_drvtyp[NHK];
-char hk_mntflg[NHK];
+	struct	hkdevice *HKcsr[NHK + 1] =
+		{
+		(struct hkdevice *)0177440,
+		(struct hkdevice *)0,
+		(struct hkdevice *)-1
+		};
 
+int hk_drvtyp[NHK][8];
+char hk_mntflg[NHK][8];
 
 hkstrategy(io, func)
 	register struct iob *io;
 {
 	register unit, com;
-	register i;
+	register struct hkdevice *hkaddr;
 	daddr_t bn;
-	int sn, cn, tn;
+	int sn, cn, tn, ctlr;
 
-	unit = io->i_unit;
-	if (hk_mntflg[unit] != '1') {
-		hk_drvtyp[unit] = 0;
-		HKADDR->hkcs2 = unit;
-		HKADDR->hkcs1 = HK_SELECT|HK_GO;
-		while ((HKADDR->hkcs1 & HK_CRDY) == 0)
+	unit = UNITn(io->i_unit);
+	ctlr = CTLRn(io->i_unit);
+	hkaddr = HKcsr[ctlr];
+	if (hk_mntflg[ctlr][unit] != '1') {
+		hk_drvtyp[ctlr][unit] = 0;
+		hkaddr->hkcs2 = unit;
+		hkaddr->hkcs1 = HK_SELECT|HK_GO;
+		while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 			continue;
-		if (HKADDR->hkcs1 & HK_CERR && HKADDR->hker & HKER_DTYE) {
-			hk_drvtyp[unit] = 02000;
+		if (hkaddr->hkcs1 & HK_CERR && hkaddr->hker & HKER_DTYE) {
+			hk_drvtyp[ctlr][unit] = 02000;
 		}
-		hk_mntflg[unit] = '1';
+		hk_mntflg[ctlr][unit] = '1';
 	}
 	bn = io->i_bn;
-	HKADDR->hkcs2 = HKCS2_SCLR;
-	while ((HKADDR->hkcs1 & HK_CRDY) == 0)
+	hkaddr->hkcs2 = HKCS2_SCLR;
+	while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 		continue;
-	HKADDR->hkcs2 = unit;
-	HKADDR->hkcs1 = hk_drvtyp[unit]|HK_SELECT|HK_GO;
-	while ((HKADDR->hkcs1 & HK_CRDY) == 0)
+	hkaddr->hkcs2 = unit;
+	hkaddr->hkcs1 = hk_drvtyp[ctlr][unit]|HK_SELECT|HK_GO;
+	while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 		continue;
 
-	if ((HKADDR->hkds & HKDS_VV) == 0) {
-		HKADDR->hkcs1 = hk_drvtyp[unit]|HK_PACK|HK_GO;
-		while ((HKADDR->hkcs1 & HK_CRDY) == 0)
+	if ((hkaddr->hkds & HKDS_VV) == 0) {
+		hkaddr->hkcs1 = hk_drvtyp[ctlr][unit]|HK_PACK|HK_GO;
+		while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 			continue;
 	}
 	cn = bn/(NSECT*NTRAC);
@@ -65,24 +70,30 @@ hkstrategy(io, func)
 	tn = sn/NSECT;
 	sn = sn%NSECT;
 
-	HKADDR->hkcyl = cn;
-	HKADDR->hkda = (tn<<8) | sn;
-	HKADDR->hkba = io->i_ma;
-	HKADDR->hkwc = -(io->i_cc>>1);
-	com = hk_drvtyp[unit]|(segflag << 8) | HK_GO;
+	hkaddr->hkcyl = cn;
+	hkaddr->hkda = (tn<<8) | sn;
+	hkaddr->hkba = io->i_ma;
+	hkaddr->hkwc = -(io->i_cc>>1);
+	com = hk_drvtyp[ctlr][unit]|(segflag << 8) | HK_GO;
 	if (func == READ)
 		com |= HK_READ;
 	else if (func == WRITE)
 		com |= HK_WRITE;
-	HKADDR->hkcs1 = com;
+	hkaddr->hkcs1 = com;
 
-	while ((HKADDR->hkcs1 & HK_CRDY) == 0)
+	while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 		continue;
 
-	if (HKADDR->hkcs1 & HK_CERR) {
-		printf("disk error: cyl=%d track=%d sect=%d cs2=%d err=%o\n",
-			cn, tn, sn, HKADDR->hkcs2, HKADDR->hker);
+	if (hkaddr->hkcs1 & HK_CERR) {
+		printf("hk%d,%d err: cy=%d tr=%d sc=%d cs2=%d er=%o\n",
+			ctlr, unit, cn, tn, sn, hkaddr->hkcs2, hkaddr->hker);
 		return(-1);
 	}
 	return(io->i_cc);
+}
+
+hkopen(io)
+	struct iob *io;
+{
+	return(genopen(NHK, io));
 }

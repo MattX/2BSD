@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)gigi.h	5.1 (Berkeley) 5/7/85
+ *	@(#)gigi.h	5.1.1 (2.11BSD GTE) 1/1/94
  */
 
 /*
@@ -24,11 +24,6 @@
 #define YMAX	479
 #define xsc(xi)	((int) ((xi -lowx)*scalex +0.5))
 #define ysc(yi)	((int) (YMAX - (yi - lowy)*scaley +0.5))
-
-#ifdef BSD2_10
-#define	currentx	crnt_x
-#define	currenty	crnt_y
-#endif
 
 extern int currentx;
 extern int currenty;

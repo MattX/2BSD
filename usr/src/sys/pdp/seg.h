@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)seg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)seg.h	1.2 (2.11BSD GTE) 1/1/93
  */
 
 #ifndef _SEG_
@@ -127,12 +127,7 @@ typedef struct segm_reg segm;
 typedef struct segm_reg mapinfo[2];	/* KA5, KA6 */
 
 #ifndef DIAGNOSTIC
-# if defined(QUOTA) && !defined(SUPERVISOR)
-		extern segm Bmapsave;
-#		define	mapout(bp)	restorseg5(Bmapsave)
-#	else
-#		define	mapout(bp)	normalseg5()
-#	endif
+#	define	mapout(bp)	normalseg5()
 #endif
 
 /* use segment 5 to access the given address. */
@@ -162,12 +157,8 @@ typedef struct segm_reg mapinfo[2];	/* KA5, KA6 */
 #endif
 
 /* restore normal kernel map for seg5. */
-#ifdef NOKA5
-#	define	normalseg5()
-#else
 	extern segm	seg5;		/* prototype KDSA5, KDSD5 */
-#	define normalseg5()	restorseg5(seg5)
-#endif
+#define normalseg5()	restorseg5(seg5)
 
 /* restore the previous contents of KDSA5/KDSD5. */
 #ifdef SUPERVISOR

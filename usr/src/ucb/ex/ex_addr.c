@@ -4,7 +4,7 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)ex_addr.c	7.3 (Berkeley) 6/7/85";
 #endif not lint
 

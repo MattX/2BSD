@@ -5,10 +5,10 @@ TAR(5)		    UNIX Programmer's Manual		   TAR(5)
 
 
 
-NNAAMMEE
+NAME
      tar - tape archive file format
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_a_r, (the tape archive command) dumps several files into
      one, in a medium suitable for transportation.
 
@@ -20,7 +20,7 @@ DDEESSCCRRIIPPTTIIOONN
      end-of-file indicator.
 
      The blocks are grouped for physical I/O operations.  Each
-     group of _n blocks (where _n is set by the bb keyletter on the
+     group of _n blocks (where _n is set by the b keyletter on the
      _t_a_r(1) command line - default is 20 blocks) is written with
      a single system call; on nine-track tapes, the result of
      this write is a single tape record.  The last group is
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	November 7, 1985			1
+Printed 1/9/94		November 7, 1985			1
 
 
 
@@ -97,10 +97,10 @@ TAR(5)		    UNIX Programmer's Manual		   TAR(5)
      The encoding of the header is designed to be portable across
      machines.
 
-SSEEEE AALLSSOO
+SEE ALSO
      tar(1)
 
-BBUUGGSS
+BUGS
      Names or linknames longer than NAMSIZ produce error reports
      and cannot be dumped.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	November 7, 1985			2
+Printed 1/9/94		November 7, 1985			2
 
 
 

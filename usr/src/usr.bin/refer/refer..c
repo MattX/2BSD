@@ -1,4 +1,4 @@
-/*	refer..c	4.3	86/04/23	*/
+/*	refer..c	4.4	1/1/94	*/
 
 #include <stdio.h>
 #include <ctype.h>
@@ -6,7 +6,7 @@
 
 #define FLAG 003
 #define AFLAG 007
-#ifdef BSD2_10
+#ifdef pdp11
 #define NRFTXT 5000
 #define NRFTBL 250
 #else

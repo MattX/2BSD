@@ -1,5 +1,5 @@
 /*
- * @(#)tt.h	3.15 9/20/85
+ * @(#)tt.h	3.16 1/1/94
  */
 
 /*
@@ -64,7 +64,7 @@ struct tt_tab tt_tab[];
  * Clean interface to termcap routines.
  * Too may t's.
  */
-#ifdef BSD2_10
+#ifdef pdp11
 char *tt_strings;		/* string buffer on stack (see main.c) */
 #else
 char tt_strings[1024];		/* string buffer */
@@ -89,7 +89,7 @@ int tttputc();
  * But I'm too lazy to think up different names.
  */
 #define	TTOBSIZ	512
-#ifdef BSD2_10
+#ifdef pdp11
 char *tt_ob;
 #else
 char tt_ob[TTOBSIZ];

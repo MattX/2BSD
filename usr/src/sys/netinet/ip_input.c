@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip_input.c	7.9 (Berkeley) 3/15/88
+ *	@(#)ip_input.c	7.9.1 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -33,10 +33,6 @@
 #include "ip_var.h"
 #include "ip_icmp.h"
 #include "tcp.h"
-
-#ifdef BSD2_10
-#define	 ip_srcrt	srcrt
-#endif
 
 u_char	ip_protox[IPPROTO_MAX];
 int	ipqmaxlen = IFQ_MAXLEN;

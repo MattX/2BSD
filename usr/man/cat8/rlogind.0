@@ -1,20 +1,20 @@
 
 
 
-RLOGIND(8C)	    UNIX Programmer's Manual	      RLOGIND(8C)
+RLOGIND(8)	    UNIX Programmer's Manual	       RLOGIND(8)
 
 
 
-NNAAMMEE
+NAME
      rlogind - remote login server
 
-SSYYNNOOPPSSIISS
-     //eettcc//rrllooggiinndd [ --dd ]
+SYNOPSIS
+     rlogind [ -aln ]
 
-DDEESSCCRRIIPPTTIIOONN
-     _R_l_o_g_i_n_d is the server for the _r_l_o_g_i_n(1C) program.	The
-     server provides a remote login facility with authentication
-     based on privileged port numbers from trusted hosts.
+DESCRIPTION
+     _R_l_o_g_i_n_d is the server for the _r_l_o_g_i_n(1) program.  The server
+     provides a remote login facility with authentication based
+     on privileged port numbers from trusted hosts.
 
      _R_l_o_g_i_n_d listens for service requests at the port indicated
      in the ``login'' service specification; see _s_e_r_v_i_c_e_s(5).
@@ -22,65 +22,79 @@ DDEESSCCRRIIPPTTIIOONN
      initiated:
 
      1)   The server checks the client's source port.  If the
-	  port is not in the range 0-1023, the server aborts the
-	  connection.
+	  port is not in the range 512-1023, the server aborts
+	  the connection.
 
      2)   The server checks the client's source address and
-	  requests the corresponding host name (see
-	  _g_e_t_h_o_s_t_b_y_a_d_d_r(3N), _h_o_s_t_s(5) and _n_a_m_e_d(8)).  If the
-	  hostname cannot be determined, the dot-notation
-	  representation of the host address is used.
+	  requests the corresponding host name (see IR gethost-
+	  byaddr (3), _h_o_s_t_s(5) and _n_a_m_e_d(8)).  If the hostname
+	  cannot be determined, the dot-notation representation
+	  of the host address is used.	If the hostname is in the
+	  same domain as the server (according to the last two
+	  components of the domain name), or if the -a option is
+	  given, the addresses for the hostname are requested,
+	  verifying that the name and address correspond.  Normal
+	  authentication is bypassed if the address verification
+	  fails.
 
      Once the source port and address have been checked, _r_l_o_g_i_n_d
-     allocates a pseudo terminal (see _p_t_y(4)), and manipulates
-     file descriptors so that the slave half of the pseudo termi-
-     nal becomes the ssttddiinn ,, ssttddoouutt ,, and ssttddeerrrr for a login pro-
-     cess.  The login process is an instance of the _l_o_g_i_n(1) pro-
-     gram, invoked with the --rr option.	The login process then
-     proceeds with the authentication process as described in
-     _r_s_h_d(8C), but if automatic authentication fails, it
-     reprompts the user to login as one finds on a standard ter-
-     minal line.
+     proceeds with the authentication process described in
+     _r_s_h_d(8).  It then allocates a pseudo terminal (see _p_t_y(4)),
+     and manipulates file descriptors so that the slave half of
+     the pseudo terminal becomes the stdin , stdout , and stderr
+     for a login process.  The login process is an instance of
+     the _l_o_g_i_n(1) program, invoked with the -f option if authen-
+     tication has succeeded.  If automatic authentication fails,
+     the user is prompted to log in as if on a standard terminal
+     line.  The -l option prevents any authentication based on
+     the user's ``.rhosts'' file, unless the user is logging in
+     as the superuser.
 
      The parent of the login process manipulates the master side
-     of the pseduo terminal, operating as an intermediary between
+     of the pseudo terminal, operating as an intermediary between
      the login process and the client instance of the _r_l_o_g_i_n pro-
      gram.  In normal operation, the packet protocol described in
      _p_t_y(4) is invoked to provide ^S/^Q type facilities and pro-
      pagate interrupt signals to the remote programs.  The login
-     process propagates the client terminal's baud rate and ter-
-     minal type, as found in the environment variable, ``TERM'';
-     see _e_n_v_i_r_o_n(7).  The screen or window size of the terminal
-     is requested from the client, and window size changes from
-     the client are propagated to the pseudo terminal.
-
-DDIIAAGGNNOOSSTTIICCSS
-     All diagnostic messages are returned on the connection asso-
-     ciated with the ssttddeerrrr, after which any network connections
+     process propagates the client terminal's baud rate and
 
 
 
-Printed 12/28/88	  May 24, 1986				1
+Printed 1/15/94        September 11, 1989			1
 
 
 
 
 
 
-RLOGIND(8C)	    UNIX Programmer's Manual	      RLOGIND(8C)
+RLOGIND(8)	    UNIX Programmer's Manual	       RLOGIND(8)
 
 
 
-     are closed.  An error is indicated by a leading byte with a
-     value of 1.
+     terminal type, as found in the environment variable,
+     ``TERM''; see _e_n_v_i_r_o_n(7).	The screen or window size of the
+     terminal is requested from the client, and window size
+     changes from the client are propagated to the pseudo termi-
+     nal.
 
-     ````TTrryy aaggaaiinn..''''
+     Transport-level keepalive messages are enabled unless the -n
+     option is present.  The use of keepalive messages allows
+     sessions to be timed out if the client crashes or becomes
+     unreachable.
+
+DIAGNOSTICS
+     All initial diagnostic messages are indicated by a leading
+     byte with a value of 1, after which any network connections
+     are closed.  If there are no errors before _l_o_g_i_n is invoked,
+     a null byte is returned as in indication of success.
+
+     ``Try again.''
      A _f_o_r_k by the server failed.
 
-     ````//bbiinn//sshh:: ......''''
-     The user's login shell could not be started.
+SEE ALSO
+     login(1), ruserok(3), rshd(8)
 
-BBUUGGSS
+BUGS
      The authentication procedure used here assumes the integrity
      of each client machine and the connecting medium.	This is
      insecure, but is useful in an ``open'' environment.
@@ -112,21 +126,7 @@ BBUUGGSS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 12/28/88	  May 24, 1986				2
+Printed 1/15/94        September 11, 1989			2
 
 
 

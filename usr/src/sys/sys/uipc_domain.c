@@ -13,7 +13,7 @@
  */
 
 #include "param.h"
-#ifdef UCB_NET
+#ifdef INET
 #include "socket.h"
 #include "protosw.h"
 #include "domain.h"
@@ -139,4 +139,4 @@ pffasttimo()
 				(*pr->pr_fasttimo)();
 	TIMEOUT(pffasttimo, (caddr_t)0, hz/PR_FASTHZ);
 }
-#endif	UCB_NET
+#endif

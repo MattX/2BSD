@@ -16,7 +16,7 @@
 #define	CP_SYS		2
 #define	CP_IDLE		3
 
-#define	DK_NDRIVE	5
+#define	DK_NDRIVE	10
 
 #if defined(KERNEL) && defined(UCB_METER) && !defined(SUPERVISOR)
 long	cp_time[CPUSTATES];	/* number of ticks spent in each cpu state */

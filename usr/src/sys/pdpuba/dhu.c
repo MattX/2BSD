@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhu.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dhu.c	2.0 (2.11BSD GTE) 1/3/93
  */
 
 /*
@@ -84,7 +84,7 @@ int	dhuact;				/* mask of active dhu's */
 int	dhustart(), ttrstrt();
 long	dhumctl(),dmtodhu();
 
-#if defined(UNIBUS_MAP) || defined(UCB_CLIST)
+#if defined(UCB_CLIST)
 extern	ubadr_t clstaddr;
 #define	cpaddr(x)	(clstaddr + (ubadr_t)((x) - (char *)cfree))
 #else
@@ -217,20 +217,22 @@ dhuclose(dev, flag)
 	ttyclose(tp);
 }
 
-dhuread(dev)
+dhuread(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp));
+	return ((*linesw[tp->t_line].l_read)(tp, uio));
 }
 
-dhuwrite(dev)
+dhuwrite(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp));
+	return ((*linesw[tp->t_line].l_write)(tp, uio));
 }
 
 /*
@@ -298,7 +300,11 @@ dhurint(dhu)
 			if (tp->t_flags&RAW)
 				c = 0;
 			else
+#ifdef	OLDWAY
 				c = tp->t_intrc;
+#else
+				c = tp->t_brkc;
+#endif
 #if NBK > 0
 		if (tp->t_line == NETLDISC) {
 			c &= 0x7f;
@@ -455,6 +461,7 @@ dhuxint(dhu)
 	register struct uba_device *ui;
 	register int line, t;
 	u_short cntr;
+	ubadr_t	base;
 
 	ui = &dhuinfo[dhu];
 	tp0 = &dhu_tty[dhu<<4];
@@ -471,6 +478,7 @@ dhuxint(dhu)
 			tp->t_state &= ~TS_FLUSH;
 		else {
 			addr->dhucsrl = DHU_SELECT(line) | DHU_IE;
+			base = (ubadr_t) addr->dhubar1;
 			/*
 			 * Clists are either:
 			 *	1)  in kernel virtual space,
@@ -480,17 +488,9 @@ dhuxint(dhu)
 			 *
 			 * In either case, the extension bits are 0.
 			*/
-#if !defined(UCB_CLIST) || defined(UNIBUS_MAP)
-			cntr = addr->dhubar1 - cpaddr(tp->t_outq.c_cf);
-#else
-			/* UCB_CLIST && !UNIBUS_MAP (QBUS) taylor@oswego */
-			{
-			ubadr_t base;
-
-			base = (ubadr_t) addr->dhubar1 | (ubadr_t)((addr->dhubar2 & 037) << 16);
+			if (!ubmap)
+				base |= (ubadr_t)((addr->dhubar2 & 037) << 16);
 			cntr = base - cpaddr(tp->t_outq.c_cf);
-			}
-#endif
 			ndflush(&tp->t_outq,cntr);
 		}
 		if (tp->t_line)
@@ -569,12 +569,10 @@ dhustart(tp)
 		addr->dhulcr &= ~DHU_LC_TXABORT;
 		addr->dhubcr = nch;
 		addr->dhubar1 = loint(car);
-#if !defined(UCB_CLIST) || defined(UNIBUS_MAP)
-		addr->dhubar2 = (hiint(car) & DHU_BA2_XBA) | DHU_BA2_DMAGO;
-#else
-		/* UCB_CLIST && !UNIBUS_MAP (QBUS) taylor@oswego */
-		addr->dhubar2 = (hiint(car) & 037) | DHU_BA2_DMAGO;
-#endif
+		if (ubmap)
+			addr->dhubar2 = (hiint(car) & DHU_BA2_XBA) | DHU_BA2_DMAGO;
+		else
+			addr->dhubar2 = (hiint(car) & 037) | DHU_BA2_DMAGO;
 		tp->t_state |= TS_BUSY;
 	}
 out:

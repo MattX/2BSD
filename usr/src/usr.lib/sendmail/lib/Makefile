@@ -25,3 +25,5 @@ sources: $(SRCS)
 $(SRCS):
 	$(GET) $(REL) SCCS/s.$@
 
+
+install:

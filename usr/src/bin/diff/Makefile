@@ -22,6 +22,6 @@ diffh: diffh.o
 clean:
 	rm -f diff diffh ${OBJS} diffh.o
 
-install:
+install: all
 	install -s diff ${DESTDIR}/bin/diff
 	install -s diffh ${DESTDIR}/usr/lib/diffh

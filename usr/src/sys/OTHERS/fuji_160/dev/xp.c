@@ -30,9 +30,7 @@
 #ifndef	INTRLVE
 #include <sys/inline.h>
 #endif
-#ifdef	UNIBUS_MAP
 #include <sys/uba.h>
-#endif
 
 #define	XP_SDIST	2
 #define	XP_RDIST	6
@@ -55,7 +53,6 @@ struct	xp_drive xp_drive[NXP];
 struct	xp_controller xp_controller[NXP_CONTROLLER];
 
 struct	buf	xptab;
-struct	buf	rxpbuf[NXP];
 struct	buf	xputab[NXP];
 
 #ifdef	INTRLVE
@@ -97,10 +94,8 @@ register struct hpdevice *xpaddr;
 		return(0);
 	if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
 		xc->xp_addr = xpaddr;
-#if	PDP11 == 70 || PDP11 == GENERIC || defined(EXT_LSI)
 		if (fioword(&(xpaddr->hpbae)) != -1)
 			xc->xp_flags |= XP_RH70;
-#endif
 #ifdef	XP_PROBE
 		/*
 		 *  If already attached, ignore (don't want to renumber drives)
@@ -241,12 +236,10 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
 		mapalloc(bp);
-#endif	UNIBUS_MAP
 #ifdef EXT_LSI
-	if(bp == &rxpbuf)
+	if(bp->b_flags & B_PHYS)
 		if(Sofub_alloc(bp) == 0)
 			return;
 #endif
@@ -438,10 +431,8 @@ loop:
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC || defined(EXT_LSI)
 	if (xc->xp_flags & XP_RH70)
 		xpaddr->hpbae = bp->b_xmem;
-#endif
 	xpaddr->hpwc = -(bp->b_bcount >> 1);
 
 	/*
@@ -553,7 +544,7 @@ int dev;
 			xd->xp_cc = bp->b_cylin;
 			bp->b_resid = - (xpaddr->hpwc << 1);
 #ifdef EXT_LSI
-			if(bp == &rxpbuf)
+			if(bp->b_flags & B_PHYS)
 				Sofub_relse(bp,bp->b_bcount);
 #endif
 			iodone(bp);
@@ -574,19 +565,6 @@ int dev;
 				xpustart(unit);
 	xpstart(xc);
 }
-
-xpread(dev)
-dev_t	dev;
-{
-	physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_READ);
-}
-
-xpwrite(dev)
-dev_t	dev;
-{
-	physio(xpstrategy, &rxpbuf[(minor(dev) >> 3) & 07], dev, B_WRITE);
-}
-
 
 #ifdef	UCB_ECC
 #define	exadr(x,y)	(((long)(x) << 16) | (unsigned)(y))
@@ -610,9 +588,7 @@ register struct	buf *bp;
 	int	ocmd;
 	int	cn, tn, sn;
 	daddr_t	bn;
-#ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
-#endif
 	int	unit;
 
 	/*
@@ -653,7 +629,6 @@ register struct	buf *bp;
 	 */
 	while (byte < bp->b_bcount && wrong != 0) {
 		addr = bb + byte;
-#ifdef	UNIBUS_MAP
 		if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
 			/*
 			 * Simulate UNIBUS map if UNIBUS transfer.
@@ -661,7 +636,6 @@ register struct	buf *bp;
 			ubp = UBMAP + ((addr >> 13) & 037);
 			addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
 		}
-#endif
 		putmemc(addr, getmemc(addr) ^ (int) wrong);
 		byte++;
 		wrong >>= 8;
@@ -696,10 +670,8 @@ register struct	buf *bp;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpwc = ((int)(ndone - bp->b_bcount)) / NBPW;
 	xpaddr->hpba = (int) addr;
-#if	PDP11 == 70 || PDP11 == GENERIC || defined(EXT_LSI)
 	if (xd->xp_ctlr->xp_flags & XP_RH70)
 		xpaddr->hpbae = (int) (addr >> 16);
-#endif
 	xpaddr->hpcs1.w = ocmd;
 	return (1);
 }
@@ -709,15 +681,9 @@ register struct	buf *bp;
 /*
  *  Dump routine.
  *  Dumps from dumplo to end of memory/end of disk section for minor(dev).
- *  It uses the UNIBUS map to dump all of memory if there is a UNIBUS map
- *  and this isn't an RH70.  This depends on UNIBUS_MAP being defined.
  */
 
-#ifdef	UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/PGSIZE)		/* unit of transfer, one UBPAGE */
-#else
-#define DBSIZE	16			/* unit of transfer, same number */
-#endif
+#define DBSIZE	16			/* number of blocks to write */
 
 xpdump(dev)
 dev_t dev;
@@ -728,10 +694,8 @@ dev_t dev;
 	daddr_t	bn, dumpsize;
 	long	paddr;
 	int	sn, count;
-#ifdef	UNIBUS_MAP
 	extern	bool_t ubmap;
 	struct ubmap *ubp;
-#endif
 
 	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
 	    || ((dev=minor(dev)) > (NXP << 3)))
@@ -754,9 +718,7 @@ dev_t dev;
 	}
 	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
 		return(EFAULT);
-#ifdef	UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -765,11 +727,6 @@ dev_t dev;
 		sn = bn % xd->xp_nspc;
 		xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
 		xpaddr->hpwc = -(count << (PGSHIFT - 1));
-#ifdef	UNIBUS_MAP
-		/*
-		 *  If UNIBUS_MAP exists, use
-		 *  the map, unless on an 11/70 with RH70.
-		 */
 		if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
@@ -777,16 +734,13 @@ dev_t dev;
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO;
 		}
 		else
-#endif
 			{
 			/*
 			 *  Non-UNIBUS map, or 11/70 RH70 (MASSBUS)
 			 */
 			xpaddr->hpba = loint(paddr);
-#if	PDP11 == 70 || PDP11 == GENERIC || defined(EXT_LSI)
 			if (xd->xp_ctlr->xp_flags & XP_RH70)
 				xpaddr->hpbae = hiint(paddr);
-#endif
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
 		}
 		while (xpaddr->hpcs1.w & HP_GO)

@@ -57,10 +57,8 @@
  * Must use 512 instead of BSIZE (1024 for new file system).
  * Fred Canter 6/12/85
  */
-#ifdef	UCB_NKB
 #undef	BSIZE
 #define	BSIZE	512
-#endif	UCB_NKB
 
 #define READ 1
 #define WRITE 0

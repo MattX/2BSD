@@ -5,13 +5,13 @@ UUXQT(8C)	    UNIX Programmer's Manual		UUXQT(8C)
 
 
 
-NNAAMMEE
+NAME
      uuxqt - UUCP execution file interpreter
 
-SSYYNNOOPPSSIISS
-     //uussrr//lliibb//uuuuccpp//uuuuxxqqtt [ --xx_d_e_b_u_g ]
+SYNOPSIS
+     /usr/lib/uucp/uuxqt [ -x_d_e_b_u_g ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _U_u_x_q_t interprets _e_x_e_c_u_t_i_o_n _f_i_l_e_s created on a remote system
      via _u_u_x(1C) and transferred to the local system via
      _u_u_c_i_c_o(8C).  When a user uses _u_u_x to request remote command
@@ -24,7 +24,7 @@ DDEESSCCRRIIPPTTIIOONN
      It copies intermediate files to this directory when neces-
      sary.
 
-FFIILLEESS
+FILES
      /usr/lib/uucp/L.cmds	   Remote command permissions list
      /usr/lib/uucp/USERFILE	   Remote directory tree permissions list
      /usr/spool/uucp/LOGFILE	   UUCP system activity log
@@ -32,7 +32,7 @@ FFIILLEESS
      /usr/spool/uucp/X./	   Incoming execution file directory
      /usr/spool/uucp/XTMP	   _U_u_x_q_t running directory
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), L.cmds(5), USERFILE(5), uucico(8C)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 

@@ -3,8 +3,6 @@
  *
  * This program is similar to the systat command on Tenex/Tops 10/20
  * It needs read permission on /dev/mem and /dev/swap.
- *
- * PDP-11 V7 version that does not run off ps -r.
  */
 #include <sys/param.h>
 #include <nlist.h>
@@ -16,8 +14,9 @@
 #include <sys/proc.h>
 #include <sys/ioctl.h>
 #include <sys/tty.h>
-#include <OLD/core.h>
 
+#define	NMAX	sizeof(utmp.ut_name)
+#define	LMAX	sizeof(utmp.ut_line)
 #define ARGWIDTH	33	/* # chars left on 80 col crt for args */
 #define ARGLIST 1024	/* amount of stack to examine for argument list */
 
@@ -37,14 +36,12 @@ struct	nlist nl[] = {
 #define	X_PROC		0
 	{ "_swapdev" },
 #define	X_SWAPDEV	1
-	{ "_swplo" },
-#define	X_SWPLO		2
 	{ "_avenrun" },
-#define	X_AVENRUN	3
-	{ "_boottim" },
-#define	X_BOOTIME	4
+#define	X_AVENRUN	2
+	{ "_boottime" },
+#define	X_BOOTIME	3
 	{ "_nproc" },
-#define	X_NPROC		5
+#define	X_NPROC		4
 	{ 0 },
 };
 
@@ -230,9 +227,11 @@ main(argc, argv)
 
 		/* Headers for rest of output */
 		if (lflag)
-			printf("User     tty       login@  idle   JCPU   PCPU  what\n");
+			printf("%-*.*s %-*.*s  login@  idle   JCPU   PCPU  what\n",
+				NMAX, NMAX, "User", LMAX, LMAX, "tty");
 		else
-			printf("User     tty   idle  what\n");
+			printf("%-*.*s tty idle  what\n", 
+				NMAX, NMAX, "User");
 		fflush(stdout);
 	}
 
@@ -244,7 +243,7 @@ main(argc, argv)
 		}
 		if (utmp.ut_name[0] == '\0')
 			continue;	/* that tty is free */
-		if (sel_user && strncmp(utmp.ut_name, sel_user, 8) != 0)
+		if (sel_user && strncmp(utmp.ut_name, sel_user, NMAX) != 0)
 			continue;	/* we wanted only somebody else */
 
 		gettty();
@@ -307,18 +306,18 @@ putline()
 	register int tm;
 
 	/* print login name of the user */
-	printf("%-8.8s ", utmp.ut_name);
+	printf("%-*.*s ", NMAX, NMAX, utmp.ut_name);
 
 	/* print tty user is on */
 	if (lflag)
-		/* long form: all (up to) 8 chars */
-		printf("%-8.8s", utmp.ut_line);
+		/* long form: all (up to) LMAX chars */
+		printf("%-*.*s", LMAX, LMAX, utmp.ut_line);
 	else {
-		/* short form: 4 chars, skipping 'tty' if there */
+		/* short form: 2 chars, skipping 'tty' if there */
 		if (utmp.ut_line[0]=='t' && utmp.ut_line[1]=='t' && utmp.ut_line[2]=='y')
-			printf("%-4.4s", &utmp.ut_line[3]);
+			printf("%-2.2s", &utmp.ut_line[3]);
 		else
-			printf("%-4.4s", utmp.ut_line);
+			printf("%-2.2s", utmp.ut_line);
 	}
 
 	if (lflag)
@@ -348,7 +347,7 @@ findidle()
 	char ttyname[20];
 
 	strcpy(ttyname, "/dev/");
-	strncat(ttyname, utmp.ut_line, 8);
+	strncat(ttyname, utmp.ut_line, LMAX);
 	stat(ttyname, &stbuf);
 	time(&now);
 	lastaction = stbuf.st_atime;
@@ -410,7 +409,6 @@ readpr()
 	int szpt, pfnum, i;
 	long addr;
 	long daddr, saddr;
-	daddr_t swplo;
 	long txtsiz, datsiz, stksiz;
 	int septxt;
 
@@ -427,11 +425,6 @@ readpr()
 	 */
 	lseek(mem, (long)nl[X_SWAPDEV].n_value, 0);
 	read(mem, &nl[X_SWAPDEV].n_value, sizeof(nl[X_SWAPDEV].n_value));
-	/*
-	 * Find base of swap
-	 */
-	lseek(mem, (long)nl[X_SWPLO].n_value, 0);
-	read(mem, &swplo, sizeof(swplo));
 	if (nl[X_NPROC].n_value == 0) {
 		fprintf(stderr, "nproc not in namelist\n");
 		exit(1);
@@ -449,7 +442,7 @@ readpr()
 	np = 0;
 	for (pn=0; pn<nproc; pn++) {
 		lseek(mem, (long)(nl[X_PROC].n_value + pn*(sizeof mproc)), 0);
-		pread(mem, &mproc, sizeof mproc, (long)(nl[X_PROC].n_value + pn*(sizeof mproc)));
+		read(mem, &mproc, sizeof mproc);
 		/* decide if it's an interesting process */
 		if (mproc.p_stat==0 || mproc.p_stat==SZOMB || mproc.p_pgrp==0)
 			continue;
@@ -460,13 +453,13 @@ readpr()
 			saddr = ctob((long)mproc.p_saddr);
 			file = swmem;
 		} else {
-			addr = (mproc.p_addr+swplo)<<9;
-			daddr = (mproc.p_daddr+swplo)<<9;
-			saddr = (mproc.p_saddr+swplo)<<9;
+			addr = mproc.p_addr<<9;
+			daddr = mproc.p_daddr<<9;
+			saddr = mproc.p_saddr<<9;
 			file = swap;
 		}
 		lseek(file, addr, 0);
-		if (pread(file, (char *)&up, sizeof(up), addr) != sizeof(up))
+		if (read(file, (char *)&up, sizeof(up)) != sizeof(up))
 			continue;
 		if (up.u_ttyp == NULL)
 			continue;
@@ -549,7 +542,7 @@ getargs(p)
 	}
 
 	lseek(file, addr, 0);
-	if (pread(file, abuf, sizeof(abuf), addr) != sizeof(abuf))
+	if (read(file, abuf, sizeof(abuf)) != sizeof(abuf))
 		return((char *)1);
 	for (ip = (int *) &abuf[ARGLIST]-2; ip > (int *) abuf;) {
 		/* Look from top for -1 or 0 as terminator flag. */
@@ -643,37 +636,4 @@ round(a, b)
 	long		w = ((a+b-1)/b)*b;
 
 	return(w);
-}
-
-/*
- * pread is like read, but if it's /dev/mem we use the phys
- * system call for speed.  (On systems without phys we have
- * to use regular read.)
- */
-pread(fd, ptr, nbytes, loc)
-char *ptr;
-long loc;
-{
-	int rc;
-	extern int errno;
-
-	if (fd == swmem) {
-		rc=phys(6, nbytes/64+1, (short)(loc/64));
-		if (rc>=0) {
-			memcpy(ptr, 0140000, nbytes);
-			return nbytes;
-		} else {
-			return read(fd, ptr, nbytes);
-		}
-	} else {
-		return read(fd, ptr, nbytes);
-	}
-}
-
-memcpy(dest, src, nbytes)
-register char *dest, *src;
-register int nbytes;
-{
-	while (nbytes--)
-		*dest++ = *src++;
 }

@@ -4,17 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cmds.c	5.2 (Berkeley) 3/30/86";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)cmds.c	5.2.1 (2.11BSD GTE) 1/1/94";
 #endif not lint
 
 /*
  * lpc -- line printer control program -- commands:
  */
-
-#ifdef BSD2_10
-#define	disablepr	dsablpr
-#endif
 
 #include "lp.h"
 #include <sys/time.h>

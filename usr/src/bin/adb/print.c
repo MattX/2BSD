@@ -1,39 +1,46 @@
-/*
- * adb: UNIX debugger
- */
-
 #include "defs.h"
+#include <sys/file.h>
 
-MSG             LONGFIL;
-MSG             NOTOPEN;
-MSG             A68BAD;
-MSG             A68LNK;
-MSG             BADMOD;
+	MSG	LONGFIL;
+	MSG     NOTOPEN;
+	MSG     A68BAD;
+	MSG     A68LNK;
+	MSG     BADMOD;
+	MAP     txtmap;
+	MAP     datmap;
+	char	curov;
+	int	overlay;
+extern	struct	SYMbol	*symbol;
+	int	lastframe;
+	int     kernel;
+	int	callpc;
+	int	infile;
+	int	outfile;
+	char	*lp;
+	int	maxoff;
+	int	maxpos;
+	int	octal;
+	long	localval;
+	BKPTR   bkpthead;
+static	char	frnames[] = { 0, 3, 4, 5, 1, 2 };
+	char    lastc;
+	u_int	corhdr[];
+	u_int	*uar0;
+	int	fcor;
+	char	*errflg;
+	int	signo;
+	long	dot;
+	long	var[];
+	char	*symfil;
+	char	*corfil;
+	int	pid;
+	long	adrval;
+	int	adrflg;
+	long	cntval;
+	int	cntflg;
+	int     overlay;
 
-MAP             txtmap;
-MAP             datmap;
-OVTAG           curov;
-int             overlay;
-
-SYMTAB          symbol;
-INT             lastframe;
-INT             kernel;
-INT             callpc;
-
-INT             infile;
-INT             outfile;
-CHAR            *lp;
-INT             maxoff;
-INT             maxpos;
-INT             octal;
-
-/* symbol management */
-L_INT           localval;
-
-/* breakpoints */
-BKPTR           bkpthead;
-
-REGLIST reglist [] = {
+	REGLIST reglist [] = {
 		"ps", RPS,
 		"pc", PC,
 		"sp", R6,
@@ -43,9 +50,9 @@ REGLIST reglist [] = {
 		"r2", R2,
 		"r1", R1,
 		"r0", R0
-};
+		};
 
-REGLIST kregs[] = {
+	REGLIST kregs[] = {
 		"sp", KSP,
 		"r5", KR5,
 		"r4", KR4,
@@ -53,46 +60,22 @@ REGLIST kregs[] = {
 		"r2", KR2,
 		"r1", KR1,
 		"r0", KR0
-};
-
-STRING  ovname  = "ov";   /* not in reglist (not from kernel stack) */
-INT             frnames[] = { 0, 3, 4, 5, 1, 2 };
-
-char            lastc;
-POS             corhdr[];
-POS             *uar0;
-
-INT             fcor;
-STRING          errflg;
-INT             signo;
-
-
-L_INT           dot;
-L_INT           var[];
-STRING          symfil;
-STRING          corfil;
-INT             pid;
-L_INT           adrval;
-INT             adrflg;
-L_INT           cntval;
-INT             cntflg;
-int             overlay;
+	};
 
 
 /* general printing routines ($) */
 
 printtrace(modif)
 {
-	INT             narg, i, stat, name, limit;
-	POS             dynam;
-	REG BKPTR       bkptr;
-	CHAR            hi, lo;
-	INT             word;
-	INT		stack;
-	STRING          comptr;
-	L_INT           argp, frame, link;
-	SYMPTR          symp;
-	OVTAG           savov;
+	int	narg, i, stat, name, limit;
+	u_int	dynam;
+	register BKPTR       bkptr;
+	char	hi, lo;
+	int	word, stack;
+	char	*comptr;
+	long	argp, frame, link;
+	register struct	SYMbol	*symp;
+	char	savov;
 
 	IF cntflg==0 THEN cntval = -1; FI
 
@@ -112,10 +95,10 @@ printtrace(modif)
 			/* fall thru ... */
 	    case '>':
 		{
-			CHAR		file[64];
-			CHAR		Ifile[128];
-			extern CHAR	*Ipath;
-			INT             index;
+			char		file[64];
+			char		Ifile[128];
+			extern char	*Ipath;
+			int             index;
 
 			index=0;
 			IF rdc()!=EOR
@@ -145,11 +128,8 @@ printtrace(modif)
 						FI
 					FI
 				ELSE    oclose();
-					outfile=open(file,1);
-					IF outfile<0
-					THEN    outfile=creat(file,0644);
-					ELSE    lseek(outfile,0L,2);
-					FI
+					outfile = open(file, O_CREAT|O_WRONLY, 0644);
+					lseek(outfile,0L,2);
 				FI
 
 			ELSE	IF modif == '<'
@@ -179,7 +159,7 @@ printtrace(modif)
 		break;
 
 	    case 'v': 
-		prints("variables\n");
+		printf("variables\n");
 		FOR i=0;i<=35;i++
 		DO IF var[i]
 		   THEN printc((i<=9 ? '0' : 'a'-10) + i);
@@ -196,7 +176,7 @@ printtrace(modif)
 	    case 0: case '?':
 		IF pid
 		THEN printf("pcs id = %d\n",pid);
-		ELSE prints("no process\n");
+		ELSE printf("no process\n");
 		FI
 		sigprint(); flushbuf();
 
@@ -217,7 +197,7 @@ printtrace(modif)
 		DO      chkerr();
  			printf("%07O: ", frame); /* Add frame address info */
 			narg = findroutine(frame);
-			printf("%.8s(", symbol.symc);
+			printf("%s(", cache_sym(symbol));
 			argp = frame+4;
 			IF --narg >= 0
 			THEN    printf("%o", get(argp, DSP));
@@ -231,21 +211,21 @@ printtrace(modif)
  			 * max possible offset.  Overlay has already been set
  			 * properly by findfn.
  			 */
- 			prints(") from ");
+ 			printf(") from ");
  			{
-				INT savmaxoff = maxoff;
+				int	savmaxoff = maxoff;
 
  				maxoff = ((unsigned)-1)>>1;
- 				psymoff((L_INT)callpc,ISYM,"");
+ 				psymoff((long)callpc,ISYM,"");
  				maxoff = savmaxoff;
  			}
- 			prints("\n");
+ 			printc('\n');
 
 			IF modif=='C'
 			THEN WHILE localsym(frame)
 			     DO word=get(localval,DSP);
-				printf("%8t%.8s:%10t", symbol.symc);
-				IF errflg THEN prints("?\n"); errflg=0; ELSE printf("%o\n",word); FI
+				printf("%8t%s:%10t", cache_sym(symbol));
+				IF errflg THEN printf("?\n"); errflg=0; ELSE printf("%o\n",word); FI
 			     OD
 			FI
 
@@ -264,8 +244,9 @@ printtrace(modif)
 		symset();
 		WHILE (symp=symget())
 		DO chkerr();
-		   IF (symp->symf)==043 ORF (symp->symf)==044
-		   THEN printf("%.8s:%12t%o\n", symp->symc, get(leng(symp->symv),DSP));
+		   IF (symp->type == N_EXT|N_DATA) || (symp->type== N_EXT|N_BSS)
+		   THEN printf("%s:%12t%o\n", no_cache_sym(symp),
+				get(leng(symp->value),DSP));
 		   FI
 		OD
 		break;
@@ -286,7 +267,7 @@ printtrace(modif)
 		   THEN IF get(link-2,ISP)!=04775
 			THEN error(A68LNK);
 			ELSE /*compute entry point of routine*/
-			     prints(" ? ");
+			     printf(" ? ");
 			FI
 		   ELSE printf("%8t");
 			valpr(name=shorten(link)+get(link-2,ISP),ISYM);
@@ -332,7 +313,8 @@ printtrace(modif)
 }
 
 printmap(s,amap)
-STRING  s; MAP *amap;
+	char	*s;
+	MAP	*amap;
 {
 	int file;
 	file=amap->ufd;
@@ -353,9 +335,8 @@ STRING  s; MAP *amap;
 
 printfregs(longpr)
 {
-#ifndef NONFP
-	REG i;
-	L_REAL f;
+	register int i;
+	double f;
 	struct Lfp *pfp;
 
 	pfp = (struct Lfp *)&((U*)corhdr)->u_fps.u_fpsr;
@@ -367,13 +348,12 @@ printfregs(longpr)
 		FI
 		printf("fr%-8d%-32.18f\n", i, f);
 	OD
-#endif
 }
 
 printregs()
 {
-	REG REGPTR      p;
-	INT             v;
+	register REGPTR      p;
+	int	v;
 
 	IF kernel
 	THEN    FOR p=kregs; p<&kregs[7]; p++
@@ -389,7 +369,7 @@ printregs()
 		IF overlay
 		THEN    setovmap(((U *)corhdr)->u_ovdata.uo_curov);
 			var[VARC] = curov;
-			printf("%s%8t%o\n", ovname, curov);
+			printf("ov%8t%o\n", curov);
 		FI
 		printpc();
 	FI
@@ -397,9 +377,9 @@ printregs()
 
 getreg(regnam)
 {
-	REG REGPTR      p;
-	REG STRING      regptr;
-	CHAR            regnxt;
+	register REGPTR      p;
+	register char	*regptr;
+	char	regnxt;
 
 	IF kernel THEN return(NOREG); FI        /* not supported */
 	regnxt=readchar();
@@ -409,8 +389,8 @@ getreg(regnam)
 		THEN    return(p->roffs);
 		FI
 	OD
-	IF regnam==ovname[0] ANDF regnxt==ovname[1]
-	THEN    return((POS *)&(((U *)corhdr)->u_ovdata.uo_curov) - uar0);
+	IF regnam == 'o' && regnxt == 'v'
+	THEN    return((u_int *)&(((U *)corhdr)->u_ovdata.uo_curov) - uar0);
 	FI
 	lp--;
 	return(NOREG);
@@ -419,7 +399,7 @@ getreg(regnam)
 printpc()
 {
 	dot=uar0[PC];
-	psymoff(dot,ISYM,":%16t"); printins(0,ISP,chkget(dot,ISP));
+	psymoff(dot,ISYM,":%16t"); printins(ISP,chkget(dot,ISP));
 	printc(EOR);
 }
 

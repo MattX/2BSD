@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_copy.s	1.1 (2.10BSD Berkeley) 4/10/88
+ *	@(#)mch_copy.s	1.3 (2.11BSD GTE) 1/9/94
  */
 
 #include "DEFS.h"
@@ -268,17 +268,12 @@ copycleanup:
 	rts	pc
 
 
-#ifdef UCB_NET
+#ifdef INET
 /*
  * Kernel/Network copying routines.
  *
  * NOTE:
- *	The cp(to|from)net functions operate atomically, at high ipl.
- *	This is done mostly out of paranoia.  If the cp(to|from)net
- *	routines start taking up too much time at high IPL, then this
- *	parnoia should probably be reconsidered.
- *
- *	The m[ft]sd functions also operate at high ipl.  This is done mostly
+ *	The m[ft]sd functions operate at high ipl.  This is done mostly
  *	because it's simpler to do a ``mov $10340,PS'' than ``bic $30000,PS;
  *	bis $10000,PS''.  But these functions will never take up enough time
  *	to cause anyone any problems.
@@ -286,65 +281,7 @@ copycleanup:
  * WARNING:
  *	All functions assume that the segments in supervisor space
  *	containing the source or target variables are never remapped.
- */
-
-#ifdef notdef				/* not currently used */
-/*
- * void
- * cptonet(kfrom, nto, len)
- *	caddr_t kfrom;		source address in kernel space
- *	caddr_t nto;		destination address in supervisor space
- *	int len;		number of bytes to copy
  *
- * Copy words from the kernel to the network.  Len must be even and both
- * kfrom and nto must begin on an even word boundary.
- */
-ENTRY(cptonet)
-	mov	r2,-(sp)
-	mov	PS,-(sp)
-	mov	$10340,PS		/ set previous mode to supervisor
-	mov	6(sp),r0		/ kfrom
-	mov	10(sp),r1		/ nto
-	mov	12(sp),r2		/ len
-	asr	r2			/ len/2
-1:
-	mov	(r0)+,-(sp)
-	mtpd	(r1)+
-	sob	r2,1b
-
-	mov	(sp)+,PS
-	mov	(sp)+,r2
-	rts	pc
-
-/*
- * void
- * cpfromnet(nfrom, kto, len)
- *	caddr_t nfrom;		source address in supervisor space
- *	caddr_t kto;		destination address in kernel space
- *	int len;		number of bytes to copy
- *
- * Copy words from the network to the kernel.  Len must be even and both
- * nfrom and kto must begin on an even word boundary.
- */
-ENTRY(cpfromnet)
-	mov	r2,-(sp)
-	mov	PS,-(sp)
-	mov	$10340,PS		/ set previous mode to supervisor
-	mov	6(sp),r0		/ nfrom
-	mov	10(sp),r1		/ kto
-	mov	12(sp),r2		/ len
-	asr	r2			/ len/2
-1:
-	mfpd	(r0)+
-	mov	(sp)+,(r1)+
-	sob	r2,1b
-
-	mov	(sp)+,PS
-	mov	(sp)+,r2
-	rts	pc
-#endif /* notdef */
-
-/*
  * void
  * mtsd(addr, word)
  *	caddr_t addr;		destination address in supervisor space
@@ -378,7 +315,7 @@ ENTRY(mfsd)
 	mov	(sp)+,r0		/ return value
 	mov	(sp)+,PS		/ restore psw
 	rts	pc			/ return
-#endif /* UCB_NET */
+#endif
 
 
 /*
@@ -554,7 +491,7 @@ ENTRY(copyinstr)
  * gets the length of the copy (including the null terminating byte).  Note
  * that *lencopied will not by valid on EFAULT.
  */
-#define	_copyoutstr	_cpyostr
+
 ENTRY(copyoutstr)
 	mov	r2,-(sp)		/ allocate a couple extra registers
 	mov	r3,-(sp)

@@ -137,7 +137,7 @@ struct ship *ship;
 	static char buf[60];
 
 	if (ship != 0)
-		p = sprintf(buf, p, ship->shipname, colours(ship),
+		p = (char *) sprintf(buf, p, ship->shipname, colours(ship),
 			sterncolour(ship));
 	sc_prompt = p;
 	sc_buf = "";

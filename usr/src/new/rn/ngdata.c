@@ -14,13 +14,21 @@
 #include "intrp.h"
 #include "final.h"
 #include "rcln.h"
-#include "util.h"
+#include "server.h"
 #include "INTERN.h"
 #include "ngdata.h"
+
+#ifdef SERVER
+char    active_name[256];
+#endif SERVER
 
 void
 ngdata_init()
 {
+#ifdef SERVER
+    char ser_line[256];
+    char *cp;
+#endif
 /* The following is only for systems that do not zero globals properly */
 #ifdef ZEROGLOB
 # ifdef CACHEFIRST
@@ -31,7 +39,38 @@ ngdata_init()
 
     /* open the active file */
 
+#ifdef SERVER
+
+    put_server("LIST");		/* tell server we want the active file */
+    (void) get_server(ser_line, sizeof(ser_line));
+    if (*ser_line != CHAR_OK) {		/* and then see if that's ok */
+	fprintf(stdout, "Can't get active file from server: \n%s\n", ser_line);
+	finalize(1);
+    }
+
+    cp = filexp("/tmp/rrnact.%$");	/* make a temporary name */
+    strcpy(active_name, cp);
+    actfp = fopen(active_name, "w+");	/* and get ready */
+    if (actfp == Nullfp) {
+	printf(cantopen,filexp(ACTIVE)) FLUSH;
+	finalize(1);
+    }
+
+    while (get_server(ser_line, sizeof(ser_line)) >= 0) {  /* while */
+	if (ser_line[0] == '.')		/* there's another line */
+		break;			/* get it and write it to */
+	fputs(ser_line, actfp);
+	putc('\n', actfp);
+    }
+
+    fseek(actfp,0L,0);		/* just get to the beginning */
+
+#else not SERVER
+
     actfp = fopen(filexp(ACTIVE),"r");
+
+#endif SERVER
+
     if (actfp == Nullfp) {
 	printf(cantopen,filexp(ACTIVE)) FLUSH;
 	finalize(1);
@@ -78,6 +117,7 @@ register NG_NUM num;
 #ifdef MININACT
     {
 	register char *s;
+	char *getval();
 	ART_NUM tmp;
 
 	for (s=tmpbuf+len+1; isdigit(*s); s++) ;
@@ -90,9 +130,18 @@ register NG_NUM num;
 	if (!in_ng) {
 	    for (s++; isdigit(*s); s++) ;
 	    while (isspace(*s)) s++;
-	    moderated = (!*s || *s == 'y'
-		? nullstr
-		: getval("MODSTRING"," (moderated)") );
+	    switch (*s) {
+	    case 'n': moderated = getval("NOPOSTRING"," (no posting)"); break;
+	    case 'm': moderated = getval("MODSTRING", " (moderated)"); break;
+	    /* This shouldn't even occur.  What are we doing in a non-existent
+	       group?  Disallow it. */
+	    case 'x': return TR_BOGUS;
+	    /* what should be done about refiled groups?  rn shouldn't even
+	       be in them (ie, if sci.aquaria is refiled to rec.aquaria, then
+	       get the news there) */
+	    case '=': return TR_BOGUS;
+	    default: moderated = nullstr;
+	    }
 	}
     }
 #endif

@@ -11,7 +11,7 @@ output()
 	{
 	VERT w;
 	int i;
-	brace = challoc(nodenum * sizeof(*brace));
+	brace = (LOGICAL *)challoc(nodenum * sizeof(*brace));
 	for (i = 0; i < nodenum; ++i)
 		brace[i] = FALSE;
 	if (progress) fprintf(stderr,"ndbrace:\n");

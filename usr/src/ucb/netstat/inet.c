@@ -10,9 +10,9 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)inet.c	5.9.1.1 (Berkeley) 2/7/88";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)inet.c	5.9.3 (2.11BSD GTE) 8/28/94";
+#endif
 
 #include <strings.h>
 #include <stdio.h>
@@ -53,9 +53,10 @@ extern	int kmem;
 extern	int Aflag;
 extern	int aflag;
 extern	int nflag;
+extern	int sflag;
 extern	char *plural();
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
 #endif
 
@@ -219,16 +220,14 @@ udp_stats(off, name)
 		return;
 	klseek(kmem, off, 0);
 	read(kmem, (char *)&udpstat, sizeof (udpstat));
-	printf("%s:\n\t%lu incomplete header%s\n", name,
-		udpstat.udps_hdrops, plural(udpstat.udps_hdrops));
-	printf("\t%lu bad data length field%s\n",
-		udpstat.udps_badlen, plural(udpstat.udps_badlen));
-	printf("\t%lu bad checksum%s\n",
-		udpstat.udps_badsum, plural(udpstat.udps_badsum));
-#ifdef sun
-	printf("\t%ld socket overflow%s\n",
-		udpstat.udps_fullsock, plural(udpstat.udps_fullsock));
-#endif
+	printf("%s:\n", name);
+#define	p(f, m) printf(m, udpstat.f, plural(udpstat.f))
+	p(udps_hdrops, "\t%lu incomplete header%s\n");
+	p(udps_badlen, "\t%lu bad data length field%s\n");
+	p(udps_badsum, "\t%lu bad checksum%s\n");
+	p(udps_noport, "\t%lu no port%s\n");
+	p(udps_noportbcast, "\t%lu (arrived as bcast) no port%s\n");
+#undef p
 }
 
 /*
@@ -250,8 +249,8 @@ ip_stats(off, name)
 #endif
 	printf("\t%lu bad header checksum%s\n",
 		ipstat.ips_badsum, plural(ipstat.ips_badsum));
-	printf("\t%lu with size smaller than minimum\n", ipstat.ips_tooshort);
-	printf("\t%lu with data size < data length\n", ipstat.ips_toosmall);
+	printf("\t%lu with size smaller than minimum\n", ipstat.ips_toosmall);
+	printf("\t%lu with data size < data length\n", ipstat.ips_tooshort);
 	printf("\t%lu with header length < data size\n", ipstat.ips_badhlen);
 	printf("\t%lu with data length < header length\n", ipstat.ips_badlen);
 #if BSD>=43
@@ -360,7 +359,7 @@ inetprint(in, port, proto)
 	if (sp || port == 0)
 		sprintf(cp, "%.8s", sp ? sp->s_name : "*");
 	else
-		sprintf(cp, "%d", ntohs((u_short)port));
+		sprintf(cp, "%u", ntohs((u_short)port));
 	width = Aflag ? 18 : 22;
 	printf(" %-*.*s", width, width, line);
 }

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_exec.c	1.2 (2.11BSD GTE) 12/23/92
  */
 
 #include "param.h"
@@ -57,11 +57,13 @@ execve()
 		char	ex_shell[SHSIZE];	/* #! and name of interpreter */
 		struct	exec ex_exec;
 	} exdata;
-	int error;
+	register struct	nameidata *ndp = &u.u_nd;
+	int resid, error;
 
-	u.u_segflg = UIO_USERSPACE;
-	u.u_dirp = ((struct execa *)u.u_ap)->fname;
-	if ((ip = namei(LOOKUP | FOLLOW)) == NULL)
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = ((struct execa *)u.u_ap)->fname;
+	if ((ip = namei(ndp)) == NULL)
 		return;
 	bno = 0;
 	bp = 0;
@@ -102,15 +104,11 @@ execve()
 	 * THE ASCII LINE.
 	 */
 	exdata.ex_shell[0] = '\0';	/* for zero length files */
-	u.u_base = (caddr_t)&exdata;
-	u.u_count = sizeof(exdata);
-	u.u_offset = 0;
-	u.u_segflg = UIO_SYSSPACE;
-	readi(ip);
-	u.u_segflg = UIO_USERSPACE;
+	u.u_error = rdwri(UIO_READ, ip, &exdata, sizeof(exdata), (off_t)0,
+				UIO_SYSSPACE, &resid);
 	if (u.u_error)
 		goto bad;
-	if (u.u_count > sizeof(exdata) - sizeof(exdata.ex_exec) &&
+	if (resid > sizeof(exdata) - sizeof(exdata.ex_exec) &&
 	    exdata.ex_shell[0] != '#') {
 		u.u_error = ENOEXEC;
 		goto bad;
@@ -150,7 +148,7 @@ execve()
 		cp = &exdata.ex_shell[2];
 		while (*cp == ' ')
 			cp++;
-		u.u_dirp = cp;
+		ndp->ni_dirp = cp;
 		while (*cp && *cp != ' ')
 			cp++;
 		cfarg[0] = '\0';
@@ -163,12 +161,12 @@ execve()
 		}
 		indir = 1;
 		iput(ip);
-		u.u_segflg = UIO_SYSSPACE;
-		ip = namei(LOOKUP | FOLLOW);
-		u.u_segflg = UIO_USERSPACE;
+		ndp->ni_nameiop = LOOKUP | FOLLOW;
+		ndp->ni_segflg = UIO_SYSSPACE;
+		ip = namei(ndp);
 		if (ip == NULL)
 			return;
-		bcopy((caddr_t)u.u_dent.d_name, (caddr_t)cfname, MAXCOMLEN);
+		bcopy((caddr_t)ndp->ni_dent.d_name, (caddr_t)cfname, MAXCOMLEN);
 		cfname[MAXCOMLEN] = '\0';
 		goto again;
 	}
@@ -183,7 +181,7 @@ execve()
 	uap = (struct execa *)u.u_ap;
 	bno = malloc(swapmap, ctod((int)btoc(NCARGS + MAXBSIZE)));
 	if (bno == 0) {
-		swkill(u.u_procp, "exec: no swap space");
+		swkill(u.u_procp, "exec");
 		goto bad;
 	}
 	/*
@@ -233,7 +231,7 @@ execve()
 					bdwrite(bp);
 				}
 				cc = CLSIZE*NBPG;
-				bp = getblk(swapdev, dbtofsb(clrnd(swplo + bno)) + lblkno(nc));
+				bp = getblk(swapdev, dbtofsb(clrnd(bno)) + lblkno(nc));
 				cp = mapin(bp);
 			}
 			if (sharg) {
@@ -272,7 +270,7 @@ badarg:
 		for (cc = 0;cc < nc; cc += CLSIZE * NBPG) {
 			daddr_t blkno;
 
-			blkno = dbtofsb(clrnd(swplo + bno)) + lblkno(cc);
+			blkno = dbtofsb(clrnd(bno)) + lblkno(cc);
 			if (incore(swapdev,blkno)) {
 				bp = bread(swapdev,blkno);
 				bp->b_flags |= B_AGE;		/* throw away */
@@ -311,8 +309,7 @@ badarg:
 					brelse(bp);
 				}
 				cc = CLSIZE*NBPG;
-				bp = bread(swapdev,
-				    dbtofsb(clrnd(swplo + bno)) + lblkno(nc));
+				bp = bread(swapdev, dbtofsb(clrnd(bno)) + lblkno(nc));
 				bp->b_flags |= B_AGE;		/* throw away */
 				bp->b_flags &= ~B_DELWRI;	/* cancel io */
 				cp = mapin(bp);
@@ -355,7 +352,7 @@ badarg:
 	if (indir)
 		bcopy((caddr_t)cfname, (caddr_t)u.u_comm, MAXCOMLEN);
 	else
-		bcopy((caddr_t)u.u_dent.d_name, (caddr_t)u.u_comm, MAXCOMLEN);
+		bcopy((caddr_t)ndp->ni_dent.d_name, (caddr_t)u.u_comm, MAXCOMLEN);
 bad:
 	if (bp) {
 		mapout(bp);
@@ -430,7 +427,7 @@ execve1()
 
 	for (cnt = u.u_lastfile;cnt >= 0; cnt--, ofilep++, pofilep++)
 		if (*pofilep & UF_EXCLOSE) {
-			closef(*ofilep,1);
+			closef(*ofilep);
 			*ofilep = NULL;
 			*pofilep = 0;
 		}
@@ -448,9 +445,10 @@ getxfile(ip, ep, nargc, uid, gid)
 {
 	struct u_ovd sovdata;
 	long lsize;
+	off_t	offset;
 	u_int ds, ts, ss;
 	u_int ovhead[NOVL + 1];
-	int sep, overlay, ovflag, ovmax;
+	int sep, overlay, ovflag, ovmax, resid;
 
 	overlay = sep = ovflag = 0;
 	switch(ep->a_magic) {
@@ -517,13 +515,9 @@ getxfile(ip, ep, nargc, uid, gid)
 	u.u_ovdata.uo_ovbase = 0;
 	u.u_ovdata.uo_curov = 0;
 	if (ovflag) {
-		u.u_base = (caddr_t)ovhead;
-		u.u_count = sizeof(ovhead);
-		u.u_offset = sizeof(struct exec);
-		u.u_segflg = UIO_SYSSPACE;
-		readi(ip);
-		u.u_segflg = UIO_USERSPACE;
-		if (u.u_count != 0)
+		u.u_error = rdwri(UIO_READ, ip, ovhead, sizeof(ovhead), 
+			(off_t)sizeof(struct exec), UIO_SYSSPACE, &resid);
+		if (resid != 0)
 			u.u_error = ENOEXEC;
 		if (u.u_error) {
 			u.u_ovdata = sovdata;
@@ -607,16 +601,15 @@ getxfile(ip, ep, nargc, uid, gid)
 		 * read in data segment
 		 */
 		estabur((u_int)0, ds, (u_int)0, 0, RO);
-		u.u_base = 0;
-		u.u_offset = sizeof(struct exec);
+		offset = sizeof(struct exec);
 		if (ovflag) {
-			u.u_offset += sizeof(ovhead);
-			u.u_offset += (((long)u.u_ovdata.uo_ov_offst[NOVL]) << 6);
+			offset += sizeof(ovhead);
+			offset += (((long)u.u_ovdata.uo_ov_offst[NOVL]) << 6);
 		}
 		else
-			u.u_offset += ep->a_text;
-		u.u_count = ep->a_data;
-		readi(ip);
+			offset += ep->a_text;
+		rdwri(UIO_READ, ip, (caddr_t) 0, ep->a_data, offset,
+			UIO_USERSPACE, 0);
 
 		/*
 		 * set SUID/SGID protections, if no tracing

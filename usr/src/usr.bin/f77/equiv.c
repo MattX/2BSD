@@ -1,6 +1,7 @@
 #include "defs"
 #include "string_defs"
 
+extern ftnint iarrlen(), lmin(), lmax();
 /* ROUTINES RELATED TO EQUIVALENCE CLASS PROCESSING */
 
 /* called at end of declarations section to process chains
@@ -10,7 +11,7 @@ doequiv()
 {
 register int i;
 int inequiv, comno, ovarno;
-ftnint comoffset, offset, leng, iarrlen(), lmin(), lmax();
+ftnint comoffset, offset, leng;
 register struct equivblock *p;
 register struct eqvchain *q;
 struct primblock *itemp;

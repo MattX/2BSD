@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_ex.c	7.3 (Berkeley) 5/27/88
+ *	@(#)if_ex.c	7.2 (Berkeley) 10/13/86
  */
 
 
@@ -16,6 +16,8 @@
  *	George Powers
  *	Excelan Inc.
  */
+
+#include "../machine/pte.h"
 
 #include "param.h"
 #include "systm.h"
@@ -45,7 +47,6 @@
 #include "../netns/ns_if.h"
 #endif
 
-#include "../vax/pte.h"
 #include "../vax/cpu.h"
 #include "../vax/mtpr.h"
 #include "if_exreg.h"
@@ -53,7 +54,7 @@
 #include "../vaxuba/ubareg.h"
 #include "../vaxuba/ubavar.h"
 
-/* #define DEBUG			/* check for "impossible" events */
+#define DEBUG			/* check for "impossible" events */
 
 #define	NH2X 4			/* a sufficient number is critical */
 #define	NX2H 4			/* this is pretty arbitrary */
@@ -914,7 +915,7 @@ ex_setaddr(physaddr, unit)
 	while ((bp->mb_status & MH_OWNER) == MH_EXOS)	/* poll for reply */
 		;
 #ifdef	DEBUG
-	log(LOG_DEBUG, "ex%d: reset addr %s\n", ui->ui_unit,
+	log(LOG_ERR, "ex%d: reset addr %s\n", ui->ui_unit,
 		ether_sprintf(bp->mb_na.na_addrs));
 #endif
 	/*

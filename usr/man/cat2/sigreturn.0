@@ -5,26 +5,26 @@ SIGRETURN(2)	    UNIX Programmer's Manual	     SIGRETURN(2)
 
 
 
-NNAAMMEE
+NAME
      sigreturn - return from signal
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssiiggnnaall..hh>>
+SYNOPSIS
+     #include <signal.h>
 
-     ssttrruucctt    ssiiggccoonntteexxtt {{
-	  iinntt  sscc__oonnssttaacckk;;
-	  lloonngg sscc__mmaasskk;;
-	  iinntt  sscc__sspp;;
-	  iinntt  sscc__ffpp;;
-	  iinntt  sscc__aapp;;
-	  iinntt  sscc__ppcc;;
-	  iinntt  sscc__ppss;;
-     }};;
+     struct    sigcontext {
+	  int  sc_onstack;
+	  long sc_mask;
+	  int  sc_sp;
+	  int  sc_fp;
+	  int  sc_ap;
+	  int  sc_pc;
+	  int  sc_ps;
+     };
 
-     ssiiggrreettuurrnn((ssccpp));;
-     ssttrruucctt ssiiggccoonntteexxtt **ssccpp;;
+     sigreturn(scp);
+     struct sigcontext *scp;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_i_g_r_e_t_u_r_n allows users to atomically unmask, switch stacks,
      and return from a signal context.	The processes signal mask
      and stack status are restored from the context.  The system
@@ -35,7 +35,7 @@ DDEESSCCRRIIPPTTIIOONN
      and _l_o_n_g_j_m_p(3) when returning from a signal to the previ-
      ously executing program.
 
-NNOOTTEESS
+NOTES
      This system call is not available in 4.2BSD, hence it should
      not be used if backward compatibility is needed.
 
@@ -45,12 +45,12 @@ NNOOTTEESS
      _S_e_t_j_m_p(3) may be used to build sigcontext structures in a
      machine independent manner.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      If successful, the system call does not return.  Otherwise,
      a value of -1 is returned and _e_r_r_n_o is set to indicate the
      error.
 
-EERRRROORRSS
+ERRORS
      _S_i_g_r_e_t_u_r_n will fail and the process context will remain
      unchanged if one of the following occurs.
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  June 30, 1985                         1
+Printed 1/9/94		  June 30, 1985                         1
 
 
 
@@ -75,10 +75,10 @@ SIGRETURN(2)	    UNIX Programmer's Manual	     SIGRETURN(2)
 		    would improperly raise the privilege level of
 		    the process.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sigvec(2), setjmp(3)
 
-NNOOTTEESS  ((PPDDPP--1111))
+NOTES  (PDP-11)
      On the PDP-11 the field _s_c__a_p (argument pointer) does not
      exist and the field _s_c__f_p (frame pointer) is the PDP-11
      register _r_5.  Additionally, three new fields _s_c__r_0, _s_c__r_1
@@ -86,17 +86,17 @@ NNOOTTEESS  ((PPDDPP--1111))
      values r0 and r1 and the text overlay number to restore (see
      _l_d(1)).
 
-     ssttrruucctt  ssiiggccoonntteexxtt {{
-	     iinntt   sscc__oonnssttaacckk;; //** ssiiggssttaacckk ssttaattee ttoo rreessttoorree **//
-	     lloonngg  sscc__mmaasskk;;    //** ssiiggnnaall mmaasskk ttoo rreessttoorree **//
-	     iinntt   sscc__sspp;;      //** sspp ttoo rreessttoorree **//
-	     iinntt   sscc__ffpp;;      //** ffpp ttoo rreessttoorree **//
-	     iinntt   sscc__rr11;;      //** rr11 ttoo rreessttoorree **//
-	     iinntt   sscc__rr00;;      //** rr00 ttoo rreessttoorree **//
-	     iinntt   sscc__ppcc;;      //** ppcc ttoo rreessttoorree **//
-	     iinntt   sscc__ppss;;      //** ppssll ttoo rreessttoorree **//
-	     iinntt   sscc__oovvnnoo     //** oovveerrllaayy ttoo rreessttoorree **//
-     }};;
+     struct  sigcontext {
+	     int   sc_onstack; /* sigstack state to restore */
+	     long  sc_mask;    /* signal mask to restore */
+	     int   sc_sp;      /* sp to restore */
+	     int   sc_fp;      /* fp to restore */
+	     int   sc_r1;      /* r1 to restore */
+	     int   sc_r0;      /* r0 to restore */
+	     int   sc_pc;      /* pc to restore */
+	     int   sc_ps;      /* psl to restore */
+	     int   sc_ovno     /* overlay to restore */
+     };
 
 
 
@@ -126,7 +126,7 @@ NNOOTTEESS  ((PPDDPP--1111))
 
 
 
-Printed 12/28/88	  June 30, 1985                         2
+Printed 1/9/94		  June 30, 1985                         2
 
 
 

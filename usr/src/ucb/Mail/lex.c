@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)lex.c	5.4 (Berkeley) 11/2/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)lex.c	5.23 (Berkeley) 4/1/91";
+#endif
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -22,48 +49,53 @@ char	*prompt = "& ";
 
 /*
  * Set up editing on the given file name.
- * If isedit is true, we are considered to be editing the file,
- * otherwise we are reading our mail which has signficance for
- * mbox and so forth.
+ * If the first character of name is %, we are considered to be
+ * editing the file, otherwise we are reading our mail which has
+ * signficance for mbox and so forth.
  */
-
-setfile(name, isedit)
+setfile(name)
 	char *name;
 {
 	FILE *ibuf;
 	int i;
 	struct stat stb;
+	char isedit = *name != '%';
+	char *who = name[1] ? name + 1 : myname;
 	static int shudclob;
-	static char efile[128];
 	extern char tempMesg[];
 	extern int errno;
 
-	if ((ibuf = fopen(name, "r")) == NULL)
+	if ((name = expand(name)) == NOSTR)
+		return -1;
+
+	if ((ibuf = Fopen(name, "r")) == NULL) {
+		if (!isedit && errno == ENOENT)
+			goto nomail;
+		perror(name);
 		return(-1);
+	}
 
 	if (fstat(fileno(ibuf), &stb) < 0) {
-		fclose(ibuf);
+		perror("fstat");
+		Fclose(ibuf);
 		return (-1);
 	}
 
 	switch (stb.st_mode & S_IFMT) {
 	case S_IFDIR:
-		fclose(ibuf);
+		Fclose(ibuf);
 		errno = EISDIR;
+		perror(name);
 		return (-1);
 
 	case S_IFREG:
 		break;
 
 	default:
-		fclose(ibuf);
+		Fclose(ibuf);
 		errno = EINVAL;
+		perror(name);
 		return (-1);
-	}
-
-	if (!edit && stb.st_size == 0) {
-		fclose(ibuf);
-		return(-1);
 	}
 
 	/*
@@ -74,12 +106,8 @@ setfile(name, isedit)
 	 */
 
 	holdsigs();
-	if (shudclob) {
-		if (edit)
-			edstop();
-		else
-			quit();
-	}
+	if (shudclob)
+		quit();
 
 	/*
 	 * Copy the messages into /tmp
@@ -97,8 +125,7 @@ setfile(name, isedit)
 	}
 	shudclob = 1;
 	edit = isedit;
-	strncpy(efile, name, 128);
-	editfile = efile;
+	strcpy(prevfile, mailname);
 	if (name != mailname)
 		strcpy(mailname, name);
 	mailsize = fsize(ibuf);
@@ -110,86 +137,65 @@ setfile(name, isedit)
 		perror(tempMesg);
 		exit(1);
 	}
-	remove(tempMesg);
+	rm(tempMesg);
 	setptr(ibuf);
 	setmsize(msgCount);
-	fclose(ibuf);
+	Fclose(ibuf);
 	relsesigs();
 	sawcom = 0;
+	if (!edit && msgCount == 0) {
+nomail:
+		fprintf(stderr, "No mail for %s\n", who);
+		return -1;
+	}
 	return(0);
 }
+
+int	*msgvec;
+int	reset_on_stop;			/* do a reset() if stopped */
 
 /*
  * Interpret user commands one by one.  If standard input is not a tty,
  * print no prompt.
  */
-
-int	*msgvec;
-
 commands()
 {
-	int eofloop, shudprompt, stop();
+	int eofloop = 0;
 	register int n;
 	char linebuf[LINESIZE];
-	int hangup(), contin();
+	void intr(), stop(), hangup();
 
-# ifdef VMUNIX
-	sigset(SIGCONT, SIG_DFL);
-# endif VMUNIX
-	if (rcvmode && !sourcing) {
-		if (sigset(SIGINT, SIG_IGN) != SIG_IGN)
-			sigset(SIGINT, stop);
-		if (sigset(SIGHUP, SIG_IGN) != SIG_IGN)
-			sigset(SIGHUP, hangup);
+	if (!sourcing) {
+		if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+			signal(SIGINT, intr);
+		if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
+			signal(SIGHUP, hangup);
+		signal(SIGTSTP, stop);
+		signal(SIGTTOU, stop);
+		signal(SIGTTIN, stop);
 	}
-	shudprompt = intty && !sourcing;
+	setexit();
 	for (;;) {
-		setexit();
-
 		/*
 		 * Print the prompt, if needed.  Clear out
 		 * string space, and flush the output.
 		 */
-
-		if (!rcvmode && !sourcing)
-			return;
-		eofloop = 0;
-top:
-		if (shudprompt) {
+		if (!sourcing && value("interactive") != NOSTR) {
+			reset_on_stop = 1;
 			printf(prompt);
-			fflush(stdout);
-# ifdef VMUNIX
-			sigset(SIGCONT, contin);
-# endif VMUNIX
-		} else
-			fflush(stdout);
+		}
+		fflush(stdout);
 		sreset();
-
 		/*
 		 * Read a line of commands from the current input
 		 * and handle end of file specially.
 		 */
-
 		n = 0;
 		for (;;) {
-			if (readline(input, &linebuf[n]) <= 0) {
-				if (n != 0)
-					break;
-				if (loading)
-					return;
-				if (sourcing) {
-					unstack();
-					goto more;
-				}
-				if (value("ignoreeof") != NOSTR && shudprompt) {
-					if (++eofloop < 25) {
-						printf("Use \"quit\" to quit.\n");
-						goto top;
-					}
-				}
-				if (edit)
-					edstop();
-				return;
+			if (readline(input, &linebuf[n], LINESIZE - n) < 0) {
+				if (n == 0)
+					n = -1;
+				break;
 			}
 			if ((n = strlen(linebuf)) == 0)
 				break;
@@ -198,22 +204,36 @@ top:
 				break;
 			linebuf[n++] = ' ';
 		}
-# ifdef VMUNIX
-		sigset(SIGCONT, SIG_DFL);
-# endif VMUNIX
+		reset_on_stop = 0;
+		if (n < 0) {
+				/* eof */
+			if (loading)
+				break;
+			if (sourcing) {
+				unstack();
+				continue;
+			}
+			if (value("interactive") != NOSTR &&
+			    value("ignoreeof") != NOSTR &&
+			    ++eofloop < 25) {
+				printf("Use \"quit\" to quit.\n");
+				continue;
+			}
+			break;
+		}
+		eofloop = 0;
 		if (execute(linebuf, 0))
-			return;
-more:		;
+			break;
 	}
 }
 
 /*
- * Execute a single command.  If the command executed
- * is "quit," then return non-zero so that the caller
- * will know to return back to main, if he cares.
+ * Execute a single command.
+ * Command functions return 0 for success, 1 for error, and -1
+ * for abort.  A 1 or -1 aborts a load or source.  A -1 aborts
+ * the interactive command loop.
  * Contxt is non-zero if called while composing mail.
  */
-
 execute(linebuf, contxt)
 	char linebuf[];
 {
@@ -223,7 +243,7 @@ execute(linebuf, contxt)
 	register char *cp, *cp2;
 	register int c;
 	int muvec[2];
-	int edstop(), e;
+	int e = 1;
 
 	/*
 	 * Strip the white space away from the beginning
@@ -234,20 +254,18 @@ execute(linebuf, contxt)
 	 * lexical conventions.
 	 */
 
-	cp = linebuf;
-	while (any(*cp, " \t"))
-		cp++;
+	for (cp = linebuf; isspace(*cp); cp++)
+		;
 	if (*cp == '!') {
 		if (sourcing) {
 			printf("Can't \"!\" while sourcing\n");
-			unstack();
-			return(0);
+			goto out;
 		}
 		shell(cp+1);
 		return(0);
 	}
 	cp2 = word;
-	while (*cp && !any(*cp, " \t0123456789$^.:/-+*'\""))
+	while (*cp && index(" \t0123456789$^.:/-+*'\"", *cp) == NOSTR)
 		*cp2++ = *cp++;
 	*cp2 = '\0';
 
@@ -259,16 +277,12 @@ execute(linebuf, contxt)
 	 * confusion.
 	 */
 
-	if (sourcing && equal(word, ""))
+	if (sourcing && *word == '\0')
 		return(0);
 	com = lex(word);
 	if (com == NONE) {
 		printf("Unknown command: \"%s\"\n", word);
-		if (loading)
-			return(1);
-		if (sourcing)
-			unstack();
-		return(0);
+		goto out;
 	}
 
 	/*
@@ -281,23 +295,6 @@ execute(linebuf, contxt)
 			return(0);
 
 	/*
-	 * Special case so that quit causes a return to
-	 * main, who will call the quit code directly.
-	 * If we are in a source file, just unstack.
-	 */
-
-	if (com->c_func == edstop && sourcing) {
-		if (loading)
-			return(1);
-		unstack();
-		return(0);
-	}
-	if (!edit && com->c_func == edstop) {
-		sigset(SIGINT, SIG_IGN);
-		return(1);
-	}
-
-	/*
 	 * Process the arguments to the command, depending
 	 * on the type he expects.  Default to an error.
 	 * If we are sourcing an interactive command, it's
@@ -307,34 +304,22 @@ execute(linebuf, contxt)
 	if (!rcvmode && (com->c_argtype & M) == 0) {
 		printf("May not execute \"%s\" while sending\n",
 		    com->c_name);
-		if (loading)
-			return(1);
-		if (sourcing)
-			unstack();
-		return(0);
+		goto out;
 	}
 	if (sourcing && com->c_argtype & I) {
 		printf("May not execute \"%s\" while sourcing\n",
 		    com->c_name);
-		if (loading)
-			return(1);
-		unstack();
-		return(0);
+		goto out;
 	}
 	if (readonly && com->c_argtype & W) {
 		printf("May not execute \"%s\" -- message file is read only\n",
 		   com->c_name);
-		if (loading)
-			return(1);
-		if (sourcing)
-			unstack();
-		return(0);
+		goto out;
 	}
 	if (contxt && com->c_argtype & R) {
 		printf("Cannot recursively invoke \"%s\"\n", com->c_name);
-		return(0);
+		goto out;
 	}
-	e = 1;
 	switch (com->c_argtype & ~(F|P|I|M|T|W|R)) {
 	case MSGLIST:
 		/*
@@ -343,7 +328,7 @@ execute(linebuf, contxt)
 		 */
 		if (msgvec == 0) {
 			printf("Illegal use of \"message list\"\n");
-			return(-1);
+			break;
 		}
 		if ((c = getmsglist(cp, msgvec, com->c_msgflag)) < 0)
 			break;
@@ -366,7 +351,7 @@ execute(linebuf, contxt)
 		 */
 		if (msgvec == 0) {
 			printf("Illegal use of \"message list\"\n");
-			return(-1);
+			break;
 		}
 		if (getmsglist(cp, msgvec, com->c_msgflag) < 0)
 			break;
@@ -378,7 +363,7 @@ execute(linebuf, contxt)
 		 * Just the straight string, with
 		 * leading blanks removed.
 		 */
-		while (any(*cp, " \t"))
+		while (isspace(*cp))
 			cp++;
 		e = (*com->c_func)(cp);
 		break;
@@ -415,17 +400,20 @@ execute(linebuf, contxt)
 		panic("Unknown argtype");
 	}
 
+out:
 	/*
 	 * Exit the current source file on
 	 * error.
 	 */
-
-	if (e && loading)
-		return(1);
-	if (e && sourcing)
-		unstack();
-	if (com->c_func == edstop)
-		return(1);
+	if (e) {
+		if (e < 0)
+			return 1;
+		if (loading)
+			return 1;
+		if (sourcing)
+			unstack();
+		return 0;
+	}
 	if (value("autoprint") != NOSTR && com->c_argtype & P)
 		if ((dot->m_flag & MDELETED) == 0) {
 			muvec[0] = dot - &message[0] + 1;
@@ -438,33 +426,6 @@ execute(linebuf, contxt)
 }
 
 /*
- * When we wake up after ^Z, reprint the prompt.
- */
-contin(s)
-{
-
-	printf(prompt);
-	fflush(stdout);
-}
-
-/*
- * Branch here on hangup signal and simulate quit.
- */
-hangup()
-{
-
-	holdsigs();
-	if (edit) {
-		if (setexit())
-			exit(0);
-		edstop();
-	}
-	else
-		quit();
-	exit(0);
-}
-
-/*
  * Set the size of the message vector used to construct argument
  * lists to message list functions.
  */
@@ -472,8 +433,8 @@ hangup()
 setmsize(sz)
 {
 
-	if (msgvec != (int *) 0)
-		cfree(msgvec);
+	if (msgvec != 0)
+		cfree((char *) msgvec);
 	msgvec = (int *) calloc((unsigned) (sz + 1), sizeof *msgvec);
 }
 
@@ -514,74 +475,65 @@ isprefix(as1, as2)
 }
 
 /*
- * The following gets called on receipt of a rubout.  This is
+ * The following gets called on receipt of an interrupt.  This is
  * to abort printout of a command, mainly.
  * Dispatching here when command() is inactive crashes rcv.
  * Close all open files except 0, 1, 2, and the temporary.
- * The special call to getuserid() is needed so it won't get
- * annoyed about losing its open file.
  * Also, unstack all source files.
  */
 
 int	inithdr;			/* am printing startup headers */
 
-#ifdef _NFILE
-static
-_fwalk(function)
-	register int (*function)();
+/*ARGSUSED*/
+void
+intr(s)
 {
-	register FILE *iop;
 
-	for (iop = _iob; iop < _iob + _NFILE; iop++)
-		(*function)(iop);
-}
-#endif
-
-static
-xclose(iop)
-	register FILE *iop;
-{
-	if (iop == stdin || iop == stdout ||
-	    iop == stderr || iop == itf || iop == otf)
-		return;
-
-	if (iop != pipef)
-		fclose(iop);
-	else {
-		pclose(pipef);
-		pipef = NULL;
-	}
-}
-
-stop(s)
-{
-	register FILE *fp;
-
-# ifndef VMUNIX
-	s = SIGINT;
-# endif VMUNIX
 	noreset = 0;
 	if (!inithdr)
 		sawcom++;
 	inithdr = 0;
 	while (sourcing)
 		unstack();
-	getuserid((char *) -1);
 
-	/*
-	 * Walk through all the open FILEs, applying xclose() to them
-	 */
-	_fwalk(xclose);
+	close_all_files();
 
 	if (image >= 0) {
 		close(image);
 		image = -1;
 	}
 	fprintf(stderr, "Interrupt\n");
-# ifndef VMUNIX
-	signal(s, stop);
-# endif
 	reset(0);
+}
+
+/*
+ * When we wake up after ^Z, reprint the prompt.
+ */
+void
+stop(s)
+{
+	sig_t old_action = signal(s, SIG_DFL);
+
+	sigsetmask(sigblock(0L) & ~sigmask(s));
+	kill(0, s);
+	sigblock(sigmask(s));
+	signal(s, old_action);
+	if (reset_on_stop) {
+		reset_on_stop = 0;
+		reset(0);
+	}
+}
+
+/*
+ * Branch here on hangup signal and simulate "exit".
+ */
+/*ARGSUSED*/
+void
+hangup(s)
+{
+
+	/* nothing to do? */
+	exit(1);
 }
 
 /*
@@ -589,24 +541,15 @@ stop(s)
  * give the message count, and print a header listing.
  */
 
-char	*greeting	= "Mail version %s.  Type ? for help.\n";
-
-#ifdef BSD2_10
-extern char *version;
-#endif
-
-announce(pr)
+announce()
 {
 	int vec[2], mdot;
-	extern char *version;
 
-	if (pr && value("quiet") == NOSTR)
-		printf(greeting, version);
 	mdot = newfileinfo();
 	vec[0] = mdot;
 	vec[1] = 0;
 	dot = &message[mdot - 1];
-	if (msgCount > 0 && !noheader) {
+	if (msgCount > 0 && value("noheader") == NOSTR) {
 		inithdr++;
 		headers(vec);
 		inithdr = 0;
@@ -672,14 +615,15 @@ newfileinfo()
 	return(mdot);
 }
 
-strace() {}
-
 /*
  * Print the current version number.
  */
 
+/*ARGSUSED*/
 pversion(e)
 {
+	extern char *version;
+
 	printf("Version %s\n", version);
 	return(0);
 }
@@ -692,7 +636,7 @@ load(name)
 {
 	register FILE *in, *oldin;
 
-	if ((in = fopen(name, "r")) == NULL)
+	if ((in = Fopen(name, "r")) == NULL)
 		return;
 	oldin = input;
 	input = in;
@@ -702,5 +646,5 @@ load(name)
 	loading = 0;
 	sourcing = 0;
 	input = oldin;
-	fclose(in);
+	Fclose(in);
 }

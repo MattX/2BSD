@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)SYS.h	1.3 (Berkeley) 1/7/87
+ *	@(#)SYS.h	1.4 (2.11BSD GTE) 3/13/93
  */
 
 #include <syscall.h>
@@ -39,25 +39,17 @@
 			SYS(s); \
 			EXIT_/**/r
 
+		.globl	x_norm, x_error
 
-#define	EXIT_norm		bes	error; \
-				rts	pc; \
-			error: \
-				mov	r0,_errno; \
-				mov	$-1,r0; \
-				rts	pc;
+#define	EXIT_norm		jmp	x_norm
 
-#define	EXIT_long		bes	error; \
-				rts	pc; \
-			error: \
+#define	EXIT_long		bcc	1f; \
 				mov	r0,_errno; \
 				mov	$-1,r1; \
 				sxt	r0; \
-				rts	pc;
+				1: rts	pc;
 
-#define	EXIT_error		mov	r0,_errno; \
-				mov	$-1,r0; \
-				rts	pc;
+#define	EXIT_error		jmp	x_error
 
 #define	EXIT_noerror		rts	pc;
 

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)rp.c	2.1 (Berkeley)	8/31/83
+ *	SCCS id	@(#)rp.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -60,11 +60,6 @@ struct	size rp_sizes[] = {
 };
 
 struct	buf	rptab;
-#ifdef	UCB_DBUFS
-struct	buf	rrpbuf[NRP];
-#else
-struct	buf	rrpbuf;
-#endif
 
 #define	RP_NSECT	10
 #define	RP_NTRAC	20
@@ -99,9 +94,7 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	bp->av_forw = NULL;
 	unit >>= 3;
 	(void) _spl5();
@@ -207,36 +200,6 @@ rpintr()
 	bp->b_resid = -(rpaddr->rpwc << 1);
 	iodone(bp);
 	rpstart();
-}
-
-rpread(dev)
-dev_t	dev;
-{
-#ifdef	UCB_DBUFS
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NRP)
-		u.u_error = ENXIO;
-	else
-		physio(rpstrategy, &rrpbuf[unit], dev, B_READ, WORD);
-#else
-	physio(rpstrategy, &rrpbuf, dev, B_READ, WORD);
-#endif
-}
-
-rpwrite(dev)
-dev_t	dev;
-{
-#ifdef	UCB_DBUFS
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NRP)
-		u.u_error = ENXIO;
-	else
-		physio(rpstrategy, &rrpbuf[unit], dev, B_WRITE, WORD);
-#else
-	physio(rpstrategy, &rrpbuf, dev, B_WRITE, WORD);
-#endif
 }
 #endif NRP
 #endif AUTOCONFIG

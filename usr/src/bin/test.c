@@ -19,6 +19,7 @@ int	ac;
 char	**av;
 char	*tmp;
 char	*nxtarg();
+extern	long atol();
 
 main(argc, argv)
 char *argv[];
@@ -79,7 +80,7 @@ e3() {
 	int p1;
 	register char *a;
 	char *p2;
-	int int1;
+	long int1;
 
 	a=nxtarg(0);
 	if(EQ(a, "(")) {
@@ -126,20 +127,20 @@ e3() {
 	if(EQ(a, "-l")) {
 		int1=length(p2);
 		p2=nxtarg(0);
-	} else{	int1=atoi(a);
+	} else{	int1=atol(a);
 	}
 	if(EQ(p2, "-eq"))
-		return(int1==atoi(nxtarg(0)));
+		return(int1==atol(nxtarg(0)));
 	if(EQ(p2, "-ne"))
-		return(int1!=atoi(nxtarg(0)));
+		return(int1!=atol(nxtarg(0)));
 	if(EQ(p2, "-gt"))
-		return(int1>atoi(nxtarg(0)));
+		return(int1>atol(nxtarg(0)));
 	if(EQ(p2, "-lt"))
-		return(int1<atoi(nxtarg(0)));
+		return(int1<atol(nxtarg(0)));
 	if(EQ(p2, "-ge"))
-		return(int1>=atoi(nxtarg(0)));
+		return(int1>=atol(nxtarg(0)));
 	if(EQ(p2, "-le"))
-		return(int1<=atoi(nxtarg(0)));
+		return(int1<=atol(nxtarg(0)));
 
 	--ap;
 	return(!EQ(a,""));

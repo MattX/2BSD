@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)getservent.c	5.3 (Berkeley) 5/19/86";
+static char sccsid[] = "@(#)getservent.c	5.3.1 (2.11BSD GTE) 6/27/94";
 #endif LIBC_SCCS and not lint
 
 #include <stdio.h>
@@ -15,11 +15,11 @@ static char sccsid[] = "@(#)getservent.c	5.3 (Berkeley) 5/19/86";
 #include <netdb.h>
 #include <ctype.h>
 
-#define	MAXALIASES	35
+#define	MAXALIASES	16
 
 static char SERVDB[] = "/etc/services";
 static FILE *servf = NULL;
-static char line[256+1];
+static char line[160+1];
 static struct servent serv;
 static char *serv_aliases[MAXALIASES];
 static char *any();

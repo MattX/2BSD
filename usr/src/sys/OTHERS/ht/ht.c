@@ -3,7 +3,7 @@
  */
 
 /*
- *	SCCS id	@(#)ht.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)ht.c	2.2 (2.11BSD GTE) 1/2/93
  *	Eric Haag's Driver
  *	I received this from Eric when I first got 2.9 up
  *	(Oct 84) and have recently sent it to Steve Malone
@@ -25,7 +25,6 @@
 #endif
 
 struct	buf	httab;
-struct	buf	rhtbuf;
 struct	buf	chtbuf;
 
 struct	htdevice	*HTADDR;
@@ -65,10 +64,8 @@ register struct htdevice *addr;
 		return(0);
 	if ((addr != (struct htdevice *) NULL) && (fioword(addr) != -1)) {
 		HTADDR = addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword(&(addr->htbae)) != -1)
 			httab.b_flags |= B_RH70;
-#endif
 		return(1);
 	}
 	HTADDR = (struct hpdevice *) NULL;
@@ -179,11 +176,17 @@ register struct	buf *bp;
 	register daddr_t *p;
 	register struct tu_softc *sc = &tu_softc[TUUNIT(bp->b_dev)];
 
+/* This is almost certainly not in the right place and more work needs
+ * to be done in htstart().  See /sys/pdpuba/ht.c
+*/
+	if (bp->b_flags & B_PHYS) {
+		sc->sc_blkno = sc->sc_nxrec = dbtofsb(bp->b_blkno);
+		sc->sc_nxrec++;
+	}
+
 	if(bp != &chtbuf) {
-#ifdef	UNIBUS_MAP
 		if ((httab.b_flags & B_RH70) == 0)
 			mapalloc(bp);
-#endif
 		p = &sc->sc_nxrec;
 		if(dbtofsb(bp->b_blkno) > *p) {
 			bp->b_flags |= B_ERROR;
@@ -260,10 +263,8 @@ htstart()
 	if (blkno == dbtofsb(bp->b_blkno)) {
 		httab.b_active = SIO;
 		HTADDR->htba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if(httab.b_flags & B_RH70)
 			HTADDR->htbae = bp->b_xmem;
-#endif
 		HTADDR->htfc = -bp->b_bcount;
 		HTADDR->htwc = -(bp->b_bcount >> 1);
 		den = ((bp->b_xmem & 3) << 8) | HT_IE | HT_GO;
@@ -321,7 +322,7 @@ htintr()
 		err = HTADDR->hter;
 		if (HTADDR->htcs2 & HTCS2_ERR || (err & HTER_HARD))
 			state = 0;
-		if (bp == &rhtbuf)
+		if (bp->b_flags & B_PHYS)
 			err &= ~HTER_FCE;
 		if ((bp->b_flags & B_READ) && (HTADDR->htfs & HTFS_PES))
 			err &= ~(HTER_CSITM | HTER_CORCRC);
@@ -416,31 +417,6 @@ htinit()
 	HTADDR->htcs2 = ocs2;
 	HTADDR->httc = omttc;
 	HTADDR->htcs1 = HT_DCLR | HT_GO;
-}
-
-htread(dev)
-register dev_t	dev;
-{
-	htphys(dev);
-	physio(htstrategy, &rhtbuf, dev, B_READ);
-}
-
-htwrite(dev)
-register dev_t	dev;
-{
-	htphys(dev);
-	physio(htstrategy, &rhtbuf, dev, B_WRITE);
-}
-
-htphys(dev)
-dev_t dev;
-{
-	daddr_t a;
-	register struct tu_softc *sc = &tu_softc[TUUNIT(dev)];
-
-	a = dbtofsb(u.u_offset >> PGSHIFT);
-	sc->sc_blkno = a;
-	sc->sc_nxrec = a + 1;
 }
 
 #ifdef	HT_IOCTL

@@ -1,6 +1,10 @@
-# include "mfile1"
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)lint.c	1.10	(Berkeley)	3/20/86";
+#endif lint
 
-# include "lmanifest"
+# include "pass1.h"
+
+# include "lmanifest.h"
 
 # include <ctype.h>
 
@@ -29,11 +33,18 @@ int xflag = 0;  /* tell about unused externals */
 int argflag = 0;  /* used to turn off complaints about arguments */
 int libflag = 0;  /* used to generate library descriptions */
 int vaflag = -1;  /* used to signal functions with a variable number of args */
-int aflag = 0;  /* used th check precision of assignments */
+int aflag = 0;  /* used to check precision of assignments */
+int zflag = 0;  /* no 'structure never defined' error */
+int Cflag = 0;  /* filter out certain output, for generating libraries */
+char *libname = 0;  /* name of the library we're generating */
+char *hash();
+	/* flags for the "outdef" function */
+# define USUAL (-101)
+# define DECTY (-102)
+# define NOFILE (-103)
+# define SVLINE (-104)
 
-char *flabel = "xxx";
-
-# define LNAMES 100
+# define LNAMES 250
 
 struct lnm {
 	short lid, flgs;
@@ -42,7 +53,7 @@ struct lnm {
 contx( p, down, pl, pr ) register NODE *p; register *pl, *pr; {
 
 	*pl = *pr = VAL;
-	switch( p->op ){
+	switch( p->in.op ){
 
 	case ANDAND:
 	case OROR:
@@ -72,8 +83,11 @@ contx( p, down, pl, pr ) register NODE *p; register *pl, *pr; {
 		break;
 
 	default:
-		if( asgop(p->op) ) break;
-		if( p->op == UNARY MUL && ( p->type == STRTY || p->type == UNIONTY) ) {
+		if( asgop(p->in.op) ) break;
+		if( p->in.op == UNARY MUL && ( p->in.type == STRTY || p->in.type == UNIONTY || p->in.type == UNDEF) ) {
+		/* struct x f( );  main( ) {  (void) f( ); }
+		 * the the cast call appears as U* UNDEF
+		 */
 			break;  /* the compiler does this... */
 			}
 		if( down == EFF && hflag ) werror( "null effect" );
@@ -100,8 +114,13 @@ ejobcode( flag ){
 		if( p->stype != TNULL ) {
 
 			if( p->stype == STRTY || p->stype == UNIONTY ){
-				if( dimtab[p->sizoff+1] < 0 ){ /* never defined */
-					if( hflag ) werror( "struct/union %.7s never defined", p->sname );
+				if( !zflag && dimtab[p->sizoff+1] < 0 ){
+					/* never defined */
+#ifndef FLEXNAMES
+					if( hflag ) werror( "struct/union %.8s never defined", p->sname );
+#else
+					if( hflag ) werror( "struct/union %s never defined", p->sname );
+#endif
 					}
 				}
 
@@ -111,27 +130,29 @@ ejobcode( flag ){
 				if( p->suse > 0 ){
 					k = lineno;
 					lineno = p->suse;
+#ifndef FLEXNAMES
+					uerror( "static variable %.8s unused",
+#else
 					uerror( "static variable %s unused",
+#endif
 						p->sname );
 					lineno = k;
 					break;
 					}
+				/* no statics in libraries */
+				if( Cflag ) break;
 
 			case EXTERN:
 			case USTATIC:
 				/* with the xflag, worry about externs not used */
 				/* the filename may be wrong here... */
 				if( xflag && p->suse >= 0 && !libflag ){
-					printf( "%.7s\t%03d\t%o\t%d\t", p->sname, LDX, p->stype, 0 );
-					/* we don't really know the file number; we know only the line 
-						number, so we put only that out */
-					printf( "\"???\"\t%d\t%s\n", p->suse, flabel );
+					outdef( p, LDX, NOFILE );
 					}
 			
 			case EXTDEF:
 				if( p->suse < 0 ){  /* used */
-					printf( "%.7s\t%03d\t%o\t%d\t", exname(p->sname), LUM, p->stype, 0 );
-					fident( -p->suse );
+					outdef( p, LUM, SVLINE );
 					}
 				break;
 				}
@@ -142,108 +163,154 @@ ejobcode( flag ){
 	exit( 0 );
 	}
 
-fident( line ){ /* like ident, but lineno = line */
-	register temp;
-	temp = lineno;
-	lineno = line;
-	ident();
-	lineno = temp;
+astype( t, i ) ATYPE *t; {
+	TWORD tt;
+	int j, k=0, l=0;
+
+	if( (tt=BTYPE(t->aty))==STRTY || tt==UNIONTY ){
+		if( i<0 || i>= DIMTABSZ-3 ){
+			werror( "lint's little mind is blown" );
+			}
+		else {
+			j = (int)dimtab[i+3];
+			if( j<0 || j>SYMTSZ ){
+				k = (int)dimtab[i];
+				l = X_NONAME | stab[j].suse;
+				}
+			else {
+				if( stab[j].suse <= 0 ) {
+#ifndef FLEXNAMES
+					werror( "no line number for %.8s",
+#else
+					werror( "no line number for %s",
+#endif
+						stab[j].sname );
+					}
+				else {
+					k = (int)dimtab[i];
+#ifdef FLEXNAMES
+					l = hashstr(stab[j].sname);
+#else
+					l = hashstr(stab[j].sname, LCHNM);
+#endif
+					}
+				}
+			}
+		
+		t->extra = k;
+		t->extra1 = l;
+		return( 1 );
+		}
+	else return( 0 );
 	}
 
-ident(){ /* write out file and line identification  */
-	printf( "%s\t%d\t%s\n", ftitle, lineno, flabel );
-	}
-
-bfcode( a, n ) int a[]; {
+bfcode( a, n ) OFFSZ a[]; {
 	/* code for the beginning of a function; a is an array of
 		indices in stab for the arguments; n is the number */
 	/* this must also set retlab */
 	register i;
 	register struct symtab *cfp;
-	register unsigned t;
+	ATYPE t;		/* XXX static */
 
 	retlab = 1;
+
 	cfp = &stab[curftn];
+
+	/* if creating library, don't do static functions */
+	if( Cflag && cfp->sclass == STATIC ) return;
 
 	/* if variable number of arguments, only print the ones which will be checked */
 	if( vaflag > 0 ){
 		if( n < vaflag ) werror( "declare the VARARGS arguments you want checked!" );
 		else n = vaflag;
 		}
-	printf( "%.7s\t%03d\t%o\t%d\t", exname(cfp->sname), libflag?LIB:LDI,
-		cfp->stype, vaflag>=0?-n:n );
+	fsave( ftitle );
+	if( cfp->sclass == STATIC ) outdef( cfp, LST, vaflag>=0?-n:n );
+	else outdef( cfp, libflag?LIB:LDI, vaflag>=0?-n:n );
 	vaflag = -1;
 
-	for( i=0; i<n; ++i ) {
-		switch( t = stab[a[i]].stype ){
+	/* output the arguments */
+	if( n ){
+		for( i=0; i<n; ++i ) {
+			t.aty = stab[a[i]].stype;
+			t.extra = 0;
+			t.extra1 = 0;
+			if( !astype( &t, stab[a[i]].sizoff ) ) {
+				switch( t.aty ){
 
-		case ULONG:
-			break;
+				case ULONG:
+					break;
 
-		case CHAR:
-		case SHORT:
-			t = INT;
-			break;
+				case CHAR:
+				case SHORT:
+					t.aty = INT;
+					break;
 
-		case UCHAR:
-		case USHORT:
-		case UNSIGNED:
-			t = UNSIGNED;
-			break;
+				case UCHAR:
+				case USHORT:
+				case UNSIGNED:
+					t.aty = UNSIGNED;
+					break;
 
+					}
+				}
+			fwrite( (char *)&t, sizeof(ATYPE), 1, stdout );
 			}
-
-		printf( "%o\t", t );
 		}
-	ident();
 	}
 
 ctargs( p ) NODE *p; {
 	/* count arguments; p points to at least one */
-	/* the arguemnts are a tower of commasto the left */
+	/* the arguemnts are a tower of commas to the left */
 	register c;
 	c = 1; /* count the rhs */
-	while( p->op == CM ){
+	while( p->in.op == CM ){
 		++c;
-		p = p->left;
+		p = p->in.left;
 		}
 	return( c );
 	}
 
 lpta( p ) NODE *p; {
-	TWORD t;
+	ATYPE t;		/* XXX static */
 
-	if( p->op == CM ){
-		lpta( p->left );
-		p = p->right;
-		}
-	switch( t = p->type ){
-
-		case CHAR:
-		case SHORT:
-			t = INT;
-		case LONG:
-		case ULONG:
-		case INT:
-		case UNSIGNED:
-			break;
-
-		case UCHAR:
-		case USHORT:
-			t = UNSIGNED;
-			break;
-
-		case FLOAT:
-			printf( "%o\t", DOUBLE );
-			return;
-
-		default:
-			printf( "%o\t", p->type );
-			return;
+	if( p->in.op == CM ){
+		lpta( p->in.left );
+		p = p->in.right;
 		}
 
-	if( p->op == ICON ) printf( "%o<1\t", t );
-	else printf( "%o\t", t );
+	t.aty = p->in.type;
+	t.extra = (p->in.op==ICON);
+	t.extra1 = 0;
+
+	if( !astype( &t, p->fn.csiz ) ) {
+		switch( t.aty ){
+
+			case CHAR:
+			case SHORT:
+				t.aty = INT;
+			case LONG:
+			case ULONG:
+			case INT:
+			case UNSIGNED:
+				break;
+
+			case UCHAR:
+			case USHORT:
+				t.aty = UNSIGNED;
+				break;
+
+			case FLOAT:
+				t.aty = DOUBLE;
+				t.extra = 0;
+				break;
+
+			default:
+				t.extra = 0;
+				break;
+			}
+		}
+	fwrite( (char *)&t, sizeof(ATYPE), 1, stdout );
 	}
 
 # define VALSET 1
@@ -262,9 +329,9 @@ lprt( p, down, uses ) register NODE *p; {
 	/* first, set variables which are set... */
 
 	use1 = use2 = VALUSED;
-	if( p->op == ASSIGN ) use1 = VALSET;
-	else if( p->op == UNARY AND ) use1 = VALADDR;
-	else if( asgop( p->op ) ){ /* =ops */
+	if( p->in.op == ASSIGN ) use1 = VALSET;
+	else if( p->in.op == UNARY AND ) use1 = VALADDR;
+	else if( asgop( p->in.op ) ){ /* =ops */
 		use1 = VALUSED|VALSET;
 		if( down == EFF ) use1 |= VALASGOP;
 		}
@@ -275,7 +342,7 @@ lprt( p, down, uses ) register NODE *p; {
 	down2 = down1 = VAL;
 	acount = 0;
 
-	switch( p->op ){
+	switch( p->in.op ){
 
 	case EQ:
 	case NE:
@@ -283,11 +350,11 @@ lprt( p, down, uses ) register NODE *p; {
 	case GE:
 	case LT:
 	case LE:
-		if( p->left->type == CHAR && p->right->op==ICON && p->right->lval < 0 ){
+		if( p->in.left->in.type == CHAR && p->in.right->in.op==ICON && p->in.right->tn.lval < 0 ){
 			werror( "nonportable character comparison" );
 			}
-		if( (p->op==EQ || p->op==NE ) && ISUNSIGNED(p->left->type) && p->right->op == ICON ){
-			if( p->right->lval < 0 && p->right->rval == NONAME && !ISUNSIGNED(p->right->type) ){
+		if( (p->in.op==EQ || p->in.op==NE ) && ISUNSIGNED(p->in.left->in.type) && p->in.right->in.op == ICON ){
+			if( p->in.right->tn.lval < 0 && p->in.right->tn.rval == NONAME && !ISUNSIGNED(p->in.right->in.type) ){
 				werror( "comparison of unsigned with negative constant" );
 				}
 			}
@@ -295,13 +362,13 @@ lprt( p, down, uses ) register NODE *p; {
 
 	case UGE:
 	case ULT:
-		if( p->right->op == ICON && p->right->lval == 0 && p->right->rval == NONAME ){
+		if( p->in.right->in.op == ICON && p->in.right->tn.lval == 0 && p->in.right->tn.rval == NONAME ){
 			werror( "unsigned comparison with 0?" );
 			break;
 			}
 	case UGT:
 	case ULE:
-		if( p->right->op == ICON && p->right->lval <= 0 && !ISUNSIGNED(p->right->type) && p->right->rval == NONAME ){
+		if( p->in.right->in.op == ICON && p->in.right->tn.lval <= 0 && !ISUNSIGNED(p->in.right->in.type) && p->in.right->tn.rval == NONAME ){
 			werror( "degenerate unsigned comparison" );
 			}
 		break;
@@ -315,9 +382,9 @@ lprt( p, down, uses ) register NODE *p; {
 		down2 = down;
 		/* go recursively left, then right  */
 		np1 = lnp;
-		lprt( p->left, down1, use1 );
+		lprt( p->in.left, down1, use1 );
 		np2 = lnp;
-		lprt( p->right, down2, use2 );
+		lprt( p->in.right, down2, use2 );
 		lmerge( np1, np2, 0 );
 		return;
 
@@ -330,35 +397,61 @@ lprt( p, down, uses ) register NODE *p; {
 	case CALL:
 	case STCALL:
 	case FORTCALL:
-		acount = ctargs( p->right );
+		acount = ctargs( p->in.right );
 	case UNARY CALL:
 	case UNARY STCALL:
 	case UNARY FORTCALL:
-		if( p->left->op == ICON && (id=p->left->rval) != NONAME ){ /* used to be &name */
-			printf( "%.7s\t%03d\t%o\t%d\t",
-				exname(stab[id].sname),
-				down==EFF ? LUE : LUV,
-				DECREF(p->left->type), acount );
-			if( acount ) lpta( p->right );
-			ident();
+		if( p->in.left->in.op == ICON && (id=p->in.left->tn.rval) != NONAME ){ /* used to be &name */
+			struct symtab *sp = &stab[id];
+			int lty;
+
+			fsave( ftitle );
+			/*
+			 * if we're generating a library -C then
+			 * we don't want to output references to functions
+			 */
+			if( Cflag ) break;
+			/*  if a function used in an effects context is
+			 *  cast to type  void  then consider its value
+			 *  to have been disposed of properly
+			 *  thus a call of type  undef  in an effects
+			 *  context is construed to be used in a value
+			 *  context
+			 */
+			if ((down == EFF) && (p->in.type != UNDEF)) {
+				lty = LUE;
+			} else if (down == EFF) {
+				lty = LUV | LUE;
+			} else {
+				lty = LUV;
+			}
+			outdef( sp, lty, acount );
+			if( acount ) {
+				lpta( p->in.right );
+				}
 			}
 		break;
 
 	case ICON:
 		/* look for &name case */
-		if( (id = p->rval) >= 0 && id != NONAME ){
+		if( (id = p->tn.rval) >= 0 && id != NONAME ){
 			q = &stab[id];
 			q->sflags |= (SREF|SSET);
+			q->suse = -lineno;
 			}
 		return;
 
 	case NAME:
-		if( (id = p->rval) >= 0 && id != NONAME ){
+		if( (id = p->tn.rval) >= 0 && id != NONAME ){
 			q = &stab[id];
 			if( (uses&VALUSED) && !(q->sflags&SSET) ){
 				if( q->sclass == AUTO || q->sclass == REGISTER ){
-					if( !ISARY(q->stype ) && !ISFTN(q->stype) && q->stype!=STRTY ){
-						werror( "%.7s may be used before set", q->sname );
+					if( !ISARY(q->stype ) && !ISFTN(q->stype) && q->stype!=STRTY && q->stype!=UNIONTY ){
+#ifndef FLEXNAMES
+						werror( "%.8s may be used before set", q->sname );
+#else
+						werror( "%s may be used before set", q->sname );
+#endif
 						q->sflags |= SSET;
 						}
 					}
@@ -367,7 +460,7 @@ lprt( p, down, uses ) register NODE *p; {
 			if( uses & VALSET ) q->sflags |= SSET;
 			if( uses & VALUSED ) q->sflags |= SREF;
 			if( uses & VALADDR ) q->sflags |= (SREF|SSET);
-			if( p->lval == 0 ){
+			if( p->tn.lval == 0 ){
 				lnp->lid = id;
 				lnp->flgs = (uses&VALADDR)?0:((uses&VALSET)?VALSET:VALUSED);
 				if( ++lnp >= &lnames[LNAMES] ) --lnp;
@@ -379,23 +472,23 @@ lprt( p, down, uses ) register NODE *p; {
 
 	/* recurse, going down the right side first if we can */
 
-	switch( optype(p->op) ){
+	switch( optype(p->in.op) ){
 
 	case BITYPE:
 		np1 = lnp;
-		lprt( p->right, down2, use2 );
+		lprt( p->in.right, down2, use2 );
 	case UTYPE:
 		np2 = lnp;
-		lprt( p->left, down1, use1 );
+		lprt( p->in.left, down1, use1 );
 		}
 
-	if( optype(p->op) == BITYPE ){
-		if( p->op == ASSIGN && p->left->op == NAME ){ /* special case for a =  .. a .. */
+	if( optype(p->in.op) == BITYPE ){
+		if( p->in.op == ASSIGN && p->in.left->in.op == NAME ){ /* special case for a =  .. a .. */
 			lmerge( np1, np2, 0 );
 			}
-		else lmerge( np1, np2, p->op != COLON );
+		else lmerge( np1, np2, p->in.op != COLON );
 		/* look for assignments to fields, and complain */
-		if( p->op == ASSIGN && p->left->op == FLD && p->right->op == ICON ) fldcon( p );
+		if( p->in.op == ASSIGN && p->in.left->in.op == FLD && p->in.right->in.op == ICON ) fldcon( p );
 		}
 
 	}
@@ -419,7 +512,11 @@ lmerge( np1, np2, flag ) struct lnm *np1, *np2; {
 					;  /* do nothing */
 				else if( (npx->flgs|npy->flgs)== (VALSET|VALUSED) ||
 					(npx->flgs&npy->flgs&VALSET) ){
+#ifndef FLEXNAMES
 					if( flag ) werror( "%.8s evaluation order undefined", stab[npy->lid].sname );
+#else
+					if( flag ) werror( "%s evaluation order undefined", stab[npy->lid].sname );
+#endif
 					}
 				if( npy->flgs == 0 ) npx->flgs = 0;
 				else npy->flgs |= npx->flgs;
@@ -444,31 +541,40 @@ efcode(){
 	register struct symtab *cfp;
 
 	cfp = &stab[curftn];
-	if( retstat & RETVAL ){
-		printf( "%.7s\t%03d\t%o\t%d\t", exname(cfp->sname),
-			LRV, DECREF( cfp->stype), 0 );
-		ident();
-		}
+	if( retstat & RETVAL && !(Cflag && cfp->sclass==STATIC) )
+		outdef( cfp, LRV, DECTY );
 	if( !vflag ){
 		vflag = argflag;
 		argflag = 0;
 		}
 	if( retstat == RETVAL+NRETVAL )
+#ifndef FLEXNAMES
 		werror( "function %.8s has return(e); and return;", cfp->sname);
+#else
+		werror( "function %s has return(e); and return;", cfp->sname);
+#endif
 	}
 
 aocode(p) struct symtab *p; {
 	/* called when automatic p removed from stab */
 	register struct symtab *cfs;
 	cfs = &stab[curftn];
-	if(p->suse>0 && !(p->sflags&SMOS) ){
+	if(p->suse>0 && !(p->sflags&(SMOS|STAG)) ){
 		if( p->sclass == PARAM ){
-			if( vflag ) werror( "argument %.7s unused in function %.7s",
+#ifndef FLEXNAMES
+			if( vflag ) werror( "argument %.8s unused in function %.8s",
+#else
+			if( vflag ) werror( "argument %s unused in function %s",
+#endif
 				p->sname,
 				cfs->sname );
 			}
 		else {
-			if( p->sclass != TYPEDEF ) werror( "%.7s unused in function %.7s",
+#ifndef FLEXNAMES
+			if( p->sclass != TYPEDEF ) werror( "%.8s unused in function %.8s",
+#else
+			if( p->sclass != TYPEDEF ) werror( "%s unused in function %s",
+#endif
 				p->sname, cfs->sname );
 			}
 		}
@@ -476,11 +582,20 @@ aocode(p) struct symtab *p; {
 	if( p->suse < 0 && (p->sflags & (SSET|SREF|SMOS)) == SSET &&
 		!ISARY(p->stype) && !ISFTN(p->stype) ){
 
-		werror( "%.7s set but not used in function %.7s", p->sname, cfs->sname );
+#ifndef FLEXNAMES
+		werror( "%.8s set but not used in function %.8s", p->sname, cfs->sname );
+#else
+		werror( "%s set but not used in function %s", p->sname, cfs->sname );
+#endif
 		}
 
 	if( p->stype == STRTY || p->stype == UNIONTY || p->stype == ENUMTY ){
-		if( dimtab[p->sizoff+1] < 0 ) werror( "structure %.7s never defined", p->sname );
+		if( !zflag && dimtab[p->sizoff+1] < 0 )
+#ifndef FLEXNAMES
+			werror( "structure %.8s never defined", p->sname );
+#else
+			werror( "structure %s never defined", p->sname );
+#endif
 		}
 
 	}
@@ -488,13 +603,11 @@ aocode(p) struct symtab *p; {
 defnam( p ) register struct symtab *p; {
 	/* define the current location as the name p->sname */
 
-	if( p->sclass == STATIC && p->slevel>1 ) return;
+	if( p->sclass == STATIC && (p->slevel>1 || Cflag) ) return;
 
-	if( !ISFTN( p->stype ) ){
-		printf( "%.7s\t%03d\t%o\t%d\t",
-			exname(p->sname), libflag?LIB:LDI, p->stype, 0 );
-		ident();
-		}
+	if( !ISFTN( p->stype ) )
+		if( p->sclass == STATIC ) outdef( p, LST, USUAL );
+		else outdef( p, libflag?LIB:LDI, USUAL );
 	}
 
 zecode( n ){
@@ -508,11 +621,16 @@ zecode( n ){
 andable( p ) NODE *p; {  /* p is a NAME node; can it accept & ? */
 	register r;
 
-	if( p->op != NAME ) cerror( "andable error" );
+	if( p->in.op != NAME ) cerror( "andable error" );
 
-	if( (r = p->rval) < 0 ) return(1);  /* labels are andable */
+	if( (r = p->tn.rval) < 0 ) return(1);  /* labels are andable */
 
 	if( stab[r].sclass == AUTO || stab[r].sclass == PARAM ) return(0); 
+#ifndef FLEXNAMES
+	if( stab[r].sclass == REGISTER ) uerror( "can't take & of %.8s", stab[r].sname );
+#else
+	if( stab[r].sclass == REGISTER ) uerror( "can't take & of %s", stab[r].sname );
+#endif
 	return(1);
 	}
 
@@ -533,19 +651,23 @@ clocal(p) NODE *p; {
 
 	register o;
 	register unsigned t, tl;
+	CONSZ s;
 
-	switch( o = p->op ){
+	switch( o = p->in.op ){
 
 	case SCONV:
 	case PCONV:
-		if( p->left->type==ENUMTY ){
-			p->left = pconvert( p->left );
+		if( p->in.left->in.type==ENUMTY ){
+			p->in.left = pconvert( p->in.left );
 			}
 		/* assume conversion takes place; type is inherited */
-		t = p->type;
-		tl = p->left->type;
-		if( aflag && (tl==LONG||tl==ULONG) && (t!=LONG&&t!=ULONG) ){
+		t = p->in.type;
+		tl = p->in.left->in.type;
+		if( aflag && (tl==LONG||tl==ULONG) && (t!=LONG&&t!=ULONG&&t!=UNDEF) ){
 			werror( "long assignment may lose accuracy" );
+			}
+		if( aflag>=2 && (tl!=LONG&&tl!=ULONG) && (t==LONG||t==ULONG) && p->in.left->in.op != ICON ){
+			werror( "assignment to long may sign-extend incorrectly" );
 			}
 		if( ISPTR(tl) && ISPTR(t) ){
 			tl = DECREF(tl);
@@ -553,7 +675,7 @@ clocal(p) NODE *p; {
 			switch( ISFTN(t) + ISFTN(tl) ){
 
 			case 0:  /* neither is a function pointer */
-				if( talign(t,p->csiz) > talign(tl,p->left->csiz) ){
+				if( talign(t,p->fn.csiz) > talign(tl,p->in.left->fn.csiz) ){
 					if( hflag||pflag ) werror( "possible pointer alignment problem" );
 					}
 				break;
@@ -565,17 +687,31 @@ clocal(p) NODE *p; {
 				;
 				}
 			}
-		p->left->type = p->type;
-		p->left->cdim = p->cdim;
-		p->left->csiz = p->csiz;
-		p->op = FREE;
-		return( p->left );
+		p->in.left->in.type = p->in.type;
+		p->in.left->fn.cdim = p->fn.cdim;
+		p->in.left->fn.csiz = p->fn.csiz;
+		p->in.op = FREE;
+		return( p->in.left );
 
 	case PVCONV:
 	case PMCONV:
-		if( p->right->op != ICON ) cerror( "bad conversion");
-		p->op = FREE;
-		return( buildtree( o==PMCONV?MUL:DIV, p->left, p->right ) );
+		if( p->in.right->in.op != ICON ) cerror( "bad conversion");
+		p->in.op = FREE;
+		return( buildtree( o==PMCONV?MUL:DIV, p->in.left, p->in.right ) );
+
+	case RS:
+	case LS:
+	case ASG RS:
+	case ASG LS:
+		if( p->in.right->in.op != ICON )
+			break;
+		s = p->in.right->tn.lval;
+		if( s < 0 )
+			werror( "negative shift" );
+		else
+		if( s >= dimtab[ p->fn.csiz ] )
+			werror( "shift greater than size of object" );
+		break;
 
 		}
 
@@ -586,7 +722,7 @@ NODE *
 offcon( off, t, d, s ) OFFSZ off; TWORD t;{  /* make a structure offset node */
 	register NODE *p;
 	p = bcon(0);
-	p->lval = off/SZCHAR;
+	p->tn.lval = off/SZCHAR;
 	return(p);
 	}
 
@@ -596,11 +732,11 @@ noinit(){
 	}
 
 
-cinit( p, sz ) NODE *p; { /* initialize p into size sz */
+cinit( p, sz ) NODE *p; OFFSZ sz; { /* initialize p into size sz */
 	inoff += sz;
-	if( p->op == INIT ){
-		if( p->left->op == ICON ) return;
-		if( p->left->op == NAME && p->left->type == MOE ) return;
+	if( p->in.op == INIT ){
+		if( p->in.left->in.op == ICON ) return;
+		if( p->in.left->in.op == NAME && p->in.left->in.type == MOE ) return;
 		}
 	uerror( "illegal initialization" );
 	}
@@ -621,9 +757,50 @@ exname( p ) char *p; {
 	return( aa );
 	}
 
+char *
+strip(s) char *s; {
+	static char x[128];		/* was BUFSIZ */
+	register char *p;
+	static	int	stripping = 0;
+
+	if (stripping)
+		return(s);
+	stripping++;
+	for( p=x; *s; ++s ){
+		if( *s != '"' ){
+			if( p >= &x[sizeof (x)] )
+				cerror( "filename too long" );
+			*p++ = *s;
+		}
+	}
+	stripping = 0;
+	*p = '\0';
+	return( hash(x) );
+	}
+
+fsave( s ) char *s; {
+	static union rec fsname;
+
+	s = strip( s );
+	if (fsname.f.fn == NULL || strcmp(s, fsname.f.fn))
+		{
+		/* new one */
+		fsname.f.fn = s;
+		fsname.f.decflag = LFN;
+		fwrite( (char *)&fsname, sizeof(fsname), 1, stdout );
+		/* if generating a library, prefix with the library name */
+		if( libname ){
+			fwrite( libname, strlen(libname), 1, stdout );
+			putchar( ':' );
+			}
+		fwrite( fsname.f.fn, strlen(fsname.f.fn)+1, 1, stdout );
+		}
+	}
+
 where(f){ /* print true location of error */
-	if( f == 'u' && nerrors>1 ) --nerrors; /* don't get "too many errors" */
-	fprintf( stderr, "%s, line %d: ", ftitle, lineno );
+	if( f == 'u' && nerrors > 1 )
+		--nerrors; /* don't get "too many errors" */
+	fprintf( stderr, "%s(%d): ", strip(ftitle), lineno);
 	}
 
 	/* a number of dummy routines, unneeded by lint */
@@ -632,7 +809,7 @@ branch(n){;}
 defalign(n){;}
 deflab(n){;}
 bycode(t,i){;}
-cisreg(t){return(1);}  /* everyting is a register variable! */
+cisreg(t) TWORD t; {return(1);}  /* everyting is a register variable! */
 
 fldty(p) struct symtab *p; {
 	; /* all types are OK here... */
@@ -649,68 +826,83 @@ fldal(t) unsigned t; { /* field alignment... */
 
 main( argc, argv ) char *argv[]; {
 	char *p;
+	int i;
+	char ibuf[BUFSIZ];
+
+	setbuf(stdin, ibuf);
 
 	/* handle options */
 
-	for( p=argv[1]; *p; ++p ){
+	for( i = 1; i < argc; i++ )
+		for( p=argv[i]; *p; ++p ){
 
-		switch( *p ){
+			switch( *p ){
 
-		case '-':
-			continue;
+			case '-':
+				continue;
 
-		case 'L':  /* produced by driver program */
-			flabel = p;
-			goto break2;
+			case '\0':
+				break;
 
-		case '\0':
-			break;
+			case 'b':
+				brkflag = 1;
+				continue;
 
-		case 'b':
-			brkflag = 1;
-			continue;
+			case 'p':
+				pflag = 1;
+				continue;
 
-		case 'p':
-			pflag = 1;
-			continue;
+			case 'c':
+				cflag = 1;
+				continue;
 
-		case 'c':
-			cflag = 1;
-			continue;
+			case 's':
+				/* for the moment, -s triggers -h */
 
-		case 's':
-			/* for the moment, -s triggers -h */
+			case 'h':
+				hflag = 1;
+				continue;
 
-		case 'h':
-			hflag = 1;
-			continue;
+			case 'L':
+				libflag = 1;
+			case 'v':
+				vflag = 0;
+				continue;
 
-		case 'v':
-			vflag = 0;
-			continue;
+			case 'x':
+				xflag = 1;
+				continue;
 
-		case 'x':
-			xflag = 1;
-			continue;
+			case 'a':
+				++aflag;
+			case 'u':	/* done in second pass */
+			case 'n':	/* done in shell script */
+				continue;
 
-		case 'a':
-			aflag = 1;
-		case 'u':	/* done in second pass */
-		case 'n':	/* done in shell script */
-			continue;
+			case 'z':
+				zflag = 1;
+				continue;
 
-		case 't':
-			werror( "option %c now default: see `man 6 lint'", *p );
-			continue;
+			case 't':
+				werror( "option %c now default: see `man 6 lint'", *p );
+				continue;
 
-		default:
-			uerror( "illegal option: %c", *p );
-			continue;
+			case 'P':	/* debugging, done in second pass */
+				continue;
 
+			case 'C':
+				Cflag = 1;
+				if( p[1] ) libname = p + 1;
+				while( p[1] ) p++;
+				continue;
+
+			default:
+				uerror( "illegal option: %c", *p );
+				continue;
+
+				}
 			}
-		}
 
-	break2:
 	if( !pflag ){  /* set sizes to sizes of target machine */
 # ifdef gcos
 		SZCHAR = ALCHAR = 9;
@@ -743,10 +935,8 @@ ctype( type ) unsigned type; { /* are there any funny types? */
 
 commdec( i ){
 	/* put out a common declaration */
-	register struct symtab *p;
-	p = &stab[i];
-	printf( "%.7s\t%03d\t%o\t%d\t", exname(p->sname), libflag?LIB:LDC, p->stype, 0 );
-	ident();
+	if( stab[i].sclass == STATIC ) outdef( &stab[i], LST, USUAL );
+	else outdef( &stab[i], libflag?LIB:LDC, USUAL );
 	}
 
 isitfloat ( s ) char *s; {
@@ -755,7 +945,7 @@ isitfloat ( s ) char *s; {
 	/* lint version
 	*/
 	dcon = atof( s );
-	return( FCON );
+	return( DCON );
 	}
 
 fldcon( p ) register NODE *p; {
@@ -766,10 +956,10 @@ fldcon( p ) register NODE *p; {
 
 	if( !hflag & !pflag ) return;
 
-	s = UPKFSZ(p->left->rval);
-	v = p->right->lval;
+	s = UPKFSZ(p->in.left->tn.rval);
+	v = p->in.right->tn.lval;
 
-	switch( p->left->type ){
+	switch( p->in.left->in.type ){
 
 	case CHAR:
 	case INT:
@@ -791,3 +981,45 @@ fldcon( p ) register NODE *p; {
 		}
 
 	}
+
+outdef( p, lty, mode ) struct symtab *p; {
+	/* output a definition for the second pass */
+	/* if mode is > USUAL, it is the number of args */
+	char *fname;
+	TWORD t;
+	int line;
+	static union rec rc;
+
+	if( mode == NOFILE ){
+		fname = "???";
+		line = p->suse;
+		}
+	else if( mode == SVLINE ){
+		fname = ftitle;
+		line = -p->suse;
+		}
+	else {
+		fname = ftitle;
+		line = lineno;
+		}
+	fsave( fname );
+#ifndef FLEXNAMES
+	strncpy( rc.l.name, exname(p->sname), LCHNM );
+#endif
+	rc.l.decflag = lty;
+	t = p->stype;
+	if( mode == DECTY ) t = DECREF(t);
+	rc.l.type.aty = t;
+	rc.l.type.extra = 0;
+	rc.l.type.extra1 = 0;
+	astype( &rc.l.type, p->sizoff );
+	rc.l.nargs = (mode>USUAL) ? mode : 0;
+	rc.l.fline = line;
+	fwrite( (char *)&rc, sizeof(rc), 1, stdout );
+#ifdef FLEXNAMES
+	rc.l.name = exname(p->sname);
+	fwrite( rc.l.name, strlen(rc.l.name)+1, 1, stdout );
+#endif
+	}
+int proflg;
+int gdebug;

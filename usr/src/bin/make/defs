@@ -27,8 +27,8 @@ typedef long int TIMETYPE;
 #define NLEFTS 80
 #define NCHARS 500
 #define NINTS  250
-#define INMAX 1500
-#define OUTMAX 2500
+#define INMAX 1350
+#define OUTMAX 2300
 #define MAXDIR	10
 #else !BSD2_10
 #define HASHSIZE 1021

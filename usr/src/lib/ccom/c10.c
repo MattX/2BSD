@@ -1,16 +1,20 @@
-#
 /*
-
-		C compiler, part 2
-
+ *		C compiler, part 2
 */
+
+#if	!defined(lint) && defined(DOSCCS)
+static	char	sccsid[] = "@(#)c10.c	2.1 (2.11BSD GTE) 10/4/94";
+#endif
 
 #include "c1.h"
 
-#define	dbprint(op)	/* */
 #ifdef	DEBUG
 #define	dbprint(op)	printf("	/ %s", opntab[op])
+#else
+#define	dbprint(op)	/* */
 #endif
+
+static int debug = 0;
 
 char	maprel[] = {	EQUAL, NEQUAL, GREATEQ, GREAT, LESSEQ,
 			LESS, GREATQP, GREATP, LESSEQP, LESSP
@@ -330,9 +334,26 @@ again:
 	/*
 	 * Longs need special treatment.
 	 */
+	case ASULSH:	/* 18 */
+	case ULSH:	/* 17 */
+		if (tree->t.type != UNLONG)
+			break;
+		if (tree->t.tr2->t.op==ITOL)
+			tree->t.tr2 = tree->t.tr2->t.tr1;
+		else
+			tree->t.tr2 = optim(tnode(LTOI,INT,tree->t.tr2,TNULL));
+		if (tree->t.op==ASULSH)
+			{
+			tree->t.op = UASLSHL;
+			tree->t.tr1 = tnode(AMPER, LONG+PTR, tree->t.tr1, TNULL);
+			}
+		else
+			tree->t.op = ULLSHIFT;
+		break;
+
 	case ASLSH:
 	case LSHIFT:
-		if (tree->t.type==LONG) {
+		if (tree->t.type==LONG || tree->t.type==UNLONG) {
 			if (tree->t.tr2->t.op==ITOL)
 				tree->t.tr2 = tree->t.tr2->t.tr1;
 			else
@@ -386,7 +407,7 @@ again:
 			modf = isfloat(tree);
 			dbprint(tree->t.op);
 			if (table==sptab || table==lsptab) {
-				if (tree->t.type==LONG) {
+				if (tree->t.type==LONG || tree->t.type==UNLONG){
 					printf("mov\tr%d,-(sp)\n",r+1);
 					nstack++;
 				}
@@ -416,12 +437,15 @@ again:
 			goto fixup;
 		}
 	}
+
+	r = tree->t.op;
 	if (tree->t.type == STRUCT)
 		error("Illegal operation on structure");
-	else if (tree->t.op>0 && tree->t.op<RFORCE && opntab[tree->t.op])
-		error("No code table for op: %s", opntab[tree->t.op]);
+	else if (r > 0 && r < UASLSHL && opntab[r])
+		error("No code table for op: %s(%d) type: %d", opntab[r], r,
+			tree->t.type);
 	else
-		error("No code table for op %d", tree->t.op);
+		error("No code table for op %d", r);
 	return(reg);
 }
 
@@ -483,7 +507,7 @@ struct table *table;
 	/*
 	 * long values take 2 registers.
 	 */
-	if ((tree->t.type==LONG||opd&RELAT&&tree->t.tr1->t.type==LONG)
+	if ((tree->t.type==LONG||tree->t.type==UNLONG||opd&RELAT&&(tree->t.tr1->t.type==LONG||tree->t.tr1->t.type==UNLONG))
 	   && tree->t.op!=ITOL)
 		reg1++;
 	/*
@@ -508,6 +532,24 @@ struct table *table;
 	 && (tree->t.tr1->t.type==CHAR || tree->t.tr1->t.type==UNCHAR)
 	 && tree->t.tr2->t.type!=CHAR && tree->t.tr2->t.type!=UNCHAR)
 		tree->t.tr2 = tnode(LOAD, tree->t.tr2->t.type, tree->t.tr2, TNULL);
+	/*
+	 * Another peculiarity of the PDP11 table manifested itself when
+	 * amplifying the move3: table.  The same case which optimizes
+	 * u_char to char moves is used to move a u_char to a register. This
+	 * is wrong, leading to sign extension.  Rather than lose the ability
+	 * to generate better code when moving a u_char to a char, a check 
+	 * is made here to prevent sign extension.
+	 *
+	 * If the opcode is assign, the destination is a register and the
+	 * source is u_char then do a conversion.
+	 *
+	 * u_char handling in the compiler is a bit awkward, it would be nice
+	 * if %aub in the tables had a more unique meaning.
+	*/
+	if (tree->t.tr2 && tree->t.tr1->t.op == NAME
+	 && tree->t.tr1->n.class == REG && tree->t.op == ASSIGN
+	 && tree->t.tr2->t.type == UNCHAR)
+		tree->t.tr2 = tnode(LOAD, UNSIGN, tree->t.tr2, TNULL);
 	if (table==cregtab)
 		table = regtab;
 	/*
@@ -526,8 +568,9 @@ struct table *table;
 	 * r = nreg - reg - (reg-areg) - (reg1-reg-1);
 	 */
 	r = nreg - reg + areg - reg1 + 1;
-	if (table!=cctab || c==INCAFT || c==DECAFT || tree->t.type==LONG
-	 || c==ASRSH || c==ASLSH || c==ASULSH || tree->t.tr1->t.type==UNCHAR
+	if (table!=cctab || c==INCAFT || c==DECAFT || tree->t.type==LONG || tree->t.type==UNLONG
+/*	 || c==ASRSH || c==ASLSH || c==ASULSH || tree->t.tr1->t.type==UNCHAR */
+	 || c==ASRSH || c==ASLSH || c==ASULSH
 	 || (opt = match(tree, efftab, r, 0)) == 0)
 		if ((opt=match(tree, table, r, 0))==0)
 			return(-1);
@@ -708,6 +751,7 @@ loop:
 				reg1 = rreg;
 		} else if (rreg!=reg)
 			if ((c&020)==0 && oddreg(tree, 0)==0 && tree->t.type!=LONG
+			&& tree->t.type!=UNLONG
 			&& (flag&04
 			  || flag&01&&xdcalc(p2,nreg-rreg-1)<=(opt->tabdeg2&077)
 			  || flag&02&&xdcalc(p1,nreg-rreg-1)<=(opt->tabdeg1&077))) {
@@ -821,7 +865,7 @@ loop:
 		case ASULSH:
 			p = tree->t.tr1;
 		lcasev:
-			if (p->t.type!=LONG) {
+			if (p->t.type!=LONG && p->t.type!=UNLONG) {
 				if (uns(p) || uns(tree->t.tr2))
 					printf("clr");
 				else
@@ -1001,7 +1045,12 @@ struct table *table;
 	p = *treep;
 	if ((p->t.op==INCAFT||p->t.op==DECAFT)
 	 && p->t.tr1->t.op==NAME) {
-		return(1+rcexpr(paint(p->t.tr1, p->t.type), table, reg));
+		r = p->t.tr1->n.class;
+		if (r == EXTERN || r == OFFS || r == STATIC &&
+				p->t.tr1->t.type == UNCHAR)
+			return(1+rcexpr(p->t.tr1, table, reg));
+		else
+			return(1+rcexpr(paint(p->t.tr1, p->t.type), table,reg));
 	}
 	p1 = 0;
 /*
@@ -1098,7 +1147,7 @@ register union tree *p;
 	q->n.regno = p->n.regno;
 	q->n.offset = p->n.offset;
 	if (q->n.class==EXTERN || q->n.class==XOFFS)
-		strncpy(q->x.name, p->x.name, NCPS);
+		q->x.name = p->x.name;
 	else
 		q->n.nloc = p->n.nloc;
 	return(q);
@@ -1173,7 +1222,7 @@ int *flagp;
 		return(size*2);
 	}
 normal:
-	if (nstack || isfloat(tree) || tree->t.type==LONG) {
+	if (nstack || isfloat(tree) || tree->t.type==LONG || tree->t.type==UNLONG) {
 		rcexpr(tree, sptab, 0);
 		retval = arlength(tree->t.type);
 	} else {
@@ -1268,6 +1317,7 @@ register union tree *tree;
 				((unsigned short *)&fval)[3] );
 		return;
 
+	case UNLONG:
 	case LONG:
 		if (tree->t.op==FTOL) {
 			tree = tree->t.tr1;
@@ -1303,7 +1353,7 @@ union tree *tree;
 
 	if (r0==r1)
 		return;
-	if (tree->t.type==LONG) {
+	if (tree->t.type==LONG || tree->t.type == UNLONG) {
 		if (r0>=nreg || r1>=nreg) {
 			error("register overflow: compiler error");
 		}

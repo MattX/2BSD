@@ -5,10 +5,10 @@ L-DIALCODES(5)	    UNIX Programmer's Manual	   L-DIALCODES(5)
 
 
 
-NNAAMMEE
+NAME
      L-dialcodes - UUCP phone number index file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _L-_d_i_a_l_c_o_d_e_s file defines the mapping of strings from the
      phone number field of _L._s_y_s(5) to actual phone numbers.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 
@@ -75,11 +75,11 @@ L-DIALCODES(5)	    UNIX Programmer's Manual	   L-DIALCODES(5)
      access to the table of phone numbers, while still protecting
      the login/password sequences in _L._s_y_s.
 
-FFIILLEESS
+FILES
      /usr/lib/uucp/L-dialcodes
      /usr/lib/uucp/UUAIDS/L-dialcodes	L-dialcodes example
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), L.sys(5), uucico(8C).
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 24, 1986                         2
+Printed 1/9/94		 April 24, 1986                         2
 
 
 

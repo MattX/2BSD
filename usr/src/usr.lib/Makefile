@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.10 (Berkeley) 6/7/86
+#	@(#)Makefile	5.11 (2.11BSD GTE) 10/21/93
 #
 DESTDIR=
 CFLAGS=	-O
@@ -14,15 +14,15 @@ TAGSFILE=tags
 # master tags file (/usr/lib/tags); the Fortran libraries should
 # be on this list, but we don't control them....
 #
-TAGSDIR=libcurses libdbm libln libm libmp libpc libtermlib
+TAGSDIR=libcurses libdbm libln libm libmp libpc libtermlib libutil libvmf
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-# 2.10BSD XXX - Libpc isn't important till someone - if ever - ports
+# 2.11BSD XXX - Libpc isn't important till someone - if ever - ports
 # the 4.3BSD version of ucb/pascal.
 #
 SUBDIR=	learn lib2648 libF77 libI77 libU77 libcurses libdbm libln \
-	libom libmp libplot libtermlib liby lpr me sendmail
+	libom libmp libplot libtermlib liby lpr me sendmail libutil libvmf
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -52,7 +52,7 @@ FRC:
 ${STD}: SEPFLAG${SEPFLAG}
 	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install:
+install: ${STD} ${NSTD} lib.b
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do (install -c $$i.sh ${DESTDIR}/usr/lib/$$i); done

@@ -5,8 +5,8 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)inet_addr.c	5.2 (Berkeley) 3/9/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)inet_addr.c	5.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/types.h>
 #include <ctype.h>
@@ -23,12 +23,8 @@ u_long
 inet_addr(cp)
 	register char *cp;
 {
-#ifdef BSD2_10
 	register u_long val, base;
 	register u_int n; /* can't switch on longs - should be an int anyway */
-#else !BSD2_10
-	register u_long val, base, n;
-#endif BSD2_10
 	register char c;
 	u_long parts[4], *pp = parts;
 

@@ -5,13 +5,13 @@ ACCT(5)             UNIX Programmer's Manual		  ACCT(5)
 
 
 
-NNAAMMEE
+NAME
      acct - execution accounting file
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//aacccctt..hh>>
+SYNOPSIS
+     #include <sys/acct.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _a_c_c_t(2) system call arranges for entries to be made in
      an accounting file for each process that terminates.  The
      accounting file is a sequence of entries whose layout, as
@@ -22,7 +22,7 @@ DDEESSCCRRIIPPTTIIOONN
       * All rights reserved.  The Berkeley software License Agreement
       * specifies the terms and conditions for redistribution.
       *
-      *      @(#)acct.h              7.1 (Berkeley) 6/4/86
+      *      @(#)acct.h              (2.11BSD) 2/21/92
       */
 
      /*
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 19, 1986				1
+Printed 1/9/94		  May 19, 1986				1
 
 
 
@@ -72,12 +72,7 @@ ACCT(5)             UNIX Programmer's Manual		  ACCT(5)
 
 
       */
-     #define AHZ 64
-
-     #ifdef KERNEL
-     struct  acct     acctbuf;
-     struct  inode    *acctp;
-     #endif
+     #define AHZ LINEHZ
 
      If the process was created by an _e_x_e_c_v_e(2), the first 10
      characters of the filename appear in _a_c__c_o_m_m. The accounting
@@ -85,7 +80,7 @@ ACCT(5)             UNIX Programmer's Manual		  ACCT(5)
      accomplished, and whether the process ever had super-user
      privileges.
 
-SSEEEE AALLSSOO
+SEE ALSO
      acct(2), execve(2), sa(8)
 
 
@@ -126,7 +121,12 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 19, 1986				2
+
+
+
+
+
+Printed 1/9/94		  May 19, 1986				2
 
 
 

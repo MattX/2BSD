@@ -5,10 +5,10 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
 
 
 
-NNAAMMEE
+NAME
      format - how to format disk packs
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      There are two ways to format disk packs.  The simplest is to
      use the _f_o_r_m_a_t program.  The alternative is to use the DEC
      standard formatting software which operates under the DEC
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -102,7 +102,7 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
      able defects after formatting, either _b_a_d_1_4_4(8) or _b_a_d_-
      _s_e_c_t(8) should be able to avoid the bad sectors.
 
-EEXXAAMMPPLLEE
+EXAMPLE
      A sample run of _f_o_r_m_a_t is shown below. In this example
      (using a VAX-11/780), _f_o_r_m_a_t is loaded from the console
      floppy; on an 11/750 _f_o_r_m_a_t will be loaded from the root
@@ -110,15 +110,15 @@ EEXXAAMMPPLLEE
      face means user input.  As usual, ``#'' and ``@'' may be
      used to edit input.
 
-	  >>>LL FFOORRMMAATT
+	  >>>L FORMAT
 		    LOAD DONE, 00004400 BYTES LOADED
-	  >>>SS 22
+	  >>>S 2
 	  Disk format/check utility
 
-	  Enable debugging (0=none, 1=bse, 2=ecc, 3=bse+ecc)? 00
-	  Device to format? hhpp((88,,00))
+	  Enable debugging (0=none, 1=bse, 2=ecc, 3=bse+ecc)? 0
+	  Device to format? hp(8,0)
 	  (_e_r_r_o_r _m_e_s_s_a_g_e_s _m_a_y _o_c_c_u_r _a_s _o_l_d _b_a_d _s_e_c_t_o_r _t_a_b_l_e _i_s _r_e_a_d)
-	  Formatting drive hp0 on adaptor 1: verify (yes/no)? yyeess
+	  Formatting drive hp0 on adaptor 1: verify (yes/no)? yes
 	  Device data: #cylinders=842, #tracks=20, #sectors=48
 	  Starting cylinder (0):
 	  Starting track (0):
@@ -126,7 +126,7 @@ EEXXAAMMPPLLEE
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 
@@ -143,7 +143,7 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
 		    2 - (ec6d) media worst case
 		    3 - (a5a5) alternating 1's and 0's
 		    4 - (ffff) Severe burnin (up to 48 passes)
-	  Pattern (one of the above, other to restart)? 22
+	  Pattern (one of the above, other to restart)? 2
 	  Maximum number of bit errors to allow for soft ECC (3):
 	  Start formatting...make sure the drive is online
 	   ...
@@ -166,12 +166,12 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
 	  (..._t_o _a_b_o_r_t _h_a_l_t _m_a_c_h_i_n_e _w_i_t_h ^_P)
 
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The diagnostics are intended to be self explanatory.
 
-UUSSIINNGG DDEECC SSOOFFTTWWAARREE TTOO FFOORRMMAATT
-     WWaarrnniinngg::  TThheessee iinnssttrruuccttiioonnss aarree ffoorr ppeeooppllee wwiitthh 1111//778800
-     CCPPUU''ss.. The steps needed for 11/750 or 11/730 cpu's are simi-
+USING DEC SOFTWARE TO FORMAT
+     Warning:  These instructions are for people with 11/780
+     CPU's. The steps needed for 11/750 or 11/730 cpu's are simi-
      lar, but not covered in detail here.
 
      The formatting procedures are different for each type of
@@ -183,7 +183,7 @@ UUSSIINNGG DDEECC SSOOFFTTWWAARREE TTOO FFOORRMMAATT
      formatted.  It is also a good idea to spin down or write
      protect the disks you don't want to format, just in case.
 
-     FFoorrmmaattttiinngg aann RRKK0077.. Load the console floppy labeled, "RX11
+     Formatting an RK07. Load the console floppy labeled, "RX11
      VAX DSK LD DEV #1" in the console disk drive, and type the
      following commands:
 	  >>>BOOT
@@ -192,7 +192,7 @@ UUSSIINNGG DDEECC SSOOFFTTWWAARREE TTOO FFOORRMMAATT
 
 
 
-Printed 12/28/88	  May 22, 1986				3
+Printed 1/9/94		  May 22, 1986				3
 
 
 
@@ -209,7 +209,7 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
 	  DS>LOAD EVRAC
 	  DS>START/SEC:PACKINIT
 
-     FFoorrmmaattttiinngg aann RRPP00XX.. Follow the above procedures except that
+     Formatting an RP0X. Follow the above procedures except that
      the ATTACH and SELECT lines should read:
 	  DS>ATTACH RH780 SBI RH0 8 5
 	  DS>ATTACH RP0X RH0 DBA0(RP0X is, e.g. RP06)
@@ -218,7 +218,7 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
      This is for drive 0 on mba0; use 9 instead of 8 for mba1,
      etc.
 
-     FFoorrmmaattttiinngg aann RRMM00XX.. Follow the above procedures except that
+     Formatting an RM0X. Follow the above procedures except that
      the ATTACH and SELECT lines should read:
 	  DS>ATTACH RH780 SBI RH0 8 5
 	  DS>ATTACH RM0X RH0 DRA0
@@ -227,10 +227,10 @@ FORMAT(8V)	    UNIX Programmer's Manual	       FORMAT(8V)
      Don't forget to put your UNIX console floppy back in the
      floppy disk drive.
 
-SSEEEE AALLSSOO
+SEE ALSO
      bad144(8), badsect(8), newfs(8)
 
-BBUUGGSS
+BUGS
      An equivalent facility should be available which operates
      under a running UNIX system.
 
@@ -258,7 +258,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 22, 1986				4
+Printed 1/9/94		  May 22, 1986				4
 
 
 

@@ -5,15 +5,15 @@ SIGNAL(3F)	    UNIX Programmer's Manual	       SIGNAL(3F)
 
 
 
-NNAAMMEE
+NAME
      signal - change the action for a signal
 
-SSYYNNOOPPSSIISS
-     iinntteeggeerr ffuunnccttiioonn ssiiggnnaall((ssiiggnnuumm,, pprroocc,, ffllaagg))
-     iinntteeggeerr ssiiggnnuumm,, ffllaagg
-     eexxtteerrnnaall pprroocc
+SYNOPSIS
+     integer function signal(signum, proc, flag)
+     integer signum, flag
+     external proc
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      When a process incurs a signal (see _s_i_g_n_a_l(3C)) the default
      action is usually to clean up and abort.  The user may
      choose to write an alternative signal handling routine.  A
@@ -38,15 +38,15 @@ DDEESSCCRRIIPPTTIIOONN
      returned value is the negation of a system error code.  (See
      _p_e_r_r_o_r(3F))
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      signal(3C), kill(3F), kill(1)
 
-NNOOTTEESS
-     ff7777 arranges to trap certain signals when a process is
-     started.  The only way to restore the default ff7777 action is
+NOTES
+     f77 arranges to trap certain signals when a process is
+     started.  The only way to restore the default f77 action is
      to save the returned value from the first call to _s_i_g_n_a_l.
 
      If the user signal handler is called, it will be passed the
@@ -60,7 +60,7 @@ NNOOTTEESS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

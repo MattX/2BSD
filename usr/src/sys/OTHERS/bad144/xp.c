@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)xp.c	1.2 (2.11BSD GTE) 1/2/93
  */
 
 /* $Header: xp.c,v 1.3 88/06/18 08:10:08 jbj Locked $ */
@@ -46,10 +46,8 @@
 #include "dkbad.h"
 #include "dk.h"
 
-#ifdef UNIBUS_MAP
 #include "map.h"
 #include "uba.h"
-#endif UNIBUS_MAP
 
 #define	XP_SDIST	2
 #define	XP_RDIST	6
@@ -225,7 +223,6 @@ struct xpst {
 #endif
 
 struct	buf	xptab;
-struct	buf	rxpbuf[NXPD];
 struct	buf	xputab[NXPD];
 
 #ifdef BADSECT
@@ -298,10 +295,8 @@ xpattach(xpaddr, unit)
 		return(0);
 	if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
 		xc->xp_addr = xpaddr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 		if (fioword(&xpaddr->hpbae) != -1)
 			xc->xp_flags |= XP_RH70;
-#endif
 #ifdef XP_PROBE
 	/*
 	 *  If already attached, ignore (don't want to renumber drives)
@@ -468,10 +463,8 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef UNIBUS_MAP
 	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
 		mapalloc(bp);
-#endif
 	bp->b_cylin = bn / xd->xp_nspc + xd->xp_sizes[pseudo_unit].cyloff;
 	dp = &xputab[unit];
 	s = spl5();
@@ -548,10 +541,8 @@ int unit;
 		bbp->b_un.b_addr = (caddr_t)&xpbad[unit];
 		bbp->b_blkno = (daddr_t)xd->xp_ncyl * xd->xp_nspc - xd->xp_nsect;
 		bbp->b_cylin = xd->xp_ncyl - 1;
-#ifdef UNIBUS_MAP
 		if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
 			mapalloc(bbp);
-#endif
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
@@ -676,10 +667,8 @@ loop:
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpba = bp->b_un.b_addr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 	if (xc->xp_flags & XP_RH70)
 		xpaddr->hpbae = bp->b_xmem;
-#endif
 	xpaddr->hpwc = -(bp->b_bcount >> 1);
 	/*
 	 * Initiate i/o command.
@@ -843,18 +832,6 @@ errdone:
 	xpstart(xc);
 }
 
-xpread(dev)
-	dev_t	dev;
-{
-	return (physio(xpstrategy, &rxpbuf[xpunit(dev)], dev, B_READ, WORD));
-}
-
-xpwrite(dev)
-	dev_t	dev;
-{
-	return (physio(xpstrategy, &rxpbuf[xpunit(dev)], dev, B_WRITE, WORD));
-}
-
 xpioctl(dev, cmd, data, flag)
 	dev_t	dev;
 	u_int	cmd;
@@ -907,9 +884,7 @@ register struct	buf *bp;
 	int	ocmd;
 	int	cn, tn, sn;
 	daddr_t bn;
-#ifdef UNIBUS_MAP
 	struct ubmap *ubp;
-#endif
 	int	unit;
 
 	/*
@@ -969,7 +944,6 @@ register struct	buf *bp;
 			 */
 			while (byte < bp->b_bcount && wrong != 0) {
 				addr = bb + byte;
-#ifdef UNIBUS_MAP
 				if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
 					/*
 					 * Simulate UNIBUS map if UNIBUS
@@ -978,7 +952,6 @@ register struct	buf *bp;
 					ubp = UBMAP + ((addr >> 13) & 037);
 					addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
 				}
-#endif
 				putmemc(addr, getmemc(addr) ^ (int) wrong);
 				byte++;
 				wrong >>= 8;
@@ -1025,10 +998,8 @@ register struct	buf *bp;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpwc = wc;
 	xpaddr->hpba = (caddr_t)addr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 	if (xd->xp_ctlr->xp_flags & XP_RH70)
 		xpaddr->hpbae = (int)(addr >> 16);
-#endif
 	xpaddr->hpcs1.w = ocmd;
 	return (1);
 }
@@ -1036,15 +1007,9 @@ register struct	buf *bp;
 #ifdef XP_DUMP
 /*
  * Dump routine.  Dumps from dumplo to end of memory/end of disk section for
- * minor(dev).  It uses the UNIBUS map to dump all of memory if there is a
- * UNIBUS map and this isn't an RH70.  This depends on UNIBUS_MAP being
- * defined.
+ * minor(dev).
  */
-#ifdef UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
 #define DBSIZE	16			/* unit of transfer, same number */
-#endif
 
 xpdump(dev)
 	dev_t dev;
@@ -1057,9 +1022,7 @@ xpdump(dev)
 	daddr_t bn, dumpsize;
 	long paddr;
 	int	sn, count;
-#ifdef UNIBUS_MAP
 	struct ubmap *ubp;
-#endif
 
 	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
 		|| ((dev=minor(dev)) > (NXPD << 3)))
@@ -1081,9 +1044,7 @@ xpdump(dev)
 	}
 	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
 		return(EFAULT);
-#ifdef UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -1091,11 +1052,6 @@ xpdump(dev)
 		sn = bn % xd->xp_nspc;
 		xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
 		xpaddr->hpwc = -(count << (PGSHIFT - 1));
-#ifdef UNIBUS_MAP
-		/*
-		 * If UNIBUS_MAP exists, use the map, unless on an 11/70
-		 * with RH70.
-		 */
 		if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
@@ -1103,19 +1059,14 @@ xpdump(dev)
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO;
 		}
 		else {
-#endif UNIBUS_MAP
 			/*
 			 * Non-UNIBUS map, or 11/70 RH70 (MASSBUS)
 			 */
 			xpaddr->hpba = loint(paddr);
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 			if (xd->xp_ctlr->xp_flags & XP_RH70)
 				xpaddr->hpbae = hiint(paddr);
-#endif
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
-#ifdef UNIBUS_MAP
 		}
-#endif
 		while (xpaddr->hpcs1.w & HP_GO);
 		if (xpaddr->hpcs1.w & HP_TRE) {
 			if (xpaddr->hpcs2.w & HPCS2_NEM)

@@ -5,28 +5,28 @@ PXREF(1)	    UNIX Programmer's Manual		 PXREF(1)
 
 
 
-NNAAMMEE
+NAME
      pxref - Pascal cross-reference program
 
-SSYYNNOOPPSSIISS
-     ppxxrreeff [ -- ] name
+SYNOPSIS
+     pxref [ - ] name
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_x_r_e_f makes a line numbered listing and a cross-reference of
-     identifier usage for the program in _n_a_m_e. The optional `--'
-     argument suppresses the listing.  The keywords ggoottoo and
-     llaabbeell are treated as identifiers for the purpose of the
-     cross-reference.  IInncclluuddee directives are not processed, but
+     identifier usage for the program in _n_a_m_e. The optional `-'
+     argument suppresses the listing.  The keywords goto and
+     label are treated as identifiers for the purpose of the
+     cross-reference.  Include directives are not processed, but
      cause the placement of an entry indexed by `#include' in the
      cross-reference.
 
-SSEEEE AALLSSOO
+SEE ALSO
      Berkeley Pascal User's Manual
 
-AAUUTTHHOORR
+AUTHOR
      Niklaus Wirth
 
-BBUUGGSS
+BUGS
      Identifiers are trimmed to 10 characters.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 

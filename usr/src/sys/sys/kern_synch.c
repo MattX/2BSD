@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_synch.c	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)kern_synch.c	1.2 (2.11BSD GTE) 1/1/93
  */
 
 #include "param.h"
@@ -17,11 +17,7 @@
 #include "kernel.h"
 #include "systm.h"
 
-#ifdef SMALL
-#define	SQSIZE	020	/* Must be power of 2 */
-#else
-#define	SQSIZE	0100	/* Must be power of 2 */
-#endif
+#define	SQSIZE	16	/* Must be power of 2 */
 
 #define	HASH(x)	(((int)x >> 5) & (SQSIZE - 1))
 #define	SCHMAG	8/10
@@ -124,7 +120,7 @@ sleep(chan, pri)
 		 * by the filesystem, but for now avoid network interrupts
 		 * that might cause another panic.
 		 */
-		(void)splnet();
+		(void) _splnet();
 		noop();
 		splx(s);
 		return;
@@ -146,13 +142,13 @@ sleep(chan, pri)
 			if (rp->p_wchan)
 				unsleep(rp);
 			rp->p_stat = SRUN;
-			(void) spl0();
+			(void) _spl0();
 			goto psig;
 		}
 		if (rp->p_wchan == 0)
 			goto out;
 		rp->p_stat = SSLEEP;
-		(void) spl0();
+		(void) _spl0();
 		/*
 		 * maybe a very small core memory, give swapped out
 		 * processes a chance.
@@ -161,18 +157,14 @@ sleep(chan, pri)
 			runin = 0;
 			wakeup((caddr_t)&runin);
 		}
-#ifdef UCB_RUSAGE
 		u.u_ru.ru_nvcsw++;
-#endif
 		swtch();
 		if (ISSIG(rp))
 			goto psig;
 	} else {
 		rp->p_stat = SSLEEP;
-		(void) spl0();
-#ifdef UCB_RUSAGE
+		(void) _spl0();
 		u.u_ru.ru_nvcsw++;
-#endif
 		swtch();
 	}
 out:
@@ -218,7 +210,6 @@ wakeup(chan)
 	register struct proc *p, **q;
 	struct proc **qp;
 	int s;
-#ifndef NOKA5
 	mapinfo map;
 
 	/*
@@ -226,7 +217,6 @@ wakeup(chan)
 	 * kernel mapping to access proc.
 	 */
 	savemap(map);
-#endif
 	s = splclock();
 	qp = &slpque[HASH(chan)];
 restart:
@@ -244,10 +234,6 @@ restart:
 				p->p_stat = SRUN;
 				if (p->p_flag & SLOAD)
 					setrq(p);
-#ifdef CGL_RTP
-				if (p == rtpp)
-					wantrtp++;
-#endif
 				/*
 				 * Since curpri is a usrpri,
 				 * p->p_pri is always better than curpri.
@@ -267,9 +253,7 @@ restart:
 			q = &p->p_link;
 	}
 	splx(s);
-#ifndef NOKA5
 	restormap(map);
-#endif
 }
 
 /*
@@ -305,15 +289,8 @@ setrun(p)
 	if (p->p_flag & SLOAD)
 		setrq(p);
 	splx(s);
-#ifdef CGL_RTP
-	if (p == rtpp)
-		wantrtp++;
-	if (p->p_pri < curpri || p == rtpp)
-		runrun++;
-#else
 	if (p->p_pri < curpri)
 		runrun++;
-#endif
 	if ((p->p_flag&SLOAD) == 0) {
 		if (runout != 0) {
 			runout = 0;
@@ -372,12 +349,10 @@ swtch()
 			sureg();
 			return;
 		}
-#ifndef NONFP
 		if (u.u_fpsaved == 0) {
 			savfp(&u.u_fps);
 			u.u_fpsaved = 1;
 		}
-#endif
 		longjmp(proc[0].p_addr, &u.u_qsave);
 	}
 	/*
@@ -397,25 +372,6 @@ loop:
 	s = splhigh();
 	noproc = 0;
 	runrun = 0;
-#ifdef CGL_RTP
-	/*
-	 * Test for the presence of a "real time process".
-	 * If there is one and it is runnable, give it top priority.
-	 */
-	if ((p = rtpp) && p->p_stat == SRUN && (p->p_flag & SLOAD)) {
-		pq = NULL;
-		for (q = qs;;q = q->p_link) {
-			if (q == NULL)
-				panic("rtp not found\n");
-			if (q == p)
-				break;
-			pq = q;
-		}
-		n = PRTP;
-		wantrtp = 0;
-		goto runem;
-	}
-#endif CGL_RTP
 #ifdef DIAGNOSTIC
 	for (p = qs; p; p = p->p_link)
 		if (p->p_stat != SRUN)
@@ -440,15 +396,9 @@ loop:
 	 */
 	p = pp;
 	if (p == NULL) {
-#ifdef UCB_FRCSWAP
-		idleflg = 1;
-#endif
 		idle();
 		goto loop;
 	}
-#ifdef CGL_RTP
-runem:
-#endif
 	if (pq)
 		pq->p_link = p->p_link;
 	else

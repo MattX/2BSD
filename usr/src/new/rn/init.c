@@ -44,6 +44,7 @@
 #include "ngstuff.h"
 #include "rcln.h"
 #include "respond.h"
+#include "server.h"
 #include "ng.h"
 #include "INTERN.h"
 #include "init.h"
@@ -56,6 +57,10 @@ char *argv[];
     char *tcbuf;
     register bool foundany = FALSE;
     long time();
+#ifdef SERVER
+    char *server;
+    int response;
+#endif SERVER
 #ifdef NOLINEBUF
     static char std_out_buf[BUFSIZ];	/* must be static or malloced */
 
@@ -123,6 +128,32 @@ char *argv[];
 
     if (!checkflag)
 	newsnews_check();
+
+#ifdef SERVER
+
+    /* open connection to server if appropriate */
+
+    server = getserverbyfile(SERVER_FILE);
+    if (server == NULL) {
+	fprintf(stderr, "Can't get the name of the news server from %s\n",
+		SERVER_FILE);
+	fprintf(stderr,
+	  "Either fix this file, or put NNTPSERVER in your environment.\n");
+	finalize(1);
+    }
+
+    response = server_init(server);
+    if (response < 0) {
+	fprintf(stderr,
+	    "Couldn't connect to %s news server, try again later.\n",
+		server);
+	finalize(1);
+    }
+
+    if (handle_server_response(response, server) < 0)
+	finalize(1);
+
+#endif SERVER
 
     /* open active file, etc. */
 

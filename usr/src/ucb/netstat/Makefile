@@ -27,7 +27,7 @@ clean: FRC
 depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
-install: FRC
+install: netstat
 	install -s -g kmem -m 2755 netstat ${DESTDIR}/usr/ucb/netstat
 
 lint: FRC

@@ -9,11 +9,13 @@ in the "GLUE" subdirectory.
 STEP #1:
 --------
 	Install the source code in the proper directory.  A pdp MASSBUS
-driver would go in pdpmba, a pdp UNIBUS driver would go in pdpuba.  We'll
-use the versatec driver as an example.  Since it's a UNIBUS driver, we'll
-move vp.c into pdpuba.  If you're installing a driver from the OTHERS
-directory, or you've got a local work of art that you wish to use, there
-are a few things you should check so that it will work correctly with 2.10BSD:
+driver would go in pdpmba, a pdp UNIBUS driver would go in pdpuba.  In
+reality (the present system) all drivers are in pdpuba regardless of
+being MASSBUS or UNIBUS.  We'll use the versatec driver as an example.  
+Since it's a UNIBUS driver, we'll move vp.c into pdpuba.  If you're installing 
+a driver from the OTHERS directory, or you've got a local work of art that 
+you wish to use, there are a few things you should check so that it will 
+work correctly with 2.11BSD:
 
 	Note, in the following examples, "XX" is the two or three letter
 	designation that device drivers under UNIX get assigned, e.g. "vp"
@@ -23,16 +25,27 @@ are a few things you should check so that it will work correctly with 2.10BSD:
 
 	b) If your XXread and XXwrite routines use physio(), make sure that
 	   you're passing the correct number and types of arguments.
-	   Between 2.9BSD and 2.10BSD a new argument was added to the
-	   physio call that specifies whether WORD or BYTE transfers are
-	   being attempted.
+
+	   Between the initial release of 2.11BSD and the present the 
+	   WORD/BYTE argument (added between 2.9 and 2.10) was removed.
+	   If it is important to enforce alignment this can be done in
+	   either the strategy routine or in XXread/XXwrite before calling
+	   physio().
 
 	c) The XXread and XXwrite routines should return 0, if successful,
 	   and the correct errno value (for later assignment to u.u_error)
-	   if they fail.  It's cool to just return the result of physio(),
-	   it does the right thing.
+	   if they fail.  All the XXread and XXwrite routines which only
+	   called physio() have been removed (the common routines rawread()
+	   and rawwrite() replacing XXread() and XXwrite() in the cdevsw[]
+	   table).
 
-	d) The XXioctl routine has changed a *lot* between 2.9 and 2.10:
+	   Note:  If XXread() and/or XXwrite() only calls physio() then
+	   the XXread and XXwrite entry points can be removed and the common
+	   routines 'rawread', 'rawwrite' used in the cdevsw[] table.  See
+	   the entries for any of the disc or tape drivers for examples of
+	   this.
+
+	d) The XXioctl routine has changed a *lot* between 2.9 and 2.11:
 
 		+ XXioctl() now takes four arguments, (dev, cmd, data,
 		  flags) a device (dev_t), the ioctl command (u_int), a
@@ -62,13 +75,14 @@ are a few things you should check so that it will work correctly with 2.10BSD:
 	   on "UNIBUS_MAP".  You should ifdef *real* 22-bit QBUS addressing
 	   with the define "Q22" (see the comments in conf/GENERIC and
 	   pdp/machdep2.c.)  Buffer cache buffers have to be mapped in to
-	   be accessed in 2.9BSD and 2.10BSD.  I don't really understand
+	   be accessed in 2.9BSD and 2.11BSD.  I don't really understand
 	   how it worked before then, but some of the drivers in the OTHERS
 	   directory predate that, so be paranoid.
 
 	f) The device addresses and partition table sizes should be
 	   included in the device driver itself, not in ioconf.c (which
-	   doesn't exist anymore.)  See the drivers in pdpuba for examples.
+	   is used for an entirely different purpose now.)  See the drivers 
+	   in pdpuba for examples.
 
 	g) You should have an XXopen() routine that validates the unit
 	   number for the read, write, and ioctl system calls.  See the
@@ -100,17 +114,22 @@ STEP #2:
 --------
 	Write some code that will attempt to "probe" the routine.  See any
 of the other device drivers for examples.  Install this code in the
-same directory, only call it "XXauto.c", where XX is the prefix for the
-driver.  In our example, we'll install it in "pdpuba/vpauto.c".  This is
-the code that is used by the auto configuration program to get to the
-device.  By convention, this routine must be named "XXprobe()".  It's also
-useful to check and see if any of the probe routines already written would
-be identical to your probe routine.  For example, the "xpauto.c" file
-contains the probe routine for several flavors of disk drive.  If you're
-porting a 4BSD driver, it probably already has a probe routine in it which
-may be close to what you want.  Also, in any case, rip the XXprobe stuff
-out of the main file ... it is never used by the kernel and it just wastes
-text space.
+"sys/autoconfig" directory, only call it "XXauto.c", where XX is
+the prefix for the driver.  In our example, we'll install it as
+"sys/autoconfig/vpauto.c".  This is the code that is used by the auto 
+configuration program to get to the device.  By convention, this routine 
+must be named "XXprobe()".  It's also useful to check and see if any of 
+the probe routines already written would be identical to your probe routine.
+For example, the "xpauto.c" file contains the probe routine for several 
+flavors of disk drive.  If you're porting a 4BSD driver, it probably 
+already has a probe routine in it which may be close to what you want.  
+Also, in any case, rip the XXprobe stuff out of the main file ... it is never 
+used by the kernel and it just wastes text space.
+	Previously the XXauto.c files were kept in the same directory as
+the device drivers themselves.  This lead to the misleading assumption that 
+'/etc/autoconfig' would automatically be rebuilt if the probe routine in
+the XXauto.c files in sys/pdpuba were modified.  To clarify matters the 
+XXauto.c files were moved into the sys/autoconfig directory.
 
 STEP #3:
 --------
@@ -211,20 +230,44 @@ switch tables.  For our example we would add:
 #include "vp.h"
 #if NVP > 0
 int	vpopen(), vpclose(), vpwrite(), vpioctl();
+#define	vpstrategy	nulldev
 #else
 #define	vpopen		nodev
 #define	vpclose		nodev
 #define	vpwrite		nodev
 #define	vpioctl		nodev
+#define	vpstrategy	nodev
 #endif	NVP
 
 to the character device definition section of conf.c, and
 
 /* vp = 20 */
 	vpopen,		vpclose,	nodev,		vpwrite,
-	vpioctl,	nulldev,	0,		SELECT(nodev)
+	vpioctl,	nulldev,	0,		SELECT(nodev),
+	vpstrategy,
 
 to the character device switch table (cdevsw[]).
+
+The strategy member of the cdevsw[] structure is new since 2.11BSD was 
+released.  Since VP does not have a strategy routine a dummy definition 
+is created.  Other devices (such as disc and tape drivers) do have
+strategy routines and their entries look like:
+
+#include "tms.h"
+#if NTMS > 0
+int	tmscpopen(), tmscpclose(), tmscpstrategy(), tmscpioctl();
+#else
+#define	tmscpopen	nodev
+#define	tmscpclose	nodev
+#define	tmscpioctl	nodev
+#define	tmscpstrategy	nodev
+#endif
+
+/* tmscp = 23 (tu81/tk50) */
+	tmscpopen,	tmscpclose,	rawread,	rawwrite,
+	tmscpioctl,	nulldev,	0,		seltrue,
+	tmscpstrategy,
+};
 
 	Note, in our example, we've been assuming that NVP is the define that
 governs whether or not the device is included, as well as how many of them
@@ -310,8 +353,16 @@ modification" are probably now specious.  While comments like "is untested",
 2.9BSD and you'd probably be better off rewriting it from scratch or buying
 an IBM PC" ...
 
-Keith Bostic & Casey Leedom
+	Several of the drivers in the OTHERS directory should eventually
+be removed because working versions exist in the pdpuba directory.  These
+are the ts-11 (OTHERS/ts - pdpuba/ts.c), rp04/rp06 (OTHERS/rp04.06 - 
+pdpuba/xp.c), TMSCP (OTHERS/tk - pdpuba/tmscp.c), RX01&RX02 (OTHERS/rx01, 
+OTHERS/rx02 - pdpuba/rx.c), MSCP (OTHERS/ra - pdpuba/ra.c), TU-16 (OTHERS/ht -
+pdpuba/ht.c), rm02/rm03/rm05 (OTHERS/rm02.03.05 - pdpuba/xp.c), Fuji-160
+(OTHERS/fuji_160 - pdpuba/xp.c), dm11 (OTHERS/dm11 - pdpuba/dh.c).
 
+
+Keith Bostic & Casey Leedom (revised by Steven Schultz)
 
 ORIGINAL README:
 ----------------

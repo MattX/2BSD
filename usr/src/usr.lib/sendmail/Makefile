@@ -4,7 +4,7 @@
 #		@(#)Makefile	4.9		5/30/86
 #
 
-ALL=	src/sendmail
+ALL=	src/sendmail src/ctimed
 DIRS=	$(DESTDIR)/usr/spool/mqueue
 SRCDIR=	$(DESTDIR)/usr/src/usr.lib/sendmail
 #
@@ -13,6 +13,7 @@ SRCDIR=	$(DESTDIR)/usr/src/usr.lib/sendmail
 ALLDIRS=include adm src aux md lib doc adb test
 BACKUP=	calder
 SENDMAIL=$(DESTDIR)/usr/lib/sendmail
+CTIMED=$(DESTDIR)/usr/lib/ctimed
 SYSLOG=	/usr/spool/mqueue/syslog
 HOST=	`hostname | sed -e 's/ucb//' -e 's/\..*//'`
 
@@ -25,13 +26,14 @@ SEPFLAG= -i
 
 all:
 	cd lib; make ${MFLAGS} SEPFLAG=${SEPFLAG}
-	cd src; m4 Makefile.m4 > Makefile; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd src; m4 Makefile.m4 > Makefile; make ${MFLAGS} SEPFLAG=${SEPFLAG} all
 	-cd aux; m4 Makefile.m4 > Makefile; make ${MFLAGS} SEPFLAG=${SEPFLAG}
 #	cd cf;  make ${MFLAGS}
 #	cd doc; make ${MFLAGS}
 
 install: $(ALL) $(DIRS)
 	install -s -o root -m 4755	src/sendmail	$(SENDMAIL)
+	install -s -o root -m 0755	src/ctimed	$(CTIMED)
 	chgrp kmem $(SENDMAIL)
 	install -c -o root -m 644	lib/sendmail.hf	$(SENDMAIL).hf
 	install -c -o root -m 666	/dev/null	$(SENDMAIL).st
@@ -55,12 +57,15 @@ installcf:
 src/sendmail:
 	cd src; make ${MFLAGS} sendmail
 
+src/ctimed:
+	cd src; make ${MFLAGS} ctimed
+
 aux/syslog:
 	-cd aux; make ${MFLAGS} syslog
 
 $(DESTDIR)/usr/spool/mqueue:
-	mkdir			$(DESTDIR)/usr/spool/mqueue
-	chmod	777		$(DESTDIR)/usr/spool/mqueue
+	-mkdir			$(DESTDIR)/usr/spool/mqueue
+	-chmod	777		$(DESTDIR)/usr/spool/mqueue
 
 clean:
 	-cd src; make ${MFLAGS} clean

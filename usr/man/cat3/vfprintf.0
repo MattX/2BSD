@@ -5,38 +5,38 @@ PRINTF(3S)	    UNIX Programmer's Manual	       PRINTF(3S)
 
 
 
-NNAAMMEE
+NAME
      printf, fprintf, sprintf - formatted output conversion
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssttddiioo..hh>>
+SYNOPSIS
+     #include <stdio.h>
 
-     pprriinnttff((ffoorrmmaatt [,, arg ] ...  ))
-     cchhaarr **ffoorrmmaatt;;
+     printf(format [, arg ] ...  )
+     char *format;
 
-     ffpprriinnttff((ssttrreeaamm,, ffoorrmmaatt [,, arg ] ...  ))
-     FFIILLEE **ssttrreeaamm;;
-     cchhaarr **ffoorrmmaatt;;
+     fprintf(stream, format [, arg ] ...  )
+     FILE *stream;
+     char *format;
 
-     sspprriinnttff((ss,, ffoorrmmaatt [,, arg ] ...  ))
-     cchhaarr **ss,, **ffoorrmmaatt;;
+     sprintf(s, format [, arg ] ...  )
+     char *s, *format;
 
-     ##iinncclluuddee <<vvaarraarrggss..hh>>
-     vvpprriinnttff((ffoorrmmaatt,, aarrggss))
-     cchhaarr **ffoorrmmaatt;;
-     vvaa__lliisstt aarrggss;;
+     #include <varargs.h>
+     vprintf(format, args)
+     char *format;
+     va_list args;
 
-     vvffpprriinnttff((ssttrreeaamm,, ffoorrmmaatt,, aarrggss))
-     FFIILLEE **ssttrreeaamm;;
-     cchhaarr **ffoorrmmaatt;;
-     vvaa__lliisstt aarrggss;;
+     vfprintf(stream, format, args)
+     FILE *stream;
+     char *format;
+     va_list args;
 
-     vvsspprriinnttff((ss,, ffoorrmmaatt,, aarrggss))
-     cchhaarr **ss,, **ffoorrmmaatt;;
-     vvaa__lliisstt aarrggss;;
+     vsprintf(s, format, args)
+     char *s, *format;
+     va_list args;
 
-DDEESSCCRRIIPPTTIIOONN
-     _P_r_i_n_t_f places output on the standard output stream ssttddoouutt.
+DESCRIPTION
+     _P_r_i_n_t_f places output on the standard output stream stdout.
      _F_p_r_i_n_t_f places output on the named output _s_t_r_e_a_m.	_S_p_r_i_n_t_f
      places `output' in the string _s, followed by the character
      `\0'.  Alternate forms, in which the arguments have already
@@ -53,14 +53,14 @@ DDEESSCCRRIIPPTTIIOONN
      next successive _a_r_g _p_r_i_n_t_f.
 
      Each conversion specification is introduced by the character
-     %%.  The remainder of the conversion specification includes
+     %.  The remainder of the conversion specification includes
      in the following order
 
-     oo++	  a minus sign `-' which specifies _l_e_f_t _a_d_j_u_s_t_m_e_n_t of the
+     o+	  a minus sign `-' which specifies _l_e_f_t _a_d_j_u_s_t_m_e_n_t of the
 
 
 
-Printed 12/28/88	 August 10, 1988			1
+Printed 1/9/94		 August 10, 1988			1
 
 
 
@@ -73,7 +73,7 @@ PRINTF(3S)	    UNIX Programmer's Manual	       PRINTF(3S)
 
 	  converted value in the indicated field;
 
-     oo++	  an optional digit string specifying a _f_i_e_l_d _w_i_d_t_h; if
+     o+	  an optional digit string specifying a _f_i_e_l_d _w_i_d_t_h; if
 	  the converted value has fewer characters than the field
 	  width it will be blank-padded on the left (or right, if
 	  the left-adjustment indicator has been given) to make
@@ -81,16 +81,16 @@ PRINTF(3S)	    UNIX Programmer's Manual	       PRINTF(3S)
 	  zero, zero-padding will be done instead of blank-
 	  padding;
 
-     oo++	  an optional period, followed by an optional digit
+     o+	  an optional period, followed by an optional digit
 	  string giving a _p_r_e_c_i_s_i_o_n which specifies the number of
 	  digits to appear after the decimal point, for e- and
 	  f-conversion, or the maximum number of characters to be
 	  printed from a string;
 
-     oo++	  the character ll specifying that a following dd, oo, xx, or
-	  uu corresponds to a long integer _a_r_g;
+     o+	  the character l specifying that a following d, o, x, or
+	  u corresponds to a long integer _a_r_g;
 
-     oo++	  a character which indicates the type of conversion to
+     o+	  a character which indicates the type of conversion to
 	  be applied.
 
      A field width or precision may be `*' instead of a digit
@@ -99,34 +99,34 @@ PRINTF(3S)	    UNIX Programmer's Manual	       PRINTF(3S)
 
      The conversion characters and their meanings are
 
-     ddooxx  The integer _a_r_g is converted to signed decimal,
+     dox  The integer _a_r_g is converted to signed decimal,
 	  unsigned octal, or unsigned hexadecimal notation
 	  respectively.
 
-     ff	  The float or double _a_r_g is converted to decimal nota-
-	  tion in the style `[--]ddd.ddd' where the number of d's
+     f	  The float or double _a_r_g is converted to decimal nota-
+	  tion in the style `[-]ddd.ddd' where the number of d's
 	  after the decimal point is equal to the precision
 	  specification for the argument.  If the precision is
 	  missing, 6 digits are given; if the precision is expli-
 	  citly 0, no digits and no decimal point are printed.
 
-     ee	  The float or double _a_r_g is converted in the style
-	  `[--]d..dddee+_dd' where there is one digit before the
+     e	  The float or double _a_r_g is converted in the style
+	  `[-]d.ddde+_dd' where there is one digit before the
 	  decimal point and the number after is equal to the pre-
 	  cision specification for the argument; when the preci-
 	  sion is missing, 6 digits are produced.
 
-     gg	  The float or double _a_r_g is printed in style dd, in style
-	  ff, or in style ee, whichever gives full precision in
+     g	  The float or double _a_r_g is printed in style d, in style
+	  f, or in style e, whichever gives full precision in
 	  minimum space.
 
-     cc	  The character _a_r_g is printed.
+     c	  The character _a_r_g is printed.
 
-     ss	  _A_r_g is taken to be a string (character pointer) and
+     s	  _A_r_g is taken to be a string (character pointer) and
 
 
 
-Printed 12/28/88	 August 10, 1988			2
+Printed 1/9/94		 August 10, 1988			2
 
 
 
@@ -143,23 +143,23 @@ PRINTF(3S)	    UNIX Programmer's Manual	       PRINTF(3S)
 	  the precision is 0 or missing all characters up to a
 	  null are printed.
 
-     uu	  The unsigned integer _a_r_g is converted to decimal and
+     u	  The unsigned integer _a_r_g is converted to decimal and
 	  printed (the result will be in the range 0 through MAX-
 	  UINT, where MAXUINT equals 4294967295 on a VAX-11 and
 	  65535 on a PDP-11).
 
-     %%	  Print a `%'; no argument is converted.
+     %	  Print a `%'; no argument is converted.
 
      In no case does a non-existent or small field width cause
      truncation of a field; padding takes place only if the
      specified field width exceeds the actual width.  Characters
      generated by _p_r_i_n_t_f are printed as by _p_u_t_c(3S).
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      The functions all return the number of characters printed,
      or -1 if an error occurred.
 
-EEXXAAMMPPLLEESS
+EXAMPLES
      To print a date and time in the form `Sunday, July 3,
      10:02', where _w_e_e_k_d_a_y and _m_o_n_t_h are pointers to null-
      terminated strings:
@@ -171,10 +171,10 @@ EEXXAAMMPPLLEESS
 
 	  printf("pi = %.5f", 4*atan(1.0));
 
-SSEEEE AALLSSOO
+SEE ALSO
      putc(3S), scanf(3S)
 
-BBUUGGSS
+BUGS
      Very wide fields (>128 characters) fail.
 
      The functions still supports %_D, %_O, and %_U.  Do not use
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 10, 1988			3
+Printed 1/9/94		 August 10, 1988			3
 
 
 

@@ -4,7 +4,7 @@ CFILES=		endgame.c extern.c getguess.c getword.c main.c playgame.c \
 		prdata.c prman.c prword.c setup.c
 HDRS=		hangman.h
 CFLAGS=		-O
-LDFLAGS=	-g
+LDFLAGS=
 SEPFLAG= -i
 
 all: hangman

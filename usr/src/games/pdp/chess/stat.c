@@ -1,5 +1,6 @@
 #include "old.h"
 
+int *
 statl()
 {
 	int *p1, *p2, *p3;

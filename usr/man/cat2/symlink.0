@@ -5,25 +5,25 @@ SYMLINK(2)	    UNIX Programmer's Manual	       SYMLINK(2)
 
 
 
-NNAAMMEE
+NAME
      symlink - make symbolic link to a file
 
-SSYYNNOOPPSSIISS
-     ssyymmlliinnkk((nnaammee11,, nnaammee22))
-     cchhaarr **nnaammee11,, **nnaammee22;;
+SYNOPSIS
+     symlink(name1, name2)
+     char *name1, *name2;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      A symbolic link _n_a_m_e_2 is created to _n_a_m_e_1 (_n_a_m_e_2 is the name
      of the file created, _n_a_m_e_1 is the string used in creating
      the symbolic link).  Either name may be an arbitrary path
      name; the files need not be on the same file system.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a zero value is returned.  If an
      error occurs, the error code is stored in _e_r_r_n_o and a -1
      value is returned.
 
-EERRRROORRSS
+ERRORS
      The symbolic link is made unless on or more of the following
      are true:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -103,7 +103,7 @@ SYMLINK(2)	    UNIX Programmer's Manual	       SYMLINK(2)
      [EFAULT]	    _N_a_m_e_1 or _n_a_m_e_2 points outside the process's
 		    allocated address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      link(2), ln(1), unlink(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 

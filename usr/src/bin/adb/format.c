@@ -1,51 +1,43 @@
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
+#include <ctype.h>
 
-
-MSG		BADMOD;
-MSG		NOFORK;
-MSG		ADWRAP;
-
-SYMTAB		symbol;
-
-INT		mkfault;
-CHAR		*lp;
-INT		maxoff;
-INT		sigint;
-INT		sigqit;
-STRING		errflg;
-CHAR		lastc;
-L_INT		dot;
-INT		dotinc;
-L_INT		var[];
-
+	MSG	BADMOD;
+	MSG	NOFORK;
+	MSG	ADWRAP;
+extern	struct	SYMbol	*symbol;
+	int	mkfault;
+	char	*lp;
+	char	*printptr, printbuf[];
+	int	maxoff;
+	int	sigint;
+	int	sigqit;
+	char	*errflg;
+	char	lastc;
+	long	dot;
+	int	dotinc;
+	long	var[];
 
 scanform(icount,ifp,itype,ptype)
-L_INT		icount;
-STRING		ifp;
+	long	icount;
+	char	*ifp;
 {
-	STRING		fp;
-	CHAR		modifier;
-	INT		fcount, init=1;
-	L_INT		savdot;
+	char	*fp;
+	char	modifier;
+	int	fcount, init=1;
+	long	savdot;
 
 	WHILE icount
 	DO  fp=ifp;
 	    IF init==0 ANDF findsym(shorten(dot),ptype)==0 ANDF maxoff
-	    THEN printf("\n%.8s:%16t",symbol.symc);
+	    THEN printf("\n%s:%16t", cache_sym(symbol));
 	    FI
 	    savdot=dot; init=0;
 
 	    /*now loop over format*/
 	    WHILE *fp ANDF errflg==0
-	    DO  IF digit(modifier = *fp)
+	    DO  IF isdigit(modifier = *fp)
 		THEN fcount=0;
-		     WHILE digit(modifier = *fp++)
+		     WHILE isdigit(modifier = *fp++)
 		     DO fcount *= 10;
 			fcount += modifier-'0';
 		     OD
@@ -68,27 +60,28 @@ STRING		ifp;
 	    IF --icount
 	    THEN dot=inkdot(dotinc);
 	    FI
-	    IF mkfault THEN error(0); FI
+	    IF mkfault THEN error((char *)0); FI
 	OD
 }
 
-STRING	exform(fcount,ifp,itype,ptype)
-INT		fcount;
-STRING		ifp;
+char *
+exform(fcount,ifp,itype,ptype)
+	int	fcount;
+	char	*ifp;
+	int	itype, ptype;
 {
 	/* execute single format item `fcount' times
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	POS		w;
-	L_INT		savdot, wx;
-	STRING		fp;
-	CHAR		c, modifier, longpr;
-	struct{
-		L_INT	sa;
-		INT	sb,sc;
-	}
-			fw;
+	u_int	w;
+	long	savdot, wx;
+	char	*fp;
+	char	c, modifier, longpr;
+	struct	{
+		long	sa;
+		int	sb,sc;
+		} fw;
 
 	WHILE fcount>0
 	DO	fp = ifp; c = *fp;
@@ -106,12 +99,13 @@ STRING		ifp;
 		     fw.sc=get(inkdot(6),itype);
 		FI
 		IF errflg THEN return(fp); FI
-		IF mkfault THEN error(0); FI
+		IF mkfault THEN error((char *)0); FI
 		var[0]=wx;
 		modifier = *fp++;
 		dotinc=(longpr?4:2);;
 
-		IF charpos()==0 ANDF modifier!='a' THEN printf("%16m"); FI
+		if (!(printptr - printbuf) && modifier != 'a')
+			printf("%16m");
 
 		switch(modifier) {
 
@@ -182,7 +176,7 @@ STRING		ifp;
 			printf("%-16O", wx); break;
 
 		    case 'i':
-			printins(0,itype,w); printc(EOR); break;
+			printins(itype,w); printc(EOR); break;
 
 		    case 'd':
 			printf("%-8d", w); break;
@@ -191,14 +185,14 @@ STRING		ifp;
 			printf("%-16D", wx); break;
 
 		    case 'f':
-			*(L_REAL *)&fw = 0.0;
+			*(double *)&fw = 0.0;
 			fw.sa = wx;
-			printf("%-16.9f", *(L_REAL *)&fw);
+			printf("%-16.9f", *(double *)&fw);
 			dotinc=4; break;
 
 		    case 'F':
 			fw.sa = wx;
-			printf("%-32.18F", *(L_REAL *)&fw);
+			printf("%-32.18F", *(double *)&fw);
 			dotinc=8; break;
 
 		    case 'n': case 'N':
@@ -233,8 +227,8 @@ STRING		ifp;
 
 unox()
 {
-	INT		rc, status, unixpid;
-	STRING		argp = lp;
+	int	rc, status, unixpid;
+	char	*argp = lp;
 
 	WHILE lastc!=EOR DO rdc(); OD
 	IF (unixpid=fork())==0
@@ -246,7 +240,7 @@ unox()
 	ELSE	signal(SIGINT,SIG_IGN);
 		WHILE (rc = wait(&status)) != unixpid ANDF rc != -1 DONE
 		signal(SIGINT,sigint);
-		prints("!"); lp--;
+		printc('!'); lp--;
 	FI
 }
 
@@ -260,11 +254,12 @@ printesc(c)
 	FI
 }
 
-L_INT	inkdot(incr)
+long
+inkdot(incr)
 {
-	L_INT		newdot;
+	long	newdot;
 
 	newdot=dot+incr;
-	IF (dot NEQ newdot) >> 24 THEN error(ADWRAP); FI
+	IF (dot ^ newdot) >> 24 THEN error(ADWRAP); FI
 	return(newdot);
 }

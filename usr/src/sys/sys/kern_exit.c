@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_exit.c	2.0 (2.11BSD GTE) 3/10/93
  */
 
 #include "param.h"
@@ -24,8 +24,7 @@
 #endif
 
 /*
- * exit system call:
- * pass back caller's arg
+ * exit system call: pass back caller's arg
  */
 rexit()
 {
@@ -33,45 +32,37 @@ rexit()
 		int	rval;
 	} *uap = (struct a *)u.u_ap;
 
-	exit((uap->rval & 0377) << 8);
+	exit(W_EXITCODE(uap->rval, 0));
+	/* NOTREACHED */
 }
 
 /*
- * Release resources.
- * Save u. area for parent to look at.
- * Enter zombie state.
- * Wake up parent and init processes,
- * and dispose of children.
+ * Exit: deallocate address space and other resources,
+ * change proc state to zombie, and unlink proc from allproc
+ * list.  Save exit status and rusage for wait().
+ * Check for child processes and orphan them.
  */
 exit(rv)
 {
 	register int i;
 	register struct proc *p;
+	struct	proc **pp;
 
 	p = u.u_procp;
 	p->p_flag &= ~(STRC|SULOCK);
 	p->p_sigignore = ~0;
-	for (i = 0; i < NSIG; i++)
-		u.u_signal[i] = SIG_IGN;
+	p->p_sig = 0;
 	/*
-	 * 2.10 doesn't need to do this and it gets overwritten anyway.
+	 * 2.11 doesn't need to do this and it gets overwritten anyway.
 	 * p->p_realtimer.it_value = 0;
 	 */
-#ifdef CGL_RTP
-	/*
-	 * if this a "real time" process that is dying
-	 * remove the rtpp flag.
-	 */
-	if (rtpp != NULL && rtpp == p)
-		rtpp = NULL;
-#endif
 	for (i = 0; i <= u.u_lastfile; i++) {
 		register struct file *f;
 
 		f = u.u_ofile[i];
 		u.u_ofile[i] = NULL;
 		u.u_pofile[i] = 0;
-		closef(f,1);
+		closef(f);
 	}
 	ilock(u.u_cdir);
 	iput(u.u_cdir);
@@ -80,7 +71,7 @@ exit(rv)
 		iput(u.u_rdir);
 	}
 	u.u_rlimit[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
-	acct();
+	(void) acct();
 #ifdef QUOTA
 	QUOTAMAP();
 	qclean();
@@ -99,47 +90,23 @@ exit(rv)
 		mfree(coremap, p->p_ssize, p->p_saddr);
 	}
 	mfree(coremap, USIZE, p->p_addr);
+
+	if (p->p_pid == 1)
+		panic("init died");
 	if (*p->p_prev = p->p_nxt)		/* off allproc queue */
 		p->p_nxt->p_prev = p->p_prev;
 	if (p->p_nxt = zombproc)		/* onto zombproc */
 		p->p_nxt->p_prev = &p->p_nxt;
 	p->p_prev = &zombproc;
 	zombproc = p;
-#ifdef UCB_METER
-	multprog--;
-#endif
 	p->p_stat = SZOMB;
 	noproc = 1;
-	{
-		register int x;
-
-		i = PIDHASH(p->p_pid);
-		x = p - proc;
-		if (pidhash[i] == x)
-			pidhash[i] = p->p_idhash;
-		else {
-			for (i = pidhash[i]; i != 0; i = proc[i].p_idhash)
-				if (proc[i].p_idhash == x) {
-					proc[i].p_idhash = p->p_idhash;
-					goto done;
-				}
-			panic("exit");
+	for (pp = &pidhash[PIDHASH(p->p_pid)]; *pp; pp = &(*pp)->p_hash)
+		if (*pp == p) {
+			*pp = p->p_hash;
+			goto done;
 		}
-	}
-	if (p->p_pid == 1) {
-		/*
-		 * If /etc/init is not found by the icode,
-		 * the data size will still be zero when it exits.
-		 * Don't panic: we're unlikely to find init after a reboot,
-		 * either.
-		 */
-		if (u.u_dsize == 0) {
-			printf("Can't exec /etc/init\n");
-			for (;;)
-				;
-		} else
-			panic("init died");
-	}
+	panic("exit");
 done:
 	/*
 	 * Overwrite p_alive substructure of proc - better not be anything
@@ -169,7 +136,7 @@ again:
 				/*
 				 * Protect this process from future
 				 * tty signals, clear TSTP/TTIN/TTOU if pending.
-				 * 2.10 also sets SDETACH bit.
+				 * 2.11 also sets SDETACH bit.
 				 */
 				spgrp(q);
 			}
@@ -182,42 +149,71 @@ again:
 	psignal(p->p_pptr, SIGCHLD);
 	wakeup((caddr_t)p->p_pptr);
 	swtch();
+	/* NOTREACHED */
 }
 
-wait()
+	struct	args
+		{
+		int pid;
+		int *status;
+		int options;
+		struct rusage *rusage;
+		int compat;
+		};
+
+owait()
 {
-	struct rusage ru, *rup;
+	int retval[2];
+	register struct	args *uap = (struct args *)u.u_ap;
 
 	if ((u.u_ar0[RPS] & PSL_ALLCC) != PSL_ALLCC) {
-		u.u_error = wait1(0, (struct rusage *)0);
-		return;
+		uap->options = 0;
+		uap->rusage = 0;
+	} else {
+		uap->options = u.u_ar0[R0];
+		uap->rusage = (struct rusage *)u.u_ar0[R1];
 	}
-	rup = (struct rusage *)u.u_ar0[R1];
-	u.u_error = wait1(u.u_ar0[R0], &ru);
-	if (u.u_error)
-		return;
-	if (rup != (struct rusage *)0)
-		u.u_error = copyout((caddr_t)&ru, (caddr_t)rup,
-		    sizeof (struct rusage));
+	uap->pid = WAIT_ANY;
+	uap->status = 0;
+	uap->compat = 1;
+	u.u_error = wait1(u.u_procp, uap, retval);
+	if (!u.u_error) {
+		u.u_r.r_val1 = retval[0];
+		u.u_r.r_val2 = retval[1];
+	}
+}
+
+wait4()
+{
+	int retval[2];
+	register struct	args *uap = (struct args *)u.u_ap;
+
+	uap->compat = 0;
+	u.u_error = wait1(u.u_procp, uap, retval);
+	if (!u.u_error)
+		u.u_r.r_val1 = retval[0];
 }
 
 /*
- * Wait system call.
- * Search for a terminated (zombie) child,
- * finally lay it to rest, and collect its status.
- * Look also for stopped (traced) children,
- * and pass back status from them.
+ * Wait: check child processes to see if any have exited,
+ * stopped under trace or (optionally) stopped by a signal.
+ * Pass back status and make available for reuse the exited
+ * child's proc structure.
  */
-wait1(options, ru)
-	register int options;
-	struct rusage *ru;
+wait1(q, uap, retval)
+	struct proc *q;
+	register struct args *uap;
+	int retval[];
 {
-	register f;
-	register struct proc *p, *q;
+	int nfound, status;
+	struct rusage ru;			/* used for local conversion */
+	register struct proc *p;
+	register int error;
 
-	f = 0;
+	if (uap->pid == WAIT_MYPGRP)		/* == 0 */
+		uap->pid = -q->p_pgrp;
 loop:
-	q = u.u_procp;
+	nfound = 0;
 	/*
 	 * 4.X has child links in the proc structure, so they consolidate
 	 * these two tests into one loop.  We only have the zombie chain
@@ -226,47 +222,68 @@ loop:
 	 * because they are more common, and, as the list is typically small,
 	 * a faster check.
 	 */
-	for (p = zombproc; p;p = p->p_nxt)
-		if (p->p_pptr == q) {
-			u.u_r.r_val1 = p->p_pid;
-			u.u_r.r_val2 = p->p_xstat;
-			p->p_xstat = 0;
-			if (ru)
-				rucvt(ru, &p->p_ru);
-			ruadd(&u.u_cru, &p->p_ru);
-			p->p_stat = NULL;
-			p->p_pid = 0;
-			p->p_ppid = 0;
-			if (*p->p_prev = p->p_nxt)	/* off zombproc */
-				p->p_nxt->p_prev = p->p_prev;
-			p->p_nxt = freeproc;		/* onto freeproc */
-			freeproc = p;
-			p->p_pptr = 0;
-			p->p_sig = 0;
-			p->p_sigcatch = 0;
-			p->p_sigignore = 0;
-			p->p_sigmask = 0;
-			p->p_pgrp = 0;
-			p->p_flag = 0;
-			p->p_wchan = 0;
-			p->p_cursig = 0;
-			return (0);
+	for (p = zombproc; p;p = p->p_nxt) {
+		if (p->p_pptr != q)	/* are we the parent of this process? */
+			continue;
+		if (uap->pid != WAIT_ANY &&
+		    p->p_pid != uap->pid && p->p_pgrp != -uap->pid)
+			continue;
+		retval[0] = p->p_pid;
+		retval[1] = p->p_xstat;
+		if (uap->status && (error = copyout(&p->p_xstat, uap->status,
+						sizeof (uap->status))))
+			return(error);
+		if (uap->rusage) {
+			rucvt(&ru, &p->p_ru);
+			if (error = copyout(&ru, uap->rusage, sizeof (ru)))
+				return(error);
 		}
-	for (p = allproc; p;p = p->p_nxt)
-		if (p->p_pptr == q) {
-			++f;
-			if (p->p_stat == SSTOP && (p->p_flag&SWTED)==0 &&
-			    (p->p_flag&STRC || options&WUNTRACED)) {
-				p->p_flag |= SWTED;
-				u.u_r.r_val1 = p->p_pid;
-				u.u_r.r_val2 = (p->p_cursig<<8) | WSTOPPED;
-				return (0);
+		ruadd(&u.u_cru, &p->p_ru);
+		p->p_xstat = 0;
+		p->p_stat = NULL;
+		p->p_pid = 0;
+		p->p_ppid = 0;
+		if (*p->p_prev = p->p_nxt)	/* off zombproc */
+			p->p_nxt->p_prev = p->p_prev;
+		p->p_nxt = freeproc;		/* onto freeproc */
+		freeproc = p;
+		p->p_pptr = 0;
+		p->p_sig = 0;
+		p->p_sigcatch = 0;
+		p->p_sigignore = 0;
+		p->p_sigmask = 0;
+		p->p_pgrp = 0;
+		p->p_flag = 0;
+		p->p_wchan = 0;
+		p->p_cursig = 0;
+		return (0);
+	}
+	for (p = allproc; p;p = p->p_nxt) {
+		if (p->p_pptr != q)
+			continue;
+		if (uap->pid != WAIT_ANY &&
+		    p->p_pid != uap->pid && p->p_pgrp != -uap->pid)
+			continue;
+		++nfound;
+		if (p->p_stat == SSTOP && (p->p_flag&SWTED)==0 &&
+		    (p->p_flag&STRC || uap->options&WUNTRACED)) {
+			p->p_flag |= SWTED;
+			retval[0] = p->p_pid;
+			error = 0;
+			if (uap->compat)
+				retval[1] = W_STOPCODE(p->p_cursig);
+			else if (uap->status) {
+				status = W_STOPCODE(p->p_cursig);
+				error = copyout(&status, uap->status,
+						sizeof (status));
 			}
+			return (error);
 		}
-	if (f == 0)
+	}
+	if (nfound == 0)
 		return (ECHILD);
-	if (options&WNOHANG) {
-		u.u_r.r_val1 = 0;
+	if (uap->options&WNOHANG) {
+		retval[0] = 0;
 		return (0);
 	}
 	if (setjmp(&u.u_qsave)) {

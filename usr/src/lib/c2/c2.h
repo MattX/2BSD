@@ -1,8 +1,14 @@
 /*
  * Header for object code improver
+ *
+ *	Several character buffers (used to store contents of registers,
+ *	constants, etc) needed to be increased in size to handle the
+ *	larger symbols passed thru from the compiler.
  */
 
 #include <stdio.h>
+
+#define	MAXCPS	32
 
 #ifndef	CHECK
 #define	CHECK(x)
@@ -53,7 +59,8 @@
 #define	CFCC	45
 #define	SOB	46
 #define	JSR	47
-#define	END	48
+#define	SWAB	48
+#define	END	49
 
 #define	JEQ	0
 #define	JNE	1
@@ -117,10 +124,10 @@ char	*alasta;
 char	*alastr;
 char	*firstr;
 char	revbr[];
-char	regs[12][20];
-char	conloc[20];
-char	conval[20];
-char	ccloc[20];
+char	regs[12][MAXCPS + 1];
+char	conloc[MAXCPS + 1];
+char	conval[MAXCPS + 1];
+char	ccloc[MAXCPS + 1];
 
 #define	RT1	10
 #define	RT2	11

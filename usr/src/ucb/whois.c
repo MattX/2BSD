@@ -22,7 +22,7 @@ static char sccsid[] = "@(#)whois.c	5.2 (Berkeley) 11/1/85";
 #include <stdio.h>
 #include <netdb.h>
 
-#define	NICHOST	"sri-nic.arpa"
+#define	NICHOST	"whois.internic.net"
 
 main(argc, argv)
 	int argc;

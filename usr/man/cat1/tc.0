@@ -5,13 +5,13 @@ TC(1)		    UNIX Programmer's Manual		    TC(1)
 
 
 
-NNAAMMEE
+NAME
      tc - photoypesetter simulator
 
-SSYYNNOOPPSSIISS
-     ttcc [ --tt ] [ --ssN ] [ --ppL ] [ file ]
+SYNOPSIS
+     tc [ -t ] [ -sN ] [ -pL ] [ file ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_c interprets its input (standard input default) as device
      codes for a Graphic Systems phototypesetter (cat).  The
      standard output of _t_c is intended for a Tektronix 4015 (a
@@ -25,29 +25,29 @@ DDEESSCCRRIIPPTTIIOONN
 
      At the end of each page _t_c waits for a newline (empty line)
      from the keyboard before continuing on to the next page.  In
-     this wait state, the command ee will suppress the screen
-     erase before the next page; ssN will cause the next N pages
-     to be skipped; and !!line will send line to the shell.
+     this wait state, the command e will suppress the screen
+     erase before the next page; sN will cause the next N pages
+     to be skipped; and !line will send line to the shell.
 
      The command line options are:
 
-     --tt   Don't wait between pages; for directing output into a
+     -t   Don't wait between pages; for directing output into a
 	  file.
 
-     --ssN  Skip the first N pages.
+     -sN  Skip the first N pages.
 
-     --ppL  Set page length to L.  L may include the scale factors
-	  pp (points), ii (inches), cc (centimeters), and PP (picas);
+     -pL  Set page length to L.  L may include the scale factors
+	  p (points), i (inches), c (centimeters), and P (picas);
 	  default is picas.
 
-     ''--_l _w''
+     '-_l _w'
 	  Multiply the default aspect ratio, 1.5, of a displayed
 	  page by _l/_w.
 
-SSEEEE AALLSSOO
+SEE ALSO
      troff(1), plot(1G)
 
-BBUUGGSS
+BUGS
      Font distinctions are lost.
      _t_c's character set is limited to ASCII in just one size.
      The aspect ratio option is unbelievable.
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

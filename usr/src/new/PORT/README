@@ -7,46 +7,38 @@ community.  The following software is included:
 Directory	Description				Contributor(s)
 ---------	-----------				-----------
 B		B progamming language & environment	CWI
+X		X Window system				M.I.T.
 ansi		ANSI and VMS standard tape handler	Tom Quarles, Berkeley
 apl		APL system				Purdue
 bib		bibliography system			Arizona
-cpm		CP/M floppy access package		Helge Skrivervik
-help		Help system				John Kunze, Berkeley
-jove		Emacs editor				Jon Payne
-kermit		File transfer protocol			Columbia University
-mh		MH mail system				Rand Corporation, UCI
-mkmf		Makefile generator			Peter Nicklin, Berkeley
-news		USENET bulletin board system		Matt Glickman, Berkeley; Rick Adams, CSS
-notes		notes files bulletin board system	Illinois
-patch		apply diffs to originals		Larry Wall, SDC
-rcs		revision control system			Walter Tichy, Purdue
-rn		news reader				Larry Wall
-spms		software project management system	Peter Nicklin, Berkeley
-sumacc		MacIntosh cross development system	William Croft, Stanford
-tac		reverse a file by segments		Jay Lepreau, Utah
-tools		miscellaneous tools			John Kunze, Berkeley
-umodem		File transfer protocol			Lauren Weinstein
-
-The following which are supplied in the 4.3 distribution are not included
-in the 2.10 distribution because of space considerations together with the
-probability that they wouldn't be portable to 2.10.  If any are ported,
-the 2.10BSD project would like a copy ...
-
-Directory	Description				Contributor(s)
----------	-----------				-----------
-X		X Window system				M.I.T.
 courier		remote procedure call package		Eric Cooper, Berkeley
+cpm		CP/M floppy access package		Helge Skrivervik
 dipress		Xerox Interpress Tools			Xerox
 dsh		distributed shell			Dave Presotto, Berkeley
 emacs		Gnumacs					Richard Stallman
 enet		Packet filter				Jeff Mogul, Stanford
+help		Help system				John Kunze, Berkeley
 hyper		Hyperchannel support tools		Steve Glaser, Tektronix
 icon		ICON system				Arizona
+jove		Emacs editor				Jon Payne
+kermit		File transfer protocol			Columbia University
+mh		MH mail system				Rand Corporation, UCI
+mkmf		Makefile generator			Peter Nicklin, Berkeley
 mmdf		MMDF mail system			Dr. Dave Farber, Delaware
+news		USENET bulletin board system		Matt Glickman, Berkeley; Rick Adams, CSS
 nntp		remote news access			Phil Lapsley, Berkeley
+notes		notes files bulletin board system	Illinois
 np100		Utilities for Interlan NP100		MICOM-Interlan
+patch		apply diffs to originals		Larry Wall, SDC
 pathalias	uucp router				Peter Honeyman, Princeton
+rcs		revision control system			Walter Tichy, Purdue
+rn		news reader				Larry Wall
+spms		software project management system	Peter Nicklin, Berkeley
+sumacc		MacIntosh cross development system	William Croft, Stanford
 sunrpc		Remote procedure call package		Sun Microsystems
+tac		reverse a file by segments		Jay Lepreau, Utah
+tools		miscellaneous tools			John Kunze, Berkeley
+umodem		File transfer protocol			Lauren Weinstein
 xns		XNS/Courier user code			J.Q. Johnson, Cornell
 
 The individuals responsible for the software should be identified in

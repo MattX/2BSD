@@ -17,25 +17,42 @@ CFLAGS=	-O -I.
 SEPFLAG=-i
 
 HDRS=	dump.h
-SRCS=	dumpitime.c dumpmain.c dumpoptr.c dumptape.c dumptraverse.c unctime.c
+SRCS=	dumpitime.c dumpmain.c dumpoptr.c dumptape.c dumptraverse.c unctime.c \
+	dumprmt.c
 OBJS=	dumpitime.o dumpmain.o dumpoptr.o dumptape.o dumptraverse.o unctime.o
+ROBJS=	dumpitime.o dumprmain.o dumpoptr.o dumprtape.o dumptraverse.o \
+	unctime.o dumprmt.o
 
-all: dump dumpdir
+all: dump rdump dumpdir
 
 dump: ${OBJS}
 	cc ${CFLAGS} ${SEPFLAG} ${OBJS} -o dump
 
+rdump: ${ROBJS}
+	cc ${CFLAGS} ${SEPFLAG} ${ROBJS} -o rdump
+
 dumpdir: dumpdir.c
 	cc ${CFLAGS} ${SEPFLAG} dumpdir.c -o dumpdir
 
-install:
+install: all
 	install -s dump ${DESTDIR}/etc/dump
+	install -s rdump ${DESTDIR}/etc/rdump
 	install -s dumpdir ${DESTDIR}/etc/dumpdir
 
 clean:
-	rm -f *.o dump dumpdir
+	rm -f *.o dump rdump dumpdir
 
 lint:
-	lint -chapbx ${CFLAGS} ${SRCS}
+	lint -chapbx ${CFLAGS} -DRDUMP ${SRCS}
 
 ${OBJS}: dump.h
+
+${ROBJS}: dump.h
+
+dumprmain.o: dumpmain.c
+	cc -c -DRDUMP ${CFLAGS} dumpmain.c
+	mv dumpmain.o dumprmain.o
+
+dumprtape.o: dumptape.c
+	cc -c -DRDUMP ${CFLAGS} dumptape.c
+	mv dumptape.o dumprtape.o

@@ -9,7 +9,7 @@ wplay()
 	ab = 0;
 	v1 = 3000;
 	ply = 0;
-	p1 = statl();
+	p1 = (int *) statl();
 	if(lmp == p1+2) {
 		abmove = p1[1];
 		lmp = p1;

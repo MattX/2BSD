@@ -17,6 +17,8 @@
  * reformatting.  To add a new bad sector the formatter must be used in
  * general since UNIX doesn't have on-line formatters to write the BSE
  * error in the header.
+ *
+ * RP07 entry added August 10, 1993 (thanks to Johnny Billquist) - SMS
  */
 #include <sys/param.h>
 #ifndef BADSECT
@@ -41,6 +43,7 @@ struct diskinfo {
 	"rp04",		22*19*411L,	22,	19,
 	"rp05",		22*19*411L,	22,	19,
 	"rp06",		22*19*815L,	22,	19,
+	"rp07",		50*32*630L,	50,	32,
 	"fuji160",	32*10*823L,	32,	10,
 	"diva",		33*19*815L,	33,	19,
 	"ampex9300",	33*19*815L,	33,	19,

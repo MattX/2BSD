@@ -5,14 +5,14 @@ USLEEP(3)	    UNIX Programmer's Manual		USLEEP(3)
 
 
 
-NNAAMMEE
+NAME
      usleep - suspend execution for interval
 
-SSYYNNOOPPSSIISS
-     uusslleeeepp((uusseeccoonnddss))
-     uunnssiiggnneedd uusseeccoonnddss;;
+SYNOPSIS
+     usleep(useconds)
+     unsigned useconds;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The current process is suspended from execution for the
      number of microseconds specified by the argument.	The
      actual suspension time may be an arbitrary amount longer
@@ -32,11 +32,11 @@ DDEESSCCRRIIPPTTIIOONN
      _s_e_l_e_c_t(2); it would not restart after signals, but would not
      interfere with other uses of _s_e_t_i_t_i_m_e_r.
 
-SSEEEE AALLSSOO
+SEE ALSO
      setitimer(2), getitimer(2), sigpause(2), ualarm(3),
      sleep(3), alarm(3)
 
-NNOOTTEESS  ((PPDDPP--1111))
+NOTES  (PDP-11)
      On the PDP-11, _s_e_t_i_t_i_m_e_r(2) rounds the number of
      microseconds up to seconds resolution, therefore _u_s_l_e_e_p
      doesn't give you any more resolution than _s_l_e_e_p(3).
@@ -60,7 +60,7 @@ NNOOTTEESS  ((PPDDPP--1111))
 
 
 
-Printed 12/28/88	 August 26, 1988			1
+Printed 1/9/94		 August 26, 1988			1
 
 
 

@@ -31,6 +31,7 @@
 #include "intrp.h"
 #include "only.h"
 #include "rcln.h"
+#include "server.h"
 #include "INTERN.h"
 #include "rcstuff.h"
 
@@ -53,6 +54,9 @@ rcstuff_init()
     register bool foundany = FALSE;
     char *some_buf;
     long length;
+#ifdef SERVER
+    char *cp;
+#endif SERVER
 
 #ifdef HASHNG
     for (i=0; i<HASHSIZ; i++)
@@ -61,7 +65,19 @@ rcstuff_init()
 
     /* make filenames */
 
+#ifdef SERVER
+
+    if (cp = getenv("NEWSRC"))
+	rcname = savestr(filexp(cp));
+    else
+	rcname = savestr(filexp(RCNAME));
+
+#else not SERVER
+
     rcname = savestr(filexp(RCNAME));
+
+#endif SERVER
+
     rctname = savestr(filexp(RCTNAME));
     rcbname = savestr(filexp(RCBNAME));
     softname = savestr(filexp(SOFTNAME));
@@ -95,7 +111,7 @@ rcstuff_init()
 	    finalize(1);
 	}
 	if (tmpfp != Nullfp && fgets(tmpbuf,10,tmpfp) != Nullch)
-	    softptr[newng] = atoi(tmpbuf);
+	    softptr[newng] = atol(tmpbuf);
 	else
 	    softptr[newng] = 0;
 	some_buf[--length] = '\0';	/* wipe out newline */
@@ -224,6 +240,10 @@ rcstuff_init()
 /* returns TRUE if found or added, FALSE if not. */
 /* assumes that we are chdir'ed to SPOOL */
 
+#ifdef SERVER
+static int addnewbydefault = 0;
+#endif SERVER
+
 bool
 get_ng(what,do_reloc)
 char *what;
@@ -231,6 +251,9 @@ bool do_reloc;
 {
     char *ntoforget;
     char promptbuf[128];
+#ifdef SERVER
+    char ser_line[256];
+#endif SERVER
 
 #ifdef VERBOSE
     IF(verbose)
@@ -248,7 +271,25 @@ bool do_reloc;
     set_ngname(what);
     ng = find_ng(ngname);
     if (ng == nextrcline) {		/* not in .newsrc? */
+
+#ifdef SERVER
+	sprintf(ser_line, "GROUP %s", ngname);
+	put_server(ser_line);
+	if (get_server(ser_line, sizeof(ser_line)) < 0) {
+	    fprintf(stderr, "rrn: Unexpected close of server socket.\n");
+	    finalize(1);
+	}
+	if (*ser_line != CHAR_OK) {
+	    if (atoi(ser_line) != ERR_NOGROUP) {
+		fprintf(stderr, "Server response to GROUP %s:\n%s\n",
+		    ngname, ser_line);
+	    }
+#else not SERVER
+
 	if ((softptr[ng] = findact(buf,ngname,strlen(ngname),0L)) < 0 ) {
+
+#endif SERVER
+
 	    dingaling();
 #ifdef VERBOSE
 	    IF(verbose)
@@ -261,6 +302,13 @@ bool do_reloc;
 	    sleep(2);
 	    return FALSE;
 	}
+#ifdef SERVER
+	if (addnewbydefault) {
+		printf("(Adding %s to end of your .newsrc)\n", ngname);
+	        ng = add_newsgroup(ngname);
+	        do_reloc = FALSE;
+	} else {
+#endif SERVER
 #ifdef VERBOSE
 	IF(verbose)
 	    sprintf(promptbuf,"\nNewsgroup %s not in .newsrc--add? [yn] ",ngname);
@@ -296,11 +344,24 @@ reask_add:
 	    ng = add_newsgroup(ngname);
 	    do_reloc = FALSE;
 	}
+#ifdef SERVER
+	else if (*buf == 'Y') {
+	    fputs(
+	"(I'll add all new newsgroups to the end of your .newsrc.)\n", stdout);
+	    addnewbydefault = 1;
+	    printf("(Adding %s to end of your .newsrc)\n", ngname);
+	    ng = add_newsgroup(ngname);
+	    do_reloc = FALSE;
+	}
+#endif SERVER
 	else {
 	    fputs(hforhelp,stdout) FLUSH;
 	    settle_down();
 	    goto reask_add;
 	}
+#ifdef SERVER
+      }
+#endif SERVER
     }
     else if (rcchar[ng] == NEGCHAR) {	/* unsubscribed? */
 #ifdef VERBOSE
@@ -453,6 +514,12 @@ NG_NUM newng;
     if (newng < 0) {
       reask_reloc:
 	unflush_output();		/* disable any ^O in effect */
+#ifdef SERVER
+	if (addnewbydefault) {
+	    buf[0] = '$';
+	    buf[1] = '\0';
+	} else {
+#endif SERVER
 #ifdef VERBOSE
 	IF(verbose)
 	    printf("\nPut newsgroup where? [%s] ", dflt);
@@ -465,6 +532,9 @@ NG_NUM newng;
       reinp_reloc:
 	eat_typeahead();
 	getcmd(buf);
+#ifdef SERVER
+	}
+#endif SERVER
 	if (errno || *buf == '\f') {
 			    /* if return from stop signal */
 	    goto reask_reloc;	/* give them a prompt again */

@@ -2,9 +2,9 @@
 PATH=/usr/local:/usr/ucb:/bin:/usr/bin:/etc
 echo "Subject: monthly run output"
 
-# echo ""
-# echo "Doing login accounting:"
-# /etc/ac -p | sort -nr +1
+echo ""
+echo "Doing login accounting:"
+/etc/ac -p | sort -nr +1
 
 echo ""
 echo "Rotating wtmp file:"
@@ -17,3 +17,4 @@ mv wtmp.1 wtmp.2
 mv wtmp.0 wtmp.1
 mv wtmp   wtmp.0
 cp /dev/null wtmp
+chmod 0644 wtmp

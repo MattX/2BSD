@@ -5,15 +5,15 @@ CREAT(2)	    UNIX Programmer's Manual		 CREAT(2)
 
 
 
-NNAAMMEE
+NAME
      creat - create a new file
 
-SSYYNNOOPPSSIISS
-     ccrreeaatt((nnaammee,, mmooddee))
-     cchhaarr **nnaammee;;
+SYNOPSIS
+     creat(name, mode)
+     char *name;
 
-DDEESSCCRRIIPPTTIIOONN
-     TThhiiss iinntteerrffaaccee iiss mmaaddee oobbssoolleettee bbyy ooppeenn((22))..
+DESCRIPTION
+     This interface is made obsolete by open(2).
 
      _C_r_e_a_t creates a new file or prepares to rewrite an existing
      file called _n_a_m_e, given as the address of a null-terminated
@@ -27,18 +27,18 @@ DDEESSCCRRIIPPTTIIOONN
      The file is also opened for writing, and its file descriptor
      is returned.
 
-NNOOTTEESS
+NOTES
      The _m_o_d_e given is arbitrary; it need not allow writing.
      This feature has been used in the past by programs to con-
      struct a simple, exclusive locking mechanism.  It is
      replaced by the O_EXCL open mode, or _f_l_o_c_k(2) facility.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      The value -1 is returned if an error occurs.  Otherwise, the
      call returns a non-negative descriptor that only permits
      writing.
 
-EERRRROORRSS
+ERRORS
      _C_r_e_a_t will fail and the file will not be created or trun-
      cated if one of the following occur:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -126,7 +126,7 @@ CREAT(2)	    UNIX Programmer's Manual		 CREAT(2)
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 
@@ -137,7 +137,7 @@ CREAT(2)	    UNIX Programmer's Manual		 CREAT(2)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      open(2), write(2), close(2), chmod(2), umask(2)
 
 
@@ -192,7 +192,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				3
+Printed 1/9/94		  May 22, 1986				3
 
 
 

@@ -47,6 +47,7 @@ main()
 
 		printf("#define U_AR0 %o\n",&u->u_ar0);
 		printf("#define U_CUROV %o\n",&u->u_ovdata.uo_curov);
+		printf("#define U_FPERR %o\n",&u->u_fperr);
 		printf("#define U_FPREGS %o\n",&u->u_fps.u_fpregs[0]);
 		printf("#define U_FPSR %o\n",&u->u_fps.u_fpsr);
 		printf("#define U_OVBASE %o\n",&u->u_ovdata.uo_ovbase);

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.19 (Berkeley) 5/22/86
+#	@(#)Makefile	5.19.2 (2.11BSD GTE) 1/15/94
 #
 DESTDIR=
 CFLAGS=	-O
@@ -11,7 +11,7 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	adb as awk csh diff make sed sh tp
+SUBDIR=	adb ar as awk chpass csh diff ld login make nm passwd sed sh tp
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -20,9 +20,9 @@ SCRIPT=	false true
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	ar cat cc chgrp chmod cmp cp date dd du echo ed grep hostid \
-	hostname kill ld ln ls mkdir mt mv nice nm od pagesize pr \
-	pwd rm rmail rmdir size strip stty sync tar tee test time who
+STD=	cat cc chgrp chmod cmp cp date dd du echo ed grep hostid \
+	hostname kill ln ls mkdir mt mv nice od pagesize pr \
+	pwd rm rmail rmdir size stty sync tar tee test time who
 
 # C programs that live in the current directory and need explicit make lines.
 #
@@ -30,7 +30,7 @@ NSTD=	expr
 
 # Programs that must run setuid to root
 #
-SETUID=	login mail passwd rcp su
+SETUID=	mail rcp su
 
 # Programs that run set-group-id operator
 #
@@ -44,7 +44,10 @@ KMEM=	ps
 #
 TTY=	wall write
 
-BINS=	${STD} ${NSTD} ${SETUID} ${OPERATOR} ${KMEM} ${TTY}
+# 'strip' is handled specially because 'install -s' now uses 'strip' and
+# thus we can't do a 'install -s strip /bin/strip' without an error.
+#
+BINS=	${STD} ${NSTD} ${SETUID} ${OPERATOR} ${KMEM} ${TTY} strip
 
 all:	${SUBDIR} ${BINS}
 
@@ -54,26 +57,26 @@ ${SUBDIR}: FRC
 FRC:
 
 
-${STD} ${SETUID} ${OPERATOR} ${TTY}:
+${STD} ${SETUID} ${KMEM} ${OPERATOR} ${TTY} strip:
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install:
-	install -s ${STD} ${NSTD} ${DESTDIR}/bin
+install: ${BINS}
+	install -s -m 751 -g staff ${STD} ${NSTD} ${DESTDIR}/bin
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do (install -c $$i.sh ${DESTDIR}/bin/$$i); done
 	-for i in ${SETUID}; do \
-		(install -o root -m 4755 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -o root -m 4751 -s $$i ${DESTDIR}/bin/$$i); done
 	-for i in ${OPERATOR}; do \
-		(install -g operator -m 2755 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -g operator -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
 	-for i in ${KMEM}; do \
-		(install -g kmem -m 2755 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -g kmem -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
 	-for i in ${TTY}; do \
-		(install -g tty -m 2755 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -g tty -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
+	-install -s -m 751 -g staff strip ${DESTDIR}/bin/xstrip
+	-mv ${DESTDIR}/bin/xstrip ${DESTDIR}/bin/strip
 	rm -f ${DESTDIR}/bin/[; ln ${DESTDIR}/bin/test ${DESTDIR}/bin/[
 	rm -f ${DESTDIR}/bin/e; ln ${DESTDIR}/bin/ed ${DESTDIR}/bin/e
-	rm -f ${DESTDIR}/bin/chfn; ln ${DESTDIR}/bin/passwd ${DESTDIR}/bin/chfn
-	rm -f ${DESTDIR}/bin/chsh; ln ${DESTDIR}/bin/passwd ${DESTDIR}/bin/chsh
 
 clean:
 	rm -f ${BINS} expr.c a.out core *.s *.o errs
@@ -101,9 +104,6 @@ depend: expr.c
 
 expr: expr.o
 	${CC} ${CFLAGS} ${SEPFLAG} -o expr expr.o
-
-ps:
-	${CC} ${CFLAGS} ${SEPFLAG} -o ps ps.c -lm
 
 # DO NOT DELETE THIS LINE -- make depend uses it
 

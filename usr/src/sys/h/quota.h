@@ -143,7 +143,7 @@ struct	dqwarn {
 	u_char	dw_iwarn;
 };
 
-#if defined(KERNEL) && defined(QUOTA) && defined(BSD2_10) && !defined(SUPERVISOR)
+#if defined(KERNEL) && defined(QUOTA) && !defined(SUPERVISOR)
 #include "../machine/seg.h"
 
 struct	qhash {
@@ -161,7 +161,6 @@ struct	dqhead {
 
 memaddr	quotreg;
 u_short	quotdesc;
-struct	quota **px_quota;
 struct	dquot **ix_dquot;
 
 #define	NQHASH		16	/* small power of 2 */

@@ -5,13 +5,13 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-NNAAMMEE
+NAME
      a.out - assembler and link editor output
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<aa..oouutt..hh>>
+SYNOPSIS
+     #include <a.out.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A._o_u_t is the output file of the assembler _a_s(1) and the link
      editor _l_d(1).  Both programs make _a._o_u_t executable if there
      were no errors and no unresolved external references.  Lay-
@@ -38,6 +38,11 @@ DDEESSCCRRIIPPTTIIOONN
 	      unsigned int  ov_siz[NOVL]; /* size of i'th overlay */
      };
 
+     struct   xexec {
+	      struct exec e;
+	      struct ovlhdr o;
+     };
+
      #define  A_MAGIC1	    0407	  /* normal */
      #define  A_MAGIC2	    0410	  /* read-only text */
      #define  A_MAGIC3	    0411	  /* separated I&D */
@@ -52,15 +57,10 @@ DDEESSCCRRIIPPTTIIOONN
      #define  N_BADMAG(x) \
 	      (((x).a_magic)!=A_MAGIC1 && ((x).a_magic)!=A_MAGIC2 && \
 	      ((x).a_magic)!=A_MAGIC3 && ((x).a_magic)!=A_MAGIC4 && \
-	      ((x).a_magic)!=A_MAGIC5 && ((x).a_magic)!=A_MAGIC6)
-
-     #define  N_TXTOFF(x) \
-	      ((x).a_magic==A_MAGIC5 || (x).a_magic==A_MAGIC6 ? \
-	      sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
 
 
 
-Printed 12/28/88	January 26, 1987			1
+Printed 1/9/94		 January 9, 1994			1
 
 
 
@@ -71,11 +71,34 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-     The file has four sections: a header, the program text and
-     data, relocation information, and a symbol table (in that
-     order).  The last two may be omitted if the program was
-     loaded with the `-s' option of _l_d or if the symbols and
-     relocation have been removed by _s_t_r_i_p(1).
+	      ((x).a_magic)!=A_MAGIC5 && ((x).a_magic)!=A_MAGIC6)
+
+     #define  N_TXTOFF(x) \
+	      ((x).a_magic==A_MAGIC5 || (x).a_magic==A_MAGIC6 ? \
+	      sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
+
+     /*
+      * The following were added as part of the new object file format.  They
+      * call functions because calculating the sums of overlay sizes was too
+      * messy (and verbose) to do 'inline'.
+      *
+      * NOTE: if the magic number is that of an overlaid object the program
+      * must pass an extended header ('xexec') as the argument.
+     */
+
+     off_t    n_stroff(), n_symoff(), n_datoff(), n_dreloc(), n_treloc();
+
+     #define  N_STROFF(e) (n_stroff(&e))
+     #define  N_SYMOFF(e) (n_symoff(&e))
+     #define  N_DATOFF(e) (n_datoff(&e))
+     #define  N_DRELOC(e) (n_dreloc(&e))
+     #define  N_TRELOC(e) (n_treloc(&e))
+
+     The file has five sections: a header, the program text and
+     data, relocation information, a symbol table and a strings
+     table (in that order).  The last three may be omitted if the
+     program was loaded with the `-s' option of _l_d or if the sym-
+     bols and relocation have been removed by _s_t_r_i_p(1).
 
      In the header the sizes of each section are given in bytes,
      but are even.  The size of the header is not included in any
@@ -100,6 +123,20 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
      processes are executing the same file, they will share the
      text segment.  If the magic number is A_MAGIC3 (0411), the
      text segment is again pure, write-protected, and shared, and
+
+
+
+Printed 1/9/94		 January 9, 1994			2
+
+
+
+
+
+
+A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
+
+
+
      moreover instruction and data space are separated; the text
      and data segment both begin at location 0.  This format is
      only runnable on processors which support separate instruc-
@@ -122,11 +159,40 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
      lowed by a text overlay segment.  There are a maximum of
      NOVL overlays, all pure and shared.  The base segment runs
      from 0 to txtsiz.	The overlay region begins at the next 0
-     mod 8k byte boundary, which is as large as the largest
+     mod 8k byte boundary, which is as large as the largest over-
+     lay.  When running, any one of the overlays can be mapped
+     into this region.	The data segment begins at the following
+     0 mod 8k byte boundary.  If the magic number is A_MAGIC6
+     (0431), the situation is the same as for type A_MAGIC5
+     except that instruction and data spaces are separated and
+     both begin at location 0.	As with the A_MAGIC3 format, an
+     _a._o_u_t in A_MAGIC6 format can only be run on a processor
+     which supports separate I&D, but again can provide signifi-
+     cantly more data space than A_MAGIC5 format.  Both A_MAGIC5
+     and A_MAGIC6 executable files have a second header between
+     the normal a.out header and the start of the text image; it
+     contains the maximum overlay size and the sizes of each of
+     the overlays.  The text images of the overlays follow the
+     text in the object file.
+
+     The stack segment will occupy the highest possible locations
+     in the core image: growing downwards from 0177776(8).  The
+     stack segment is automatically extended as required.  The
+     data segment is only extended as requested by _b_r_k(2).
+
+     The include file a.out.h defines __A_O_U_T__I_N_C_L_U_D_E_, the include
+     file nlist.h does not.  This permits compile time initiali-
+     zation of the _n__n_a_m_e field for programs that are not looking
+     at the executable header.
+
+     The layout of a symbol table entry and the principal flag
+     values that distinguish symbol types are given in the
+     include file as follows:
 
 
 
-Printed 12/28/88	January 26, 1987			2
+
+Printed 1/9/94		 January 9, 1994			3
 
 
 
@@ -137,34 +203,18 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-     overlay.  When running, any one of the overlays can be
-     mapped into this region.  The data segment begins at the
-     following 0 mod 8k byte boundary.	If the magic number is
-     A_MAGIC6 (0431), the situation is the same as for type
-     A_MAGIC5 except that instruction and data spaces are
-     separated and both begin at location 0.  As with the
-     A_MAGIC3 format, an _a._o_u_t in A_MAGIC6 format can only be run
-     on a processor which supports separate I&D, but again can
-     provide significantly more data space than A_MAGIC5 format.
-     Both A_MAGIC5 and A_MAGIC6 executable files have a second
-     header between the normal a.out header and the start of the
-     text image; it contains the maximum overlay size and the
-     sizes of each of the overlays.  The text images of the over-
-     lays follow the text in the object file.
-
-     The stack segment will occupy the highest possible locations
-     in the core image: growing downwards from 0177776(8).  The
-     stack segment is automatically extended as required.  The
-     data segment is only extended as requested by _b_r_k(2).
-
-     The layout of a symbol table entry and the principal flag
-     values that distinguish symbol types are given in the
-     include file as follows:
-
      struct   nlist {
-	      char	    n_name[8]; /* symbol name */
-	      int	    n_type;    /* type flag */
-	      unsigned int  n_value;   /* value */
+     #ifdef   _AOUT_INCLUDE_
+	      union {
+			    char *n_name;/* In memory address of symbol name */
+			    off_t n_strx;/* String table offset (file) */
+	      } n_un;
+     #else
+	      char	    *n_name;   /* symbol name (in memory) */
+     #endif
+	      u_char	    n_type;    /* Type of symbol - see below */
+	      char	    n_ovly;    /* Overlay number */
+	      u_int	    n_value;   /* Symbol value */
      };
 
      /*
@@ -186,23 +236,6 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
       */
      #define  N_FORMAT	    "%06o"
 
-     Other flag values may occur if an assembly language program
-     defines machine instructions.
-
-
-
-
-Printed 12/28/88	January 26, 1987			3
-
-
-
-
-
-
-A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
-
-
-
      If a symbol's type is undefined external, and the value
      field is non-zero, the symbol is interpreted by the loader
      _l_d as the name of a common region whose size is indicated by
@@ -222,6 +255,20 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
      If relocation information is present, it amounts to one word
      per word of program text or initialized data.  There is no
      relocation information if the `relocation info stripped'
+
+
+
+Printed 1/9/94		 January 9, 1994			4
+
+
+
+
+
+
+A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
+
+
+
      flag in the header is on.	Automatic-overlay (A_MAGIC5 and
      A_MAGIC6) files do not contain relocation information.
 
@@ -241,55 +288,32 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
      The remainder of the relocation word (bits 15-4) contains a
      symbol number in the case of external references, and is
-     unused otherwise.	The first symbol is numbered 0, the
-     second 1, etc.
+     unused otherwise.
 
-SSEEEE AALLSSOO
+     The string table begins with a longword containing the
+     length of the string table (including the longword itself).
+     All strings are null terminated.
+
+     The first symbol is numbered 0, the second 1, etc.
+
+SEE ALSO
      as(1), ld(1), nm(1), strip(1), nlist(3)
 
-BBUUGGSS
-     The fixed maximum of eight characters for symbol names in
-     _a._o_u_t files leads to naming collisions between symbols which
-     aren't unique within the first eight characters.  The prob-
-     lem is compounded by the C compiler which prefaces all
-     external symbol names with a `_' causing external names not
-     unique within the first seven characters to collide.  The
-     compiler will note name collisions when they occur within a
+BUGS
+     The current implementation places a maximum length of 32
+     characters for symbol names in _a._o_u_t files.  This is (rela-
+     tively) easily raised with the caveat that the linker and
+     other programs which look at symbol tables will slow down
+     even more than they already have.
 
+     The _4_B_S_D _a._o_u_t format has been implemented. This involved
+     modifying the first phase of the C compiler (/_l_i_b/_c_0), the
+     assembler (/_b_i_n/_a_s), the debugger adb(_1), the linker ld(_1),
+     and then simply porting the 4.3BSD/Net-2 _a_r(1), _n_m(1), _r_a_n_-
+     _l_i_b(1), _s_t_r_i_p(1) and _n_l_i_s_t(3).
 
-
-Printed 12/28/88	January 26, 1987			4
-
-
-
-
-
-
-A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
-
-
-
-     single file.  The loader _l_d will not flag name collisions of
-     any kind between separate objects even when an error is
-     obvious.
-
-     There is really little that can be done about this.  Some
-     thought is being given to modifying the loader to flag
-     detectable collisions, but the real solution would be to
-     change over to the _4_B_S_D _a._o_u_t format.  This would involve
-     modifying the compiler (/_l_i_b/_c[_0_1_2]), assembler (/_b_i_n/_a_s and
-     /_l_i_b/_a_s_2) and _a_d_b(1) and then simply porting the 4.3BSD
-     _l_d(1), _n_m(1), _r_a_n_l_i_b(1), _s_t_r_i_p(1) and _n_l_i_s_t(3).  Or perhaps
-     simply porting the entire 4.3BSD suite might be best ...
-     Anyone interested in a project?
-
-     In the meantime, letting the compiler catch any collisions
-     it can and then scanning the loaded object file for symbol
-     names eight characters long and then using that list to res-
-     can the source seems to be the best method for finding col-
-     lisions.  Once a list of collisions is build, the C prepro-
-     cessor _c_p_p can be used to translate the offending names into
-     shorter unique names since _c_p_p uses _F_L_E_X_N_A_M_E_S.
+     As part of this effort the include file _s_h_o_r_t__n_a_m_e_s._h has
+     gone away.
 
 
 
@@ -300,31 +324,7 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 12/28/88	January 26, 1987			5
+Printed 1/9/94		 January 9, 1994			5
 
 
 

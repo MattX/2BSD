@@ -1,5 +1,5 @@
 /*
- * SCCSID: @(#)if_dereg.h	1.0	(BSD2.11)	7/10/88
+ * SCCSID: @(#)if_dereg.h	1.1	(2.11BSD GTE)	12/31/93
  *
  * DEC DEUNA interface
  */

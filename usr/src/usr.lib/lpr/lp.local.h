@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)lp.local.h	5.1 (Berkeley) 6/6/85
+ *	@(#)lp.local.h	5.1.1 (2.11BSD GTE) 6/11/94
  */
 
 /*
@@ -17,14 +17,16 @@
 
 #include <a.out.h>
 #include <ar.h>
+#include <paths.h>
 
 #ifndef A_MAGIC1	/* must be a VM/UNIX system */
 #	define A_MAGIC1	OMAGIC
 #	define A_MAGIC2	NMAGIC
 #	define A_MAGIC3	ZMAGIC
+#endif
+
 #	undef ARMAG
 #	define ARMAG	0177545
-#endif
 
 /*
  * Defaults for line printer capabilities data base
@@ -73,7 +75,6 @@
  * Some utilities used by printjob.
  */
 #define PR		"/bin/pr"
-#define MAIL		"/usr/lib/sendmail"
 
 /*
  * Define TERMCAP if the terminal capabilites are to be used for lpq.

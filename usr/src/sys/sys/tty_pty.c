@@ -94,8 +94,9 @@ ptsclose(dev)
 	ptcwakeup(tp, FREAD|FWRITE);
 }
 
-ptsread(dev)
+ptsread(dev, uio)
 	dev_t dev;
+	register struct uio *uio;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
 	register struct pt_ioctl *pti = &pt_ioctl[minor(dev)];
@@ -117,8 +118,8 @@ again:
 			sleep((caddr_t)&tp->t_canq, TTIPRI);
 			goto again;
 		}
-		while (tp->t_canq.c_cc > 1 && u.u_count > 0)
-			if (ureadc(getc(&tp->t_canq)) < 0) {
+		while (tp->t_canq.c_cc > 1 && uio->uio_resid)
+			if (ureadc(getc(&tp->t_canq), uio) < 0) {
 				error = EFAULT;
 				break;
 			}
@@ -128,7 +129,7 @@ again:
 			return (error);
 	} else
 		if (tp->t_oproc)
-			error = (*linesw[tp->t_line].l_read)(tp);
+			error = (*linesw[tp->t_line].l_read)(tp, uio);
 	ptcwakeup(tp, FWRITE);
 	return (error);
 }
@@ -138,15 +139,16 @@ again:
  * Wakeups of controlling tty will happen
  * indirectly, when tty driver calls ptsstart.
  */
-ptswrite(dev)
+ptswrite(dev, uio)
 	dev_t dev;
+	register struct uio *uio;
 {
 	register struct tty *tp;
 
 	tp = &pt_tty[minor(dev)];
 	if (tp->t_oproc == 0)
 		return (EIO);
-	return ((*linesw[tp->t_line].l_write)(tp));
+	return ((*linesw[tp->t_line].l_write)(tp, uio));
 }
 
 /*
@@ -205,7 +207,6 @@ ptcopen(dev, flag)
 		return (EIO);
 	tp->t_oproc = ptsstart;
 	(void)(*linesw[tp->t_line].l_modem)(tp, 1);
-	tp->t_state |= TS_CARR_ON;
 	pti = &pt_ioctl[minor(dev)];
 	pti->pt_flags = 0;
 	pti->pt_send = 0;
@@ -220,11 +221,13 @@ ptcclose(dev)
 
 	tp = &pt_tty[minor(dev)];
 	(void)(*linesw[tp->t_line].l_modem)(tp, 0);
+	tp->t_state &= ~TS_CARR_ON;
 	tp->t_oproc = 0;		/* mark closed */
 }
 
-ptcread(dev)
+ptcread(dev, uio)
 	dev_t dev;
+	register struct uio *uio;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
 	struct pt_ioctl *pti = &pt_ioctl[minor(dev)];
@@ -240,14 +243,14 @@ ptcread(dev)
 	for (;;) {
 		if (tp->t_state&TS_ISOPEN) {
 			if (pti->pt_flags&PF_PKT && pti->pt_send) {
-				error = ureadc((int)pti->pt_send);
+				error = ureadc((int)pti->pt_send, uio);
 				if (error)
 					return (error);
 				pti->pt_send = 0;
 				return (0);
 			}
 			if (pti->pt_flags&PF_UCNTL && pti->pt_ucntl) {
-				error = ureadc((int)pti->pt_ucntl);
+				error = ureadc((int)pti->pt_ucntl, uio);
 				if (error)
 					return (error);
 				pti->pt_ucntl = 0;
@@ -263,12 +266,12 @@ ptcread(dev)
 		sleep((caddr_t)&tp->t_outq.c_cf, TTIPRI);
 	}
 	if (pti->pt_flags & (PF_PKT|PF_UCNTL))
-		error = ureadc(0);
-	while (u.u_count > 0 && error == 0) {
-		cc = q_to_b(&tp->t_outq, buf, MIN(u.u_count, BUFSIZ));
+		error = ureadc(0, uio);
+	while (uio->uio_resid && error == 0) {
+		cc = q_to_b(&tp->t_outq, buf, MIN(uio->uio_resid, BUFSIZ));
 		if (cc <= 0)
 			break;
-		error = uiomove(buf, cc, UIO_READ);
+		error = uiomove(buf, cc, UIO_READ, uio);
 	}
 	if (tp->t_outq.c_cc <= TTLOWAT(tp)) {
 		if (tp->t_state&TS_ASLEEP) {
@@ -368,10 +371,12 @@ ptcselect(dev, rw)
 	return (0);
 }
 
-ptcwrite(dev)
+ptcwrite(dev, uio)
 	dev_t dev;
+	register struct uio *uio;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
+	register struct iovec *iov;
 	register char *cp;
 	register int cc = 0;
 	char locbuf[BUFSIZ];
@@ -385,12 +390,18 @@ again:
 	if (pti->pt_flags & PF_REMOTE) {
 		if (tp->t_canq.c_cc)
 			goto block;
-		while (u.u_count > 0 && tp->t_canq.c_cc < TTYHOG - 1) {
+		while (uio->uio_iovcnt > 0 && tp->t_canq.c_cc < TTYHOG - 1) {
+			iov = uio->uio_iov;
+			if (iov->iov_len == 0) {
+				uio->uio_iovcnt--;
+				uio->uio_iov++;
+				continue;
+			}
 			if (cc == 0) {
-				cc = MIN(u.u_count, BUFSIZ);
+				cc = MIN(iov->iov_len, BUFSIZ);
 				cc = MIN(cc, TTYHOG - 1 - tp->t_canq.c_cc);
 				cp = locbuf;
-				error = uiomove(cp, cc, UIO_WRITE);
+				error = uiomove(cp, cc, UIO_WRITE, uio);
 				if (error)
 					return (error);
 				/* check again for safety */
@@ -406,11 +417,17 @@ again:
 		wakeup((caddr_t)&tp->t_canq);
 		return (0);
 	}
-	while (u.u_count > 0) {
+	while (uio->uio_iovcnt > 0) {
+		iov = uio->uio_iov;
 		if (cc == 0) {
-			cc = MIN(u.u_count, BUFSIZ);
+			if (iov->iov_len == 0) {
+				uio->uio_iovcnt--;
+				uio->uio_iov++;
+				continue;
+			}
+			cc = MIN(iov->iov_len, BUFSIZ);
 			cp = locbuf;
-			error = uiomove(cp, cc, UIO_WRITE);
+			error = uiomove(cp, cc, UIO_WRITE, uio);
 			if (error)
 				return (error);
 			/* check again for safety */
@@ -439,9 +456,10 @@ block:
 	if ((tp->t_state&TS_CARR_ON) == 0)
 		return (EIO);
 	if (pti->pt_flags & PF_NBIO) {
-		u.u_base -= cc;
-		u.u_count += cc;
-		u.u_offset -= cc;
+		iov->iov_base -= cc;
+		iov->iov_len += cc;
+		uio->uio_resid += cc;
+		uio->uio_offset -= cc;
 		if (cnt == 0)
 			return (EWOULDBLOCK);
 		return (0);

@@ -20,13 +20,11 @@ export PATH || (echo "OOPS, this isn't sh.  Desperation time.  I will feed mysel
 : You might want to change pager to a "make column" program if you have one.
 : On the other hand, if your kernel does paging, cat would probably do.
 pager="${pager-/usr/ucb/more}"
-active="${active-/usr/lib/news/active}"
+active="/tmp/active.\$\$"
 
 : End of system dependencies, hopefully
 
-case \$active in
-~*) active=\`$filexp \$active\` ;;
-esac
+$rnlib/getactive \$active
 
 if $test \$# -ge 2 ; then
     pager=$cat

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)hs.c	2.1	8/5/83
+ *	SCCS id	@(#)hs.c	2.2	1/3/93
  */
 
 /*
@@ -36,7 +36,6 @@ struct hsdevice *addr;
 struct	hsdevice *HSADDR = (struct hsdevice *)0172040;
 
 struct	buf	hstab;
-struct	buf	rhsbuf;
 
 hsroot()
 {
@@ -50,10 +49,8 @@ register struct hsdevice *addr;
 		return(0);
 	if (fioword(addr) != -1) {
 		HSADDR = addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword(&(addr->hsbae)) != -1)
 			hstab.b_flags |= B_RH70;
-#endif
 		return(1);
 	}
 	HSADDR = (struct hsdevice *) NULL;
@@ -81,10 +78,8 @@ errexit:
 		return;
 	}
 
-#ifdef	UNIBUS_MAP
 	if ((hstab.b_flags & B_RH70) == 0)
 		mapalloc(bp);
-#endif	UNIBUS_MAP
 	bp->av_forw = 0;
 	s = spl5();
 	if (hstab.b_actf == 0)
@@ -111,10 +106,8 @@ hsstart()
 		com_addr <<= 1; /* RJS03 */
 	hsaddr->hscs2 = minor(bp->b_dev) & 07;
 	hsaddr->hsda = com_addr << 1;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (hstab.b_flags & B_RH70)
 		hsaddr->hsbae = bp->b_xmem;
-#endif
 	hsaddr->hsba = bp->b_un.b_addr;
 	hsaddr->hswc = -(bp->b_bcount >> 1);
 	com_addr = HS_IE | HS_GO | ((bp->b_xmem & 03) << 8);
@@ -161,18 +154,6 @@ hsintr()
 	hstab.b_actf = bp->av_forw;
 	iodone(bp);
 	hsstart();
-}
-
-hsread(dev)
-dev_t	dev;
-{
-	physio(hsstrategy, &rhsbuf, dev, B_READ, WORD);
-}
-
-hswrite(dev)
-dev_t	dev;
-{
-	physio(hsstrategy, &rhsbuf, dev, B_WRITE, WORD);
 }
 #endif NHS
 #endif AUTOCONFIG

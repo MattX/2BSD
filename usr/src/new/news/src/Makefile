@@ -20,15 +20,15 @@ HOMENAME=
 #P=&
 
 NEWSUSR = news
-NEWSGRP = net
+NEWSGRP = news
 SPOOLDIR = /usr/spool/news
 BATCHDIR = /usr/spool/batch
 LIBDIR = /usr/new/lib/news
-BINDIR = /usr/new/bin
+BINDIR = /usr/new
 DESTDIR =
 UUXFLAGS = -r -z -n -gd
-MAXPERBATCH = 250000
-MINDISKFREE = 500
+MAXPERBATCH = 1000000000
+MINDISKFREE = 0
 SPOOL_DISK = /usr/spool
 
 CC = ./mkstrcc

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_start.s	1.1 (2.10BSD Berkeley) 6/11/88
+ *	@(#)mch_start.s	1.4 (2.11BSD GTE) 8/23/93
  */
 
 #include "DEFS.h"
@@ -15,6 +15,7 @@ ASENTRY(start)
 	bit	$1,SSR0			/ is memory management enabled?
 	beq	.			/ better be !!!
 
+	mov	r0,_cputype		/ save cpu type passed by boot
 	/*
 	 * The following two instructions change the contents of the "sys"
 	 * instruction vector (034-037) to read:
@@ -31,7 +32,7 @@ ASENTRY(start)
 	mov	$USIZE-1\<8|RW,KDSD6	/ Get a stack pointer (_u + 64*USIZE)
 	mov	$_u+[USIZE*64.],sp
 
-#ifdef UCB_NET
+#ifdef INET
 	/*
 	 * Initial set up for SUPERVISOR space networking: set SUPERVISOR
 	 * space as split I&D, set stack pointer and map user area and I/O
@@ -64,6 +65,8 @@ ASENTRY(start)
 	beq	1f
 	mov	$RB_SINGLE,r4		/   r4 = RB_SINGLE
 1:
+	mov	r1,_bootcsr		/ save boot controller csr
+	mov	r3,_bootdev		/ save boot device major,unit
 	mov	r4,_boothowto		/ save boot flags
 	mov	$_initflags+6,r2	/ get a pointer to the \0 in _initflags
 	mov	r4,r1			/ r1 = boot options
@@ -93,13 +96,12 @@ ASENTRY(start)
 	clr	-(sp)			/   mode, location zero,
 	rtt				/   and book ...
 
-
-.data
+	.data
 /*
  * Icode is copied out to process 1 to exec /etc/init.
  * If the exec fails, process 1 exits.
  */
-.globl	_initflags, _szicode, _boothowto
+.globl	_initflags, _szicode, _boothowto, _bootcsr, _bootdev
 
 ENTRY(icode)
 	mov	$argv-_icode,-(sp)
@@ -120,17 +122,20 @@ _szicode:
 	_szicode-_icode
 _boothowto:
 	0				/ boot flags passed by boot
-.text
-
+_bootdev:
+	0				/ boot major#,unit
+_bootcsr:
+	0				/ csr of booting controller
+	.text
 
 /*
- * Check out (and if necessary, set up) the hardware.  A lot of the work done
- * here is to figure out what we've really got.  In many cases even if a
- * certain capability is defined (separate I/D, etc.), we check to see if it's
- * really there.  This allows us to distribute a generic kernel that will run
- * on any processor but still take advantage of hardware that is present.
- * This is also a plus for a site which wants to maintain one kernel for a
- * number of different processors.
+ * Determine a couple of facts about the hardware and finishing setting
+ * up what 'boot' hasn't done already.
+
+ * We use the cpu type passed thru from /boot.  No sense in duplicating 
+ * that code here in the kernel.  We do have to repeat the KDJ-11 test
+ * (for use in trap.c) though.  /boot also stuffed the right bits into 
+ * the MSCR register to disable cache and unibus traps.
  */
 hardprobe:
 	mov	$1f,nofault
@@ -141,76 +146,28 @@ hardprobe:
 	/*
 	 * Test for SSR3 and UNIBUS map capability.  If there is no SSR3, the
 	 * first test of SSR3 will trap and we skip past the separate I/D test.
+	 * 2.11BSD will be _seriously_ upset if I/D is not available!
 	 */
-	mov	$cputest,nofault
-#ifdef UNIBUS_MAP
+	mov	$2f,nofault
 	bit	$40,SSR3
 	beq	1f
 	incb	_ubmap
 1:
-#endif
-
-#ifdef NONSEPARATE
-	/*
-	 * Don't attempt to determine whether we've got separate I/D
-	 * (but just in case we do, we must force user unseparated
-	 * because boot will have turned on separation if possible).
-	 */
-	bic	$1,SSR3
-#else
 	bit	$1,SSR3			/ Test for separate I/D capability
-	beq	cputest
+	beq	2f
 	incb	_sep_id
-#endif
-
-	/*
-	 * Try to find out what kind of cpu this is.  Defaults are 40 for
-	 * nonseparate and 45 for separate.  Cputype will be one of: 24,
-	 * 40, 60, 45, 44, 70, 73.
-	 */
-cputest:
-#ifndef NONSEPARATE
-	tstb	_sep_id
-	beq	nonsepcpu
-
-	tstb	_ubmap			/ sep_id: 44, 45, 70, 73
-	bne	1f
-
-	mov	$cpudone,nofault	/ sep_id && !ubmap: 45 or 73
-	tst	*$PDP1170_MSER		/ mem sys err reg implies 73
-	mov	$73.,_cputype
-	bis	$CCR_DT,*$PDP1170_CCR	/ disable cache traps
-	br	cpudone
-1:
-	mov	$1f,nofault		/ sep_id && ubmap: 44 or 70
-	mfpt				/ if mfpt instruction exists, this is
-	mov	$44.,_cputype		/   a 44
-	bis	$CCR_DCPI,*$PDP1144_CCR	/ Disable cache parity interrupts.
-	br	cpudone
-1:
-	mov	$70.,_cputype
-	bis	$CCR_DUT|CCR_DT,*$PDP1170_CCR / Disable UNIBUS and nonfatal
-	br	cpudone			/   traps.
-
-nonsepcpu:
-#endif !NONSEPARATE
-	tstb	_ubmap			/ !sep_id: 24, 40, 60
-	bne	1f
-
-	mov	$cpudone,nofault	/ !sep_id && !ubmap: 40, 60
-	tst	PDP1160_MSR
-	mov	$60.,_cputype
-	bis	$CCR_DT,*$PDP1160_CCR	/ Disable cache parity error traps.
-	br	cpudone
-1:
-	mov	$24.,_cputype		/ !sepid && ubmap: 24
-
-cpudone:
+2:
 		/ Test for stack limit register; set it if present.
 	mov	$1f,nofault
 	mov	$intstk-256.,STACKLIM
 1:
-
+	clr	_kdj11
+	mov	$1f,nofault
+	mfpt
+	cmp	r0,$5			/ KDJ-11 returns 5 (11/44 returns 1)
+	bne	1f
+	mov	r0,_kdj11
+1:
 #ifdef ENABLE34
 	/*
 	 * Test for an ENABLE/34.  We are very cautious since the ENABLE's

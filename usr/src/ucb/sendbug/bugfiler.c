@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)bugfiler.c	5.5 (Berkeley) 86/05/20";
-#endif not lint
+static char sccsid[] = "@(#)bugfiler.c	5.5.1 (2.11BSD GTE) 6/11/94";
+#endif
 
 /*
  * Bug report processing program.
@@ -24,6 +22,7 @@ static char sccsid[] = "@(#)bugfiler.c	5.5 (Berkeley) 86/05/20";
 #include <ctype.h>
 #include <signal.h>
 #include <pwd.h>
+#include <paths.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -35,7 +34,6 @@ static char sccsid[] = "@(#)bugfiler.c	5.5 (Berkeley) 86/05/20";
 #ifndef BUGS_HOME
 #define	BUGS_HOME	"@ucbvax.BERKELEY.EDU"
 #endif
-#define	MAILCMD		"/usr/lib/sendmail -i -t"
 
 #ifndef UNIXTOMH
 #define UNIXTOMH	"/usr/lib/unixtomh"
@@ -698,7 +696,7 @@ dodeliver(fd)
 	char buf[BUFSIZ], cmd[BUFSIZ];
 	FILE *pf, *popen();
 
-	strcpy(cmd, MAILCMD);
+	sprintf(cmd, "%s -i -t", _PATH_SENDMAIL);
 	if (debug) {
 		strcat(cmd, " -v");
 		printf("dodeliver \"%s\"\n", cmd);

@@ -124,7 +124,7 @@ uulib.a: ${COMMON}
 	ar cr $@ `lorder ${COMMON} | tsort`
 	ranlib $@
 
-install:
+install: ${ALL}
 	chown ${OWNER} ${DESTDIR}/${LIBDIR}
 	chgrp ${GROUP} ${DESTDIR}/${LIBDIR}
 	chmod 755 ${DESTDIR}/${LIBDIR}

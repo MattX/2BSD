@@ -72,7 +72,7 @@
 #	define BUFSIZ	512	/* or 1024 */
 #	define NBUF	3
 #   endif
-#   ifdef BSD2_10
+#   ifdef pdp11
 	/*
 	 * On most systems, defining LOAD_AV will haul in stdio since
 	 * nlist(3) uses stdio.  But under 2.10BSD, there's a system call

@@ -1,12 +1,9 @@
 .TH RESTOR 8
 .UC
 .SH NAME
-restor, 512restor \- incremental file system restore
+restor \- incremental file system restore
 .SH SYNOPSIS
 .I restor
-key [ argument ... ]
-.br
-.I 512restor
 key [ argument ... ]
 .SH DESCRIPTION
 .I Restor
@@ -116,11 +113,6 @@ and a
 .I restor
 is used to
 change the size of a file system.
-.PP
-.I 512restor
-is a version of
-.I restor
-that can restore tapes written from 512-byte block file systems.
 .SH FILES
 .ta 2i
 /dev/rmt1	default file name
@@ -137,9 +129,13 @@ of the file system is not large enough to hold the dump.
 If the dump extends over more than one tape,
 it may ask you to change tapes.
 Reply with a newline when the next tape has been mounted.
+.PP
+Dump tapes made before the new ondisc directory structure will
+be converted automatically by
+.I restor .
 .SH BUGS
 There is redundant information on the tape
 that could be used in case of tape reading problems.
 Unfortunately,
-.IR restor " and " 512restor
-don't use it.
+.IR restor " 
+does't use it.

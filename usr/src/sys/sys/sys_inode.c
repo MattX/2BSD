@@ -14,233 +14,218 @@
 #include "inode.h"
 #include "buf.h"
 #include "fs.h"
-#include "ioctl.h"
 #include "file.h"
 #include "stat.h"
 #include "mount.h"
 #include "conf.h"
 #include "uio.h"
+#include "ioctl.h"
+#include "tty.h"
 #include "kernel.h"
 #include "systm.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
 
-readi(ip)
-	register struct inode *ip;
-{
-	register struct buf *bp;
-	register int n;
-	daddr_t lbn, bn;
-	off_t diff;
-	dev_t dev;
-	int on, type;
+int	ino_rw(), ino_ioctl(), ino_select(), ino_close();
+struct 	fileops inodeops =
+	{ ino_rw, ino_ioctl, ino_select, ino_close };
 
-	if (!u.u_count)
-		return;
-	if (u.u_offset < 0) {
-		u.u_error = EINVAL;
-		return;
-	}
-	ip->i_flag |= IACC;
-	dev = ip->i_rdev;
-	type = ip->i_mode&IFMT;
-	if (type == IFCHR) {
-		u.u_error = (*cdevsw[major(dev)].d_read)(dev);
-		return;
-	}
-	do {
-		lbn = bn = lblkno(u.u_offset);
-		on = blkoff(u.u_offset);
-		n = MIN((u_int)(DEV_BSIZE - on), u.u_count);
-		if (type != IFBLK) {
-			diff = ip->i_size - u.u_offset;
-			if (diff <= 0)
-				return;
-			if (diff < n)
-				n = diff;
-			bn = bmap(ip, bn, B_READ, 0);
-			if (u.u_error)
-				return;
-			dev = ip->i_dev;
-		} else
-			rablock = bn+1;
-		if (bn < 0) {
-			bp = geteblk();
-			bp->b_resid = 0;
-			clrbuf(bp);
-		}
-		else {
-			if (ip->i_lastr + 1 == lbn)
-				bp = breada(dev, bn, rablock);
-			else
-				bp = bread(dev, bn);
-			if (bp->b_flags & B_ERROR) {
-				u.u_error = EIO;
-				brelse(bp);
-				return;
-			}
-		}
-		ip->i_lastr = lbn;
-		n = MIN((u_int)n, DEV_BSIZE - bp->b_resid);
-		if (n != 0) {
-			u.u_error = uiomove(mapin(bp) + on, n, UIO_READ);
-			mapout(bp);
-		}
-		if (n + on == DEV_BSIZE || u.u_offset == ip->i_size) {
-			if (ip->i_flag & IPIPE)
-				bp->b_flags &= ~B_DELWRI;
-			bp->b_flags |= B_AGE;
-		}
-		brelse(bp);
-	} while (!u.u_error && u.u_count && n > 0);
+ino_rw(fp, rw, uio)
+	struct file *fp;
+	enum uio_rw rw;
+register struct uio *uio;
+{
+	register struct inode *ip = (struct inode *)fp->f_data;
+	u_int count, error;
+
+	if ((ip->i_mode&IFMT) != IFCHR)
+		ILOCK(ip);
+	if ((ip->i_mode&IFMT) == IFREG &&
+	    (fp->f_flag&FAPPEND) &&
+	    rw == UIO_WRITE)
+		fp->f_offset = ip->i_size;
+	uio->uio_offset = fp->f_offset;
+	count = uio->uio_resid;
+	error = rwip(ip, uio, rw);
+	fp->f_offset += count - uio->uio_resid;
+	if ((ip->i_mode&IFMT) != IFCHR)
+		IUNLOCK(ip);
+	return (error);
 }
 
-writei(ip)
-	register struct inode *ip;
+rdwri(rw, ip, base, len, offset, segflg, aresid)
+	struct inode *ip;
+	caddr_t base;
+	int len, segflg;
+	off_t offset;
+register int *aresid;
+	enum uio_rw rw;
 {
-	register struct buf *bp;
-	register int on;
-	daddr_t bn;
-	dev_t dev;
-	int n, type;
+	struct uio auio;
+	struct iovec aiov;
+register int error;
 
-	if (u.u_offset < 0) {
-		u.u_error = EINVAL;
-		return;
-	}
-	dev = ip->i_rdev;
+	auio.uio_iov = &aiov;
+	auio.uio_iovcnt = 1;
+	aiov.iov_base = base;
+	aiov.iov_len = len;
+	auio.uio_resid = len;
+	auio.uio_offset = offset;
+	auio.uio_segflg = segflg;
+	error = rwip(ip, &auio, rw);
+	if (aresid)
+		*aresid = auio.uio_resid;
+	else
+		if (auio.uio_resid)
+			error = EIO;
+	return (error);
+}
+
+rwip(ip, uio, rw)
+	register struct inode *ip;
+	register struct uio *uio;
+	enum uio_rw rw;
+{
+	dev_t dev = (dev_t)ip->i_rdev;
+	struct buf *bp;
+	daddr_t lbn, bn;
+	register int n, on, type;
+	int error = 0;
+
+#ifdef	DIAGNOSTIC
+	if (rw != UIO_READ && rw != UIO_WRITE)
+		panic("rwip");
+#endif
+	if (rw == UIO_READ && uio->uio_resid == 0)
+		return (0);
+	if (uio->uio_offset < 0)
+		return (EINVAL);
+	if (rw == UIO_READ)
+		ip->i_flag |= IACC;
 	type = ip->i_mode&IFMT;
-	/*
-	 * technically, next three lines should probably be done *after*
-	 * the write has been attempted.  If you move them, make sure you
-	 * set the IUPD|ICHG before calling the cdevsw routine.
-	 */
-	if (u.u_ruid != 0)		/* clear set-uid/gid unless root */
-		ip->i_mode &= ~(ISUID|ISGID);
-	ip->i_flag |= IUPD|ICHG;
 	if (type == IFCHR) {
-		u.u_error = (*cdevsw[major(dev)].d_write)(dev);
-		return;
+		if (rw == UIO_READ)
+			error = (*cdevsw[major(dev)].d_read)(dev, uio);
+		else {
+			ip->i_flag |= IUPD|ICHG;
+			error = (*cdevsw[major(dev)].d_write)(dev, uio);
+		}
+		return (error);
 	}
-	if (!u.u_count)
-		return;
-	if (type == IFREG && u.u_offset + u.u_count >
+	if (uio->uio_resid == 0)
+		return (0);
+	if (rw == UIO_WRITE && type == IFREG &&
+	    uio->uio_offset + uio->uio_resid >
 	      u.u_rlimit[RLIMIT_FSIZE].rlim_cur) {
 		psignal(u.u_procp, SIGXFSZ);
-		u.u_error = EFBIG;
-		return;
+		return (EFBIG);
 	}
-#ifdef QUOTA
+#ifdef	QUOTA
 	/*
 	 * we do bytes, see the comment on 'blocks' in ino_stat().
-	 * sure hope we never try to extend the quota file and exceed
-	 * RLIMIT_FSIZE, yuck!
 	 *
-	 * we make the simplifying assumption that the entire write will
+	 * the simplfying assumption is made that the entire write will
 	 * succeed, otherwise we have to check the quota on each block.
-	 * can you say slow?  i knew you could.
-	 *
-	 * SMS
-	 */
-	if (type == IFREG || type == IFDIR || type == IFLNK) {
-		if (u.u_offset + u.u_count > ip->i_size) {
+	 * can you say slow?  i knew you could.  SMS
+	*/
+	if ((type == IFREG || type == IFDIR || type == IFLNK) && 
+	    rw == UIO_WRITE && !(ip->i_flag & IPIPE)) {
+		if (uio->uio_offset + uio->uio_resid > ip->i_size) {
 			QUOTAMAP();
-			u.u_error = chkdq(ip, 
-			    u.u_offset + u.u_count - ip->i_size, 0);
+			error = chkdq(ip, 
+				uio->uio_offset+uio->uio_resid - ip->i_size,0);
 			QUOTAUNMAP();
-			if (u.u_error)
-				return;
+			if (error)
+				return (error);
 		}
 	}
 #endif
+	if (type != IFBLK)
+		dev = ip->i_dev;
 	do {
-		bn = lblkno(u.u_offset);
-		on = blkoff(u.u_offset);
-		n = MIN((u_int)(DEV_BSIZE - on), u.u_count);
+		lbn = lblkno(uio->uio_offset);
+		on = blkoff(uio->uio_offset);
+		n = MIN((u_int)(DEV_BSIZE - on), uio->uio_resid);
 		if (type != IFBLK) {
-			bn = bmap(ip, bn, B_WRITE, n == DEV_BSIZE ? 0 : 1);
-			if (bn < 0)
-				return;
-			dev = ip->i_dev;
-		}
-		if (n == DEV_BSIZE)
-			bp = getblk(dev, bn);
-		else {
-			bp = bread(dev, bn);
-			if (bp->b_flags & B_ERROR) {
-				u.u_error = EIO;
-				brelse(bp);
-				return;
+			if (rw == UIO_READ) {
+				off_t diff = ip->i_size - uio->uio_offset;
+				if (diff <= 0)
+					return (0);
+				if (diff < n)
+					n = diff;
+			bn = bmap(ip, lbn, B_READ, 0);
 			}
-			/*
-			 * Tape drivers don't clear buffers on end-of-tape
-			 * any longer (clrbuf can't be called from interrupt).
-			 */
+			else
+				bn = bmap(ip,lbn,B_WRITE,n == DEV_BSIZE ? 0: 1);
+			if (u.u_error || rw == UIO_WRITE && (long)bn<0)
+				return (u.u_error);
+			if (rw == UIO_WRITE && uio->uio_offset + n > ip->i_size &&
+			   (type == IFDIR || type == IFREG || type == IFLNK))
+				ip->i_size = uio->uio_offset + n;
+		} else {
+			bn = lbn;
+			rablock = bn + 1;
+		}
+		if (rw == UIO_READ) {
+			if ((long)bn<0) {
+				bp = geteblk();
+				clrbuf(bp);
+			} else if (ip->i_lastr + 1 == lbn)
+				bp = breada(dev, bn, rablock);
+			else
+				bp = bread(dev, bn);
+			ip->i_lastr = lbn;
+		} else {
+			if (n == DEV_BSIZE) 
+				bp = getblk(dev, bn);
+			else
+				bp = bread(dev, bn);
+/*
+ * 4.3 didn't do this, but 2.10 did.  not sure why.
+ * something about tape drivers don't clear buffers on end-of-tape
+ * any longer (clrbuf can't be called from interrupt).
+*/
 			if (bp->b_resid == DEV_BSIZE) {
 				bp->b_resid = 0;
 				clrbuf(bp);
 			}
 		}
-		u.u_error = uiomove(mapin(bp) + on, n, UIO_WRITE);
-		mapout(bp);
-		if (u.u_error)
+		n = MIN(n, DEV_BSIZE - bp->b_resid);
+		if (bp->b_flags & B_ERROR) {
+			error = EIO;
 			brelse(bp);
-		else if ((ip->i_mode&IFMT) == IFDIR)
-			bwrite(bp);
-		else if (n + on == DEV_BSIZE && !(ip->i_flag & IPIPE)) {
-			bp->b_flags |= B_AGE;
-			bawrite(bp);
-		} else
-			bdwrite(bp);
-		if (u.u_offset > ip->i_size &&
-		    (type == IFDIR || type == IFREG || type == IFLNK))
-			ip->i_size = u.u_offset;
-	} while (!u.u_error && u.u_count);
+			goto bad;
+		}
+		u.u_error =
+		    uiomove(mapin(bp)+on, n, rw, uio);
+		mapout(bp);
+		if (rw == UIO_READ) {
+			if (n + on == DEV_BSIZE || uio->uio_offset == ip->i_size) {
+				bp->b_flags |= B_AGE;
+				if (ip->i_flag & IPIPE)
+					bp->b_flags &= ~B_DELWRI;
+			}
+			brelse(bp);
+		} else {
+			if ((ip->i_mode&IFMT) == IFDIR)
+				bwrite(bp);
+			else if (n + on == DEV_BSIZE && !(ip->i_flag & IPIPE)) {
+				bp->b_flags |= B_AGE;
+				bawrite(bp);
+			} else
+				bdwrite(bp);
+			ip->i_flag |= IUPD|ICHG;
+			if (u.u_ruid != 0)
+				ip->i_mode &= ~(ISUID|ISGID);
+		}
+	} while (u.u_error == 0 && uio->uio_resid && n != 0);
+	if (error == 0)				/* XXX */
+		error = u.u_error;		/* XXX */
+bad:
+	return (error);
 }
 
-#ifdef QUOTA
-/*
- * Following is the quota system's interface into readi/writei, we don't 
- * have the luxury of simply creating a new uio structure and letting
- * fly.  The residual argument is not implemented since the 4.3bsd quota
- * system didn't use it.
- */
-rdwri(rw, ip, base, len, offset, segflg)
-	struct inode *ip;
-	caddr_t base;
-	int len, segflg;
-	off_t offset;
-	enum uio_rw rw;
-{
-	struct uio savu;
-	struct iovec iov;
-	register int saverr, reterr;
-
-	iov.iov_len = u.u_count;
-	iov.iov_base = u.u_base;
-	savu.uio_offset = u.u_offset;
-	savu.uio_segflg = u.u_segflg;
-	saverr = u.u_error;
-	u.u_offset = offset;
-	u.u_count = len;
-	u.u_base = base;
-	u.u_segflg = segflg;
-	if (rw == UIO_READ)
-		readi(ip);
-	else if (rw == UIO_WRITE)
-		writei(ip);
-	else
-		panic("rdwri");
-	reterr = u.u_error;
-	u.u_error = saverr;
-	u.u_count = iov.iov_len;
-	u.u_base = iov.iov_base;
-	u.u_segflg = savu.uio_segflg;
-	u.u_offset = savu.uio_offset;
-	return(reterr);
-}
-#endif
 
 ino_ioctl(fp, com, data)
 	struct file *fp;
@@ -336,10 +321,8 @@ ino_stat(ip, sb)
 	 * ITIMES is inlined to avoid mapping twice, once in the macro and a
 	 * second time to fill in the stat structure.
 	 */
-	segm sav5;
-	struct icommon2 *ic2 = &((struct icommon2 *)0120000)[ip - inode];
+	struct icommon2 *ic2 = &((struct icommon2 *)SEG5)[ip - inode];
 
-	saveseg5(sav5);
 	mapseg5(xitimes, xitdesc);
 	if (ip->i_flag & (IUPD | IACC | ICHG)) {
 		ip->i_flag |= IMOD;
@@ -371,7 +354,7 @@ ino_stat(ip, sb)
 	 */
 	sb->st_blocks = btodb(ip->i_size + MAXBSIZE - 1);
 	sb->st_spare4[0] = sb->st_spare4[1] = 0;
-	restorseg5(sav5);
+	normalseg5();
 #endif
 	return (0);
 }
@@ -593,4 +576,43 @@ openi(ip, mode)
 		return ((*bdevsw[maj].d_open)(dev, mode));
 	}
 	return (0);
+}
+
+/*
+ * Revoke access the current tty by all processes.
+ * Used only by the super-user in init
+ * to give ``clean'' terminals at login.
+ */
+vhangup()
+{
+
+	if (!suser())
+		return;
+	if (u.u_ttyp == NULL)
+		return;
+	forceclose(u.u_ttyd);
+	if ((u.u_ttyp->t_state) & TS_ISOPEN)
+		gsignal(u.u_ttyp->t_pgrp, SIGHUP);
+}
+
+forceclose(dev)
+	register dev_t dev;
+{
+	register struct file *fp;
+	register struct inode *ip;
+
+	for (fp = file; fp < fileNFILE; fp++) {
+		if (fp->f_count == 0)
+			continue;
+		if (fp->f_type != DTYPE_INODE)
+			continue;
+		ip = (struct inode *)fp->f_data;
+		if (ip == 0)
+			continue;
+		if ((ip->i_mode & IFMT) != IFCHR)
+			continue;
+		if (ip->i_rdev != dev)
+			continue;
+		fp->f_flag &= ~(FREAD|FWRITE);
+	}
 }

@@ -3,8 +3,10 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_uba.c	7.9 (Berkeley) 5/24/88
+ *	@(#)if_uba.c	7.5.1.1 (Berkeley) 6/4/87
  */
+
+#include "../machine/pte.h"
 
 #include "param.h"
 #include "systm.h"
@@ -15,11 +17,9 @@
 #include "vmmac.h"
 #include "socket.h"
 #include "syslog.h"
-#include "malloc.h"
 
 #include "../net/if.h"
 
-#include "../vax/pte.h"
 #include "../vax/mtpr.h"
 #include "if_uba.h"
 #include "../vaxuba/ubareg.h"
@@ -47,36 +47,34 @@ if_ubaminit(ifu, uban, hlen, nmr, ifr, nr, ifw, nw)
 {
 	register caddr_t p;
 	caddr_t cp;
-	int i, nclbytes, off;
+	int i, ncl, off;
 
 	if (hlen)
 		off = CLBYTES - hlen;
 	else
 		off = 0;
-	nclbytes = CLBYTES * (clrnd(nmr) / CLSIZE);
+	ncl = clrnd(nmr) / CLSIZE;
 	if (hlen)
-		nclbytes += CLBYTES;
+		ncl++;
 	if (ifr[0].ifrw_addr)
 		cp = ifr[0].ifrw_addr - off;
 	else {
-		cp = (caddr_t)malloc((u_long)((nr + nw) * nclbytes), M_DEVBUF,
-		    M_NOWAIT);
+		cp = m_clalloc((nr + nw) * ncl, MPG_SPACE, M_DONTWAIT);
 		if (cp == 0)
 			return (0);
 		p = cp;
 		for (i = 0; i < nr; i++) {
 			ifr[i].ifrw_addr = p + off;
-			p += nclbytes;
+			p += ncl * CLBYTES;
 		}
 		for (i = 0; i < nw; i++) {
 			ifw[i].ifw_base = p;
 			ifw[i].ifw_addr = p + off;
-			p += nclbytes;
+			p += ncl * CLBYTES;
 		}
 		ifu->iff_hlen = hlen;
 		ifu->iff_uban = uban;
 		ifu->iff_uba = uba_hd[uban].uh_uba;
-		ifu->iff_ubamr = uba_hd[uban].uh_mr;
 	}
 	for (i = 0; i < nr; i++)
 		if (if_ubaalloc(ifu, &ifr[i], nmr) == 0) {
@@ -102,7 +100,7 @@ bad:
 		ubarelse(ifu->iff_uban, &ifw[nw].ifw_info);
 	while (--nr >= 0)
 		ubarelse(ifu->iff_uban, &ifr[nr].ifrw_info);
-	free(cp, M_DEVBUF);
+	m_pgfree(cp, (nr + nw) * ncl);
 	ifr[0].ifrw_addr = 0;
 	return (0);
 }
@@ -128,7 +126,8 @@ if_ubaalloc(ifu, ifrw, nmr)
 	ifrw->ifrw_info = info;
 	ifrw->ifrw_bdp = UBAI_BDP(info);
 	ifrw->ifrw_proto = UBAMR_MRV | (UBAI_BDP(info) << UBAMR_DPSHIFT);
-	ifrw->ifrw_mr = &ifu->iff_ubamr[UBAI_MR(info) + (ifu->iff_hlen? 1 : 0)];
+	ifrw->ifrw_mr = &ifu->iff_uba->uba_map[UBAI_MR(info) + (ifu->iff_hlen?
+		1 : 0)];
 	return (1);
 }
 
@@ -201,14 +200,15 @@ if_ubaget(ifu, ifr, totlen, off0, ifp)
 			 * as quick form of copy.  Remap UNIBUS and invalidate.
 			 */
 			pp = mtod(m, char *);
-			cpte = kvtopte(cp);
-			ppte = kvtopte(pp);
+			cpte = &Mbmap[mtocl(cp)*CLSIZE];
+			ppte = &Mbmap[mtocl(pp)*CLSIZE];
 			x = btop(cp - ifr->ifrw_addr);
 			ip = (int *)&ifr->ifrw_mr[x];
 			for (i = 0; i < CLSIZE; i++) {
 				struct pte t;
 				t = *ppte; *ppte++ = *cpte; *cpte = t;
-				*ip++ = cpte++->pg_pfnum|ifr->ifrw_proto;
+				*ip++ =
+				    cpte++->pg_pfnum|ifr->ifrw_proto;
 				mtpr(TBIS, cp);
 				cp += NBPG;
 				mtpr(TBIS, (caddr_t)pp);
@@ -330,14 +330,13 @@ if_ubaput(ifu, ifw, m)
 		dp = mtod(m, char *);
 		if (claligned(cp) && claligned(dp) &&
 		    (m->m_len == CLBYTES || m->m_next == (struct mbuf *)0)) {
-			struct pte *pte;
-			int *ip;
-
-			pte = kvtopte(dp);
+			struct pte *pte; int *ip;
+			pte = &Mbmap[mtocl(dp)*CLSIZE];
 			x = btop(cp - ifw->ifw_addr);
 			ip = (int *)&ifw->ifw_mr[x];
 			for (i = 0; i < CLSIZE; i++)
-				*ip++ = ifw->ifw_proto | pte++->pg_pfnum;
+				*ip++ =
+				    ifw->ifw_proto | pte++->pg_pfnum;
 			xswapd |= 1 << (x>>(CLSHIFT-PGSHIFT));
 			mp = m->m_next;
 			m->m_next = ifw->ifw_xtofree;

@@ -20,6 +20,7 @@
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "../pdpuba/ubavar.h"
@@ -113,7 +114,7 @@ accattach(ui)
 		struct	impcb ifimp_impcb;
 	} *ifimp;
 
-	if ((ifimp = (struct ifimpcb *)impattach(ui)) == 0)
+	if ((ifimp = (struct ifimpcb *)impattach(ui, accreset)) == 0)
 		panic("accattach");
 	sc->acc_if = &ifimp->ifimp_if;
 	ip = &ifimp->ifimp_impcb;
@@ -284,7 +285,6 @@ accxint(unit)
 	register struct acc_softc *sc = &acc_softc[unit];
 	register struct accdevice *addr;
 
-	MAPSAVE();
 	addr = (struct accdevice *)accinfo[unit]->ui_addr;
 	if (sc->acc_ic->ic_oactive == 0) {
 		printf("acc%d: stray xmit interrupt, csr=%b\n", unit,
@@ -305,7 +305,6 @@ accxint(unit)
 	if (sc->acc_if->if_snd.ifq_head)
 		accstart(unit);
 out:
-	MAPREST();
 }
 
 /*
@@ -319,7 +318,6 @@ accrint(unit)
 	int len;
 	long info;
 
-	MAPSAVE();
 	addr = (struct accdevice *)accinfo[unit]->ui_addr;
 	sc->acc_if->if_ipackets++;
 
@@ -356,10 +354,10 @@ accrint(unit)
 	}
 
 	/*
-	 * The last parameter is always 0 since using
+	 * The next to last parameter is always 0 since using
 	 * trailers on the ARPAnet is insane.
 	 */
-	m = if_rubaget(&sc->acc_ifuba, len, 0);
+	m = if_rubaget(&sc->acc_ifuba, len, 0, &sc->acc_if);
 	if (m == 0)
 		goto setup;
 	if ((addr->icsr & IN_EOM) == 0) {
@@ -386,6 +384,5 @@ setup:
 	addr->icsr =
 		IN_MRDY | ACC_IE | IN_WEN | ((info & 0x30000) >> 12) | ACC_GO;
 out:
-	MAPREST();
 }
 #endif

@@ -39,6 +39,13 @@ case $portable in
 define)
 # your site name
 sitename=\`$hostcmd\`
+case \$sitename in
+	*.*)
+		;;
+	*)
+		sitename=\${sitename}.$domain
+		;;
+esac
 # where recordings, distributions and moderators are kept
 lib=\`$filexp $lib\`
 # where important rn things are kept
@@ -630,12 +637,14 @@ case $orgname in
 esac
 
 $cat > $tmpart <<EOHeader
+From: $logname@$sitename ($fullname)
+Path: $sitename!$logname
 Newsgroups: $ng
 Subject: $title
 Expires: 
 References: 
 Sender: 
-Reply-To: $logname@$sitename.UUCP ($fullname)
+Reply-To: $logname@$sitename ($fullname)
 Followup-To: $follow
 Distribution: $dist
 Organization: $orgname

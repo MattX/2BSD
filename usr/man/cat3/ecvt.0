@@ -5,23 +5,23 @@ ECVT(3)             UNIX Programmer's Manual		  ECVT(3)
 
 
 
-NNAAMMEE
+NAME
      ecvt, fcvt, gcvt - output conversion
 
-SSYYNNOOPPSSIISS
-     cchhaarr **eeccvvtt((vvaalluuee,, nnddiiggiitt,, ddeeccpptt,, ssiiggnn))
-     ddoouubbllee vvaalluuee;;
-     iinntt nnddiiggiitt,, **ddeeccpptt,, **ssiiggnn;;
+SYNOPSIS
+     char *ecvt(value, ndigit, decpt, sign)
+     double value;
+     int ndigit, *decpt, *sign;
 
-     cchhaarr **ffccvvtt((vvaalluuee,, nnddiiggiitt,, ddeeccpptt,, ssiiggnn))
-     ddoouubbllee vvaalluuee;;
-     iinntt nnddiiggiitt,, **ddeeccpptt,, **ssiiggnn;;
+     char *fcvt(value, ndigit, decpt, sign)
+     double value;
+     int ndigit, *decpt, *sign;
 
-     cchhaarr **ggccvvtt((vvaalluuee,, nnddiiggiitt,, bbuuff))
-     ddoouubbllee vvaalluuee;;
-     cchhaarr **bbuuff;;
+     char *gcvt(value, ndigit, buf)
+     double value;
+     char *buf;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _E_c_v_t converts the _v_a_l_u_e to a null-terminated string of _n_d_i_-
      _g_i_t ASCII digits and returns a pointer thereto.  The posi-
      tion of the decimal point relative to the beginning of the
@@ -40,10 +40,10 @@ DDEESSCCRRIIPPTTIIOONN
      otherwise E format, ready for printing.  Trailing zeros may
      be suppressed.
 
-SSEEEE AALLSSOO
+SEE ALSO
      printf(3)
 
-BBUUGGSS
+BUGS
      The return values point to static data whose content is
      overwritten by each call.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

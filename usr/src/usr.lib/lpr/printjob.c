@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)printjob.c	5.2 (Berkeley) 9/17/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)printjob.c	5.2.1 (2.11BSD GTE) 6/11/94";
+#endif
 
 /*
  * printjob -- print jobs in the queue.
@@ -705,7 +705,8 @@ sendit(file)
 sendfile(type, file)
 	char type, *file;
 {
-	register int f, i, amt;
+	register int f, amt;
+	long i;
 	struct stat stb;
 	char buf[BUFSIZ];
 	int sizerr, resp;
@@ -720,7 +721,7 @@ sendfile(type, file)
 	if ((stb.st_mode & S_IFMT) == S_IFLNK && fstat(f, &stb) == 0 &&
 	    (stb.st_dev != fdev || stb.st_ino != fino))
 		return(ACCESS);
-	(void) sprintf(buf, "%c%d %s\n", type, stb.st_size, file);
+	(void) sprintf(buf, "%c%ld %s\n", type, stb.st_size, file);
 	amt = strlen(buf);
 	for (i = 0;  ; i++) {
 		if (write(pfd, buf, amt) != amt ||
@@ -910,12 +911,12 @@ sendmail(user, bombed)
 		dup2(p[0], 0);
 		for (i = 3; i < NOFILE; i++)
 			(void) close(i);
-		if ((cp = rindex(MAIL, '/')) != NULL)
+		if ((cp = rindex(_PATH_SENDMAIL, '/')) != NULL)
 			cp++;
 		else
-			cp = MAIL;
+			cp = _PATH_SENDMAIL;
 		sprintf(buf, "%s@%s", user, fromhost);
-		execl(MAIL, cp, buf, 0);
+		execl(_PATH_SENDMAIL, cp, buf, 0);
 		exit(0);
 	} else if (s > 0) {				/* parent */
 		dup2(p[1], 1);

@@ -5,24 +5,24 @@ WAIT(1)             UNIX Programmer's Manual		  WAIT(1)
 
 
 
-NNAAMMEE
+NAME
      wait - await completion of process
 
-SSYYNNOOPPSSIISS
-     wwaaiitt
+SYNOPSIS
+     wait
 
-DDEESSCCRRIIPPTTIIOONN
-     Wait until all processes started with && have completed, and
+DESCRIPTION
+     Wait until all processes started with & have completed, and
      report on abnormal terminations.
 
      Because the _w_a_i_t(2) system call must be executed in the
      parent process, the Shell itself executes _w_a_i_t, without
      creating a new process.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sh(1)
 
-BBUUGGSS
+BUGS
      Not all the processes of a 3- or more-stage pipeline are
      children of the Shell, and thus can't be waited for.  (This
      bug does not apply to _c_s_h(1).)
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

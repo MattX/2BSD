@@ -1,7 +1,7 @@
 /*
  *                      RCS create/change operation
  */
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char rcsid[]=
 "$Header: /usr/src/local/bin/rcs/src/RCS/rcs.c,v 4.7 87/12/18 11:37:17 narten Exp $ Purdue CS";
 #endif
@@ -103,6 +103,7 @@ static char rcsid[]=
  */
 
 
+#include <paths.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "rcsbase.h"
@@ -1006,15 +1007,15 @@ char    * Delta,  *who;
         }
         ffclose(mailmess);
 
-#ifdef SENDMAIL
-     VOID sprintf(command, "/usr/lib/sendmail %s < %s",who,messagefile);
+#ifdef _PATH_SENDMAIL
+     VOID sprintf(command, "%s %s < %s", _PATH_SENDMAIL, who,messagefile);
 #else
 #    ifdef DELIVERMAIL
         VOID sprintf(command, "/etc/delivermail -w %s < %s",who,messagefile);
 #    else
 	VOID sprintf(command, "/bin/mail %s < %s",who,messagefile);
 #    endif DELIVERMAIL
-#endif SENDMAIL
+#endif _PATH_SENDMAIL
 
         VOID system(command);
 	    /* ignore the exit status, even if delivermail unsuccessful */

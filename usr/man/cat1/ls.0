@@ -5,13 +5,13 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
 
 
 
-NNAAMMEE
+NAME
      ls - list contents of directory
 
-SSYYNNOOPPSSIISS
-     llss [ --aaccddffggiillqqrrssttuu11AACCLLFFRR ] name ...
+SYNOPSIS
+     ls [ -acdfgilqrstu1ACLFR ] name ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      For each directory argument, _l_s lists the contents of the
      directory; for each file argument, _l_s repeats its name and
      any other information requested.  By default, the output is
@@ -23,7 +23,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      There are a large number of options:
 
-     --ll   List in long format, giving mode, number of links,
+     -l   List in long format, giving mode, number of links,
 	  owner, size in bytes, and time of last modification for
 	  each file.  (See below.) If the file is a special file
 	  the size field will instead contain the major and minor
@@ -31,36 +31,36 @@ DDEESSCCRRIIPPTTIIOONN
 	  pathname of the linked-to file is printed preceded by
 	  ``->''.
 
-     --gg   Include the group ownership of the file in a long out-
+     -g   Include the group ownership of the file in a long out-
 	  put.
 
-     --tt   Sort by time modified (latest first) instead of by
+     -t   Sort by time modified (latest first) instead of by
 	  name.
 
-     --aa   List all entries; in the absence of this option,
-	  entries whose names begin with a period (..) are _n_o_t
+     -a   List all entries; in the absence of this option,
+	  entries whose names begin with a period (.) are _n_o_t
 	  listed.
 
-     --ss   Give size in kilobytes of each file.
+     -s   Give size in kilobytes of each file.
 
-     --dd   If argument is a directory, list only its name; often
-	  used with --ll to get the status of a directory.
+     -d   If argument is a directory, list only its name; often
+	  used with -l to get the status of a directory.
 
-     --LL   If argument is a symbolic link, list the file or direc-
+     -L   If argument is a symbolic link, list the file or direc-
 	  tory the link references rather than the link itself.
 
-     --rr   Reverse the order of sort to get reverse alphabetic or
+     -r   Reverse the order of sort to get reverse alphabetic or
 	  oldest first as appropriate.
 
-     --uu   Use time of last access instead of last modification
-	  for sorting (with the --tt option) and/or printing (with
-	  the --ll option).
+     -u   Use time of last access instead of last modification
+	  for sorting (with the -t option) and/or printing (with
+	  the -l option).
 
-     --cc   Use time of file creation for sorting or printing.
+     -c   Use time of file creation for sorting or printing.
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -71,40 +71,40 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
 
 
 
-     --ii   For each file, print the i-number in the first column
+     -i   For each file, print the i-number in the first column
 	  of the report.
 
-     --ff   Force each argument to be interpreted as a directory
+     -f   Force each argument to be interpreted as a directory
 	  and list the name found in each slot.  This option
-	  turns off --ll,, --tt,, --ss,, and --rr,, and turns on --aa;; the
+	  turns off -l, -t, -s, and -r, and turns on -a; the
 	  order is the order in which entries appear in the
 	  directory.
 
-     --FF   cause directories to be marked with a trailing `/',
+     -F   cause directories to be marked with a trailing `/',
 	  sockets with a trailing `=', symbolic links with a
 	  trailing `@', and executable files with a trailing `*'.
 
-     --RR   recursively list subdirectories encountered.
+     -R   recursively list subdirectories encountered.
 
-     --11   force one entry per line output format; this is the
+     -1   force one entry per line output format; this is the
 	  default when output is not to a terminal.
 
-     --CC   force multi-column output; this is the default when
+     -C   force multi-column output; this is the default when
 	  output is to a terminal.
 
-     --qq   force printing of non-graphic characters in file names
+     -q   force printing of non-graphic characters in file names
 	  as the character `?'; this is the default when output
 	  is to a terminal.
 
-     The mode printed under the --ll option contains 11 characters
+     The mode printed under the -l option contains 11 characters
      which are interpreted as follows: the first character is
 
-     dd	if the entry is a directory;
-     bb	if the entry is a block-type special file;
-     cc	if the entry is a character-type special file;
-     ll	if the entry is a symbolic link;
-     ss	if the entry is a socket, or
-     --	if the entry is a plain file.
+     d	if the entry is a directory;
+     b	if the entry is a block-type special file;
+     c	if the entry is a character-type special file;
+     l	if the entry is a symbolic link;
+     s	if the entry is a socket, or
+     -	if the entry is a plain file.
 
      The next 9 characters are interpreted as three sets of three
      bits each.  The first set refers to owner permissions; the
@@ -115,18 +115,18 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
      cute' permission is interpreted to mean permission to search
      the directory.  The permissions are indicated as follows:
 
-     rr	if the file is readable;
-     ww	if the file is writable;
-     xx	if the file is executable;
-     --	if the indicated permission is not granted.
+     r	if the file is readable;
+     w	if the file is writable;
+     x	if the file is executable;
+     -	if the indicated permission is not granted.
 
-     The group-execute permission character is given as ss if the
+     The group-execute permission character is given as s if the
      file has the set-group-id bit set; likewise the user-execute
-     permission character is given as ss if the file has the set-
+     permission character is given as s if the file has the set-
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 
@@ -139,18 +139,18 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
 
      user-id bit set.
 
-     The last character of the mode (normally `x' or `-') is tt if
+     The last character of the mode (normally `x' or `-') is t if
      the 1000 bit of the mode is on.  See _c_h_m_o_d(1) for the mean-
      ing of this mode.
 
      When the sizes of the files in a directory are listed, a
      total count of blocks, including indirect blocks is printed.
 
-FFIILLEESS
+FILES
      /etc/passwd to get user id's for `ls -l'.
      /etc/group to get group id's for `ls -g'.
 
-BBUUGGSS
+BUGS
      Newline and tab are considered printing characters in file
      names.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986				3
+Printed 1/9/94		  May 12, 1986				3
 
 
 

@@ -5,13 +5,13 @@ LOGIN(1)	    UNIX Programmer's Manual		 LOGIN(1)
 
 
 
-NNAAMMEE
+NAME
      login - sign on
 
-SSYYNNOOPPSSIISS
-     llooggiinn [ -p ] [ username ]
+SYNOPSIS
+     login [ -p ] [ username ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _l_o_g_i_n command is used when a user initially signs on, or
      it may be used at any time to change from one user to
      another.  The latter case is the one summarized above and
@@ -50,7 +50,7 @@ DDEESSCCRRIIPPTTIIOONN
      Login is recognized by _s_h(1) and _c_s_h(1) and executed
      directly (without forking).
 
-FFIILLEESS
+FILES
      /etc/utmp		accounting
      /usr/adm/wtmp	accounting
      /usr/spool/mail/*	mail
@@ -60,7 +60,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	   May 8, 1986				1
+Printed 1/9/94		   May 8, 1986				1
 
 
 
@@ -73,19 +73,19 @@ LOGIN(1)	    UNIX Programmer's Manual		 LOGIN(1)
 
      .hushlogin         makes login quieter
 
-SSEEEE AALLSSOO
+SEE ALSO
      init(8), getty(8), mail(1), passwd(1), passwd(5),
      environ(7), shutdown(8), rlogin(1c)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      "Login incorrect," if the name or the password is bad.
      "No Shell", "cannot open password file", "no directory":
      consult a programming counselor.
 
-BBUUGGSS
-     An undocumented option, --rr is used by the remote login
+BUGS
+     An undocumented option, -r is used by the remote login
      server, _r_l_o_g_i_n_d(8C) to force _l_o_g_i_n to enter into an initial
-     connection protocol.  --hh iiss uusseedd bbyy _t_e_l_n_e_t_d(8C) and other
+     connection protocol.  -h is used by _t_e_l_n_e_t_d(8C) and other
      servers to list the host from which the connection was
      received.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 8, 1986				2
+Printed 1/9/94		   May 8, 1986				2
 
 
 

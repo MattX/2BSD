@@ -5,13 +5,13 @@ SORTBIB(1)	    UNIX Programmer's Manual	       SORTBIB(1)
 
 
 
-NNAAMMEE
+NAME
      sortbib - sort bibliographic database
 
-SSYYNNOOPPSSIISS
-     ssoorrttbbiibb [ --ssKEYS ] database  ...
+SYNOPSIS
+     sortbib [ -sKEYS ] database  ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_o_r_t_b_i_b sorts files of records containing _r_e_f_e_r key-letters
      by user-specified keys.  Records may be separated by blank
      lines, or by .[ and .] delimiters, but the two styles may
@@ -23,9 +23,9 @@ DDEESSCCRRIIPPTTIIOONN
      may not be used in a pipeline to read standard input.
 
      By default, _s_o_r_t_b_i_b alphabetizes by the first %A and the %D
-     fields, which contain the senior author and date.	The --ss
-     option is used to specify new _K_E_Y_S.  For instance, --ssATD
-     will sort by author, title, and date, while --ssA+D will sort
+     fields, which contain the senior author and date.	The -s
+     option is used to specify new _K_E_Y_S.  For instance, -sATD
+     will sort by author, title, and date, while -sA+D will sort
      by all authors, and date.	Sort keys past the fourth are not
      meaningful.  No more than 16 databases may be sorted
      together at one time.  Records longer than 4096 characters
@@ -46,13 +46,13 @@ DDEESSCCRRIIPPTTIIOONN
      field is absent from a record, _s_o_r_t_b_i_b places that record
      before other records containing that field.
 
-SSEEEE AALLSSOO
+SEE ALSO
      refer(1), addbib(1), roffbib(1), indxbib(1), lookbib(1)
 
-AAUUTTHHOORRSS
+AUTHORS
      Greg Shenaut, Bill Tuthill
 
-BBUUGGSS
+BUGS
      Records with missing author fields should probably be sorted
      by title.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

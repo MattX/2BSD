@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hp7221.h	5.1 (Berkeley) 5/7/85
+ *	@(#)hp7221.h	5.1.1 (2.11BSD) 1/1/94
  *
  *
  * Displays plot files on an HP7221 plotter.
@@ -26,11 +26,6 @@
 
 #define scaleX(xi)	((int) ((xi - lowx)*scale +0.5))
 #define scaleY(yi)	((int) ((yi - lowy)*scale +0.5))
-
-#ifdef BSD2_10
-#define	currentx	crnt_x
-#define	currenty	crnt_y
-#endif
 
 extern int currentx;
 extern int currenty;

@@ -20,9 +20,9 @@
  */
 
 
-#ifndef	LINT
-static char sccsid[] = "@(#)map3270.c	2.5";
-#endif	/* LINT */
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)map3270.c	2.6";
+#endif
 
 /*	This program reads a description file, somewhat like /etc/termcap,
     that describes the mapping between the current terminals keyboard and
@@ -44,9 +44,6 @@ static char sccsid[] = "@(#)map3270.c	2.5";
  */
 #endif /* DOCUMENTATION_ONLY */
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include <stdio.h>
 #include <ctype.h>

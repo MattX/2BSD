@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)init_main.c	1.5 (2.11BSD GTE) 3/12/93
  */
 
 #include "param.h"
@@ -30,6 +30,8 @@
 
 int	netoff = 1;
 int	cmask = CMASK;
+extern	size_t physmem;
+extern	struct	mapent _coremap[];
 
 /*
  * Initialization code.
@@ -46,8 +48,13 @@ int	cmask = CMASK;
  */
 main()
 {
+	extern dev_t bootdev;
+	extern caddr_t bootcsr;
 	register struct proc *p;
 	register int i;
+	register struct fs *fs;
+	time_t  toytime, toyclk();
+	daddr_t swsize;
 
 	startup();
 
@@ -62,6 +69,8 @@ main()
 
 	u.u_procp = p;			/* init user structure */
 	u.u_ap = u.u_arg;
+	u.u_nd.ni_iov = &u.u_nd.ni_iovec;
+	u.u_nd.ni_iovcnt = 1;
 	u.u_cmask = cmask;
 	u.u_lastfile = -1;
 	for (i = 1; i < NGROUPS; i++)
@@ -78,18 +87,83 @@ main()
 	ihinit();
 	bhinit();
 	binit();
-#ifdef UNIBUS_MAP
 	ubinit();
-#endif
 #ifdef QUOTA
 	QUOTAMAP();
 	qtinit();
 	u.u_quota = getquota(0, 0, Q_NDQ);
-	px_quota[0] = u.u_quota;
 	QUOTAUNMAP();
 #endif
+	nchinit();
 	clkstart();
-	iinit();
+
+#ifdef	GENERIC
+/*
+ * If this is the GENERIC kernel we set 'rootdev' to be the same as
+ * the device booted from.  'swapdev' is set to the the 'b' partition
+ * of 'bootdev'.  Set 'pipedev' to be 'rootdev'.  The 077 in the first
+ * statement removes the controller number (bits 6 and 7) - those bits
+ * are passed thru from /boot but would only greatly confuse the rest
+ * of the kernel.
+*/
+	rootdev = makedev(major(bootdev), minor(bootdev) & 077);
+	swapdev = rootdev | 1;	/* partition 'b' */
+	pipedev = rootdev;
+	dumpdev = NODEV;	/* paranoia */
+#endif
+
+/*
+ * Need to attach the root device.  The CSR is passed thru because this
+ * may be a 2nd or 3rd controller rather than the 1st.  NOTE: This poses
+ * a big problem if 'swapdev' is not on the same controller as 'rootdev'
+ * _or_ if 'swapdev' itself is on a 2nd or 3rd controller.  Short of moving
+ * autconfigure back in to the kernel it is not known what can be done about
+ * this.
+ *
+ * One solution (for now) is to call swapdev's attach routine with a zero
+ * address.  The MSCP driver treats the 0 as a signal to perform the
+ * old (fixed address) attach.  Drivers (all the rest at this point) which
+ * do not support alternate controller booting always attach the first
+ * (primary) CSR and do not expect an argument to be passed.
+*/
+	(void)(*bdevsw[major(bootdev)].d_root)(bootcsr);
+	(void)(*bdevsw[major(swapdev)].d_root)((caddr_t) 0);	/* XXX */
+
+/*
+ * Now we find out how much swap space is available.  Since 'nswap' is
+ * a "u_int" we have to restrict the amount of swap to 65535 sectors (~32mb).
+ * Considering that 4mb is the maximum physical memory capacity of a pdp-11
+ * 32mb swap should be enough ;-)
+ *
+ * The initialization of the swap map was moved here from machdep2.c because
+ * 'nswap' was no longer statically defined and this is where the swap dev
+ * is opened/initialized.
+ *
+ * Also, we toss away/ignore .5kb (1 sector) of swap space (because a 0 value
+ * can not be placed in a resource map).
+ *
+ * 'swplo' was a hack which has _finally_ gone away!  It was never anything
+ * but 0 and caused a number of double word adds in the kernel.
+*/
+	(*bdevsw[major(swapdev)].d_open)(swapdev, B_READ|B_WRITE);
+	swsize = (*bdevsw[major(swapdev)].d_psize)(swapdev);
+	if	(swsize < 0)
+		panic("swsize");	/* don't want to panic, but what ? */
+	if	(swsize > (daddr_t)65535)
+		swsize = 65535;
+	nswap = swsize;
+	mfree(swapmap, --nswap, 1);
+
+	fs = mountfs(rootdev, boothowto & RB_RDONLY, (struct inode *)0);
+	if (!fs)
+		panic("iinit");
+	mount[0].m_inodp = (struct inode *)1;	/* XXX */
+	fs->fs_fsmnt[0] = '/';
+	fs->fs_fsmnt[1] = '\0';
+	time.tv_sec = fs->fs_time;
+	if	(toytime = toyclk())
+		time.tv_sec = toytime;
+	boottime = time;
 
 /* kick off timeout driven events by calling first time */
 	schedcpu();
@@ -101,19 +175,33 @@ main()
 	iunlock(u.u_cdir);
 	u.u_rdir = NULL;
 
-#ifdef UCB_NET
+#ifdef INET
 	if (netoff = netinit())
 		printf("Network init failed\n");
 	else
 		NETSTART();
 #endif
 
+/*
+ * This came from pdp/machdep2.c because the memory available statements
+ * were being made _before_ memory for the networking code was allocated.
+ * A side effect of moving this code is that network "attach" and MSCP 
+ * "online" messages can appear before the memory sizes.  The (currently
+ * safe) assumption is made that no 'free' calls are made so that the
+ * size in the first entry of the core map is correct.
+*/
+	printf("\nphys mem  = %D\n", ctob((long)physmem));
+	printf("avail mem = %D\n", ctob((long)_coremap[0].m_size));
+	maxmem = MAXMEM;
+	printf("user mem  = %D\n", ctob((long)MAXMEM));
+#if NRAM > 0
+	printf("ram disk  = %D\n", ctob((long)ramsize));
+#endif
+	printf("\n");
+
 	/*
 	 * make init process
 	 */
-#ifdef UCB_FRCSWAP
-	idleflg = 1;			/* init can't cause swap */
-#endif
 	if (newproc(0)) {
 		expand((int)btoc(szicode), S_DATA);
 		expand((int)1, S_STACK);	/* one click of stack */
@@ -157,7 +245,7 @@ binit()
 	for (bp = bfreelist; bp < &bfreelist[BQUEUES]; bp++)
 		bp->b_forw = bp->b_back = bp->av_forw = bp->av_back = bp;
 	paddr = ((long)bpaddr) << 6;
-	for (i = 0; i < NBUF; i++, paddr += MAXBSIZE) {
+	for (i = 0; i < nbuf; i++, paddr += MAXBSIZE) {
 		bp = &buf[i];
 		bp->b_dev = NODEV;
 		bp->b_bcount = 0;
@@ -195,56 +283,19 @@ cinit()
 #endif
 }
 
-/*
- * Iinit is called once (from main) very early in initialization.
- * It reads the root's super block and initializes the current date
- * from the last modified date.
- *
- * panic: iinit -- cannot read the super block
- * (usually because of an IO error).
- */
-static
-iinit()
-{
-	register struct bdevsw *bdp;
-	register struct buf *bp;
-	register struct fs *fp;
-
-	for (bdp = bdevsw; bdp < bdevsw + nblkdev; bdp++)
-		(void)(*bdp->d_root)();
-	(*bdevsw[major(rootdev)].d_open)(rootdev, B_READ);
-	(*bdevsw[major(swapdev)].d_open)(swapdev, B_READ);
-	bp = bread(rootdev, SUPERB);
-	if (u.u_error)
-		panic("iinit");
-	fp = &mount[0].m_filsys;
-	bcopy(mapin(bp), (caddr_t)fp, sizeof(struct fs));
-	mapout(bp);
-	mount[0].m_inodp = (struct inode *)1;
-	brelse(bp);
-	mount[0].m_dev = rootdev;
-	fp->fs_flock = fp->fs_ilock = fp->fs_ronly = 0;
-	fp->fs_lasti = 1;
-	fp->fs_nbehind = 0;
-	fp->fs_fsmnt[0] = '/';
-	fp->fs_fsmnt[1] = '\0';
-	fp->fs_ronly = boothowto&RB_RDONLY ? 1 : 0;
-	time.tv_sec = fp->fs_time;
-	boottime = time;
-}
-
-#ifdef UCB_NET
+#ifdef INET
 memaddr netdata;		/* click address of start of net data */
 
 /*
  * We are called here after all the other init routines (clist, inode,
- * unibusmap, etc...) have been called.  'init' is probably running, but
- * other than that we can allocate memory without fragmenting.  Open the
+ * unibusmap, etc...) have been called.  Open the
  * file NETNIX and read the a.out header, based on that go allocate
  * memory and read the text+data into the memory.  Set up supervisor page
  * registers, SDSA6 and SDSA7 have already been set up in mch_start.s.
  */
-#define	NETNIX	"/netnix"
+
+static char NETNIX[] = "/netnix";
+
 static
 netinit()
 {
@@ -254,36 +305,36 @@ netinit()
 	struct inode *ip;
 	memaddr nettext;
 	long lsize;
-	int initdata, netdsize, nettsize, ret, resid;
+	off_t	off;
+	int initdata, netdsize, nettsize, ret, err, resid;
 	char oneclick[ctob(1)];
+	register struct	nameidata *ndp = &u.u_nd;
 
 	ret = 1;
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = NETNIX;
-	if (!(ip = namei(LOOKUP | FOLLOW))) {
-		printf("%s: not found.\n", NETNIX);
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = NETNIX;
+	if (!(ip = namei(ndp))) {
+		printf("%s not found\n", NETNIX);
 		goto leave;
 	}
 	if ((ip->i_mode & IFMT) != IFREG || !ip->i_size) {
-		printf("%s: bad ip format.\n", NETNIX);
+		printf("%s bad inode\n", NETNIX);
 		goto leave;
 	}
-	u.u_base = (caddr_t)&ex;
-	u.u_count = sizeof(ex);
-	u.u_offset = 0;
-	readi(ip);
-	if (u.u_error || u.u_count) {
-		printf("%s: u_error {%d} u_count {%d}.\n", NETNIX, u.u_error,
-		    u.u_count);
+	err = rdwri(UIO_READ, ip, &ex, sizeof (ex), (off_t)0, UIO_SYSSPACE,
+			&resid);
+	if (err || resid) {
+		printf("%s header err %d\n", NETNIX, ret);
 		goto leave;
 	}
 	if (ex.a_magic != A_MAGIC3) {
-		printf("%s: bad magic, %o.\n", NETNIX, ex.a_magic);
+		printf("%s bad magic %o\n", NETNIX, ex.a_magic);
 		goto leave;
 	}
 	lsize = (long)ex.a_data + (long)ex.a_bss;
 	if (lsize > 48L * 1024L) {
-		printf("%s: too big, %ld\n", NETNIX, lsize);
+		printf("%s too big %ld\n", NETNIX, lsize);
 		goto leave;
 	}
 	nettsize = btoc(ex.a_text);
@@ -291,34 +342,32 @@ netinit()
 	netdsize = btoc(ex.a_data + ex.a_bss);
 	netdata = (memaddr)malloc(coremap, netdsize);
 	initdata = ex.a_data >> 6;
-	resid = ex.a_data & 077;
+	off = sizeof (ex);
 	for (i = 0; i < nettsize; i++) {
-		u.u_count = ctob(1);
-		u.u_base = oneclick;
-		readi(ip);
-		if (u.u_error || u.u_count)
+		err = rdwri(UIO_READ, ip, oneclick, ctob(1), off, UIO_SYSSPACE,
+				&resid);
+		if (err || resid)
 			goto release;
 		mapseg5(nettext + i, 077406);
 		bcopy(oneclick, SEG5, ctob(1));
+		off += ctob(1);
 		normalseg5();
 	}
 	for (i = 0; i < initdata; i++) {
-		u.u_count = ctob(1);
-		u.u_base = oneclick;
-		readi(ip);
-		if (u.u_error || u.u_count)
+		err = rdwri(UIO_READ, ip, oneclick, ctob(1), off, UIO_SYSSPACE,
+				&resid);
+		if (err || resid)
 			goto release;
 		mapseg5(netdata + i, 077406);
 		bcopy(oneclick, SEG5, ctob(1));
 		normalseg5();
+		off += ctob(1);
 	}
-	if (resid) {
-		u.u_count = resid;
-		u.u_base = oneclick;
-		readi(ip);
-		if (u.u_error || u.u_count) {
-release:		printf("%s: u_error {%d} u_count {%d}.\n",
-			    NETNIX, u.u_error, u.u_count);
+	if (ex.a_data & 077) {
+		err = rdwri(UIO_READ, ip, oneclick, ex.a_data & 077, off,
+				UIO_SYSSPACE, &resid);
+		if (err || resid) {
+release:		printf("%s err %d\n", NETNIX, err);
 			mfree(coremap, nettsize, nettext);
 			mfree(coremap, netdsize, netdata);
 			nettsize = netdsize = 0;
@@ -326,7 +375,7 @@ release:		printf("%s: u_error {%d} u_count {%d}.\n",
 			goto leave;
 		}
 		mapseg5(netdata + i, 077406);	/* i is set from above loop */
-		bcopy(oneclick, SEG5, resid);
+		bcopy(oneclick, SEG5, ex.a_data & 077);
 		normalseg5();
 	}
 	for (i = 0, ap = SISA0, dp = SISD0; i < nettsize; i += stoc(1)) {
@@ -342,26 +391,19 @@ release:		printf("%s: u_error {%d} u_count {%d}.\n",
 	}
 	if (i > netdsize)
 		*--dp -= ((i - netdsize) << 8);
-#ifdef DIAGNOSTIC
-	printf("%s: size (clicks): text %d data %d bss %d\nloaded at 0%o 0%o clicks\n",
-	    NETNIX, nettsize, initdata, btoc(ex.a_bss), nettext, netdata);
-#endif
 	ret = 0;
 leave:	if (ip)
 		iput(ip);
 	u.u_error = 0;
-	u.u_offset = 0;
-	u.u_count = 0;
-	u.u_dirp = 0;
-	u.u_base = 0;
-	u.u_segflg = 0;
-	u.ni_endoff = 0;
+	ndp->ni_dirp = 0;
+	ndp->ni_segflg = 0;
+	ndp->ni_endoff = 0;
 	bzero(&u.u_ncache, sizeof(u.u_ncache));
-	bzero(&u.u_dent, sizeof(u.u_dent));
-	if (u.u_pdir) {
-		iput(u.u_pdir);
-		u.u_pdir = 0;
+	bzero(&ndp->ni_dent, sizeof(ndp->ni_dent));
+	if (ndp->ni_pdir) {
+		iput(ndp->ni_pdir);
+		ndp->ni_pdir = 0;
 	}
 	return(ret);
 }
-#endif /* UCB_NET */
+#endif

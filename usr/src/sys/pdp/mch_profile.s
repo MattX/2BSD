@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_profile.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_profile.s	1.2 (2.11BSD GTE) 12/24/92
  */
 
 /*
@@ -49,7 +49,7 @@ ENTRY(sprof)
 	br	2f			/   and we're done
 1:
 	mov	$010340,PS		/ set previous mode to supervisor
-#ifdef UCB_NET
+#ifdef INET
 	mov	SISA2, -(sp)		/ save supervisor mapping
 	mov	SISD2, -(sp)
 	mov	SISA3, -(sp)
@@ -62,7 +62,7 @@ ENTRY(sprof)
 	mfpi	40000(r0)		/   and increment 040000[r0]
 	inc	(sp)			/   (the rtt will reset the PS
 	mtpi	40000(r0)		/   properly)
-#ifdef UCB_NET
+#ifdef INET
 	mov	(sp)+, SISD3
 	mov	(sp)+, SISA3
 	mov	(sp)+, SISD2

@@ -28,21 +28,23 @@ syopen(dev, flag)
 }
 
 /*ARGSUSED*/
-syread(dev)
+syread(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	if (u.u_ttyp == NULL)
 		return (ENXIO);
-	return ((*cdevsw[major(u.u_ttyd)].d_read)(u.u_ttyd));
+	return ((*cdevsw[major(u.u_ttyd)].d_read)(u.u_ttyd, uio));
 }
 
 /*ARGSUSED*/
-sywrite(dev)
+sywrite(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	if (u.u_ttyp == NULL)
 		return (ENXIO);
-	return ((*cdevsw[major(u.u_ttyd)].d_write)(u.u_ttyd));
+	return ((*cdevsw[major(u.u_ttyd)].d_write)(u.u_ttyd, uio));
 }
 
 /*ARGSUSED*/

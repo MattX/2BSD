@@ -73,15 +73,10 @@ struct buf
 #define	bftopaddr(bp)	((u_int)(bp)->b_un.b_addr >> 6 | (bp)->b_xmem << 10)
 #define	dkblock(bp)	((bp)->b_blkno)
 #define	dkunit(bp)	(minor((bp)->b_dev) >> 3)
-#define	geterror(bp)	((bp)->b_flags&B_ERROR ? (bp)->b_error ? (bp)->b_error : EIO : 0)
 
 #if defined(KERNEL) && !defined(SUPERVISOR)
-#ifdef SMALL
 #define	BUFHSZ	16	/* must be power of 2 */
-#else
-#define	BUFHSZ	64	/* must be power of 2 */
-#endif
-#define	BUFHASH(blkno)	((struct buf *)&bufhash[blkno & ((long)(BUFHSZ - 1))])
+#define	BUFHASH(dev,blkno)	((struct buf *)&bufhash[((long)(dev) + blkno) & ((long)(BUFHSZ - 1))])
 extern struct	buf buf[];		/* the buffer pool itself */
 extern int	nbuf;			/* number of buffer headers */
 extern struct	bufhd bufhash[];	/* heads of hash lists */
@@ -112,7 +107,7 @@ struct	buf *breada();
 #define	B_TAPE 		0x00400		/* this is a magtape (no bdwrite) */
 #define	B_INVAL		0x00800		/* does not contain valid info */
 #define	B_BAD		0x01000		/* bad block revectoring in progress */
-#define	B_RH70		0x02000		/* device is talking to an RH70 */
+#define	B_LOCKED	0x02000		/* locked in core (not reusable) */
 #define	B_UBAREMAP	0x04000		/* addr UNIBUS virtual, not physical */
 #define	B_RAMREMAP	0x08000		/* remapped into ramdisk */
 

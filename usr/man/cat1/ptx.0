@@ -5,13 +5,13 @@ PTX(1)		    UNIX Programmer's Manual		   PTX(1)
 
 
 
-NNAAMMEE
+NAME
      ptx - permuted index
 
-SSYYNNOOPPSSIISS
-     ppttxx [ option ] ...  [ input [ output ] ]
+SYNOPSIS
+     ptx [ option ] ...  [ input [ output ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_t_x generates a permuted index to file _i_n_p_u_t on file _o_u_t_p_u_t
      (standard input and output default).  It has three phases:
      the first does the permutation, generating one line for each
@@ -33,34 +33,34 @@ DDEESSCCRRIIPPTTIIOONN
 
      The following options can be applied:
 
-     --ff   Fold upper and lower case letters for sorting.
+     -f   Fold upper and lower case letters for sorting.
 
-     --tt   Prepare the output for the phototypesetter; the default
+     -t   Prepare the output for the phototypesetter; the default
 	  line length is 100 characters.
 
-     --ww _n Use the next argument, _n, as the width of the output
+     -w _n Use the next argument, _n, as the width of the output
 	  line.  The default line length is 72 characters.
 
-     --gg _n Use the next argument, _n, as the number of characters
+     -g _n Use the next argument, _n, as the number of characters
 	  to allow for each gap among the four parts of the line
 	  as finally printed.  The default gap is 3 characters.
 
-     --oo only
+     -o only
 	  Use as keywords only the words given in the _o_n_l_y file.
 
-     --ii ignore
+     -i ignore
 	  Do not use as keywords any words given in the _i_g_n_o_r_e
-	  file.  If the --ii and --oo options are missing, use
+	  file.  If the -i and -o options are missing, use
 	  /_u_s_r/_l_i_b/_e_i_g_n as the _i_g_n_o_r_e file.
 
-     --bb break
+     -b break
 	  Use the characters in the _b_r_e_a_k file to separate words.
 	  In any case, tab, newline, and space characters are
 	  always used as break characters.
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 
@@ -71,18 +71,18 @@ PTX(1)		    UNIX Programmer's Manual		   PTX(1)
 
 
 
-     --rr   Take any leading nonblank characters of each input line
+     -r   Take any leading nonblank characters of each input line
 	  to be a reference identifier (as to a page or chapter)
 	  separate from the text of the line.  Attach that iden-
 	  tifier as a 5th field on each output line.
 
      The index for this manual was generated using _p_t_x.
 
-FFIILLEESS
+FILES
      /usr/bin/sort
      /usr/lib/eign
 
-BBUUGGSS
+BUGS
      Line length counts do not account for overstriking or pro-
      portional spacing.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         2
+Printed 1/9/94		 April 29, 1985                         2
 
 
 

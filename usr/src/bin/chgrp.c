@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)chgrp.c	5.7 (Berkeley) 6/4/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)chgrp.c	5.7.1 (2.11BSD GTE) 11/4/94";
+#endif
 
 /*
  * chgrp -fR gid file ...
@@ -15,6 +15,7 @@ static char sccsid[] = "@(#)chgrp.c	5.7 (Berkeley) 6/4/86";
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <grp.h>
 #include <pwd.h>
@@ -23,11 +24,11 @@ static char sccsid[] = "@(#)chgrp.c	5.7 (Berkeley) 6/4/86";
 struct	group *gr, *getgrnam(), *getgrgid();
 struct	passwd *getpwuid(), *pwd;
 struct	stat stbuf;
-int	gid, uid;
+gid_t	gid;
+uid_t	uid;
 int	status;
 int	fflag, rflag;
-/* VARARGS */
-int	fprintf();
+static	char	*fchdirmsg = "Can't fchdir() back to starting directory";
 
 main(argc, argv)
 	int argc;
@@ -35,6 +36,7 @@ main(argc, argv)
 {
 	register c, i;
 	register char *cp;
+	int	fcurdir;
 
 	argc--, argv++;
 	while (argc > 0 && argv[0][0] == '-') {
@@ -82,6 +84,10 @@ main(argc, argv)
 		fatal(255, "You are not a member of the %s group", argv[0]);
 	}
 ok:
+	fcurdir = open(".", O_RDONLY);
+	if	(fcurdir < 0)
+		fatal(255, "Can't open .");
+
 	for (c = 1; c < argc; c++) {
 		/* do stat for directory arguments */
 		if (lstat(argv[c], &stbuf)) {
@@ -93,7 +99,7 @@ ok:
 			continue;
 		}
 		if (rflag && ((stbuf.st_mode & S_IFMT) == S_IFDIR)) {
-			status += chownr(argv[c], stbuf.st_uid, gid);
+			status += chownr(argv[c], stbuf.st_uid, gid, fcurdir);
 			continue;
 		}
 		if (chown(argv[c], -1, gid)) {
@@ -115,17 +121,17 @@ isnumber(s)
 	return (1);
 }
 
-chownr(dir, uid, gid)
+chownr(dir, uid, gid, savedir)
 	char *dir;
+	uid_t	uid;
+	gid_t	gid;
+	int	savedir;
 {
 	register DIR *dirp;
 	register struct direct *dp;
-	register struct stat st;
-	char savedir[1024];
+	struct stat st;
 	int ecode;
 
-	if (getwd(savedir) == 0)
-		fatal(255, "%s", savedir);
 	/*
 	 * Change what we are given before doing its contents.
 	 */
@@ -155,7 +161,7 @@ chownr(dir, uid, gid)
 			continue;
 		}
 		if ((st.st_mode & S_IFMT) == S_IFDIR) {
-			ecode = chownr(dp->d_name, st.st_uid, gid);
+			ecode = chownr(dp->d_name, st.st_uid, gid, dirfd(dirp));
 			if (ecode)
 				break;
 			continue;
@@ -164,9 +170,9 @@ chownr(dir, uid, gid)
 		    (ecode = Perror(dp->d_name)))
 			break;
 	}
+	if (fchdir(savedir) < 0)
+		fatal(255, fchdirmsg);
 	closedir(dirp);
-	if (chdir(savedir) < 0)
-		fatal(255, "can't change back to %s", savedir);
 	return (ecode);
 }
 
@@ -182,6 +188,7 @@ error(fmt, a)
 	return (!fflag);
 }
 
+/* VARARGS */
 fatal(status, fmt, a)
 	int status;
 	char *fmt, *a;

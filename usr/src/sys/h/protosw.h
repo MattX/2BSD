@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)protosw.h	7.2 (Berkeley) 12/30/87
+ *	@(#)protosw.h	7.2.1 (2.11BSD GTE) 2/20/94
  */
 
 /*
@@ -117,15 +117,9 @@ char *prurequests[] = {
 
 /*
  * The arguments to the ctlinput routine are
- *	(*protosw[].pr_ctlinput)(cmd, arg);
- * where cmd is one of the commands below, and arg is
- * an optional argument (caddr_t).
- *
- * N.B. The IMP code, in particular, pressumes the values
- *      of some of the commands; change with extreme care.
- * TODO:
- *	spread out codes so new ICMP codes can be
- *	accomodated more easily
+ *	(*protosw[].pr_ctlinput)(cmd, sa, arg);
+ * where cmd is one of the commands below, sa is a pointer to a sockaddr,
+ * and arg is an optional caddr_t argument used within a protocol family.
  */
 #define	PRC_IFDOWN		0	/* interface transition */
 #define	PRC_ROUTEDEAD		1	/* select new route if possible */
@@ -148,6 +142,9 @@ char *prurequests[] = {
 #define	PRC_PARAMPROB		20	/* header incorrect */
 
 #define	PRC_NCMDS		21
+
+#define	PRC_IS_REDIRECT(cmd)	\
+	((cmd) >= PRC_REDIRECT_NET && (cmd) <= PRC_REDIRECT_TOSHOST)
 
 #if	defined(PRCREQUESTS) && defined(SUPERVISOR)
 char	*prcrequests[] = {
@@ -184,6 +181,6 @@ char	*prcorequests[] = {
 };
 #endif
 
-#if defined(KERNEL) && defined(UCB_NET) && defined(SUPERVISOR)
+#if defined(KERNEL) && defined(INET) && defined(SUPERVISOR)
 extern	struct protosw *pffindproto(), *pffindtype();
 #endif

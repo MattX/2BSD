@@ -5,7 +5,8 @@
 #
 #	@(#)Makefile	5.1 (Berkeley) 6/5/85
 #
-CFLAGS=	-O -DCM_N -DCM_GT -DCM_B -DCM_D
+DEFS= -DNOSCCS
+CFLAGS=	-O -DCM_N -DCM_GT -DCM_B -DCM_D $(DEFS)
 LD = ld
 SRCS=	termcap.c tgoto.c tputs.c
 OBJS=	termcap.o tgoto.o tputs.o

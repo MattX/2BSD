@@ -5,15 +5,15 @@ UUENCODE(1C)	    UNIX Programmer's Manual	     UUENCODE(1C)
 
 
 
-NNAAMMEE
+NAME
      uuencode, uudecode - encode/decode a binary file for
      transmission via mail
 
-SSYYNNOOPPSSIISS
-     uuuueennccooddee [ source ] remotedest | mmaaiill sys1!sys2!..!decode
-     uuuuddeeccooddee [ file ]
+SYNOPSIS
+     uuencode [ source ] remotedest | mail sys1!sys2!..!decode
+     uudecode [ file ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _U_u_e_n_c_o_d_e and _u_u_d_e_c_o_d_e are used to send a binary file via
      uucp (or other) mail.  This combination can be used over
      indirect mail links even when _u_u_s_e_n_d(1C) is not available.
@@ -43,10 +43,10 @@ DDEESSCCRRIIPPTTIIOONN
      The encode file has an ordinary text form and can be edited
      by any text editor to change the mode or remote name.
 
-SSEEEE AALLSSOO
+SEE ALSO
      atob(n), uusend(1C), uucp(1C), uux(1C), mail(1), uuencode(5)
 
-BBUUGGSS
+BUGS
      The file is expanded by 35% (3 bytes become 4 plus control
      information) causing it to take longer to transmit.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 

@@ -183,7 +183,7 @@ if(procclass==CLPROC)
 		}
 	else	{
 		putlabel(retlabel);
-		if(multitypes)
+		if(multitype)
 			{
 			typeaddr = autovar(1, TYADDR, NULL);
 			putbranch( cpexpr(typeaddr) );

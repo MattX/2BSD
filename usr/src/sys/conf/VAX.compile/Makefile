@@ -6,7 +6,7 @@ CONF=	../conf
 I=	../../../include
 FLAGS=	-DBSD2_10 -DKERNEL -Dpdp11 -I. -I${H} -I${I}
 CFLAGS=	-O ${FLAGS}
-VPATH=	../pdpuba:../machine:../sys:../net:../netimp:../netinet:../netpup:../pdpif:../pdpmba:../netns:
+VPATH=	../pdpuba:../machine:../sys:../net:../netimp:../netinet:../pdpif:../pdpmba:../netns:
 
 D=	../pdpuba
 DFILES=	${D}/dh.c ${D}/dhu.c ${D}/dkbad.c ${D}/dn.c ${D}/dr.c ${D}/dz.c	\
@@ -80,10 +80,6 @@ N3O=	if_ether.o in.o in_pcb.o in_proto.o ip_icmp.o ip_input.o	\
 	ip_output.o raw_ip.o tcp_debug.o tcp_input.o tcp_output.o	\
 	tcp_subr.o tcp_timer.o tcp_usrreq.o udp_usrreq.o
 
-N4=	../netpup
-N4C=	${N4}/pup.c ${N4}/raw_pup.c
-N4O=	pup.o raw_pup.o
-
 N5=	../netns
 N5C=	${N5}/idp_usrreq.c ${N5}/ns.c ${N5}/ns_error.c ${N5}/ns_input.c	\
 	${N5}/ns_ip.c ${N5}/ns_output.c ${N5}/ns_pcb.c ${N5}/ns_proto.c	\
@@ -136,13 +132,13 @@ genassym: ${M}/genassym.c
 netbind: ${CONF}/netbind.c
 	${CC} ${CFLAGS} -o $@ ${CONF}/netbind.c
 
-${N1O} ${N2O} ${N3O} ${N4O} ${N5O} ${N6O} ${SSO} netsubr.o:
+${N1O} ${N2O} ${N3O} ${N5O} ${N6O} ${SSO} netsubr.o:
 	${CC} ${CFLAGS} -DSUPERVISOR -c $*.c
 
 depend: 
 	../conf/VAX.compile/mkdep ${CFLAGS} ${CFILES}
 
-INC1=	${N1}/*.h ${N2}/*.h ${N3}/*.h ${N4}/*.h ${N5}/*.h ${N6}/*.h
+INC1=	${N1}/*.h ${N2}/*.h ${N3}/*.h ${N5}/*.h ${N6}/*.h
 INC2=	${D}/*.h ${MB}/*.h ${M}/*.h ${H}/*.h ${I}/*.h
 
 tags: FRC

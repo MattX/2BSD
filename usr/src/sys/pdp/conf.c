@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)conf.c	2.1 (2.11BSD Berkeley) 12/23/92
  */
 
 #include "param.h"
@@ -18,143 +18,146 @@
 
 int	nulldev();
 int	nodev();
+int	rawread(), rawwrite();
 
 #include "rk.h"
 #if NRK > 0
-int	rkopen(), rkstrategy(), rkread(), rkwrite();
+int	rkopen(), rkstrategy();
+daddr_t	rksize();
 #define	rkclose		nulldev
 #else
 #define	rkopen		nodev
 #define	rkclose		nodev
 #define	rkstrategy	nodev
-#define	rkread		nodev
-#define	rkwrite		nodev
+#define	rksize		NULL
 #endif
 
 #include "tm.h"
 #if NTM > 0
-int	tmopen(), tmclose(), tmread(), tmwrite(), tmioctl(), tmstrategy();
+int	tmopen(), tmclose(), tmioctl(), tmstrategy();
 #else
 #define	tmopen		nodev
 #define	tmclose		nodev
-#define	tmread		nodev
-#define	tmwrite		nodev
 #define	tmioctl		nodev
 #define	tmstrategy	nodev
 #endif
 
 #include "hk.h"
 #if NHK > 0
-int	hkopen(), hkstrategy(), hkread(), hkwrite(), hkroot();
+int	hkopen(), hkstrategy(), hkroot();
+daddr_t	hksize();
 #define	hkclose		nulldev
 #else
 #define	hkopen		nodev
 #define	hkclose		nodev
 #define	hkroot		nulldev
 #define	hkstrategy	nodev
-#define	hkread		nodev
-#define	hkwrite		nodev
+#define	hksize		NULL
 #endif
 
 #include "xp.h"
 #if NXPD > 0
-int	xpopen(), xpstrategy(), xpread(), xpwrite(), xproot();
+int	xpopen(), xpstrategy(), xproot();
+daddr_t	xpsize();
 #define	xpclose		nulldev
 #else
 #define	xpopen		nodev
 #define	xpclose		nodev
 #define	xproot		nulldev
 #define	xpstrategy	nodev
-#define	xpread		nodev
-#define	xpwrite		nodev
+#define	xpsize		NULL
 #endif
 
 #include "br.h"
 #if NBR > 0
-int	bropen(), brstrategy(), brread(), brwrite(), brroot();
+int	bropen(), brstrategy(), brroot();
+daddr_t	brsize();
 #define	brclose		nulldev
 #else
 #define	bropen		nodev
 #define	brclose		nodev
 #define	brroot		nulldev
 #define	brstrategy	nodev
-#define	brread		nodev
-#define	brwrite		nodev
+#define	brsize		NULL
 #endif
 
 #include "ht.h"
 #if NHT > 0
-int	htopen(), htclose(), htread(), htwrite(), htstrategy(), htioctl();
+int	htopen(), htclose(), htstrategy(), htioctl();
 #else
 #define	htopen		nodev
 #define	htclose		nodev
-#define	htread		nodev
-#define	htwrite		nodev
 #define	htioctl		nodev
 #define	htstrategy	nodev
 #endif
 
 #include "rl.h"
 #if NRL > 0
-int	rlopen(), rlstrategy(), rlread(), rlwrite(), rlroot();
+int	rlopen(), rlstrategy(), rlroot();
+daddr_t	rlsize();
 #define	rlclose		nulldev
 #else
 #define	rlroot		nulldev
 #define	rlopen		nodev
 #define	rlclose		nodev
 #define	rlstrategy	nodev
-#define	rlread		nodev
-#define	rlwrite		nodev
+#define	rlsize		NULL
 #endif
 
 #include "ts.h"
 #if NTS > 0
-int	tsopen(), tsclose(), tsread(), tswrite(), tsstrategy(), tsioctl();
+int	tsopen(), tsclose(), tsstrategy(), tsioctl();
 #else
 #define	tsopen		nodev
 #define	tsclose		nodev
-#define	tsread		nodev
-#define	tswrite		nodev
 #define	tsioctl		nodev
 #define	tsstrategy	nodev
 #endif
 
+#include "tms.h"
+#if NTMS > 0
+int	tmscpopen(), tmscpclose(), tmscpstrategy(), tmscpioctl();
+#else
+#define	tmscpopen	nodev
+#define	tmscpclose	nodev
+#define	tmscpioctl	nodev
+#define	tmscpstrategy	nodev
+#endif
+
 #include "si.h"
 #if NSI > 0
-int	siopen(), sistrategy(), siread(), siwrite(), siroot();
+int	siopen(), sistrategy(), siroot();
+daddr_t	sisize();
 #define	siclose		nulldev
 #else
 #define	siopen		nodev
 #define	siclose		nodev
 #define	siroot		nulldev
 #define	sistrategy	nodev
-#define	siread		nodev
-#define	siwrite		nodev
+#define	sisize		NULL
 #endif
 
 #include "ra.h"
 #if NRAC > 0
-int	rastrategy(), raread(), rawrite(), raroot(), raopen();
+int	rastrategy(), raroot(), raopen();
+daddr_t	rasize();
 #define	raclose		nulldev
 #else
 #define	raopen		nodev
 #define	raclose		nodev
 #define	raroot		nulldev
 #define	rastrategy	nodev
-#define	raread		nodev
-#define	rawrite		nodev
+#define	rasize		nodev
 #endif
 
 #include "rx.h"
 #if NRX > 0
-int	rxopen(), rxstrategy(), rxread(), rxwrite(), rxioctl();
+int	rxopen(), rxstrategy(), rxioctl();
 #define	rxclose		nulldev
 #else
 #define	rxopen		nodev
 #define	rxclose		nodev
 #define	rxstrategy	nodev
-#define	rxread		nodev
-#define	rxwrite		nodev
 #define	rxioctl		nodev
 #endif
 
@@ -170,29 +173,44 @@ int	ramopen(), ramstrategy();
 
 struct bdevsw	bdevsw[] = {
 /* ht = 0 */
-	htopen,		htclose,	htstrategy,	nulldev,	B_TAPE,
+	htopen,		htclose,	htstrategy,	nulldev,	NULL,
+	B_TAPE,
 /* tm = 1 */
-	tmopen,		tmclose,	tmstrategy,	nulldev,	B_TAPE,
+	tmopen,		tmclose,	tmstrategy,	nulldev,	NULL,
+	B_TAPE,
 /* ts = 2 */
-	tsopen,		tsclose,	tsstrategy,	nulldev,	B_TAPE,
+	tsopen,		tsclose,	tsstrategy,	nulldev,	NULL,
+	B_TAPE,
 /* ram = 3 */
-	ramopen,	ramclose,	ramstrategy,	nulldev,	0,
+	ramopen,	ramclose,	ramstrategy,	nulldev,	NULL,
+	0,
 /* hk = 4 */
-	hkopen,		hkclose,	hkstrategy,	hkroot,		0,
+	hkopen,		hkclose,	hkstrategy,	hkroot,		hksize,
+	0,
 /* ra = 5 */
-	raopen,		raclose,	rastrategy,	raroot,		0,
+	raopen,		raclose,	rastrategy,	raroot,		rasize,
+	0,
 /* rk = 6 */
-	rkopen,		rkclose,	rkstrategy,	nulldev,	0,
+	rkopen,		rkclose,	rkstrategy,	nulldev,	rksize,
+	0,
 /* rl = 7 */
-	rlopen,		rlclose,	rlstrategy,	rlroot,		0,
+	rlopen,		rlclose,	rlstrategy,	rlroot,		rlsize,
+	0,
 /* rx = 8 */
-	rxopen,		rxclose,	rxstrategy,	nulldev,	0,
+	rxopen,		rxclose,	rxstrategy,	nulldev,	NULL,
+	0,
 /* si = 9 */
-	siopen,		siclose,	sistrategy,	siroot,		0,
+	siopen,		siclose,	sistrategy,	siroot,		sisize,
+	0,
 /* xp = 10 */
-	xpopen,		xpclose,	xpstrategy,	xproot,		0,
+	xpopen,		xpclose,	xpstrategy,	xproot,		xpsize,
+	0,
 /* br = 11 */
-	bropen,		brclose,	brstrategy,	brroot,		0,
+	bropen,		brclose,	brstrategy,	brroot,		brsize,
+	0,
+/* tmscp = 12 (tu81/tk50) */
+	tmscpopen,	tmscpclose,	tmscpstrategy,	nulldev,	NULL,
+	B_TAPE,
 };
 int	nblkdev = sizeof(bdevsw) / sizeof(bdevsw[0]);
 
@@ -260,13 +278,12 @@ extern	struct tty pt_tty[];
 
 #include "dr.h"
 #if NDR > 0
-int	dropen(), drclose(), drread(), drwrite(), drioctl();
+int	dropen(), drclose(), drioctl(), drstrategy();
 #else
 #define	dropen		nodev
 #define	drclose		nodev
-#define	drread		nodev
-#define	drwrite		nodev
 #define	drioctl		nodev
+#define	drstrategy	nodev
 #endif
 
 #include "dhu.h"
@@ -283,6 +300,22 @@ extern struct tty	dhu_tty[];
 #define	dhu_tty		((struct tty *) NULL)
 #endif
 
+#include "dhv.h"
+#if NDHV > 0
+int	dhvopen(), dhvclose(), dhvread(), dhvwrite(), dhvioctl(), dhvstop();
+int	dhvselect();
+extern struct tty	dhv_tty[];
+#else
+#define	dhvopen		nodev
+#define	dhvclose	nodev
+#define	dhvread		nodev
+#define	dhvwrite	nodev
+#define	dhvioctl	nodev
+#define	dhvstop		nodev
+#define	dhvselect	nodev
+#define	dhv_tty		((struct tty *) NULL)
+#endif
+
 #include "dn.h"
 #if NDN > 0
 int	dnopen(), dnclose(), dnwrite();
@@ -296,6 +329,7 @@ int	dnopen(), dnclose(), dnwrite();
 #define	dnioctl		nodev
 #endif
 
+int	logopen(), logclose(), logread(), logioctl(), logselect();
 int	syopen(), syread(), sywrite(), syioctl(), syselect();
 
 int	mmread(),mmwrite();
@@ -307,69 +341,103 @@ struct cdevsw	cdevsw[] = {
 /* cn = 0 */
 	cnopen,		cnclose,	cnread,		cnwrite,
 	cnioctl,	nulldev,	cons,		ttselect,
+	nulldev,
 /* mem = 1 */
 	nulldev,	nulldev,	mmread,		mmwrite,
 	nodev,		nulldev,	0,		mmselect,
+	nulldev,
 /* dz = 2 */
 	dzopen,		dzclose,	dzread,		dzwrite,
 	dzioctl,	dzstop,		dz_tty,		ttselect,
+	nulldev,
 /* dh = 3 */
 	dhopen,		dhclose,	dhread,		dhwrite,
 	dhioctl,	dhstop,		dh11,		ttselect,
+	nulldev,
 /* dhu = 4 */
 	dhuopen,	dhuclose,	dhuread,	dhuwrite,
 	dhuioctl,	dhustop,	dhu_tty,	ttselect,
+	nulldev,
 /* lp = 5 */
 	lpopen,		lpclose,	nodev,		lpwrite,
 	nodev,		nulldev,	0,		nodev,
+	nulldev,
 /* ht = 6 */
-	htopen,		htclose,	htread,		htwrite,
+	htopen,		htclose,	rawread,	rawwrite,
 	htioctl,	nulldev,	0,		seltrue,
+	htstrategy,
 /* tm = 7 */
-	tmopen,		tmclose,	tmread,		tmwrite,
+	tmopen,		tmclose,	rawread,	rawwrite,
 	tmioctl,	nulldev,	0,		seltrue,
+	tmstrategy,
 /* ts = 8 */
-	tsopen,		tsclose,	tsread,		tswrite,
+	tsopen,		tsclose,	rawread,	rawwrite,
 	tsioctl,	nulldev,	0,		seltrue,
+	tsstrategy,
 /* tty = 9 */
 	syopen,		nulldev,	syread,		sywrite,
 	syioctl,	nulldev,	0,		syselect,
+	nulldev,
 /* ptc = 10 */
 	ptcopen,	ptcclose,	ptcread,	ptcwrite,
 	ptyioctl,	nulldev,	pt_tty,		ptcselect,
+	nulldev,
 /* pts = 11 */
 	ptsopen,	ptsclose,	ptsread,	ptswrite,
 	ptyioctl,	ptsstop,	pt_tty,		ttselect,
+	nulldev,
 /* dr = 12 */
-	dropen,		drclose,	drread,		drwrite,
+	dropen,		drclose,	rawread,	rawwrite,
 	drioctl,	nulldev,	0,		seltrue,
+	drstrategy,
 /* hk = 13 */
-	hkopen,		hkclose,	hkread,		hkwrite,
+	hkopen,		hkclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	hkstrategy,
 /* ra = 14 */
-	raopen,		raclose,	raread,		rawrite,
+	raopen,		raclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	rastrategy,
 /* rk = 15 */
-	rkopen,		rkclose,	rkread,		rkwrite,
+	rkopen,		rkclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	rkstrategy,
 /* rl = 16 */
-	rlopen,		rlclose,	rlread,		rlwrite,
+	rlopen,		rlclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	rlstrategy,
 /* rx = 17 */
-	rxopen,		rxclose,	rxread,		rxwrite,
+	rxopen,		rxclose,	rawread,	rawwrite,
 	rxioctl,	nulldev,	0,		seltrue,
+	rxstrategy,
 /* si = 18 */
-	siopen,		siclose,	siread,		siwrite,
+	siopen,		siclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	sistrategy,
 /* xp = 19 */
-	xpopen,		xpclose,	xpread,		xpwrite,
+	xpopen,		xpclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	xpstrategy,
 /* br = 20 */
-	bropen,		brclose,	brread,		brwrite,
+	bropen,		brclose,	rawread,	rawwrite,
 	nodev,		nulldev,	0,		seltrue,
+	brstrategy,
 /* dn = 21 */
 	dnopen,		dnclose,	dnread,		dnwrite,
 	dnioctl,	nulldev,	0,		seltrue,
+	nulldev,
+/* log = 22 */
+	logopen,	logclose,	logread,	nodev,
+	logioctl,	nulldev,	0,		logselect,
+	nulldev,
+/* tmscp = 23 (tu81/tk50) */
+	tmscpopen,	tmscpclose,	rawread,	rawwrite,
+	tmscpioctl,	nulldev,	0,		seltrue,
+	tmscpstrategy,
+/* dhv = 24 */
+	dhvopen,	dhvclose,	dhvread,	dhvwrite,
+	dhvioctl,	dhvstop,	dhv_tty,	dhvselect,
+	nulldev,
 };
 
 int	nchrdev = sizeof(cdevsw) / sizeof(cdevsw[0]);

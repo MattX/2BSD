@@ -33,11 +33,6 @@ FUNCTIONS:
 
 #include <stdio.h>
 
-#ifdef BSD2_10
-#define compute_code_target	cc_trg
-#define compute_label_target	cl_trg
-#endif
-
 #define BACKSLASH '\\'
 #define bufsize 600	   /* size of internal buffers */
 #define inp_bufs 600	   /* size of input buffer */

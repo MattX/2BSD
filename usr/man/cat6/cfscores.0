@@ -5,14 +5,14 @@ CANFIELD(6)	    UNIX Programmer's Manual	      CANFIELD(6)
 
 
 
-NNAAMMEE
+NAME
      canfield, cfscores - the solitaire card game canfield
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//ccaannffiieelldd
-     //uussrr//ggaammeess//ccffssccoorreess
+SYNOPSIS
+     /usr/games/canfield
+     /usr/games/cfscores
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      If you have never played solitaire before, it is recommended
      that you consult a solitaire instruction book. In Canfield,
      tableau cards may be built on each other downward in alter-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 6, 1986				1
+Printed 1/9/94		   May 6, 1986				1
 
 
 
@@ -74,19 +74,19 @@ CANFIELD(6)	    UNIX Programmer's Manual	      CANFIELD(6)
      With no arguments, the program _c_f_s_c_o_r_e_s prints out the
      current status of your canfield account.  If a user name is
      specified, it prints out the status of their canfield
-     account.  If the --aa flag is specified, it prints out the
+     account.  If the -a flag is specified, it prints out the
      canfield accounts for all users that have played the game
      since the database was set up.
 
-FFIILLEESS
+FILES
      /usr/games/canfield the game itself
      /usr/games/cfscores the database printer
      /usr/games/lib/cfscores  the database of scores
 
-BBUUGGSS
+BUGS
      It is impossible to cheat.
 
-AAUUTTHHOORRSS
+AUTHORS
      Originally written: Steve Levine
      Further random hacking by: Steve Feldman, Kirk McKusick,
      Mikey Olson, and Eric Allman.
@@ -126,7 +126,7 @@ AAUUTTHHOORRSS
 
 
 
-Printed 12/28/88	   May 6, 1986				2
+Printed 1/9/94		   May 6, 1986				2
 
 
 

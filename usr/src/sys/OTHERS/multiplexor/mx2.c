@@ -211,7 +211,9 @@ char	m_eot[] ={ M_EOT, 0, 0, 0};
  * Calls are made through linesw to handle actual
  * data movement.
  */
-mxread(dev)
+mxread(dev, uio)
+	dev_t dev;
+	struct uio *uio;
 {
 	register struct group *gp;
 	register struct chan *cp;
@@ -228,19 +230,19 @@ mxread(dev)
 
 	fmp = FP->f_flag & FMP;
 	if (fmp != FMP) {
-		if (u.u_count == 0)
+		if (uio->uio_resid == 0)
 			return;
 		msread(fmp, FP->f_un.f_chan);
 		return;
 	}
 
-	if ((int)u.u_base & 1) {
+	if ((int)uio->uio_iov->iov_base & 1) {
 		u.u_error = ENXIO;
 		return;
 	}
 
 	s = spl6();
-	if (u.u_count == 0)
+	if (uio->uio_resid == 0)
 	{
 		if (gp->g_datq == 0)
 			u.u_error = ENXIO;
@@ -252,7 +254,7 @@ mxread(dev)
 	}
 	splx(s);
 
-	while (gp->g_datq && u.u_count >= CNTLSIZ + 2) {
+	while (gp->g_datq && uio->uio_resid >= CNTLSIZ + 2) {
 		esc = 0;
 		cp = nextcp(gp);
 		if (cp==NULL) {
@@ -263,17 +265,18 @@ mxread(dev)
 			count += CNTLSIZ;
 			if (cp->c_flags&NMBUF)
 				count += nmsize;
-			if (count > u.u_count) {
+			if (count > uio->uio_resid) {
 				(void) sdata(cp);
 				return;
 			}
 			esc++;
 		}
-		base = u.u_base;
-		count = u.u_count;
-		u.u_base += sizeof h;
-		u.u_count -= sizeof h;
-		xfr = u.u_count;
+		base = uio->uio_iov->iov_base;
+		count = uio->uio_iov->iov_len;
+		uio->uio_iov->iov_base += sizeof h;
+		uio->uio_iov->iov_len -= sizeof h;
+		uio->uio_resid -= sizeof h;
+		xfr = uio->uio_resid;
 		if (esc) {
 			more = mcread(cp);
 		} else {
@@ -284,11 +287,11 @@ mxread(dev)
 		if (more < 0)
 			scontrol(cp, M_CLOSE, 0);
 		(void) _spl0();
-		if (xfr == u.u_count) {
+		if (xfr == uio->uio_resid) {
 			esc++;
 			IOMOVE((caddr_t)m_eot, sizeof m_eot, B_READ);
 		}
-		xfr -= u.u_count;
+		xfr -= uio->uio_resid;
 		if (esc) {
 			h.count = 0;
 			h.ccount = xfr;
@@ -297,9 +300,10 @@ mxread(dev)
 			h.ccount = 0;
 			mxrstrt(cp, &cp->cx.datq, BLOCK|ALT);
 		}
-		if (u.u_count && (xfr&1)) {
-			u.u_base++;
-			u.u_count--;
+		if (uio->uio_resid && (xfr&1)) {
+			uio->uio_iov->iov_base++;
+			uio->uio_iov->iov_len--;
+			uio->uio_resid--;
 		}
 		(void) copyout((caddr_t)&h, base, sizeof h);
 
@@ -307,7 +311,9 @@ mxread(dev)
 }
 
 
-mxwrite(dev)
+mxwrite(dev, uio)
+	dev_t dev;
+	struct uio *uio;
 {
 register struct chan *cp;
 struct	wh h;
@@ -325,8 +331,8 @@ caddr_t	ubase, hbase;
 	}
 
 	burpcount = 0;
-	while (u.u_count >= sizeof h) {
-		hbase = u.u_base;
+	while (uio->uio_resid >= sizeof h) {
+		hbase = uio->uio_iov->iov_base;
 		IOMOVE((caddr_t)&h, sizeof h, B_WRITE);
 		if (u.u_error)
 			return;
@@ -340,10 +346,10 @@ caddr_t	ubase, hbase;
 			u.u_error = ENXIO;
 			return;
 		}
-		ucount = u.u_count;
-		ubase = u.u_base;
-		u.u_count = h.count;
-		u.u_base = h.data;
+		ucount = uio->uio_resid;
+		ubase = uio->uio_iov->iov_base;
+		uio->uio_resid = uio->uio_iov->iov_len = h.count;
+		uio->uio_iov->iov_base = h.data;
 
 		if (esc==0) {
 			struct tty *tp;
@@ -359,16 +365,16 @@ caddr_t	ubase, hbase;
 			}
 		loop:
 			waddr = (caddr_t)(*linesw[line].l_write)(tp);
-			if (u.u_count) {
+			if (uio->uio_resid) {
 				if (gp->g_state&ENAMSG) {
 					burpcount++;
 					cp->c_flags |= BLKMSG;
 /*
-					scontrol(cp, M_BLK, u.u_count);
+					scontrol(cp, M_BLK, uio->uio_resid);
 */
 					h.ccount = -1;
-					h.count = u.u_count;
-					h.data = u.u_base;
+					h.count = uio->uio_resid;
+					h.data = uio->uio_iov->iov_base;
 					(void) copyout((caddr_t)&h, hbase, sizeof h);
 				} else {
 					if(waddr == 0) {
@@ -382,10 +388,10 @@ caddr_t	ubase, hbase;
 		} else {
 			mxwcontrol(cp); 
 		}
-		u.u_count = ucount;
-		u.u_base = ubase;
+		uio->uio_resid = uio->uio_iov->iov_len = ucount;
+		uio->uio_iov->iov_base = ubase;
 	}
-	u.u_count = burpcount;
+	uio->uio_resid = uio->uio_iov->iov_len = burpcount;
 }
 
 
@@ -396,8 +402,9 @@ caddr_t	ubase, hbase;
  * Kernel-to-Kernel and other special transfers are not
  * yet in.
  */
-mcread(cp)
+mcread(cp, uio)
 register struct chan *cp;
+	struct uio *uio;
 {
 register struct clist *q;
 register char *np;
@@ -421,14 +428,15 @@ register char *np;
 
 
 caddr_t
-mcwrite(cp)
+mcwrite(cp, uio)
 register struct chan *cp;
+	struct	uio *uio;
 {
 register struct clist *q;
 int	s;
 
 	q = &cp->cy.datq;
-	while (u.u_count) {
+	while (uio->uio_resid) {
 		s = spl6();
 		if (q->c_cc > HIQ || (cp->c_flags&EOTMARK)) {
 			cp->c_flags |= SIGBLK;
@@ -447,8 +455,9 @@ int	s;
  * Msread and mswrite move bytes
  * between user and non-multiplexed channel.
  */
-msread(fmp, cp)
+msread(fmp, cp, uio)
 register struct chan *cp;
+	struct	uio *uio;
 {
 register struct clist *q;
 int s;
@@ -486,14 +495,15 @@ out:
 }
 
 
-mswrite(fmp, cp)
+mswrite(fmp, cp, uio)
 register struct chan *cp;
+	struct	uio *uio;
 {
 	register struct clist *q;
 	register int cc;
 
 	q = (fmp&FMPX) ? &cp->cy.datq : &cp->cx.datq;
-	while (u.u_count) {
+	while (uio->uio_resid) {
 		(void) _spl6();
 		if (cp->c_flags&WCLOSE) {
 			gsignal(cp->c_pgrp, SIGPIPE);
@@ -531,14 +541,15 @@ register struct chan *cp;
  * move chars between clist and user space.
  */
 
-mxmove(q, dir)
+mxmove(q, dir, uio)
 register struct clist *q;
 register dir;
+	struct uio *uio;
 {
 register cc;
 char cbuf[HIQ];
 
-	cc = MIN(u.u_count, sizeof cbuf);
+	cc = MIN(uio->uio_resid, sizeof cbuf);
 	if (dir == B_READ) 
 		cc = q_to_b(q, cbuf, cc);
 	if (cc <= 0)

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)defs.h	5.2 (Berkeley) 3/20/86
+ *	@(#)defs.h	5.2.1 (2.11BSD GTE) 6/11/95
  */
 
 #include <stdio.h>
@@ -21,8 +21,6 @@
  * The version number should be changed whenever the protocol changes.
  */
 #define VERSION	 3
-
-#define	MAILCMD	 "/usr/lib/sendmail -oi -t"
 
 	/* defines for yacc */
 #define EQUAL	1

@@ -9,19 +9,13 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)icmp_var.h	7.3 (Berkeley) 12/7/87
+ *	@(#)icmp_var.h	7.3.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
  * Variables related to this implementation
  * of the internet control message protocol.
  */
-#ifdef BSD2_10
-#define	icps_oldshort	icps_os
-#define	icps_oldicmp	icps_oi
-#define	icps_badcode	icps_bc
-#define	icps_badlen	icps_bl
-#endif
 
 struct	icmpstat {
 /* statistics related to icmp packets generated */

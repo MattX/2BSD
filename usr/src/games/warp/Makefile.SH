@@ -30,7 +30,6 @@ $spitshell >Makefile <<!GROK!THIS!
 CC = $cc
 bin = $bin
 mansrc = $mansrc
-manext = $manext
 CFLAGS = $ccflags -O
 LDFLAGS = $ldflags
 CHOWNER = $chowner
@@ -106,7 +105,7 @@ warp: $(obj)
 $(h):
 	touch $@
 
-install: warp
+install: $(public) $(private) $(util)
 # won't work with csh
 	export PATH || exit 1
 	- mv $(bin)/warp $(bin)/warp.old
@@ -131,12 +130,14 @@ fi
 	- \
 if test `pwd` != $(mansrc); then \
 for page in $(manpages); do \
-cp $$page $(mansrc)/`basename $$page .man`.$(manext); \
+/usr/man/manroff $$page > $(mansrc)/`basename $$page .man`.0; \
+chown bin.bin $(mansrc)/`basename $$page .man`.0; \
+chmod 444 $(mansrc)/`basename $$page .man`.0; \
 done; \
 fi
 
 clean:
-	rm -f core *.o
+	rm -f core *.o warp smap.* all sm
 
 realclean:
 	rm -f warp *.o core $(addedbyconf) $(util)
@@ -150,26 +151,26 @@ lint:
 	lint $(lintflags) $(defs) $(c) > warp.fuzz
 
 smap.0: smp.0 sm
-	sm <smp.0 >smap.0
+	./sm <smp.0 >smap.0
 smap.1: smp.1 sm
-	sm <smp.1 >smap.1
+	./sm <smp.1 >smap.1
 smap.2: smp.2 sm
-	sm <smp.2 >smap.2
+	./sm <smp.2 >smap.2
 smap.3: smp.3 sm
-	sm <smp.3 >smap.3
+	./sm <smp.3 >smap.3
 smap.4: smp.4 sm
-	sm <smp.4 >smap.4
+	./sm <smp.4 >smap.4
 smap.5: smp.5 sm
-	sm <smp.5 >smap.5
+	./sm <smp.5 >smap.5
 smap.6: smp.6 sm
-	sm <smp.6 >smap.6
+	./sm <smp.6 >smap.6
 smap.7: smp.7 sm
-	sm <smp.7 >smap.7
+	./sm <smp.7 >smap.7
 sm: sm.c
 	cc sm.c $(SMALL) -o sm
 
 depend: makedepend
-	makedepend
+	./makedepend
 
 clist:
 	echo $(c) | tr ' ' '\012' >.clist

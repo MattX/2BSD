@@ -3,55 +3,53 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 1/25/87
+#	@(#)Makefile	5.6.2 (2.11BSD GTE) 4/21/94
 #
 SRCS=	_exit.s accept.s access.s acct.s adjtime.s bind.s brk.s chdir.s \
 	chmod.s chown.s chroot.s close.s connect.s creat.s dup.s dup2.s \
-	execl.s execle.s execv.s execve.s fchmod.s fchown.s fcntl.s flock.s \
-	fork.s fstat.s fsync.s ftruncate.s getdopt.s getdtablesiz.s \
+	execl.s execle.s execv.s execve.s fchdir.s fchmod.s fchown.s fcntl.s \
+	flock.s fork.s fstat.s fsync.s ftruncate.s getdopt.s getdtablesiz.s \
 	getegid.s geteuid.s getgid.s getgroups.s gethostid.s gethostname.s \
 	getitimer.s getpagesize.s getpeername.s getpgrp.s getpid.s getppid.s \
 	getpriority.s getrlimit.s getrusage.s getsockname.s getsockopt.s \
 	gettimeofday.s getuid.s ioctl.s kill.s killpg.s link.s listen.s \
 	lseek.s lstat.s mkdir.s mknod.s mount.s open.s pipe.s profil.s \
-	ptrace.s quota.s read.s readlink.s reboot.s recv.s recvfrom.s \
+	ptrace.s quota.s read.s readlink.s readv.s reboot.s recv.s recvfrom.s \
 	recvmsg.s rename.s rmdir.s sbrk.s select.s send.s sendmsg.s sendto.s \
 	setdopt.s setgroups.s sethostid.s sethostname.s setitimer.s \
 	setpgrp.s setpriority.s setquota.s setregid.s setreuid.s setrlimit.s \
 	setsockopt.s settimeofday.s shutdown.s sigblock.s sigpause.s \
 	sigreturn.s sigsetmask.s sigstack.s sigvec.s socket.s socketpair.s \
 	stat.s symlink.s sync.s truncate.s umask.s umount.s unlink.s \
-	utimes.s vfork.s vhangup.s wait.s wait3.s write.s
+	utimes.s vfork.s vhangup.s wait4.s write.s writev.s
 OBJS=	_exit.o accept.o access.o acct.o adjtime.o bind.o brk.o chdir.o \
 	chmod.o chown.o chroot.o close.o connect.o creat.o dup.o dup2.o \
-	execl.o execle.o execv.o execve.o fchmod.o fchown.o fcntl.o flock.o \
-	fork.o fstat.o fsync.o ftruncate.o getdopt.o getdtablesiz.o \
+	execl.o execle.o execv.o execve.o fchdir.o fchmod.o fchown.o fcntl.o \
+	flock.o fork.o fstat.o fsync.o ftruncate.o getdopt.o getdtablesiz.o \
 	getegid.o geteuid.o getgid.o getgroups.o gethostid.o gethostname.o \
 	getitimer.o getpagesize.o getpeername.o getpgrp.o getpid.o getppid.o \
 	getpriority.o getrlimit.o getrusage.o getsockname.o getsockopt.o \
 	gettimeofday.o getuid.o ioctl.o kill.o killpg.o link.o listen.o \
 	lseek.o lstat.o mkdir.o mknod.o mount.o open.o pipe.o profil.o \
-	ptrace.o quota.o read.o readlink.o reboot.o recv.o recvfrom.o \
+	ptrace.o quota.o read.o readlink.o readv.o reboot.o recv.o recvfrom.o \
 	recvmsg.o rename.o rmdir.o sbrk.o select.o send.o sendmsg.o sendto.o \
 	setdopt.o setgroups.o sethostid.o sethostname.o setitimer.o \
 	setpgrp.o setpriority.o setquota.o setregid.o setreuid.o setrlimit.o \
 	setsockopt.o settimeofday.o shutdown.o sigblock.o sigpause.o \
 	sigreturn.o sigsetmask.o sigstack.o sigvec.o socket.o socketpair.o \
 	stat.o symlink.o sync.o truncate.o umask.o umount.o unlink.o \
-	utimes.o vfork.o vhangup.o wait.o wait3.o write.o
+	utimes.o vfork.o vhangup.o wait4.o write.o writev.o
+
 CFLAGS=	-O ${DEFS}
 TAGSFILE=tags
 
 .s.o:
-	/lib/cpp -E -DPROF ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -X -r $*.o
 	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -x -r $*.o
 	mv a.out $*.o
-	rm -f x.s
 
 .c.o:
 	cc -p -c ${CFLAGS} $*.c
@@ -112,6 +110,7 @@ execl.o: execl.s ./SYS.h /usr/include/syscall.h
 execle.o: execle.s ./SYS.h /usr/include/syscall.h
 execv.o: execv.s ./SYS.h /usr/include/syscall.h
 execve.o: execve.s ./SYS.h /usr/include/syscall.h
+fchdir.o: fchdir.s ./SYS.h /usr/include/syscall.h
 fchmod.o: fchmod.s ./SYS.h /usr/include/syscall.h
 fchown.o: fchown.s ./SYS.h /usr/include/syscall.h
 fcntl.o: fcntl.s ./SYS.h /usr/include/syscall.h
@@ -158,6 +157,7 @@ ptrace.o: ptrace.s ./SYS.h /usr/include/syscall.h
 quota.o: quota.s ./SYS.h /usr/include/syscall.h
 read.o: read.s ./SYS.h /usr/include/syscall.h
 readlink.o: readlink.s ./SYS.h /usr/include/syscall.h
+readv.o: readv.s ./SYS.h /usr/include/syscall.h
 reboot.o: reboot.s ./SYS.h /usr/include/syscall.h
 recv.o: recv.s ./SYS.h /usr/include/syscall.h
 recvfrom.o: recvfrom.s ./SYS.h /usr/include/syscall.h
@@ -201,9 +201,9 @@ unlink.o: unlink.s ./SYS.h /usr/include/syscall.h
 utimes.o: utimes.s ./SYS.h /usr/include/syscall.h
 vfork.o: vfork.s ./SYS.h /usr/include/syscall.h
 vhangup.o: vhangup.s ./SYS.h /usr/include/syscall.h
-wait.o: wait.s ./SYS.h /usr/include/syscall.h
-wait3.o: wait3.s ./SYS.h /usr/include/syscall.h
+wait4.o: wait4.s ./SYS.h /usr/include/syscall.h
 write.o: write.s ./SYS.h /usr/include/syscall.h
+writev.o: writev.s ./SYS.h /usr/include/syscall.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

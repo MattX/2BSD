@@ -10,6 +10,7 @@
 #include "../machine/seg.h"
 
 #include "fs.h"
+#include "dir.h"
 #include "inode.h"
 #include "buf.h"
 #include "user.h"

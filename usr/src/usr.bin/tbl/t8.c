@@ -260,7 +260,7 @@ fprintf(tabout, ".mk ##\n"); /* rmember current vertical position */
 fprintf(tabout, ".nr %d \\n(##\n", S1); /* bottom position */
 for(c=0; c<ncol; c++)
 	{
-	s = table[lin][c].col;
+	s = (int)table[lin][c].col;
 	if (point(s)) continue;
 	if (s==0) continue;
 	fprintf(tabout, ".sp |\\n(##u-1v\n");

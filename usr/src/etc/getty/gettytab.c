@@ -162,7 +162,7 @@ skip(bp)
 
 	while (*bp && *bp != ':')
 		bp++;
-	if (*bp == ':')
+	while (*bp == ':')
 		bp++;
 	return (bp);
 }

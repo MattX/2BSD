@@ -4,24 +4,18 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)htable.c	5.5 (Berkeley) 4/15/86";
-#endif not lint
+static char sccsid[] = "@(#)htable.c	5.5.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * htable - convert NIC host table into a UNIX format.
  * NIC format is described in RFC 810, 1 March 1982.
  */
-#ifdef BSD2_10
-#define	connected_nets	_cn_net
-#define	gatewayto	_gtwyto
-#endif BSD2_10
 
 #include <stdio.h>
 #include <ctype.h>

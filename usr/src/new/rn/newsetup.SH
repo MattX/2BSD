@@ -32,15 +32,13 @@ city="$citypref"
 state="$statepref"
 cntry="$cntrypref"
 cont="$contpref"
-active="${active-/usr/lib/news/active}"
+active="/tmp/active.\$\$"
 
 dotdir="\${DOTDIR-\${HOME-\$LOGDIR}}"
 $rm -f \$dotdir/.oldnewsrc
 $echo "Creating .newsrc in \$dotdir to be used by news programs."
 
-case \$active in
-~*) active=\`$filexp \$active\` ;;
-esac
+$rnlib/getactive \$active
 
 : NOTE: SED WILL NOT TAKE MORE THAN 10 WFILES, SO BEWARE
 
@@ -70,24 +68,16 @@ $sort <\$active | $sed >/tmp/n.tmp\$\$	\\
 	-e "  w /tmp/n.\$city\$\$"	\\
 	-e '  d'			\\
 	-e '}'				\\
-	-e "/^\$state\./{"		\\
-	-e "  w /tmp/n.\$state\$\$"	\\
-	-e '  d'			\\
-	-e '}'				\\
-	-e "/^unix-pc\./{"		\\
-	-e "  w /tmp/n.unixpc\$\$"	\\
-	-e '  d'			\\
-	-e '}'				\\
-	-e "/^alt\./{"		\\
-	-e "  w /tmp/n.alt\$\$"	\\
-	-e '  d'			\\
-	-e '}'				\\
-	-e "/^\$cntry\./{"		\\
+	-e "/^\$cntry\./{" 		\\
 	-e "  w /tmp/n.\$cntry\$\$"	\\
+	-e '  d'			\\
+	-e '}'				\\
+	-e "/^\$state\./{" 		\\
+	-e "  w /tmp/n.\$state\$\$"	\\
 	-e '  d'			\\
 	-e '}'
 
-$sed </tmp/n.tmp\$\$ >/tmp/n.loc\$\$	\\
+$sed </tmp/n.tmp\$\$ >/tmp/n.local\$\$	\\
 	-e "/^\$cont\./{" 		\\
 	-e "  w /tmp/n.\$cont\$\$"	\\
 	-e '  d'			\\
@@ -133,15 +123,13 @@ fi
 
 : newsrc order determined here
 $cat \\
-    /tmp/n.loc\$\$ \\
+    /tmp/n.local\$\$ \\
     /tmp/n.\$locorg\$\$ \\
     /tmp/n.\$organization\$\$ \\
     /tmp/n.\$city\$\$ \\
     /tmp/n.\$state\$\$ \\
     /tmp/n.\$cntry\$\$ \\
     /tmp/n.\$cont\$\$ \\
-    /tmp/n.alt\$\$ \\
-    /tmp/n.unixpc\$\$ \\
     /tmp/n.news\$\$ \\
     /tmp/n.comp\$\$ \\
     /tmp/n.sci\$\$ \\
@@ -154,15 +142,13 @@ $cat \\
 
 $rm -f	/tmp/n.to\$\$ \\
 	/tmp/n.tmp\$\$ \\
-	/tmp/n.loc\$\$ \\
+	/tmp/n.local\$\$ \\
 	/tmp/n.\$locorg\$\$ \\
 	/tmp/n.\$organization\$\$ \\
 	/tmp/n.\$city\$\$ \\
 	/tmp/n.\$state\$\$ \\
 	/tmp/n.\$cntry\$\$ \\
 	/tmp/n.\$cont\$\$ \\
-	/tmp/n.alt\$\$ \\
-	/tmp/n.unixpc\$\$ \\
 	/tmp/n.news\$\$ \\
 	/tmp/n.comp\$\$ \\
 	/tmp/n.sci\$\$ \\
@@ -170,7 +156,8 @@ $rm -f	/tmp/n.to\$\$ \\
 	/tmp/n.rec\$\$ \\
 	/tmp/n.talk\$\$ \\
 	/tmp/n.misc\$\$ \\
-	/tmp/n.test\$\$
+	/tmp/n.test\$\$ \\
+	\$active
 
 $cat <<'EOH'
 Done.

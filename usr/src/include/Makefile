@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.15 (Berkeley) 86/10/13
+#	@(#)Makefile	5.16 (2.11BSD GTE) 10/21/93
 #
 # Doing a make install builds /usr/include
 #
@@ -18,13 +18,13 @@
 #
 DESTDIR=
 TOPDIR=
-SUBDIRS=arpa pascal protocols xnscourier OLD
+SUBDIRS=arpa pascal protocols OLD
 STD=	a.out.h ar.h assert.h ctype.h curses.h disktab.h fcntl.h \
 	fstab.h grp.h lastlog.h math.h memory.h mp.h mtab.h ndbm.h \
 	netdb.h nlist.h pcc.h pwd.h ranlib.h resolv.h setjmp.h \
 	sgtty.h short_names.h stab.h stdio.h string.h strings.h \
 	struct.h syscall.h sysexits.h time.h ttyent.h tzfile.h utmp.h \
-	varargs.h vfont.h
+	varargs.h vfont.h vmf.h
 LINKS=	errno.h signal.h syslog.h
 MACHINE=pdp
 MACHDEP=${MACHINE} pdpif pdpuba pdpmba vaxuba
@@ -78,14 +78,6 @@ symlinks:
 	else \
 		echo ${DESTDIR}/usr/include/sys not removed; \
 	fi
-	rm -rf ${DESTDIR}/usr/include/stand
-	-if [ ! -s ${DESTDIR}/usr/include/stand ]; \
-	then \
-		ln -s ${TOPDIR}/sys/${MACHINE}stand ${DESTDIR}/usr/include/stand; \
-	else \
-		echo ${DESTDIR}/usr/include/stand not removed; \
-	fi
-
 
 copies:
 	-for i in ${SYSDIRS}; do \
@@ -97,10 +89,6 @@ copies:
 	mkdir ${DESTDIR}/usr/include/sys; 
 	chmod 775 ${DESTDIR}/usr/include/sys;
 	-(cd /sys/h; tar cf - *.h | (cd ${DESTDIR}/usr/include/sys; tar xpfB -))
-	rm -rf ${DESTDIR}/usr/include/stand;
-	mkdir ${DESTDIR}/usr/include/stand;
-	chmod 775 ${DESTDIR}/usr/include/stand;
-	-(cd /sys/${MACHINE}stand; tar cf - *.h | (cd ${DESTDIR}/usr/include/stand; tar xpfB -))
 
 tags:
 	cwd=/usr/include; \

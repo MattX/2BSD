@@ -211,6 +211,7 @@ union tree *cs;
 		elsz = SZFLOAT;
 		break;
 
+	case UNLONG:
 	case LONG:
 		elsz = SZLONG;
 		break;
@@ -330,8 +331,6 @@ dogoto()
  */
 doret()
 {
-	register union tree *t;
-
 	if (nextchar() != ';') {
 		register char *st;
 
@@ -364,8 +363,8 @@ char *s;
 {
 	register *ap;
 	register FILE *bufp;
-	int n;
 	register char *np;
+	int n;
 
 	bufp = stdout;
 	if (strflg)
@@ -373,40 +372,40 @@ char *s;
 	ap = &a;
 	for (;;) switch(*s++) {
 	case 'B':
-		putc(*ap++, bufp);
-		putc(0376, bufp);
+		fputc(*ap++, bufp);
+		fputc(0376, bufp);
 		continue;
 
 	case 'N':
-		putc(*ap, bufp);
-		putc(*ap++>>8, bufp);
+		fputc(*ap, bufp);
+		fputc(*ap++>>8, bufp);
 		continue;
 
 	case 'F':
-		n = 1000;
 		np = (char *)*ap++;
+		n = 1000;
 		goto str;
 
 	case 'S':
-		n = NCPS;
 		np = (char *)*ap++;
+		n = MAXCPS-1;
 		if (*np)
-			putc('_', bufp);
+			fputc('_', bufp);
 	str:
-		while (n-- && *np) {
-			putc(*np++&0177, bufp);
+		while(n-- && *np) {
+			fputc(*np++ & 0177, bufp);
 		}
-		putc(0, bufp);
+		fputc(0, bufp);
 		continue;
 
 	case '1':
-		putc(1, bufp);
-		putc(0, bufp);
+		fputc(1, bufp);
+		fputc(0, bufp);
 		continue;
 
 	case '0':
-		putc(0, bufp);
-		putc(0, bufp);
+		fputc(0, bufp);
+		fputc(0, bufp);
 		continue;
 
 	case '\0':
@@ -421,20 +420,16 @@ char *s;
 	}
 }
 
-unsigned
+unsigned int
 hash(sp)
 register char *sp;
 {
-	register unsigned h;
-	register c;
+	register unsigned int h;
 
 	h = 0;
-	c = 7;
-	do {
-		if (*sp == 0)
-			break;
+	for (; *sp; sp++) {
 		h += h;
-		h += *sp++;
-	} while (--c != 0);
+		h += *sp;
+	}
 	return(h%HSHSIZ);
 }

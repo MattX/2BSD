@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in_pcb.c	7.6 (Berkeley) 12/7/87
+ *	@(#)in_pcb.c	7.6.1 (2.11BSD GTE) 2/20/94
  */
 
 #include "param.h"
@@ -57,11 +57,17 @@ in_pcbbind(inp, nam)
 	register struct inpcb *head = inp->inp_head;
 	register struct sockaddr_in *sin;
 	u_short lport = 0;
+	int wild = 0;
 
 	if (in_ifaddr == 0)
 		return (EADDRNOTAVAIL);
 	if (inp->inp_lport || inp->inp_laddr.s_addr != INADDR_ANY)
 		return (EINVAL);
+	if ((so->so_options & SO_REUSEADDR) == 0 &&
+	    ((so->so_proto->pr_flags & PR_CONNREQUIRED) == 0 ||
+	     (so->so_options & SO_ACCEPTCONN) == 0))
+		wild = INPLOOKUP_WILDCARD;
+
 	if (nam == 0)
 		goto noname;
 	sin = mtod(nam, struct sockaddr_in *);
@@ -78,16 +84,10 @@ in_pcbbind(inp, nam)
 	lport = sin->sin_port;
 	if (lport) {
 		u_short aport = ntohs(lport);
-		int wild = 0;
 
 		/* GROSS */
 		if (aport < IPPORT_RESERVED && u.u_uid != 0)
 			return (EACCES);
-		/* even GROSSER, but this is the Internet */
-		if ((so->so_options & SO_REUSEADDR) == 0 &&
-		    ((so->so_proto->pr_flags & PR_CONNREQUIRED) == 0 ||
-		     (so->so_options & SO_ACCEPTCONN) == 0))
-			wild = INPLOOKUP_WILDCARD;
 		if (in_pcblookup(head,
 		    zeroin_addr, 0, sin->sin_addr, lport, wild))
 			return (EADDRINUSE);
@@ -266,31 +266,63 @@ in_setpeeraddr(inp, nam)
 
 /*
  * Pass some notification to all connections of a protocol
- * associated with address dst.  Call the protocol specific
- * routine (if any) to handle each connection.
+ * associated with address dst.  The local address and/or port numbers
+ * may be specified to limit the search.  The "usual action" will be
+ * taken, depending on the ctlinput cmd.  The caller must filter any
+ * cmds that are uninteresting (e.g., no error in the map).
+ * Call the protocol specific routine (if any) to report
+ * any errors for each matching socket.
+ *
+ * Must be called at splnet.
  */
-in_pcbnotify(head, dst, errno, notify)
+in_pcbnotify(head, dst, fport, laddr, lport, cmd, notify)
 	struct inpcb *head;
-	register struct in_addr *dst;
-	int errno, (*notify)();
+	struct sockaddr *dst;
+	u_short fport, lport;
+	struct in_addr laddr;
+	int cmd, (*notify)();
 {
 	register struct inpcb *inp, *oinp;
-	int s = splimp();
+	struct in_addr faddr;
+	int errno;
+	int in_rtchange();
+	extern u_char inetctlerrmap[];
 
+	if ((unsigned)cmd > PRC_NCMDS || dst->sa_family != AF_INET)
+		return;
+	faddr = ((struct sockaddr_in *)dst)->sin_addr;
+	if (faddr.s_addr == INADDR_ANY)
+		return;
+
+	/*
+	 * Redirects go to all references to the destination,
+	 * and use in_rtchange to invalidate the route cache.
+	 * Dead host indications: notify all references to the destination.
+	 * Otherwise, if we have knowledge of the local port and address,
+	 * deliver only to that socket.
+	 */
+	if (PRC_IS_REDIRECT(cmd) || cmd == PRC_HOSTDEAD) {
+		fport = 0;
+		lport = 0;
+		laddr.s_addr = 0;
+		if (cmd != PRC_HOSTDEAD)
+			notify = in_rtchange;
+	}
+	errno = inetctlerrmap[cmd];
 	for (inp = head->inp_next; inp != head;) {
-		if (inp->inp_faddr.s_addr != dst->s_addr ||
-		    inp->inp_socket == 0) {
+		if (inp->inp_faddr.s_addr != faddr.s_addr ||
+		    inp->inp_socket == 0 ||
+		    (lport && inp->inp_lport != lport) ||
+		    (laddr.s_addr && inp->inp_laddr.s_addr != laddr.s_addr) ||
+		    (fport && inp->inp_fport != fport)) {
 			inp = inp->inp_next;
 			continue;
 		}
-		if (errno) 
-			inp->inp_socket->so_error = errno;
 		oinp = inp;
 		inp = inp->inp_next;
 		if (notify)
-			(*notify)(oinp);
+			(*notify)(oinp, errno);
 	}
-	splx(s);
 }
 
 /*

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rx.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rx.c	1.3 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -53,7 +53,6 @@ struct	rxdevice *RXADDR;
 #define	seccnt(bp)	((int)((bp)->b_seccnt))
 
 struct	buf	rxtab;
-struct	buf	rrxbuf;
 struct	buf	crxbuf;		/* buffer header for control functions */
 
 /*
@@ -92,9 +91,7 @@ rxstrategy(bp)
 
 	if (minor(bp->b_dev) >= 4 || !RXADDR)
 		goto bad;
-#ifdef UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	if (bp->b_blkno >= NRXBLKS) {
 		if (bp->b_flags&B_READ)
 			bp->b_resid = bp->b_bcount;
@@ -297,19 +294,6 @@ rxaddr(bp, addr, xmem)
 	*xmem = bp->b_xmem;
 	if (*addr < bp->b_un.b_addr)		/* overflow, bump xmem */
 		(*xmem)++;
-}
-
-rxread(dev)
-	dev_t dev;
-{
-	return (physio(rxstrategy, &rrxbuf, dev, B_READ, WORD));
-}
-
-
-rxwrite(dev)
-	dev_t dev;
-{
-	return (physio(rxstrategy, &rrxbuf, dev, B_WRITE, WORD));
 }
 
 /*

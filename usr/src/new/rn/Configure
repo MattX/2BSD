@@ -5,7 +5,7 @@
 #
 # $Header: Configure,v 4.3.1.6 86/07/24 14:41:18 lwall Exp $
 #
-# $Log:       Configure,v $
+# $Log:	Configure,v $
 # Revision 4.3.1.6  86/07/24  14:41:18  lwall
 # Handles missing Relay-Version: from news 2.10.3 headers.
 #
@@ -20,7 +20,7 @@
 # Took space from end of filexp output.
 # 
 # Revision 4.3.1.2  85/05/13  15:54:35  lwall
-# Libraries in /usr/local/lib should not use -l switch.
+# Libraries in /usr/local/lib shouldn't use -l switch.
 # 
 # Revision 4.3.1.1  85/05/10  11:29:20  lwall
 # Branch for patches.
@@ -77,6 +77,7 @@ distlist=''
 Log=''
 Header=''
 sitename=''
+domain=''
 orgname=''
 isadmin=''
 newsadmin=''
@@ -117,6 +118,10 @@ douname=''
 phostname=''
 hostcmd=''
 norelay=''
+isrrn=''
+rrnserver=''
+serverfile=''
+NNTPSRC=''
 CONFIG=''
 
 echo "Beginning of configuration questions for rn kit."
@@ -681,6 +686,33 @@ while $test "X$sitename" = X ; do
     hostcmd=''
 done
 
+: try to deal with domains
+$cat << 'EOH'
+
+Please enter your domain name.  This will be used in conjunction
+with the site name for return addresses on news articles and
+mail.  If you use the 4.3ism of having your domain in your
+hostname, all the posting programs will figure this out on the
+fly, so don't worry.
+
+Examples of some valid domains:
+
+	uucp
+	arpa
+	berkeley.edu
+	nsa.gov
+
+EOH
+
+dflt="uucp"
+$echo $n "Your domain: [$dflt] $c"
+. myread
+case "$ans" in
+'') domain="$dflt";;
+*)  domain="$ans" ;;
+esac
+
+
 : get organizaton name
 longshots='/usr/src/new /usr/src/local /usr/local/src'
 case "$orgname" in
@@ -769,6 +801,10 @@ while $test ! -d "$libexp"; do
     blurfl*) ;;
     *) $echo "Directory $libexp not found";;
     esac
+    echo "(If you are building this as rrn, it is a good idea"
+    echo "to make your news library directory the same as where the rn"
+    echo "library directory is, usually /usr/local/lib/rn)"
+    echo " "
     echo $n "Where is your news library (~name okay)? [$dflt] $c"
     . myread
     case "$ans" in
@@ -1281,14 +1317,109 @@ else
     fi
 fi
 
-: locate spool directory
+: locate spool directory and check if rrn
+case "$isrrn" in
+define)
+    dflt="y";;
+*)
+    dflt="n";;
+esac
+isrrn=''
+while $test -z "$isrrn" ; do
+    $echo " "
+    $echo $n "Do you want this built as remote rn (rrn)? [$dflt] $c"
+    . myread
+    case "$ans" in
+    '') ans="$dflt";;
+    esac
+    case "$ans" in
+    n*)
+	isrrn=undef;;
+    y*)
+	isrrn=define
+	spool=/tmp
+	$echo "net.foobar 00001 00001 y" > .falseactive
+
+	case "$serverfile" in
+	'')  dflt="no default" ;;
+	*)   dflt="$serverfile";;
+	esac
+
+	$cat <<'EOM'
+
+rrn determines the machine to use as a news server by two means:
+
+	1. It examines the environment variable NNTPSERVER for
+	   a machine name; this allows users to use server machines
+	   other than the default.
+
+	2. It looks in a file which contains the name of a server
+	   machine.
+
+You must create the file mentioned in (2), above.  Simply put the name
+of the machine you wish to use as your news server in this file.
+If you really want, you can use # for comments and blank lines in
+this file as well.
+
+EOM
+
+	ans=''
+	while $test -z "$ans" ; do
+	$echo $n "Enter the name of the news server file: [$dflt] $c"
+	. myread
+	done
+	serverfile="$ans"
+
+	case "$rrnserver" in
+	'')  dflt="no default" ;;
+	*)   dflt="$rrnserver";;
+	esac
+
+	case "$NNTPSRC" in
+	'') dflt="no default";;
+	*)  dflt="$NNTPSRC";;
+	esac
+
+	ans='blurfl/dyick'
+	while $test ! -d "$ans"; do
+	    $echo $n "Enter the pathname of the NNTP source directory: [$dflt] $c"
+	    . myread
+	    case "$ans" in
+	    '') ans="$dflt";;
+	    esac
+	    ans=`filexp "$ans"`
+	    if $test ! -r $ans/common/response_codes.h ; then
+		ans='blurfl/dyick'
+	    fi
+	done
+	NNTPSRC="$ans"
+cat > server.h <<EOF_SERVE
+#ifdef SERVER
+
+EXT	char	*getserverbyfile();
+EXT	int	server_init();
+EXT	void	put_server();
+EXT	int	get_server();
+EXT	void	close_server();
+
+#include "$NNTPSRC/common/response_codes.h"
+#endif
+EOF_SERVE
+
+    esac
+
+done
+
 case "$spool" in
 '')
     dflt=/usr/spool/news
     ;;
 *)  dflt="$spool";;
 esac
-ans='blurfl/dyick'
+case "$isrrn" in
+define)  ans=/tmp;;
+*) ans='blurfl/dyick';;
+esac
 while $test ! -d $ans; do
     $echo " "
     case "$ans" in
@@ -1322,7 +1453,10 @@ case "$active" in
     ;;
 *)  dflt="$active";;
 esac
-myactive='blurfl/dyick'
+case "$isrrn" in
+define) myactive=.falseactive;;
+*) myactive='blurfl/dyick'
+esac
 while $test ! -f "$myactive"; do
     $echo " "
     case "$myactive" in
@@ -1799,6 +1933,7 @@ distlist='$distlist'
 Log='$Log'
 Header='$Header'
 sitename='$sitename'
+domain='$domain'
 orgname='$orgname'
 isadmin='$isadmin'
 newsadmin='$newsadmin'
@@ -1839,6 +1974,9 @@ douname='$douname'
 phostname='$phostname'
 hostcmd='$hostcmd'
 norelay='$norelay'
+isrrn='$isrrn'
+rrnserver='$rrnserver'
+NNTPSRC='$NNTPSRC'
 CONFIG=true
 EOT
 
@@ -1926,6 +2064,9 @@ $cat <<EOT >config.h
 #$douname	DOUNAME		/* do we have a uname function? */
 #$phostname	PHOSTNAME "$hostcmd"	/* how to get host name with popen */
 #$norelay     NORELAY         /* 2.10.3 doesn't have Relay-Version line */
+#$isrrn         SERVER          /* rrn server code */
+#$isrrn SERVER_HOST     "$rrnserver"
+#$isrrn SERVER_FILE	"$serverfile"
 EOT
 
 CONFIG=true

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dz.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dz.c	1.2 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -26,11 +26,8 @@
 #include "ubavar.h"
 #include "vm.h"
 #include "kernel.h"
+#include "syslog.h"
 #include "systm.h"
-
-#ifdef BSD2_10
-#define dztimerintvl	dztmrint
-#endif
 
 struct	uba_device dzinfo[NDZ];
 
@@ -148,20 +145,20 @@ dzopen(dev, flag)
 	} else if (tp->t_state&TS_XCLUDE && u.u_uid != 0)
 		return (EBUSY);
 	(void) dzmctl(dev, DZ_ON, DMSET);
-#ifdef BSD2_10
+#ifdef pdp11
 	if (dev & 0200) {
 		dzsoftCAR[unit >> 3] |= (1<<(unit&07));
 		tp->t_state |= TS_CARR_ON;
 	}
 	else
 		dzsoftCAR[unit >> 3] &= ~(1<<(unit&07));
-#endif /* BSD2_10 */
-	(void) spl5();
+#endif
+	(void) _spl5();
 	while ((tp->t_state & TS_CARR_ON) == 0) {
 		tp->t_state |= TS_WOPEN;
 		sleep((caddr_t)&tp->t_rawq, TTIPRI);
 	}
-	(void) spl0();
+	(void) _spl0();
 	return ((*linesw[tp->t_line].l_open)(dev, tp));
 }
 
@@ -185,22 +182,24 @@ dzclose(dev, flag)
 	ttyclose(tp);
 }
 
-dzread(dev)
+dzread(dev, uio)
 	register dev_t	dev;
+	struct uio *uio;
 {
 	register struct tty *tp;
 
 	tp = &dz_tty[UNIT(dev)];
-	return ((*linesw[tp->t_line].l_read)(tp));
+	return ((*linesw[tp->t_line].l_read)(tp, uio));
 }
 
-dzwrite(dev)
+dzwrite(dev, uio)
 	register dev_t	dev;
+	struct uio *uio;
 {
 	register struct tty *tp;
 
 	tp = &dz_tty[UNIT(dev)];
-	return ((*linesw[tp->t_line].l_write)(tp));
+	return ((*linesw[tp->t_line].l_write)(tp, uio));
 }
 
 /*ARGSUSED*/
@@ -235,9 +234,13 @@ dzrint(dz)
 			if (tp->t_flags & RAW)
 				c = 0;
 			else
+#ifdef	OLDWAY
 				c = tp->t_intrc;
+#else
+				c = tp->t_brkc;
+#endif
 		if (c&DZ_DO && overrun == 0) {
-			printf("dz%d: silo overflow\n", dz);
+			log(LOG_WARNING, "dz%d,%d: silo overflow\n", dz, (c>>8)&7);
 			overrun = 1;
 		}
 		if (c&DZ_PE)

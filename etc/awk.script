@@ -1,0 +1,10 @@
+#
+# awk script to convert /etc/passwd into /etc/master.passwd.
+# The additional fields "class", change, and expire are added, but are
+# turned off by default.  Class is currently not implemented, but change
+# and expire are; to set them, use the current day in seconds from the
+# epoch + whatever number of seconds of offset you want.
+
+BEGIN { FS = ":"}
+{ print $1 ":" $2 ":" $3 ":" $4 "::::" $5 ":" $6 ":" $7 }
+

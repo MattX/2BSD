@@ -1,4 +1,4 @@
-/*	@(#)if_hdh.c	7.5 (Berkeley) 5/26/88 */
+/*	%W% (Berkeley) %G% */
 
 
 /************************************************************************\
@@ -239,7 +239,6 @@ int unit, uban;
 		return;
 	printf(" hdh%d", unit);
 	sc->hdh_imp->imp_if.if_flags &= ~IFF_RUNNING;
-	sc->hdh_imp->imp_cb.ic_oactive = 0;
 	sc->hdh_flags = 0;
 	(*sc->hdh_imp->imp_if.if_init)(sc->hdh_imp->imp_if.if_unit);
 }
@@ -571,7 +570,7 @@ int unit, lcn, cc, rcnt;
 		 */
 		sc->hdh_imp->imp_if.if_opackets++;
 		sc->hdh_imp->imp_cb.ic_oactive = 0;
-		impstart(sc->hdh_imp);
+		impstart(sc->hdh_imp->imp_if.if_unit);
 	}
 }
 
@@ -603,7 +602,7 @@ int unit, lcn, cc;
 			case HDHLNUP:
 				printf("hdh%d: LINE UP\n", unit);
 				sc->hdh_flags |= HDH_UP;
-				impstart(sc->hdh_imp);
+				impstart(sc->hdh_imp->imp_if.if_unit);
 				break;
 	
 			case HDHLNDN:

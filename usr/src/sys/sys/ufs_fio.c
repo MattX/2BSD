@@ -106,10 +106,12 @@ owner(fname, follow)
 	int follow;
 {
 	register struct inode *ip;
+	register struct	nameidata *ndp = &u.u_nd;
 
-	u.u_segflg = UIO_USERSPACE;
-	u.u_dirp = fname;
-	ip = namei(LOOKUP | follow);
+	ndp->ni_nameiop = LOOKUP | follow;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = fname;
+	ip = namei(ndp);
 	if (ip == NULL)
 		return (NULL);
 	if (u.u_uid == ip->i_uid)

@@ -41,7 +41,7 @@ struct	proc {
 		char	P_nice;		/* nice for cpu usage */
 		char	P_slptime;	/* secs sleeping */
 		char	P_cursig;
-		short	P_idhash;	/* hash based on p_pid */
+		struct proc *P_hash;	/* hashed based on p_pid */
 		long	P_sigmask;	/* current signal mask */
 		long	P_sigignore;	/* signals being ignored */
 		long	P_sigcatch;	/* signals being caught by user */
@@ -67,7 +67,7 @@ struct	proc {
 #define	p_time		p_un.p_alive.P_time
 #define	p_nice		p_un.p_alive.P_nice
 #define	p_slptime	p_un.p_alive.P_slptime
-#define	p_idhash	p_un.p_alive.P_idhash
+#define	p_hash		p_un.p_alive.P_hash
 #define	p_cursig	p_un.p_alive.P_cursig
 #define	p_sigmask	p_un.p_alive.P_sigmask
 #define	p_sigignore	p_un.p_alive.P_sigignore
@@ -87,25 +87,16 @@ struct	proc {
 #define	p_xstat		p_un.p_dead.P_xstat
 #define	p_ru		p_un.p_dead.P_ru
 
-#ifdef SMALL
 #define	PIDHSZ		16
-#else
-#define	PIDHSZ		64
-#endif
 #define	PIDHASH(pid)	((pid) & (PIDHSZ - 1))
 
 #if defined(KERNEL) && !defined(SUPERVISOR)
-short	pidhash[PIDHSZ];
+struct	proc *pidhash[PIDHSZ];
 struct	proc *pfind();
 struct	proc proc[], *procNPROC;	/* the proc table itself */
 struct	proc *freeproc, *zombproc, *allproc, *qs;
 			/* lists of procs in various states */
 int	nproc;
-
-#ifdef CGL_RTP
-struct	proc *rtpp;		/* pointer to real time process entry */
-int	wantrtp;		/* real-time proc is ready to run */
-#endif
 #endif
 
 /* stat codes */

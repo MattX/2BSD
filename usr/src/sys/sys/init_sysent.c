@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)init_sysent.c	1.5 (2.11BSD GTE) 4/21/94
  */
 
 /*
@@ -15,21 +15,17 @@
 
 int	nosys();
 
-/* Unimplemented ... */
-#define	readv		nosys
-#define	writev		nosys
-
 /* 1.1 processes and protection */
 int	sethostid(),gethostid(),sethostname(),gethostname(),getpid();
-int	fork(),rexit(),execv(),execve(),wait();
+int	fork(),rexit(),execv(),execve(),owait(),wait4();
 int	getuid(),setreuid(),getgid(),getgroups(),setregid(),setgroups();
 int	getpgrp(),setpgrp();
-int	rtp(),ucall();					/* BSD2_10 calls */
+int	ucall();					/* 2BSD calls */
 
 /* 1.2 memory management */
 int	sbrk();
 int	getpagesize();
-int	lock(),phys(),fetchi(),nostk(),fperr();		/* BSD2_10 calls */
+int	lock(),phys(),fetchi(),nostk(),fperr();		/* 2BSD calls */
 
 /* 1.3 signals */
 int	sigvec(),sigblock(),sigsetmask(),sigpause(),sigstack(),sigreturn();
@@ -39,7 +35,7 @@ int	kill(), killpg();
 int	gettimeofday(),settimeofday();
 int	getitimer(),setitimer();
 int	adjtime();
-int	gldav();					/* BSD2_10 calls */
+int	gldav();					/* 2BSD calls */
 
 /* 1.5 descriptors */
 int	getdtablesize(),dup(),dup2(),close();
@@ -57,7 +53,7 @@ int	sync(),reboot(),sysacct();
 int	read(),write(),readv(),writev(),ioctl();
 
 /* 2.2 file system */
-int	chdir(),chroot();
+int	chdir(), fchdir(), chroot();
 int	mkdir(),rmdir();
 int	creat(),open(),mknod(),unlink(),stat(),fstat(),lstat();
 int	chown(),fchown(),chmod(),fchmod(),utimes();
@@ -77,7 +73,7 @@ int	ptrace();
 
 /* 2.5 terminals */
 
-#ifdef UCB_NET
+#ifdef INET
 #define ifnet(narg, name)	narg, name
 #define errnet(narg, name)	narg, name
 #else
@@ -89,9 +85,6 @@ int	nonet();
 /* BEGIN JUNK */
 int	profil();		/* 'cuz sys calls are interruptible */
 int	vhangup();		/* should just do in exit() */
-#ifndef VIRUS_VFORK
-#define vfork	fork
-#endif
 int	vfork();		/* awaiting fork w/ copy on write */
 /* END JUNK */
 
@@ -119,13 +112,13 @@ struct sysent sysent[] = {
 	3, write,			/*   4 = write */
 	3, open,			/*   5 = open */
 	1, close,			/*   6 = close */
-	0, nosys,			/*   7 = old wait */
+	4, wait4,			/*   7 = wait4 */
 	2, creat,			/*   8 = creat */
 	2, link,			/*   9 = link */
 	1, unlink,			/*  10 = unlink */
 	2, execv,			/*  11 = execv */
 	1, chdir,			/*  12 = chdir */
-	0, nosys,			/*  13 = old time */
+	1, fchdir,			/*  13 = fchdir */
 	3, mknod,			/*  14 = mknod */
 	2, chmod,			/*  15 = chmod */
 	3, chown,			/*  16 = chown; now 3 args */
@@ -196,7 +189,7 @@ struct sysent sysent[] = {
 	1, getpgrp,			/*  81 = getpgrp */
 	2, setpgrp,			/*  82 = setpgrp */
 	3, setitimer,			/*  83 = setitimer */
-	0, wait,			/*  84 = wait */
+	0, owait,			/*  84 = wait,wait3 (compatibility) */
 	0, nosys,			/*  85 = (4.3) swapon */
 	2, getitimer,			/*  86 = getitimer */
 	2, gethostname,			/*  87 = gethostname */
@@ -270,9 +263,9 @@ struct sysent sysent[] = {
 	 */
 
 	/*
-	 * BSD2_10 special calls
+	 * 2BSD special calls
 	 */
-	1, rtp,				/* 151 = rtp */
+	0, nosys,			/* 151 = unused (old 2.9 rtp) */
 	0, nostk,			/* 152 = nostk */
 	1, fetchi,			/* 153 = fetchi */
 	4, ucall,			/* 154 = ucall */

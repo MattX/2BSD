@@ -39,7 +39,7 @@
 ADM=	usr/adm
 OWNER=	uucp
 GROUP=	daemon
-CONFIG=	-DV831 -DVENTEL -DHAYES -DCOURIER
+CONFIG=	-DHAYES
 CFLAGS=	-O -DDEFBR=1200 -DDEFFS=BUFSIZ -DACULOG -DPRISTINE
 SEPFLAG=-i
 LIBC=	/lib/libc.a
@@ -48,7 +48,7 @@ SRCS=	acu.c acutab.c cmds.c cmdtab.c cu.c hunt.c log.c partab.c remcap.c \
 OBJS=	acu.o acutab.o cmds.o cmdtab.o cu.o hunt.o log.o partab.o remcap.o \
 	remote.o tip.o tipout.o uucplock.o value.o vars.o
 
-all: aculib/aculib.a tip
+all: aculib tip
 
 tip: ${OBJS} ${LIBC}
 	${CC} ${SEPFLAG} -o $@ ${OBJS} aculib/aculib.a
@@ -65,7 +65,7 @@ acutab.o: acutab.c
 # log.o depends on the makefile because of ACULOG
 log.o remote.o: Makefile
 
-aculib/aculib.a: FRC
+aculib: FRC
 	cd aculib; make ${MFLAGS}
 
 clean: FRC
@@ -76,7 +76,7 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 	cd aculib; make ${MFLAGS} depend
 
-install: FRC
+install: aculib tip
 	cd aculib; make ${MFLAGS} install
 	install -s -o ${OWNER} -g ${GROUP} -m 4711 tip ${DESTDIR}/usr/bin/tip
 	rm -f ${DESTDIR}/usr/bin/cu

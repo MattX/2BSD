@@ -5,10 +5,10 @@ REMOTE(5)	    UNIX Programmer's Manual		REMOTE(5)
 
 
 
-NNAAMMEE
+NAME
      remote - remote host description file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The systems known by _t_i_p(1C) and their attributes are stored
      in an ASCII file which is structured somewhat like the
      _t_e_r_m_c_a_p(5) file.  Each line in the file provides a descrip-
@@ -30,7 +30,7 @@ DDEESSCCRRIIPPTTIIOONN
      with which the connection is to be made.  When the _c_u inter-
      face is used, entries of the form ``cu300'' are used.
 
-CCAAPPAABBIILLIITTIIEESS
+CAPABILITIES
      Capabilities are either strings (str), numbers (num), or
      boolean flags (bool).  A string capability is specified by
      _c_a_p_a_b_i_l_i_t_y=_v_a_l_u_e; e.g. ``dv=/dev/harris''.  A numeric capa-
@@ -38,29 +38,29 @@ CCAAPPAABBIILLIITTIIEESS
      boolean capability is specified by simply listing the capa-
      bility.
 
-     aatt   (str) Auto call unit type.
+     at   (str) Auto call unit type.
 
-     bbrr   (num) The baud rate used in establishing a connection
+     br   (num) The baud rate used in establishing a connection
 	  to the remote host.  This is a decimal number. The
 	  default baud rate is 300 baud.
 
-     ccmm   (str) An initial connection message to be sent to the
+     cm   (str) An initial connection message to be sent to the
 	  remote host.	For example, if a host is reached through
 	  port selector, this might be set to the appropriate
 	  sequence required to switch to the host.
 
-     ccuu   (str) Call unit if making a phone call.  Default is the
+     cu   (str) Call unit if making a phone call.  Default is the
 	  same as the `dv' field.
 
-     ddii   (str) Disconnect message sent to the host when a
+     di   (str) Disconnect message sent to the host when a
 	  disconnect is requested by the user.
 
-     dduu   (bool) This host is on a dial-up line.
+     du   (bool) This host is on a dial-up line.
 
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 
@@ -71,38 +71,38 @@ REMOTE(5)	    UNIX Programmer's Manual		REMOTE(5)
 
 
 
-     ddvv   (str) UNIX device(s) to open to establish a connection.
+     dv   (str) UNIX device(s) to open to establish a connection.
 	  If this file refers to a terminal line, _t_i_p(1C)
 	  attempts to perform an exclusive open on the device to
 	  insure only one user at a time has access to the port.
 
-     eell   (str) Characters marking an end-of-line. The default is
+     el   (str) Characters marking an end-of-line. The default is
 	  NULL.  `~' escapes are only recognized by _t_i_p after one
 	  of the characters in `el', or after a carriage-return.
 
-     ffss   (str) Frame size for transfers. The default frame size
+     fs   (str) Frame size for transfers. The default frame size
 	  is equal to BUFSIZ.
 
-     hhdd   (bool) The host uses half-duplex communication, local
+     hd   (bool) The host uses half-duplex communication, local
 	  echo should be performed.
 
-     iiee   (str) Input end-of-file marks.  The default is NULL.
+     ie   (str) Input end-of-file marks.  The default is NULL.
 
-     ooee   (str) Output end-of-file string.  The default is NULL.
+     oe   (str) Output end-of-file string.  The default is NULL.
 	  When _t_i_p is transferring a file, this string is sent at
 	  end-of-file.
 
-     ppaa   (str) The type of parity to use when sending data to
+     pa   (str) The type of parity to use when sending data to
 	  the host.  This may be one of ``even'', ``odd'',
 	  ``none'', ``zero'' (always set bit 8 to zero), ``one''
 	  (always set bit 8 to 1).  The default is even parity.
 
-     ppnn   (str) Telephone number(s) for this host.  If the tele-
+     pn   (str) Telephone number(s) for this host.  If the tele-
 	  phone number field contains an @ sign, _t_i_p searches the
 	  file /_e_t_c/_p_h_o_n_e_s file for a list of telephone numbers;
 	  c.f.	_p_h_o_n_e_s(5).
 
-     ttcc   (str) Indicates that the list of capabilities is con-
+     tc   (str) Indicates that the list of capabilities is con-
 	  tinued in the named description.  This is used pri-
 	  marily to share common capability information.
 
@@ -114,10 +114,10 @@ REMOTE(5)	    UNIX Programmer's Manual		REMOTE(5)
      arpavax|ax:\
 	  :pn=7654321%:tc=UNIX-1200
 
-FFIILLEESS
+FILES
      /etc/remote
 
-SSEEEE AALLSSOO
+SEE ALSO
      tip(1C), phones(5)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				2
+Printed 1/9/94		  May 15, 1985				2
 
 
 

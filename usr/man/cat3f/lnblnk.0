@@ -5,23 +5,23 @@ INDEX(3F)	    UNIX Programmer's Manual		INDEX(3F)
 
 
 
-NNAAMMEE
+NAME
      index, rindex, lnblnk, len - tell about character objects
 
-SSYYNNOOPPSSIISS
-     ((iinnttrriinnssiicc)) ffuunnccttiioonn iinnddeexx ((ssttrriinngg,, ssuubbssttrr))
-     cchhaarraacctteerr**((**)) ssttrriinngg,, ssuubbssttrr
+SYNOPSIS
+     (intrinsic) function index (string, substr)
+     character*(*) string, substr
 
-     iinntteeggeerr ffuunnccttiioonn rriinnddeexx ((ssttrriinngg,, ssuubbssttrr))
-     cchhaarraacctteerr**((**)) ssttrriinngg,, ssuubbssttrr
+     integer function rindex (string, substr)
+     character*(*) string, substr
 
-     ffuunnccttiioonn llnnbbllnnkk ((ssttrriinngg))
-     cchhaarraacctteerr**((**)) ssttrriinngg
+     function lnblnk (string)
+     character*(*) string
 
-     ((iinnttrriinnssiicc)) ffuunnccttiioonn lleenn ((ssttrriinngg))
-     cchhaarraacctteerr**((**)) ssttrriinngg
+     (intrinsic) function len (string)
+     character*(*) string
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _I_n_d_e_x (_r_i_n_d_e_x) returns the index of the first (last)
      occurrence of the substring _s_u_b_s_t_r in _s_t_r_i_n_g, or zero if it
      does not occur.  _I_n_d_e_x is an f77 intrinsic function; _r_i_n_d_e_x
@@ -32,7 +32,7 @@ DDEESSCCRRIIPPTTIIOONN
      fixed length, blank padded.  Intrinsic function _l_e_n returns
      the size of the character object argument.
 
-FFIILLEESS
+FILES
      /usr/lib/libF77.a
 
 
@@ -60,7 +60,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

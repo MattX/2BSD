@@ -5,13 +5,13 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
 
 
-NNAAMMEE
+NAME
      f77 - Fortran77 compiler
 
-SSYYNNTTAAXX
-     ff7777 [ option ] ... file ...
+SYNTAX
+     f77 [ option ] ... file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_7_7 is the UNIX Fortran77 compiler.  It accepts several
      types of arguments:
 
@@ -32,35 +32,35 @@ DDEESSCCRRIIPPTTIIOONN
      The following options have the same meaning as in _c_c(1).
      See _l_d(1) for load-time options.
 
-     --cc   Suppress loading and produce `.o' files for each source
+     -c   Suppress loading and produce `.o' files for each source
 	  file.
 
-     --pp   Prepare object files for profiling, see _p_r_o_f(1)
+     -p   Prepare object files for profiling, see _p_r_o_f(1)
 
-     --OO   Invoke an object-code optimizer.
+     -O   Invoke an object-code optimizer.
 
-     --SS   Compile the named programs, and leave the assembler-
+     -S   Compile the named programs, and leave the assembler-
 	  language output on corresponding files suffixed `.s'.
 	  (No `.o' is created.).
 
-     --ff   Use a floating point interpreter (for PDP11's that lack
+     -f   Use a floating point interpreter (for PDP11's that lack
 	  11/70-style floating point).
 
-     --oo output
+     -o output
 	  Name the final output file _o_u_t_p_u_t instead of `a.out'.
 
      The following options are peculiar to _f_7_7:
 
-     --oonneettrriipp
+     -onetrip
 	  Compile DO loops that are performed at least once if
 	  reached.  (Fortran77 DO loops are not performed at all
 	  if the upper limit is smaller than the lower limit.)
 
-     --uu   Make the default type of a variable `undefined' rather
+     -u   Make the default type of a variable `undefined' rather
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 
@@ -73,37 +73,37 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
 	  than using the default Fortran rules.
 
-     --CC   Compile code to check that subscripts are within
+     -C   Compile code to check that subscripts are within
 	  declared array bounds.
 
-     --ww   Suppress all warning messages.  If the option is
+     -w   Suppress all warning messages.  If the option is
 	  `-w66', only Fortran 66 compatibility warnings are
 	  suppressed.
 
-     --FF   Apply EFL and Ratfor preprocessor to relevant files,
+     -F   Apply EFL and Ratfor preprocessor to relevant files,
 	  put the result in the file with the suffix changed to
 	  `.f', but do not compile.
 
-     --mm   Apply the M4 preprocessor to each `.r' or `.e' file
+     -m   Apply the M4 preprocessor to each `.r' or `.e' file
 	  before transforming it with the Ratfor or EFL prepro-
 	  cessor.
 
-     --EE_x  Use the string _x as an EFL option in processing `.e'
+     -E_x  Use the string _x as an EFL option in processing `.e'
 	  files.
 
-     --RR_x  Use the string _x as a Ratfor option in processing `.r'
+     -R_x  Use the string _x as a Ratfor option in processing `.r'
 	  files.
 
-     --UU   Do not convert upper case letters to lower case.
+     -U   Do not convert upper case letters to lower case.
 
-     --II2  Make default integer size 16 bit.
+     -I2  Make default integer size 16 bit.
 
-     --II4  Make default integer size 32 bit (default).
+     -I4  Make default integer size 32 bit (default).
 
-     --vv   Verbose.  Print information showing what compiler is
+     -v   Verbose.  Print information showing what compiler is
 	  doing.
 
-     --dd   Debug prints out intermediate information, leaves tem-
+     -d   Debug prints out intermediate information, leaves tem-
 	  porary files in /_t_m_p and often produces a core file.
 
      Other arguments are taken to be either loader option argu-
@@ -113,7 +113,7 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
      compilations specified, are loaded (in the order given) to
      produce an executable program with name `a.out'.
 
-FFIILLEESS
+FILES
      file.[fresc]	 input file
      file.o		 object file
      a.out		 loaded output
@@ -126,7 +126,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88						2
+Printed 1/9/94							2
 
 
 
@@ -154,12 +154,12 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
      -TF	footname	 /lib/crt0.o
      -TM	macro pack	 m4
 
-SSEEEE AALLSSOO
+SEE ALSO
      S. I. Feldman, P. J. Weinberger, _A _P_o_r_t_a_b_l_e _F_o_r_t_r_a_n_7_7 _C_o_m_-
      _p_i_l_e_r
      cc(1), ld(1), prof(1)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The diagnostics produced by _f_7_7 itself are intended to be
      self-explanatory.	Occasional messages may be produced by
      the loader.
@@ -192,7 +192,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88						3
+Printed 1/9/94							3
 
 
 
@@ -258,7 +258,7 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
 
 
-Printed 12/28/88						4
+Printed 1/9/94							4
 
 
 
@@ -314,7 +314,7 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
      /* 123 */	"illegal operation for channel or device"
 
-BBUUGGSS
+BUGS
      The Fortran66 subset of the language has been exercised
      extensively; the newer features have not.
 
@@ -324,7 +324,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						5
+Printed 1/9/94							5
 
 
 
@@ -337,7 +337,7 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
      The compiler is not intelligent enough to know when to split
      up assemblies and loads. Occasionally this causes the loader
-     _l_d(1) to produce the informative llooccaall ssyymmbbooll bboottcchh error
+     _l_d(1) to produce the informative local symbol botch error
      message when local symbols like argument names are defined
      with different types. Thus one must split up such offensive
      modules into separate compilations.
@@ -349,22 +349,20 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
      The optimizer should be used with caution.  It is known to
      occasionally produce incorrect code.
 
-EEXXAAMMPPLLEESS
-     ff7777  --OO  --cc  mmyypprroogg..ff
+EXAMPLES
+     f77  -O  -c  myprog.f
 	  creates myprog.o using C optimizer
 
-     ff7777  --ii  --OO mmyypprroogg..ff  aannootthheerr..ff  aannoonn..oo  --llpplloott
+     f77  -i  -O myprog.f  another.f  anon.o  -lplot
 	  compiles .f files, loads all files using separate i&d
 	  space and linking in routines in the plot library.
 
-     ff7777 mmyypprroogg..ff  mmiinnee..cc  >>&&eerrrroorrss
+     f77 myprog.f  mine.c  >&errors
 	  Compiles and loads both files putting error output into
-	  file called errors. This is the C shell (ccsshh) version.
-	  The Bourne shell (sshh) version is:
+	  file called errors. This is the C shell (csh) version.
+	  The Bourne shell (sh) version is:
 
-     ff7777  mmyypprroogg..ff  mmiinnee..cc  22>>eerrrroorrss  11>>eerrrroorrss
-
-
+     f77  myprog.f  mine.c  2>errors  1>errors
 
 
 
@@ -390,7 +388,9 @@ EEXXAAMMPPLLEESS
 
 
 
-Printed 12/28/88						6
+
+
+Printed 1/9/94							6
 
 
 

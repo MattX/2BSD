@@ -53,13 +53,16 @@ l1:
 
 booki(m)
 {
-	int i;
-	struct {
-		char low;
-		char high;
-	};
-	i.high = m.low;
-	i.low = m.high;
-	return(i);
+	union {
+		int l;
+		char m[2];
+	} i, j;
+
+	j.l = m;
+
+	i.m[0] = j.m[1];
+	i.m[1] = j.m[0];
+
+	return(i.l);
 }
 

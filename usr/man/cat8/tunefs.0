@@ -5,19 +5,19 @@ TUNEFS(8)	    UNIX Programmer's Manual		TUNEFS(8)
 
 
 
-NNAAMMEE
+NAME
      tunefs - tune up an existing file system
 
-SSYYNNOOPPSSIISS
-     //eettcc//ttuunneeffss _t_u_n_e_u_p-_o_p_t_i_o_n_s _s_p_e_c_i_a_l|_f_i_l_e_s_y_s
+SYNOPSIS
+     /etc/tunefs _t_u_n_e_u_p-_o_p_t_i_o_n_s _s_p_e_c_i_a_l|_f_i_l_e_s_y_s
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_u_n_e_f_s is designed to change the dynamic parameters of a
      file system which affect the layout policies.  The parame-
      ters which are to be changed are indicated by the flags
      given below:
 
-     --aa maxcontig
+     -a maxcontig
 	  This specifies the maximum number of contiguous blocks
 	  that will be laid out before forcing a rotational delay
 	  (see -d below).  The default value is one, since most
@@ -26,14 +26,14 @@ DDEESSCCRRIIPPTTIIOONN
 	  in a single transfer should set this to the maximum
 	  chain length.
 
-     --dd rotdelay
+     -d rotdelay
 	  This specifies the expected time (in milliseconds) to
 	  service a transfer completion interrupt and initiate a
 	  new transfer on the same disk.  It is used to decide
 	  how much rotational spacing to place between successive
 	  blocks in a file.
 
-     --ee maxbpg
+     -e maxbpg
 	  This indicates the maximum number of blocks any single
 	  file can allocate out of a cylinder group before it is
 	  forced to begin allocating blocks from another cylinder
@@ -49,7 +49,7 @@ DDEESSCCRRIIPPTTIIOONN
 	  tems with exclusively large files, this parameter
 	  should be set higher.
 
-     --mm minfree
+     -m minfree
 	  This value specifies the percentage of space held back
 	  from normal users; the minimum free space threshold.
 	  The default value used is 10%.  This value can be set
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -74,7 +74,7 @@ TUNEFS(8)	    UNIX Programmer's Manual		TUNEFS(8)
 	  files until enough files have been deleted to get under
 	  the higher threshold.
 
-     --oo optimization preference
+     -o optimization preference
 	  The file system can either try to minimize the time
 	  spent allocating blocks, or it can attempt minimize the
 	  space fragmentation on the disk.  If the value of min-
@@ -85,7 +85,7 @@ TUNEFS(8)	    UNIX Programmer's Manual		TUNEFS(8)
 	  lematical, and the file system can be optimized for
 	  time.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fs(5), newfs(8), mkfs(8)
 
      M. McKusick, W. Joy, S. Leffler, R. Fabry, ``A Fast File
@@ -93,7 +93,7 @@ SSEEEE AALLSSOO
      3.  pp 181-197, August 1984.  (reprinted in the System
      Manager's Manual, SMM:14)
 
-BBUUGGSS
+BUGS
      This program should work on mounted and active file systems.
      Because the super-block is not kept in the buffer cache, the
      changes will only take effect if the program is run on
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 

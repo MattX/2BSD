@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dumb.h	5.1 (Berkeley) 5/7/85
+ *	@(#)dumb.h	5.1.1 (2.11BSD GTE) 1/1/94
  *
  *
  * This accepts plot file formats and produces the appropriate plots
@@ -19,11 +19,6 @@
 
 extern int minX, rangeX;	/* min and range of x */
 extern int minY, rangeY;	/* min and range of y */
-
-#ifdef BSD2_10
-#define	currentx	crnt_x
-#define	currenty	crnt_y
-#endif
 
 extern int currentx, currenty;
 extern int COLS, LINES;

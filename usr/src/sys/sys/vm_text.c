@@ -94,7 +94,16 @@ xfree()
 	xstats.free++;
 #endif
 	X_LOCK(xp);
-	if (--xp->x_count == 0 && (xp->x_iptr->i_mode & ISVTX) == 0) {
+	/*
+	 * Don't add the following test to the "if" below:
+	 *
+	 *	(xp->x_iptr->i_mode & ISVTX) == 0
+	 *
+	 * all text under 2.10 is sticky in an LRU cache.  Putting the
+	 * above test in makes sticky text objects ``gluey'' and nearly
+	 * impossible to flush from memory.
+	 */
+	if (--xp->x_count == 0) {
 		if (xp->x_flag & XTRC || xp->x_iptr->i_nlink == 0) {
 			xp->x_flag &= ~XLOCK;
 			xuntext(xp);
@@ -132,6 +141,8 @@ xalloc(ip, ep)
 	register struct inode *ip;
 {
 	register struct text *xp;
+	register u_int	count;
+	off_t	offset;
 	size_t ts;
 
 	if (ep->a_text == 0)
@@ -191,7 +202,7 @@ xalloc(ip, ep)
 	else
 		xp->x_size = ts;
 	if ((xp->x_daddr = malloc(swapmap, (size_t)ctod(xp->x_size))) == NULL) {
-		swkill(u.u_procp, "xalloc: no swap space");
+		swkill(u.u_procp, "xalloc");
 		return;
 	}
 	xp->x_count = 1;
@@ -203,31 +214,31 @@ xalloc(ip, ep)
 	u.u_procp->p_textp = xp;
 	xexpand(xp);
 	estabur(ts, (u_int)0, (u_int)0, 0, RW);
-	u.u_count = ep->a_text & ~1;	/* no odd transfers in uiomove() */
-	u.u_offset = sizeof(struct exec);
+	offset = sizeof(struct exec);
 	if (u.u_ovdata.uo_ovbase)
-		u.u_offset += (NOVL + 1) * sizeof(u_int);
-	u.u_base = 0;
-	u.u_segflg = UIO_USERISPACE;
+		offset += (NOVL + 1) * sizeof(u_int);
 	u.u_procp->p_flag |= SLOCK;
-	readi(ip);
+	u.u_error = rdwri(UIO_READ, ip, (caddr_t)0, ep->a_text & ~1,
+			offset, UIO_USERISPACE, (int *)0);
 
 	if (u.u_ovdata.uo_ovbase) {	/* read in overlays if necessary */
 		register int i;
 
+		offset += (off_t)(ep->a_text & ~1);
 		for (i = 1; i <= NOVL; i++) {
 			u.u_ovdata.uo_curov = i;
-			u.u_count = ctob(u.u_ovdata.uo_ov_offst[i] - u.u_ovdata.uo_ov_offst[i-1]);
-			u.u_base = (caddr_t)(ctob(stoc(u.u_ovdata.uo_ovbase)));
-			if (u.u_count) {
+			count = ctob(u.u_ovdata.uo_ov_offst[i] - u.u_ovdata.uo_ov_offst[i-1]);
+			if (count) {
 				choverlay(RW);
-				readi(ip);
+				u.u_error = rdwri(UIO_READ, ip,
+				    (caddr_t)(ctob(stoc(u.u_ovdata.uo_ovbase))),
+					count, offset, UIO_USERISPACE,(int *)0);
+				offset += (off_t) count;
 			}
 		}
 	}
 	u.u_ovdata.uo_curov = 0;
 	u.u_procp->p_flag &= ~SLOCK;
-	u.u_segflg = UIO_USERSPACE;
 	xp->x_flag |= XWRIT;
 	xp->x_flag &= ~XLOAD;
 }

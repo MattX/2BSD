@@ -13,7 +13,7 @@
  */
 
 #include "param.h"
-#ifdef UCB_NET
+#ifdef INET
 #include "user.h"
 #include "proc.h"
 #include "file.h"
@@ -177,7 +177,7 @@ discard:
 	so->so_state |= SS_NOFDREF;
 	sofree(so);
 	splx(s);
-	return(u.u_error = error);
+	return(error);
 }
 
 /*
@@ -215,7 +215,6 @@ soconnect(so, nam)
 	int s;
 	int error;
 
-#ifdef	BSD2_10	
 /*
  * this is done here in supervisor mode since the kernel can't access the
  * socket or its options.
@@ -224,7 +223,6 @@ soconnect(so, nam)
 		return (EOPNOTSUPP);
 	if ((so->so_state & SS_NBIO) && (so->so_state & SS_ISCONNECTING))
 		return(EALREADY);
-#endif
 	s = splnet();
 	/*
 	 * If protocol is connection-based, can only connect once.
@@ -239,7 +237,6 @@ soconnect(so, nam)
 	else
 		error = (*so->so_proto->pr_usrreq)(so, PRU_CONNECT,
 		    (struct mbuf *)0, nam, (struct mbuf *)0);
-#ifdef	BSD2_10
 /*
  * this is done here because the kernel mode can't get at this info without
  * a lot of trouble.
@@ -252,7 +249,6 @@ soconnect(so, nam)
 		}
 	else
 		so->so_state &= ~SS_ISCONNECTING;
-#endif
 	splx(s);
 	return (error);
 }
@@ -300,9 +296,10 @@ bad:
  * inform user that this would block and do nothing.
  * Otherwise, if nonblocking, send as much as possible.
  */
-sosend(so, nam, flags, rights)
+sosend(so, nam, uio, flags, rights)
 	register struct socket *so;
 	struct mbuf *nam;
+	register struct uio *uio;
 	int flags;
 	struct mbuf *rights;
 {
@@ -311,7 +308,7 @@ sosend(so, nam, flags, rights)
 	register int space;
 	int len, rlen = 0, error = 0, s, dontroute, first = 1;
 
-	if (sosendallatonce(so) && u.u_count > so->so_snd.sb_hiwat)
+	if (sosendallatonce(so) && uio->uio_resid > so->so_snd.sb_hiwat)
 		return (EMSGSIZE);
 	dontroute =
 	    (flags & MSG_DONTROUTE) && (so->so_options & SO_DONTROUTE) == 0 &&
@@ -345,8 +342,8 @@ restart:
 			space = sbspace(&so->so_snd);
 			if (space <= rlen ||
 			   (sosendallatonce(so) &&
-				space < u.u_count + rlen) ||
-			   (u.u_count >= CLBYTES && space < CLBYTES &&
+				space < uio->uio_resid + rlen) ||
+			   (uio->uio_resid >= CLBYTES && space < CLBYTES &&
 			   so->so_snd.sb_cc >= CLBYTES &&
 			   (so->so_state & SS_NBIO) == 0)) {
 				if (so->so_state & SS_NBIO) {
@@ -366,24 +363,24 @@ restart:
 		space -= rlen;
 		while (space > 0) {
 			MGET(m, M_WAIT, MT_DATA);
-			if (u.u_count >= CLBYTES / 2 && space >= CLBYTES) {
+			if (uio->uio_resid >= CLBYTES / 2 && space >= CLBYTES) {
 				MCLGET(m);
 				if (m->m_len != CLBYTES)
 					goto nopages;
-				len = MIN(CLBYTES, u.u_count);
+				len = MIN(CLBYTES, uio->uio_resid);
 				space -= CLBYTES;
 			} else {
 nopages:
-				len = MIN(MIN(MLEN, u.u_count), space);
+				len = MIN(MIN(MLEN, uio->uio_resid), space);
 				space -= len;
 			}
-			error = uiomove(mtod(m, caddr_t), len, UIO_WRITE);
+			error = uiomove(mtod(m, caddr_t), len, UIO_WRITE, uio);
 			m->m_len = len;
 			*mp = m;
 			if (error)
 				goto release;
 			mp = &m->m_next;
-			if (u.u_count <= 0)
+			if (uio->uio_resid == 0)
 				break;
 		}
 		if (dontroute)
@@ -401,7 +398,7 @@ nopages:
 		first = 0;
 		if (error)
 			break;
-	} while (u.u_count);
+	} while (uio->uio_resid);
 
 release:
 	sbunlock(&so->so_snd);
@@ -424,9 +421,10 @@ release:
  * Although the sockbuf is locked, new data may still be appended,
  * and thus we must maintain consistency of the sockbuf during that time.
  */
-soreceive(so, aname, flags, rightsp)
+soreceive(so, aname, uio, flags, rightsp)
 	register struct socket *so;
 	struct mbuf **aname;
+	register struct uio *uio;
 	int flags;
 	struct mbuf **rightsp;
 {
@@ -447,13 +445,13 @@ soreceive(so, aname, flags, rightsp)
 		if (error)
 			goto bad;
 		do {
-			len = u.u_count;
+			len = uio->uio_resid;
 			if (len > m->m_len)
 				len = m->m_len;
 			error =
-			    uiomove(mtod(m, caddr_t), (int)len, UIO_READ);
+			    uiomove(mtod(m, caddr_t), (int)len, UIO_READ, uio);
 			m = m_free(m);
-		} while (u.u_count && error == 0 && m);
+		} while (uio->uio_resid && error == 0 && m);
 bad:
 		if (m)
 			m_freem(m);
@@ -477,7 +475,7 @@ restart:
 			error = ENOTCONN;
 			goto release;
 		}
-		if (u.u_count == 0)
+		if (uio->uio_resid == 0)
 			goto release;
 		if (so->so_state & SS_NBIO) {
 			error = EWOULDBLOCK;
@@ -539,10 +537,10 @@ restart:
 	}
 	moff = 0;
 	offset = 0;
-	while (m && u.u_count > 0 && error == 0) {
+	while (m && uio->uio_resid && error == 0) {
 		if (m->m_type != MT_DATA && m->m_type != MT_HEADER)
 			panic("receive 3");
-		len = u.u_count;
+		len = uio->uio_resid;
 		so->so_state &= ~SS_RCVATMARK;
 		if (so->so_oobmark && len > so->so_oobmark - offset)
 			len = so->so_oobmark - offset;
@@ -550,7 +548,7 @@ restart:
 			len = m->m_len - moff;
 		splx(s);
 		error =
-		    uiomove(mtod(m, caddr_t) + moff, (int)len, UIO_READ);
+		    uiomove(mtod(m, caddr_t) + moff, (int)len, UIO_READ, uio);
 		s = splnet();
 		if (len == m->m_len - moff) {
 			if (flags & MSG_PEEK) {
@@ -645,13 +643,11 @@ sosetopt(so, level, optname, m0)
 	int error = 0;
 	register struct mbuf *m = m0;
 
-#ifdef	BSD2_10
 /* we make a copy because the kernel is faking the m0 mbuf and we have to
  * have something for the m_free's to work with
 */
 	if (m0)
 		m = m0 = m_copy(m0, 0, M_COPYALL);
-#endif
 	if (level != SOL_SOCKET) {
 		if (so->so_proto && so->so_proto->pr_ctloutput)
 			return ((*so->so_proto->pr_ctloutput)
@@ -813,7 +809,7 @@ sogetopt(so, level, optname, mp)
 sohasoutofband(so)
 	register struct socket *so;
 {
-	struct proc *p;
+register struct proc *p;
 
 	if (so->so_pgrp < 0)
 		GSIGNAL(-so->so_pgrp, SIGURG);
@@ -828,7 +824,6 @@ sohasoutofband(so)
 	}
 }
 
-#ifdef	BSD2_10
 /*
  * this routine was extracted from the accept() call in uipc_sys.c to
  * do the initial accept processing in the supervisor rather than copying
@@ -836,7 +831,7 @@ sohasoutofband(so)
 */
 
 soacc1(so)
-	struct	socket	*so;
+register struct	socket	*so;
 	{
 
 	if	((so->so_options & SO_ACCEPTCONN) == 0)
@@ -871,7 +866,7 @@ asoqremque(so, n)
 	struct	socket	*so;
 	int	n;
 	{
-	struct	socket	*aso;
+register struct	socket	*aso;
 
 	aso = so->so_q;
 	if	(soqremque(aso, n) == 0)
@@ -885,7 +880,7 @@ asoqremque(so, n)
 */
 
 connwhile(so)
-	struct	socket	*so;
+register struct	socket	*so;
 	{
 
 	while	((so->so_state & SS_ISCONNECTING) && so->so_error == 0)
@@ -912,5 +907,4 @@ sogetpeer(so, m)
 		return(u.u_error = ENOTCONN);
 	return(u.u_error=(*so->so_proto->pr_usrreq)(so, PRU_PEERADDR, 0, m, 0));
 	}
-#endif	BSD2_10
-#endif	UCB_NET
+#endif

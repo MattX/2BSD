@@ -15,7 +15,7 @@
 
 OBJS=	intro.lpr op.lpr usenix.lpr
 DOCS=	intro.me  op.me  usenix.me
-SRCS=	$(DOCS) sendmail.8 syslog.3 syslog.8
+SRCS=	$(DOCS)
 ALL=	$(OBJS) rfc819.lpr rfc821.lpr rfc822.lpr
 
 LPR=	lpr
@@ -42,3 +42,5 @@ $(SRCS):
 
 clean:
 	rm -f $(OBJS) a.out core
+
+install:

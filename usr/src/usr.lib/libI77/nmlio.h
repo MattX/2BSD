@@ -3,20 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)nmlio.h	5.1	7/30/85
+ *	@(#)nmlio.h	5.1.1	1/1/94
  */
 
 /*	header for namelist I/O */
 
 #define ERRNM(x)	if(n=(x)) return(n);
 #define VL		16	/* variable name length from f77pass1/defs.h */
-
-#ifdef BSD2_10
-#define	namelistkey_		nmlkey_
-#define	namelistname		nmlname
-#define	namelistentry		nmletry
-#define	namelist_arglist	nmlargl
-#endif
 
 extern char namelistkey_;
 

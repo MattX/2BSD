@@ -1,8 +1,10 @@
 #
 # General dialer definitions used below
 #
-dial1200|1200 Baud Ventel attributes:\
-	:dv=/dev/cul0:br#1200:cu=/dev/cul0:at=ventel:du:
+dial9600|9600 Baud Hayes attributes:\
+	:br#9600:at=hayes:du:
+dial1200|1200 Baud DN11 attributes:\
+	:dv=/dev/ttyi8:br#1200:cu=/dev/dn1:at=dn11:du:
 dial300|300 Ventel attributes:\
 	:dv=/dev/cul0:br#300:cu=/dev/cul0:at=ventel:du:
 #
@@ -17,7 +19,6 @@ tip300:tc=UNIX-300:
 cu0|cu300:tc=UNIX-300:
 cu1200:tc=UNIX-1200:
 dialer:dv=/dev/cul0:br#1200:
-okeeffe:dv=/dev/tty00:br#9600:
 
 #--------------------------------------------------------------------
 #The attributes are:

@@ -9,10 +9,10 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)version.c	5.51 (Berkeley) 5/2/86";
+static char	SccsId[] = "@(#)version.c	5.51.1 (2.11BSD GTE) 7/15/94";
 #endif
 
-char	Version[] = "5.51";
+char	*Version = "5.51.1";
 
 # ifdef COMMENT
 

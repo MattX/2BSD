@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4 (Berkeley) 4/3/86
+ *	@(#)syscall.h	5.4.2 (2.11BSD GTE) 4/21/94
  */
 
 #define	SYS_exit	1
@@ -12,13 +12,13 @@
 #define	SYS_write	4
 #define	SYS_open	5
 #define	SYS_close	6
-				/*  7 is old: wait */
+#define	SYS_wait4	7
 #define	SYS_creat	8
 #define	SYS_link	9
 #define	SYS_unlink	10
 #define	SYS_execv	11
 #define	SYS_chdir	12
-				/* 13 is old: time */
+#define	SYS_fchdir	13
 #define	SYS_mknod	14
 #define	SYS_chmod	15
 #define	SYS_chown	16
@@ -89,7 +89,7 @@
 #define	SYS_getpgrp	81
 #define	SYS_setpgrp	82
 #define	SYS_setitimer	83
-#define	SYS_wait	84
+				/* 84 is old; wait,wait3 */
 #define	SYS_swapon	85
 #define	SYS_getitimer	86
 #define	SYS_gethostname	87
@@ -158,9 +158,9 @@
 #define	SYS_getsockname	150
 
 /*
- * BSD2.10 special calls
+ * 2BSD special calls
  */
-#define	SYS_rtp		151
+				/* 151 is unused */
 #define	SYS_nostk	152
 #define	SYS_fetchi	153
 #define	SYS_ucall	154

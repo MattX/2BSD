@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)strings.c	5.2 (Berkeley) 6/21/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)strings.c	5.9 (Berkeley) 6/1/90";
+#endif
 
 /*
  * Mail -- a mail program
@@ -35,8 +62,8 @@ salloc(size)
 	int index;
 
 	s = size;
-	s++;
-	s &= ~01;
+	s += 3;
+	s &= ~03;
 	index = 0;
 	for (sp = &stringdope[0]; sp < &stringdope[NSPACE]; sp++) {
 		if (sp->s_topFree == NOSTR && (STRINGSIZE << index) >= s)
@@ -49,8 +76,7 @@ salloc(size)
 		panic("String too large");
 	if (sp->s_topFree == NOSTR) {
 		index = sp - &stringdope[0];
-		sp->s_topFree = (char *) calloc(STRINGSIZE << index,
-		    (unsigned) 1);
+		sp->s_topFree = malloc(STRINGSIZE << index);
 		if (sp->s_topFree == NOSTR) {
 			fprintf(stderr, "No room for space %d\n", index);
 			panic("Internal error");
@@ -69,7 +95,6 @@ salloc(size)
  * Called to free all strings allocated
  * since last reset.
  */
-
 sreset()
 {
 	register struct strings *sp;
@@ -77,7 +102,6 @@ sreset()
 
 	if (noreset)
 		return;
-	minit();
 	index = 0;
 	for (sp = &stringdope[0]; sp < &stringdope[NSPACE]; sp++) {
 		if (sp->s_topFree == NOSTR)
@@ -86,4 +110,16 @@ sreset()
 		sp->s_nleft = STRINGSIZE << index;
 		index++;
 	}
+}
+
+/*
+ * Make the string area permanent.
+ * Meant to be called in main, after initialization.
+ */
+spreserve()
+{
+	register struct strings *sp;
+
+	for (sp = &stringdope[0]; sp < &stringdope[NSPACE]; sp++)
+		sp->s_topFree = NOSTR;
 }

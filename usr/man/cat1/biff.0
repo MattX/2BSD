@@ -5,22 +5,22 @@ BIFF(1)             UNIX Programmer's Manual		  BIFF(1)
 
 
 
-NNAAMMEE
+NAME
      biff - be notified if mail arrives and who it is from
 
-SSYYNNOOPPSSIISS
-     bbiiffff [ yynn ]
+SYNOPSIS
+     biff [ yn ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _B_i_f_f informs the system whether you want to be notified when
      mail arrives during the current terminal session.	The com-
      mand
 
-	  bbiiffff yy
+	  biff y
 
      enables notification; the command
 
-	  bbiiffff nn
+	  biff n
 
      disables it.  When mail notification is enabled, the header
      and first few lines of the message will be printed on your
@@ -32,7 +32,7 @@ DDEESSCCRRIIPPTTIIOONN
      use the MAIL variable of _s_h(1) or the _m_a_i_l variable of
      _c_s_h(1).
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), sh(1), mail(1), comsat(8C)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

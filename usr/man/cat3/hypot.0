@@ -5,19 +5,19 @@ HYPOT(3M)	    UNIX Programmer's Manual		HYPOT(3M)
 
 
 
-NNAAMMEE
+NAME
      hypot, cabs - Euclidean distance, complex absolute value
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee hhyyppoott((xx,,yy))
-     ddoouubbllee xx,,yy;;
+     double hypot(x,y)
+     double x,y;
 
-     ddoouubbllee ccaabbss((zz))
-     ssttrruucctt {{ddoouubbllee xx,,yy;;}} zz;;
+     double cabs(z)
+     struct {double x,y;} z;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Hypot(x,y) and cabs(x,y) return sqrt(x*x+y*y) computed in
      such a way that underflow will not happen, and overflow
      occurs only if the final result deserves it.
@@ -25,7 +25,7 @@ DDEESSCCRRIIPPTTIIOONN
      hypot(infinity,v) = hypot(v,infinity) = +infinity for all v,
      including _N_a_N.
 
-EERRRROORR ((dduuee ttoo RRoouunnddooffff,, eettcc..))
+ERROR (due to Roundoff, etc.)
      Below 0.97 _u_l_ps.  Consequently hypot(5.0,12.0) = 13.0
      exactly; in general, hypot and cabs return an integer when-
      ever an integer might be expected.
@@ -34,7 +34,7 @@ EERRRROORR ((dduuee ttoo RRoouunnddooffff,, eettcc..))
      of hypot and cabs that is provided in the comments in
      cabs.c; its error can exceed 1.2 _u_l_ps.
 
-NNOOTTEESS
+NOTES
      As might be expected, hypot(v,_N_a_N) and hypot(_N_a_N,v) are _N_a_N
      for all _f_i_n_i_t_e v; with "reserved operand" in place of "_N_a_N",
      the same is true on a VAX.  But programmers on machines
@@ -47,10 +47,10 @@ NNOOTTEESS
      it turns out to be irrelevant, as it does in
      hypot(infinity,_N_a_N).
 
-SSEEEE AALLSSOO
+SEE ALSO
      math(3M), sqrt(3M)
 
-AAUUTTHHOORR
+AUTHOR
      W. Kahan
 
 
@@ -60,7 +60,7 @@ AAUUTTHHOORR
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 

@@ -1,7 +1,16 @@
-# include "mfile1"
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid ="@(#)scan.c	2.1 (Berkeley) 4/23/86";
+#endif lint
+
+# include "pass1.h"
+# include <a.out.h>
+# include <stab.h>
 # include <ctype.h>
+# include <signal.h>
+
 	/* temporarily */
 
+int asm_esc = 0; /* asm escaped used in file */
 	/* lexical actions */
 
 # define A_ERR 0		/* illegal character */
@@ -44,22 +53,45 @@
 # define AR_A 6		/* asm */
 
 	/* text buffer */
+#ifndef FLEXNAMES
 # define LXTSZ 100
+#else
+#define	LXTSZ	512		/* was BUFSIZ */
+#endif
 char yytext[LXTSZ];
 char * lxgcp;
 
+extern int proflg;
+extern int gdebug;
+extern int fpe();
+struct sigvec fpe_sigvec;
+int oldway;		/* allocate storage so lint will compile as well */
+#ifndef LINT
+extern int lastloc;
+#endif
 
+OFFSZ caloff();
 	/* ARGSUSED */
 mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 
 	register i;
 	register char *cp;
-	extern int idebug, bdebug, tdebug, edebug, ddebug, xdebug;
+	extern int idebug, bdebug, tdebug, edebug;
+	extern int ddebug, xdebug, gdebug, adebug;
+	extern OFFSZ offsz;
+	int fdef = 0;
+	char *release = "PCC/3.0 (2.11BSD) 7/23/91";
 
+	offsz = caloff();
 	for( i=1; i<argc; ++i ){
 		if( *(cp=argv[i]) == '-' && *++cp == 'X' ){
 			while( *++cp ){
 				switch( *cp ){
+
+				case 'r':
+					fprintf( stderr, "Release: %s\n",
+						release );
+					break;
 
 				case 'd':
 					++ddebug;
@@ -79,7 +111,38 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 				case 'x':
 					++xdebug;
 					break;
+				case 'P':	/* profiling */
+					++proflg;
+					break;
+#ifdef	never
+				case 'g':
+					++gdebug;
+					break;
+#endif
+				case 'a':
+					++adebug;
+					break;
+#ifdef	never
+				case 'G':
+					++gdebug;
+					oldway = 1;
+					break;
+#endif
 					}
+				}
+			}
+			else {
+			if( *(argv[i]) != '-' ) switch( fdef++ ) {
+				case 0:
+				case 1:
+					if( freopen(argv[i], fdef==1 ? "r" : "w", fdef==1 ? stdin : stdout) == NULL) {
+						fprintf(stderr, "ccom:can't open %s\n", argv[i]);
+						exit(1);
+					}
+					break;
+
+				default:
+					;
 				}
 			}
 		}
@@ -90,11 +153,11 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 
 	for( i=0; i<SYMTSZ; ++i ) stab[i].stype = TNULL;
 
+	lineno = 1;
+
 	lxinit();
 	tinit();
 	mkdope();
-
-	lineno = 1;
 
 	/* dimension table initialization */
 
@@ -112,6 +175,9 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 	/* starts past any of the above */
 	curdim = 16;
 	reached = 1;
+
+	fpe_sigvec.sv_handler = fpe;
+	(void) sigvec(SIGFPE, &fpe_sigvec, (struct sigvec *) NULL);
 
 	yyparse();
 	yyaccpt();
@@ -166,7 +232,7 @@ struct lxdope {
 	short lxval;	/* the value to be returned */
 	} lxdope[] = {
 
-	'$',	A_ERR,	0,	0,	/* illegal characters go here... */
+	'@',	A_ERR,	0,	0,	/* illegal characters go here... */
 	'_',	A_LET,	0,	0,	/* letters point here */
 	'0',	A_DIG,	0,	0,	/* digits point here */
 	' ',	A_WS,	0,	0,	/* whitespace goes here */
@@ -209,10 +275,11 @@ lxinit(){
 	register char *cp;
 	/* set up character classes */
 
-	lxenter( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", LEXLET );
+	lxenter( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$", LEXLET );
 	lxenter( "0123456789", LEXDIG );
 	lxenter( "0123456789abcdefABCDEF", LEXHEX );
-	lxenter( " \t\r\b\f", LEXWS );
+		/* \013 should become \v someday; \013 is OK for ASCII and EBCDIC */
+	lxenter( " \t\r\b\f\013", LEXWS );
 	lxenter( "01234567", LEXOCT );
 	lxmask['.'+1] |= LEXDOT;
 
@@ -232,11 +299,11 @@ lxinit(){
 	/* handle letters, digits, and whitespace */
 	/* by convention, first, second, and third places */
 
-	cp = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	cp = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$";
 	while( *cp ) lxcp[*cp++ + 1] = &lxdope[1];
 	cp = "123456789";
 	while( *cp ) lxcp[*cp++ + 1] = &lxdope[2];
-	cp = "\t\b\r\f";
+	cp = "\t\b\r\f\013";
 	while( *cp ) lxcp[*cp++ + 1] = &lxdope[3];
 
 	/* first line might have title */
@@ -295,6 +362,10 @@ lxstr(ct){
 
 			case 'f':
 				val = '\f';
+				goto mkcc;
+
+			case 'v':
+				val = '\013';
 				goto mkcc;
 
 			case '0':
@@ -452,7 +523,15 @@ yylex(){
 			lxget( lxchar, LEXLET|LEXDIG );
 			if( (lxchar=lxres()) > 0 ) return( lxchar ); /* reserved word */
 			if( lxchar== 0 ) continue;
-			id = lookup( yytext, (stwart&(INSTRUCT|INUNION|FUNNYNAME))?SMOS:0 );
+#ifdef FLEXNAMES
+			id = lookup( hash(yytext),
+#else
+			id = lookup( yytext,
+#endif
+				/* tag name for struct/union/enum */
+				(stwart&TAGNAME)? STAG:
+				/* member name for struct/union */
+				(stwart&(INSTRUCT|INUNION|FUNNYNAME))?SMOS:0 );
 			sp = &stab[id];
 			if( sp->sclass == TYPEDEF && !stwart ){
 				stwart = instruct;
@@ -784,6 +863,7 @@ struct lxrdope {
 	"typedef",	AR_CL,	TYPEDEF,
 	"unsigned",	AR_TY,	UNSIGNED,
 	"union",	AR_U,	0,
+	"void",		AR_TY,	UNDEF, /* tymerge adds FTN */
 	"while",	AR_RW,	WHILE,
 	"",		0,	0,	/* to stop the search */
 	};
@@ -828,8 +908,10 @@ lxres() {
 		c=26; break;
 	case 'u':
 		c=27; break;
-	case 'w':
+	case 'v':
 		c=29; break;
+	case 'w':
+		c=30; break;
 
 	default:
 		return( -1 );
@@ -856,23 +938,24 @@ lxres() {
 
 			case AR_S:
 				/* struct */
-				stwart = INSTRUCT|SEENAME;
+				stwart = INSTRUCT|SEENAME|TAGNAME;
 				yylval.intval = INSTRUCT;
 				return( STRUCT );
 
 			case AR_U:
 				/* union */
-				stwart = INUNION|SEENAME;
+				stwart = INUNION|SEENAME|TAGNAME;
 				yylval.intval = INUNION;
 				return( STRUCT );
 
 			case AR_E:
 				/* enums */
-				stwart = SEENAME;
+				stwart = SEENAME|TAGNAME;
 				return( yylval.intval = ENUM );
 
 			case AR_A:
 				/* asm */
+				asm_esc = 1; /* warn the world! */
 				lxget( ' ', LEXWS );
 				if( getchar() != '(' ) goto badasm;
 				lxget( ' ', LEXWS );
@@ -907,15 +990,25 @@ lxres() {
 	return( -1 );
 	}
 
+extern int	labelno;
+
 lxtitle(){
 	/* called after a newline; set linenumber and file name */
 
 	register c, val;
-	register char *cp;
+	register char *cp, *cq;
 
 	for(;;){  /* might be several such lines in a row */
 		if( (c=getchar()) != '#' ){
 			if( c != EOF ) ungetc(c,stdin);
+#ifndef LINT
+			if ( lastloc != PROG) return;
+			cp = ftitle;
+			cq = ititle;
+			while ( *cp ) if (*cp++ != *cq++) return;
+			if ( *cq ) return;
+			psline();
+#endif
 			return;
 			}
 
@@ -924,14 +1017,140 @@ lxtitle(){
 		for( c=getchar(); isdigit(c); c=getchar() ){
 			val = val*10+ c - '0';
 			}
+		if( c == EOF )
+			continue;
 		ungetc( c, stdin );
 		lineno = val;
 		lxget( ' ', LEXWS );
-		if( (c=getchar()) != '\n' ){
-			for( cp=ftitle; c!='\n'; c=getchar(),++cp ){
+		if( (c=getchar()) != '\n' && c != EOF ){
+			for( cp=ftitle; c!=EOF && c!='\n'; c=getchar(),++cp ){
 				*cp = c;
 				}
 			*cp = '\0';
+#ifndef LINT
+			if (ititle[0] == '\0') {
+				cp = ftitle;
+				cq = ititle;
+				while ( *cp )  
+					*cq++ = *cp++;
+				*cq = '\0';
+				*--cq = '\0';
+#ifndef FLEXNAMES
+				for ( cp = ititle+1; *(cp-1); cp += 8 ) {
+					pstab(cp, N_SO);
+					if (gdebug) printf("0,0,LL%d\n", labelno);
+					}
+#else
+				pstab(ititle+1, N_SO);
+				if (gdebug) printf("0,0,LL%d\n", labelno);
+#endif
+
+				*cq = '"';
+				printf("LL%d:\n", labelno++);
+				}
+#endif
 			}
 		}
 	}
+
+#define	NSAVETAB	512		/* was 4096 */
+char	*savetab;
+int	saveleft;
+
+char *
+savestr(cp)
+	register char *cp;
+{
+	register int len;
+
+	len = strlen(cp) + 1;
+	if (len > saveleft) {
+		saveleft = NSAVETAB;
+		if (len > saveleft)
+			saveleft = len;
+		savetab = (char *)malloc(saveleft);
+		if (savetab == 0)
+			cerror("Ran out of memory (savestr)");
+	}
+	strncpy(savetab, cp, len);
+	cp = savetab;
+	savetab += len;
+	saveleft -= len;
+	return (cp);
+}
+
+/*
+ * The definition for the segmented hash tables.
+ */
+#define	MAXHASH	16		/* was 20 */
+#define	HASHINC	257		/* was 1013 */
+struct ht {
+	char	**ht_low;
+	char	**ht_high;
+	int	ht_used;
+} htab[MAXHASH];
+
+char *
+hash(s)
+	char *s;
+{
+	register char **h;
+	register i;
+	register char *cp;
+	struct ht *htp;
+	int sh;
+
+	/*
+	 * The hash function is a modular hash of
+	 * the sum of the characters with the sum
+	 * doubled before each successive character
+	 * is added.
+	 */
+	cp = s;
+	i = 0;
+	while (*cp)
+		i = i*2 + *cp++;
+	sh = (i&077777) % HASHINC;
+	cp = s;
+	/*
+	 * There are as many as MAXHASH active
+	 * hash tables at any given point in time.
+	 * The search starts with the first table
+	 * and continues through the active tables
+	 * as necessary.
+	 */
+	for (htp = htab; htp < &htab[MAXHASH]; htp++) {
+		if (htp->ht_low == 0) {
+			register char **hp =
+			    (char **) calloc(sizeof (char **), HASHINC);
+			if (hp == 0)
+				cerror("ran out of memory (hash)");
+			htp->ht_low = hp;
+			htp->ht_high = htp->ht_low + HASHINC;
+		}
+		h = htp->ht_low + sh;
+		/*
+		 * quadratic rehash increment
+		 * starts at 1 and incremented
+		 * by two each rehash.
+		 */
+		i = 1;
+		do {
+			if (*h == 0) {
+				if (htp->ht_used > (HASHINC * 3)/4)
+					break;
+				htp->ht_used++;
+				*h = savestr(cp);
+				return (*h);
+			}
+			if (**h == *cp && strcmp(*h, cp) == 0)
+				return (*h);
+			h += i;
+			i += 2;
+			if (h >= htp->ht_high)
+				h -= HASHINC;
+		} while (i < HASHINC);
+	}
+	cerror("ran out of hash tables");
+/* NOTREACHED */
+}

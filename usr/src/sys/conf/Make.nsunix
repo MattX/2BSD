@@ -22,13 +22,12 @@ N1=	../net
 N2=	../netimp
 N3=	../netinet
 N4=	../netns
-N5=	../netpup
 N6=	../pdpif
 S=	../sys
 U=	../pdpuba
 MB=	../pdpmba
 
-DEFS=	-DKERNEL -Dpdp11 -I. -I${H}
+DEFS=	-DKERNEL ${OPTS} -I. -I${H}
 CFLAGS=	-O ${DEFS}
 
 CPP=	/lib/cpp -P ${DEFS}
@@ -50,30 +49,35 @@ SUB=	sys pdp pdpuba pdpmba net pdpnet
 
 CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
 	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
+	libc_uldiv.o libc_ulsh.o \
 	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
-	mch_dump.o mch_dzpdma.o mch_fpsim.o mch_KScall.o mch_profile.o \
+	mch_dump.o mch_dzpdma.o mch_KScall.o mch_profile.o \
 	mch_start.o mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
 
 NCONF=	libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o libc_htonl.o \
 	libc_htons.o libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o \
+	libc_uldiv.o libc_ulsh.o \
 	libc_remque.o libc_strlen.o libc_udiv.o net_copy.o net_csv.o \
 	net_mbuf.o net_scb.o net_SKcall.o net_trap.o net_xxx.o
 
-BASE=	br.o cons.o dh.o dhu.o dr.o dz.o hk.o ht.o init_sysent.o \
+BASE=	br.o cons.o dh.o dhu.o dhv.o dr.o dz.o hk.o ht.o init_sysent.o \
 	kern_clock.o kern_descrip.o kern_mman.o kern_proc.o kern_prot.o \
 	kern_subr.o kern_synch.o kern_xxx.o lp.o machdep.o ra.o ram.o \
-	rk.o rl.o rx.o si.o subr_rmap.o sys_inode.o sys_kern.o tm.o ts.o \
-	tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o ufs_bio.o \
-	ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o vm_proc.o \
-	vm_sched.o vm_swap.o vm_swp.o vm_text.o xp.o
-OV1=	sys_generic.o sys_inode2.o ufs_syscalls.o
-OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resrce.o
-OV3=	kern_rtp.o kern_time.o sys_process.o ufs_mount.o ufs_subr.o
+	rk.o rl.o rx.o si.o subr_rmap.o sys_inode.o sys_kern.o \
+	tm.o ts.o tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o \
+	ufs_bio.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
+	vm_proc.o vm_sched.o vm_swap.o vm_swp.o vm_text.o xp.o quota_subr.o
+OV1=	sys_generic.o ufs_syscalls.o
+OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
+OV3=	kern_time.o sys_process.o ufs_mount.o ufs_subr.o uipc_syscalls.o
 OV4=	dkbad.o kern_sig.o mem.o subr_xxx.o trap.o tty_pty.o tty_tty.o
-OV5=	quota_kern.o quota_subr.o quota_ufs.o quota_sys.o ufs_bmap.o	\
-	uipc_sys.o sys_pipe.o
+OV5=	quota_kern.o quota_ufs.o quota_sys.o ufs_bmap.o	\
+	sys_pipe.o
 # OV6 gets the (hopefully) never used routines
-OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o
+OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o \
+	subr_log.o toy.o
+OV7=	tmscp.o
+OV8=	mch_fpsim.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \
@@ -89,10 +93,10 @@ LD_KOBJ=${CONF} ${BASE} \
 
 NETOBJ=	${NCONF} af.o idp_usrreq.o if.o if_acc.o if_css.o if_de.o \
 	if_dmc.o if_ec.o if_en.o if_ether.o if_il.o if_imp.o if_imphost.o \
-	if_loop.o if_qe.o if_sl.o if_sri.o if_uba.o if_vv.o in.o \
+	if_loop.o if_qe.o if_qt.o if_sl.o if_sri.o if_uba.o if_vv.o in.o \
 	in_cksum.o in_pcb.o in_proto.o ip_icmp.o ip_input.o ip_output.o \
 	ns.o ns_error.o ns_input.o ns_ip.o ns_output.o ns_pcb.o \
-	ns_proto.o pup.o raw_cb.o raw_imp.o raw_ip.o raw_pup.o \
+	ns_proto.o raw_cb.o raw_imp.o raw_ip.o \
 	raw_usrreq.o route.o spp_debug.o spp_usrreq.o sys_socket.o \
 	sys_net.o tcp_debug.o tcp_input.o tcp_output.o tcp_subr.o \
 	tcp_timer.o tcp_usrreq.o udp_usrreq.o uipc_domain.o uipc_mbuf.o \
@@ -104,11 +108,23 @@ all: unix netnix
 unix: ${SUB} ${KERNOBJ} d.unix.o checksys
 	ld -X -i -o unix ${LD_KOBJ} d.unix.o
 	size unix
+	@echo Compacting symbol table
+	-symcompact unix
+	@echo Compacting strings table - this will take a few minutes
+	-strcompact unix
+	@echo rearranging symbols
+	-symorder ../pdp/symbols.sort unix
 	./checksys unix
 
 # d.netnix.o must be the last object file in the dependency list!
 netnix: d.netnix.o
 	-ld -X -i -o netnix ${NETOBJ} d.netnix.o
+	@echo Compacting symbol table
+	-symcompact netnix
+	@echo Compacting strings table - this will take a few minutes
+	-strcompact netnix
+	@echo rearranging symbols
+	-symorder ../pdp/symbols.sort netnix
 	size netnix
 
 # Resolve all references between the kernel and the net.  Always regenerate!!!
@@ -161,8 +177,8 @@ clean:
 	rm -f netnix netbind d.unix.s d.netnix.s
 
 install:
-	install -c -o root -g staff -m 744 unix ${DESTDIR}/unix
-	install -c -o root -g staff -m 744 netnix ${DESTDIR}/netnix
+	install -c -o root -g kmem -m 744 unix ${DESTDIR}/unix
+	install -c -o root -g kmem -m 744 netnix ${DESTDIR}/netnix
 
 depend: FRC
 	for i in ${SUB}; do \

@@ -5,28 +5,28 @@ GETPW(3C)	    UNIX Programmer's Manual		GETPW(3C)
 
 
 
-NNAAMMEE
+NAME
      getpw - get name from uid
 
-SSYYNNOOPPSSIISS
-     ggeettppww((uuiidd,, bbuuff))
-     cchhaarr **bbuuff;;
+SYNOPSIS
+     getpw(uid, buf)
+     char *buf;
 
-DDEESSCCRRIIPPTTIIOONN
-     GGeettppww iiss mmaaddee oobbssoolleettee bbyy ggeettppwwuuiidd((33))..
+DESCRIPTION
+     Getpw is made obsolete by getpwuid(3).
 
      _G_e_t_p_w searches the password file for the (numerical) _u_i_d,
      and fills in _b_u_f with the corresponding line; it returns
      non-zero if _u_i_d could not be found.  The line is null-
      terminated.
 
-FFIILLEESS
+FILES
      /etc/passwd
 
-SSEEEE AALLSSOO
+SEE ALSO
      getpwent(3), passwd(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Non-zero return on error.
 
 
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 

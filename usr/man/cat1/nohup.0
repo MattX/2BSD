@@ -5,15 +5,15 @@ NICE(1)             UNIX Programmer's Manual		  NICE(1)
 
 
 
-NNAAMMEE
+NAME
      nice, nohup - run a command at low priority (_s_h only)
 
-SSYYNNOOPPSSIISS
-     nniiccee [ --_n_u_m_b_e_r ] command [ arguments ]
+SYNOPSIS
+     nice [ -_n_u_m_b_e_r ] command [ arguments ]
 
-     nnoohhuupp command [ arguments ]
+     nohup command [ arguments ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _N_i_c_e executes _c_o_m_m_a_n_d with low scheduling priority.  If the
      _n_u_m_b_e_r argument is present, the priority is incremented
      (higher numbers mean lower priorities) by that amount up to
@@ -29,17 +29,17 @@ DDEESSCCRRIIPPTTIIOONN
      or stealing the input from the next person who logs in on
      the same terminal.
 
-FFIILLEESS
+FILES
      nohup.out standard output and standard error file under
      _n_o_h_u_p
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), setpriority(2), renice(8)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      _N_i_c_e returns the exit status of the subject command.
 
-BBUUGGSS
+BUGS
      _N_i_c_e and _n_o_h_u_p are particular to _s_h(1).  If you use _c_s_h(1),
      then commands executed with ``&'' are automatically immune
      to hangup signals while in the background.  There is a buil-
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 8, 1986				1
+Printed 1/9/94		   May 8, 1986				1
 
 
 

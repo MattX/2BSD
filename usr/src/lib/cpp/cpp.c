@@ -1,6 +1,4 @@
-#ifndef lint
-static char sccsid[] = "@(#)cpp.c	1.8 5/16/84";
-#endif lint
+/* static char sccsid[] = "@(#)cpp.c	1.8 5/16/84"; */
 
 #ifdef FLEXNAMES
 #define	NCPS	128
@@ -112,7 +110,7 @@ char *ptrtab;
 char buffer[NCPS+BUFSIZ+BUFSIZ+NCPS];
 
 #ifdef pdp11
-# define SBSIZE ((unsigned)0112160)	/* PDP compiler doesn't like 41000 */
+# define SBSIZE ((unsigned)0114130)	/* PDP compiler doesn't like 39024 */
 short	sbff[SBSIZE/2];
 # define sbf ((char *)sbff)
 #else !pdp11
@@ -639,6 +637,8 @@ dodef(p) char *p; {/* process '#define' */
 	char *oldval,*oldsavch;
 	char *formal[MAXFRM]; /* formal[n] is name of nth formal */
 	char formtxt[BUFSIZ]; /* space for formal names */
+	int spasscom = passcom;
+	passcom = 0;		/* strip comments from defines to save space */
 
 	if (savch>sbf+SBSIZE-BUFSIZ) {pperror("too much defining"); return(p);}
 	oldsavch=savch; /* to reclaim space if redefinition */
@@ -719,7 +719,7 @@ dodef(p) char *p; {/* process '#define' */
 			np->value=psav-1;
 		} else psav=oldsavch; /* identical redef.; reclaim space */
 	} else np->value=psav-1;
-	--flslvl; inp=pin; savch=psav; return(p);
+	--flslvl; inp=pin; savch=psav; passcom = spasscom; return(p);
 }
 
 #define fasscan() ptrtab=fastab+COFF
@@ -1013,7 +1013,7 @@ main(argc,argv)
 {
 	register int i,c;
 	register char *p;
-	char *tf,**cp2;
+	char *tf,**cp2, obuf[BUFSIZ];
 
 # if gcos
 	if (setjmp(env)) return (exfail);
@@ -1147,11 +1147,13 @@ main(argc,argv)
 		if (tf!=(char *)0)
 			infile = tf + 1;
 		mout=fout;
+		setbuf(mout, (char *)NULL);
 		if (NULL==(fout=fopen("/dev/null", "w"))) {
 			pperror("Can't open /dev/null");
 			exit(8);
 		}
 	}
+	setbuf(fout, obuf);
 	fins[ifno]=fin;
 	exfail = 0;
 		/* after user -I files here are the standard include libraries */

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)telnet.c	5.16 (Berkeley) 5/27/86";
-#endif not lint
+static char sccsid[] = "@(#)telnet.c	5.16.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * User telnet program.
@@ -20,18 +18,6 @@ static char sccsid[] = "@(#)telnet.c	5.16 (Berkeley) 5/27/86";
  * Many of the FUNCTIONAL changes in this newest version of telnet
  * were suggested by Dave Borman of Cray Research, Inc.
  */
-#ifdef BSD2_10
-#define	Sendlist	_Sndls
-#define	Sendlist2	_Sndls2
-#define	getnextsend	_gnxtsn
-#define	getnexttoggle	_gnxttg
-#define	getnextset	_gnxtst
-#define	getnextmode	_gnxtmd
-#define	getnextcmd	_gnxtcm
-#define	connected	_cnnctd
-#define	display		_dsply
-#define	displayhelp	_dsplyh
-#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -551,7 +537,7 @@ int	length;
 	pThis = buffer;
 	buffer = buffer+min(length, BYTES_PER_LINE);
 	while (pThis < buffer) {
-	    fprintf(NetTrace, "%.2x", (*pThis)&0xff);
+	    fprintf(NetTrace, "%02x", (*pThis)&0xff);
 	    pThis++;
 	}
 	fprintf(NetTrace, "\n");
@@ -1984,8 +1970,10 @@ bye()
 		/* reset his options */
 		for (op = hisopts; op < &hisopts[256]; op++)
 			*op = 0;
+		/* reset our options */
+		bzero(myopts, 256);
 	}
-	return 1;
+	return 0;
 }
 
 /*VARARGS*/

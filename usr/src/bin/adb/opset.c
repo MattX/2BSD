@@ -1,16 +1,10 @@
-/*
- *
- *      UNIX debugger
- *
- */
-
 #include "defs.h"
 
-STRING          errflg;
-L_INT           dot;
-INT             dotinc;
-L_INT           var[];
-MAP             datmap;
+	char	*errflg;
+	long	dot;
+	int	dotinc;
+	long	var[];
+	MAP     datmap;
 
 #undef  SINGLE
 
@@ -30,8 +24,6 @@ MAP             datmap;
 #define JMP     11
 #define JSR     12
 
-
-TYPE    struct optab    *OPTAB;
 struct optab {
 	int     mask;
 	int     val;
@@ -118,6 +110,10 @@ struct optab {
 	0000000, 0170002, NOADDR, "seti",
 	0000000, 0170011, NOADDR, "setd",
 	0000000, 0170012, NOADDR, "setl",
+	0000000, 0000007, NOADDR, "mfpt",
+	0000077, 0007000, JMP, "csm",
+	0000077, 0007300, SINGLW, "wrtlck",
+	0000077, 0007200, SINGLW, "tstset",
 	0000777, 0004000, JSR,    "jsr",
 	0000777, 0074000, DOUBLE, "xor",
 	0000007, 0000200, SINGLE, "rts",
@@ -132,91 +128,91 @@ struct optab {
 };
 
 char *systab[] = {
-	"old indir (illegal)",
+	"old indir",		/* 0 */
 	"exit",
 	"fork",
 	"read",
 	"write",
 	"open",
 	"close",
-	"old wait",
+	"wait4",
 	"creat",
 	"link",
 	"unlink",
 	"execv",
 	"chdir",
-	"old time",
+	"fchdir",
 	"mknod",
 	"chmod",
 	"chown",
-	"old sbreak",
-	"old stat",
+	NULL,			/* 17 - old sbreak */
+	NULL,			/* 18 - old stat */
 	"lseek",
 	"getpid",
 	"mount",
 	"umount",
-	"old setuid",
+	NULL,			/* 23 - old setuid */
 	"getuid",
-	"old stime",
+	NULL,			/* 25 - old stime */
 	"ptrace",
 	"alarm",
-	"old fstat",
+	NULL,			/* 28 - old fstat */
 	"pause",
-	"old utime",
-	"old stty",
-	"old gtty",
+	NULL,			/* 30 - old utime */
+	NULL,			/* 31 - old stty */
+	NULL,			/* 32 - old gtty */
 	"access",
-	"old nice",
-	"old ftime",
+	NULL,			/* 34 - old nice */
+	NULL,			/* 35 - old ftime */
 	"sync",
 	"kill",
 	"stat",
-	"old setpgrp",
+	NULL,			/* 39 - old setpgrp */
 	"lstat",
 	"dup",
 	"pipe",
 	"times",
 	"profil",
-	"45 (unused)",
-	"old setgid",
+	NULL,			/* 45 - unused */
+	NULL,			/* 46 - old setgid */
 	"getgid",
 	"signal",
-	"49 (reserved for USG)",
-	"50 (reserved for USG)",
+	NULL,			/* 49 - unused */
+	NULL,			/* 50 - unused */
 	"acct",
 	"phys",
 	"lock",
 	"ioctl",
 	"reboot",
-	"old mpxchan",
+	NULL,			/* 56 - old mpxchan */
 	"symlink",
 	"readlink",
 	"execve",
 	"umask",
 	"chroot",
 	"fstat",
-	"63 (reserved)",
+	NULL,			/* 63 - unused */
 	"getpagesize",
-	"mremap",
+	NULL,			/* 65 - mremap */
 	"vfork",
-	"old vread",
-	"old vwrite",
+	NULL,			/* 67 - old vread */
+	NULL,			/* 68 - old vwrite */
 	"sbrk",
 	"sstk",
-	"mmap",
-	"old vadvise",
-	"munmap",
-	"mprotect",
-	"madvise",
+	NULL,			/* 71 - mmap */
+	NULL,			/* 72 - old vadvise */
+	NULL,			/* 73 - munmap */
+	NULL,			/* 74 - mprotect */
+	NULL,			/* 75 - madvise */
 	"vhangup",
-	"old vlimit",
-	"mincore",
+	NULL,			/* 77 - old vlimit */
+	NULL,			/* 78 - mincore */
 	"getgroups",
 	"setgroups",
 	"getpgrp",
 	"setpgrp",
 	"setitimer",
-	"wait",
+	"old wait",
 	"swapon",
 	"getitimer",
 	"gethostname",
@@ -239,7 +235,7 @@ char *systab[] = {
 	"bind",
 	"setsockopt",
 	"listen",
-	"old vtimes",
+	NULL,			/* 107 - old vtimes */
 	"sigvec",
 	"sigblock",
 	"sigsetmask",
@@ -251,7 +247,7 @@ char *systab[] = {
 	"gettimeofday",
 	"getrusage",
 	"getsockopt",
-	"old (vax) resuba",
+	NULL,			/* 119 - old resuba */
 	"readv",
 	"writev",
 	"settimeofday",
@@ -264,14 +260,14 @@ char *systab[] = {
 	"truncate",
 	"ftruncate",
 	"flock",
-	"132 (nosys)",
+	NULL,			/* 132 - unused */
 	"sendto",
 	"shutdown",
 	"socketpair",
 	"mkdir",
 	"rmdir",
 	"utimes",
-	"139 (4.2 sigreturn)",
+	NULL,			/* 139 - 4.2 sigreturn */
 	"adjtime",
 	"getpeername",
 	"gethostid",
@@ -279,14 +275,14 @@ char *systab[] = {
 	"getrlimit",
 	"setrlimit",
 	"killpg",
-	"147 (nosys)",
+	NULL,			/* 147 - unused */
 	"setquota",
 	"quota",
 	"getsockname",
 	/*
-	 * BSD2.10 special calls
+	 * 2.11BSD special calls
 	 */
-	"rtp",
+	NULL,			/* 151 - old rtp */
 	"nostk",
 	"fetchi",
 	"ucall",
@@ -294,15 +290,17 @@ char *systab[] = {
 	"gldav",
 };
 
-STRING  regname[] = { "r0", "r1", "r2", "r3", "r4", "r5", "sp", "pc"};
+#define	NUMSYSCALLS	(sizeof (systab) / sizeof (char *))
 
-POS     type, space, incp;
+char	*regname[] = { "r0", "r1", "r2", "r3", "r4", "r5", "sp", "pc"};
 
-printins(f,idsp,ins)
-REG INT         ins;
+	u_int	type, space, incp;
+
+printins(idsp,ins)
+	register int ins;
 {
-	INT             byte;
-	REG OPTAB       p;
+	int	byte;
+	register struct optab *p;
 
 	type=DSYM; space=idsp; incp=2;
 	FOR p=optab;; p++
@@ -310,7 +308,10 @@ REG INT         ins;
 		THEN    break;
 		FI
 	OD
-	prints(p->iname); byte=ins&0100000; ins &= p->mask;
+	printf(p->iname);
+	byte=ins&0100000;
+	ins &= p->mask;
+
 	switch (p->itype) {
 
 	    case JMP:
@@ -347,7 +348,10 @@ REG INT         ins;
 		break;
 
 	    case SYS:
-		printf("%8t%s", systab[ins]);
+		if (ins < NUMSYSCALLS && systab[ins])
+			printf("%8t%s", systab[ins]);
+		else
+			printf("%8t%d", ins);
 		break;
 
 	    case TRAP:
@@ -364,8 +368,8 @@ doubl(a,b)
 }
 
 branch(s,ins)
-STRING          s;
-REG INT         ins;
+	char	*s;
+	register int ins;
 {
 	printf(s);
 	IF ins&0200 THEN ins |= 0177400; FI
@@ -374,10 +378,10 @@ REG INT         ins;
 }
 
 paddr(s, a)
-STRING          s;
-REG INT         a;
+	char	*s;
+	register int a;
 {
-	REG INT         r;
+	register int r;
 
 	var[2]=var[1];
 	r = a&07; a &= 070;
@@ -401,11 +405,11 @@ REG INT         a;
 	     incp += 2;
 	     return;
 	FI
-	r = (INT)regname[r];
+	r = (int)regname[r];
 	switch (a) {
 	    /* r */
 	    case 000:
-		prints(r);
+		printf(r);
 		return;
 
 	    /* (r) */

@@ -14,8 +14,8 @@
 #SRCS=	${STDSRC} ${VAXSRC}
 #OBJS=	${STDOBJ} ${VAXOBJ}
 #else
-SRCS=	${STDSRC}
-OBJS=	${STDOBJ}
+SRCS=	${STDSRC} puts.c fputs.c
+OBJS=	${STDOBJ} puts.o fputs.o
 #endif not vax && not pdp11
 
 CFLAGS=	-O ${DEFS}
@@ -93,8 +93,10 @@ freopen.o: /usr/include/stdio.h
 fseek.o: fseek.c /usr/include/stdio.h
 ftell.o: ftell.c /usr/include/stdio.h
 fwrite.o: fwrite.c /usr/include/stdio.h
+getchar.o: getchar.c /usr/include/stdio.h
 getw.o: getw.c /usr/include/stdio.h
 printf.o: printf.c /usr/include/stdio.h
+putchar.o: putchar.c /usr/include/stdio.h
 putw.o: putw.c /usr/include/stdio.h
 rew.o: rew.c /usr/include/stdio.h
 scanf.o: scanf.c /usr/include/stdio.h
@@ -105,6 +107,11 @@ sobuf.o: sobuf.c /usr/include/stdio.h
 sprintf.o: sprintf.c /usr/include/stdio.h
 strout.o: strout.c /usr/include/stdio.h
 ungetc.o: ungetc.c /usr/include/stdio.h
+vfprintf.o: vfprintf.c /usr/include/stdio.h /usr/include/varargs.h
+vprintf.o: vprintf.c /usr/include/stdio.h /usr/include/varargs.h
+vsprintf.o: vsprintf.c /usr/include/stdio.h /usr/include/varargs.h
+puts.o: puts.c /usr/include/stdio.h
+fputs.o: fputs.c /usr/include/stdio.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

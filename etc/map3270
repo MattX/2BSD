@@ -415,36 +415,41 @@ undent = '\E\Eh';
 } # end of concept
 avt | vt100 | vt100nam | pt100 | vt125 | vt102 | direct831 {
 enter = '^m';
-clear = '^z' | '\EOM';
+clear = '^z' | '\EOM';			# Keypad enter key
 
 nl = '^?';
 tab = '^i';
 btab = '^b';
-left = '^h' | '\E[D';
-right = '^l' | '\E[C';
-up = '^k' | '\E[A';
-down = '^j' | '\E[B';
-home = '\EOn';
+left = '^h' | '\E[D' | '\EOD';		# Arrow key (application/numeric modes)
+right = '^l' | '\E[C' | '\EOC';		# Arrow key (application/numeric modes)
+up = '^k' | '\E[A' | '\EOA';		# Arrow key (application/numeric modes)
+down = '^j' | '\E[B' | '\EOB';		# Arrow key (application/numeric modes)
+home = '\EOn';				# Keypad period key
 
 delete = '^d';
 eeof = '^e';
 einp = '^w';
 insrt = '^ ';
 
-# pf keys
+# pfk keys
+# Keypad digits 1-9 correspond to pf keys 1-9
 pfk1 = '\EOq' | '\E1'; pfk2 = '\EOr' | '\E2'; pfk3 = '\EOs' | '\E3';
 pfk4 = '\EOt' | '\E4'; pfk5 = '\EOu' | '\E5'; pfk6 = '\EOv' | '\E6';
 pfk7 = '\EOw' | '\E7'; pfk8 = '\EOx' | '\E8'; pfk9 = '\EOy' | '\E9';
+
+# Keypad digits 0-9 prefixed by pf1 (gold key) correspond to pfk10-19
 pfk10 = '\EOP\EOp' | '\E0'; pfk11 = '\EOP\EOq' | '\E-';
 pfk12 = '\EOP\EOr' | '\E='; pfk13 = '\EOP\EOs' | '^f13';
 pfk14 = '\EOP\EOt' | '^f14'; pfk15 = '\EOP\EOu' | '^f15';
 pfk16 = '\EOP\EOv' | '^f16'; pfk17 = '\EOP\EOw' | '^f17';
 pfk18 = '\EOP\EOx' | '^f18'; pfk19 = '\EOP\EOy' | '^f19';
+
+# Keypad digits 0-9 prefixed by pf2 correspond to pfk20,21
 pfk20 = '\EOQ\EOp' | '^f20'; pfk21 = '\EOQ\EOq' | '^f21';
 
 # program attention keys
-pa1 = '\E\EOP' | '^p1';
-pa2 = '\E\EOQ' | '^p2';
+pa1 = '\E\EOP' | '^p1';		# pa1 is Escape pf1
+pa2 = '\E\EOQ' | '^p2';		# pa2 is Escape pf2
 
 # local control keys
 
@@ -455,15 +460,15 @@ escape = '^c';	# escape to telnet command mode
 master_reset = '^g';
 
 # local editing keys
-settab = '\E;';
-deltab = '\E\'';
-clrtab = '\E:';
-setmrg = '\E,';
-sethom = '\E.';
-coltab = '\E\E[B';
-colbak = '\E\E[A';
-indent = '\E\E[C';
-undent = '\E\E[D';
+settab = '\E;';			# Escape key
+deltab = '\E\'';		# Escape \
+clrtab = '\E:';			# Escape :
+setmrg = '\E,';			# Escape ,
+sethom = '\E.';			# Escape .
+coltab = '\E\E[B' | '\E\EOB';	# Escape down-arrow
+colbak = '\E\E[A' | '\E\EOA';	# Escape up-arrow
+indent = '\E\E[C' | '\E\EOC';	# Escape right-arrow
+undent = '\E\E[D' | '\E\EOD';	# Escape left-arrow
 }    # end of vt100, etc.
 
 tvipt | vp | televideopt {

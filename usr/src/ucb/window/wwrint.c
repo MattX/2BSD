@@ -42,7 +42,7 @@ wwrint()
 		wwnreade++;
 	if (wwinterrupt() && wwsetjmp) {
 		wwsetjmp = 0;
-		(void) sigsetmask(sigblock(0) & ~sigmask(SIGIO));
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGIO));
 		longjmp(wwjmpbuf, 1);
 	}
 }

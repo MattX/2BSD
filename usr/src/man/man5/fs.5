@@ -109,7 +109,7 @@ is a unique inode allocated for each active file, each current directory,
 each mounted-on file, text file, and the root.  An inode is `named' by its
 device/i-number pair.
 .PP
-Inodes are 64 bytes long, so 16 of them fit into a block if BSIZE is 1024.
+Inodes are 64 bytes long, so 16 of them fit into a block if DEV_BSIZE is 1024.
 The root inode is the root of the file system.  Inode 0 can't be used for
 normal purposes and historically bad blocks were linked to inode 1, thus the
 root inode is 2 (inode 1 is no longer used for this purpose, however numerous
@@ -132,14 +132,15 @@ struct dinode {
 	uid_t	di_uid;		/* owner's user id */
 	gid_t	di_gid;		/* owner's group id */
 	off_t	di_size;	/* number of bytes in file */
-	char	di_addr[40];	/* disk block addresses */
+	daddr_t	di_addr[7];	/* 7 block addresses 4 bytes each */
+	daddr_t	di_reserved[3];	/* pad of 12 to make total size 64 */
 	time_t	di_atime;	/* time last accessed */
 	time_t	di_mtime;	/* time last modified */
 	time_t	di_ctime;	/* time created */
 };
 
 /*
- * 21 of the di_addr address bytes are used; 7 addresses of 3
+ * 28 of the di_addr address bytes are used; 7 addresses of 4
  * bytes each: 4 direct (4Kb directly accessible) and 3 indirect.
  */
 #define NADDR	7
@@ -194,21 +195,23 @@ field are occupied by the device code
 The device codes of block and character special files overlap.
 .PP
 Disk addresses of plain files and directories are kept in the array
+.I di_addr.
+For a DEV_BSIZE of 1K bytes, 7 addresses are kept in
 .I di_addr
-packed into 3 bytes each.  For a BSIZE of 1K bytes, 7 addresses are kept in
-.I di_addr
-using only 21 of the 40 bytes.  The first 4 addresses specify device
+using 28 of the 40 bytes.  The first 4 addresses specify device
 blocks directly.  The last 3 addresses are singly, doubly and triply
-indirect and point to blocks containing 256 further block pointers.  Pointers
-in indirect blocks have the type
+indirect and point to blocks containing 256 further block pointers.
+There are 3 block addresses reserved as a pad to bring the total
+size of an inode to 64 bytes.
+All block addresses are of type
 .IR daddr_t " (see " types (5)).
 .PP
 For block
 .I b
 in a file to exist, it is not necessary that all blocks less than
 .I b
-exist.  A zero block number either in the address bytes of the inode or in
-an indirect block indicates that the corresponding block has never been
+exist.  A zero block number
+indicates that the corresponding block has never been
 allocated.  Such a missing block reads as if it contained all zero bytes.
 .PP
 .IR "Free block list" :
@@ -366,11 +369,13 @@ unlink'ed or truncated files in reverse order thereby maintaining strings
 of optimally laid out free blocks in the free list.  Eventually, however,
 since both freed and allocated blocks use the head of the free list, it's
 possible (and quite probable) to have most of the free list laid out
-optimally with the first portion totally scrambled. (as a trade off, a file
-system's free list may be rebuilt fairly frequently
-.RI (via "fsck -s" or "fsck -S" )
+optimally with the first portion totally scrambled.  As a trade off, a file
+system's free list may be rebuilt fairly frequently via
+.I icheck -s 
+or
+.I fsck -s
 and most blocks allocated will be localized as close to the the inode area
-as possible.)  Because of this problem, files are sometimes scattered
+as possible.  Because of this problem, files are sometimes scattered
 across a file system generating an unpleasant amount of disk arm movement.
 A nasty oscillation also occurs in the free block list when
 .I fs_nfree

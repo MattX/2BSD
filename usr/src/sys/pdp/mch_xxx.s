@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_xxx.s	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)mch_xxx.s	1.3 (2.11BSD GTE) 12/31/93
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
@@ -16,13 +16,7 @@
  * happen between a pair of spl's in C.  We use noop rather than inserting
  * meaningless instructions between the spl's to prevent any future C
  * optimizer `improvements' from causing problems.
- */
-ENTRY(noop)
-	rts	pc			/ do absolutely nothing
-
-
-#ifdef UCB_NET
-/*
+ *
  * delay(usec)
  *	long	usec;
  *
@@ -33,19 +27,9 @@ ENTRY(noop)
 ENTRY(delay)
 	mov	2(sp),r0		/ r0 = hiint(usec)
 	mov	4(sp),r1		/ r1 = loint(usec)
-#if PDP11==70
 	ashc	$1,r0			/ sob's ~= 1/2 micro second,
+	beq	2f			/ oops, got passed a delay of 0L-leave
 	tst	r1
-#else
-#if PDP11==34 || PDP11==35 || PDP11==40
-	ash	$-1,r0			/ sob's ~= 2 micro seconds; don't
-	beq	9f			/   let usec=1 get translated to 0
-	tst	r1			/   (we've already used up 1usec)
-#else
-					/ sob's ~= 1 micro second (mov 4(sp),r1
-					/   suffices to test r1)
-#endif
-#endif
 	/*
 	 * If the low int of the loop counter is zero, the double sob loop
 	 * below will perform correctly, otherwise the high byte must be
@@ -56,10 +40,9 @@ ENTRY(delay)
 1:
 	sob	r1,1b			/ sit on our hands for a while ...
 	sob	r0,1b
-9:
+2:
+ENTRY(noop)
 	rts	pc
-#endif
-
 
 /*
  * idle()
@@ -67,21 +50,17 @@ ENTRY(delay)
  * Sit and wait for something to happen ...
  */
 
-#ifdef IDLE_DISPLAY
 /*
- * If you have a console display it's ammusing to define IDLE_DISPLAY.  If
- * your system is mostly idle, you'll see a slowly rotating sequence of
- * lights on the console display.  If the system is very active the display
+ * If you have a console display it's amusing to see a slowly rotating 
+ * sequence of lights in the display.  If the system is very active the display
  * will appear blurred.
  */
 INT(LOCAL, rdisply, 0377)		/ idle pattern
 INT(LOCAL, wcount, 2)			/ rotate rdisply every wcount calls
-#endif /* IDLE_DISPLAY */
 
 ENTRY(idle)
 	mov	PS,-(sp)		/ save current SPL, indicate that no
 	mov	$1,_noproc		/   process is running
-#ifdef IDLE_DISPLAY
 	dec	wcount			/ if (--wcount <= 0) {
 	bgt	1f
 	mov	$2,wcount		/   wcount = 2
@@ -91,7 +70,6 @@ ENTRY(idle)
 	bis	$1,rdisply		/     rdisply |= 1
 1:					/ }
 	mov	rdisply,r0		/ wait displays contents of r0
-#endif /* IDLE_DISPLAY */
 	SPLLOW				/ set SPL low so we can be interrupted
 	wait				/ wait for something to happen
 	mov	(sp)+,PS		/ restore previous SPL
@@ -128,8 +106,8 @@ ENTRY(idle)
  * dynamically from the stack ...
  *
  * This longjmp differs from the longjmp found in the standard library and the
- * VAX BSD4.3 kernel - it's actually closer to the resume routine of the 4.3
- * kernel and, indeed, even used to be called resume in the BSD2.9 kernel.
+ * VAX 4.3 kernel - it's actually closer to the resume routine of the 4.3
+ * kernel and, indeed, even used to be called resume in the 2.9 kernel.
  * We've given it both names to promote some degree of compatibility between
  * the 4.3 and 2.10 C kernel source ...
  */
@@ -141,7 +119,7 @@ ENTRY(setjmp)
 	mov	r4,(r0)+
 	mov	r5,(r0)+		/   frame pointer,
 	mov	sp,(r0)+		/   stack pointer,
-#ifdef UCB_NET
+#ifdef INET
 	mov	PS,-(sp)		/   network stack pointer,
 	mov	$010340,PS
 	mfpd	sp
@@ -169,7 +147,7 @@ ENTRY(resume)
 	SPL7				/ can't let anything in till we
 					/   (at least) get a valid stack ...
 	mov	r0,KDSA6		/ map new process' u structure in
-#ifdef UCB_NET
+#ifdef INET
 	mov	r0,SDSA6		/ map supervisor stack area to same
 #endif
 	mov	(r1)+,r2		/ restore register variables
@@ -177,7 +155,7 @@ ENTRY(resume)
 	mov	(r1)+,r4
 	mov	(r1)+,r5		/   frame pointer,
 	mov	(r1)+,sp		/   stack pointer,
-#ifdef UCB_NET
+#ifdef INET
 	mov	PS,-(sp)		/   network stack pointer,
 	mov	$010340,PS
 	mov	(r1)+,-(sp)
@@ -197,81 +175,6 @@ ENTRY(resume)
 	SPLLOW				/ release interrupts and transfer back
 	mov	$1,r0			/   to setjmp return with a return
 	jmp	*(r1)+			/   value of 1
-
-
-#if PDP11 == GENERIC || PDP11 == 40
-/*
- * s = spl<foo>()
- *	int	s;
- *
- * spl's for machines (like 11/40) without spl or m[tf]ps instructions.
- *
- * Note that in the Berkeley system, calls to spl's except splx are
- * substituted in line in the assembly code on machines with the spl
- * instruction or mtps/mfps.  Splx is done by macros in param.h. See the
- * makefile, :splfix.spl, :splfix.mtps, :splfix.movb and param.h.  Calls
- * to __spl# (_spl# in C) are always expanded in-line and do not return
- * the previous priority.
- */
-ENTRY(spl0)
-	movb	PS,r0
-	clrb	PS
-	rts	pc
-
-ENTRY(spl1)
-ENTRY(splsoftclock)
-	movb	PS,r0
-	movb	$40,PS
-	rts	pc
-
-ENTRY(spl2)
-ENTRY(splnet)
-	movb	PS,r0
-	movb	$100,PS
-	rts	pc
-
-ENTRY(spl3)
-	movb	PS,r0
-	movb	$140,PS
-	rts	pc
-
-ENTRY(spl4)
-	movb	PS,r0
-	movb	$200,PS
-	rts	pc
-
-/*
- * splimp() needs to be spl6 if the 3com ethernet board is present,
- * as it interrupts at 6.
- */
-#include "ec.h"
-
-ENTRY(spl5)
-ENTRY(splbio)
-ENTRY(spltty)
-#if NEC == 0
-ENTRY(splimp)
-#endif
-	movb	PS,r0
-	movb	$240,PS
-	rts	pc
-
-ENTRY(spl6)
-ENTRY(splclock)
-#if NEC != 0
-ENTRY(splimp)
-#endif
-	movb	PS,r0
-	movb	$300,PS
-	rts	pc
-
-ENTRY(spl7)
-ENTRY(splhigh)
-	movb	PS,r0
-	movb	$HIPRI,PS
-	rts	pc
-#endif
-
 
 /*
  * struct uprof {			/ profile arguments
@@ -394,7 +297,6 @@ ENTRY(clrbuf)
 	jsr	pc,_mapin		/ r0 = buffer pointer
 	tst	(sp)+
 
-#ifndef NONFP
 	tst	_fpp			/ do we have floating point hardware?
 	beq	2f			/ nope, use regular clr instructions
 
@@ -411,7 +313,6 @@ ENTRY(clrbuf)
 	ldfps	(sp)+			/ restore floating point status
 	br	4f
 2:
-#endif /* !NONFP */
 	mov	$MAXBSIZE\/8.,r1	/ clear 8 bytes per loop
 3:
 	clr	(r0)+
@@ -425,15 +326,8 @@ ENTRY(clrbuf)
 
 #else
 
-#ifdef QUOTA
-	mov	_Bmapsave+SE_DESC,KDSD5	/ restorseg5(Bmapsave)
-	mov	_Bmapsave+SE_ADDR,KDSA5
-#else
-#ifndef NOKA5
-	mov	_seg5+SE_DESC,KDSD5	/ normalseg5() - a noop if NOKA5
+	mov	_seg5+SE_DESC,KDSD5	/ normalseg5();
 	mov	_seg5+SE_ADDR,KDSA5
-#endif
-#endif
 	rts	pc
 #endif
 
@@ -441,11 +335,6 @@ ENTRY(clrbuf)
 #ifdef DIAGNOSTIC
 SPACE(GLOBAL, _hasmap, 2)		/ (struct bp *): SEG5 mapped
 #endif
-
-#ifdef QUOTA
-SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
-#endif
-
 
 /*
  * caddr_t
@@ -469,9 +358,6 @@ SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
  *		register u_int paddr;
  *		register u_int offset;
  *
- *	#ifdef QUOTA
- *		saveseg5(Bmapsave);
- *	#endif
  *	#ifdef DIAGNOSTIC
  *		if (hasmap) {
  *			printf("mapping %o over %o\n", bp, hasmap);
@@ -488,11 +374,6 @@ SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
  */
 ENTRY(mapin)
 	mov	2(sp),r0		/ r0 = bp
-
-#ifdef QUOTA
-	mov	KDSD5,_Bmapsave+SE_DESC	/ saveseg5(Bmapsave)
-	mov	KDSA5,_Bmapsave+SE_ADDR
-#endif
 #ifdef DIAGNOSTIC
 	tst	_hasmap			/ is buffer already mapped in??
 	beq	9f
@@ -537,11 +418,7 @@ ENTRY(mapin)
  *		}
  *		hasmap = NULL;
  *	
- *	#ifdef QUOTA
- *		restorseg5(Bmapsave);
- *	#else
- *		normalseg5();
- *	#endif
+ *	normalseg5();
  *	}
  *	#endif
  */
@@ -560,15 +437,8 @@ ENTRY(mapout)
 	/*NOTREACHED*/
 9:
 	clr	_hasmap			/ indicate mapping clear
-#ifdef QUOTA
-	mov	_Bmapsave+SE_DESC,KDSD5	/ restorseg5(Bmapsave)
-	mov	_Bmapsave+SE_ADDR,KDSA5
-#else
-#ifndef NOKA5
-	mov	_seg5+SE_DESC,KDSD5	/ normalseg5() - a noop if NOKA5
+	mov	_seg5+SE_DESC,KDSD5	/ normalseg5();
 	mov	_seg5+SE_ADDR,KDSA5
-#endif
-#endif
 	rts	pc
 #endif
 
@@ -602,10 +472,8 @@ ENTRY(savemap)
 	mov	$USIZE-1\<8|RW,KDSD6	/ yep, map it in, *KDSD6 = (USIZE, RW)
 	mov	_kdsa6,KDSA6		/   *KDSA6 = kdsa6
 9:
-#ifndef NOKA5
-	mov	_seg5+SE_DESC,KDSD5	/ normalseg5()
+	mov	_seg5+SE_DESC,KDSD5	/ normalseg5();
 	mov	_seg5+SE_ADDR,KDSA5
-#endif
 	rts	pc
 
 /*
@@ -628,7 +496,6 @@ ENTRY(restormap)
 	mov	(r0),KDSA6		/ *KDSA6 = map[1].se_addr
 	rts	pc
 
-#ifndef NONFP
 /*
  * savfp(fps)
  *	struct fps	*fps;
@@ -693,8 +560,6 @@ ENTRY(stst)
 	stst	*2(sp)			/ simple, no?
 1:
 	rts	pc
-#endif /* !NONFP */
-
 
 /*
  * scanc(size, str, table, mask)
@@ -753,3 +618,15 @@ ENTRY(locc)
 	mov	(sp)+,r2		/ restore registers
 3:
 	rts	pc			/ and return size
+
+/*
+ * nextiv()
+ *
+ * Decrement _lastiv by size of a vector (4) and return the new value.
+ * Placed here for centralized access and easy calling from the networking
+ * (via SKcall) and 'autoconfig' (via ucall).
+*/
+ENTRY(nextiv)
+	sub	$4,_lastiv		/ adjust last interrupt vector
+	mov	_lastiv,r0		/ put in right place for return value
+	rts	pc			/ return assigned vector

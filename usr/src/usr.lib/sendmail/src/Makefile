@@ -14,6 +14,11 @@
 #
 #
 
+# Uncomment these two lines to enable string extractions
+CC= ./mkstrcc
+XSTR=/usr/ucb/xstr
+EXTRACT=extract.o
+
 LIBS=	-ldbm
 DESTDIR=
 
@@ -21,25 +26,32 @@ OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 	savemail.o err.o readcf.o stab.o headers.o recipient.o \
 	stats.o daemon.o usersmtp.o srvrsmtp.o queue.o \
 	macro.o util.o clock.o trace.o envelope.o
-OBJS2=	sysexits.o arpadate.o convtime.o
-OBJS=	$(OBJS1) $(OBJS2)
+OBJS2=	sysexits.o arpadate.o convtime.o ctime.o
+OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) str.o
+
+SBASE=	conf.o collect.o parseaddr.o alias.o deliver.o headers.o \
+	recipient.o srvrsmtp.o queue.o util.o \
+	envelope.o sysexits.o arpadate.o convtime.o Version.o \
+	ctime.o $(EXTRACT) str.o
+SOV1=	main.o readcf.o macro.o
+SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o
+
 SRCS1=	conf.h sendmail.h \
 	conf.c deliver.c main.c parseaddr.c err.c alias.c savemail.c \
 	sysexits.c util.c arpadate.c version.c collect.c \
 	macro.c headers.c readcf.c stab.c recipient.c stats.c daemon.c \
 	usersmtp.c srvrsmtp.c queue.c clock.c trace.c envelope.c
-SRCS2=	TODO convtime.c
+SRCS2=	TODO convtime.c ctime.c
 SRCS=	Version.c $(SRCS1) $(SRCS2)
-ALL=	sendmail
+ALL=	sendmail ctimed
 
 CHOWN=	-echo chown
 CHMOD=	chmod
 O=	-O
 COPTS=
-CCONFIG=-I../include -DVMUNIX
+CCONFIG=-I../include -DVMUNIX -DNOSCCS
 CFLAGS=	$O $(COPTS) $(CCONFIG)
 SEPFLAG=-i
-ASMSED=	../include/asm.sed
 AR=	-ar
 ARFLAGS=rvu
 LINT=	lint
@@ -61,25 +73,26 @@ ROOT=	root
 OBJMODE=755
 
 .c.o:
-	cc -S ${CFLAGS} $*.c
-	sed -f $(ASMSED) $*.s >_xx.s
-	as -V - -o $*.o _xx.s
-	rm -f $*.s _xx.s
+	$(CC) ${CFLAGS} -c $*.c
 
-sendmail: $(OBJS1) $(OBJS2) Version.o
-	-if [ X$(SEPFLAG) = X-i ]; then \
-		$(CC) $(SEPFLAG) $(COPTS) -o sendmail \
-			Version.o $(OBJS1) $(OBJS2) $(LIBS); \
-	else \
-		echo "Need an overlay scheme for non-separate I&D load"; \
-	fi
+sendmail: $(OBJS) Version.o
+	ld $(SEPFLAG) $(COPTS) /lib/crt0.o -o sendmail \
+		-Z $(SOV1) -Z $(SOV2) -Y $(SBASE) $(LIBS) -lc
 	$(CHMOD) $(OBJMODE) sendmail
 	size sendmail; ls -l sendmail; 
+
+ctimed:
+	cc $(SEPFLAG) $(CFLAGS) ctimed.c -o ctimed
 
 install: all
 	$(INSTALL) -m 4755 sendmail $(DESTDIR)/usr/lib
 	chgrp kmem $(DESTDIR)/usr/lib/sendmail
 	$(CP) /dev/null $(DESTDIR)/usr/lib/sendmail.fc
+	-if [ -s sendmail.sr ]; then \
+		install -c -o bin -m 644 sendmail.sr \
+			$(DESTDIR)/usr/lib/sendmail.sr; \
+	fi
+	install -c -s -o bin -m 0755 ctimed $(DESTDIR)/usr/lib/ctimed
 
 version: newversion $(OBJS) Version.c
 
@@ -109,7 +122,7 @@ all: $(ALL)
 
 clean:
 	rm -f core sendmail rmail usersmtp uucp a.out XREF sendmail.cf
-	rm -f *.o
+	rm -f sendmail.sr *.o ctimed strings
 
 sources: $(SRCS)
 
@@ -122,3 +135,10 @@ print: $(SRCS)
 
 lint:
 	$(LINT) $(CCONFIG) $(SRCS1)
+
+str.o:	strings
+	${XSTR}
+	cc -c xs.c
+	mv xs.o str.o
+	rm -f xs.c
+

@@ -1,20 +1,15 @@
 /*
- * Copyright (c) 1982, 1986, 1988 Regents of the University of California.
+ * Copyright (c) 1982,1986,1988 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation,
- * advertising materials, and other materials related to such
- * distribution and use acknowledge that the software was developed
- * by the University of California, Berkeley.  The name of the
- * University may not be used to endorse or promote products derived
- * from this software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)if_acc.c	7.5 (Berkeley) 6/29/88
+ *	%W% (Berkeley) %G%
  */
 
 #include "acc.h"
@@ -141,7 +136,6 @@ accreset(unit, uban)
 	printf(" acc%d", unit);
 	sc = &acc_softc[unit];
 	sc->acc_imp->imp_if.if_flags &= ~IFF_RUNNING;
-	accoflush(unit);
 	/* must go through IMP to allow it to set state */
 	(*sc->acc_imp->imp_if.if_init)(sc->acc_imp->imp_if.if_unit);
 }
@@ -245,20 +239,7 @@ accdown(unit)
         addr->ocsr = ACC_RESET;
 	DELAY(5000);
 	addr->ocsr = OUT_BBACK;		/* reset host master ready */
-	accoflush(unit);
 	return (1);
-}
-
-accoflush(unit)
-	int unit;
-{
-	register struct acc_softc *sc = &acc_softc[unit];
-
-	sc->acc_imp->imp_cb.ic_oactive = 0;
-	if (sc->acc_ifuba.ifu_xtofree) {
-		m_freem(sc->acc_ifuba.ifu_xtofree);
-		sc->acc_ifuba.ifu_xtofree = 0;
-	}
 }
 
 /*

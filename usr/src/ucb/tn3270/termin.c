@@ -24,15 +24,11 @@
 	codes
  */
 
-#ifndef	lint
-static	char	sccsid[] = "@(#)termin.c	2.1	4/11/85";
-#endif	/* ndef lint */
+#if	defined(DOSCCS) && !defined(lint)
+static	char	sccsid[] = "@(#)termin.c	2.2	1/1/94";
+#endif
 
 #include <ctype.h>
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include "m4.out"		/* output of termcodes.m4 */
 #include "state.h"

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)tail.c	5.2 (Berkeley) 1/10/86";
-#endif not lint
+static char sccsid[] = "@(#)tail.c	5.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /* tail command 
  *
@@ -36,7 +34,7 @@ static char sccsid[] = "@(#)tail.c	5.2 (Berkeley) 1/10/86";
 #include	<sys/file.h>
 #include	<errno.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define LBIN 16385
 #else
 #define LBIN 32769

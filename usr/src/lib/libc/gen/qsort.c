@@ -114,7 +114,7 @@ qst(base, max)
 	register char c, *i, *j, *jj;
 	register int ii;
 	char *mid, *tmp;
-	int lo, hi;
+	unsigned int lo, hi;
 
 	/*
 	 * At the top here, lo is the number of characters of elements in the

@@ -1,47 +1,35 @@
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
 
-
-MSG		NOBKPT;
-MSG		SZBKPT;
-MSG		EXBKPT;
-MSG		NOPCS;
-MSG		BADMOD;
+	MSG	NOBKPT;
+	MSG	SZBKPT;
+	MSG	EXBKPT;
+	MSG	NOPCS;
+	MSG	BADMOD;
 
 /* breakpoints */
-BKPTR		bkpthead;
+	BKPTR	bkpthead;
 
-CHAR		*lp;
-CHAR		lastc;
-POS		corhdr[ctob(USIZE)/sizeof(POS)];
-POS		*endhdr;
-MAP		txtmap;
-
-INT		signo;
-L_INT		dot;
-INT		pid;
-L_INT		cntval;
-L_INT		loopcnt;
-int		overlay;
-
-OVTAG		curov, symov;
-
+	char	*lp;
+	char	lastc;
+	u_int	corhdr[ctob(USIZE)/sizeof(u_int)];
+	MAP	txtmap;
+	int	signo;
+	long	dot;
+	int	pid;
+	long	cntval;
+	long	loopcnt;
+	int	overlay;
+	char	curov, symov;
 
 /* sub process control */
 
 subpcs(modif)
 {
-	REG INT		check;
-	INT		execsig;
-	INT		runmode;
-	REG BKPTR	bkptr;
-	STRING		comptr;
-	CHAR		*sbrk();
+	register int check;
+	int	execsig, runmode;
+	register BKPTR	bkptr;
+	char	*comptr;
+
 	execsig=0; loopcnt=cntval;
 
 	switch(modif) {
@@ -71,7 +59,7 @@ subpcs(modif)
 		   FI
 		OD
 		IF bkptr==0
-		THEN IF (bkptr=(BKPTR)sbrk(sizeof *bkptr)) == -1
+		THEN IF (bkptr=(BKPTR)malloc(sizeof *bkptr)) == (BKPTR)NULL
 		     THEN error(SZBKPT);
 		     ELSE bkptr->nxtbkpt=bkpthead;
 			  bkpthead=bkptr;

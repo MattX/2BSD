@@ -1,9 +1,6 @@
-/* $Header: /usr/src/local/rn/RCS/term.c,v 1.2 87/07/10 10:04:24 bin Exp $
+/* $Header: term.c,v 4.3.1.3 85/09/10 11:05:23 lwall Exp $
  *
  * $Log:	term.c,v $
- * Revision 1.2  87/07/10  10:04:24  bin
- * Fix missing pushchar() bug.
- * 
  * Revision 4.3.1.3  85/09/10  11:05:23  lwall
  * Improved %m in in_char().
  * 
@@ -146,7 +143,7 @@ char *tcbuf;		/* temp area for "uncompiled" termcap entry */
 #ifdef VERBOSE
 	printf("No termcap %s found.\n", status ? "file" : "entry") FLUSH;
 #else
-	fputs("Termcap botch\n",stdout) FLUSH
+	fputs("Termcap botch\n",stdout) FLUSH;
 #endif
 	finalize(1);
     }
@@ -193,6 +190,16 @@ char *tcbuf;		/* temp area for "uncompiled" termcap entry */
     }
     LINES = tgetnum("li");		/* lines per page */
     COLS = tgetnum("co");		/* columns on page */
+
+#ifdef TIOCGWINSZ
+    { struct winsize ws;
+	if (ioctl(0, TIOCGWINSZ, &ws) >= 0 && ws.ws_row > 0 && ws.ws_col > 0) {
+	    LINES = ws.ws_row;
+	    COLS = ws.ws_col;
+	}
+    }
+#endif
+	
     AM = tgetflag("am");		/* terminal wraps automatically? */
     XN = tgetflag("xn");		/* then eats next newline? */
     VB = Tgetstr("vb");
@@ -610,12 +617,6 @@ char c;
 }
 
 #else PUSHBACK
-void
-pushchar(c)
-char c;
-{
-}
-
 #ifndef read_tty
 /* read a character from the terminal, with hacks for O_NDELAY reads */
 
@@ -637,7 +638,9 @@ int size;
 	return size;
     }
 }
+
 #endif read_tty
+pushchar(c) char c; { return;}
 #endif PUSHBACK
 
 /* print an underlined string, one way or another */

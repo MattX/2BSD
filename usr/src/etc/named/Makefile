@@ -13,7 +13,10 @@
 #
 SUBDIR=	tools named
 
-all: named
+all: named tools
+
+tools: FRC
+	(cd tools; make ${MFLAGS} );
 
 named: FRC
 	(cd named; make ${MFLAGS} named);
@@ -23,7 +26,8 @@ clean: FRC
 		(cd $$i; make ${MFLAGS} clean); \
 	done
 
-install: FRC
-	install -s -o bin -m 755 named/named ${DESTDIR}/etc/named
+install: all
+	(cd named; make ${MFLAGS} install);
+	(cd tools; make ${MFLAGS} install);
 
 FRC:

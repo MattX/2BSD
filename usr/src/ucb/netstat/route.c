@@ -10,8 +10,8 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)route.c	5.13 (Berkeley) 88/02/07";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)route.c	5.13.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #include <stdio.h>
@@ -29,9 +29,8 @@ static char sccsid[] = "@(#)route.c	5.13 (Berkeley) 88/02/07";
 
 #include <netdb.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
-#define hashsizeaddr hsizeaddr
 #endif
 
 extern	int kmem;

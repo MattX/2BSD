@@ -22,7 +22,9 @@ int dmcdebug = 1;
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
+#include "ioctl.h"
 #include "tty.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "pdpuba/ubavar.h"
@@ -32,14 +34,16 @@ int dmcdebug = 1;
 #include "pdpif/if_uba.h"
 #include "pdpif/if_dmc.h"
 #include "netinet/ip.h"
+#include "netinet/in_var.h"
 #include "netinet/ip_var.h"
 #include "net/route.h"
+#include "net/netisr.h"
 #include "errno.h"
 
 /*
  * Driver information for auto-configuration stuff.
  */
-int	dmcprobe(), dmcattach(), dmcinit(), dmcoutput(), dmcreset();
+int	dmcprobe(), dmcattach(), dmcinit(), dmcoutput();
 struct	uba_device *dmcinfo[NDMC];
 u_short	dmcstd[] = { 0 };
 struct	uba_driver dmcdriver =
@@ -122,33 +126,13 @@ dmcattach(ui)
 	sc->sc_if.if_unit = ui->ui_unit;
 	sc->sc_if.if_name = "dmc";
 	sc->sc_if.if_mtu = DMCMTU;
-	sc->sc_if.if_net = (ui->ui_flags & DMC_NET) >> 8;
-	sc->sc_if.if_host[0] = 17;	/* random number */
-	sin = (struct sockaddr_in *)&sc->sc_if.if_addr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(sc->sc_if.if_net, sc->sc_if.if_host[0]);
 	sc->sc_if.if_init = dmcinit;
 	sc->sc_if.if_output = dmcoutput;
-	sc->sc_if.if_ubareset = dmcreset;
+	sc->sc_if.if_reset = 0;
+	sc->sc_if.if_flags = IFF_POINTOPOINT;
 	/* DON'T KNOW IF THIS WILL WORK WITH A BDP AT HIGH SPEEDS */
 	sc->sc_ifuba.ifu_flags = UBA_NEEDBDP | UBA_CANTWAIT;
 	if_attach(&sc->sc_if);
-}
-
-/*
- * Reset of interface after UNIBUS reset.
- * If interface is on specified UBA, reset it's state.
- */
-dmcreset(unit, uban)
-	int unit, uban;
-{
-	register struct uba_device *ui;
-
-	if (unit >= NDMC || (ui = dmcinfo[unit]) == 0 || ui->ui_alive == 0 ||
-	    ui->ui_ubanum != uban)
-		return;
-	printf(" dmc%d", unit);
-	dmcinit(unit);
 }
 
 /*
@@ -164,8 +148,8 @@ dmcinit(unit)
 
 	printd("dmcinit\n");
 	if ((sc->sc_flag&DMCBMAPPED) == 0) {
-		sc->sc_ubinfo = uballoc(ui->ui_ubanum,
-		    (caddr_t)&dmc_base[unit], sizeof (struct dmc_base), 0);
+		sc->sc_ubinfo = uballoc((caddr_t)&dmc_base[unit], 
+					sizeof (struct dmc_base));
 		sc->sc_flag |= DMCBMAPPED;
 	}
 	if (if_ubainit(&sc->sc_ifuba, ui->ui_ubanum, 0,
@@ -184,11 +168,6 @@ dmcinit(unit)
 	dmcload(sc, DMC_READ, base, ((base>>2)&DMC_XMEM)|DMCMTU);
 	printd("  first read queued, addr 0x%x\n", base);
 	sc->sc_if.if_flags |= IFF_UP;
-	/* set up routing table entry */
-	if ((sc->sc_if.if_flags & IFF_ROUTE) == 0) {
-		rtinit(&sc->sc_if.if_addr, &sc->sc_if.if_addr, RTF_HOST|RTF_UP);
-		sc->sc_if.if_flags |= IFF_ROUTE;
-	}
 }
 
 /*
@@ -217,7 +196,7 @@ dmcstart(dev)
 
 	addr = sc->sc_ifuba.ifu_w.ifrw_info & 0x3ffff;
 	printd("  len %d, addr 0x%x, ", len, addr);
-	printd("mr 0x%x\n", sc->sc_ifuba.ifu_w.ifrw_mr[0]);
+	printd("mr 0x%lx\n", sc->sc_ifuba.ifu_w.ifrw_info);
 	dmcload(sc, DMC_WRITE, addr, (len&DMC_CCOUNT)|((addr>>2)&DMC_XMEM));
 	sc->sc_oactive = 1;
 }
@@ -311,7 +290,7 @@ dmcxint(unit)
 		sc->sc_if.if_ipackets++;
 		len = arg & DMC_CCOUNT;
 		printd("  read done, len %d\n", len);
-		switch (ui->ui_flags & DMC_AF) {
+		switch (sc->sc_flag & DMC_AF) {
 #ifdef INET
 		case AF_INET:
 			schednetisr(NETISR_IP);
@@ -321,10 +300,10 @@ dmcxint(unit)
 
 		default:
 			printf("dmc%d: unknown address type %d\n", unit,
-			    ui->ui_flags & DMC_AF);
+			    sc->sc_flag & DMC_AF);
 			goto setup;
 		}
-		m = if_rubaget(&sc->sc_ifuba, len, 0);
+		m = if_rubaget(&sc->sc_ifuba, len, 0, &sc->sc_if);
 		if (m == 0)
 			goto setup;
 		if (IF_QFULL(inq)) {
@@ -389,8 +368,8 @@ dmcoutput(ifp, m, dst)
 	int s;
 
 	printd("dmcoutput\n");
-	if (dst->sa_family != (ui->ui_flags & DMC_AF)) {
-		printf("dmc%d: af%d not supported\n", ifp->if_unit, pf);
+	if (dst->sa_family != AF_INET) {
+		printf("dmc%d: af%d not supported\n", ifp->if_unit, AF_INET);
 		m_freem(m);
 		return (EAFNOSUPPORT);
 	}

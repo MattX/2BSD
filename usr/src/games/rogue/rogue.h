@@ -186,7 +186,7 @@ struct id {
 #define next_monster next_object
 
 struct obj {				/* comment is monster meaning */
-	unsigned long m_flags;	/* monster flags */
+	long m_flags;			/* monster flags */
 	char *damage;			/* damage it does */
 	short quantity;			/* hit points to kill */
 	short ichar;			/* 'A' is for aquatar */

@@ -5,13 +5,13 @@ WHOIS(1)	    UNIX Programmer's Manual		 WHOIS(1)
 
 
 
-NNAAMMEE
+NAME
      whois - DARPA Internet user name directory service
 
-SSYYNNOOPPSSIISS
-     wwhhooiiss name
+SYNOPSIS
+     whois name
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      whois help
 	  Produces a helpful message similar to the following:
 
@@ -32,7 +32,7 @@ DDEESSCCRRIIPPTTIIOONN
      this will take a long time!] You may of course use exclama-
      tion point and asterisk, or a period and asterisk together.
 
-SSEEEE AALLSSOO
+SEE ALSO
      RFC 812:  Nicname/Whois
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  June 6, 1985				1
+Printed 1/9/94		  June 6, 1985				1
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)inode.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)inode.h	1.2 (2.10BSD Berkeley) 1/26/90
  */
 
 /*
@@ -15,7 +15,7 @@
  */
 
 /*
- * 21 of the di_addr address bytes are used; 7 addresses of 3
+ * 28 of the di_addr address bytes are used; 7 addresses of 4
  * bytes each: 4 direct (4Kb directly accessible) and 3 indirect.
  */
 #define	NDADDR	4			/* direct addresses in inode */
@@ -34,6 +34,7 @@ struct inode {
 	u_short	i_count;	/* reference count */
 	dev_t	i_dev;		/* device where inode resides */
 	ino_t	i_number;	/* i number, 1-to-1 with device address */
+	u_short	i_id;		/* unique identifier */
 	struct	fs *i_fs;	/* file sys associated with this inode */
 	union {
 		struct {
@@ -88,7 +89,8 @@ struct inode {
  */
 struct dinode {
 	struct	icommon1 di_icom1;
-	char	di_addr[40];		/* disk block addresses */
+	daddr_t	di_addr[7];		/* 7 block addresses 4 bytes each */
+	daddr_t	di_reserved[3];		/* pad of 12 to make total size 64 */
 	struct	icommon2 di_icom2;
 };
 
@@ -131,6 +133,23 @@ struct dinode {
 #define	di_ctime	di_ic2.ic_ctime
 
 #if defined(KERNEL) && !defined(SUPERVISOR)
+/*
+ * Invalidate an inode. Used by the namei cache to detect stale
+ * information. In order to save space and also reduce somewhat the
+ * overhead - the i_id field is made into a u_short.  If a pdp-11 can 
+ * invalidate 100 inodes per second, the cache will have to be invalidated 
+ * in about 11 minutes.  Ha!
+ * Assumes the cacheinvalall routine will map the namei cache.
+ */
+#define cacheinvalall _cinvall
+
+#define cacheinval(ip) \
+	(ip)->i_id = ++nextinodeid; \
+	if (nextinodeid == 0) \
+		cacheinvalall();
+
+u_short	nextinodeid;		/* unique id generator */
+
 #ifdef EXTERNALITIMES
 memaddr	xitimes;
 u_int	xitdesc;
@@ -206,9 +225,7 @@ struct	inode *namei();
 #ifdef EXTERNALITIMES
 #define	ITIMES(ip, t1, t2) { \
 	if ((ip)->i_flag&(IUPD|IACC|ICHG)) { \
-		struct icommon2 *ic2= &((struct icommon2 *)0120000)[ip-inode]; \
-		segm sav5; \
-		saveseg5(sav5); \
+		struct icommon2 *ic2= &((struct icommon2 *)SEG5)[ip-inode]; \
 		mapseg5(xitimes, xitdesc); \
 		(ip)->i_flag |= IMOD; \
 		if ((ip)->i_flag&IACC) \
@@ -218,7 +235,7 @@ struct	inode *namei();
 		if ((ip)->i_flag&ICHG) \
 			ic2->ic_ctime = time.tv_sec; \
 		(ip)->i_flag &= ~(IACC|IUPD|ICHG); \
-		restorseg5(sav5); \
+		normalseg5(); \
 	} \
 }
 #else

@@ -11,7 +11,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)gethostnamadr.c	6.31 (Berkeley) 3/14/88";
+static char sccsid[] = "@(#)gethostnamadr.c	6.31.2 (2.11BSD GTE) 6/27/94";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/param.h>
@@ -25,14 +25,8 @@ static char sccsid[] = "@(#)gethostnamadr.c	6.31 (Berkeley) 3/14/88";
 #include <arpa/nameser.h>
 #include <resolv.h>
 
-#ifdef BSD2_10
-#define host_addrs	h_addrs
-#define _gethtbyaddr	_ghtbaddr
-#define _gethtbyname	_ghtbname
-#endif
-
-#define	MAXALIASES	35
-#define	MAXADDRS	35
+#define	MAXALIASES	16
+#define	MAXADDRS	16
 
 static char *h_addr_ptrs[MAXADDRS + 1];
 

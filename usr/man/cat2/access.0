@@ -5,23 +5,23 @@ ACCESS(2)	    UNIX Programmer's Manual		ACCESS(2)
 
 
 
-NNAAMMEE
+NAME
      access - determine accessibility of file
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ffiillee..hh>>
+SYNOPSIS
+     #include <sys/file.h>
 
-     ##ddeeffiinnee RR__OOKK    44//** tteesstt ffoorr rreeaadd ppeerrmmiissssiioonn **//
-     ##ddeeffiinnee WW__OOKK    22//** tteesstt ffoorr wwrriittee ppeerrmmiissssiioonn **//
-     ##ddeeffiinnee XX__OOKK    11//** tteesstt ffoorr eexxeeccuuttee ((sseeaarrcchh)) ppeerrmmiissssiioonn **//
-     ##ddeeffiinnee FF__OOKK    00//** tteesstt ffoorr pprreesseennccee ooff ffiillee **//
+     #define R_OK    4/* test for read permission */
+     #define W_OK    2/* test for write permission */
+     #define X_OK    1/* test for execute (search) permission */
+     #define F_OK    0/* test for presence of file */
 
-     aacccceessssiibbllee == aacccceessss((ppaatthh,, mmooddee))
-     iinntt aacccceessssiibbllee;;
-     cchhaarr **ppaatthh;;
-     iinntt mmooddee;;
+     accessible = access(path, mode)
+     int accessible;
+     char *path;
+     int mode;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A_c_c_e_s_s checks the given file _p_a_t_h for accessibility accord-
      ing to _m_o_d_e, which is an inclusive or of the bits R_OK, W_OK
      and X_OK.	Specifying _m_o_d_e as F_OK (i.e., 0) tests whether
@@ -38,12 +38,12 @@ DDEESSCCRRIIPPTTIIOONN
      there); a file may look executable, but _e_x_e_c_v_e will fail
      unless it is in proper format.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      If _p_a_t_h cannot be found or if any of the desired access
      modes would not be granted, then a -1 value is returned;
      otherwise a 0 value is returned.
 
-EERRRROORRSS
+ERRORS
      Access to the file is denied if one or more of the following
      are true:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -104,7 +104,7 @@ ACCESS(2)	    UNIX Programmer's Manual		ACCESS(2)
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-SSEEEE AALLSSOO
+SEE ALSO
      chmod(2), stat(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 

@@ -5,17 +5,17 @@ PERROR(3)	    UNIX Programmer's Manual		PERROR(3)
 
 
 
-NNAAMMEE
+NAME
      perror, sys_errlist, sys_nerr - system error messages
 
-SSYYNNOOPPSSIISS
-     ppeerrrroorr((ss))
-     cchhaarr **ss;;
+SYNOPSIS
+     perror(s)
+     char *s;
 
-     iinntt ssyyss__nneerrrr;;
-     cchhaarr **ssyyss__eerrrrlliisstt[[]];;
+     int sys_nerr;
+     char *sys_errlist[];
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_e_r_r_o_r produces a short error message on the standard error
      file describing the last error encountered during a call to
      the system from a C program.  First the argument string _s is
@@ -34,7 +34,7 @@ DDEESSCCRRIIPPTTIIOONN
      codes may be added to the system before they are added to
      the table.
 
-SSEEEE AALLSSOO
+SEE ALSO
      intro(2), psignal(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

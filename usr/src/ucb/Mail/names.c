@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)names.c	5.3 (Berkeley) 11/10/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)names.c	5.16 (Berkeley) 6/25/90";
+#endif
 
 /*
  * Mail -- a mail program
@@ -21,9 +48,8 @@ static char *sccsid = "@(#)names.c	5.3 (Berkeley) 11/10/85";
  * initialize its name field to the passed
  * name and return it.
  */
-
 struct name *
-nalloc(str)
+nalloc(str, ntype)
 	char str[];
 {
 	register struct name *np;
@@ -31,7 +57,7 @@ nalloc(str)
 	np = (struct name *) salloc(sizeof *np);
 	np->n_flink = NIL;
 	np->n_blink = NIL;
-	np->n_type = -1;
+	np->n_type = ntype;
 	np->n_name = savestr(str);
 	return(np);
 }
@@ -39,7 +65,6 @@ nalloc(str)
 /*
  * Find the tail of a list and return it.
  */
-
 struct name *
 tailof(name)
 	struct name *name;
@@ -59,36 +84,21 @@ tailof(name)
  * and make a list of names from it.
  * Return the list or NIL if none found.
  */
-
 struct name *
 extract(line, ntype)
 	char line[];
 {
 	register char *cp;
 	register struct name *top, *np, *t;
-	char nbuf[BUFSIZ], abuf[BUFSIZ];
+	char nbuf[BUFSIZ];
 
-	if (line == NOSTR || strlen(line) == 0)
-		return(NIL);
+	if (line == NOSTR || *line == '\0')
+		return NIL;
 	top = NIL;
 	np = NIL;
 	cp = line;
 	while ((cp = yankword(cp, nbuf)) != NOSTR) {
-		if (np != NIL && equal(nbuf, "at")) {
-			strcpy(abuf, nbuf);
-			if ((cp = yankword(cp, nbuf)) == NOSTR) {
-				strcpy(nbuf, abuf);
-				goto normal;
-			}
-			strcpy(abuf, np->n_name);
-			stradd(abuf, '@');
-			strcat(abuf, nbuf);
-			np->n_name = savestr(abuf);
-			continue;
-		}
-normal:
-		t = nalloc(nbuf);
-		t->n_type = ntype;
+		t = nalloc(nbuf, ntype);
 		if (top == NIL)
 			top = t;
 		else
@@ -96,13 +106,12 @@ normal:
 		t->n_blink = np;
 		np = t;
 	}
-	return(top);
+	return top;
 }
 
 /*
  * Turn a list of names into a string of the same names.
  */
-
 char *
 detract(np, ntype)
 	register struct name *np;
@@ -147,9 +156,8 @@ detract(np, ntype)
 
 /*
  * Grab a single word (liberal word)
- * Throw away things between ()'s.
+ * Throw away things between ()'s, and take anything between <>.
  */
-
 char *
 yankword(ap, wbuf)
 	char *ap, wbuf[];
@@ -157,9 +165,9 @@ yankword(ap, wbuf)
 	register char *cp, *cp2;
 
 	cp = ap;
-	do {
-		while (*cp && any(*cp, " \t,"))
-			cp++;
+	for (;;) {
+		if (*cp == '\0')
+			return NOSTR;
 		if (*cp == '(') {
 			register int nesting = 0;
 
@@ -175,71 +183,19 @@ yankword(ap, wbuf)
 				if (nesting <= 0)
 					break;
 			}
-		}
-		if (*cp == '\0')
-			return(NOSTR);
-	} while (any(*cp, " \t,("));
-	for (cp2 = wbuf; *cp && !any(*cp, " \t,("); *cp2++ = *cp++)
-		;
-	*cp2 = '\0';
-	return(cp);
-}
-
-/*
- * Verify that all the users in the list of names are
- * legitimate.  Bitch about and delink those who aren't.
- */
-
-struct name *
-verify(names)
-	struct name *names;
-{
-	register struct name *np, *top, *t, *x;
-	register char *cp;
-
-#ifdef SENDMAIL
-	return(names);
-#else
-	top = names;
-	np = names;
-	while (np != NIL) {
-		if (np->n_type & GDEL) {
-			np = np->n_flink;
-			continue;
-		}
-		for (cp = "!:@^"; *cp; cp++)
-			if (any(*cp, np->n_name))
-				break;
-		if (*cp != 0) {
-			np = np->n_flink;
-			continue;
-		}
-		cp = np->n_name;
-		while (*cp == '\\')
+		} else if (*cp == ' ' || *cp == '\t' || *cp == ',')
 			cp++;
-		if (equal(cp, "msgs") ||
-		    getuserid(cp) != -1) {
-			np = np->n_flink;
-			continue;
-		}
-		fprintf(stderr, "Can't send to %s\n", np->n_name);
-		senderr++;
-		if (np == top) {
-			top = np->n_flink;
-			if (top != NIL)
-				top->n_blink = NIL;
-			np = top;
-			continue;
-		}
-		x = np->n_blink;
-		t = np->n_flink;
-		x->n_flink = t;
-		if (t != NIL)
-			t->n_blink = x;
-		np = t;
+		else
+			break;
 	}
-	return(top);
-#endif
+	if (*cp ==  '<')
+		for (cp2 = wbuf; *cp && (*cp2++ = *cp++) != '>';)
+			;
+	else
+		for (cp2 = wbuf; *cp && !index(" \t,(", *cp); *cp2++ = *cp++)
+			;
+	*cp2 = '\0';
+	return cp;
 }
 
 /*
@@ -250,7 +206,6 @@ verify(names)
  * Recipients whose name begins with | are piped through the given
  * program and removed.
  */
-
 struct name *
 outof(names, fo, hp)
 	struct name *names;
@@ -258,16 +213,16 @@ outof(names, fo, hp)
 	struct header *hp;
 {
 	register int c;
-	register struct name *np, *top, *t, *x;
-	long now;
-	char *date, *fname, *shell, *ctime();
+	register struct name *np, *top;
+	time_t now, time();
+	char *date, *fname, *ctime();
 	FILE *fout, *fin;
-	int ispipe, s, pid;
+	int ispipe;
 	extern char tempEdit[];
 
 	top = names;
 	np = names;
-	time(&now);
+	(void) time(&now);
 	date = ctime(&now);
 	while (np != NIL) {
 		if (!isfileaddr(np->n_name) && np->n_name[0] != '|') {
@@ -286,31 +241,29 @@ outof(names, fo, hp)
 		 */
 
 		if (image < 0) {
-			if ((fout = fopen(tempEdit, "a")) == NULL) {
+			if ((fout = Fopen(tempEdit, "a")) == NULL) {
 				perror(tempEdit);
 				senderr++;
 				goto cant;
 			}
 			image = open(tempEdit, 2);
-			unlink(tempEdit);
+			(void) unlink(tempEdit);
 			if (image < 0) {
 				perror(tempEdit);
 				senderr++;
+				(void) Fclose(fout);
 				goto cant;
 			}
-			else {
-				rewind(fo);
-				fprintf(fout, "From %s %s", myname, date);
-				puthead(hp, fout, GTO|GSUBJECT|GCC|GNL);
-				while ((c = getc(fo)) != EOF)
-					putc(c, fout);
-				rewind(fo);
-				putc('\n', fout);
-				fflush(fout);
-				if (ferror(fout))
-					perror(tempEdit);
-				fclose(fout);
-			}
+			fprintf(fout, "From %s %s", myname, date);
+			puthead(hp, fout, GTO|GSUBJECT|GCC|GNL);
+			while ((c = getc(fo)) != EOF)
+				(void) putc(c, fout);
+			rewind(fo);
+			(void) putc('\n', fout);
+			(void) fflush(fout);
+			if (ferror(fout))
+				perror(tempEdit);
+			(void) Fclose(fout);
 		}
 
 		/*
@@ -320,80 +273,63 @@ outof(names, fo, hp)
 		 */
 
 		if (ispipe) {
-			wait(&s);
-			switch (pid = fork()) {
-			case 0:
-				sigchild();
-				sigsys(SIGHUP, SIG_IGN);
-				sigsys(SIGINT, SIG_IGN);
-				sigsys(SIGQUIT, SIG_IGN);
-				close(0);
-				dup(image);
-				close(image);
-				if ((shell = value("SHELL")) == NOSTR)
-					shell = SHELL;
-				execl(shell, shell, "-c", fname, 0);
-				perror(shell);
-				exit(1);
-				break;
+			int pid;
+			char *shell;
 
-			case -1:
-				perror("fork");
+			/*
+			 * XXX
+			 * We can't really reuse the same image file,
+			 * because multiple piped recipients will
+			 * share the same lseek location and trample
+			 * on one another.
+			 */
+			if ((shell = value("SHELL")) == NOSTR)
+				shell = _PATH_CSHELL;
+			pid = start_command(shell, sigmask(SIGHUP)|
+					sigmask(SIGINT)|sigmask(SIGQUIT),
+				image, -1, "-c", fname, NOSTR);
+			if (pid < 0) {
 				senderr++;
 				goto cant;
 			}
-		}
-		else {
-			if ((fout = fopen(fname, "a")) == NULL) {
+			free_child(pid);
+		} else {
+			int f;
+			if ((fout = Fopen(fname, "a")) == NULL) {
 				perror(fname);
 				senderr++;
 				goto cant;
 			}
-			fin = Fdopen(image, "r");
+			if ((f = dup(image)) < 0) {
+				perror("dup");
+				fin = NULL;
+			} else
+				fin = Fdopen(f, "r");
 			if (fin == NULL) {
 				fprintf(stderr, "Can't reopen image\n");
-				fclose(fout);
+				(void) Fclose(fout);
 				senderr++;
 				goto cant;
 			}
 			rewind(fin);
 			while ((c = getc(fin)) != EOF)
-				putc(c, fout);
+				(void) putc(c, fout);
 			if (ferror(fout))
 				senderr++, perror(fname);
-			fclose(fout);
-			fclose(fin);
+			(void) Fclose(fout);
+			(void) Fclose(fin);
 		}
-
 cant:
-
 		/*
 		 * In days of old we removed the entry from the
 		 * the list; now for sake of header expansion
 		 * we leave it in and mark it as deleted.
 		 */
-
-#ifdef CRAZYWOW
-		if (np == top) {
-			top = np->n_flink;
-			if (top != NIL)
-				top->n_blink = NIL;
-			np = top;
-			continue;
-		}
-		x = np->n_blink;
-		t = np->n_flink;
-		x->n_flink = t;
-		if (t != NIL)
-			t->n_blink = x;
-		np = t;
-#endif
-
 		np->n_type |= GDEL;
 		np = np->n_flink;
 	}
 	if (image >= 0) {
-		close(image);
+		(void) close(image);
 		image = -1;
 	}
 	return(top);
@@ -408,21 +344,16 @@ isfileaddr(name)
 	char *name;
 {
 	register char *cp;
-	extern char *metanet;
 
-	if (any('@', name))
-		return(0);
 	if (*name == '+')
-		return(1);
+		return 1;
 	for (cp = name; *cp; cp++) {
-		if (*cp == '.')
-			continue;
-		if (any(*cp, metanet))
-			return(0);
+		if (*cp == '!' || *cp == '%' || *cp == '@')
+			return 0;
 		if (*cp == '/')
-			return(1);
+			return 1;
 	}
-	return(0);
+	return 0;
 }
 
 /*
@@ -437,13 +368,11 @@ usermap(names)
 	struct name *names;
 {
 	register struct name *new, *np, *cp;
-	struct name *getto;
 	struct grouphead *gh;
 	register int metoo;
 
 	new = NIL;
 	np = names;
-	getto = NIL;
 	metoo = (value("metoo") != NOSTR);
 	while (np != NIL) {
 		if (np->n_name[0] == '\\') {
@@ -496,8 +425,7 @@ gexpand(nlist, gh, metoo, ntype)
 			continue;
 		}
 quote:
-		np = nalloc(cp);
-		np->n_type = ntype;
+		np = nalloc(cp, ntype);
 		/*
 		 * At this point should allow to expand
 		 * to self if only person in group
@@ -513,28 +441,9 @@ skip:
 	return(nlist);
 }
 
-
-
-/*
- * Compute the length of the passed name list and
- * return it.
- */
-
-lengthof(name)
-	struct name *name;
-{
-	register struct name *np;
-	register int c;
-
-	for (c = 0, np = name; np != NIL; c++, np = np->n_flink)
-		;
-	return(c);
-}
-
 /*
  * Concatenate the two passed name lists, return the result.
  */
-
 struct name *
 cat(n1, n2)
 	struct name *n1, *n2;
@@ -555,32 +464,24 @@ cat(n1, n2)
  * Unpack the name list onto a vector of strings.
  * Return an error if the name list won't fit.
  */
-
 char **
 unpack(np)
 	struct name *np;
 {
 	register char **ap, **top;
 	register struct name *n;
-	char *cp;
-	char hbuf[10];
 	int t, extra, metoo, verbose;
 
 	n = np;
-	if ((t = lengthof(n)) == 0)
+	if ((t = count(n)) == 0)
 		panic("No names to unpack");
-
 	/*
 	 * Compute the number of extra arguments we will need.
 	 * We need at least two extra -- one for "mail" and one for
 	 * the terminating 0 pointer.  Additional spots may be needed
-	 * to pass along -r and -f to the host mailer.
+	 * to pass along -f to the host mailer.
 	 */
-
 	extra = 2;
-	if (rflag != NOSTR)
-		extra += 2;
-#ifdef SENDMAIL
 	extra++;
 	metoo = value("metoo") != NOSTR;
 	if (metoo)
@@ -588,56 +489,19 @@ unpack(np)
 	verbose = value("verbose") != NOSTR;
 	if (verbose)
 		extra++;
-#endif SENDMAIL
-	if (hflag)
-		extra += 2;
-	top = (char **) salloc((t + extra) * sizeof cp);
+	top = (char **) salloc((t + extra) * sizeof *top);
 	ap = top;
 	*ap++ = "send-mail";
-	if (rflag != NOSTR) {
-		*ap++ = "-r";
-		*ap++ = rflag;
-	}
-#ifdef SENDMAIL
 	*ap++ = "-i";
 	if (metoo)
 		*ap++ = "-m";
 	if (verbose)
 		*ap++ = "-v";
-#endif SENDMAIL
-	if (hflag) {
-		*ap++ = "-h";
-		sprintf(hbuf, "%d", hflag);
-		*ap++ = savestr(hbuf);
-	}
-	while (n != NIL) {
-		if (n->n_type & GDEL) {
-			n = n->n_flink;
-			continue;
-		}
-		*ap++ = n->n_name;
-		n = n->n_flink;
-	}
+	for (; n != NIL; n = n->n_flink)
+		if ((n->n_type & GDEL) == 0)
+			*ap++ = n->n_name;
 	*ap = NOSTR;
 	return(top);
-}
-
-/*
- * See if the user named himself as a destination
- * for outgoing mail.  If so, set the global flag
- * selfsent so that we avoid removing his mailbox.
- */
-
-mechk(names)
-	struct name *names;
-{
-	register struct name *np;
-
-	for (np = names; np != NIL; np = np->n_flink)
-		if ((np->n_type & GDEL) == 0 && equal(np->n_name, myname)) {
-			selfsent++;
-			return;
-		}
 }
 
 /*
@@ -645,7 +509,6 @@ mechk(names)
  * insertion sorting them, then checking for dups.
  * Return the head of the new list.
  */
-
 struct name *
 elide(names)
 	struct name *names;
@@ -663,7 +526,7 @@ elide(names)
 	new->n_flink = NIL;
 	while (np != NIL) {
 		t = new;
-		while (nstrcmp(t->n_name, np->n_name) < 0) {
+		while (strcasecmp(t->n_name, np->n_name) < 0) {
 			if (t->n_flink == NIL)
 				break;
 			t = t->n_flink;
@@ -674,7 +537,7 @@ elide(names)
 		 * the current value of t.
 		 */
 
-		if (nstrcmp(t->n_name, np->n_name) < 0) {
+		if (strcasecmp(t->n_name, np->n_name) < 0) {
 			t->n_flink = np;
 			np->n_blink = t;
 			t = np;
@@ -720,8 +583,8 @@ elide(names)
 	np = new;
 	while (np != NIL) {
 		t = np;
-		while (t->n_flink!=NIL &&
-		    icequal(np->n_name,t->n_flink->n_name))
+		while (t->n_flink != NIL &&
+		       strcasecmp(np->n_name, t->n_flink->n_name) == 0)
 			t = t->n_flink;
 		if (t == np || t == NIL) {
 			np = np->n_flink;
@@ -742,26 +605,9 @@ elide(names)
 }
 
 /*
- * Version of strcmp which ignores case differences.
- */
-
-nstrcmp(s1, s2)
-	register char *s1, *s2;
-{
-	register int c1, c2;
-
-	do {
-		c1 = *s1++;
-		c2 = *s2++;
-	} while (c1 && c1 == c2);
-	return(c1 - c2);
-}
-
-/*
  * Put another node onto a list of names and return
  * the list.
  */
-
 struct name *
 put(list, node)
 	struct name *list, *node;
@@ -774,46 +620,32 @@ put(list, node)
 }
 
 /*
- * Determine the number of elements in
+ * Determine the number of undeleted elements in
  * a name list and return it.
  */
-
 count(np)
 	register struct name *np;
 {
-	register int c = 0;
+	register int c;
 
-	while (np != NIL) {
-		c++;
-		np = np->n_flink;
-	}
-	return(c);
-}
-
-cmpdomain(name, dname)
-	register char *name, *dname;
-{
-	char buf[BUFSIZ];
-
-	strcpy(buf, dname);
-	buf[strlen(name)] = '\0';
-	return(icequal(name, buf));
+	for (c = 0; np != NIL; np = np->n_flink)
+		if ((np->n_type & GDEL) == 0)
+			c++;
+	return c;
 }
 
 /*
- * Delete the given name from a namelist, using the passed
- * function to compare the names.
+ * Delete the given name from a namelist.
  */
 struct name *
-delname(np, name, cmpfun)
+delname(np, name)
 	register struct name *np;
 	char name[];
-	int (* cmpfun)();
 {
 	register struct name *p;
 
 	for (p = np; p != NIL; p = p->n_flink)
-		if ((* cmpfun)(p->n_name, name)) {
+		if (strcasecmp(p->n_name, name) == 0) {
 			if (p->n_blink == NIL) {
 				if (p->n_flink != NIL)
 					p->n_flink->n_blink = NIL;
@@ -828,22 +660,7 @@ delname(np, name, cmpfun)
 			p->n_blink->n_flink = p->n_flink;
 			p->n_flink->n_blink = p->n_blink;
 		}
-	return(np);
-}
-
-/*
- * Call the given routine on each element of the name
- * list, replacing said value if need be.
- */
-
-mapf(np, from)
-	register struct name *np;
-	char *from;
-{
-	register struct name *p;
-
-	for (p = np; p != NIL; p = p->n_flink)
-		p->n_name = netmap(p->n_name, from);
+	return np;
 }
 
 /*
@@ -851,6 +668,7 @@ mapf(np, from)
  * Uncomment it if you need it.
  */
 
+/*
 prettyprint(name)
 	struct name *name;
 {
@@ -863,3 +681,4 @@ prettyprint(name)
 	}
 	fprintf(stderr, "\n");
 }
+*/

@@ -1,85 +1,12 @@
-%term NAME  2
-%term STRING  3
-%term ICON  4
-%term FCON  5
-%term PLUS   6
-%term MINUS   8
-%term MUL   11
-%term AND   14
-%term OR   17
-%term ER   19
-%term QUEST  21
-%term COLON  22
-%term ANDAND  23
-%term OROR  24
+/*	cgram.y	4.4	85/08/22	*/
 
-/*	special interfaces for yacc alone */
-/*	These serve as abbreviations of 2 or more ops:
-	ASOP	=, = ops
-	RELOP	LE,LT,GE,GT
-	EQUOP	EQ,NE
-	DIVOP	DIV,MOD
-	SHIFTOP	LS,RS
-	ICOP	ICR,DECR
-	UNOP	NOT,COMPL
-	STROP	DOT,STREF
+/*
+ * Grammar for the C compiler.
+ *
+ * This grammar requires the definitions of terminals in the file 'pcctokens'.
+ * (YACC doesn't have an 'include' mechanism, unfortunately.)
+ */
 
-	*/
-%term ASOP  25
-%term RELOP  26
-%term EQUOP  27
-%term DIVOP  28
-%term SHIFTOP  29
-%term INCOP  30
-%term UNOP  31
-%term STROP  32
-
-/*	reserved words, etc */
-%term TYPE  33
-%term CLASS  34
-%term STRUCT  35
-%term RETURN  36
-%term GOTO  37
-%term IF  38
-%term ELSE  39
-%term SWITCH  40
-%term BREAK  41
-%term CONTINUE  42
-%term WHILE  43
-%term DO  44
-%term FOR  45
-%term DEFAULT  46
-%term CASE  47
-%term SIZEOF  48
-%term ENUM 49
-
-
-/*	little symbols, etc. */
-/*	namely,
-
-	LP	(
-	RP	)
-
-	LC	{
-	RC	}
-
-	LB	[
-	RB	]
-
-	CM	,
-	SM	;
-
-	*/
-
-%term LP  50
-%term RP  51
-%term LC  52
-%term RC  53
-%term LB  54
-%term RB  55
-%term CM  56
-%term SM  57
-%term ASSIGN  58
 
 /* at last count, there were 7 shift/reduce, 1 reduce/reduce conflicts
 /* these involved:
@@ -105,7 +32,7 @@
 %right INCOP SIZEOF
 %left LB LP STROP
 %{
-# include "mfile1"
+# include "pass1.h"
 %}
 
 	/* define types */
@@ -125,7 +52,11 @@
 
 %{
 	static int fake = 0;
+#ifndef FLEXNAMES
 	static char fakename[NCHNAM+1];
+#else
+	static char fakename[24];
+#endif
 %}
 
 ext_def_list:	   ext_def_list external_def
@@ -139,16 +70,19 @@ external_def:	   data_def
 		;
 data_def:
 		   oattributes  SM
-			={  $1->op = FREE; }
+			={  $1->in.op = FREE; }
 		|  oattributes init_dcl_list  SM
-			={  $1->op = FREE; }
+			={  $1->in.op = FREE; }
 		|  oattributes fdeclarator {
 				defid( tymerge($1,$2), curclass==STATIC?STATIC:EXTDEF );
+#ifndef LINT
+				pfstab(stab[$2->tn.rval].sname);
+#endif
 				}  function_body
 			={  
 			    if( blevel ) cerror( "function level error" );
 			    if( reached ) retstat |= NRETVAL; 
-			    $1->op = FREE;
+			    $1->in.op = FREE;
 			    ftnend();
 			    }
 		;
@@ -166,16 +100,30 @@ stmt_list:	   stmt_list statement
 			    }
 		;
 
-dcl_stat_list	:  dcl_stat_list attributes SM
-			={  $2->op = FREE; }
+r_dcl_stat_list	:  dcl_stat_list attributes SM
+			={  $2->in.op = FREE; 
+#ifndef LINT
+			    plcstab(blevel);
+#endif
+			    }
 		|  dcl_stat_list attributes init_dcl_list SM
-			={  $2->op = FREE; }
+			={  $2->in.op = FREE; 
+#ifndef LINT
+			    plcstab(blevel);
+#endif
+			    }
+		;
+
+dcl_stat_list	:  dcl_stat_list attributes SM
+			={  $2->in.op = FREE; }
+		|  dcl_stat_list attributes init_dcl_list SM
+			={  $2->in.op = FREE; }
 		|  /* empty */
 		;
 declaration:	   attributes declarator_list  SM
-			={ curclass = SNULL;  $1->op = FREE; }
+			={ curclass = SNULL;  $1->in.op = FREE; }
 		|  attributes SM
-			={ curclass = SNULL;  $1->op = FREE; }
+			={ curclass = SNULL;  $1->in.op = FREE; }
 		|  error  SM
 			={  curclass = SNULL; }
 		;
@@ -190,6 +138,10 @@ attributes:	   class type
 			={  $$ = mkty(INT,0,INT); }
 		|  type
 			={ curclass = SNULL ; }
+		|  type class type
+			={  $1->in.type = types( $1->in.type, $3->in.type, UNDEF );
+			    $3->in.op = FREE;
+			    }
 		;
 
 
@@ -199,12 +151,12 @@ class:		  CLASS
 
 type:		   TYPE
 		|  TYPE TYPE
-			={  $1->type = types( $1->type, $2->type, UNDEF );
-			    $2->op = FREE;
+			={  $1->in.type = types( $1->in.type, $2->in.type, UNDEF );
+			    $2->in.op = FREE;
 			    }
 		|  TYPE TYPE TYPE
-			={  $1->type = types( $1->type, $2->type, $3->type );
-			    $2->op = $3->op = FREE;
+			={  $1->in.type = types( $1->in.type, $2->in.type, $3->in.type );
+			    $2->in.op = $3->in.op = FREE;
 			    }
 		|  struct_dcl
 		|  enum_dcl
@@ -217,9 +169,9 @@ enum_dcl:	   enum_head LC moe_list optcomma RC
 		;
 
 enum_head:	   ENUM
-			={  $$ = bstruct(-1,0); }
+			={  $$ = bstruct(-1,0); stwart = SEENAME; }
 		|  ENUM NAME
-			={  $$ = bstruct($2,0); }
+			={  $$ = bstruct($2,0); stwart = SEENAME; }
 		;
 
 moe_list:	   moe
@@ -249,17 +201,23 @@ type_dcl_list:	   type_declaration
 		;
 
 type_declaration:  type declarator_list
-			={ curclass = SNULL;  stwart=0; $1->op = FREE; }
+			={ curclass = SNULL;  stwart=0; $1->in.op = FREE; }
 		|  type
 			={  if( curclass != MOU ){
 				curclass = SNULL;
 				}
 			    else {
 				sprintf( fakename, "$%dFAKE", fake++ );
+#ifdef FLEXNAMES
+				/* No need to hash this, we won't look it up */
+				defid( tymerge($1, bdty(NAME,NIL,lookup( savestr(fakename), SMOS ))), curclass );
+#else
 				defid( tymerge($1, bdty(NAME,NIL,lookup( fakename, SMOS ))), curclass );
+#endif
+				werror("structure typed union member must be named");
 				}
 			    stwart = 0;
-			    $1->op = FREE;
+			    $1->in.op = FREE;
 			    }
 		;
 
@@ -337,6 +295,8 @@ name_lp:	  NAME LP
 			={
 				/* turn off typedefs for argument names */
 				stwart = SEENAME;
+				if( stab[$1].sclass == SNULL )
+				    stab[$1].stype = FTN;
 				}
 		;
 
@@ -344,6 +304,7 @@ name_list:	   NAME
 			={ ftnarg( $1 );  stwart = SEENAME; }
 		|  name_list  CM  NAME 
 			={ ftnarg( $3 );  stwart = SEENAME; }
+		| error
 		;
 		/* always preceeded by attributes: thus the $<nodep>0's */
 init_dcl_list:	   init_declarator
@@ -353,7 +314,7 @@ init_dcl_list:	   init_declarator
 		/* always preceeded by attributes */
 xnfdeclarator:	   nfdeclarator
 			={  defid( $1 = tymerge($<nodep>0,$1), curclass);
-			    beginit($1->rval);
+			    beginit($1->tn.rval);
 			    }
 		|  error
 		;
@@ -362,6 +323,10 @@ init_declarator:   nfdeclarator
 			={  nidcl( tymerge($<nodep>0,$1) ); }
 		|  fdeclarator
 			={  defid( tymerge($<nodep>0,$1), uclass(curclass) );
+			    if( paramno > 0 ){
+				uerror( "illegal argument" );
+				paramno = 0;
+				}
 			}
 		|  xnfdeclarator optasgn e
 			%prec CM
@@ -369,6 +334,7 @@ init_declarator:   nfdeclarator
 			    endinit(); }
 		|  xnfdeclarator optasgn LC init_list optcomma RC
 			={  endinit(); }
+		| error
 		;
 
 init_list:	   initializer
@@ -401,12 +367,30 @@ ibrace		: LC
 
 /*	STATEMENTS	*/
 
-compoundstmt:	   begin dcl_stat_list stmt_list RC
+compoundstmt:	   dcmpstmt
+		|  cmpstmt
+		;
+
+dcmpstmt:	   begin r_dcl_stat_list stmt_list RC
+			={  
+#ifndef LINT
+			    prcstab(blevel);
+#endif
+			    --blevel;
+			    if( blevel == 1 ) blevel = 0;
+			    clearst( blevel );
+			    checkst( blevel );
+			    autooff = (unsigned)*--psavbc;
+			    regvar = *--psavbc;
+			    }
+		;
+
+cmpstmt:	   begin stmt_list RC
 			={  --blevel;
 			    if( blevel == 1 ) blevel = 0;
 			    clearst( blevel );
 			    checkst( blevel );
-			    autooff = *--psavbc;
+			    autooff = (unsigned)*--psavbc;
 			    regvar = *--psavbc;
 			    }
 		;
@@ -490,12 +474,15 @@ statement:	   e   SM
 			={  register NODE *temp;
 			    idname = curftn;
 			    temp = buildtree( NAME, NIL, NIL );
-			    temp->type = DECREF( temp->type );
+			    if(temp->in.type == TVOID)
+				uerror("void function %s cannot return value",
+					stab[idname].sname);
+			    temp->in.type = DECREF( temp->in.type );
 			    temp = buildtree( RETURN, temp, $2 );
 			    /* now, we have the type of the RHS correct */
-			    temp->left->op = FREE;
-			    temp->op = FREE;
-			    ecomp( buildtree( FORCE, temp->right, NIL ) );
+			    temp->in.left->in.op = FREE;
+			    temp->in.op = FREE;
+			    ecomp( buildtree( FORCE, temp->in.right, NIL ) );
 			    retstat |= RETVAL;
 			    branch( retlab );
 			    reached = 0;
@@ -503,7 +490,7 @@ statement:	   e   SM
 		|  GOTO NAME SM
 			={  register NODE *q;
 			    q = block( FREE, NIL, NIL, INT|ARY, 0, INT );
-			    q->rval = idname = $2;
+			    q->tn.rval = idname = $2;
 			    defid( q, ULABEL );
 			    stab[idname].suse = -lineno;
 			    branch( stab[idname].offset );
@@ -517,7 +504,7 @@ statement:	   e   SM
 label:		   NAME COLON
 			={  register NODE *q;
 			    q = block( FREE, NIL, NIL, INT|ARY, 0, LABEL );
-			    q->rval = $1;
+			    q->tn.rval = $1;
 			    defid( q, LABEL );
 			    reached = 1;
 			    }
@@ -556,7 +543,7 @@ ifelprefix:	  ifprefix statement ELSE
 whprefix:	  WHILE  LP  e  RP
 			={  savebc();
 			    if( !reached ) werror( "loop not entered at top");
-			    if( $3->op == ICON && $3->lval != 0 ) flostat = FLOOP;
+			    if( $3->in.op == ICON && $3->tn.lval != 0 ) flostat = FLOOP;
 			    deflab( contlab = getlab() );
 			    reached = 1;
 			    brklab = getlab();
@@ -577,9 +564,22 @@ forprefix:	  FOR  LP  .e  SM .e  SM
 			    }
 		;
 switchpart:	   SWITCH  LP  e  RP
-			={  savebc();
+			={  register NODE *q;
+			
+			    savebc();
 			    brklab = getlab();
-			    ecomp( buildtree( FORCE, $3, NIL ) );
+			    q = $3;
+			    switch( q->in.type ) {
+			    case CHAR:	case UCHAR:
+			    case SHORT:	case USHORT:
+			    case INT:	case UNSIGNED:
+			    case MOE:	case ENUMTY:
+				    break;
+			    default:
+				werror("switch expression not type int");
+				q = makety( q, INT, q->fn.cdim, q->fn.csiz );
+				}
+			    ecomp( buildtree( FORCE, q, NIL ) );
 			    branch( $$ = getlab() );
 			    swstart();
 			    reached = 0;
@@ -670,7 +670,7 @@ term:		   term INCOP
 			    $$ = buildtree( UNARY $1, $2, NIL );
 			    }
 		|  AND term
-			={  if( ISFTN($2->type) || ISARY($2->type) ){
+			={  if( ISFTN($2->in.type) || ISARY($2->in.type) ){
 				werror( "& before array or function: ignored" );
 				$$ = $2;
 				}
@@ -691,9 +691,9 @@ term:		   term INCOP
 			={  $$ = doszof( $2 ); }
 		|  LP cast_type RP term  %prec INCOP
 			={  $$ = buildtree( CAST, $2, $4 );
-			    $$->left->op = FREE;
-			    $$->op = FREE;
-			    $$ = $$->right;
+			    $$->in.left->in.op = FREE;
+			    $$->in.op = FREE;
+			    $$ = $$->in.right;
 			    }
 		|  SIZEOF LP cast_type RP  %prec SIZEOF
 			={  $$ = doszof( $3 ); }
@@ -705,6 +705,7 @@ term:		   term INCOP
 			={  $$=buildtree(CALL,$1,$2); }
 		|  term STROP NAME
 			={  if( $2 == DOT ){
+				if( notlval( $1 ) )uerror("structure reference must be addressable");
 				$1 = buildtree( UNARY AND, $1, NIL );
 				}
 			    idname = $3;
@@ -715,9 +716,13 @@ term:		   term INCOP
 			    /* recognize identifiers in initializations */
 			    if( blevel==0 && stab[idname].stype == UNDEF ) {
 				register NODE *q;
+#ifndef FLEXNAMES
 				werror( "undeclared initializer name %.8s", stab[idname].sname );
+#else
+				werror( "undeclared initializer name %s", stab[idname].sname );
+#endif
 				q = block( FREE, NIL, NIL, INT, 0, INT );
-				q->rval = idname;
+				q->tn.rval = idname;
 				defid( q, EXTERN );
 				}
 			    $$=buildtree(NAME,NIL,NIL);
@@ -725,13 +730,17 @@ term:		   term INCOP
 			}
 		|  ICON
 			={  $$=bcon(0);
-			    $$->lval = lastcon;
-			    $$->rval = NONAME;
-			    if( $1 ) $$->csiz = $$->type = ctype(LONG);
+			    $$->tn.lval = lastcon;
+			    $$->tn.rval = NONAME;
+			    if( $1 ) $$->fn.csiz = $$->in.type = ctype(LONG);
 			    }
 		|  FCON
 			={  $$=buildtree(FCON,NIL,NIL);
-			    $$->dval = dcon;
+			    $$->fpn.fval = fcon;
+			    }
+		|  DCON
+			={  $$=buildtree(DCON,NIL,NIL);
+			    $$->dpn.dval = dcon;
 			    }
 		|  STRING
 			={  $$ = getstr(); /* get string contents */ }
@@ -742,8 +751,8 @@ term:		   term INCOP
 cast_type:	  type null_decl
 			={
 			$$ = tymerge( $1, $2 );
-			$$->op = NAME;
-			$1->op = FREE;
+			$$->in.op = NAME;
+			$1->in.op = FREE;
 			}
 		;
 
@@ -767,7 +776,7 @@ funct_idn:	   NAME  LP
 			={  if( stab[$1].stype == UNDEF ){
 				register NODE *q;
 				q = block( FREE, NIL, NIL, FTN|INT, 0, INT );
-				q->rval = $1;
+				q->tn.rval = $1;
 				defid( q, EXTERN );
 				}
 			    idname = $1;
@@ -796,11 +805,11 @@ bdty( op, p, v ) NODE *p; {
 		break;
 
 	case LB:
-		q->right = bcon(v);
+		q->in.right = bcon(v);
 		break;
 
 	case NAME:
-		q->rval = v;
+		q->tn.rval = v;
 		break;
 
 	default:
@@ -810,7 +819,7 @@ bdty( op, p, v ) NODE *p; {
 	return( q );
 	}
 
-dstash( n ){ /* put n into the dimension table */
+dstash( n ) OFFSZ n;{ /* put n into the dimension table */
 	if( curdim >= DIMTABSZ-1 ){
 		cerror( "dimension table overflow");
 		}
@@ -840,7 +849,7 @@ resetbc(mask){
 addcase(p) NODE *p; { /* add case to switch */
 
 	p = optim( p );  /* change enum to ints */
-	if( p->op != ICON ){
+	if( p->in.op != ICON ){
 		uerror( "non-constant case expression");
 		return;
 		}
@@ -851,7 +860,7 @@ addcase(p) NODE *p; { /* add case to switch */
 	if( swp >= &swtab[SWITSZ] ){
 		cerror( "switch table overflow");
 		}
-	swp->sval = p->lval;
+	swp->sval = p->tn.lval;
 	deflab( swp->slab = getlab() );
 	++swp;
 	tfree(p);

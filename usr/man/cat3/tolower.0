@@ -5,19 +5,19 @@ CTYPE(3)	    UNIX Programmer's Manual		 CTYPE(3)
 
 
 
-NNAAMMEE
+NAME
      isalpha, isupper, islower, isdigit, isxdigit, isalnum,
      isspace, ispunct, isprint, isgraph, iscntrl, isascii,
      toupper, tolower, toascii - character classification macros
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ccttyyppee..hh>>
+SYNOPSIS
+     #include <ctype.h>
 
-     iissaallpphhaa((cc))
+     isalpha(c)
 
-     .. .. ..
+     . . .
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These macros classify ASCII-coded integer values by table
      lookup.  Each is a predicate returning nonzero for true,
      zero for false.  _I_s_a_s_c_i_i and _t_o_a_s_c_i_i are defined on all
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -75,7 +75,7 @@ CTYPE(3)	    UNIX Programmer's Manual		 CTYPE(3)
 
      _t_o_a_s_c_i_i	    _c is converted to be a valid ascii character.
 
-SSEEEE AALLSSOO
+SEE ALSO
      ascii(7)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

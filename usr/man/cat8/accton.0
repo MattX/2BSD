@@ -5,16 +5,16 @@ SA(8)		    UNIX Programmer's Manual		    SA(8)
 
 
 
-NNAAMMEE
+NAME
      sa, accton - system accounting
 
-SSYYNNOOPPSSIISS
-     //eettcc//ssaa [ --aabbccddDDffiijjkkKKllnnrrssttuuvv ] [ --SS savacctfile ] [ --UU
+SYNOPSIS
+     /etc/sa [ -abcdDfijkKlnrstuv ] [ -S savacctfile ] [ -U
      usracctfile ] [ file ]
 
-     //eettcc//aaccccttoonn [ file ]
+     /etc/accton [ file ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      With an argument naming an existing _f_i_l_e, _a_c_c_t_o_n causes sys-
      tem accounting information for every process executed to be
      placed at the end of the file.  If no argument is given,
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  July 29, 1985                         1
+Printed 1/9/94		  July 29, 1985                         1
 
 
 
@@ -118,7 +118,7 @@ SA(8)		    UNIX Programmer's Manual		    SA(8)
 	  /_u_s_r/_a_d_m/_u_s_r_a_c_c_t to accumulate the per-user statistics
 	  printed by the -m option.
 
-FFIILLEESS
+FILES
      /usr/adm/acct	 raw accounting
      /usr/adm/savacct	 summary
      /usr/adm/usracct	 per-user summary
@@ -126,7 +126,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	  July 29, 1985                         2
+Printed 1/9/94		  July 29, 1985                         2
 
 
 
@@ -137,10 +137,10 @@ SA(8)		    UNIX Programmer's Manual		    SA(8)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      ac(8), acct(2)
 
-BBUUGGSS
+BUGS
      The number of options to this program is absurd.
 
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  July 29, 1985                         3
+Printed 1/9/94		  July 29, 1985                         3
 
 
 

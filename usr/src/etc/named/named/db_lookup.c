@@ -10,17 +10,13 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)db_lookup.c	4.14 (Berkeley) 2/17/88";
-#endif /* not lint */
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)db_lookup.c	4.14.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Table lookup routines.
  */
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include <sys/types.h>
 #include <stdio.h>

@@ -33,20 +33,17 @@ char	curpri;			/* more scheduling */
 
 u_int	maxmem;			/* actual max memory per process */
 
-int	nswap;			/* size of swap space */
+u_int	nswap;			/* size of swap space */
 int	updlock;		/* lock for sync */
 daddr_t	rablock;		/* block to be read ahead */
 dev_t	rootdev;		/* device of the root */
 dev_t	dumpdev;		/* device to take dumps on */
 long	dumplo;			/* offset into dumpdev */
 dev_t	swapdev;		/* swapping device */
-daddr_t	swplo;			/* block number of swap space */
 dev_t	pipedev;		/* pipe device */
 
-#ifdef BSD2_10
 extern	int icode[];		/* user init code */
 extern	int szicode;		/* its size */
-#endif
 
 daddr_t	bmap();
 
@@ -76,5 +73,4 @@ int	selwait;
 
 extern	bool_t	sep_id;		/* separate I/D */
 extern	char	regloc[];	/* offsets of saved user registers (trap.c) */
-extern	int	bsize;		/* size of buffers */
 #endif

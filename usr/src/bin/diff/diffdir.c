@@ -1,4 +1,6 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)diffdir.c	4.9 (Berkeley) 8/28/84";
+#endif
 
 #include "diff.h"
 /*
@@ -12,7 +14,7 @@ static	char *sccsid = "@(#)diffdir.c	4.9 (Berkeley) 8/28/84";
 #define	DIRECT	8		/* Directory */
 
 struct dir {
-	u_long	d_ino;
+	ino_t	d_ino;
 	short	d_reclen;
 	short	d_namlen;
 	char	*d_entry;
@@ -181,7 +183,15 @@ setupdir(cp)
 		done();
 	}
 	nitems = 0;
+#ifdef	pdp11
+	while (readdir(dirp))
+		nitems++;
+	rewinddir(dirp);
+	dp = (struct dir *)calloc(nitems+1, sizeof (struct dir));
+	nitems = 0;
+#else
 	dp = (struct dir *)malloc(sizeof (struct dir));
+#endif
 	if (dp == 0) {
 		fprintf(stderr, "diff: ran out of memory\n");
 		done();
@@ -200,12 +210,14 @@ setupdir(cp)
 			}
 			strcpy(ep->d_entry, rp->d_name);
 		}
+#ifndef	pdp11
 		dp = (struct dir *)realloc((char *)dp,
 			(nitems + 1) * sizeof (struct dir));
 		if (dp == 0) {
 			fprintf(stderr, "diff: ran out of memory\n");
 			done();
 		}
+#endif
 	}
 	dp[nitems].d_entry = 0;		/* delimiter */
 	closedir(dirp);

@@ -19,7 +19,7 @@ config: ${OBJS}
 clean:
 	rm -f ${OBJS} lex.yy.c y.tab.c y.tab.h config
 
-install:
+install: config
 	install -s config ${DESTDIR}/etc/config
 
 lint: ${CFILES}

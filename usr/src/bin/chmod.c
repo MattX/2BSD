@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)chmod.c	5.5 (Berkeley) 5/22/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)chmod.c	5.5.1 (2.11BSD GTE) 11/4/94";
 #endif
 
 /*
@@ -16,9 +16,11 @@ static char sccsid[] = "@(#)chmod.c	5.5 (Berkeley) 5/22/86";
  */
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
 
+static	char	*fchdirmsg = "Can't fchdir() back to starting directory";
 char	*modestring, *ms;
 int	um;
 int	status;
@@ -31,6 +33,7 @@ main(argc, argv)
 	register char *p, *flags;
 	register int i;
 	struct stat st;
+	int	fcurdir;
 
 	if (argc < 3) {
 		fprintf(stderr,
@@ -58,6 +61,13 @@ done:
 	modestring = argv[0];
 	um = umask(0);
 	(void) newmode(0);
+	if	(rflag)
+		{
+		fcurdir = open(".", O_RDONLY);
+		if	(fcurdir < 0)
+			fatal(255, "Can't open .");
+		}
+
 	for (i = 1; i < argc; i++) {
 		p = argv[i];
 		/* do stat for directory arguments */
@@ -66,7 +76,7 @@ done:
 			continue;
 		}
 		if (rflag && (st.st_mode&S_IFMT) == S_IFDIR) {
-			status += chmodr(p, newmode(st.st_mode));
+			status += chmodr(p, newmode(st.st_mode), fcurdir);
 			continue;
 		}
 		if ((st.st_mode&S_IFMT) == S_IFLNK && stat(p, &st) < 0) {
@@ -78,20 +88,20 @@ done:
 			continue;
 		}
 	}
+	close(fcurdir);
 	exit(status);
 }
 
-chmodr(dir, mode)
+chmodr(dir, mode, savedir)
 	char *dir;
+	int	mode;
+	int	savedir;
 {
 	register DIR *dirp;
 	register struct direct *dp;
-	register struct stat st;
-	char savedir[1024];
+	struct stat st;
 	int ecode;
 
-	if (getwd(savedir) == 0)
-		fatal(255, "%s", savedir);
 	/*
 	 * Change what we are given before doing it's contents
 	 */
@@ -116,7 +126,7 @@ chmodr(dir, mode)
 			continue;
 		}
 		if ((st.st_mode&S_IFMT) == S_IFDIR) {
-			ecode = chmodr(dp->d_name, newmode(st.st_mode));
+			ecode = chmodr(dp->d_name, newmode(st.st_mode), dirfd(dirp));
 			if (ecode)
 				break;
 			continue;
@@ -127,9 +137,9 @@ chmodr(dir, mode)
 		    (ecode = Perror(dp->d_name)))
 			break;
 	}
+	if	(fchdir(savedir) < 0)
+		fatal(255, fchdirmsg);
 	closedir(dirp);
-	if (chdir(savedir) < 0)
-		fatal(255, "can't change back to %s", savedir);
 	return (ecode);
 }
 

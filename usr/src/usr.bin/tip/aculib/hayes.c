@@ -54,6 +54,7 @@ hay_dialer(num, acu)
 {
 	register char *cp;
 	register int connected = 0;
+	int zero = 0;
 	char dummy;
 #ifdef ACULOG
 	char line[80];
@@ -64,28 +65,27 @@ hay_dialer(num, acu)
 		printf("\ndialing...");
 	fflush(stdout);
 	ioctl(FD, TIOCHPCL, 0);
-	ioctl(FD, TIOCFLUSH, 0);	/* get rid of garbage */
-	write(FD, "ATv0\r", 5);	/* tell modem to use short status codes */
-	gobble("\r");
-	gobble("\r");
-	write(FD, "ATTD", 4);	/* send dial command */
+	ioctl(FD,TIOCFLUSH, &zero);
+	write(FD, "ATV0E0X0\r", 9);	/* numeric codes,noecho,base cmds */
+	sleep(1);
+	ioctl(FD, TIOCFLUSH, &zero);	/* get rid of garbage */
+
+	write(FD, "ATDT", 4);	/* send dial command */
 	write(FD, num, strlen(num));
 	state = DIALING;
 	write(FD, "\r", 1);
 	connected = 0;
-	if (gobble("\r")) {
-		if ((dummy = gobble("01234")) != '1')
-			error_rep(dummy);
-		else
-			connected = 1;
-	}
+	if ((dummy = gobble("01234")) != '1')
+		error_rep(dummy);
+	else
+		connected = 1;
 	if (connected)
 		state = CONNECTED;
 	else {
 		state = FAILED;
 		return (connected);	/* lets get out of here.. */
 	}
-	ioctl(FD, TIOCFLUSH, 0);
+	ioctl(FD, TIOCFLUSH, &zero);
 #ifdef ACULOG
 	if (timeout) {
 		sprintf(line, "%d second dial timeout",
@@ -140,7 +140,7 @@ gobble(match)
 	int (*f)();
 	int i, status = 0;
 
-	signal(SIGALRM, sigALRM);
+	f = signal(SIGALRM, sigALRM);
 	timeout = 0;
 #ifdef DEBUG
 	printf("\ngobble: waiting for %s\n", match);
@@ -211,13 +211,15 @@ error_rep(c)
 goodbye()
 {
 	int len, rlen;
+	int zero = 0;
+	long llen;
 	char c;
 
-	ioctl(FD, TIOCFLUSH, &len);	/* get rid of trash */
+	ioctl(FD, TIOCFLUSH, &zero);	/* get rid of trash */
 	if (hay_sync()) {
 		sleep(1);
 #ifndef DEBUG
-		ioctl(FD, TIOCFLUSH, 0);
+		ioctl(FD, TIOCFLUSH, &zero);
 #endif
 		write(FD, "ATH0\r", 5);		/* insurance */
 #ifndef DEBUG
@@ -228,24 +230,26 @@ goodbye()
 		}
 #endif
 		sleep(1);
-		ioctl(FD, FIONREAD, &len);
+		ioctl(FD, FIONREAD, &llen);
+		len = llen;
 #ifdef DEBUG
 		printf("goodbye1: len=%d -- ", len);
 		rlen = read(FD, dumbuf, min(len, DUMBUFLEN));
 		dumbuf[rlen] = '\0';
 		printf("read (%d): %s\r\n", rlen, dumbuf);
 #endif
-		write(FD, "ATv1\r", 5);
+		write(FD, "ATV1\r", 5);
 		sleep(1);
 #ifdef DEBUG
-		ioctl(FD, FIONREAD, &len);
+		ioctl(FD, FIONREAD, &llen);
+		len = llen;
 		printf("goodbye2: len=%d -- ", len);
 		rlen = read(FD, dumbuf, min(len, DUMBUFLEN));
 		dumbuf[rlen] = '\0';
 		printf("read (%d): %s\r\n", rlen, dumbuf);
 #endif
 	}
-	ioctl(FD, TIOCFLUSH, 0);	/* clear the input buffer */
+	ioctl(FD, TIOCFLUSH, &zero);	/* clear the input buffer */
 	ioctl(FD, TIOCCDTR, 0);		/* clear DTR (insurance) */
 	close(FD);
 }
@@ -255,11 +259,13 @@ goodbye()
 hay_sync()
 {
 	int len, retry = 0;
+	long llen;
 
 	while (retry++ <= MAXRETRY) {
 		write(FD, "AT\r", 3);
 		sleep(1);
-		ioctl(FD, FIONREAD, &len);
+		ioctl(FD, FIONREAD, &llen);
+		len = llen;
 		if (len) {
 			len = read(FD, dumbuf, min(len, DUMBUFLEN));
 			if (index(dumbuf, '0') || 

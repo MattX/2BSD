@@ -1,9 +1,8 @@
-#
 # Copyright (c) 1985 Regents of the University of California.
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 9/21/85
+#	@(#)Makefile	5.5 (2.11BSD GTE) 1/2/94
 #
 CFLAGS=	-O
 OBJS=	arc.o box.o charset.o circle.o close.o cont.o dot.o \
@@ -15,7 +14,7 @@ DEFRES=	240
 all:	../libplotimagen
 
 ../libplotimagen: ${OBJS}
-	ar cr ../libplotimagen ${OBJS}
+	ar ru ../libplotimagen ${OBJS}
 
 close.o erase.o label.o line.o open.o: imp.h imPcodes.h
 cont.o move.o:	imp.h
@@ -25,3 +24,5 @@ space.o: space.c Makefile
 
 clean:
 	rm -f ${OBJS} a.out core errs
+
+install:

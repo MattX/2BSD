@@ -4,7 +4,7 @@
  * specifies the terms and conditions for redistribution.
  */
 
-/*	@(#)timedc.h	2.1	(Berkeley)	12/10/85	*/
+/*	@(#)timedc.h	2.1.1	(2.11BSD GTE)	1/1/94	*/
 
 #include <sys/param.h>
 #include <stdio.h>
@@ -26,7 +26,7 @@ extern int errno;
 #define GOOD		1
 #define UNREACHABLE	2
 #define NONSTDTIME	3
-#ifdef BSD2_10
+#ifdef pdp11
 #define HOSTDOWN 	0x7fff
 #else
 #define HOSTDOWN 	0x7fffffff

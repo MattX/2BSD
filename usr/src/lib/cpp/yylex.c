@@ -1,6 +1,4 @@
-#ifndef lint
-static char sccsid[] = "@(#)yylex.c	1.3 7/1/83";
-#endif lint
+/* static char sccsid[] = "@(#)yylex.c	1.3 7/1/83"; */
 
 #define isid(a)  ((fastab+COFF)[a]&IB)
 #define IB 1

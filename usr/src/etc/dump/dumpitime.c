@@ -1,4 +1,7 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)dumpitime.c	1.1 (Berkeley) 10/13/80";
+#endif
+
 #include "dump.h"
 
 char *prdate(d)

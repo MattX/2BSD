@@ -4,9 +4,7 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef UCB_NET
-
-#ifndef lint
+#if	defined(DO_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)dispnet.c	5.6 (Berkeley) 8/22/87";
 #endif
 
@@ -917,5 +915,3 @@ struct tcpcb {
 #define	TCPOOB_HADDATA	0x02
 };
 #endif	for_handy_reference
-
-#endif UCB_NET

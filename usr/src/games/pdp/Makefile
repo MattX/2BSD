@@ -30,7 +30,7 @@ ${SUBDIR}: FRC
 
 FRC:
 
-install:
+install: ${NSTD}
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${NSTD}; do \

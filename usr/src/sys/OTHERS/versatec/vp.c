@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vp.c	1.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -125,18 +125,19 @@ dev_t dev;
 	*vpp = vp11.state = 0;
 }
 
-vpwrite(dev)
+vpwrite(dev, uio)
 dev_t dev;
+struct uio *uio;
 {
 	int vpstart();
 
-	if ((vp11.bytecount=u.u_count) == 0)	/* true byte count */
+	if ((vp11.bytecount=uio->uio_resid) == 0)	/* true byte count */
 		return;
-	if (u.u_count&01)	/* avoid EFAULT error in physio() */
-		u.u_count++;
+	if (uio->uio_resid&01)	/* avoid EFAULT error in physio() */
+		uio->uio_resid++;
 	if (vperror())
 		return;
-	return (physio(vpstart, &vpbuf, dev, B_WRITE, WORD));
+	return (physio(vpstart, &vpbuf, dev, B_WRITE, uio));
 	/* note that newer 1200A's print @ 1000 lines/min = 2.2kbytes/sec */
 }
 
@@ -182,6 +183,8 @@ vpioctl(dev, cmd, data, flag)
 	register int ctrl;
 	register short *vpp;
 	register struct buf *bp;
+	struct	uio	uio;
+	struct	iovec	iov;
 
 	switch (cmd) {
 
@@ -211,9 +214,11 @@ vpioctl(dev, cmd, data, flag)
 
 #ifdef THIS_IS_NOT_USEABLE
 	case BUFWRITE:
-		u.u_base = fuword(addr);
-		u.u_count = fuword(addr+NBPW);
-		if ((int)u.u_base == -1 || (int)u.u_count == -1) {
+		uio.uio_iovcnt = 1;
+		uio.uio_iov = &iov;
+		iov.iov_base = fuword(addr);
+		iov.iov_len = uio.uio_resid = fuword(addr+NBPW);
+		if ((int)iov.iov_base == -1 || iov.iov_len == -1) {
 			u.u_error = EFAULT;
 			return;
 		}
@@ -229,7 +234,7 @@ vpioctl(dev, cmd, data, flag)
 			(void) _spl0();
 			return(geterror(bp));
 		}
-		if (u.u_count == 0)
+		if (uio.uio_resid == 0)
 			return;
 		/* simulate a write without starting i/o */
 		(void) _spl4();
@@ -287,9 +292,7 @@ register struct buf *bp;
 		bp->b_flags |= B_DONE;	/* fake it */
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	vpp->addr = (short)(bp->b_un.b_addr);
 	vpp->addrext = (bp->b_xmem & 03) << 4;
 #ifndef	VP_TWOSCOMPL

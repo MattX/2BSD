@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tm.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -28,12 +28,6 @@ struct	tmdevice *TMADDR;
 
 struct	buf	tmtab;
 struct	buf	ctmbuf;
-/*
- * Raw tape operations use rtmbuf.  The driver notices when rtmbuf is being
- * used and allows the user program to continue after errors and read records
- * not of the standard length (DEV_BSIZE).
- */
-struct	buf	rtmbuf;
 
 /*
  * Software state per tape transport:
@@ -244,11 +238,13 @@ tmstrategy(bp)
 register struct buf *bp;
 {
 	register s;
+	register struct te_softc *sc = &te_softc[TEUNIT(bp->b_dev)];
 
-#ifdef UNIBUS_MAP
-	if (bp != &ctmbuf)
+	if (bp->b_flags & B_PHYS) {
 		mapalloc(bp);
-#endif
+		sc->sc_blkno = sc->sc_nxrec = dbtofsb(bp->b_blkno);
+		sc->sc_nxrec++;
+	}
 	bp->av_forw = NULL;
 	s = splbio();
 	if (tmtab.b_actf == NULL)
@@ -325,7 +321,7 @@ loop:
 	/*
 	 * The following checks handle boundary cases for operation
 	 * on non-raw tapes.  On raw tapes the initialization of
-	 * sc->sc_nxrec by tmphys causes them to be skipped normally
+	 * sc->sc_nxrec on entry causes them to be skipped normally
 	 * (except in the case of retries).
 	 */
 	if (dbtofsb(bp->b_blkno) > sc->sc_nxrec) {
@@ -339,7 +335,7 @@ loop:
 	if (dbtofsb(bp->b_blkno) == sc->sc_nxrec && bp->b_flags & B_READ) {
 		/*
 		 * Reading at end of file returns 0 bytes.
-		 * Buffer will be cleared (if written) in writei.
+		 * Buffer will be cleared (if written) in rwip.
 		 */
 		bp->b_resid = bp->b_bcount;
 		goto next;
@@ -463,7 +459,7 @@ tmintr()
 		 * If we were reading raw tape and the only error was that the
 		 * record was too long, then we don't consider this an error.
 		 */
-		if (bp == &rtmbuf && (bp->b_flags & B_READ) &&
+		if ((bp->b_flags & B_PHYS) && (bp->b_flags & B_READ) &&
 		    (tmaddr->tmer & (TMER_HARD | TMER_SOFT)) == TMER_RLE)
 			goto ignoreerr;
 		/*
@@ -480,7 +476,7 @@ tmintr()
 			 * Hard or non-i/o errors on non-raw tape
 			 * cause it to close.
 			 */
-			if (sc->sc_openf > 0 && bp != &rtmbuf)
+			if (sc->sc_openf > 0 && !(bp->b_flags & B_PHYS))
 				sc->sc_openf = -1;
 		/*
 		 * Couldn't recover error
@@ -572,35 +568,6 @@ register struct buf *bp;
 	}
 	/* eof on read */
 	sc->sc_nxrec = bn;
-}
-
-tmread(dev)
-register dev_t dev;
-{
-	tmphys(dev);
-	return (physio(tmstrategy, &rtmbuf, dev, B_READ, BYTE));
-}
-
-tmwrite(dev)
-register dev_t dev;
-{
-	tmphys(dev);
-	return (physio(tmstrategy, &rtmbuf, dev, B_WRITE, BYTE));
-}
-
-/*
- * Set up sc_blkno and sc_nxrec
- * so that the tape will appear positioned correctly.
- */
-tmphys(dev)
-dev_t dev;
-{
-	daddr_t a;
-	register struct te_softc *sc = &te_softc[TEUNIT(dev)];
-
-	a = dbtofsb(u.u_offset >> 9);
-	sc->sc_blkno = a;
-	sc->sc_nxrec = a + 1;
 }
 
 /*ARGSUSED*/

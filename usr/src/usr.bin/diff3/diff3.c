@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)diff3.c	4.4 (Berkeley) 8/27/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)diff3.c	4.4.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #include <stdio.h>
@@ -37,9 +37,6 @@ struct diff d23[NC];
 */
 struct diff de[NC];
 char overlap[NC];
-#ifdef BSD2_10
-#define overlapcnt	ovlpcnt
-#endif BSD2_10
 int  overlapcnt =0;
 
 char line[256];

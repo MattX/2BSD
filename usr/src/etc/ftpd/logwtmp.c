@@ -12,13 +12,12 @@
  * from this software without specific prior written permission.
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * static char sccsid[] = "@(#)logwtmp.c	5.2 (Berkeley) 9/20/88";
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)logwtmp.c	5.2 (Berkeley) 9/22/88";
+static char sccsid[] = "@(#)logwtmp.c	based on 5.5 (Berkeley) 4/2/89";
 #endif /* not lint */
 
 #include <sys/types.h>
@@ -27,10 +26,17 @@ static char sccsid[] = "@(#)logwtmp.c	5.2 (Berkeley) 9/22/88";
 #include <sys/stat.h>
 #include <utmp.h>
 
-#define	WTMPFILE	"/usr/adm/wtmp"
+#ifndef _PATH_WTMP
+#define _PATH_WTMP	"/usr/adm/wtmp"
+#endif
 
-static int fd;
+static int fd = -1;
 
+/*
+ * Modified version of logwtmp that holds wtmp file open
+ * after first call, for use with ftp (which may chroot
+ * after login, but before logout).
+ */
 logwtmp(line, name, host)
 	char *line, *name, *host;
 {
@@ -39,9 +45,9 @@ logwtmp(line, name, host)
 	time_t time();
 	char *strncpy();
 
-	if (!fd && (fd = open(WTMPFILE, O_WRONLY|O_APPEND, 0)) < 0)
+	if (fd < 0 && (fd = open(_PATH_WTMP, O_WRONLY|O_APPEND, 0)) < 0)
 		return;
-	if (!fstat(fd, &buf)) {
+	if (fstat(fd, &buf) == 0) {
 		(void)strncpy(ut.ut_line, line, sizeof(ut.ut_line));
 		(void)strncpy(ut.ut_name, name, sizeof(ut.ut_name));
 		(void)strncpy(ut.ut_host, host, sizeof(ut.ut_host));

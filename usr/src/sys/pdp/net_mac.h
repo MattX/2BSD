@@ -6,12 +6,6 @@
  *	%W% (Berkeley) %G%
  */
 
-#ifdef UNIBUS_MAP
-int netubaa();
-#define	NETUBAA(nregs) \
-	SKcall(netubaa, sizeof(int), nregs)
-#endif
-
 struct socket *asoqremque();
 #define	ASOQREMQUE(so, n) \
 	KScall(asoqremque, sizeof(struct socket *) + sizeof(int), so, n)
@@ -159,14 +153,16 @@ int soo_stat();
 	    so, ub)
 
 int soreceive();
-#define	SORECEIVE(so, aname, flags, rightsp) \
+#define	SORECEIVE(so, aname, uiop, flags, rightsp) \
 	KScall(soreceive, sizeof(struct socket *) + sizeof(struct mbuf **) + \
-	    sizeof(int) + sizeof(struct mbuf **), so, aname, flags, rightsp)
+	    sizeof(struct uio *) + sizeof(int) + sizeof(struct mbuf **), \
+	    so, aname, uiop, flags, rightsp)
 
 int sosend();
-#define	SOSEND(so, nam, flags, rights) \
+#define	SOSEND(so, nam, uiop, flags, rights) \
 	KScall(sosend, sizeof(struct socket *) + sizeof(struct mbuf *) + \
-	    sizeof(int) + sizeof(struct mbuf *), so, nam, flags, rights)
+	    sizeof(struct uio *) + sizeof(int) + sizeof(struct mbuf *), \
+	    so, nam, uiop, flags, rights)
 
 int sosetopt();
 #define	SOSETOPT(so, level, optname, m0) \

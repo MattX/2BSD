@@ -1,15 +1,41 @@
-/*
- * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+/*-
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)cmd1.c	5.3 (Berkeley) 9/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cmd1.c	5.22 (Berkeley) 4/1/91";
+#endif
 
 #include "rcv.h"
-#include <sys/stat.h>
 
 /*
  * Mail -- a mail program
@@ -53,7 +79,6 @@ headers(msgvec)
 		if (flag++ >= size)
 			break;
 		printhead(mesg);
-		sreset();
 	}
 	if (flag == 0) {
 		printf("No more mail.\n");
@@ -63,39 +88,8 @@ headers(msgvec)
 }
 
 /*
- * Set the list of alternate names for out host.
- */
-local(namelist)
-	char **namelist;
-{
-	register int c;
-	register char **ap, **ap2, *cp;
-
-	c = argcount(namelist) + 1;
-	if (c == 1) {
-		if (localnames == 0)
-			return(0);
-		for (ap = localnames; *ap; ap++)
-			printf("%s ", *ap);
-		printf("\n");
-		return(0);
-	}
-	if (localnames != 0)
-		cfree((char *) localnames);
-	localnames = (char **) calloc(c, sizeof (char *));
-	for (ap = namelist, ap2 = localnames; *ap; ap++, ap2++) {
-		cp = (char *) calloc(strlen(*ap) + 1, sizeof (char));
-		strcpy(cp, *ap);
-		*ap2 = cp;
-	}
-	*ap2 = 0;
-	return(0);
-}
-
-/*
  * Scroll to the next/previous screen
  */
-
 scroll(arg)
 	char arg[];
 {
@@ -132,37 +126,16 @@ scroll(arg)
 }
 
 /*
- * Compute what the screen size should be.
- * We use the following algorithm:
- *	If user specifies with screen option, use that.
- *	If baud rate < 1200, use  5
- *	If baud rate = 1200, use 10
- *	If baud rate > 1200, use 20
+ * Compute screen size.
  */
 screensize()
 {
-	register char *cp;
-	register int s;
-#ifdef	TIOCGWINSZ
-	struct winsize ws;
-#endif
+	int s;
+	char *cp;
 
-	if ((cp = value("screen")) != NOSTR) {
-		s = atoi(cp);
-		if (s > 0)
-			return(s);
-	}
-	if (baud < B1200)
-		s = 5;
-	else if (baud == B1200)
-		s = 10;
-#ifdef	TIOCGWINSZ
-	else if (ioctl(fileno(stdout), TIOCGWINSZ, &ws) == 0 && ws.ws_row != 0)
-		s = ws.ws_row - 4;
-#endif
-	else
-		s = 20;
-	return(s);
+	if ((cp = value("screen")) != NOSTR && (s = atoi(cp)) > 0)
+		return s;
+	return screenheight - 4;
 }
 
 /*
@@ -175,10 +148,8 @@ from(msgvec)
 {
 	register int *ip;
 
-	for (ip = msgvec; *ip != NULL; ip++) {
+	for (ip = msgvec; *ip != NULL; ip++)
 		printhead(*ip);
-		sreset();
-	}
 	if (--ip >= msgvec)
 		dot = &message[*ip - 1];
 	return(0);
@@ -192,26 +163,19 @@ from(msgvec)
 printhead(mesg)
 {
 	struct message *mp;
-	FILE *ibuf;
 	char headline[LINESIZE], wcount[LINESIZE], *subjline, dispc, curind;
 	char pbuf[BUFSIZ];
-	int s;
 	struct headline hl;
-	register char *cp;
+	int subjlen;
+	char *name;
 
 	mp = &message[mesg-1];
-	ibuf = setinput(mp);
-	readline(ibuf, headline);
-	subjline = hfield("subject", mp);
-	if (subjline == NOSTR)
+	(void) readline(setinput(mp), headline, LINESIZE);
+	if ((subjline = hfield("subject", mp)) == NOSTR)
 		subjline = hfield("subj", mp);
-
 	/*
 	 * Bletch!
 	 */
-
-	if (subjline != NOSTR && strlen(subjline) > 28)
-		subjline[29] = '\0';
 	curind = dot == mp ? '>' : ' ';
 	dispc = ' ';
 	if (mp->m_flag & MSAVED)
@@ -225,18 +189,17 @@ printhead(mesg)
 	if (mp->m_flag & MBOX)
 		dispc = 'M';
 	parse(headline, &hl, pbuf);
-	sprintf(wcount, " %d/%ld", mp->m_lines, mp->m_size);
-	s = strlen(wcount);
-	cp = wcount + s;
-	while (s < 7)
-		s++, *cp++ = ' ';
-	*cp = '\0';
-	if (subjline != NOSTR)
-		printf("%c%c%3d %-8s %16.16s %s \"%s\"\n", curind, dispc, mesg,
-		    nameof(mp, 0), hl.l_date, wcount, subjline);
+	sprintf(wcount, "%3d/%-5ld", mp->m_lines, mp->m_size);
+	subjlen = screenwidth - 50 - strlen(wcount);
+	name = value("show-rcpt") != NOSTR ?
+		skin(hfield("to", mp)) : nameof(mp, 0);
+	if (subjline == NOSTR || subjlen < 0)		/* pretty pathetic */
+		printf("%c%c%3d %-20.20s  %16.16s %s\n",
+			curind, dispc, mesg, name, hl.l_date, wcount);
 	else
-		printf("%c%c%3d %-8s %16.16s %s\n", curind, dispc, mesg,
-		    nameof(mp, 0), hl.l_date, wcount);
+		printf("%c%c%3d %-20.20s  %16.16s %s \"%.*s\"\n",
+			curind, dispc, mesg, name, hl.l_date, wcount,
+			subjlen, subjline);
 }
 
 /*
@@ -323,83 +286,62 @@ type1(msgvec, doign, page)
 {
 	register *ip;
 	register struct message *mp;
-	register int mesg;
 	register char *cp;
-	int c, nlines;
-	int brokpipe();
-	FILE *ibuf, *obuf;
+	int nlines;
+	FILE *obuf;
+	void brokpipe();
 
 	obuf = stdout;
-	if (setjmp(pipestop)) {
-		if (obuf != stdout) {
-			pipef = NULL;
-			pclose(obuf);
-		}
-		sigset(SIGPIPE, SIG_DFL);
-		return(0);
-	}
-	if (intty && outtty && (page || (cp = value("crt")) != NOSTR)) {
+	if (setjmp(pipestop))
+		goto close_pipe;
+	if (value("interactive") != NOSTR &&
+	    (page || (cp = value("crt")) != NOSTR)) {
 		nlines = 0;
 		if (!page) {
 			for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++)
 				nlines += message[*ip - 1].m_lines;
 		}
-		if (page || nlines > atoi(cp)) {
+		if (page || nlines > (*cp ? atoi(cp) : realscreenheight)) {
 			cp = value("PAGER");
 			if (cp == NULL || *cp == '\0')
-				cp = MORE;
-			obuf = popen(cp, "w");
+				cp = _PATH_MORE;
+			obuf = Popen(cp, "w");
 			if (obuf == NULL) {
 				perror(cp);
 				obuf = stdout;
-			}
-			else {
-				pipef = obuf;
-				sigset(SIGPIPE, brokpipe);
-			}
+			} else
+				signal(SIGPIPE, brokpipe);
 		}
 	}
-	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
-		mesg = *ip;
-		touch(mesg);
-		mp = &message[mesg-1];
+	for (ip = msgvec; *ip && ip - msgvec < msgCount; ip++) {
+		mp = &message[*ip - 1];
+		touch(mp);
 		dot = mp;
-		print(mp, obuf, doign);
+		if (value("quiet") == NOSTR)
+			fprintf(obuf, "Message %d:\n", *ip);
+		(void) send(mp, obuf, doign ? ignore : 0, NOSTR);
 	}
+close_pipe:
 	if (obuf != stdout) {
-		pipef = NULL;
-		pclose(obuf);
+		/*
+		 * Ignore SIGPIPE so it can't cause a duplicate close.
+		 */
+		signal(SIGPIPE, SIG_IGN);
+		Pclose(obuf);
+		signal(SIGPIPE, SIG_DFL);
 	}
-	sigset(SIGPIPE, SIG_DFL);
 	return(0);
 }
 
 /*
  * Respond to a broken pipe signal --
- * probably caused by using quitting more.
+ * probably caused by quitting more.
  */
 
+void
 brokpipe()
 {
-# ifndef VMUNIX
-	signal(SIGPIPE, brokpipe);
-# endif
 	longjmp(pipestop, 1);
-}
-
-/*
- * Print the indicated message on standard output.
- */
-
-print(mp, obuf, doign)
-	register struct message *mp;
-	FILE *obuf;
-{
-
-	if (value("quiet") == NOSTR)
-		fprintf(obuf, "Message %2d:\n", mp - &message[0] + 1);
-	touch(mp - &message[0] + 1);
-	send(mp, obuf, doign);
 }
 
 /*
@@ -413,7 +355,6 @@ top(msgvec)
 {
 	register int *ip;
 	register struct message *mp;
-	register int mesg;
 	int c, topl, lines, lineb;
 	char *valtop, linebuf[LINESIZE];
 	FILE *ibuf;
@@ -427,18 +368,17 @@ top(msgvec)
 	}
 	lineb = 1;
 	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
-		mesg = *ip;
-		touch(mesg);
-		mp = &message[mesg-1];
+		mp = &message[*ip - 1];
+		touch(mp);
 		dot = mp;
 		if (value("quiet") == NOSTR)
-			printf("Message %2d:\n", mesg);
+			printf("Message %d:\n", *ip);
 		ibuf = setinput(mp);
 		c = mp->m_lines;
 		if (!lineb)
 			printf("\n");
 		for (lines = 0; lines < c && lines <= topl; lines++) {
-			if (readline(ibuf, linebuf) <= 0)
+			if (readline(ibuf, linebuf, LINESIZE) < 0)
 				break;
 			puts(linebuf);
 			lineb = blankline(linebuf);
@@ -451,7 +391,6 @@ top(msgvec)
  * Touch all the given messages so that they will
  * get mboxed.
  */
-
 stouch(msgvec)
 	int msgvec[];
 {
@@ -487,26 +426,15 @@ mboxit(msgvec)
  */
 folders()
 {
-	char dirname[BUFSIZ], cmd[BUFSIZ];
-	int pid, s, e;
+	char dirname[BUFSIZ];
+	char *cmd;
 
 	if (getfold(dirname) < 0) {
 		printf("No value set for \"folder\"\n");
-		return(-1);
+		return 1;
 	}
-	switch ((pid = fork())) {
-	case 0:
-		sigchild();
-		execlp("ls", "ls", dirname, 0);
-		_exit(1);
-
-	case -1:
-		perror("fork");
-		return(-1);
-
-	default:
-		while ((e = wait(&s)) != -1 && e != pid)
-			;
-	}
-	return(0);
+	if ((cmd = value("LISTER")) == NOSTR)
+		cmd = "ls";
+	(void) run_command(cmd, 0L, -1, -1, dirname, NOSTR);
+	return 0;
 }

@@ -5,25 +5,25 @@ RANDOM(3)	    UNIX Programmer's Manual		RANDOM(3)
 
 
 
-NNAAMMEE
+NAME
      random, srandom, initstate, setstate - better random number
      generator; routines for changing generators
 
-SSYYNNOOPPSSIISS
-     lloonngg rraannddoomm(())
+SYNOPSIS
+     long random()
 
-     ssrraannddoomm((sseeeedd))
-     iinntt sseeeedd;;
+     srandom(seed)
+     int seed;
 
-     cchhaarr **iinniittssttaattee((sseeeedd,, ssttaattee,, nn))
-     uunnssiiggnneedd sseeeedd;;
-     cchhaarr **ssttaattee;;
-     iinntt nn;;
+     char *initstate(seed, state, n)
+     unsigned seed;
+     char *state;
+     int n;
 
-     cchhaarr **sseettssttaattee((ssttaattee))
-     cchhaarr **ssttaattee;;
+     char *setstate(state)
+     char *state;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_a_n_d_o_m uses a non-linear additive feedback random number
      generator employing a default table of size 31 long integers
      to return successive pseudo-random numbers in the range from
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88       September 29, 1985			1
+Printed 1/9/94	       September 29, 1985			1
 
 
 
@@ -91,19 +91,19 @@ RANDOM(3)	    UNIX Programmer's Manual		RANDOM(3)
      dom number generator is greater than 2**69 which should be
      sufficient for most purposes.
 
-AAUUTTHHOORR
+AUTHOR
      Earl T. Cohen
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      If _i_n_i_t_s_t_a_t_e is called with less than 8 bytes of state
      information, or if _s_e_t_s_t_a_t_e detects that the state informa-
      tion has been garbled, error messages are printed on the
      standard error output.
 
-SSEEEE AALLSSOO
+SEE ALSO
      rand(3)
 
-BBUUGGSS
+BUGS
      About 2/3 the speed of _r_a_n_d(3C).
 
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88       September 29, 1985			2
+Printed 1/9/94	       September 29, 1985			2
 
 
 

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1985 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)timed.c	2.10 (Berkeley) 6/2/86";
-#endif not lint
+static char sccsid[] = "@(#)timed.c	2.10.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include "globals.h"
 #define TSPTYPES
@@ -296,11 +294,6 @@ char **argv;
 			while ((mask & 1) == 0) {
 				addr >>= 1;
 				mask >>= 1;
-#ifdef BSD2_10
-				/* 2.10BSD compiler doesn't support u_long */
-				addr &= 0x7fffffff;
-				mask &= 0x7fffffff;
-#endif
 			}
 			for (n = nets ; n ; n = n->next)
 				if (addr == n->net)

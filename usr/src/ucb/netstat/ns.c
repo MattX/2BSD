@@ -10,9 +10,9 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)ns.c	5.8 (Berkeley) 3/29/88";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)ns.c	5.8.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <stdio.h>
 #include <errno.h>
@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)ns.c	5.8 (Berkeley) 3/29/88";
 #define SANAMES
 #include <netns/spp_debug.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
 #endif
 

@@ -5,13 +5,13 @@ FSTAB(5)	    UNIX Programmer's Manual		 FSTAB(5)
 
 
 
-NNAAMMEE
+NAME
      fstab - static information about the filesystems
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ffssttaabb..hh>>
+SYNOPSIS
+     #include <fstab.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The file /_e_t_c/_f_s_t_a_b contains descriptive information about
      the various file systems.	/_e_t_c/_f_s_t_a_b is only _r_e_a_d by pro-
      grams, and not written; it is the duty of the system
@@ -20,7 +20,7 @@ DDEESSCCRRIIPPTTIIOONN
      _f_s_c_k, _m_o_u_n_t, and _u_m_o_u_n_t sequentially iterate through
      /_e_t_c/_f_s_t_a_b doing their thing.
 
-     The special file name is the bblloocckk special file name, and
+     The special file name is the block special file name, and
      not the character special file name.  If a program needs the
      character special file name, the program must create it by
      appending a ``r'' after the last ``/'' in the special file
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 
@@ -88,10 +88,10 @@ FSTAB(5)	    UNIX Programmer's Manual		 FSTAB(5)
      routines getfsent(), getfsspec(), getfstype(), and getfs-
      file().
 
-FFIILLEESS
+FILES
      /etc/fstab
 
-SSEEEE AALLSSOO
+SEE ALSO
      getfsent(3X)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				2
+Printed 1/9/94		  May 15, 1985				2
 
 
 

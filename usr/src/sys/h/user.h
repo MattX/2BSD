@@ -12,12 +12,14 @@
 #include "exec.h"
 #include "time.h"
 #include "resource.h"
+#include "namei.h"
 #else
 #include <machine/fperr.h>
 #include <sys/dir.h>
 #include <sys/exec.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/namei.h>
 #endif
 
 /*
@@ -109,7 +111,6 @@ struct user {
 #define	UF_MAPPED 	0x2		/* mapped from device */
 	struct	inode *u_cdir;		/* current directory */
 	struct	inode *u_rdir;		/* root directory of current process */
-	struct	inode *u_pdir;		/* inode of parent directory of dirp */
 	struct	tty *u_ttyp;		/* controlling tty pointer */
 	dev_t	u_ttyd;			/* controlling tty dev */
 	short	u_cmask;		/* mask for file creation */
@@ -133,22 +134,13 @@ struct user {
 	struct	rlimit u_rlimit[RLIM_NLIMITS];
 	struct	quota *u_quota;		/* user's quota structure */
 
-/* I/O */
-	caddr_t	u_base;			/* base address for I/O */
-	u_short	u_count;		/* bytes remaining for I/O */
-	off_t	u_offset;		/* offset in file for I/O */
-	char	u_segflg;		/* I/O flag; uio.h */
-	char	dummy3;			/* room for another char */
-
 /* namei & co. */
 	struct	nameicache {		/* last successful directory search */
 		off_t nc_prevoffset;	/* offset at which last entry found */
 		ino_t nc_inumber;	/* inum of cached directory */
 		dev_t nc_dev;		/* dev of cached directory */
 	} u_ncache;
-	off_t	ni_endoff;		/* end of useful stuff in directory */
-	caddr_t	u_dirp;			/* pathname pointer */
-	struct v7direct	u_dent;		/* standard V7 directory structure */
+	struct	nameidata u_nd;
 
 	short	u_stack[1];		/* kernel stack per user
 					 * extends from u + USIZE*64

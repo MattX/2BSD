@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	3.1 (Berkeley) 6/19/85
+#	@(#)Makefile	3.2 (2.11BSD GTE) 1/06/94
 #
 #
 # Window makefile, update with mkmf (or "make depend")
@@ -214,7 +214,7 @@ $(PROGRAM):     $(OBJS) $(LIBS)
 		@$(LINKER) $(LDFLAGS) $(OBJS) $(LIBS) -o $(PROGRAM)
 		@echo "done"
 
-clean:;		@rm -f $(OBJS) make.out
+clean:;		@rm -f $(OBJS) make.out a.out
 
 depend:;	@mkmf -f $(MAKEFILE) PROGRAM=$(PROGRAM)
 

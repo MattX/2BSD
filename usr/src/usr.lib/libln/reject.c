@@ -2,7 +2,7 @@
 
 # include <stdio.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 extern FILE *yyout, *yyin;
 extern int yyprevious , *yyfnd;
 extern char yyextra[];

@@ -5,15 +5,15 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 
 
 
-NNAAMMEE
+NAME
      ifconfig - configure network interface parameters
 
-SSYYOOPPNNSSIISS
-     //eettcc//iiffccoonnffiigg interface address_family [ _a_d_d_r_e_s_s [
+SYOPNSIS
+     /etc/ifconfig interface address_family [ _a_d_d_r_e_s_s [
      _d_e_s_t__a_d_d_r_e_s_s ] ] [ _p_a_r_a_m_e_t_e_r_s ]
-     //eettcc//iiffccoonnffiigg interface [ protocol_family ]
+     /etc/ifconfig interface [ protocol_family ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _I_f_c_o_n_f_i_g is used to assign an address to a network interface
      and/or configure network interface parameters.  _I_f_c_o_n_f_i_g
      must be used at boot time to define the network address of
@@ -42,14 +42,14 @@ DDEESSCCRRIIPPTTIIOONN
 
      The following parameters may be set with _i_f_c_o_n_f_i_g:
 
-     uupp             Mark an interface ``up''. This may be used to
+     up             Mark an interface ``up''. This may be used to
 		    enable an interface after an ``ifconfig
 		    down.'' It happens automatically when setting
 		    the first address on an interface.	If the
 		    interface was reset when previously marked
 		    down, the hardware will be re-initialized.
 
-     ddoowwnn	    Mark an interface ``down''.  When an inter-
+     down	    Mark an interface ``down''.  When an inter-
 		    face is marked ``down'', the system will not
 		    attempt to transmit messages through that
 		    interface. If possible, the interface will be
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -71,7 +71,7 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 
 
 
-     ttrraaiilleerrss	    Request the use of a ``trailer'' link level
+     trailers	    Request the use of a ``trailer'' link level
 		    encapsulation when sending (default).  If a
 		    network interface supports _t_r_a_i_l_e_r_s, the sys-
 		    tem will, when possible, encapsulate outgoing
@@ -87,33 +87,33 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 		    that have made such requests.  Currently used
 		    by Internet protocols only.
 
-     --ttrraaiilleerrss	    Disable the use of a ``trailer'' link level
+     -trailers	    Disable the use of a ``trailer'' link level
 		    encapsulation.
 
-     aarrpp	    Enable the use of the Address Resolution Pro-
+     arp	    Enable the use of the Address Resolution Pro-
 		    tocol in mapping between network level
 		    addresses and link level addresses (default).
 		    This is currently implemented for mapping
 		    between DARPA Internet addresses and 10Mb/s
 		    Ethernet addresses.
 
-     --aarrpp	    Disable the use of the Address Resolution
+     -arp	    Disable the use of the Address Resolution
 		    Protocol.
 
-     mmeettrriicc _n	    Set the routing metric of the interface to _n,
+     metric _n	    Set the routing metric of the interface to _n,
 		    default 0.	The routing metric is used by the
 		    routing protocol (_r_o_u_t_e_d(8c)).  Higher
 		    metrics have the effect of making a route
 		    less favorable; metrics are counted as addi-
 		    tion hops to the destination network or host.
 
-     ddeebbuugg	    Enable driver dependent debugging code; usu-
+     debug	    Enable driver dependent debugging code; usu-
 		    ally, this turns on extra console error log-
 		    ging.
 
-     --ddeebbuugg	    Disable driver dependent debugging code.
+     -debug	    Disable driver dependent debugging code.
 
-     nneettmmaasskk _m_a_s_k   (Inet only) Specify how much of the address
+     netmask _m_a_s_k   (Inet only) Specify how much of the address
 		    to reserve for subdividing networks into
 		    sub-networks.  The mask includes the network
 		    part of the local address and the subnet
@@ -126,7 +126,7 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 
@@ -144,15 +144,15 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 		    portion, and the subnet field should be con-
 		    tiguous with the network portion.
 
-     ddssttaaddddrr	    Specify the address of the correspondent on
+     dstaddr	    Specify the address of the correspondent on
 		    the other end of a point to point link.
 
-     bbrrooaaddccaasstt	    (Inet only) Specify the address to use to
+     broadcast	    (Inet only) Specify the address to use to
 		    represent broadcasts to the network.  The
 		    default broadcast address is the address with
 		    a host part of all 1's.
 
-     iippddsstt	    (NS only) This is used to specify an Internet
+     ipdst	    (NS only) This is used to specify an Internet
 		    host who is willing to receive ip packets
 		    encapsulating NS packets bound for a remote
 		    network.  In this case, an apparent point to
@@ -168,12 +168,12 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
      Only the super-user may modify the configuration of a net-
      work interface.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Messages indicating the specified interface does not exit,
      the requested address is unknown, or the user is not
      privileged and tried to alter an interface's configuration.
 
-SSEEEE AALLSSOO
+SEE ALSO
      netstat(1), intro(4N), rc(8)
 
 
@@ -192,7 +192,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				3
+Printed 1/9/94		  May 22, 1986				3
 
 
 

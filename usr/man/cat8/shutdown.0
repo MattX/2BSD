@@ -5,14 +5,14 @@ SHUTDOWN(8)	    UNIX Programmer's Manual	      SHUTDOWN(8)
 
 
 
-NNAAMMEE
+NAME
      shutdown - close down the system at a given time
 
-SSYYNNOOPPSSIISS
-     //eettcc//sshhuuttddoowwnn [ --kk ] [ --rr ] [ --hh ] [ --ff ] [ --nn ] time [
+SYNOPSIS
+     /etc/shutdown [ -k ] [ -r ] [ -h ] [ -f ] [ -n ] time [
      warning-message ... ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_h_u_t_d_o_w_n provides an automated shutdown procedure which a
      super-user can use to notify users nicely when the system is
      shutting down, saving them from system administrators, hack-
@@ -20,9 +20,9 @@ DDEESSCCRRIIPPTTIIOONN
      niceties.
 
      _T_i_m_e is the time at which _s_h_u_t_d_o_w_n will bring the system
-     down and may be the word nnooww (indicating an immediate shut-
+     down and may be the word now (indicating an immediate shut-
      down) or specify a future time in one of two formats:
-     ++number and hour::min.  The first form brings the system down
+     +number and hour:min.  The first form brings the system down
      in _n_u_m_b_e_r minutes and the second brings the system down at
      the time of day indicated (as a 24-hour clock).
 
@@ -38,15 +38,15 @@ DDEESSCCRRIIPPTTIIOONN
      At shutdown time a message is written in the system log,
      containing the time of shutdown, who ran shutdown and the
      reason.  Then a terminate signal is sent to _i_n_i_t to bring
-     the system down to single-user state.  Alternatively, if --rr,,
-     --hh,, or --kk was used, then _s_h_u_t_d_o_w_n will exec _r_e_b_o_o_t(8),
+     the system down to single-user state.  Alternatively, if -r,
+     -h, or -k was used, then _s_h_u_t_d_o_w_n will exec _r_e_b_o_o_t(8),
      _h_a_l_t(8), or avoid shutting the system down (respectively).
-     (If it isn't obvious, --kk is to make people _t_h_i_n_k the system
+     (If it isn't obvious, -k is to make people _t_h_i_n_k the system
      is going down!)
 
-     With the --ff option, _s_h_u_t_d_o_w_n arranges, in the manner of
+     With the -f option, _s_h_u_t_d_o_w_n arranges, in the manner of
      _f_a_s_t_b_o_o_t(8), that when the system is rebooted the file sys-
-     tems will not be checked.	The --nn option prevents the normal
+     tems will not be checked.	The -n option prevents the normal
      _s_y_n_c(2) before stopping.
 
      The time of the shutdown and the warning message are placed
@@ -54,13 +54,13 @@ DDEESSCCRRIIPPTTIIOONN
      when the system will be back up and why it is going down (or
      anything else).
 
-FFIILLEESS
+FILES
      /etc/nologin   tells login not to let anyone log in
 
 
 
 
-Printed 12/28/88	  May 26, 1986				1
+Printed 1/9/94		  May 26, 1986				1
 
 
 
@@ -71,10 +71,10 @@ SHUTDOWN(8)	    UNIX Programmer's Manual	      SHUTDOWN(8)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      login(1), reboot(8), fastboot(8)
 
-BBUUGGSS
+BUGS
      Only allows you to kill the system between now and 23:59 if
      you use the absolute time for shutdown.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 26, 1986				2
+Printed 1/9/94		  May 26, 1986				2
 
 
 

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)rf.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)rf.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 #include "rf.h"
@@ -16,7 +16,6 @@
 struct	rfdevice *RFADDR = (struct rfdevice *)0177460;
 
 struct	buf	rftab;
-struct	buf	rrfbuf;
 
 rfattach(addr, unit)
 struct rfdevice *addr;
@@ -41,9 +40,7 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	bp->av_forw = (struct buf *) NULL;
 	(void) _spl5();
 	if (rftab.b_actf == NULL)
@@ -126,17 +123,5 @@ rfintr()
 	bp->b_resid = -(rfaddr->rfwc << 1);
 	iodone(bp);
 	rfstart();
-}
-
-rfread(dev)
-dev_t	dev;
-{
-	physio(rfstrategy, &rrfbuf, dev, B_READ, WORD);
-}
-
-rfwrite(dev)
-dev_t	dev;
-{
-	physio(rfstrategy, &rrfbuf, dev, B_WRITE, WORD);
 }
 #endif	NRF

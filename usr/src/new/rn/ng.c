@@ -48,6 +48,7 @@
 #include "rcln.h"
 #include "last.h"
 #include "search.h"
+#include "server.h"
 #include "INTERN.h"
 #include "ng.h"
 #include "artstate.h"			/* somebody has to do it */
@@ -110,12 +111,22 @@ int
 do_newsgroup(start_command)
 char *start_command;			/* command to fake up first */
 {
+#ifdef SERVER
+    char ser_line[256];
+    char artname[32];
+    static long our_pid;
+#endif SERVER
     char oldmode = mode;
     register long i;			/* scratch */
     int skipstate;			/* how many unavailable articles */
 					/*   have we skipped already? */
     
     char *whatnext = "%sWhat next? [%s]";
+
+#ifdef SERVER
+    if (our_pid == 0)           /* Agreed, this is gross */
+        our_pid = getpid();
+#endif SERVER
 
 #ifdef ARTSEARCH
     srchahead = (scanon && ((ART_NUM)toread[ng]) >= scanon ? -1 : 0);
@@ -125,6 +136,21 @@ char *start_command;			/* command to fake up first */
     mode = 'a';
     recent_art = curr_art = 0;
     exit_code = NG_NORM;
+
+#ifdef SERVER
+    sprintf(ser_line, "GROUP %s", ngname);
+    put_server(ser_line);
+    if (get_server(ser_line, sizeof(ser_line)) < 0) {
+	fprintf(stderr, "rrn: Unexpected close of server socket.\n");
+	finalize(1);
+    }
+    if (*ser_line != CHAR_OK) {
+	if (atoi(ser_line) != ERR_NOGROUP)
+		fprintf(stderr, "rrn: server response to GROUP %s:\n%s\n",
+			ngname, ser_line);
+	return (-1);
+    }
+#else not SERVER
     if (eaccess(ngdir,5)) {		/* directory read protected? */
 	if (eaccess(ngdir,0)) {
 #ifdef VERBOSE
@@ -165,6 +191,7 @@ char *start_command;			/* command to fake up first */
 	mode = oldmode;
 	return -1;
     }
+#endif SERVER
 
 #ifdef CACHESUBJ
     subj_list = Null(char **);		/* no subject list till needed */
@@ -293,6 +320,7 @@ char *start_command;			/* command to fake up first */
 	else if
 	  (!reread && !was_read(art)
 	    && artopen(art) == Nullfp) {	/* never read it, & cannot find it? */
+#ifndef SERVER
 	    if (errno != ENOENT) {	/* has it not been deleted? */
 #ifdef VERBOSE
 		IF(verbose)
@@ -306,6 +334,7 @@ char *start_command;			/* command to fake up first */
 		skipstate = 0;
 		sleep(2);
 	    }
+#endif
 	    switch(skipstate++) {
 	    case 0:
 		clear();
@@ -329,6 +358,7 @@ char *start_command;			/* command to fake up first */
 	    default:
 		putchar('.');
 		fflush(stdout);
+#ifndef SERVER
 #define READDIR
 #ifdef READDIR
 		{			/* fast skip patch */
@@ -341,6 +371,26 @@ char *start_command;			/* command to fake up first */
 		    art = newart - 1;
 		}
 #endif
+#else
+		{
+			char	ser_line[256];
+			ART_NUM	newart;
+
+			put_server("NEXT");
+			if (get_server(ser_line, sizeof (ser_line)) < 0) {
+				fprintf(stderr,
+			"rrn: unexpected close of server socket.\n");
+				finalize(1);
+			}
+			if (ser_line[0] != CHAR_OK)
+				newart = lastart + 1;
+			else
+				newart = atoi(ser_line+4);
+		        for (i=art; i<newart; i++)
+				oneless(i);
+		        art = newart - 1;
+		}
+#endif SERVER
 		break;
 	    }
 	    oneless(art);		/* mark deleted as read */
@@ -450,6 +500,10 @@ cleanup:
     if (artfp != Nullfp) {		/* article still open? */
 	fclose(artfp);			/* close it */
 	artfp = Nullfp;			/* and tell the world */
+#ifdef SERVER
+        sprintf(artname, "/tmp/rrn%ld.%ld", (long) openart, our_pid);
+        UNLINK(artname);
+#endif SERVER
 	openart = 0;
     }
     putchar('\n') FLUSH;

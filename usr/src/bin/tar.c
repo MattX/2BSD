@@ -361,7 +361,13 @@ dorep(argv)
 			argv++;
 			continue;
 		}
-		parent = wdir;
+
+		if (*argv[0] == '/'){
+			parent = "";
+		} else {
+			parent = wdir;
+		}
+
 		for (cp = *argv; *cp; cp++)
 			if (*cp == '/')
 				cp2 = cp;

@@ -14,7 +14,7 @@
 struct	file {
 	int	f_flag;		/* see below */
 	char	f_type;		/* descriptor type */
-	char	f_count;	/* reference count */
+	u_char	f_count;	/* reference count */
 	short	f_msgcount;	/* references from message queue */
 	union {
 		caddr_t	f_Data;
@@ -22,6 +22,14 @@ struct	file {
 	} f_un;
 	off_t	f_offset;
 };
+
+struct	fileops {
+	int	(*fo_rw)();
+	int	(*fo_ioctl)();
+	int	(*fo_select)();
+	int	(*fo_close)();
+};
+
 #define f_data		f_un.f_Data
 #define f_socket	f_un.f_Socket
 

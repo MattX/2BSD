@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	1.2 (2.10BSD Berkeley) 1/12/88
+ *	@(#)xp.c	2.0 (2.11BSD) 4/20/91
  */
 
 /*
@@ -15,107 +15,97 @@
 #include "../machine/iopage.h"
 #include "saio.h"
 
-#define	XPADDR	((struct hpdevice *)0176700)
+#define	NXP	2
 
-extern	char haveCSW;		/* bool, set if switch register exists */
+	struct	hpdevice *XPcsr[NXP + 1] =
+		{
+		(struct hpdevice *)0176700,
+		(struct hpdevice *)0,
+		(struct hpdevice *)-1
+		};
 
 /*
  * Drive type; declared so we can patch; see hpreg.h for more information.
  */
-int	xptype = 0;
+int	xptype[NXP] = 0;
 
 xpstrategy(io, func)
 	register struct iob *io;
 {
-	register unit;
-	register i;
+	int unit = UNITn(io->i_unit);
+	int ctlr = CTLRn(io->i_unit);
+	int i;
 	register nm_sect_per_cyl, nsect;
 	daddr_t bn;
 	int sn, cn, tn;
+	struct hpdevice *xpaddr = XPcsr[ctlr];
 
-	if (((unit = io->i_unit) & 04) == 0)
-		bn = io->i_bn;
-	else {
-		unit &= 03;
-		bn = io->i_bn;
-		bn -= io->i_boff;
-		i = unit + 1;
-		unit = bn%i;
-		bn /= i;
-		bn += io->i_boff;
-	}
+	bn = io->i_bn;
+	/*
+	 * The weirdness involving bit 2 (04) in the unit # was removed
+	 * because 1) the xp driver in the kernel didn't know about it,
+	 * 2) no mention was made in any .h file or documentation/notes
+	*/
+	xpaddr->hpcs2.w = unit;
 
-	XPADDR->hpcs2.w = unit;
-
-	if ((XPADDR->hpds & HPDS_VV) == 0) {
-		XPADDR->hpcs1.c[0] = HP_PRESET|HP_GO;
-		XPADDR->hpof = HPOF_FMT22;
+	if ((xpaddr->hpds & HPDS_VV) == 0) {
+		xpaddr->hpcs1.c[0] = HP_PRESET|HP_GO;
+		xpaddr->hpof = HPOF_FMT22;
 	}
 	/*
- 	 *	This next weirdness handled the look up into the Drive Type
- 	 *	register to tell what type of disk we have here.
-	 *	Look in switch register first (if there is one).
- 	 *
- 	 *	Note: No need to look up after the first time.
+ 	 *	The weirdness of (possibly) looking at the console switch
+ 	 *	register to tell what type of disk we have here was removed
+	 *	because 1) most systems do not have one, 2) space contraints
+	 *	imposed by adding multi controller support were creating a
+	 * 	size problem, and 3) an alternative method is provided for
+	 *	setting the type (the address and content is printed).
  	 */
 	
-	if (xptype == 0) {
-		if (haveCSW && (*CSW == RP04 || *CSW == RP05 || *CSW == RP06
-		    || *CSW == RM02 || *CSW == RM03 || *CSW == RM05
-		    || *CSW == CAP  || *CSW == SI5  || *CSW == SI
-		    || *CSW == RM2X || *CSW == RM5X || *CSW == DV))
-			xptype = *CSW;
-		else
-			xptype = (XPADDR->hpdt & 077);
+	if (xptype[ctlr] == 0) {
+		xptype[ctlr] = (xpaddr->hpdt & 077);
+		printf("\n&xptype=0%o xptype[%d]=0%o\n", xptype, ctlr, 
+			xptype[ctlr]);
 	}
 
-	switch (xptype) {
+	switch (xptype[ctlr]) {
 	case RP04:
 	case RP05:
 	case RP06:
 		nm_sect_per_cyl = HP_SECT * HP_TRAC;
 		nsect = HP_SECT;
 		break;
-
 	case RM02:
 	case RM03:
 		nm_sect_per_cyl = RM_SECT * RM_TRAC;
 		nsect = RM_SECT;
 		break;
-
 	case RM05:
 	case RM5X:
 		nm_sect_per_cyl = RM5_SECT * RM5_TRAC;
 		nsect = RM5_SECT;
 		break;
-
 	case CAP:
 		nm_sect_per_cyl = CAP_SECT * CAP_TRAC;
 		nsect = CAP_SECT;
 		break;
-
 	case SI5:
 		nm_sect_per_cyl = SI5_SECT * SI5_TRAC;
 		nsect = SI5_SECT;
 		break;
-
 	case SI:
 		nm_sect_per_cyl = SI_SECT * SI_TRAC;
 		nsect = SI_SECT;
 		break;
-
 	case RM2X:
 		nm_sect_per_cyl = RM2X_SECT * RM2X_TRAC;
 		nsect = RM2X_SECT;
 		break;
-
 	case DV:
 		nm_sect_per_cyl = DV_SECT * DV_TRAC;
 		nsect = DV_SECT;
 		break;
-
 	default:
-		printf("xp: unknown device type 0%o\n", xptype);
+		printf("xp%d: unknown type 0%o\n", ctlr, xptype[ctlr]);
 		return(-1);	
 	}
 	cn = bn/(nm_sect_per_cyl);
@@ -123,22 +113,28 @@ xpstrategy(io, func)
 	tn = sn/nsect;
 	sn = sn%nsect;
 
-	XPADDR->hpdc = cn;
-	XPADDR->hpda = (tn << 8) + sn;
-	XPADDR->hpba = io->i_ma;
-	XPADDR->hpwc = -(io->i_cc>>1);
-	unit = (segflag << 8) | HP_GO;
+	xpaddr->hpdc = cn;
+	xpaddr->hpda = (tn << 8) + sn;
+	xpaddr->hpba = io->i_ma;
+	xpaddr->hpwc = -(io->i_cc>>1);
+	i = (segflag << 8) | HP_GO;
 	if (func == READ)
-		unit |= HP_RCOM;
+		i |= HP_RCOM;
 	else if (func == WRITE)
-		unit |= HP_WCOM;
-	XPADDR->hpcs1.w = unit;
-	while ((XPADDR->hpcs1.w & HP_RDY) == 0)
+		i |= HP_WCOM;
+	xpaddr->hpcs1.w = i;
+	while ((xpaddr->hpcs1.w & HP_RDY) == 0)
 			continue;
-	if (XPADDR->hpcs1.w & HP_TRE) {
-		printf("disk error: cyl=%d track=%d sect=%d cs2=%o, er1=%o\n",
-		    cn, tn, sn, XPADDR->hpcs2, XPADDR->hper1);
+	if (xpaddr->hpcs1.w & HP_TRE) {
+		printf("xp%d,%d err cy=%d tr=%d sc=%d cs2=%o er1=%o\n",
+		    ctlr, unit, cn, tn, sn, xpaddr->hpcs2, xpaddr->hper1);
 		return(-1);
 	}
 	return(io->i_cc);
+}
+
+xpopen(io)
+	struct iob *io;
+{
+	return(genopen(NXP, io));
 }

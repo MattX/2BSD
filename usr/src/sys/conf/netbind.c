@@ -1,5 +1,7 @@
 /*
- * netbind --
+ * netbind
+ *
+ * 1/8/94 -- revised for new object file format. sms.
  *
  * Resolve undefined inter-address-space references.
  *
@@ -18,16 +20,16 @@
 #include <a.out.h>
 #include <stdio.h>
 
-struct execov {
-	struct exec eo_exec;
-	struct ovlhdr eo_ovl;
-} refExec, defExec;
+extern	char	*strdup(), *rindex();
+
+	struct	xexec	refExec, defExec;
+
+#define	MAXSYMLEN 32
 
 #define	NSYMS	200
 struct symbol {
-	char	s_name[8];
+	char	*s_name;
 	u_int	s_value;
-	u_int	s_symnum;
 	u_int	s_type;
 } symtab[NSYMS], *symfree;
 
@@ -58,30 +60,31 @@ resolve(ref, def)
 	char *ref;		/* Name of file referencing symbols */
 	char *def;		/* Name of file defining symbols */
 {
-	FILE *refIN, *defIN, *refOUT, *openobj();
-	struct symbol *sp;
+	FILE *refIN, *defIN, *refSTR, *defSTR, *refOUT, *openobj();
 	struct nlist syment;
-	off_t offset;
-	u_int symnum;
+	off_t stroff_ref, stroff_def;
 	int nundef;
-	char *rp, refout[MAXPATHLEN], *rindex();
-	long SYMOFF();
+	char *rp, refout[MAXPATHLEN], name[MAXSYMLEN + 2];
 
+	bzero(name, sizeof (name));
 	if (rp = rindex(ref, '.'))
 		*rp = '\0';
 	(void)sprintf(refout, "d.%s.s", ref);
 	if (rp)
 		*rp = '.';
-	if ((refIN = openobj(ref, &refExec)) == NULL)
+	if ((refIN = openobj(ref, &refExec, &refSTR)) == NULL)
 		return;
-	if ((defIN = openobj(def, &defExec)) == NULL) {
+	if ((defIN = openobj(def, &defExec, &defSTR)) == NULL) {
 		fclose(refIN);
+		fclose(refSTR);
 		return;
 	}
 	if ((refOUT = fopen(refout, "w")) == NULL) {
 		perror(refout);
 		fclose(refIN);
+		fclose(refSTR);
 		fclose(defIN);
+		fclose(defSTR);
 		return;
 	}
 
@@ -100,35 +103,34 @@ resolve(ref, def)
 	nundef = 0;
 
 	/* Find the undefined symbols */
-	symnum = 0;
-	offset = SYMOFF(&refExec);
-	fseek(refIN, offset, L_SET);
+	stroff_ref = N_STROFF(refExec);
+	fseek(refIN, N_SYMOFF(refExec), L_SET);
 	while (fread(&syment, sizeof(syment), 1, refIN) > 0) {
-#ifdef DEBUG
-		printf("%-6d %8.8s %3o %6o\n", symnum,
-		    syment.n_name, syment.n_type, syment.n_value);
-#endif
 		if (syment.n_type == (N_EXT|N_UNDF) && syment.n_value == 0)
-			if (strcmp(syment.n_name, "_end") &&
-			    strcmp(syment.n_name, "_etext") &&
-			    strcmp(syment.n_name, "_edata")) {
+			{
+			fseek(refSTR, stroff_ref + syment.n_un.n_strx, L_SET);
+			fread(name, sizeof (name), 1, refSTR);
+			if (strcmp(name, "_end") &&
+			    strcmp(name, "_etext") &&
+			    strcmp(name, "_edata"))
+				{
 				nundef++;
-				symadd(symnum, &syment);
+				syment.n_un.n_name = name;
+				symadd(&syment);
+				}
 			}
-		symnum++;
 	}
 
 	/* Define the undefined symbols */
-	offset = SYMOFF(&defExec);;
-	fseek(defIN, offset, L_SET);
+	stroff_def = N_STROFF(defExec);
+	fseek(defIN, N_SYMOFF(defExec), L_SET);
 	while (fread(&syment, sizeof(syment), 1, defIN) > 0) {
-#ifdef DEBUG
-		printf("%8.8s %3o %6o\n", syment.n_name,
-		    syment.n_type, syment.n_value);
-#endif
 		if ((syment.n_type & N_EXT) == 0)
 			continue;
-		nundef -= symdef(&syment, &defExec.eo_exec);
+		fseek(defSTR, stroff_def + syment.n_un.n_strx, L_SET);
+		fread(name, sizeof (name), 1, defSTR);
+		syment.n_un.n_name = name;
+		nundef -= symdef(&syment, &defExec.e);
 	}
 
 	/* Any undefined symbols left? */
@@ -138,6 +140,8 @@ resolve(ref, def)
 	}
 	symprdef(refOUT);
 
+	fclose(refSTR);
+	fclose(defSTR);
 	fclose(refIN);
 	fclose(defIN);
 	fclose(refOUT);
@@ -153,30 +157,33 @@ resolve(ref, def)
  * Prints its own error messages.
  */
 FILE *
-openobj(filename, exechdr)
+openobj(filename, exechdr, strfp)
 	char *filename;
-	struct execov *exechdr;
+	struct xexec *exechdr;
+	FILE **strfp;
 {
-	FILE *f;
+	register FILE *f;
 
 	if (!(f = fopen(filename, "r"))) {
 		perror(filename);
 		return((FILE *)NULL);
 	}
+	*strfp = fopen(filename, "r");		/* for strings */
 	if (fread(exechdr, sizeof(*exechdr), 1, f) <= 0) {
 		printf("%s: no a.out header\n", filename);
 		goto bad;
 	}
-	if (N_BADMAG(exechdr->eo_exec)) {
+	if (N_BADMAG(exechdr->e)) {
 		printf("%s: bad magic number\n", filename);
 		goto bad;
 	}
-	if (exechdr->eo_exec.a_syms == 0) {
+	if (exechdr->e.a_syms == 0) {
 		printf("%s: no symbol table\n", filename);
 		goto bad;
 	}
 	return(f);
 bad:	fclose(f);
+	fclose(*strfp);
 	return((FILE *)NULL);
 }
 
@@ -198,16 +205,19 @@ syminit()
  * Add a symbol to the table.
  * We store both the symbol name and the symbol number.
  */
-symadd(symnum, np)
-	int symnum;
+symadd(np)
 	struct nlist *np;
 {
 	if (symfree >= &symtab[NSYMS]) {
 		printf("Symbol table overflow.  Increase NSYMS.\n");
 		exit (1);
 	}
-	(void)strncpy(symfree->s_name, np->n_name, sizeof(np->n_name));
-	symfree->s_symnum = symnum;
+	symfree->s_name = strdup(np->n_un.n_name);
+	if	(!symfree->s_name) 
+		{
+		printf("netbind: out of memory for symbol strings\n");
+		exit(1);
+		}
 	symfree->s_type = N_UNDF;
 	symfree->s_value = 0;
 	symfree++;
@@ -229,48 +239,33 @@ symdef(np, ep)
 	register struct symbol *sp;
 
 	for (sp = symtab; sp < symfree; sp++)
-		if (!strncmp(sp->s_name, np->n_name, sizeof(np->n_name))) {
+		if (!strcmp(sp->s_name, np->n_un.n_name)) {
 			int type = (np->n_type & N_TYPE);
 
-			sp->s_type = N_EXT|N_ABS;
 			switch (type) {
 			case N_TEXT:
 			case N_ABS:
+				sp->s_type = N_EXT|N_ABS;
 				sp->s_value = np->n_value;
 				break;
 			case N_DATA:
 			case N_BSS:
+				sp->s_type = N_EXT|N_ABS;
 				if (ep->a_flag)
 					sp->s_value = np->n_value;
 				else
 					sp->s_value = np->n_value - ep->a_text;
 				break;
+			case N_UNDF:
+				return(0);
 			default:
-				printf("netbind: symbol %.8s, unhandled type 0x%x\n",
-				    np->n_name, np->n_type);
+				printf("netbind: symbol %s, bad type 0x%x\n",
+				    np->n_un.n_name, np->n_type);
 				exit(1);
 			}
 			return (1);
 		}
 	return(0);
-}
-
-/*
- * symslook --
- *
- * Look for a symbol with a particular symbol number in the table.
- * Returns a pointer to the symbol, or NULL if the symbol is not found.
- */
-struct symbol *
-symslook(symnum)
-	int symnum;
-{
-	register struct symbol *sp;
-
-	for (sp = symtab; sp < symfree; sp++)
-		if (sp->s_symnum == symnum)
-			return(sp);
-	return((struct symbol *)NULL);
 }
 
 /*
@@ -286,14 +281,14 @@ symundef()
 
 	qsort(symtab, symfree - symtab, sizeof(struct symbol), scmp);
 	for (sp = symtab; sp < symfree; sp++)
-		if (sp->s_type == N_UNDF)
+		if ((sp->s_type & N_TYPE) == N_UNDF)
 			printf("%.8s\n", sp->s_name);
 }
 
 scmp(s1, s2)
 	register struct symbol *s1, *s2;
 {
-	return(strncmp(s1->s_name, s2->s_name, sizeof(s1->s_name)));
+	return(strcmp(s1->s_name, s2->s_name));
 }
 
 /*
@@ -311,26 +306,7 @@ symprdef(refOUT)
 	qsort(symtab, symfree - symtab, sizeof (struct symbol), scmp);
 	for (sp = symtab; sp < symfree; sp++)
 		if ((sp->s_type & N_TYPE) != N_UNDF) {
-			fprintf(refOUT, ".globl %.8s\n", sp->s_name);
-			fprintf(refOUT, "%.8s = %o\n", sp->s_name, sp->s_value);
+			fprintf(refOUT, ".globl %s\n", sp->s_name);
+			fprintf(refOUT, "%s = %o\n", sp->s_name, sp->s_value);
 		}
-}
-
-long
-SYMOFF(eop)
-	struct execov *eop;
-{
-	register struct exec *ep = &eop->eo_exec;
-	register int i;
-	long data, symoff;
-
-	symoff = (long) N_TXTOFF(*ep);
-	data = (long)ep->a_text + (long)ep->a_data;
-	if (ep->a_magic == A_MAGIC5 || ep->a_magic == A_MAGIC6)
-		for (i = 0; i < NOVL; i++)
-			data += (long)eop->eo_ovl.ov_siz[i];
-	symoff += data;
-	if (ep->a_flag == 0)
-		symoff += data;
-	return(symoff);
 }

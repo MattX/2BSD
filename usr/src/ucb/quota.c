@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)quota.c	5.4 (Berkeley) 2/24/86";
-#endif not lint
+static char sccsid[] = "@(#)quota.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Disk quota reporting program.
@@ -145,7 +143,7 @@ showquotas(uid, name)
 				break;
 
 			case sizeof dqblk:	/* OK */
-#ifdef BSD2_10
+#ifdef pdp11
 				dqblk.dqb_curblocks= btodb(dqblk.dqb_curblocks);
 				dqblk.dqb_bsoftlimit = btodb(dqblk.dqb_bsoftlimit);
 				dqblk.dqb_bhardlimit = btodb(dqblk.dqb_bhardlimit);
@@ -199,7 +197,7 @@ showquotas(uid, name)
 		}
 		if (vflag || dqblk.dqb_curblocks || dqblk.dqb_curinodes) {
 			heading(uid, name);
-#ifdef BSD2_10
+#ifdef pdp11
 			printf("%10s%8ld%c%7ld%8ld%8s%8d%c%7u%8u%8s\n"
 				, fs->fs_file
 				, dqblk.dqb_curblocks

@@ -1,6 +1,7 @@
-echo 'erase ^?, kill ^U, intr ^C'
+echo 'erase, kill ^U, intr ^C'
 stty dec
-PATH=/etc:/usr/ucb:/bin:/usr/bin:.
+stty erase
+PATH=/etc:/usr/ucb:/bin:/usr/bin:/usr/new
 export PATH
 HOME=/
 export HOME

@@ -6,8 +6,13 @@
 #define		_FILE	10.
 #define		IOBSIZ	12.
 
+#define		_IOREAD 01
+#define		_IOWRT  02
 #define		_IONBF	04
+#define		_IOMYBUF 010
+#define		_IOEOF  020
 #define		_IOLBF	0200
+#define		_IORW   0400
 
 #define		NULL	0
 #define		EOF	-1

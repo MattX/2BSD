@@ -1,29 +1,41 @@
-# If SEPFLAG is not "-i" then DEFS must include "-DNONSEPARATE" on the
-# PDP-11.  Ex:
-#	SEPFLAG= -n
-#	DEFS= -DNONSEPARATE
+# sccsid = "@(#)Makefile	1.3 (Berkeley) 2/20/81"
+#
+#	dump.h			header file
+#	dumpitime.c		reads /etc/ddate
+#	dumpmain.c		driver
+#	dumpoptr.c		operator interface
+#	dumptape.c		handles the mag tape and opening/closing
+#	dumptraverse.c		traverses the file system
+#	unctime.c		undo ctime
+#
+#	dumpdir.c		program to output tape directories
+#
+#	DEBUG			use local directory to find ddate and dumpdates
+#	TDEBUG			trace out the process forking
 
-SEPFLAG= -i
-DEFS= 
-CFLAGS=	-O ${DEFS}
+CFLAGS=	-O -I.
+SEPFLAG=-i
 
-ALL = dump dumpdir
+HDRS=	dump.h
+SRCS=	dumpitime.c dumpmain.c dumpoptr.c dumptape.c dumptraverse.c unctime.c
+OBJS=	dumpitime.o dumpmain.o dumpoptr.o dumptape.o dumptraverse.o unctime.o
 
-all: ${ALL}
+all: dump dumpdir
 
-dump: dump.o
-	cc ${SEPFLAG} dump.o -o dump
+dump: ${OBJS}
+	cc ${CFLAGS} ${SEPFLAG} ${OBJS} -o dump
 
-dumpdir: dumpdir.o
-	cc ${SEPFLAG} dumpdir.o -o dumpdir
+dumpdir: dumpdir.c
+	cc ${CFLAGS} ${SEPFLAG} dumpdir.c -o dumpdir
 
 install:
-	install -s dump /etc
-	install -s dumpdir /etc
+	install -s dump ${DESTDIR}/etc/dump
+	install -s dumpdir ${DESTDIR}/etc/dumpdir
 
 clean:
-	rm -f ${ALL} *.o tags
+	rm -f *.o dump dumpdir
 
-tags:
-	rm -f tags
-	ctags *.c
+lint:
+	lint -chapbx ${CFLAGS} ${SRCS}
+
+${OBJS}: dump.h

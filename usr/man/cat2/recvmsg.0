@@ -5,31 +5,31 @@ RECV(2)             UNIX Programmer's Manual		  RECV(2)
 
 
 
-NNAAMMEE
+NAME
      recv, recvfrom, recvmsg - receive a message from a socket
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
 
-     cccc == rreeccvv((ss,, bbuuff,, lleenn,, ffllaaggss))
-     iinntt cccc,, ss;;
-     cchhaarr **bbuuff;;
-     iinntt lleenn,, ffllaaggss;;
+     cc = recv(s, buf, len, flags)
+     int cc, s;
+     char *buf;
+     int len, flags;
 
-     cccc == rreeccvvffrroomm((ss,, bbuuff,, lleenn,, ffllaaggss,, ffrroomm,, ffrroommlleenn))
-     iinntt cccc,, ss;;
-     cchhaarr **bbuuff;;
-     iinntt lleenn,, ffllaaggss;;
-     ssttrruucctt ssoocckkaaddddrr **ffrroomm;;
-     iinntt **ffrroommlleenn;;
+     cc = recvfrom(s, buf, len, flags, from, fromlen)
+     int cc, s;
+     char *buf;
+     int len, flags;
+     struct sockaddr *from;
+     int *fromlen;
 
-     cccc == rreeccvvmmssgg((ss,, mmssgg,, ffllaaggss))
-     iinntt cccc,, ss;;
-     ssttrruucctt mmssgghhddrr mmssgg[[]];;
-     iinntt ffllaaggss;;
+     cc = recvmsg(s, msg, flags)
+     int cc, s;
+     struct msghdr msg[];
+     int flags;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_e_c_v, _r_e_c_v_f_r_o_m, and _r_e_c_v_m_s_g are used to receive messages
      from a socket.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/9/94		  May 23, 1986				1
 
 
 
@@ -95,13 +95,13 @@ RECV(2)             UNIX Programmer's Manual		  RECV(2)
      access rights sent along with the message is specified in
      _m_s_g__a_c_c_r_i_g_h_t_s, which has length _m_s_g__a_c_c_r_i_g_h_t_s_l_e_n.	Access
      rights are currently limited to file descriptors, which each
-     occupy the size of an iinntt.
+     occupy the size of an int.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      These calls return the number of bytes received, or -1 if an
      error occurred.
 
-EERRRROORRSS
+ERRORS
      The calls fail if:
 
      [EBADF]		 The argument _s is an invalid descriptor.
@@ -119,14 +119,14 @@ EERRRROORRSS
 			 into a non-existent or protected part of
 			 the process address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fcntl(2), read(2), send(2), select(2), getsockopt(2),
      socket(2)
 
 
 
 
-Printed 12/28/88	  May 23, 1986				2
+Printed 1/9/94		  May 23, 1986				2
 
 
 

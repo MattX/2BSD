@@ -5,20 +5,20 @@ TRPFPE(3F)	    UNIX Programmer's Manual	       TRPFPE(3F)
 
 
 
-NNAAMMEE
+NAME
      trpfpe, fpecnt - trap and repair floating point faults
 
-SSYYNNOOPPSSIISS
-     ssuubbrroouuttiinnee ttrrppffppee ((nnuummeessgg,, rrttnnvvaall))
-     ddoouubbllee pprreecciissiioonn rrttnnvvaall
+SYNOPSIS
+     subroutine trpfpe (numesg, rtnval)
+     double precision rtnval
 
-     iinntteeggeerr ffuunnccttiioonn ffppeeccnntt (())
+     integer function fpecnt ()
 
-     ccoommmmoonn //ffppeefflltt// ffppeerrrr
-     llooggiiccaall ffppeerrrr
+     common /fpeflt/ fperr
+     logical fperr
 
-DDEESSCCRRIIPPTTIIOONN
-     NNOOTTEE:: TThhiiss rroouuttiinnee aapppplliieess oonnllyy ttoo VVaaxx ccoommppuutteerrss..	It is a
+DESCRIPTION
+     NOTE: This routine applies only to Vax computers.	It is a
      null routine on the PDP11.
 
      _T_r_p_f_p_e sets up a signal handler to trap arithmetic excep-
@@ -37,15 +37,15 @@ DDEESSCCRRIIPPTTIIOONN
      _t_r_p_f_p_e.
 
      The logical value in the common block labelled _f_p_e_f_l_t will
-     be set to ..ttrruuee.. each time a fault occurs.
+     be set to .true. each time a fault occurs.
 
-FFIILLEESS
+FILES
      /usr/lib/libF77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      signal(3F), range(3F)
 
-BBUUGGSS
+BUGS
      This routine works only for _f_a_u_l_t_s, not _t_r_a_p_s.  This is pri-
      marily due to the Vax architecture.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

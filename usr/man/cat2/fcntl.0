@@ -5,17 +5,17 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
 
 
-NNAAMMEE
+NAME
      fcntl - file control
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ffccnnttll..hh>>
+SYNOPSIS
+     #include <fcntl.h>
 
-     rreess == ffccnnttll((ffdd,, ccmmdd,, aarrgg))
-     iinntt rreess;;
-     iinntt ffdd,, ccmmdd,, aarrgg;;
+     res = fcntl(fd, cmd, arg)
+     int res;
+     int fd, cmd, arg;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_c_n_t_l provides for control over descriptors.  The argument
      _f_d is a descriptor to be operated on by _c_m_d as follows:
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -93,7 +93,7 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 		    process group when I/O is possible, e.g.,
 		    upon availability of data to be read.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, the value returned depends on
      _c_m_d as follows:
        F_DUPFD	 A new file descriptor.
@@ -104,7 +104,7 @@ RREETTUURRNN VVAALLUUEE
      Otherwise, a value of -1 is returned and _e_r_r_n_o is set to
      indicate the error.
 
-EERRRROORRSS
+ERRORS
      _F_c_n_t_l will fail if one or more of the following are true:
 
      [EBADF]	    _F_i_l_d_e_s is not a valid open file descriptor.
@@ -119,14 +119,14 @@ EERRRROORRSS
      [ESRCH]	    _C_m_d is F_SETOWN and the process ID given as
 		    argument is not in use.
 
-SSEEEE AALLSSOO
+SEE ALSO
      close(2), execve(2), getdtablesize(2), open(2), sigvec(2)
 
 
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 
@@ -137,7 +137,7 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
 
 
-BBUUGGSS
+BUGS
      The asynchronous I/O facilities of FNDELAY and FASYNC are
      currently available only for tty and socket operations.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 22, 1986				3
+Printed 1/9/94		  May 22, 1986				3
 
 
 

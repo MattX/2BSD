@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)param.c	2.0 (2.11BSD GTE) 3/11/93
  */
 
 #include "../h/param.h"
@@ -14,6 +14,7 @@
 #include "../h/proc.h"
 #include "../h/text.h"
 #include "../h/file.h"
+#include "../h/dir.h"
 #include "../h/inode.h"
 #include "../h/fs.h"
 #include "../h/mount.h"
@@ -32,6 +33,7 @@
  */
 
 #define	MAXUSERS %MAXUSERS%
+#define	NBUF %NBUF%
 
 int	hz = LINEHZ;
 struct	timezone tz = { %TIMEZONE%, %DST% };
@@ -39,13 +41,12 @@ struct	timezone tz = { %TIMEZONE%, %DST% };
 int	nproc = NPROC;
 #define NTEXT (26 + MAXUSERS)
 int	ntext = NTEXT;
-#define NINODE ((NPROC + 16 + MAXUSERS) + 32)
+#define NINODE ((NPROC + 16 + MAXUSERS) + 22)
 int	ninode = NINODE;
-#define NFILE ((8 * NINODE / 10) + 5)
+#define NFILE ((8 * NINODE / 10) + 20)
 int	nfile = NFILE;
 #define NCALL (16 + MAXUSERS)
 int	ncallout = NCALL;
-int	bsize = MAXBSIZE;
 int	nbuf = NBUF;
 
 #define NCLIST (20 + 8 * MAXUSERS)
@@ -74,22 +75,11 @@ struct	bufhd bufhash[BUFHSZ];
 	int ucb_clist = 1;
 #else
 	struct cblock	cfree[NCLIST];
-	int ucb_clist;
+	int ucb_clist = 0;
 #endif
 
-#ifdef NOKA5
-	int noka5 = 1;
-#else
-	int noka5;
-#endif
-
-#ifdef SMALL
-#  define CMAPSIZ NPROC			/* size of core allocation map */
-#  define SMAPSIZ (NPROC+(5*NTEXT/10))	/* size of swap allocation map */
-#else
-#  define CMAPSIZ (NPROC+(8*NTEXT/10))	/* size of core allocation map */
-#  define SMAPSIZ (NPROC+(8*NTEXT/10))	/* size of swap allocation map */
-#endif
+#define CMAPSIZ	NPROC			/* size of core allocation map */
+#define SMAPSIZ	((9 * NPROC) / 10)	/* size of swap allocation map */
 
 struct mapent	_coremap[CMAPSIZ];
 struct map	coremap[1] = {
@@ -108,9 +98,8 @@ struct map	swapmap[1] = {
 #ifdef QUOTA
 #include "../h/quota.h"
 struct BigQ {
-	struct	quota *pxquota[NPROC];		/* 2.10 equiv of p_quota */
 	struct	quota xquota[NQUOTA];		/* the quotas themselves */
-	struct	dquot *ixdquot[NINODE];		/* 2.10 equiv of i_dquot */
+	struct	dquot *ixdquot[NINODE];		/* 2.11 equiv of i_dquot */
 	struct	dquot xdquot[NDQUOT];		/* the dquots themselves */
 	struct	qhash xqhash[NQHASH];
 	struct	dqhead xdqhash[NDQHASH];
@@ -120,20 +109,16 @@ QUOini()
 {
 	extern struct qhash *qhash;
 	extern struct dqhead *dqhead;
-	struct BigQ *bQ = (struct BigQ *)SEG5;
 
-	QUOTAMAP();
-	quota = bQ->xquota;
-	dquot = bQ->xdquot;
-	qhash = bQ->xqhash;
-	dqhead = bQ->xdqhash;
+	quota = ((struct BigQ *)SEG5)->xquota;
+	dquot = ((struct BigQ *)SEG5)->xdquot;
+	qhash = ((struct BigQ *)SEG5)->xqhash;
+	dqhead = ((struct BigQ *)SEG5)->xdqhash;
 	ndquot = NDQUOT;
 	nquota = NQUOTA;
-	px_quota = bQ->pxquota;
-	ix_dquot = bQ->ixdquot;
+	ix_dquot = ((struct BigQ *)SEG5)->ixdquot;
 	dquotNDQUOT = &dquot[ndquot];
 	quotaNQUOTA = &quota[nquota];
-	QUOTAUNMAP();
 }
 #endif
 

@@ -5,17 +5,17 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
 
 
 
-NNAAMMEE
+NAME
      bc - arbitrary-precision arithmetic language
 
-SSYYNNOOPPSSIISS
-     bbcc [ --cc ] [ --ll ] [ file ... ]
+SYNOPSIS
+     bc [ -c ] [ -l ] [ file ... ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _B_c is an interactive processor for a language which resem-
      bles C but provides unlimited precision arithmetic.  It
      takes input from any files given, then reads the standard
-     input.  The --ll argument stands for the name of an arbitrary
+     input.  The -l argument stands for the name of an arbitrary
      precision math library.  The syntax for _b_c programs is as
      follows; L means letter a-z, E means expression, S means
      statement.
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 
@@ -74,7 +74,7 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
 		return ( E )
 	   }
 
-     Functions in --ll math library
+     Functions in -l math library
 	   s(x) sine
 	   c(x) cosine
 	   e(x) exponential
@@ -126,7 +126,7 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
 
 
 
-Printed 12/28/88	 April 29, 1985                         2
+Printed 1/9/94		 April 29, 1985                         2
 
 
 
@@ -138,20 +138,20 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
 
 
      _B_c is actually a preprocessor for _d_c(1), which it invokes
-     automatically, unless the --cc (compile only) option is
+     automatically, unless the -c (compile only) option is
      present.  In this case the _d_c input is sent to the standard
      output instead.
 
-FFIILLEESS
+FILES
      /usr/lib/lib.b mathematical library
      dc(1)	    desk calculator proper
 
-SSEEEE AALLSSOO
+SEE ALSO
      dc(1)
      L. L. Cherry and R. Morris, _B_C - _A_n _a_r_b_i_t_r_a_r_y _p_r_e_c_i_s_i_o_n
      _d_e_s_k-_c_a_l_c_u_l_a_t_o_r _l_a_n_g_u_a_g_e
 
-BBUUGGSS
+BUGS
      No &&, ||, or ! operators.
      _F_o_r statement must have all three E's.
      _Q_u_i_t is interpreted when read, not when executed.
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         3
+Printed 1/9/94		 April 29, 1985                         3
 
 
 

@@ -4,18 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cmdtab.c	5.1 (Berkeley) 6/6/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)cmdtab.c	5.1.1 (2.11BSD GTE) 1/1/94";
 #endif not lint
 
 /*
  * lpc -- command tables
  */
-
-#ifdef BSD2_10
-#define	disablehelp	dsbl_h
-#define	restarthelp	rstr_h
-#endif
 
 #include "lpc.h"
 

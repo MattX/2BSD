@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_dump.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_dump.s	1.3 (2.11BSD GTE) 12/24/92
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
@@ -27,6 +27,46 @@ ENTRY(saveregs)
 	mov	KDSA6,(r0)+
 	mov	KDSA5,(r0)+
 	rts	pc
+
+#ifdef	INET
+
+SPACE(GLOBAL, suprsav, 32)
+
+/*
+ * Save ALL registers, KDSA[5,6], SDSA[5,6], SSR3.  Expressly for
+ * network crashes where the state at the time of initial trap is
+ * desired rather than after thrashing about on the way to a 'panic'.
+ * Also, this is extensible so that as much volatile information as
+ * required may be saved.  Currently 14 of the 16 words allocated are used.
+ * Multiple entries into this routine should be blocked by making the
+ * call to this routine conditional on 'netoff' being set and 
+ * setting 'netoff' on the first call.  Must be at splhigh upon entry.
+*/
+
+ENTRY(savestate)
+	mov	r0,suprsav
+	mov	$suprsav+2,r0
+	mov	r1,(r0)+
+	mov	r2,(r0)+
+	mov	r3,(r0)+
+	mov	r4,(r0)+
+	mov	r5,(r0)+
+	mov	sp,(r0)+
+	mov	PS,-(sp)
+	mov	$010340,PS	/previous super, spl7
+	mfpd	sp		/fetch supervisor stack pointer
+	mov	(sp)+,(r0)+
+	mov	$030340,PS	/previous user, spl7
+	mfpd	sp		/fetch user stack pointer
+	mov	(sp)+,(r0)+
+	mov	(sp)+,PS
+	mov	KDSA5,(r0)+
+	mov	KDSA6,(r0)+
+	mov	SDSA5,(r0)+
+	mov	SDSA6,(r0)+
+	mov	SSR3,(r0)+
+	rts	pc
+#endif
 
 #include "ht.h"
 #include "tm.h"
@@ -113,11 +153,8 @@ UBMR0	= 0170200
 	 * reg 5 -- is used as an interation counter when mapping is enabled 
 	 */
 
-	clr	r4			/ clear UB map used indicator
-	cmp	_cputype,$44.		/ is a 44?
-	beq	1f			/ yes, skip next
-	cmp	_cputype,$70.		/ is a 70?
-	bne	2f			/ not a 70 either, no UBMAP
+	movb	_ubmap,r4		/ UB map used indicator
+	beq	2f			/ no UBMAP - br
 1:
 	/*
 	 * This section of code initializes the Unibus map registers and
@@ -127,7 +164,6 @@ UBMR0	= 0170200
 	 * Kernal I space 7 points to the I/O page.
 	 */
 
-	inc	r4			/ indicate that UB mapping is needed
 	mov	$UBMR0,r1		/ point to  map register 0
 	clr	r2			/ init for low map reg
 	clr	r3			/ init for high map reg
@@ -201,13 +237,8 @@ UBMR0	= 0170200
 	 * reg 5 -- is used as an interation counter when mapping is enabled
 	 */
 
-	cmp	_cputype,$44.		/ is a 44?
-	beq	1f			/ yes, skip next
-	cmp	_cputype,$70.		/ is a 70?
-	bne	2f			/ not a 70 either, no UBMAP
-1:
-/	tst	_ubmap			/ unibus map present?
-/	beq	2f			/ no, skip map init
+	movb	_ubmap,setmap		/ unibus map present?
+	beq	2f			/ no, skip map init
 
 	/*
 	 * This section of code initializes the Unibus map registers and
@@ -219,7 +250,6 @@ UBMR0	= 0170200
 	 * Kernal I space 7 points to the I/O page.
 	 */
 
-	inc	setmap			/ indicate that UB mapping is needed
 	mov	$UBMR0,r0		/ point to  map register 0
 	clr	r2			/ init for low map reg
 	clr	r3			/ init for high map reg

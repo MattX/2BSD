@@ -5,14 +5,14 @@ PTY(4)		    UNIX Programmer's Manual		   PTY(4)
 
 
 
-NNAAMMEE
+NAME
      pty - pseudo terminal driver
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNPPTTYY _p_t_y_s ## ppsseeuuddoo--tteerrmmiinnaallss,, iinn ggrroouuppss ooff 88
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NPTY _p_t_y_s # pseudo-terminals, in groups of 8
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _p_t_y driver provides support for a device-pair termed a
      _p_s_e_u_d_o _t_e_r_m_i_n_a_l.  A pseudo terminal is a pair of character
      devices, a _m_a_s_t_e_r device and a _s_l_a_v_e device.  The slave dev-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 19, 1986				1
+Printed 1/9/94		  May 19, 1986				1
 
 
 
@@ -126,7 +126,7 @@ PTY(4)		    UNIX Programmer's Manual		   PTY(4)
 
 
 
-Printed 12/28/88	  May 19, 1986				2
+Printed 1/9/94		  May 19, 1986				2
 
 
 
@@ -145,11 +145,11 @@ PTY(4)		    UNIX Programmer's Manual		   PTY(4)
 	  remote line editing in a window manager, or whenever
 	  flow controlled input is required.
 
-FFIILLEESS
+FILES
      /dev/pty[p-r][0-9a-f]    master pseudo terminals
      /dev/tty[p-r][0-9a-f]    slave pseudo terminals
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      None.
 
 
@@ -192,7 +192,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  May 19, 1986				3
+Printed 1/9/94		  May 19, 1986				3
 
 
 

@@ -4,6 +4,9 @@
  * specifies the terms and conditions for redistribution.
  *
  *	%W% (Berkeley) %G%
+ * 2.11BSD - map the I/O region with sufficient UMRs. this precludes
+ * 	       drivers such as the DEUNA from allocating a UMR per packet.
+ *	       sms - 9/8/90
  */
 
 #include "param.h"
@@ -13,8 +16,11 @@
 #include "user.h"
 #include "uio.h"
 #include "map.h"
+#include "uba.h"
 #include "mbuf.h"
 #include "acct.h"
+#include "ioctl.h"
+#include "tty.h"
 
 #include "../pdpuba/ubavar.h"
 
@@ -48,6 +54,11 @@ extern struct uba_driver ildriver;
 extern struct uba_driver qedriver;
 #endif
 
+#include "qt.h"
+#if NQT > 0
+extern struct uba_driver qtdriver;
+#endif
+
 #include "sri.h"
 #if NSRI > 0
 extern struct uba_driver sridriver;
@@ -66,7 +77,16 @@ static struct uba_device ubdinit[] = {
 	{ &ildriver,	0,0, (caddr_t)0164000 },
 #endif
 #if NQE > 0
-	{ &qedriver,	0,0, (caddr_t)0174440 },
+	{ &qedriver,	0,0, (caddr_t)0174440, 0, 0 },
+#endif
+#if NQE > 1
+	{ &qedriver,	1,0, (caddr_t)0174460, 0, 0 },
+#endif
+#if NQT > 0
+	{ &qtdriver,	0,0, (caddr_t)0174440, 0, 0 },
+#endif
+#if NQT > 1
+	{ &qtdriver,	1,0, (caddr_t)0174460, 0, 0 },
 #endif
 #if NSRI > 0
 	{ &sridriver,	0,0, (caddr_t)0167770 },
@@ -88,19 +108,19 @@ static struct uba_device ubdinit[] = {
 
 int hz = LINEHZ;
 
-#ifdef UNIBUS_MAP
-bool_t ubmap = 1;		/* assume we have a unibus map */
-#endif
-
 long startnet;			/* start of network data space */
 
 netstart()
 {
-	extern memaddr miobase, netdata;
+	extern memaddr miobase, miostart, netdata;
+	extern ubadr_t mioumr;
 	extern u_short miosize;
 	register struct uba_driver *udp;
 	register struct uba_device *ui = ubdinit;
 	register int s;
+	int first;
+	struct ubmap *ubp;
+	ubadr_t paddr;
 
 	/*
 	 * The networking uses a mapped region as the DMA area for
@@ -108,6 +128,31 @@ netstart()
 	 */
 	if ((miobase = MALLOC(coremap, btoc(miosize))) == 0)
 		panic("miobase");
+
+	/*
+	 * Allocate sufficient UMRs to map the DMA region.  Save the
+	 * starting click and UNIBUS addresses for use in ubmalloc later.
+	 * This is early in the systems life, so there had better be
+	 * sufficient UMRs available!
+	 */
+	if (mfkd(&ubmap)) {
+		miostart = miobase;
+		s = (int)btoub(miosize);
+		first = MALLOC(ub_map, s);
+#ifdef	DIAGNOSTIC
+		if	(!first)
+			panic("ub_map");
+#endif
+		mioumr = (ubadr_t)first << 13;
+		ubp = &UBMAP[first];
+		paddr = ctob((ubadr_t)miostart);
+		while	(s--) {
+			ubp->ub_lo = loint(paddr);
+			ubp->ub_hi = hiint(paddr);
+			ubp++;
+			paddr += (ubadr_t)UBPAGE;
+		}
+	}
 
 	startnet = ctob((long)mfkd(&netdata));
 
@@ -213,113 +258,66 @@ suser()
  * exist in supervisor space.  Note, we assume that all transfers will
  * be to/from user D space.  Probably safe, until someone decides to
  * put NFS into the kernel.
+ *
+ * The 4.3BSD uio/iovec paradigm adopted, ureadc() and uwritec() inlined 
+ * at that time to speed things up. 3/90 sms
  */
-uiomove(cp, n, rw)
-	register caddr_t cp;
-	register u_int n;
+uiomove(cp, n, rw, uio)
+	caddr_t cp;
+	u_int n;
 	enum uio_rw rw;
+	register struct uio *uio;
 {
-	if (!n)
-		return (0);
+	register struct iovec *iov;
+	int error, count, ch;
+	register u_int cnt;
+
 #ifdef DIAGNOSTIC
-	if (u.u_segflg != UIO_USERSPACE)
-		panic("segflag != UIO_USERSPACE");
+	if (uio->uio_segflg != UIO_USERSPACE)
+		panic("net uiomove");
 #endif
-	if ((n | (int)cp | (int)u.u_base)&01) {
-		if (rw == UIO_READ) {
-			do {
-				if (ureadc(*cp++) < 0)
-					return(EFAULT);
-			} while (--n);
+	while (n && uio->uio_resid) {
+		iov = uio->uio_iov;
+		cnt = iov->iov_len;
+		if (cnt == 0) {
+			uio->uio_iov++;
+			uio->uio_iovcnt--;
+			continue;
+		}
+		if (cnt > n)
+			cnt = n;
+		count = cnt;
+		if ((cnt | (int)cp | (int)iov->iov_base) & 1) {
+			if (rw == UIO_READ) {
+				while (cnt--)
+					if (subyte(iov->iov_base++, *cp++) < 0)
+						return (EFAULT);
+			}
+			else {
+				while (cnt--) {
+					if ((ch = fubyte(iov->iov_base++)) < 0)
+						return (EFAULT);
+					*cp++ = ch;
+			 	}
+			}
+		cnt = count;	/* use register */
 		}
 		else {
-			register int ch;
-
-			do {
-				if ((ch = uwritec()) < 0)
-					return(EFAULT);
-				*cp++ = ch;
-			} while (--n);
+			if (rw == UIO_READ)
+				error = copyout(cp, iov->iov_base, cnt);
+			else
+				error = copyin(iov->iov_base, cp, cnt);
+			if (error)
+				return (error);
+			iov->iov_base += cnt;
+			cp += cnt;
 		}
+	iov->iov_len -= cnt;
+	uio->uio_resid -= cnt;
+	uio->uio_offset += cnt;
+	n -= cnt;
 	}
-	else {
-		register int error;
-
-		if (rw == UIO_READ)
-			error = copyout(cp, u.u_base, n);
-		else
-			error = copyin(u.u_base, cp, n);
-		if (error)
-			return(error);
-		u.u_base += n;
-		u.u_count -= n;
-		u.u_offset += n;
-	}
-	return(0);
-}
-
-/* copied from kern_subr.c */
-ureadc(c)
-	register int c;
-{
-#ifdef notdef
-	switch (u.u_segflg) {
-
-	case UIO_USERSPACE:
-		if (subyte(u.u_base, c) < 0)
-			return (EFAULT);
-		break;
-
-	case UIO_SYSSPACE:
-		*u.u_base = c;
-		break;
-
-	case UIO_USERISPACE:
-		if (suibyte(u.u_base, c) < 0)
-			return (EFAULT);
-		break;
-	}
-#else
-	if (subyte(u.u_base, c) < 0)
-		return (EFAULT);
-#endif
-	u.u_base++;
-	u.u_count--;
-	u.u_offset++;
 	return (0);
-}
-
-/* copied from kern_subr.c */
-uwritec()
-{
-	register int c;
-
-	if (!u.u_count)
-		return (-1);
-#ifdef notdef
-	switch (u.u_segflg) {
-
-	case UIO_USERSPACE:
-		c = fubyte(u.u_base);
-		break;
-
-	case UIO_SYSSPACE:
-		c = *u.u_base & 0377;
-		break;
-
-	case UIO_USERISPACE:
-		c = fuibyte(u.u_base);
-		break;
-	}
-#else
-	c = fubyte(u.u_base);
-#endif
-	if (c < 0)
-		return (-1);
-	u.u_base++;
-	u.u_count--;
-	u.u_offset++;
-	return (c & 0377);
 }
 
 #define TOCONS	0x1
@@ -334,8 +332,6 @@ printf(fmt, x1)
 {
 	prf(fmt, &x1, TOCONS | TOLOG);
 }
-
-#define	putchar(c, flags)	cnputc(c)
 
 /* copied from subr_prf.c */
 prf(fmt, adx, flags)
@@ -352,7 +348,7 @@ loop:
 	while ((c = *fmt++) != '%') {
 		if (c == '\0')
 			return;
-		putchar(c, flags);
+		_pchar(c, flags);
 	}
 	c = *fmt++;
 	switch (c) {
@@ -370,9 +366,9 @@ loop:
 				b = 8;
 				goto lnumber;
 			default:
-				putchar('%', flags);
-				putchar('l', flags);
-				putchar(c, flags);
+				_pchar('%', flags);
+				_pchar('l', flags);
+				_pchar(c, flags);
 		}
 		break;
 	case 'X':
@@ -398,7 +394,7 @@ lnumber:	printn(*(long *)adx, b, flags);
 number:		printn((long)*adx, b, flags);
 		break;
 	case 'c':
-		putchar(*adx, flags);
+		_pchar(*adx, flags);
 		break;
 	case 'b':
 		b = *adx++;
@@ -408,29 +404,29 @@ number:		printn((long)*adx, b, flags);
 		if (b) {
 			while (i = *s++) {
 				if (b & (1 << (i - 1))) {
-					putchar(any? ',' : '<', flags);
+					_pchar(any? ',' : '<', flags);
 					any = 1;
 					for (; (c = *s) > 32; s++)
-						putchar(c, flags);
+						_pchar(c, flags);
 				} else
 					for (; *s > 32; s++)
 						;
 			}
 			if (any)
-				putchar('>', flags);
+				_pchar('>', flags);
 		}
 		break;
 	case 's':
 		s = (char *)*adx;
 		while (c = *s++)
-			putchar(c, flags);
+			_pchar(c, flags);
 		break;
 	case '%':
-		putchar(c, flags);
+		_pchar(c, flags);
 		break;
 	default:
-		putchar('%', flags);
-		putchar(c, flags);
+		_pchar('%', flags);
+		_pchar(c, flags);
 		break;
 	}
 	adx++;
@@ -454,7 +450,7 @@ printn(n, b, flags)
 			n++;
 			break;
 		case 10:
-			putchar('-', flags);
+			_pchar('-', flags);
 			n = -n;
 			break;
 		}
@@ -462,32 +458,15 @@ printn(n, b, flags)
 		*cp++ = "0123456789ABCDEF"[offset + n%b];
 	} while (n = n/b);	/* Avoid  n /= b, since that requires alrem */
 	do
-		putchar(*--cp, flags);
+		_pchar(*--cp, flags);
 	while (cp > prbuf);
 }
 
-/* copied from cons.c */
-cnputc(c)
-	int c;
-{
-	register struct dldevice *cnaddr = (struct dldevice *)0177560;
-	register int s, timo;
+extern int putchar();
 
-	timo = 30000;
-	/*
-	 * Try waiting for the console tty to come ready,
-	 * otherwise give up after a reasonable time.
-	 */
-	while ((cnaddr->dlxcsr & DLXCSR_TRDY) == 0)
-		if (--timo == 0)
-			break;
-	if (c == 0)
-		return;
-	s = cnaddr->dlxcsr;
-	cnaddr->dlxcsr = 0;
-	cnaddr->dlxbuf = c&0xff;
-	if (c == '\n')
-		cnputc('\r');
-	cnputc(0);
-	cnaddr->dlxcsr = s;
-}
+_pchar(c, flg)
+	int c, flg;
+	{
+	return(SKcall(putchar, sizeof(int)+sizeof(int)+sizeof(struct tty *),
+		 c, flg, (struct tty *)0));
+	}

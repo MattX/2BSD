@@ -1,10 +1,21 @@
-.\" Copyright (c) 1985 Regents of the University of California.
-.\" All rights reserved.  The Berkeley software License Agreement
-.\" specifies the terms and conditions for redistribution.
+.\" Copyright (c) 1985 The Regents of the University of California.
+.\" All rights reserved.
 .\"
-.\"	@(#)getusershell.3	6.1 (Berkeley) 11/8/85
+.\" Redistribution and use in source and binary forms are permitted
+.\" provided that the above copyright notice and this paragraph are
+.\" duplicated in all such forms and that any documentation,
+.\" advertising materials, and other materials related to such
+.\" distribution and use acknowledge that the software was developed
+.\" by the University of California, Berkeley.  The name of the
+.\" University may not be used to endorse or promote products derived
+.\" from this software without specific prior written permission.
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+.\" WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 .\"
-.TH GETUSERSHELL 3  "November 8, 1985"
+.\"	@(#)getusershell.3	6.3 (Berkeley) 11/30/88
+.\"
+.TH GETUSERSHELL 3  "November 30, 1988"
 .UC 6
 .SH NAME
 getusershell, setusershell, endusershell \- get legal user shells
@@ -23,11 +34,13 @@ system manager in the file
 .IR /etc/shells .
 If 
 .I /etc/shells
-does not exist, the two standard system shells
+is unreadable or does not exist,
+.I getusershell
+behaves as if
 .I /bin/sh
 and
 .I /bin/csh
-are returned.
+were listed in the file.
 .PP
 .I Getusershell
 reads the next
@@ -38,10 +51,12 @@ rewinds the file;
 closes it.
 .SH FILES
 /etc/shells
+.SH "SEE ALSO"
+shells(5)
 .SH DIAGNOSTICS
 The routine
 .I getusershell
-returns a null pointer (0) on EOF or error.
+returns a null pointer (0) on EOF.
 .SH BUGS
 All information
 is contained in a static area

@@ -1,15 +1,24 @@
 /*
- * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that: (1) source distributions retain this entire copyright
+ * notice and comment, and (2) distributions including binaries display
+ * the following acknowledgement:  ``This product includes software
+ * developed by the University of California, Berkeley and its contributors''
+ * in the documentation or other materials provided with the distribution
+ * and in all advertising materials mentioning features or use of this
+ * software. Neither the name of the University nor the names of its
+ * contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)tftp.c	5.5 (Berkeley) 2/7/86";
-#endif not lint
-
-#ifdef	BSD2_10
-#define	timeoutbuf	to_buf
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)tftp.c	5.9.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
@@ -67,7 +76,7 @@ sendfile(fd, name, mode)
 	register struct tftphdr *ap;       /* data and ack packets */
 	struct tftphdr *r_init(), *dp;
 	register int block = 0, size, n;
-	register u_long amount = 0;
+	u_long amount = 0;
 	struct sockaddr_in from;
 	int fromlen;
 	int convert;            /* true if doing nl->crlf conversion */
@@ -305,10 +314,10 @@ struct errmsg {
 nak(error)
 	int error;
 {
+	register struct errmsg *pe;
 	register struct tftphdr *tp;
 	int length;
-	register struct errmsg *pe;
-	extern char *sys_errlist[];
+	char *strerror();
 
 	tp = (struct tftphdr *)ackbuf;
 	tp->th_opcode = htons((u_short)ERROR);
@@ -317,7 +326,7 @@ nak(error)
 		if (pe->e_code == error)
 			break;
 	if (pe->e_code < 0) {
-		pe->e_msg = sys_errlist[error - 100];
+		pe->e_msg = strerror(error - 100);
 		tp->th_code = EUNDEF;
 	}
 	strcpy(tp->th_msg, pe->e_msg);

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)df.c	5.1 (Berkeley) 4/30/85";
-#endif not lint
+static char sccsid[] = "@(#)df.c	5.1.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/param.h>
 #include <sys/fs.h>
@@ -133,7 +131,7 @@ found:
 		return;
 	}
 	printf("%-12.12s", file);
-#ifdef BSD2_10
+#ifdef pdp11
 	totalblks = (long) sblock.fs_fsize - (long)sblock.fs_isize;
 	free = sblock.fs_tfree;
 	used = totalblks - free;
@@ -144,7 +142,7 @@ found:
 			iused = inodes - sblock.fs_tinode;
 		printf("%8u%8u%7.0f%%", iused, sblock.fs_tinode,
 		    inodes ? (float)iused / (float)inodes * 100.0 : 0.0);
-#else !BSD2_10
+#else
 	totalblks = sblock.fs_dsize;
 	free = sblock.fs_cstotal.cs_nbfree * sblock.fs_frag +
 	    sblock.fs_cstotal.cs_nffree;
@@ -160,7 +158,7 @@ found:
 		used = inodes - sblock.fs_cstotal.cs_nifree;
 		printf("%8ld%8ld%6.0f%% ", used, sblock.fs_cstotal.cs_nifree,
 		    inodes == 0 ? 0.0 : (double)used / (double)inodes * 100.0);
-#endif BSD2_10
+#endif
 	} else 
 		printf("  ");
 	printf("  %s\n", mpath(file));

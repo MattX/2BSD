@@ -5,62 +5,62 @@ HT(4)		    UNIX Programmer's Manual		    HT(4)
 
 
 
-NNAAMMEE
+NAME
      ht - TM-03/TE-16,TU-45,TU-77 MASSBUS magtape interface
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNHHTT  _h_t__d_r_i_v_e_s ## TTEE1166,, TTUU4455,, TTUU7777
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NHT  _h_t__d_r_i_v_e_s # TE16, TU45, TU77
 
-     //eettcc//ddttaabb::
-	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
-	  hhtt	??     117722444400 222244    55  hhttiinnttrr	       ## ttuu 1166 mmaassssbbuuss ttaappee
+     /etc/dtab:
+	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
+	  ht	?     172440 224    5  htintr	       # tu 16 massbus tape
 
-     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
-	  rraaww:: 66
-	  bblloocckk:: 00
-     mmiinnoorr ddeevviiccee eennccooddiinngg::
-	  bbiittss 00000033 ssppeecciiffyy HHTT ddrriivvee
-	  bbiitt  00000044 ssppeecciiffiieess nnoo--rreewwiinndd ooppeerraattiioonn
-	  bbiitt  00001100 ssppeecciiffiieess 11660000BBPPII rreeccoorrddiinngg ddeennssiittyy iinnsstteeaadd ooff 880000BBPPII
+     major device number(s):
+	  raw: 6
+	  block: 0
+     minor device encoding:
+	  bits 0003 specify HT drive
+	  bit  0004 specifies no-rewind operation
+	  bit  0010 specifies 1600BPI recording density instead of 800BPI
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The tm-03/transport combination provides a standard tape
      drive interface as described in _m_t_i_o(4).  All drives provide
      both 800 and 1600 bpi; the TE-16 runs at 45 ips, the TU-45
      at 75 ips, while the TU-77 runs at 125 ips and autoloads
      tapes.
 
-FFIILLEESS
+FILES
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-SSEEEE AALLSSOO
+SEE ALSO
      mt(1), tar(1), tp(1), mtio(4), tm(4), ts(4), dtab(5), auto-
      config(8)
 
-DDIIAAGGNNOOSSTTIICCSS
-     ttuu%%dd:: nnoo wwrriittee rriinngg.  An attempt was made to write on the
+DIAGNOSTICS
+     tu%d: no write ring.  An attempt was made to write on the
      tape drive when no write ring was present; this message is
      written on the terminal of the user who tried to access the
      tape.
 
-     ttuu%%dd:: nnoott oonnlliinnee.	An attempt was made to access the tape
+     tu%d: not online.	An attempt was made to access the tape
      while it was offline; this message is written on the termi-
      nal of the user who tried to access the tape.
 
-     ttuu%%dd:: ccaann''tt cchhaannggee ddeennssiittyy iinn mmiidd--ttaappee.  An attempt was made
+     tu%d: can't change density in mid-tape.  An attempt was made
      to write on a tape at a different density than is already
      recorded on the tape.  This message is written on the termi-
      nal of the user who tried to switch the density.
 
-     ttuu%%dd:: hhaarrdd eerrrroorr bbnn%%dd eerr==%%bb ddss==%%bb.   A tape error occurred
+     tu%d: hard error bn%d er=%b ds=%b.   A tape error occurred
      at block _b_n; the ht error register and drive status register
      are printed in octal with the bits symbolically decoded.
 
 
 
-Printed 12/28/88	January 28, 1988			1
+Printed 1/9/94		January 28, 1988			1
 
 
 
@@ -75,7 +75,7 @@ HT(4)		    UNIX Programmer's Manual		    HT(4)
      will have retried the operation which failed several times
      before reporting the error.
 
-BBUUGGSS
+BUGS
      If any non-data error is encountered on non-raw tape, it
      refuses to do anything more until closed.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	January 28, 1988			2
+Printed 1/9/94		January 28, 1988			2
 
 
 

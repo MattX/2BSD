@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machparam.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)machparam.h	1.2 (2.11BSD GTE) 12/24/92
  */
 
 /*
@@ -31,8 +31,9 @@
 #define	htonl(x)	(x)
 #define	htons(x)	(x)
 #else
-unsigned short	ntohs(), htons();
-long		ntohl(), htonl();
+#include <sys/types.h>
+u_short	ntohs(), htons();
+u_long	ntohl(), htonl();
 #endif
 
 #define	CHAR_BIT	NBBY
@@ -65,6 +66,11 @@ long		ntohl(), htonl();
 
 #define	SSIZE	20			/* initial stack size (*64 bytes) */
 #define	SINCR	20			/* increment of stack (*64 bytes) */
+
+/* machine dependent stuff for core files */
+#define	TXTRNDSIZ	8192L
+#define	stacktop(siz)	(0x10000L)
+#define	stackbas(siz)	(0x10000L-(siz))
 
 /*
  * User area: a user structure, followed by a stack for the networking code
@@ -120,15 +126,7 @@ long		ntohl(), htonl();
 #define	USERMODE(ps)	(((ps) & PSL_USERSET) == PSL_USERSET)
 #define	BASEPRI(ps)	(((ps) & PSL_IPL) == 0)
 
-/*
- * Very crude attempt to define the relative DELAY loop speeds of various
- * processors.
- */
-#ifdef PDP==44 || PDP==53 || PDP==70 || PDP==73 || PDP==83 || PDP==84
 #define	DELAY(n)	{ long N = ((long)(n))<<1; while (--N > 0); }
-#else
-#define	DELAY(n)	{ long N = (n); while (--N > 0); }
-#endif
 
 /*
  * Treat ps as byte, to allow restoring value from mfps/movb
@@ -136,11 +134,6 @@ long		ntohl(), htonl();
  */
 #define	PS_LOBYTE	((char *)0177776)
 #define	splx(ops)	(*PS_LOBYTE = ((char)(ops)))
-#define	SPLX(ops) { \
-	if (BASEPRI(ops) && netisr) \
-		netintr(); \
-	splx(ops); \
-}
 
 /*
  * high int of a long
@@ -149,7 +142,6 @@ long		ntohl(), htonl();
 #define	hiint(long)	(((int *)&(long))[0])
 #define	loint(long)	(((int *)&(long))[1])
 
-#ifdef UCB_NET
 /*
  * SUPERADD is used to distinguish a supervisor-mode address from a
  * kernel mode address to insure uniqueness over both address spaces.
@@ -157,6 +149,5 @@ long		ntohl(), htonl();
 #define	SUPERADD(add)	((int)(add)|01)
 #define	KERNELADD(add)	((int)(add)&~01)
 #define	ISSUPERADD(add)	((int)(add)&01)
-#endif
 
 #endif ENDIAN

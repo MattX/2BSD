@@ -22,10 +22,13 @@ static char sccsid[] = "@(#)io.c	5.1 (Berkeley) 5/30/85";
 # endif
 # define	CTRL(X)			('X' - 'A' + 1)
 
-# ifndef	attron
+# ifndef	erasechar()
 #	define	erasechar()	_tty.sg_erase
+# endif		erasechar()
+
+# ifndef	killchar()
 #	define	killchar()	_tty.sg_kill
-# endif		attron
+# endif		killchar()
 
 char		linebuf[ LINESIZE ];
 

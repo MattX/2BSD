@@ -10,9 +10,9 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)if.c	5.6 (Berkeley) 2/7/88";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)if.c	5.6.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -34,7 +34,7 @@ extern	int nflag;
 extern	char *interface;
 extern	int unit;
 extern	char *routename(), *netname(), *ns_phost(), *index();
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
 #endif
 
@@ -62,7 +62,7 @@ intpr(interval, ifnetaddr)
 		return;
 	}
 	klseek(kmem, ifnetaddr, 0);
-#ifdef BSD2_10
+#ifdef pdp11
 	{
 	unsigned int x;
 	read(kmem, &x, sizeof x);
@@ -207,7 +207,7 @@ sidewaysintpr(interval, off)
 	int catchalarm();
 
 	klseek(kmem, off, 0);
-#ifdef BSD2_10
+#ifdef pdp11
 	{
 	unsigned int x;
 	read(kmem, &x, sizeof (x));

@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)recipient.c	5.7 (Berkeley) 1/9/86";
+static char	SccsId[] = "@(#)recipient.c	5.7.1 (2.11BSD GTE) 7/13/94";
 #endif
 
 # include <pwd.h>
@@ -41,7 +41,7 @@ static char	SccsId[] = "@(#)recipient.c	5.7 (Berkeley) 1/9/86";
 # define MAXRCRSN	10
 
 sendtolist(list, ctladdr, sendq)
-	char *list;
+	register char *list;
 	ADDRESS *ctladdr;
 	ADDRESS **sendq;
 {
@@ -142,7 +142,7 @@ sendtolist(list, ctladdr, sendq)
 ADDRESS *
 recipient(a, sendq)
 	register ADDRESS *a;
-	register ADDRESS **sendq;
+	ADDRESS **sendq;
 {
 	register ADDRESS *q;
 	ADDRESS **pq;
@@ -196,10 +196,10 @@ recipient(a, sendq)
 	{
 		a->q_mailer = m = ProgMailer;
 		a->q_user++;
-		if (a->q_alias == NULL && !QueueRun && !ForceMail)
+		if (a->q_alias == NULL)
 		{
-			usrerr("Cannot mail directly to programs");
 			a->q_flags |= QDONTSEND|QBADADDR;
+			usrerr("Cannot mail directly to programs");
 		}
 	}
 
@@ -214,7 +214,7 @@ recipient(a, sendq)
 
 	for (pq = sendq; (q = *pq) != NULL; pq = &q->q_next)
 	{
-		if (!ForceMail && sameaddr(q, a))
+		if (sameaddr(q, a))
 		{
 # ifdef DEBUG
 			if (tTd(26, 1))
@@ -245,8 +245,11 @@ recipient(a, sendq)
 		if (strncmp(a->q_user, ":include:", 9) == 0)
 		{
 			a->q_flags |= QDONTSEND;
-			if (a->q_alias == NULL && !tTd(0, 1) && !QueueRun && !ForceMail)
+			if (a->q_alias == NULL)
+				{
+				a->q_flags |= QBADADDR;
 				usrerr("Cannot mail directly to :include:s");
+				}
 			else
 			{
 				message(Arpa_Info, "including file %s", &a->q_user[9]);
@@ -275,10 +278,10 @@ recipient(a, sendq)
 		{
 			p = rindex(buf, '/');
 			/* check if writable or creatable */
-			if (a->q_alias == NULL && !tTd(0, 1) && !QueueRun && !ForceMail)
+			if (a->q_alias == NULL)
 			{
+				a->q_flags |= (QBADADDR|QDONTSEND);
 				usrerr("Cannot mail directly to files");
-				a->q_flags |= QDONTSEND;
 			}
 			else if ((stat(buf, &stb) >= 0) ? (!writable(&stb)) :
 			    (*p = '\0', !safefile(buf, getruid(), S_IWRITE|S_IEXEC)))
@@ -410,7 +413,7 @@ writable(s)
 	register struct stat *s;
 {
 	int euid, egid;
-	int bits;
+	register int bits;
 
 	if (bitset(0111, s->st_mode))
 		return (FALSE);

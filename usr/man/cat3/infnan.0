@@ -5,17 +5,17 @@ INFNAN(3M)	    UNIX Programmer's Manual	       INFNAN(3M)
 
 
 
-NNAAMMEE
+NAME
      infnan - signals invalid floating-point operations on a VAX
      (temporary)
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee iinnffnnaann((iiaarrgg))
-     iinntt iiaarrgg;;
+     double infnan(iarg)
+     int iarg;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      At some time in the future, some of the useful properties of
      the Infinities and _N_a_Ns in the IEEE standard 754 for Binary
      Floating-Point Arithmetic will be simulated in UNIX on the
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 
@@ -72,20 +72,20 @@ INFNAN(3M)	    UNIX Programmer's Manual	       INFNAN(3M)
 
 
      ALTERNATIVE  _i_n_f_n_a_n:
-     ##iinncclluuddee	<<mmaatthh..hh>>
-     ##iinncclluuddee	<<eerrrrnnoo..hh>>
-     eexxtteerrnn iinntt eerrrrnnoo ;;
-     ddoouubbllee	iinnffnnaann((iiaarrgg))
-     iinntt	iiaarrgg ;;
-     {{
-		sswwiittcchh((iiaarrgg)) {{
-		ccaassee	  EERRAANNGGEE:: eerrrrnnoo == EERRAANNGGEE;; rreettuurrnn((HHUUGGEE));;
-		ccaassee	 --EERRAANNGGEE:: eerrrrnnoo == EEDDOOMM;;   rreettuurrnn((--HHUUGGEE));;
-		ddeeffaauulltt::	  eerrrrnnoo == EEDDOOMM;;   rreettuurrnn((00));;
-		}}
-     }}
+     #include	<math.h>
+     #include	<errno.h>
+     extern int errno ;
+     double	infnan(iarg)
+     int	iarg ;
+     {
+		switch(iarg) {
+		case	  ERANGE: errno = ERANGE; return(HUGE);
+		case	 -ERANGE: errno = EDOM;   return(-HUGE);
+		default:	  errno = EDOM;   return(0);
+		}
+     }
 
-SSEEEE AALLSSOO
+SEE ALSO
      math(3M), intro(2), signal(3).
 
      ERANGE and EDOM are defined in <errno.h>.	See intro(2) for
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 27, 1986				2
+Printed 1/9/94		  May 27, 1986				2
 
 
 

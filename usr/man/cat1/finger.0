@@ -5,62 +5,62 @@ FINGER(1)	    UNIX Programmer's Manual		FINGER(1)
 
 
 
-NNAAMMEE
+NAME
      finger - user information lookup program
 
-SSYYNNOOPPSSIISS
-     ffiinnggeerr [ options ] name ...
+SYNOPSIS
+     finger [ -lmsp ] [user [@host] ...]
 
-DDEESSCCRRIIPPTTIIOONN
-     By default _f_i_n_g_e_r lists the login name, full name, terminal
-     name and write status (as a `*' before the terminal name if
-     write permission is denied), idle time, login time, and
-     office location and phone number (if they are known) for
-     each current UNIX user.  (Idle time is minutes if it is a
-     single integer, hours and minutes if a ':' is present, or
-     days and hours if a 'd' is present.)
+DESCRIPTION
+     The _f_i_n_g_e_r command has two basic output formats providing
+     essentially the same information.
 
-     A longer format also exists and is used by _f_i_n_g_e_r whenever a
-     list of people's names is given.  (Account names as well as
-     first and last names of users are accepted.) This format is
-     multi-line, and includes all the information described above
-     as well as the user's home directory and login shell, any
-     plan which the person has placed in the file ._p_l_a_n in their
-     home directory, and the project on which they are working
-     from the file ._p_r_o_j_e_c_t also in the home directory.
+     The -_s option of _f_i_n_g_e_r displays the user's login name, real
+     name, terminal name and write status (as a ``*'' after the
+     terminal name if write permission is denied), idle time,
+     login time, office location and office phone number.
 
-     _F_i_n_g_e_r may be used to lookup users on a remote machine.  The
-     format is to specify the user as ``user@host.''  If the user
-     name is left off, the standard format listing is provided on
-     the remote machine.
+     Idle time is in minutes if it is a single integer, hours and
+     minutes if a ``:'' is present, or days if a ``d'' is
+     present.  Login time is displayed as month, day, hours and
+     minutes, unless more than six months ago, in which case the
+     year is displayed rather than the hours and minutes.
 
-     _F_i_n_g_e_r options include:
+     Unknown devices as well as nonexistent idle and login times
+     are displayed as single asterisks.
 
-     --mm   Match arguments only on user name.
+     The -_l option produces a multi-line format displaying all of
+     the information described for the -_s option as well as the
+     user's home directory, home phone number, login shell, and
+     the contents of the files ``._p_l_a_n'' and ``._p_r_o_j_e_c_t'' from
+     the user's home directory.
 
-     --ll   Force long output format.
+     If idle time is at least a minute and less than a day, it is
+     presented in the form ``hh:mm''.  Idle times greater than a
+     day are presented as ``d day[s] hh:mm''.
 
-     --pp   Suppress printing of the ._p_l_a_n files
+     Phone numbers specified as eleven digits are printed as
+     ``+N-NNN-NNN-NNNN''.  Numbers specified as ten or seven
+     digits are printed as the appropriate subset of that string.
+     Numbers specified as five digits are printed as ``xN-NNNN''.
 
-     --ss   Force short output format.
+     If write permission is denied to the device, the phrase
+     ``(messages off)'' is appended to the line containing the
+     device name.  One entry per user is displayed with the -_l
+     option; if a user is logged on multiple times, terminal
+     information is repeated once per login.
 
-FFIILLEESS
-     /etc/utmp		 who file
-     /etc/passwd	 for users names, offices, ...
-     /usr/adm/lastlog	 last login times
-     ~/.plan		 plans
-     ~/.project          projects
+     The -_p option prevents the -_l option of _f_i_n_g_e_r from display-
+     ing the contents of the ``.plan'' and ``.project'' files.
 
-SSEEEE AALLSSOO
-     chfn(1), w(1), who(1)
-
-AAUUTTHHOORR
-     Earl T. Cohen
-
+     Note that some fields may be missing, in either format, if
+     information is not available for them.
 
 
 
-Printed 12/28/88	  May 10, 1986				1
+
+
+Printed 1/16/94           May 18, 1989				1
 
 
 
@@ -71,27 +71,25 @@ FINGER(1)	    UNIX Programmer's Manual		FINGER(1)
 
 
 
-BBUUGGSS
-     Only the first line of the ._p_r_o_j_e_c_t file is printed.
+     If no operands are specified, _f_i_n_g_e_r will print an entry for
+     each user currently logged into the system.  If no options
+     are specified, _f_i_n_g_e_r defaults to the -_l style output if
+     operands are provided, otherwise to the -_s style.
 
-     The encoding of the gcos field is UCB dependent - it knows
-     that an office `197MC' is `197M Cory Hall', and that `529BE'
-     is `529B Evans Hall'.  It also knows that a four digit
-     office phone number should have a ``x2-'' prepended.
+     _U_s_e_r is usually a login name; however, matching will also be
+     done on the users' real names, unless the -_m option is sup-
+     plied.  All name matching performed by _f_i_n_g_e_r is case insen-
+     sitive.
 
-     There is no way to pass arguments to the remote machine as
-     _f_i_n_g_e_r uses an internet standard port.
+     _F_i_n_g_e_r may be used to look up users on a remote machine.
+     The format is to specify a _u_s_e_r as ``user@host'', or
+     ``@host'', where the default output format for the former is
+     the -_l style, and the default output format for the latter
+     is the -_s style.  The -_l option is the only option that may
+     be passed to a remote machine.
 
-     A user information data base is in the works and will radi-
-     cally alter the way the information that _f_i_n_g_e_r uses is
-     stored.  Finger will require extensive modification when
-     this is implemented.
-
-
-
-
-
-
+SEE ALSO
+     chpass(1), w(1), who(1), getpwent(3)
 
 
 
@@ -126,7 +124,9 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 10, 1986				2
+
+
+Printed 1/16/94           May 18, 1989				2
 
 
 

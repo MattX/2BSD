@@ -47,7 +47,7 @@ int.c palloc.c pcttot.c perror.c: E.h
 E.s E.h: Edata Emake.ed
 	ed - Edata < Emake.ed
 
-install:
+install: ${ALL}
 	install -s px ${DESTDIR}/usr/ucb/px
 	install -s gather ${DESTDIR}/usr/lib/gather
 

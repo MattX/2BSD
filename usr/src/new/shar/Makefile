@@ -22,7 +22,7 @@ lint:
 
 install: shar shar.0
 	install -s shar ${DESTDIR}/usr/new/shar
-	install -c shar.0 ${DESTDIR}/usr/new/man/cat1/shar.0
+	install -c -m 444 -o bin -g bin shar.0 ${DESTDIR}/usr/new/man/cat1
 
 tags: ${SRCS}
 	ctags $<

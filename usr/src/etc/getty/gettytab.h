@@ -3,12 +3,8 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)gettytab.h	5.2 (Berkeley) 1/7/86
+ *	@(#)gettytab.h	5.2.1 (2.11BSD GTE) 12/31/93
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif BSD2_10
 
 /*
  * Getty description definitions.

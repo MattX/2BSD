@@ -195,10 +195,13 @@ lastch:	'\n
 
 	mov	r1,-(sp)	/protect r1 from wait
 
-	clr	-(sp)
-	tst	-(sp)
-	sys	SYS_wait.	/wait for daughter to complete
-	cmp	(sp)+,(sp)+
+	clr	-(sp)		/ rusage
+	clr	-(sp)		/ options
+	clr	-(sp)		/ status
+	mov	$-1,-(sp)	/ wpid
+	tst	-(sp)		/ fake return address
+	sys	SYS_wait4.	/ wait for daughter to complete
+	add	$5*2,sp
 	mov	(sp)+,r1	/restore r1
 
 	mov	$3,-(sp)	/write prompt when through

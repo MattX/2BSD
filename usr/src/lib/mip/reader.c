@@ -1,4 +1,8 @@
-# include "mfile2"
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid ="@(#)reader.c	4.4 (Berkeley) 8/22/85";
+#endif lint
+
+# include "pass2.h"
 
 /*	some storage declarations */
 
@@ -13,9 +17,14 @@ int lineno;
 
 int nrecur;
 int lflag;
+#ifdef FORT
+int Oflag = 0;
+#endif
+extern int Wflag;
 int edebug = 0;
 int xdebug = 0;
 int udebug = 0;
+int vdebug = 0;
 
 OFFSZ tmpoff;  /* offset for first temporary, in bits for current block */
 OFFSZ maxoff;  /* maximum temporary offset over all blocks in current ftn, in bits */
@@ -67,6 +76,10 @@ p2init( argc, argv ) char *argv[];{
 					++radebug;
 					break;
 
+				case 'v':
+					++vdebug;
+					break;
+
 				case 't':  /* ttype calls */
 					++tdebug;
 					break;
@@ -82,6 +95,18 @@ p2init( argc, argv ) char *argv[];{
 				case 'x':  /* general machine-dependent debugging flag */
 					++xdebug;
 					break;
+
+				case 'w':
+				case 'W':  /* shut up warnings */
+
+					++Wflag;
+					break;
+
+#ifdef FORT
+				case 'O':  /* optimizing */
+					++Oflag;
+					break;
+#endif
 
 				default:
 					cerror( "bad option: %c", *cp );
@@ -99,6 +124,8 @@ p2init( argc, argv ) char *argv[];{
 
 # ifndef NOMAIN
 
+OFFSZ caloff();
+OFFSZ offsz;
 mainp2( argc, argv ) char *argv[]; {
 	register files;
 	register temp;
@@ -106,6 +133,7 @@ mainp2( argc, argv ) char *argv[]; {
 	register char *cp;
 	register NODE *p;
 
+	offsz = caloff();
 	files = p2init( argc, argv );
 	tinit();
 
@@ -121,13 +149,15 @@ mainp2( argc, argv ) char *argv[]; {
 	while( (c=getchar()) > 0 ) switch( c ){
 	case ')':
 		/* copy line unchanged */
+		if ( c != ')' )
+			PUTCHAR( c );  /*  initial tab  */
 		while( (c=getchar()) > 0 ){
 			PUTCHAR(c);
 			if( c == '\n' ) break;
 			}
 		continue;
 
-	case '[':
+	case BBEG:
 		/* beginning of a block */
 		temp = rdin(10);  /* ftnno */
 		tmpoff = baseoff = rdin(10); /* autooff for block gives max offset of autos in block */
@@ -147,7 +177,7 @@ mainp2( argc, argv ) char *argv[]; {
 		setregs();
 		continue;
 
-	case ']':  /* end of block */
+	case BEND:  /* end of block */
 		SETOFF( maxoff, ALSTACK );
 		eobl2();
 		while( (c=getchar()) != '\n' ){
@@ -155,7 +185,7 @@ mainp2( argc, argv ) char *argv[]; {
 			}
 		continue;
 
-	case '.':
+	case EXPR:
 		/* compile code for an expression */
 		lineno = rdin( 10 );
 		for( cp=filename; (*cp=getchar()) != '\n'; ++cp ) ; /* VOID, reads filename */
@@ -165,7 +195,9 @@ mainp2( argc, argv ) char *argv[]; {
 		tmpoff = baseoff;  /* expression at top level reuses temps */
 		p = eread();
 
+# ifndef BUG4
 		if( edebug ) fwalk( p, eprint, 0 );
+# endif
 
 # ifdef MYREADER
 		MYREADER(p);  /* do your own laundering of the input */
@@ -199,7 +231,9 @@ p2compile( p ) NODE *p; {
 	if( lflag ) lineid( lineno, filename );
 	tmpoff = baseoff;  /* expression at top level reuses temps */
 	/* generate code for the tree p */
+# ifndef BUG4
 	if( edebug ) fwalk( p, eprint, 0 );
+# endif
 
 # ifdef MYREADER
 	MYREADER(p);  /* do your own laundering of the input */
@@ -214,7 +248,8 @@ p2compile( p ) NODE *p; {
 
 p2bbeg( aoff, myreg ) {
 	static int myftn = -1;
-	tmpoff = baseoff = aoff;
+
+	tmpoff = baseoff = (unsigned int) aoff;
 	maxtreg = myreg;
 	if( myftn != ftnno ){ /* beginning of function */
 		maxoff = baseoff;
@@ -259,10 +294,10 @@ delay( p ) register NODE *p; {
 delay1( p ) register NODE *p; {  /* look for COMOPS */
 	register o, ty;
 
-	o = p->op;
+	o = p->in.op;
 	ty = optype( o );
 	if( ty == LTYPE ) return( 0 );
-	else if( ty == UTYPE ) return( delay1( p->left ) );
+	else if( ty == UTYPE ) return( delay1( p->in.left ) );
 
 	switch( o ){
 
@@ -270,20 +305,20 @@ delay1( p ) register NODE *p; {  /* look for COMOPS */
 	case ANDAND:
 	case OROR:
 		/* don't look on RHS */
-		return( delay1(p->left ) );
+		return( delay1(p->in.left ) );
 
 	case COMOP:  /* the meat of the routine */
-		delay( p->left );  /* completely evaluate the LHS */
+		delay( p->in.left );  /* completely evaluate the LHS */
 		/* rewrite the COMOP */
 		{ register NODE *q;
-			q = p->right;
-			ncopy( p, p->right );
-			q->op = FREE;
+			q = p->in.right;
+			ncopy( p, p->in.right );
+			q->in.op = FREE;
 			}
 		return( 1 );
 		}
 
-	return( delay1(p->left) || delay1(p->right ) );
+	return( delay1(p->in.left) || delay1(p->in.right ) );
 	}
 
 delay2( p ) register NODE *p; {
@@ -291,7 +326,7 @@ delay2( p ) register NODE *p; {
 	/* look for delayable ++ and -- operators */
 
 	register o, ty;
-	o = p->op;
+	o = p->in.op;
 	ty = optype( o );
 
 	switch( o ){
@@ -308,9 +343,14 @@ delay2( p ) register NODE *p; {
 	case UNARY FORTCALL:
 	case COMOP:
 	case CBRANCH:
-		/* for the moment, don7t delay past a conditional context, or
+		/* for the moment, don't delay past a conditional context, or
 		/* inside of a call */
 		return;
+
+	case UNARY MUL:
+		/* if *p++, do not rewrite */
+		if( autoincr( p ) ) return;
+		break;
 
 	case INCR:
 	case DECR:
@@ -318,18 +358,18 @@ delay2( p ) register NODE *p; {
 			if( deli < DELAYS ){
 				register NODE *q;
 				deltrees[deli++] = tcopy(p);
-				q = p->left;
-				p->right->op = FREE;  /* zap constant */
+				q = p->in.left;
+				p->in.right->in.op = FREE;  /* zap constant */
 				ncopy( p, q );
-				q->op = FREE;
+				q->in.op = FREE;
 				return;
 				}
 			}
 
 		}
 
-	if( ty == BITYPE ) delay2( p->right );
-	if( ty != LTYPE ) delay2( p->left );
+	if( ty == BITYPE ) delay2( p->in.right );
+	if( ty != LTYPE ) delay2( p->in.left );
 	}
 
 codgen( p, cookie ) NODE *p; {
@@ -341,10 +381,12 @@ codgen( p, cookie ) NODE *p; {
 	for(;;){
 		canon(p);  /* creats OREG from * if possible and does sucomp */
 		stotree = NIL;
+# ifndef BUG4
 		if( edebug ){
 			printf( "store called on:\n" );
 			fwalk( p, eprint, 0 );
 			}
+# endif
 		store(p);
 		if( stotree==NIL ) break;
 
@@ -357,6 +399,7 @@ codgen( p, cookie ) NODE *p; {
 
 	}
 
+# ifndef BUG4
 char *cnames[] = {
 	"SANY",
 	"SAREG",
@@ -368,8 +411,16 @@ char *cnames[] = {
 	"SCON",
 	"SFLD",
 	"SOREG",
+# ifdef WCARD1
+	"WCARD1",
+# else
 	"STARNM",
+# endif
+# ifdef WCARD2
+	"WCARD2",
+# else
 	"STARREG",
+# endif
 	"INTEMP",
 	"FORARG",
 	"SWADD",
@@ -386,6 +437,9 @@ prcook( cookie ){
 		if( cookie == SZERO ) printf( "SZERO" );
 		else if( cookie == SONE ) printf( "SONE" );
 		else if( cookie == SMONE ) printf( "SMONE" );
+		else if( cookie == SCCON ) printf( "SCCON" );
+		else if( cookie == SSCON ) printf( "SSCON" );
+		else if( cookie == SSOREG ) printf( "SSOREG" );
 		else printf( "SPECIAL+%d", cookie & ~SPECIAL );
 		return;
 		}
@@ -400,6 +454,7 @@ prcook( cookie ){
 		}
 
 	}
+# endif
 
 int odebug = 0;
 
@@ -410,31 +465,49 @@ order(p,cook) NODE *p; {
 	int cookie;
 	NODE *p1, *p2;
 
+	cookie = cook;
+	rcount();
+	canon(p);
+	rallo( p, p->in.rall );
+	goto first;
 	/* by this time, p should be able to be generated without stores;
 	   the only question is how */
 
 	again:
 
+	if ( p->in.op == FREE )
+		return;		/* whole tree was done */
 	cookie = cook;
 	rcount();
 	canon(p);
-	rallo( p, p->rall );
+	rallo( p, p->in.rall );
+	/* if any rewriting and canonicalization has put
+	 * the tree (p) into a shape that cook is happy
+	 * with (exclusive of FOREFF, FORREW, and INTEMP)
+	 * then we are done.
+	 * this allows us to call order with shapes in
+	 * addition to cookies and stop short if possible.
+	 */
+	if( tshape(p, cook &(~(FOREFF|FORREW|INTEMP))) )return;
 
+	first:
+# ifndef BUG4
 	if( odebug ){
 		printf( "order( %o, ", p );
 		prcook( cookie );
 		printf( " )\n" );
 		fwalk( p, eprint, 0 );
 		}
+# endif
 
-	o = p->op;
+	o = p->in.op;
 	ty = optype(o);
 
 	/* first of all, for most ops, see if it is in the table */
 
 	/* look for ops */
 
-	switch( m = p->op ){
+	switch( m = p->in.op ){
 
 	default:
 		/* look for op in table */
@@ -468,10 +541,11 @@ order(p,cook) NODE *p; {
 	/* get here to do rewriting if no match or
 	   fall through from above for hard ops */
 
-	p1 = p->left;
-	if( ty == BITYPE ) p2 = p->right;
+	p1 = p->in.left;
+	if( ty == BITYPE ) p2 = p->in.right;
 	else p2 = NIL;
 	
+# ifndef BUG4
 	if( odebug ){
 		printf( "order( %o, ", p );
 		prcook( cook );
@@ -479,49 +553,50 @@ order(p,cook) NODE *p; {
 		prcook( cookie );
 		printf( ", rewrite %s\n", opst[m] );
 		}
+# endif
 	switch( m ){
 	default:
 		nomat:
-		cerror( "no table entry for op %s", opst[p->op] );
+		cerror( "no table entry for op %s", opst[p->in.op] );
 
 	case COMOP:
 		codgen( p1, FOREFF );
-		p2->rall = p->rall;
+		p2->in.rall = p->in.rall;
 		codgen( p2, cookie );
 		ncopy( p, p2 );
-		p2->op = FREE;
+		p2->in.op = FREE;
 		goto cleanup;
 
 	case FORCE:
 		/* recurse, letting the work be done by rallo */
-		p = p->left;
+		p = p->in.left;
 		cook = INTAREG|INTBREG;
 		goto again;
 
 	case CBRANCH:
-		o = p2->lval;
+		o = p2->tn.lval;
 		cbranch( p1, -1, o );
-		p2->op = FREE;
-		p->op = FREE;
+		p2->in.op = FREE;
+		p->in.op = FREE;
 		return;
 
 	case QUEST:
 		cbranch( p1, -1, m=getlab() );
-		p2->left->rall = p->rall;
-		codgen( p2->left, INTAREG|INTBREG );
+		p2->in.left->in.rall = p->in.rall;
+		codgen( p2->in.left, INTAREG|INTBREG );
 		/* force right to compute result into same reg used by left */
-		p2->right->rall = p2->left->rval|MUSTDO;
-		reclaim( p2->left, RNULL, 0 );
+		p2->in.right->in.rall = p2->in.left->tn.rval|MUSTDO;
+		reclaim( p2->in.left, RNULL, 0 );
 		cbgen( 0, m1 = getlab(), 'I' );
 		deflab( m );
-		codgen( p2->right, INTAREG|INTBREG );
+		codgen( p2->in.right, INTAREG|INTBREG );
 		deflab( m1 );
-		p->op = REG;  /* set up node describing result */
-		p->lval = 0;
-		p->rval = p2->right->rval;
-		p->type = p2->right->type;
-		tfree( p2->right );
-		p2->op = FREE;
+		p->in.op = REG;  /* set up node describing result */
+		p->tn.lval = 0;
+		p->tn.rval = p2->in.right->tn.rval;
+		p->in.type = p2->in.right->in.type;
+		tfree( p2->in.right );
+		p2->in.op = FREE;
 		goto cleanup;
 
 	case ANDAND:
@@ -529,14 +604,14 @@ order(p,cook) NODE *p; {
 	case NOT:  /* logical operators */
 		/* if here, must be a logical operator for 0-1 value */
 		cbranch( p, -1, m=getlab() );
-		p->op = CCODES;
-		p->label = m;
+		p->in.op = CCODES;
+		p->bn.label = m;
 		order( p, INTAREG );
 		goto cleanup;
 
 	case FLD:	/* fields of funny type */
-		if ( p1->op == UNARY MUL ){
-			offstar( p1->left );
+		if ( p1->in.op == UNARY MUL ){
+			offstar( p1->in.left );
 			goto again;
 			}
 
@@ -555,23 +630,23 @@ order(p,cook) NODE *p; {
 		return;
 
 	case UNARY FORTCALL:
-		p->right = NIL;
+		p->in.right = NIL;
 	case FORTCALL:
-		o = p->op = UNARY FORTCALL;
+		o = p->in.op = UNARY FORTCALL;
 		if( genfcall( p, cookie ) ) goto nomat;
 		goto cleanup;
 
 	case UNARY CALL:
-		p->right = NIL;
+		p->in.right = NIL;
 	case CALL:
-		o = p->op = UNARY CALL;
+		o = p->in.op = UNARY CALL;
 		if( gencall( p, cookie ) ) goto nomat;
 		goto cleanup;
 
 	case UNARY STCALL:
-		p->right = NIL;
+		p->in.right = NIL;
 	case STCALL:
-		o = p->op = UNARY STCALL;
+		o = p->in.op = UNARY STCALL;
 		if( genscall( p, cookie ) ) goto nomat;
 		goto cleanup;
 
@@ -581,11 +656,11 @@ order(p,cook) NODE *p; {
 	case UNARY MUL:
 		if( cook == FOREFF ){
 			/* do nothing */
-			order( p->left, FOREFF );
-			p->op = FREE;
+			order( p->in.left, FOREFF );
+			p->in.op = FREE;
 			return;
 			}
-		offstar( p->left );
+		offstar( p->in.left );
 		goto again;
 
 	case INCR:  /* INCR and DECR */
@@ -595,15 +670,15 @@ order(p,cook) NODE *p; {
 
 		if( cook & FOREFF ){  /* result not needed so inc or dec and be done with it */
 			/* x++ => x += 1 */
-			p->op = (p->op==INCR)?ASG PLUS:ASG MINUS;
+			p->in.op = (p->in.op==INCR)?ASG PLUS:ASG MINUS;
 			goto again;
 			}
 
 		p1 = tcopy(p);
-		reclaim( p->left, RNULL, 0 );
-		p->left = p1;
-		p1->op = (p->op==INCR)?ASG PLUS:ASG MINUS;
-		p->op = (p->op==INCR)?MINUS:PLUS;
+		reclaim( p->in.left, RNULL, 0 );
+		p->in.left = p1;
+		p1->in.op = (p->in.op==INCR)?ASG PLUS:ASG MINUS;
+		p->in.op = (p->in.op==INCR)?MINUS:PLUS;
 		goto again;
 
 	case STASG:
@@ -616,15 +691,17 @@ order(p,cook) NODE *p; {
 		/* there are assumed to be no side effects in LHS */
 
 		p2 = tcopy(p);
-		p->op = ASSIGN;
-		reclaim( p->right, RNULL, 0 );
-		p->right = p2;
+		p->in.op = ASSIGN;
+		reclaim( p->in.right, RNULL, 0 );
+		p->in.right = p2;
 		canon(p);
-		rallo( p, p->rall );
+		rallo( p, p->in.rall );
 
+# ifndef BUG4
 		if( odebug ) fwalk( p, eprint, 0 );
+# endif
 
-		order( p2->left, INTBREG|INTAREG );
+		order( p2->in.left, INTBREG|INTAREG );
 		order( p2, INTBREG|INTAREG );
 		goto again;
 
@@ -648,7 +725,7 @@ order(p,cook) NODE *p; {
 		case ER:
 		case LS:
 		case RS:
-			p->op = ASG o;
+			p->in.op = ASG o;
 			goto again;
 			}
 		goto nomat;
@@ -664,7 +741,7 @@ order(p,cook) NODE *p; {
 		return;
 		}
 
-	if( p->op==FREE ) return;
+	if( p->in.op==FREE ) return;
 
 	if( tshape( p, cook ) ) return;
 
@@ -685,7 +762,7 @@ store( p ) register NODE *p; {
 
 	register o, ty;
 
-	o = p->op;
+	o = p->in.op;
 	ty = optype(o);
 
 	if( ty == LTYPE ) return;
@@ -699,49 +776,49 @@ store( p ) register NODE *p; {
 		break;
 
 	case UNARY MUL:
-		if( asgop(p->left->op) ) stoasg( p->left, UNARY MUL );
+		if( asgop(p->in.left->in.op) ) stoasg( p->in.left, UNARY MUL );
 		break;
 
 	case CALL:
 	case FORTCALL:
 	case STCALL:
-		store( p->left );
-		stoarg( p->right, o );
+		store( p->in.left );
+		stoarg( p->in.right, o );
 		++callflag;
 		return;
 
 	case COMOP:
-		markcall( p->right );
-		if( p->right->su > fregs ) SETSTO( p, INTEMP );
-		store( p->left );
+		markcall( p->in.right );
+		if( p->in.right->in.su > fregs ) SETSTO( p, INTEMP );
+		store( p->in.left );
 		return;
 
 	case ANDAND:
 	case OROR:
 	case QUEST:
-		markcall( p->right );
-		if( p->right->su > fregs ) SETSTO( p, INTEMP );
+		markcall( p->in.right );
+		if( p->in.right->in.su > fregs ) SETSTO( p, INTEMP );
 	case CBRANCH:   /* to prevent complicated expressions on the LHS from being stored */
 	case NOT:
-		constore( p->left );
+		constore( p->in.left );
 		return;
 
 		}
 
 	if( ty == UTYPE ){
-		store( p->left );
+		store( p->in.left );
 		return;
 		}
 
-	if( asgop( p->right->op ) ) stoasg( p->right, o );
+	if( asgop( p->in.right->in.op ) ) stoasg( p->in.right, o );
 
-	if( p->su>fregs ){ /* must store */
+	if( p->in.su>fregs ){ /* must store */
 		mkadrs( p );  /* set up stotree and stocook to subtree
 				 that must be stored */
 		}
 
-	store( p->right );
-	store( p->left );
+	store( p->in.right );
+	store( p->in.left );
 	}
 
 constore( p ) register NODE *p; {
@@ -750,14 +827,14 @@ constore( p ) register NODE *p; {
 	/* the point is, avoid storing expressions in conditional
 	   conditional context, since the evaluation order is predetermined */
 
-	switch( p->op ) {
+	switch( p->in.op ) {
 
 	case ANDAND:
 	case OROR:
 	case QUEST:
-		markcall( p->right );
+		markcall( p->in.right );
 	case NOT:
-		constore( p->left );
+		constore( p->in.left );
 		return;
 
 		}
@@ -768,7 +845,7 @@ constore( p ) register NODE *p; {
 markcall( p ) register NODE *p; {  /* mark off calls below the current node */
 
 	again:
-	switch( p->op ){
+	switch( p->in.op ){
 
 	case UNARY CALL:
 	case UNARY STCALL:
@@ -781,12 +858,12 @@ markcall( p ) register NODE *p; {  /* mark off calls below the current node */
 
 		}
 
-	switch( optype( p->op ) ){
+	switch( optype( p->in.op ) ){
 
 	case BITYPE:
-		markcall( p->right );
+		markcall( p->in.right );
 	case UTYPE:
-		p = p->left;
+		p = p->in.left;
 		/* eliminate recursion (aren't I clever...) */
 		goto again;
 	case LTYPE:
@@ -798,9 +875,9 @@ markcall( p ) register NODE *p; {  /* mark off calls below the current node */
 stoarg( p, calltype ) register NODE *p; {
 	/* arrange to store the args */
 
-	if( p->op == CM ){
-		stoarg( p->left, calltype );
-		p = p->right ;
+	if( p->in.op == CM ){
+		stoarg( p->in.left, calltype );
+		p = p->in.right ;
 		}
 	if( calltype == CALL ){
 		STOARG(p);
@@ -831,7 +908,7 @@ cbranch( p, true, false ) NODE *p; {
 
 	lab = -1;
 
-	switch( o=p->op ){
+	switch( o=p->in.op ){
 
 	case ULE:
 	case ULT:
@@ -844,43 +921,45 @@ cbranch( p, true, false ) NODE *p; {
 	case GE:
 	case GT:
 		if( true < 0 ){
-			o = p->op = negrel[ o-EQ ];
+			o = p->in.op = negrel[ o-EQ ];
 			true = false;
 			false = -1;
 			}
 #ifndef NOOPT
-		if( p->right->op == ICON && p->right->lval == 0 && p->right->name[0] == '\0' ){
+		if( p->in.right->in.op == ICON && p->in.right->tn.lval == 0 && p->in.right->in.name[0] == '\0' ){
 			switch( o ){
 
 			case UGT:
 			case ULE:
-				o = p->op = (o==UGT)?NE:EQ;
+				o = p->in.op = (o==UGT)?NE:EQ;
 			case EQ:
 			case NE:
 			case LE:
 			case LT:
 			case GE:
 			case GT:
-				if( logop(p->left->op) ){
+				if( logop(p->in.left->in.op) ){
 					/* strange situation: e.g., (a!=0) == 0 */
-					/* must prevent reference to p->left->lable, so get 0/1 */
+					/* must prevent reference to p->in.left->lable, so get 0/1 */
 					/* we could optimize, but why bother */
-					codgen( p->left, INAREG|INBREG );
+					codgen( p->in.left, INAREG|INBREG );
 					}
-				codgen( p->left, FORCC );
+				codgen( p->in.left, FORCC );
 				cbgen( o, true, 'I' );
 				break;
 
 			case UGE:
+				codgen(p->in.left, FORCC);
 				cbgen( 0, true, 'I' );  /* unconditional branch */
+				break;
 			case ULT:
-				;   /* do nothing for LT */
+				codgen(p->in.left, FORCC);
 				}
 			}
 		else
 #endif
 			{
-			p->label = true;
+			p->bn.label = true;
 			codgen( p, FORCC );
 			}
 		if( false>=0 ) cbgen( 0, false, 'I' );
@@ -889,53 +968,53 @@ cbranch( p, true, false ) NODE *p; {
 
 	case ANDAND:
 		lab = false<0 ? getlab() : false ;
-		cbranch( p->left, -1, lab );
-		cbranch( p->right, true, false );
+		cbranch( p->in.left, -1, lab );
+		cbranch( p->in.right, true, false );
 		if( false < 0 ) deflab( lab );
-		p->op = FREE;
+		p->in.op = FREE;
 		return;
 
 	case OROR:
 		lab = true<0 ? getlab() : true;
-		cbranch( p->left, lab, -1 );
-		cbranch( p->right, true, false );
+		cbranch( p->in.left, lab, -1 );
+		cbranch( p->in.right, true, false );
 		if( true < 0 ) deflab( lab );
-		p->op = FREE;
+		p->in.op = FREE;
 		return;
 
 	case NOT:
-		cbranch( p->left, false, true );
-		p->op = FREE;
+		cbranch( p->in.left, false, true );
+		p->in.op = FREE;
 		break;
 
 	case COMOP:
-		codgen( p->left, FOREFF );
-		p->op = FREE;
-		cbranch( p->right, true, false );
+		codgen( p->in.left, FOREFF );
+		p->in.op = FREE;
+		cbranch( p->in.right, true, false );
 		return;
 
 	case QUEST:
 		flab = false<0 ? getlab() : false;
 		tlab = true<0 ? getlab() : true;
-		cbranch( p->left, -1, lab = getlab() );
-		cbranch( p->right->left, tlab, flab );
+		cbranch( p->in.left, -1, lab = getlab() );
+		cbranch( p->in.right->in.left, tlab, flab );
 		deflab( lab );
-		cbranch( p->right->right, true, false );
+		cbranch( p->in.right->in.right, true, false );
 		if( true < 0 ) deflab( tlab);
 		if( false < 0 ) deflab( flab );
-		p->right->op = FREE;
-		p->op = FREE;
+		p->in.right->in.op = FREE;
+		p->in.op = FREE;
 		return;
 
 	case ICON:
-		if( p->type != FLOAT && p->type != DOUBLE ){
+		if( p->in.type != FLOAT && p->in.type != DOUBLE ){
 
-			if( p->lval || p->name[0] ){
+			if( p->tn.lval || p->in.name[0] ){
 				/* addresses of C objects are never 0 */
 				if( true>=0 ) cbgen( 0, true, 'I' );
 				}
 			else if( false>=0 ) cbgen( 0, false, 'I' );
-			p->op = FREE;
+			p->in.op = FREE;
 			return;
 			}
 		/* fall through to default with other strange constants */
@@ -959,6 +1038,7 @@ rcount(){ /* count recursions */
 
 	}
 
+# ifndef BUG4
 eprint( p, down, a, b ) NODE *p; int *a, *b; {
 
 	*a = *b = down+1;
@@ -969,11 +1049,11 @@ eprint( p, down, a, b ) NODE *p; int *a, *b; {
 	if( down-- ) printf( "    " );
 
 
-	printf( "%o) %s", p, opst[p->op] );
-	switch( p->op ) { /* special cases */
+	printf( "%o) %s", p, opst[p->in.op] );
+	switch( p->in.op ) { /* special cases */
 
 	case REG:
-		printf( " %s", rnames[p->rval] );
+		printf( " %s", rnames[p->tn.rval] );
 		break;
 
 	case ICON:
@@ -987,23 +1067,24 @@ eprint( p, down, a, b ) NODE *p; int *a, *b; {
 	case UNARY STCALL:
 	case STARG:
 	case STASG:
-		printf( " size=%d", p->stsize );
-		printf( " align=%d", p->stalign );
+		printf( " size=%d", p->stn.stsize );
+		printf( " align=%d", p->stn.stalign );
 		break;
 		}
 
 	printf( ", " );
-	tprint( p->type );
+	tprint( p->in.type );
 	printf( ", " );
-	if( p->rall == NOPREF ) printf( "NOPREF" );
+	if( p->in.rall == NOPREF ) printf( "NOPREF" );
 	else {
-		if( p->rall & MUSTDO ) printf( "MUSTDO " );
+		if( p->in.rall & MUSTDO ) printf( "MUSTDO " );
 		else printf( "PREF " );
-		printf( "%s", rnames[p->rall&~MUSTDO]);
+		printf( "%s", rnames[p->in.rall&~MUSTDO]);
 		}
-	printf( ", SU= %d\n", p->su );
+	printf( ", SU= %d\n", p->in.su );
 
 	}
+# endif
 
 # ifndef NOMAIN
 NODE *
@@ -1020,33 +1101,43 @@ eread(){
 
 	p = talloc();
 
-	p->op = i;
+	p->in.op = i;
 
 	i = optype(i);
 
-	if( i == LTYPE ) p->lval = rdin( 10 );
-	if( i != BITYPE ) p->rval = rdin( 10 );
+	if( i == LTYPE ) p->tn.lval = rdin( 10 );
+	if( i != BITYPE ) p->tn.rval = rdin( 10 );
 
-	p->type = rdin(8 );
-	p->rall = NOPREF;  /* register allocation information */
+	p->in.type = rdin(8 );
+	p->in.rall = NOPREF;  /* register allocation information */
 
-	if( p->op == STASG || p->op == STARG || p->op == STCALL || p->op == UNARY STCALL ){
-		p->stsize = (rdin( 10 ) + (SZCHAR-1) )/SZCHAR;
-		p->stalign = rdin(10) / SZCHAR;
+	if( p->in.op == STASG || p->in.op == STARG || p->in.op == STCALL || p->in.op == UNARY STCALL ){
+		p->stn.stsize = (rdin( 10 ) + (SZCHAR-1) )/SZCHAR;
+		p->stn.stalign = rdin(10) / SZCHAR;
 		if( getchar() != '\n' ) cerror( "illegal \n" );
 		}
 	else {   /* usual case */
-		if( p->op == REG ) rbusy( p->rval, p->type );  /* non usually, but sometimes justified */
-		for( pc=p->name,j=0; ( c = getchar() ) != '\n'; ++j ){
+		if( p->in.op == REG ) rbusy( p->tn.rval, p->in.type );  /* non usually, but sometimes justified */
+#ifndef FLEXNAMES
+		for( pc=p->in.name,j=0; ( c = getchar() ) != '\n'; ++j ){
 			if( j < NCHNAM ) *pc++ = c;
 			}
 		if( j < NCHNAM ) *pc = '\0';
+#else
+		{ char buf[BUFSIZ];
+		for( pc=buf,j=0; ( c = getchar() ) != '\n'; ++j ){
+			if( j < BUFSIZ ) *pc++ = c;
+			}
+		if( j < BUFSIZ ) *pc = '\0';
+		p->in.name = tstr(buf);
+		}
+#endif
 		}
 
 	/* now, recursively read descendents, if any */
 
-	if( i != LTYPE ) p->left = eread();
-	if( i == BITYPE ) p->right = eread();
+	if( i != LTYPE ) p->in.left = eread();
+	if( i == BITYPE ) p->in.right = eread();
 
 	return( p );
 
@@ -1094,53 +1185,61 @@ ffld( p, down, down1, down2 ) NODE *p; int *down1, *down2; {
 	register NODE *shp;
 	register s, o, v, ty;
 
-	*down1 =  asgop( p->op );
+	*down1 =  asgop( p->in.op );
 	*down2 = 0;
 
-	if( !down && p->op == FLD ){ /* rewrite the node */
+	if( !down && p->in.op == FLD ){ /* rewrite the node */
 
 		if( !rewfld(p) ) return;
 
-		ty = (szty(p->type) == 2)? LONG: INT;
-		v = p->rval;
+		ty = (szty(p->in.type) == 2)? LONG: INT;
+		v = p->tn.rval;
 		s = UPKFSZ(v);
 # ifdef RTOLBYTES
 		o = UPKFOFF(v);  /* amount to shift */
 # else
-		o = szty(p->type)*SZINT - s - UPKFOFF(v);  /* amount to shift */
+		o = szty(p->in.type)*SZINT - s - UPKFOFF(v);  /* amount to shift */
 #endif
 
 		/* make & mask part */
 
-		p->left->type = ty;
+		p->in.left->in.type = ty;
 
-		p->op = AND;
-		p->right = talloc();
-		p->right->op = ICON;
-		p->right->rall = NOPREF;
-		p->right->type = ty;
-		p->right->lval = 1;
-		p->right->rval = 0;
-		p->right->name[0] = '\0';
-		p->right->lval <<= s;
-		p->right->lval--;
+		p->in.op = AND;
+		p->in.right = talloc();
+		p->in.right->in.op = ICON;
+		p->in.right->in.rall = NOPREF;
+		p->in.right->in.type = ty;
+		p->in.right->tn.lval = 1;
+		p->in.right->tn.rval = 0;
+#ifndef FLEXNAMES
+		p->in.right->in.name[0] = '\0';
+#else
+		p->in.right->in.name = "";
+#endif
+		p->in.right->tn.lval <<= s;
+		p->in.right->tn.lval--;
 
 		/* now, if a shift is needed, do it */
 
 		if( o != 0 ){
 			shp = talloc();
-			shp->op = RS;
-			shp->rall = NOPREF;
-			shp->type = ty;
-			shp->left = p->left;
-			shp->right = talloc();
-			shp->right->op = ICON;
-			shp->right->rall = NOPREF;
-			shp->right->type = ty;
-			shp->right->rval = 0;
-			shp->right->lval = o;  /* amount to shift */
-			shp->right->name[0] = '\0';
-			p->left = shp;
+			shp->in.op = RS;
+			shp->in.rall = NOPREF;
+			shp->in.type = ty;
+			shp->in.left = p->in.left;
+			shp->in.right = talloc();
+			shp->in.right->in.op = ICON;
+			shp->in.right->in.rall = NOPREF;
+			shp->in.right->in.type = ty;
+			shp->in.right->tn.rval = 0;
+			shp->in.right->tn.lval = o;  /* amount to shift */
+#ifndef FLEXNAMES
+			shp->in.right->in.name[0] = '\0';
+#else
+			shp->in.right->in.name = "";
+#endif
+			p->in.left = shp;
 			/* whew! */
 			}
 		}
@@ -1158,76 +1257,57 @@ oreg2( p ) register NODE *p; {
 	register NODE *ql, *qr;
 	CONSZ temp;
 
-	if( p->op == UNARY MUL ){
-		q = p->left;
-		if( q->op == REG ){
-			temp = q->lval;
-			r = q->rval;
-			cp = q->name;
+	if( p->in.op == UNARY MUL ){
+		q = p->in.left;
+		if( q->in.op == REG ){
+			temp = q->tn.lval;
+			r = q->tn.rval;
+			cp = q->in.name;
 			goto ormake;
 			}
 
-		if( q->op != PLUS && q->op != MINUS ) return;
-		ql = q->left;
-		qr = q->right;
+		if( q->in.op != PLUS && q->in.op != MINUS ) return;
+		ql = q->in.left;
+		qr = q->in.right;
 
 #ifdef R2REGS
 
 		/* look for doubly indexed expressions */
 
-		if( q->op==PLUS && qr->op==REG && ql->op==REG &&
-				(szty(ql->type)==1||szty(qr->type)==1) ) {
-			temp = 0;
-			cp = ql->name;
-			if( *cp ){
-				if( *qr->name ) return;
+		if( q->in.op == PLUS) {
+			if( (r=base(ql))>=0 && (i=offset(qr, tlen(p)))>=0) {
+				makeor2(p, ql, r, i);
+				return;
+			} else if( (r=base(qr))>=0 && (i=offset(ql, tlen(p)))>=0) {
+				makeor2(p, qr, r, i);
+				return;
 				}
-			else {
-				cp = qr->name;
-				}
-			if( szty(qr->type)>1) r = R2PACK(qr->rval,ql->rval);
-			else r = R2PACK(ql->rval,qr->rval);
-			goto ormake;
 			}
 
-		if( (q->op==PLUS||q->op==MINUS) && qr->op==ICON && ql->op==PLUS &&
-				ql->left->op==REG &&
-				ql->right->op==REG ){
-			temp = qr->lval;
-			cp = qr->name;
-			if( q->op == MINUS ){
-				if( *cp ) return;
-				temp = -temp;
-				}
-			if( *cp ){
-				if( *ql->name ) return;
-				}
-			else {
-				cp = ql->name;
-				}
-			r = R2PACK(ql->left->rval,ql->right->rval);
-			goto ormake;
-			}
 
 #endif
 
-		if( (q->op==PLUS || q->op==MINUS) && qr->op == ICON &&
-				ql->op==REG && szty(qr->type)==1) {
-			temp = qr->lval;
-			if( q->op == MINUS ) temp = -temp;
-			r = ql->rval;
-			temp += ql->lval;
-			cp = qr->name;
-			if( *cp && ( q->op == MINUS || *ql->name ) ) return;
-			if( !*cp ) cp = ql->name;
+		if( (q->in.op==PLUS || q->in.op==MINUS) && qr->in.op == ICON &&
+				ql->in.op==REG && szty(qr->in.type)==1) {
+			temp = qr->tn.lval;
+			if( q->in.op == MINUS ) temp = -temp;
+			r = ql->tn.rval;
+			temp += ql->tn.lval;
+			cp = qr->in.name;
+			if( *cp && ( q->in.op == MINUS || *ql->in.name ) ) return;
+			if( !*cp ) cp = ql->in.name;
 
 			ormake:
-			if( notoff( p->type, r, temp, cp ) ) return;
-			p->op = OREG;
-			p->rval = r;
-			p->lval = temp;
+			if( notoff( p->in.type, r, temp, cp ) ) return;
+			p->in.op = OREG;
+			p->tn.rval = r;
+			p->tn.lval = temp;
+#ifndef FLEXNAMES
 			for( i=0; i<NCHNAM; ++i )
-				p->name[i] = *cp++;
+				p->in.name[i] = *cp++;
+#else
+			p->in.name = cp;
+#endif
 			tfree(q);
 			return;
 			}

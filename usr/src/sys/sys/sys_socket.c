@@ -13,7 +13,7 @@
  */
 
 #include "param.h"
-#ifdef UCB_NET
+#ifdef INET
 #include "systm.h"
 #include "user.h"
 #include "file.h"

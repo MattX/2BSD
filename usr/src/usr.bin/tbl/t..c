@@ -1,4 +1,4 @@
-/*	t..c	4.3	85/09/14	*/
+/*	t..c	4.4	1/1/94	*/
 
 /* t..c : external declarations */
 
@@ -6,11 +6,11 @@
 # include "ctype.h"
 
 # define MAXLIN 200
-#ifdef BSD2_10
+#ifdef pdp11
 # define MAXHEAD 30
-#else !BSD2_10
+#else
 # define MAXHEAD 100
-#endif BSD2_10
+#endif
 # define MAXCOL 20
 # define MAXCHS 2000
 # define MAXRPT 100

@@ -120,12 +120,7 @@ sched()
 			}
 		}
 		else if (l_maxsize == MINFINITY &&
-		    (rp->p_stat == SRUN || rp->p_stat == SSLEEP)
-#ifdef CGL_RTP
-		    /* can't swap processes preempted in copy/clear. */
-		    && (rp->p_pri > PRTP + 1)
-#endif
-		    ) {
+		    (rp->p_stat == SRUN || rp->p_stat == SSLEEP)) {
 			register int rppri;
 
 			rppri = rp->p_time + rp->p_nice;

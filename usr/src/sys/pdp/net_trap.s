@@ -33,10 +33,17 @@ ASENTRY(call)
 	 * from kernel mode to the PS, PC pair we push on the kernel stack.
 	 *
 	 * Transfer our saved <PS, PC> pair to the kernel stack.  The spl7
-	 * below is pure paranoia.
+	 * below is pure paranoia, BUT while we're at it let's bump the
+	 * interrupt count - it's a mere two instructions of overhead (the
+	 * increment would have been done anyhow)!
 	 */
 	mov	PS,-(sp)
 	mov	$40340,PS		/ current mode SUPV, prev KERN, BR7
+#ifdef	UCB_METER
+	mfpd	*$_cnt+V_INTR		/ fetch interrupt count
+	inc	(sp)			/ bump it
+	mtpd	*$_cnt+V_INTR		/ put it back
+#endif
 	mfpd	sp			/ old kernel stack pointer
 	mov	(sp),r1
 	sub	$4,(sp)			/ grow the kernel stack

@@ -31,42 +31,20 @@
 # Drives on xp
 #
 
-# RM02/03:
-#
-# File system free list parameters (m/n):
-# RM02:
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RM02	11/80	10/80	8/80	8/80	6/80	7/80	6/80	7/80
-# RM03	16/80	15/80	12/80	12/80	8/80	11/80	8/80	11/80
-#
-# CPU	60	70	73	83	84
-# DISK
-# RM02	7/80	5/80	6/80	6/80	5/80
-# RM03	11/80	7/80	9/80	9/80	7/80
-#
+# RM02/03 - 'c' and 'h' partitions are both whole drive except bad sector track.
+#	    'e' used to overlap 'a+b'.
+#	
 rm02|RM02|rm03|RM03|DEC RM02/03:\
 	:ty=removable:ns#32:nt#5:nc#823:sf:\
 	:b0=/mdec/rm03uboot:\
-	:pa#4800:ba#1024:fa#1024:\
-	:pb#4800:bb#1024:fb#1024:\
-	:pc#121922:bc#1024:fc#1024:\
-	:pd#62720:bd#1024:fd#1024:\
-	:pe#59202:be#1024:fe#1024:\
-	:pf#9600:bf#1024:ff#1024:\
-	:ph#131522:bh#1024:fh#1024:
+	:pa#9600:ba#1024:fa#1024:\
+	:pb#9600:bb#1024:fb#1024:\
+	:pc#131520:bc#1024:fc#1024:\
+	:pf#121920:bh#1024:fh#1024:
+	:pg#112320:bh#1024:fh#1024:
+	:ph#131520:bh#1024:fh#1024:
 
 # RM05:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RM05	16/304	15/304	12/304	12/304	8/304	11/304	8/304	11/304
-#
-# CPU	60	70	73	83	84
-# DISK
-# RM05	11/304	7/304	8/304	8/304	7/304
-#
 rm05|RM05|cdc9766|CDC9766|9766|DEC RM05, CDC 9766:\
 	:ty=removable:ns#32:nt#19:nc#823:sf:\
 	:b0=/mdec/rm05uboot:\
@@ -78,6 +56,7 @@ rm05|RM05|cdc9766|CDC9766|9766|DEC RM05, CDC 9766:\
 	:pf#152000:bf#1024:ff#1024:\
 	:pg#165826:bg#1024:fg#1024:\
 	:ph#500226:bh#1024:fh#1024:
+
 9775|CDC 9775:\
 	:ty=winchester:ns#32:nt#40:nc#842:sf:\
 	:pa#10240:ba#1024:fa#1024:\
@@ -90,17 +69,7 @@ rm05|RM05|cdc9766|CDC9766|9766|DEC RM05, CDC 9766:\
 	:ph#1072640:bh#1024:fh#1024:
 
 # EATON BR1537 or 1711 controller.  The CSR set looks like an RP03,
-# that's about all.  m/n are probably wrong for anything except
-# 44, 70 and 84.
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# BR	16/304	15/304	12/304	12/304	7/304	11/304	8/304	11/304
-#
-# CPU	60	70	73	83	84
-# DISK
-# BR	11/304	5/304	7/304	7/304	6/304
+# that's about all.
 #
 br1538d|BR1538D|EATON 1538D, 1711:\
 	:ty=removable:ns#32:nt#19:nc#815:so:\
@@ -111,17 +80,6 @@ br1538d|BR1538D|EATON 1538D, 1711:\
 	:pd#232256:bd#4096:fd#1024:\
 	:ph#495520:bh#1024:fh#1024:
 
-# RP04/05/06:
-#
-# File system free list parameters (m/n):
-# CPU		23	24	34	40	44	45	53	55
-# DISK
-# RP04/05/06	11/209	10/209	8/209	8/209	6/209	7/209	6/209	7/209
-#
-# CPU		60	70	73	83	84
-# DISK
-# RP04/05/06	7/209	5/209	6/209	6/209	5/209
-#
 rp04|RP04|rp05|RP05|DEC RP04/05:\
 	:ty=removable:ns#22:nt#19:nc#411:sf:\
 	:b0=/mdec/hpuboot:\
@@ -129,6 +87,7 @@ rp04|RP04|rp05|RP05|DEC RP04/05:\
 	:pb#8778:bb#1024:fb#1024:\
 	:pc#153258:bc#1024:fc#1024:\
 	:pg#171650:bg#1024:fg#1024:
+
 rp06|RP06|DEC RP06:\
 	:ty=removable:ns#22:nt#19:nc#815:sf:\
 	:b0=/mdec/hpuboot:\
@@ -140,17 +99,30 @@ rp06|RP06|DEC RP06:\
 	:pg#171798:bg#1024:fg#1024:\
 	:ph#340522:bh#1024:fh#1024:
 
-160|fuji|fuji160|Emulex SC01B or SI 9400, Fujitsu 160:\
+rp07|RP07|DEC RP07:\
+	:ty=winchester:ns#50:nt#32:nc#630:sf:\
+	:b0=/mdec/hpuboot:\
+	:pa#19200:ba#1024:fa#1024:\
+	:pb#51200:bb#1024:fb#1024:\
+	:pc#1006400:bc#1024:fc#1024:\
+	:pd#320000:bd#1024:fd#1024:\
+	:pe#320000:be#1024:fe#1024:\
+	:pf#296000:bf#1024:ff#1024:\
+	:pg#936000:bg#1024:fg#1024:\
+	:ph#1006400:bh#1024:fh#1024:
+
+rm2x|160|fuji|fuji160|Fujitsu 160:\
 	:ty=winchester:ns#32:nt#10:nc#823:sf:\
 	:b0=/mdec/si94uboot:\
 	:pa#9600:ba#1024:fa#1024:\
 	:pb#9600:bb#1024:fb#1024:\
 	:pc#244002:bc#1024:fc#1024:\
-	:pd#125440:bd#1024:fd#1024:\
-	:pe#118562:be#1024:fe#1024:\
-	:pf#59520:bf#1024:ff#1024:\
-	:pg#59042:bg#1024:fg#1024:\
+	:pd#164800:bd#1024:fd#1024:\
+	:pe#79360:be#1024:fe#1024:\
+	:pf#39680:bf#1024:ff#1024:\
+	:pg#39680:bg#1024:fg#1024:\
 	:ph#263202:bh#1024:fh#1024:
+
 diva|DIVA|9300|Diva Comp V, Ampex 9300 (in direct mode):\
 	:ty=winchester:ns#33:nt#19:nc#815:sf:\
 	:b0=/mdec/dvhpuboot:\
@@ -162,6 +134,7 @@ diva|DIVA|9300|Diva Comp V, Ampex 9300 (in direct mode):\
 	:pf#156750:bf#1024:ff#1024:\
 	:pg#165996:bg#1024:fg#1024:\
 	:ph#510846:bh#1024:fh#1024:
+
 330|capricorn|Capricorn|Ampex Capricorn:\
 	:ty=winchester:ns#32:nt#16:nc#1024:sf:\
 	:pa#16384:ba#1024:fa#1024:\
@@ -172,7 +145,8 @@ diva|DIVA|9300|Diva Comp V, Ampex 9300 (in direct mode):\
 	:pf#107008:bf#1024:ff#1024:\
 	:pg#179712:bg#1024:fg#1024:\
 	:ph#521728:bh#1024:fh#1024:
-si_eagle|SI_Eagle|2351|2351A|SI 6100, Fujitsu Eagle 2351A (48 sectors):\
+
+si_eagle|SI_Eagle|2351|2351A|Fujitsu Eagle 2351A (48 sectors):\
 	:ty=winchester:ns#48:nt#20:nc#842:rm#3961:sf:\
 	:b0=/mdec/si51uboot:\
 	:pa#11520:ba#1024:fa#1024:\
@@ -180,6 +154,7 @@ si_eagle|SI_Eagle|2351|2351A|SI 6100, Fujitsu Eagle 2351A (48 sectors):\
 	:pc#474240:bc#1024:fc#1024:\
 	:pd#214080:bd#1024:fd#1024:\
 	:ph#803520:bh#1024:fh#1024:
+
 si9766|si9766|CDC 9766 on SI 9500 controller:\
 	:ty=removable:ns#32:nt#19:nc#823:sf:\
 	:b0=/mdec/si95uboot:\
@@ -192,75 +167,33 @@ si9766|si9766|CDC 9766 on SI 9500 controller:\
 	:pg#162786:bg#1024:fg#1024:\
 	:ph#497344:bh#1024:fh#1024:
 
-#
-# Disks for rk
-#
-# RK06/07:
-#
-# File system free list parameters (m/n):
-# CPU		23	24	34	40	44	45	53	55
-# DISK
-# RK06/07	8/33	7/33	6/33	6/33	4/33	5/33	4/33	5/33
-#
-# CPU		60	70	73	83	84
-# DISK
-# RK06/07	5/33	3/33	4/33	4/33	3/33
-#
 rk06|RK06|DEC RK06:\
 	:ty=removable:ns#22:nt#3:nc#411:sf:\
 	:b0=/mdec/hkuboot:\
-	:pa#5940:ba#1024:fa#1024:\
-	:pb#2376:bb#1024:fb#1024:\
-	:pd#18662:bd#1024:fd#1024:\
-	:pe#8316:be#1024:fe#1024:\
-	:pg#26978:bg#1024:fg#1024:
+	:pa#8316:ba#1024:fa#1024:\
+	:pb#8316:bb#1024:fb#1024:\
+	:pc#27126:bg#1024:fg#1024:
+	:pg#10428:bg#1024:fg#1024:
+	:ph#27060:bg#1024:fg#1024:
 rk07|RK07|DEC RK07:\
 	:ty=removable:ns#22:nt#3:nc#815:sf:bt=hkuboot:\
 	:b0=/mdec/hkuboot:\
-	:pa#5940:ba#1024:fa#1024:\
-	:pb#2376:bb#1024:fb#1024:\
-	:pc#45326:bc#1024:fc#1024:\
-	:pd#18662:bd#1024:fd#1024:\
-	:pe#8316:be#1024:fe#1024:\
-	:pg#26978:bg#1024:fg#1024:\
-	:ph#53642:bh#1024:fh#1024:
-#
-# Disks for rl
-#
-# RL01/02:
-#
-# File system free list parameters (m/n):
-# CPU		23	24	34	40	44	45	53	55
-# DISK
-# RL01/2	7/10	6/10	6/10	6/10	4/10	5/10	4/10	5/10
-#
-# CPU		60	70	73	83	84
-# DISK
-# RL01/2	5/10	3/10	4/10	4/10	3/10
-#
+	:pa#8316:ba#1024:fa#1024:\
+	:pb#8316:bb#1024:fb#1024:\
+	:pc#53790:bc#1024:fc#1024:\
+	:pg#37092:bg#1024:fg#1024:\
+	:ph#53724:bh#1024:fh#1024:
+
 rl01|RL01|DEC RL01:\
 	:ty=removable:se#256:ns#40:nt#2:nc#256:\
 	:b0=/mdec/rluboot:\
 	:ph#20480:bh#1024:fh#1024:
+
 rl02|RL02|DEC RL02:\
 	:ty=removable:se#256:ns#40:nt#2:nc#512:\
 	:b0=/mdec/rluboot:\
 	:ph#40960:bh#1024:fh#1024:
 
-#
-# Disks for rk
-#
-# RK05:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RK05	4/12	4/12	3/12	3/12	2/12	3/12	2/12	3/12
-#
-# CPU	60	70	73	83	84
-# DISK
-# RK05	3/12	2/12	2/12	2/12	2/12
-#
 rk05|RK05|DEC RK05:\
 	:ty=removable:ns#12:nt#2:nc#203:bt=rkuboot:\
 	:b0=/mdec/rkuboot:\
@@ -269,19 +202,22 @@ rk05|RK05|DEC RK05:\
 #
 # Disks on a UDA50
 #
+# 7/11/92 - A new and more uniform partitioning scheme is present in the
+# MSCP driver.  For compatibility reasons the RA60, RA80, RA81, RD52 and
+# RD53 old style partitions were kept.  RC25 and RD51 drives use the new
+# method.  In the "complete" (as of this date at least) list added below
+# the RA60,80,81,82,RD52,53 entries are commented out.  If the new partition
+# setup is desired the ra.c driver has a table with entries for the old style
+# partition layout, simply delete the line with the drive type and edit this
+# file to delete the old entry and uncomment the new one, then reinstall this
+# file in /etc.  NOTE:  the RD54 partition sizes are the _same_ - all that is
+# needed is to use the 'g' partition rather than the 'c' partition.
+#
+# All NEW partition tables use 'c' as the whole drive now, more in keeping
+# with the 4BSD style.
+#
 
-# RA60:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RA60	21/84	21/84	17/84	17/84	12/84	15/84	12/84	15/84
-#
-# CPU	60	70	73	83	84
-# DISK
-# RA60	15/84	10/84	12/84	12/84	10/84
-#
-ra60|RA60|DEC RA60 Removable:\
+ra60|RA60|DEC RA60 Removable|OLD STYLE PARTITIONS:\
 	:ty=removable:ns#42:nt#4:nc#2382:so:\
 	:b0=/mdec/rauboot:\
 	:pa#15884:ba#1024:fa#1024:\
@@ -292,18 +228,7 @@ ra60|RA60|DEC RA60 Removable:\
 	:pg#156570:bg#1024:fg#1024:\
 	:ph#399176:bh#1024:fh#1024:
 
-# RA80:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RA80	16/217	16/217	13/217	13/217	9/217	11/217	9/217	11/217
-#
-# CPU	60	70	73	83	84
-# DISK
-# RA80	11/217	7/217	9/217	9/217	7/217
-#
-ra80|RA80|DEC RA80 Winchester:\
+ra80|RA80|DEC RA80 Winchester|OLD STYLE PARTITIONS:\
 	:ty=winchester:ns#31:nt#14:nc#559:so:\
 	:b0=/mdec/rauboot:\
 	:pa#15884:ba#1024:fa#1024:\
@@ -311,18 +236,7 @@ ra80|RA80|DEC RA80 Winchester:\
 	:pc#186888:bc#1024:fc#1024:\
 	:ph#236212:bh#1024:fh#1024:
 
-# RA81:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RA81	26/357	26/357	21/357	21/357	14/357	18/357	14/357	17/357
-#
-# CPU	60	70	73	83	84
-# DISK
-# RA81	18/357	12/357	14/357	14/357	12/357
-#
-ra81|RA81|DEC RA81 Winchester:\
+ra81|RA81|DEC RA81 Winchester|OLD STYLE PARTITIONS:\
 	:ty=winchester:ns#51:nt#14:nc#1248:so:\
 	:b0=/mdec/rauboot:\
 	:pa#15884:ba#1024:fa#1024:\
@@ -333,86 +247,20 @@ ra81|RA81|DEC RA81 Winchester:\
 	:pf#324382:bf#1024:ff#1024:\
 	:pg#647466:bg#1024:fg#1024:\
 	:ph#890072:bh#1024:fh#1024:
-#
-# Disks on KLESI
-#
-# RC25:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RC25	15/31	15/31	13/31	13/31	9/31	11/31	9/31	11/31
-#
-# CPU	60	70	73	83	84
-# DISK
-# RC25	11/31	7/31	9/31	9/31	7/31
-#
-rc25|RC25:\
-	:ty=winchester:ns#42:nt#4:nc#302:so:bt=rauboot:\
+
+ra81x|RA81X|Extended DEC RA81 Winchester|OLD STYLE PARTITIONS:\
+	:ty=winchester:ns#51:nt#14:nc#1815:so:\
 	:b0=/mdec/rauboot:\
 	:pa#15884:ba#1024:fa#1024:\
-	:pb#10032:bb#1024:fb#1024:\
-	:pc#24884:bc#1024:fc#1024:\
-	:ph#50800:bh#1024:fh#1024:
-#
-#  Disks on RQDX Q-bus controllers
-#
-# RX50:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RX50	1/5	1/5	1/5	1/5	1/5	1/5	1/5	1/5
-#
-# CPU	60	70	73	83	84
-# DISK
-# RX50	1/5	1/5	1/5	1/5	1/5
-#
-rx50|RX50|DEC RX50 floppy disk unit:\
-	:ty=removable:ns#10:nt#1:nc#80:\
-	:b0=/mdec/rauboot:\
-	:ph#1638:bh#1024:fh#1024:
+	:pb#33440:bb#1024:fb#1024:\
+	:pc#193282:bc#1024:fc#1024:\
+	:pd#15884:bd#1024:fd#1024:\
+	:pe#307200:be#1024:fe#1024:\
+	:pf#728952:bf#1024:ff#1024:\
+	:pg#1052036:bg#1024:fg#1024:\
+	:ph#1294642:bh#1024:fh#1024:
 
-#
-# RD51:
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RD51	1/36	1/36	1/36	1/36	1/36	1/36	1/36	1/36
-#
-# CPU	60	70	73	83	84
-# DISK
-# RD51	1/36	1/36	1/36	1/36	1/36
-#
-rd51|RD51|DEC RD51:\
-	:ty=winchester:ns#18:nt#4:nc#300:so:\
-	:b0=/mdec/rauboot:\
-	:pa#9700:ba#1024:fa#1024:\
-	:pe#7460:be#1024:fe#1024:\
-	:pf#2240:bf#1024:ff#1024:\
-	:pg#11868:bg#1024:fg#1024:\
-	:ph#21568:bh#1024:fh#1024:
-#
-# RD52 and RD53:
-#
-# Note that interleaving factors are determined by controller (RQDX2 or
-# RQDX3) rather than disk type.  The names in the entries below are
-# combined with the controller so that newfs(8) can use the right
-# partition sizes and also look up the correct m/n numbers internally.
-#
-# File system free list parameters (m/n):
-# CPU		23	24	34	40	44	45	53	55
-# DISK
-# RQDX2*	2/36	2/36	2/36	2/36	2/36	2/36	2/36	2/36
-# RQDX3*	7/36	7/36	7/36	7/36	7/36	7/36	7/36	7/36
-#
-# CPU		60	70	73	83	84
-# DISK
-# RQDX2*	2/36	2/36	2/36	2/36	2/36
-# RQDX3*	7/36	7/36	7/36	7/36	7/36
-#
-rd52-rqdx2|RD52-RQDX2|rd52-rqdx3|RD52-RQDX3|DEC RD52:\
+rd52|RD52|DEC RD52|OLD STYLE PARTITIONS:\
 	:ty=winchester:ns#18:nt#7:nc#480:so:\
 	:b0=/mdec/rauboot:\
 	:pa#9700:ba#1024:fa#1024:\
@@ -423,7 +271,8 @@ rd52-rqdx2|RD52-RQDX2|rd52-rqdx3|RD52-RQDX3|DEC RD52:\
 	:pf#2240:bf#1024:ff#1024:\
 	:pg#50748:bg#1024:fg#1024:\
 	:ph#60448:bh#1024:fh#1024:
-rd53-rqdx2|RD53-RQDX2|rd53-rqdx3|RD53-RQDX3|DEC RD53:\
+
+rd53|RD53||DEC RD53|OLD STYLE PARTITIONS:\
 	:ty=winchester:ns#18:nt#8:nc#963:so:\
 	:b0=/mdec/rauboot:\
 	:pa#9700:ba#1024:fa#1024:\
@@ -434,18 +283,318 @@ rd53-rqdx2|RD53-RQDX2|rd53-rqdx3|RD53-RQDX3|DEC RD53:\
 	:pf#2240:bf#1024:ff#1024:\
 	:pg#128940:bg#1024:fg#1024:\
 	:ph#138640:bh#1024:fh#1024:
-#
-# RX02 floppy disk drives
-#
-# File system free list parameters (m/n):
-# CPU	23	24	34	40	44	45	53	55
-# DISK
-# RX02	1/7	1/7	1/7	1/7	1/7	1/7	1/7	1/7
-#
-# CPU	60	70	73	83	84
-# DISK
-# RX02	1/7	1/7	1/7	1/7	1/7
-#
+
+rc25|RC25|rcf25|RCF25|DEC RC25 and RC25F:\
+	:ty=removable:ns#42:nt#4:nc#2382:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#50902:bc#1024:fc#1024:\
+	:pg#26658:bg#1024:fg#1024:
+
+rd31|RD31|DEC RD31:\
+	:ty=winchester:ns#17:nt#4:nc#615:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#41560:bc#1024:fc#1024:\
+	:pg#17316:bg#1024:fg#1024:
+
+rd32|RD32|DEC RD32:\
+	:ty=winchester:ns#17:nt#6:nc#820:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#83236:bc#1024:fc#1024:\
+	:pg#58992:bg#1024:fg#1024:
+
+rd33|RD33|DEC RD33:\
+	:ty=winchester:ns#17:nt#7:nc#1170:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#138565:bc#1024:fc#1024:\
+	:pg#114321:bg#1024:fg#1024:
+
+rd51|RD51|DEC RD51:\
+	:ty=winchester:ns#18:nt#4:nc#300:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#5716:bb#1024:fb#1024:\
+	:pc#21600:bc#1024:fc#1024:
+
+# rd52|RD52|DEC RD52|NEW STYLE PARTITIONS:\
+# 	:ty=winchester:ns#18:nt#7:nc#480:so:\
+# 	:b0=/mdec/rauboot:\
+# 	:pa#15884:ba#1024:fa#1024:\
+# 	:pb#8360:bb#1024:fb#1024:\
+# 	:pc#60480:bc#1024:fc#1024:\
+# 	:pg#36236:bg#1024:fg#1024:
+
+# rd53|RD53|DEC RD53|NEW STYLE PARTITIONS:\
+# 	:ty=winchester:ns#17:nt#8:nc#1024:so:\
+# 	:b0=/mdec/rauboot:\
+# 	:pa#15884:ba#1024:fa#1024:\
+# 	:pb#8360:bb#1024:fb#1024:\
+# 	:pc#138672:bc#1024:fc#1024:\
+# 	:pg#114428:bg#1024:fg#1024:\
+
+rd54|RD54|DEC RD54:\
+	:ty=winchester:ns#17:nt#15:nc#1221:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#16720:bb#1024:fb#1024:\
+	:pc#311200:bc#1024:fc#1024:\
+	:pg#278596:bg#1024:fg#1024:
+
+rx23|RX23|DEC RX23:\
+	:ty=removable:ns#18:nt#2:nc#80:\
+	:b0=/mdec/rauboot:\
+	:pa#2880:ba#1024:fa#512:\
+	:pc#2880:bc#1024:fc#512:
+
+rx26|RX26|DEC RX26:\
+	:ty=removable:ns#36:nt#2:nc#80:\
+	:b0=/mdec/rauboot:\
+	:pa#5760:ba#1024:fa#512:\
+	:pc#5760:bc#1024:fc#512:
+
+rx33|RX33|DEC RX33:\
+	:ty=removable:ns#15:nt#2:nc#80:\
+	:b0=/mdec/rauboot:\
+	:pa#2400:ba#1024:fa#512:\
+	:pc#2400:bc#1024:fc#512:
+
+rx50|RX50|DEC RX50:\
+	:ty=removable:ns#10:nt#1:nc#80:\
+	:b0=/mdec/rauboot:\
+	:pa#800:ba#1024:fa#512:\
+	:pc#800:bc#1024:fc#512:
+
+# ra60|RA60|DEC RA60|NEW STYLE PARTITIONS:\
+# 	:ty=removable:ns#42:nt#4:nc#2382:so:\
+# 	:b0=/mdec/rauboot:\
+# 	:pa#15884:ba#1024:fa#1024:\
+# 	:pb#16720:bb#1024:fb#1024:\
+# 	:pc#400176:bc#1024:fc#1024:\
+# 	:pd#245048:bd#1024:fd#1024:\
+# 	:pe#122524:be#1024:fe#1024:\
+# 	:pg#367572:bg#1024:fg#1024:\
+
+ra70|RA70|DEC RA70:\
+        :ty=winchester:ns#33:nt#11:nc#1507:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#547041:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#287301:be#1024:fe#1024:\
+        :pg#514437:bg#1024:fg#1024:
+
+ra71|RA71|DEC RA71:\
+        :ty=winchester:ns#51:nt#14:nc#1915:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#1367310:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#515506:bh#1024:fh#1024:
+
+ra72|RA72|DEC RA72:\
+        :ty=winchester:ns#51:nt#20:nc#1915:so:\
+        :pa#15884:ba#1024:fa#1024:\
+	:b0=/mdec/rauboot:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#1953300:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#1101496:bh#1024:fh#1024:
+
+ra73|RA73|DEC RA73:\
+        :ty=winchester:ns#70:nt#21:nc#2667:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#3920490:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#3068686:bh#1024:fh#1024:
+
+# ra80|RA80|DEC RA80|NEW STYLE PARTITIONS:\
+# 	:ty=winchester:ns#31:nt#14:nc#546:so:\
+# 	:b0=/mdec/rauboot:\
+# 	:pa#15884:ba#1024:fa#1024:\
+# 	:pb#16720:bb#1024:fb#1024:\
+# 	:pc#237212:bc#1024:fc#1024:\
+# 	:pg#204608:bg#1024:fg#1024:
+
+# ra81|RA81|DEC RA81|NEW STYLE PARTITIONS:\
+# 	:ty=winchester:ns#51:nt#14:nc#1248:so:\
+# 	:b0=/mdec/rauboot:\
+# 	:pa#15884:ba#1024:fa#1024:\
+# 	:pb#16720:bb#1024:fb#1024:\
+# 	:pc#891072:bc#1024:fc#1024:\
+# 	:pd#227136:bd#1024:fd#1024:\
+# 	:pe#409600:be#1024:fe#1024:\
+# 	:pf#182464:bf#1024:ff#1024:\
+# 	:pg#819200:bg#1024:fg#1024:\
+# 	:ph#39268:bh#1024:fh#1024:
+
+ra82|RA82|DEC RA82:\
+	:ty=winchester:ns#57:nt#15:nc#1423:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#16720:bb#1024:fb#1024:\
+	:pc#1216665:bc#1024:fc#1024:\
+	:pd#227136:bd#1024:fd#1024:\
+	:pe#409600:be#1024:fe#1024:\
+	:pf#182464:bf#1024:ff#1024:\
+	:pg#819200:bg#1024:fg#1024:\
+	:ph#364861:bh#1024:fh#1024:
+
+ra90|RA90|DEC RA90:\
+	:ty=winchester:ns#69:nt#13:nc#2649:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#16720:bb#1024:fb#1024:\
+	:pc#2376153:bc#1024:fc#1024:\
+	:pd#227136:bd#1024:fd#1024:\
+	:pe#409600:be#1024:fe#1024:\
+	:pf#182464:bf#1024:ff#1024:\
+	:pg#819200:bg#1024:fg#1024:\
+	:ph#1524349:bh#1024:fh#1024:
+
+ra92|RA92|DEC RA92:\
+	:ty=winchester:ns#69:nt#13:nc#3279:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#16720:bb#1024:fb#1024:\
+	:pc#2940951:bc#1024:fc#1024:\
+	:pd#227136:bd#1024:fd#1024:\
+	:pe#409600:be#1024:fe#1024:\
+	:pf#182464:bf#1024:ff#1024:\
+	:pg#819200:bg#1024:fg#1024:\
+	:ph#2089147:bh#1024:fh#1024:
+
+rz22|RZ22|DEC RZ22:\
+	:ty=winchester:ns#33:nt#4:nc#776:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#102432:bc#1024:fc#1024:\
+	:pg#78188:bg#1024:fg#1024:
+
+rz23|RZ23|DEC RZ23:\
+	:ty=winchester:ns#33:nt#8:nc#776:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#204864:bc#1024:fc#1024:\
+	:pg#180620:bg#1024:fg#1024:\
+
+rz23l|RZ23L|DEC RZ23L:\
+	:ty=winchester:ns#39:nt#4:nc#1524:so:\
+	:b0=/mdec/rauboot:\
+	:pa#15884:ba#1024:fa#1024:\
+	:pb#8360:bb#1024:fb#1024:\
+	:pc#237588:bc#1024:fc#1024:\
+	:pg#213344:bg#1024:fg#1024:\
+
+rz24|RZ24|DEC RZ24:\
+        :ty=winchester:ns#38:nt#8:nc#1348:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#409792:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#150052:be#1024:fe#1024:\
+        :pg#377188:bg#1024:fg#1024:
+
+rz24l|RZ24L|DEC RZ24L:\
+        :ty=winchester:ns#65:nt#4:nc#1818:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#479350:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#219610:be#1024:fe#1024:\
+        :pg#446746:bg#1024:fg#1024:
+
+rz25|RZ25|DEC RZ25:\
+        :ty=winchester:ns#62:nt#9:nc#1476:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#832527:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#130590:bf#1024:ff#1024:\
+        :pg#799923:bg#1024:fg#1024:
+
+rz26|RZ26|DEC RZ26:\
+        :ty=winchester:ns#57:nt#14:nc#2570:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#2050860:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+	:ph#1199056:bh#1024:fh#1024:
+
+rz55|RZ55|DEC RZ55:\
+        :ty=winchester:ns#36:nt#15:nc#1224:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#649040:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#389300:be#1024:fe#1024:\
+        :pg#616436:bg#1024:fg#1024:
+
+rz56|RZ56|DEC RZ56:\
+        :ty=winchester:ns#54:nt#15:nc#1632:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#1299174:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#447370:bh#1024:fh#1024:
+
+rz57|RZ57|DEC RZ57:\
+        :ty=winchester:ns#71:nt#15:nc#1854:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16720:bb#1024:fb#1024:\
+        :pc#1954050:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#1102246:bh#1024:fh#1024:
+
+rz58|RZ58|DEC RZ58:\
+        :ty=winchester:ns#85:nt#15:nc#2112:so:\
+	:b0=/mdec/rauboot:\
+        :pa#15884:ba#1024:fa#1024:\
+        :pb#16270:bb#1024:fb#1024:\
+        :pc#2698061:bc#1024:fc#1024:\
+        :pd#227136:bd#1024:fd#1024:\
+        :pe#409600:be#1024:fe#1024:\
+        :pf#182464:bf#1024:ff#1024:\
+        :pg#819200:bg#1024:fg#1024:\
+        :ph#1846257:bh#1024:fh#1024:
 rx02|RX02|DEC RX02:\
 	:ty=removable:se#128/256:ns#26:nt#1:nc#77:\
 	:pa#250:ba#1024:fa#1024:\

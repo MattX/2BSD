@@ -5,14 +5,14 @@ KILL(2)             UNIX Programmer's Manual		  KILL(2)
 
 
 
-NNAAMMEE
+NAME
      kill - send signal to a process
 
-SSYYNNOOPPSSIISS
-     kkiillll((ppiidd,, ssiigg))
-     iinntt ppiidd,, ssiigg;;
+SYNOPSIS
+     kill(pid, sig)
+     int pid, sig;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _K_i_l_l sends the signal _s_i_g to a process, specified by the
      process number _p_i_d.  _S_i_g may be one of the signals specified
      in _s_i_g_v_e_c(2), or it may be 0, in which case error checking
@@ -43,12 +43,12 @@ DDEESSCCRRIIPPTTIIOONN
 
      Processes may send signals to themselves.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-EERRRROORRSS
+ERRORS
      _K_i_l_l will fail and no signal will be sent if any of the fol-
      lowing occur:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  May 14, 1986				1
+Printed 1/9/94		  May 14, 1986				1
 
 
 
@@ -81,7 +81,7 @@ KILL(2)             UNIX Programmer's Manual		  KILL(2)
 		    was returned if any members of the group
 		    could not be signaled.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getpid(2), getpgrp(2), killpg(2), sigvec(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 14, 1986				2
+Printed 1/9/94		  May 14, 1986				2
 
 
 

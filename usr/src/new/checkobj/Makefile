@@ -4,15 +4,20 @@ DEFS=
 CFLAGS=	-O ${DEFS}
 SEPFLAG=-i
 
-all: checkobj.c
+all: checkobj
+
+checkobj: checkobj.c
 	cc ${CFLAGS} ${SEPFLAG} checkobj.c -o checkobj
 
-install: checkobj checkobj.1
+install: checkobj checkobj.0
 	install -s checkobj ${DESTDIR}/usr/new/checkobj
-	/usr/man/manroff checkobj.1 >${DESTDIR}/usr/man/catn/checkobj.0
+	install -c -m 444 -o bin -g bin checkobj.0 ${DESTDIR}/usr/new/man/cat1
+
+checkobj.0: checkobj.1
+	/usr/man/manroff checkobj.1 > checkobj.0
 
 clean:
-	rm -f checkobj *.o MAKELOG
+	rm -f checkobj *.o checkobj.0 MAKELOG
 
 depend:
 tags:

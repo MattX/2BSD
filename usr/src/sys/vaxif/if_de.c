@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_de.c	7.4 (Berkeley) 5/26/88
+ *	@(#)if_de.c	7.2 (Berkeley) 7/18/86
  */
 #include "de.h"
 #if NDE > 0
@@ -234,8 +234,6 @@ dereset(unit, uban)
 	printf(" de%d", unit);
 	de_softc[unit].ds_if.if_flags &= ~IFF_RUNNING;
 	de_softc[unit].ds_flags &= ~(DSF_LOCK | DSF_RUNNING);
-	((struct dedevice *)ui->ui_addr)->pcsr0 = PCSR0_RSET;
-	(void)dewait(ui, "reset");
 	deinit(unit);
 }
 
@@ -807,12 +805,12 @@ de_setaddr(physaddr, unit)
 	if (! (ds->ds_flags & DSF_RUNNING))
 		return;
 		
-	bcopy((caddr_t) physaddr, (caddr_t) &ds->ds_pcbb.pcbb2, 6);
+	bcopy(physaddr, &ds->ds_pcbb.pcbb2, 6);
 	ds->ds_pcbb.pcbb0 = FC_WTPHYAD;
 	addr->pclow = PCSR0_INTE|CMD_GETCMD;
 	if (dewait(ui, "address change") == 0) {
 		ds->ds_flags |= DSF_SETADDR;
-		bcopy((caddr_t) physaddr, (caddr_t) ds->ds_addr, 6);
+		bcopy(physaddr, ds->ds_addr, 6);
 	}
 }
 

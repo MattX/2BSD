@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dr.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dr.c	1.3 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -33,7 +33,6 @@ struct	dr11w {
 	int	i_sig;			/* signal to send on ATTN */
 	int	i_tsig;			/* signal to send on timeout */
 	struct	buf i_tab;		/* buffer for device */
-	struct	buf i_buf;		/* raw device buffer */
 	struct	drdevice *i_addr;	/* address of DR11-W interface */
 };
 
@@ -106,9 +105,7 @@ register struct buf *bp;
 	bp->av_forw = NULL;
 	s = splbio();			/* lock out interrupts */
 
-#ifdef	UNIBUS_MAP
 	mapalloc(bp);
-#endif	UNIBUS_MAP
 
 	if(dp->b_actf == NULL)		/* if nothing in current buffer */
 		dp->b_actf = bp;	/* this request is first */
@@ -200,20 +197,6 @@ int unit;
 	iodone(bp);				/* tell system we are done */
 	if(drptr->i_tab.b_actf)			/* start next request */
 		drstart(drptr);
-}
-
-drread(dev)
-	dev_t dev;
-{
-	return (physio(drstrategy, &dr11[minor(dev) & 07].i_buf,
-	    dev, B_READ, WORD));
-}
-
-drwrite(dev)
-	dev_t dev;
-{
-	return (physio(drstrategy, &dr11[minor(dev) & 07].i_buf,
-	    dev, B_WRITE, WORD));
 }
 
 drioctl(dev, cmd, data, flag)

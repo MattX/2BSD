@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)sc21boot.s	1.2 (Berkeley)	2/19/87
+ *	SCCS id	@(#)sc21boot.s	2.0 (2.11BSD)	4/13/91
  */
 #include "localopts.h"
 
@@ -8,12 +8,10 @@
 ENDCORE=	160000		/ end of core, mem. management off
 SZFLAGS=	6		/ size of boot flags
 BOOTOPTS=	2		/ location of options, bytes below ENDCORE
-BOOTDEV=	4
+BOOTDEV=	4		/ boot unit
 CHECKWORD=	6
 
-reset= 	5
-
-.globl	_doboot, hardboot
+.globl	_doboot, hardboot, _bootcsr
 .text
 _doboot:
 	mov	4(sp),r4	/ boot options
@@ -35,10 +33,12 @@ _doboot:
 #endif
 
 /  On power fail, hardboot is the entry point (map is already off)
-/  and the args are in r4, r3.
+/  and the args are in r4 (RB_POWRFAIL), r3 (rootdev)
 
 hardboot:
 	mov	r4, ENDCORE-BOOTOPTS
+	ash	$-3,r3		/ shift out the partition number
+	bic	$!7,r3		/ save only the drive number
 	mov	r3, ENDCORE-BOOTDEV
 	com	r4		/ if CHECKWORD == ~bootopts, flags are believed
 	mov	r4, ENDCORE-CHECKWORD
@@ -52,19 +52,17 @@ hardboot:
 
 /  Bootstrap for Emulex SC21 with boot opcode
 
-unit =	0		/  unit to boot from
-RMCS1=	176700
-RMCS2=	176710
-RMHR=	176736
+RMCS1=	0
+RMCS2=	10
+RMHR=	36
 BOOT=	75
-	mov	$RMCS1,r0
-	mov	$unit, RMCS2
-	mov	$-1, RMHR	/ enable extended opcodes
-	mov	$BOOT,(r0)
-2:	tstb	(r0)
+	mov	_bootcsr,r1
+	mov	ENDCORE-BOOTDEV, RMCS2(r1)
+	mov	$-1, RMHR(r1)	/ enable extended opcodes
+	mov	$BOOT,(r1)
+2:	tstb	(r1)
 	bpl	2b		/ wait for done (RDY)
-	tst	(r0)
+	tst	(r1)
 	bmi	1b		/ try again on error (TRE)
-
-	jmp	*$0
-/ no return
+	mov	ENDCORE-BOOTDEV,r0
+	clr	pc

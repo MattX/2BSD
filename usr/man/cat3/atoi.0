@@ -5,20 +5,20 @@ ATOF(3)             UNIX Programmer's Manual		  ATOF(3)
 
 
 
-NNAAMMEE
+NAME
      atof, atoi, atol - convert ASCII to numbers
 
-SSYYNNOOPPSSIISS
-     ddoouubbllee aattooff((nnppttrr))
-     cchhaarr **nnppttrr;;
+SYNOPSIS
+     double atof(nptr)
+     char *nptr;
 
-     aattooii((nnppttrr))
-     cchhaarr **nnppttrr;;
+     atoi(nptr)
+     char *nptr;
 
-     lloonngg aattooll((nnppttrr))
-     cchhaarr **nnppttrr;;
+     long atol(nptr)
+     char *nptr;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These functions convert a string pointed to by _n_p_t_r to
      floating, integer, and long integer representation respec-
      tively.  The first unrecognized character ends the string.
@@ -31,10 +31,10 @@ DDEESSCCRRIIPPTTIIOONN
      _A_t_o_i and _a_t_o_l recognize an optional string of spaces, then
      an optional sign, then a string of digits.
 
-SSEEEE AALLSSOO
+SEE ALSO
      scanf(3S)
 
-BBUUGGSS
+BUGS
      There are no provisions for overflow.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

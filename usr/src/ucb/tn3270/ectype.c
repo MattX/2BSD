@@ -1,8 +1,4 @@
-/*	@(#)ectype.c	1.1	*/
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
+/*	@(#)ectype.c	1.2	*/
 
 #include "ectype.h"
 

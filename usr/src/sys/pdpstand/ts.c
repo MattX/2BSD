@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ts.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ts.c	2.1 (2.11BSD) 7/15/94
  */
 
 /*
@@ -18,52 +18,71 @@
 extern int tapemark;	/* flag to indicate tapemark encountered
 			   (see sys.c as to how its used) */
 
-caddr_t tsptr;
-struct	ts_char	chrbuf;		/* characteristics buffer */
-struct	ts_sts	mesbuf;		/* message buffer */
-struct	ts_cmd	*combuf;	/* command packet buffer */
-char	softspace[sizeof(struct ts_cmd)+3];
+#define	NTS	2
 
-#define	TSADDR	((struct tsdevice *)0172520)
+	struct	tsdevice *TScsr[NTS + 1] =
+		{
+		(struct tsdevice *)0172520,
+		(struct tsdevice *)0,
+		(struct tsdevice *)-1
+		};
 
+caddr_t tsptr[NTS];
+struct	ts_char	chrbuf[NTS];		/* characteristics buffer */
+struct	ts_sts	mesbuf[NTS];		/* message buffer */
+struct	ts_cmd	*combuf[NTS];		/* command packet buffer */
+char	softspace[(NTS * sizeof(struct ts_cmd)) + 3];
 
 	/* bit definitions for Command mode field during read command */
 #define	TS_RPREV	0400	/* read previous (reverse) */
 
-
 tsopen(io)
 	register struct iob *io;
 {
-	register skip;
+	int skip;
+	register struct tsdevice *tsaddr;
+	register struct ts_char *chrb;
+	struct ts_cmd *cmb;
+	int ctlr = CTLRn(io->i_unit);
+	char *cp;
+
+	if (genopen(NTS, io) < 0)
+		return(-1);
+	tsaddr = TScsr[ctlr];
 
 	/* combuf must be alligned on a mod 4 byte boundary */
-	combuf = (struct ts_cmd *)((u_short)softspace + 3 & ~3);
-	tsptr = (caddr_t)((int)&combuf->c_cmd | (int)segflag);
-	combuf->c_cmd = (TS_ACK|TS_CVC|TS_INIT);
-	TSADDR->tsdb = (u_short) tsptr;
-	while ((TSADDR->tssr & TS_SSR) == 0)
+	cp = (char *)((u_short)softspace + 3 & ~3);
+	cp += (ctlr * sizeof (struct ts_cmd));
+	cmb = combuf[ctlr] = (struct ts_cmd *)cp;
+	tsptr[ctlr] = (caddr_t)((int)&combuf[ctlr]->c_cmd | (int)segflag);
+	cmb->c_cmd = (TS_ACK|TS_CVC|TS_INIT);
+	tsaddr->tsdb = (u_short) tsptr[ctlr];
+	while ((tsaddr->tssr & TS_SSR) == 0)
 		continue;
-	chrbuf.char_bptr = (u_short) &mesbuf;
-	chrbuf.char_bae = segflag;
-	chrbuf.char_size = 016;
-	chrbuf.char_mode = 0;
-	combuf->c_cmd = (TS_ACK|TS_CVC|TS_SETCHR);
-	combuf->c_loba = (u_short) &chrbuf;
-	combuf->c_hiba = segflag;
-	combuf->c_size = 010;
-	TSADDR->tsdb = (u_short) tsptr;
-	while ((TSADDR->tssr & TS_SSR) == 0)
+	chrb = &chrbuf[ctlr];
+	chrb->char_bptr = (u_short) &mesbuf;
+	chrb->char_bae = segflag;
+	chrb->char_size = 016;
+	chrb->char_mode = 0;
+	cmb->c_cmd = (TS_ACK|TS_CVC|TS_SETCHR);
+	cmb->c_loba = (u_short) &chrbuf;
+	cmb->c_hiba = segflag;
+	cmb->c_size = 010;
+	tsaddr->tsdb = (u_short) tsptr[ctlr];
+	while ((tsaddr->tssr & TS_SSR) == 0)
 		continue;
 	tsstrategy(io, TS_REW);
 	skip = io->i_boff;
 	while (skip--) {
-		io->i_cc = 1;
-		while (tsstrategy(io, TS_SFORW))
+		io->i_cc = 0;
+		while (tsstrategy(io, TS_SFORWF))
 			continue;
 	}
+	return(0);
 }
+
 tsclose(io)
-	register struct iob *io;
+	struct iob *io;
 {
 	tsstrategy(io, TS_REW);
 }
@@ -71,49 +90,51 @@ tsclose(io)
 tsstrategy(io, func)
 	register struct iob *io;
 {
-	register unit, errcnt;
+	register int ctlr = CTLRn(io->i_unit);
+	int errcnt, unit;
+	register struct tsdevice *tsaddr = TScsr[ctlr];
 
-	unit = io->i_unit;
+	unit = UNITn(io->i_unit);
 	errcnt = 0;
-	combuf->c_loba = (u_short) io->i_ma;
-	combuf->c_hiba = segflag;
-	combuf->c_size = io->i_cc;
+	combuf[ctlr]->c_loba = (u_short) io->i_ma;
+	combuf[ctlr]->c_hiba = segflag;
+	combuf[ctlr]->c_size = io->i_cc;
+	if (func == TS_SFORW || func == TS_SFORWF)
+		combuf[ctlr]->c_repcnt = 1;
 	if (func == READ)
-		combuf->c_cmd = TS_ACK|TS_RCOM;
+		combuf[ctlr]->c_cmd = TS_ACK|TS_RCOM;
 	else if (func == WRITE)
-		combuf->c_cmd = TS_ACK|TS_WCOM;
+		combuf[ctlr]->c_cmd = TS_ACK|TS_WCOM;
 	else
-		combuf->c_cmd = TS_ACK|func;
-	TSADDR->tsdb = (u_short) tsptr;
+		combuf[ctlr]->c_cmd = TS_ACK|func;
+	tsaddr->tsdb = (u_short) tsptr[ctlr];
 retry:
-	while ((TSADDR->tssr & TS_SSR) == 0)
+	while ((tsaddr->tssr & TS_SSR) == 0)
 		continue;
-	if (mesbuf.s_xs0 & TS_TMK) {
+	if (mesbuf[ctlr].s_xs0 & TS_TMK) {
 		tapemark = 1;
 		return(0);
 	}
-	if (TSADDR->tssr & TS_SC) {
+	if (tsaddr->tssr & TS_SC) {
 		if (errcnt == 0)
-		    printf("\nTS tape error: sr=%o xs0=%o xs1=%o xs2=%o xs3=%o",
-			TSADDR->tssr,
-			mesbuf.s_xs0, mesbuf.s_xs1,
-			mesbuf.s_xs2, mesbuf.s_xs3);
+		    printf("\nTS%d,%d err sr=%o xs0=%o xs1=%o xs2=%o xs3=%o",
+			ctlr, UNITn(io->i_unit), tsaddr->tssr,
+			mesbuf[ctlr].s_xs0, mesbuf[ctlr].s_xs1,
+			mesbuf[ctlr].s_xs2, mesbuf[ctlr].s_xs3);
 		if (errcnt++ == 10) {
 			printf("\n(FATAL ERROR)\n");
 			return(-1);
 		}
 		if (func == READ)
-			combuf->c_cmd = (TS_ACK|TS_RPREV|TS_RCOM);
+			combuf[ctlr]->c_cmd = (TS_ACK|TS_RPREV|TS_RCOM);
 		else if (func == WRITE)
-			combuf->c_cmd = (TS_ACK|TS_RETRY|TS_WCOM);
+			combuf[ctlr]->c_cmd = (TS_ACK|TS_RETRY|TS_WCOM);
 		else {
 			printf("\n");
 			return(-1);
 		}
-		TSADDR->tsdb = (u_short) tsptr;
+		tsaddr->tsdb = (u_short) tsptr[ctlr];
 		goto retry;
 	}
-	if (errcnt)
-		printf("\n(RECOVERED by retry)\n");
-	return (io->i_cc+mesbuf.s_rbpcr);
+	return (io->i_cc+mesbuf[ctlr].s_rbpcr);
 }

@@ -52,25 +52,44 @@ main(ac, av)
 	int wtmp;
 	off_t bl;
 	char *ct;
+	char wtmpfile[256];
+	char progname[256];
 	register struct utmp *bp;
 	long otime;
 	struct stat stb;
 	int print;
+	int sinput = 0;
 	char * crmsg = (char *)0;
 	long crtime;
 	long outrec = 0;
 	long maxrec = 0x7fffffffL;
  
 	time(&buf[0].ut_time);
+	strcpy(wtmpfile,"/usr/adm/wtmp");
+	strcpy(progname,av[0]);
 	ac--, av++;
 	nameargs = argc = ac;
 	argv = av;
 	for (i = 0; i < argc; i++) {
-		if (argv[i][0] == '-' &&
-		    argv[i][1] >= '0' && argv[i][1] <= '9') {
-			maxrec = atoi(argv[i]+1);
-			nameargs--;
-			continue;
+		if (argv[i][0] == '-' ) {
+			if ( argv[i][1] >= '0' && argv[i][1] <= '9') {
+				maxrec = atoi(argv[i]+1);
+				nameargs--;
+				continue;
+			} else {
+				if (argv[i][1] == 'f') {
+					i++;
+					if ( i < argc) {
+						strcpy(wtmpfile,argv[i]);
+						nameargs = nameargs -2;
+						continue;
+					} else {
+						usage(progname);
+					}
+				} else {
+					usage(progname);
+				}
+			}
 		}
 		if (strlen(argv[i])>2)
 			continue;
@@ -84,9 +103,9 @@ main(ac, av)
 			continue;
 		argv[i] = strspl("tty", argv[i]);
 	}
-	wtmp = open("/usr/adm/wtmp", 0);
+	wtmp = open(wtmpfile, 0);
 	if (wtmp < 0) {
-		perror("/usr/adm/wtmp");
+		perror(wtmpfile);
 		exit(1);
 	}
 	fstat(wtmp, &stb);
@@ -212,4 +231,13 @@ strspl(left, right)
 	strcpy(res, left);
 	strcat(res, right);
 	return (res);
+}
+
+void
+usage(progname)
+	char *progname;
+{
+	printf("Usage: %s [ -f filename ] [-number] [name...] [tty...]\n",
+		progname);
+	exit(1);
 }

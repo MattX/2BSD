@@ -17,7 +17,7 @@ struct hkdevice
 	short	hker;		/* driver error register */
 	short	hkatt;		/* attention status/offset register */
 	short	hkcyl;		/* current cylinder register */
-	short	hkspare;	/* "spare" register */
+	short	hkxmem;	        /* extended memory address register */
 	short	hkdb;		/* data buffer register */
 	short	hkmr1;		/* maint reg 1 */
 	short	hkecps;		/* burst error bit position */

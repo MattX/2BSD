@@ -1,22 +1,43 @@
-/*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+/*-
+ * Copyright (c) 1991 The Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)a.out.h	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ *	@(#)a.out.h	5.6.1 (2.11BSD GTE) 1/6/94
  */
 
-/*
- * Definitions of the a.out header
- * and magic numbers are shared with
- * the kernel.
- */
+#ifndef	_AOUT_H_
+#define	_AOUT_H_
+
 #include <sys/exec.h>
 
-/*
- * Macros which take exec structures as arguments and tell whether
- * the file has a reasonable magic number or offset to text.
- */
 #define	N_BADMAG(x) \
 	(((x).a_magic)!=A_MAGIC1 && ((x).a_magic)!=A_MAGIC2 && \
 	((x).a_magic)!=A_MAGIC3 && ((x).a_magic)!=A_MAGIC4 && \
@@ -27,31 +48,25 @@
 	sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
 
 /*
- * Format of a symbol table entry; this file is included by <a.out.h>
- * and should be used if you aren't interested the a.out header
- * or relocation information.
- */
-struct	nlist {
-	char	n_name[8];	/* symbol name */
-	int	n_type;		/* type flag */
-unsigned int	n_value;	/* value */
-};
+ * The following were added as part of the new object file format.  They
+ * call functions because calculating the sums of overlay sizes was too
+ * messy (and verbose) to do 'inline'.
+ *
+ * NOTE: if the magic number is that of an overlaid object the program
+ * must pass an extended header ('xexec') as the argument.
+*/
 
-/*
- * Simple values for n_type.
- */
-#define	N_UNDF	0x0		/* undefined */
-#define	N_ABS	0x1		/* absolute */
-#define	N_TEXT	0x2		/* text symbol */
-#define	N_DATA	0x3		/* data symbol */
-#define	N_BSS	0x4		/* bss symbol */
-#define	N_REG	0x14		/* register name */
-#define	N_FN	0x1f		/* file name symbol */
+#include <sys/types.h>
 
-#define	N_EXT	0x20		/* external bit, or'ed in */
-#define	N_TYPE	0x1f		/* mask for all the type bits */
+off_t	n_stroff(), n_symoff(), n_datoff(), n_dreloc(), n_treloc();
 
-/*
- * Format for namelist values.
- */
-#define	N_FORMAT	"%06o"
+#define	N_STROFF(e) (n_stroff(&e))
+#define	N_SYMOFF(e) (n_symoff(&e))
+#define	N_DATOFF(e) (n_datoff(&e))
+#define	N_DRELOC(e) (n_dreloc(&e))
+#define	N_TRELOC(e) (n_treloc(&e))
+
+#define	_AOUT_INCLUDE_
+#include <nlist.h>
+
+#endif	/* !_AOUT_H_ */

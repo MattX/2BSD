@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)version.c	5.52 (Berkeley) 5/6/86";
+static char	SccsId[] = "@(#)version.c	5.52.1 (2.11BSD GTE) 7/15/94";
 #endif
 
-char	Version[] = "5.52";
+char	*Version = "5.52.1";

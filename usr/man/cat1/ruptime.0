@@ -5,13 +5,13 @@ RUPTIME(1C)	    UNIX Programmer's Manual	      RUPTIME(1C)
 
 
 
-NNAAMMEE
+NAME
      ruptime - show host status of local machines
 
-SSYYNNOOPPSSIISS
-     rruuppttiimmee [ --aa ] [ --rr ] [ --ll ] [ --tt ] [ --uu ]
+SYNOPSIS
+     ruptime [ -a ] [ -r ] [ -l ] [ -t ] [ -u ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_u_p_t_i_m_e gives a status line like _u_p_t_i_m_e for each machine on
      the local network; these are formed from packets broadcast
      by each host on the network once a minute.
@@ -19,18 +19,18 @@ DDEESSCCRRIIPPTTIIOONN
      Machines for which no status report has been received for 11
      minutes are shown as being down.
 
-     Users idle an hour or more are not counted unless the --aa
+     Users idle an hour or more are not counted unless the -a
      flag is given.
 
-     Normally, the listing is sorted by host name.  The --ll ,, --tt ,,
-     and --uu flags specify sorting by load average, uptime, and
-     number of users, respectively.  The --rr flag reverses the
+     Normally, the listing is sorted by host name.  The -l , -t ,
+     and -u flags specify sorting by load average, uptime, and
+     number of users, respectively.  The -r flag reverses the
      sort order.
 
-FFIILLEESS
+FILES
      /usr/spool/rwho/whod.*   data files
 
-SSEEEE AALLSSOO
+SEE ALSO
      rwho(1C)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

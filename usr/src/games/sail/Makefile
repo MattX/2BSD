@@ -25,10 +25,13 @@ SAILMASTER = daemon
 LOGFILE = lib/saillog
 TARGET = $(DESTDIR)/usr/games
 
-all: sail
+all: sail sail.0
 
 sail: $(OBJS)
 	$(CC) -o sail ${SEPFLAG} $(OBJS) $(LIBS)
+
+sail.0:	sail.6
+	/usr/man/manroff sail.6 > sail.0
 
 lint:
 	lint -z $(CFILES) -lcurses
@@ -40,10 +43,11 @@ $(CFILES) $(HFILES) $(OTHERFILES):
 	sccs get $@
 
 clean:
-	rm -f $(OBJS) $(JUNKFILES)
+	rm -f $(OBJS) $(JUNKFILES) sail.0
 
-install: sail $(TARGET)/$(LOGFILE)
+install: sail $(TARGET)/$(LOGFILE) sail.0
 	install -s -m 4755 -o $(SAILMASTER) sail $(TARGET)/sail
+	install -c -m 444 sail.0 ${DESTDIR}/usr/man/cat6/sail.0
 
 logfile $(TARGET)/$(LOGFILE):
 	cp /dev/null $(TARGET)/$(LOGFILE)

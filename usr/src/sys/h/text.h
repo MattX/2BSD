@@ -16,7 +16,7 @@ struct text
 {
 	struct	text *x_forw;	/* forward link in free list */
 	struct	text **x_back;	/* backward link in free list */
-	short	x_daddr;	/* segment's disk address (relative to swplo) */
+	short	x_daddr;	/* segment's disk address */
 	short	x_caddr;	/* core address, if loaded */
 	size_t	x_size;		/* size (clicks) */
 	struct	inode *x_iptr;	/* inode of prototype */

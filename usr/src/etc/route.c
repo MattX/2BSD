@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)route.c	5.6 (Berkeley) 6/5/86";
-#endif not lint
+static char sccsid[] = "@(#)route.c	5.6.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/param.h>
 #include <sys/socket.h>
@@ -92,7 +90,7 @@ struct nlist nl[] = {
 	"",
 };
 
-#ifdef BSD2_10
+#ifdef pdp11
 u_int base2_10;
 struct nlist kl[] = {
 #define N_NETDATA	0
@@ -110,7 +108,7 @@ flushroutes()
 	int rthashsize, i, doinghost = 1, kmem;
 	char *routename(), *netname();
 
-#ifdef BSD2_10
+#ifdef pdp11
 	nlist("/unix", kl);
 	if (kl[N_NETDATA].n_value == 0) {
 		printf("route: \"netdata\", symbol not in namelist\n");
@@ -132,7 +130,7 @@ flushroutes()
 		printf("route: \"rthashsize\", symbol not in namelist\n");
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	kmem = open("/dev/mem", 0);
 #else
 	kmem = open("/dev/kmem", 0);
@@ -141,7 +139,7 @@ flushroutes()
 		perror("route: /dev/kmem");
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	lseek(kmem, (off_t)kl[N_NETDATA].n_value, 0);
 	read(kmem, &base2_10, sizeof(base2_10));
 	lseek(kmem, (off_t)nl[N_RTHASHSIZE].n_value + ctob((long)base2_10), 0);
@@ -151,7 +149,7 @@ flushroutes()
 	read(kmem, &rthashsize, sizeof (rthashsize));
 	routehash = (struct mbuf **)malloc(rthashsize*sizeof (struct mbuf *));
 
-#ifdef BSD2_10
+#ifdef pdp11
 	lseek(kmem, (off_t)nl[N_RTHOST].n_value + ctob((long)base2_10), 0);
 #else
 	lseek(kmem, (off_t)nl[N_RTHOST].n_value, 0);
@@ -164,7 +162,7 @@ again:
 			continue;
 		m = routehash[i];
 		while (m) {
-#ifdef BSD2_10
+#ifdef pdp11
 			lseek(kmem, (off_t)m + ctob((long)base2_10), 0);
 #else
 			lseek(kmem, (off_t)m, 0);
@@ -185,7 +183,7 @@ again:
 		}
 	}
 	if (doinghost) {
-#ifdef BSD2_10
+#ifdef pdp11
 		lseek(kmem, (off_t)nl[N_RTNET].n_value+ctob((long)base2_10), 0);
 #else
 		lseek(kmem, (off_t)nl[N_RTNET].n_value, 0);
@@ -240,7 +238,7 @@ routename(sa)
 		if (cp)
 			strcpy(line, cp);
 		else {
-#ifdef BSD2_10
+#ifdef pdp11
 #define C(x)	(((int)(x)) & 0xff)
 #else
 #define C(x)	((x) & 0xff)
@@ -314,11 +312,6 @@ netname(sa)
 			while ((mask & 1) == 0) {
 				mask >>= 1;
 				net >>= 1;
-#ifdef BSD2_10
-				/* 2.10BSD compiler doesn't support u_long */
-				mask &= 0x7fffffff;
-				net &= 0x7fffffff;
-#endif
 			}
 			np = getnetbyaddr(net, AF_INET);
 			if (np)

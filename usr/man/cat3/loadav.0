@@ -5,14 +5,14 @@ LOADAV(3)	    UNIX Programmer's Manual		LOADAV(3)
 
 
 
-NNAAMMEE
+NAME
      loadav - get load average (2BSD)
 
-SSYYNNOOPPSSIISS
-     llooaaddaavv((vveecc))
-     ddoouubbllee vveecc[[33]];;
+SYNOPSIS
+     loadav(vec)
+     double vec[3];
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _L_o_a_d_a_v returns the load average on the system.  The three
      numbers returned are the 1, 5, and 15 minute load averages.
      A load average is the average length of the run queue over
@@ -23,10 +23,10 @@ DDEESSCCRRIIPPTTIIOONN
      numbers can be used to give some indication of whether the
      load is going up or down.
 
-SSEEEE AALLSSOO
+SEE ALSO
      w(1), gldav(2)
 
-BBUUGGSS
+BUGS
      Only measures the load on the CPU.  If the system is I/O
      bound, it won't indicate the true load.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	January 22, 1987			1
+Printed 1/9/94		January 22, 1987			1
 
 
 

@@ -5,14 +5,14 @@ RSH(1C)             UNIX Programmer's Manual		  RSH(1C)
 
 
 
-NNAAMMEE
+NAME
      rsh - remote shell
 
-SSYYNNOOPPSSIISS
-     rrsshh host [ --ll username ] [ --nn ] command
-     host [ --ll username ] [ --nn ] command
+SYNOPSIS
+     rsh host [ -l username ] [ -n ] command
+     host [ -l username ] [ -n ] command
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_s_h connects to the specified _h_o_s_t, and executes the speci-
      fied _c_o_m_m_a_n_d.  _R_s_h copies its standard input to the remote
      command, the standard output of the remote command to its
@@ -22,7 +22,7 @@ DDEESSCCRRIIPPTTIIOONN
      terminates when the remote command does.
 
      The remote username used is the same as your local username,
-     unless you specify a different remote name with the --ll
+     unless you specify a different remote name with the -l
      option.  This remote name must be equivalent (in the sense
      of _r_l_o_g_i_n(1C)) to the originating account; no provision is
      made for specifying a password with a command.
@@ -49,18 +49,18 @@ DDEESSCCRRIIPPTTIIOONN
      is rather long and unambiguous, and optionally one or more
      nicknames.  The host names for local machines are also com-
      mands in the directory /usr/hosts; if you put this directory
-     in your search path then the rrsshh can be omitted.
+     in your search path then the rsh can be omitted.
 
-FFIILLEESS
+FILES
      /etc/hosts
      /usr/hosts/*
 
-SSEEEE AALLSSOO
+SEE ALSO
      rlogin(1C)
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 
@@ -71,12 +71,12 @@ RSH(1C)             UNIX Programmer's Manual		  RSH(1C)
 
 
 
-BBUUGGSS
+BUGS
      If you are using _c_s_h(1) and put a _r_s_h(1C) in the background
      without redirecting its input away from the terminal, it
      will block even if no reads are posted by the remote com-
      mand.  If no input is desired you should redirect the input
-     of _r_s_h to /dev/null using the --nn option.
+     of _r_s_h to /dev/null using the -n option.
 
      You cannot run an interactive command (like _r_o_g_u_e(6) or
      _v_i(1)); use _r_l_o_g_i_n(1C).
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         2
+Printed 1/9/94		 April 29, 1985                         2
 
 
 

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)bcopy.c	7.3 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 /* block copy from from to to, count bytes */
 bcopy(from, to, count)

@@ -1,5 +1,6 @@
 #
 DESTDIR=
+MANDIR= /usr/new/man
 
 DEFS=	
 CFLAGS=	-O ${DEFS}
@@ -8,17 +9,18 @@ SEPFLAG=-i
 #
 # Default programs that are installed
 #
-STDINST=jove l11 m11 patch rcs
+STDINST=ansi bm checkobj jove l11 la m11 nmcoll ntp oldassn \
+	patch pathalias rcs shar shortc tcsh traceroute vmsbackup
 
 #
 # Special purpose software that requires custom installation,
 # or may not be needed by all sites
 #
-OPTDIR=	ansi bm checkobj crash kermit la oldassn news nmcoll pathalias rn \
-	shar shortc
+OPTDIR=	crash oldassn kermit5.188 news ntp pathalias rcs rn notes nntp
 
-SUBDIR=	ansi bm checkobj crash jove kermit l11 la m11 oldassn news nmcoll \
-	patch pathalias rcs rn shar shortc
+SUBDIR= ansi bm checkobj crash jove kermit5.188 l11 la m11 news nmcoll nntp \
+	notes ntp oldassn patch pathalias rcs rn shar shortc tcsh \
+	traceroute vmsbackup
 
 all:	${STDINST}
 
@@ -28,11 +30,16 @@ ${STDINST}: FRC
 FRC:
 
 install:
+	-mkdir ${MANDIR}
+	-chmod a+r ${MANDIR}
+	-for i in 1 2 3 4 5 6 7 8; do \
+		(mkdir ${MANDIR}/cat$$i; chmod a+r ${MANDIR}/cat$$i); done
 	-for i in ${STDINST}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+	-sh /usr/src/usr.lib/makewhatis.sh ${MANDIR}
 
 clean:
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
+	for i in ${SUBDIR}; do (cd $$i; make -k ${MFLAGS} clean); done
 
 depend:
 tags:

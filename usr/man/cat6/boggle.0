@@ -5,22 +5,22 @@ BOGGLE(6)	    UNIX Programmer's Manual		BOGGLE(6)
 
 
 
-NNAAMMEE
+NAME
      boggle - play the game of boggle
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//bbooggggllee [ ++ ] [ ++++ ]
+SYNOPSIS
+     /usr/games/boggle [ + ] [ ++ ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This program is intended for people wishing to sharpen their
      skills at Boggle (TM Parker Bros.).  If you invoke the pro-
      gram with 4 arguments of 4 letters each, (_e._g.  " .}S 3 1 ""
      " "boggle" "appl" "epie" "moth" "erhd"" the program forms
      the obvious Boggle grid and lists all the words from
-     //uussrr//ddiicctt//wwoorrddss found therein. If you invoke the program
+     /usr/dict/words found therein. If you invoke the program
      without arguments, it will generate a board for you, let you
      enter words for 3 minutes, and then tell you how well you
-     did relative to //uussrr//ddiicctt//wwoorrddss.
+     did relative to /usr/dict/words.
 
      The object of Boggle is to find, within 3 minutes, as many
      words as possible in a 4 by 4 grid of letters. Words may be
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 

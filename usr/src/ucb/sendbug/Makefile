@@ -3,13 +3,13 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 4/24/86
+#	@(#)Makefile	5.7 (GTE) 11/28/92
 #
 # Bug report processor and associated programs
 #
 
-BUGS_NAME = 4bsd-bugs
-BUGS_HOME = @ucbvax.BERKELEY.EDU
+BUGS_NAME = sms
+BUGS_HOME = @WLV.IIPO.GTEGSC.COM
 DEFS = -DBUGS_NAME='"$(BUGS_NAME)"' -DBUGS_HOME='"$(BUGS_HOME)"'
 CFLAGS = -O -DUNIXCOMP $(DEFS)
 LIBDIR=	/usr/lib
@@ -25,7 +25,7 @@ unixtomh: unixtomh.c
 
 install: bugfiler sendbug.sh bugformat unixtomh
 	install -s bugfiler ${DESTDIR}${LIBDIR}/bugfiler
-	install -c sendbug.sh ${DESTDIR}/usr/ucb/sendbug
+	install -c -m 555 sendbug.sh ${DESTDIR}/usr/ucb/sendbug
 	install -s unixtomh ${DESTDIR}${LIBDIR}/unixtomh
 	install -c -m 644 bugformat ${DESTDIR}/usr/lib/bugformat
 

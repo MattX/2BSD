@@ -21,12 +21,8 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)uname.c	2.17	11/19/87";
+static char	*SccsId = "@(#)uname.c	2.17.1	12/31/93";
 #endif /* SCCSID */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif /* BSD2_10 */
 
 #include "params.h"
 

@@ -52,12 +52,7 @@ dqp(q, dev)
  */
 qclean()
 {
-	register struct proc *p = u.u_procp;
-#ifdef BSD2_10
-	register struct quota *q = px_quota[p - proc];
-#else
-	register struct quota *q = p->p_quota;
-#endif
+	register struct quota *q = u.u_quota;
 
 	if (q == NOQUOTA)
 		return;
@@ -72,11 +67,6 @@ qclean()
 	 * about to be given a new quota, which will just overwrite this
 	 * one).
 	 */
-#ifdef BSD2_10
-	px_quota[u.u_procp - proc] = quota;
-#else
-	p->p_quota = quota;
-#endif
 	u.u_quota = quota;
 	delquota(q);
 }
@@ -86,11 +76,6 @@ qstart(q)
 {
 
 	u.u_quota = q;
-#ifdef BSD2_10
-	px_quota[u.u_procp - proc] = q;
-#else
-	u.u_procp->p_quota = q;
-#endif
 }
 
 qwarn(dq)

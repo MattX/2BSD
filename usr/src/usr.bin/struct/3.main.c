@@ -19,7 +19,7 @@ structure()
 	if (progress)
 		fprintf(stderr,"	getthen:\n");
 	getthen(START);
-	head = challoc(nodenum * sizeof(*head));
+	head = (VERT *)challoc(nodenum * sizeof(*head));
 	for (v = 0; v < nodenum; ++v)
 		head[v] = UNDEFINED;
 	for (v = START; DEFINED(v); v = RSIB(v))

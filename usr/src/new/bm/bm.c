@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/types.h>		/* XXXX ADDED FOR BSD2.9 */
+#include <sys/types.h>
 #include <sys/file.h>
 #include <strings.h>
 #include "bm.h"

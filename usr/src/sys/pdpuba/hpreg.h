@@ -9,6 +9,7 @@
 /*
  * Definitions for SMD-type disk drives and drivers.  That includes
  * RM02/03/05's, RP04/05/06's, and everything using the XP driver.
+ * Also added RP07. /BQT 930612
  */
 
 /*
@@ -17,6 +18,7 @@
 #define	RP04	020		/* RP04 */
 #define	RP05	021		/* RP05 */
 #define	RP06	022		/* RP06 */
+#define RP07	042		/* RP07 */
 #define	RM03	024		/* RM03 */
 #define	RM02	025		/* RM02 */
 #define	RM05	027		/* RM05 or SI 9500, CDC 9766 */
@@ -37,6 +39,10 @@
 #define	HP_TRAC		19
 #define	RP04_CYL	411	/* RP04/05 */
 #define	RP06_CYL	815	/* RP06 */
+
+#define RP7_SECT	50	/* DEC RP07 */
+#define RP7_TRAC	32
+#define RP7_CYL		630
 
 #define	RM_SECT		32	/* RM02/03 */
 #define	RM_TRAC		5
@@ -175,13 +181,14 @@ struct hpdevice
 #define	HPDS_DPR	0000400		/* drive present */
 #define	HPDS_DRY	0000200		/* drive ready */
 #define	HPDS_VV		0000100		/* volume valid */
-/* bits 5-1 are spare */
+/* bits 5-3, 1 are spare */
+#define HPDS_ILV	0000004		/* interleaved */
 #define	HPDS_OM		0000001		/* offset mode */
 
 #define	HPDS_DREADY	(HPDS_DPR|HPDS_DRY|HPDS_MOL|HPDS_VV)
 
 #define	HPDS_BITS \
-"\10\20ATA\17ERR\16PIP\15MOL\14WRL\13LST\12DAE\11DPR\10DRY\7VV\1OM"
+"\10\20ATA\17ERR\16PIP\15MOL\14WRL\13LST\12DAE\11DPR\10DRY\7VV\3ILV\1OM"
 
 /* hper1 */
 #define	HPER1_DCK	0100000		/* data check */
@@ -218,6 +225,7 @@ struct hpdevice
 #define	HPDT_RM02	0000025		/* rm02, possibly rm03? */
 #define	HPDT_RM03	0000024		/* rm03 */
 #define	HPDT_RP06	0000022		/* rp06 */
+#define HPDT_RP07	0000042		/* rp07 */
 
 /* hpof */
 #define	HPOF_FMT22	0010000		/* 16 bit format */

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)quotacheck.c	5.8 (Berkeley) 10/22/87";
-#endif not lint
+static char sccsid[] = "@(#)quotacheck.c	5.8.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Fix up / report on disc quotas & usage
@@ -36,7 +34,7 @@ union {
 } un;
 #define	sblock	un.sblk
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define	ITABSZ	128
 #else
 #define	ITABSZ	256
@@ -44,14 +42,14 @@ union {
 struct	dinode	itab[ITABSZ];
 struct	dinode	*dp;
 
-#define LOGINNAMESIZE 8
+#define LOGINNAMESIZE 14
 struct fileusage {
 	struct fileusage *fu_next;
 	struct dqusage fu_usage;
 	u_short	fu_uid;
 	char fu_name[LOGINNAMESIZE + 1];
 };
-#ifdef BSD2_10
+#ifdef pdp11
 #define	FUHASH 337
 #else
 #define FUHASH 997
@@ -59,17 +57,11 @@ struct fileusage {
 struct fileusage *fuhead[FUHASH];
 struct fileusage *lookup();
 struct fileusage *adduid();
-#ifdef BSD2_10
 uid_t	highuid;
-#else
-int highuid;
-#endif
 
 int fi;
 ino_t ino;
-#ifdef BSD2_10
 ino_t	icnt;
-#endif
 long done;
 struct	passwd	*getpwent();
 struct	dinode	*ginode();
@@ -97,9 +89,7 @@ again:
 	argc--, argv++;
 	if (argc > 0 && strcmp(*argv, "-v") == 0) {
 		vflag++;
-#ifdef BSD2_10
 		goto again;
-#endif
 	}
 	if (argc > 0 && strcmp(*argv, "-a") == 0) {
 		aflag++;
@@ -288,7 +278,7 @@ chkquota(fsdev, fsfile, qffile)
 	}
 	sync();
 	bread(SBLOCK, (char *)&sblock, SBSIZE);
-#ifdef BSD2_10
+#ifdef pdp11
 	dp = NULL;
 	ino = ROOTINO;
 	icnt = (sblock.fs_isize  - 2 ) * INOPB; /* don't count boot&super */
@@ -327,7 +317,7 @@ chkquota(fsdev, fsfile, qffile)
 				fprintf(stdout, "\tinodes %d -> %d",
 					dqbuf.dqb_curinodes, fup->fu_usage.du_curinodes);
 			if (dqbuf.dqb_curblocks != fup->fu_usage.du_curblocks)
-#ifdef BSD2_10
+#ifdef pdp11
 				printf("\tbytes %ld -> %ld",
 #else
 				fprintf(stdout, "\tblocks %d -> %d",
@@ -338,7 +328,7 @@ chkquota(fsdev, fsfile, qffile)
 		dqbuf.dqb_curinodes = fup->fu_usage.du_curinodes;
 		dqbuf.dqb_curblocks = fup->fu_usage.du_curblocks;
 		fwrite(&dqbuf, sizeof(struct dqblk), 1, qfo);
-#ifdef BSD2_10
+#ifdef pdp11
 		/* system call interface is in blocks not bytes */
 		fup->fu_usage.du_curblocks = btodb(fup->fu_usage.du_curblocks);
 #endif
@@ -347,11 +337,7 @@ chkquota(fsdev, fsfile, qffile)
 		fup->fu_usage.du_curblocks = 0;
 	}
 	fflush(qfo);
-#ifdef BSD2_10
 	ftruncate(fileno(qfo), (off_t)(highuid + 1) * sizeof(struct dqblk));
-#else
-	ftruncate(fileno(qfo), (off_t)((highuid + 1) * sizeof(struct dqblk)));
-#endif
 	fclose(qfi);
 	fclose(qfo);
 	close(fi);
@@ -371,7 +357,7 @@ acct(ip)
 	fup->fu_usage.du_curinodes++;
 	if ((ip->di_mode & IFMT) == IFCHR || (ip->di_mode & IFMT) == IFBLK)
 		return;
-#ifdef BSD2_10
+#ifdef pdp11
 	fup->fu_usage.du_curblocks += ip->di_size;
 #else
 	fup->fu_usage.du_curblocks += ip->di_blocks;
@@ -395,14 +381,10 @@ oneof(target, list, n)
 struct dinode *
 ginode()
 {
-#ifdef BSD2_10
 	daddr_t	iblk;
-#else
-	register unsigned long iblk;
-#endif
 
 	if (dp == NULL || ++dp >= &itab[ITABSZ]) {
-#ifdef BSD2_10
+#ifdef pdp11
 		iblk = itod(ino);
 		bread(iblk, (char *)itab, sizeof itab);
 		dp = &itab[ino % INOPB];
@@ -418,7 +400,7 @@ ginode()
 }
 
 bread(bno, buf, cnt)
-#ifdef BSD2_10
+#ifdef pdp11
 	daddr_t	bno;
 	char *buf;
 {

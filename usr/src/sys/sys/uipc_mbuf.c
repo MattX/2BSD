@@ -3,11 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uipc_mbuf.c	2.0 (2.10BSD) 6/5/86
+ *	@(#)uipc_mbuf.c	2.0 (2.11BSD) 12/24/92
  */
 
 #include "param.h"
-#ifdef UCB_NET
+#ifdef INET
 #include "user.h"
 #include "mbuf.h"
 #include "kernel.h"
@@ -17,6 +17,12 @@
 struct mbuf *mbuf, *mbutl, xmbuf[NMBUFS + 1];
 struct mbuf xmbutl[(NMBCLUSTERS*CLBYTES/sizeof (struct mbuf))+7];
 memaddr miobase;			/* click address of dma region */
+					/* this is altered during allocation */
+memaddr miostart;			/* click address of dma region */
+					/* this stays unchanged */
+ubadr_t	mioumr;				/* base UNIBUS virtual address */
+					/* miostart and mioumr stay 0 for */
+					/* non-UNIBUS machines */
 u_short miosize = 16384;		/* two umr's worth */
 
 mbinit()
@@ -99,18 +105,32 @@ m_ioget(size)
 /*
  * Must be called at splimp.
  */
-m_expand()
+m_expand(canwait)
+	int canwait;
 {
 	register struct domain *dp;
 	register struct protosw *pr;
+	register int tries;
 
-	/* ask protocols to free space */
-	for (dp = domains; dp; dp = dp->dom_next)
-		for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW;
-		    pr++)
-			if (pr->pr_drain)
-				(*pr->pr_drain)();
-	mbstat.m_drain++;
+	for (tries = 0;; ) {
+#ifdef	pdp11
+		if (mfree)
+			return (1);
+#else
+		if (m_clalloc(1, MPG_MBUFS, canwait))
+			return (1);
+#endif
+		if (canwait == M_DONTWAIT || tries++)
+			return (0);
+
+		/* ask protocols to free space */
+		for (dp = domains; dp; dp = dp->dom_next)
+			for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW;
+			    pr++)
+				if (pr->pr_drain)
+					(*pr->pr_drain)();
+		mbstat.m_drain++;
+	}
 }
 
 /* NEED SOME WAY TO RELEASE SPACE */
@@ -164,17 +184,15 @@ m_more(canwait, type)
 {
 	register struct mbuf *m;
 
-	if (canwait == M_DONTWAIT) {
-		mbstat.m_drops++;
-		return (NULL);
-	}
-	for(;;) {
-		m_expand(canwait);
-		if (mfree)
-			break;
-		mbstat.m_wait++;
-		m_want++;
-		SLEEP((caddr_t)&mfree, PZERO - 1);
+	while (m_expand(canwait) == 0) {
+		if (canwait == M_WAIT) {
+			mbstat.m_wait++;
+			m_want++;
+			SLEEP((caddr_t)&mfree, PZERO - 1);
+		} else {
+			mbstat.m_drops++;
+			return (NULL);
+		}
 	}
 #define m_more(x,y) (panic("m_more"), (struct mbuf *)0)
 	MGET(m, canwait, type);
@@ -390,4 +408,4 @@ bad:
 	m_freem(n);
 	return (0);
 }
-#endif UCB_NET
+#endif

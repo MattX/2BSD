@@ -41,7 +41,7 @@ VERT v;
 	{
 	int i; VERT w;
 	accessnum = 0;
-	status = challoc(sizeof(*status) * nodenum);
+	status = (int *)challoc(sizeof(*status) * nodenum);
 	for (w = 0; w < nodenum; ++w)
 		{
 		status[w] = UNPROCESSED;
@@ -51,11 +51,11 @@ VERT v;
 	chreach();
 	chfree(status, sizeof(*status) * nodenum);
 	addloop();
-	after = challoc(sizeof(*after) * accessnum);
+	after = (int *)challoc(sizeof(*after) * accessnum);
 	for (i = 0; i < accessnum; ++i)
 		after[i] = UNDEFINED;
-	ntoaft = challoc(sizeof(*ntoaft) * nodenum);
-	ntobef = challoc(sizeof(*ntobef) * nodenum);
+	ntoaft = (int *)challoc(sizeof(*ntoaft) * nodenum);
+	ntobef = (int *)challoc(sizeof(*ntobef) * nodenum);
 	for (w = 0; w < nodenum; ++w)
 		ntobef[w] = ntoaft[w] = UNDEFINED;
 	befcount = 0;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_mount.c	1.2 (2.10BSD Berkeley) 1/29/90
  */
 
 #include "param.h"
@@ -32,14 +32,16 @@ smount()
 	dev_t dev;
 	register struct inode *ip;
 	register struct fs *fs;
+	register struct	nameidata *ndp = &u.u_nd;
 	u_int len;
 
 	u.u_error = getmdev(&dev, uap->fspec);
 	if (u.u_error)
 		return;
-	u.u_segflg = UIO_USERSPACE;
-	u.u_dirp = (caddr_t)uap->freg;
-	ip = namei(LOOKUP | FOLLOW);
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = (caddr_t)uap->freg;
+	ip = namei(ndp);
 	if (ip == NULL)
 		return;
 	if (ip->i_count != 1) {
@@ -50,6 +52,11 @@ smount()
 	if ((ip->i_mode&IFMT) != IFDIR) {
 		iput(ip);
 		u.u_error = ENOTDIR;
+		return;
+	}
+	if (ip->i_number == ROOTINO) {
+		iput(ip);
+		u.u_error = EBUSY;
 		return;
 	}
 	fs = mountfs(dev, uap->ronly, ip);
@@ -110,6 +117,7 @@ found:
 	fs->fs_lasti = 1;
 	if (ip) {
 		ip->i_flag |= IMOUNT;
+		cacheinval(ip);
 		IUNLOCK(ip);
 	}
 	return (fs);
@@ -156,6 +164,7 @@ unmount1(fname)
 	return (EINVAL);
 found:
 	xumount(dev);	/* remove unused sticky files from text table */
+	nchinval(dev);	/* flush the name cache */
 	update();
 #ifdef QUOTA
 	if (iflush(dev, mp->m_qinod) < 0)
@@ -167,6 +176,10 @@ found:
 	QUOTAMAP();
 	closedq(mp);
 	QUOTAUNMAP();
+	/*
+	 * Here we have to iflush again to get rid of the quota inode.
+	 * A drag, but it would be ugly to cheat, & this doesn't happen often
+	 */
 	(void)iflush(dev, (struct inode *)NULL);
 #endif
 	ip = mp->m_inodp;
@@ -190,12 +203,14 @@ getmdev(pdev, fname)
 {
 	register dev_t dev;
 	register struct inode *ip;
+	register struct	nameidata *ndp = &u.u_nd;
 
 	if (!suser())
 		return (u.u_error);
-	u.u_segflg = UIO_USERSPACE;
-	u.u_dirp = fname;
-	ip = namei(LOOKUP | FOLLOW);
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = fname;
+	ip = namei(ndp);
 	if (ip == NULL) {
 		if (u.u_error == ENOENT)
 			return (ENODEV); /* needs translation */

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)acucntrl.c	5.8 (Berkeley) 2/12/86";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)acucntrl.c	5.8.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 /*  acucntrl - turn around tty line between dialin and dialout
@@ -49,7 +49,7 @@ static char sccsid[] = "@(#)acucntrl.c	5.8 (Berkeley) 2/12/86";
 #include <sys/buf.h>
 #include <signal.h>
 #include <sys/conf.h>
-#ifdef BSD2_10
+#ifdef pdp11
 #include <pdpuba/ubavar.h>
 #else
 #ifdef BSD4_2
@@ -671,7 +671,7 @@ char *ttyline; int enable;
 		devtype = DZ11;
 		unit = minor(dev) / NDZLINE;
 		line = minor(dev) % NDZLINE;
-#ifdef BSD2_10
+#ifdef pdp11
 		ubinfo = &(((struct uba_device *)NLVALUE(DZINFO))[unit]);
 #else
 		addr = (int) &(((int *)NLVALUE(DZINFO))[unit]);
@@ -681,7 +681,7 @@ char *ttyline; int enable;
 		devtype = DH11;
 		unit = minor(dev) / NDHLINE;
 		line = minor(dev) % NDHLINE;
-#ifdef BSD2_10
+#ifdef pdp11
 		ubinfo = &(((struct uba_device *)NLVALUE(DHINFO))[unit]);
 #else
 		addr = (int) &(((int *)NLVALUE(DHINFO))[unit]);
@@ -691,7 +691,7 @@ char *ttyline; int enable;
 		devtype = DMF;
 		unit = minor(dev) / NDMFLINE;
 		line = minor(dev) % NDMFLINE;
-#ifdef BSD2_10
+#ifdef pdp11
 		ubinfo = &(((struct uba_device *)NLVALUE(DMFINFO))[unit]);
 #else
 		addr = (int) &(((int *)NLVALUE(DMFINFO))[unit]);
@@ -710,7 +710,7 @@ char *ttyline; int enable;
 		return(-1);
 	}
 
-#ifndef BSD2_10
+#ifndef pdp11
 	(void)lseek(kmem, (off_t)addr, 0);
 	(void)read(kmem, (char *) &ubinfo, sizeof ubinfo);
 #endif
@@ -726,7 +726,7 @@ char *ttyline; int enable;
 	flags = enable ? (flags & ~tflags) : (flags | tflags);
 	(void)lseek(kmem, (off_t) &(ubinfo->ui_flags), 0);
 	(void)write(kmem, (char *) &flags, sizeof flags);
-#ifndef BSD2_10
+#ifndef pdp11
 	switch(devtype) {
 		case DZ11:
 			if((addr = NLVALUE(DZSCAR)) == 0) {
@@ -759,7 +759,7 @@ char *ttyline; int enable;
 			fprintf(stderr, "Unknown device type\n");
 			return(-1);
 	}
-#endif /* !BSD2_10 */
+#endif
 	return(0);
 }
 

@@ -82,11 +82,12 @@ y.tab.h y.tab.c: pas.y
 version: version.c
 	${CC} -o version version.c
 
-install:
+install: ${ALL}
 	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/lib
 	install -c how_pi ${DESTDIR}/usr/lib
 	install -c how_pix ${DESTDIR}/usr/lib
 	dd if=px_header.out of=${DESTDIR}/usr/lib/npx_header conv=sync
+	chmod a+r $(DESTDIR)/usr/lib/npx_header
 	install -s pi ${DESTDIR}/usr/ucb
 	install -s pix ${DESTDIR}/usr/ucb
 

@@ -17,19 +17,19 @@
 
 export PATH || (echo "OOPS, this isn't sh.  Desperation time.  I will feed myself to sh."; sh $0; kill $$)
 
-cat='cat'
-cp='cp'
+cat='/bin/cat'
+cp='/bin/cp'
 cpp='cc -E'
-echo='echo'
+echo='/bin/echo'
 egrep='/usr/bin/egrep'
-expr='expr'
-mv='mv'
-rm='rm'
-sed='sed'
-sort='sort'
+expr='/bin/expr'
+mv='/bin/mv'
+rm='/bin/rm'
+sed='/bin/sed'
+sort='/bin/sort'
 test='/bin/test'
-tr='tr'
-uniq='uniq'
+tr='/usr/bin/tr'
+uniq='/usr/bin/uniq'
 
 $cat /dev/null >.deptmp
 $echo "(Note: this is going to take a while.)"

@@ -39,7 +39,7 @@ for(nbl=0; *s == '\\' && s>p; s--)
 if (linstart && nbl % 2) /* fold escaped nl if in table */
 	gets1(s+1);
 
-return(p);
+return((int)p);
 }
 # define BACKMAX 500
 char backup[BACKMAX];

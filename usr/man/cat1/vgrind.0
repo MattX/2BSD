@@ -5,14 +5,14 @@ VGRIND(1)	    UNIX Programmer's Manual		VGRIND(1)
 
 
 
-NNAAMMEE
+NAME
      vgrind - grind nice listings of programs
 
-SSYYNNOOPPSSIISS
-     vvggrriinndd [ --ff ] [ -- ] [ --tt ] [ --nn ] [ --xx ] [ --WW ] [ --ssnn ] [ --hh
-     header ] [ --dd file ] [ --ll_l_a_n_g_u_a_g_e ] name ...
+SYNOPSIS
+     vgrind [ -f ] [ - ] [ -t ] [ -n ] [ -x ] [ -W ] [ -sn ] [ -h
+     header ] [ -d file ] [ -l_l_a_n_g_u_a_g_e ] name ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _V_g_r_i_n_d formats the program sources which are arguments in a
      nice style using _t_r_o_f_f(1) Comments are placed in italics,
      keywords in bold face, and the name of the current function
@@ -40,27 +40,27 @@ DDEESSCCRRIIPPTTIIOONN
 
      The options are:
 
-     --ff   forces filter mode
+     -f   forces filter mode
 
-     --	  forces input to be taken from standard input (default
-	  if --ff is specified )
+     -	  forces input to be taken from standard input (default
+	  if -f is specified )
 
-     --tt   similar to the same option in _t_r_o_f_f causing formatted
+     -t   similar to the same option in _t_r_o_f_f causing formatted
 	  text to go to the standard output
 
-     --nn   forces no keyword bolding
+     -n   forces no keyword bolding
 
-     --xx   outputs the index file in a ``pretty'' format. The
+     -x   outputs the index file in a ``pretty'' format. The
 	  index file itself is produced whenever _v_g_r_i_n_d is run
 	  with a file called _i_n_d_e_x in the current directory.  The
 	  index of function definitions can then be run off by
-	  giving _v_g_r_i_n_d the --xx option and the file _i_n_d_e_x as argu-
+	  giving _v_g_r_i_n_d the -x option and the file _i_n_d_e_x as argu-
 	  ment.
 
 
 
 
-Printed 12/28/88	   May 5, 1986				1
+Printed 1/9/94		   May 5, 1986				1
 
 
 
@@ -71,47 +71,47 @@ VGRIND(1)	    UNIX Programmer's Manual		VGRIND(1)
 
 
 
-     --WW   forces output to the (wide) Versatec printer rather
+     -W   forces output to the (wide) Versatec printer rather
 	  than the (narrow) Varian
 
-     --ss   specifies a point size to use on output (exactly the
+     -s   specifies a point size to use on output (exactly the
 	  same as the argument of a .ps)
 
-     --hh   specifies a particular header to put on every output
+     -h   specifies a particular header to put on every output
 	  page (default is the file name)
 
-     --dd   specifies an alternate language definitions file
+     -d   specifies an alternate language definitions file
 	  (default is /usr/lib/vgrindefs)
 
-     --ll   specifies the language to use.  Currently known are
-	  PASCAL (--llpp), MODEL (--llmm),CC (--llcc or the default), CSH
-	  (--llccsshh), SHELL (--llsshh), RATFOR (--llrr), MODULA2 (--llmmoodd22),
-	  YACC (--llyyaacccc), ISP (--lliisspp), and ICON (--llII).
+     -l   specifies the language to use.  Currently known are
+	  PASCAL (-lp), MODEL (-lm),C (-lc or the default), CSH
+	  (-lcsh), SHELL (-lsh), RATFOR (-lr), MODULA2 (-lmod2),
+	  YACC (-lyacc), ISP (-lisp), and ICON (-lI).
 
-FFIILLEESS
+FILES
      index		 file where source for index is created
      /usr/lib/tmac/tmac.vgrindmacro package
      /usr/lib/vfontedpr  preprocessor
      /usr/lib/vgrindefs  language descriptions
 
-AAUUTTHHOORR
+AUTHOR
      Dave Presotto & William Joy
 
-SSEEEE AALLSSOO
+SEE ALSO
      vlp(1), vtroff(1), vgrindefs(5)
 
-BBUUGGSS
+BUGS
      Vfontedpr assumes that a certain programming style is fol-
      lowed:
 
-     For CC - function names can be preceded on a line only by
+     For C - function names can be preceded on a line only by
      spaces, tabs, or an asterisk.  The parenthesized arguments
      must also be on the same line.
 
-     For PPAASSCCAALL - function names need to appear on the same line
+     For PASCAL - function names need to appear on the same line
      as the keywords _f_u_n_c_t_i_o_n or _p_r_o_c_e_d_u_r_e.
 
-     For MMOODDEELL - function names need to appear on the same line
+     For MODEL - function names need to appear on the same line
      as the keywords _i_s _b_e_g_i_n_p_r_o_c.
 
      If these conventions are not followed, the indexing and mar-
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 5, 1986				2
+Printed 1/9/94		   May 5, 1986				2
 
 
 
@@ -192,7 +192,7 @@ VGRIND(1)	    UNIX Programmer's Manual		VGRIND(1)
 
 
 
-Printed 12/28/88	   May 5, 1986				3
+Printed 1/9/94		   May 5, 1986				3
 
 
 

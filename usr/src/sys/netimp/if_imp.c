@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_imp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_imp.c	1.2 (2.11BSD Berkeley) 12/31/93
  */
 
 #include "imp.h"
@@ -36,6 +36,10 @@
 #include <netimp/if_imphost.h>
 #include <errno.h>
 
+#ifdef	pdp11
+#define	putchar _pchar
+#endif
+
 /*
  * IMP software status per interface.
  * (partially shared with the hardware specific module)
@@ -58,6 +62,7 @@ struct imp_softc {
 	char	imp_dropcnt;		/* used during initialization */
 } imp_softc[NIMP];
 
+extern int hz;
 struct	ifqueue impintrq;
 int	impqmaxlen = IFQ_MAXLEN;
 

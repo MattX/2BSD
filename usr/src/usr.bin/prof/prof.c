@@ -1,5 +1,5 @@
-#ifndef lint
-static	char *sccsid = "@(#)prof.c	4.4 (Berkeley) 3/24/85";
+#if	defined(DOSCCS) && !defined(lint)
+static	char *sccsid = "@(#)prof.c	4.4.1 (2.11BSD GTE) 1/1/94";
 #endif
 /*
  * prof
@@ -9,12 +9,12 @@ static	char *sccsid = "@(#)prof.c	4.4 (Berkeley) 3/24/85";
 #include <sys/stat.h>
 #include <a.out.h>
 #include <sys/time.h>
-#ifdef BSD2_10
-#include <sys/localopts.h>
+#ifdef pdp11
+#include <sys/localopts.h>	/* For LINEHZ */
 #endif
 
 typedef	short UNIT;		/* unit of profiling */
-#ifdef BSD2_10
+#ifdef pdp11
 #define	PCFUDGE		0
 #else
 #define	PCFUDGE		11
@@ -30,11 +30,7 @@ typedef	short UNIT;		/* unit of profiling */
  * its address, the number of calls and compute its share of cpu time.
  */
 struct nl {
-#ifdef BSD2_10
-	char	name[8+1];
-#else
 	char	*name;
-#endif
 	unsigned value;
 	float	time;
 	long	ncall;
@@ -78,11 +74,9 @@ double	totime;			/* total time for all routines */
 double	maxtime;		/* maximum time of any routine (for plot) */
 double	scale;			/* scale factor converting samples to pc
 				   values: each sample covers scale bytes */
-#ifndef BSD2_10
 char	*strtab;		/* string table in core */
 off_t	ssiz;			/* size of the string table */
-#endif
-struct	exec xbuf;		/* exec header of a.out */
+struct	xexec xbuf;		/* exec header of a.out */
 
 int	aflg;
 int	nflg;
@@ -196,7 +190,6 @@ printprof()
 
 /*
  * Set up string and symbol tables from a.out.
- * (no string table for BSD2_10)
  * On return symbol table is sorted by value.
  */
 getnfile()
@@ -208,71 +201,49 @@ getnfile()
 		done();
 	}
 	fread(&xbuf, 1, sizeof(xbuf), nfile);
-	if (N_BADMAG(xbuf)) {
+	if (N_BADMAG(xbuf.e)) {
 		fprintf(stderr, "%s: bad format\n", namfil);
 		done();
 	}
-#ifndef BSD2_10
 	getstrtab();
-#endif
 	getsymtab();
 	qsort(nl, nname, sizeof(struct nl), valcmp);
 }
 
-#ifndef BSD2_10
 getstrtab()
 {
 
-	fseek(nfile, N_SYMOFF(xbuf) + xbuf.a_syms, 0);
+	fseek(nfile, N_STROFF(xbuf), 0);
 	if (fread(&ssiz, sizeof (ssiz), 1, nfile) == 0) {
 		fprintf(stderr, "%s: no string table (old format?)\n", namfil);
 		done();
 	}
-	strtab = (char *)calloc(ssiz, 1);
-	if (strtab == NULL) {
-		fprintf(stderr, "%s: no room for %d bytes of string table",
+	strtab = (char *)malloc((int)ssiz);
+	if (strtab == NULL || ssiz > 48 * 1024L) {
+		fprintf(stderr, "%s: no room for %ld bytes of string table",
 		    namfil, ssiz);
 		done();
 	}
-	if (fread(strtab+sizeof(ssiz), ssiz-sizeof(ssiz), 1, nfile) != 1) {
+	if (fread(strtab+sizeof(ssiz), (int)ssiz-sizeof(ssiz), 1, nfile) != 1) {
 		fprintf(stderr, "%s: error reading string table\n", namfil);
 		done();
 	}
 }
-#endif !BSD2_10
 
 /*
  * Read in symbol table
  */
 getsymtab()
 {
-	register int i;
-#ifdef BSD2_10
-	long symoff;
-#endif
+	register u_int i;
+	register u_int nsyms;
+	struct nlist nbuf;
 
 	/* pass1 - count symbols */
-#ifdef BSD2_10
-	symoff = (long)xbuf.a_text + xbuf.a_data;
-	if (xbuf.a_magic == A_MAGIC5 || xbuf.a_magic == A_MAGIC6) {
-		register int ovlcnt;
-		struct ovlhdr ovlbuf;
-
-		fseek(nfile, (long)sizeof(xbuf), 0);
-		fread((char *)&ovlbuf, sizeof(ovlbuf), 1, nfile);
-		for (ovlcnt = 0; ovlcnt < NOVL; ovlcnt++)
-			symoff += ovlbuf.ov_siz[ovlcnt];
-	}
-	if (!(xbuf.a_flag & 01))
-		symoff *= 2;
-	symoff += sizeof(xbuf);
-	fseek(nfile, symoff, 0);
-#else !BSD2_10
 	fseek(nfile, N_SYMOFF(xbuf), 0);
-#endif BSD2_10
 	nname = 0;
-	for (i = xbuf.a_syms; i > 0; i -= sizeof(struct nlist)) {
-		struct nlist nbuf;
+	nsyms = xbuf.e.a_syms / sizeof (struct nlist);
+	for (i = 0; i < nsyms; i++) {
 		fread(&nbuf, sizeof(nbuf), 1, nfile);
 		if (nbuf.n_type!=N_TEXT && nbuf.n_type!=N_TEXT+N_EXT)
 			continue;
@@ -286,35 +257,23 @@ getsymtab()
 	}
 	nl = (struct nl *)calloc((nname+1), sizeof (struct nl));
 	if (nl == 0) {
-		fprintf(stderr, "prof: No room for %d bytes of symbol table\n",
+		fprintf(stderr, "prof: No room for %u bytes of symbol table\n",
 		    (nname+1) * sizeof (struct nlist));
 		done();
 	}
 
 	/* pass2 - read symbols */
-#ifdef BSD2_10
-	fseek(nfile, symoff, 0);
-#else
 	fseek(nfile, N_SYMOFF(xbuf), 0);
-#endif
 	npe = nl;
-	nname = 0;
-	for (i = xbuf.a_syms; i > 0; i -= sizeof(struct nlist)) {
-		struct nlist nbuf;
+	for (i = 0; i < nsyms; i++) {
 		fread(&nbuf, sizeof(nbuf), 1, nfile);
 		if (nbuf.n_type!=N_TEXT && nbuf.n_type!=N_TEXT+N_EXT)
 			continue;
 		if (aflg==0 && nbuf.n_type!=N_TEXT+N_EXT)
 			continue;
 		npe->value = nbuf.n_value/sizeof(UNIT);
-#ifdef BSD2_10
-		bcopy(nbuf.n_name, npe->name, 8);
-		npe->name[8] = '\0';
-#else
 		npe->name = strtab+nbuf.n_un.n_strx;
-#endif
 		npe++;
-		nname++;
 	}
 	npe->value = -1;
 	npe++;
@@ -405,8 +364,7 @@ readcntrs()
  */
 asgncntrs()
 {
-	register int i;
-	struct cnt *kp;
+	register struct cnt *kp;
 
 	kp = &cbuf[h.ncount-1];
 	np = npe;
@@ -502,9 +460,8 @@ asgnsamples()
 putprof()
 {
 	FILE *sfile;
-	struct nl *np;
+	register struct nl *np;
 	struct cnt kp;
-	int i;
 
 	sfile = fopen(MON_SUMNAME, "w");
 	if (sfile == NULL) {
@@ -543,7 +500,7 @@ putprof()
  */
 hertz()
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	return(LINEHZ);
 #else
 	struct itimerval tim;
@@ -587,7 +544,13 @@ timcmp(p1, p2)
 	float d;
 
 	if (nflg && p2->ncall != p1->ncall)
-		return (p2->ncall - p1->ncall);
+		{
+		if (p2->ncall < p1->ncall)
+			return(-1);
+		else if (p2->ncall > p1->ncall)
+			return(1);
+		return(0);
+		}
 	d = p2->time - p1->time;
 	if (d > 0.0)
 		return(1);

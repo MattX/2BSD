@@ -108,12 +108,12 @@ int type, arcnum;
 	if (nodenum >= maxnode)
 		{
 		maxnode += 100;
-		temp=realloc(graph,maxnode*sizeof(*graph));
+		temp=(int *)realloc(graph,maxnode*sizeof(*graph));
 		free(graph);
-		graph=temp;
+		graph=(int **)temp;
 		}
 	wds = nonarcs[type] + arcnum;
-	graph[nodenum] = galloc(sizeof(*graph) * wds);
+	graph[nodenum] = (int *)galloc(sizeof(*graph) * wds);
 	for (i = 0; i < wds; i++)  graph[nodenum][i] = 0;
 	NTYPE(nodenum) = type;
 	if (arcsper[type] < 0)

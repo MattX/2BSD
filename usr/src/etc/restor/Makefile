@@ -17,7 +17,7 @@ OBJS=	restor.o
 restor: ${OBJS}
 	${CC} ${SEPFLAG} ${OBJS} -o restor
 
-install:
+install: restor
 	install -s restor ${DESTDIR}/etc
 
 clean:

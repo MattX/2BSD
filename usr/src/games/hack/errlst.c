@@ -46,7 +46,7 @@ char	*sys_errlist[] = {
 
 /* non-blocking and interrupt i/o */
 	"37",		/* 37 - EWOULDBLOCK */
-#ifdef	UCB_NET
+
 	"38",		/* 38 - EINPROGRESS */
 	"39",	/* 39 - EALREADY */
 
@@ -83,6 +83,5 @@ char	*sys_errlist[] = {
 	"64",			/* 64 - ENAMETOOLONG */
 	"65",				/* 65 - EHOSTDOWN */
 	"66",			/* 66 - EHOSTUNREACH */
-#endif	UCB_NET
 };
 int	sys_nerr = { sizeof sys_errlist/sizeof sys_errlist[0] };

@@ -5,19 +5,19 @@ GETGID(2)	    UNIX Programmer's Manual		GETGID(2)
 
 
 
-NNAAMMEE
+NAME
      getgid, getegid - get group identity
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+SYNOPSIS
+     #include <sys/types.h>
 
-     ggiidd == ggeettggiidd(())
-     ggiidd__tt ggiidd;;
+     gid = getgid()
+     gid_t gid;
 
-     eeggiidd == ggeetteeggiidd(())
-     ggiidd__tt eeggiidd;;
+     egid = getegid()
+     gid_t egid;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_g_i_d returns the real group ID of the current process,
      _g_e_t_e_g_i_d the effective group ID.
 
@@ -28,7 +28,7 @@ DDEESSCCRRIIPPTTIIOONN
      group-ID'' process, and it is for such processes that _g_e_t_g_i_d
      is most useful.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getuid(2), setregid(2), setgid(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 January 7, 1986			1
+Printed 1/9/94		 January 7, 1986			1
 
 
 

@@ -17,50 +17,103 @@
 #	@(#)Makefile	5.4 (Berkeley) 7/9/88
 #
 MDIR=	/usr/man/cat3
-SRCS=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
+SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
 	compat-sys5.3 crypt.3 ctime.3 ctype.3 curses.3 dbm.3 directory.3 \
 	ecvt.3 end.3 erf.3 execl.3 exit.3 exp.3 fclose.3 ferror.3 floor.3 \
 	fopen.3 fread.3 frexp.3 fseek.3 getc.3 getdisk.3 getenv.3 getfsent.3 \
-	getgrent.3 gethostbynam.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
+	getgrent.3 gethostbyname.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
 	getprotoent.3 getpw.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
-	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 \
-	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 loadav.3 \
+	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 
+SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 loadav.3 \
 	malloc.3 math.3 mktemp.3 monitor.3 mp.3 ndbm.3 nice.3 nlist.3 ns.3 \
 	pause.3 perror.3 plot.3 popen.3 printf.3 psignal.3 putc.3 puts.3 \
 	qsort.3 rand.3 random.3 rcmd.3 regex.3 resolver.3 rexec.3 scandir.3 \
 	scanf.3 setbuf.3 setjmp.3 setuid.3 siginterrupt.3 signal.3 sin.3 \
-	sinh.3 sleep.3 sqrt.3 stdio.3 string.3 stty.3 swab.3 syslog.3 \
+	sinh.3 sleep.3 sqrt.3 stdio.3 string.3 strtok.3 stty.3 swab.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 ungetc.3 \
 	usleep.3 utime.3 valloc.3 varargs.3 vlimit.3 vtimes.3
-OBJS=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
+OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	compat-sys5.0 crypt.0 ctime.0 ctype.0 curses.0 dbm.0 directory.0 \
 	ecvt.0 end.0 erf.0 execl.0 exit.0 exp.0 fclose.0 ferror.0 floor.0 \
 	fopen.0 fread.0 frexp.0 fseek.0 getc.0 getdisk.0 getenv.0 getfsent.0 \
-	getgrent.0 gethostbynam.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
+	getgrent.0 gethostbyname.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
 	getprotoent.0 getpw.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
-	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 \
-	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 loadav.0 \
+	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 
+OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 loadav.0 \
 	malloc.0 math.0 mktemp.0 monitor.0 mp.0 ndbm.0 nice.0 nlist.0 ns.0 \
 	pause.0 perror.0 plot.0 popen.0 printf.0 psignal.0 putc.0 puts.0 \
 	qsort.0 rand.0 random.0 rcmd.0 regex.0 resolver.0 rexec.0 scandir.0 \
 	scanf.0 setbuf.0 setjmp.0 setuid.0 siginterrupt.0 signal.0 sin.0 \
-	sinh.0 sleep.0 sqrt.0 stdio.0 string.0 stty.0 swab.0 syslog.0 \
+	sinh.0 sleep.0 sqrt.0 stdio.0 string.0 strtok.0 stty.0 swab.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 ungetc.0 \
 	usleep.0 utime.0 valloc.0 varargs.0 vlimit.0 vtimes.0
+REMO1=	edata.0 etext.0 j1.0 jn.0 ns_addr.0 ns_ntoa.0 y0.0 y1.0 yn.0 acos.0 \
+	asin.0 atan.0 atan2.0 atoi.0 atol.0 cos.0 dbm_clearerr.0 dbm_close.0 \
+	dbm_delete.0 dbm_error.0 dbm_fetch.0 dbm_firstkey.0 dbm_nextkey.0 \
+	dbm_open.0 dbm_store.0 dbminit.0 delete.0 erfc.0 expm1.0 fcvt.0 \
+	fetch.0 firstkey.0 gcvt.0 log.0 log10.0 log1p.0 nextkey.0 pow.0 \
+	rresvport.0 ruserok.0 store.0 tan.0 addr.0 arc.0 asctime.0 cbrt.0 \
+	circle.0 comp.0 cont.0 copysign.0 cosh.0 drem.0 encrypt.0 environ.0 \
+	erase.0 execle.0 execlp.0 exect.0 execv.0 execve.0 execvp.0 fgetc.0 \
+	fgets.0 finite.0 fputc.0 fputs.0 ftime.0 getchar.0 getw.0 gmtime.0 \
+	gtty.0 inet_addr.0 inet_lnaof.0 inet_makeaddr.0 inet_netof.0 \
+	inet_network.0 inet_ntoa.0 isalnum.0 isalpha.0 isascii.0 iscntrl.0 \
+	isdigit.0 islower.0 isprint.0 ispunct.0 isspace.0 isupper.0 \
+	isxdigit.0 label.0 ldexp.0 line.0 linemod.0 localtime.0 logb.0 modf.0 \
+	move.0 network.0 ntoa.0 openpl.0 pclose.0 point.0 putchar.0 putw.0
+REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
+	timezone.0 toascii.0 tolower.0 toupper.0 ltol3.0 _longjmp.0 \
+	_setjmp.0 acosh.0 alloca.0 atanh.0 cabs.0 calloc.0 ceil.0 \
+	closelog.0 errlist.0 fabs.0 fdopen.0 free.0 freopen.0 fscanf.0 \
+	ftell.0 fwrite.0 index.0 initstate.0 longjmp.0 mkstemp.0 openlog.0  \
+	realloc.0 remque.0 rewind.0 rindex.0 rint.0 setegid.0 seteuid.0 \
+	setgid.0 setlogmask.0 setrgid.0 setruid.0 setstate.0 srandom.0 \
+	sscanf.0 strcat.0 strcmp.0 strcpy.0 strlen.0 strncat.0 strncmp.0 \
+	strncpy.0 strcasecmp.0 strncasecmp.0 sys.0 sys_errlist.0 sys_nerr.0 \
+	sprintf.0 vfprintf.0 vprintf.0 vsprintf.0 alphasort.0 bcmp.0 bcopy.0 \
+	bzero.0 clearerr.0 feof.0 fflush.0 ffs.0 fileno.0 fprintf.0 gamma.0  \
+	getdiskbyname.0 isatty.0 moncontrol.0 monstartup.0 setbuffer.0 \
+	setlinebuf.0 sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
+	endpwent.0 getfsfile.0 getfsspec.0 getfstype.0 getgrgid.0 
+REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
+	setpwfile.0 tgetent.0 tgetflag.0 tgetnum.0 tgetstr.0 tgoto.0 tputs.0 \
+	closedir.0 endttyent.0 getttynam.0 opendir.0 readdir.0 rewinddir.0 \
+	seekdir.0 setttyent.0 telldir.0 endnetent.0 getnetbyaddr.0 \
+	getnetbyname.0 htonl.0 htons.0 ntohl.0 ntohs.0 setnetent.0 \
+	endservent.0 getservbyname.0 getservbyport.0 setservent.0 \
+	endprotoent.0 endusershell.0 getprotobyname.0 getprotobynumber.0 \
+	setprotoent.0 setusershell.0 endhostent.0 gethostbyaddr.0 gethostent.0 \
+	sethostent.0 sethostfile.0 memccpy.0 memchr.0 memcmp.0 memcpy.0 \
+	memset.0 strchr.0 strcspn.0 strrchr.0 strspn.0 tmpnam.0 tmpfile.0 \
+	tempnam.0
 
 .SUFFIXES: .3 .0
 
 .3.0:
 	${DESTDIR}/usr/man/manroff $*.3 > $*.0
 
-all: ${OBJS}
+all: _make_01 _make_02
+
+_make_01: ${OBJS1}
+
+_make_02: ${OBJS2}
 
 clean: FRC
-	rm -f ${OBJS}
+	rm -f ${OBJS1}
+	rm -f ${OBJS2}
 
-install: FRC
-	cd ${DESTDIR}${MDIR}; rm -f *.0
-	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
+install: _make_01 _make_02
+	install -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
+	install -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
+	for i in ${REMO1}; do \
+		rm -f  ${DESTDIR}${MDIR}/$$i; \
+	done
+	for i in ${REMO2}; do \
+		rm -f  ${DESTDIR}${MDIR}/$$i; \
+	done
+	for i in ${REMO3}; do \
+		rm -f  ${DESTDIR}${MDIR}/$$i; \
+	done
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/edata.0
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/etext.0
 	ln ${DESTDIR}${MDIR}/j0.0 ${DESTDIR}${MDIR}/j1.0
@@ -134,7 +187,7 @@ install: FRC
 	ln ${DESTDIR}${MDIR}/stty.0 ${DESTDIR}${MDIR}/gtty.0
 	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_addr.0
 	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_lnaof.0
-	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_makeadd.0
+	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_makeaddr.0
 	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_netof.0
 	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_network.0
 	ln ${DESTDIR}${MDIR}/inet.0 ${DESTDIR}${MDIR}/inet_ntoa.0
@@ -239,7 +292,7 @@ install: FRC
 	ln ${DESTDIR}${MDIR}/ferror.0 ${DESTDIR}${MDIR}/fileno.0
 	ln ${DESTDIR}${MDIR}/printf.0 ${DESTDIR}${MDIR}/fprintf.0
 	ln ${DESTDIR}${MDIR}/lgamma.0 ${DESTDIR}${MDIR}/gamma.0
-	ln ${DESTDIR}${MDIR}/getdisk.0 ${DESTDIR}${MDIR}/getdiskbynam.0
+	ln ${DESTDIR}${MDIR}/getdisk.0 ${DESTDIR}${MDIR}/getdiskbyname.0
 	ln ${DESTDIR}${MDIR}/ttyname.0 ${DESTDIR}${MDIR}/isatty.0
 	ln ${DESTDIR}${MDIR}/monitor.0 ${DESTDIR}${MDIR}/moncontrol.0
 	ln ${DESTDIR}${MDIR}/monitor.0 ${DESTDIR}${MDIR}/monstartup.0
@@ -285,20 +338,20 @@ install: FRC
 	ln ${DESTDIR}${MDIR}/byteorder.0 ${DESTDIR}${MDIR}/ntohs.0
 	ln ${DESTDIR}${MDIR}/getnetent.0 ${DESTDIR}${MDIR}/setnetent.0
 	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/endservent.0
-	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/getservbynam.0
-	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/getservbypor.0
+	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/getservbyname.0
+	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/getservbyport.0
 	ln ${DESTDIR}${MDIR}/getservent.0 ${DESTDIR}${MDIR}/setservent.0
 	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/endprotoent.0
 	ln ${DESTDIR}${MDIR}/getusershell.0 ${DESTDIR}${MDIR}/endusershell.0
-	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/getprotobyna.0
-	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/getprotobynu.0
+	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/getprotobyname.0
+	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/getprotobynumber.0
 	ln ${DESTDIR}${MDIR}/getprotoent.0 ${DESTDIR}${MDIR}/setprotoent.0
 	ln ${DESTDIR}${MDIR}/getusershell.0 ${DESTDIR}${MDIR}/setusershell.0
-	ln ${DESTDIR}${MDIR}/gethostbynam.0 ${DESTDIR}${MDIR}/endhostent.0
-	ln ${DESTDIR}${MDIR}/gethostbynam.0 ${DESTDIR}${MDIR}/gethostbyadd.0
-	ln ${DESTDIR}${MDIR}/gethostbynam.0 ${DESTDIR}${MDIR}/gethostent.0
-	ln ${DESTDIR}${MDIR}/gethostbynam.0 ${DESTDIR}${MDIR}/sethostent.0
-	ln ${DESTDIR}${MDIR}/gethostbynam.0 ${DESTDIR}${MDIR}/sethostfile.0
+	ln ${DESTDIR}${MDIR}/gethostbyname.0 ${DESTDIR}${MDIR}/endhostent.0
+	ln ${DESTDIR}${MDIR}/gethostbyname.0 ${DESTDIR}${MDIR}/gethostbyaddr.0
+	ln ${DESTDIR}${MDIR}/gethostbyname.0 ${DESTDIR}${MDIR}/gethostent.0
+	ln ${DESTDIR}${MDIR}/gethostbyname.0 ${DESTDIR}${MDIR}/sethostent.0
+	ln ${DESTDIR}${MDIR}/gethostbyname.0 ${DESTDIR}${MDIR}/sethostfile.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/memccpy.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/memchr.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/memcmp.0
@@ -308,7 +361,6 @@ install: FRC
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strcspn.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strrchr.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strspn.0
-	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strtok.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpnam.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpfile.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tempnam.0

@@ -7,7 +7,7 @@
 **  All rights reserved.  The Berkeley software License Agreement
 **  specifies the terms and conditions for redistribution.
 **
-**	@(#)sendmail.h	5.8 (Berkeley) 1/10/86
+**	@(#)sendmail.h	5.8.1 (2.11BSD GTE) 7/15/94
 */
 
 /*
@@ -18,8 +18,8 @@
 
 # ifdef _DEFINE
 # define EXTERN
-# ifndef lint
-static char SmailSccsId[] =	"@(#)sendmail.h	5.8		1/10/86";
+# if !defined(lint) && !defined(NOSCCS)
+static char SmailSccsId[] =	"@(#)sendmail.h	5.8.1		7/15/94";
 # endif lint
 # else  _DEFINE
 # define EXTERN extern
@@ -520,7 +520,11 @@ EXTERN jmp_buf	TopFrame;	/* branch-to-top-of-loop-on-error frame */
 EXTERN bool	QuickAbort;	/*  .... but only if we want a quick abort */
 extern char	*ConfFile;	/* location of configuration file [conf.c] */
 extern char	*FreezeFile;	/* location of frozen memory image [conf.c] */
-extern char	Arpa_Info[];	/* the reply code for Arpanet info [conf.c] */
+extern char	*Arpa_Info;	/* the reply code for Arpanet info [conf.c] */
+extern char	*Arpa_TSyserr;
+extern char	*Arpa_PSyserr;
+extern char	*Arpa_Usrerr;
+extern char	*Version;	/* the version of sendmail [Version.c] */
 extern ADDRESS	NullAddress;	/* a null (template) address [main.c] */
 EXTERN char	SpaceSub;	/* substitution for <lwsp> */
 EXTERN int	WkClassFact;	/* multiplier for message class -> priority */

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)scanner.c	3.8 4/24/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)scanner.c	3.9 1/06/94";
 #endif
 
 /*
@@ -11,7 +11,6 @@ static char sccsid[] = "@(#)scanner.c	3.8 4/24/85";
 #include <stdio.h>
 #include "value.h"
 #include "token.h"
-#include "shortnames.h"
 #include "context.h"
 #include "string.h"
 

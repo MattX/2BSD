@@ -5,14 +5,14 @@ EN(4)		    UNIX Programmer's Manual		    EN(4)
 
 
 
-NNAAMMEE
+NAME
      en - Xerox 3 Mb/s Ethernet interface
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNEENN  _e_n__c_o_n_t_r_o_l_l_e_r_s ## XXeerrooxx pprroottoottyyppee ((33 MMbb)) EEtthheerrnneett
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NEN  _e_n__c_o_n_t_r_o_l_l_e_r_s # Xerox prototype (3 Mb) Ethernet
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _e_n interface provides access to a 3 Mb/s Ethernet net-
      work.  Due to limitations in the hardware, DMA transfers to
      and from the network must take place in the lower 64K bytes
@@ -51,16 +51,16 @@ DDEESSCCRRIIPPTTIIOONN
      disabled, on a per-interface basis, by setting the
      IFF_NOTRAILERS flag with an SIOCSIFFLAGS ioctl.
 
-DDIIAAGGNNOOSSTTIICCSS
-     eenn%%dd:: oouuttppuutt eerrrroorr.  The hardware indicated an error on the
+DIAGNOSTICS
+     en%d: output error.  The hardware indicated an error on the
      previous transmission.
 
-     eenn%%dd:: sseenndd eerrrroorr.	After 16 retransmissions using the
+     en%d: send error.	After 16 retransmissions using the
      exponential backoff algorithm described above, the packet
 
 
 
-Printed 12/28/88	 August 20, 1987			1
+Printed 1/9/94		 August 20, 1987			1
 
 
 
@@ -73,17 +73,17 @@ EN(4)		    UNIX Programmer's Manual		    EN(4)
 
      was dropped.
 
-     eenn%%dd:: iinnppuutt eerrrroorr.  The hardware indicated an error in read-
+     en%d: input error.  The hardware indicated an error in read-
      ing a packet off the cable.
 
-     eenn%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a message
+     en%d: can't handle af%d.  The interface was handed a message
      with addresses formatted in an unsuitable address family;
      the packet was dropped.
 
-SSEEEE AALLSSOO
+SEE ALSO
      intro(4N), inet(4F)
 
-BBUUGGSS
+BUGS
      The device has insufficient buffering to handle back to back
      packets.  This makes use in a production environment pain-
      ful.
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 20, 1987			2
+Printed 1/9/94		 August 20, 1987			2
 
 
 

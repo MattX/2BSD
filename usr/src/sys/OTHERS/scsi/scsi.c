@@ -117,7 +117,6 @@ char	imicmd[8];
 char	Initdata[8];
 
 struct	buf	imitab;
-struct	buf	rimibuf;
 
 unsigned	imixblks;	/* Number of blks transferred */
 static		int Didinit = 0;
@@ -331,19 +330,5 @@ noerror:
 	bp->b_resid = 0;
 	iodone(bp);
 	imistart(0);
-}
-
-imiread(dev)
-dev_t dev;
-{
-
-	physio(imistrategy, &rimibuf, dev, B_READ, WORD);
-}
-
-imiwrite(dev)
-dev_t dev;
-{
-
-	physio(imistrategy, &rimibuf, dev, B_WRITE, WORD);
 }
 #endif NIMI

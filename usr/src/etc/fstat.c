@@ -10,28 +10,18 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1987 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)fstat.c	5.11 (Berkeley) 2/22/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)fstat.c	5.11.1 (2.11BSD GTE) 12/31/93";
+#endif
 
 /*
  *  fstat 
  */
-#ifndef BSD2_10
-#include <machine/pte.h>
-#else
-#include <short_names.h>
-#endif
 #include <sys/param.h>
-#ifndef BSD2_10
-#include <sys/dir.h>
-#endif
 #include <sys/user.h>
 #include <sys/proc.h>
 #include <sys/text.h>
@@ -80,16 +70,14 @@ typedef struct devs {
 } DEVS;
 DEVS	*devs;
 
-#ifdef BSD2_10
+#ifdef pdp11
 static struct nlist nl[] = {
 	{ "_proc" },
 #define	X_PROC		0
 	{ "_nproc" },
 #define	X_NPROC		1
-	{ "_swplo" },
-#define	X_SWAPLO	2
 	{ "_netdata" },
-#define	X_NETDATA	3
+#define	X_NETDATA	2
 	{ "" },
 };
 #else
@@ -107,13 +95,13 @@ static struct nlist nl[] = {
 #endif
 
 struct proc	*mproc;
-#ifndef BSD2_10
+#ifndef pdp11
 struct pte	*Usrptma, *usrpt;
 #endif
 
 union {
 	struct	user user;
-#ifdef BSD2_10
+#ifdef pdp11
 	char	upages[ctob(USIZE)];
 #else
 	char	upages[UPAGES][NBPG];
@@ -124,8 +112,8 @@ extern int	errno;
 static int	fflg, vflg;
 static int	kmem, mem, nproc, swap;
 static char	*uname;
-#ifdef BSD2_10
-static off_t	netdata, swplo;
+#ifdef pdp11
+static off_t	netdata;
 long	lgetw();
 #endif
 
@@ -189,14 +177,10 @@ main(argc, argv)
 		fprintf(stderr, "%s: No namelist\n", N_UNIX);
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	if (nl[X_NETDATA].n_type) {
 		netdata = lgetw((off_t)nl[X_NETDATA].n_value);
 		netdata = ctob(netdata);
-	}
-	if (nl[X_SWAPLO].n_type) {
-		(void) lseek(kmem, (off_t)nl[X_SWAPLO].n_value, L_SET);
-		read(kmem, &swplo, sizeof swplo);
 	}
 #else
 	Usrptma = (struct pte *)nl[X_USRPTMA].n_value;
@@ -204,7 +188,7 @@ main(argc, argv)
 #endif
 	nproc = (int)lgetw((off_t)nl[X_NPROC].n_value);
 
-#ifdef BSD2_10
+#ifdef pdp11
 	(void)lseek(kmem, (off_t)nl[X_PROC].n_value, L_SET);
 #else
 	(void)lseek(kmem, lgetw((off_t)nl[X_PROC].n_value), L_SET);
@@ -239,7 +223,7 @@ main(argc, argv)
 	exit(0);
 }
 
-#ifndef BSD2_10
+#ifndef pdp11
 static
 getu()
 {
@@ -290,7 +274,7 @@ getu()
 	if ((mproc->p_flag & SLOAD) == 0) {
 		if (swap < 0)
 			return(0);
-		(void)lseek(swap, (off_t)(mproc->p_addr + swplo)<<9, L_SET);
+		(void)lseek(swap, (off_t)(mproc->p_addr)<<9, L_SET);
 		if (read(swap, (char *)&user.user, sizeof(struct user))
 		    != sizeof(struct user)) {
 			fprintf(stderr, "fstat: can't read u for pid %d from %s\n", mproc->p_pid, N_SWAP);
@@ -312,7 +296,7 @@ dotext()
 {
 	struct text	text;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	if (!mproc->p_textp)
 		return;
 #endif
@@ -347,7 +331,7 @@ itrans(ftype, g, fno)
 	}
 	if (mproc->p_pid == 0)
 		comm = "swapper";
-#ifndef BSD2_10
+#ifndef pdp11
 	else if (mproc->p_pid == 2)
 		comm = "pagedaemon";
 #endif
@@ -371,13 +355,13 @@ itrans(ftype, g, fno)
 
 	switch(ftype) {
 	case DTYPE_INODE:
-#ifdef BSD2_10
+#ifdef pdp11
 	case DTYPE_PIPE:
 #endif
 		printf("\t%2d, %2d\t%5lu\t%6ld\t%3s %s\n", major(inode.i_dev),
 		    minor(inode.i_dev), (long)inode.i_number,
 		    inode.i_mode == IFSOCK ? 0L : inode.i_size,
-#ifdef BSD2_10
+#ifdef pdp11
 		    ftype == DTYPE_PIPE ? "pip" :
 #endif
 		    itype(inode.i_mode), name ? name : "");
@@ -440,7 +424,7 @@ socktrans(sock)
 	char dname[32], *strcpy();
 
 	/* fill in socket */
-#ifdef BSD2_10
+#ifdef pdp11
 	(void)lseek(mem, (off_t)sock + netdata, L_SET);
 	if (read(mem, (char *)&so, sizeof(struct socket))
 #else
@@ -453,7 +437,7 @@ socktrans(sock)
 	}
 
 	/* fill in protosw entry */
-#ifdef BSD2_10
+#ifdef pdp11
 	(void)lseek(mem, (off_t)so.so_proto + netdata, L_SET);
 	if (read(mem, (char *)&proto, sizeof(struct protosw))
 #else
@@ -466,7 +450,7 @@ socktrans(sock)
 	}
 
 	/* fill in domain */
-#ifdef BSD2_10
+#ifdef pdp11
 	(void)lseek(mem, (off_t)proto.pr_domain + netdata, L_SET);
 	if (read(mem, (char *)&dom, sizeof(struct domain))
 #else
@@ -485,7 +469,7 @@ socktrans(sock)
 	if (dom.dom_family == AF_INET)
 		(void)strcpy(dname, "inet");
 	else {
-#ifdef BSD2_10
+#ifdef pdp11
 		(void)lseek(mem, (off_t)dom.dom_name + netdata, L_SET);
 		if ((len = read(mem, dname, sizeof(dname) - 1)) < 0) {
 #else
@@ -521,7 +505,7 @@ socktrans(sock)
 		getinetproto(proto.pr_protocol);
 		if (proto.pr_protocol == IPPROTO_TCP ) {
 			if (so.so_pcb) {
-#ifdef BSD2_10
+#ifdef pdp11
 				(void)lseek(mem,(off_t)so.so_pcb+netdata,L_SET);
 				if (read(mem, &inpcb, sizeof(struct inpcb))
 #else
@@ -542,7 +526,7 @@ socktrans(sock)
 		/* print address of pcb and connected pcb */
 		if (so.so_pcb) {
 			printf(" %x", (int)so.so_pcb);
-#ifdef BSD2_10
+#ifdef pdp11
 			(void)lseek(mem, (off_t)so.so_pcb + netdata, L_SET);
 			if (read(mem, (char *)&unpcb, sizeof(struct unpcb))
 #else
@@ -716,7 +700,7 @@ static long
 lgetw(loc)
 	off_t loc;
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	u_short word;
 #else
 	long word;

@@ -5,17 +5,17 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-NNAAMMEE
+NAME
      math - introduction to mathematical library functions
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These functions constitute the C math library, _l_i_b_m. The
      link editor searches this library under the "-lm" option.
      Declarations for these functions may be obtained from the
      include file <_m_a_t_h._h>.  The Fortran math library is
      described in ``man 3f intro''.
 
-LLIISSTT OOFF FFUUNNCCTTIIOONNSS
+LIST OF FUNCTIONS
      _N_a_m_e      _A_p_p_e_a_r_s _o_n _P_a_g_e	  _D_e_s_c_r_i_p_t_i_o_n		    _E_r_r_o_r _B_o_u_n_d (_U_L_P_s)
      acos	 sin.3m       inverse trigonometric function	 3
      acosh	 asinh.3m     inverse hyperbolic function	 3
@@ -60,7 +60,7 @@ LLIISSTT OOFF FFUUNNCCTTIIOONNSS
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 
@@ -73,7 +73,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
      yn          j0.3m	      bessel function			???
 
-NNOOTTEESS
+NOTES
      In 4.3 BSD, distributed from the University of California in
      late 1985, most of the foregoing functions come in two ver-
      sions, one for the double-precision "D" format in the DEC
@@ -95,7 +95,7 @@ NNOOTTEESS
      However the two versions do differ in ways that have to be
      explained, to which end the following notes are provided.
 
-     DDEECC VVAAXX--1111 DD__ffllooaattiinngg--ppooiinntt::
+     DEC VAX-11 D_floating-point:
 
      This is the format for which the original math library _l_i_b_m
      was developed, and to which this manual is still principally
@@ -126,7 +126,7 @@ NNOOTTEESS
 
 
 
-Printed 12/28/88	  May 27, 1986				2
+Printed 1/9/94		  May 27, 1986				2
 
 
 
@@ -192,7 +192,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 12/28/88	  May 27, 1986				3
+Printed 1/9/94		  May 27, 1986				3
 
 
 
@@ -213,7 +213,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
      resembles VAX D_floating-point need use anything worse than
      the new _l_i_b_m.
 
-     IIEEEEEE SSTTAANNDDAARRDD 775544 FFllooaattiinngg--PPooiinntt AArriitthhmmeettiicc::
+     IEEE STANDARD 754 Floating-Point Arithmetic:
 
      This standard is on its way to becoming more widely adopted
      than any other design for computer arithmetic.  VLSI chips
@@ -258,7 +258,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 12/28/88	  May 27, 1986				4
+Printed 1/9/94		  May 27, 1986				4
 
 
 
@@ -324,7 +324,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 12/28/88	  May 27, 1986				5
+Printed 1/9/94		  May 27, 1986				5
 
 
 
@@ -390,7 +390,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 12/28/88	  May 27, 1986				6
+Printed 1/9/94		  May 27, 1986				6
 
 
 
@@ -456,7 +456,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 12/28/88	  May 27, 1986				7
+Printed 1/9/94		  May 27, 1986				7
 
 
 
@@ -516,13 +516,13 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	       greater range or precision would be needed to
 	       represent the exact result.
 
-BBUUGGSS
+BUGS
      When signals are appropriate, they are emitted by certain
      operations within the codes, so a subroutine-trace may be
 
 
 
-Printed 12/28/88	  May 27, 1986				8
+Printed 1/9/94		  May 27, 1986				8
 
 
 
@@ -539,7 +539,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
      all divisions by zero could disrupt a code that would other-
      wise get correct results despite division by zero.
 
-SSEEEE AALLSSOO
+SEE ALSO
      An explanation of IEEE 754 and its proposed extension p854
      was published in the IEEE magazine MICRO in August 1984
      under the title "A Proposed Radix- and
@@ -551,7 +551,7 @@ SSEEEE AALLSSOO
      Special Issue of Oct. 1979, may be helpful although they
      pertain to superseded drafts of the standard.
 
-AAUUTTHHOORR
+AUTHOR
      W. Kahan, with the help of Z-S. Alex Liu, Stuart I.
      McDonald, Dr. Kwok-Choi Ng, Peter Tang.
 
@@ -588,7 +588,7 @@ AAUUTTHHOORR
 
 
 
-Printed 12/28/88	  May 27, 1986				9
+Printed 1/9/94		  May 27, 1986				9
 
 
 

@@ -9,10 +9,9 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *      @(#)ns.h	7.3 (Berkeley) 1/20/88
+ *      @(#)ns.h	7.3.1 (2.11BSD GTE) 12/31/93
  */
 
-#include <short_names.h>
 /*
  * Constants and Structures defined by the Xerox Network Software
  * per "Internet Transport Protocols", XSIS 028112, December 1981

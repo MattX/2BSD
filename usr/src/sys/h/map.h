@@ -38,7 +38,5 @@ struct mapent {
 #ifdef KERNEL
 extern struct	map	coremap[1];	/* space for core allocation */
 extern struct	map	swapmap[1];	/* space for swap allocation */
-#ifdef UNIBUS_MAP
 extern struct	map	ub_map[1];	/* space for UNIBUS allocation */
-#endif
 #endif

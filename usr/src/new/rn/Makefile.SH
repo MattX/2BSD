@@ -3,7 +3,7 @@ case $CONFIG in
 esac
 echo "Extracting Makefile (with variable substitutions)"
 cat >Makefile <<!GROK!THIS!
-# $Header: Makefile.SH,v 1.1 88/08/10 12:59:35 bin Locked $
+# $Header: Makefile.SH,v 4.3.1.2 85/05/13 17:21:18 lwall Exp $
 #
 # $Log:	Makefile.SH,v $
 # Revision 4.3.1.2  85/05/13  17:21:18  lwall
@@ -17,12 +17,12 @@ cat >Makefile <<!GROK!THIS!
 # 
 
 CC = $cc
-rnbin = \${DESTDIR}$rnbin
-rnlib = \${DESTDIR}$rnlib
-mansrc = \${DESTDIR}$mansrc
+rnbin = $rnbin
+rnlib = $rnlib
+mansrc = $mansrc
 manext = $manext
+NNTPSRC = $NNTPSRC
 CFLAGS = $iandd -O
-SEPFLAG = $iandd
 LDFLAGS = $iandd
 NDIRC = $ndirc
 NDIRO = $ndiro
@@ -32,7 +32,7 @@ libs = $ndirlib $termlib $jobslib
 cat >>Makefile <<'!NO!SUBS!'
 
 public = rn newsetup newsgroups Pnews Rnmail
-private = norm.saver mbox.saver ng.help art.help pager.help subs.help makedir filexp Pnews.header
+private = norm.saver mbox.saver ng.help art.help pager.help subs.help makedir filexp Pnews.header getactive
 manpages = rn.1 Pnews.1 Rnmail.1 newsetup.1 newsgroups.1
 util = Makefile makedepend newsnews
 
@@ -46,16 +46,22 @@ h = $(h1) $(h2) $(h3) $(h4)
 c1 = addng.c art.c artio.c artsrch.c backpage.c bits.c cheat.c
 c2 = final.c head.c help.c init.c intrp.c kfile.c last.c $(NDIRC) ng.c
 c3 = ngdata.c ngsrch.c ngstuff.c only.c rcln.c rcstuff.c
-c4 = respond.c rn.c search.c sw.c term.c util.c
+c4 = respond.c rn.c search.c sw.c term.c util.c $(NNTPSRC)/common/clientlib.c
 
 c = $(c1) $(c2) $(c3) $(c4)
 
 obj1 = addng.o art.o artio.o artsrch.o backpage.o bits.o cheat.o
 obj2 = final.o head.o help.o init.o intrp.o kfile.o last.o $(NDIRO) ng.o
 obj3 = ngdata.o ngsrch.o ngstuff.o only.o rcln.o rcstuff.o
-obj4 = respond.o rn.o search.o sw.o term.o util.o
+obj4 = respond.o rn.o search.o sw.o term.o util.o $(NNTPSRC)/common/clientlib.o
 
 obj = $(obj1) $(obj2) $(obj3) $(obj4)
+
+base = addng.o art.o artio.o artsrch.o backpage.o bits.o cheat.o final.o \
+	head.o intrp.o ng.o rn.o $(NNTPSRC)/common/clientlib.o
+ov1 = help.o init.o kfile.o last.o $(NDIRO) ngdata.o ngsrch.o \
+	ngstuff.o only.o rcln.o rcstuff.o
+ov2 = respond.o search.o sw.o term.o util.o
 
 lintflags = -phbvxac
 
@@ -77,17 +83,17 @@ all: $(public) $(private) $(util)
 	touch all
 
 rn: $(obj)
-	-if [ X$(SEPFLAG) = X ]; then \
-		$(CC) $(LDFLAGS) $(obj) $(libs) -o rn; \
-	elif [ X$(SEPFLAG) = X-i ]; then \
-		ld -i -X /lib/crt0.o $(obj1) \
-			-Z $(obj3) \
-			-Z $(obj4) \
-			-Z $(obj2) \
-			-Y $(libs) -lc -o rn; \
-	else \
-		echo "Need an overlay scheme for non-separate I&D load"; \
-	fi
+#	$(CC) $(LDFLAGS) $(obj) $(libs) -o rn
+	$(CC) $(LDFLAGS) $(base) -Z $(ov1) -Z $(ov2) -Y $(libs) -o rn
+
+
+getactive: getactive.o $(NNTPSRC)/common/clientlib.o
+	$(CC) $(LDFLAGS) getactive.o $(NNTPSRC)/common/clientlib.o -o getactive
+
+# Eek! This is gross.
+$(NNTPSRC)/common/clientlib.o:
+	$(CC) -c $(CFLAGS) $(NNTPSRC)/common/clientlib.c
+	mv clientlib.o $(NNTPSRC)/common/clientlib.o
 
 # if a .h file depends on another .h file...
 $(h):
@@ -97,6 +103,7 @@ install: rn
 # won't work with csh
 	export PATH || exit 1
 	- mv $(rnbin)/rn $(rnbin)/rn.old
+	- ln -s $(rnbin)/rn $(rnbin)/rrn
 	- if test `pwd` != $(rnbin); then cp $(public) $(rnbin); fi
 	cd $(rnbin); chmod 755 $(public)
 	chmod 755 makedir
@@ -111,10 +118,10 @@ done; \
 fi
 
 clean:
-	rm -f *.o
+	rm -f *.o rn core getactive
 
 realclean:
-	rm -f rn *.o core $(addedbyconf)
+	rm -f rn *.o core $(addedbyconf) $(NNTPSRC)/common/clientlib.o
 
 # The following lint has practically everything turned on.  Unfortunately,
 # you have to wade through a lot of mumbo jumbo that can't be suppressed.

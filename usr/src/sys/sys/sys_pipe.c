@@ -3,12 +3,10 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_pipe.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)sys_pipe.c	1.2 (2.11BSD GTE) 12/27/92
  */
 
 #include "param.h"
-#include "../machine/reg.h"
-
 #include "systm.h"
 #include "user.h"
 #include "proc.h"
@@ -16,6 +14,11 @@
 #include "file.h"
 #include "fs.h"
 #include "mount.h"
+
+extern	int	ino_ioctl(), ino_close();
+	int	pipe_rw(), pipe_select();
+	struct	fileops	pipeops =
+		{ pipe_rw, ino_ioctl, pipe_select, ino_close };
 
 /*
  * The sys-pipe entry.
@@ -82,10 +85,23 @@ pipe()
 	ip->i_flag = IACC|IUPD|ICHG|IPIPE;
 }
 
-readp(fp)
+pipe_rw(fp, rw, uio)
 	register struct file *fp;
+	register enum uio_rw rw;
+	register struct uio *uio;
+{
+
+	if (rw == UIO_READ)
+		return (readp(fp, uio));
+	return (writep(fp, uio));
+}
+
+readp(fp, uio)
+	register struct file *fp;
+	register struct	uio *uio;
 {
 	register struct inode *ip;
+	int error;
 
 	ip = (struct inode *)fp->f_data;
 loop:
@@ -100,20 +116,18 @@ loop:
 		 */
 		IUNLOCK(ip);
 		if (ip->i_count != 2)
-			return;
-		if (fp->f_flag & FNDELAY) {
-			u.u_error = EWOULDBLOCK;
-			return;
-		}
+			return (0);
+		if (fp->f_flag & FNDELAY)
+			return (EWOULDBLOCK);
 		ip->i_mode |= IREAD;
 		sleep((caddr_t)ip+2, PPIPE);
 		goto loop;
 	}
 
 	/* Read and return */
-	u.u_offset = fp->f_offset;
-	readi(ip);
-	fp->f_offset = u.u_offset;
+	uio->uio_offset = fp->f_offset;
+	error = rwip(ip, uio, UIO_READ);
+	fp->f_offset = uio->uio_offset;
 
 	/*
 	 * If reader has caught up with writer, reset
@@ -133,25 +147,28 @@ loop:
 		}
 	}
 	IUNLOCK(ip);
+	return (error);
 }
 
-writep(fp)
-	register struct file *fp;
+writep(fp, uio)
+	struct file *fp;
+	register struct	uio *uio;
 {
 	register struct inode *ip;
 	register int c;
+	int error = 0;
 
 	ip = (struct inode *)fp->f_data;
-	c = u.u_count;
+	c = uio->uio_resid;
 	ILOCK(ip);
 	if ((fp->f_flag & FNDELAY) && ip->i_size + c >= MAXPIPSIZ) {
-		u.u_error = EWOULDBLOCK;
+		error = EWOULDBLOCK;
 		goto done;
 	}
 loop:
 	/* If all done, return. */
 	if (c == 0) {
-		u.u_count = 0;
+		uio->uio_resid = 0;
 		goto done;
 	}
 
@@ -160,10 +177,10 @@ loop:
 	 * return error and signal too.
 	 */
 	if (ip->i_count != 2) {
-		u.u_error = EPIPE;
 		psignal(u.u_procp, SIGPIPE);
+		error = EPIPE;
 done:		IUNLOCK(ip);
-		return;
+		return (error);
 	}
 
 	/*
@@ -184,10 +201,10 @@ done:		IUNLOCK(ip);
 	 * One can therefore get a file > MAXPIPSIZ if write
 	 * sizes do not divide MAXPIPSIZ.
 	 */
-	u.u_offset = ip->i_size;
-	u.u_count = MIN((u_int)c, (u_int)MAXPIPSIZ);
-	c -= u.u_count;
-	writei(ip);
+	uio->uio_offset = ip->i_size;
+	uio->uio_resid = MIN((u_int)c, (u_int)MAXPIPSIZ);
+	c -= uio->uio_resid;
+	error = rwip(ip, uio, UIO_WRITE);
 	if (ip->i_mode&IREAD) {
 		ip->i_mode &= ~IREAD;
 		wakeup((caddr_t)ip+2);

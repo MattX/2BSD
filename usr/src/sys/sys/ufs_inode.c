@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_inode.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_inode.c	1.3 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -21,12 +21,9 @@
 #ifdef QUOTA
 #include "quota.h"
 #endif
+#include "syslog.h"
 
-#ifdef SMALL
 #define	INOHSZ	16		/* must be power of two */
-#else
-#define	INOHSZ	64		/* must be power of two */
-#endif
 #define	INOHASH(dev,ino)	(((dev)+(ino))&(INOHSZ-1))
 
 union ihead {				/* inode LRU cache, stolen */
@@ -111,7 +108,6 @@ iget(dev, fs, ino)
 	struct dinode *dp;
 #ifdef EXTERNALITIMES
 	struct icommon2 xic2;
-	segm sav5;
 #endif
 
 loop:
@@ -186,6 +182,7 @@ loop:
 	ip->i_dev = dev;
 	ip->i_fs = fs;
 	ip->i_number = ino;
+	cacheinval(ip);
 	ip->i_flag = ILOCKED;
 	ip->i_count++;
 	ip->i_lastr = 0;
@@ -225,32 +222,19 @@ loop:
 	}
 	dp = (struct dinode *)mapin(bp);
 	dp += itoo(ino);
-	{
-		register char *p1, *p2;
-		int cnt;
-
-		ip->i_ic1 = dp->di_ic1;
+	ip->i_ic1 = dp->di_ic1;
 #ifdef EXTERNALITIMES
-		xic2 = dp->di_ic2;
+	xic2 = dp->di_ic2;
 #else
-		ip->i_ic2 = dp->di_ic2;
+	ip->i_ic2 = dp->di_ic2;
 #endif
-		p1 = (char *)ip->i_addr;
-		p2 = (char *)dp->di_addr;
-		for (cnt = 0;cnt < NADDR;cnt++) {
-			*p1++ = *p2++;
-			*p1++ = 0;
-			*p1++ = *p2++;
-			*p1++ = *p2++;
-		}
-	}
+	bcopy(dp->di_addr, ip->i_addr, NADDR * sizeof (daddr_t));
 	mapout(bp);
 	brelse(bp);
 #ifdef EXTERNALITIMES
-	saveseg5(sav5);
 	mapseg5(xitimes, xitdesc);
-	((struct icommon2 *)0120000)[ip-inode] = xic2;
-	restorseg5(sav5);
+	((struct icommon2 *)SEG5)[ip-inode] = xic2;
+	normalseg5();
 #endif
 #ifdef QUOTA
 	QUOTAMAP();
@@ -264,6 +248,36 @@ loop:
 }
 
 /*
+ * Convert a pointer to an inode into a reference to an inode.
+ *
+ * This is basically the internal piece of iget (after the
+ * inode pointer is located) but without the test for mounted
+ * filesystems.  It is caller's responsibility to check that
+ * the inode pointer is valid.
+ */
+igrab(ip)
+	register struct inode *ip;
+{
+	while ((ip->i_flag&ILOCKED) != 0) {
+		ip->i_flag |= IWANT;
+		sleep((caddr_t)ip, PINOD);
+	}
+	if (ip->i_count == 0) {		/* ino on free list */
+		register struct inode *iq;
+
+		if (iq = ip->i_freef)
+			iq->i_freeb = ip->i_freeb;
+		else
+			ifreet = ip->i_freeb;
+		*ip->i_freeb = iq;
+		ip->i_freef = NULL;
+		ip->i_freeb = NULL;
+	}
+	ip->i_count++;
+	ip->i_flag |= ILOCKED;
+}
+
+/*
  * Decrement reference count of
  * an inode structure.
  * On the last reference,
@@ -274,7 +288,7 @@ iput(ip)
 	register struct inode *ip;
 {
 
-#ifndef BSD2_10
+#ifndef notnow
 	/*
 	 * This code requires a lot of workarounds, you have to change
 	 * lots of places to gratuitously lock just so we can unlock it.
@@ -346,13 +360,11 @@ iupdat(ip, ta, tm, waitfor)
 	struct timeval *ta, *tm;
 	int waitfor;
 {
-	struct buf *bp;
-	struct dinode *dp;
+	register struct buf *bp;
+	register struct dinode *dp;
 #ifdef EXTERNALITIMES
 	struct icommon2 xic2, *xicp2;
-	segm sav5;
 #endif
-{
 	register struct inode *tip = ip;
 
 	if ((tip->i_flag & (IUPD|IACC|ICHG|IMOD)) == 0)
@@ -365,9 +377,8 @@ iupdat(ip, ta, tm, waitfor)
 		return;
 	}
 #ifdef EXTERNALITIMES
-	saveseg5(sav5);
 	mapseg5(xitimes, xitdesc);
-	xicp2 = &((struct icommon2 *)0120000)[ip - inode];
+	xicp2 = &((struct icommon2 *)SEG5)[ip - inode];
 	if (tip->i_flag & IACC)
 		xicp2->ic_atime = ta->tv_sec;
 	if (tip->i_flag & IUPD)
@@ -375,7 +386,7 @@ iupdat(ip, ta, tm, waitfor)
 	if (tip->i_flag & ICHG)
 		xicp2->ic_ctime = time.tv_sec;
 	xic2 = *xicp2;
-	restorseg5(sav5);
+	normalseg5();
 #else
 	if (tip->i_flag&IACC)
 		tip->i_atime = ta->tv_sec;
@@ -392,25 +403,7 @@ iupdat(ip, ta, tm, waitfor)
 #else
 	dp->di_ic2 = tip->i_ic2;
 #endif
-}
-{
-	register char *p1, *p2;
-	register int cnt;
-
-	p1 = (char *)dp->di_addr;
-	p2 = (char *)ip->i_addr;
-	for (cnt = 0;cnt < NADDR;cnt++) {
-		*p1++ = *p2++;
-#ifdef DIAGNOSTIC
-		if (*p2)
-		    printf("i_addr[%d] > 2^24(%D), inum=%d, dev=%d\n",
-		    cnt, ip->i_addr[cnt], ip->i_number, ip->i_dev);
-#endif
-		++p2;
-		*p1++ = *p2++;
-		*p1++ = *p2++;
-	}
-}
+	bcopy(ip->i_addr, dp->di_addr, NADDR * sizeof (daddr_t));
 	mapout(bp);
 	if (waitfor)
 		bwrite(bp);

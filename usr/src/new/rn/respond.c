@@ -237,7 +237,11 @@ q to abort.\n\
 	crmode();
     }
 s_bomb:
+#ifdef SERVER
+    if (chdir(spool)) {
+#else not SERVER
     if (chdir(spool) || chdir(ngdir)) {
+#endif SERVER
 	printf(nocd,ngdir) FLUSH;
 	sig_catcher(0);
     }
@@ -417,7 +421,11 @@ char *cmd,*dir;
 #ifdef TERSE
 	fputs("\n(+cbreak)\n",stdout) FLUSH;
 #endif
+#ifdef SERVER
+    if (chdir(spool)) {
+#else not SERVER
     if (chdir(spool) || chdir(ngdir)) {
+#endif SERVER
 	printf(nocd,ngdir) FLUSH;
 	sig_catcher(0);
     }

@@ -70,7 +70,6 @@ int	dv_wcheck, dv_sw 0;
 int wcwcnt[4];
 
 struct	buf	dvtab;
-struct	buf	rdvbuf;
 
 char	dvsecmap[] {
 	0, 4, 8,
@@ -184,16 +183,6 @@ dvexec()
 		DVADDR->dvcbr = CNBCOM | SEEK | RESET;
 		DVADDR->dvair.i = 1<<dv_unit;
 		DVADDR->dvcsr = DONE | IENABLE;
-
-		/***** I/O monitoring stuff  *****/
-/*  Removed for V7 upgrade
- *		if((minord == 64) && (bp->b_blkno >= swplo1)) dv_busy = 18;
- *		else dv_busy = (((minord & 030) >> 2) | (minord & 01)) + 10;
- *		dk_busy |= 1<<DK_N;
- *		dv_numb[dv_busy] += 1;
- */
-		/************************/
-
 		return;
 	}
 	if(dvrdy()) return;
@@ -235,21 +224,6 @@ dvexec()
 				DVADDR->dvcbr = CHWCOM | (sctr<<1);
 	}
 	DVADDR->dvcsr = IENABLE | GO | (dv_addr.in[0]<<4);
-
-	/***** I/O monitoring stuff *****/
-/* Removed for v7 Upgrade
- *	dk_busy |= 1<<DK_N;
- *	dk_numb[DK_N] += 1;
- *	dk_wds[DK_N] += 8;
- *	if((minord == 64) && (bp->b_blkno >= swplo1)) dv_busy = 9;
- *	else dv_busy = (((minord & 030) >> 2) | (minord & 01)) + 1;
- *	if (dv_count >= -512)
- *		dv_numb[dv_busy] += 1;
- *	if(bp->b_flags & B_READ) dv_rwds[dv_busy] += 8;
- *	else dv_wwds[dv_busy] += 8;
- */
-	/*****************************/
-
 }
 
 int	dv_tmp;
@@ -408,31 +382,3 @@ dvherr(n)
 	if(n==0)
 		dvstart();
 }
-dvread(dev)
-{
-
-	if(dvphys(dev))
-	physio(dvstrategy, &rdvbuf, dev, B_READ, WORD);
-}
-
-dvwrite(dev)
-{
-
-	if(dvphys(dev))
-	physio(dvstrategy, &rdvbuf, dev, B_WRITE, WORD);
-}
-
-dvphys(dev)
-{
-	long c;
-
-	c = u.u_offset >> 9;
-	c += (u.u_count+511) / 512;
-	if(c > dv_sizes[minor(dev) & 07].nblocks) {
-		u.u_error = ENXIO;
-		return(0);
-	}
-	return(1);
-}
-
-

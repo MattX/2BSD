@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)rx3.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)rx3.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -212,10 +212,8 @@ register struct buf *bp;
 	int mdev,okay,i;
 	off_t seek;
 
-#ifdef	UNIBUS_MAP
 	if (bp->b_flags & B_PHYS)
 		mapalloc(bp);
-#endif
 	/*
 	 *  Make sure block number is within range.
 	 */

@@ -5,14 +5,14 @@ KILLPG(2)	    UNIX Programmer's Manual		KILLPG(2)
 
 
 
-NNAAMMEE
+NAME
      killpg - send signal to a process group
 
-SSYYNNOOPPSSIISS
-     kkiillllppgg((ppggrrpp,, ssiigg))
-     iinntt ppggrrpp,, ssiigg;;
+SYNOPSIS
+     killpg(pgrp, sig)
+     int pgrp, sig;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _K_i_l_l_p_g sends the signal _s_i_g to the process group _p_g_r_p.  See
      _s_i_g_v_e_c(2) for a list of signals.
 
@@ -22,12 +22,12 @@ DDEESSCCRRIIPPTTIIOONN
      SIGCONT may be sent to any process that is a descendant of
      the current process.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and the global variable
      _e_r_r_n_o is set to indicate the error.
 
-EERRRROORRSS
+ERRORS
      _K_i_l_l_p_g will fail and no signal will be sent if any of the
      following occur:
 
@@ -45,7 +45,7 @@ EERRRROORRSS
 		    effective user ID different from that of the
 		    sending process.
 
-SSEEEE AALLSSOO
+SEE ALSO
      kill(2), getpgrp(2), sigvec(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 14, 1986				1
+Printed 1/9/94		  May 14, 1986				1
 
 
 

@@ -5,24 +5,24 @@ RMDIR(2)	    UNIX Programmer's Manual		 RMDIR(2)
 
 
 
-NNAAMMEE
+NAME
      rmdir - remove a directory file
 
-SSYYNNOOPPSSIISS
-     rrmmddiirr((ppaatthh))
-     cchhaarr **ppaatthh;;
+SYNOPSIS
+     rmdir(path)
+     char *path;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _R_m_d_i_r removes a directory file whose name is given by _p_a_t_h.
      The directory must not have any entries other than "." and
      "..".
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 is returned if the remove succeeds; otherwise a -1 is
      returned and an error code is stored in the global location
      _e_r_r_n_o.
 
-EERRRROORRSS
+ERRORS
      The named file is removed unless one or more of the follow-
      ing are true:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -80,7 +80,7 @@ RMDIR(2)	    UNIX Programmer's Manual		 RMDIR(2)
      [EFAULT]	    _P_a_t_h points outside the process's allocated
 		    address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      mkdir(2), unlink(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 

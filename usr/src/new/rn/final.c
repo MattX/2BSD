@@ -1,9 +1,6 @@
-/* $Header: /usr/src/local/rn/RCS/final.c,v 1.2 87/06/25 18:39:43 bin Exp $
+/* $Header: final.c,v 4.3 85/05/01 11:38:08 lwall Exp $
  *
  * $Log:	final.c,v $
- * Revision 1.2  87/06/25  18:39:43  bin
- * Fixed bug with signal catcher on pdp11's.
- * 
  * Revision 4.3  85/05/01  11:38:08  lwall
  * Baseline for release with 4.3bsd.
  * 
@@ -18,6 +15,8 @@
 #include "bits.h"
 #include "last.h"
 #include "rcstuff.h"
+#include "ngdata.h"
+#include "artio.h"
 #include "INTERN.h"
 #include "final.h"
 
@@ -54,9 +53,21 @@ void					/* very much void */
 finalize(status)
 int status;
 {
+#ifdef SERVER
+    char artname[32];
+#endif SERVER
+
     if (bizarre)
 	resetty();
     UNLINK(lockname);
+#ifdef SERVER
+    if (openart > 0) {
+	sprintf(artname, "/tmp/rrn%ld.%ld", openart, getpid());
+        UNLINK(artname);
+    }
+    UNLINK(active_name);
+    close_server();
+#endif SERVER
     if (status < 0) {
 	chdir("/usr/tmp");
 	sigset(SIGILL,SIG_DFL);

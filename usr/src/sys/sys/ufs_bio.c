@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_bio.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_bio.c	2.1 (2.11BSD) 12/26/92
  */
 
 #include "param.h"
@@ -29,7 +29,7 @@ bread(dev, blkno)
 	register struct buf *bp;
 
 	bp = getblk(dev, blkno);
-	if (bp->b_flags&B_DONE) {
+	if (bp->b_flags&(B_DONE|B_DELWRI)) {
 		trace(TR_BREADHIT);
 		return (bp);
 	}
@@ -37,9 +37,7 @@ bread(dev, blkno)
 	bp->b_bcount = DEV_BSIZE;	/* XXX? KB */
 	(*bdevsw[major(dev)].d_strategy)(bp);
 	trace(TR_BREADMISS);
-#ifdef UCB_RUSAGE
 	u.u_ru.ru_inblock++;		/* pay for read */
-#endif
 	biowait(bp);
 	return(bp);
 }
@@ -64,14 +62,12 @@ breada(dev, blkno, rablkno)
 	 */
 	if (!incore(dev, blkno)) {
 		bp = getblk(dev, blkno);
-		if ((bp->b_flags&B_DONE) == 0) {
+		if ((bp->b_flags&(B_DONE|B_DELWRI)) == 0) {
 			bp->b_flags |= B_READ;
 			bp->b_bcount = DEV_BSIZE;	/* XXX? KB */
 			(*bdevsw[major(dev)].d_strategy)(bp);
 			trace(TR_BREADMISS);
-#ifdef UCB_RUSAGE
 			u.u_ru.ru_inblock++;		/* pay for read */
-#endif
 		}
 		else
 			trace(TR_BREADHIT);
@@ -81,20 +77,21 @@ breada(dev, blkno, rablkno)
 	 * If there's a read-ahead block, start i/o
 	 * on it also (as above).
 	 */
-	if (rablkno && !incore(dev, rablkno)) {
-		rabp = getblk(dev, rablkno);
-		if (rabp->b_flags & B_DONE) {
-			brelse(rabp);
-			trace(TR_BREADHITRA);
-		} else {
-			rabp->b_flags |= B_READ|B_ASYNC;
-			rabp->b_bcount = DEV_BSIZE;	/* XXX? KB */
-			(*bdevsw[major(dev)].d_strategy)(rabp);
-			trace(TR_BREADMISSRA);
-#ifdef UCB_RUSAGE
-			u.u_ru.ru_inblock++;		/* pay in advance */
-#endif
-		}
+	if (rablkno) {
+		if (!incore(dev, rablkno)) {
+			rabp = getblk(dev, rablkno);
+			if (rabp->b_flags & (B_DONE|B_DELWRI)) {
+				brelse(rabp);
+				trace(TR_BREADHITRA);
+			} else {
+				rabp->b_flags |= B_READ|B_ASYNC;
+				rabp->b_bcount = DEV_BSIZE;	/* XXX? KB */
+				(*bdevsw[major(dev)].d_strategy)(rabp);
+				trace(TR_BREADMISSRA);
+				u.u_ru.ru_inblock++;	/* pay in advance */
+			}
+		} else
+			trace(TR_BREADHITRA);	
 	}
 
 	/*
@@ -119,10 +116,8 @@ bwrite(bp)
 
 	flag = bp->b_flags;
 	bp->b_flags &= ~(B_READ | B_DONE | B_ERROR | B_DELWRI);
-#ifdef UCB_RUSAGE
 	if ((flag&B_DELWRI) == 0)
 		u.u_ru.ru_oublock++;		/* noone paid yet */
-#endif
 	trace(TR_BWRITE);
 	bp->b_bcount = DEV_BSIZE;		/* XXX? KB */
 	(*bdevsw[major(bp->b_dev)].d_strategy)(bp);
@@ -151,10 +146,8 @@ bdwrite(bp)
 	register struct buf *bp;
 {
 
-#ifdef UCB_RUSAGE
 	if ((bp->b_flags&B_DELWRI) == 0)
 		u.u_ru.ru_oublock++;		/* noone paid yet */
-#endif
 	if (bdevsw[major(bp->b_dev)].d_flags & B_TAPE) {
 		bawrite(bp);
 	}
@@ -185,7 +178,10 @@ brelse(bp)
 		wakeup((caddr_t)bfreelist);
 	}
 	if (bp->b_flags&B_ERROR)
-		bp->b_dev = NODEV;	/* no assoc */
+		if (bp->b_flags & B_LOCKED)
+			bp->b_flags &= ~B_ERROR;	/* try again later */
+		else
+			bp->b_dev = NODEV;  		/* no assoc */
 
 	/*
 	 * Stick the buffer back on a free list.
@@ -196,7 +192,9 @@ brelse(bp)
 		flist = &bfreelist[BQ_AGE];
 		binsheadfree(bp, flist);
 	} else {
-		if (bp->b_flags & B_AGE)
+		if (bp->b_flags & B_LOCKED)
+			flist = &bfreelist[BQ_LOCKED];
+		else if (bp->b_flags & B_AGE)
 			flist = &bfreelist[BQ_AGE];
 		else
 			flist = &bfreelist[BQ_LRU];
@@ -217,7 +215,7 @@ incore(dev, blkno)
 	register struct buf *bp;
 	register struct buf *dp;
 
-	dp = BUFHASH(blkno);
+	dp = BUFHASH(dev, blkno);
 	blkno = fsbtodb(blkno);
 	for (bp = dp->b_forw; bp != dp; bp = bp->b_forw)
 		if (bp->b_blkno == blkno && bp->b_dev == dev &&
@@ -253,7 +251,7 @@ getblk(dev, blkno)
 	 * the buffer is in use for i/o, then we wait until
 	 * the i/o has completed.
 	 */
-	dp = BUFHASH(blkno);
+	dp = BUFHASH(dev, blkno);
 	dblkno = fsbtodb(blkno);
 loop:
 	for (bp = dp->b_forw; bp != dp; bp = bp->b_forw) {
@@ -331,8 +329,7 @@ loop:
 		bwrite(bp);
 		goto loop;
 	}
-#ifdef NRAM > 0
-	if(bp->b_flags & B_RAMREMAP) {
+	if(bp->b_flags & (B_RAMREMAP|B_PHYS)) {
 		register memaddr paddr;	/* click address of real buffer */
 		extern memaddr bpaddr;
 
@@ -344,7 +341,6 @@ loop:
 		bp->b_un.b_addr = (caddr_t)(paddr << 6);
 		bp->b_xmem = (paddr >> 10) & 077;
 	}
-#endif
 	trace(TR_BRELSE);
 	bp->b_flags = B_BUSY;
 	return (bp);
@@ -378,10 +374,8 @@ biodone(bp)
 
 	if (bp->b_flags & B_DONE)
 		panic("dup biodone");
-#ifdef UNIBUS_MAP
 	if (bp->b_flags & (B_MAP|B_UBAREMAP))
 		mapfree(bp);
-#endif
 	bp->b_flags |= B_DONE;
 	if (bp->b_flags&B_ASYNC)
 		brelse(bp);
@@ -402,7 +396,7 @@ blkflush(dev, blkno)
 	struct buf *dp;
 	register int s;
 
-	dp = BUFHASH(blkno);
+	dp = BUFHASH(dev, blkno);
 	blkno = fsbtodb(blkno);
 loop:
 	for (ep = dp->b_forw; ep != dp; ep = ep->b_forw) {
@@ -454,6 +448,21 @@ loop:
 		}
 	}
 	splx(s);
+}
+
+/*
+ * Pick up the device's error number and pass it to the user;
+ * if there is an error but the number is 0 set a generalized code.
+ */
+geterror(bp)
+	register struct buf *bp;
+{
+	register int error = 0;
+
+	if (bp->b_flags&B_ERROR)
+		if ((error = bp->b_error)==0)
+			return(EIO);
+	return (error);
 }
 
 /*

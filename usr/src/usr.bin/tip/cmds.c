@@ -352,7 +352,7 @@ cu_put(cc)
 	char line[BUFSIZ];
 	int argc;
 	char *expand();
-	char *copynamex;
+	char *cpynamex;
 
 	if (prompt("[put] ", copyname))
 		return;
@@ -362,9 +362,9 @@ cu_put(cc)
 	}
 	if (argc == 1)
 		argv[1] = argv[0];
-	copynamex = expand(argv[0]);
-	if ((fd = fopen(copynamex, "r")) == NULL) {
-		printf("%s: cannot open\r\n", copynamex);
+	cpynamex = expand(argv[0]);
+	if ((fd = fopen(cpynamex, "r")) == NULL) {
+		printf("%s: cannot open\r\n", cpynamex);
 		return;
 	}
 	if (boolean(value(ECHOCHECK)))

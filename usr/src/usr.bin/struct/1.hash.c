@@ -93,9 +93,9 @@ parse()
 hash_init()
 	{
 	int i;
-	hashtab = challoc(sizeof(*hashtab) * maxhash);
-	chain = challoc(sizeof(*chain) * maxhash);
-	value = challoc(sizeof(*value) * maxhash);
+	hashtab = (long *) challoc(sizeof(*hashtab) * maxhash);
+	chain = (int *)challoc(sizeof(*chain) * maxhash);
+	value = (int *)challoc(sizeof(*value) * maxhash);
 	for (i = 0; i < maxhash; i++)
 		{
 		hashtab[i] = -1L;
@@ -163,7 +163,7 @@ int *ptr;
 		*ptr = 0;
 	else
 		*ptr = chain[index];
-	chain[index] = ptr;
+	chain[index] = (int)ptr;
 	}
 
 fixvalue (x,ptr)
@@ -188,7 +188,7 @@ int ptr;
 		temp1 = &chain[index];		/* trace chain for each label */
 		while (temp1 != 0)
 			{
-			temp2 = *temp1;
+			temp2 = (int *)*temp1;
 			*temp1 = ptr;
 			temp1 = temp2;
 			}
@@ -213,7 +213,7 @@ long x,y;
 		temp = &chain[index];
 	
 		while (*temp != 0)
-			temp = *temp;
+			temp = (int *)*temp;
 	
 		*temp = chain[hash(y)];
 		}

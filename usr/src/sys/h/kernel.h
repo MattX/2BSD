@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kernel.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kernel.h	1.2 (2.11BSD GTE) 12/24/92
  */
 
 /*
@@ -30,12 +30,4 @@ int	lbolt;				/* awoken once a second */
 int	realitexpire();
 
 short	avenrun[3];
-
-#ifdef CGL_RTP
-int	wantrtp;	/* set when the real-time process is runnable */
-#endif
-#ifdef UCB_FRCSWAP
-int	idleflg;	/* if set, allow incore forks and expands */
-			/* set before idle(), cleared per second by clock */
-#endif
 #endif

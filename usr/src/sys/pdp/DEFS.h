@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)DEFS.h	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)DEFS.h	1.2 (2.11BSD GTE) 12/24/92
  */
 
 #ifndef _DEFS_
@@ -25,16 +25,13 @@
 #	define	HIPRI	0340
 #endif
 
-#ifdef UCB_NET
 #	define	NET	02
 #	define	NETPRI	0100
-#endif
-
 
 /*
  * adapt to any 11 at boot
  */
-#if PDP11 == GENERIC
+#ifdef	GENERIC
 #	undef	NONSEPARATE	/* Enable support for separate I&D if found */
 #endif
 
@@ -43,7 +40,7 @@
 #	define mtpd		mtpi
 #endif
 
-#if PDP11 == GENERIC || defined(SUPERVISOR) || defined(NONSEPARATE)
+#if defined(GENERIC) || defined(SUPERVISOR) || defined(NONSEPARATE)
 	/*
 	 * GENERIC: movb instruction are available on all PDP-11s.
 	 *
@@ -53,16 +50,12 @@
 #	define	SPLHIGH		movb	$HIPRI,PS
 #	define	SPL7		movb	$0340,PS
 #	define	SPLLOW		clrb	PS
-#	ifdef UCB_NET
-#		define	SPLNET	movb	$NETPRI,PS
-#	endif
+#	define	SPLNET		movb	$NETPRI,PS
 #else
 #	define SPLHIGH		spl	HIGH
 #	define SPL7		spl	7
 #	define SPLLOW		spl	0
-#	ifdef UCB_NET
-#		define	SPLNET	spl	NET
-#	endif
+#	define SPLNET		spl	NET
 #endif
 
 

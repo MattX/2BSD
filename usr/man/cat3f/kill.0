@@ -5,23 +5,23 @@ KILL(3F)	    UNIX Programmer's Manual		 KILL(3F)
 
 
 
-NNAAMMEE
+NAME
      kill - send a signal to a process
 
-SSYYNNOOPPSSIISS
-     ffuunnccttiioonn kkiillll ((ppiidd,, ssiiggnnuumm))
-     iinntteeggeerr ppiidd,, ssiiggnnuumm
+SYNOPSIS
+     function kill (pid, signum)
+     integer pid, signum
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_i_d must be the process id of one of the user's processes.
      _S_i_g_n_u_m must be a valid signal number (see sigvec(2)).  The
      returned value will be 0 if successful; an error code other-
      wise.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      kill(2), sigvec(2), signal(3F), fork(3F), perror(3F)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

@@ -43,11 +43,25 @@ SOURCES=	zic.c zdump.c scheck.c ialloc.c
 DATA=		asia australasia europe etcetera northamerica \
 		pacificnew systemv
 ENCHILADA=	$(DOCS) $(SOURCES) $(DATA)
+ZICMAN=		zic.0
+ZICMANSRC=	zic.8
+ZDUMAN=		zdump.0
+ZDUMANSRC=	zdump.8
+MAN=		$(ZICMAN) $(ZDUMAN)
+MANSRC=		$(ZICMANSRC) $(ZDUMAN)
 
 all:		zdump zic
 
-install:	zic $(DATA)
+install:	zic $(DATA) $(MAN)
 		./zic -d ${DESTDIR}/etc/zoneinfo -l $(LOCALTIME) $(DATA)
+		install -c -m 444 -o bin -g bin $(ZICMAN) ${DESTDIR}/usr/man/cat8
+		install -c -m 444 -o bin -g bin $(ZICMAN) ${DESTDIR}/usr/man/cat8
+
+zdump.0:	$(ZDUMANSRC)
+		/usr/man/manroff $(ZDUMANSRC) > $(ZDUMAN)
+
+zic.0:		$(ZICMANSRC)
+		/usr/man/manroff $(ZICMANSRC) > $(ZICMAN)
 
 zdump:		$(TZDOBJS)
 		$(CC) $(CFLAGS) $(LFLAGS) $(SEPFLAG) $(TZDOBJS) -o $@
@@ -75,6 +89,7 @@ sure:		$(TZCSRCS) $(TZDSRCS)
 
 clean:
 		rm -f core *.o *.out REDID_BINARIES zdump zic BUNDLE* \#*
+		rm -f $(ZICMAN) $(ZDUMAN)
 
 CLEAN:		clean
 		sccs clean

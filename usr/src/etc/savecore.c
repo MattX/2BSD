@@ -4,7 +4,7 @@
 
 #include	<sys/param.h>
 #include	<stdio.h>
-#include	<a.out.h>
+#include	<nlist.h>
 #include	<sys/dir.h>
 #include	<sys/stat.h>
 #include	<sys/fs.h>
@@ -32,11 +32,11 @@ struct nlist nl[] = {
 #define	X_TIME		2
 	{ "_time" },
 #define	X_PANICSTR	3
-	{ "_panicst" },
+	{ "_panicstr" },
 #define	X_PHYSMEM	4
 	{ "_physmem" },
 #define	X_BOOTIME	5
-	{ "_boottim" },
+	{ "_boottime" },
 #define	X_VERSION	6
 	{ "_version" },
 	{ 0 },

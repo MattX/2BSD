@@ -24,14 +24,10 @@
  * ebcdic to ascii translation tables
  */
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 #include "ascebc.h"
 
-#ifndef	lint
-static	char	sccsid[] = "@(#)ebctab.c	2.3";
+#if	defined(DOSCCS) && !defined(lint)
+static	char	sccsid[] = "@(#)ebctab.c	2.4";
 #endif	/* ndef lint */
 
 char	ebcasc[NEBCASC][NEBC] = {

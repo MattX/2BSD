@@ -22,16 +22,16 @@ build()
 			FATH(ARC(v,0)) = v;
 		}
 
-	head = challoc(sizeof(*head) * nodenum);
+	head = (VERT *)challoc(sizeof(*head) * nodenum);
 	if (progress) fprintf(stderr,"	gethead:\n");
 	gethead(head);	/* sets head[v] to ITERVX heading smallest loop containing v or UNDEFINED */
 
 	if (routerr) return;
-	inarc = challoc(nodenum * sizeof(*inarc));
+	inarc = (struct list **)challoc(nodenum * sizeof(*inarc));
 	if (progress) fprintf(stderr,"	getinarc:\n");
 	getinarc(inarc,head);		/* sets inarc[v] to list of forward arcs entering v */
 
-	dom = challoc(nodenum * sizeof(*dom));
+	dom = (VERT *)challoc(nodenum * sizeof(*dom));
 	if (progress) fprintf(stderr,"	getdom:\n");
 	getdom(inarc,dom);	/* sets dom[v] to immediate dominator of v or UNDEFINED */
 	if (routerr) return;

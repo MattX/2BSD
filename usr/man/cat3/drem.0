@@ -5,30 +5,30 @@ IEEE(3M)	    UNIX Programmer's Manual		 IEEE(3M)
 
 
 
-NNAAMMEE
+NAME
      copysign, drem, finite, logb, scalb - copysign, remainder,
      exponent manipulations
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<mmaatthh..hh>>
+SYNOPSIS
+     #include <math.h>
 
-     ddoouubbllee ccooppyyssiiggnn((xx,,yy))
-     ddoouubbllee xx,,yy;;
+     double copysign(x,y)
+     double x,y;
 
-     ddoouubbllee ddrreemm((xx,,yy))
-     ddoouubbllee xx,,yy;;
+     double drem(x,y)
+     double x,y;
 
-     iinntt ffiinniittee((xx))
-     ddoouubbllee xx;;
+     int finite(x)
+     double x;
 
-     ddoouubbllee llooggbb((xx))
-     ddoouubbllee xx;;
+     double logb(x)
+     double x;
 
-     ddoouubbllee ssccaallbb((xx,,nn))
-     ddoouubbllee xx;;
-     iinntt nn;;
+     double scalb(x,n)
+     double x;
+     int n;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These functions are required for, or recommended by the IEEE
      standard 754 for floating-point arithmetic.
 
@@ -53,14 +53,14 @@ DDEESSCCRRIIPPTTIIOONN
      Scalb(x,n) = x*(2**n) computed, for integer n, without first
      computing 2**n.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      IEEE 754 defines drem(x,0) and drem(infinity,y) to be
      invalid operations that produce a _N_a_N.  On a VAX, drem(x,0)
      returns the reserved operand.  No infinity exists on a VAX.
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -78,13 +78,13 @@ IEEE(3M)	    UNIX Programmer's Manual		 IEEE(3M)
      VAX, it returns the reserved operand and sets _e_r_r_n_o to
      ERANGE.
 
-SSEEEE AALLSSOO
+SEE ALSO
      floor(3M), math(3M), infnan(3M)
 
-AAUUTTHHOORR
+AUTHOR
      Kwok-Choi Ng
 
-BBUUGGSS
+BUGS
      Should drem(x,0) and logb(0) on a VAX signal invalidity by
      setting _e_r_r_n_o = EDOM?  Should  logb(0) return  -1.7e38?
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

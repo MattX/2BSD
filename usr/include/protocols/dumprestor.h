@@ -16,7 +16,9 @@
 #define TS_ADDR		4
 #define TS_END		5
 #define TS_CLRI		6
-#define MAGIC		(int)60011
+#define OFS_MAGIC	(int)60011
+#define NFS_MAGIC	(int)60012
+#define MAGIC		OFS_MAGIC
 #define CHECKSUM	(int)84446
 
 struct	spcl {

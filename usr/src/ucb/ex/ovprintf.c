@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)ovprintf.c	1.3 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 /*
  * This version of printf calls doprnt, and as such is not portable,

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_subr.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_subr.c	1.4 (2.11BSD GTE) 2/15/94
  */
 
 #include "param.h"
@@ -28,7 +28,6 @@ update()
 {
 	register struct mount *mp;
 	register struct buf *bp;
-	struct fs *fsdst;
 
 	if (updlock)
 		return;
@@ -57,8 +56,7 @@ update()
 			continue;
 		fs->fs_fmod = 0;
 		fs->fs_time = time.tv_sec;
-		fsdst = (struct fs *)mapin(bp);
-		*fsdst = *fs;
+		bcopy(fs, mapin(bp), sizeof (struct fs));
 		mapout(bp);
 		bwrite(bp);
 	}
@@ -111,13 +109,13 @@ syncip(ip)
 	daddr_t blkno;
 
 	lastlbn = howmany(ip->i_size, DEV_BSIZE);
-	if (lastlbn < NBUF / 2) {
+	if (lastlbn < nbuf / 2) {
 		for (lbn = 0; lbn < lastlbn; lbn++) {
 			blkno = fsbtodb(bmap(ip, lbn, B_READ, 0));
 			blkflush(ip->i_dev, blkno);
 		}
 	} else {
-		lastbufp = &buf[NBUF];
+		lastbufp = &buf[nbuf];
 		for (bp = buf; bp < lastbufp; bp++) {
 			if (bp->b_dev != ip->i_dev ||
 			    (bp->b_flags & B_DELWRI) == 0)

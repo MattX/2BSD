@@ -61,7 +61,7 @@ clean: FRC
 depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
-install: FRC
+install: ${ALL}
 	for file in tab*.o; do \
 		install -s -o bin -g bin -m 755 $$file ${DEST}/`basename $$file .o`; \
 	done

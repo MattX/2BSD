@@ -14,7 +14,7 @@ init.o:
 
 ${OBJ}: old.h
 
-install:
+install: chess
 	install -s chess ${DESTDIR}/usr/games
 #	install -c -m 644 book ${DESTDIR}/${LIBDIR}/book
 

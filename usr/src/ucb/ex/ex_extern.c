@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)ex_extern.c	7.4 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 /*
  * Provide defs of the global variables.

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)mailst.c	5.6 (Berkeley) 10/9/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)mailst.c	5.6.1 (2.11BSD GTE) 6/11/94";
 #endif
 
 #include <signal.h>
@@ -24,7 +24,7 @@ char *user, *str, *file;
 	char buf[BUFSIZ];
 	register int c;
 
-	sprintf(buf, "%s '%s'", MAIL, user);
+	sprintf(buf, "%s '%s'", _PATH_SENDMAIL, user);
 	if ((fp = rpopen(buf, "w")) != NULL) {
 		fprintf(fp, "From: uucp\nTo: %s\nSubject: %s\n\n", user, str);
 		if (file && *file != '\0' && (fi = fopen(subfile(file), "r")) != NULL) {

@@ -16,7 +16,7 @@ RM =		-rm
 # Add '-ljobs' to LIBS if 4.1bsd
 LIBS =		-lm -lcurses -ltermlib
 # May need '-I/usr/include/sys' for 4.2bsd
-CFLAGS =	-O -I. -Dpdp11
+CFLAGS =	-I. -Dpdp11
 SEPFLAG=	-i
 DESTDIR=
 
@@ -51,30 +51,37 @@ FLAGS = 	-DPATH=\"${DEST} \
 		-DENEMY \
 		-DBSD42
 
-OFILES =	main.o fight.o func0.o func1.o func2.o
+OFILES =	main.o func0.o func1.o func2.o
+NOOPT=		fight.o
 
 all:		phantasia setfiles phant.help
 
 # need separate i/d space on small machines
-#phantasia:	${OFILES} strings.o
-phantasia:	${OFILES}
-#		${CC} ${OFILES} strings.o ${LIBS} -o phantasia
+#phantasia:	${OFILES} ${NOOPT} strings.o
+phantasia:	${OFILES} ${NOOPT}
+#		${CC} ${OFILES} ${NOOPT} strings.o ${LIBS} -o phantasia
 		-if [ X${SEPFLAG} = "X-i" ]; then \
 			${CC} main.o fight.o -Z func0.o -Z func1.o \
 				-Z func2.o -Y ${LIBS} -i -o phantasia; \
 		elif [ X${SEPFLAG} = "X-n" ]; then \
 			@echo "Need overlay scheme (HA!)"; \
 		else \
-			${CC} ${OFILES} ${LIBS} -o phantasia; \
+			${CC} ${OFILES} ${NOOPT} ${LIBS} -o phantasia; \
 		fi
 
 ${OFILES}:	phant.h
+		${CC} -O -c ${CFLAGS} ${FLAGS} $*.c
+#		${CC} -E ${CFLAGS} ${FLAGS} $*.c | ${XSTR} -c -
+#		${CC} -O -c ${CFLAGS} x.c
+#		mv x.o $*.o
+
+${NOOPT}:	phant.h
 		${CC} -c ${CFLAGS} ${FLAGS} $*.c
 #		${CC} -E ${CFLAGS} ${FLAGS} $*.c | ${XSTR} -c -
 #		${CC} -c ${CFLAGS} x.c
 #		mv x.o $*.o
 
-strings.o:	${OFILES} strings
+strings.o:	${OFILES} ${NOOPT} strings
 		${XSTR}
 		${CC} -c xs.c
 		mv xs.o strings.o
@@ -86,16 +93,19 @@ setfiles:	phant.h setfiles.c
 phant.help:	phant.nr
 		tbl -TX phant.nr | nroff -man -Ttn300 > phant.help
 
-install:	all
-		rm -f ${DESTDIR}/usr/games/phantasia
-		ln -s ${DESTDIR}${DEST}/phantasia ${DESTDIR}/usr/games/phantasia
-		-mkdir ${DESTDIR}${DEST}
-		cp phantasia monsters phant.help ${DESTDIR}${DEST}
-		chmod 755 ${DESTDIR}${DEST}
-		chmod 4711 ${DESTDIR}${DEST}/phantasia
-		chmod 644 ${DESTDIR}${DEST}/phant.help
-		setfiles
-		install -c phant.nr ${DESTDIR}/usr/man/man6/phantasia.6
+install:	all phantasia.0
+	rm -f ${DESTDIR}/usr/games/phantasia
+	ln -s ${DESTDIR}${DEST}/phantasia ${DESTDIR}/usr/games/phantasia
+	-mkdir ${DESTDIR}${DEST}
+	cp phantasia monsters phant.help ${DESTDIR}${DEST}
+	chmod 755 ${DESTDIR}${DEST}
+	chmod 4711 ${DESTDIR}${DEST}/phantasia
+	chmod 644 ${DESTDIR}${DEST}/phant.help
+	./setfiles
+	install -m 444 -o bin -g bin  phantasia.0 ${DESTDIR}/usr/man/cat6
+
+phantasia.0: phant.nr
+	/usr/man/manroff phant.nr > phantasia.0
 
 clean:
-		${RM} -f *.o phantasia phant.help strings x.c xs.c setfiles
+	${RM} -f *.o phantasia phant.help strings x.c xs.c setfiles phantasia.0

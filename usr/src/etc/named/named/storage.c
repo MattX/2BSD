@@ -21,12 +21,8 @@
  *	This software is Copyright (C) 1987 by the United States Army.
  *	All rights reserved.
  */
-#ifndef lint
-static char RCSstorage[] = "@(#)$Header: /us1/cr/work/named/named/RCS/storage.c,v 1.1 88/09/04 03:13:33 cr Exp Locker: cr $";
-#endif
-
-#ifdef BSD2_10
-#include "shortnames.h"
+#if	defined(DOSCCS) && !defined(lint)
+static char RCSstorage[] = "@(#)$Header: /us1/cr/work/named/named/RCS/storage.c,v 1.1 94/01/01 03:13:33 cr Exp Locker: cr $";
 #endif
 
 #include <sys/param.h>

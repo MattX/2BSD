@@ -5,14 +5,14 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-NNAAMMEE
+NAME
      window - window environment
 
-SSYYNNOOPPSSIISS
-     wwiinnddooww [ --tt ] [ --ff ] [ --dd ] [ --ee eessccaappee--cchhaarr ] [ --cc ccoommmmaanndd
+SYNOPSIS
+     window [ -t ] [ -f ] [ -d ] [ -e escape-char ] [ -c command
      ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _W_i_n_d_o_w implements a window environment on ASCII terminals.
 
      A window is a rectangular portion of the physical terminal
@@ -46,7 +46,7 @@ DDEESSCCRRIIPPTTIIOONN
      minals with multiple pages of memory, each window has a text
      buffer which can have more lines than the window itself.
 
-OOPPTTIIOONNSS
+OPTIONS
      When _w_i_n_d_o_w starts up, the commands (see long commands
      below) contained in the file ._w_i_n_d_o_w_r_c in the user's home
      directory are executed.  If it does not exist, two equal
@@ -55,12 +55,12 @@ OOPPTTIIOONNSS
 
      The command line options are
 
-     --tt   Turn on terse mode (see _t_e_r_s_e command below).
+     -t   Turn on terse mode (see _t_e_r_s_e command below).
 
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -71,21 +71,21 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-     --ff   Fast.  Don't perform any startup action.
+     -f   Fast.  Don't perform any startup action.
 
-     --dd   Ignore ._w_i_n_d_o_w_r_c and create the two default windows
+     -d   Ignore ._w_i_n_d_o_w_r_c and create the two default windows
 	  instead.
 
-     --ee eessccaappee--cchhaarr
+     -e escape-char
 	  Set the escape character to _e_s_c_a_p_e-_c_h_a_r.  _E_s_c_a_p_e-_c_h_a_r
 	  can be a single character, or in the form ^_X where _X is
 	  any character, meaning control-_X.
 
-     --cc ccoommmmaanndd
+     -c command
 	  Execute the string _c_o_m_m_a_n_d as a long command (see
 	  below) before doing anything else.
 
-PPRROOCCEESSSS EENNVVIIRROONNMMEENNTT
+PROCESS ENVIRONMENT
      With each newly created window, a shell program is spawned
      with its process environment tailored to that window.  Its
      standard input, output, and diagnostic file descriptors are
@@ -105,7 +105,7 @@ PPRROOCCEESSSS EENNVVIIRROONNMMEENNTT
      particular, the editor _v_i (1) uses this information to
      redraw its display.
 
-OOPPEERRAATTIIOONN
+OPERATION
      During normal execution, _w_i_n_d_o_w can be in one of two states:
      conversation mode and command mode.  In conversation mode,
      the terminal's real cursor is placed at the cursor position
@@ -126,7 +126,7 @@ OOPPEERRAATTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 
@@ -140,38 +140,38 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
      typed by the user in the command window (see the ``:'' com-
      mand below), or read from a file (see _s_o_u_r_c_e below).
 
-SSHHOORRTT CCOOMMMMAANNDDSS
+SHORT COMMANDS
      Below, # represents one of the digits ``1'' to ``9''
      corresponding to the windows 1 to 9.  ^_X means control-_X,
      where _X is any character.	In particular, ^^ is control-^.
      _E_s_c_a_p_e is the escape key, or ^[.
 
-     ##	  Select window # as the current window and return to
+     #	  Select window # as the current window and return to
 	  conversation mode.
 
-     %%##   Select window # but stay in command mode.
+     %#   Select window # but stay in command mode.
 
-     ^^^^   Select the previous window and return to conversation
+     ^^   Select the previous window and return to conversation
 	  mode.  This is useful for toggling between two windows.
 
-     eessccaappee
+     escape
 	  Return to conversation mode.
 
-     ^^PP   Return to conversation mode and write ^P to the current
+     ^P   Return to conversation mode and write ^P to the current
 	  window.  Thus, typing two ^P's in conversation mode
 	  sends one to the current window.  If the _w_i_n_d_o_w escape
 	  is changed to some other character, that character
 	  takes the place of ^P here.
 
-     ??	  List a short summary of commands.
+     ?	  List a short summary of commands.
 
-     ^^LL   Redraw the screen.
+     ^L   Redraw the screen.
 
-     qq	  Exit _w_i_n_d_o_w.	Confirmation is requested.
+     q	  Exit _w_i_n_d_o_w.	Confirmation is requested.
 
-     ^^ZZ   Suspend _w_i_n_d_o_w.
+     ^Z   Suspend _w_i_n_d_o_w.
 
-     ww	  Create a new window.	The user is prompted for the
+     w	  Create a new window.	The user is prompted for the
 	  positions of the upper left and lower right corners of
 	  the window.  The cursor is placed on the screen and the
 	  keys ``h'', ``j'', ``k'', and ``l'' move the cursor
@@ -192,7 +192,7 @@ SSHHOORRTT CCOOMMMMAANNDDSS
 
 
 
-Printed 12/28/88	  May 12, 1986				3
+Printed 1/9/94		  May 12, 1986				3
 
 
 
@@ -207,58 +207,58 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 	  Only fully visible windows can be created this way.
 
-     cc##   Close window #.  The process in the window is sent the
+     c#   Close window #.  The process in the window is sent the
 	  hangup signal (see _k_i_l_l (1)).  _C_s_h (1) should handle
 	  this signal correctly and cause no problems.
 
-     mm##   Move window # to another location.  A box in the shape
+     m#   Move window # to another location.  A box in the shape
 	  of the window is drawn on the screen to indicate the
 	  new position of the window, and the same keys as those
 	  for the _w command are used to position the box.  The
 	  window can be moved partially off-screen.
 
-     MM##   Move window # to its previous position.
+     M#   Move window # to its previous position.
 
-     ss##   Change the size of window #.	The user is prompted to
+     s#   Change the size of window #.	The user is prompted to
 	  enter the new lower right corner of the window.  A box
 	  is drawn to indicate the new window size.  The same
 	  keys used in _w and _m are used to enter the position.
 
-     SS##   Change window # to its previous size.
+     S#   Change window # to its previous size.
 
-     ^^YY   Scroll the current window up by one line.
+     ^Y   Scroll the current window up by one line.
 
-     ^^EE   Scroll the current window down by one line.
+     ^E   Scroll the current window down by one line.
 
-     ^^UU   Scroll the current window up by half the window size.
+     ^U   Scroll the current window up by half the window size.
 
-     ^^DD   Scroll the current window down by half the window size.
+     ^D   Scroll the current window down by half the window size.
 
-     ^^BB   Scroll the current window up by the full window size.
+     ^B   Scroll the current window up by the full window size.
 
-     ^^FF   Scroll the current window down by the full window size.
+     ^F   Scroll the current window down by the full window size.
 
-     hh	  Move the cursor of the current window left by one
+     h	  Move the cursor of the current window left by one
 	  column.
 
-     jj	  Move the cursor of the current window down by one line.
+     j	  Move the cursor of the current window down by one line.
 
-     kk	  Move the cursor of the current window up by one line.
+     k	  Move the cursor of the current window up by one line.
 
-     ll	  Move the cursor of the current window right by one
+     l	  Move the cursor of the current window right by one
 	  column.
 
-     ^^SS   Stop output in the current window.
+     ^S   Stop output in the current window.
 
-     ^^QQ   Start output in the current window.
+     ^Q   Start output in the current window.
 
-     ::	  Enter a line to be executed as long commands.  Normal
+     :	  Enter a line to be executed as long commands.  Normal
 	  line editing characters (erase character, erase word,
 	  erase line) are supported.
 
 
 
-Printed 12/28/88	  May 12, 1986				4
+Printed 1/9/94		  May 12, 1986				4
 
 
 
@@ -269,7 +269,7 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-LLOONNGG CCOOMMMMAANNDDSS
+LONG COMMANDS
      Long commands are a sequence of statements parsed much like
      a programming language, with a syntax similar to that of C.
      Numeric and string expressions and variables are supported,
@@ -300,7 +300,7 @@ LLOONNGG CCOOMMMMAANNDDSS
      ``;''.  To continue an expression on the next line, ter-
      minate the first line with ``\''.
 
-CCOONNDDIITTIIOONNAALL SSTTAATTEEMMEENNTT
+CONDITIONAL STATEMENT
      _W_i_n_d_o_w has a single control structure: the fully bracketed
      if statement in the form
 	  if <expr> then
@@ -316,7 +316,7 @@ CCOONNDDIITTIIOONNAALL SSTTAATTEEMMEENNTT
      The _e_l_s_e and _e_l_s_i_f parts are optional, and the latter can be
      repeated any number of times.  <_E_x_p_r> must be numeric.
 
-EEXXPPRREESSSSIIOONNSS
+EXPRESSIONS
      Expressions in _w_i_n_d_o_w are similar to those in the C
      language, with most C operators supported on numeric
      operands.	In addition, some are overloaded to operate on
@@ -324,7 +324,7 @@ EEXXPPRREESSSSIIOONNSS
 
 
 
-Printed 12/28/88	  May 12, 1986				5
+Printed 1/9/94		  May 12, 1986				5
 
 
 
@@ -346,43 +346,43 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
      The operators in order of increasing precedence:
 
-     <<eexxpprr11>> == <<eexxpprr22>>
+     <expr1> = <expr2>
 	  Assignment.  The variable of name <_e_x_p_r_1>, which must
 	  be string valued, is assigned the result of <_e_x_p_r_2>.
 	  Returns the value of <_e_x_p_r_2>.
 
-     <<eexxpprr11>> ?? <<eexxpprr22>> :: <<eexxpprr33>>
+     <expr1> ? <expr2> : <expr3>
 	  Returns the value of <_e_x_p_r_2> if <_e_x_p_r_1> evaluates true
 	  (non-zero numeric value); returns the value of <_e_x_p_r_3>
 	  otherwise.  Only one of <_e_x_p_r_2> and <_e_x_p_r_3> is
 	  evaluated.  <_E_x_p_r_1> must be numeric.
 
-     <<eexxpprr11>> |||| <<eexxpprr22>>
+     <expr1> || <expr2>
 	  Logical or.  Numeric values only.  Short circuit
 	  evaluation is supported (i.e., if <_e_x_p_r_1> evaluates
 	  true, then <_e_x_p_r_2> is not evaluated).
 
-     <<eexxpprr11>> &&&& <<eexxpprr22>>
+     <expr1> && <expr2>
 	  Logical and with short circuit evaluation.  Numeric
 	  values only.
 
-     <<eexxpprr11>> || <<eexxpprr22>>
+     <expr1> | <expr2>
 	  Bitwise or.  Numeric values only.
 
-     <<eexxpprr11>> ^^ <<eexxpprr22>>
+     <expr1> ^ <expr2>
 	  Bitwise exclusive or.  Numeric values only.
 
-     <<eexxpprr11>> && <<eexxpprr22>>
+     <expr1> & <expr2>
 	  Bitwise and.	Numeric values only.
 
-     <<eexxpprr11>> ==== <<eexxpprr22>>,, <<eexxpprr11>> !!== <<eexxpprr22>>
+     <expr1> == <expr2>, <expr1> != <expr2>
 	  Comparison (equal and not equal, respectively).  The
 	  boolean result (either 1 or 0) of the comparison is
 	  returned.  The operands can be numeric or string
 	  valued.  One string operand forces the other to be con-
 	  verted to a string in necessary.
 
-     <<eexxpprr11>> << <<eexxpprr22>>,, <<eexxpprr11>> >> <<eexxpprr22>>,,
+     <expr1> < <expr2>, <expr1> > <expr2>,
 	  Less than, greater than, less than or equal to, greater
 	  than or equal to.  Both numeric and string values, with
 	  automatic conversion as above.
@@ -390,7 +390,7 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-Printed 12/28/88	  May 12, 1986				6
+Printed 1/9/94		  May 12, 1986				6
 
 
 
@@ -401,23 +401,23 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-     <<eexxpprr11>> <<<< <<eexxpprr22>>,, <<eexxpprr11>> >>>> <<eexxpprr22>>
+     <expr1> << <expr2>, <expr1> >> <expr2>
 	  If both operands are numbers, <_e_x_p_r_1> is bit shifted
 	  left (or right) by <_e_x_p_r_2> bits.  If <_e_x_p_r_1> is a
 	  string, then its first (or last) <_e_x_p_r_2> characters are
 	  returns (if <_e_x_p_r_2> is also a string, then its length
 	  is used in place of its value).
 
-     <<eexxpprr11>> ++ <<eexxpprr22>>,, <<eexxpprr11>> -- <<eexxpprr22>>
+     <expr1> + <expr2>, <expr1> - <expr2>
 	  Addition and subtraction on numbers.	For ``+'', if one
 	  argument is a string, then the other is converted to a
 	  string, and the result is the concatenation of the two
 	  strings.
 
-     <<eexxpprr11>> ** <<eexxpprr22>>,, <<eexxpprr11>> // <<eexxpprr22>>,,
+     <expr1> * <expr2>, <expr1> / <expr2>,
 	  Multiplication, division, modulo.  Numbers only.
 
-     --<<eexxpprr>>,, ~~<<eexxpprr>>,, !!<<eexxpprr>>,, $$<<eexxpprr>>,, $$??<<eexxpprr>>
+     -<expr>, ~<expr>, !<expr>, $<expr>, $?<expr>
 	  The first three are unary minus, bitwise complement and
 	  logical complement on numbers only.  The operator,
 	  ``$'', takes <_e_x_p_r> and returns the value of the vari-
@@ -427,7 +427,7 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 	  ``$?'' tests for the existence of the variable <_e_x_p_r>,
 	  and returns 1 if it exists or 0 otherwise.
 
-     <<eexxpprr>>((<<aarrgglliisstt>>))
+     <expr>(<arglist>)
 	  Function call.  <_E_x_p_r> must be a string that is the
 	  unique prefix of the name of a builtin _w_i_n_d_o_w function
 	  or the full name of a user defined alias macro.  In the
@@ -456,7 +456,7 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-Printed 12/28/88	  May 12, 1986				7
+Printed 1/9/94		  May 12, 1986				7
 
 
 
@@ -467,24 +467,24 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-BBUUIILLTTIINN FFUUNNCCTTIIOONNSS
+BUILTIN FUNCTIONS
      The arguments are listed by name in their natural order.
      Optional arguments are in square brackets (``[ ]'').  Argu-
      ments that have no names are in angle brackets (``<>'').
 
-     aalliiaass(([[<<ssttrriinngg>>]],, [[<<ssttrriinngg--lliisstt>>]]))
+     alias([<string>], [<string-list>])
 	  If no argument is given, all currently defined alias
 	  macros are listed.  Otherwise, <_s_t_r_i_n_g> is defined as
 	  an alias, with expansion <_s_t_r_i_n_g-_l_i_s_t>.  The previous
 	  definition of <_s_t_r_i_n_g>, if any, is returned.	Default
 	  for <_s_t_r_i_n_g-_l_i_s_t> is no change.
 
-     cclloossee((<<wwiinnddooww--lliisstt>>))
+     close(<window-list>)
 	  Close the windows specified in <_w_i_n_d_o_w-_l_i_s_t>.  If
 	  <_w_i_n_d_o_w-_l_i_s_t> is the word _a_l_l, than all windows are
 	  closed.  No value is returned.
 
-     ccuurrssoorrmmooddeess(([[mmooddeess]]))
+     cursormodes([modes])
 	  Set the window cursor to _m_o_d_e_s.  _M_o_d_e_s is the bitwise
 	  or of the mode bits defined as the variables _m__u_l
 	  (underline), _m__r_e_v (reverse video), _m__b_l_k (blinking),
@@ -493,7 +493,7 @@ BBUUIILLTTIINN FFUUNNCCTTIIOONNSS
 	  example, cursor($m_rev|$m_blk) sets the window cursors
 	  to blinking reverse video.
 
-     eecchhoo(([[wwiinnddooww]],, [[<<ssttrriinngg--lliisstt>>]]))
+     echo([window], [<string-list>])
 	  Write the list of strings, <_s_t_r_i_n_g-_l_i_s_t>, to _w_i_n_d_o_w,
 	  separated by spaces and terminated with a new line.
 	  The strings are only displayed in the window, the
@@ -501,13 +501,13 @@ BBUUIILLTTIINN FFUUNNCCTTIIOONNSS
 	  below).  No value is returned.  Default is the current
 	  window.
 
-     eessccaappee(([[eessccaappeecc]]))
+     escape([escapec])
 	  Set the escape character to _e_s_c_a_p_e-_c_h_a_r.  Returns the
 	  old escape character as a one character string.
 	  Default is no change.  _E_s_c_a_p_e_c can be a string of a
 	  single character, or in the form ^_X, meaning control-_X.
 
-     ffoorreeggrroouunndd(([[wwiinnddooww]],, [[ffllaagg]]))
+     foreground([window], [flag])
 	  Move _w_i_n_d_o_w in or out of foreground.	_F_l_a_g can be one
 	  of _o_n, _o_f_f, _y_e_s, _n_o, _t_r_u_e, or _f_a_l_s_e, with obvious mean-
 	  ings, or it can be a numeric expression, in which case
@@ -515,14 +515,14 @@ BBUUIILLTTIINN FFUUNNCCTTIIOONNSS
 	  flag as a number.  Default for _w_i_n_d_o_w is the current
 	  window, default for _f_l_a_g is no change.
 
-     llaabbeell(([[wwiinnddooww]],, [[llaabbeell]]))
+     label([window], [label])
 	  Set the label of _w_i_n_d_o_w to _l_a_b_e_l.  Returns the old
 	  label as a string.  Default for _w_i_n_d_o_w is the current
 	  window, default for _l_a_b_e_l is no change.  To turn off a
 
 
 
-Printed 12/28/88	  May 12, 1986				8
+Printed 1/9/94		  May 12, 1986				8
 
 
 
@@ -535,51 +535,51 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 	  label, set it to an empty string ("").
 
-     lliisstt(())
+     list()
 	  No arguments.  List the identifiers and labels of all
 	  windows.  No value is returned.
 
-     nnlliinnee(([[nnlliinnee]]))
+     nline([nline])
 	  Set the default buffer size to _n_l_i_n_e.  Initially, it is
 	  48 lines.  Returns the old default buffer size.
 	  Default is no change.  Using a very large buffer can
 	  slow the program down considerably.
 
-     sseelleecctt(([[wwiinnddooww]]))
+     select([window])
 	  Make _w_i_n_d_o_w the current window.  The previous current
 	  window is returned.  Default is no change.
 
-     sshheellll(([[<<ssttrriinngg--lliisstt>>]]))
+     shell([<string-list>])
 	  Set the default window shell program to <_s_t_r_i_n_g-_l_i_s_t>.
 	  Returns the first string in the old shell setting.
 	  Default is no change.  Initially, the default shell is
 	  taken from the environment variable _S_H_E_L_L.
 
-     ssoouurrccee((ffiilleennaammee))
+     source(filename)
 	  Read and execute the long commands in _f_i_l_e_n_a_m_e.
 	  Returns -1 if the file cannot be read, 0 otherwise.
 
-     tteerrssee(([[ffllaagg]]))
+     terse([flag])
 	  Set terse mode to _f_l_a_g.  In terse mode, the command
 	  window stays hidden even in command mode, and errors
 	  are reported by sounding the terminal's bell.  _F_l_a_g can
 	  take on the same values as in _f_o_r_e_g_r_o_u_n_d above.
 	  Returns the old terse flag.  Default is no change.
 
-     uunnaalliiaass((aalliiaass))
+     unalias(alias)
 	  Undefine _a_l_i_a_s.  Returns -1 if _a_l_i_a_s does not exist, 0
 	  otherwise.
 
-     uunnsseett((vvaarriiaabbllee))
+     unset(variable)
 	  Undefine _v_a_r_i_a_b_l_e.  Returns -1 if _v_a_r_i_a_b_l_e does not
 	  exist, 0 otherwise.
 
-     vvaarriiaabblleess(())
+     variables()
 	  No arguments.  List all variables.  No value is
 	  returned.
 
-     wwiinnddooww(([[rrooww]],, [[ccoolluummnn]],, [[nnrrooww]],, [[nnccooll]],, [[nnlliinnee]],, [[ffrraammee]],,
-	  [[ppttyy]],, [[mmaappnnll]],, [[sshheellll]]))
+     window([row], [column], [nrow], [ncol], [nline], [frame],
+	  [pty], [mapnl], [shell])
 	  Open a window with upper left corner at _r_o_w, _c_o_l_u_m_n and
 	  size _n_r_o_w, _n_c_o_l.  If _n_l_i_n_e is specified, then that many
 	  lines are allocated for the text buffer.  Otherwise,
@@ -588,7 +588,7 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-Printed 12/28/88	  May 12, 1986				9
+Printed 1/9/94		  May 12, 1986				9
 
 
 
@@ -613,19 +613,19 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 	  fied by _s_h_e_l_l, see below).  The created window's iden-
 	  tifier is returned as a number.
 
-     wwrriittee(([[wwiinnddooww]],, [[<<ssttrriinngg--lliisstt>>]]))
+     write([window], [<string-list>])
 	  Send the list of strings, <_s_t_r_i_n_g-_l_i_s_t>, to _w_i_n_d_o_w,
 	  separated by spaces but not terminated with a new line.
 	  The strings are actually given to the window as input.
 	  No value is returned.  Default is the current window.
 
-PPRREEDDEEFFIINNEEDD VVAARRIIAABBLLEESS
+PREDEFINED VARIABLES
      These variables are for information only.	Redefining them
      does not affect the internal operation of _w_i_n_d_o_w.
 
-     bbaauudd The baud rate as a number between 50 and 38400.
+     baud The baud rate as a number between 50 and 38400.
 
-     mmooddeess
+     modes
 	  The display modes (reverse video, underline, blinking,
 	  graphics) supported by the physical terminal.  The
 	  value of _m_o_d_e_s is the bitwise or of some of the one bit
@@ -633,28 +633,28 @@ PPRREEDDEEFFIINNEEDD VVAARRIIAABBLLEESS
 	  These values are useful in setting the window cursors'
 	  modes (see _c_u_r_s_o_r_m_o_d_e_s above).
 
-     mm__bbllkk
+     m_blk
 	  The blinking mode bit.
 
-     mm__ggrrpp
+     m_grp
 	  The graphics mode bit (not very useful).
 
-     mm__rreevv
+     m_rev
 	  The reverse video mode bit.
 
-     mm__uull The underline mode bit.
+     m_ul The underline mode bit.
 
-     nnccooll The number of columns on the physical screen.
+     ncol The number of columns on the physical screen.
 
-     nnrrooww The number of rows on the physical screen.
+     nrow The number of rows on the physical screen.
 
-     tteerrmm The terminal type.  The standard name, found in the
+     term The terminal type.  The standard name, found in the
 	  second name field of the terminal's _T_E_R_M_C_A_P entry, is
 	  used.
 
 
 
-Printed 12/28/88	  May 12, 1986			       10
+Printed 1/9/94		  May 12, 1986			       10
 
 
 
@@ -665,14 +665,14 @@ WINDOW(1)	    UNIX Programmer's Manual		WINDOW(1)
 
 
 
-FFIILLEESS
+FILES
      ~/.windowrc    startup command file.
      /dev/[pt]ty[pq]?pseudo-terminal devices.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Should be self explanatory.
 
-BBUUGGSS
+BUGS
 
 
 
@@ -717,7 +717,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986			       11
+Printed 1/9/94		  May 12, 1986			       11
 
 
 

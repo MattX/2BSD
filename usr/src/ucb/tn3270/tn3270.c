@@ -20,12 +20,8 @@
  */
 
 
-#ifndef lint
-static char sccsid[] = "@(#)tn3270.c	2.7\t5/13/86";
-#endif
-
-#ifdef BSD2_10
-#include "shortnames.h"
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)tn3270.c	2.8\t1/1/94";
 #endif
 
 /*
@@ -52,7 +48,7 @@ static char sccsid[] = "@(#)tn3270.c	2.7\t5/13/86";
 #define	strip(x)	((x)&0177)
 #define min(x,y)	((x<y)? x:y)
 
-#ifndef BSD2_10
+#ifndef pdp11
 #define IBUFSIZ	8*BUFSIZ
 static char	Ibuf[IBUFSIZ], *Ifrontp = Ibuf, *Ibackp = Ibuf;
 #else
@@ -170,7 +166,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	char	SIbuf[IBUFSIZ];
 
 	Ibuf = Ifrontp = Ibackp = SIbuf;

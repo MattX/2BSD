@@ -5,13 +5,13 @@ LPC(8)		    UNIX Programmer's Manual		   LPC(8)
 
 
 
-NNAAMMEE
+NAME
      lpc - line printer control program
 
-SSYYNNOOPPSSIISS
-     //eettcc//llppcc [ command [ argument ... ] ]
+SYNOPSIS
+     /etc/lpc [ command [ argument ... ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _L_p_c is used by  the  system  administrator  to  control  the
      operation	of the line printer system. For each line printer
      configured in /etc/printcap, _l_p_c may be used to:
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 27, 1985                         1
+Printed 1/9/94		 April 27, 1985                         1
 
 
 
@@ -118,7 +118,7 @@ LPC(8)		    UNIX Programmer's Manual		   LPC(8)
 	  Enable everything  and  start  a  new  printer  daemon.
 	  Undoes the effects of _d_o_w_n.
 
-FFIILLEESS
+FILES
      /etc/printcap	     printer description file
      /usr/spool/*	     spool directories
      /usr/spool/*/lock	     lock file for queue control
@@ -126,7 +126,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	 April 27, 1985                         2
+Printed 1/9/94		 April 27, 1985                         2
 
 
 
@@ -137,10 +137,10 @@ LPC(8)		    UNIX Programmer's Manual		   LPC(8)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      lpd(8), lpr(1), lpq(1), lprm(1), printcap(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      ?Ambiguous command      abreviation matches more than one command
      ?Invalid command	     no match was found
      ?Privileged command     command can be executed by root only
@@ -192,7 +192,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	 April 27, 1985                         3
+Printed 1/9/94		 April 27, 1985                         3
 
 
 

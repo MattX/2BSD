@@ -5,14 +5,14 @@ KILL(1)             UNIX Programmer's Manual		  KILL(1)
 
 
 
-NNAAMMEE
+NAME
      kill - terminate a process with extreme prejudice
 
-SSYYNNOOPPSSIISS
-     kkiillll [ --sig ] processid ...
-     kkiillll --ll
+SYNOPSIS
+     kill [ -sig ] processid ...
+     kill -l
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _K_i_l_l sends the TERM (terminate, 15) signal to the specified
      processes.  If a signal name or number preceded by `-' is
      given as first argument, that signal is sent instead of ter-
@@ -39,10 +39,10 @@ DDEESSCCRRIIPPTTIIOONN
      process id's are not as often used as _k_i_l_l arguments.  See
      _c_s_h(1) for details.
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), ps(1), kill(2), sigvec(2)
 
-BBUUGGSS
+BUGS
      A replacement for ``kill 0'' for _c_s_h(1) users should be pro-
      vided.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 20, 1986                         1
+Printed 1/9/94		 April 20, 1986                         1
 
 
 

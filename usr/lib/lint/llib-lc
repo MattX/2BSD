@@ -55,6 +55,7 @@ int	dup(f) { return(f); }
 int	dup2( o, n) { return o; }
 	execve(s, v, e) char *s, *v[], *e[]; {;}
 	_exit(s) {;}
+int	fchdir(f) int f; { return(0); }
 int	fchmod(f, m) { return(0); }
 int	fchown(f, u, g) { return(0); }
 int	fcntl(f, c, a) { return (0); }
@@ -70,7 +71,7 @@ gid_t	getegid() { return((gid_t)1); }
 uid_t	geteuid() { return((uid_t)1); }
 gid_t	getgid() { return((gid_t)1); }
 int	getgroups( n, g ) int n, *g; { return 0; }
-long	gethostid() { return 1L; }
+u_long	gethostid() { return 1L; }
 int	gethostname( n, l ) char *n; int l; { return 0 ;}
 int	getitimer( w, v ) struct itimerval *v; { return 0; }
 int	getpagesize() { return 1; }
@@ -172,6 +173,8 @@ int	vfork() { return(0); }
 	vhangup() { ; }
 int	wait(s) union wait *s; { return(1); }
 int	wait3( s, o, r) union wait *s; struct rusage *r; { return 1;}
+int	wait4( p, s, o, r) int p; union wait *s; int o; struct rusage *r; { return 1;}
+int	waitpid( p, s, o) int p; union wait *s; int o; { return 1;}
 int	write(f, b, l) char *b; unsigned l; { return(l); }
 int	writev( f, v, l) struct iovec *v; { return l; }
 
@@ -219,8 +222,8 @@ int	endgrent() { return 0; }
 	endhostent() { ; }
 	endnetent() { ; }
 	endprotoent() { ; }
-	endpwent() {}
-	endservent() { ; }
+void	endpwent() {}
+int	endservent() { ; }
 	endttyent() { ; }
 	endusershell() { ; }
 char **	environ;
@@ -281,8 +284,8 @@ u_short	htons(hostshort) u_short hostshort; { return hostshort; }
 #endif htons
 char *	index(s, c) char *s, c; { return s; }
 u_long	inet_addr(cp) char *cp; { return 0L; }
-long	inet_lnaof(in) struct in_addr in; { return 0; }
-long	inet_netof(in) struct in_addr in; { return 0; }
+u_long	inet_lnaof(in) struct in_addr in; { return 0; }
+u_long	inet_netof(in) struct in_addr in; { return 0; }
 struct in_addr	inet_makeaddr(net, host) long net, host; { struct in_addr in; return in; }
 u_long	inet_network(cp) char *cp; { return 0L; }
 char *	inet_ntoa(in) struct in_addr in; { return (char *) 0; }
@@ -356,8 +359,8 @@ int	setjmp(e) jmp_buf e; { return(0); }
 int	setlogmask(m) { return(0); }
 	setnetent(stayopen) { ; }
 	setprotoent(stayopen) { ; }
-	setpwent() {}
-	setpwfile(file) char *file; {}
+int	setpwent() {}
+void	setpwfile(file) char *file; {}
 int	setrgid(rgid) gid_t rgid; { return 0; }
 int	setruid(ruid) uid_t ruid; { return 0; }
 	setservent(stayopen) { ; }

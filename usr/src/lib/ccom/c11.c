@@ -117,7 +117,7 @@ register union tree *p;
 	if (p->n.class==SOFFS || p->n.class==STATIC)
 		printf("L%d", p->n.nloc);
 	else
-		printf("%.*s", NCPS, p->x.name);
+		printf("%s", p->x.name);
 }
 
 xdcalc(p, nrleft)
@@ -170,10 +170,10 @@ register union tree *p;
 	case STAR:
 		p1 = p->t.tr1;
 		if (p1->t.op==NAME||p1->t.op==CON||p1->t.op==AUTOI||p1->t.op==AUTOD)
-			if (p->t.type!=LONG)
+			if (p->t.type!=LONG && p->t.type!=UNLONG)
 				return(12);
 	}
-	if (p->t.type==LONG)
+	if (p->t.type==LONG || p->t.type==UNLONG)
 		nrleft--;
 	return(p->t.degree <= nrleft? 20: 24);
 }
@@ -245,7 +245,7 @@ register union tree *p;
 	if (p==NULL)
 		return(0);
 	if (p->t.op==STAR) {
-		if (p->t.type==LONG+PTR) /* avoid *x(r); *x+2(r) */
+		if (p->t.type==LONG+PTR || p->t.type==UNLONG+PTR) /* avoid *x(r); *x+2(r) */
 			return(0);
 		p = p->t.tr1;
 	}
@@ -277,11 +277,13 @@ register reg;
 
 	if (!isfloat(t)) {
 		if (opdope[t->t.op]&RELAT) {
-			if (t->t.tr1->t.type==LONG)
+			if (t->t.tr1->t.type==LONG || t->t.tr1->t.type==UNLONG)
 				return((reg+1) & ~01);
 			return(reg);
 		}
 		switch(t->t.op) {
+		case ULLSHIFT:
+		case UASLSHL:
 		case LLSHIFT:
 		case ASLSHL:
 		case PTOI:
@@ -315,6 +317,7 @@ arlength(t)
 	case UNCHAR:
 		return(2);
 
+	case UNLONG:
 	case LONG:
 		return(4);
 
@@ -623,8 +626,8 @@ again:
 		 && uns(tree->t.tr1))
 			tree->t.op = op = op+LESSEQP-LESSEQ;
 	}
-	if (tree->t.type==LONG
-	  || opdope[op]&RELAT&&tree->t.tr1->t.type==LONG) {
+	if (tree->t.type==LONG || tree->t.type==UNLONG
+	  || opdope[op]&RELAT&&(tree->t.tr1->t.type==LONG || tree->t.tr1->t.type==UNLONG)) {
 		longrel(tree, lbl, cond, reg);
 		return;
 	}
@@ -687,8 +690,8 @@ union tree *atree;
 	xlab2 = 0;
 	xop = op;
 	xz = xzero;
-	xzero = !isrel || tree->t.tr2->t.op==ITOL && tree->t.tr2->t.tr1->t.op==CON
-		&& tree->t.tr2->t.tr1->c.value==0;
+	xzero = !isrel || (tree->t.tr2->t.op==ITOL && tree->t.tr2->t.tr1->t.op==CON
+		&& tree->t.tr2->t.tr1->c.value==0);
 	if (tree->t.op==ANDN) {
 		tree->t.op = TAND;
 		tree->t.tr2 = optim(tnode(COMPL, LONG, tree->t.tr2, TNULL));
@@ -715,15 +718,28 @@ union tree *atree;
  *	bhi	YES		(third)
  *  NO:	...
  * Note some tests may not be needed.
+ *
+ * EQUAL = 60
+ * NEQUAL= 61
+ * LESSEQ= 62
+ * LESS  = 63
+ * GREATEQ=64
+ * GREAT  =65
+ * LESSEQP=66
+ * LESSP  =67
+ * GREATQP=68
+ * GREATP =69
+ *
+ * Third dimension (lrtab[][][x]) indexed by "x - EQUAL".
  */
-char	lrtab[2][3][6] = {
-	0,	NEQUAL,	LESS,	LESS,	GREAT,	GREAT,
-	NEQUAL,	0,	GREAT,	GREAT,	LESS,	LESS,
-	EQUAL,	NEQUAL,	LESSEQP,LESSP,	GREATQP,GREATP,
+char	lrtab[2][3][10] = {
+	0, NEQUAL, LESS, LESS, GREAT, GREAT, LESSP, LESSP, GREATP, GREATP,
+	NEQUAL,	0, GREAT, GREAT, LESS, LESS, GREATP, GREATP, LESSP, LESSP,
+	EQUAL,NEQUAL,LESSEQP,LESSP, GREATQP,GREATP,LESSEQP,LESSP,GREATQP,GREATP,
 
-	0,	NEQUAL,	LESS,	LESS,	GREATEQ,GREAT,
-	NEQUAL,	0,	GREAT,	0,	0,	LESS,
-	EQUAL,	NEQUAL,	EQUAL,	0,	0,	NEQUAL,
+	0, NEQUAL, LESS, LESS,	GREATEQ,GREAT, LESSP, LESSP, GREATQP, GREATP,
+	NEQUAL,	0, GREAT, 0, 0,	LESS, GREATP, 0, 0, LESSP,
+	EQUAL,	NEQUAL,	EQUAL,	0, 0, NEQUAL, EQUAL, 0, 0, NEQUAL,
 };
 
 xlongrel(f)
@@ -808,16 +824,14 @@ psoct(an)
 #define	STKS	100
 getree()
 {
-	union tree *expstack[STKS];
-	union tree **sp;
+	union tree *expstack[STKS], **sp;
 	register union tree *tp;
-	register t, op;
-	static char s[80];	/* big for ASM stuff,  else NCPS + 1 */
+	register int t, op;
+	char s[80];		/* big for asm() stuff & long variable names */
 	struct swtab *swp;
-	double atof();
 	long outloc;
-	char numbuf[64];
 	int lbl, cond, lbl2, lbl3;
+	double atof();
 
 	curbase = funcbase;
 	sp = expstack;
@@ -866,17 +880,17 @@ getree()
 
 	case SYMDEF:
 		outname(s);
-		printf(".globl%s%.*s\n", s[0]?"\t":"", NCPS, s);
+		printf(".globl\t%s\n", s);
 		sfuncr.nloc = 0;
 		break;
 
 	case RETRN:
-		printf("jmp	cret\n");
+		printf("jmp\tcret\n");
 		break;
 
 	case CSPACE:
 		outname(s);
-		printf(".comm\t%.*s,%o\n", NCPS, s, UNS(geti()));
+		printf(".comm\t%s,%o\n", s, UNS(geti()));
 		break;
 
 	case SSPACE:
@@ -904,7 +918,7 @@ getree()
 		t = geti();
 		outname(s);
 		printf("mov	$L%d,r0\njsr	pc,mcount\n", t);
-		printf(".data\nL%d:%.*s+1\n.text\n", t, NCPS, s);
+		printf(".data\nL%d:%s+1\n.text\n", t, s);
 		break;
 
 	case ASSEM:
@@ -969,7 +983,7 @@ getree()
 		else if (op==EXPR)
 			rcexpr(tp, efftab, 0);
 		else {
-			if (tp->t.type==LONG) {
+			if (tp->t.type==LONG || tp->t.type==UNLONG) {
 				rcexpr(tnode(RFORCE, tp->t.type, tp, TNULL), efftab, 0);
 				printf("ashc	$0,r0\n");
 			} else {
@@ -988,7 +1002,9 @@ getree()
 		if (t==EXTERN) {
 			tp = getblk(sizeof(struct xtname));
 			tp->t.type = geti();
-			outname(tp->x.name);
+			outname(s);
+			tp->x.name = (char *)getblk(strlen(s) + 1);
+			strcpy(tp->x.name, s);
 		} else {
 			tp = getblk(sizeof(struct tname));
 			tp->t.type = geti();
@@ -1023,12 +1039,12 @@ getree()
 
 	case FCON:
 		t = geti();
-		outname(numbuf);
+		outname(s);
 		tp = getblk(sizeof(struct ftconst));
 		tp->t.op = FCON;
 		tp->t.type = t;
 		tp->f.value = isn++;
-		tp->f.fvalue = atof(numbuf);
+		tp->f.fvalue = atof(s);
 		*sp++ = tp;
 		break;
 
@@ -1061,12 +1077,12 @@ getree()
 
 	case NLABEL:
 		outname(s);
-		printf("%.*s:\n", NCPS, s);
+		printf("%s:\n", s);
 		break;
 
 	case RLABEL:
 		outname(s);
-		printf("%.*s:\n~~%.*s:\n", NCPS, s, NCPS-1, s+1);
+		printf("%s:\n~~%s:\n", s, s+1);
 		break;
 
 	case BRANCH:
@@ -1101,20 +1117,15 @@ geti()
 	return(i);
 }
 
+static
 outname(s)
 register char *s;
 {
-	register c;
-	register n;
+	register int c;
 
-	n = 0;
-	while (c = getchar()) {
+	while (c = getchar())
 		*s++ = c;
-		n++;
-	}
-	do {
-		*s++ = 0;
-	} while (n++ < NCPS);
+	*s++ = '\0';
 }
 
 strasg(atp)

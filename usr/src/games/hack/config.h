@@ -23,7 +23,7 @@
 #define BSD		/* delete this line on System V */
 
 /*
- * On V7 / BSD2.9 / Ultrix 2.0 and other V7 look-a-likes, a signal trap during
+ * On V7 / 2.9BSD / Ultrix 2.0 and other V7 look-a-likes, a signal trap during
  * a read from the tty will cause the read to terminate prematurely with an
  * error (EOF) when the signal trap returns.  Note that on most version 7
  * type systems, defining `BSD' (above) in addtion to VERSION7 is appropriate.

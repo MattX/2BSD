@@ -52,8 +52,9 @@ register dev_t	dev;
 	return(0);
 }
 
-dnwrite(dev)
+dnwrite(dev, uio)
 register dev_t	dev;
+register struct uio *uio;
 {
 	register int c, *dp;
 	int s;
@@ -62,7 +63,7 @@ register dev_t	dev;
 	dp = (int *)&(dn_addr[dev >> 2]->dnisr[dev & 03]);
 	while ((*dp & (DN_PWI | DN_ACR | DN_DSS)) == 0) {
 		s = spl4();
-		if ((*dp & DN_FPND) == 0 || !u.u_count || (c = uwritec()) < 0)
+		if ((*dp & DN_FPND) == 0 || !uio->uio_resid || (c = uwritec(uio)) < 0)
 			sleep((caddr_t) dp, DNPRI);
 		else if (c == '-') {
 			sleep((caddr_t) &lbolt, DNPRI);

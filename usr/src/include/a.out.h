@@ -3,15 +3,20 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)a.out.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)a.out.h	2.1 (2.11BSD GTE) 1/06/94
  */
 
+#ifndef	_AOUT_H_
+#define	_AOUT_H_
 /*
  * Definitions of the a.out header
  * and magic numbers are shared with
  * the kernel.
  */
 #include <sys/exec.h>
+
+#define	_AOUT_INCLUDE_
+#include <nlist.h>
 
 /*
  * Macros which take exec structures as arguments and tell whether
@@ -27,31 +32,22 @@
 	sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
 
 /*
- * Format of a symbol table entry; this file is included by <a.out.h>
- * and should be used if you aren't interested the a.out header
- * or relocation information.
- */
-struct	nlist {
-	char	n_name[8];	/* symbol name */
-	int	n_type;		/* type flag */
-unsigned int	n_value;	/* value */
-};
+ * The following were added as part of the new object file format.  They
+ * call functions because calculating the sums of overlay sizes was too
+ * messy (and verbose) to do 'inline'.
+ *
+ * NOTE: if the magic number is that of an overlaid object the program
+ * must pass an extended header ('xexec') as the argument.
+*/
 
-/*
- * Simple values for n_type.
- */
-#define	N_UNDF	0x0		/* undefined */
-#define	N_ABS	0x1		/* absolute */
-#define	N_TEXT	0x2		/* text symbol */
-#define	N_DATA	0x3		/* data symbol */
-#define	N_BSS	0x4		/* bss symbol */
-#define	N_REG	0x14		/* register name */
-#define	N_FN	0x1f		/* file name symbol */
+#include <sys/types.h>
 
-#define	N_EXT	0x20		/* external bit, or'ed in */
-#define	N_TYPE	0x1f		/* mask for all the type bits */
+off_t	n_stroff(), n_symoff(), n_datoff(), n_dreloc(), n_treloc();
 
-/*
- * Format for namelist values.
- */
-#define	N_FORMAT	"%06o"
+#define	N_STROFF(e) (n_stroff(&e))
+#define	N_SYMOFF(e) (n_symoff(&e))
+#define	N_DATOFF(e) (n_datoff(&e))
+#define	N_DRELOC(e) (n_dreloc(&e))
+#define	N_TRELOC(e) (n_treloc(&e))
+
+#endif	/* !_AOUT_H_ */

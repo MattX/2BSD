@@ -44,8 +44,8 @@ clean: FRC
 depend: ${SRCS} FRC
 	mkdep ${CFLAGS} ${SRCS}
 
-install: FRC
-	install -s -o bin -g bin -m 755 troff ${DESTDIR}/usr/bin/troff
+install: troff
+	install -s -o bin -g bin -m 751 troff ${DESTDIR}/usr/bin/troff
 
 lint: ${SRCS} FRC
 	lint ${CFLAGS} ${SRCS}

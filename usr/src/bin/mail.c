@@ -1,9 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)mail.c	4.33 (Berkeley) 2/27/88";
-#endif
-
-#ifdef BSD2_10
-#include <short_names.h>
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)mail.c	4.33.2 (2.11BSD GTE) 6/11/94";
 #endif
 
 #include <sys/param.h>
@@ -17,8 +13,7 @@ static char sccsid[] = "@(#)mail.c	4.33 (Berkeley) 2/27/88";
 #include <signal.h>
 #include <setjmp.h>
 #include <sysexits.h>
-
-#define SENDMAIL	"/usr/lib/sendmail"
+#include <paths.h>
 
 	/* copylet flags */
 #define REMOTE		1		/* remote mail, add rmtmsg */
@@ -436,8 +431,8 @@ char **argv;
 			*ap-- = "-s";
 		*ap = "-sendmail";
 		setuid(getuid());
-		execv(SENDMAIL, ap);
-		perror(SENDMAIL);
+		execv(_PATH_SENDMAIL, ap);
+		perror(_PATH_SENDMAIL);
 		exit(EX_UNAVAILABLE);
 	}
 

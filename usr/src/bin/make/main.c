@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)main.c	4.9 (Berkeley) 87/05/21";
+/* static	char *sccsid = "@(#)main.c	4.9 (Berkeley) 87/05/21"; */
 # include "defs"
 /*
 command make to update programs.
@@ -56,11 +56,11 @@ int argc;
 char *argv[];
 {
 register struct nameblock *p;
-int i, j;
+register int i, j;
 int descset, nfargs;
 TIMETYPE tjunk;
 char c, *s;
-static char onechar[2] = "X";
+static char onechar[2] = 'X';
 #ifdef unix
 int intrupt();
 #endif

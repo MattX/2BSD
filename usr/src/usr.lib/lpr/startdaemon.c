@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)startdaemon.c	5.1 (Berkeley) 6/6/85";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)startdaemon.c	5.1.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Tell the printer daemon that there are new files in the spool directory.
@@ -29,7 +29,6 @@ startdaemon(printer)
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (s < 0) {
-#ifdef BSD2_10
 		extern errno;
 
 		if (errno == EPROTONOSUPPORT) {
@@ -51,7 +50,6 @@ startdaemon(printer)
 			}
 			return(1);
 		}
-#endif
 		perr("socket");
 		return(0);
 	}

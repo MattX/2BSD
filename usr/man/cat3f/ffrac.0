@@ -5,26 +5,26 @@ FLMIN(3F)	    UNIX Programmer's Manual		FLMIN(3F)
 
 
 
-NNAAMMEE
+NAME
      flmin, flmax, ffrac, dflmin, dflmax, dffrac, inmax - return
      extreme values
 
-SSYYNNOOPPSSIISS
-     ffuunnccttiioonn ffllmmiinn(())
+SYNOPSIS
+     function flmin()
 
-     ffuunnccttiioonn ffllmmaaxx(())
+     function flmax()
 
-     ffuunnccttiioonn ffffrraacc(())
+     function ffrac()
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddffllmmiinn(())
+     double precision function dflmin()
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddffllmmaaxx(())
+     double precision function dflmax()
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddffffrraacc(())
+     double precision function dffrac()
 
-     ffuunnccttiioonn iinnmmaaxx(())
+     function inmax()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Functions _f_l_m_i_n and _f_l_m_a_x return the minimum and maximum
      positive floating point values respectively.  Functions
      _d_f_l_m_i_n and _d_f_l_m_a_x return the minimum and maximum positive
@@ -39,7 +39,7 @@ DDEESSCCRRIIPPTTIIOONN
      These functions can be used by programs that must scale
      algorithms to the numerical range of the processor.
 
-FFIILLEESS
+FILES
      /usr/lib/libF77.a
 
 
@@ -60,7 +60,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	  June 7, 1985				1
+Printed 1/9/94		  June 7, 1985				1
 
 
 

@@ -83,21 +83,22 @@ cnclose(dev, flag)
 }
 
 /*ARGSUSED*/
-cnread(dev)
+cnread(dev, uio)
 	dev_t dev;
+	struct uio *uio;
 {
 	register struct tty *tp = &cons[minor(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp));
+	return ((*linesw[tp->t_line].l_read)(tp, uio));
 }
 
 /*ARGSUSED*/
-cnwrite(dev)
+cnwrite(dev, uio)
 	dev_t dev;
 {
 	register struct tty *tp = &cons[minor(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp));
+	return ((*linesw[tp->t_line].l_write)(tp, uio));
 }
 
 /*ARGSUSED*/

@@ -5,13 +5,13 @@ WORM(6)             UNIX Programmer's Manual		  WORM(6)
 
 
 
-NNAAMMEE
+NAME
      worm - Play the growing worm game
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//wwoorrmm [ _s_i_z_e ]
+SYNOPSIS
+     /usr/games/worm [ _s_i_z_e ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      In _w_o_r_m, you are a little worm, your body is the "o"'s on
      the screen and your head is the "@".  You move with the hjkl
      keys (as in the game snake).  If you don't press any keys,
@@ -32,7 +32,7 @@ DDEESSCCRRIIPPTTIIOONN
      The optional argument, if present, is the initial length of
      the worm.
 
-BBUUGGSS
+BUGS
      If the initial length of the worm is set to less than one or
      more than 75, various strange things happen.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 20, 1985				1
+Printed 1/9/94		  May 20, 1985				1
 
 
 

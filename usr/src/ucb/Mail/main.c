@@ -1,18 +1,42 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-char *copyright =
+#if	!defined(lint) && defined(DOSCCS)
+char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
-
-#ifndef lint
-static char *sccsid = "@(#)main.c	5.3 (Berkeley) 9/15/85";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.28 (Berkeley) 4/1/91";
+#endif
 
 #include "rcv.h"
 #include <sys/stat.h>
@@ -25,124 +49,62 @@ static char *sccsid = "@(#)main.c	5.3 (Berkeley) 9/15/85";
 
 jmp_buf	hdrjmp;
 
-/*
- * Find out who the user is, copy his mail file (if exists) into
- * /tmp/Rxxxxx and set up the message pointers.  Then, print out the
- * message headers and read user commands.
- *
- * Command line syntax:
- *	Mail [ -i ] [ -r address ] [ -h number ] [ -f [ name ] ]
- * or:
- *	Mail [ -i ] [ -r address ] [ -h number ] people ...
- */
-
 main(argc, argv)
 	char **argv;
 {
-	register char *ef;
-	register int i, argp;
-	int mustsend, uflag, hdrstop(), (*prevint)(), f;
-	FILE *ibuf, *ftat;
-	struct sgttyb tbuf;
-
-#ifdef signal
-	Siginit();
-#endif
+	register int i;
+	struct name *to, *cc, *bcc, *smopts;
+	char *subject;
+	char *ef;
+	char nosrc = 0;
+	void hdrstop();
+	sig_t prevint;
+	extern int getopt(), optind, opterr;
+	extern char *optarg;
+	void sigchild();
 
 	/*
-	 * Set up a reasonable environment.  We clobber the last
-	 * element of argument list for compatibility with version 6,
-	 * figure out whether we are being run interactively, set up
-	 * all the temporary files, buffer standard output, and so forth.
+	 * Set up a reasonable environment.
+	 * Figure out whether we are being run interactively,
+	 * start the SIGCHLD catcher, and so forth.
 	 */
-
-	uflag = 0;
-	argv[argc] = (char *) -1;
-#ifdef	GETHOST
-	inithost();
-#endif	GETHOST
-	mypid = getpid();
-	intty = isatty(0);
-	outtty = isatty(1);
-	if (outtty) {
-		gtty(1, &tbuf);
-		baud = tbuf.sg_ospeed;
-	}
-	else
-		baud = B9600;
+	(void) signal(SIGCHLD, sigchild);
+	if (isatty(0))
+		assign("interactive", "");
 	image = -1;
-
 	/*
 	 * Now, determine how we are being used.
-	 * We successively pick off instances of -r, -h, -f, and -i.
-	 * If called as "rmail" we note this fact for letter sending.
+	 * We successively pick off - flags.
 	 * If there is anything left, it is the base of the list
 	 * of users to mail to.  Argp will be set to point to the
 	 * first of these users.
 	 */
-
 	ef = NOSTR;
-	argp = -1;
-	mustsend = 0;
-	if (argc > 0 && **argv == 'r')
-		rmail++;
-	for (i = 1; i < argc; i++) {
-
-		/*
-		 * If current argument is not a flag, then the
-		 * rest of the arguments must be recipients.
-		 */
-
-		if (*argv[i] != '-') {
-			argp = i;
-			break;
-		}
-		switch (argv[i][1]) {
-		case 'r':
-			/*
-			 * Next argument is address to be sent along
-			 * to the mailer.
-			 */
-			if (i >= argc - 1) {
-				fprintf(stderr, "Address required after -r\n");
-				exit(1);
-			}
-			mustsend++;
-			rflag = argv[i+1];
-			i++;
-			break;
-
+	to = NIL;
+	cc = NIL;
+	bcc = NIL;
+	smopts = NIL;
+	subject = NOSTR;
+	while ((i = getopt(argc, argv, "INT:b:c:dfins:u:v")) != EOF) {
+		switch (i) {
 		case 'T':
 			/*
 			 * Next argument is temp file to write which
 			 * articles have been read/deleted for netnews.
 			 */
-			if (i >= argc - 1) {
-				fprintf(stderr, "Name required after -T\n");
-				exit(1);
-			}
-			Tflag = argv[i+1];
-			if ((f = creat(Tflag, 0600)) < 0) {
+			Tflag = optarg;
+			if ((i = creat(Tflag, 0600)) < 0) {
 				perror(Tflag);
 				exit(1);
 			}
-			close(f);
-			i++;
+			close(i);
 			break;
-
 		case 'u':
 			/*
 			 * Next argument is person to pretend to be.
 			 */
-			uflag++;
-			if (i >= argc - 1) {
-				fprintf(stderr, "Missing user name for -u\n");
-				exit(1);
-			}
-			strcpy(myname, argv[i+1]);
-			i++;
+			myname = optarg;
 			break;
-
 		case 'i':
 			/*
 			 * User wants to ignore interrupts.
@@ -150,177 +112,179 @@ main(argc, argv)
 			 */
 			assign("ignore", "");
 			break;
-
 		case 'd':
 			debug++;
 			break;
-
-		case 'h':
-			/*
-			 * Specified sequence number for network.
-			 * This is the number of "hops" made so
-			 * far (count of times message has been
-			 * forwarded) to help avoid infinite mail loops.
-			 */
-			if (i >= argc - 1) {
-				fprintf(stderr, "Number required for -h\n");
-				exit(1);
-			}
-			mustsend++;
-			hflag = atoi(argv[i+1]);
-			if (hflag == 0) {
-				fprintf(stderr, "-h needs non-zero number\n");
-				exit(1);
-			}
-			i++;
-			break;
-
 		case 's':
 			/*
 			 * Give a subject field for sending from
 			 * non terminal
 			 */
-			if (i >= argc - 1) {
-				fprintf(stderr, "Subject req'd for -s\n");
-				exit(1);
-			}
-			mustsend++;
-			sflag = argv[i+1];
-			i++;
+			subject = optarg;
 			break;
-
 		case 'f':
 			/*
 			 * User is specifying file to "edit" with Mail,
 			 * as opposed to reading system mailbox.
 			 * If no argument is given after -f, we read his
-			 * mbox file in his home directory.
+			 * mbox file.
+			 *
+			 * getopt() can't handle optional arguments, so here
+			 * is an ugly hack to get around it.
 			 */
-			if (i >= argc - 1)
-				ef = mbox;
+			if ((argv[optind]) && (argv[optind][0] != '-'))
+				ef = argv[optind++];
 			else
-				ef = argv[i + 1];
-			i++;
+				ef = "&";
 			break;
-
 		case 'n':
 			/*
 			 * User doesn't want to source /usr/lib/Mail.rc
 			 */
 			nosrc++;
 			break;
-
 		case 'N':
 			/*
 			 * Avoid initial header printing.
 			 */
-			noheader++;
+			assign("noheader", "");
 			break;
-
 		case 'v':
 			/*
 			 * Send mailer verbose flag
 			 */
 			assign("verbose", "");
 			break;
-
 		case 'I':
 			/*
 			 * We're interactive
 			 */
-			intty = 1;
+			assign("interactive", "");
 			break;
-
-		default:
-			fprintf(stderr, "Unknown flag: %s\n", argv[i]);
+		case 'c':
+			/*
+			 * Get Carbon Copy Recipient list
+			 */
+			cc = cat(cc, nalloc(optarg, GCC));
+			break;
+		case 'b':
+			/*
+			 * Get Blind Carbon Copy Recipient list
+			 */
+			bcc = cat(bcc, nalloc(optarg, GBCC));
+			break;
+		case '?':
+			fputs("\
+Usage: mail [-iInv] [-s subject] [-c cc-addr] [-b bcc-addr] to-addr ...\n\
+            [- sendmail-options ...]\n\
+       mail [-iInNv] -f [name]\n\
+       mail [-iInNv] [-u user]\n",
+				stderr);
 			exit(1);
 		}
 	}
-
+	for (i = optind; (argv[i]) && (*argv[i] != '-'); i++)
+		to = cat(to, nalloc(argv[i], GTO));
+	for (; argv[i]; i++)
+		smopts = cat(smopts, nalloc(argv[i], 0));
 	/*
 	 * Check for inconsistent arguments.
 	 */
-
-	if (ef != NOSTR && argp != -1) {
+	if (to == NIL && (subject != NOSTR || cc != NIL || bcc != NIL)) {
+		fputs("You must specify direct recipients with -s, -c, or -b.\n", stderr);
+		exit(1);
+	}
+	if (ef != NOSTR && to != NIL) {
 		fprintf(stderr, "Cannot give -f and people to send to.\n");
 		exit(1);
 	}
-	if (mustsend && argp == -1) {
-		fprintf(stderr, "The flags you gave make no sense since you're not sending mail.\n");
-		exit(1);
-	}
 	tinit();
+	setscreensize();
 	input = stdin;
-	rcvmode = argp == -1;
+	rcvmode = !to;
+	spreserve();
 	if (!nosrc)
-		load(MASTER);
-	load(mailrc);
-	if (argp != -1) {
-		mail(&argv[argp]);
-
+		load(_PATH_MASTER_RC);
+	/*
+	 * Expand returns a savestr, but load only uses the file name
+	 * for fopen, so it's safe to do this.
+	 */
+	load(expand("~/.mailrc"));
+	if (!rcvmode) {
+		mail(to, cc, bcc, smopts, subject);
 		/*
 		 * why wait?
 		 */
-
 		exit(senderr);
 	}
-
 	/*
 	 * Ok, we are reading mail.
 	 * Decide whether we are editing a mailbox or reading
 	 * the system mailbox, and open up the right stuff.
 	 */
+	if (ef == NOSTR)
+		ef = "%";
+	if (setfile(ef) < 0)
+		exit(1);		/* error already reported */
+	if (setjmp(hdrjmp) == 0) {
+		extern char *version;
 
-	if (ef != NOSTR) {
-		char *ename;
-
-		edit++;
-		ename = expand(ef);
-		if (ename != ef) {
-			ef = (char *) calloc(1, strlen(ename) + 1);
-			strcpy(ef, ename);
-		}
-		editfile = ef;
-		strcpy(mailname, ef);
-	}
-	if (setfile(mailname, edit) < 0) {
-		if (edit)
-			perror(mailname);
-		else
-			fprintf(stderr, "No mail for %s\n", myname);
-		exit(1);
-	}
-	if (!noheader && value("noheader") == NOSTR) {
-		if (setjmp(hdrjmp) == 0) {
-			if ((prevint = sigset(SIGINT, SIG_IGN)) != SIG_IGN)
-				sigset(SIGINT, hdrstop);
-			announce(!0);
-			fflush(stdout);
-			sigset(SIGINT, prevint);
-		}
-	}
-	if (!edit && msgCount == 0) {
-		printf("No mail\n");
+		if ((prevint = signal(SIGINT, SIG_IGN)) != SIG_IGN)
+			signal(SIGINT, hdrstop);
+		if (value("quiet") == NOSTR)
+			printf("Mail version %s.  Type ? for help.\n",
+				version);
+		announce();
 		fflush(stdout);
-		exit(0);
+		signal(SIGINT, prevint);
 	}
 	commands();
-	if (!edit) {
-		sigset(SIGHUP, SIG_IGN);
-		sigset(SIGINT, SIG_IGN);
-		sigset(SIGQUIT, SIG_IGN);
-		quit();
-	}
+	signal(SIGHUP, SIG_IGN);
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	quit();
 	exit(0);
 }
 
 /*
  * Interrupt printing of the headers.
  */
+void
 hdrstop()
 {
 
 	fflush(stdout);
 	fprintf(stderr, "\nInterrupt\n");
 	longjmp(hdrjmp, 1);
+}
+
+/*
+ * Compute what the screen size for printing headers should be.
+ * We use the following algorithm for the height:
+ *	If baud rate < 1200, use  9
+ *	If baud rate = 1200, use 14
+ *	If baud rate > 1200, use 24 or ws_row
+ * Width is either 80 or ws_col;
+ */
+setscreensize()
+{
+	struct sgttyb tbuf;
+	struct winsize ws;
+
+	if (ioctl(1, TIOCGWINSZ, (char *) &ws) < 0)
+		ws.ws_col = ws.ws_row = 0;
+	if (ioctl(1, TIOCGETP, &tbuf) < 0)
+		tbuf.sg_ospeed = B9600;
+	if (tbuf.sg_ospeed < B1200)
+		screenheight = 9;
+	else if (tbuf.sg_ospeed == B1200)
+		screenheight = 14;
+	else if (ws.ws_row != 0)
+		screenheight = ws.ws_row;
+	else
+		screenheight = 24;
+	if ((realscreenheight = ws.ws_row) == 0)
+		realscreenheight = 24;
+	if ((screenwidth = ws.ws_col) == 0)
+		screenwidth = 80;
 }

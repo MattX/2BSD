@@ -5,18 +5,18 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
 
 
 
-NNAAMMEE
+NAME
      make - maintain program groups
 
-SSYYNNOOPPSSIISS
-     mmaakkee [ --ff makefile ] [ option ] ...  file ...
+SYNOPSIS
+     make [ -f makefile ] [ option ] ...  file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_a_k_e executes commands in _m_a_k_e_f_i_l_e to update one or more
-     target _n_a_m_e_s.  _N_a_m_e is typically a program.  If no --ff option
+     target _n_a_m_e_s.  _N_a_m_e is typically a program.  If no -f option
      is present, `makefile' and `Makefile' are tried in order.
      If _m_a_k_e_f_i_l_e is `-', the standard input is taken.  More than
-     one --ff option may appear.
+     one -f option may appear.
 
      _M_a_k_e updates a target if it depends on prerequisite files
      that have been modified since the target was last modified,
@@ -31,16 +31,14 @@ DDEESSCCRRIIPPTTIIOONN
      than one `colon' line, then it depends on all of the names
      on the right of the colon on those lines, but only one com-
      mand sequence may be specified for it.  If a name appears on
-     a line with a double colon :::: then the command sequence fol-
+     a line with a double colon :: then the command sequence fol-
      lowing that line is performed only if the name is out of
      date with respect to the names to the right of the double
      colon, and is not affected by other double colon lines on
      which that name may appear.
 
-     Two special forms of a name are recognized.  A name like
-     _a(_b) means the file named _b stored in the archive named _a. A
-     name like _a((_b)) means the file stored in archive _a contain-
-     ing the entry point _b.
+     The special form of the name: _a(_b) means the file named _b
+     stored in the archive named _a.
 
      Sharp and newline surround comments.
 
@@ -57,10 +55,12 @@ DDEESSCCRRIIPPTTIIOONN
 
      _M_a_k_e_f_i_l_e entries of the form
 
+	  string1 = string2
 
 
 
-Printed 12/28/88	 August 15, 1987			1
+
+Printed 1/9/94		 August 15, 1987			1
 
 
 
@@ -71,8 +71,6 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
 
 
 
-	  string1 = string2
-
      are macro definitions.  Subsequent appearances of $(_s_t_r_i_n_g_1)
      or ${_s_t_r_i_n_g_1} are replaced by _s_t_r_i_n_g_2.  If _s_t_r_i_n_g_1 is a sin-
      gle character, the parentheses or braces are optional.
@@ -81,7 +79,7 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
      tions and processed as such.  The environment variables are
      processed before any _m_a_k_e_f_i_l_e macro definitions; thus, macro
      assignments in a makefile override environmental variables.
-     The --ee option causes the environment to override the macro
+     The -e option causes the environment to override the macro
      assignments in a makefile.  Finally, command line options of
      the form _s_t_r_i_n_g_1=_s_t_r_i_n_g_2 override both environment and
      makefile macro definitions.
@@ -122,11 +120,13 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
      `FFLAGS' for _f_7_7(1) options, `PFLAGS' for _p_c(1) options, and
      `LFLAGS' and `YFLAGS' for _l_e_x and _y_a_c_c(1) options.  In addi-
      tion, the macro `MFLAGS' is filled in with the initial com-
-     mand line options supplied to _m_a_k_e.  This simplifies
+     mand line options supplied to _m_a_k_e.  This simplifies main-
+     taining a hierarchy of makefiles as one may then invoke _m_a_k_e
+     on makefiles in subdirectories and pass along useful options
 
 
 
-Printed 12/28/88	 August 15, 1987			2
+Printed 1/9/94		 August 15, 1987			2
 
 
 
@@ -137,9 +137,7 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
 
 
 
-     maintaining a hierarchy of makefiles as one may then invoke
-     _m_a_k_e on makefiles in subdirectories and pass along useful
-     options such as --kk.
+     such as -k.
 
      Another special macro is `VPATH'.	The `VPATH' macro should
      be set to a list of directories separated by colons.  When
@@ -172,27 +170,29 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
 
      Other options:
 
-     --ee   Environmental variables override assignments within
+     -e   Environmental variables override assignments within
 	  makefiles.
 
-     --ii   Equivalent to the special entry `.IGNORE:'.
+     -i   Equivalent to the special entry `.IGNORE:'.
 
-     --kk   When a command returns nonzero status, abandon work on
+     -k   When a command returns nonzero status, abandon work on
 	  the current entry, but continue on branches that do not
 	  depend on the current entry.
 
-     --nn   Trace and print, but do not execute the commands needed
+     -n   Trace and print, but do not execute the commands needed
 	  to update the targets.
 
-     --tt   Touch, i.e. update the modified date of targets,
+     -t   Touch, i.e. update the modified date of targets,
 	  without executing any commands.
 
-     --rr   Equivalent to an initial special entry `.SUFFIXES:'
+     -r   Equivalent to an initial special entry `.SUFFIXES:'
 	  with no list.
 
+     -s   Equivalent to the special entry `.SILENT:'.
 
 
-Printed 12/28/88	 August 15, 1987			3
+
+Printed 1/9/94		 August 15, 1987			3
 
 
 
@@ -203,18 +203,16 @@ MAKE(1)             UNIX Programmer's Manual		  MAKE(1)
 
 
 
-     --ss   Equivalent to the special entry `.SILENT:'.
-
-FFIILLEESS
+FILES
      makefile, Makefile
 
-SSEEEE AALLSSOO
+SEE ALSO
      sh(1), touch(1), f77(1), pc(1), getenv(3)
      S. I. Feldman _M_a_k_e - _A _P_r_o_g_r_a_m _f_o_r _M_a_i_n_t_a_i_n_i_n_g _C_o_m_p_u_t_e_r _P_r_o_-
      _g_r_a_m_s
 
-BBUUGGSS
-     Some commands return nonzero status inappropriately.  Use --ii
+BUGS
+     Some commands return nonzero status inappropriately.  Use -i
      to overcome the difficulty.
      Commands that are directly executed by the shell, notably
      _c_d(1), are ineffectual across newlines in _m_a_k_e.
@@ -258,7 +256,9 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 15, 1987			4
+
+
+Printed 1/9/94		 August 15, 1987			4
 
 
 

@@ -12,7 +12,7 @@ prog_init()
 	{
 	endline = endcom = 0;	endchar = -1;
 	comchar = -1;
-	graph = challoc(sizeof(*graph) * maxnode);
+	graph = (int **)challoc(sizeof(*graph) * maxnode);
 	}
 
 routinit()

@@ -5,19 +5,19 @@ ACCEPT(2)	    UNIX Programmer's Manual		ACCEPT(2)
 
 
 
-NNAAMMEE
+NAME
      accept - accept a connection on a socket
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
 
-     nnss == aacccceepptt((ss,, aaddddrr,, aaddddrrlleenn))
-     iinntt nnss,, ss;;
-     ssttrruucctt ssoocckkaaddddrr **aaddddrr;;
-     iinntt **aaddddrrlleenn;;
+     ns = accept(s, addr, addrlen)
+     int ns, s;
+     struct sockaddr *addr;
+     int *addrlen;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The argument _s is a socket that has been created with
      _s_o_c_k_e_t(2), bound to an address with _b_i_n_d(2), and is listen-
      ing for connections after a _l_i_s_t_e_n(2).  _A_c_c_e_p_t extracts the
@@ -45,12 +45,12 @@ DDEESSCCRRIIPPTTIIOONN
      It is possible to _s_e_l_e_c_t(2) a socket for the purposes of
      doing an _a_c_c_e_p_t by selecting it for read.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      The call returns -1 on error.  If it succeeds, it returns a
      non-negative integer that is a descriptor for the accepted
      socket.
 
-EERRRROORRSS
+ERRORS
      The _a_c_c_e_p_t will fail if:
 
      [EBADF]		 The descriptor is invalid.
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -80,7 +80,7 @@ ACCEPT(2)	    UNIX Programmer's Manual		ACCEPT(2)
      [EWOULDBLOCK]	 The socket is marked non-blocking and no
 			 connections are present to be accepted.
 
-SSEEEE AALLSSOO
+SEE ALSO
      bind(2), connect(2), listen(2), select(2), socket(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 

@@ -5,25 +5,25 @@ DHU(4)		    UNIX Programmer's Manual		   DHU(4)
 
 
 
-NNAAMMEE
+NAME
      dhu - DHU-11 communications multiplexer
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNDDHHUU _d_h_u__u_n_i_t_s ## DDHHUU1111,, DDHHVV1111
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NDHU _d_h_u__u_n_i_t_s # DHU11, DHV11
 
-     //eettcc//ddttaabb::
-	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
-	  dduu	??     116600002200 331100    55  ddhhuurriinntt ddhhuuxxiinntt ## ddhhvv//ddhhuu1111 tteerrmmiinnaall mmuuxx
+     /etc/dtab:
+	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
+	  du	?     160020 310    5  dhurint dhuxint # dhv/dhu11 terminal mux
 
-     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
-	  rraaww:: 44
-     mmiinnoorr ddeevviiccee eennccooddiinngg::
-	  bbiittss 00001177 ssppeecciiffyy lliinnee oonn DDHHUU uunniitt
-	  bbiittss 00116600 ssppeecciiffyy DDHHUU uunniitt
-	  bbiitt  00220000 ssppeecciiffiieess nnoonn--bblloocckkiinngg ooppeenn ((````CCDD aallwwaayyss oonn''''))
+     major device number(s):
+	  raw: 4
+     minor device encoding:
+	  bits 0017 specify line on DHU unit
+	  bits 0160 specify DHU unit
+	  bit  0200 specifies non-blocking open (``CD always on'')
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      A DHU-11 provides 16 communication lines.
 
      Each line attached to the DHU-11 communications multiplexer
@@ -43,14 +43,14 @@ DDEESSCCRRIIPPTTIIOONN
      receiver interrupts by 20 milliseconds rather than taking an
      interrupt on each input character.
 
-FFIILLEESS
+FILES
      /dev/tty[S-Z][0-9a-f]
 
-SSEEEE AALLSSOO
+SEE ALSO
      tty(4)
 
-DDIIAAGGNNOOSSTTIICCSS
-     ddhhuu((%%dd,,%%dd)):: NNXXMM ffaauulltt.  No response from UNIBUS on a DMA
+DIAGNOSTICS
+     dhu(%d,%d): NXM fault.  No response from UNIBUS on a DMA
      transfer within a timeout period.	This is often followed by
      a UNIBUS adapter error.  This occurs most frequently when
      the UNIBUS is heavily loaded and when devices which hog the
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	 August 1, 1987                         1
+Printed 1/9/94		 August 1, 1987                         1
 
 
 
@@ -71,13 +71,13 @@ DHU(4)		    UNIX Programmer's Manual		   DHU(4)
 
 
 
-     ddhhuu%%dd:: ssiilloo oovveerrffllooww.  The character input silo overflowed
+     dhu%d: silo overflow.  The character input silo overflowed
      before it could be serviced.  This can happen if a hard
      error occurs when the CPU is running with elevated priority,
      as the system may then print a message on the console with
      interrupts disabled.
 
-NNOOTTEESS
+NOTES
      The driver currently does not make full use of the hardware
      capabilities of the DHU-11, for dealing with XON/XOFF flow-
      control or hard-wired lines for example.
@@ -126,7 +126,7 @@ NNOOTTEESS
 
 
 
-Printed 12/28/88	 August 1, 1987                         2
+Printed 1/9/94		 August 1, 1987                         2
 
 
 

@@ -19,12 +19,6 @@
  *	express or implied warranty.
  */
 
-
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 /* test stub for DataFrom3270, etc. */
 
 #define DEFINEAIDS
@@ -35,9 +29,9 @@
 #include "options.h"
 #include "ectype.h"
 
-#ifndef	lint
-static char sccsid[] = "@(#)keyboard.c	2.6	4/4/86";
-#endif	/* ndef lint */
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)keyboard.c	2.7	1/1/94";
+#endif
 
 #define EmptyChar	(ourPTail == ourBuffer)
 #define FullChar	(ourPTail == ourBuffer+sizeof ourBuffer)
@@ -647,7 +641,7 @@ int	count;			/* how much data there is */
 		    i = SetBufferAddress(0,0);
 		}
 		if (OptLeftMargin <= ScreenLineOffset(CursorAddress)) {
-#ifndef BSD2_10
+#ifndef pdp11
 		    if (IsUnProtected(SetBufferAddress(ScreenLine(i),
 							    OptLeftMargin))) {
 #else

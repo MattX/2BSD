@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)courier.c	5.2 (Berkeley) 2/17/87";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)courier.c	5.2.1 (2.11BSD GTE) 1/1/94";
 #endif
 
 #define write cour_write
@@ -15,13 +15,6 @@ static char sccsid[] = "@(#)courier.c	5.2 (Berkeley) 2/17/87";
  */
 #include "tip.h"
 #include <stdio.h>
-
-#ifdef BSD2_10
-#define	cour_nap	_cournp
-#define	cour_napx	_cournx
-#define	connected	_cnnctd
-#define	connected	_cnnctd
-#endif
 
 #define	MAXRETRY	5
 

@@ -49,3 +49,5 @@ old-assn: old-assn.l
 
 clean:
 	rm -f lex.yy.c *.o core ${ALL}
+
+install:

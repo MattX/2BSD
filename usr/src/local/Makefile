@@ -5,12 +5,12 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	
+SUBDIR= afio cxref ddd less mkovmake mtools popper welcome zmodem
 
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	
+STD= decompr16 trace 
 
 # C programs that live in the current directory and need explicit make lines.
 #
@@ -18,7 +18,10 @@ NSTD=
 
 # Shell scripts
 #
-SHELL=	
+SHELL= none
+
+# Manpage directory
+MANDIR= ${DESTDIR}/usr/local/man
 
 all:	${SUBDIR} ${STD} ${NSTD}
 
@@ -32,13 +35,20 @@ ${STD}:
 
 # Files listed in ${NSTD} have explicit make lines given below.
 
-install:
+install: ${STD} ${NSTD}
+	-mkdir ${MANDIR}
+	-chmod a+r ${MANDIR}
+	-for i in 1 2 3 4 5 6 7 8; do \
+		(mkdir ${MANDIR}/cat$$i; chmod a+r ${MANDIR}/cat$$i); done
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${STD} ${NSTD}; do \
 		(install $$i ${DESTDIR}/usr/local/$$i); done
-	-for i in ${SHELL}; do \
-		(install -c -m 755 $$i.sh ${DESTDIR}/usr/local/$$i); done
+	-chmod 2755 ${DESTDIR}/usr/local/trace
+	-chgrp kmem ${DESTDIR}/usr/local/trace
+#	-for i in ${SHELL}; do \
+#		(install -c -m 755 $$i.sh ${DESTDIR}/usr/local/$$i); done
+	-sh /usr/src/usr.lib/makewhatis.sh ${MANDIR}
 
 clean:
 	rm -f a.out core *.s *.o

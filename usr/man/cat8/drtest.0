@@ -5,10 +5,10 @@ DRTEST(8)	    UNIX Programmer's Manual		DRTEST(8)
 
 
 
-NNAAMMEE
+NAME
      drtest - standalone disk test program
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_r_t_e_s_t is a standalone program used to read a disk track by
      track. It was primarily intended as a test program for new
      standalone drivers, but has shown useful in other contexts
@@ -21,22 +21,22 @@ DDEESSCCRRIIPPTTIIOONN
      While _d_r_t_e_s_t is running, the cylinder number is printed on
      the console for every 10th cylinder read.
 
-EEXXAAMMPPLLEE
+EXAMPLE
      A sample run of _d_r_t_e_s_t is shown below. In this example
      (using a 750), _d_r_t_e_s_t is loaded from the root file system;
      usually it will be loaded from the machine's console storage
      device.  Boldface means user input.  As usual, ``#'' and
      ``@'' may be used to edit input.
 
-	  >>>BB//33
+	  >>>B/3
 	  %%
 	  loading hk(0,0)boot
 	  Boot
-	  : hhkk((00,,00))ddrrtteesstt
+	  : hk(0,0)drtest
 	  Test program for stand-alone up and hp driver
 
 	  Debugging level (1=bse, 2=ecc, 3=bse+ecc)?
-	  Enter disk name [type(adapter,unit), e.g. hp(1,3)]? hhpp((00,,00))
+	  Enter disk name [type(adapter,unit), e.g. hp(1,3)]? hp(0,0)
 	  Device data: #cylinders=1024, #tracks=16, #sectors=32
 	  Testing hp(0,0), chunk size is 16384 bytes.
 	  (_c_h_u_n_k _s_i_z_e _i_s _t_h_e _n_u_m_b_e_r _o_f _b_y_t_e_s _r_e_a_d _p_e_r _d_i_s_k _a_c_c_e_s_s)
@@ -48,19 +48,19 @@ EEXXAAMMPPLLEE
 	  (..._t_o _a_b_o_r_t _h_a_l_t _m_a_c_h_i_n_e _w_i_t_h ^_P)
 
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The diagnostics are intended to be self explanatory. Note,
      however, that the device number in the diagnostic messages
      is identified as  _t_y_p_e_X instead of _t_y_p_e(_a,_u) where _X =
      a*8+u, e.g., hp(1,3) becomes hp11.
 
-SSEEEE AALLSSOO
+SEE ALSO
      format(8V), bad144(8)
 
 
 
 
-Printed 12/28/88	  May 19, 1986				1
+Printed 1/9/94		  May 19, 1986				1
 
 
 
@@ -71,7 +71,7 @@ DRTEST(8)	    UNIX Programmer's Manual		DRTEST(8)
 
 
 
-AAUUTTHHOORR
+AUTHOR
      Helge Skrivervik
 
 
@@ -126,7 +126,7 @@ AAUUTTHHOORR
 
 
 
-Printed 12/28/88	  May 19, 1986				2
+Printed 1/9/94		  May 19, 1986				2
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)defs.h	5.3 (Berkeley) 5/30/86
+ *	@(#)defs.h	5.3.1 (2.11BSD GTE) 1/1/94
  */
 
 /*
@@ -12,10 +12,6 @@
  * protocol specs with mods relevant to more
  * general addressing scheme.
  */
-#ifdef	BSD2_10
-#define	inet_portcheck	inet_pcheck
-#define	inet_portmatch	inet_pmatch
-#endif	BSD2_10
 #include <sys/types.h>
 #include <sys/socket.h>
 

@@ -18,6 +18,7 @@
 #else
 #define NCACHE	1	/* Size reduction as refered to above */
 #endif
+#define	flsht()	(bct = NTREC + 1)
 
 #ifndef STANDALONE
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #include <sys/inode.h>
 #include <sys/fs.h>
 #include <sys/dir.h>
+#include <sys/file.h>
 #include <protocols/dumprestor.h>
 
 #define	MWORD(m,i) (m[(unsigned)(i-1)/MLEN])
@@ -33,6 +35,12 @@
 #define	BIS(i,w)	(MWORD(w,i) |=  MBIT(i))
 #define	BIC(i,w)	(MWORD(w,i) &= ~MBIT(i))
 #define	BIT(i,w)	(MWORD(w,i) & MBIT(i))
+
+#define	ODIRSIZ 14
+struct odirect {
+	ino_t d_ino;
+	char  d_name[ODIRSIZ];
+	};
 
 struct	fs	sblock;
 
@@ -49,8 +57,10 @@ char	module[] = "Restor";
 
 #ifndef STANDALONE
 daddr_t	seekpt;
+u_int	prev;
 int	df, ofile;
 char	dirfile[] = "rstXXXXXX";
+struct 	direct *rddir();
 
 struct {
 	ino_t	t_ino;
@@ -68,13 +78,10 @@ struct xtrlist {
 
 char	name[12];
 
-char	drblock[DEV_BSIZE];
-int	bpt;
+DIR	drblock;
 #endif
 
-int	eflag;
-
-int	volno = 1;
+u_char	eflag, cvtflag, isdir, volno = 1;
 
 struct dinode tino, dino;
 daddr_t	taddr[NADDR];
@@ -97,8 +104,10 @@ struct	cache {
 } cache[NCACHE];
 int	curcache;
 
+extern  long lseek();
+
 main(argc, argv)
-char *argv[];
+register char *argv[];
 {
 	register char *cp;
 	char command;
@@ -116,6 +125,9 @@ usage:
 	for (cp = *argv++; *cp; cp++) {
 		switch (*cp) {
 		case '-':
+			break;
+		case 'c':
+			cvtflag = 1;
 			break;
 		case 'f':
 			magtape = *argv++;
@@ -138,13 +150,11 @@ usage:
 		if (signal(SIGTERM, done) == SIG_IGN)
 			signal(SIGTERM, SIG_IGN);
 
-		df = creat(dirfile, 0666);
+		df = open(dirfile, O_CREAT | O_TRUNC| O_RDWR, 0666);
 		if (df < 0) {
 			printf("restor: %s - cannot create directory temporary\n", dirfile);
 			exit(1);
 		}
-		close(df);
-		df = open(dirfile, 2);
 	}
 	doit(command, argc, argv);
 	if (command == 'x')
@@ -169,7 +179,7 @@ char	*argv[];
 	int	xtrfile(), skip(), null();
 #endif
 	int	rstrfile(), rstrskip();
-	struct dinode *ip, *ip1;
+	register struct dinode *ip, *ip1;
 
 #ifndef STANDALONE
 	if ((mt = open(magtape, 0)) < 0) {
@@ -197,10 +207,12 @@ char	*argv[];
 	case 'x':
 		if (readhdr(&spcl) == 0) {
 			printf("Tape is not a dump tape\n");
+			unlink(dirfile);
 			exit(1);
 		}
 		if (checkvol(&spcl, 1) == 0) {
 			printf("Tape is not volume 1 of the dump\n");
+			unlink(dirfile);
 			exit(1);
 		}
 		pass1();  /* This sets the various maps on the way by */
@@ -281,7 +293,7 @@ checkdone:
 						i--;
 						continue;
 					}
-					chown(name, spcl.c_dinode.di_uid, spcl.c_dinode.di_gid);
+					fchown(ofile, spcl.c_dinode.di_uid, spcl.c_dinode.di_gid);
 					getfile(d, xtrfile, skip, spcl.c_dinode.di_size);
 					i--;
 					xtrlist[k].x_flags |= XTRACTD;
@@ -331,7 +343,7 @@ done:
 								*argv);
 #endif
 		while (getchar() != '\n');
-		dread((daddr_t)1, (char *)&sblock, sizeof(sblock));
+		dread((daddr_t)SBLOCK, (char *)&sblock, sizeof(sblock));
 		maxi = (sblock.fs_isize-2)*INOPB;
 		if (readhdr(&spcl) == 0) {
 			printf("Missing volume record\n");
@@ -353,7 +365,7 @@ ragain:
 			if (checktype(&spcl, TS_END) == 1) {
 				printf("End of tape\n");
 				close(mt);
-				dwrite( (daddr_t) 1, (char *) &sblock);
+				dwrite((daddr_t) SBLOCK, (char *) &sblock);
 				return;
 			}
 			if (checktype(&spcl, TS_CLRI) == 1) {
@@ -367,7 +379,7 @@ ragain:
 						clri(&tino);
 						putdino(ino, &tino);
 					}
-				dwrite( (daddr_t) 1, (char *) &sblock);
+				dwrite((daddr_t) SBLOCK, (char *) &sblock);
 				goto ragain;
 			}
 			if (checktype(&spcl, TS_BITS) == 1) {
@@ -398,22 +410,28 @@ ragain:
 			curbno = 0;
 			itrunc(&tino);
 			clri(&tino);
-			for (i = 0; i < NADDR; i++)
-				taddr[i] = 0;
-			l3tol(taddr, dino.di_addr, 1);
+			bzero(taddr, NADDR * sizeof (daddr_t));
+			if (cvtflag)
+				futz(dino.di_addr);
+			taddr[0] = dino.di_addr[0];
+			isdir = ((dino.di_mode & IFMT) == IFDIR);
 			getfile(ino, rstrfile, rstrskip, dino.di_size);
 			ip = &tino;
-			ltol3(ip->di_addr, taddr, NADDR);
 			ip1 = &dino;
 			ip->di_mode = ip1->di_mode;
 			ip->di_nlink = ip1->di_nlink;
 			ip->di_uid = ip1->di_uid;
 			ip->di_gid = ip1->di_gid;
-			ip->di_size = ip1->di_size;
+			if (cvtflag && isdir)
+				ip->di_size = curbno * DEV_BSIZE; /* XXX */
+			else
+				ip->di_size = ip1->di_size;
 			ip->di_atime = ip1->di_atime;
 			ip->di_mtime = ip1->di_mtime;
 			ip->di_ctime = ip1->di_ctime;
+			bcopy(taddr, ip->di_addr, NADDR * sizeof(daddr_t));
 			putdino(ino, &tino);
+			isdir = 0;
 		}
 	}
 }
@@ -427,11 +445,16 @@ pass1()
 {
 	register i;
 	struct dinode *ip;
+	struct direct nulldir;
 	int	putdir(), null();
 
 	while (gethead(&spcl) == 0) {
 		printf("Can't find directory header!\n");
 	}
+	nulldir.d_ino = 0;
+	nulldir.d_namlen = 1;
+	strcpy(nulldir.d_name, "/");
+	nulldir.d_reclen = DIRSIZ(&nulldir);
 	for (;;) {
 		if (checktype(&spcl, TS_BITS) == 1) {
 			readbits(dumpmap);
@@ -443,7 +466,6 @@ pass1()
 		}
 		if (checktype(&spcl, TS_INODE) == 0) {
 finish:
-			flsh();
 			close(mt);
 			return;
 		}
@@ -455,10 +477,23 @@ finish:
 		inotab[ipos].t_ino = spcl.c_inumber;
 		inotab[ipos++].t_seekpt = seekpt;
 		getfile(spcl.c_inumber, putdir, null, spcl.c_dinode.di_size);
-		putent("\000\000/");
+		putent(&nulldir);
+		flushent();
 	}
 }
 #endif
+
+dcvt(odp, ndp)
+register struct odirect *odp;
+register struct direct *ndp;
+{
+
+	bzero(ndp, sizeof (struct direct));
+	ndp->d_ino = odp->d_ino;
+	strncpy(ndp->d_name, odp->d_name, ODIRSIZ);
+	ndp->d_namlen = strlen(ndp->d_name);
+	ndp->d_reclen = DIRSIZ(ndp);
+}
 
 /*
  * Do the file extraction, calling the supplied functions
@@ -493,7 +528,7 @@ start:
 				(*f1)(buf, size > DEV_BSIZE ? (long) DEV_BSIZE : size);
 			}
 			else {
-				clearbuf(buf);
+				bzero(buf, DEV_BSIZE);
 				(*f2)(buf, size > DEV_BSIZE ? (long) DEV_BSIZE : size);
 			}
 			if ((size -= DEV_BSIZE) <= 0) {
@@ -527,7 +562,7 @@ char *b;
 			printf("Tape read error: inode %u\n", curino);
 			eflag++;
 			for (i = 0; i < NTREC; i++)
-				clearbuf(&tbf[i*DEV_BSIZE]);
+				bzero(&tbf[i*DEV_BSIZE], DEV_BSIZE);
 		}
 		if (i == 0) {
 			bct = NTREC + 1;
@@ -557,102 +592,7 @@ loop:
 #ifdef	STANDALONE
 	if(b)
 #endif
-	copy(&tbf[(bct++*DEV_BSIZE)], b, DEV_BSIZE);
-}
-
-flsht()
-{
-	bct = NTREC+1;
-}
-
-copy(f, t, s)
-register char *f, *t;
-{
-	register i;
-
-	i = s;
-	do
-		*t++ = *f++;
-	while (--i);
-}
-
-clearbuf(cp)
-register char *cp;
-{
-	register i;
-
-	i = DEV_BSIZE;
-	do
-		*cp++ = 0;
-	while (--i);
-}
-
-/*
- * Put and get the directory entries from the compressed
- * directory file
- */
-#ifndef STANDALONE
-putent(cp)
-char	*cp;
-{
-	register i;
-
-	for (i = 0; i < sizeof(ino_t); i++)
-		writec(*cp++);
-	for (i = 0; i < MAXNAMLEN; i++) {
-		writec(*cp);
-		if (*cp++ == 0)
-			return;
-	}
-	return;
-}
-
-getent(bf)
-register char *bf;
-{
-	register i;
-
-	for (i = 0; i < sizeof(ino_t); i++)
-		*bf++ = readc();
-	for (i = 0; i < MAXNAMLEN; i++)
-		if ((*bf++ = readc()) == 0)
-			return;
-	return;
-}
-
-/*
- * read/write te directory file
- */
-writec(c)
-char c;
-{
-	drblock[bpt++] = c;
-	seekpt++;
-	if (bpt >= DEV_BSIZE) {
-		bpt = 0;
-		write(df, drblock, DEV_BSIZE);
-	}
-}
-
-readc()
-{
-	if (bpt >= DEV_BSIZE) {
-		read(df, drblock, DEV_BSIZE);
-		bpt = 0;
-	}
-	return(drblock[bpt++]);
-}
-
-mseek(pt)
-daddr_t pt;
-{
-	bpt = DEV_BSIZE;
-	lseek(df, pt, 0);
-}
-
-flsh()
-{
-	write(df, drblock, bpt+1);
+	bcopy(&tbf[(bct++*DEV_BSIZE)], b, DEV_BSIZE);
 }
 
 #ifndef	STANDALONE
@@ -665,8 +605,8 @@ search(inum, cp)
 ino_t	inum;
 char	*cp;
 {
-	register i;
-	struct v7direct dir;
+	register i, len;
+	register struct direct *dp;
 
 	for (i = 0; i < MAXINO; i++)
 		if (inotab[i].t_ino == inum) {
@@ -674,13 +614,15 @@ char	*cp;
 		}
 	return(0);
 found:
-	mseek(inotab[i].t_seekpt);
+	lseek(df, inotab[i].t_seekpt, 0);
+	drblock.dd_loc = 0;
+	len = strlen(cp);
 	do {
-		getent((char *)&dir);
-		if (direq(dir.d_name, "/"))
+		dp = rddir();
+		if (dp == NULL || dp->d_ino == 0)
 			return(0);
-	} while (direq(dir.d_name, cp) == 0);
-	return(dir.d_ino);
+	} while (dp->d_namlen != len || strncmp(dp->d_name, cp, len) != 0);
+	return((ino_t)dp->d_ino);
 }
 
 /*
@@ -691,9 +633,9 @@ psearch(n)
 char	*n;
 {
 	register char *cp, *cp1;
-	char c;
+	register char c;
 
-	ino = 2;
+	ino = ROOTINO;
 	if (*(cp = n) == '/')
 		cp++;
 next:
@@ -716,21 +658,6 @@ next:
 }
 #endif	STANDALONE
 
-direq(s1, s2)
-register char *s1, *s2;
-{
-	register i;
-
-	for (i = 0; i < MAXNAMLEN; i++)
-		if (*s1++ == *s2) {
-			if (*s2++ == 0)
-				return(1);
-		} else
-			return(0);
-	return(1);
-}
-#endif
-
 /*
  * read/write a disk block, be sure to update the buffer
  * cache if needed.
@@ -743,7 +670,7 @@ char	*b;
 
 	for (i = 0; i < NCACHE; i++) {
 		if (cache[i].c_bno == bno) {
-			copy(b, cache[i].c_block, DEV_BSIZE);
+			bcopy(b, cache[i].c_block, DEV_BSIZE);
 			cache[i].c_time = 0;
 			break;
 		}
@@ -772,7 +699,7 @@ char *buf;
 		if (++curcache >= NCACHE)
 			curcache = 0;
 		if (cache[curcache].c_bno == bno) {
-			copy(cache[curcache].c_block, buf, cnt);
+			bcopy(cache[curcache].c_block, buf, cnt);
 			cache[curcache].c_time = 0;
 			return;
 		}
@@ -792,7 +719,7 @@ char *buf;
 #endif
 		exit(1);
 	}
-	copy(cache[j].c_block, buf, cnt);
+	bcopy(cache[j].c_block, buf, cnt);
 	cache[j].c_time = 0;
 	cache[j].c_bno = bno;
 }
@@ -803,16 +730,11 @@ char *buf;
  * clri zeros the inode
  */
 clri(ip)
-struct dinode *ip;
+register struct dinode *ip;
 {
-	int i, *p;
 	if (ip->di_mode&IFMT)
 		sblock.fs_tinode++;
-	i = sizeof(struct dinode)/sizeof(int);
-	p = (int *)ip;
-	do
-		*p++ = 0;
-	while(--i);
+	bzero(ip, sizeof (*ip));
 }
 
 /*
@@ -822,16 +744,15 @@ itrunc(ip)
 register struct dinode *ip;
 {
 	register i;
-	daddr_t bn, iaddr[NADDR];
+	daddr_t bn;
 
 	if (ip->di_mode == 0)
 		return;
 	i = ip->di_mode & IFMT;
 	if (i != IFDIR && i != IFREG)
 		return;
-	l3tol(iaddr, ip->di_addr, NADDR);
 	for(i=NADDR-1;i>=0;i--) {
-		bn = iaddr[i];
+		bn = ip->di_addr[i];
 		if(bn == 0) continue;
 		switch(i) {
 
@@ -906,7 +827,6 @@ balloc()
 {
 	daddr_t	bno;
 	register i;
-	static char zeroes[DEV_BSIZE];
 	union {
 		char	data[DEV_BSIZE];
 		struct	fblk frees;
@@ -926,7 +846,8 @@ balloc()
 		for(i=0;i<NICFREE;i++)
 			sblock.fs_free[i] = fbuf.frees.df_free[i];
 	}
-	dwrite(bno, zeroes);
+	bzero(fbuf.data, DEV_BSIZE);
+	dwrite(bno, fbuf.data);
 	sblock.fs_tfree--;
 	return(bno);
 }
@@ -942,12 +863,12 @@ daddr_t	iaddr[NADDR];
 daddr_t	bn;
 {
 	register i;
-	int j, sh;
+	register int j, sh;
 	daddr_t nb, nnb;
 	daddr_t indir[NINDIR];
 
 	/*
-	 * blocks 0..NADDR-4 are direct blocks
+	 * blocks 0...NADDR-3 are direct blocks
 	 */
 	if(bn < NADDR-3) {
 		iaddr[bn] = nb = balloc();
@@ -1007,20 +928,31 @@ gethead(buf)
 struct spcl *buf;
 {
 	readtape((char *)buf);
-	if (buf->c_magic != MAGIC || checksum((int *) buf) == 0)
-		return(0);
-	return(1);
+	return(ishead(buf));
 }
 
 /*
  * return whether or not the buffer contains a header block
  */
 ishead(buf)
-struct spcl *buf;
+register struct spcl *buf;
 {
-	if (buf->c_magic != MAGIC || checksum((int *) buf) == 0)
-		return(0);
-	return(1);
+register int ret = 0;
+
+	if (buf->c_magic == OFS_MAGIC) {
+		if (cvtflag == 0)
+			printf("Convert old direct format to new\n");
+		ret = cvtflag = 1;
+	}
+	else if (buf->c_magic == NFS_MAGIC) {
+		if (cvtflag)
+			printf("Was converting old direct format, not now\n");
+		cvtflag = 0;
+		ret = 1;
+	}
+	if (ret == 0)
+		return(ret);
+	return(checksum((int *) buf));
 }
 
 checktype(b, t)
@@ -1032,9 +964,9 @@ int	t;
 
 
 checksum(b)
-int *b;
+register int *b;
 {
-	register i, j;
+	register int i, j;
 
 	j = DEV_BSIZE/sizeof(int);
 	i = 0;
@@ -1094,6 +1026,8 @@ long s;
 {
 	daddr_t d;
 
+	if (isdir && cvtflag)
+		return(olddirect(b, s));
 	d = bmap(taddr, curbno);
 	dwrite(d, b);
 	curbno += 1;
@@ -1110,16 +1044,155 @@ long s;
 putdir(b)
 char *b;
 {
-	register struct v7direct *dp;
-	register i;
+	register struct direct *dp;
+	struct direct cvtbuf;
+	struct odirect *odp, *eodp;
+	u_int	loc;
+	register int i;
 
-	for (dp = (struct v7direct *) b, i = 0; i < DEV_BSIZE; dp++, i += sizeof(*dp)) {
-		if (dp->d_ino == 0)
+	if (cvtflag) {
+		eodp = (struct odirect *)&b[DEV_BSIZE];
+		for (odp = (struct odirect *)b; odp < eodp; odp++) {
+			if (odp->d_ino) {
+				dcvt(odp, &cvtbuf);
+				putent(&cvtbuf);
+			}
+		}
+	return;
+	}
+
+	for (loc = 0; loc < DEV_BSIZE; ) {
+		dp = (struct direct *)(b + loc);
+		i = DIRBLKSIZ - (loc & (DIRBLKSIZ - 1));
+		if (dp->d_reclen == 0 || dp->d_reclen > i) {
+			loc += i;
 			continue;
-		putent((char *) dp);
+		}
+		loc += dp->d_reclen;
+		if (dp->d_ino)
+			putent(dp);
 	}
 }
+
+putent(dp)
+register struct direct *dp;
+{
+
+	dp->d_reclen = DIRSIZ(dp);
+	if (drblock.dd_loc + dp->d_reclen > DIRBLKSIZ) {
+		((struct direct *)(drblock.dd_buf + prev))->d_reclen = 
+			DIRBLKSIZ - prev;
+		write(df, drblock.dd_buf, DIRBLKSIZ);
+		drblock.dd_loc = 0;
+	}
+	bcopy(dp, drblock.dd_buf + drblock.dd_loc, dp->d_reclen);
+	prev = drblock.dd_loc;
+	drblock.dd_loc += dp->d_reclen;
+}
+
+flushent()
+{
+
+	((struct direct *)(drblock.dd_buf + prev))->d_reclen =DIRBLKSIZ - prev;
+	write(df, drblock.dd_buf, DIRBLKSIZ);
+	prev = drblock.dd_loc = 0;
+	seekpt = lseek(df, 0L, 1);
+}
+
+struct direct *
+rddir()
+{
+register struct direct *dp;
+
+	for (;;) {
+		if (drblock.dd_loc == 0) {
+			drblock.dd_size = read(df, drblock.dd_buf, DIRBLKSIZ);
+			if (drblock.dd_size <= 0) {
+				printf("error reading directory\n");
+				return(NULL);
+			}
+		}
+		if (drblock.dd_loc >= drblock.dd_size) {
+			drblock.dd_loc = 0;
+			continue;
+		}
+		dp = (struct direct *)(drblock.dd_buf + drblock.dd_loc);
+		if (dp->d_reclen == 0 ||
+			dp->d_reclen > DIRBLKSIZ + 1 - drblock.dd_loc) {
+				printf("corrupted directory: bad reclen %d\n",
+					dp->d_reclen);
+				return(NULL);
+		}
+		drblock.dd_loc += dp->d_reclen;
+		if (dp->d_ino == 0 && strcmp(dp->d_name, "/"))
+			continue;
+	return(dp);
+	}
+}
+
 #endif
+
+olddirect(buf, s)
+char  *buf;
+long	s;
+{
+	char ndirbuf[DEV_BSIZE];
+	register char *dp;
+	struct direct cvtbuf;
+	register struct odirect *odp, *eodp;
+	daddr_t d;
+	u_int dirloc, prev;
+
+	inidbuf(ndirbuf);
+	dp = ndirbuf;
+	odp = (struct odirect *)buf;
+	eodp = (struct odirect *)&buf[(int)s];
+	for (prev = 0, dirloc = 0; odp < eodp; odp++ ) {
+		if (odp->d_ino == 0)
+			continue;
+		dcvt(odp, &cvtbuf);
+		if (dirloc + cvtbuf.d_reclen > DIRBLKSIZ) {
+			((struct direct *)(dp + prev))->d_reclen =
+					DIRBLKSIZ - prev;
+			if (dp != ndirbuf) {
+				d = bmap(taddr, curbno);
+				dwrite(d, ndirbuf);
+				curbno++;
+				inidbuf(ndirbuf);
+				dp = ndirbuf;
+			}
+			else
+				dp += DIRBLKSIZ;
+			dirloc = 0;
+		}
+		bcopy(&cvtbuf, dp + dirloc, cvtbuf.d_reclen);
+		prev = dirloc;
+		dirloc += cvtbuf.d_reclen;
+	}
+	if (dirloc) {
+		((struct direct *)(dp + prev))->d_reclen = 
+			DIRBLKSIZ - prev;
+		d = bmap(taddr, curbno);
+		dwrite(d, ndirbuf);
+		curbno++;
+	}
+	return(0);
+}
+
+struct direct *
+inidbuf(buf)
+register char *buf;
+{
+	register int i;
+	register struct direct *dp;
+
+	bzero(buf, DEV_BSIZE);
+	for (i = 0; i < DEV_BSIZE; i += DIRBLKSIZ) {
+		dp = (struct direct *)&buf[i];
+		dp->d_reclen = DIRBLKSIZ;
+	}
+	return((struct direct *)buf);
+}
 
 /*
  * read/write an inode from the disk
@@ -1134,7 +1207,7 @@ struct	dinode *b;
 	bno = (inum - 1)/INOPB;
 	bno += 2;
 	dread(bno, buf, DEV_BSIZE);
-	copy(&buf[((inum-1)%INOPB)*sizeof(struct dinode)], (char *) b, sizeof(struct dinode));
+	bcopy(&buf[((inum-1)%INOPB)*sizeof(struct dinode)], (char *) b, sizeof(struct dinode));
 }
 
 putdino(inum, b)
@@ -1148,7 +1221,7 @@ struct	dinode *b;
 		sblock.fs_tinode--;
 	bno = ((inum - 1)/INOPB) + 2;
 	dread(bno, buf, DEV_BSIZE);
-	copy((char *) b, &buf[((inum-1)%INOPB)*sizeof(struct dinode)], sizeof(struct dinode));
+	bcopy((char *) b, &buf[((inum-1)%INOPB)*sizeof(struct dinode)], sizeof(struct dinode));
 	dwrite(bno, buf);
 }
 
@@ -1156,7 +1229,7 @@ struct	dinode *b;
  * read a bit mask from the tape into m.
  */
 readbits(m)
-short	*m;
+register short	*m;
 {
 	register i;
 
@@ -1180,3 +1253,18 @@ done()
 #endif
 	exit(0);
 }
+
+futz(addr)
+	char	*addr;
+	{
+	daddr_t	l;
+	register char *a, *b;
+
+	a = (char *)&l;
+	b = addr;
+	*a++ = *b++;
+	*a++ = 0;
+	*a++ = *b++;
+	*a++ = *b++;
+	*(daddr_t *)addr = l;
+	}

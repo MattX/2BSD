@@ -4,7 +4,7 @@
  * specifies the terms and conditions for redistribution.
  */
 
-/*	@(#)globals.h	2.4	(Berkeley)	5/27/86	*/
+/*	@(#)globals.h	2.4.1	(2.11BSD GTE)	1/1/94	*/
 
 #include <sys/param.h>
 #include <stdio.h>
@@ -15,11 +15,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-
-#ifdef BSD2_10
-#define	measure_delta	meas_delta
-#define	measure_status	meas_status
-#endif
 
 extern int errno;
 extern int sock;
@@ -40,7 +35,7 @@ extern int sock;
 #define GOOD		1
 #define UNREACHABLE	2
 #define NONSTDTIME	3
-#ifdef BSD2_10
+#ifdef pdp11
 #define HOSTDOWN 	0x7fff
 #else
 #define HOSTDOWN 	0x7fffffff

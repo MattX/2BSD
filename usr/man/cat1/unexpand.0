@@ -5,14 +5,14 @@ EXPAND(1)	    UNIX Programmer's Manual		EXPAND(1)
 
 
 
-NNAAMMEE
+NAME
      expand, unexpand - expand tabs to spaces, and vice versa
 
-SSYYNNOOPPSSIISS
-     eexxppaanndd [ -tabstop ] [ -tab1,tab2,...,tabn ] [ file ...  ]
-     uunneexxppaanndd [ --aa ] [ file ...  ]
+SYNOPSIS
+     expand [ -tabstop ] [ -tab1,tab2,...,tabn ] [ file ...  ]
+     unexpand [ -a ] [ file ...  ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _E_x_p_a_n_d processes the named files or the standard input writ-
      ing the standard output with tabs changed into blanks.
      Backspace characters are preserved into the output and
@@ -28,7 +28,7 @@ DDEESSCCRRIIPPTTIIOONN
      _U_n_e_x_p_a_n_d puts tabs back into the data from the standard
      input or the named files and writes the result on the stan-
      dard output.  By default, only leading blanks and tabs are
-     reconverted to maximal strings of tabs.  If the --aa option is
+     reconverted to maximal strings of tabs.  If the -a option is
      given, then tabs are inserted whenever they would compress
      the resultant file by replacing two or more characters.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 9, 1986				1
+Printed 1/9/94		   May 9, 1986				1
 
 
 

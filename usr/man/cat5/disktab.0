@@ -5,13 +5,13 @@ DISKTAB(5)	    UNIX Programmer's Manual	       DISKTAB(5)
 
 
 
-NNAAMMEE
+NAME
      disktab - disk description file
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ddiisskkttaabb..hh>>
+SYNOPSIS
+     #include <disktab.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_i_s_k_t_a_b is a simple date base which describes disk
      geometries and disk partition characteristics.  The format
      is patterned after the _t_e_r_m_c_a_p(5) terminal data base.
@@ -24,7 +24,7 @@ DDEESSCCRRIIPPTTIIOONN
      The following list indicates the normal values stored for
      each disk entry.
 
-     NNaammee  TTyyppee  DDeessccrriippttiioonn
+     Name  Type  Description
      ns    num	 Number of sectors per track
      nt    num	 Number of tracks per cylinder
      nc    num	 Total number of cylinders on the disk
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 17, 1986				1
+Printed 1/9/94		  May 17, 1986				1
 
 
 
@@ -71,13 +71,13 @@ DISKTAB(5)	    UNIX Programmer's Manual	       DISKTAB(5)
 
 
 
-FFIILLEESS
+FILES
      /etc/disktab
 
-SSEEEE AALLSSOO
+SEE ALSO
      newfs(8), diskpart(8), getdiskbyname(3)
 
-BBUUGGSS
+BUGS
      This file shouldn't exist, the information should be stored
      on each disk pack.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 17, 1986				2
+Printed 1/9/94		  May 17, 1986				2
 
 
 

@@ -82,7 +82,6 @@ int	tk_elref[];	/* used with command reference number to */
 
 struct	buf tktab[];	/* controller queue */
 struct	buf tkwtab;	/* I/O wait queue */
-struct	buf rtkbuf[];	/* RAW I/O buffer header, one per drive */
 struct	buf ctkbuf[];	/* buffer for tkcmd */
 
 /*
@@ -1173,24 +1172,6 @@ tkgetcp(unit)
 		return(mp);
 	}
 	return(NULL);
-}
-
-tkread(dev)
-	dev_t dev;
-{
-	register unit;
-
-	unit = minor(dev) & 7;
-	physio(tkstrategy, &rtkbuf[unit], dev, B_READ);
-}
-
-tkwrite(dev)
-	dev_t dev;
-{
-	register unit;
-
-	unit = minor(dev) & 7;
-	physio(tkstrategy, &rtkbuf[unit], dev, B_WRITE);
 }
 
 tkfatal(unit, tkp, st, sa)

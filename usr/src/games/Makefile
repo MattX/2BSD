@@ -12,7 +12,7 @@ SEPFLAG= -i
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 SUBDIR=	adventure backgammon battlestar boggle btlgammon cribbage fortune \
-	hack hangman hunt mille monop pdp phantasia quiz robots sail snake \
+	hangman hunt mille monop pdp phantasia quiz robots sail snake \
 	trek warp words
 
 # Shell scripts that need only be installed and are never removed.
@@ -39,13 +39,13 @@ FRC:
 ${STD}:
 	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install:
+install: ${STD} ${NSTD}
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do \
-		(install -c $$i.sh ${DESTDIR}/usr/games/$$i); done
+		(install -c -m 755  $$i.sh ${DESTDIR}/usr/games/$$i); done
 	-for i in ${STD} ${NSTD}; do \
-		(install -s $$i ${DESTDIR}/usr/games/$$i); done
+		(install -s -m 755 $$i ${DESTDIR}/usr/games/$$i); done
 	cat >${DESTDIR}/usr/games/lib/cfscores </dev/null
 	chmod 777 ${DESTDIR}/usr/games/lib/cfscores
 

@@ -15,8 +15,8 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)glob.c	5.6 (Berkeley) 11/30/88";
+#if	!defined(lint) && !defined(pdp11)
+static char sccsid[] = "@(#)glob.c	5.7 (Berkeley) 12/14/88";
 #endif /* not lint */
 
 /*
@@ -71,8 +71,11 @@ glob(v)
 	vv[1] = 0;
 	gflag = 0;
 	rscan(vv, tglob);
-	if (gflag == 0)
+	if (gflag == 0) {
+		vv[0] = (char *)calloc(1, strlen(v) + 1);
+		strcpy(vv[0], v);
 		return (copyblk(vv));
+	}
 
 	globerr = 0;
 	gpath = agpath; gpathp = gpath; *gpathp = 0;
@@ -604,7 +607,6 @@ blkfree(av0)
 
 	while (*av)
 		free(*av++);
-	free((char *)av0);
 }
 
 static

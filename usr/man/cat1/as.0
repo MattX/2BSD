@@ -5,37 +5,49 @@ AS(1)		    UNIX Programmer's Manual		    AS(1)
 
 
 
-NNAAMMEE
+NAME
      as - assembler
 
-SSYYNNOOPPSSIISS
-     aass [ -- ] [ --VV ] [ --oo objfile ] file ...
+SYNOPSIS
+     as [ -u ] [ -V ] [ -o objfile ] file ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A_s assembles the concatenation of the named files.  The
      options are:
 
-     --	  Treat all undefined symbols in the assembly as external
+     -u   Treat all undefined symbols in the assembly as external
 	  globals.
 
-     --VV   Produce an object suitable for loading into an
+     -V   Produce an object suitable for loading into an
 	  automatic text overlaid program.
 
-     --oo   Use _o_b_j_f_i_l for the name of the resultant object.  If
+     -o   Use _o_b_j_f_i_l for the name of the resultant object.  If
 	  this is omitted, _a._o_u_t is used.  If no errors occurred
 	  during the assembly and if there were no unresolved
 	  external references, it is made executable.
 
-FFIILLEESS
-     /lib/as2		 pass 2 of the assembler
-     /tmp/atm[1-3]?	 temporary
-     a.out		 object
+     The special file name -- serves two purposes.  It signals
+     the end of all options and causes _s_t_d_i_n to be read for
+     input.  Thus it is now possible to pipe data to the assem-
+     bler:
 
-SSEEEE AALLSSOO
+     /lib/cpp -E foo.s | sed -e ';^#;/;' | as -o foo.o --
+
+     The file name -- may be placed between normal files, when
+     EOF is detected on _s_t_d_i_n the next file in the argument list
+     is opened and read.
+
+     If no input files are specified then _s_t_d_i_n is read.
+
+FILES
+     /tmp/atm1 temporary
+     a.out     object
+
+SEE ALSO
      adb(1), ld(1), nm(1), a.out(5)
      _U_N_I_X _A_s_s_e_m_b_l_e_r _M_a_n_u_a_l by D. M. Ritchie
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      When an input file cannot be read, its name followed by a
      question mark is typed and assembly ceases.  When syntactic
      or semantic errors occur, a single-character diagnostic is
@@ -45,22 +57,10 @@ DDIIAAGGNNOOSSTTIICCSS
 
      )	Parentheses error
      ]	Parentheses error
-     <	String not terminated properly
-     *	Indirection used illegally
-     ..	Illegal assignment to `..'
-     a	Error in address
-     b	Branch instruction is odd or too remote
-     e	Error in expression
-     f	Error in local (`f' or `b') type symbol
-     g	Garbage (unknown) character
-     i	End of file inside an if
-     m	Multiply defined symbol as label
-     o	Word quantity assembled at odd address
-     p	`..' different in pass 1 and 2
 
 
 
-Printed 12/28/88						1
+Printed 3/11/94                                                 1
 
 
 
@@ -71,11 +71,23 @@ AS(1)		    UNIX Programmer's Manual		    AS(1)
 
 
 
+     <	String not terminated properly
+     *	Indirection used illegally
+     .	Illegal assignment to `.'
+     a	Error in address
+     b	Branch instruction is odd or too remote
+     e	Error in expression
+     f	Error in local (`f' or `b') type symbol
+     g	Garbage (unknown) character
+     i	End of file inside an if
+     m	Multiply defined symbol as label
+     o	Word quantity assembled at odd address
+     p	`.' different in pass 1 and 2
      r	Relocation error
      u	Undefined symbol
      x	Syntax error
 
-BBUUGGSS
+BUGS
      Syntax errors can cause incorrect line numbers in following
      diagnostics.
 
@@ -114,19 +126,7 @@ BBUUGGSS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 12/28/88						2
+Printed 3/11/94                                                 2
 
 
 

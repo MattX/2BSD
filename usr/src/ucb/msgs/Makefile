@@ -11,7 +11,7 @@ SEPFLAG= -i
 SRCS = msgs.c msgs.h Makefile
 msgs: msgs.c msgs.h
 	cc ${SEPFLAG} $(CFLAGS) -o msgs msgs.c -ltermlib
-install:
+install: msgs
 	install -s msgs ${DESTDIR}/usr/ucb
 clean:
 	-rm -f msgs

@@ -5,14 +5,14 @@ SETPGRP(2)	    UNIX Programmer's Manual	       SETPGRP(2)
 
 
 
-NNAAMMEE
+NAME
      setpgrp - set process group
 
-SSYYNNOOPPSSIISS
-     sseettppggrrpp((ppiidd,, ppggrrpp))
-     iinntt ppiidd,, ppggrrpp;;
+SYNOPSIS
+     setpgrp(pid, pgrp)
+     int pid, pgrp;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_e_t_p_g_r_p sets the process group of the specified process _p_i_d
      to the specified _p_g_r_p.  If _p_i_d is zero, then the call
      applies to the current process.
@@ -21,12 +21,12 @@ DDEESSCCRRIIPPTTIIOONN
      cess must have the same effective user-id as the invoker or
      be a descendant of the invoking process.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      _S_e_t_p_g_r_p returns when the operation was successful.  If the
      request failed, -1 is returned and the global variable _e_r_r_n_o
      indicates the reason.
 
-EERRRROORRSS
+ERRORS
      _S_e_t_p_g_r_p will fail and the process group will not be altered
      if one of the following occur:
 
@@ -37,7 +37,7 @@ EERRRROORRSS
 		    the process is not a descendent of the cal-
 		    ling process.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getpgrp(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 9, 1985				1
+Printed 1/9/94		   May 9, 1985				1
 
 
 

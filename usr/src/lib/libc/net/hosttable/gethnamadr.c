@@ -15,12 +15,13 @@ static char sccsid[] = "@(#)gethostnamadr.c	5.5 (Berkeley) 3/9/86";
 #include <ndbm.h>
 #include <ctype.h>
 
-#define	MAXALIASES	35
+#define	MAXALIASES	20
+#define	MAXADDRS	10
 
 static struct hostent host;
+static char hostbuf[256];
 static char *host_aliases[MAXALIASES];
-static char hostbuf[256+1];
-static char *host_addrs[2];
+static char *host_addrs[MAXADDRS];
 
 int h_errno;
 
@@ -36,19 +37,20 @@ fetchhost(key)
 	datum key;
 {
         register char *cp, *tp, **ap;
-	int naliases;
+	int naliases, naddrs;
 
         if (key.dptr == 0)
                 return ((struct hostent *)NULL);
 	key = dbm_fetch(_host_db, key);
 	if (key.dptr == 0)
                 return ((struct hostent *)NULL);
-        cp = key.dptr;
-	tp = hostbuf;
+	cp = key.dptr;
+        tp = hostbuf;
 	host.h_name = tp;
 	while (*tp++ = *cp++)
 		;
-	bcopy(cp, (char *)&naliases, sizeof(int)); cp += sizeof (int);
+	bcopy(cp, (char *)&naliases, sizeof(int));
+	cp += sizeof (int);
 	for (ap = host_aliases; naliases > 0; naliases--) {
 		*ap++ = tp;
 		while (*tp++ = *cp++)
@@ -61,8 +63,16 @@ fetchhost(key)
 	bcopy(cp, (char *)&host.h_length, sizeof (int));
 	cp += sizeof (int);
 	host.h_addr_list = host_addrs;
-	host.h_addr = tp;
-	bcopy(cp, tp, host.h_length);
+	naddrs = (key.dsize - (cp - key.dptr)) / host.h_length;
+	if (naddrs > MAXADDRS)
+		naddrs = MAXADDRS;
+	for (ap = host_addrs; naddrs; naddrs--) {
+		*ap++ = tp;
+		bcopy(cp, tp, host.h_length);
+		cp += host.h_length;
+		tp += host.h_length;
+	}
+	*ap = (char *)NULL;
         return (&host);
 }
 

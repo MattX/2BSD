@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (Berkeley) 3/3/86
+#	@(#)Makefile	5.2.1 (2.11BSD GTE) 1/23/94
 #
 # reorder gives an editor command for most common terminals
 # (in reverse order from n'th to 1'st most commonly used)
@@ -20,23 +20,10 @@ install: termcap tabset
 tabset: FRC
 	rm -fr ${DESTDIR}/usr/lib/tabset
 	mkdir ${DESTDIR}/usr/lib/tabset
-	cp tabset/* ${DESTDIR}/usr/lib/tabset
+	chmod 755 ${DESTDIR}/usr/lib/tabset
+	install -c -m 444 tabset/* ${DESTDIR}/usr/lib/tabset
 
 clean:
 	rm -f termcap
 
 FRC:
-
-installall:
-	cp termcap /etc/termcap
-	@for i in arpa ernie kim dali calder ucbvax miro;\
-		do echo $$i;\
-		rcp termcap $$i':'/etc/termcap;\
-		done
-
-tabsetall: tabset
-	@for i in arpa ernie kim dali calder ucbvax miro;\
-		do echo $$i;\
-		rsh $$i /bin/rm -fr /usr/lib/tabset;\
-		rcp -r tabset $$i':'/usr/lib;\
-		done

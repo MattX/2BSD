@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ip_var.h	7.4 (Berkeley) 1/7/88
+ *	@(#)ip_var.h	7.4.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -17,7 +17,7 @@
  */
 struct ipovly {
 	caddr_t	ih_next, ih_prev;	/* for protocol sequence q's */
-#ifdef BSD2_10
+#ifdef pdp11
 	u_long	ih_pad;
 #endif
 	u_char	ih_x1;			/* (unused) */
@@ -35,7 +35,7 @@ struct ipovly {
  */
 struct ipq {
 	struct	ipq *next,*prev;	/* to other reass headers */
-#ifdef BSD2_10
+#ifdef pdp11
 	u_long	ipq_pad;
 #endif
 	u_char	ipq_ttl;		/* time for reass q to live */
@@ -73,7 +73,7 @@ struct	ipasfrag {
 	u_short	ip_sum;
 	struct	ipasfrag *ipf_next;	/* next fragment */
 	struct	ipasfrag *ipf_prev;	/* previous fragment */
-#ifdef BSD2_10
+#ifdef pdp11
 	u_long	ipf_pad;
 #endif
 };
@@ -90,14 +90,6 @@ struct ipoption {
 	struct	in_addr ipopt_dst;	/* first-hop dst if source routed */
 	char	ipopt_list[MAX_IPOPTLEN];	/* options proper */
 };
-
-#ifdef BSD2_10
-#define	ips_tooshort	ips_short
-#define	ips_toosmall	ips_small
-#define	ips_fragments	ips_fcount
-#define	ips_fragdropped	ips_fdrops
-#define	ips_fragtimeout	ips_ftmout
-#endif
 
 struct	ipstat {
 	long	ips_total;		/* total packets received */

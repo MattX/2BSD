@@ -19,8 +19,8 @@
 
 int	attacv[64];
 int	center[64];
-int	wheur[];
-int	bheur[];
+int	(*wheur[])();
+int	(*bheur[])();
 int	control[64];
 int	clktim[2];
 int	testf;

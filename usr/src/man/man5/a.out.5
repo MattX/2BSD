@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.out.5	2.3 (Berkeley) 1/26/87
+.\"	@(#)a.out.5	2.4 (2.11BSD GTE) 1/9/94
 .\"
-.TH A.OUT 5 "January 26, 1987"
+.TH A.OUT 5 "January 9, 1994"
 .UC 2
 .SH NAME
 a.out \- assembler and link editor output
@@ -44,6 +44,11 @@ struct	ovlhdr {
 	unsigned int	ov_siz[NOVL];	/* size of i'th overlay */
 };
 
+struct	xexec {
+	struct exec e;
+	struct ovlhdr o;
+};
+
 #define	A_MAGIC1	0407	/* normal */
 #define	A_MAGIC2	0410	/* read-only text */
 #define	A_MAGIC3	0411	/* separated I&D */
@@ -63,12 +68,29 @@ struct	ovlhdr {
 #define	N_TXTOFF(x) \e
 	((x).a_magic==A_MAGIC5 || (x).a_magic==A_MAGIC6 ? \e
 	sizeof(struct ovlhdr) + sizeof(struct exec) : sizeof(struct exec))
+
+/*
+ * The following were added as part of the new object file format.  They
+ * call functions because calculating the sums of overlay sizes was too
+ * messy (and verbose) to do 'inline'.
+ *
+ * NOTE: if the magic number is that of an overlaid object the program
+ * must pass an extended header ('xexec') as the argument.
+*/
+
+off_t	n_stroff(), n_symoff(), n_datoff(), n_dreloc(), n_treloc();
+
+#define	N_STROFF(e) (n_stroff(&e))
+#define	N_SYMOFF(e) (n_symoff(&e))
+#define	N_DATOFF(e) (n_datoff(&e))
+#define	N_DRELOC(e) (n_dreloc(&e))
+#define	N_TRELOC(e) (n_treloc(&e))
 .fi
 .PP
-The file has four sections:
+The file has five sections:
 a header, the program text and data,
-relocation information, and a symbol table (in that order).
-The last two may be omitted
+relocation information, a symbol table and a strings table (in that order).
+The last three may be omitted
 if the program was loaded
 with the `\-s' option
 of
@@ -151,6 +173,11 @@ The stack segment is automatically extended as required.
 The data segment is only extended as requested by
 .IR brk (2).
 .PP
+The include file \fBa.out.h\fP defines \fI_AOUT_INCLUDE_\fP, the include
+file \fBnlist.h\fP does not.  This permits compile time initialization
+of the \fIn_name\fP field for programs that are not looking at the executable
+header.
+.sp
 The layout of a symbol table entry and the principal flag values
 that distinguish symbol types are given in the include file as follows:
 .PP
@@ -158,9 +185,17 @@ that distinguish symbol types are given in the include file as follows:
 .ta \w'#define  'u +\w'unsigned int  'u +\w'n_name[8]  'u
 .PP
 struct	nlist {
-	char	n_name[8];	/* symbol name */
-	int	n_type;		/* type flag */
-	unsigned int	n_value;	/* value */
+#ifdef	_AOUT_INCLUDE_
+	union {
+		char *n_name;	/* In memory address of symbol name */
+		off_t n_strx;	/* String table offset (file) */
+	} n_un;
+#else
+	char	*n_name;	/* symbol name (in memory) */
+#endif
+	u_char	n_type;		/* Type of symbol - see below */
+	char	n_ovly;		/* Overlay number */
+	u_int	n_value;	/* Symbol value */
 };
 
 /*
@@ -182,9 +217,6 @@ struct	nlist {
  */
 #define	N_FORMAT	"%06o"
 .fi
-.PP
-Other flag values may occur if an assembly language program
-defines machine instructions.
 .PP
 If a symbol's type is undefined external,
 and the value field is non-zero,
@@ -255,47 +287,38 @@ the reference is to the actual symbol (e.g.,
 The remainder of the relocation word (bits 15-4)
 contains a symbol number in the case of external
 references, and is unused otherwise.
+.PP
+The string table begins with a longword containing the length of the string
+table (including the longword itself).  All strings are null terminated.
+.PP
 The first symbol is numbered 0, the second 1, etc.
 .SH "SEE ALSO"
 as(1), ld(1), nm(1), strip(1), nlist(3)
 .SH BUGS
-The fixed maximum of eight characters for symbol names in
+The current implementation places a maximum length of 32 characters for 
+symbol names in
 .I a.out
-files leads to naming collisions between symbols which aren't unique
-within the first eight characters.  The problem is compounded by the C
-compiler which prefaces all external symbol names with a `_' causing
-external names not unique within the first seven characters to
-collide.  The compiler will note name collisions when they occur within
-a single file.  The loader
-.I ld
-will not flag name collisions of any kind between separate objects even when
-an error is obvious.
+files.  This is (relatively) easily raised with the caveat that the linker
+and other programs which look at symbol tables will slow down even more
+than they already have.  
 .PP
-There is really little that can be done about this.  Some thought is being
-given to modifying the loader to flag detectable collisions, but the real
-solution would be to change over to the
+The
 .I 4BSD a.out
-format.  This would involve modifying the compiler
-.RI ( /lib/c[012] ),
-assembler
-.RI ( /bin/as " and " /lib/as2 )
-and
-.IR adb (1)
-and then simply porting the 4.3BSD
-.IR ld (1),
+format has been implemented. This involved modifying the first phase of
+the C compiler
+.RI ( /lib/c0 ),
+the assembler
+.RI ( /bin/as ),
+the debugger
+.RI adb (1), 
+the linker
+.RI ld (1),
+and then simply porting the 4.3BSD/Net\-2
+.IR ar (1),
 .IR nm (1),
 .IR ranlib (1),
 .IR strip "(1) and"
 .IR nlist (3).
-Or perhaps simply porting the entire 4.3BSD suite might be best ...  Anyone
-interested in a project?
 .PP
-In the meantime, letting the compiler catch any collisions it can and then
-scanning the loaded object file for symbol names eight characters long and
-then using that list to rescan the source seems to be the best method for
-finding collisions.  Once a list of collisions is build, the C preprocessor
-.I cpp
-can be used to translate the offending names into shorter unique names since
-.I cpp
-uses
-.IR FLEXNAMES .
+As part of this effort the include file \fIshort_names.h\fP has gone away.
+

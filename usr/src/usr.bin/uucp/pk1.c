@@ -382,11 +382,6 @@ register int n;
 
 	alarm(pktimeout);
 	while (n > 0) {
-#ifdef notdef
-		/*
-		 * XXX - 2.10BSD: This ifdef notdef should be removed as soon
-		 * XXX - as select is properly implemented in 2.10BSD.  Casey.
-		 */
 #ifdef BSD4_2
 		if (linebaudrate > 0) {
 			r = n  * 100000L;
@@ -405,7 +400,6 @@ register int n;
 			}
 		}
 #endif BSD4_2
-#endif notdef
 #ifndef VMS
 		ret = read(fn, b, n);
 #else VMS

@@ -103,8 +103,8 @@ char *x, *y;
 	int i,j;
 	i = slength(x);
 	j = slength(y);
-	temp = galloc(i + j + 1);
+	temp = (char *)galloc(i + j + 1);
 	sprintf(temp,"%s",x);
 	sprintf(&temp[i],"%s",y);
-	return(temp);
+	return((int)temp);
 	}

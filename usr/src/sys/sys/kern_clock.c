@@ -3,12 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_clock.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_clock.c	1.3 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
 #include "../machine/psl.h"
-#include "../machine/reg.h"
 #include "../machine/seg.h"
 
 #include "user.h"
@@ -138,13 +137,10 @@ hardclock(dev,sp,r1,ov,nps,r0,pc,ps)
 	if (++lbolt >= LINEHZ) {
 		lbolt -= LINEHZ;
 		++time.tv_sec;
-#ifdef UCB_FRCSWAP
-		idleflg = 0;
-#endif
 	}
 
 	if (needsoft && BASEPRI(ps)) {	/* if ps is high, just return */
-		(void) splsoftclock();
+		(void) _splsoftclock();
 		softclock(pc,ps);
 	}
 	restormap(map);
@@ -230,7 +226,7 @@ softclock(pc, ps)
 		p1->c_next = callfree;
 		callfree = p1;
 		splx(s);
-#ifdef UCB_NET
+#ifdef INET
 		if (ISSUPERADD(func))
 			KScall(KERNELADD(func), sizeof(arg) + sizeof(a),
 			    arg, a);
@@ -243,24 +239,21 @@ softclock(pc, ps)
 	 * a profiling tick.
 	 */
 	if (USERMODE(ps)) {
+		register struct proc *p = u.u_procp;
+
 		if (u.u_prof.pr_scale)
 			addupc(pc, &u.u_prof, 1);
-#ifdef WHY_BOTHER
 		/*
 		 * Check to see if process has accumulated
 		 * more than 10 minutes of user time.  If so
 		 * reduce priority to give others a chance.
 		 */
-		{
-			register struct proc *p = u.u_procp;
 
-			if (p->p_uid && p->p_nice == NZERO &&
-			    u.u_ru.ru_utime > 10 * 60 * LINEHZ) {
-				p->p_nice = NZERO+4;
+		if (p->p_uid && p->p_nice == NZERO &&
+		    u.u_ru.ru_utime > 10L * 60L * LINEHZ) {
+			p->p_nice = NZERO+4;
 				(void) setpri(p);
-			}
 		}
-#endif
 	}
 }
 
@@ -365,7 +358,7 @@ hzto(tv)
 	else
 		ticks = 0x7fffffff;
 	splx(s);
-#ifdef BSD2_10
+#ifdef pdp11
 	/* stored in an "int", so 16-bit max */
 	if (ticks > 0x7fff)
 		ticks = 0x7fff;

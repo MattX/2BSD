@@ -19,7 +19,7 @@
 +/"onstack"8t"sigsp"nodn
 +/"ofile"n30on"pofile"n30bn
 +/"lastfile"ndn
-+/"cdir"8t"rdir"8t"pdir"n3on
++/"cdir"8t"rdir"n2on
 +/"tty"8t"minor"8t"major"no2bn
 +/"cmask"nxn
 +/"ru"n
@@ -30,8 +30,11 @@
 +/"start"nYn
 +/"acflag"nbn9+
 +/"rlimits"n12D
-+/"u_base"8t"u_count"8t"u_offset"16t"u_segflg"nouDbn+
-+/"nc_prevoff"16t"nc_inum"8t"minor"8t"major"nDubbn
-+/"ni_endoff"16t"u_dirp"nDon
-+/"d_ino"nun
-+/"d_name"n14Cn
++/"quota"non
++/"nc_off"16t"nc_inum"8t"nc_dev"nDubbn
++/"ni_dirp"8t"nameiop"8t"ni_error"nouun
++/"ni_endoff"8t"ni_pdir"nDon
++/"ni_base"8t"ni_count"noun
++/"ni_iov"8t"ni_iovcnt"noun
++/"ni_offset"8t"ni_segflg"8t"ni_resid"nDuun
++/"d_inum"8t"d_name"nu14Cn

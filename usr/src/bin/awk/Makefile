@@ -26,7 +26,7 @@ get:
 		cp /usr/src/bin/awk/$$i .;
 	done
 
-install:
+install: awk
 	install -s awk ${DESTDIR}/bin
 
 profile:	awk.g.o $(FILES) mon.o

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)lpr.c	5.2 (Berkeley) 11/17/85";
-#endif not lint
+static char sccsid[] = "@(#)lpr.c	5.2.1 (2.11BSD GTE) 12/31/93";
+#endif
 
 /*
  *      lpr -- off line print
@@ -20,10 +18,6 @@ static char sccsid[] = "@(#)lpr.c	5.2 (Berkeley) 11/17/85";
  * Allows multiple printers and printers on remote machines by
  * using information from a printer data base.
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 #include <stdio.h>
 #include <sys/types.h>

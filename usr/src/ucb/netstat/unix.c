@@ -10,9 +10,9 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)unix.c	5.5 (Berkeley) 2/7/88";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)unix.c	5.5.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Display protocol blocks in the unix domain.
@@ -49,7 +49,7 @@ unixpr(nfileaddr, fileaddr, unixsw)
 		return;
 	}
 	klseek(kmem, fileaddr, L_SET);
-#ifndef BSD2_10
+#ifndef pdp11
 	if (read(kmem, (char *)&filep, sizeof (filep)) != sizeof (filep)) {
 		printf("File table address, bad read.\n");
 		return;
@@ -60,7 +60,7 @@ unixpr(nfileaddr, fileaddr, unixsw)
 		printf("Out of memory (file table).\n");
 		return;
 	}
-#ifndef BSD2_10
+#ifndef pdp11
 	klseek(kmem, (off_t)filep, L_SET);
 #endif
 	if (read(kmem, (char *)fil, nfile * sizeof (struct file)) !=
@@ -72,7 +72,7 @@ unixpr(nfileaddr, fileaddr, unixsw)
 	for (fp = fil; fp < fileNFILE; fp++) {
 		if (fp->f_count == 0 || fp->f_type != DTYPE_SOCKET)
 			continue;
-#ifdef BSD2_10
+#ifdef pdp11
 		slseek(kmem, (off_t)fp->f_data, L_SET);
 #else
 		klseek(kmem, (off_t)fp->f_data, L_SET);
@@ -98,7 +98,7 @@ unixdomainpr(so, soaddr)
 	struct mbuf mbuf, *m;
 	struct sockaddr_un *sa;
 	static int first = 1;
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
 #endif
 

@@ -5,10 +5,10 @@ INTRO(1)	    UNIX Programmer's Manual		 INTRO(1)
 
 
 
-NNAAMMEE
+NAME
      intro - introduction to commands
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This section describes publicly accessible commands in
      alphabetic order.	Certain distinctions of purpose are made
      in the headings:
@@ -25,12 +25,12 @@ DDEESSCCRRIIPPTTIIOONN
      the top of the page.  These manual pages now appear in sec-
      tion 8.
 
-SSEEEE AALLSSOO
+SEE ALSO
      Section (6) for computer games.
 
      _H_o_w _t_o _g_e_t _s_t_a_r_t_e_d, in the Introduction.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Upon termination each command returns two bytes of status,
      one supplied by the system giving the cause for termination,
      and (in the case of `normal' termination) one supplied by
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

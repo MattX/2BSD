@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)prf.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)prf.c	1.2 (2.11BSD) 4/20/91
  */
 
 #include "../machine/cons.h"
@@ -54,9 +54,9 @@ loop:
  */
 printn(n, b)
 	long n;
-	int b;
+	register int b;
 {
-	register long a;
+	long a;
 
 	if (n < 0) {	/* shouldn't happen */
 		putchar('-');

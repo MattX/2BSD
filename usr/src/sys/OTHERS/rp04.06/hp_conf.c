@@ -1,6 +1,6 @@
 #include "hp.h"
 #if NHP > 0
-int	hpstrategy(), hpread(), hpwrite(), hproot();
+int	hpstrategy(), hproot();
 extern	struct	buf	hptab;
 #define	hpopen		nulldev
 #define	hpclose		nulldev
@@ -10,8 +10,6 @@ extern	struct	buf	hptab;
 #define	hpclose		nodev
 #define	hproot		nulldev
 #define	hpstrategy	nodev
-#define	hpread		nodev
-#define	hpwrite		nodev
 #define	_hptab		((struct buf *) NULL)
 #endif	NHP
 
@@ -19,4 +17,5 @@ extern	struct	buf	hptab;
 	hpopen,		hpclose,	hpstrategy,	hproot,		_hptab,
 /* hp = 14 */
 	hpopen,		hpclose,	hpread,		hpwrite,
-	nodev,		nulldev,	0,		SELECT(seltrue)
+	nodev,		nulldev,	0,		SELECT(seltrue),
+	hpstrategy,

@@ -120,7 +120,7 @@ strings.o: strings
 		rm xs.s; \
 	fi
 	
-exrecover: exrecover.o
+exrecover: exrecover.o ex_extern.o
 	${CC} ${SEPFLAG} ${CFLAGS} exrecover.o ex_extern.o -o exrecover
 
 exrecover.o: exrecover.c

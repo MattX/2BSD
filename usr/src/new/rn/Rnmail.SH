@@ -36,7 +36,16 @@ mailer="${mailer-/bin/mail}"
 
 # your site name
 case $portable in
-define) sitename=\`$hostcmd\` ;;
+define)
+	sitename=\`$hostcmd\`
+	case \$sitename in
+		*.*)
+			;;
+		*)
+			sitename=\${sitename}.$domain
+			;;
+	esac
+	;;
 undef) sitename="$sitename" ;;
 esac
 # your organization name

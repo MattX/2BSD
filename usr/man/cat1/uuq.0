@@ -5,14 +5,14 @@ UUQ(1C)             UNIX Programmer's Manual		  UUQ(1C)
 
 
 
-NNAAMMEE
+NAME
      uuq - examine or manipulate the uucp queue
 
-SSYYNNOOPPSSIISS
-     uuuuqq [ --ll ] [ --hh ] [ --ss_s_y_s_t_e_m ] [ --uu_u_s_e_r ] [ --dd_j_o_b_n_o ] [ --
-     rr_s_d_i_r ] [ --bb_b_a_u_d ]
+SYNOPSIS
+     uuq [ -l ] [ -h ] [ -s_s_y_s_t_e_m ] [ -u_u_s_e_r ] [ -d_j_o_b_n_o ] [ -
+     r_s_d_i_r ] [ -b_b_a_u_d ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _U_u_q is used to examine (and possibly delete) entries in the
      uucp queue.
 
@@ -25,42 +25,42 @@ DDEESSCCRRIIPPTTIIOONN
 
      Several options are available:
 
-     --hh        Print only the summary lines for each system.
+     -h        Print only the summary lines for each system.
 	       Summary lines give system name, number of jobs for
 	       the system, and total number of bytes to send.
 
-     --ll        Specifies a long format listing.  The default is
+     -l        Specifies a long format listing.  The default is
 	       to list only the job numbers sorted across the
 	       page.
 
-     --ss_s_y_s_t_e_m  Limit output to jobs for systems whose system
+     -s_s_y_s_t_e_m  Limit output to jobs for systems whose system
 	       names begin with _s_y_s_t_e_m.
 
-     --uu_u_s_e_r    Limit output to jobs for users whose login names
+     -u_u_s_e_r    Limit output to jobs for users whose login names
 	       begin with _u_s_e_r.
 
-     --dd_j_o_b_n_o   Delete job number _j_o_b_n_o (as obtained from a previ-
+     -d_j_o_b_n_o   Delete job number _j_o_b_n_o (as obtained from a previ-
 	       ous _u_u_q command) from the uucp queue.  Only the
 	       UUCP Administrator is permitted to delete jobs.
 
-     --rr_s_d_i_r    Look for files in the spooling directory _s_d_i_r
+     -r_s_d_i_r    Look for files in the spooling directory _s_d_i_r
 	       instead of the default directory.
 
-     --bb_b_a_u_d    Use _b_a_u_d to compute the transfer time instead of
+     -b_b_a_u_d    Use _b_a_u_d to compute the transfer time instead of
 	       the default 1200 baud.
 
-FFIILLEESS
+FILES
      /usr/spool/uucp/		      Default spool directory
      /usr/spool/uucp/C./C.*	      Control files
      /usr/spool/uucp/D_h_o_s_t_n_a_m_e./D.*   Outgoing data files
      /usr/spool/uucp/X./X.*	      Outgoing execution files
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), uulog(1C), uusnap(8C)
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 
@@ -71,15 +71,15 @@ UUQ(1C)             UNIX Programmer's Manual		  UUQ(1C)
 
 
 
-BBUUGGSS
+BUGS
      No information is available on work requested by the remote
      machine.
 
      The user who requests a remote uucp command is unknown.
 
-     UUuuqq --ll can be horrendously slow.
+     Uuq -l can be horrendously slow.
 
-AAUUTTHHOORR
+AUTHOR
      Lou Salkind, New York University
 
 
@@ -126,7 +126,7 @@ AAUUTTHHOORR
 
 
 
-Printed 12/28/88	 April 24, 1986                         2
+Printed 1/9/94		 April 24, 1986                         2
 
 
 

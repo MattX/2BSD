@@ -4,24 +4,22 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)ctags.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+static char sccsid[] = "@(#)ctags.c	5.1.1 (2.11BSD) 2/16/94";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
+#include <strings.h>
 
 /*
  * ctags: create a tags file
  */
 
-#define	reg	register
 #define	bool	char
 
 #define	TRUE	(1)
@@ -94,15 +92,13 @@ long	lineftell;		/* ftell after getc( inf ) == '\n' 	*/
 
 NODE	*head;			/* the head of the sorted binary tree	*/
 
-char	*savestr();
-char	*rindex(), *index();
 char	*toss_comment();
 
 main(ac,av)
 int	ac;
 char	*av[];
 {
-	char cmd[100];
+	char cmd[100], outfbuf[BUFSIZ];
 	int i;
 
 	while (ac > 1 && av[1][0] == '-') {
@@ -178,6 +174,8 @@ usage:
 		perror(outfile);
 		exit(1);
 	}
+	setbuf(outf, outfbuf);
+
 	put_entries(head);
 	fclose(outf);
 	if (uflag) {
@@ -198,8 +196,8 @@ usage:
 init()
 {
 
-	reg	char	*sp;
-	reg	int	i;
+	register char	*sp;
+	register int	i;
 
 	for (i = 0; i < 0177; i++) {
 		_wht[i] = _etk[i] = _itk[i] = _btk[i] = FALSE;
@@ -224,13 +222,15 @@ init()
 find_entries(file)
 char	*file;
 {
-	char *cp;
+	char *cp, infbuf[BUFSIZ];
 
 	if ((inf = fopen(file,"r")) == NULL) {
 		perror(file);
 		return;
 	}
-	curfile = savestr(file);
+	setbuf(inf, infbuf);
+
+	curfile = strdup(file);
 	lineno = 0;
 	cp = rindex(file, '.');
 	/* .l implies lisp or lex source code */
@@ -300,7 +300,7 @@ bool	f;		/* f == TRUE when function */
 			*fp = 0;
 		name = nbuf;
 	}
-	np->entry = savestr(name);
+	np->entry = strdup(name);
 	np->file = curfile;
 	np->f = f;
 	np->lno = ln;
@@ -310,7 +310,7 @@ bool	f;		/* f == TRUE when function */
 		strcat(lbuf, "$");
 		lbuf[50] = 0;
 	}
-	np->pat = savestr(lbuf);
+	np->pat = strdup(lbuf);
 	if (head == NULL)
 		head = np;
 	else
@@ -447,7 +447,7 @@ start_entry(lp,token,tp,f)
 char	**lp,*token,*tp;
 int	*f;
 {
-	reg	char	c,*sp,*tsp;
+	register char	c,*sp,*tsp;
 	static	bool	found;
 	bool	firsttok;		/* T if have seen first token in ()'s */
 	int	bad;
@@ -699,9 +699,9 @@ fprintf(stderr,"Duplicate entry in files %s and %s: %s (Warning only)\n",
 }
 
 put_entries(node)
-reg NODE	*node;
+register NODE	*node;
 {
-	reg char	*sp;
+	register char	*sp;
 
 	if (node == NULL)
 		return;
@@ -860,40 +860,6 @@ getit()
 	pfcnt++;
 }
 
-char *
-savestr(cp)
-	char *cp;
-{
-	register int len;
-	register char *dp;
-
-	len = strlen(cp);
-	dp = (char *)malloc(len+1);
-	strcpy(dp, cp);
-	return (dp);
-}
-
-/*
- * Return the ptr in sp at which the character c last
- * appears; NULL if not found
- *
- * Identical to v7 rindex, included for portability.
- */
-
-char *
-rindex(sp, c)
-register char *sp, c;
-{
-	register char *r;
-
-	r = NULL;
-	do {
-		if (*sp == c)
-			r = sp;
-	} while (*sp++);
-	return(r);
-}
-
 /*
  * lisp tag functions
  * just look for (def or (DEF
@@ -913,9 +879,9 @@ FILE *fi;
 		    (dbp[2] == 'E' || dbp[2] == 'e') &&
 		    (dbp[3] == 'F' || dbp[3] == 'f')) {
 			dbp += 4;
-			if (striccmp(dbp, "method") == 0 ||
-			    striccmp(dbp, "wrapper") == 0 ||
-			    striccmp(dbp, "whopper") == 0)
+			if (strcasecmp(dbp, "method") == 0 ||
+			    strcasecmp(dbp, "wrapper") == 0 ||
+			    strcasecmp(dbp, "whopper") == 0)
 				special = TRUE;
 			else
 				special = FALSE;
@@ -963,32 +929,6 @@ int	special;
 }
 
 /*
- * striccmp:
- *	Compare two strings over the length of the second, ignoring
- *	case distinctions.  If they are the same, return 0.  If they
- *	are different, return the difference of the first two different
- *	characters.  It is assumed that the pattern (second string) is
- *	completely lower case.
- */
-striccmp(str, pat)
-register char	*str, *pat;
-{
-	register int	c1;
-
-	while (*pat) {
-		if (isupper(*str))
-			c1 = tolower(*str);
-		else
-			c1 = *str;
-		if (c1 != *pat)
-			return c1 - *pat;
-		pat++;
-		str++;
-	}
-	return 0;
-}
-
-/*
  * first_char:
  *	Return the first non-blank character in the file.  After
  *	finding it, rewind the input file so we start at the beginning
@@ -1026,4 +966,3 @@ toss_yysec()
 			return;
 	}
 }
-

@@ -5,13 +5,13 @@ MONOP(6)	    UNIX Programmer's Manual		 MONOP(6)
 
 
 
-NNAAMMEE
+NAME
      monop - Monopoly game
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//mmoonnoopp [ file ]
+SYNOPSIS
+     /usr/games/monop [ file ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_o_n_o_p is reminiscent of the Parker Brother's game Monopoly,
      and monitors a game between 1 to 9 users.	It is assumed
      that the rules of Monopoly are known.  The game follows the
@@ -38,8 +38,8 @@ DDEESSCCRRIIPPTTIIOONN
 	       asks you if you're sure.
      _p_r_i_n_t:    print board: This prints out the current board.
 	       The columns have the following meanings (column
-	       headings are the same for the wwhheerree, oowwnn hhoollddiinnggss,
-	       and hhoollddiinnggss commands):
+	       headings are the same for the where, own holdings,
+	       and holdings commands):
 	       Name  The first ten characters of the name of the
 		     square
 	       Own   The _n_u_m_b_e_r of the owner of the property.
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	   May 6, 1986				1
+Printed 1/9/94		   May 6, 1986				1
 
 
 
@@ -121,12 +121,12 @@ MONOP(6)	    UNIX Programmer's Manual		 MONOP(6)
 	       tion. If you simply hit the <RETURN> key instead
 	       of a command, it is the same as typing _r_o_l_l.
 
-AAUUTTHHOORR
+AUTHOR
      Ken Arnold
 
 
 
-Printed 12/28/88	   May 6, 1986				2
+Printed 1/9/94		   May 6, 1986				2
 
 
 
@@ -137,10 +137,10 @@ MONOP(6)	    UNIX Programmer's Manual		 MONOP(6)
 
 
 
-FFIILLEESS
+FILES
      /usr/games/lib/cards.pck Chance and Community Chest cards
 
-BBUUGGSS
+BUGS
      No command can be given an argument instead of a response to
      a query.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	   May 6, 1986				3
+Printed 1/9/94		   May 6, 1986				3
 
 
 

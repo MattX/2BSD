@@ -5,14 +5,14 @@ BK(4)		    UNIX Programmer's Manual		    BK(4)
 
 
 
-NNAAMMEE
+NAME
      bk - line discipline for machine-machine communication
      (obsolete)
 
-SSYYNNOOPPSSIISS
-     NNoott ccuurrrreennttllyy ssuuppppoorrtteedd uunnddeerr 22..1100BBSSDD
+SYNOPSIS
+     Not currently supported under 2.10BSD
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This line discipline provides a replacement for the old and
      new tty drivers described in _t_t_y(4) when high speed output
      to and especially input from another machine is to be
@@ -28,9 +28,9 @@ DDEESSCCRRIIPPTTIIOONN
 
      The line discipline is enabled by a sequence:
 
-	  ##iinncclluuddee <<ssggttttyy..hh>>
-	  iinntt llddiisscc == NNEETTLLDDIISSCC,, ffiillddeess;; ......
-	  iiooccttll((ffiillddeess,, TTIIOOCCSSEETTDD,, &&llddiisscc));;
+	  #include <sgtty.h>
+	  int ldisc = NETLDISC, fildes; ...
+	  ioctl(fildes, TIOCSETD, &ldisc);
 
      A typical application program then reads a sequence of lines
      from the terminal port, checking header and sequencing
@@ -42,13 +42,13 @@ DDEESSCCRRIIPPTTIIOONN
      The old standard teletype discipline can be restored by
      doing:
 
-	  llddiisscc == OOTTTTYYDDIISSCC;;
-	  iiooccttll((ffiillddeess,, TTIIOOCCSSEETTDD,, &&llddiisscc));;
+	  ldisc = OTTYDISC;
+	  ioctl(fildes, TIOCSETD, &ldisc);
 
      While in networked mode, normal teletype output functions
      take place.  Thus, if an 8 bit output data path is desired,
      it is necessary to prepare the output line by putting it
-     into RAW mode using _i_o_c_t_l(2).  This must be done bbeeffoorree
+     into RAW mode using _i_o_c_t_l(2).  This must be done before
      changing the discipline with TIOCSETD, as most _i_o_c_t_l(2)
      calls are disabled while in network line-discipline mode.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 1, 1987                         1
+Printed 1/9/94		 August 1, 1987                         1
 
 
 
@@ -79,13 +79,13 @@ BK(4)		    UNIX Programmer's Manual		    BK(4)
      User level programs should provide sequencing and checksums
      on the information to guarantee accurate data transfer.
 
-SSEEEE AALLSSOO
+SEE ALSO
      tty(4)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      None.
 
-BBUUGGSS
+BUGS
      The Purdue uploading line discipline, which provides 8 bits
      and uses timeout's to terminate uploading should be incor-
      porated into the standard system, as it is much more suit-
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 1, 1987                         2
+Printed 1/9/94		 August 1, 1987                         2
 
 
 

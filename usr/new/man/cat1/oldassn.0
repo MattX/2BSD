@@ -1,0 +1,66 @@
+
+
+
+OLDASSN(1)	    UNIX Programmer's Manual	       OLDASSN(1)
+
+
+
+NAME
+     oldassn - search for instances of old C assignment operators
+
+SYNOPSIS
+     oldassn file ...
+
+DESCRIPTION
+     _o_l_d_a_s_s_n searches for [possible] instances of old C assign-
+     ment operators in the specified _f_i_l_es.  Suspicious lines are
+     printed out ala _g_r_e_p(1).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 1/16/94           June 20, 1987                         1
+
+
+

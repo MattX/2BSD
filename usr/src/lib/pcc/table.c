@@ -1,4 +1,4 @@
-# include "mfile2"
+# include "pass2.h"
 
 # define AWD SNAME|SOREG|SCON|STARNM|STARREG|SAREG
 # define LWD SNAME|SOREG|SCON|SAREG
@@ -282,7 +282,7 @@ OPLOG,	FORCC,
 
 OPLOG,	FORCC,
 	AWD,	TCHAR|TUCHAR,
-	SCCON,	TINT,				/* look for constants between -128 and 127 */
+	SSCON,	TINT,				/* look for constants between -128 and 127 */
 		0,	RESCC,
 		"	cmpb	AL,AR\nZI",
 
@@ -506,7 +506,7 @@ ASG AND,	INAREG|FORCC,
 
 ASG PLUS,	INAREG,
 	LWD,	TLONG|TULONG,
-	SICON,	TINT|TLONG|TULONG,
+	SCCON,	TINT|TLONG|TULONG,
 		0,	RLEFT,
 		"	add	UR,UL\n	adc	AL\n",
 
@@ -530,7 +530,7 @@ ASG PLUS,	INAREG,
 
 ASG MINUS,	INAREG,
 	LWD,	TLONG|TULONG,
-	SICON,	TINT|TLONG|TULONG,
+	SCCON,	TINT|TLONG|TULONG,
 		0,	RLEFT,
 		"	sub	UR,UL\n	sbc	AL\n",
 

@@ -1,15 +1,41 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)cmd3.c	5.3 (Berkeley) 9/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cmd3.c	5.24 (Berkeley) 6/25/90";
+#endif
 
 #include "rcv.h"
-#include <sys/stat.h>
 
 /*
  * Mail -- a mail program
@@ -21,74 +47,40 @@ static char *sccsid = "@(#)cmd3.c	5.3 (Berkeley) 9/15/85";
  * Process a shell escape by saving signals, ignoring signals,
  * and forking a sh -c
  */
-
 shell(str)
 	char *str;
 {
-	int (*sig[2])(), stat[1];
-	register int t;
-	char *Shell;
+	sig_t sigint = signal(SIGINT, SIG_IGN);
+	char *shell;
 	char cmd[BUFSIZ];
 
-	strcpy(cmd, str);
+	(void) strcpy(cmd, str);
 	if (bangexp(cmd) < 0)
-		return(-1);
-	if ((Shell = value("SHELL")) == NOSTR)
-		Shell = SHELL;
-	for (t = 2; t < 4; t++)
-		sig[t-2] = sigset(t, SIG_IGN);
-	t = vfork();
-	if (t == 0) {
-		sigchild();
-		for (t = 2; t < 4; t++)
-			if (sig[t-2] != SIG_IGN)
-				sigsys(t, SIG_DFL);
-		execl(Shell, Shell, "-c", cmd, (char *)0);
-		perror(Shell);
-		_exit(1);
-	}
-	while (wait(stat) != t)
-		;
-	if (t == -1)
-		perror("fork");
-	for (t = 2; t < 4; t++)
-		sigset(t, sig[t-2]);
+		return 1;
+	if ((shell = value("SHELL")) == NOSTR)
+		shell = _PATH_CSHELL;
+	(void) run_command(shell, 0L, -1, -1, "-c", cmd, NOSTR);
+	(void) signal(SIGINT, sigint);
 	printf("!\n");
-	return(0);
+	return 0;
 }
 
 /*
  * Fork an interactive shell.
  */
-
+/*ARGSUSED*/
 dosh(str)
 	char *str;
 {
-	int (*sig[2])(), stat[1];
-	register int t;
-	char *Shell;
-	if ((Shell = value("SHELL")) == NOSTR)
-		Shell = SHELL;
-	for (t = 2; t < 4; t++)
-		sig[t-2] = sigset(t, SIG_IGN);
-	t = vfork();
-	if (t == 0) {
-		sigchild();
-		for (t = 2; t < 4; t++)
-			if (sig[t-2] != SIG_IGN)
-				sigsys(t, SIG_DFL);
-		execl(Shell, Shell, (char *)0);
-		perror(Shell);
-		_exit(1);
-	}
-	while (wait(stat) != t)
-		;
-	if (t == -1)
-		perror("fork");
-	for (t = 2; t < 4; t++)
-		sigsys(t, sig[t-2]);
+	sig_t sigint = signal(SIGINT, SIG_IGN);
+	char *shell;
+
+	if ((shell = value("SHELL")) == NOSTR)
+		shell = _PATH_CSHELL;
+	(void) run_command(shell, 0L, -1, -1, NOSTR);
+	(void) signal(SIGINT, sigint);
 	putchar('\n');
-	return(0);
+	return 0;
 }
 
 /*
@@ -154,37 +146,34 @@ help()
 	register c;
 	register FILE *f;
 
-	if ((f = fopen(HELPFILE, "r")) == NULL) {
-		perror(HELPFILE);
+	if ((f = Fopen(_PATH_HELP, "r")) == NULL) {
+		perror(_PATH_HELP);
 		return(1);
 	}
 	while ((c = getc(f)) != EOF)
 		putchar(c);
-	fclose(f);
+	Fclose(f);
 	return(0);
 }
 
 /*
  * Change user's working directory.
  */
-
-schdir(str)
-	char *str;
+schdir(arglist)
+	char **arglist;
 {
-	register char *cp;
+	char *cp;
 
-	for (cp = str; *cp == ' '; cp++)
-		;
-	if (*cp == '\0')
+	if (*arglist == NOSTR)
 		cp = homedir;
 	else
-		if ((cp = expand(cp)) == NOSTR)
+		if ((cp = expand(*arglist)) == NOSTR)
 			return(1);
 	if (chdir(cp) < 0) {
 		perror(cp);
 		return(1);
 	}
-	return(0);
+	return 0;
 }
 
 respond(msgvec)
@@ -200,13 +189,12 @@ respond(msgvec)
  * Reply to a list of messages.  Extract each name from the
  * message header and send them off to mail1()
  */
-
 _respond(msgvec)
 	int *msgvec;
 {
 	struct message *mp;
-	char *cp, *cp2, *cp3, *rcv, *replyto;
-	char buf[2 * LINESIZE], **ap;
+	char *cp, *rcv, *replyto;
+	char **ap;
 	struct name *np;
 	struct header head;
 
@@ -215,69 +203,48 @@ _respond(msgvec)
 		return(1);
 	}
 	mp = &message[msgvec[0] - 1];
+	touch(mp);
 	dot = mp;
-	rcv = NOSTR;
-	cp = skin(nameof(mp, 1));
-	if (cp != NOSTR)
-	    rcv = cp;
-	cp = skin(hfield("from", mp));
-	if (cp != NOSTR)
-	    rcv = cp;
-	replyto = skin(hfield("reply-to", mp));
-	strcpy(buf, "");
-	if (replyto != NOSTR)
-		strcpy(buf, replyto);
-	else {
-		cp = skin(hfield("to", mp));
-		if (cp != NOSTR)
-			strcpy(buf, cp);
-	}
-	np = elide(extract(buf, GTO));
-	/* rcv = rename(rcv); */
-	mapf(np, rcv);
+	if ((rcv = skin(hfield("from", mp))) == NOSTR)
+		rcv = skin(nameof(mp, 1));
+	if ((replyto = skin(hfield("reply-to", mp))) != NOSTR)
+		np = extract(replyto, GTO);
+	else if ((cp = skin(hfield("to", mp))) != NOSTR)
+		np = extract(cp, GTO);
+	else
+		np = NIL;
+	np = elide(np);
 	/*
 	 * Delete my name from the reply list,
 	 * and with it, all my alternate names.
 	 */
-	np = delname(np, myname, icequal);
+	np = delname(np, myname);
 	if (altnames)
 		for (ap = altnames; *ap; ap++)
-			np = delname(np, *ap, icequal);
-	head.h_seq = 1;
-	cp = detract(np, 0);
-	if (cp != NOSTR && replyto == NOSTR) {
-		strcpy(buf, cp);
-		strcat(buf, " ");
-		strcat(buf, rcv);
-	}
-	else {
-		if (cp == NOSTR && replyto != NOSTR)
+			np = delname(np, *ap);
+	if (np != NIL && replyto == NOSTR)
+		np = cat(np, extract(rcv, GTO));
+	else if (np == NIL) {
+		if (replyto != NOSTR)
 			printf("Empty reply-to field -- replying to author\n");
-		if (cp == NOSTR)
-			strcpy(buf, rcv);
-		else
-			strcpy(buf, cp);
+		np = extract(rcv, GTO);
 	}
-	head.h_to = buf;
-	head.h_subject = hfield("subject", mp);
-	if (head.h_subject == NOSTR)
+	head.h_to = np;
+	if ((head.h_subject = hfield("subject", mp)) == NOSTR)
 		head.h_subject = hfield("subj", mp);
 	head.h_subject = reedit(head.h_subject);
-	head.h_cc = NOSTR;
-	if (replyto == NOSTR) {
-		cp = hfield("cc", mp);
-		if (cp != NOSTR) {
-			np = elide(extract(cp, GCC));
-			mapf(np, rcv);
-			np = delname(np, myname, icequal);
-			if (altnames != 0)
-				for (ap = altnames; *ap; ap++)
-					np = delname(np, *ap, icequal);
-			head.h_cc = detract(np, 0);
-		}
-	}
-	head.h_bcc = NOSTR;
-	mail1(&head);
+	if (replyto == NOSTR && (cp = skin(hfield("cc", mp))) != NOSTR) {
+		np = elide(extract(cp, GCC));
+		np = delname(np, myname);
+		if (altnames != 0)
+			for (ap = altnames; *ap; ap++)
+				np = delname(np, *ap);
+		head.h_cc = np;
+	} else
+		head.h_cc = NIL;
+	head.h_bcc = NIL;
+	head.h_smopts = NIL;
+	mail1(&head, 1);
 	return(0);
 }
 
@@ -285,23 +252,22 @@ _respond(msgvec)
  * Modify the subject we are replying to to begin with Re: if
  * it does not already.
  */
-
 char *
 reedit(subj)
-	char *subj;
+	register char *subj;
 {
-	char sbuf[10];
-	register char *newsubj;
+	char *newsubj;
 
 	if (subj == NOSTR)
-		return(NOSTR);
-	strncpy(sbuf, subj, 3);
-	sbuf[3] = 0;
-	if (icequal(sbuf, "re:"))
-		return(subj);
-	newsubj = salloc(strlen(subj) + 6);
-	sprintf(newsubj, "Re:  %s", subj);
-	return(newsubj);
+		return NOSTR;
+	if ((subj[0] == 'r' || subj[0] == 'R') &&
+	    (subj[1] == 'e' || subj[1] == 'E') &&
+	    subj[2] == ':')
+		return subj;
+	newsubj = salloc(strlen(subj) + 5);
+	strcpy(newsubj, "Re: ");
+	strcpy(newsubj + 4, subj);
+	return newsubj;
 }
 
 /*
@@ -372,9 +338,8 @@ rexit(e)
 {
 	if (sourcing)
 		return(1);
-	if (Tflag != NOSTR)
-		close(creat(Tflag, 0600));
 	exit(e);
+	/*NOTREACHED*/
 }
 
 /*
@@ -390,7 +355,7 @@ set(arglist)
 	char varbuf[BUFSIZ], **ap, **p;
 	int errs, h, s;
 
-	if (argcount(arglist) == 0) {
+	if (*arglist == NOSTR) {
 		for (h = 0, s = 1; h < HSHSIZE; h++)
 			for (vp = variables[h]; vp != NOVAR; vp = vp->v_link)
 				s++;
@@ -433,7 +398,6 @@ unset(arglist)
 	char **arglist;
 {
 	register struct var *vp, *vp2;
-	register char *cp;
 	int errs, h;
 	char **ap;
 
@@ -451,7 +415,7 @@ unset(arglist)
 			variables[h] = variables[h]->v_link;
 			vfree(vp2->v_name);
 			vfree(vp2->v_value);
-			cfree(vp2);
+			cfree((char *)vp2);
 			continue;
 		}
 		for (vp = variables[h]; vp->v_link != vp2; vp = vp->v_link)
@@ -459,7 +423,7 @@ unset(arglist)
 		vp->v_link = vp2->v_link;
 		vfree(vp2->v_name);
 		vfree(vp2->v_value);
-		cfree(vp2);
+		cfree((char *) vp2);
 	}
 	return(errs);
 }
@@ -477,7 +441,7 @@ group(argv)
 	int s;
 	char **ap, *gname, **p;
 
-	if (argcount(argv) == 0) {
+	if (*argv == NOSTR) {
 		for (h = 0, s = 1; h < HSHSIZE; h++)
 			for (gh = groups[h]; gh != NOGRP; gh = gh->g_link)
 				s++;
@@ -491,7 +455,7 @@ group(argv)
 			printgroup(*p);
 		return(0);
 	}
-	if (argcount(argv) == 1) {
+	if (argv[1] == NOSTR) {
 		printgroup(*argv);
 		return(0);
 	}
@@ -535,7 +499,7 @@ sort(list)
 		;
 	if (ap-list < 2)
 		return;
-	qsort(list, ap-list, sizeof *list, diction);
+	qsort((char *)list, ap-list, sizeof *list, diction);
 }
 
 /*
@@ -553,126 +517,33 @@ diction(a, b)
  * The do nothing command for comments.
  */
 
+/*ARGSUSED*/
 null(e)
 {
-	return(0);
+	return 0;
 }
 
 /*
- * Print out the current edit file, if we are editing.
- * Otherwise, print the name of the person who's mail
- * we are reading.
+ * Change to another file.  With no argument, print information about
+ * the current file.
  */
-
 file(argv)
-	char **argv;
+	register char **argv;
 {
-	register char *cp;
-	char fname[BUFSIZ];
-	int edit;
 
 	if (argv[0] == NOSTR) {
 		newfileinfo();
-		return(0);
+		return 0;
 	}
-
-	/*
-	 * Acker's!  Must switch to the new file.
-	 * We use a funny interpretation --
-	 *	# -- gets the previous file
-	 *	% -- gets the invoker's post office box
-	 *	%user -- gets someone else's post office box
-	 *	& -- gets invoker's mbox file
-	 *	string -- reads the given file
-	 */
-
-	cp = getfilename(argv[0], &edit);
-	if (cp == NOSTR)
-		return(-1);
-	if (setfile(cp, edit)) {
-		perror(cp);
-		return(-1);
-	}
-	announce(0);
-}
-
-/*
- * Evaluate the string given as a new mailbox name.
- * Ultimately, we want this to support a number of meta characters.
- * Possibly:
- *	% -- for my system mail box
- *	%user -- for user's system mail box
- *	# -- for previous file
- *	& -- get's invoker's mbox file
- *	file name -- for any other file
- */
-
-char	prevfile[PATHSIZE];
-
-char *
-getfilename(name, aedit)
-	char *name;
-	int *aedit;
-{
-	register char *cp;
-	char savename[BUFSIZ];
-	char oldmailname[BUFSIZ];
-
-	/*
-	 * Assume we will be in "edit file" mode, until
-	 * proven wrong.
-	 */
-	*aedit = 1;
-	switch (*name) {
-	case '%':
-		*aedit = 0;
-		strcpy(prevfile, mailname);
-		if (name[1] != 0) {
-			strcpy(savename, myname);
-			strcpy(oldmailname, mailname);
-			strncpy(myname, name+1, PATHSIZE-1);
-			myname[PATHSIZE-1] = 0;
-			findmail();
-			cp = savestr(mailname);
-			strcpy(myname, savename);
-			strcpy(mailname, oldmailname);
-			return(cp);
-		}
-		strcpy(oldmailname, mailname);
-		findmail();
-		cp = savestr(mailname);
-		strcpy(mailname, oldmailname);
-		return(cp);
-
-	case '#':
-		if (name[1] != 0)
-			goto regular;
-		if (prevfile[0] == 0) {
-			printf("No previous file\n");
-			return(NOSTR);
-		}
-		cp = savestr(prevfile);
-		strcpy(prevfile, mailname);
-		return(cp);
-
-	case '&':
-		strcpy(prevfile, mailname);
-		if (name[1] == 0)
-			return(mbox);
-		/* Fall into . . . */
-
-	default:
-regular:
-		strcpy(prevfile, mailname);
-		cp = expand(name);
-		return(cp);
-	}
+	if (setfile(*argv) < 0)
+		return 1;
+	announce();
+	return 0;
 }
 
 /*
  * Expand file names like echo
  */
-
 echo(argv)
 	char **argv;
 {
@@ -681,10 +552,14 @@ echo(argv)
 
 	for (ap = argv; *ap != NOSTR; ap++) {
 		cp = *ap;
-		if ((cp = expand(cp)) != NOSTR)
-			printf("%s ", cp);
+		if ((cp = expand(cp)) != NOSTR) {
+			if (ap != argv)
+				putchar(' ');
+			printf("%s", cp);
+		}
 	}
-	return(0);
+	putchar('\n');
+	return 0;
 }
 
 Respond(msgvec)
@@ -701,47 +576,34 @@ Respond(msgvec)
  * and not messing around with the To: and Cc: lists as in normal
  * reply.
  */
-
 _Respond(msgvec)
 	int msgvec[];
 {
 	struct header head;
 	struct message *mp;
-	register int i, s, *ap;
-	register char *cp, *cp2, *subject;
+	register int *ap;
+	register char *cp;
 
-	for (s = 0, ap = msgvec; *ap != 0; ap++) {
-		mp = &message[*ap - 1];
-		dot = mp;
-		if ((cp = skin(hfield("from", mp))) != NOSTR)
-		    s+= strlen(cp) + 1;
-		else
-		    s += strlen(skin(nameof(mp, 2))) + 1;
-	}
-	if (s == 0)
-		return(0);
-	cp = salloc(s + 2);
-	head.h_to = cp;
+	head.h_to = NIL;
 	for (ap = msgvec; *ap != 0; ap++) {
 		mp = &message[*ap - 1];
-		if ((cp2 = skin(hfield("from", mp))) == NOSTR)
-		    cp2 = skin(nameof(mp, 2));
-		cp = copy(cp2, cp);
-		*cp++ = ' ';
+		touch(mp);
+		dot = mp;
+		if ((cp = skin(hfield("from", mp))) == NOSTR)
+			cp = skin(nameof(mp, 2));
+		head.h_to = cat(head.h_to, extract(cp, GTO));
 	}
-	*--cp = 0;
+	if (head.h_to == NIL)
+		return 0;
 	mp = &message[msgvec[0] - 1];
-	subject = hfield("subject", mp);
-	head.h_seq = 0;
-	if (subject == NOSTR)
-		subject = hfield("subj", mp);
-	head.h_subject = reedit(subject);
-	if (subject != NOSTR)
-		head.h_seq++;
-	head.h_cc = NOSTR;
-	head.h_bcc = NOSTR;
-	mail1(&head);
-	return(0);
+	if ((head.h_subject = hfield("subject", mp)) == NOSTR)
+		head.h_subject = hfield("subj", mp);
+	head.h_subject = reedit(head.h_subject);
+	head.h_cc = NIL;
+	head.h_bcc = NIL;
+	head.h_smopts = NIL;
+	mail1(&head, 1);
+	return 0;
 }
 
 /*
@@ -840,9 +702,9 @@ alternates(namelist)
 	}
 	if (altnames != 0)
 		cfree((char *) altnames);
-	altnames = (char **) calloc(c, sizeof (char *));
+	altnames = (char **) calloc((unsigned) c, sizeof (char *));
 	for (ap = namelist, ap2 = altnames; *ap; ap++, ap2++) {
-		cp = (char *) calloc(strlen(*ap) + 1, sizeof (char));
+		cp = (char *) calloc((unsigned) strlen(*ap) + 1, sizeof (char));
 		strcpy(cp, *ap);
 		*ap2 = cp;
 	}

@@ -164,6 +164,7 @@ main()
 
 		cc = recvfrom(s, (char *)&wd, sizeof (struct whod), 0,
 			&from, &len);
+if (kmemf != 4 || s != 5 || utmpf != 3) abort("kmemf != 4");
 		if (cc <= 0) {
 			if (cc < 0 && errno != EINTR)
 				syslog(LOG_WARNING, "recv: %m");
@@ -174,13 +175,13 @@ main()
 				ntohs(from.sin_port));
 			continue;
 		}
-#ifdef notdef
 		if (gethostbyname(wd.wd_hostname) == 0) {
+#ifdef notdef
 			syslog(LOG_WARNING, "%s: unknown host",
 				wd.wd_hostname);
+#endif
 			continue;
 		}
-#endif
 		if (wd.wd_vers != WHODVERSION)
 			continue;
 		if (wd.wd_type != WHODTYPE_STATUS)
@@ -223,6 +224,9 @@ main()
 		(void) write(whod, (char *)&wd, cc);
 		if (fstat(whod, &st) < 0 || st.st_size > cc)
 			ftruncate(whod, (long)cc);
+#define	ALLREAD (S_IREAD | (S_IREAD >> 3) | (S_IREAD >>6))
+		if ((st.st_mode & ALLREAD) != ALLREAD)
+			fchmod(whod, st.st_mode | ALLREAD);
 		(void) close(whod);
 	}
 }
@@ -290,9 +294,9 @@ onalrm()
 		for (i = 0; i < utmpent; i++)
 			if (utmp[i].ut_name[0]) {
 				bcopy(utmp[i].ut_line, we->we_utmp.out_line,
-				   sizeof (utmp[i].ut_line));
+				   sizeof (we->we_utmp.out_line));
 				bcopy(utmp[i].ut_name, we->we_utmp.out_name,
-				   sizeof (utmp[i].ut_name));
+				   sizeof (we->we_utmp.out_name));
 				we->we_utmp.out_time = htonl(utmp[i].ut_time);
 				if (we >= wlast)
 					break;

@@ -1,58 +1,42 @@
-#
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
+#include <ctype.h>
 
+	MSG	BADSYM;
+	MSG	BADVAR;
+	MSG	BADKET;
+	MSG	BADSYN;
+	MSG	NOCFN;
+	MSG	NOADR;
+	MSG	BADLOC;
 
-MSG		BADSYM;
-MSG		BADVAR;
-MSG		BADKET;
-MSG		BADSYN;
-MSG		NOCFN;
-MSG		NOADR;
-MSG		BADLOC;
-
-SYMTAB		symbol;
-INT		lastframe;
-INT		kernel;
-INT		savlastf;
-L_INT		savframe;
-OVTAG		svlastov;
-INT		savpc;
-INT		callpc;
-
-
-
-CHAR		*lp;
-INT		octal;
-STRING		errflg;
-L_INT		localval;
-CHAR		isymbol[8];
-
-CHAR		lastc;
-POS		*uar0;
-POS		corhdr[];
-OVTAG		curov, startov;
-OVTAG		lastsymov;
-int		overlay;
-
-L_INT		dot;
-L_INT		ditto;
-INT		dotinc;
-L_INT		var[];
-L_INT		expv;
-
-
-
+extern	struct	SYMbol	*symbol, *cache_by_string();
+	int	lastframe;
+	int	kernel;
+	int	savlastf;
+	long	savframe;
+	char	svlastov;
+	int	savpc;
+	int	callpc;
+	char	*lp;
+	int	octal;
+	char	*errflg;
+	long	localval;
+	static	char	isymbol[MAXSYMLEN + 2];
+	char	lastc;
+	u_int	*uar0;
+	u_int	corhdr[];
+	char	curov, startov, lastsymov;
+	int	overlay;
+	long	dot;
+	long	ditto;
+	int	dotinc;
+	long	var[];
+	long	expv;
 
 expr(a)
 {	/* term | term dyadic expr |  */
-	INT		rc;
-	L_INT		lhs;
+	int		rc;
+	long		lhs;
 
 	lastsymov = 0;
 	rdc(); lp--; rc=term(a);
@@ -126,13 +110,13 @@ term(a)
 
 item(a)
 {	/* name [ . local ] | number | . | ^ | <var | <register | 'x | | */
-	INT		base, d, frpt, regptr;
-	CHAR		savc;
-	BOOL		hex;
-	L_INT		frame;
-	UNION{REAL r; L_INT i;} real;
-	SYMPTR		symp;
-	OVTAG		savov;
+	int		base, d, frpt, regptr;
+	char		savc;
+	char		hex;
+	long		frame;
+	union {float r; long i;} real;
+	register struct SYMbol	*symp;
+	char		savov;
 
 	hex=FALSE;
 
@@ -149,9 +133,8 @@ item(a)
 			WHILE errflg==0
 			DO  savpc=callpc;
 			    findroutine(frame);
-			    IF  eqsym(symbol.symc,isymbol,'~')
-			    THEN break;
-			    FI
+			    if  (eqsym(cache_sym(symbol), isymbol,'~'))
+			    	break;
 			    lastframe=frame;
 			    frame=get(frame,DSP)&EVEN;
 			    IF frame==0
@@ -167,15 +150,15 @@ item(a)
 			if (overlay)
 				setovmap(savov);
 		ELIF (symp=lookupsym(isymbol))==0 THEN error(BADSYM);
-		ELSE expv = symp->symv; lastsymov=symp->ovnumb;
+		ELSE expv = symp->value; lastsymov=symp->ovno;
 		FI
 		lp--;
 
 
-	ELIF digit(lastc) ORF (hex=TRUE, lastc=='#' ANDF hexdigit(readchar()))
+	ELIF isdigit(lastc) ORF (hex=TRUE, lastc=='#' ANDF isxdigit(readchar()))
 	THEN	expv = 0;
 		base = (lastc == '0' ORF octal ? 8 : (hex ? 16 : 10));
-		WHILE (hex ? hexdigit(lastc) : digit(lastc))
+		WHILE (hex ? isxdigit(lastc) : isdigit(lastc))
 		DO  expv *= base;
 		    IF (d=convdig(lastc))>=base THEN error(BADSYN); FI
 		    expv += d; readchar();
@@ -185,7 +168,7 @@ item(a)
 		OD
 		IF lastc=='.' ANDF (base==10 ORF expv==0) ANDF !hex
 		THEN	real.r=expv; frpt=0; base=10;
-			WHILE digit(readchar())
+			WHILE isdigit(readchar())
 			DO	real.r *= base; frpt++;
 				real.r += lastc-'0';
 			OD
@@ -247,91 +230,93 @@ item(a)
 
 readsym()
 {
-	REG char	*p;
+	register char	*p;
 
 	p = isymbol;
-	REP IF p < &isymbol[8]
+	REP IF p < &isymbol[MAXSYMLEN]
 	    THEN *p++ = lastc;
 	    FI
 	    readchar();
 	PER symchar(1) DONE
-	WHILE p < &isymbol[8] DO *p++ = 0; OD
+	*p++ = 0;
 }
 
-SYMPTR	lookupsym(symstr)
-STRING	symstr;
+struct SYMbol *
+lookupsym(symstr)
+	char	*symstr;
 {
-	SYMPTR		symp;
-	symset();
-	WHILE (symp=symget())
-	DO IF (symp->symf&SYMCHK)==symp->symf
-	   THEN	IF overlay ANDF (symp->symf&SYMCHK)==ISYM ANDF
-		    eqsym(symp->symc, symstr,'~')
-		THEN return(symp);
-		ELIF eqsym(symp->symc, symstr,'_')
-		THEN return(symp);
-		FI
-	   FI
-	OD
-	return(0);
-}
+	register struct SYMbol *symp, *sc;
 
-hexdigit(c)
-CHAR c;
-{	return((c>='0' ANDF c<='9') ORF (c>='a' ANDF c<='f'));
+	symset();
+	while	(symp = symget())
+		{
+	   	if	(overlay && (symp->type == ISYM))
+			{
+			if	(sc = cache_by_string(symstr, 1))
+				return(sc);
+			if	(eqsym(no_cache_sym(symp), symstr,'~'))
+				break;
+			}
+		else
+			{
+			if	(sc = cache_by_string(symstr, 0))
+				return(sc);
+			if	(eqsym(no_cache_sym(symp), symstr,'_'))
+				break;
+			}
+		}
+/*
+ * We did not enter anything into the cache (no sense inserting hundreds
+ * of symbols which didn't match) while examining the (entire) symbol table.
+ * Now that we have a match put it into the cache (doing a lookup on it is
+ * the easiest way).
+*/
+	if	(symp)
+		(void)cache_sym(symp);
+	return(symp);
 }
 
 convdig(c)
-CHAR c;
+char c;
 {
-	IF digit(c)
+	IF isdigit(c)
 	THEN	return(c-'0');
-	ELIF hexdigit(c)
+	ELIF isxdigit(c)
 	THEN	return(c-'a'+10);
 	ELSE	return(17);
 	FI
 }
 
-digit(c) char c;	{return(c>='0' ANDF c<='9');}
-
-letter(c) char c;	{return(c>='a' ANDF c<='z' ORF c>='A' ANDF c<='Z');}
-
 symchar(dig)
 {
 	IF lastc=='\\' THEN readchar(); return(TRUE); FI
-	return( letter(lastc) ORF lastc=='_' ORF dig ANDF digit(lastc) );
+	return( isalpha(lastc) ORF lastc=='_' ORF dig ANDF isdigit(lastc) );
 }
 
 varchk(name)
 {
-	IF digit(name) THEN return(name-'0'); FI
-	IF letter(name) THEN return((name&037)-1+10); FI
+	IF isdigit(name) THEN return(name-'0'); FI
+	IF isalpha(name) THEN return((name&037)-1+10); FI
 	return(-1);
 }
 
 chkloc(frame)
-L_INT		frame;
+long		frame;
 {
 	readsym();
 	REP IF localsym(frame)==0 THEN error(BADLOC); FI
 	    expv=localval;
-	PER !eqsym(symbol.symc,isymbol,'~') DONE
+	PER !eqsym(cache_sym(symbol), isymbol,'~') DONE
 }
 
 eqsym(s1, s2, c)
-REG STRING	s1, s2;
-CHAR		c;
-{
-	IF eqstr(s1,s2)
-	THEN	return(TRUE);
-	ELIF *s1==c
-	THEN	CHAR		s3[8];
-		REG INT		i;
+register char *s1, *s2;
+	char	c;
+	{
 
-		s3[0]=c;
-		FOR i=1; i<8; i++
-		DO s3[i] = *s2++; OD
-
-		return(eqstr(s1,s3));
-	FI
-}
+	if	(!strcmp(s1, s2))
+		return(TRUE);
+	else if (*s1++ == c)
+		return(!strcmp(s1, s2));
+	return(FALSE);
+	}

@@ -1,1 +1,1 @@
-char	version[] = "Fri Mar 13 07:30:45 1987";
+char	version[] = "Sun Jan 16 02:03:16 1994";

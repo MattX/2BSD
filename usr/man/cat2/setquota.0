@@ -5,14 +5,14 @@ SETQUOTA(2)	    UNIX Programmer's Manual	      SETQUOTA(2)
 
 
 
-NNAAMMEE
+NAME
      setquota - enable/disable quotas on a file system
 
-SSYYNNOOPPSSIISS
-     sseettqquuoottaa((ssppeecciiaall,, ffiillee))
-     cchhaarr **ssppeecciiaall,, **ffiillee;;
+SYNOPSIS
+     setquota(special, file)
+     char *special, *file;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Disc quotas are enabled or disabled with the _s_e_t_q_u_o_t_a call.
      _S_p_e_c_i_a_l indicates a block special device on which a mounted
      file system exists.  If _f_i_l_e is nonzero, it specifies a file
@@ -23,15 +23,15 @@ DDEESSCCRRIIPPTTIIOONN
 
      Only the super-user may turn quotas on or off.
 
-SSEEEE AALLSSOO
+SEE ALSO
      quota(2), quotacheck(8), quotaon(8)
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 return value indicates a successful call.  A value of -1
      is returned when an error occurs and _e_r_r_n_o is set to indi-
      cate the reason for failure.
 
-EERRRROORRSS
+ERRORS
      _S_e_t_q_u_o_t_a will fail when one of the following occurs:
 
      [ENOTDIR]	    A component of either path prefix is not a
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -91,7 +91,7 @@ SETQUOTA(2)	    UNIX Programmer's Manual	      SETQUOTA(2)
      [EFAULT]	    _S_p_e_c_i_a_l or _p_a_t_h points outside the process's
 		    allocated address space.
 
-BBUUGGSS
+BUGS
      The error codes are in a state of disarray; too many errors
      appear to the caller as one value.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 

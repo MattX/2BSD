@@ -50,7 +50,7 @@ y.tab.c y.tab.h: pas.y
 	${EYACC} -v pas.y
 	${ED} - y.tab.c < gram.ex
 
-install:
+install: pxp how_pxp
 	install -s pxp ${DESTDIR}/usr/ucb/pxp
 	install -c how_pxp ${DESTDIR}/usr/lib/how_pxp
 

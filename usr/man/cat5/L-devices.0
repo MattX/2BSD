@@ -5,10 +5,10 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
 
 
 
-NNAAMMEE
+NAME
      L-devices - UUCP device description file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The L-devices file is consulted by the UUCP daemon
      _u_u_c_i_c_o(8C) under the direction of _L._s_y_s(5) for information
      on the devices that it may use.  Each line describes exactly
@@ -26,24 +26,24 @@ DDEESSCCRRIIPPTTIIOONN
      _C_a_l_l_e_r denotes the type of connection, and must be one of
      the following:
 
-     AACCUU     Automatic call unit, e.g., autodialing modems such
+     ACU     Automatic call unit, e.g., autodialing modems such
 	     as the Hayes Smartmodem 1200 or Novation ``Smart
 	     Cat''.
 
-     DDIIRR     Direct connect; hardwired line (usually RS-232) to a
+     DIR     Direct connect; hardwired line (usually RS-232) to a
 	     remote system.
 
-     DDKK      AT&T Datakit.
+     DK      AT&T Datakit.
 
-     MMIICCOOMM   Micom Terminal switch.
+     MICOM   Micom Terminal switch.
 
-     PPAADD     X.25 PAD connection.
+     PAD     X.25 PAD connection.
 
-     PPCCPP     GTE Telenet PC Pursuit.
+     PCP     GTE Telenet PC Pursuit.
 
-     SSYYTTEEKK   Sytek high-speed dedicated modem port connection.
+     SYTEK   Sytek high-speed dedicated modem port connection.
 
-     TTCCPP     Berkeley TCP/IP or 3Com UNET connection. These are
+     TCP     Berkeley TCP/IP or 3Com UNET connection. These are
 	     mutually exclusive.  Note that listing TCP connec-
 	     tions in _L-_d_e_v_i_c_e_s is superfluous; _u_u_c_i_c_o does not
 	     even bother to look here since it has all the infor-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 
@@ -91,42 +91,42 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
      _D_i_a_l_e_r applies only to ACU devices. This is the "brand" or
      type of the ACU or modem.
 
-     DDFF0022    DEC DF02 or DF03 modems.
+     DF02    DEC DF02 or DF03 modems.
 
-     DDFF111122   Dec DF112 modems. Use a _D_i_a_l_e_r field of DDFF111122TT to
-	     use tone dialing, or DDFF111122PP for pulse dialing.
+     DF112   Dec DF112 modems. Use a _D_i_a_l_e_r field of DF112T to
+	     use tone dialing, or DF112P for pulse dialing.
 
-     aatttt     AT&T 2224 2400 baud modem.
+     att     AT&T 2224 2400 baud modem.
 
-     ccddss222244  Concord Data Systems 224 2400 baud modem.
+     cds224  Concord Data Systems 224 2400 baud modem.
 
-     ddnn1111    DEC DN11 Unibus dialer.
+     dn11    DEC DN11 Unibus dialer.
 
-     hhaayyeess   Hayes Smartmodem 1200 and compatible autodialing
-	     modems.  Use a _D_i_a_l_e_r field of hhaayyeessttoonnee to use tone
-	     dialing, or hhaayyeessppuullssee for pulse dialing.	It is
+     hayes   Hayes Smartmodem 1200 and compatible autodialing
+	     modems.  Use a _D_i_a_l_e_r field of hayestone to use tone
+	     dialing, or hayespulse for pulse dialing.	It is
 	     also permissible to include the letters `T' and `P'
 	     in the phone number (in _L._s_y_s) to change to tone or
 	     pulse midway through dialing.  (Note that a leading
 	     `T' or `P' will be interpreted as a dialcode!)
 
-     hhaayyeess22440000
+     hayes2400
 	     Hayes Smartmodem 2400 and compatible modems.  Use a
-	     _D_i_a_l_e_r field of hhaayyeess22440000ttoonnee to use tone dialing,
-	     or hhaayyeess22440000ppuullssee for pulse dialing.
+	     _D_i_a_l_e_r field of hayes2400tone to use tone dialing,
+	     or hayes2400pulse for pulse dialing.
 
-     nnoovvaattiioonn
+     novation
 	     Novation ``Smart Cat'' autodialing modem.
 
-     ppeennrriill  Penril Corp ``Hayes compatible'' modems (they really
-	     aren't or they would use the hhaayyeess entry.)
+     penril  Penril Corp ``Hayes compatible'' modems (they really
+	     aren't or they would use the hayes entry.)
 
-     rrvvmmaaccss  Racal-Vadic 820 dialer with 831 adapter in a MACS
+     rvmacs  Racal-Vadic 820 dialer with 831 adapter in a MACS
 	     configuration.
 
 
 
-Printed 12/28/88	 April 24, 1986                         2
+Printed 1/9/94		 April 24, 1986                         2
 
 
 
@@ -137,17 +137,17 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
 
 
 
-     vvaa221122   Racal-Vadic 212 autodialing modem.
+     va212   Racal-Vadic 212 autodialing modem.
 
-     vvaa881111ss  Racal-Vadic 811s dialer with 831 adapter.
+     va811s  Racal-Vadic 811s dialer with 831 adapter.
 
-     vvaa882200   Racal-Vadic 820 dialer with 831 adapter.
+     va820   Racal-Vadic 820 dialer with 831 adapter.
 
-     vvaaddiicc   Racal-Vadic 3450 and 3451 series autodialing modems.
+     vadic   Racal-Vadic 3450 and 3451 series autodialing modems.
 
-     vveenntteell  Ventel 212+ autodialing modem.
+     ventel  Ventel 212+ autodialing modem.
 
-     vvmmaaccss   Racal-Vadic 811 dialer with 831 adapter in a MACS
+     vmacs   Racal-Vadic 811 dialer with 831 adapter in a MACS
 	     configuration.
 
      _E_x_p_e_c_t/_S_e_n_d is an optional _E_x_p_e_c_t/_S_e_n_d script for getting
@@ -157,11 +157,11 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
      _d_e_v_i_c_e_s script is used _b_e_f_o_r_e the connection is made, while
      the _L._s_y_s script is used _a_f_t_e_r.
 
-FFIILLEESS
+FILES
      /usr/lib/uucp/L-devices
      /usr/lib/uucp/UUAIDS/L-devices	L-devices example
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), L.sys(5), uucico(8C)
 
 
@@ -192,7 +192,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 24, 1986                         3
+Printed 1/9/94		 April 24, 1986                         3
 
 
 

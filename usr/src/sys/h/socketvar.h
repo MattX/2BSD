@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)socketvar.h	7.3 (Berkeley) 12/30/87
+ *	@(#)socketvar.h	7.3.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -60,7 +60,7 @@ struct socket {
 		short	sb_timeo;	/* timeout (not used yet) */
 		short	sb_flags;	/* flags, see below */
 	} so_rcv, so_snd;
-#ifdef BSD2_10
+#ifdef pdp11
 #define	SB_MAX		8192		/* max chars in sockbuf */
 #else
 #define	SB_MAX		(64*1024)	/* max chars in sockbuf */

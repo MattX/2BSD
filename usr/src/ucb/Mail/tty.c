@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)tty.c	5.2 (Berkeley) 6/21/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)tty.c	5.12 (Berkeley) 4/1/91";
+#endif
 
 /*
  * Mail -- a mail program
@@ -18,8 +45,8 @@ static char *sccsid = "@(#)tty.c	5.2 (Berkeley) 6/21/85";
 
 static	int	c_erase;		/* Current erase char */
 static	int	c_kill;			/* Current kill char */
-static	int	hadcont;		/* Saw continue signal */
 static	jmp_buf	rewrite;		/* Place to go when continued */
+static	jmp_buf	intjmp;			/* Place to go when interrupted */
 #ifndef TIOCSTI
 static	int	ttyset;			/* We must now do erase/kill */
 #endif
@@ -28,30 +55,28 @@ static	int	ttyset;			/* We must now do erase/kill */
  * Read all relevant header fields.
  */
 
-#ifdef BSD2_10
-int ttycont(), signull();
-#endif
-
 grabh(hp, gflags)
 	struct header *hp;
 {
 	struct sgttyb ttybuf;
-	int ttycont(), signull();
+	sig_t saveint;
 #ifndef TIOCSTI
-	int (*savesigs[2])();
+	sig_t savequit;
 #endif
-	int (*savecont)();
-	register int s;
+	sig_t savetstp;
+	sig_t savettou;
+	sig_t savettin;
 	int errs;
+	void ttyint();
 
-# ifdef VMUNIX
-	savecont = sigset(SIGCONT, signull);
-# endif VMUNIX
+	savetstp = signal(SIGTSTP, SIG_DFL);
+	savettou = signal(SIGTTOU, SIG_DFL);
+	savettin = signal(SIGTTIN, SIG_DFL);
 	errs = 0;
 #ifndef TIOCSTI
 	ttyset = 0;
 #endif
-	if (gtty(fileno(stdin), &ttybuf) < 0) {
+	if (ioctl(fileno(stdin), TIOCGETP, &ttybuf) < 0) {
 		perror("gtty");
 		return(-1);
 	}
@@ -60,18 +85,22 @@ grabh(hp, gflags)
 #ifndef TIOCSTI
 	ttybuf.sg_erase = 0;
 	ttybuf.sg_kill = 0;
-	for (s = SIGINT; s <= SIGQUIT; s++)
-		if ((savesigs[s-SIGINT] = sigset(s, SIG_IGN)) == SIG_DFL)
-			sigset(s, SIG_DFL);
+	if ((saveint = signal(SIGINT, SIG_IGN)) == SIG_DFL)
+		signal(SIGINT, SIG_DFL);
+	if ((savequit = signal(SIGQUIT, SIG_IGN)) == SIG_DFL)
+		signal(SIGQUIT, SIG_DFL);
+#else
+	if (setjmp(intjmp))
+		goto out;
+	saveint = signal(SIGINT, ttyint);
 #endif
 	if (gflags & GTO) {
 #ifndef TIOCSTI
-		if (!ttyset && hp->h_to != NOSTR)
+		if (!ttyset && hp->h_to != NIL)
 			ttyset++, stty(fileno(stdin), &ttybuf);
 #endif
-		hp->h_to = readtty("To: ", hp->h_to);
-		if (hp->h_to != NOSTR)
-			hp->h_seq++;
+		hp->h_to =
+			extract(readtty("To: ", detract(hp->h_to, 0)), GTO);
 	}
 	if (gflags & GSUBJECT) {
 #ifndef TIOCSTI
@@ -79,38 +108,35 @@ grabh(hp, gflags)
 			ttyset++, stty(fileno(stdin), &ttybuf);
 #endif
 		hp->h_subject = readtty("Subject: ", hp->h_subject);
-		if (hp->h_subject != NOSTR)
-			hp->h_seq++;
 	}
 	if (gflags & GCC) {
 #ifndef TIOCSTI
-		if (!ttyset && hp->h_cc != NOSTR)
+		if (!ttyset && hp->h_cc != NIL)
 			ttyset++, stty(fileno(stdin), &ttybuf);
 #endif
-		hp->h_cc = readtty("Cc: ", hp->h_cc);
-		if (hp->h_cc != NOSTR)
-			hp->h_seq++;
+		hp->h_cc =
+			extract(readtty("Cc: ", detract(hp->h_cc, 0)), GCC);
 	}
 	if (gflags & GBCC) {
 #ifndef TIOCSTI
-		if (!ttyset && hp->h_bcc != NOSTR)
+		if (!ttyset && hp->h_bcc != NIL)
 			ttyset++, stty(fileno(stdin), &ttybuf);
 #endif
-		hp->h_bcc = readtty("Bcc: ", hp->h_bcc);
-		if (hp->h_bcc != NOSTR)
-			hp->h_seq++;
+		hp->h_bcc =
+			extract(readtty("Bcc: ", detract(hp->h_bcc, 0)), GBCC);
 	}
-# ifdef VMUNIX
-	sigset(SIGCONT, savecont);
-# endif VMUNIX
+out:
+	signal(SIGTSTP, savetstp);
+	signal(SIGTTOU, savettou);
+	signal(SIGTTIN, savettin);
 #ifndef TIOCSTI
 	ttybuf.sg_erase = c_erase;
 	ttybuf.sg_kill = c_kill;
 	if (ttyset)
 		stty(fileno(stdin), &ttybuf);
-	for (s = SIGINT; s <= SIGQUIT; s++)
-		sigset(s, savesigs[s-SIGINT]);
+	signal(SIGQUIT, savequit);
 #endif
+	signal(SIGINT, saveint);
 	return(errs);
 }
 
@@ -126,8 +152,9 @@ readtty(pr, src)
 	char pr[], src[];
 {
 	char ch, canonb[BUFSIZ];
-	int c, signull();
+	int c;
 	register char *cp, *cp2;
+	void ttystop();
 
 	fputs(pr, stdout);
 	fflush(stdout);
@@ -161,9 +188,9 @@ readtty(pr, src)
 	cp2 = cp;
 	if (setjmp(rewrite))
 		goto redo;
-# ifdef VMUNIX
-	sigset(SIGCONT, ttycont);
-# endif VMUNIX
+	signal(SIGTSTP, ttystop);
+	signal(SIGTTOU, ttystop);
+	signal(SIGTTIN, ttystop);
 	clearerr(stdin);
 	while (cp2 < canonb + BUFSIZ) {
 		c = getc(stdin);
@@ -172,12 +199,11 @@ readtty(pr, src)
 		*cp2++ = c;
 	}
 	*cp2 = 0;
-# ifdef VMUNIX
-	sigset(SIGCONT, signull);
-# endif VMUNIX
-	if (c == EOF && ferror(stdin) && hadcont) {
+	signal(SIGTSTP, SIG_DFL);
+	signal(SIGTTOU, SIG_DFL);
+	signal(SIGTTIN, SIG_DFL);
+	if (c == EOF && ferror(stdin)) {
 redo:
-		hadcont = 0;
 		cp = strlen(canonb) > 0 ? canonb : NOSTR;
 		clearerr(stdin);
 		return(readtty(pr, cp));
@@ -219,21 +245,24 @@ redo:
 	return(savestr(canonb));
 }
 
-# ifdef VMUNIX
 /*
  * Receipt continuation.
  */
-ttycont(s)
+void
+ttystop(s)
 {
+	sig_t old_action = signal(s, SIG_DFL);
 
-	hadcont++;
+	sigsetmask(sigblock(0L) & ~sigmask(s));
+	kill(0, s);
+	sigblock(sigmask(s));
+	signal(s, old_action);
 	longjmp(rewrite, 1);
 }
-# endif VMUNIX
 
-/*
- * Null routine to satisfy
- * silly system bug that denies us holding SIGCONT
- */
-signull(s)
-{}
+/*ARGSUSED*/
+void
+ttyint(s)
+{
+	longjmp(intjmp, 1);
+}

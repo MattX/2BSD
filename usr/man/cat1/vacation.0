@@ -5,14 +5,14 @@ VACATION(1)	    UNIX Programmer's Manual	      VACATION(1)
 
 
 
-NNAAMMEE
+NAME
      vacation - return ``I am on vacation'' indication
 
-SSYYNNOOPPSSIISS
-     vvaaccaattiioonn --II
-     vvaaccaattiioonn user
+SYNOPSIS
+     vacation -I
+     vacation user
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _V_a_c_a_t_i_o_n returns a message to the sender of a message tel-
      ling that you are on vacation.  The intended use is in a
      ._f_o_r_w_a_r_d file.  For example, your ._f_o_r_w_a_r_d file might have:
@@ -38,10 +38,10 @@ DDEESSCCRRIIPPTTIIOONN
      This message will only be sent once a week to each unique
      sender.  The people who have sent you messages are kept in
      the files ._v_a_c_a_t_i_o_n._p_a_g and ._v_a_c_a_t_i_o_n._d_i_r in your home
-     directory.  The --II option initializes these files, and
+     directory.  The -I option initializes these files, and
      should be executed before you modify your ._f_o_r_w_a_r_d file.
 
-     If the --II flag is not specified, _v_a_c_a_t_i_o_n reads the first
+     If the -I flag is not specified, _v_a_c_a_t_i_o_n reads the first
      line from the standard input for a UNIX-style ``From'' line
      to determine the sender.  If this is not present, a nasty
      diagnostic is produced.  _S_e_n_d_m_a_i_l(8) includes the ``From''
@@ -51,7 +51,7 @@ DDEESSCCRRIIPPTTIIOONN
      string ``-REQUEST@'' or if a ``Precedence: bulk'' or ``Pre-
      cedence: junk'' line is included in the header.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sendmail(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  June 16, 1985                         1
+Printed 1/9/94		  June 16, 1985                         1
 
 
 

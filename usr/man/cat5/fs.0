@@ -5,15 +5,15 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-NNAAMMEE
+NAME
      fs, inode - format of file system volume (2BSD)
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ffss..hh>>
-     ##iinncclluuddee <<ssyyss//iinnooddee..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/fs.h>
+     #include <sys/inode.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Every file system storage volume (e.g. disk) has a common
      format for certain vital information.  Every such volume is
      divided into a certain number of blocks.  The block size is
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 11, 1987			1
+Printed 1/9/94		 August 11, 1987			1
 
 
 
@@ -101,12 +101,12 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      device/i-number pair.
 
      Inodes are 64 bytes long, so 16 of them fit into a block if
-     BSIZE is 1024.  The root inode is the root of the file sys-
-     tem.  Inode 0 can't be used for normal purposes and histori-
-     cally bad blocks were linked to inode 1, thus the root inode
-     is 2 (inode 1 is no longer used for this purpose, however
-     numerous dump tapes make this assumption, so we are stuck
-     with it).	No other i-number has a built-in meaning.
+     DEV_BSIZE is 1024.  The root inode is the root of the file
+     system.  Inode 0 can't be used for normal purposes and his-
+     torically bad blocks were linked to inode 1, thus the root
+     inode is 2 (inode 1 is no longer used for this purpose, how-
+     ever numerous dump tapes make this assumption, so we are
+     stuck with it).  No other i-number has a built-in meaning.
 
      The format of an inode as given in <_s_y_s/_i_n_o_d_e._h> is:
 
@@ -120,13 +120,13 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 	    uid_t   di_uid;	 /* owner's user id */
 	    gid_t   di_gid;	 /* owner's group id */
 	    off_t   di_size;	 /* number of bytes in file */
-	    char    di_addr[40]; /* disk block addresses */
+	    daddr_t di_addr[7];  /* 7 block addresses 4 bytes each */
+	    daddr_t di_reserved[3];/* pad of 12 to make total size 64 */
 	    time_t  di_atime;	 /* time last accessed */
-	    time_t  di_mtime;	 /* time last modified */
 
 
 
-Printed 12/28/88	 August 11, 1987			2
+Printed 1/9/94		 August 11, 1987			2
 
 
 
@@ -137,11 +137,12 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+	    time_t  di_mtime;	 /* time last modified */
 	    time_t  di_ctime;	 /* time created */
      };
 
      /*
-      * 21 of the di_addr address bytes are used; 7 addresses of 3
+      * 28 of the di_addr address bytes are used; 7 addresses of 4
       * bytes each: 4 direct (4Kb directly accessible) and 3 indirect.
       */
      #define NADDR  7
@@ -182,17 +183,16 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      character special files overlap.
 
      Disk addresses of plain files and directories are kept in
-     the array _d_i__a_d_d_r packed into 3 bytes each.  For a BSIZE of
-     1K bytes, 7 addresses are kept in _d_i__a_d_d_r using only 21 of
-     the 40 bytes.  The first 4 addresses specify device blocks
-     directly.	The last 3 addresses are singly, doubly and tri-
-     ply indirect and point to blocks containing 256 further
-     block pointers.  Pointers in indirect blocks have the type
-     _d_a_d_d_r__t (see _t_y_p_e_s(5)).
+     the array _d_i__a_d_d_r. For a DEV_BSIZE of 1K bytes, 7 addresses
+     are kept in _d_i__a_d_d_r using 28 of the 40 bytes.  The first 4
+     addresses specify device blocks directly.	The last 3
+     addresses are singly, doubly and triply indirect and point
+     to blocks containing 256 further block pointers.  There are
+     3 block addresses reserved as a pad to bring the total size
 
 
 
-Printed 12/28/88	 August 11, 1987			3
+Printed 1/9/94		 August 11, 1987			3
 
 
 
@@ -203,9 +203,11 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+     of an inode to 64 bytes.  All block addresses are of type
+     _d_a_d_d_r__t (see _t_y_p_e_s(5)).
+
      For block _b in a file to exist, it is not necessary that all
-     blocks less than _b exist.	A zero block number either in the
-     address bytes of the inode or in an indirect block indicates
+     blocks less than _b exist.	A zero block number indicates
      that the corresponding block has never been allocated.  Such
      a missing block reads as if it contained all zero bytes.
 
@@ -253,12 +255,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      are determined when it is first created by _m_k_f_s(8).  _M_k_f_s
      lays out the initial free list with these parameters and
      _f_s_c_k(8) can be used to rebuild the free list optimally (and
-     assign new interleaving factors if necessary).
 
 
 
-
-Printed 12/28/88	 August 11, 1987			4
+Printed 1/9/94		 August 11, 1987			4
 
 
 
@@ -268,6 +268,8 @@ Printed 12/28/88	 August 11, 1987			4
 FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
+
+     assign new interleaving factors if necessary).
 
      _F_r_e_e _i_n_o_d_e _l_i_s_t: _F_s__n_i_n_o_d_e is the number of free inode
      numbers in the _f_s__i_n_o_d_e array.
@@ -294,11 +296,11 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      inode itself).  If the i-number of the freed inode is less
      than _f_s__l_a_s_t_i increment _f_s__n_b_e_h_i_n_d.
 
-SSEEEE AALLSSOO
+SEE ALSO
      stat(2), dir(5), types(5), dcheck(8), fsck(8), icheck(8),
      mkfs(8), mount(8)
 
-BBUUGGSS
+BUGS
      It isn't the _4_B_S_D _f_a_s_t _f_i_l_e _s_y_s_t_e_m.  The 2BSD file system is
      a direct descendent of the V7 file system and exists little
      changed from that ancestor.  There are many performance
@@ -319,12 +321,10 @@ BBUUGGSS
      pletely different areas of the disk, the handling of the
      free list, the lack of any file allocation layout policy
      encouraging locality such as that found in the 4BSD file
-     system and the still too small block size often leads to
-     extremely poor performance.
 
 
 
-Printed 12/28/88	 August 11, 1987			5
+Printed 1/9/94		 August 11, 1987			5
 
 
 
@@ -334,6 +334,9 @@ Printed 12/28/88	 August 11, 1987			5
 FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
+
+     system and the still too small block size often leads to
+     extremely poor performance.
 
      The separation of inodes and data blocks in the file system
      means that to access a file a seek will have to be made to
@@ -350,10 +353,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      ally, however, since both freed and allocated blocks use the
      head of the free list, it's possible (and quite probable) to
      have most of the free list laid out optimally with the first
-     portion totally scrambled. (as a trade off, a file system's
-     free list may be rebuilt fairly frequently (via_f_s_c_k -_sor_f_s_c_k
-     -_S) and most blocks allocated will be localized as close to
-     the the inode area as possible.)  Because of this problem,
+     portion totally scrambled.  As a trade off, a file system's
+     free list may be rebuilt fairly frequently via _i_c_h_e_c_k -_s or
+     _f_s_c_k -_s and most blocks allocated will be localized as close
+     to the the inode area as possible.  Because of this problem,
      files are sometimes scattered across a file system generat-
      ing an unpleasant amount of disk arm movement.  A nasty
      oscillation also occurs in the free block list when _f_s__n_f_r_e_e
@@ -363,7 +366,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
      For a more in depth analysis of the 2BSD file system, its
      shortcomings, and a description of the changes made for the
-     4BSD file system see "AA FFaasstt FFiillee SSyysstteemm ffoorr UUNNIIXX" by _M.
+     4BSD file system see "A Fast File System for UNIX" by _M.
      _M_c_K_u_s_i_c_k; _W. _J_o_y; _S. _L_e_f_f_l_e_r; and _R. _F_a_b_r_y.
 
 
@@ -387,10 +390,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-
-
-
-Printed 12/28/88	 August 11, 1987			6
+Printed 1/9/94		 August 11, 1987			6
 
 
 

@@ -32,12 +32,12 @@
 #define WEEKS	(7*DAYS)
 /* Things that very well may require local configuration */
 #ifndef HOME
-#define ROOTID	6	/* uid of person allowed to cancel anything	*/
+#define ROOTID	10	/* uid of person allowed to cancel anything	*/
 #endif
 #define N_UMASK 022	/* mask for umask call, 022 for secure system	*/
 #define DFLTEXP	2*WEEKS	/* default no. of seconds to expire in		*/
 #define HISTEXP	4*WEEKS	/* default no. of seconds to forget in		*/
-#define DFLTSUB "general,all.general,duke.physics,duke.math,all.announce"	/* default subscription list	*/
+#define DFLTSUB "general,all.announce"	/* default subscription list	*/
 #define TMAIL	"/usr/ucb/Mail"	/* Mail program that understands -T	*/
 #define ADMSUB	"general,all.announce"	/* Mandatory subscription list	*/
 #define PAGE	"/usr/ucb/more"	/* Default pager			*/
@@ -68,7 +68,7 @@
 #define BSD4_2		/* If you are running 4.2, 4.3, or 2.10 BSD */
 /* #define LOCKF		/* If you have the lockf() sys call */
 /* #define LOCKING		/* If you have the locking() sys call */
-#define DOGETUSER		/* Always do 'getuser' so can't fake name */
+/* #define DOGETUSER		/* Always do 'getuser' so can't fake name */
 /* #define LOGDIR		/* use the 'logdir' call on path lookups */
 /* #define MKDIRSUB		/* your system has mkdir as a syscall */
 /* #define READDIR		/* your system has readdir() in libc */
@@ -76,7 +76,7 @@
 /* #define ALWAYSALIAS		/* temporary kludge for conversion */
 #define SENDMAIL "/usr/lib/sendmail" /* command line to run "sendmail" if you have it	*/
 /* #define MMDF	"/usr/mmdf/submit"	/* command line to run mmdf if you have it */
-#define MYORG	"Duke University Physics Dept.; Durham, N.C."
+#define MYORG	"Ed's Peanut Farms, Inc."
 				/* include your city (and state, and	*/
 				/* country, if not obvious) in MYORG,	*/
 				/* and please keep it short.		*/
@@ -86,7 +86,7 @@
 /* NOTE: The following two macros replace the use of HIDDENNET */
 /* #define GENERICPATH "frooz"	/* If you are using a shared USENET/UUCP node */
 /* #define GENERICFROM "Frobozz.COM"	/* If you want generic From:-addresses */
-#define NICENESS	8	/* does a nice(NICENESS) in rnews */
+/* #define NICENESS	4	/* does a nice(NICENESS) in rnews */
 /* #define FASCIST	"all,!all.all"	/* only permit posting to certain groups */
 				/* see installation guide for details */
 /* #define SMALL_ADDRESS_SPACE	/* If your machine can't address > 32767 */

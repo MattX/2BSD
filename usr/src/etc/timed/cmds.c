@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cmds.c	2.2 (Berkeley) 4/21/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)cmds.c	2.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include "timedc.h"
 #include <netinet/in_systm.h>
@@ -15,11 +15,6 @@ static char sccsid[] = "@(#)cmds.c	2.2 (Berkeley) 4/21/86";
 #define TSPTYPES
 #include <protocols/timed.h>
 #include <sys/file.h>
-
-#ifdef	BSD2_10
-#define	measure_delta	meas_delta
-#define	measure_status	meas_status
-#endif
 
 int id;
 int sock;

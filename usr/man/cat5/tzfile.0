@@ -5,16 +5,16 @@ TZFILE(5)	    UNIX Programmer's Manual		TZFILE(5)
 
 
 
-NNAAMMEE
+NAME
      tzfile - time zone information
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ttzzffiillee..hh>>
+SYNOPSIS
+     #include <tzfile.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The time zone information files used by _t_z_s_e_t(3) begin with
      bytes reserved for future use, followed by three four-byte
-     values of type lloonngg, written in a ``standard'' byte order
+     values of type long, written in a ``standard'' byte order
      (the high-order byte of the value is written first).  These
      values are, in order:
 
@@ -31,11 +31,11 @@ DDEESSCCRRIIPPTTIIOONN
 	  strings" stored in the file.
 
      The above header is followed by _t_z_h__t_i_m_e_c_n_t four-byte values
-     of type lloonngg, sorted in ascending order.  These values are
+     of type long, sorted in ascending order.  These values are
      written in ``standard'' byte order.  Each is used as a tran-
      sition time (as returned by _t_i_m_e(2)) at which the rules for
      computing local time change.  Next come _t_z_h__t_i_m_e_c_n_t one-byte
-     values of type uunnssiiggnneedd cchhaarr; each one tells which of the
+     values of type unsigned char; each one tells which of the
      different types of ``local time'' types described in the
      file is associated with the same-indexed transition time.
      These values serve as indices into an array of _t_t_i_n_f_o struc-
@@ -49,7 +49,7 @@ DDEESSCCRRIIPPTTIIOONN
 	  };
 
      Each structure is written as a four-byte value for _t_t__g_m_t_o_f_f
-     of type lloonngg, in a standard byte order, followed by a one-
+     of type long, in a standard byte order, followed by a one-
      byte value for _t_t__i_s_d_s_t and a one-byte value for _t_t__a_b_b_r_i_n_d.
      In each structure, _t_t__g_m_t_o_f_f gives the number of seconds to
      be added to GMT, _t_t__i_s_d_s_t tells whether _t_m__i_s_d_s_t should be
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 
@@ -77,7 +77,7 @@ TZFILE(5)	    UNIX Programmer's Manual		TZFILE(5)
      is zero or the time argument is less than the first transi-
      tion time recorded in the file.
 
-SSEEEE AALLSSOO
+SEE ALSO
      ctime(3)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88						2
+Printed 1/9/94							2
 
 
 

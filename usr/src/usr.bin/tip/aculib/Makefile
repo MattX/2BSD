@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3	(Berkeley)	6/18/87
+#	@(#)Makefile	5.3.1	(2.11BSD GTE)	1/06/94
 #
 # make file for tip device drivers
 #
@@ -27,7 +27,7 @@ OBJS=	biz22.o biz31.o courier.o df.o dn11.o hayes.o ventel.o v831.o \
 all: aculib.a
 
 aculib.a: ${OBJS}
-	ar cu aculib.a ${OBJS}
+	ar ru aculib.a ${OBJS}
 	ranlib aculib.a
 
 clean: FRC

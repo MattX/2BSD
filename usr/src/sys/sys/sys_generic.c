@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)sys_generic.c	1.3 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -20,80 +20,159 @@
 #include "kernel.h"
 #include "systm.h"
 
+/* 
+ * this is consolidated here rather than being scattered all over the
+ * place.  the socketops table has to be in kernel space, but since
+ * networking might not be defined an appropriate error has to be set
+*/
+
+	int	sorw(), soctl(), sosel(), socls();
+	struct	fileops	socketops =
+		{ sorw, soctl, sosel, socls };
+extern	struct	fileops	inodeops, pipeops;
+	struct	fileops	*Fops[] = { NULL, &inodeops, &socketops, &pipeops };
+
+/*
+ * Read system call.
+ */
 read()
 {
-	rwuio(FREAD);
+	register struct a {
+		int	fdes;
+		char	*cbuf;
+		unsigned count;
+	} *uap = (struct a *)u.u_ap;
+	struct uio auio;
+	struct iovec aiov;
+
+	aiov.iov_base = (caddr_t)uap->cbuf;
+	aiov.iov_len = uap->count;
+	auio.uio_iov = &aiov;
+	auio.uio_iovcnt = 1;
+	rwuio(&auio, UIO_READ);
 }
 
-write()
-{
-	rwuio(FWRITE);
-}
-
-rwuio(mode)
-	int mode;
+readv()
 {
 	register struct a {
-		int fdes;
-		char *cbuf;
-		u_int count;
+		int	fdes;
+		struct	iovec *iovp;
+		unsigned iovcnt;
 	} *uap = (struct a *)u.u_ap;
-	register struct file *fp;
-	register struct inode *ip;
+	struct uio auio;
+	struct iovec aiov[16];		/* XXX */
 
-	GETF(fp,uap->fdes);
-	if (!(fp->f_flag & mode)) {
+	if (uap->iovcnt > sizeof(aiov)/sizeof(aiov[0])) {
+		u.u_error = EINVAL;
+		return;
+	}
+	auio.uio_iov = aiov;
+	auio.uio_iovcnt = uap->iovcnt;
+	u.u_error = copyin((caddr_t)uap->iovp, (caddr_t)aiov,
+	    uap->iovcnt * sizeof (struct iovec));
+	if (u.u_error)
+		return;
+	rwuio(&auio, UIO_READ);
+}
+
+/*
+ * Write system call
+ */
+write()
+{
+	register struct a {
+		int	fdes;
+		char	*cbuf;
+		unsigned count;
+	} *uap = (struct a *)u.u_ap;
+	struct uio auio;
+	struct iovec aiov;
+
+	auio.uio_iov = &aiov;
+	auio.uio_iovcnt = 1;
+	aiov.iov_base = uap->cbuf;
+	aiov.iov_len = uap->count;
+	rwuio(&auio, UIO_WRITE);
+}
+
+writev()
+{
+	register struct a {
+		int	fdes;
+		struct	iovec *iovp;
+		unsigned iovcnt;
+	} *uap = (struct a *)u.u_ap;
+	struct uio auio;
+	struct iovec aiov[16];		/* XXX */
+
+	if (uap->iovcnt > sizeof(aiov)/sizeof(aiov[0])) {
+		u.u_error = EINVAL;
+		return;
+	}
+	auio.uio_iov = aiov;
+	auio.uio_iovcnt = uap->iovcnt;
+	u.u_error = copyin((caddr_t)uap->iovp, (caddr_t)aiov,
+	    uap->iovcnt * sizeof (struct iovec));
+	if (u.u_error)
+		return;
+	rwuio(&auio, UIO_WRITE);
+}
+
+rwuio(uio, rw)
+	register struct uio *uio;
+	enum uio_rw rw;
+{
+	struct a {
+		int	fdes;
+	};
+	struct file *fp;
+	register struct iovec *iov;
+	u_int i, count;
+	off_t	total;
+
+	GETF(fp, ((struct a *)u.u_ap)->fdes);
+	if ((fp->f_flag&(rw==UIO_READ ? FREAD : FWRITE)) == 0) {
 		u.u_error = EBADF;
 		return;
 	}
-	u.u_base = (caddr_t)uap->cbuf;
-	u.u_segflg = UIO_USERSPACE;
-	u.u_count = uap->count;
+	total =(off_t)0;
+	uio->uio_resid = 0;
+	uio->uio_segflg = UIO_USERSPACE;
+	iov = uio->uio_iov;
+	for (i = 0; i < uio->uio_iovcnt; i++) {
+#ifdef	pdp11
+		total += iov->iov_len;
+#else
+		if (iov->iov_len < 0) {
+			u.u_error = EINVAL;
+			return;
+		}
+		uio->uio_resid += iov->iov_len;
+		if (uio->uio_resid < 0) {
+			u.u_error = EINVAL;
+			return;
+		}
+#endif
+		iov++;
+	}
+#ifdef	pdp11
+	uio->uio_resid = total;
+	if (uio->uio_resid != total) {	/* check wraparound */
+		u.u_error = EINVAL;
+		return;
+	}
+#endif
+	count = uio->uio_resid;
 	if (setjmp(&u.u_qsave)) {
-		if (u.u_count == uap->count) {
+		if (uio->uio_resid == count) {
 			if ((u.u_sigintr & sigmask(u.u_procp->p_cursig)) != 0)
 				u.u_error = EINTR;
 			else
 				u.u_eosys = RESTARTSYS;
 		}
-	}
-	else switch(fp->f_type) {
-		case DTYPE_INODE:
-			ip = (struct inode *)fp->f_data;
-			u.u_offset = fp->f_offset;
-			if ((ip->i_mode&IFMT) == IFREG)
-				ILOCK(ip);
-			if (mode == FREAD)
-				readi(ip);
-			else {
-				if (fp->f_flag&FAPPEND)
-					u.u_offset = fp->f_offset = ip->i_size;
-				writei(ip);
-			}
-			if ((ip->i_mode&IFMT) == IFREG)
-				IUNLOCK(ip);
-			fp->f_offset += uap->count - u.u_count;
-			break;
-		case DTYPE_PIPE:
-			if (mode == FREAD)
-				readp(fp);
-			else
-				writep(fp);
-			break;
-#ifdef UCB_NET
-		case DTYPE_SOCKET:
-			if (mode == FREAD)
-				u.u_error =
-				    SORECEIVE((struct socket *)fp->f_socket,
-				    0, 0, 0);
-			else
-				u.u_error =
-				    SOSEND((struct socket *)fp->f_socket,
-				    0, 0, 0);
-			break;
-#endif
-	}
-	u.u_r.r_val1 = uap->count - u.u_count;
+	} else
+		u.u_error = (*Fops[fp->f_type]->fo_rw)(fp, rw, uio);
+	u.u_r.r_val1 = count - uio->uio_resid;
 }
 
 /*
@@ -181,12 +260,7 @@ ioctl()
 		u.u_error = fgetown(fp, (int *)data);
 		return;
 	}
-#ifdef UCB_NET
-	if (fp->f_type == DTYPE_SOCKET)
-		u.u_error = SOO_IOCTL(fp, k_com, data);
-	else
-#endif
-	u.u_error = ino_ioctl(fp, k_com, data);
+	u.u_error = (*Fops[fp->f_type]->fo_ioctl)(fp, k_com, data);
 	/*
 	 * Copy any data to user, size was
 	 * already set and checked above.
@@ -349,27 +423,9 @@ selscan(ibits, obits, nfd)
 					u.u_error = EBADF;
 					break;
 				}
-				switch(fp->f_type) {
-				case DTYPE_INODE:
-					if (ino_select(fp, flag)) {
-						FD_SET(i + j, &obits[which]);
-						n++;
-					}
-					break;
-				case DTYPE_PIPE:
-					if (pipe_select(fp, flag)) {
-						FD_SET(i + j, &obits[which]);
-						n++;
-					}
-					break;
-#ifdef UCB_NET
-				case DTYPE_SOCKET:
-					if (SOO_SELECT(fp, flag)) {
-						FD_SET(i + j, &obits[which]);
-						n++;
-					}
-					break;
-#endif
+				if ((*Fops[fp->f_type]->fo_select)(fp,flag)) {
+					FD_SET(i + j, &obits[which]);
+					n++;
 				}
 			}
 		}
@@ -409,4 +465,51 @@ selwakeup(p, coll)
 		splx(s);
 	}
 	restormap(map);
+}
+
+sorw(fp, rw, uio)
+	register struct file *fp;
+	register enum uio_rw rw;
+	register struct uio *uio;
+{
+#ifdef	INET
+	if (rw == UIO_READ)
+		return(SORECEIVE((struct socket *)fp->f_socket, 0, uio, 0, 0));
+	return(SOSEND((struct socket *)fp->f_socket, 0, uio, 0, 0));
+#else
+	return (EOPNOTSUPP);
+#endif
+}
+
+soctl(fp, com, data)
+	register struct file *fp;
+	register u_int	com;
+	register char	*data;
+	{
+#ifdef	INET
+	return (SOO_IOCTL(fp, com, data));
+#else
+	return (EOPNOTSUPP);
+#endif
+}
+
+sosel(fp, flag)
+	register struct file *fp;
+	register int	flag;
+{
+#ifdef	INET
+	return (SOO_SELECT(fp, flag));
+#else
+	return (EOPNOTSUPP);
+#endif
+}
+
+socls(fp)
+	register struct file *fp;
+{
+#ifdef	INET
+	return (SOCLOSE((struct socket *)fp->f_socket));
+#else
+	return (EOPNOTSUPP);
+#endif
 }

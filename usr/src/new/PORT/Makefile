@@ -5,7 +5,8 @@ CFLAGS=	-O
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	apl bib cpm help jove kermit mh mkmf patch rcs tac tools
+SUBDIR=	ansi apl bib courier cpm dsh help hyper icon jove kermit mh \
+	mkmf np100 patch rcs sunrpc tac tools
 #
 # Default programs that are installed
 #
@@ -14,7 +15,8 @@ STDINST=bib jove mh patch rcs
 # Special purpose software that requires custom installation,
 # or may not be needed by all sites
 #
-OPTDIR=	B news rn spms sumacc umodem
+OPTDIR=	B dipress emacs enet mmdf news nntp notes pathalias rn \
+	spms sumacc umodem xns X
 
 all:	${SUBDIR}
 
@@ -24,7 +26,7 @@ ${SUBDIR}: FRC
 ${OPTDIR}: FRC
 	cd $@; make ${MFLAGS} all
 
-install:
+install: ${SUBDIR}
 	-for i in ${STDINST}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 

@@ -5,17 +5,17 @@ ETIME(3F)	    UNIX Programmer's Manual		ETIME(3F)
 
 
 
-NNAAMMEE
+NAME
      etime, dtime - return elapsed execution time
 
-SSYYNNOOPPSSIISS
-     ffuunnccttiioonn eettiimmee ((ttaarrrraayy))
-     rreeaall ttaarrrraayy((22))
+SYNOPSIS
+     function etime (tarray)
+     real tarray(2)
 
-     ffuunnccttiioonn ddttiimmee ((ttaarrrraayy))
-     rreeaall ttaarrrraayy((22))
+     function dtime (tarray)
+     real tarray(2)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These two routines return elapsed runtime in seconds for the
      calling process.  _D_t_i_m_e returns the elapsed time since the
      last call to _d_t_i_m_e, or the start of execution on the first
@@ -28,10 +28,10 @@ DDEESSCCRRIIPPTTIIOONN
      The resolution of all timing is 1/HZ sec. where HZ is
      currently 60.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      times(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

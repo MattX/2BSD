@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)xp.4	6.2 (Berkeley) 9/7/88
+.\"	@(#)xp.4	6.3 (2.11BSD GTE) 12/30/92
 .\"
 .TH XP 4 "September 7, 1988"
 .UC 2
@@ -116,14 +116,14 @@ RP06 partitions:
 .ne 10
 RM02/RM03 partitions:
 	disk	 start	 length	      cyls	comments
-	xp?a	     0	   4800	  0 -   29	too small to hold 2.10BSD root
-	xp?b	  4800	   4800	 30 -   59	swap
-	xp?c	  9600	 122080	 60 -  822*	/usr
-	xp?d	  9600	  62720	 60 -  451
-	xp?e	 72320	  59360	452 -  822*
-	xp?f	     0	   9600	  0 -   59	overlaps a & b (2.10BSD root)
-	xp?g	unused
-	xp?h	     0	 131680	  0 -  822*	whole pack
+	xp?a	     0	   9600	  0 -   59	/
+	xp?b	  9600	   9600	 60 -  119	swap
+	xp?c	     0	 131680	  0 -  822*	whole pack + bad144 track
+	xp?d	unused
+	xp?e	unused
+	xp?f	unused
+	xp?g	 19200	 112320	120 -  821
+	xp?h         0	 131520   0 -  821	whole pack - bad144 track
 .PP
 .ne 10
 RM05 (or SI 9500, CDC 9766) partitions:

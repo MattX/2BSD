@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)tttermcap.c	3.6 9/20/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)tttermcap.c	3.7 1/06/94";
 #endif
 
 /*
@@ -8,7 +8,6 @@ static char sccsid[] = "@(#)tttermcap.c	3.6 9/20/85";
  * the terms of the Berkeley Software License Agreement.
  */
 
-#include "shortnames.h"
 #include "tt.h"
 
 char *tgetstr();

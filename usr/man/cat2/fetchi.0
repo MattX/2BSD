@@ -5,33 +5,33 @@ FETCHI(2)	    UNIX Programmer's Manual		FETCHI(2)
 
 
 
-NNAAMMEE
+NAME
      fetchi - fetch from user instruction space (2BSD)
 
-SSYYNNOOPPSSIISS
-     ffeettcchhii((aaddddrr))
-     iinntt **aaddddrr;;
+SYNOPSIS
+     fetchi(addr)
+     int *addr;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_e_t_c_h_i fetches the word at _a_d_d_r from the caller's instruc-
      tion space.  This system call is required on PDP-11's with
      separate instruction and data spaces because the _m_f_p_i
      instruction reads from D-space if the current and previous
      modes in the program status word are both user.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion the contents of the caller's
      instruction space at _a_d_d_r are returned.  Otherwise, a value
      of -1 is returned.
 
-EERRRROORRSS
+ERRORS
      [EINVAL]	    The kernel has not been compiled for a pro-
 		    cessor with separate I/D.
 
      [EFAULT]	    _A_d_d_r points to an address not in the
 		    process's allocated instruction space.
 
-BBUUGGSS
+BUGS
      The error indication, -1, is a legitimate function value;
      _e_r_r_n_o, (see _i_n_t_r_o(2)), can be used to disambiguate.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	January 22, 1987			1
+Printed 1/9/94		January 22, 1987			1
 
 
 

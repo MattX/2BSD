@@ -5,13 +5,13 @@ GETTY(8)	    UNIX Programmer's Manual		 GETTY(8)
 
 
 
-NNAAMMEE
+NAME
      getty  - set terminal mode
 
-SSYYNNOOPPSSIISS
-     //eettcc//ggeettttyy [ type [ tty ] ]
+SYNOPSIS
+     /etc/getty [ type [ tty ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_t_y is usually invoked by _i_n_i_t(8) to open and initialize
      the tty line, read a login name, and invoke _l_o_g_i_n(1).  _g_e_t_t_y
      attempts to adapt the system to the speed and type of termi-
@@ -26,8 +26,8 @@ DDEESSCCRRIIPPTTIIOONN
      nal line specially.  This argument is used as an index into
      the _g_e_t_t_y_t_a_b(5) database, to determine the characteristics
      of the line.  If there is no argument, or there is no such
-     table, the ddeeffaauulltt table is used.	If there is no
-     //eettcc//ggeettttyyttaabb a set of system defaults is used.  If indi-
+     table, the default table is used.	If there is no
+     /etc/gettytab a set of system defaults is used.  If indi-
      cated by the table located, _g_e_t_t_y will clear the terminal
      screen, print a banner heading, and prompt for a login name.
      Usually either the banner of the login prompt will include
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 22, 1986				1
+Printed 1/9/94		  May 22, 1986				1
 
 
 
@@ -73,18 +73,18 @@ GETTY(8)	    UNIX Programmer's Manual		 GETTY(8)
 
      entered reasonably quickly.
 
-DDIIAAGGNNOOSSTTIICCSS
-     _t_t_y_x_x:: NNoo ssuucchh ddeevviiccee oorr aaddddrreessss.	_t_t_y_x_x:: NNoo ssuucchh ffiillee oorr
-     aaddddrreessss.  A terminal which is turned on in the _t_t_y_s file
+DIAGNOSTICS
+     _t_t_y_x_x: No such device or address.	_t_t_y_x_x: No such file or
+     address.  A terminal which is turned on in the _t_t_y_s file
      cannot be opened, likely because the requisite lines are
      either not configured into the system, the associated device
      was not attached during boot-time system configuration, or
      the special file in /dev does not exist.
 
-FFIILLEESS
+FILES
      /etc/gettytab
 
-SSEEEE AALLSSOO
+SEE ALSO
      gettytab(5), init(8), login(1), ioctl(2), tty(4), ttys(5)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 22, 1986				2
+Printed 1/9/94		  May 22, 1986				2
 
 
 

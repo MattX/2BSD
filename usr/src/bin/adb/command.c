@@ -1,62 +1,51 @@
-#
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
 
+	MSG	BADEQ;
+	MSG	NOMATCH;
+	MSG	BADVAR;
+	MSG	BADCOM;
+	MAP	txtmap;
+	MAP	datmap;
 
-MSG		BADEQ;
-MSG		NOMATCH;
-MSG		BADVAR;
-MSG		BADCOM;
-
-MAP		txtmap;
-MAP		datmap;
-OVTAG		symov, lastsymov, curov;
-INT		executing;
-CHAR		*lp;
-INT		fcor;
-INT		fsym;
-INT		mkfault;
-STRING		errflg;
-
-CHAR		lastc;
-CHAR		eqformat[512] = "o";
-CHAR		stformat[512] = "o\"= \"^i";
-POS		corhdr[], *uar0;
-
-L_INT		dot;
-L_INT		ditto;
-INT		dotinc;
-INT		lastcom = '=';
-L_INT		var[];
-L_INT		locval;
-L_INT		locmsk;
-INT		pid;
-L_INT		expv;
-L_INT		adrval;
-INT		adrflg;
-L_INT		cntval;
-INT		cntflg;
-
-
-
+	char	symov, lastsymov, curov;
+	int	executing;
+	char	*lp;
+	int	fcor;
+	int	fsym;
+	int	mkfault;
+	char	*errflg;
+	char	lastc;
+	char	eqformat[512] = "o";
+	char	stformat[512] = "o\"= \"^i";
+	u_int	corhdr[], *uar0;
+	long	dot;
+	long	ditto;
+	int	dotinc;
+	int	lastcom = '=';
+	long	var[];
+	long	locval;
+	long	locmsk;
+	int	pid;
+	long	expv;
+	long	adrval;
+	int	adrflg;
+	long	cntval;
+	int	cntflg;
+extern	char	*myname;
 
 /* command decoding */
 
 command(buf,defcom)
-STRING		buf;
-CHAR		defcom;
+	char	*buf;
+	char	defcom;
 {
-	INT		itype, ptype, modifier, regptr;
-	BOOL		longpr, eqcom;
-	CHAR		wformat[1];
-	CHAR		savc;
-	L_INT		w, savdot;
-	STRING		savlp=lp;
+	int	itype, ptype, modifier, regptr;
+	char	longpr, eqcom;
+	char	wformat[1];
+	char	savc;
+	long	w, savdot;
+	char	*savlp=lp;
+
 	IF buf
 	THEN IF *buf==EOR
 	     THEN return(FALSE);
@@ -106,9 +95,9 @@ CHAR		defcom;
 
 			case 'm':
 			    {/*reset map data*/
-			    INT		fcount;
+			    int		fcount;
 			    MAPPTR	smap;
-			    L_INT	*mp;
+			    long	*mp;
 
 			    IF eqcom THEN error(BADEQ); FI
 			    smap=(itype&DSP?&datmap:&txtmap);
@@ -160,7 +149,7 @@ CHAR		defcom;
 				 put((longpr?inkdot(2):dot),itype,shorten(expv));
 				 savdot=dot;
 				 printf("=%8t"); exform(1,wformat,itype,ptype);
-				 newline();
+				 printc(EOR);
 			    PER  expr(0) ANDF errflg==0 DONE
 			    dot=savdot;
 			    chkerr();
@@ -190,10 +179,10 @@ CHAR		defcom;
 		     ptrace(WUREGS,pid,(int)&uar0[regptr]-(int)&corhdr,
 			uar0[regptr]);
 		     IF (uar0+regptr) == &(((U*)corhdr)->u_ovdata.uo_curov)
-		     THEN var[VARC]=dot; setovmap((OVTAG)dot); FI
+		     THEN var[VARC]=dot; setovmap((char)dot); FI
 		ELIF (modifier=varchk(savc)) != -1
 		THEN	var[modifier]=dot;
-			IF modifier == VARC THEN setovmap((OVTAG)dot); FI
+			IF modifier == VARC THEN setovmap((char)dot); FI
 		ELSE	error(BADVAR);
 		FI
 		break;
@@ -216,7 +205,7 @@ CHAR		defcom;
 		break;
 
 	    case 0:
-		prints(DBNAME);
+		printf("%s\n", myname);
 		break;
 
 	    default: error(BADCOM);

@@ -19,11 +19,11 @@ static char sccsid[] = "@(#)gethostent.c	5.3 (Berkeley) 3/9/86";
 /*
  * Internet version.
  */
-#define	MAXALIASES	35
-#define	MAXADDRSIZE	14
+#define	MAXALIASES	20
+#define	MAXADDRSIZE	(sizeof (u_long))
 
 static FILE *hostf = NULL;
-static char line[256+1];
+static char line[160+1];
 static char hostaddr[MAXADDRSIZE];
 static struct hostent host;
 static char *host_aliases[MAXALIASES];

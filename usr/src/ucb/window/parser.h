@@ -1,5 +1,5 @@
 /*
- * @(#)parser.h	3.4 4/24/85
+ * @(#)parser.h	3.5 1/1/94
  */
 
 /*
@@ -7,10 +7,6 @@
  * All rights reserved.  Redistribution permitted subject to
  * the terms of the Berkeley Software License Agreement.
  */
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include <stdio.h>
 #include "value.h"

@@ -43,6 +43,7 @@ struct	devsw {
 	int	(*dv_strategy)();
 	int	(*dv_open)();
 	int	(*dv_close)();
+	caddr_t	**dv_csr;
 };
 
 struct	devsw	devsw[];
@@ -60,3 +61,11 @@ struct	iob	iob[NFILES];
  * Must be set by the user's main (or thereabouts).
  */
 int	segflag;
+
+/*
+ * macros to extract the controller and unit number.  common to all drivers
+ * so the macros are defined here rather than in each driver.
+*/
+
+#define	CTLRn(dev)	((minor(dev) >> 6) & 3)
+#define	UNITn(dev)	(minor(dev) & 7)

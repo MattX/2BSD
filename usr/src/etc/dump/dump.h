@@ -1,8 +1,7 @@
 /*
  * "@(#)dump.h	1.1 (Berkeley) 10/13/80"
  */
-#define	NI	8	/* number of blocks of inodes per read */
-#define	DIRPB	(DEV_BSIZE/sizeof(struct v7direct))
+#define	NI	4	/* number of blocks of inodes per read */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -39,6 +38,7 @@ char	incno;		/* increment number */
 int	uflag;		/* update flag */
 int	fi;		/* disk file descriptor */
 int	to;		/* tape file descriptor */
+int	pipeout;	/* true => output to standard output */
 ino_t	ino;		/* current inumber; used globally */
 int	nsubdir;
 int	newtape;	/* new tape flag */

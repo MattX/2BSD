@@ -5,14 +5,14 @@ SETREGID(2)	    UNIX Programmer's Manual	      SETREGID(2)
 
 
 
-NNAAMMEE
+NAME
      setregid - set real and effective group ID
 
-SSYYNNOOPPSSIISS
-     sseettrreeggiidd((rrggiidd,, eeggiidd))
-     iinntt rrggiidd,, eeggiidd;;
+SYNOPSIS
+     setregid(rgid, egid)
+     int rgid, egid;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The real and effective group ID's of the current process are
      set to the arguments.  Unprivileged users may change the
      real group ID to the effective group ID and vice-versa; only
@@ -22,17 +22,17 @@ DDEESSCCRRIIPPTTIIOONN
      group ID forces the system to substitute the current ID in
      place of the -1 parameter.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-EERRRROORRSS
+ERRORS
      [EPERM]	    The current process is not the super-user and
 		    a change other than changing the effective
 		    group-id to the real group-id was specified.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getgid(2), setreuid(2), setgid(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

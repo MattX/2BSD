@@ -5,14 +5,14 @@ QUOTACHECK(8)	    UNIX Programmer's Manual	    QUOTACHECK(8)
 
 
 
-NNAAMMEE
+NAME
      quotacheck - file system quota consistency checker
 
-SSYYNNOOPPSSIISS
-     //eettcc//qquuoottaacchheecckk [ --vv ] [ --pp ] filesystem...
-     //eettcc//qquuoottaacchheecckk [ --vv ] [ --pp ] --aa
+SYNOPSIS
+     /etc/quotacheck [ -v ] [ -p ] filesystem...
+     /etc/quotacheck [ -v ] [ -p ] -a
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _Q_u_o_t_a_c_h_e_c_k examines each file system, builds a table of
      current disc usage, and compares this table against that
      stored in the disc quota file for the file system.  If any
@@ -20,16 +20,16 @@ DDEESSCCRRIIPPTTIIOONN
      current system copy of the incorrect quotas are updated (the
      latter only occurs if an active file system is checked).
 
-     If the --aa flag is supplied in place of any file system
+     If the -a flag is supplied in place of any file system
      names, _q_u_o_t_a_c_h_e_c_k will check all the file systems indicated
      in /_e_t_c/_f_s_t_a_b to be read-write with disc quotas.
 
      Normally _q_u_o_t_a_c_h_e_c_k reports only those quotas modified.  If
-     the --vv option is supplied, _q_u_o_t_a_c_h_e_c_k will indicate the cal-
+     the -v option is supplied, _q_u_o_t_a_c_h_e_c_k will indicate the cal-
      culated disc quotas for each user on a particular file sys-
      tem.
 
-     If the --pp flag is supplied then parallel passes will be run
+     If the -p flag is supplied then parallel passes will be run
      on the filesystems required, using the pass numbers in
      /etc/fstab in an identical fashion to _f_s_c_k(8).
 
@@ -45,10 +45,10 @@ DDEESSCCRRIIPPTTIIOONN
      disc usage for each user.	Thus, the file systems checked
      should be quiescent while _q_u_o_t_a_c_h_e_c_k is running.
 
-FFIILLEESS
+FILES
      /etc/fstab     default file systems
 
-SSEEEE AALLSSOO
+SEE ALSO
      quota(2), setquota(2), quotaon(8), fsck(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88       September 15, 1985			1
+Printed 1/9/94	       September 15, 1985			1
 
 
 

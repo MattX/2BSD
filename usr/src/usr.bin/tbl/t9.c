@@ -31,7 +31,8 @@ if (dataln[0] == '.' && !isdigit(dataln[1]))
 	puts(dataln);
 	return(1);
 	}
-instead[0]=fullbot[0]=0;
+instead[0]= (char *) 0;
+fullbot[0]=0;
 if (dataln[1]==0)
 switch(dataln[0])
 	{

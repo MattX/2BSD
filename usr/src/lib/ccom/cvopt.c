@@ -370,10 +370,10 @@ l1:
 		goto l1;
 
 	case 'b':
-		if (f==9)
-			f = 10;
+		if (f==9)		/* unsigned word/int seen yet? */
+			f = 10;		/*  yes - it is unsigned byte */
 		else
-			f = 3;
+			f = 3;		/*  no - it is regular (signed) byte */
 		goto l1;
 
 	case 'f':
@@ -385,10 +385,12 @@ l1:
 		goto l1;
 
 	case 'u':
-		if (f==3)
-			f = 10;
+		if (f==3)		/* regular (signed) byte seen ? */
+			f = 10;		/*  yes - unsigned byte now */
+		else if (f == 8)	/* regular (signed) long seen? */
+			f = 11;		/*  yes - it is unsigned long now */
 		else
-			f = 9;
+			f = 9;		/* otherwise we have unsigned word */
 		goto l1;
 
 	case 's':
@@ -396,7 +398,10 @@ l1:
 		goto l1;
 
 	case 'l':
-		f = 8;
+		if (f == 9)		/* seen unsigned yet? */
+			f = 11;		/*  yes - it is unsigned long now */
+		else
+			f = 8;		/*  no - it is unsigned word now */
 		goto l1;
 
 	case 'p':

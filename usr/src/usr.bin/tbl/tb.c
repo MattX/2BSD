@@ -74,7 +74,7 @@ if (tpcount<0 || thisvec+n > tpvecs[tpcount]+MAXCHS)
 	if (thisvec == -1)
 		error("no space for vectors");
 	}
-tp=thisvec;
+tp=(int *)thisvec;
 thisvec+=n;
 for(q=tp; q<thisvec; q++)
 	*q=0;

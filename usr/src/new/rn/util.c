@@ -45,6 +45,15 @@ char *s, *shl;
     else if ((shell = getenv("SHELL")) == Nullch || !*shell)
 	shell = PREFSHELL;
     if ((pid = vfork()) == 0) {
+#ifdef SERVER
+        int i;
+
+	/* This is necessary to keep bourne shell from puking */
+
+        for (i = 3; i < 10; ++i)
+                (void) close(i);
+#endif SERVER
+
 	if (*s)
 	    execl(shell, shell, "-c", s, Nullch);
 	else

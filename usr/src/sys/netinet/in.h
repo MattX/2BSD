@@ -9,17 +9,13 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)in.h	7.5 (Berkeley) 2/22/88
+ *	@(#)in.h	7.5.2 (2.11BSD GTE) 2/20/94
  */
 
 /*
  * Constants and structures defined by the internet system,
  * Per RFC 790, September 1981.
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 /*
  * Protocols
@@ -95,12 +91,6 @@ struct in_addr {
 #endif
 
 #define	IN_LOOPBACKNET		127		/* official! */
-
-#ifdef BSD2_10			/* used in lib/libc/inet/inet_netof.c */
-#define	IN_CLASSA_NET_SHIFTMASK	0x000000ffL
-#define	IN_CLASSB_NET_SHIFTMASK	0x0000ffffL
-#define	IN_CLASSC_NET_SHIFTMASK	0x00ffffffL
-#endif
 
 /*
  * Socket address, internet style.

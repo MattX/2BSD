@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)udp_var.h	7.3 (Berkeley) 12/7/87
+ *	@(#)udp_var.h	7.3.1 (2.11BSD GTE) 2/20/94
  */
 
 /*
@@ -33,9 +33,17 @@ struct	udpiphdr {
 #define	ui_sum		ui_u.uh_sum
 
 struct	udpstat {
-	long	udps_hdrops;
-	long	udps_badsum;
-	long	udps_badlen;
+				/* input statistics: */
+	long	udps_ipackets;		/* total input packets */
+	long	udps_hdrops;		/* packet shorter than header */
+	long	udps_badsum;		/* checksum error */
+	long	udps_badlen;		/* data length larger than packet */
+	long	udps_noport;		/* no socket on port */
+	long	udps_noportbcast;	/* of above, arrived as broadcast */
+	long	udps_fullsock;		/* not delivered, input socket full */
+	long	udpps_pcbcachemiss;	/* input packets missing pcb cache */
+				/* output statistics: */
+	long	udps_opackets;		/* total output packets */
 };
 
 #define	UDP_TTL		30		/* deflt time to live for UDP packets */

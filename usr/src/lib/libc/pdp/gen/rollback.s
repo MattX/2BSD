@@ -4,10 +4,10 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)rollback.s	1.3 (Berkeley) 1/6/87\0>
+#if	defined(LIBC_SCCS) && !defined(lint)
+	<@(#)rollback.s	1.4 (2.11BSD GTE) 1/1/94\0>
 	.even
-#endif LIBC_SCCS
+#endif
 
 /*
  * rollback(fp::r0)
@@ -28,9 +28,8 @@
  *
  *	Caveat:	Don't use register variables in routines using setjmp's!
  */
-iot	= 4
 
-.globl	__ljerr				/ just in case we roll off the end ...
+.globl	_longjmperror			/ just in case we roll off the end ...
 .globl	rollback
 rollback:
 	cmp	r5,r0			/ if (we're longjmp'ing to ourselves)
@@ -40,7 +39,7 @@ rollback:
 	beq	2f			/     goto 2f;
 	mov	(r5),r5			/ while ((r5 = r5->next_frame) != 0)
 	bne	1b
-	jsr	pc,__ljerr		/ call longjmperror
+	jsr	pc,_longjmperror	/ call longjmperror
 	iot				/   and die if we return
 2:
 	mov	r5,r2			/ r2 = immediately nested frame

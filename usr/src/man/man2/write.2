@@ -14,7 +14,7 @@ write, writev \- write output
 cc = write(d, buf, nbytes)
 int cc, d;
 char *buf;
-int nbytes;
+unsigned short nbytes;
 .PP
 .ft B
 #include <sys/types.h>
@@ -53,7 +53,7 @@ structure is defined as
 .DT
 struct iovec {
 	caddr_t	iov_base;
-	int	iov_len;
+	u_short	iov_len;
 };
 .RE
 .fi
@@ -155,37 +155,10 @@ may return one of the following errors:
 was less than or equal to 0, or greater than 16.
 .TP 15
 [EINVAL]
-One of the
-.I iov_len
-values in the
-.I iov
-array was negative.
-.TP 15
-[EINVAL]
 The sum of the
 .I iov_len
 values in the
 .I iov
-array overflowed an integer.
+array overflowed a short.
 .SH "SEE ALSO"
 fcntl(2), lseek(2), open(2), pipe(2), select(2)
-.SH BUGS
-Under
-.I 2.10BSD
-.I writev
-is implemented as a compatibility routine in the standard library and is
-semantically identical to the 4.3BSD
-.I writev
-on all current descriptors, with the exception of sockets (SOCK_STREAM
-does work identically however).  The compatibility routine implements
-.I writev
-non-atomically as multiple
-.I write
-calls.
-.PP
-Under
-.I 2.10BSD
-.I nbytes
-is actually an
-.B unsigned
-value.

@@ -5,10 +5,10 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-NNAAMMEE
+NAME
      crash - what happens when the system crashes
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This section explains what happens when the system crashes
      and (very briefly) how to analyze crash dumps.
 
@@ -41,7 +41,7 @@ DDEESSCCRRIIPPTTIIOONN
      that hardware or software error produced the message in some
      unexpected way.
 
-     iiiinniitt
+     iinit
 	  This cryptic panic message results from a failure to
 	  mount the root filesystem during the bootstrap process.
 	  Either the root filesystem has been corrupted, or the
@@ -50,7 +50,7 @@ DDEESSCCRRIIPPTTIIOONN
 	  binary or an alternate root filesystem can be used to
 	  bring up the system to investigate.
 
-     CCaann''tt eexxeecc //eettcc//iinniitt
+     Can't exec /etc/init
 	  This is not a panic message, as reboots are likely to
 	  be futile.  Late in the bootstrap procedure, the system
 	  was unable to locate and execute the initialization
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  July 11, 1987                         1
+Printed 1/9/94		  July 11, 1987                         1
 
 
 
@@ -71,19 +71,19 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-     hhaarrdd IIOO eerrrr iinn sswwaapp
+     hard IO err in swap
 	  The system encountered an error trying to write to the
 	  swap device or an error in reading critical information
 	  from a disk drive.  The offending disk should be fixed
 	  if it is broken or unreliable.
 
-     ttiimmeeoouutt ttaabbllee oovveerrffllooww
+     timeout table overflow
 	  This really shouldn't be a panic, but until the data
 	  structure involved is made to be extensible, running
 	  out of entries causes a crash.  If this happens, make
 	  the timeout table bigger.  (NCALL in param.c)
 
-     ttrraapp ttyyppee %%oo
+     trap type %o
 	  An unexpected trap has occurred within the system; the
 	  trap types are:
 
@@ -126,7 +126,7 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-Printed 12/28/88	  July 11, 1987                         2
+Printed 1/9/94		  July 11, 1987                         2
 
 
 
@@ -137,13 +137,13 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-     iinniitt ddiieedd
+     init died
 	  The system initialization process has exited.  This is
 	  bad news, as no new users will then be able to log in.
 	  Rebooting is the only fix, so the system just does it
 	  right away.
 
-     oouutt ooff mmbbuuffss:: mmaapp ffuullll
+     out of mbufs: map full
 	  The network has exhausted its private page map for net-
 	  work buffers.  This usually indicates that buffers are
 	  being lost, and rather than allow the system to slowly
@@ -192,7 +192,7 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-Printed 12/28/88	  July 11, 1987                         3
+Printed 1/9/94		  July 11, 1987                         3
 
 
 
@@ -230,7 +230,7 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
      can be read onto disk with _d_d(1).
 
      To analyze a dump you should begin by running _a_d_b(1) with
-     the --kk flag on the system load image and core dump.  If the
+     the -k flag on the system load image and core dump.  If the
      core image is the result of a panic, the panic message is
      printed.  Normally the command ``$c'' or ``$C'' will provide
      a stack trace from the point of the crash and this will pro-
@@ -258,7 +258,7 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
 
 
 
-Printed 12/28/88	  July 11, 1987                         4
+Printed 1/9/94		  July 11, 1987                         4
 
 
 
@@ -272,7 +272,7 @@ CRASH(8V)	    UNIX Programmer's Manual		CRASH(8V)
      A more complete discussion of system debugging is impossible
      here.  See, however, ``Using ADB to Debug the UNIX Kernel''.
 
-SSEEEE AALLSSOO
+SEE ALSO
      adb(1), ps(1), pstat(1), boot(8), fsck(8), reboot(8),
      savecore(8)
      _P_D_P-_1_1 _P_r_o_c_e_s_s_o_r _H_a_n_d_b_o_o_k for various processors for more
@@ -324,7 +324,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  July 11, 1987                         5
+Printed 1/9/94		  July 11, 1987                         5
 
 
 

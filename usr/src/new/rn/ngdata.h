@@ -10,6 +10,10 @@ EXT FILE *actfp INIT(Nullfp);	/* the active file */
 EXT bool writesoft INIT(FALSE);	/* rewrite the soft pointer file? */
 EXT int softtries INIT(0), softmisses INIT(0);
 
+#ifdef SERVER
+    EXT char active_name[256];
+#endif
+
 #ifdef CACHEFIRST
     EXT ART_NUM abs1st[MAXRCLINE];	/* 1st real article in newsgroup */
 #else
@@ -18,7 +22,7 @@ EXT int softtries INIT(0), softmisses INIT(0);
 # endif
 #endif
 
-EXT char *moderated;
+EXT	char	*moderated;
 
 void	ngdata_init();
 ART_NUM	getngsize();

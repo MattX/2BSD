@@ -5,14 +5,14 @@ DMC(4)		    UNIX Programmer's Manual		   DMC(4)
 
 
 
-NNAAMMEE
+NAME
      dmc - DEC DMC-11/DMR-11 point-to-point communications device
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNDDMMCC _d_m_c__c_o_n_t_r_o_l_l_e_r_s	   ## DDMMCC1111
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NDMC _d_m_c__c_o_n_t_r_o_l_l_e_r_s	   # DMC11
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _d_m_c interface provides access to a point-to-point com-
      munications device which runs at either 1 Mb/s or 56 Kb/s.
      DMC-11's communicate using the DEC DDCMP link layer proto-
@@ -41,7 +41,7 @@ DDEESSCCRRIIPPTTIIOONN
      SIFDSTADDR ioctl, before the interface will transmit or
      receive any packets.
 
-RROOUUTTIINNGG
+ROUTING
      The driver places a HOST entry in the kernel routing tables
      for the address given in the SIOCSIFDSTADDR ioctl.  To use
      the DMC as a link between local nets, the route to the
@@ -49,18 +49,18 @@ RROOUUTTIINNGG
      or by the use of the routing process _r_o_u_t_e_d(8) on each end
      of the link.
 
-DDIIAAGGNNOOSSTTIICCSS
-     ddmmcc%%dd:: bbaadd ccoonnttrrooll %%oo.  A bad parameter was passed to the
+DIAGNOSTICS
+     dmc%d: bad control %o.  A bad parameter was passed to the
      _d_m_c_l_o_a_d routine.
 
-     ddmmcc%%dd:: uunnkknnoowwnn aaddddrreessss ttyyppee %%dd.  An input packet was
+     dmc%d: unknown address type %d.  An input packet was
      received which contained a type of address unknown to the
      driver.
 
 
 
 
-Printed 12/28/88	 August 20, 1987			1
+Printed 1/9/94		 August 20, 1987			1
 
 
 
@@ -71,20 +71,20 @@ DMC(4)		    UNIX Programmer's Manual		   DMC(4)
 
 
 
-     DDMMCC ffaattaall eerrrroorr 00%%oo.  A fatal error in DDMCP occurred, caus-
+     DMC fatal error 0%o.  A fatal error in DDMCP occurred, caus-
      ing the device to be restarted.
 
-     DDMMCC ssoofftt eerrrroorr 00%%oo.  A non-fatal error in DDMCP has
+     DMC soft error 0%o.  A non-fatal error in DDMCP has
      occurred.
 
-     ddmmcc%%dd:: aaff%%dd nnoott ssuuppppoorrtteedd.  The interface was handed a mes-
+     dmc%d: af%d not supported.  The interface was handed a mes-
      sage which has addresses formatted in an unsuitable address
      family.
 
-SSEEEE AALLSSOO
+SEE ALSO
      intro(4N), inet(4F)
 
-BBUUGGSS
+BUGS
      The current version of the driver uses a link-level encapsu-
      lation so that multiple protocol types may be used.  It is
      thus incompatible with earlier drivers, including the 4.2BSD
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 August 20, 1987			2
+Printed 1/9/94		 August 20, 1987			2
 
 
 

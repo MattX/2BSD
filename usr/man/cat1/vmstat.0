@@ -5,22 +5,22 @@ VMSTAT(1)	    UNIX Programmer's Manual		VMSTAT(1)
 
 
 
-NNAAMMEE
+NAME
      vmstat - report virtual memory statistics
 
-SSYYNNOOPPSSIISS
-     vvmmssttaatt [ --ffssii ] [ drives ] [ interval [ count ] ]
+SYNOPSIS
+     vmstat [ -fsi ] [ drives ] [ interval [ count ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _V_m_s_t_a_t delves into the system and normally reports certain
      statistics kept about process, virtual memory, disk, trap
-     and cpu activity.	If given a --ff argument, it instead
+     and cpu activity.	If given a -f argument, it instead
      reports on the number of _f_o_r_k_s and _v_f_o_r_k_s since system
      startup and the number of pages of virtual memory involved
-     in each kind of fork.  If given a --ss argument, it instead
+     in each kind of fork.  If given a -s argument, it instead
      prints the contents of the _s_u_m structure, giving the total
      number of several kinds of paging related events which have
-     occurred since boot.  If given a --ii argument, it instead
+     occurred since boot.  If given a -i argument, it instead
      reports on the number of _i_n_t_e_r_r_u_p_t_s taken by each device
      since system startup.
 
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 March 15, 1986                         1
+Printed 1/9/94		 March 15, 1986                         1
 
 
 
@@ -104,10 +104,10 @@ VMSTAT(1)	    UNIX Programmer's Manual		VMSTAT(1)
      specific drives, their names may be supplied on the command
      line.
 
-FFIILLEESS
+FILES
      /dev/kmem, /vmunix
 
-SSEEEE AALLSSOO
+SEE ALSO
      _s_y_s_t_a_t(1), _i_o_s_t_a_t(1)
 
      The sections starting with ``Interpreting system activity''
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 March 15, 1986                         2
+Printed 1/9/94		 March 15, 1986                         2
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rsnmle.c	5.3	8/28/85
+ *	@(#)rsnmle.c	5.3.1	1/1/94
  */
 
 /*
@@ -238,7 +238,7 @@ int *subval;
 		cnt++;
 	}
 	UNGETC();
-#ifndef BSD2_10
+#ifndef pdp11
 	if(ch == 'EOF') return EOF;
 #endif
 	if(cnt == 0 ) return F_ERNMLIST;

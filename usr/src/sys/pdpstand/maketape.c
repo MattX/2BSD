@@ -4,24 +4,33 @@
  * specifies the terms and conditions for redistribution.
  *
  *	@(#)maketape.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *			    (2.11BSD Contel) 4/20/91
+ *		TU81s didn't like open/close/write at 1600bpi, use
+ *		ioctl to write tape marks instead.
  */
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/mtio.h>
 
 #define MAXB 30
 
+extern	int errno;
+
+char	buf[MAXB * 512];
+char	name[50];
+struct	mtop mtio;
+int	blksz, recsz;
 int	mt;
 int	fd;
-char	buf[MAXB*512];
-char	name[50];
-int	blksz;
-int	cnt, ii;
+int	cnt;
 
 main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int i, j, k;
+	register int i, j = 0, k = 0;
 	FILE *mf;
 
 	if (argc != 3) {
@@ -37,8 +46,6 @@ main(argc, argv)
 		exit(1);
 	}
 
-	j = 0;
-	k = 0;
 	for (;;) {
 		if ((i = fscanf(mf, "%s %d", name, &blksz))== EOF)
 			exit(0);
@@ -50,11 +57,12 @@ main(argc, argv)
 			fprintf(stderr, "Block size %d is invalid\n", blksz);
 			exit(1);
 		}
+		recsz = blksz * 512;	/* convert to bytes */
 		if (strcmp(name, "*") == 0) {
-			close(mt);
-			sleep(3);
-			mt = open(argv[1], 2);
-			j = 0;
+			mtio.mt_op = MTWEOF;
+			mtio.mt_count = 1;
+			if (ioctl(mt, MTIOCTOP, &mtio) < 0)
+				fprintf(stderr, "MTIOCTOP err: %d\n", errno);
 			k++;
 			continue;
 		}
@@ -75,14 +83,21 @@ main(argc, argv)
 		 *  with tape files)
 		 */
 
-		while ((cnt=read(fd, buf, 512*blksz)) == 512*blksz) {
+		while ((cnt=read(fd, buf, recsz)) == recsz) {
 			j++;
-			write(mt, buf, 512*blksz);
+			if (write(mt, buf, cnt) < 0) {
+				perror(argv[1]);
+				exit(1);
+			}
 		}
 		if (cnt>0) {
-			for (ii=cnt; ii < 512*blksz; ii++)
-				buf[ii] = '\0';
-			write(mt, buf, 512*blksz);
+			j++;
+			bzero(buf + cnt, recsz - cnt);
+			if (write(mt, buf, recsz) < 0) {
+				perror(argv[1]);
+				exit(1);
+			}
 		}
+	close(fd);
 	}
 }

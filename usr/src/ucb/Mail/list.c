@@ -1,12 +1,39 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)list.c	5.4 (Berkeley) 11/2/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)list.c	5.14 (Berkeley) 6/1/90";
+#endif
 
 #include "rcv.h"
 #include <ctype.h>
@@ -31,13 +58,17 @@ getmsglist(buf, vector, flags)
 	register int *ip;
 	register struct message *mp;
 
+	if (msgCount == 0) {
+		*vector = 0;
+		return 0;
+	}
 	if (markall(buf, flags) < 0)
 		return(-1);
 	ip = vector;
 	for (mp = &message[0]; mp < &message[msgCount]; mp++)
 		if (mp->m_flag & MMARK)
 			*ip++ = mp - &message[0] + 1;
-	*ip = NULL;
+	*ip = 0;
 	return(ip - vector);
 }
 
@@ -113,7 +144,7 @@ number:
 				if (check(lexnumber, f))
 					return(-1);
 				for (i = beg; i <= lexnumber; i++)
-					if ((message[i - 1].m_flag & MDELETED) == f)
+					if (f == MDELETED || (message[i - 1].m_flag & MDELETED) == 0)
 						mark(i);
 				beg = 0;
 				break;
@@ -193,6 +224,9 @@ number:
 			}
 			star++;
 			break;
+
+		case TERROR:
+			return -1;
 		}
 		tok = scan(&bufp);
 	}
@@ -238,7 +272,7 @@ number:
 					}
 				}
 				else {
-					if (sender(*np, i)) {
+					if (matchsender(*np, i)) {
 						mc++;
 						break;
 					}
@@ -319,8 +353,9 @@ evalcol(col)
 
 /*
  * Check the passed message number for legality and proper flags.
+ * If f is MDELETED, then either kind will do.  Otherwise, the message
+ * has to be undeleted.
  */
-
 check(mesg, f)
 {
 	register struct message *mp;
@@ -330,7 +365,7 @@ check(mesg, f)
 		return(-1);
 	}
 	mp = &message[mesg-1];
-	if ((mp->m_flag & MDELETED) != f) {
+	if (f != MDELETED && (mp->m_flag & MDELETED) != 0) {
 		printf("%d: Inappropriate message\n", mesg);
 		return(-1);
 	}
@@ -347,40 +382,86 @@ getrawlist(line, argv, argc)
 	char **argv;
 	int  argc;
 {
-	register char **ap, *cp, *cp2;
-	char linebuf[BUFSIZ], quotec;
-	register char **last;
+	register char c, *cp, *cp2, quotec;
+	int argn;
+	char linebuf[BUFSIZ];
 
-	ap = argv;
+	argn = 0;
 	cp = line;
-	last = argv + argc - 1;
-	while (*cp != '\0') {
-		while (any(*cp, " \t"))
-			cp++;
+	for (;;) {
+		for (; *cp == ' ' || *cp == '\t'; cp++)
+			;
+		if (*cp == '\0')
+			break;
+		if (argn >= argc - 1) {
+			printf(
+			"Too many elements in the list; excess discarded.\n");
+			break;
+		}
 		cp2 = linebuf;
-		quotec = 0;
-		if (any(*cp, "'\""))
-			quotec = *cp++;
-		if (quotec == 0)
-			while (*cp != '\0' && !any(*cp, " \t"))
-				*cp2++ = *cp++;
-		else {
-			while (*cp != '\0' && *cp != quotec)
-				*cp2++ = *cp++;
-			if (*cp != '\0')
-				cp++;
+		quotec = '\0';
+		while ((c = *cp) != '\0') {
+			cp++;
+			if (quotec != '\0') {
+				if (c == quotec)
+					quotec = '\0';
+				else if (c == '\\')
+					switch (c = *cp++) {
+					case '\0':
+						*cp2++ = *--cp;
+						break;
+					case '0': case '1': case '2': case '3':
+					case '4': case '5': case '6': case '7':
+						c -= '0';
+						if (*cp >= '0' && *cp <= '7')
+							c = c * 8 + *cp++ - '0';
+						if (*cp >= '0' && *cp <= '7')
+							c = c * 8 + *cp++ - '0';
+						*cp2++ = c;
+						break;
+					case 'b':
+						*cp2++ = '\b';
+						break;
+					case 'f':
+						*cp2++ = '\f';
+						break;
+					case 'n':
+						*cp2++ = '\n';
+						break;
+					case 'r':
+						*cp2++ = '\r';
+						break;
+					case 't':
+						*cp2++ = '\t';
+						break;
+					case 'v':
+						*cp2++ = '\v';
+						break;
+					}
+				else if (c == '^') {
+					c = *cp++;
+					if (c == '?')
+						*cp2++ = '\177';
+					/* null doesn't show up anyway */
+					else if (c >= 'A' && c <= '_' ||
+						 c >= 'a' && c <= 'z')
+						*cp2++ &= 037;
+					else
+						*cp2++ = *--cp;
+				} else
+					*cp2++ = c;
+			} else if (c == '"' || c == '\'')
+				quotec = c;
+			else if (c == ' ' || c == '\t')
+				break;
+			else
+				*cp2++ = c;
 		}
 		*cp2 = '\0';
-		if (cp2 == linebuf)
-			break;
-		if (ap >= last) {
-			printf("Too many elements in the list; excess discarded\n");
-			break;
-		}
-		*ap++ = savestr(linebuf);
+		argv[argn++] = savestr(linebuf);
 	}
-	*ap = NOSTR;
-	return(ap-argv);
+	argv[argn] = NOSTR;
+	return argn;
 }
 
 /*
@@ -414,7 +495,7 @@ scan(sp)
 	int quotec;
 
 	if (regretp >= 0) {
-		copy(stringstack[regretp], lexstring);
+		strcpy(lexstring, string_stack[regretp]);
 		lexnumber = numberstack[regretp];
 		return(regretstack[regretp--]);
 	}
@@ -426,7 +507,7 @@ scan(sp)
 	 * strip away leading white space.
 	 */
 
-	while (any(c, " \t"))
+	while (c == ' ' || c == '\t')
 		c = *cp++;
 
 	/*
@@ -479,21 +560,25 @@ scan(sp)
 	 */
 
 	quotec = 0;
-	if (any(c, "'\"")) {
+	if (c == '\'' || c == '"') {
 		quotec = c;
 		c = *cp++;
 	}
 	while (c != '\0') {
-		if (c == quotec)
+		if (c == quotec) {
+			cp++;
 			break;
-		if (quotec == 0 && any(c, " \t"))
+		}
+		if (quotec == 0 && (c == ' ' || c == '\t'))
 			break;
 		if (cp2 - lexstring < STRINGLEN-1)
 			*cp2++ = c;
 		c = *cp++;
 	}
-	if (quotec && c == 0)
+	if (quotec && c == 0) {
 		fprintf(stderr, "Missing %c\n", quotec);
+		return TERROR;
+	}
 	*sp = --cp;
 	*cp2 = '\0';
 	return(TSTRING);
@@ -509,7 +594,7 @@ regret(token)
 		panic("Too many regrets");
 	regretstack[regretp] = token;
 	lexstring[STRINGLEN-1] = '\0';
-	stringstack[regretp] = savestr(lexstring);
+	string_stack[regretp] = savestr(lexstring);
 	numberstack[regretp] = lexnumber;
 }
 
@@ -529,24 +614,19 @@ scaninit()
 
 first(f, m)
 {
-	register int mesg;
 	register struct message *mp;
 
-	mesg = dot - &message[0] + 1;
+	if (msgCount == 0)
+		return 0;
 	f &= MDELETED;
 	m &= MDELETED;
-	for (mp = dot; mp < &message[msgCount]; mp++) {
+	for (mp = dot; mp < &message[msgCount]; mp++)
 		if ((mp->m_flag & m) == f)
-			return(mesg);
-		mesg++;
-	}
-	mesg = dot - &message[0];
-	for (mp = dot-1; mp >= &message[0]; mp--) {
+			return mp - message + 1;
+	for (mp = dot-1; mp >= &message[0]; mp--)
 		if ((mp->m_flag & m) == f)
-			return(mesg);
-		mesg--;
-	}
-	return(NULL);
+			return mp - message + 1;
+	return 0;
 }
 
 /*
@@ -554,14 +634,14 @@ first(f, m)
  * if so.
  */
 
-sender(str, mesg)
+matchsender(str, mesg)
 	char *str;
 {
-	register struct message *mp;
 	register char *cp, *cp2, *backup;
 
-	mp = &message[mesg-1];
-	backup = cp2 = nameof(mp, 0);
+	if (!*str)	/* null string matches nothing instead of everything */
+		return 0;
+	backup = cp2 = nameof(&message[mesg - 1], 0);
 	cp = str;
 	while (*cp2) {
 		if (*cp == 0)

@@ -1,5 +1,5 @@
-char *xxxvers =  "\n@(#) MAKE.  VERSION 2.61     13 AUGUST 1980\n" ;
-static	char *sccsid = "@(#)ident.c	4.1 (Berkeley) 81/02/28";
+/* char *xxxvers =  "\n@(#) MAKE.  VERSION 2.61     13 AUGUST 1980\n" ; */
+/* static	char *sccsid = "@(#)ident.c	4.1 (Berkeley) 81/02/28"; */
 
 /*
 2.1 4/24/76	Base version

@@ -1,8 +1,9 @@
-#ifndef	lint
-static char *sccsid = "@(#)find.c	4.17 (Berkeley) 1/31/86";
+#if	defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)find.c	4.17.2 (2.11BSD GTE) 4/21/94";
 #endif
 
 #include <stdio.h>
+#include <fcntl.h>
 #include <sys/param.h>
 #include <sys/dir.h>
 #include <sys/stat.h>
@@ -45,7 +46,7 @@ struct	anode	*exp(),
 		*e3(),
 		*mk();
 char	*nxtarg();
-char	Home[MAXPATHLEN + 1];
+int	Home;
 long	Blocks;
 char *rindex();
 char *sbrk();
@@ -94,17 +95,11 @@ main(argc, argv)
 	}
 #endif
 	time(&Now);
-#ifdef	SUID_PWD
-	pwd = popen("pwd", "r");
-	fgets(Home, sizeof Home, pwd);
-	pclose(pwd);
-	Home[strlen(Home) - 1] = '\0';
-#else
-	if (getwd(Home) == NULL) {
-		fprintf(stderr, "find: Can't get current working directory\n");
+	Home = open(".", O_RDONLY);
+	if (Home < 0) {
+		fprintf(stderr, "Can't open .\n");
 		exit(1);
 	}
-#endif
 	Argc = argc; Argv = argv;
 	if(argc<3) {
 usage:		fprintf(stderr, "Usage: find path-list predicate-list\n");
@@ -125,7 +120,7 @@ usage:		fprintf(stderr, "Usage: find path-list predicate-list\n");
 	}
 	for(Pi = 1; Pi < paths; ++Pi) {
 		sp = 0;
-		chdir(Home);
+		fchdir(Home);
 		strcpy(Pathname, Argv[Pi]);
 		if(cp = rindex(Pathname, '/')) {
 			sp = cp + 1;
@@ -571,7 +566,7 @@ doex(com)
 		break;
 
 	case 0:
-		chdir(Home);
+		fchdir(Home);
 		execvp(nargv[0], nargv, np);
 		write(2, "find: Can't execute ", 20);
 		perror(nargv[0]);
@@ -666,7 +661,7 @@ descend(name, fname, exlist)
 		Fname = endofname+1;
 		if(!descend(name, Fname, exlist)) {
 			*endofname = '\0';
-			chdir(Home);
+			fchdir(Home);
 			if(chdir(Pathname) == -1) {
 				fprintf(stderr, "find: bad directory tree\n");
 				exit(1);
@@ -944,13 +939,6 @@ struct	utmp utmp;
 #define NUID	64
 #define NGID	300
 
-#ifdef BSD2_10
-#define outrangename	Oname
-#define outrangeuid	Ouid
-#define outrangegroup	Ogroup
-#define outrangegid	Ogid
-#endif BSD2_10
-
 struct ncache {
 	int	uid;
 	char	name[NMAX+1];
@@ -972,9 +960,8 @@ getname(uid)
 	register struct passwd *pw;
 	struct passwd *getpwent();
 	register int cp;
-	extern int _pw_stayopen;
 
-	_pw_stayopen = 1;
+	setpassent(1);
 
 #if	(((NUID) & ((NUID) - 1)) != 0)
 	cp = uid % (NUID);
@@ -1046,9 +1033,8 @@ getuid(username)
 	register struct passwd *pw;
 	struct passwd *getpwnam();
 #ifndef	NO_PW_STAYOPEN
-	extern int _pw_stayopen;
 
-	_pw_stayopen = 1;
+	setpassent(1);
 #endif
 
 	pw = getpwnam(username);
@@ -1195,7 +1181,7 @@ list(file, stp)
 	else
 		sprintf(ftime, "%-12.12s", cp + 4);
 
-#ifdef BSD2_10
+#ifdef pdp11
 	printf("%5u %4ld %s %2d %s%s%s %s %s%s%s\n",
 #else
 	printf("%5lu %4ld %s %2d %s%s%s %s %s%s%s\n",

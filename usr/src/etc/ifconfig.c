@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)ifconfig.c	4.20 (Berkeley) 4/6/87";
-#endif not lint
+static char sccsid[] = "@(#)ifconfig.c	4.20.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -50,7 +48,7 @@ extern	int errno;
 int	setifflags(), setifaddr(), setifdstaddr(), setifnetmask();
 int	setifmetric(), setifbroadaddr(), setifipdst();
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define	NEXTARG		0x7fff
 #else
 #define	NEXTARG		0xffffff

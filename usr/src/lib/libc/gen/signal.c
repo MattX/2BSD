@@ -18,7 +18,7 @@ signal(s, a))()
 	int s, (*a)();
 {
 	struct sigvec osv, sv;
-	static int mask[NSIG];
+	static long mask[NSIG];
 	static int flags[NSIG];
 
 	sv.sv_handler = a;

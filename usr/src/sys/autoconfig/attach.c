@@ -3,13 +3,20 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)attach.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)attach.c	2.1 (2.11BSD GTE) 1/10/94
  */
 
 /*
  * Attach the passed device:
  *	Patch the interrupt vector
  *	Call the device attach routine
+ *
+ *	Call (if present) the vector setting routine, passing the
+ *	vector from /etc/dtab to the driver.  At present only the
+ *	MSCP and TMSCP drivers have routines to do this.  The detach()
+ *	routine was removed because it was superfluous.  The kernel no
+ *	longer calls every driver's XXroot() entry point at start up time,
+ *	thus there is nothing to detach any more.
  */
 
 #include <machine/psl.h>
@@ -58,7 +65,7 @@ DTAB	*dp;
 			printf(" no address found for %s\n", sp->s_str);
 			exit(AC_SINGLE);
 		}
-		write_vec(addr, sp->s_nl->n_value, pry(dp) + unit);
+		write_vector(addr, sp->s_nl->n_value, pry(dp) + unit);
 		if (num_vec == NVECTOR - 1) {
 			printf("Too many vectors to configure\n");
 			exit(AC_SINGLE);
@@ -68,6 +75,14 @@ DTAB	*dp;
 		addr += IVSIZE;
 	}
 	prdev(dp);
+	if (dp->dt_setvec && dp->dt_setvec->n_value) {
+		ret = ucall(PSL_BR0,dp->dt_setvec->n_value,unit,dp->dt_vector);
+		if (ret == -1) {
+			printf(" vectorset failed\n");
+			exit(AC_SINGLE);
+		}
+	printf(" vectorset");
+	}
 	printf(" attached\n");
 }
 
@@ -99,7 +114,7 @@ DTAB	*dp;
 	}
 }
 
-write_vec(addr,value,pri)
+write_vector(addr,value,pri)
 int	addr,
 	value,
 	pri;
@@ -151,21 +166,4 @@ DTAB	*dp;
 	else if (want_unit <= dn->d_unit)
 		return(ERR);
 	return(dn->d_unit = dp->dt_unit = want_unit);
-}
-
-/*
- * Call the device-attach routine with a 0 addr to indicate that the device
- * isn't present (needed for devices that might be root devices and thus must
- * have addr/vector initialized).  Only done if the unit number was not a
- * wildcard.
- */
-detach(dp)
-DTAB	*dp;
-{
-	if (dp->dt_unit == -1)
-		return;
-	if (debug)
-		printf("detach: ucall %o(PSL_BR0, %o, %o)\n",dp->dt_attach->n_value,0,dp->dt_unit);
-	else
-		ucall(PSL_BR0,dp->dt_attach->n_value,0,dp->dt_unit);
 }

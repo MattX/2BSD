@@ -2,26 +2,40 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)chdir.2	6.3 (Berkeley) 8/26/85
+.\"	@(#)chdir.2	6.3.1 (2.11BSD GTE) 4/21/94
 .\"
-.TH CHDIR 2 "August 26, 1985"
+.TH CHDIR 2 "April 21, 1994"
 .UC 4
 .SH NAME
-chdir \- change current working directory
+chdir, fchdir \- change current working directory
 .SH SYNOPSIS
 .nf
 .ft B
 chdir(path)
 char *path;
+
+fchdir(fd)
+int fd;
 .ft R
 .fi
 .SH DESCRIPTION
-.I Path
-is the pathname of a directory.
-.I Chdir
-causes this directory
+The
+.B path
+argument points to the pathname of a directory.
+The
+.B fd
+argument is a file descriptor which references a directory.
+The
+.I chdir
+function causes this directory
 to become the current working directory,
 the starting point for path names not beginning with ``/''.
+.PP
+The
+.I fchdir
+function causes the directory referenced by \fBfd\fP to become
+the current working directory, the starting point for path searches of
+pathnames not beginning with a slahs, '/'.
 .PP
 In order for a directory to become the current directory,
 a process must have execute (search) access to the directory.
@@ -41,8 +55,8 @@ A component of the path prefix is not a directory.
 The pathname contains a character with the high-order bit set.
 .TP 15
 [ENAMETOOLONG]
-A component of a pathname exceeded 255 characters,
-or an entire path name exceeded 1023 characters.
+A component of a pathname exceeded 63 characters,
+or an entire path name exceeded 255 characters.
 .TP 15
 [ENOENT]
 The named directory does not exist.
@@ -60,5 +74,19 @@ points outside the process's allocated address space.
 .TP 15
 [EIO]
 An I/O error occurred while reading from or writing to the file system.
+.PP
+.I Fchdir
+will fail and the current working directory will be unchanged if
+one or more of the following are true:
+.TP 15
+[EACCES]
+Search permission is denied for the directory referenced by the
+file descriptor.
+.TP 15
+[ENOTDIR]
+The file descriptor \fBfd\fP does not reference a directory.
+.TP 15
+[EBADF]
+The argument \fBfd\fP is not a valid file descriptor.
 .SH "SEE ALSO"
 chroot(2)

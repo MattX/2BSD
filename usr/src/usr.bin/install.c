@@ -15,20 +15,17 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1987 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)install.c	5.12 (Berkeley) 7/6/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)install.c	5.12.1 (2.11BSD GTE) 1/3/94";
+#endif
 
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include <a.out.h>
 #include <grp.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -173,103 +170,48 @@ install(from_name, to_name, isdir)
 			PERROR("install: open: ", from_name);
 			exit(1);
 		}
-		if (dostrip)
-			strip(from_fd, from_name, to_fd, to_name);
-		else
-			copy(from_fd, from_name, to_fd, to_name);
+		copy(from_fd, from_name, to_fd, to_name);
 		(void)close(from_fd);
-		if (!docopy)
-			(void)unlink(from_name);
 	}
-	/* set owner, group, mode for target */
-	if (fchmod(to_fd, mode)) {
-		PERROR("install: fchmod: ", to_name);
-		bad();
-	}
-	if ((group || owner) && fchown(to_fd, owner ? pp->pw_uid : -1,
-	    group ? gp->gr_gid : -1)) {
-		PERROR("install: fchown: ", to_name);
+	if (dostrip)
+		strip(to_name);
+	/*
+	 * set owner, group, mode for target; do the chown first,
+	 * chown may lose the setuid bits.
+	 */
+	if ((group || owner) &&
+	    fchown(to_fd, owner ? pp->pw_uid : -1, group ? gp->gr_gid : -1) ||
+	    fchmod(to_fd, mode)) {
+		PERROR("install: chown/chmod", to_name);
 		bad();
 	}
 	(void)close(to_fd);
+	if (!docopy && !devnull && unlink(from_name)) {
+		PERROR("install: unlink", from_name);
+		exit(1);
+	}
 }
 
 /*
  * strip --
- *	copy file, strip(1)'ing it at the same time
+ *	use strip(1) to strip the target file
  */
-static
-strip(from_fd, from_name, to_fd, to_name)
-	register int from_fd, to_fd;
-	char *from_name, *to_name;
+strip(to_name)
+	char *to_name;
 {
-	typedef struct exec EXEC;
-	register long size;
-	register int n;
-	EXEC head;
-	char buf[MAXBSIZE];
-	off_t lseek();
+	int status;
 
-	if (read(from_fd, (char *)&head, sizeof(head)) < 0 || N_BADMAG(head)) {
-		fprintf(stderr, "install: %s not in a.out format.\n", from_name);
+	switch (vfork()) {
+	case -1:
+		PERROR("install: fork", "");
 		bad();
-	}
-#ifdef BSD2_10
-	if (head.a_syms || !(head.a_flag & 1)) {
-		size = (long)head.a_text + head.a_data;
-		head.a_syms = 0;
-		head.a_flag |= 1;
-		if (write(to_fd, (char *)&head, sizeof(EXEC)) != sizeof(EXEC)) {
-			PERROR("install: write: ", to_name);
+	case 0:
+		execl("/bin/strip", "strip", to_name, (char *)NULL);
+		PERROR("install: execl", "strip");
+		_exit(1);
+	default:
+		if (wait(&status) == -1 || status)
 			bad();
-		}
-		if (head.a_magic == A_MAGIC5 || head.a_magic == A_MAGIC6) {
-			typedef struct ovlhdr	OVLHDR;
-			register int	ovlcnt;
-			OVLHDR	ovlhdr;
-
-			if (read(from_fd, (char *)&ovlhdr, sizeof (ovlhdr)) < 0) {
-				fprintf(stderr, "install: %s not in a.out format.\n", from_name);
-				bad();
-			}
-			for (ovlcnt = 0; ovlcnt < NOVL; ovlcnt++)
-				size += ovlhdr.ov_siz[ovlcnt];
-			if (write(to_fd, (char *)&ovlhdr, sizeof(OVLHDR)) != sizeof(OVLHDR)) {
-				PERROR("install: write: ", to_name);
-				bad();
-			}
-		}
-#else
-	if (head.a_syms || head.a_trsize || head.a_drsize) {
-		size = (long)head.a_text + head.a_data;
-		head.a_syms = head.a_trsize = head.a_drsize = 0;
-		if (head.a_magic == ZMAGIC)
-			size += getpagesize() - sizeof(EXEC);
-		if (write(to_fd, (char *)&head, sizeof(EXEC)) != sizeof(EXEC)) {
-			PERROR("install: write: ", to_name);
-			bad();
-		}
-#endif
-		for (; size; size -= n)
-			/* sizeof(buf) guaranteed to fit in an int */
-			if ((n = read(from_fd, buf, (int)MIN(size, sizeof(buf)))) <= 0)
-				break;
-			else if (write(to_fd, buf, n) != n) {
-				PERROR("install: write: ", to_name);
-				bad();
-			}
-		if (size) {
-			fprintf(stderr, "install: read: %s: premature EOF.\n", from_name);
-			bad();
-		}
-		if (n == -1) {
-			PERROR("install: read: ", from_name);
-			bad();
-		}
-	}
-	else {
-		(void)lseek(from_fd, 0L, L_SET);
-		copy(from_fd, from_name, to_fd, to_name);
 	}
 }
 

@@ -23,6 +23,7 @@ then
 fi
 if [ "$1" = fastboot ]
 then
+	echo ''
 	echo Fast boot ... skipping disk checks		>/dev/console 2>&1
 elif [ "$1" = autoboot ]
 then
@@ -63,22 +64,11 @@ fi
 # attempt to rationally recover the passwd file if needed
 if [ -s /etc/ptmp ]
 then
-	if [ -s /etc/passwd ]
-	then
-		ls -l /etc/passwd /etc/ptmp		>/dev/console 2>&1
-		rm -f /etc/ptmp		# should really remove the shorter
-	else
-		echo 'passwd file recovered from ptmp'	>/dev/console 2>&1
-		mv /etc/ptmp /etc/passwd
-	fi
-elif [ -r /etc/ptmp ]
-then
-	echo 'removing passwd lock file'		>/dev/console 2>&1
-	rm -f /etc/ptmp
+ 	echo 'password file may be incorrect' > /dev/console
 fi
 
 umount -a
-: >/etc/mtab
+cp /dev/null /etc/mtab
 mount -a						>/dev/console 2>&1
 
 if [ ${RAMSIZE} != 0 ]
@@ -87,31 +77,30 @@ then
 	chmod ${RAMMODE} ${RAMFS}
 fi
 
-			echo -n 'checking quotas:'	>/dev/console 2>&1
-quotacheck -a -p					>/dev/console 2>&1
-			echo ' done.'			>/dev/console 2>&1
-quotaon -a
-
-ps -U							>/dev/console 2>&1
+	echo -n 'checking quotas:'	>/dev/console 2>&1
+/etc/quotacheck -a -p			>/dev/console 2>&1
+	echo ' done.'			>/dev/console 2>&1
+/etc/quotaon -a
+ps -U					>/dev/console 2>&1
 rm -f /etc/nologin
 rm -f /usr/spool/uucp/LCK.*
 rm -f /usr/spool/uucp/STST/*
 chmod 666 /dev/tty[pqrs]*
 
-# set hostname and UCB_NET, turn on network
+# set hostname and INET, turn on network
 . /etc/netstart
 
-if [ $UCB_NET = YES ]; then
+if [ $INET = YES ]; then
 			echo 'starting system logger'	>/dev/console 2>&1
 	rm -f /dev/log
-	syslogd
+	/etc/syslogd
 fi
 
 # /etc/crash should be a symbolic link to the crash directory
 # if core dumps are to be saved.
 if [ -d /etc/crash ]; then
 	echo		'checking for core dump... '	>/dev/console 2>&1
-	savecore /etc/crash				>/dev/console 2>&1
+	/etc/savecore /etc/crash			>/dev/console 2>&1
 fi
 
 			echo preserving editor files 	>/dev/console 2>&1
@@ -120,42 +109,42 @@ fi
 (cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
 
 			echo -n standard daemons:	>/dev/console 2>&1
-update;			echo -n ' update'		>/dev/console 2>&1
-cron;			echo -n ' cron'			>/dev/console 2>&1
-accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console 2>&1
+/etc/update;		echo -n ' update'		>/dev/console 2>&1
+/etc/cron;		echo -n ' cron'			>/dev/console 2>&1
+/etc/accton /usr/adm/acct;	echo -n ' accounting'	>/dev/console 2>&1
 			echo '.'			>/dev/console 2>&1
 
-if [ $UCB_NET = YES ]; then
+if [ $INET = YES ]; then
 		echo -n starting network daemons:	>/dev/console 2>&1
 
 	# $routedflags is imported from /etc/netstart;
 	# if $routedflags == NO, routed isn't run.
 	if [ "${routedflags-NO}" != NO ]; then
-		routed $routedflags; echo -n ' routed'	>/dev/console 2>&1
+		/etc/routed $routedflags; echo -n ' routed' >/dev/console 2>&1
 	fi
 
 	# $named is imported from /etc/netstart;
 	# if $named is set to something other than NO, named is run.
 	if [ "${named-NO}" != NO ]; then
-		named;			echo -n ' named'>/dev/console 2>&1
+		/etc/named;		echo -n ' named'>/dev/console 2>&1
 	fi
-	inetd;			echo -n ' inetd'	>/dev/console 2>&1
+	/etc/inetd;		echo -n ' inetd'	>/dev/console 2>&1
 
 	# $rwhod is imported from /etc/netstart;
 	# if $rwhod is set to something other than NO, rwhod is run.
-	if [ "${rwhod-NO}" != NO ]; then
-		rwhod;		echo -n ' rwhod'	>/dev/console 2>&1
+	if [ "${rwhod}" != NO ]; then
+		/etc/rwhod;	echo -n ' rwhod'	>/dev/console 2>&1
 	fi
 	rm -f /dev/printer
 	/usr/lib/lpd;		echo -n ' printer'	>/dev/console 2>&1
 				echo '.'		>/dev/console 2>&1
 else
 	# lpd will run even with out networking.
-		echo starting lpd			>/dev/console 2>&1
+	echo starting lpd			>/dev/console 2>&1
 	/usr/lib/lpd
 fi
 
-. /etc/rc.local
+/etc/rc.local
 
-			date				>/dev/console 2>&1
+date				>/dev/console 2>&1
 exit 0

@@ -5,20 +5,20 @@ ABS(3)		    UNIX Programmer's Manual		   ABS(3)
 
 
 
-NNAAMMEE
+NAME
      abs - integer absolute value
 
-SSYYNNOOPPSSIISS
-     aabbss((ii))
-     iinntt ii;;
+SYNOPSIS
+     abs(i)
+     int i;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A_b_s returns the absolute value of its integer operand.
 
-SSEEEE AALLSSOO
+SEE ALSO
      floor(3M) for _f_a_b_s
 
-BBUUGGSS
+BUGS
      Applying the _a_b_s function to the most negative integer gen-
      erates a result which is the most negative integer.  That
      is,
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

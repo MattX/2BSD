@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 1/29/87
+#	@(#)Makefile	5.6.1 (2.11BSD GTE) 4/9/94
 #
 #	crt0	Normal C run time startoff
 #	mcrt0	C run time start off for profiling, ``prof'' conventions
@@ -13,26 +13,25 @@ DESTDIR=
 SRCS=	crt0.s mon.c mcount.s gmon.c
 #OBJS=	crt0.o mcrt0.o gcrt0.o mon.o gmon.o
 OBJS=	crt0.o mcrt0.o mon.o
+CFLAGS=	-O ${DEFS}
 TAGSFILE=tags
 
 all: ${OBJS}
 
 install: ${OBJS}
-	mv crt0.o ${DESTDIR}/lib/crt0.o
-	mv mcrt0.o ${DESTDIR}/lib/mcrt0.o
-#	mv gcrt0.o ${DESTDIR}/usr/lib/gcrt0.o
+	install -c -m 0644 crt0.o ${DESTDIR}/lib/crt0.o
+	install -c -m 0644 mcrt0.o ${DESTDIR}/lib/mcrt0.o
+#	install -c -m 0644 gcrt0.o ${DESTDIR}/usr/lib/gcrt0.o
 
 crt0.o:	crt0.s
-	/lib/cpp ${DEFS} ${DFLAGS} crt0.s | sed 's;^#;/;' > x.s
-	as -o x.o x.s
+	/lib/cpp ${DEFS} ${DFLAGS} crt0.s | sed 's;^#;/;' | as -o x.o
 	ld -x -r -o crt0.o x.o
-	rm -f x.s x.o
+	rm -f x.o
 
 moncrt0.o: crt0.s
-	/lib/cpp ${DEFS} ${DFLAGS} -DMCRT0 crt0.s | sed 's;^#;/;' > x.s
-	as -o x.o x.s
+	/lib/cpp ${DEFS} ${DFLAGS} -DMCRT0 crt0.s | sed 's;^#;/;' | as -o x.o
 	ld -x -r -o moncrt0.o x.o
-	rm -f x.s x.o
+	rm -f x.o
 
 gcrt0.o: moncrt0.o gmon.o
 	ld -x -r -o gcrt0.o moncrt0.o gmon.o
@@ -41,7 +40,7 @@ mcrt0.o: moncrt0.o mon.o
 	ld -x -r -o mcrt0.o moncrt0.o mon.o
 
 mon.o: mon.c mcount.s mon.ex
-	cc -S ${DEFS} ${DFLAGS} mon.c
+	cc ${CFLAGS} -S ${DFLAGS} mon.c
 	ex - mon.s < mon.ex
 	cat mon.s mcount.s > x.s
 	/lib/cpp ${DEFS} ${DFLAGS} x.s | sed 's;^#;/;' > xx.s
@@ -50,7 +49,7 @@ mon.o: mon.c mcount.s mon.ex
 	rm -f x.o x.s xx.s mon.s
 
 gmon.o: gmon.c gmon.h gmon.ex
-	cc -S ${DEFS} ${DFLAGS} gmon.c
+	cc ${CFLAGS} -S ${DFLAGS} gmon.c
 	ex - gmon.s < gmon.ex
 	as -o x.o gmon.s
 	ld -x -r -o gmon.o x.o

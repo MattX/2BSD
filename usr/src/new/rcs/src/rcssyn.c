@@ -2,7 +2,7 @@
  *                     RCS file input
  */
 #ifndef lint
-static char rcsid[]= "$Id: rcssyn.c,v 4.4 87/12/18 11:46:16 narten Exp $ Purdue CS";
+static char rcsid[]= "$Id: rcssyn.c,v 4.4.1 94/1/1 11:46:16 narten Exp $ Purdue CS";
 #endif
 /*********************************************************************************
  *                       Syntax Analysis.
@@ -84,11 +84,6 @@ static char rcsid[]= "$Id: rcssyn.c,v 4.4 87/12/18 11:46:16 narten Exp $ Purdue 
 /* version SYNTEST inputs a RCS file and then prints out its internal
  * data structures.
 */
-
-#ifdef BSD2_10
-#define Kbranch	 Kbrch
-#define Kbrances Kbrchs
-#endif
 
 #include "rcsbase.h"
 extern FILE * finptr;        /*RCS input file*/

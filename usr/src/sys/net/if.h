@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)if.h	7.2 (Berkeley) 12/30/87
+ *	@(#)if.h	7.2.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
@@ -147,7 +147,7 @@ struct ifnet {
 	} \
 }
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define	IFQ_MAXLEN	15
 #else
 #define	IFQ_MAXLEN	50

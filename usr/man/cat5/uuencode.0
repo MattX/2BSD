@@ -5,10 +5,10 @@ UUENCODE(5)	    UNIX Programmer's Manual	      UUENCODE(5)
 
 
 
-NNAAMMEE
+NAME
      uuencode - format of an encoded uuencode file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Files output by _u_u_e_n_c_o_d_e(_1_C) consist of a header line, fol-
      lowed by a number of body lines, and a trailer line.
      _U_u_d_e_c_o_d_e(_1_C) will ignore any lines preceding the header or
@@ -41,7 +41,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      The trailer line consists of "end" on a line by itself.
 
-SSEEEE AALLSSOO
+SEE ALSO
      uuencode(1C), uudecode(1C), uusend(1C), uucp(1C), mail(1)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

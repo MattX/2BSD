@@ -15,8 +15,10 @@
  * Hacked by m.d. marquez to allow pipe into stdin and add -s (sed) option.
  */
 
+#if	!defined(lint) && !defined(pdp11)
 static char rcsid[] =
     "$Header: shortc.c,v 1.2 88/09/06 01:30:58 bin Exp Locker: bin $";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
@@ -24,7 +26,7 @@ static char rcsid[] =
 
 #define SYMLEN  7           /* symbols must be unique within ... chars */
 #define MAXLEN  128         /* need a limit for tokenizing */
-#define HASHSIZ 2048        /* power of 2; not an upper limit */
+#define HASHSIZ 512        /* power of 2; not an upper limit */
 
 typedef struct Symbol symbol;
 struct Symbol {
@@ -53,10 +55,11 @@ int	sedout = 0;	    /* want sed output */
 int	read_file = 0;	    /* flag if read file arguments */
 
 symbol  *lookup();
-char    *token(), *truncname();
+char    *token(), *truncname(), *curarg = "stdin";
 char    *myalloc();
 
 extern  char *malloc();
+extern	int  errno;
 
 /*
  * entry point
@@ -65,6 +68,10 @@ main(argc, argv)
 register argc;
 register char **argv;
 {
+	char	obuf[BUFSIZ];
+
+	setbuf(stdout, obuf);
+
 	while (--argc > 0)
 	    doarg(*++argv);
 
@@ -81,6 +88,8 @@ register char **argv;
 doarg(arg)
 char *arg;
 {
+	char	ibuf[BUFSIZ];
+
 	if (*arg == '-') {
 	    arg++;
 	    if (isdigit(*arg))
@@ -97,10 +106,12 @@ char *arg;
 	}
 
 	if (freopen(arg, "r", stdin) == NULL) {
-	    perror(arg);
+	    fprintf(stderr, "freopen(%s) err: %d\n", errno);
 	    return;
 	}
+	setbuf(stdin, ibuf);
 
+	curarg = arg;
 	process();
 
 	read_file++;
@@ -328,7 +339,7 @@ myalloc(n)
 	register char *p;
 
 	if (!(p = malloc((unsigned)n))) {
-	    fprintf(stderr, "Out of space\n");
+	    fprintf(stderr, "Out of space in %s\n", curarg);
 	    exit(1);
 	}
 	return p;

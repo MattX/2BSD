@@ -5,19 +5,19 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-NNAAMMEE
+NAME
      getopt - get option letter from argv
 
-SSYYNNOOPPSSIISS
-     iinntt ggeettoopptt((aarrggcc,, aarrggvv,, ooppttssttrriinngg))
-     iinntt aarrggcc;;
-     cchhaarr ****aarrggvv;;
-     cchhaarr **ooppttssttrriinngg;;
+SYNOPSIS
+     int getopt(argc, argv, optstring)
+     int argc;
+     char **argv;
+     char *optstring;
 
-     eexxtteerrnn cchhaarr **ooppttaarrgg;;
-     eexxtteerrnn iinntt ooppttiinndd;;
+     extern char *optarg;
+     extern int optind;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_o_p_t returns the next option letter in _a_r_g_v that matches a
      letter in _o_p_t_s_t_r_i_n_g.  _O_p_t_s_t_r_i_n_g is a string of recognized
      option letters; if a letter is followed by a colon, the
@@ -31,19 +31,19 @@ DDEESSCCRRIIPPTTIIOONN
      _g_e_t_o_p_t.
 
      When all options have been processed (i.e., up to the first
-     non-option argument), _g_e_t_o_p_t returns EEOOFF.	The special
-     option ---- may be used to delimit the end of the options; EEOOFF
-     will be returned, and ---- will be skipped.
+     non-option argument), _g_e_t_o_p_t returns EOF.	The special
+     option -- may be used to delimit the end of the options; EOF
+     will be returned, and -- will be skipped.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      _G_e_t_o_p_t prints an error message on _s_t_d_e_r_r and returns a ques-
-     tion mark (??) when it encounters an option letter not
+     tion mark (?) when it encounters an option letter not
      included in _o_p_t_s_t_r_i_n_g.
 
-EEXXAAMMPPLLEE
+EXAMPLE
      The following code fragment shows how one might process the
      arguments for a command that can take the mutually exclusive
-     options aa and bb, and the options ff and oo, both of which
+     options a and b, and the options f and o, both of which
      require arguments:
 
 	  main(argc, argv)
@@ -60,7 +60,7 @@ EEXXAAMMPPLLEE
 
 
 
-Printed 12/28/88	  May 27, 1986				1
+Printed 1/9/94		  May 27, 1986				1
 
 
 
@@ -109,12 +109,12 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 	       .
 	  }
 
-HHIISSTTOORRYY
+HISTORY
      Written by Henry Spencer, working from a Bell Labs manual
      page.  Modified by Keith Bostic to behave more like the Sys-
      tem V version.
 
-BBUUGGSS
+BUGS
      It is not obvious how `-' standing alone should be treated;
      this version treats it as a non-option argument, which is
      not always right.
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 27, 1986				2
+Printed 1/9/94		  May 27, 1986				2
 
 
 
@@ -192,7 +192,7 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-Printed 12/28/88	  May 27, 1986				3
+Printed 1/9/94		  May 27, 1986				3
 
 
 

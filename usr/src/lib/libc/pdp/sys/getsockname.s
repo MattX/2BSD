@@ -4,11 +4,11 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef SYSLIBC_SCCS
-_sccsid: <@(#)getsockname.s	2.5 (Berkeley) 1/29/87\0>
+#if	defined(SYSLIBC_SCCS) && !defined(lint)
+_sccsid: <@(#)getsockname.s	2.6 (2.11BSD GTE) 1/2/94\0>
 	.even
 #endif SYSLIBC_SCCS
 
 #include "SYS.h"
 
-PSEUDO(getsname,getsockname,norm)
+PSEUDO(getsockname,getsockname,norm)

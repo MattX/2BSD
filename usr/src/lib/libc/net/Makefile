@@ -54,64 +54,56 @@ depend:
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-getnbyaddr.o: getnbyaddr.c /usr/include/netdb.h /usr/include/short_names.h
-getnbyname.o: getnbyname.c /usr/include/netdb.h /usr/include/short_names.h
+getnbyaddr.o: getnbyaddr.c /usr/include/netdb.h
+getnbyname.o: getnbyname.c /usr/include/netdb.h
 getnent.o: getnent.c /usr/include/stdio.h /usr/include/sys/types.h
-getnent.o: /usr/include/sys/socket.h /usr/include/short_names.h
-getnent.o: /usr/include/arpa/inet.h /usr/include/short_names.h
-getnent.o: /usr/include/netdb.h /usr/include/short_names.h /usr/include/ctype.h
+getnent.o: /usr/include/sys/socket.h /usr/include/arpa/inet.h
+getnent.o: /usr/include/netdb.h /usr/include/ctype.h
 getpent.o: getpent.c /usr/include/stdio.h /usr/include/sys/types.h
-getpent.o: /usr/include/sys/socket.h /usr/include/short_names.h
-getpent.o: /usr/include/netdb.h /usr/include/short_names.h /usr/include/ctype.h
-getpname.o: getpname.c /usr/include/netdb.h /usr/include/short_names.h
-getproto.o: getproto.c /usr/include/netdb.h /usr/include/short_names.h
-getsbyname.o: getsbyname.c /usr/include/netdb.h /usr/include/short_names.h
-getsbyport.o: getsbyport.c /usr/include/netdb.h /usr/include/short_names.h
+getpent.o: /usr/include/sys/socket.h /usr/include/netdb.h /usr/include/ctype.h
+getpname.o: getpname.c /usr/include/netdb.h
+getproto.o: getproto.c /usr/include/netdb.h
+getsbyname.o: getsbyname.c /usr/include/netdb.h
+getsbyport.o: getsbyport.c /usr/include/netdb.h
 getsent.o: getsent.c /usr/include/stdio.h /usr/include/sys/types.h
-getsent.o: /usr/include/sys/socket.h /usr/include/short_names.h
-getsent.o: /usr/include/netdb.h /usr/include/short_names.h /usr/include/ctype.h
+getsent.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+getsent.o: /usr/include/netdb.h /usr/include/ctype.h
 herror.o: herror.c /usr/include/sys/types.h /usr/include/sys/uio.h
 rcmd.o: rcmd.c /usr/include/stdio.h /usr/include/ctype.h /usr/include/pwd.h
 rcmd.o: /usr/include/sys/param.h /usr/include/sys/localopts.h
-rcmd.o: /usr/include/machine/machparam.h /usr/include/signal.h
-rcmd.o: /usr/include/sys/types.h /usr/include/sys/file.h
+rcmd.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+rcmd.o: /usr/include/signal.h /usr/include/sys/types.h /usr/include/sys/file.h
 rcmd.o: /usr/include/sys/signal.h /usr/include/sys/socket.h
-rcmd.o: /usr/include/short_names.h /usr/include/sys/stat.h
-rcmd.o: /usr/include/netinet/in.h /usr/include/short_names.h
-rcmd.o: /usr/include/netdb.h /usr/include/short_names.h /usr/include/errno.h
+rcmd.o: /usr/include/sys/stat.h /usr/include/netinet/in.h /usr/include/netdb.h
+rcmd.o: /usr/include/errno.h
 res_comp.o: res_comp.c /usr/include/sys/types.h /usr/include/stdio.h
 res_comp.o: /usr/include/arpa/nameser.h
 res_debug.o: res_debug.c /usr/include/sys/types.h /usr/include/netinet/in.h
-res_debug.o: /usr/include/short_names.h /usr/include/stdio.h
-res_debug.o: /usr/include/arpa/nameser.h
+res_debug.o: /usr/include/stdio.h /usr/include/arpa/nameser.h
 res_init.o: res_init.c /usr/include/sys/types.h /usr/include/sys/socket.h
-res_init.o: /usr/include/short_names.h /usr/include/netinet/in.h
-res_init.o: /usr/include/short_names.h /usr/include/stdio.h
+res_init.o: /usr/include/netinet/in.h /usr/include/stdio.h
 res_init.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
 res_mkquery.o: res_mkquery.c /usr/include/stdio.h /usr/include/sys/types.h
-res_mkquery.o: /usr/include/netinet/in.h /usr/include/short_names.h
-res_mkquery.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
+res_mkquery.o: /usr/include/netinet/in.h /usr/include/arpa/nameser.h
+res_mkquery.o: /usr/include/resolv.h
 res_query.o: res_query.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-res_query.o: /usr/include/machine/machparam.h /usr/include/signal.h
-res_query.o: /usr/include/sys/types.h /usr/include/sys/socket.h
-res_query.o: /usr/include/short_names.h /usr/include/netinet/in.h
-res_query.o: /usr/include/short_names.h /usr/include/ctype.h
-res_query.o: /usr/include/netdb.h /usr/include/short_names.h
-res_query.o: /usr/include/stdio.h /usr/include/errno.h /usr/include/strings.h
-res_query.o: /usr/include/arpa/inet.h /usr/include/short_names.h
-res_query.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
+res_query.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+res_query.o: /usr/include/signal.h /usr/include/sys/types.h
+res_query.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+res_query.o: /usr/include/ctype.h /usr/include/netdb.h /usr/include/stdio.h
+res_query.o: /usr/include/errno.h /usr/include/strings.h
+res_query.o: /usr/include/arpa/inet.h /usr/include/arpa/nameser.h
+res_query.o: /usr/include/resolv.h
 res_send.o: res_send.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-res_send.o: /usr/include/machine/machparam.h /usr/include/signal.h
-res_send.o: /usr/include/sys/types.h /usr/include/sys/time.h
-res_send.o: /usr/include/time.h /usr/include/sys/socket.h
-res_send.o: /usr/include/short_names.h /usr/include/sys/uio.h
-res_send.o: /usr/include/netinet/in.h /usr/include/short_names.h
-res_send.o: /usr/include/stdio.h /usr/include/errno.h
+res_send.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+res_send.o: /usr/include/signal.h /usr/include/sys/types.h
+res_send.o: /usr/include/sys/time.h /usr/include/time.h
+res_send.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+res_send.o: /usr/include/netinet/in.h /usr/include/stdio.h /usr/include/errno.h
 res_send.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
 rexec.o: rexec.c /usr/include/sys/types.h /usr/include/sys/socket.h
-rexec.o: /usr/include/short_names.h /usr/include/netinet/in.h
-rexec.o: /usr/include/short_names.h /usr/include/stdio.h /usr/include/netdb.h
-rexec.o: /usr/include/short_names.h /usr/include/errno.h
+rexec.o: /usr/include/netinet/in.h /usr/include/stdio.h /usr/include/netdb.h
+rexec.o: /usr/include/errno.h
 ruserpass.o: ruserpass.c /usr/include/stdio.h /usr/include/utmp.h
 ruserpass.o: /usr/include/ctype.h /usr/include/sys/types.h
 ruserpass.o: /usr/include/sys/stat.h /usr/include/errno.h

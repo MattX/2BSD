@@ -4,12 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)printf.c	7.3 (Berkeley) 6/7/85";
-#endif not lint
 
 /* The pwb version this is based on */
 static char *printf_id = "@(#) printf.c:2.2 6/5/79";
+#endif
+
 #include "varargs.h"
 /*
  * This version of printf is compatible with the Version 7 C

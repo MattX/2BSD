@@ -53,13 +53,7 @@
 #include "../sys/SYS.h"
 #undef	PROF
 
-/*
- * Unforgivably brain damaged assembler won't recognize names properly ...
- */
-#define	_countbase	_countba
-#define	_countend	_counten
-
-.text
+	.text
 ASENTRY(mcount)
 	tst	_countbase		/ buffer set up yet?
 	beq	2f			/ nope, just exit

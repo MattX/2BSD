@@ -19,7 +19,7 @@ zork:	1.o o.o
 	cat h d b.out >zork
 	rm a.out h b.out
 	chmod 755 zork
-	p1
+	./p1
 
 install: z zork
 	install -s z ${DESTDIR}${BINDIR}/zork
@@ -35,6 +35,4 @@ clean:
 o.o:	o.s
 
 .s.o:
-	/lib/cpp -E $*.s | sed -e 's;^#;/;' > x.s
-	as -o $*.o x.s
-	rm -f x.s
+	/lib/cpp -E $< | sed -e 's;^#;/;' | as -o $@

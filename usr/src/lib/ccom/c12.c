@@ -95,7 +95,7 @@ register union tree *tree;
 		/*
 		 * long & pos-int is simpler
 		 */
-		if (tree->t.type==LONG && tree->t.tr2->t.op==ITOL
+		if ((tree->t.type==LONG || tree->t.type==UNLONG) && tree->t.tr2->t.op==ITOL
 		 && (tree->t.tr2->t.tr1->t.op==CON && tree->t.tr2->t.tr1->c.value>=0
 		   || uns(tree->t.tr2->t.tr1))) {
 			tree->t.type = UNSIGN;
@@ -121,7 +121,7 @@ register union tree *tree;
     again:
 	tree->t.tr1 = optim(tree->t.tr1);
 	tree->t.tr2 = optim(tree->t.tr2);
-	if (tree->t.type == LONG) {
+	if (tree->t.type == LONG || tree->t.type==UNLONG) {
 		t = lconst(tree->t.op, tree->t.tr1, tree->t.tr2);
 		if (t)
 			return(t);
@@ -167,6 +167,12 @@ register union tree *tree;
 	case UMOD:
 	case ASUDIV:
 	case ASUMOD:
+	case ULASMOD:
+	case ULTIMES:
+	case ULDIV:
+	case ULMOD:
+	case ULASTIMES:
+	case ULASDIV:
 		tree->t.degree = 10;
 		break;
 
@@ -207,7 +213,7 @@ register union tree *tree;
 		d1 += 2 + regpanic;
 		d2 += 2 + regpanic;
 		panicposs++;
-		if (tree->t.type==LONG)
+		if (tree->t.type==LONG || tree->t.type==UNLONG)
 			return(hardlongs(tree));
 		if ((op==MOD || op==DIVIDE || op==ASMOD || op==ASDIV)
 		 && (uns(tree->t.tr1) || uns(tree->t.tr2))
@@ -236,7 +242,7 @@ register union tree *tree;
 		 * PDP-11 special: turn right shifts into negative
 		 * left shifts
 		 */
-		if (tree->t.type == LONG) {
+		if (tree->t.type == LONG || tree->t.type==UNLONG) {
 			d1++;
 			d2++;
 		}
@@ -266,7 +272,7 @@ register union tree *tree;
 	def:
 	default:
 		if (dope&RELAT) {
-			if (tree->t.tr1->t.type==LONG)	/* long relations are a mess */
+			if (tree->t.tr1->t.type==LONG || tree->t.tr1->t.type==UNLONG)	/* long relations are a mess */
 				d1 = 10;
 			if (opdope[tree->t.tr1->t.op]&RELAT && tree->t.tr2->t.op==CON
 			 && tree->t.tr2->c.value==0) {
@@ -339,6 +345,8 @@ register union tree *tree;
 			tree->f.fvalue = subtre->l.lvalue;
 			return(optim(tree));
 		}
+		if (subtre->t.type==UNLONG) 
+			tree->t.op = ULTOF;
 		break;
 
 	case ITOF:
@@ -467,7 +475,8 @@ register union tree *tree;
 			return(subtre);
 		}
 		p = subtre->t.tr1;
-		if ((subtre->t.op==INCAFT||subtre->t.op==DECBEF)&&tree->t.type!=LONG
+		if ((subtre->t.op==INCAFT||subtre->t.op==DECBEF)
+		 && tree->t.type!=LONG && tree->t.type!=UNLONG
 		 && p->t.op==NAME && p->n.class==REG && p->t.type==subtre->t.type) {
 			p->t.type = tree->t.type;
 			p->t.op = subtre->t.op==INCAFT? AUTOI: AUTOD;
@@ -733,7 +742,7 @@ register union tree *tree;
 		t1->t.degree = d = d==d1? d+islong(t1->t.type): MAX(d, d1);
 		t1->t.tr1 = tree;
 		tree = t1;
-		if (tree->t.type==LONG) {
+		if (tree->t.type==LONG || tree->t.type==UNLONG) {
 			if (tree->t.op==TIMES)
 				tree = hardlongs(tree);
 			else if (tree->t.op==PLUS && (t = isconstant(tree->t.tr1))
@@ -1133,10 +1142,8 @@ getblk(size)
 {
 	register union tree *p;
 
-	if (size&01) {
-		error("compiler botch: odd size");
-		exit(1);
-	}
+	if (size&01)
+		size++;
 	p = (union tree *)curbase;
 	if ((curbase += size) >= coremax) {
 		if (sbrk(1024) == (char *)-1) {
@@ -1150,7 +1157,7 @@ getblk(size)
 
 islong(t)
 {
-	if (t==LONG)
+	if (t==LONG || t==UNLONG)
 		return(2);
 	return(1);
 }
@@ -1175,13 +1182,19 @@ register union tree *t;
 	case TIMES:
 	case DIVIDE:
 	case MOD:
-		t->t.op += LTIMES-TIMES;
+		if (t->t.type == UNLONG)
+			t->t.op += ULTIMES-TIMES;
+		else
+			t->t.op += LTIMES-TIMES;
 		break;
 
 	case ASTIMES:
 	case ASDIV:
 	case ASMOD:
-		t->t.op += LASTIMES-ASTIMES;
+		if (t->t.type == UNLONG)
+			t->t.op += ULASTIMES-ASTIMES;
+		else
+			t->t.op += LASTIMES-ASTIMES;
 		t->t.tr1 = tnode(AMPER, LONG+PTR, t->t.tr1, TNULL);
 		break;
 
@@ -1200,7 +1213,7 @@ union tree *tp;
 	register t;
 
 	t = tp->t.type;
-	if (t==UNSIGN || t==UNCHAR || t&XTYPE)
+	if (t==UNSIGN || t==UNCHAR || t==UNLONG || t&XTYPE)
 		return(1);
 	return(0);
 }

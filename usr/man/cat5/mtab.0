@@ -5,14 +5,14 @@ MTAB(5)             UNIX Programmer's Manual		  MTAB(5)
 
 
 
-NNAAMMEE
+NAME
      mtab - mounted file system table
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ffssttaabb..hh>>
-     ##iinncclluuddee <<mmttaabb..hh>>
+SYNOPSIS
+     #include <fstab.h>
+     #include <mtab.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_t_a_b resides in directory /_e_t_c and contains a table of dev-
      ices mounted by the _m_o_u_n_t command.  _U_m_o_u_n_t removes entries.
 
@@ -30,10 +30,10 @@ DDEESSCCRRIIPPTTIIOONN
      does not matter to _m_o_u_n_t if there are duplicated entries nor
      to _u_m_o_u_n_t if a name cannot be found.
 
-FFIILLEESS
+FILES
      /etc/mtab
 
-SSEEEE AALLSSOO
+SEE ALSO
      mount(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

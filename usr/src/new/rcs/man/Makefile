@@ -37,7 +37,7 @@ all: ${OBJS}
 clean: FRC
 	rm -f ${OBJS}
 
-install: FRC
+install: ${OBJS1} ${OBJS5}
 	install -c -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}/usr/new/man/cat1
 	install -c -o bin -g bin -m 444 ${OBJS5} ${DESTDIR}/usr/new/man/cat5
 

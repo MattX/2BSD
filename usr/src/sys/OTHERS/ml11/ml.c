@@ -12,7 +12,7 @@
  */
 
 /*
- *	SCCS id	@(#)ml.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)ml.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 #include "ml.h"
@@ -39,7 +39,6 @@ extern	struct	mldevice *MLADDR;
 short	ml_sizes[NML];
 
 struct	buf	mltab;
-struct	buf	rmlbuf;
 
 void
 mlprobe()
@@ -63,10 +62,8 @@ mlprobe()
 			if (MLADDR->mlmr & 02000)
 				ml_sizes[unit] <<= 2;
 		}
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword (&(MLADDR->mlbae)) != -1)
 			mltab.b_flags |= B_RH70;
-#endif
 	}
 }
 
@@ -82,10 +79,8 @@ register struct buf *bp;
 	unit = minor(bp->b_dev) & 07;
 	if (!ml_alive || unit >= NML)
 		goto bad;
-#ifdef	UNIBUS_MAP
 	if ((bp->b_flags & B_PHYS) && ((mltab.b_flags & B_RH70) == 0))
 		mapalloc(bp);
-#endif
 
 	(void) _spl5();
 	if ((MLADDR->mldt & 0377) != ML11)
@@ -151,10 +146,8 @@ mlstart()
 	}
 	MLADDR->mlda = bp->b_blkno;
 	MLADDR->mlba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (mltab.b_flags & B_RH70)
 		MLADDR->mlbae = bp->b_xmem;
-#endif
 	MLADDR->mlwc = -(bp->b_bcount >> 1);
 	com = ((bp->b_xmem & 3) << 8) | ML_IE | ML_GO;
 	if (bp->b_flags & B_READ)
@@ -212,17 +205,5 @@ mlintr()
 	bp->b_resid = 0;
 	iodone(bp);
 	mlstart();
-}
-
-mlread(dev)
-dev_t	dev;
-{
-	physio(mlstrategy, &rmlbuf, dev, B_READ, WORD);
-}
-
-mlwrite(dev)
-dev_t	dev;
-{
-	physio(mlstrategy, &rmlbuf, dev, B_WRITE, WORD);
 }
 #endif	NML

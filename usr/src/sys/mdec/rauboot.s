@@ -1,15 +1,15 @@
+MAJOR = 5			/ major # from bdevsw[]
+
 / RA bootstrap.
 /
 / disk boot program to load and transfer to a unix entry.
 / for use with 1 KB byte blocks, CLSIZE is 2.
 / NDIRIN is the number of direct inode addresses (currently 4)
-/ assembled size must be <= 512; if > 494, the 16-byte a.out header
-/ must be removed
 /
 / Note: this is a complex boot, but then MSCP is complex!!!!
 /
+/ assembled size must be <= 512
 / a.out header must be removed from boot block!
-/
 
 MSCPSIZE =	64.	/ One MSCP command packet is 64bytes long (need 2)
 
@@ -43,17 +43,11 @@ RABUFH = 	102.	/ Buffer location high 6 bits
 RALBNL =	112.	/ Logical block number low
 RALBNH = 	114.	/ Logical block number high
 
-raip	= 172150	/ initialization and polling register
-rasa	= 172152	/ address and status register
+/ options: none.  all options of reading an alternate name or echoing to
+/		  the keyboard had to be removed to make room for the 
+/		  code which understands the new directory structure on disc
+/		  also, this is the single largest boot around to begin with.
 
-cyl	= 0.		/ cylinder offset of filesys to read from
-/
-/ options:
-/
-mxvboot	= 1		/ 0->normal, 1->adds check done by MXV11 boot ROMS
-
-unit	= 0		/ # of unit to load boot from
-/
 / constants:
 /
 CLSIZE	= 2.			/ physical disk blocks per logical block
@@ -82,11 +76,12 @@ CHECKWORD=	6
 
 / establish sp, copy
 / program up to end of core.
-.if 	mxvboot
-	0240			/ These two lines must be present or DEC
+
+	nop			/ These two lines must be present or DEC
 	br	start		/ boot ROMs will refuse to run boot block!
-.endif
 start:
+	mov	r0,unit		/ Save unit number passed by ROMs(and kernel)
+	mov	r1,raip		/ save csr passed by ROMs (and kernel)
 	mov	$..,sp
 	mov	sp,r1
 	clr	r0
@@ -98,7 +93,7 @@ start:
 
 / On error, restart from here.
 restart:
-
+	clr	r0
 / clear core to make things clean
 2:
 	clr	(r0)+
@@ -108,7 +103,7 @@ restart:
 / RA initialize controller
 /
 	mov	$RASTEP1,r0
-	mov	$raip,r1
+	mov	raip,r1
 	clr	(r1)+			/ go through controller init seq.
 	mov	$icons,r2
 1:
@@ -121,66 +116,71 @@ restart:
 	mov	$ra+RACMDREF,*$ra+RACMDL
 	mov	$RASTCON,r0
 	jsr	pc,racmd
-	mov	$unit,*$ra+RAUNIT	/ bring boot unit online
+	mov	unit,*$ra+RAUNIT	/ bring boot unit online
 	mov	$RAONLIN,r0
 	jsr	pc,racmd
 
-/ spread out in array 'names', one
-/ component every 14 bytes.
-	mov	$names,r1
-1:
-	mov	r1,r2
-2:
-	jsr	pc,getc
-	cmp	r0,$'\n
-	beq	1f
-	cmp	r0,$'/
-	beq	3f
-	movb	r0,(r2)+
-	br	2b
-3:
-	cmp	r1,r2
-	beq	2b
-	add	$14.,r1
-	br	1b
-
-/ now start reading the inodes
-/ starting at the root and
-/ going through directories
-1:
-	mov	$names,r1
-	mov	$2,r0
-1:
-	clr	bno
+	mov	$bootnm, r1
+	mov	$2,r0			/ ROOTINO
 	jsr	pc,iget
-	tst	(r1)
-	beq	1f
-2:
-	jsr	pc,rmblk
-		br restart
-	mov	$buf,r2
-3:
-	mov	r1,r3
-	mov	r2,r4
-	add	$16.,r2
-	tst	(r4)+
-	beq	5f
-4:
-	cmpb	(r3)+,(r4)+
-	bne	5f
-	cmp	r4,r2
-	blo	4b
-	mov	-16.(r2),r0
-	add	$14.,r1
-	br	1b
-5:
-	cmp	r2,$buf+BSIZE
-	blo	3b
-	br	2b
+	clr	r2			/ offset
+again:
+	jsr	pc,readdir
+	beq	restart			/ error - restart
+	mov	4(r0),r4		/ dp->d_namlen
+	cmp	r4,$bootlen		/ if (bootlen == dp->d_namlen)
+	bne	again			/    nope, go try next entry
+	mov	r0,r3
+	add	$6,r3			/ r3 = dp->d_name
+	mov	r1,r5			/ r5 = filename
+9:
+	cmpb	(r3)+,(r5)+
+	bne	again			/ no match - go read next entry
+	sob	r4,9b
+	mov	(r0),r0			/ r0 = dp->d_ino
+	jsr	pc,iget			/ fetch boot's inode
+	br	loadfile		/ 'boot'- go read it
 
+/ get the inode specified in r0
+iget:
+	add	$INOFF,r0
+	mov	r0,r5
+	ash	$PBSHFT,r0
+	bic	$!7777,r0
+	mov	r0,dno
+	clr	r0
+	jsr	pc,rblk
+	bic	$!17,r5
+	mov	$INOSIZ,r0
+	mul	r0,r5
+	add	$buf,r5
+	mov	$inod,r4
+1:
+	movb	(r5)+,(r4)+
+	sob	r0,1b
+	rts	pc
+
+readdir:
+	bit	$BSIZE-1,r2
+	bne	1f
+	jsr	pc,rmblk		/ read mapped block (bno)
+		br err			/ end of file branch
+	clr	r2			/ start at beginning of buf
+1:
+	mov	$buf,r0
+	add	r2,r0			/ dp = buf+offset
+	add	buf+2(r2),r2		/ dp += dp->d_reclen
+	tst	(r0)			/ dp->d_ino == 0?
+	beq	readdir			/ yes - go look at next
+	rts	pc			/ return with r0 = &dp->d_ino
+err:
+	clr	r0			/ return with
+	rts	pc			/ dp = NULL
+
+loadfile:
+	clr	bno			/ start at block 0 of inode in 'inod'
 / read file into core until
 / a mapping error, (no disk address)
-1:
 	clr	r1
 1:
 	jsr	pc,rmblk
@@ -205,36 +205,19 @@ restart:
 / restart if return
 2:
 	mov	ENDCORE-BOOTOPTS, r4
-	mov	ENDCORE-BOOTDEV, r3
+	mov	unit, r3
+	bis	$MAJOR\<8.,r3
 	mov	ENDCORE-CHECKWORD, r2
+	mov	raip,r1
 	jsr	pc,*$0
-/	br	restart
-
-/ get the inode specified in r0
-iget:
-	add	$INOFF,r0
-	mov	r0,r5
-	ash	$PBSHFT,r0
-	bic	$!7777,r0
-	mov	r0,dno
-	clr	r0
-	jsr	pc,rblk
-	bic	$!17,r5
-	mul	$INOSIZ,r5
-	add	$buf,r5
-	mov	$inod,r4
-1:
-	mov	(r5)+,(r4)+
-	cmp	r4,$inod+INOSIZ
-	blo	1b
-	rts	pc
+	jmp	restart
 
 / read a mapped block
 / offset in file is in bno.
 / skip if success, no skip if fail
 / the algorithm only handles a single
 / indirect block. that means that
-/ files longer than NDIRIN+128 blocks cannot
+/ files longer than NDIRIN+256 blocks (260kb) cannot
 / be loaded.
 rmblk:
 	add	$2,(sp)
@@ -243,13 +226,9 @@ rmblk:
 	blt	1f
 	mov	$NDIRIN,r0
 1:
-	mov	r0,-(sp)
-	asl	r0
-	add	(sp)+,r0
-	add	$addr+1,r0
-	movb	(r0)+,dno
-	movb	(r0)+,dno+1
-	movb	-3(r0),r0
+	ash	$2,r0
+	mov	addr+2(r0),dno
+	mov	addr(r0),r0
 	bne	1f
 	tst	dno
 	beq	2f
@@ -277,6 +256,8 @@ go	= 1
 / RA MSCP read block routine.  This is very primative, so don't expect
 / too much from it.  Note that MSCP requires large data communications
 / space at end of ADDROFF for command area.
+/ N.B.  This MUST preceed racmd - a "jsr/rts" sequence is saved by
+/	falling thru!
 /
 /	dno	->	1k block # to load (low half)
 /	buf	->	address of buffer to put block into
@@ -291,23 +272,17 @@ rblk:
 	mov	$BSIZE,*$ra+RABYTECT	/ Put in byte to transfer
 	mov	$buf,*$ra+RABUFL	/ Put in disk buffer location
 	mov	$RAREAD,r0
-	jsr	pc,racmd
-	rts	pc
 
 /
 / perform MSCP command -> response poll version
 /
-/
-/
 racmd:
 	movb	r0,*$ra+RAOPCODE	/ fill in command type
-	mov	$MSCPSIZE,r0
-	mov	r0,*$ra+RARSPS		/ give controller struct sizes
-	mov	r0,*$ra+RACMDS
-	mov	$RASEMAP,r0
-	mov	r0,*$ra+RARSPH		/ set mscp semaphores
-	mov	r0,*$ra+RACMDH
-	mov	raip,r0			/ tap controllers shoulder
+	mov	$MSCPSIZE,*$ra+RARSPS	/ give controller struct sizes
+	mov	$MSCPSIZE,*$ra+RACMDS
+	mov	$RASEMAP,*$ra+RARSPH	/ set mscp semaphores
+	mov	$RASEMAP,*$ra+RACMDH
+	mov	*raip,r0		/ tap controllers shoulder
 	mov	$ra+RACMDI,r0
 1:
 	tst	(r0)
@@ -318,27 +293,16 @@ racmd:
 	beq	2b			/ Wait till response written
 	clr	(r0)			/ Tell controller we go it
 	rts	pc
-/
-/ Read a character at a time from the boot string, no console input
-/ supported because boot block too large!
-/
-getc:
-	movb	*cp, r0
-	beq	2f
-	inc	cp
-2:
-	cmp	r0,$'\r
-	bne	1f
-	mov	$'\n,r0
-1:
-	rts	pc
 
 icons:	RAERR
 	ra+RARING
 	0
 	RAGO
-cp:	defnm
-defnm:	<boot\r\0>
+
+bootnm:	<boot\0\0>
+bootlen = 4			/ strlen(bootnm)
+unit: 0				/ unit number from ROMs
+raip: 0				/ csr address from ROMs
 end:
 
 inod = ..-512.-BSIZE		/ room for inod, buf, stack
@@ -346,5 +310,4 @@ addr = inod+ADDROFF		/ first address in inod
 buf = inod+INOSIZ
 bno = buf+BSIZE
 dno = bno+2
-ra = dno+2			/ ra mscp communications area (BIG!)
-names = ra+146.
+ra = dno + 2			/ ra mscp communications area (BIG!)

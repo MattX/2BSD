@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dtab.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dtab.h	2.0 (2.11BSD GTE) 11/20/92
  */
 
 /*
@@ -27,6 +27,7 @@ typedef struct dtab_s {
 	int	dt_br;			/* Priority */
 	int	(*dt_uprobe)();		/* User-level (internal) probe */
 	NLIST	*dt_probe,		/* Address of probe function */
+		*dt_setvec,		/* Address of vector set function */
 		*dt_attach;		/* Address of attach function */
 } DTAB;
 

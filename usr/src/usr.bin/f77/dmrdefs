@@ -55,6 +55,7 @@
 #define P2SETREG	105
 #define P2SETSTK	219
 #define P2PROG	202
+#define	P2SYMDEF	207
 
 #define P2CHAR	1
 

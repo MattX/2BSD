@@ -5,13 +5,13 @@ WRITE(1)	    UNIX Programmer's Manual		 WRITE(1)
 
 
 
-NNAAMMEE
+NAME
      write - write to another user
 
-SSYYNNOOPPSSIISS
-     wwrriittee user [ ttyname ]
+SYNOPSIS
+     write user [ ttyname ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _W_r_i_t_e copies lines from your terminal to that of another
      user.  When first called, it sends the message
 
@@ -39,15 +39,15 @@ DDEESSCCRRIIPPTTIIOONN
      The following protocol is suggested for using _w_r_i_t_e: when
      you first write to another user, wait for him to write back
      before starting to send.  Each party should end each message
-     with a distinctive signal-((oo)) for `over' is conventional-
-     that the other may reply.	((oooo)) for `over and out' is sug-
+     with a distinctive signal-(o) for `over' is conventional-
+     that the other may reply.	(oo) for `over and out' is sug-
      gested when conversation is about to be terminated.
 
-FFIILLEESS
+FILES
      /etc/utmp to find user
      /bin/sh	    to execute `!'
 
-SSEEEE AALLSSOO
+SEE ALSO
      mesg(1), who(1), mail(1)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 5, 1986				1
+Printed 1/9/94		   May 5, 1986				1
 
 
 

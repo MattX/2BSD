@@ -103,8 +103,9 @@ dev_t	dev;
 	(*cdevsw[major(fast_map[d])].d_read)(fast_map[d]);
 }
 
-fast_write(dev)
+fast_write(dev, uio)
 dev_t	dev;
+struct uio *uio;
 {
 	register d;
 	register struct device *addr;
@@ -130,7 +131,7 @@ dev_t	dev;
 			fast[d].bc = u.u_count;
 			if(u.u_count&1)
 				u.u_count++;
-			physio(fast_start, &fast_buf, dev, B_WRITE);
+			physio(fast_start, &fast_buf, dev, B_WRITE, uio);
 		}
 	}
 	else

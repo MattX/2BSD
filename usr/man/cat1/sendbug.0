@@ -5,13 +5,13 @@ SENDBUG(1)	    UNIX Programmer's Manual	       SENDBUG(1)
 
 
 
-NNAAMMEE
+NAME
      sendbug - mail a system bug report to 4bsd-bugs
 
-SSYYNNOOPPSSIISS
-     sseennddbbuugg [[ aaddddrreessss ]]
+SYNOPSIS
+     sendbug [ address ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      Bug reports sent to `4bsd-bugs@Berkeley.EDU' are intercepted
      by a program which expects bug reports to conform to a stan-
      dard format.  _S_e_n_d_b_u_g is a shell script  to  help	the  user
@@ -23,10 +23,10 @@ DDEESSCCRRIIPPTTIIOONN
      mails the completed report  to  `4bsd-bugs@Berkeley.EDU'  or
      the address specified on the command line.
 
-FFIILLEESS
+FILES
      /usr/ucb/bugformat       contains the bug report outline
 
-SSEEEE AALLSSOO
+SEE ALSO
      vi(1), environ(7), sendmail(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	   May 5, 1986				1
+Printed 1/9/94		   May 5, 1986				1
 
 
 

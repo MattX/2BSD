@@ -4,15 +4,10 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef UCB_NET
-
-#ifndef lint
+#if	defined(DO_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)route.c	5.6 (Berkeley) 86/04/23";
 #endif
 
-#ifdef	BSD2_10
-#define	hashsizeaddr	hsizeaddr
-#endif	BSD2_10
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/mbuf.h>
@@ -57,13 +52,10 @@ routepr(hostaddr, netaddr, hashsizeaddr)
 	register struct arenas *asp;
 #endif	CRASH
 	char name[16], *flags;
-#ifdef	BSD2_10
 	struct rtentry rte;
 	struct rtentry **routehash;
-#else
 	struct mbuf mb;
 	struct mbuf **routehash;
-#endif
 	struct ifnet ifnet;
 	int hashsize;
 	int i, doinghost = 1;
@@ -82,7 +74,7 @@ routepr(hostaddr, netaddr, hashsizeaddr)
 	}
 	klseek(kmem, (off_t)hashsizeaddr, 0);
 	read(kmem, &hashsize, sizeof (hashsize));
-#ifdef	BSD2_10
+#ifdef	pdp11
 	routehash = (struct rtentry **)malloc( hashsize*sizeof (struct rtentry *) );
 	klseek(kmem, (off_t)hostaddr, 0);
 	read(kmem, routehash, hashsize*sizeof (struct rtentry *));
@@ -99,7 +91,7 @@ again:
 	for (i = 0; i < hashsize; i++) {
 		if (routehash[i] == 0)
 			continue;
-#ifdef	BSD2_10
+#ifdef	pdp11
 		rt = routehash[i];
 		while (rt) {
 			struct sockaddr_in *sin;
@@ -173,7 +165,7 @@ again:
 				rt->rt_refcnt, rt->rt_use);
 			if (rt->rt_ifp == 0) {
 				putchar('\n');
-#ifdef	BSD2_10
+#ifdef	pdp11
 				rt = rt->rt_next;
 #else
 				m = mb.m_next;
@@ -185,7 +177,7 @@ again:
 			klseek(kmem, (off_t)ifnet.if_name, 0);
 			read(kmem, name, 16);
 			printf("%s%d\n", name, ifnet.if_unit);
-#ifdef	BSD2_10
+#ifdef	pdp11
 			rt = rt->rt_next;
 #else
 			m = mb.m_next;
@@ -194,7 +186,7 @@ again:
 	}
 	if (doinghost) {
 		klseek(kmem, (off_t)netaddr, 0);
-#ifdef	BSD2_10
+#ifdef	pdp11
 		read(kmem, routehash, hashsize*sizeof (struct rtentry *));
 #else
 		read(kmem, routehash, hashsize*sizeof (struct mbuf *));
@@ -406,5 +398,3 @@ char *p0;
 		*p += ('A' - 'a');
 	}
 }
-
-#endif UCB_NET

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rk.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rk.c	1.4 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -26,7 +26,6 @@
 struct	rkdevice *RKADDR;
 
 struct	buf	rktab;
-struct	buf	rrkbuf[NRK];
 
 #define	rkunit(dev)	minor(dev)
 
@@ -48,8 +47,9 @@ struct rkdevice *addr;
 	return(1);
 }
 
-rkopen(dev)
+rkopen(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register int unit = rkunit(dev);
 
@@ -75,9 +75,7 @@ bad:		bp->b_flags |= B_ERROR;
 		iodone(bp);
 		return;
 	}
-#ifdef UNIBUS_MAP
 	mapalloc(bp);
-#endif
 	bp->av_forw = (struct buf *)NULL;
 	s = splbio();
 	if(rktab.b_actf == NULL)
@@ -168,15 +166,13 @@ rkintr()
 	rkstart();
 }
 
-rkread(dev)
-	register dev_t dev;
-{
-	return (physio(rkstrategy, &rrkbuf[rkunit(dev)], dev, B_READ, WORD));
-}
-
-rkwrite(dev)
-	register dev_t dev;
-{
-	return (physio(rkstrategy, &rrkbuf[rkunit(dev)], dev, B_WRITE, WORD));
-}
+/*
+ * Hack - no one is using these anyhow, especially for swapping.
+*/
+daddr_t
+rksize(dev)
+	dev_t	dev;
+	{
+	return(NRKBLK);
+	}
 #endif NRK

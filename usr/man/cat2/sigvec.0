@@ -5,23 +5,23 @@ SIGVEC(2)	    UNIX Programmer's Manual		SIGVEC(2)
 
 
 
-NNAAMMEE
+NAME
      sigvec - software signal facilities
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssiiggnnaall..hh>>
+SYNOPSIS
+     #include <signal.h>
 
-     ssttrruucctt ssiiggvveecc {{
-	iinntt    ((**ssvv__hhaannddlleerr))(());;
-	lloonngg   ssvv__mmaasskk;;
-	iinntt    ssvv__ffllaaggss;;
-     }};;
+     struct sigvec {
+	int    (*sv_handler)();
+	long   sv_mask;
+	int    sv_flags;
+     };
 
-     ssiiggvveecc((ssiigg,, vveecc,, oovveecc))
-     iinntt ssiigg;;
-     ssttrruucctt ssiiggvveecc **vveecc,, **oovveecc;;
+     sigvec(sig, vec, ovec)
+     int sig;
+     struct sigvec *vec, *ovec;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The system defines a set of signals that may be delivered to
      a process.  Signal delivery resembles the occurence of a
      hardware interrupt: the signal is blocked from further
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 January 8, 1986			1
+Printed 1/9/94		 January 8, 1986			1
 
 
 
@@ -126,7 +126,7 @@ SIGVEC(2)	    UNIX Programmer's Manual		SIGVEC(2)
 
 
 
-Printed 12/28/88	 January 8, 1986			2
+Printed 1/9/94		 January 8, 1986			2
 
 
 
@@ -164,19 +164,19 @@ SIGVEC(2)	    UNIX Programmer's Manual		SIGVEC(2)
      signals remain ignored; the signal mask remains the same;
      signals that interrupt system calls continue to do so.
 
-NNOOTTEESS
+NOTES
      The mask specified in _v_e_c is not allowed to block SIGKILL,
      SIGSTOP, or SIGCONT.  This is done silently by the system.
 
      The SV_INTERRUPT flag is not available in 4.2BSD, hence it
      should not be used if backward compatibility is needed.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      A 0 value indicated that the call succeeded.  A -1 return
      value indicates an error occurred and _e_r_r_n_o is set to indi-
      cated the reason.
 
-EERRRROORRSS
+ERRORS
      _S_i_g_v_e_c will fail and no new signal handler will be installed
      if one of the following occurs:
 
@@ -192,7 +192,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 January 8, 1986			3
+Printed 1/9/94		 January 8, 1986			3
 
 
 
@@ -206,12 +206,12 @@ SIGVEC(2)	    UNIX Programmer's Manual		SIGVEC(2)
      [EINVAL]	    An attempt is made to ignore SIGCONT (by
 		    default SIGCONT is ignored).
 
-SSEEEE AALLSSOO
+SEE ALSO
      kill(1), ptrace(2), kill(2), sigblock(2), sigsetmask(2),
      sigpause(2), sigstack(2), sigvec(2), setjmp(3), siginter-
      rupt(3), tty(4)
 
-NNOOTTEESS  ((VVAAXX--1111))
+NOTES  (VAX-11)
      The handler routine can be declared:
 
 	 handler(sig, code, scp)
@@ -258,7 +258,7 @@ NNOOTTEESS  ((VVAAXX--1111))
 
 
 
-Printed 12/28/88	 January 8, 1986			4
+Printed 1/9/94		 January 8, 1986			4
 
 
 
@@ -271,7 +271,7 @@ SIGVEC(2)	    UNIX Programmer's Manual		SIGVEC(2)
 
      Chmu				    SIGSEGV
 
-NNOOTTEESS  ((PPDDPP--1111))
+NOTES  (PDP-11)
      The handler routine can be declared:
 
 	 handler(sig, code, scp)
@@ -318,13 +318,13 @@ NNOOTTEESS  ((PPDDPP--1111))
      operations without blowing the interrupted program out of
      the water.
 
-BBUUGGSS
+BUGS
      This manual page is still confusing.
 
 
 
 
-Printed 12/28/88	 January 8, 1986			5
+Printed 1/9/94		 January 8, 1986			5
 
 
 

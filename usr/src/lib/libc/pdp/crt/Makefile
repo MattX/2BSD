@@ -3,24 +3,24 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 1/28/87
+#	@(#)Makefile	5.7.1 (2.11BSD GTE) 4/9/94
 #
 #
-SRCS=	aldiv.s almul.s alrem.s csv.s ldiv.s lmul.s lrem.s udiv.s
-OBJS=	aldiv.o almul.o alrem.o csv.o ldiv.o lmul.o lrem.o udiv.o
+SRCS=	aldiv.s almul.s alrem.s csv.s ldiv.s lmul.s lrem.s udiv.s \
+	uldiv.s ulrem.s ulsh.s ultof.s
+OBJS=	aldiv.o almul.o alrem.o csv.o ldiv.o lmul.o lrem.o udiv.o \
+	uldiv.o ulrem.o ulsh.o ultof.o
+
 CFLAGS=	-O ${DEFS}
 TAGSFILE=tags
 
 .s.o:
-	/lib/cpp -E -DPROF ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -X -r $*.o
 	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -x -r $*.o
 	mv a.out $*.o
-	rm -f x.s
 
 .c.o:
 	cc -p -c ${CFLAGS} $*.c
@@ -69,6 +69,10 @@ ldiv.o: ldiv.s ./DEFS.h
 lmul.o: lmul.s ./DEFS.h
 lrem.o: lrem.s ./DEFS.h
 udiv.o: udiv.s ./DEFS.h
+uldiv.o: uldiv.s ./DEFS.h
+ulrem.o: ulrem.s ./DEFS.h
+ulsh.o: ulsh.s ./DEFS.h
+ultof.o: ultof.s ./DEFS.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

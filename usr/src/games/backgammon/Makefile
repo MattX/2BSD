@@ -43,7 +43,7 @@ backgammon.doc: backgammon.src
 	nroff -man -Tcrt backgammon.src > backgammon.doc
 
 #	Installation
-install:
+install: all
 	install -s backgammon ${DESTDIR}/usr/games/backgammon
 	install -s teachgammon ${DESTDIR}/usr/games/teachgammon
 

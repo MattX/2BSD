@@ -58,6 +58,7 @@ LOCAL struct intrblock
 "int", 		{ INTRCONV, TYLONG },
 "real", 	{ INTRCONV, TYREAL },
 "dble", 	{ INTRCONV, TYDREAL },
+"dreal", 	{ INTRCONV, TYDREAL },
 "cmplx", 	{ INTRCONV, TYCOMPLEX },
 "dcmplx", 	{ INTRCONV, TYDCOMPLEX },
 "ifix", 	{ INTRCONV, TYLONG },
@@ -137,6 +138,7 @@ LOCAL struct intrblock
 "dexp", 	{ INTRSPEC, TYDREAL, 40 },
 "cexp", 	{ INTRSPEC, TYCOMPLEX, 41 },
 "zexp", 	{ INTRSPEC, TYDCOMPLEX, 42 },
+"cdexp", 	{ INTRSPEC, TYDCOMPLEX, 42 },
 
 "log", 		{ INTRGEN, 4, 43 },
 "alog", 	{ INTRSPEC, TYREAL, 43 },

@@ -4,18 +4,14 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)vplotf.c	5.2 (Berkeley) 11/11/85";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)vplotf.c	5.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  *  Lpd filter to read standard graphics input and produce a plot on the
  *  Varian or Versatec
  */
-
-#ifdef BSD2_10
-#define DevRange8	DevR8
-#endif
 
 #include <stdio.h>
 #include <vfont.h>

@@ -3,10 +3,8 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty.c	1.3 (2.11BSD GTE) 12/31/93
  */
-
-#include "../machine/reg.h"
 
 #include "param.h"
 #include "user.h"
@@ -70,6 +68,7 @@ char partab[] = {
 	0007,0007,0007,0007,0007,0007,0007,0007
 };
 
+#ifdef	whybother
 /*
  * Input mapping table-- if an entry is non-zero, when the
  * corresponding character is typed preceded by "\" the escape
@@ -94,6 +93,7 @@ char	maptab[] ={
 	'P','Q','R','S','T','U','V','W',
 	'X','Y','Z',000,000,000,000,000,
 };
+#endif
 
 short	tthiwat[16] =
    { 100,100,100,100,100,100,100,200,200,400,400,400,650,650,1300,2000 };
@@ -129,7 +129,7 @@ ttywait(tp)
 	register int s = spltty();
 
 	while ((tp->t_outq.c_cc || tp->t_state&TS_BUSY) &&
-	    tp->t_state&TS_CARR_ON) {
+	    tp->t_state&TS_CARR_ON && tp->t_oproc) {
 		(*tp->t_oproc)(tp);
 		tp->t_state |= TS_ASLEEP;
 		sleep((caddr_t)&tp->t_outq, TTOPRI);
@@ -186,7 +186,8 @@ ttyblock(tp)
 	 * Current input > threshold AND input is available to user program
 	 */
 	if (x >= TTYHOG/2 && 
-	    ((tp->t_flags & (RAW|CBREAK)) || (tp->t_canq.c_cc > 0))) {
+	    ((tp->t_flags & (RAW|CBREAK)) || (tp->t_canq.c_cc > 0)) &&
+	    (tp->t_state&TS_TBLOCK) == 0) {
 		if (putc(tp->t_stopc, &tp->t_outq)==0) {
 			tp->t_state |= TS_TBLOCK;
 			ttstart(tp);
@@ -474,7 +475,7 @@ ttioctl(tp, com, data, flag)
 	 */
 	case TIOCSPGRP: {
 		struct proc *p;
-		int pgrp = *(int *)data;
+		short pgrp = *(int *)data;
 
 		if (u.u_uid && (flag & FREAD) == 0)
 			return (EPERM);
@@ -525,7 +526,7 @@ ttselect(dev, rw)
 	dev_t dev;
 	int rw;
 {
-#ifdef BSD2_10
+#ifdef pdp11
 	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)&0177];
 #else
 	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)];
@@ -817,8 +818,23 @@ ttyinput(c, tp)
 	if (tp->t_flags & LCASE && c <= 0177) {
 		if (tp->t_state&TS_BKSL) {
 			ttyrub(unputc(&tp->t_rawq), tp);
+#ifdef	whybother
 			if (maptab[c])
 				c = maptab[c];
+#else
+			if	(c == '\047')
+				c = '`';
+			else if	(c == '!')
+				c = '|';
+			else if	(c == '(')
+				c = '{';
+			else if	(c == ')')
+				c = '}';
+			else if (c == '^')
+				c = '~';
+			else if	(c >= 'a' && c <= 'z')
+				c &= ~040;
+#endif
 			c |= 0200;
 			tp->t_state &= ~(TS_BKSL|TS_QUOT);
 		} else if (c >= 'A' && c <= 'Z')
@@ -1127,8 +1143,9 @@ ttyoutput(c, tp)
  * Called from device's read routine after it has
  * calculated the tty-structure given as argument.
  */
-ttread(tp)
+ttread(tp, uio)
 	register struct tty *tp;
+	struct uio *uio;
 {
 	register struct clist *qp;
 	register c;
@@ -1179,8 +1196,8 @@ loop:
 			goto loop;
 		}
 		splx(s);
- 		while (!error && tp->t_rawq.c_cc && u.u_count)
- 			error = ureadc(getc(&tp->t_rawq));
+ 		while (!error && tp->t_rawq.c_cc && uio->uio_resid)
+ 			error = ureadc(getc(&tp->t_rawq), uio);
 		goto checktandem;
 	}
 
@@ -1234,10 +1251,10 @@ loop:
 		/*
 		 * Give user character.
 		 */
- 		error = ureadc(t_flags&PASS8 ? c : c & 0177);
+ 		error = ureadc(t_flags&PASS8 ? c : c & 0177, uio);
 		if (error)
 			break;
- 		if (u.u_count == 0)
+ 		if (uio->uio_resid == 0)
 			break;
 		/*
 		 * In cooked mode check for a "break character"
@@ -1253,7 +1270,9 @@ checktandem:
 	 * Look to unblock output now that (presumably)
 	 * the input queue has gone down.
 	 */
-	if (tp->t_state&TS_TBLOCK && tp->t_rawq.c_cc < TTYHOG/5)
+	if (tp->t_state&TS_TBLOCK && 
+	    (tp->t_rawq.c_cc+tp->t_canq.c_cc < TTYHOG/5 ||
+	    (t_flags&(RAW|CBREAK)) == 0 && tp->t_canq.c_cc == 0))
 		if (putc(tp->t_startc, &tp->t_outq) == 0) {
 			tp->t_state &= ~TS_TBLOCK;
 			ttstart(tp);
@@ -1274,9 +1293,7 @@ ttycheckoutq(tp, wait)
 	int wait;
 {
 	int hiwat, s, oldsig;
-#ifdef BSD2_10
-	int wakeup();
-#endif
+	int	wakeup();
 
 	hiwat = TTHIWAT(tp);
 	s = spltty();
@@ -1288,7 +1305,7 @@ ttycheckoutq(tp, wait)
 			splx(s);
 			return (0);
 		}
-		timeout(wakeup, (caddr_t)&tp->t_outq, LINEHZ);
+		timeout(wakeup, (caddr_t)&tp->t_outq, hz);
 		tp->t_state |= TS_ASLEEP;
 		sleep((caddr_t)&tp->t_outq, PZERO - 1);
 	}
@@ -1300,16 +1317,17 @@ ttycheckoutq(tp, wait)
  * Called from the device's write routine after it has
  * calculated the tty-structure given as argument.
  */
-ttwrite(tp)
+ttwrite(tp, uio)
 	register struct tty *tp;
+	register struct uio *uio;
 {
-	register char *cp;
+	char *cp;
 	register int cc, ce, c;
 	int i, hiwat, cnt, error, s;
 	char obuf[OBUFSIZ];
 
 	hiwat = TTHIWAT(tp);
-	cnt = u.u_count;
+	cnt = uio->uio_resid;
 	error = 0;
 loop:
 	if ((tp->t_state&TS_CARR_ON) == 0)
@@ -1333,15 +1351,22 @@ loop:
 	 * mark, sleep on overflow awaiting device aid
 	 * in acquiring new space.
 	 */
-	while (u.u_count > 0) {
+	while (uio->uio_resid) {
 		/*
 		 * Grab a hunk of data from the user.
 		 */
-		cc = u.u_count;
+		cc = uio->uio_iov->iov_len;
+		if (cc == 0) {
+			uio->uio_iovcnt--;
+			uio->uio_iov++;
+			if (uio->uio_iovcnt <= 0)
+				panic("ttwrite");
+			continue;
+		}
 		if ((u_int)cc > OBUFSIZ)
 			cc = OBUFSIZ;
 		cp = obuf;
-		error = uiomove(cp, cc, UIO_WRITE);
+		error = uiomove(cp, cc, UIO_WRITE, uio);
 		if (error)
 			break;
 		if (tp->t_outq.c_cc > hiwat)
@@ -1363,9 +1388,10 @@ loop:
 					sleep((caddr_t)&lbolt, TTOPRI);
 					tp->t_rocount = 0;
 					if (cc != 0) {
-						u.u_base -= cc;
-						u.u_count += cc;
-						u.u_offset -= cc;
+					        uio->uio_iov->iov_base -= cc;
+						uio->uio_iov->iov_len += cc;
+						uio->uio_resid += cc;
+						uio->uio_offset -= cc;
 					}
 					goto loop;
 				}
@@ -1401,9 +1427,10 @@ loop:
 					    ttstart(tp);
 					    sleep((caddr_t)&lbolt, TTOPRI);
 					    if (cc != 0) {
-					        u.u_base -= cc;
-					        u.u_count += cc;
-						u.u_offset -= cc;
+					        uio->uio_iov->iov_base -= cc;
+						uio->uio_iov->iov_len += cc;
+						uio->uio_resid += cc;
+						uio->uio_offset -= cc;
 					    }
 					    goto loop;
 					}
@@ -1434,9 +1461,10 @@ loop:
 				/* out of c-lists, wait a bit */
 				ttstart(tp);
 				sleep((caddr_t)&lbolt, TTOPRI);
-				u.u_base -= cc;
-				u.u_count += cc;
-				u.u_offset -= cc;
+				uio->uio_iov->iov_base -= cc;
+				uio->uio_iov->iov_len += cc;
+				uio->uio_resid += cc;
+				uio->uio_offset -= cc;
 				goto loop;
 			}
 			if (tp->t_flags&FLUSHO || tp->t_outq.c_cc > hiwat)
@@ -1449,9 +1477,10 @@ loop:
 ovhiwat:
 	s = spltty();
 	if (cc != 0) {
-		u.u_base -= cc;
-		u.u_count += cc;
-		u.u_offset -= cc;
+		uio->uio_iov->iov_base -= cc;
+		uio->uio_iov->iov_len += cc;
+		uio->uio_resid += cc;
+		uio->uio_offset -= cc;
 	}
 	/*
 	 * This can only occur if FLUSHO
@@ -1464,7 +1493,7 @@ ovhiwat:
 	ttstart(tp);
 	if (tp->t_state&TS_NBIO) {
 		splx(s);
-		if (u.u_count == cnt)
+		if (uio->uio_resid == cnt)
 			return (EWOULDBLOCK);
 		return (0);
 	}

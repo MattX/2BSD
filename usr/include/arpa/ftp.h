@@ -1,9 +1,20 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983, 1989 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ftp.h	5.2 (Berkeley) 5/30/85
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *	@(#)ftp.h	5.4 (Berkeley) 2/21/89
  */
 
 /*
@@ -28,12 +39,19 @@
 #define	TYPE_I		3	/* image */
 #define	TYPE_L		4	/* local byte size */
 
+#ifdef FTP_NAMES
+char *typenames[] =  {"0", "ASCII", "EBCDIC", "Image", "Local" };
+#endif
+
 /*
  * Form codes
  */
 #define	FORM_N		1	/* non-print */
 #define	FORM_T		2	/* telnet format effectors */
 #define	FORM_C		3	/* carriage control (ASA) */
+#ifdef FTP_NAMES
+char *formnames[] =  {"0", "Nonprint", "Telnet", "Carriage-control" };
+#endif
 
 /*
  * Structure codes
@@ -41,6 +59,9 @@
 #define	STRU_F		1	/* file (no record structure) */
 #define	STRU_R		2	/* record structure */
 #define	STRU_P		3	/* page structure */
+#ifdef FTP_NAMES
+char *strunames[] =  {"0", "File", "Record", "Page" };
+#endif
 
 /*
  * Mode types
@@ -48,6 +69,9 @@
 #define	MODE_S		1	/* stream */
 #define	MODE_B		2	/* block */
 #define	MODE_C		3	/* compressed */
+#ifdef FTP_NAMES
+char *modenames[] =  {"0", "Stream", "Block", "Compressed" };
+#endif
 
 /*
  * Record Tokens

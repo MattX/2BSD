@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_uba.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_uba.h	1.2 (2.11BSD GTE) 12/24/92
  */
 
 /*
@@ -46,7 +46,7 @@ struct	ifuba {
 #ifdef SUPERVISOR
 struct	mbuf *if_rubaget();
 #endif
-#if defined(KERNEL) && defined(UCB_NET)
+#if defined(KERNEL) && defined(INET)
 #define	ubarelse(a,b)
 #define	useracc(a,c,m)		(1)
 ubadr_t	uballoc(), ubmalloc();

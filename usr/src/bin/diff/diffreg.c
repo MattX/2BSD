@@ -1,4 +1,6 @@
-static	char sccsid[] = "@(#)diffreg.c 4.16 3/29/86";
+#if	!defined(lint) && defined(DOSCCS)
+static	char sccsid[] = "@(#)diffreg.c 4.16.1 (2.11BSD) 1/1/94";
+#endif
 
 #include "diff.h"
 /*
@@ -664,13 +666,6 @@ output()
 	if (anychange && opt == D_CONTEXT)
 		dump_context_vec();
 }
-
-#ifdef BSD2_10
-#define context_vec		c_vec		/* 7 char name conflict with */
-#define context_vec_start	c_vec_s		/* context in diff.h */
-#define context_vec_end		c_vec_e
-#define context_vec_ptr		c_vec_p
-#endif BSD2_10
 
 /*
  * The following struct is used to record change information when

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)hk.4	6.2 (Berkeley) 8/29/87
+.\"	@(#)hk.4	6.3 (2.11BSD GTE) 1/3/93
 .\"
-.TH HK 4 "August 29, 1987"
+.TH HK 4 "January 3, 1993"
 .UC 2
 .SH NAME
 hk \- RK6-11/RK06 and RK07 moving head disk
@@ -60,26 +60,26 @@ pseudo-disks on each drive are as follows:
 .ne 10
 RK06 partitions:
 	disk	 start	length	     cyls	comments
-	hk?a	     0	  5940	  0 -  89	too small to hold 2.10BSD root
-	hk?b	  5940	  2376	 90 - 125
-	hk?c	unusable
-	hk?d	  8316	 18810	126 - 410*
-	hk?e	     0	  8316	  0 - 125	overlaps a & b (2.10BSD root)
+	hk?a	     0	  8316	  0 - 125	root
+	hk?b	  8316	  8316	126 - 251	swap
+	hk?c	     0   27126	  0 - 410*	whole pack plus badsect track
+	hk?d	unused
+	hk?e	unused
 	hk?f	unused
-	hk?g	     0	 27126	  0 - 410*	whole pack
-	hk?h	unusable
+	hk?g	 16632	 10428	251 - 409	tmp
+	hk?h	     0	 27060	  0 - 409	whole pack minus badsect track
 .PP
 .ne 10
 RK07 partitions:
 	disk	 start	length	     cyls	comments
-	hk?a	     0	  5940	  0 -  89	too small to hold 2.10BSD root
-	hk?b	  5940	  2376	 90 - 125
-	hk?c	  8316	 45474	126 - 814*
-	hk?d	  8316	 18810	126 - 410
-	hk?e	     0	  8316	  0 - 125	overlaps a & b (2.10BSD root)
+	hk?a	     0	  8316	  0 - 125	root
+	hk?b	  8316	  8316	126 - 251	swap
+	hk?c	     0	 53790	  0 - 814*	whole pack plus badsect track
+	hk?d	unused
+	hk?e	unused
 	hk?f	unused
-	hk?g	     0	 27126	  0 - 410
-	hk?h	     0	 53790	  0 - 814*	whole pack
+	hk?g	 16632	 37092	252 - 813
+	hk?h	     0	 53724	  0 - 814	whole pack minus badsect track
 .DT
 .fi
 .PP
@@ -91,17 +91,6 @@ information present.  I general it's best to use
 to create file systems since it uses the ``safe'' partition sizes recored in
 .IR /etc/disktab .
 .PP
-On a dual RK-07 system
-partition hk?e is used
-for the root for one drive
-and partition hk?c for the /usr file system,
-while partition hk?a on the other drive would be
-used for swap.
-If large jobs are to be run using
-hk?e on the second drive as swap area provides a 4Mbyte swap area.
-Otherwise
-partitions hk?b and hk?c on the other drive
-can be used as /tmp and a large (sic) file system.
 .SH FILES
 .ta \w'/dev/MAKEDEV.local  'u
 /dev/hk[0-7][a-h]	block files
@@ -134,10 +123,10 @@ recover the error.
 \fBhk%d: write locked\fP.  The write protect switch was set on the drive
 when a write was attempted.  The write operation is not recoverable.
 .PP
-\fBrk%d: not ready\fR.  The drive was spun down or off line when it was
+\fBhk%d: not ready\fR.  The drive was spun down or off line when it was
 accessed.  The i/o operation is not recoverable.
 .PP
-\fBrk%d: not ready (came back!)\fR.  The drive was not ready, but after
+\fBhk%d: not ready (came back!)\fR.  The drive was not ready, but after
 printing the message about being not ready (which takes a fraction
 of a second) was ready.  The operation is recovered if no further
 errors occur.

@@ -59,5 +59,3 @@
 #define RQ	'\''
 #define MINUS	'-'
 #define COLON	':'
-
-#define MAX(a,b)	((a)>(b)?(a):(b))

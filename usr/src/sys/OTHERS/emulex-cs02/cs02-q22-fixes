@@ -51,7 +51,7 @@ diff -c -r1.1 dh.c
   #else
                                 {
                                 ubadr_t car;
-+ #if   defined(DH_CS02) && defined(Q22)
++ #if   defined(CS02)
 +                               struct dmdevice *dmaddr = (struct dmdevice *)dmi
 nfo[dh].ui_addr;
 
@@ -70,17 +70,17 @@ nfo[dh].ui_addr;
                 addr->dhcar = (u_short)cpaddr(tp->t_outq.c_cf);
   #else
                 ubadr_t uba;
-+ #if   defined(DH_CS02) && defined(Q22)
++ #if   defined(CS02)
 +               struct dmdevice *dmaddr = (struct dmdevice *)dminfo[dh].ui_addr;
 + #endif
 
                 uba = cpaddr(tp->t_outq.c_cf);
-+ #if   defined(DH_CS02) && defined(Q22)
++ #if   defined(CS02)
 +               addr->un.dhcsrl = (unit&017) | DH_IE;
 +               dmaddr->dmlst_h = hiint(uba) & 077;
 + #else
                 addr->un.dhcsrl = (unit&017) | DH_IE | ((hiint(uba)<<4)&060);
-+ #endif        defined(DH_CS02) && defined(Q22)
++ #endif
                 addr->dhcar = loint(uba);
   #endif
                 { short word = 1 << unit;
@@ -96,7 +96,7 @@ diff -c -r1.1 dmreg.h
    */
   struct dmdevice {
         short   dmcsr;          /* control status register */
-+ #if   defined(DH_CS02) && defined(Q22)
++ #if   defined(CS02)
 +       union {                 /* Need to access high byte independently */
 +               short dmlst_w;
 +               char dmlst_b[2];

@@ -5,43 +5,43 @@ DIRECTORY(3)	    UNIX Programmer's Manual	     DIRECTORY(3)
 
 
 
-NNAAMMEE
+NAME
      opendir, readdir, telldir, seekdir, rewinddir, closedir -
      directory operations
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ddiirr..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/dir.h>
 
-     DDIIRR **ooppeennddiirr((ffiilleennaammee))
-     cchhaarr **ffiilleennaammee;;
+     DIR *opendir(filename)
+     char *filename;
 
-     ssttrruucctt ddiirreecctt **rreeaaddddiirr((ddiirrpp))
-     DDIIRR **ddiirrpp;;
+     struct direct *readdir(dirp)
+     DIR *dirp;
 
-     lloonngg tteellllddiirr((ddiirrpp))
-     DDIIRR **ddiirrpp;;
+     long telldir(dirp)
+     DIR *dirp;
 
-     sseeeekkddiirr((ddiirrpp,, lloocc))
-     DDIIRR **ddiirrpp;;
-     lloonngg lloocc;;
+     seekdir(dirp, loc)
+     DIR *dirp;
+     long loc;
 
-     rreewwiinnddddiirr((ddiirrpp))
-     DDIIRR **ddiirrpp;;
+     rewinddir(dirp)
+     DIR *dirp;
 
-     cclloosseeddiirr((ddiirrpp))
-     DDIIRR **ddiirrpp;;
+     closedir(dirp)
+     DIR *dirp;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _O_p_e_n_d_i_r opens the directory named by _f_i_l_e_n_a_m_e and associates
      a _d_i_r_e_c_t_o_r_y _s_t_r_e_a_m with it.  _O_p_e_n_d_i_r returns a pointer to be
      used to identify the _d_i_r_e_c_t_o_r_y _s_t_r_e_a_m in subsequent opera-
-     tions.  The pointer NNUULLLL is returned if _f_i_l_e_n_a_m_e cannot be
+     tions.  The pointer NULL is returned if _f_i_l_e_n_a_m_e cannot be
      accessed, or if it cannot _m_a_l_l_o_c(3) enough memory to hold
      the whole thing.
 
      _R_e_a_d_d_i_r returns a pointer to the next directory entry.  It
-     returns NNUULLLL upon reaching the end of the directory or
+     returns NULL upon reaching the end of the directory or
      detecting an invalid _s_e_e_k_d_i_r operation.
 
      _T_e_l_l_d_i_r returns the current location associated with the
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88       September 24, 1985			1
+Printed 1/9/94	       September 24, 1985			1
 
 
 
@@ -91,7 +91,7 @@ DIRECTORY(3)	    UNIX Programmer's Manual	     DIRECTORY(3)
 	  closedir(dirp);
 	  return NOT_FOUND;
 
-SSEEEE AALLSSOO
+SEE ALSO
      open(2), close(2), read(2), lseek(2), dir(5)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88       September 24, 1985			2
+Printed 1/9/94	       September 24, 1985			2
 
 
 

@@ -40,6 +40,7 @@
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "pdpuba/ubavar.h"
@@ -135,7 +136,7 @@ cssattach(ui)
 		struct  ifnet ifimp_if;
 		struct  impcb ifimp_impcb;
 	} *ifimp;
-	if ((ifimp = (struct ifimpcb *)impattach(ui)) == 0)
+	if ((ifimp = (struct ifimpcb *)impattach(ui, cssreset)) == 0)
 		panic("cssattach");	     /* XXX */
 	sc->css_if = &ifimp->ifimp_if;
 	ip = &ifimp->ifimp_impcb;
@@ -302,7 +303,6 @@ cssxint(unit)
 	register struct css_softc *sc = &css_softc[unit];
 	register struct cssdevice *addr;
 
-	MAPSAVE();
 	addr = (struct cssdevice *)ui->ui_addr;
 	if (sc->css_ic->ic_oactive == 0) {
 		printf("css%d: stray output interrupt csr=%b\n",
@@ -324,7 +324,6 @@ cssxint(unit)
 	if (sc->css_if->if_snd.ifq_head)
 		cssstart(unit);
 out:
-	MAPREST();
 }
 
 /*
@@ -339,7 +338,6 @@ cssrint(unit)
 	int len;
 	long info;
 
-	MAPSAVE();
 	sc->css_if->if_ipackets++;
 
 	addr = (struct cssdevice *)cssinfo[unit]->ui_addr;
@@ -368,10 +366,10 @@ cssrint(unit)
 	}
 
 	/*
-	 * The last parameter is always 0 since using
+	 * The next to last parameter is always 0 since using
 	 * trailers on the ARPAnet is insane.
 	 */
-	m = if_rubaget(&sc->css_ifuba, len, 0);
+	m = if_rubaget(&sc->css_ifuba, len, 0, &sc->css_if);
 	if (m == 0)
 		goto setup;
 	if ((addr->css_icsr & IN_EOM) == 0) {
@@ -398,6 +396,5 @@ setup:
 	addr->css_icsr =
 		IN_HRDY | CSS_IE | IN_WEN | ((info & 0x30000) >> 12) | CSS_GO;
 out:
-	MAPREST();
 }
 #endif NCSS

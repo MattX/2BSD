@@ -31,7 +31,7 @@ rexec(ahost, rport, name, pass, cmd, fd2p)
 	int s, timo = 1, s3;
 	struct sockaddr_in sin, sin2, from;
 	char c;
-	short port;
+	u_short port;
 	struct hostent *hp;
 
 	hp = gethostbyname(*ahost);
@@ -81,7 +81,7 @@ retry:
 			goto bad;
 		}
 		port = ntohs((u_short)sin2.sin_port);
-		(void) sprintf(num, "%d", port);
+		(void) sprintf(num, "%u", port);
 		(void) write(s, num, strlen(num)+1);
 		{ int len = sizeof (from);
 		  s3 = accept(s2, &from, &len, 0);

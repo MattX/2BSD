@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)init.c	5.6 (Berkeley) 5/26/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <signal.h>
 #include <sys/types.h>
@@ -79,13 +79,13 @@ main(argc, argv)
 #ifdef vax
 	howto = r11;
 #else
-#ifdef BSD2_10
+#ifdef pdp11
 	if (argc > 1 && argv[1][0] == '-') {
 		howto = atoi(argv[1]+1);
 		bzero(argv[1], strlen(argv[1])); /* keep ps output clean ... */
 	} else
 		howto = RB_SINGLE;
-#else !BSD2_10
+#else
 	if (argc > 1 && argv[1][0] == '-') {
 		char *cp;
 
@@ -102,13 +102,13 @@ main(argc, argv)
 	} else {
 		howto = RB_SINGLE;
 	}
-#endif BSD2_10
+#endif
 #endif
 	openlog("init", LOG_CONS|LOG_ODELAY, LOG_AUTH);
-#ifdef BSD2_10
+#ifdef pdp11
 	if (autoconfig() == 0)
 		howto = RB_SINGLE;
-#endif BSD2_10
+#endif
 	sigvec(SIGTERM, &rvec, (struct sigvec *)0);
 	signal(SIGTSTP, idle);
 	signal(SIGSTOP, SIG_IGN);
@@ -225,16 +225,14 @@ runcom(oldhowto)
 {
 	register pid, f;
 	int status;
-#ifdef BSD2_10
 	char *arg1, *arg2;
-#endif BSD2_10
 
 	pid = fork();
 	if (pid == 0) {
 		(void) open("/", O_RDONLY);
 		dup2(0, 1);
 		dup2(0, 2);
-#ifdef BSD2_10
+#ifdef pdp11
 		if (oldhowto & (RB_SINGLE|RB_NOFSCK))
 			arg1 = "fastboot";
 		else
@@ -244,12 +242,12 @@ runcom(oldhowto)
 		else
 			arg2 = (char *)0;
 		execl(shell, shell, runc, arg1, arg2, (char *)0);
-#else !BSD2_10
+#else
 		if (oldhowto & RB_SINGLE)
 			execl(shell, shell, runc, (char *)0);
 		else
 			execl(shell, shell, runc, "autoboot", (char *)0);
-#endif BSD2_10
+#endif
 		exit(1);
 	}
 	while (wait(&status) != pid)
@@ -272,9 +270,9 @@ runcom(oldhowto)
 	return (1);
 }
 
-#ifdef BSD2_10
+#ifdef pdp11
 int	merge();
-#endif BSD2_10
+#endif
 struct	sigvec	mvec = { merge, sigmask(SIGTERM), 0 };
 /*
  * Multi-user.  Listen for users leaving, SIGHUP's
@@ -642,7 +640,7 @@ done:
 	sleep(10);	/* prevent failures from eating machine */
 }
 
-#ifdef BSD2_10
+#ifdef pdp11
 #include <machine/autoconfig.h>
 
 autoconfig()
@@ -678,4 +676,4 @@ autoconfig()
 			return (0);
 	}
 }
-#endif BSD2_10
+#endif

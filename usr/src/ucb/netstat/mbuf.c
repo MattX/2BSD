@@ -10,9 +10,9 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)mbuf.c	5.3 (Berkeley) 2/3/87";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)mbuf.c	5.3.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <stdio.h>
 #include <sys/param.h>
@@ -46,7 +46,7 @@ static struct mbtypes {
 int nmbtypes = sizeof(mbstat.m_mtypes) / sizeof(short);
 bool seen[NMBTYPES];		/* "have we seen this type yet?" */
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define klseek slseek
 #endif
 

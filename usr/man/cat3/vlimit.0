@@ -5,18 +5,18 @@ VLIMIT(3C)	    UNIX Programmer's Manual	       VLIMIT(3C)
 
 
 
-NNAAMMEE
+NAME
      vlimit - control maximum system resource consumption
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//vvlliimmiitt..hh>>
+SYNOPSIS
+     #include <sys/vlimit.h>
 
-     lloonngg vvlliimmiitt((rreessoouurrccee,, vvaalluuee))
+     long vlimit(resource, value)
      int resource;
-     lloonngg vvaalluuee;;
+     long value;
 
-DDEESSCCRRIIPPTTIIOONN
-     TThhiiss ffaacciilliittyy iiss ssuuppeerrsseeddeedd bbyy ggeettrrlliimmiitt((22))..
+DESCRIPTION
+     This facility is superseded by getrlimit(2).
 
      Limits the consumption by the current process and each pro-
      cess it creates to not individually exceed _v_a_l_u_e on the
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -81,10 +81,10 @@ VLIMIT(3C)	    UNIX Programmer's Manual	       VLIMIT(3C)
      offending process; to allow it time to process the signal it
      is given 5 seconds grace by raising the cpu time limit.
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1)
 
-BBUUGGSS
+BUGS
      LIM_NORAISE no longer exists.
 
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

@@ -25,7 +25,6 @@
 #include "common.h"
 #include "rn.h"
 #include "ngstuff.h"
-#include "ngdata.h"
 #include "head.h"
 #include "cheat.h"
 #include "help.h"
@@ -162,7 +161,6 @@ do_article()
 #endif
 		if (htype[NGS_LINE].ht_flags & HT_HIDE)
 		    printf(" in %s", ngname);
-		fputs(moderated,stdout);
 		fputs(":\n",stdout) FLUSH;
 	    }
 	    start_header(art);
@@ -806,7 +804,7 @@ page_switch()
 #endif
 	reread = FALSE;
 	do_hiding = TRUE;
-	if (index("nNpP",*buf) == Nullch &&
+	if (index("nNpP",*buf) == Nullch &&
 	  index("wWsS!&|/?123456789.",*buf) != Nullch) {
 	    setdfltcmd();
 	    standout();		/* enter standout mode */

@@ -22,18 +22,8 @@
 struct exec obj;
 struct ovlhdr	ovlhdr;
 
-struct nlist nl[] =
-{
-	"maxmem", 0, 0,
-	0
-};
-
-struct nlist fpsim[] =
-{
-	"fptrap", 0, 0,
-	"fltused", 0, 0,
-	"\0\0\0\0\0\0\0\0", 0, 0
-};
+	struct nlist nl[2];
+	struct nlist fpsim[3];
 
 int	sflag;
 int	fflag;
@@ -43,6 +33,9 @@ main(argc,argv) int argc;char **argv;
 	int x,fail=0;
 	char *myname;
 
+	nl[0].n_un.n_name = "maxmem";
+	fpsim[0].n_un.n_name = "fptrap";
+	fpsim[1].n_un.n_name = "fltused";
 	myname = argv[0];
 	argc--,argv++;
 	while (argc > 1 && argv[0][0]=='-') {

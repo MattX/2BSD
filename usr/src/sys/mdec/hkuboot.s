@@ -1,3 +1,5 @@
+MAJOR = 4			/ major # from bdevsw[]
+
 / RK06/RK07 bootstrap
 /
 / disk boot program to load and transfer
@@ -9,11 +11,9 @@
 
 RK07	= 1		/ 1-> RK07, 0-> RK06
 
-/ options:
-readname= 1		/ 1->normal, if default not found, read name
-			/   from console. 0->loop on failure, saves 36 bytes
-prompt	= 1		/ 1->prompt ('>') before reading from console
-			/   0-> no prompt, saves 8 bytes
+/ options: none.  all options of reading an alternate name or echoing to
+/		  the keyboard had to be removed to make room for the 
+/		  code which understands the new directory structure on disc
 
 / constants:
 CLSIZE	= 2.			/ physical disk blocks per logical block
@@ -42,7 +42,12 @@ CHECKWORD=	6
 
 / establish sp, copy
 / program up to end of core.
+
+	nop			/ These two lines must be present or DEC
+	br	start		/ boot ROMs will refuse to run boot block!
 start:
+	mov	r0,unit
+	mov	r1,csr
 	mov	$..,sp
 	mov	sp,r1
 	clr	r0
@@ -54,83 +59,84 @@ start:
 
 / On error, restart from here.
 restart:
-
-/ clear core to make things clean
 	clr	r0
+/ clear core to make things clean
 2:
 	clr	(r0)+
 	cmp	r0,sp
 	blo	2b
 
 / initialize hk
-	mov	$clear,*$hkcs2
-	mov	$ack,*$hkcs1
+	mov	csr,r1
+	mov	unit,r0
+	bis	$clear,r0
+	mov	r0,hkcs2(r1)
+	mov	$ack,hkcs1(r1)
 0:
-	tstb	*$hkcs1
+	tstb	hkcs1(r1)
 	bpl	0b		/ wait for acknowledge to complete
 
-/ at origin, read pathname
-.if	prompt
-	mov	$'>, r0
-	jsr	pc, putc
-.endif
-
-/ spread out in array 'names', one
-/ component every 14 bytes.
-	mov	$names,r1
-1:
-	mov	r1,r2
-2:
-	jsr	pc,getc
-	cmp	r0,$'\n
-	beq	1f
-	cmp	r0,$'/
-	beq	3f
-	movb	r0,(r2)+
-	br	2b
-3:
-	cmp	r1,r2
-	beq	2b
-	add	$14.,r1
-	br	1b
-
-/ now start reading the inodes
-/ starting at the root and
-/ going through directories
-1:
-	mov	$names,r1
-	mov	$2,r0
-1:
-	clr	bno
+	mov	$bootnm, r1
+	mov	$2,r0			/ ROOTINO
 	jsr	pc,iget
-	tst	(r1)
-	beq	1f
-2:
-	jsr	pc,rmblk
-		br restart
-	mov	$buf,r2
-3:
-	mov	r1,r3
-	mov	r2,r4
-	add	$16.,r2
-	tst	(r4)+
-	beq	5f
-4:
-	cmpb	(r3)+,(r4)+
-	bne	5f
-	cmp	r4,r2
-	blo	4b
-	mov	-16.(r2),r0
-	add	$14.,r1
-	br	1b
-5:
-	cmp	r2,$buf+BSIZE
-	blo	3b
-	br	2b
+	clr	r2			/ offset
+again:
+	jsr	pc,readdir
+	beq	restart			/ error - restart
+	mov	4(r0),r4		/ dp->d_namlen
+	cmp	r4,$bootlen		/ if (bootlen == dp->d_namlen)
+	bne	again			/    nope, go try next entry
+	mov	r0,r3
+	add	$6,r3			/ r3 = dp->d_name
+	mov	r1,r5			/ r5 = filename
+9:
+	cmpb	(r3)+,(r5)+
+	bne	again			/ no match - go read next entry
+	sob	r4,9b
+	mov	(r0),r0			/ r0 = dp->d_ino
+	jsr	pc,iget			/ fetch boot's inode
+	br	loadfile		/ 'boot'- go read it
 
+/ get the inode specified in r0
+iget:
+	add	$INOFF,r0
+	mov	r0,r5
+	ash	$PBSHFT,r0
+	bic	$!7777,r0
+	mov	r0,dno
+	clr	r0
+	jsr	pc,rblk
+	bic	$!17,r5
+	mov	$INOSIZ,r0
+	mul	r0,r5
+	add	$buf,r5
+	mov	$inod,r4
+1:
+	movb	(r5)+,(r4)+
+	sob	r0,1b
+	rts	pc
+
+readdir:
+	bit	$BSIZE-1,r2
+	bne	1f
+	jsr	pc,rmblk		/ read mapped block (bno)
+		br err			/ end of file branch
+	clr	r2			/ start at beginning of buf
+1:
+	mov	$buf,r0
+	add	r2,r0			/ dp = buf+offset
+	add	buf+2(r2),r2		/ dp += dp->d_reclen
+	tst	(r0)			/ dp->d_ino == 0?
+	beq	readdir			/ yes - go look at next
+	rts	pc			/ return with r0 = &dp->d_ino
+err:
+	clr	r0			/ return with
+	rts	pc			/ dp = NULL
+
+loadfile:
+	clr	bno			/ start at block 0 of inode in 'inod'
 / read file into core until
 / a mapping error, (no disk address)
-1:
 	clr	r1
 1:
 	jsr	pc,rmblk
@@ -155,36 +161,19 @@ restart:
 / restart if return
 2:
 	mov	ENDCORE-BOOTOPTS, r4
-	mov	ENDCORE-BOOTDEV, r3
+	mov	unit,r3
+	bis	$MAJOR\<8.,r3
 	mov	ENDCORE-CHECKWORD, r2
+	mov	csr,r1
 	jsr	pc,*$0
 	br	restart
-
-/ get the inode specified in r0
-iget:
-	add	$INOFF,r0
-	mov	r0,r5
-	ash	$PBSHFT,r0
-	bic	$!7777,r0
-	mov	r0,dno
-	clr	r0
-	jsr	pc,rblk
-	bic	$!17,r5
-	mul	$INOSIZ,r5
-	add	$buf,r5
-	mov	$inod,r4
-1:
-	mov	(r5)+,(r4)+
-	cmp	r4,$inod+INOSIZ
-	blo	1b
-	rts	pc
 
 / read a mapped block
 / offset in file is in bno.
 / skip if success, no skip if fail
 / the algorithm only handles a single
 / indirect block. that means that
-/ files longer than NDIRIN+128 blocks cannot
+/ files longer than NDIRIN+256 blocks (260kb) cannot
 / be loaded.
 rmblk:
 	add	$2,(sp)
@@ -193,13 +182,9 @@ rmblk:
 	blt	1f
 	mov	$NDIRIN,r0
 1:
-	mov	r0,-(sp)
-	asl	r0
-	add	(sp)+,r0
-	add	$addr+1,r0
-	movb	(r0)+,dno
-	movb	(r0)+,dno+1
-	movb	-3(r0),r0
+	ash	$2,r0
+	mov	addr+2(r0),dno
+	mov	addr(r0),r0
 	bne	1f
 	tst	dno
 	beq	2f
@@ -220,10 +205,10 @@ rmblk:
 1:
 	rts	pc
 
-hkcs1 = 177440	/ control & status 1
-hkda  = 177446	/ desired track/sector address
-hkcs2 = 177450	/ control & status 2
-hkca  = 177460	/ desired cylinder
+hkcs1 = 0	/ control & status 1
+hkda  = 6	/ desired track/sector address
+hkcs2 = 10	/ control & status 2
+hkca  = 20	/ desired cylinder
 
 .if	RK07
 / RK07 constants
@@ -254,61 +239,24 @@ rblk:
 	clr	r0
 	div	$3.,r0		/ r0 = cylinder r1 = track
 	bisb	r1,1(sp)
-	mov	r0,*$hkca	/ cylinder wanted
-	mov	$hkda,r1
-	mov	(sp)+,(r1)	/ track & sector wanted
-	mov	$buf,-(r1)	/ bus address
-	mov	$WC,-(r1)	/ word count
-	mov	$iocom,-(r1)
+	mov	csr,r3
+	mov	r0,hkca(r3)	/ cylinder wanted
+	mov	unit,hkcs2(r3)
+	add	$hkda,r3
+	mov	(sp)+,(r3)	/ track & sector wanted
+	mov	$buf,-(r3)	/ bus address
+	mov	$WC,-(r3)	/ word count
+	mov	$iocom,-(r3)
 1:
-	tstb	(r1)
+	tstb	(r3)
 	bge	1b		/ wait for iocom to complete
 	mov	(sp)+,r1
 	rts	pc
 
-tks = 177560
-tkb = 177562
-/ read and echo a teletype character
-/ if *cp is nonzero, it is the next char to simulate typing
-/ after the defnm is tried once, read a name from the console
-getc:
-	movb	*cp, r0
-	beq	2f
-	inc	cp
-.if	readname
-	br	putc
-2:
-	mov	$tks,r0
-	inc	(r0)
-1:
-	tstb	(r0)
-	bge	1b
-	mov	tkb,r0
-	bic	$!177,r0
-	cmp	r0,$'A
-	blo	2f
-	cmp	r0,$'Z
-	bhi	2f
-	add	$'a-'A,r0
-.endif
-2:
-
-tps = 177564
-tpb = 177566
-/ print a teletype character
-putc:
-	tstb	*$tps
-	bge	putc
-	mov	r0,*$tpb
-	cmp	r0,$'\r
-	bne	1f
-	mov	$'\n,r0
-	br	putc
-1:
-	rts	pc
-
-cp:	defnm
-defnm:	<boot\r\0>
+bootnm:	<boot\0\0>
+bootlen = 4			/ strlen(bootnm)
+unit: 0
+csr: 0
 end:
 
 inod = ..-512.-BSIZE		/ room for inod, buf, stack
@@ -316,4 +264,3 @@ addr = inod+ADDROFF		/ first address in inod
 buf = inod+INOSIZ
 bno = buf+BSIZE
 dno = bno+2
-names = dno+2

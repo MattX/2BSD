@@ -5,13 +5,13 @@ SYNC(8)             UNIX Programmer's Manual		  SYNC(8)
 
 
 
-NNAAMMEE
+NAME
      sync - update the super block
 
-SSYYNNOOPPSSIISS
-     //eettcc//ssyynncc
+SYNOPSIS
+     /etc/sync
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_y_n_c executes the _s_y_n_c system primitive.  _S_y_n_c can be called
      to insure that all disk writes have been completed before
      the processor is halted in a way not suitably done by
@@ -23,7 +23,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      See _s_y_n_c(2) for details on the system primitive.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sync(2), fsync(2), halt(8), reboot(8), update(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 28, 1986				1
+Printed 1/9/94		  May 28, 1986				1
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)xp.c	1.7 (2.11BSD GTE) 7/1/93
  */
 
 /*
@@ -12,6 +12,7 @@
  * controllers.  If XP_PROBE is defined, it includes a probe routine that
  * will determine the number and type of drives attached to each controller;
  * otherwise, the data structures must be initialized.
+ * Added RP07.  /BQT 930612
  *
  * For simplicity we use hpreg.h instead of an xpreg.h.
  * The bits are the same.
@@ -30,11 +31,8 @@
 #include "hpreg.h"
 #include "dkbad.h"
 #include "dk.h"
-
-#ifdef UNIBUS_MAP
 #include "map.h"
 #include "uba.h"
-#endif UNIBUS_MAP
 
 #define	XP_SDIST	2
 #define	XP_RDIST	6
@@ -181,15 +179,24 @@ struct size {
 	      0,	  0,	/* f: Not Defined */
 	 171798,	  0,	/* g: cyl   0 - 410, whole RP04/05 */
 	 340670,	  0,	/* h: cyl   0 - 814, whole RP06 */
+}, rp_sizes[8] = { /* RP07 */
+	  19200,	  0,	/* a: cyl   0 - 11 */
+	  51200,	 12,	/* b: cyl  12 - 43 */
+	1008000,	  0,	/* c: cyl   0 - 629, whole RP07 */
+	 320000,	 44,	/* d: cyl  44 - 243 */
+	 320000,	244,	/* e: cyl 244 - 443 */
+	 297600,	444,	/* f: cyl 444 - 629 */
+	 937600,	 44,	/* g: cyl  44 - 629 */
+	1008000,	  0,	/* h: cyl   0 - 629, whole RP07 */
 }, rm_sizes[8] = { /* RM02/03 */
-	   4800,	  0,	/* a: cyl   0 -  29 */
-	   4800,	 30,	/* b: cyl  30 -  59 */
-	 122080,	 60,	/* c: cyl  60 - 822 */
-	  62720,	 60,	/* d: cyl  60 - 451 */
-	  59360,	452,	/* e: cyl 452 - 822 */
-	   9600,	  0,	/* f: cyl   0 -  59, overlaps a & b */
-	      0,	  0,	/* g: Not Defined */
-	 131680,	  0,	/* h: cyl   0 - 822 */
+	   9600,	  0,	/* a: cyl   0 -  59 */
+	   9600,	 60,	/* b: cyl  60 - 119 */
+	 131680,	  0,	/* c: cyl   0 - 822, whole RM02/03 */
+	      0,	  0,	/* d: Not Defined */
+	      0,	  0,	/* e: Not Defined */
+	 121920,	 60,	/* f: cyl  60 - 821 */
+	 112320,	120,	/* g: cyl 120 - 821 */
+	 131680,	  0,	/* h: cyl   0 - 822, whole RM02/03 */
 }, rm5_sizes[8] = { /* RM05, or SI 9500, CDC 9766 */
 	   9120,	  0,	/* a: cyl   0 -  14 */
 	   9120,	 15,	/* b: cyl  15 -  29 */
@@ -230,10 +237,10 @@ struct size {
 	   9600,	  0,	/* a: cyl   0 -  29 */
 	   9600,	 30,	/* b: cyl  30 -  59 */
 	 244160,	 60,	/* c: cyl  60 - 822 */
-	 125440,	 60,	/* d: cyl  60 - 451 */
-	 118720,	452,	/* e: cyl 452 - 822 */
-	  59520,	452,	/* f: cyl 452 - 637 */
-	  59200,	638,	/* g: cyl 638 - 822 */
+	 164800,	 60,	/* d: cyl  60 - 574 */
+	  79360,	575,	/* e: cyl 575 - 822 */
+	  39680,	575,	/* f: cyl 575 - 698 */
+	  39680,	699,	/* g: cyl 699 - 822 */
 	 263360,	  0,	/* h: cyl   0 - 822 */
 }, dv_sizes[8] = { /* Diva Comp V, Ampex 9300 in direct mode */
 	   9405,	  0,	/* a: cyl   0 -  14 */
@@ -259,6 +266,7 @@ struct xpst {
 	{ RP04, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
 	{ RP05, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
 	{ RP06, HP_SECT,   HP_TRAC,   RP06_CYL, hp_sizes,   0 },
+	{ RP07, RP7_SECT,  RP7_TRAC,  RP7_CYL,  rp_sizes,   0 },
 	{ RM02, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
 	{ RM03, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
 	{ RM05, RM5_SECT,  RM5_TRAC,  RM5_CYL,  rm5_sizes,  XP_NOCC },
@@ -273,7 +281,6 @@ struct xpst {
 #endif
 
 struct	buf	xptab;
-struct	buf	rxpbuf[NXPD];
 struct	buf	xputab[NXPD];
 
 #ifdef BADSECT
@@ -295,6 +302,10 @@ xproot()
 	register int i;
 	register struct hpdevice *xpaddr;
 
+#ifdef	GENERIC
+	printf("\nxp_drive=0%o xp_controller=0%o\n",xp_drive,xp_controller);
+	delay(10000000L);	/* 10 secs to halt and patch xp_drive */
+#endif
 	for (i = 0; i < NXPC; i++)
 		if (((xpaddr = xp_controller[i].xp_addr) == 0)
 			|| (xpattach(xpaddr, i) == 0))
@@ -344,10 +355,8 @@ xpattach(xpaddr, unit)
 		return(0);
 	if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
 		xc->xp_addr = xpaddr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 		if (fioword(&xpaddr->hpbae) != -1)
 			xc->xp_flags |= XP_RH70;
-#endif
 #ifdef XP_PROBE
 	/*
 	 *  If already attached, ignore (don't want to renumber drives)
@@ -381,10 +390,7 @@ struct xp_controller *xc;
 		xpaddr->hpcs1.w = 0;
 		xpaddr->hpcs2.w = j;
 		xpaddr->hpcs1.w = HP_GO;	/* testing... */
-		{
-			int x = 6000;
-			while (--x);		/* delay */
-		}
+		delay(6000L);
 		dummy = xpaddr->hpds;
 		if (xpaddr->hpcs2.w & HPCS2_NED) {
 			xpaddr->hpcs2.w = HPCS2_CLR;
@@ -510,10 +516,8 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef UNIBUS_MAP
 	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
 		mapalloc(bp);
-#endif
 	bp->b_cylin = bn / xd->xp_nspc + xd->xp_sizes[pseudo_unit].cyloff;
 	dp = &xputab[unit];
 	s = splbio();
@@ -590,10 +594,8 @@ int unit;
 		bbp->b_un.b_addr = (caddr_t)&xpbad[unit];
 		bbp->b_blkno = (daddr_t)xd->xp_ncyl * xd->xp_nspc - xd->xp_nsect;
 		bbp->b_cylin = xd->xp_ncyl - 1;
-#ifdef UNIBUS_MAP
 		if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
 			mapalloc(bbp);
-#endif
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
@@ -718,10 +720,8 @@ loop:
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpba = bp->b_un.b_addr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 	if (xc->xp_flags & XP_RH70)
 		xpaddr->hpbae = bp->b_xmem;
-#endif
 	xpaddr->hpwc = -(bp->b_bcount >> 1);
 	/*
 	 * Warning:  unit is being used as a temporary.
@@ -881,19 +881,6 @@ errdone:
 	xpstart(xc);
 }
 
-xpread(dev)
-	dev_t	dev;
-{
-	return (physio(xpstrategy, &rxpbuf[xpunit(dev)], dev, B_READ, WORD));
-}
-
-xpwrite(dev)
-	dev_t	dev;
-{
-	return (physio(xpstrategy, &rxpbuf[xpunit(dev)], dev, B_WRITE, WORD));
-}
-
-
 #define exadr(x,y)	(((long)(x) << 16) | (unsigned)(y))
 
 /*
@@ -914,9 +901,7 @@ register struct	buf *bp;
 	int	ocmd;
 	int	cn, tn, sn;
 	daddr_t bn;
-#ifdef UNIBUS_MAP
 	struct ubmap *ubp;
-#endif
 	int	unit;
 
 	/*
@@ -976,7 +961,6 @@ register struct	buf *bp;
 			 */
 			while (byte < bp->b_bcount && wrong != 0) {
 				addr = bb + byte;
-#ifdef UNIBUS_MAP
 				if (bp->b_flags & (B_MAP|B_UBAREMAP)) {
 					/*
 					 * Simulate UNIBUS map if UNIBUS
@@ -985,7 +969,6 @@ register struct	buf *bp;
 					ubp = UBMAP + ((addr >> 13) & 037);
 					addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
 				}
-#endif
 				putmemc(addr, getmemc(addr) ^ (int) wrong);
 				byte++;
 				wrong >>= 8;
@@ -1032,10 +1015,8 @@ register struct	buf *bp;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpwc = wc;
 	xpaddr->hpba = (caddr_t)addr;
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 	if (xd->xp_ctlr->xp_flags & XP_RH70)
 		xpaddr->hpbae = (int)(addr >> 16);
-#endif
 	xpaddr->hpcs1.w = ocmd;
 	return (1);
 }
@@ -1043,15 +1024,9 @@ register struct	buf *bp;
 #ifdef XP_DUMP
 /*
  * Dump routine.  Dumps from dumplo to end of memory/end of disk section for
- * minor(dev).  It uses the UNIBUS map to dump all of memory if there is a
- * UNIBUS map and this isn't an RH70.  This depends on UNIBUS_MAP being
- * defined.
+ * minor(dev).
  */
-#ifdef UNIBUS_MAP
-#define	DBSIZE	(UBPAGE/NBPG)		/* unit of transfer, one UBPAGE */
-#else
-#define DBSIZE	16			/* unit of transfer, same number */
-#endif
+#define DBSIZE	16			/* number of blocks to write */
 
 xpdump(dev)
 	dev_t dev;
@@ -1064,9 +1039,7 @@ xpdump(dev)
 	daddr_t bn, dumpsize;
 	long paddr;
 	int	sn, count;
-#ifdef UNIBUS_MAP
 	struct ubmap *ubp;
-#endif
 
 	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
 		|| ((dev=minor(dev)) > (NXPD << 3)))
@@ -1088,9 +1061,7 @@ xpdump(dev)
 	}
 	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
 		return(EFAULT);
-#ifdef UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
 		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -1100,11 +1071,6 @@ xpdump(dev)
 		xpaddr->hpwc = -(count << (PGSHIFT - 1));
 		xpaddr->hper1 = 0;
 		xpaddr->hper3 = 0;
-#ifdef UNIBUS_MAP
-		/*
-		 * If UNIBUS_MAP exists, use the map, unless on an 11/70
-		 * with RH70.
-		 */
 		if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
@@ -1112,21 +1078,16 @@ xpdump(dev)
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO;
 		}
 		else {
-#endif UNIBUS_MAP
 			/*
 			 * Non-UNIBUS map, or 11/70 RH70 (MASSBUS)
 			 */
 			xpaddr->hpba = loint(paddr);
-#if (PDP11 == 70 || PDP11 == GENERIC || defined(Q22))
 			if (xd->xp_ctlr->xp_flags & XP_RH70)
 				xpaddr->hpbae = hiint(paddr);
-#endif
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
-#ifdef UNIBUS_MAP
 		}
-#endif
 		/* Emulex controller emulating two RM03's needs a delay */
-		DELAY(50000L);
+		delay(50000L);
 		while (xpaddr->hpcs1.w & HP_GO)
 			continue;
 		if (xpaddr->hpcs1.w & HP_TRE) {
@@ -1139,4 +1100,19 @@ xpdump(dev)
 	return(0);		/* filled disk minor dev */
 }
 #endif XP_DUMP
+
+/*
+ * By this time either the slaves have been "probed" for or the drive
+ * information was statically initialized - either way the lookup of
+ * partition size is straightforward.
+*/
+daddr_t
+xpsize(dev)
+	register dev_t	dev;
+	{
+	register struct xp_drive *xd;
+
+	xd = &xp_drive[xpunit(dev)];
+	return(xd->xp_sizes[dev & 7].nblocks);
+	}
 #endif NXPD

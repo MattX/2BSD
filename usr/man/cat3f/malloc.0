@@ -5,20 +5,20 @@ MALLOC(3F)	    UNIX Programmer's Manual	       MALLOC(3F)
 
 
 
-NNAAMMEE
+NAME
      malloc, free, falloc - memory allocator
 
-SSYYNNOOPPSSIISS
-     ssuubbrroouuttiinnee mmaalllloocc ((ssiizzee,, aaddddrr))
-     iinntteeggeerr ssiizzee,, aaddddrr
+SYNOPSIS
+     subroutine malloc (size, addr)
+     integer size, addr
 
-     ssuubbrroouuttiinnee ffrreeee ((aaddddrr))
-     iinntteeggeerr aaddddrr
+     subroutine free (addr)
+     integer addr
 
-     ssuubbrroouuttiinnee ffaalllloocc ((nneelleemm,, eellssiizzee,, cclleeaann,, bbaasseevveecc,, aaddddrr,, ooffffsseett))
-     iinntteeggeerr nneelleemm,, eellssiizzee,, cclleeaann,, aaddddrr,, ooffffsseett
+     subroutine falloc (nelem, elsize, clean, basevec, addr, offset)
+     integer nelem, elsize, clean, addr, offset
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _M_a_l_l_o_c, _f_a_l_l_o_c and _f_r_e_e provide a general-purpose memory
      allocation package.  _M_a_l_l_o_c returns in _a_d_d_r the address of a
      block of at least _s_i_z_e bytes beginning on an even-byte boun-
@@ -42,7 +42,7 @@ DDEESSCCRRIIPPTTIIOONN
      assigned by _m_a_l_l_o_cor_f_a_l_l_o_c is overrun or if some random
      number is handed to _f_r_e_e.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      _M_a_l_l_o_c and _f_a_l_l_o_c set _a_d_d_r to 0 if there is no available
      memory or if the arena has been detectably corrupted by
      storing outside the bounds of a block.
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 
@@ -93,10 +93,10 @@ MALLOC(3F)	    UNIX Programmer's Manual	       MALLOC(3F)
 	   real arr1(k,l), arr2(l,m), arr3(k,m), vsym(lsym), v2(m)
 	      ...
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      malloc(3)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				2
+Printed 1/9/94		  May 15, 1985				2
 
 
 

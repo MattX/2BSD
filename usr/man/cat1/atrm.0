@@ -5,20 +5,20 @@ ATRM(1)             UNIX Programmer's Manual		  ATRM(1)
 
 
 
-NNAAMMEE
+NAME
      atrm - remove jobs spooled by at
 
-SSYYNNOOPPSSIISS
-     aattrrmm [ -f ] [ -i ] [-] [[ job #] [ name ]... ]
+SYNOPSIS
+     atrm [ -f ] [ -i ] [-] [[ job #] [ name ]... ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _A_t_r_m removes jobs that were created with the _a_t(1) command.
-     With the -- flag, all jobs belonging to the person invoking
+     With the - flag, all jobs belonging to the person invoking
      _a_t_r_m are removed.	If a job number(s) is specified, _a_t_r_m
      attempts to remove only that job number(s).
 
-     If the --ff flag is used, all information regarding the remo-
-     val of the specified jobs is suppressed.  If the --ii flag is
+     If the -f flag is used, all information regarding the remo-
+     val of the specified jobs is suppressed.  If the -i flag is
      used, _a_t_r_m asks if a job should be removed; a response of
      'y' causes the job to be removed.
 
@@ -26,10 +26,10 @@ DDEESSCCRRIIPPTTIIOONN
      user(s) are removed.  This form of invoking _a_t_r_m is useful
      only to the super-user.
 
-FFIILLEESS
+FILES
      /usr/spool/at	 spool area
 
-SSEEEE AALLSSOO
+SEE ALSO
      at(1), atq(1), cron(8)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 10, 1986				1
+Printed 1/9/94		  May 10, 1986				1
 
 
 

@@ -5,26 +5,26 @@ SELECT(2)	    UNIX Programmer's Manual		SELECT(2)
 
 
 
-NNAAMMEE
+NAME
      select - synchronous I/O multiplexing
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ttiimmee..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/time.h>
 
-     nnffoouunndd == sseelleecctt((nnffddss,, rreeaaddffddss,, wwrriitteeffddss,, eexxcceeppttffddss,, ttiimmeeoouutt))
-     iinntt nnffoouunndd,, nnffddss;;
-     ffdd__sseett **rreeaaddffddss,, **wwrriitteeffddss,, **eexxcceeppttffddss;;
-     ssttrruucctt ttiimmeevvaall **ttiimmeeoouutt;;
+     nfound = select(nfds, readfds, writefds, exceptfds, timeout)
+     int nfound, nfds;
+     fd_set *readfds, *writefds, *exceptfds;
+     struct timeval *timeout;
 
-     FFDD__SSEETT((ffdd,, &&ffddsseett))
-     FFDD__CCLLRR((ffdd,, &&ffddsseett))
-     FFDD__IISSSSEETT((ffdd,, &&ffddsseett))
-     FFDD__ZZEERROO((&&ffddsseett))
-     iinntt ffdd;;
-     ffdd__sseett ffddsseett;;
+     FD_SET(fd, &fdset)
+     FD_CLR(fd, &fdset)
+     FD_ISSET(fd, &fdset)
+     FD_ZERO(&fdset)
+     int fd;
+     fd_set fdset;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_e_l_e_c_t examines the I/O descriptor sets whose addresses are
      passed in _r_e_a_d_f_d_s, _w_r_i_t_e_f_d_s, and _e_x_c_e_p_t_f_d_s to see if some of
      their descriptors are ready for reading, are ready for writ-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 15, 1986				1
+Printed 1/9/94		  May 15, 1986				1
 
 
 
@@ -71,14 +71,14 @@ SELECT(2)	    UNIX Programmer's Manual		SELECT(2)
 
 
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      _S_e_l_e_c_t returns the number of ready descriptors that are con-
      tained in the descriptor sets, or -1 if an error occurred.
      If the time limit expires then _s_e_l_e_c_t returns 0.  If _s_e_l_e_c_t
      returns with an error, including one due to an interrupted
      call, the descriptor sets will be unmodified.
 
-EERRRROORRSS
+ERRORS
      An error return from _s_e_l_e_c_t indicates:
 
      [EBADF]	    One of the descriptor sets specified an
@@ -91,11 +91,11 @@ EERRRROORRSS
      [EINVAL]	    The specified time limit is invalid.  One of
 		    its components is negative or too large.
 
-SSEEEE AALLSSOO
+SEE ALSO
      accept(2), connect(2), read(2), write(2), recv(2), send(2),
      getdtablesize(2)
 
-BBUUGGSS
+BUGS
      Although the provision of _g_e_t_d_t_a_b_l_e_s_i_z_e(2) was intended to
      allow user programs to be written independent of the kernel
      limit on the number of open files, the dimension of a suffi-
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1986				2
+Printed 1/9/94		  May 15, 1986				2
 
 
 

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)var.c	3.8 4/24/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)var.c	3.9 1/1/94";
 #endif
 
 /*
@@ -7,10 +7,6 @@ static char sccsid[] = "@(#)var.c	3.8 4/24/85";
  * All rights reserved.  Redistribution permitted subject to
  * the terms of the Berkeley Software License Agreement.
  */
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include "value.h"
 #include "var.h"

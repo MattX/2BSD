@@ -5,15 +5,15 @@ QSORT(3)	    UNIX Programmer's Manual		 QSORT(3)
 
 
 
-NNAAMMEE
+NAME
      qsort - quicker sort
 
-SSYYNNOOPPSSIISS
-     qqssoorrtt((bbaassee,, nneell,, wwiiddtthh,, ccoommppaarr))
-     cchhaarr **bbaassee;;
-     iinntt ((**ccoommppaarr))(());;
+SYNOPSIS
+     qsort(base, nel, width, compar)
+     char *base;
+     int (*compar)();
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _Q_s_o_r_t is an implementation of the quicker-sort algorithm.
      The first argument is a pointer to the base of the data; the
      second is the number of elements; the third is the width of
@@ -24,7 +24,7 @@ DDEESSCCRRIIPPTTIIOONN
      the first argument is to be considered less than, equal to,
      or greater than the second.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sort(1)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

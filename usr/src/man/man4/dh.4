@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)dh.4	6.2 (Berkeley) 1/28/88
+.\"	@(#)dh.4	6.3 (Berkeley) 7/23/92
 .\"
 .TH DH 4 "January 28, 1988"
 .UC 2
@@ -26,7 +26,8 @@ major device number(s):
 	raw: 3
 minor device encoding:
 	bits 0017 specify line on DH unit
-	bits 0160 specify DH unit
+	bits 0060 specify DH unit
+	bit  0100 unused
 	bit  0200 specifies non-blocking open (``CD always on'')
 .fi
 .ft R
@@ -63,7 +64,7 @@ While the silo is enabled during periods of high-speed input,
 the driver polls for input 30 times per second.
 .SH FILES
 .ta \w'/dev/MAKEDEV.local  'u
-/dev/tty[h-o][0-9a-f]
+/dev/tty[h-k][0-9a-f]
 .br
 /dev/ttyd[0-9a-f]
 .br

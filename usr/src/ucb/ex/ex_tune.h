@@ -107,9 +107,9 @@
  * hardcopy mode when a line gets longer than 80 characters.
  */
 #ifndef VMUNIX
-#define	TUBELINES	60	/* Number of screen lines for visual */
+#define	TUBELINES	70	/* Number of screen lines for visual */
 #define	TUBECOLS	160	/* Number of screen columns for visual */
-#define	TUBESIZE	5000	/* Maximum screen size for visual */
+#define	TUBESIZE	6000	/* Maximum screen size for visual */
 #else
 #define	TUBELINES	70
 #define	TUBECOLS	160

@@ -2322,7 +2322,7 @@ vflush()
 #endif	/* !BSD4_2 */
 
 #ifdef BSD4_2
-	mask = sigblock(1 << (SIGALRM-1));
+	mask = sigblock(1L << (SIGALRM-1));
 #else	/* !BSD4_2 */
 	oalarm = alarm(0);
 #endif	/* !BSD4_2 */
@@ -2438,7 +2438,7 @@ retry:
 	if (tpgrp != getpgrp(0)) { /* not in foreground */
 		(void) signal(SIGTTOU, SIG_DFL);
 #ifdef BSD4_2
-		(void) sigsetmask(sigblock(0) & ~sigmask(SIGTTOU));
+		(void) sigsetmask(sigblock(0L) & ~sigmask(SIGTTOU));
 #endif /* BSD4_2 */
 		(void) kill(0, SIGTTOU);
 		/* job stops here waiting for SIGCONT */
@@ -2448,7 +2448,7 @@ retry:
 	(void) signal(SIGTTOU, SIG_DFL);
 	(void) signal(SIGTSTP, SIG_DFL);
 #ifdef BSD4_2
-	(void) sigsetmask(sigblock(0) & ~(sigmask(SIGTSTP)|sigmask(SIGTTIN)|sigmask(SIGTTOU)));
+	(void) sigsetmask(sigblock(0L) & ~(sigmask(SIGTSTP)|sigmask(SIGTTIN)|sigmask(SIGTTOU)));
 #endif /* BSD4_2 */
 #endif /* SIGTSTP */
 	if (ioctl(1, TIOCGETP, (char *)&oldtty) < 0)
@@ -2559,7 +2559,7 @@ int signo;
 	(void) signal(signo, SIG_DFL);
 #ifdef BSD4_2
 	(void) sigblock(sigmask(SIGALRM)|sigmask(SIGINT));
-	(void) sigsetmask(sigblock(0) & ~sigmask(signo));
+	(void) sigsetmask(sigblock(0L) & ~sigmask(signo));
 #else /* BSD4_1 */
 	(void) alarm(0);
 #endif /* BSD4_1 */
@@ -2575,7 +2575,7 @@ int signo;
 	updscr();
 #endif 	/* !TIOCGWINSZ */
 #ifdef BSD4_2
-	(void) sigsetmask(sigblock(0) & ~(sigmask(SIGALRM)|sigmask(SIGINT)));
+	(void) sigsetmask(sigblock(0L) & ~(sigmask(SIGALRM)|sigmask(SIGINT)));
 #else /* BSD4_1 */
 	timer();
 #endif /* BSD4_1 */

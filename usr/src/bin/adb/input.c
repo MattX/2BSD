@@ -1,25 +1,18 @@
-#
-/*
- *
- *	UNIX debugger
- *
- */
-
 #include "defs.h"
 
-INT		mkfault;
-CHAR		line[LINSIZ];
-INT		infile;
-CHAR		*lp;
-CHAR		lastc = EOR;
-INT		eof;
+	int	mkfault;
+	char	line[LINSIZ];
+	int	infile;
+	char	*lp;
+	char	lastc = EOR;
+	int	eof;
 
 /* input routines */
 
 eol(c)
-CHAR	c;
+	char	c;
 {
-	return(c==EOR ORF c==';');
+	return(c==EOR || c==';');
 }
 
 rdc()
@@ -32,11 +25,11 @@ rdc()
 readchar()
 {
 	IF eof
-	THEN	lastc=EOF;
+	THEN	lastc = '\0';
 	ELSE	IF lp==0
 		THEN	lp=line;
 			REP eof = read(infile,lp,1)==0;
-			    IF mkfault THEN error(0); FI
+			    IF mkfault THEN error((char *)0); FI
 			PER eof==0 ANDF *lp++!=EOR DONE
 			*lp=0; lp=line;
 		FI
@@ -64,10 +57,11 @@ quotchar()
 }
 
 getformat(deformat)
-STRING		deformat;
+	char	*deformat;
 {
-	REG STRING	fptr;
-	REG BOOL	quote;
+	register char	*fptr;
+	register int	quote;
+
 	fptr=deformat; quote=FALSE;
 	WHILE (quote ? readchar()!=EOR : !eol(readchar()))
 	DO  IF (*fptr++ = lastc)=='"'
@@ -77,5 +71,3 @@ STRING		deformat;
 	lp--;
 	IF fptr!=deformat THEN *fptr++ = '\0'; FI
 }
-
-

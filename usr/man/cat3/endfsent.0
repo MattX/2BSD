@@ -5,29 +5,29 @@ GETFSENT(3)	    UNIX Programmer's Manual	      GETFSENT(3)
 
 
 
-NNAAMMEE
+NAME
      getfsent, getfsspec, getfsfile, getfstype, setfsent,
      endfsent - get file system descriptor file entry
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ffssttaabb..hh>>
+SYNOPSIS
+     #include <fstab.h>
 
-     ssttrruucctt ffssttaabb **ggeettffsseenntt(())
+     struct fstab *getfsent()
 
-     ssttrruucctt ffssttaabb **ggeettffssssppeecc((ssppeecc))
-     cchhaarr **ssppeecc;;
+     struct fstab *getfsspec(spec)
+     char *spec;
 
-     ssttrruucctt ffssttaabb **ggeettffssffiillee((ffiillee))
-     cchhaarr **ffiillee;;
+     struct fstab *getfsfile(file)
+     char *file;
 
-     ssttrruucctt ffssttaabb **ggeettffssttyyppee((ttyyppee))
-     cchhaarr **ttyyppee;;
+     struct fstab *getfstype(type)
+     char *type;
 
-     iinntt sseettffsseenntt(())
+     int setfsent()
 
-     iinntt eennddffsseenntt(())
+     int endfsent()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_f_s_e_n_t, _g_e_t_f_s_s_p_e_c, _g_e_t_f_s_t_y_p_e, and _g_e_t_f_s_f_i_l_e each return a
      pointer to an object with the following structure containing
      the broken-out fields of a line in the file system descrip-
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -71,16 +71,16 @@ GETFSENT(3)	    UNIX Programmer's Manual	      GETFSENT(3)
 
 
 
-FFIILLEESS
+FILES
      /etc/fstab
 
-SSEEEE AALLSSOO
+SEE ALSO
      fstab(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Null pointer (0) returned on EOF or error.
 
-BBUUGGSS
+BUGS
      All information is contained in a static area so it must  be
      copied if it is to be saved.
 
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

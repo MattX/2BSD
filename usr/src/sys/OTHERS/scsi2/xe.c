@@ -33,7 +33,6 @@ bool_t	xe_alive = 1;
 struct xedevice *XEADDR = (struct xedevice *) 0177460;
 
 struct buf	xetab;
-struct buf	rxebuf;
 struct xecommand xec;
 u_short	xecaddr[2];
 struct xeinit	xei[NXE];
@@ -474,17 +473,5 @@ xeintr()
 		iodone (bp);
 	}
 	xestart ();
-}
-
-xeread (dev)
-dev_t	dev;
-{
-	physio (xestrategy, &rxebuf, dev, B_READ);
-}
-
-xewrite (dev)
-dev_t	dev;
-{	
-	physio (xestrategy, &rxebuf, dev, B_WRITE);
 }
 #endif NXE

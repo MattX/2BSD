@@ -3,13 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uprobe.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)uprobe.c	2.1 (2.11BSD GTE) 6/16/93
  */
 
 /*
  * The uprobe table contains the pointers to the user-level probe routines
- * that usually attempt to make various devices interrupt.  The actual
- * probe routines are in the device driver sources.
+ * that may attempt to make various devices interrupt.
  *
  * NOTES:
  *	Reads and writes to kmem (done by grab, stuff) are currently done a
@@ -25,12 +24,12 @@
 int	xpprobe(), hkprobe(), rlprobe(), rkprobe(), htprobe(), siprobe(),
 	tmprobe(), tsprobe(), cnprobe(), dzprobe(), dhprobe(), dmprobe(),
 	drprobe(), lpprobe(), dhuprobe(), raprobe(), rxprobe(), brprobe(),
-	dnprobe();
+	dnprobe(), tmsprobe(), dhvprobe();
 
 UPROBE uprobe[] = {
 	"hk",	hkprobe,	/* hk -- rk611, rk06/07 */
 	"hp",	xpprobe,	/* hp -- rjp04/06, rwp04/06 */
-	"ra",	raprobe,	/* ra -- rqdx? (rx50,rd51/52/53), uda50 (ra60/80/81), klesi (ra25) */
+	"ra",	raprobe,	/* ra -- MSCP */
 	"rk",	rkprobe,	/* rk -- rk05 */
 	"rl",	rlprobe,	/* rl -- rl01/02 */
 	"si",	siprobe,	/* si -- SI 9500 for CDC 9766 */
@@ -41,12 +40,14 @@ UPROBE uprobe[] = {
 	"dh",	dhprobe,	/* dh -- DH11 */
 	"dm",	dmprobe,	/* dm -- DM11 */
 	"dr",	drprobe,	/* dr -- DR11W */
-	"du",	dhuprobe,	/* du -- dhu, dhv */
+	"du",	dhuprobe,	/* du -- DHU11 */
+	"dhv",	dhvprobe,	/* dhv -- DHV11 */
 	"dz",	dzprobe,	/* dz -- dz11 */
 	"cn",	cnprobe,	/* cn -- kl11, dl11 */
 	"lp",	lpprobe,	/* lp -- line printer */
 	"rx",	rxprobe,	/* rx -- RX01/02 */
 	"br",	brprobe,	/* br -- EATON 1538 BR1537/BR1711 */
 	"dn",	dnprobe,	/* dn -- dn11 autodialer */
+	"tms",	tmsprobe,	/* tms -- TMSCP tape controller */
 	0,	0,
 };

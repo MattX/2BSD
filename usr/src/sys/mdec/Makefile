@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	7.1 (Berkeley) 6/5/86
+#	@(#)Makefile	1.1 (2.11BSD GTE) 4/8/94
 #
 ALL=	bruboot dvhpuboot hkuboot hpuboot rauboot rkuboot rluboot \
 	rm03uboot rm05uboot si51uboot si94uboot si95uboot
@@ -11,9 +11,7 @@ ALL=	bruboot dvhpuboot hkuboot hpuboot rauboot rkuboot rluboot \
 all: ${ALL}
 
 ${ALL}:
-	/lib/cpp -E $*.s | sed -e 's;^#;/;' > x.s
-	as x.s
-	rm x.s
+	/lib/cpp -E $*.s | sed -e 's;^#;/;' | as -o a.out
 	nm -u a.out
 	size a.out
 	strip a.out

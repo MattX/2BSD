@@ -17,6 +17,7 @@
 #	@(#)Makefile	5.5 (Berkeley) 6/29/88
 #
 CFLAGS=	-O
+SEPFLAG= -i
 LIBC=	/lib/libc.a
 ASRCS=	apropos.c
 MSRCS=	man.c
@@ -24,10 +25,10 @@ MSRCS=	man.c
 all: man apropos
 
 apropos: ${LIBC}
-	${CC} -o $@ ${CFLAGS} ${ASRCS}
+	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${ASRCS}
 
 man: ${LIBC}
-	${CC} -o $@ ${CFLAGS} ${MSRCS}
+	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${MSRCS}
 
 clean: FRC
 	rm -f core apropos man
@@ -35,7 +36,7 @@ clean: FRC
 depend: FRC
 	mkdep -p ${CFLAGS} ${ASRCS} ${MSRCS}
 
-install: FRC
+install: man apropos
 	rm -f ${DESTDIR}/usr/ucb/whatis ${DESTDIR}/usr/ucb/apropos
 	install -s -o bin -g bin -m 755 apropos ${DESTDIR}/usr/ucb/apropos
 	install -s -o bin -g bin -m 755 man ${DESTDIR}/usr/ucb/man

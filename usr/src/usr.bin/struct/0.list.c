@@ -10,7 +10,7 @@ VERT v;
 struct list *ls;
 	{
 	struct list *temp;
-	temp = challoc(sizeof(*temp));
+	temp = (struct list *)challoc(sizeof(*temp));
 	temp->elt = v;
 	temp->nxtlist = ls;
 	return(temp);

@@ -9,12 +9,8 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)netdb.h	5.9 (Berkeley) 4/5/88
+ *	@(#)netdb.h	5.9.1 (2.11BSD GTE) 12/31/93
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 /*
  * Structures returned by network
@@ -40,11 +36,7 @@ struct	netent {
 	char		*n_name;	/* official name of net */
 	char		**n_aliases;	/* alias list */
 	int		n_addrtype;	/* net address type */
-#ifdef BSD2_10
-	long		n_net;		/* network # */
-#else
 	unsigned long	n_net;		/* network # */
-#endif
 };
 
 struct	servent {
@@ -76,8 +68,4 @@ struct protoent	*getprotobyname(), *getprotobynumber(), *getprotoent();
 #define	NO_DATA		4 /* Valid name, no data record of requested type */
 #define	NO_ADDRESS	NO_DATA		/* no address, look for MX record */
 
-#ifdef BSD2_10
-long	gethostid();
-#else
 unsigned long	gethostid();
-#endif

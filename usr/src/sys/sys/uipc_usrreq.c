@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uipc_usrreq.c	7.1 (Berkeley) 6/5/86
+ *	@(#)uipc_usrreq.c	7.1.1 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -31,7 +31,7 @@
 struct sockaddr sun_noname = { AF_UNIX };
 ino_t unp_ino;			/* prototype for fake inode numbers */
 
-#ifdef BSD2_10
+#ifdef pdp11
 extern void unpdisc(), unpgc1();
 extern int fadjust();
 #endif
@@ -314,7 +314,7 @@ unp_detach(unp)
 {
 	
 	if (unp->unp_inode) {
-#ifdef BSD2_10
+#ifdef pdp11
 		UNPDET(unp->unp_inode);
 #else
 		unp->unp_inode->i_socket = 0;
@@ -345,7 +345,7 @@ unp_bind(unp, nam)
 	if (unp->unp_inode != NULL || nam->m_len >= MLEN)
 		return (EINVAL);
 	*(mtod(nam, caddr_t) + nam->m_len) = 0;
-#ifdef BSD2_10
+#ifdef pdp11
 	error = UNPBIND(soun->sun_path, nam->m_len, &ip, unp->unp_socket);
 	if (error)
 		return(error);
@@ -354,10 +354,11 @@ unp_bind(unp, nam)
 	unp->unp_inode = ip;
 	unp->unp_addr = m_copy(nam, 0, M_COPYALL);
 #else
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = soun->sun_path;
-	u.u_dirp[nam->m_len-2] = 0;
-	ip = namei(CREATE | FOLLOW);
+	ndp->ni_nameiop = CREATE | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = soun->sun_path;
+	ndp->ni_dirp[nam->m_len-2] = 0;
+	ip = namei(ndp);
 	if (ip) {
 		iput(ip);
 		return (EADDRINUSE);
@@ -366,7 +367,7 @@ unp_bind(unp, nam)
 		u.u_error = 0;			/* XXX */
 		return (error);
 	}
-	ip = maknode(IFSOCK | 0777);
+	ip = maknode(IFSOCK | 0777, ndp);
 	if (ip == NULL) {
 		error = u.u_error;		/* XXX */
 		u.u_error = 0;			/* XXX */
@@ -392,7 +393,7 @@ unp_connect(so, nam)
 	if (nam->m_len + (nam->m_off - MMINOFF) == MLEN)
 		return (EMSGSIZE);
 	*(mtod(nam, caddr_t) + nam->m_len) = 0;
-#ifdef BSD2_10
+#ifdef pdp11
 	error = UNPCONN(soun->sun_path, nam->m_len, &so2, &ip);
 	if (error || !so2 || !ip)
 		goto bad;
@@ -411,10 +412,11 @@ bad:
 	if (ip)
 		IPUT(ip);
 #else
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_dirp = soun->sun_path;
-	u.u_dirp[nam->m_len-2] = 0;
-	ip = namei(LOOKUP | FOLLOW);
+	ndp->ni_nameiop = LOOKUP | FOLLOW;
+	ndp->ni_segflg = UIO_SYSSPACE;
+	ndp->ni_dirp = soun->sun_path;
+	ndp->ni_dirp[nam->m_len-2] = 0;
+	ip = namei(ndp);
 	if (ip == 0) {
 		error = u.u_error;
 		u.u_error = 0;
@@ -581,7 +583,7 @@ unp_externalize(rights)
 			panic("unp_externalize");
 		fp = *rp;
 		u.u_ofile[f] = fp;
-#ifdef BSD2_10
+#ifdef pdp11
 		/* -1 added to msgcount, 0 to count */
 		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
 		    fp, -1, 0);
@@ -610,7 +612,7 @@ unp_internalize(rights)
 	for (i = 0; i < oldfds; i++) {
 		GETF(fp, *(int *)rp);
 		*rp++ = fp;
-#ifdef BSD2_10
+#ifdef pdp11
 		/* bump both the message count and reference count of fp */
 		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
 		    fp, 1, 1);

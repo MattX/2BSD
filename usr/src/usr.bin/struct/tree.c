@@ -13,13 +13,13 @@ int type;
 struct node *n1, *n2;
 	{
 	struct node *p;
-	p = malloc(sizeof(*p));
+	p = (struct node *)malloc(sizeof(*p));
 	p->left = n1;
 	p->right = n2;
 	p->op = type;
-	p->lit = malloc(slength(string) + 1);
+	p->lit = (char *)malloc(slength(string) + 1);
 	str_copy(string,p->lit,slength(string) + 1);
-	return(p);
+	return((int)p);
 	}
 
 
@@ -44,6 +44,7 @@ int compop[] =	{	'&',	'|',	'<',	'>',	xxeq,	xxle,	xxne,	xxge};
 int notop[] =	{	'|',	'&',	xxge,	xxle,	xxne,	'>',	xxeq,	'<'};
 char *opstring[] =	{ "||",  "&&",	">=",	"<=", "!=",	">",	"==",	"<"};
 
+struct node *
 checkneg(tree,neg)		/* eliminate nots if possible */
 struct node *tree;
 int neg;
@@ -76,7 +77,7 @@ int neg;
 				{
 				tree->op = notop[i];
 				free(tree->lit);
-				tree->lit = malloc(slength(opstring[i])+1);
+				tree->lit = (char *)malloc(slength(opstring[i])+1);
 				str_copy(opstring[i],tree->lit, slength(opstring[i])+1);
 				if (tree->op == '&' || tree->op == '|')
 					{
@@ -90,13 +91,13 @@ int neg;
 		else if (tree->op == xxident && str_eq(tree->lit,".true."))
 			{
 			free(tree->lit);
-			tree->lit = malloc(slength(".false.")+1);
+			tree->lit = (char *)malloc(slength(".false.")+1);
 			str_copy(".false.",tree->lit, slength(".false.")+1);
 			}
 		else
 			{
-			tree = addroot("!",'!',tree,0);
-			tree->lit = malloc(2);
+			tree = (struct node *)addroot("!",'!',tree,0);
+			tree->lit = (char *)malloc(2);
 			str_copy("!",tree->lit, slength("!")+1);
 			}
 		return(tree);

@@ -60,7 +60,7 @@
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 
@@ -71,13 +71,13 @@ TIMEDC(8)	    UNIX Programmer's Manual		TIMEDC(8)
 
 
 
-NNAAMMEE
+NAME
      timedc - timed control program
 
-SSYYNNOOPPSSIISS
-     //eettcc//ttiimmeeddcc [ command [ argument ... ] ]
+SYNOPSIS
+     /etc/timedc [ command [ argument ... ] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_i_m_e_d_c is used to control the operation of  the  _t_i_m_e_d  pro-
      gram.  It may be used to:
 
@@ -121,12 +121,12 @@ DDEESSCCRRIIPPTTIIOONN
      ging  _t_i_m_e_d;  the help command and the program source may be
      consulted for details.
 
-FFIILLEESS
+FILES
      /usr/adm/timed.log       tracing file for timed
 
 
 
-Printed 12/28/88	  May 28, 1986				1
+Printed 1/9/94		  May 28, 1986				1
 
 
 
@@ -139,12 +139,12 @@ TIMEDC(8)	    UNIX Programmer's Manual		TIMEDC(8)
 
      /usr/adm/timed.masterlog log file for master timed
 
-SSEEEE AALLSSOO
+SEE ALSO
      date(1), adjtime(2), icmp(4P), timed(8),
      _T_S_P: _T_h_e _T_i_m_e _S_y_n_c_h_r_o_n_i_z_a_t_i_o_n _P_r_o_t_o_c_o_l _f_o_r _U_N_I_X  _4._3_B_S_D,  R.
      Gusella and S. Zatti
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      ?Ambiguous command      abbreviation matches more than one command
      ?Invalid command	     no match found
      ?Privileged command     command can be executed by root only
@@ -192,7 +192,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  May 28, 1986				2
+Printed 1/9/94		  May 28, 1986				2
 
 
 

@@ -1,9 +1,6 @@
-/* $Header: intrp.c,v 1.1 87/11/11 03:53:38 bin Locked $
+/* $Header: intrp.c,v 4.3.1.5 85/05/23 17:21:24 lwall Exp $
  *
  * $Log:	intrp.c,v $
- * Revision 1.1  87/11/11  03:53:38  bin
- * Initial revision
- * 
  * Revision 4.3.1.5  85/05/23  17:21:24  lwall
  * Now allows 'r' and 'f' on null articles.
  * 
@@ -23,10 +20,6 @@
  * Baseline for release with 4.3bsd.
  * 
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 #include "EXTERN.h"
 #include "common.h"

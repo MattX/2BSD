@@ -21,9 +21,9 @@
  *  - Van Jacobson (van@lbl-csam.arpa)
  */
 
-#if sun || BSD < 43
-#define TCP_COMPAT_42	/* set if we have to interop w/4.2 systems */
-#endif
+#define TCP_COMPAT_42	/* _always_ set for 2.11BSD - not worth the trouble
+			 * of making it conditional
+			*/
 
 #ifndef SB_MAX
 #ifdef	SB_MAXCOUNT

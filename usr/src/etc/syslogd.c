@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)syslogd.c	5.13 (Berkeley) 5/26/86";
-#endif not lint
+static char sccsid[] = "@(#)syslogd.c	5.13.1 (2.11BSD GTE) 12/31/93";
+#endif
 
 /*
  *  syslogd -- log system messages
@@ -42,7 +40,6 @@ static char sccsid[] = "@(#)syslogd.c	5.13 (Berkeley) 5/26/86";
 #define DEFSPRI		(LOG_KERN|LOG_CRIT)
 #define MARKCOUNT	10		/* ratio of minor to major marks */
 
-#include <short_names.h>
 #include <errno.h>
 #include <stdio.h>
 #include <utmp.h>
@@ -77,7 +74,7 @@ char	ctty[] = "/dev/console";
 
 #define	dprintf		if (Debug) printf
 
-#define UNAMESZ		8	/* length of a login name */
+#define UNAMESZ		14	/* length of a login name */
 #define MAXUNAMES	20	/* maximum number of user names */
 #define MAXFNAME	200	/* max file pathname length */
 

@@ -5,13 +5,13 @@ DATE(1)             UNIX Programmer's Manual		  DATE(1)
 
 
 
-NNAAMMEE
+NAME
      date - print and set the date
 
-SSYYNNOOPPSSIISS
-     ddaattee [-nu] [-d dst] [-t timezone] [yymmddhhmm [..ss] ]
+SYNOPSIS
+     date [-nu] [-d dst] [-t timezone] [yymmddhhmm [.ss] ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      If no arguments are given, the current date and time are
      printed.  Providing an argument will set the desired date;
      only the superuser can set the date.  The -_d and -_t flags
@@ -24,7 +24,7 @@ DDEESSCCRRIIPPTTIIOONN
      represents the last two digits of the year; the first _m_m is
      the month number; _d_d is the day number; _h_h is the hour
      number (24 hour system); the second _m_m is the minute number;
-     .._s_s is optional and represents the seconds.  For example:
+     ._s_s is optional and represents the seconds.  For example:
 
 	  date 8506131627
 
@@ -36,18 +36,18 @@ DDEESSCCRRIIPPTTIIOONN
 
      If _t_i_m_e_d(_8) is running to synchronize the clocks of machines
      in a local area network, _d_a_t_e sets the time globally on all
-     those machines unless the --nn option is given.
+     those machines unless the -n option is given.
 
-FFIILLEESS
+FILES
      /usr/adm/wtmp to record time-setting.  In /usr/adm/messages,
      _d_a_t_e records the name of the user setting the time.
 
-SSEEEE AALLSSOO
+SEE ALSO
      gettimeofday(2), utmp(5), timed(8),
      _T_S_P: _T_h_e _T_i_m_e _S_y_n_c_h_r_o_n_i_z_a_t_i_o_n _P_r_o_t_o_c_o_l _f_o_r _U_N_I_X _4._3_B_S_D, R.
      Gusella and S. Zatti
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Exit status is 0 on success, 1 on complete failure to set
      the date, and 2 on successfully setting the local date but
      failing globally.
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	 March 24, 1987                         1
+Printed 1/9/94		 March 24, 1987                         1
 
 
 
@@ -73,7 +73,7 @@ DATE(1)             UNIX Programmer's Manual		  DATE(1)
 
      fails.
 
-BBUUGGSS
+BUGS
      The system attempts to keep the date in a format closely
      compatible with VMS.  VMS, however, uses local time (rather
      than GMT) and does not understand daylight-saving time.
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 March 24, 1987                         2
+Printed 1/9/94		 March 24, 1987                         2
 
 
 

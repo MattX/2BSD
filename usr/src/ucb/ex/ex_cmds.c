@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char *sccsid = "@(#)ex_cmds.c	7.10 (Berkeley) 6/7/85";
-#endif not lint
+#endif
 
 #include "ex.h"
 #include "ex_argv.h"

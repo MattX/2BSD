@@ -1,9 +1,7 @@
-/*	uucp.h	5.11	86/02/12	*/
+/*	uucp.h	5.11.2	94/6/11	*/
 
 #include <stdio.h>
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
+#include <paths.h>
 
 /*
  * Determine local uucp name of this machine.
@@ -44,7 +42,7 @@
 /* #define UUNAME	/**/
 /* #define GETMYHNAME	/**/
 /* If the above fails ... */
-#define	MYNAME	"erehwon"
+#define	MYNAME	"wlonex"
 
 /*
  * If you have it, include <sysexits.h> to use exit
@@ -64,14 +62,14 @@
 /* #define BSDTCP		/* 4.2bsd or 2.9bsd TCP/IP */
 /* #define CDS224		/* Concord Data Systems 2400 */
 /* #define DATAKIT	/* ATT's datakit */
-#define DF02		/* Dec's DF02/DF03 */
+/* #define DF02		/* Dec's DF02/DF03 */
 /* #define DF112		/* Dec's DF112 */
-/* #define DN11		/* "standard" DEC dialer */
-/* #define HAYES		/* Hayes' Smartmodem */
+#define DN11		/* "standard" DEC dialer */
+#define HAYES		/* Hayes' Smartmodem */
 /* #define HAYES2400	/* Hayes' 2400 baud Smartmodem */
 /* #define MICOM	/* Micom Mux port */
 /* #define NOVATION	/* Novation modem */
-#define PAD		/* X.25 PAD */
+/* #define PAD		/* X.25 PAD */
 /* #define PENRIL		/* PENRIL Dialer */
 /* #define PNET		/* Purdue network */
 /* #define RVMACS		/* Racal-Vadic MACS  820 dialer, 831 adaptor */
@@ -103,9 +101,9 @@
  * define BUSYLOOP if you must do a busy loop.
  * Look at uucpdelay() in condevs.c for details.
  */
-/*#define INTERVALTIMER /**/
+#define INTERVALTIMER /**/
 /*#define FASTTIMER /**/
-#define FTIME /**/
+/*#define FTIME /**/
 /*#define BUSYLOOP /**/
 
 /*
@@ -144,7 +142,7 @@
 /*
  * If you are using /etc/inetd with 4.2bsd, define BSDINETD
  */
-#define BSDINETD	/**/
+/* #define BSDINETD	/**/
 
 /*
  * If you are running 4.3bsd or BRL 4.2, you are running the inetd
@@ -283,7 +281,6 @@
 
 	/*  commands  */
 #define SHELL		"/bin/sh"
-#define MAIL		"/usr/lib/sendmail"
 #define UUCICO		"/usr/lib/uucp/uucico"
 #define UUXQT		"/usr/lib/uucp/uuxqt"
 #define UUCP		"uucp"

@@ -26,10 +26,6 @@
  *		setenv MAP3270 "`mset`"
  */
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 #include <curses.h>
 #include "state.h"
 #define LETS_SEE_ASCII

@@ -62,3 +62,5 @@ arpa.cf: mmdfm.m4 euucpm.m4
 kim.cf: uucpm.m4
 
 ucbvax.cf: uucphosts.m4 rule5.m4 berkm.m4 suucpm.m4 uucpm.m4 
+
+install:

@@ -5,13 +5,13 @@ COMSAT(8C)	    UNIX Programmer's Manual	       COMSAT(8C)
 
 
 
-NNAAMMEE
+NAME
      comsat - biff server
 
-SSYYNNOOPPSSIISS
-     //eettcc//ccoommssaatt
+SYNOPSIS
+     /etc/comsat
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _C_o_m_s_a_t is the server process which receives reports of
      incoming mail and notifies users if they have requested this
      service.  _C_o_m_s_a_t receives messages on a datagram port asso-
@@ -30,13 +30,13 @@ DDEESSCCRRIIPPTTIIOONN
      than the ``From'', ``To'', ``Date'', or ``Subject'' lines
      are not included in the displayed message.
 
-FFIILLEESS
+FILES
      /etc/utmp to find out who's logged on and on what terminals
 
-SSEEEE AALLSSOO
+SEE ALSO
      biff(1), inetd(8)
 
-BBUUGGSS
+BUGS
      The message header filtering is prone to error.  The density
      of the information presented is near the theoretical
      minimum.
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 20, 1986				1
+Printed 1/9/94		  May 20, 1986				1
 
 
 

@@ -1,16 +1,43 @@
 /*
  * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)aux.c	5.4 (Berkeley) 1/13/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)aux.c	5.20 (Berkeley) 6/25/90";
+#endif
 
 #include "rcv.h"
 #include <sys/stat.h>
-#include <ctype.h>
+#include <sys/time.h>
 
 /*
  * Mail -- a mail program
@@ -21,78 +48,31 @@ static char *sccsid = "@(#)aux.c	5.4 (Berkeley) 1/13/86";
 /*
  * Return a pointer to a dynamic copy of the argument.
  */
-
 char *
 savestr(str)
 	char *str;
 {
-	register char *cp, *cp2, *top;
+	char *new;
+	int size = strlen(str) + 1;
 
-	for (cp = str; *cp; cp++)
-		;
-	top = salloc(cp-str + 1);
-	if (top == NOSTR)
-		return(NOSTR);
-	for (cp = str, cp2 = top; *cp; cp++)
-		*cp2++ = *cp;
-	*cp2 = 0;
-	return(top);
-}
-
-/*
- * Copy the name from the passed header line into the passed
- * name buffer.  Null pad the name buffer.
- */
-
-copyname(linebuf, nbuf)
-	char *linebuf, *nbuf;
-{
-	register char *cp, *cp2;
-
-	for (cp = linebuf + 5, cp2 = nbuf; *cp != ' ' && cp2-nbuf < 8; cp++)
-		*cp2++ = *cp;
-	while (cp2-nbuf < 8)
-		*cp2++ = 0;
+	if ((new = salloc(size)) != NOSTR)
+		bcopy(str, new, size);
+	return new;
 }
 
 /*
  * Announce a fatal error and die.
  */
 
-panic(str)
-	char *str;
+/*VARARGS1*/
+panic(fmt, a, b)
+	char *fmt;
 {
-	prs("panic: ");
-	prs(str);
-	prs("\n");
-	exit(1);
-}
-
-/*
- * Catch stdio errors and report them more nicely.
- */
-
-_error(str)
-	char *str;
-{
-	prs("Stdio Error: ");
-	prs(str);
-	prs("\n");
+	fprintf(stderr, "panic: ");
+	fprintf(stderr, fmt, a, b);
+	putc('\n', stderr);
+	fflush(stdout);
 	abort();
-}
-
-/*
- * Print a string on diagnostic output.
- */
-
-prs(str)
-	char *str;
-{
-	register char *s;
-
-	for (s = str; *s; s++)
-		;
-	write(2, str, s-str);
 }
 
 /*
@@ -100,14 +80,10 @@ prs(str)
  * Touched messages have the effect of not being sent
  * back to the system mailbox on exit.
  */
-
-touch(mesg)
-{
+touch(mp)
 	register struct message *mp;
+{
 
-	if (mesg < 1 || mesg > msgCount)
-		return;
-	mp = &message[mesg-1];
 	mp->m_flag |= MTOUCH;
 	if ((mp->m_flag & MREAD) == 0)
 		mp->m_flag |= MREAD|MSTATUS;
@@ -117,7 +93,6 @@ touch(mesg)
  * Test to see if the passed file name is a directory.
  * Return true if it is.
  */
-
 isdir(name)
 	char name[];
 {
@@ -131,51 +106,20 @@ isdir(name)
 /*
  * Count the number of arguments in the given string raw list.
  */
-
 argcount(argv)
 	char **argv;
 {
 	register char **ap;
 
-	for (ap = argv; *ap != NOSTR; ap++)
+	for (ap = argv; *ap++ != NOSTR;)
 		;	
-	return(ap-argv);
-}
-
-/*
- * Given a file address, determine the
- * block number it represents.
- */
-
-blockof(off)
-	off_t off;
-{
-	off_t a;
-
-	a = off >> 9;
-	a &= 077777;
-	return((int) a);
-}
-
-/*
- * Take a file address, and determine
- * its offset in the current block.
- */
-
-offsetof(off)
-	off_t off;
-{
-	off_t a;
-
-	a = off & 0777;
-	return((int) a);
+	return ap - argv - 1;
 }
 
 /*
  * Return the desired header line from the passed message
  * pointer (or NOSTR if the desired header field is not available).
  */
-
 char *
 hfield(field, mp)
 	char field[];
@@ -184,185 +128,118 @@ hfield(field, mp)
 	register FILE *ibuf;
 	char linebuf[LINESIZE];
 	register int lc;
+	register char *hfield;
+	char *colon;
 
 	ibuf = setinput(mp);
-	if ((lc = mp->m_lines) <= 0)
-		return(NOSTR);
-	if (readline(ibuf, linebuf) < 0)
-		return(NOSTR);
-	lc--;
-	do {
-		lc = gethfield(ibuf, linebuf, lc);
-		if (lc == -1)
-			return(NOSTR);
-		if (ishfield(linebuf, field))
-			return(savestr(hcontents(linebuf)));
-	} while (lc > 0);
-	return(NOSTR);
+	if ((lc = mp->m_lines - 1) < 0)
+		return NOSTR;
+	if (readline(ibuf, linebuf, LINESIZE) < 0)
+		return NOSTR;
+	while (lc > 0) {
+		if ((lc = gethfield(ibuf, linebuf, lc, &colon)) < 0)
+			return NOSTR;
+		if (hfield = ishfield(linebuf, colon, field))
+			return savestr(hfield);
+	}
+	return NOSTR;
 }
 
 /*
  * Return the next header field found in the given message.
- * Return > 0 if something found, <= 0 elsewise.
+ * Return >= 0 if something found, < 0 elsewise.
+ * "colon" is set to point to the colon in the header.
  * Must deal with \ continuations & other such fraud.
  */
-
-gethfield(f, linebuf, rem)
+gethfield(f, linebuf, rem, colon)
 	register FILE *f;
 	char linebuf[];
 	register int rem;
+	char **colon;
 {
 	char line2[LINESIZE];
-	long loc;
 	register char *cp, *cp2;
 	register int c;
 
-
 	for (;;) {
-		if (rem <= 0)
-			return(-1);
-		if (readline(f, linebuf) < 0)
-			return(-1);
-		rem--;
-		if (strlen(linebuf) == 0)
-			return(-1);
-		if (isspace(linebuf[0]))
+		if (--rem < 0)
+			return -1;
+		if ((c = readline(f, linebuf, LINESIZE)) <= 0)
+			return -1;
+		for (cp = linebuf; isprint(*cp) && *cp != ' ' && *cp != ':';
+		     cp++)
+			;
+		if (*cp != ':' || cp == linebuf)
 			continue;
-		if (linebuf[0] == '>')
-			continue;
-		cp = index(linebuf, ':');
-		if (cp == NOSTR)
-			continue;
-		for (cp2 = linebuf; cp2 < cp; cp2++)
-			if (isdigit(*cp2))
-				continue;
-		
 		/*
 		 * I guess we got a headline.
 		 * Handle wraparounding
 		 */
-		
+		*colon = cp;
+		cp = linebuf + c;
 		for (;;) {
+			while (--cp >= linebuf && (*cp == ' ' || *cp == '\t'))
+				;
+			cp++;
 			if (rem <= 0)
 				break;
-#ifdef CANTELL
-			loc = ftell(f);
-			if (readline(f, line2) < 0)
+			ungetc(c = getc(f), f);
+			if (c != ' ' && c != '\t')
+				break;
+			if ((c = readline(f, line2, LINESIZE)) < 0)
 				break;
 			rem--;
-			if (!isspace(line2[0])) {
-				fseek(f, loc, 0);
-				rem++;
-				break;
-			}
-#else
-			c = getc(f);
-			ungetc(c, f);
-			if (!isspace(c) || c == '\n')
-				break;
-			if (readline(f, line2) < 0)
-				break;
-			rem--;
-#endif
-			cp2 = line2;
-			for (cp2 = line2; *cp2 != 0 && isspace(*cp2); cp2++)
+			for (cp2 = line2; *cp2 == ' ' || *cp2 == '\t'; cp2++)
 				;
-			if (strlen(linebuf) + strlen(cp2) >= LINESIZE-2)
+			c -= cp2 - line2;
+			if (cp + c >= linebuf + LINESIZE - 2)
 				break;
-			cp = &linebuf[strlen(linebuf)];
-			while (cp > linebuf &&
-			    (isspace(cp[-1]) || cp[-1] == '\\'))
-				cp--;
 			*cp++ = ' ';
-			for (cp2 = line2; *cp2 != 0 && isspace(*cp2); cp2++)
-				;
-			strcpy(cp, cp2);
+			bcopy(cp2, cp, c);
+			cp += c;
 		}
-		if ((c = strlen(linebuf)) > 0) {
-			cp = &linebuf[c-1];
-			while (cp > linebuf && isspace(*cp))
-				cp--;
-			*++cp = 0;
-		}
-		return(rem);
+		*cp = 0;
+		return rem;
 	}
 	/* NOTREACHED */
 }
 
 /*
  * Check whether the passed line is a header line of
- * the desired breed.
+ * the desired breed.  Return the field body, or 0.
  */
 
-ishfield(linebuf, field)
+char*
+ishfield(linebuf, colon, field)
 	char linebuf[], field[];
+	char *colon;
 {
-	register char *cp;
-	register int c;
+	register char *cp = colon;
 
-	if ((cp = index(linebuf, ':')) == NOSTR)
-		return(0);
-	if (cp == linebuf)
-		return(0);
-	cp--;
-	while (cp > linebuf && isspace(*cp))
-		cp--;
-	c = *++cp;
 	*cp = 0;
-	if (icequal(linebuf ,field)) {
-		*cp = c;
-		return(1);
+	if (strcasecmp(linebuf, field) != 0) {
+		*cp = ':';
+		return 0;
 	}
-	*cp = c;
-	return(0);
-}
-
-/*
- * Extract the non label information from the given header field
- * and return it.
- */
-
-char *
-hcontents(hfield)
-	char hfield[];
-{
-	register char *cp;
-
-	if ((cp = index(hfield, ':')) == NOSTR)
-		return(NOSTR);
-	cp++;
-	while (*cp && isspace(*cp))
-		cp++;
-	return(cp);
-}
-
-/*
- * Compare two strings, ignoring case.
- */
-
-icequal(s1, s2)
-	register char *s1, *s2;
-{
-
-	while (raise(*s1++) == raise(*s2))
-		if (*s2++ == 0)
-			return(1);
-	return(0);
+	*cp = ':';
+	for (cp++; *cp == ' ' || *cp == '\t'; cp++)
+		;
+	return cp;
 }
 
 /*
  * Copy a string, lowercasing it as we go.
  */
 istrcpy(dest, src)
-	char *dest, *src;
+	register char *dest, *src;
 {
-	register char *cp, *cp2;
 
-	cp2 = dest;
-	cp = src;
 	do {
-		*cp2++ = little(*cp);
-	} while (*cp++ != 0);
+		if (isupper(*src))
+			*dest++ = tolower(*src);
+		else
+			*dest++ = *src;
+	} while (*src++ != 0);
 }
 
 /*
@@ -371,7 +248,7 @@ istrcpy(dest, src)
  * the stack.
  */
 
-static	int	ssp = -1;		/* Top of file stack */
+static	int	ssp;			/* Top of file stack */
 struct sstack {
 	FILE	*s_file;		/* File we were in. */
 	int	s_cond;			/* Saved state of conditionals */
@@ -383,27 +260,27 @@ struct sstack {
  * Set the global flag "sourcing" so that others will realize
  * that they are no longer reading from a tty (in all probability).
  */
-
-source(name)
-	char name[];
+source(arglist)
+	char **arglist;
 {
-	register FILE *fi;
-	register char *cp;
+	FILE *fi;
+	char *cp;
 
-	if ((cp = expand(name)) == NOSTR)
+	if ((cp = expand(*arglist)) == NOSTR)
 		return(1);
-	if ((fi = fopen(cp, "r")) == NULL) {
+	if ((fi = Fopen(cp, "r")) == NULL) {
 		perror(cp);
 		return(1);
 	}
-	if (ssp >= NOFILE - 2) {
+	if (ssp >= NOFILE - 1) {
 		printf("Too much \"sourcing\" going on.\n");
-		fclose(fi);
+		Fclose(fi);
 		return(1);
 	}
-	sstack[++ssp].s_file = input;
+	sstack[ssp].s_file = input;
 	sstack[ssp].s_cond = cond;
 	sstack[ssp].s_loading = loading;
+	ssp++;
 	loading = 0;
 	cond = CANY;
 	input = fi;
@@ -412,39 +289,24 @@ source(name)
 }
 
 /*
- * Source a file, but do nothing if the file cannot be opened.
- */
-
-source1(name)
-	char name[];
-{
-	register int f;
-
-	if ((f = open(name, 0)) < 0)
-		return(0);
-	close(f);
-	source(name);
-}
-
-/*
  * Pop the current input back to the previous level.
  * Update the "sourcing" flag as appropriate.
  */
-
 unstack()
 {
-	if (ssp < 0) {
+	if (ssp <= 0) {
 		printf("\"Source\" stack over-pop.\n");
 		sourcing = 0;
 		return(1);
 	}
-	fclose(input);
+	Fclose(input);
 	if (cond != CANY)
 		printf("Unmatched \"if\"\n");
+	ssp--;
 	cond = sstack[ssp].s_cond;
 	loading = sstack[ssp].s_loading;
-	input = sstack[ssp--].s_file;
-	if (ssp < 0)
+	input = sstack[ssp].s_file;
+	if (ssp == 0)
 		sourcing = loading;
 	return(0);
 }
@@ -452,43 +314,26 @@ unstack()
 /*
  * Touch the indicated file.
  * This is nifty for the shell.
- * If we have the utime() system call, this is better served
- * by using that, since it will work for empty files.
- * On non-utime systems, we must sleep a second, then read.
  */
-
 alter(name)
-	char name[];
+	char *name;
 {
-#ifdef UTIME
-	struct stat statb;
-	long time();
-	time_t time_p[2];
-#else
-	register int pid, f;
-	char w;
-#endif UTIME
+	struct stat sb;
+	struct timeval tv[2];
+	time_t time();
 
-#ifdef UTIME
-	if (stat(name, &statb) < 0)
+	if (stat(name, &sb))
 		return;
-	time_p[0] = time((long *) 0) + 1;
-	time_p[1] = statb.st_mtime;
-	utime(name, time_p);
-#else
-	sleep(1);
-	if ((f = open(name, 0)) < 0)
-		return;
-	read(f, &w, 1);
-	exit(0);
-#endif
+	tv[0].tv_sec = time((time_t *)0) + 1;
+	tv[1].tv_sec = sb.st_mtime;
+	tv[0].tv_usec = tv[1].tv_usec = 0;
+	(void)utimes(name, tv);
 }
 
 /*
  * Examine the passed line buffer and
  * return true if it is all blanks and tabs.
  */
-
 blankline(linebuf)
 	char linebuf[];
 {
@@ -524,6 +369,33 @@ nameof(mp, reptype)
 }
 
 /*
+ * Start of a "comment".
+ * Ignore it.
+ */
+char *
+skip_comment(cp)
+	register char *cp;
+{
+	register nesting = 1;
+
+	for (; nesting > 0 && *cp; cp++) {
+		switch (*cp) {
+		case '\\':
+			if (cp[1])
+				cp++;
+			break;
+		case '(':
+			nesting++;
+			break;
+		case ')':
+			nesting--;
+			break;
+		}
+	}
+	return cp;
+}
+
+/*
  * Skin an arpa net address according to the RFC 822 interpretation
  * of "host-phrase."
  */
@@ -536,12 +408,11 @@ skin(name)
 	char *bufend;
 	int gotlt, lastsp;
 	char nbuf[BUFSIZ];
-	int nesting;
 
 	if (name == NOSTR)
 		return(NOSTR);
 	if (index(name, '(') == NOSTR && index(name, '<') == NOSTR
-	&& index(name, ' ') == NOSTR)
+	    && index(name, ' ') == NOSTR)
 		return(name);
 	gotlt = 0;
 	lastsp = 0;
@@ -549,32 +420,7 @@ skin(name)
 	for (cp = name, cp2 = bufend; c = *cp++; ) {
 		switch (c) {
 		case '(':
-			/*
-			 * Start of a "comment".
-			 * Ignore it.
-			 */
-			nesting = 1;
-			while ((c = *cp) != 0) {
-				cp++;
-				switch (c) {
-				case '\\':
-					if (*cp == 0)
-						goto outcm;
-					cp++;
-					break;
-				case '(':
-					nesting++;
-					break;
-
-				case ')':
-					--nesting;
-					break;
-				}
-
-				if (nesting <= 0)
-					break;
-			}
-		outcm:
+			cp = skip_comment(cp);
 			lastsp = 0;
 			break;
 
@@ -583,20 +429,17 @@ skin(name)
 			 * Start of a "quoted-string".
 			 * Copy it in its entirety.
 			 */
-			while ((c = *cp) != 0) {
+			while (c = *cp) {
 				cp++;
-				switch (c) {
-				case '\\':
-					if ((c = *cp) == 0)
-						goto outqs;
-					cp++;
+				if (c == '"')
 					break;
-				case '"':
-					goto outqs;
+				if (c != '\\')
+					*cp2++ = c;
+				else if (c = *cp) {
+					*cp2++ = c;
+					cp++;
 				}
-				*cp2++ = c;
 			}
-		outqs:
 			lastsp = 0;
 			break;
 
@@ -619,16 +462,22 @@ skin(name)
 		case '>':
 			if (gotlt) {
 				gotlt = 0;
-				while (*cp != ',' && *cp != 0)
+				while ((c = *cp) && c != ',') {
 					cp++;
-				if (*cp == 0 )
-					goto done;
-				*cp2++ = ',';
-				*cp2++ = ' ';
-				bufend = cp2;
+					if (c == '(')
+						cp = skip_comment(cp);
+					else if (c == '"')
+						while (c = *cp) {
+							cp++;
+							if (c == '"')
+								break;
+							if (c == '\\' && *cp)
+								cp++;
+						}
+				}
+				lastsp = 0;
 				break;
 			}
-
 			/* Fall into . . . */
 
 		default:
@@ -637,10 +486,15 @@ skin(name)
 				*cp2++ = ' ';
 			}
 			*cp2++ = c;
-			break;
+			if (c == ',' && !gotlt) {
+				*cp2++ = ' ';
+				for (; *cp == ' '; cp++)
+					;
+				lastsp = 0;
+				bufend = cp2;
+			}
 		}
 	}
-done:
 	*cp2 = 0;
 
 	return(savestr(nbuf));
@@ -653,7 +507,6 @@ done:
  *	1 -- get sender's name for reply
  *	2 -- get sender's name for Reply
  */
-
 char *
 name1(mp, reptype)
 	register struct message *mp;
@@ -665,23 +518,23 @@ name1(mp, reptype)
 	int first = 1;
 
 	if ((cp = hfield("from", mp)) != NOSTR)
-		return(cp);
+		return cp;
 	if (reptype == 0 && (cp = hfield("sender", mp)) != NOSTR)
-		return(cp);
+		return cp;
 	ibuf = setinput(mp);
-	copy("", namebuf);
-	if (readline(ibuf, linebuf) <= 0)
+	namebuf[0] = 0;
+	if (readline(ibuf, linebuf, LINESIZE) < 0)
 		return(savestr(namebuf));
 newname:
-	for (cp = linebuf; *cp != ' '; cp++)
+	for (cp = linebuf; *cp && *cp != ' '; cp++)
 		;
-	while (any(*cp, " \t"))
-		cp++;
-	for (cp2 = &namebuf[strlen(namebuf)]; *cp && !any(*cp, " \t") &&
-	    cp2-namebuf < LINESIZE-1; *cp2++ = *cp++)
+	for (; *cp == ' ' || *cp == '\t'; cp++)
 		;
+	for (cp2 = &namebuf[strlen(namebuf)];
+	     *cp && *cp != ' ' && *cp != '\t' && cp2 < namebuf + LINESIZE - 1;)
+		*cp2++ = *cp++;
 	*cp2 = '\0';
-	if (readline(ibuf, linebuf) <= 0)
+	if (readline(ibuf, linebuf, LINESIZE) < 0)
 		return(savestr(namebuf));
 	if ((cp = index(linebuf, 'F')) == NULL)
 		return(savestr(namebuf));
@@ -697,7 +550,7 @@ newname:
 				break;
 			cp++;
 			if (first) {
-				copy(cp, namebuf);
+				strcpy(namebuf, cp);
 				first = 0;
 			} else
 				strcpy(rindex(namebuf, '!')+1, cp);
@@ -725,99 +578,74 @@ charcount(str, c)
 }
 
 /*
- * Find the rightmost pointer to an instance of the
- * character in the string and return it.
- */
-char *
-rindex(str, c)
-	char str[];
-	register int c;
-{
-	register char *cp, *cp2;
-
-	for (cp = str, cp2 = NOSTR; *cp; cp++)
-		if (c == *cp)
-			cp2 = cp;
-	return(cp2);
-}
-
-/*
- * See if the string is a number.
- */
-
-numeric(str)
-	char str[];
-{
-	register char *cp = str;
-
-	while (*cp)
-		if (!isdigit(*cp++))
-			return(0);
-	return(1);
-}
-
-/*
  * Are any of the characters in the two strings the same?
  */
-
 anyof(s1, s2)
 	register char *s1, *s2;
 {
-	register int c;
 
-	while (c = *s1++)
-		if (any(c, s2))
-			return(1);
-	return(0);
+	while (*s1)
+		if (index(s2, *s1++))
+			return 1;
+	return 0;
 }
 
 /*
- * Determine the leftmost index of the character
- * in the string.
+ * Convert c to upper case
  */
-
-char *
-index(str, ch)
-	char *str;
+raise(c)
+	register c;
 {
-	register char *cp;
-	register int c;
 
-	for (c = ch, cp = str; *cp; cp++)
-		if (*cp == c)
-			return(cp);
-	return(NOSTR);
+	if (islower(c))
+		return toupper(c);
+	return c;
+}
+
+/*
+ * Copy s1 to s2, return pointer to null in s2.
+ */
+char *
+copy(s1, s2)
+	register char *s1, *s2;
+{
+
+	while (*s2++ = *s1++)
+		;
+	return s2 - 1;
 }
 
 /*
  * See if the given header field is supposed to be ignored.
  */
-isign(field)
+isign(field, ignore)
 	char *field;
+	struct ignoretab ignore[2];
 {
 	char realfld[BUFSIZ];
 
+	if (ignore == ignoreall)
+		return 1;
 	/*
 	 * Lower-case the string, so that "Status" and "status"
 	 * will hash to the same place.
 	 */
 	istrcpy(realfld, field);
-
-	if (nretained > 0)
-		return (!member(realfld, retain));
+	if (ignore[1].i_count > 0)
+		return (!member(realfld, ignore + 1));
 	else
 		return (member(realfld, ignore));
 }
 
 member(realfield, table)
 	register char *realfield;
-	register struct ignore **table;
+	struct ignoretab *table;
 {
 	register struct ignore *igp;
 
-	for (igp = table[hash(realfield)]; igp != 0; igp = igp->i_link)
-		if (equal(igp->i_field, realfield))
+	for (igp = table->i_head[hash(realfield)]; igp != 0; igp = igp->i_link)
+		if (*igp->i_field == *realfield &&
+		    equal(igp->i_field, realfield))
 			return (1);
-
 	return (0);
 }

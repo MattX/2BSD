@@ -3,29 +3,27 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6 (Berkeley) 1/25/87
+#	@(#)Makefile	5.6.2 (2.11BSD GTE) 4/9/94
 #
 SRCS=	_setjmp.s abs.s alloca.s atof.c bcmp.s bcopy.s bzero.s disktab.c \
 	ecvt.c fabs.s ffs.s frexp.s index.s insque.s ldexp.s ldfps.s \
-	modf.s remque.s rindex.s rollback.s setjmp.s setjmperr.c strcat.s \
-	strcmp.s strcpy.s strlen.s strncat.s strncmp.s strncpy.s
+	modf.s nsym.c remque.s rindex.s rollback.s setjmp.s setjmperr.c \
+	strcat.s strcmp.s strcpy.s strlen.s strncat.s strncmp.s strncpy.s
 OBJS=	_setjmp.o abs.o alloca.o atof.o bcmp.o bcopy.o bzero.o disktab.o \
 	ecvt.o fabs.o ffs.o frexp.o index.o insque.o ldexp.o ldfps.o \
-	modf.o remque.o rindex.o rollback.o setjmp.o setjmperr.o strcat.o \
-	strcmp.o strcpy.o strlen.o strncat.o strncmp.o strncpy.o
+	modf.o nsym.o remque.o rindex.o rollback.o setjmp.o setjmperr.o \
+	strcat.o strcmp.o strcpy.o strlen.o strncat.o strncmp.o strncpy.o
+
 CFLAGS=	-O ${DEFS}
 TAGSFILE=tags
 
 .s.o:
-	/lib/cpp -E -DPROF ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -X -r $*.o
 	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $*.s | sed -e 's;^#;/;' > x.s
-	as -V -o $*.o x.s
+	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
 	-ld -x -r $*.o
 	mv a.out $*.o
-	rm -f x.s
 
 .c.o:
 	cc -p -c ${CFLAGS} $*.c
@@ -87,6 +85,7 @@ index.o: index.s ./DEFS.h
 insque.o: insque.s ./DEFS.h
 ldexp.o: ldexp.s ./DEFS.h
 modf.o: modf.s ./DEFS.h
+nsym.o: nsym.c /usr/include/a.out.h
 remque.o: remque.s ./DEFS.h
 rindex.o: rindex.s ./DEFS.h
 rollback.o: rollback.s

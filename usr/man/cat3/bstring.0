@@ -5,26 +5,26 @@ BSTRING(3)	    UNIX Programmer's Manual	       BSTRING(3)
 
 
 
-NNAAMMEE
+NAME
      bcopy, bcmp, bzero, ffs - bit and byte string operations
 
-SSYYNNOOPPSSIISS
-     bbccooppyy((ssrrcc,, ddsstt,, lleennggtthh))
-     cchhaarr **ssrrcc,, **ddsstt;;
-     iinntt lleennggtthh;;
+SYNOPSIS
+     bcopy(src, dst, length)
+     char *src, *dst;
+     int length;
 
-     bbccmmpp((bb11,, bb22,, lleennggtthh))
-     cchhaarr **bb11,, **bb22;;
-     iinntt lleennggtthh;;
+     bcmp(b1, b2, length)
+     char *b1, *b2;
+     int length;
 
-     bbzzeerroo((bb,, lleennggtthh))
-     cchhaarr **bb;;
-     iinntt lleennggtthh;;
+     bzero(b, length)
+     char *b;
+     int length;
 
-     ffffss((ii))
-     lloonngg ii;;
+     ffs(i)
+     long i;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The functions _b_c_o_p_y, _b_c_m_p, and _b_z_e_r_o operate on variable
      length strings of bytes.  They do not check for null bytes
      as the routines in _s_t_r_i_n_g(3) do.
@@ -42,7 +42,7 @@ DDEESSCCRRIIPPTTIIOONN
      at 1.  A return value of 0 indicates the value passed is
      zero.
 
-BBUUGGSS
+BUGS
      The _b_c_o_p_y routine take parameters backwards from _s_t_r_c_p_y.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

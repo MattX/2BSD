@@ -313,7 +313,7 @@ loop:
 			perror("read");
 			if((cflag&NERR) == 0) {
 				flsh();
-				term();
+				term(1);
 			}
 			ibc = 0;
 			for(c=0; c<ibs; c++)
@@ -323,7 +323,7 @@ loop:
 		}
 		if(ibc == 0 && --files<=0) {
 			flsh();
-			term();
+			term(0);
 		}
 		if(ibc != ibs) {
 			nipr++;
@@ -365,7 +365,7 @@ flsh()
 		c = write(obf, obuf, obc);
 		if(c != obc) {
 			perror("write");
-			term();
+			term(1);
 		}
 		obc = 0;
 	}
@@ -592,11 +592,12 @@ block(cc)
 		null(c);
 }
 
-term()
+term(status)
+int status;
 {
 
 	stats();
-	exit(0);
+	exit(status);
 }
 
 stats()

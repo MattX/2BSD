@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tip.h	5.3 (Berkeley) 10/19/86
+ *	@(#)tip.h	5.3.1 (2.11BSD GTE) 1/1/94
  */
 
 /*
@@ -20,17 +20,6 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <errno.h>
-
-#ifdef BSD2_10
-#define	cour_dialer		_courda
-#define	cour_disconnect		_courds
-#define	v3451_dialer		_v345di
-#define	v3451_disconnect	_v345ds
-#define	v831_dialer		_v831da
-#define	v831_disconnect		_v831ds
-#define	timeout			_tmout
-#define	timeoutbuf		_tmoutb
-#endif BSD2_10
 
 /*
  * Remote host attributes

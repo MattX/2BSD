@@ -1,9 +1,9 @@
 .\"	@(#)ar.1	6.1 (Berkeley) 4/29/85
 .\"
 .TH AR 1 "April 29, 1985"
-.UC 2
+.AT 3
 .SH NAME
-ar \- archive and library maintainer (2BSD)
+ar \- archive and library maintainer
 .SH SYNOPSIS
 .B ar
 key [ posname ] afile name ...
@@ -17,17 +17,17 @@ It can be used, though, for any similar purpose.
 .B N.B:
 This version of
 .I ar
-uses an older binary format archive rather than the newer ASCII-format archive
-.I 2.10BSD
-continues to use the older binary format primarily because of
-.IR ld (1).
+uses a ASCII-format archive which is portable among the various
+machines running \s-2UNIX\s0.
+Programs for dealing with older formats are available: see
+.IR arcv (8).
 .PP
 .I Key
 is one character from the set
 .B drqtpmx,
 optionally concatenated with
 one or more of
-.B vuaibcl.
+.B vuaibclo.
 .I Afile
 is the archive file.
 The
@@ -96,7 +96,11 @@ If no names are given, all files in the archive are
 extracted.
 In neither case does
 .B x
-alter the archive file.
+alter the archive file. Normally the `last-modified' date of each
+extracted file is the date when it is extracted. However, if
+.B o
+is used, the `last-modified' date is reset to the date recorded in the
+archive.
 .TP
 .B v
 Verbose.
@@ -133,12 +137,11 @@ This option causes them to be placed in the local directory.
 .SH FILES
 /tmp/v*	temporaries
 .SH "SEE ALSO"
-lorder(1), ld(1), ranlib(1), ar(5)
+lorder(1), ld(1), ranlib(1), ar(5), arcv(8)
 .SH BUGS
 If the same file is mentioned twice in an argument list,
 it may be put in the archive twice.
-.br
-Does not garbage collect.
-.br
-Does not restore uid's right because the 16-bit uid is stored
-in an 8-bit byte.
+.LP
+The `last-modified' date of a file will not be altered by the
+.B o
+option if the user is not the owner of the extracted file, or the super-user.

@@ -69,8 +69,8 @@ lint:	$(LSRC)
 	lint makedb.c
 	lint arpatxt.c
 
-install:
+install: pathalias makedb arpatxt pathalias.0
 	install -s pathalias ${DESTDIR}/usr/new
 	install -s makedb ${DESTDIR}/usr/new
 	install -s arpatxt ${DESTDIR}/usr/new
-	install -c -m 644 pathalias.0 ${DESTDIR}/usr/new/man/cat1/pathalias.0
+	install -c -m 444 -o bin -g bin pathalias.0 ${DESTDIR}/usr/new/man/cat1

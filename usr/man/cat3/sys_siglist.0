@@ -5,17 +5,17 @@ PSIGNAL(3)	    UNIX Programmer's Manual	       PSIGNAL(3)
 
 
 
-NNAAMMEE
+NAME
      psignal, sys_siglist - system signal messages
 
-SSYYNNOOPPSSIISS
-     ppssiiggnnaall((ssiigg,, ss))
-     uunnssiiggnneedd ssiigg;;
-     cchhaarr **ss;;
+SYNOPSIS
+     psignal(sig, s)
+     unsigned sig;
+     char *s;
 
-     cchhaarr **ssyyss__ssiigglliisstt[[]];;
+     char *sys_siglist[];
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _P_s_i_g_n_a_l produces a short message on the standard error file
      describing the indicated signal.  First the argument string
      _s is printed, then a colon, then the name of the signal and
@@ -31,7 +31,7 @@ DDEESSCCRRIIPPTTIIOONN
      table; it should be checked because new signals may be added
      to the system before they are added to the table.
 
-SSEEEE AALLSSOO
+SEE ALSO
      sigvec(2), perror(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

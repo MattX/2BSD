@@ -5,7 +5,8 @@
 #
 #	@(#)Makefile	5.3 (Berkeley) 4/30/86
 #
-CFLAGS=-O
+DEFS= -DNOSCCS
+CFLAGS=-O $(DEFS)
 TAGSFILE=tags
 
 all: libdbm.a libdbm_p.a

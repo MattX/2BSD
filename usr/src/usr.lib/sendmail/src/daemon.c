@@ -14,7 +14,7 @@
 
 # ifndef DAEMON
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)daemon.c	5.19 (Berkeley) 5/6/86	(w/o daemon mode)";
+static char	SccsId[] = "@(#)daemon.c	5.20 (2.11BSD) 1/26/93	(w/o daemon mode)";
 # endif
 # else
 
@@ -25,7 +25,7 @@ static char	SccsId[] = "@(#)daemon.c	5.19 (Berkeley) 5/6/86	(w/o daemon mode)";
 # include <sys/resource.h>
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)daemon.c	5.19 (Berkeley) 5/6/86 (with daemon mode)";
+static char	SccsId[] = "@(#)daemon.c	5.20 (2.11BSD) 1/26/93 (with daemon mode)";
 # endif
 
 /*
@@ -499,22 +499,19 @@ maphostname(hbuf, hbsize)
 
 	/*
 	**  If first character is a bracket, then it is an address
-	**  lookup.  Address is copied into a temporary buffer to
-	**  strip the brackets and to preserve hbuf if address is
-	**  unknown.
+	**  lookup.
 	*/
 
 	if (*hbuf == '[')
 	{
 		extern struct hostent *gethostbyaddr();
 		u_long in_addr;
-		char ptr[256];
-		char *bptr;
+		register char *bptr;
 
-		(void) strcpy(ptr, hbuf);
-		bptr = index(ptr,']');
+		bptr = index(hbuf,']');
 		*bptr = '\0';
-		in_addr = inet_addr(&ptr[1]);
+		in_addr = inet_addr(&hbuf[1]);
+		*bptr = ']';
 		hp = gethostbyaddr((char *) &in_addr, sizeof(struct in_addr), AF_INET);
 		if (hp == NULL)
 			return;
@@ -537,15 +534,7 @@ maphostname(hbuf, hbsize)
 # else DAEMON
 /* code for systems without sophisticated networking */
 
-#ifdef BSD2_10
-# include <short_names.h>
 # include <netdb.h>
-# include <sys/signal.h>
-# include <sys/wait.h>
-# include <sys/time.h>
-# include <sys/resource.h>
-#endif
-
 
 /*
 **  MYHOSTNAME -- stub version for case of no daemon code.
@@ -560,7 +549,6 @@ myhostname(hostbuf, size)
 	char hostbuf[];
 	int size;
 {
-#ifdef BSD2_10
 	extern struct hostent *gethostbyname();
 	struct hostent *hp;
 
@@ -576,19 +564,6 @@ myhostname(hostbuf, size)
 	}
 	else
 		return (NULL);
-#else !BSD2_10
-	register FILE *f;
-
-	hostbuf[0] = '\0';
-	f = fopen("/usr/include/whoami", "r");
-	if (f != NULL)
-	{
-		(void) fgets(hostbuf, size, f);
-		fixcrlf(hostbuf, TRUE);
-		(void) fclose(f);
-	}
-	return (NULL);
-#endif BSD2_10
 }
 /*
 **  MAPHOSTNAME -- turn a hostname into canonical form
@@ -614,5 +589,4 @@ maphostname(hbuf, hbsize)
 {
 	return;
 }
-
 #endif DAEMON

@@ -1,17 +1,17 @@
 
 
 
-FINGERD(8C)	    UNIX Programmer's Manual	      FINGERD(8C)
+FINGERD(8)	    UNIX Programmer's Manual	       FINGERD(8)
 
 
 
-NNAAMMEE
+NAME
      fingerd - remote user information server
 
-SSYYNNOOPPSSIISS
-     //eettcc//ffiinnggeerrdd
+SYNOPSIS
+     /etc/fingerd
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _F_i_n_g_e_r_d is a simple protocol based on RFC742 that provides
      an interface to the Name and Finger programs at several net-
      work sites.  The program is supposed to return a friendly,
@@ -36,10 +36,10 @@ DDEESSCCRRIIPPTTIIOONN
      names''.  If a name is ambiguous, all possible derivations
      are returned.
 
-SSEEEE AALLSSOO
+SEE ALSO
      finger(1)
 
-BBUUGGSS
+BUGS
      Connecting directly to the server from a TIP or an equally
      narrow-minded TELNET-protocol user program can result in
      meaningless attempts at option negotiation being sent to the
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/15/94        September 19, 1988			1
 
 
 

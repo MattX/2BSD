@@ -5,3 +5,5 @@ all:	$(TESTS)
 
 $(TESTS):
 	f77 -O $*.f -o $*
+
+install:

@@ -5,18 +5,18 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-NNAAMMEE
+NAME
      tty - general terminal interface
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssggttttyy..hh>>
+SYNOPSIS
+     #include <sgtty.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This section describes both a particular special file
-     //ddeevv//ttttyy and the terminal drivers used for conversational
+     /dev/tty and the terminal drivers used for conversational
      computing.
 
-     LLiinnee ddiisscciipplliinneess..
+     Line disciplines.
 
      The system provides different _l_i_n_e _d_i_s_c_i_p_l_i_n_e_s for control-
      ling communications lines.  In this version of the system
@@ -32,8 +32,8 @@ DDEESSCCRRIIPPTTIIOONN
      Line discipline switching is accomplished with the TIOCSETD
      _i_o_c_t_l:
 
-	  iinntt llddiisscc == LLDDIISSCC;;
-	  iiooccttll((ff,, TTIIOOCCSSEETTDD,, &&llddiisscc));;
+	  int ldisc = LDISC;
+	  ioctl(f, TIOCSETD, &ldisc);
 
      where LDISC is OTTYDISC for the standard tty driver and
      NTTYDISC for the ``new'' driver.  The standard (currently
@@ -48,7 +48,7 @@ DDEESSCCRRIIPPTTIIOONN
      hardware is involved.  The remainder of this section
      discusses the "old" and "new" disciplines.
 
-     TThhee ccoonnttrrooll tteerrmmiinnaall..
+     The control terminal.
 
      When a terminal file is opened, it causes the process to
      wait until a connection is established.  In practice, user
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 August 1, 1987                         1
+Printed 1/9/94		 August 1, 1987                         1
 
 
 
@@ -77,7 +77,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      ited by a child process during a _f_o_r_k(2), even if the con-
      trol terminal is closed.
 
-     The file //ddeevv//ttttyy is, in each process, a synonym for a _c_o_n_-
+     The file /dev/tty is, in each process, a synonym for a _c_o_n_-
      _t_r_o_l _t_e_r_m_i_n_a_l associated with that process.  It is useful
      for programs that wish to be sure of writing messages on the
      terminal no matter how output has been redirected.  It can
@@ -86,14 +86,14 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      out which terminal is currently in use.
 
      A process can remove the association it has with its con-
-     trolling terminal by opening the file //ddeevv//ttttyy and issuing
+     trolling terminal by opening the file /dev/tty and issuing
      an
 
-	  iiooccttll((ff,, TTIIOOCCNNOOTTTTYY,, 00));;
+	  ioctl(f, TIOCNOTTY, 0);
 
      This is often desirable in server processes.
 
-     PPrroocceessss ggrroouuppss..
+     Process groups.
 
      Command processors such as _c_s_h(1) can arbitrate the terminal
      between different _j_o_b_s by placing related jobs in a single
@@ -101,15 +101,15 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      terminal.	A terminal's associated process group may be set
      using the TIOCSPGRP _i_o_c_t_l(2):
 
-	  iiooccttll((ffiillddeess,, TTIIOOCCSSPPGGRRPP,, &&ppggrrpp));;
+	  ioctl(fildes, TIOCSPGRP, &pgrp);
 
      or examined using TIOCGPGRP, which returns the current pro-
      cess group in _p_g_r_p.  The new terminal driver aids in this
      arbitration by restricting access to the terminal by
      processes which are not in the current process group; see
-     JJoobb aacccceessss ccoonnttrrooll below.
+     Job access control below.
 
-     MMooddeess..
+     Modes.
 
      The terminal drivers have three major modes, characterized
      by the amount of processing on the input and output charac-
@@ -126,7 +126,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         2
+Printed 1/9/94		 August 1, 1987                         2
 
 
 
@@ -165,7 +165,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      fall below the low-water mark.  To enable this mode the
      FASYNC flag should be set using _f_c_n_t_l(2).
 
-     IInnppuutt eeddiittiinngg..
+     Input editing.
 
      A UNIX terminal ordinarily operates in full-duplex mode.
      Characters may be typed at any time, even while output is
@@ -183,7 +183,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      parity with the parity bit being stripped off before the
      character is given to the program.  By clearing either the
      EVEN or ODD bit in the flags word it is possible to have
-     input characters with that parity discarded (see the SSuummmmaarryy
+     input characters with that parity discarded (see the Summary
      below.)
 
      In all of the line disciplines, it is possible to simulate
@@ -192,7 +192,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         3
+Printed 1/9/94		 August 1, 1987                         3
 
 
 
@@ -210,13 +210,13 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      Input characters are normally echoed by putting them in an
      output queue as they arrive.  This may be disabled by clear-
      ing the ECHO bit in the flags word using the _s_t_t_y(3C) call
-     or the TIOCSETN or TIOCSETP _i_o_c_t_ls (see the SSuummmmaarryy below).
+     or the TIOCSETN or TIOCSETP _i_o_c_t_ls (see the Summary below).
 
      In cooked mode, terminal input is processed in units of
      lines.  A program attempting to read will normally be
      suspended until an entire line has been received (but see
-     the description of SIGTTIN in JJoobb aacccceessss ccoonnttrrooll and of
-     FIONREAD in SSuummmmaarryy, both below.) No matter how many charac-
+     the description of SIGTTIN in Job access control and of
+     FIONREAD in Summary, both below.) No matter how many charac-
      ters are requested in the read call, at most one line will
      be returned.  It is not, however, necessary to read a whole
      line at once; any number of characters may be requested in a
@@ -258,7 +258,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         4
+Printed 1/9/94		 August 1, 1987                         4
 
 
 
@@ -271,7 +271,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      program output.
 
-     IInnppuutt eecchhooiinngg aanndd rreeddiissppllaayy
+     Input echoing and redisplay
 
      The terminal driver has several modes (not present in stan-
      dard UNIX Version 7 systems) for handling the echoing of
@@ -311,7 +311,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      izes these option settings and the use of the new terminal
      driver as "newcrt."
 
-     OOuuttppuutt pprroocceessssiinngg..
+     Output processing.
 
      When one or more characters are written, they are actually
      transmitted to the terminal as soon as previously-written
@@ -324,7 +324,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         5
+Printed 1/9/94		 August 1, 1987                         5
 
 
 
@@ -349,7 +349,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      assumed to be set every eight columns, and optionally con-
      vert newlines to carriage returns followed by newline.
      These functions are controlled by bits in the tty flags
-     word; see SSuummmmaarryy below.
+     word; see Summary below.
 
      The terminal drivers provide for mapping between upper and
      lower case on terminals lacking lower case, and for other
@@ -364,7 +364,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      ing input.  An _i_o_c_t_l to flush the characters in the input or
      output queues, TIOCFLUSH, is also available.
 
-     UUppppeerr ccaassee tteerrmmiinnaallss aanndd HHaazzeellttiinneess
+     Upper case terminals and Hazeltines
 
      If the LCASE bit is set in the tty flags, then all upper-
      case letters are mapped into the corresponding lower-case
@@ -381,7 +381,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      may be set in the local mode word; in this case the charac-
      ter ~ will be replaced with the character ` on output.
 
-     FFllooww ccoonnttrrooll..
+     Flow control.
 
      There are two characters (the stop character, normally ^S,
      and the start character, normally ^Q) which cause output to
@@ -390,7 +390,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         6
+Printed 1/9/94		 August 1, 1987                         6
 
 
 
@@ -412,7 +412,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      the terminal is actually another machine that obeys those
      conventions.
 
-     LLiinnee ccoonnttrrooll aanndd bbrreeaakkss..
+     Line control and breaks.
 
      There are several _i_o_c_t_l calls available to control the state
      of the terminal line.  The TIOCSBRK _i_o_c_t_l will set the break
@@ -439,7 +439,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      last close with the TIOCHPCL _i_o_c_t_l; this is normally done on
      the outgoing lines and dialups.
 
-     IInntteerrrruupptt cchhaarraacctteerrss..
+     Interrupt characters.
 
      There are several characters that generate interrupts in
      cooked and CBREAK mode; all are sent to the processes in the
@@ -451,12 +451,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      field names in the structures (given below) are also shown.
      The characters may be changed.
 
-     ^C   tt__iinnttrrcc (ETX) generates a SIGINT signal.  This is the
+     ^C   t_intrc (ETX) generates a SIGINT signal.  This is the
 	  normal way to stop a process which is no longer
 
 
 
-Printed 12/28/88	 August 1, 1987                         7
+Printed 1/9/94		 August 1, 1987                         7
 
 
 
@@ -470,19 +470,19 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 	  interesting, or to regain control in an interactive
 	  program.
 
-     ^\   tt__qquuiittcc (FS) generates a SIGQUIT signal.  This is used
+     ^\   t_quitc (FS) generates a SIGQUIT signal.  This is used
 	  to cause a program to terminate and produce a core
-	  image, if possible, in the file ccoorree in the current
+	  image, if possible, in the file core in the current
 	  directory.
 
-     ^Z   tt__ssuussppcc (EM) generates a SIGTSTP signal, which is used
+     ^Z   t_suspc (EM) generates a SIGTSTP signal, which is used
 	  to suspend the current process group.
 
-     ^Y   tt__ddssuussppcc (SUB) generates a SIGTSTP signal as ^Z does,
+     ^Y   t_dsuspc (SUB) generates a SIGTSTP signal as ^Z does,
 	  but the signal is sent when a program attempts to read
 	  the ^Y, rather than when it is typed.
 
-     JJoobb aacccceessss ccoonnttrrooll..
+     Job access control.
 
      When using the new terminal driver, if a process which is
      not in the distinguished process group of its control termi-
@@ -499,7 +499,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      cess group for that terminal.  Processes which are holding
      or ignoring SIGTTOU signals or which are in the middle of a
      _v_f_o_r_k(2) are excepted and allowed to produce output.
-     TTeerrmmiinnaall//wwiinnddooww ssiizzeess.. In order to accommodate terminals and
+     Terminal/window sizes. In order to accommodate terminals and
      workstations with variable-sized windows, the terminal
      driver provides a mechanism for obtaining and setting the
      current terminal size.  The driver does not use this infor-
@@ -510,11 +510,11 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      ity was added in 4.3BSD and is not available in earlier ver-
      sions of the system.
 
-     SSuummmmaarryy ooff mmooddeess..
+     Summary of modes.
 
      Unfortunately, due to the evolution of the terminal driver,
      there are 4 different structures which contain various por-
-     tions of the driver data.	The first of these (ssggttttyybb) con-
+     tions of the driver data.	The first of these (sgttyb) con-
      tains that part of the information largely common between
      version 6 and version 7 UNIX systems.  The second contains
      additional control characters added in version 7.	The third
@@ -522,7 +522,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         8
+Printed 1/9/94		 August 1, 1987                         8
 
 
 
@@ -543,13 +543,13 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      The basic _i_o_c_t_ls use the structure defined in <_s_g_t_t_y._h>:
 
-     ssttrruucctt ssggttttyybb {{
-	  cchhaarr ssgg__iissppeeeedd;;
-	  cchhaarr ssgg__oossppeeeedd;;
-	  cchhaarr ssgg__eerraassee;;
-	  cchhaarr ssgg__kkiillll;;
-	  sshhoorrttssgg__ffllaaggss;;
-     }};;
+     struct sgttyb {
+	  char sg_ispeed;
+	  char sg_ospeed;
+	  char sg_erase;
+	  char sg_kill;
+	  shortsg_flags;
+     };
 
      The _s_g__i_s_p_e_e_d and _s_g__o_s_p_e_e_d fields describe the input and
      output speeds of the device according to the following
@@ -588,7 +588,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                         9
+Printed 1/9/94		 August 1, 1987                         9
 
 
 
@@ -654,7 +654,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                        10
+Printed 1/9/94		 August 1, 1987                        10
 
 
 
@@ -708,7 +708,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      trol when the `terminal' is really another computer which
      understands the conventions.
 
-     NNoottee:: The same ``stop'' and ``start'' characters are used
+     Note: The same ``stop'' and ``start'' characters are used
      for both directions of flow control; the _t__s_t_o_p_c character
      is accepted on input as the character that stops output and
      is produced on output as the character to stop input, and
@@ -720,7 +720,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                        11
+Printed 1/9/94		 August 1, 1987                        11
 
 
 
@@ -736,10 +736,10 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      A large number of _i_o_c_t_l(2) calls apply to terminals.  Some
      have the general form:
 
-     ##iinncclluuddee <<ssggttttyy..hh>>
+     #include <sgtty.h>
 
-     iiooccttll((ffiillddeess,, ccooddee,, aarrgg))
-     ssttrruucctt ssggttttyybb **aarrgg;;
+     ioctl(fildes, code, arg)
+     struct sgttyb *arg;
 
      The applicable codes are:
 
@@ -770,23 +770,23 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 		    the line is associated with an ACU used to
 		    place outgoing calls.
 
-     With the following codes _a_r_g is a pointer to an iinntt.
+     With the following codes _a_r_g is a pointer to an int.
 
-     TIOCGETD	    _a_r_g is a pointer to an iinntt into which is
+     TIOCGETD	    _a_r_g is a pointer to an int into which is
 		    placed the current line discipline number.
 
-     TIOCSETD	    _a_r_g is a pointer to an iinntt whose value
+     TIOCSETD	    _a_r_g is a pointer to an int whose value
 		    becomes the current line discipline number.
 
-     TIOCFLUSH	    If the iinntt pointed to by _a_r_g has a zero
+     TIOCFLUSH	    If the int pointed to by _a_r_g has a zero
 		    value, all characters waiting in input or
 		    output queues are flushed.	Otherwise, the
-		    value of the iinntt is for the FREAD and FWRITE
-		    bits defined in <<ssyyss//ffiillee..hh>>; if the FREAD
+		    value of the int is for the FREAD and FWRITE
+		    bits defined in <sys/file.h>; if the FREAD
 
 
 
-Printed 12/28/88	 August 1, 1987                        12
+Printed 1/9/94		 August 1, 1987                        12
 
 
 
@@ -824,20 +824,20 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      TIOCSTART	    output is restarted as if the ``start'' char-
 		    acter had been typed.
 
-     TIOCGPGRP	    _a_r_g is a pointer to an iinntt into which is
+     TIOCGPGRP	    _a_r_g is a pointer to an int into which is
 		    placed the process group ID of the process
 		    group for which this terminal is the control
 		    terminal.
 
-     TIOCSPGRP	    _a_r_g is a pointer to an iinntt which is the value
+     TIOCSPGRP	    _a_r_g is a pointer to an int which is the value
 		    to which the process group ID for this termi-
 		    nal will be set.
 
-     TIOCOUTQ	    returns in the iinntt pointed to by _a_r_g the
+     TIOCOUTQ	    returns in the int pointed to by _a_r_g the
 		    number of characters queued for output to the
 		    terminal.
 
-     FIONREAD	    returns in the lloonngg pointed to by _a_r_g the
+     FIONREAD	    returns in the long pointed to by _a_r_g the
 		    number of characters immediately readable
 		    from the argument descriptor.  This works for
 		    files, pipes, and terminals.
@@ -852,7 +852,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                        13
+Printed 1/9/94		 August 1, 1987                        13
 
 
 
@@ -863,14 +863,14 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     ssttrruucctt ttcchhaarrss {{
-	  cchhaarr tt__iinnttrrcc;;  //** iinntteerrrruupptt **//
-	  cchhaarr tt__qquuiittcc;;  //** qquuiitt **//
-	  cchhaarr tt__ssttaarrttcc;; //** ssttaarrtt oouuttppuutt **//
-	  cchhaarr tt__ssttooppcc;;  //** ssttoopp oouuttppuutt **//
-	  cchhaarr tt__eeooffcc;;	 //** eenndd--ooff--ffiillee **//
-	  cchhaarr tt__bbrrkkcc;;	 //** iinnppuutt ddeelliimmiitteerr ((lliikkee nnll)) **//
-     }};;
+     struct tchars {
+	  char t_intrc;  /* interrupt */
+	  char t_quitc;  /* quit */
+	  char t_startc; /* start output */
+	  char t_stopc;  /* stop output */
+	  char t_eofc;	 /* end-of-file */
+	  char t_brkc;	 /* input delimiter (like nl) */
+     };
 
      The default values for these characters are ^C, ^\, ^Q, ^S,
      ^D, and -1.  A character value of -1 eliminates the effect
@@ -912,13 +912,13 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      The applicable _i_o_c_t_l functions are:
 
-     TIOCLBIS	    _a_r_g is a pointer to an iinntt whose value is a
+     TIOCLBIS	    _a_r_g is a pointer to an int whose value is a
 		    mask containing the bits to be set in the
 		    local mode word.
 
 
 
-Printed 12/28/88	 August 1, 1987                        14
+Printed 1/9/94		 August 1, 1987                        14
 
 
 
@@ -929,14 +929,14 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     TIOCLBIC	    _a_r_g is a pointer to an iinntt whose value is a
+     TIOCLBIC	    _a_r_g is a pointer to an int whose value is a
 		    mask containing the bits to be cleared in the
 		    local mode word.
 
-     TIOCLSET	    _a_r_g is a pointer to an iinntt whose value is
+     TIOCLSET	    _a_r_g is a pointer to an int whose value is
 		    stored in the local mode word.
 
-     TIOCLGET	    _a_r_g is a pointer to an iinntt into which the
+     TIOCLGET	    _a_r_g is a pointer to an int into which the
 		    current local mode word is placed.
 
      _L_o_c_a_l _s_p_e_c_i_a_l _c_h_a_r_s
@@ -945,14 +945,14 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      the _l_t_c_h_a_r_s structure which defines control characters for
      the new terminal driver.  Its structure is:
 
-     ssttrruucctt llttcchhaarrss {{
-	  cchhaarr tt__ssuussppcc;;  //** ssttoopp pprroocceessss ssiiggnnaall **//
-	  cchhaarr tt__ddssuussppcc;; //** ddeellaayyeedd ssttoopp pprroocceessss ssiiggnnaall **//
-	  cchhaarr tt__rrpprrnnttcc;; //** rreepprriinntt lliinnee **//
-	  cchhaarr tt__fflluusshhcc;; //** fflluusshh oouuttppuutt ((ttoogggglleess)) **//
-	  cchhaarr tt__wweerraasscc;; //** wwoorrdd eerraassee **//
-	  cchhaarr tt__llnneexxttcc;; //** lliitteerraall nneexxtt cchhaarraacctteerr **//
-     }};;
+     struct ltchars {
+	  char t_suspc;  /* stop process signal */
+	  char t_dsuspc; /* delayed stop process signal */
+	  char t_rprntc; /* reprint line */
+	  char t_flushc; /* flush output (toggles) */
+	  char t_werasc; /* word erase */
+	  char t_lnextc; /* literal next character */
+     };
 
      The default values for these characters are ^Z, ^Y, ^R, ^O,
      ^W, and ^V.  A value of -1 disables the character.
@@ -971,12 +971,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      Each terminal has provision for storage of the current ter-
      minal or window size in a _w_i_n_s_i_z_e structure, with format:
 
-     ssttrruucctt wwiinnssiizzee {{
-	  uunnssiiggnneedd sshhoorrtt    wwss__rrooww;;	   //** rroowwss,, iinn cchhaarraacctteerrss **//
-	  uunnssiiggnneedd sshhoorrtt    wwss__ccooll;;	   //** ccoolluummnnss,, iinn cchhaarraacctteerrss **//
-	  uunnssiiggnneedd sshhoorrtt    wwss__xxppiixxeell;;	   //** hhoorriizzoonnttaall ssiizzee,, ppiixxeellss **//
-	  uunnssiiggnneedd sshhoorrtt    wwss__yyppiixxeell;;	   //** vveerrttiiccaall ssiizzee,, ppiixxeellss **//
-     }};;
+     struct winsize {
+	  unsigned short    ws_row;	   /* rows, in characters */
+	  unsigned short    ws_col;	   /* columns, in characters */
+	  unsigned short    ws_xpixel;	   /* horizontal size, pixels */
+	  unsigned short    ws_ypixel;	   /* vertical size, pixels */
+     };
 
      A value of 0 in any field is interpreted as ``undefined;''
      the entire structure is zeroed on final close.
@@ -984,7 +984,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 12/28/88	 August 1, 1987                        15
+Printed 1/9/94		 August 1, 1987                        15
 
 
 
@@ -998,22 +998,22 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      The applicable _i_o_c_t_l functions are:
 
      TIOCGWINSZ
-	  _a_r_g is a pointer to a ssttrruucctt wwiinnssiizzee into which will be
+	  _a_r_g is a pointer to a struct winsize into which will be
 	  placed the current terminal or window size information.
 
      TIOCSWINSZ
-	  _a_r_g is a pointer to a ssttrruucctt wwiinnssiizzee which will be used
+	  _a_r_g is a pointer to a struct winsize which will be used
 	  to set the current terminal or window size information.
 	  If the new information is different than the old infor-
 	  mation, a SIGWINCH signal will be sent to the
 	  terminal's process group.
 
-FFIILLEESS
+FILES
      /dev/tty
      /dev/tty*
      /dev/console
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), stty(1), tset(1), ioctl(2), sigvec(2), stty(3C),
      getty(8)
 
@@ -1050,7 +1050,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 August 1, 1987                        16
+Printed 1/9/94		 August 1, 1987                        16
 
 
 

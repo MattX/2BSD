@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)read_dtab.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)read_dtab.c	2.1 (2.11BSD GTE) 1/10/94
  */
 
 #include <machine/autoconfig.h>
@@ -78,7 +78,15 @@ read_dtab()
 			addent(&dp->dt_handlers,STRSAVE(save));
 			for (++cp;isspace(*cp);++cp);
 		}
-		guess_ndev += nhandlers + 2;
+		guess_ndev += nhandlers;
+/*
+ * In addition to the "handler" symbols for a device we need 3 more
+ * symbols: 'xxVec', 'xxprobe', and 'xxattach'.
+ *
+ * N.B.  If more symbols are added (to the 'DTAB' structure) the following
+ *       line may need to be modified.
+*/
+		guess_ndev += 3;
 		for (up = uprobe;up->up_name;++up)
 			if (!strcmp(dp->dt_name,up->up_name)) {
 				dp->dt_uprobe = up->up_func;

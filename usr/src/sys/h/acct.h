@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)acct.h	7.1 (Berkeley) 6/4/86
+ *	@(#)acct.h	(2.11BSD) 2/21/92
  */
 
 /*
@@ -40,8 +40,3 @@ struct	acct
  * comp_t fields.  This is not necessarily equal to hz.
  */
 #define AHZ LINEHZ
-
-#if defined(KERNEL) && !defined(SUPERVISOR)
-struct	acct	acctbuf;
-struct	inode	*acctp;
-#endif

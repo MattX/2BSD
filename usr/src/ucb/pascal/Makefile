@@ -18,7 +18,7 @@ ${ALL}: FRC
 	cd $@; make CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}" SEPFLAG=${SEPFLAG} \
 		BINDIR=${BINDIR} LIBDIR=${LIBDIR}
 
-install:
+install: ${UTILS}
 	for i in ${PASCAL}; do \
 		(cd $$i; make install DESTDIR=${DESTDIR}); \
 	done

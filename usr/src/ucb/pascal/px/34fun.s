@@ -36,11 +36,12 @@ _ARGV:
 	mov	$EARGV,_perrno
 	error	EARGV
 _SCLCK:
-	mov	$6,-(sp)
+	mov	$4,-(sp)
 	br	1f
 _CLCK:
-	mov	$2,-(sp)
+	clr	-(sp)
 1:
+	seti
 	sub	$16.,sp
 	mov	sp,r0
 	mov	r0,-(sp)
@@ -48,16 +49,12 @@ _CLCK:
 	tst	(sp)+
 	mov	sp,r0
 	add	16.(sp),r0
-	mov	(r0),r0
+	movif	$HZ,fr1
+	setl
+	movif	(r0),fr0
 	add	$18.,sp
-	mul	$1000.,r0
-	mov	r1,-(sp)
-	mov	r0,-(sp)
-	movif	(sp)+,fr0
-	mov	$HZ,-(sp)
-	sxt	-(sp)
-	movif	(sp)+,fr1
 	divf	fr1,fr0
+	mulf	$042572,fr0		/ mulf $1000.,fr0 
 	movfi	fr0,-(sp)
 	return
 _DATE:

@@ -5,26 +5,26 @@ STAT(2)             UNIX Programmer's Manual		  STAT(2)
 
 
 
-NNAAMMEE
+NAME
      stat, lstat, fstat - get file status
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ssttaatt..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/stat.h>
 
-     ssttaatt((ppaatthh,, bbuuff))
-     cchhaarr **ppaatthh;;
-     ssttrruucctt ssttaatt **bbuuff;;
+     stat(path, buf)
+     char *path;
+     struct stat *buf;
 
-     llssttaatt((ppaatthh,, bbuuff))
-     cchhaarr **ppaatthh;;
-     ssttrruucctt ssttaatt **bbuuff;;
+     lstat(path, buf)
+     char *path;
+     struct stat *buf;
 
-     ffssttaatt((ffdd,, bbuuff))
-     iinntt ffdd;;
-     ssttrruucctt ssttaatt **bbuuff;;
+     fstat(fd, buf)
+     int fd;
+     struct stat *buf;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_t_a_t obtains information about the file _p_a_t_h.  Read, write
      or execute permission of the named file is not required, but
      all directories listed in the path name leading to the file
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -113,12 +113,12 @@ STAT(2)             UNIX Programmer's Manual		  STAT(2)
      The mode bits 0000070 and 0000007 encode group and others
      permissions (see _c_h_m_o_d(2)).
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion a value of 0 is returned.  Other-
      wise, a value of -1 is returned and _e_r_r_n_o is set to indicate
      the error.
 
-EERRRROORRSS
+ERRORS
      _S_t_a_t and _l_s_t_a_t will fail if one or more of the following are
      true:
 
@@ -126,7 +126,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 
@@ -168,17 +168,17 @@ STAT(2)             UNIX Programmer's Manual		  STAT(2)
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-CCAAVVEEAATT
+CAVEAT
      The fields in the stat structure currently marked _s_t__s_p_a_r_e_1,
      _s_t__s_p_a_r_e_2, and _s_t__s_p_a_r_e_3 are present in preparation for
      inode time stamps expanding to 64 bits.  This, however, can
      break certain programs that depend on the time stamps being
      contiguous (in calls to _u_t_i_m_e_s(2)).
 
-SSEEEE AALLSSOO
+SEE ALSO
      chmod(2), chown(2), utimes(2)
 
-BBUUGGSS
+BUGS
      Applying _f_s_t_a_t to a socket (and thus to a pipe) returns a
      zero'd buffer, except for the blocksize field, and a unique
      device and inode number.
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 12, 1986				3
+Printed 1/9/94		  May 12, 1986				3
 
 
 

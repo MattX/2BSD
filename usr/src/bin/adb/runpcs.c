@@ -1,62 +1,46 @@
-/*
- *
- *      UNIX debugger
- *
- */
-
 #include "defs.h"
+#include <sys/file.h>
 
-
-MSG             NOFORK;
-MSG             ENDPCS;
-MSG             BADWAIT;
-
-CHAR            *lp;
-INT             sigint;
-INT             sigqit;
-
-/* breakpoints */
-BKPTR           bkpthead;
-
-REGLIST         reglist[];
-
-CHAR            lastc;
-POS             corhdr[];
-POS             *uar0;
-int             overlay;
-OVTAG           curov;
-
-INT             fcor;
-INT             fsym;
-STRING          errflg;
-INT             errno;
-INT             signo;
-
-L_INT           dot;
-STRING          symfil;
-INT             wtflag;
-INT             pid;
-L_INT           expv;
-INT             adrflg;
-L_INT           loopcnt;
-L_INT           var[];
-
-
-
-
+	MSG	NOFORK;
+	MSG	ENDPCS;
+	MSG     BADWAIT;
+	char    *lp;
+	int	sigint;
+	int	sigqit;
+	BKPTR   bkpthead;
+	REGLIST reglist[];
+	char	lastc;
+	u_int	corhdr[];
+	u_int	*uar0;
+	int     overlay;
+	char	curov;
+	int	fcor;
+	int	fsym;
+	char	*errflg;
+	int	signo;
+	long	dot;
+	char	*symfil;
+	int	wtflag;
+	int	pid;
+	long	expv;
+	int	adrflg;
+	long	loopcnt;
+	long	var[];
+	int	userpc=1;
+extern	int	errno;
 
 /* service routines for sub process control */
 
 getsig(sig)
-{       return(expr(0) ? shorten(expv) : sig);
-}
-
-INT             userpc=1;
+	{
+	return(expr(0) ? shorten(expv) : sig);
+	}
 
 runpcs(runmode, execsig)
 {
-	INT             rc;
-	REG BKPTR       bkpt;
+	int	rc;
+	register BKPTR       bkpt;
+
 	IF adrflg
 	THEN userpc=shorten(dot);
 	FI
@@ -92,7 +76,8 @@ runpcs(runmode, execsig)
 
 endpcs()
 {
-	REG BKPTR       bkptr;
+	register BKPTR       bkptr;
+
 	IF pid
 	THEN ptrace(EXIT,pid,0,0); pid=0; userpc=1;
 	     FOR bkptr=bkpthead; bkptr; bkptr=bkptr->nxtbkpt
@@ -105,6 +90,7 @@ endpcs()
 
 setup()
 {
+
 	close(fsym); fsym = -1;
 	IF (pid = fork()) == 0
 	THEN ptrace(SETTRC,0,0,0);
@@ -116,14 +102,15 @@ setup()
 	     fsym=open(symfil,wtflag);
 	     IF errflg
 	     THEN printf("%s: cannot execute\n",symfil);
-		  endpcs(); error(0);
+		  endpcs(); error((char *)0);
 	     FI
 	FI
 }
 
 execbkpt(bkptr)
 BKPTR   bkptr;
-{       INT             bkptloc;
+{
+	int	bkptloc;
 #ifdef DEBUG
 	printf("exbkpt: %d\n",bkptr->count);
 #endif
@@ -136,12 +123,12 @@ BKPTR   bkptr;
 	bkptr->flag=BKPTSET;
 }
 
-
 doexec()
 {
-	STRING          argl[MAXARG];
-	CHAR            args[LINSIZ];
-	STRING          p, *ap, filnam;
+	char	*argl[MAXARG];
+	char	args[LINSIZ];
+	char	*p, **ap, *filnam;
+
 	ap=argl; p=args;
 	*ap++=symfil;
 	REP     IF rdc()==EOR THEN break; FI
@@ -161,7 +148,7 @@ doexec()
 			p = *ap;
 		ELIF **ap=='>'
 		THEN    close(1);
-			IF creat(filnam,0666)<0
+			IF open(filnam, O_CREAT|O_WRONLY, 0666)<0
 			THEN    printf("%s: cannot create\n",filnam); exit(0);
 			FI
 			p = *ap;
@@ -174,7 +161,8 @@ doexec()
 
 BKPTR   scanbkpt(adr)
 {
-	REG BKPTR       bkptr;
+	register BKPTR       bkptr;
+
 	FOR bkptr=bkpthead; bkptr; bkptr=bkptr->nxtbkpt
 	DO IF bkptr->flag ANDF bkptr->loc==adr ANDF 
 	  (bkptr->ovly == 0 || bkptr->ovly==curov)
@@ -186,7 +174,8 @@ BKPTR   scanbkpt(adr)
 
 delbp()
 {
-	REG BKPTR       bkptr;
+	register BKPTR       bkptr;
+
 	FOR bkptr=bkpthead; bkptr; bkptr=bkptr->nxtbkpt
 	DO IF bkptr->flag
 	   THEN del1bp(bkptr);
@@ -204,7 +193,7 @@ BKPTR bkptr;
 
 /* change overlay in subprocess */
 choverlay(ovno)
-OVTAG ovno;
+	char	ovno;
 {
 	errno = 0;
 	if (overlay && pid && ovno>0 && ovno<=NOVL)
@@ -216,7 +205,7 @@ OVTAG ovno;
 
 setbp()
 {
-	REG BKPTR       bkptr;
+	register BKPTR       bkptr;
 
 	FOR bkptr=bkpthead; bkptr; bkptr=bkptr->nxtbkpt
 	DO IF bkptr->flag
@@ -227,22 +216,23 @@ setbp()
 set1bp(bkptr)
 BKPTR bkptr;
 {
-	REG INT         a;
+	register int         a;
+
 	a = bkptr->loc;
 	if (bkptr->ovly)
 		choverlay(bkptr->ovly);
 	bkptr->ins = ptrace(RIUSER, pid, a, 0);
 	ptrace(WIUSER, pid, a, BPT);
 	IF errno
-	THEN prints("cannot set breakpoint: ");
+	THEN printf("cannot set breakpoint: ");
 	     psymoff(leng(bkptr->loc),ISYM,"\n");
 	FI
 }
 
 bpwait()
 {
-	REG INT w;
-	INT stat;
+	register int w;
+	int stat;
 
 	signal(SIGINT, SIG_IGN);
 	WHILE (w = wait(&stat))!=pid ANDF w != -1 DONE
@@ -257,7 +247,7 @@ bpwait()
 	     THEN sigprint();
 	     FI
 	     IF stat&0200
-	     THEN prints(" - core dumped");
+	     THEN printf(" - core dumped");
 		  close(fcor);
 		  setcor();
 	     FI
@@ -275,7 +265,9 @@ bpwait()
 readregs()
 {
 	/*get REG values from pcs*/
-	REG i;
+	register int i;
+	char	ovno;
+
 	FOR i=0; i<NREG; i++
 	DO uar0[reglist[i].roffs] =
 		    ptrace(RUREGS, pid,
@@ -284,7 +276,7 @@ readregs()
 	OD
 	/* if overlaid, get ov */
 	IF overlay
-	THEN    OVTAG ovno;
+	THEN
 		ovno = ptrace(RUREGS, pid,
 		    &(((struct user *)0)->u_ovdata.uo_curov),0);
 		var[VARC] = ovno;
@@ -292,11 +284,7 @@ readregs()
 		setovmap(ovno);
 	FI
 
-#ifndef NONFP
 	/* REALing poINT                */
 	FOR i=FROFF; i<FRLEN+FROFF; i++
 	DO corhdr[i] = ptrace(RUREGS,pid,i,0); OD
-#endif
 }
-
-

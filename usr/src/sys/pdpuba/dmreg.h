@@ -11,8 +11,14 @@
  */
 struct dmdevice {
 	short	dmcsr;		/* control status register */
-	short	dmlstat;	/* line status register */
-	short	dmpad1[2];
+	union	{               /* Q22:Need to access high byte independently */
+		short dmlst_w;
+		char dmlst_b[2];
+		} cs02un;
+#define dmlstat cs02un.dmlst_w        /* line status register */
+#define dmlst_l cs02un.dmlst_b[0]     /* low byte */
+#define dmlst_h cs02un.dmlst_b[1]     /* high byte */
+	short   dmpad1[2];
 };
 
 /* bits in dm csr */

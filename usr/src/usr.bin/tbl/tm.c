@@ -22,7 +22,7 @@ maknew(str)
 			if (*str=='.' && !ineqn(str,p) &&
 				(str>p && digit(*(str-1)) ||
 				digit(*(str+1))))
-					dpoint=str;
+					dpoint=(int)str;
 			}
 		if (dpoint==0)
 			for(; str>p; str--)
@@ -32,7 +32,7 @@ maknew(str)
 			}
 		if (!dpoint && p==str) /* not numerical, don't split */
 			return(0);
-		if (dpoint) str=dpoint;
+		if (dpoint) str=(char *)dpoint;
 		}
 	else
 		str = ba;
@@ -45,7 +45,7 @@ maknew(str)
 	q = exstore;
 	while (*exstore++ = *str++);
 	*p = 0;
-	return(q);
+	return((int)q);
 	}
 ineqn (s, p)
 	char *s, *p;

@@ -5,10 +5,10 @@ TP(5)		    UNIX Programmer's Manual		    TP(5)
 
 
 
-NNAAMMEE
+NAME
      tp - DEC/mag tape formats
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _T_p dumps files to and extracts files from DECtape and
      magtape.  The formats of these tapes are the same except
      that magtapes have larger directories.
@@ -49,10 +49,10 @@ DDEESSCCRRIIPPTTIIOONN
 
      A fake entry has a size of zero.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fs(5), tp(1)
 
-BBUUGGSS
+BUGS
      The _p_a_t_h_n_a_m_e, _u_i_d, _g_i_d, and _s_i_z_e fields are too small.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

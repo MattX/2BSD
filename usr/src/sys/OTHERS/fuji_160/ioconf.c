@@ -12,8 +12,7 @@
 dev_t	rootdev	= makedev(6,0);
 dev_t	swapdev	= makedev(6,1);
 dev_t	pipedev = makedev(6,0);
-daddr_t	swplo	= (daddr_t) 0;
-int	nswap	= 9600;
+int	nswap;
 
 #ifdef	UCB_AUTOBOOT
 /*

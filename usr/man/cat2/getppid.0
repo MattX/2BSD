@@ -5,24 +5,24 @@ GETPID(2)	    UNIX Programmer's Manual		GETPID(2)
 
 
 
-NNAAMMEE
+NAME
      getpid, getppid - get process identification
 
-SSYYNNOOPPSSIISS
-     ppiidd == ggeettppiidd(())
-     iinntt ppiidd;;
+SYNOPSIS
+     pid = getpid()
+     int pid;
 
-     ppppiidd == ggeettppppiidd(())
-     iinntt ppppiidd;;
+     ppid = getppid()
+     int ppid;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_p_i_d returns the process ID of the current process.  Most
      often it is used to generate uniquely-named temporary files.
 
      _G_e_t_p_p_i_d returns the process ID of the parent of the current
      process.
 
-SSEEEE AALLSSOO
+SEE ALSO
      gethostid(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 13, 1986				1
+Printed 1/9/94		  May 13, 1986				1
 
 
 

@@ -5,14 +5,14 @@ VWIDTH(1)	    UNIX Programmer's Manual		VWIDTH(1)
 
 
 
-NNAAMMEE
+NAME
      vwidth - make troff width table for a font
 
-SSYYNNOOPPSSIISS
-     vvwwiiddtthh fontfile pointsize > ft_x_x.c
-     cccc --cc fftt_x_x..cc mv ft_x_x.o /usr/lib/font/ft_x_x
+SYNOPSIS
+     vwidth fontfile pointsize > ft_x_x.c
+     cc -c ft_x_x.c mv ft_x_x.o /usr/lib/font/ft_x_x
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _V_w_i_d_t_h translates from the width information stored in the
      vfont style format to the format expected by troff.  Troff
      wants an object file in a.out(5) format.  (This fact does
@@ -38,10 +38,10 @@ DDEESSCCRRIIPPTTIIOONN
      /usr/lib/fontinfo/_f_n_a_m_e* where _f_n_a_m_e is the external name of
      the font.
 
-SSEEEE AALLSSOO
+SEE ALSO
      fed(1), vfont(5), troff(1), vtroff(1)
 
-BBUUGGSS
+BUGS
      Produces the C file using obsolete syntax that the portable
      C compiler complains about.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

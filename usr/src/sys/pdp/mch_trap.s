@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_trap.s	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)mch_trap.s	2.2 (2.11BSD GTE) 1/9/94
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
@@ -71,7 +71,7 @@ ASENTRY(call)
 	bic	$!37,(sp)		/   code = nps & 037
 	bis	$30000,PS		/ force previous mode = user
 	jsr	pc,(r0)			/ call trap_handler
-#ifdef UCB_NET
+#ifdef INET
 	/*
 	 * Check for scheduled network service requests.  The network sets
 	 * _knetisr to schedule network activity at a later time when the
@@ -144,7 +144,7 @@ ASENTRY(call)
 	rtt				/ and return from the trap ...
 
 
-#ifdef UCB_NET
+#ifdef INET
 /*
  * iothndlr is used to allow the network in supervisor mode to make calls
  * to the kernel.
@@ -213,11 +213,9 @@ ASENTRY(emt)
 #ifdef UCB_METER
 	inc	_cnt+V_OVLY		/ cnt.v_ovly++
 #endif
-#ifdef UCB_RUSAGE
 	add	$1,_u+U_RU+RU_OVLY+2	/ u.u_ru.ru_ovly++
 	adc	_u+U_RU+RU_OVLY
-#endif
-	jsr	pc,_choverl		/ and get choverlay to bring the overlay in
+	jsr	pc,_choverlay		/ and get choverlay to bring the overlay in
 	tst	(sp)+			/ toss choverlay's paramter,
 	mov	(sp)+,r1		/   restore r0 and r1,
 	mov	(sp)+,r0
@@ -279,14 +277,31 @@ ASENTRY(powrdown)
 	 * since memory management is off (hence we are in "data" space).
 	 */
 powrup:
-	clr	r0
-1:
-	sob	r0,1b			/ pause a bit
+	/*
+	 * Not sure why these are necessary except that on a 44 it appears
+	 * that the first instruction or two of a power up trap do not 
+	 * execute properly.
+	 */
+	nop;nop;nop
+	/*
+	 * The nested loop below gives 38 seconds of delay on a 11/44 (30 sec
+	 * on a 11/93) for controllers to complete selftest after power comes
+	 * back up.
+	*/
+	mov 	$400.,r0
+2:
+	clr	r1
+3:	nop
+	sob	r1,3b
+	sob	r0,2b
 
 	mov	$RB_POWRFAIL,r4		/ and try to reboot ...
-	mov	_rootdev,r3
-	jsr	pc,hardboot
+	mov	_bootdev,r3
+/*
+ * 'jsr' can not be used because there is no stack at the moment (battery
+ * backup preserves memory but not registers).  'hardboot' sets up a stack 
+ * if it needs one, so it is not necessary to do that here.
+*/
+	jmp	*$hardboot
 	/*NOTREACHED*/
-#ifndef KERN_NONSEP
 	.text
-#endif

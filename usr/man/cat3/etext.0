@@ -5,15 +5,15 @@ END(3)		    UNIX Programmer's Manual		   END(3)
 
 
 
-NNAAMMEE
+NAME
      end, etext, edata - last locations in program
 
-SSYYNNOOPPSSIISS
-     eexxtteerrnn eenndd;;
-     eexxtteerrnn eetteexxtt;;
-     eexxtteerrnn eeddaattaa;;
+SYNOPSIS
+     extern end;
+     extern etext;
+     extern edata;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These names refer neither to routines nor to locations with
      interesting contents.  The address of _e_t_e_x_t is the first
      address above the program text, _e_d_a_t_a above the initialized
@@ -21,11 +21,11 @@ DDEESSCCRRIIPPTTIIOONN
 
      When execution begins, the program break coincides with _e_n_d,
      but it is reset by the routines _b_r_k(2), _m_a_l_l_o_c(3), standard
-     input/output (_s_t_d_i_o(3S)), the profile (--pp) option of _c_c(1),
+     input/output (_s_t_d_i_o(3S)), the profile (-p) option of _c_c(1),
      etc.  The current value of the program break is reliably
      returned by `sbrk(0)', see _b_r_k(2).
 
-SSEEEE AALLSSOO
+SEE ALSO
      brk(2), malloc(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 

@@ -2,7 +2,7 @@
 #
 # Once a week, produce a report and mail to people
 #
-set people=( postmaster usenet )
+set people=( sms )
 set spooldir=/usr/spool/uucp
 set archdir=uucplog.archives
 

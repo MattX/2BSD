@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.17 (Berkeley) 6/7/86
+#	@(#)Makefile	5.17.2 (2.11BSD GTE) 2/12/94
 #
 DESTDIR=
 CFLAGS=	-O
@@ -11,7 +11,7 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	Mail compress dbx error ex fp ftp indent man \
+SUBDIR=	Mail compress dbx error ex finger fp ftp indent lock man \
 	more msgs netstat pascal rdist sendbug talk tftp \
 	tn3270 tset vgrind vlp window
 
@@ -22,10 +22,11 @@ CSHSCRIPT= which
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	apply biff checknr colcrt colrm ctags expand finger fold \
-	from gprof grep groups head last lastcomm leave lock logger mkstr \
-	printenv ruptime rwho sccs script soelim strings symorder tail tcopy \
-	telnet unexpand unifdef users whereis whoami whois what wc xstr yes
+STD=	apply biff checknr colcrt colrm ctags expand fold \
+	from gprof grep groups head last lastcomm leave logger mkstr \
+	printenv ruptime rwho sccs script soelim strings strcompact \
+	symcompact symdump symorder tail tcopy telnet unexpand unifdef users \
+	whereis whoami whois what wc xstr yes
 
 # C programs that live in the current directory and need explicit make lines.
 #
@@ -47,7 +48,7 @@ ${SUBDIR}: FRC
 ${STD} ${KMEM} ${SETUID}:
 	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install:
+install: ${STD} ${NSTD} ${KMEM} ${SETUID}
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${CSHSCRIPT}; do \

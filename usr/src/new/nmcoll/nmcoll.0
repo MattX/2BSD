@@ -1,0 +1,66 @@
+
+
+
+NMCOLL(1)	    UNIX Programmer's Manual		NMCOLL(1)
+
+
+
+NAME
+     nmcoll - find name collisions in object files (2BSD)
+
+SYNOPSIS
+     nmcoll file ...
+
+DESCRIPTION
+     _N_m_c_o_l_l scans a set of object files as produced by the assem-
+     bler (typically ending with ._o) and produces a listing of
+     suspicious name duplications.  _N_m_c_o_l_l is useful when porting
+     programs that were developed with compilers that support
+     flex (long) names to 2.10BSD which only supports seven sig-
+     nificant characters in external names.
+
+SEE ALSO
+     a.out(5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 6/14/93           June 20, 1987                         1
+
+
+

@@ -3,15 +3,8 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stat.h	7.1 (Berkeley) 6/4/86
+ *	@(#)stat.h	7.1.1 (2.11BSD GTE) 12/31/93
  */
-
-#ifdef BSD2_10
-#define	st_spare1	st_spar1
-#define	st_spare2	st_spar2
-#define	st_spare3	st_spar3
-#define	st_spare4	st_spar4
-#endif
 
 struct	stat
 {

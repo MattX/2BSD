@@ -5,16 +5,16 @@ LOC(3F)             UNIX Programmer's Manual		  LOC(3F)
 
 
 
-NNAAMMEE
+NAME
      loc - return the address of an object
 
-SSYYNNOOPPSSIISS
-     ffuunnccttiioonn lloocc ((aarrgg))
+SYNOPSIS
+     function loc (arg)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The returned value will be the address of _a_r_g.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
 
@@ -60,7 +60,7 @@ FFIILLEESS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

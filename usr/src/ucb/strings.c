@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)strings.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+static char sccsid[] = "@(#)strings.c	5.1.2 (2.11BSD GTE) 2/25/94";
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -20,13 +18,11 @@ static char sccsid[] = "@(#)strings.c	5.1 (Berkeley) 5/31/85";
 #include <ctype.h>
 #include <sys/file.h>
 
-long	ftell();
-
 /*
  * strings
  */
 
-struct	exec header;
+struct	xexec header;
 
 char	*infile = "Standard input";
 int	oflg;
@@ -79,29 +75,13 @@ main(argc, argv)
 		fseek(stdin, (long) 0, L_SET);
 		if (asdata ||
 		    fread((char *)&header, sizeof header, 1, stdin) != 1 || 
-		    N_BADMAG(header)) {
+		    N_BADMAG(header.e)) {
 			fseek(stdin, (long) 0, L_SET);
 			find((long) 100000000L);
 			continue;
 		}
-#ifdef BSD2_10
-		{
-			register int ovlcnt;
-			struct	ovlhdr ovlbuf;
-			off_t off;
-
-			off = (long)N_TXTOFF(header) + (long)header.a_text;
-			if (header.a_magic == A_MAGIC5 || header.a_magic == A_MAGIC6) {
-				fread ((char *)&ovlbuf, sizeof(ovlbuf), 1, stdin);
-				for (ovlcnt = 0; ovlcnt < NOVL; ovlcnt++)
-					off += ovlbuf.ov_siz[ovlcnt];
-			}
-			fseek(stdin, off, L_SET);
-		}
-#else !BSD2_10
-		fseek(stdin, (long) N_TXTOFF(header)+header.a_text, L_SET);
-#endif BSD2_10
-		find((long) header.a_data);
+		fseek(stdin, (long) N_DATOFF(header), L_SET);
+		find((long) header.e.a_data);
 	} while (argc > 0);
 }
 
@@ -121,7 +101,7 @@ find(cnt)
 			*cp++ = 0;
 			if (cp > &buf[minlength]) {
 				if (oflg)
-					printf("%7D ", ftell(stdin) - cc - 1);
+					printf("%ld ", ftell(stdin) - cc - 1);
 				printf("%s\n", buf);
 			}
 			cp = buf, cc = 0;

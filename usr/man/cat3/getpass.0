@@ -5,27 +5,27 @@ GETPASS(3)	    UNIX Programmer's Manual	       GETPASS(3)
 
 
 
-NNAAMMEE
+NAME
      getpass - read a password
 
-SSYYNNOOPPSSIISS
-     cchhaarr **ggeettppaassss((pprroommpptt))
-     cchhaarr **pprroommpptt;;
+SYNOPSIS
+     char *getpass(prompt)
+     char *prompt;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_p_a_s_s reads a password from the file /_d_e_v/_t_t_y, or if that
      cannot be opened, from the standard input, after prompting
      with the null-terminated string _p_r_o_m_p_t and disabling echo-
      ing.  A pointer is returned to a null-terminated string of
      at most 8 characters.
 
-FFIILLEESS
+FILES
      /dev/tty
 
-SSEEEE AALLSSOO
+SEE ALSO
      crypt(3)
 
-BBUUGGSS
+BUGS
      The return value points to static data whose content is
      overwritten by each call.
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

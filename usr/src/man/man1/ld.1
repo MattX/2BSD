@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ld.1	6.2 (Berkeley) 2/23/87
+.\"	@(#)ld.1	6.3 (2.11BSD GTE) 5/10/93
 .\"
 .TH LD 1 "February 23, 1987"
 .UC 2
@@ -139,6 +139,20 @@ is that here the text and data segments are in separate address spaces
 and both start at location 0.
 This option creates
 a `separate executable' format.
+.TP
+.B  \-z
+This option is a synonym for the
+.B \-i
+option.  On other systems (4.3BSD for example) the
+.B \-z
+option causes a demand paged executable to be built.  This option
+was added to 2.11BSD because some systems (those which use gcc)
+do not safely ignore (with a warning) the
+.B \-i
+option.  Adding the
+.B \-z
+option to 2.11BSD allows makefiles to be copied freely between multiple 
+platforms once again.
 .TP
 .B "\-O (PDP-11 only)"
 This is a text replacement overlay file; only the text segment

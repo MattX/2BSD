@@ -5,16 +5,16 @@ UALARM(3)	    UNIX Programmer's Manual		UALARM(3)
 
 
 
-NNAAMMEE
+NAME
      ualarm - schedule signal after specified time
 
-SSYYNNOOPPSSIISS
-     uunnssiiggnneedd uuaallaarrmm((vvaalluuee,, iinntteerrvvaall))
-     uunnssiiggnneedd vvaalluuee;;
-     uunnssiiggnneedd iinntteerrvvaall;;
+SYNOPSIS
+     unsigned ualarm(value, interval)
+     unsigned value;
+     unsigned interval;
 
-DDEESSCCRRIIPPTTIIOONN
-     TThhiiss iiss aa ssiimmpplliiffiieedd iinntteerrffaaccee ttoo sseettiittiimmeerr((22))..
+DESCRIPTION
+     This is a simplified interface to setitimer(2).
 
      _U_a_l_a_r_m causes signal SIGALRM, see _s_i_g_n_a_l(3C), to be sent to
      the invoking process in a number of microseconds given by
@@ -34,11 +34,11 @@ DDEESSCCRRIIPPTTIIOONN
      The return value is the amount of time previously remaining
      in the alarm clock.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getitimer(2), setitimer(2), sigpause(2), sigvec(2),
      signal(3C), sleep(3), alarm(3), usleep(3)
 
-NNOOTTEESS  ((PPDDPP--1111))
+NOTES  (PDP-11)
      On the PDP-11, _s_e_t_i_t_i_m_e_r(2) rounds the number of
      microseconds up to seconds resolution, therefore _u_a_l_a_r_m
      doesn't give you any more resolution than _a_l_a_r_m(3).
@@ -60,7 +60,7 @@ NNOOTTEESS  ((PPDDPP--1111))
 
 
 
-Printed 12/28/88	 August 26, 1988			1
+Printed 1/9/94		 August 26, 1988			1
 
 
 

@@ -1,5 +1,5 @@
 /*
- * SCCSID: @(#)if_de.h	1.0	(BSD2.11)	7/10/88
+ * SCCSID: @(#)if_de.h	1.1	(2.11BSD GTE)	12/31/93
  */
 
 /* Header files and definitons to support multiple DEUNAs */
@@ -28,12 +28,12 @@
 
 /*
  * These numbers are based on the amount of space that is allocated
- * int netinit() to miobase, for 5 + 5, miosize must be 16384 instead
+ * int netinit() to miobase, for 4 + 6, miosize must be 16384 instead
  * of the 8192 allocated originally.  m_ioget() gets a click address
- * and uses one uba register to map each buffer, so the limit
- * on how many buffers one allocates depends on how many uba mapping
- * registers we have, and how much space is malloc'ed in netinit()
- * for use by the network.  Note that the size of a buffer is 
+ * within the allocated region.  NOTE: the UMR handling has been fixed
+ * in 2.11BSD to allocate only the number of UMRs required by the size
+ * of the m_ioget I/O region - a UMR per buffer is NO LONGER THE CASE!
+ * Note that the size of a buffer is:
  * 1500 (ETHERMTU) + sizeof(ether_header) + some rounding from btoc() =
  * 1536 bytes or 24 clicks.
  */
@@ -60,7 +60,7 @@ struct	deuba {
 	u_short	ifu_hlen;		/* local net header length */
 	struct	ifrw difu_r[NRCV];	/* receive information */
 	struct	ifrw difu_w[NXMT];	/* transmit information */
-	short	difu_flags;		/* used during uballocs */
+	short	difu_flags;
 };
 /*
  * Ethernet software status per interface.

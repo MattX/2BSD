@@ -3,22 +3,17 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ndbm.h	5.1 (Berkeley) 5/30/85
+ *	@(#)ndbm.h	5.1.1 (2.11BSD GTE) 12/31/93
  */
 
 /*
  * Hashed key data base library.
  */
 #define PBLKSIZ 1024
-#ifdef BSD2_10
+#ifdef pdp11
 #define DBLKSIZ 512
 #else
 #define DBLKSIZ 4096
-#endif
-
-#ifdef BSD2_10
-#define dbm_pagbno	dbm_bno		/* 8 char limit */
-#define dbm_dirbno	dbm_dno
 #endif
 
 typedef struct {

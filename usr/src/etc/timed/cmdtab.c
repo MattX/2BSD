@@ -4,17 +4,11 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cmdtab.c	2.3 (Berkeley) 5/28/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)cmdtab.c	2.3.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include "timedc.h"
-
-#ifdef BSD2_10
-#define	clockdiffhelp	clkd_help
-#define	testinghelp	test_help
-#define	tracinghelp	trcg_help
-#endif
 
 int	clockdiff(), help(), msite(), quit(), testing(), tracing();
 

@@ -1,9 +1,20 @@
 /*
  * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)telnet.h	5.1 (Berkeley) 5/30/85
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *	@(#)telnet.h	5.4 (Berkeley) 2/15/89
  */
 
 /*
@@ -63,10 +74,18 @@ char *telcmds[] = {
 #define	TELOPT_SNDLOC	23	/* send location */
 #define	TELOPT_TTYPE	24	/* terminal type */
 #define	TELOPT_EOR	25	/* end or record */
-#define TELOPT_EXOPL	255	/* extended-options-list */
+#define	TELOPT_TUID	26	/* TACACS user identification */
+#define	TELOPT_OUTMRK	27	/* output marking */
+#define	TELOPT_TTYLOC	28	/* terminal location number */
+#define	TELOPT_3270REGIME 29	/* 3270 regime */
+#define	TELOPT_X3PAD	30	/* X.3 PAD */
+#define	TELOPT_NAWS	31	/* window size */
+#define	TELOPT_TSPEED	32	/* terminal speed */
+#define	TELOPT_LFLOW	33	/* remote flow control */
+#define	TELOPT_EXOPL	255	/* extended-options-list */
 
 #ifdef TELOPTS
-#define	NTELOPTS	(1+TELOPT_EOR)
+#define	NTELOPTS	(1+TELOPT_LFLOW)
 char *telopts[NTELOPTS] = {
 	"BINARY", "ECHO", "RCP", "SUPPRESS GO AHEAD", "NAME",
 	"STATUS", "TIMING MARK", "RCTE", "NAOL", "NAOP",
@@ -74,6 +93,8 @@ char *telopts[NTELOPTS] = {
 	"NAOVTD", "NAOLFD", "EXTEND ASCII", "LOGOUT", "BYTE MACRO",
 	"DATA ENTRY TERMINAL", "SUPDUP", "SUPDUP OUTPUT",
 	"SEND LOCATION", "TERMINAL TYPE", "END OF RECORD",
+	"TACACS UID", "OUTPUT MARKING", "TTYLOC",
+	"3270 REGIME", "X.3 PAD", "NAWS", "TSPEED", "LFLOW",
 };
 #endif
 

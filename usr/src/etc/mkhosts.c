@@ -11,7 +11,8 @@ char copyright[] =
 #endif not lint
 
 #ifndef lint
-static char sccsid[] = "@(#)mkhosts.c	5.1 (Berkeley) 5/28/85";
+/* static char sccsid[] = "@(#)mkhosts.c	5.1 (Berkeley) 5/28/85"; */
+static char sccsid[] = "@(#)mkhosts.c	1.1 (2.10BSD) 10/04/89";
 #endif not lint
 
 #include <sys/file.h>
@@ -26,10 +27,11 @@ main(argc, argv)
 {
 	DBM *dp;
 	register struct hostent *hp;
+	struct hostent *hp2;
 	datum key, content;
 	register char *cp, *tp, **sp;
 	register int *nap;
-	int naliases;
+	int naliases, naddrs;
 	int verbose = 0, entries = 0, maxlen = 0, error = 0;
 	char tempname[BUFSIZ], newname[BUFSIZ];
 
@@ -63,6 +65,13 @@ main(argc, argv)
 			;
 		nap = (int *)cp;
 		cp += sizeof (int);
+		key.dptr = hp->h_name;
+		key.dsize = strlen(hp->h_name);
+		hp2 = (struct hostent *)fetchhost(dp, key);
+		if (hp2) {
+			merge(hp, hp2);
+			hp = hp2;
+		}
 		naliases = 0;
 		for (sp = hp->h_aliases; *sp; sp++) {
 			tp = *sp;
@@ -75,31 +84,34 @@ main(argc, argv)
 		cp += sizeof (int);
 		bcopy((char *)&hp->h_length, cp, sizeof (int));
 		cp += sizeof (int);
-		bcopy(hp->h_addr, cp, hp->h_length);
-		cp += hp->h_length;
+		for (naddrs = 0, sp = hp->h_addr_list; *sp; sp++) {
+			bcopy(*sp, cp, hp->h_length);
+			cp += hp->h_length;
+			naddrs++;
+		}
 		content.dptr = buf;
 		content.dsize = cp - buf;
 		if (verbose)
-			printf("store %s, %d aliases\n", hp->h_name, naliases);
-		key.dptr = hp->h_name;
-		key.dsize = strlen(hp->h_name);
-		if (dbm_store(dp, key, content, DBM_INSERT) < 0) {
+			printf("store %s, %d aliases %d addresses\n", hp->h_name, naliases, naddrs);
+		if (dbm_store(dp, key, content, DBM_REPLACE) < 0) {
 			perror(hp->h_name);
 			goto err;
 		}
 		for (sp = hp->h_aliases; *sp; sp++) {
 			key.dptr = *sp;
 			key.dsize = strlen(*sp);
-			if (dbm_store(dp, key, content, DBM_INSERT) < 0) {
+			if (dbm_store(dp, key, content, DBM_REPLACE) < 0) {
 				perror(*sp);
 				goto err;
 			}
 		}
-		key.dptr = hp->h_addr;
-		key.dsize = hp->h_length;
-		if (dbm_store(dp, key, content, DBM_INSERT) < 0) {
-			perror("dbm_store host address");
-			goto err;
+		for (sp = hp->h_addr_list; *sp; sp++) {
+			key.dptr = *sp;
+			key.dsize = hp->h_length;
+			if (dbm_store(dp, key, content, DBM_REPLACE) < 0) {
+				perror("dbm_store host address");
+				goto err;
+			}
 		}
 		entries++;
 		if (cp - buf > maxlen)
@@ -128,4 +140,94 @@ err:
 	sprintf(tempname, "%s.new.dir", argv[1]);
 	unlink(tempname);
 	exit(1);
+}
+
+/* following code lifted from libc/net/hosttable/gethnamadr.c */
+
+#define	MAXALIASES	35
+#define	MAXADDRS	10
+
+static	struct	hostent	host2;
+static	char	*hstaliases[MAXALIASES];
+static	char	*hstaddrs[MAXADDRS];
+static	char	buf2[BUFSIZ];
+
+static struct hostent *
+fetchhost(dp, key)
+	DBM	*dp;
+	datum key;
+{
+        register char *cp, **ap;
+	register int naddrs;
+	int naliases;
+
+	key = dbm_fetch(dp, key);
+	if (key.dptr == 0)
+                return ((struct hostent *)NULL);
+	bcopy(key.dptr, buf2, key.dsize);
+        cp = buf2;
+	host2.h_name = cp;
+	while (*cp++)
+		;
+	bcopy(cp, (char *)&naliases, sizeof(int));
+	cp += sizeof (int);
+	for (ap = hstaliases; naliases > 0; naliases--) {
+		*ap++ = cp;
+		while (*cp++)
+			;
+	}
+	*ap = (char *)NULL;
+	host2.h_aliases = hstaliases;
+	bcopy(cp, (char *)&host2.h_addrtype, sizeof (int));
+	cp += sizeof (int);
+	bcopy(cp, (char *)&host2.h_length, sizeof (int));
+	cp += sizeof (int);
+	host2.h_addr_list = hstaddrs;
+	naddrs = (key.dsize - (cp - buf2)) / host2.h_length;
+	if (naddrs > MAXADDRS)
+		naddrs = MAXADDRS;
+	for (ap = hstaddrs; naddrs; naddrs--) {
+		*ap++ = cp;
+		cp += host2.h_length;
+	}
+	*ap = (char *)NULL;
+        return (&host2);
+}
+
+merge(hp2, hp)
+	struct	hostent	*hp2, *hp;
+{
+register char	**sp, **sp2;
+	char	**endalias, **endadr, **hp2ali, **hp2adr;
+	long	l;
+
+	hp2ali = &hp2->h_aliases[0];
+	hp2adr = &hp2->h_addr_list[0];
+
+	for (sp = hp->h_addr_list; *sp; sp++)
+		;
+	endadr = sp;
+	for (sp = hp->h_aliases; *sp; sp++)
+		;
+	endalias = sp;
+	for (sp = hp->h_aliases; *sp && *hp2ali; sp++) {
+		for (sp2 = hp2ali; *sp2; sp2++) {
+			if (!strcmp(*sp2, *sp))
+				break;
+		}
+		if (*sp2 == (char *)NULL) {
+			*endalias++ = *hp2ali++;
+			*endalias = (char *)NULL;
+		}
+	}
+	for (sp = hp->h_addr_list; *sp && *hp2adr; sp++) {
+		for (sp2 = hp2adr; *sp2; sp2++) {
+			if (!bcmp(*sp2, *sp, hp->h_length))
+				break;
+		}
+		if (*sp2 == (char *)NULL) {
+			*endadr++ = *hp2adr++;
+			*endadr = (char *)NULL;
+		}
+	}
 }

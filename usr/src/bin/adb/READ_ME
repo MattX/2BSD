@@ -1,17 +1,8 @@
-This version of (ov)adb is a (more or less) finished version of the ovadb
-on 2bsd.  It supports both overlaid processes (MENLO_OVLY) and kernels
-(MENLO_KOV).  It should work correctly for any combination of these, thus
-it can be installed as adb.
-
-To compile:
-	on an 11/70, 44, 45		make adb
-	on an 11/40, 34, 60		make 40adb
-    The ovmakefile can be used to make an overlaid version of adb for
-nonseparate I/D machines to give additional space for symbols.  This is
-needed to examine large programs such as csh and ex. Use
-	make -f ovmakefile ovadb
-
-
+    The makefile can be adjusted to make a version of adb for
+nonseparate I/D machines.  Change the -DNUM_VM_PAGES value to
+something like 6 to 8, this will use less real memory (and cause
+adb to run a bit slower) and allow adb to run on a non-split I/D 
+machine.  
 
 Changes for overlaid processes are intended to work in the most obvious way
 and are:

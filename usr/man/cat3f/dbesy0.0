@@ -5,53 +5,53 @@ BESSEL(3F)	    UNIX Programmer's Manual	       BESSEL(3F)
 
 
 
-NNAAMMEE
+NAME
      bessel functions - of two kinds for integer orders
 
-SSYYNNOOPPSSIISS
-     ffuunnccttiioonn bbeessjj00 ((xx))
+SYNOPSIS
+     function besj0 (x)
 
-     ffuunnccttiioonn bbeessjj11 ((xx))
+     function besj1 (x)
 
-     ffuunnccttiioonn bbeessjjnn ((nn,, xx))
+     function besjn (n, x)
 
-     ffuunnccttiioonn bbeessyy00 ((xx))
+     function besy0 (x)
 
-     ffuunnccttiioonn bbeessyy11 ((xx))
+     function besy1 (x)
 
-     ffuunnccttiioonn bbeessyynn ((nn,, xx))
+     function besyn (n, x)
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessjj00 ((xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesj0 (x)
+     double precision x
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessjj11 ((xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesj1 (x)
+     double precision x
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessjjnn ((nn,, xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesjn (n, x)
+     double precision x
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessyy00 ((xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesy0 (x)
+     double precision x
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessyy11 ((xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesy1 (x)
+     double precision x
 
-     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddbbeessyynn ((nn,, xx))
-     ddoouubbllee pprreecciissiioonn xx
+     double precision function dbesyn (n, x)
+     double precision x
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      These functions calculate Bessel functions of the first and
      second kinds for real arguments and integer orders.
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Negative arguments cause _b_e_s_y_0, _b_e_s_y_1, and _b_e_s_y_n to return a
      huge negative value. The system error code will be set to
      EDOM (33).
 
-FFIILLEESS
+FILES
      /usr/lib/libF77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      j0(3M), perror(3F)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

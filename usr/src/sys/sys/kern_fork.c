@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_fork.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_fork.c	1.4 (2.11BSD GTE) 12/31/93
  */
 
 #include "param.h"
@@ -47,19 +47,6 @@ fork1(isvfork)
 	register int a;
 	register struct proc *p1, *p2;
 
-#ifdef DIAGNOSTIC
-	/*
-	 * Make sure there's enough swap space for max
-	 * core image, thus reducing chances of running out
-	 */
-	if ((a = malloc(swapmap, ctod(maxmem))) == 0) {
-		printf("fork1: maxmem test failed.\n");
-		u.u_error = ENOMEM;
-		goto out;
-	}
-	mfree(swapmap, ctod(maxmem), a);
-#endif
-
 	a = 0;
 	if (u.u_uid != 0) {
 		for (p1 = allproc; p1; p1 = p1->p_nxt)
@@ -85,7 +72,7 @@ fork1(isvfork)
 	p1 = u.u_procp;
 	if (newproc(isvfork)) {
 		u.u_r.r_val1 = p1->p_pid;
-#ifndef BSD2_10
+#ifndef pdp11
 		u.u_r.r_val2 = 1;  /* child */
 #endif
 		u.u_start = time.tv_sec;
@@ -97,7 +84,7 @@ fork1(isvfork)
 	u.u_r.r_val1 = p2->p_pid;
 
 out:
-#ifdef BSD2_10			/* see libc/pdp/sys/fork.s */
+#ifdef pdp11			/* see libc/pdp/sys/fork.s */
 	u.u_ar0[R7] += NBPW;
 #else
 	u.u_r.r_val2 = 0;
@@ -170,8 +157,7 @@ again:
 	rip = u.u_procp;
 #ifdef QUOTA
 	QUOTAMAP();
-	px_quota[rpp - proc] = px_quota[rip - proc];
-	px_quota[rpp - proc]->q_cnt++;
+	u.u_quota->q_cnt++;
 	QUOTAUNMAP();
 #endif
 	rpp->p_stat = SIDL;
@@ -201,9 +187,12 @@ again:
 #endif
 	rpp->p_wchan = 0;
 	rpp->p_slptime = 0;
-	n = PIDHASH(rpp->p_pid);
-	rpp->p_idhash = pidhash[n];
-	pidhash[n] = rpp - proc;
+	{
+	struct proc **hash = &pidhash[PIDHASH(rpp->p_pid)];
+
+	rpp->p_hash = *hash;
+	*hash = rpp;
+	}
 	/*
 	 * some shuffling here -- in most UNIX kernels, the allproc assign
 	 * is done after grabbing the struct off of the freeproc list.  We
@@ -214,9 +203,6 @@ again:
 	rpp->p_nxt->p_prev = &rpp->p_nxt;	/*   (allproc is never NULL) */
 	rpp->p_prev = &allproc;
 	allproc = rpp;
-#ifdef UCB_METER
-	multprog++;
-#endif
 
 	/*
 	 * Increase reference counts on shared objects.
@@ -251,13 +237,8 @@ again:
 	a1 = rip->p_addr;
 	if (isvfork)
 		a[2] = malloc(coremap,USIZE);
-	else {
-#ifdef UCB_FRCSWAP
-		a[2] = NULL;
-		if (idleflg)
-#endif
+	else
 		a[2] = malloc3(coremap, rip->p_dsize, rip->p_ssize, USIZE, a);
-	}
 
 	/*
 	 * Partially simulate the environment of the new process so that
@@ -282,16 +263,7 @@ again:
 		 * There is core, so just copy.
 		 */
 		rpp->p_addr = a[2];
-#ifdef CGL_RTP
-		/*
-		 * Copy is now a preemptable kernel process.
-		 * The u. area is non-reentrant so copy it first
-		 * in non-preemptable mode.
-		 */
-		copyu(rpp->p_addr);
-#else
 		copy(a1, rpp->p_addr, USIZE);
-#endif
 		u.u_procp = rip;
 		if (isvfork == 0) {
 			rpp->p_daddr = a[0];

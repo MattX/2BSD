@@ -3,19 +3,8 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)talk.h	5.1 (Berkeley) 6/6/85
+ *	@(#)talk.h	5.1.1 (2.11BSD GTE) 1/1/94
  */
-
-#ifdef BSD2_10
-#define	current_line		c_line
-#define	current_state		c_state
-#define	daemon_addr		d_addr
-#define	daemon_port		d_port
-#define	his_machine_name	hs_mnam
-#define	his_machine_addr	hs_madd
-#define	my_machine_name		my_mnam
-#define	my_machine_addr		my_madd
-#endif
 
 #include <curses.h>
 #include <utmp.h>

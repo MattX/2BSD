@@ -5,10 +5,10 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-NNAAMMEE
+NAME
      L.sys - UUCP remote host description file
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The _L._s_y_s file is consulted by the UUCP daemon _u_u_c_i_c_o(8C)
      for information on remote systems.  _L._s_y_s includes the sys-
      tem name, appropriate times to call, phone numbers, and a
@@ -45,7 +45,7 @@ DDEESSCCRRIIPPTTIIOONN
      with which this system communicates via UUCP should be
      listed, regardless of who calls whom.  Systems not listed in
      _L._s_y_s will not be permitted a connection.	The local host-
-     name should nnoott appear here for security reasons.
+     name should not appear here for security reasons.
 
      _T_i_m_e_s is a comma-separated list of the times of the day and
      week that calls are permitted to this _S_y_s_t_e_m.  _T_i_m_e_s is most
@@ -53,14 +53,14 @@ DDEESSCCRRIIPPTTIIOONN
      those times when rates are lower.	List items are con-
      structed as:
 
-	  _k_e_y_w_o_r_dhhmm--hhmm//_g_r_a_d_e;;_r_e_t_r_y__t_i_m_e
+	  _k_e_y_w_o_r_dhhmm-hhmm/_g_r_a_d_e;_r_e_t_r_y__t_i_m_e
 
      _K_e_y_w_o_r_d is required, and must be one of:
 
 
 
 
-Printed 12/28/88	 April 24, 1986                         1
+Printed 1/9/94		 April 24, 1986                         1
 
 
 
@@ -71,29 +71,29 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-     AAnnyy     Any time, any day of the week.
+     Any     Any time, any day of the week.
 
-     WWkk      Any weekday. In addition, MMoo, TTuu, WWee, TThh, FFrr, SSaa,
-	     and SSuu can be used for Monday through Sunday,
+     Wk      Any weekday. In addition, Mo, Tu, We, Th, Fr, Sa,
+	     and Su can be used for Monday through Sunday,
 	     respectively.
 
-     EEvveenniinngg When evening telephone rates are in effect, from
+     Evening When evening telephone rates are in effect, from
 	     1700 to 0800 Monday through Friday, and all day
-	     Saturday and Sunday.  EEvveenniinngg is the same as
-	     WWkk11770000--00880000,,SSaa,,SSuu.
+	     Saturday and Sunday.  Evening is the same as
+	     Wk1700-0800,Sa,Su.
 
-     NNiigghhtt   When nighttime telephone rates are in effect, from
+     Night   When nighttime telephone rates are in effect, from
 	     2300 to 0800 Monday through Friday, all day Satur-
-	     day, and from 2300 to 1700 Sunday.  NNiigghhtt is the
-	     same as AAnnyy22330000--00880000,,SSaa,,SSuu00880000--11770000.
+	     day, and from 2300 to 1700 Sunday.  Night is the
+	     same as Any2300-0800,Sa,Su0800-1700.
 
-     NNoonnPPeeaakk This is a slight modification of EEvveenniinngg.	It
+     NonPeak This is a slight modification of Evening.	It
 	     matches when the USA X.25 carriers have their lower
 	     rate period. This is 1800 to 0700 Monday through
-	     Friday, and all day Saturday and Sunday.  NNoonnPPeeaakk is
-	     the same as AAnnyy11880000--00770000,,SSaa,,SSuu.
+	     Friday, and all day Saturday and Sunday.  NonPeak is
+	     the same as Any1800-0700,Sa,Su.
 
-     NNeevveerr   Never call; calling into this _S_y_s_t_e_m is forbidden or
+     Never   Never call; calling into this _S_y_s_t_e_m is forbidden or
 	     impossible.  This is intended for polled connec-
 	     tions, where the remote system calls into the local
 	     machine periodically.  This is necessary when one of
@@ -104,17 +104,17 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
      modifies the keyword.  _h_h_m_m refers to _h_o_u_r_s and _m_i_n_u_t_e_s in
      24-hour time (from 0000 to 2359).	The time range is permit-
      ted to "wrap" around midnight, and will behave in the obvi-
-     ous way. It is invalid to follow the EEvveenniinngg, NNoonnPPeeaakk, and
-     NNiigghhtt keywords with a time range.
+     ous way. It is invalid to follow the Evening, NonPeak, and
+     Night keywords with a time range.
 
      The _g_r_a_d_e subfield is optional; if present, it is composed
      of a `/' (slash) and single character denoting the _g_r_a_d_e of
-     the connection, from 00 to 99, AA to ZZ, or aa to zz.  This speci-
+     the connection, from 0 to 9, A to Z, or a to z.  This speci-
      fies that only requests of grade _g_r_a_d_e or better will be
      transferred during this time.  (The grade of a request or
      job is specified when it is queued by _u_u_c_p or _u_u_x.) By con-
-     vention, mail is sent at grade CC, news is sent at grade dd,
-     and uucp copies are sent at grade nn.  Unfortunately, some
+     vention, mail is sent at grade C, news is sent at grade d,
+     and uucp copies are sent at grade n.  Unfortunately, some
      sites do not follow these conventions, so it is not 100%
      reliable.
 
@@ -126,7 +126,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-Printed 12/28/88	 April 24, 1986                         2
+Printed 1/9/94		 April 24, 1986                         2
 
 
 
@@ -143,24 +143,24 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
      _C_a_l_l_e_r is the type of device used:
 
-     AACCUU     Automatic call unit or auto-dialing modem such as
+     ACU     Automatic call unit or auto-dialing modem such as
 	     the Hayes Smartmodem 1200 or Novation ``Smart Cat''.
 	     See _L-_d_e_v_i_c_e_s for a list of supported modems.
 
-     DDIIRR     Direct connect; hardwired line (usually RS-232) to a
+     DIR     Direct connect; hardwired line (usually RS-232) to a
 	     remote system.
 
-     MMIICCOOMM   Micom Terminal Switch.
+     MICOM   Micom Terminal Switch.
 
-     PPAADD     X.25 PAD connection.
+     PAD     X.25 PAD connection.
 
-     PPCCPP     GTE Telenet PC Pursuit. See _L-_d_e_v_i_c_e_s for configura-
+     PCP     GTE Telenet PC Pursuit. See _L-_d_e_v_i_c_e_s for configura-
 	     tion  details.
 
-     SSYYTTEEKK   Sytek high-speed dedicated modem port connection.
+     SYTEK   Sytek high-speed dedicated modem port connection.
 
-     TTCCPP     Berkeley TCP/IP or 3Com UNET connection. These are
-	     mutually exclusive.  TCP ports do nnoott need entries
+     TCP     Berkeley TCP/IP or 3Com UNET connection. These are
+	     mutually exclusive.  TCP ports do not need entries
 	     in _L-_d_e_v_i_c_e_s since all the necessary information is
 	     contained in _L._s_y_s.  If several alternate ports or
 	     network connections should be tried, use multiple
@@ -185,14 +185,14 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
      _D_e_v_i_c_e/_P_h_o_n_e__N_u_m_b_e_r varies based on the _C_a_l_l_e_r field.  For
      ACU devices, this is the phone number to dial.  The number
-     may include: digits 00 through 99; ## and ** for dialing those
-     symbols on tone telephone lines; -- (hyphen) to pause for a
-     moment, typically two to four seconds; == (equal sign) to
+     may include: digits 0 through 9; # and * for dialing those
+     symbols on tone telephone lines; - (hyphen) to pause for a
+     moment, typically two to four seconds; = (equal sign) to
      wait for a second dial tone (implemented as a pause on many
 
 
 
-Printed 12/28/88	 April 24, 1986                         3
+Printed 1/9/94		 April 24, 1986                         3
 
 
 
@@ -230,14 +230,14 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
      to making a connection; there it is referred to as a _c_h_a_t
      _s_c_r_i_p_t.  The complete format for one _e_x_p_e_c_t/_s_e_n_d pair is:
 
-	  _e_x_p_e_c_t--_t_i_m_e_o_u_t--_s_e_n_d--_e_x_p_e_c_t--_t_i_m_e_o_u_t   _s_e_n_d
+	  _e_x_p_e_c_t-_t_i_m_e_o_u_t-_s_e_n_d-_e_x_p_e_c_t-_t_i_m_e_o_u_t   _s_e_n_d
 
      _E_x_p_e_c_t and _S_e_n_d are character strings.  _E_x_p_e_c_t is compared
      against incoming text from the remote host; _s_e_n_d is sent
      back when _e_x_p_e_c_t is matched.  By default, the _s_e_n_d is fol-
      lowed by a `\r' (carriage return). If the _e_x_p_e_c_t string is
      not matched within _t_i_m_e_o_u_t seconds (default 45), then it is
-     assumed that the match failed.  The `_e_x_p_e_c_t--_s_e_n_d--_e_x_p_e_c_t'
+     assumed that the match failed.  The `_e_x_p_e_c_t-_s_e_n_d-_e_x_p_e_c_t'
      notation provides a limited loop mechanism; if the first
      _e_x_p_e_c_t string fails to match, then the _s_e_n_d string between
      the hyphens is transmitted, and _u_u_c_i_c_o waits for the second
@@ -246,7 +246,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
      connection failed.
 
      The timeout can (optionally) be specified by appending the
-     parameter `~~_n_n' to the expect string, when _n_n is the timeout
+     parameter `~_n_n' to the expect string, when _n_n is the timeout
      time in seconds.
 
      Backslash escapes that may be imbedded in the _e_x_p_e_c_t or _s_e_n_d
@@ -258,7 +258,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-Printed 12/28/88	 April 24, 1986                         4
+Printed 1/9/94		 April 24, 1986                         4
 
 
 
@@ -277,7 +277,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 	  \xxx	  Where _x_x_x is an octal constant;
 		  denotes the corresponding ASCII character.
 
-     As a special case, an empty pair of double-quotes """" in the
+     As a special case, an empty pair of double-quotes "" in the
      _e_x_p_e_c_t string is interpreted as ``expect nothing''; that is,
      transmit the _s_e_n_d string regardless of what is received.
      Empty double-quotes in the _s_e_n_d string cause a lone `\r'
@@ -299,7 +299,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 	  P_EVEN  Use even parity on future send strings. (Default)
 	  P_ZERO  Use parity zero on future send strings.
 
-     Finally, if the _e_x_p_e_c_t string consists of the keyword AABBOORRTT,
+     Finally, if the _e_x_p_e_c_t string consists of the keyword ABORT,
      then the string following is used to arm an abort trap. If
      that string is subsequently received any time prior to the
      completion of the entire _e_x_p_e_c_t/_s_e_n_d script, then _u_u_c_i_c_o
@@ -319,12 +319,12 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
      does, _s_e_n_d it the string `nuucp'.	Then _e_x_p_e_c_t the string
      `ssword:'; when that is received, _s_e_n_d `ufeedme'.''
 
-FFIILLEESS
+FILES
      /usr/lib/uucp/L.sys
 
 
 
-Printed 12/28/88	 April 24, 1986                         5
+Printed 1/9/94		 April 24, 1986                         5
 
 
 
@@ -337,13 +337,13 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
      /usr/lib/uucp/UUAIDS/L.sysL.sys example
 
-SSEEEE AALLSSOO
+SEE ALSO
      uucp(1C), uux(1C), L-devices(5), services(5), uucico(8C)
 
-BBUUGGSS
+BUGS
      ``ABORT'' in the send/expect script is expressed ``back-
-     wards,'' that is, it should be written `` _e_x_p_e_c_t AABBOORRTT'' but
-     instead it is `` AABBOORRTT _e_x_p_e_c_t''.
+     wards,'' that is, it should be written `` _e_x_p_e_c_t ABORT'' but
+     instead it is `` ABORT _e_x_p_e_c_t''.
 
      Several of the backslash escapes in the send/expect strings
      are confusing and/or different from those used by AT&T and
@@ -390,7 +390,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 24, 1986                         6
+Printed 1/9/94		 April 24, 1986                         6
 
 
 

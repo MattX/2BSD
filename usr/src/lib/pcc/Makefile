@@ -1,80 +1,104 @@
-INSTALL=${DESTDIR}/usr/lib/ccom
-M=/usr/src/cmd/mip
-CFLAGS=-O
-head:  ccom ;
+#
+#	Makefile	1.13	86/03/11
+#
+# Makefile for PCC
+#
+#	FIXSTRUCT	no trickery (just output structure)
+#
+# Some symbols are specific to certain compilers:
+#	ONEPASS		compile pass 1 and pass 2 together
+#	SPRECC		do single precision in single not double
+#	FORT		get f77-style pass 2
+#
+CONFIG=	-DONEPASS "-DFIXSTRUCT=outstruct"
+O = -O
+CFLAGS = $(O) -I. -I$(M) $(CONFIG)
+COPTS = $(CFLAGS)
+LDFLAGS = -i
 
-all:	ccom
+RM=	/bin/rm -f
+LN=	/bin/ln -s
 
-cp:	ccom
-	cp ccom ${DESTDIR}/usr/lib/ccom
-	rm *.o cgram.c ccom
+P1INCS=	$M/pass1.h macdefs.h $M/manifest.h pcclocal.h $M/config.h $M/ndu.h \
+	/usr/include/stdio.h
+P1ONEP=	$(P1INCS) $M/onepass.h
+P2INCS=	$M/pass2.h macdefs.h mac2defs.h $M/manifest.h pcclocal.h $M/config.h \
+	$M/ndu.h /usr/include/stdio.h
+P2ONEP=	$(P2INCS) $M/onepass.h
 
-cmp:	ccom
-	cmp ccom ${DESTDIR}/usr/lib/ccom
-	rm *.o cgram.c
+M=../mip
+TESTDIR = .
 
-ccom: cgram.o xdefs.o scan.o pftn.o trees.o optim.o code.o local.o reader.o local2.o order.o match.o allo.o comm1.o table.o
-	cc $(CFLAGS) -s -o ccom -i cgram.o xdefs.o scan.o pftn.o trees.o optim.o code.o local.o reader.o local2.o order.o match.o allo.o comm1.o table.o
-trees.o: $M/manifest macdefs $M/mfile1 $M/trees.c
-	cc -c $(CFLAGS) -I$M -I. $M/trees.c
-optim.o: $M/manifest macdefs $M/mfile1 $M/optim.c
-	cc -c $(CFLAGS) -I$M -I. $M/optim.c
-pftn.o: $M/manifest macdefs $M/mfile1 $M/pftn.c
-	cc -c $(CFLAGS) -I$M -I. $M/pftn.c
-code.o: $M/manifest macdefs $M/mfile1
-	cc -c $(CFLAGS) -I$M -I. code.c
-local.o: $M/manifest macdefs $M/mfile1
-	cc -c $(CFLAGS) -I$M -I. local.c
-scan.o: $M/manifest macdefs $M/mfile1 $M/scan.c
-	cc -c $(CFLAGS) -I$M -I. $M/scan.c
-xdefs.o: $M/manifest $M/mfile1 macdefs $M/xdefs.c
-	cc -c $(CFLAGS) -I$M -I. $M/xdefs.c
-cgram.o: $M/manifest $M/mfile1 macdefs cgram.c
-	cc -c $(CFLAGS) -I$M -I. cgram.c
-cgram.c: $M/cgram.y
-	yacc $M/cgram.y
+all: ccom 
+
+#
+# 'ccom' is a one-pass C compiler.
+#
+ccom: cgram.o xdefs.o scan.o pftn.o trees.o optim.o code.o local.o \
+	reader.o local2.o order.o match.o allo.o comm1.o table.o stab.o
+	$(CC) $(LDFLAGS) xdefs.o scan.o pftn.o trees.o \
+		optim.o code.o local.o reader.o order.o match.o \
+		allo.o -Z comm1.o cgram.o -Z local2.o -Y table.o stab.o \
+		-o $(TESTDIR)/ccom
+
+trees.o: $(P1ONEP) $M/trees.c
+	$(CC) -c $(COPTS) $M/trees.c
+optim.o: $(P1ONEP) $M/optim.c
+	$(CC) -c $(COPTS) $M/optim.c
+pftn.o: $(P1ONEP) $M/pftn.c
+	$(CC) -c $(COPTS) $M/pftn.c
+code.o: $(P1ONEP) code.c
+	$(CC) -c $(COPTS) code.c
+local.o: $(P1ONEP) local.c
+	$(CC) -c $(COPTS) local.c
+scan.o: $(P1ONEP) $M/scan.c
+	$(CC) -c $(COPTS) $M/scan.c
+xdefs.o: $(P1ONEP) $M/xdefs.c
+	$(CC) -c $(COPTS) $M/xdefs.c
+cgram.o: $(P1ONEP) cgram.c
+	$(CC) -c $(COPTS) cgram.c
+cgram.c: $M/cgram.y pcctokens
+	cat pcctokens $M/cgram.y > gram.in
+	$(YACC) gram.in
 	mv y.tab.c cgram.c
-comm1.o: $M/manifest $M/mfile1 $M/common macdefs $M/comm1.c
-	cc -c $(CFLAGS) -I. -I$M $M/comm1.c
-table.o: $M/manifest $M/mfile2 mac2defs macdefs table.c
-	cc -c $(CFLAGS) -I$M -I. table.c
-reader.o: $M/manifest $M/mfile2 mac2defs macdefs $M/reader.c
-	cc -c $(CFLAGS) -I$M -I. $M/reader.c
-local2.o: $M/manifest $M/mfile2 mac2defs macdefs
-	cc -c $(CFLAGS) -I$M -I. local2.c
-order.o: $M/manifest $M/mfile2 mac2defs macdefs
-	cc -c $(CFLAGS) -I$M -I. order.c
-match.o: $M/manifest $M/mfile2 mac2defs macdefs $M/match.c
-	cc -c $(CFLAGS) -I$M -I. $M/match.c
-allo.o: $M/manifest $M/mfile2 mac2defs macdefs $M/allo.c
-	cc -c $(CFLAGS) -I$M -I. $M/allo.c
-shrink:
-	rm *.o ccom
-lintall:
-	lint -hpv -I. -I$M  cgram.c xdefs.c $M/scan.c $M/pftn.c $M/trees.c $M/optim.c code.c local.c $M/reader.c local2.c order.c $M/match.c $M/allo.c $M/comm1.c table.c
-fort: ccom fort.o freader.o fallo.o fmatch.o ftable.o forder.o flocal2.o fcomm2.o
-	cc -i $(CFLAGS) fort.o freader.o fallo.o fmatch.o ftable.o forder.o flocal2.o fcomm2.o
-	mv a.out fort
-fort.o: fort.h $M/fort.c
-	cc -c $(CFLAGS) -I$M -I. $M/fort.c
-freader.o: reader.o
-	cc -c $(CFLAGS) -I$M -I. $M/freader.c
-fallo.o: allo.o
-	cc -c $(CFLAGS) -I$M -I. $M/fallo.c
-fmatch.o: match.o
-	cc -c $(CFLAGS) -I$M -I. $M/fmatch.c
-ftable.o: table.o
-	cc -c $(CFLAGS) -I$M -I. $M/ftable.c
-forder.o: order.o
-	cc -c $(CFLAGS) -I$M -I. $M/forder.c
-flocal2.o: local2.o
-	cc -c $(CFLAGS) -I$M -I. $M/flocal2.c
-fcomm2.o: $M/common
-	cc -c $(CFLAGS) -I$M -I. $M/fcomm2.c
-fort.o freader.o fallo.o fmatch.o ftable.o forder.o flocal2.o fcomm2.o: $M/mfile2 $M/manifest macdefs mac2defs
-install:
-	cp ccom $(INSTALL)
-	cp macdefs mac2defs local.c code.c local2.c order.c table.c ${DESTDIR}/usr/src/cmd/pcc
+comm1.o: $(P1ONEP) $M/common.c
+	$(LN) $M/common.c comm1.c
+	$(CC) -c $(COPTS) -DPASS1COMMON comm1.c
+	$(RM) comm1.c
+table.o: $(P2ONEP) table.c
+	$(CC) -c $(COPTS) table.c
+reader.o: $(P2ONEP) $M/reader.c
+	$(CC) -c $(COPTS) $M/reader.c
+local2.o: $(P2ONEP) local2.c
+	$(CC) -c $(COPTS) local2.c
+order.o: $(P2ONEP) order.c
+	$(CC) -c $(COPTS) order.c
+match.o: $(P2ONEP) $M/match.c
+	$(CC) -c $(COPTS) $M/match.c
+allo.o: $(P2ONEP) $M/allo.c
+	$(CC) -c $(COPTS) $M/allo.c
+stab.o: $(P2ONEP) stab.c
+	$(CC) -c $(COPTS) stab.c
 
+install: all
+	install -s ${TESTDIR}/ccom ${DESTDIR}/lib/ccom
+
+GREP=	egrep
+
+pcclocal.h: localdefs.h /usr/include/pcc.h
+	$(RM) pcclocal.h
+	cat /usr/include/pcc.h localdefs.h | $(GREP) '^#[ 	]*(define[ 	][ 	]*PCC(F|T|TM|OM)?_|ifdef|ifndef|endif)' | sed -e 's/PCC[A-Z]*_//' > pcclocal.h 
+
+pcctokens: localdefs.h /usr/include/pcc.h
+	$(RM) pcctokens
+	cat /usr/include/pcc.h localdefs.h | $(GREP) '^#[ 	]*define[ 	][ 	]*PCC_' | sed -e 's/^#[ 	]*define[ 	][ 	]*PCC_/%term	/' > pcctokens
+
+shrink:
+	$(RM) *.o ccom
 clean:
-	rm -f *.o
+	$(RM) *.o ccom cgram.c pcctokens pcclocal.h gram.in
+lintall:
+	lint -hax -I. -I$M -DONEPASS -DPASS1COMMON cgram.c $M/xdefs.c \
+		$M/scan.c $M/pftn.c $M/trees.c $M/optim.c code.c \
+		local.c $M/reader.c local2.c order.c $M/match.c $M/allo.c \
+		$M/common.c table.c stab.c

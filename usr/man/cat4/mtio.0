@@ -5,10 +5,10 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
 
 
 
-NNAAMMEE
+NAME
      mtio - UNIX magtape interface
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The files _m_t_0, ..., _m_t_1_5 refer to the UNIX magtape drives,
      which may be on the MASSBUS using the TM03 formatter _h_t(4),
      or on the UNIBUS using either the TM11 or TS11 formatters
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  July 25, 1987                         1
+Printed 1/9/94		  July 25, 1987                         1
 
 
 
@@ -126,7 +126,7 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
 
 
 
-Printed 12/28/88	  July 25, 1987                         2
+Printed 1/9/94		  July 25, 1987                         2
 
 
 
@@ -142,14 +142,14 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
      another read will fetch the first record of the new tape
      file.
 
-FFIILLEESS
+FILES
      /dev/mt?
      /dev/rmt?
 
-SSEEEE AALLSSOO
+SEE ALSO
      mt(1), tar(1), tp(1), ht(4), tm(4), ts(4)
 
-BBUUGGSS
+BUGS
      The status should be returned in a device independent for-
      mat.
 
@@ -192,7 +192,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  July 25, 1987                         3
+Printed 1/9/94		  July 25, 1987                         3
 
 
 

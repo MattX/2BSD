@@ -5,33 +5,33 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
 
 
-NNAAMMEE
+NAME
      ping - send ICMP ECHO_REQUEST packets to network hosts
 
-SSYYNNOOPPSSIISS
-     //eettcc//ppiinngg [ --rr ] [ --vv ] _h_o_s_t [ _p_a_c_k_e_t_s_i_z_e ] [ _c_o_u_n_t ]
+SYNOPSIS
+     /etc/ping [ -r ] [ -v ] _h_o_s_t [ _p_a_c_k_e_t_s_i_z_e ] [ _c_o_u_n_t ]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The DARPA Internet is a large and complex aggregation of
      network hardware, connected together by gateways.	Tracking
      a single-point hardware or software failure can often be
      difficult.  _P_i_n_g utilizes the ICMP protocol's mandatory
      ECHO_REQUEST datagram to elicit an ICMP ECHO_RESPONSE from a
      host or gateway.  ECHO_REQUEST datagrams (``pings'') have an
-     IP and ICMP header, followed by a ssttrruucctt ttiimmeevvaall, and then
+     IP and ICMP header, followed by a struct timeval, and then
      an arbitrary number of ``pad'' bytes used to fill out the
      packet.  Default datagram length is 64 bytes, but this may
      be changed using the command-line option.	Other options
      are:
 
-     --rr   Bypass the normal routing tables and send directly to a
+     -r   Bypass the normal routing tables and send directly to a
 	  host on an attached network.	If the host is not on a
 	  directly-attached network, an error is returned.  This
 	  option can be used to ping a local host through an
 	  interface that has no route through it (e.g., after the
 	  interface was dropped by _r_o_u_t_e_d(8C)).
 
-     --vv   Verbose output.  ICMP packets other than ECHO RESPONSE
+     -v   Verbose output.  ICMP packets other than ECHO RESPONSE
 	  that are received are listed.
 
      When using _p_i_n_g for fault isolation, it should first be run
@@ -53,14 +53,14 @@ DDEESSCCRRIIPPTTIIOONN
      on the network, it is unwise to use _p_i_n_g during normal
      operations or from automated scripts.
 
-AAUUTTHHOORR
+AUTHOR
      Mike Muuss
 
 
 
 
 
-Printed 12/28/88	  May 23, 1986				1
+Printed 1/9/94		  May 23, 1986				1
 
 
 
@@ -71,7 +71,7 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
 
 
-SSEEEE AALLSSOO
+SEE ALSO
      netstat(1), ifconfig(8C)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 23, 1986				2
+Printed 1/9/94		  May 23, 1986				2
 
 
 

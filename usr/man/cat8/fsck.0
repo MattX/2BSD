@@ -5,15 +5,15 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
 
 
 
-NNAAMMEE
+NAME
      fsck - file system consistency check and interactive repair
 
-SSYYNNOOPPSSIISS
-     //eettcc//ffsscckk --pp[ # ] [ filesystem ...  ]
-     //eettcc//ffsscckk [ --yy ] [ --nn ] [ --ssX ] [ --SSX ] [ --tt filename ] [
+SYNOPSIS
+     /etc/fsck -p[ # ] [ filesystem ...  ]
+     /etc/fsck [ -y ] [ -n ] [ -sX ] [ -SX ] [ -t filename ] [
      filesystem ] ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The first form of _f_s_c_k preens a standard set of file systems
      or the specified file systems.  It is normally used in the
      script /_e_t_c/_r_c during automatic reboot.  In this case _f_s_c_k
@@ -30,7 +30,7 @@ DDEESSCCRRIIPPTTIIOONN
      checked in each pass.  A pass number of 0 in fstab causes a
      disk to not be checked; similarly partitions which are not
      shown as to be mounted ``rw'' or ``ro'' are not checked.  A
-     number or range of numbers may be given after the --pp to
+     number or range of numbers may be given after the -p to
      start or end the check at a specified pass number.  A single
      number specifies the starting pass (e.g. -p2 or -p2-); a
      range specifies the starting and endig passes (-p2-4).  A
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 
@@ -71,7 +71,7 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
 
 
 
-     These are the only inconsistencies which _f_s_c_k with the --pp
+     These are the only inconsistencies which _f_s_c_k with the -p
      option will correct; if it encounters other inconsistencies,
      it exits with an abnormal return status and an automatic
      reboot will then fail.  For each corrected inconsistency one
@@ -79,39 +79,39 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
      which the correction will take place, and the nature of the
      correction.  After successfully correcting a file system,
      _f_s_c_k will print the number of files on that file system and
-     the number of used and free blocks.  WWaarrnniinngg:: kernel changes
-     are required to limit the types of inconsistencies, and ffsscckk
-     --pp makes assumptions about the kernel's actions in repairing
+     the number of used and free blocks.  Warning: kernel changes
+     are required to limit the types of inconsistencies, and fsck
+     -p makes assumptions about the kernel's actions in repairing
      these.  Vmunix, PDP-11 2.9BSD with the UCB_FSFIX option and
      PDP-11 2.10BSD Unix kernels have the appropriate modifica-
-     tions; the --pp option should not be used on other systems.
+     tions; the -p option should not be used on other systems.
 
-     Without the --pp option, _f_s_c_k audits and interactively repairs
+     Without the -p option, _f_s_c_k audits and interactively repairs
      inconsistent conditions for file systems. If the file system
      is inconsistent the operator is prompted for concurrence
      before each correction is attempted.  It should be noted
      that a number of the corrective actions which are not fix-
-     able under the --pp option will result in some loss of data.
+     able under the -p option will result in some loss of data.
      The amount and severity of data lost may be determined from
      the diagnostic output.  The default action for each con-
      sistency correction is to wait for the operator to respond
-     yyeess or nnoo.  If the operator does not have write permission
-     _f_s_c_k will default to a --nn action.
+     yes or no.  If the operator does not have write permission
+     _f_s_c_k will default to a -n action.
 
      _F_s_c_k has more consistency checks than its predecessors
      _c_h_e_c_k, _d_c_h_e_c_k, _f_c_h_e_c_k, and _i_c_h_e_c_k combined.
 
      The following flags are interpreted by _f_s_c_k.
 
-     --yy    Assume a yes response to all questions asked by _f_s_c_k;
+     -y    Assume a yes response to all questions asked by _f_s_c_k;
 	   this should be used with great caution as this is a
 	   free license to continue after essentially unlimited
 	   trouble has been encountered.
 
-     --nn    Assume a no response to all questions asked by _f_s_c_k;
+     -n    Assume a no response to all questions asked by _f_s_c_k;
 	   do not open the file system for writing.
 
-     --ss_X   Ignore the actual free list and (unconditionally)
+     -s_X   Ignore the actual free list and (unconditionally)
 	   reconstruct a new one by rewriting the superblock of
 	   the file system. The file system should be unmounted
 	   while this is done; if this is not possible, care
@@ -121,12 +121,12 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
 	   of the superblock will not continue to be used, or
 	   written on the file system.
 
-	   The --ss_X option allows for creating an optimal free
+	   The -s_X option allows for creating an optimal free
 	   list organization.  The following forms of _X are
 
 
 
-Printed 12/28/88						2
+Printed 1/9/94							2
 
 
 
@@ -141,24 +141,24 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
 
 		-s3 (RP03)
 		-s4 (RP04, RP05, RP06)
-		-sBlocks-per-cylinder::Blocks-to-skip (for anything else)
+		-sBlocks-per-cylinder:Blocks-to-skip (for anything else)
 
 	   If _X is not given, the values used when the file sys-
 	   tem was created are used.  If these values were not
 	   specified, then the value _4_0_0:_9 is used.
 
-     --SS_X   Conditionally reconstruct the free list. This option
-	   is like --ss_X above except that the free list is rebuilt
+     -S_X   Conditionally reconstruct the free list. This option
+	   is like -s_X above except that the free list is rebuilt
 	   only if there were no discrepancies discovered in the
-	   file system. Using --SS will force a no response to all
+	   file system. Using -S will force a no response to all
 	   questions asked by _f_s_c_k. This option is useful for
 	   forcing free list reorganization on uncontaminated
 	   file systems.
 
-     --tt    If _f_s_c_k cannot obtain enough memory to keep its
-	   tables, it uses a scratch file. If the --tt option is
+     -t    If _f_s_c_k cannot obtain enough memory to keep its
+	   tables, it uses a scratch file. If the -t option is
 	   specified, the file named in the next argument is used
-	   as the scratch file, if needed. Without the --tt flag,
+	   as the scratch file, if needed. Without the -t flag,
 	   _f_s_c_k will prompt the operator for the name of the
 	   scratch file. The file chosen should not be on the
 	   file system being checked, and if it is not a special
@@ -192,7 +192,7 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
 
 
 
-Printed 12/28/88						3
+Printed 1/9/94							3
 
 
 
@@ -220,23 +220,23 @@ FSCK(8)             UNIX Programmer's Manual		  FSCK(8)
      device should not be checked using the raw device, however,
      since it cannot be unmounted.
 
-FFIILLEESS
+FILES
      /etc/fstab          default list of file systems to check
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The diagnostics produced by _f_s_c_k are intended to be self-
-     explanatory.  The exit codes with the --pp option are 0 (no
+     explanatory.  The exit codes with the -p option are 0 (no
      problems that weren't fixed), 4 (root file system was modi-
      fied), 8 (problems that couldn't be fixed) and 12 (_f_s_c_k was
      interrupted).
 
-SSEEEE AALLSSOO
+SEE ALSO
      filsys(5), fstab(5), crash(8), mkfs(8), mklost+found(8),
      reboot(8)
      T. J. Kowalski, _F_S_C_K - _T_h_e _U_N_I_X _F_i_l_e _S_y_s_t_e_m _C_h_e_c_k _P_r_o_g_r_a_m
 
-BBUUGGSS
-     Inode numbers for ..  and ....  in each directory should be
+BUGS
+     Inode numbers for .  and ..  in each directory should be
      checked for validity.
 
 
@@ -258,7 +258,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						4
+Printed 1/9/94							4
 
 
 

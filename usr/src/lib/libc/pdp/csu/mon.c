@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)mon.c	5.4 (Berkeley) 5/3/87";
+static char sccsid[] = "@(#)mon.c	5.5 (GTE) 3/23/92";
 #endif LIBC_SCCS and not lint
 
 #define ARCDENSITY	1	/* density of routines per 100 bytes */
@@ -38,15 +38,15 @@ monstartup(lowpc, highpc)
 	char *lowpc;
 	char *highpc;
 {
-	int cntsize, monsize;
+	unsigned int cntsize, monsize;
 	char *buffer;
 	extern char *sbrk();
 	extern char *minbrk;
 
-	cntsize = (highpc - lowpc) * ARCDENSITY / 100;
+	cntsize = (unsigned)(highpc - lowpc) * ARCDENSITY / 100;
 	if (cntsize < MINARCS)
 		cntsize = MINARCS;
-	monsize = (highpc - lowpc + HISTFRACTION - 1) / HISTFRACTION
+	monsize = (unsigned)(highpc - lowpc + HISTFRACTION - 1) / HISTFRACTION
 		+ sizeof(struct phdr) + cntsize * sizeof(struct cnt);
 	monsize = (monsize + 1) & ~1;
 	buffer = sbrk(monsize);

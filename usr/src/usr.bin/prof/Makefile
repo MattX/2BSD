@@ -10,7 +10,7 @@ prof:	prof.o
 prof.o: prof.c
 	cc -c $(CFLAGS) $(PLOT) prof.c
 
-install:
+install: prof
 	install -s prof $(DESTDIR)/usr/bin
 
 clean :

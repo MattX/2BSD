@@ -3,12 +3,41 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)net_xxx.s	1.1 (2.10BSD Berkeley) 4/3/88
+ *	@(#)net_xxx.s	1.2 (2.11BSD GTE) 10/15/92
  */
 
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
 
+/*
+ * delay(usec)
+ *	long	usec;
+ *
+ * Delay (approximately) usec micro-seconds.  It really isn't very acurrate
+ * since we can be interrupted and take much longer than we intended, but
+ * that's alright - we just don't want to come home early ...
+ *
+ * Copied to the networking from the kernel (mch_xxx.s) so the network could
+ * do delays (if_qt.c).
+ */
+ENTRY(delay)
+	mov	2(sp),r0		/ r0 = hiint(usec)
+	mov	4(sp),r1		/ r1 = loint(usec)
+	ashc	$1,r0			/ sob's ~= 1/2 micro second,
+	beq	2f			/ oops, got passed a delay of 0L-leave
+	tst	r1
+	/*
+	 * If the low int of the loop counter is zero, the double sob loop
+	 * below will perform correctly, otherwise the high byte must be
+	 * increment.
+	 */
+	beq	1f
+	inc	r0			/ correct for looping
+1:
+	sob	r1,1b			/ sit on our hands for a while ...
+	sob	r0,1b
+2:
+	rts	pc
 
 /*
  * badaddr(addr, len)

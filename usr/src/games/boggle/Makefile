@@ -16,9 +16,9 @@ bogdict: comp sfile
 	-if [ -f /usr/local/lib/w2a ]; \
 		then dict=/usr/local/lib/w2a; \
 		else dict=/usr/dict/words; fi; \
-	sed -f sfile $$dict | uniq | comp >bogdict
+	sed -f sfile $$dict | uniq | ./comp >bogdict
 
-install:
+install: all
 	install -s boggle ${DESTDIR}/usr/games/boggle
 	install -m 644 bogdict ${DESTDIR}/usr/games/lib/bogdict
 
@@ -29,4 +29,4 @@ comp: comp.c
 	cc ${SEPFLAG} -o comp ${CFLAGS} comp.c
 
 clean:
-	rm -f bogdict boggle comp
+	rm -f bogdict boggle comp *.o

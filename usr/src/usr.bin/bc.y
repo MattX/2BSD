@@ -17,7 +17,7 @@ static	char *sccsid = "@(#)bc.y	4.3 (Berkeley) 85/11/28";
 
 %{
 #include <stdio.h>
-int in;
+FILE *in;
 char cary[1000], *cp = { cary };
 char string[1000], *str = {string};
 int crs = '0';

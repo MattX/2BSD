@@ -1,8 +1,11 @@
-/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.2 87/07/03 00:56:37 games Exp $
+/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.3 93/12/31 22:40:37 games Exp $
  *
  * $Log:	intrp.c,v $
+ * Revision 7.0.2  93/12/31  23:40:37  games
+ * Removed shortnames.h for new version of 2.11BSD
+
  * Revision 7.0.1.2a  87/07/03  00:56:37  games
- * Included shortnames.h for BSD2_10
+ * Included shortnames.h for 2.10BSD
  * 
  * Revision 7.0.1.2  86/12/12  16:59:04  lwall
  * Baseline for net release.
@@ -14,10 +17,6 @@
  * Split into separate files.  Added amoebas and pirates.
  * 
  */
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 #include "EXTERN.h"
 #include "warp.h"

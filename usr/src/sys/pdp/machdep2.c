@@ -3,13 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)machdep2.c	2.2 (2.11BSD GTE) 3/13/93
  */
 
 #include "param.h"
 #include "../machine/seg.h"
 #include "../machine/iopage.h"
 
+#include "dir.h"
 #include "inode.h"
 #include "user.h"
 #include "proc.h"
@@ -24,15 +25,23 @@
 #include "reboot.h"
 #include "systm.h"
 #include "ram.h"
+#include "msgbuf.h"
+#include "namei.h"
+#include "ra.h"
+#include "tms.h"
+
 #ifdef QUOTA
 #include "quota.h"
 #endif
 
 size_t	physmem;	/* total amount of physical memory (for savecore) */
-
-#ifndef	NOKA5
-segm	seg5;		/* filled in by initialization */
+#if	NRAC > 0 || NTMSCP > 0
+memaddr	_iostart, _iobase;
+ubadr_t	_ioumr;
+u_short	_iosize = 2 * (1928 + 1096 + 128);  /* enough for 2 TMSCP and 2 MSCP */
 #endif
+
+segm	seg5;		/* filled in by initialization */
 
 /*
  * Machine dependent startup code
@@ -51,10 +60,6 @@ startup()
 
 	printf("\n%s\n", version);
 
-#ifdef NOKA5
-	if (&end > SEG5)
-		panic("_end > SEG5");
-#else
 	saveseg5(seg5);		/* must be done before clear() is called */
 	/*
 	 * REMAP_AREA is the start of possibly-mapped area, for consistency
@@ -63,7 +68,6 @@ startup()
 	 */
 	if (REMAP_AREA > SEG5)
 		panic("remapped area > SEG5");
-#endif
 
 	/*
 	 * Zero and free all of core:
@@ -73,26 +77,21 @@ startup()
 	 * heralded by the beginning of the I/O page (some people have dz's
 	 * at 0160000).  On systems with a Unibus map, the last 256K of the
 	 * 4M address space is off limits since 017000000 to 017777777 is the
-	 * actual 18 bit Unibus address space.  896 is btoc(64K - 8K), 3968
-	 * is btoc(256K - 8K), 61440 is btoc(4M - 256K), and 65408 is btoc(4M
-	 * - 8K).  The 16 bit entry included only for completeness, don't use
-	 * it.
+	 * actual 18 bit Unibus address space.  61440 is btoc(4M - 256K), 
+	 * and 65408 is btoc(4M - 8K).
 	 *
-	 * If we're not on a UNIBUS machine and Q22 isn't defined we
-	 * artificially limit ourselves to 256K-8K to avoid problems of
-	 * 18-bit DMA disk or tape peripherals attached to 22-bit Q-BUS
-	 * machines.  See extended notes in /sys/conf/GENERIC.
+	 * Previous cautions about 18bit devices on a 22bit Qbus were misguided.
+	 * Since the GENERIC kernel was built with Q22 defined the limiting
+	 * effect on memory size was not achieved, thus an 18bit controller
+	 * could not be used to load the distribution.  ALSO, the kernel
+	 * plus associated data structures do not leave enough room in 248kb
+	 * to run the programs necessary to do _anything_.
 	 */
-#define MAXCLICK_16	896		/* 16 bit UNIBUS or QBUS */
-#define MAXCLICK_18	3968		/* 18 bit UNIBUS or QBUS */
 #define MAXCLICK_22U	61440		/* 22 bit UNIBUS (UNIBUS mapping) */
 #define MAXCLICK_22	65408		/* 22 bit QBUS */
 
-#ifdef Q22
 	maxclick = ubmap ? MAXCLICK_22U : MAXCLICK_22;
-#else
-	maxclick = ubmap ? MAXCLICK_22U : MAXCLICK_18;
-#endif
+
 	i = freebase = *ka6 + USIZE;
 	UISD[0] = ((stoc(1) - 1) << 8) | RW;
 	for (;;) {
@@ -128,7 +127,6 @@ startup()
 #define C	(nclist * sizeof(struct cblock))
 	if ((clststrt = malloc(coremap, btoc(C))) == 0)
 		panic("clists");
-	maxmem -= btoc(C);
 	clstaddr = ((ubadr_t)clststrt) << 6;
 #undef C
 #else
@@ -139,7 +137,6 @@ startup()
 #define C (ninode * sizeof (struct icommon2))
 	if ((xitimes = malloc(coremap, btoc(C))) == 0)
 		panic("xitimes");
-	maxmem -= btoc(C);
 	xitdesc = ((btoc(C) << 8) | RW);
 #undef C
 #endif
@@ -148,52 +145,47 @@ startup()
 #define	C	(btoc(8192))
 	if ((quotreg = malloc(coremap, C)) == 0)
 		panic("quotamem");
-	maxmem -= C;
 	quotdesc = ((C - 1) << 8) | RW;
 	QUOini();
 #undef C
 #endif
 
+	{
+register int B;
+
+	nchsize = 8192 / sizeof(struct namecache);
+	if (nchsize > (ninode * 11 / 10))
+		nchsize = ninode * 11 / 10;
+	B = (btoc(nchsize * sizeof(struct namecache)));
+	if ((nmidesc.se_addr = malloc(coremap, B)) == 0)
+		panic("nameimalloc");
+	nmidesc.se_desc = ((B - 1) << 8) | RW;
+	namecache = (struct namecache *)SEG5;
+	}
+
+#if	NRAC > 0 || NTMSCP > 0
+{
+	if ((_iobase = malloc(coremap, btoc(_iosize))) == 0)
+		panic("_iobase");
+}
+#endif	NRAC
+
 #define B	(size_t)(((long)nbuf * (MAXBSIZE)) / ctob(1))
 	if ((bpaddr = malloc(coremap, B)) == 0)
 		panic("buffers");
-	maxmem -= B;
 #undef B
 
-#if defined(PROFILE) && !defined(ENABLE34)
-	maxmem -= msprof();
-#endif
+#define	C	(btoc(MSG_BSIZE))
+	if ((msgbuf.msg_click = malloc(coremap, C)) == 0)
+		panic("msgbufmem");
+	msgbuf.msg_magic = MSG_MAGIC;
+	msgbuf.msg_bufc = SEG5;
+	msgbuf.msg_bufx = msgbuf.msg_bufr = 0;
+#undef	C
 
 #if NRAM > 0
 	ramsize = raminit();
-	maxmem -= ramsize;
 #endif
-
-	printf("phys mem  = %D\n", ctob((long)physmem));
-	printf("avail mem = %D\n", ctob((long)maxmem));
-	if (MAXMEM < maxmem)
-		maxmem = MAXMEM;
-	printf("user mem  = %D\n", ctob((long)maxmem));
-#if NRAM > 0
-	printf("ram disk  = %D\n", ctob((long)ramsize));
-#endif
-#ifdef DIAGNOSTIC
-	printf("%d procs (%d bytes)\n",nproc,nproc * sizeof(struct proc));
-	printf("%d texts (%d bytes)\n",ntext,ntext * sizeof(struct text));
-	printf("%d inodes (%d bytes)\n",ninode,ninode * sizeof(struct inode));
-	printf("%d files (%d bytes)\n",nfile,nfile * sizeof(struct file));
-	printf("%d buffers (%D bytes)\n",nbuf,(long)nbuf * MAXBSIZE);
-	printf("%d clists (%d bytes)\n",nclist,nclist * sizeof(struct cblock));
-#endif
-	printf("\n");
-
-	/*
-	 * free up the swap map; the decrement is because you can't put
-	 * zero into a resource map, therefore we offset everything by
-	 * one.
-	 */
-	mfree(swapmap, nswap, (memaddr)1);
-	swplo--;
 
 	/*
 	 * Initialize callouts
@@ -254,18 +246,16 @@ msprof()
 }
 #endif
 
-#ifdef UNIBUS_MAP
-extern bool_t ubmap;
-
 /*
  * Re-initialize the Unibus map registers to statically map
  * the clists and buffers.  Free the remaining registers for
- * physical I/O.
+ * physical I/O.  At this time the [T]MSCP arena is also mapped.
  */
 ubinit()
 {
 	register int i, ub_nreg;
 	long paddr;
+	register struct ubmap *ubp;
 
 	if (!ubmap)
 		return;
@@ -298,8 +288,28 @@ ubinit()
 #else
 	mfree(ub_map, 31 - ub_nreg - 1, 1 + ub_nreg);
 #endif
+
+/*
+ * this early in the system's life there had better be a UMR or two
+ * available!!  N.B. This was moved from where the [T]MSCP memory was 
+ * allocated because at that point the UMR map was not initialized.
+*/
+
+#if	NRAC > 0 || NTMSCP > 0
+	_iostart = _iobase;
+	i = (int)btoub(_iosize);
+	ub_nreg = malloc(ub_map, i);
+	_ioumr = (ubadr_t)ub_nreg << 13;
+	ubp = &UBMAP[ub_nreg];
+	paddr = ctob((ubadr_t)_iostart);
+	while (i--) {
+		ubp->ub_lo = loint(paddr);
+		ubp->ub_hi = hiint(paddr);
+		ubp++;
+		paddr += (ubadr_t)UBPAGE;
+	}
+#endif	NRAC
 }
-#endif
 
 int waittime = -1;
 
@@ -319,7 +329,7 @@ boot(dev, howto)
 	if ((howto&RB_NOSYNC)==0 && waittime < 0 && bfreelist[0].b_forw) {
 		waittime = 0;
 		printf("syncing disks... ");
-		(void) splnet();
+		(void) _splnet();
 		/*
 		 * Release inodes held by texts before update.
 		 */
@@ -336,12 +346,12 @@ boot(dev, howto)
 			if (nbusy == 0)
 				break;
 			printf("%d ", nbusy);
-			DELAY(40000L * iter);
+			delay(40000L * iter);
 		  }
 		}
 		printf("done\n");
 	}
-	(void)splhigh();
+	(void) _splhigh();
 	if (howto & RB_HALT) {
 		printf("halting\n");
 		halt();
@@ -393,3 +403,29 @@ dumpsys()
 		}
 	}
 }
+
+#if	NRAC > 0 || NTMSCP > 0
+memaddr
+_ioget(size)
+	u_int size;
+	{
+	register memaddr base;
+	register u_int csize;
+
+	csize = btoc(size);
+	size = ctob(csize);
+	if (size > _iosize)
+		return(0);
+	_iosize -= size;
+	base = _iobase;
+	_iobase += csize;
+	return(base);
+	}
+
+ubadr_t
+_iomap(addr)
+	register memaddr addr;
+	{
+	return(((ubadr_t)(addr - _iostart) << 6) + _ioumr);
+	}
+#endif NRAC

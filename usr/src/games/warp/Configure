@@ -102,7 +102,6 @@ mydomain=''
 libc=''
 libnm=''
 mansrc=''
-manext=''
 models=''
 split=''
 small=''
@@ -1640,20 +1639,6 @@ while $test "$cont" ; do
 	esac
     fi
 done
-case "$mansrc" in
-*l)
-    manext=l
-    ;;
-*n)
-    manext=n
-    ;;
-*6)
-    manext=6
-    ;;
-*)
-    manext=1
-    ;;
-esac
 
 : see what memory models we can support
 case "$models" in
@@ -2016,7 +2001,6 @@ mydomain='$mydomain'
 libc='$libc'
 libnm='$libnm'
 mansrc='$mansrc'
-manext='$manext'
 models='$models'
 split='$split'
 small='$small'

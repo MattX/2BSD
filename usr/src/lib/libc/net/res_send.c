@@ -11,7 +11,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)res_send.c	6.19 (Berkeley) 3/7/88";
+static char sccsid[] = "@(#)res_send.c	6.19.1 (Berkeley) 6/27/94";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -62,7 +62,7 @@ res_send(buf, buflen, answer, anslen)
 	HEADER *anhp = (HEADER *) answer;
 	struct iovec iov[2];
 	int terrno = ETIMEDOUT;
-	char junk[512];
+	char junk[16];
 
 #ifdef DEBUG
 	if (_res.options & RES_DEBUG) {

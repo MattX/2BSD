@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)dvhp.c	2.1 (Berkeley)	9/1/83
+ *	SCCS id	@(#)dvhp.c	2.2 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -39,11 +39,6 @@ int	dvhp_offset[] =
 };
 
 struct	buf	dvhptab;
-#ifdef	UCB_DBUFS
-struct	buf	rdvhpbuf[NHP];
-#else
-struct	buf	rdvhpbuf;
-#endif
 struct	buf	dvhputab[NDVHP];
 
 #ifdef	INTRLVE
@@ -63,10 +58,8 @@ register struct hpdevice *addr;
 		return(0);
 	if ((addr != (struct hpdevice *) NULL) && (fioword(addr) != -1)) {
 		DVHPADDR = addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 		if (fioword(&(addr->hpbae)) != -1)
 			dvhptab.b_flags |= B_RH70;
-#endif
 		return(1);
 	}
 	DVHPADDR = (struct hpdevice *) NULL;
@@ -94,10 +87,8 @@ errexit:
 		iodone(bp);
 		return;
 	}
-#ifdef	UNIBUS_MAP
 	if ((dvhptab.b_flags & B_RH70) == 0)
 		mapalloc(bp);
-#endif
 	bp->b_cylin = bn / (DVHP_NSECT * DVHP_NTRAC) + dv_sizes[unit & 07].cyloff;
 	unit = dkunit(bp);
 	dp = &dvhputab[unit];
@@ -262,10 +253,8 @@ loop:
 	dvhpaddr->hpdc = cn;
 	dvhpaddr->hpda = (tn << 8) + sn;
 	dvhpaddr->hpba = bp->b_un.b_addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (dvhptab.b_flags & B_RH70)
 		dvhpaddr->hpbae = bp->b_xmem;
-#endif
 	dvhpaddr->hpwc = -(bp->b_bcount >> 1);
 	/*
 	 * Warning:  unit is being used as a temporary.
@@ -386,36 +375,6 @@ dvhpintr()
 	dvhpstart();
 }
 
-dvhpread(dev)
-dev_t	dev;
-{
-#ifdef	UCB_DBUFS
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NHP)
-		u.u_error = ENXIO;
-	else
-		physio(dvhpstrategy, &rdvhpbuf[unit], dev, B_READ, WORD);
-#else
-	physio(dvhpstrategy, &rdvhpbuf, dev, B_READ, WORD);
-#endif
-}
-
-dvhpwrite(dev)
-dev_t	dev;
-{
-#ifdef	UCB_DBUFS
-	register int unit = (minor(dev) >> 3) & 07;
-
-	if (unit >= NHP)
-		u.u_error = ENXIO;
-	else
-		physio(dvhpstrategy, &rdvhpbuf[unit], dev, B_WRITE, WORD);
-#else
-	physio(dvhpstrategy, &rdvhpbuf, dev, B_WRITE, WORD);
-#endif
-}
-
 #ifdef	UCB_ECC
 #define	exadr(x,y)	(((long)(x) << 16) | (unsigned)(y))
 
@@ -437,9 +396,7 @@ register struct	buf *bp;
 	int	ocmd;
 	int	cn, tn, sn;
 	daddr_t	bn;
-#ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
-#endif
 
 	/*
 	 *	ndone is #bytes including the error
@@ -476,7 +433,6 @@ register struct	buf *bp;
 	 */
 	while (byte < bp->b_bcount && wrong != 0) {
 		addr = bb + byte;
-#ifdef	UNIBUS_MAP
 		if (bp->b_flags & (B_MAP | B_UBAREMAP)) {
 			/*
 			 * Simulate UNIBUS map if UNIBUS transfer.
@@ -484,7 +440,6 @@ register struct	buf *bp;
 			ubp = UBMAP + ((addr >> 13) & 037);
 			addr = exadr(ubp->ub_hi, ubp->ub_lo) + (addr & 017777);
 		}
-#endif
 		putmemc(addr, getmemc(addr) ^ (int) wrong);
 		byte++;
 		wrong >>= 8;
@@ -517,10 +472,8 @@ register struct	buf *bp;
 	dvhpaddr->hpda = (tn << 8) + sn;
 	dvhpaddr->hpwc = ((int)(ndone - bp->b_bcount)) / NBPW;
 	dvhpaddr->hpba = (int) addr;
-#if	PDP11 == 70 || PDP11 == GENERIC
 	if (dvhptab.b_flags & B_RH70)
 		dvhpaddr->hpbae = (int) (addr >> 16);
-#endif
 	dvhpaddr->hpcs1.w = ocmd;
 	return (1);
 }

@@ -5,17 +5,17 @@ VTIMES(3C)	    UNIX Programmer's Manual	       VTIMES(3C)
 
 
 
-NNAAMMEE
+NAME
      vtimes - get information about resource utilization
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//vvttiimmeess..hh>>
+SYNOPSIS
+     #include <sys/vtimes.h>
 
-     vvttiimmeess((ppaarr__vvmm,, cchh__vvmm))
-     ssttrruucctt vvttiimmeess **ppaarr__vvmm,, **cchh__vvmm;;
+     vtimes(par_vm, ch_vm)
+     struct vtimes *par_vm, *ch_vm;
 
-DDEESSCCRRIIPPTTIIOONN
-     TThhiiss ffaacciilliittyy iiss ssuuppeerrsseeddeedd bbyy ggeettrruussaaggee((22))..
+DESCRIPTION
+     This facility is superseded by getrusage(2).
 
      _V_t_i_m_e_s returns accounting information for the current pro-
      cess and for the terminated child processes of the current
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 12, 1986				1
+Printed 1/9/94		  May 12, 1986				1
 
 
 
@@ -80,7 +80,7 @@ VTIMES(3C)	    UNIX Programmer's Manual	       VTIMES(3C)
      i/o; data supplied by the caching mechanism is charged only
      to the first process to read or write the data.
 
-SSEEEE AALLSSOO
+SEE ALSO
      time(2), wait3(2), getrusage(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 12, 1986				2
+Printed 1/9/94		  May 12, 1986				2
 
 
 

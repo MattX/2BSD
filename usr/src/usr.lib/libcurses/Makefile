@@ -1,9 +1,8 @@
-#
 # Copyright (c) 1980 Regents of the University of California.
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 6/7/85
+#	@(#)Makefile	5.2 (2.11BSD GTE) 1/2/94
 #
 # curses package
 #
@@ -35,10 +34,10 @@ TAGSFILE=tags
 
 libcurses libcurses_p: ${OBJS}
 	@echo building profiled libcurses
-	@cd profiled; ar cu ../libcurses_p ${OBJS}
+	@cd profiled; ar ru ../libcurses_p ${OBJS}
 	ranlib libcurses_p
 	@echo building normal libcurses
-	@ar cu libcurses ${OBJS}
+	@ar ru libcurses ${OBJS}
 	ranlib libcurses
 
 install: libcurses libcurses_p

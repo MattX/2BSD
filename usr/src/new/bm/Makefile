@@ -19,7 +19,7 @@ bm: ${OBJS}
 
 install: bm bm.0
 	install -s bm ${DESTDIR}/usr/new/bm
-	install -c bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
+	install -m 444 -o bin -g bin  bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
 
 tags: ${HDRS} ${SRCS}
 	ctags $<

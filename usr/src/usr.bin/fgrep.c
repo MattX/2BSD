@@ -1,4 +1,6 @@
-static char *sccsid = "@(#)fgrep.c	4.3 (Berkeley) 5/30/85";
+#if	defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)fgrep.c	4.3.1 (2.11BSD) 1/1/94";
+#endif
 /*
  * fgrep -- print all lines containing any of a set of keywords
  *
@@ -13,7 +15,7 @@ static char *sccsid = "@(#)fgrep.c	4.3 (Berkeley) 5/30/85";
 #include <sys/param.h>
 #include <sys/stat.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define BLKSIZE 1024
 #else
 #define BLKSIZE 8192

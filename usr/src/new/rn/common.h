@@ -213,46 +213,38 @@
 /* Space conservation section */
 
 /* To save D space, cut down size of MAXRCLINE, NGMAX, VARYSIZE. */
-#ifdef BSD2_10
-#define MAXRCLINE 500
-#else
-#define MAXRCLINE 1000	/* number of lines allowed in .newsrc */
-#endif			/* several parallel arrays affected. */
+#define MAXRCLINE 900	/* number of lines allowed in .newsrc */
+			/* several parallel arrays affected. */
 			/* (You can have more lines in the active file, */
 			/* just not in the .newsrc) */
-#ifdef BSD2_10
-#define HASHSIZ 557
-#define NGMAX 30
-#else
-#define HASHSIZ 1103	/* should be prime, and at least MAXRCLINE + 10% */
-#define NGMAX 100	/* number of newsgroups allowed on command line */
-#endif			/* undefine ONLY symbol to disable "only" feature */
-#define VARYSIZE 256	/* this makes a block 1024 bytes long in DECville */
+#define HASHSIZ 991	/* should be prime, and at least MAXRCLINE + 10% */
+#define NGMAX 10	/* number of newsgroups allowed on command line -10*/
+			/* undefine ONLY symbol to disable "only" feature */
+#define VARYSIZE 128	/* this makes a block 1024 bytes long in DECville */
+			/* this makes a block 512 bytes long in DECville */
 			/* (used by virtual array routines) */
 
 /* Undefine any of the following features to save both I and D space */
 /* In general, earlier ones are easier to get along without */
 /* Pdp11's without split I and D may have to undefine them all */
 /* #define DEBUGGING	/* include debugging code */
-#define CUSTOMLINES	/* include code for HIDELINE and PAGESTOP */
-#define PUSHBACK	/* macros and keymaps using pushback buffer */
-#ifndef BSD2_10
-#define SPEEDOVERMEM	/* use more memory to run faster */
-#endif
+/* #define CUSTOMLINES	/* include code for HIDELINE and PAGESTOP */
+/* #define PUSHBACK	/* macros and keymaps using pushback buffer */
+/* #define SPEEDOVERMEM	/* use more memory to run faster */
 #define WORDERASE	/* enable ^W to erase a word */
 #define MAILCALL	/* check periodically for mail */
 #define CLEAREOL	/* use clear to end-of-line instead of clear screen */
 #define NOFIREWORKS	/* keep whole screen from flashing on certain */
 			/* terminals such as older Televideos */
 #define VERIFY		/* echo the command they just typed */
-#define HASHNG		/* hash newsgroup lines for fast lookup-- */
+#undef HASHNG		/* hash newsgroup lines for fast lookup-- */
 			/* linear search used if not defined */
 #define CONDSUB		/* allow %(cond?text:text) */
 #define BACKTICK	/* allow %`command` */
 #define PROMPTTTY	/* allow %"prompt" */
 #define ULSMARTS	/* catch _^H in text and do underlining */
 #define TERMMOD		/* allow terminal type modifier on switches */
-#define BAUDMOD		/* allow baudrate modifier on switches */
+/* #define BAUDMOD	/* allow baudrate modifier on switches */
 #define GETLOGIN	/* use getlogin() routine as backup to environment */
 			/* variables USER or LOGNAME */
 #define ORGFILE		/* if organization begins with /, look up in file */
@@ -265,8 +257,8 @@
 			/* if not setuid or setgid, you don't need it */
 #endif
 #define MAKEDIR		/* use our makedir() instead of shell script */
-#define MEMHELP		/* keep help messages in memory */
-#define VERBOSE		/* compile in more informative messages */
+/* #define MEMHELP	/* keep help messages in memory */
+/* #define VERBOSE		/* compile in more informative messages */
 #define TERSE		/* compile in shorter messages */
 			/* (Note: both VERBOSE and TERSE can be defined; -t
 			 * sets terse mode.  One or the other MUST be defined.
@@ -290,7 +282,7 @@
 #define ASYNC_PARSE	/* allow parsing headers asyncronously to reading */
 			/* used by MCHASE and MUNGHEADER */
 #define FINDNEWNG	/* check for new newsgroups on startup */
-#define FASTNEW		/* do optimizations on FINDNEWNG for faster startup */
+#undef FASTNEW		/* do optimizations on FINDNEWNG for faster startup */
 			/* (this optimization can make occasional mistakes */
 			/* if a group is removed and another group of the */
 			/* same length is added, and if no softpointers are */
@@ -576,25 +568,51 @@
 
 #ifndef PIPESAVER		/* % */
 #   ifdef CONDSUB
-#	define PIPESAVER "%(%B=^0$?<%A:tail +%Bc %A |) %b"
+#       ifdef SERVER
+#               define PIPESAVER "%(%B=^0$?<%P/rrn%a.%$:tail +%Bc %P/rrn%a.%$ |) %b"
+#       else
+#		define PIPESAVER "%(%B=^0$?<%A:tail +%Bc %A |) %b"
+#	endif
 #   else
-#	define PIPESAVER "tail +%Bc %A | %b"
+#       ifdef SERVER
+#               define PIPESAVER "tail +%Bc %P/rrn%a.%$ | %b"
+#       else
+#		define PIPESAVER "tail +%Bc %A | %b"
+#	endif
 #   endif
 #endif
 
 #ifndef NORMSAVER		/* % and ~ */
-#   define NORMSAVER "%X/norm.saver %A %P %c %a %B %C \"%b\""
+#    ifdef SERVER
+#	define NORMSAVER "%X/norm.saver %P/rrn%a.%$ %P %c %a %B %C \"%b\""
+#    else
+#   	define NORMSAVER "%X/norm.saver %A %P %c %a %B %C \"%b\""
+#    endif
 #endif
 
 #ifndef MBOXSAVER		/* % and ~ */
 #   ifdef MININACT		/* 2.10.2 site? */
-#	define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %`date`\""
+#       ifdef SERVER
+#           define MBOXSAVER "%X/mbox.saver %P/rrn%a.%$ %P %c %a %B %C \"%b\" \"From %T %`date`\""
+#       else
+#	    define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %`date`\""
+#	endif SERVER
 #   else
 #	ifdef CONDSUB
-#	    define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %(%[date]=^\\(\\w*\\), \\(\\w*\\)-\\(\\w*\\)-\\(\\w*\\) \\([^ ]*\\)?%1 %3 %(%2=..?%2: %2) %5 19%4)\""
+#           ifdef SERVER
+#               define MBOXSAVER "%X/mbox.saver %P/rrn%a.%$ %P %c %a %B %C \"%b\
+" \"From %T %(%[date]=^\\(\\w*\\), \\(\\w*\\)-\\(\\w*\\)-\\(\\w*\\) \\([^ ]*\\)?
+%1 %3 %(%2=..?%2: %2) %5 19%4)\""
+#           else
+#	        define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %(%[date]=^\\(\\w*\\), \\(\\w*\\)-\\(\\w*\\)-\\(\\w*\\) \\([^ ]*\\)?%1 %3 %(%2=..?%2: %2) %5 19%4)\""
+#	    endif
 					/* header munging with a vengeance */
 #	else
-#	    define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %[posted]\""
+#           ifdef SERVER
+#               define MBOXSAVER "%X/mbox.saver %P/rrn%a.%$ %P %c %a %B %C \"%b\" \"From %T %[posted]\""
+#           else
+#	        define MBOXSAVER "%X/mbox.saver %A %P %c %a %B %C \"%b\" \"From %T %[posted]\""
+#	    endif
 #	endif
 #   endif
 #endif
@@ -661,7 +679,8 @@ typedef long		ART_NUM;	/* article number */
 #endif
 typedef long		ART_POS;	/* char position in article file */
 typedef int		ART_LINE;	/* line position in article file */
-typedef short		ACT_POS;	/* char position in active file */
+/* following was short until 6/9/92 */
+typedef long		ACT_POS;	/* char position in active file */
 typedef unsigned int	MEM_SIZE;	/* for passing to malloc */
 
 /* *** end of the machine dependent stuff *** */

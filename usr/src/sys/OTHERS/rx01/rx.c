@@ -2,7 +2,9 @@
  * Rx disk driver
  */
 
+#ifdef	never
 static	char	SCCS_ID[]	= "@(#)rx.c	Ver. 1.2 6/83";
+#endif
 
 /*	This was taken and adapted from V7 unix
  *	The baroque ifdefs were to identify changes
@@ -66,7 +68,6 @@ extern struct rxdevice *rx_addr[];
  * Rx handler work areas
  */
 struct buf rxtab, rxutab[NRX];	/* rxdevice tables */
-struct buf rrxbuf;
 
 /*
  * Rx strategy
@@ -80,10 +81,8 @@ register struct buf *bp;
 	ctlr = minor (bp->b_dev) >> RXCTLR;
 	dp = &rxutab[ctlr];
 
-#ifdef	UNIBUS_MAP
 	if(bp->b_flags & B_PHYS)
 		mapalloc(bp);
-#endif
 	/* link buffer into i/o queue and start i/o */
 	bp->b_resid = bp->b_bcount;
 	bp->b_error = 0;
@@ -111,9 +110,7 @@ int ctlr;
 	char *ptr;
 	long blk, lptr;
 	int trk, sct, wd;
-#ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
-#endif
 
 	dp = &rxutab[ctlr];
 	rp = rx_addr[ctlr];
@@ -126,7 +123,6 @@ retry:
 		/* output characters to buffer */
 		rp->rxcs = FILL|GO;
 		lptr = exadr(bp->b_xmem, bp->b_un.b_addr);
-#ifdef	UNIBUS_MAP
 		if(bp->b_flags & (B_MAP|B_UBAREMAP)) {
 			/*
 			 * Simulate UNIBUS map if UNIBUS transfer
@@ -135,7 +131,6 @@ retry:
 			ubp = UBMAP + ((lptr >> 13) & 037);
 			lptr = exadr(ubp->ub_hi, ubp->ub_lo) + (lptr & 017777);
 		}
-#endif	UNIBUS_MAP
 		lptr += (long) (bp->b_bcount - bp->b_resid);
 		for (bx = 0; bx < NRXBYTE; bx += 1) {
 			wd = (bp->b_resid > bx) ? getmemc(lptr) : 0;
@@ -263,9 +258,7 @@ int ctlr;
 	char *ptr, byte;
 	long lptr;
 	int wd;
-#ifdef	UNIBUS_MAP
 	struct	ubmap *ubp;
-#endif
 
 	dp = &rxutab[ctlr];
 	if (!dp->b_active) {
@@ -281,7 +274,6 @@ int ctlr;
 		/* input data from buffer */
 		rp->rxcs = EMPTY|GO;
 		lptr = exadr(bp->b_xmem, bp->b_un.b_addr);
-#ifdef	UNIBUS_MAP
 		if(bp->b_flags & (B_MAP|B_UBAREMAP)) {
 			/*
 			 * Simulate UNIBUS map if UNIBUS transfer
@@ -290,7 +282,6 @@ int ctlr;
 			ubp = UBMAP + ((lptr >> 13) & 037);
 			lptr = exadr(ubp->ub_hi, ubp->ub_lo) + (lptr & 017777);
 		}
-#endif	UNIBUS_MAP
 		lptr += (long) (bp->b_bcount - bp->b_resid);
 		for (bx = 0; bx < NRXBYTE; bx += 1) {
 			getdb(byte);
@@ -356,15 +347,5 @@ int ctlr;
 		return (0);
 	}
 	return (1);
-}
-
-rxread (dev)
-{
-	physio (rxstrategy, &rrxbuf, dev, B_READ);
-}
-
-rxwrite (dev)
-{
-	physio (rxstrategy, &rrxbuf, dev, B_WRITE);
 }
 #endif	NRX

@@ -9,12 +9,13 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)err.c	5.7 (Berkeley) 11/22/85";
+static char	SccsId[] = "@(#)err.c	5.7.1 (2.11BSD GTE) 7/14/94";
 #endif
 
 # include "sendmail.h"
 # include <errno.h>
 # include <netdb.h>
+# include <string.h>
 
 /*
 **  SYSERR -- Print error message.
@@ -35,10 +36,6 @@ static char	SccsId[] = "@(#)err.c	5.7 (Berkeley) 11/22/85";
 **		sets ExitStat.
 */
 
-# ifdef lint
-int	sys_nerr;
-char	*sys_errlist[];
-# endif lint
 char	MsgBuf[BUFSIZ*2];	/* text of most recent message */
 
 /*VARARGS1*/
@@ -47,8 +44,6 @@ syserr(fmt, a, b, c, d, e)
 {
 	register char *p;
 	int olderrno = errno;
-	extern char Arpa_PSyserr[];
-	extern char Arpa_TSyserr[];
 
 	/* format and output the error message */
 	if (olderrno == 0)
@@ -98,7 +93,6 @@ usrerr(fmt, a, b, c, d, e)
 	char *fmt;
 {
 	extern char SuprErrs;
-	extern char Arpa_Usrerr[];
 	extern int errno;
 
 	if (SuprErrs)
@@ -310,8 +304,6 @@ char *
 errstring(errno)
 	int errno;
 {
-	extern char *sys_errlist[];
-	extern int sys_nerr;
 	static char buf[100];
 # ifdef SMTP
 	extern char *SmtpPhase;
@@ -329,7 +321,7 @@ errstring(errno)
 	{
 	  case ETIMEDOUT:
 	  case ECONNRESET:
-		(void) strcpy(buf, sys_errlist[errno]);
+		(void) strcpy(buf, strerror(errno));
 		if (SmtpPhase != NULL)
 		{
 			(void) strcat(buf, " during ");
@@ -361,9 +353,5 @@ errstring(errno)
 # endif VMUNIX
 # endif DAEMON
 
-	if (errno > 0 && errno < sys_nerr)
-		return (sys_errlist[errno]);
-
-	(void) sprintf(buf, "Error %d", errno);
-	return (buf);
+	return (strerror(errno));
 }

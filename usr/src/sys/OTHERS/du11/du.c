@@ -74,9 +74,6 @@ struct	{
 	/*
 	 * Receive info
 	 */
-#ifndef	UCB_NKB
-	struct	buf	*durbufp;	/* pointer to receive buffer */
-#endif
 	struct	msgbuf	durbuff[MSGN]; /* message buffer descriptors */
 	struct	msgbuf	*durbufi; /* in pointer */
 	struct	msgbuf	*durbufo; /* out pointer */
@@ -134,19 +131,9 @@ dev_t	dev;
 	/*
 	 * Allocate receive buffer
 	 */
-#ifndef	UCB_NKB
-	du11.durbufp = geteblk();
-	for(n = 0; n < MSGN; n++)
-		du11.durbuff[n].msgbufp = du11.durbufp->b_un.b_addr+(MSGLEN*n);
-#else
-#if	UCB_NKB >= 1
 	for(n = 0; n < MSGN; n++)
 		du11.durbuff[n].msgbufp = (du11.dutbufp->b_un.b_addr+(BSIZE/2))
 						+ (MSGLEN * n);
-#else
-	THIS IS AN ERROR!;
-#endif
-#endif
 	du11.durbufi = du11.durbufo = du11.durbuff;
 	du11.durbufn = 0;
 	du11.durstate = RIDLE;
@@ -203,9 +190,6 @@ duclose()
 #define	brelse	abrelse
 #endif
 	brelse(du11.dutbufp);
-#ifndef	UCB_NKB
-	brelse(du11.durbufp);
-#endif
 
 	/*
 	 * clear maintenance mode flag
@@ -213,7 +197,9 @@ duclose()
 	maint = 0;
 }
 
-duread()
+duread(dev, uio)
+	dev_t dev;
+	struct uio *uio;
 {
 	register nbytes;
 
@@ -248,14 +234,16 @@ duread()
 	/*
 	 * Copy the message to the caller's buffer
 	 */
-	nbytes = min(u.u_count, du11.durbufo->msgbc);
-	iomove(du11.durbufo->msgbufp, nbytes, B_READ);
+	nbytes = min(uio->uio_resid, du11.durbufo->msgbc);
+	uiomove(du11.durbufo->msgbufp, nbytes, B_READ, uio);
 	if (++du11.durbufo == du11.durbuff + MSGN)
 		du11.durbufo = du11.durbuff;
 	du11.durbufn--;
 }
 
-duwrite()
+duwrite(dev, uio)
+	dev_t	dev;
+	struct	uio *uio;
 {
 	register nbytes;
 
@@ -268,9 +256,9 @@ duwrite()
 	/*
 	 * Transfer  the message from the caller's buffer to ours
 	 */
-	nbytes = min(u.u_count, MSGLEN);
+	nbytes = min(uio->uio_resid, MSGLEN);
 	du11.dutbufi->msgbc = nbytes;
-	iomove(du11.dutbufi->msgbufp, nbytes, B_WRITE);
+	uiomove(du11.dutbufi->msgbufp, nbytes, B_WRITE, uio);
 	if (++du11.dutbufi == du11.dutbuff + MSGN)
 		du11.dutbufi = du11.dutbuff;
 	du11.dutbufn++;

@@ -5,23 +5,23 @@ SCANDIR(3)	    UNIX Programmer's Manual	       SCANDIR(3)
 
 
 
-NNAAMMEE
+NAME
      scandir, alphasort - scan a directory
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
-     ##iinncclluuddee <<ssyyss//ddiirr..hh>>
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/dir.h>
 
-     ssccaannddiirr((ddiirrnnaammee,, nnaammeelliisstt,, sseelleecctt,, ccoommppaarr))
-     cchhaarr **ddiirrnnaammee;;
-     ssttrruucctt ddiirreecctt **((**nnaammeelliisstt[[]]));;
-     iinntt ((**sseelleecctt))(());;
-     iinntt ((**ccoommppaarr))(());;
+     scandir(dirname, namelist, select, compar)
+     char *dirname;
+     struct direct *(*namelist[]);
+     int (*select)();
+     int (*compar)();
 
-     aallpphhaassoorrtt((dd11,, dd22))
-     ssttrruucctt ddiirreecctt ****dd11,, ****dd22;;
+     alphasort(d1, d2)
+     struct direct **d1, **d2;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_c_a_n_d_i_r reads the directory _d_i_r_n_a_m_e and builds an array of
      pointers to directory entries using _m_a_l_l_o_c(3).  It returns
      the number of entries in the array and a pointer to the
@@ -45,10 +45,10 @@ DDEESSCCRRIIPPTTIIOONN
      _f_r_e_e (see _m_a_l_l_o_c(3)) by freeing each pointer in the array
      and the array itself.
 
-SSEEEE AALLSSOO
+SEE ALSO
      directory(3), malloc(3), qsort(3), dir(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Returns -1 if the directory cannot be opened for reading or
      if _m_a_l_l_o_c(3) cannot allocate enough memory to hold all the
      data structures.
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88       September 17, 1985			1
+Printed 1/9/94	       September 17, 1985			1
 
 
 

@@ -63,5 +63,6 @@ struct	mtget	{
 #define MTIOCEEOT	_IO(m, 4)			/* enable EOT error */
 
 #ifndef KERNEL
-#define	DEFTAPE	"/dev/rmt12"
+#define	DEFTAPE	"/dev/rmt8"
+#define	MT_DEF	"/dev/nrmt8"
 #endif

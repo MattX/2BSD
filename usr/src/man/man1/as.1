@@ -5,19 +5,19 @@ as \- assembler
 .SH SYNOPSIS
 .B as
 [
-.B \-
+.B \-u
 ] [
 .B \-V
 ] [
 .B \-o
 objfile
-] file ...
+] file ... 
 .SH DESCRIPTION
 .I As
 assembles the concatenation of the named files.
 The options are:
 .TP
-.B \-
+.B \-u
 Treat all undefined symbols in the assembly as external globals.
 .TP
 .B \-\^V
@@ -31,11 +31,30 @@ for the name of the resultant object.  If this is omitted,
 .I a.out
 is used.  If no errors occurred during the assembly and if
 there were no unresolved external references, it is made executable.
-.SH FILES
-.ta 2i
-/lib/as2	pass 2 of the assembler
+.P
+The special file name
+.B \-\-
+serves two purposes.  It signals the end of all options and causes
+.I stdin
+to be read for input.  Thus it is now possible to pipe data to the
+assembler:
 .br
-/tmp/atm[1-3]?	temporary
+.sp
+/lib/cpp -E foo.s | sed -e ';^#;/;' | as -o foo.o --
+.br
+.sp
+The file name
+.B \-\-
+may be placed between normal files, when EOF is detected on 
+.I stdin
+the next file in the argument list is opened and read.
+.br
+.sp
+If no input files are specified then 
+.I stdin
+is read.
+.SH FILES
+/tmp/atm1	temporary
 .br
 a.out	object
 .SH "SEE ALSO"

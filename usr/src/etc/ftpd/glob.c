@@ -1,1 +1,1 @@
-../../ucb/ftp/glob.c
+/usr/src/ucb/ftp/glob.c

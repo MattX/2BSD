@@ -1,21 +1,38 @@
-#ifndef lint
-static char sccsid[] = "@(#)nstest.c	4.6 (Berkeley) 12/7/86";
-#endif
-
 /*
- * Copyright (c) 1986 Regents of the University of California
- *	All Rights Reserved
+ * Copyright (c) 1986, 1989 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted provided
+ * that: (1) source distributions retain this entire copyright notice and
+ * comment, and (2) distributions including binaries display the following
+ * acknowledgement:  ``This product includes software developed by the
+ * University of California, Berkeley and its contributors'' in the
+ * documentation or other materials provided with the distribution and in
+ * all advertising materials mentioning features or use of this software.
+ * Neither the name of the University nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+#if	!defined(lint) && defined(DOSCCS)
+char copyright[] =
+"@(#) Copyright (c) 1986 Regents of the University of California.\n\
+ All rights reserved.\n";
+
+static char sccsid[] = "@(#)nstest.c	4.12 (Berkeley) 6/1/90";
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <arpa/nameser.h>
-#include <arpa/inet.h>
 #include <resolv.h>
 
-long atol();
+extern char *inet_ntoa();
 char *progname;
 FILE *log;
 #define MAXDATA		256   /* really should get definition from named/db.h */
@@ -23,21 +40,19 @@ main(argc, argv)
 	char **argv;
 {
 	register char *cp;
-	struct hostent *hp;
-	short port = htons(NAMESERVER_PORT);
+	u_short port = htons(NAMESERVER_PORT);
 	char buf[BUFSIZ];
 	char packet[PACKETSZ];
 	char answer[PACKETSZ];
 	struct rrec NewRR;
-	char OldRRData[MAXDATA];
 	int n, dump_packet;
-	long l;
 
 	NewRR.r_data = (char *) malloc(MAXDATA);
 	NewRR.r_data = (char *) malloc(MAXDATA);
 	progname = argv[0];
 	dump_packet = 0;
-	_res.options |= RES_INIT|RES_DEBUG|RES_RECURSE;
+	_res.options |= RES_DEBUG|RES_RECURSE;
+	(void) res_init();
 	while (argc > 1 && argv[1][0] == '-') {
 		argc--;
 		cp = *++argv;
@@ -72,8 +87,11 @@ main(argc, argv)
 	_res.nsaddr.sin_family = AF_INET;
 	_res.nsaddr.sin_addr.s_addr = INADDR_ANY;
 	_res.nsaddr.sin_port = port;
- 	if (argc > 1)
+ 	if (argc > 1) {
  		_res.nsaddr.sin_addr.s_addr = inet_addr(argv[1]);
+ 		if (_res.nsaddr.sin_addr.s_addr == (u_long) -1)
+			usage();
+	}
  	if (argc > 2) {
  		log = fopen(argv[2],"w");
  		if (log == NULL) perror(argv[2]);
@@ -85,13 +103,13 @@ main(argc, argv)
 			break;
 		switch (*cp++) {
 		case 'a':
-			n = res_mkquery(QUERY, cp, C_ANY, T_A, (char *)0, 0,
+			n = res_mkquery(QUERY, cp, C_IN, T_A, (char *)0, 0,
 				NULL, packet, sizeof(packet));
 			break;
 
 		case 'A':
-			l = ntohl(inet_addr(cp));
-			putlong(l, cp);
+			n = ntohl(inet_addr(cp));
+			putlong(n, cp);
 			n = res_mkquery(IQUERY, "", C_IN, T_A, cp, sizeof(long),
 				NULL, packet, sizeof(packet));
 			break;
@@ -107,9 +125,9 @@ main(argc, argv)
 			break;
 
 		case 'G':
-			*(long *)cp = htonl(atol(cp));
+			*(int *)cp = htonl(atoi(cp));
 			n = res_mkquery(IQUERY, "", C_ANY, T_GID, cp,
-				sizeof(long), NULL, packet, sizeof(packet));
+				sizeof(int), NULL, packet, sizeof(packet));
 			break;
 
 		case 'c':
@@ -147,15 +165,20 @@ main(argc, argv)
 				NULL, packet, sizeof(packet));
 			break;
 
+		case 'T':
+			n = res_mkquery(QUERY, cp, C_IN, T_TXT, (char *)0, 0,
+				NULL, packet, sizeof(packet));
+			break;
+
 		case 'u':
 			n = res_mkquery(QUERY, cp, C_ANY, T_UID, (char *)0, 0,
 				NULL, packet, sizeof(packet));
 			break;
 
 		case 'U':
-			*(long *)cp = htonl(atol(cp));
+			*(int *)cp = htonl(atoi(cp));
 			n = res_mkquery(IQUERY, "", C_ANY, T_UID, cp,
-				sizeof(long), NULL, packet, sizeof(packet));
+				sizeof(int), NULL, packet, sizeof(packet));
 			break;
 
 		case 'x':
@@ -293,6 +316,7 @@ main(argc, argv)
 			printf("n{host} - query  T_NS\n");
 			printf("r{host} - query  T_MR\n");
 			printf("s{host} - query  T_SOA\n");
+			printf("T{host} - query  T_TXT\n");
 			printf("u{host} - query  T_UID\n");
 			printf("U{uid}  - iquery T_UID\n");
 			printf("x{host} - query  T_AXFR\n");

@@ -4,16 +4,17 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)sendbug.sh	5.6 (Berkeley) 86/02/12
+#	@(#)sendbug.sh	6.0 (GTE) 11/20/92
 #
-# Create a bug report and mail to '4bsd-bugs'.
+# Create a bug report and mail to the 2bsd maintainer.
 #
 
 TEMP=/tmp/bug$$
 FORMAT=/usr/lib/bugformat
 
-# uucp sites should use ": ${BUGADDR=ucbvax!4bsd-bugs}" with a suitable path.
-: ${BUGADDR=4bsd-bugs@BERKELEY.EDU}
+# uucp sites should use ": ${BUGADDR=wlbr!wlv!sms}" with a suitable path.
+#   Use of the uucp address is not recommended.
+: ${BUGADDR=sms@WLV.IIPO.GTEGSC.COM}
 : ${EDITOR=/usr/ucb/vi}
 
 trap '/bin/rm -f $TEMP ; exit 1' 1 2 3 13 15

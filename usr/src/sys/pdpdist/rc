@@ -63,22 +63,11 @@ fi
 # attempt to rationally recover the passwd file if needed
 if [ -s /etc/ptmp ]
 then
-	if [ -s /etc/passwd ]
-	then
-		ls -l /etc/passwd /etc/ptmp		>/dev/console 2>&1
-		rm -f /etc/ptmp		# should really remove the shorter
-	else
-		echo 'passwd file recovered from ptmp'	>/dev/console 2>&1
-		mv /etc/ptmp /etc/passwd
-	fi
-elif [ -r /etc/ptmp ]
-then
-	echo 'removing passwd lock file'		>/dev/console 2>&1
-	rm -f /etc/ptmp
+ 	echo 'password file may be incorrect' > /dev/console
 fi
 
 umount -a
-: >/etc/mtab
+cp /dev/null /etc/mtab
 mount -a						>/dev/console 2>&1
 
 if [ ${RAMSIZE} != 0 ]
@@ -98,10 +87,10 @@ rm -f /usr/spool/uucp/LCK.*
 rm -f /usr/spool/uucp/STST/*
 chmod 666 /dev/tty[pqrs]*
 
-# set hostname and UCB_NET, turn on network
+# set hostname and INET, turn on network
 . /etc/netstart
 
-if [ $UCB_NET = YES ]; then
+if [ $INET = YES ]; then
 			echo 'starting system logger'	>/dev/console 2>&1
 	rm -f /dev/log
 	syslogd
@@ -125,7 +114,7 @@ cron;			echo -n ' cron'			>/dev/console 2>&1
 accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console 2>&1
 			echo '.'			>/dev/console 2>&1
 
-if [ $UCB_NET = YES ]; then
+if [ $INET = YES ]; then
 		echo -n starting network daemons:	>/dev/console 2>&1
 
 	# $routedflags is imported from /etc/netstart;

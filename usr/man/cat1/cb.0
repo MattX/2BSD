@@ -5,13 +5,13 @@ CB(1)		    UNIX Programmer's Manual		    CB(1)
 
 
 
-NNAAMMEE
+NAME
      cb - C program beautifier
 
-SSYYNNOOPPSSIISS
-     ccbb
+SYNOPSIS
+     cb
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _C_b places a copy of the C program from the standard input on
      the standard output with spacing and indentation that
      displays the structure of the program.
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

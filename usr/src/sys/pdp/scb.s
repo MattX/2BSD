@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)scb.s	1.1 (2.10BSD Berkeley) 7/8/88
+ *	@(#)scb.s	1.3 (2.11BSD GTE) 1/1/93
  */
 
 #include "DEFS.h"
@@ -16,6 +16,7 @@
 #include "de.h"
 #include "dh.h"
 #include "dhu.h"
+#include "dhv.h"
 #include "dn.h"
 #include "dr.h"
 #include "dz.h"
@@ -24,7 +25,6 @@
 #include "ht.h"
 #include "il.h"
 #include "lp.h"
-#include "qe.h"
 #include "ra.h"
 #include "rk.h"
 #include "rl.h"
@@ -34,16 +34,14 @@
 #include "sri.h"
 #include "tm.h"
 #include "ts.h"
+#include "tms.h"
 #include "xp.h"
 #include "vv.h"
 
 /*
  * Reference the global symbol "_end" so that ld(1) will define it for us.
- * Checksys needs this so it can verify that NOKA5 isn't defined if the
- * kernel's data space extends into segment five.
  */
 .globl _end
-
 
 sup = 40000				/* current supervisor previous kernel */
 br4 = 200				/* PS interrupt priority masks */
@@ -82,7 +80,7 @@ SETDOT(4)				/* trap vectors */
 	TRAP(trap,	br7+T_BUSFLT)	/* bus error */
 	TRAP(trap,	br7+T_INSTRAP)	/* illegal instruction */
 	TRAP(trap,	br7+T_BPTTRAP)	/* bpt-trace trap */
-#ifdef UCB_NET
+#ifdef INET
 	TRAP(iothndlr,	br7+T_IOTTRAP)	/* network uses iot */
 #else
 	TRAP(trap,	br7+T_IOTTRAP)	/* iot trap */
@@ -202,13 +200,9 @@ SETDOT(240)
 	 * you'll get recursive interrupts; if they're too high you'll lock
 	 * out important interrupts (like the clock).
 	 */
-	DEVTRAP(360,	ecrint,	sup|br6)
-	DEVTRAP(364,	eccollide,sup|br4)
-	DEVTRAP(370,	ecxint,	sup|br6)
-#endif
-
-#if NQE > 0				/* DEQNA */
-	DEVTRAP(400,	qeintr,	sup|br5)
+	DEVTRAP(400,	ecrint,	sup|br6)
+	DEVTRAP(404,	eccollide,sup|br4)
+	DEVTRAP(410,	ecxint,	sup|br6)
 #endif
 
 #if NSRI > 0				/* SRI DR11-C ARPAnet IMP */
@@ -220,7 +214,8 @@ SETDOT(240)
 /*
  * End of floating vectors.  Endvec should be past vector space if NONSEP,
  * should be at least 450.
- */
+ *
+*/
 SETDOT(1000)
 CONST(GLOBAL, endvec, .)
 
@@ -235,7 +230,24 @@ CONST(GLOBAL, endvec, .)
 ova:	.=.+40				/* overlay addresses */
 ovd:	.=.+40				/* overlay descriptors */
 
-.text
+/*
+ * FLASH!  for overlaid programs /boot kindly lets us know where our
+ * load image stops by depositing a value at the end of the overlay tables.
+ * Needless to say this had been clobbering something all along, but the
+ * effect was rather nasty (crash) when the 'last interrupt vector' location
+ * was overwritten!  Not sure whether to fix /boot or leave room here, so
+ * for now just add a "pad" word.
+*/
+INT(LOCAL, physend, 0)
+
+/*
+ * _lastiv is used for assigning vectors to devices which have programmable
+ * vectors.  Usage is to decrement _lastiv by 4 before use.  The routine 
+ * _nextiv (in mch_xxx.s) will do this, returning the assigned vector in r0.
+ */
+INT(GLOBAL, _lastiv, endvec)
+
+	.text
 TEXTZERO:				/ base of system program text
 
 #ifndef KERN_NONSEP
@@ -364,6 +376,10 @@ do_panic:
 	HANDLER(tsintr)
 #endif
 
+#if NTMSCP > 0
+	HANDLER(tmsintr)		/* TMSCP (TU81/TK50) */
+#endif
+
 #if NDH > 0				/* DH-11 */
 	HANDLER(dhrint)
 	HANDLER(dhxint)
@@ -373,9 +389,14 @@ do_panic:
 	HANDLER(dmintr)
 #endif
 
-#if NDHU > 0				/* DHU, DHV */
+#if NDHU > 0				/* DHU */
 	HANDLER(dhurint)
 	HANDLER(dhuxint)
+#endif
+
+#if NDHV > 0				/* DHV */
+	HANDLER(dhvrint)
+	HANDLER(dhvxint)
 #endif
 
 #if NDN > 0				/* DN11 */

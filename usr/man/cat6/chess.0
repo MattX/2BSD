@@ -5,13 +5,13 @@ CHESS(6)	    UNIX Programmer's Manual		 CHESS(6)
 
 
 
-NNAAMMEE
+NAME
      chess - the game of chess
 
-SSYYNNOOPPSSIISS
-     //uussrr//ggaammeess//cchheessss
+SYNOPSIS
+     /usr/games/chess
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _C_h_e_s_s is a computer program that plays class D chess.  Moves
      may be given either in standard (descriptive) notation or in
      algebraic notation.  The symbol `+' is used to specify
@@ -21,17 +21,17 @@ DDEESSCCRRIIPPTTIIOONN
      Each move is echoed in the appropriate notation followed by
      the program's reply.
 
-FFIILLEESS
+FILES
      /usr/lib/book	 opening `book'
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      The most cryptic diagnostic is `eh?' which means that the
      input was syntactically incorrect.
 
-WWAARRNNIINNGG
+WARNING
      Over-use of this program will cause it to go away.
 
-BBUUGGSS
+BUGS
      Pawns may be promoted only to queens.
 
 
@@ -60,7 +60,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88						1
+Printed 1/9/94							1
 
 
 

@@ -106,4 +106,6 @@ dcmp(dp, dp2)
 	DECIDE(tm_sec);
 	return(0);
 }
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)unctime.c	1.3 (Berkeley) 81/04/18";
+#endif

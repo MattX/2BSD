@@ -5,14 +5,14 @@ LINK(2)             UNIX Programmer's Manual		  LINK(2)
 
 
 
-NNAAMMEE
+NAME
      link - make a hard link to a file
 
-SSYYNNOOPPSSIISS
-     lliinnkk((nnaammee11,, nnaammee22))
-     cchhaarr **nnaammee11,, **nnaammee22;;
+SYNOPSIS
+     link(name1, name2)
+     char *name1, *name2;
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      A hard link to _n_a_m_e_1 is created; the link has the name
      _n_a_m_e_2.  _N_a_m_e_1 must exist.
 
@@ -21,12 +21,12 @@ DDEESSCCRRIIPPTTIIOONN
      must not be a directory.  Both the old and the new _l_i_n_k
      share equal access and rights to the underlying object.
 
-RREETTUURRNN VVAALLUUEE
+RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-EERRRROORRSS
+ERRORS
      _L_i_n_k will fail and no link will be created if one or more of
      the following are true:
 
@@ -60,7 +60,7 @@ EERRRROORRSS
 
 
 
-Printed 12/28/88	 August 26, 1985			1
+Printed 1/9/94		 August 26, 1985			1
 
 
 
@@ -98,7 +98,7 @@ LINK(2)             UNIX Programmer's Manual		  LINK(2)
      [EFAULT]	    One of the pathnames specified is outside the
 		    process's allocated address space.
 
-SSEEEE AALLSSOO
+SEE ALSO
      symlink(2), unlink(2)
 
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 August 26, 1985			2
+Printed 1/9/94		 August 26, 1985			2
 
 
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_swp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vm_swp.c	2.2 (2.11BSD) 9/22/91
  */
 
 #include "param.h"
@@ -16,12 +16,7 @@
 #include "systm.h"
 #include "vm.h"
 #include "trace.h"
-
-/*
- * swap IO headers.  They are filled in to point
- * at the desired IO operation.
- */
-struct	buf swbuf1, swbuf2;
+#include "uio.h"
 
 /*
  * swap I/O
@@ -45,55 +40,43 @@ swap(blkno, coreaddr, count, rdflg)
 		cnt.v_pgout++;
 	}
 #endif
-	bp = &swbuf1;
-	if (bp->b_flags & B_BUSY)
-		if ((swbuf2.b_flags&B_WANTED) == 0)
-			bp = &swbuf2;
-	s = splbio();
-	while (bp->b_flags&B_BUSY) {
-		bp->b_flags |= B_WANTED;
-		sleep((caddr_t)bp, PSWP+1);
-	}
-	splx(s);
+	bp = geteblk();			/* allocate a buffer header */
+
 	while (count) {
-		bp->b_flags = B_BUSY | B_PHYS | rdflg;
+		bp->b_flags = B_BUSY | B_PHYS | B_INVAL | rdflg;
 		bp->b_dev = swapdev;
 		tcount = count;
 		if (tcount >= 01700)	/* prevent byte-count wrap */
 			tcount = 01700;
 		bp->b_bcount = ctob(tcount);
-		bp->b_blkno = swplo + blkno;
+		bp->b_blkno = blkno;
 		bp->b_un.b_addr = (caddr_t)(coreaddr<<6);
 		bp->b_xmem = (coreaddr>>10) & 077;
 		trace(TR_SWAPIO);
 		(*bdevsw[major(swapdev)].d_strategy)(bp);
 		s = splbio();
-		while((bp->b_flags&B_DONE)==0)
+		while ((bp->b_flags & B_DONE) == 0)
 			sleep((caddr_t)bp, PSWP);
 		splx(s);
 		if ((bp->b_flags & B_ERROR) || bp->b_resid)
-			panic("hard IO err in swap");
+			panic("hard err: swap");
 		count -= tcount;
 		coreaddr += tcount;
 		blkno += ctod(tcount);
 	}
-	if (bp->b_flags&B_WANTED)
-		wakeup((caddr_t)bp);
-	bp->b_flags &= ~(B_BUSY|B_WANTED);
+	brelse(bp);
 }
 
 /*
- * If rout == 0 then killed on swap error, else
- * rout is the name of the routine where we ran out of
- * swap space.
+ * rout is the name of the routine where we ran out of swap space.
  */
 swkill(p, rout)
 	register struct proc *p;
-	register char *rout;
+	char *rout;
 {
 
-	printf("pid %d: %s\n", p->p_pid, rout);
-	uprintf("sorry, pid %d was killed in %s\n", p->p_pid, rout);
+	tprintf(u.u_ttyp, "sorry, pid %d killed in %s: no swap space\n", 
+		p->p_pid, rout);
 	/*
 	 * To be sure no looping (e.g. in vmsched trying to
 	 * swap out) mark process locked in core (as though
@@ -107,136 +90,140 @@ swkill(p, rout)
 /*
  * Raw I/O. The arguments are
  *	The strategy routine for the device
- *	A buffer, which will always be a special buffer
- *	  header owned exclusively by the device for this purpose
+ *	A buffer, which may be a special buffer header
+ *	  owned exclusively by the device for this purpose or
+ *	  NULL if one is to be allocated.
  *	The device number
  *	Read/write flag
  * Essentially all the work is computing physical addresses and
  * validating them.
  *
- * physio broken into smaller routines, 3/81 mjk
- *	chkphys(WORD or BYTE) checks validity of word- or byte-
- *	oriented transfer (for physio or device drivers);
- *	physbuf(strat,bp,rw) fills in the buffer header.
+ * rewritten to use the iov/uio mechanism from 4.3bsd.  the physbuf routine
+ * was inlined.  essentially the chkphys routine performs the same task
+ * as the useracc routine on a 4.3 system. 3/90 sms
  *
- * physio divided into two functions, 1/83 - Mike Edmonds - Tektronix
- *	Physio divided into separate functions:
- *		physio (for WORD i/o)
- *		bphysio (for BYTE i/o)
- *	This allows byte-oriented devices (such as tape drives)
- *	to write/read odd length blocks.
+ * If the buffer pointer is NULL then one is allocated "dynamically" from
+ * the system cache.  the 'invalid' flag is turned on so that the brelse()
+ * done later doesn't place the buffer back in the cache.  the 'phys' flag
+ * is left on so that the address of the buffer is recalcuated in getnewbuf().
+ * The BYTE/WORD stuff began to be removed after testing proved that either
+ * 1) the underlying hardware gives an error or 2) nothing bad happens.
+ * besides, 4.3BSD doesn't do the byte/word check and noone could remember
+ * why the byte/word check was added in the first place - likely historical
+ * paranoia.  chkphys() inlined.  5/91 sms
  *
- * since physio/bphysio just called physio1 with BYTE or WORD added
- *	to the argument list, adjusted all calls to physio/bphysio
- *	to pass the correct argument themselves.
- *		5/86 kb
+ * Refined (and streamlined) the flow by using a 'for' construct 
+ * (a la 4.3Reno).  Avoid allocating/freeing the buffer for each iovec
+ * element (i must have been confused at the time).  6/91-sms
+ *
+ * Finished removing the BYTE/WORD code as part of implementing the common
+ * raw read&write routines , systems had been running fine for several
+ * months with it ifdef'd out.  9/91-sms
  */
-physio(strat, bp, dev, rw, kind)
+physio(strat, bp, dev, rw, uio)
 	int (*strat)();
 	register struct buf *bp;
 	dev_t dev;
-	int rw, kind;
+	int rw;
+	register struct uio *uio;
 {
-	register int error, s;
+	int error = 0, s, nb, ts, c, allocbuf = 0;
+	register struct iovec *iov;
 
-	error = chkphys(kind);
-	if (error)
-		return(error);
-	physbuf(bp, dev, rw);
+	if (!bp) {
+		allocbuf++;
+		bp = geteblk();
+	}
 	u.u_procp->p_flag |= SLOCK;
-	(*strat)(bp);
-	s = splbio();
-	while ((bp->b_flags&B_DONE)==0)
-		sleep((caddr_t)bp, PRIBIO);
-	splx(s);
-	error = geterror(bp);
+	for ( ; uio->uio_iovcnt; uio->uio_iov++, uio->uio_iovcnt--) {
+		iov = uio->uio_iov;
+		if (iov->iov_base >= iov->iov_base + iov->iov_len) {
+			error = EFAULT;
+			break;
+		}
+		if (u.u_sep)
+			ts = 0;
+		else
+			ts = (u.u_tsize + 127) & ~0177;
+		nb = ((int)iov->iov_base >> 6) & 01777;
+		/*
+		 * Check overlap with text. (ts and nb now
+		 * in 64-byte clicks)
+		 */
+		if (nb < ts) {
+			error = EFAULT;
+			break;
+		}
+		/*
+		 * Check that transfer is either entirely in the
+		 * data or in the stack: that is, either
+		 * the end is in the data or the start is in the stack
+		 * (remember wraparound was already checked).
+		 */
+		if (((((int)iov->iov_base + iov->iov_len) >> 6) & 01777) >= 
+			ts + u.u_dsize && nb < 1024 - u.u_ssize) {
+			error = EFAULT;
+			break;
+		}
+		if (!allocbuf) {
+			s = splbio();
+			while (bp->b_flags & B_BUSY) {
+				bp->b_flags |= B_WANTED;
+				sleep((caddr_t)bp, PRIBIO+1);
+			}
+			splx(s);
+		}
+		bp->b_error = 0;
+		while (iov->iov_len) {
+			bp->b_flags = B_BUSY|B_PHYS|B_INVAL|rw;
+			bp->b_dev = dev;
+			nb = ((int)iov->iov_base >> 6) & 01777;
+			ts = (u.u_sep ? UDSA : UISA)[nb >> 7] + (nb & 0177);
+			bp->b_un.b_addr = (caddr_t)((ts << 6) + ((int)iov->iov_base & 077));
+			bp->b_xmem = (ts >> 10) & 077;
+			bp->b_blkno = uio->uio_offset >> PGSHIFT;
+			bp->b_bcount = iov->iov_len;
+			c = bp->b_bcount;
+			(*strat)(bp);
+			s = splbio();
+			while ((bp->b_flags & B_DONE) == 0)
+				sleep((caddr_t)bp, PRIBIO);
+			if (bp->b_flags & B_WANTED)	/* rare */
+				wakeup((caddr_t)bp);
+			splx(s);
+			c -= bp->b_resid;
+			iov->iov_base += c;
+			iov->iov_len -= c;
+			uio->uio_resid -= c;
+			uio->uio_offset += c;
+			/* temp kludge for tape drives */
+			if (bp->b_resid || (bp->b_flags & B_ERROR))
+				break;
+		}
+		bp->b_flags &= ~(B_BUSY|B_WANTED);
+		error = geterror(bp);
+		/* temp kludge for tape drives */
+		if (bp->b_resid || error)
+			break;
+	}
+	if (allocbuf)
+		brelse(bp);
 	u.u_procp->p_flag &= ~SLOCK;
-	if (bp->b_flags&B_WANTED)
-		wakeup((caddr_t)bp);
-	bp->b_flags &= ~(B_BUSY|B_WANTED);
-	u.u_count = bp->b_resid;
 	return(error);
 }
 
-/*
- * check for validity of physical I/O area
- * (modified from physio to use flag for BYTE-oriented transfers)
- */
-chkphys(flag)
-	int flag;
-{
-	register u_int base;
-	register int nb, ts;
-
-	base = (u_int)u.u_base;
-	/*
-	 * Check odd base, odd count, and address wraparound
-	 * Odd base and count not allowed if flag = WORD,
-	 * allowed if flag = BYTE.
-	 */
-	if (flag == WORD && ((base|u.u_count) & 01))
-		return(EFAULT);
-	if (base >= base + u.u_count)
-		return(EFAULT);
-	if (u.u_sep)
-		ts = 0;
-	else
-		ts = (u.u_tsize + 127) & ~0177;
-	nb = (base >> 6) & 01777;
-	/*
-	 * Check overlap with text. (ts and nb now
-	 * in 64-byte clicks)
-	 */
-	if (nb < ts)
-		return(EFAULT);
-	/*
-	 * Check that transfer is either entirely in the
-	 * data or in the stack: that is, either
-	 * the end is in the data or the start is in the stack
-	 * (remember wraparound was already checked).
-	 */
-	if ((((base + u.u_count) >> 6) & 01777) >= ts + u.u_dsize &&
-	    nb < 1024 - u.u_ssize)
-		return(EFAULT);
-	return(0);
-}
-
-/*
- * wait for buffer header, then fill it in to do physical I/O.
- */
-physbuf(bp,dev,rw)
-	register struct buf *bp;
+rawread(dev, uio)
 	dev_t dev;
-	int rw;
-{
+	struct uio *uio;
 	{
-		register int s;
-
-		s = splbio();
-		while (bp->b_flags&B_BUSY) {
-			bp->b_flags |= B_WANTED;
-			sleep((caddr_t)bp, PRIBIO+1);
-		}
-		splx(s);
+	return(physio(cdevsw[major(dev)].d_strategy, (struct buf *)NULL, dev,
+		B_READ, uio));
 	}
-	bp->b_flags = B_BUSY | B_PHYS | rw;
-	bp->b_dev = dev;
-	/*
-	 * Compute physical address by simulating
-	 * the segmentation hardware.
-	 */
+
+rawwrite(dev, uio)
+	dev_t dev;
+	struct uio *uio;
 	{
-		register u_int base;
-		register int ts;
-		int nb;
-
-		base = (u_int)u.u_base;
-		nb = (base >> 6) & 01777;
-		ts = (u.u_sep ? UDSA: UISA)[nb >> 7] + (nb & 0177);
-		bp->b_un.b_addr = (caddr_t)((ts << 6) + (base & 077));
-		bp->b_xmem = (ts >> 10) & 077;
-		bp->b_blkno = u.u_offset >> PGSHIFT;
-		bp->b_bcount = u.u_count;
-		bp->b_error = 0;
+	return(physio(cdevsw[major(dev)].d_strategy, (struct buf *)NULL, dev,
+		B_WRITE, uio));
 	}
-}

@@ -21,15 +21,11 @@
 
 
 /* this file implements primitives to drive the screen. */
-#ifndef	lint
-static	char	sccsid[] = "@(#)screen.c	2.1	4/11/85";
-#endif	/* ndef lint */
+#if	defined(DOSCCS) && !defined(lint)
+static	char	sccsid[] = "@(#)screen.c	2.2	1/1/94";
+#endif
 
 #include <stdio.h>
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include "screen.h"
 #include "3270.h"

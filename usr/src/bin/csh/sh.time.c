@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char *sccsid = "@(#)sh.time.c	5.4 (Berkeley) 5/13/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)sh.time.c	5.4.1 (2.11BSD GTE) 12/31/93";
 #endif
 
 #include "sh.h"
@@ -89,11 +89,11 @@ prusage(r0, r1, e, b)
 	long ms =
 	    (e->tv_sec-b->tv_sec)*100 + (e->tv_usec-b->tv_usec)/10000;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	cp = "%Uu %Ss %E %P %I+%Oio %Vov %Wsw";
-#else !BSD2_10
+#else
 	cp = "%Uu %Ss %E %P %X+%Dk %I+%Oio %Fpf+%Ww";
-#endif BSD2_10
+#endif
 	if (vp && vp->vec[0] && vp->vec[1])
 		cp = vp->vec[1];
 	for (; *cp; cp++)
@@ -117,11 +117,11 @@ prusage(r0, r1, e, b)
 		printf("%d%%", (int) (t*100 / ((ms ? ms : 1))));
 		break;
 
-#ifdef BSD2_10
+#ifdef pdp11
 	case 'V':
 		printf("%ld", r1->ru_ovly - r0->ru_ovly);
 		break;
-#endif BSD2_10
+#endif
 
 	case 'W':
 		i = r1->ru_nswap - r0->ru_nswap;

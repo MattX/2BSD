@@ -5,27 +5,27 @@ GETSERVENT(3N)	    UNIX Programmer's Manual	   GETSERVENT(3N)
 
 
 
-NNAAMMEE
+NAME
      getservent, getservbyport, getservbyname, setservent,
      endservent - get service entry
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<nneettddbb..hh>>
+SYNOPSIS
+     #include <netdb.h>
 
-     ssttrruucctt sseerrvveenntt **ggeettsseerrvveenntt(())
+     struct servent *getservent()
 
-     ssttrruucctt sseerrvveenntt **ggeettsseerrvvbbyynnaammee((nnaammee,, pprroottoo))
-     cchhaarr **nnaammee,, **pprroottoo;;
+     struct servent *getservbyname(name, proto)
+     char *name, *proto;
 
-     ssttrruucctt sseerrvveenntt **ggeettsseerrvvbbyyppoorrtt((ppoorrtt,, pprroottoo))
-     iinntt ppoorrtt;; cchhaarr **pprroottoo;;
+     struct servent *getservbyport(port, proto)
+     int port; char *proto;
 
-     sseettsseerrvveenntt((ssttaayyooppeenn))
-     iinntt ssttaayyooppeenn
+     setservent(stayopen)
+     int stayopen
 
-     eennddsseerrvveenntt(())
+     endservent()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_s_e_r_v_e_n_t, _g_e_t_s_e_r_v_b_y_n_a_m_e, and _g_e_t_s_e_r_v_b_y_p_o_r_t each return a
      pointer to an object with the following structure containing
      the broken-out fields of a line in the network services data
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 19, 1986				1
+Printed 1/9/94		  May 19, 1986				1
 
 
 
@@ -79,16 +79,16 @@ GETSERVENT(3N)	    UNIX Programmer's Manual	   GETSERVENT(3N)
      name  is  also supplied (non-NULL), searches must also match
      the protocol.
 
-FFIILLEESS
+FILES
      /etc/services
 
-SSEEEE AALLSSOO
+SEE ALSO
      getprotoent(3N), services(5)
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      Null pointer (0) returned on EOF or error.
 
-BBUUGGSS
+BUGS
      All information is contained in a static area so it must  be
      copied  if it is to be saved.  Expecting port numbers to fit
      in a 32 bit quantity is probably naive.
@@ -126,7 +126,7 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	  May 19, 1986				2
+Printed 1/9/94		  May 19, 1986				2
 
 
 

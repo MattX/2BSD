@@ -5,14 +5,14 @@ LASTCOMM(1)	    UNIX Programmer's Manual	      LASTCOMM(1)
 
 
 
-NNAAMMEE
+NAME
      lastcomm - show last commands executed in reverse order
 
-SSYYNNOOPPSSIISS
-     llaassttccoommmm [ command name ] ... [user name] ... [terminal
+SYNOPSIS
+     lastcomm [ command name ] ... [user name] ... [terminal
      name] ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _L_a_s_t_c_o_m_m gives information on previously executed commands.
      With no arguments, _l_a_s_t_c_o_m_m prints information about all the
      commands recorded during the current accounting file's life-
@@ -40,10 +40,10 @@ DDEESSCCRRIIPPTTIIOONN
      the generation of a _c_o_r_e file, and ``X'' indicates the com-
      mand was terminated with a signal.
 
-FFIILLEESS
+FILES
      /usr/adm/acct
 
-SSEEEE AALLSSOO
+SEE ALSO
      last(1), sigvec(2), acct(8), core(5)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 January 5, 1986			1
+Printed 1/9/94		 January 5, 1986			1
 
 
 

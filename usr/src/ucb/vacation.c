@@ -8,15 +8,16 @@
 **  specifies the terms and conditions for redistribution.
 */
 
-#ifndef lint
-static char	SccsId[] = "@(#)vacation.c	5.3 (Berkeley) 7/1/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char	SccsId[] = "@(#)vacation.c	5.3.1 (2.11BSD GTE) 6/11/94";
+#endif
 
 # include <sys/types.h>
 # include <pwd.h>
 # include <stdio.h>
 # include <sysexits.h>
 # include <ctype.h>
+#include <paths.h>
 
 /*
 **  VACATION -- return a message to the sender when on vacation.
@@ -330,7 +331,7 @@ setknows(user)
 **		none.
 **
 **	Side Effects:
-**		sends mail to 'user' using /usr/lib/sendmail.
+**		sends mail to 'user' using sendmail.
 */
 
 sendmessage(msgf, user, myname)
@@ -349,8 +350,8 @@ sendmessage(msgf, user, myname)
 			syserr("No message to send");
 	}
 
-	execl("/usr/lib/sendmail", "sendmail", "-f", myname, user, NULL);
-	syserr("Cannot exec /usr/lib/sendmail");
+	execl(_PATH_SENDMAIL, "sendmail", "-f", myname, user, NULL);
+	syserr("Cannot exec sendmail");
 }
 /*
 **  INITIALIZE -- initialize the database before leaving for vacation

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_en.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_en.c	1.2 (2.11BSD GTE) 12/31/93
  */
 
 #include "en.h"
@@ -17,6 +17,7 @@
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "pdpuba/ubavar.h"
@@ -30,7 +31,6 @@
 #include "pdpif/if_uba.h"
 #include "netinet/ip.h"
 #include "netinet/ip_var.h"
-#include "netpup/pup.h"
 #include "net/route.h"
 #include "errno.h"
 
@@ -78,6 +78,7 @@ enprobe(reg)
 	register int br, cvec;		/* r11, r10 value-result */
 	register struct endevice *addr = (struct endevice *)reg;
 
+#ifndef	pdp11
 #ifdef lint
 	br = 0; cvec = br; br = cvec;
 	enrint(0); enxint(0); encollide(0);
@@ -90,6 +91,7 @@ enprobe(reg)
 	addr->en_ostat = 0;
 #ifdef ECHACK
 	br = 0x16;
+#endif
 #endif
 	return (1);
 }
@@ -377,7 +379,7 @@ enrint(unit)
 	 * information to be at the front, but we still have to drop
 	 * the type and length which are at the front of any trailer data.
 	 */
-	m = if_rubaget(&es->es_ifuba, len, off);
+	m = if_rubaget(&es->es_ifuba, len, off, &es->es_if);
 	if (m == 0)
 		goto setup;
 	if (off) {

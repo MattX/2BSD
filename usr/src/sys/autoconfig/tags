@@ -4,12 +4,14 @@ add_nlist	read_nlist.c	/^add_nlist(name)$/
 addent	read_dtab.c	/^addent(listp, cp)$/
 attach	attach.c	/^attach(dp)$/
 auto_config	do_config.c	/^auto_config()$/
+brprobe	../pdpuba/brauto.c	/^brprobe(addr)$/
 clear_vec	do_config.c	/^clear_vec(dp)$/
 cnprobe	../machine/cnauto.c	/^cnprobe(addr)$/
 detach	attach.c	/^detach(dp)$/
 dhprobe	../pdpuba/dhauto.c	/^dhprobe(addr)$/
 dhuprobe	../pdpuba/dhuauto.c	/^dhuprobe(addr)$/
 dmprobe	../pdpuba/dhauto.c	/^dmprobe(addr)$/
+dnprobe	../pdpuba/dnauto.c	/^dnprobe(addr)$/
 do_probe	do_config.c	/^do_probe(dp, a1)$/
 drprobe	../pdpuba/drauto.c	/^drprobe(addr)$/
 dzprobe	../pdpuba/dzauto.c	/^dzprobe(addr)$/
@@ -24,7 +26,6 @@ intval	do_config.c	/^intval()$/
 lpprobe	../pdpuba/lpauto.c	/^lpprobe(addr)$/
 prdev	do_config.c	/^prdev(dp)$/
 pry	attach.c	/^pry(dp)$/
-qeprobe	../vaxif/if_qeauto.c	/^qeprobe(addr)$/
 raprobe	../pdpuba/raauto.c	/^raprobe(addr)$/
 read_dtab	read_dtab.c	/^read_dtab()$/
 read_nlist	read_nlist.c	/^read_nlist()$/

@@ -1,13 +1,15 @@
-#ifndef	lint
+#if	!defined(lint) && defined(DOSCCS)
 char	*sccsid = "@(#)icheck.c	2.5";
 #endif
 
 #include <sys/param.h>
-#ifdef STANDALONE
-#	define	NI	8
-#else !STANDALONE
-#	define	NI	16
-#endif STANDALONE
+
+#ifdef	STANDALONE
+#define	NI	4
+#else
+#define	NI	8
+#endif
+
 #define	NB	10
 #define	BITS	8
 #define	MAXFN	500
@@ -20,7 +22,6 @@ char	*sccsid = "@(#)icheck.c	2.5";
 
 struct	fs	sblock;
 struct	dinode	itab[INOPB*NI];
-daddr_t	iaddr[NADDR];
 daddr_t	blist[NB];
 char	*bmap;
 
@@ -31,6 +32,7 @@ int	fi;
 ino_t	ino;
 
 ino_t	nrfile;
+ino_t	nsfile;
 ino_t	ndfile;
 ino_t	nbfile;
 ino_t	ncfile;
@@ -126,6 +128,7 @@ char *file;
 	}
 	printf("%s:\n", file);
 	nrfile = 0;
+	nsfile = 0;
 	ndfile = 0;
 	ncfile = 0;
 	nbfile = 0;
@@ -140,7 +143,7 @@ char *file;
 #ifndef STANDALONE
 	sync();
 #endif
-	bread((daddr_t)1, (char *)&sblock, sizeof(sblock));
+	bread((daddr_t)SBLOCK, (char *)&sblock, sizeof(sblock));
 	mino = (sblock.fs_isize-2) * INOPB;
 	ino = 0;
 	n = (sblock.fs_fsize - sblock.fs_isize + BITS-1) / BITS;
@@ -162,8 +165,7 @@ char *file;
 		sflg = 0;
 	}
 	if(!dflg)
-	for(i=0; i<(unsigned)n; i++)
-		bmap[i] = 0;
+		bzero(bmap, (u_short) n);
 	for(i=2;; i+=NI) {
 		if(ino >= mino)
 			break;
@@ -179,7 +181,7 @@ char *file;
 #ifndef STANDALONE
 	sync();
 #endif
-	bread((daddr_t)1, (char *)&sblock, sizeof(sblock));
+	bread((daddr_t)SBLOCK, (char *)&sblock, sizeof(sblock));
 	if (sflg) {
 		makefree();
 		close(fi);
@@ -203,23 +205,12 @@ char *file;
 
 	i = nrfile + ndfile + ncfile + nbfile;
 	i += nlfile;
-#ifndef STANDALONE
-	printf("files %6u (r=%u,d=%u,b=%u,c=%u,l=%u)\n",
-		i, nrfile, ndfile, nbfile, ncfile, nlfile);
-#else
-	printf("files %u (r=%u,d=%u,b=%u,c=%u,l=%u)\n",
-		i, nrfile, ndfile, nbfile, ncfile, nlfile);
-#endif
+	printf("files %u (r=%u,d=%u,b=%u,c=%u,l=%u,s=%u)\n",
+		i, nrfile, ndfile, nbfile, ncfile, nlfile,nsfile);
 	n = ndirect + nindir + niindir + niindir;
-#ifdef STANDALONE
 	printf("used %D (i=%D,ii=%D,iii=%D,d=%D)\n",
 		n, nindir, niindir, niiindir, ndirect);
 	printf("free %D\n", nfree);
-#else
-	printf("used %7ld (i=%D,ii=%D,iii=%D,d=%D)\n",
-		n, nindir, niindir, niiindir, ndirect);
-	printf("free %7ld\n", nfree);
-#endif
 	if(!dflg) {
 		n = 0;
 		for(d=sblock.fs_isize; d<sblock.fs_fsize; d++)
@@ -260,23 +251,24 @@ register struct dinode *ip;
 		ndfile++;
 	else if(i == IFREG)
 		nrfile++;
+	else if(i == IFSOCK)
+		nsfile++;
 	else {
 		printf("bad mode %u\n", ino);
 		return;
 	}
-	l3tol(iaddr, ip->di_addr, NADDR);
 	for(i=0; i<NADDR; i++) {
-		if(iaddr[i] == 0)
+		if(ip->di_addr[i] == 0)
 			continue;
 		if(i < NADDR-3) {
 			ndirect++;
-			chk(iaddr[i], "data (small)");
+			chk(ip->di_addr[i], "data (small)");
 			continue;
 		}
 		nindir++;
-		if (chk(iaddr[i], "1st indirect"))
+		if (chk(ip->di_addr[i], "1st indirect"))
 				continue;
-		bread(iaddr[i], (char *)ind1, DEV_BSIZE);
+		bread(ip->di_addr[i], (char *)ind1, DEV_BSIZE);
 		for(j=0; j<NINDIR; j++) {
 			if(ind1[j] == 0)
 				continue;
@@ -391,12 +383,11 @@ daddr_t bno;
 		char	data[DEV_BSIZE];
 		struct	fblk fb;
 	} buf;
-	int i;
+register int i;
 
 	sblock.fs_tfree++;
 	if(sblock.fs_nfree >= NICFREE) {
-		for(i=0; i<DEV_BSIZE; i++)
-			buf.data[i] = 0;
+		bzero(buf.data, DEV_BSIZE);
 		buf.fb.df_nfree = sblock.fs_nfree;
 		for(i=0; i<NICFREE; i++)
 			buf.fb.df_free[i] = sblock.fs_free[i];
@@ -411,7 +402,6 @@ bread(bno, buf, cnt)
 daddr_t bno;
 char *buf;
 {
-	register i;
 
 	lseek(fi, bno*DEV_BSIZE, 0);
 	if (read(fi, buf, cnt) != cnt) {
@@ -420,8 +410,7 @@ char *buf;
 			printf("No update\n");
 			sflg = 0;
 		}
-		for(i=0; i<DEV_BSIZE; i++)
-			buf[i] = 0;
+		bzero(buf, DEV_BSIZE);
 	}
 }
 
@@ -452,8 +441,7 @@ makefree()
 		m = 3;
 	sblock.fs_step = m;
 
-	for(i=0; i<n; i++)
-		flg[i] = 0;
+	bzero(flg, n);
 	i = 0;
 	for(j=0; j<n; j++) {
 		while(flg[i])

@@ -21,14 +21,15 @@
 #
 # C library options: passed to libc makefile.
 # See lib/libc/Makefile for explanation.
-# HOSTLOOKUP must be either named or hosttable.
+# NOTE: The method of hostname lookup (hosts file or nameserver) is no
+#	longer selected here.  Make sure to edit lib/libc/Makefile to set
+#	HOSTLOOKUP
 # DFLMON must be either mon.o or gmon.o.
 # DEFS may include -DLIBC_SCCS, -DSYSLIBC_SCCS, both, or neither.
 #
-HOSTLOOKUP=hosttable
 DFLMON=mon.o
 DEFS= 
-LIBCDEFS= HOSTLOOKUP=${HOSTLOOKUP} DFLMON=${DFLMON} DEFS="${DEFS}"
+LIBCDEFS= DFLMON=${DFLMON} DEFS="${DEFS}"
 
 # global flags
 # SRC_MFLAGS are used on makes in command source directories,
@@ -42,13 +43,13 @@ SRC_MFLAGS = -k
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 LIBDIR= lib usr.lib
-SRCDIR=	bin usr.bin etc ucb new games
+SRCDIR=	bin etc games local new ucb usr.bin man
 
 all:	${LIBDIR} ${SRCDIR}
 
 lib:	FRC
 	cd lib/libc; make ${MFLAGS} ${LIBCDEFS}
-	cd lib; make ${MFLAGS} pcc cpp c2
+	cd lib; make ${MFLAGS} ccom cpp c2
 
 usr.lib ${SRCDIR}: FRC
 	cd $@; make ${MFLAGS} ${SRC_MFLAGS}
@@ -57,7 +58,7 @@ build: buildlib ${SRCDIR}
 
 buildlib: FRC
 	@echo installing /usr/include
-	cd include; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	# cd include; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	@echo
 	@echo compiling libc.a
 	cd lib/libc; make ${MFLAGS} ${LIBCDEFS}
@@ -65,9 +66,9 @@ buildlib: FRC
 	cd lib/libc; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	@echo
 	@echo compiling C compiler
-	cd lib; make ${MFLAGS} pcc cpp c2
+	cd lib; make ${MFLAGS} ccom cpp c2
 	@echo installing C compiler
-	cd lib/pcc; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	cd lib/ccom; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	cd lib/cpp; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	cd lib/c2; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	cd lib; make ${MFLAGS} clean
@@ -78,9 +79,9 @@ buildlib: FRC
 	cd lib/libc; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	@echo
 	@echo re-compiling C compiler
-	cd lib; make ${MFLAGS} pcc cpp c2
+	cd lib; make ${MFLAGS} ccom cpp c2
 	@echo re-installing C compiler
-	cd lib/pcc; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	cd lib/ccom; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	cd lib/cpp; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	cd lib/c2; make ${MFLAGS} DESTDIR=${DESTDIR} install
 	@echo

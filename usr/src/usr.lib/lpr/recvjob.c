@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)recvjob.c	5.4 (Berkeley) 6/6/86";
-#endif not lint
+#if	defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)recvjob.c	5.4.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * Receive printer jobs from the network, queue them and
@@ -21,11 +21,12 @@ char	*sp = "";
 
 char    tfname[40];		/* tmp copy of cf before linking */
 char    dfname[40];		/* data files */
-int	minfree;		/* keep at least minfree blocks available */
+long	minfree;		/* keep at least minfree blocks available */
 char	*ddev;			/* disk device (for checking free space) */
 int	dfd;			/* file system device descriptor */
 
 char	*find_dev();
+long	read_number(), atol();
 
 recvjob()
 {
@@ -110,7 +111,8 @@ find_dev(dev, type)
  */
 readjob()
 {
-	register int size, nfiles;
+	register nfiles;
+	long	size;
 	register char *cp;
 
 	ack();
@@ -187,11 +189,12 @@ readjob()
  */
 readfile(file, size)
 	char *file;
-	int size;
+	long size;
 {
 	register char *cp;
 	char buf[BUFSIZ];
-	register int i, j, amt;
+	register int j, amt;
+	long i;
 	int fd, err;
 
 	fd = open(file, O_WRONLY|O_CREAT, FILMOD);
@@ -246,18 +249,18 @@ noresponse()
  * 1 == OK, 0 == Not OK.
  */
 chksize(size)
-	int size;
+	long size;
 {
 	struct stat stb;
 	register char *ddev;
-	int spacefree;
+	long spacefree;
 	struct fs fs;
 
 	if (dfd < 0 || lseek(dfd, (long)(SBLOCK * DEV_BSIZE), 0) < 0)
 		return(1);
 	if (read(dfd, (char *)&fs, sizeof fs) != sizeof fs)
 		return(1);
-#ifdef BSD2_10
+#ifdef pdp11
 	spacefree = fs.fs_tfree;
 #else
 	spacefree = (fs.fs_cstotal.cs_nbfree * fs.fs_frag +
@@ -270,6 +273,7 @@ chksize(size)
 	return(1);
 }
 
+long
 read_number(fn)
 	char *fn;
 {
@@ -283,7 +287,7 @@ read_number(fn)
 		return (0);
 	}
 	fclose(fp);
-	return (atoi(lin));
+	return (atol(lin));
 }
 
 /*

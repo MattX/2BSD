@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)rl.c	1.4 (2.11BSD GTE) 1/2/93
  */
 
 /*
@@ -32,7 +32,8 @@
 
 struct	rldevice *RLADDR;
 
-struct	buf	rrlbuf[NRL];	/* Raw header for each drive */
+static	int	q22bae = 1;
+
 struct	buf	rlutab[NRL];	/* Seek structure for each device */
 struct	buf	rltab;
 
@@ -82,23 +83,27 @@ rlattach(addr, unit)
 	return (0);
 }
 
-rlopen(dev)
+rlopen(dev, flag)
 	dev_t dev;
+	int flag;
 {
-	if (minor(dev) >= NRL || !RLADDR)
+	register int drive = minor(dev);
+
+	if (drive >= NRL || !RLADDR)
 		return (ENXIO);
+	if	(rl.type[drive] == -1)
+		rlgsts(drive);
 	return (0);
 }
 
 rlstrategy(bp)
 	register struct	buf *bp;
 {
-	register struct rldevice *rp;
 	register int drive;
 	int nblocks, s, ctr;
 
 	drive = minor(bp->b_dev);
-	if (drive >= NRL || !(rp = RLADDR)) {
+	if (drive >= NRL || !RLADDR) {
 		bp->b_error = ENXIO;
 		goto bad;
 	}
@@ -108,35 +113,9 @@ rlstrategy(bp)
 	 * to determine how many blocks are on the device.  The rl.type[]
 	 * array has been initialized with -1's so that we may test first
 	 * contact with a particular drive and do this determination only once.
-	 *
-	 * For some unknown reason the RL02 (seems to be
-	 * only drive 1) does not return a valid drive status
-	 * the first time that a GET STATUS request is issued
-	 * for the drive, in fact it can take up to three or more
-	 * GET STATUS requests to obtain the correct status.
-	 * In order to overcome this "HACK" the driver has been
-	 * modified to issue a GET STATUS request, validate the
-	 * drive status returned, and then use it to determine the
-	 * drive type. If a valid status is not returned after eight
-	 * attempts, then an error message is printed.
 	 */
-	if (rl.type[drive] < 0) {
-		ctr = 0;
-		do { /* get status and reset when first touching this drive */
-			rp->rlda = RLDA_RESET | RLDA_GS;
-			rp->rlcs = (drive << 8) | RL_GETSTATUS;	/* set up csr */
-			rlwait(rp);
-		} while (((rp->rlmp & 0177477) != 035) && (++ctr < 16));
-		if (ctr >= 16) {
-			printf("rl%d: no status\n", drive);
-			printf("cs=%b da=%b\n", rp->rlcs, RL_BITS,
-			    rp->rlda, RLDA_BITS);
-			rl.type[drive] = RL02_NBLKS;	/* assume RL02 */
-		} else if (rp->rlmp & RLMP_DTYP) {
-			rl.type[drive] = RL02_NBLKS;	/* drive is RL02 */
-		} else
-			rl.type[drive] = RL01_NBLKS;	/* drive RL01 */
-	}
+	if (rl.type[drive] < 0)
+		rlgsts(drive);
 	/* determine nblocks based upon which drive this is */
 	nblocks = rl.type[drive];
 	if(bp->b_blkno >= nblocks) {
@@ -150,9 +129,7 @@ bad:
 		iodone(bp);
 		return;
 	}
-#ifdef UNIBUS_MAP
 	mapalloc(bp);
-#endif
 
 	bp->av_forw = NULL;
 	bp->b_cylin = (int)(bp->b_blkno/20l);
@@ -274,9 +251,10 @@ rlio()
 	rladdr->rlda = (rl.chn << 6) | rl.sn;
 	rladdr->rlba = (caddr_t)rl.rl_un.w[1];
 	rladdr->rlmp = -(rl.bpart >> 1);
-#ifdef Q22
-	rladdr->rlbae = rl.rl_un.w[0];
-#endif
+	if	(q22bae == 1)
+		q22bae = (fioword(&rladdr->rlbae) == -1 ? -1 : 0);
+	if	(q22bae == 0)
+		rladdr->rlbae = rl.rl_un.w[0];
 	rladdr->rlcs = rl.com | (rl.rl_un.w[0] & 03) << 4;
 #ifdef UCB_METER
 	if (rl_dkn >= 0) {
@@ -287,18 +265,6 @@ rlio()
 		dk_wds[dkn] += rl.bpart>>6;
 	}
 #endif
-}
-
-rlread(dev)
-	register dev_t dev;
-{
-	return (physio(rlstrategy, &rrlbuf[minor(dev)], dev, B_READ, WORD));
-}
-
-rlwrite(dev)
-	register dev_t dev;
-{
-	return (physio(rlstrategy, &rrlbuf[minor(dev)], dev, B_WRITE, WORD));
 }
 
 /*
@@ -381,7 +347,6 @@ rlgss()
 /*
  * Dump routine for RL01/02
  * Dumps from dumplo to end of memory/end of disk section for minor(dev).
- * It uses the UNIBUS map to dump all of memory if there is a UNIBUS map.
  * This routine is stupid (because the rl is stupid) and assumes that
  * dumplo begins on a track boundary!
  */
@@ -397,25 +362,13 @@ rldump(dev)
 	register int count;
 	u_int com;
 	int ccn, cn, tn, sn, unit, dif, ctr;
-#ifdef UNIBUS_MAP
 	register struct ubmap *ubp;
-#endif
 
 	unit = minor(dev);
 	ctr = 0;
-	do {			/* Determine drive type */
-		rladdr->rlda = RLDA_RESET | RLDA_GS;
-		rladdr->rlcs = (dev << 8) | RL_GETSTATUS;
-		rlwait(rladdr);
-	} while(((rladdr->rlmp & 0177477) != 035) && (++ctr < 16));
-	if(ctr >= 16) {
-		printf("rl%d: no status\n",dev);
+	if	(rlgsts(unit) < 0)
 		return(EIO);
-	}
-	if(rladdr->rlmp & RLMP_DTYP)
-		dumpsize = RL02_NBLKS;
-	else
-		dumpsize = RL01_NBLKS;
+	dumpsize = rl.type[unit];
 	if((dumplo < 0) || (dumplo >= dumpsize))
 		return(EINVAL);
 	dumpsize -= dumplo;
@@ -424,9 +377,7 @@ rldump(dev)
 	rlwait(rladdr);
 	ccn = ((unsigned)rladdr->rlmp&0177700) >> 6;
 
-#ifdef UNIBUS_MAP
 	ubp = &UBMAP[0];
-#endif
 	for(paddr = 0L;dumpsize > 0;dumpsize -= count) {
 		count = dumpsize > DBSIZE ? DBSIZE : dumpsize;
 		bn = dumplo + (paddr >> PGSHIFT);
@@ -447,22 +398,19 @@ rldump(dev)
 		rladdr->rlda = (cn << 6) | sn;
 		rladdr->rlmp = -(count << (PGSHIFT-1));
 		com = (dev << 8) | RL_WCOM;
-#ifdef UNIBUS_MAP
 		/* If there is a map - use it */
 		if(ubmap) {
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			rladdr->rlba = 0;
 		} else {
-#endif
 			rladdr->rlba = loint(paddr);
-#ifdef Q22
-			rladdr->rlbae = hiint(paddr);
-#endif
+			if	(q22bae == 1)
+				q22bae = (fioword(&rladdr->rlbae) == -1 ? -1:0);
+			if	(q22bae == 0)
+				rladdr->rlbae = hiint(paddr);
 			com |= (hiint(paddr) & 03) << 4;
-#ifdef UNIBUS_MAP
 		}
-#endif
 		rladdr->rlcs = com;
 		rlwait(rladdr);
 		if(rladdr->rlcs & RL_CERR) {
@@ -478,4 +426,52 @@ rldump(dev)
 	return(0);	/* Filled the disk */
 }
 #endif RL_DUMP
+
+/*
+ * Assumes the 'open' routine has already been called to get the drive
+ * status and determine what type of drive this is.
+*/
+daddr_t
+rlsize(dev)
+	dev_t	dev;
+	{
+
+	return(rl.type[minor(dev)]);
+	}
+
+/* For some unknown reason the RL02 (seems to be
+ * only drive 1) does not return a valid drive status
+ * the first time that a GET STATUS request is issued
+ * for the drive, in fact it can take up to three or more
+ * GET STATUS requests to obtain the correct status.
+ * In order to overcome this "HACK" the driver has been
+ * modified to issue a GET STATUS request, validate the
+ * drive status returned, and then use it to determine the
+ * drive type. If a valid status is not returned after eight
+ * attempts, then an error message is printed.
+ */
+rlgsts(drive)
+	int	drive;
+	{
+	register int	ctr = 0;
+	register struct	rldevice *rp = RLADDR;
+
+	do	{ /* get status and reset when first touching this drive */
+		rp->rlda = RLDA_RESET | RLDA_GS;
+		rp->rlcs = (drive << 8) | RL_GETSTATUS;	/* set up csr */
+		rlwait(rp);
+		} while (((rp->rlmp & 0177477) != 035) && (++ctr < 16));
+	if	(ctr >= 16)
+		{
+		printf("rl%d: !status cs=%b da=%b\n", drive,
+			rp->rlcs, RL_BITS, rp->rlda, RLDA_BITS);
+		rl.type[drive] = RL02_NBLKS;	/* assume RL02 */
+		return(-1);
+		}
+	else if (rp->rlmp & RLMP_DTYP)
+		rl.type[drive] = RL02_NBLKS;	/* drive is RL02 */
+	else
+		rl.type[drive] = RL01_NBLKS;	/* drive RL01 */
+	return(0);
+	}
 #endif

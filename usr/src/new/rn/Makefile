@@ -1,4 +1,4 @@
-# $Header: Makefile.SH,v 1.1 88/08/10 12:59:35 bin Locked $
+# $Header: Makefile.SH,v 4.3.1.2 85/05/13 17:21:18 lwall Exp $
 #
 # $Log:	Makefile.SH,v $
 # Revision 4.3.1.2  85/05/13  17:21:18  lwall
@@ -12,12 +12,12 @@
 # 
 
 CC = cc
-rnbin = ${DESTDIR}/usr/new/bin
-rnlib = ${DESTDIR}/usr/new/lib/news/rn
-mansrc = ${DESTDIR}/usr/man/mann
-manext = n
+rnbin = /news/bin
+rnlib = /news/lib
+mansrc = /usr/man/manl
+manext = l
+NNTPSRC = ../nntp
 CFLAGS = -i -O
-SEPFLAG = -i
 LDFLAGS = -i
 NDIRC = 
 NDIRO = 
@@ -25,7 +25,7 @@ NDIRO =
 libs =  -ltermlib 
 
 public = rn newsetup newsgroups Pnews Rnmail
-private = norm.saver mbox.saver ng.help art.help pager.help subs.help makedir filexp Pnews.header
+private = norm.saver mbox.saver ng.help art.help pager.help subs.help makedir filexp Pnews.header getactive
 manpages = rn.1 Pnews.1 Rnmail.1 newsetup.1 newsgroups.1
 util = Makefile makedepend newsnews
 
@@ -39,16 +39,22 @@ h = $(h1) $(h2) $(h3) $(h4)
 c1 = addng.c art.c artio.c artsrch.c backpage.c bits.c cheat.c
 c2 = final.c head.c help.c init.c intrp.c kfile.c last.c $(NDIRC) ng.c
 c3 = ngdata.c ngsrch.c ngstuff.c only.c rcln.c rcstuff.c
-c4 = respond.c rn.c search.c sw.c term.c util.c
+c4 = respond.c rn.c search.c sw.c term.c util.c $(NNTPSRC)/common/clientlib.c
 
 c = $(c1) $(c2) $(c3) $(c4)
 
 obj1 = addng.o art.o artio.o artsrch.o backpage.o bits.o cheat.o
 obj2 = final.o head.o help.o init.o intrp.o kfile.o last.o $(NDIRO) ng.o
 obj3 = ngdata.o ngsrch.o ngstuff.o only.o rcln.o rcstuff.o
-obj4 = respond.o rn.o search.o sw.o term.o util.o
+obj4 = respond.o rn.o search.o sw.o term.o util.o $(NNTPSRC)/common/clientlib.o
 
 obj = $(obj1) $(obj2) $(obj3) $(obj4)
+
+base = art.o artio.o artsrch.o backpage.o bits.o cheat.o \
+	head.o intrp.o ng.o rn.o $(NNTPSRC)/common/clientlib.o
+ov1 = addng.o final.o help.o init.o kfile.o last.o $(NDIRO) ngdata.o ngsrch.o \
+	ngstuff.o only.o rcln.o rcstuff.o
+ov2 = respond.o search.o sw.o term.o util.o
 
 lintflags = -phbvxac
 
@@ -70,17 +76,17 @@ all: $(public) $(private) $(util)
 	touch all
 
 rn: $(obj)
-	-if [ X$(SEPFLAG) = X ]; then \
-		$(CC) $(LDFLAGS) $(obj) $(libs) -o rn; \
-	elif [ X$(SEPFLAG) = X-i ]; then \
-		ld -i -X /lib/crt0.o $(obj1) \
-			-Z $(obj3) \
-			-Z $(obj4) \
-			-Z $(obj2) \
-			-Y $(libs) -lc -o rn; \
-	else \
-		echo "Need an overlay scheme for non-separate I&D load"; \
-	fi
+#	$(CC) $(LDFLAGS) $(obj) $(libs) -o rn
+	$(CC) $(LDFLAGS) $(base) -Z $(ov1) -Z $(ov2) -Y $(libs) -o rn
+
+
+getactive: getactive.o $(NNTPSRC)/common/clientlib.o
+	$(CC) $(LDFLAGS) getactive.o $(NNTPSRC)/common/clientlib.o -o getactive
+
+# Eek! This is gross.
+$(NNTPSRC)/common/clientlib.o:
+	$(CC) -c $(CFLAGS) $(NNTPSRC)/common/clientlib.c
+	mv clientlib.o $(NNTPSRC)/common/clientlib.o
 
 # if a .h file depends on another .h file...
 $(h):
@@ -90,6 +96,7 @@ install: rn
 # won't work with csh
 	export PATH || exit 1
 	- mv $(rnbin)/rn $(rnbin)/rn.old
+	- ln -s $(rnbin)/rn $(rnbin)/rrn
 	- if test `pwd` != $(rnbin); then cp $(public) $(rnbin); fi
 	cd $(rnbin); chmod 755 $(public)
 	chmod 755 makedir
@@ -104,10 +111,10 @@ done; \
 fi
 
 clean:
-	rm -f *.o
+	rm -f *.o rn core getactive
 
 realclean:
-	rm -f rn *.o core $(addedbyconf)
+	rm -f rn *.o core $(addedbyconf) $(NNTPSRC)/common/clientlib.o
 
 # The following lint has practically everything turned on.  Unfortunately,
 # you have to wade through a lot of mumbo jumbo that can't be suppressed.
@@ -174,7 +181,6 @@ art.o: head.h
 art.o: help.h
 art.o: intrp.h
 art.o: ng.h
-art.o: ngdata.h
 art.o: ngstuff.h
 art.o: rcstuff.h
 art.o: rn.h
@@ -182,6 +188,7 @@ art.o: search.h
 art.o: sw.h
 art.o: term.h
 art.o: util.h
+artio.o: ../nntp/common/response_codes.h
 artio.o: /usr/include/ctype.h
 artio.o: /usr/include/errno.h
 artio.o: /usr/include/fcntl.h
@@ -199,6 +206,7 @@ artio.o: artio.c
 artio.o: artio.h
 artio.o: common.h
 artio.o: config.h
+artio.o: server.h
 artsrch.o: /usr/include/ctype.h
 artsrch.o: /usr/include/errno.h
 artsrch.o: /usr/include/fcntl.h
@@ -300,6 +308,8 @@ cheat.o: intrp.h
 cheat.o: ng.h
 cheat.o: search.h
 cheat.o: term.h
+extract.o: /usr/include/stdio.h
+extract.o: extract.c
 final.o: /usr/include/ctype.h
 final.o: /usr/include/errno.h
 final.o: /usr/include/fcntl.h
@@ -313,6 +323,7 @@ final.o: /usr/include/sys/ttydev.h
 final.o: /usr/include/sys/types.h
 final.o: EXTERN.h
 final.o: INTERN.h
+final.o: artio.h
 final.o: bits.h
 final.o: common.h
 final.o: config.h
@@ -321,9 +332,17 @@ final.o: final.h
 final.o: init.h
 final.o: last.h
 final.o: ng.h
+final.o: ngdata.h
 final.o: rcstuff.h
 final.o: term.h
 final.o: util.h
+getactive.o: ../nntp/common/response_codes.h
+getactive.o: /usr/include/stdio.h
+getactive.o: EXTERN.h
+getactive.o: config.h
+getactive.o: getactive.c
+getactive.o: server.h
+head.o: ../nntp/common/response_codes.h
 head.o: /usr/include/ctype.h
 head.o: /usr/include/errno.h
 head.o: /usr/include/fcntl.h
@@ -343,6 +362,7 @@ head.o: common.h
 head.o: config.h
 head.o: head.c
 head.o: head.h
+head.o: server.h
 head.o: util.h
 help.o: /usr/include/ctype.h
 help.o: /usr/include/errno.h
@@ -363,6 +383,7 @@ help.o: help.c
 help.o: help.h
 help.o: rn.h
 help.o: term.h
+init.o: ../nntp/common/response_codes.h
 init.o: /usr/include/ctype.h
 init.o: /usr/include/errno.h
 init.o: /usr/include/fcntl.h
@@ -403,6 +424,7 @@ init.o: rcstuff.h
 init.o: respond.h
 init.o: rn.h
 init.o: search.h
+init.o: server.h
 init.o: sw.h
 init.o: term.h
 init.o: util.h
@@ -410,7 +432,6 @@ intrp.o: /usr/include/ctype.h
 intrp.o: /usr/include/errno.h
 intrp.o: /usr/include/fcntl.h
 intrp.o: /usr/include/sgtty.h
-intrp.o: /usr/include/short_names.h
 intrp.o: /usr/include/signal.h
 intrp.o: /usr/include/stdio.h
 intrp.o: /usr/include/sys/ioctl.h
@@ -503,6 +524,7 @@ ndir.o: common.h
 ndir.o: config.h
 ndir.o: ndir.c
 ndir.o: ndir.h
+ng.o: ../nntp/common/response_codes.h
 ng.o: /usr/include/ctype.h
 ng.o: /usr/include/errno.h
 ng.o: /usr/include/fcntl.h
@@ -540,8 +562,10 @@ ng.o: rcstuff.h
 ng.o: respond.h
 ng.o: rn.h
 ng.o: search.h
+ng.o: server.h
 ng.o: term.h
 ng.o: util.h
+ngdata.o: ../nntp/common/response_codes.h
 ngdata.o: /usr/include/ctype.h
 ngdata.o: /usr/include/errno.h
 ngdata.o: /usr/include/fcntl.h
@@ -566,7 +590,7 @@ ngdata.o: ngdata.h
 ngdata.o: rcln.h
 ngdata.o: rcstuff.h
 ngdata.o: rn.h
-ngdata.o: util.h
+ngdata.o: server.h
 ngsrch.o: /usr/include/ctype.h
 ngsrch.o: /usr/include/errno.h
 ngsrch.o: /usr/include/fcntl.h
@@ -658,6 +682,7 @@ rcln.o: rcln.c
 rcln.o: rcln.h
 rcln.o: rcstuff.h
 rcln.o: util.h
+rcstuff.o: ../nntp/common/response_codes.h
 rcstuff.o: /usr/include/ctype.h
 rcstuff.o: /usr/include/errno.h
 rcstuff.o: /usr/include/fcntl.h
@@ -682,6 +707,7 @@ rcstuff.o: rcstuff.c
 rcstuff.o: rcstuff.h
 rcstuff.o: rn.h
 rcstuff.o: search.h
+rcstuff.o: server.h
 rcstuff.o: term.h
 rcstuff.o: util.h
 respond.o: /usr/include/ctype.h

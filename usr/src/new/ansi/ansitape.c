@@ -8,27 +8,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef BSD2_10
-#include <short_names.h>
-#define totalreadfiles	trfiles
-#define totalreadblocks	trblocks
-#define totalreadlines	trlines
-#define totalreadchars	trchars
-#define totalwritefiles	trwfiles
-#define totalwriteblocks trwblocks
-#define totalwritelines	trwlines
-#define totalwritechars	trwchars
-#define writehdr1	whdr1
-#define writehdr2	whdr2
-#define writehdr3	whdr3
-#define writeeof1	weof1
-#define writeeof2	weof2
-#define writeeof3	weof3
-#define writeeof1	weof1
-#define writeeof2	weof2
-#define writeeof3	weof3
-#endif
-
 char *malloc();
 int wflag;
 int xflag;

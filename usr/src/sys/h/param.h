@@ -3,15 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)param.h	1.3 (2.11BSD GTE) 12/31/93
  */
 
-#define	BSD	210		/* 2.10 * 10, as cpp doesn't do floats */
-#define	BSD2_10	1
+#define	BSD	211		/* 2.11 * 10, as cpp doesn't do floats */
 
 #ifdef KERNEL
 #include "localopts.h"
-#include "short_names.h"
 #else
 #include <sys/localopts.h>
 #endif
@@ -28,7 +26,7 @@
 /*
  * Machine-independent constants
  */
-#define	NMOUNT	5		/* number of mountable file systems */
+#define	NMOUNT	6		/* number of mountable file systems */
 #define	MAXUPRC	20		/* max processes per user */
 #define	NOFILE	30		/* max open files per process */
 #define	CANBSIZ	256		/* max size of typewriter line */
@@ -40,12 +38,7 @@
 /*
  * Priorities
  */
-#ifdef CGL_RTP
-#define	PRTP	0
-#define	PSWP	5
-#else
 #define	PSWP	0
-#endif
 #define	PINOD	10
 #define	PRIBIO	20
 #define	PRIUBA	24
@@ -74,7 +67,7 @@
 #define	NBPW	sizeof(int)	/* number of bytes in an integer */
 
 #define	NULL	0
-#define	CMASK	022		/* default mask for file creation */
+#define	CMASK	026		/* default mask for file creation */
 #define	NODEV	(dev_t)(-1)
 
 #define	CLBYTES		(CLSIZE*NBPG)
@@ -137,6 +130,11 @@
  */
 #define MAXHOSTNAMELEN	64
 
-#if defined(KERNEL) && defined(UCB_NET)
+#if defined(KERNEL) && defined(INET)
 #include "../machine/net_mac.h"
 #endif
+
+/*
+ * MAXMEM is the maximum core per process is allowed.  First number is Kb.
+*/
+#define	MAXMEM		(300*16)

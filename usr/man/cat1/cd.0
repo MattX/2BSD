@@ -5,13 +5,13 @@ CD(1)		    UNIX Programmer's Manual		    CD(1)
 
 
 
-NNAAMMEE
+NAME
      cd - change working directory
 
-SSYYNNOOPPSSIISS
-     ccdd directory
+SYNOPSIS
+     cd directory
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _D_i_r_e_c_t_o_r_y becomes the new working directory.  The process
      must have execute (search) permission in _d_i_r_e_c_t_o_r_y.
 
@@ -23,7 +23,7 @@ DDEESSCCRRIIPPTTIIOONN
      directory of the current directory; see the description of
      the _c_d_p_a_t_h variable in _c_s_h(1).
 
-SSEEEE AALLSSOO
+SEE ALSO
      csh(1), sh(1), pwd(1), chdir(2)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+Printed 1/9/94		 April 29, 1985                         1
 
 
 

@@ -1,97 +1,31 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 12/28/88						1
-
-
-
-
-
-
 RA(4)		    UNIX Programmer's Manual		    RA(4)
 
 
 
-NNAAMMEE
+NAME
      ra - MSCP disk controller interface
 
-SSYYNNOOPPSSIISS
-     //ssyyss//ccoonnff//SSYYSSTTEEMM::
-	  NNRRAACC _r_a__c_o_n_t_r_o_l_l_e_r_s ## NNRRAADD ccoonnttrroolllleerrss
-	  NNRRAADD _r_a__d_r_i_v_e_s      ## RRXX5500,, RRCC2255,, RRDD5511//5522//5533,, RRAA6600//8800//8811
+SYNOPSIS
+     /sys/conf/SYSTEM:
+	  NRAC _r_a__c_o_n_t_r_o_l_l_e_r_s # NRAD controllers
+	  NRAD _r_a__d_r_i_v_e_s      # RX33/50, RC25, RD51/52/53/54, RA60/80/81/82
 
-     //eettcc//ddttaabb::
-	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
-	  rraa	??     117722115500 115544    55  rraaiinnttrr	       ## uuddaa5500,, rrqqddxx11//22//33
+     /etc/dtab:
+	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
+	  ra	?     172150 154    5  raintr	       # uda50, rqdx1/2/3
 
-     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
-	  rraaww:: 1144
-	  bblloocckk:: 55
-     mmiinnoorr ddeevviiccee eennccooddiinngg::
-	  bbiittss 00000077 ssppeecciiffyy ppaarrttiittiioonn ooff RRAA ddrriivvee
-	  bbiittss 00007700 ssppeecciiffyy RRAA ddrriivvee
-	  bbiittss 00330000 ssppeecciiffyy RRAA ccoonnttrroolllleerr
+     major device number(s):
+	  raw: 14
+	  block: 5
+     minor device encoding:
+	  bits 0007 specify partition of RA drive
+	  bits 0070 specify RA drive
+	  bits 0300 specify RA controller
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This is a driver for the DEC UDA-50 disk controller and for
      other compatible controllers.  The UDA-50 communicates with
      the host through a packet oriented protocol termed the Mass
@@ -120,13 +54,13 @@ DDEESSCCRRIIPPTTIIOONN
      tor).  Likewise _s_e_e_k calls should specify a multiple of 512
      bytes.
 
-DDIISSKK SSUUPPPPOORRTT
+DISK SUPPORT
      This driver configures the drive type of each drive when it
      is first opened.  A partition table in the driver is
 
 
 
-Printed 12/28/88	September 6, 1987			1
+Printed 1/9/94		September 6, 1987			1
 
 
 
@@ -156,7 +90,7 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 	  ra?g	unused
 	  ra?h	     0	 50799	 50800	whole disk
 
-     RX50 partitions
+     RX33/50 partitions
 	  disk	 start	   end	length	comments
 	  ra?a	unusable
 	  ra?b	unusable
@@ -187,12 +121,12 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 	  ra?e	     0	  7459	  7460
 	  ra?f	  7460	  9699	  2240
 	  ra?g	  9700	 60447	 50748
-	  ra?h	     0	 60447	 60448
+	  ra?h	     0	 60447	 60448	whole disk
 
 
 
 
-Printed 12/28/88	September 6, 1987			2
+Printed 1/9/94		September 6, 1987			2
 
 
 
@@ -213,6 +147,17 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 	  ra?f	  7460	  9699	  2240
 	  ra?g	  9700	138639	128940
 	  ra?h	     0	138639	138640	whole disk
+
+     RD54 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 32603	 16720	swap
+	  ra?c	 32604	331167	298564	/usr
+	  ra?d	 unused
+	  ra?e	 unused
+	  ra?f	 unused
+	  ra?g	 unused
+	  ra?h	     0	331167	331168	whole disk
 
      RA60 partitions
 	  disk	 start	   end	length	comments
@@ -236,6 +181,28 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 	  ra?g	unused
 	  ra?h	0	236211	236212	whole disk
 
+
+
+
+
+
+
+
+
+
+
+
+Printed 1/9/94		September 6, 1987			3
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
      RA81 partitions
 	  disk	 start	   end	length	comments
 	  ra?a	     0	 15883	 15884	/
@@ -247,18 +214,51 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 	  ra?g	242606	890071	647466
 	  ra?h	     0	890071	890072	whole disk
 
-     The ra?a partition is normally used for the root file sys-
-     tem, the ra?b partition as a paging area, and the ra?c par-
-     tition for pack-pack copying (it maps the entire disk).
+     RA82 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 32603	 16720	swap
+	  ra?c	 32604	336313	303710	/usr
+	  ra?d	336314	640023	303710
+	  ra?e	640024	943733	303710
+	  ra?f	943734 1247443	303710
+	  ra?g	unused
+	  ra?h	     0 1247449 1247450	whole disk
 
-FFIILLEESS
-     /dev/ra[0-9][a-f]
-     /dev/rra[0-9][a-f]
+     The ra?a partition is normally used for the root file sys-
+     tem, the ra?b partition as a swap area, and the ra?h parti-
+     tion for pack-pack copying (it maps the entire disk).
+
+FILES
+     /dev/ra[0-7][a-h]
+     /dev/rra[0-7][a-h]
      /dev/MAKEDEV	 script to create special files
 
+SEE ALSO
+     hk(4), ram(4), rk(4), rl(4), rp(4), rx(4), si(4), xp(4),
+     dtab(5), autoconfig(8)
+
+DIAGNOSTICS
+     rasa %o, state %d.  (Additional status information given
+     after a hard i/o error.) The values of the UDA-50 status
+     register and the internal driver state are printed.
+
+     ra%d: interrupt in unknown state %d ignored.  An interrupt
+     was received when the driver was in an unknown internal
+     state.  Indicates a hardware problem or a driver bug.
+
+     ra%d: fatal error (%o).  The UDA-50 indicated a ``fatal
+     error'' in the status returned to the host.  The contents of
+     the status register are displayed.
+
+     ra%d,%d: OFFLINE.	(Additional status information given
+     after a hard i/o error.) A hard i/o error occurred because
+     the drive was not on-line.  The attached unit number and the
+     MSCP unit numbers are printed.
 
 
-Printed 12/28/88	September 6, 1987			3
+
+Printed 1/9/94		September 6, 1987			4
 
 
 
@@ -269,72 +269,36 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 
 
 
-SSEEEE AALLSSOO
-     hk(4), ram(4), rk(4), rl(4), rp(4), rx(4), si(4), xp(4),
-     dtab(5), autoconfig(8)
-
-DDIIAAGGNNOOSSTTIICCSS
-     rraassaa %%oo,, ssttaattee %%dd.  (Additional status information given
-     after a hard i/o error.) The values of the UDA-50 status
-     register and the internal driver state are printed.
-
-     rraa%%dd:: iinntteerrrruupptt iinn uunnkknnoowwnn ssttaattee %%dd iiggnnoorreedd.  An interrupt
-     was received when the driver was in an unknown internal
-     state.  Indicates a hardware problem or a driver bug.
-
-     rraa%%dd:: ffaattaall eerrrroorr ((%%oo)).  The UDA-50 indicated a ``fatal
-     error'' in the status returned to the host.  The contents of
-     the status register are displayed.
-
-     rraa%%dd,,%%dd:: OOFFFFLLIINNEE.	(Additional status information given
-     after a hard i/o error.) A hard i/o error occurred because
-     the drive was not on-line.  The attached unit number and the
-     MSCP unit numbers are printed.
-
-     ssttaattuuss %%oo.  (Additional status information given after a
+     status %o.  (Additional status information given after a
      hard i/o error.) The status information returned from the
      UDA-50 is tacked onto the end of the hard error message
      printed on the console.
 
-     rraa:: uunnkknnoowwnn ppaacckkeett ooppccooddee==00%%oo.  An MSCP packet of unknown
+     ra: unknown packet opcode=0%o.  An MSCP packet of unknown
      type was received from the UDA-50.  Check the cabling to the
      controller.
 
      The following errors are interpretations of MSCP error mes-
      sages returned by the UDA-50 to the host.
 
-     rraa:: %%ss eerrrroorr,, ccoonnttrroolllleerr eerrrroorr,, eevveenntt 00%%oo.
+     ra: %s error, controller error, event 0%o.
 
-     rraa:: %%ss eerrrroorr,, hhoosstt mmeemmoorryy aacccceessss eerrrroorr,, eevveenntt 00%%oo,, aaddddrr 00%%oo.
+     ra: %s error, host memory access error, event 0%o, addr 0%o.
 
-     rraa:: %%ss eerrrroorr,, ddiisskk ttrraannssffeerr eerrrroorr,, uunniitt %%dd,, ggrrpp 00xx%%xx,, hhddrr
-     00xx%%xx.
+     ra: %s error, disk transfer error, unit %d, grp 0x%x, hdr
+     0x%x.
 
-     rraa:: %%ss eerrrroorr,, SSDDII eerrrroorr,, uunniitt %%dd,, eevveenntt 00%%oo,, hhddrr 00xx%%xx.
+     ra: %s error, SDI error, unit %d, event 0%o, hdr 0x%x.
 
-     rraa:: %%ss eerrrroorr,, ssmmaallll ddiisskk eerrrroorr,, uunniitt %%dd,, eevveenntt 00%%oo,, ccyyll %%dd.
+     ra: %s error, small disk error, unit %d, event 0%o, cyl %d.
 
-     rraa:: %%ss eerrrroorr,, uunnkknnoowwnn eerrrroorr,, uunniitt %%dd,, ffoorrmmaatt 00%%oo,, eevveenntt 00%%oo.
+     ra: %s error, unknown error, unit %d, format 0%o, event 0%o.
 
-BBUUGGSS
+BUGS
      In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to 512-
      byte block boundaries, and _w_r_i_t_e scribbles on the tail of
      incomplete blocks.  Thus, in programs that are likely to
      access raw devices, _r_e_a_d, _w_r_i_t_e and _l_s_e_e_k(2) should always
-
-
-
-Printed 12/28/88	September 6, 1987			4
-
-
-
-
-
-
-RA(4)		    UNIX Programmer's Manual		    RA(4)
-
-
-
      deal in 512-byte multiples.
 
      The partition tables attempt to combine compatibility with
@@ -360,37 +324,7 @@ RA(4)		    UNIX Programmer's Manual		    RA(4)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 12/28/88	September 6, 1987			5
+Printed 1/9/94		September 6, 1987			5
 
 
 

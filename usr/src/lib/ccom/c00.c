@@ -134,7 +134,6 @@ lookup()
 {
 	unsigned ihash;
 	register struct nmlist *rp;
-	register char *sp, *np;
 
 	ihash = hash(symbuf);
 	if (kwhash[ihash/LNBPW] & (1 << (ihash%LNBPW)))
@@ -142,10 +141,8 @@ lookup()
 			return(KEYW);
 	rp = hshtab[ihash];
 	while (rp) {
-		np = rp->name;
-		for (sp=symbuf; sp<symbuf+NCPS;)
-			if (*np++ != *sp++)
-				goto no;
+		if (strcmp(symbuf, rp->name) != 0)
+			goto no;
 		if (mossym != (rp->hflag&FKIND))
 			goto no;
 		csym = rp;
@@ -164,9 +161,8 @@ lookup()
 	rp->sparent = NULL;
 	rp->hblklev = blklev;
 	rp->hflag = mossym;
-	sp = symbuf;
-	for (np=rp->name; sp<symbuf+NCPS;)
-		*np++ = *sp++;
+	rp->name = Dblock((strlen(symbuf) + 1 + LNCPW - 1) & ~(LNCPW - 1));
+	strcpy(rp->name, symbuf);
 	csym = rp;
 	return(NAME);
 }
@@ -177,21 +173,13 @@ lookup()
 findkw()
 {
 	register struct kwtab *kp;
-	register char *p1, *p2;
-	char *wp;
-	int firstc;
 
-	wp = symbuf;
-	firstc = *wp;
-	for (kp=kwtab; (p2 = kp->kwname); kp++) {
-		p1 = wp;
-		while (*p1 == *p2++)
-			if (*p1++ == '\0') {
-				cval = kp->kwval;
-				return(1);
-			}
+	for (kp=kwtab; kp->kwname; kp++) {
+		if (strcmp(symbuf, kp->kwname) == 0) {
+			cval = kp->kwval;
+			return(1);
+		}
 	}
-	*wp = firstc;
 	return(0);
 }
 
@@ -324,13 +312,12 @@ loop:
 
 	case LETTER:
 		sp = symbuf;
-		while(ctab[c]==LETTER || ctab[c]==DIGIT) {
-			if (sp<symbuf+NCPS)
+		while (ctab[c]==LETTER || ctab[c]==DIGIT) {
+			if (sp < symbuf + MAXCPS)
 				*sp++ = c;
 			c = getchar();
 		}
-		while(sp<symbuf+NCPS)
-			*sp++ = '\0';
+		*sp++ = '\0';
 		mossym = mosflg;
 		mosflg = 0;
 		peekc = c;
@@ -623,8 +610,7 @@ advanc:
 				cs->htype = FUNC;
 			} else {
 				cs->hclass = STATIC;
-				error("%.*s undefined; func. %.*s",
-					NCPS, cs->name, NCPS,
+				error("%s undefined; func. %s", cs->name,
 					funcsym ? funcsym->name : "(none)");
 			}
 		*cp++ = nblock(cs);
@@ -869,11 +855,9 @@ xprtype()
 char *
 copnum(len)
 {
-	register char *s1, *s2, *s3;
+	register char *s1;
 
-	s1 = s2 = Tblock((len+LNCPW-1) & ~(LNCPW-1));
-	s3 = numbuf;
-	while (*s2++ = *s3++)
-		;
+	s1 = Tblock((len+LNCPW-1) & ~(LNCPW-1));
+	strcpy(s1, numbuf);
 	return(s1);
 }

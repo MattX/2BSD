@@ -5,13 +5,13 @@ CORE(5)             UNIX Programmer's Manual		  CORE(5)
 
 
 
-NNAAMMEE
+NAME
      core - format of memory image file
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ppaarraamm..hh>>
+SYNOPSIS
+     #include <sys/param.h>
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      The UNIX System writes out a memory image of a terminated
      process when any of various errors occur.	See _s_i_g_v_e_c(2) for
      the list of reasons; the most common are memory violations,
@@ -41,7 +41,7 @@ DDEESSCCRRIIPPTTIIOONN
      In general the debugger _a_d_b(1) is sufficient to deal with
      core images.
 
-SSEEEE AALLSSOO
+SEE ALSO
      adb(1), sigvec(2), stack(5)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	January 26, 1987			1
+Printed 1/9/94		January 26, 1987			1
 
 
 

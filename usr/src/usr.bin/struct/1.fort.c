@@ -7,6 +7,7 @@ static char sccsid[] = "@(#)1.fort.c	4.1	(Berkeley)	2/11/83";
 #include  "1.defs.h"
 #include "def.h"
 
+char *remtilda();
 
 act(k,c,bufptr)
 int k,bufptr;
@@ -208,7 +209,7 @@ struct lablist *makelab(x)
 long x;
 	{
 	struct lablist *p;
-	p = challoc (sizeof(*p));
+	p = (struct lablist *)challoc (sizeof(*p));
 	p->labelt = x;
 	p->nxtlab = 0;
 	return(p);
@@ -248,12 +249,13 @@ stralloc(ad,n)			/* allocate space, copy n chars from address ad, add '0' */
 int n; char *ad;
 	{
 	char *cp;
-	cp = galloc(n+1);
+	cp = (char *)galloc(n+1);
 	copycs(ad,cp,n);
-	return(cp);
+	return((int)cp);
 	}
 
 
+char *
 remtilda(s)			/* change ~ to blank */
 char *s;
 	{

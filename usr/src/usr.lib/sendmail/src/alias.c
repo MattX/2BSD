@@ -164,7 +164,7 @@ aliaslookup(name)
 **		if ~DBM: reads the aliases into the symbol table.
 */
 
-# define DBMMODE	0666
+# define DBMMODE	0644
 
 initaliases(aliasfile, init)
 	char *aliasfile;
@@ -311,7 +311,8 @@ readaliases(aliasfile, init)
 	register char *p;
 	char *rhs;
 	bool skipping;
-	int naliases, bytes, longest;
+	int naliases, longest;
+	long bytes;
 	FILE *af;
 	int (*oldsigint)();
 	ADDRESS al, bl;
@@ -453,6 +454,8 @@ readaliases(aliasfile, init)
 						break;
 					if (parseaddr(p, &bl, -1, ',') == NULL)
 						usrerr("%s... bad address", p);
+					if (bl.q_host && bl.q_host[0])
+						free(bl.q_host);
 					p = DelimChar;
 				}
 			}
@@ -498,6 +501,12 @@ readaliases(aliasfile, init)
 			content.dsize = rhssize;
 			content.dptr = rhs;
 			store(key, content);
+			if (al.q_paddr)
+				free(al.q_paddr);
+			if (al.q_host)
+				free(al.q_host);
+			if (al.q_user)
+				free(al.q_user);
 		}
 		else
 # endif DBM
@@ -532,11 +541,11 @@ readaliases(aliasfile, init)
 	(void) fclose(af);
 	CurEnv->e_to = NULL;
 	FileName = NULL;
-	message(Arpa_Info, "%d aliases, longest %d bytes, %d bytes total",
+	message(Arpa_Info, "%d aliases, longest %d bytes, %ld bytes total",
 			naliases, longest, bytes);
 # ifdef LOG
 	if (LogLevel >= 8)
-		syslog(LOG_INFO, "%d aliases, longest %d bytes, %d bytes total",
+		syslog(LOG_INFO, "%d aliases, longest %d bytes, %ld bytes total",
 			naliases, longest, bytes);
 # endif LOG
 }

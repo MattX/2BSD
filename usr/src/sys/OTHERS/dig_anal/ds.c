@@ -478,7 +478,7 @@ dsinit(unit) {
  * the user buffer should be a multiple of the track size of the disk.
  * this is for efficiency of disk i/o.
  *
- * using u.u_count, u.u_base, and f_bsize each buffer header is set up.
+ * using uio_resid, iov_base, and f_bsize each buffer header is set up.
  * the converters only need the base address of the buffer and the word
  * count. the disk needs these in addition to the block number. if we
  * are doing d/a conversions then we start the disk up to fill up the

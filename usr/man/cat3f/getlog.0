@@ -5,23 +5,23 @@ GETLOG(3F)	    UNIX Programmer's Manual	       GETLOG(3F)
 
 
 
-NNAAMMEE
+NAME
      getlog - get user's login name
 
-SSYYNNOOPPSSIISS
-     ssuubbrroouuttiinnee ggeettlloogg ((nnaammee))
-     cchhaarraacctteerr**((**)) nnaammee
+SYNOPSIS
+     subroutine getlog (name)
+     character*(*) name
 
-     cchhaarraacctteerr**((**)) ffuunnccttiioonn ggeettlloogg(())
+     character*(*) function getlog()
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _G_e_t_l_o_g will return the user's login name or all blanks if
      the process is running detached from a terminal.
 
-FFIILLEESS
+FILES
      /usr/lib/libU77.a
 
-SSEEEE AALLSSOO
+SEE ALSO
      getlogin(3)
 
 
@@ -60,7 +60,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1985				1
+Printed 1/9/94		  May 15, 1985				1
 
 
 

@@ -1,10 +1,17 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char *sccsid = "@(#)dumpmain.c	1.2 (Berkeley) 10/16/80";
+#endif
+
 #include "dump.h"
 
 int	notify = 0;	/* notify operator flag */
 long	blockswritten = 0L;	/* number of blocks written on current tape */
 int	tapeno = 0;	/* current tape number */
 int	density = 160;	/* density in 0.1" units */
+#ifdef RDUMP
+char	*host;
+int	rmthost();
+#endif
 
 main(argc, argv)
 	int	argc;
@@ -103,7 +110,24 @@ main(argc, argv)
 		argc--;
 		disk = *argv;
 	}
-
+	if (strcmp(tape, "-") == 0) {
+		pipeout++;
+		tape = "standard output";
+	}
+#ifdef RDUMP
+	{ char *index();
+	  host = tape;
+	  tape = index(host, ':');
+	  if (tape == 0) {
+		msg("need keyletter ``f'' and device ``host:tape''\n");
+		exit(1);
+	  }
+	  *tape++ = 0;
+	  if (rmthost(host) == 0)
+		exit(X_ABORT);
+	}
+	setuid(getuid());	/* rmthost() is the only reason to be setuid */
+#endif
 	if (signal(SIGHUP, sighup) == SIG_IGN)
 		signal(SIGHUP, SIG_IGN);
 	if (signal(SIGTRAP, sigtrap) == SIG_IGN)
@@ -141,16 +165,20 @@ main(argc, argv)
 	msg("Dumping %s ", disk);
 	if (dt != 0)
 		msgtail("(%s) ", dt->fs_file);
+#ifdef RDUMP
+	msgtail("to %s on host %s\n", tape, host);
+#else
 	msgtail("to %s\n", tape);
+#endif
 
 	fi = open(disk, 0);
 	if (fi < 0) {
 		msg("Cannot open %s\n", disk);
 		Exit(X_ABORT);
 	}
-	CLR(clrmap);
-	CLR(dirmap);
-	CLR(nodmap);
+	bzero(clrmap, sizeof (clrmap));
+	bzero(dirmap, sizeof (dirmap));
+	bzero(nodmap, sizeof (nodmap));
 	esize = 0;
 
 	msg("mapping (Pass I) [regular files]\n");
@@ -183,6 +211,8 @@ main(argc, argv)
 	esize += ((5*esize)/100);
 	msg("estimated %ld tape blocks on %3.2f tape(s).\n", esize, fetapes);
 
+	alloctape();			/* Allocate tape buffer */
+
 	otape();			/* bitmap is the first to tape write */
 	time(&(tstart_writing));
 	bitmap(clrmap, TS_CLRI);
@@ -194,14 +224,24 @@ main(argc, argv)
 	pass(dump, nodmap);
 
 	spcl.c_type = TS_END;
+#ifndef	RDUMP
 	for(i=0; i<NTREC; i++)
 		spclrec();
+#endif
 	msg("DUMP: %ld tape blocks on %d tape(s)\n",spcl.c_tapea,spcl.c_volume);
 	msg("DUMP IS DONE\n");
 
 	putitime();
-	close(to);
+#ifndef RDUMP
+	if (!pipeout) {
+		close(to);
+		rewind();
+	}
+#else
+	for (i = 0; i < NTREC; i++)
+		spclrec();
 	rewind();
+#endif
 	broadcast("DUMP IS DONE!\7\7\n");
 	Exit(X_FINOK);
 }
@@ -216,6 +256,10 @@ int	sigterm(){	msg("SIGTERM()  try rewriting\n"); sigAbort();}
 
 sigAbort()
 {
+	if (pipeout) {
+		msg("Unknown signal, cannot recover\n");
+		dumpabort();
+	}
 	msg("Rewriting attempted as response to unknown signal.\n");
 	fflush(stderr);
 	fflush(stdout);
@@ -226,7 +270,7 @@ sigAbort()
 char *rawname(cp)
 	char *cp;
 {
-	static char rawbuf[MAXPATHLEN];
+	static char rawbuf[32];
 	char *dp = rindex(cp, '/');
 
 	if (dp == 0)
@@ -242,7 +286,7 @@ char *rawname(cp)
 char *deraw(cp)
 	char *cp;
 {
-	static char rawbuf[MAXPATHLEN];
+	static char rawbuf[32];
 	register char *dp;
 	register char *tp;
 

@@ -5,16 +5,16 @@ UDP(4P)             UNIX Programmer's Manual		  UDP(4P)
 
 
 
-NNAAMMEE
+NAME
      udp - Internet User Datagram Protocol
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
-     ##iinncclluuddee <<nneettiinneett//iinn..hh>>
+SYNOPSIS
+     #include <sys/socket.h>
+     #include <netinet/in.h>
 
-     ss == ssoocckkeett((AAFF__IINNEETT,, SSOOCCKK__DDGGRRAAMM,, 00));;
+     s = socket(AF_INET, SOCK_DGRAM, 0);
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      UDP is a simple, unreliable datagram protocol which is used
      to support the SOCK_DGRAM abstraction for the Internet pro-
      tocol family.  UDP sockets are connectionless, and are nor-
@@ -35,7 +35,7 @@ DDEESSCCRRIIPPTTIIOONN
      Options at the IP transport level may be used with UDP; see
      _i_p(4P).
 
-DDIIAAGGNNOOSSTTIICCSS
+DIAGNOSTICS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -60,7 +60,7 @@ DDIIAAGGNNOOSSTTIICCSS
 
 
 
-Printed 12/28/88	  May 16, 1986				1
+Printed 1/9/94		  May 16, 1986				1
 
 
 
@@ -74,7 +74,7 @@ UDP(4P)             UNIX Programmer's Manual		  UDP(4P)
 		    with a network address for which no network
 		    interface exists.
 
-SSEEEE AALLSSOO
+SEE ALSO
      getsockopt(2), recv(2), send(2), socket(2), intro(4N),
      inet(4F), ip(4P)
 
@@ -126,7 +126,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 16, 1986				2
+Printed 1/9/94		  May 16, 1986				2
 
 
 

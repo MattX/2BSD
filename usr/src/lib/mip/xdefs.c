@@ -1,11 +1,19 @@
-# include "mfile1"
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid ="@(#)xdefs.c	4.3 (Berkeley) 3/19/85";
+#endif lint
+
+# include "pass1.h"
 
 /*	communication between lexical routines	*/
 
-char	ftitle[100] = "";   	/* title of the file */
+char	ftitle[100];   		/* title of the file */
+#ifndef	LINT
+char	ititle[100];   		/* title of initial file */
+#endif
 int	lineno;		/* line number of the input file */
 
 CONSZ lastcon;  /* the last constant read by the lexical analyzer */
+float fcon;   /* the last float read by the lexical analyzer */
 double dcon;   /* the last double read by the lexical analyzer */
 
 
@@ -22,12 +30,18 @@ int	curclass,	  /* current storage class */
 	blevel,		/* block level: 0 for extern, 1 for ftn args, >=2 inside function */
 	curdim;		/* current offset into the dimension table */
 	
-int	dimtab[ DIMTABSZ ];
+OFFSZ	dimtab[ DIMTABSZ ];	/* same comments as below.  bit addressing
+				 * everything forces this to be large.
+				*/
 
-int	paramstk[ PARAMSZ ];  /* used in the definition of function parameters */
+OFFSZ	paramstk[ PARAMSZ ];  /* used in definition of function parameters */
+			      /* ordinarily 'int' would be enough, but the
+			       * "bit address" in 'strucoff' (for structures
+			       * over 4kb) needs a 'long' *sigh*
+			      */
 int	paramno;	  /* the number of parameters */
-int	autooff,	/* the next unused automatic offset */
-	argoff,	/* the next unused argument offset */
+OFFSZ	autooff,	/* the next unused automatic offset */
+	argoff,		/* the next unused argument offset */
 	strucoff;	/*  the next structure offset position */
 int	regvar;		/* the next free register for register variables */
 int	minrvar;	/* the smallest that regvar gets witing a function */
@@ -65,6 +79,7 @@ int retstat;
 int asavbc[BCSZ];
 int *psavbc = asavbc ;
 
+# ifndef BUG1
 static char *
 ccnames[] = { /* names of storage classes */
 	"SNULL",
@@ -97,3 +112,4 @@ char * scnames( c ) register c; {
 		}
 	return( ccnames[c] );
 	}
+# endif

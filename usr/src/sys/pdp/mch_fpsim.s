@@ -17,10 +17,9 @@
  *	RIGHTS, APPROPRIATE COPYRIGHT LEGENDS MAY BE PLACED ON THE
  *	DERIVATIVE WORK IN ADDITION TO THAT SET FORTH ABOVE.
  *
- *	@(#)mch_fpsim.s	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)mch_fpsim.s	1.2 (2.11BSD GTE) 12/26/92
  */
 #include "DEFS.h"
-#include "../machine/reg.h"
 
 /*
  * Kernel floating point simulator
@@ -31,6 +30,7 @@
 m.ext = 200		/ long mode bit
 m.lngi = 100		/ long integer mode
 
+_u = 140000			/ XXX
 uar0 = _u + U_AR0		/ u.u_ar0
 fec  = _u + U_FPERR + F_FEC	/ u.u_fperr.f_fec
 fea  = _u + U_FPERR + F_FEA	/ u.u_fperr.f_fea
@@ -72,19 +72,17 @@ ENTRY(fptrap)
 	sr1 = -102		/	int	sr1;
 	sr0 = -104		/	int	sr0;
 
-/ make copies of all the registers - see reg.h for the offsets
+/ make copies of all the registers - see trap.c (regloc) for the offsets
 	mov	$sr0,r1
 	add	r5,r1
-	mov	uar0,r0
-	mov	R0.*2(r0),(r1)+	/ r0
-	mov	R1.*2(r0),(r1)+	/ r1
-	mov	R2.*2(r0),(r1)+	/ r2
-	mov	R3.*2(r0),(r1)+	/ r3
-	mov	R4.*2(r0),(r1)+	/ r4
-	mov	R5.*2(r0),(r1)+	/ r5
-	mov	R6.*2(r0),(r1)+	/ sp (r6)
-	mov	PC.*2(r0),(r1)+	/ pc (r7)
-	mov	RPS.*2(r0),(r1)+	/ psw
+	mov	$_regloc,r3	/ see trap.c
+	mov	$9.,r4		/ r0,1,2,3,4,5,sp,pc,psw
+1:
+	movb	(r3)+,r2	/ fetch next register offset from u_ar0
+	asl	r2		/ make word index
+	add	uar0,r2		/ add in u_ar0 
+	mov	(r2),(r1)+	/ save register
+	sob	r4,1b
 
 / get the offending instruction
 	mov	spc(r5),r1
@@ -222,18 +220,16 @@ sret:
 
 ret:
 	/ restore all the new register values
-	/ see reg.h for the offsets.
 	mov	$sr0,r1; add	r5,r1
-	mov	uar0,r0
-	mov	(r1)+,R0.*2(r0)	/ r0
-	mov	(r1)+,R1.*2(r0)	/ r1
-	mov	(r1)+,R2.*2(r0)	/ r2
-	mov	(r1)+,R3.*2(r0)	/ r3
-	mov	(r1)+,R4.*2(r0)	/ r4
-	mov	(r1)+,R5.*2(r0)	/ r5
-	mov	(r1)+,R6.*2(r0)	/ sp (r6)
-	mov	(r1)+,PC.*2(r0)	/ pc (r7)
-	mov	(r1)+,RPS.*2(r0)	/ psw
+	mov	$_regloc,r3
+	mov	$9.,r4
+1:
+	movb	(r3)+,r2
+	asl	r2
+	add	uar0,r0
+	mov	(r1)+,(r0)
+	sob	r4,1b	
+
 	bit	$020,sps(r5)	/ Check to see if T bit was set.
 	bne	1f
 	mov	spc(r5),r1	/ Check the next instruction
@@ -559,11 +555,6 @@ norm:
 
 .globl	_grow, nofault
 PS = 177776
-mfpi = 6500^tst
-mtpi = 6600^tst
-mfpd = 106500^tst
-mtpd = 106600^tst
-spl = 230
 
 ffuword:
 	mov	$1f,trapins(r5)

@@ -12,10 +12,8 @@
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif
 
-#if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)main.c	5.11 (Berkeley) 1/30/86";
+static char	SccsId[] = "@(#)main.c	5.11.1 (2.11BSD GTE) 7/15/94";
 #endif
 
 # define  _DEFINE
@@ -100,7 +98,6 @@ main(argc, argv, envp)
 	register char *p;
 	char **av;
 	extern int finis();
-	extern char Version[];
 	char *from;
 	typedef int (*fnptr)();
 	STAB *st;
@@ -869,7 +866,6 @@ freeze(freezefile)
 	union frz fhdr;
 	extern char edata, end;
 	extern char *sbrk();
-	extern char Version[];
 
 	if (freezefile == NULL)
 		return;
@@ -921,7 +917,6 @@ thaw(freezefile)
 	int f;
 	union frz fhdr;
 	extern char edata, end;
-	extern char Version[];
 	extern caddr_t brk();
 
 	if (freezefile == NULL)
@@ -1030,6 +1025,8 @@ disconnect(fulldrop)
 	(void) close(2);
 	while ((fd = dup(fileno(CurEnv->e_xfp))) < 2 && fd > 0)
 		continue;
+
+	XXctime();	/* XXX - close pipes to ctimed */
 
 #ifdef TIOCNOTTY
 	/* drop our controlling TTY completely if possible */

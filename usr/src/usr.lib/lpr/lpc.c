@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)lpc.c	5.2 (Berkeley) 11/17/85";
-#endif not lint
+static char sccsid[] = "@(#)lpc.c	5.2.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 /*
  * lpc -- line printer control program
@@ -79,9 +77,8 @@ intr()
 	longjmp(toplevel, 1);
 }
 
-#ifdef BSD2_10
 extern struct cmd cmdtab[];
-#endif
+
 /*
  * Command parser.
  */
@@ -193,7 +190,7 @@ help(argc, argv)
 		extern int NCMDS;
 
 		printf("Commands may be abbreviated.  Commands are:\n\n");
-		for (c = cmdtab; c < &cmdtab[NCMDS]; c++) {
+		for (c = cmdtab; c->c_name; c++) {
 			int len = strlen(c->c_name);
 
 			if (len > width)
@@ -207,7 +204,8 @@ help(argc, argv)
 		for (i = 0; i < lines; i++) {
 			for (j = 0; j < columns; j++) {
 				c = cmdtab + j * lines + i;
-				printf("%s", c->c_name);
+				if (c->c_name)
+					printf("%s", c->c_name);
 				if (c + lines >= &cmdtab[NCMDS]) {
 					printf("\n");
 					break;

@@ -5,44 +5,42 @@ GCORE(1)	    UNIX Programmer's Manual		 GCORE(1)
 
 
 
-NNAAMMEE
-     gcore - get core images of running processes
+NAME
+     gcore - get core image of running process
 
-SSYYNNOOPPSSIISS
-     ggccoorree process-id ...
+SYNOPSIS
+     gcore [-s][-c core] _p_i_d
 
-DDEESSCCRRIIPPTTIIOONN
-     _G_c_o_r_e creates a core image of each specified process, suit-
-     able for use with _a_d_b(1).
+DESCRIPTION
+     _g_c_o_r_e creates a core image of each specified process, suit-
+     able for use with _a_d_b(1).	By default the core image is
+     written to the file <_p_i_d>._c_o_r_e.
 
-FFIILLEESS
-     core.<process-id>	 core images
+     The options are:
 
-BBUUGGSS
-     For best results, the desired processes should be stopped.
+     -c   Write the core file to the specified file instead of
+	  <_p_i_d>._c_o_r_e.
 
-     Swapped out processes may not be gcore'd.
+     -s   Stop the process while creating the core image and
+	  resume it when done.	This makes sure that the core
+	  dump will be in a consistent state.  The process is
+	  resumed even if it was already stopped.  Of course, you
+	  can obtain the same result by manually stopping the
+	  process with kill(1).
 
+     The core image name was changed from _c_o_r_e.<_p_i_d> to
+     <_p_i_d>._c_o_r_e to prevent matching names like _c_o_r_e._h and _c_o_r_e._c
+     when using programs such as _f_i_n_d(_1).
 
+FILES
+     <process-id>.core	 The core image.
 
+BUGS
+     If gcore encounters an error while creating the core image
+     and the -s option was used the process will remain stopped.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+     Swapped out processes and system processes (the swapper) may
+     not be gcore'd.
 
 
 
@@ -60,7 +58,9 @@ BBUUGGSS
 
 
 
-Printed 12/28/88	 April 29, 1985                         1
+
+
+Printed 4/15/94          April 15, 1994                         1
 
 
 

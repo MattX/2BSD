@@ -37,6 +37,7 @@ struct optab optab[] = {
 	"bic",	BIC,
 	"bis",	BIS,
 	"mul",	MUL,
+	"div",	DIV,
 	"ash",	ASH,
 	"xor",	XOR,
 	".text",TEXT,
@@ -57,6 +58,7 @@ struct optab optab[] = {
 	"cfcc",	CFCC,
 	"sob",	SOB,
 	"jsr",	JSR,
+	"swab",	SWAB,
 	".end",	END,
 	0,	0};
 
@@ -92,15 +94,15 @@ char **argv;
 			fprintf(stderr, "C2: can't find %s\n", argv[1]);
 			exit(1);
 		}
-		setbuf(stdin,buf1);		/* sbrk problems */
 	}
+	setbuf(stdin,buf1);		/* sbrk problems */
 	if (argc>2) {
 		if (freopen(argv[2], "w", stdout) == NULL) {
 			fprintf(stderr, "C2: can't create %s\n", argv[2]);
 			exit(1);
 		}
-		setbuf(stdout,buf2);		/* sbrk problems */
 	}
+	setbuf(stdout,buf2);		/* sbrk problems */
 	lasta = firstr = lastr = sbrk(sizeof(char *));
 	maxiter = 0;
 	opsetup();

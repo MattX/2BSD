@@ -5,14 +5,14 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 
 
 
-NNAAMMEE
+NAME
      ms - text formatting macros
 
-SSYYNNOOPPSSIISS
-     nnrrooffff  --mmss  [ options ]  file  ...
-     ttrrooffff  --mmss  [ options ]  file  ...
+SYNOPSIS
+     nroff  -ms  [ options ]  file  ...
+     troff  -ms  [ options ]  file  ...
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      This package of _n_r_o_f_f and _t_r_o_f_f macro definitions provides a
      formatting facility for various styles of articles, theses,
      and books.  When producing 2-column output on a terminal or
@@ -34,14 +34,14 @@ DDEESSCCRRIIPPTTIIOONN
      the _t_b_l, _e_q_n, and _r_e_f_e_r(1) preprocessors for equations,
      tables, and references is acceptable as input.
 
-FFIILLEESS
+FILES
      /usr/lib/tmac/tmac.x
      /usr/lib/ms/x.???
 
-SSEEEE AALLSSOO
+SEE ALSO
      eqn(1), refer(1), tbl(1), troff(1)
 
-RREEQQUUEESSTTSS
+REQUESTS
 Macro	Initial   Break?   Explanation
 Name	Value	  Reset?
 .AB _x	-	  y	 begin abstract; if _x=no don't label abstract
@@ -143,7 +143,7 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 .[0	-	  n	 end of unclassifiable type of reference
 .[N	-	  n	 N= 1:journal-article, 2:book, 3:book-article, 4:report
 
-RREEGGIISSTTEERRSS
+REGISTERS
      Formatting distances can be controlled in -ms by means of
      built-in number registers.  For example, this sets the line
      length to 6.5 inches:
@@ -205,7 +205,7 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 
      before, the letter to be accented.
 
-BBUUGGSS
+BUGS
      Floating keeps and regular keeps are diverted to the same
      space, so they cannot be mixed together with predictable
      results.

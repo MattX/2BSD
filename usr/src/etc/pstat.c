@@ -10,7 +10,7 @@ char copyright[] =
  All rights reserved.\n";
 
 /* static char sccsid[] = "@(#)pstat.c	5.8 (Berkeley) 5/5/86"; */
-static char sccsid[] = "@(#)pstat.c	1.0 (2.10BSD) 12/29/87";
+static char sccsid[] = "@(#)pstat.c	1.2 (2.11BSD) 12/31/93";
 #endif not lint
 
 /*
@@ -24,7 +24,6 @@ static char sccsid[] = "@(#)pstat.c	1.0 (2.10BSD) 12/29/87";
 #include <sys/user.h>
 #undef	KERNEL
 #include <sys/proc.h>
-#include <short_names.h>
 #include <sys/text.h>
 #include <sys/inode.h>
 #include <sys/map.h>
@@ -89,6 +88,10 @@ struct nlist nl[] = {
 	{ "_dmz_tty" },
 #define	SNDMZ	23
 	{ "_ndmz" },
+#define	SDHV	24
+	{ "_dhv_tty" },
+#define	SNDHV	25
+	{ "_ndhv" },
 	{ "" }
 };
 
@@ -183,7 +186,7 @@ char **argv;
 		fnlist = argv[0];
 	nlist(fnlist, nl);
 	if (nl[0].n_type == 0) {
-		printf("no namelist\n");
+		printf("no namelist, n_type: %d n_value: %o n_name: %s\n", nl[0].n_type, nl[0].n_value, nl[0].n_name);
 		exit(1);
 	}
 	allflags = filf | totflg | inof | prcf | txtf | ttyf | usrf | swpf;
@@ -442,6 +445,8 @@ dotty()
 		dottytype("dhu", SDHU, SNDHU);
 	if (nl[SNDMZ].n_type != 0)
 		dottytype("dmz", SDMZ, SNDMZ);
+	if (nl[SNDHV].n_type != 0)
+		dottytype("dhv", SDHV, SNDHV);
 	if (nl[SNPTY].n_type != 0)
 		dottytype("pty", SPTY, SNPTY);
 }
@@ -529,6 +534,7 @@ dousr()
 	struct user U;
 	long	*ip;
 	register i, j;
+	register struct nameidata *nd = &U.u_nd;
 
 	lseek(fm, ubase << 6, 0);
 	read(fm, &U, sizeof(U));
@@ -639,7 +645,7 @@ dousr()
 	printf("lastfile\t%d\n", U.u_lastfile);
 	printf("cdir\t%.1o\n", U.u_cdir);
 	printf("rdir\t%.1o\n", U.u_rdir);
-	printf("pdir\t%.1o\n", U.u_pdir);
+	printf("pdir\t%.1o\n", nd->ni_pdir);
 	printf("ttyp\t%.1o\n", U.u_ttyp);
 	printf("ttyd\t%d,%d\n", major(U.u_ttyd), minor(U.u_ttyd));
 	printf("cmask\t%.1o\n", U.u_cmask);
@@ -678,19 +684,16 @@ dousr()
 			printf("%ld ", U.u_rlimit[i].rlim_max);
 		}
 	printf("\n");
-#ifdef QUOTA
 	printf("quota\t%.1o\n", U.u_quota);
-#endif
-	printf("base\t%.1o\n", U.u_base);
-	printf("count\t%u\n", U.u_count);
-	printf("offset\t%ld\n", U.u_offset);
-	printf("segflg\t%d\n", U.u_segflg);
+	printf("base,count,offset\t%.1o %u %ld\n", nd->ni_base,
+		nd->ni_count, nd->ni_offset);
+	printf("segflg\t%d\n", nd->ni_segflg);
 	printf("ncache\t%ld %u %d,%d\n", U.u_ncache.nc_prevoffset,
 		U.u_ncache.nc_inumber, major(U.u_ncache.nc_dev),	
 		minor(U.u_ncache.nc_dev));
-	printf("endoff\t%ld\n", U.ni_endoff);
-	printf("dirp\t%.1o\n", U.u_dirp);
-	printf("dent\t%u %s\n", U.u_dent.d_ino, U.u_dent.d_name);
+	printf("endoff\t%ld\n", nd->ni_endoff);
+	printf("dirp\t%.1o\n", nd->ni_dirp);
+	printf("dent\t%u %s\n", nd->ni_dent.d_ino, nd->ni_dent.d_name);
 }
 
 oatoi(s)
@@ -736,11 +739,7 @@ dofile()
 		return;
 	}
 	printf("%d/%d open files\n", nf, nfile);
-#ifdef	UCB_NET
 	printf("   LOC   TYPE   FLG        CNT  MSG   DATA    OFFSET\n");
-#else
-	printf("   LOC   TYPE   FLG        CNT  DATA    OFFSET\n");
-#endif
 	loc = afile;
 	for	(fp=xfile; fp < &xfile[nfile]; fp++, loc += sizeof (*fp))
 		{
@@ -761,9 +760,7 @@ dofile()
 		putf((long)fp->f_flag&FMARK, 'm');
 		putf((long)fp->f_flag&FDEFER, 'd');
 		printf("  %3d", fp->f_count);
-#ifdef	UCB_NET
 		printf("  %3d", fp->f_msgcount);
-#endif
 		printf("  %7.1o", fp->f_data);
 		if (fp->f_offset < 0)
 			printf("  0%lo\n", fp->f_offset);

@@ -1,4 +1,6 @@
+#if	!defined(lint) && defined(DOSCCS)
 static	char sccsid[] = "@(#)diffh.c 4.4 11/27/85";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>

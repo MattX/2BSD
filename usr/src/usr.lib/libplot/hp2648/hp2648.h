@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hp2648.h	5.1 (Berkeley) 5/7/85
+ *	@(#)hp2648.h	5.1.1 (2.11BSD GTE) 1/1/94
  *
  *
  * Displays plot files on an hp2648a graphics terminals.  I have heard
@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #include <sys/ioctl.h>
 #endif
 
@@ -38,11 +38,6 @@
 #define ysc(yi) ((int) (yi - lowy) * scaley + 0.5)
 
 extern int shakehands;
-
-#ifdef BSD2_10
-#define	currentx	crnt_x
-#define	currenty	crnt_y
-#endif
 
 extern int currentx;
 extern int currenty;

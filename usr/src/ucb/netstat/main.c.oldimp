@@ -10,20 +10,18 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
+#if	defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.8 (Berkeley) 8/11/86";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.8.1 (2.11BSD GTE) 1/1/94";
+#endif
 
 #include <sys/param.h>
 #include <sys/vmmac.h>
 #include <sys/socket.h>
-#ifndef BSD2_10
+#ifndef pdp11
 #include <machine/pte.h>
 #endif
 #include <ctype.h>
@@ -32,11 +30,7 @@ static char sccsid[] = "@(#)main.c	5.8 (Berkeley) 8/11/86";
 #include <nlist.h>
 #include <stdio.h>
 
-#ifdef BSD2_10
-#define nsprotox _nsprtx
-#endif
-
-#ifdef BSD2_10
+#ifdef pdp11
 struct nlist nl[] = {
 #define N_NETDATA	0
 	{ "_netdata" },
@@ -183,7 +177,7 @@ struct protox nsprotox[] = {
 struct	pte *Sysmap;
 
 char	*system = "/vmunix";
-#ifndef BSD2_10
+#ifndef pdp11
 char	*kmemf = "/dev/kmem";
 #else
 char	*kmemf = "/dev/mem";
@@ -333,7 +327,7 @@ use:
 		fprintf(stderr, "%s: no namelist\n", system);
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	nlist(netnix, &nl[N_DUMMY+1]);
 	if (nl[N_DUMMY+1].n_type == 0) {
 		fprintf(stderr, "%s: no namelist\n", netnix);
@@ -350,7 +344,7 @@ use:
 		perror(kmemf);
 		exit(1);
 	}
-#ifdef BSD2_10
+#ifdef pdp11
 	lseek(kmem, (off_t)nl[N_NETDATA].n_value, 0);
 	read(kmem, &base2_10, sizeof (base2_10));
 #else
@@ -446,7 +440,7 @@ use:
  * Seek into supervisor memory for a value
  * -- we can get away with this because everybody calls with off==0.
  */
-#ifdef BSD2_10
+#ifdef pdp11
 off_t
 slseek(fd, base, off)
 	int fd, off;
@@ -455,7 +449,7 @@ slseek(fd, base, off)
     base += ctob((long)base2_10);
     return(lseek(fd, base, off));
 }
-#endif BSD2_10
+#endif
 
 /*
  * Seek into the kernel for a value.
@@ -465,7 +459,7 @@ klseek(fd, base, off)
 	int fd, off;
 	off_t base;
 {
-#ifndef BSD2_10
+#ifndef pdp11
 	if (kflag) {
 		/* get kernel pte */
 #ifdef vax

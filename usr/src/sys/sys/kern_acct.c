@@ -3,24 +3,26 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_acct.c	2.1 (2.11BSD) 3/10/93
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "fs.h"
+#include "dir.h"
 #include "inode.h"
 #include "user.h"
 #include "proc.h"
 #include "acct.h"
-#include "namei.h"
 #include "kernel.h"
+#include "syslog.h"
 
 /*
  * SHOULD REPLACE THIS WITH A DRIVER THAT CAN BE READ TO SIMPLIFY.
  */
+int	acctsuspend = 2;	/* stop accounting when < 2% free space left */
+int	acctresume = 4;		/* resume when free space risen to > 4% */
+struct	timeval chk = {15, 0};	/* frequency to check space for accounting */
 struct	inode *acctp;
 struct	inode *savacctp;
 
@@ -33,6 +35,8 @@ sysacct()
 	register struct a {
 		char	*fname;
 	} *uap = (struct a *)u.u_ap;
+	register struct nameidata *ndp = &u.u_nd;
+	int acctwatch();
 
 	if (suser()) {
 		if (savacctp) {
@@ -43,12 +47,15 @@ sysacct()
 			if (ip = acctp) {
 				irele(ip);
 				acctp = NULL;
+				chk.tv_usec = 0;
+				untimeout(acctwatch, &chk);
 			}
 			return;
 		}
-		u.u_segflg = UIO_USERSPACE;
-		u.u_dirp = uap->fname;
-		ip = namei(LOOKUP | FOLLOW);
+		ndp->ni_nameiop = LOOKUP | FOLLOW;
+		ndp->ni_segflg = UIO_USERSPACE;
+		ndp->ni_dirp = uap->fname;
+		ip = namei(ndp);
 		if (ip == NULL)
 			return;
 		if ((ip->i_mode&IFMT) != IFREG) {
@@ -66,60 +73,68 @@ sysacct()
 			irele(acctp);
 		acctp = ip;
 		iunlock(ip);
+		if (chk.tv_usec == 0) {
+			chk.tv_usec = 1;	/* usec is timer enabled flag */
+			timeout(acctwatch, &chk, chk.tv_sec * hz);
+		}
 	}
 }
 
-int	acctsuspend = 2;	/* stop accounting when < 2% free space left */
-int	acctresume = 4;		/* resume when free space risen to > 4% */
-
-struct	acct acctbuf;
-/*
- * On exit, write a record on the accounting file.
- */
-acct()
+acctwatch(resettime)
+	register struct	timeval *resettime;
 {
-	register struct inode *ip;
 	register struct fs *fs;
-	off_t siz;
 
 	if (savacctp) {
 		fs = savacctp->i_fs;
 		if (freespace(fs, acctresume) > 0) {
 			acctp = savacctp;
 			savacctp = NULL;
-			printf("Accounting resumed\n");
+			log(LOG_NOTICE, "Accounting resumed\n");
+/*			return;		/* XXX - fall thru and refresh timer */
 		}
 	}
-	if ((ip = acctp) == NULL)
-		return;
+	if (acctp == NULL)
+		return;		/* do not refresh timer */
 	fs = acctp->i_fs;
 	if (freespace(fs, acctsuspend) <= 0) {
 		savacctp = acctp;
 		acctp = NULL;
-		printf("Accounting suspended\n");
-		return;
+		log(LOG_NOTICE, "Accounting suspended\n");
 	}
+	timeout(acctwatch, resettime, resettime->tv_sec * hz);
+}
+
+/*
+ * On exit, write a record on the accounting file.
+ */
+acct()
+{
+	struct	acct acctbuf;
+	register struct inode *ip;
+	off_t siz;
+	register struct acct *ap = &acctbuf;
+
+	if ((ip = acctp) == NULL)
+		return;
 	ilock(ip);
-	bcopy(u.u_comm, acctbuf.ac_comm, sizeof(acctbuf.ac_comm));
-	acctbuf.ac_utime = compress(u.u_ru.ru_utime);
-	acctbuf.ac_stime = compress(u.u_ru.ru_stime);
-	acctbuf.ac_etime = compress(time.tv_sec - u.u_start);
-	acctbuf.ac_btime = u.u_start;
-	acctbuf.ac_uid = u.u_ruid;
-	acctbuf.ac_gid = u.u_rgid;
-	acctbuf.ac_mem = u.u_dsize+u.u_ssize;	/* probably max */
-#ifdef UCB_RUSAGE
-	acctbuf.ac_io = compress(u.u_ru.ru_inblock + u.u_ru.ru_oublock);
-#endif
-	acctbuf.ac_tty = u.u_ttyd;
-	acctbuf.ac_flag = u.u_acflag;
+	bcopy(u.u_comm, ap->ac_comm, sizeof(acctbuf.ac_comm));
+	ap->ac_utime = compress(u.u_ru.ru_utime);
+	ap->ac_stime = compress(u.u_ru.ru_stime);
+	ap->ac_etime = compress(time.tv_sec - u.u_start);
+	ap->ac_btime = u.u_start;
+	ap->ac_uid = u.u_ruid;
+	ap->ac_gid = u.u_rgid;
+	ap->ac_mem = (u.u_dsize+u.u_ssize) / 16; /* fast ctok() */
+	ap->ac_io = compress(u.u_ru.ru_inblock + u.u_ru.ru_oublock);
+	if (u.u_ttyp)
+		ap->ac_tty = u.u_ttyd;
+	else
+		ap->ac_tty = NODEV;
+	ap->ac_flag = u.u_acflag;
 	siz = ip->i_size;
-	u.u_offset = siz;
-	u.u_base = (caddr_t)&acctbuf;
-	u.u_count = sizeof(acctbuf);
-	u.u_segflg = UIO_SYSSPACE;
-	u.u_error = 0;
-	writei(ip);
+	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), siz,
+			UIO_SYSSPACE, (int *)0);
 	if (u.u_error)
 		itrunc(ip, (u_long)siz);
 	iunlock(ip);

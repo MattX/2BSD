@@ -1,5 +1,5 @@
 %{#include "defs"
-static	char *sccsid = "@(#)gram.y	4.1 (Berkeley) 81/02/28";
+/* static	char *sccsid = "@(#)gram.y	4.1 (Berkeley) 81/02/28"; */
 %}
 
 %term NAME SHELLINE START MACRODEF COLON DOUBLECOLON GREATER

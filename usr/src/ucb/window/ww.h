@@ -8,14 +8,10 @@
  * the terms of the Berkeley Software License Agreement.
  */
 
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
-
 #include <sgtty.h>
 #include <setjmp.h>
 
-#ifdef BSD2_10
+#ifdef pdp11
 #define NWW	9		/* maximum number of windows */
 #else
 #define NWW	30		/* maximum number of windows */
@@ -175,7 +171,7 @@ struct ww_tty wwoldtty;		/* the old (saved) terminal settings */
 struct ww_tty wwnewtty;		/* the new (current) terminal settings */
 struct ww_tty wwwintty;		/* the terminal settings for windows */
 char *wwterm;			/* the terminal name */
-#ifdef BSD2_10
+#ifdef pdp11
 	/* these are on the stack; see main.c */
 char *wwtermcap;		/* place for the termcap */
 char *wwkeys;			/* termcap fields for the function keys */

@@ -171,7 +171,7 @@ setmaps.o:	funcdefs.c keymaps.txt
 # it doesn't understand ifdefs
 
 keymaps.c:	setmaps keymaps.txt
-	-setmaps < keymaps.txt > keymaps.c
+	-./setmaps < keymaps.txt > keymaps.c
 
 keymaps.o:	keymaps.c jove.h
 
@@ -191,52 +191,53 @@ macvert:	macvert.c
 
 # install doesn't work for Xenix (no install program)
 
-install: $(DESTDIR)$(LIBDIR) $(TEACH-JOVE) $(CMDS.DOC) $(JOVERC) \
-	 $(PORTSRV) $(RECOVER) $(JOVE) $(TEACHJOVE) $(JOVEM) \
-	 $(RECOVERM) $(TEACHJOVEM)
+install: DESTDIR_LIBDIR TEACH-JOVE CMDS.DOC JOVERC PORTSRV RECOVER JOVE \
+	TEACHJOVE JOVEM TEACHJOVEM
 
-$(DESTDIR)$(LIBDIR):
+DESTDIR_LIBDIR:
 	-mkdir $(DESTDIR)$(LIBDIR)
 
-$(TEACH-JOVE): doc/teach-jove
+TEACH-JOVE: doc/teach-jove
 	install -c -m 644 doc/teach-jove $(TEACH-JOVE)
 
 doc/cmds.doc:	doc/cmds.doc.nr doc/jove.4 doc/jove.5
 	nroff doc/cmds.doc.nr doc/jove.4 doc/jove.5 > doc/cmds.doc
 
-$(CMDS.DOC): doc/cmds.doc
+CMDS.DOC: doc/cmds.doc
 	install -c -m 644 doc/cmds.doc $(CMDS.DOC)
 
-$(JOVERC): doc/system.rc
+JOVERC: doc/system.rc
 	install -c -m 644 doc/system.rc $(JOVERC)
 
-$(PORTSRV): portsrv
+PORTSRV: portsrv
 	install -c -s -m 755 portsrv $(PORTSRV)
 
-$(RECOVER): recover
+RECOVER: recover
 	install -c -s -m 755 recover $(RECOVER)
 
-$(JOVE): xjove
+JOVE: xjove
 	install -c -s -m 755 xjove $(JOVE)
 
-$(TEACHJOVE): teachjove
+TEACHJOVE: teachjove
 	install -c -s -m 755 teachjove $(TEACHJOVE)
 
-$(JOVEM): doc/jove.nr
+JOVEM: doc/jove.nr
 	@sed -e 's;TMPDIR;$(TMPDIR);' \
 	     -e 's;LIBDIR;$(LIBDIR);' \
 	     -e 's;SHELL;$(SHELL);' doc/jove.nr \
 	| /usr/man/manroff \
 	> $(JOVEM)
 	chmod 444 $(JOVEM)
+	chown bin.bin $(JOVEM)
 
-$(TEACHJOVEM): doc/teachjove.nr
+TEACHJOVEM: doc/teachjove.nr
 	@sed -e 's;TMPDIR;$(TMPDIR);' \
 	     -e 's;LIBDIR;$(LIBDIR);' \
 	     -e 's;SHELL;$(SHELL);' doc/teachjove.nr \
 	| /usr/man/manroff \
 	> $(TEACHJOVEM)
 	chmod 444 $(TEACHJOVEM)
+	chown bin.bin $(TEACHJOVEM)
 
 echo:
 	@echo $(C-FILES) $(HEADERS)

@@ -5,26 +5,26 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-NNAAMMEE
+NAME
      syslog, openlog, closelog, setlogmask - control system log
 
-SSYYNNOOPPSSIISS
-     ##iinncclluuddee <<ssyysslloogg..hh>>
+SYNOPSIS
+     #include <syslog.h>
 
-     ooppeennlloogg((iiddeenntt,, llooggoopptt,, ffaacciilliittyy))
-     cchhaarr **iiddeenntt;;
+     openlog(ident, logopt, facility)
+     char *ident;
 
-     ssyysslloogg((pprriioorriittyy,, mmeessssaaggee,, ppaarraammeetteerrss ...... ))
-     cchhaarr **mmeessssaaggee;;
+     syslog(priority, message, parameters ... )
+     char *message;
 
-     cclloosseelloogg(())
+     closelog()
 
-     sseettllooggmmaasskk((mmaasskkpprrii))
+     setlogmask(maskpri)
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
      _S_y_s_l_o_g arranges to write _m_e_s_s_a_g_e onto the system log main-
      tained by _s_y_s_l_o_g_d(8).  The message is tagged with _p_r_i_o_r_i_t_y.
-     The message looks like a _p_r_i_n_t_f(3) string except that %%mm is
+     The message looks like a _p_r_i_n_t_f(3) string except that %m is
      replaced by the current error message (collected from
      _e_r_r_n_o).  A trailing newline is added if needed.  This mes-
      sage will be read by _s_y_s_l_o_g_d(8) and written to the system
@@ -60,7 +60,7 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 
-Printed 12/28/88	  May 15, 1986				1
+Printed 1/9/94		  May 15, 1986				1
 
 
 
@@ -126,7 +126,7 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-Printed 12/28/88	  May 15, 1986				2
+Printed 1/9/94		  May 15, 1986				2
 
 
 
@@ -149,7 +149,7 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
      the macro LOG_UPTO(_t_o_p_p_r_i).  The default allows all priori-
      ties to be logged.
 
-EEXXAAMMPPLLEESS
+EXAMPLES
      syslog(LOG_ALERT, "who: internal error 23");
 
      openlog("ftpd", LOG_PID, LOG_DAEMON);
@@ -158,7 +158,7 @@ EEXXAAMMPPLLEESS
 
      syslog(LOG_INFO|LOG_LOCAL2, "foobar error: %m");
 
-SSEEEE AALLSSOO
+SEE ALSO
      logger(1), syslogd(8)
 
 
@@ -192,7 +192,7 @@ SSEEEE AALLSSOO
 
 
 
-Printed 12/28/88	  May 15, 1986				3
+Printed 1/9/94		  May 15, 1986				3
 
 
 

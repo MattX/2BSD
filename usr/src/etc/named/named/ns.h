@@ -9,16 +9,12 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)ns.h	4.21 (Berkeley) 2/28/88
+ *	@(#)ns.h	4.21.1 (2.11BSD GTE) 1/1/94
  */
 
 /*
  * Global definitions and variables for the name server.
  */
-
-#ifdef BSD2_10
-#include "shortnames.h"
-#endif
 
 #include <strings.h>
 #include <arpa/inet.h>

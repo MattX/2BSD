@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)doname.c	4.9 (Berkeley) 87/06/18";
+/* static	char *sccsid = "@(#)doname.c	4.9.1 (2.11BSD GTE) 1/1/94"; */
 #include "defs"
 #include <strings.h>
 #include <signal.h>
@@ -12,7 +12,7 @@ p->done = 2   file already exists in current state
 p->done = 3   file make failed
 */
 
-extern char *sys_siglist[];
+extern char *sys_siglist[], arfile[], *arfname;
 
 doname(p, reclevel, tval)
 register struct nameblock *p;
@@ -20,8 +20,8 @@ int reclevel;
 TIMETYPE *tval;
 {
 int errstat;
-int okdel1;
-int didwork;
+u_char okdel1;
+u_char didwork;
 TIMETYPE td, td1, tdep, ptime, ptime1, prestime();
 register struct depblock *q;
 struct depblock *qtemp, *srchdir(), *suffp, *suffp1;
@@ -29,12 +29,15 @@ struct nameblock *p1, *p2;
 struct shblock *implcom, *explcom;
 register struct lineblock *lp;
 struct lineblock *lp1, *lp2;
-#ifdef BSD2_10
-char sourcename[256], prefix[256], temp[256], concsuff[20];
+#ifdef pdp11
+/* temp and sourcename are mutually exclusive - save 254 bytes of stack by
+ * reusing sourcename's buffer
+*/
+char sourcename[256], prefix[256], *temp = sourcename, concsuff[20];
 #else
 char sourcename[BUFSIZ], prefix[BUFSIZ], temp[BUFSIZ], concsuff[20];
 #endif
-char *pnamep, *p1namep, *cp;
+char *pnamep, *p1namep, *cp, *savenamep = NULL;
 char *mkqlist();
 struct chain *qchain, *appendq();
 
@@ -47,19 +50,19 @@ struct chain *qchain, *appendq();
 	 * was that, while macro expansion got done, the .c files in the
 	 * non-local directories wouldn't be found.
 	 */
-	struct varblock	*vpath_cp, *varptr();
-	static int	vpath_first;
-	char	vpath_exp[INMAX];
+	static struct varblock	*vpath_cp;
+	struct varblock *varptr();
+	static char vpath_exp[256];
 
-	if (!vpath_first) {
-		vpath_first = 1;
+	if (!vpath_cp) {
 		vpath_cp = varptr("VPATH");
 		if (vpath_cp->varval) {
 			subst(vpath_cp->varval, vpath_exp);
-			setvar("VPATH",vpath_exp);
+			setvar("VPATH", vpath_exp);
 		}
 	}
 }
+
 if(p == 0)
 	{
 	*tval = 0;
@@ -146,14 +149,21 @@ for(lp = p->linep ; lp ; lp = lp->nxtlineblock)
 
 /* Look for implicit dependents, using suffix rules */
 
+if (index(p->namep, '(')) {
+	savenamep = p->namep;
+	p->namep = arfname;
+}
+
 for(lp = sufflist ; lp ; lp = lp->nxtlineblock)
     for(suffp = lp->depp ; suffp ; suffp = suffp->nxtdepblock)
 	{
 	pnamep = suffp->depname->namep;
 	if(suffix(p->namep , pnamep , prefix))
 		{
+		if (savenamep)
+			pnamep = ".a";
 
-		srchdir( concat(prefix,"*",temp) , NO, (struct depblock *) NULL);
+		srchdir( concat(prefix,"*",temp), NO, (struct depblock *) NULL);
 		for(lp1 = sufflist ; lp1 ; lp1 = lp1->nxtlineblock)
 		    for(suffp1=lp1->depp ; suffp1 ; suffp1 = suffp1->nxtdepblock)
 			{
@@ -182,12 +192,14 @@ if(dbgflag) printf("TIME(%s)=%ld\n", p2->namep, td);
 	}
 
 endloop:
+	if (savenamep)
+		p->namep = savenamep;
 
 
 if(errstat==0 && (ptime<tdep || (ptime==0 && tdep==0) ) )
 	{
 	ptime = (tdep>0 ? tdep : prestime() );
-	setvar("@", p->namep);
+	setvar("@", savenamep ? arfile : p->namep);
 	setvar("?", mkqlist(qchain) );
 	if(explcom)
 		errstat += docom(explcom);
@@ -237,9 +249,9 @@ return(errstat);
 docom(q)
 struct shblock *q;
 {
-char *s;
+register char *s;
 struct varblock *varptr();
-int ign, nopr;
+register int ign, nopr;
 char string[OUTMAX];
 char string2[OUTMAX];
 

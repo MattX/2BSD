@@ -9,7 +9,7 @@ tbl :	$o
 	$(CC) ${SEPFLAG} $o -o tbl
 $o :	t..c
 
-install: 
+install: tbl
 	install -s tbl $(DESTDIR)/usr/bin
 
 clean :
