@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)vfork.s	2.5 (Berkeley) 1/29/87\0>
+_sccsid: <@(#)vfork.s	2.6 (2.11BSD) 1995/05/13\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -14,14 +14,14 @@ _sccsid: <@(#)vfork.s	2.5 (Berkeley) 1/29/87\0>
  *
  * pid = vfork();
  *
- * pid == 0 in child process; pid == -1 means error return in child, parents
- * id is in par_uid if needed.  Since the parent and child share the stack,
- * the return address for the parent would be overwritten by the child.
- * Therefore, save the return address in r1 and "return" by a jump indirect.
+ * pid == 0 in child process; pid == -1 means error return in child.
+ * Since the parent and child share the stack, the return address for the 
+ * parent would be overwritten by the child.  Therefore, save the return 
+ * address in r1 and "return" by a jump indirect.
  */
 #include "SYS.h"
 
-.globl	_par_uid, __ovno
+.globl	__ovno
 
 .bss
 savov:	.=.+2
@@ -32,12 +32,10 @@ ENTRY(vfork)
 	mov	__ovno,savov	/ save __ovno for parent
 	SYS(vfork)		/ (takes no parameters)
 	br	1f		/ child returns here
-	bes	2f		/ parent returns here
+	bcs	2f		/ parent returns here
 	mov	savov,__ovno	/ restore ovno in case child switched
 	jmp	(r1)		/ "return" to saved location
-
 1:
-	mov	r0,_par_uid	/ (in case no vfork syscall)
 	clr	r0
 	jmp	(r1)
 2:
