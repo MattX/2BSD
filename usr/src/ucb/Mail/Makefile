@@ -1,4 +1,4 @@
-#	@(#)Makefile	5.16.1 (2.11BSD) 1996/10/22
+#	@(#)Makefile	5.16.2 (2.11BSD) 1996/10/31
 
 SRCS=	version.c aux.c cmd1.c cmd2.c cmd3.c cmdtab.c collect.c edit.c fio.c \
 	getname.c head.c v7.local.c lex.c list.c main.c names.c popen.c \
@@ -49,7 +49,7 @@ clean:
 	rm -f Mail a.out fmt x.c xs.c tags core xhead.c strings
 
 lint:
-	lint $(CFLAGS) $(SRCS)
+	lint -hxa $(CFLAGS) $(SRCS)
 
 fmt:	fmt.o xhead.o
 	$(CC) $(CFLAGS) -i fmt.o xhead.o -o fmt

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)gnsys.c	5.4 (Berkeley) 6/20/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)gnsys.c	5.4.1 (2.11BSD) 1997/10/31";
 #endif
 
 #include "uucp.h"
@@ -126,7 +126,7 @@ int n;
 		if (strcmp(name, list[i]) == 0)
 			break;
 	if (i >= n) {
-		if ((p = calloc((unsigned)strlen(name) + 1, sizeof (char)))
+		if ((p = (char *)calloc(strlen(name) + 1, sizeof (char)))
 			== NULL)
 			return n;
 		strcpy(p, name);

@@ -1,8 +1,12 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)ld.c	4.4 1995/05/08";
+static char *sccsid = "@(#)ld.c	4.5 1997/10/31";
 #endif
 
 /*
+ * 4.5 1997/10/31 - sms
+ *	Minor cleanup.  Use unistd.h and stdlib.h instead of local definitions.
+ *	Correct comment about number of VM pages.
+ *
  * 4.4 1995/05/08 - sms
  *	Add -q to turn off undefined symbol reporting.  Used when building
  *	networking kernels and many undefineds are expected but look worrisome.
@@ -53,6 +57,8 @@ static char *sccsid = "@(#)ld.c	4.4 1995/05/08";
 #include <ar.h>
 #include <ranlib.h>
 #include <vmf.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include "archive.h"
 
 /*
@@ -104,12 +110,12 @@ static char *sccsid = "@(#)ld.c	4.4 1995/05/08";
  * Do not set the following too high (normally set in the Makefile) or
  * 'ld' will not be able to allocate room (currently 8kb) for string
  * tables and performance will suffer badly.  It is possible that this
- * could be raised a bit higher but 18 gives 'adequate' performance on
+ * could be raised a bit higher but 20 gives 'adequate' performance on
  * all but the largest ('tcsh' for example) programs, and even there it's
  * not _too_ bad.
 */
 #ifndef	NUM_VM_PAGES
-#define	NUM_VM_PAGES 18
+#define	NUM_VM_PAGES 20
 #endif
 #define	NNAMESIZE 32		/* Maximum symbol string length */
 #define	SYMSPERSEG (BYTESPERSEG / sizeof (SYMBOL))
@@ -284,8 +290,6 @@ u_int	ovbase;			/* The base address of the overlays */
 	int	delexit();
 	VADDR	sym2va();
 	off_t	skip();
-extern	long	lseek(), atol(), strtol();
-extern	char	*mktemp();
 
 main(argc, argv)
 char **argv;

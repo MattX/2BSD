@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)def.h	5.22.1 (2.11BSD) 1996/1/27
+ *	@(#)def.h	5.22.2 (2.11BSD) 1997/10/31
  */
 
 #include <sys/param.h>		/* includes <sys/types.h> */
@@ -40,7 +40,6 @@
 #include <ctype.h>
 #include <string.h>
 #include "pathnames.h"
-typedef	int (*sig_t)();
 /*
  * Mail -- a mail program
  *
