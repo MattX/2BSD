@@ -21,6 +21,18 @@ mv messages.0 messages.1
 mv messages   messages.0
 cp /dev/null  messages
 chmod 644 messages
+
+echo ""
+echo "Rotating cron:"
+cd /usr/adm
+mv -f cron.2.Z cron.3.Z
+mv -f cron.1.Z cron.2.Z
+mv -f cron.0.Z cron.1.Z
+mv -f cron   cron.0
+compress -f cron.0
+cp /dev/null  cron
+chmod 644 cron
+
 kill -1 `cat /var/run/syslog.pid`
 cd /
 

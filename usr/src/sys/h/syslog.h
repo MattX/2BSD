@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)syslog.h	8.1.1 (2.11BSD) 1995/04/01
+ *	@(#)syslog.h	8.1.2 (2.11BSD) 1999/06/18
  * $Id: syslog.h,v 1.4 1994/08/21 04:42:00 paul Exp $
  */
 
@@ -77,12 +77,9 @@ CODE prioritynames[] = {
 	"debug",	LOG_DEBUG,
 	"emerg",	LOG_EMERG,
 	"err",		LOG_ERR,
-	"error",	LOG_ERR,		/* DEPRECATED */
 	"info",		LOG_INFO,
 	"none",		INTERNAL_NOPRI,		/* INTERNAL */
 	"notice",	LOG_NOTICE,
-	"panic", 	LOG_EMERG,		/* DEPRECATED */
-	"warn",		LOG_WARNING,		/* DEPRECATED */
 	"warning",	LOG_WARNING,
 	NULL,		-1,
 };
@@ -129,7 +126,6 @@ CODE facilitynames[] = {
 	"mail",		LOG_MAIL,
 	"mark", 	INTERNAL_MARK,		/* INTERNAL */
 	"news",		LOG_NEWS,
-	"security",	LOG_AUTH,		/* DEPRECATED */
 	"syslog",	LOG_SYSLOG,
 	"user",		LOG_USER,
 	"uucp",		LOG_UUCP,

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)syslogd.c	5.13.5 (2.11BSD) 1999/5/27";
+static char sccsid[] = "@(#)syslogd.c	5.13.6 (2.11BSD) 1999/6/18";
 #endif
 
 /*
@@ -902,14 +902,11 @@ struct code {
 };
 
 struct code	PriNames[] = {
-	"panic",	LOG_EMERG,
 	"emerg",	LOG_EMERG,
 	"alert",	LOG_ALERT,
 	"crit",		LOG_CRIT,
 	"err",		LOG_ERR,
-	"error",	LOG_ERR,
 	"warn",		LOG_WARNING,
-	"warning",	LOG_WARNING,
 	"notice",	LOG_NOTICE,
 	"info",		LOG_INFO,
 	"debug",	LOG_DEBUG,
@@ -923,10 +920,10 @@ struct code	FacNames[] = {
 	"mail",		LOG_MAIL,
 	"daemon",	LOG_DAEMON,
 	"auth",		LOG_AUTH,
-	"security",	LOG_AUTH,
 	"mark",		LOG_MARK,
 	"syslog",	LOG_SYSLOG,
 	"lpr",		LOG_LPR,
+	"cron",		LOG_CRON,
 	"local0",	LOG_LOCAL0,
 	"local1",	LOG_LOCAL1,
 	"local2",	LOG_LOCAL2,
