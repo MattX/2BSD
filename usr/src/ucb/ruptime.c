@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)ruptime.c	5.3 (Berkeley) 1/7/86";
-#endif not lint
+static char sccsid[] = "@(#)ruptime.c	5.3.1 (2.11BSD) 1997/4/18";
+#endif
 
 #include <sys/param.h>
 #include <stdio.h>
@@ -159,7 +157,7 @@ interval(time, updown)
 	static char resbuf[32];
 	long days, hours, minutes;
 
-	if (time < 0 || time > 365L*24L*60L*60L) {
+	if (time < 0 || time > 3L* 365L*24L*60L*60L) {
 		(void) sprintf(resbuf, "   %s ??:??", updown);
 		return (resbuf);
 	}
@@ -167,10 +165,10 @@ interval(time, updown)
 	hours = minutes / 60; minutes %= 60;
 	days = hours / 24; hours %= 24;
 	if (days)
-		(void) sprintf(resbuf, "%s %2ld+%02ld:%02ld",
+		(void) sprintf(resbuf, "%s %3ld+%02ld:%02ld",
 		    updown, days, hours, minutes);
 	else
-		(void) sprintf(resbuf, "%s    %2ld:%02ld",
+		(void) sprintf(resbuf, "%s    %3ld:%02ld",
 		    updown, hours, minutes);
 	return (resbuf);
 }
