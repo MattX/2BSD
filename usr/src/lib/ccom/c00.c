@@ -1,6 +1,6 @@
 /* C compiler
  *
- *
+ *	2.1	(2.11BSD)	1996/01/04
  *
  * Called from cc:
  *   c0 source temp1 temp2 [ profileflag ]
@@ -474,6 +474,16 @@ register max;
 	strflg = 0;
 }
 
+cntstr()
+{
+	register int c;
+
+	nchstr = 1;
+	while ((c = mapch('"')) >= 0) {
+		nchstr++;
+	}
+}
+
 /*
  * read a single-quoted character constant.
  * The routine is sensitive to the layout of
@@ -581,7 +591,7 @@ tree(eflag)
 	int *op, opst[SSIZE], *pp, prst[SSIZE];
 	register int andflg, o;
 	register struct nmlist *cs;
-	int p, ps, os;
+	int p, ps, os, xo = 0, *xop;
 	char *svtree;
 	static struct cnode garbage = { CON, INT, (int *)NULL, (union str *)NULL, 0 };
 
@@ -634,7 +644,33 @@ advanc:
 
 	/* fake a static char array */
 	case STRING:
-		putstr(cval, 0);
+/*
+ * This hack is to compensate for a bit of simplemindedness I'm not sure how
+ * else to fix.  
+ *
+ *	i = sizeof ("foobar");
+ *
+ * or
+ *	i = sizeof "foobar";
+ *
+ * would generate ".byte 'f,'o','o,'b,'a,'r,0" into the data segment!
+ *
+ * What I did here was to scan to "operator" stack looking for left parens
+ * "(" preceeded by a "sizeof".  If both are seen and in that order or only
+ * a SIZEOF is sedn then the string is inside a 'sizeof' and should not 
+ * generate any data to the object file.
+*/
+		xop = op;
+		while	(xop > opst)
+			{
+			xo = *xop--;
+			if	(xo != LPARN)
+				break;
+			}
+		if	(xo == SIZEOF)
+			cntstr();
+		else
+			putstr(cval, 0);
 		cs = (struct nmlist *)Tblock(sizeof(struct nmlist));
 		cs->hclass = STATIC;
 		cs->hoffset = cval;
