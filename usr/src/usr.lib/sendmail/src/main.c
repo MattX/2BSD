@@ -13,7 +13,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char	SccsId[] = "@(#)main.c	5.11.1 (2.11BSD GTE) 7/15/94";
+static char	SccsId[] = "@(#)main.c	5.11.2 (2.11BSD GTE) 3/6/95";
 #endif
 
 # define  _DEFINE
@@ -225,9 +225,7 @@ main(argc, argv, envp)
 	OldUmask = umask(0);
 	OpMode = MD_DELIVER;
 	MotherPid = getpid();
-# ifndef V6
 	FullName = getenv("NAME");
-# endif V6
 
 # ifdef LOG
 	openlog("sendmail", LOG_PID, LOG_MAIL);
@@ -344,7 +342,7 @@ main(argc, argv, envp)
 				syserr("More than one \"from\" person");
 				break;
 			}
-			from = newstr(p);
+			from = newstr(denlstring(p));
 			break;
 
 		  case 'F':	/* set full name */
@@ -379,6 +377,7 @@ main(argc, argv, envp)
 
 		  case 'q':	/* run queue files at intervals */
 # ifdef QUEUE
+			FullName = NULL;
 			queuemode = TRUE;
 			QueueIntvl = convtime(&p[2]);
 # else QUEUE
@@ -435,7 +434,16 @@ main(argc, argv, envp)
 	  case MD_INITALIAS:
 		Verbose = TRUE;
 		break;
+
+	  case MD_DAEMON:
+		/* remove things that don't make sense in daemon mode */
+		FullName = NULL;
+		break;
 	}
+
+	/* full names can't have newlines */
+	if (FullName != NULL && strchr(FullName, '\n') != NULL)
+		FullName = newstr(denlstring(FullName));
 
 	/* do heuristic mode adjustment */
 	if (Verbose)

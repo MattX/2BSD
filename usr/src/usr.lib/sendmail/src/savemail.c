@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)savemail.c	5.7 (Berkeley) 12/7/85";
+static char	SccsId[] = "@(#)savemail.c	5.7.1 (2.11BSD GTE) 3/7/95";
 #endif
 
 # include <pwd.h>
@@ -401,7 +401,7 @@ returntosender(msg, returnq, sendbody)
 			addheader("to", q->q_paddr, ee);
 	}
 
-	(void) sprintf(buf, "Returned mail: %s", msg);
+	(void) sprintf(buf, "Returned mail: %.*s", sizeof buf - 20, msg);
 	addheader("subject", buf, ee);
 
 	/* fake up an address header for the from person */

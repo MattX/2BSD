@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.10.2 (2.11BSD GTE) 1/30/95
+#	@(#)Makefile.m4	5.10.3 (2.11BSD GTE) 3/07/95
 #
 #
 #  SENDMAIL Makefile.
@@ -33,8 +33,8 @@ OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) Version.o str.o
 SBASE=	conf.o collect.o parseaddr.o alias.o deliver.o headers.o \
 	recipient.o srvrsmtp.o queue.o util.o \
 	envelope.o sysexits.o arpadate.o convtime.o Version.o \
-	ctime.o $(EXTRACT) str.o
-SOV1=	main.o readcf.o macro.o
+	$(EXTRACT) str.o
+SOV1=	main.o readcf.o macro.o ctime.o
 SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o
 
 SRCS=	\
@@ -81,6 +81,11 @@ install: all
 	fi
 	install -c -s -o bin -m 0755 ctimed $(DESTDIR)/usr/lib/ctimed
 
+tags: FRC
+	ctags -a -t ${SRCS}
+
+FRC:
+
 $(OBJS1): sendmail.h
 $(OBJS): conf.h
 stats.o: mailstats.h
@@ -92,8 +97,8 @@ sendmail.h util.o: ../`include'/useful.h
 #
 
 clean:
-	rm -f core sendmail rmail usersmtp uucp a.out XREF sendmail.cf
-	rm -f sendmail.sr *.o ctimed strings version.c
+	rm -f sendmail a.out XREF sendmail.cf
+	rm -f sendmail.sr *.o ctimed strings version.c xs.c
 
 print: $(SRCS)
 	@ls -l | pr -h "sendmail directory"

@@ -7,7 +7,7 @@
 **  All rights reserved.  The Berkeley software License Agreement
 **  specifies the terms and conditions for redistribution.
 **
-**	@(#)sendmail.h	5.8.1 (2.11BSD GTE) 7/15/94
+**	@(#)sendmail.h	5.8.2 (2.11BSD GTE) 3/6/95
 */
 
 /*
@@ -19,7 +19,7 @@
 # ifdef _DEFINE
 # define EXTERN
 # if !defined(lint) && !defined(NOSCCS)
-static char SmailSccsId[] =	"@(#)sendmail.h	5.8.1		7/15/94";
+static char SmailSccsId[] =	"@(#)sendmail.h	5.8.2		3/6/95";
 # endif lint
 # else  _DEFINE
 # define EXTERN extern
@@ -577,3 +577,5 @@ extern EVENT	*setevent();
 extern char	*sfgets();
 extern char	*queuename();
 extern time_t	curtime();
+extern bool	shouldqueue();
+extern char	*denlstring();

@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)deliver.c	5.10 (Berkeley) 3/2/86";
+static char	SccsId[] = "@(#)deliver.c	5.10.1 (2.11BSD GTE) 3/6/95";
 #endif
 
 # include <signal.h>
@@ -988,8 +988,11 @@ giveresponse(stat, m, e)
 		message(Arpa_Info, &statmsg[4]);
 	else
 	{
+		char	mbuf[8];
+
 		Errors++;
-		usrerr(statmsg);
+		sprintf(mbuf, "%.3s %%s", statmsg);
+		usrerr(mbuf, &statmsg[4]);
 	}
 
 	/*
@@ -1280,17 +1283,17 @@ sendall(e, mode)
 	register ADDRESS *q;
 	bool oldverbose;
 	int pid;
+	bool announcequeueup;
 
 	/* determine actual delivery mode */
 	if (mode == SM_DEFAULT)
 	{
-		extern bool shouldqueue();
-
 		if (shouldqueue(e->e_msgpriority))
 			mode = SM_QUEUE;
-		else
-			mode = SendMode;
+		announcequeueup = mode == SendMode;
 	}
+	else
+		announcequeueup = FALSE;
 
 #ifdef DEBUG
 	if (tTd(13, 1))
@@ -1310,7 +1313,13 @@ sendall(e, mode)
 
 	if (e->e_hopcount > MAXHOP)
 	{
-		syserr("sendall: too many hops (%d max)", MAXHOP);
+		errno = 0;
+		queueup(e, TRUE, announcequeueup);
+		e->e_flags |= EF_FATALERRS|EF_CLRQUEUE;
+		syserr("too many hops (%d max): from %s via %s, to %s",
+			MAXHOP, e->e_from.q_paddr,
+			RealHostName == NULL ? "localhost" : RealHostName,
+			e->e_sendqueue->q_paddr);
 		return;
 	}
 
@@ -1326,7 +1335,7 @@ sendall(e, mode)
 	if ((mode == SM_QUEUE || mode == SM_FORK ||
 	     (mode != SM_VERIFY && SuperSafe)) &&
 	    !bitset(EF_INQUEUE, e->e_flags))
-		queueup(e, TRUE, mode == SM_QUEUE);
+		queueup(e, TRUE, announcequeueup);
 #endif QUEUE
 
 	oldverbose = Verbose;

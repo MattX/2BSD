@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)readcf.c	5.10 (Berkeley) 1/11/86";
+static char	SccsId[] = "@(#)readcf.c	5.10.1 (2.11BSD GTE) 3/07/95";
 #endif
 
 # include "sendmail.h"
@@ -648,7 +648,7 @@ extern char	*WizWord;		/* the stored wizard password */
 
 setoption(opt, val, safe, sticky)
 	char opt;
-	char *val;
+	register char *val;
 	bool safe;
 	bool sticky;
 {
@@ -658,6 +658,7 @@ setoption(opt, val, safe, sticky)
 	extern int RefuseLA;
 	extern bool trusteduser();
 	extern char *username();
+	register char	*p;
 
 # ifdef DEBUG
 	if (tTd(37, 1))
@@ -803,7 +804,10 @@ setoption(opt, val, safe, sticky)
 		break;
 
 	  case 'M':		/* define macro */
-		define(val[0], newstr(&val[1]), CurEnv);
+		p = newstr(&val[1]);
+		if (!safe)
+			cleanstrcpy(p, p, MAXNAME);
+		define(val[0], p, CurEnv);
 		sticky = FALSE;
 		break;
 
@@ -863,14 +867,6 @@ setoption(opt, val, safe, sticky)
 		break;
 
 	  case 't':		/* time zone name */
-# ifdef V6
-		StdTimezone = newstr(val);
-		DstTimezone = index(StdTimeZone, ',');
-		if (DstTimezone == NULL)
-			syserr("bad time zone spec");
-		else
-			*DstTimezone++ = '\0';
-# endif V6
 		break;
 
 	  case 'u':		/* set default uid */

@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)util.c	5.8 (Berkeley) 12/17/85";
+static char	SccsId[] = "@(#)util.c	5.8.1 (2.11BSD GTE) 3/07/95";
 #endif
 
 # include <stdio.h>
@@ -19,6 +19,7 @@ static char	SccsId[] = "@(#)util.c	5.8 (Berkeley) 12/17/85";
 # include <errno.h>
 # include <ctype.h>
 # include "sendmail.h"
+#include <string.h>
 
 /*
 **  STRIPQUOTES -- Strip quotes & quote bits from a string.
@@ -679,8 +680,8 @@ readtimeout()
 char *
 fgetfolded(buf, n, f)
 	char *buf;
-	register int n;
-	FILE *f;
+	int n;
+	register FILE *f;
 {
 	register char *p = buf;
 	register int i;
@@ -801,7 +802,7 @@ waitfor(pid)
 	int pid;
 {
 	auto int st;
-	int i;
+	register int i;
 
 	do
 	{
@@ -831,7 +832,7 @@ bitintersect(a, b)
 	BITMAP a;
 	BITMAP b;
 {
-	int i;
+	register int i;
 
 	for (i = BITMAPBYTES / sizeof (int); --i >= 0; )
 		if ((a[i] & b[i]) != 0)
@@ -856,10 +857,96 @@ bool
 bitzerop(map)
 	BITMAP map;
 {
-	int i;
+	register int i;
 
 	for (i = BITMAPBYTES / sizeof (int); --i >= 0; )
 		if (map[i] != 0)
 			return (FALSE);
 	return (TRUE);
+}
+/*
+**  CLEANSTRCPY -- copy string keeping out bogus characters
+**
+**	Parameters:
+**		t -- "to" string.
+**		f -- "from" string.
+**		l -- length of space available in "to" string.
+**
+**	Returns:
+**		none.
+*/
+
+void
+cleanstrcpy(t, f, l)
+	register char *t;
+	register char *f;
+	int l;
+{
+#ifdef LOG
+	/* check for newlines and log if necessary */
+	(void) denlstring(f);
+#endif
+
+	l--;
+	while (l > 0 && *f != '\0')
+	{
+		if (isascii(*f) &&
+		    (isalnum(*f) || strchr("!#$%&'*+-./^_`{|}~", *f) != NULL))
+		{
+			l--;
+			*t++ = *f;
+		}
+		f++;
+	}
+	*t = '\0';
+}
+/*
+**  DENLSTRING -- convert newlines in a string to spaces
+**
+**	Parameters:
+**		s -- the input string
+**
+**	Returns:
+**		A pointer to a version of the string with newlines
+**		mapped to spaces.  This should be copied.
+*/
+
+char *
+denlstring(s)
+	char *s;
+{
+	register char *p;
+	int l;
+	static char *bp = NULL;
+	static int bl = 0;
+	extern	char	*macvalue();
+
+	if (strchr(s, '\n') == NULL)
+		return s;
+
+	l = strlen(s) + 1;
+	if (bl < l)
+	{
+		/* allocate more space */
+		if (bp != NULL)
+			free(bp);
+		bp = xalloc(l);
+		bl = l;
+	}
+	strcpy(bp, s);
+	for (p = bp; (p = strchr(p, '\n')) != NULL; )
+		*p++ = ' ';
+
+#ifdef LOG
+	/*
+	 * V5 doesn't have IDENT capabilities so there is no macro '_'.
+	 * Instead we use the less "trusted" (but better than nothing) 'f'
+	 * macro value.
+	*/
+	p = macvalue('f', CurEnv);
+	syslog(LOG_ALERT, "POSSIBLE ATTACK from %s: newline in string \"%s\"",
+		p == NULL ? "[UNKNOWN]" : p, bp);
+#endif
+
+	return bp;
 }

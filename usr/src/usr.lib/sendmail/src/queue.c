@@ -15,16 +15,11 @@
 # include <signal.h>
 # include <errno.h>
 
-# ifndef QUEUE
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)queue.c	5.21 (Berkeley) 4/17/86	(no queueing)";
-# endif
-# else QUEUE
+static char	SccsId[] = "@(#)queue.c	5.21.1 (2.11BSD GTE) 3/07/95";
+#endif
 
-#if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)queue.c	5.21 (Berkeley) 4/17/86";
-# endif
-
+#ifdef	QUEUE
 /*
 **  Work queue.
 */
@@ -127,10 +122,10 @@ queueup(e, queueall, announce)
 
 	/* message from envelope, if it exists */
 	if (e->e_message != NULL)
-		fprintf(tfp, "M%s\n", e->e_message);
+		fprintf(tfp, "M%s\n", denlstring(e->e_message));
 
 	/* output name of sender */
-	fprintf(tfp, "S%s\n", e->e_from.q_paddr);
+	fprintf(tfp, "S%s\n", denlstring(e->e_from.q_paddr));
 
 	/* output list of recipient addresses */
 	for (q = e->e_sendqueue; q != NULL; q = q->q_next)
@@ -138,7 +133,7 @@ queueup(e, queueall, announce)
 		if (queueall ? !bitset(QDONTSEND, q->q_flags) :
 			       bitset(QQUEUEUP, q->q_flags))
 		{
-			fprintf(tfp, "R%s\n", q->q_paddr);
+			fprintf(tfp, "R%s\n", denlstring(q->q_paddr));
 			if (announce)
 			{
 				e->e_to = q->q_paddr;
@@ -161,7 +156,7 @@ queueup(e, queueall, announce)
 	for (q = e->e_errorqueue; q != NULL; q = q->q_next)
 	{
 		if (!bitset(QDONTSEND, q->q_flags))
-			fprintf(tfp, "E%s\n", q->q_paddr);
+			fprintf(tfp, "E%s\n", denlstring(q->q_paddr));
 	}
 
 	/*

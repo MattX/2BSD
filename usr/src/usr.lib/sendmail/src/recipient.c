@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)recipient.c	5.7.1 (2.11BSD GTE) 7/13/94";
+static char	SccsId[] = "@(#)recipient.c	5.7.2 (2.11BSD GTE) 3/07/95";
 #endif
 
 # include <pwd.h>
@@ -50,6 +50,9 @@ sendtolist(list, ctladdr, sendq)
 	bool firstone;		/* set on first address sent */
 	bool selfref;		/* set if this list includes ctladdr */
 	char delimiter;		/* the address delimiter */
+	int  i;
+	char	*bufp;
+	char	buf[MAXNAME + 1];
 
 # ifdef DEBUG
 	if (tTd(25, 1))
@@ -72,7 +75,15 @@ sendtolist(list, ctladdr, sendq)
 	selfref = FALSE;
 	al = NULL;
 
-	for (p = list; *p != '\0'; )
+	/* make sure we have enough space to copy the string */
+	i = strlen(list) + 1;
+	if (i < sizeof buf)
+		bufp = buf;
+	else
+		bufp = xalloc(i);
+	strcpy(bufp, denlstring(list));
+
+	for (p = bufp; *p != '\0'; )
 	{
 		register ADDRESS *a;
 		extern char *DelimChar;		/* defined in prescan */
@@ -119,6 +130,8 @@ sendtolist(list, ctladdr, sendq)
 	}
 
 	CurEnv->e_to = NULL;
+	if (bufp != buf)
+		free(bufp);
 }
 /*
 **  RECIPIENT -- Designate a message recipient
