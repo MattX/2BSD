@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)init.c	5.2.1 (2.11BSD GTE) 12/9/94";
+static char sccsid[] = "@(#)init.c	5.2.2 (2.11BSD GTE) 1997/3/28";
 #endif
 
 /*
@@ -53,11 +53,6 @@ struct	gettynums gettynums[] = {
 	{ "is" },			/* input speed */
 	{ "os" },			/* output speed */
 	{ "sp" },			/* both speeds */
-	{ "nd" },			/* newline delay */
-	{ "cd" },			/* carriage-return delay */
-	{ "td" },			/* tab delay */
-	{ "fd" },			/* form-feed delay */
-	{ "bd" },			/* backspace delay */
 	{ "to" },			/* timeout */
 	{ "f0" },			/* output flags */
 	{ "f1" },			/* input flags */
@@ -86,5 +81,6 @@ struct	gettyflags gettyflags[] = {
 	{ "ub", 0 },			/* unbuffered output */
 	{ "ab", 0 },			/* auto-baud detect with '\r' */
 	{ "dx", 0 },			/* set decctlq */
+	{ "hf", 0 },			/* set HardwareFlowcontrol */
 	{ 0 }
 };

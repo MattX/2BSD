@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.19.9 (2.11BSD GTE) 1997/1/10
+#	@(#)Makefile	5.19.10 (2.11BSD GTE) 1997/3/27
 #
 DESTDIR=
 CFLAGS=	-O
@@ -12,7 +12,7 @@ SEPFLAG= -i
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 SUBDIR=	adb ar as awk chflags chpass csh diff disklabel hostname ld login \
-	ls make nm passwd ping sed sh sysctl tcsh test tp
+	ls make nm passwd ping sed sh stty sysctl tcsh test tp
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -23,7 +23,7 @@ SCRIPT=	false true
 #
 STD=	cat cc chgrp chmod cmp cp date dd du echo ed grep hostid \
 	kill ln mkdir mt mv nice od pagesize pr \
-	pwd rm rmail rmdir size stty sync tar tee time who
+	pwd rm rmail rmdir size sync tar tee time who
 
 # C programs that live in the current directory and need explicit make lines.
 #

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)move.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)move.c	5.1.1 (2.11BSD) 1997/3/28";
+#endif
 
 /*************************************************************************
  *
@@ -615,7 +615,7 @@ getcap()
 
 	gtty(0, &orig);
 	new=orig;
-	new.sg_flags &= ~(ECHO|CRMOD|ALLDELAY|XTABS);
+	new.sg_flags &= ~(ECHO|CRMOD|XTABS);
 	new.sg_flags |= CBREAK;
 	signal(SIGINT,stop);
 	ospeed = orig.sg_ospeed;

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)subr.c	5.4.1 (2.11BSD GTE) 12/9/94";
+static char sccsid[] = "@(#)subr.c	5.4.2 (2.11BSD GTE) 1997/3/28";
 #endif
 
 /*
@@ -148,11 +148,10 @@ setflags(n)
 		f |= ODDP;
 	else if (EP)
 		f |= EVENP;
-
+	if (HF)
+		f |= RTSCTS;
 	if (NL)
 		f |= CRMOD;
-
-	f |= delaybits();
 
 	if (n == 1) {		/* read mode flags */
 		if (RW)
@@ -164,100 +163,23 @@ setflags(n)
 
 	if (!HT)
 		f |= XTABS;
-
 	if (n == 0)
 		return (f);
-
 	if (CB)
 		f |= CRTBS;
-
 	if (CE)
 		f |= CRTERA;
-
 	if (CK)
 		f |= CRTKIL;
-
 	if (PE)
 		f |= PRTERA;
-
 	if (EC)
 		f |= ECHO;
-
 	if (XC)
 		f |= CTLECH;
-
 	if (DX)
 		f |= DECCTQ;
-
 	return (f);
-}
-
-struct delayval {
-	unsigned	delay;		/* delay in ms */
-	int		bits;
-};
-
-/*
- * below are random guesses, I can't be bothered checking
- */
-
-struct delayval	crdelay[] = {
-	1,		CR1,
-	2,		CR2,
-	3,		CR3,
-	83,		CR1,
-	166,		CR2,
-	0,		CR3,
-};
-
-struct delayval nldelay[] = {
-	1,		NL1,		/* special, calculated */
-	2,		NL2,
-	3,		NL3,
-	100,		NL2,
-	0,		NL3,
-};
-
-struct delayval	bsdelay[] = {
-	1,		BS1,
-	0,		0,
-};
-
-struct delayval	ffdelay[] = {
-	1,		FF1,
-	1750,		FF1,
-	0,		FF1,
-};
-
-struct delayval	tbdelay[] = {
-	1,		TAB1,
-	2,		TAB2,
-	3,		XTABS,		/* this is expand tabs */
-	100,		TAB1,
-	0,		TAB2,
-};
-
-delaybits()
-{
-	register f;
-
-	f  = adelay(CD, crdelay);
-	f |= adelay(ND, nldelay);
-	f |= adelay(FD, ffdelay);
-	f |= adelay(TD, tbdelay);
-	f |= adelay(BD, bsdelay);
-	return (f);
-}
-
-adelay(ms, dp)
-	register long ms;
-	register struct delayval *dp;
-{
-	if (ms == 0)
-		return (0);
-	while (dp->delay && ms > dp->delay)
-		dp++;
-	return (dp->bits);
 }
 
 char	editedhost[32];

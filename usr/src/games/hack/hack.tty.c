@@ -1,58 +1,20 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.tty.c - version 1.0.3 */
-/* With thanks to the people who sent code for SYSV - hpscdi!jon,
-   arnold@ucsf-cgl, wcs@bo95b, cbcephus!pds and others. */
+/* hack.tty.c - version 1.0.4 (2.11BSD) 1997/3/28 */
 
 #include	"hack.h"
 #include	<stdio.h>
-
-/*
- * The distinctions here are not BSD - rest but rather USG - rest, as
- * BSD still has the old sgttyb structure, but SYSV has termio. Thus:
- */
-#ifdef BSD
-#define	V7
-#else
-#define USG
-#endif BSD
 
 /*
  * Some systems may have getchar() return EOF for various reasons, and
  * we should not quit before seeing at least NR_OF_EOFS consecutive EOFs.
  * Also see the comment in config.h on `VERSION7'.
  */
-#ifndef BSD
 #define	NR_OF_EOFS	20
-#else
-#ifdef	VERSION7
-#define	NR_OF_EOFS	20
-#endif VERSION7
-#endif BSD
-
-
-#ifdef USG
-
-#include	<termio.h>
-#define termstruct	termio
-#define kill_sym	c_cc[VKILL]
-#define erase_sym	c_cc[VERASE]
-#define EXTABS		TAB3
-#define tabflgs		c_oflag
-#define echoflgs	c_lflag
-#define cbrkflgs	c_lflag
-#define CBRKMASK	ICANON
-#define CBRKON		! /* reverse condition */
-#define OSPEED(x)	((x).c_cflag & CBAUD)
-#define GTTY(x)		(ioctl(0, TCGETA, x))
-#define STTY(x)		(ioctl(0, TCSETA, x))	/* TCSETAF? TCSETAW? */
-
-#else	/* V7 */
 
 #include	<sgtty.h>
 #define termstruct	sgttyb
 #define	kill_sym	sg_kill
 #define	erase_sym	sg_erase
-#define EXTABS		XTABS
 #define tabflgs		sg_flags
 #define echoflgs	sg_flags
 #define cbrkflgs	sg_flags
@@ -61,8 +23,6 @@
 #define OSPEED(x)	(x).sg_ospeed
 #define GTTY(x)		(gtty(0, x))
 #define STTY(x)		(stty(0, x))
-
-#endif USG
 
 extern short ospeed;
 static char erase_char, kill_char;
@@ -84,8 +44,8 @@ gettty(){
 	getioctls();
 
 	/* do not expand tabs - they might be needed inside a cm sequence */
-	if(curttyb.tabflgs & EXTABS) {
-		curttyb.tabflgs &= ~EXTABS;
+	if(curttyb.tabflgs & XTABS) {
+		curttyb.tabflgs &= ~XTABS;
 		setctty();
 	}
 	settty_needed = TRUE;
@@ -125,11 +85,6 @@ register int change = 0;
 	if((curttyb.cbrkflgs & CBRKMASK) != cf){
 		curttyb.cbrkflgs &= ~CBRKMASK;
 		curttyb.cbrkflgs |= cf;
-#ifdef USG
-		/* be satisfied with one character; no timeout */
-		curttyb.c_cc[VMIN] = 1;		/* was VEOF */
-		curttyb.c_cc[VTIME] = 0;	/* was VEOL */
-#endif USG
 		change++;
 	}
 	if(change){

@@ -2,7 +2,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)gettytab	5.7.1 (2.11BSD GTE) 12/9/94
+#	@(#)gettytab	5.7.2 (2.11BSD GTE) 1997/3/28
 #
 #
 # Most of the table entries here are just copies of the
@@ -16,7 +16,7 @@
 # entries, and in cases where getty is called with no table name
 #
 default:\
-	:ap:fd#1000:im=\r\n\r\n2.11 BSD UNIX (%h) (%t)\r\n\r\r\n\r:sp#1200:
+	:ap:im=\r\n\r\n2.11 BSD UNIX (%h) (%t)\r\n\r\r\n\r:sp#1200:
 
 #
 # Fixed speed entries
@@ -29,17 +29,17 @@ default:\
 #	be assigned to any table desired (hopefully the same speed).
 #
 a|std.110|110-baud:\
-	:nd#1:cd#1:sp#110:
+	:sp#110:
 b|std.134|134.5-baud:\
-	:ep:nd#1:cd#2:ff#1:td#1:sp#134:ht:nl:
+	:ep:sp#134:ht:nl:
 1|std.150|150-baud:\
-	:ep:nd#1:cd#2:td#1:fd#1:sp#150:ht:nl:lm=\E\72\6\6\17login\72 :
+	:ep:sp#150:ht:nl:lm=\E\72\6\6\17login\72 :
 c|std.300|300-baud:\
-	:nd#1:cd#1:sp#300:
+	:sp#300:
 d|std.600|600-baud:\
-	:nd#1:cd#1:sp#600:
+	:sp#600:
 f|std.1200|1200-baud:\
-	:fd#1:sp#1200:
+	:sp#1200:
 6|std.2400|2400-baud:\
 	:sp#2400:ht:
 7|std.4800|4800-baud:\
@@ -50,12 +50,19 @@ g|std.19200|19200-baud:\
 	:sp#19200:
 
 #
+# Hardware flow control lines
+#
+t9600-hf:hf:sp#9600
+t19200-hf:hf:sp#19200
+t38400-hf:hf:sp#38400
+
+#
 # Dial in rotary tables, speed selection via 'break'
 #
 0|d300|Dial-300:\
-	:nx=d1200:cd#2:sp#300:
+	:nx=d1200:sp#300:
 d1200|Dial-1200:\
-	:nx=d150:fd#1:sp#1200:
+	:nx=d150:sp#1200:
 d150|Dial-150:\
 	:nx=d110:lm@:tc=150-baud:
 d110|Dial-110:\
@@ -68,16 +75,16 @@ d110|Dial-110:\
 	:tc=110-baud:
 
 4|Console|Console Decwriter II:\
-	:nd@:cd@:rw:tc=300-baud:
+	:rw:tc=300-baud:
 
 e|Console-1200|Console Decwriter III:\
-	:fd@:nd@:cd@:rw:tc=1200-baud:
+	:rw:tc=1200-baud:
 
 l|lsi chess terminal:\
 	:sp#300:
 
 X|Xwindow|X window system:\
-	:fd@:nd@:cd@:rw:sp#9600:
+	:rw:sp#9600:
 
 #
 # Fast dialup terminals, 2400/1200/300 rotary (can start either way)

@@ -1,4 +1,3 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/ed.init.c,v 3.0 1991/07/04 21:49:28 christos Exp $ */
 /*
  * ed.init.c: Editor initializations
  */
@@ -37,7 +36,7 @@
 #include "config.h"
 #if !defined(lint) && !defined(pdp11)
 static char *rcsid()
-    { return "$Id: ed.init.c,v 3.0 1991/07/04 21:49:28 christos Exp $"; }
+    { return "$Id: ed.init.c,v 3.1 1997/3/28 21:49:28 sms Exp $"; }
 #endif
 
 #include "sh.h"
@@ -385,12 +384,12 @@ ed_I()
 	    T_Tabs = 1;
 	}
 
-	if (T_Tabs) {		/* order of &= and |= is important to XTABS */
-	    nb.sg_flags &= ~(CBREAK | RAW | LCASE | XTABS | VTDELAY | ALLDELAY);
+	if (T_Tabs) {
+	    nb.sg_flags &= ~(CBREAK | RAW | XTABS);
 	    nb.sg_flags |= (ECHO | CRMOD | ANYP);
 	}
 	else {
-	    nb.sg_flags &= ~(CBREAK | RAW | LCASE | VTDELAY | ALLDELAY);
+	    nb.sg_flags &= ~(CBREAK | RAW);
 	    nb.sg_flags |= (ECHO | CRMOD | XTABS | ANYP);
 	}
 	nlb &= ~(LPRTERA);	/* let 8-bit mode stand as set */
@@ -523,12 +522,12 @@ ed_I()
 #  endif				/* hpux */
 # endif				/* OREO || hpux || _IBMR2 */
 #else				/* GSTTY */
-    if (T_Tabs) {		/* order of &= and |= is important to XTABS */
-	xb.sg_flags &= ~(RAW | ECHO | LCASE | XTABS | VTDELAY | ALLDELAY);
+    if (T_Tabs) {
+	xb.sg_flags &= ~(RAW | ECHO | XTABS);
 	xb.sg_flags |= (CBREAK | CRMOD | ANYP);
     }
     else {
-	xb.sg_flags &= ~(RAW | ECHO | LCASE | VTDELAY | ALLDELAY);
+	xb.sg_flags &= ~(RAW | ECHO);
 	xb.sg_flags |= (CBREAK | CRMOD | ANYP | XTABS);
     }
 
@@ -846,7 +845,7 @@ Rawmode()
 	    T_Tabs = CanWeTab();
 	}
 
-	nb.sg_flags &= ~(CBREAK | RAW | LCASE | VTDELAY | ALLDELAY);
+	nb.sg_flags &= ~(CBREAK | RAW);
 	nb.sg_flags |= (ECHO | CRMOD | ANYP);
 	if (T_Tabs) {		/* order of &= and |= is important to XTABS */
 	    nb.sg_flags &= ~XTABS;
@@ -857,11 +856,11 @@ Rawmode()
 
 	xb.sg_flags = testsgb.sg_flags;
 	if (T_Tabs) {
-	    xb.sg_flags &= ~(RAW | ECHO | LCASE | XTABS | VTDELAY | ALLDELAY);
+	    xb.sg_flags &= ~(RAW | ECHO | XTABS);
 	    xb.sg_flags |= (CBREAK | CRMOD | ANYP);
 	}
 	else {
-	    xb.sg_flags &= ~(RAW | ECHO | LCASE | VTDELAY | ALLDELAY);
+	    xb.sg_flags &= ~(RAW | ECHO);
 	    xb.sg_flags |= (CBREAK | CRMOD | ANYP | XTABS);
 	}
 

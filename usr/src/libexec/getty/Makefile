@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.1 (2.11BSD) 1996/11/16
+#	@(#)Makefile	5.1.2 (2.11BSD) 1997/4/28
 #
 DESTDIR=
 CFLAGS=	-O
@@ -16,9 +16,8 @@ all:	getty
 getty:	${OBJS}
 	${CC} ${SEPFLAG} -o getty ${OBJS}
 
-install: all gettytab
-	install -s getty ${DESTDIR}/usr/libexec/getty
-	-install -c -m 444 gettytab ${DESTDIR}/etc/gettytab
+install: all
+	install -s -m 555 -o bin -g bin getty ${DESTDIR}/usr/libexec/getty
 
 clean:
 	rm -f getty ${OBJS} a.out core errs

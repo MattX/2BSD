@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)gettytab.h	5.2.2 (2.11BSD GTE) 12/9/94
+ *	@(#)gettytab.h	5.2.2 (2.11BSD GTE) 1997/3/28
  */
 
 /*
@@ -64,19 +64,14 @@ struct gettyflags {
 #define	IS	gettynums[0].value
 #define	OS	gettynums[1].value
 #define	SP	gettynums[2].value
-#define	ND	gettynums[3].value
-#define	CD	gettynums[4].value
-#define	TD	gettynums[5].value
-#define	FD	gettynums[6].value
-#define	BD	gettynums[7].value
-#define	TO	gettynums[8].value
-#define	F0	gettynums[9].value
-#define	F0set	gettynums[9].set
-#define	F1	gettynums[10].value
-#define	F1set	gettynums[10].set
-#define	F2	gettynums[11].value
-#define	F2set	gettynums[11].set
-#define	PF	gettynums[12].value
+#define	TO	gettynums[3].value
+#define	F0	gettynums[4].value
+#define	F0set	gettynums[4].set
+#define	F1	gettynums[5].value
+#define	F1set	gettynums[5].set
+#define	F2	gettynums[6].value
+#define	F2set	gettynums[6].set
+#define	PF	gettynums[7].value
 
 /*
  * Boolean values.
@@ -103,6 +98,7 @@ struct gettyflags {
 #define UB	gettyflags[16].value
 #define AB	gettyflags[17].value
 #define DX	gettyflags[18].value
+#define	HF	gettyflags[19].value
 
 int	getent();
 long	getnum();
