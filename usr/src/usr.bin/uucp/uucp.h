@@ -1,4 +1,4 @@
-/*	uucp.h	5.11.2	94/6/11	*/
+/*	uucp.h	5.11.3	94/12/22 */
 
 #include <stdio.h>
 #include <paths.h>
@@ -59,12 +59,12 @@
  * The complete list is in the condevs array in condevs.c
  */
 /* #define ATT2224		/* AT&T 2224 */
-/* #define BSDTCP		/* 4.2bsd or 2.9bsd TCP/IP */
+#define BSDTCP		/* 4.2bsd or 2.9bsd TCP/IP */
 /* #define CDS224		/* Concord Data Systems 2400 */
 /* #define DATAKIT	/* ATT's datakit */
 /* #define DF02		/* Dec's DF02/DF03 */
 /* #define DF112		/* Dec's DF112 */
-#define DN11		/* "standard" DEC dialer */
+/* #define DN11		/* "standard" DEC dialer */
 #define HAYES		/* Hayes' Smartmodem */
 /* #define HAYES2400	/* Hayes' 2400 baud Smartmodem */
 /* #define MICOM	/* Micom Mux port */
