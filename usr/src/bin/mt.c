@@ -11,7 +11,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)mt.c	2.1 (2.11BSD) 1995/12/22";
+static char sccsid[] = "@(#)mt.c	2.2 (2.11BSD) 1999/3/20";
 #endif not lint
 
 /*
@@ -89,7 +89,7 @@ main(argc, argv)
 			exit(1);
 		}
 		if (ioctl(mtfd, MTIOCTOP, &mt_com) < 0) {
-			fprintf(stderr, "%s %s %d ", tape, comp->c_name,
+			fprintf(stderr, "%s %s %ld ", tape, comp->c_name,
 				mt_com.mt_count);
 			perror("failed");
 			exit(2);
