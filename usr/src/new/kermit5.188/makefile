@@ -1,4 +1,4 @@
-# CKUBS2.MAK, Sat Nov  7 22:10:40 1992
+# CKUBS2.MAK, Wed Jul  17 22:10:40 1996
 #
 # Abbreviated version for 2.10 / 2.11 BSD, which chokes on full-size makefile
 # because "Make: out of memory".
@@ -18,6 +18,8 @@
 # e-mail: fdc@watsun.cc.columbia.edu, fdc@columbia.edu, or FDCCU@CUVMA.BITNET.
 # BSD 2.10/2.11 specifics by Steven M Schultz, sms@wlv.iipo.gtegsc.com.
 #
+# Modified 17 July 1996 to make use of '-lstubs' and _PATH_CTIMED in 2.11BSD.
+#    Also revised the sed script (ckustr.sed). sms.
 # Modified 4 July 1992 to reshuffle overlays (because the first one got too
 #   big) and to improve the method of defining the string file.  fdc.
 # And again 23 Aug 1992.  fdc.
@@ -63,20 +65,13 @@
 # Compile and Link variables:
 #
 # EXT is the extension (file type) for object files, normally o.
-# DFLAGS is the set of options and flags used for modules that can be
-#  processed by the optimizer.
-# EFLAGS is the same as DFLAGS except that the -O is removed.
-#  Use it for modules that blow up the optimizer.
+# EFLAGS is the set of options and flags _EXCLUDING_ the optimize flag.
 #
 EXT=o
-DFLAGS="-O -DBSD43 -DLCKDIR -DNODEBUG -DNOTLOG -DMINIDIAL \
+OPT= -O
+EFLAGS=-DBSD43 -DLCKDIR -DNODEBUG -DNOTLOG -DMINIDIAL \
 	-DNOCSETS -DNOHELP -DNOSCRIPT -DNOSPL -DNOXMIT -DNOSETBUF $(KFLAGS) \
-	-DSTR_FILE=\\\"/usr/local/lib/kermit5.sr\\\" \
-	-DSTR_CTIMED=\\\"/usr/lib/ctimed\\\""
-EFLAGS=-O -DBSD43 -DLCKDIR -DNODEBUG -DNOTLOG -DMINIDIAL \
-	-DNOCSETS -DNOHELP -DNOSCRIPT -DNOSPL -DNOXMIT -DNOSETBUF $(KFLAGS) \
-	-DSTR_FILE=\\\"/usr/local/lib/kermit5.sr\\\" \
-	-DSTR_CTIMED=\\\"/usr/lib/ctimed\\\"
+	-DSTR_FILE=\\\"/usr/local/lib/kermit5.sr\\\"
 LNKFLAGS= -i
 CC=./ckustr.sed
 CC2=cc
@@ -91,7 +86,6 @@ wermit: ckcmai.$(EXT) ckucmd.$(EXT) ckuusr.$(EXT) ckuus2.$(EXT) \
 	ckucon.$(EXT) ckutio.$(EXT) ckufio.$(EXT) ckudia.$(EXT) \
 	ckuscr.$(EXT) ckcnet.$(EXT) ckuus6.$(EXT) ckuus7.$(EXT) ckuusx.$(EXT) \
 	ckuusy.$(EXT) ckustr.o strings.o
-	ar x /lib/libc.a getpwent.o ndbm.o
 	$(CC2) $(LNKFLAGS) -o wermit \
 		ckutio.$(EXT) ckufio.$(EXT) ckcfns.$(EXT) ckcfn2.$(EXT) \
 		ckcfn3.$(EXT) \
@@ -100,7 +94,7 @@ wermit: ckcmai.$(EXT) ckucmd.$(EXT) ckuusr.$(EXT) ckuus2.$(EXT) \
 		 -Z ckuus7.$(EXT) ckudia.$(EXT) ckuscr.$(EXT) ckcnet.$(EXT) \
 		    ckuusy.$(EXT) \
 		 -Z ckuus2.$(EXT) ckuusx.$(EXT) ckucon.$(EXT) \
-		    ckuus3.$(EXT) getpwent.o ndbm.o \
+		    ckuus3.$(EXT) \
 		 -Y ckustr.o strings.o $(LIBS)
 
 strings.o: strings
@@ -163,7 +157,7 @@ ckucon.$(EXT): ckucon.c ckcker.h ckcdeb.h ckcasc.h ckcnet.h
 ckcnet.$(EXT): ckcnet.c ckcdeb.h ckcker.h ckcnet.h
 
 wart: ckwart.$(EXT)
-	$(CC) $(LNKFLAGS) -o wart ckwart.$(EXT) $(LIBS)
+	$(CC) $(LNKFLAGS) -o wart ckwart.$(EXT)
 
 ckcmdb.$(EXT): ckcmdb.c ckcdeb.h
 
@@ -177,23 +171,29 @@ ckuscr.$(EXT): ckuscr.c ckcker.h ckcdeb.h ckcasc.h
 #2.11BSD
 #
 bsd211:
-	@echo "Making C-Kermit 5A for 2.10/2.11BSD with overlays..."
+	@echo "Making C-Kermit 5A for 2BSD with overlays..."
 	@echo -n "Be sure to install kermit5.sr with the same pathname"
 	@echo " specified in ckustr.c!"
 	chmod +x ckustr.sed
-	make wermit CFLAGS=${DFLAGS}
+	make wermit CFLAGS="${OPT} ${EFLAGS}" LIBS=-lstubs
 
 #2.10BSD
 #
 bsd210:
 	@echo -n "Be sure to install ctimed with the same pathname"
 	@echo " specified in ckustr.c for STR_CTIMED!"
-	make bsd211 ctimed
+	@echo "Making C-Kermit 5A for 2BSD with overlays..."
+	@echo -n "Be sure to install kermit5.sr with the same pathname"
+	@echo " specified in ckustr.c!"
+	chmod +x ckustr.sed
+	make wermit ctimed CFLAGS="${OPT} ${EFLAGS} \
+			-DSTR_CTIMED=\\\"/usr/lib/ctimed\\\""
 
 ctimed:
-	$(CC2) $(DFLAGS) $(LNKFLAGS) -o ctimed cku2tm.c
+	$(CC2) $(CFLAGS) $(LNKFLAGS) -o ctimed cku2tm.c
 
 #Clean up intermediate and object files
 clean:
 	@echo 'Removing intermediate files...'
-	-rm -f *.$(EXT) ckcpro.c wart strings kermit5.sr ctimed
+	-rm -f *.$(EXT) ckcpro.c wart strings kermit5.sr ctimed wermit xs.c
+	-rm -f xxmk.c mk.c x.c

@@ -43,9 +43,17 @@ sed -e 's/ferror(/strferrorf(/'				\
     -e 's/perror("/strperror("/'			\
     -e 's/experror(/strexperrorf(/'			\
     -e 's/sprintf(\([^,][^,]*\),[ ]*\("[^"]*"\)\([,)]\)/strsrerror(\2, \1\3/' \
+    -e '/sprintf(\([^,][^,]*\),/{N
+s/sprintf(\([^,][^,]*\),\n[ ]*\("[^"]*"\)\([,)]\)/strsrerror(\2, \1\3/
+}'							\
     -e 's/fprintf(\([^,][^,]*\),[ ]*\("[^"]*"\)\([,)]\)/strfrerror(\2, \1\3/' \
-    -e 's/printf("/strprerror("/'				\
-	xxmk.c > mk.c
+    -e '/fprintf(\([^,][^,]*\),/{N
+s/fprintf(\([^,][^,]*\),\n[ ]*\("[^"]*"\)\([,)]\)/strfrerror(\2, \1\3/
+}'							\
+    -e 's/printf[ ]*("/strprerror("/'		\
+    -e '/printf[ ]*(/{N
+s/printf[ ]*(\n"/strprerror("/
+}' xxmk.c > mk.c
 mkstr - $STRINGS xx mk.c
 sed -e 's/^# \([0-9]\)/#line \1/' xxmk.c | xstr -c -
 echo Compiling...
