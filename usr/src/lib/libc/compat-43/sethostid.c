@@ -32,30 +32,21 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)siginterrupt.c	8.1 (Berkeley) 6/4/93";
+static char sccsid[] = "@(#)sethostid.c	8.1.1 (2.11BSD) 1997/8/28";
 #endif /* LIBC_SCCS and not lint */
 
-#include <signal.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
 
-/*
- * Set signal state to prevent restart of system calls
- * after an instance of the indicated signal.
- */
-siginterrupt(sig, flag)
-	int sig, flag;
+u_long
+sethostid(hostid)
+	u_long hostid;
 {
-	extern sigset_t _sigintr;
-	struct sigaction sa;
-	int ret;
+	int mib[2];
 
-	if ((ret = sigaction(sig, (struct sigaction *)0, &sa)) < 0)
-		return (ret);
-	if (flag) {
-		sigaddset(&_sigintr, sig);
-		sa.sa_flags &= ~SA_RESTART;
-	} else {
-		sigdelset(&_sigintr, sig);
-		sa.sa_flags |= SA_RESTART;
-	}
-	return (sigaction(sig, &sa, (struct sigaction *)0));
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_HOSTID;
+	if (sysctl(mib, 2, NULL, NULL, &hostid, sizeof hostid) == -1)
+		return (-1);
+	return (0);
 }

@@ -1,4 +1,4 @@
-/*
+/*-
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -32,30 +32,50 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)siginterrupt.c	8.1 (Berkeley) 6/4/93";
+static char sccsid[] = "@(#)sigsetops.c	8.1.1 (2.11BSD) 1997/8/28";
 #endif /* LIBC_SCCS and not lint */
 
 #include <signal.h>
 
-/*
- * Set signal state to prevent restart of system calls
- * after an instance of the indicated signal.
- */
-siginterrupt(sig, flag)
-	int sig, flag;
-{
-	extern sigset_t _sigintr;
-	struct sigaction sa;
-	int ret;
+#undef sigemptyset
+#undef sigfillset
+#undef sigaddset
+#undef sigdelset
+#undef sigismember
 
-	if ((ret = sigaction(sig, (struct sigaction *)0, &sa)) < 0)
-		return (ret);
-	if (flag) {
-		sigaddset(&_sigintr, sig);
-		sa.sa_flags &= ~SA_RESTART;
-	} else {
-		sigdelset(&_sigintr, sig);
-		sa.sa_flags |= SA_RESTART;
-	}
-	return (sigaction(sig, &sa, (struct sigaction *)0));
+sigemptyset(set)
+	sigset_t *set;
+{
+	*set = 0;
+	return (0);
+}
+
+sigfillset(set)
+	sigset_t *set;
+{
+	*set = ~(sigset_t)0;
+	return (0);
+}
+
+sigaddset(set, signo)
+	sigset_t *set;
+	int signo;
+{
+	*set |= sigmask(signo);
+	return (0);
+}
+
+sigdelset(set, signo)
+	sigset_t *set;
+	int signo;
+{
+	*set &= ~sigmask(signo);
+	return (0);
+}
+
+sigismember(set, signo)
+	sigset_t *set;
+	int signo;
+{
+	return ((*set & ~sigmask(signo)) != 0);
 }
