@@ -1,14 +1,14 @@
 #
 # Steven Schultz - put in the public domain 1996/6/25.
 #
-#	@(#)Makefile	1.5 (2.11BSD) 1999/2/19
+#	@(#)Makefile	1.6 (2.11BSD) 1999/5/7
 #
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG= -i
 TAGSFILE=tags
 
-SUBDIR=	acctd comsat ctimed fingerd ftpd getNAME getty identd makekey 
+SUBDIR=	acctd comsat ctimed fingerd ftpd getNAME getty identd makekey \
 	popper rexecd rlogind rshd talkd tcpd telnetd tftpd
 
 all:	${SUBDIR}
