@@ -4,16 +4,15 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.1 (Berkeley) 6/6/85";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD) 1995/05/09";
+#endif
 
+#include <paths.h>
 #include "defs.h"
 
 #define NHOSTS 100
@@ -23,8 +22,10 @@ static char sccsid[] = "@(#)main.c	5.1 (Berkeley) 6/6/85";
  */
 
 char	*distfile = NULL;
-char	tmpfile[] = "/tmp/rdistXXXXXX";
-char	*tmpname = &tmpfile[5];
+#define	_RDIST_TMP	"/rdistXXXXXX"
+/* Can't use "sizeof (_PATH_TMP) + sizeof (_RDIST_TMP) + 1" because of xstr */
+char	tempfile[24];
+char	*tempname;
 
 int	debug;		/* debugging flag */
 int	nflag;		/* NOP flag, just print commands without executing */
@@ -34,9 +35,9 @@ int	iamremote;	/* act as remote server for transfering files */
 
 FILE	*fin = NULL;	/* input file pointer */
 int	rem = -1;	/* file descriptor to remote source/sink process */
-char	host[32];	/* host name */
+char	host[MAXHOSTNAMELEN];	/* host name */
 int	nerrs;		/* number of errors while sending/receiving */
-char	user[10];	/* user's name */
+char	user[20];	/* user's name */
 char	homedir[128];	/* user's home directory */
 int	userid;		/* user's user ID */
 int	groupid;	/* user's group ID */
@@ -61,6 +62,9 @@ main(argc, argv)
 	strcpy(homedir, pw->pw_dir);
 	groupid = pw->pw_gid;
 	gethostname(host, sizeof(host));
+	strcpy(tempfile, _PATH_TMP);
+	strcat(tempfile, _RDIST_TMP);
+	tempname = rindex(tempfile, '/') + 1;
 
 	while (--argc > 0) {
 		if ((arg = *++argv)[0] != '-')
@@ -152,7 +156,7 @@ main(argc, argv)
 	*hp = NULL;
 
 	setreuid(0, userid);
-	mktemp(tmpfile);
+	mktemp(tempfile);
 
 	if (iamremote) {
 		server();
@@ -255,15 +259,4 @@ prnames(nl)
 		nl = nl->n_next;
 	}
 	printf(")\n");
-}
-
-/*VARARGS*/
-warn(fmt, a1, a2,a3)
-	char *fmt;
-{
-	extern int yylineno;
-
-	fprintf(stderr, "rdist: line %d: Warning: ", yylineno);
-	fprintf(stderr, fmt, a1, a2, a3);
-	fputc('\n', stderr);
 }

@@ -5,8 +5,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static	char *sccsid = "@(#)gram.y	5.2 (Berkeley) 85/06/21";
+#if	!defined(lint) && defined(DOSCCS)
+static	char *sccsid = "@(#)gram.y	5.2.1 (2.11BSD) 1995/05/09";
 #endif
 
 #include "defs.h"
@@ -173,7 +173,7 @@ yylex()
 	static char yytext[INMAX];
 	register int c;
 	register char *cp1, *cp2;
-	static char quotechars[] = "[]{}*?$";
+	static char *quotechars = "[]{}*?$";
 	
 again:
 	switch (c = getc(fin)) {

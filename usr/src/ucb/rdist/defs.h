@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)defs.h	5.2.1 (2.11BSD GTE) 6/11/95
+ *	@(#)defs.h	5.2.2 (2.11BSD GTE) 1995/05/09
  */
 
 #include <stdio.h>
@@ -97,8 +97,8 @@ struct linkbuf {
 	ino_t	inum;
 	dev_t	devnum;
 	int	count;
-	char	pathname[BUFSIZ];
-	char	target[BUFSIZ];
+	char	*pathname;
+	char	*target;
 	struct	linkbuf *nextp;
 };
 
@@ -110,14 +110,14 @@ extern int options;		/* global options */
 extern int nerrs;		/* number of errors seen */
 extern int rem;			/* remote file descriptor */
 extern int iamremote;		/* acting as remote server */
-extern char tmpfile[];		/* file name for logging changes */
+extern char tempfile[];		/* file name for logging changes */
 extern struct linkbuf *ihead;	/* list of files with more than one link */
 extern struct passwd *pw;	/* pointer to static area used by getpwent */
 extern struct group *gr;	/* pointer to static area used by getgrent */
 extern char host[];		/* host name of master copy */
 extern char buf[];		/* general purpose buffer */
 extern int errno;		/* system error number */
-extern char *sys_errlist[];
+extern char *strerror();
 
 char *makestr();
 struct namelist *makenl();

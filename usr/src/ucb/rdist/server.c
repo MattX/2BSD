@@ -4,13 +4,19 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)server.c	5.3 (Berkeley) 6/7/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)server.c	5.3.1 (2.11BSD) 1995/05/09";
+#endif
 
 #include "defs.h"
 
-#define	ack() 	(void) write(rem, "\0\n", 2)
+/*
+ * Need to do this because the string "\0\n" was being mangled by xstr.  Besides
+ * this makes for smaller code anyways by avoiding inlining a 3 arg write call.
+*/
+static char ack2ch[2] = {'\0', '\n'};
+void ack() { (void) write(rem, ack2ch, 2); }
+
 #define	err() 	(void) write(rem, "\1\n", 2)
 
 struct	linkbuf *ihead;		/* list of files with more than one link */
@@ -272,7 +278,7 @@ sendf(rname, opts)
 	if (except(target))
 		return;
 	if ((opts & FOLLOW ? stat(target, &stb) : lstat(target, &stb)) < 0) {
-		error("%s: %s\n", target, sys_errlist[errno]);
+		error("%s: %s\n", target, strerror(errno));
 		return;
 	}
 	if ((u = update(rname, opts, &stb)) == 0) {
@@ -305,7 +311,7 @@ sendf(rname, opts)
 	switch (stb.st_mode & S_IFMT) {
 	case S_IFDIR:
 		if ((d = opendir(target)) == NULL) {
-			error("%s: %s\n", target, sys_errlist[errno]);
+			error("%s: %s\n", target, strerror(errno));
 			return;
 		}
 		(void) sprintf(buf, "D%o %04o 0 0 %s %s %s\n", opts,
@@ -327,7 +333,7 @@ sendf(rname, opts)
 			if (!strcmp(dp->d_name, ".") ||
 			    !strcmp(dp->d_name, ".."))
 				continue;
-			if (len + 1 + strlen(dp->d_name) >= BUFSIZ - 1) {
+			if (len + 1 + strlen(dp->d_name) >= MAXPATHLEN - 1) {
 				error("%s/%s: Name too long\n", target,
 					dp->d_name);
 				continue;
@@ -355,7 +361,7 @@ sendf(rname, opts)
 
 			if ((lp = savelink(&stb)) != NULL) {
 				/* install link */
-				if (*lp->target == 0)
+				if (lp->target == NULL)
 				(void) sprintf(buf, "k%o %s %s\n", opts,
 					lp->pathname, rname);
 				else
@@ -403,7 +409,7 @@ sendf(rname, opts)
 
 		if ((lp = savelink(&stb)) != NULL) {
 			/* install link */
-			if (*lp->target == 0)
+			if (lp->target == NULL)
 			(void) sprintf(buf, "k%o %s %s\n", opts,
 				lp->pathname, rname);
 			else
@@ -418,7 +424,7 @@ sendf(rname, opts)
 	}
 
 	if ((f = open(target, 0)) < 0) {
-		error("%s: %s\n", target, sys_errlist[errno]);
+		error("%s: %s\n", target, strerror(errno));
 		return;
 	}
 	(void) sprintf(buf, "R%o %o %ld %ld %s %s %s\n", opts,
@@ -434,6 +440,7 @@ sendf(rname, opts)
 	sizerr = 0;
 	for (i = 0; i < stb.st_size; i += BUFSIZ) {
 		int amt = BUFSIZ;
+
 		if (i + amt > stb.st_size)
 			amt = stb.st_size - i;
 		if (sizerr == 0 && read(f, buf, amt) != amt)
@@ -470,10 +477,9 @@ dospecial:
 
 struct linkbuf *
 savelink(stp)
-	struct stat *stp;
+	register struct stat *stp;
 {
-	struct linkbuf *lp;
-	int found = 0;
+	register struct linkbuf *lp;
 
 	for (lp = ihead; lp != NULL; lp = lp->nextp)
 		if (lp->inum == stp->st_ino && lp->devnum == stp->st_dev) {
@@ -484,6 +490,16 @@ savelink(stp)
 	if (lp == NULL)
 		log(lfp, "out of memory, link information lost\n");
 	else {
+		lp->pathname = malloc(strlen(target)+1);
+		if (Tdest)
+			lp->target = malloc(strlen(Tdest)+1);
+		if ((lp->pathname == NULL) || (Tdest && (lp->target == NULL))) {
+			log(lfp, "out of memory, link information lost\n");
+			if (lp->pathname) free(lp->pathname);
+			if (lp->target) free(lp->target);
+			free(lp);
+			return(NULL);
+		}
 		lp->nextp = ihead;
 		ihead = lp;
 		lp->inum = stp->st_ino;
@@ -493,7 +509,7 @@ savelink(stp)
 		if (Tdest)
 			strcpy(lp->target, Tdest);
 		else
-			*lp->target = 0;
+			lp->target = NULL;
 	}
 	return(NULL);
 }
@@ -506,11 +522,11 @@ savelink(stp)
 update(rname, opts, stp)
 	char *rname;
 	int opts;
-	struct stat *stp;
+	register struct stat *stp;
 {
 	register char *cp, *s;
-	register off_t size;
-	register time_t mtime;
+	off_t size;
+	time_t mtime;
 
 	if (debug) 
 		printf("update(%s, %x, %x)\n", rname, opts, stp);
@@ -614,7 +630,7 @@ query(name)
 		if (errno == ENOENT)
 			(void) write(rem, "N\n", 2);
 		else
-			error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+			error("%s:%s: %s\n", host, target, strerror(errno));
 		*tp = '\0';
 		return;
 	}
@@ -649,7 +665,7 @@ recvf(cmd, type)
 	struct timeval tvp[2];
 	char *owner, *group;
 	char new[BUFSIZ];
-	extern char *tmpname;
+	extern char *tempname;
 
 	cp = cmd;
 	opts = 0;
@@ -734,7 +750,7 @@ recvf(cmd, type)
 				ack();
 			return;
 		}
-		error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+		error("%s:%s: %s\n", host, target, strerror(errno));
 		tp = stp[--catname];
 		*tp = '\0';
 		return;
@@ -744,12 +760,12 @@ recvf(cmd, type)
 		(void) sprintf(tp, "/%s", cp);
 	cp = rindex(target, '/');
 	if (cp == NULL)
-		strcpy(new, tmpname);
+		strcpy(new, tempname);
 	else if (cp == target)
-		(void) sprintf(new, "/%s", tmpname);
+		(void) sprintf(new, "/%s", tempname);
 	else {
 		*cp = '\0';
-		(void) sprintf(new, "%s/%s", target, tmpname);
+		(void) sprintf(new, "%s/%s", target, tempname);
 		*cp = '/';
 	}
 
@@ -829,7 +845,7 @@ recvf(cmd, type)
 		return;
 	}
 	if (wrerr) {
-		error("%s:%s: %s\n", host, new, sys_errlist[olderrno]);
+		error("%s:%s: %s\n", host, new, strerror(olderrno));
 		(void) unlink(new);
 		return;
 	}
@@ -841,7 +857,7 @@ recvf(cmd, type)
 			goto badt;
 		if ((f2 = fopen(new, "r")) == NULL) {
 		badn:
-			error("%s:%s: %s\n", host, new, sys_errlist[errno]);
+			error("%s:%s: %s\n", host, new, strerror(errno));
 			(void) unlink(new);
 			return;
 		}
@@ -873,7 +889,7 @@ recvf(cmd, type)
 	tvp[1].tv_sec = mtime;
 	tvp[1].tv_usec = 0;
 	if (utimes(new, tvp) < 0) {
-		note("%s:utimes failed %s: %s\n", host, new, sys_errlist[errno]);
+		note("%s:utimes failed %s: %s\n", host, new, strerror(errno));
 	}
 	if (chog(new, owner, group, mode) < 0) {
 		(void) unlink(new);
@@ -882,7 +898,7 @@ recvf(cmd, type)
 fixup:
 	if (rename(new, target) < 0) {
 badt:
-		error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+		error("%s:%s: %s\n", host, target, strerror(errno));
 		(void) unlink(new);
 		return;
 	}
@@ -935,12 +951,12 @@ hardlink(cmd)
 	}
 	if (chkparent(target) < 0 ) {
 		error("%s:%s: %s (no parent)\n",
-			host, target, sys_errlist[errno]);
+			host, target, strerror(errno));
 		return;
 	}
 	if (exists && (unlink(target) < 0)) {
 		error("%s:%s: %s (unlink)\n",
-			host, target, sys_errlist[errno]);
+			host, target, strerror(errno));
 		return;
 	}
 	if (link(oldname, target) < 0) {
@@ -1037,7 +1053,7 @@ ok:
 	if (chown(file, uid, gid) < 0 ||
 	    (mode & 06000) && chmod(file, mode) < 0) {
 		note("%s: chown or chmod failed: file %s:  %s",
-			     host, file, sys_errlist[errno]);
+			     host, file, strerror(errno));
 	}
 	if (userid)
 		setreuid(0, userid);
@@ -1146,7 +1162,7 @@ clean(cp)
 		return;
 	}
 	if ((d = opendir(target)) == NULL) {
-		error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+		error("%s:%s: %s\n", host, target, strerror(errno));
 		return;
 	}
 	ack();
@@ -1156,7 +1172,7 @@ clean(cp)
 	while (dp = readdir(d)) {
 		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 			continue;
-		if (len + 1 + strlen(dp->d_name) >= BUFSIZ - 1) {
+		if (len + 1 + strlen(dp->d_name) >= MAXPATHLEN - 1) {
 			error("%s:%s/%s: Name too long\n",
 				host, target, dp->d_name);
 			continue;
@@ -1168,7 +1184,7 @@ clean(cp)
 			;
 		tp--;
 		if (lstat(target, &stb) < 0) {
-			error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+			error("%s:%s: %s\n", host, target, strerror(errno));
 			continue;
 		}
 		(void) sprintf(buf, "Q%s\n", dp->d_name);
@@ -1234,7 +1250,7 @@ remove(stp)
 	while (dp = readdir(d)) {
 		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 			continue;
-		if (len + 1 + strlen(dp->d_name) >= BUFSIZ - 1) {
+		if (len + 1 + strlen(dp->d_name) >= MAXPATHLEN - 1) {
 			error("%s:%s/%s: Name too long\n",
 				host, target, dp->d_name);
 			continue;
@@ -1246,7 +1262,7 @@ remove(stp)
 			;
 		tp--;
 		if (lstat(target, &stb) < 0) {
-			error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+			error("%s:%s: %s\n", host, target, strerror(errno));
 			continue;
 		}
 		remove(&stb);
@@ -1256,7 +1272,7 @@ remove(stp)
 	*tp = '\0';
 	if (rmdir(target) < 0) {
 bad:
-		error("%s:%s: %s\n", host, target, sys_errlist[errno]);
+		error("%s:%s: %s\n", host, target, strerror(errno));
 		return;
 	}
 removed:
@@ -1278,7 +1294,7 @@ dospecial(cmd)
 	extern int userid, groupid;
 
 	if (pipe(fd) < 0) {
-		error("%s\n", sys_errlist[errno]);
+		error("%s\n", strerror(errno));
 		return;
 	}
 	if ((pid = fork()) == 0) {
@@ -1336,81 +1352,93 @@ dospecial(cmd)
 		ack();
 }
 
+#include <varargs.h>
+
 /*VARARGS2*/
-log(fp, fmt, a1, a2, a3)
+log(fp, fmt, va_alist)
 	FILE *fp;
 	char *fmt;
-	int a1, a2, a3;
+	va_dcl
 {
+	va_list ap;
+
+	va_start(ap);
 	/* Print changes locally if not quiet mode */
 	if (!qflag)
-		printf(fmt, a1, a2, a3);
+		vprintf(fmt, ap);
 
 	/* Save changes (for mailing) if really updating files */
 	if (!(options & VERIFY) && fp != NULL)
-		fprintf(fp, fmt, a1, a2, a3);
+		(void)vfprintf(fp, fmt, ap);
+	va_end(ap);
 }
 
 /*VARARGS1*/
-error(fmt, a1, a2, a3)
+error(fmt, va_alist)
 	char *fmt;
-	int a1, a2, a3;
+	va_dcl
 {
 	static FILE *fp;
+	va_list ap;
 
+	va_start(ap);
 	++nerrs;
 	if (!fp && !(fp = fdopen(rem, "w")))
 		return;
 	if (iamremote) {
 		(void)fprintf(fp, "%crdist: ", 0x01);
-		(void)fprintf(fp, fmt, a1, a2, a3);
+		(void)vfprintf(fp, fmt, ap);
 		fflush(fp);
 	}
 	else {
 		fflush(stdout);
 		(void)fprintf(stderr, "rdist: ");
-		(void)fprintf(stderr, fmt, a1, a2, a3);
+		(void)vfprintf(stderr, fmt, ap);
 		fflush(stderr);
 	}
 	if (lfp != NULL) {
 		(void)fprintf(lfp, "rdist: ");
-		(void)fprintf(lfp, fmt, a1, a2, a3);
+		(void)vfprintf(lfp, fmt, ap);
 		fflush(lfp);
 	}
+	va_end(ap);
 }
 
 /*VARARGS1*/
-fatal(fmt, a1, a2,a3)
+fatal(fmt, va_alist)
 	char *fmt;
-	int a1, a2, a3;
+	va_dcl
 {
 	static FILE *fp;
+	va_list ap;
 
+	va_start(ap);
 	++nerrs;
 	if (!fp && !(fp = fdopen(rem, "w")))
 		return;
 	if (iamremote) {
 		(void)fprintf(fp, "%crdist: ", 0x02);
-		(void)fprintf(fp, fmt, a1, a2, a3);
+		(void)vfprintf(fp, fmt, ap);
 		fflush(fp);
 	}
 	else {
 		fflush(stdout);
 		(void)fprintf(stderr, "rdist: ");
-		(void)fprintf(stderr, fmt, a1, a2, a3);
+		(void)vfprintf(stderr, fmt, ap);
 		fflush(stderr);
 	}
 	if (lfp != NULL) {
 		(void)fprintf(lfp, "rdist: ");
-		(void)fprintf(lfp, fmt, a1, a2, a3);
+		(void)vfprintf(lfp, fmt, ap);
 		fflush(lfp);
 	}
 	cleanup();
+	va_end(ap);
 }
 
 response()
 {
-	char *cp, *s;
+	register char *cp, *s;
 	char resp[BUFSIZ];
 
 	if (debug)
@@ -1460,21 +1488,28 @@ response()
  */
 cleanup()
 {
-	(void) unlink(tmpfile);
+	(void) unlink(tempfile);
 	exit(1);
 }
 
-note(fmt, a1, a2, a3)
+note(fmt, va_alist)
+	char *fmt;
+	va_dcl
 {
-	static char buf[BUFSIZ];
-	sprintf(buf, fmt, a1, a2, a3);
+	char buf[BUFSIZ];
+	va_list ap;
+
+	va_start(ap);
+	(void)vsprintf(buf, fmt, ap);
+	va_end(ap);
 	comment(buf);
 }
 
 comment(s)
-char *s;
+	char *s;
 {
 	char c = '\3';
+
 	write(rem, &c, 1);
 	write(rem, s, strlen(s));
 	c = '\n';

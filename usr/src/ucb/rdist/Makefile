@@ -3,22 +3,40 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.1 (2.11BSD GTE) 7/11/94
+#	@(#)Makefile	5.1.3 (2.11BSD GTE) 1995/05/11
 #
 DESTDIR=
 SEPFLAG= -i
+XSTR=	xstr
+YACC=	yacc
 SRCS =	docmd.c expand.c gram.y lookup.c main.c server.c
 OBJS =	docmd.o expand.o gram.o lookup.o main.o server.o
-LINT =	lint -ps
+LINT =	lint -ha
 CFLAGS= -O
 
-rdist:	${OBJS}
-	${CC} ${SEPFLAG} -o rdist ${OBJS}
+.c.o:
+	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
+	${CC} ${CFLAGS} -c x.c
+	mv -f x.o $*.o
+	rm -f x.c
+
+rdist:	${OBJS} strings.o
+	${CC} ${SEPFLAG} -o rdist ${OBJS} strings.o
 
 ${OBJS}:  defs.h
 
+strings.o: strings
+	${XSTR}
+	${CC} -c xs.c
+	mv -f xs.o strings.o
+	rm -f xs.c
+
+gram.c: gram.y
+	${YACC} gram.y
+	mv y.tab.c gram.c
+
 clean:
-	rm -f *.o gram.c errs rdist
+	rm -f ${OBJS} gram.c errs rdist strings strings.o x.c xs.c y.tab.c
 
 install: rdist
 	install -s -m 4751 rdist ${DESTDIR}/usr/ucb/rdist

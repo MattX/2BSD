@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)expand.c	5.2 (Berkeley) 3/28/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)expand.c	5.2.1 (2.11BSD) 1995/05/09";
+#endif
 
 #include "defs.h"
 
@@ -14,7 +14,7 @@ static char sccsid[] = "@(#)expand.c	5.2 (Berkeley) 3/28/86";
 #define LC '{'
 #define RC '}'
 
-static char	shchars[] = "${[*?";
+static char	*shchars = "${[*?";
 
 int	which;		/* bit mask of types to expand */
 int	eargc;		/* expanded arg count */
@@ -258,7 +258,7 @@ matchdir(pattern)
 {
 	struct stat stb;
 	register struct direct *dp;
-	DIR *dirp;
+	register DIR *dirp;
 
 	dirp = opendir(path);
 	if (dirp == NULL) {
@@ -289,7 +289,7 @@ patherr1:
 	closedir(dirp);
 patherr2:
 	strcat(path, ": ");
-	strcat(path, sys_errlist[errno]);
+	strcat(path, strerror(errno));
 	yyerror(path);
 }
 
@@ -575,7 +575,7 @@ addpath(c)
 char *
 exptilde(buf, file)
 	char buf[];
-	register char *file;
+	char *file;
 {
 	register char *s1, *s2, *s3;
 	extern char homedir[];

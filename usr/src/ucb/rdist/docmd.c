@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)docmd.c	5.1.1 (2.11BSD GTE) 6/11/94";
+static char sccsid[] = "@(#)docmd.c	5.1.2 (2.11BSD GTE) 1995/05/09";
 #endif
 
 #include "pathnames.h"
@@ -107,8 +107,8 @@ doarrow(filev, files, rhost, cmds)
 		signal(SIGPIPE, lostconn);
 		if (!makeconn(rhost))
 			return;
-		if ((lfp = fopen(tmpfile, "w")) == NULL) {
-			fatal("cannot open %s\n", tmpfile);
+		if ((lfp = fopen(tempfile, "w")) == NULL) {
+			fatal("cannot open %s\n", tempfile);
 			exit(1);
 		}
 	}
@@ -142,10 +142,12 @@ done:
 	}
 	for (sc = cmds; sc != NULL; sc = sc->sc_next)
 		if (sc->sc_type == NOTIFY)
-			notify(tmpfile, rhost, sc->sc_args, 0);
+			notify(tempfile, rhost, sc->sc_args, 0);
 	if (!nflag) {
-		(void) unlink(tmpfile);
+		(void) unlink(tempfile);
 		for (; ihead != NULL; ihead = ihead->nextp) {
+			if (ihead->pathname) free(ihead->pathname);
+			if (ihead->target) free(ihead->target);
 			free(ihead);
 			if ((opts & IGNLNKS) || ihead->count == 0)
 				continue;
@@ -308,7 +310,7 @@ dodcolon(filev, files, stamp, cmds)
 		return;
 	}
 	if (stat(stamp, &stb) < 0) {
-		error("%s: %s\n", stamp, sys_errlist[errno]);
+		error("%s: %s\n", stamp, strerror(errno));
 		return;
 	}
 	if (debug)
@@ -319,8 +321,8 @@ dodcolon(filev, files, stamp, cmds)
 	if (nflag || (options & VERIFY))
 		tfp = NULL;
 	else {
-		if ((tfp = fopen(tmpfile, "w")) == NULL) {
-			error("%s: %s\n", stamp, sys_errlist[errno]);
+		if ((tfp = fopen(tempfile, "w")) == NULL) {
+			error("%s: %s\n", stamp, strerror(errno));
 			return;
 		}
 		(void) gettimeofday(&tv[0], &tz);
@@ -344,9 +346,9 @@ dodcolon(filev, files, stamp, cmds)
 		(void) fclose(tfp);
 	for (sc = cmds; sc != NULL; sc = sc->sc_next)
 		if (sc->sc_type == NOTIFY)
-			notify(tmpfile, NULL, sc->sc_args, lastmod);
+			notify(tempfile, NULL, sc->sc_args, lastmod);
 	if (!nflag && !(options & VERIFY))
-		(void) unlink(tmpfile);
+		(void) unlink(tempfile);
 }
 
 /*
@@ -379,7 +381,7 @@ cmptime(name)
 			tp++;
 	}
 	if (access(name, 4) < 0 || stat(name, &stb) < 0) {
-		error("%s: %s\n", name, sys_errlist[errno]);
+		error("%s: %s\n", name, strerror(errno));
 		return;
 	}
 
@@ -413,7 +415,7 @@ rcmptime(st)
 		printf("rcmptime(%x)\n", st);
 
 	if ((d = opendir(target)) == NULL) {
-		error("%s: %s\n", target, sys_errlist[errno]);
+		error("%s: %s\n", target, strerror(errno));
 		return;
 	}
 	otp = tp;
@@ -421,7 +423,7 @@ rcmptime(st)
 	while (dp = readdir(d)) {
 		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 			continue;
-		if (len + 1 + strlen(dp->d_name) >= BUFSIZ - 1) {
+		if (len + 1 + strlen(dp->d_name) >= MAXPATHLEN - 1) {
 			error("%s/%s: Name too long\n", target, dp->d_name);
 			continue;
 		}
@@ -464,11 +466,11 @@ notify(file, rhost, to, lmod)
 		return;
 
 	if ((fd = open(file, 0)) < 0) {
-		error("%s: %s\n", file, sys_errlist[errno]);
+		error("%s: %s\n", file, strerror(errno));
 		return;
 	}
 	if (fstat(fd, &stb) < 0) {
-		error("%s: %s\n", file, sys_errlist[errno]);
+		error("%s: %s\n", file, strerror(errno));
 		(void) close(fd);
 		return;
 	}
@@ -557,21 +559,6 @@ except(file)
 			if (re_exec(file) > 0)
 				return(1);
 		}
-	}
-	return(0);
-}
-
-char *
-colon(cp)
-	register char *cp;
-{
-
-	while (*cp) {
-		if (*cp == ':')
-			return(cp);
-		if (*cp == '/')
-			return(0);
-		cp++;
 	}
 	return(0);
 }
