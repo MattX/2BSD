@@ -5,7 +5,7 @@
 .SH NAME
 acucntrl \- turn around tty line between dialin and dialout
 .SH SYNOPSIS
-.B /usr/lib/uucp/acucntrl
+.B /usr/libexec/acucntrl
 keyword ttyline
 .SH DESCRIPTION
 .PP

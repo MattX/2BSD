@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)lp.local.h	5.1.1 (2.11BSD GTE) 6/11/94
+ *	@(#)lp.local.h	5.1.2 (2.11BSD GTE) 1996/10/24
  */
 
 /*
@@ -35,11 +35,9 @@
 #define DEFLOCK		"lock"
 #define DEFSTAT		"status"
 #define	DEFSPOOL	"/usr/spool/lpd"
-#define	DEFDAEMON	"/usr/lib/lpd"
+#define	DEFDAEMON	"/usr/sbin/lpd"
 #define	DEFLOGF		"/dev/console"
 #define	DEFDEVLP	"/dev/lp"
-#define DEFRLPR		"/usr/lib/rlpr"
-#define DEFBINDIR	"/usr/ucb"
 #define	DEFMX		1000
 #define DEFMAXCOPIES	0
 #define DEFFF		"\f"

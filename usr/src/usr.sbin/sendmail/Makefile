@@ -1,26 +1,23 @@
 #
 #	Makefile for sendmail base directory
 #
-#		@(#)Makefile	4.9		5/30/86
+#		@(#)Makefile	4.9.1	(2.11BSD) 1996/10/24
 #
 
-ALL=	src/sendmail src/ctimed
+ALL=	src/sendmail
 DIRS=	$(DESTDIR)/usr/spool/mqueue
-SRCDIR=	$(DESTDIR)/usr/src/usr.lib/sendmail
 #
-#ALLDIRS=include adm src aux md cf lib doc adb test
-# cf temporarily removed
 ALLDIRS=include adm src aux md lib doc adb test
-BACKUP=	calder
-SENDMAIL=$(DESTDIR)/usr/lib/sendmail
-CTIMED=$(DESTDIR)/usr/lib/ctimed
+SENDMAIL=$(DESTDIR)/usr/sbin/sendmail
 SYSLOG=	/usr/spool/mqueue/syslog
-HOST=	`hostname | sed -e 's/ucb//' -e 's/\..*//'`
+HELPFILE=$(DESTDIR)/usr/share/misc/sendmail.hf
+STATUSFILE=$(DESTDIR)/var/log/sendmail.st
+STRINGFILE=${DESTDIR}/usr/share/misc/sendmail.sr
+FROZENFILE=${DESTDIR}/etc/sendmail.fc
 
 # When hardlinks are used, the references to LN below will need changes
 # for DESTDIR != /
 LN=	ln -s
-CP=	cp
 
 SEPFLAG= -i
 
@@ -28,37 +25,20 @@ all:
 	cd lib; make ${MFLAGS} SEPFLAG=${SEPFLAG}
 	cd src; m4 Makefile.m4 > Makefile; make ${MFLAGS} SEPFLAG=${SEPFLAG} all
 	-cd aux; m4 Makefile.m4 > Makefile; make ${MFLAGS} SEPFLAG=${SEPFLAG}
-#	cd cf;  make ${MFLAGS}
-#	cd doc; make ${MFLAGS}
 
 install: $(ALL) $(DIRS)
 	install -s -o root -m 4755	src/sendmail	$(SENDMAIL)
-	install -s -o root -m 0755	src/ctimed	$(CTIMED)
-	chgrp kmem $(SENDMAIL)
-	install -c -o root -m 644	lib/sendmail.hf	$(SENDMAIL).hf
-	install -c -o root -m 666	/dev/null	$(SENDMAIL).st
-	install -c -o root -m 644	/dev/null	$(SENDMAIL).fc
-	rm -f					$(DESTDIR)/usr/ucb/newaliases
-	$(LN)			/usr/lib/sendmail  $(DESTDIR)/usr/ucb/newaliases
-	rm -f					$(DESTDIR)/usr/ucb/mailq
-	$(LN)			/usr/lib/sendmail  $(DESTDIR)/usr/ucb/mailq
-#	install -c -o root -m 644	cf/$(HOST).cf	$(SENDMAIL).cf
-#	install -o 1		aux/syslog	$(DESTDIR)/etc/syslog
-#	install -c -o 1 -m 644	aux/syslog.conf	$(DESTDIR)/etc/syslog.conf
-#	install -c -o 1 -m 644	/dev/null	$(DESTDIR)/etc/syslog.pid
-#	install -c -o 1 -m 644	/dev/null	$(DESTDIR)$(SYSLOG)
-#	for i in 0 1 2 3 4 5 6 7; do install -c -o 1 -m 644 /dev/null $(DESTDIR)$(SYSLOG).$$i; done
-#	install -c -o 1		lib/newsyslog.sh $(DESTDIR)/usr/adm/newsyslog
-#	echo	'5 4 * * * sh /usr/adm/newsyslog' >> $(DESTDIR)/usr/lib/crontab
-
-installcf:
-	install -c -o root -m 644	cf/$(HOST).cf	$(SENDMAIL).cf
+	install -c -o root -m 644	src/sendmail.sr	$(STRINGFILE)
+	install -c -o root -m 644	lib/sendmail.hf	$(HELPFILE)
+	install -c -o root -m 666	/dev/null	$(STATUSFILE)
+	install -c -o root -m 644	/dev/null	$(FROZENFILE)
+	rm -f					$(DESTDIR)/usr/bin/newaliases
+	$(LN)			/usr/sbin/sendmail $(DESTDIR)/usr/bin/newaliases
+	rm -f					$(DESTDIR)/usr/bin/mailq
+	$(LN)			/usr/sbin/sendmail  $(DESTDIR)/usr/bin/mailq
 
 src/sendmail:
 	cd src; make ${MFLAGS} sendmail
-
-src/ctimed:
-	cd src; make ${MFLAGS} ctimed
 
 aux/syslog:
 	-cd aux; make ${MFLAGS} syslog
@@ -73,19 +53,3 @@ clean:
 	-cd aux; make ${MFLAGS} clean
 	-cd lib; make ${MFLAGS} clean
 	-cd doc; make ${MFLAGS} clean
-
-dirs:
-	mkdir $(SRCROOT)
-	cd $(SRCROOT); mkdir $(ALLDIRS)
-
-rcp:
-	rsh $(BACKUP) mkdir sendmail
-	rsh $(BACKUP) 'cd sendmail; mkdir $(ALLDIRS)'
-	for i in `cat FILES`; do rcp $$i $(BACKUP):sendmail/$$i; done
-
-srcinstall:
-	for i in `cat FILES`; do rm -f $(SRCDIR)/$$i; cp $$i $(SRCDIR)/$$i; done
-
-tar:
-	rm -f sendmail.tar
-	tar rcfh sendmail.tar `cat FILES`

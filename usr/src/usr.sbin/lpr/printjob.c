@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)printjob.c	5.2.1 (2.11BSD GTE) 6/11/94";
+static char sccsid[] = "@(#)printjob.c	5.2.2 (2.11BSD GTE) 1996/10/24";
 #endif
 
 /*
@@ -208,10 +208,10 @@ again:
 char	fonts[4][50];	/* fonts for troff */
 
 char ifonts[4][18] = {
-	"/usr/lib/vfont/R",
-	"/usr/lib/vfont/I",
-	"/usr/lib/vfont/B",
-	"/usr/lib/vfont/S"
+	"/usr/share/vfont/R",
+	"/usr/share/vfont/I",
+	"/usr/share/vfont/B",
+	"/usr/share/vfont/S"
 };
 
 /*
@@ -507,7 +507,7 @@ print(format, file)
 		} else {
 			for (n = 0; n < 4; n++) {
 				if (fonts[n][0] != '/')
-					(void) write(fo, "/usr/lib/vfont/", 15);
+					(void)write(fo, "/usr/share/vfont/",17);
 				(void) write(fo, fonts[n], strlen(fonts[n]));
 				(void) write(fo, "\n", 1);
 			}

@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	4.2	(Berkeley)	83/02/11
+#	@(#)Makefile	4.2.1	(2.11BSD)	1996/10/24
 #
 DESTDIR=
 SEPFLAG= -i
@@ -15,7 +15,7 @@ yacc: y1.o y2.o y3.o y4.o
 y1.o y2.o y3.o y4.o: dextern files
 install: yacc yaccpar
 	install -s yacc $(DESTDIR)/usr/bin
-	install -c yaccpar $(DESTDIR)/usr/lib
+	install -c yaccpar $(DESTDIR)/usr/share/misc
 clean :
 	-rm -f *.o yacc
 

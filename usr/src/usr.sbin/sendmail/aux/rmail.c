@@ -8,15 +8,13 @@
 **  specifies the terms and conditions for redistribution.
 */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char	SccsId[] = "@(#)rmail.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+static char	SccsId[] = "@(#)rmail.c	5.1.1 (2.11BSD) 1996/10/24";
+#endif
 
 /*
 **  RMAIL -- UUCP mail server.
@@ -27,20 +25,16 @@ static char	SccsId[] = "@(#)rmail.c	5.1 (Berkeley) 6/7/85";
 **	lines.
 */
 
-# include <stdio.h>
-# include <sysexits.h>
+#include <stdio.h>
+#include <paths.h>
+#include <sysexits.h>
+#include <string.h>
 
 typedef char	bool;
 #define TRUE	1
 #define FALSE	0
 
-extern FILE	*popen();
-extern char	*index();
-extern char	*rindex();
-
 bool	Debug;
-
-# define MAILER	"/usr/lib/sendmail"
 
 main(argc, argv)
 	char **argv;
@@ -116,7 +110,7 @@ main(argc, argv)
 	}
 	(void) strcat(from, uf);
 
-	(void) sprintf(cmd, "%s -ee -f%s", MAILER, from);
+	(void) sprintf(cmd, "%s -ee -f%s", _PATH_SENDMAIL, from);
 	while (*++argv != NULL)
 	{
 		(void) strcat(cmd, " '");

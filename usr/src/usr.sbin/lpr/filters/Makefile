@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 5/15/85
+#	@(#)Makefile	5.1.1 (2.11BSD) 1996/10/24
 #
 #
 # makefile for line printer filters and associated programs
@@ -12,7 +12,7 @@
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG=-i
-LIBDIR=	/usr/lib
+LIBEXECDIR=	/usr/libexec/lpr
 CXREF=	/usr/ucb/ctags -x
 #
 # vpsf, fcvt and vdmp were excluded on the PDP because they require more than
@@ -83,27 +83,29 @@ rotprt: rotprt.c
 	${CC} -o rotprt ${CFLAGS} ${SEPFLAG} rotprt.c
 
 install: printer
-	install -s lpf ${DESTDIR}/${LIBDIR}/lpf
-	install -s necf ${DESTDIR}/${LIBDIR}/necf
+	-mkdir -p ${DESTDIR}/${LIBEXECDIR}
+	install -s lpf ${DESTDIR}/${LIBEXECDIR}/lpf
+	install -s necf ${DESTDIR}/${LIBEXECDIR}/necf
 
 installv: varian
-	install -s vfontinfo ${DESTDIR}/${LIBDIR}/vfontinfo
-	install -s vwidth ${DESTDIR}/${LIBDIR}/vwidth
-	install -s vfw ${DESTDIR}/${LIBDIR}/vfw
-	install -s rotate ${DESTDIR}/${LIBDIR}/rotate
-	install -s rotprt ${DESTDIR}/${LIBDIR}/rotprt
-	install -s rvsort ${DESTDIR}/${LIBDIR}/rvsort
-	install -s rvcat ${DESTDIR}/${LIBDIR}/rvcat
-	install -s vsort ${DESTDIR}/${LIBDIR}/vsort
-	install -s vcat ${DESTDIR}/${LIBDIR}/vcat
-	install -s vpf ${DESTDIR}/${LIBDIR}/vpf
-	ln ${DESTDIR}/${LIBDIR}/vpf ${DESTDIR}/${LIBDIR}/vpfW
-	install -s vdmp ${DESTDIR}/${LIBDIR}/vdmp
-	install -s vpltdmp ${DESTDIR}/${LIBDIR}/vpltdmp
-	install -s vplotf ${DESTDIR}/${LIBDIR}/vplotf
+	-mkdir -p ${DESTDIR}/${LIBEXECDIR}
+	install -s vfontinfo ${DESTDIR}/${LIBEXECDIR}/vfontinfo
+	install -s vwidth ${DESTDIR}/${LIBEXECDIR}/vwidth
+	install -s vfw ${DESTDIR}/${LIBEXECDIR}/vfw
+	install -s rotate ${DESTDIR}/${LIBEXECDIR}/rotate
+	install -s rotprt ${DESTDIR}/${LIBEXECDIR}/rotprt
+	install -s rvsort ${DESTDIR}/${LIBEXECDIR}/rvsort
+	install -s rvcat ${DESTDIR}/${LIBEXECDIR}/rvcat
+	install -s vsort ${DESTDIR}/${LIBEXECDIR}/vsort
+	install -s vcat ${DESTDIR}/${LIBEXECDIR}/vcat
+	install -s vpf ${DESTDIR}/${LIBEXECDIR}/vpf
+	ln ${DESTDIR}/${LIBEXECDIR}/vpf ${DESTDIR}/${LIBEXECDIR}/vpfW
+	install -s vdmp ${DESTDIR}/${LIBEXECDIR}/vdmp
+	install -s vpltdmp ${DESTDIR}/${LIBEXECDIR}/vpltdmp
+	install -s vplotf ${DESTDIR}/${LIBEXECDIR}/vplotf
 
-#	install -s fcvt ${DESTDIR}/${LIBDIR}/fcvt
-#	install -s vpsf ${DESTDIR}/${LIBDIR}/vpsf
+#	install -s fcvt ${DESTDIR}/${LIBEXECDIR}/fcvt
+#	install -s vpsf ${DESTDIR}/${LIBEXECDIR}/vpsf
 
 clean:
 	rm -f ${PRINTER} ${VARIAN} *.o

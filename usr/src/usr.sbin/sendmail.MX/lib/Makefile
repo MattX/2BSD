@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.1 (Berkeley) 5/8/88
+#	@(#)Makefile	5.1.1 (2.11BSD) 1996/10/24
 #
 ALL=	sendmail.hf
 SRCS=	sendmail.hf
@@ -19,7 +19,6 @@ clean: FRC
 depend: FRC
 
 install: sendmail.hf
-	install -c -o bin -m 444 sendmail.hf ${DESTDIR}/usr/lib/sendmail.hf
+	install -c -o bin -m 444 sendmail.hf ${DESTDIR}/usr/share/misc/sendmail.hf
 
 FRC:
-

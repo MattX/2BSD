@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)rvcat.c	5.1 (Berkeley) 5/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)rvcat.c	5.1.1 (2.11BSD) 1996/10/24;
+#endif
 
 /*
  * Cat Simulator for Versatec and Varian
@@ -32,7 +32,7 @@ int	pltmode[] = {VPLOT};
 #define MAXF			4
 
 #define LOCAL_RAILMAG		".railmag"
-#define GLOBAL_RAILMAG		"/usr/lib/vfont/railmag"
+#define GLOBAL_RAILMAG		"/usr/share/vfont/railmag"
 
 /*
  * Here we make up for the fact that we only have 2112

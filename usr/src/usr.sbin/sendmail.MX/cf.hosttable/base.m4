@@ -8,7 +8,7 @@ divert(10)
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)base.m4	5.7 (Berkeley) 10/21/85
+#	@(#)base.m4	5.7.1 (2.11BSD) 1996/10/24
 #
 divert(0)
 ############################################################
@@ -49,7 +49,7 @@ DF$R
 ###################
 
 # location of alias file
-OA/usr/lib/aliases
+OA/etc/aliases
 # wait up to ten minutes for alias file rebuild
 Oa10
 # substitution for space (blank) characters
@@ -63,7 +63,7 @@ OF0600
 # default GID
 Og1
 # location of help file
-OH/usr/lib/sendmail.hf
+OH/usr/share/misc/sendmail.hf
 # log level
 OL9
 # default network name
@@ -75,7 +75,7 @@ OQ/usr/spool/mqueue
 # read timeout -- violates protocols
 Or2h
 # status file
-OS/usr/lib/sendmail.st
+OS/var/log/sendmail.st
 # queue up everything before starting transmission
 Os
 # default timeout interval

@@ -1,4 +1,4 @@
-/*	uucp.h	5.11.3	94/12/22 */
+/*	uucp.h	5.11.4	96/10/24 */
 
 #include <stdio.h>
 #include <paths.h>
@@ -158,7 +158,7 @@
  *	If you want to use the same modem for dialing in and out define
  *	DIALINOUT to be the localtion of the acucntrl program
  */
-/* #define DIALINOUT	"/usr/lib/uucp/acucntrl" /**/
+/* #define DIALINOUT	"/usr/libexec/acucntrl" /**/
 
 /*
  *	If you want all ACU lines to be DIALINOUT, define ALLACUINOUT
@@ -219,16 +219,16 @@
 /*#define LOGBYSITE	"/usr/spool/uucp/LOG" /**/
 
 #define XQTDIR		"/usr/spool/uucp/XTMP"
-#define SQFILE		"/usr/lib/uucp/SQFILE"
-#define SQTMP		"/usr/lib/uucp/SQTMP"
+#define SQFILE		"/etc/uucp/SQFILE"
+#define SQTMP		"/etc/uucp/SQTMP"
 #define SLCKTIME	5400	/* system/device timeout (LCK.. files) */
-#define SEQFILE		"/usr/lib/uucp/SEQF"
-#define SYSFILE		"/usr/lib/uucp/L.sys"
-#define DEVFILE		"/usr/lib/uucp/L-devices"
-#define DIALFILE	"/usr/lib/uucp/L-dialcodes"
-#define USERFILE	"/usr/lib/uucp/USERFILE"
-#define	CMDFILE		"/usr/lib/uucp/L.cmds"
-#define	ALIASFILE	"/usr/lib/uucp/L.aliases"
+#define SEQFILE		"/etc/uucp/SEQF"
+#define SYSFILE		"/etc/uucp/L.sys"
+#define DEVFILE		"/etc/uucp/L-devices"
+#define DIALFILE	"/etc/uucp/L-dialcodes"
+#define USERFILE	"/etc/uucp/USERFILE"
+#define	CMDFILE		"/etc/uucp/L.cmds"
+#define	ALIASFILE	"/etc/uucp/L.aliases"
 
 #define SPOOL		"/usr/spool/uucp"
 #define SYSLOG		"/usr/spool/uucp/SYSLOG"
@@ -281,8 +281,8 @@
 
 	/*  commands  */
 #define SHELL		"/bin/sh"
-#define UUCICO		"/usr/lib/uucp/uucico"
-#define UUXQT		"/usr/lib/uucp/uuxqt"
+#define UUCICO		"/usr/sbin/uucico"
+#define UUXQT		"/usr/libexec/uuxqt"
 #define UUCP		"uucp"
 
 	/*  call connect fail stuff  */

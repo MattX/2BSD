@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.10.5 (2.11BSD GTE) 1996/6/25
+#	@(#)Makefile.m4	5.10.6 (2.11BSD GTE) 1996/10/24
 #
 #
 #  SENDMAIL Makefile.
@@ -72,11 +72,11 @@ sendmail: $(OBJS)
 	size sendmail; ls -l sendmail
 
 install: all
-	$(INSTALL) -m 4755 -o root sendmail $(DESTDIR)/usr/lib
-	cp /dev/null $(DESTDIR)/usr/lib/sendmail.fc
+	$(INSTALL) -m 4755 -o root sendmail $(DESTDIR)/usr/sbin
+	cp /dev/null $(DESTDIR)/etc/sendmail.fc
 	-if [ -s sendmail.sr ]; then \
 		install -c -o bin -m 644 sendmail.sr \
-			$(DESTDIR)/usr/lib/sendmail.sr; \
+			$(DESTDIR)/usr/share/misc/sendmail.sr; \
 	fi
 
 tags: FRC

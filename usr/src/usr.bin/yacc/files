@@ -1,5 +1,5 @@
 /*
- *	@(#)files	4.1	(Berkeley)	83/02/11
+ *	@(#)files	4.1.1	(2.11BSD)	1996/10/24
  */
 	/* this file has the location of the parser, and the size of the progam desired */
 	/* It may also contain definitions to override various defaults: for example,
@@ -13,7 +13,7 @@
  * #endif
  */
 	/* location of the parser text file */
-# define PARSER "/usr/lib/yaccpar"
+# define PARSER "/usr/share/misc/yaccpar"
 
 	/* basic size of the Yacc implementation */
 /* # define HUGE */

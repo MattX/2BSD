@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3 (Berkeley) 5/7/86
+#	@(#)Makefile	5.3.1 (2.11BSD) 1996/10/24
 #
 # makefile for line printer spooling system
 #
@@ -14,8 +14,8 @@
 #
 CFLAGS=-O
 SEPFLAG=-i
-LIBDIR=/usr/lib
-BINDIR=/usr/ucb
+SBINDIR=/usr/sbin
+BINDIR=/usr/bin
 SPOOLDIR=/usr/spool/lpd
 CXREF=/usr/ucb/ctags -x
 ROOT=root
@@ -64,13 +64,13 @@ FILTERS:
 	cd filters; make ${MFLAGS}
 
 install: all
-	install -s -o ${ROOT} -g ${SPGRP} -m 6711 lpd ${DESTDIR}/${LIBDIR}/lpd
+	install -s -o ${ROOT} -g ${SPGRP} -m 6711 lpd ${DESTDIR}/${SBINDIR}/lpd
 	install -s -o ${ROOT} -g ${SPGRP} -m 6711 lpr ${DESTDIR}/${BINDIR}/lpr
 	install -s -o ${ROOT} -g ${SPGRP} -m 6711 lpq ${DESTDIR}/${BINDIR}/lpq
 	install -s -o ${ROOT} -g ${SPGRP} -m 6711 lprm ${DESTDIR}/${BINDIR}/lprm
-	install -s -g ${SPGRP} -m 2711 lpc ${DESTDIR}/etc/lpc
-	install -s lptest ${DESTDIR}/${BINDIR}/lptest
-	install -s pac ${DESTDIR}/etc/pac
+	install -s -g ${SPGRP} -m 2711 lpc ${DESTDIR}/${SBINDIR}/lpc
+	install -s lptest ${DESTDIR}/${SBINDIR}/lptest
+	install -s pac ${DESTDIR}/${SBINDIR}/pac
 	/etc/chown ${DAEMON} ${DESTDIR}/${SPOOLDIR}
 	chgrp ${SPGRP} ${DESTDIR}/${SPOOLDIR}
 	chmod 775 ${DESTDIR}/${SPOOLDIR}

@@ -14,15 +14,13 @@
  *  Berkeley, California
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1988 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)mailstats.c	5.4 (Berkeley) 4/21/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)mailstats.c	5.4.1 (2.11BSD) 1996/10/24";
+#endif
 
 #include <sys/file.h>
 #include <sendmail.h>
@@ -39,7 +37,7 @@ main(argc, argv)
 	int ch, fd;
 	char *sfile, *ctime();
 
-	sfile = "/usr/lib/sendmail.st";
+	sfile = "/var/log/sendmail.st";
 	while ((ch = getopt(argc, argv, "f:")) != EOF)
 		switch((char)ch) {
 		case 'f':

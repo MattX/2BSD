@@ -59,16 +59,16 @@ dsendmail: ${OBJS} Version.o
 	size sendmail; ls -l sendmail; ${WHAT} < Version.o
 
 install: sendmail 
-	install -c -s -o root -g kmem -m 6755 sendmail ${DESTDIR}/usr/lib
-	install -c -o bin -m 644 /dev/null ${DESTDIR}/usr/lib/sendmail.fc
-	install -c -o bin -m 666 /dev/null ${DESTDIR}/usr/lib/sendmail.st
-	rm -f ${DESTDIR}/usr/ucb/newaliases
-	ln -s ${DESTDIR}/usr/lib/sendmail ${DESTDIR}/usr/ucb/newaliases
-	rm -f ${DESTDIR}/usr/ucb/mailq
-	ln -s ${DESTDIR}/usr/lib/sendmail ${DESTDIR}/usr/ucb/mailq
+	install -c -s -o root -g kmem -m 6755 sendmail ${DESTDIR}/usr/sbin
+	install -c -o bin -m 644 /dev/null ${DESTDIR}/etc/sendmail.fc
+	install -c -o bin -m 666 /dev/null ${DESTDIR}/var/log/sendmail.st
+	rm -f ${DESTDIR}/usr/bin/newaliases
+	ln -s ${DESTDIR}/usr/sbin/sendmail ${DESTDIR}/usr/bin/newaliases
+	rm -f ${DESTDIR}/usr/bin/mailq
+	ln -s ${DESTDIR}/usr/sbin/sendmail ${DESTDIR}/usr/bin/mailq
 	-if [ -s sendmail.sr ]; then \
 		install -c -o bin -m 644 sendmail.sr \
-			$(DESTDIR)/usr/lib/sendmail.sr; \
+			$(DESTDIR)/usr/share/misc/sendmail.sr; \
 	fi
 
 version: newversion ${OBJS} Version.c

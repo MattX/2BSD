@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)uusend.c	5.2 (Berkeley) 1/22/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)uusend.c	5.2.1 (2.11BSD) 1996/10/24";
 #endif
 
 /*
@@ -14,7 +14,7 @@ static char sccsid[] = "@(#)uusend.c	5.2 (Berkeley) 1/22/85";
  * "-r" switch added.  Has same effect as "-r" in uux. 11/82  CCW
  *
  * Error recovery (a la uucp) added & ifdefs for ruusend (as in rmail).
- * Checks for illegal access to /usr/lib/uucp.
+ * Checks for illegal access to /etc/uucp.
  *				February 1983  Christopher Woodbury
  * Fixed mode set[ug]id loophole. 4/8/83  CCW
  *
@@ -60,7 +60,7 @@ char	*excl;		/* location of first ! in destname */
 char	*sl;		/* location of first / in destname */
 char	*sourcename;	/* argv[1] */
 char	*destname;	/* argv[2] */
-char	*UULIB = "/usr/lib/uucp";	  /* UUCP lib directory */
+char	*UULIB = "/etc/uucp";	  /* UUCP lib directory */
 
 #ifdef	RECOVER
 char	*UUPUB = "/usr/spool/uucppublic/";  /* public UUCP directory */

@@ -1,8 +1,5 @@
 Application	Version
 -----------	-------
-getNAME.c	4.3
-learn/		4.3+
-lib.b		4.3
 lib2648/	4.3
 libF77/		4.3
 libI77/		4.3
@@ -18,12 +15,6 @@ libom/		4.3  (used for both libom.a and libm.a)
 libplot/	4.3
 libtermlib/	4.3 
 liby/		4.3
-lpr/		4.3
-makekey.c	4.3
-makewhatis.sh	4.3
-man/		4.3
-me/		4.3
-sendmail/	4.3
 
 Notes
 -----
@@ -31,9 +22,9 @@ libm/		We haven't made any effort to convert the new math library for
 		the PDP-11 yet (if it's even possible).  If anyone does it for
 		us, PLEASE #ifdef your changes on "pdp11".  A PDP support
 		subdirectory would be nice too ...  In any case, till that
-		happens (sic), 2.10BSD uses libom and hides that fact from
+		happens (sic), 2.11BSD uses libom and hides that fact from
 		applications by linking libm.a to libom.a in /usr/lib.
 
 The directorie PORT is somewhat special.  It contains source from the 4.3
-that should probably be ported to 2.10 as soon as someone has the time
+that should probably be ported to 2.11 as soon as someone has the time
 and inclination to do so.

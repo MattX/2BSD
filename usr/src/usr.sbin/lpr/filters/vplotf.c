@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)vplotf.c	5.2.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)vplotf.c	5.2.2 (2.11BSD GTE) 1996/10/24";
 #endif
 
 /*
@@ -65,7 +65,7 @@ int	fontSet = 0;		/* Has the font file been read */
 struct	header header;
 struct	dispatch dispatch[256];
 char	*bits;
-char	*fontFile = "/usr/lib/vfont/R.8";
+char	*fontFile = "/usr/share/vfont/R.8";
 
 main(argc, argv)
 	int argc;

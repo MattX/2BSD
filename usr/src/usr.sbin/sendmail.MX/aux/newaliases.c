@@ -8,21 +8,17 @@
 **  specifies the terms and conditions for redistribution.
 */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char	SccsId[] = "@(#)newaliases.c	5.1 (Berkeley) 6/7/85";
-#endif not lint
+static char	SccsId[] = "@(#)newaliases.c	5.1.1 (2.11BSD) 1996/10/24";
+#endif
 
 # include <stdio.h>
 # include <ctype.h>
 # include "sendmail.h"
-
-static	char SccsId[] = "@(#)newaliases.c	5.1	6/7/85";
 
 typedef struct { char *dptr; int dsize; } datum;
 char *aliases = ALIASFILE;
@@ -55,7 +51,7 @@ main(argc, argv)
 	extern char *prescan();
 	extern ADDRESS *parse();
 	bool contin;
-	char *cffile = "/usr/lib/sendmail.cf";
+	char *cffile = "/etc/sendmail.cf";
 
 # ifdef DEBUG
 	if (argc > 1 && strcmp(argv[1], "-T") == 0)

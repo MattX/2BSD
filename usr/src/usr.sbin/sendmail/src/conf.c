@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)conf.c	5.14.3 (2.11BSD GTE) 1/18/95";
+static char	SccsId[] = "@(#)conf.c	5.14.4 (2.11BSD GTE) 1996/10/24";
 #endif
 
 # include <pwd.h>
@@ -112,8 +112,8 @@ char	*Arpa_Usrerr =		"554";	/* some (fatal) user error */
 **  Location of system files/databases/etc.
 */
 
-char	*ConfFile =	"/usr/lib/sendmail.cf";	/* runtime configuration */
-char	*FreezeFile =	"/usr/lib/sendmail.fc";	/* frozen version of above */
+char	*ConfFile =	"/etc/sendmail.cf";	/* runtime configuration */
+char	*FreezeFile =	"/etc/sendmail.fc";	/* frozen version of above */
 
 
 

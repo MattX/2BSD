@@ -38,7 +38,7 @@ DF$R
 ###################
 
 # location of alias file
-OA/usr/lib/aliases
+OA/etc/aliases
 # default delivery mode (deliver in background)
 Odbackground
 # (don't) connect to "expensive" mailers
@@ -48,7 +48,7 @@ OF0644
 # default GID
 Og1
 # location of help file
-OH/usr/lib/sendmail.hf
+OH/usr/share/misc/sendmail.hf
 # log level
 OL9
 # default messages to old style
@@ -58,7 +58,7 @@ OQ/usr/spool/mqueue
 # read timeout -- violates protocols
 Or2h
 # status file
-OS/usr/lib/sendmail.st
+OS/var/log/sendmail.st
 # queue up everything before starting transmission
 Os
 # default timeout interval

@@ -4,16 +4,16 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)railmag.c	5.1 (Berkeley) 5/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)railmag.c	5.1.1 (2.11BSD) 1996/10/24";
+#endif
 
 /*
  * tell vcat which fonts are loaded on the "typesetter"
  */
 
 #define MAGIC_NUMBER 0436
-#define RAILMAG_FILE "/usr/lib/vfont/railmag"
+#define RAILMAG_FILE "/usr/share/vfont/railmag"
 
 char	*concat();
 int	rmfd;
@@ -41,7 +41,7 @@ main(argc, argv)
 		if (argv[1][0] == '/')
 			rm[fnum-1] = argv[1];
 		else
-			rm[fnum-1] = concat(cbuf[fnum-1], "/usr/lib/vfont/", argv[1]);
+			rm[fnum-1] = concat(cbuf[fnum-1], "/usr/share/vfont/", argv[1]);
 		argv++;	argc--;
 	}
 	writerm();
@@ -65,7 +65,7 @@ checkfont(file)
 	short word;
 
 	if ((fd = open(concat(cbuf, file, ".10"), 0)) < 0)
-		if ((fd = open(concat(cbuf2, "/usr/lib/vfont/", cbuf), 0)) < 0)
+		if ((fd = open(concat(cbuf2, "/usr/share/vfont/", cbuf), 0)) < 0)
 			error("cant open font");
 	if (read(fd, &word, 2) != 2)
 		error("cant read font");

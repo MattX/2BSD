@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)vfontinfo.c	5.1 (Berkeley) 5/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)vfontinfo.c	5.1.1 (2.11BSD) 1996/10/24";
+#endif
 
 /* Font Information for VCat-style fonts
  *      Andy Hertzfeld  4/79
@@ -76,7 +76,7 @@ char **argv;
 	if (argc >= 3)
 		charswanted = argv[2];
 
-	sprintf(IName,"/usr/lib/vfont/%s",argv[1]);
+	sprintf(IName,"/usr/share/vfont/%s",argv[1]);
 	if ((FID = open(argv[1],0)) < 0)
 		if ((FID = open(IName,0)) < 0) { 
 			printf("Can't find %s\n",argv[1]);

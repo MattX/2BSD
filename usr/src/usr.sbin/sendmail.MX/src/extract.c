@@ -4,7 +4,7 @@
 #include "sendmail.h"
 #include <varargs.h>
 
-char	*StringFile =	"/usr/lib/sendmail.sr";	/* extracted string storage */
+char	*StringFile =	"/usr/share/misc/sendmail.sr";	/* extracted string storage */
 static int strfile = -1, ourpid = 0;
 
 errprep(offset, buf)

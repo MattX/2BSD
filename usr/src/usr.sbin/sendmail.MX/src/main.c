@@ -18,11 +18,9 @@
 char copyright[] =
 "@(#) Copyright (c) 1988 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)main.c	5.17 (Berkeley) 4/19/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)main.c	5.17.1 (2.11BSD) 1996/10/24";
+#endif
 
 #define	_DEFINE
 
@@ -44,7 +42,7 @@ char	edata, end;
 **	turn calls a bunch of mail servers that do the real work of
 **	delivering the mail.
 **
-**	Sendmail is driven by tables read in from /usr/lib/sendmail.cf
+**	Sendmail is driven by tables read in from /etc/sendmail.cf
 **	(read by readcf.c).  Some more static configuration info,
 **	including some code that you may want to tailor for your
 **	installation, is in conf.c.  You may also want to touch
@@ -53,7 +51,7 @@ char	edata, end;
 **	server mechanism).
 **
 **	Usage:
-**		/usr/lib/sendmail [flags] addr ...
+**		/usr/sbin/sendmail [flags] addr ...
 **
 **		See the associated documentation for details.
 **

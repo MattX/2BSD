@@ -8,15 +8,13 @@
 **  specifies the terms and conditions for redistribution.
 */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char	SccsId[] = "@(#)mailstats.c	5.3 (Berkeley) 5/2/86";
-#endif not lint
+static char	SccsId[] = "@(#)mailstats.c	5.3.1 (2.11BSD) 1996/10/24";
+#endif
 
 # include "../src/sendmail.h"
 # include "../src/mailstats.h"
@@ -36,7 +34,7 @@ main(argc, argv)
 {
 	register int fd;
 	struct statistics stat;
-	char *sfile = "/usr/lib/sendmail.st";
+	char *sfile = "/var/log/sendmail.st";
 	register int i;
 	extern char *ctime();
 
