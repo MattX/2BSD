@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)unistd.h	8.10.1 (2.11BSD) 1996/1/12
+ *	@(#)unistd.h	8.10.2 (2.11BSD) 1996/7/11
  */
 
 /*
@@ -83,7 +83,7 @@ void	 psignal();
 extern	char 	*sys_siglist[];
 char	*re_comp();
 char	*sbrk();
-void	 sethostid();
+int	 sethostid();
 void	 setusershell();
 void	 sync();
 unsigned int	 ualarm();

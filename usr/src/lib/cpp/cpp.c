@@ -1,4 +1,4 @@
-/* static char sccsid[] = "@(#)cpp.c	1.8.1 1996/6/12"; */
+/* static char sccsid[] = "@(#)cpp.c	1.8.2 1996/7/11"; */
 
 #ifdef FLEXNAMES
 #define	NCPS	128
@@ -1215,6 +1215,9 @@ main(argc,argv)
 # endif
 # if sun
 	varloc=stsym("sun");
+# endif
+# if BSD2_11
+	varloc=stsym("BSD2_11");
 # endif
 # if BSD2_10
 	varloc=stsym("BSD2_10");

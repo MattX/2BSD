@@ -14,7 +14,7 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.3.4 (2.11BSD) 1995/04/10
+ *	@(#)pathnames.h	5.3.5 (2.11BSD) 1996/6/25
  */
 
 #define	_PATH_BSHELL	"/bin/sh"
@@ -32,3 +32,4 @@
 #define	_PATH_SENDMAIL	"/usr/lib/sendmail"
 #define	_PATH_DEVDB	"/var/run/dev"
 #define	_PATH_VARRUN	"/var/run/"
+#define	_PATH_CTIMED	"/usr/libexec/ctimed"

@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)netdb.h	5.9.1 (2.11BSD GTE) 12/31/93
+ *	@(#)netdb.h	5.9.2 (2.11BSD GTE) 96/7/10
  */
 
 /*
@@ -67,5 +67,3 @@ struct protoent	*getprotobyname(), *getprotobynumber(), *getprotoent();
 #define	NO_RECOVERY	3 /* Non recoverable errors, FORMERR, REFUSED, NOTIMP */
 #define	NO_DATA		4 /* Valid name, no data record of requested type */
 #define	NO_ADDRESS	NO_DATA		/* no address, look for MX record */
-
-unsigned long	gethostid();

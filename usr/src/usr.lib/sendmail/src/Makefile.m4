@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.10.4 (2.11BSD GTE) 1996/3/22
+#	@(#)Makefile.m4	5.10.5 (2.11BSD GTE) 1996/6/25
 #
 #
 #  SENDMAIL Makefile.
@@ -27,14 +27,14 @@ OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 	savemail.o err.o readcf.o stab.o headers.o recipient.o \
 	stats.o daemon.o usersmtp.o srvrsmtp.o queue.o \
 	macro.o util.o clock.o trace.o envelope.o
-OBJS2=	sysexits.o arpadate.o convtime.o ctime.o
+OBJS2=	sysexits.o arpadate.o convtime.o
 OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) Version.o str.o
 
 SBASE=	conf.o parseaddr.o alias.o deliver.o headers.o \
 	recipient.o srvrsmtp.o queue.o util.o \
 	envelope.o sysexits.o convtime.o Version.o \
 	$(EXTRACT) str.o
-SOV1=	main.o readcf.o macro.o ctime.o
+SOV1=	main.o readcf.o macro.o
 SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o \
 	arpadate.o
 SOV3=	collect.o
@@ -44,9 +44,9 @@ SRCS=	\
 	sysexits.c util.c arpadate.c collect.c \
 	macro.c headers.c readcf.c stab.c recipient.c stats.c daemon.c \
 	usersmtp.c srvrsmtp.c queue.c clock.c trace.c envelope.c \
-	convtime.c ctime.c Version.c
+	convtime.c Version.c
 
-ALL=	sendmail ctimed
+ALL=	sendmail
 
 O=	-O
 COPTS=
@@ -67,12 +67,9 @@ all: $(ALL)
 
 sendmail: $(OBJS)
 	ld $(SEPFLAG) $(COPTS) /lib/crt0.o -o sendmail \
-		-Z $(SOV1) -Z $(SOV2) -Z $(SOV3) -Y $(SBASE) $(LIBS) -lc
+		-Z $(SOV1) -Z $(SOV2) -Z $(SOV3) -Y $(SBASE) $(LIBS) -lstubs -lc
 	chmod $(OBJMODE) sendmail
 	size sendmail; ls -l sendmail
-
-ctimed:
-	cc $(SEPFLAG) $(CFLAGS) ctimed.c -o ctimed
 
 install: all
 	$(INSTALL) -m 4755 -o root sendmail $(DESTDIR)/usr/lib
@@ -81,7 +78,6 @@ install: all
 		install -c -o bin -m 644 sendmail.sr \
 			$(DESTDIR)/usr/lib/sendmail.sr; \
 	fi
-	install -c -s -o bin -m 0755 ctimed $(DESTDIR)/usr/lib/ctimed
 
 tags: FRC
 	ctags -a -t ${SRCS}
@@ -100,7 +96,7 @@ sendmail.h util.o: ../`include'/useful.h
 
 clean:
 	rm -f sendmail a.out XREF sendmail.cf
-	rm -f sendmail.sr *.o ctimed strings version.c xs.c
+	rm -f sendmail.sr *.o strings version.c xs.c
 
 print: $(SRCS)
 	@ls -l | pr -h "sendmail directory"

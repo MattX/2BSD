@@ -6,10 +6,13 @@
  *  Copyright (c) 1985 Regents of the University of California.
  *  All rights reserved.  The Berkeley software License Agreement
  *  specifies the terms and conditions for redistribution.
+ *
+ * 	@(#) answer.c 1.1 (2.11BSD) 96/7/10
  */
 
 # include	"hunt.h"
 # include	<errno.h>
+# include	<unistd.h>		/* for gethostid() */
 
 # define	MAXPERMACH	3	/* Max player/monitor per machine */
 

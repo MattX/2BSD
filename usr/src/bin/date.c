@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(LINT) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1985 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)date.c	4.20 (Berkeley) 3/24/87";
-#endif not lint
+static char sccsid[] = "@(#)date.c	4.20.1 (2.11BSD) 96/7/10";
+#endif
 
 /*
  * Date - print and set date
@@ -28,6 +26,8 @@ static char sccsid[] = "@(#)date.c	4.20 (Berkeley) 3/24/87";
 #include <stdio.h>
 #include <ctype.h>
 #include <strings.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define	WTMP		"/usr/adm/wtmp"
 #define	ATOI2(ar)	(ar[0] - '0') * 10 + (ar[1] - '0'); ar += 2;
@@ -47,8 +47,6 @@ main(argc,argv)
 	int	argc;
 	char	**argv;
 {
-	extern int	optind;
-	extern char	*optarg;
 	static char	usage[] = "usage: date [-nu] [-d dst] [-t timezone] [yymmddhhmm[.ss]]\n";
 	struct timezone	tz;
 	char	*ap,			/* time string */
@@ -57,9 +55,7 @@ main(argc,argv)
 		uflag,			/* do it in GMT */
 		nflag,			/* only set time locally */
 		wf;			/* wtmp file descriptor */
-	long	time();
-	uid_t	getuid();
-	char	*username, *getlogin();
+	char	*username;
 
 	nflag = uflag = 0;
 	tz.tz_dsttime = tz.tz_minuteswest = 0;
@@ -215,6 +211,10 @@ gtime(ap)
 
 	tv.tv_sec = 0;
 	year += TM_YEAR_BASE;
+/* If year < EPOCH_YEAR, assume it's in the next century and
+   the system has not yet been patched to move TM_YEAR_BASE up yet */
+	if (year < EPOCH_YEAR)
+		year += 100;
 	if (isleap(year) && month > 2)
 		++tv.tv_sec;
 	for (--year;year >= EPOCH_YEAR;--year)
@@ -237,7 +237,6 @@ gtime(ap)
 #define WAITACK		2	/* seconds */
 #define WAITDATEACK	5	/* seconds */
 
-extern	int errno;
 /*
  * Set the date in the machines controlled by timedaemons
  * by communicating the new date to the local timedaemon. 

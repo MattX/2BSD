@@ -1,4 +1,4 @@
-#	Makefile	1.2	83/07/02
+#	Makefile	1.3	(2.11BSD) 96/7/11
 #
 
 # Defined SHARED_DATA to be whatever will make your compiler make initialized
@@ -12,7 +12,7 @@
 # If you don't have split I/D, you'll have to edit the constant
 # SBSIZE in cpp.c to reflect this.
 
-CFLAGS=-O -Dpdp11=1 -DFLEXNAMES
+CFLAGS=-O -Dpdp11=1 -DFLEXNAMES -DBSD2_11 -UBSD2_10
 SEPFLAG=-i
 
 cpp :	cpp.o cpy.o rodata.o
@@ -21,8 +21,7 @@ cpp :	cpp.o cpy.o rodata.o
 cpy.c : cpy.y
 	yacc cpy.y
 	../pcc/:yyfix yyexca yyact yypact yypgo yyr1 yyr2 yychk yydef
-	fgrep -v "static char yaccpar_sccsid" y.tab.c >cpy.c
-	rm -f y.tab.c
+	mv y.tab.c cpy.c
 
 cpy.o :	cpy.c yylex.c
 
@@ -30,7 +29,7 @@ rodata.o : cpy.c
 	$(CC) $(CFLAGS) ${SHARED_DATA} -c rodata.c
 
 clean :
-	rm -f *.s *.o cpy.c rodata.c
+	rm -f *.s *.o cpy.c rodata.c cpp
 
 install : cpp
 	install -s cpp $(DESTDIR)/lib

@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.43 (2.11BSD GTE) 1996/3/26 */
+/*	@(#)llib-lc	1.44 (2.11BSD GTE) 1996/7/10 */
 
 /* LINTLIBRARY */
 
@@ -74,7 +74,7 @@ gid_t	getegid() { return((gid_t)1); }
 uid_t	geteuid() { return((uid_t)1); }
 gid_t	getgid() { return((gid_t)1); }
 int	getgroups( n, g ) int n, *g; { return 0; }
-u_long	gethostid() { return 1L; }
+long	gethostid() { return 1L; }
 int	gethostname( n, l ) char *n; int l; { return 0 ;}
 int	getitimer( w, v ) struct itimerval *v; { return 0; }
 int	getloadavg( d, n) double d[]; int n; { return 0; }
@@ -131,14 +131,13 @@ int	recvfrom( s, b, l, f, fr, fl ) char *b; struct sockaddr *fr; int *fl;
 int	recvmsg( s, m, f ) struct msghdr m[]; { return 1; }
 int	rename( f, t ) char *f, *t; { return 0;}
 int	rmdir( p ) char *p; { return 0;}
-int	rtp(f) { return(0); }
 char	*sbrk(i) { return((char *)0); }
 int	select( n, r, w, e, t ) fd_set *r, *w, *e; struct timeval *t; { return n; }
 int	send( s, m, l, f )  char *m; { return l; }
 int	sendto( s, m, l, f, t, tl ) char *m; struct sockaddr *t; { return l; }
 int	sendmsg( s, m, l) struct msghdr m[]; { return l; }
 int	setgroups( n, g) int *g; { return 0; }
-int	sethostid( h ) long h; { return 0;}
+int	sethostid( h ) long h; { return 0; }
 int	sethostname( n, l ) char *n; int l; { return 0 ;}
 int	setitimer( w, v, ov ) struct itimerval *v, *ov; { return 0; }
 int	setpgrp( g, pg) { return 0; }
@@ -407,7 +406,7 @@ char *	sys_siglist[];
 int	system(s) char *s; { return(0); }
 long	tell(f) { return((long)0); }
 long	telldir( p ) DIR *p; { return 1L; }
-long	time(t) long *t; { return( 0L );}
+time_t	time(t) time_t *t; { return( (time_t)0 );}
 int	times(tmsp) struct tms *tmsp; { return 0; }
 char *	timezone( z, d ){ return (char *)0; }
 char *	tmpnam(s) char *s; { return s; }
