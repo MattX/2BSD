@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ioctl.h	1.2 (2.11BSD GTE) 12/9/94
+ *	@(#)ioctl.h	1.3 (2.11BSD GTE) 1995/05/21
  */
 
 /*
@@ -84,9 +84,9 @@ struct ttysize {
  * and the size of any in or out parameters in the upper
  * word.  The high 2 bits of the upper word are used
  * to encode the in/out status of the parameter; for now
- * we restrict parameters to at most 128 bytes.
+ * we restrict parameters to at most 256 bytes (disklabels are 216 bytes).
  */
-#define	IOCPARM_MASK	0x7f		/* parameters must be < 128 bytes */
+#define	IOCPARM_MASK	0xff		/* parameters must be < 256 bytes */
 #define	IOC_VOID	0x20000000	/* no parameters */
 #define	IOC_OUT		0x40000000	/* copy out parameters */
 #define	IOC_IN		0x80000000	/* copy in parameters */

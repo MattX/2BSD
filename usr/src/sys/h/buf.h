@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)buf.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)buf.h	1.2 (2.11BSD GTE) 1995/04/13
  */
 
 /*
@@ -71,8 +71,6 @@ struct buf
 #define	bawrite(bp)	{(bp)->b_flags |= B_ASYNC; bwrite(bp);}
 #define	bfree(bp)	(bp)->b_bcount = 0
 #define	bftopaddr(bp)	((u_int)(bp)->b_un.b_addr >> 6 | (bp)->b_xmem << 10)
-#define	dkblock(bp)	((bp)->b_blkno)
-#define	dkunit(bp)	(minor((bp)->b_dev) >> 3)
 
 #if defined(KERNEL) && !defined(SUPERVISOR)
 #define	BUFHSZ	16	/* must be power of 2 */
