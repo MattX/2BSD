@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.6 (2.11BSD GTE) 1995/12/24
+ *	@(#)ufs_mount.c	1.7 (2.11BSD GTE) 1996/3/1
  */
 
 #include "param.h"
@@ -118,7 +118,7 @@ mountfs(dev, flags, ip)
 	register int error;
 	int ronly = flags & MNT_RDONLY;
 	int needclose = 0;
-	int (*ioctl)();
+	int chrdev, (*ioctl)();
 	struct	partinfo dpart;
 
 	error =
@@ -129,8 +129,16 @@ mountfs(dev, flags, ip)
  * Now make a check that the partition is really a filesystem if the 
  * underlying driver supports disklabels (there is an ioctl entry point 
  * and calling it does not return an error).
+ *
+ * XXX - Check for NODEV because BLK only devices (i.e. the 'ram' driver) do not
+ * XXX - have a CHR counterpart.  Such drivers can not support labels due to
+ * XXX - the lack of an ioctl entry point.
 */
-	ioctl = cdevsw[blktochr(dev)].d_ioctl;
+	chrdev = blktochr(dev);
+	if	(chrdev == NODEV)
+		ioctl = NULL;	
+	else
+		ioctl = cdevsw[chrdev].d_ioctl;
 	if	(ioctl && !(*ioctl)(dev, DIOCGPART, &dpart, FREAD))
 		{
 		if	(dpart.part->p_fstype != FS_V71K)
