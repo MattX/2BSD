@@ -1,13 +1,13 @@
 #
 # Public domain - 1996/10/21 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/10/22
+#	@(#)Makefile	1.1 (2.11BSD) 1996/11/29
 #
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG= -i
 
-SUBDIR=	adb font fontinfo learn me misc ms tmac termcap lint
+SUBDIR=	adb font fontinfo learn me misc ms tmac termcap lint zoneinfo
 
 all:	${SUBDIR}
 

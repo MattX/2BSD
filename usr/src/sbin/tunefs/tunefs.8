@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)tunefs.8	6.4 (Berkeley) 5/22/86
+.\"	@(#)tunefs.8	6.4.1 (2.11BSD) 1996/11/17
 .\"
-.TH TUNEFS 8 "May 22, 1986"
+.TH TUNEFS 8 "November 17, 1996"
 .UC 5
 .SH NAME
 tunefs \- tune up an existing file system
 .SH SYNOPSIS
-.B /etc/tunefs
+.B tunefs
 .I tuneup-options
 .IR special | filesys
 .SH DESCRIPTION
@@ -88,5 +88,8 @@ the changes will only take effect if the program
 is run on dismounted file systems.
 To change the root file system, the system must be rebooted
 after the file system is tuned.
+.PP
+.B tunefs
+is not currently implemented in 2.11BSD.
 .PP
 You can tune a file system, but you can't tune a fish.

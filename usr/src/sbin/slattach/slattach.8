@@ -1,10 +1,10 @@
-.\"	@(#)slattach.8c	6.1 (Berkeley) 2/17/86
-.TH SLATTACH 8C "February 17, 1986"
+.\"	@(#)slattach.8	6.1.1 (2.11BSD) 1996/11/17
+.TH SLATTACH 8 "November 17, 1996"
 .UC 6
 .SH NAME
 slattach \- attach serial lines as network interfaces
 .SH SYOPNSIS
-.B /etc/slattach
+.B slattach
 ttyname [
 .I baudrate
 ]
@@ -31,12 +31,12 @@ is the name that is shown by
 .B netstat(1)
 .SH EXAMPLES
 .ta 8
-	/etc/slattach ttyh8
+	slattach ttyh8
 .br
-	/etc/slattach /dev/tty01 4800
+	slattach /dev/tty01 4800
 .SH DIAGNOSTICS
 Messages indicating the specified interface does not exit, the
 requested address is unknown, the user is not privileged and
 tried to alter an interface's configuration.
 .SH "SEE ALSO"
-rc(8), intro(4N), netstat(1), ifconfig(8C)
+rc(8), intro(4), netstat(1), ifconfig(8)

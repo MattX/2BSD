@@ -1,13 +1,13 @@
 #
 # Public domain - 1996/10/21 - sms
 #
-#	@(#)Makefile	1.1 (2.11BSD) 1996/10/31
+#	@(#)Makefile	1.2 (2.11BSD) 1996/11/16
 #
 #  Makefile for misc data files (lib.b from 'bc', usw.)
 #
 
 SRCS= eign lib.b Mail.help Mail.tildehelp units gprof.callg gprof.flat \
-	vlpmacs
+	vlpmacs mkproto.data
 
 all:	${SRCS}
 

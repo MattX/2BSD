@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.8.1 (2.11BSD) 1996/5/8
+#	@(#)Makefile	5.8.2 (2.11BSD) 1996/11/16
 #
 DESTDIR=
 CFLAGS=	-O
@@ -29,6 +29,8 @@ LOCOBJS=dir.o inode.o main.o pass1.o pass1b.o pass2.o \
 #
 HDRS=	fsck.h
 
+all:	${PROG}
+
 ${PROG}: ${OBJS} ${HDRS} strings.o
 	cc ${LFLAGS} -o ${PROG} ${OBJS} strings.o
 
@@ -45,7 +47,7 @@ strings.o: strings
 	rm -f xs.c
 
 install: ${PROG}
-	install -s ${PROG} ${DESTDIR}/etc/${PROG}
+	install -s ${PROG} ${DESTDIR}/sbin/${PROG}
 
 clean:
 	rm -f a.out core ${OBJS} ${PROG} strings.o x.c xs.c strings

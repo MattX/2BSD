@@ -30,8 +30,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)pathnames.h	8.2.1 (2.11BSD) 1996/1/15
+ *	@(#)pathnames.h	8.2.2 (2.11BSD) 1996/11/16
  */
 
-#define _PATH_ETC	"/etc"
-#define _PATH_BIN	"/bin"
+#define _PATH_SBIN	"/sbin"
+#define	_PATH_USRSBIN	"/usr/sbin"

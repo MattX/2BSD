@@ -1,4 +1,4 @@
-@(#)Theory	3.1
+@(#)Theory	3.2 1996/11/29
 
 These time and date functions are much like the System V Release 2.0 (SVR2)
 time and date functions; there are a few additions and changes to extend
@@ -97,7 +97,7 @@ Points of interest to folks with Version 7 or BSD systems:
 	this lets users control the time zone used in doing time conversions.
 	Users who don't try to control things (that is, users who do not set
 	the environment variable TZ) get the time conversion specified in the
-	file "/etc/zoneinfo/localtime"; see the time zone compiler writeup for
+	file "/etc/localtime"; see the time zone compiler writeup for
 	information on how to initialize this file.
 
 *	The BSD "dysize" function is only included if the preprocessor symbol

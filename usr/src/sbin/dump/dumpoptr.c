@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumpoptr.c	1.5 (2.11BSD GTE) 12/6/94";
+static	char *sccsid = "@(#)dumpoptr.c	1.6 (2.11BSD GTE) 1996/11/16";
 #endif
 
 #include "dump.h"
@@ -143,8 +143,8 @@ broadcast(message)
 	clock = time((time_t *)0);
 	localclock = localtime(&clock);
 
-	if((f_utmp = fopen("/etc/utmp", "r")) == NULL) {
-		msg("Cannot open /etc/utmp\n");
+	if((f_utmp = fopen(_PATH_UTMP, "r")) == NULL) {
+		msg("Cannot open 'utmp'\n");
 		return;
 	}
 

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983,1986 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)shutdown.c	5.6.1 (2.11BSD GTE) 12/31/93";
+static char sccsid[] = "@(#)shutdown.c	5.6.2 (2.11BSD GTE) 1996/11/16";
 #endif
 
 #include <stdio.h>
@@ -18,22 +18,23 @@ static char sccsid[] = "@(#)shutdown.c	5.6.1 (2.11BSD GTE) 12/31/93";
 #include <setjmp.h>
 #include <utmp.h>
 #include <pwd.h>
+#include <paths.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/param.h>
 #include <sys/syslog.h>
 
 /*
- *	/etc/shutdown when [messages]
+ *	shutdown when [messages]
  *
  *	allow super users to tell users and remind users
- *	of iminent shutdown of unix
+ *	of imminent shutdown of unix
  *	and shut it down automatically
  *	and even reboot or halt the machine if they desire
  */
 
-#define	REBOOT	"/etc/reboot"
-#define	HALT	"/etc/halt"
+#define	REBOOT	"/sbin/reboot"
+#define	HALT	"/sbin/halt"
 #define MAXINTS 20
 #define	HOURS	*3600
 #define MINUTES	*60
@@ -74,7 +75,7 @@ char	nolog2[NLOG+1];
 char	nologin[] = "nologin";
 char    fastboot[] = "fastboot";
 #else
-char	nologin[] = "/etc/nologin";
+char	nologin[] = _PATH_NOLOGIN;
 char	fastboot[] = "/fastboot";
 #endif
 time_t	nowtime;
@@ -193,10 +194,10 @@ main(argc,argv)
 #endif
 	sint = 1 HOURS;
 	f = "";
-	ufd = open("/etc/utmp",0);
+	ufd = open(_PATH_UTMP,0);
 	if (ufd < 0) {
-		perror("shutdown: /etc/utmp");
-		exit(1);
+		err(1, "%s", _PATH_UTMP);
+		/* NOTREACHED */
 	}
 	first = 1;
 	for (;;) {

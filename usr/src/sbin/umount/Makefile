@@ -1,7 +1,7 @@
 #
 # Public Domain.  1996/1/15 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/1/15
+#	@(#)Makefile	1.1 (2.11BSD GTE) 1996/11/16
 #
 CFLAGS=	 -O
 SEPFLAG= -i
@@ -26,7 +26,7 @@ depend: ${SRCS}
 
 install: all
 	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	install -s -o root -g bin -m 755 umount ${DESTDIR}/etc/umount
+	install -s -o root -g bin -m 755 umount ${DESTDIR}/sbin/umount
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

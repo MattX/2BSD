@@ -2,24 +2,24 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)reboot.8	2.1 (2.11BSD) 1996/5/24
+.\"	@(#)reboot.8	2.2 (2.11BSD) 1996/11/16
 .\"
 .TH REBOOT 8 "May 24, 1996"
 .UC 2
 .SH NAME
 reboot \- stopping and restarting the system
 .SH SYNOPSIS
-.B /etc/reboot
+.B /sbin/reboot
 [
 .B \-lqnhdarsfRD
 ]
 .br
-.B /etc/halt
+.B /sbin/halt
 [
 .B \-lqndars
 ]
 .br
-.B /etc/fastboot
+.B /sbin/fastboot
 [
 .B \-lqndarsRD
 ]
@@ -33,7 +33,7 @@ When the system is running and a reboot is desired,
 .IR shutdown (8)
 is normally used to stop time sharing and put the system into single user
 mode.  If there are no users then
-.B /etc/reboot
+.B /sbin/reboot
 can be used without shutting the system down first.
 .PP
 Reboot normally causes the disks to be synced and allows the system to

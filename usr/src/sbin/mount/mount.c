@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1980, 1989, 1993, 1994\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)mount.c	8.19.2 (2.11BSD) 1996/4/18";
+static char sccsid[] = "@(#)mount.c	8.19.3 (2.11BSD) 1996/11/16";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -238,8 +238,8 @@ mountfs(vfstype, spec, name, flags, options, mntopts)
 {
 	/* List of directories containing mount_xxx subcommands. */
 	static char *edirs[] = {
-		_PATH_ETC,
-		_PATH_BIN,
+		_PATH_SBIN,
+		_PATH_USRSBIN,
 		NULL
 	};
 	char *argv[100], **edir;

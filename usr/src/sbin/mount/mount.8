@@ -29,9 +29,9 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)mount.8	8.7.2 (2.11BSD) 1996/4/18
+.\"     @(#)mount.8	8.7.3 (2.11BSD) 1996/11/16
 .\"
-.TH MOUNT 8 "January 16, 1996"
+.TH MOUNT 8 "November 16, 1996"
 .UC 7
 .SH NAME
 \fBmount\fP \- mount file systems
@@ -201,7 +201,7 @@ MFS.
 .sp
 If the type is not one of the internally known types,
 mount will attempt to execute a program in
-.I /etc/mount_XXX
+.I /sbin/mount_XXX
 where
 .I XXX
 is replaced by the type name.

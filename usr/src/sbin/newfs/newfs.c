@@ -11,7 +11,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)newfs.c	6.2 (2.11BSD) 1996/4/12";
+static char sccsid[] = "@(#)newfs.c	6.3 (2.11BSD) 1996/11/16";
 #endif
 
 /*
@@ -181,7 +181,7 @@ main(argc, argv)
 	if	(f_n == 0)	/* If never specified then 1/2 the cyl size */
 		f_n = lp->d_secpercyl / logsec;
 
-	sprintf(cmd, "/etc/mkfs -m %d -n %d -i %u -s %ld %s", f_m, f_n, f_i,
+	sprintf(cmd, "/sbin/mkfs -m %d -n %d -i %u -s %ld %s", f_m, f_n, f_i,
 		fssize, special);
 	printf("newfs: %s\n", cmd);
 

@@ -1,4 +1,4 @@
-# sccsid = "@(#)Makefile	1.4 (2.11BSD GTE) 12/6/94"
+# sccsid = "@(#)Makefile	1.5 (2.11BSD GTE) 1996/11/16"
 #
 #	dump.h			header file
 #	dumpitime.c		reads /etc/ddate
@@ -35,9 +35,9 @@ dumpdir: dumpdir.c
 	cc ${CFLAGS} ${SEPFLAG} dumpdir.c -o dumpdir
 
 install: all
-	install -s dump ${DESTDIR}/etc/dump
-	install -s rdump ${DESTDIR}/etc/rdump
-	install -s dumpdir ${DESTDIR}/etc/dumpdir
+	install -s dump ${DESTDIR}/sbin/dump
+	install -s rdump ${DESTDIR}/sbin/rdump
+	install -s dumpdir ${DESTDIR}/sbin/dumpdir
 
 clean:
 	rm -f *.o dump rdump dumpdir

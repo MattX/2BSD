@@ -1,5 +1,8 @@
+#
+#	@(#)rc	2.2 (2.11BSD) 1996/11/27
+#
 HOME=/; export HOME
-PATH=/etc:/bin:/sbin:/usr/sbin:/usr/ucb:/usr/bin; export PATH
+PATH=/bin:/sbin:/usr/sbin:/usr/ucb:/usr/bin; export PATH
 
 # If you have a ram disk configured into your system which is listed in
 # /etc/fstab, you'll have to do a mkfs on it here and probably change the
@@ -14,7 +17,7 @@ RAMMODE=1777
 
 if [ ${RAMSIZE} != 0 ]
 then
-	/etc/mkfs /dev/ram ${RAMSIZE} 1 2
+	mkfs /dev/ram ${RAMSIZE} 1 2
 fi
 
 if [ "$2" = powerfail ]
@@ -23,6 +26,7 @@ then
 fi
 if [ "$1" = fastboot ]
 then
+	echo ''
 	echo Fast boot ... skipping disk checks		>/dev/console 2>&1
 elif [ "$1" = autoboot ]
 then
@@ -66,7 +70,16 @@ then
  	echo 'password file may be incorrect' > /dev/console
 fi
 
+#
+# First umount everything in case the system is going back into multiuser
+# mode.  If the system is being booted for the first time nothing is mounted
+# except the root filesystem and umount ignores attempts to unmount /.
+#
 umount -a
+#
+# Now mount everything mentioned in /etc/fstab *except* filesystems with the
+# 'na' (noauto) option.
+#
 mount -a						>/dev/console 2>&1
 
 if [ ${RAMSIZE} != 0 ]
@@ -75,12 +88,14 @@ then
 	chmod ${RAMMODE} ${RAMFS}
 fi
 
-			echo -n 'checking quotas:'	>/dev/console 2>&1
-quotacheck -a -p					>/dev/console 2>&1
-			echo ' done.'			>/dev/console 2>&1
+	echo -n 'checking quotas:'	>/dev/console 2>&1
+	quotacheck -a 			>/dev/console 2>&1
+	echo ' done.'			>/dev/console 2>&1
 quotaon -a
 
-ps -U							>/dev/console 2>&1
+dev_mkdb
+
+ps -U					>/dev/console 2>&1
 rm -f /etc/nologin
 rm -f /usr/spool/uucp/LCK.*
 rm -f /usr/spool/uucp/STST/*
@@ -99,18 +114,18 @@ fi
 # if core dumps are to be saved.
 if [ -d /etc/crash ]; then
 	echo		'checking for core dump... '	>/dev/console 2>&1
-	savecore /etc/crash				>/dev/console 2>&1
+	savecore /etc/crash			>/dev/console 2>&1
 fi
 
-			echo preserving editor files 	>/dev/console 2>&1
-(cd /tmp; /usr/sbin/expreserve -a)
-			echo clearing /tmp 		>/dev/console 2>&1
+		echo preserving editor files 	>/dev/console 2>&1
+		(cd /tmp; /usr/sbin/expreserve -a)
+		echo clearing /tmp 		>/dev/console 2>&1
 (cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
 
 			echo -n standard daemons:	>/dev/console 2>&1
-update;			echo -n ' update'		>/dev/console 2>&1
-cron;			echo -n ' cron'			>/dev/console 2>&1
-accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console 2>&1
+update;		echo -n ' update'		>/dev/console 2>&1
+cron;		echo -n ' cron'			>/dev/console 2>&1
+accton /usr/adm/acct;	echo -n ' accounting'	>/dev/console 2>&1
 			echo '.'			>/dev/console 2>&1
 
 if [ $INET = YES ]; then
@@ -119,31 +134,31 @@ if [ $INET = YES ]; then
 	# $routedflags is imported from /etc/netstart;
 	# if $routedflags == NO, routed isn't run.
 	if [ "${routedflags-NO}" != NO ]; then
-		routed $routedflags; echo -n ' routed'	>/dev/console 2>&1
+		routed $routedflags; echo -n ' routed' >/dev/console 2>&1
 	fi
 
 	# $named is imported from /etc/netstart;
 	# if $named is set to something other than NO, named is run.
 	if [ "${named-NO}" != NO ]; then
-		named;			echo -n ' named'>/dev/console 2>&1
+		named;		echo -n ' named'>/dev/console 2>&1
 	fi
 	/usr/sbin/inetd;		echo -n ' inetd'>/dev/console 2>&1
 
 	# $rwhod is imported from /etc/netstart;
 	# if $rwhod is set to something other than NO, rwhod is run.
-	if [ "${rwhod-NO}" != NO ]; then
-		rwhod;		echo -n ' rwhod'	>/dev/console 2>&1
+	if [ "${rwhod}" != NO ]; then
+		rwhod;	echo -n ' rwhod'	>/dev/console 2>&1
 	fi
 	rm -f /dev/printer
 	/usr/sbin/lpd;		echo -n ' printer'	>/dev/console 2>&1
 				echo '.'		>/dev/console 2>&1
 else
 	# lpd will run even with out networking.
-		echo starting lpd			>/dev/console 2>&1
+	echo starting lpd			>/dev/console 2>&1
 	/usr/sbin/lpd
 fi
 
-. /etc/rc.local
+/etc/rc.local
 
-			date				>/dev/console 2>&1
+date				>/dev/console 2>&1
 exit 0

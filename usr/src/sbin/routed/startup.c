@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)startup.c	5.7 (Berkeley) 6/3/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)startup.c	5.7.1 (2.11BSD) 1996/11/19";
 #endif not lint
 
 /*
@@ -149,7 +149,7 @@ ifinit()
 bad:
 	sleep(60);
 	close(kmem), close(s);
-	execv("/etc/routed", argv0);
+	execv("/sbin/routed", argv0);
 	_exit(0177);
 }
 

@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ifconfig.8c	6.4 (Berkeley) 5/22/86
+.\"	@(#)ifconfig.8	6.4.1 (2.11BSD) 1996/11/16
 .\"
-.TH IFCONFIG 8C "May 22, 1986"
+.TH IFCONFIG 8 "November 16, 1996"
 .UC 5
 .SH NAME
 ifconfig \- configure network interface parameters
 .SH SYOPNSIS
-.B /etc/ifconfig
+.B /sbin/ifconfig
 interface address_family
 [
 .I address
@@ -19,7 +19,7 @@ interface address_family
 .I parameters
 ]
 .br
-.B /etc/ifconfig
+.B /sbin/ifconfig
 interface
 [
 protocol_family
@@ -116,7 +116,7 @@ Set the routing metric of the interface to
 .IR n ,
 default 0.
 The routing metric is used by the routing protocol
-.RI ( routed (8c)).
+.RI ( routed (8)).
 Higher metrics have the effect of making a route
 less favorable; metrics are counted as addition hops
 to the destination network or host.

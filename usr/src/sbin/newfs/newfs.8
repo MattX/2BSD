@@ -9,7 +9,7 @@
 .SH NAME
 newfs \- construct a new file system
 .SH SYNOPSIS
-.B /etc/newfs
+.B /sbin/newfs
 [
 .B \-N
 ]
@@ -94,7 +94,7 @@ Mkfs deals in units of filesystem blocks not sectors.  Newfs uses sectors.
 .SH FILES
 /etc/disktab	disk geometry and partition information 
 .br
-/etc/mkfs	to actually build the file system
+mkfs	to actually build the file system
 .SH "SEE ALSO"
 getdisklabel(3), disklabel(8), disktab(5), diskpart(8), fs(5), fsck(8),
 mkfs(8)

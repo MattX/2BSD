@@ -2,17 +2,17 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)swapon.8	6.1 (Berkeley) 4/27/85
+.\"	@(#)swapon.8	6.1.1 (2.11BSD) 1996/11/17
 .\"
-.TH SWAPON 8 "April 27, 1985"
+.TH SWAPON 8 "November 17, 1996"
 .UC 4
 .SH NAME
 swapon \- specify additional device for paging and swapping
 .SH SYNOPSIS
-.B "/etc/swapon"
+.B swapon
 .B \-a
 .br
-.B "/etc/swapon"
+.B swapon
 name ...
 .SH DESCRIPTION
 .I Swapon
@@ -46,3 +46,6 @@ swapon(2), init(8)
 There is no way to stop paging and swapping on a device.
 It is therefore not possible to make use of devices which may be
 dismounted during system operation.
+.PP
+.B swapon
+is not implemented in 2.11BSD.

@@ -1,8 +1,8 @@
 #!/bin/sh -
 
-#	@(#)netstart	5.2 (Berkeley) 7/16/88
+#	@(#)netstart	5.2.1 (2.11BSD) 1996/11/17
 
-INET=`/etc/testnet`
+INET=`testnet`
 if [ $INET = YES ]; then
 	echo Assuming NETWORKING system ...		>/dev/console 2>&1
 else
@@ -31,12 +31,12 @@ hostname $hostname					>/dev/console 2>&1
 hostid $hostname					>/dev/console 2>&1
 
 if [ $INET = YES ]; then
-	# /etc/ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	/etc/ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
+	# ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
 
-	/etc/route add $hostname localhost 0		>/dev/console 2>&1
-	/etc/route add default $default 1		>/dev/console 2>&1
+	route add $hostname localhost 0		>/dev/console 2>&1
+	route add default $default 1		>/dev/console 2>&1
 fi
