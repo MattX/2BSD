@@ -1,20 +1,20 @@
-.\"	@(#)printf.3s	6.5 (Berkeley) 8/10/88
+.\"	@(#)printf.3s	6.5.1 (2.11BSD) 1995/04/02
 .\"
 .TH PRINTF 3S "August 10, 1988"
 .AT 3
 .SH NAME
-printf, fprintf, sprintf \- formatted output conversion
+printf, fprintf, sprintf, vfprintf, vsprintf \- formatted output conversion
 .SH SYNOPSIS
 .B #include <stdio.h>
 .PP
-.B printf(format
+.B char *printf(format
 .RB [ ,
 arg ] ...
 .B )
 .br
 .B char *format;
 .PP
-.B fprintf(stream, format
+.B char *fprintf(stream, format
 .RB [ ,
 arg ] ...
 .B )
@@ -25,7 +25,7 @@ arg ] ...
 .br
 .B char *format;
 .PP
-.B sprintf(s, format
+.B int sprintf(s, format
 .RB [ ,
 arg ] ...
 .B )
@@ -34,13 +34,13 @@ arg ] ...
 .PP
 .B #include <varargs.h>
 .br
-.B vprintf(format, args)
+.B char *vprintf(format, args)
 .br
 .B char *format;
 .br
 .B va_list args;
 .PP
-.B vfprintf(stream, format, args)
+.B char *vfprintf(stream, format, args)
 .br
 .B FILE *stream;
 .br
@@ -48,7 +48,7 @@ arg ] ...
 .br
 .B va_list args;
 .PP
-.B vsprintf(s, format, args)
+.B int vsprintf(s, format, args)
 .br
 .B char *s, *format;
 .br
@@ -239,7 +239,11 @@ printf("pi = %.5f", 4*atan(1.0));
 .SH "SEE ALSO"
 putc(3S), scanf(3S)
 .SH BUGS
-Very wide fields (>128 characters) fail.
+Very wide fields (>300 characters) fail.
 .LP
-The functions still supports \fI%D\fP, \fI%O\fP, and \fI%U\fP.  Do not
-use these formats, as they will be disappearing soon.
+Only \fIsprintf\fP and \fIvsprintf\fP return a count of characters 
+transferred.
+.LP
+The functions still supports \fI%D\fP, \fI%O\fP, \fI%U\fP and 
+\fI%X\fP.  Do not
+use these formats, as they will be disappearing real soon now.

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.2 (2.11BSD GTE) 2/4/95
+#	@(#)Makefile	5.7.3 (2.11BSD) 1995/04/01
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -22,9 +22,9 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	opendir.c perror.c popen.c psignal.c qsort.c random.c readdir.c \
 	regex.c scandir.c seekdir.c setgid.c setegid.c setrgid.c setuid.c \
 	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
-	sleep.c strcasecmp.c swab.c sysctl.c syslog.c system.c telldir.c \
-	time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c valloc.c \
-	strdup.c strsep.c uname.c wait.c wait3.c waitpid.c
+	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
+	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
+	valloc.c strdup.c strsep.c uname.c wait.c wait3.c waitpid.c
 STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	ctime.o ctype_.o daemon.o devname.o err.o errlst.o execvp.o fakcu.o \
 	fstab.o gcvt.o getenv.o getgrent.o getgrgid.o getgrnam.o getlogin.o \
@@ -34,9 +34,9 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	opendir.o perror.o popen.o psignal.o qsort.o random.o readdir.o \
 	regex.o scandir.o seekdir.o setgid.o setegid.o setrgid.o setuid.o \
 	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
-	sleep.o strcasecmp.o swab.o sysctl.o syslog.o system.o telldir.o \
-	time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o valloc.o \
-	strdup.o strsep.o uname.o wait.o wait3.o waitpid.o
+	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
+	telldir.o time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o \
+	valloc.o strdup.o strsep.o uname.o wait.o wait3.o waitpid.o
 
 TAGSFILE=tags
 

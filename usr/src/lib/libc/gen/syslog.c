@@ -1,209 +1,247 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983, 1988, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)syslog.c	5.9.2 (2.11BSD GTE) 7/8/94";
-#endif LIBC_SCCS and not lint
-
-/*
- * SYSLOG -- print message on log file
- *
- * This routine looks a lot like printf, except that it
- * outputs to the log file instead of the standard output.
- * Also:
- *	adds a timestamp,
- *	prints the module name in front of the message,
- *	has some other formatting types (or will sometime),
- *	adds a newline on the end of the message.
- *
- * The output of this routine is intended to be read by /etc/syslogd.
- *
- * Author: Eric Allman
- * Modified to use UNIX domain IPC by Ralph Campbell
- */
+static char sccsid[] = "@(#)syslog.c	8.4.1 (2.11BSD) 1995/04/01";
+#endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
-#include <netdb.h>
 #include <sys/socket.h>
-#include <sys/file.h>
-#include <sys/signal.h>
-#include <sys/syslog.h>
-#include <strings.h>
+#include <syslog.h>
+#include <sys/uio.h>
+#include <netdb.h>
 
-#define	MAXLINE	640		/* max message size */
-#define NULL	0		/* manifest */
+#include <errno.h>
+#include <fcntl.h>
+#include <paths.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
-#define PRIMASK(p)	(1 << ((p) & LOG_PRIMASK))
-#define PRIFAC(p)	(((p) & LOG_FACMASK) >> 3)
-#define IMPORTANT 	LOG_ERR
+#include <varargs.h>
 
-static char	logname[] = "/dev/log";
-static char	ctty[] = "/dev/console";
-#ifdef pdp11
-static char	logfile[] = "/usr/adm/messages";
-static int	ToFile = 0;		/* set if logfile is used */
+#define	STDERR_FILENO	2
+
+static	int	LogFile = -1;		/* fd for log */
+static	char	connected;		/* have done connect */
+#ifdef	pdp11
+static	char	ToFile = 0;		/* set if logfile is used */
+#endif
+static	int	LogStat = 0;		/* status bits, set by openlog() */
+static	char	*LogTag = NULL;		/* string to tag the entry with */
+static	int	LogFacility = LOG_USER;	/* default facility code */
+static	int	LogMask = 0xff;		/* mask of priorities to be logged */
+#ifdef	pdp11
+static	char	logfile[] = "/usr/adm/messages";
 #endif
 
-static int	LogFile = -1;		/* fd for log */
-static int	LogStat	= 0;		/* status bits, set by openlog() */
-static char	*LogTag = "syslog";	/* string to tag the entry with */
-static int	LogMask = 0xff;		/* mask of priorities to be logged */
-static int	LogFacility = LOG_USER;	/* default facility code */
+extern	char	*__progname;		/* Program name, from crt0. */
+extern	int	errno;			/* error number */
 
-static struct sockaddr SyslogAddr;	/* AF_UNIX address of local logger */
-
-extern	int errno;
-
-syslog(pri, fmt, p0, p1, p2, p3, p4)
+/*
+ * syslog, vsyslog --
+ *	print message on log file; output is intended for syslogd(8).
+ */
+void
+syslog(pri, fmt, va_alist)
 	int pri;
 	char *fmt;
+	va_dcl
 {
-	char buf[MAXLINE + 1], outline[MAXLINE + 1];
-	register char *b, *f, *o;
-	register int c;
-	long now;
-	int pid, olderrno = errno;
+	va_list ap;
 
-	/* see if we should just throw out this message */
-	if (pri <= 0 || PRIFAC(pri) >= LOG_NFACILITIES || (PRIMASK(pri) & LogMask) == 0)
+	va_start(ap);
+	vsyslog(pri, fmt, ap);
+	va_end(ap);
+}
+
+void
+vsyslog(pri, fmt, ap)
+	int pri;
+	register char *fmt;
+	va_list ap;
+{
+	int cnt;
+	char ch;
+	register char *p, *t;
+	time_t now;
+	int fd, saved_errno;
+	char *stdp, tbuf[640], fmt_cpy[512];
+
+#define	INTERNALLOG	LOG_ERR|LOG_CONS|LOG_PERROR|LOG_PID
+	/* Check for invalid bits. */
+	if (pri & ~(LOG_PRIMASK|LOG_FACMASK)) {
+		syslog(INTERNALLOG,
+		    "syslog: bad fac/pri: %x", pri);
+		pri &= LOG_PRIMASK|LOG_FACMASK;
+	}
+
+	/* Check priority against setlogmask values. */
+	if (!LOG_MASK(LOG_PRI(pri)) & LogMask)
 		return;
-	if (LogFile < 0)
-		openlog(LogTag, LogStat | LOG_NDELAY, 0);
 
-	/* set default facility if none specified */
+	saved_errno = errno;
+
+	/* Set default facility if none specified. */
 	if ((pri & LOG_FACMASK) == 0)
 		pri |= LogFacility;
 
-	/* build the message */
-	o = outline;
-	sprintf(o, "<%d>", pri);
-	o += strlen(o);
-	time(&now);
-	sprintf(o, "%.15s ", ctime(&now) + 4);
-	o += strlen(o);
-	if (LogTag) {
-		strcpy(o, LogTag);
-		o += strlen(o);
-	}
-	if (LogStat & LOG_PID) {
-		sprintf(o, "[%d]", getpid());
-		o += strlen(o);
-	}
-	if (LogTag) {
-		strcpy(o, ": ");
-		o += 2;
+	/* Build the message. */
+	(void)time(&now);
+	p = tbuf + sprintf(tbuf, "<%d>", pri);
+	p += strftime(p, sizeof (tbuf) - (p - tbuf), "%h %e %T ",
+	    localtime(&now));
+	if (LogStat & LOG_PERROR)
+		stdp = p;
+	if (LogTag == NULL)
+		LogTag = __progname;
+	if (LogTag != NULL)
+		p += sprintf(p, "%s", LogTag);
+	if (LogStat & LOG_PID)
+		p += sprintf(p, "[%d]", getpid());
+	if (LogTag != NULL) {
+		*p++ = ':';
+		*p++ = ' ';
 	}
 
-	b = buf;
-	f = fmt;
-	while ((c = *f++) != '\0' && c != '\n' && b < &buf[MAXLINE]) {
-		if (c != '%') {
-			*b++ = c;
-			continue;
-		}
-		if ((c = *f++) != 'm') {
-			*b++ = '%';
-			*b++ = c;
-			continue;
-		}
-		strcpy(b, strerror(olderrno));
-		b += strlen(b);
-	}
-	*b++ = '\n';
-	*b = '\0';
-	sprintf(o, buf, p0, p1, p2, p3, p4);
-	c = strlen(outline);
-	if (c > MAXLINE)
-		c = MAXLINE;
+	/* Substitute error message for %m. */
+	for (t = fmt_cpy; ch = *fmt; ++fmt)
+		if (ch == '%' && fmt[1] == 'm') {
+			++fmt;
+			t += sprintf(t, "%s", strerror(saved_errno));
+		} else
+			*t++ = ch;
+	*t = '\0';
 
-	/* output the message to the local logger */
-#ifdef pdp11
+	p += vsprintf(p, fmt_cpy, ap);
+	cnt = p - tbuf;
+
+	/* Output to stderr if requested. */
+	if (LogStat & LOG_PERROR) {
+		struct iovec iov[2];
+		register struct iovec *v = iov;
+
+		v->iov_base = stdp;
+		v->iov_len = cnt - (stdp - tbuf);
+		++v;
+		v->iov_base = "\n";
+		v->iov_len = 1;
+		(void)writev(STDERR_FILENO, iov, 2);
+	}
+
+	/* Get connected, output the message to the local logger. */
+	if (!connected)
+		openlog(LogTag, LogStat | LOG_NDELAY, 0);
+#ifdef	pdp11
 	if (ToFile) {
-		if (write(LogFile, outline, c) == c)
+		if (write(LogFile, tbuf, cnt) == cnt)
 			return;
 	}
 	else
 #endif
-	if (sendto(LogFile, outline, c, 0, &SyslogAddr, sizeof SyslogAddr) >= 0)
-		return;
-	if (!(LogStat & LOG_CONS))
+	if (send(LogFile, tbuf, cnt, 0) >= 0)
 		return;
 
-	/* output the message to the console */
-	pid = vfork();
-	if (pid == -1)
-		return;
-	if (pid == 0) {
-		int fd;
-
-		signal(SIGALRM, SIG_DFL);
-		sigsetmask(sigblock(0L) & ~sigmask(SIGALRM));
-		alarm(5);
-		fd = open(ctty, O_WRONLY);
-		alarm(0);
-		strcat(o, "\r");
-		o = index(outline, '>') + 1;
-		write(fd, o, c + 1 - (o - outline));
-		close(fd);
-		_exit(0);
+	/*
+	 * Output the message to the console; don't worry about blocking,
+	 * if console blocks everything will.  Make sure the error reported
+	 * is the one from the syslogd failure.
+	 */
+	if (LogStat & LOG_CONS &&
+	    (fd = open(_PATH_CONSOLE, O_WRONLY, 0)) >= 0) {
+		(void)strcat(tbuf, "\r\n");
+		cnt += 2;
+		p = index(tbuf, '>') + 1;
+		(void)write(fd, p, cnt - (p - tbuf));
+		(void)close(fd);
 	}
-	if (!(LogStat & LOG_NOWAIT))
-		while ((c = wait((int *)0)) > 0 && c != pid)
-			;
 }
 
-/*
- * OPENLOG -- open system log
- */
+static struct sockaddr SyslogAddr;	/* AF_UNIX address of local logger */
 
+void
 openlog(ident, logstat, logfac)
 	char *ident;
-	int logstat, logfac;
+	int logstat;
+	register int logfac;
 {
 	if (ident != NULL)
 		LogTag = ident;
 	LogStat = logstat;
-	if (logfac != 0)
-		LogFacility = logfac & LOG_FACMASK;
-	if (LogFile >= 0)
-		return;
-	SyslogAddr.sa_family = AF_UNIX;
-	strncpy(SyslogAddr.sa_data, logname, sizeof SyslogAddr.sa_data);
-	if (LogStat & LOG_NDELAY) {
-		LogFile = socket(AF_UNIX, SOCK_DGRAM, 0);
-#ifdef pdp11
-		if (LogFile < 0) {
-			LogFile = open(logfile, O_WRONLY|O_APPEND);
-			ToFile = 1;
-		}
-		else
-			ToFile = 0;
+	if (logfac != 0 && (logfac &~ LOG_FACMASK) == 0)
+		LogFacility = logfac;
+
+	if (LogFile == -1) {
+		SyslogAddr.sa_family = AF_UNIX;
+		(void)strncpy(SyslogAddr.sa_data, _PATH_LOG,
+		    sizeof(SyslogAddr.sa_data));
+		if (LogStat & LOG_NDELAY) {
+			LogFile = socket(AF_UNIX, SOCK_DGRAM, 0);
+#ifdef	pdp11
+			if (LogFile == -1) {
+				LogFile = open(logfile, O_WRONLY|O_APPEND);
+				ToFile = 1;
+			}
+			else
+				ToFile = 0;
 #endif
-		fcntl(LogFile, F_SETFD, 1);
+			if (LogFile == -1)
+				return;
+			(void)fcntl(LogFile, F_SETFD, 1);
+		}
 	}
+	if (LogFile != -1 && !connected)
+		if (connect(LogFile, &SyslogAddr, sizeof(SyslogAddr)) == -1) {
+			(void)close(LogFile);
+			LogFile = -1;
+		} else
+			connected = 1;
 }
 
-/*
- * CLOSELOG -- close the system log
- */
-
+void
 closelog()
 {
-
-	(void) close(LogFile);
+	(void)close(LogFile);
 	LogFile = -1;
+	connected = 0;
 }
 
-/*
- * SETLOGMASK -- set the log mask level
- */
+/* setlogmask -- set the log mask level */
+int
 setlogmask(pmask)
-	int pmask;
+	register int pmask;
 {
-	int omask;
+	register int omask;
 
 	omask = LogMask;
 	if (pmask != 0)

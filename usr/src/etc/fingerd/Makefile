@@ -1,50 +1,33 @@
+#	Makefile for fingerd
 #
-# Copyright (c) 1988 Regents of the University of California.
-# All rights reserved.
+#	Version 1.0 - 1995/04/01
 #
-# Redistribution and use in source and binary forms are permitted
-# provided that the above copyright notice and this paragraph are
-# duplicated in all such forms and that any documentation, advertising
-# materials, and other materials related to such redistribution and
-# use acknowledge that the software was developed by the University
-# of California, Berkeley.  The name of the University may not be
-# used to endorse or promote products derived from this software
-# without specific prior written permission.  THIS SOFTWARE IS PROVIDED
-# ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-# WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE.
-#
-# @(#)Makefile	5.2 (Berkeley) 5/11/89
-#
-
-CFLAGS=	-O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
-SRCS=	fingerd.c
-OBJS=
-MAN=	fingerd.0
-MANSRC=	fingerd.8
+CFLAGS = -O
 
-all: fingerd
+SRCS = fingerd.c
+OBJS = fingerd.o
 
-fingerd: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} $@.c
+all:	fingerd fingerd.0
 
-fingerd.0: ${MANSRC}
-	/usr/man/manroff ${MANSRC} > ${MAN}
+fingerd: ${OBJS}
+	${CC} ${SEPFLAG} -o fingerd ${OBJS}
 
-clean:
-	rm -f ${OBJS} ${MAN} core fingerd
+fingerd.0: fingerd.8
+	/usr/man/manroff fingerd.8 > fingerd.0
+
+install: all
+	install -s -m 755 -g bin -o bin fingerd ${DESTDIR}/etc
+	install -m 444 -g bin -o bin fingerd.0 ${DESTDIR}/usr/man/cat8
+
+clean:	
+	rm -f *.o fingerd *.core fingerd.0
 
 cleandir: clean
-	rm -f tags .depend
+	rm -f tags
 
 depend: ${SRCS}
 	mkdep -p ${CFLAGS} ${SRCS}
-
-install: ${MAN} fingerd
-	install -s -o bin -g bin -m 755 fingerd ${DESTDIR}/etc/fingerd
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
 
 lint: ${SRCS}
 	lint ${CFLAGS} ${SRCS}
