@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.5 (2.11BSD) 1996/02/23
+#	@(#)Makefile	5.7.6 (2.11BSD) 1996/03/20
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -14,7 +14,7 @@ OBJS=	${STDOBJ}
 
 CFLAGS=	-O ${DEFS}
 STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
-	ctime.c ctype_.c daemon.c devname.c disklabel.c err.c errlst.c \
+	ctime.c ctype_.c daemon.c devname.c disklabel.c err.c \
 	execvp.c fakcu.c \
 	fstab.c gcvt.c getenv.c getgrent.c getgrgid.c getgrnam.c getlogin.c \
 	getpass.c getpwent.c getloadavg.c getmntinfo.c \
@@ -25,10 +25,11 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	setmode.c \
 	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
 	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
+	syserrlst.c \
 	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
 	valloc.c strdup.c strsep.c uname.c wait.c wait3.c waitpid.c
 STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
-	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o errlst.o \
+	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o \
 	execvp.o fakcu.o \
 	fstab.o gcvt.o getenv.o getgrent.o getgrgid.o getgrnam.o getlogin.o \
 	getpass.o getpwent.o getloadavg.o getmntinfo.o \
@@ -39,6 +40,7 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	setmode.o \
 	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
 	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
+	syserrlst.o \
 	telldir.o time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o \
 	valloc.o strdup.o strsep.o uname.o wait.o wait3.o waitpid.o
 
@@ -108,7 +110,6 @@ devname.o: devname.c /usr/include/sys/types.h /usr/include/ndbm.h
 devname.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/paths.h
 devname.o: /usr/include/stdio.h
 err.o: err.c /usr/include/stdio.h /usr/include/varargs.h
-errlst.o: errlst.c
 execvp.o: execvp.c /usr/include/errno.h
 fakcu.o: fakcu.c
 fstab.o: fstab.c /usr/include/fstab.h /usr/include/stdio.h /usr/include/ctype.h
@@ -161,7 +162,6 @@ devname.o: devname.c /usr/include/sys/types.h /usr/include/ndbm.h
 devname.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/paths.h
 devname.o: /usr/include/stdio.h
 err.o: err.c /usr/include/stdio.h /usr/include/varargs.h
-errlst.o: errlst.c
 execvp.o: execvp.c /usr/include/errno.h
 fakcu.o: fakcu.c
 fstab.o: fstab.c /usr/include/fstab.h /usr/include/stdio.h /usr/include/ctype.h

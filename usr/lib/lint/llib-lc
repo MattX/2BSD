@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.42 (2.11BSD GTE) 1996/1/27 */
+/*	@(#)llib-lc	1.43 (2.11BSD GTE) 1996/3/26 */
 
 /* LINTLIBRARY */
 
@@ -387,21 +387,23 @@ int	strcmpn(a, b, n) char *a, *b; { return(1); }
 char *	strcpy(a, b) char *a, *b; { return a; }
 char *	strcpyn(a, b, n) char *a, *b; { return a; }
 int	strcspn(s, set) char *s, *set; { return(0); }
+char *	strerror(err) int err; { return ((char *)0); }
 int	strlen(s) char *s; { return(1); }
 char *	strncat(a, b, n) char *a, *b; { return a;}
 int	strncmp(a, b, n) char *a, *b; { return(1); }
 char *	strncpy(a, b, n) char *a, *b; { return a; }
 char *	strpbrk(s, brk) char *s, *brk; { return s; }
 char *	strrchr(s, c) char *s, c; { return s; }
+char *	strsep(stringp, delim) char **stringp; char *delim; { return(delim); }
 int	strspn(s, set) char *s, *set; { return(0); }
 char *	strtok(s, sep) char *s, *sep; { return s; }
 int	stty(f, b) struct sgttyb *b; { return(0); }
-	swab( f, t, n) char *f, *t; {;}
+char *	syserrlst(err) int err; { return((char *) 0); }
+char *	__errlst(err,path) int err; char *path; { return((char *) 0); }
+int	swab( f, t, n) char *f, *t; {;}
 	/* VARARGS2 */
 	syslog(l, f) char *f; {}
-char *	sys_errlist[];
 char *	sys_siglist[];
-int	sys_nerr;
 int	system(s) char *s; { return(0); }
 long	tell(f) { return((long)0); }
 long	telldir( p ) DIR *p; { return 1L; }

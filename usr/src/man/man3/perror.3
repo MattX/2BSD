@@ -2,47 +2,79 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)perror.3	6.1 (Berkeley) 5/15/85
+.\"	@(#)perror.3	6.1.1 (2.11BSD) 1996/3/21
 .\"
-.TH PERROR 3  "May 15, 1985"
+.TH PERROR 3  "March 21, 1996"
 .UC 4
 .SH NAME
-perror, sys_errlist, sys_nerr \- system error messages
+perror, strerror \- system error messages
 .SH SYNOPSIS
 .nf
 .B perror(s)
 .B char *s;
-.PP
-.B int sys_nerr;
-.B char *sys_errlist[];
+.sp
+.B #include <string.h>
+.sp
+.I char *
+.B strerror(errnum)
+.B int errnum;
 .fi
 .SH DESCRIPTION
-.I Perror
-produces a short error message on the standard error file
-describing the last error encountered during a call
-to the system from a C program.
-First the argument string
-.I s
-is printed, then a colon, then the message and a new-line.
-Most usefully, the argument string is the name
-of the program which incurred the error.
-The error number is taken from the external variable
-.I errno
-(see
-.IR intro (2)),
-which is set when errors occur but not cleared when
-non-erroneous calls are made.
+The
+.B strerror()
+and
+.B perror()
+functions look up the error message string corresponding to an error number.
 .PP
-To simplify variant formatting of messages, the vector of message strings
-.I sys_errlist
-is provided;
+The 
+.B strerror()
+function accepts an error number argument
+.I errnum
+and returns a pointer to the corresponding message string.
+.PP
+The
+.B perror()
+function
+finds the error message corresponding to the current value of the
+global variable
 .I errno
-can be used as an index in this table to get the
-message string without the newline.
-.I Sys_nerr
-is the number of messages provided for in the table;
-it should be checked because new error codes may be added to the system before
-they are added to the table.
+(intro(2)) and writes it, followed by a newline, to the standard error
+file descriptor.  If the argument 
+.I string
+is non-NULL, it is prepended to the message string and separated
+from it by a colon and space (`: ').
+If 
+.I string
+is NULL, only the error message string is printed.
+.PP
+If
+.I errnum
+is not a recognized error number, the error message string
+will contain ``Unknown error: '' followed by the error number
+in decimal.
+.PP
+The error messages are stored in a data file now rather than an in memory
+array.  See 
+.BR syserror (5).
 .SH "SEE ALSO"
+mkerrlst(1),
 intro(2),
-psignal(3)
+psignal(3),
+strerror(3),
+syserror(3),
+syserror(5)
+.SH BUGS
+The
+.BR strerror ()
+function returns its result in a static buffer which may be
+overwritten by subsequent calls.
+.PP
+The array
+.B sys_errlist[]
+and the global
+.B sys_nerr
+are
+.B obsolete
+and should not be used.  They have, for the time being, been placed in
+an object library 
+.BR liberrlst.a .

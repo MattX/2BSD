@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)string.h	5.1.2 (2.11BSD) 1996/1/15
+ *	@(#)string.h	5.1.3 (2.11BSD) 1996/3/20
  */
 
 #include <sys/types.h>
@@ -13,7 +13,7 @@
 #endif
 
 extern	char	*strcat(), *strncat(), *strcpy(), *strncpy(), *index();
-extern	char	*rindex(), *strstr();
+extern	char	*rindex(), *strstr(), *syserrlst();
 extern	int	strcmp(), strncmp(), strcasecmp(), strncasecmp(), strlen();
 extern	int	memcmp();
 

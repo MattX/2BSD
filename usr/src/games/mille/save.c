@@ -1,4 +1,5 @@
 #include	"mille.h"
+#include	<string.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #ifndef	unctrl
@@ -11,20 +12,18 @@
 # endif	attron
 
 /*
- * @(#)save.c	1.2 (Berkeley) 3/28/83
+ * @(#)save.c	1.3 (2.11BSD) 1996/3/21
  */
 
 typedef	struct stat	STAT;
 
-char	*ctime();
-
-int	read(), write();
+extern	char	*ctime();
+extern	int	read(), write();
 
 /*
  *	This routine saves the current game for use at a later date
  */
 extern int	errno;
-extern char	*sys_errlist[];
 
 save() {
 
@@ -78,7 +77,7 @@ over:
 		return FALSE;
 
 	if ((outf = creat(buf, 0644)) < 0) {
-		error(sys_errlist[errno]);
+		error(strerror(errno));
 		return FALSE;
 	}
 	mvwaddstr(Score, ERR_Y, ERR_X, buf);

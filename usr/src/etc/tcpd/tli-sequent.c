@@ -7,8 +7,8 @@
   * Modified slightly to conform to the new internal interfaces - Wietse
   */
 
-#ifndef lint
-static char sccsid[] = "@(#) tli-sequent.c 1.1 94/12/28 17:42:51";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#) tli-sequent.c 1.1.1 96/3/23 17:42:51";
 #endif
 
 #ifdef TLI_SEQUENT
@@ -156,14 +156,8 @@ static char *tli_error()
 	} else {
 	    return (t_errlist[t_errno]);
 	}
-    } else {
-	if (errno < 0 || errno >= sys_nerr) {
-	    sprintf(buf, "Unknown UNIX error %d", errno);
-	    return (buf);
-	} else {
-	    return (sys_errlist[errno]);
-	}
-    }
+    } else
+	return(strerror(errno));
 }
 
 /* tli_sink - absorb unreceived datagram */

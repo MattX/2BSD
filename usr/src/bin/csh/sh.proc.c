@@ -5,12 +5,13 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.proc.c	5.5 (Berkeley) 5/13/86";
+static char *sccsid = "@(#)sh.proc.c	5.5.1 (2.11BSD) 1996/3/20";
 #endif
 
 #include "sh.h"
 #include "sh.dir.h"
 #include "sh.proc.h"
+#include <string.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 
@@ -819,7 +820,6 @@ pkill(v, signum)
 	int pid, err = 0;
 	long omask;
 	char *cp;
-	extern char *sys_errlist[];
 
 	omask = sigmask(SIGCHLD);
 	if (setintr)
@@ -846,7 +846,7 @@ pkill(v, signum)
 			}
 			if (killpg(pp->p_jobid, signum) < 0) {
 				printf("%s: ", cp);
-				printf("%s\n", sys_errlist[errno]);
+				printf("%s\n", syserrlst(errno));
 				err++;
 			}
 			if (signum == SIGTERM || signum == SIGHUP)
@@ -857,7 +857,7 @@ pkill(v, signum)
 			pid = atoi(cp);
 			if (kill(pid, signum) < 0) {
 				printf("%d: ", pid);
-				printf("%s\n", sys_errlist[errno]);
+				printf("%s\n", syserrlst(errno));
 				err++;
 				goto cont;
 			}

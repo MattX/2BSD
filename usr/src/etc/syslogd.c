@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)syslogd.c	5.13.2 (2.11BSD GTE) 1996/1/24";
+static char sccsid[] = "@(#)syslogd.c	5.13.3 (2.11BSD GTE) 1996/3/22";
 #endif
 
 /*
@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)syslogd.c	5.13.2 (2.11BSD GTE) 1996/1/24";
 #include <ctype.h>
 #include <signal.h>
 #include <sysexits.h>
-#include <strings.h>
+#include <string.h>
 
 #include <sys/syslog.h>
 #include <sys/types.h>
@@ -140,10 +140,6 @@ int	PrevCount = 0;		/* number of times seen */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20;	/* interval between marks in minutes */
 int	MarkSeq = 0;		/* mark sequence number */
-
-extern	int errno, sys_nerr;
-extern	char *sys_errlist[];
-extern	char *ctime(), *index();
 
 main(argc, argv)
 	int argc;
@@ -755,10 +751,8 @@ logerror(type)
 
 	if (errno == 0)
 		(void) sprintf(buf, "syslogd: %s", type);
-	else if ((unsigned) errno > sys_nerr)
-		(void) sprintf(buf, "syslogd: %s: error %d", type, errno);
 	else
-		(void) sprintf(buf, "syslogd: %s: %s", type, sys_errlist[errno]);
+		(void) sprintf(buf, "syslogd: %s: %s", type, strerror(errno));
 	errno = 0;
 	dprintf("%s\n", buf);
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);

@@ -1,4 +1,4 @@
-static	char *sccsid = "@(#)kill.c	4.4 (Berkeley) 4/20/86";
+static	char *sccsid = "@(#)kill.c	4.4.1 (2.11BSD) 1996/3/21";
 /*
  * kill - send signal to process
  */
@@ -18,7 +18,6 @@ char **argv;
 {
 	register signo, pid, res;
 	int errlev;
-	extern char *sys_errlist[];
 	extern errno;
 
 	errlev = 0;
@@ -65,7 +64,7 @@ foundsig:
 			goto usage;
 		res = kill(pid = atoi(*argv), signo);
 		if (res<0) {
-			printf("%u: %s\n", pid, sys_errlist[errno]);
+			printf("%u: %s\n", pid, strerror(errno));
 			errlev = 1;
 		}
 		argc--;

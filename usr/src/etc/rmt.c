@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)rmt.c	5.2 (Berkeley) 1/7/86";
-#endif not lint
+static char sccsid[] = "@(#)rmt.c	5.2.1 (2.11BSD) 1996/3/22";
+#endif
 
 /*
  * rmt
@@ -23,6 +21,9 @@ static char sccsid[] = "@(#)rmt.c	5.2 (Berkeley) 1/7/86";
 #include <sys/socket.h>
 #include <sys/mtio.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 int	tape = -1;
 
@@ -33,13 +34,7 @@ char	*checkbuf();
 #define	SSIZE	64
 char	device[SSIZE];
 char	count[SSIZE], mode[SSIZE], pos[SSIZE], op[SSIZE];
-
-extern	errno;
-char	*sys_errlist[];
 char	resp[BUFSIZ];
-
-char	*sprintf();
-long	lseek();
 
 FILE	*debug;
 #define	DEBUG(f)	if (debug) fprintf(debug, f)
@@ -89,7 +84,7 @@ top:
 	case 'L':
 		getstring(count); getstring(pos);
 		DEBUG2("rmtd: L %s %s\n", count, pos);
-		rval = lseek(tape, (long) atoi(count), atoi(pos));
+		rval = lseek(tape, atol(count), atoi(pos));
 		if (rval < 0)
 			goto ioerror;
 		goto respond;
@@ -165,8 +160,8 @@ ioerror:
 getstring(bp)
 	char *bp;
 {
-	int i;
-	char *cp = bp;
+	register int i;
+	register char *cp = bp;
 
 	for (i = 0; i < SSIZE; i++) {
 		if (read(0, cp+i, 1) != 1)
@@ -182,13 +177,12 @@ checkbuf(record, size)
 	char *record;
 	int size;
 {
-	extern char *malloc();
 
 	if (size <= maxrecsize)
 		return (record);
 	if (record != 0)
 		free(record);
-	record = malloc(size);
+	record = (char *)malloc(size);
 	if (record == 0) {
 		DEBUG("rmtd: cannot allocate buffer space\n");
 		exit(4);
@@ -204,7 +198,7 @@ error(num)
 	int num;
 {
 
-	DEBUG2("rmtd: E %d (%s)\n", num, sys_errlist[num]);
-	(void) sprintf(resp, "E%d\n%s\n", num, sys_errlist[num]);
-	(void) write(1, resp, strlen (resp));
+	DEBUG2("rmtd: E %d (%s)\n", num, strerror(num));
+	(void) sprintf(resp, "E%d\n%s\n", num, strerror(num));
+	(void) write(1, resp, strlen(resp));
 }

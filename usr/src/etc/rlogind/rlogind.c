@@ -15,15 +15,13 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983, 1988 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)rlogind.c	5.22.1.7 (Berkeley) 9/11/89";
-#endif /* not lint */
+static char sccsid[] = "@(#)rlogind.c	5.22.1.8 (2.11BSD) 1996/3/22";
+#endif
 
 /*
  * remote login server:
@@ -74,10 +72,8 @@ int	check_all = 0;
 
 #define	SUPERUSER(pwd)	((pwd)->pw_uid == 0)
 
-extern	int errno;
 int	reapchild();
 struct	passwd *getpwnam(), *pwd;
-char	*malloc();
 
 main(argc, argv)
 	int argc;
@@ -512,13 +508,8 @@ fatalperror(f, msg)
 	char *msg;
 {
 	char buf[BUFSIZ];
-	extern int sys_nerr;
-	extern char *sys_errlist[];
 
-	if ((unsigned)errno < sys_nerr)
-		(void) sprintf(buf, "%s: %s", msg, sys_errlist[errno]);
-	else
-		(void) sprintf(buf, "%s: Error %d", msg, errno);
+	(void) sprintf(buf, "%s: %s", msg, strerror(errno));
 	fatal(f, buf);
 }
 

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.9 (2.11BSD) 1996/2/23
+#	@(#)Makefile	5.4.10 (2.11BSD) 1996/3/20
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -36,6 +36,7 @@ SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	strcspn.3 strpbrk.3 strsep.3 strspn.3 strtol.3 strtoul.3 strstr.3 \
 	swab.3 sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 uname.3 ungetc.3 \
+	syserrlst.3 \
 	usleep.3 utime.3 valloc.3 varargs.3
 OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	compat-sys5.0 crypt.0 ctime.0 ctype.0 curses.0 dbm.0 daemon.0 \
@@ -56,6 +57,7 @@ OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	strcspn.0 strpbrk.0 strsep.0 strspn.0 strtol.0 strtoul.0 strstr.0 \
 	swab.0 sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 uname.0 ungetc.0 \
+	syserrlst.0 \
 	usleep.0 utime.0 valloc.0 varargs.0
 REMO1=	edata.0 etext.0 j1.0 jn.0 ns_addr.0 ns_ntoa.0 y0.0 y1.0 yn.0 acos.0 \
 	asin.0 atan.0 atan2.0 atoi.0 atol.0 cos.0 dbm_clearerr.0 dbm_close.0 \
@@ -74,12 +76,13 @@ REMO1=	edata.0 etext.0 j1.0 jn.0 ns_addr.0 ns_ntoa.0 y0.0 y1.0 yn.0 acos.0 \
 REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
 	timezone.0 toascii.0 tolower.0 toupper.0 ltol3.0 _longjmp.0 \
 	_setjmp.0 acosh.0 alloca.0 atanh.0 cabs.0 calloc.0 ceil.0 \
-	closelog.0 errlist.0 fabs.0 fdopen.0 free.0 freopen.0 fscanf.0 \
+	closelog.0 fabs.0 fdopen.0 free.0 freopen.0 fscanf.0 \
 	ftell.0 fwrite.0 index.0 initstate.0 longjmp.0 mkstemp.0 openlog.0  \
 	realloc.0 remque.0 rewind.0 rindex.0 rint.0 setegid.0 seteuid.0 \
 	setgid.0 setlogmask.0 setrgid.0 setruid.0 setstate.0 srandom.0 \
 	sscanf.0 strcat.0 strcmp.0 strcpy.0 strlen.0 strncat.0 strncmp.0 \
-	strncpy.0 strcasecmp.0 strncasecmp.0 sys.0 sys_errlist.0 sys_nerr.0 \
+	strncpy.0 strcasecmp.0 strncasecmp.0 \
+	strerror.0 \
 	sprintf.0 vfprintf.0 vprintf.0 vsprintf.0 alphasort.0 bcmp.0 bcopy.0 \
 	bzero.0 clearerr.0 feof.0 fflush.0 ffs.0 fileno.0 fprintf.0 gamma.0  \
 	getdiskbyname.0 isatty.0 moncontrol.0 monstartup.0 setbuffer.0 \
@@ -257,7 +260,7 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/malloc.0 ${DESTDIR}${MDIR}/calloc.0
 	ln ${DESTDIR}${MDIR}/floor.0 ${DESTDIR}${MDIR}/ceil.0
 	ln ${DESTDIR}${MDIR}/syslog.0 ${DESTDIR}${MDIR}/closelog.0
-	ln ${DESTDIR}${MDIR}/perror.0 ${DESTDIR}${MDIR}/errlist.0
+	ln ${DESTDIR}${MDIR}/perror.0 ${DESTDIR}${MDIR}/strerror.0
 	ln ${DESTDIR}${MDIR}/floor.0 ${DESTDIR}${MDIR}/fabs.0
 	ln ${DESTDIR}${MDIR}/fopen.0 ${DESTDIR}${MDIR}/fdopen.0
 	ln ${DESTDIR}${MDIR}/malloc.0 ${DESTDIR}${MDIR}/free.0
@@ -293,9 +296,6 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/string.0 ${DESTDIR}${MDIR}/strncpy.0
 	ln ${DESTDIR}${MDIR}/string.0 ${DESTDIR}${MDIR}/strcasecmp.0
 	ln ${DESTDIR}${MDIR}/string.0 ${DESTDIR}${MDIR}/strncasecmp.0
-	ln ${DESTDIR}${MDIR}/perror.0 ${DESTDIR}${MDIR}/sys.0
-	ln ${DESTDIR}${MDIR}/perror.0 ${DESTDIR}${MDIR}/sys_errlist.0
-	ln ${DESTDIR}${MDIR}/perror.0 ${DESTDIR}${MDIR}/sys_nerr.0
 	ln ${DESTDIR}${MDIR}/printf.0 ${DESTDIR}${MDIR}/sprintf.0
 	ln ${DESTDIR}${MDIR}/printf.0 ${DESTDIR}${MDIR}/vfprintf.0
 	ln ${DESTDIR}${MDIR}/printf.0 ${DESTDIR}${MDIR}/vprintf.0

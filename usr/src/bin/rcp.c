@@ -15,14 +15,12 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)rcp.c	5.20 (Berkeley) 5/23/89";
+static char sccsid[] = "@(#)rcp.c	5.20.1 (2.11BSD) 1996/3/21";
 #endif /* not lint */
 
 /*
@@ -54,7 +52,6 @@ Key_schedule schedule;
 #endif
 
 extern int errno;
-extern char *sys_errlist[];
 struct passwd *pwd;
 int errs, pflag, port, rem, userid;
 int iamremote, iamrecursive, targetshouldbedirectory;
@@ -356,7 +353,7 @@ verifydir(cp)
 			return;
 		errno = ENOTDIR;
 	}
-	error("rcp: %s: %s.\n", cp, sys_errlist[errno]);
+	error("rcp: %s: %s.\n", cp, strerror(errno));
 	exit(1);
 }
 
@@ -429,7 +426,7 @@ source(argc, argv)
 	for (x = 0; x < argc; x++) {
 		name = argv[x];
 		if ((f = open(name, O_RDONLY, 0)) < 0) {
-			error("rcp: %s: %s\n", name, sys_errlist[errno]);
+			error("rcp: %s: %s\n", name, strerror(errno));
 			continue;
 		}
 		if (fstat(f, &stb) < 0)
@@ -493,7 +490,7 @@ notreg:			(void)close(f);
 		if (readerr == 0)
 			(void)write(rem, "", 1);
 		else
-			error("rcp: %s: %s\n", name, sys_errlist[readerr]);
+			error("rcp: %s: %s\n", name, strerror(readerr));
 		(void)response();
 	}
 }
@@ -507,7 +504,7 @@ rsource(name, statp)
 	char *last, *vect[1], path[MAXPATHLEN];
 
 	if (!(d = opendir(name))) {
-		error("rcp: %s: %s\n", name, sys_errlist[errno]);
+		error("rcp: %s: %s\n", name, strerror(errno));
 		return;
 	}
 	last = rindex(name, '/');
@@ -737,12 +734,12 @@ sink(argc, argv)
 				setimes = 0;
 				if (utimes(np, tv) < 0)
 				    error("rcp: can't set times on %s: %s\n",
-					np, sys_errlist[errno]);
+					np, strerror(errno));
 			}
 			continue;
 		}
 		if ((ofd = open(np, O_WRONLY|O_CREAT, mode)) < 0) {
-bad:			error("rcp: %s: %s\n", np, sys_errlist[errno]);
+bad:			error("rcp: %s: %s\n", np, strerror(errno));
 			continue;
 		}
 		if (exists && pflag)
@@ -764,7 +761,7 @@ bad:			error("rcp: %s: %s\n", np, sys_errlist[errno]);
 				j = read(rem, cp, amt);
 				if (j <= 0) {
 					error("rcp: %s\n",
-					    j ? sys_errlist[errno] :
+					    j ? strerror(errno) :
 					    "dropped connection");
 					exit(1);
 				}
@@ -784,17 +781,17 @@ bad:			error("rcp: %s: %s\n", np, sys_errlist[errno]);
 			wrerr++;
 		if (ftruncate(ofd, size))
 			error("rcp: can't truncate %s: %s\n", np,
-			    sys_errlist[errno]);
+			    strerror(errno));
 		(void)close(ofd);
 		(void)response();
 		if (setimes) {
 			setimes = 0;
 			if (utimes(np, tv) < 0)
 				error("rcp: can't set times on %s: %s\n",
-				    np, sys_errlist[errno]);
+				    np, strerror(errno));
 		}				   
 		if (wrerr)
-			error("rcp: %s: %s\n", np, sys_errlist[errno]);
+			error("rcp: %s: %s\n", np, strerror(errno));
 		else
 			(void)write(rem, "", 1);
 	}
@@ -813,7 +810,7 @@ allocbuf(bp, fd, blksize)
 	char *malloc();
 
 	if (fstat(fd, &stb) < 0) {
-		error("rcp: fstat: %s\n", sys_errlist[errno]);
+		error("rcp: fstat: %s\n", strerror(errno));
 		return(0);
 	}
 	size = roundup(stb.st_blksize, blksize);

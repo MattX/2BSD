@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)defs.h	5.3.1 (2.11BSD GTE) 1/1/94
+ *	@(#)defs.h	5.3.2 (2.11BSD GTE) 1996/3/22
  */
 
 /*
@@ -56,7 +56,6 @@ struct	rip *msg;
 char	**argv0;
 struct	servent *sp;
 
-extern	char *sys_errlist[];
 extern	int errno;
 
 char	*malloc();

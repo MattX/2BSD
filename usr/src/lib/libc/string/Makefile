@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	1.1 (2.11BSD GTE) 1995/1/15
+#	@(#)Makefile	1.2 (2.11BSD GTE) 1996/3/20
 #
 # This is the Makefile for the 'string' functions.  New routines ported from 
 # 4.4BSD's libc/string directory go here but existing libc/gen files are 
@@ -10,8 +10,8 @@ DEFS=
 CFLAGS=	 -O ${DEFS}
 CC=	cc
 
-SRCS=	strcspn.c strpbrk.c strsep.c strspn.c strstr.c strtok.c
-OBJS=	strcspn.o strpbrk.o strsep.o strspn.o strstr.o strtok.o
+SRCS=	strcspn.c strpbrk.c strerror.c strsep.c strspn.c strstr.c strtok.c
+OBJS=	strcspn.o strpbrk.o strerror.o strsep.o strspn.o strstr.o strtok.o
 
 .c.o:
 	${CC} -p ${CFLAGS} -c $*.c

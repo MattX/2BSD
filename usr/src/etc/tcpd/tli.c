@@ -14,8 +14,8 @@
   * Author: Wietse Venema, Eindhoven University of Technology, The Netherlands.
   */
 
-#ifndef lint
-static char sccsid[] = "@(#) tli.c 1.14 95/01/03 22:26:03";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#) tli.c 1.14.1 96/03/23 22:26:03";
 #endif
 
 #ifdef TLI
@@ -40,8 +40,6 @@ static char sccsid[] = "@(#) tli.c 1.14 95/01/03 22:26:03";
 
 extern char *nc_sperror();
 extern int errno;
-extern char *sys_errlist[];
-extern int sys_nerr;
 extern int t_errno;
 extern char *t_errlist[];
 extern int t_nerr;
@@ -304,14 +302,8 @@ static char *tli_error()
 	} else {
 	    return (t_errlist[t_errno]);
 	}
-    } else {
-	if (errno < 0 || errno >= sys_nerr) {
-	    sprintf(buf, "Unknown UNIX error %d", errno);
-	    return (buf);
-	} else {
-	    return (sys_errlist[errno]);
-	}
-    }
+    } else
+	return(strerror(errno));
 }
 
 /* tli_sink - absorb unreceived datagram */

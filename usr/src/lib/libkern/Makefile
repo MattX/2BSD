@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	1.1 (2.11BSD GTE) 1996/2/3
+#	@(#)Makefile	1.2 (2.11BSD GTE) 1996/3/26
 #
 # This is the Makefile for 'libkern.a'.  These are the specially compiled
 # versions of libc.a routines which the kernel and network use.
@@ -44,7 +44,7 @@ clean:
 depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
-install: libkern.a
+install: FRC libkern.a
 	install -o root -g bin -m 644 libkern.a ${DESTDIR}/usr/lib/libkern.a
 	ranlib ${DESTDIR}/usr/lib/libkern.a
 

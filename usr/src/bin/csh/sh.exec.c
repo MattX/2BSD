@@ -5,10 +5,11 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.exec.c	5.2 (Berkeley) 6/6/85";
+static char *sccsid = "@(#)sh.exec.c	5.2.1 (2.11BSD) 1996/3/20";
 #endif
 
 #include "sh.h"
+#include <string.h>
 #include <sys/dir.h>
 
 /*
@@ -195,7 +196,6 @@ texec(f, t)
 {
 	register struct varent *v;
 	register char **vp;
-	extern char *sys_errlist[];
 	char *lastsh[2];
 
 	execv(f, t);
@@ -240,7 +240,7 @@ texec(f, t)
 
 	default:
 		if (exerr == 0) {
-			exerr = sys_errlist[errno];
+			exerr = syserrlst(errno);
 			expath = savestr(f);
 		}
 	}

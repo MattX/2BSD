@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14.5 (2.11BSD GTE) 1996/1/15
+#	@(#)Makefile	5.14.6 (2.11BSD GTE) 1996/3/26
 #
 DESTDIR=
 CFLAGS=	-O
@@ -63,8 +63,9 @@ install: ${STD} ${NSTD} ${SETUID} ${KMEM}  ${OPERATOR}
 	install -s ${STD} ${NSTD} ${DESTDIR}/etc
 	-for i in ${OPTIONAL}; do \
 		(if [ -f $$i ]; then install -s $$i ${DESTDIR}/etc; fi); done
-	-for i in ${SETUID}; do \
-		(install -o root -m 4755 -s $$i ${DESTDIR}/etc/$$i); done
+	-for i in ${SETUID} x; do \
+		(if [ $$i != "x" ]; then install -o root -m 4755 -s $$i \
+					${DESTDIR}/etc/$$i; fi); done
 	-for i in ${KMEM}; do \
 		(install -g kmem -m 2755 -s $$i ${DESTDIR}/etc/$$i); done
 	-for i in ${OPERATOR}; do \

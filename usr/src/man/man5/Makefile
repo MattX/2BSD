@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.2 (2.11BSD GTE) 1996/1/25
+#	@(#)Makefile	5.4.3 (2.11BSD GTE) 1996/3/20
 #
 MDIR=	/usr/man/cat5
 SRCS=	L-devices.5 L-dialcodes.5 L.aliases.5 L.cmds.5 L.sys.5 \
@@ -23,6 +23,7 @@ SRCS=	L-devices.5 L-dialcodes.5 L.aliases.5 L.cmds.5 L.sys.5 \
 	group.5 hosts.5 map3270.5 networks.5 passwd.5 \
 	phones.5 plot.5 printcap.5 protocols.5 remote.5 resolver.5 \
 	services.5 shells.5 stack.5 tar.5 termcap.5 tp.5 ttys.5 types.5 \
+	syserrlst.5 \
 	tzfile.5 utmp.5 uuencode.5 vfont.5 vgrindefs.5
 OBJS=	L-devices.0 L-dialcodes.0 L.aliases.0 L.cmds.0 L.sys.0 \
 	USERFILE.0 a.out.0 acct.0 aliases.0 core.0 dbx.0 \
@@ -30,6 +31,7 @@ OBJS=	L-devices.0 L-dialcodes.0 L.aliases.0 L.cmds.0 L.sys.0 \
 	group.0 hosts.0 map3270.0 networks.0 passwd.0 \
 	phones.0 plot.0 printcap.0 protocols.0 remote.0 resolver.0 \
 	services.0 shells.0 stack.0 tar.0 termcap.0 tp.0 ttys.0 types.0 \
+	syserrlst.0 \
 	tzfile.0 utmp.0 uuencode.0 vfont.0 vgrindefs.0
 
 .SUFFIXES: .5 .0

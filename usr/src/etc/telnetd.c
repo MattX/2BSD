@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)telnetd.c	5.20.1 (Berkeley) 1/1/94";
+static char sccsid[] = "@(#)telnetd.c	5.20.2 (2.11BSD) 1996/3/22";
 #endif
 
 /*
@@ -341,9 +341,8 @@ fatalperror(f, msg)
 	char *msg;
 {
 	char buf[BUFSIZ];
-	extern char *sys_errlist[];
 
-	(void) sprintf(buf, "%s: %s\r\n", msg, sys_errlist[errno]);
+	(void) sprintf(buf, "%s: %s\r\n", msg, strerror(errno));
 	fatal(f, buf);
 }
 
