@@ -1,5 +1,5 @@
 # Makefile for tn3270 and friends...
-# @(#)Makefile	2.11	April 8, 1994
+# @(#)Makefile	2.12	1996/11/16
 
 CC	= cc
 SEPFLAG	= -i
@@ -21,7 +21,6 @@ LINTFLAGS	= -hbxaz
 DESTDIR=
 
 BINDIR		= $(DESTDIR)/usr/ucb
-ETCDIR		= $(DESTDIR)/etc
 
 # Names for the terminal libraries...
 LIBCURSES	= -lcurses
@@ -59,10 +58,10 @@ SUBSO = pdpbsubs.o
 #	/lib/cpp -E $< | as -o $@
 
 ALLC = ${MOSTC} ${TNMAIN} ${MSMAIN} ${SUBS}
-ALLC = ${MOSTC} ${TNMAIN} ${MSMAIN}
+# ALLC = ${MOSTC} ${TNMAIN} ${MSMAIN}
 
 ALLS =
-ALLS = vaxbsubs.s
+#ALLS = vaxbsubs.s
 
 MOSTO	= tn3270.o ebctab.o asctab.o termin.o keyboard.o \
 		datastream.o screen.o map3270.o options.o \
@@ -78,17 +77,12 @@ tn3270:	$(MOSTO)
 mset:	mset.o map3270.o
 	${CC} ${CFLAGS} ${SEPFLAG} -o mset mset.o map3270.o $(LIBCURSES)
 
-install: tn3270 mset map3270
+install: tn3270 mset
 	install -s tn3270 $(BINDIR)
 	install -s mset $(BINDIR)
-	install -c -m 444 map3270 $(ETCDIR)
 
 clean:
 	rm -f $(ALLO) mset tn3270 m4.out errs Makefile.bak
-
-print:
-	print ${ALLH} ${M4FILE} ${MOSTC} ${TNMAIN} ${MSMAIN} ${SUBS}
-	fold default.map3270 | pr -f -h "` echo default.map3270 - ;date`" | lpr
 
 tags:	${ALLC} ${ALLH}
 	ctags -t ${ALLC} ${ALLH}
@@ -97,30 +91,13 @@ lint:
 	lint ${LINTFLAGS} ${TNMAIN} ${MOSTC} -lcurses
 	lint ${LINTFLAGS} ${MSMAIN} map3270.c -lcurses
 
-.DEFAULT:
-	sccs get $<
-
 m4.out:		termcodes.m4
-	/bin/rm -f m4.out
+	rm -f m4.out
 	m4 termcodes.m4 > m4.out
-	/bin/chmod 444 m4.out
+	chmod 444 m4.out
 
-depend:
-	grep '^#include' ${ALLC} | grep -v '<' | \
-	sed -e 's/:[^"]*"\([^"]*\)".*/: \1/' \
-	    -e 's/\.c/.o/' \
-	    -e 's,../[a-zA-Z]*/,,' | \
-	awk ' { if ($$1 != prev) { print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		       else rec = rec " " $$2 } } \
-	      END { print rec } ' > makedep
-	echo '$$r makedep' >>eddep
-	echo '/^# DO NOT DELETE THIS LINE/+1,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
+depend:	${ALLC}
+	mkdep ${CFLAGS} ${ALLC}
 
 # DO NOT DELETE THIS LINE
 

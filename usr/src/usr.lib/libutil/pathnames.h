@@ -16,7 +16,7 @@
  */
 
 #ifndef _PATH_UTMP
-#define	_PATH_UTMP	"/etc/utmp"
+#define	_PATH_UTMP	"/var/run/utmp"
 #endif
 
 #ifndef _PATH_WTMP

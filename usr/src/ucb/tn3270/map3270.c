@@ -21,10 +21,10 @@
 
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)map3270.c	2.6";
+static char sccsid[] = "@(#)map3270.c	2.6.1 (2.11BSD) 1996/11/16";
 #endif
 
-/*	This program reads a description file, somewhat like /etc/termcap,
+/*	This program reads a description file, somewhat like 'termcap',
     that describes the mapping between the current terminals keyboard and
     a 3270 keyboard.
  */
@@ -91,6 +91,8 @@ static state *headOfQueue = &firstentry;
 #ifdef	DEBUG
 static int debug = 0;		/* debug flag (for debuggin tables) */
 #endif	/* DEBUG */
+
+static char *Map3270 = "/usr/share/misc/map3270";
 
 static int doPaste = 1;			/* should we have side effects */
 static char usePointer;			/* use pointer, or file */
@@ -801,7 +803,7 @@ InitControl()
 		GotIt = Position(environPointer, termPointer);
 	    }
 	    if (!GotIt) {
-		GotIt = Position("/etc/map3270", termPointer);
+		GotIt = Position(Map3270, termPointer);
 	    }
 	}
 	if (!GotIt) {
@@ -809,7 +811,7 @@ InitControl()
 		GotIt = Position(environPointer, "unknown");
 	    }
 	    if (!GotIt) {
-		GotIt = Position("/etc/map3270", "unknown");
+		GotIt = Position(Map3270, "unknown");
 	    }
 	}
 	if (!GotIt) {

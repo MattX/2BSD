@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3.1	(2.11BSD GTE)	1/06/94
+#	@(#)Makefile	5.3.2	(2.11BSD GTE)	1996/12/1
 #
 # make file for tip device drivers
 #
@@ -18,7 +18,6 @@
 #	VADIC 831 RS232 adaptor
 #	VADIC 3451
 CFLAGS=	-O -I..
-LIBC=	/lib/libc.a
 SRCS=	biz22.c biz31.c courier.c df.c dn11.c hayes.c ventel.c v831.c \
 	v3451.c penril.c
 OBJS=	biz22.o biz31.o courier.o df.o dn11.o hayes.o ventel.o v831.o \

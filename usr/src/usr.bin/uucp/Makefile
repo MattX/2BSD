@@ -1,4 +1,4 @@
-#	Makefile	5.11.2 (2.11BSD GTE)	1996/10/24
+#	Makefile	5.11.3 (2.11BSD GTE)	1996/11/17
 #
 # LIBS can be set to reference other object modules and libraries needed
 # by uucico, such as -lunet (needed when UNET is defined).
@@ -128,16 +128,16 @@ mkdirs:
 	-for i in ${SPOOL} ${PUBDIR} ${XQTDIR} ${CORRUPT} \
 		${AUDIT} ${LCK} ${LOG} ${STST} ; do \
 		rm -f $$i ; mkdir $$i ; \
-		chmod 755 $$i; /etc/chown ${OWNER} $$i; chgrp ${GROUP} $$i ; \
+		chmod 755 $$i; chown ${OWNER} $$i; chgrp ${GROUP} $$i ; \
 	done
 	chmod 777 ${PUBDIR} ${LCK}
 	-cd ${LOG}; for i in uucico uux uuxqt uucp xferstats; do\
 		rm -f $$i ; mkdir $$i ; \
-		chmod 755 $$i; /etc/chown ${OWNER} $$i; chgrp ${GROUP} $$i ; \
+		chmod 755 $$i; chown ${OWNER} $$i; chgrp ${GROUP} $$i ; \
 	done
 	-cd ${SPOOL}; for i in ${SUBDIRS} ; do \
 		mkdir $$i; \
-		/etc/chown ${OWNER} $$i; chgrp ${GROUP} $$i; chmod 755 $$i; \
+		chown ${OWNER} $$i; chgrp ${GROUP} $$i; chmod 755 $$i; \
 	done
 
 uulib.a: ${COMMON}

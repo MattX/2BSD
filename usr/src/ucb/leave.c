@@ -4,18 +4,20 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)leave.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+static char sccsid[] = "@(#)leave.c	5.1.1 (2.11BSD) 1996/11/17";
+#endif
 
 #include <stdio.h>
 #include <signal.h>
+#include <time.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 /*
  * leave [[+]hhmm]
  *
@@ -24,9 +26,7 @@ static char sccsid[] = "@(#)leave.c	5.1 (Berkeley) 5/31/85";
  * It nags you like a mother hen.
  */
 char origlogin[20];
-char *getlogin();
 char *whenleave;
-char *ctime();
 char buff[100];
 
 main(argc, argv)
@@ -34,9 +34,7 @@ char **argv;
 {
 	long when, tod, now, diff, hours, minutes;
 	char *cp;
-	int *nv;
-	int atoi();
-	int *localtime();
+	register struct tm *nv;
 
 	strcpy(origlogin, getlogin());
 	if (argc < 2) {
@@ -77,9 +75,9 @@ char **argv;
 	time(&now);
 	nv = localtime(&now);
 	when = 60*hours+minutes;
-	if (nv[2] > 12)
-		nv[2] -= 12;	/* do am/pm bit */
-	now = 60*nv[2] + nv[1];
+	if (nv->tm_hour > 12)
+		nv->tm_hour -= 12;	/* do am/pm bit */
+	now = (60 * nv->tm_hour) + nv->tm_min;
 	diff = when - now;
 	while (diff < 0)
 		diff += 12*60;
@@ -184,18 +182,3 @@ int secs;
 			exit(0);
 	}
 }
-
-#ifdef V6
-char *getlogin() {
-#include <utmp.h>
-
-	static struct utmp ubuf;
-	int ufd;
-
-	ufd = open("/etc/utmp",0);
-	seek(ufd, ttyn(0)*sizeof(ubuf), 0);
-	read(ufd, &ubuf, sizeof(ubuf));
-	ubuf.ut_name[sizeof(ubuf.ut_name)] = 0;
-	return(&ubuf.ut_name);
-}
-#endif

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.7.1	(2.11BSD)	1996/10/23
+#	@(#)Makefile	4.7.2	(2.11BSD)	1996/12/1
 #
 # Possible options:
 #	make		compile source for all terminal tables below
@@ -11,7 +11,6 @@
 #	make install	move tables to ${DEST}
 #	make clean	remove tab*.o files lying around
 CFLAGS=	-O
-LIBC=	/lib/libc.a
 DEST=	${DESTDIR}/usr/share/term
 SRCS=	tab300-12.c tab300.c tab302-12.c tab302.c tab37.c tab382-12.c \
 	tab382.c tab450-12.c tab450.c tab833-12.c tab833.c tabepson.c \

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_cmds.c	7.10 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_cmds.c	7.10.1 (2.11BSD) 1996/11/19";
 #endif
 
 #include "ex.h"
@@ -487,7 +487,7 @@ quit:
 					if (!exclam()) {
 						ckaw();
 						if (chng && dol > zero)
-							error("No write@since last chage (:rewind! overrides)");
+							error("No write@since last change (:rewind! overrides)");
 					}
 					eol();
 					erewind();

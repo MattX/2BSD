@@ -8,17 +8,16 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.8 (Berkeley) 2/7/88
+#	@(#)Makefile	5.8.1 (2.11BSD) 1996/12/1
 #
 #
 CFLAGS=	-O -i
-LIBC=	/lib/libc.a
 SRCS=	host.c inet.c if.c main.c mbuf.c route.c unix.c ns.c
 OBJS=	host.o inet.o if.o main.o mbuf.o route.o unix.o ns.o
 
 all: netstat
 
-netstat: ${OBJS} ${LIBC}
+netstat: ${OBJS}
 	${CC} -o $@ ${CFLAGS} ${OBJS}
 
 clean: FRC

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.17.2 (2.11BSD GTE) 2/12/94
+#	@(#)Makefile	5.17.3 (2.11BSD GTE) 1996/11/27
 #
 DESTDIR=
 CFLAGS=	-O
@@ -26,7 +26,7 @@ STD=	apply biff checknr colcrt colrm ctags expand fold \
 	from gprof grep groups head last lastcomm leave logger mkstr \
 	printenv ruptime rwho sccs script soelim strings strcompact \
 	symcompact symdump symorder tail tcopy telnet unexpand unifdef users \
-	whereis whoami whois what wc xstr yes
+	whoami whois what wc xstr yes
 
 # C programs that live in the current directory and need explicit make lines.
 #

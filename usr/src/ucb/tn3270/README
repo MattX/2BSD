@@ -15,7 +15,7 @@ It would be nice if all "3270 emulators" used the same file format
 for describing the mapping of key-strokes to 3270 keys (which file format
 might or might not be the one we currently use).
 
-It would be nice if the entire MAP3270/mset/"/etc/map3270"/etc. thing
+It would be nice if the entire MAP3270/mset/map3270 thing
 were generalized in some way.
 
 Anyway...

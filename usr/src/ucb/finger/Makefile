@@ -14,19 +14,18 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2.1 (2.11BSD) 1996/1/28
+# @(#)Makefile	5.2.2 (2.11BSD) 1996/12/1
 #
 
 SEPFLAG= -i
 CFLAGS=	-O -DSECSPERDAY=86400 -DDAYSPERNYEAR=365 ${SEPFLAG}
-LIBC=	/lib/libc.a
 SRCS=	finger.c lprint.c net.c sprint.c util.c
 OBJS=	finger.o lprint.o net.o sprint.o util.o
 MAN=	finger.0
 
 all: finger ${MAN}
 
-finger: ${LIBC} ${OBJS}
+finger: ${OBJS}
 	${CC} -o $@ ${CFLAGS} ${OBJS}
 
 clean:

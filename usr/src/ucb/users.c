@@ -4,20 +4,17 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)users.c	5.2 (Berkeley) 11/15/85";
-#endif not lint
+static char sccsid[] = "@(#)users.c	5.2.1 (2.11BSD) 1996/11/17";
+#endif
 
 /*
  * users
  */
-char	*malloc();
 
 #include <stdio.h>
 #include <utmp.h>
@@ -33,7 +30,7 @@ char **argv;
 	register char *tp, *s;
 	register FILE *fi;
 
-	s = "/etc/utmp";
+	s = _PATH_UTMP;
 	if(argc == 2)
 		s = argv[1];
 	if ((fi = fopen(s, "r")) == NULL) {
@@ -55,7 +52,7 @@ putline()
 	char temp[NMAX+1];
 	strncpy(temp, utmp.ut_name, NMAX);
 	temp[NMAX] = 0;
-	*namp = malloc(strlen(temp) + 1);
+	*namp = (char *)malloc(strlen(temp) + 1);
 	strcpy(*namp++, temp);
 }
 

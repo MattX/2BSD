@@ -28,7 +28,7 @@
  *
  * Of course, nothing but BSD UNIX supports trailers on ProNET.
  * If you need interoperability with anything else, turn off
- * trailers using the -trailers option to /etc/ifconfig!
+ * trailers using the -trailers option to ifconfig!
  *
  * HARDWARE COMPATABILITY: This driver prefers that the HSBU (p1001)
  * have a serial number >= 040, which is about March, 1982. Older

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)uucpdefs.c	5.5 (Berkeley) 10/9/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)uucpdefs.c	5.5.1 (2.11BSD) 1996/11/27";
 #endif
 
 #include "uucp.h"
@@ -23,9 +23,9 @@ int IsTcpIp = 0;	/* 1 == TCP/IP connection, else 0.  kludge to suppress ioctl */
 char MaxGrade = '\177';
 char DefMaxGrade = '\177';
 int nologinflag = 0;
-char NOLOGIN[] = "/etc/nologin";
+char NOLOGIN[] = _PATH_NOLOGIN;
 
 /* Save some data space */
-char DEVNULL[] = "/dev/null";
+char DEVNULL[] = _PATH_DEVNULL;
 char CANTOPEN[] = "CAN'T OPEN";
 char _FAILED[] = "FAILED";

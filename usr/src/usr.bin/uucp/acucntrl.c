@@ -19,20 +19,20 @@ static char sccsid[] = "@(#)acucntrl.c	5.8.2 (2.11BSD GTE) 1996/3/22";
  * Operation:
  *   disable (i.e. setup for dialing out)
  *	(1) check input arguments
- *	(2) look in /etc/utmp to check that the line is not in use by another
+ *	(2) look at the utmp file that the line is not in use
  *	(3) disable modem control on terminal
  *	(4) check for carrier on device
  *	(5) change owner of device to real id
  *	(6) edit /etc/ttys,  changing the first character of the appropriate
  *	    line to 0
  *	(7) send a hangup to process 1 to poke init to disable getty
- *	(8) post uid name in capitals in /etc/utmp to let world know device has
+ *	(8) post uid name in capitals in utmp to let world know device has
  *	    been grabbed
  *	(9) make sure that DTR is on
  *
  *   enable (i.e.) restore for dialin
  *	(1) check input arguments
- *	(2) look in /etc/utmp to check that the line is not in use by another
+ *	(2) look in utmp to check that the line is not in use by another
  *	(3) make sure modem control on terminal is disabled
  *	(4) turn off DTR to make sure line is hung up
  *	(5) condition line: clear exclusive use and set hangup on close modes
@@ -40,7 +40,7 @@ static char sccsid[] = "@(#)acucntrl.c	5.8.2 (2.11BSD GTE) 1996/3/22";
  *	(7) edit /etc/ttys,  changing the first character of the appropriate
  *	    line to 1
  *	(8) send a hangup to process 1 to poke init to enable getty
- *	(9) clear uid name for /etc/utmp
+ *	(9) clear uid name for utmp file
  */
 
 /* #define SENSECARRIER */
@@ -115,7 +115,7 @@ struct nlist nl[] = {
 #define ENABLE	1
 #define DISABLE	0
 
-char Etcutmp[] = "/etc/utmp";
+char Etcutmp[] = _PATH_UTMP;
 char Etcttys[] = "/etc/ttys";
 #ifdef BSD4_3
 FILE *ttysfile, *nttysfile;
@@ -348,10 +348,10 @@ char *device, *name;
 	strncpy(utmp.ut_line, device, LINSIZ);
 	strncpy(utmp.ut_name, name,  NAMSIZ);
 	if (lseek(etcutmp, utmploc, 0) < 0)
-		fprintf(stderr, "on lseek in /etc/utmp: %s",
+		fprintf(stderr, "on lseek in %s: %s", Etcutmp,
 			strerror(errno));
 	if (write(etcutmp, (char *)&utmp, sizeof(utmp)) < 0)
-		fprintf(stderr, "on write in /etc/utmp: %s",
+		fprintf(stderr, "on write in %s: %s", Etcutmp,
 			strerror(errno));
 }
 	
@@ -382,10 +382,10 @@ char *uname, *device; int enable;
 	do {
 		sleep(1);
 		if (lseek(etcutmp, utmploc, 0) < 0)
-			fprintf(stderr, "On lseek in /etc/utmp: %s",
+			fprintf(stderr, "On lseek in %s: %s", Etcutmp,
 				strerror(errno));
 		if (read(etcutmp, (char *)&utmp, sizeof utmp) < 0)
-			fprintf(stderr, "On read from /etc/utmp: %s",
+			fprintf(stderr, "On read from %s: %s", Etcutmp,
 				strerror(errno));
 	} while (utmp.ut_name[0] != '\0' && --i > 0);
 }
@@ -605,8 +605,8 @@ int enable;
 
 
 /*
- * 2.10BSD NOTE:  2.10BSD doesn't use ui_flags.  We've included the code
- * for correctness in case someone decides to change the way the 2.10BSD
+ * 2.11BSD NOTE:  2.11BSD doesn't use ui_flags.  We've included the code
+ * for correctness in case someone decides to change the way the 2.11BSD
  * tty drivers work.  Mostly what needs to be done is have the tty drivers
  * do something like:
  *
@@ -617,10 +617,10 @@ int enable;
  *	else
  *		XXsoftCAR[unit] &= ~(1L << line);
  *
- * (2.10BSD uses a bit 0200 in the minor device number of a tty /dev node
+ * (2.11BSD uses a bit 0200 in the minor device number of a tty /dev node
  * to indicate soft carrier as opposed to compiling it into the kernel as
  * 4.3BSD does.)  This code minus the check of ui_flags is already present
- * in all 2.10BSD drivers.
+ * in all 2.11BSD drivers.
  */
 setmodem(ttyline, enable)
 char *ttyline; int enable;

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4	(Berkeley)	6/18/87
+#	@(#)Makefile	5.4.1	(2.11BSD)	1996/12/1
 #
 # make file for intermachine communications package
 #
@@ -42,7 +42,6 @@ GROUP=	daemon
 CONFIG=	-DHAYES
 CFLAGS=	-O -DDEFBR=1200 -DDEFFS=BUFSIZ -DACULOG -DPRISTINE
 SEPFLAG=-i
-LIBC=	/lib/libc.a
 SRCS=	acu.c acutab.c cmds.c cmdtab.c cu.c hunt.c log.c partab.c remcap.c \
 	remote.c tip.c tipout.c uucplock.c value.c vars.c
 OBJS=	acu.o acutab.o cmds.o cmdtab.o cu.o hunt.o log.o partab.o remcap.o \
@@ -50,7 +49,7 @@ OBJS=	acu.o acutab.o cmds.o cmdtab.o cu.o hunt.o log.o partab.o remcap.o \
 
 all: aculib tip
 
-tip: ${OBJS} ${LIBC}
+tip: ${OBJS}
 	${CC} ${SEPFLAG} -o $@ ${OBJS} aculib/aculib.a
 
 remcap.o: remcap.c

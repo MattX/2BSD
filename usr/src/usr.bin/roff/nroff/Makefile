@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.4	(Berkeley)	6/19/87
+#	@(#)Makefile	4.4.1	(2.11BSD)	1996/12/1
 #
 
 # Defined SHARED_DATA to be whatever will make your compiler make initialized
@@ -21,7 +21,6 @@ SEPFLAG=-i
 
 COMMON=	../common_source
 VPATH=	${COMMON}
-LIBC=	/lib/libc.a
 SRCS=	ni.c nii.c n1.c n2.c n3.c n4.c n5.c n6.c n7.c n8.c n9.c n10.c \
 	hytab.c ntab.c suftab.c
 OBJS=	ni.o nii.o n1.o n2.o n3.o n4.o n5.o n6.o n7.o n8.o n9.o n10.o \
@@ -29,7 +28,7 @@ OBJS=	ni.o nii.o n1.o n2.o n3.o n4.o n5.o n6.o n7.o n8.o n9.o n10.o \
 
 all: nroff
 
-nroff: ${OBJS} ${LIBC}
+nroff: ${OBJS}
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
 
 hytab.o: ${COMMON}/hytab.c ${COMMON}/textscript

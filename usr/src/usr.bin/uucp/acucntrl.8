@@ -1,6 +1,6 @@
-.\"	@(#)acucntrl.8c	6.2 (Berkeley) 7/29/85
+.\"	@(#)acucntrl.8	6.2.1 (2.11BSD) 1996/11/27
 .\"
-.TH acucntrl 8C "July 29, 1985"
+.TH acucntrl 8 "November 27, 1996"
 .UC 6
 .SH NAME
 acucntrl \- turn around tty line between dialin and dialout
@@ -30,11 +30,11 @@ or
 to condition a line for dialin.
 .PP
 When the line is conditioned for dialing out, the login name of the real uid
-of the process is placed in /etc/utmp in capitals.
+of the process is placed in /var/run/utmp in capitals.
 This declares that the line is in use and acts as an additional locking
 mechanism.
 .I Acucntrl
-will refuse to act if the /etc/utmp entry for the line is not null,
+will refuse to act if the /var/run/utmp entry for the line is not null,
 is not the the user's login name (capitalized or not),
 and if the process is not running as the superuser.
 The last condition is to allow the superuser to clear the state of the line.
@@ -58,7 +58,7 @@ setup for dialing out)
 .IP 1)
 check input arguments
 .IP 2)
-look in /etc/utmp to check that the line is not in use by another user
+look in /var/run/utmp to check that the line is not in use by another user
 .IP 3)
 disable modem control on line
 .IP 4)
@@ -70,7 +70,7 @@ edit /etc/ttys,  changing the first character of the appropriate line to 0
 .IP 7)
 send a hangup to process 1 to poke init to disable getty
 .IP 8)
-post uid name in capitals in /etc/utmp to let world know device has been grabbed
+post uid name in capitals in /var/run/utmp to let world know device has been grabbed
 .IP 9)
 make sure that DTR is on
 .PP
@@ -80,7 +80,7 @@ setup for dialin)
 .IP 1)
 check input arguments
 .IP 2)
-look in /etc/utmp to check that the line is not in use by another user
+look in /var/run/utmp to check that the line is not in use by another user
 .IP 3)
 make sure modem control on line is disabled
 .IP 4)
@@ -94,7 +94,7 @@ edit /etc/ttys,  changing the first character of the appropriate line to 1
 .IP 8)
 send a hangup to process 1 to poke init to enable getty
 .IP 9)
-clear uid name for /etc/utmp
+clear uid name for /var/run/utmp
 .SH HISTORY
 .PP
 First written by Allan Wilkes (fisher!allan)
@@ -107,7 +107,7 @@ Worked over many times by W.Sebok
 .RI ( i . e .
 hacked to death)
 .SH FILES
-/dev/kmem, /vmunix, /etc/ttys, /etc/utmp, /dev/tty*
+/dev/kmem, /vmunix, /etc/ttys, /var/run/utmp, /dev/tty*
 .SH BUGS
 .PP
 Sensing carrier requires the 4.2 BSD TIOCMGET ioctl call.  Unfortunately this
@@ -124,9 +124,9 @@ ioctl fails.
 .PP
 Previously there was similar synchronization problem with the init process.
 When dialins are disabled the capitalized name of the process cannot be posted
-into /etc/utmp until init has finished clearing /etc/utmp.  However one does
+into /var/run/utmp until init has finished clearing /var/run/utmp.  However one does
 not know how long that will take, and, on a loaded system,  it can take quite
 a while.  This was solved by the strategy of 1) posting the name, 2) poking
 init, 3) going into a loop where the process repeatedly waits a second and
-checks whether the entry has been cleared from /etc/utmp, and 4) posting the
+checks whether the entry has been cleared from /var/run/utmp, and 4) posting the
 name again.

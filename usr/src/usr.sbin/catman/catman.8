@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)catman.8	6.5.1 (2.11BSD) 1996/10/23
+.\"	@(#)catman.8	6.5.2 (2.11BSD) 1996/11/16
 .\"
 .TH CATMAN 8 "October 23, 1996"
 .UC 4
 .SH NAME
 catman \- create the cat files for the manual
 .SH SYNOPSIS
-.B /etc/catman
+.B /usr/sbin/catman
 [
 .B \-p
 ] [
@@ -113,3 +113,7 @@ ${MANUALS} -> ${MANSLAVES}
 man(1), cron(8), rdist(1)
 .SH BUGS
 Acts oddly on nights with full moons.
+.PP
+The need for catman(8) is almost but not quite gone.  Most of the manpages
+have been moved out of /usr/src/man into the sourcecode hierarchy.
+The recreation of the whatis database is the main use of catman now.

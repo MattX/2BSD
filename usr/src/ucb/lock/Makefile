@@ -14,12 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2.1 (2.11BSD) 1996/1/28
+# @(#)Makefile	5.2.2 (2.11BSD) 1996/12/1
 #
 
 CFLAGS=	-O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 SRCS=	lock.c
 OBJS=	lock.o
 MAN=	lock.0
@@ -27,7 +26,7 @@ MANSRC=	lock.1
 
 all: lock ${MAN}
 
-lock: ${LIBC} ${OBJS}
+lock: ${OBJS}
 	${CC} ${SEPFLAG} -o $@ ${OBJS}
 
 lock.0: ${MANSRC}

@@ -1,4 +1,4 @@
-#	Standalone Makefile
+#	Makefile	(2.11BSD)	2.0	1996/11/16
 #
 #	The limitations on program size have been removed.  The addition
 #	of disklabel support pushed 'restor' over the limit.  Even with
@@ -32,10 +32,10 @@ TAPE=	mt8
 DUMP=	/usr/root.dump
 
 ROOT=	
-ETCSRC=	${ROOT}/usr/src/etc
-MKFS=	${ETCSRC}/mkfs.c
-RESTOR=	${ETCSRC}/restor/restor.c
-ICHECK=	${ETCSRC}/icheck.c
+SBINSRC=${ROOT}/usr/src/sbin
+MKFS=	${SBINSRC}/mkfs/mkfs.c
+RESTOR=	${SBINSRC}/restor/restor.c
+ICHECK=	${SBINSRC}/icheck/icheck.c
 
 DEFS=	-DSTANDALONE -I${ROOT}/usr/include -I${ROOT}.
 CFLAGS=	-O ${DEFS}

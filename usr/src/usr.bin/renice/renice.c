@@ -4,20 +4,19 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)renice.c	5.1 (Berkeley) 5/28/85";
-#endif not lint
+static char sccsid[] = "@(#)renice.c	5.1.1 (2.11BSD) 1996/11/17";
+#endif
 
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdio.h>
 #include <pwd.h>
+#include <errno.h>
 
 /*
  * Change the priority (nice) of processes
@@ -81,7 +80,6 @@ donice(which, who, prio)
 	int which, who, prio;
 {
 	int oldprio;
-	extern int errno;
 
 	errno = 0, oldprio = getpriority(which, who);
 	if (oldprio == -1 && errno) {

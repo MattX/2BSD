@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_vv.c	2.0 (2.10.1BSD Berkeley) 8/25/89
+ *	@(#)if_vv.c	2.1 (2.11BSD) 1996/11/27
  */
 
 #include "vv.h"
@@ -28,7 +28,7 @@
  *
  * Of course, nothing but BSD UNIX supports trailers on ProNET.
  * If you need interoperability with anything else, turn off
- * trailers using the -trailers option to /etc/ifconfig!
+ * trailers using the -trailers option to ifconfig!
  *
  * HARDWARE COMPATABILITY: This driver prefers that the HSBU (p1001)
  * have a serial number >= 040, which is about March, 1982. Older

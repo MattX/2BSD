@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sysline.1	6.3 (Berkeley) 6/5/86
+.\"	@(#)sysline.1	6.3.1 (2.11BSD) 1996/11/27
 .\"
-.TH SYSLINE 1 "June 5, 1986"
+.TH SYSLINE 1 "November 27, 1996"
 .UC 5
 .SH NAME
 sysline \- display system status on status line of a terminal
@@ -135,7 +135,7 @@ will not write on the screen.
 .SH FILES
 .ta 2.4i
 .nf
-/etc/utmp	names of people who are logged in
+/var/run/utmp	names of people who are logged in
 /dev/kmem	contains process table [VAX only]
 /usr/spool/rwho/whod.*	who/uptime information for remote hosts [VAX only]
 ${HOME}/.who	information to print on bottom line

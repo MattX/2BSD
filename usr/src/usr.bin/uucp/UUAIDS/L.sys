@@ -91,7 +91,7 @@ rti-sel Any2300-0800 ACU 300 13057654321 ogin:--ogin: Urti ssword: fatchance
 #
 # The next entry is for a 4.2BSD TCP-IP connection.
 # There must be a #define BSDTCP in uucp.h, and you must install
-# a 'uucpd' uucico server daemon in /etc.
+# a 'uucpd' uucico server daemon in /usr/libexec.
 # Also, add an entry to /etc/services, such as:
 #	uucp		540/tcp		uucpd
 # The '540' is the port number chosen for uucpd. 

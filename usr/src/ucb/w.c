@@ -1,4 +1,6 @@
 /*
+ *	w.c	(2.11BSD)	2.0	1996/11/17
+ *
  * w - print system status (who and what)
  *
  * Rewritten using sysctl, no nlist used  - 1/19/94 - sms.
@@ -123,7 +125,7 @@ main(argc, argv)
 	if (wcmd)
 		readpr();
 
-	ut = fopen("/etc/utmp","r");
+	ut = fopen(_PATH_UTMP, "r");
 	if (header) {
 		/* Print time of day */
 		time(&now);

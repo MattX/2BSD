@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)ac.c	4.7 (Berkeley) 7/2/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)ac.c	4.7.1 (2.11BSD) 1996/11/16";
 #endif
 /*
  * ac [ -w wtmp ] [ -d ] [ -p ] [ people ]
@@ -48,13 +48,13 @@ char **argv;
 	register i;
 	FILE *wf;
 
-	wtmp = "/usr/adm/wtmp";
+	wtmp = _PATH_WTMP;
 	while (--argc > 0 && **++argv == '-')
 	switch(*++*argv) {
 	case 'd':
 		byday++;
 		continue;
-
+	case 'f':
 	case 'w':
 		if (--argc>0)
 			wtmp = *++argv;

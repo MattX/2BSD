@@ -1,4 +1,4 @@
-/*	uucp.h	5.11.4	96/10/24 */
+/*	uucp.h	5.11.5	96/12/1 */
 
 #include <stdio.h>
 #include <paths.h>
@@ -122,7 +122,7 @@
 /*
  * If you are running 4.3bsd, define BSD4_3 and BSD4_2
  * If you are just running 4.2bsd, define BSD4_2
- * If you are running 2.10bsd, define BSD4_3 and BSD4_2
+ * If you are running 2.11bsd, define BSD4_3 and BSD4_2
  * If you are running the BRL version of 4.2BSD define BRL4_2, NOT BSD4_3
  */
 #define BSD4_3 	/**/

@@ -14,11 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.5.1 (2.11BSD) 1996/1/28
+#	@(#)Makefile	5.5.2 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 ASRCS=	apropos.c
 AOBJS=	apropos.o
 MSRCS=	man.c
@@ -26,10 +25,10 @@ MOBJS=	man.o
 
 all: man apropos
 
-apropos: ${LIBC} ${AOBJS}
+apropos: ${AOBJS}
 	${CC} ${SEPFLAG} -o $@ ${AOBJS}
 
-man: ${LIBC} ${MOBJS}
+man: ${MOBJS}
 	${CC} ${SEPFLAG} -o $@ ${MOBJS}
 
 clean: FRC

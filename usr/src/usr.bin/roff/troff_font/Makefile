@@ -3,16 +3,15 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2	(Berkeley)	6/18/87
+#	@(#)Makefile	5.2.1	(2.11BSD)	1996/12/1
 #
 CFLAGS=	-O
-LIBC=	/lib/libc.a
 SRCS=	mkfont.c
 OBJS=	mkfont.o
 
 all: mkfont
 
-mkfont: ${OBJS} ${LIBC}
+mkfont: ${OBJS}
 	${CC} -o $@ ${CFLAGS} ${OBJS}
 
 clean: FRC
