@@ -1,67 +1,48 @@
 /*
- * Copyright (c) 1980 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
- */
+ * Program: sleep.c
+ * Copyright: 1997, sms
+ * Author: Steven M. Schultz
+ *
+ * Version   Date	Modification
+ *     1.0  1997/9/25	1. Initial release.
+*/
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)sleep.c	5.2 (Berkeley) 3/9/86";
-#endif LIBC_SCCS and not lint
-
+#include <stdio.h>	/* For NULL */
+#include <sys/types.h>
 #include <sys/time.h>
-#include <signal.h>
 
-#define	setvec(vec, a) \
-	vec.sv_handler = a; vec.sv_mask = vec.sv_onstack = 0
+/*
+ * This implements the sleep(3) function using only 3 system calls instead of 
+ * the 9 that the old implementation required.  Also this version avoids using
+ * signals (with the attendant system overhead) and returns the amount of 
+ * time left unslept if an interrupt occurs.
+ *
+ * The error status of gettimeofday is not checked because if that fails the
+ * program has scrambled the stack so badly that a sleep() failure is the least
+ * problem the program has.  The select() call either completes successfully
+ * or is interrupted - no errors to be checked for.
+*/
 
-static int ringring;
+u_int
+sleep(seconds)
+	u_int seconds;
+	{
+	struct timeval f, s;
 
-sleep(n)
-	unsigned n;
-{
-	int sleepx();
-	long omask;
-	struct itimerval itv, oitv;
-	register struct itimerval *itp = &itv;
-	struct sigvec vec, ovec;
-
-	if (n == 0)
-		return;
-	timerclear(&itp->it_interval);
-	timerclear(&itp->it_value);
-	if (setitimer(ITIMER_REAL, itp, &oitv) < 0)
-		return;
-	itp->it_value.tv_sec = n;
-	if (timerisset(&oitv.it_value)) {
-		if (timercmp(&oitv.it_value, &itp->it_value, >))
-			oitv.it_value.tv_sec -= itp->it_value.tv_sec;
-		else {
-			itp->it_value = oitv.it_value;
-			/*
-			 * This is a hack, but we must have time to
-			 * return from the setitimer after the alarm
-			 * or else it'll be restarted.  And, anyway,
-			 * sleep never did anything more than this before.
-			 */
-			oitv.it_value.tv_sec = 1;
-			oitv.it_value.tv_usec = 0;
+	if	(seconds)
+		{
+		gettimeofday(&f, NULL);
+		s.tv_sec = seconds;
+		s.tv_usec = 0;
+		select(0, NULL, NULL, NULL, &s);
+		gettimeofday(&s, NULL);
+		seconds -= (s.tv_sec - f.tv_sec);
+/*
+ * ONLY way this can happen is if the system time gets set back while we're
+ * in the select() call.  In this case return 0 instead of a bogus number.
+*/
+		if	(seconds < 0)
+			seconds = 0;
 		}
+	return(seconds);
 	}
-	setvec(vec, sleepx);
-	(void) sigvec(SIGALRM, &vec, &ovec);
-	omask = sigblock(sigmask(SIGALRM));
-	ringring = 0;
-	(void) setitimer(ITIMER_REAL, itp, (struct itimerval *)0);
-	while (!ringring)
-		sigpause(omask &~ sigmask(SIGALRM));
-	(void) sigvec(SIGALRM, &ovec, (struct sigvec *)0);
-	(void) sigsetmask(omask);
-	(void) setitimer(ITIMER_REAL, &oitv, (struct itimerval *)0);
-}
-
-static
-sleepx()
-{
-
-	ringring = 1;
-}

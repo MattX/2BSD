@@ -1,6 +1,9 @@
-/*
- * Copyright (c) 1988, 1993
+/*-
+ * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * William Jolitz.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,27 +35,19 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)getlogin.c	8.1.1 (2.11BSD) 1997.9.23";
+	.asciz "@(#)setlogin.s	8.1.1 (2.11BSD) 1997/9/23"
 #endif /* LIBC_SCCS and not lint */
 
-#include <sys/param.h>
-#include <pwd.h>
-#include <utmp.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include "SYS.h"
 
-int	_logname_valid;		/* known to setlogin() */
+.globl	__logname_valid		/* in getlogin() */
 
-char *
-getlogin()
-{
-	static char logname[MAXLOGNAME + 1];
+/*
+ * It simplifies the logic to always clear the valid flag.  If the syscall
+ * fails all that happens is that an extra getlogin() call is made later on.
+*/
 
-	if (_logname_valid == 0) {
-		if (_getlogin(logname, sizeof(logname) - 1) < 0)
-			return ((char *)NULL);
-		_logname_valid = 1;
-	}
-	return (*logname ? logname : (char *)NULL);
-}
+ENTRY(setlogin)
+	clr	__logname_valid
+	SYS(setlogin)
+	EXIT_norm
