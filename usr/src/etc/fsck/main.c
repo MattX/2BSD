@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	5.4 (Berkeley) 3/5/86";
+static char sccsid[] = "@(#)main.c	5.4.1 (2.11BSD) 1996/2/3";
 #endif not lint
 
 #include <sys/param.h>
@@ -114,11 +114,13 @@ main(argc, argv)
 	do {
 		anygtr = 0;
 		if (setfsent() == 0)
-			errexit("Can't open checklist file: %s\n", FSTAB);
+			errexit("Can't open %s\n", FSTAB);
 		while ((fsp = getfsent()) != 0) {
-			if (strcmp(fsp->fs_type, FSTAB_RW) &&
+			if (strcmp(fsp->fs_vfstype, "ufs") ||
+			    (strcmp(fsp->fs_type, FSTAB_RW) &&
 			    strcmp(fsp->fs_type, FSTAB_RO) &&
-			    strcmp(fsp->fs_type, FSTAB_RQ))
+			    strcmp(fsp->fs_type, FSTAB_RQ)) ||
+			    fsp->fs_passno == 0)
 				continue;
 			if (preen == 0 ||
 			    passno == 1 && fsp->fs_passno == passno) {

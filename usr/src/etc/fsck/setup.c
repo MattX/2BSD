@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)setup.c	5.3 (Berkeley) 5/15/86";
+static char sccsid[] = "@(#)setup.c	5.3.1 (2.11BSD) 1996/2/3";
 #endif not lint
 
 #include <stdio.h>
@@ -28,6 +28,7 @@ setup(dev)
 	int i, j, n;
 	long size;
 	BUFAREA *bp;
+	char junk[80 + sizeof (".XXXXX") + 1];
 
 	if (stat("/", &statb) < 0)
 		errexit("Can't stat root\n");
@@ -112,25 +113,25 @@ setup(dev)
 			pfatal("\nNEED SCRATCH FILE (%ld BLKS)\n",nscrblk);
 			do {
 				printf("ENTER FILENAME:  ");
-				if((n = getline(stdin,scrfile,sizeof(scrfile))) == EOF)
+				if((n = getline(stdin, scrfile, 
+						sizeof(scrfile) - 6)) == EOF)
 					errexit("\n");
-				if(stat(scrfile,&statb) == 0 &&
-					(statb.st_mode & S_IFMT) != S_IFREG)
-					errexit("Not a good scratch filename");
 			} while(n == 0);
 		}
-		sfile.wfdes=open(scrfile, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+		strcpy(junk, scrfile);
+		strcat(junk, ".XXXXX");
+		sfile.wfdes = mkstemp(junk);
 		if ((sfile.wfdes < 0)
-		    || ((sfile.rfdes = open(scrfile,0)) < 0)) {
-			printf("Can't create %s\n",scrfile);
+		    || ((sfile.rfdes = open(junk,0)) < 0)) {
+			printf("Can't create %s\n", junk);
 			ckfini();
 			return(0);
 		}
-		unlink(scrfile);	/* make it invisible incase we exit */
-		if (hotroot && (stat(scrfile,&statb)==0)
+		unlink(junk);	/* make it invisible incase we exit */
+		if (hotroot && (fstat(sfile.wfdes,&statb)==0)
 		    && ((statb.st_mode & S_IFMT) == S_IFREG)
 		    && (statb.st_dev==rootdev))
-		     pfatal("TMP FILE (%s) ON ROOT WHEN CHECKING ROOT",scrfile);
+		     pfatal("TMP FILE (%s) ON ROOT WHEN CHECKING ROOT", junk);
 		bp = &((BUFAREA *)mbase)[(msize/sizeof(BUFAREA))];
 		poolhead = NULL;
 		while(--bp >= (BUFAREA *)mbase) {
