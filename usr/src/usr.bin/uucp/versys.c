@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)versys.c	5.5 (Berkeley) 10/9/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)versys.c	5.5.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -96,7 +96,7 @@ char  **hostptr;			  /* we change it */
 			*q = '\0';
 			DEBUG(11, "Compare against: %s\n", p);
 			if (strcmp(*hostptr, p) == 0)/* match? */ {
-				koshername = malloc((unsigned)strlen(buf) + 1);
+				koshername = (char *)malloc((unsigned)strlen(buf) + 1);
 				strcpy(koshername, buf); /* save it */
 				fclose(Aliases);
 				DEBUG(4, "Alias: %s to ", *hostptr);

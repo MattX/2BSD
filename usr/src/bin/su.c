@@ -4,20 +4,20 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)su.c	5.4 (Berkeley) 1/13/86";
-#endif not lint
+static char sccsid[] = "@(#)su.c	5.4.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <stdio.h>
 #include <pwd.h>
 #include <grp.h>
 #include <syslog.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -34,10 +34,6 @@ int	fastlogin;
 
 extern char	**environ;
 struct	passwd *pwd;
-char	*crypt();
-char	*getpass();
-char	*getenv();
-char	*getlogin();
 
 main(argc,argv)
 	int argc;

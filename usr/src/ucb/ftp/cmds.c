@@ -15,9 +15,9 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#if	!defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)cmds.c	5.18 (Berkeley) 4/20/89";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cmds.c	5.18.1 (2.11BSD) 1997/10/2";
+#endif
 
 /*
  * FTP User Program -- Command Routines.
@@ -35,6 +35,9 @@ static char sccsid[] = "@(#)cmds.c	5.18 (Berkeley) 4/20/89";
 #include <netdb.h>
 #include <ctype.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <netinet/in.h>
 
 #include "ftp_var.h"
@@ -44,9 +47,6 @@ extern	char *globerr;
 extern	char **glob();
 extern	char *home;
 extern	char *remglob();
-extern	char *getenv();
-extern	char *index();
-extern	char *rindex();
 extern	int allbinary;
 extern off_t restart_point;
 extern char reply_string[];
@@ -1274,7 +1274,7 @@ user(argc, argv)
 	int argc;
 	char **argv;
 {
-	char acct[80], *getpass();
+	char acct[80];
 	int n, aflag = 0;
 
 	if (argc < 2) {
@@ -1610,7 +1610,7 @@ account(argc,argv)
 	int argc;
 	char **argv;
 {
-	char acct[50], *getpass(), *ap;
+	char acct[50], *ap;
 
 	if (argc > 1) {
 		++argv;

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.7 (2.11BSD GTE) 1997/9/3
+#	@(#)Makefile	2.8 (2.11BSD GTE) 1997/9/26
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
@@ -24,7 +24,7 @@ SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
 	getgid.2 getgroups.2 gethostid.2 gethostname.2 getitimer.2 \
 	getpagesize.2 getpeername.2 getpgrp.2 getpid.2 getpriority.2 \
 	getrlimit.2 getrusage.2 getsockname.2 getsockopt.2 gettimeofday.2 \
-	getfsstat.2 \
+	getfsstat.2 getlogin.2 \
 	getuid.2 intro.2 ioctl.2 kill.2 killpg.2 link.2 listen.2 \
 	lock.2 lseek.2 mkdir.2 mknod.2 mount.2 nostk.2 open.2 phys.2 \
 	pipe.2 profil.2 ptrace.2 quota.2 read.2 readlink.2 reboot.2 \
@@ -41,7 +41,7 @@ OBJS=	accept.0 access.0 acct.0 adjtime.0 bind.0 brk.0 chdir.0 chmod.0 \
 	getgid.0 getgroups.0 gethostid.0 gethostname.0 getitimer.0 \
 	getpagesize.0 getpeername.0 getpgrp.0 getpid.0 getpriority.0 \
 	getrlimit.0 getrusage.0 getsockname.0 getsockopt.0 gettimeofday.0 \
-	getfsstat.0 \
+	getfsstat.0 getlogin.0 \
 	getuid.0 intro.0 ioctl.0 kill.0 killpg.0 link.0 listen.0 \
 	lock.0 lseek.0 mkdir.0 mknod.0 mount.0 nostk.0 open.0 phys.0 \
 	pipe.0 profil.0 ptrace.0 quota.0 read.0 readlink.0 reboot.0 \
@@ -126,5 +126,7 @@ install: _make_01
 	ln ${DESTDIR}${MDIR}/getpriority.0 ${DESTDIR}${MDIR}/setpriority.0
 	rm -f ${DESTDIR}${MDIR}/settimeofday.0
 	ln ${DESTDIR}${MDIR}/gettimeofday.0 ${DESTDIR}${MDIR}/settimeofday.0
+	rm -f ${DESTDIR}${MDIR}/setlogin.0
+	ln ${DESTDIR}${MDIR}/getlogin.0 ${DESTDIR}${MDIR}/setlogin.0
 
 FRC:

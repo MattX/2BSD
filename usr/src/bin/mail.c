@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)mail.c	4.33.3 (2.11BSD GTE) 1996/1/27";
+static char sccsid[] = "@(#)mail.c	4.33.4 (2.11BSD GTE) 1997/10/2";
 #endif
 
 #include <sys/param.h>
@@ -12,8 +12,12 @@ static char sccsid[] = "@(#)mail.c	4.33.3 (2.11BSD GTE) 1996/1/27";
 #include <utmp.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <string.h>
 #include <sysexits.h>
 #include <paths.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 	/* copylet flags */
 #define REMOTE		1		/* remote mail, add rmtmsg */
@@ -33,9 +37,7 @@ struct let {
 } let[MAXLET];
 int	nlet	= 0;
 char	lfil[50];
-long	iop, time();
-char	*getenv();
-char	*index();
+long	iop;
 char	lettmp[] = "/tmp/maXXXXX";
 char	maildir[] = "/usr/spool/mail/";
 char	mailfile[] = "/usr/spool/mail/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
@@ -44,14 +46,11 @@ char	forwmsg[] = " forwarded\n";
 FILE	*tmpf;
 FILE	*malf;
 char	my_name[60];
-char	*getlogin();
 int	error;
 int	changed;
 int	forward;
 char	from[] = "From ";
-long	ftell();
 int	delex();
-char	*ctime();
 int	flgf;
 int	flgp;
 int	delflg = 1;
@@ -95,7 +94,7 @@ char **argv;
 
 setsig(i, f)
 int i;
-int (*f)();
+sig_t f;
 {
 	if (signal(i, SIG_IGN) != SIG_IGN)
 		signal(i, f);
@@ -121,13 +120,6 @@ printmail(argc, argv)
 
 	setuid(getuid());
 	cat(mailfile, maildir, my_name);
-#ifdef notdef
-	if (stat(mailfile, &statb) >= 0
-	    && (statb.st_mode & S_IFMT) == S_IFDIR) {
-		strcat(mailfile, "/");
-		strcat(mailfile, my_name);
-	}
-#endif
 	for (; argc > 1; argv++, argc--) {
 		if (argv[1][0] != '-')
 			break;
@@ -531,18 +523,6 @@ char *name;
 	register pid;
 	int sts;
 
-#ifdef notdef
-	if (any('^', name)) {
-		while (p = index(name, '^'))
-			*p = '!';
-		if (strncmp(name, "researc", 7)) {
-			strcpy(rsys, "research");
-			if (*name != '!')
-				--name;
-			goto skip;
-		}
-	}
-#endif
 	for (p=rsys; *name!='!'; *p++ = *name++)
 		if (*name=='\0')
 			return(0);	/* local address, no '!' */
@@ -617,9 +597,6 @@ sendmail(n, name, fromaddr)
 	char file[256];
 	int mask, fd;
 	struct passwd *pw;
-#ifdef notdef
-	struct stat statb;
-#endif
 	char buf[128];
 
 	if (*name=='!')
@@ -631,12 +608,6 @@ sendmail(n, name, fromaddr)
 		return(0);
 	}
 	cat(file, maildir, name);
-#ifdef notdef
-	if (stat(file, &statb) >= 0 && (statb.st_mode & S_IFMT) == S_IFDIR) {
-		strcat(file, "/");
-		strcat(file, name);
-	}
-#endif
 	if (!safefile(file))
 		return(0);
 	fd = open(file, O_WRONLY | O_CREAT, MAILMODE);
@@ -659,9 +630,13 @@ sendmail(n, name, fromaddr)
 
 delex(i)
 {
+	sigset_t sigt;
+
 	if (i != SIGINT) {
 		setsig(i, SIG_DFL);
-		sigsetmask(sigblock(0L) &~ sigmask(i));
+		sigemptyset(&sigt);
+		sigaddset(&sigt, i);
+		sigprocmask(SIG_UNBLOCK, &sigt, NULL);
 	}
 	putc('\n', stderr);
 	if (delflg)

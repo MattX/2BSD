@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.7 (2.11BSD GTE) 1997/8/29
+ *	@(#)syscalls.c	1.8 (2.11BSD GTE) 1997/9/26
  */
 
 /*
@@ -50,11 +50,11 @@ char *syscallnames[] = {
 	"sync",			/*  36 = sync */
 	"kill",			/*  37 = kill */
 	"stat",			/*  38 = stat */
-	"#39",			/*  39 = unused */
+	"getlogin",		/*  39 = getlogin */
 	"lstat",		/*  40 = lstat */
 	"dup",			/*  41 = dup */
 	"pipe",			/*  42 = pipe */
-	"#43",			/*  43 = unused */
+	"setlogin",		/*  43 = setlogin */
 	"profil",		/*  44 = profil */
 	"#45",			/*  45 = unused */
 	"#46",			/*  46 = unused */

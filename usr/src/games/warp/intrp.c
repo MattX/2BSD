@@ -1,9 +1,9 @@
-/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.3.1 95/1/21 22:40:37 games Exp $
+/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.3.2 97/10/2 22:40:37 games Exp $
  *
  * $Log:	intrp.c,v $
  * Revision 7.0.2  93/12/31  23:40:37  games
  * Removed shortnames.h for new version of 2.11BSD
-
+ *
  * Revision 7.0.1.2a  87/07/03  00:56:37  games
  * Included shortnames.h for 2.10BSD
  * 
@@ -25,6 +25,7 @@
 #include "term.h"
 #include "INTERN.h"
 #include "intrp.h"
+#include <unistd.h>
 
 /* name of this host */
 #ifdef GETHOSTNAME
@@ -68,7 +69,6 @@ void
 intrp_init(tcbuf)
 char *tcbuf;
 {
-    char *getlogin();
 
     /* get environmental stuff */
 

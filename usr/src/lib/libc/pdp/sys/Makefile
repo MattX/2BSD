@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.3 (2.11BSD) 1997/9/9
+#	@(#)Makefile	1.4 (2.11BSD) 1997/9/26
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -11,10 +11,10 @@ AS= /bin/as
 # source files associated with them.
 
 PDPSRCS= _exit.s brk.s execl.s execle.s execv.s fork.s pipe.s ptrace.s sbrk.s \
-	sigaction.s sigreturn.s vfork.s
+	setlogin.s sigaction.s sigreturn.s vfork.s
 
 PDPOBJS= _exit.o brk.o execl.o execle.o execv.o fork.o pipe.o ptrace.o sbrk.o \
-	sigaction.o sigreturn.o vfork.o
+	setlogin.o sigaction.o sigreturn.o vfork.o
 
 # these are generated with a second argument to SYSCALL of 'norm'.  Have to
 # split into more than one list because 'make' only permits 80 "lefts".
@@ -23,7 +23,7 @@ NORM1= __sysctl.o accept.o access.o acct.o adjtime.o bind.o chdir.o chflags.o \
 	chmod.o chown.o chroot.o close.o connect.o dup.o dup2.o \
 	execve.o fchdir.o fchflags.o fchmod.o fchown.o fcntl.o flock.o fstat.o \
 	fsync.o ftruncate.o getdtablesize.o getgroups.o getitimer.o \
-	gethostname.o getsockname.o sethostname.o \
+	_getlogin.o gethostname.o getsockname.o sethostname.o \
 	getpeername.o getpriority.o getrlimit.o getrusage.o getsockopt.o \
 	gettimeofday.o ioctl.o kill.o killpg.o link.o listen.o lstat.o mkdir.o
 

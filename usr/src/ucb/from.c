@@ -4,21 +4,18 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)from.c	5.2 (Berkeley) 11/4/85";
-#endif not lint
+static char sccsid[] = "@(#)from.c	5.2.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
-
-struct	passwd *getpwuid();
+#include <unistd.h>
 
 main(argc, argv)
 	int argc;
@@ -30,7 +27,6 @@ main(argc, argv)
 	int stashed = 0;
 	register char *name;
 	char *sender;
-	char *getlogin();
 
 	if (argc > 1 && *(argv[1]) == '-' && (*++argv)[1] == 's') {
 		if (--argc <= 1) {
@@ -50,7 +46,7 @@ main(argc, argv)
 	if (argc > 1)
 		name = argv[1];
 	else {
-		name = getlogin ();
+		name = getlogin();
 		if (name == NULL || strlen(name) == 0) {
 			pp = getpwuid(getuid());
 			if (pp == NULL) {

@@ -1,10 +1,11 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)learn.c	4.4.1	(2.11BSD)	1996/10/23";
+static char sccsid[] = "@(#)learn.c	4.4.2	(2.11BSD)	1997/10/2";
 #endif
 
 #include "stdio.h"
 #include "lrnref.h"
 #include "signal.h"
+#include <unistd.h>
 
 char	*direct	= "/usr/share/learn";	/* CHANGE THIS ON YOUR SYSTEM */
 int	more;
@@ -33,7 +34,6 @@ int argc;
 char *argv[];
 {
 	extern hangup(), intrpt();
-	extern char * getlogin(), *malloc();
 
 	speed = 0;
 	more = 1;

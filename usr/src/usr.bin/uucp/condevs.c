@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)condevs.c	5.15.1 (2.11BSD) 1996/3/22";
+static char sccsid[] = "@(#)condevs.c	5.15.2 (2.11BSD) 1997/10/2";
 #endif
 
 /*
@@ -24,7 +24,6 @@ static char sccsid[] = "@(#)condevs.c	5.15.1 (2.11BSD) 1996/3/22";
  * THE FIX: Don't declare variables to be register
  */
 
-#include <string.h>
 #include "condevs.h"
 
 struct condev condevs[] = {
@@ -362,7 +361,6 @@ register char *flds[];
  */
 
 #ifdef INTERVALTIMER
-#include <sys/time.h>
 #define uucpdelay(num,denom) intervaldelay(num,denom)
 intervaldelay(num,denom)
 int num, denom;

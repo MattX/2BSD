@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)cico.c	5.14 (Berkeley) 4/14/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cico.c	5.14.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include <signal.h>
@@ -848,7 +848,7 @@ int parm;
 
 	if (parm == DBG_TEMP) {
 		sprintf(buf, "%s/%d", RMTDEBUG, getpid());
-		temp = malloc(strlen (buf) + 1);
+		temp = (char *)malloc(strlen (buf) + 1);
 		if (temp == CNULL) {
 			Debug = 0;
 			assert("RMTDEBUG MALLOC ERROR:", temp, errno);

@@ -4,18 +4,17 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)logger.c	6.2 (Berkeley) 9/19/85";
-#endif not lint
+static char sccsid[] = "@(#)logger.c	6.2.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <stdio.h>
 #include <syslog.h>
+#include <unistd.h>
 #include <ctype.h>
 
 /*
@@ -34,7 +33,6 @@ main(argc, argv)
 	register char *p;
 	int pri = LOG_NOTICE;
 	int logflags = 0;
-	extern char *getlogin();
 
 	/* initialize */
 	tag = getlogin();

@@ -16,7 +16,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)ruserpass.c	5.1.1 (2.11BSD) 12/31/93";
+static char sccsid[] = "@(#)ruserpass.c	5.1.2 (2.11BSD) 1997/10/2";
 #endif
 
 #include <sys/types.h>
@@ -25,10 +25,12 @@ static char sccsid[] = "@(#)ruserpass.c	5.1.1 (2.11BSD) 12/31/93";
 #include <ctype.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <string.h>
+#include <unistd.h>
 #include "ftp_var.h"
 
-char	*renvlook(), *malloc(), *index(), *getenv(), *getpass(), *getlogin();
-char	*strcpy();
+char	*renvlook();
+#include <stdlib.h>
 struct	utmp *getutmp();
 static	FILE *cfile;
 
@@ -121,7 +123,7 @@ next:
 		case LOGIN:
 			if (token())
 				if (*aname == 0) { 
-					*aname = malloc((unsigned) strlen(tokval) + 1);
+					*aname = (char *)malloc((unsigned) strlen(tokval) + 1);
 					(void) strcpy(*aname, tokval);
 				} else {
 					if (strcmp(*aname, tokval))
@@ -137,7 +139,7 @@ next:
 				goto bad;
 			}
 			if (token() && *apass == 0) {
-				*apass = malloc((unsigned) strlen(tokval) + 1);
+				*apass = (char *)malloc((unsigned) strlen(tokval) + 1);
 				(void) strcpy(*apass, tokval);
 			}
 			break;
@@ -149,7 +151,7 @@ next:
 				goto bad;
 			}
 			if (token() && *aacct == 0) {
-				*aacct = malloc((unsigned) strlen(tokval) + 1);
+				*aacct = (char *)malloc((unsigned) strlen(tokval) + 1);
 				(void) strcpy(*aacct, tokval);
 			}
 			break;

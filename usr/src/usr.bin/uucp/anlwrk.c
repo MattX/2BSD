@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)anlwrk.c	5.5 (Berkeley) 6/19/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)anlwrk.c	5.5.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -17,7 +17,6 @@ static char sccsid[] = "@(#)anlwrk.c	5.5 (Berkeley) 6/19/85";
 
 int Nfiles = 0;
 char Filent[LLEN][NAMESIZE];
-long fseek(), ftell();
 extern int TransferSucceeded;
 
 /*LINTLIBRARY*/
@@ -293,7 +292,7 @@ register char *file, *reqst, *dir, *pre;
 		/* Save last worked-on prefix */
 		if (lastpre != 0)
 			free (lastpre);
-		lastpre = malloc((unsigned)(strlen(pre)+1));
+		lastpre = (char *)malloc((unsigned)(strlen(pre)+1));
 		strcpy (lastpre, pre);
 
 		/* Set the external indexes properly

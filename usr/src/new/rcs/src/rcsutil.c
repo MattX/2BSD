@@ -1,8 +1,8 @@
 /*
  *                     RCS utilities
  */
-#ifndef lint
-static char rcsid[]= "$Id: rcsutil.c,v 4.3 87/10/18 10:40:22 narten Exp $ Purdue CS";
+#if	!defined(lint) && defined(DOSCCS)
+static char rcsid[]= "$Id: rcsutil.c,v 4.3.1 97/10/2 10:40:22 sms Exp $";
 #endif
 /*****************************************************************************
  *****************************************************************************
@@ -21,6 +21,9 @@ static char rcsid[]= "$Id: rcsutil.c,v 4.3 87/10/18 10:40:22 narten Exp $ Purdue
 
 
 /* $Log:	rcsutil.c,v $
+ * Revision 4.3.1 97/10/2 sms
+ * Use unistd.h instead of declaring system functions locally
+ *
  * Revision 4.3  87/10/18  10:40:22  narten
  * Updating version numbers. Changes relative to 1.1 actually
  * relative to 4.1
@@ -79,17 +82,14 @@ static char rcsid[]= "$Id: rcsutil.c,v 4.3 87/10/18 10:40:22 narten Exp $ Purdue
 #include <signal.h>
 #include "rcsbase.h"
 #include <pwd.h>
+#include <unistd.h>
 
 extern char * malloc();
 extern char * bindex();
 extern FILE * finptr;
 extern char * RCSfilename;
-extern char * getlogin();
-extern struct passwd *getpwuid();
 
-int    (*oldSIGINT)();         /* saves the original value for SIGINT */
-
-
+sig_t    oldSIGINT;         /* saves the original value for SIGINT */
 
 char * getcaller()
 /* Function: gets the callers login from his uid.

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)conn.c	5.10.1 (2.11BSD) 1996/3/22";
+static char sccsid[] = "@(#)conn.c	5.10.2 (2.11BSD) 1997/10/2";
 #endif
 
 #include <signal.h>
@@ -13,11 +13,6 @@ static char sccsid[] = "@(#)conn.c	5.10.1 (2.11BSD) 1996/3/22";
 #endif
 #ifndef	USG
 #include <sgtty.h>
-#endif
-#ifdef BSD4_2
-#include <sys/time.h>
-#else
-#include <time.h>
 #endif
 
 #define MAXC 1000
@@ -1084,7 +1079,7 @@ int fd;
 	for (i = 0; i < dev->D_numargs-5; i++) {
 		sprintf(bfr, dev->D_arg[D_CHAT+i], flds[F_PHONE]);
 		if (strcmp(bfr, dev->D_arg[D_CHAT+i])) {
-			p = malloc((unsigned)strlen(bfr)+1);
+			p = (char *)malloc((unsigned)strlen(bfr)+1);
 			if (p != NULL) {
 				strcpy(p, bfr);
 				dev->D_arg[D_CHAT+i] = p;

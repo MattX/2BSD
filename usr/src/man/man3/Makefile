@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.13 (2.11BSD) 1997/9/3
+#	@(#)Makefile	5.4.14 (2.11BSD) 1997/10/3
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -22,7 +22,7 @@ SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
 	devname.3 directory.3 ecvt.3 end.3 erf.3 err.3 execl.3 exit.3 \
 	exp.3 fclose.3 ferror.3 floor.3 \
 	fopen.3 fread.3 frexp.3 fseek.3 getc.3 getdisk.3 getenv.3 getfsent.3 \
-	getgrent.3 gethostbyname.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
+	getgrent.3 gethostbyname.3 getnetent.3 getopt.3 getpass.3 \
 	getgrouplist.3 getloadavg.3 getmntinfo.3 getsubopt.3 \
 	getprotoent.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
 	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 
@@ -37,13 +37,13 @@ SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	swab.3 sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 uname.3 ungetc.3 \
 	syserrlst.3 \
-	usleep.3 utime.3 valloc.3 varargs.3
+	utime.3 valloc.3 varargs.3
 OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	compat-sys5.0 crypt.0 ctime.0 ctype.0 curses.0 dbm.0 daemon.0 \
 	devname.0 directory.0 ecvt.0 end.0 erf.0 err.0 execl.0 exit.0 \
 	exp.0 fclose.0 ferror.0 floor.0 \
 	fopen.0 fread.0 frexp.0 fseek.0 getc.0 getdisk.0 getenv.0 getfsent.0 \
-	getgrent.0 gethostbyname.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
+	getgrent.0 gethostbyname.0 getnetent.0 getopt.0 getpass.0 \
 	getprotoent.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
 	getgrouplist.0 getloadavg.0 getmntinfo.0 getsubopt.0 \
 	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 
@@ -58,7 +58,7 @@ OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	swab.0 sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 uname.0 ungetc.0 \
 	syserrlst.0 \
-	usleep.0 utime.0 valloc.0 varargs.0
+	utime.0 valloc.0 varargs.0
 REMO1=	edata.0 etext.0 j1.0 jn.0 ns_addr.0 ns_ntoa.0 y0.0 y1.0 yn.0 acos.0 \
 	asin.0 atan.0 atan2.0 atoi.0 atol.0 cos.0 dbm_clearerr.0 dbm_close.0 \
 	dbm_delete.0 dbm_error.0 dbm_fetch.0 dbm_firstkey.0 dbm_nextkey.0 \
@@ -99,7 +99,7 @@ REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
 	setprotoent.0 setusershell.0 endhostent.0 gethostbyaddr.0 gethostent.0 \
 	sethostent.0 sethostfile.0 memccpy.0 memchr.0 memcmp.0 memcpy.0 \
 	memset.0 strchr.0 strrchr.0 tmpnam.0 tmpfile.0 \
-	tempnam.0 getmode.0
+	tempnam.0 getmode.0 usleep.0 setenv.0 unsetenv.0
 
 REMO4=	verr.0 errx.0 verrx.0 warn.0 warnx.0 vwarnx.0 
 
@@ -392,5 +392,8 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpnam.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpfile.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tempnam.0
+	ln ${DESTDIR}${MDIR}/sleep.0 ${DESTDIR}${MDIR}/usleep.0
+	ln ${DESTDIR}${MDIR}/getenv.0 ${DESTDIR}${MDIR}/setenv.0
+	ln ${DESTDIR}${MDIR}/getenv.0 ${DESTDIR}${MDIR}/unsetenv.0
 
 FRC:

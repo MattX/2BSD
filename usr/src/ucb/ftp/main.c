@@ -15,15 +15,13 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#if	!defined(lint) && !defined(pdp11)
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1985, 1989 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#if	!defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)main.c	based on 5.13 (Berkeley) 3/14/89";
-#endif /* not lint */
+static char sccsid[] = "@(#)main.c	based on 5.13.1 (2.11BSD) 1997/10/2";
+#endif
 
 /*
  * FTP User Program -- Command Interface.
@@ -41,17 +39,12 @@ static char sccsid[] = "@(#)main.c	based on 5.13 (Berkeley) 3/14/89";
 #include <ctype.h>
 #include <netdb.h>
 #include <pwd.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-
-#if defined(sun) && !defined(FD_SET)
-typedef int uid_t;
-#endif
-
-uid_t	getuid();
 int	intr();
 int	lostpeer();
 extern	char *home;
-char	*getlogin();
 
 main(argc, argv)
 	char *argv[];

@@ -4,18 +4,17 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)get_names.c	5.2 (Berkeley) 3/13/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)get_names.c	5.2.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include "talk.h"
 #include <sys/param.h>
 #include <protocols/talkd.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
 
-char	*getlogin();
-char	*ttyname();
-char	*rindex();
 static	any();
 extern	CTL_MSG msg;
 

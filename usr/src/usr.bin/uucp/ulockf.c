@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)ulockf.c	5.5 (Berkeley) 10/9/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)ulockf.c	5.5.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -74,7 +74,7 @@ time_t atime;
 	ASSERT(i < MAXLOCKS, "TOO MANY LOCKS", CNULL, i);
 	if (i >= Nlocks)
 		i = Nlocks++;
-	p = malloc((unsigned)(strlen(file)+1));
+	p = (char *)malloc((unsigned)(strlen(file)+1));
 	ASSERT(p != NULL, "CAN NOT ALLOCATE FOR", file, 0);
 	strcpy(p, file);
 	Lockfile[i] = p;

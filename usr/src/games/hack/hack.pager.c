@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.pager.c - version 1.0.3 */
+/* hack.pager.c - version 1.0.4 */
 
 /* This file contains the command routine dowhatis() and a pager. */
 /* Also readmail() and doshell(), and generally the things that
@@ -7,11 +7,11 @@
 
 #include	<stdio.h>
 #include	<signal.h>
+#include	<stdlib.h>
 #include "hack.h"
 extern int CO, LI;	/* usually COLNO and ROWNO+2 */
 extern char *CD;
 extern char quitchars[];
-extern char *getenv(), *getlogin();
 int done1();
 
 dowhatis()

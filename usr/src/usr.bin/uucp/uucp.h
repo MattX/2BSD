@@ -1,7 +1,11 @@
-/*	uucp.h	5.11.5	96/12/1 */
+/*	uucp.h	5.11.6	1997/10/2 */
 
 #include <stdio.h>
 #include <paths.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 /*
  * Determine local uucp name of this machine.
@@ -391,12 +395,8 @@ extern char NOLOGIN[];
 extern	char DLocal[], DLocalX[], *subfile(), *subdir();
 
 /* Commonly called routines which return non-int value */
-extern	char *ttyname(), *strcpy(), *strcat(), *index(), *rindex(),
-		*fgets(), *calloc(), *malloc(), *fdig(), *ttyname(),
-		*cfgets(), *getwd(), *strpbrk(), *strncpy();
-extern	long lseek();
+extern	char *fdig(), *cfgets();
 extern	FILE *rpopen();
-extern time_t time();
 
 extern char _FAILED[], CANTOPEN[], DEVNULL[];
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.6 (2.11BSD GTE) 1997/8/28
+ *	@(#)syscall.h	5.4.7 (2.11BSD GTE) 1997/9/26
  */
 
 /*
@@ -49,11 +49,11 @@
 #define	SYS_sync	36
 #define	SYS_kill	37
 #define	SYS_stat	38
-				/* 39 is old: setpgrp */
+#define	SYS__getlogin	39
 #define	SYS_lstat	40
 #define	SYS_dup		41
 #define	SYS_pipe	42
-				/* 43 is old: times */
+#define	SYS_setlogin	43
 #define	SYS_profil	44
 				/* 45 is unused */
 				/* 46 is old: setgid */

@@ -1,8 +1,10 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.main.c - version 1.0.3 */
+/* hack.main.c - version 1.0.4 */
 
 #include <stdio.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "hack.h"
 
 #ifdef QUEST
@@ -11,7 +13,6 @@
 #define	gamename	"hack"
 #endif QUEST
 
-extern char *getlogin(), *getenv();
 extern char plname[PL_NSIZ], pl_character[PL_CSIZ];
 
 int (*afternmv)();

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.10 (2.11BSD GTE) 1997/8/29
+ *	@(#)init_sysent.c	1.11 (2.11BSD GTE) 1997/9/26
  */
 
 /*
@@ -19,8 +19,8 @@ int	nosys();
 int	sethostid(),gethostid(),sethostname(),gethostname(),getpid();
 int	getppid(), fork(),rexit(),execv(),execve(),owait(),wait4();
 int	getuid(),setreuid(),getgid(),getgroups(),setregid(),setgroups();
-int	geteuid(), getegid();
-int	getpgrp(),setpgrp();
+int	geteuid(), getegid(), getlogin();
+int	getpgrp(),setpgrp(), setlogin();
 int	ucall();					/* 2BSD calls */
 
 /* 1.2 memory management */
@@ -146,11 +146,11 @@ struct sysent sysent[] = {
 	0, sync,			/*  36 = sync */
 	2, kill,			/*  37 = kill */
 	2, stat,			/*  38 = stat */
-	0, nosys,			/*  39 = unused */
+	2, getlogin,			/*  39 = getlogin */
 	2, lstat,			/*  40 = lstat */
 	1, dup,				/*  41 = dup */
 	0, pipe,			/*  42 = pipe */
-	0, nosys,			/*  43 = unused */
+	1, setlogin,			/*  43 = setlogin */
 	4, profil,			/*  44 = profil */
 	0, nosys,			/*  45 = nosys */
 	0, nosys,			/*  46 = unused */

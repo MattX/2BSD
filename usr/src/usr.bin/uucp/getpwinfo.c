@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)getpwinfo.c	5.3 (Berkeley) 6/19/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)getpwinfo.c	5.3.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -19,8 +19,7 @@ int uid;
 register char *path, *name;
 {
 	register struct passwd *pwd;
-	struct passwd *getpwuid(), *getpwnam();
-	char *getlogin(), *getenv(), *l;
+	char *l;
 
 	if ((l = getlogin()) == NULL) {
 		l = getenv("USER");
@@ -55,7 +54,6 @@ char *path, *name;
 int *uid;
 {
 	register struct passwd *pwd;
-	struct passwd *getpwnam();
 
 	if ((pwd = getpwnam(name)) == NULL) {
 		/* can not find name in passwd file */

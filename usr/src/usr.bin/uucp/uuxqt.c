@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)uuxqt.c	5.8 (Berkeley) 1/24/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)uuxqt.c	5.8.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -159,7 +159,7 @@ char *argv[];
 				Notify[i] = NT_YES;
 		} else
 			Notify[i] = NT_YES;
-		if ((Cmds[i] = malloc((unsigned)(strlen(xcmd)+1))) == NULL) {
+		if ((Cmds[i] = (char *)malloc((unsigned)(strlen(xcmd)+1))) == NULL) {
 			DEBUG(1, "MALLOC FAILED", CNULL);
 			break;
 		}

@@ -4,13 +4,14 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)errorfilter.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)errorfilter.c	5.1.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
+#include <unistd.h>
 #include "error.h"
 
 char	*lint_libs[] = {
@@ -39,7 +40,7 @@ getignored(auxname)
 
 	nignored = 0;
 	if (auxname == 0){	/* use the default */
-		if ( (username = (char *)getlogin()) == NULL){
+		if ( (username = getlogin()) == NULL){
 			username = "Unknown";
 			uid = getuid();
 			if ( (passwdentry = (struct passwd *)getpwuid(uid)) == NULL){

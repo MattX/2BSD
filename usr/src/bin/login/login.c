@@ -20,7 +20,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980, 1987, 1988 The Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)login.c	5.40.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)login.c	5.40.2 (2.11BSD GTE) 1997/9/26";
 #endif
 
 /*
@@ -431,11 +431,14 @@ main(argc, argv)
 	strcpy(tbuf + 1, (p = rindex(pwd->pw_shell, '/')) ?
 	    p + 1 : pwd->pw_shell);
 
+	if	(setlogin(pwd->pw_name) < 0)
+		fprintf(stderr, "login: setlogin(): %s\n", strerror(errno));
+
 	/* discard permissions last so can't get killed and drop core */
 	(void)setuid(pwd->pw_uid);
 
 	execlp(pwd->pw_shell, tbuf, 0);
-	(void)fprintf(stderr, "login: no shell: %s.\n", strerror(errno));
+	(void)fprintf(stderr, "login: no shell: %s\n", strerror(errno));
 	exit(0);
 }
 

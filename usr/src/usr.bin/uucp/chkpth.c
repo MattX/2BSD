@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)chkpth.c	5.4 (Berkeley) 6/19/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)chkpth.c	5.4.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -108,7 +108,7 @@ rdpth()
 			fclose (uf);
 			return;
 		}
-		if ((pc = calloc((unsigned)strlen(buf) + 1, sizeof (char)))
+		if ((pc = (char *)calloc((unsigned)strlen(buf) + 1, sizeof (char)))
 			== NULL) {
 			/* can not allocate space */
 			DEBUG (1, "Userpath calloc 1 failed\n", 0);

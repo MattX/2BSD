@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)unistd.h	8.10.2 (2.11BSD) 1996/7/11
+ *	@(#)unistd.h	8.10.3 (2.11BSD) 1997/10/3
  */
 
 /*
@@ -54,7 +54,7 @@
 #endif
 
 void	 _exit();
-unsigned int	 access();
+int	 access();
 unsigned int	 alarm();
 pid_t	 fork();
 gid_t	 getegid();

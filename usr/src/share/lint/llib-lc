@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.45 (2.11BSD GTE) 1997/8/29 */
+/*	@(#)llib-lc	1.46 (2.11BSD GTE) 1997/9/26 */
 
 /* LINTLIBRARY */
 
@@ -363,6 +363,7 @@ int	setgid(g) gid_t g; { return(0); }
 	sethostfile(name) char *name; { ; }
 int	setjmp(e) jmp_buf e; { return(0); }
 	setkey(k) char *k; {}
+int	setlogin(c) char *c; { return(0); }
 int	setlogmask(m) { return(0); }
 	setnetent(stayopen) { ; }
 	setprotoent(stayopen) { ; }
@@ -416,7 +417,7 @@ int	ttyslot() { return 1; }
 void	tzset() {;}
 unsigned	ualarm(value, interval) unsigned value, interval; { return 0; }
 void	unsetenv(n) char *n; {;}
-	usleep(useconds) unsigned useconds; { ; }
+	usleep(useconds) long useconds; { ; }
 int	utime(name, timep) char *name; time_t *timep; { return 0; }
 char *	valloc(s) unsigned s; { return malloc(s); }
 

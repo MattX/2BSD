@@ -5,7 +5,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)rexec.c	5.2 (Berkeley) 3/9/86";
+static char sccsid[] = "@(#)rexec.c	5.2.1 (2.11BSD) 1997/10/2";
 #endif LIBC_SCCS and not lint
 
 #include <sys/types.h>
@@ -17,10 +17,7 @@ static char sccsid[] = "@(#)rexec.c	5.2 (Berkeley) 3/9/86";
 #include <netdb.h>
 #include <errno.h>
 
-extern	errno;
-char	*index(), *sprintf();
 int	rexecoptions;
-char	*getpass(), *getlogin();
 
 rexec(ahost, rport, name, pass, cmd, fd2p)
 	char **ahost;

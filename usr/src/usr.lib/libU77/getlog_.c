@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)getlog_.c	5.1	6/7/85
+ *	@(#)getlog_.c	5.1.1 1997/10/2
  */
 
 /*
@@ -19,7 +19,7 @@
  *	this is a detached process.
  */
 
-char *getlogin();
+#include <unistd.h>
 
 getlog_(name, len)
 char *name; long len;

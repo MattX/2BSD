@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_prot.c	1.2 (2.11BSD GTE) 1995/05/08
+ *	@(#)kern_prot.c	1.3 (2.11BSD GTE) 1997/09/26
  */
 
 /*
@@ -264,3 +264,55 @@ groupmember(gid)
 			return (1);
 	return (0);
 }
+
+/*
+ * Get login name, if available.
+*/
+int
+getlogin()
+	{
+	register struct a
+		{
+		char *namebuf;
+		u_int namelen;
+		} *uap = (struct a *)u.u_ap;
+	register int error;
+
+	if	(uap->namelen > sizeof (u.u_login))
+		uap->namelen = sizeof (u.u_login);
+	error = copyout(u.u_login, uap->namebuf, uap->namelen);
+	return(u.u_error = error);
+	}
+
+/*
+ * Set login name.
+ * It is not clear whether this should be allowed if the process
+ * is not the "session leader" (the 'login' process).  But since 2.11
+ * doesn't have sessions and it's almost impossible to know if a process
+ * is "login" or not we simply restrict this call to the super user.
+*/
+
+int
+setlogin()
+	{
+	register struct a
+		{
+		char *namebuf;
+		} *uap = (struct a *)u.u_ap;
+	register int error;
+	char	newname[MAXLOGNAME + 1];
+
+	if	(!suser())
+		return(u.u_error);	/* XXX - suser should be changed! */
+/*
+ * copinstr() wants to copy a string including a nul but u_login is not
+ * necessarily nul-terminated.  Copy into a temp that is one character
+ * longer then copy into place if that fit.
+*/
+
+	bzero(newname, sizeof (newname));
+	error = copyinstr(uap->namebuf, newname, sizeof(newname), NULL);
+	if	(error == 0)
+		bcopy(newname, u.u_login, sizeof (u.u_login));
+	return(u.u_error = error);
+	}

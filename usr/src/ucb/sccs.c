@@ -9,17 +9,18 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)sccs.c	5.1.1 (2.11BSD GTE) 11/20/94";
+static char sccsid[] = "@(#)sccs.c	5.1.2 (2.11BSD GTE) 1997/10/2";
 #endif
 
-# include <stdio.h>
-# include <sys/param.h>
-# include <sys/stat.h>
-# include <sys/dir.h>
-# include <errno.h>
-# include <signal.h>
-# include <sysexits.h>
-# include <pwd.h>
+#include <stdio.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/dir.h>
+#include <errno.h>
+#include <signal.h>
+#include <sysexits.h>
+#include <unistd.h>
+#include <pwd.h>
 
 /*
 **  SCCS.C -- human-oriented front end to the SCCS system.
@@ -1505,8 +1506,6 @@ username()
 	}
 	return (pw->pw_name);
 # else
-	extern char *getlogin();
-	extern char *getenv();
 	register char *p;
 
 	p = getenv("USER");

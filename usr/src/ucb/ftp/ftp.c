@@ -15,9 +15,9 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#if	!defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)ftp.c	5.28 (Berkeley) 4/20/89";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)ftp.c	5.28.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -37,6 +37,7 @@ static char sccsid[] = "@(#)ftp.c	5.28 (Berkeley) 4/20/89";
 #include <netdb.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <unistd.h>
 #include <varargs.h>
 
 #include "ftp_var.h"
@@ -198,7 +199,7 @@ login(host)
 	char *host;
 {
 	char tmp[80];
-	char *user, *pass, *acct, *getlogin(), *getpass();
+	char *user, *pass, *acct;
 	int n, aflag = 0;
 
 	user = pass = acct = 0;

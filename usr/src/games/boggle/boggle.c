@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)boggle.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+static char sccsid[] = "@(#)boggle.c	5.1.1 (2.11BSD) 1997/10/2";
+#endif
 
 #include <ctype.h>
 #include <errno.h>
@@ -20,6 +18,8 @@ static char sccsid[] = "@(#)boggle.c	5.1 (Berkeley) 5/30/85";
 #include <sgtty.h>
 #include <signal.h>
 #include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 /* basic parameters */
 #define N 4
@@ -50,7 +50,6 @@ int column;
 int *timept;
 int timeint[] = {60,60,50,7,1,1,1,0};
 long timein;
-extern long int time();
 struct sgttyb origttyb, tempttyb;
 int ctlecho = 0;
 int lctlech = LCTLECH;
@@ -61,8 +60,6 @@ int games;
 int logfile = -1;
 long logloc;
 char logbuff[100] = {"inst\t"};
-extern char *ctime(), *getlogin();
-extern long lseek();
 
 /* dictionary interface */
 char defname[] = "/usr/games/lib/bogdict";

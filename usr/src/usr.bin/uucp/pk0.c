@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)pk0.c	5.7 (Berkeley) 5/30/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)pk0.c	5.7.1 (2.11BSD) 1997/10/2";
 #endif
 
 #include "uucp.h"
@@ -324,7 +324,7 @@ int icount;
 		pk->p_pscopy = x;
 		pk->p_xcount++;
 
-		cp = pk->p_ob[x] = malloc((unsigned)pk->p_xsize);
+		cp = pk->p_ob[x] = (char *)malloc((unsigned)pk->p_xsize);
 		partial = 0;
 		if ((int)icount < pk->p_xsize) {
 			cc = icount;

@@ -1,9 +1,8 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.mklev.c - version 1.0.3 */
+/* hack.mklev.c - version 1.0.4 */
 
 #include "hack.h"
 
-extern char *getlogin(), *getenv();
 extern struct monst *makemon();
 extern struct obj *mkobj_at();
 extern struct trap *maketrap();

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)pk1.c	5.9.1 (2.11BSD) 1996/3/22";
+static char sccsid[] = "@(#)pk1.c	5.9.2 (2.11BSD) 1997/10/2";
 #endif
 
 #include <signal.h>
@@ -26,7 +26,6 @@ int iomask[2];
 
 extern int Retries;
 extern jmp_buf Sjbuf;
-extern	char *malloc();
 
 int Connodata = 0;
 int Ntimeout = 0;
