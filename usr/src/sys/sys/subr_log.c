@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)subr_log.c	1.2 (2.11BSD GTE) 12/31/93
+ *	@(#)subr_log.c	1.3 (2.11BSD GTE) 11/30/94
  */
 
 /*
@@ -16,34 +16,35 @@
 #include "ioctl.h"
 #include "msgbuf.h"
 #include "file.h"
+#include "inode.h"
 #include "errno.h"
 #include "uio.h"
 #include "machine/seg.h"
 
 #define LOG_RDPRI	(PZERO + 1)
 
-#define LOG_NBIO	0x02
 #define LOG_ASYNC	0x04
 #define LOG_RDWAIT	0x08
 
 struct logsoftc {
 	int	sc_state;		/* see above for possibilities */
 	struct	proc *sc_selp;		/* process waiting on select call */
-	int	sc_pgrp;		/* process group for async I/O */
+	int	sc_pgid;		/* process/group for async I/O */
 } logsoftc;
 
 int	log_open;			/* also used in log() */
 
 /*ARGSUSED*/
-logopen(dev)
+logopen(dev, mode)
 	dev_t dev;
+	int mode;
 {
 
 	if (log_open)
 		return (EBUSY);
 	log_open = 1;
-	logsoftc.sc_selp = 0;
-	logsoftc.sc_pgrp = u.u_procp->p_pgrp;
+	logsoftc.sc_pgid = u.u_procp->p_pid;	/* signal process only */
+
 #ifndef	pdp11
 	/*
 	 * Potential race here with putchar() but since putchar should be
@@ -68,14 +69,13 @@ logclose(dev, flag)
 {
 	log_open = 0;
 	logsoftc.sc_state = 0;
-	logsoftc.sc_selp = 0;
-	logsoftc.sc_pgrp = 0;
 }
 
 /*ARGSUSED*/
-logread(dev, uio)
+logread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	register int l;
 	register int s;
@@ -86,7 +86,7 @@ logread(dev, uio)
 
 	s = splhigh();
 	while (msgbuf.msg_bufr == msgbuf.msg_bufx) {
-		if (logsoftc.sc_state & LOG_NBIO) {
+		if (flag & IO_NDELAY) {
 			splx(s);
 			return (EWOULDBLOCK);
 		}
@@ -108,10 +108,10 @@ logread(dev, uio)
 		mapseg5(msgbuf.msg_click, (btoc(MSG_BSIZE) << 8) | RW);
 		bcopy(&msgbuf.msg_bufc[msgbuf.msg_bufr], buf, l);
 		normalseg5();
-		error = uiomove(buf, l, UIO_READ, uio);
+		error = uiomove(buf, l, uio);
 #else
 		error = uiomove((caddr_t)&msgbuf.msg_bufc[msgbuf.msg_bufr],
-			(int)l, UIO_READ, uio);
+			(int)l, uio);
 #endif
 		if (error)
 			break;
@@ -127,7 +127,7 @@ logselect(dev, rw)
 	dev_t dev;
 	int rw;
 {
-	int s = splhigh();
+	register int s = splhigh();
 
 	switch (rw) {
 
@@ -145,6 +145,7 @@ logselect(dev, rw)
 
 logwakeup()
 {
+	register struct proc *p;
 
 	if (!log_open)
 		return;
@@ -152,8 +153,12 @@ logwakeup()
 		selwakeup(logsoftc.sc_selp, (long) 0);
 		logsoftc.sc_selp = 0;
 	}
-	if (logsoftc.sc_state & LOG_ASYNC)
-		gsignal(logsoftc.sc_pgrp, SIGIO); 
+	if (logsoftc.sc_state & LOG_ASYNC) {
+		if (logsoftc.sc_pgid < 0)
+			gsignal(-logsoftc.sc_pgid, SIGIO); 
+		else if (p = pfind(logsoftc.sc_pgid))
+			psignal(p, SIGIO);
+	}
 	if (logsoftc.sc_state & LOG_RDWAIT) {
 		wakeup((caddr_t)&msgbuf);
 		logsoftc.sc_state &= ~LOG_RDWAIT;
@@ -180,10 +185,6 @@ logioctl(com, data, flag)
 		break;
 
 	case FIONBIO:
-		if (*(int *)data)
-			logsoftc.sc_state |= LOG_NBIO;
-		else
-			logsoftc.sc_state &= ~LOG_NBIO;
 		break;
 
 	case FIOASYNC:
@@ -194,11 +195,11 @@ logioctl(com, data, flag)
 		break;
 
 	case TIOCSPGRP:
-		logsoftc.sc_pgrp = *(int *)data;
+		logsoftc.sc_pgid = *(int *)data;
 		break;
 
 	case TIOCGPGRP:
-		*(int *)data = logsoftc.sc_pgrp;
+		*(int *)data = logsoftc.sc_pgid;
 		break;
 
 	default:

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_kern.c	7.1.1 (2.11BSD GTE) 12/31/93
+ *	@(#)quota_kern.c	7.1.2 (2.11BSD GTE) 11/26/94
  *
  * I'll say it here and not every other place i've had to hack:
  * Mike Karels was right - " just buy a vax...".  i have traded cpu cycles
@@ -406,14 +406,14 @@ discquota(uid, ip)
 		QUOTAUNMAP();
 		ILOCK(ip);
 		fail = rdwri(UIO_READ, ip, &xq, sizeof (xq),
-		    (off_t)uid * sizeof (xq), UIO_SYSSPACE, (int *)0);
+		    (off_t)uid * sizeof (xq), UIO_SYSSPACE, IO_UNIT,(int *)0);
 		QUOTAMAP();
 		dq->dq_dqb = xq;
 	}
 #else
 	ILOCK(ip);
 	fail = rdwri(UIO_READ, ip, (caddr_t)&dq->dq_dqb, sizeof (struct dqblk),
-	    (off_t)uid * sizeof (struct dqblk), 1, (int *)0);
+	    (off_t)uid * sizeof(struct dqblk), UIO_SYSSPACE, IO_UNIT, (int *)0);
 #endif
 	IUNLOCK(ip);
 	if (dq->dq_flags & DQ_WANT)
@@ -640,13 +640,15 @@ putdq(mp, dq, free)
 		QUOTAUNMAP();
 		ILOCK(ip);
 		(void)rdwri(UIO_WRITE, ip, &xq, sizeof (xq),
-			(off_t)uid * sizeof (xq), UIO_SYSSPACE, (int *)0);
+			(off_t)uid * sizeof (xq), UIO_SYSSPACE, 
+			IO_UNIT, (int *)0);
 		QUOTAMAP();
 	}
 #else
 	ILOCK(ip);
 	(void) rdwri(UIO_WRITE, ip, (caddr_t)&dq->dq_dqb, sizeof (struct dqblk),
-	    (off_t)dq->dq_uid * sizeof (struct dqblk), 1, (int *)0);
+	    (off_t)dq->dq_uid * sizeof (struct dqblk), UIO_SYSSPACE,
+		IO_UNIT, (int *)0);
 #endif
 	IUNLOCK(ip);
 	if (dq->dq_flags & DQ_WANT)

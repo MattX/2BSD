@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.2 (2.11BSD GTE) 12/23/92
+ *	@(#)kern_exec.c	1.3 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -105,7 +105,7 @@ execve()
 	 */
 	exdata.ex_shell[0] = '\0';	/* for zero length files */
 	u.u_error = rdwri(UIO_READ, ip, &exdata, sizeof(exdata), (off_t)0,
-				UIO_SYSSPACE, &resid);
+				UIO_SYSSPACE, IO_UNIT, &resid);
 	if (u.u_error)
 		goto bad;
 	if (resid > sizeof(exdata) - sizeof(exdata.ex_exec) &&
@@ -516,7 +516,7 @@ getxfile(ip, ep, nargc, uid, gid)
 	u.u_ovdata.uo_curov = 0;
 	if (ovflag) {
 		u.u_error = rdwri(UIO_READ, ip, ovhead, sizeof(ovhead), 
-			(off_t)sizeof(struct exec), UIO_SYSSPACE, &resid);
+			(off_t)sizeof(struct exec), UIO_SYSSPACE, IO_UNIT, &resid);
 		if (resid != 0)
 			u.u_error = ENOEXEC;
 		if (u.u_error) {
@@ -609,7 +609,7 @@ getxfile(ip, ep, nargc, uid, gid)
 		else
 			offset += ep->a_text;
 		rdwri(UIO_READ, ip, (caddr_t) 0, ep->a_data, offset,
-			UIO_USERSPACE, 0);
+			UIO_USERSPACE, IO_UNIT, (int *)0);
 
 		/*
 		 * set SUID/SGID protections, if no tracing

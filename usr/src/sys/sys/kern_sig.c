@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.4 (2.11BSD GTE) 4/15/94
+ *	@(#)kern_sig.c	1.5 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -841,19 +841,19 @@ core()
 	itrunc(ip, (u_long)0);
 	u.u_acflag |= ACORE;
 	u.u_error = rdwri(UIO_WRITE, ip, &u, ctob(USIZE), (off_t)0,
-			UIO_SYSSPACE, (int *)0);
+			UIO_SYSSPACE, IO_UNIT, (int *)0);
 	if (u.u_error)
 		goto out;
 
 	estabur((u_int)0, u.u_dsize, u.u_ssize, 0, RO);
 	u.u_error = rdwri(UIO_WRITE, ip, 0, ctob(u.u_dsize), (off_t)ctob(USIZE),
-			UIO_USERSPACE, (int *)0);
+			UIO_USERSPACE, IO_UNIT, (int *)0);
 	if (u.u_error)
 		goto out;
 
 	u.u_error = rdwri(UIO_WRITE, ip, (caddr_t)(-(ctob(u.u_ssize))), ctob(u.u_ssize),
 			(off_t)ctob(USIZE) + (off_t)ctob(u.u_dsize),
-			 UIO_USERSPACE, (int *)0);
+			 UIO_USERSPACE, IO_UNIT, (int *)0);
 out:
 	iput(ip);
 	return (u.u_error == 0);

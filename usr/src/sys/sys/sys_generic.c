@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)sys_generic.c	1.4 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -49,7 +49,8 @@ read()
 	aiov.iov_len = uap->count;
 	auio.uio_iov = &aiov;
 	auio.uio_iovcnt = 1;
-	rwuio(&auio, UIO_READ);
+	auio.uio_rw = UIO_READ;
+	rwuio(&auio);
 }
 
 readv()
@@ -68,11 +69,12 @@ readv()
 	}
 	auio.uio_iov = aiov;
 	auio.uio_iovcnt = uap->iovcnt;
+	auio.uio_rw = UIO_READ;
 	u.u_error = copyin((caddr_t)uap->iovp, (caddr_t)aiov,
 	    uap->iovcnt * sizeof (struct iovec));
 	if (u.u_error)
 		return;
-	rwuio(&auio, UIO_READ);
+	rwuio(&auio);
 }
 
 /*
@@ -90,9 +92,10 @@ write()
 
 	auio.uio_iov = &aiov;
 	auio.uio_iovcnt = 1;
+	auio.uio_rw = UIO_WRITE;
 	aiov.iov_base = uap->cbuf;
 	aiov.iov_len = uap->count;
-	rwuio(&auio, UIO_WRITE);
+	rwuio(&auio);
 }
 
 writev()
@@ -111,27 +114,28 @@ writev()
 	}
 	auio.uio_iov = aiov;
 	auio.uio_iovcnt = uap->iovcnt;
+	auio.uio_rw = UIO_WRITE;
 	u.u_error = copyin((caddr_t)uap->iovp, (caddr_t)aiov,
 	    uap->iovcnt * sizeof (struct iovec));
 	if (u.u_error)
 		return;
-	rwuio(&auio, UIO_WRITE);
+	rwuio(&auio);
 }
 
-rwuio(uio, rw)
+static
+rwuio(uio)
 	register struct uio *uio;
-	enum uio_rw rw;
 {
 	struct a {
 		int	fdes;
 	};
-	struct file *fp;
+	register struct file *fp;
 	register struct iovec *iov;
 	u_int i, count;
 	off_t	total;
 
 	GETF(fp, ((struct a *)u.u_ap)->fdes);
-	if ((fp->f_flag&(rw==UIO_READ ? FREAD : FWRITE)) == 0) {
+	if ((fp->f_flag & (uio->uio_rw == UIO_READ ? FREAD : FWRITE)) == 0) {
 		u.u_error = EBADF;
 		return;
 	}
@@ -171,7 +175,7 @@ rwuio(uio, rw)
 				u.u_eosys = RESTARTSYS;
 		}
 	} else
-		u.u_error = (*Fops[fp->f_type]->fo_rw)(fp, rw, uio);
+		u.u_error = (*Fops[fp->f_type]->fo_rw)(fp, uio);
 	u.u_r.r_val1 = count - uio->uio_resid;
 }
 
@@ -181,25 +185,26 @@ rwuio(uio, rw)
 ioctl()
 {
 	register struct file *fp;
-	struct a {
+	register struct a {
 		int	fdes;
 		long	cmd;
 		caddr_t	cmarg;
 	} *uap;
 	long com;
-	register u_int k_com;
+	u_int k_com;
 	register u_int size;
 	char data[IOCPARM_MASK+1];
 
 	uap = (struct a *)u.u_ap;
-	GETF(fp, uap->fdes);
+	if ((fp = getf(uap->fdes)) == NULL)
+		return;
 	if ((fp->f_flag & (FREAD|FWRITE)) == 0) {
 		u.u_error = EBADF;
 		return;
 	}
 	com = uap->cmd;
 
-	/* THE 2.10 KERNEL STILL THINKS THAT IOCTL COMMANDS ARE 16 BITS */
+	/* THE 2.11 KERNEL STILL THINKS THAT IOCTL COMMANDS ARE 16 BITS */
 	k_com = (u_int)com;
 
 	if (k_com == FIOCLEX) {
@@ -245,7 +250,7 @@ ioctl()
 	switch (k_com) {
 
 	case FIONBIO:
-		u.u_error = fset(fp, FNDELAY, *(int *)data);
+		u.u_error = fset(fp, FNONBLOCK, *(int *)data);
 		return;
 
 	case FIOASYNC:
@@ -287,7 +292,8 @@ select()
 	} *uap = (struct uap *)u.u_ap;
 	fd_set ibits[3], obits[3];
 	struct timeval atv;
-	int s, ncoll, ni;
+	register int s, ni;
+	int ncoll;
 	label_t lqsave;
 
 	bzero((caddr_t)ibits, sizeof(ibits));
@@ -397,8 +403,8 @@ selscan(ibits, obits, nfd)
 	int nfd;
 {
 	register int i, j;
-	register fd_mask bits;
-	int which, flag;
+	fd_mask bits;
+	register int which, flag;
 	struct file *fp;
 	int n = 0;
 
@@ -467,13 +473,12 @@ selwakeup(p, coll)
 	restormap(map);
 }
 
-sorw(fp, rw, uio)
+sorw(fp, uio)
 	register struct file *fp;
-	register enum uio_rw rw;
 	register struct uio *uio;
 {
 #ifdef	INET
-	if (rw == UIO_READ)
+	if (uio->uio_rw == UIO_READ)
 		return(SORECEIVE((struct socket *)fp->f_socket, 0, uio, 0, 0));
 	return(SOSEND((struct socket *)fp->f_socket, 0, uio, 0, 0));
 #else
@@ -482,9 +487,9 @@ sorw(fp, rw, uio)
 }
 
 soctl(fp, com, data)
-	register struct file *fp;
-	register u_int	com;
-	register char	*data;
+	struct file *fp;
+	u_int	com;
+	char	*data;
 	{
 #ifdef	INET
 	return (SOO_IOCTL(fp, com, data));
@@ -494,8 +499,8 @@ soctl(fp, com, data)
 }
 
 sosel(fp, flag)
-	register struct file *fp;
-	register int	flag;
+	struct file *fp;
+	int	flag;
 {
 #ifdef	INET
 	return (SOO_SELECT(fp, flag));

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.5 (2.11BSD GTE) 4/21/94
+ *	@(#)init_sysent.c	1.6 (2.11BSD GTE) 11/26/94
  */
 
 /*
@@ -39,7 +39,7 @@ int	gldav();					/* 2BSD calls */
 
 /* 1.5 descriptors */
 int	getdtablesize(),dup(),dup2(),close();
-int	select(),getdopt(),setdopt(),fcntl(),flock();
+int	select(),fcntl(),flock();
 
 /* 1.6 resource controls */
 int	getpriority(),setpriority(),getrusage(),getrlimit(),setrlimit();
@@ -54,7 +54,7 @@ int	read(),write(),readv(),writev(),ioctl();
 
 /* 2.2 file system */
 int	chdir(), fchdir(), chroot();
-int	mkdir(),rmdir();
+int	mkdir(),rmdir(), chflags(), fchflags();
 int	creat(),open(),mknod(),unlink(),stat(),fstat(),lstat();
 int	chown(),fchown(),chmod(),fchmod(),utimes();
 int	link(),symlink(),readlink(),rename();
@@ -122,8 +122,8 @@ struct sysent sysent[] = {
 	3, mknod,			/*  14 = mknod */
 	2, chmod,			/*  15 = chmod */
 	3, chown,			/*  16 = chown; now 3 args */
-	0, nosys,			/*  17 = old break */
-	0, nosys,			/*  18 = old stat */
+	2, chflags,			/*  17 = chflags */
+	2, fchflags,			/*  18 = fchflags */
 	4, lseek,			/*  19 = lseek */
 	0, getpid,			/*  20 = getpid */
 	3, smount,			/*  21 = mount */
@@ -196,10 +196,10 @@ struct sysent sysent[] = {
 	2, sethostname,			/*  88 = sethostname */
 	0, getdtablesize,		/*  89 = getdtablesize */
 	2, dup2,			/*  90 = dup2 */
-	2, getdopt,			/*  91 = getdopt */
+	0, nosys,			/*  91 = unused */
 	3, fcntl,			/*  92 = fcntl */
 	5, select,			/*  93 = select */
-	2, setdopt,			/*  94 = setdopt */
+	0, nosys,			/*  94 = unused */
 	1, fsync,			/*  95 = fsync */
 	3, setpriority,			/*  96 = setpriority */
 	errnet(3, socket),		/*  97 = socket */

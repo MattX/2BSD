@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	1.5 (2.11BSD GTE) 3/12/93
+ *	@(#)init_main.c	1.6 (2.11BSD GTE) 12/15/94
  */
 
 #include "param.h"
@@ -30,6 +30,8 @@
 
 int	netoff = 1;
 int	cmask = CMASK;
+int	securelevel = -1;
+
 extern	size_t physmem;
 extern	struct	mapent _coremap[];
 
@@ -323,7 +325,7 @@ netinit()
 		goto leave;
 	}
 	err = rdwri(UIO_READ, ip, &ex, sizeof (ex), (off_t)0, UIO_SYSSPACE,
-			&resid);
+			IO_UNIT, &resid);
 	if (err || resid) {
 		printf("%s header err %d\n", NETNIX, ret);
 		goto leave;
@@ -345,7 +347,7 @@ netinit()
 	off = sizeof (ex);
 	for (i = 0; i < nettsize; i++) {
 		err = rdwri(UIO_READ, ip, oneclick, ctob(1), off, UIO_SYSSPACE,
-				&resid);
+				IO_UNIT, &resid);
 		if (err || resid)
 			goto release;
 		mapseg5(nettext + i, 077406);
@@ -355,7 +357,7 @@ netinit()
 	}
 	for (i = 0; i < initdata; i++) {
 		err = rdwri(UIO_READ, ip, oneclick, ctob(1), off, UIO_SYSSPACE,
-				&resid);
+				IO_UNIT, &resid);
 		if (err || resid)
 			goto release;
 		mapseg5(netdata + i, 077406);
@@ -365,7 +367,7 @@ netinit()
 	}
 	if (ex.a_data & 077) {
 		err = rdwri(UIO_READ, ip, oneclick, ex.a_data & 077, off,
-				UIO_SYSSPACE, &resid);
+				UIO_SYSSPACE, IO_UNIT, &resid);
 		if (err || resid) {
 release:		printf("%s err %d\n", NETNIX, err);
 			mfree(coremap, nettsize, nettext);
@@ -396,7 +398,7 @@ leave:	if (ip)
 		iput(ip);
 	u.u_error = 0;
 	ndp->ni_dirp = 0;
-	ndp->ni_segflg = 0;
+	ndp->ni_segflg = UIO_USERSPACE;
 	ndp->ni_endoff = 0;
 	bzero(&u.u_ncache, sizeof(u.u_ncache));
 	bzero(&ndp->ni_dent, sizeof(ndp->ni_dent));

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.3 (2.11BSD GTE) 4/21/94
+ *	@(#)syscalls.c	1.4 (2.11BSD GTE) 11/26/94
  */
 
 /*
@@ -28,8 +28,8 @@ char *syscallnames[] = {
 	"mknod",		/*  14 = mknod */
 	"chmod",		/*  15 = chmod */
 	"chown",		/*  16 = chown; now 3 args */
-	"old break - nosys",	/*  17 = old break */
-	"old stat - nosys",	/*  18 = old stat */
+	"chflags",		/*  17 = chflags */
+	"fchflags",		/*  18 = fchflags */
 	"lseek",		/*  19 = lseek */
 	"getpid",		/*  20 = getpid */
 	"mount",		/*  21 = mount */
@@ -102,10 +102,10 @@ char *syscallnames[] = {
 	"sethostname",		/*  88 = sethostname */
 	"getdtablesize",	/*  89 = getdtablesize */
 	"dup2",			/*  90 = dup2 */
-	"getdopt",		/*  91 = getdopt */
+	"nosys",		/*  91 = unused */
 	"fcntl",		/*  92 = fcntl */
 	"select",		/*  93 = select */
-	"setdopt",		/*  94 = setdopt */
+	"nosys",		/*  94 = unused */
 	"fsync",		/*  95 = fsync */
 	"setpriority",		/*  96 = setpriority */
 	"socket",		/*  97 = socket */

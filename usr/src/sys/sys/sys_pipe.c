@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_pipe.c	1.2 (2.11BSD GTE) 12/27/92
+ *	@(#)sys_pipe.c	1.3 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -85,20 +85,21 @@ pipe()
 	ip->i_flag = IACC|IUPD|ICHG|IPIPE;
 }
 
-pipe_rw(fp, rw, uio)
+pipe_rw(fp, uio, flag)
 	register struct file *fp;
-	register enum uio_rw rw;
 	register struct uio *uio;
+	int flag;
 {
 
-	if (rw == UIO_READ)
-		return (readp(fp, uio));
-	return (writep(fp, uio));
+	if (uio->uio_rw == UIO_READ)
+		return (readp(fp, uio, flag));
+	return (writep(fp, uio, flag));
 }
 
-readp(fp, uio)
+readp(fp, uio, flag)
 	register struct file *fp;
 	register struct	uio *uio;
+	int flag;
 {
 	register struct inode *ip;
 	int error;
@@ -108,7 +109,7 @@ loop:
 	/* Very conservative locking. */
 	ILOCK(ip);
 
-	/* If nothing in the pipe, wait (unless FNDELAY is set). */
+	/* If nothing in the pipe, wait (unless FNONBLOCK is set). */
 	if (ip->i_size == 0) {
 		/*
 		 * If there are not both reader and writer active,
@@ -117,16 +118,15 @@ loop:
 		IUNLOCK(ip);
 		if (ip->i_count != 2)
 			return (0);
-		if (fp->f_flag & FNDELAY)
+		if (fp->f_flag & FNONBLOCK)
 			return (EWOULDBLOCK);
 		ip->i_mode |= IREAD;
 		sleep((caddr_t)ip+2, PPIPE);
 		goto loop;
 	}
 
-	/* Read and return */
 	uio->uio_offset = fp->f_offset;
-	error = rwip(ip, uio, UIO_READ);
+	error = rwip(ip, uio, flag);
 	fp->f_offset = uio->uio_offset;
 
 	/*
@@ -150,9 +150,10 @@ loop:
 	return (error);
 }
 
-writep(fp, uio)
+writep(fp, uio, flag)
 	struct file *fp;
 	register struct	uio *uio;
+	int flag;
 {
 	register struct inode *ip;
 	register int c;
@@ -161,7 +162,7 @@ writep(fp, uio)
 	ip = (struct inode *)fp->f_data;
 	c = uio->uio_resid;
 	ILOCK(ip);
-	if ((fp->f_flag & FNDELAY) && ip->i_size + c >= MAXPIPSIZ) {
+	if ((fp->f_flag & FNONBLOCK) && ip->i_size + c >= MAXPIPSIZ) {
 		error = EWOULDBLOCK;
 		goto done;
 	}
@@ -204,7 +205,7 @@ done:		IUNLOCK(ip);
 	uio->uio_offset = ip->i_size;
 	uio->uio_resid = MIN((u_int)c, (u_int)MAXPIPSIZ);
 	c -= uio->uio_resid;
-	error = rwip(ip, uio, UIO_WRITE);
+	error = rwip(ip, uio, flag);
 	if (ip->i_mode&IREAD) {
 		ip->i_mode &= ~IREAD;
 		wakeup((caddr_t)ip+2);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	2.1 (2.11BSD) 3/10/93
+ *	@(#)kern_acct.c	2.2 (2.11BSD) 11/26/94
  */
 
 #include "param.h"
@@ -134,7 +134,7 @@ acct()
 	ap->ac_flag = u.u_acflag;
 	siz = ip->i_size;
 	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), siz,
-			UIO_SYSSPACE, (int *)0);
+			UIO_SYSSPACE, IO_UNIT|IO_APPEND, (int *)0);
 	if (u.u_error)
 		itrunc(ip, (u_long)siz);
 	iunlock(ip);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)sys_inode.c	1.2 (2.11BSD GTE) 12/8/94
  */
 
 #include "param.h"
@@ -23,6 +23,7 @@
 #include "tty.h"
 #include "kernel.h"
 #include "systm.h"
+#include "syslog.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
@@ -31,36 +32,50 @@ int	ino_rw(), ino_ioctl(), ino_select(), ino_close();
 struct 	fileops inodeops =
 	{ ino_rw, ino_ioctl, ino_select, ino_close };
 
-ino_rw(fp, rw, uio)
+ino_rw(fp, uio)
 	struct file *fp;
-	enum uio_rw rw;
 register struct uio *uio;
 {
 	register struct inode *ip = (struct inode *)fp->f_data;
 	u_int count, error;
+	int ioflag;
 
 	if ((ip->i_mode&IFMT) != IFCHR)
 		ILOCK(ip);
-	if ((ip->i_mode&IFMT) == IFREG &&
-	    (fp->f_flag&FAPPEND) &&
-	    rw == UIO_WRITE)
-		fp->f_offset = ip->i_size;
 	uio->uio_offset = fp->f_offset;
 	count = uio->uio_resid;
-	error = rwip(ip, uio, rw);
-	fp->f_offset += count - uio->uio_resid;
+	if	(uio->uio_rw == UIO_READ)
+		{
+		error = rwip(ip, uio, fp->f_flag & FNONBLOCK ? IO_NDELAY : 0);
+		fp->f_offset += (count - uio->uio_resid);
+		}
+	else
+		{
+		ioflag = 0;
+		if	((ip->i_mode&IFMT) == IFREG && (fp->f_flag & FAPPEND))
+			ioflag |= IO_APPEND;
+		if	(fp->f_flag & FNONBLOCK)
+			ioflag |= IO_NDELAY;
+		error = rwip(ip, uio, ioflag);
+		if	(ioflag & IO_APPEND)
+			fp->f_offset = uio->uio_offset;
+		else
+			fp->f_offset += (count - uio->uio_resid);
+		}
 	if ((ip->i_mode&IFMT) != IFCHR)
 		IUNLOCK(ip);
 	return (error);
 }
 
-rdwri(rw, ip, base, len, offset, segflg, aresid)
+rdwri(rw, ip, base, len, offset, segflg, ioflg, aresid)
+	enum uio_rw rw;
 	struct inode *ip;
 	caddr_t base;
-	int len, segflg;
+	int len;
 	off_t offset;
+	enum uio_seg segflg;
+	int ioflg;
 register int *aresid;
-	enum uio_rw rw;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -70,10 +85,11 @@ register int error;
 	auio.uio_iovcnt = 1;
 	aiov.iov_base = base;
 	aiov.iov_len = len;
+	auio.uio_rw = rw;
 	auio.uio_resid = len;
 	auio.uio_offset = offset;
 	auio.uio_segflg = segflg;
-	error = rwip(ip, &auio, rw);
+	error = rwip(ip, &auio, ioflg);
 	if (aresid)
 		*aresid = auio.uio_resid;
 	else
@@ -82,40 +98,72 @@ register int error;
 	return (error);
 }
 
-rwip(ip, uio, rw)
+rwip(ip, uio, ioflag)
 	register struct inode *ip;
 	register struct uio *uio;
-	enum uio_rw rw;
+	int ioflag;
 {
 	dev_t dev = (dev_t)ip->i_rdev;
-	struct buf *bp;
+	register struct buf *bp;
+	off_t osize;
 	daddr_t lbn, bn;
-	register int n, on, type;
+	int n, on, type, resid;
 	int error = 0;
 
 #ifdef	DIAGNOSTIC
-	if (rw != UIO_READ && rw != UIO_WRITE)
+	if (uio->uio_rw != UIO_READ && uio->uio_rw != UIO_WRITE)
 		panic("rwip");
 #endif
-	if (rw == UIO_READ && uio->uio_resid == 0)
-		return (0);
 	if (uio->uio_offset < 0)
 		return (EINVAL);
-	if (rw == UIO_READ)
-		ip->i_flag |= IACC;
 	type = ip->i_mode&IFMT;
+/*
+ * The write case below checks that i/o is done synchronously to directories
+ * and that i/o to append only files takes place at the end of file.  The
+ * 'log()' statements below should be ifdef'd.  Also, we do not panic on 
+ * non-sync directory i/o - the sync bit is forced on.
+*/
+	if (uio->uio_rw == UIO_READ)
+		ip->i_flag |= IACC;
+	else
+	   {
+	   switch (type)
+		{
+		case IFREG:
+		    if	(ioflag & IO_APPEND)
+			uio->uio_offset = ip->i_size;
+		    if	(ip->i_flags & APPEND && uio->uio_offset != ip->i_size)
+			return(EPERM);
+		    break;
+		case IFDIR:
+		    if  ((ioflag & IO_SYNC) == 0)
+			{
+			log(LOG_ERR, "rwip sync\n");
+			ioflag |= IO_SYNC;
+			}
+		    break;
+		case IFLNK:
+		case IFBLK:
+		case IFCHR:
+		    break;
+		default:
+		    log(LOG_ERR, "rwip: %d\n", type);
+		    return(EFTYPE);
+		}
+	   }
+
 	if (type == IFCHR) {
-		if (rw == UIO_READ)
-			error = (*cdevsw[major(dev)].d_read)(dev, uio);
+		if (uio->uio_rw == UIO_READ)
+			error = (*cdevsw[major(dev)].d_read)(dev, uio, ioflag);
 		else {
 			ip->i_flag |= IUPD|ICHG;
-			error = (*cdevsw[major(dev)].d_write)(dev, uio);
+			error = (*cdevsw[major(dev)].d_write)(dev, uio, ioflag);
 		}
 		return (error);
 	}
 	if (uio->uio_resid == 0)
 		return (0);
-	if (rw == UIO_WRITE && type == IFREG &&
+	if (uio->uio_rw == UIO_WRITE && type == IFREG &&
 	    uio->uio_offset + uio->uio_resid >
 	      u.u_rlimit[RLIMIT_FSIZE].rlim_cur) {
 		psignal(u.u_procp, SIGXFSZ);
@@ -130,7 +178,7 @@ rwip(ip, uio, rw)
 	 * can you say slow?  i knew you could.  SMS
 	*/
 	if ((type == IFREG || type == IFDIR || type == IFLNK) && 
-	    rw == UIO_WRITE && !(ip->i_flag & IPIPE)) {
+	    uio->uio_rw == UIO_WRITE && !(ip->i_flag & IPIPE)) {
 		if (uio->uio_offset + uio->uio_resid > ip->i_size) {
 			QUOTAMAP();
 			error = chkdq(ip, 
@@ -143,12 +191,15 @@ rwip(ip, uio, rw)
 #endif
 	if (type != IFBLK)
 		dev = ip->i_dev;
+	resid = uio->uio_resid;
+	osize = ip->i_size;
+
 	do {
 		lbn = lblkno(uio->uio_offset);
 		on = blkoff(uio->uio_offset);
 		n = MIN((u_int)(DEV_BSIZE - on), uio->uio_resid);
 		if (type != IFBLK) {
-			if (rw == UIO_READ) {
+			if (uio->uio_rw == UIO_READ) {
 				off_t diff = ip->i_size - uio->uio_offset;
 				if (diff <= 0)
 					return (0);
@@ -158,16 +209,16 @@ rwip(ip, uio, rw)
 			}
 			else
 				bn = bmap(ip,lbn,B_WRITE,n == DEV_BSIZE ? 0: 1);
-			if (u.u_error || rw == UIO_WRITE && (long)bn<0)
+			if (u.u_error || uio->uio_rw == UIO_WRITE && (long)bn<0)
 				return (u.u_error);
-			if (rw == UIO_WRITE && uio->uio_offset + n > ip->i_size &&
+			if (uio->uio_rw == UIO_WRITE && uio->uio_offset + n > ip->i_size &&
 			   (type == IFDIR || type == IFREG || type == IFLNK))
 				ip->i_size = uio->uio_offset + n;
 		} else {
 			bn = lbn;
 			rablock = bn + 1;
 		}
-		if (rw == UIO_READ) {
+		if (uio->uio_rw == UIO_READ) {
 			if ((long)bn<0) {
 				bp = geteblk();
 				clrbuf(bp);
@@ -195,12 +246,11 @@ rwip(ip, uio, rw)
 		if (bp->b_flags & B_ERROR) {
 			error = EIO;
 			brelse(bp);
-			goto bad;
+			break;
 		}
-		u.u_error =
-		    uiomove(mapin(bp)+on, n, rw, uio);
+		u.u_error = uiomove(mapin(bp)+on, n, uio);
 		mapout(bp);
-		if (rw == UIO_READ) {
+		if (uio->uio_rw == UIO_READ) {
 			if (n + on == DEV_BSIZE || uio->uio_offset == ip->i_size) {
 				bp->b_flags |= B_AGE;
 				if (ip->i_flag & IPIPE)
@@ -208,7 +258,7 @@ rwip(ip, uio, rw)
 			}
 			brelse(bp);
 		} else {
-			if ((ip->i_mode&IFMT) == IFDIR)
+			if (ioflag & IO_SYNC)
 				bwrite(bp);
 			else if (n + on == DEV_BSIZE && !(ip->i_flag & IPIPE)) {
 				bp->b_flags |= B_AGE;
@@ -222,21 +272,35 @@ rwip(ip, uio, rw)
 	} while (u.u_error == 0 && uio->uio_resid && n != 0);
 	if (error == 0)				/* XXX */
 		error = u.u_error;		/* XXX */
-bad:
+	if (error && (uio->uio_rw == UIO_WRITE) && (ioflag & IO_UNIT) && 
+		(type != IFBLK)) {
+		itrunc(ip, osize);
+		uio->uio_offset -= (resid - uio->uio_resid);
+		uio->uio_resid = resid;
+/*
+ * Should back out the change to the quota here but that would be a lot
+ * of work for little benefit.  Besides we've already made the assumption
+ * that the entire write would succeed and users can't turn on the IO_UNIT
+ * bit for their writes anyways.
+*/
+	}
+#ifdef whybother
+	if (!error && (ioflag & IO_SYNC))
+		IUPDAT(ip, &time, &time, 1);
+#endif
 	return (error);
 }
 
 
 ino_ioctl(fp, com, data)
-	struct file *fp;
+	register struct file *fp;
 	register u_int com;
 	caddr_t data;
 {
 	register struct inode *ip = ((struct inode *)fp->f_data);
-	register int fmt = ip->i_mode & IFMT;
 	dev_t dev;
 
-	switch (fmt) {
+	switch (ip->i_mode & IFMT) {
 
 	case IFREG:
 	case IFDIR:
@@ -263,8 +327,7 @@ ino_ioctl(fp, com, data)
 			u.u_eosys = RESTARTSYS;
 			return (0);
 		}
-		return ((*cdevsw[major(dev)].d_ioctl)(dev, com, data,
-		    fp->f_flag));
+		return((*cdevsw[major(dev)].d_ioctl)(dev,com,data,fp->f_flag));
 	}
 }
 
@@ -290,41 +353,19 @@ ino_stat(ip, sb)
 	register struct inode *ip;
 	register struct stat *sb;
 {
+	register struct icommon2 *ic2;
 
-#ifndef	EXTERNALITIMES
-	ITIMES(ip, &time, &time);
-	/*
-	 * Copy from inode table
-	 */
-	sb->st_dev = ip->i_dev;
-	sb->st_ino = ip->i_number;
-	sb->st_mode = ip->i_mode;
-	sb->st_nlink = ip->i_nlink;
-	sb->st_uid = ip->i_uid;
-	sb->st_gid = ip->i_gid;
-	sb->st_rdev = (dev_t)ip->i_rdev;
-	sb->st_size = ip->i_size;
-	sb->st_atime = ip->i_atime;
-	sb->st_spare1 = 0;
-	sb->st_mtime = ip->i_mtime;
-	sb->st_spare2 = 0;
-	sb->st_ctime = ip->i_ctime;
-	sb->st_spare3 = 0;
-	sb->st_blksize = MAXBSIZE;
-	/*
-	 * blocks are too tough to do; it's not worth the effort.
-	 */
-	sb->st_blocks = btodb(ip->i_size + MAXBSIZE - 1);
-	sb->st_spare4[0] = sb->st_spare4[1] = 0;
-#else
-	/*
-	 * ITIMES is inlined to avoid mapping twice, once in the macro and a
-	 * second time to fill in the stat structure.
-	 */
-	struct icommon2 *ic2 = &((struct icommon2 *)SEG5)[ip - inode];
-
+#ifdef	EXTERNALITIMES
 	mapseg5(xitimes, xitdesc);
-	if (ip->i_flag & (IUPD | IACC | ICHG)) {
+	ic2 = &((struct icommon2 *)SEG5)[ip - inode];
+#else
+	ic2 = &ip->i_ic2;
+#endif
+
+/*
+ * inlined ITIMES which takes advantage of the common times pointer.
+*/
+	if (ip->i_flag & (IUPD|IACC|ICHG)) {
 		ip->i_flag |= IMOD;
 		if (ip->i_flag & IACC)
 			ic2->ic_atime = time.tv_sec;
@@ -332,7 +373,7 @@ ino_stat(ip, sb)
 			ic2->ic_mtime = time.tv_sec;
 		if (ip->i_flag & ICHG)
 			ic2->ic_ctime = time.tv_sec;
-		ip->i_flag &= ~(IACC | IUPD | ICHG);
+		ip->i_flag &= ~(IUPD|IACC|ICHG);
 	}
 	sb->st_dev = ip->i_dev;
 	sb->st_ino = ip->i_number;
@@ -353,7 +394,11 @@ ino_stat(ip, sb)
 	 * blocks are too tough to do; it's not worth the effort.
 	 */
 	sb->st_blocks = btodb(ip->i_size + MAXBSIZE - 1);
-	sb->st_spare4[0] = sb->st_spare4[1] = 0;
+	sb->st_flags = ip->i_flags;
+	sb->st_spare4[0] = 0;
+	sb->st_spare4[1] = 0;
+	sb->st_spare4[2] = 0;
+#ifdef	EXTERNALITIMES
 	normalseg5();
 #endif
 	return (0);
@@ -368,8 +413,8 @@ ino_close(fp)
 	dev_t dev;
 	int (*cfunc)();
 
-	if (fp->f_flag & (FSHLOCK|FEXLOCK))
-		ino_unlock(fp, FSHLOCK|FEXLOCK);
+	if (fp->f_flag & (FSHLOCK | FEXLOCK))
+		ino_unlock(fp, FSHLOCK | FEXLOCK);
 	flag = fp->f_flag;
 	dev = (dev_t)ip->i_rdev;
 	mode = ip->i_mode & IFMT;
@@ -500,8 +545,10 @@ again:
 		sleep((caddr_t)&ip->i_shlockc, PLOCK);
 		goto again;
 	}
+#ifdef	DIAGNOSTIC
 	if (fp->f_flag & FEXLOCK)
 		panic("ino_lock");
+#endif
 	if (cmd & LOCK_EX) {
 		cmd &= ~LOCK_SH;
 		ip->i_exlockc++;
@@ -532,7 +579,7 @@ ino_unlock(fp, kind)
 	flags = ip->i_flag;
 	if (kind & FSHLOCK) {
 		if ((flags & ISHLOCK) == 0)
-			panic("ino_unlock: SHLOCK");
+			panic("SHLOCK");
 		if (--ip->i_shlockc == 0) {
 			ip->i_flag &= ~ISHLOCK;
 			if (flags & ILWAIT)
@@ -542,7 +589,7 @@ ino_unlock(fp, kind)
 	}
 	if (kind & FEXLOCK) {
 		if ((flags & IEXLOCK) == 0)
-			panic("ino_unlock: EXLOCK");
+			panic("EXLOCK");
 		if (--ip->i_exlockc == 0) {
 			ip->i_flag &= ~(IEXLOCK|ILWAIT);
 			if (flags & ILWAIT)
@@ -553,9 +600,11 @@ ino_unlock(fp, kind)
 }
 
 /*
- * Openi called to allow handler
- * of special files to initialize and
+ * Openi called to allow handler of special files to initialize and
  * validate before actual IO.
+ *
+ * Eventually the check for 'securelevel' and the MNT_NODEV mount option
+ * will go here.
  */
 openi(ip, mode)
 	register struct inode *ip;

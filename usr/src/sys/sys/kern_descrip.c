@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_descrip.c	1.2 (2.11BSD GTE) 12/24/92
+ *	@(#)kern_descrip.c	1.3 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -33,23 +33,13 @@ getdtablesize()
 	u.u_r.r_val1 = NOFILE;
 }
 
-getdopt()
-{
-
-}
-
-setdopt()
-{
-
-}
-
 dup()
 {
 	register struct a {
 		int	i;
 	} *uap = (struct a *) u.u_ap;
-	struct file *fp;
-	int j;
+	register struct file *fp;
+	register int j;
 
 	if (uap->i &~ 077) { uap->i &= 077; dup2(); return; }	/* XXX */
 
@@ -86,7 +76,7 @@ dup2()
 dupit(fd, fp, flags)
 	register int fd;
 	register struct file *fp;
-	register int flags;
+	int flags;
 {
 
 	u.u_ofile[fd] = fp;
@@ -111,7 +101,8 @@ fcntl()
 	register char *pop;
 
 	uap = (struct a *)u.u_ap;
-	GETF(fp, uap->fdes);
+	if ((fp = getf(uap->fdes)) == NULL)
+		return;
 	pop = &u.u_pofile[uap->fdes];
 	switch(uap->cmd) {
 	case F_DUPFD:
@@ -134,18 +125,18 @@ fcntl()
 		break;
 
 	case F_GETFL:
-		u.u_r.r_val1 = fp->f_flag+FOPEN;
+		u.u_r.r_val1 = OFLAGS(fp->f_flag);
 		break;
 
 	case F_SETFL:
-		fp->f_flag &= FCNTLCANT;
-		fp->f_flag |= (uap->arg-FOPEN) &~ FCNTLCANT;
-		u.u_error = fset(fp, FNDELAY, fp->f_flag & FNDELAY);
+		fp->f_flag &= ~FCNTLFLAGS;
+		fp->f_flag |= (FFLAGS(uap->arg)) & ~FCNTLFLAGS;
+		u.u_error = fset(fp, FNONBLOCK, fp->f_flag & FNONBLOCK);
 		if (u.u_error)
 			break;
 		u.u_error = fset(fp, FASYNC, fp->f_flag & FASYNC);
 		if (u.u_error)
-			(void) fset(fp, FNDELAY, 0);
+			(void) fset(fp, FNONBLOCK, 0);
 		break;
 
 	case F_GETOWN:
@@ -170,13 +161,13 @@ register struct file *fp;
 		fp->f_flag |= bit;
 	else
 		fp->f_flag &= ~bit;
-	return (fioctl(fp, (u_int)(bit == FNDELAY ? FIONBIO : FIOASYNC),
+	return (fioctl(fp, (u_int)(bit == FNONBLOCK ? FIONBIO : FIOASYNC),
 			(caddr_t)&value));
 }
 
 fgetown(fp, valuep)
-	struct file *fp;
-	int *valuep;
+	register struct file *fp;
+	register int *valuep;
 {
 	register int error;
 
@@ -192,7 +183,7 @@ fgetown(fp, valuep)
 }
 
 fsetown(fp, value)
-	struct file *fp;
+	register struct file *fp;
 	int value;
 {
 
@@ -203,7 +194,7 @@ fsetown(fp, value)
 	}
 #endif
 	if (value > 0) {
-		struct proc *p = pfind(value);
+		register struct proc *p = pfind(value);
 		if (p == 0)
 			return (ESRCH);
 		value = p->p_pgrp;
@@ -216,7 +207,7 @@ extern	struct	fileops	*Fops[];
 
 fioctl(fp, cmd, value)
 register struct file *fp;
-	int cmd;
+	u_int cmd;
 	caddr_t value;
 {
 
@@ -225,14 +216,13 @@ register struct file *fp;
 
 close()
 {
-	struct a {
+	register struct a {
 		int	i;
 	} *uap = (struct a *)u.u_ap;
-	register int i = uap->i;
 	register struct file *fp;
 
-	GETF(fp, i);
-	u.u_ofile[i] = NULL;
+	GETF(fp, uap->i);
+	u.u_ofile[uap->i] = NULL;
 	while (u.u_lastfile >= 0 && u.u_ofile[u.u_lastfile] == NULL)
 		u.u_lastfile--;
 	closef(fp);
@@ -249,7 +239,8 @@ fstat()
 	struct stat ub;
 
 	uap = (struct a *)u.u_ap;
-	GETF(fp, uap->fdes);
+	if ((fp = getf(uap->fdes)) == NULL)
+		return;
 	switch (fp->f_type) {
 
 	case DTYPE_PIPE:
@@ -265,8 +256,8 @@ fstat()
 		break;
 #endif
 	default:
-		panic("fstat");
-		/*NOTREACHED*/
+		u.u_error = EINVAL;
+		break;
 	}
 	if (u.u_error == 0)
 		u.u_error = copyout((caddr_t)&ub, (caddr_t)uap->sb,
@@ -345,7 +336,8 @@ slot:
 /*
  * Convert a user supplied file descriptor into a pointer
  * to a file structure.  Only task is to check range of the descriptor.
- * Critical paths should use the GETF macro.
+ * Critical paths should use the GETF macro unless code size is a 
+ * consideration.
  */
 struct file *
 getf(f)
@@ -389,13 +381,14 @@ flock()
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 
-	GETF(fp, uap->fd);
+	if ((fp = getf(uap->fd)) == NULL)
+		return;
 	if (fp->f_type != DTYPE_INODE) {
 		u.u_error = EOPNOTSUPP;
 		return;
 	}
 	if (uap->how & LOCK_UN) {
-		ino_unlock(fp, FSHLOCK|FEXLOCK);
+		ino_unlock(fp, FSHLOCK | FEXLOCK);
 		return;
 	}
 	if ((uap->how & (LOCK_SH | LOCK_EX)) == 0)

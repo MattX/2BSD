@@ -3,7 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	%W% (Berkeley) %G%
+ *	@(#)sys_net.c	1.3 (2.11BSD GTE) 12/15/94
+ *
+ * Change uiomove calling convention.  The r/w type is now encapsulated
+ * in the uio structure now. sms - 11/26/94
+ *
  * 2.11BSD - map the I/O region with sufficient UMRs. this precludes
  * 	       drivers such as the DEUNA from allocating a UMR per packet.
  *	       sms - 9/8/90
@@ -262,10 +266,9 @@ suser()
  * The 4.3BSD uio/iovec paradigm adopted, ureadc() and uwritec() inlined 
  * at that time to speed things up. 3/90 sms
  */
-uiomove(cp, n, rw, uio)
+uiomove(cp, n, uio)
 	caddr_t cp;
 	u_int n;
-	enum uio_rw rw;
 	register struct uio *uio;
 {
 	register struct iovec *iov;
@@ -288,7 +291,7 @@ uiomove(cp, n, rw, uio)
 			cnt = n;
 		count = cnt;
 		if ((cnt | (int)cp | (int)iov->iov_base) & 1) {
-			if (rw == UIO_READ) {
+			if (uio->uio_rw == UIO_READ) {
 				while (cnt--)
 					if (subyte(iov->iov_base++, *cp++) < 0)
 						return (EFAULT);
@@ -303,7 +306,7 @@ uiomove(cp, n, rw, uio)
 		cnt = count;	/* use register */
 		}
 		else {
-			if (rw == UIO_READ)
+			if (uio->uio_rw == UIO_READ)
 				error = copyout(cp, iov->iov_base, cnt);
 			else
 				error = copyin(iov->iov_base, cp, cnt);

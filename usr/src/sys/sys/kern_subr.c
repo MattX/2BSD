@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_subr.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_subr.c	1.2 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -15,10 +15,9 @@
 #include "uio.h"
 
 /* copied, for supervisory networking, to sys_net.c */
-uiomove(cp, n, rw, uio)
+uiomove(cp, n, uio)
 	caddr_t cp;
 	u_int n;
-	enum uio_rw rw;
 	register struct uio *uio;
 {
 	register struct iovec *iov;
@@ -39,14 +38,14 @@ uiomove(cp, n, rw, uio)
 
 		case UIO_USERSPACE:
 			if (cnt > 100 && cp + cnt < SEG6)
-				error = uiofmove(cp, cnt, rw, uio, iov);
+				error = uiofmove(cp, cnt, uio, iov);
 			else if ((cnt | (int)cp | (int)iov->iov_base) & 1)
-				if (rw == UIO_READ)
+				if (uio->uio_rw == UIO_READ)
 					error = vcopyout(cp,iov->iov_base, cnt);
 				else
 					error = vcopyin(iov->iov_base, cp, cnt);
 			else {
-				if (rw == UIO_READ)
+				if (uio->uio_rw == UIO_READ)
 					error = copyout(cp, iov->iov_base, cnt);
 				else
 					error = copyin(iov->iov_base, cp, cnt);
@@ -57,8 +56,8 @@ uiomove(cp, n, rw, uio)
 
 		case UIO_USERISPACE:
 			if (cnt > 100 && cp + cnt < SEG6)
-				error = uiofmove(cp, cnt, rw, uio, iov);
-			else if (rw == UIO_READ)
+				error = uiofmove(cp, cnt, uio, iov);
+			else if (uio->uio_rw == UIO_READ)
 				error = copyiout(cp, iov->iov_base, cnt);
 			else
 				error = copyiin(iov->iov_base, cp, cnt);
@@ -67,7 +66,7 @@ uiomove(cp, n, rw, uio)
 			break;
 
 		case UIO_SYSSPACE:
-			if (rw == UIO_READ)
+			if (uio->uio_rw == UIO_READ)
 				bcopy((caddr_t)cp, iov->iov_base, cnt);
 			else
 				bcopy(iov->iov_base, (caddr_t)cp, cnt);
@@ -176,10 +175,9 @@ again:
  * language helper routine, fmove, uses segment register 6 to map in the
  * user's memory.
  */
-uiofmove(cp, n, rw, uio, iov)
+uiofmove(cp, n, uio, iov)
 	caddr_t cp;
 	register int n;
-	enum uio_rw rw;
 	struct uio *uio;
 	struct iovec *iov;
 {
@@ -208,7 +206,7 @@ uiofmove(cp, n, rw, uio, iov)
 	on = (short)iov->iov_base & 017777;
 	c = MIN(n, 8192-on);
 	for (;;) {
-		if (rw == UIO_READ)
+		if (uio->uio_rw == UIO_READ)
 			error = fmove(sega[segr], segd[segr], cp, SEG6+on, c);
 		else
 			error = fmove(sega[segr], segd[segr], SEG6+on, cp, c);
