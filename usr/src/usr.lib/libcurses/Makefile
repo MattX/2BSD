@@ -2,7 +2,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (2.11BSD GTE) 1/2/94
+#	@(#)Makefile	5.2.1 (2.11BSD) 1999/10/24
 #
 # curses package
 #
@@ -25,7 +25,7 @@ CFLAGS=	-O $(DEFS)
 TAGSFILE=tags
 
 .c.o:
-	${CC} -c -pg ${CFLAGS} $*.c
+	${CC} -c -p ${CFLAGS} $*.c
 	ld -x -r $*.o
 	mv a.out profiled/$*.o
 	${CC} -c ${CFLAGS} $*.c

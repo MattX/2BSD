@@ -7,27 +7,23 @@
  * For more info on this and all of my stuff, mail edjames@berkeley.edu.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)update.c	1.3 (Berkeley) 12/26/87";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)update.c	1.3.1 (2.11BSD) 1999/10/25";
+#endif
 
 #include "include.h"
 
 update()
 {
-	int	i, dir_diff, mask, unclean;
+	int	i, dir_diff, unclean;
 	PLANE	*pp, *p1, *p2, *p;
+	sigset_t set, oset;
 
-#ifdef BSD
-	mask = sigblock(sigmask(SIGINT));
-#endif
-#ifdef SYSV
-	alarm(0);
-	signal(SIGALRM, update);
-#endif
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	(void)sigprocmask(SIG_BLOCK, &set, &oset);
 
 	clock++;
-
 	erase_all();
 
 	/* put some planes in the air */
@@ -175,12 +171,7 @@ update()
 	if ((rand() % sp->newplane_time) == 0)
 		addplane();
 
-#ifdef BSD
-	sigsetmask(mask);
-#endif
-#ifdef SYSV
-	alarm(sp->update_secs);
-#endif
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 }
 
 char *

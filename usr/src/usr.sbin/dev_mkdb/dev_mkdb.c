@@ -36,9 +36,10 @@ static char copyright[] =
 "@(#) Copyright (c) 1990, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)dev_mkdb.c	8.1.1 (2.11BSD GTE) 2/3/95";
+static char sccsid[] = "@(#)dev_mkdb.c	8.1.2 (2.11BSD) 1999/10/24";
 #endif
 
+#include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -47,7 +48,6 @@ static char sccsid[] = "@(#)dev_mkdb.c	8.1.1 (2.11BSD GTE) 2/3/95";
 #include <stdio.h>
 #include <paths.h>
 
-extern	int	optind;
 extern	void	err();
 	void	usage();
 
@@ -56,6 +56,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
+	sigset_t set;
 	register DIR *dirp;
 	register struct direct *dp;
 	struct stat sb;
@@ -131,7 +132,9 @@ main(argc, argv)
 	}
 	(void)dbm_close(db);
 
-	sigsetmask(~0L);
+	(void)sigfillset(&set);
+	(void)sigprocmask(SIG_BLOCK, &set, NULL);
+
 	sprintf(dbname, "%sdev.pag", varrun);
 	sprintf(dbtmp,  "%sdev.tmp.pag", varrun);
 	if (rename(dbtmp, dbname))

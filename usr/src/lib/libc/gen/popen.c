@@ -35,7 +35,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)popen.c	5.15 (Berkeley) 2/23/91";
+static char sccsid[] = "@(#)popen.c	5.15.1 (2.11BSD) 1999/10/24";
 #endif /* LIBC_SCCS and not lint */
 
 #include <errno.h>
@@ -45,7 +45,6 @@ static char sccsid[] = "@(#)popen.c	5.15 (Berkeley) 2/23/91";
 #include <stdio.h>
 
 static int *pids;
-extern int errno;
 
 FILE *
 popen(program, type)
@@ -108,7 +107,7 @@ pclose(iop)
 	FILE *iop;
 {
 	register int fdes;
-	long omask;
+	sigset_t omask, nmask;
 	union wait pstat;
 	register int pid;
 
@@ -120,11 +119,15 @@ pclose(iop)
 	if (pids == NULL || pids[fdes = fileno(iop)] == 0)
 		return (-1);
 	(void) fclose(iop);
-	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
+	sigemptyset(&nmask);
+	sigaddset(&nmask, SIGINT);
+	sigaddset(&nmask, SIGQUIT);
+	sigaddset(&nmask, SIGHUP);
+	(void) sigprocmask(SIG_BLOCK, &nmask, &omask);
 	do {
 		pid = waitpid(pids[fdes], (int *) &pstat, 0);
 	} while (pid == -1 && errno == EINTR);
-	(void) sigsetmask(omask);
+	(void) sigprocmask(SIG_SETMASK, &omask, NULL);
 	pids[fdes] = 0;
 	return (pid == -1 ? -1 : pstat.w_status);
 }

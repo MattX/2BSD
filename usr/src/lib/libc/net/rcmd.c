@@ -16,12 +16,13 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)rcmd.c	5.20 (Berkeley) 1/24/89";
+static char sccsid[] = "@(#)rcmd.c	5.20.1 (2.11BSD) 1999/10/24";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
+#include <string.h>
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/signal.h>
@@ -33,9 +34,6 @@ static char sccsid[] = "@(#)rcmd.c	5.20 (Berkeley) 1/24/89";
 #include <netdb.h>
 #include <errno.h>
 
-extern	errno;
-char	*index();
-
 rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 	char **ahost;
 	u_short rport;
@@ -43,7 +41,7 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 	int *fd2p;
 {
 	int s, timo = 1, pid;
-	long oldmask;
+	sigset_t oldmask, nmask;
 	struct sockaddr_in sin, sin2, from;
 	char c;
 	int lport = IPPORT_RESERVED - 1;
@@ -57,7 +55,10 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 		return (-1);
 	}
 	*ahost = hp->h_name;
-	oldmask = sigblock(sigmask(SIGURG));
+	sigemptyset(&nmask);
+	sigaddset(&nmask, SIGURG);
+	(void)sigprocmask(SIG_BLOCK, &nmask, &oldmask);
+
 	for (;;) {
 		s = rresvport(&lport);
 		if (s < 0) {
@@ -65,7 +66,7 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 				fprintf(stderr, "socket: All ports in use\n");
 			else
 				perror("rcmd: socket");
-			sigsetmask(oldmask);
+			sigprocmask(SIG_SETMASK, &oldmask, NULL);
 			return (-1);
 		}
 		fcntl(s, F_SETOWN, pid);
@@ -99,7 +100,7 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 			continue;
 		}
 		perror(hp->h_name);
-		sigsetmask(oldmask);
+		sigprocmask(SIG_SETMASK, &oldmask, NULL);
 		return (-1);
 	}
 	lport--;
@@ -166,14 +167,14 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 		}
 		goto bad2;
 	}
-	sigsetmask(oldmask);
+	sigprocmask(SIG_SETMASK, &oldmask, NULL);
 	return (s);
 bad2:
 	if (lport)
 		(void) close(*fd2p);
 bad:
 	(void) close(s);
-	sigsetmask(oldmask);
+	sigprocmask(SIG_SETMASK, &oldmask, NULL);
 	return (-1);
 }
 

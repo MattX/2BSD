@@ -1,6 +1,9 @@
 /* $Header: /usr/src/games/warp/RCS/sig.c,v 1.1 87/07/03 01:47:11 games Exp $ */
 
 /* $Log:	sig.c,v $
+ * Revision 7.0.1.2   99/10/24 
+ * Update to sigprocmask.
+ *
  * Revision 7.0.1.1a  87/07/03  01:47:11  games
  * Changed sigsetmask to use sigmask instead of calculating it (incorrectly)
  * by hand.
@@ -206,6 +209,8 @@ sig_catcher(signo)
 void
 stop_catcher()
 {
+    sigset_t set;
+
     if (!waiting) {
 	resetty();			/* this is the point of all this */
 #ifdef DEBUGGING
@@ -213,13 +218,11 @@ stop_catcher()
 	    write(2,"stop_catcher\r\n",13);
 #endif
 	sigset(SIGTSTP,SIG_DFL);	/* enable stop */
-#ifdef BSD42
-	sigsetmask(sigblock(0L) & ~sigmask(SIGTSTP));
-#endif
+	sigemptyset(&set);
+	sigaddset(&set, SIGTSTP);
+	(void)sigprocmask(SIG_UNBLOCK, &set, NULL);
 	kill(0,SIGTSTP);		/* and do the stop */
     }
-#ifndef lint
     sigset(SIGTSTP,stop_catcher);	/* unenable the stop */
-#endif
 }
 #endif

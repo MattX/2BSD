@@ -39,7 +39,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1987, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)disklabel.c	8.1.2 (2.11BSD) 1995/07/10";
+static char sccsid[] = "@(#)disklabel.c	8.1.3 (2.11BSD) 1999/10/25";
 /* from static char sccsid[] = "@(#)disklabel.c	1.2 (Symmetric) 11/28/85"; */
 #endif
 
@@ -53,6 +53,7 @@ static char sccsid[] = "@(#)disklabel.c	8.1.2 (2.11BSD) 1995/07/10";
 #include <sys/disklabel.h>
 #include <sys/fs.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include "pathnames.h"
@@ -87,9 +88,6 @@ char	*dkname;
 char	*specname;
 char	tmpfil[] = _PATH_TMP;
 
-extern	int errno;
-extern	long atol();
-
 char	namebuf[256], *np = namebuf;
 struct	disklabel lab;
 struct	disklabel *readlabel(), *makebootarea();
@@ -112,13 +110,10 @@ int	debug;
 #define OPTIONS	"BNRWb:erw"
 #endif
 
-
 main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	extern char *optarg;
-	extern int optind;
 	register struct disklabel *lp;
 	FILE *t;
 	int ch, f, flag, error = 0;
@@ -669,12 +664,14 @@ editit()
 {
 	register int pid, xpid;
 	int stat;
-	long omask;
-	extern char *getenv();
+	sigset_t set, oset;
 
-	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGHUP);
+	sigaddset(&set, SIGQUIT);
+	(void)sigprocmask(SIG_BLOCK, &set, &oset);
 	while ((pid = fork()) < 0) {
-		extern int errno;
 
 		if (errno == EPROCLIM) {
 			fprintf(stderr, "You have too many processes\n");
@@ -689,7 +686,7 @@ editit()
 	if (pid == 0) {
 		register char *ed;
 
-		sigsetmask(omask);
+		(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 		setgid(getgid());
 		setuid(getuid());
 		if ((ed = getenv("EDITOR")) == (char *)0)
@@ -701,7 +698,7 @@ editit()
 	while ((xpid = wait(&stat)) >= 0)
 		if (xpid == pid)
 			break;
-	sigsetmask(omask);
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 	return(!stat);
 }
 

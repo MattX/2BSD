@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)com6.c	1.3.1 1996/10/26";
+static char sccsid[] = "@(#)com6.c	1.3.2 1999/10/25";
 #endif
 
 #include "externs.h"
@@ -69,8 +69,11 @@ char ch;
 	FILE *fp;
 	struct timeval tv;
 	char *date;
-	long s = sigblock(sigmask(SIGINT));
+	sigset_t s, oset;
 
+	sigemptyset(&s);
+	sigaddset(&s, SIGINT);
+	(void)sigprocmask(SIG_BLOCK, &s, &oset);
 	gettimeofday(&tv, (struct timezone *)0);
 	date = ctime(&tv.tv_sec);
 	date[24] = '\0';
@@ -84,7 +87,7 @@ char ch;
 			fprintf(fp, "\n");
 	} else
 		perror(logfile);
-	sigsetmask(s);
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 }
 
 char *

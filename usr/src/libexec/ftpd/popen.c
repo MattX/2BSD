@@ -19,14 +19,15 @@
  *
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)popen.c	5.7 (Berkeley) 2/14/89";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)popen.c	5.7.1 (2.11BSD) 1999/10/25";
+#endif
 
 #include <sys/types.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <string.h>
 
 /*
  * Special version of popen which avoids call to shell.  This insures noone
@@ -44,7 +45,7 @@ ftpd_popen(program, type)
 	FILE *iop;
 	int argc, gargc, pdes[2], pid;
 	char **pop, *argv[100], *gargv[1000], *vv[2], **ppop, *endprogram;
-	extern char **glob(), **copyblk(), *strtok(), *malloc();
+	extern char **glob(), **copyblk(), *malloc();
 
 	if (*type != 'r' && *type != 'w' || type[1])
 		return(NULL);
@@ -132,7 +133,7 @@ ftpd_pclose(iop)
 	FILE *iop;
 {
 	register int fdes;
-	long omask;
+	sigset_t  set;
 	union wait stat_loc;
 	int pid;
 
@@ -143,9 +144,13 @@ ftpd_pclose(iop)
 	if (pids == 0 || pids[fdes = fileno(iop)] == 0)
 		return(-1);
 	(void)fclose(iop);
-	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGQUIT);
+	sigaddset(&set, SIGHUP);
+	(void)sigprocmask(SIG_BLOCK, &set, NULL);
 	while ((pid = wait(&stat_loc)) != pids[fdes] && pid != -1);
-	(void)sigsetmask(omask);
+	(void)sigprocmask(SIG_UNBLOCK, &set, NULL);
 	pids[fdes] = 0;
 	return(pid == -1 ? -1 : stat_loc.w_status);
 }

@@ -5,40 +5,56 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)tstp.c	5.1 (Berkeley) 6/7/85";
+static char sccsid[] = "@(#)tstp.c	5.1.1 (2.11BSD) 1999/10/24";
 #endif
 
-# include	<signal.h>
-
-# include	"curses.ext"
+#include	<signal.h>
+#include	"curses.ext"
 
 /*
  * handle stop and start signals
- *
- * @(#)tstp.c	5.1 (Berkeley) 6/7/85
  */
 tstp() {
-
-# ifdef SIGTSTP
-
 	SGTTY	tty;
-	long	omask;
-# ifdef DEBUG
+	sigset_t oset, set;
+#ifdef DEBUG
 	if (outf)
 		fflush(outf);
-# endif
+#endif
+	/*
+	 * Block window change and timer signals.  The latter is because
+	 * applications use timers to decide when to repaint the screen.
+	 */
+	(void)sigemptyset(&set);
+	(void)sigaddset(&set, SIGALRM);
+	(void)sigaddset(&set, SIGWINCH);
+	(void)sigprocmask(SIG_BLOCK, &set, &oset);
+
 	tty = _tty;
 	mvcur(0, COLS - 1, LINES - 1, 0);
 	endwin();
 	fflush(stdout);
-	/* reset signal handler so kill below stops us */
+
+	/* Unblock SIGTSTP. */
+	(void)sigemptyset(&set);
+	(void)sigaddset(&set, SIGTSTP);
+	(void)sigprocmask(SIG_UNBLOCK, &set, NULL);
+
+	/* Stop ourselves. */
 	signal(SIGTSTP, SIG_DFL);
-	omask = sigsetmask(sigblock(0L) &~ sigmask(SIGTSTP));
 	kill(0, SIGTSTP);
-	sigblock(sigmask(SIGTSTP));
+
+	/* Time passes ... */
+
+	/* Reset the SIGTSTP handler. */
 	signal(SIGTSTP, tstp);
+
 	_tty = tty;
 	stty(_tty_ch, &_tty);
+
+	/* Repaint the screen. */
 	wrefresh(curscr);
-# endif	SIGTSTP
+
+	/* Reset the signals. */
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 }

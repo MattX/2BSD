@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1987, 1990, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)update.c	8.1 (Berkeley) 6/6/93";
+static char sccsid[] = "@(#)update.c	8.1.1 (2.11BSD) 1999/10/24";
 #endif
 
 #include <sys/time.h>
@@ -46,6 +46,7 @@ static char sccsid[] = "@(#)update.c	8.1 (Berkeley) 6/6/93";
 main()
 {
 	struct itimerval value;
+	sigset_t set;
 	void mysync();
 
 	daemon(0, 0);
@@ -59,8 +60,10 @@ main()
 		perror("update: setitimer");
 		exit(1);
 	}
+
+	(void)sigemptyset(&set);
 	for (;;)
-		sigpause(sigblock(0L));
+		sigsuspend(&set);
 	/* NOTREACHED */
 }
 

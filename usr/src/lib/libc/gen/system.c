@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)system.c	5.10 (Berkeley) 2/23/91";
+static char sccsid[] = "@(#)system.c	5.10.1 (2.11BSD) 1999/10/24";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
@@ -45,28 +45,30 @@ system(command)
 {
 	union wait pstat;
 	register int pid;
-	long omask;
+	sigset_t omask, nmask;
 	int (*intsave)(), (*quitsave)();
 
 	if (!command)		/* just checking... */
 		return(1);
 
-	omask = sigblock(sigmask(SIGCHLD));
+	sigemptyset(&nmask);
+	sigaddset(&nmask, SIGCHLD);
+	(void)sigprocmask(SIG_BLOCK, &nmask, &omask);
 	switch(pid = vfork()) {
 	case -1:			/* error */
-		(void)sigsetmask(omask);
+		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 		pstat.w_status = 0;
 		pstat.w_retcode = 127;
 		return(pstat.w_status);
 	case 0:				/* child */
-		(void)sigsetmask(omask);
+		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 		execl("/bin/sh", "sh", "-c", command, (char *)NULL);
 		_exit(127);
 	}
 	intsave = signal(SIGINT, SIG_IGN);
 	quitsave = signal(SIGQUIT, SIG_IGN);
 	pid = waitpid(pid, (int *)&pstat, 0);
-	(void)sigsetmask(omask);
+	(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 	(void)signal(SIGINT, intsave);
 	(void)signal(SIGQUIT, quitsave);
 	return(pid == -1 ? -1 : pstat.w_status);

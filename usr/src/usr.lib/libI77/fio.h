@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)fio.h	5.1 (Berkeley) 6/7/85
+ *	@(#)fio.h	5.1.1 (2.11BSD) 1999/10/24
  */
 
 /*
@@ -22,9 +22,6 @@
 
 #define MAXINTLENGTH	32	/* to accomodate binary format */
 
-long ftell();
-
-extern int errno;
 extern ioflag init;
 extern flag reading,external,sequential,formatted;
 extern int (*getn)(),(*putn)(),(*ungetn)();	/*for formatted io*/

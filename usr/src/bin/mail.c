@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)mail.c	4.33.5 (2.11BSD) 1998/12/31";
+static char sccsid[] = "@(#)mail.c	4.33.6 (2.11BSD) 1999/10/25";
 #endif
 
 #include <sys/param.h>
@@ -294,11 +294,15 @@ printmail(argc, argv)
 copyback()
 {
 	register int i, c;
-	long oldmask;
+	sigset_t set;
 	int fd, new = 0;
 	struct stat stbuf;
 
-	oldmask = sigblock(sigmask(SIGINT)|sigmask(SIGHUP)|sigmask(SIGQUIT));
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGHUP);
+	sigaddset(&set, SIGQUIT);
+	(void)sigprocmask(SIG_BLOCK, &set, NULL);
 	fd = open(mailfile, O_RDWR | O_CREAT, MAILMODE);
 	if (fd >= 0) {
 		flock(fd, LOCK_EX);
@@ -323,7 +327,7 @@ copyback()
 	fclose(malf);		/* implict unlock */
 	if (new)
 		printf("New mail has arrived.\n");
-	sigsetmask(oldmask);
+	(void)sigprocmask(SIG_UNBLOCK, &set, NULL);
 }
 
 /* copy mail (f1) to temp (f2) */

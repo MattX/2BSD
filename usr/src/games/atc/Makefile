@@ -3,11 +3,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.1	(2.11BSD)	1996/12/1
+#	@(#)Makefile	5.1.2	(2.11BSD)	1999/10/25
 #
 
 DESTDIR=
 CFLAGS=	-O -DBSD -DDEST=\"${DESTDIR}/usr/games/lib/atc/\"
+SEPFLAG= -i
 YFLAGS=	-d
 LIBS=	-ll -lm -lcurses -ltermcap
 SRCS=	extern.c grammar.c graphics.c input.c lex.c list.c log.c \
@@ -18,7 +19,7 @@ OBJS=	extern.o grammar.o input.o lex.o list.o log.o main.o tunable.o \
 all: atc
 
 atc: ${OBJS}
-	${CC} ${CFLAGS} ${OBJS} ${LIBS} -o $@
+	${CC} ${SEPFLAG} ${OBJS} ${LIBS} -o $@
 
 clean: FRC
 	rm -f ${OBJS} core atc grammar.c y.tab.h y.tab.c lex.yy.c lex.c

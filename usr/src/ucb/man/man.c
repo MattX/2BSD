@@ -15,21 +15,23 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1987 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
+#endif
 
 #ifndef lint
-static char sccsid[] = "@(#)man.c	5.17 (Berkeley) 6/29/88";
+static char sccsid[] = "@(#)man.c	5.17.1 (2.11BSD) 1999/11/26";
 #endif /* not lint */
 
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/dir.h>
+#include <sys/utsname.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 #define	DEF_PAGER	"/usr/ucb/more -s"
 #define	DEF_PATH	"/usr/man:/usr/new/man:/usr/local/man"
@@ -130,7 +132,7 @@ main(argc, argv)
 		else
 			pager = DEF_PAGER;
 	if (!(machine = getenv("MACHINE")))
-		machine = MACHINE;
+		setmachine();
 	if (!defpath && !(defpath = getenv("MANPATH")))
 		defpath = DEF_PATH;
 	locpath = LOCAL_PATH;
@@ -428,6 +430,19 @@ jump(argv, flag, name)
 	fprintf(stderr, "%s: Command not found.\n", name);
 	exit(1);
 }
+
+/*
+ * This is done in a function by itself because 'uname()' uses a 640
+ * structure which we do not want permanently allocated on main()'s stack.
+*/
+setmachine()
+        {
+        struct  utsname foo;
+
+        if      (uname(&foo) < 0)
+                strcpy(foo.machine, "?");
+        machine = strdup(foo.machine);
+        }
 
 /*
  * usage --

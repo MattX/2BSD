@@ -35,7 +35,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)misc.c	5.7 (Berkeley) 5/27/91";
+static char sccsid[] = "@(#)misc.c	5.7.1 (2.11BSD) 1999/10/25";
 #endif
 
 #include <sys/param.h>
@@ -48,7 +48,6 @@ static char sccsid[] = "@(#)misc.c	5.7 (Berkeley) 5/27/91";
 #include "extern.h"
 #include "pathnames.h"
 
-extern int errno;
 extern CHDR chdr;			/* converted header */
 extern char *archive;			/* archive name */
 char *tname = "temporary file";		/* temporary file "name" */
@@ -56,7 +55,7 @@ char *tname = "temporary file";		/* temporary file "name" */
 tmp()
 {
 	extern char *envtmp;
-	long oset;
+	sigset_t set, oset;
 	static int first;
 	int fd;
 	char path[MAXPATHLEN];
@@ -71,11 +70,12 @@ tmp()
 	else
 		bcopy(_PATH_ARTMP, path, sizeof(_PATH_ARTMP));
 	
-	oset = sigsetmask(~0L);
+	sigfillset(&set);
+	(void)sigprocmask(SIG_BLOCK, &set,  &oset);
 	if ((fd = mkstemp(path)) == -1)
 		error(tname);
         (void)unlink(path);
-	(void)sigsetmask(oset);
+	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 	return(fd);
 }
 
