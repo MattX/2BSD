@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)refer.bib	6.1 (Berkeley) 6/2/86
+.\"	@(#)refer.bib	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .EH 'USD:29-%''Refer \(em A Bibliography System'
 .OH 'Refer \(em A Bibliography System''USD:29-%'
@@ -259,7 +259,7 @@ It can handle annotated bibliographies \*-
 annotations are entered in the %X (abstract) field.
 \fBRoffbib\fP is a shell script that calls
 \fBrefer\0\-B\fP and \fBnroff\0\-mbib\fP\|.
-It uses the macro definitions that reside in /usr/lib/tmac/tmac.bib,
+It uses the macro definitions that reside in /usr/share/tmac/tmac.bib,
 which you can redefine if you know \fBnroff\fP and \fBtroff\fP.
 Note that \fBrefer\fP will print the %H and %O commentaries,
 but will ignore abstracts in the %X field;
@@ -615,7 +615,7 @@ The citation used above yields this intermediate output:
 \&.][  1  journal-article
 .DE
 These string definitions are sent to \fBnroff\fP,
-which can use the \-ms macros defined in /usr/lib/mx/tmac.xref
+which can use the \-ms macros defined in /usr/share/mx/tmac.xref
 to take care of formatting things properly.
 The initializing macro \fB.]\-\fP precedes the string definitions,
 and the labeled macro \fB.][\fP follows.
@@ -726,10 +726,10 @@ Finally, there is an annotated copy of
 the \fBrefer\fP macros used by \fBroffbib\fP\|.
 .PP
 The \fBrefer\fP macros for \fBnroff/troff\fP supplied by
-the \-ms macro package reside in /usr/lib/mx/tmac.xref;
+the \-ms macro package reside in /usr/share/mx/tmac.xref;
 they are reference macros, for producing footnotes or endnotes.
 The \fBrefer\fP macros used by \fBroffbib,\fP
-on the other hand, reside in /usr/lib/tmac/tmac.bib;
+on the other hand, reside in /usr/share/tmac/tmac.bib;
 they are for producing a stand-alone bibliography.
 .PP
 To change the macros used by \fBroffbib,\fP
@@ -738,7 +738,7 @@ into the directory where you are working.
 These two commands will get you a copy of \fBroffbib\fP
 and the macros it uses: \(dg
 .DS
-% \fBcp  /usr/lib/tmac/tmac.bib  bibmac\fP
+% \fBcp  /usr/share/tmac/tmac.bib  bibmac\fP
 .DE
 You can proceed to change bibmac as much as you like.
 Then when you use \fBroffbib\fP,
@@ -754,7 +754,7 @@ If you want to modify the \fBrefer\fP macros
 for use with \fBnroff\fP and the \-ms macros,
 you will need to get a copy of \*Qtmac.xref\*U:
 .DS
-% \fBcp  /usr/lib/ms/s.ref  refmac\fP
+% \fBcp  /usr/share/ms/s.ref  refmac\fP
 .DE
 These macros are much like \*Qbibmac\*U,
 except they have .FS and .FE requests,

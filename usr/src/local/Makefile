@@ -1,5 +1,5 @@
 #
-# 	#(@)Makefile	1.2	(2.11BSD) 1996/3/26
+# 	#(@)Makefile	1.2.1	(2.11BSD) 1996/10/26
 #
 DESTDIR=
 CFLAGS=	-O
@@ -46,11 +46,11 @@ install: ${STD} ${NSTD}
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${STD} ${NSTD}; do \
 		(install $$i ${DESTDIR}/usr/local/$$i); done
-	-chmod 2755 ${DESTDIR}/usr/local/trace
 	-chgrp kmem ${DESTDIR}/usr/local/trace
+	-chmod 2755 ${DESTDIR}/usr/local/trace
 #	-for i in ${SHELL}; do \
 #		(install -c -m 755 $$i.sh ${DESTDIR}/usr/local/$$i); done
-	-sh /usr/src/usr.lib/makewhatis.sh ${MANDIR}
+	-sh /usr/sbin/makewhatis ${MANDIR}
 
 clean:
 	rm -f a.out core *.s *.o

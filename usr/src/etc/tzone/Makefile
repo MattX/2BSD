@@ -1,4 +1,4 @@
-# @(#)Makefile	1.2 Makefile 196/1/28
+# @(#)Makefile	1.3 Makefile 1996/10/27
 
 DESTDIR=
 
@@ -56,6 +56,7 @@ install:	zic $(DATA) $(MAN)
 		./zic -d ${DESTDIR}/etc/zoneinfo -l $(LOCALTIME) $(DATA)
 		install -c -m 444 -o bin -g bin $(ZICMAN) ${DESTDIR}/usr/man/cat8
 		install -c -m 444 -o bin -g bin $(ZICMAN) ${DESTDIR}/usr/man/cat8
+		install -c -s -m 755 -o bin -g bin zic ${DESTDIR}/usr/sbin/zic
 
 zdump.0:	$(ZDUMANSRC)
 		/usr/man/manroff $(ZDUMANSRC) > $(ZDUMAN)

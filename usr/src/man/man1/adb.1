@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)adb.1	6.1 (Berkeley) 8/4/87
+.\"	@(#)adb.1	6.1.1 (2.11BSD) 1996/10/21
 .\"
-.TH ADB 1 "August 4, 1987"
+.TH ADB 1 "October 21, 1996"
 .UC 2
 .SH NAME
 adb \- debugger (2BSD)
@@ -59,7 +59,7 @@ or \fI/dev/mem\fP.
 .PP
 The \fB\-I\fP option specifies a directory where files to be read
 with $< or $<< (see below) will be sought; the default is
-.IR /usr/lib/adb .
+.IR /usr/share/adb .
 .PP
 .I Adb
 ignores QUIT; INTERRUPT causes return to the next

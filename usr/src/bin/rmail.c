@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] =	"@(#)rmail.c	4.8 (Berkeley) 5/15/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] =	"@(#)rmail.c	4.8.1 (2.11BSD) 1996/10/21";
 #endif
 
 /*
@@ -11,20 +11,16 @@ static char sccsid[] =	"@(#)rmail.c	4.8 (Berkeley) 5/15/86";
 **	lines.
 */
 
-# include <stdio.h>
-# include <sysexits.h>
+#include <stdio.h>
+#include <string.h>
+#include <sysexits.h>
+#include <paths.h>
 
 typedef char	bool;
 #define TRUE	1
 #define FALSE	0
 
-extern FILE	*popen();
-extern char	*index();
-extern char	*rindex();
-
 bool	Debug;
-
-# define MAILER	"/usr/lib/sendmail"
 
 main(argc, argv)
 	char **argv;
@@ -99,7 +95,7 @@ main(argc, argv)
 	}
 	(void) strcat(from, uf);
 
-	(void) sprintf(cmd, "%s -ee -f%s -i", MAILER, from);
+	(void) sprintf(cmd, "%s -ee -f%s -i", _PATH_SENDMAIL, from);
 	while (*++argv != NULL)
 	{
 		(void) strcat(cmd, " '");

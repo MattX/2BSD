@@ -32,7 +32,7 @@
 	char	*symfil;
 	char	*corfil;
 	char	*printptr;
-	char	*Ipath = "/usr/lib/adb";
+	char	*Ipath = "/usr/share/adb";
 
 long	round(a,b)
 long		a, b;

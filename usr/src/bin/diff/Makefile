@@ -1,7 +1,7 @@
-#	@(#)Makefile	4.1	2/9/83
+#	@(#)Makefile	4.1.1	1996/10/21
 #
 DIFF=	/bin/diff
-DIFFH=	/usr/lib/diffh
+DIFFH=	/usr/libexec/diffh
 PR=	/bin/pr
 CFLAGS=	-O -DDIFF='"${DIFF}"' -DDIFFH='"${DIFFH}"' -DPR='"${PR}"'
 SEPFLAG=-i
@@ -24,4 +24,4 @@ clean:
 
 install: all
 	install -s diff ${DESTDIR}/bin/diff
-	install -s diffh ${DESTDIR}/usr/lib/diffh
+	install -s diffh ${DESTDIR}/usr/libexec/diffh

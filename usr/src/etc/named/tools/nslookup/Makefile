@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.20 (Berkeley) 10/2/89
+#	@(#)Makefile	5.20.1 (2.11BSD) 1996/10/21
 #
 CFLAGS=	-O
 RES=
@@ -41,7 +41,7 @@ depend: ${SRCS}
 
 install: nslookup nslookup.0
 	install -s -o bin -g bin -m 755 nslookup ${DESTDIR}/usr/bin/nslookup
-	install -c -o bin -g bin -m 444 nslookup.help ${DESTDIR}/usr/lib/nslookup.help
+	install -c -o bin -g bin -m 444 nslookup.help ${DESTDIR}/usr/share/misc/nslookup.help
 	install -c -o bin -g bin -m 444 nslookup.0 ${DESTDIR}/usr/man/cat1/nslookup.0
 
 nslookup.0: nslookup.8

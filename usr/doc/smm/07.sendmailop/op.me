@@ -5,7 +5,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)op.me	5.8 (Berkeley) 5/9/86
+.\"	@(#)op.me	5.8.1 (2.11BSD) 1996/10/24
 .\"
 .\" eqn % | troff -me
 .\"if n .ls 2
@@ -261,7 +261,7 @@ cp uucpproto.cf ucsfcgl.cf
 .)b
 This file
 is now ready for installation as
-.i /usr/lib/sendmail.cf .
+.i /etc/sendmail.cf .
 .sh 2 "Installation Using the Makefile"
 .pp
 A makefile exists in the root of the
@@ -341,9 +341,9 @@ You should then type:
 (cd lib; make)
 .)b
 This will recompile and fill the library.
-.sh 3 "/usr/lib/sendmail"
+.sh 3 "/usr/sbin/sendmail"
 .pp
-The binary for sendmail is located in /usr/lib.
+The binary for sendmail is located in /usr/sbin.
 There is a version available in the source directory
 that is probably inadequate for your system.
 You should plan on recompiling and installing the entire system:
@@ -351,18 +351,18 @@ You should plan on recompiling and installing the entire system:
 cd src
 make clean
 make
-cp sendmail /usr/lib
-chgrp kmem /usr/lib/sendmail
+cp sendmail /usr/sbin
+chgrp kmem /usr/sbin/sendmail
 .)b
-.sh 3 "/usr/lib/sendmail.cf"
+.sh 3 "/etc/sendmail.cf"
 .pp
 The configuration file
 that you created earlier
-should be installed in /usr/lib/sendmail.cf:
+should be installed in /etc/sendmail.cf:
 .(b
-cp cf/\fIsystem\fP.cf /usr/lib/sendmail.cf
+cp cf/\fIsystem\fP.cf /etc/sendmail.cf
 .)b
-.sh 3 "/usr/ucb/newaliases"
+.sh 3 "/usr/bin/newaliases"
 .pp
 If you are running delivermail,
 it is critical that the
@@ -371,8 +371,8 @@ command be replaced.
 This can just be a link to
 .i sendmail :
 .(b
-rm \-f /usr/ucb/newaliases
-ln /usr/lib/sendmail /usr/ucb/newaliases
+rm \-f /usr/bin/newaliases
+ln /usr/sbin/sendmail /usr/bin/newaliases
 .)b
 .sh 3 "/usr/spool/mqueue"
 .pp
@@ -387,11 +387,11 @@ when
 .i mqueue
 should be owned by the sendmail owner
 and mode 755.
-.sh 3 "/usr/lib/aliases*"
+.sh 3 "/etc/aliases*"
 .pp
 The system aliases are held in three files.
 The file
-.q /usr/lib/aliases
+.q /etc/aliases
 is the master copy.
 A sample is given in
 .q lib/aliases
@@ -399,7 +399,7 @@ which includes some aliases which
 .i must
 be defined:
 .(b
-cp lib/aliases /usr/lib/aliases
+cp lib/aliases /etc/aliases
 .)b
 You should extend this file with any aliases that are apropos to your system.
 .pp
@@ -409,28 +409,28 @@ looks at a version of these files maintained by the
 .i dbm \|(3)
 routines.
 These are stored in
-.q /usr/lib/aliases.dir
+.q /etc/aliases.dir
 and
-.q /usr/lib/aliases.pag.
+.q /etc/aliases.pag.
 These can initially be created as empty files,
 but they will have to be initialized promptly.
 These should be mode 666 if you are running a reasonably relaxed system:
 .(b
-cp /dev/null /usr/lib/aliases.dir
-cp /dev/null /usr/lib/aliases.pag
-chmod 666 /usr/lib/aliases.*
+cp /dev/null /etc/aliases.dir
+cp /dev/null /etc/aliases.pag
+chmod 666 /etc/aliases.*
 newaliases
 .)b
-.sh 3 "/usr/lib/sendmail.fc"
+.sh 3 "/etc/sendmail.fc"
 .pp
 If you intend to install the frozen version of the configuration file
 (for quick startup)
-you should create the file /usr/lib/sendmail.fc
+you should create the file /etc/sendmail.fc
 and initialize it.
 This step may be safely skipped.
 .(b
-cp /dev/null /usr/lib/sendmail.fc
-/usr/lib/sendmail \-bz
+cp /dev/null /etc/sendmail.fc
+/usr/sbin/sendmail \-bz
 .)b
 .sh 3 "/etc/rc"
 .pp
@@ -448,9 +448,9 @@ Add the following lines to
 as appropriate)
 in the area where it is starting up the daemons:
 .(b
-if [ \-f /usr/lib/sendmail ]; then
+if [ \-f /usr/sbin/sendmail ]; then
 	(cd /usr/spool/mqueue; rm \-f [lnx]f*)
-	/usr/lib/sendmail \-bd \-q30m &
+	/usr/sbin/sendmail \-bd \-q30m &
 	echo \-n ' sendmail' >/dev/console
 fi
 .)b
@@ -475,7 +475,7 @@ that supports Berkeley TCP/IP,
 do not include the
 .b \-bd
 flag.
-.sh 3 "/usr/lib/sendmail.hf"
+.sh 3 "/usr/share/misc/sendmail.hf"
 .pp
 This is the help file used by the SMTP
 .b HELP
@@ -483,22 +483,22 @@ command.
 It should be copied from
 .q lib/sendmail.hf :
 .(b
-cp lib/sendmail.hf /usr/lib
+cp lib/sendmail.hf /usr/share/misc
 .)b
-.sh 3 "/usr/lib/sendmail.st"
+.sh 3 "/var/log/sendmail.st"
 .pp
 If you wish to collect statistics
 about your mail traffic,
 you should create the file
-.q /usr/lib/sendmail.st :
+.q /var/log/sendmail.st :
 .(b
-cp /dev/null /usr/lib/sendmail.st
-chmod 666 /usr/lib/sendmail.st
+cp /dev/null /var/log/sendmail.st
+chmod 666 /var/log/sendmail.st
 .)b
 This file does not grow.
 It is printed with the program
 .q aux/mailstats.
-.sh 3 "/usr/ucb/newaliases"
+.sh 3 "/usr/bin/newaliases"
 .pp
 If
 .i sendmail
@@ -509,8 +509,8 @@ it will simulate the
 flag
 (i.e., will rebuild the alias database;
 see below).
-This should be a link to /usr/lib/sendmail.
-.sh 3 "/usr/ucb/mailq"
+This should be a link to /usr/sbin/sendmail.
+.sh 3 "/usr/bin/mailq"
 .pp
 If
 .i sendmail
@@ -523,7 +523,7 @@ flag
 .i sendmail
 will print the contents of the mail queue;
 see below).
-This should be a link to /usr/lib/sendmail.
+This should be a link to /usr/sbin/sendmail.
 .sh 1 "NORMAL OPERATIONS"
 .sh 2 "Quick Configuration Startup"
 .pp
@@ -532,10 +532,10 @@ may be set up by using the
 .b \-bz
 flag:
 .(b
-/usr/lib/sendmail \-bz
+/usr/sbin/sendmail \-bz
 .)b
 This creates the file
-.i /usr/lib/sendmail.fc
+.i /etc/sendmail.fc
 (\c
 .q "frozen configuration" ).
 This file is an image of
@@ -543,7 +543,7 @@ This file is an image of
 data space after reading in the configuration file.
 If this file exists,
 it is used instead of
-.i /usr/lib/sendmail.cf
+.i /etc/sendmail.cf
 .i sendmail.fc
 must be rebuilt manually every time
 .i sendmail.cf
@@ -795,7 +795,7 @@ and create a new daemon.
 To run the old mail queue,
 run the following command:
 .(b
-/usr/lib/sendmail \-oQ/usr/spool/omqueue \-q
+/usr/sbin/sendmail \-oQ/usr/spool/omqueue \-q
 .)b
 The
 .b \-oQ
@@ -818,7 +818,7 @@ rmdir /usr/spool/omqueue
 The alias database exists in two forms.
 One is a text form,
 maintained in the file
-.i /usr/lib/aliases.
+.i /etc/aliases.
 The aliases are of the form
 .(b
 name: name1, name2, ...
@@ -840,9 +840,9 @@ The second form is processed by the
 .i dbm \|(3)
 library.
 This form is in the files
-.i /usr/lib/aliases.dir
+.i /etc/aliases.dir
 and
-.i /usr/lib/aliases.pag.
+.i /etc/aliases.pag.
 This is the form that
 .i sendmail
 actually uses to resolve aliases.
@@ -860,7 +860,7 @@ the
 .b \-bi
 flag:
 .(b
-/usr/lib/sendmail \-bi
+/usr/sbin/sendmail \-bi
 .)b
 .pp
 If the
@@ -1066,7 +1066,7 @@ flag and the
 .b \-q
 flag may be combined in one call:
 .(b
-/usr/lib/sendmail \-bd \-q30m
+/usr/sbin/sendmail \-bd \-q30m
 .)b
 .sh 2 "Forcing the Queue"
 .pp
@@ -1080,7 +1080,7 @@ It is entertaining to use the
 flag (verbose)
 when this is done to watch what happens:
 .(b
-/usr/lib/sendmail \-q \-v
+/usr/sbin/sendmail \-q \-v
 .)b
 .sh 2 "Debugging"
 .pp
@@ -1124,12 +1124,12 @@ can be specified using the
 .b \-C
 flag; for example,
 .(b
-/usr/lib/sendmail \-Ctest.cf
+/usr/sbin/sendmail \-Ctest.cf
 .)b
 uses the configuration file
 .i test.cf
 instead of the default
-.i /usr/lib/sendmail.cf.
+.i /etc/sendmail.cf.
 If the
 .b \-C
 flag has no value
@@ -1143,7 +1143,7 @@ Options can be overridden using the
 flag.
 For example,
 .(b
-/usr/lib/sendmail \-oT2m
+/usr/sbin/sendmail \-oT2m
 .)b
 sets the
 .b T
@@ -1234,7 +1234,7 @@ by running the queue
 with a short message timeout.
 For example,
 .(b
-/usr/lib/sendmail \-oT1d \-q
+/usr/sbin/sendmail \-oT1d \-q
 .)b
 will run the queue
 and flush anything that is one day old.
@@ -1471,7 +1471,7 @@ as root at all
 .pp
 At Berkeley
 we have the alias database
-(/usr/lib/aliases*)
+(/etc/aliases*)
 mode 666.
 There are some dangers inherent in this approach:
 any user can add him-/her-self
@@ -1492,9 +1492,9 @@ is represented by the two files
 .i aliases.dir
 and
 .i aliases.pag
-(both in /usr/lib).
+(both in /etc).
 The mode on these files should match the mode
-on /usr/lib/aliases.
+on /etc/aliases.
 If
 .i aliases
 is writable
@@ -3926,11 +3926,11 @@ that
 .i sendmail
 creates or generates.
 .nr ii 1i
-.ip "/usr/lib/sendmail"
+.ip "/usr/sbin/sendmail"
 The binary of
 .i sendmail .
 .ip /usr/bin/newaliases
-A link to /usr/lib/sendmail;
+A link to /usr/sbin/sendmail;
 causes the alias database to be rebuilt.
 Running this program is completely equivalent to giving
 .i sendmail
@@ -3943,19 +3943,19 @@ This program is equivalent to using the
 .b \-bp
 flag to
 .i sendmail .
-.ip /usr/lib/sendmail.cf
+.ip /etc/sendmail.cf
 The configuration file,
 in textual form.
-.ip /usr/lib/sendmail.fc
+.ip /etc/sendmail.fc
 The configuration file
 represented as a memory image.
-.ip /usr/lib/sendmail.hf
+.ip /usr/share/misc/sendmail.hf
 The SMTP help file.
-.ip /usr/lib/sendmail.st
+.ip /var/log/sendmail.st
 A statistics file; need not be present.
-.ip /usr/lib/aliases
+.ip /etc/aliases
 The textual version of the alias file.
-.ip /usr/lib/aliases.{pag,dir}
+.ip /etc/aliases.{pag,dir}
 The alias file in
 .i dbm \|(3)
 format.

@@ -1,4 +1,4 @@
-.\"	@(#)refer	6.1 (Berkeley) 5/22/86
+.\"	@(#)refer	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .... refer | tbl | nroff -ms
 .EH 'USD:30-%''Some Applications of Inverted Indexes on the UNIX System'
@@ -424,7 +424,7 @@ searching the indexes, and delivering answers must be used.
 Since they are usually invoked as parts of higher-level commands,
 they are not in the default command
 directory, but are available to any user in the directory
-.I /usr/lib/refer .
+.I /usr/libexec/refer .
 Three programs are of interest:
 .I mkey ,
 which isolates keys from input files;
@@ -471,7 +471,7 @@ lB lw(4i).
 \-c \f2name	T{
 Name of file of common words;
 default is
-.I /usr/lib/eign.
+.I /usr/share/misc/eign.
 T}
 \-f \f2name	T{
 Read a list of files from
@@ -513,7 +513,7 @@ T}
 .PP
 The normal arguments for indexing references are
 the defaults, which are
-.I "\-c /usr/lib/eign" ,
+.I "\-c /usr/share/misc/eign" ,
 .I \-n100 ,
 and
 .I \-l3 .

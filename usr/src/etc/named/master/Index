@@ -4,7 +4,7 @@
 atod.y  - used to convert you aliases file into MB records
 		yacc atod.y
 		cc -o atod y.tab.c
-		atod < /usr/lib/aliases > aliases.db
+		atod < /etc/aliases > aliases.db
 
 named.boot - boot file for a secondary name server
 named.boot.master - boot file for a master name server

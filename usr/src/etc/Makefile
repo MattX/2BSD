@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14.6 (2.11BSD GTE) 1996/3/26
+#	@(#)Makefile	5.14.7 (2.11BSD GTE) 1996/10/21
 #
 DESTDIR=
 CFLAGS=	-O
@@ -12,7 +12,7 @@ SEPFLAG= -i
 # Programs that live in subdirectories, and have makefiles of their own.
 #
 SUBDIR=	chroot config dev_mkdb dump fingerd fsck ftpd getty htable implog \
-	named restor routed talkd termcap tftpd timed tzone XNSrouted \
+	named restor routed talkd tftpd timed tzone \
 	mkpasswd mount ping quotacheck vipw rlogind rshd tcpd umount
 
 # Shell scripts that need only be installed and are never removed.

@@ -1,7 +1,6 @@
 Application	Version
 -----------	-------
 Makefile	4.3  (small mods for load type (separate I&D or pure))
-XNSrouted/	4.3  (untested)
 ac.c		4.3
 accton.c	4.3
 arff.c		UNIMPLEMENTED

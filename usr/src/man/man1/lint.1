@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)lint.1	6.2 (Berkeley) 3/17/86
+.\"	@(#)lint.1	6.2.1 (2.11BSD) 1996/10/22
 .\"
-.TH LINT 1 "March 17, 1986"
+.TH LINT 1 "October 22, 1996"
 .UC 4
 .SH NAME
 lint \- a C program verifier
@@ -160,16 +160,16 @@ unused functions in this file.
 .SH AUTHOR
 S.C. Johnson.  Lint library construction implemented by Edward Wang.
 .SH FILES
-.ta \w'/usr/lib/lint/llib-port.ln  'u
-/usr/lib/lint/lint[12]	programs
+.ta \w'/usr/share/lint/llib-port.ln  'u
+/usr/libexec/lint/lint[12]	programs
 .br
-/usr/lib/lint/llib-lc.ln	declarations for standard functions
+/usr/share/lint/llib-lc.ln	declarations for standard functions
 .br
-/usr/lib/lint/llib-lc	human readable version of above
+/usr/share/lint/llib-lc	human readable version of above
 .br
-/usr/lib/lint/llib-port.ln	declarations for portable functions
+/usr/share/lint/llib-port.ln	declarations for portable functions
 .br
-/usr/lib/lint/llib-port	human readable . . .
+/usr/share/lint/llib-port	human readable . . .
 .br
 llib-l*.ln	library created with
 .B \-C

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ex.rm	6.1 (Berkeley) 5/30/86
+.\"	@(#)ex.rm	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .EH 'USD:16-%''Ex Reference Manual'
 .OH 'Ex Reference Manual''USD:16-%'
@@ -2106,7 +2106,7 @@ boundaries for the purposes of display.
 Tags are not significant beyond this many characters.
 A value of zero (the default) means that all characters are significant.
 .LC
-\fBtags\fR	default: tags=tags /usr/lib/tags
+\fBtags\fR	default: tags=tags /usr/share/misc/tags
 .ZP
 A path of files to be used as tag files for the
 .I tag
@@ -2114,7 +2114,7 @@ command.
 A requested tag is searched for in the specified files, sequentially.
 By default, files called
 .B tags
-are searched for in the current directory and in /usr/lib
+are searched for in the current directory and in /usr/share/misc
 (a master file for the entire system).
 .LC
 \fBterm\fR	from environment TERM

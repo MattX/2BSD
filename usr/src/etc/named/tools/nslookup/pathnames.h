@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.1 (Berkeley) 5/28/90
+ *	@(#)pathnames.h	5.1.1 (2.11BSD) 1996/10/21
  */
 
-#define	_PATH_HELPFILE	"/usr/lib/nslookup.help"
+#define	_PATH_HELPFILE	"/usr/share/misc/nslookup.help"

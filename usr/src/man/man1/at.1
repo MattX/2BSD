@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)at.1	6.2 (Berkeley) 3/20/86
+.\"	@(#)at.1	6.2.1 (2.11BSD) 1996/10/21
 .\"
-.TH AT 1 "March 20, 1986"
+.TH AT 1 "October 21, 1996"
 .UC 4
 .SH NAME
 at \- execute commands at a later time
@@ -88,7 +88,7 @@ at -s -m 1200n week
 programs are executed by periodic execution 
 of the command 
 .IR
-/usr/lib/atrun 
+/usr/libexec/atrun 
 from 
 .IR cron (8).
 The granularity of
@@ -106,7 +106,7 @@ the user via
 /usr/spool/at/yy.ddd.hhhh.*  job file
 /usr/spool/at/past           directory where jobs are executed from
 /usr/spool/at/lasttimedone   last time atrun was run
-/usr/lib/atrun               executor (run by cron(8))
+/usr/libexec/atrun               executor (run by cron(8))
 .fi
 .SH "SEE ALSO"
 atq(1),
@@ -118,7 +118,7 @@ cron(8)
 Complains about various syntax errors and times out of range.
 .SH BUGS
 Due to the granularity of the execution of
-.IR /usr/lib/atrun,
+.IR /usr/libexec/atrun,
 there may be bugs in scheduling things almost
 exactly 24 hours into the future.
 

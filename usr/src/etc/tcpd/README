@@ -961,12 +961,12 @@ In that case, sendmail should not be run as a stand-alone network
 listener, but it should be registered in the inetd configuration file.
 For example:
 
-    smtp    stream  tcp     nowait  root    /usr/etc/tcpd /usr/lib/sendmail -bs
+    smtp    stream  tcp     nowait  root    /usr/etc/tcpd /usr/sbin/sendmail -bs
 
 You will still need to run one sendmail background process to handle
 queued-up outgoing mail. A command like:
 
-    /usr/lib/sendmail -q15m
+    /usr/sbin/sendmail -q15m
 
 (no `-bd' flag) should take care of that. You cannot really prevent
 people from posting forged mail this way, because there are many

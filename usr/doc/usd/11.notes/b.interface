@@ -1,4 +1,4 @@
-.\"	@(#)b.interface	6.1 (Berkeley) 5/26/86
+.\"	@(#)b.interface	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .ls 1
 .ap B "Interfacing Notesfiles to News"
@@ -407,7 +407,7 @@ This will recompile the notesfile/news gateway programs.
 Check /usr/lib/news/sys
 to see that news will be forwarded to the notesfile system.
 .iz
-Make entries in /usr/lib/crontab to
+Make entries in /etc/crontab to
 invoke newsoutput occcasionally.
 We use every 6 hours.
 .iz

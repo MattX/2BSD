@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ms.diffs	6.1 (Berkeley) 6/2/86
+.\"	@(#)ms.diffs	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .nr LL 6.5i
 .nr FL 6.0i
@@ -254,7 +254,7 @@ as are the thesis macros (.TM),
 the special accent mark definitions (.AM),
 table of contents macros (.XS and .XE),
 and macros to format the optional cover page.
-The code for the \*ms package lives in /usr/lib/tmac/tmac.s,
-and sourced files reside in the directory /usr/ucb/lib/ms.
+The code for the \*ms package lives in /usr/share/tmac/tmac.s,
+and sourced files reside in the directory /usr/src/share/ms.
 .sp
 .tl '''\*(DY'

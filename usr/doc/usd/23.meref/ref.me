@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ref.me	6.3 (Berkeley) 4/17/86
+.\"	@(#)ref.me	6.3.1 (2.11BSD) 1996/10/24
 .\"
 .ll 6.5i
 .lt 6.5i
@@ -1645,7 +1645,7 @@ and the figure.
 Print a letterhead at the current position on the page.
 The format of the letterhead must be defined
 in the file
-.b /usr/lib/me/letterhead.me
+.b /usr/share/me/letterhead.me
 by your local systems staff.
 Some environments may require
 .i ditroff
@@ -1656,7 +1656,7 @@ to function properly.
 .DE
 This macro loads another set of macros
 (in
-.b /usr/lib/me/local.me )
+.b /usr/share/me/local.me )
 which is intended to be a set of locally defined macros.
 These macros
 should all be of the form
@@ -1869,7 +1869,7 @@ and the total number of pages
 .i N .
 Additionally,
 this macro loads the file
-.b /usr/lib/me/acm.me ,
+.b /usr/share/me/acm.me ,
 which may later be augmented with other macros
 useful for printing papers
 for ACM conferences.

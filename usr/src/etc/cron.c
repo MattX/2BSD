@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)cron.c	4.12 (Berkeley) 5/27/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)cron.c	4.12.1 (2.11BSD) 1996/10/21";
 #endif
 
 #include <sys/types.h>
@@ -13,16 +13,17 @@ static char *sccsid = "@(#)cron.c	4.12 (Berkeley) 5/27/86";
 #include <sys/file.h>
 #include <pwd.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 #define	LISTS	(2*BUFSIZ)
 #define	MAXLIN	BUFSIZ
 
 #ifndef CRONTAB
-#define CRONTAB "/usr/lib/crontab"
+#define CRONTAB "/etc/crontab"
 #endif
 
 #ifndef CRONTABLOC
-#define CRONTABLOC  "/usr/lib/crontab.local"
+#define CRONTABLOC  "/etc/crontab.local"
 #endif
 
 #define	EXACT	100
@@ -36,8 +37,6 @@ char	loc_crontab[]   = CRONTABLOC;
 time_t	itime;
 struct	tm *loct;
 struct	tm *localtime();
-char	*malloc();
-char	*realloc();
 int	reapchild();
 int	flag;
 char	*list;
@@ -56,7 +55,6 @@ main(argc, argv)
 	time_t filetime = 0;
 	time_t lfiletime = 0;
 	char c;
-	extern char *optarg;
 
 	if (fork())
 		exit(0);
@@ -219,7 +217,7 @@ init()
 	 * extra realloc's needed in append() for a large crontab.
 	 */
 	if (list == 0) {
-		list = malloc(LISTS);
+		list = (char *)malloc(LISTS);
 		listsize = LISTS;
 	}
 	listend = list;
@@ -241,7 +239,7 @@ loop:
 		int length = cp - list;
 
 		listsize += LISTS;
-		list = realloc(list, listsize);
+		list = (char *)realloc(list, listsize);
 		cp = list + length;
 	}
 	ocp = cp;

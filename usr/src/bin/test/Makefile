@@ -1,8 +1,9 @@
 #	Makefile for test
 #
-#	Robin Birch	11 march 1995
+#	1.1 	Robin Birch	11 march 1995
+#	1.2 	Steven Schultz	27 october 1996
 #
-#	Version 1.1
+#	Version 1.2
 #
 SEPFLAG= -i
 CFLAGS = -O
@@ -22,7 +23,7 @@ install: all
 	install -s -m 755 -g bin -o bin test ${DESTDIR}/bin
 	rm -f ${DESTDIR}/bin/[
 	ln ${DESTDIR}/bin/test ${DESTDIR}/bin/[
-	install -m 444 -g bin -o bin test.0 ${DESTDIR}/usr/man/cat1
+	install -c -m 444 -g bin -o bin test.0 ${DESTDIR}/usr/man/cat1
 
 clean:	
 	rm -f *.o test *.core test.0

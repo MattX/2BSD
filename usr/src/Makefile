@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.14	(2.11BSD)	96/6/25
+#	@(#)Makefile	4.15	(2.11BSD)	96/10/21
 #
 # This makefile is designed to be run as:
 #	make build
@@ -42,8 +42,11 @@ SRC_MFLAGS = -k
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
+# 'share' has to be towards the front of the list because programs such as
+# lint(1) need their data files, etc installed first.
+
 LIBDIR= lib usr.lib
-SRCDIR=	bin etc games libexec local new ucb usr.bin man
+SRCDIR=	share bin sbin etc games libexec local new ucb usr.bin usr.sbin man
 
 all:	${LIBDIR} ${SRCDIR}
 

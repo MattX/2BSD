@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)find.1	6.3 (Berkeley) 5/11/86
+.\"	@(#)find.1	6.3.1 (2.11BSD) 1996/10/22
 .\"
-.TH FIND 1 "May 11, 1986"
+.TH FIND 1 "October 11, 1996"
 .AT 3
 .SH NAME
 find \- find files
@@ -248,10 +248,10 @@ To remove all files named
 find / \e( \-name a.out \-o \-name '*.o' \e) \-atime +7 \-exec rm {} \e\;
 .SH FILES
 .nf
-.ta \w'/usr/lib/find/find.codes     'u
+.ta \w'/var/db/find.codes     'u
 /etc/passwd
 /etc/group
-/usr/lib/find/find.codes	coded pathnames database
+/var/db/find.codes	coded pathnames database
 .fi
 .SH "SEE ALSO"
 sh(1), test(1), fs(5)
