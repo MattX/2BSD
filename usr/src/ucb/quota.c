@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)quota.c	5.4.2 (2.11BSD GTE) 1996/1/21";
+static char sccsid[] = "@(#)quota.c	5.4.3 (2.11BSD GTE) 1996/2/7";
 #endif
 
 /*
@@ -113,7 +113,7 @@ showquotas(uid, name)
 	char *qfpathname;
 	struct	dqblk dqblk;
 	int myuid, fd;
-	char qfilename[MAXPATHLEN + 1], iwarn[8], dwarn[8];
+	char iwarn[8], dwarn[8];
 
 	myuid = getuid();
 	if (uid != myuid && myuid != 0) {
@@ -130,17 +130,16 @@ showquotas(uid, name)
 		if (stat(fs->fs_spec, &statb) < 0)
 			continue;
 		msgi = msgb = (char *) 0;
-		(void) sprintf(qfilename, "%s/%s", fs->fs_file, qfpathname);
 /*
  * This check for the quota file being in the filesystem to which the quotas
  * belong is silly but the kernel enforces it.   When the kernel is fixed the
  * check can be removed.
 */
 		fsdev = statb.st_rdev;
-		if (stat(qfilename, &statb) < 0 || statb.st_dev != fsdev)
+		if (stat(qfpathname, &statb) < 0 || statb.st_dev != fsdev)
 			continue;
 		if (quota(Q_GETDLIM, uid, fsdev, (caddr_t)&dqblk)) {
-			fd = open(qfilename, O_RDONLY);
+			fd = open(qfpathname, O_RDONLY);
 			if (fd < 0)
 				continue;
 			(void) lseek(fd, (off_t)(uid * sizeof (dqblk)), L_SET);
@@ -163,7 +162,7 @@ showquotas(uid, name)
 
 			default:		/* ERROR */
 				fprintf(stderr, "quota: read error in ");
-				perror(qfilename);
+				perror(qfpathname);
 				(void) close(fd);
 				continue;
 			}

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)mntopts.h	8.3.1 (2.11BSD) 1996/1/16
+ *	@(#)mntopts.h	8.3.2 (2.11BSD) 1996/2/7
  */
 
 struct mntopt {
@@ -46,6 +46,7 @@ struct mntopt {
 #define MOPT_NOSUID		{ "suid",	1, MNT_NOSUID }
 #define MOPT_RDONLY		{ "rdonly",	0, MNT_RDONLY }
 #define MOPT_SYNC		{ "sync",	0, MNT_SYNCHRONOUS }
+#define	MOPT_QUOTAS		{ "quotas",	0, 0 }
 
 /* Control flags. */
 #define MOPT_FORCE		{ "force",	1, MNT_FORCE }
@@ -56,14 +57,21 @@ struct mntopt {
 #define MOPT_RW			{ "rw",		1, MNT_RDONLY }
 #define MOPT_RQ			{ "rq",		1, MNT_RDONLY }
 
+/* Ignored options (used for control in fstab) */
+#define	MOPT_AUTO		{ "auto", }
+#define	MOPT_NOAUTO		{ "na",	}
+
 #define MOPT_FSTAB_COMPAT						\
 	MOPT_RO,							\
 	MOPT_RW,							\
-	MOPT_RQ
+	MOPT_RQ,							\
+	MOPT_NOAUTO,							\
+	MOPT_AUTO
 
 /* Standard options which all mounts can understand. */
 #define MOPT_STDOPTS							\
 	MOPT_FSTAB_COMPAT,						\
+	MOPT_QUOTAS,							\
 	MOPT_NODEV,							\
 	MOPT_NOEXEC,							\
 	MOPT_NOSUID,							\
