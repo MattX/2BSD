@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.3 (2.11BSD GTE) 1995/10/29
+ *	@(#)kern_sysctl.c	8.4.4 (2.11BSD GTE) 1996/12/13
  */
 
 /*
@@ -994,6 +994,13 @@ fill_from_u(p, rup, ttp, tdp)
 	struct	tty	*ttyp;
 	struct	user	*up;
 
+	if	(p->p_stat == SZOMB)
+		{
+		*rup = (uid_t)-2;
+		*ttp = NULL;
+		*tdp = NODEV;
+		return;
+		}
 	if	(p->p_flag & SLOAD)
 		{
 		mapseg5(p->p_addr, (((USIZE - 1) << 8) | RO));
