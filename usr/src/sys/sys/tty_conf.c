@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_conf.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty_conf.c	1.2 (2.11BSD GTE) 11/30/94
  */
 
 #include "param.h"
@@ -102,8 +102,9 @@ SLOPEN(dev, tp)
 	return(error);
 }
 
-SLCLOSE(tp)
+SLCLOSE(tp, flag)
 	struct tty *tp;
+	int flag;
 {
 	int slclose();
 

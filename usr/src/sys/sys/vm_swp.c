@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_swp.c	2.2 (2.11BSD) 9/22/91
+ *	@(#)vm_swp.c	2.3 (2.11BSD) 11/30/94
  */
 
 #include "param.h"
@@ -212,18 +212,11 @@ physio(strat, bp, dev, rw, uio)
 	return(error);
 }
 
-rawread(dev, uio)
+rawrw(dev, uio, flag)
 	dev_t dev;
-	struct uio *uio;
+	register struct uio *uio;
+	int flag;
 	{
 	return(physio(cdevsw[major(dev)].d_strategy, (struct buf *)NULL, dev,
-		B_READ, uio));
-	}
-
-rawwrite(dev, uio)
-	dev_t dev;
-	struct uio *uio;
-	{
-	return(physio(cdevsw[major(dev)].d_strategy, (struct buf *)NULL, dev,
-		B_WRITE, uio));
+		uio->uio_rw == UIO_READ ? B_READ : B_WRITE, uio));
 	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_inode.c	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)ufs_inode.c	1.4 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -109,6 +109,9 @@ iget(dev, fs, ino)
 #ifdef EXTERNALITIMES
 	struct icommon2 xic2;
 #endif
+#ifdef	QUOTA
+	struct dquot **xdq;
+#endif
 
 loop:
 	ih = &ihead[INOHASH(dev, ino)];
@@ -188,7 +191,8 @@ loop:
 	ip->i_lastr = 0;
 #ifdef QUOTA
 	QUOTAMAP();
-	dqrele(ix_dquot[ip - inode]);
+	xdq = &ix_dquot[ip - inode];
+	dqrele(*xdq);
 	QUOTAUNMAP();
 #endif
 	bp = bread(dev, itod(ino));
@@ -214,7 +218,7 @@ loop:
 		ip->i_number = 0;
 #ifdef QUOTA
 		QUOTAMAP();
-		ix_dquot[ip - inode] = NODQUOT;
+		*xdq = NODQUOT;
 		QUOTAUNMAP();
 #endif
 		iput(ip);
@@ -223,6 +227,7 @@ loop:
 	dp = (struct dinode *)mapin(bp);
 	dp += itoo(ino);
 	ip->i_ic1 = dp->di_ic1;
+	ip->i_flags = dp->di_flags;
 #ifdef EXTERNALITIMES
 	xic2 = dp->di_ic2;
 #else
@@ -239,9 +244,9 @@ loop:
 #ifdef QUOTA
 	QUOTAMAP();
 	if	(ip->i_mode == 0)
-		ix_dquot[ip - inode] = NODQUOT;
+		*xdq = NODQUOT;
 	else
-		ix_dquot[ip - inode] = inoquota(ip);
+		*xdq = inoquota(ip);
 	QUOTAUNMAP();
 #endif
 	return (ip);
@@ -398,6 +403,7 @@ iupdat(ip, ta, tm, waitfor)
 	tip->i_flag &= ~(IUPD|IACC|ICHG|IMOD);
 	dp = (struct dinode *)mapin(bp) + itoo(tip->i_number);
 	dp->di_ic1 = tip->i_ic1;
+	dp->di_flags = tip->i_flags;
 #ifdef EXTERNALITIMES
 	dp->di_ic2 = xic2;
 #else
@@ -692,7 +698,7 @@ trsingle(ip, bp,last)
  * to scan the inode table here anyway, we might as well get the
  * extra benefit.
  *
- * this is called from sumount()/sys3.c when dev is being unmounted
+ * this is called from sumount() when dev is being unmounted
  */
 #ifdef QUOTA
 iflush(dev, iq)
@@ -703,7 +709,7 @@ iflush(dev)
 	dev_t dev;
 {
 	register struct inode *ip;
-	register open = 0;
+	register int open = 0;
 
 	for (ip = inode; ip < inodeNINODE; ip++) {
 #ifdef QUOTA

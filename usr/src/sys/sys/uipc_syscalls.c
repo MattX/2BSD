@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uipc_syscalls.c	7.1.1 (2.11BSD GTE) 12/31/93
+ *	@(#)uipc_syscalls.c	7.1.2 (2.11BSD GTE) 12/2/94
  */
 
 #include "param.h"
@@ -27,9 +27,17 @@
 #include "netinet/in.h"
 #include "netinet/in_systm.h"
 
-#define	MBZAP(m, len, type) \
-	(m)->m_next = 0; (m)->m_off = MMINOFF; (m)->m_len = (len); \
-	(m)->m_type = (type); (m)->m_act = 0;
+static void
+MBZAP(m, len, type)
+	register struct mbuf *m;
+	int len, type;
+	{
+	m->m_next = 0;
+	m->m_off = MMINOFF;
+	m->m_len = len;
+	m->m_type = type;
+	m->m_act = 0;
+	}
 
 /*
  * System call interface to the socket abstraction.
@@ -387,6 +395,7 @@ sendit(s, mp, flags)
 	auio.uio_segflg = UIO_USERSPACE;
 	auio.uio_offset = 0;				/* XXX */
 	auio.uio_resid = 0;
+	auio.uio_rw = UIO_WRITE;
 	iov = mp->msg_iov;
 	for (i = 0; i < mp->msg_iovlen; i++, iov++) {
 #ifndef	pdp11
@@ -531,6 +540,7 @@ recvit(s, mp, flags, namelenp, rightslenp)
 	auio.uio_segflg = UIO_USERSPACE;
 	auio.uio_offset = 0;				/* XXX */
 	auio.uio_resid = 0;
+	auio.uio_rw = UIO_READ;
 	iov = mp->msg_iov;
 	for (i = 0; i < mp->msg_iovlen; i++, iov++) {
 #ifndef	pdp11

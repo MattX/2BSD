@@ -9,7 +9,7 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)uipc_socket.c	7.8 (Berkeley) 1/20/88
+ *	@(#)uipc_socket.c	7.8.1 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -374,7 +374,7 @@ nopages:
 				len = MIN(MIN(MLEN, uio->uio_resid), space);
 				space -= len;
 			}
-			error = uiomove(mtod(m, caddr_t), len, UIO_WRITE, uio);
+			error = uiomove(mtod(m, caddr_t), len, uio);
 			m->m_len = len;
 			*mp = m;
 			if (error)
@@ -449,7 +449,7 @@ soreceive(so, aname, uio, flags, rightsp)
 			if (len > m->m_len)
 				len = m->m_len;
 			error =
-			    uiomove(mtod(m, caddr_t), (int)len, UIO_READ, uio);
+			    uiomove(mtod(m, caddr_t), (int)len, uio);
 			m = m_free(m);
 		} while (uio->uio_resid && error == 0 && m);
 bad:
@@ -547,8 +547,7 @@ restart:
 		if (len > m->m_len - moff)
 			len = m->m_len - moff;
 		splx(s);
-		error =
-		    uiomove(mtod(m, caddr_t) + moff, (int)len, UIO_READ, uio);
+		error = uiomove(mtod(m, caddr_t) + moff, (int)len, uio);
 		s = splnet();
 		if (len == m->m_len - moff) {
 			if (flags & MSG_PEEK) {

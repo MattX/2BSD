@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty.c	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)tty.c	1.4 (2.11BSD GTE) 12/8/94
  */
 
 #include "param.h"
@@ -17,6 +17,7 @@
 #include "uio.h"
 #include "kernel.h"
 #include "systm.h"
+#include "inode.h"
 
 /*
  * Table giving parity for characters and indicating
@@ -67,33 +68,6 @@ char partab[] = {
 	0007,0007,0007,0007,0007,0007,0007,0007,
 	0007,0007,0007,0007,0007,0007,0007,0007
 };
-
-#ifdef	whybother
-/*
- * Input mapping table-- if an entry is non-zero, when the
- * corresponding character is typed preceded by "\" the escape
- * sequence is replaced by the table value.  Mostly used for
- * upper-case only terminals.
- */
-char	maptab[] ={
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,'|',000,000,000,000,000,'`',
-	'{','}',000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,000,000,
-	000,000,000,000,000,000,'~',000,
-	000,'A','B','C','D','E','F','G',
-	'H','I','J','K','L','M','N','O',
-	'P','Q','R','S','T','U','V','W',
-	'X','Y','Z',000,000,000,000,000,
-};
-#endif
 
 short	tthiwat[16] =
    { 100,100,100,100,100,100,100,200,200,400,400,400,650,650,1300,2000 };
@@ -205,8 +179,10 @@ ttrstrt(tp)
 	register struct tty *tp;
 {
 
+#ifdef	DIAGNOSTIC
 	if (tp == 0)
 		panic("ttrstrt");
+#endif
 	tp->t_state &= ~TS_TIMEOUT;
 	ttstart(tp);
 }
@@ -237,6 +213,7 @@ ttioctl(tp, com, data, flag)
 	register struct tty *tp;
 	u_int com;
 	caddr_t data;
+	int flag;
 {
 	int dev = tp->t_dev;
 	extern int nldisp;
@@ -291,7 +268,7 @@ ttioctl(tp, com, data, flag)
 			return (ENXIO);
 		if (t != tp->t_line) {
 			s = spltty();
-			(*linesw[tp->t_line].l_close)(tp);
+			(*linesw[tp->t_line].l_close)(tp, flag);
 			error = (*linesw[t].l_open)(dev, tp);
 			if (error) {
 				(void) (*linesw[tp->t_line].l_open)(dev, tp);
@@ -417,11 +394,7 @@ ttioctl(tp, com, data, flag)
 	}
 
 	case FIONBIO:
-		if (*(int *)data)
-			tp->t_state |= TS_NBIO;
-		else
-			tp->t_state &= ~TS_NBIO;
-		break;
+		break;	/* XXX remove */
 
 	case FIOASYNC:
 		if (*(int *)data)
@@ -595,11 +568,20 @@ ttyopen(dev, tp)
 /*
  * "close" a line discipline
  */
-ttylclose(tp)
+ttylclose(tp, flag)
 	register struct tty *tp;
 {
 
-	ttywflush(tp);
+/*
+ * 4.4 has IO_NDELAY but I think that is a mistake because the upper level
+ * 'close' routines all pass 'fp->f_flags' down.  This was verified with a
+ * printf here - the F* flags are received rather than the IO_* flags!
+*/
+
+	if (flag & FNDELAY)
+		ttyflush(tp, FREAD|FWRITE);
+	else
+		ttywflush(tp);
 	tp->t_line = 0;
 }
 
@@ -815,34 +797,6 @@ ttyinput(c, tp)
 		goto endcase;
 	}
 
-	if (tp->t_flags & LCASE && c <= 0177) {
-		if (tp->t_state&TS_BKSL) {
-			ttyrub(unputc(&tp->t_rawq), tp);
-#ifdef	whybother
-			if (maptab[c])
-				c = maptab[c];
-#else
-			if	(c == '\047')
-				c = '`';
-			else if	(c == '!')
-				c = '|';
-			else if	(c == '(')
-				c = '{';
-			else if	(c == ')')
-				c = '}';
-			else if (c == '^')
-				c = '~';
-			else if	(c >= 'a' && c <= 'z')
-				c &= ~040;
-#endif
-			c |= 0200;
-			tp->t_state &= ~(TS_BKSL|TS_QUOT);
-		} else if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-		else if (c == '\\')
-			tp->t_state |= TS_BKSL;
-	}
-
 	/*
 	 * Cbreak mode, don't process line editing
 	 * characters; check high water mark for wakeup.
@@ -1028,33 +982,11 @@ ttyoutput(c, tp)
 	tk_nout++;
 #endif
 	/*
-	 * for upper-case-only terminals,
-	 * generate escapes.
-	 */
-	if (tp->t_flags&LCASE) {
-		colp = "({)}!|^~'`";
-		while (*colp++)
-			if (c == *colp++) {
-				if (ttyoutput('\\', tp) >= 0)
-					return (c);
-				c = colp[-2];
-				break;
-			}
-		if ('A' <= c && c <= 'Z') {
-			if (ttyoutput('\\', tp) >= 0)
-				return (c);
-		} else if ('a' <= c && c <= 'z')
-			c += 'A' - 'a';
-	}
-
-	/*
 	 * turn <nl> to <cr><lf> if desired.
 	 */
 	if (c == '\n' && tp->t_flags&CRMOD)
 		if (ttyoutput('\r', tp) >= 0)
 			return (c);
-	if (c == '~' && tp->t_flags&TILDE)
-		c = '`';
 	if ((tp->t_flags&FLUSHO) == 0 && putc(c, &tp->t_outq))
 		return (c);
 	/*
@@ -1143,7 +1075,7 @@ ttyoutput(c, tp)
  * Called from device's read routine after it has
  * calculated the tty-structure given as argument.
  */
-ttread(tp, uio)
+ttread(tp, uio, flag)
 	register struct tty *tp;
 	struct uio *uio;
 {
@@ -1187,7 +1119,7 @@ loop:
 		s = spltty();
 		if (tp->t_rawq.c_cc <= 0) {
 			if ((tp->t_state&TS_CARR_ON) == 0 ||
-			    (tp->t_state&TS_NBIO)) {
+			    (flag & IO_NDELAY)) {
 				splx(s);
 				return (EWOULDBLOCK);
 			}
@@ -1213,8 +1145,7 @@ loop:
 	 */
 	s = spltty();
 	if (qp->c_cc <= 0) {
-		if ((tp->t_state&TS_CARR_ON) == 0 ||
-		    (tp->t_state&TS_NBIO)) {
+		if ((tp->t_state&TS_CARR_ON) == 0 || (flag & IO_NDELAY)) {
 			splx(s);
 			return (EWOULDBLOCK);
 		}
@@ -1317,7 +1248,7 @@ ttycheckoutq(tp, wait)
  * Called from the device's write routine after it has
  * calculated the tty-structure given as argument.
  */
-ttwrite(tp, uio)
+ttwrite(tp, uio, flag)
 	register struct tty *tp;
 	register struct uio *uio;
 {
@@ -1329,9 +1260,24 @@ ttwrite(tp, uio)
 	hiwat = TTHIWAT(tp);
 	cnt = uio->uio_resid;
 	error = 0;
+	cc = 0;
 loop:
-	if ((tp->t_state&TS_CARR_ON) == 0)
-		return (EIO);
+	s = spltty();
+	if (!(tp->t_state&TS_CARR_ON)) {
+		if (tp->t_state & TS_ISOPEN) {
+			splx(s);
+			return(EIO);
+		} else if (flag & IO_NDELAY) {
+			splx(s);
+			error = EWOULDBLOCK;
+			goto out;
+		} else {
+			/* Sleep awaiting carrier. */
+			sleep((caddr_t)&tp->t_rawq, TTIPRI);
+			goto loop;
+		}
+	}
+	splx(s);
 	/*
 	 * Hang the process if it's in the background.
 	 */
@@ -1351,55 +1297,25 @@ loop:
 	 * mark, sleep on overflow awaiting device aid
 	 * in acquiring new space.
 	 */
-	while (uio->uio_resid) {
-		/*
-		 * Grab a hunk of data from the user.
-		 */
-		cc = uio->uio_iov->iov_len;
-		if (cc == 0) {
-			uio->uio_iovcnt--;
-			uio->uio_iov++;
-			if (uio->uio_iovcnt <= 0)
-				panic("ttwrite");
-			continue;
+	while (uio->uio_resid || cc > 0) {
+		if (tp->t_flags&FLUSHO) {
+			uio->uio_resid = 0;
+			return(0);
 		}
-		if ((u_int)cc > OBUFSIZ)
-			cc = OBUFSIZ;
-		cp = obuf;
-		error = uiomove(cp, cc, UIO_WRITE, uio);
-		if (error)
-			break;
 		if (tp->t_outq.c_cc > hiwat)
 			goto ovhiwat;
-		if (tp->t_flags&FLUSHO)
-			continue;
 		/*
-		 * If we're mapping lower case or kludging tildes,
-		 * then we've got to look at each character, so
-		 * just feed the stuff to ttyoutput...
-		 */
-		if (tp->t_flags & (LCASE|TILDE)) {
-			while (cc > 0) {
-				c = *cp++;
-				tp->t_rocount = 0;
-				while ((c = ttyoutput(c, tp)) >= 0) {
-					/* out of clists, wait a bit */
-					ttstart(tp);
-					sleep((caddr_t)&lbolt, TTOPRI);
-					tp->t_rocount = 0;
-					if (cc != 0) {
-					        uio->uio_iov->iov_base -= cc;
-						uio->uio_iov->iov_len += cc;
-						uio->uio_resid += cc;
-						uio->uio_offset -= cc;
-					}
-					goto loop;
-				}
-				--cc;
-				if (tp->t_outq.c_cc > hiwat)
-					goto ovhiwat;
+		 * Grab a hunk of data from the user, unless we have some
+		 * leftover from last time.
+		*/
+		if (cc == 0) {
+			cc = MIN(uio->uio_resid, OBUFSIZ);
+			cp = obuf;
+			error = uiomove(cp, cc, uio);
+			if (error) {
+				cc = 0;
+				break;
 			}
-			continue;
 		}
 		/*
 		 * If nothing fancy need be done, grab those characters we
@@ -1426,12 +1342,6 @@ loop:
 					    /* no c-lists, wait a bit */
 					    ttstart(tp);
 					    sleep((caddr_t)&lbolt, TTOPRI);
-					    if (cc != 0) {
-					        uio->uio_iov->iov_base -= cc;
-						uio->uio_iov->iov_len += cc;
-						uio->uio_resid += cc;
-						uio->uio_offset -= cc;
-					    }
 					    goto loop;
 					}
 					cp++, cc--;
@@ -1461,41 +1371,37 @@ loop:
 				/* out of c-lists, wait a bit */
 				ttstart(tp);
 				sleep((caddr_t)&lbolt, TTOPRI);
-				uio->uio_iov->iov_base -= cc;
-				uio->uio_iov->iov_len += cc;
-				uio->uio_resid += cc;
-				uio->uio_offset -= cc;
 				goto loop;
 			}
 			if (tp->t_flags&FLUSHO || tp->t_outq.c_cc > hiwat)
-				goto ovhiwat;
-		}
-	}
-	ttstart(tp);
+				break;
+		}	/* while (cc > 0) */
+		ttstart(tp);
+	}	/* while (uio->uio_resid || cc > 0) */
+out:
+	/*
+	 * If cc is nonzero, we leave the uio structure inconsistent, as the
+	 * offset and iov pointers have moved forward, but it doesn't matter
+	 * (the call will either return short or restart with a new uio).
+	*/
+	uio->uio_resid += cc;
 	return (error);
 
 ovhiwat:
 	s = spltty();
-	if (cc != 0) {
-		uio->uio_iov->iov_base -= cc;
-		uio->uio_iov->iov_len += cc;
-		uio->uio_resid += cc;
-		uio->uio_offset -= cc;
-	}
 	/*
-	 * This can only occur if FLUSHO
-	 * is also set in t_flags.
+	 * This can only occur if FLUSHO is also set in t_flags,
+	 * or if ttstart/oproc is synchronous (or very fast).
 	 */
 	if (tp->t_outq.c_cc <= hiwat) {
 		splx(s);
 		goto loop;
 	}
 	ttstart(tp);
-	if (tp->t_state&TS_NBIO) {
+	if (flag & IO_NDELAY) {
 		splx(s);
-		if (uio->uio_resid == cnt)
-			return (EWOULDBLOCK);
-		return (0);
+		uio->uio_resid += cc;
+		return (uio->uio_resid == cnt ? EWOULDBLOCK : 0);
 	}
 	tp->t_state |= TS_ASLEEP;
 	sleep((caddr_t)&tp->t_outq, TTOPRI);
@@ -1533,10 +1439,7 @@ ttyrub(c, tp)
 		else switch (partab[c&=0177]&0177) {
 
 		case ORDINARY:
-			if (tp->t_flags&LCASE && c >= 'A' && c <= 'Z')
-				ttyrubo(tp, 2);
-			else
-				ttyrubo(tp, 1);
+			ttyrubo(tp, 1);
 			break;
 
 		case VTAB:
@@ -1678,8 +1581,6 @@ ttyecho(c, tp)
 			c &= 0177;
 			if (c == 0177)
 				c = '?';
-			else if (tp->t_flags&LCASE)
-				c += 'a' - 1;
 			else
 				c += 'A' - 1;
 		}

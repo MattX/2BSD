@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.4 (2.11BSD GTE) 4/29/94
+ *	@(#)ufs_syscalls.c	1.5 (2.11BSD GTE) 12/7/94
  */
 
 #include "param.h"
@@ -19,6 +19,7 @@
 #include "quota.h"
 #endif
 
+static	void	copen();
 static struct	inode *getinode();
 
 /*
@@ -39,14 +40,14 @@ fchdir()
 
 	if ((ip = getinode(uap->fd)) == NULL)
 		return;
-	ILOCK(ip);
+	ilock(ip);
 	if ((ip->i_mode & IFMT) != IFDIR) {
 		u.u_error = ENOTDIR;
 		goto bad;
 	}
 	if (access(ip, IEXEC))
 		goto bad;
-	IUNLOCK(ip);
+	iunlock(ip);
 	ip->i_count++;
 	irele(u.u_cdir);
 	u.u_cdir = ip;
@@ -90,7 +91,7 @@ chdirec(ipp)
 	}
 	if (access(ip, IEXEC))
 		goto bad;
-	IUNLOCK(ip);
+	iunlock(ip);
 	if (*ipp)
 		irele(*ipp);
 	*ipp = ip;
@@ -111,7 +112,7 @@ open()
 		int	crtmode;
 	} *uap = (struct a *) u.u_ap;
 
-	copen(uap->mode-FOPEN, uap->crtmode, uap->fname);
+	copen(uap->mode, uap->crtmode, uap->fname);
 }
 
 /*
@@ -124,7 +125,7 @@ creat()
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
 
-	copen(FWRITE|FCREAT|FTRUNC, uap->fmode, uap->fname);
+	copen(O_WRONLY|O_CREAT|O_TRUNC, uap->fmode, uap->fname);
 }
 
 /*
@@ -132,24 +133,26 @@ creat()
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
  */
+static void
 copen(mode, arg, fname)
-	register int mode;
+	int mode;
 	int arg;
 	caddr_t fname;
 {
 	register struct inode *ip;
 	register struct file *fp;
 	register struct	nameidata *ndp = &u.u_nd;
-	int indx;
+	int indx, type;
 
+	mode = FFLAGS(mode);	/* convert from open to kernel flags */
 	fp = falloc();
 	if (fp == NULL)
 		return;
 	indx = u.u_r.r_val1;
 	ndp->ni_segflg = UIO_USERSPACE;
 	ndp->ni_dirp = fname;
-	if (mode&FCREAT) {
-		if (mode & FEXCL)
+	if (mode & O_CREAT) {
+		if (mode & O_EXCL)
 			ndp->ni_nameiop = CREATE;
 		else
 			ndp->ni_nameiop = CREATE | FOLLOW;
@@ -160,13 +163,13 @@ copen(mode, arg, fname)
 			ip = maknode(arg&07777&(~ISVTX), ndp);
 			if (ip == NULL)
 				goto bad1;
-			mode &= ~FTRUNC;
+			mode &= ~O_TRUNC;
 		} else {
-			if (mode&FEXCL) {
+			if (mode & O_EXCL) {
 				u.u_error = EEXIST;
 				goto bad;
 			}
-			mode &= ~FCREAT;
+			mode &= ~O_CREAT;
 		}
 	} else {
 		ndp->ni_nameiop = LOOKUP | FOLLOW;
@@ -178,11 +181,15 @@ copen(mode, arg, fname)
 		u.u_error = EOPNOTSUPP;
 		goto bad;
 	}
-	if ((mode&FCREAT) == 0) {
+	if ((ip->i_flags & APPEND) && (mode & (FWRITE|O_APPEND)) == FWRITE) {
+		u.u_error = EPERM;
+		goto bad;
+	}
+	if ((mode& O_CREAT) == 0) {
 		if (mode&FREAD)
 			if (access(ip, IREAD))
 				goto bad;
-		if (mode&(FWRITE|FTRUNC)) {
+		if (mode&(FWRITE|O_TRUNC)) {
 			if (access(ip, IWRITE))
 				goto bad;
 			if ((ip->i_mode&IFMT) == IFDIR) {
@@ -191,23 +198,39 @@ copen(mode, arg, fname)
 			}
 		}
 	}
-	if (mode&FTRUNC)
+	if (mode & O_TRUNC)
 		itrunc(ip, (u_long)0);
-	IUNLOCK(ip);
+	iunlock(ip);
 	fp->f_flag = mode&FMASK;
 	fp->f_type = DTYPE_INODE;
 	fp->f_data = (caddr_t)ip;
 	if (setjmp(&u.u_qsave)) {
 		if (u.u_error == 0)
 			u.u_error = EINTR;
+bad2:
 		u.u_ofile[indx] = NULL;
 		closef(fp);
 		return;
 	}
 	u.u_error = openi(ip, mode);
-	if (u.u_error == 0)
-		return;
-	ILOCK(ip);
+	if (u.u_error == 0) {
+		if (mode & O_EXLOCK)
+			mode &= ~O_SHLOCK;
+		type = 0;
+		if (mode & O_SHLOCK)
+			type |= LOCK_SH;
+		if (mode & O_EXLOCK)
+			type |= LOCK_EX;
+		if (!type)
+			return;
+		if (mode & O_NONBLOCK)
+			type |= LOCK_NB;
+		u.u_error = ino_lock(fp, type);
+		if (u.u_error == 0)
+			return;
+		goto bad2;
+	}
+	ilock(ip);
 bad:
 	iput(ip);
 bad1:
@@ -258,7 +281,6 @@ mknod()
 			ip->i_flag |= IACC|IUPD|ICHG;
 		}
 	}
-
 out:
 	iput(ip);
 }
@@ -282,6 +304,11 @@ link()
 	if (ip == NULL)
 		return;
 	if ((ip->i_mode&IFMT) == IFDIR && !suser()) {
+		iput(ip);
+		return;
+	}
+	if (ip->i_flags & (IMMUTABLE|APPEND)) {
+		u.u_error = EPERM;
 		iput(ip);
 		return;
 	}
@@ -324,8 +351,8 @@ symlink()
 		char	*linkname;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
-	register char *tp;
-	register c, nc;
+	char *tp;
+	int c, nc;
 	register struct	nameidata *ndp = &u.u_nd;
 
 	tp = uap->target;
@@ -352,8 +379,8 @@ symlink()
 	ip = maknode(IFLNK | 0777, ndp);
 	if (ip == NULL)
 		return;
-	u.u_error = rdwri(UIO_WRITE, ip, uap->target, nc, (off_t)0, 0,
-	    (int *)0);
+	u.u_error = rdwri(UIO_WRITE, ip, uap->target, nc, (off_t)0,
+				UIO_USERSPACE, IO_UNIT, (int *)0);
 	/* handle u.u_error != 0 */
 	iput(ip);
 }
@@ -387,6 +414,10 @@ unlink()
 		u.u_error = EBUSY;
 		goto out;
 	}
+	if ((ip->i_flags & (IMMUTABLE|APPEND)) || (dp->i_flags & APPEND)) {
+		u.u_error = EPERM;
+		goto out;
+	}
 	if (ip->i_flag&ITEXT)
 		xuntext(ip->i_text);	/* try once to free text */
 	if (dirremove(ndp)) {
@@ -413,7 +444,8 @@ lseek()
 		int	sbase;
 	} *uap = (struct a *)u.u_ap;
 
-	GETF(fp, uap->fd);
+	if ((fp = getf(uap->fd)) == NULL)
+		return;
 	if (fp->f_type != DTYPE_INODE) {
 		u.u_error = ESPIPE;
 		return;
@@ -539,12 +571,62 @@ readlink()
 		u.u_error = EINVAL;
 		goto out;
 	}
-	u.u_error = rdwri(UIO_READ, ip, uap->buf, uap->count, (off_t)0, 0,
-	    &resid);
+	u.u_error = rdwri(UIO_READ, ip, uap->buf, uap->count, (off_t)0,
+				UIO_USERSPACE, IO_UNIT, &resid);
 out:
 	iput(ip);
 	u.u_r.r_val1 = uap->count - resid;
 }
+
+/*
+ * change flags of a file given pathname.
+*/
+chflags()
+	{
+	register struct inode *ip;
+	register struct a {
+		char	*fname;
+		u_short	flags;
+	} *uap = (struct a *)u.u_ap;
+	register struct nameidata *ndp = &u.u_nd;
+
+	ndp->ni_nameiop = LOOKUP|FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = uap->fname;
+	if	((ip = namei(ndp)) == NULL)
+		return;
+	u.u_error = chflags1(ip, uap->flags);
+	iput(ip);
+	}
+
+/*
+ * change flags of a file given file descriptor.
+*/
+fchflags()
+	{
+	register struct a {
+		int	fd;
+		u_short	flags;
+	} *uap = (struct a *)u.u_ap;
+	register struct inode *ip;
+
+	if	((ip = getinode(uap->fd)) == NULL)
+		return;
+	ilock(ip);
+	u.u_error = chflags1(ip, uap->flags);
+	iunlock(ip);
+	}
+
+chflags1(ip, flags)
+	register struct inode *ip;
+	u_short flags;
+	{
+	struct	vattr	vattr;
+
+	VATTR_NULL(&vattr);
+	vattr.va_flags = flags;
+	return(ufs_setattr(ip, &vattr));
+	}
 
 /*
  * Change mode of a file given path name.
@@ -556,10 +638,18 @@ chmod()
 		char	*fname;
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
+	struct	vattr	vattr;
+	register struct nameidata *ndp = &u.u_nd;
 
-	if ((ip = owner(uap->fname, FOLLOW)) == NULL)
+	ndp->ni_nameiop = LOOKUP|FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = uap->fname;
+	ip = namei(ndp);
+	if (!ip)
 		return;
-	u.u_error = chmod1(ip, uap->fmode);
+	VATTR_NULL(&vattr);
+	vattr.va_mode = uap->fmode & 07777;
+	u.u_error = ufs_setattr(ip, &vattr);
 	iput(ip);
 }
 
@@ -573,18 +663,19 @@ fchmod()
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
+	struct	vattr	vattr;
 
 	if ((ip = getinode(uap->fd)) == NULL)
 		return;
-	if (u.u_uid != ip->i_uid && !suser())
-		return;
-	ILOCK(ip);
-	u.u_error = chmod1(ip, uap->fmode);
-	IUNLOCK(ip);
+	ilock(ip);
+	VATTR_NULL(&vattr);
+	vattr.va_mode = uap->fmode & 07777;
+	u.u_error = ufs_setattr(ip, &vattr);
+	iunlock(ip);
 }
 
 /*
- * Change the mode on a file.
+ * Change the mode on a file.  This routine is called from ufs_setattr.
  * Inode must be locked before calling.
  */
 chmod1(ip, mode)
@@ -592,15 +683,15 @@ chmod1(ip, mode)
 	register int mode;
 {
 
-	if (ip->i_fs->fs_ronly)
-		return (EROFS);
-	ip->i_mode &= ~07777;
+	if (u.u_uid != ip->i_uid && !suser())
+		return(u.u_error);
 	if (u.u_uid) {
-		if ((ip->i_mode & IFMT) != IFDIR)
-			mode &= ~ISVTX;
-		if (!groupmember(ip->i_gid))
-			mode &= ~ISGID;
+		if ((ip->i_mode & IFMT) != IFDIR && (mode & ISVTX))
+			return(EFTYPE);
+		if (!groupmember(ip->i_gid) && (mode & ISGID))
+			return(EPERM);
 	}
+	ip->i_mode &= ~07777;		/* why? */
 	ip->i_mode |= mode&07777;
 	ip->i_flag |= ICHG;
 	if (ip->i_flag&ITEXT && (ip->i_mode&ISVTX)==0)
@@ -620,6 +711,7 @@ chown()
 		int	gid;
 	} *uap = (struct a *)u.u_ap;
 	register struct	nameidata *ndp = &u.u_nd;
+	struct	vattr	vattr;
 
 	ndp->ni_nameiop = LOOKUP | NOFOLLOW;
 	ndp->ni_segflg = UIO_USERSPACE;
@@ -627,7 +719,10 @@ chown()
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
-	u.u_error = chown1(ip, uap->uid, uap->gid);
+	VATTR_NULL(&vattr);
+	vattr.va_uid = uap->uid;
+	vattr.va_gid = uap->gid;
+	u.u_error = ufs_setattr(ip, &vattr);
 	iput(ip);
 }
 
@@ -642,27 +737,31 @@ fchown()
 		int	gid;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
+	struct	vattr	vattr;
 
 	if ((ip = getinode(uap->fd)) == NULL)
 		return;
-	ILOCK(ip);
-	u.u_error = chown1(ip, uap->uid, uap->gid);
-	IUNLOCK(ip);
+	ilock(ip);
+	VATTR_NULL(&vattr);
+	vattr.va_uid = uap->uid;
+	vattr.va_gid = uap->gid;
+	u.u_error = ufs_setattr(ip, &vattr);
+	iunlock(ip);
 }
 
 /*
- * Perform chown operation on inode ip;
+ * Perform chown operation on inode ip.  This routine called from ufs_setattr.
  * inode must be locked prior to call.
  */
 chown1(ip, uid, gid)
 	register struct inode *ip;
 	register int uid, gid;
 {
+	int ouid, ogid;
 #ifdef QUOTA
+	struct	dquot	**xdq;
 	long change;
 #endif
-	if (ip->i_fs->fs_ronly)
-		return (EROFS);
 	if (uid == -1)
 		uid = ip->i_uid;
 	if (gid == -1)
@@ -675,6 +774,8 @@ chown1(ip, uid, gid)
 	if ((u.u_uid != ip->i_uid || uid != ip->i_uid ||
 	    !groupmember((gid_t)gid)) && !suser())
 		return (u.u_error);
+	ouid = ip->i_uid;
+	ogid = ip->i_gid;
 #ifdef QUOTA
 	QUOTAMAP();
 	if (ip->i_uid == uid)
@@ -683,22 +784,24 @@ chown1(ip, uid, gid)
 		change = ip->i_size;
 	(void) chkdq(ip, -change, 1);
 	(void) chkiq(ip->i_dev, ip, ip->i_uid, 1);
-	dqrele(ix_dquot[ip - inode]);
+	xdq = &ix_dquot[ip - inode];
+	dqrele(*xdq);
 #endif
 	ip->i_uid = uid;
 	ip->i_gid = gid;
-	ip->i_flag |= ICHG;
-	if (u.u_ruid != 0)
-		ip->i_mode &= ~(ISUID|ISGID);
 #ifdef QUOTA
-	ix_dquot[ip - inode] = inoquota(ip);
+	*xdq = inoquota(ip);
 	(void) chkdq(ip, change, 1);
 	(void) chkiq(ip->i_dev, (struct inode *)NULL, (uid_t)uid, 1);
 	QUOTAUNMAP();
-	return (u.u_error);		/* should == 0 ALWAYS !! */
-#else
-	return (0);
 #endif
+	if (ouid != uid || ogid != gid)
+		ip->i_flag |= ICHG;
+	if (ouid != uid && u.u_uid != 0)
+		ip->i_mode &= ~ISUID;
+	if (ogid != gid && u.u_gid != 0)
+		ip->i_mode &= ~ISGID;
+	return (0);
 }
 
 utimes()
@@ -708,20 +811,24 @@ utimes()
 		struct	timeval *tptr;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
+	register struct nameidata *ndp = &u.u_nd;
 	struct timeval tv[2];
+	struct vattr vattr;
 
-	if ((ip = owner(uap->fname, FOLLOW)) == NULL)
+	VATTR_NULL(&vattr);
+	if (uap->tptr == NULL) {
+		tv[0].tv_sec = tv[1].tv_sec = time.tv_sec;
+		vattr.va_vaflags |= VA_UTIMES_NULL;
+	} else if (u.u_error = copyin((caddr_t)uap->tptr,(caddr_t)tv,sizeof(tv)))
 		return;
-	if (ip->i_fs->fs_ronly) {
-		u.u_error = EROFS;
-		iput(ip);
+	ndp->ni_nameiop = LOOKUP|FOLLOW;
+	ndp->ni_segflg = UIO_USERSPACE;
+	ndp->ni_dirp = uap->fname;
+	if ((ip = namei(ndp)) == NULL)
 		return;
-	}
-	u.u_error = copyin((caddr_t)uap->tptr, (caddr_t)tv, sizeof (tv));
-	if (u.u_error == 0) {
-		ip->i_flag |= IACC|IUPD|ICHG;
-		iupdat(ip, &tv[0], &tv[1], 0);
-	}
+	vattr.va_atime = tv[0].tv_sec;
+	vattr.va_mtime = tv[1].tv_sec;
+	u.u_error = ufs_setattr(ip, &vattr);
 	iput(ip);
 }
 
@@ -745,6 +852,7 @@ truncate()
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
 	register struct	nameidata *ndp = &u.u_nd;
+	struct	vattr	vattr;
 
 	ndp->ni_nameiop = LOOKUP | FOLLOW;
 	ndp->ni_segflg = UIO_USERSPACE;
@@ -754,11 +862,9 @@ truncate()
 		return;
 	if (access(ip, IWRITE))
 		goto bad;
-	if ((ip->i_mode&IFMT) == IFDIR) {
-		u.u_error = EISDIR;
-		goto bad;
-	}
-	itrunc(ip, (u_long)uap->length);
+	VATTR_NULL(&vattr);
+	vattr.va_size = uap->length;
+	u.u_error = ufs_setattr(ip, &vattr);
 bad:
 	iput(ip);
 }
@@ -774,6 +880,7 @@ ftruncate()
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
 	register struct file *fp;
+	struct	vattr	vattr;
 
 	if ((fp = getf(uap->fd)) == NULL)
 		return;
@@ -783,7 +890,9 @@ ftruncate()
 	}
 	ip = (struct inode *)fp->f_data;
 	ilock(ip);
-	itrunc(ip, (u_long)uap->length);
+	VATTR_NULL(&vattr);
+	vattr.va_size = uap->length;
+	u.u_error = ufs_setattr(ip, &vattr);
 	iunlock(ip);
 }
 
@@ -850,6 +959,20 @@ rename()
 	if (ip == NULL)
 		return;
 	dp = ndp->ni_pdir;
+/*
+ * 'from' file can not be renamed if it is immutable/appendonly or if its
+ * parent directory is append only.
+*/
+	if ((ip->i_flags & (IMMUTABLE|APPEND)) || (dp->i_flags & APPEND)) {
+		iput(dp);
+		if (dp == ip)
+			irele(ip);
+		else
+			iput(ip);
+		u.u_error = EPERM;
+		return;
+	}
+
 	if ((ip->i_mode&IFMT) == IFDIR) {
 		register struct direct *d;
 
@@ -883,7 +1006,7 @@ rename()
 	ip->i_nlink++;
 	ip->i_flag |= ICHG;
 	iupdat(ip, &time, &time, 1);
-	IUNLOCK(ip);
+	iunlock(ip);
 
 	/*
 	 * When the target exists, both the directory
@@ -897,6 +1020,16 @@ rename()
 		goto out;
 	}
 	dp = ndp->ni_pdir;
+/*
+ * rename can not be done if 'to' file exists and is immutable/appendonly
+ * or if the directory is append only (this is because an existing 'to'
+ * has to be deleted first and that is illegal in an appendonly directory).
+*/
+	if (xp && ((xp->i_flags & (IMMUTABLE|APPEND)) || (dp->i_flags & APPEND))) {
+		error = EPERM;
+		goto bad;
+	}
+
 	/*
 	 * If ".." must be changed (ie the directory gets a new
 	 * parent) then the source directory must not be in the
@@ -1011,7 +1144,7 @@ rename()
 		xp->i_nlink--;
 		if (doingdirectory) {
 			if (--xp->i_nlink != 0)
-				panic("rename: linked directory");
+				panic("rename: lnk dir");
 			itrunc(xp, (u_long)0);
 		}
 		xp->i_flag |= ICHG;
@@ -1054,8 +1187,8 @@ rename()
 			dp->i_nlink--;
 			dp->i_flag |= ICHG;
 			error = rdwri(UIO_READ, xp, (caddr_t)&dirbuf,
-					sizeof(struct dirtemplate), (off_t)0, 1,
-					(int *)0);
+					sizeof(struct dirtemplate), (off_t)0, 
+					UIO_SYSSPACE, IO_UNIT, (int *)0);
 
 			if (error == 0) {
 				if (dirbuf.dotdot_namlen != 2 ||
@@ -1067,7 +1200,8 @@ rename()
 					(void) rdwri(UIO_WRITE, xp,
 						(caddr_t)&dirbuf,
 						sizeof(struct dirtemplate),
-						(off_t)0, 1,(int *)0);
+						(off_t)0, UIO_SYSSPACE,
+						IO_UNIT|IO_SYNC, (int *)0);
 					cacheinval(dp);
 				}
 			}
@@ -1112,6 +1246,9 @@ register struct nameidata *ndp;
 {
 	register struct inode *ip;
 	register struct inode *pdir = ndp->ni_pdir;
+#ifdef	QUOTA
+	struct	dquot	**xdq;
+#endif
 
 	ip = ialloc(pdir);
 	if (ip == NULL) {
@@ -1120,8 +1257,9 @@ register struct nameidata *ndp;
 	}
 #ifdef QUOTA
 	QUOTAMAP();
-	if (ix_dquot[ip - inode] != NODQUOT)
-		panic("maknode: dquot");
+	xdq = &ix_dquot[ip - inode];
+	if (*xdq != NODQUOT)
+		panic("maknode");
 #endif
 	ip->i_flag |= IACC|IUPD|ICHG;
 	if ((mode & IFMT) == 0)
@@ -1133,7 +1271,7 @@ register struct nameidata *ndp;
 	if (ip->i_mode & ISGID && !groupmember(ip->i_gid))
 		ip->i_mode &= ~ISGID;
 #ifdef QUOTA
-	ix_dquot[ip - inode] = inoquota(ip);
+	*xdq = inoquota(ip);
 	QUOTAUNMAP();
 #endif
 
@@ -1175,6 +1313,9 @@ mkdir()
 	register struct inode *ip, *dp;
 	struct dirtemplate dirtemplate;
 	register struct nameidata *ndp = &u.u_nd;
+#ifdef	QUOTA
+	struct	dquot **xdq;
+#endif
 
 	ndp->ni_nameiop = CREATE;
 	ndp->ni_segflg = UIO_USERSPACE;
@@ -1204,8 +1345,9 @@ mkdir()
 	}
 #ifdef QUOTA
 	QUOTAMAP();
-	if (ix_dquot[ip - inode] != NODQUOT)
-		panic("mkdir: dquot");
+	xdq = &ix_dquot[ip - inode];
+	if (*xdq != NODQUOT)
+		panic("mkdir");
 #endif
 	ip->i_flag |= IACC|IUPD|ICHG;
 	ip->i_mode = uap->dmode & ~u.u_cmask;
@@ -1213,7 +1355,7 @@ mkdir()
 	ip->i_uid = u.u_uid;
 	ip->i_gid = dp->i_gid;
 #ifdef QUOTA
-	ix_dquot[ip - inode] = inoquota(ip);
+	*xdq = inoquota(ip);
 	QUOTAUNMAP();
 #endif
 	iupdat(ip, &time, &time, 1);
@@ -1236,7 +1378,8 @@ mkdir()
 	dirtemplate.dot_ino = ip->i_number;
 	dirtemplate.dotdot_ino = dp->i_number;
 	u.u_error = rdwri(UIO_WRITE, ip, (caddr_t)&dirtemplate, 
-		sizeof (dirtemplate), (off_t)0, 1, (int *)0);
+		sizeof (dirtemplate), (off_t)0, UIO_SYSSPACE, IO_UNIT|IO_SYNC,
+		(int *)0);
 	if (u.u_error) {
 		dp->i_nlink--;
 		dp->i_flag |= ICHG;
@@ -1322,6 +1465,10 @@ rmdir()
 	 */
 	if (ip->i_nlink != 2 || !dirempty(ip, dp->i_number)) {
 		u.u_error = ENOTEMPTY;
+		goto out;
+	}
+	if ((dp->i_flags & APPEND) || (ip->i_flags & (IMMUTABLE|APPEND))) {
+		u.u_error = EPERM;
 		goto out;
 	}
 	/*

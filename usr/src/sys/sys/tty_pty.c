@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_pty.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty_pty.c	1.2 (2.11BSD GTE) 12/8/94
  */
 
 /*
@@ -23,10 +23,11 @@
 #include "proc.h"
 #include "uio.h"
 #include "kernel.h"
+#include "inode.h"
 
 #if NPTY == 1
 #undef NPTY
-#define	NPTY	32		/* crude XXX */
+#define	NPTY	16		/* crude XXX */
 #endif
 
 #define BUFSIZ 100		/* Chunk size iomoved to/from user */
@@ -46,7 +47,6 @@ int	npty = NPTY;		/* for pstat -t */
 
 #define	PF_RCOLL	0x01
 #define	PF_WCOLL	0x02
-#define	PF_NBIO		0x04
 #define	PF_PKT		0x08		/* packet mode */
 #define	PF_STOPPED	0x10		/* user told stopped */
 #define	PF_REMOTE	0x20		/* remote and flow controlled input */
@@ -83,20 +83,22 @@ ptsopen(dev, flag)
 	return (error);
 }
 
-ptsclose(dev)
+ptsclose(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register struct tty *tp;
 
 	tp = &pt_tty[minor(dev)];
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	ttyclose(tp);
 	ptcwakeup(tp, FREAD|FWRITE);
 }
 
-ptsread(dev, uio)
+ptsread(dev, uio, flag)
 	dev_t dev;
 	register struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
 	register struct pt_ioctl *pti = &pt_ioctl[minor(dev)];
@@ -113,7 +115,7 @@ again:
 			sleep((caddr_t)&lbolt, TTIPRI);
 		}
 		if (tp->t_canq.c_cc == 0) {
-			if (tp->t_state & TS_NBIO)
+			if (flag & IO_NDELAY)
 				return (EWOULDBLOCK);
 			sleep((caddr_t)&tp->t_canq, TTIPRI);
 			goto again;
@@ -129,7 +131,7 @@ again:
 			return (error);
 	} else
 		if (tp->t_oproc)
-			error = (*linesw[tp->t_line].l_read)(tp, uio);
+			error = (*linesw[tp->t_line].l_read)(tp, uio, flag);
 	ptcwakeup(tp, FWRITE);
 	return (error);
 }
@@ -139,16 +141,17 @@ again:
  * Wakeups of controlling tty will happen
  * indirectly, when tty driver calls ptsstart.
  */
-ptswrite(dev, uio)
+ptswrite(dev, uio, flag)
 	dev_t dev;
 	register struct uio *uio;
+	int flag;
 {
 	register struct tty *tp;
 
 	tp = &pt_tty[minor(dev)];
 	if (tp->t_oproc == 0)
 		return (EIO);
-	return ((*linesw[tp->t_line].l_write)(tp, uio));
+	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
 }
 
 /*
@@ -214,8 +217,9 @@ ptcopen(dev, flag)
 	return (0);
 }
 
-ptcclose(dev)
+ptcclose(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register struct tty *tp;
 
@@ -225,9 +229,10 @@ ptcclose(dev)
 	tp->t_oproc = 0;		/* mark closed */
 }
 
-ptcread(dev, uio)
+ptcread(dev, uio, flag)
 	dev_t dev;
 	register struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
 	struct pt_ioctl *pti = &pt_ioctl[minor(dev)];
@@ -260,8 +265,8 @@ ptcread(dev, uio)
 				break;
 		}
 		if ((tp->t_state&TS_CARR_ON) == 0)
-			return (EIO);
-		if (pti->pt_flags&PF_NBIO)
+			return (0);	/* EOF */
+		if (flag & IO_NDELAY)
 			return (EWOULDBLOCK);
 		sleep((caddr_t)&tp->t_outq.c_cf, TTIPRI);
 	}
@@ -271,7 +276,7 @@ ptcread(dev, uio)
 		cc = q_to_b(&tp->t_outq, buf, MIN(uio->uio_resid, BUFSIZ));
 		if (cc <= 0)
 			break;
-		error = uiomove(buf, cc, UIO_READ, uio);
+		error = uiomove(buf, cc, uio);
 	}
 	if (tp->t_outq.c_cc <= TTLOWAT(tp)) {
 		if (tp->t_state&TS_ASLEEP) {
@@ -371,12 +376,12 @@ ptcselect(dev, rw)
 	return (0);
 }
 
-ptcwrite(dev, uio)
+ptcwrite(dev, uio, flag)
 	dev_t dev;
 	register struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
-	register struct iovec *iov;
 	register char *cp;
 	register int cc = 0;
 	char locbuf[BUFSIZ];
@@ -390,18 +395,12 @@ again:
 	if (pti->pt_flags & PF_REMOTE) {
 		if (tp->t_canq.c_cc)
 			goto block;
-		while (uio->uio_iovcnt > 0 && tp->t_canq.c_cc < TTYHOG - 1) {
-			iov = uio->uio_iov;
-			if (iov->iov_len == 0) {
-				uio->uio_iovcnt--;
-				uio->uio_iov++;
-				continue;
-			}
+		while (uio->uio_resid && tp->t_canq.c_cc < TTYHOG - 1) {
 			if (cc == 0) {
-				cc = MIN(iov->iov_len, BUFSIZ);
+				cc = MIN(uio->uio_resid, BUFSIZ);
 				cc = MIN(cc, TTYHOG - 1 - tp->t_canq.c_cc);
 				cp = locbuf;
-				error = uiomove(cp, cc, UIO_WRITE, uio);
+				error = uiomove(cp, cc, uio);
 				if (error)
 					return (error);
 				/* check again for safety */
@@ -417,17 +416,11 @@ again:
 		wakeup((caddr_t)&tp->t_canq);
 		return (0);
 	}
-	while (uio->uio_iovcnt > 0) {
-		iov = uio->uio_iov;
+	while (uio->uio_resid > 0) {
 		if (cc == 0) {
-			if (iov->iov_len == 0) {
-				uio->uio_iovcnt--;
-				uio->uio_iov++;
-				continue;
-			}
-			cc = MIN(iov->iov_len, BUFSIZ);
+			cc = MIN(uio->uio_resid, BUFSIZ);
 			cp = locbuf;
-			error = uiomove(cp, cc, UIO_WRITE, uio);
+			error = uiomove(cp, cc, uio);
 			if (error)
 				return (error);
 			/* check again for safety */
@@ -455,11 +448,9 @@ block:
 	 */
 	if ((tp->t_state&TS_CARR_ON) == 0)
 		return (EIO);
-	if (pti->pt_flags & PF_NBIO) {
-		iov->iov_base -= cc;
-		iov->iov_len += cc;
+	if (flag & IO_NDELAY) {
+		/* adjust for data copied in but not written */
 		uio->uio_resid += cc;
-		uio->uio_offset -= cc;
 		if (cnt == 0)
 			return (EWOULDBLOCK);
 		return (0);
@@ -473,6 +464,7 @@ ptyioctl(dev, cmd, data, flag)
 	caddr_t data;
 	u_int cmd;
 	dev_t dev;
+	int flag;
 {
 	register struct tty *tp = &pt_tty[minor(dev)];
 	register struct pt_ioctl *pti = &pt_ioctl[minor(dev)];
@@ -512,13 +504,6 @@ ptyioctl(dev, cmd, data, flag)
 			ttyflush(tp, FREAD|FWRITE);
 			return (0);
 
-		case FIONBIO:
-			if (*(int *)data)
-				pti->pt_flags |= PF_NBIO;
-			else
-				pti->pt_flags &= ~PF_NBIO;
-			return (0);
-
 		case TIOCSETP:
 		case TIOCSETN:
 		case TIOCSETD:
@@ -526,6 +511,16 @@ ptyioctl(dev, cmd, data, flag)
 				;
 			break;
 		}
+/*
+ * Unsure if the comment below still applies or not.  For now put the
+ * new code in ifdef'd out.
+*/
+
+#ifdef	four_four_bsd
+	error = (*linesw[t->t_line].l_ioctl(tp, cmd, data, flag);
+	if (error < 0)
+		error = ttioctl(tp, cmd, data, flag);
+#else
 	error = ttioctl(tp, cmd, data, flag);
 	/*
 	 * Since we use the tty queues internally,
@@ -534,11 +529,12 @@ ptyioctl(dev, cmd, data, flag)
 	 * from here...
 	 */
 	if (linesw[tp->t_line].l_rint != ttyinput) {
-		(*linesw[tp->t_line].l_close)(tp);
+		(*linesw[tp->t_line].l_close)(tp, flag);
 		tp->t_line = 0;
 		(void)(*linesw[tp->t_line].l_open)(dev, tp);
 		error = ENOTTY;
 	}
+#endif
 	if (error < 0) {
 		if (pti->pt_flags & PF_UCNTL &&
 		    (cmd & ~0xff) == UIOCCMD(0)) {

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_fio.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_fio.c	1.2 (2.11BSD GTE) 12/15/94
  */
 
 #include "param.h"
@@ -13,6 +13,9 @@
 #include "namei.h"
 #include "systm.h"
 #include "acct.h"
+#include "stat.h"
+
+extern	int	securelevel;
 
 /*
  * Check mode permission on inode pointer.
@@ -36,6 +39,10 @@ access(ip, mode)
 
 	m = mode;
 	if (m == IWRITE) {
+		if (ip->i_flags & IMMUTABLE) {
+			u.u_error = EPERM;
+			return(1);
+		}
 		/*
 		 * Disallow write attempts on read-only
 		 * file systems; unless the file is a block
@@ -92,36 +99,6 @@ found:
 	return (1);
 }
 
-/*
- * Look up a pathname and test if
- * the resultant inode is owned by the
- * current user.
- * If not, try for super-user.
- * If permission is granted,
- * return inode pointer.
- */
-struct inode *
-owner(fname, follow)
-	caddr_t fname;
-	int follow;
-{
-	register struct inode *ip;
-	register struct	nameidata *ndp = &u.u_nd;
-
-	ndp->ni_nameiop = LOOKUP | follow;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = fname;
-	ip = namei(ndp);
-	if (ip == NULL)
-		return (NULL);
-	if (u.u_uid == ip->i_uid)
-		return (ip);
-	if (suser())
-		return (ip);
-	iput(ip);
-	return (NULL);
-}
-
 /* copied, for supervisory networking, to sys_net.c */
 /*
  * Test if the current user is the
@@ -137,3 +114,77 @@ suser()
 	u.u_error = EPERM;
 	return (0);
 }
+
+/*
+ * Set the attributes on a file.  This was placed here because ufs_syscalls
+ * is too large already (it will probably be split into two files eventually).
+*/
+
+ufs_setattr(ip, vap)
+	register struct inode *ip;
+	register struct vattr *vap;
+	{
+	int	error;
+	struct	timeval atimeval, mtimeval;
+
+	if	(ip->i_fs->fs_ronly)	/* can't change anything on a RO fs */
+		return(EROFS);
+	if	(vap->va_flags != VNOVAL)
+		{
+		if	(u.u_uid != ip->i_uid && !suser())
+			return(u.u_error);
+		if	(u.u_uid == 0)
+			{
+#ifdef	not_quite_yet
+			if	((ip->i_flags & (SF_IMMUTABLE|SF_APPEND))) &&
+					securelevel > 0)
+				return(EPERM);
+#endif
+			ip->i_flags = vap->va_flags;
+			}
+		else
+			{
+			if	(ip->i_flags & (SF_IMMUTABLE|SF_APPEND))
+				return(EPERM);
+			ip->i_flags &= SF_SETTABLE;
+			ip->i_flags |= (vap->va_flags & UF_SETTABLE);
+			}
+		ip->i_flag |= ICHG;
+		if	(vap->va_flags & (IMMUTABLE|APPEND))
+			return(0);
+		}
+	if	(ip->i_flags & (IMMUTABLE|APPEND))
+		return(EPERM);
+/*
+ * Go thru the fields (other than 'flags') and update iff not VNOVAL.
+*/
+	if	(vap->va_uid != (uid_t)VNOVAL || vap->va_gid != (gid_t)VNOVAL)
+		if	(error = chown1(ip, vap->va_uid, vap->va_gid))
+			return(error);
+	if	(vap->va_size != (off_t)VNOVAL)
+		{
+		if	((ip->i_mode & IFMT) == IFDIR)
+			return(EISDIR);
+		itrunc(ip, vap->va_size);
+		if	(u.u_error)
+			return(u.u_error);
+		}
+	if	(vap->va_atime != (time_t)VNOVAL ||
+		 vap->va_mtime != (time_t)VNOVAL)
+		{
+		if	(u.u_uid != ip->i_uid && !suser() &&
+			 ((vap->va_vaflags & VA_UTIMES_NULL) == 0 ||
+			 access(ip, IWRITE)))
+			return(u.u_error);
+		if	(vap->va_atime != (time_t)VNOVAL)
+			ip->i_flag |= IACC;
+		if	(vap->va_mtime != (time_t)VNOVAL)
+			ip->i_flag |= (IUPD|ICHG);
+		atimeval.tv_sec = vap->va_atime;
+		mtimeval.tv_sec = vap->va_mtime;
+		iupdat(ip, &atimeval, &mtimeval, 1);
+		}
+	if	(vap->va_mode != (mode_t)VNOVAL)
+		return(chmod1(ip, vap->va_mode));
+	return(0);
+	}

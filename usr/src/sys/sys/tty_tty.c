@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_tty.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty_tty.c	1.2 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -28,23 +28,24 @@ syopen(dev, flag)
 }
 
 /*ARGSUSED*/
-syread(dev, uio)
+syread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	if (u.u_ttyp == NULL)
 		return (ENXIO);
-	return ((*cdevsw[major(u.u_ttyd)].d_read)(u.u_ttyd, uio));
+	return ((*cdevsw[major(u.u_ttyd)].d_read)(u.u_ttyd, uio, flag));
 }
 
 /*ARGSUSED*/
-sywrite(dev, uio)
+sywrite(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
 {
 	if (u.u_ttyp == NULL)
 		return (ENXIO);
-	return ((*cdevsw[major(u.u_ttyd)].d_write)(u.u_ttyd, uio));
+	return ((*cdevsw[major(u.u_ttyd)].d_write)(u.u_ttyd, uio, flag));
 }
 
 /*ARGSUSED*/

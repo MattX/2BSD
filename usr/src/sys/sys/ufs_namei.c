@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_namei.c	1.2 (Berkeley) 1/26/90
+ *	@(#)ufs_namei.c	1.3 (2.11BSD GTE) 11/26/94
  */
 #include "param.h"
 #include "../machine/seg.h"
@@ -906,7 +906,8 @@ direnter(ip, ndp)
 			panic("wdir: newblk");
 		ndp->ni_dent.d_reclen = DIRBLKSIZ;
 		error = rdwri(UIO_WRITE, dp, (caddr_t)&ndp->ni_dent,
-		    newentrysize, ndp->ni_offset, 1, (int *)0);
+		    		newentrysize, ndp->ni_offset, UIO_SYSSPACE, 
+				IO_UNIT|IO_SYNC, (int *)0);
 		dp->i_size = roundup(dp->i_size, DIRBLKSIZ);
 		iput(dp);
 		return (error);
@@ -1013,7 +1014,8 @@ dirremove(ndp)
 		 */
 		ndp->ni_dent.d_ino = 0;
 		(void) rdwri(UIO_WRITE, dp, (caddr_t)&ndp->ni_dent,
-		    (int)DIRSIZ(&ndp->ni_dent), ndp->ni_offset, 1, (int *)0);
+		    		(int)DIRSIZ(&ndp->ni_dent), ndp->ni_offset,
+				UIO_SYSSPACE, IO_UNIT|IO_SYNC, (int *)0);
 	} else {
 		/*
 		 * Collapse new free space into previous entry.
@@ -1042,7 +1044,8 @@ dirrewrite(dp, ip, ndp)
 
 	ndp->ni_dent.d_ino = ip->i_number;
 	u.u_error = rdwri(UIO_WRITE, dp, (caddr_t)&ndp->ni_dent,
-		(int)DIRSIZ(&ndp->ni_dent), ndp->ni_offset, 1, (int *)0);
+			(int)DIRSIZ(&ndp->ni_dent), ndp->ni_offset,
+			UIO_SYSSPACE, IO_UNIT|IO_SYNC, (int *)0);
 	iput(dp);
 }
 
@@ -1106,7 +1109,7 @@ dirempty(ip, parentino)
 
 	for (off = 0; off < ip->i_size; off += dp->d_reclen) {
 		error = rdwri(UIO_READ, ip, (caddr_t)dp, MINDIRSIZ,
-		    off, 1, &count);
+		    off, UIO_SYSSPACE, IO_UNIT, &count);
 		/*
 		 * Since we read MINDIRSIZ, residual must
 		 * be 0 unless we're at end of file.
@@ -1164,7 +1167,8 @@ checkpath(source, target)
 			break;
 		}
 		error = rdwri(UIO_READ, ip, (caddr_t)&dirbuf, 
-			sizeof(struct dirtemplate), (off_t)0, 1, (int *)0);
+				sizeof(struct dirtemplate), (off_t)0,
+				UIO_SYSSPACE, IO_UNIT, (int *)0);
 		if (error != 0)
 			break;
 		if (dirbuf.dotdot_namlen != 2 ||

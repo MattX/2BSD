@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_text.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vm_text.c	1.2 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -219,7 +219,7 @@ xalloc(ip, ep)
 		offset += (NOVL + 1) * sizeof(u_int);
 	u.u_procp->p_flag |= SLOCK;
 	u.u_error = rdwri(UIO_READ, ip, (caddr_t)0, ep->a_text & ~1,
-			offset, UIO_USERISPACE, (int *)0);
+			offset, UIO_USERISPACE, IO_UNIT, (int *)0);
 
 	if (u.u_ovdata.uo_ovbase) {	/* read in overlays if necessary */
 		register int i;
@@ -232,7 +232,8 @@ xalloc(ip, ep)
 				choverlay(RW);
 				u.u_error = rdwri(UIO_READ, ip,
 				    (caddr_t)(ctob(stoc(u.u_ovdata.uo_ovbase))),
-					count, offset, UIO_USERISPACE,(int *)0);
+					count, offset, UIO_USERISPACE,
+					IO_UNIT, (int *)0);
 				offset += (off_t) count;
 			}
 		}

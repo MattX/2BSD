@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_tb.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty_tb.c	1.2 (2.11BSD GTE) 11/29/94
  */
 
 #include "tb.h"
@@ -99,8 +99,9 @@ tbopen(dev, tp)
 /*
  * Line discipline change or last device close.
  */
-tbclose(tp)
+tbclose(tp, flag)
 	register struct tty *tp;
+	int flag;
 {
 	register int s;
 	int modebits = TBPOINT|TBSTOP;
@@ -120,7 +121,7 @@ tbclose(tp)
  * Read from a tablet line.
  * Characters have been buffered in a buffer and decoded.
  */
-tbread(tp, uio)
+tbread(tp, uio, flag)
 	register struct tty *tp;
 	struct uio *uio;
 {
@@ -130,7 +131,7 @@ tbread(tp, uio)
 
 	if ((tp->t_state&TS_CARR_ON) == 0)
 		return (EIO);
-	ret = uiomove(&tbp->rets, tc->tbc_uiosize, UIO_READ, uio);
+	ret = uiomove(&tbp->rets, tc->tbc_uiosize, uio);
 	if (tc->tbc_flags&TBF_POL)
 		tbp->rets.polpos.p_key = ' ';
 	return (ret);
