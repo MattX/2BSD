@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	1.7 (GTE) 1995/06/13
+.\"	@(#)2.t	1.8 (GTE) 1996/04/12
 .\"
 .ds lq ``
 .ds rq ''
@@ -261,6 +261,13 @@ geometry information in the disk label.)
 These numbers determine the layout of the free list that will be constructed;
 the proper interleaving will help increase the speed of the file system.
 .PP
+The number of bytes per inode determines how many inodes will be allocated
+in the filesystem.  The default of 4096 bytes per inode is normally enough
+(resulting in about 2000 inodes for a 8mb root filesystem and 1000 inodes
+for the 4mb distribution ``generic'' root filesystem).  If more inodes are
+desired then a lower value (perhaps 3072) should be specified when prompted
+for the number of bytes per inode.
+.PP
 Then run the standalone version of the \fImkfs\fP (8) program.
 The values in square brackets at the size prompt is the default from 
 the disklabel.  Simply hit a return to accept the default.  \fImkfs\fP
@@ -276,6 +283,7 @@ lw(1.5i) l.
 \fBMkfs\fP
 \fBfile system:\fP \fIdk\|\fP(0,0)	(root is the first file system on drive 0)
 \fBfile system size:\fP [NNNN] \fIsize\fP	(count of 1024 byte blocks in root)
+\fBbytes per inode:\fP [4096] \fIbytes\fP	(number of bytes per inode)
 \fBinterleaving factor (m, 2 default):\fP \fIm\fP	(interleaving, see above)
 \fBinterleaving modulus (n, 127 default):\fP \fIn\fP	(interleaving, see above)
 \fBisize = XX\fP	(count of inodes in root file system)

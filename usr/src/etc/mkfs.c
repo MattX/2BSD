@@ -1,9 +1,17 @@
-char	*sccsid = "@(#)mkfs.c	2.8 1995/06/12";
+#if	!defined(lint) && defined(DOSCCS)
+char	*sccsid = "@(#)mkfs.c	2.8 (2.11BSD) 1996/04/11";
+#endif
 
 /*
- * Make a file system.  Normally run by 'newfs' and not directly by users.
- * usage: mkfs filsys size [ m n ]
+ * Make a file system.  Run by 'newfs' and not directly by users.
+ * usage: mkfs -s size -i byte/ino -n num -m num filsys
+ *
+ * NOTE:  the size is specified in filesystem (1k) blocks NOT sectors.
+ *	  newfs does the conversion before running mkfs - if you run mkfs
+ *	  manually beware that the '-s' option means sectors to newfs but
+ *	  filesystem blocks to mkfs!
  */
+
 #include <sys/param.h>
 /*
  * Need to do the following to get the larger incore inode structure
@@ -15,16 +23,17 @@ char	*sccsid = "@(#)mkfs.c	2.8 1995/06/12";
 #include <sys/file.h>
 #include <sys/dir.h>
 #include <sys/stat.h>
-#ifndef STANDALONE
-#include <stdio.h>
 #include <sys/fs.h>
+
+#ifndef STANDALONE
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/inode.h>
 #else
 #include "saio.h"
 #endif
 
 #define	UMASK	0755
-#define	NIPB	(DEV_BSIZE/sizeof(struct dinode))
 #define	MAXFN	500
 
 time_t	utime;
@@ -33,6 +42,7 @@ time_t	utime;
 int	fin;
 char	module[] = "Mkfs";
 extern	char	*ltoa();
+extern	long	atol();
 extern	struct	iob	iob[];
 #endif
 
@@ -50,33 +60,55 @@ union {
 	char pad2[DEV_BSIZE];
 } filsys;
 
+u_int	f_i	= 4096;		/* bytes/inode default */
 int	f_n	= 100;
 int	f_m	= 2;
 
 	daddr_t	alloc();
 
-extern	long	atol();
-
 main(argc,argv)
-int	argc;
-char	**argv;
+	int	argc;
+	char	**argv;
 {
-register int f, c;
+register int c;
 	long n;
-register char *size;
+	char *size = 0;
+	char	*special;
 #ifdef	STANDALONE
 	struct	disklabel *lp;
-	struct	partition *pp;
+register struct	partition *pp;
 	struct	iob	*io;
 #endif
 
 #ifndef STANDALONE
 	time(&utime);
-	if(argc < 3) {
-		printf("usage: mkfs filsys proto/size [ m n ]\n");
-		exit(1);
-	}
-	size = argv[2];
+	while	((c = getopt(argc, argv, "i:m:n:s:")) != EOF)
+		{
+		switch	(c)
+			{
+			case	'i':
+				f_i = atoi(optarg);
+				break;
+			case	'm':
+				f_m = atoi(optarg);
+				break;
+			case	'n':
+				f_n = atoi(optarg);
+				break;
+			case	's':
+				size = optarg;
+				break;
+			default:
+				usage();
+				break;
+			}
+		}
+	argc -= optind;
+	argv += optind;
+	if	(argc != 1 || !size || !f_i || !f_m || !f_n)
+		usage();
+	special = *argv;
+
 /*
  * NOTE: this will fail if the device is currently mounted and the system
  * is at securelevel 1 or higher.
@@ -85,16 +117,12 @@ register char *size;
  * done so and invoked us.  This program should not be run manually unless
  * you are absolutely sure you know what you are doing - use 'newfs' instead.
 */
-	fso = creat(argv[1], 0666);
-	if(fso < 0) {
-		printf("%s: cannot create\n", argv[1]);
-		exit(1);
-	}
-	fsi = open(argv[1], 0);
-	if(fsi < 0) {
-		printf("%s: cannot open\n", argv[1]);
-		exit(1);
-	}
+	fso = creat(special, 0666);
+	if	(fso < 0)
+		err(1, "cannot create %s\n", special);
+	fsi = open(special, 0);
+	if	(fsi < 0)
+		err(1, "cannot open %s\n", special);
 #else
 /*
  * Something more modern than January 1, 1970 - the date that the new 
@@ -161,76 +189,69 @@ nolabels:
 		strcpy(size, ltoa(dbtofsb(pp->p_size)));
 	if	(pp->p_size && atol(size) > pp->p_size)
 		{
-		printf("specified size is larger than the disklabel says.\n");
+		printf("specified size larger than disklabel says.\n");
 		return;
 		}
+	printf("bytes per inode [%u]: ", f_i);
+	gets(buf);
+	if	(buf[0])
+		f_i = atoi(buf);
 	printf("interleaving factor (m; %d default): ", f_m);
 	gets(buf);
-	if (buf[0])
+	if	(buf[0])
 		f_m = atoi(buf);
 	if	(lp->d_secpercyl)
 		f_n = dbtofsb(lp->d_secpercyl);
 	printf("interleaving modulus (n; %d default): ", f_n);
 	gets(buf);
-	if (buf[0])
+	if	(buf[0])
 		f_n = atoi(buf);
-
-	if(f_n <= 0 || f_n >= MAXFN)
-		f_n = MAXFN;
-	if(f_m <= 0 || f_m > f_n)
-		f_m = 3;
-	argc = 0;
 #endif
-	n = 0;
-	for(f=0; c=size[f]; f++) {
-		if(c<'0' || c>'9') {
-			printf("%s: size has nondigit\n", size);
-			exit(1);
-		}
-		n = n*10 + (c-'0');
-	}
-	filsys.fs.fs_fsize = n;
+
+	if	(f_n <= 0 || f_n >= MAXFN)
+		f_n = MAXFN;
+	if	(f_m <= 0 || f_m > f_n)
+		f_m = 3;
+
+	n = atol(size);
 	if	(!n)
 		{
 		printf("Can't make zero length filesystem\n");
 		return;
 		}
-	/*
-	 * Minor hack for standalone root and other
-	 * small filesystems: reduce ilist size.
-	 */
-	if (n <= 5000/CLSIZE)
-		n = n/50;
-	else
-		n = n/25;
-	if(n <= 0)
-		n = 1;
-	if(n > 65500/NIPB)
-		n = 65500/NIPB;
-	filsys.fs.fs_isize = n + 2;
-	printf("isize = %D\n", n*NIPB);
+	filsys.fs.fs_fsize = n;
 
-	if(argc >= 5) {
-		f_m = atoi(argv[3]);
-		f_n = atoi(argv[4]);
-		if(f_n <= 0 || f_n >= MAXFN)
-			f_n = MAXFN;
-		if(f_m <= 0 || f_m > f_n)
-			f_m = 3;
-	}
+/*
+ * Calculate number of blocks of inodes as follows:
+ *
+ *	dbtob(n) = # of bytes in the filesystem
+ *	dbtob(n) / f_i = # of inodes to allocate
+ *	(dbtob(n) / f_i) / INOPB = # of fs blocks of inodes
+ *	
+ * Pretty - isn't it?
+*/
+	n = (dbtob(n) / f_i) / INOPB;
+	if	(n <= 0)
+		n = 1;
+	if	(n > 65500/INOPB)
+		n = 65500/INOPB;
+	filsys.fs.fs_isize = n + 2;
+	printf("isize = %D\n", n*INOPB);
+
 	filsys.fs.fs_step = f_m;
 	filsys.fs.fs_cyl = f_n;
 	printf("m/n = %d %d\n", f_m, f_n);
-	if(filsys.fs.fs_isize >= filsys.fs.fs_fsize) {
+	if	(filsys.fs.fs_isize >= filsys.fs.fs_fsize)
+		{
 		printf("%D/%D: bad ratio\n", filsys.fs.fs_fsize, filsys.fs.fs_isize-2);
 		exit(1);
-	}
+		}
 	filsys.fs.fs_tfree = 0;
 	filsys.fs.fs_tinode = 0;
 	bzero(buf, DEV_BSIZE);
-	for(n=2; n!=filsys.fs.fs_isize; n++) {
+	for	(n=2; n!=filsys.fs.fs_isize; n++) {
 		wtfs(n, buf);
-		filsys.fs.fs_tinode += NIPB;
+		filsys.fs.fs_tinode += INOPB;
 	}
 
 	bflist();
@@ -260,7 +281,7 @@ struct direct lost_found_dir[] = {
 
 fsinit()
 {
-	int i;
+	register int i;
 
 	/*
 	 * initialize the node
@@ -368,7 +389,7 @@ char *bf;
 bfree(bno)
 daddr_t bno;
 {
-	int i;
+	register int i;
 
 	if (bno != 0)
 		filsys.fs.fs_tfree++;
@@ -419,7 +440,7 @@ bflist()
 iput(ip)
 register struct inode *ip;
 {
-	struct	dinode	buf[NIPB];
+	struct	dinode	buf[INOPB];
 	register struct dinode *dp;
 	daddr_t d;
 
@@ -438,3 +459,12 @@ register struct inode *ip;
 	dp->di_ic2 = ip->i_ic2;
 	wtfs(d, buf);
 }
+
+#ifndef	STANDALONE
+usage()
+	{
+	printf("usage: [-s size] [-i bytes/ino] [-n num] [-m num] special\n");
+	exit(1);
+	/* NOTREACHED */
+	}
+#endif

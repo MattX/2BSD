@@ -11,7 +11,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)newfs.c	6.1 (2.11BSD) 4/26/95";
+static char sccsid[] = "@(#)newfs.c	6.2 (2.11BSD) 1996/4/12";
 #endif
 
 /*
@@ -33,7 +33,9 @@ static char sccsid[] = "@(#)newfs.c	6.1 (2.11BSD) 4/26/95";
 #include <sys/file.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <paths.h>
+#include <stdlib.h>
 #include <syslog.h>
 #include <varargs.h>
 
@@ -44,9 +46,7 @@ static char sccsid[] = "@(#)newfs.c	6.1 (2.11BSD) 4/26/95";
 	int	Nflag;
 	struct	disklabel *getdisklabel();
 
-extern	char	*optarg, *__progname;
-extern	long	atol();
-extern	int	optind, errno;
+extern	char	*__progname;
 
 main(argc, argv)
 	int	argc;
@@ -56,14 +56,15 @@ main(argc, argv)
 	register struct partition	*pp;
 	char	*cp;
 	struct stat	st;
-	long	fssize;
-	int	ch, status, logsec, m;
+	long	fssize, ltmp;
+	int	f_n = 0, f_m = 0;
+	u_int	f_i = 4096;
+	int	ch, status, logsec;
 	int	fsi;
 	char	device[MAXPATHLEN], cmd[BUFSIZ], *index(), *rindex();
 	char	*special;
 
-	m = 0;
-	while ((ch = getopt(argc,argv,"T:Nvm:s:")) != EOF)
+	while ((ch = getopt(argc,argv,"T:Nvm:s:n:i:")) != EOF)
 		switch((char)ch) {
 		case 'N':
 		case 'v':
@@ -75,7 +76,26 @@ main(argc, argv)
 			break;
 #endif
 		case 'm':
-			m = atoi(optarg);
+			ltmp = atol(optarg);
+			if	(ltmp <= 0 || ltmp > 32)
+				fatal("%s: out of 1 - 32 range", optarg);
+			f_m = (int)ltmp;
+			break;
+		case	'n':
+			ltmp = atol(optarg);
+/*
+ * If the upper bound is changed here then mkfs.c must also be changed
+ * also else mkfs will cap the value to its limit.
+*/
+			if	(ltmp <= 0 || ltmp > 500)
+				fatal("%s: out of 1 - 500 range", optarg);
+			f_n = (int)ltmp;
+			break;
+		case	'i':
+			ltmp = atol(optarg);
+			if	(ltmp < 512 || ltmp > 65536L)
+				fatal("%s: out of 512 - 65536 range", optarg);
+			f_i = (u_int)ltmp;
 			break;
 		case 's':
 			fssize = atol(optarg);
@@ -156,10 +176,13 @@ main(argc, argv)
 	fssize /= logsec;
 
 	/* build command */
-	if (m <= 0 || m > 31)
-		m = 2;
-	sprintf(cmd, "/etc/mkfs %s %ld %d %d", special, fssize, m,
-	    	lp->d_secpercyl / logsec);
+	if	(f_m == 0)	/* If never specified then use default of 2 */
+		f_m = 2;
+	if	(f_n == 0)	/* If never specified then 1/2 the cyl size */
+		f_n = lp->d_secpercyl / logsec;
+
+	sprintf(cmd, "/etc/mkfs -m %d -n %d -i %u -s %ld %s", f_m, f_n, f_i,
+		fssize, special);
 	printf("newfs: %s\n", cmd);
 
 	close(fsi);
@@ -209,6 +232,7 @@ usage()
 
 	fprintf(stderr,"usage: %s [-N] [-m freelist-gap] [-s filesystem size] ",
 		__progname);
+	fprintf(stderr, "[-i bytes/inode] [-n freelist-modulus] ");
 #ifdef	COMPAT
 	fputs("[-T disk-type] ", stderr);
 #endif
