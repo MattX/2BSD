@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)lint.c	1.10	(Berkeley)	3/20/86";
+static char sccsid[] = "@(#)lint.c	1.10.1	(2.11BSD GTE)	1/17/95";
 #endif lint
 
 # include "pass1.h"
@@ -90,7 +90,7 @@ contx( p, down, pl, pr ) register NODE *p; register *pl, *pr; {
 		 */
 			break;  /* the compiler does this... */
 			}
-		if( down == EFF && hflag ) werror( "null effect" );
+		if( down == EFF && hflag ) werror("null effect" );
 
 		}
 	}
@@ -117,9 +117,9 @@ ejobcode( flag ){
 				if( !zflag && dimtab[p->sizoff+1] < 0 ){
 					/* never defined */
 #ifndef FLEXNAMES
-					if( hflag ) werror( "struct/union %.8s never defined", p->sname );
+					if( hflag ) werror("struct/union %.8s never defined", p->sname );
 #else
-					if( hflag ) werror( "struct/union %s never defined", p->sname );
+					if( hflag ) werror("struct/union %s never defined", p->sname );
 #endif
 					}
 				}
@@ -131,9 +131,9 @@ ejobcode( flag ){
 					k = lineno;
 					lineno = p->suse;
 #ifndef FLEXNAMES
-					uerror( "static variable %.8s unused",
+					uerror("static variable %.8s unused",
 #else
-					uerror( "static variable %s unused",
+					uerror("static variable %s unused",
 #endif
 						p->sname );
 					lineno = k;
@@ -169,7 +169,7 @@ astype( t, i ) ATYPE *t; {
 
 	if( (tt=BTYPE(t->aty))==STRTY || tt==UNIONTY ){
 		if( i<0 || i>= DIMTABSZ-3 ){
-			werror( "lint's little mind is blown" );
+			werror("lint's little mind is blown" );
 			}
 		else {
 			j = (int)dimtab[i+3];
@@ -180,9 +180,9 @@ astype( t, i ) ATYPE *t; {
 			else {
 				if( stab[j].suse <= 0 ) {
 #ifndef FLEXNAMES
-					werror( "no line number for %.8s",
+					werror("no line number for %.8s",
 #else
-					werror( "no line number for %s",
+					werror("no line number for %s",
 #endif
 						stab[j].sname );
 					}
@@ -221,7 +221,7 @@ bfcode( a, n ) OFFSZ a[]; {
 
 	/* if variable number of arguments, only print the ones which will be checked */
 	if( vaflag > 0 ){
-		if( n < vaflag ) werror( "declare the VARARGS arguments you want checked!" );
+		if( n < vaflag ) werror("declare the VARARGS arguments you want checked!" );
 		else n = vaflag;
 		}
 	fsave( ftitle );
@@ -351,11 +351,11 @@ lprt( p, down, uses ) register NODE *p; {
 	case LT:
 	case LE:
 		if( p->in.left->in.type == CHAR && p->in.right->in.op==ICON && p->in.right->tn.lval < 0 ){
-			werror( "nonportable character comparison" );
+			werror("nonportable character comparison" );
 			}
 		if( (p->in.op==EQ || p->in.op==NE ) && ISUNSIGNED(p->in.left->in.type) && p->in.right->in.op == ICON ){
 			if( p->in.right->tn.lval < 0 && p->in.right->tn.rval == NONAME && !ISUNSIGNED(p->in.right->in.type) ){
-				werror( "comparison of unsigned with negative constant" );
+				werror("comparison of unsigned with negative constant" );
 				}
 			}
 		break;
@@ -363,13 +363,13 @@ lprt( p, down, uses ) register NODE *p; {
 	case UGE:
 	case ULT:
 		if( p->in.right->in.op == ICON && p->in.right->tn.lval == 0 && p->in.right->tn.rval == NONAME ){
-			werror( "unsigned comparison with 0?" );
+			werror("unsigned comparison with 0?" );
 			break;
 			}
 	case UGT:
 	case ULE:
 		if( p->in.right->in.op == ICON && p->in.right->tn.lval <= 0 && !ISUNSIGNED(p->in.right->in.type) && p->in.right->tn.rval == NONAME ){
-			werror( "degenerate unsigned comparison" );
+			werror("degenerate unsigned comparison" );
 			}
 		break;
 
@@ -448,9 +448,9 @@ lprt( p, down, uses ) register NODE *p; {
 				if( q->sclass == AUTO || q->sclass == REGISTER ){
 					if( !ISARY(q->stype ) && !ISFTN(q->stype) && q->stype!=STRTY && q->stype!=UNIONTY ){
 #ifndef FLEXNAMES
-						werror( "%.8s may be used before set", q->sname );
+						werror("%.8s may be used before set", q->sname );
 #else
-						werror( "%s may be used before set", q->sname );
+						werror("%s may be used before set", q->sname );
 #endif
 						q->sflags |= SSET;
 						}
@@ -513,9 +513,9 @@ lmerge( np1, np2, flag ) struct lnm *np1, *np2; {
 				else if( (npx->flgs|npy->flgs)== (VALSET|VALUSED) ||
 					(npx->flgs&npy->flgs&VALSET) ){
 #ifndef FLEXNAMES
-					if( flag ) werror( "%.8s evaluation order undefined", stab[npy->lid].sname );
+					if( flag ) werror("%.8s evaluation order undefined", stab[npy->lid].sname );
 #else
-					if( flag ) werror( "%s evaluation order undefined", stab[npy->lid].sname );
+					if( flag ) werror("%s evaluation order undefined", stab[npy->lid].sname );
 #endif
 					}
 				if( npy->flgs == 0 ) npx->flgs = 0;
@@ -549,9 +549,9 @@ efcode(){
 		}
 	if( retstat == RETVAL+NRETVAL )
 #ifndef FLEXNAMES
-		werror( "function %.8s has return(e); and return;", cfp->sname);
+		werror("function %.8s has return(e); and return;", cfp->sname);
 #else
-		werror( "function %s has return(e); and return;", cfp->sname);
+		werror("function %s has return(e); and return;", cfp->sname);
 #endif
 	}
 
@@ -562,18 +562,18 @@ aocode(p) struct symtab *p; {
 	if(p->suse>0 && !(p->sflags&(SMOS|STAG)) ){
 		if( p->sclass == PARAM ){
 #ifndef FLEXNAMES
-			if( vflag ) werror( "argument %.8s unused in function %.8s",
+			if( vflag ) werror("argument %.8s unused in function %.8s",
 #else
-			if( vflag ) werror( "argument %s unused in function %s",
+			if( vflag ) werror("argument %s unused in function %s",
 #endif
 				p->sname,
 				cfs->sname );
 			}
 		else {
 #ifndef FLEXNAMES
-			if( p->sclass != TYPEDEF ) werror( "%.8s unused in function %.8s",
+			if( p->sclass != TYPEDEF ) werror("%.8s unused in function %.8s",
 #else
-			if( p->sclass != TYPEDEF ) werror( "%s unused in function %s",
+			if( p->sclass != TYPEDEF ) werror("%s unused in function %s",
 #endif
 				p->sname, cfs->sname );
 			}
@@ -583,18 +583,18 @@ aocode(p) struct symtab *p; {
 		!ISARY(p->stype) && !ISFTN(p->stype) ){
 
 #ifndef FLEXNAMES
-		werror( "%.8s set but not used in function %.8s", p->sname, cfs->sname );
+		werror("%.8s set but not used in function %.8s", p->sname, cfs->sname );
 #else
-		werror( "%s set but not used in function %s", p->sname, cfs->sname );
+		werror("%s set but not used in function %s", p->sname, cfs->sname );
 #endif
 		}
 
 	if( p->stype == STRTY || p->stype == UNIONTY || p->stype == ENUMTY ){
 		if( !zflag && dimtab[p->sizoff+1] < 0 )
 #ifndef FLEXNAMES
-			werror( "structure %.8s never defined", p->sname );
+			werror("structure %.8s never defined", p->sname );
 #else
-			werror( "structure %s never defined", p->sname );
+			werror("structure %s never defined", p->sname );
 #endif
 		}
 
@@ -621,15 +621,15 @@ zecode( n ){
 andable( p ) NODE *p; {  /* p is a NAME node; can it accept & ? */
 	register r;
 
-	if( p->in.op != NAME ) cerror( "andable error" );
+	if( p->in.op != NAME ) cerror("andable error" );
 
 	if( (r = p->tn.rval) < 0 ) return(1);  /* labels are andable */
 
 	if( stab[r].sclass == AUTO || stab[r].sclass == PARAM ) return(0); 
 #ifndef FLEXNAMES
-	if( stab[r].sclass == REGISTER ) uerror( "can't take & of %.8s", stab[r].sname );
+	if( stab[r].sclass == REGISTER ) uerror("can't take & of %.8s", stab[r].sname );
 #else
-	if( stab[r].sclass == REGISTER ) uerror( "can't take & of %s", stab[r].sname );
+	if( stab[r].sclass == REGISTER ) uerror("can't take & of %s", stab[r].sname );
 #endif
 	return(1);
 	}
@@ -664,10 +664,10 @@ clocal(p) NODE *p; {
 		t = p->in.type;
 		tl = p->in.left->in.type;
 		if( aflag && (tl==LONG||tl==ULONG) && (t!=LONG&&t!=ULONG&&t!=UNDEF) ){
-			werror( "long assignment may lose accuracy" );
+			werror("long assignment may lose accuracy" );
 			}
 		if( aflag>=2 && (tl!=LONG&&tl!=ULONG) && (t==LONG||t==ULONG) && p->in.left->in.op != ICON ){
-			werror( "assignment to long may sign-extend incorrectly" );
+			werror("assignment to long may sign-extend incorrectly" );
 			}
 		if( ISPTR(tl) && ISPTR(t) ){
 			tl = DECREF(tl);
@@ -676,12 +676,12 @@ clocal(p) NODE *p; {
 
 			case 0:  /* neither is a function pointer */
 				if( talign(t,p->fn.csiz) > talign(tl,p->in.left->fn.csiz) ){
-					if( hflag||pflag ) werror( "possible pointer alignment problem" );
+					if( hflag||pflag ) werror("possible pointer alignment problem" );
 					}
 				break;
 
 			case 1:
-				werror( "questionable conversion of function pointer" );
+				werror("questionable conversion of function pointer" );
 
 			case 2:
 				;
@@ -695,7 +695,7 @@ clocal(p) NODE *p; {
 
 	case PVCONV:
 	case PMCONV:
-		if( p->in.right->in.op != ICON ) cerror( "bad conversion");
+		if( p->in.right->in.op != ICON ) cerror("bad conversion");
 		p->in.op = FREE;
 		return( buildtree( o==PMCONV?MUL:DIV, p->in.left, p->in.right ) );
 
@@ -707,10 +707,10 @@ clocal(p) NODE *p; {
 			break;
 		s = p->in.right->tn.lval;
 		if( s < 0 )
-			werror( "negative shift" );
+			werror("negative shift" );
 		else
 		if( s >= dimtab[ p->fn.csiz ] )
-			werror( "shift greater than size of object" );
+			werror("shift greater than size of object" );
 		break;
 
 		}
@@ -738,7 +738,7 @@ cinit( p, sz ) NODE *p; OFFSZ sz; { /* initialize p into size sz */
 		if( p->in.left->in.op == ICON ) return;
 		if( p->in.left->in.op == NAME && p->in.left->in.type == MOE ) return;
 		}
-	uerror( "illegal initialization" );
+	uerror("illegal initialization" );
 	}
 
 char *
@@ -769,7 +769,7 @@ strip(s) char *s; {
 	for( p=x; *s; ++s ){
 		if( *s != '"' ){
 			if( p >= &x[sizeof (x)] )
-				cerror( "filename too long" );
+				cerror("filename too long" );
 			*p++ = *s;
 		}
 	}
@@ -818,9 +818,9 @@ fldty(p) struct symtab *p; {
 fldal(t) unsigned t; { /* field alignment... */
 	if( t == ENUMTY ) return( ALCHAR );  /* this should be thought through better... */
 	if( ISPTR(t) ){ /* really for the benefit of honeywell (and someday IBM) */
-		if( pflag ) uerror( "nonportable field type" );
+		if( pflag ) uerror("nonportable field type" );
 		}
-	else uerror( "illegal field type" );
+	else uerror("illegal field type" );
 	return(ALINT);
 	}
 
@@ -884,7 +884,7 @@ main( argc, argv ) char *argv[]; {
 				continue;
 
 			case 't':
-				werror( "option %c now default: see `man 6 lint'", *p );
+				werror("option %c now default: see `man 6 lint'", *p );
 				continue;
 
 			case 'P':	/* debugging, done in second pass */
@@ -897,7 +897,7 @@ main( argc, argv ) char *argv[]; {
 				continue;
 
 			default:
-				uerror( "illegal option: %c", *p );
+				uerror("illegal option: %c", *p );
 				continue;
 
 				}
@@ -967,7 +967,7 @@ fldcon( p ) register NODE *p; {
 	case LONG:
 	case ENUMTY:
 		if( v>=0 && (v>>(s-1))==0 ) return;
-		werror( "precision lost in assignment to (possibly sign-extended) field" );
+		werror("precision lost in assignment to (possibly sign-extended) field" );
 	default:
 		return;
 
@@ -975,7 +975,7 @@ fldcon( p ) register NODE *p; {
 	case UCHAR:
 	case USHORT:
 	case ULONG:
-		if( v<0 || (v>>s)!=0 ) werror( "precision lost in field assignment" );
+		if( v<0 || (v>>s)!=0 ) werror("precision lost in field assignment" );
 		
 		return;
 		}

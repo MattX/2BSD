@@ -1,4 +1,6 @@
-/*	common.c	4.2	85/08/22	*/
+/*	common.c	4.2.1	95/01/17	*/
+
+static	char	*StringFile = STRINGFILE; /* From Makefile -DSTRINGFILE= ... */
 
 #ifdef PASS1COMMON
 #include "pass1.h"
@@ -7,6 +9,7 @@
 #include "pass2.h"
 #endif
 #endif
+#include <sys/file.h>
 
 #ifdef FORT
 #undef BUFSTDERR
@@ -14,9 +17,6 @@
 #ifndef ONEPASS
 #undef BUFSTDERR
 #endif
-# ifndef EXIT
-# define EXIT exit
-# endif
 
 int nerrors = 0;  /* number of errors */
 
@@ -26,8 +26,7 @@ extern OFFSZ offsz;
  * this strangeness is due to offsets being measured in terms of bits
  * rather than bytes.  normally "i=16" and "off=0100000" are returned,
  * but this is not enough to measure structures/arrays greater than
- * 32k bits (4kb).  We return
- * the return value from this is multiplied by 8 (# bits/byte).
+ * 32k bits (4kb).
 */
 
 OFFSZ caloff(){
@@ -51,46 +50,85 @@ OFFSZ caloff(){
 NODE *lastfree;  /* pointer to last free node; (for allocator) */
 
 	/* VARARGS1 */
-uerror( s, a ) char *s; { /* nonfatal error message */
-	/* the routine where is different for pass 1 and pass 2;
+uerror(s, a )
+	unsigned short s;
+	void *a;
+	{ /* nonfatal error message */
+	char	msg[256];
+
+	/* the routine 'where' is different for pass 1 and pass 2;
 	/*  it tells where the error took place */
 
 	++nerrors;
 	where('u');
-	fprintf( stderr, s, a );
-	fprintf( stderr, "\n" );
+	errprep(s, msg);
+	fprintf(stderr, msg, a );
+	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
-	if( nerrors > 30 ) cerror( "too many errors");
+	if (nerrors > 30) cerror("too many errors");
 	}
 
 	/* VARARGS1 */
-cerror( s, a, b, c ) char *s; { /* compiler error: die */
+cerror(s, a, b, c )
+	unsigned short s;	/* stringfile offset */
+	void *a, *b, *c;
+	{ /* compiler error: die */
+	char	msg[256];
+
 	where('c');
-	fprintf( stderr, "compiler error: " );
-	fprintf( stderr, s, a, b, c );
-	fprintf( stderr, "\n" );
-	if( nerrors && nerrors <= 30 ) /* give the compiler the benefit of the doubt */
-		fprintf( stderr, "cannot recover from earlier errors: goodbye!\n" );
+	errprep(s, msg);
+	fprintf(stderr, "compiler error: " );
+	fprintf(stderr, msg, a, b, c );
+	fprintf(stderr, "\n" );
+/* give the compiler the benefit of the doubt */
+	if (nerrors && nerrors <= 30)
+	   fprintf(stderr,"cannot recover from earlier errors: goodbye!\n");
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
-	EXIT(1);
+	exit(1);
 	}
 
 int Wflag = 0; /* Non-zero means do not print warnings */
 
 	/* VARARGS1 */
-werror( s, a, b ) char *s; {  /* warning */
-	if(Wflag) return;
+werror(s, a, b )
+	unsigned short s;
+	void *a, *b;
+	{  /* warning */
+	char	msg[256];
+
+	if (Wflag) return;
 	where('w');
-	fprintf( stderr, "warning: " );
-	fprintf( stderr, s, a, b );
-	fprintf( stderr, "\n" );
+	errprep(s, msg);
+	fprintf(stderr, "warning: " );
+	fprintf(stderr, msg, a, b );
+	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
+	}
+
+errprep(soff, buf)
+	unsigned short soff;
+	char	*buf;
+	{
+	static	int	errfd = -1;
+
+	if	(errfd < 0)
+		{
+		errfd = open(StringFile, O_RDONLY, 0);
+		if	(errfd < 0)
+			{
+			fprintf(stderr, "can't open %s\n", StringFile);
+			fflush(stderr);
+			exit(1);
+			}
+		}
+	(void)lseek(errfd, (long)soff, L_SET);
+	(void)read(errfd, buf, 256);
 	}
 
 tinit(){ /* initialize expression tree search */
@@ -112,7 +150,7 @@ talloc(){
 	for( p = TNEXT(q); p!=q; p= TNEXT(p))
 		if( p->in.op ==FREE ) return(lastfree=p);
 
-	cerror( "out of tree space; simplify expression");
+	cerror("out of tree space; simplify expression");
 	/* NOTREACHED */
 	}
 
@@ -122,7 +160,7 @@ tcheck(){ /* ensure that all nodes have been freed */
 
 	if( !nerrors )
 		for( p=node; p<= &node[TREESZ-1]; ++p )
-			if( p->in.op != FREE ) cerror( "wasted space: %o", p );
+			if( p->in.op != FREE ) cerror("wasted space: %o", p );
 	tinit();
 #ifdef FLEXNAMES
 	freetstr();
@@ -137,7 +175,7 @@ tfree( p )  NODE *p; {
 	}
 
 tfree1(p)  NODE *p; {
-	if( p == 0 ) cerror( "freeing blank tree!");
+	if( p == 0 ) cerror("freeing blank tree!");
 	else p->in.op = FREE;
 	}
 

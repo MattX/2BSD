@@ -1,4 +1,4 @@
-/*	cgram.y	4.4	85/08/22	*/
+/*	cgram.y	4.4.1	95/01/17	*/
 
 /*
  * Grammar for the C compiler.
@@ -80,7 +80,7 @@ data_def:
 #endif
 				}  function_body
 			={  
-			    if( blevel ) cerror( "function level error" );
+			    if( blevel ) cerror("function level error" );
 			    if( reached ) retstat |= NRETVAL; 
 			    $1->in.op = FREE;
 			    ftnend();
@@ -231,9 +231,9 @@ declarator:	   fdeclarator
 		|  nfdeclarator
 		|  nfdeclarator COLON con_e
 			%prec CM
-			={  if( !(instruct&INSTRUCT) ) uerror( "field outside of structure" );
+			={  if( !(instruct&INSTRUCT) ) uerror("field outside of structure" );
 			    if( $3<0 || $3 >= FIELD ){
-				uerror( "illegal field size" );
+				uerror("illegal field size" );
 				$3 = 1;
 				}
 			    defid( tymerge($<nodep>0,$1), FIELD|$3 );
@@ -241,7 +241,7 @@ declarator:	   fdeclarator
 			    }
 		|  COLON con_e
 			%prec CM
-			={  if( !(instruct&INSTRUCT) ) uerror( "field outside of structure" );
+			={  if( !(instruct&INSTRUCT) ) uerror("field outside of structure" );
 			    falloc( stab, $2, -1, $<nodep>0 );  /* alignment or hole */
 			    $$ = NIL;
 			    }
@@ -261,7 +261,7 @@ nfdeclarator:	   MUL nfdeclarator
 				$$ = bdty( LB, $1, 0 );  }
 		|  nfdeclarator LB con_e RB	
 			={  bary:
-				if( (int)$3 <= 0 ) werror( "zero or negative subscript" );
+				if( (int)$3 <= 0 ) werror("zero or negative subscript" );
 				$$ = bdty( LB, $1, $3 );  }
 		|  NAME  		
 			={  $$ = bdty( NAME, NIL, $1 );  }
@@ -324,7 +324,7 @@ init_declarator:   nfdeclarator
 		|  fdeclarator
 			={  defid( tymerge($<nodep>0,$1), uclass(curclass) );
 			    if( paramno > 0 ){
-				uerror( "illegal argument" );
+				uerror("illegal argument" );
 				paramno = 0;
 				}
 			}
@@ -357,7 +357,7 @@ optsemi		:	/* VOID */
 		;
 
 optasgn		:	/* VOID */
-			={  werror( "old-fashioned initialization: use =" ); }
+			={  werror("old-fashioned initialization: use =" ); }
 		|  ASSIGN
 		;
 
@@ -398,7 +398,7 @@ cmpstmt:	   begin stmt_list RC
 begin:		  LC
 			={  if( blevel == 1 ) dclargs();
 			    ++blevel;
-			    if( psavbc > &asavbc[BCSZ-2] ) cerror( "nesting too deep" );
+			    if( psavbc > &asavbc[BCSZ-2] ) cerror("nesting too deep" );
 			    *psavbc++ = regvar;
 			    *psavbc++ = autooff;
 			    }
@@ -451,14 +451,14 @@ statement:	   e   SM
 			    resetbc(FCONT);
 			    }
 		|  BREAK  SM
-			={  if( brklab == NOLAB ) uerror( "illegal break");
+			={  if( brklab == NOLAB ) uerror("illegal break");
 			    else if(reached) branch( brklab );
 			    flostat |= FBRK;
 			    if( brkflag ) goto rch;
 			    reached = 0;
 			    }
 		|  CONTINUE  SM
-			={  if( contlab == NOLAB ) uerror( "illegal continue");
+			={  if( contlab == NOLAB ) uerror("illegal continue");
 			    else branch( contlab );
 			    flostat |= FCONT;
 			    goto rch;
@@ -467,7 +467,7 @@ statement:	   e   SM
 			={  retstat |= NRETVAL;
 			    branch( retlab );
 			rch:
-			    if( !reached ) werror( "statement not reached");
+			    if( !reached ) werror("statement not reached");
 			    reached = 0;
 			    }
 		|  RETURN e  SM
@@ -520,7 +520,7 @@ label:		   NAME COLON
 		;
 doprefix:	DO
 			={  savebc();
-			    if( !reached ) werror( "loop not entered at top");
+			    if( !reached ) werror("loop not entered at top");
 			    brklab = getlab();
 			    contlab = getlab();
 			    deflab( $$ = getlab() );
@@ -542,7 +542,7 @@ ifelprefix:	  ifprefix statement ELSE
 
 whprefix:	  WHILE  LP  e  RP
 			={  savebc();
-			    if( !reached ) werror( "loop not entered at top");
+			    if( !reached ) werror("loop not entered at top");
 			    if( $3->in.op == ICON && $3->tn.lval != 0 ) flostat = FLOOP;
 			    deflab( contlab = getlab() );
 			    reached = 1;
@@ -553,7 +553,7 @@ whprefix:	  WHILE  LP  e  RP
 		;
 forprefix:	  FOR  LP  .e  SM .e  SM 
 			={  if( $3 ) ecomp( $3 );
-			    else if( !reached ) werror( "loop not entered at top");
+			    else if( !reached ) werror("loop not entered at top");
 			    savebc();
 			    contlab = getlab();
 			    brklab = getlab();
@@ -605,7 +605,7 @@ e:		   e RELOP e
 			preconf:
 			    if( yychar==RELOP||yychar==EQUOP||yychar==AND||yychar==OR||yychar==ER ){
 			    precplaint:
-				if( hflag ) werror( "precedence confusion possible: parenthesize!" );
+				if( hflag ) werror("precedence confusion possible: parenthesize!" );
 				}
 			bop:
 			    $$ = buildtree( $2, $1, $3 );
@@ -658,7 +658,7 @@ e:		   e RELOP e
 			={  $$=buildtree(QUEST, $1, buildtree( COLON, $3, $5 ) );
 			    }
 		|  e ASOP e
-			={  werror( "old-fashioned assignment operator" );  goto bop; }
+			={  werror("old-fashioned assignment operator" );  goto bop; }
 		|  e ASSIGN e
 			={  goto bop; }
 		|  term
@@ -671,7 +671,7 @@ term:		   term INCOP
 			    }
 		|  AND term
 			={  if( ISFTN($2->in.type) || ISARY($2->in.type) ){
-				werror( "& before array or function: ignored" );
+				werror("& before array or function: ignored" );
 				$$ = $2;
 				}
 			    else goto ubop;
@@ -717,9 +717,9 @@ term:		   term INCOP
 			    if( blevel==0 && stab[idname].stype == UNDEF ) {
 				register NODE *q;
 #ifndef FLEXNAMES
-				werror( "undeclared initializer name %.8s", stab[idname].sname );
+				werror("undeclared initializer name %.8s", stab[idname].sname );
 #else
-				werror( "undeclared initializer name %s", stab[idname].sname );
+				werror("undeclared initializer name %s", stab[idname].sname );
 #endif
 				q = block( FREE, NIL, NIL, INT, 0, INT );
 				q->tn.rval = idname;
@@ -813,7 +813,7 @@ bdty( op, p, v ) NODE *p; {
 		break;
 
 	default:
-		cerror( "bad bdty" );
+		cerror("bad bdty" );
 		}
 
 	return( q );
@@ -821,14 +821,14 @@ bdty( op, p, v ) NODE *p; {
 
 dstash( n ) OFFSZ n;{ /* put n into the dimension table */
 	if( curdim >= DIMTABSZ-1 ){
-		cerror( "dimension table overflow");
+		cerror("dimension table overflow");
 		}
 	dimtab[ curdim++ ] = n;
 	}
 
 savebc() {
 	if( psavbc > & asavbc[BCSZ-4 ] ){
-		cerror( "whiles, fors, etc. too deeply nested");
+		cerror("whiles, fors, etc. too deeply nested");
 		}
 	*psavbc++ = brklab;
 	*psavbc++ = contlab;
@@ -850,15 +850,15 @@ addcase(p) NODE *p; { /* add case to switch */
 
 	p = optim( p );  /* change enum to ints */
 	if( p->in.op != ICON ){
-		uerror( "non-constant case expression");
+		uerror("non-constant case expression");
 		return;
 		}
 	if( swp == swtab ){
-		uerror( "case not in switch");
+		uerror("case not in switch");
 		return;
 		}
 	if( swp >= &swtab[SWITSZ] ){
-		cerror( "switch table overflow");
+		cerror("switch table overflow");
 		}
 	swp->sval = p->tn.lval;
 	deflab( swp->slab = getlab() );
@@ -868,11 +868,11 @@ addcase(p) NODE *p; { /* add case to switch */
 
 adddef(){ /* add default case to switch */
 	if( swtab[swx].slab >= 0 ){
-		uerror( "duplicate default in switch");
+		uerror("duplicate default in switch");
 		return;
 		}
 	if( swp == swtab ){
-		uerror( "default not inside switch");
+		uerror("default not inside switch");
 		return;
 		}
 	deflab( swtab[swx].slab = getlab() );
@@ -881,7 +881,7 @@ adddef(){ /* add default case to switch */
 swstart(){
 	/* begin a switch block */
 	if( swp >= &swtab[SWITSZ] ){
-		cerror( "switch table overflow");
+		cerror("switch table overflow");
 		}
 	swx = swp - swtab;
 	swp->slab = -1;
@@ -923,7 +923,7 @@ swend(){ /* end a switch block */
 
 	for( p = swbeg+1; p<swp; ++p ){
 		if( p->sval == (p-1)->sval ){
-			uerror( "duplicate case in switch, %d", tempi=p->sval );
+			uerror("duplicate case in switch, %d", tempi=p->sval );
 			return;
 			}
 		}

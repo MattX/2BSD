@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)fort.c	4.7 (Berkeley) 8/22/85";
+static char *sccsid ="@(#)fort.c	4.7.1 (2.11BSD GTE) 1/17/95";
 #endif lint
 
 # ifndef FORT
@@ -64,7 +64,7 @@ lnread()
 # ifndef NOLREAD
 long lread(){
 	static long x;
-	if( fread( (char *) &x, 4, 1, lrd ) <= 0 ) cerror( "intermediate file read error" );
+	if( fread( (char *) &x, 4, 1, lrd ) <= 0 ) cerror("intermediate file read error" );
 	return( x );
 	}
 # endif
@@ -74,7 +74,7 @@ lopen( s ) char *s; {
 	/* if null, opens the standard input */
 	if( *s ){
 		lrd = fopen( s, "r" );
-		if( lrd == NULL ) cerror( "cannot open intermediate file %s", s );
+		if( lrd == NULL ) cerror("cannot open intermediate file %s", s );
 		}
 	else  lrd = stdin;
 	}
@@ -83,7 +83,7 @@ lopen( s ) char *s; {
 # ifndef NOLCREAD
 lcread( cp, n ) char *cp; {
 	if( n > 0 ){
-		if( fread( cp, 4, n, lrd ) != n ) cerror( "intermediate file read error" );
+		if( fread( cp, 4, n, lrd ) != n ) cerror("intermediate file read error" );
 		}
 	}
 # endif
@@ -93,11 +93,11 @@ lccopy( n ) register n; {
 	register i;
 	static char fbuf[128];
 	if( n > 0 ){
-		if( n > sizeof(fbuf)/4 ) cerror( "lccopy asked to copy too much" );
-		if( fread( fbuf, 4, n, lrd ) != n ) cerror( "intermediate file read error" );
+		if( n > sizeof(fbuf)/4 ) cerror("lccopy asked to copy too much" );
+		if( fread( fbuf, 4, n, lrd ) != n ) cerror("intermediate file read error" );
 		for( i=4*n; fbuf[i-1] == '\0' && i>0; --i ) { /* VOID */ }
 		if( i ) {
-			if( fwrite( fbuf, 1, i, stdout ) != i ) cerror( "output file error" );
+			if( fwrite( fbuf, 1, i, stdout ) != i ) cerror("output file error" );
 			}
 		}
 	}
@@ -174,7 +174,7 @@ mainp2( argc, argv ) char *argv[]; {
 			return( nerrors );
 
 		case FSWITCH:
-			uerror( "switch not yet done" );
+			uerror("switch not yet done" );
 			for( x=VAL(x); x>0; --x ) lread();
 			continue;
 
@@ -201,7 +201,7 @@ mainp2( argc, argv ) char *argv[]; {
 			p->in.su = 0;
 			p->in.rall = NOPREF;
 			*fsp++ = p;
-			if( fsp >= &fstack[NSTACKSZ] ) uerror( "expression depth exceeded" );
+			if( fsp >= &fstack[NSTACKSZ] ) uerror("expression depth exceeded" );
 			continue;
 
 		case NAME:
@@ -250,7 +250,7 @@ mainp2( argc, argv ) char *argv[]; {
 			lineno = REST(x);
 			if( VAL(x) ) lcread( filename, VAL(x) );
 			if( fsp == fstack ) continue;  /* filename only */
-			if( --fsp != fstack ) uerror( "expression poorly formed" );
+			if( --fsp != fstack ) uerror("expression poorly formed" );
 			if( lflag ) lineid( lineno, filename );
 			tmpoff = baseoff;
 			p = fstack[0];
@@ -315,7 +315,7 @@ mainp2( argc, argv ) char *argv[]; {
 				goto bump;
 
 			case LTYPE:
-				uerror( "illegal leaf node: %d", p->in.op );
+				uerror("illegal leaf node: %d", p->in.op );
 				exit( 1 );
 				}
 			}

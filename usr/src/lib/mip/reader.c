@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)reader.c	4.4 (Berkeley) 8/22/85";
+static char *sccsid ="@(#)reader.c	4.4.1 (2.11BSD GTE) 1/17/94";
 #endif lint
 
 # include "pass2.h"
@@ -109,7 +109,7 @@ p2init( argc, argv ) char *argv[];{
 #endif
 
 				default:
-					cerror( "bad option: %c", *cp );
+					cerror("bad option: %c", *cp );
 					}
 				}
 			}
@@ -162,7 +162,7 @@ mainp2( argc, argv ) char *argv[]; {
 		temp = rdin(10);  /* ftnno */
 		tmpoff = baseoff = rdin(10); /* autooff for block gives max offset of autos in block */
 		maxtreg = rdin(10);
-		if( getchar() != '\n' ) cerror( "intermediate file format error");
+		if( getchar() != '\n' ) cerror("intermediate file format error");
 
 		if( temp != ftnno ){ /* beginning of function */
 			maxoff = baseoff;
@@ -181,7 +181,7 @@ mainp2( argc, argv ) char *argv[]; {
 		SETOFF( maxoff, ALSTACK );
 		eobl2();
 		while( (c=getchar()) != '\n' ){
-			if( c <= 0 ) cerror( "intermediate file format eof" );
+			if( c <= 0 ) cerror("intermediate file format eof" );
 			}
 		continue;
 
@@ -212,7 +212,7 @@ mainp2( argc, argv ) char *argv[]; {
 		continue;
 
 	default:
-		cerror( "intermediate file format error" );
+		cerror("intermediate file format error" );
 
 		}
 
@@ -557,7 +557,7 @@ order(p,cook) NODE *p; {
 	switch( m ){
 	default:
 		nomat:
-		cerror( "no table entry for op %s", opst[p->in.op] );
+		cerror("no table entry for op %s", opst[p->in.op] );
 
 	case COMOP:
 		codgen( p1, FOREFF );
@@ -626,7 +626,7 @@ order(p,cook) NODE *p; {
 		goto again;
 
 	case INIT:
-		uerror( "illegal initialization" );
+		uerror("illegal initialization" );
 		return;
 
 	case UNARY FORTCALL:
@@ -1033,7 +1033,7 @@ cbranch( p, true, false ) NODE *p; {
 
 rcount(){ /* count recursions */
 	if( ++nrecur > NRECUR ){
-		cerror( "expression causes compiler loop: try simplifying" );
+		cerror("expression causes compiler loop: try simplifying" );
 		}
 
 	}
@@ -1114,7 +1114,7 @@ eread(){
 	if( p->in.op == STASG || p->in.op == STARG || p->in.op == STCALL || p->in.op == UNARY STCALL ){
 		p->stn.stsize = (rdin( 10 ) + (SZCHAR-1) )/SZCHAR;
 		p->stn.stalign = rdin(10) / SZCHAR;
-		if( getchar() != '\n' ) cerror( "illegal \n" );
+		if( getchar() != '\n' ) cerror("illegal \n" );
 		}
 	else {   /* usual case */
 		if( p->in.op == REG ) rbusy( p->tn.rval, p->in.type );  /* non usually, but sometimes justified */
@@ -1153,7 +1153,7 @@ rdin( base ){
 
 	while( (c=getchar()) > 0 ) {
 		if( c == '-' ){
-			if( val != 0 ) cerror( "illegal -");
+			if( val != 0 ) cerror("illegal -");
 			sign = -sign;
 			continue;
 			}
@@ -1166,12 +1166,12 @@ rdin( base ){
 				val -= c-'0';
 			continue;
 			}
-		cerror( "illegal character `%c' on intermediate file", c );
+		cerror("illegal character `%c' on intermediate file", c );
 		break;
 		}
 
 	if( c <= 0 ) {
-		cerror( "unexpected EOF");
+		cerror("unexpected EOF");
 		}
 	return( val );
 	}

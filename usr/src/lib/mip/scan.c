@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)scan.c	2.1 (Berkeley) 4/23/86";
+static char *sccsid ="@(#)scan.c	2.1.1 (2.11BSD GTE) 1/17/95";
 #endif lint
 
 # include "pass1.h"
@@ -325,11 +325,11 @@ lxstr(ct){
 		switch( c ) {
 
 		case EOF:
-			uerror( "unexpected EOF" );
+			uerror("unexpected EOF" );
 			break;
 
 		case '\n':
-			uerror( "newline in string or char constant" );
+			uerror("newline in string or char constant" );
 			++lineno;
 			break;
 
@@ -403,7 +403,7 @@ lxstr(ct){
 			else { /* stash the byte into the string */
 				if( strflg ) {
 					if( ct==0 || i<ct ) putbyte( val );
-					else if( i == ct ) werror( "non-null byte ignored in string initializer" );
+					else if( i == ct ) werror("non-null byte ignored in string initializer" );
 					}
 				else bycode( val, i );
 				}
@@ -425,9 +425,9 @@ lxstr(ct){
 			}
 		}
 	else { /* end the character constant */
-		if( i == 0 ) uerror( "empty character constant" );
+		if( i == 0 ) uerror("empty character constant" );
 		if( i>(SZINT/SZCHAR) || ( (pflag||hflag)&&i>1) )
-			uerror( "too many characters in character constant" );
+			uerror("too many characters in character constant" );
 		}
 	}
 
@@ -440,7 +440,7 @@ lxcom(){
 		switch( c = getchar() ){
 
 		case EOF:
-			uerror( "unexpected EOF" );
+			uerror("unexpected EOF" );
 			return;
 
 		case '\n':
@@ -515,7 +515,7 @@ yylex(){
 			return( p->lxtok );
 
 		case A_ERR:
-			uerror( "illegal character: %03o (octal)", lxchar );
+			uerror("illegal character: %03o (octal)", lxchar );
 			break;
 
 		case A_LET:
@@ -550,7 +550,7 @@ yylex(){
 
 			case 'x':
 			case 'X':
-				if( yytext[0] != '0' && !yytext[1] ) uerror( "illegal hex constant" );
+				if( yytext[0] != '0' && !yytext[1] ) uerror("illegal hex constant" );
 				lxmore( lxchar, LEXHEX );
 				/* convert the value */
 				{
@@ -665,18 +665,18 @@ yylex(){
 				for( i=0; i<LXTSZ; ++i ){
 					if( ( j = getchar() ) == '`' ) break;
 					if( j == '\n' ){
-						uerror( "newline in BCD constant" );
+						uerror("newline in BCD constant" );
 						break;
 						}
 					yytext[i] = j;
 					}
 				yytext[i] = '\0';
-				if( i>6 ) uerror( "BCD constant exceeds 6 characters" );
+				if( i>6 ) uerror("BCD constant exceeds 6 characters" );
 # ifdef gcos
 				else strtob( yytext, &lastcon, i );
 				lastcon >>= 6*(6-i);
 # else
-				uerror( "gcos BCD constant illegal" );
+				uerror("gcos BCD constant illegal" );
 # endif
 				yylval.intval = 0;  /* not long */
 				return( ICON );
@@ -764,7 +764,7 @@ yylex(){
 
 			warn:
 				if( lxmask[ (lxchar=getchar())+1] & (LEXLET|LEXDIG|LEXDOT) ){
-					werror( "ambiguous assignment: assignment op taken" );
+					werror("ambiguous assignment: assignment op taken" );
 					}
 				ungetc( lxchar ,stdin);
 				break;
@@ -795,14 +795,14 @@ yylex(){
 
 			case '<':
 				if( (lxchar=getchar()) != '<' ){
-					uerror( "=<%c illegal", lxchar );
+					uerror("=<%c illegal", lxchar );
 					}
 				yylval.intval = ASG LS;
 				break;
 
 			case '>':
 				if( (lxchar=getchar()) != '>' ){
-					uerror( "=>%c illegal", lxchar );
+					uerror("=>%c illegal", lxchar );
 					}
 				yylval.intval = ASG RS;
 				break;
@@ -815,12 +815,12 @@ yylex(){
 			return( ASOP );
 
 		default:
-			cerror( "yylex error, character %03o (octal)", lxchar );
+			cerror("yylex error, character %03o (octal)", lxchar );
 
 			}
 
 		/* ordinarily, repeat here... */
-		cerror( "out of switch in yylex" );
+		cerror("out of switch in yylex" );
 
 		}
 
@@ -979,11 +979,11 @@ lxres() {
 				return( 0 );
 
 			badasm:
-				uerror( "bad asm construction" );
+				uerror("bad asm construction" );
 				return( 0 );
 
 			default:
-				cerror( "bad AR_?? action" );
+				cerror("bad AR_?? action" );
 				}
 			}
 		}

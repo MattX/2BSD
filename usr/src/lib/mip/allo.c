@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)allo.c	4.8 (Berkeley) 1/8/86";
+static char *sccsid ="@(#)allo.c	4.8.1 (2.11BSD GTE) 1/17/95";
 #endif lint
 
 # include "pass2.h"
@@ -135,7 +135,7 @@ freetemp( k ){ /* allocate k integers worth of temp space */
 	tmpoff += k*SZINT;
 	if( tmpoff > maxoff ) maxoff = tmpoff;
 	if( tmpoff >= offsz )
-		cerror( "stack overflow" );
+		cerror("stack overflow" );
 	if( tmpoff-baseoff > maxtemp ) maxtemp = tmpoff-baseoff;
 	return(t);
 
@@ -146,7 +146,7 @@ freetemp( k ){ /* allocate k integers worth of temp space */
 		}
 	if( tmpoff > maxoff ) maxoff = tmpoff;
 	if( tmpoff >= offsz )
-		cerror( "stack overflow" );
+		cerror("stack overflow" );
 	if( tmpoff-baseoff > maxtemp ) maxtemp = tmpoff-baseoff;
 	return( -tmpoff );
 # endif
@@ -191,7 +191,7 @@ usable( p, n, r ) NODE *p; {
 	/* decide if register r is usable in tree p to satisfy need n */
 
 	/* checks, for the moment */
-	if( !istreg(r) ) cerror( "usable asked about nontemp register" );
+	if( !istreg(r) ) cerror("usable asked about nontemp register" );
 
 	if( busy[r] > 1 ) return(0);
 	if( isbreg(r) ){
@@ -308,14 +308,14 @@ rfree( r, t ) TWORD t; {
 # endif
 
 	if( istreg(r) ){
-		if( --busy[r] < 0 ) cerror( "register overfreed");
+		if( --busy[r] < 0 ) cerror("register overfreed");
 		if( szty(t) == 2 ){
 #ifdef NOEVENODD
-			if( istreg(r) ^ istreg(r+1) ) cerror( "illegal free" );
+			if( istreg(r) ^ istreg(r+1) ) cerror("illegal free" );
 #else
-			if( (r&01) || (istreg(r)^istreg(r+1)) ) cerror( "illegal free" );
+			if( (r&01) || (istreg(r)^istreg(r+1)) ) cerror("illegal free" );
 #endif
-			if( --busy[r+1] < 0 ) cerror( "register overfreed" );
+			if( --busy[r+1] < 0 ) cerror("register overfreed" );
 			}
 		}
 	}
@@ -336,9 +336,9 @@ rbusy(r,t) TWORD t; {
 	if( szty(t) == 2 ){
 		if( istreg(r+1) ) ++busy[r+1];
 #ifdef NOEVENODD
-		if( istreg(r) ^ istreg(r+1) ) cerror( "illegal register pair freed" );
+		if( istreg(r) ^ istreg(r+1) ) cerror("illegal register pair freed" );
 #else
-		if( (r&01) || (istreg(r)^istreg(r+1)) ) cerror( "illegal register pair freed" );
+		if( (r&01) || (istreg(r)^istreg(r+1)) ) cerror("illegal register pair freed" );
 #endif
 		}
 	}
@@ -433,7 +433,7 @@ reclaim( p, rw, cookie ) NODE *p; {
 	if( rw&RESC3 ) *qq++ = &resc[2];
 
 	if( qq == recres ){
-		cerror( "illegal reclaim");
+		cerror("illegal reclaim");
 		}
 
 	*qq = NIL;
@@ -449,7 +449,7 @@ reclaim( p, rw, cookie ) NODE *p; {
 		}
 
 	/* we can't do it; die */
-	cerror( "cannot reclaim");
+	cerror("cannot reclaim");
 
 	gotit:
 
@@ -496,7 +496,7 @@ reclaim( p, rw, cookie ) NODE *p; {
 		if( i & NOPREF ) return;
 		if( i != p->tn.rval ){
 			if( busy[i] || ( szty(p->in.type)==2 && busy[i+1] ) ){
-				cerror( "faulty register move" );
+				cerror("faulty register move" );
 				}
 			rbusy( i, p->in.type );
 			rfree( p->tn.rval, p->in.type );
@@ -506,12 +506,12 @@ reclaim( p, rw, cookie ) NODE *p; {
 
 	case OREG:
 		if( p->in.op == REG || !R2TEST(p->tn.rval) ) {
-			if( busy[p->tn.rval]>1 && istreg(p->tn.rval) ) cerror( "potential register overwrite");
+			if( busy[p->tn.rval]>1 && istreg(p->tn.rval) ) cerror("potential register overwrite");
 			}
 		else
 			if( (R2UPK1(p->tn.rval) != 100 && busy[R2UPK1(p->tn.rval)]>1 && istreg(R2UPK1(p->tn.rval)) )
 				|| (busy[R2UPK2(p->tn.rval)]>1 && istreg(R2UPK2(p->tn.rval)) ) )
-			   cerror( "potential register overwrite");
+			   cerror("potential register overwrite");
 		}
 
 	}
@@ -581,7 +581,7 @@ allchk(){
 
 	REGLOOP(i){
 		if( istreg(i) && busy[i] ){
-			cerror( "register allocation error");
+			cerror("register allocation error");
 			}
 		}
 

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)trees.c	4.10 (Berkeley) 1/8/86";
+static char *sccsid ="@(#)trees.c	4.10.1 (2.11BSD GTE) 1/17/95";
 #endif
 
 # include "pass1.h"
@@ -102,7 +102,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 		switch( o ){
 
 		case NOT:
-			if( hflag ) werror( "constant argument to NOT" );
+			if( hflag ) werror("constant argument to NOT" );
 		case UNARY MINUS:
 		case COMPL:
 			if( conval( l, o, l ) ) return(l);
@@ -155,7 +155,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 		case CBRANCH:
 
 		ccwarn:
-			if( hflag ) werror( "constant in conditional context" );
+			if( hflag ) werror("constant in conditional context" );
 
 		case PLUS:
 		case MINUS:
@@ -238,7 +238,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 
 	if( actions&LVAL ){ /* check left descendent */
 		if( notlval(p->in.left) ) {
-			uerror( "illegal lhs of assignment operator" );
+			uerror("illegal lhs of assignment operator" );
 			}
 		}
 
@@ -284,9 +284,9 @@ buildtree( o, l, r ) register NODE *l, *r; {
 			sp = &stab[idname];
 			if( sp->stype == UNDEF ){
 #ifndef FLEXNAMES
-				uerror( "%.8s undefined", sp->sname );
+				uerror("%.8s undefined", sp->sname );
 #else
-				uerror( "%s undefined", sp->sname );
+				uerror("%s undefined", sp->sname );
 #endif
 				/* make p look reasonable */
 				p->in.type = p->fn.cdim = p->fn.csiz = INT;
@@ -347,7 +347,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 
 			i = r->tn.rval;
 			if( i<0 || ((sp= &stab[i])->sclass != MOS && sp->sclass != MOU && !(sp->sclass&FIELD)) ){
-				uerror( "member of structure or union required" );
+				uerror("member of structure or union required" );
 				}else
 			/* if this name is non-unique, find right one */
 			if( stab[i].sflags & SNONUNIQ &&
@@ -400,16 +400,16 @@ buildtree( o, l, r ) register NODE *l, *r; {
 				register j;
 				if( l->in.type != PTR+STRTY && l->in.type != PTR+UNIONTY ){
 					if( stab[i].sflags & SNONUNIQ ){
-						uerror( "nonunique name demands struct/union or struct/union pointer" );
+						uerror("nonunique name demands struct/union or struct/union pointer" );
 						}
-					else werror( "struct/union or struct/union pointer required" );
+					else werror("struct/union or struct/union pointer required" );
 					}
-				else if( (j=l->fn.csiz+1)<0 ) cerror( "undefined structure or union" );
+				else if( (j=l->fn.csiz+1)<0 ) cerror("undefined structure or union" );
 				else if( !chkstr( i, (int)dimtab[j], DECREF(l->in.type) ) ){
 #ifndef FLEXNAMES
-					werror( "illegal member use: %.8s", stab[i].sname );
+					werror("illegal member use: %.8s", stab[i].sname );
 #else
-					werror( "illegal member use: %s", stab[i].sname );
+					werror("illegal member use: %s", stab[i].sname );
 #endif
 					}
 				}
@@ -471,7 +471,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 
 # endif
 			default:
-				uerror( "unacceptable operand of &" );
+				uerror("unacceptable operand of &" );
 				break;
 				}
 			break;
@@ -496,7 +496,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 				register TWORD t;
 				register d, s;
 
-				if( l->fn.csiz != r->fn.csiz ) uerror( "assignment of different structures" );
+				if( l->fn.csiz != r->fn.csiz ) uerror("assignment of different structures" );
 
 				r = buildtree( UNARY AND, r, NIL );
 				t = r->in.type;
@@ -519,7 +519,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 		case COLON:
 			/* structure colon */
 
-			if( l->fn.csiz != r->fn.csiz ) uerror( "type clash in conditional" );
+			if( l->fn.csiz != r->fn.csiz ) uerror("type clash in conditional" );
 			break;
 
 		case CALL:
@@ -548,7 +548,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 			break;
 
 		default:
-			cerror( "other code %d", o );
+			cerror("other code %d", o );
 			}
 
 		}
@@ -615,11 +615,11 @@ chkstr( i, j, type ) TWORD type; {
 	if( ddebug > 1 ) printf( "chkstr( %s(%d), %d )\n", stab[i].sname, i, j );
 #endif
 # endif
-	if( (k = j) < 0 ) uerror( "undefined structure or union" );
+	if( (k = j) < 0 ) uerror("undefined structure or union" );
 	else {
 		for( ; (kk = (int)dimtab[k] ) >= 0; ++k ){
 			if( kk >= SYMTSZ ){
-				cerror( "gummy structure" );
+				cerror("gummy structure" );
 				return(1);
 				}
 			if( kk == i ) return( 1 );
@@ -674,12 +674,12 @@ conval( p, o, q ) register NODE *p, *q; {
 		p->tn.lval *= val;
 		break;
 	case DIV:
-		if( val == 0 ) uerror( "division by 0" );
+		if( val == 0 ) uerror("division by 0" );
 		else if ( u ) p->tn.lval = (unsigned) p->tn.lval / val;
 		else p->tn.lval /= val;
 		break;
 	case MOD:
-		if( val == 0 ) uerror( "division by 0" );
+		if( val == 0 ) uerror("division by 0" );
 		else if ( u ) p->tn.lval = (unsigned) p->tn.lval % val;
 		else p->tn.lval %= val;
 		break;
@@ -769,11 +769,11 @@ chkpun(p) register NODE *p; {
 
 	if( t1==ENUMTY || t2==ENUMTY ) { /* check for enumerations */
 		if( logop( p->in.op ) && p->in.op != EQ && p->in.op != NE ) {
-			uerror( "illegal comparison of enums" );
+			uerror("illegal comparison of enums" );
 			return;
 			}
 		if( t1==ENUMTY && t2==ENUMTY && p->in.left->fn.csiz==p->in.right->fn.csiz ) return;
-		werror( "enumeration type clash, operator %s", opst[p->in.op] );
+		werror("enumeration type clash, operator %s", opst[p->in.op] );
 		return;
 		}
 
@@ -782,7 +782,7 @@ chkpun(p) register NODE *p; {
 
 	if( !ISPTR(q->in.type) && !ISARY(q->in.type) ){
 		if( q->in.op != ICON || q->tn.lval != 0 ){
-			werror( "illegal combination of pointer and integer, op %s",
+			werror("illegal combination of pointer and integer, op %s",
 				opst[p->in.op] );
 			}
 		}
@@ -792,14 +792,14 @@ chkpun(p) register NODE *p; {
 		for( ;; ){
 			if( t1 == t2 ) {;
 				if( p->in.left->fn.csiz != p->in.right->fn.csiz ) {
-					werror( "illegal structure pointer combination" );
+					werror("illegal structure pointer combination" );
 					}
 				return;
 				}
 			if( ISARY(t1) || ISPTR(t1) ){
 				if( !ISARY(t2) && !ISPTR(t2) ) break;
 				if( ISARY(t1) && ISARY(t2) && dimtab[d1] != dimtab[d2] ){
-					werror( "illegal array size combination" );
+					werror("illegal array size combination" );
 					return;
 					}
 				if( ISARY(t1) ) ++d1;
@@ -809,7 +809,7 @@ chkpun(p) register NODE *p; {
 			t1 = DECREF(t1);
 			t2 = DECREF(t2);
 			}
-		werror( "illegal pointer combination" );
+		werror("illegal pointer combination" );
 		}
 
 	}
@@ -918,7 +918,7 @@ psize( p ) NODE *p; {
 	   size of the thing pointed to */
 
 	if( !ISPTR(p->in.type) ){
-		uerror( "pointer required");
+		uerror("pointer required");
 		return( SZINT );
 		}
 	/* note: no pointers to fields */
@@ -1003,7 +1003,7 @@ oconvert(p) register NODE *p; {
 			p, bpsize(p->in.left), INT, 0, INT ) ) );
 		}
 
-	cerror( "illegal oconvert: %d", p->in.op );
+	cerror("illegal oconvert: %d", p->in.op );
 
 	return(p);
 	}
@@ -1036,12 +1036,12 @@ ptmatch(p)  register NODE *p; {
 
 	case MINUS:
 		{  if( psize(p->in.left) != psize(p->in.right) ){
-			uerror( "illegal pointer subtraction");
+			uerror("illegal pointer subtraction");
 			}
 		   break;
 		   }
 	case COLON:
-		{  if( t1 != t2 ) uerror( "illegal types in :");
+		{  if( t1 != t2 ) uerror("illegal types in :");
 		   break;
 		   }
 	default:  /* must work harder: relationals or comparisons */
@@ -1248,12 +1248,12 @@ icons(p) register NODE *p; {
 	int val;
 
 	if( p->in.op != ICON ){
-		uerror( "constant expected");
+		uerror("constant expected");
 		val = 1;
 		}
 	else {
 		val = p->tn.lval;
-		if( val != p->tn.lval ) uerror( "constant too big for cross-compiler" );
+		if( val != p->tn.lval ) uerror("constant too big for cross-compiler" );
 		}
 	tfree( p );
 	return(val);
@@ -1315,7 +1315,7 @@ opact( p )  NODE *p; {
 	    !(o == CAST && (mt1 & MVOID)) ){
 		/* if lhs of RETURN is void, grammar will complain */
 		if( o != RETURN )
-			uerror( "value of void expression used" );
+			uerror("value of void expression used" );
 		return( NCVT );
 		}
 	mt1 &= ~MVOID;
@@ -1455,9 +1455,9 @@ opact( p )  NODE *p; {
 
 		}
 	if( mt12 == MSTR )
-		uerror( "%s is not a permitted struct/union operation", opst[o] );
+		uerror("%s is not a permitted struct/union operation", opst[o] );
 	else
-		uerror( "operands of %s have incompatible types", opst[o] );
+		uerror("operands of %s have incompatible types", opst[o] );
 	return( NCVT );
 	}
 
@@ -1465,8 +1465,6 @@ moditype( ty ) TWORD ty; {
 
 	switch( ty ){
 
-	case TVOID:
-		return( MPTR );
 	case UNDEF:
 		return( MVOID );
 	case ENUMTY:
@@ -1505,7 +1503,7 @@ doszof( p )  register NODE *p; {
 	i = tsize( p->in.type, p->fn.cdim, p->fn.csiz )/SZCHAR;
 
 	tfree(p);
-	if( i <= 0 ) werror( "sizeof returns 0" );
+	if( i <= 0 ) werror("sizeof returns 0" );
 	return( bcon( i ) );
 	}
 
@@ -1557,7 +1555,7 @@ ecomp( p ) register NODE *p; {
 	if( edebug ) fwalk( p, eprint, 0 );
 # endif
 	if( !reached ){
-		werror( "statement not reached" );
+		werror("statement not reached" );
 		reached = 1;
 		}
 	p = optim(p);

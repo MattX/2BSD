@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)pftn.c	1.12 (Berkeley) 4/21/86";
+static char *sccsid ="@(#)pftn.c	1.12.1 (2.11BSD GTE) 1/17/95";
 #endif lint
 
 # include "pass1.h"
@@ -45,11 +45,11 @@ defid( q, class ) register NODE *q; register int class; {
 
 	if( q == NIL ) return;  /* an error was detected */
 
-	if( q < node || q >= &node[TREESZ] ) cerror( "defid call" );
+	if( q < node || q >= &node[TREESZ] ) cerror("defid call" );
 
 	idp = q->tn.rval;
 
-	if( idp < 0 ) cerror( "tyreduce" );
+	if( idp < 0 ) cerror("tyreduce" );
 	p = &stab[idp];
 
 # ifndef BUG1
@@ -90,9 +90,9 @@ defid( q, class ) register NODE *q; register int class; {
 
 		default:
 #ifndef FLEXNAMES
-			if(!(class&FIELD)) uerror( "declared argument %.8s is missing", p->sname );
+			if(!(class&FIELD)) uerror("declared argument %.8s is missing", p->sname );
 #else
-			if(!(class&FIELD)) uerror( "declared argument %s is missing", p->sname );
+			if(!(class&FIELD)) uerror("declared argument %s is missing", p->sname );
 #endif
 		case MOS:
 		case STNAME:
@@ -283,9 +283,9 @@ defid( q, class ) register NODE *q; register int class; {
 		goto enter;
 		}
 #ifndef FLEXNAMES
-	uerror( "redeclaration of %.8s", p->sname );
+	uerror("redeclaration of %.8s", p->sname );
 #else
-	uerror( "redeclaration of %s", p->sname );
+	uerror("redeclaration of %s", p->sname );
 #endif
 	if( class==EXTDEF && ISFTN(type) ) curftn = idp;
 	return;
@@ -377,7 +377,7 @@ defid( q, class ) register NODE *q; register int class; {
 		register int l = p->slevel;
 
 		if( l >= MAXSCOPES )
-			cerror( "scopes nested too deep" );
+			cerror("scopes nested too deep" );
 
 		p->snext = schain[l];
 		schain[l] = p;
@@ -397,7 +397,7 @@ defid( q, class ) register NODE *q; register int class; {
 
 psave( i ) OFFSZ i;{
 	if( paramno >= PARAMSZ ){
-		cerror( "parameter stack overflow");
+		cerror("parameter stack overflow");
 		}
 	paramstk[ paramno++ ] = i;
 	}
@@ -415,7 +415,7 @@ ftnend(){ /* end of function */
 	if( nerrors == 0 ){
 		if( psavbc != & asavbc[0] ) cerror("bcsave error");
 		if( paramno != 0 ) cerror("parameter reset error");
-		if( swx != 0 ) cerror( "switch error");
+		if( swx != 0 ) cerror("switch error");
 		}
 	psavbc = &asavbc[0];
 	paramno = 0;
@@ -582,7 +582,7 @@ dclstruct( oparam ){
 
 	for( i = oparam+4;  i< paramno; ++i ){
 		dstash( j=paramstk[i] );
-		if( j<0 || j>= SYMTSZ ) cerror( "gummy structure member" );
+		if( j<0 || j>= SYMTSZ ) cerror("gummy structure member" );
 		p = &stab[j];
 		if( temp == ENUMTY ){
 			if( p->offset < low ) low = p->offset;
@@ -599,9 +599,9 @@ dclstruct( oparam ){
 			}
 		if( sz == 0 ){
 #ifndef FLEXNAMES
-			werror( "illegal zero sized structure member: %.8s", p->sname );
+			werror("illegal zero sized structure member: %.8s", p->sname );
 #else
-			werror( "illegal zero sized structure member: %s", p->sname );
+			werror("illegal zero sized structure member: %s", p->sname );
 #endif
 			}
 		if( sz > strucoff ) strucoff = sz;  /* for use with unions */
@@ -625,7 +625,7 @@ dclstruct( oparam ){
 		dimtab[ szindex+2 ] = al = talign( ty, (int)ty );
 		}
 
-	if( strucoff == 0 ) uerror( "zero sized structure" );
+	if( strucoff == 0 ) uerror("zero sized structure" );
 	dimtab[ szindex ] = strucoff;
 	dimtab[ szindex+2 ] = al;
 	dimtab[ szindex+3 ] = paramstk[ oparam+3 ];  /* name index */
@@ -652,9 +652,9 @@ dclstruct( oparam ){
 	}
 
 	/* VARARGS */
-yyerror( s ) char *s; { /* error printing routine in parser */
+yyerror(s ) char *s; { /* error printing routine in parser */
 
-	uerror( s );
+	uerror(s );
 
 	}
 
@@ -707,7 +707,7 @@ talign( ty, s) register unsigned ty; register s; {
 		switch( (ty>>i)&TMASK ){
 
 		case FTN:
-			cerror( "compiler takes alignment of function");
+			cerror("compiler takes alignment of function");
 		case PTR:
 			return( ALPOINT );
 		case ARY:
@@ -756,7 +756,7 @@ tsize( ty, d, s )  TWORD ty; {
 		switch( (ty>>i)&TMASK ){
 
 		case FTN:
-			cerror( "compiler takes size of function");
+			cerror("compiler takes size of function");
 		case PTR:
 			return( SZPOINT * mult );
 		case ARY:
@@ -770,9 +770,9 @@ tsize( ty, d, s )  TWORD ty; {
 
 	if( dimtab[s]==0 ) {
 		if( ty == STRTY )
-			uerror( "undefined structure" );
+			uerror("undefined structure" );
 		else
-			uerror( "unknown size");
+			uerror("unknown size");
 		return( SZINT );
 		}
 	return( dimtab[ s ] * mult );
@@ -786,7 +786,7 @@ inforce( n ) OFFSZ n; {  /* force inoff to have the value n */
 
 	if( inoff == n ) return;
 	if( inoff > n ) {
-		cerror( "initialization alignment error");
+		cerror("initialization alignment error");
 		}
 
 	wb = inoff;
@@ -814,7 +814,7 @@ inforce( n ) OFFSZ n; {  /* force inoff to have the value n */
 
 	rest = n-inoff;
 	vfdzero( rest );
-	if( inoff != n ) cerror( "inoff error");
+	if( inoff != n ) cerror("inoff error");
 
 	}
 
@@ -912,7 +912,7 @@ instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
 			}
 
 		if( (iclass==AUTO || iclass == REGISTER ) &&
-			(ISARY(t) || t==STRTY) ) uerror( "no automatic aggregate initialization" );
+			(ISARY(t) || t==STRTY) ) uerror("no automatic aggregate initialization" );
 
 		/* now, if this is not a scalar, put on another element */
 
@@ -923,13 +923,13 @@ instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
 			}
 		else if( t == STRTY ){
 			if( dimtab[pstk->in_s] == 0 ){
-				uerror( "can't initialize undefined structure" );
+				uerror("can't initialize undefined structure" );
 				iclass = -1;
 				return;
 				}
 			id = (int)dimtab[pstk->in_x];
 			p = &stab[id];
-			if( p->sclass != MOS && !(p->sclass&FIELD) ) cerror( "insane structure member list" );
+			if( p->sclass != MOS && !(p->sclass&FIELD) ) cerror("insane structure member list" );
 			t = p->stype;
 			d = p->dimoff;
 			s = p->sizoff;
@@ -1017,8 +1017,8 @@ endinit(){
 			inforce( tsize( t, d, s ) );
 			n = d1;
 			}
-		if( d1!=0 && d1!=n ) uerror( "too many initializers");
-		if( n==0 ) werror( "empty array declaration");
+		if( d1!=0 && d1!=n ) uerror("too many initializers");
+		if( n==0 ) werror("empty array declaration");
 		dimtab[d] = n;
 		if( d1==0 ) FIXDEF(&stab[pstk->in_id]);
 		}
@@ -1027,7 +1027,7 @@ endinit(){
 		/* clearly not fields either */
 		inforce( tsize( t, d, s ) );
 		}
-	else if( n > 1 ) uerror( "bad scalar initialization");
+	else if( n > 1 ) uerror("bad scalar initialization");
 	/* this will never be called with a field element... */
 	else inforce( tsize(t,d,s) );
 
@@ -1053,7 +1053,7 @@ doinit( p ) register NODE *p; {
 
 	if( iclass < 0 ) goto leave;
 	if( iclass == EXTERN || iclass == UNAME ){
-		uerror( "cannot initialize extern or union" );
+		uerror("cannot initialize extern or union" );
 		iclass = -1;
 		goto leave;
 		}
@@ -1071,12 +1071,12 @@ doinit( p ) register NODE *p; {
 	if( p == NIL ) return;  /* for throwing away strings that have been turned into lists */
 
 	if( ifull ){
-		uerror( "too many initializers" );
+		uerror("too many initializers" );
 		iclass = -1;
 		goto leave;
 		}
 	if( ibseen ){
-		uerror( "} expected");
+		uerror("} expected");
 		goto leave;
 		}
 
@@ -1109,7 +1109,7 @@ doinit( p ) register NODE *p; {
 	p->in.op = INIT;
 
 	if( sz < SZINT ){ /* special case: bit fields, etc. */
-		if( o != ICON ) uerror( "illegal initialization" );
+		if( o != ICON ) uerror("illegal initialization" );
 		else incode( p->in.left, sz );
 		}
 	else if( o == FCON ){
@@ -1120,7 +1120,7 @@ doinit( p ) register NODE *p; {
 		}
 	else {
 		p = optim(p);
-		if( p->in.left->in.op != ICON ) uerror( "illegal initialization" );
+		if( p->in.left->in.op != ICON ) uerror("illegal initialization" );
 		else cinit( p, sz );
 		}
 
@@ -1181,7 +1181,7 @@ ilbrace(){ /* process an initializer's left brace */
 		t = pstk->in_t;
 		if( t != STRTY && !ISARY(t) ) continue; /* not an aggregate */
 		if( pstk->in_fl ){ /* already associated with a { */
-			if( pstk->in_n ) uerror( "illegal {");
+			if( pstk->in_n ) uerror("illegal {");
 			continue;
 			}
 
@@ -1326,7 +1326,7 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 
 	default:
 		if( new < 0 ) {
-			uerror( "illegal field type" );
+			uerror("illegal field type" );
 			al = ALINT;
 			}
 		else {
@@ -1336,13 +1336,13 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 		}
 
 	if( w > sz ) {
-		uerror( "field too big");
+		uerror("field too big");
 		w = sz;
 		}
 
 	if( w == 0 ){ /* align only */
 		SETOFF( strucoff, al );
-		if( new >= 0 ) uerror( "zero size field");
+		if( new >= 0 ) uerror("zero size field");
 		return(0);
 		}
 
@@ -1377,7 +1377,7 @@ nidcl( p ) NODE *p; { /* handle unitialized declarations */
 	/* compute class */
 	if( (class=curclass) == SNULL ){
 		if( blevel > 1 ) class = AUTO;
-		else if( blevel != 0 || instruct ) cerror( "nidcl error" );
+		else if( blevel != 0 || instruct ) cerror("nidcl error" );
 		else { /* blevel = 0 */
 			class = noinit();
 			if( class == EXTERN ) commflag = 1;
@@ -1438,7 +1438,7 @@ types( t1, t2, t3 ) TWORD t1, t2, t3; {
 
 		default:
 		bad:
-			uerror( "illegal type combination" );
+			uerror("illegal type combination" );
 			return( INT );
 
 		case UNDEF:
@@ -1486,7 +1486,7 @@ tymerge( typ, idp ) NODE *typ, *idp; {
 	register i;
 	extern int eprint();
 
-	if( typ->in.op != TYPE ) cerror( "tymerge: arg 1" );
+	if( typ->in.op != TYPE ) cerror("tymerge: arg 1" );
 	if(idp == NIL ) return( NIL );
 
 # ifndef BUG1
@@ -1533,7 +1533,7 @@ tyreduce( p ) register NODE *p; {
 		temp = p->in.right->tn.lval;
 		p->in.right->in.op = FREE;
 		if( ( temp == 0 ) & ( p->in.left->tn.op == LB ) )
-			uerror( "Null dimension" );
+			uerror("Null dimension" );
 		}
 
 	p->in.left->in.type = t;
@@ -1556,11 +1556,11 @@ fixtype( p, class ) register NODE *p; {
 		t = DECREF(type);
 		while( mod1=mod2, mod2 = (t&TMASK) ){
 			if( mod1 == ARY && mod2 == FTN ){
-				uerror( "array of functions is illegal" );
+				uerror("array of functions is illegal" );
 				type = 0;
 				}
 			else if( mod1 == FTN && ( mod2 == ARY || mod2 == FTN ) ){
-				uerror( "function returns illegal type" );
+				uerror("function returns illegal type" );
 				type = 0;
 				}
 			t = DECREF(t);
@@ -1579,14 +1579,14 @@ fixtype( p, class ) register NODE *p; {
 			type += (PTR-ARY);
 			}
 		else if( ISFTN(type) ){
-			werror( "a function is declared as an argument" );
+			werror("a function is declared as an argument" );
 			type = INCREF(type);
 			}
 
 		}
 
 	if( instruct && ISFTN(type) ){
-		uerror( "function illegal in structure or union" );
+		uerror("function illegal in structure or union" );
 		type = INCREF(type);
 		}
 	p->in.type = type;
@@ -1618,7 +1618,7 @@ fixclass( class, type ) TWORD type; {
 	if( ISFTN( type ) ){
 		switch( class ) {
 		default:
-			uerror( "function has illegal storage class" );
+			uerror("function has illegal storage class" );
 		case AUTO:
 			class = EXTERN;
 		case EXTERN:
@@ -1633,26 +1633,26 @@ fixclass( class, type ) TWORD type; {
 		}
 
 	if( class&FIELD ){
-		if( !(instruct&INSTRUCT) ) uerror( "illegal use of field" );
+		if( !(instruct&INSTRUCT) ) uerror("illegal use of field" );
 		return( class );
 		}
 
 	switch( class ){
 
 	case MOU:
-		if( !(instruct&INUNION) ) uerror( "illegal class" );
+		if( !(instruct&INUNION) ) uerror("illegal class" );
 		return( class );
 
 	case MOS:
-		if( !(instruct&INSTRUCT) ) uerror( "illegal class" );
+		if( !(instruct&INSTRUCT) ) uerror("illegal class" );
 		return( class );
 
 	case MOE:
-		if( instruct & (INSTRUCT|INUNION) ) uerror( "illegal class" );
+		if( instruct & (INSTRUCT|INUNION) ) uerror("illegal class" );
 		return( class );
 
 	case REGISTER:
-		if( blevel == 0 ) uerror( "illegal register declaration" );
+		if( blevel == 0 ) uerror("illegal register declaration" );
 		else if( regvar >= MINRVAR && cisreg( type ) ) return( class );
 		if( blevel == 1 ) return( PARAM );
 		else return( AUTO );
@@ -1660,11 +1660,11 @@ fixclass( class, type ) TWORD type; {
 	case AUTO:
 	case LABEL:
 	case ULABEL:
-		if( blevel < 2 ) uerror( "illegal class" );
+		if( blevel < 2 ) uerror("illegal class" );
 		return( class );
 
 	case PARAM:
-		if( blevel != 1 ) uerror( "illegal class" );
+		if( blevel != 1 ) uerror("illegal class" );
 		return( class );
 
 	case UFORTRAN:
@@ -1672,11 +1672,11 @@ fixclass( class, type ) TWORD type; {
 # ifdef NOFORTRAN
 			NOFORTRAN;    /* a condition which can regulate the FORTRAN usage */
 # endif
-		if( !ISFTN(type) ) uerror( "fortran declaration must apply to function" );
+		if( !ISFTN(type) ) uerror("fortran declaration must apply to function" );
 		else {
 			type = DECREF(type);
 			if( ISFTN(type) || ISARY(type) || ISPTR(type) ) {
-				uerror( "fortran function has wrong type" );
+				uerror("fortran function has wrong type" );
 				}
 			}
 	case EXTERN:
@@ -1685,7 +1685,7 @@ fixclass( class, type ) TWORD type; {
 	case TYPEDEF:
 	case USTATIC:
 		if( blevel == 1 ){
-			uerror( "illegal class" );
+			uerror("illegal class" );
 			return( PARAM );
 			}
 	case STNAME:
@@ -1694,7 +1694,7 @@ fixclass( class, type ) TWORD type; {
 		return( class );
 
 	default:
-		cerror( "illegal class: %d", class );
+		cerror("illegal class: %d", class );
 		/* NOTREACHED */
 
 		}
@@ -1797,7 +1797,7 @@ lookup( name, s) char *name; {
 			sp = stab;
 			}
 		else ++sp;
-		if( i == ii ) cerror( "symbol table full" );
+		if( i == ii ) cerror("symbol table full" );
 		}
 	}
 
@@ -1815,16 +1815,16 @@ checkst(lev){
 			if( q->stype == UNDEF ||
 			    q->slevel <= p->slevel ){
 #ifndef FLEXNAMES
-				cerror( "check error: %.8s", q->sname );
+				cerror("check error: %.8s", q->sname );
 #else
-				cerror( "check error: %s", q->sname );
+				cerror("check error: %s", q->sname );
 #endif
 				}
 			}
 #ifndef FLEXNAMES
-		else if( p->slevel > lev ) cerror( "%.8s check at level %d", p->sname, lev );
+		else if( p->slevel > lev ) cerror("%.8s check at level %d", p->sname, lev );
 #else
-		else if( p->slevel > lev ) cerror( "%s check at level %d", p->sname, lev );
+		else if( p->slevel > lev ) cerror("%s check at level %d", p->sname, lev );
 #endif
 		}
 	}
@@ -1867,14 +1867,14 @@ clearst( lev ) register int lev; {
 			q = p->snext;
 			type = p->stype;
 			if( p->stype == TNULL || p->slevel <= lev )
-				cerror( "schain botch" );
+				cerror("schain botch" );
 			lineno = p->suse < 0 ? -p->suse : p->suse;
 			if( p->stype==UNDEF || ( p->sclass==ULABEL && lev<2 ) ){
 				lineno = temp;
 #ifndef FLEXNAMES
-				uerror( "%.8s undefined", p->sname );
+				uerror("%.8s undefined", p->sname );
 #else
-				uerror( "%s undefined", p->sname );
+				uerror("%s undefined", p->sname );
 #endif
 				}
 			else aocode(p);
@@ -1930,16 +1930,16 @@ hide( p ) register struct symtab *p; {
 	register struct symtab *q;
 	for( q=p+1; ; ++q ){
 		if( q >= &stab[SYMTSZ] ) q = stab;
-		if( q == p ) cerror( "symbol table full" );
+		if( q == p ) cerror("symbol table full" );
 		if( q->stype == TNULL ) break;
 		}
 	*q = *p;
 	p->sflags |= SHIDDEN;
 	q->sflags = (p->sflags&(SMOS|STAG)) | SHIDES;
 #ifndef FLEXNAMES
-	if( hflag ) werror( "%.8s redefinition hides earlier one", p->sname );
+	if( hflag ) werror("%.8s redefinition hides earlier one", p->sname );
 #else
-	if( hflag ) werror( "%s redefinition hides earlier one", p->sname );
+	if( hflag ) werror("%s redefinition hides earlier one", p->sname );
 #endif
 # ifndef BUG1
 	if( ddebug ) printf( "	%d hidden in %d\n", p-stab, q-stab );
@@ -1977,5 +1977,5 @@ unhide( p ) register struct symtab *p; {
 			}
 
 		}
-	cerror( "unhide fails" );
+	cerror("unhide fails" );
 	}

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)match.c	4.4 (Berkeley) 8/22/85";
+static char *sccsid ="@(#)match.c	4.4.1 (2.11BSD GTE) 1/17/95";
 #endif lint
 
 # include "pass2.h"
@@ -229,7 +229,7 @@ setrew(){
 			goto more;
 			}
 		}
-	cerror( "bad setrew" );
+	cerror("bad setrew" );
 
 
 	more:
@@ -438,7 +438,7 @@ getlr( p, c ) NODE *p; {
 		return( optype( p->in.op ) != BITYPE ? p : p->in.right );
 
 		}
-	cerror( "bad getlr: %c", c );
+	cerror("bad getlr: %c", c );
 	/* NOTREACHED */
 	}
 # ifdef MULTILEVEL

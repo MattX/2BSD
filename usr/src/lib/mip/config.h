@@ -1,4 +1,4 @@
-/*	config.h	4.3	85/08/22	*/
+/*	config.h	4.3.1	95/01/17	*/
 
 #ifndef _CONFIG_
 #define	_CONFIG_
@@ -21,13 +21,13 @@
  * Table sizes.
  */
 #ifndef	FORT
-#define	TREESZ		300
+#define	TREESZ		270
 #else
 #define TREESZ		1000		/* parse tree table size */
 #endif
 #define BCSZ		100		/* break/continue table size */
-#define SYMTSZ		800		/* symbol table size */
-#define DIMTABSZ 	990		/* dimension/size table size */
+#define SYMTSZ		925		/* symbol table size */
+#define DIMTABSZ 	1050		/* dimension/size table size */
 #define PARAMSZ		130		/* parameter stack size */
 #define SWITSZ		210		/* switch table size */
 #define	DELAYS		20		/* delayed evaluation table size */

@@ -1,32 +1,53 @@
 #
-#	@(#)Makefile	1.13	(Berkeley)	3/29/86
+#	@(#)Makefile	1.14	(2.11BSD GTE)	1/17/95
 #
 M=/usr/src/lib/mip
 P=/usr/src/lib/pcc
-VPATH=	$M
+
 XSTR=	/usr/ucb/xstr
+MKSTR=	/usr/ucb/mkstr
 
 # turn off the debugging to save string space
-CFLAGS=-O -I$M -I. -DBUG1 -DBUG2 -DBUG3 -DBUG4
+STRINGS=\"/usr/lib/lint/lintstrings\"
+CFLAGS=-O -I$M -I. -DBUG1 -DBUG2 -DBUG3 -DBUG4 -DSTRINGFILE=${STRINGS}
 LFLAGS=-i
-SRCS=	$M/cgram.y $M/common.c $M/optim.c $M/pftn.c $M/scan.c $M/trees.c \
-	$M/xdefs.c lint.c hash.c $M/pass1.h $M/manifest.h macdefs.h \
+
+SRCS=	cgram.y common.c optim.c pftn.c scan.c trees.c \
+	xdefs.c lint.c hash.c pass1.h manifest.h macdefs.h \
 	lpass2.c
 
 .c.o:
-	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
+	${MKSTR} - lintstrings XX $*.c
+	${CC} -E ${CFLAGS} XX$*.c | ${XSTR} -c -
 	${CC} -c ${CFLAGS} x.c
 	mv -f x.o $*.o
-	rm -f x.c
+	rm -f x.c XX$*.c
 
-all:	lpass1 lpass2
+all:	links lpass1 lpass2
+
+# Have to do this so that 'mkstr' can prepend a string to the filenames.
+# If the VPATH capability is used the file names come out looking like
+# "XX/usr/src/lib/mip/optim.c" which, obviously, does not work.
+
+links:
+	rm -f cgram.y common.c optim.c pftn.c scan.c trees.c pass1.h
+	rm -f manifest.h xdefs.c comm1.c
+	ln -s $M/cgram.y cgram.y
+	ln -s $M/common.c common.c
+	ln -s $M/optim.c optim.c
+	ln -s $M/pftn.c pftn.c
+	ln -s $M/scan.c scan.c
+	ln -s $M/trees.c trees.c
+	ln -s $M/xdefs.c xdefs.c
+	ln -s $M/pass1.h pass1.h
+	ln -s $M/manifest.h manifest.h
 
 lpass1: cgram.o comm1.o optim.o pftn.o scan.o trees.o xdefs.o \
 	lint.o hash.o strings.o
 	${CC} ${LFLAGS} ${CFLAGS} cgram.o comm1.o optim.o pftn.o \
 		scan.o trees.o xdefs.o lint.o hash.o strings.o -o lpass1
 
-cgram.o: $M/manifest.h $M/pass1.h pcclocal.h macdefs.h cgram.c
+cgram.o: manifest.h pass1.h pcclocal.h macdefs.h cgram.c
 
 strings.o: strings
 	${XSTR}
@@ -34,26 +55,27 @@ strings.o: strings
 	mv -f xs.o strings.o
 	rm -f xs.c
 
-comm1.o: $M/manifest.h $M/pass1.h pcclocal.h $M/common.c macdefs.h
-	ln $M/common.c comm1.c
-	${CC} -E ${CFLAGS} -DPASS1COMMON comm1.c | ${XSTR} -c -
+comm1.o: manifest.h pass1.h pcclocal.h common.c macdefs.h
+	rm -f comm1.c
+	ln common.c comm1.c
+	${MKSTR} - lintstrings XX comm1.c
+	${CC} -E ${CFLAGS} -DPASS1COMMON XXcomm1.c | ${XSTR} -c -
 	${CC} -c ${CFLAGS} -DPASS1COMMON x.c
 	mv -f x.o comm1.o
-	rm -f x.c
-	rm -f comm1.c
+	rm -f x.c comm1.c XXcomm1.c
 
-optim.o: $M/manifest.h macdefs.h $M/pass1.h pcclocal.h $M/optim.c
+optim.o: manifest.h macdefs.h pass1.h pcclocal.h optim.c
 
-pftn.o: $M/manifest.h macdefs.h $M/pass1.h pcclocal.h $M/pftn.c
+pftn.o: manifest.h macdefs.h pass1.h pcclocal.h pftn.c
 
-scan.o: $M/manifest.h macdefs.h $M/pass1.h pcclocal.h $M/scan.c
+scan.o: manifest.h macdefs.h pass1.h pcclocal.h scan.c
 
-trees.o: $M/manifest.h macdefs.h $M/pass1.h pcclocal.h $M/trees.c
+trees.o: manifest.h macdefs.h pass1.h pcclocal.h trees.c
 
-xdefs.o: $M/manifest.h $M/pass1.h pcclocal.h macdefs.h $M/xdefs.c
+xdefs.o: manifest.h pass1.h pcclocal.h macdefs.h xdefs.c
 
-cgram.c: $M/cgram.y pcctokens
-	cat pcctokens $M/cgram.y > gram.in
+cgram.c: cgram.y pcctokens
+	cat pcctokens cgram.y > gram.in
 	$(YACC) gram.in
 	fgrep -v "static char yaccpar_sccsid" y.tab.c >cgram.c
 	rm -f y.tab.c
@@ -68,35 +90,36 @@ pcctokens: $P/localdefs.h /usr/include/pcc.h
 	rm -f pcctokens
 	cat /usr/include/pcc.h $P/localdefs.h | $(GREP) '^#[ 	]*define[ 	][ 	]*PCC_' | sed -e 's/^#[ 	]*define[ 	][ 	]*PCC_/%term	/' > pcctokens
 
-lint.o: $M/manifest.h macdefs.h $M/pass1.h lmanifest.h
+lint.o: manifest.h macdefs.h pass1.h lmanifest.h
 
 lpass2: lpass2.o hash.o
 	${CC} ${LFLAGS} ${CFLAGS} lpass2.o hash.o -o lpass2
 
-lpass2.o: $M/manifest.h lmanifest.h pcclocal.h macdefs.h
+lpass2.o: manifest.h lmanifest.h pcclocal.h macdefs.h
 	${CC} ${CFLAGS} -c -I$M -I. lpass2.c
 
 hash.o: hash.c
 	${CC} ${CFLAGS} -c -I$M -I. hash.c
 
 lintall:
-	lint -hpav -I. -I$M  -DPASS1COMMON cgram.c $M/xdefs.c $M/scan.c \
-		$M/common.c $M/pftn.c $M/trees.c $M/optim.c hash.c lint.c
+	lint -hpav -I. -I$M  -DPASS1COMMON cgram.c xdefs.c scan.c \
+		common.c pftn.c trees.c optim.c hash.c lint.c
 
 install: all SHELL
-	install -s lpass1 ${DESTDIR}/usr/lib/lint/lint1
-	install -s lpass2 ${DESTDIR}/usr/lib/lint/lint2
+	install -c -m 755 -s lpass1 ${DESTDIR}/usr/lib/lint/lint1
+	install -c -m 755 -s lpass2 ${DESTDIR}/usr/lib/lint/lint2
+	install -c -m 444 lintstrings ${DESTDIR}/usr/lib/lint/lintstrings
 	./libs
 	-rm -f ${DESTDIR}/usr/lib/lint/llib-ltermlib*
 	ln -s llib-ltermcap ${DESTDIR}/usr/lib/lint/llib-ltermlib
 	ln -s llib-ltermcap.ln ${DESTDIR}/usr/lib/lint/llib-ltermlib.ln
 	install -c SHELL ${DESTDIR}/usr/bin/lint
 
-shrink:
-	rm -f *.o errs pcctokens pcclocal.h x.c xs.c strings
-
-clean: shrink
-	rm -f lpass1 lpass2 cgram.c gram.in tags
+clean:
+	rm -f *.o errs pcctokens pcclocal.h x.c xs.c strings lintstrings
+	rm -f lpass1 lpass2 cgram.c gram.in tags yacc.* y.tab.c XX*
+	rm -f cgram.y common.c optim.c pftn.c scan.c trees.c pass1.h
+	rm -f manifest.h xdefs.c comm1.c
 
 tags:	${SRCS}
 	ctags -w ${SRCS}
