@@ -287,7 +287,7 @@ raopen(dev, flag)
 
 	/* Open device */
 	if (sc->sc_state != S_RUN) {
-		s = spl5();
+		s = splbio();
 
 		/* initialize controller if idle */
 		if (sc->sc_state == S_IDLE) {
@@ -313,7 +313,7 @@ raopen(dev, flag)
 	 */
 	if ((disk = sc->sc_drives[unit]) == NULL) {
 		PRINTD(("raopen: opening new disk %d\n", unit));
-		s = spl5();
+		s = splbio();
 		while ((mp = ragetcp(sc)) == 0) {
 			++sc->sc_cp_wait;
 			sleep(&sc->sc_cp_wait, PSWP+1);
@@ -344,7 +344,7 @@ raopen(dev, flag)
 	/* Did it go online? */
 	if (disk->ra_dsize == -1L) {
 		PRINTD(("raopen: disk didn't go online\n"));
-		s = spl5();
+		s = splbio();
 		disk->ra_dsize = 0L;
 		sc->sc_drives[unit] = NULL;
 		splx(s);
@@ -375,8 +375,9 @@ rainit(sc)
 	 * Get physical address of RINGBASE
 	 */
 	if (racomphys.b_flags == 0) {
-		racomphys.b_un.b_addr = (caddr_t)loint(raphys((u_int)ra_com));
-		racomphys.b_xmem = hiint(raphys((u_int)ra_com));
+		long rap = raphys((u_int)ra_com);
+		racomphys.b_un.b_addr = (caddr_t)loint(rap);
+		racomphys.b_xmem = hiint(rap);
 		racomphys.b_bcount = sizeof(ra_com);
 		racomphys.b_flags = B_PHYS;
 #ifdef UNIBUS_MAP
@@ -461,7 +462,7 @@ rastrategy(bp)
 	/*
 	 * Link the buffer onto the drive queue
 	 */
-	s = spl5();
+	s = splbio();
 	dp = &disk->ra_dtab;
 	if (dp->b_actf == 0)
 		dp->b_actf = bp;
@@ -539,7 +540,7 @@ rawrite(dev)
 	return(physio(rastrategy, &disk->ra_rtab, dev, B_WRITE, WORD));
 }
 
-/* Start i/o, must be called at level spl5 */
+/* Start i/o, must be called at level splbio */
 rastart(sc)
 	register ra_softcT		*sc;
 {
@@ -812,7 +813,7 @@ ragetcp(sc)
 	register int 		i;
 	int			s;
 
-	s = spl5();
+	s = splbio();
 	i = sc->sc_lastcmd;
 	if ((sc->sc_com->ra_ca.ca_cmd[i].hsh & (RA_OWN|RA_INT)) == RA_INT
 	    && sc->sc_credits >= 2) {
@@ -1156,8 +1157,9 @@ radump(dev)
 		return(EINVAL);
 
 	/* Init RA controller */
-	racomphys.b_un.b_addr = (caddr_t)loint(raphys((u_int)ra_com));
-	racomphys.b_xmem = hiint(raphys((u_int)ra_com));
+	paddr = raphys((u_int)ra_com);
+	racomphys.b_un.b_addr = (caddr_t)loint(paddr);
+	racomphys.b_xmem = hiint(paddr);
 #ifdef	UNIBUS_MAP
 	if (ubmap) {
 		ubp = UBMAP;

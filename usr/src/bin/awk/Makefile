@@ -43,7 +43,7 @@ lint:
 		egrep -v '^(error|free|malloc)'
 
 proctab.c:	proc
-	proc >proctab.c
+	./proc >proctab.c
 
 proc:	awk.h proc.o token.o
 	cc -o proc proc.o token.o

@@ -39,6 +39,8 @@ struct	tmdevice	{
 #define	TM_CUR		0000200		/* control unit is ready */
 #define	TM_DCLR		0010000		/* drive clear */
 #define	TM_D800		0060000		/* select 800 bpi density */
+#define	TM_D1600	0000000		/* 1600 bpi (AVIV only) */
+#define	TM_D6250	0020000		/* 6250 bpi (AVIV only) */
 #define	TM_ERR		0100000		/* drive error summary */
 
 /* bits in tmer */

@@ -1,12 +1,19 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)spp_debug.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)spp_debug.c	7.4 (Berkeley) 3/12/88
  */
 
 #include "param.h"
+#ifdef	NS
 #include "systm.h"
 #include "mbuf.h"
 #include "socket.h"
@@ -17,7 +24,6 @@
 #include "../net/route.h"
 #include "../net/if.h"
 #include "../netinet/tcp_fsm.h"
-#include "../netinet/tcp_timer.h"
 
 #include "ns.h"
 #include "ns_pcb.h"
@@ -25,6 +31,8 @@
 #include "idp_var.h"
 #include "sp.h"
 #include "spidp.h"
+#define SPPTIMERS
+#include "spp_timer.h"
 #include "spp_var.h"
 #define	SANAMES
 #include "spp_debug.h"
@@ -48,7 +56,7 @@ spp_trace(act, ostate, sp, si, req)
 	extern char *prurequests[];
 	extern char *sanames[];
 	extern char *tcpstates[];
-	extern char *tcptimers[];
+	extern char *spptimers[];
 
 	if (spp_debx == SPP_NDEBUG)
 		spp_debx = 0;
@@ -123,7 +131,7 @@ spp_trace(act, ostate, sp, si, req)
 	case SA_USER:
 		printf("%s", prurequests[req&0xff]);
 		if ((req & 0xff) == PRU_SLOWTIMO)
-			printf("<%s>", tcptimers[req>>8]);
+			printf("<%s>", spptimers[req>>8]);
 		break;
 	}
 	if (sp)
@@ -134,7 +142,8 @@ spp_trace(act, ostate, sp, si, req)
 		return;
 #ifndef lint
 #define p3(f)  { printf("%s = %x, ", "f", sp->s_/**/f); }
-	printf("\t"); p3(rack);p3(ralo);p3(snt);p3(flags); printf("\n");
+	printf("\t"); p3(rack);p3(ralo);p3(smax);p3(flags); printf("\n");
 #endif
 #endif
 }
+#endif

@@ -1,8 +1,10 @@
 /*
  *                     RCS checkin operation
  */
+#ifndef lint
  static char rcsid[]=
- "$Header: /usr/wft/RCS/SRC/RCS/ci.c,v 3.9 83/02/15 15:25:44 wft Exp $ Purdue CS";
+ "$Header: /usr/src/local/bin/rcs/src/RCS/ci.c,v 4.6 87/12/18 11:34:41 narten Exp $ Purdue CS";
+#endif
 /*******************************************************************
  *                       check revisions into RCS files
  *******************************************************************
@@ -21,9 +23,50 @@
 
 
 /* $Log:	ci.c,v $
+ * Revision 4.6  87/12/18  11:34:41  narten
+ * lint cleanups (from Guy Harris)
+ * 
+ * Revision 4.5  87/10/18  10:18:48  narten
+ * Updating version numbers. Changes relative to revision 1.1 are actually
+ * relative to 4.3
+ * 
+ * Revision 1.3  87/09/24  13:57:19  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:21:33  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:49:54  kcs
+ * Initial revision
+ * 
+ * Revision 4.3  83/12/15  12:28:54  wft
+ * ci -u and ci -l now set mode of working file properly.
+ * 
+ * Revision 4.2  83/12/05  13:40:54  wft
+ * Merged with 3.9.1.1: added calls to clearerr(stdin).
+ * made rewriteflag external.
+ * 
+ * Revision 4.1  83/05/10  17:03:06  wft
+ * Added option -d and -w, and updated assingment of date, etc. to new delta.
+ * Added handling of default branches.
+ * Option -k generates std. log message; fixed undef. pointer in reading of log.
+ * Replaced getlock() with findlock(), link--unlink with rename(),
+ * getpwuid() with getcaller().
+ * Moved all revision number generation to new routine addelta().
+ * Removed calls to stat(); now done by pairfilenames().
+ * Changed most calls to catchints() with restoreints().
+ * Directed all interactive messages to stderr.
+ * 
+ * Revision 3.9.1.1  83/10/19  04:21:03  lepreau
+ * Added clearerr(stdin) to getlogmsg() for re-reading stdin.
+ * 
+ * Revision 3.9  83/02/15  15:25:44  wft
+ * 4.2 prerelease
+ * 
  * Revision 3.9  83/02/15  15:25:44  wft
  * Added call to fastcopy() to copy remainder of RCS file.
- * 
+ *
  * Revision 3.8  83/01/14  15:34:05  wft
  * Added ignoring of interrupts while new RCS file is renamed;
  * Avoids deletion of RCS files by interrupts.
@@ -65,25 +108,32 @@
  */
 
 #include "rcsbase.h"
+#ifndef lint
 static char rcsbaseid[] = RCSBASE;
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
+#include "time.h"
 
 extern int    rename();                /*rename files                       */
-extern struct passwd *getpwuid();
+extern char * getcaller();             /*login of caller                    */
 extern struct hshentry * genrevs();    /*generate delta numbers             */
 extern int  nextc;                     /*next input character               */
 extern quietflag;                      /*suppresses diagnostics if true     */
 extern int  nerror;                    /*counter for errors                 */
-extern char * buildrevision();         /* constructs desired revision       */
+extern char * buildrevision();         /*constructs desired revision        */
 extern char * checkid();               /*check identifiers                  */
+extern int    partime();               /*parse free-format date/time        */
+extern long   maketime();              /*convert parsed time to unix time.  */
+extern long   time();                  /*get date and time                  */
+extern struct tm * localtime();        /*convert unixtime into tm-structure */
 extern char * getdate();               /*formates current date  (forward)   */
 extern char * mktempfile();            /*temporary file name generator      */
 extern struct lock * addlock();        /*adds a new lock                    */
-extern char * getlogmsg();             /* obtains log message; forward      */
+extern char * getlogmsg();             /*obtains log message; forward       */
 extern struct hshentry * removelock(); /*finds a caller's lock  (forward)   */
-extern char * xpandfile();             /* perform keyword expansion; forward*/
+extern struct hshentry * findlock();   /*finds a lock                       */
+extern char * xpandfile();             /*perform keyword expansion; forward */
 
 extern char prevauthor[];
 extern char prevdate[];
@@ -91,12 +141,15 @@ extern char prevrev[];
 extern char prevstate [];
 extern FILE * finptr;                  /* RCS input file                    */
 extern FILE * frewrite;                /* new RCS file                      */
+extern int    rewriteflag;             /* indicates whether input should be */
+				       /* echoed to frewrite                */
 
-char * RCSfilename,*workfilename,*expfilename,*newworkfilename;
 char * newRCSfilename, * diffilename;
+char * RCSfilename,*workfilename,*expfilename,*newworkfilename;
+extern struct stat RCSstat, workstat; /* file status of RCS and work file   */
+extern int  haveRCSstat, haveworkstat;/* status indicators                  */
 
 
-int    rewriteflag; /* indicates whether input should be echoed to frewrite */
 int    copyflag;    /* indicates whether a string should be copied into memory*/
 
 char * rev, * state, *msg;
@@ -107,6 +160,8 @@ int forceciflag;                      /* forces check in                    */
 int symrebindflag; char * symbol;
 int textflag; char * textfile;
 char * caller;                        /* caller's login;                    */
+char * author;                        /* alternate author for -w option     */
+char altdate[datelength];             /* alternate date for -d              */
 struct hshentry * targetdelta;        /* old delta to be generated          */
 char   * olddeltanum;                 /* number of old delta                */
 struct hshentry * gendeltas[hshsize]; /* stores deltas to be generated      */
@@ -121,22 +176,23 @@ main (argc, argv)
 int argc;
 char * argv[];
 {
-        register int i;
-        register char * sp, *tp;
+	char * nametest;
         char * cmdusage;         /* holds command format                    */
         char command[NCPPN+50];  /* holds diff commands                     */
-        char curdate[datelength];/* date for new delta                      */
-        struct stat filestatus;  /* used for getting the mode               */
         int  msglen;             /* length of message given by -m           */
         int exit_stats;          /* return code for system() calls          */
+	int newRCSmode;          /* mode for RCS file                       */
+	long unixtime;
+	struct tm  parseddate, *ftm;
 
 	catchints();
         cmdid = "ci";
         cmdusage = "command format:\nci -r[rev] -l[rev] -u[rev] -f[rev] -k[rev] -q[rev] -mmsg -nname -Nname -sstate -t[txtfile] file ...";
-        rev = state = msg = symbol = textfile = caller = nil;
+	rev = state = msg = symbol = textfile = nil;
         initflag= rcsinitflag= symrebindflag= textflag= quietflag= false;
         forceciflag= lockflag= keepworkingfile= keepflag= false;
-        caller=getpwuid(getuid())->pw_name;
+	caller = getcaller(); author = nil; /* author may be reset by -w */
+	altdate[0]= '\0'; /* empty alternate date for -d */
 
         while (--argc,++argv, argc>=1 && ((*argv)[0] == '-')) {
                 switch ((*argv)[1]) {
@@ -182,7 +238,7 @@ char * argv[];
                                 }
                                 if (msg[msglen-1]!='\n') {
                                    /*append linefeed*/
-                                   strcpy(logmsg,msg);msg=logmsg;
+                                   VOID strcpy(logmsg,msg);msg=logmsg;
                                    msg[msglen]  = '\n';
                                    msg[++msglen]= '\0';
                                 }
@@ -194,7 +250,8 @@ char * argv[];
                         if ((*argv)[2]!='\0'){
                                 if (symbol!=nil)warn("Redefinition of symbolic name");
                                 symbol = (*argv)+2;
-                                checkid(symbol,' ');
+				if (!(nametest=checkid(symbol,' '))||*nametest)
+					faterror("Name %s must be one word",symbol);
                         } else warn("Missing name for -n option");
                         break;
 
@@ -203,7 +260,8 @@ char * argv[];
                         if ((*argv)[2]!='\0'){
                                 if (symbol!=nil)warn("Redefinition of symbolic name");
                                 symbol = (*argv)+2;
-                                checkid(symbol,' ');
+				if (!(nametest=checkid(symbol,' '))||*nametest)
+					faterror("Name %s must be one word",symbol);
                         } else warn("Missing name for -N option");
                         break;
 
@@ -211,7 +269,7 @@ char * argv[];
                         if ((*argv)[2]!='\0'){
                                 if (state!=nil)warn("Redefinition of -s option");
                                 state = (*argv)+2;
-                                checkid(state,' ');
+                                VOID checkid(state,' ');
                         } else warn("Missing state for -s option");
                         break;
 
@@ -222,6 +280,35 @@ char * argv[];
                                 textfile = (*argv)+2;
                         }
                         break;
+
+		case 'd':
+                        if ((*argv)[2]!='\0'){
+				if (altdate[0]!='\0')warn("Redefinition of -d option");
+				/* process the date */
+				if ( partime((*argv)+2, &parseddate) == 0) {
+				    faterror("Can't parse date/time: %s", (*argv)+2);
+				    break;
+				}
+				if ( (unixtime = maketime(&parseddate)) == 0L) {
+				    faterror("Inconsistent date/time: %s",(*argv)+2);
+				    break;
+				}
+				ftm = localtime(&unixtime);
+				VOID sprintf(altdate,DATEFORM,
+				ftm->tm_year,ftm->tm_mon+1,ftm->tm_mday,ftm->tm_hour,ftm->tm_min,ftm->tm_sec);
+			} else  warn("Missing date for -d option");
+                        break;
+
+		case 'w':
+                        if ((*argv)[2]!='\0'){
+				if (author!=nil)warn("Redefinition of -w option");
+				author = (*argv)+2;
+				VOID checkid(author,' ');
+			} else warn("Missing author for -w option");
+                        break;
+
+
+
 
                 default:
                         faterror("unknown option: %s\n%s", *argv,cmdusage);
@@ -259,6 +346,7 @@ char * argv[];
          * workfilename contains the name of the working file.
          * if !initflag, finptr contains the file descriptor for the
          * RCS file. The admin node is initialized.
+         * workstat and RCSstat are set.
          */
 
         diagnose("%s  <--  %s", RCSfilename,workfilename);
@@ -268,11 +356,6 @@ char * argv[];
                        workfilename);
                 continue;
         }
-
-        if (initflag || rcsinitflag) /* get mode for RCSfile from workfile*/
-            stat(workfilename, &filestatus);
-        else /* otherwise keep the one from the RCS file.*/
-            fstat(fileno(finptr), &filestatus);
 
         if (!trydiraccess(RCSfilename)) continue; /* give up */
         if (!initflag && !checkaccesslist(caller))   continue; /* give up */
@@ -285,13 +368,11 @@ char * argv[];
                         error("Can't find a revision number in %s",workfilename);
                         continue;
                 }
-                if (*prevdate=='\0') {
-                        error("Can't find a date in %s",workfilename);
-                        continue;
-                }
-                if (*prevauthor=='\0')
+		if (*prevdate=='\0' && *altdate=='\0')
+			warn("Can't find a date in %s",workfilename);
+		if (*prevauthor=='\0' && author==nil)
                         warn("Can't find an author in %s", workfilename);
-                if (*prevstate=='\0')
+		if (*prevstate=='\0' && state==nil)
                         warn("Can't find a state in %s", workfilename);
         } /* end processing keepflag */
 
@@ -299,79 +380,10 @@ char * argv[];
 
         /* expand symbolic revision number */
         if (!expandsym(rev,newdelnum)) continue;
-        newdnumlength=countnumflds(newdelnum);
 
-        if (initflag || rcsinitflag ) {
-                /* this covers non-existing RCS file and a file initialized with rcs -i */
-                if (newdnumlength==0) strcpy(newdelnum,"1.1");
-                elsif (newdnumlength==1) strcat(newdelnum,".1");
-                elsif (newdnumlength>2) {
-                        error("Branch point does not exist for %s",
-                        newdelnum);
-                        continue;
-                } /* newdnumlength == 2 is OK;  */
-                olddeltanum=nil;
-                Head = &newdelta;
-                newdelta.next=nil;
-        } elsif (newdnumlength==0) {
-                /* derive new revision number from locks */
-                if(!(targetdelta=removelock(caller,nil))) continue;
-                olddeltanum=targetdelta->num;
-                if (!genrevs(olddeltanum,nil,nil,nil,gendeltas)) continue;
+        /* splice new delta into tree */
+        if (!addelta()) continue;
 
-                if (targetdelta==Head) {
-                        /* make new head */
-                        newdelta.next=Head;
-                        Head= &newdelta;
-                        incnum(olddeltanum, newdelnum);
-                } elsif ((targetdelta->next==nil)&&(countnumflds(olddeltanum)>2)) {
-                        /* new tip revision on side branch */
-                        targetdelta->next= &newdelta;
-                        newdelta.next = nil;
-                        incnum(olddeltanum, newdelnum);
-                } else {
-                        /* middle revision; start a new branch */
-                        newdelnum[0]='\0';
-                        if (!addbranch(targetdelta,newdelnum)) continue;
-                }
-
-        } elsif (newdnumlength<=2) {
-                /* add new head per given number */
-                /* put new revision on trunk */
-                olddeltanum=Head->num;
-                if(newdnumlength==1) {
-                        /* make a two-field number out of it*/
-                        if (cmpnumfld(newdelnum,olddeltanum,1)==0)
-                                incnum(olddeltanum,newdelnum);
-                        else    strcat(newdelnum, ".1");
-                }
-                if (cmpnum(newdelnum,olddeltanum) <= 0) {
-                        error("deltanumber %s too low; must be higher than %s",
-                              newdelnum,Head->num);
-                        continue;
-                }
-                if (!(targetdelta=removelock(caller,Head))) continue;
-                if (!(genrevs(olddeltanum,nil,nil,nil,gendeltas))) continue;
-                newdelta.next=Head;
-                Head= &newdelta;
-
-        } else {
-                /* put new revision on side branch */
-                /*first, get branch point */
-                tp=branchpointnum; sp=newdelnum;
-                for(i=newdnumlength-(newdnumlength%2==1?1:2);i>0;i--) {
-                        while (*sp != '.') *tp++ = *sp++; /*copy field*/
-                        *tp++ = *sp++;                    /*copy dot  */
-                }
-                *(tp-1) = '\0'; /* kill final dot */
-                olddeltanum=branchpointnum; /*temporary old delta*/
-                if (!(targetdelta=genrevs(branchpointnum,nil,nil,nil,gendeltas))) continue;
-                if (cmpnum(targetdelta->num,branchpointnum)!=0) {
-                        error("Cannot find branchpoint %s",branchpointnum);
-                        continue;
-                }
-                if (!addbranch(targetdelta,newdelnum)) continue;
-        }
         if (initflag||rcsinitflag) {
                 diagnose("initial revision: %s",newdelnum);
         } else  diagnose("new revision: %s; previous revision: %s",
@@ -381,21 +393,32 @@ char * argv[];
         newdelta.branches=nil;
         newdelta.log=nil;
         newdelta.lockedby=nil; /*might be changed by addlock() */
-        if (!keepflag) {
-                newdelta.author=caller;
-                newdelta.state =state==nil?DEFAULTSTATE:state;
-                newdelta.date  =getdate(curdate);
-        } else {
-                newdelta.author=(*prevauthor=='\0')?caller:prevauthor;
-                newdelta.state =(*prevstate =='\0')?DEFAULTSTATE:prevstate;
+	/* set author */
+	if (author!=nil)
+		newdelta.author=author;     /* set author given by -w         */
+	elsif (keepflag && *prevauthor!='\0')
+		newdelta.author=prevauthor; /* preserve old author of possible*/
+	else    newdelta.author=caller;     /* otherwise use caller's id      */
+	if (state!=nil)
+		newdelta.state=state;       /* set state given by -s          */
+	elsif (keepflag && *prevstate!='\0')
+		newdelta.state=prevstate;   /* preserve old state if possilbe */
+	else    newdelta.state=DEFAULTSTATE;/* otherwise use default state    */
+	if (*altdate!='\0')
+		newdelta.date=altdate;      /* set date given by -d           */
+	elsif (keepflag && *prevdate!='\0') /* preserve old date if possible  */
                 newdelta.date  =prevdate;
-                if (newdelta.next!=nil &&
-                    cmpnum(prevdate,newdelta.next->date)<=0) {
-                        error("Date in %s is older than existing revision %s",
-                               workfilename,newdelta.next->num);
-                        continue;
-                }
-        }
+	else
+		newdelta.date = getdate();  /* use current date               */
+	/* now check validity of date -- needed because of -d and -k          */
+	if (targetdelta!=nil &&
+	    cmpnum(newdelta.date,targetdelta->date)<=0) {
+		error("Date %s is not later than %s in existing revision %s",
+		       newdelta.date,targetdelta->date, targetdelta->num);
+		continue;
+	}
+
+
         if (lockflag && !addlock(&newdelta,caller)) continue;
         if (symbol && !addsymbol(&newdelta,symbol,symrebindflag)) continue;
 
@@ -407,7 +430,7 @@ char * argv[];
         }
         putadmin(frewrite);
         puttree(Head,frewrite);
-        putdesc(initflag,textflag,textfile,quietflag);
+        VOID putdesc(initflag,textflag,textfile,quietflag);
 
 
         /* build rest of file */
@@ -426,7 +449,7 @@ char * argv[];
                         if (!mustcheckin(expfilename,targetdelta)) continue;
                                 /* don't check in files that aren't different, unless forced*/
                         newdelta.log=getlogmsg();
-                        sprintf(command,"%s -n %s %s > %s\n", DIFF,
+                        VOID sprintf(command,"%s -n %s %s > %s\n", DIFF,
                                 workfilename,expfilename,diffilename);
                         exit_stats = system (command);
                         if (exit_stats != 0 && exit_stats != (1 << BYTESIZ))
@@ -442,7 +465,7 @@ char * argv[];
                         if (!mustcheckin(expfilename,targetdelta)) continue;
                                 /* don't check in files that aren't different, unless forced*/
                         newdelta.log=getlogmsg();
-                        sprintf(command,"%s -n %s %s > %s\n", DIFF,
+                        VOID sprintf(command,"%s -n %s %s > %s\n", DIFF,
                                 expfilename,workfilename,diffilename);
                         exit_stats = system (command);
                         if (exit_stats != 0 && exit_stats != (1 << BYTESIZ))
@@ -459,36 +482,39 @@ char * argv[];
                 error("Can't write new RCS file %s; saved in %s",
                       RCSfilename,newRCSfilename);
                 newRCSfilename[0]='\0'; /* avoid deletion by cleanup*/
-		catchints();
-                cleanup();
+                restoreints();
+                VOID cleanup();
                 break;
         }
         newRCSfilename[0]='\0'; /* avoid re-unlinking by cleanup()*/
-        if (chmod(RCSfilename,filestatus.st_mode & ~0222)<0)
+
+	newRCSmode= (initflag|rcsinitflag?workstat.st_mode:RCSstat.st_mode)& ~0222;
+	/* newRCSmode is also used to adjust mode of working file for -u and -l */
+	if (chmod(RCSfilename,newRCSmode)<0)
                 warn("Can't set mode of %s",RCSfilename);
 
-	catchints();
+        restoreints();
 #       ifdef SNOOPFILE
         logcommand("ci",&newdelta,gendeltas,caller);
 #       endif
 
         if (!keepworkingfile) {
-                unlink(workfilename); /* get rid of old file */
+                VOID unlink(workfilename); /* get rid of old file */
         } else {
                 /* expand keywords in file */
                 newworkfilename=
                 xpandfile(workfilename,workfilename /*for directory*/,&newdelta);
                 if (!newworkfilename) continue; /* expand failed */
 		ignoreints();
-                unlink(workfilename);
-                if (link(newworkfilename,workfilename)<0) {
+		if (rename(newworkfilename,workfilename) <0) {
                     error("Can't expand keywords in %s",workfilename);
-		    catchints();
+                    restoreints();
                     continue;
                 }
-                if (chmod(workfilename, WORKMODE(filestatus.st_mode))<0)
+		newworkfilename[0]='\0'; /* avoid re-unlink by cleanup */
+		if (chmod(workfilename, WORKMODE(newRCSmode))<0)
                     warn("Can't adjust mode of %s",workfilename);
-		catchints();
+                restoreints();
         }
         diagnose("done");
 
@@ -496,9 +522,120 @@ char * argv[];
                  ++argv, --argc >=1);
 
         exit(nerror!=0);
+	/*NOTREACHED*/
 }       /* end of main (ci) */
 /*****************************************************************/
 /* the rest are auxiliary routines                               */
+
+
+int addelta()
+/* Function: Appends a delta to the delta tree, whose number is
+ * given by newdelnum[]. Updates Head, newdelnum, newdenumlength,
+ * olddeltanum and the links in newdelta.
+ * Retruns false on error, true on success.
+ */
+{
+        register char * sp, * tp;
+        register int i;
+
+        newdnumlength=countnumflds(newdelnum);
+
+        if (initflag || rcsinitflag ) {
+                /* this covers non-existing RCS file and a file initialized with rcs -i */
+		if ((newdnumlength==0)&&(Dbranch!=nil)) {
+			VOID strcpy(newdelnum,Dbranch->num);
+			newdnumlength=countnumflds(newdelnum);
+		}
+                if (newdnumlength==0) VOID strcpy(newdelnum,"1.1");
+                elsif (newdnumlength==1) VOID strcat(newdelnum,".1");
+                elsif (newdnumlength>2) {
+                    error("Branch point does not exist for %s",newdelnum);
+                    return false;
+                } /* newdnumlength == 2 is OK;  */
+                olddeltanum=nil;
+                Head = &newdelta;
+                newdelta.next=nil;
+                return true;
+        }
+        if (newdnumlength==0) {
+                /* derive new revision number from locks */
+		targetdelta=findlock(caller,true); /*find and delete it*/
+                if (targetdelta) {
+                    /* found an old lock */
+                    olddeltanum=targetdelta->num;
+                    /* check whether locked revision exists */
+                    if (!genrevs(olddeltanum,(char *)nil,(char *)nil,(char *)nil,gendeltas)) return false;
+                    if (targetdelta==Head) {
+                        /* make new head */
+                        newdelta.next=Head;
+                        Head= &newdelta;
+                        incnum(olddeltanum, newdelnum);
+                    } elsif ((targetdelta->next==nil)&&(countnumflds(olddeltanum)>2)) {
+                        /* new tip revision on side branch */
+                        targetdelta->next= &newdelta;
+                        newdelta.next = nil;
+                        incnum(olddeltanum, newdelnum);
+                    } else {
+                        /* middle revision; start a new branch */
+                        newdelnum[0]='\0';
+                        if (!addbranch(targetdelta,newdelnum)) return false;
+                    }
+                    return true; /* successfull use of existing lock */
+                } else {
+                    /* no existing lock; try Dbranch */
+                    /* update newdelnum */
+                    if (!((StrictLocks==false) && (getuid() == RCSstat.st_uid))) {
+                        error("no lock set by %s",caller);
+                        return false;
+                    }
+                    if (Dbranch) {
+                        VOID strcpy(newdelnum,Dbranch->num);
+                    } else {
+                        incnum(Head->num,newdelnum);
+                    }
+                    newdnumlength=countnumflds(newdelnum);
+                    /* now fall into next statement */
+                }
+        }
+        if (newdnumlength<=2) {
+                /* add new head per given number */
+                olddeltanum=Head->num;
+                if(newdnumlength==1) {
+                    /* make a two-field number out of it*/
+                    if (cmpnumfld(newdelnum,olddeltanum,1)==0)
+                          incnum(olddeltanum,newdelnum);
+                    else  VOID strcat(newdelnum, ".1");
+                }
+                if (cmpnum(newdelnum,olddeltanum) <= 0) {
+                    error("deltanumber %s too low; must be higher than %s",
+                          newdelnum,Head->num);
+                    return false;
+                }
+                if (!(targetdelta=removelock(caller,Head))) return false;
+                if (!(genrevs(olddeltanum,(char *)nil,(char *)nil,(char *)nil,gendeltas))) return false;
+                newdelta.next=Head;
+                Head= &newdelta;
+        } else {
+                /* put new revision on side branch */
+                /*first, get branch point */
+                tp=branchpointnum; sp=newdelnum;
+                for(i=newdnumlength-(newdnumlength%2==1?1:2);i>0;i--) {
+                    while (*sp != '.') *tp++ = *sp++; /*copy field*/
+                    *tp++ = *sp++;                    /*copy dot  */
+                }
+                *(tp-1) = '\0'; /* kill final dot */
+                olddeltanum=branchpointnum; /*temporary old delta*/
+                if (!(targetdelta=genrevs(branchpointnum,(char *)nil,(char *)nil,(char *)nil,gendeltas)))
+                     return false;
+                if (cmpnum(targetdelta->num,branchpointnum)!=0) {
+                    error("Cannot find branchpoint %s",branchpointnum);
+                    return false;
+                }
+                if (!addbranch(targetdelta,newdelnum)) return false;
+        }
+        return true;
+}
+
 
 
 int addbranch(branchpoint,num)
@@ -522,10 +659,10 @@ char * num;
                 /* start first branch */
                 branchpoint->branches = &newbranch;
                 if (numlength==0) {
-                        strcpy(num, branchpoint->num);
-                        strcat(num,".1.1");
+                        VOID strcpy(num, branchpoint->num);
+                        VOID strcat(num,".1.1");
                 } elsif(countnumflds(num)%2 == 1)
-                        strcat(num, ".1");
+                        VOID strcat(num, ".1");
                 newbranch.nextbranch=nil;
 
         } elsif (numlength==0) {
@@ -535,7 +672,7 @@ char * num;
                 bhead->nextbranch = &newbranch;
                 getbranchno(bhead->hsh->num,branchnum);
                 incnum(branchnum,num);
-                strcat(num,".1");
+                VOID strcat(num,".1");
                 newbranch.nextbranch=nil;
         } else {
                 /* place the branch properly */
@@ -553,11 +690,12 @@ char * num;
                                 branchpoint->branches= &newbranch;
                         else    btrail->nextbranch= &newbranch;
                         newbranch.nextbranch=bhead;
-                        if (numlength%2 ==1) strcat(num,".1");
+                        if (numlength%2 ==1) VOID strcat(num,".1");
                 } else {
                         /* branch exists; append to end */
                         getbranchno(num,branchnum);
-                        if (!(targetdelta=genrevs(branchnum,nil,nil,nil,gendeltas))) return false;
+                        if (!(targetdelta=genrevs(branchnum,(char *)nil,(char *)nil,(char *)nil,
+                                gendeltas))) return false;
                         olddeltanum=targetdelta->num;
                         if (cmpnum(num,olddeltanum) <= 0) {
                                 error("deltanumber %s too low; must be higher than %s",
@@ -582,34 +720,28 @@ struct hshentry * removelock(who,delta)
 char * who; struct hshentry * delta;
 /* function: Finds the lock held by who on delta,
  * removes it, and returns a pointer to the delta.
- * delta may be nil; then the first lock held by who is chosen.
  * Prints an error message and returns nil if there is no such lock.
  * An exception is if StrictLocks==false, and who is the owner of
  * the RCS file. If who does not have a lock in this case,
- * delta is returned (or Head, if delta is nil).
+ * delta is returned.
  */
 {
         register struct lock * next, * trail;
         char * num;
-        struct stat statbuf;
         struct lock dummy;
-        int owner, whomatch, nummatch;
+        int whomatch, nummatch;
 
-        num=(delta==nil)?nil:delta->num;
+        num=delta->num;
         dummy.nextlock=next=Locks;
         trail = &dummy;
         while (next!=nil) {
                 whomatch=strcmp(who,next->login);
-                if (num==nil) {
-                        if (whomatch==0) break; /* found a lock by who */
-                } else {
-                        nummatch=strcmp(num,next->delta->num);
-                        if ((whomatch==0) && (nummatch==0)) break;
-                                             /*found a lock on delta by who*/
-                        if ((whomatch!=0)&&(nummatch==0)) {
-                            error("revision %s locked by %s",num,next->login);
-                            return false;
-                        }
+                nummatch=strcmp(num,next->delta->num);
+                if ((whomatch==0) && (nummatch==0)) break;
+                     /*found a lock on delta by who*/
+                if ((whomatch!=0)&&(nummatch==0)) {
+                    error("revision %s locked by %s",num,next->login);
+                    return nil;
                 }
                 trail=next;
                 next=next->nextlock;
@@ -621,46 +753,28 @@ char * who; struct hshentry * delta;
                 next->delta->lockedby=nil; /* reset locked-by */
                 return next->delta;
         } else {
-                fstat(fileno(finptr), &statbuf);
-                owner= (StrictLocks==false) && (getuid() == statbuf.st_uid);
-                if (!owner) {
-                        if (num==nil) error("no lock set by %s",who);
-                        else          error("no lock set by %s for revision %s",who,num);
-                        return nil;
-                } elsif (num!=nil) {
+                if (!((StrictLocks==false) && (getuid() == RCSstat.st_uid))) {
+                    error("no lock set by %s for revision %s",who,num);
+                    return nil;
+                } else {
                         return delta;
-                } else { /* want to return Head, but check first if locked*/
-                        next=Locks; num=Head->num;
-                        while (next!=nil) {
-                                if (strcmp(num,next->delta->num)==0) {
-                                        error("revision %s locked by %s",num,next->login);
-                                        return false;
-                                }
-                                trail=next;
-                                next=next->nextlock;
-                        }
-                        return Head;
                 }
         }
 }
 
 
 
-char * getdate(buffer)
-char * buffer;
-/* Function: puts the current date in the form
- * YY.MM.DD.hh.mm.ss\0 into buffer and returns a pointer to it.
+char * getdate()
+/* Function: returns a pointer to the current date in the form
+ * YY.MM.DD.hh.mm.ss\0
  */
 {
-#       include "time.h"
-
-        extern struct tm* localtime();
-        extern long time();
         long clock;
         struct tm * tm;
-        clock=time(0);
+	static char buffer[datelength]; /* date buffer */
+        clock=time((long *)0);
         tm=localtime(&clock);
-        sprintf(buffer, DATEFORM,
+        VOID sprintf(buffer, DATEFORM,
                 tm->tm_year, tm->tm_mon+1, tm->tm_mday,
                 tm->tm_hour, tm->tm_min, tm->tm_sec);
         return buffer;
@@ -714,11 +828,9 @@ char * unexfname; struct hshentry * delta;
                 result=false;
         } else {
                 /* ask user whether to check in */
-                fputs("checkin anyway? [ny](n): ",stdout);
+                VOID fputs("checkin anyway? [ny](n): ",stderr);
                 response=c=getchar();
                 while (!(c==EOF || c=='\n')) c=getchar();/*skip to end of line*/
-		if (c == EOF)
-			clearerr(stdin);
                 result=(response=='y'||response=='Y');
         }
         if (result==false) {
@@ -729,7 +841,7 @@ char * unexfname; struct hshentry * delta;
                     diagnose("checkin aborted; %s %sdeleted.",
                              workfilename,keepworkingfile?"not ":"");
                 }
-                if (!keepworkingfile) unlink(workfilename);
+                if (!keepworkingfile) VOID unlink(workfilename);
         }
         return result;
 }
@@ -738,6 +850,7 @@ char * unexfname; struct hshentry * delta;
 
 
 /* --------------------- G E T L O G M S G --------------------------------*/
+extern int stdinread; /* is >0 if redirected stdin has been read once.     */
 
 
 char * getlogmsg()
@@ -763,36 +876,46 @@ char * getlogmsg()
         if (msg) return msg;
 
         if ((olddeltanum==nil)&&
-            ((cmpnum(newdelnum,"1.1")==0)||(cmpnum(newdelnum,"1.0")==0)))
+	    ((cmpnum(newdelnum,"1.1")==0)||(cmpnum(newdelnum,"1.0")==0))) {
                 return initiallog;
+	}
+	if (keepflag) {
+		/* generate std. log message */
+		VOID sprintf(logmsg, "checked in with -k by %s at %s.\n",caller,getdate());
+		return(logmsg);
+	}
         if (logyet) {
                 /*previous log available*/
                 if (!isatty(fileno(stdin))) return logmsg; /* reuse if stdin is not a terminal*/
                 /* otherwise ask */
-                fputs("reuse log message of previous file? [yn](y): ",stdout);
+		clearerr(stdin);		/* reset EOF ptr */
+		VOID fputs("reuse log message of previous file? [yn](y): ",stderr);
                 cin=getchar();
 		response=cin;
                 while (!(cin==EOF || cin=='\n')) cin=getchar();/*skip to end of line*/
-		if (cin == EOF)
-			clearerr(stdin);
                 if (response=='\n'||response=='y'||response=='Y')
                         return logmsg;
                 else
                         logmsg[0]='\0'; /*kill existing log message */
         }
 
-        /* now read string from terminal */
-        if (isatty(fileno(stdin)))
-               fputs("enter log message:\n(terminate with ^D or single '.')\n>> ",stdout);
-        tp=logmsg; old1='\n'; old2=' ';
+        /* now read string from stdin */
+        if (isatty(fileno(stdin))) {
+                VOID fputs("enter log message:\n(terminate with ^D or single '.')\n>> ",stderr);
+        } else {  /* redirected stdin */
+                if (stdinread>0)
+                    faterror("Can't reread redirected stdin for log message; use -m");
+                stdinread++;
+        }
+
+	tp=logmsg; old1='\n'; old2=' ';
+	if (feof(stdin))
+		clearerr(stdin);
         for (;;) {
                 cin=getchar();
                 if (cin==EOF) {
-                        if(isatty(fileno(stdin))) {
-				putc('\n',stdout);
-				clearerr(stdin);
-			}
-                        if (*(tp-1) != '\n') *tp++ = '\n'; /* append newline */
+                        if(isatty(fileno(stdin))) VOID putc('\n',stderr);
+			if ((tp==logmsg)||(*(tp-1)!='\n')) *tp++ = '\n'; /* append newline */
                         *tp = '\0'; /*terminate*/
                         break;
                 }
@@ -806,13 +929,13 @@ char * getlogmsg()
                                 logmsg[logsize-2]='\n';logmsg[logsize-1]='\0';
                                 return logmsg;
                         }
-                        fprintf(stdout,"log message too long. Maximum: %d\n",logsize);
-                        fputs("reenter log message:\n>> ",stdout);
+                        VOID fprintf(stderr,"log message too long. Maximum: %d\n",logsize);
+                        VOID fputs("reenter log message:\n>> ",stderr);
                         tp=logmsg; old1='\n'; old2=' ';
-                        while (cin!='\n' && cin!=EOF) cin=getchar(); /*skip line */
+                        while (cin!='\n') cin=getchar(); /*skip line */
                         continue;
                 }
-                if (cin=='\n' && isatty(fileno(stdin))) fputs(">> ",stdout);
+                if (cin=='\n' && isatty(fileno(stdin))) VOID fputs(">> ",stderr);
                 *tp++ = cin; old2=old1; old1=cin; /* this is the actual work!*/
                 /*SDELIM will be changed to double SDELIM by putdtext*/
         } /* end for */

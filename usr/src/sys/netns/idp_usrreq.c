@@ -1,12 +1,19 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *      @(#)idp_usrreq.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)idp_usrreq.c	7.2 (Berkeley) 1/20/88
  */
 
 #include "param.h"
+#ifdef	NS
 #include "user.h"
 #include "mbuf.h"
 #include "protosw.h"
@@ -41,7 +48,6 @@ idp_input(m, nsp, ifp)
 {
 	register struct idp *idp = mtod(m, struct idp *);
 
-#ifdef	HACK
 	if (nsp==0)
 		panic("No nspcb");
 	/*
@@ -70,7 +76,6 @@ idp_input(m, nsp, ifp)
 		goto bad;
 	sorwakeup(nsp->nsp_socket);
 	return;
-#endif	HACK
 bad:
 	m_freem(m);
 }
@@ -132,7 +137,6 @@ idp_output(nsp, m0)
 	 * Make sure packet is actually of even length.
 	 */
 	
-#ifdef	HACK
 	if (len & 1) {
 		m = mprev;
 		if (m->m_len + m->m_off < MMAXOFF) {
@@ -146,7 +150,7 @@ idp_output(nsp, m0)
 			}
 			m1->m_len = 1;
 			m1->m_off = MMAXOFF - 1;
-			*mtod(m1, char *) = 0;
+			* mtod(m1, char *) = 0;
 			m->m_next = m1;
 		}
 	}
@@ -179,13 +183,11 @@ idp_output(nsp, m0)
 
 	idp->idp_len = htons((u_short)len);
 
-#ifdef	HACK
 	if (idpcksum) {
 		idp->idp_sum = 0;
 		len = ((len - 1) | 1) + 1;
 		idp->idp_sum = ns_cksum(m, len);
 	} else
-#endif	HACK
 		idp->idp_sum = 0xffff;
 
 	/*
@@ -239,7 +241,6 @@ idp_output(nsp, m0)
 #endif ancient_history
 	if (noIdpRoute) ro = 0;
 	return (ns_output(m, ro, so->so_options & SO_BROADCAST));
-#endif	HACK
 }
 /* ARGSUSED */
 idp_ctloutput(req, so, level, name, value)
@@ -548,3 +549,4 @@ idp_raw_usrreq(so, req, m, nam, rights)
 	}
 	return (error);
 }
+#endif

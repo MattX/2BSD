@@ -119,12 +119,8 @@ fetchi()
  */
 fperr()
 {
-#ifdef NONFP
-	u.u_error = EINVAL;
-#else !NONFP
 	u.u_r.r_val1 = (int)u.u_fperr.f_fec;
 	u.u_r.r_val2 = (int)u.u_fperr.f_fea;
-#endif NONFP
 }
 
 /*

@@ -1,0 +1,79 @@
+#! /bin/sh
+# Special cc preprocessor for using mkstr(1) to extract strings from the
+# 2.11 B News sources.
+
+# Get filename and arguments.
+initargs=$@
+while [ -n "$1" ]
+do
+	if [ $1 = -o ]
+	then
+		exec cc $initargs
+		exit 1
+	fi
+	if [ `expr substr $1 1 1` = - ]
+	then
+		if [ $1 != -c ]
+		then
+			args="$args $1"
+		fi
+	else
+		csrc=$1
+	fi
+	shift
+done
+
+# Only process compilations, and then only for certain files.
+if [ \
+	   $csrc != clientlib.c	\
+	-a $csrc != nntp.c	\
+	-a $csrc != uname.c	\
+	-a $csrc != funcs2.c	\
+	-a $csrc != header.c	\
+	-a $csrc != ndir.c	\
+	-a $csrc != getdate.c	\
+	-a $csrc != inews.c	\
+	-a $csrc != ifuncs.c	\
+	-a $csrc != iextern.c	\
+	-a $csrc != control.c	\
+	-a $csrc != fullname.c	\
+	-a $csrc != pathinit.c	\
+	-a $csrc != postnews.c	\
+	-a $csrc != rextern.c	\
+	-a $csrc != readnews.c	\
+	-a $csrc != rfuncs.c	\
+	-a $csrc != rfuncs2.c	\
+	-a $csrc != readr.c	\
+	-a $csrc != process.c	\
+	-a $csrc != digest.c	\
+	-a $csrc != visual.c	\
+	-a $csrc != virtterm.c	\
+	-a $csrc != expire.c	\
+	-a $csrc != checknews.c	\
+   ]
+then
+	exec cc $initargs
+	exit 1
+fi
+
+# String extractions
+echo Extracting strings from ${csrc}...
+cc -E -Dperror=strperrorp $args $csrc > xxmk.c
+sed 	-e '/printf(.*,[ 	]*$/ {'			\
+	-e 'N'						\
+	-e 's/\n[ 	]*\([^#]\)/ \1/'		\
+	-e '}'						\
+	-e 's/xerror(\("[^"]*"\)/strxerror1(\1/'	\
+	-e 's/error(\("[^"]*"\)/strerror(\1/'		\
+	-e 's/strxerror1/strxerror/'			\
+	-e 's/fprintf(\([^,][^,]*\),[ ]*\("[^"]*"\)/strfprerror(\2, \1/' \
+	-e 's/printf(\("[^"]*"\)/strprerror(\1/'	\
+	-e 's/logerr(\("[^"]*"\)/errlogerror(\1/'	\
+	-e 's/log(\("[^"]*"\)/rlogerror(\1/'		\
+	xxmk.c > mk.c
+mkstr - news_strings xx mk.c
+sed -e 's/^# \([0-9]\)/#line \1/' xxmk.c > mk.c
+echo Compiling...
+cc -c -Dstrperrorp=perror $args mk.c
+mv mk.o `basename $csrc .c`.o
+rm -f mk.c xxmk.c

@@ -9,8 +9,8 @@
 .de Ch
 \\$3\\*(Lq\\$1\\*(Rq\\$2
 ..
-.TH VNEWS 1 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH VNEWS 1 "September 19, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 vnews \- read news articles
 .SH SYNOPSIS
@@ -23,6 +23,8 @@ vnews \- read news articles
 .BR \-rxuc " ] "
 .PP
 .B "vnews \-s"
+.PP
+.B "vnews \-K"
 .SH DESCRIPTION
 .I Vnews 
 is a program for reading USENET news. It is based
@@ -104,6 +106,12 @@ You can use the
 .B \-s
 flag to print the newsgroup subscription list.
 .PP
+If you haven't read news in a while (or if you have never read news!)
+you can do
+.I "vnews \-K"
+to Kill (mark as read) all of the articles in the groups to which
+you are subscribed.
+.PP
 .I Vnews
 maintains a
 .I .newsrc
@@ -145,26 +153,11 @@ line, and lastly the
 .B NEWSOPTS
 parameter.
 .PP
-When the user uses the reply command,
+When the user uses the direct reply command,
 the environment parameter
 .B MAILER
 will be used to determine which mailer to use. The default is usually
-.IR /bin/mail \&.
-.PP
-If the user so desires, he may specify a specific paging program
-for articles.  The environment parameter
-.B PAGER
-should be set to the paging program.  The name of the article is referenced with
-a
-.Ch % ,
-as in the
-.B \-c
-option.  If no
-.Ch %
-is present, the article will be piped to the program.
-Paging may be disabled by setting
-.B PAGER
-to a null value.
+.IR /bin/mail .
 .PP
 If
 .B EDITOR
@@ -255,9 +248,6 @@ Back up one article in the current group.
 .IP \fBc\fP
 Cancel the article.  Only the author of the article or the super user
 can do this.
-.IP \fBd\fP
-Read a digest.  Breaks up a digest into separate articles
-and permits you to read and reply to each piece.
 .IP \fBe\fP
 Erase.  Forget that this article was read.
 .IP \fBf\fP
@@ -385,7 +375,7 @@ It will display the article if it exists.
 .IP \fB#\fP
 Report the name and size of the newsgroup.
 .IP \fB?\fP
-Print an short help message.
+Print a short help message.
 .IP \fB!\fP
 Passes the rest of the command line to the shell.  The
 environment variable
@@ -415,7 +405,7 @@ interface.  The
 .I .newsrc
 file is updated at the end of the session.
 .TP 10
-.B vnews \-n all !mod.all \-r
+.B vnews \-n all !mod \-r
 Read all unread articles except articles whose newsgroups begin with
 .B mod.
 in reverse order.  The
@@ -428,7 +418,7 @@ Print every unread article since last Thursday.  The
 file is
 updated at the end of the session.
 .TP 10
-.B "vnews \-p > /dev/null &"
+.B "vnews \-K"
 Discard all unread news.
 This is useful after returning from a long trip.
 .SH FILES
@@ -450,7 +440,7 @@ Options and list of previously read articles
 .PD
 .SH SEE ALSO
 checknews(1),
-inews(1),
+inews(8),
 postnews(1),
 readnews(1),
 vnews(1),

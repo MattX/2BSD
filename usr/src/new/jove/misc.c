@@ -1,22 +1,24 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
 #include "ctype.h"
 #include <signal.h>
 #ifdef ANSICODES
-#include "termcap.h"
+# include "termcap.h"
 #endif
 
+void
 prCTIME()
 {
 	s_mess(": %f %s", get_time((time_t *) 0, (char *) 0, 0, -1));
 }
 
+void
 ChrToOct()
 {
 	int	c,
@@ -28,6 +30,7 @@ ChrToOct()
 	ins_str(sprint("\\%03o", c), NO);
 }
 
+void
 StrLength()
 {
 	static char	inquotes[] = "Where are the quotes?";
@@ -38,27 +41,28 @@ StrLength()
 
 	if (first == 0 || last == 0)
 		complain(inquotes);
-	first++;
+	first += 1;
 	while (first < last) {
 		c = *first++;
 		if (c == '\\') {
 			int	num;
 
 			if (!isdigit(*first))
-				++first;
+				first += 1;
 			else {
 				num = 3;
 				while (num-- && isdigit(*first++) && first < last)
 					;
 			}
 		}
-		numchars++;
+		numchars += 1;
 	}
 	s_mess("%d characters", numchars);
 }
 
 /* Transpos cur_char with cur_char - 1 */
 
+void
 TransChar()
 {
 	char	before;
@@ -75,6 +79,7 @@ TransChar()
 
 /* Switch current line with previous one */
 
+void
 TransLines()
 {
 	disk_line	old_prev;
@@ -91,6 +96,7 @@ TransLines()
 	modify();
 }
 
+void
 Leave()
 {
 	longjmp(mainjmp, QUIT);
@@ -101,6 +107,7 @@ Leave()
    right of the cursor is white space, we delete the line separator
    as if we were at the end of the line. */
 
+void
 KillEOL()
 {
 	Line	*line2;
@@ -133,6 +140,7 @@ KillEOL()
 
 /* kill to beginning of sentence */
 
+void
 KillBos()
 {
 	negate_arg_value();
@@ -141,6 +149,7 @@ KillBos()
 
 /* Kill to end of sentence */
 
+void
 KillEos()
 {
 	Line	*line1;
@@ -152,6 +161,7 @@ KillEos()
 	reg_kill(line1, char1, 1);
 }
 
+void
 KillExpr()
 {
 	Line	*line1;
@@ -163,21 +173,25 @@ KillExpr()
 	reg_kill(line1, char1, 1);
 }
 
+void
 EscPrefix()
 {
 	HandlePref(pref1map);
 }
 
+void
 CtlxPrefix()
 {
 	HandlePref(pref2map);
 }
 
+void
 MiscPrefix()
 {
 	HandlePref(miscmap);
 }
 
+void
 HandlePref(map)
 data_obj	**map;
 {
@@ -203,6 +217,7 @@ data_obj	**map;
 		ExecCmd(cp);
 }
 
+void
 Yank()
 {
 	Line	*line,
@@ -220,6 +235,7 @@ Yank()
 	SetDot(dot);
 }
 
+void
 WtModBuf()
 {
 	if (!ModBufs(NO))
@@ -228,6 +244,7 @@ WtModBuf()
 		put_bufs(is_an_arg());
 }
 
+void
 put_bufs(askp)
 {
 	register Buffer	*oldb = curbuf,	
@@ -248,13 +265,16 @@ put_bufs(askp)
 		if (askp && (yes_or_no_p("Write %s? ", curbuf->b_fname) == NO))
 			continue;
 		filemunge(curbuf->b_fname);
+#if !(defined(MSDOS) || defined(MAC))
 		chk_mtime(curbuf, curbuf->b_fname, "save");
+#endif
 		file_write(curbuf->b_fname, 0);
 		unmodify();
 	}
 	SetBuf(oldb);
 }
 
+void
 ToIndent()
 {
 	register char	*cp,
@@ -266,31 +286,37 @@ ToIndent()
 	curchar = cp - linebuf;
 }
 
+/* GoLine -- go to a line, usually wired to goto-line, ESC g or ESC G.
+   If no argument is specified it asks for a line number. */
+void
 GoLine()
 {
-	Line	*newline;
+  	Line	*newline;
 
 #ifndef ANSICODES
-	if (!is_an_arg())
-		return;
-#else
-	if (!is_an_arg() || arg_value() <= 0) {
-		if (SP)
-			putpad(SP, 1);	/* Ask for cursor position */
-		return;
-	}
-#endif
-	newline = next_line(curbuf->b_first, arg_value() - 1);
-	PushPntp(newline);
-	SetLine(newline);
+ 	if (!is_an_arg())
+ 		set_arg_value(ask_int("Line: ",10));
+#else /* not ANSICODES */
+ 	if (!is_an_arg() || arg_value() <= 0) {
+  		if (SP) {
+  			putpad(SP, 1);	/* Ask for cursor position */
+			return;
+		}
+ 		set_arg_value(ask_int("Line: ", 10));
+  	}
+#endif /* ANSICODES */
+ 	newline = next_line(curbuf->b_first, arg_value() - 1);
+  	PushPntp(newline);
+  	SetLine(newline);
 }
 
 #ifdef ANSICODES
+void
 MoveToCursor(line, col)
 {
 	register struct scrimage *sp = &PhysScreen[line];
 
-	while (sp->s_id == NULL)
+	while (sp->s_id == 0)
 		sp = &PhysScreen[--line];
 	if (sp->s_flags & MODELINE)
 		complain((char *) 0);
@@ -300,6 +326,7 @@ MoveToCursor(line, col)
 	curchar = how_far(sp->s_lp, col);
 }
 
+void
 AnsiCodes()
 {
 	int	c;
@@ -320,7 +347,8 @@ AnsiCodes()
 			MoveToCursor(--num1, --num2);
 			break;
 		case 'H':
-			Eow(); Bol();
+			Eow();
+			Bol();
 			break;
 		default:
 			complain(unsupported);
@@ -346,41 +374,152 @@ AnsiCodes()
 			ClAndRedraw();
 			break;
 		}
-		/* FALL THROUGH */
-
-	case 'P':
-		PrevPage();
-		break;
-
-	case 'Q':
-		NextPage();
-		break;
-
-	case 'R':
-		UpScroll();
-		break;
-
-	case 'S':
-		DownScroll();
-		break;
-
+ 	case 'M':		/* Enter */
+ 		PopMark();
+ 		break;
+ 	case 'P':		/* PF1 */
+ 		ExecCmd((data_obj *) FindCmd(IncFSearch));
+ 		break;
+ 	case 'Q':		/* PF2 */
+ 		ExecCmd((data_obj *) FindCmd(QRepSearch));
+ 		break;
+ 	case 'R':		/* PF3 */
+ 		WtModBuf();
+ 		Leave();
+ 		break;
+ 	case 'S':		/* PF4 */
+ 		KillEOL();
+ 		break;
+ 	case 'l':		/* , */
+ 		DelNChar();
+ 		break;
+ 	case 'm':		/* - */
+ 		DelNWord();
+ 		break;
+ 	case 'n':		/* . */
+ 		SetMark();
+ 		break;
+ 	case 'p':		/* 0 */
+ 		Bol();
+ 		NextLine();
+ 		break;
+ 	case 'q':		/* 1 */
+ 		ForWord();
+ 		break;
+ 	case 'r':		/* 2 */
+ 		ForChar();
+ 		Eol();
+ 		break;
+ 	case 's':		/* 3 */
+ 		Yank();
+ 		break;
+ 	case 't':		/* 4 */
+ 		ExecCmd((data_obj *) FindCmd(ForSearch));
+ 		break;
+ 	case 'u':		/* 5 */
+ 		ExecCmd((data_obj *) FindCmd(RevSearch));
+ 		break;
+ 	case 'v':		/* 6 */
+ 		DelReg();
+ 		break;
+ 	case 'w':		/* 7 */
+ 		PrevPage();
+ 		break;
+ 	case 'x':		/* 8 */
+ 		NextPage();
+ 		break;
+ 	case 'y':		/* 9 */
+ 		DelPWord();
+ 		break;
+	case 'z':	/* Sun function keys send <esc>[Nz */
+		switch(num1) {
+			case 193:	/* L2 */
+				SetMark();
+				break;
+			case 194:	/* L3 */
+				PopMark();
+				break;
+			case 195:	/* L4 */
+				DelReg();
+				break;
+			case 208:	/* R1 */
+				ExecCmd((data_obj *) FindCmd(QRepSearch));
+				break;
+			case 209:	/* R2 */
+				ExecCmd((data_obj *) FindCmd(IncFSearch));
+				break;
+			case 210:	/* R3 */
+				WtModBuf();
+				break;
+			case 211:	/* R4 */
+				ExecCmd((data_obj *) FindCmd(RepSearch));
+				break;
+			case 212:	/* R5 */
+				ExecCmd((data_obj *) FindCmd(IncRSearch));
+				break;
+			case 213:	/* R6 */
+				Leave();
+				break;
+			case 214:	/* R7 */
+				BackWord();
+				break;
+			case 215:	/* R8 == UpArrow */
+				break;
+			case 216:	/* R9 */
+				ForWord();
+				break;
+			case 217:	/* R10 == LeftArrow */
+				break;
+			case 218:	/* R11 */
+				NextWindow();
+				break;
+			case 219:	/* R12 == RightArrow */
+				break;
+			case 220:	/* R13 */
+			case 221:	/* R14 == DownArrow */
+				break;
+			case 222:	/* R15 */
+			case 225:	/* F2 */
+			case 226:	/* F3 */
+			case 227:	/* F4 */
+				break;
+			case 228:	/* F5 */
+				break;
+			case 229:	/* F6 */
+				break;
+			case 230:	/* F7 */
+				break;
+			case 231:	/* F8 */
+				break;
+			case 232:	/* F9 */
+				break;
+			default:
+				num1 = -1;	/* Hack flags failure */
+				break;
+		}
+		if (num1 >= 0)
+			break;
 	default:
 		complain(unsupported);
 	}
 }
-#endif ANSICODES
+#endif /* ANSICODES */
 
+void
 NotModified()
 {
 	unmodify();
 }
 
+void
 SetLMargin()
 {
 	LMargin = calc_pos(linebuf, curchar);
 }
 
+void
 SetRMargin()
 {
 	RMargin = calc_pos(linebuf, curchar);
 }
+

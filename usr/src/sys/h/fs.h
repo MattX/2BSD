@@ -96,8 +96,8 @@ struct	fblk {
  * percentage to hold in reserve
  */
 #define freespace(fs, percentreserved) \
-	((fs)->s_tfree - ((fs)->s_fsize - \
-	(fs)->s_isize) * (percentreserved) / 100)
+	((fs)->fs_tfree - ((fs)->fs_fsize - \
+	(fs)->fs_isize) * (percentreserved) / 100)
 
 /*
  * INOPB is the number of inodes in a secondary storage block.
@@ -122,7 +122,7 @@ struct	fblk {
  */
 #define	MAXPIPSIZ	(NDADDR * MAXBSIZE)
 
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 struct	fs *getfs();
 struct	fs *mountfs();
 #endif

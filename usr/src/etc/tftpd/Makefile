@@ -9,10 +9,11 @@
 ALL=	tftpd.o tftpsubs.o
 DESTDIR=
 CFLAGS=	-O
+SEPFLAG= -i
 LDFLAGS=
 
 tftpd:	${ALL}
-	${CC} ${LDFLAGS} -o tftpd ${ALL}
+	${CC} ${LDFLAGS} ${SEPFLAG} -o tftpd ${ALL}
 
 install:
 	install -s tftpd ${DESTDIR}/etc/tftpd

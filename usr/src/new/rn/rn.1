@@ -1,6 +1,9 @@
-''' $Header: rn.1,v 4.3.1.4 85/07/23 18:26:40 lwall Exp $
+''' $Header: rn.1,v 4.3.1.5 85/09/10 11:05:55 lwall Exp $
 ''' 
 ''' $Log:	rn.1,v $
+''' Revision 4.3.1.5  85/09/10  11:05:55  lwall
+''' Improved %m in in_char().
+''' 
 ''' Revision 4.3.1.4  85/07/23  18:26:40  lwall
 ''' Added MAILCALL.
 ''' 
@@ -1138,9 +1141,21 @@ The current mode of rn, for use in conditional macros.
 .nf
 	i	Initializing.
 	n	Newsgroup selection level.
-	a	Article selection level.
-	p	Pager level.
-	m	Miscellaneous questions.
+	a	Article selection level (What next?).
+	p	Pager level (MORE prompt).
+	A	Add this newsgroup?
+	C	Catchup confirmation.
+	D	Delete bogus newsgroups?
+	M	Use mailbox format?
+	R	Resubscribe to this newsgroup?
+.fi
+.Sp
+Note that yes/no questions are all upper-case modes.
+If, for example, you wanted to disallow defaults on all yes/no questions,
+you could define the following macro:
+.Sp
+.nf
+\e040	%(%m=[A-Z]?h: )
 .fi
 .Ip %M 8
 The number of articles marked to return via the \*(L'M\*(R' command.

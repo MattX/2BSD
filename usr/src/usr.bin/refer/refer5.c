@@ -4,8 +4,13 @@ static char *sccsid = "@(#)refer5.c	4.7 (Berkeley) 4/23/86";
 
 #include "refer..c"
 #define SAME 0
+#ifdef BSD2_10
+#define NFLAB 1500		/* number of bytes to record all labels */
+#define NLABC 500		/* max number of labels */
+#else
 #define NFLAB 3000		/* number of bytes to record all labels */
 #define NLABC 1000		/* max number of labels */
+#endif
 
 static char sig[MXSIG];
 static char bflab[NFLAB];

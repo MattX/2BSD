@@ -10,7 +10,7 @@ C2=		/lib/c2
 LD=		ld
 STRINGS=	f77_strings
 CFL=		-DTARGET=PDP11 -DFAMILY=DMR -DHERE=PDP11 -DOUTPUT=BINARY \
-		-DPOLISH=POSTFIX -DOVERLAID
+		-DPOLISH=POSTFIX -DOVERLAID -DC_OVERLAY
 CFLAGS=		-w ${CFL}		# Don't use -O here.
 SEPFLAG= -i
 
@@ -24,15 +24,15 @@ PASS1OBJECTS=	data.o equiv.o error.o exec.o expr.o gram.o init.o \
 
 all:		f77 f77pass1
 
-f77:		driver.o pdp11x.o 
+f77:		driver.c pdp11x.c
 		${CC} ${SEPFLAG} ${CFLAGS} driver.c pdp11x.c -o f77
 		@size f77
 
 f77pass1:	${PASS1OBJECTS}
 		-if [ X${SEPFLAG} = X-i ]; then \
 			${LD} /lib/crt0.o ${SEPFLAG} -o f77pass1 \
-			main.o init.o misc.o gram.o lex.o \
-			-Z proc.o \
+			main.o misc.o gram.o lex.o \
+			-Z proc.o init.o \
 			-Z equiv.o data.o error.o \
 			-Y io.o expr.o intr.o exec.o \
 			put.o putdmr.o pdp11.o pdp11x.o -lc; \
@@ -98,7 +98,7 @@ locdefs:	pdp11defs
 install:
 		install -s f77 ${DESTDIR}/usr/bin
 		install -s f77pass1 ${DESTDIR}/lib
-		install -c ${STRINGS} ${DESTDIR}/lib
+		install -c -m 644 ${STRINGS} ${DESTDIR}/lib
 
 clean:
 		-rm -f f77 f77pass1 *.o gram.c x.c xs.c f77_strings strings

@@ -16,10 +16,12 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)ifuncs.c	2.65	4/10/87";
+static char	*SccsId = "@(#)ifuncs.c	2.69	12/1/87";
 #endif /* SCCSID */
 
 #include "iparams.h"
+
+extern long	localize();
 
 /*LINTLIBRARY*/
 
@@ -60,6 +62,10 @@ char *histfile();
 extern char firstbufname[];
 #endif
 
+#ifndef NFSCLIENT
+#ifndef GENERICPATH
+/*ARGSUSED*/
+#endif /* !GENERICPATH */
 broadcast(is_rnews)
 int is_rnews;
 {
@@ -94,7 +100,7 @@ int is_rnews;
 	hptr = h.path;
 #ifdef GENERICPATH
 	if (!is_rnews && 
-		strncmp(PATHSYSNAME, h.path, (len = strlen(PATHSYSNAME))) == 0
+		STRNCMP(PATHSYSNAME, h.path, (len = strlen(PATHSYSNAME))) == 0
 		&& index(NETCHRS, h.path[len]))
 		(void) strcpy(h.path, &(h.path[len+1]));
 #endif /* GENERICPATH */
@@ -113,7 +119,7 @@ int is_rnews;
 	s_openr();
 	while (s_read(&srec)) {
 		char *dist = h.distribution;
-		if (strncmp(srec.s_name, LOCALPATHSYSNAME, SNLN) == 0)
+		if (STRNCMP(srec.s_name, LOCALPATHSYSNAME, SNLN) == 0)
 			continue;
 		if (sptr = srec.s_nosend) {
 			while (*sptr) {
@@ -126,11 +132,11 @@ int is_rnews;
 		}
 		hptr = h.path;
 		while (*hptr != '\0') {
-			if (strncmp(srec.s_name, hptr, SNLN) == 0)
+			if (STRNCMP(srec.s_name, hptr, SNLN) == 0)
 				goto contin;
 			if (sptr = srec.s_nosend) {
 				while (*sptr != '\0') {
-					if (strncmp(sptr, hptr, SNLN) == 0)
+					if (STRNCMP(sptr, hptr, SNLN) == 0)
 						goto contin;
 					while (*sptr++)
 						;
@@ -150,7 +156,7 @@ int is_rnews;
 			hptr = sentsys;
 			while ((sptr = index(hptr, ',')) != NULL) {
 				*sptr = '\0';
-				if (strcmp(hptr, srec.s_name) == 0) {
+				if (STRCMP(hptr, srec.s_name) == 0) {
 					*sptr = ',';
 					goto contin;
 				}
@@ -158,7 +164,7 @@ int is_rnews;
 				for (hptr = sptr; isspace(*hptr); hptr++)
 					;
 			}
-			if (strcmp(hptr, srec.s_name) == 0)
+			if (STRCMP(hptr, srec.s_name) == 0)
 				continue;
 		}
 		/* now we've found a system to send this article to */
@@ -171,7 +177,7 @@ int is_rnews;
 			    strlen(srec.s_xmit) >= SBUFLEN)
 				xerror("system name too long for multicast");
 			for (m = mcast; m < &mcast[mccount]; m++)
-				if (strcmp(srec.s_xmit, m->mc_name) == 0)
+				if (STRCMP(srec.s_xmit, m->mc_name) == 0)
 					break;
 			if (m >= &mcast[MAXMCS])
 				xerror("Too many multicasts");
@@ -191,7 +197,7 @@ int is_rnews;
 
 			mc = 0;
 			for (m = mcast; m < &mcast[mccount]; m++)
-				if (strcmp(m->mc_name, srec.s_name) == 0) {
+				if (STRCMP(m->mc_name, srec.s_name) == 0) {
 					yptr = sysptrs;
 					while (mc < m->mc_syscnt)
 						*yptr++ = m->mc_tosys[mc++];
@@ -202,7 +208,7 @@ int is_rnews;
 #else /* !VMS */
 			if (!transmit(&srec, xfopen(ARTICLE,"r"),
 #endif /* !VMS */
-				(strncmp(h.nbuf, "to.", 3) != 0),
+				(STRNCMP(h.nbuf, "to.", 3) != 0),
 				sysptrs, mc))
 				continue;
 		}
@@ -212,7 +218,7 @@ int is_rnews;
 #else /* !VMS */
 		if (!transmit(&srec, xfopen(ARTICLE, "r"),
 #endif /* !VMS */
-			(strncmp(h.nbuf, "to.", 3) != 0),
+			(STRNCMP(h.nbuf, "to.", 3) != 0),
 			(char **) NULL, FALSE))
 				continue;
 #endif /* !MULTICAST */
@@ -295,7 +301,7 @@ int mc;
 	/*
 	** Do not transmit to system specified in -x flag.
 	*/
-	if (not_here[0] && strcmp(not_here, sp->s_name) == 0) {
+	if (not_here[0] && STRCMP(not_here, sp->s_name) == 0) {
 		(void) fclose(ifp);
 		return FALSE;
 	}
@@ -354,12 +360,12 @@ int mc;
 		if (sp->s_xmit[0] == '\0')
 			sprintf(sp->s_xmit, "%s/%s%s", BATCHDIR, sp->s_name,
 				appmsgid ? ".ihave" : "");
-#ifdef IHCC
+#ifdef LOGDIR
 		(void) sprintf(TRANS, "%s/%s/%s", logdir(HOME), BATCHDIR, sp->s_xmit);
 		ofp = fopen(TRANS, "a");
-#else /* !IHCC */
+#else /* !LOGDIR */
 		ofp = fopen(sp->s_xmit, "a");
-#endif /* !IHCC */
+#endif /* !LOGDIR */
 		if (ofp == NULL)
 			xerror("Cannot append to %s", sp->s_xmit);
 		fprintf(ofp, "%s", appmsgid ? hh.ident : firstbufname);
@@ -399,7 +405,8 @@ int mc;
 		(void) sprintf(bfr, sp->s_xmit, histline);
 #endif
 	} else {
-		ofp = xfopen(mktemp(TRANS), "w");
+		MKTEMP(TRANS);
+		ofp = xfopen(TRANS, "w");
 		if (afmt) {
 #ifdef OLD
 			fprintf(ofp, "A%s\n%s\n%s!%s\n%s\n%s\n", oident(hh.ident), hh.nbuf, PATHSYSNAME,
@@ -465,6 +472,7 @@ int mc;
 	(void) fclose(ifp);
 	return TRUE;
 }
+#endif /* !NFSCLIENT */
 
 #ifdef MULTICAST
 makeargs(buf, cmd, arg2, sysargs, sac)
@@ -514,11 +522,6 @@ int sac;
 }
 #endif /* MULTICAST */
 
-typedef struct {
-	char *dptr;
-	int dsize;
-} datum;
-
 /*
  * Return TRUE if we have seen this file before, else FALSE.
  */
@@ -544,6 +547,7 @@ struct hbuf *hp;
 	(void) strcpy(lcident, hp->ident);
 	lcase(lcident);
 
+#ifndef NFSCLIENT
 	idlock(lcident);
 #ifdef DBM
 	initdbm(ARTFILE);
@@ -564,7 +568,7 @@ struct hbuf *hp;
 			*p = 0;
 		lcase(bfr);
 
-		if (strcmp(bfr, lcident) == 0) {
+		if (STRCMP(bfr, lcident) == 0) {
 			(void) fclose(hfp);
 			idunlock();
 #ifdef DEBUG
@@ -575,13 +579,18 @@ struct hbuf *hp;
 	}
 	(void) fclose(hfp);
 #endif /* !DBM */
+#endif /* !NFSCLIENT */
 	histline[0] = '\0';
 	addhist(hp->ident);
 	addhist("\t");
+#ifndef NFSCLIENT
 #ifdef DEBUG
 	fprintf(stderr,"history returns false\n");
 #endif
 	return FALSE;
+#else /* NFSCLIENT */
+	return TRUE;
+#endif /* NFSCLIENT */
 }
 
 char histline[PATHLEN];
@@ -600,9 +609,10 @@ char *hline;
 #ifdef DBM
 	long fpos;
 #endif /* !DBM */
+	char tmphline[PATHLEN];
 
 #ifndef DBM
-	if (strcmp((p = histfile(hline)), ARTFILE) != 0) {
+	if (STRCMP((p = histfile(hline)), ARTFILE) != 0) {
 	/* If the history subfile is accessible */
 		if ((hfp = xfopen(p, "a")) != NULL ) { /* If we can append */
 			fprintf(hfp, "%s\n", hline);   /* Append */
@@ -624,11 +634,12 @@ char *hline;
 	{
 	datum lhs, rhs;
 	/* We assume that history has already been called, calling dbminit. */
-	p = index(hline, '\t');
+	strcpy(tmphline,hline);
+	p = index(tmphline, '\t');
 	if (p)
 		*p = 0;
-	lcase(hline);
-	lhs.dptr = hline;
+	lcase(tmphline);
+	lhs.dptr = tmphline;
 	lhs.dsize = strlen(lhs.dptr) + 1;
 	rhs.dptr = (char *)&fpos;
 	rhs.dsize = sizeof fpos;
@@ -714,7 +725,7 @@ char *str;
 	while ((fd = creat(lockname, 0444)) < 0) {
 #else /* !VMS */
 	(void) strcpy(tempname, "/tmp/LTMP.XXXXXX");
-	(void) mktemp(tempname);
+	MKTEMP(tempname);
 	(void) strcpy(lockname, "/tmp/L");
 	i = strlen(lockname);
 	cp = &lockname[i];
@@ -786,20 +797,35 @@ struct hbuf *hp;
  * Check that header.nbuf contains only valid newsgroup names;
  * exit with error if not valid.
  */
-ngfcheck(isproc)
+ngfcheck(user, isproc, is_mod_init)
+char	*user;
 {
 	register FILE *	f;
 	register char *	cp;
 	register int	i, j;
-	register int	ngcount, okcount, havealiased;
+	register int	ngcount, okcount, dorecheck;
 	register int	pass;
 	char *		ngs[sizeof header.nbuf / 2];
+	char *		ngsbug[sizeof header.nbuf / 2];
 	char		uses[sizeof header.nbuf / 2];
 	char		tbuf[sizeof header.nbuf];
 	char		abuf[BUFLEN];
 
-	havealiased = ngcount = 0;
-	is_mod[0] = '\0';
+/* uses values
+**  0 - haven't seen the newsgroup name anyplace
+**  1 - write newsgroup name back into Newsgroup: line
+**  2 - exact newsgroup name found in active or aliases file
+**  3 - newsgroup name found as prefix in bugs file (but not #2)
+**  4 - (2) plus name in bugs file
+*/
+
+#define NGUNSEEN 0
+#define NGOK 1
+#define NGALIAS 2
+#define NGBUGS 3
+#define NGABUGS 4
+
+	ngcount = 0;
 	/*
 	** Split header.nbuf into constituent newsgroups.
 	** Zap "local" newsgroups of articles from remote sites.
@@ -812,6 +838,8 @@ ngfcheck(isproc)
 		if (*cp == '\0')
 			break;
 		ngs[ngcount] = cp;
+		ngsbug[ngcount] = (char *) NULL;
+		uses[ngcount] = NGUNSEEN;
 		do {
 			++cp;
 		} while (*cp != '\0' && *cp != NGDELIM && *cp != ' ');
@@ -828,63 +856,126 @@ ngfcheck(isproc)
 					ngs[ngcount]);
 				continue;
 		}
-		uses[ngcount] = 1;	/* it should go in "Newsgroups" line */
+		uses[ngcount] = NGOK;	/* it should go in "Newsgroups" line */
 		++ngcount;
 	}
 	/*
 	** Check groups against active file.
 	*/
 recheck:
-	okcount = 0;
+	dorecheck = okcount = 0;
+	is_mod[0] = '\0';
+	is_mod_file_okay = is_mod_init;
 	rewind(actfp); clearerr(actfp);
 	while (okcount < ngcount && fgets(bfr, BUFLEN, actfp) == bfr) {
 		if ((cp = index(bfr, ' ')) == NULL)
 			continue;	/* strange line in input! */
-		/* newsgroup 12345 12345 X */
-		/*  cp +    01234567890123 */
-		if (!isproc && cp[13]  == 'n')
-			continue;	/* can't post to this group! */
 		*cp = '\0';
 		for (i = 0; i < ngcount; ++i)
-			if (uses[i] >= 1 && strcmp(bfr, ngs[i]) == 0) {
-				uses[i] = 2;	/* it should be localized too */
-				if (cp[13] == 'm')
-					strcpy(is_mod, bfr);
-				++okcount;
+			if (STRCMP(bfr, ngs[i]) == NGUNSEEN) { /* localize? */
+				/* newsgroup 12345 12345 X */
+				/*  cp +    01234567890123 */
+				if (!isproc && cp[13]  == 'n')
+					uses[i] = NGOK;
+				else {
+					if (uses[i] < NGALIAS)
+						uses[i] = NGALIAS;
+					if (cp[13] == 'm') {
+						strcpy(is_mod, bfr);
+						if (!is_mod_file_okay)
+						     is_mod_file_okay =
+						       mod_file_okay(user,bfr);
+					}
+					++okcount;
+				}
 			}
 	}
+	/*
+	** See what groups we can find in the bugs file
+	*/
+	if ((f = fopen(BUGFILE, "r")) != NULL) {
+		while (fgets(bfr, BUFLEN, f) == bfr) {
+			if (bfr[0] == '#')
+				continue;
+			cp = index(bfr, '\n');
+			*cp = '.';
+			for (i = 0; i < ngcount; ++i) {
+				register int bfrlen = strlen(bfr);
+				register int ngslen = strlen(ngs[i]);
+				if (uses[i] == NGBUGS || uses[i] == NGABUGS)
+					continue;
+				if (PREFIX(ngs[i], bfr) ||
+				    (bfrlen-1 == ngslen &&
+				     !STRNCMP(ngs[i], bfr, ngslen))) {
+					if (uses[i] == NGALIAS)
+						uses[i] = NGABUGS;
+					else {
+						bfr[bfrlen-1] = '\0';
+						cp = "Bug group %s -> %s [ok]";
+						log(cp, ngs[i], bfr);
+						if (ngsbug[i] == (char *) NULL)
+							ngsbug[i] = ngs[i];
+						ngs[i] = AllocCpy(bfr);
+						bfr[bfrlen-1] = '.';
+						uses[i] = NGBUGS;
+						okcount++;
+						dorecheck++;
+					}
+				}
+			}
+		}
+		(void) fclose(f);
+	}
+
 #ifdef ALWAYSALIAS
 	okcount = 0;
 #endif /* ALWAYSALIAS */
 	/*
-	** Handle groups absent from active file.
+	** Handle groups absent from active and bug_groups files.
 	*/
-	if (havealiased == 0 && okcount < ngcount) {
+	if (okcount < ngcount) {
 		/*
 		** See if remaining groups are in our alias list.
 		*/
 		f = xfopen(ALIASES, "r");
-		while (okcount < ngcount && fscanf(f, "%s %s", abuf, bfr) == 2)
+		while (okcount < ngcount &&
+		     fscanf(f, "%s %s%*[^\n]", abuf, bfr) == 2) {
+			if (abuf[0] == '#')
+				continue;
 			for (i = 0; i < ngcount; ++i) {
 #ifndef ALWAYSALIAS
-				if (uses[i] == 2)
+				if (uses[i] > NGOK && uses[i] != NGBUGS)
 					continue;
 #endif /* ALWAYSALIAS */
-				if (strcmp(ngs[i], abuf) != 0)
-					continue;
-				if (isproc)
+				cp = (char *) NULL;
+				if (uses[i] == NGBUGS)
+				    if (STRCMP(ngsbug[i], abuf) == 0)
 					cp = "Aliased newsgroup %s to %s";
-				else
+				if (cp == (char *) NULL) {
+			           if (STRCMP(ngs[i], abuf) != 0)
+					continue;
+			           if (isproc)
+					cp = "Aliased newsgroup %s to %s";
+			           else
 					cp = "Please change %s to %s";
+				}
 				logerr(cp, abuf, bfr);
+				if (uses[i] == NGBUGS) {
+					free(ngs[i]);
+					ngsbug[i] = (char *) NULL;
+				}
 				ngs[i] = AllocCpy(bfr);
-				uses[i] = 2;
-				++havealiased;
-				++okcount;
+				++dorecheck;
+#ifdef ALWAYSALIAS
+				if (uses[i] != NGBUGS)
+#endif /* ALWAYSALIAS */
+					++okcount;
+				uses[i] = NGALIAS;
 			}
+		}
 		(void) fclose(f);
 		for (i = 0; i < ngcount; ++i) {
-			if (uses[i] == 2)
+			if (uses[i] > NGOK)
 				continue;
 			if (isproc)
 				log("Unknown newsgroup %s not localized",
@@ -900,29 +991,76 @@ recheck:
 		if (!isproc)
 #endif /* !ALWAYSALIAS */
 			newssave(infp, (char *) NULL);
-		/*
-		 * Unfortunately, if you alias an unmoderated group to a
-		 * moderated group, you must recheck the active file to see
-		 * if the new group is moderated. Rude but necessary.
-		 */
-		if (havealiased)
-			goto recheck;	
 	}
+
+	/*
+	 * Unfortunately, if you alias an unmoderated group to a
+	 * moderated group, you must recheck the active file to see
+	 * if the new group is moderated. Rude but necessary.
+	 */
+
+	if (dorecheck)
+		goto recheck;
+
 	/*
 	** Zap duplicates.
 	*/
 	for (i = 0; i < ngcount - 1; ++i) {
-		if (uses[i] == 0)
+		if (uses[i] == NGUNSEEN)
 			continue;
-		for (j = i + 1; j < ngcount; ++j) {
-			if (uses[j] == 0)
+		for (j = i + 1; ((j < ngcount) && (uses[i] != NGUNSEEN)); ++j){
+			register int kill = -1;
+			register int keep = -1;
+			if (uses[j] == NGUNSEEN)
 				continue;
-			if (strcmp(ngs[i], ngs[j]) != 0)
-				continue;
-			logerr("Duplicate %s removed", ngs[j]);
-			if (uses[i] < uses[j])
-				uses[i] = uses[j];
-			uses[j] = 0;
+			if (uses[i] == NGABUGS || uses[j] == NGABUGS) {
+				register int k = i;
+				register int l = j;
+				if (uses[i] == NGABUGS && uses[j] == NGABUGS) {
+					if (strlen(ngs[j]) < strlen(ngs[i])) {
+						k = j;
+						l = i;
+					}
+				} else if (uses[i] == NGABUGS) {
+					k = j;
+					l = i;
+				}
+				strcpy(bfr, ngs[k]);
+				strcat(bfr, ".");
+				if (PREFIX(ngs[l], bfr)) {
+					kill = k;
+					keep = l;
+					if (uses[k] != NGBUGS ||
+					    ngsbug[l] == (char *) NULL)
+						logerr("Duplicate %s removed",
+							ngs[k]);
+				}
+			}
+			if (kill < 0) {
+			if (STRCMP(ngs[i], ngs[j]) != 0)
+					continue;
+				keep = i;
+				kill = j;
+				if (uses[j] != NGBUGS)
+					logerr("Duplicate %s removed", ngs[j]);
+				if (uses[i] < uses[j])
+					uses[i] = uses[j];
+			}
+			if (kill >= 0) {
+				if (uses[kill] == NGBUGS) {
+					if (ngsbug[keep] == (char *) NULL)
+						ngsbug[keep] = ngsbug[kill];
+					else if (ngsbug[kill] != (char*) NULL){
+						sprintf(bfr, "%s,%s",
+							ngsbug[keep],
+							ngsbug[kill]);
+						if (ngsbug[keep] < tbuf || ngsbug[keep] > &tbuf[sizeof tbuf - 1])
+							free(ngsbug[keep]);
+						ngsbug[keep] = AllocCpy(bfr);
+					}
+				}
+				uses[kill] = NGUNSEEN;
+			}
 		}
 	}
 	for (pass = 1; pass <= 2; ++pass) {
@@ -944,12 +1082,19 @@ recheck:
 		for (i = 0; i < ngcount; ++i) {
 			if (uses[i] < pass)
 				continue;
-			j = strlen(ngs[i]);
+			if (pass == 1)
+				j = strlen(ngsbug[i] == (char *) NULL ? ngs[i] : ngsbug[i]);
+			else
+				j = strlen(ngs[i]);
 			if (j + 2 > avail) {
 				logerr("Redone Newsgroups too long");
 				break;
 			}
-			(void) strcpy(cp, ngs[i]);
+			if (pass == 1)
+				(void) strcpy(cp,
+					ngsbug[i] == (char *) NULL ? ngs[i] : ngsbug[i]);
+			else
+				(void) strcpy(cp, ngs[i]);
 			cp += j;
 			*cp++ = (pass == 1) ? NGDELIM : '\0';
 			avail -= (j + 1);
@@ -963,10 +1108,64 @@ recheck:
 	/*
 	** Free aliases.
 	*/
-	for (i = 0; i < ngcount; ++i)
+	for (i = 0; i < ngcount; ++i) {
 		if (ngs[i] < tbuf || ngs[i] > &tbuf[sizeof tbuf - 1])
 			free(ngs[i]);
+		if (ngsbug[i] != NULL &&
+		    (ngsbug[i] < tbuf || ngsbug[i] > &tbuf[sizeof tbuf - 1]))
+			free(ngsbug[i]);
+	}
 	return nbuf[0] == '\0';
+
+#undef NGUNSEEN 0
+#undef NGOK 1
+#undef NGALIAS 2
+#undef NGBUGS 3
+#undef NGABUGS 4
+
+}
+
+/* Check $LIB/moderators to see if user is listed as a known moderator
+ * of the newsgroup in ngname..... return TRUE if user is ok.
+ */
+
+mod_file_okay(user, ngname)
+char	*user, *ngname;
+{
+	FILE *mfd;
+	char *grplist = NULL;
+	char *p, *getgrplist();
+	int ret = FALSE;
+	char mfn[BUFLEN], mgrp[BUFLEN], mlist[LBUFLEN];
+
+	sprintf(mfn, "%s/%s", LIB, "moderators");
+	mfd = fopen(mfn, "r");
+	if (mfd == NULL)
+		return FALSE;
+	while ((!ret) && fscanf(mfd, "%[^:]:%s\n", mgrp, mlist) != EOF) {
+		if (feof(mfd))
+			break;
+		if (mgrp[0] == '#')
+			continue;
+		if (!STRCMP(ngname, mgrp)) {
+			while (*(p = ((p = rindex(mlist, ',')) ? p : mlist ))
+			      && (ret == FALSE)) {
+					if (*p == ',')
+						*p++ = '\0';
+					if (*p == '\\') {
+						*p++ = '\0';
+						if (!grplist)
+							grplist = getgrplist(user);
+						if (ngmatch(p,grplist))
+							ret = TRUE;
+					} else if (!STRCMP(p, user))
+						ret = TRUE;
+					*p = '\0';
+			}
+		}
+	}
+	fclose(mfd);
+	return ret;
 }
 
 /*
@@ -1060,11 +1259,13 @@ checkbatch()
 		if (strncmp(cmd, "#! cunbatch", 11) == 0) {
 			(void) sprintf(cmd, "%s/compress", LIB);
 			input_pipe(cmd, "compress", "-d", (char *) 0);
+			setbuf(infp, (char *)NULL);
 			continue;	/* look for the #! rnews */
 		} else if (strncmp(cmd, "#! c7unbatch", 12) == 0) {
 			(void) sprintf(cmd, "%s/decode | %s/compress -d",
 				LIB, LIB);
 			input_pipe("/bin/sh", "news-unpack", "-c", cmd);
+			setbuf(infp, (char *)NULL);
 			continue;	/* look for the #! rnews */
 		} else if (strncmp(cmd, "#! rnews ", 9) == 0 ||
 			strncmp(cmd, "! rnews ", 8) == 0) {
@@ -1072,14 +1273,17 @@ checkbatch()
 			register int fd, rc, wc;
 			int piped[2];
 			register long size, asize;
-			char *filename;
+			char *tfilename;
 			int pid, wpid, exstat;
 #define CPBFSZ 8192
 			char buf[CPBFSZ];
 
-			filename = 0;
+			tfilename = 0;
+			cp = malloc((unsigned)BUFSIZ);
+			if (cp != NULL)
+				setbuf(infp, cp);
 			do {
-				while (strncmp(cmd, "#! rnews ", 9)) {
+				while (STRNCMP(cmd, "#! rnews ", 9)) {
 					fprintf(stderr, "out of sync, skipping %s\n", cmd);
 					if (fgets(cmd, BUFLEN, infp) == NULL)
 						exit(0);
@@ -1100,11 +1304,13 @@ checkbatch()
 					if (fd < 0) {
 						if (rc == asize)
 							break;	/* fits in buffer */
-						if (!filename)
-							filename = mktemp("/tmp/unbnewsXXXXXX");
-						if ((fd = creat(filename, 0666)) < 0) {
+						if (!tfilename) {
+							tfilename = "/tmp/unbnewsXXXXXX";
+							MKTEMP(tfilename);
+						}
+						if ((fd = creat(tfilename, 0666)) < 0) {
 							fprintf(stderr, "rnews: creat of \"%s\" failed",
-								filename);
+								tfilename);
 							perror(" ");
 							exit(1);
 						}
@@ -1112,7 +1318,7 @@ checkbatch()
 					wc = write(fd, buf, rc);	/* write to temp file */
 					if (wc != rc) {
 						fprintf(stderr, "write of %d to \"%s\" returned %d",
-							rc, filename, wc);
+							rc, tfilename, wc);
 						perror(" ");
 						exit(1);
 					}
@@ -1164,7 +1370,8 @@ checkbatch()
 						infp = fdopen(0, "r");
 					} else	/* supstitute temp file as
 						 * input */
-						freopen(filename, "r", infp);
+						freopen(tfilename, "r", infp);
+					(void) free(cp);
 					return;	/* from checkbatch as if
 						 * normal article */
 				}
@@ -1182,8 +1389,9 @@ checkbatch()
 					(void) close(piped[1]);
 				}
 				while ((wpid = wait(&exstat)) >= 0 && wpid != pid);
+				if (tfilename)
+					(void) unlink(tfilename);
 			} while (fgets(cmd, BUFLEN, infp) != NULL);
-			(void) unlink(filename);
 			exit(0);/* all done */
 
 		} else {
@@ -1397,13 +1605,13 @@ lock()
 {
 	LockFd = open(SUBFILE, 2);
 	if (LockFd < 0)
-		logerr("Can't open(\"%s\",2) to lock", SUBFILE);
+		logerr("Can't open(\"%s\", 2) to lock", SUBFILE);
 	/* This will sleep until the other program releases the lock */
 	/* We may need to alarm out of this, but I don't think so */
 #ifdef LOCKF
-	if (lockf(LockFd, F_LOCK, 0) < 0)
+	if (lockf(LockFd, F_LOCK, 0L) < 0)
 #else
-	 if (flock(LockFd, LOCK_EX) < 0)
+	if (flock(LockFd, LOCK_EX) < 0)
 #endif
 		xerror("Can't get lock on %s: %s", SUBFILE, errmsg(errno));
 }
@@ -1420,7 +1628,7 @@ lock()
 
 	if (lockcount++ == 0) {
 		i = DEADTIME;
-		while (link(SUBFILE, LOCKFILE)) {
+		while (link(SEQFILE, LOCKFILE)) {
 			if (errno != EEXIST)
 				break;
 			if (--i < 0)
@@ -1438,6 +1646,10 @@ unlock()
 #endif /* !BSD4_2 */
 #endif /* !VMS */
 
+#ifdef NFSCLIENT
+#define PROC 0004
+#endif /* NFSCLIENT */
+
 /* VARARGS1 */
 error(message, arg1, arg2, arg3)
 char *message;
@@ -1450,3 +1662,16 @@ long arg1, arg2, arg3;
 	logerr(buffer);
 	xxit(mode == PROC ? 0 : 1);
 }
+
+#ifdef MKSTR
+/* VARARGS1 */
+strerror(message, arg1, arg2, arg3)
+int message;
+long arg1, arg2, arg3;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	error(buf, arg1, arg2, arg3);
+}
+#endif

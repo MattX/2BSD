@@ -3,7 +3,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)readnews.c	2.32	3/21/87";
+static char	*SccsId = "@(#)readnews.c	2.33	10/15/87";
 #endif /* SCCSID */
 
 #include "rparams.h"
@@ -52,20 +52,22 @@ register char	**argv;
 	savmask = umask(N_UMASK);	/* set up mask */
 	uid = getuid();
 	gid = getgid();
-	duid = 0;
-	dgid = 0;
+	duid = geteuid();
+	dgid = getegid();
 	(void) ftime(&Now);
-
 	/* give reasonable error message if SPOOL directory
 	 * is unaccessable... usually means system administrator
 	 * has "turned off" news reading...
 	 */
+#ifdef SERVER
+	if (open_server() < 0)
+#else	/* !SERVER */
 	if (access(SPOOL, 05))
+#endif	/* !SERVER */
 	{
 		fputs("News articles are not available at this time\n",stderr);
 		xxit(1);
 	}
-
 #ifndef SHELL
 	if ((SHELL = getenv("SHELL")) == NULL)
 		SHELL = "/bin/sh";
@@ -145,7 +147,7 @@ register char	**argv;
 		while (fgets(rcbuf, LBUFLEN, rcfp) != NULL) {
 			if (!(space = isspace(*rcbuf)))
 				optflag = FALSE;
-			if (!strncmp(rcbuf, "options ", 8))
+			if (!STRNCMP(rcbuf, "options ", 8))
 				optflag = TRUE;
 			if (optflag) {
 				(void) strcat(rcbuf, "\1");
@@ -217,12 +219,11 @@ register char	**argv;
 		(void) signal(SIGINT, onsig);
 		(void) signal(SIGPIPE, onsig);
 	} else {
-		int (* old)();
-		if ((old = signal(SIGQUIT, SIG_IGN)) != SIG_IGN)
+		if (signal(SIGQUIT, SIG_IGN) != SIG_IGN)
 			(void) signal(SIGQUIT, cleanup);
-		if ((old = signal(SIGHUP, SIG_IGN)) != SIG_IGN)
+		if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
 			(void) signal(SIGHUP, cleanup);
-		if ((old = signal(SIGINT, SIG_IGN)) != SIG_IGN)
+		if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 			(void) signal(SIGINT, cleanup);
 	}
 
@@ -259,9 +260,15 @@ register char	**argv;
 			xxit(0);
 		SigTrap = FALSE;
 	}
+#ifdef SERVER
+    if ((actfp = open_active()) == NULL)
+		xerror("Cannot open active newsgroups file");
+    strcpy(ACTIVE, active_name());
+    (void) fclose(actfp);
+    actfp = NULL;
+#endif	/* !SERVER */
 	sortactive();
 	actfp = xfopen(ACTIVE, "r");
-
 #ifdef DEBUG
 	fprintf(stderr, "header.nbuf = %s\n", header.nbuf);
 #endif /* DEBUG */
@@ -368,7 +375,7 @@ char *string, *searchfor;
 
 	first = *searchfor;
 	for (p=index(string, first); p; p = index(p+1, first)) {
-		if (((p==string) || (p[-1]!='!')) && strncmp(p, searchfor, strlen(searchfor)) == 0)
+		if (((p==string) || (p[-1]!='!')) && STRNCMP(p, searchfor, strlen(searchfor)) == 0)
 			return TRUE;
 	}
 	return FALSE;

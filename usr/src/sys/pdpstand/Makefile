@@ -5,39 +5,75 @@
 #	be loaded along with all device drivers.  This is especially
 #	a problem with restor.  Programs should be <= 48K to be safe.
 
+# BPI will compile a primary tape bootstrap capable of supporting 800 (HT and
+# TM), 1600 (HT, some third party TMs, and TS), or 6250 (some third party
+# TMs only).  2.10BSD is only distributed at 1600BPI, but others may have
+# need to make boot tapes at different densities ...
+#
+BPI=	1600
+
+# RB_DEFNAME is the name the secondary boot will go for if you just type
+# carriage return to the boot prompt, or if boot detects boot options passed
+# in and RB_ASKNAME isn't set.
+#
+RB_DEFNAME=xp(0,0)unix
+
+# DISK	which disk to take a root dump of for the distribution tape
+# TAPE	which tape to write the distribution on
+# DUMP	where to store a root system dump if you do a ``make dump''
+#
 DISK=	xp0a
 TAPE=	mt8
 DUMP=	/usr/root.dump
-
-RB_DEFNAME=xp(0,0)unix
 
 ROOT=	
 ETCSRC=	${ROOT}/usr/src/etc
 MKFS=	${ETCSRC}/mkfs.c
 RESTOR=	${ETCSRC}/restor/restor.c
 ICHECK=	${ETCSRC}/icheck.c
-USR=	adm bin dict doc games guest hosts include ingres lib local man \
-	mdec msgs new old preserve pub skel spool tmp ucb
 
-DEFS=	-DRB_DEFNAME='"${RB_DEFNAME}"' -DSTANDALONE -I${ROOT}/usr/include
+DEFS=	-DBPI=${BPI} -DRB_DEFNAME='"${RB_DEFNAME}"' -DSTANDALONE \
+	-I${ROOT}/usr/include
 CFLAGS=	-O ${DEFS}
 
 BOOT=	M.o boot.o ubmapset.o
 DRIVERS=prf.o sys.o \
 	ht.o tm.o ts.o \
-	xp.o rk.o rl.o rp.o hk.o si.o ra.o
+	xp.o rk.o rl.o br.o hk.o si.o ra.o
 
-ALL=	mtboot tsboot boot mkfs restor icheck maketape
-AUX=	bcopy copy
+ALL=	mtboot boot mkfs restor icheck maketape
+
+.c.o:
+	cc ${CFLAGS} -c $*.c
+
+.s.o:
+	/lib/cpp -P ${DEFS} $*.s >_xx.s;
+	as - -V -o $*.o _xx.s;
+	rm -f _xx.s
 
 all: ${ALL}
 
-aux: ${AUX}
+distribution: tape1 switch_tapes tape2
 
-mtdist tsdist: ${ALL}
-	./maketape /dev/nr${TAPE} tapes/$@
-	dump 0f /dev/nr${TAPE} /dev/r${DISK}
-	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 ${USR}
+tape1: ${ALL} ${DUMP}
+	./maketape /dev/nr${TAPE} maketape.data
+	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
+	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
+		adm bin dict doc games guest hosts include ingres lib \
+		local man msgs new old preserve pub skel spool tmp ucb
+	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
+		sys include
+
+switch_tapes: FRC
+	@echo "Switch tapes.  Hit CR when second tape is mounted."
+	@head -1
+
+FRC:
+
+tape2:
+	cd ${ROOT}/usr/sr; tar cfb /dev/r${TAPE} 20 \
+		Makefile asm.sed asm.sed.pdp asm.sed.vax bin etc games \
+		lib local man new old ucb usr.bin usr.lib
 
 dump:
 	dump 0f ${DUMP} /dev/r${DISK}
@@ -45,12 +81,6 @@ dump:
 install: boot
 	install -s boot ${ROOT}/
 
-
-.c.o:
-	cc ${CFLAGS} -c $*.c
-
-.s.o:
-	as - -V -o $*.o $*.s
 
 libsa.a: ${DRIVERS}
 	ar rv $@ $?
@@ -67,34 +97,22 @@ icheck.o: ${ICHECK}
 	cc ${CFLAGS} -c ${ICHECK}
 
 
-mtboot: mtboot.s
-	as -o $@ $@.s
-	strip $@
+mtboot: mtboot.o
+	strip $@.o
+	dd if=$@.o of=mtboot bs=16 skip=1
+	rm -f $@.o
 
-tsboot: tsboot.s
-	as -o $@ $@.s
-	strip $@
+boot: M.o conf.o boot.o ubmapset.o libsa.a
+	ld -X -o $@ M.o conf.o boot.o ubmapset.o libsa.a -lc
 
-boot: M.o c.o boot.o ubmapset.o libsa.a
-	ld -X -o $@ M.o c.o boot.o ubmapset.o libsa.a -lc
+mkfs: srt0.o conf.o libsa.a mkfs.o
+	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
 
-mkfs: srt0.o c.o libsa.a mkfs.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
+restor: srt0.o conf.o libsa.a restor.o
+	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
 
-restor: srt0.o c.o libsa.a restor.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
-
-icheck: srt0.o c.o libsa.a icheck.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
-
-bcopy: srt0.o c.o libsa.a bcopy.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
-
-cat: srt0.o c.o libsa.a cat.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
-
-copy: srt0.o c.o libsa.a copy.o
-	ld -o $@ srt0.o c.o $@.o libsa.a -lc
+icheck: srt0.o conf.o libsa.a icheck.o
+	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
 
 
 maketape: maketape.c
@@ -118,7 +136,7 @@ clean:
 
 
 boot.o:		boot.c
-c.o:		c.c
+conf.o:		conf.c
 cat.o:		cat.c
 hk.o:		hk.c
 ht.o:		ht.c
@@ -126,11 +144,10 @@ mtboot.o:	mtboot.s
 prf.o:		prf.c
 rk.o:		rk.c
 rl.o:		rl.c
-rp.o:		rp.c
+br.o:		br.c
 srt0.o:		srt0.s
 sys.o:		sys.c
 tm.o:		tm.c
 ts.o:		ts.c
-tsboot.o:	tsboot.s
 ubmapset.o:	ubmapset.c
 xp.o:		xp.c

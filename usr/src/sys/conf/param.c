@@ -37,7 +37,7 @@ int	hz = LINEHZ;
 struct	timezone tz = { %TIMEZONE%, %DST% };
 #define	NPROC (10 + 7 * MAXUSERS)
 int	nproc = NPROC;
-#define NTEXT (36 + MAXUSERS)
+#define NTEXT (26 + MAXUSERS)
 int	ntext = NTEXT;
 #define NINODE ((NPROC + 16 + MAXUSERS) + 32)
 int	ninode = NINODE;
@@ -62,9 +62,6 @@ int	nclist = NCLIST;
  */
 struct	proc *procNPROC;
 struct	text *textNTEXT;
-#ifdef UCB_METER
-char	textcounted[NTEXT];		/* text performance stats */
-#endif
 struct	inode inode[NINODE], *inodeNINODE;
 struct	file *fileNFILE;
 struct	callout callout[NCALL];
@@ -86,12 +83,12 @@ struct	bufhd bufhash[BUFHSZ];
 	int noka5;
 #endif
 
-#ifdef UNIBUS_MAP
-#define CMAPSIZ	(NPROC+(8*NTEXT/10))	/* size of core allocation map */
-#define SMAPSIZ	(NPROC+(8*NTEXT/10))	/* size of swap allocation map */
+#ifdef SMALL
+#  define CMAPSIZ NPROC			/* size of core allocation map */
+#  define SMAPSIZ (NPROC+(5*NTEXT/10))	/* size of swap allocation map */
 #else
-#define CMAPSIZ	NPROC
-#define SMAPSIZ	(NPROC+(5*NTEXT/10))
+#  define CMAPSIZ (NPROC+(8*NTEXT/10))	/* size of core allocation map */
+#  define SMAPSIZ (NPROC+(8*NTEXT/10))	/* size of swap allocation map */
 #endif
 
 struct mapent	_coremap[CMAPSIZ];
@@ -107,6 +104,38 @@ struct map	swapmap[1] = {
 	&_swapmap[SMAPSIZ],
 	"swapmap",
 };
+
+#ifdef QUOTA
+#include "../h/quota.h"
+struct BigQ {
+	struct	quota *pxquota[NPROC];		/* 2.10 equiv of p_quota */
+	struct	quota xquota[NQUOTA];		/* the quotas themselves */
+	struct	dquot *ixdquot[NINODE];		/* 2.10 equiv of i_dquot */
+	struct	dquot xdquot[NDQUOT];		/* the dquots themselves */
+	struct	qhash xqhash[NQHASH];
+	struct	dqhead xdqhash[NDQHASH];
+};
+
+QUOini()
+{
+	extern struct qhash *qhash;
+	extern struct dqhead *dqhead;
+	struct BigQ *bQ = (struct BigQ *)SEG5;
+
+	QUOTAMAP();
+	quota = bQ->xquota;
+	dquot = bQ->xdquot;
+	qhash = bQ->xqhash;
+	dqhead = bQ->xdqhash;
+	ndquot = NDQUOT;
+	nquota = NQUOTA;
+	px_quota = bQ->pxquota;
+	ix_dquot = bQ->ixdquot;
+	dquotNDQUOT = &dquot[ndquot];
+	quotaNQUOTA = &quota[nquota];
+	QUOTAUNMAP();
+}
+#endif
 
 /*
  * Declarations of structures loaded last and allowed to reside in the

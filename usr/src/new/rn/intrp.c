@@ -1,6 +1,9 @@
-/* $Header: intrp.c,v 4.3.1.5 85/05/23 17:21:24 lwall Exp $
+/* $Header: intrp.c,v 1.1 87/11/11 03:53:38 bin Locked $
  *
  * $Log:	intrp.c,v $
+ * Revision 1.1  87/11/11  03:53:38  bin
+ * Initial revision
+ * 
  * Revision 4.3.1.5  85/05/23  17:21:24  lwall
  * Now allows 'r' and 'f' on null articles.
  * 
@@ -21,6 +24,10 @@
  * 
  */
 
+#ifdef BSD2_10
+#include <short_names.h>
+#endif
+
 #include "EXTERN.h"
 #include "common.h"
 #include "util.h"
@@ -38,10 +45,6 @@
 #include "final.h"
 #include "INTERN.h"
 #include "intrp.h"
-
-#ifdef BSD2_10
-#include <short_names.h>
-#endif
 
 char orgname[] = ORGNAME;
 

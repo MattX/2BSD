@@ -1,6 +1,12 @@
-/* $Header: ng.c,v 4.3.1.4 85/07/23 18:19:46 lwall Exp $
+/* $Header: ng.c,v 4.3.1.6 85/09/10 11:03:42 lwall Exp $
  *
  * $Log:	ng.c,v $
+ * Revision 4.3.1.6  85/09/10  11:03:42  lwall
+ * Improved %m in in_char().
+ * 
+ * Revision 4.3.1.5  85/09/05  12:34:37  lwall
+ * Catchup command could make unread article count too big.
+ * 
  * Revision 4.3.1.4  85/07/23  18:19:46  lwall
  * Added MAILCALL environment variable.
  * 
@@ -682,11 +688,12 @@ normal_search:
       reask_catchup:
 #ifdef VERBOSE
 	IF(verbose)
-	    in_char("\nDo you really want to mark everything as read? [yn] ");
+	    in_char("\nDo you really want to mark everything as read? [yn] ",
+		'C');
 	ELSE
 #endif
 #ifdef TERSE
-	    in_char("\nReally? [ynh] ");
+	    in_char("\nReally? [ynh] ", 'C');
 #endif
 	putchar('\n') FLUSH;
 	setdef(buf,"y");
@@ -721,7 +728,7 @@ u to mark all and unsubscribe.\n\
 	    goto reask_catchup;
 	}
 	for (i = firstart; i <= lastart; i++) {
-	    ctl_set(i);		/* mark as read */
+	    oneless(i);		/* mark as read */
 	}
 #ifdef DELAYMARK
 	if (dmfp)

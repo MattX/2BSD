@@ -1,13 +1,16 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)if_ether.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)if_ether.c	7.6 (Berkeley) 12/7/87
  */
-
-#include "ether.h"
-#if NETHER > 0
 
 /*
  * Ethernet address resolution protocol.
@@ -17,9 +20,10 @@
  *	add "inuse/lock" bit (or ref. count) along with valid bit
  */
 
-#include "param.h"
-#include "../machine/seg.h"
+#include "ether.h"
+#if NETHER > 0
 
+#include "param.h"
 #include "systm.h"
 #include "mbuf.h"
 #include "socket.h"
@@ -27,23 +31,18 @@
 #include "kernel.h"
 #include "errno.h"
 #include "ioctl.h"
-#include "domain.h"
-#include "protosw.h"
 #include "syslog.h"
 
+#include "domain.h"
+#include "protosw.h"
 #include "../net/if.h"
 #include "in.h"
 #include "in_systm.h"
 #include "ip.h"
 #include "if_ether.h"
 
-#ifdef GATEWAY
-#define	ARPTAB_BSIZ	16		/* bucket size */
-#define	ARPTAB_NB	37		/* number of buckets */
-#else
 #define	ARPTAB_BSIZ	5		/* bucket size */
-#define	ARPTAB_NB	19		/* number of buckets */
-#endif
+#define	ARPTAB_NB	13		/* number of buckets */
 #define	ARPTAB_SIZE	(ARPTAB_BSIZ * ARPTAB_NB)
 struct	arptab arptab[ARPTAB_SIZE];
 int	arptab_size = ARPTAB_SIZE;	/* for arp command */
@@ -74,6 +73,7 @@ int	arptab_size = ARPTAB_SIZE;	/* for arp command */
 
 u_char	etherbroadcastaddr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 extern struct ifnet loif;
+extern int hz;
 
 /*
  * Timeout routine.  Age arp_tab entries once a minute.
@@ -83,7 +83,7 @@ arptimer()
 	register struct arptab *at;
 	register i;
 
-	timeout(arptimer, (caddr_t)0, ARPT_AGE * hz);
+	TIMEOUT(arptimer, (caddr_t)0, ARPT_AGE * hz);
 	at = &arptab[0];
 	for (i = 0; i < ARPTAB_SIZE; i++, at++) {
 		if (at->at_flags == 0 || (at->at_flags & ATF_PERM))
@@ -110,8 +110,6 @@ arpwhohas(ac, addr)
 
 	if ((m = m_get(M_DONTWAIT, MT_DATA)) == NULL)
 		return;
-
-	MAPSAVE();
 	m->m_len = sizeof *ea;
 	m->m_off = MMAXOFF - m->m_len;
 	ea = mtod(m, struct ether_arp *);
@@ -132,7 +130,6 @@ arpwhohas(ac, addr)
 	bcopy((caddr_t)addr, (caddr_t)ea->arp_tpa, sizeof(ea->arp_tpa));
 	sa.sa_family = AF_UNSPEC;
 	(*ac->ac_if.if_output)(&ac->ac_if, m, &sa);
-	MAPREST();
 }
 
 int	useloopback = 1;	/* use loopback interface for local traffic */
@@ -220,8 +217,10 @@ arpresolve(ac, m, destip, desten, usetrailers)
 	if (at->at_flags & ATF_COM) {	/* entry IS complete */
 		bcopy((caddr_t)at->at_enaddr, (caddr_t)desten,
 		    sizeof(at->at_enaddr));
+#ifdef I_WANT_MY_MACHINE_TO_CRASH
 		if (at->at_flags & ATF_USETRAILERS)
 			*usetrailers = 1;
+#endif
 		splx(s);
 		return (1);
 	}
@@ -250,7 +249,6 @@ arpinput(ac, m)
 {
 	register struct arphdr *ar;
 
-	MAPSAVE();
 	if (ac->ac_if.if_flags & IFF_NOARP)
 		goto out;
 	IF_ADJ(m);
@@ -267,7 +265,6 @@ arpinput(ac, m)
 	case ETHERTYPE_IP:
 	case ETHERTYPE_IPTRAILERS:
 		in_arpinput(ac, m);
-		MAPUNSAVE();
 		return;
 
 	default:
@@ -275,7 +272,6 @@ arpinput(ac, m)
 	}
 out:
 	m_freem(m);
-	MAPREST();
 }
 
 /*
@@ -303,10 +299,9 @@ in_arpinput(ac, m)
 	struct sockaddr_in sin;
 	struct sockaddr sa;
 	struct in_addr isaddr, itaddr, myaddr;
-	int proto, op, s;
+	int proto, op, s, completed = 0;
 
 	myaddr = ac->ac_ipaddr;
-	MAPSAVE();
 	ea = mtod(m, struct ether_arp *);
 	proto = ntohs(ea->arp_pro);
 	op = ntohs(ea->arp_op);
@@ -335,6 +330,8 @@ in_arpinput(ac, m)
 	if (at) {
 		bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
 		    sizeof(ea->arp_sha));
+		if ((at->at_flags & ATF_COM) == 0)
+			completed = 1;
 		at->at_flags |= ATF_COM;
 		if (at->at_hold) {
 			sin.sin_family = AF_INET;
@@ -349,6 +346,7 @@ in_arpinput(ac, m)
 		if (at = arptnew(&isaddr)) {
 			bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
 			    sizeof(ea->arp_sha));
+			completed = 1;
 			at->at_flags |= ATF_COM;
 		}
 	}
@@ -369,10 +367,13 @@ reply:
 
 	case ETHERTYPE_IP:
 		/*
-		 * Reply if this is an IP request, or if we want to send
-		 * a trailer response.
+		 * Reply if this is an IP request,
+		 * or if we want to send a trailer response.
+		 * Send the latter only to the IP response
+		 * that completes the current ARP entry.
 		 */
-		if (op != ARPOP_REQUEST && ac->ac_if.if_flags & IFF_NOTRAILERS)
+		if (op != ARPOP_REQUEST &&
+		    (completed == 0 || ac->ac_if.if_flags & IFF_NOTRAILERS))
 			goto out;
 	}
 	if (itaddr.s_addr == myaddr.s_addr) {
@@ -419,11 +420,9 @@ reply:
 		ea->arp_pro = htons(ETHERTYPE_IPTRAILERS);
 		(*ac->ac_if.if_output)(&ac->ac_if, mcopy, &sa);
 	}
-	MAPUNSAVE();
 	return;
 out:
 	m_freem(m);
-	MAPREST();
 	return;
 }
 
@@ -462,7 +461,7 @@ arptnew(addr)
 
 	if (first) {
 		first = 0;
-		timeout(arptimer, (caddr_t)0, hz);
+		TIMEOUT(arptimer, (caddr_t)0, hz);
 	}
 	at = &arptab[ARPTAB_HASH(addr->s_addr) * ARPTAB_BSIZ];
 	for (n = 0; n < ARPTAB_BSIZ; n++,at++) {
@@ -536,7 +535,7 @@ arpioctl(cmd, data)
 		bcopy((caddr_t)ar->arp_ha.sa_data, (caddr_t)at->at_enaddr,
 		    sizeof(at->at_enaddr));
 		at->at_flags = ATF_COM | ATF_INUSE |
-			(ar->arp_flags & (ATF_PERM|ATF_PUBL));
+			(ar->arp_flags & (ATF_PERM|ATF_PUBL|ATF_USETRAILERS));
 		at->at_timer = 0;
 		break;
 
@@ -574,5 +573,4 @@ ether_sprintf(ap)
 	*--cp = 0;
 	return (etherbuf);
 }
-
 #endif

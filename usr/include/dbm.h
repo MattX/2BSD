@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dbm.h	5.1 (Berkeley) 85/06/26
+ *	@(#)dbm.h	5.1 (Berkeley) 3/27/86
  */
 
 #ifndef NULL

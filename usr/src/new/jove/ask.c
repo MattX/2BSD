@@ -1,22 +1,62 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
 #include "termcap.h"
 #include "ctype.h"
 #include <signal.h>
-#include <varargs.h>
 
-#ifdef F_COMPLETION
-#	include <sys/stat.h>
+#ifdef MAC
+#	include "mac.h"
+#else
+#	include <varargs.h>
+#	ifdef F_COMPLETION
+#   	include <sys/stat.h>
+#	endif
+#endif /* MAC */
+
+#ifdef MAC
+#	undef private
+#	define private
 #endif
 
-int	AbortChar = CTL('G');	/* Character that aborts command input */
-int	DoEVexpand = NO;	/* should we expand evironment variables? */
+#ifdef	LINT_ARGS
+private Buffer * get_minibuf(void);
+private char * real_ask(char *, int (*)(), char *, char *);
+
+private int
+	f_complete(int),
+	bad_extension(char *),
+	crush_bads(char **, int),
+	isdir(char *);
+private void
+	fill_in(char **, int),
+	EVexpand(void);
+#else
+private Buffer * get_minibuf();
+private char * real_ask();
+
+private int
+	f_complete(),
+	bad_extension(),
+	crush_bads(),
+	isdir();
+private void
+	fill_in(),
+	EVexpand();
+#endif	/* LINT_ARGS */
+
+#ifdef MAC
+#	undef private
+#	define private static
+#endif
+
+int	AbortChar = CTL('G'),
+	DoEVexpand = NO;	/* should we expand evironment variables? */
 
 int	Asking = NO;
 char	Minibuf[LBSIZE];
@@ -47,6 +87,7 @@ get_minibuf()
 
 /* Add a string to the mini-buffer. */
 
+void
 minib_add(str, movedown)
 char	*str;
 {
@@ -64,7 +105,7 @@ char	*str;
    them according to their value in the environment (if possible) -
    this munges all over curchar and linebuf without giving it a second
    thought (I must be getting lazy in my old age) */
-private
+private void
 EVexpand()
 {
 	register int	c;
@@ -118,11 +159,14 @@ int	(*d_proc)();
 	data_obj	*push_cmd = LastCmd;
 	int	o_a_v = arg_value(),
 		o_i_an_a = is_an_arg();
+#ifdef MAC
+		menus_off();
+#endif
 
 	if (InAsk)
 		complain((char *) 0);
 	push_env(savejmp);
-	InAsk++;
+	InAsk += 1;
 	SetBuf(get_minibuf());
 	if (!inlist(AskBuffer->b_first, CurAskPtr))
 		CurAskPtr = curline;
@@ -134,7 +178,7 @@ int	(*d_proc)();
 
 	if (setjmp(mainjmp))
 		if (InJoverc) {		/* this is a kludge */
-			abort++;
+			abort = YES;
 			goto cleanup;
 		}
 
@@ -148,18 +192,17 @@ cont:		s_mess("%s%s", prompt, linebuf);
 		if ((c == EOF) || index(delim, c)) {
 			if (DoEVexpand)
 				EVexpand();
-			if (d_proc == 0 || (*d_proc)(c) == 0)
+			if (d_proc == (int(*)())0 || (*d_proc)(c) == 0)
 				goto cleanup;
 		} else if (c == AbortChar) {
 			message("[Aborted]");
-			abort++;
+			abort = YES;
 			goto cleanup;
 		} else switch (c) {
 		case CTL('N'):
 		case CTL('P'):
 			if (CurAskPtr != 0) {
 				int	n = (c == CTL('P') ? -arg_value() : arg_value());
-
 				CurAskPtr = next_line(CurAskPtr, n);
 				if (CurAskPtr == curbuf->b_first && CurAskPtr->l_next != 0)
 					CurAskPtr = CurAskPtr->l_next;
@@ -258,6 +301,7 @@ va_dcl
 
 /* VARARGS1 */
 
+int
 yes_or_no_p(fmt, va_alist)
 char	*fmt;
 va_dcl
@@ -293,41 +337,54 @@ va_dcl
 
 #ifdef F_COMPLETION
 static char	*fc_filebase;
+int	DispBadFs = YES;	/* display bad file names? */
+#ifndef MSDOS
 char	BadExtensions[128] = ".o";
+#else /* MSDOS */
+char	BadExtensions[128] = ".obj .exe .com .bak .arc .lib .zoo";
+#endif /* MSDOS */
 
 static
-bad_extension(name, bads)
-char	*name,
-	*bads;
+bad_extension(name)
+char	*name;
 {
-	char	*ip;
+	char	*ip,
+		*bads = BadExtensions;
 	int	namelen = strlen(name),
 		ext_len,
 		stop = 0;
 
 	do {
-		if (ip = index(bads, ' '))
-			*ip = 0;
-		else {
+		if ((ip = index(bads, ' ')) == 0) {
 			ip = bads + strlen(bads);
-			stop++;
+			stop = YES;
 		}
 		if ((ext_len = ip - bads) == 0)
 			continue;
 		if ((ext_len < namelen) &&
-		    (strcmp(&name[namelen - ext_len], bads) == 0))
+		    (strncmp(&name[namelen - ext_len], bads, ext_len) == 0))
 			return YES;
 	} while ((bads = ip + 1), !stop);
 	return NO;
 }
 
+int
 f_match(file)
 char	*file;
 {
 	int	len = strlen(fc_filebase);
 
+	if (DispBadFs == NO)
+		if (bad_extension(file))
+			return NO;
+
 	return ((len == 0) ||
-		(strncmp(file, fc_filebase, strlen(fc_filebase)) == 0));
+#ifdef MSDOS
+		(casencmp(file, fc_filebase, strlen(fc_filebase)) == 0)
+#else
+		(strncmp(file, fc_filebase, strlen(fc_filebase)) == 0)
+#endif
+		);
 }
 
 static
@@ -342,7 +399,7 @@ char	*name;
 		(stbuf.st_mode & S_IFDIR) == S_IFDIR);
 }
 
-static
+private void
 fill_in(dir_vec, n)
 register char	**dir_vec;
 {
@@ -356,17 +413,19 @@ register char	**dir_vec;
 	char	bads[128];
 
 	for (i = 0; i < n; i++) {
-		strcpy(bads, BadExtensions);
-		/* bad_extension() is destructive */
-		if (bad_extension(dir_vec[i], bads))
-			continue;
+		/* if it's no, then we have already filtered them out
+		   in f_match() so there's no point in doing it again */
+		if (DispBadFs == YES) {
+			if (bad_extension(dir_vec[i]))
+				continue;
+		}
 		if (numfound)
 			minmatch = min(minmatch,
 				       numcomp(dir_vec[lastmatch], dir_vec[i]));
 		else
 			minmatch = strlen(dir_vec[i]);
 		lastmatch = i;
-		numfound++;
+		numfound += 1;
 	}
 	/* Ugh.  Beware--this is hard to get right in a reasonable
 	   manner.  Please excuse this code--it's past my bedtime. */
@@ -408,10 +467,20 @@ f_complete(c)
 
 	if (c == CR || c == LF)
 		return 0;	/* tells ask to return now */
+#ifndef MSDOS		/* kg */
 	if ((fc_filebase = rindex(linebuf, '/')) != 0) {
+#else /* MSDOS */
+	fc_filebase = rindex(linebuf, '/');
+	if (fc_filebase == (char *)0)
+		fc_filebase = rindex(linebuf, '\\');
+	if (fc_filebase == (char *)0)
+		fc_filebase = rindex(linebuf, ':');
+	if (fc_filebase != (char *)0) {
+#endif /* MSDOS */
 		char	tmp[FILESIZE];
 
-		null_ncpy(tmp, linebuf, (++fc_filebase - linebuf));
+		fc_filebase += 1;
+		null_ncpy(tmp, linebuf, (fc_filebase - linebuf));
 		if (tmp[0] == '\0')
 			strcpy(tmp, "/");
 		PathParse(tmp, dir);
@@ -453,13 +522,14 @@ f_complete(c)
 			for (col = 0; col < ncols; col++) {
 				int	isbad,
 					which;
-				char	bads[128];
 
 				which = (col * linespercol) + lines;
 				if (which >= nentries)
 					break;
-				strcpy(bads, BadExtensions);
-				isbad = bad_extension(dir_vec[which], bads);
+				if (DispBadFs == YES)
+					isbad = bad_extension(dir_vec[which]);
+				else
+					isbad = NO;
 				Typeout("%s%-*s", isbad ? "!" : NullStr,
 					maxlen - isbad, dir_vec[which]);
 			}
@@ -482,19 +552,14 @@ char	*prmt,
 	char	*ans,
 		prompt[128],
 		*pretty_name = pr_name(def, YES);
-
 	if (prmt)
 		sprintf(prompt, prmt);
-	else {
-		if (def != 0 && *def != '\0')
-			sprintf(prompt, ": %f (default %s) ", pretty_name);
-		else
-			sprintf(prompt, ProcFmt);
-	}
+	else
+		sprintf(prompt, ProcFmt);
 #ifdef F_COMPLETION
   	ans = real_ask("\r\n \t?", f_complete, pretty_name, prompt);
-	if (ans == 0 && (ans = pretty_name) == 0)
-		complain("[No default file name]");
+	if (ans == 0)
+		complain((char *)0);
 #else
 	ans = ask(pretty_name, prompt);
 #endif

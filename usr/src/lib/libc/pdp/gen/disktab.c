@@ -42,6 +42,7 @@ getdiskbyname(name)
 		dp->d_rpm = 3600;
 	dp->d_badsectforw = dgetflag("sf");
 	dp->d_sectoffset = dgetflag("so");
+	dp->d_uboot = dgetstr("b0", &cp);
 	strcpy(psize, "px");
 	strcpy(pbsize, "bx");
 	strcpy(pfsize, "fx");

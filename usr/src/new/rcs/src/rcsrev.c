@@ -1,9 +1,9 @@
-
 /*
  *                     RCS revision number handling
  */
- static char rcsid[]=
- "$Header: /usr/wft/RCS/SRC/RCS/rcsrev.c,v 3.4 82/12/04 13:24:08 wft Exp $ Purdue CS";
+#ifndef lint
+static char rcsid[]= "$Id: rcsrev.c,v 4.3 87/10/18 10:38:42 narten Exp $ Purdue CS";
+#endif
 /*********************************************************************************
  *********************************************************************************
  *
@@ -20,9 +20,26 @@
 
 
 /* $Log:	rcsrev.c,v $
+ * Revision 4.3  87/10/18  10:38:42  narten
+ * Updating version numbers. Changes relative to version 1.1 actually 
+ * relative to 4.1
+ * 
+ * Revision 1.3  87/09/24  14:00:37  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:37  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:37  kcs
+ * Initial revision
+ * 
+ * Revision 4.1  83/03/25  21:10:45  wft
+ * Only changed $Header to $Id.
+ * 
  * Revision 3.4  82/12/04  13:24:08  wft
  * Replaced getdelta() with gettree().
- * 
+ *
  * Revision 3.3  82/11/28  21:33:15  wft
  * fixed compartial() and compnum() for nil-parameters; fixed nils
  * in error messages. Testprogram output shortenend.
@@ -87,7 +104,7 @@ char * revno, * branchno;
 
         numflds=countnumflds(revno);
         if (numflds%2 == 1)
-                strcpy(branchno,revno);
+                VOID strcpy(branchno,revno);
         else {
                 sp=revno; tp=branchno;
                 for (i=1;i<numflds;i++) {
@@ -221,6 +238,9 @@ int     length;
 
         if ( *s1 == '\0' ) return 1;
         if ( *s2 == '\0' ) return -1;
+	fprintf(stderr, "RCS Internal error, routine: compartial\n");
+	return(0);
+/*NOTREACHED*/
 }
 
 
@@ -239,7 +259,7 @@ char * onum, *nnum;
                 while (*sp != '.') *tp++ = *sp++;
                 *tp++ = *sp++;  /* copy dot also */
         }
-        sprintf(tp,"%d",atoi(sp)+1);
+        VOID sprintf(tp,"%d",atoi(sp)+1);
 }
 
 
@@ -287,10 +307,10 @@ char * r1, *r2, *r3;
         /* This will terminate since r1 and r2 are not the same; see above*/
         if (l3==0) {
                 /* no common prefix. Common ancestor on main trunk. */
-                partialno(t1,r1,l1>2?2:l1);partialno(t2,r2,l2>2?2:l2);
+                VOID partialno(t1,r1,l1>2?2:l1); VOID partialno(t2,r2,l2>2?2:l2);
                 if (cmpnum(t1,t2)<0)
-                        strcpy(r3,t1);
-                else    strcpy(r3,t2);
+                        VOID strcpy(r3,t1);
+                else    VOID strcpy(r3,t2);
                 if ((cmpnum(r3,r1)==0)||(cmpnum(r3,r2)==0)) {
                         error("Ancestor for %s and %s undefined.",r1,r2);
                         return false;
@@ -468,7 +488,7 @@ struct hshentry ** store;
 
                         if (trail==nil) {
                              error("Cannot find revision on branch %s with a date before %s, author %s, and state %s.",
-                                        revno, date==nil?"<now>":date, 
+                                        revno, date==nil?"<now>":date,
                                         author==nil?"<any>":author, state==nil?"<any>":state);
                              return nil;
                         } else { /* print up to last one suitable */
@@ -630,7 +650,7 @@ int argc; char * argv[];
 
         cmdid = "revtest";
         if (argc<2) {
-                fputs("No input file\n",stderr);
+                VOID fputs("No input file\n",stderr);
                 exit(-1);
         }
         if ((finptr=fopen(argv[1], "r")) == NULL) {
@@ -646,29 +666,28 @@ int argc; char * argv[];
         do {
                 /* all output goes to stderr, to have diagnostics and       */
                 /* errors in sequence.                                      */
-                fprintf(stderr,"\nEnter revision number or <return> or '.': ");
+                VOID fprintf(stderr,"\nEnter revision number or <return> or '.': ");
                 if(gets(symrevno)==NULL) break;
                 if (*symrevno == '.') break;
-                fprintf(stderr,"%s;\n",symrevno);
+                VOID fprintf(stderr,"%s;\n",symrevno);
                 expandsym(symrevno,numricrevno);
-                fprintf(stderr,"expanded number: %s; ",numricrevno);
-                fprintf(stderr,"Date: ");
-                gets(date); fprintf(stderr,"%s; ",date);
-                fprintf(stderr,"Author: ");
-                gets(author);fprintf(stderr,"%s; ",author);
-                fprintf(stderr,"State: ");
-                gets(state); fprintf(stderr, "%s;\n", state);
-                target=genrevs(numricrevno,*date=='\0'?nil:date, *author=='\0'?nil:author,
-                              *state=='\0'?nil:state,gendeltas);
+                VOID fprintf(stderr,"expanded number: %s; ",numricrevno);
+                VOID fprintf(stderr,"Date: ");
+                gets(date); VOID fprintf(stderr,"%s; ",date);
+                VOID fprintf(stderr,"Author: ");
+                gets(author);VOID fprintf(stderr,"%s; ",author);
+                VOID fprintf(stderr,"State: ");
+                gets(state); VOID fprintf(stderr, "%s;\n", state);
+                target=genrevs(numricrevno,*date=='\0'?(char *)nil:date, *author=='\0'?(char *)nil:author,
+                              *state=='\0'?(char *)nil:state,gendeltas);
                 if (target!=nil) {
                         i=0;
                         while (gendeltas[i]!=nil) {
-                                fprintf(stderr,"%s\n",gendeltas[i++]->num);
+                                VOID fprintf(stderr,"%s\n",gendeltas[i++]->num);
                         }
                 }
         } while (true);
-	clearerr(stdin);
-        fprintf(stderr,"done\n");
+        VOID fprintf(stderr,"done\n");
 
 }
 

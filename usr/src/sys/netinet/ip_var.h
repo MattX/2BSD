@@ -1,9 +1,15 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)ip_var.h	7.2 (Berkeley) 10/28/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)ip_var.h	7.4 (Berkeley) 1/7/88
  */
 
 /*
@@ -46,15 +52,15 @@ struct ipq {
  * Note: ipf_next must be at same offset as ipq_next above
  */
 struct	ipasfrag {
-#if ENDIAN == LITTLE
+#if BYTE_ORDER == LITTLE_ENDIAN
 	u_char	ip_hl:4,
 		ip_v:4;
 #endif
-#if ENDIAN == BIG
+#if BYTE_ORDER == BIG_ENDIAN
 	u_char	ip_v:4,
 		ip_hl:4;
 #endif
-#if ENDIAN == PDP
+#if BYTE_ORDER == PDP_ENDIAN
 	u_int	ip_hl:4,
 		ip_v:4;
 #endif
@@ -68,8 +74,7 @@ struct	ipasfrag {
 	struct	ipasfrag *ipf_next;	/* next fragment */
 	struct	ipasfrag *ipf_prev;	/* previous fragment */
 #ifdef BSD2_10
-	struct	mbuf *ipf_mbuf;         /* actual fragment */
-	short	ipf_pad;
+	u_long	ipf_pad;
 #endif
 };
 
@@ -109,7 +114,7 @@ struct	ipstat {
 	long	ips_redirectsent;	/* packets forwarded on same net */
 };
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 /* flags passed to ip_output as last parameter */
 #define	IP_FORWARDING		0x1		/* most of ip header exists */
 #define	IP_ROUTETOIF		SO_DONTROUTE	/* bypass routing tables */

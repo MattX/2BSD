@@ -1,9 +1,9 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 /* Recovers JOVE files after a system/editor crash.
    Usage: recover [-d directory] [-syscrash]
@@ -20,6 +20,9 @@
 #undef EOF
 #undef BUFSIZ
 #undef putchar
+#undef getchar
+
+#define STDIO
 
 #include "jove.h"
 #include "temp.h"
@@ -105,7 +108,7 @@ DIR	*dp;
 	return &dir;
 }
 
-#endif BSD4_2
+#endif /* BSD4_2 */
 
 /* Get a line at `tl' in the tmp file into `buf' which should be LBSIZE
    long. */
@@ -141,8 +144,8 @@ disk_line	atl;
 		off;
 	static int	curblock = -1;
 
-	bno = daddr_to_bno(atl);
-	off = daddr_to_off(atl);
+	bno = da_to_bno(atl);
+	off = da_to_off(atl);
 	nleft = BUFSIZ - off;
 
 	if (bno != curblock) {
@@ -193,7 +196,7 @@ struct direct	*(*sorter)();
 		}
 		ourarray[nentries] = (struct direct *) malloc(sizeof *entry);
 		*ourarray[nentries] = *entry;
-		nentries++;
+		nentries += 1;
 	}
 	closedir(dirp);
 	if (nentries != nalloc)
@@ -394,7 +397,7 @@ tryagain:
 			goto tryagain;
 		}
 		get(&buflist[i], tofile);
-		nrecovered++;
+		nrecovered += 1;
 	}
 	printf("Recovered %d buffers.\n", nrecovered);
 }
@@ -432,7 +435,7 @@ register char	**args,
 	while (*args) {
 		if (strcmp(*args, str) == 0)
 			return args;
-		args++;
+		args += 1;
 	}
 	return 0;
 }
@@ -469,7 +472,7 @@ makblist()
 	while (buflist[i]) {
 		free((char *) buflist[i]);
 		buflist[i] = 0;
-		i++;
+		i += 1;
 	}
 }
 
@@ -500,7 +503,7 @@ FILE	*out;
 	while (--nlines >= 0) {
 		daddr = getaddr(ptrs_fp);
 		getline(daddr, buf);
-		Nlines++;
+		Nlines += 1;
 		Nchars += 1 + strlen(buf);
 		fputs(buf, out);
 		if (nlines > 0)
@@ -544,7 +547,7 @@ struct file_pair	*fp;
 #ifdef KILL0
 	if (kill(Header.Pid, 0) == 0)
 		return 0;
-#endif KILL0
+#endif /* KILL0 */
 
 	if (Header.Nbuffers == 0) {
 		printf("There are no modified buffers in %s; should I delete the tmp file?", pntrfile);
@@ -709,7 +712,7 @@ char	*argv[];
 		exit(0);
 	}
 	if (scanvec(argv, "-v"))
-		Verbose++;
+		Verbose = YES;
 /*	if (scanvec(argv, "-syscrash")) {
 		printf("Recovering jove files ... ");
 		savetmps();

@@ -1,40 +1,40 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)sys_socket.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)sys_socket.c	7.2 (Berkeley) 3/31/88
  */
 
 #include "param.h"
 #ifdef UCB_NET
-#include "../machine/psl.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "user.h"
 #include "file.h"
-#include "domain.h"
-#include "protosw.h"
 #include "mbuf.h"
+#include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
 #include "ioctl.h"
 #include "stat.h"
 
-#include <net/if.h>
-
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
+#include "../net/if.h"
+#include "../net/route.h"
 
 /*ARGSUSED*/
 soo_ioctl(so, cmd, data)
-	register struct socket *so;
+	struct socket *so;	/* remember to have the kentry routine pass */
+			   	/* a socket NOT a file pointer */
 	int cmd;
 	register caddr_t data;
 {
 
-	MAPSAVE();		/* should be after switch?  KB */
 	switch (cmd) {
 
 	case FIONBIO:
@@ -73,44 +73,34 @@ soo_ioctl(so, cmd, data)
 	 * different entry since a socket's unnecessary
 	 */
 #define	cmdbyte(x)	(((x) >> 8) & 0xff)
-	if (cmdbyte(cmd) == 'i') {
-		u.u_error = ifioctl(so, cmd, data);
-		MAPUNSAVE();
-		return;
-	}
-	if (cmdbyte(cmd) == 'r') {
-		u.u_error = rtioctl(cmd, data);
-		MAPUNSAVE();
-		return;
-	}
-	u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_CONTROL, 
-	    (struct mbuf *)cmd, (struct mbuf *)data, (struct mbuf *)0);
-	MAPREST();
-	return;
+	if (cmdbyte(cmd) == 'i')
+		return(u.u_error = ifioctl(so, cmd, data));
+	if (cmdbyte(cmd) == 'r')
+		return(u.u_error = rtioctl(cmd, data));
+	return(u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_CONTROL, 
+	    (struct mbuf *)cmd, (struct mbuf *)data, (struct mbuf *)0));
 }
 
-soo_select(fp, which)
-	register struct file *fp;
+soo_select(so, which)
+	register struct socket *so;  /* kentry() must pass socket not file */
 	int which;
 {
-	register struct socket *so = fp->f_socket;
-	register int retval = 0;
-	int s = splnet();
+	register int s = splnet();
 
 	switch (which) {
 
 	case FREAD:
 		if (soreadable(so)) {
-			retval++;
-			goto exit;
+			splx(s);
+			return (1);
 		}
 		sbselqueue(&so->so_rcv);
 		break;
 
 	case FWRITE:
 		if (sowriteable(so)) {
-			retval++;
-			goto exit;
+			splx(s);
+			return (1);
 		}
 		sbselqueue(&so->so_snd);
 		break;
@@ -118,15 +108,14 @@ soo_select(fp, which)
 	case 0:
 		if (so->so_oobmark ||
 		    (so->so_state & SS_RCVATMARK)) {
-			retval++;
-			goto exit;
+			splx(s);
+			return (1);
 		}
 		sbselqueue(&so->so_rcv);
 		break;
 	}
-exit:
 	splx(s);
-	return (retval);
+	return (0);
 }
 
 /*ARGSUSED*/
@@ -135,14 +124,9 @@ soo_stat(so, ub)
 	register struct stat *ub;
 {
 
-	register int	retval;
-
 	bzero((caddr_t)ub, sizeof (*ub));
-	MAPSAVE();
-	retval = (*so->so_proto->pr_usrreq)(so, PRU_SENSE,
+	return ((*so->so_proto->pr_usrreq)(so, PRU_SENSE,
 	    (struct mbuf *)ub, (struct mbuf *)0, 
-	    (struct mbuf *)0);
-	MAPREST();
-	return(retval);
+	    (struct mbuf *)0));
 }
 #endif

@@ -5,7 +5,7 @@
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)cu.c	5.2 (Berkeley) 1/13/86";
+static char sccsid[] = "@(#)cu.c	5.5 (Berkeley) 10/22/87";
 #endif not lint
 
 #include "tip.h"
@@ -27,6 +27,7 @@ cumain(argc, argv)
 		exit(8);
 	}
 	CU = DV = NOSTR;
+	BR = DEFBR;
 	for (; argc > 1; argv++, argc--) {
 		if (argv[1][0] != '-')
 			PN = argv[1];
@@ -42,7 +43,7 @@ cumain(argc, argv)
 			break;
 
 		case 's':
-			if (speed(atoi(argv[2])) == 0) {
+			if (argc < 3 || speed(atoi(argv[2])) == 0) {
 				fprintf(stderr, "cu: unsupported speed %s\n",
 					argv[2]);
 				exit(3);
@@ -76,7 +77,8 @@ cumain(argc, argv)
 	 * The "cu" host name is used to define the
 	 * attributes of the generic dialer.
 	 */
-	if ((i = hunt(sprintf(sbuf, "cu%d", BR))) == 0) {
+	(void)sprintf(sbuf, "cu%d", BR);
+	if ((i = hunt(sbuf)) == 0) {
 		printf("all ports busy\n");
 		exit(3);
 	}
@@ -87,12 +89,7 @@ cumain(argc, argv)
 	}
 	setbuf(stdout, NULL);
 	loginit();
-	gid = getgid();
-	egid = getegid();
-	uid = getuid();
-	euid = geteuid();
-	setregid(egid, gid);
-	setreuid(euid, uid);
+	user_uid();
 	vinit();
 	setparity("none");
 	boolean(value(VERBOSE)) = 0;
@@ -100,8 +97,7 @@ cumain(argc, argv)
 		ttysetup(speed(BR));
 	if (connect()) {
 		printf("Connect failed\n");
-		setreuid(uid, euid);
-		setregid(gid, egid);
+		daemon_uid();
 		delock(uucplock);
 		exit(1);
 	}

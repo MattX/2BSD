@@ -1,29 +1,40 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #ifndef lint
 char copyright[] =
-"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+"@(#) Copyright (c) 1983 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif /* not lint */
 
 #ifndef lint
-static char sccsid[] = "@(#)fingerd.c	5.1 (Berkeley) 6/6/85";
-#endif not lint
+static char sccsid[] = "@(#)fingerd.c	5.3 (Berkeley) 11/3/88";
+#endif /* not lint */
 
 /*
  * Finger server.
  */
 #include <sys/types.h>
 #include <netinet/in.h>
-
 #include <stdio.h>
 #include <ctype.h>
 
 main(argc, argv)
+	int argc;
 	char *argv[];
 {
 	register char *sp;
@@ -36,12 +47,11 @@ main(argc, argv)
 	i = sizeof (sin);
 	if (getpeername(0, &sin, &i) < 0)
 		fatal(argv[0], "getpeername");
-	line[0] = '\0';
-	gets(line);
+	if (fgets(line, sizeof(line), stdin) == NULL)
+		exit(1);
 	sp = line;
 	av[0] = "finger";
-	i = 1;
-	while (1) {
+	for (i = 1;;) {
 		while (isspace(*sp))
 			sp++;
 		if (!*sp)
@@ -88,7 +98,6 @@ main(argc, argv)
 fatal(prog, s)
 	char *prog, *s;
 {
-
 	fprintf(stderr, "%s: ", prog);
 	perror(s);
 	exit(1);

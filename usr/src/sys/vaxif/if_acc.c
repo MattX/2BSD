@@ -1,9 +1,20 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986, 1988 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)if_acc.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *	@(#)if_acc.c	7.5 (Berkeley) 6/29/88
  */
 
 #include "acc.h"
@@ -11,36 +22,34 @@
 
 /*
  * ACC LH/DH ARPAnet IMP interface driver.
- * Define "PLI" if connected to a PLI, to take care of PLI ready-line problems
  */
+#include "../machine/pte.h"
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
 #include "protosw.h"
 #include "socket.h"
-#include "../pdpuba/ubavar.h"
+#include "vmmac.h"
 
 #include "../net/if.h"
-
-#include "../netinet/in.h"
-#include "../netinet/in_systm.h"
 #include "../netimp/if_imp.h"
 
-#include "if_acc.h"
+#include "../vax/cpu.h"
+#include "../vax/mtpr.h"
+#include "if_accreg.h"
 #include "if_uba.h"
+#include "../vaxuba/ubareg.h"
+#include "../vaxuba/ubavar.h"
 
 int     accprobe(), accattach(), accrint(), accxint();
 struct  uba_device *accinfo[NACC];
 u_short accstd[] = { 0 };
 struct  uba_driver accdriver =
 	{ accprobe, 0, accattach, 0, accstd, "acc", accinfo };
-#define	ACCUNIT(x)	minor(x)
 
-int	accinit(), accstart(), accreset();
+int	accinit(), accoutput(), accdown(), accreset();
 
 /*
  * "Lower half" of IMP interface driver.
@@ -60,8 +69,7 @@ int	accinit(), accstart(), accreset();
  * e.g. IP, interact with the IMP driver, rather than the ACC.
  */
 struct	acc_softc {
-	struct	ifnet *acc_if;		/* pointer to IMP's ifnet struct */
-	struct	impcb *acc_ic;		/* data structure shared with IMP */
+	struct	imp_softc *acc_imp;	/* data structure shared with IMP */
 	struct	ifuba acc_ifuba;	/* UNIBUS resources */
 	struct	mbuf *acc_iq;		/* input reassembly queue */
 	short	acc_olen;		/* size of last message sent */
@@ -75,7 +83,6 @@ struct	acc_softc {
 accprobe(reg)
 	caddr_t reg;
 {
-#if !pdp11
 	register int br, cvec;		/* r11, r10 value-result */
 	register struct accdevice *addr = (struct accdevice *)reg;
 
@@ -91,11 +98,7 @@ accprobe(reg)
 	addr->ocsr = 0;
 	if (cvec && cvec != 0x200)	/* transmit -> receive */
 		cvec -= 4;
-#ifdef ECHACK
-	br = 0x16;
-#endif
 	return (1);
-#endif !pdp11
 }
 
 /*
@@ -104,22 +107,18 @@ accprobe(reg)
  * the back pointers to common data structures.
  */
 accattach(ui)
-	struct uba_device *ui;
+	register struct uba_device *ui;
 {
 	register struct acc_softc *sc = &acc_softc[ui->ui_unit];
 	register struct impcb *ip;
-	struct ifimpcb {
-		struct	ifnet ifimp_if;
-		struct	impcb ifimp_impcb;
-	} *ifimp;
 
-	if ((ifimp = (struct ifimpcb *)impattach(ui)) == 0)
-		panic("accattach");
-	sc->acc_if = &ifimp->ifimp_if;
-	ip = &ifimp->ifimp_impcb;
-	sc->acc_ic = ip;
+	if ((sc->acc_imp = impattach(ui->ui_driver->ud_dname, ui->ui_unit,
+	    accreset)) == 0)
+		return;
+	ip = &sc->acc_imp->imp_cb;
 	ip->ic_init = accinit;
-	ip->ic_start = accstart;
+	ip->ic_output = accoutput;
+	ip->ic_down = accdown;
 	sc->acc_ifuba.ifu_flags = UBA_CANTWAIT;
 #ifdef notdef
 	sc->acc_ifuba.ifu_flags |= UBA_NEEDBDP;
@@ -141,8 +140,10 @@ accreset(unit, uban)
 		return;
 	printf(" acc%d", unit);
 	sc = &acc_softc[unit];
+	sc->acc_imp->imp_if.if_flags &= ~IFF_RUNNING;
+	accoflush(unit);
 	/* must go through IMP to allow it to set state */
-	(*sc->acc_if->if_init)(unit);
+	(*sc->acc_imp->imp_if.if_init)(sc->acc_imp->imp_if.if_unit);
 }
 
 /*
@@ -157,8 +158,7 @@ accinit(unit)
 	register struct acc_softc *sc;
 	register struct uba_device *ui;
 	register struct accdevice *addr;
-	long info;
-	int i;
+	int info;
 
 	if (unit >= NACC || (ui = accinfo[unit]) == 0 || ui->ui_alive == 0) {
 		printf("acc%d: not alive\n", unit);
@@ -172,12 +172,14 @@ accinit(unit)
 	 * sizeof(struct imp_leader), then the if_ routines
 	 * would asssume we handle it on input and output.
 	 */
-	if (if_ubainit(&sc->acc_ifuba, ui->ui_ubanum, 0,
-	     (int)btoc(IMPMTU)) == 0) {
+	if ((sc->acc_imp->imp_if.if_flags & IFF_RUNNING) == 0 &&
+	    if_ubainit(&sc->acc_ifuba, ui->ui_ubanum, 0,
+	     (int)btoc(IMP_RCVBUF)) == 0) {
 		printf("acc%d: can't initialize\n", unit);
-		ui->ui_alive = 0;
+		sc->acc_imp->imp_if.if_flags &= ~(IFF_UP | IFF_RUNNING);
 		return (0);
 	}
+	sc->acc_imp->imp_if.if_flags |= IFF_RUNNING;
 	addr = (struct accdevice *)ui->ui_addr;
 
 	/*
@@ -196,11 +198,11 @@ accinit(unit)
 	 * Put up a read.  We can't restart any outstanding writes
 	 * until we're back in synch with the IMP (i.e. we've flushed
 	 * the NOOPs it throws at us).
-	 * Note: IMPMTU includes the leader.
+	 * Note: IMP_RCVBUF includes the leader.
 	 */
 	info = sc->acc_ifuba.ifu_r.ifrw_info;
 	addr->iba = (u_short)info;
-	addr->iwc = -(IMPMTU >> 1);
+	addr->iwc = -((IMP_RCVBUF) >> 1);
 #ifdef LOOPBACK
 	addr->ocsr |= OUT_BBACK;
 #endif
@@ -232,38 +234,52 @@ accinputreset(addr, unit)
 }
 
 /*
+ * Drop the host ready line to mark host down.
+ */
+accdown(unit)
+	int unit;
+{
+	register struct accdevice *addr;
+
+	addr = (struct accdevice *)(accinfo[unit]->ui_addr);
+        addr->ocsr = ACC_RESET;
+	DELAY(5000);
+	addr->ocsr = OUT_BBACK;		/* reset host master ready */
+	accoflush(unit);
+	return (1);
+}
+
+accoflush(unit)
+	int unit;
+{
+	register struct acc_softc *sc = &acc_softc[unit];
+
+	sc->acc_imp->imp_cb.ic_oactive = 0;
+	if (sc->acc_ifuba.ifu_xtofree) {
+		m_freem(sc->acc_ifuba.ifu_xtofree);
+		sc->acc_ifuba.ifu_xtofree = 0;
+	}
+}
+
+/*
  * Start output on an interface.
  */
-accstart(dev)
-	dev_t dev;
+accoutput(unit, m)
+	int unit;
+	struct mbuf *m;
 {
-	int unit = ACCUNIT(dev);
-	long info;
+	int info;
 	register struct acc_softc *sc = &acc_softc[unit];
 	register struct accdevice *addr;
-	struct mbuf *m;
 	u_short cmd;
 
-	if (sc->acc_ic->ic_oactive)
-		goto restart;
-	
-	/*
-	 * Not already active, deqeue a request and
-	 * map it onto the UNIBUS.  If no more
-	 * requeusts, just return.
-	 */
-	IF_DEQUEUE(&sc->acc_if->if_snd, m);
-	if (m == 0) {
-		sc->acc_ic->ic_oactive = 0;
-		return;
-	}
 	sc->acc_olen = if_wubaput(&sc->acc_ifuba, m);
-
-restart:
 	/*
 	 * Have request mapped to UNIBUS for
 	 * transmission; start the output.
 	 */
+	if (sc->acc_ifuba.ifu_flags & UBA_NEEDBDP)
+		UBAPURGE(sc->acc_ifuba.ifu_uba, sc->acc_ifuba.ifu_w.ifrw_bdp);
 	addr = (struct accdevice *)accinfo[unit]->ui_addr;
 	info = sc->acc_ifuba.ifu_w.ifrw_info;
 	addr->oba = (u_short)info;
@@ -273,74 +289,62 @@ restart:
 	cmd |= OUT_BBACK;
 #endif
 	addr->ocsr = cmd;
-	sc->acc_ic->ic_oactive = 1;
+	sc->acc_imp->imp_cb.ic_oactive = 1;
 }
 
 /*
  * Output interrupt handler.
  */
 accxint(unit)
+	int unit;
 {
 	register struct acc_softc *sc = &acc_softc[unit];
 	register struct accdevice *addr;
 
-	MAPSAVE();
 	addr = (struct accdevice *)accinfo[unit]->ui_addr;
-	if (sc->acc_ic->ic_oactive == 0) {
+	if (sc->acc_imp->imp_cb.ic_oactive == 0) {
 		printf("acc%d: stray xmit interrupt, csr=%b\n", unit,
 			addr->ocsr, ACC_OUTBITS);
-		goto out;
+		return;
 	}
-	sc->acc_if->if_opackets++;
-	sc->acc_ic->ic_oactive = 0;
+	sc->acc_imp->imp_if.if_opackets++;
+	sc->acc_imp->imp_cb.ic_oactive = 0;
 	if (addr->ocsr & ACC_ERR) {
 		printf("acc%d: output error, ocsr=%b, icsr=%b\n", unit,
 			addr->ocsr, ACC_OUTBITS, addr->icsr, ACC_INBITS);
-		sc->acc_if->if_oerrors++;
+		sc->acc_imp->imp_if.if_oerrors++;
 	}
 	if (sc->acc_ifuba.ifu_xtofree) {
 		m_freem(sc->acc_ifuba.ifu_xtofree);
 		sc->acc_ifuba.ifu_xtofree = 0;
 	}
-	if (sc->acc_if->if_snd.ifq_head)
-		accstart(unit);
-out:
-	MAPREST();
+	impstart(sc->acc_imp);
 }
 
 /*
  * Input interrupt handler
  */
 accrint(unit)
+	int unit;
 {
 	register struct acc_softc *sc = &acc_softc[unit];
 	register struct accdevice *addr;
     	struct mbuf *m;
-	int len;
-	long info;
+	int len, info;
 
-	MAPSAVE();
 	addr = (struct accdevice *)accinfo[unit]->ui_addr;
-	sc->acc_if->if_ipackets++;
+	sc->acc_imp->imp_if.if_ipackets++;
 
-#ifndef PLI
+	/*
+	 * Purge BDP; flush message if error indicated.
+	 */
+	if (sc->acc_ifuba.ifu_flags & UBA_NEEDBDP)
+		UBAPURGE(sc->acc_ifuba.ifu_uba, sc->acc_ifuba.ifu_r.ifrw_bdp);
 	if (addr->icsr & ACC_ERR) {
-#else
-	if (addr->icsr & (ACC_ERR|IN_RMR)) {
-#endif PLI
 		printf("acc%d: input error, csr=%b\n", unit,
 		    addr->icsr, ACC_INBITS);
-		sc->acc_if->if_ierrors++;
+		sc->acc_imp->imp_if.if_ierrors++;
 		sc->acc_flush = 1;
-
-		if(addr->icsr & IN_IMPBSY
-#ifdef PLI
- 		   || ((addr->icsr&IN_RMR) && (addr->icsr&IN_HRDY))
-#endif PLI
-		){		/* IMP ready line dropped */
-			impinput(unit, (struct mbuf *)0);
-			goto out;	/* Do NOT re-enable interrupts!!! */
-		}
 	}
 
 	if (sc->acc_flush) {
@@ -348,18 +352,18 @@ accrint(unit)
 			sc->acc_flush = 0;
 		goto setup;
 	}
-	len = IMPMTU + (addr->iwc << 1);
-	if (len < 0 || len > IMPMTU) {
-		printf("acc%d: bad length=%d\n", len);
-		sc->acc_if->if_ierrors++;
+	len = IMP_RCVBUF + (addr->iwc << 1);
+	if (len < 0 || len > IMP_RCVBUF) {
+		printf("acc%d: bad length=%d\n", unit, len);
+		sc->acc_imp->imp_if.if_ierrors++;
 		goto setup;
 	}
 
 	/*
-	 * The last parameter is always 0 since using
+	 * The offset parameter is always 0 since using
 	 * trailers on the ARPAnet is insane.
 	 */
-	m = if_rubaget(&sc->acc_ifuba, len, 0);
+	m = if_rubaget(&sc->acc_ifuba, len, 0, &sc->acc_imp->imp_if);
 	if (m == 0)
 		goto setup;
 	if ((addr->icsr & IN_EOM) == 0) {
@@ -382,10 +386,8 @@ setup:
 	 */
 	info = sc->acc_ifuba.ifu_r.ifrw_info;
 	addr->iba = (u_short)info;
-	addr->iwc = -(IMPMTU >> 1);
+	addr->iwc = -((IMP_RCVBUF)>> 1);
 	addr->icsr =
 		IN_MRDY | ACC_IE | IN_WEN | ((info & 0x30000) >> 12) | ACC_GO;
-out:
-	MAPREST();
 }
 #endif

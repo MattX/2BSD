@@ -13,69 +13,43 @@
  *	Armando P. Stettner  Digital Equipment Corp.  July, 1980
  */
 
-#include	<sys/param.h>
-#include	<sys/inode.h>
-#include	"saio.h"
+#include "../h/param.h"
+#include "../h/inode.h"
+#include "../pdpuba/rlreg.h"
+#include "saio.h"
+
+#define RLADDR	((struct rldevice *)0174400)
 
 #define	BLKRL1	10240		/* Number of UNIX blocks for an RL01 drive */
 #define BLKRL2	20480		/* Number of UNIX blocks for an RL02 drive */
 #define RLCYLSZ 10240		/* bytes per cylinder */
 #define RLSECSZ 256		/* bytes per sector */
 
-#define RESET 013
-#define	RL02TYP	0200	/* drive type bit */
-#define STAT 03
-#define GETSTAT 04
-#define WCOM 012
-#define RCOM 014
-#define SEEK 06
-#define SEEKHI 5
-#define SEEKLO 1
-#define RDHDR 010
-#define IENABLE 0100
-#define CRDY 0200
-#define OPI 02000
-#define CRCERR 04000
-#define TIMOUT 010000
-#define NXM 020000
-#define DE  040000
-
-struct device
-{
-	int rlcs ,
-	rlba ,
-	rlda ,
-	rlmp ;
-} ;
-
-#define RLADDR	((struct device *)0174400)
-#define RL_CNT 1
-
 struct 
 {
-	int	cn[4] ;		/* location of heads for each drive */
-	int	type[4] ;	/* parameter dependent upon drive type  (RL01/02) */
-	int	com ;		/* read or write command word */
-	int	chn ;		/* cylinder and head number */
-	unsigned int	bleft ;	/* bytes left to be transferred */
-	unsigned int	bpart ;	/* number of bytes transferred */
-	int	sn ;		/* sector number */
+	int	cn[4];		/* location of heads for each drive */
+	int	type[4];	/* parameter dependent upon drive type  (RL01/02) */
+	int	com;		/* read or write command word */
+	int	chn;		/* cylinder and head number */
+	unsigned int bleft;	/* bytes left to be transferred */
+	unsigned int bpart;	/* number of bytes transferred */
+	int	sn;		/* sector number */
 	union {
-		int	w[2] ;
-		long	l ;
-	} addr ;			/* address of memory for transfer */
+		int	w[2];
+		long	l;
+	} addr;			/* address of memory for transfer */
 
-}	rl = {-1,-1,-1,-1, -1,-1,-1,-1} ;	/* initialize cn[] and type[] */
+}	rl = {-1,-1,-1,-1,-1,-1,-1,-1};  /* initialize cn[] and type[] */
 
 rlstrategy(io, func)
-register struct iob *io ;
-int func ;
+	register struct iob *io;
+	int func;
 {
-	int nblocks ;	/* number of UNIX blocks for the drive in question */
-	int drive ;
-	int dif ;
-	int head ;
-	int ctr ;
+	int nblocks;	/* number of UNIX blocks for the drive in question */
+	int drive;
+	int dif;
+	int head;
+	int ctr;
 
 
 	/*
@@ -98,45 +72,45 @@ int func ;
 	 * drive type. If a valid status is not returned after eight
 	 * attempts, then an error message is printed.
 	 */
-	drive = io->i_unit ;
-	if (rl.type[drive] < 0)
-		{
+	drive = io->i_unit;
+	if (rl.type[drive] < 0) {
 		ctr = 0;
 		do {
-		RLADDR->rlda = RESET ;	/* load this register; what a dumb controller */
-		RLADDR->rlcs = (drive << 8) | GETSTAT ;	/* set up csr */
-		while ((RLADDR->rlcs & CRDY) == 0)	/* wait for it */
-			;
-		} while (((RLADDR->rlmp & 0177477) != 035) && (++ctr < 8)) ;
+			/* load this register; what a dumb controller */
+			RLADDR->rlda = RLDA_RESET|RLDA_GS;
+			/* set up csr */
+			RLADDR->rlcs = (drive << 8) | RL_GETSTATUS;
+			while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for it */		
+				continue;
+		} while (((RLADDR->rlmp & 0177477) != 035) && (++ctr < 8));
 		if (ctr >= 8)
-			printf("\nCan't get status of RL unit %d\n",drive) ;
-		if (RLADDR->rlmp & RL02TYP) 
-			rl.type[drive] = BLKRL2 ;	/* drive is RL02 */
+			printf("\nCan't get status of RL unit %d\n", drive);
+		if (RLADDR->rlmp & RLMP_DTYP) 
+			rl.type[drive] = BLKRL2;	/* drive is RL02 */
 		else
-			rl.type[drive] = BLKRL1 ;	/* drive RL01 */
+			rl.type[drive] = BLKRL1;	/* drive RL01 */
 		/*
 		 * When the device is first touched, find out where the heads are.
 		 */
 		/* find where the heads are */
-		RLADDR->rlcs = (drive << 8) | RDHDR;
-		while ((RLADDR->rlcs&CRDY) == 0)
-			;
-		/*rl.cn[drive] = (RLADDR->rlmp&0177700) >> 6;*/
-		rl.cn[drive] = ((RLADDR->rlmp) >> 6) & 01777; /* fix sign bug */
-		}
-	nblocks = rl.type[drive] ;	/* how many blocks on this drive */
-	if(io->i_bn >= nblocks)
-		return -1 ;
+		RLADDR->rlcs = (drive << 8) | RL_RHDR;
+		while ((RLADDR->rlcs&RL_CRDY) == 0)
+			continue;
+		rl.cn[drive] = ((RLADDR->rlmp) >> 6) & 01777;
+	}
+	nblocks = rl.type[drive];	/* how many blocks on this drive */
+	if (io->i_bn >= nblocks)
+		return -1;
 	rl.chn = io->i_bn/20;
 	rl.sn = (io->i_bn%20) << 1;
 	rl.bleft = io->i_cc;
 	rl.addr.w[0] = segflag & 3;
-	rl.addr.w[1] = (int)io->i_ma ;
-	rl.com = (drive << 8) ;
+	rl.addr.w[1] = (int)io->i_ma;
+	rl.com = (drive << 8);
 	if (func == READ)
-		rl.com |= RCOM;
+		rl.com |= RL_RCOM;
 	else
-		rl.com |= WCOM;
+		rl.com |= RL_WCOM;
 reading:
 	/*
 	 * One has to seek an RL head, relativily.
@@ -144,46 +118,46 @@ reading:
 	dif =(rl.cn[drive] >> 1) - (rl.chn >>1);
 	head = (rl.chn & 1) << 4;
 	if (dif < 0)
-		RLADDR->rlda = (-dif <<7) | SEEKHI | head;
+		RLADDR->rlda = (-dif <<7) | RLDA_SEEKHI | head;
 	else
-		RLADDR->rlda = (dif << 7) | SEEKLO | head;
-	RLADDR->rlcs = (drive << 8) | SEEK;
+		RLADDR->rlda = (dif << 7) | RLDA_SEEKLO | head;
+	RLADDR->rlcs = (drive << 8) | RL_SEEK;
 	rl.cn[drive] = rl.chn; 	/* keep current, our notion of where the heads are */
 	if (rl.bleft < (rl.bpart = RLCYLSZ - (rl.sn * RLSECSZ)))
 		rl.bpart = rl.bleft;
-	while ((RLADDR->rlcs&CRDY) == 0) ;
+	while ((RLADDR->rlcs&RL_CRDY) == 0)
+		continue;
 	RLADDR->rlda = (rl.chn << 6) | rl.sn;
-	RLADDR->rlba = rl.addr.w[1];
+	RLADDR->rlba = (caddr_t) rl.addr.w[1];
 	RLADDR->rlmp = -(rl.bpart >> 1);
 	RLADDR->rlcs = rl.com | rl.addr.w[0] << 4;
-	while ((RLADDR->rlcs & CRDY) == 0)	/* wait for completion */
-		;
-	if (RLADDR->rlcs < 0)	/* check error bit */
-		{
-		if (RLADDR->rlcs & 040000)	/* Drive error */
-			{
+	while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for completion */
+		continue;
+	if (RLADDR->rlcs < 0) {
+		/* check error bit */
+		if (RLADDR->rlcs & 040000) {
+			/* Drive error */
 			/*
 			 * get status from drive
 			 */
-			RLADDR->rlda = STAT;
-			RLADDR->rlcs = (drive << 8) | GETSTAT;
-			while ((RLADDR->rlcs & CRDY) == 0)	/* wait for controller */
-				;
-			}
-		printf("Rl disk error: cyl=%d, head=%d, sector=%d, rlcs=%o, rlmp=%o\n",
-			rl.chn>>01, rl.chn&01, rl.sn, RLADDR->rlcs, RLADDR->rlmp) ;
-		return -1 ;
+			RLADDR->rlda = RLDA_GS;
+			RLADDR->rlcs = (drive << 8) | RL_GETSTATUS;
+			while ((RLADDR->rlcs & RL_CRDY) == 0)	/* wait for controller */
+				continue;
 		}
+		printf("Rl disk error: cyl=%d, head=%d, sector=%d, rlcs=%o, rlmp=%o\n",
+			rl.chn>>01, rl.chn&01, rl.sn, RLADDR->rlcs, RLADDR->rlmp);
+		return(-1);
+	}
 	/*
 	 * Determine if there is more to read to satisfy this request.
 	 * This is to compensate for the lacl of spiraling reads.
 	 */
-	if ((rl.bleft -= rl.bpart) > 0)
-		{
-		rl.addr.l += rl.bpart ;
-		rl.sn = 0 ;
-		rl.chn++ ;
-		goto reading ;	/* read some more */
-		}
-	return io->i_cc ;
+	if ((rl.bleft -= rl.bpart) > 0) {
+		rl.addr.l += rl.bpart;
+		rl.sn = 0;
+		rl.chn++;
+		goto reading;	/* read some more */
+	}
+	return(io->i_cc);
 }

@@ -17,7 +17,15 @@ tsprobe(addr)
 {
 	extern int errno;
 
-	errno = 0;		/* assume exists if no tm-11 there */
-	grab(&(((struct tmdevice *)addr)->tmba));
-	return(errno ? ACP_EXISTS : ACP_NXDEV);
+	/*
+	 * Unfortunately the TS and TM CSRs overlap.  So simply testing for
+	 * presence of a TS register isn't good enough.  So we try to do a
+	 * TM select of drive 2.  If we get a bus fault or if the select
+	 * works, we don't have a TS.
+	 */
+	errno = 0;
+	stuff(01000, &(((struct tmdevice *)addr)->tmcs));
+	if (errno || (grab(&(((struct tmdevice *)addr)->tmcs)) & 01000))
+		return(ACP_NXDEV);
+	return(ACP_EXISTS);
 }

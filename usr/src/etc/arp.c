@@ -1,5 +1,5 @@
 #ifndef lint
-static	char *sccsid = "@(#)arp.c	5.2 (Berkeley) 2/21/86";
+static	char *sccsid = "@(#)arp.c	5.4 (Berkeley) 11/18/87";
 #endif
 
 /*
@@ -7,9 +7,10 @@ static	char *sccsid = "@(#)arp.c	5.2 (Berkeley) 2/21/86";
  */
 
 #include <stdio.h>
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <netdb.h>
@@ -23,7 +24,11 @@ main(argc, argv)
 	char **argv;
 {
 	if (argc >= 2 && strcmp(argv[1], "-a") == 0) {
+#ifdef BSD2_10
+		char *kernel = "/netnix", *mem = "/dev/mem";
+#else
 		char *kernel = "/unix", *mem = "/dev/kmem";
+#endif
 
 		if (argc >= 3)
 			kernel = argv[2];
@@ -37,7 +42,8 @@ main(argc, argv)
 		exit(0);
 	}
 	if (argc >= 4 && strcmp(argv[1], "-s") == 0) {
-		set(argc-2, &argv[2]);
+		if (set(argc-2, &argv[2]))
+			exit(1);
 		exit(0);
 	}
 	if (argc == 3 && strcmp(argv[1], "-d") == 0) {
@@ -45,7 +51,8 @@ main(argc, argv)
 		exit(0);
 	}
 	if (argc == 3 && strcmp(argv[1], "-f") == 0) {
-		file(argv[2]);
+		if (file(argv[2]))
+			exit(1);
 		exit(0);
 	}
 	usage();
@@ -61,6 +68,7 @@ file(name)
 	FILE *fp;
 	int i;
 	char line[100], arg[5][50], *args[5];
+	int retval;
 
 	if ((fp = fopen(name, "r")) == NULL) {
 		fprintf(stderr, "arp: cannot open %s\n", name);
@@ -71,16 +79,20 @@ file(name)
 	args[2] = &arg[2][0];
 	args[3] = &arg[3][0];
 	args[4] = &arg[4][0];
+	retval = 0;
 	while(fgets(line, 100, fp) != NULL) {
-		i = sscanf(line, "%s %s %s %s", arg[0], arg[1], arg[2], arg[3],
-			arg[4]);
+		i = sscanf(line, "%s %s %s %s %s", arg[0], arg[1], arg[2],
+		    arg[3], arg[4]);
 		if (i < 2) {
 			fprintf(stderr, "arp: bad line: %s\n", line);
+			retval = 1;
 			continue;
 		}
-		set(i, args);
+		if (set(i, args))
+			retval = 1;
 	}
 	fclose(fp);
+	return (retval);
 }
 
 /*
@@ -106,14 +118,14 @@ set(argc, argv)
 		hp = gethostbyname(host);
 		if (hp == NULL) {
 			fprintf(stderr, "arp: %s: unknown host\n", host);
-			return;
+			return (1);
 		}
 		bcopy((char *)hp->h_addr, (char *)&sin->sin_addr,
 		    sizeof sin->sin_addr);
 	}
 	ea = (u_char *)ar.arp_ha.sa_data;
 	if (ether_aton(eaddr, ea))
-		return;
+		return (1);
 	ar.arp_flags = ATF_PERM;
 	while (argc-- > 0) {
 		if (strncmp(argv[0], "temp", 4) == 0)
@@ -135,6 +147,7 @@ set(argc, argv)
 		exit(1);
 	}
 	close(s);
+	return (0);
 }
 
 
@@ -240,6 +253,16 @@ struct nlist nl[] = {
 	{ "" },
 };
 
+#ifdef BSD2_10
+char	unix2_10[] = "/vmunix";
+u_int	base2_10;
+struct nlist kl[] = {
+#define	X_NETDATA	0
+	{ "_netdata" },
+	{ "" }
+};
+#endif
+
 /*
  * Dump the entire arp table
  */
@@ -251,8 +274,16 @@ dump(kernel, mem)
 	struct hostent *hp;
 	char *host;
 	int bynumber = 0;
+	extern int h_errno;
 
 	nlist(kernel, nl);
+#ifdef BSD2_10
+	nlist(unix2_10, kl);
+	if(kl[X_NETDATA].n_type == 0) {
+		fprintf(stderr, "arp: %s: bad namelist\n", unix2_10);
+		exit(1);
+	}
+#endif
 	if(nl[X_ARPTAB_SIZE].n_type == 0) {
 		fprintf(stderr, "arp: %s: bad namelist\n", kernel);
 		exit(1);
@@ -262,7 +293,13 @@ dump(kernel, mem)
 		fprintf(fprintf, "arp: cannot open %s\n", mem);
 		exit(1);
 	}
+#ifdef BSD2_10
+	lseek(mf, (long)kl[X_NETDATA].n_value, 0);
+	read(mf, &base2_10, sizeof(base2_10));
+	lseek(mf, (long)nl[X_ARPTAB_SIZE].n_value + ctob((long)base2_10), 0);
+#else
 	lseek(mf, (long)nl[X_ARPTAB_SIZE].n_value, 0);
+#endif
 	read(mf, &arptab_size, sizeof arptab_size);
 	if (arptab_size <=0 || arptab_size > 1000) {
 		fprintf(stderr, "arp: %s: namelist wrong\n", kernel);
@@ -274,7 +311,11 @@ dump(kernel, mem)
 		fprintf(stderr, "arp: can't get memory for arptab\n");
 		exit(1);
 	}
+#ifdef BSD2_10
+	lseek(mf, (long)nl[X_ARPTAB].n_value + ctob((long)base2_10), 0);
+#else
 	lseek(mf, (long)nl[X_ARPTAB].n_value, 0);
+#endif
 	if (read(mf, (char *)at, sz) != sz) {
 		perror("arp: error reading arptab");
 		exit(1);
@@ -335,6 +376,6 @@ usage()
 	printf("Usage: arp hostname\n");
 	printf("       arp -a [/vmunix] [/dev/kmem]\n");
 	printf("       arp -d hostname\n");
-	printf("       arp -s hostname ether_addr [temp] [pub]\n");
+	printf("       arp -s hostname ether_addr [temp] [pub] [trail]\n");
 	printf("       arp -f filename\n");
 }

@@ -47,6 +47,82 @@ int xp_offset[] = {
 	0,		0,		0,		0,
 };
 
+struct xp_controller {
+	struct	buf *xp_actf;		/* pointer to next active xputab */
+	struct	buf *xp_actl;		/* pointer to last active xputab */
+	struct	hpdevice *xp_addr;	/* csr address */
+	char	xp_flags;		/* controller-type flags */
+	char	xp_active;		/* nonzero if doing a transfer */
+};
+
+struct xp_drive {
+	struct	xp_controller *xp_ctlr; /* controller to which slave attached */
+	char	xp_type;		/* drive type */
+	char	xp_unit;		/* slave number */
+	struct	size *xp_sizes;		/* pointer to sizes array */
+	char	xp_nsect;
+	char	xp_ntrack;
+	int	xp_nspc;		/* sectors/cylinder */
+	int	xp_cc;			/* current cylinder, for RM's */
+#ifdef BADSECT
+	int	xp_ncyl;		/* cylinders per pack */
+#endif
+};
+
+/*
+ * bits in xp_flags:
+ */
+#define	XP_NOCC		1		/* has no current cylinder register */
+#define	XP_RH70		2		/* uses 22-bit addressing */
+#define	XP_NOSEARCH	4		/* won't do search commands */
+
+#ifdef BADSECT
+#define	NCYL(x)		(x)
+#else !BADSECT
+#define	NCYL(x)		/* not used */
+#endif BADSECT
+
+#ifndef XP_PROBE
+/*
+ * Macros to inititialize xp_drive entries.  These can be used as examples,
+ * or as the actual initializers in ioconf.c.  The arguments are the number
+ * of the controller to which the drive is attached, and the physical
+ * drive unit number.  Used only if XP_PROBE is not defined.  See xp.c
+ * for more information.
+ */
+#define	RM02_INIT(c,u) \
+	{ &xp_controller[c], RM02, u, &rm_sizes, \
+	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
+#define	RM03_INIT(c,u) \
+	{ &xp_controller[c], RM03, u, &rm_sizes, \
+	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
+#define	RM05_INIT(c,u) \
+	{ &xp_controller[c], RM05, u, &rm5_sizes, \
+	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5_CYL)  } 
+#define	RM05X_INIT(c,u) \
+	{ &xp_controller[c], RM05X, u, &rm5_sizes, \
+	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5X_CYL)  } 
+#define	RP06_INIT(c,u) \
+	{ &xp_controller[c], RP06, u, &hp_sizes, \
+	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP06_CYL)  } 
+#define	RP05_INIT(c,u) \
+	{ &xp_controller[c], RP05, u, &hp_sizes, \
+	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
+#define	RP04_INIT(c,u) \
+	{ &xp_controller[c], RP04, u, &hp_sizes, \
+	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
+#define	SI_INIT(c,u) \
+	{ &xp_controller[c], SI, u, &si_sizes, \
+	SI_SECT, SI_TRAC, SI_SECT*SI_TRAC, 0, NCYL(SI_CYL)  }
+#define	DV_INIT(c,u) \
+	{ &xp_controller[c], DV, u, &dv_sizes, \
+	DV_SECT, DV_TRAC, DV_SECT*DV_TRAC, 0, NCYL(DV_CYL)  } 
+#define	RM2X_INIT(c,u) \
+	{ &xp_controller[c], RM2X, u, &rm2x_sizes, \
+	RM2X_SECT, RM2X_TRAC, RM2X_SECT*RM2X_TRAC, 0, NCYL(RM2X_CYL)  }
+#endif !XP_PROBE
+
+
 /*
  * xp_drive and xp_controller may be initialized here, or filled in at boot
  * time if XP_PROBE is enabled.  xp_controller address fields must be
@@ -60,6 +136,7 @@ int xp_offset[] = {
  * XP_RH70 flag need not be set here, the driver will always check that.
  */
 #define XPADDR	((struct hpdevice *)0176700)
+
 struct xp_controller	xp_controller[NXPC] = {
 /*	0	0	addr	flags			0 */
 #ifdef XP_PROBE
@@ -95,7 +172,16 @@ struct xp_drive	xp_drive[NXPD]
 struct size {
 	daddr_t	nblocks;
 	int	cyloff;
-} rm_sizes[8] = { /* RM02/03 */
+} hp_sizes[8] = { /* RP04/05/06 */
+	   9614,	  0,	/* a: cyl   0 - 22 */
+	   8778,	 23,	/* b: cyl  23 - 43 */
+	 153406,	 44,	/* c: cyl  44 - 410, RP04/05 */
+	 168872,	411,	/* d: cyl 411 - 814, RP06 */
+	 322278,	 44,	/* e: cyl  44 - 814, RP06 */
+	      0,	  0,	/* f: Not Defined */
+	 171798,	  0,	/* g: cyl   0 - 410, whole RP04/05 */
+	 340670,	  0,	/* h: cyl   0 - 814, whole RP06 */
+}, rm_sizes[8] = { /* RM02/03 */
 	   4800,	  0,	/* a: cyl   0 -  29 */
 	   4800,	 30,	/* b: cyl  30 -  59 */
 	 122080,	 60,	/* c: cyl  60 - 822 */
@@ -104,7 +190,7 @@ struct size {
 	   9600,	  0,	/* f: cyl   0 -  59, overlaps a & b */
 	      0,	  0,	/* g: Not Defined */
 	 131680,	  0,	/* h: cyl   0 - 822 */
-}, rm5_sizes[8] = { /* RM05, CDC 9766 */
+}, rm5_sizes[8] = { /* RM05, or SI 9500, CDC 9766 */
 	   9120,	  0,	/* a: cyl   0 -  14 */
 	   9120,	 15,	/* b: cyl  15 -  29 */
 	 234080,	 30,	/* c: cyl  30 - 414 */
@@ -113,43 +199,7 @@ struct size {
 	 152000,	300,	/* f: cyl 300 - 549 */
 	 165984,	550,	/* g: cyl 550 - 822 */
 	 500384,	  0,	/* h: cyl   0 - 822 */
-}, si5_sizes[8] = { /* SI9775, direct mapping */
-	  10240,	  0,	/* a: cyl   0 -   7 */
-	  10240,	  8,	/* b: cyl   8 -  15 */
-	 510720,	 16,	/* c: cyl  16 - 414 */
-	 547840,	415,	/* d: cyl 415 - 842 */
-	 363520,	 16,	/* e: cyl  16 - 299 */
-	 320000,	300,	/* f: cyl 300 - 549 */
-	 375040,	550,	/* g: cyl 550 - 842 */
-	1079040,	  0,	/* h: cyl   0 - 842 */
-}, hp_sizes[8] = { /* RP04/05/06 */
-	   9614,	  0,	/* a: cyl   0 - 22 */
-	   8778,	 23,	/* b: cyl  23 - 43 */
-	 153406,	 44,	/* c: cyl  44 - 410, RP04/05 */
-	 168872,	411,	/* d: cyl 411 - 814, RP06 */
-	 322278,	 44,	/* e: cyl  44 - 814, RP06 */
-	      0,	  0,	/* f: Not Defined */
-	 171798,	  0,	/* g: cyl   0 - 410, whole RP04/05 */
-	 340670,	  0	/* h: cyl   0 - 814, whole RP06 */
-}, dv_sizes[8] = { /* Diva Comp V, Ampex 9300 in direct mode */
-	   9405,	  0,	/* a: cyl   0 -  14 */
-	   9405,	 15,	/* b: cyl  15 -  29 */
-	 241395,	 30,	/* c: cyl  30 - 414 */
-	 250800,	415,	/* d: cyl 415 - 814 */
-	 169290,	 30,	/* e: cyl  30 - 299 */
-	 156750,	300,	/* f: cyl 300 - 549 */
-	 166155,	550,	/* g: cyl 550 - 814 */
-	 511005,	  0	/* h: cyl   0 - 814 */
-}, rm2x_sizes[8] = { /* Fuji 160 */
-	   9600,	  0,	/* a: cyl   0 -  29 */
-	   9600,	 30,	/* b: cyl  30 -  59 */
-	 244160,	 60,	/* c: cyl  60 - 822 */
-	 125440,	 60,	/* d: cyl  60 - 451 */
-	 118720,	452,	/* e: cyl 452 - 822 */
-	  59520,	452,	/* f: cyl 452 - 637 */
-	  59200,	638,	/* g: cyl 638 - 822 */
-	 263360,	  0	/* h: cyl   0 - 822 */
-}, cap_sizes[8] = { /* SI Capricorn */
+}, cap_sizes[8] = { /* Ampex Capricorn */
 	  16384,	  0,	/* a: cyl   0 thru   31 */
 	  33792,	 32,	/* b: cyl  32 thru   97 */
 	 291840,	 98,	/* c: cyl  98 thru  667 */
@@ -158,7 +208,16 @@ struct size {
 	 109568,	810,	/* f: cyl 810 thru 1023 */
 	 182272,	668,	/* g: cyl 668 thru 1023 */
 	 524288,	  0,	/* h: cyl   0 thru 1023 */
-}, si_sizes[8] = { /* SI Eagle */
+}, si5_sizes[8] = { /* SI, CDC 9775, direct mapping */
+	  10240,	  0,	/* a: cyl   0 -   7 */
+	  10240,	  8,	/* b: cyl   8 -  15 */
+	 510720,	 16,	/* c: cyl  16 - 414 */
+	 547840,	415,	/* d: cyl 415 - 842 */
+	 363520,	 16,	/* e: cyl  16 - 299 */
+	 320000,	300,	/* f: cyl 300 - 549 */
+	 375040,	550,	/* g: cyl 550 - 842 */
+	1079040,	  0,	/* h: cyl   0 - 842 */
+}, si_sizes[8] = { /* SI 6100, Fuji Eagle 2351A */
 	  11520,	  0,	/* a: cyl   0 -  11 */
 	  11520,	 12,	/* b: cyl  12 -  23 */
 	 474240,	 24,	/* c: cyl  24 - 517 */
@@ -166,7 +225,25 @@ struct size {
 	 218880,	614,	/* e: cyl 614 - 841 */
 	      0,	  0,	/* f: Not Defined */
 	      0,	  0,	/* g: Not Defined */
-	 808320,	  0	/* h: cyl   0 - 841 (everything) */
+	 808320,	  0,	/* h: cyl   0 - 841 (everything) */
+}, rm2x_sizes[8] = { /* Emulex SC01B or SI 9400, Fuji 160 */
+	   9600,	  0,	/* a: cyl   0 -  29 */
+	   9600,	 30,	/* b: cyl  30 -  59 */
+	 244160,	 60,	/* c: cyl  60 - 822 */
+	 125440,	 60,	/* d: cyl  60 - 451 */
+	 118720,	452,	/* e: cyl 452 - 822 */
+	  59520,	452,	/* f: cyl 452 - 637 */
+	  59200,	638,	/* g: cyl 638 - 822 */
+	 263360,	  0,	/* h: cyl   0 - 822 */
+}, dv_sizes[8] = { /* Diva Comp V, Ampex 9300 in direct mode */
+	   9405,	  0,	/* a: cyl   0 -  14 */
+	   9405,	 15,	/* b: cyl  15 -  29 */
+	 241395,	 30,	/* c: cyl  30 - 414 */
+	 250800,	415,	/* d: cyl 415 - 814 */
+	 169290,	 30,	/* e: cyl  30 - 299 */
+	 156750,	300,	/* f: cyl 300 - 549 */
+	 166155,	550,	/* g: cyl 550 - 814 */
+	 511005,	  0,	/* h: cyl   0 - 814 */
 };
 /* END OF STUFF WHICH SHOULD BE READ IN PER DISK */
 
@@ -179,18 +256,18 @@ struct xpst {
 	struct	size *sizes;	/* partition tables */
 	short	flags;		/* controller flags */
 } xpst[] = {
-	{ RM02, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
-	{ RM2X, RM2X_SECT, RM2X_TRAC, RM2X_CYL, rm2x_sizes, XP_NOCC },
-	{ RM03, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
-	{ RM05, RM5_SECT,  RM5_TRAC,  RM5_CYL,  rm5_sizes,  XP_NOCC },
-	{ RM5X, RM5X_SECT, RM5X_TRAC, RM5X_CYL, rm5_sizes,  XP_NOCC },
-	{ SI5,  SI5_SECT,  SI5_TRAC,  SI5_CYL,  si5_sizes,  XP_NOCC },
 	{ RP04, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
 	{ RP05, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
 	{ RP06, HP_SECT,   HP_TRAC,   RP06_CYL, hp_sizes,   0 },
-	{ DV,   DV_SECT,   DV_TRAC,   DV_CYL,	dv_sizes,   XP_NOSEARCH },
+	{ RM02, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
+	{ RM03, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
+	{ RM05, RM5_SECT,  RM5_TRAC,  RM5_CYL,  rm5_sizes,  XP_NOCC },
 	{ CAP,  CAP_SECT,  CAP_TRAC,  CAP_CYL,  cap_sizes,  XP_NOCC },
+	{ SI5,  SI5_SECT,  SI5_TRAC,  SI5_CYL,  si5_sizes,  XP_NOCC },
 	{ SI,   SI_SECT,   SI_TRAC,   SI_CYL,   si_sizes,   XP_NOCC },
+	{ RM2X, RM2X_SECT, RM2X_TRAC, RM2X_CYL, rm2x_sizes, XP_NOCC },
+	{ RM5X, RM5X_SECT, RM5X_TRAC, RM5X_CYL, rm5_sizes,  XP_NOCC },
+	{ DV,   DV_SECT,   DV_TRAC,   DV_CYL,	dv_sizes,   XP_NOSEARCH },
 	{ 0,    0,         0,         0,        0 }
 };
 #endif
@@ -411,10 +488,10 @@ xpstrategy(bp)
 register struct buf *bp;
 {
 	register struct xp_drive *xd;
-	register unit;
+	register int unit;
 	struct buf *dp;
 	short pseudo_unit;
-	int	s;
+	int s;
 	long bn;
 
 	unit = dkunit(bp);
@@ -439,7 +516,7 @@ errexit:
 #endif
 	bp->b_cylin = bn / xd->xp_nspc + xd->xp_sizes[pseudo_unit].cyloff;
 	dp = &xputab[unit];
-	s = spl5();
+	s = splbio();
 	disksort(dp, bp);
 	if (dp->b_active == 0) {
 		xpustart(unit);
@@ -854,12 +931,12 @@ register struct	buf *bp;
 		npx = bp->b_error;
 		bp->b_error = 0;
 		ndone = npx * NBPG;
-		wc = ((int)(ndone - bp->b_bcount)) / NBPW;
+		wc = ((int)(ndone - bp->b_bcount)) / (int)NBPW;
 	}
 	else {
 #endif
 		wc = xpaddr->hpwc;
-		ndone = (wc * NBPW) + bp->b_bcount;
+		ndone = ((unsigned)wc * NBPW) + bp->b_bcount;
 		npx = ndone / NBPG;
 #ifdef BADSECT
 	}
@@ -929,7 +1006,7 @@ register struct	buf *bp;
 #ifdef DEBUG
 			printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
 #endif
-			wc = -(512 / NBPW);
+			wc = -(512 / (int)NBPW);
 			break;
 		case CONT:
 			bp->b_flags &= ~B_BAD;
@@ -994,7 +1071,7 @@ xpdump(dev)
 	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
 		|| ((dev=minor(dev)) > (NXPD << 3)))
 		return(EINVAL);
-	xd = &xp_drive[dev >> 3];
+	xd = &xp_drive[xpunit(dev)];
 	dev &= 07;
 	if (xd->xp_ctlr == 0)
 		return(EINVAL);
@@ -1021,6 +1098,8 @@ xpdump(dev)
 		sn = bn % xd->xp_nspc;
 		xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
 		xpaddr->hpwc = -(count << (PGSHIFT - 1));
+		xpaddr->hper1 = 0;
+		xpaddr->hper3 = 0;
 #ifdef UNIBUS_MAP
 		/*
 		 * If UNIBUS_MAP exists, use the map, unless on an 11/70
@@ -1046,7 +1125,10 @@ xpdump(dev)
 #ifdef UNIBUS_MAP
 		}
 #endif
-		while (xpaddr->hpcs1.w & HP_GO);
+		/* Emulex controller emulating two RM03's needs a delay */
+		DELAY(50000L);
+		while (xpaddr->hpcs1.w & HP_GO)
+			continue;
 		if (xpaddr->hpcs1.w & HP_TRE) {
 			if (xpaddr->hpcs2.w & HPCS2_NEM)
 				return(0);	/* made it to end of memory */

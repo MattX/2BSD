@@ -19,12 +19,12 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)control.c	2.54	4/10/87";
+static char	*SccsId = "@(#)control.c	2.57	11/19/87";
 #endif /* SCCSID */
 
 #include "iparams.h"
 
-#define eq(msg) (msg[0] == cargv[0][0] && strcmp(msg, cargv[0]) == 0)
+#define eq(msg) (STRCMP(msg, cargv[0]) == 0)
 
 int cargc;
 char **cargv;
@@ -63,7 +63,7 @@ struct hbuf *h;
 	register char *ctlmsgtext;
 	register struct msgtype *mp;
 
-	if (strncmp(h->title, "cmsg ", 5) == 0) {
+	if (STRNCMP(h->title, "cmsg ", 5) == 0) {
 		register char *cp1, *cp2;
 		cp1 = h->title;
 		cp2 = h->title + 5;
@@ -144,6 +144,7 @@ char *str;
 	}
 }
 
+#ifndef NFSCLIENT
 /*
  * ihave <artid> ... <remotesys>
  *	or
@@ -169,7 +170,7 @@ register char **	argv;
 
 	if (argc < 2)
 		error("ihave: Too few arguments.");
-	if (strncmp(PATHSYSNAME, argv[argc - 1], SNLN) == 0)
+	if (STRNCMP(PATHSYSNAME, argv[argc - 1], SNLN) == 0)
 		return 0;
 	list[0] = '\0';
 	if (argc > 2) {
@@ -254,7 +255,7 @@ register char **argv;
 
 	if (argc < 2)
 		error("sendme: Too few arguments.");
-	if (strncmp(PATHSYSNAME, argv[argc - 1], SNLN) == 0)
+	if (STRNCMP(PATHSYSNAME, argv[argc - 1], SNLN) == 0)
 		return 0;
 	if (s_find(&srec, argv[argc - 1]) != TRUE)
 		error("sendme: Can't find sys record for %s", argv[argc - 1]);
@@ -304,7 +305,7 @@ register struct srec *	sp;
 
 	cp = findfname(id);
 	if (cp == NULL) {
-		logerr("System %s wants unavailable article %s.",
+		log("System %s wants unavailable article %s.",
 #ifdef MULTICAST
 			(c_mc ? c_sysnames[0] : sp->s_name), id);
 #else /* !MULTICAST */
@@ -346,11 +347,11 @@ char **argv;
 # ifdef NONEWGROUPS
 #  ifdef ORGDISTRIB
 	/* local or ORGDISTRIB */
-	int can_change = (strcmp(header.distribution, "local") == 0) ||
-				(strcmp(header.distribution, ORGDISTRIB) == 0);
+	int can_change = (STRCMP(header.distribution, "local") == 0) ||
+				(STRCMP(header.distribution, ORGDISTRIB) == 0);
 #  else /* ! ORGDISTRIB */
 	/* local only */
-	int can_change = strcmp(header.distribution, "local") == 0;
+	int can_change = STRCMP(header.distribution, "local") == 0;
 #  endif /* ORGDISTRIB */
 # else /* ! NONEWGROUPS */
 	int can_change = 1;	/* allow changes for all distributions */
@@ -373,48 +374,31 @@ char **argv;
 		while (*p++ == *q++)
 			;
 		if (*--q == '\0' && *--p == ' ') {
-			int modified = 0;
 			/* Now check if it's correctly moderated/unmoderated */
 			while (*p++)
 				;
 			p -= 3;
-			if (argc > 2 && strcmp(argv[2], "moderated") == 0) {
+			if (argc > 2 && STRCMP(argv[2], "moderated") == 0) {
 				if (*p == 'm') {
 					unlock();
 					return 0;
 				}
-# ifdef NONEWGROUPS
-				if(can_change) {
-					*p = 'm';
-					modified = 1;
-				}
-# else /* ! NONEWGROUPS */
 				*p = 'm';
-				modified = 1;
-#endif /* NONEWGROUPS */
 			} else {
 				if (*p != 'm') {
 					unlock();
 					return 0;
 				}
-# ifdef NONEWGROUPS
-				if(can_change)  {
-					*p = 'y';
-					modified = 1;
-				}
-# else /* ! NONEWGROUPS */
 				*p = 'y';
-				modified = 1;
-# endif /* NONEWGROUPS */
 			}
 # ifdef NOTIFY
 			(void) sprintf(subjline,
-			"Newsgroup %s change from %smoderated to %smoderated",
+			"Newsgroup %s changed from %smoderated to %smoderated",
 				argv[1], *p=='y' ? "" : "un",
 				*p=='y' ? "un" : "");
 			fd = mailhdr((struct hbuf *)NULL, subjline);
 			if (fd != NULL) {
-				if(modified)
+				if(can_change)
 					fprintf(fd,
 "%s has been changed from %smoderated to %smoderated as requested by\n%s\n",
 						argv[1], *p=='y' ? "" : "un", 
@@ -431,13 +415,15 @@ char **argv;
 					fprintf(fd,
 "of '%s' by executing the command:\n", ORGDISTRIB);
 					fprintf(fd,
-				"%s/inews -d %s -C %s moderated\n",
-						LIB, ORGDISTRIB, argv[1]);
+				"%s/inews -d %s -C %s%s\n",
+						LIB, ORGDISTRIB, argv[1],
+						*p=='y' ? "" : " moderated");
 #else /* !ORGDISTRIB */
 					fprintf(fd,
 "You can accomplish this by re-creating the newsgroup by executing the command:\n");
-					fprintf(fd, "%s/inews -C %s moderated\n",
-						LIB, argv[1]);
+					fprintf(fd, "%s/inews -C %s%s\n",
+						LIB, argv[1],
+						*p=='y' ? "" : " moderated");
 #endif /* !ORGDISTRIB */
 				}
 				(void) mclose(fd);
@@ -475,7 +461,7 @@ char **argv;
 		didcreate++;
 		(void) fseek(actfp, 0L, 2); clearerr(actfp);
 		fprintf(actfp, "%s 00000 00001 %c\n", argv[1],
-			(argc > 2 && strcmp(argv[2], "moderated") == 0) 
+			(argc > 2 && STRCMP(argv[2], "moderated") == 0) 
 				? 'm' : 'y');
 #if defined(USG) || defined(MG1)
 		/*
@@ -502,12 +488,13 @@ char **argv;
 	if (fd != NULL) {
 		if (didcreate) 
 			fprintf(fd, 
-		"A new newsgroup called '%s' has been created by %s.\n",
-							argv[1], header.path);
+		"A new %snewsgroup called '%s' has been created by %s.\n",
+				argc > 2 ? "moderated " : "", argv[1],
+				header.path);
 		else {
 			fprintf(fd, 
-		"%s requested that a new newsgroup called '%s' be created.\n",
-			header.path, argv[1]);
+		"%s requested that a new %snewsgroup called '%s' be created.\n",
+			header.path, argc > 2 ? "moderated " : "", argv[1]);
 			fprintf(fd,"It was approved by %s\n\n",header.approved);
 			fprintf(fd, 
 		"You can accomplish this by creating the newgroup yourself\n");
@@ -558,10 +545,10 @@ char **argv;
 	/*
 	 * Allow local as well as organizational removals
 	 */
-	if (!strcmp(ORGDISTRIB, header.distribution)
-	   || !strcmp("local", header.distribution))
+	if (!STRCMP(ORGDISTRIB, header.distribution)
+	   || !STRCMP("local", header.distribution))
 #else	/* !ORGDISTRIB */		
-	if (!strcmp("local", header.distribution))
+	if (!STRCMP("local", header.distribution))
 #endif	/* !ORGDISTRIB */		
 #endif /* MANUALLY */
 		shouldremove++;
@@ -595,9 +582,13 @@ char **argv;
 		lock();
 		(void) sprintf(bfr, "%s/rmgroup", LIB);
 
-		if (pid = vfork()) {
+		if (pid = fork()) {
 			status = fwait(pid);
 		} else {
+			register int i;
+			for (i =3; i<20; i++)
+				if (close(i) < 0)
+					break;
 			(void) setuid(duid);
 			execvp(bfr, argv);
 		}
@@ -607,6 +598,7 @@ char **argv;
 	}
 	return 0;
 }
+#endif /* !NFSCLIENT */
 
 /*
  * cancel <artid>
@@ -627,6 +619,7 @@ char **argv;
 
 	if (argc < 2)
 		error("cancel: Too few arguments.");
+#ifndef NFSCLIENT
 	(void) strcpy(whatsisname, senderof(&header));
 	line = findhist(argv[1]);
 	if (line == NULL) {
@@ -652,7 +645,7 @@ char **argv;
 		log("Expired article %s", line);
 		return -1;
 	}
-	if (strcmp(p, "cancelled") == 0) {
+	if (STRCMP(p, "cancelled") == 0) {
 		*q = '\0';
 		log("Already Cancelled %s", line);
 		return -1;
@@ -660,9 +653,9 @@ char **argv;
 		log("Cancelling %s", line);
 	if ((uid == ROOTID||uid == 0) && (
 #ifdef ORGDISTRIB
-		strcmp(header.distribution, ORGDISTRIB) == 0 ||
+		STRCMP(header.distribution, ORGDISTRIB) == 0 ||
 #endif /* ORGDISTRIB */
-		strcmp(header.distribution, "local") == 0))
+		STRCMP(header.distribution, "local") == 0))
 		su = 1;
 	while (*p) {
 		q = index(p, ' ');
@@ -672,7 +665,7 @@ char **argv;
 		fp = fopen(nfilename, "r");
 		if (fp == NULL) {
 			log("Can't cancel %s: %s", line, errmsg(errno));
-			return 1;
+			return -1;
 		}
 		htmp.unrec[0] = NULL;
 		if (hread(&htmp, fp, TRUE) == NULL) {
@@ -692,16 +685,18 @@ char **argv;
 			r = index(poster,' ');
 		if (r != NULL)
 			*r = '\0';
-		if (!su && strncmp(whatsisname, poster,strlen(poster))) {
+		if (!su && STRNCMP(whatsisname, poster, strlen(poster))) {
 			error("Not contributor: posted by %s, and you are %s", poster, whatsisname);
 		}
 
 		(void) unlink(nfilename);
 		p = q+1;
 	}
+#endif /* !NFSCLIENT */
 	return 0;
 }
 
+#ifndef NFSCLIENT
 /*
  * sendsys	(no arguments)
  *
@@ -787,6 +782,7 @@ char **argv;
 	log("system(%s) status %d", bfr, rc);
 	return 0;
 }
+#endif /* !NFSCLIENT */
 
 /*
  * An unknown control message has been received.
@@ -853,7 +849,7 @@ struct hbuf *hptr;
 		if (TELLME)
 			sendto = TELLME;
 #endif /* NOTIFY */
-		if (sendto == NULL || *sendto == NULL)
+		if (sendto == NULL || *sendto == '\0')
 			return NULL;
 	}
 	verifyname(sendto);
@@ -875,9 +871,10 @@ struct hbuf *hptr;
 #ifdef MMDF
 		execl(MMDF, "inews-mail", "-smuxto,cc*", (char *)NULL);
 #endif /* MMDF */
-		execl("/bin/mail", "mail", sendto, (char *)NULL);
 		execl("/usr/bin/mail", "mail", sendto, (char *)NULL);
 		execl("/usr/ucb/mail", "mail", sendto, (char *)NULL);
+		execl("/bin/mail", "mail", sendto, (char *)NULL);
+		execl("/usr/bin/mailx", "mail", sendto, (char *)NULL);
 		_exit(1);
 	}
 	if(pid == -1)
@@ -961,7 +958,6 @@ char *sendto;
 
 	if (sendto[0] <= ' ') {
 		xerror("nasty mail name %s from %s", sendto, header.path);
-		xxit(1);
 	}
 	for (p=sendto; *p; p++) {
 		if (*p == ' ') {
@@ -978,6 +974,7 @@ char *sendto;
 	}
 }
 
+#ifndef NFSCLIENT
 /*
  * Checks to make sure the control message is OK to post.
  */
@@ -998,23 +995,23 @@ ctlcheck()
 	if (p)
 		*p = 0;
 	
-	if (strcmp(msg, "ihave") == 0 || strcmp(msg, "sendbad") == 0 ||
-		strcmp(msg, "sendme") == 0) {
+	if (STRCMP(msg, "ihave") == 0 || STRCMP(msg, "sendbad") == 0 ||
+		STRCMP(msg, "sendme") == 0) {
 		return;	/* no restrictions */
-	} else if (strcmp(msg, "newgroup") == 0) {
+	} else if (STRCMP(msg, "newgroup") == 0) {
 		suser();
-	} else if (strcmp(msg, "rmgroup") == 0) {
+	} else if (STRCMP(msg, "rmgroup") == 0) {
 		suser();
-	} else if (strcmp(msg, "sendsys") == 0) {
+	} else if (STRCMP(msg, "sendsys") == 0) {
 		suser();
-	} else if (strcmp(msg, "checkgroups") == 0) {
+	} else if (STRCMP(msg, "checkgroups") == 0) {
 		suser();
-	} else if (strcmp(msg, "version") == 0) {
+	} else if (STRCMP(msg, "version") == 0) {
 		return;	/* no restrictions */
-	} else if (strcmp(msg, "cancel") == 0) {
+	} else if (STRCMP(msg, "cancel") == 0) {
 		return;	/* no restrictions at this level */
-	} else if (strcmp(msg, "delsub") == 0) {
-		if (!prefix(header.nbuf, "to.")) {
+	} else if (STRCMP(msg, "delsub") == 0) {
+		if (!PREFIX(header.nbuf, "to.")) {
 			log("Must be in a 'to.system' newsgroup.");
 			xxit(0);
 		}
@@ -1024,6 +1021,7 @@ ctlcheck()
 		xxit(0);
 	}
 }
+#endif /* !NFSCLIENT */
 
 /* Make sure this guy is special. */
 suser()

@@ -1,5 +1,5 @@
 static char *RCSid =
-"$Header: sccstorcs.c,v 1.4 84/10/17 21:12:11 root Exp $";
+"$Header: /usr/src/new/rcs/src/RCS/sccstorcs.c,v 1.4 84/10/17 21:12:11 root Exp $";
 
 /*
  * SCCSTORCS - build RCS file from SCCS file preserving deltas.

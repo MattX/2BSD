@@ -11,8 +11,7 @@
 #include "../machine/iopage.h"
 
 #include "inode.h"
-#include "time.h"
-#include "resource.h"
+#include "user.h"
 #include "proc.h"
 #include "fs.h"
 #include "map.h"
@@ -23,11 +22,10 @@
 #include "uba.h"
 #include "callout.h"
 #include "reboot.h"
-#include "errno.h"
 #include "systm.h"
 #include "ram.h"
-#ifdef UCB_NET
-#include "mbuf.h"
+#ifdef QUOTA
+#include "quota.h"
 #endif
 
 size_t	physmem;	/* total amount of physical memory (for savecore) */
@@ -43,10 +41,6 @@ startup()
 {
 #ifdef UCB_CLIST
 	extern memaddr clststrt;
-#endif
-#ifdef UCB_NET
-	extern memaddr mbbase;
-	extern int mbsize;
 #endif
 	extern ubadr_t	clstaddr;
 	extern int end;
@@ -141,6 +135,25 @@ startup()
 	clstaddr = (ubadr_t)cfree;
 #endif
 
+#ifdef EXTERNALITIMES
+#define C (ninode * sizeof (struct icommon2))
+	if ((xitimes = malloc(coremap, btoc(C))) == 0)
+		panic("xitimes");
+	maxmem -= btoc(C);
+	xitdesc = ((btoc(C) << 8) | RW);
+#undef C
+#endif
+
+#ifdef QUOTA
+#define	C	(btoc(8192))
+	if ((quotreg = malloc(coremap, C)) == 0)
+		panic("quotamem");
+	maxmem -= C;
+	quotdesc = ((C - 1) << 8) | RW;
+	QUOini();
+#undef C
+#endif
+
 #define B	(size_t)(((long)nbuf * (MAXBSIZE)) / ctob(1))
 	if ((bpaddr = malloc(coremap, B)) == 0)
 		panic("buffers");
@@ -151,22 +164,15 @@ startup()
 	maxmem -= msprof();
 #endif
 
-#ifdef UCB_NET
-	if (!(mbbase = malloc(coremap, btoc(mbsize))))
-		panic("mbbase");
-	maxmem -= btoc(mbsize);
-#endif
-
 #if NRAM > 0
 	ramsize = raminit();
 	maxmem -= ramsize;
 #endif
 
-	if (MAXMEM < maxmem)
-		maxmem = MAXMEM;
-
 	printf("phys mem  = %D\n", ctob((long)physmem));
 	printf("avail mem = %D\n", ctob((long)maxmem));
+	if (MAXMEM < maxmem)
+		maxmem = MAXMEM;
 	printf("user mem  = %D\n", ctob((long)maxmem));
 #if NRAM > 0
 	printf("ram disk  = %D\n", ctob((long)ramsize));
@@ -178,9 +184,6 @@ startup()
 	printf("%d files (%d bytes)\n",nfile,nfile * sizeof(struct file));
 	printf("%d buffers (%D bytes)\n",nbuf,(long)nbuf * MAXBSIZE);
 	printf("%d clists (%d bytes)\n",nclist,nclist * sizeof(struct cblock));
-#ifdef UCB_NET
-	printf("%d mbufs %d cached (%d bytes)\n", NMBUFS, NMBCACHE, mbsize);
-#endif
 #endif
 	printf("\n");
 
@@ -252,8 +255,7 @@ msprof()
 #endif
 
 #ifdef UNIBUS_MAP
-
-bool_t	ubmap;
+extern bool_t ubmap;
 
 /*
  * Re-initialize the Unibus map registers to statically map
@@ -264,15 +266,9 @@ ubinit()
 {
 	register int i, ub_nreg;
 	long paddr;
-#ifdef UCB_NET
-	extern int ub_inited;
-#endif
 
 	if (!ubmap)
 		return;
-#ifdef UCB_NET
-	++ub_inited;
-#endif
 	/*
 	 * Clists start at UNIBUS virtual address 0.  The size of
 	 * the clist segment can be no larger than UBPAGE bytes.
@@ -292,7 +288,16 @@ ubinit()
 		setubregno(i, paddr);
 		paddr += (long)UBPAGE;
 	}
+	/*
+	 * The 3Com ethernet board is hardwired to use UNIBUS registers 28, 29
+	 * and 30 (counting from 0) and UNIBUS register 31 isn't usable.
+	 */
+#include "ec.h"
+#if NEC > 0
+	mfree(ub_map, 28 - ub_nreg - 1, 1 + ub_nreg);	/* 3Com board */
+#else
 	mfree(ub_map, 31 - ub_nreg - 1, 1 + ub_nreg);
+#endif
 }
 #endif
 

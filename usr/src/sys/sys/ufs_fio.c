@@ -120,6 +120,7 @@ owner(fname, follow)
 	return (NULL);
 }
 
+/* copied, for supervisory networking, to sys_net.c */
 /*
  * Test if the current user is the
  * super user.

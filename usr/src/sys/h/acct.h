@@ -41,7 +41,7 @@ struct	acct
  */
 #define AHZ LINEHZ
 
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 struct	acct	acctbuf;
 struct	inode	*acctp;
 #endif

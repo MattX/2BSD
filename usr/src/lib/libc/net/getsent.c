@@ -11,6 +11,7 @@ static char sccsid[] = "@(#)getservent.c	5.3 (Berkeley) 5/19/86";
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #include <ctype.h>
 
@@ -18,7 +19,7 @@ static char sccsid[] = "@(#)getservent.c	5.3 (Berkeley) 5/19/86";
 
 static char SERVDB[] = "/etc/services";
 static FILE *servf = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct servent serv;
 static char *serv_aliases[MAXALIASES];
 static char *any();
@@ -52,7 +53,7 @@ getservent()
 	if (servf == NULL && (servf = fopen(SERVDB, "r" )) == NULL)
 		return (NULL);
 again:
-	if ((p = fgets(line, BUFSIZ, servf)) == NULL)
+	if ((p = fgets(line, sizeof(line)-1, servf)) == NULL)
 		return (NULL);
 	if (*p == '#')
 		goto again;

@@ -10,6 +10,9 @@
  * Global variables for the kernel
  */
 
+#ifdef SUPERVISOR
+long	startnet;			/* start of network data space */
+#else
 memaddr	malloc();
 
 /* 1.1 */
@@ -21,6 +24,7 @@ int	hostnamelen;
 struct	timeval boottime;
 struct	timeval time;
 struct	timezone tz;			/* XXX */
+int	adjdelta;
 int	hz;
 int	lbolt;				/* awoken once a second */
 int	realitexpire();
@@ -33,4 +37,5 @@ int	wantrtp;	/* set when the real-time process is runnable */
 #ifdef UCB_FRCSWAP
 int	idleflg;	/* if set, allow incore forks and expands */
 			/* set before idle(), cleared per second by clock */
+#endif
 #endif

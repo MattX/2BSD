@@ -1,14 +1,18 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ip_input.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)ip_input.c	7.9 (Berkeley) 3/15/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
 #include "domain.h"
@@ -60,6 +64,8 @@ ip_init()
 {
 	register struct protosw *pr;
 	register int i;
+extern	struct	timeval time;
+	struct	timeval	nettime;
 
 	pr = pffindproto(PF_INET, IPPROTO_RAW, SOCK_RAW);
 	if (pr == 0)
@@ -72,7 +78,8 @@ ip_init()
 		    pr->pr_protocol && pr->pr_protocol != IPPROTO_RAW)
 			ip_protox[pr->pr_protocol] = pr - inetsw;
 	ipq.next = ipq.prev = &ipq;
-	ip_id = time.tv_sec & 0xffffL;
+	cpfromkern(&time, &nettime, sizeof (struct timeval));
+	ip_id = nettime.tv_sec & 0xffffL;
 	ipintrq.ifq_maxlen = ipqmaxlen;
 }
 
@@ -90,7 +97,7 @@ ipintr()
 {
 	register struct ip *ip;
 	register struct mbuf *m;
-	struct mbuf *m0, *mopt;
+	struct mbuf *m0;
 	register int i;
 	register struct ipq *fp;
 	register struct in_ifaddr *ia;
@@ -230,43 +237,53 @@ next:
 
 ours:
 	/*
-	 * Look for queue of fragments
-	 * of this datagram.
+	 * If offset or IP_MF are set, must reassemble.
+	 * Otherwise, nothing need be done.
+	 * (We could look in the reassembly queue to see
+	 * if the packet was previously fragmented,
+	 * but it's not worth the time; just let them time out.)
 	 */
-	for (fp = ipq.next; fp != &ipq; fp = fp->next)
-		if (ip->ip_id == fp->ipq_id &&
-		    ip->ip_src.s_addr == fp->ipq_src.s_addr &&
-		    ip->ip_dst.s_addr == fp->ipq_dst.s_addr &&
-		    ip->ip_p == fp->ipq_p)
-			goto found;
-	fp = 0;
+	if (ip->ip_off &~ IP_DF) {
+		/*
+		 * Look for queue of fragments
+		 * of this datagram.
+		 */
+		for (fp = ipq.next; fp != &ipq; fp = fp->next)
+			if (ip->ip_id == fp->ipq_id &&
+			    ip->ip_src.s_addr == fp->ipq_src.s_addr &&
+			    ip->ip_dst.s_addr == fp->ipq_dst.s_addr &&
+			    ip->ip_p == fp->ipq_p)
+				goto found;
+		fp = 0;
 found:
 
-	/*
-	 * Adjust ip_len to not reflect header,
-	 * set ip_mff if more fragments are expected,
-	 * convert offset of this to bytes.
-	 */
-	ip->ip_len -= hlen;
-	((struct ipasfrag *)ip)->ipf_mff = 0;
-	if (ip->ip_off & IP_MF)
-		((struct ipasfrag *)ip)->ipf_mff = 1;
-	ip->ip_off <<= 3;
+		/*
+		 * Adjust ip_len to not reflect header,
+		 * set ip_mff if more fragments are expected,
+		 * convert offset of this to bytes.
+		 */
+		ip->ip_len -= hlen;
+		((struct ipasfrag *)ip)->ipf_mff = 0;
+		if (ip->ip_off & IP_MF)
+			((struct ipasfrag *)ip)->ipf_mff = 1;
+		ip->ip_off <<= 3;
 
-	/*
-	 * If datagram marked as having more fragments
-	 * or if this is not the first fragment,
-	 * attempt reassembly; if it succeeds, proceed.
-	 */
-	if (((struct ipasfrag *)ip)->ipf_mff || ip->ip_off) {
-		ipstat.ips_fragments++;
-		ip = ip_reass((struct ipasfrag *)ip, fp);
-		if (ip == 0)
-			goto next;
-		m = dtom(ip);
+		/*
+		 * If datagram marked as having more fragments
+		 * or if this is not the first fragment,
+		 * attempt reassembly; if it succeeds, proceed.
+		 */
+		if (((struct ipasfrag *)ip)->ipf_mff || ip->ip_off) {
+			ipstat.ips_fragments++;
+			ip = ip_reass((struct ipasfrag *)ip, fp);
+			if (ip == 0)
+				goto next;
+			m = dtom(ip);
+		} else
+			if (fp)
+				ip_freef(fp);
 	} else
-		if (fp)
-			ip_freef(fp);
+		ip->ip_len -= hlen;
 
 	/*
 	 * Switch out to protocol's input routine.
@@ -277,12 +294,6 @@ bad:
 	m_freem(m);
 	goto next;
 }
-
-#if pdp11
-#define DTOM(q) ((q)->ipf_mbuf) /* the mbuf for this fragment */
-#else
-#define DTOM(q) dtom(q)
-#endif
 
 /*
  * Take incoming datagram fragment and try to
@@ -296,7 +307,7 @@ ip_reass(ip, fp)
 	register struct ipq *fp;
 {
 	register struct mbuf *m = dtom(ip);
-	register struct ipasfrag *q, *ipf;
+	register struct ipasfrag *q;
 	struct mbuf *t;
 	int hlen = ip->ip_hl << 2;
 	int i, next;
@@ -312,9 +323,9 @@ ip_reass(ip, fp)
 	 * If first fragment to arrive, create a reassembly queue.
 	 */
 	if (fp == 0) {
-		MSGET(fp, struct ipq, M_NOCLEAR);
-		if (fp == NULL)
+		if ((t = m_get(M_DONTWAIT, MT_FTABLE)) == NULL)
 			goto dropfrag;
+		fp = mtod(t, struct ipq *);
 		insque(fp, &ipq);
 		fp->ipq_ttl = IPFRAGTTL;
 		fp->ipq_p = ip->ip_p;
@@ -343,7 +354,7 @@ ip_reass(ip, fp)
 		if (i > 0) {
 			if (i >= ip->ip_len)
 				goto dropfrag;
-			m_adj(m, i);
+			m_adj(dtom(ip), i);
 			ip->ip_off += i;
 			ip->ip_len -= i;
 		}
@@ -358,16 +369,12 @@ ip_reass(ip, fp)
 		if (i < q->ip_len) {
 			q->ip_len -= i;
 			q->ip_off += i;
-			m_adj(DTOM(q), i);
+			m_adj(dtom(q), i);
 			break;
 		}
-		ipf = q->ipf_next;
-		ip_deq(q);
-		m_freem(DTOM(q));
-#ifdef BSD2_10
-		MSFREE(q);
-#endif
-		q = ipf;
+		q = q->ipf_next;
+		m_freem(dtom(q->ipf_prev));
+		ip_deq(q->ipf_prev);
 	}
 
 insert:
@@ -375,14 +382,6 @@ insert:
 	 * Stick new segment in its place;
 	 * check for complete reassembly.
 	 */
-#ifdef BSD2_10
-	MSGET(ipf, struct ipasfrag, M_NOCLEAR);
-	if (ipf == 0)
-		goto dropfrag;
-	bcopy(ip, ipf, sizeof *ipf);
-	ipf->ipf_mbuf = m;
-	ip = ipf;
-#endif
 	ip_enq(ip, q->ipf_prev);
 	next = 0;
 	for (q = fp->ipq_next; q != (struct ipasfrag *)fp; q = q->ipf_next) {
@@ -397,22 +396,14 @@ insert:
 	 * Reassembly is complete; concatenate fragments.
 	 */
 	q = fp->ipq_next;
-	m = DTOM(q);
+	m = dtom(q);
 	t = m->m_next;
 	m->m_next = 0;
 	m_cat(m, t);
-	ipf = q;
 	q = q->ipf_next;
-#ifdef BSD2_10
-	MSFREE(ipf);
-#endif
 	while (q != (struct ipasfrag *)fp) {
-		t = DTOM(q);
-		ipf = q;
+		t = dtom(q);
 		q = q->ipf_next;
-#ifdef BSD2_10
-		MSFREE(ipf);
-#endif
 		m_cat(m, t);
 	}
 
@@ -427,7 +418,7 @@ insert:
 	((struct ip *)ip)->ip_src = fp->ipq_src;
 	((struct ip *)ip)->ip_dst = fp->ipq_dst;
 	remque(fp);
-	MSFREE(fp);
+	(void) m_free(dtom(fp));
 	m = dtom(ip);
 	m->m_len += (ip->ip_hl << 2);
 	m->m_off -= (ip->ip_hl << 2);
@@ -447,20 +438,14 @@ ip_freef(fp)
 	struct ipq *fp;
 {
 	register struct ipasfrag *q, *p;
-	struct ipq *fpp;
 
 	for (q = fp->ipq_next; q != (struct ipasfrag *)fp; q = p) {
 		p = q->ipf_next;
-		ip_deq(q);		/* rip it out of fragment queue */
-		m_freem(DTOM(q));	/* free up header portion(?) */
-#ifdef BSD2_10
-		MSFREE(q);		/* free up data space */
-#endif
+		ip_deq(q);
+		m_freem(dtom(q));
 	}
-	fpp = fp;
-	fp = fp->next;
-	remque(fpp);			/* rip it out of ip reass. queue */
-	MSFREE(fpp);
+	remque(fp);
+	(void) m_free(dtom(fp));
 }
 
 /*
@@ -526,6 +511,7 @@ ip_drain()
 	}
 }
 
+extern struct in_ifaddr *ifptoia();
 struct in_ifaddr *ip_rtaddr();
 
 /*
@@ -543,7 +529,6 @@ ip_dooptions(ip, ifp)
 	register struct in_ifaddr *ia;
 	struct in_addr *sin;
 	n_time ntime, iptime();
-	struct in_addr t;
 
 	cp = (u_char *)(ip + 1);
 	cnt = (ip->ip_hl << 2) - sizeof (struct ip);
@@ -632,14 +617,14 @@ ip_dooptions(ip, ifp)
 			off--;			/* 0 origin */
 			if (off > optlen - sizeof(struct in_addr))
 				break;
-			bcopy((caddr_t)(cp + off), (caddr_t)&ipaddr.sin_addr,
+			bcopy((caddr_t)(&ip->ip_dst), (caddr_t)&ipaddr.sin_addr,
 			    sizeof(ipaddr.sin_addr));
 			/*
 			 * locate outgoing interface
 			 */
 			if ((ia = ip_rtaddr(ipaddr.sin_addr)) == 0) {
 				type = ICMP_UNREACH;
-				code = ICMP_UNREACH_SRCFAIL;
+				code = ICMP_UNREACH_HOST;
 				goto bad;
 			}
 			bcopy((caddr_t)&(IA_SIN(ia)->sin_addr),
@@ -657,7 +642,7 @@ ip_dooptions(ip, ifp)
 					goto bad;
 				break;
 			}
-			sin = (struct in_addr *)(cp+cp[IPOPT_OFFSET]-1);
+			sin = (struct in_addr *)(cp + ipt->ipt_ptr - 1);
 			switch (ipt->ipt_flg) {
 
 			case IPOPT_TS_TSONLY:
@@ -667,21 +652,20 @@ ip_dooptions(ip, ifp)
 				if (ipt->ipt_ptr + sizeof(n_time) +
 				    sizeof(struct in_addr) > ipt->ipt_len)
 					goto bad;
-				if (in_ifaddr == 0)
-					goto bad;	/* ??? */
-				bcopy((caddr_t)&IA_SIN(in_ifaddr)->sin_addr,
+				ia = ifptoia(ifp);
+				bcopy((caddr_t)&IA_SIN(ia)->sin_addr,
 				    (caddr_t)sin, sizeof(struct in_addr));
-				sin++;
+				ipt->ipt_ptr += sizeof(struct in_addr);
 				break;
 
 			case IPOPT_TS_PRESPEC:
+				if (ipt->ipt_ptr + sizeof(n_time) +
+				    sizeof(struct in_addr) > ipt->ipt_len)
+					goto bad;
 				bcopy((caddr_t)sin, (caddr_t)&ipaddr.sin_addr,
 				    sizeof(struct in_addr));
 				if (ifa_ifwithaddr((struct sockaddr *)&ipaddr) == 0)
 					continue;
-				if (ipt->ipt_ptr + sizeof(n_time) +
-				    sizeof(struct in_addr) > ipt->ipt_len)
-					goto bad;
 				ipt->ipt_ptr += sizeof(struct in_addr);
 				break;
 
@@ -689,7 +673,8 @@ ip_dooptions(ip, ifp)
 				goto bad;
 			}
 			ntime = iptime();
-			bcopy((caddr_t)&ntime, (caddr_t)sin, sizeof(n_time));
+			bcopy((caddr_t)&ntime, (caddr_t)cp + ipt->ipt_ptr - 1,
+			    sizeof(n_time));
 			ipt->ipt_ptr += sizeof(n_time);
 		}
 	}
@@ -768,13 +753,14 @@ ip_srcroute()
 
 	if (ip_nhops == 0)
 		return ((struct mbuf *)0);
-	m = m_get(M_WAIT, MT_SOOPTS);
+	m = m_get(M_DONTWAIT, MT_SOOPTS);
+	if (m == 0)
+		return ((struct mbuf *)0);
 	m->m_len = ip_nhops * sizeof(struct in_addr) + IPOPT_OFFSET + 1 + 1;
 
 	/*
 	 * First save first hop for return route
 	 */
-	MAPSAVE();
 	p = &ip_srcrt.route[ip_nhops - 1];
 	*(mtod(m, struct in_addr *)) = *p--;
 
@@ -792,7 +778,6 @@ ip_srcroute()
 	 */
 	while (p >= ip_srcrt.route)
 		*q++ = *p--;
-	MAPREST();
 	return (m);
 }
 
@@ -817,11 +802,8 @@ ip_stripoptions(ip, mopt)
 	if (mopt) {
 		mopt->m_len = olen;
 		mopt->m_off = MMINOFF;
-		if (olen)
-			MBCOPY(m, sizeof *ip, mopt, 0, olen);
+		bcopy(opts, mtod(mopt, caddr_t), (unsigned)olen);
 	}
-	if (olen == 0)
-		return;
 	i = m->m_len - (sizeof (struct ip) + olen);
 	bcopy(opts  + olen, opts, (unsigned)i);
 	m->m_len -= olen;
@@ -865,7 +847,7 @@ ip_forward(ip, ifp)
 {
 	register int error, type = 0, code;
 	register struct sockaddr_in *sin;
-	struct mbuf *mopt, *mcopy, *m = dtom(ip);
+	struct mbuf *mcopy;
 	struct in_addr dest;
 
 	dest.s_addr = 0;
@@ -882,6 +864,10 @@ ip_forward(ip, ifp)
 		m_freem(dtom(ip));
 		return;
 #endif
+	}
+	if (in_canforward(ip->ip_dst) == 0) {
+		m_freem(dtom(ip));
+		return;
 	}
 	if (UCHAR(ip->ip_ttl) < IPTTLDEC) {
 		type = ICMP_TIMXCEED, code = ICMP_TIMXCEED_INTRANS;
@@ -912,11 +898,15 @@ ip_forward(ip, ifp)
 	 * perhaps should send a redirect to sender to shortcut a hop.
 	 * Only send redirect if source is sending directly to us,
 	 * and if packet was not source routed (or has any options).
+	 * Also, don't send redirect if forwarding using a default route
+	 * or a route modfied by a redirect.
 	 */
+#define	satosin(sa)	((struct sockaddr_in *)(sa))
 	if (ipforward_rt.ro_rt && ipforward_rt.ro_rt->rt_ifp == ifp &&
+	    (ipforward_rt.ro_rt->rt_flags & (RTF_DYNAMIC|RTF_MODIFIED)) == 0 &&
+	    satosin(&ipforward_rt.ro_rt->rt_dst)->sin_addr.s_addr != 0 &&
 	    ipsendredirects && ip->ip_hl == (sizeof(struct ip) >> 2)) {
 		struct in_ifaddr *ia;
-		extern struct in_ifaddr *ifptoia();
 		u_long src = ntohl(ip->ip_src.s_addr);
 		u_long dst = ntohl(ip->ip_dst.s_addr);
 
@@ -962,7 +952,6 @@ ip_forward(ip, ifp)
 	}
 	if (mcopy == NULL)
 		return;
-	MAPSAVE();
 	ip = mtod(mcopy, struct ip *);
 	type = ICMP_UNREACH;
 	switch (error) {
@@ -974,7 +963,10 @@ ip_forward(ip, ifp)
 
 	case ENETUNREACH:
 	case ENETDOWN:
-		code = ICMP_UNREACH_NET;
+		if (in_localaddr(ip->ip_dst))
+			code = ICMP_UNREACH_HOST;
+		else
+			code = ICMP_UNREACH_NET;
 		break;
 
 	case EMSGSIZE:
@@ -996,5 +988,4 @@ ip_forward(ip, ifp)
 	}
 sendicmp:
 	icmp_error(ip, type, code, ifp, dest);
-	MAPREST();
 }

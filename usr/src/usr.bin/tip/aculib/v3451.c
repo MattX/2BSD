@@ -136,7 +136,7 @@ expect(cp)
 	if (setjmp(Sjbuf))
 		return (0);
 	alarm(timeout);
-	while (notin(cp, buf) && rp < buf + (int)sizeof (buf) - 1) {
+	while (notin(cp, buf) && rp < buf + sizeof (buf) - 1) {
 		if (online && notin("FAILED CALL", buf) == 0)
 			return (0);
 		if (read(FD, rp, 1) < 0) {

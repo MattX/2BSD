@@ -185,6 +185,34 @@ getfs(dev)
 	return((struct fs *) NULL);
 }
 
+#ifdef QUOTA
+/*
+ * Getfsx returns the index in the file system
+ * table of the specified device.  The swap device
+ * is also assigned a pseudo-index.  The index may
+ * be used as a compressed indication of the location
+ * of a block, recording
+ *	<getfsx(dev),blkno>
+ * rather than
+ *	<dev, blkno>
+ * provided the information need remain valid only
+ * as long as the file system is mounted.
+ */
+getfsx(dev)
+	dev_t dev;
+{
+	register struct mount *mp;
+
+	if (dev == swapdev)
+		return (0377);
+	for(mp = &mount[0]; mp < &mount[NMOUNT]; mp++)
+		if (mp->m_dev == dev)
+			return (mp - &mount[0]);
+	return (-1);
+}
+#endif
+
+#if (!defined(vax) && !defined(tahoe) && !defined(pdp11)) || defined(VAX630)
 scanc(size, cp, table, mask)
 	u_int size;
 	register u_char *cp, table[];
@@ -196,7 +224,9 @@ scanc(size, cp, table, mask)
 		cp++;
 	return (end - cp);
 }
+#endif
 
+#if !defined(vax) && !defined(tahoe) && !defined(pdp11)
 locc(mask, size, cp)
 	register u_char mask;
 	u_int size;
@@ -208,3 +238,4 @@ locc(mask, size, cp)
 		cp++;
 	return (end - cp);
 }
+#endif

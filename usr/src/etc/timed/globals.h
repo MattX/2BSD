@@ -43,7 +43,7 @@ extern int sock;
 #ifdef BSD2_10
 #define HOSTDOWN 	0x7fff
 #else
-#define HOSTDOWN 	0x7fffffff;
+#define HOSTDOWN 	0x7fffffff
 #endif
 
 #define OFF	0

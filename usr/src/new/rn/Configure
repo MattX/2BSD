@@ -5,10 +5,10 @@
 #
 # $Header: Configure,v 4.3.1.6 86/07/24 14:41:18 lwall Exp $
 #
-# $Log:	Configure,v $
+# $Log:       Configure,v $
 # Revision 4.3.1.6  86/07/24  14:41:18  lwall
 # Handles missing Relay-Version: from news 2.10.3 headers.
-# 
+#
 # Revision 4.3.1.5  85/05/23  11:23:22  lwall
 # filexp flubs sed command.
 # 
@@ -20,7 +20,7 @@
 # Took space from end of filexp output.
 # 
 # Revision 4.3.1.2  85/05/13  15:54:35  lwall
-# Libraries in /usr/local/lib shouldn't use -l switch.
+# Libraries in /usr/local/lib should not use -l switch.
 # 
 # Revision 4.3.1.1  85/05/10  11:29:20  lwall
 # Branch for patches.
@@ -1367,9 +1367,9 @@ if $contains ' [0-9][0-9]* [0-9]' "$myactive" >/dev/null 2>&1; then
     esac
     case "$ans" in
     n*)
-	norelay='undef'
+      norelay='undef'
     echo "Looks like you are running at least 2.10.2 news."
-	;;
+      ;;
     *)  norelay='define' ;;
     esac
     mininact=define
@@ -1925,7 +1925,7 @@ $cat <<EOT >config.h
 #$gethostname	GETHOSTNAME	/* do we have a gethostname function? */
 #$douname	DOUNAME		/* do we have a uname function? */
 #$phostname	PHOSTNAME "$hostcmd"	/* how to get host name with popen */
-#$norelay	NORELAY		/* 2.10.3 doesn't have Relay-Version line */
+#$norelay     NORELAY         /* 2.10.3 doesn't have Relay-Version line */
 EOT
 
 CONFIG=true

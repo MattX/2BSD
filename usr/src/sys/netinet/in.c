@@ -1,21 +1,25 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)in.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)in.c	7.7 (Berkeley) 4/3/88
  */
 
 #include "param.h"
-#include "systm.h"
+#include "ioctl.h"
 #include "mbuf.h"
 #include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
-#include "ioctl.h"
 #include "user.h"
-
 #include "in_systm.h"
 #include "../net/if.h"
 #include "../net/route.h"
@@ -148,7 +152,6 @@ in_localaddr(in)
 	struct in_addr in;
 {
 	register u_long i = ntohl(in.s_addr);
-	u_long net;
 	register struct in_ifaddr *ia;
 
 	if (subnetsarelocal) {
@@ -163,7 +166,6 @@ in_localaddr(in)
 	return (0);
 }
 
-#ifdef notdef
 /*
  * Determine whether an IP address is in a reserved set of addresses
  * that may not be forwarded, or whether datagrams to that destination
@@ -184,7 +186,6 @@ in_canforward(in)
 	}
 	return (1);
 }
-#endif
 
 int	in_interfaces;		/* number of external internet interfaces */
 extern	struct ifnet loif;
@@ -202,7 +203,6 @@ in_control(so, cmd, data, ifp)
 {
 	register struct ifreq *ifr = (struct ifreq *)data;
 	register struct in_ifaddr *ia = 0;
-	u_long tmp;
 	struct ifaddr *ifa;
 	struct mbuf *m;
 	int error;
@@ -226,18 +226,16 @@ in_control(so, cmd, data, ifp)
 		if (ifp == 0)
 			panic("in_control");
 		if (ia == (struct in_ifaddr *)0) {
-			struct in_ifaddr *iam;
-
-			MSGET(iam, struct in_ifaddr, M_CLEAR);
-			if (iam == (struct in_ifaddr *)NULL)
+			m = m_getclr(M_WAIT, MT_IFADDR);
+			if (m == (struct mbuf *)NULL)
 				return (ENOBUFS);
 			if (ia = in_ifaddr) {
 				for ( ; ia->ia_next; ia = ia->ia_next)
 					;
-				ia->ia_next = iam;
+				ia->ia_next = mtod(m, struct in_ifaddr *);
 			} else
-				in_ifaddr = iam;
-			ia = iam;
+				in_ifaddr = mtod(m, struct in_ifaddr *);
+			ia = mtod(m, struct in_ifaddr *);
 			if (ifa = ifp->if_addrlist) {
 				for ( ; ifa->ifa_next; ifa = ifa->ifa_next)
 					;
@@ -312,12 +310,6 @@ in_control(so, cmd, data, ifp)
 		if ((ifp->if_flags & IFF_BROADCAST) == 0)
 			return (EINVAL);
 		ia->ia_broadaddr = ifr->ifr_broadaddr;
-		tmp = ntohl(satosin(&ia->ia_broadaddr)->sin_addr.s_addr);
-		if ((tmp &~ ia->ia_subnetmask) == ~ia->ia_subnetmask)
-			tmp |= ~ia->ia_netmask;
-		else if ((tmp &~ ia->ia_subnetmask) == 0)
-			tmp &= ia->ia_netmask;
-		ia->ia_netbroadcast.s_addr = htonl(tmp);
 		break;
 
 	case SIOCSIFADDR:
@@ -344,7 +336,7 @@ in_ifinit(ifp, ia, sin)
 	register struct in_ifaddr *ia;
 	struct sockaddr_in *sin;
 {
-	register u_long i = ntohl((long)sin->sin_addr.s_addr);
+	register u_long i = ntohl(sin->sin_addr.s_addr);
 	struct sockaddr oldaddr;
 	struct sockaddr_in netaddr;
 	int s = splimp(), error;

@@ -21,6 +21,7 @@ struct	disktab {
 	int	d_rpm;			/* revolutions/minute */
 	int	d_badsectforw;		/* supports DEC bad144 std */
 	int	d_sectoffset;		/* use sect rather than cyl offsets */
+	char	*d_uboot;		/* file name of block zero boot */
 	struct	partition {
 		long	p_size;		/* #sectors in partition */
 		short	p_bsize;	/* block size in bytes */

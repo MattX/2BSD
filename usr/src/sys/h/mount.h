@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mount.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)mount.h	7.2 (Berkeley) 6/21/87
  */
 
 /*
@@ -16,7 +16,8 @@ struct	mount
 	dev_t	m_dev;		/* device mounted */
 	struct	fs m_filsys;	/* superblock data */
 	struct	inode *m_inodp;	/* pointer to mounted on inode */
+	struct	inode *m_qinod; /* QUOTA: pointer to quota file */
 };
-#ifdef KERNEL
-extern struct	mount mount[NMOUNT];
+#if defined(KERNEL) && !defined(SUPERVISOR)
+struct	mount mount[NMOUNT];
 #endif

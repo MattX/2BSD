@@ -49,10 +49,14 @@ static char sccsid[] = "@(#)acucntrl.c	5.8 (Berkeley) 2/12/86";
 #include <sys/buf.h>
 #include <signal.h>
 #include <sys/conf.h>
+#ifdef BSD2_10
+#include <pdpuba/ubavar.h>
+#else
 #ifdef BSD4_2
 #include <vaxuba/ubavar.h>
 #else
 #include <sys/ubavar.h>
+#endif
 #endif
 #include <sys/stat.h>
 #include <nlist.h>
@@ -126,6 +130,9 @@ int etcutmp;
 off_t utmploc;
 off_t ttyslnbeg;
 
+extern int errno;
+extern char *sys_errlist[];
+
 #define NAMSIZ	sizeof(utmp.ut_name)
 #define	LINSIZ	sizeof(utmp.ut_line)
 
@@ -142,8 +149,6 @@ int argc; char *argv[];
 	off_t lseek();
 	struct passwd *getpwuid();
 	char *rindex();
-	extern int errno;
-	extern char *sys_errlist[];
 
 	/* check input arguments */
 	if (argc!=3) {
@@ -427,7 +432,7 @@ char *device;
 		if(strncmp(device, linebuf, ndevice) == 0)
 			return;
 		ttyslnbeg += strlen(linebuf);
-		if (linebuf[0] != '#' && linebuf[0] != '\0')
+		if (linebuf[0] != '#' && linebuf[0] != '\n')
 			utmploc += sizeof(utmp);
 		if (fputs(linebuf, nttysfile) == NULL) {
 			fprintf(stderr, "On %s write: %s\n",
@@ -600,18 +605,38 @@ int enable;
  */
 
 
+/*
+ * 2.10BSD NOTE:  2.10BSD doesn't use ui_flags.  We've included the code
+ * for correctness in case someone decides to change the way the 2.10BSD
+ * tty drivers work.  Mostly what needs to be done is have the tty drivers
+ * do something like:
+ *
+ *	if ((minor(dev)&0200) || (XXinfo[unit].ui_flags&(1L<<line))) {
+ *		XXsoftCAR[unit] |= 1L << line;
+ *		tp->t_state |= TS_CARR_ON;
+ *	}
+ *	else
+ *		XXsoftCAR[unit] &= ~(1L << line);
+ *
+ * (2.10BSD uses a bit 0200 in the minor device number of a tty /dev node
+ * to indicate soft carrier as opposed to compiling it into the kernel as
+ * 4.3BSD does.)  This code minus the check of ui_flags is already present
+ * in all 2.10BSD drivers.
+ */
 setmodem(ttyline, enable)
 char *ttyline; int enable;
 {
 	dev_t dev;
 	int kmem;
-	int unit, line, nlines, addr, tflags;
+	int unit, line, nlines;
+	int addr;
 	int devtype=0;
-	char cflags; short sflags;
+	char cflags;
+	unsigned short sflags;
 #ifdef BSD4_2
-	int flags;
+	long flags, tflags;
 #else
-	short flags;
+	short flags, tflags;
 #endif
 	struct uba_device *ubinfo;
 	struct stat statb;
@@ -646,19 +671,31 @@ char *ttyline; int enable;
 		devtype = DZ11;
 		unit = minor(dev) / NDZLINE;
 		line = minor(dev) % NDZLINE;
+#ifdef BSD2_10
+		ubinfo = &(((struct uba_device *)NLVALUE(DZINFO))[unit]);
+#else
 		addr = (int) &(((int *)NLVALUE(DZINFO))[unit]);
+#endif
 		(void)lseek(kmem, (off_t) NLVALUE(NDZ11), 0);
 	} else if((int)(cdevsw.d_open) == NLVALUE(DHOPEN)) {
 		devtype = DH11;
 		unit = minor(dev) / NDHLINE;
 		line = minor(dev) % NDHLINE;
+#ifdef BSD2_10
+		ubinfo = &(((struct uba_device *)NLVALUE(DHINFO))[unit]);
+#else
 		addr = (int) &(((int *)NLVALUE(DHINFO))[unit]);
+#endif
 		(void)lseek(kmem, (off_t) NLVALUE(NDH11), 0);
 	} else if((int)(cdevsw.d_open) == NLVALUE(DMFOPEN)) {
 		devtype = DMF;
 		unit = minor(dev) / NDMFLINE;
 		line = minor(dev) % NDMFLINE;
+#ifdef BSD2_10
+		ubinfo = &(((struct uba_device *)NLVALUE(DMFINFO))[unit]);
+#else
 		addr = (int) &(((int *)NLVALUE(DMFINFO))[unit]);
+#endif
 		(void)lseek(kmem, (off_t) NLVALUE(NDMF), 0);
 	} else {
 		fprintf(stderr, "Device %s (%d/%d) unknown.\n", ttyline,
@@ -673,16 +710,23 @@ char *ttyline; int enable;
 		return(-1);
 	}
 
+#ifndef BSD2_10
 	(void)lseek(kmem, (off_t)addr, 0);
 	(void)read(kmem, (char *) &ubinfo, sizeof ubinfo);
+#endif
 	(void)lseek(kmem, (off_t) &(ubinfo->ui_flags), 0);
 	(void)read(kmem, (char *) &flags, sizeof flags);
 
+#ifdef BSD4_2
+	tflags = 1L<<line;
+#else
 	tflags = 1<<line;
+#endif
 	resetmodem = ((flags&tflags) == 0);
 	flags = enable ? (flags & ~tflags) : (flags | tflags);
 	(void)lseek(kmem, (off_t) &(ubinfo->ui_flags), 0);
 	(void)write(kmem, (char *) &flags, sizeof flags);
+#ifndef BSD2_10
 	switch(devtype) {
 		case DZ11:
 			if((addr = NLVALUE(DZSCAR)) == 0) {
@@ -715,6 +759,7 @@ char *ttyline; int enable;
 			fprintf(stderr, "Unknown device type\n");
 			return(-1);
 	}
+#endif /* !BSD2_10 */
 	return(0);
 }
 

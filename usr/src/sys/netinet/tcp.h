@@ -1,10 +1,35 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)tcp.h	7.2 (Berkeley) 10/28/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp.h	7.4.1.1 (Berkeley) 2/7/88
  */
+#ifndef BYTE_ORDER
+/*
+ * Definitions for byte order,
+ * according to byte significance from low address to high.
+ */
+#define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax) */
+#define	BIG_ENDIAN	4321	/* most-significant byte first (IBM, net) */
+#define	PDP_ENDIAN	3412	/* LSB first in word, MSW first in long (pdp) */
+
+#ifdef vax
+#define	BYTE_ORDER	LITTLE_ENDIAN
+#else
+#ifdef pdp11
+#define	BYTE_ORDER	PDP_ENDIAN
+#else
+#define	BYTE_ORDER	BIG_ENDIAN	/* mc68000, tahoe, most others */
+#endif
+#endif
+#endif BYTE_ORDER
 
 typedef	u_long	tcp_seq;
 /*
@@ -16,15 +41,15 @@ struct tcphdr {
 	u_short	th_dport;		/* destination port */
 	tcp_seq	th_seq;			/* sequence number */
 	tcp_seq	th_ack;			/* acknowledgement number */
-#if ENDIAN == LITTLE
+#if BYTE_ORDER == LITTLE_ENDIAN
 	u_char	th_x2:4,		/* (unused) */
 		th_off:4;		/* data offset */
 #endif
-#if ENDIAN == BIG
+#if BYTE_ORDER == BIG_ENDIAN
 	u_char	th_off:4,		/* data offset */
 		th_x2:4;		/* (unused) */
 #endif
-#if ENDIAN == PDP
+#if BYTE_ORDER == PDP_ENDIAN
 	u_int	th_x2:4,		/* (unused) */
 		th_off:4;		/* data offset */
 #endif
@@ -52,6 +77,9 @@ struct tcphdr {
 #ifdef	lint
 #define	TCP_MSS	536
 #else
+#ifndef IP_MSS
+#define	IP_MSS	576
+#endif
 #define	TCP_MSS	MIN(512, IP_MSS - sizeof (struct tcpiphdr))
 #endif
 

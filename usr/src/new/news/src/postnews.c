@@ -17,11 +17,14 @@
  * in a shell script.
  */
 #ifdef SCCSID
-static char	*SccsId = "@(#)postnews.c	1.31	3/21/87";
+static char	*SccsId = "@(#)postnews.c	1.36	11/30/87";
 #endif /* SCCSID */
 
 #include "params.h"
 
+# ifndef ROOTID
+extern int ROOTID;
+# endif	/* !ROOTID */
 #define APPEND 1
 #define REPLACE 2
 
@@ -67,10 +70,32 @@ char *argv[];
 	init();
 
 	if (argc == 2) {
-		if (!prefix(argv[1], SPOOL))
+		if (!PREFIX(argv[1], SPOOL))
 			xerror("Can only followup to articles in %s", SPOOL);
+#ifdef SERVER
+		{
+			int artnum;
+			char * group, *p;
+			strcpy (buf,argv[1]);
+			if ((group = rindex(buf,'/')) == NULL)
+				xerror("Can't get article number");
+			*group = '\0';
+			artnum = atoi(++group);
+			if (artnum == 0) 
+				xerror("Can't get article number");
+			group = &buf[strlen(SPOOL) + 1];
+			for (p=group; *p ;++p)
+				if (*p == '/')
+					*p = '.';
+			if (getarticle(group,artnum,"ARTICLE") == NULL)
+				xerror("Can't find article");
+		}
+		followup(article_name());
+		(void) strcpy(original, article_name());
+#else	/* !SERVER */
 		followup(argv[1]);
 		(void) strcpy(original, argv[1]);
+#endif	/* !SERVER */
 	} else
 	if (askyes("Is this message in response to some other message? ","no")) {
 		char ng[BUFLEN], num[BUFLEN];
@@ -80,7 +105,7 @@ char *argv[];
 		char canpost;
 
 		getpr("In what newsgroup was the article posted? ",ng);
-		if (!valid_ng(ng, &i, &j, &canpost))
+		if (!valid_ng(ng, &i, &j, &canpost, TRUE))
 			if (canpost == 'i' )
 				byebye("There is no such newsgroup.");
 			else if (canpost == 'n')
@@ -104,16 +129,25 @@ char *argv[];
 				sprintf(num, "%ld", lastnum + dir);
 				break;
 			}
+#ifdef SERVER
+			if (getarticle(ng, atoi(num), "ARTICLE") == NULL)
+					goto nothere;
+			strcpy(original, article_name());
+#else	/* !SERVER */
 			(void) sprintf(original, "%s/%s", SPOOL, ng);
 			for (p=original+strlen(SPOOL)+1; *p ;++p)
 				if (*p == '.')
 					*p = '/';
 			(void) strcat(original, "/");
 			(void) strcat(original, num);
-
+#endif	/* !SERVER */
 			if ((fd=open(original,0)) >= 0) {
 				(void) close(fd);
+#ifdef SERVER
+				printf("\narticle %s in %s\n", num, ng);
+#else	/* !SERVER */
 				printf("\narticle %s\n", original);
+#endif	/* !SERVER */
 				if (article_line(original, "From: ", buf))
 					printf("%s\n", buf);
 				if (article_line(original, "Subject: ", buf))
@@ -121,6 +155,9 @@ char *argv[];
 				if (askyes("Is this the one you want? ", "n"))
 					break;
 			} else
+#ifdef SERVER
+nothere:
+#endif	/* !SERVER */
 				printf("I can't find that article.\n");
 			lastnum = atol(num);
 		}
@@ -144,7 +181,7 @@ printf("So type in something both brief and descriptive.\n");
 	}
 
 	if (pre_checks())
-		exit(1);
+		xxit(1);
 
 	prep_article();
 	c = 'e';
@@ -162,18 +199,18 @@ printf("So type in something both brief and descriptive.\n");
 				c = tolower(c);
 			if (c == 'q') {
 				(void) UNLINK(tempfname);
-				exit(1);
+				xxit(1);
 			}
 			if (c == 'l') {
 				char *pager = getenv("PAGER");
 				char lbuf[BUFLEN];
 				if (pager == NULL || *pager == '\0') {
 #ifdef PAGE
-# ifdef IHCC
+# ifdef LOGDIR
 					(void) sprintf(lbuf,"%s/bin/%s", logdir(HOME), PAGE);
-# else /* !IHCC */
+# else /* !LOGDIR */
 					(void) strcpy(lbuf, PAGE);
-# endif /* !IHCC */
+# endif /* !LOGDIR */
 					pager = lbuf;
 #else /* !PAGE */
 					pager = "cat";
@@ -229,7 +266,9 @@ get_newsgroup()
 		printf("But DO use multiple newsgroups rather than posting many times.\n\n");
 		first = 0;
 	}
+#ifndef SERVER
 	printf("For a list of newsgroups, type ?\n");
+#endif	/* !SERVER */
 	n = 0;
 	newsgroups[0] = '\0';
 
@@ -240,16 +279,17 @@ get_newsgroup()
 				return FALSE;
 			else
 				return TRUE;
+#ifndef SERVER
 		if (buf[0] == '?'){
 			char *pager = getenv("PAGER");
 			char lbuf[BUFLEN];
 			if (pager == NULL) {
 #ifdef PAGE
-# ifdef IHCC
+# ifdef LOGDIR
 				(void) sprintf(lbuf,"%s/bin/%s", logdir(HOME), PAGE);
-# else /* !IHCC */
+# else /* !LOGDIR */
 				(void) strcpy(lbuf, PAGE);
-# endif /* !IHCC */
+# endif /* !LOGDIR */
 				pager = lbuf;
 #else /* !PAGE */
 				pager = "cat";
@@ -261,7 +301,8 @@ get_newsgroup()
 			(void) system(buf);
 			continue;
 		}
-		if (valid_ng(buf, &i, &i, &canpost)) {
+#endif	/* !SERVER */
+		if (valid_ng(buf, &i, &i, &canpost, FALSE)) {
 			if (n++ != 0)
 				(void) strcat(newsgroups, ngsep);
 			(void) strcat(newsgroups, buf);
@@ -294,14 +335,14 @@ get_distribution(deflt)
 	r = index(def, '.');
 	if (r) {
 		*r = '\0';
-		if (strcmp(def, "net") == 0)
+		if (STRCMP(def, "net") == 0)
 			(void) strcpy(def, "world");
 	} else {
 		distribution[0] = '\0';
 		return;
 	}
 
-	if (strcmp(def, "to") == 0) {
+	if (STRCMP(def, "to") == 0) {
 		/*
 		 * This only works if "to.xx" is the first (or only)
 		 * newsgroup, but it usually is ..
@@ -315,7 +356,7 @@ get_distribution(deflt)
 	if (ngmatch("misc.test", newsgroups))
 		(void) strcpy(def, "local");
 	for (i=0; distr[i].abbr[0]; i++) {
-		if (strcmp(distr[i].abbr, def) == 0)
+		if (STRCMP(distr[i].abbr, def) == 0)
 			break;
 	}
 	if (distr[i].abbr[0] == '\0')
@@ -325,11 +366,11 @@ get_distribution(deflt)
 			(void) sprintf(buf, "Distribution (default='%s', '?' for help) : ", def);
 			getpr(buf, distribution);
 			if (distribution[0] == '\0') {
-				if (strcmp(def, "*None*") == 0)
+				if (STRCMP(def, "*None*") == 0)
 					printf("You must enter a distribution, '?' for help.\n");
 				(void) strcpy(distribution, def);
 			}
-		} while (strcmp(distribution, "*None*") == 0);
+		} while (STRCMP(distribution, "*None*") == 0);
 
 		/* Did the user ask for help? */
 		if (distribution[0] == '?') {
@@ -340,13 +381,16 @@ get_distribution(deflt)
 			continue;
 		}
 
+#ifdef SERVER
+		return;		/* can't do this yet */
+#else	/* !SERVER */
 		/* Check that it's a proper distribution */
 		for (i=0; distr[i].abbr[0]; i++) {
 			if (strncmp(distr[i].abbr, distribution, sizeof(distr[0].abbr)) == 0) {
 				return;
 			}
 		}
-		if (strcmp(distribution, def) != 0)
+		if (STRCMP(distribution, def) != 0)
 			printf("Type ? for help.\n");
 		else {
 			int once = TRUE;
@@ -354,7 +398,7 @@ get_distribution(deflt)
 			do {
 				r = lastgroup;
 				while (r = index(r, NGDELIM))
-					if (!prefix(++r, def))
+					if (!PREFIX(++r, def))
 						break;
 				if (r == NULL) {
 					/*
@@ -377,9 +421,10 @@ get_distribution(deflt)
 				r = index(def, '.');
 			} while (r == NULL);
 			*r = '\0';
-			if (strcmp(def, "net") == 0)
+			if (STRCMP(def, "net") == 0)
 				strcpy(def, "world");
 		}
+#endif	/* !SERVER */
 	}
 }
 
@@ -402,13 +447,13 @@ prep_article()
 	struct stat stbuf;
 
 	(void) strcpy(tempfname, "/tmp/postXXXXXX");
-	(void) mktemp(tempfname);
+	MKTEMP(tempfname);
 
 	/* insert a header */
 	tf = xfopen(tempfname, "w");
 	fprintf(tf, "Subject: %s\n", subject);
 	fprintf(tf, "Newsgroups: %s\n", newsgroups);
-	if (distribution[0] != '\0' && strcmp(distribution, "world"))
+	if (distribution[0] != '\0' && STRCMP(distribution, "world"))
 		fprintf(tf, "Distribution: %s\n", distribution);
 
 	if (keywords[0] != '\0')
@@ -453,7 +498,7 @@ edit_article()
 		editor = DFTEDITOR;
 
 	p = editor + strlen(editor) - 2;
-	if (strcmp(p, "vi") == 0)
+	if (STRCMP(p, "vi") == 0)
 		endflag = "+";
 
 	(void) sprintf(buf, "A=%s;export A;exec %s %s %s",
@@ -474,18 +519,18 @@ post_checks()
 	if (stat(tempfname, &stbuf) < 0) {
 		printf("File deleted - no message posted.\n");
 		(void) UNLINK(tempfname);
-		exit(1);
+		xxit(1);
 	}
 	if (stbuf.st_size < 5) {
 		printf("File too small (<5 characters) - no message posted.\n");
 		(void) UNLINK(tempfname);
-		exit(1);
+		xxit(1);
 	}
 
 	if (stbuf.st_mtime == fmodtime) {
 		printf("File not modified - no message posted.\n");
 		(void) UNLINK(tempfname);
-		exit(1);
+		xxit(1);
 	}
 
 	/*
@@ -499,7 +544,7 @@ post_checks()
 			sprintf(ccname, "%s/dead.article", homedir);
 			save_article();
 			(void) UNLINK(tempfname);
-			exit(1);
+			xxit(1);
 		}
 	}
 
@@ -513,7 +558,7 @@ post_checks()
 		sprintf(ccname, "%s/dead.article", homedir);
 		save_article();
 		(void) UNLINK(tempfname);
-		exit(1);
+		xxit(1);
 	}
 	c = &group[11];
 	while (*c == ' ' || *c == '\t')
@@ -539,7 +584,7 @@ post_checks()
 		}
 	}
 
-	if (ngmatch(newsgroups, "rec.humor,!rec.humor.d")) {
+	if (ngmatch(newsgroups, "rec.humor,!rec.humor.all")) {
 		if (askyes("Could this be offensive to anyone? ","")) {
 			getpr("Whom might it offend? ", group);
 			(void) sprintf(buf," - offensive to %s (rot 13)",group);
@@ -548,7 +593,7 @@ post_checks()
 		}
 	}
 
-	if (ngmatch(newsgroups, "comp.sources.all,!comp.sources.wanted")) {
+	if (ngmatch(newsgroups, "comp.sources.all,!comp.sources.wanted,!comp.sources.d")) {
 		if (!article_line(tempfname, "Subject: ", group)) {
   nosubj:
 			printf("There seems to be no subject for this article.\n");
@@ -598,7 +643,7 @@ register char *str;
 	while (*str == ' ')
 		str++;
 
-	if (prefix(str, "Re:"))
+	if (PREFIX(str, "Re:"))
 		return (FALSE);
 
 	if (isin(str, " wanted ") || isin(str, " can any") ||
@@ -694,9 +739,8 @@ post_article()
 		printf("A copy has been saved in %s\n", ccname);
 		save_article();
 	}
-
 	(void) UNLINK(tempfname);
-	exit(0);
+	xxit(0);
 }
 
 /*
@@ -717,7 +761,7 @@ init()
 	pw = getpwuid(uid);
 	if (pw == NULL) {
 		fprintf(stderr,"You're not in /etc/passwd\n");
-		exit(1);
+		xxit(1);
 	}
 	p = getenv("HOME");
 	if (p == NULL) {
@@ -737,15 +781,25 @@ init()
 	}
 
 	pathinit();
+#ifdef SERVER
+	if (open_server() < 0) 
+		xerror("Server error");
+			/* do something to some up with distributions */
+	if ((fd = open_active()) == NULL)
+		xerror("Server error");
+	strcpy(ACTIVE,active_name());
+#else	/* !SERVER */
 	(void) sprintf(buf, "%s/%s", LIB, "distributions");
+
 	fd = xfopen(buf, "r");
 	for (i=0; i < MAXDISTR; i++) {
 		if (fscanf(fd, "%s %[^\n]", distr[i].abbr, distr[i].descr)
 			!= 2)
 			break;
-		if (strcmp(distr[i].abbr, "default") == 0)
+		if (STRCMP(distr[i].abbr, "default") == 0)
 			strcpy(def_distr, distr[i--].descr);
 	}
+#endif	/* !SERVER */
 	(void) fclose(fd);
 	distr[i].abbr[0] = '\0';
 	if (def_distr[0] == '\0')
@@ -797,7 +851,7 @@ char *msg, *bptr;
 	if (feof(stdin)) {
 		if (numeof++ > 3) {
 			fprintf(stderr,"Too many EOFs\n");
-			exit(1);
+			xxit(1);
 		}
 		clearerr(stdin);
 	}
@@ -807,7 +861,7 @@ byebye(mesg)
 char *mesg;
 {
 	printf("%s\n", mesg);
-	exit(1);
+	xxit(1);
 }
 
 /*
@@ -831,13 +885,13 @@ char *fname, *field, *line;
 	char lbfr[BUFLEN];
 	register found = FALSE;
 
-	mktemp(temp2fname);
+	MKTEMP(temp2fname);
 
 	fptmp = xfopen(temp2fname, "w");
 	fpart = xfopen(fname, "r");
 
 	while (fgets(lbfr, BUFLEN, fpart) != NULL) {
-		if (prefix(lbfr, field)) {
+		if (PREFIX(lbfr, field)) {
 			found = TRUE;
 			(void) nstrip(lbfr);
 			if (how == APPEND) {
@@ -869,13 +923,16 @@ char *fname, *field, *line;
 
 
 /* verify that newsgroup exists, and get number of entries */
-valid_ng(ng, maxart, minart, canpost)
-char *ng;
+valid_ng(ng, maxart, minart, canpost, exact)
+     char *ng;
+     
 long *maxart, *minart;
+int exact;
 char *canpost;
 {
-	char ng_check[BUFLEN], ng_read[BUFLEN];
+	char ng_check[BUFLEN], ng_read[BUFLEN], *cp;
 	FILE *fp;
+	int found_ng;
 
 	fp = xfopen(ACTIVE, "r");
 	while (fgets(ng_read, BUFLEN, fp) != NULL) {
@@ -894,7 +951,7 @@ char *canpost;
 			byebye("Seek help!");
 		}
 			
-		if (strcmp(ng_check, ng) == 0) {
+		if (STRCMP(ng_check, ng) == 0) {
 			(void) fclose(fp);
 			if (*canpost != 'n') {
 #ifdef FASCIST
@@ -908,11 +965,30 @@ char *canpost;
 				return FALSE;
 		}
 	}
-	*canpost = 'i';
+	(void) fclose(fp);
 	*maxart = 0;
 	*minart = 0;
+	*canpost = 'i';
+	if (exact) {
+		return FALSE;
+	}
+	if ((fp = fopen(BUGFILE, "r")) == NULL) {
+		return FALSE;
+	}
+	found_ng = FALSE;
+	while (!found_ng && fgets(ng_check, BUFLEN, fp) == ng_check) {
+		if (ng_check[0] == '#')
+			continue;
+		cp = index(ng_check, '\n');
+		*cp = '.';
+		if (prefix(ng, ng_check))
+			found_ng = TRUE;
+	}
 	(void) fclose(fp);
-	return FALSE;
+	if (!found_ng)
+		return FALSE;
+	*canpost = 'y';
+	return TRUE;
 }
 
 /* get the line specified by field from an article */
@@ -923,7 +999,7 @@ char *article, *field, *line;
 	char *c;
 
 	fp = xfopen(article,"r");
-	while ((c=fgets(line,BUFLEN,fp)) != NULL && !prefix(line, field))
+	while ((c=fgets(line,BUFLEN,fp)) != NULL && !PREFIX(line, field))
 		if (line[0] == '\n') {
 			c = NULL;
 			break;
@@ -967,10 +1043,10 @@ register char *baseart;
 	/* newsgroup */
 	if (article_line(baseart, "Newsgroups: ", buf))
 		(void) strcpy(newsgroups, buf+12);
-	if (ngmatch(newsgroups, "misc.jobs")) {
-		printf("misc.jobs is for the direct posting of job announcements and requests.\n");
-		printf("it is not for discussion. You followup has been directed to misc.misc\n");
-		(void) strcpy(newsgroups,"misc.misc");
+	if (ngmatch(newsgroups, "misc.jobs.all,!misc.jobs.misc")) {
+		printf("Your followup has been directed to misc.jobs.misc\n");
+		printf("It is the proper place for followup discussions\n");
+		(void) strcpy(newsgroups,"misc.jobs.misc");
 	}
 
 	/* distribution */
@@ -1003,7 +1079,7 @@ register char *baseart;
 
 	if (article_line(baseart, "Followup-To: ", buf)) {
 		(void) strcpy(newsgroups, buf+13);
-		if (strcmp(newsgroups, "poster") == 0)
+		if (STRCMP(newsgroups, "poster") == 0)
 			byebye("Mail followups directly to poster.");
 	}
 
@@ -1037,8 +1113,8 @@ char *article;
 	char *headerfile = "/tmp/pheadXXXXXX";
 	char *codedfile = "/tmp/pcodeXXXXXX";
 
-	(void) mktemp(headerfile);
-	(void) mktemp(codedfile);
+	MKTEMP(headerfile);
+	MKTEMP(codedfile);
 
 	fpart = xfopen(article, "r");
 
@@ -1066,7 +1142,7 @@ char *article;
 	(void) fflush(stdout);
 	if (system(buf)) {
 		printf("encoding failed");
-		exit(2);
+		xxit(2);
 	}
 	(void) UNLINK(codedfile);
 }
@@ -1102,8 +1178,10 @@ char *ngrps;
 				return 0;
 			while ((c = getc(fd)) != EOF)
 				putc(c, stderr);
+			fclose(fd);
 			fprintf(stderr, "Do you understand this?  Hit <return> to proceed, <BREAK> to abort: ");
-			n = read(2, recbuf, 100);
+			fflush(stderr);
+			n = read(0, recbuf, 100);
 			c = recbuf[0];
 			yes = (c=='y' || c=='Y' || c=='\n' || c=='\n' || c==0);
 			if (n <= 0 || !yes)
@@ -1115,18 +1193,9 @@ char *ngrps;
 
 xxit(i)
 {
+#ifdef SERVER
+	(void) UNLINK(original);
+	(void) UNLINK(active_name());
+#endif	/* SERVER */
 	exit(i);
 }
-
-#if !defined(BSD4_2) && !defined(BSD4_1C)
-rename(from,to)
-register char *from, *to;
-{
-	(void) unlink(to);
-	if (link(from, to) < 0)
-		return -1;
-
-	(void) unlink(from);
-	return 0;
-}
-#endif /* !BSD4_2 && ! BSD4_1C */

@@ -5,12 +5,20 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)puts.s	5.5 (Berkeley) 2/3/87\0>
+	<@(#)puts.s	5.6 (Berkeley) 12/24/88\0>
 	.even
 #endif LIBC_SCCS
 
 #include "DEFS.h"
 #include "STDIO.h"
+
+/*
+ * BUFSIZ is only used if we're asked to output to an unbuffered output
+ * stream.  Given that a majority of our arguments are going to be less
+ * than 80 characters (one screen line), we might as well use a fairly small
+ * value for BUFSIZ ...
+ */
+#define		BUFSIZ	128.
 
 /*
  * puts(s);
@@ -19,8 +27,8 @@
  * argument: a source string.
  * side effects: writes to the standard output using the data in
  *	the null-terminated source string; a newline is appended.
- * result: technically void; for compatibility we return 0 for the null
- *	string, non-zero otherwise.  We return zero for errors too.
+ * result: technically void; for compatibility we return 0 for errors,
+ *	a newline (\n) otherwise
  */
 ENTRY(puts)
 	mov	$STDOUT,r0		/ out to stdout
@@ -35,8 +43,8 @@ ENTRY(puts)
  * arguments: a source string and a file pointer.
  * side effects: writes to the file indicated by iop using the data in
  *	the null-terminated source string.
- * result: technically void; for compatibility we return 0 for the null
- *	string, non-zero otherwise.  We return zero for errors too.
+ * result: technically void; for compatibility we return 0 for errors,
+ *	a newline (\n) otherwise
  */
 ENTRY(fputs)
 	mov	4(sp),r0		/ out to iop
@@ -92,7 +100,7 @@ Lputs:
 	br	2f			/ have _flsbuf finish the buffer setup
 1:
 	tst	_CNT(IOP)		/ has buffer been allocated?
-	bne	3f
+	bgt	3f
 2:
 	mov	IOP,-(sp)		/ get _flsbuf('\0', stdout) to make
 	clr	-(sp)			/   one
@@ -150,7 +158,7 @@ Lnl:
 	tst	UNBUF			/   or unbuffered ...
 	bne	2f
 	tst	_CNT(IOP)		/   or a full buffer ...
-	bne	3f
+	bgt	3f
 2:
 	mov	IOP,-(sp)		/ ... flush the buffer
 	jsr	pc,_fflush

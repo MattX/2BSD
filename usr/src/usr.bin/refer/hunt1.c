@@ -225,7 +225,7 @@ search:
 							tagp++;
 						if (*tagp)
 							tagp++;
-						findline(oldtagp, bout, 1000);
+						findline(oldtagp, bout, 1000, 0L);
 						fputs(bout,stdout);
 					}
 				}

@@ -9,15 +9,15 @@ static char *sccsid = "@(#)refer2.c	4.2 (Berkeley) 6/5/84";
 extern FILE *in;
 char one[ANSLEN];
 int onelen = ANSLEN;
-static char dr [100] = "";
+static char *dr = "";
 
 doref(line1)
 char *line1;
 {
 	char buff[QLEN], dbuff[3*QLEN];
 	char answer[ANSLEN], temp[TLEN], line[BUFSIZ];
-	char *p, **sr, *flds[NFLD], *r;
-	int stat, nf, nr, query = 0, alph, digs;
+	char *p, **sr, *flds[NFLD], *r, *c;
+	int stat, nf, nr, query = 0, alph, digs, baselength;
 
    again:
 	buff[0] = dbuff[0] = NULL;
@@ -84,6 +84,22 @@ char *line1;
 			assert(strlen(temp) < TLEN);
 			if (strlen(temp)+strlen(answer) > BUFSIZ)
 				err("Accumulated answers too large",0);
+			/*
+			 * Absolute pathnames are only returned by hunt if an
+			 * indexed database is searched.  This means that in
+			 * order to search unindexed databases not in the
+			 * current working directory, we must prefix the
+			 * returned value with a valid path if it isn't
+			 * already a full pathname.
+			 */
+			baselength = (c = (char *) rindex(*sr, '/')) ?
+						(int) (c - *sr) + 1 : 0;
+			if (temp[0] == '\0' || temp[0] == '/')
+				baselength = 0;
+			if (strlen(temp)+baselength+strlen(answer) > BUFSIZ)
+				err("Accumulated answers too large",0);
+			if (baselength)
+				strcat(answer, *sr);
 			strcat(answer, temp);
 			if (strlen(answer)>BUFSIZ)
 				err("answer too long (%d)", strlen(answer));

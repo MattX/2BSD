@@ -21,8 +21,12 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)uname.c	2.15	3/21/87";
+static char	*SccsId = "@(#)uname.c	2.17	11/19/87";
 #endif /* SCCSID */
+
+#ifdef BSD2_10
+#include <short_names.h>
+#endif /* BSD2_10 */
 
 #include "params.h"
 
@@ -37,6 +41,8 @@ struct utsname *uptr;
 	char *cp;
 	extern char *mydomain();
 	gethostname(uptr->nodename, sizeof (uptr->nodename));
+	for (cp = uptr->nodename; *cp == '\0'; cp++)
+		if (isupper(*cp)) *cp = tolower(*cp);
 	cp = mydomain();
 	if (*cp == '\0') /* get domain name from hostname */
 		return;

@@ -9,8 +9,8 @@
 .de Ch
 \\$3\\*(Lq\\$1\\*(Rq\\$2
 ..
-.TH READNEWS 1 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH READNEWS 1 "October 22, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 readnews \- read news articles
 .SH SYNOPSIS
@@ -26,6 +26,8 @@ readnews \- read news articles
 .IR mailer " ] ]"
 .PP
 .B "readnews \-s"
+.PP
+.B "readnews \-K"
 .SH DESCRIPTION
 .I Readnews
 without argument prints unread articles.
@@ -36,7 +38,9 @@ Interface
 .TP 10
 .B \-M
 An interface to
-.IR mailx (1).
+.IR mailx (1)
+or
+.IR Mail(1).
 .TP 10
 .B \-c
 A
@@ -152,6 +156,12 @@ You can use the
 .B \-s
 flag to print the newsgroup subscription list.
 .PP
+If you haven't read news in a while (or if you have never read news!)
+you can do
+.I "readnews \-K"
+to Kill (mark as read) all of the articles in the groups to which
+you are subscribed.
+.PP
 When the user uses the reply command of the default or
 .IR binmail (1)
 interfaces, the environment parameter
@@ -160,7 +170,7 @@ will be used to determine
 which mailer to use.  The default is
 .IR mail (1).
 .PP
-If the user so desires, he may specify a specific paging progam
+The user may specify a particular paging progam
 for articles.  The environment parameter
 .B PAGER
 should be set to
@@ -219,7 +229,7 @@ and permits you to read and reply to each piece.
 .IP \fBD\fP [\fInumber\fP]
 Decrypt.  Invokes a Caesar decoding program on the body of the message.
 This is used to decrypt rotated jokes posted to
-.BR net.jokes .
+.BR rec.humor .
 Such jokes are usually obscene or otherwise offensive to some
 groups of people, and so are rotated to avoid accidental
 decryption by people who would be offended.
@@ -375,9 +385,9 @@ file is
 .B not
 updated at the end of the session.
 .TP 10
-.B readnews \-n all !fa.all \-M \-r
+.B readnews \-n all !talk \-M \-r
 Read all unread articles except articles whose newsgroups begin with
-.B fa.
+.B talk.
 via
 .I mailx
 in reverse order.  The
@@ -390,7 +400,7 @@ Print every unread article since last Thursday.  The
 file is
 updated at the end of the session.
 .TP 10
-.B "readnews \-p > /dev/null &"
+.B "readnews \-K"
 Discard all unread news.
 This is useful after returning from a long trip.
 .SH "ENVIRONMENT VARIABLES"
@@ -445,7 +455,7 @@ Options and list of previously read articles
 .SH SEE ALSO
 binmail(1),
 checknews(1),
-inews(1),
+inews(8),
 mail(1),
 mailx(1),
 news(5),

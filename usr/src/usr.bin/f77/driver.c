@@ -92,7 +92,7 @@ loadargs = (char **) ckalloc( (argc+20) * sizeof(*loadargs) );
 loadargs[1] = "-X";
 loadargs[2] = "-u";
 #if HERE==PDP11 || HERE==VAX
-	loadargs[3] = "_MAIN__";
+	loadargs[3] = "_MAIN_";
 #endif
 #if HERE == INTERDATA
 	loadargs[3] = "main";

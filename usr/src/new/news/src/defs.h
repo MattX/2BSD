@@ -14,7 +14,7 @@
  *
  */
 
-/*	@(#)defs.dist	2.58	4/10/87 	*/
+/*	@(#)defs.dist	2.61	11/30/87	*/
 
 /*
  * defs.h - defines for news-related programs.
@@ -32,12 +32,12 @@
 #define WEEKS	(7*DAYS)
 /* Things that very well may require local configuration */
 #ifndef HOME
-#define ROOTID	10	/* uid of person allowed to cancel anything	*/
+#define ROOTID	6	/* uid of person allowed to cancel anything	*/
 #endif
 #define N_UMASK 022	/* mask for umask call, 022 for secure system	*/
 #define DFLTEXP	2*WEEKS	/* default no. of seconds to expire in		*/
-#define HISTEXP	2*WEEKS	/* default no. of seconds to forget in		*/
-#define DFLTSUB "general,all.announce"	/* default subscription list	*/
+#define HISTEXP	4*WEEKS	/* default no. of seconds to forget in		*/
+#define DFLTSUB "general,all.general,duke.physics,duke.math,all.announce"	/* default subscription list	*/
 #define TMAIL	"/usr/ucb/Mail"	/* Mail program that understands -T	*/
 #define ADMSUB	"general,all.announce"	/* Mandatory subscription list	*/
 #define PAGE	"/usr/ucb/more"	/* Default pager			*/
@@ -49,15 +49,14 @@
 /* #define UUPROG "euuname"	/* omit for uuname, put in LIBDIR	*/
 #define MANUALLY		/* Don't execute rmgroups, just notify.	*/
 /* #define NONEWGROUPS		/* Don't create new groups, just notify.*/
-/* #define SPOOLNEWS		/* Spool incoming rnews, don't process	*/
+#define SPOOLNEWS		/* Spool incoming rnews, don't process	*/
 /* #define SPOOLINEWS		/* Spool local inews, don't process	*/
 /* #define LOCALNAME 		/* There is no full name database. 	*/
-/* #define INTERNET		/* Internet mail works locally		*/
+#define INTERNET		/* Internet mail works locally		*/
 #define MYDOMAIN ".UUCP"	/* Local domain				*/
 /* #define CHEAP		/* don't chown files to news		*/
 /* #define OLD			/* Add extra headers for old neighbors	*/
 /* #define UNAME		/* If uname call returns your nodename  */
-#include <short_names.h>
 #define GHNAME		/* If gethostname call is available.	*/
 /* #define UUNAME "/etc/uucpname" /* If your nodename is stored in a file */
 #define V7MAIL			/* Local mail format is V7 ("From ")	*/
@@ -66,27 +65,39 @@
 #define DIGPAGE			/* allow digestifying in vnews */
 #define DOXREFS		/* Generate xref line for rn to use */
 /* #define MULTICAST		/* If you want to be able to multicast news */
-#define BSD4_2		/* If you are running 4.2  or 4.3 BSD	*/
-/* #define BSD4_1C		/* If you are running 4.1C BSD		*/
+#define BSD4_2		/* If you are running 4.2, 4.3, or 2.10 BSD */
 /* #define LOCKF		/* If you have the lockf() sys call */
+/* #define LOCKING		/* If you have the locking() sys call */
+#define DOGETUSER		/* Always do 'getuser' so can't fake name */
+/* #define LOGDIR		/* use the 'logdir' call on path lookups */
+/* #define MKDIRSUB		/* your system has mkdir as a syscall */
+/* #define READDIR		/* your system has readdir() in libc */
+/* #define RENAMESUB		/* your system has rename() in libc */
 /* #define ALWAYSALIAS		/* temporary kludge for conversion */
 #define SENDMAIL "/usr/lib/sendmail" /* command line to run "sendmail" if you have it	*/
 /* #define MMDF	"/usr/mmdf/submit"	/* command line to run mmdf if you have it */
-#define MYORG "CSU, Stanislaus; Turlock, California"	/* My organization.  Please	*/
+#define MYORG	"Duke University Physics Dept.; Durham, N.C."
 				/* include your city (and state, and	*/
 				/* country, if not obvious) in MYORG,	*/
 				/* and please keep it short.		*/
-/* #define HIDDENNET "csustan"	/* if you have a local network and want */
+/* #define HIDDENNET "frooz"	/* if you have a local network and want */
 				/* The mail address to look like it came */
 				/* from one machine */
 /* NOTE: The following two macros replace the use of HIDDENNET */
 /* #define GENERICPATH "frooz"	/* If you are using a shared USENET/UUCP node */
 /* #define GENERICFROM "Frobozz.COM"	/* If you want generic From:-addresses */
-#define NICENESS	2	/* does a nice(NICENESS) in rnews */
+#define NICENESS	8	/* does a nice(NICENESS) in rnews */
 /* #define FASCIST	"all,!all.all"	/* only permit posting to certain groups */
 				/* see installation guide for details */
-#define SMALL_ADDRESS_SPACE	/* If your machine can't address > 32767 */
+/* #define SMALL_ADDRESS_SPACE	/* If your machine can't address > 32767 */
 /* #define ORGDISTRIB	"froozum"	/* For organization wide control message handling */
+/* #define MODFILEONLY		/* define when local postings to moderated */
+				/* groups must be approved by the contents */
+				/* of the $(LIB)/moderators file	   */
+#define MKSTR		/* Extract strings using mkstr(1) to save  */
+				/* space on machines with small address    */
+				/* spaces.  Don't forget to enable it in   */
+				/* the Makefile, too.	 		   */
 
 /* Things you might want to change */
 #define NEWSRC  ".newsrc"	/* name of .newsrc file (in home dir)	*/
@@ -99,7 +110,8 @@
 #else
 # define BUFLEN	256	/* standard buffer size				*/
 #endif
-#define LBUFLEN 512	/* big buffer size				*/
+#define	CBUFLEN	512	/* intermediate buffer size			*/
+#define LBUFLEN 1024	/* big buffer size				*/
 #define SBUFLEN 32	/* small buffer size (for system names, etc)	*/
 #define LNCNT	14	/* Articles with > LNCNT lines go through pager */
 
@@ -114,3 +126,35 @@
 #define FALSE	0	/* boolean false				*/
 #define PERHAPS	2	/* indeterminate boolean value			*/
 #define NGDELIM	','	/* delimit character in news group line		*/
+
+/* for NNTP */
+#ifdef SERVER
+# include "NNTPSRC/common/response_codes.h"
+# define SERVER_FILE "SERVERFILE"
+#endif /* SERVER */
+
+#ifdef M_XENIX
+#define index	strchr
+#define rindex	strrchr
+#define	vfork	fork
+#endif /* M_XENIX */
+
+/* for NFS Support */
+#ifdef NFSCLIENT		/* NFSSYSNAME found in $(LIB)/nfssysname */
+# define NFSCMDFORMAT "/usr/ucb/rsh %s /usr/lib/news/inews -p < %s"
+# define NFSCMDARGS NFSSYSNAME,ARTICLE
+	/* If NFSCLIENT is flagged in Makefile, then we're compiling code
+	 * for an NFS client system.  In this case, inews on the client is
+	 * expected to only do some preliminary checking.  The full check is
+	 * expected to happen on the host NFSCLIENT.  The two statements above
+	 * are used to form a command which is called by system(command) in the
+	 * code.  The two arguments are most probably the only pieces of
+	 * information that one will need from within the program.  The first
+	 * argument (NFSSYSNAME) is the name of the master system that is
+	 * suppose to perform the final checks and post the article.  The
+	 * second argument (ARTicle) is a string which contains the /tmp
+	 * file name of the file that has the article to be posted. Note:
+	 * all program and file names should be fully qualified with directory
+	 * names for security purposes!!!!
+	 */
+#endif /* NFSCLIENT */

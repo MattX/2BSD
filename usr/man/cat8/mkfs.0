@@ -1,0 +1,132 @@
+
+
+
+MKFS(8)             UNIX Programmer's Manual		  MKFS(8)
+
+
+
+NNAAMMEE
+     mkfs - construct a file system
+
+SSYYNNOOPPSSIISS
+     //eettcc//mmkkffss special size  [ m ] [ n ]
+     //eettcc//mmkkffss special proto [ m ] [ n ]
+
+DDEESSCCRRIIPPTTIIOONN
+     NN..BB..:: file systems are normally created with the _n_e_w_f_s(8)
+     command.
+
+     _M_k_f_s constructs a file system by writing on the special file
+     _s_p_e_c_i_a_l.  In its first form above, _m_k_f_s creates an empty
+     file system.  The numeric _s_i_z_e specifies the number of logi-
+     cal blocks in the file system (logical blocks are 1K on
+     2.10BSD.)	The number of inodes is calculated as a function
+     of the filsystem size.  No _l_o_s_t+_f_o_u_n_d directory is created
+     and the boot block is left uninitialized (see _m_k_l_o_s_t(8) and
+     _n_e_w_f_s(8).)
+
+     The optional flags _m and _n determine the block interleaving
+     of the freelist that will be constructed, where _m is the
+     distance between successive 1024-byte blocks, and _n is the
+     number of blocks before the pattern repeats, typically one
+     cylinder.	The optimal values for these parameters vary with
+     the speed and geometry of the disk, as well as the speed of
+     the processor.  _N_e_w_f_s(8) automates the selection of these
+     parameters in most cases.
+
+     In its second form above _m_k_f_s constructs a file system by
+     writing on the special file _s_p_e_c_i_a_l according to the direc-
+     tions found in the prototype file _p_r_o_t_o.  The prototype file
+     contains tokens separated by spaces or new lines.	The first
+     token is the name of a file to be copied onto block zero as
+     the bootstrap program, see _r_e_b_o_o_t(8).  The second token is a
+     number specifying the size of the created file system.  Typ-
+     ically it will be the number of logical blocks on the device
+     (not necessarily the same as physical blocks), perhaps
+     diminished by space for swapping.	The next token is the
+     number of inodes in the i-list.  The next set of tokens
+     comprise the specification for the root file.  File specifi-
+     cations consist of tokens giving the mode, the user id, the
+     group id, and the initial contents of the file.  The syntax
+     of the contents field depends on the mode.
+
+     The mode token for a file is a 6 character string.  The
+     first character specifies the type of the file.  (The char-
+     acters --bbccdd specify regular, block special, character spe-
+     cial and directory files respectively.) The second character
+     of the type is either uu or -- to specify set-user-id mode or
+     not.  The third is gg or -- for the set-group-id mode.  The
+     rest of the mode is a three digit octal number giving the
+
+
+
+Printed 12/28/88						1
+
+
+
+
+
+
+MKFS(8)             UNIX Programmer's Manual		  MKFS(8)
+
+
+
+     owner, group, and other read, write, execute permissions,
+     see _c_h_m_o_d(1).
+
+     Two decimal number tokens come after the mode; they specify
+     the user and group ID's of the owner of the file.
+
+     If the file is a regular file, the next token is a pathname
+     whence the contents and size are copied.
+
+     If the file is a block or character special file, two
+     decimal number tokens follow which give the major and minor
+     device numbers.
+
+     If the file is a directory, _m_k_f_s makes the entries ..  and ....
+     and then reads a list of names and (recursively) file
+     specifications for the entries in the directory.  The scan
+     is terminated with $$.
+
+     A sample prototype specification follows:
+
+	  /mdec/rkuboot
+	  2436 55
+	  d--777 3 1
+	  usr  d--777 3 1
+	       sh   ---755 3 1 /bin/sh
+	       ken  d--755 6 1
+		    $
+	       b0   b--644 3 1 0 0
+	       c0   c--644 3 1 0 0
+	       $
+	  $
+
+FFIILLEESS
+     /mdec/xxuboot	      bootstrap binaries
+
+SSEEEE AALLSSOO
+     fs(5), dir(5), fsck(8), mklost(8), newfs(8)
+
+BBUUGGSS
+     There should be some way to specify links.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						2
+
+
+

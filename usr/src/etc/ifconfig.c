@@ -20,6 +20,7 @@ static char sccsid[] = "@(#)ifconfig.c	4.20 (Berkeley) 4/6/87";
 
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define	NSIP
 #include <netns/ns.h>

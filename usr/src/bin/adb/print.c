@@ -231,7 +231,7 @@ printtrace(modif)
  			 * max possible offset.  Overlay has already been set
  			 * properly by findfn.
  			 */
- 			prints(") return-pc ");
+ 			prints(") from ");
  			{
 				INT savmaxoff = maxoff;
 

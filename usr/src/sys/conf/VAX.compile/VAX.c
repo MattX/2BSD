@@ -9,11 +9,13 @@
 #include "../h/text.h"
 #include "../h/file.h"
 
+char	ubmap;
 int	_ovno;
 int	icode[1];
 int	szicode;
 short	cputype;
 segm	seg5;
+int	fpp;
 struct buf	*hasmap;
 struct user	u;
 struct proc	proc[1];
@@ -50,10 +52,13 @@ splhigh(){}
 
 caddr_t mapin(){}
 
+KScall(){}
+SKcall(){}
 _insque(){}
 _remque(){}
 addupc(){}
 backup(){}
+badaddr(){}
 bcopy(){}
 clear(){}
 clrbuf(){}
@@ -67,7 +72,13 @@ copyoutstr(){}
 copystr(){}
 copyu(){}
 copyv(){}
+cpfromkern(){}
+cpfromnet(){}
+cptonet(){}
 doboot(){}
+ecin(){}
+ecjam(){}
+ecou(){}
 fioword() {}
 fmove(){}
 fubyte(){}
@@ -76,9 +87,16 @@ fuiword(){}
 fuword(){}
 halt(){}
 idle(){}
+iignore(){}
 in_cksum(){}
 longjmp(){}
 mapout(){}
+mbcopyin(){}
+mbcopyout(){}
+mfkd(){}
+mfsd(){}
+mtkd(){}
+mtsd(){}
 munmapfd(){}
 noop(){}
 restfp(){}
@@ -97,3 +115,4 @@ suword(){}
 vcopyin(){}
 vcopyout(){}
 waitloc(){}
+scanc(){}

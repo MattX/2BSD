@@ -23,6 +23,7 @@ lw(1.0i) l.
 /sys/bootrom	PDP dependent boot rom code
 /sys/conf	site configuration files and basic templates
 /sys/h	machine independent include files
+/sys/machine	symbolic link to /sys/pdp
 /sys/mdec	PDP dependent deadstart (block zero) code
 /sys/net	network independent, but network related code
 /sys/netimp	IMP support code
@@ -36,6 +37,7 @@ lw(1.0i) l.
 /sys/pdpuba	PDP UNIBUS device drivers and related code
 /sys/pdpmba	PDP MASSBUS device drivers and related code
 /sys/sys	machine independent system source files
+/sys/vaxdist	VAX distribution files
 /sys/vaxif	VAX network interface code
 /sys/vaxuba	VAX UNIBUS device drivers and related code
 .TE
@@ -70,7 +72,7 @@ it is not feasible to allow the general user community access to the
 system source code.)  For further information, see the Makefile for
 \fIusr/src/include\fP.
 .PP
-In general, the include files for 2.10BSD have been totally reworked to
+In general, the include files for 2.10BSD have been reworked to
 be as close as possible to 4.3BSD.  In many cases, they have even been
 renamed.  This may cause problems when attempting to port
 local software, although it should facilitate porting software
@@ -117,9 +119,7 @@ routines located in the table
 .XP ptrace.h
 contains definitions for process tracing
 .XP quota.h
-contains definitions related to the 4.3BSD disk quota facilities,
-which are unimplemented in 2.10BSD.  The file is included to allow
-easy porting of 4BSD programs.
+contains definitions related to the 4.3BSD disk quota facilities.
 .XP resource.h
 contains definitions used in the \fIgetrusage\fP,
 \fIgetrlimit\fP, and \fIgetpriority\fP system calls (among others)
@@ -131,7 +131,7 @@ contains implementation definitions for the new socket ipc facilities
 .XP syslog.h
 contains definitions for the system logging facility
 .XP tablet.h
-contains structures and definitions concerning the table line
+contains structures and definitions concerning the line table
 discipline
 .XP trace.h
 contains definitions and storage for file system buffer tracing points
@@ -180,7 +180,7 @@ system calls; previously in \fI/usr/include/wait.h\fP
 The following files have undergone significant change:
 .XP buf.h
 several macros to replace rarely used routines and for dealing with buffer
-chains have been added.  An new structure, \fIbufhd\fP, has been added.  The
+chains have been added.  A new structure, \fIbufhd\fP, has been added.  The
 \fIb_link\fP field has been removed from the buffer structure.  Of particular
 interest may be a macro for the translation of a buffer address to a physical
 address.  Many of the buffer flag values have been changed; note that the
@@ -188,7 +188,7 @@ addition of any more flag values will require changing the flag word,
 \fIb_flags\fP, to a long.
 .XP callout.h
 the callout structure has been changed; kernel callouts are now implemented
-as a linked list
+as a linked list.
 .XP conf.h
 reflects changes made for the new \fIselect\fP\|(2) system call;
 the character device table has a new member, \fId_select\fP, which
@@ -258,9 +258,9 @@ ridiculous file sizes.
 has been trimmed back a bit as various items were moved
 to \fIkernel.h\fP and other include files
 .XP text.h
-two pointers have been added to the text structure to support LRU cacheing
-of text objects.  The reference and loaded reference counters are now
-unsigned values.
+two pointers have been added to the text structure to support LRU
+caching of text objects.  The reference and loaded reference counters
+are now unsigned values.
 .XP time.h
 contains the definitions for the new time and interval
 timer facilities
@@ -378,10 +378,7 @@ consistent with the real time timer.  The RLIMIT_CPU is also stored
 internally as clock ticks.  The only noticeable effect of this is that very
 large values supplied with the RLIMIT_CPU option of \fIgetrlimit\fP(2) and
 \fIsetrlimit\fP(2) will automatically be converted to RLIM_INFINITY since
-the conversion of seconds to ticks would cause overflow.  Also,
-\fIadjtime\fP(2) calls are executed immediately, not over a period of time,
-therefore, the \fIolddelta\fP return values for an \fIadjtime\fP(2) call
-will always be zero.
+the conversion of seconds to ticks would cause overflow.
 .XP kern_xxx.c
 miscellaneous system facilities
 .XP syscalls.c
@@ -389,7 +386,13 @@ list of available system calls
 .NH 3
 Disk quotas
 .XP quota_sys.c
-disk quota system call routines; quotas are unimplemented in 2.10BSD.
+disk quota system call routines.
+.XP quota_kern.c
+in-core data structures for the in-core data structures.
+.XP quota_subr.c
+miscellaneous support routines for quota system.
+.XP quota_ufs.c
+file system routines for quota system.
 .NH 3
 General subroutines
 .XP subr_prf.c
@@ -414,6 +417,12 @@ system guru trying to shake out 2.9BSD bad habits.
 code supporting the ``generic'' system calls of sys_generic.c as they
 apply to inodes; the guts of the byte stream file i/o interface.  Inode
 locking, (the \fIflock\fP(2) call) is also implemented here.
+.XP sys_kern.c
+kernel stubs to allow the network kernel to access components of
+structures that exist in kernel data space.
+.XP sys_net.c
+copies of kernel routines required by the networking kernel as well
+as some network initialization routines.
 .XP sys_process.c
 code related to process tracing
 .XP sys_socket.c
@@ -725,6 +734,8 @@ routines to move various data sizes to and from user space
 the automatic tape dump routines
 .XP mch_dzpdma.s
 the DZ-11 pseudo-DMA interrupt routines
+.XP mch_fpsim.s
+floating point simulation routines
 .XP mch_profile.s
 system profiling routines; these are untested since 2.9BSD.
 .XP mch_start.s
@@ -738,7 +749,27 @@ various other routines that needed to be in assembly
 .XP DEFS.h
 definitions and common macros for all assembly files; emulates the C
 library DEFS.h file for the benefit of the \fIlibc_\fP files.
-
+.PP
+The supervisory networking support files are as follows:
+.XP mch_KScall.s
+kernel to supervisor call support
+.XP net_SKcall.s
+supervisor to kernel call support
+.XP net_copy.s
+version of mch_copy.s for the supervisor space
+.XP net_csv.s
+version of mch_csv.s for the supervisor space
+.XP net_mac.h
+\fI#defines\fP to convert standard kernel calls into calls into supervisor
+space
+.XP net_mbuf.s
+routines to copy mbuf's in and out
+.XP net_scb.s
+entry points for network interrupt vectors
+.XP net_trap.s
+trap routine for supervisor space networking
+.XP net_xxx.s
+various other networking routines that needed to be in assembly
 .NH 2
 /sys/autoconfig
 .PP

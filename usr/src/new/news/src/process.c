@@ -16,7 +16,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)process.c	2.17	12/16/86";
+static char	*SccsId = "@(#)process.c	2.19	11/30/87";
 #endif /* SCCSID */
 
 #include "rparams.h"
@@ -47,6 +47,7 @@ optlet	filchar	flag	newstate oldmode	newmode	buf	*/
 'u',	'\0',	FALSE,	OPTION,	ANY,		UNKNOWN,(char *)NULL,
 'e',	'\0',	FALSE,	OPTION,	ANY,		UNKNOWN,(char *)NULL,
 'K',	'\0',	FALSE,	OPTION,	ANY,		UNKNOWN,(char *)NULL,
+'A',	'\0',	FALSE,	OPTION, UNKNOWN,	UNKNOWN,(char *)NULL,
 '\0',	'\0',	0,	0,	0,		0,	(char *)NULL
 };
 

@@ -26,7 +26,7 @@ static char sccsid[] = "@(#)last.c	5.3 (Berkeley) 5/15/86";
 #define NMAX	sizeof(buf[0].ut_name)
 #define LMAX	sizeof(buf[0].ut_line)
 #define	HMAX	sizeof(buf[0].ut_host)
-#define	SECDAY	(24*60*60)
+#define	SECDAY	((long)24*60*60)
 
 #define	lineq(a,b)	(!strncmp(a,b,LMAX))
 #define	nameq(a,b)	(!strncmp(a,b,NMAX))

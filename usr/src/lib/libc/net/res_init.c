@@ -1,12 +1,18 @@
 /*
  * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)res_init.c	6.5 (Berkeley) 4/11/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)res_init.c	6.8 (Berkeley) 3/7/88";
+#endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -21,25 +27,19 @@ static char sccsid[] = "@(#)res_init.c	6.5 (Berkeley) 4/11/86";
  * non fully qualified domain names.
  */
 
-#ifdef CONFFILE
-char    *conffile = CONFFILE;
-#else
-char    *conffile = "/etc/resolv.conf";
+#ifndef	CONFFILE
+#define	CONFFILE	"/etc/resolv.conf"
 #endif
 
 /*
  * Resolver state default settings
  */
 
-#ifndef RES_TIMEOUT
-#define RES_TIMEOUT 4
-#endif
-
 struct state _res = {
-    RES_TIMEOUT,                 /* retransmition time interval */
-    4,                           /* number of times to retransmit */
-    RES_RECURSE|RES_DEFNAMES,    /* options flags */
-    1,                           /* number of name servers */
+    RES_TIMEOUT,               	/* retransmition time interval */
+    4,                         	/* number of times to retransmit */
+    RES_DEFAULT,		/* options flags */
+    1,                         	/* number of name servers */
 };
 
 /*
@@ -55,13 +55,12 @@ struct state _res = {
 res_init()
 {
     register FILE *fp;
-    char buf[BUFSIZ], *cp;
+    register char *cp, **pp;
+    char buf[BUFSIZ];
     extern u_long inet_addr();
     extern char *index();
     extern char *strcpy(), *strncpy();
-#ifdef DEBUG
     extern char *getenv();
-#endif DEBUG
     int n = 0;    /* number of nameserver records read from file */
 
     _res.nsaddr.sin_addr.s_addr = INADDR_ANY;
@@ -70,7 +69,7 @@ res_init()
     _res.nscount = 1;
     _res.defdname[0] = '\0';
 
-    if ((fp = fopen(conffile, "r")) != NULL) {
+    if ((fp = fopen(CONFFILE, "r")) != NULL) {
         /* read the config file */
         while (fgets(buf, sizeof(buf), fp) != NULL) {
             /* read default domain name */
@@ -119,11 +118,21 @@ res_init()
              (void)strcpy(_res.defdname, cp + 1);
     }
 
-#ifdef DEBUG
     /* Allow user to override the local domain definition */
     if ((cp = getenv("LOCALDOMAIN")) != NULL)
         (void)strncpy(_res.defdname, cp, sizeof(_res.defdname));
-#endif DEBUG
+
+    /* find components of local domain that might be searched */
+    pp = _res.dnsrch;
+    *pp++ = _res.defdname;
+    for (cp = _res.defdname, n = 0; *cp; cp++)
+	if (*cp == '.')
+	    n++;
+    cp = _res.defdname;
+    for (; n >= LOCALDOMAINPARTS && pp < _res.dnsrch + MAXDNSRCH; n--) {
+	cp = index(cp, '.');
+	*pp++ = ++cp;
+    }
     _res.options |= RES_INIT;
     return(0);
 }

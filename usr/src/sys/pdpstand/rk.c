@@ -10,37 +10,15 @@
  * RK disk driver
  */
 
-#include <sys/param.h>
-#include <sys/inode.h>
+#include "../h/param.h"
+#include "../h/inode.h"
+#include "../pdpuba/rkreg.h"
 #include "saio.h"
 
-#define	RKADDR	((struct device *)0177400)
-#define	NRK	4
-#define	NRKBLK	4872
-
-#define	RESET	0
-#define	WCOM	2
-#define	RCOM	4
-#define	GO	01
-#define	DRESET	014
-#define	IENABLE	0100
-#define	DRY	0200
-#define	ARDY	0100
-#define	WLO	020000
-#define	CTLRDY	0200
-
-struct	device
-{
-	int	rkds;
-	int	rker;
-	int	rkcs;
-	int	rkwc;
-	caddr_t	rkba;
-	int	rkda;
-};
+#define	RKADDR	((struct rkdevice *)0177400)
 
 rkstrategy(io, func)
-register struct iob *io;
+	register struct iob *io;
 {
 	register com;
 	daddr_t bn;
@@ -53,13 +31,14 @@ register struct iob *io;
 	RKADDR->rkda = (dn<<13) | (cn<<4) | sn;
 	RKADDR->rkba = io->i_ma;
 	RKADDR->rkwc = -(io->i_cc>>1);
-	com = (segflag<<4)|GO;
+	com = (segflag<<4)|RKCS_GO;
 	if (func == READ)
-		com |= RCOM; else
-		com |= WCOM;
+		com |= RKCS_RCOM;
+	else
+		com |= RKCS_WCOM;
 	RKADDR->rkcs = com;
-	while ((RKADDR->rkcs&CTLRDY) == 0)
-		;
+	while ((RKADDR->rkcs & RKCS_RDY) == 0)
+		continue;
 	if (RKADDR->rkcs<0) {	/* error bit */
 		printf("disk error: cyl=%d, sector=%d, er=%o, ds=%o\n",
 		    cn, sn, RKADDR->rker, RKADDR->rkds);

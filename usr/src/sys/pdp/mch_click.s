@@ -30,7 +30,7 @@ ENTRY(copy)
 	SPLNET				/ No, lock out network interrupts.
 1:
 #endif
-#if defined(UCB_NET) || !defined(NOKA5)
+#if !defined(NOKA5) || defined(QUOTA)
 	mov	KDSA5,-(sp)		/ saveseg5(sp)
 	mov	KDSD5,-(sp)
 #endif
@@ -87,7 +87,7 @@ restart:
 	clr	_kdsa6
 	mov	r4,sp			/ back to normal stack
 3:
-#if defined(UCB_NET) || !defined(NOKA5)
+#if !defined(NOKA5) || defined(QUOTA)
 	mov	(sp)+,KDSD5		/ restorseg5(sp)
 	mov	(sp)+,KDSA5
 #endif
@@ -168,13 +168,13 @@ ENTRY(copyu)
  * Clear count clicks at dst.  Uses KDSA5.  Interrupt routines must restore
  * segmentation registers if needed; see seg.h.
  *
- * clear(dst,count)
- * memaddr	dst;
- * u_int	count;
+ * clear(dst, count)
+ * 	memaddr dst;
+ * 	u_int count;
  */
 ENTRY(clear)
 	jsr	r5, csv
-#if defined(UCB_NET) || !defined(NOKA5)
+#if !defined(NOKA5) || defined(QUOTA)
 	mov	KDSA5,-(sp)		/ saveseg5(sp)
 	mov	KDSD5,-(sp)
 #endif
@@ -200,9 +200,7 @@ ENTRY(clear)
 	inc	KDSA5			/ next click
 	sob	r3,1b
 3:
-	mov	_seg5+SE_DESC, KDSD5	/ normalseg5();
-	mov	_seg5+SE_ADDR, KDSA5	/ (restore all mapping)
-#if defined(UCB_NET) || !defined(NOKA5)
+#if !defined(NOKA5) || defined(QUOTA)
 	mov	(sp)+,KDSD5		/ restore seg5
 	mov	(sp)+,KDSA5		/ restore seg5
 #endif

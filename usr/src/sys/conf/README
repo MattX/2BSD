@@ -15,7 +15,7 @@ files directory, "../h".  If you change your configuration, config will
 overwrite your old version of that file.  Therefore, if you want to return
 to the old version of your system, you'll have to recover the file before
 you try and remake the old system.  To make this easy, config saves a copy
-in the new kernel directory.  Also, since several application programs use
+in the kernel directory.  Also, since several application programs use
 localopts.h, you should recompile all source directories after reconfiguring
 your system.  (The real solution is to split localopts.h into two parts, one
 for the kernel and one for everyone else, and put the kernel's part in the

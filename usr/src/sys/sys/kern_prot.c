@@ -14,6 +14,9 @@
 #include "user.h"
 #include "proc.h"
 #include "systm.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 getpid()
 {
@@ -125,6 +128,14 @@ setreuid()
 	/*
 	 * Everything's okay, do it.
 	 */
+#ifdef QUOTA
+	QUOTAMAP();
+	if (u.u_quota->q_uid != ruid) {
+		qclean();
+		qstart(getquota((uid_t)ruid, 0, 0));
+	}
+	QUOTAUNMAP();
+#endif
 	u.u_procp->p_uid = euid;
 	u.u_ruid = ruid;
 	u.u_uid = euid;

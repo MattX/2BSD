@@ -8,14 +8,12 @@
 
 /*
  * RAxx disk device driver
- * RQDX1 (rx50,rd50,rd51,rd52,rd53)
+ * RQDX1 (rx50, rd50, rd51, rd52, rd53)
  */
-#include <sys/param.h>
-
+#include "../h/param.h"
+#include "../h/inode.h"
 #include "../machine/mscp.h"
 #include "../pdpuba/rareg.h"
-
-#include <sys/inode.h>
 #include "saio.h"
 
 /*
@@ -56,45 +54,46 @@ static	long	rdonline[8];
  */
 
 raopen(io)
-	register struct iob 	*io;
+	register struct iob *io;
 {
-	register struct mscp 	*mp;
-	int 			i;
+	register struct mscp *mp;
+	int i;
 
-	if( rdinit == 0 )
-	{
+	if (rdinit == 0) {
 		RDADDR->raip = 0;
-		while((RDADDR->rasa & RA_STEP1) == 0);
+		while ((RDADDR->rasa & RA_STEP1) == 0)
+			continue;
 		RDADDR->rasa = RA_ERR;
-		while((RDADDR->rasa & RA_STEP2) == 0);
+		while ((RDADDR->rasa & RA_STEP2) == 0)
+			continue;
 		RDADDR->rasa = (short)&rd.ra_ca.ca_ringbase;
-		while((RDADDR->rasa & RA_STEP3) == 0);
+		while ((RDADDR->rasa & RA_STEP3) == 0)
+			continue;
 		RDADDR->rasa = (short)(segflag & 3);
-		while((RDADDR->rasa & RA_STEP4) == 0);
+		while ((RDADDR->rasa & RA_STEP4) == 0)
+			continue;
 		RDADDR->rasa = RA_GO;
 		rd.ra_ca.ca_rspl = (short)&rd.ra_rsp.m_cmdref;
 		rd.ra_ca.ca_rsph = (short)(segflag & 3);
 		rd.ra_ca.ca_cmdl = (short)&rd.ra_cmd.m_cmdref;
 		rd.ra_ca.ca_cmdh = (short)(segflag & 3);
 		rd.ra_cmd.m_cntflgs = 0;
-		if( racmd(M_O_STCON) < 0 )
-		{
+		if (racmd(M_O_STCON) < 0) {
 			printf("RD: controller init error, STCON\n");
 			return(-1);
 		}
 		rdinit = 1;
 	}
 
-	if( rdonline[io->i_unit & 7] == 0 )
-		if( ramount(io) == -1 )
+	if (rdonline[io->i_unit & 7] == 0)
+		if (ramount(io) == -1)
 			return(-1);
 
 	/*
 	 * XXX - Not consistent with other stand alone drivers.
-	 * if( (io->i_boff < 0) || (io->i_boff > 7) ||
-	 *    (rd_boff[io->i_boff] == -1) )
-	 * {
-	 *	printf("RD: bad partition for unit=%d",io->i_unit & 7);
+	 * if ((io->i_boff < 0) || (io->i_boff > 7) ||
+	 *    (rd_boff[io->i_boff] == -1)) {
+	 *	printf("RD: bad partition for unit=%d", io->i_unit & 7);
 	 * }
 	 * io->i_boff = rd_boff[io->i_boff];
 	 */
@@ -103,31 +102,30 @@ raopen(io)
 }
 
 raclose(io)
-	register struct iob 	*io;
+	register struct iob *io;
 {
 	rdonline[io->i_unit & 7] = 0;
 	return(0);
 }
 
 ramount(io)
-	register struct iob 	*io;
+	register struct iob *io;
 {
-	if( racmd(M_O_ONLIN,io->i_unit) < 0 )
-	{
-		printf("RD: bring online error, unit=%d\n",io->i_unit & 7);
+	if (racmd(M_O_ONLIN, io->i_unit) < 0) {
+		printf("RD: bring online error, unit=%d\n", io->i_unit & 7);
 		return(-1);
 	}
 	rdonline[io->i_unit & 7] = rd.ra_rsp.m_uslow +  
-	 	((long)(rd.ra_rsp.m_ushigh) << 16);
+		((long)(rd.ra_rsp.m_ushigh) << 16);
 	return(0);
 }
 
 struct mscp *
-racmd(op,unit)
-	int op,unit;
+racmd(op, unit)
+	int op, unit;
 {
-	register	struct mscp 	*mp;
-	register	int 		i;
+	register struct mscp *mp;
+	register int i;
 
 	rd.ra_cmd.m_opcode = op;
 	rd.ra_cmd.m_unit = unit & 7;
@@ -136,18 +134,16 @@ racmd(op,unit)
 	rd.ra_ca.ca_rsph = RA_OWN | RA_INT | (segflag & 3);
 	rd.ra_ca.ca_cmdh = RA_OWN | RA_INT | (segflag & 3);
 	i = RDADDR->raip;
-	while(1)
-	{
-		if( rd.ra_ca.ca_cmdint )
+	while (1) {
+		if (rd.ra_ca.ca_cmdint)
 			rd.ra_ca.ca_cmdint = 0;
-		if( rd.ra_ca.ca_rspint )
+		if (rd.ra_ca.ca_rspint)
 			break;
 	}
 	rd.ra_ca.ca_rspint = 0;
 	mp = &rd.ra_rsp;
-	if( ((mp->m_opcode & 0xff) != (op | M_O_END)) ||
-	    ((mp->m_status & M_S_MASK) != M_S_SUCC) )
-	{
+	if (((mp->m_opcode & 0xff) != (op | M_O_END)) ||
+	    ((mp->m_status & M_S_MASK) != M_S_SUCC)) {
 		printf("RD: command error, unit=%d, opcode=%x, status=%x\n",
 			unit & 7, mp->m_opcode & 0xff, mp->m_status);
 		return((struct mscp *)-1);
@@ -160,7 +156,7 @@ rastrategy(io, func)
 {
 	register struct mscp *mp;
 
-	if( io->i_bn >= rdonline[io->i_unit & 7] )
+	if (io->i_bn >= rdonline[io->i_unit & 7])
 		return(0);
 
 	mp = &rd.ra_cmd;
@@ -169,7 +165,7 @@ rastrategy(io, func)
 	mp->m_bytecnt = io->i_cc;
 	mp->m_buf_l = (ushort)io->i_ma;
 	mp->m_buf_h = segflag & 3;
-	if( racmd(func == READ ? M_O_READ : M_O_WRITE,io->i_unit) < 0 )
+	if (racmd(func == READ ? M_O_READ : M_O_WRITE, io->i_unit) < 0)
 		return(-1);
 
 	return(io->i_cc);

@@ -1,8 +1,9 @@
 /*
  *                     RCS revision generation
  */
- static char rcsid[]=
- "$Header: rcsgen.c,v 3.4 86/05/15 02:18:42 lepreau Exp $ Purdue CS";
+#ifndef lint
+static char rcsid[]= "$Id: rcsgen.c,v 3.6 88/04/24 17:32:22 bostic Exp $ Purdue CS";
+#endif
 /*********************************************************************************
  *********************************************************************************
  *
@@ -19,11 +20,43 @@
 
 
 /* $Log:	rcsgen.c,v $
- * Revision 3.4  86/05/15  02:18:42  lepreau
- * Fix immediate EOF from non-tty files: avoid 0377's in description.
+ * Revision 3.6  88/04/24  17:32:22  bostic
+ * fix for ANSI C
+ * 
+ * Revision 3.5  88/02/18  11:58:44  bostic
+ * replaced with version 4
+ * 
+ * Revision 4.5  87/12/18  11:43:25  narten
+ * additional lint cleanups, and a bug fix from the 4.3BSD version that
+ * keeps "ci" from sticking a '\377' into the description if you run it
+ * with a zero-length file as the description. (Guy Harris)
+ * 
+ * Revision 4.4  87/10/18  10:35:10  narten
+ * Updating version numbers. Changes relative to 1.1 actually relative to
+ * 4.2
+ * 
+ * Revision 1.3  87/09/24  13:59:51  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:27  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:28  kcs
+ * Initial revision
+ * 
+ * Revision 4.2  83/12/02  23:01:39  wft
+ * merged 4.1 and 3.3.1.1 (clearerr(stdin)).
+ * 
+ * Revision 4.1  83/05/10  16:03:33  wft
+ * Changed putamin() to abort if trying to reread redirected stdin.
+ * Fixed getdesc() to output a prompt on initial newline.
+ * 
+ * Revision 3.3.1.1  83/10/19  04:21:51  lepreau
+ * Added clearerr(stdin) for re-reading description from stdin.
  * 
  * Revision 3.3  82/11/28  21:36:49  wft
- * *** empty log message ***
+ * 4.2 prerelease
  * 
  * Revision 3.3  82/11/28  21:36:49  wft
  * Replaced ferror() followed by fclose() with ffclose().
@@ -31,7 +64,7 @@
  * is not a terminal. A pointer to the current log message is now
  * inserted into the corresponding delta, rather than leaving it in a
  * global variable.
- * 
+ *
  * Revision 3.2  82/10/18  21:11:26  wft
  * I added checks for write errors during editing, and improved
  * the prompt on putdesc().
@@ -66,8 +99,7 @@ extern char * resultfile, *editfile;/* file names for fcopy and fedit       */
 extern int    rewriteflag; /* indicates whether to rewrite the input file   */
 
 
-char    curlogmsg[logsize] /* buffer for current log message                */
-        ='\0';
+char    curlogmsg[logsize];/* buffer for current log message                */
 
 enum stringwork {copy, edit, expand, edit_expand };
 /* parameter to scandeltatext() */
@@ -120,12 +152,12 @@ char * dir; int expandflag;
                 if (!expandflag) {
                         /* no keyword expansion; only invoked from ci */
                         scandeltatext(deltas[i],edit);
-                        finishedit(nil);
+                        finishedit((struct hshentry *)nil);
                         ffclose(fcopy);
                 } else {
                         /* perform keyword expansion*/
                         /* first, get to beginning of file*/
-                        finishedit(nil); swapeditfiles(dir==nil);
+                        finishedit((struct hshentry *)nil); swapeditfiles(dir==nil);
                         scandeltatext(deltas[i],edit_expand);
                         finishedit(deltas[i]);
                         if (dir!=nil) ffclose(fcopy);
@@ -154,7 +186,7 @@ struct hshentry * delta; enum stringwork func;
                 if (!getkey(Klog) || nexttok!=STRING)
                         serror("Missing log entry");
                 elsif (delta==nextdelta) {
-                        savestring(curlogmsg,logsize);
+                        VOID savestring(curlogmsg,logsize);
                         delta->log=curlogmsg;
                 } else {readstring();
                         delta->log= "";
@@ -170,7 +202,7 @@ struct hshentry * delta; enum stringwork func;
                                         break;
                         case expand:    xpandstring(delta);
                                         break;
-                        case edit:      editstring(nil);
+                        case edit:      editstring((struct hshentry *)nil);
                                         break;
                         case edit_expand: editstring(delta);
                                         break;
@@ -181,21 +213,26 @@ struct hshentry * delta; enum stringwork func;
 }
 
 
+int stdinread = 0; /* stdinread>0 if redirected stdin has been read once */
+
 int putdesc(initflag,textflag,textfile,quietflag)
 int initflag,textflag; char * textfile; int quietflag;
 /* Function: puts the descriptive text into file frewrite.
  * if !initflag && !textflag, the text is simply copied from finptr.
  * Otherwise, if the textfile!=nil, the text is read from that
  * file, or from stdin, if textfile==nil.
+ * Increments stdinread if text is read from redirected stdin.
  * if initflag&&quietflag&&!textflag, an empty text is inserted.
  * if !initflag, the old descriptive text is discarded.
  * Returns true is successful, false otherwise.
  */
 {       FILE * txt; register int c, old1, old2;
-
+#ifdef lint
+	if (quietflag ==  0) initflag = quietflag; /* silencelint */
+#endif	
         if (!initflag && !textflag) {
                 /* copy old description */
-                fprintf(frewrite,"\n\n%s%c",Kdesc,nextc);
+                VOID fprintf(frewrite,"\n\n%s%c",Kdesc,nextc);
                 rewriteflag=true; getdesc(false);
                 return true;
         } else {
@@ -204,62 +241,69 @@ int initflag,textflag; char * textfile; int quietflag;
                         /*skip old description*/
                         rewriteflag=false; getdesc(false);
                 }
-                fprintf(frewrite,"\n\n%s\n%c",Kdesc,SDELIM);
+                VOID fprintf(frewrite,"\n\n%s\n%c",Kdesc,SDELIM);
                 if (textfile) {
                         old1='\n';
                         /* copy textfile */
                         if ((txt=fopen(textfile,"r"))!=NULL) {
                                 while ((c=getc(txt))!=EOF) {
-                                        if (c==SDELIM) putc(c,frewrite); /*double up*/
-                                        putc(c,frewrite);
+                                        if (c==SDELIM) VOID putc(c,frewrite); /*double up*/
+                                        VOID putc(c,frewrite);
                                         old1=c;
                                 }
-                                if (old1!='\n') putc('\n',frewrite);
-                                fclose(txt);
-                                putc(SDELIM,frewrite);fputs("\n\n", frewrite);
+                                if (old1!='\n') VOID putc('\n',frewrite);
+                                VOID fclose(txt);
+                                VOID putc(SDELIM,frewrite);
+				VOID fputs("\n\n", frewrite);
                                 return true;
                         } else {
-                                error("Can't open file with description%s",textfile);
+                                error("Can't open file %s with description",textfile);
+                                if (!isatty(fileno(stdin))) return false;
+                                /* otherwise, get description from terminal */
                         }
-                }
-                if (initflag&&quietflag) {
-                        warn("empty descriptive text");
-                        putc(SDELIM,frewrite);fputs("\n\n", frewrite);
-                        return true;
                 }
                 /* read text from stdin */
                 if (isatty(fileno(stdin))) {
-                    fputs("enter description, terminated with ^D or '.':\n",stdout);
-                    fputs("NOTE: This is NOT the log message!\n>> ",stdout);
+                    VOID fputs("enter description, terminated with ^D or '.':\n",stderr);
+                    VOID fputs("NOTE: This is NOT the log message!\n>> ",stderr);
+		    if (feof(stdin))
+		            clearerr(stdin);
+                } else {  /* redirected stdin */
+                    if (stdinread>0)
+                        faterror("Can't reread redirected stdin for description; use -t<file>");
+                    stdinread++;
                 }
                 c = '\0'; old2= '\n';
                 if ((old1=getchar())==EOF) {
-		    if (isatty(fileno(stdin))) {
-			putc('\n',stdout);
-			clearerr(stdin);
-		    }
-		}
-                else for (;;) {
+                        if (isatty(fileno(stdin))) {
+                             VOID putc('\n',stderr);
+                             clearerr(stdin);
+			}
+		} else {
+		     if (old1=='\n' && isatty(fileno(stdin)))
+			 VOID fputs(">> ",stderr);
+		     for (;;) {
                             c=getchar();
                             if (c==EOF) {
                                     if (isatty(fileno(stdin))) {
-					putc('\n',stdout);
-					clearerr(stdin);
+                                            VOID putc('\n',stderr);
+                                            clearerr(stdin);
 				    }
-                                    putc(old1,frewrite);
-                                    if (old1!='\n') putc('\n',frewrite);
+                                    VOID putc(old1,frewrite);
+                                    if (old1!='\n') VOID putc('\n',frewrite);
                                     break;
                             }
                             if (c=='\n' && old1=='.' && old2=='\n') {
                                     break;
                             }
-                            if (c=='\n' && isatty(fileno(stdin))) fputs(">> ",stdout);
-                            if(old1==SDELIM) putc(old1,frewrite); /* double up*/
-                            putc(old1,frewrite);
+                            if (c=='\n' && isatty(fileno(stdin))) VOID fputs(">> ",stderr);
+                            if(old1==SDELIM) VOID putc(old1,frewrite); /* double up*/
+                            VOID putc(old1,frewrite);
                             old2=old1;
                             old1=c;
                     } /* end for */
-                putc(SDELIM,frewrite);fputs("\n\n",frewrite);
+		}
+                VOID putc(SDELIM,frewrite);VOID fputs("\n\n",frewrite);
                 return true;
         }
 }

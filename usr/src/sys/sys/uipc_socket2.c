@@ -1,28 +1,28 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)uipc_socket2.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)uipc_socket2.c	7.3 (Berkeley) 1/28/88
  */
 
 #include "param.h"
-#ifdef UCB_NET
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "user.h"
 #include "proc.h"
 #include "file.h"
 #include "inode.h"
 #include "buf.h"
+#include "mbuf.h"
+#include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
-#include "mbuf.h"
-#include "domain.h"
-#include "protosw.h"
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
 
 /*
  * Primitive routines for operating on sockets and socket buffers
@@ -64,7 +64,7 @@ soisconnecting(so)
 
 	so->so_state &= ~(SS_ISCONNECTED|SS_ISDISCONNECTING);
 	so->so_state |= SS_ISCONNECTING;
-	wakeup((caddr_t)&so->so_timeo);
+	WAKEUP((caddr_t)&so->so_timeo);
 }
 
 soisconnected(so)
@@ -77,11 +77,11 @@ soisconnected(so)
 			panic("soisconnected");
 		soqinsque(head, so, 1);
 		sorwakeup(head);
-		wakeup((caddr_t)&head->so_timeo);
+		WAKEUP((caddr_t)&head->so_timeo);
 	}
 	so->so_state &= ~(SS_ISCONNECTING|SS_ISDISCONNECTING);
 	so->so_state |= SS_ISCONNECTED;
-	wakeup((caddr_t)&so->so_timeo);
+	WAKEUP((caddr_t)&so->so_timeo);
 	sorwakeup(so);
 	sowwakeup(so);
 }
@@ -92,7 +92,7 @@ soisdisconnecting(so)
 
 	so->so_state &= ~SS_ISCONNECTING;
 	so->so_state |= (SS_ISDISCONNECTING|SS_CANTRCVMORE|SS_CANTSENDMORE);
-	wakeup((caddr_t)&so->so_timeo);
+	WAKEUP((caddr_t)&so->so_timeo);
 	sowwakeup(so);
 	sorwakeup(so);
 }
@@ -100,11 +100,10 @@ soisdisconnecting(so)
 soisdisconnected(so)
 	register struct socket *so;
 {
-	mapinfo map;
 
 	so->so_state &= ~(SS_ISCONNECTING|SS_ISCONNECTED|SS_ISDISCONNECTING);
 	so->so_state |= (SS_CANTRCVMORE|SS_CANTSENDMORE);
-	wakeup((caddr_t)&so->so_timeo);
+	WAKEUP((caddr_t)&so->so_timeo);
 	sowwakeup(so);
 	sorwakeup(so);
 }
@@ -125,9 +124,10 @@ sonewconn(head)
 
 	if (head->so_qlen + head->so_q0len > 3 * head->so_qlimit / 2)
 		goto bad;
-	MSGET(so, struct socket, M_CLEAR);
-	if (so == NULL)
+	m = m_getclr(M_DONTWAIT, MT_SOCKET);
+	if (m == NULL)
 		goto bad;
+	so = mtod(m, struct socket *);
 	so->so_type = head->so_type;
 	so->so_options = head->so_options &~ SO_ACCEPTCONN;
 	so->so_linger = head->so_linger;
@@ -136,17 +136,15 @@ sonewconn(head)
 	so->so_timeo = head->so_timeo;
 	so->so_pgrp = head->so_pgrp;
 	soqinsque(head, so, 0);
-	MAPSAVE();
 	if ((*so->so_proto->pr_usrreq)(so, PRU_ATTACH,
 	    (struct mbuf *)0, (struct mbuf *)0, (struct mbuf *)0)) {
 		(void) soqremque(so, 0);
-		MSFREE(so);
-		so = NULL;
+		(void) m_free(m);
 		goto bad;
 	}
-bad:
-	MAPREST();
 	return (so);
+bad:
+	return ((struct socket *)0);
 }
 
 soqinsque(head, so, q)
@@ -231,14 +229,12 @@ sbselqueue(sb)
 	register struct sockbuf *sb;
 {
 	register struct proc *p;
-	mapinfo map;
+	extern int selwait;
 
-	savemap(map);
-	if ((p = sb->sb_sel) && p->p_wchan == (caddr_t)&selwait)
+	if ((p = sb->sb_sel) && (caddr_t)mfkd(&p->p_wchan) == (caddr_t)&selwait)
 		sb->sb_flags |= SB_COLL;
 	else
 		sb->sb_sel = u.u_procp;
-	restormap(map);
 }
 
 /*
@@ -247,12 +243,9 @@ sbselqueue(sb)
 sbwait(sb)
 	register struct sockbuf *sb;
 {
-	mapinfo map;
 
-	savemap(map);
 	sb->sb_flags |= SB_WAIT;
-	sleep((caddr_t)&sb->sb_cc, PZERO+1);
-	restormap(map);
+	SLEEP((caddr_t)&sb->sb_cc, PZERO+1);
 }
 
 /*
@@ -261,19 +254,16 @@ sbwait(sb)
 sbwakeup(sb)
 	register struct sockbuf *sb;
 {
-	mapinfo map;
 
-	savemap(map);
 	if (sb->sb_sel) {
-		selwakeup(sb->sb_sel, (long)(sb->sb_flags & SB_COLL));
+		SELWAKEUP(sb->sb_sel, (long)(sb->sb_flags & SB_COLL));
 		sb->sb_sel = 0;
 		sb->sb_flags &= ~SB_COLL;
 	}
 	if (sb->sb_flags & SB_WAIT) {
 		sb->sb_flags &= ~SB_WAIT;
-		wakeup((caddr_t)&sb->sb_cc);
+		WAKEUP((caddr_t)&sb->sb_cc);
 	}
-	restormap(map);
 }
 
 /*
@@ -286,16 +276,14 @@ sowakeup(so, sb)
 	struct sockbuf *sb;
 {
 	register struct proc *p;
-	mapinfo map;
 
 	sbwakeup(sb);
 	if (so->so_state & SS_ASYNC) {
-		savemap(map);
 		if (so->so_pgrp < 0)
-			gsignal(-so->so_pgrp, SIGIO);
-		else if (so->so_pgrp > 0 && (p = pfind(so->so_pgrp)) != 0)
-			psignal(p, SIGIO);
-		restormap(map);
+			GSIGNAL(-so->so_pgrp, SIGIO);
+		else if (so->so_pgrp > 0 &&
+		    (p = (struct proc *)NETPFIND(so->so_pgrp)) != 0)
+			NETPSIGNAL(p, SIGIO);
 	}
 }
 
@@ -325,10 +313,10 @@ sowakeup(so, sb)
  *    a data record, perhaps of zero length.
  *
  * Before using a new socket structure it is first necessary to reserve
- * buffer space to the socket, by calling sbreserve().  This commits
+ * buffer space to the socket, by calling sbreserve().  This should commit
  * some of the available buffer space in the system buffer pool for the
- * socket.  The space should be released by calling sbrelease() when the
- * socket is destroyed.
+ * socket (currently, it does nothing but enforce limits).  The space
+ * should be released by calling sbrelease() when the socket is destroyed.
  */
 
 soreserve(so, sndcc, rcvcc)
@@ -427,7 +415,6 @@ sbappend(sb, m)
 	sbcompress(sb, m, n);
 }
 
-#ifdef FIX_43			/* needed by NS */
 /*
  * As above, except the mbuf chain
  * begins a new record.
@@ -456,7 +443,6 @@ sbappendrecord(sb, m0)
 	m0->m_next = 0;
 	sbcompress(sb, m, m0);
 }
-#endif
 
 /*
  * Append address and data, and optionally, rights
@@ -470,7 +456,6 @@ sbappendaddr(sb, asa, m0, rights0)
 {
 	register struct mbuf *m, *n;
 	int space = sizeof (*asa);
-	segm save5;
 
 	for (m = m0; m; m = m->m_next)
 		space += m->m_len;
@@ -481,14 +466,12 @@ sbappendaddr(sb, asa, m0, rights0)
 	MGET(m, M_DONTWAIT, MT_SONAME);
 	if (m == 0)
 		return (0);
-	MAPSAVE();
 	*mtod(m, struct sockaddr *) = *asa;
 	m->m_len = sizeof (*asa);
 	if (rights0 && rights0->m_len) {
 		m->m_next = m_copy(rights0, 0, rights0->m_len);
 		if (m->m_next == 0) {
 			m_freem(m);
-			MAPUNSAVE();
 			return (0);
 		}
 		sballoc(sb, m->m_next);
@@ -504,7 +487,6 @@ sbappendaddr(sb, asa, m0, rights0)
 		m = m->m_next;
 	if (m0)
 		sbcompress(sb, m0, m);
-	MAPREST();
 	return (1);
 }
 
@@ -555,7 +537,8 @@ sbcompress(sb, m, n)
 		if (n && n->m_off <= MMAXOFF && m->m_off <= MMAXOFF &&
 		    (n->m_off + n->m_len + m->m_len) <= MMAXOFF &&
 		    n->m_type == m->m_type) {
-			MBCOPY(m, 0, n, n->m_len, (u_int)m->m_len);
+			bcopy(mtod(m, caddr_t), mtod(n, caddr_t) + n->m_len, 
+				(unsigned)m->m_len);
 			n->m_len += m->m_len;
 			sb->sb_cc += m->m_len;
 			m = m_free(m);
@@ -648,4 +631,3 @@ sbdroprecord(sb)
 		} while (m = mn);
 	}
 }
-#endif

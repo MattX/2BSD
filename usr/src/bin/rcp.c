@@ -476,7 +476,8 @@ sink(argc, argv)
 {
 	off_t i, j;
 	char *targ, *whopp, *cp;
-	int of, mode, wrerr, exists, first, count, amt, size;
+	int of, mode, wrerr, exists, first, count, amt;
+	off_t size;
 	struct buffer *bp;
 	static struct buffer buffer;
 	struct stat stb;

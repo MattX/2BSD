@@ -116,8 +116,9 @@ sistrategy(bp)
 register struct	buf *bp;
 {
 	register struct buf *dp;
-	register unit;
-	long	bn;
+	register int unit;
+	long bn;
+	int s;
 
 	unit = minor(bp->b_dev) & 077;
 	if (unit >= (NSI << 3) || (SIADDR == (struct sidevice *) NULL)) {
@@ -139,14 +140,14 @@ errexit:
 	bp->b_cylin = bn / (SI_NSECT * SI_NTRAC) + rm5_sizes[unit & 07].cyloff;
 	unit = dkunit(bp);
 	dp = &siutab[unit];
-	(void) _spl5();
+	s = splbio();
 	disksort(dp, bp);
 	if (dp->b_active == 0) {
 		siustart(unit);
 		if (sitab.b_active == 0)
 			sistart();
 	}
-	(void) _spl0();
+	splx(s);
 }
 
 /*

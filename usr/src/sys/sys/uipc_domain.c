@@ -1,47 +1,24 @@
-/*	proto.c	4.22	82/06/20	*/
+/*
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)uipc_domain.c	7.2 (Berkeley) 12/30/87
+ */
 
 #include "param.h"
 #ifdef UCB_NET
-#include "../machine/seg.h"
-#include "systm.h"
-#include "mbuf.h"
-#include "domain.h"
-#include "protosw.h"
 #include "socket.h"
+#include "protosw.h"
+#include "domain.h"
 #include "time.h"
 #include "kernel.h"
-
-/*
- * Definitions of protocols supported in the UNIX domain.
- */
-
-int	uipc_usrreq();
-int	raw_init(),raw_usrreq(),raw_input(),raw_ctlinput();
-extern	struct domain unixdomain;		/* or at least forward */
-
-struct protosw unixsw[] = {
-{ SOCK_STREAM,	&unixdomain,	0,	PR_CONNREQUIRED|PR_WANTRCVD|PR_RIGHTS,
-  0,		0,		0,		0,
-  uipc_usrreq,
-  0,		0,		0,		0,
-},
-{ SOCK_DGRAM,	&unixdomain,	0,		PR_ATOMIC|PR_ADDR|PR_RIGHTS,
-  0,		0,		0,		0,
-  uipc_usrreq,
-  0,		0,		0,		0,
-},
-{ 0,		0,		0,		0,
-  raw_input,	0,		raw_ctlinput,	0,
-  raw_usrreq,
-  raw_init,	0,		0,		0,
-}
-};
-
-int	unp_externalize(), unp_dispose();
-
-struct domain unixdomain =
-    { AF_UNIX, "unix", 0, unp_externalize, unp_dispose,
-      unixsw, &unixsw[sizeof(unixsw)/sizeof(unixsw[0])] };
 
 #define	ADDDOMAIN(x)	{ \
 	extern struct domain x/**/domain; \
@@ -58,15 +35,15 @@ domaininit()
 	ADDDOMAIN(unix);
 #ifdef INET
 	ADDDOMAIN(inet);
-#endif INET
+#endif
 #ifdef NS
 	ADDDOMAIN(ns);
-#endif NS
+#endif
 #include "imp.h"
 #if NIMP > 0
 	ADDDOMAIN(imp);
 #endif
-#endif lint
+#endif
 
 	for (dp = domains; dp; dp = dp->dom_next) {
 		if (dp->dom_init)
@@ -137,6 +114,8 @@ pfctlinput(cmd, sa)
 				(*pr->pr_ctlinput)(cmd, sa);
 }
 
+extern int hz;
+
 pfslowtimo()
 {
 	register struct domain *dp;
@@ -144,12 +123,9 @@ pfslowtimo()
 
 	for (dp = domains; dp; dp = dp->dom_next)
 		for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW; pr++)
-			if (pr->pr_slowtimo) {
-				MAPSAVE();
+			if (pr->pr_slowtimo)
 				(*pr->pr_slowtimo)();
-				MAPREST();
-			}
-	timeout(pfslowtimo, (caddr_t)0, hz/2);
+	TIMEOUT(pfslowtimo, (caddr_t)0, hz/PR_SLOWHZ);
 }
 
 pffasttimo()
@@ -159,11 +135,8 @@ pffasttimo()
 
 	for (dp = domains; dp; dp = dp->dom_next)
 		for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW; pr++)
-			if (pr->pr_fasttimo) {
-				MAPSAVE();
+			if (pr->pr_fasttimo)
 				(*pr->pr_fasttimo)();
-				MAPREST();
-			}
-	timeout(pffasttimo, (caddr_t)0, hz/5);
+	TIMEOUT(pffasttimo, (caddr_t)0, hz/PR_FASTHZ);
 }
 #endif	UCB_NET

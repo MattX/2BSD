@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_process.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)sys_process.c	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 #include "param.h"
@@ -156,10 +156,8 @@ procxmt()
 	case PT_WRITE_U:
 		i = (int)ipc.ip_addr;
 		p = (int *)&((physadr)&u)->r[i/sizeof(int)];
-#ifndef NONFP
 		if (p >= (int *)&u.u_fps && p < (int *)&u.u_fps.u_fpregs[6])
 			goto ok;
-#endif !NONFP
 		for (i=0; i<8; i++)
 			if (p == &u.u_ar0[regloc[i]])
 				goto ok;

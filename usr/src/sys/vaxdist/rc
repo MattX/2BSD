@@ -1,14 +1,15 @@
 HOME=/; export HOME
-PATH=/bin:/usr/bin
+PATH=/etc:/bin:/usr/ucb:/usr/bin; export PATH
+
 if [ -r /fastboot ]
 then
 	rm -f /fastboot
 	echo Fast boot ... skipping disk checks >/dev/console
 elif [ $1x = autobootx ]
 then
-	echo Automatic reboot in progress... >/dev/console
-	date >/dev/console
-	/etc/fsck -p >/dev/console
+	echo Automatic reboot in progress... 		>/dev/console
+	date						>/dev/console
+	fsck -p						>/dev/console 2>&1
 	case $? in
 	0)
 		date >/dev/console
@@ -17,7 +18,7 @@ then
 		exit 1
 		;;
 	4)
-		/etc/reboot -n
+		reboot -n
 		;;
 	8)
 		echo "Automatic reboot failed... help!" >/dev/console
@@ -53,46 +54,69 @@ then
 	rm -f /etc/ptmp
 fi
 
-/etc/umount -a
-cp /dev/null /etc/mtab
-/etc/swapon -a						>/dev/console 2>&1
-/etc/mount -a						>/dev/console 2>&1
+umount -a
+: >/etc/mtab
+swapon -a						>/dev/console 2>&1
+mount -a						>/dev/console 2>&1
 
-				echo -n 'checking quotas:' >/dev/console
-/etc/quotacheck -a -p					>/dev/console 2>&1
-				echo ' done.'		>/dev/console
-/etc/quotaon -a
+			echo -n 'checking quotas:'	>/dev/console
+quotacheck -a -p					>/dev/console 2>&1
+			echo ' done.'			>/dev/console
+quotaon -a
 
-/bin/ps -U						>/dev/console 2>&1
+ps -U							>/dev/console 2>&1
 rm -f /etc/nologin
 rm -f /usr/spool/uucp/LCK.*
+rm -f /usr/spool/uucp/STST/*
 chmod 666 /dev/tty[pqrs]*
+
+# set hostname, turn on network
+. /etc/netstart
+
+			echo 'starting system logger'	>/dev/console
+rm -f /dev/log
+syslogd
+
+# /etc/crash should be a symbolic link to the crash directory
+# if core dumps are to be saved.
+if [ -d /etc/crash ]; then
+	echo		'checking for core dump... '	>/dev/console
+	savecore /etc/crash				>/dev/console 2>&1
+fi
+
+			echo preserving editor files 	>/dev/console
+(cd /tmp; /usr/lib/ex3.7preserve -a)
+			echo clearing /tmp 		>/dev/console
+(cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
+
+			echo -n standard daemons:	>/dev/console
+update;			echo -n ' update'		>/dev/console
+cron;			echo -n ' cron'			>/dev/console
+accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console
+			echo '.'			>/dev/console
+
+echo -n starting network daemons:			>/dev/console
+
+# $routedflags is imported from /etc/netstart;
+# if $routedflags == NO, routed isn't run.
+if [ ${routedflags-X} != "NO" ]; then
+	routed $routedflags; echo -n ' routed'		>/dev/console
+fi
+
+named;			echo -n ' named'		>/dev/console
+inetd;			echo -n ' inetd'		>/dev/console
+
+# $rwhod is imported from /etc/netstart;
+# if $rwhod is set to something other than NO, rwhod is run.
+if [ ${rwhod-NO} != "NO" ]; then
+	rwhod;		echo -n ' rwhod'		>/dev/console
+fi
+
+rm -f /dev/printer
+/usr/lib/lpd;		echo -n ' printer'		>/dev/console
+			echo '.'			>/dev/console
 
 sh /etc/rc.local
 
-				echo preserving editor files 	>/dev/console
-(cd /tmp; /usr/lib/ex3.7preserve -a)
-				echo clearing /tmp 		>/dev/console
-(cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
-
-				echo -n standard daemons:	>/dev/console
-/etc/update;			echo -n ' update'		>/dev/console
-/etc/cron;			echo -n ' cron'			>/dev/console
-/etc/accton /usr/adm/acct;	echo -n ' accounting'		>/dev/console
-				echo '.'			>/dev/console
-
-echo -n starting network daemons:				>/dev/console
-if [ -f /etc/rwhod ]; then
-	/etc/rwhod;		echo -n ' rwhod'		>/dev/console
-fi
-if [ -f /etc/inetd ]; then
-	/etc/inetd;		echo -n ' inetd'		>/dev/console
-fi
-if [ -f /usr/lib/lpd ]; then
-	rm -f /dev/printer
-	/usr/lib/lpd;		echo -n ' printer'		>/dev/console
-fi
-				echo '.'			>/dev/console
-
-				date				>/dev/console
+			date				>/dev/console
 exit 0

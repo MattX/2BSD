@@ -34,6 +34,7 @@ static char sccsid[] = "@(#)ping.c	4.6 (Berkeley) 10/30/86";
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 
 #define	MAXWAIT		10	/* max time to wait for response, sec. */
@@ -58,7 +59,6 @@ char usage[] = "Usage:  ping [-drv] host [data size] [npackets]\n";
 
 char *hostname;
 char hnamebuf[MAXHOSTNAMELEN];
-char *inet_ntoa();
 
 int npackets;
 int ntransmitted = 0;		/* sequence # for outbound packets = #sent */

@@ -1,0 +1,396 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						1
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
+NNAAMMEE
+     ra - MSCP disk controller interface
+
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNRRAACC _r_a__c_o_n_t_r_o_l_l_e_r_s ## NNRRAADD ccoonnttrroolllleerrss
+	  NNRRAADD _r_a__d_r_i_v_e_s      ## RRXX5500,, RRCC2255,, RRDD5511//5522//5533,, RRAA6600//8800//8811
+
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  rraa	??     117722115500 115544    55  rraaiinnttrr	       ## uuddaa5500,, rrqqddxx11//22//33
+
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 1144
+	  bblloocckk:: 55
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy ppaarrttiittiioonn ooff RRAA ddrriivvee
+	  bbiittss 00007700 ssppeecciiffyy RRAA ddrriivvee
+	  bbiittss 00330000 ssppeecciiffyy RRAA ccoonnttrroolllleerr
+
+DDEESSCCRRIIPPTTIIOONN
+     This is a driver for the DEC UDA-50 disk controller and for
+     other compatible controllers.  The UDA-50 communicates with
+     the host through a packet oriented protocol termed the Mass
+     Storage Control Protocol (MSCP).  Consult the file
+     <_p_d_p/_m_s_c_p._h> for a detailed description of this protocol.
+
+     Files with minor device numbers 0 through 7 refer to various
+     portions of drive 0; minor devices 8 through 15 refer to
+     drive 1, etc.  The standard device names begin with ``ra''
+     followed by the drive number and then a letter a-h for par-
+     titions 0-7 respectively.	The character ? stands here for a
+     drive number in the range 0-7.
+
+     The block files access the disk via the system's normal
+     buffering mechanism and may be read and written without
+     regard to physical disk records.  There is also a `raw'
+     interface which provides for direct transmission between the
+     disk and the user's read or write buffer.	A single read or
+     write call results in exactly one I/O operation and there-
+     fore raw I/O is considerably more efficient when many words
+     are transmitted.  The names of the raw files conventionally
+     begin with an extra `r.'
+
+     In raw I/O the buffer must begin on a word (even) boundary,
+     and counts should be a multiple of 512 bytes (a disk sec-
+     tor).  Likewise _s_e_e_k calls should specify a multiple of 512
+     bytes.
+
+DDIISSKK SSUUPPPPOORRTT
+     This driver configures the drive type of each drive when it
+     is first opened.  A partition table in the driver is
+
+
+
+Printed 12/28/88	September 6, 1987			1
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
+     required for each type of disk.  The origin and size (in
+     sectors) of the pseudo-disks on each drive are shown below.
+     Not all partitions begin on cylinder boundaries, as on other
+     drives, because previous drivers used one partition table
+     for all drive types.  Variants of the partition tables are
+     common; check the driver and the file /_e_t_c/_d_i_s_k_t_a_b (_d_i_s_k_-
+     _t_a_b(5)) for other possibilities.
+
+     RC25 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 25915	 10032	swap
+	  ra?c	 25916	 50799	 24884	/usr
+	  ra?d	unused
+	  ra?e	unused
+	  ra?f	unused
+	  ra?g	unused
+	  ra?h	     0	 50799	 50800	whole disk
+
+     RX50 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	unusable
+	  ra?b	unusable
+	  ra?c	unusable
+	  ra?d	unusable
+	  ra?e	unusable
+	  ra?f	unusable
+	  ra?g	unusable
+	  ra?h	     0	  1637	  1638	whole disk
+
+     RD51 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	  9699	  9700
+	  ra?b	 unusable
+	  ra?c	 unusable
+	  ra?d	 unusable
+	  ra?e	     0	  7459	  7460	/
+	  ra?f	  7460	  9699	  2240	swap
+	  ra?g	  9700	 21567	 11868	/usr
+	  ra?h	     0	 21567	 21568	whole disk
+
+     RD52 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	  9699	  9700	/
+	  ra?b	  9700	 26999	 17300
+	  ra?c	 27000	 30099	  3100	swap
+	  ra?d	 30100	 60447	 30348	/usr
+	  ra?e	     0	  7459	  7460
+	  ra?f	  7460	  9699	  2240
+	  ra?g	  9700	 60447	 50748
+	  ra?h	     0	 60447	 60448
+
+
+
+
+Printed 12/28/88	September 6, 1987			2
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
+     RD53 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	  9699	  9700	/
+	  ra?b	  9700	 26999	 17300
+	  ra?c	 27000	 30099	  3100	swap
+	  ra?d	 30100	138639	108540	/usr
+	  ra?e	     0	  7459	  7460
+	  ra?f	  7460	  9699	  2240
+	  ra?g	  9700	138639	128940
+	  ra?h	     0	138639	138640	whole disk
+
+     RA60 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 49323	 33440	swap
+	  ra?c	 49324	242605	193282	/usr
+	  ra?d	242606	258489	 15884
+	  ra?e	258490	399175	140686
+	  ra?f	unused
+	  ra?g	242606	399175	156570
+	  ra?h	     0	399175	399176	whole disk
+
+     RA80 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 49323	 33440	swap
+	  ra?c	 49324	236211	186888	/usr
+	  ra?d	unused
+	  ra?e	unused
+	  ra?f	unused
+	  ra?g	unused
+	  ra?h	0	236211	236212	whole disk
+
+     RA81 partitions
+	  disk	 start	   end	length	comments
+	  ra?a	     0	 15883	 15884	/
+	  ra?b	 15884	 49323	 33440	swap
+	  ra?c	 49324	242605	193282	/usr
+	  ra?d	242606	258489	 15884
+	  ra?e	258490	565689	307200
+	  ra?f	565690	890071	324382
+	  ra?g	242606	890071	647466
+	  ra?h	     0	890071	890072	whole disk
+
+     The ra?a partition is normally used for the root file sys-
+     tem, the ra?b partition as a paging area, and the ra?c par-
+     tition for pack-pack copying (it maps the entire disk).
+
+FFIILLEESS
+     /dev/ra[0-9][a-f]
+     /dev/rra[0-9][a-f]
+     /dev/MAKEDEV	 script to create special files
+
+
+
+Printed 12/28/88	September 6, 1987			3
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
+SSEEEE AALLSSOO
+     hk(4), ram(4), rk(4), rl(4), rp(4), rx(4), si(4), xp(4),
+     dtab(5), autoconfig(8)
+
+DDIIAAGGNNOOSSTTIICCSS
+     rraassaa %%oo,, ssttaattee %%dd.  (Additional status information given
+     after a hard i/o error.) The values of the UDA-50 status
+     register and the internal driver state are printed.
+
+     rraa%%dd:: iinntteerrrruupptt iinn uunnkknnoowwnn ssttaattee %%dd iiggnnoorreedd.  An interrupt
+     was received when the driver was in an unknown internal
+     state.  Indicates a hardware problem or a driver bug.
+
+     rraa%%dd:: ffaattaall eerrrroorr ((%%oo)).  The UDA-50 indicated a ``fatal
+     error'' in the status returned to the host.  The contents of
+     the status register are displayed.
+
+     rraa%%dd,,%%dd:: OOFFFFLLIINNEE.	(Additional status information given
+     after a hard i/o error.) A hard i/o error occurred because
+     the drive was not on-line.  The attached unit number and the
+     MSCP unit numbers are printed.
+
+     ssttaattuuss %%oo.  (Additional status information given after a
+     hard i/o error.) The status information returned from the
+     UDA-50 is tacked onto the end of the hard error message
+     printed on the console.
+
+     rraa:: uunnkknnoowwnn ppaacckkeett ooppccooddee==00%%oo.  An MSCP packet of unknown
+     type was received from the UDA-50.  Check the cabling to the
+     controller.
+
+     The following errors are interpretations of MSCP error mes-
+     sages returned by the UDA-50 to the host.
+
+     rraa:: %%ss eerrrroorr,, ccoonnttrroolllleerr eerrrroorr,, eevveenntt 00%%oo.
+
+     rraa:: %%ss eerrrroorr,, hhoosstt mmeemmoorryy aacccceessss eerrrroorr,, eevveenntt 00%%oo,, aaddddrr 00%%oo.
+
+     rraa:: %%ss eerrrroorr,, ddiisskk ttrraannssffeerr eerrrroorr,, uunniitt %%dd,, ggrrpp 00xx%%xx,, hhddrr
+     00xx%%xx.
+
+     rraa:: %%ss eerrrroorr,, SSDDII eerrrroorr,, uunniitt %%dd,, eevveenntt 00%%oo,, hhddrr 00xx%%xx.
+
+     rraa:: %%ss eerrrroorr,, ssmmaallll ddiisskk eerrrroorr,, uunniitt %%dd,, eevveenntt 00%%oo,, ccyyll %%dd.
+
+     rraa:: %%ss eerrrroorr,, uunnkknnoowwnn eerrrroorr,, uunniitt %%dd,, ffoorrmmaatt 00%%oo,, eevveenntt 00%%oo.
+
+BBUUGGSS
+     In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to 512-
+     byte block boundaries, and _w_r_i_t_e scribbles on the tail of
+     incomplete blocks.  Thus, in programs that are likely to
+     access raw devices, _r_e_a_d, _w_r_i_t_e and _l_s_e_e_k(2) should always
+
+
+
+Printed 12/28/88	September 6, 1987			4
+
+
+
+
+
+
+RA(4)		    UNIX Programmer's Manual		    RA(4)
+
+
+
+     deal in 512-byte multiples.
+
+     The partition tables attempt to combine compatibility with
+     previous drivers and functionality; this is impossible.  The
+     best solution would be to read the partition tables off the
+     drive.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	September 6, 1987			5
+
+
+

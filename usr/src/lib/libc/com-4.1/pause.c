@@ -13,6 +13,7 @@ static char sccsid[] = "@(#)pause.c	5.2 (Berkeley) 3/9/86";
  */
 pause()
 {
+	long sigblock();
 
 	sigpause(sigblock(0L));
 }

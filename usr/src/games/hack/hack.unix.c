@@ -105,7 +105,7 @@ gethdate(name) char *name; {
  * does not exist on all systems, and moreover, that it sometimes includes
  * <sys/types.h> again, so that the compiler sees these typedefs twice.
  */
-#define		MAXPATHLEN	1024
+#define		MAXPATHLEN	128
 
 register char *np, *path;
 char filename[MAXPATHLEN+1];

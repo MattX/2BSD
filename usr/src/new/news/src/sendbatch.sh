@@ -1,7 +1,10 @@
-: '@(#)sendbatch.sh	1.10	9/23/86'
+: '@(#)sendbatch.sh	1.16	12/1/87'
 
 cflags=
 LIM=50000
+MINDF=MINDISKFREE
+MAXBATCH=MAXPERBATCH
+SPOOLDISK=SPOOL_DISK
 CMD='LIBDIR/batch BATCHDIR/$rmt $BLIM'
 ECHO=
 COMP=
@@ -31,7 +34,28 @@ do
 			DOIHAVE=`uuname -l`
 		fi
 		continue;;
+	-m*)	MAXBATCH=`expr "$rmt" : '-m\(.*\)'`
+		continue;;
 	esac
+
+	df=`df $SPOOLDISK | awk "\\$6 == \\"$SPOOLDISK\" {print \\$4}
+		\\$1 == \\"$SPOOLDISK\\" {print \\$3}"`
+	if test ! -z "$df" -a \( "$df" -lt $MINDF \)
+	then
+		echo not enough space on $SPOOLDISK: $df
+		continue
+	fi
+
+	if test -s /tmp/uuq.output
+	then
+		q=`echo "$rmt" | sed 's/\(.......\).*/\1/'`
+		q=`awk "\\$1 == \\"$q:\\" { print \\$4;exit}" </tmp/uuq.output`
+		if test ! -z "$q" -a \( "$q" -gt $MAXBATCH \)
+		then 
+			echo $rmt already has $q bytes queued
+			continue
+		fi
+	fi
 
 	if test -n "$COMP"
 	then
@@ -41,7 +65,11 @@ do
 	fi
 
 	: make sure $? is zero
-	while test $? -eq 0 -a \( -s BATCHDIR/$rmt -o -s BATCHDIR/$rmt.work -o  \( -n "$DOIHAVE" -a -s BATCHDIR/$rmt.ihave \) \)
+	sentbytes=0
+	while test $? -eq 0 -a $sentbytes -le $MAXBATCH -a \
+		\( \( $sentbytes -eq 0 -a -s BATCHDIR/$rmt \) -o \
+		 -s BATCHDIR/$rmt.work -o  \
+		\( -n "$DOIHAVE" -a -s BATCHDIR/$rmt.ihave \) \)
 	do
 		if test -n "$DOIHAVE" -a -s BATCHDIR/$rmt.ihave
 		then
@@ -58,6 +86,7 @@ do
 			else
 				uux - UUXFLAGS $rmt!$RNEWS
 			fi
+			sentbytes=`expr $sentbytes + $LIM`
 		fi
 	done
 done

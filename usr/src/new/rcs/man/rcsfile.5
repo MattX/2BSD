@@ -1,14 +1,14 @@
-.TH RCSFILE 5 6/29/83 "Purdue University"
+.TH RCSFILE 5L "" "Purdue University"
 .SH NAME
 rcsfile \- format of RCS file
 .SH DESCRIPTION
-An RCS file is an ASCII file. Its contents is described by the grammar
+An RCS file is an ASCII file. Its contents are described by the grammar
 below. The text is free format, i.e., spaces, tabs and new lines have
 no significance except in strings. Strings are enclosed by `@'.
 If a string contains a `@', it must be doubled.
 .PP
 The meta syntax uses the following conventions: `|' (bar) separates
-alternatives; `{' and `}' enclose optinal phrases; `{' and `}*' enclose
+alternatives; `{' and `}' enclose optional phrases; `{' and `}*' enclose
 phrases that may be repeated zero or more times;
 `{' and '}+' enclose phrases that must appear at least once and may be
 repeated;
@@ -22,6 +22,7 @@ repeated;
 <rcstext>  ~~::=~~<admin> {<delta>}* <desc> {<deltatext>}*
            
 <admin>    ~~::=~~\fBhead\fR     ~~{<num>};
+           ~~   ~~\fBbranch\fR   ~~{<num>};
            ~~   ~~\fBaccess\fR   ~~{<id>}*;
            ~~   ~~\fBsymbols\fR  ~~{<id> : <num>}*;  
            ~~   ~~\fBlocks\fR    ~~{<id> : <num>}*;
@@ -64,63 +65,71 @@ The sets of keywords and identifiers may overlap.
 The <delta> nodes form a tree. All nodes whose numbers
 consist of a single pair
 (e.g., 2.3, 2.1, 1.3, etc.)
-are on the "trunk", and are linked through the "next"
-field in order of decreasing numbers. The "head" field in the
+are on the "trunk", and are linked through the \fBnext\fR
+field in order of decreasing numbers. The \fBhead\fR field in the
 <admin> node points to the head of that sequence (i.e., contains
 the highest pair). 
+The \fBbranch\fR node in the admin node indicates the default
+branch (or revision) for most RCS operations. If empty, the default
+branch is the highest branch on the trunk.
 .PP
 All <delta> nodes whose numbers consist of 2n fields (n\(>=2)
 (e.g., 3.1.1.1, 2.1.2.2, etc.)
 are linked as follows. All nodes whose first (2n)-1 number fields are identical
-are linked through the "next" field in order of increasing numbers.
+are linked through the \fBnext\fR field in order of increasing numbers.
 For each such sequence, 
 the <delta> node whose number is identical to the first 
 2(n-1) number fields of the deltas on that sequence is called the branchpoint.
-The "branches" field of a node contains a list of the
+The \fBbranches\fR field of a node contains a list of the
 numbers of the first nodes of all sequences for which it is a branchpoint.
 This list is ordered in increasing numbers.
-.PP
+.sp 1
+.ne 38
 Example:
+.eo
 .nf
 .vs 12pts
 .cs 1 20
-                                    Head
-                                      |
-                                      |
-                                      v
-                                  ---------
-            / \\          / \\      |       |      / \\           / \\     
-           /   \\        /   \\     |  2.1  |     /   \\         /   \\
-          /     \\      /     \\    |       |    /     \\      /       \\
-         /1.2.1.3\\    /1.3.1.1\\   |       |   /1.2.2.2\\   /1.2.2.1.1.1\\
-         ---------    ---------   ---------   ---------   -------------
-             ^            ^           |           ^             ^
-             |            |           |           |             |
-             |            |           v           |             |
-            / \\           |       ---------      / \\            |
-           /   \\          |       \\  1.3  /     /   \\           |
-          /     \\         ---------\\     /     /     \\-----------
-         /1.2.1.1\\                  \\   /     /1.2.2.1\\           
-         ---------                   \\ /      --------- 
-             ^                        |           ^     
-             |                        |           |     
-             |                        v           |     
-             |                    ---------       |     
-             |                    \\  1.2  /       |     
-             ----------------------\\     /---------     
-                                    \\   /               
-                                     \\ /                
-                                      |                 
-                                      |                 
-                                      v                 
-                                  ---------             
-                                  \\  1.1  /             
-                                   \\     /              
-                                    \\   /               
-                                     \\ /                
-                                                        
+.if t .in +0.5i
+                           Head
+                             |
+                             |
+                             v
+                         ---------
+   / \          / \      |       |      / \           / \     
+  /   \        /   \     |  2.1  |     /   \         /   \
+ /     \      /     \    |       |    /     \      /       \
+/1.2.1.3\    /1.3.1.1\   |       |   /1.2.2.2\   /1.2.2.1.1.1\
+---------    ---------   ---------   ---------   -------------
+    ^            ^           |           ^             ^
+    |            |           |           |             |
+    |            |           v           |             |
+   / \           |       ---------      / \            |
+  /   \          |       \  1.3  /     /   \           |
+ /     \         ---------\     /     /     \-----------
+/1.2.1.1\                  \   /     /1.2.2.1\           
+---------                   \ /      --------- 
+    ^                        |           ^     
+    |                        |           |     
+    |                        v           |     
+    |                    ---------       |     
+    |                    \  1.2  /       |     
+    ----------------------\     /---------     
+                           \   /               
+                            \ /                
+                             |                 
+                             |                 
+                             v                 
+                         ---------             
+                         \  1.1  /             
+                          \     /              
+                           \   /               
+                            \ /                
+                                               
 
+.if t .in -0.5i
 .cs 1
+.ec
 .ce
 Fig. 1: A revision tree
 .fi
@@ -133,11 +142,15 @@ Author: Walter F. Tichy,
 Purdue University, West Lafayette, IN, 47907.
 .sp 0
 Revision Number:
-.VL $Revision: 3.0 $
+.VL $Revision: 1.1 $
 ; Release Date:
-.VL $Date: 82/11/18 16:36:39 $
+.VL $Date: 87/03/11 21:30:02 $
 \&.
 .sp 0
 Copyright \(co 1982 by Walter F. Tichy.
 .SH SEE ALSO
-ci (1), co (1), ident (1), rcs (1), rcsdiff (1), rcsintro (1), rcsmerge (1), rlog (1), sccstorcs (8).
+ci(1L), co(1L), ident(1L), rcs(1L), rcsdiff(1L), rcsmerge(1L), rlog(1L),
+.br
+Walter F. Tichy, "Design, Implementation, and Evaluation of a Revision Control
+System," in \fIProceedings of the 6th International Conference on Software
+Engineering\fR, IEEE, Tokyo, Sept. 1982.

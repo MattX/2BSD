@@ -1,7 +1,7 @@
-/* @(#)ndir.h	1.6	3/9/87	*/
+/*	@(#)ndir.h	1.7	10/7/87	*/
 #if defined(HP9K5)
 /* He should have included it instead of this, but prevent confusion */
-#include <sys/ndir.h>
+#include <ndir.h>
 #else /* other */
 #ifndef DEV_BSIZE
 #define	DEV_BSIZE	512

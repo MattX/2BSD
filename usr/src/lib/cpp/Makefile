@@ -1,6 +1,13 @@
 #	Makefile	1.2	83/07/02
 #
 
+# Defined SHARED_DATA to be whatever will make your compiler make initialized
+# variables shared and read only.  Don't do this on a PDP-11 if you're also
+# compiling separate I&D since doing so puts the shared data in text space
+# which can't be accessed normally.
+#
+#SHARED_DATA=-R
+
 # CFLAGS=-O -Dunix=1 -DFLEXNAMES
 # If you don't have split I/D, you'll have to edit the constant
 # SBSIZE in cpp.c to reflect this.
@@ -19,7 +26,7 @@ cpy.c : cpy.y
 cpy.o :	cpy.c yylex.c
 
 rodata.o : cpy.c
-	$(CC) $(CFLAGS) -R -c rodata.c
+	$(CC) $(CFLAGS) ${SHARED_DATA} -c rodata.c
 
 clean :
 	rm -f *.s *.o cpy.c rodata.c

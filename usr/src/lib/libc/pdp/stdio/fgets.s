@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)fgets.s	5.5 (Berkeley) 2/4/87\0>
+	<@(#)fgets.s	5.6 (Berkeley) 9/2/88\0>
 	.even
 #endif LIBC_SCCS
 
@@ -51,13 +51,13 @@ ENTRY(fgets)
 	 * a null ...
 	 */
 	dec	COUNT			/ We scan at most n-1 characters
-	beq	Lerror
+	ble	Lerror
 
 	/*
 	 * If no characters, call _filbuf() to get some.
 	 */
 	tst	_CNT(IOP)
-	bne	Lscan
+	bgt	Lscan
 
 Lloop:
 	mov	IOP,-(sp)		/ _filbuf(stdin)
@@ -67,7 +67,7 @@ Lloop:
 	blt	Leof
 	movb	r0,(S)+			/ save the returned character
 	dec	COUNT			/ out of space?
-	beq	1f
+	ble	1f
 	cmpb	r0,$NL			/ a newline?
 	bne	2f
 1:

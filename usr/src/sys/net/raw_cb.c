@@ -1,14 +1,18 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1980, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)raw_cb.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)raw_cb.c	7.4 (Berkeley) 12/30/87
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
 #include "socket.h"
@@ -39,16 +43,17 @@ raw_attach(so, proto)
 	register struct socket *so;
 	int proto;
 {
+	struct mbuf *m;
 	register struct rawcb *rp;
-	int error;
 
-	MSGET(rp, struct rawcb, M_CLEAR);
-	if (rp == 0)
-		return(ENOBUFS);
-	if (error = soreserve(so, RAWSNDQ, RAWRCVQ)) {
-		MSFREE(rp);
-		return (error);
-	}
+	m = m_getclr(M_DONTWAIT, MT_PCB);
+	if (m == 0)
+		return (ENOBUFS);
+	if (sbreserve(&so->so_snd, RAWSNDQ) == 0)
+		goto bad;
+	if (sbreserve(&so->so_rcv, RAWRCVQ) == 0)
+		goto bad2;
+	rp = mtod(m, struct rawcb *);
 	rp->rcb_socket = so;
 	so->so_pcb = (caddr_t)rp;
 	rp->rcb_pcb = 0;
@@ -56,6 +61,11 @@ raw_attach(so, proto)
 	rp->rcb_proto.sp_protocol = proto;
 	insque(rp, &rawcb);
 	return (0);
+bad2:
+	sbrelease(&so->so_snd);
+bad:
+	(void) m_free(m);
+	return (ENOBUFS);
 }
 
 /*
@@ -73,8 +83,8 @@ raw_detach(rp)
 	sofree(so);
 	remque(rp);
 	if (rp->rcb_options)
-		m_freem(dtom(rp->rcb_options));
-	MSFREE(rp);
+		m_freem(rp->rcb_options);
+	m_freem(dtom(rp));
 }
 
 /*
@@ -83,6 +93,7 @@ raw_detach(rp)
 raw_disconnect(rp)
 	struct rawcb *rp;
 {
+
 	rp->rcb_flags &= ~RAW_FADDR;
 	if (rp->rcb_socket->so_state & SS_NOFDREF)
 		raw_detach(rp);
@@ -92,7 +103,7 @@ raw_bind(so, nam)
 	register struct socket *so;
 	struct mbuf *nam;
 {
-	struct sockaddr *addr = MTOD(nam, struct sockaddr *);
+	struct sockaddr *addr = mtod(nam, struct sockaddr *);
 	register struct rawcb *rp;
 
 	if (ifnet == 0)
@@ -132,7 +143,7 @@ raw_connaddr(rp, nam)
 	struct rawcb *rp;
 	struct mbuf *nam;
 {
-	struct sockaddr *addr = MTOD(nam, struct sockaddr *);
+	struct sockaddr *addr = mtod(nam, struct sockaddr *);
 
 	bcopy((caddr_t)addr, (caddr_t)&rp->rcb_faddr, sizeof(*addr));
 	rp->rcb_flags |= RAW_FADDR;

@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)tcp_timer.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp_timer.c	7.11.1.2 (Berkeley) 3/16/88
  */
 
 #include "param.h"
-#include "../machine/psl.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
-#include "domain.h"
 #include "socket.h"
 #include "socketvar.h"
 #include "protosw.h"
@@ -21,6 +23,7 @@
 #include "../net/if.h"
 #include "../net/route.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -34,6 +37,9 @@
 #include "tcpip.h"
 
 int	tcpnodelack = 0;
+int	tcp_keepidle = TCPTV_KEEP_IDLE;
+int	tcp_keepintvl = TCPTV_KEEPINTVL;
+int	tcp_maxidle;
 /*
  * Fast timeout routine for processing delayed acks
  */
@@ -50,6 +56,7 @@ tcp_fasttimo()
 		    (tp->t_flags & TF_DELACK)) {
 			tp->t_flags &= ~TF_DELACK;
 			tp->t_flags |= TF_ACKNOW;
+			tcpstat.tcps_delack++;
 			(void) tcp_output(tp);
 		}
 	splx(s);
@@ -67,6 +74,7 @@ tcp_slowtimo()
 	int s = splnet();
 	register int i;
 
+	tcp_maxidle = TCPTV_KEEPCNT * tcp_keepintvl;
 	/*
 	 * Search through tcb's and update active timers.
 	 */
@@ -115,15 +123,9 @@ tcp_canceltimers(tp)
 		tp->t_timer[i] = 0;
 }
 
-/* Note that the formula used by tcp_timers() goes like this:
- *	t_timer = ( (t_srtt/10) * tcp_backoff[t_rxshift-1] ) / 10;
- *	t_srtt ~=~ t_rtt * 10;
- * with the result limited to the range 0.5--15 seconds.
- * t_srtt is the "smoothed" round trip time *10, t_rtt is 1 round trip time.
- */
+int	tcp_backoff[TCP_MAXRXTSHIFT + 1] =
+    { 1, 2, 4, 8, 16, 32, 64, 64, 64, 64, 64, 64, 64 };
 
-int     tcp_backoff[TCP_MAXRXTSHIFT+1] =          /* scaled by 10 */
-	{ 10, 20, 40, 60, 80,100,150,200,300,300,300,300,300 };	/* 4.3 */
 /*
  * TCP timer processing.
  */
@@ -144,8 +146,8 @@ tcp_timers(tp, timer)
 	 */
 	case TCPT_2MSL:
 		if (tp->t_state != TCPS_TIME_WAIT &&
-		    tp->t_idle <= TCPTV_MAXIDLE)
-			tp->t_timer[TCPT_2MSL] = TCPTV_KEEP;
+		    tp->t_idle <= tcp_maxidle)
+			tp->t_timer[TCPT_2MSL] = tcp_keepintvl;
 		else
 			tp = tcp_close(tp);
 		break;
@@ -156,33 +158,68 @@ tcp_timers(tp, timer)
 	 * to a longer retransmit interval and retransmit one segment.
 	 */
 	case TCPT_REXMT:
-		tp->t_rxtshift++;
-		if (tp->t_rxtshift > TCP_MAXRXTSHIFT) {
+		if (++tp->t_rxtshift > TCP_MAXRXTSHIFT) {
+			tp->t_rxtshift = TCP_MAXRXTSHIFT;
+			tcpstat.tcps_timeoutdrop++;
 			tp = tcp_drop(tp, ETIMEDOUT);
 			break;
 		}
-		if (tp->t_srtt == 0)
-			rexmt = tcp_beta * TCPTV_SRTTDFLT;
-		else
-			rexmt = (int)(tcp_beta * tp->t_srtt)/10;
-		rexmt *= tcp_backoff[tp->t_rxtshift - 1];
-		TCPT_RANGESET(tp->t_timer[TCPT_REXMT], rexmt/100,
-			    TCPTV_MIN, TCPTV_MAX);
+		tcpstat.tcps_rexmttimeo++;
+		rexmt = ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1;
+		rexmt *= tcp_backoff[tp->t_rxtshift];
+		TCPT_RANGESET(tp->t_rxtcur, rexmt, TCPTV_MIN, TCPTV_REXMTMAX);
+		tp->t_timer[TCPT_REXMT] = tp->t_rxtcur;
 		/*
-		 * If losing, let the lower level know
-		 * and try for a better route.
+		 * If losing, let the lower level know and try for
+		 * a better route.  Also, if we backed off this far,
+		 * our srtt estimate is probably bogus.  Clobber it
+		 * so we'll take the next rtt measurement as our srtt;
+		 * move the current srtt into rttvar to keep the current
+		 * retransmit times until then.
 		 */
-		if (tp->t_rxtshift >= TCP_MAXRXTSHIFT / 4 ||
-		    rexmt >= 10 * PR_SLOWHZ)
+		if (tp->t_rxtshift > TCP_MAXRXTSHIFT / 4) {
+#if BSD>=43
 			in_losing(tp->t_inpcb);
+#endif
+			tp->t_rttvar += (tp->t_srtt >> 2);
+			tp->t_srtt = 0;
+		}
 		tp->snd_nxt = tp->snd_una;
 		/*
-		 * If timing a segment in this window,
-		 * and we have already gotten some timing estimate,
-		 * stop the timer.
+		 * If timing a segment in this window, stop the timer.
 		 */
-		if (tp->t_rtt && tp->t_srtt)
-			tp->t_rtt = 0;
+		tp->t_rtt = 0;
+		/*
+		 * Close the congestion window down to one segment
+		 * (we'll open it by one segment for each ack we get).
+		 * Since we probably have a window's worth of unacked
+		 * data accumulated, this "slow start" keeps us from
+		 * dumping all that data as back-to-back packets (which
+		 * might overwhelm an intermediate gateway).
+		 *
+		 * There are two phases to the opening: Initially we
+		 * open by one mss on each ack.  This makes the window
+		 * size increase exponentially with time.  If the
+		 * window is larger than the path can handle, this
+		 * exponential growth results in dropped packet(s)
+		 * almost immediately.  To get more time between 
+		 * drops but still "push" the network to take advantage
+		 * of improving conditions, we switch from exponential
+		 * to linear window opening at some threshhold size.
+		 * For a threshhold, we use half the current window
+		 * size, truncated to a multiple of the mss.
+		 *
+		 * (the minimum cwnd that will give us exponential
+		 * growth is 2 mss.  We don't allow the threshhold
+		 * to go below this.)
+		 */
+		{
+		u_int win = MIN(tp->snd_wnd, tp->snd_cwnd) / 2 / tp->t_maxseg;
+		if (win < 2)
+			win = 2;
+		tp->snd_cwnd = tp->t_maxseg;
+		tp->snd_ssthresh = win * tp->t_maxseg;
+		}
 		(void) tcp_output(tp);
 		break;
 
@@ -191,6 +228,7 @@ tcp_timers(tp, timer)
 	 * Force a byte to be output, if possible.
 	 */
 	case TCPT_PERSIST:
+		tcpstat.tcps_persisttimeo++;
 		tcp_setpersist(tp);
 		tp->t_force = 1;
 		(void) tcp_output(tp);
@@ -202,30 +240,43 @@ tcp_timers(tp, timer)
 	 * or drop connection if idle for too long.
 	 */
 	case TCPT_KEEP:
+		tcpstat.tcps_keeptimeo++;
 		if (tp->t_state < TCPS_ESTABLISHED)
 			goto dropit;
 		if (tp->t_inpcb->inp_socket->so_options & SO_KEEPALIVE &&
 		    tp->t_state <= TCPS_CLOSE_WAIT) {
-		    	if (tp->t_idle >= TCPTV_MAXIDLE)
+		    	if (tp->t_idle >= tcp_keepidle + tcp_maxidle)
 				goto dropit;
 			/*
-			 * Saying tp->rcv_nxt-1 lies about what
-			 * we have received, and by the protocol spec
-			 * requires the correspondent TCP to respond.
-			 * Saying tp->snd_una-1 causes the transmitted
-			 * byte to lie outside the receive window; this
-			 * is important because we don't necessarily
-			 * have a byte in the window to send (consider
-			 * a one-way stream!)
+			 * Send a packet designed to force a response
+			 * if the peer is up and reachable:
+			 * either an ACK if the connection is still alive,
+			 * or an RST if the peer has closed the connection
+			 * due to timeout or reboot.
+			 * Using sequence number tp->snd_una-1
+			 * causes the transmitted zero-length segment
+			 * to lie outside the receive window;
+			 * by the protocol spec, this requires the
+			 * correspondent TCP to respond.
 			 */
-			MAPSAVE();
-			tcp_respond(tp,
-			    tp->t_template, tp->rcv_nxt-1, tp->snd_una-1, 0);
-			MAPREST();
-		}
-		tp->t_timer[TCPT_KEEP] = TCPTV_KEEP;
+			tcpstat.tcps_keepprobe++;
+#ifdef TCP_COMPAT_42
+			/*
+			 * The keepalive packet must have nonzero length
+			 * to get a 4.2 host to respond.
+			 */
+			tcp_respond(tp, tp->t_template,
+			    tp->rcv_nxt - 1, tp->snd_una - 1, 0);
+#else
+			tcp_respond(tp, tp->t_template,
+			    tp->rcv_nxt, tp->snd_una - 1, 0);
+#endif
+			tp->t_timer[TCPT_KEEP] = tcp_keepintvl;
+		} else
+			tp->t_timer[TCPT_KEEP] = tcp_keepidle;
 		break;
 	dropit:
+		tcpstat.tcps_keepdrops++;
 		tp = tcp_drop(tp, ETIMEDOUT);
 		break;
 	}

@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)if.h	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)if.h	7.2 (Berkeley) 12/30/87
  */
 
 /*
@@ -35,8 +41,6 @@
  * Structure defining a queue for a network interface.
  *
  * (Would like to call this struct ``if'', but C isn't PL/1.)
- *
- * EVENTUALLY PURGE if_net AND if_host FROM STRUCTURE
  */
 struct ifnet {
 	char	*if_name;		/* name, e.g. ``en'' or ``lo'' */
@@ -80,8 +84,6 @@ struct ifnet {
 /* next two not supported now, but reserved: */
 #define	IFF_PROMISC	0x100		/* receive all packets */
 #define	IFF_ALLMULTI	0x200		/* receive all multicast packets */
-#define	IFF_ROUTE	0x400		/* routing entry installed */
-#define	IFF_LOCAL	0x800		/* local network, host part encoded */
 /* flags set internally only: */
 #define	IFF_CANTCHANGE	(IFF_BROADCAST | IFF_POINTOPOINT | IFF_RUNNING)
 
@@ -211,13 +213,12 @@ struct	ifconf {
 #define	ifc_req	ifc_ifcu.ifcu_req	/* array of structures returned */
 };
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 #include "../net/if_arp.h"
 struct	ifqueue rawintrq;		/* raw packet input queue */
 struct	ifnet *ifnet;
 struct	ifaddr *ifa_ifwithaddr(), *ifa_ifwithnet();
 struct	ifaddr *ifa_ifwithdstaddr();
-struct	ifnet *if_ifonnetof(), *ifunit();
 #else KERNEL
 #include <net/if_arp.h>
 #endif KERNEL

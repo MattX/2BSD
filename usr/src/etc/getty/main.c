@@ -113,6 +113,7 @@ main(argc, argv)
 	char *tname;
 	long allflags;
 	int repcnt = 0;
+	int someflags;
 
 	signal(SIGINT, SIG_IGN);
 /*
@@ -221,7 +222,7 @@ main(argc, argv)
 				continue;
 			allflags = setflags(2);
 			tmode.sg_flags = allflags & 0xffff;
-			allflags >>= 16;
+			someflags = allflags >> 16;
 			if (crmod || NL)
 				tmode.sg_flags |= CRMOD;
 			if (upper || UC)
@@ -230,7 +231,7 @@ main(argc, argv)
 				tmode.sg_flags &= ~LCASE;
 			ioctl(0, TIOCSETP, &tmode);
 			ioctl(0, TIOCSLTC, &ltc);
-			ioctl(0, TIOCLSET, &allflags);
+			ioctl(0, TIOCLSET, &someflags);
 			signal(SIGINT, SIG_DFL);
 			for (i = 0; environ[i] != (char *)0; i++)
 				env[i] = environ[i];

@@ -6,10 +6,10 @@
  *	@(#)sys.c	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
-#include <sys/param.h>
-#include <sys/fs.h>
-#include <sys/dir.h>
-#include <sys/inode.h>
+#include "../h/param.h"
+#include "../h/fs.h"
+#include "../h/dir.h"
+#include "../h/inode.h"
 #include "saio.h"
 
 /*
@@ -62,7 +62,7 @@ find(path, file)
 		while (*path == '/')
 			path++;
 		q = path;
-		while(*q != '/' && *q != '\0')
+		while (*q != '/' && *q != '\0')
 			q++;
 		c = *q;
 		*q = '\0';
@@ -95,7 +95,7 @@ sbmap(io, bn)
 	daddr_t nb, *bap;
 
 	ip = &io->i_ino;;
-	if(bn < 0) {
+	if (bn < 0) {
 		printf("bn negative\n");
 		return((daddr_t)0);
 	}
@@ -103,7 +103,7 @@ sbmap(io, bn)
 	/*
 	 * blocks 0..NADDR-4 are direct blocks
 	 */
-	if(bn < NADDR-3) {
+	if (bn < NADDR-3) {
 		i = bn;
 		nb = ip->i_addr[i];
 		return(nb);
@@ -118,14 +118,14 @@ sbmap(io, bn)
 	sh = 0;
 	nb = 1;
 	bn -= NADDR-3;
-	for(j=3; j>0; j--) {
+	for (j=3; j>0; j--) {
 		sh += NSHIFT;
 		nb <<= NSHIFT;
-		if(bn < nb)
+		if (bn < nb)
 			break;
 		bn -= nb;
 	}
-	if(j == 0) {
+	if (j == 0) {
 		printf("bn ovf %D\n", bn);
 		return((daddr_t)0);
 	}
@@ -134,7 +134,7 @@ sbmap(io, bn)
 	 * fetch the address from the inode
 	 */
 	nb = ip->i_addr[NADDR-j];
-	if(nb == 0) {
+	if (nb == 0) {
 		printf("bn void %D\n", bn);
 		return((daddr_t)0);
 	}
@@ -142,7 +142,7 @@ sbmap(io, bn)
 	/*
 	 * fetch through the indirect blocks
 	 */
-	for(; j<=3; j++) {
+	for (; j<=3; j++) {
 		if (blknos[j] != nb) {
 			io->i_bn = fsbtodb(nb) + io->i_boff;
 			io->i_ma = b[j];
@@ -154,7 +154,7 @@ sbmap(io, bn)
 		sh -= NSHIFT;
 		i = (bn>>sh) & NMASK;
 		nb = bap[i];
-		if(nb == 0) {
+		if (nb == 0) {
 			printf("bn void %D\n", bn);
 			return((daddr_t)0);
 		}
@@ -192,7 +192,7 @@ dlook(s, io)
 
 	dc = DEV_BSIZE;
 	bn = (daddr_t)0;
-	while(n--) {
+	while (n--) {
 		if (++dc >= DEV_BSIZE/sizeof(struct v7direct)) {
 			tbn = sbmap(io, bn++);
 			io->i_bn = fsbtodb(tbn) + io->i_boff;
@@ -287,7 +287,7 @@ getc(fdesc)
 				return(-1);
 		} else {
 			off = 0;
-			if(tapemark)return(-1);
+			if (tapemark)return(-1);
 		}
 		io->i_ma = &io->i_buf[off];
 	}
@@ -499,8 +499,7 @@ trap(r1, r0, nps, pc, ps)
 	int nps, r1, r0, pc, ps;
 {
 	printf("Trap in %s,", module);
-	switch(nps&7)
-	{
+	switch (nps&7) {
 	case 0:
 		printf("bus error");
 		break;

@@ -94,8 +94,8 @@ cr106:
 	clrf	R
 
 %aub,n
-	movb	A1,R
-	bic	$!377,R
+	clr	R
+	bisb	A1,R
 
 %a,n
 %ad,n

@@ -111,7 +111,8 @@ ART_NUM ngsize;
  
     sprintf(tst, ngsize ? "%s/%s/1" : "%s/%s" ,spool,getngdir(ngnam));
     if (stat(tst,&filestat) < 0)
-	return (ngsize ? 0L : time(0));	/* not there, assume something good */
+	return (ngsize ? 0L : time(Null(long *)));
+	/* not there, assume something good */
     else
 	return filestat.st_mtime;
 }

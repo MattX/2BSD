@@ -1,10 +1,13 @@
 #include "defs.h"
 #if !defined(BSD4_2) && !defined(BSD4_1C) && !defined(HP9K5)
+#ifdef M_XENIX
+#include <sys/types.h>
+#endif /* M_XENIX */
 #include <sys/param.h>
 #include "ndir.h"
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)ndir.c	1.11	3/20/87";
+static char	*SccsId = "@(#)ndir.c	1.12	10/15/87";
 #endif /* SCCSID */
 
 /*

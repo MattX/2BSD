@@ -1,0 +1,66 @@
+
+
+
+RTP(2)		    UNIX Programmer's Manual		   RTP(2)
+
+
+
+NNAAMMEE
+     rtp - make/unmake a real time process (2BSD)
+
+SSYYNNOOPPSSIISS
+     rrttpp((ffllaagg))
+     iinntt ffllaagg
+
+DDEESSCCRRIIPPTTIIOONN
+     If the _f_l_a_g argument is non-zero the process is marked as a
+     _r_e_a_l _t_i_m_e process.  If the argument is zero, the processes
+     real time status is revoked.
+
+     A real time process does not compete for system resources in
+     the normal manner; instead, a real time process is con-
+     sidered locked into physical memory by the swap scheduler
+     and receives exclusive use of the central processor from the
+     process scheduler whenever the real time process is in a
+     executable state.	Furthermore, other processes which previ-
+     ously were non-preemptable but had the potential of consum-
+     ing relatively large amounts of cpu time are made preempt-
+     able by _r_t_p.  There can be only one real time process active
+     at any time.
+
+     It is the responsibility of the real time process to see to
+     it that use of the cpu is relinquished often enough and long
+     enough for other normal UNIX processes to run.  For this
+     reason only the super-user is allowed to change the mode of
+     a process via _r_t_p.
+
+EERRRROORRSS
+     [EINVAL]	    The kernel has not been compiled with the RTP
+		    option.
+
+     [EPERM]	    The caller is not the super-user.
+
+     [EBUSY]	    A real time process already exists.
+
+SSEEEE AALLSSOO
+     lock(2), setpriority(2)
+
+AAUUTTHHOORR
+     Thomas Ferrin, University of California, San Francisco
+
+BBUUGGSS
+     _R_t_p is unique to the PDP-11 and 2BSD; its use is
+     discouraged.
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	January 22, 1987			1
+
+
+

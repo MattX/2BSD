@@ -164,7 +164,7 @@ dirloop2:
 		entryoffsetinblock = blkoff(u.u_offset);
 		if (entryoffsetinblock != 0) {
 			bp = bread(dp->i_dev,
-			   bmap(dp,lblkno(u.u_offset),B_READ));
+			   bmap(dp,lblkno(u.u_offset),B_READ,0));
 			if (bp->b_flags & B_ERROR) {
 				brelse(bp);
 				bp = NULL;
@@ -192,7 +192,7 @@ searchloop:
 				brelse(bp);
 			}
 			bp = bread(dp->i_dev,
-			    bmap(dp,lblkno(u.u_offset),B_READ));
+			    bmap(dp,lblkno(u.u_offset),B_READ,0));
 			if (bp->b_flags & B_ERROR) {
 				brelse(bp);
 				bp = NULL;
@@ -448,7 +448,7 @@ found:
 			goto bad2;
 		}
 
-		bp = bread(dp->i_dev, bmap(dp, (daddr_t)0, B_READ));
+		bp = bread(dp->i_dev, bmap(dp, (daddr_t)0, B_READ, 0));
 		if (bp->b_flags & B_ERROR) {
 			brelse(bp);
 			bp = NULL;
@@ -593,7 +593,7 @@ dirempty(ip, parentino)
 				mapout(bp);
 				brelse(bp);
 			}
-			bp = bread(ip->i_dev, bmap(ip,lblkno(off),B_READ));
+			bp = bread(ip->i_dev, bmap(ip,lblkno(off),B_READ,0));
 			if (bp->b_flags & B_ERROR) {
 				brelse(bp);
 				return(0);

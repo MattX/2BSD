@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)4.t	6.2 (Berkeley) 10/1/88
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -467,7 +467,7 @@ and therefore it is best to make changes
 while running in single-user mode
 and to add all of the entries for a new device at once.
 .PP
-The format of the /etc/ttys file is completely new in \*(2B.
+The format of the /etc/ttys file is completely new in \*(Ps and \*(2B.
 Each line in the file is broken into four tab separated
 fields (comments are shown by a `#' character and extend to
 the end of the line).  For each terminal line the four fields

@@ -27,9 +27,9 @@ hostname.c	4.3  (small mods for shorter names)
 kill.c		4.3
 ld.c		2.10 (not convertible, but fairly close to 4.3's)
 ln.c		4.3
-login.c		4.3  (small mods for shorter names)
+login.c		4.3+ (minor mods for shorter names)
 ls.c		4.3  (minor long/int fixes and shorter names)
-mail.c		4.3  (minor long/int fixes, small mods for shorter names)
+mail.c		4.3+ (minor long/int fixes, include short_name.h.
 make/		4.3  (small mods to Makefile and smaller sizes in defs)
 mkdir.c		4.3
 mt.c		4.3

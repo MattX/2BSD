@@ -1,6 +1,9 @@
-/* $Header: common.h,v 4.3.1.3 85/05/23 17:19:32 lwall Exp $
+/* $Header: common.h,v 4.3.1.4 86/10/31 15:46:09 lwall Exp $
  * 
  * $Log:	common.h,v $
+ * Revision 4.3.1.4  86/10/31  15:46:09  lwall
+ * Expanded maximum number of .newsrc lines for net reorganization.
+ * 
  * Revision 4.3.1.3  85/05/23  17:19:32  lwall
  * Now allows 'r' and 'f' on null articles.
  * 
@@ -210,23 +213,32 @@
 /* Space conservation section */
 
 /* To save D space, cut down size of MAXRCLINE, NGMAX, VARYSIZE. */
-#define MAXRCLINE 500	/* number of lines allowed in .newsrc */
-			/* several parallel arrays affected. */
+#ifdef BSD2_10
+#define MAXRCLINE 500
+#else
+#define MAXRCLINE 1000	/* number of lines allowed in .newsrc */
+#endif			/* several parallel arrays affected. */
 			/* (You can have more lines in the active file, */
 			/* just not in the .newsrc) */
-#define HASHSIZ 547	/* should be prime, and at least MAXRCLINE + 10% */
+#ifdef BSD2_10
+#define HASHSIZ 557
+#define NGMAX 30
+#else
+#define HASHSIZ 1103	/* should be prime, and at least MAXRCLINE + 10% */
 #define NGMAX 100	/* number of newsgroups allowed on command line */
-			/* undefine ONLY symbol to disable "only" feature */
+#endif			/* undefine ONLY symbol to disable "only" feature */
 #define VARYSIZE 256	/* this makes a block 1024 bytes long in DECville */
 			/* (used by virtual array routines) */
 
 /* Undefine any of the following features to save both I and D space */
 /* In general, earlier ones are easier to get along without */
 /* Pdp11's without split I and D may have to undefine them all */
-#define DEBUGGING	/* include debugging code */
+/* #define DEBUGGING	/* include debugging code */
 #define CUSTOMLINES	/* include code for HIDELINE and PAGESTOP */
 #define PUSHBACK	/* macros and keymaps using pushback buffer */
+#ifndef BSD2_10
 #define SPEEDOVERMEM	/* use more memory to run faster */
+#endif
 #define WORDERASE	/* enable ^W to erase a word */
 #define MAILCALL	/* check periodically for mail */
 #define CLEAREOL	/* use clear to end-of-line instead of clear screen */

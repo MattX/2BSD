@@ -14,6 +14,7 @@
 #include "buf.h"
 #include "uio.h"
 
+/* copied, for supervisory networking, to sys_net.c */
 uiomove(cp, n, rw)
 	register caddr_t cp;
 	register u_int n;
@@ -67,6 +68,7 @@ uiomove(cp, n, rw)
 	return (error);
 }
 
+/* copied, for supervisory networking, to sys_net.c */
 /*
  * Give next character to user as result of read.
  */
@@ -95,6 +97,7 @@ ureadc(c)
 	return (0);
 }
 
+/* copied, for supervisory networking, to sys_net.c */
 /*
  * Get next character written in by user from uio.
  */

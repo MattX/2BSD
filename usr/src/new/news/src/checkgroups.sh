@@ -1,77 +1,95 @@
 : check active file for missing or extra newsgroups
-: '@(#)checkgroups	1.17	10/29/86'
+: '@(#)checkgroups	1.24	11/4/87'
 
-if  test  ! -s /usr/lib/news/newsgroups
+if  test  ! -s LIBDIR/newsgroups
 then
-	cp /dev/null /usr/lib/news/newsgroups
+	cp /dev/null LIBDIR/newsgroups
 fi
+echo "" >/tmp/$$out
 # Read first line of stdin.  If of the form "-n group", then only check
 # for the specified group.  Otherwise, assume doing standard groups
-sed -e '/^[a-zA-Z-]*: /d' -e '/^$/d' -e '/^[#:]/d' | (
+sed -e "/^From: /w /tmp/$$out" -e '/^[a-zA-Z-]*: /d' -e '/^$/d' -e '/^[#:]/d' | (
 read line
 case "${line}" in
 -n*)
 	# Doing specific group.  extract group name and preserve
 	# all of current newsgroups file except for that group.
 	# Then append entries for this group.
-	group=`echo "${line}" | sed -e 's/-n /^/' -e 's/$/\\\\./'`
-	egrep -v "${group}" /usr/lib/news/newsgroups > /tmp/$$a
-	cat /tmp/$$a - > /usr/lib/news/newsgroups
+	group=`echo "x${line}" | sed -e 's/x-n /^/' -e 's/$/[. 	]/'`
+	egrep -v "${group}" LIBDIR/newsgroups > /tmp/$$a
+	cat /tmp/$$a - > LIBDIR/newsgroups
 	;;
 *)
-	group="^net\\.|^mod\\.|^comp\\.|^sci\\.|^rec\\.|^news\\.|^soc\\.|^misc\\.|^talk\\."
-	egrep -v "${group}" /usr/lib/news/newsgroups > /tmp/$$a
-	cat /tmp/$$a > /usr/lib/news/newsgroups
-	cat >> /usr/lib/news/newsgroups
+	# Get the distributions from the checkgroups message itself
+	# This allows sites to append their local groups to the distributed
+	# checkgroups message and prevents stray checkgroups from other sites
+	# from showing all the local groups as being bad groups.
+	#
+	echo "${line}" > /tmp/$$msg
+	cat >> /tmp/$$msg
+	cp /dev/null /tmp/$$b
+	sed -e "s;[ 	].*;;" -e "s;\..*;;" -e "s;^!;;" /tmp/$$msg | sort -u |
+		while read dist
+		do
+			group=`cat /tmp/$$b`
+			group="${group}|^$dist[. 	]"
+			echo "${group}" > /tmp/$$b
+		done
+	group=`cat /tmp/$$b`
+	egrep -v "${group}" LIBDIR/newsgroups > /tmp/$$a
+	cat /tmp/$$a > LIBDIR/newsgroups
+	sed -e "/^!/d" /tmp/$$msg >> LIBDIR/newsgroups
+	rm -f /tmp/$$b /tmp/$$msg
 	;;
 esac
 
-egrep "${group}" /usr/lib/news/active | sed 's/ .*//' | sort >/tmp/$$active
-egrep "${group}" /usr/lib/news/newsgroups | sed 's/	.*//' | sort >/tmp/$$newsgroups
+egrep "${group}" LIBDIR/active | sed 's/ .*//' | sort >/tmp/$$active
+egrep "${group}" LIBDIR/newsgroups | sed 's/[ 	].*//' | sort >/tmp/$$newsgrps
 
-comm -13 /tmp/$$active /tmp/$$newsgroups >/tmp/$$missing
-comm -23 /tmp/$$active /tmp/$$newsgroups >/tmp/$$remove
+comm -13 /tmp/$$active /tmp/$$newsgrps >/tmp/$$missing
+comm -23 /tmp/$$active /tmp/$$newsgrps >/tmp/$$remove
 
-egrep "${group}" /usr/lib/news/active | sed -n "/m\$/s/ .*//p" |
-	sort > /tmp/$$active.mod.all
-egrep "${group}" /usr/lib/news/newsgroups |
-sed -n "/Moderated/s/[ 	][ 	]*.*//p" | sort > /tmp/$$newsg.mod
+egrep "${group}" LIBDIR/active | sed -n "/m\$/s/ .*//p" |
+	sort > /tmp/$$amod.all
+egrep "${group}" LIBDIR/newsgroups |
+sed -n "/Moderated/s/[ 	][ 	]*.*//p" | sort > /tmp/$$ng.mod
 
-comm -12 /tmp/$$missing /tmp/$$newsg.mod >/tmp/$$add.mod
-comm -23 /tmp/$$missing /tmp/$$newsg.mod >/tmp/$$add.unmod
+comm -12 /tmp/$$missing /tmp/$$ng.mod >/tmp/$$add.mod
+comm -23 /tmp/$$missing /tmp/$$ng.mod >/tmp/$$add.unmod
 cat /tmp/$$add.mod /tmp/$$add.unmod >>/tmp/$$add
 
-comm -23 /tmp/$$active.mod.all /tmp/$$remove >/tmp/$$active.mod
-comm -13 /tmp/$$newsg.mod /tmp/$$active.mod >/tmp/$$ismod
-comm -23 /tmp/$$newsg.mod /tmp/$$active.mod >/tmp/$$notmod.all
-comm -23 /tmp/$$notmod.all /tmp/$$add >/tmp/$$notmod
+comm -23 /tmp/$$amod.all /tmp/$$remove >/tmp/$$amod
+comm -13 /tmp/$$ng.mod /tmp/$$amod >/tmp/$$ismod
+comm -23 /tmp/$$ng.mod /tmp/$$amod >/tmp/$$nm.all
+comm -23 /tmp/$$nm.all /tmp/$$add >/tmp/$$notmod
 
+echo "" >>/tmp/$$out
 if test -s /tmp/$$remove
 then
 	(
-	echo "The following newsgroups are not valid and should be removed."
-	sed "s/^/	/" /tmp/$$remove
+	echo "# The following newsgroups are non-standard."
+	sed "s/^/#	/" /tmp/$$remove
 	echo ""
-	echo "You can do this by executing the command:"
-	echo \	/usr/lib/news/rmgroup `cat /tmp/$$remove`
+	echo "# You can remove them by executing the commands:"
+	echo \	LIBDIR/rmgroup `cat /tmp/$$remove`
 	echo ""
-	) 2>&1 >/tmp/$$out
+	) 2>&1 >>/tmp/$$out
 fi
 
 if test -s /tmp/$$add
 then
 	(
-	echo "The following newsgroups were missing and should be added."
-	sed "s/^/	/" /tmp/$$add
+	echo "# The following newsgroups were missing and should be added."
+	sed "s/^/#	/" /tmp/$$add
 	echo ""
-	echo "You can do this by executing the command(s):"
+	echo "# You can do this by executing the command(s):"
 	for i in `cat /tmp/$$add.unmod`
 	do
-		echo '/usr/lib/news/inews -C '$i' </dev/null'
+		echo 'LIBDIR/inews -C '$i' </dev/null'
 	done
 	for i in `cat /tmp/$$add.mod`
 	do
-		echo '/usr/lib/news/inews -C '$i' moderated </dev/null'
+		echo 'LIBDIR/inews -C '$i' moderated </dev/null'
 	done
 	echo ""
 	) 2>&1 >>/tmp/$$out
@@ -80,13 +98,13 @@ fi
 if test -s /tmp/$$ismod
 then
 	(
-	echo "The following newsgroups are not moderated and are marked moderated."
-	sed "s/^/	/" /tmp/$$ismod
+	echo "# The following newsgroups are not moderated and are marked moderated."
+	sed "s/^/#	/" /tmp/$$ismod
 	echo ""
-	echo "You can correct this by executing the command(s):"
+	echo "# You can correct this by executing the command(s):"
 	for i in `cat /tmp/$$ismod`
 	do
-		echo '/usr/lib/news/inews -C '$i' </dev/null'
+		echo 'LIBDIR/inews -C '$i' </dev/null'
 	done
 	echo ""
 	) 2>&1 >>/tmp/$$out
@@ -95,13 +113,13 @@ fi
 if test -s /tmp/$$notmod
 then
 	(
-	echo "The following newsgroups are moderated and not marked so."
-	sed "s/^/	/" /tmp/$$notmod
+	echo "# The following newsgroups are moderated and not marked so."
+	sed "s/^/#	/" /tmp/$$notmod
 	echo ""
-	echo "You can correct this by executing the command(s):"
+	echo "# You can correct this by executing the command(s):"
 	for i in `cat /tmp/$$notmod`
 	do
-		echo '/usr/lib/news/inews -C '$i' moderated </dev/null'
+		echo 'LIBDIR/inews -C '$i' moderated </dev/null'
 	done
 	echo ""
 	) 2>&1 >>/tmp/$$out
@@ -114,6 +132,7 @@ then
 	cat /tmp/$$out
 	) | if test $# -gt 0
 		then
+			PATH=/bin:$PATH
 			mail $1
 		else
 			cat

@@ -5,14 +5,15 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)ldexp.s	2.3 (Berkeley) 1/6/87\0>
+	<@(#)ldexp.s	2.3 (Berkeley) 6/12/88\0>
 	.even
 #endif LIBC_SCCS
 
 /*
- * double ldexp (value, exp)
- * double value;
- * int exp;
+ * double
+ * ldexp (value, exp)
+ *	double value;
+ *	int exp;
  *
  * Ldexp returns value*2**exp, if that result is in range.
  * If underflow occurs, it returns zero.  If overflow occurs,

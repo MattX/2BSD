@@ -7,175 +7,118 @@
  */
 
 /*
- * TJU16 tape driver
+ * TM02/3 - TU16/TE16/TU77 standalone tape driver
  */
 
-#include <sys/param.h>
-#include <sys/inode.h>
+#include "../h/param.h"
+#include "../h/inode.h"
+#include "../pdpuba/htreg.h"
 #include "saio.h"
 
-struct	device
-{
-	int	htcs1;
-	int	htwc;
-	caddr_t	htba;
-	int	htfc;
-	int	htcs2;
-	int	htds;
-	int	hter;
-	int	htas;
-	int	htck;
-	int	htdb;
-	int	htmr;
-	int	htdt;
-	int	htsn;
-	int	httc;
-	int	htbae;	/* 11/70 bus extension */
-	int	htcs3;
-};
 
+#define	HTADDR	((struct htdevice *)0172440)
 
-
-#define	HTADDR	((struct device *)0172440)
-
-#define	GO	01
-#define	WCOM	060
-#define	RCOM	070
-#define	NOP	0
-#define	WEOF	026
-#define	SFORW	030
-#define	SREV	032
-#define	ERASE	024
-#define	REW	06
-#define	DCLR	010
-#define CLR	040
-#define P800	01300		/* 800 + pdp11 mode */
-#define	P1600	02300		/* 1600 + pdp11 mode */
-#define	IENABLE	0100
-#define	RDY	0200
-#define	TM	04
-#define	DRY	0200
-#define EOT	02000
-#define CS	02000
-#define COR	0100000
-#define PES	040
-#define WRL	04000
-#define MOL	010000
-#define PIP	020000
-#define ERR	040000
-#define FCE	01000
-#define	TRE	040000
-#define HARD	064023	/* UNS|OPI|NEF|FMT|RMR|ILR|ILF */
-
-#define	SIO	1
-#define	SSFOR	2
-#define	SSREV	3
-#define SRETRY	4
-#define SCOM	5
-#define SOK	6
+#define	TUUNIT(dev)	(minor(dev) & 03)
+#define	H_NOREWIND	004		/* not used in stand alone driver */
+#define	H_1600BPI	010
 
 extern int tapemark;	/* flag to indicate tapemark encountered
 			   (see sys.c as to how it's used) */
 
 htopen(io)
-register struct iob *io;
+	register struct iob *io;
 {
 	register skip;
-int i;
+	int i;
 
-	htstrategy(io, REW);
+	htstrategy(io, HT_REW);
 	skip = io->i_boff;
 	while (skip--) {
 		io->i_cc = -1;
-		while (htstrategy(io, SFORW))
-			;
+		while (htstrategy(io, HT_SFORW))
+			continue;
 		i = 0;
 		while (--i)
-			;
-		htstrategy(io, NOP);
+			continue;
+		htstrategy(io, HT_SENSE);
 	}
 }
 
 htclose(io)
-register struct iob *io;
+	struct iob *io;
 {
-	htstrategy(io, REW);
+	htstrategy(io, HT_REW);
 }
 
 htstrategy(io, func)
-register struct iob *io;
+	register struct iob *io;
 {
-	register unit, den, errcnt;
+	register unit, com, errcnt;
 
 	unit = io->i_unit;
 	errcnt = 0;
 retry:
-	HTADDR->htcs2 = (unit>>03)&07;
-	if(unit > 3)
-		den = P1600;
-	else
-		den = P800;
-	den |= (unit&07);
 	htquiet();
-	if((HTADDR->httc&03777) != den)
-		HTADDR->httc = den;
+
+	HTADDR->httc =
+		((unit&H_1600BPI) ? HTTC_1600BPI : HTTC_800BPI)
+		| HTTC_PDP11 | TUUNIT(unit);
 	HTADDR->htba = io->i_ma;
 	HTADDR->htfc = -io->i_cc;
-	HTADDR->htwc = -(io->i_cc>>1);
-	den = ((segflag) << 8) | GO;
+	HTADDR->htwc = -(io->i_cc >> 1);
+	com = ((segflag) << 8) | HT_GO;
 	if (func == READ)
-		den |= RCOM;
+		com |= HT_RCOM;
 	else if (func == WRITE)
-		den |= WCOM;
-	else if (func == SREV) {
+		com |= HT_WCOM;
+	else if (func == HT_SREV) {
 		HTADDR->htfc = -1;
-		HTADDR->htcs1 = den | SREV;
+		HTADDR->htcs1 = com | HT_SREV;
 		return(0);
 	} else
-		den |= func;
-	HTADDR->htcs1 = den;
-	while ((HTADDR->htcs1&RDY) == 0)
-		;
-	if (HTADDR->htds&TM) {
+		com |= func;
+	HTADDR->htcs1 = com;
+	while ((HTADDR->htcs1 & HT_RDY) == 0)
+		continue;
+	if (HTADDR->htfs & HTFS_TM) {
 		tapemark = 1;
 		htinit();
 		return(0);
 	}
-	if (HTADDR->htcs1&TRE) {
+	if (HTADDR->htcs1 & HT_TRE) {
 		if (errcnt == 0)
-			printf("tape error: cs2=%o, er=%o",
-			    HTADDR->htcs2, HTADDR->hter);
+			printf("\nHT unit %d tape error: cs2=%o, er=%o",
+			    unit, HTADDR->htcs2, HTADDR->hter);
 		htinit();
-		if (errcnt == 10) {
-			printf("\n");
+		if (errcnt++ == 10) {
+			printf("\n(FATAL ERROR)\n");
 			return(-1);
 		}
-		errcnt++;
-		htstrategy(io, SREV);
+		htstrategy(io, HT_SREV);
 		goto retry;
 	}
 	if (errcnt)
-		printf(" recovered by retry\n");
+		printf("\n(RECOVERED by retry)\n");
 	return(io->i_cc+HTADDR->htfc);
 }
 
 htinit()
 {
-	int omt, ocs2;
+	register int omt, ocs2;
 
 	omt = HTADDR->httc & 03777;
 	ocs2 = HTADDR->htcs2 & 07;
 
-	HTADDR->htcs2 = CLR;
+	HTADDR->htcs2 = HTCS2_CLR;
 	HTADDR->htcs2 = ocs2;
 	HTADDR->httc = omt;
-	HTADDR->htcs1 = DCLR|GO;
+	HTADDR->htcs1 = HT_DCLR|HT_GO;
 }
 
 htquiet()
 {
-	while ((HTADDR->htcs1&RDY) == 0)
-		;
-	while (HTADDR->htds&PIP)
-		;
+	while ((HTADDR->htcs1 & HT_RDY) == 0)
+		continue;
+	while (HTADDR->htfs & HTFS_PIP)
+		continue;
 }

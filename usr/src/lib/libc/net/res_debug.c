@@ -1,12 +1,18 @@
 /*
  * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)res_debug.c	5.13 (Berkeley) 3/9/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)res_debug.c	5.22 (Berkeley) 3/7/88";
+#endif /* LIBC_SCCS and not lint */
 
 #if defined(lint) && !defined(DEBUG)
 #define DEBUG
@@ -20,7 +26,7 @@ static char sccsid[] = "@(#)res_debug.c	5.13 (Berkeley) 3/9/86";
 extern char *p_cdname(), *p_rr(), *p_type(), *p_class();
 extern char *inet_ntoa();
 
-char *opcodes[] = {
+char *_res_opcodes[] = {
 	"QUERY",
 	"IQUERY",
 	"CQUERYM",
@@ -30,16 +36,16 @@ char *opcodes[] = {
 	"6",
 	"7",
 	"8",
-	"9",
-	"10",
 	"UPDATEA",
 	"UPDATED",
+	"UPDATEDA",
 	"UPDATEM",
+	"UPDATEMA",
 	"ZONEINIT",
 	"ZONEREF",
 };
 
-char *rcodes[] = {
+char *_res_resultcodes[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -85,9 +91,9 @@ fp_query(msg,file)
 	hp = (HEADER *)msg;
 	cp = msg + sizeof(HEADER);
 	fprintf(file,"HEADER:\n");
-	fprintf(file,"\topcode = %s", opcodes[hp->opcode]);
+	fprintf(file,"\topcode = %s", _res_opcodes[hp->opcode]);
 	fprintf(file,", id = %d", ntohs(hp->id));
-	fprintf(file,", rcode = %s\n", rcodes[hp->rcode]);
+	fprintf(file,", rcode = %s\n", _res_resultcodes[hp->rcode]);
 	fprintf(file,"\theader flags: ");
 	if (hp->qr)
 		fprintf(file," qr");
@@ -115,9 +121,9 @@ fp_query(msg,file)
 			cp = p_cdname(cp, msg, file);
 			if (cp == NULL)
 				return;
-			fprintf(file,", type = %s", p_type(getshort(cp)));
+			fprintf(file,", type = %s", p_type(_getshort(cp)));
 			cp += sizeof(u_short);
-			fprintf(file,", class = %s\n\n", p_class(getshort(cp)));
+			fprintf(file,", class = %s\n\n", p_class(_getshort(cp)));
 			cp += sizeof(u_short);
 		}
 	}
@@ -195,13 +201,13 @@ p_rr(cp, msg, file)
 
 	if ((cp = p_cdname(cp, msg, file)) == NULL)
 		return (NULL);			/* compression error */
-	fprintf(file,"\n\ttype = %s", p_type(type = getshort(cp)));
+	fprintf(file,"\n\ttype = %s", p_type(type = _getshort(cp)));
 	cp += sizeof(u_short);
-	fprintf(file,", class = %s", p_class(class = getshort(cp)));
+	fprintf(file,", class = %s", p_class(class = _getshort(cp)));
 	cp += sizeof(u_short);
-	fprintf(file,", ttl = %u", getlong(cp));
+	fprintf(file,", ttl = %lu", _getlong(cp));
 	cp += sizeof(u_long);
-	fprintf(file,", dlen = %d\n", dlen = getshort(cp));
+	fprintf(file,", dlen = %d\n", dlen = _getshort(cp));
 	cp += sizeof(u_short);
 	cp1 = cp;
 	/*
@@ -225,6 +231,8 @@ p_rr(cp, msg, file)
 				cp += dlen;
 			}
 			break;
+		default:
+			cp += dlen;
 		}
 		break;
 	case T_CNAME:
@@ -258,20 +266,20 @@ p_rr(cp, msg, file)
 		cp = p_cdname(cp, msg, file);
 		fprintf(file,"\n\tmail addr = ");
 		cp = p_cdname(cp, msg, file);
-		fprintf(file,"\n\tserial=%ld", getlong(cp));
+		fprintf(file,"\n\tserial=%ld", _getlong(cp));
 		cp += sizeof(u_long);
-		fprintf(file,", refresh=%ld", getlong(cp));
+		fprintf(file,", refresh=%ld", _getlong(cp));
 		cp += sizeof(u_long);
-		fprintf(file,", retry=%ld", getlong(cp));
+		fprintf(file,", retry=%ld", _getlong(cp));
 		cp += sizeof(u_long);
-		fprintf(file,", expire=%ld", getlong(cp));
+		fprintf(file,", expire=%ld", _getlong(cp));
 		cp += sizeof(u_long);
-		fprintf(file,", min=%ld\n", getlong(cp));
+		fprintf(file,", min=%ld\n", _getlong(cp));
 		cp += sizeof(u_long);
 		break;
 
 	case T_MX:
-		fprintf(file,"\tpreference = %ld,",getshort(cp));
+		fprintf(file,"\tpreference = %d,",_getshort(cp));
 		cp += sizeof(u_short);
 		fprintf(file," name = ");
 		cp = p_cdname(cp, msg, file);
@@ -292,7 +300,7 @@ p_rr(cp, msg, file)
 	case T_UID:
 	case T_GID:
 		if (dlen == 4) {
-			fprintf(file,"\t%ld\n", getlong(cp));
+			fprintf(file,"\t%ld\n", _getlong(cp));
 			cp += sizeof(int);
 		}
 		break;
@@ -316,6 +324,24 @@ p_rr(cp, msg, file)
 		putc('\n',file);
 		break;
 
+#ifdef ALLOW_T_UNSPEC
+	case T_UNSPEC:
+		{
+			int NumBytes = 8;
+			char *DataPtr;
+			int i;
+
+			if (dlen < NumBytes) NumBytes = dlen;
+			fprintf(file, "\tFirst %d bytes of hex data:",
+				NumBytes);
+			for (i = 0, DataPtr = cp; i < NumBytes; i++, DataPtr++)
+				fprintf(file, " %x", *DataPtr);
+			fputs("\n", file);
+			cp += dlen;
+		}
+		break;
+#endif /* ALLOW_T_UNSPEC */
+
 	default:
 		fprintf(file,"\t???\n");
 		cp += dlen;
@@ -328,7 +354,6 @@ p_rr(cp, msg, file)
 }
 
 static	char nbuf[20];
-extern	char *sprintf();
 
 /*
  * Return a string for the type
@@ -384,8 +409,13 @@ p_type(type)
 		return("UID");
 	case T_GID:
 		return("GID");
+#ifdef ALLOW_T_UNSPEC
+	case T_UNSPEC:
+		return("UNSPEC");
+#endif /* ALLOW_T_UNSPEC */
 	default:
-		return (sprintf(nbuf, "%d", type));
+		(void)sprintf(nbuf, "%d", type);
+		return(nbuf);
 	}
 }
 
@@ -403,6 +433,7 @@ p_class(class)
 	case C_ANY:		/* matches any class */
 		return("ANY");
 	default:
-		return (sprintf(nbuf, "%d", class));
+		(void)sprintf(nbuf, "%d", class);
+		return(nbuf);
 	}
 }

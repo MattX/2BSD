@@ -39,6 +39,7 @@ static char SmailSccsId[] =	"@(#)sendmail.h	5.8		1/10/86";
 # ifdef VMUNIX
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # endif VMUNIX
 # endif DAEMON
 

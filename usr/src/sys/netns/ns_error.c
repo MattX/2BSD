@@ -1,13 +1,19 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1988 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns_error.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns_error.c	7.5 (Berkeley) 2/4/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
+#ifdef	NS
 #include "systm.h"
 #include "mbuf.h"
 #include "protosw.h"
@@ -34,6 +40,26 @@
 int	ns_errprintfs = 0;
 #endif
 
+ns_err_x(c)
+{
+	register u_short *w, *lim, *base = ns_errstat.ns_es_codes;
+	u_short x = c;
+
+	/*
+	 * zero is a legit error code, handle specially
+	 */
+	if (x == 0)
+		return (0);
+	lim = base + NS_ERR_MAX - 1;
+	for (w = base + 1; w < lim; w++) {
+		if (*w == 0)
+			*w = x;
+		if (*w == x)
+			break;
+	}
+	return (w - base);
+}
+
 /*
  * Generate an error packet of type error
  * in response to bad packet.
@@ -49,7 +75,6 @@ ns_error(om, type, param)
 	register struct idp *oip = mtod(om, struct idp *);
 	extern int idpcksum;
 
-#ifdef	HACK	/* bcopy on mbuf data below */
 	/*
 	 * If this packet was sent to the echo port,
 	 * and nobody was there, just echo it.
@@ -114,7 +139,6 @@ ns_error(om, type, param)
 		nip->idp_sum = 0xffff;
 	(void) ns_output(dtom(nip), (struct route *)0, 0);
 
-#endif	HACK
 free:
 	m_freem(dtom(oip));
 }
@@ -144,7 +168,6 @@ ns_err_input(m)
 	register int i;
 	int type, code, param;
 
-#ifdef	HACK	/* mbufs okay, see _ctlinput(), save map in nsintr */
 	/*
 	 * Locate ns_err structure in mbuf, and check
 	 * that not corrupted and of at least minimum length.
@@ -233,7 +256,6 @@ ns_err_input(m)
 		goto free;
 
 	}
-#endif	HACK
 free:
 	m_freem(m);
 }
@@ -242,7 +264,7 @@ free:
 u_long
 nstime()
 {
-	int s = spl6();
+	int s = splclock();
 	u_long t;
 
 	t = (time.tv_sec % (24*60*60)) * 1000 + time.tv_usec / 1000;
@@ -270,13 +292,12 @@ register struct idp *idp;
 	idp->idp_dna = idp->idp_sna;
 	idp->idp_sna = temp;
 
-#ifdef	HACK
 	if (idp->idp_sum != 0xffff) {
 		idp->idp_sum = 0;
 		idp->idp_sum = ns_cksum(m,
 		    (int)(((ntohs(idp->idp_len) - 1)|1)+1));
 	}
 	(void) ns_output(m, (struct route *)0, NS_FORWARDING);
-#endif	HACK
 	return(0);
 }
+#endif

@@ -23,7 +23,7 @@ xpprobe(addr)
 	struct hpdevice *addr;
 {
 	stuff(HP_IE | HP_RDY, &(addr->hpcs1.w));
-	DELAY(10);
+	DELAY(10L);
 	stuff(0, &(addr->hpcs1.w));
 	return(ACP_IFINTR);
 }

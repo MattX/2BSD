@@ -1,16 +1,22 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983,1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)route.c	5.6 (Berkeley) 86/04/23";
+static char sccsid[] = "@(#)route.c	5.13 (Berkeley) 88/02/07";
 #endif
 
-#ifdef BSD2_10
-#define	hashsizeaddr	hsizeaddr
-#endif
+#include <stdio.h>
+#include <strings.h>
+
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/mbuf.h>
@@ -23,9 +29,15 @@ static char sccsid[] = "@(#)route.c	5.6 (Berkeley) 86/04/23";
 
 #include <netdb.h>
 
+#ifdef BSD2_10
+#define klseek slseek
+#define hashsizeaddr hsizeaddr
+#endif
+
 extern	int kmem;
 extern	int nflag;
-extern	char *routename(), *netname(), *ns_print();
+extern	char *routename(), *netname(), *ns_print(), *plural();
+extern	char *malloc();
 
 /*
  * Definitions for showing gateway flags.
@@ -38,6 +50,7 @@ struct bits {
 	{ RTF_GATEWAY,	'G' },
 	{ RTF_HOST,	'H' },
 	{ RTF_DYNAMIC,	'D' },
+	{ RTF_MODIFIED,	'M' },
 	{ 0 }
 };
 
@@ -47,17 +60,12 @@ struct bits {
 routepr(hostaddr, netaddr, hashsizeaddr)
 	off_t hostaddr, netaddr, hashsizeaddr;
 {
+	struct mbuf mb;
 	register struct rtentry *rt;
 	register struct mbuf *m;
 	register struct bits *p;
 	char name[16], *flags;
-#ifdef BSD2_10
-	struct rtentry rte;
-	struct rtentry **routehash;
-#else
-	struct mbuf mb;
 	struct mbuf **routehash;
-#endif
 	struct ifnet ifnet;
 	int hashsize;
 	int i, doinghost = 1;
@@ -74,65 +82,47 @@ routepr(hostaddr, netaddr, hashsizeaddr)
 		printf("rthashsize: symbol not in namelist\n");
 		return;
 	}
-	klseek(kmem, (off_t)hashsizeaddr, 0);
-	read(kmem, &hashsize, sizeof (hashsize));
-#ifdef BSD2_10
-	routehash = (struct rtentry **)malloc( hashsize*sizeof (struct rtentry *) );
-	klseek(kmem, (off_t)hostaddr, 0);
-	read(kmem, routehash, hashsize*sizeof (struct rtentry *));
-#else
+	klseek(kmem, hashsizeaddr, 0);
+	read(kmem, (char *)&hashsize, sizeof (hashsize));
 	routehash = (struct mbuf **)malloc( hashsize*sizeof (struct mbuf *) );
-	klseek(kmem, (off_t)hostaddr, 0);
-	read(kmem, routehash, hashsize*sizeof (struct mbuf *));
-#endif
+	klseek(kmem, hostaddr, 0);
+	read(kmem, (char *)routehash, hashsize*sizeof (struct mbuf *));
 	printf("Routing tables\n");
-	printf("%-20.20s %-20.20s %-8.8s %-6.6s %-10.10s %s\n",
+	printf("%-16.16s %-18.18s %-6.6s  %6.6s%8.8s  %s\n",
 		"Destination", "Gateway",
-		"Flags", "Refcnt", "Use", "Interface");
+		"Flags", "Refs", "Use", "Interface");
 again:
 	for (i = 0; i < hashsize; i++) {
 		if (routehash[i] == 0)
 			continue;
-#ifdef BSD2_10
-		rt = routehash[i];
-		while (rt) {
-			struct sockaddr_in *sin;
-			struct sockaddr_ns *sns;
-
-			klseek(kmem, (off_t)rt, 0);
-			read(kmem, &rte, sizeof (rte));
-			rt = &rte;
-#else
 		m = routehash[i];
 		while (m) {
 			struct sockaddr_in *sin;
-			struct sockaddr_ns *sns;
 
 			klseek(kmem, (off_t)m, 0);
-			read(kmem, &mb, sizeof (mb));
+			read(kmem, (char *)&mb, sizeof (mb));
 			rt = mtod(&mb, struct rtentry *);
 			if ((unsigned)rt < (unsigned)&mb ||
 			    (unsigned)rt >= (unsigned)(&mb + 1)) {
 				printf("???\n");
 				return;
 			}
-#endif
 
 			switch(rt->rt_dst.sa_family) {
 			case AF_INET:
 				sin = (struct sockaddr_in *)&rt->rt_dst;
-				printf("%-20.20s ",
+				printf("%-16.16s ",
 				    (sin->sin_addr.s_addr == 0) ? "default" :
 				    (rt->rt_flags & RTF_HOST) ?
 				    routename(sin->sin_addr) :
 					netname(sin->sin_addr, 0L));
 				sin = (struct sockaddr_in *)&rt->rt_gateway;
-				printf("%-20.20s ", routename(sin->sin_addr));
+				printf("%-18.18s ", routename(sin->sin_addr));
 				break;
 			case AF_NS:
-				printf("%-20s ",
+				printf("%-16s ",
 				    ns_print((struct sockaddr_ns *)&rt->rt_dst));
-				printf("%-20s ",
+				printf("%-18s ",
 				    ns_print((struct sockaddr_ns *)&rt->rt_gateway));
 				break;
 			default:
@@ -151,40 +141,28 @@ again:
 				if (p->b_mask & rt->rt_flags)
 					*flags++ = p->b_val;
 			*flags = '\0';
-			printf("%-8.8s %-6d %-10ld ", name,
+			printf("%-6.6s %6d %8ld ", name,
 				rt->rt_refcnt, rt->rt_use);
 			if (rt->rt_ifp == 0) {
 				putchar('\n');
-#ifdef BSD2_10
-				rt = rt->rt_next;
-#else
 				m = mb.m_next;
-#endif
 				continue;
 			}
 			klseek(kmem, (off_t)rt->rt_ifp, 0);
-			read(kmem, &ifnet, sizeof (ifnet));
+			read(kmem, (char *)&ifnet, sizeof (ifnet));
 			klseek(kmem, (off_t)ifnet.if_name, 0);
 			read(kmem, name, 16);
-			printf("%s%d\n", name, ifnet.if_unit);
-#ifdef BSD2_10
-			rt = rt->rt_next;
-#else
+			printf(" %.15s%d\n", name, ifnet.if_unit);
 			m = mb.m_next;
-#endif
 		}
 	}
 	if (doinghost) {
-		klseek(kmem, (off_t)netaddr, 0);
-#ifdef BSD2_10
-		read(kmem, routehash, hashsize*sizeof (struct rtentry *));
-#else
-		read(kmem, routehash, hashsize*sizeof (struct mbuf *));
-#endif
+		klseek(kmem, netaddr, 0);
+		read(kmem, (char *)routehash, hashsize*sizeof (struct mbuf *));
 		doinghost = 0;
 		goto again;
 	}
-	free(routehash);
+	free((char *)routehash);
 }
 
 char *
@@ -192,7 +170,7 @@ routename(in)
 	struct in_addr in;
 {
 	register char *cp;
-	static char line[50];
+	static char line[MAXHOSTNAMELEN + 1];
 	struct hostent *hp;
 	static char domain[MAXHOSTNAMELEN + 1];
 	static int first = 1;
@@ -208,7 +186,7 @@ routename(in)
 	}
 	cp = 0;
 	if (!nflag) {
-		hp = gethostbyaddr(&in, sizeof (struct in_addr),
+		hp = gethostbyaddr((char *)&in, sizeof (struct in_addr),
 			AF_INET);
 		if (hp) {
 			if ((cp = index(hp->h_name, '.')) &&
@@ -218,9 +196,9 @@ routename(in)
 		}
 	}
 	if (cp)
-		strcpy(line, cp);
+		strncpy(line, cp, sizeof(line) - 1);
 	else {
-#define C(x)	(((int)(x)) & 0xff)
+#define C(x)	(u_char)((x) & 0xff)
 		in.s_addr = ntohl(in.s_addr);
 		sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
 			C(in.s_addr >> 16), C(in.s_addr >> 8), C(in.s_addr));
@@ -238,18 +216,19 @@ netname(in, mask)
 	u_long mask;
 {
 	char *cp = 0;
-	static char line[50];
+	static char line[MAXHOSTNAMELEN + 1];
 	struct netent *np = 0;
 	u_long net;
+	long i;
 	int subnetshift;
 
-	in.s_addr = ntohl(in.s_addr);
-	if (!nflag && in.s_addr) {
+	i = ntohl(in.s_addr);
+	if (!nflag && i) {
 		if (mask == 0) {
-			if (IN_CLASSA(in.s_addr)) {
+			if (IN_CLASSA(i)) {
 				mask = IN_CLASSA_NET;
 				subnetshift = 8;
-			} else if (IN_CLASSB(in.s_addr)) {
+			} else if (IN_CLASSB(i)) {
 				mask = IN_CLASSB_NET;
 				subnetshift = 8;
 			} else {
@@ -262,28 +241,27 @@ netname(in, mask)
 			 * Guess at the subnet mask, assuming reasonable
 			 * width subnet fields.
 			 */
-			while (in.s_addr &~ mask) 
-				mask >>=  subnetshift;
+			while (i &~ mask)
+				mask = (long)mask >> subnetshift;
 		}
-		net = in.s_addr & mask;
+		net = i & mask;
 		while ((mask & 1) == 0)
 			mask >>= 1, net >>= 1, net  &= 0x7fffffff;
 		np = getnetbyaddr(net, AF_INET);
 		if (np)
 			cp = np->n_name;
-	}
+	}	
 	if (cp)
-		strcpy(line, cp);
-	else if ((in.s_addr & 0xffffff) == 0)
-		sprintf(line, "%u", C(in.s_addr >> 24));
-	else if ((in.s_addr & 0xffffL) == 0)
-		sprintf(line, "%u.%u", C(in.s_addr >> 24) , C(in.s_addr >> 16));
-	else if ((in.s_addr & 0xff) == 0)
-		sprintf(line, "%u.%u.%u", C(in.s_addr >> 24),
-			C(in.s_addr >> 16), C(in.s_addr >> 8));
+		strncpy(line, cp, sizeof(line) - 1);
+	else if ((i & 0xffffffL) == 0)
+		sprintf(line, "%u", C(i >> 24));
+	else if ((i & 0xffffL) == 0)
+		sprintf(line, "%u.%u", C(i >> 24) , C(i >> 16));
+	else if ((i & 0xffL) == 0)
+		sprintf(line, "%u.%u.%u", C(i >> 24), C(i >> 16), C(i >> 8));
 	else
-		sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
-			C(in.s_addr >> 16), C(in.s_addr >> 8), C(in.s_addr));
+		sprintf(line, "%u.%u.%u.%u", C(i >> 24),
+			C(i >> 16), C(i >> 8), C(i));
 	return (line);
 }
 
@@ -294,24 +272,23 @@ rt_stats(off)
 	off_t off;
 {
 	struct rtstat rtstat;
-	char *plural();
 
 	if (off == 0) {
 		printf("rtstat: symbol not in namelist\n");
 		return;
 	}
-	klseek(kmem, (off_t)off, 0);
+	klseek(kmem, off, 0);
 	read(kmem, (char *)&rtstat, sizeof (rtstat));
 	printf("routing:\n");
-	printf("\t%d bad routing redirect%s\n",
+	printf("\t%u bad routing redirect%s\n",
 		rtstat.rts_badredirect, plural((long)rtstat.rts_badredirect));
-	printf("\t%d dynamically created route%s\n",
+	printf("\t%u dynamically created route%s\n",
 		rtstat.rts_dynamic, plural((long)rtstat.rts_dynamic));
-	printf("\t%d new gateway%s due to redirects\n",
+	printf("\t%u new gateway%s due to redirects\n",
 		rtstat.rts_newgateway, plural((long)rtstat.rts_newgateway));
-	printf("\t%d destination%s found unreachable\n",
+	printf("\t%u destination%s found unreachable\n",
 		rtstat.rts_unreach, plural((long)rtstat.rts_unreach));
-	printf("\t%d use%s of a wildcard route\n",
+	printf("\t%u use%s of a wildcard route\n",
 		rtstat.rts_wildcard, plural((long)rtstat.rts_wildcard));
 }
 short ns_nullh[] = {0,0,0};
@@ -326,7 +303,7 @@ struct sockaddr_ns *sns;
 	u_short port;
 	static char mybuf[50], cport[10], chost[25];
 	char *host = "";
-	register char *p; register u_char *q; u_char *q_lim;
+	register char *p; register u_char *q;
 
 	work = sns->sns_addr;
 	port = ntohs(work.x_port);

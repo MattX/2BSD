@@ -18,10 +18,10 @@ DESTDIR=
 #MACHDEP=${MACHINE} vaxif vaxmba vaxuba
 #endif
 MACHINE=pdp
-MACHDEP=${MACHINE} vaxif
+MACHDEP=${MACHINE} pdpmba pdpuba stand vaxif vaxuba
 NETDIRS=net netimp netinet netns netpup
 SYSDIRS=${NETDIRS} ${MACHDEP}
-SYS=/psys
+SYS=/sys
 
 all:
 	@echo "\"make symlinks\", \"make copies\", or \"make update\" only"

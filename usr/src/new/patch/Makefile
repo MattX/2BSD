@@ -1,23 +1,43 @@
-#	@(#)Makefile	5.4 (Berkeley) 5/31/86
-#
-# $Header: Makefile,v 1.3 85/03/26 15:03:26 lwall Exp $
+DESTDIR=
 
-BINDIR = $(DESTDIR)/usr/new
-CFLAGS = -O
-SEPFLAG= -i
+DEFS=	
+CFLAGS=	-O ${DEFS}
+SEPFLAG=-i
 
-patch: patch.c
-	cc patch.c $(CFLAGS) $(SEPFLAG) -o patch
+HDRS=	EXTERN.h INTERN.h common.h config.h inp.h patchlevel.h pch.h \
+	util.h version.h
+SRCS=	patch.c pch.c inp.c util.c version.c
+OBJS=	patch.o pch.o inp.o util.o version.o
 
-install: patch
-	install -s patch $(BINDIR)
-	install -c -m 444 patch.n ${DESTDIR}/usr/man/mann/patch.n
+.SUFFIXES: .1 .0
+
+.1.0:
+	/usr/man/manroff $*.1 > $*.0
+
+patch: ${OBJS}
+	cc ${SEPFLAG} ${OBJS} -o patch
+
+install: patch patch.0
+	install patch ${DESTDIR}/usr/new
+	install -m 444 patch.0 ${DESTDIR}/usr/new/man/cat1
 
 clean:
-	rm -f patch patch.kit a.out core errs
+	rm -f *.o *.orig core tags patch *.0
 
-shar:
-	shar patch.man patch.c Makefile >patch.kit
+# The following lint has practically everything turned on.  Unfortunately,
+# you have to wade through a lot of mumbo jumbo that can't be suppressed.
+# If the source file has a /*NOSTRICT*/ somewhere, ignore the lint message
+# for that spot.
 
 lint:
-	lint -phbvxac patch.c
+	lint -phbvxac ${DEFS} ${SRCS}
+
+tags:
+	ctags ${HDRS} ${SRCS}
+
+depend:
+	mkdep ${DEFS} ${SRCS}
+
+# DO NOT DELETE THIS LINE == mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+

@@ -35,7 +35,6 @@ int	cnstart();
 int	ttrstrt();
 char	partab[];
 
-#ifdef notdef
 cnattach(addr, unit)
 	struct dldevice *addr;
 {
@@ -45,7 +44,6 @@ cnattach(addr, unit)
 	}
 	return (0);
 }
-#endif
 
 /*ARGSUSED*/
 cnopen(dev, flag)
@@ -149,7 +147,7 @@ cnstart(tp)
 	register struct dldevice *addr;
 	register int c, s;
 
-	s = spl5();
+	s = spltty();
 	if (tp->t_state & (TS_TIMEOUT|TS_BUSY|TS_TTSTOP))
 		goto out;
 	if (tp->t_outq.c_cc <= TTLOWAT(tp)) {
@@ -157,19 +155,17 @@ cnstart(tp)
 			tp->t_state &= ~TS_ASLEEP;
 			wakeup((caddr_t)&tp->t_outq);
 		}
-#ifdef UCB_NET
 		if (tp->t_wsel) {
 			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
 			tp->t_wsel = 0;
 			tp->t_state &= ~TS_WCOLL;
 		}
-#endif
 	}
 	if (tp->t_outq.c_cc == 0)
 		goto out;
 	addr = (struct dldevice *)tp->t_addr;
 	if ((addr->dlxcsr & DLXCSR_TRDY) == 0)
-		return;
+		goto out;
 	c = getc(&tp->t_outq);
 	if (tp->t_flags & (RAW|LITOUT))
 		addr->dlxbuf = c&0xff;
@@ -185,6 +181,7 @@ out:
 	splx(s);
 }
 
+/* copied, for supervisory networking, to sys_sup.c */
 cnputc(c)
 	register int c;
 {

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_ilreg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_ilreg.h	7.1 (Berkeley) 6/5/86
  */
 
 /*
@@ -13,7 +13,6 @@ struct ildevice {
 	short	il_csr;		/* Command and Status Register */
 	short	il_bar;		/* Buffer Address Register */
 	short	il_bcr;		/* Byte Count Register */
-	short	il_ber;		/* Bus Extension Register */
 };
 
 /*
@@ -121,4 +120,3 @@ char *ildiag[NILDIAGS] = {
 #define	ILFSTAT_C	0x1		/* CRC error */
 #define	ILFSTAT_A	0x2		/* alignment error */
 #define	ILFSTAT_L	0x4		/* 1+ frames lost just before */
- 

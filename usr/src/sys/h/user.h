@@ -8,26 +8,23 @@
 
 #ifdef KERNEL
 #include "../machine/fperr.h"
-
 #include "dir.h"
 #include "exec.h"
 #include "time.h"
 #include "resource.h"
-#else !KERNEL
+#else
 #include <machine/fperr.h>
-
 #include <sys/dir.h>
 #include <sys/exec.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif KERNEL
+#endif
 
 /*
- * The user structure.  One allocated per process.  Contains all per process
- * data that doesn't need to be referenced while the process is swapped.  The
- * user block is USIZE*64 bytes long; resides at virtual kernel loc 0140000;
- * contains the system stack per user; is cross referenced with the proc
- * structure for the same process.
+ * data that doesn't need to be referenced while the process is swapped.
+ * The user block is USIZE*64 bytes long; resides at virtual kernel loc
+ * 0140000; contains the system stack (and possibly network stack) per
+ * user; is cross referenced with the proc structure for the same process.
  */
 #define	MAXCOMLEN	MAXNAMLEN	/* <= MAXNAMLEN, >= sizeof(ac_comm) */
 
@@ -134,6 +131,7 @@ struct user {
 
 /* 1.6 - resource controls */
 	struct	rlimit u_rlimit[RLIM_NLIMITS];
+	struct	quota *u_quota;		/* user's quota structure */
 
 /* I/O */
 	caddr_t	u_base;			/* base address for I/O */

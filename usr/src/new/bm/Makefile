@@ -9,18 +9,23 @@ SRCS=	Execute.c GetPatFile.c Global.c MakeDesc.c MakeSkip.c MatchFound.c \
 OBJS=	Execute.o GetPatFile.o Global.o MakeDesc.o MakeSkip.o MatchFound.o \
 	MkDescVec.o MoveResidue.o PrintLine.o PutUsage.o Search.o bm.o
 
+.SUFFIXES: .1 .0
+
+.1.0:
+	/usr/man/manroff $*.1 > $*.0
+
 bm: ${OBJS}
 	cc -o $@ ${SEPFLAG} ${OBJS}
 
-install: bm bm.1
+install: bm bm.0
 	install -s bm ${DESTDIR}/usr/new/bm
-	install -c bm.1 ${DESTDIR}/usr/man/mann/bm.n
+	install -c bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
 
 tags: ${HDRS} ${SRCS}
 	ctags $<
 
 clean:
-	rm -f *.o bm tags core
+	rm -f *.o bm tags core *.0
 
 bm.o:		bm.c bm.h Extern.h
 PutUsage.o:	PutUsage.c bm.h 

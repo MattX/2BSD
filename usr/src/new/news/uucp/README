@@ -18,9 +18,6 @@ these mods made - you can even exchange news with older systems.
 (Batching, with or without the =batch mod, requires at least a 2.10
 news system on the other end.)
 
-Note: All of these changes except the =batch have been installed in
-	version of uucp distributed with 4.3BSD
-
 minus.z.5 
 minux.z.v7 
 	This mod implements the -z and -n options to uux.  These

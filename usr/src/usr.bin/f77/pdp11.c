@@ -285,7 +285,7 @@ char *funcname;
 struct constblock *mkaddcon();
 
 if(procclass == CLMAIN) {
-	funcname = "MAIN__";
+	funcname = "MAIN_";
 	prentry(funcname);
 }
 
@@ -433,7 +433,7 @@ struct hashentry *hp;
 if(s = entries->entryname->extname)
 	s = varstr(XL, s);
 else if(procclass == CLMAIN)
-	s = "MAIN__";
+	s = "MAIN_";
 else
 	return;
 

@@ -17,7 +17,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)funcs2.c	1.20	3/20/87";
+static char	*SccsId = "@(#)funcs2.c	1.24	11/30/87";
 #endif /* SCCSID */
 
 #include "params.h"
@@ -41,7 +41,8 @@ getuser()
 	if (flag) {
 		if ((p = getpwuid(uid)) == NULL)
 			xerror("Cannot get user's name");
-		if ( username == NULL || username[0] == 0)
+		if ( username == NULL || username[0] == 0 ||
+			STRCMP(username, "Unknown") == 0)
 			username = AllocCpy(p->pw_name);
 		userhome = AllocCpy(p->pw_dir);
 		flag = FALSE;
@@ -49,6 +50,8 @@ getuser()
 	(void) strcpy(header.path, username);
 }
 
+/* no sys file on clients via nntp */
+#ifndef SERVER
 static	FILE	*sysfile;
 
 char *fldget();
@@ -126,7 +129,7 @@ again:
 	/*
 	 * A sys file line reading "ME" means the name of the local system.
 	 */
-	if (strcmp(sp->s_name, "ME") == 0)
+	if (STRCMP(sp->s_name, "ME") == 0)
 		(void) strcpy(sp->s_name, LOCALPATHSYSNAME);
 	e = index(sp->s_name, '/');
 	if (e) {
@@ -168,7 +171,7 @@ char *system;
 {
 	s_openr();
 	while (s_read(sp))
-		if (strncmp(system, sp->s_name, SNLN) == 0) {
+		if (STRNCMP(system, sp->s_name, SNLN) == 0) {
 			s_close();
 			return TRUE;
 		}
@@ -183,6 +186,7 @@ s_close()
 {
 	(void) fclose(sysfile);
 }
+#endif /* SERVER */
 
 extern struct timeb Now;
 
@@ -194,13 +198,21 @@ char *datestr;
 	static time_t lasttime;
 	static char lastdatestr[BUFLEN] = "";
 
-	if ( lastdatestr[0] && strcmp(datestr, lastdatestr) == 0)
+	if ( lastdatestr[0] && STRCMP(datestr, lastdatestr) == 0)
 		return lasttime;
 	lasttime = getdate(datestr, &Now);
-	if (lasttime < 0 &&
-	  sscanf(datestr, "%s %s %s %s %s", junk, month, day, tod, year) == 5) {
-		(void) sprintf(bfr, "%s %s, %s %s", month, day, year, tod);
-		lasttime = getdate(bfr, &Now);
+	if (lasttime < 0) {
+		logerr("Unparsable date \"%s\"", datestr);
+		if (sscanf(datestr, "%s %s %s %s %s", junk, month, day, tod,
+			year) == 5) {
+			(void) sprintf(bfr, "%s %s, %s %s", month, day, year,
+				tod);
+			lasttime = getdate(bfr, &Now);
+		}
+		if (lasttime < 0) {
+			datestr = "now"; /* better than nothing */
+			lasttime = Now.time;
+		}
 	}
 	strncpy(lastdatestr, datestr, BUFLEN);
 	return lasttime;
@@ -318,7 +330,7 @@ struct hbuf *hptr;
 	static char tbuf[PATHLEN];
 
 	ptr = hptr->path;
-	if (prefix(ptr, PATHSYSNAME) &&
+	if (PREFIX(ptr, PATHSYSNAME) &&
 		index(NETCHRS, ptr[strlen(PATHSYSNAME)]))
 		ptr = index(ptr, '!') + 1;
 #ifdef INTERNET
@@ -326,7 +338,10 @@ struct hbuf *hptr;
 		ptr = hptr->from;
 	if (hptr->replyto[0])
 		ptr = hptr->replyto;
-#endif
+#else /* !INTERNET */
+	if (hptr->replyto[0] && !index(hptr->replyto, '@'))
+		ptr = hptr->replyto;
+#endif	/* !INTERNET */
 	(void) strcpy(tbuf, ptr);
 	ptr = index(tbuf, '(');
 	if (ptr) {
@@ -334,6 +349,7 @@ struct hbuf *hptr;
 			ptr--;
 		*ptr = 0;
 	}
+#ifndef SERVER
 #ifdef	SunIII
 	if (ptr = rindex(tbuf, '.')) {
 		if (prefix(++ptr, "OZ")) {
@@ -341,8 +357,8 @@ struct hbuf *hptr;
 			strcpy(ptr, "oz");
 			return tbuf;
 		}
-		if (prefix(ptr, "UUCP") || prefix(ptr, "ARPA") ||
-		    prefix(ptr, "DEC") || prefix(ptr, "CSNET")) {
+		if (PREFIX(ptr, "UUCP") || PREFIX(ptr, "ARPA") ||
+		    PREFIX(ptr, "DEC") || PREFIX(ptr, "CSNET")) {
 			strcat(tbuf, "@munnari.oz");	/* via sun to munnari */
 			return tbuf;
 		}
@@ -352,7 +368,7 @@ struct hbuf *hptr;
 	 * through munnari, and if so delete the fake uucp path after that.
 	 */
 	for (ptr = tbuf ;; ptr++) {
-		if (prefix(ptr, "munnari!")) {
+		if (PREFIX(ptr, "munnari!")) {
 			strcpy(tbuf, ptr+8);
 			break;
 		}
@@ -390,9 +406,9 @@ struct hbuf *hptr;
 		if (fgets(mbuf, sizeof mbuf, mfd) == NULL)
 			xerror("Can't find internet in %s/mailpaths",
 				LIB);
-	} while (!prefix(mbuf, "internet"));
+	} while (!PREFIX(mbuf, "internet"));
 	if (sscanf(mbuf, "%*s %s", modadd) != 1)
-		xerror("backbone address corrupted");
+		xerror("internet address corrupted");
 	(void) fclose(mfd);
 	(void)strcpy(mbuf, tbuf);
 	/* If we are lucky, there is no ! or @ in the forward address */
@@ -415,15 +431,10 @@ struct hbuf *hptr;
 	}
 #endif /* INTERNET */
 #endif /* !SunIII */
+#endif /* !SERVER */
 	return tbuf;
 }
 
-#ifdef DBM
-typedef struct {
-	char *dptr;
-	int dsize;
-} datum;
-#endif /* DBM */
 
 /*
  * Given an article ID, find the line in the history file that mentions it.
@@ -438,6 +449,11 @@ char *artid;
 	char oidbuf[BUFSIZ];
 	FILE *hfp;
 	register char *p;
+#ifdef SERVER
+	char workspace[256];
+	struct tm *tm;
+	long clock;
+#else /* !SERVER */
 #ifdef DBM
 	datum lhs, rhs;
 	datum fetch();
@@ -445,7 +461,7 @@ char *artid;
 #else /* !DBM */
 	char *histfile();
 #endif /* !DBM */
-
+#endif /* !SERVER */
 	/* Try to understand old artid's as well.  Assume .UUCP domain. */
 	if (artid[0] != '<') {
 		p = index(artid, '.');
@@ -456,6 +472,84 @@ char *artid;
 			*--p = '.';
 	} else
 		(void) strcpy(oidbuf, artid);
+#ifdef SERVER
+	(void) sprintf(lbuf,"STAT %s",oidbuf);
+	put_server(lbuf);
+	(void) get_server(workspace,sizeof(workspace));
+	if (*workspace != CHAR_OK)
+		return NULL;
+	(void) sprintf(lbuf,"XHDR xref %s",oidbuf);
+	put_server(lbuf);
+	(void) get_server(workspace,sizeof(workspace));	/* get response */
+	if (*workspace != CHAR_OK)
+		return NULL;		/* old style nntp */
+	(void) get_server(workspace,sizeof(workspace)); /* get header line */
+	sync_server();	/* get rid of the rest of it */
+	p = index(workspace,' ');
+	p++;
+
+	if (*p == '(') {	/* there is no xref line */
+		long s,sm;
+		FILE * af;
+		char n[100], buf[100], *name;
+		(void) sprintf(lbuf,"XHDR newsgroups %s",oidbuf);
+		put_server(lbuf);
+		(void) get_server(workspace,sizeof(workspace));
+		if (*workspace != CHAR_OK)
+			return NULL;
+		(void) get_server(workspace,sizeof(workspace));
+		sync_server();
+		if ((name = index(workspace,' ')) == NULL)
+			return NULL;
+		name++;
+		/* now we fetch the line from the active file */
+		af = xfopen(ACTIVE, "r");
+		while (fgets(buf, sizeof(buf), af) != NULL) {
+			if (sscanf(buf, "%s %ld %ld", n, &s, &sm) == 3 &&
+			     STRCMP(n, name) == 0) {
+				break;
+			}
+		}
+		(void) fclose(af);
+		/* now we ask for a message ids in that newsgroup */
+		if (set_group(name) == NULL)
+			return NULL;
+		(void) sprintf(lbuf, "XHDR message-id %d-%d", sm, s);
+		put_server(lbuf);
+		(void) get_server(workspace,sizeof(workspace));
+		if (*workspace != CHAR_OK)
+			return NULL;
+		while (	get_server(workspace,sizeof(workspace)) >= 0) {
+			if (*workspace == '.'  && strlen(workspace) == 1) 
+				return NULL;
+			if (strindex(workspace,oidbuf) > -1)
+				break;
+		}
+		sync_server();
+		*(index(workspace,' ')) = '\0';
+		(void) sprintf(lbuf, "%s/%s", n, workspace);
+		bzero(workspace,sizeof(workspace));
+		strcpy(workspace, lbuf);
+	} else {
+		bzero(lbuf, sizeof(lbuf));
+		strcpy(lbuf, p);
+		while (*p != '\0' && (p = index(lbuf,':')) != NULL) {
+			*p = '/';
+			p++;
+		}
+		strcpy(workspace, lbuf);
+	}
+	p = &workspace[0];
+	time(&clock);		
+	tm = localtime(&clock);
+#ifdef USG
+	sprintf(lbuf, "%s\t%2.2d/%2.2d/%d %2.2d:%2.2d\t%s",
+#else /* !USG */
+	sprintf(lbuf, "%s\t%02d/%02d/%d %02d:%02d\t%s",
+#endif /* !USG */
+	oidbuf,tm->tm_mon,tm->tm_mday,tm->tm_year,tm->tm_hour,tm->tm_min,p);
+	return lbuf;		/* not really the same, but close */
+#else	/* !SERVER */
 	lcase(oidbuf);
 #ifdef DBM
 	initdbm(ARTFILE);
@@ -476,7 +570,7 @@ char *artid;
 		if (p == NULL)
 			p = index(lbuf, '\n');
 		*p = 0;
-		if (strcmp(lbuf, artid) == 0 || strcmp(lbuf, oidbuf) == 0) {
+		if (STRCMP(lbuf, artid) == 0 || STRCMP(lbuf, oidbuf) == 0) {
 			(void) fclose(hfp);
 			*p = '\t';
 			*(lbuf + strlen(lbuf) - 1) = 0;	/* zap the \n */
@@ -488,6 +582,7 @@ char *artid;
 	}
 	(void) fclose(hfp);
 	return NULL;
+#endif	/* !SERVER */
 }
 
 /*
@@ -534,15 +629,28 @@ char *artid;
 
 	p = findfname(artid);
 	if (p) {
+#ifdef SERVER
+	if ((rv = getartbyid(p)) != NULL) {
+		strcpy(fname, article_name());
+		(void) fclose(rv);
+		rv = NULL;
+	}
+	else
+		xerror("Cannot hfopen article %s", artid);
+#else 	/* !SERVER */
 		(void) strcpy(fname, dirname(p));
+#endif	/* !SERVER */
 		rv = fopen(fname, "r");	/* NOT xfopen! */
 		if (rv == NULL)
 			xerror("Cannot hfopen article %s", artid);
 	}
+#ifdef SERVER
+	(void) unlink(fname);
+#endif /* !SERVER */
 	return rv;
 }
-
-#ifdef DBM
+#ifndef SERVER
+# ifdef DBM
 /*
 ** Avoid problems of multiple dbminit calls.
 */
@@ -554,9 +662,11 @@ char *name;
 	if (called != 0)
 		return;
 	called = 1;
-	(void) dbminit(name);
+	if (dbminit(name) < 0)
+		logerr("can't open database");
 }
-#endif
+# endif /* DBM */
+#endif	/* !SERVER */
 
 #ifndef BSD4_2
 /*
@@ -570,19 +680,6 @@ register n;
 		*b++ = *a++;
 }
 #endif
-
-#if !defined(BSD4_2) && !defined(BSD4_1C)
-rename(from,to)
-register char *from, *to;
-{
-	(void) unlink(to);
-	if (link(from, to) < 0)
-		return -1;
-
-	(void) unlink(from);
-	return 0;
-}
-#endif /* !BSD4_2 && ! BSD4_1C */
 
 #ifndef DBM
 /*
@@ -664,7 +761,7 @@ char *
 senderof(hp)
 struct hbuf *hp;
 {
-	register char *r, *q, *tp;
+	register char *q, *tp;
 	char *tailpath();
 	static char senderbuf[BUFLEN];
 

@@ -44,7 +44,7 @@ char partab[] = {
 	0200,0000,0000,0200,0000,0200,0200,0000,
 	0200,0000,0000,0200,0000,0200,0200,0000,
 	0000,0200,0200,0000,0200,0000,0000,0201,
-#ifndef BSD2_10
+
 	/*
 	 * 7 bit ascii ends with the last character above,
 	 * but we contine through all 256 codes for the sake
@@ -68,7 +68,6 @@ char partab[] = {
 	0007,0007,0007,0007,0007,0007,0007,0007,
 	0007,0007,0007,0007,0007,0007,0007,0007,
 	0007,0007,0007,0007,0007,0007,0007,0007
-#endif !BSD2_10
 };
 
 /*
@@ -526,7 +525,11 @@ ttselect(dev, rw)
 	dev_t dev;
 	int rw;
 {
+#ifdef BSD2_10
+	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)&0177];
+#else
 	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)];
+#endif
 	int nread;
 	int s = spltty();
 
@@ -1272,7 +1275,7 @@ ttycheckoutq(tp, wait)
 {
 	int hiwat, s, oldsig;
 #ifdef BSD2_10
-	int	wakeup();
+	int wakeup();
 #endif
 
 	hiwat = TTHIWAT(tp);

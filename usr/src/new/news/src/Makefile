@@ -1,7 +1,10 @@
-# '@(#)Makefile.dst	1.23	3/23/87'
+# '@(#)Makefile.dst	1.30	12/1/87'
 # Generic Makefile.
 # This is converted to USG/v7/etc by localize.sh
 # which should at least be a copy of localize.v7 or localize.usg
+
+# We MUST use the Bourne shell during the install phase
+SHELL=/bin/sh
 
 # definitions
 
@@ -13,107 +16,151 @@ HOME=	exptools
 #HOMENAME=	-DHOME=\"$(HOME)\"
 HOMENAME=
 
+# Support for Parallel Make files on a Sequent
+#P=&
+
 NEWSUSR = news
-NEWSGRP = news
+NEWSGRP = net
 SPOOLDIR = /usr/spool/news
 BATCHDIR = /usr/spool/batch
-LIBDIR = /usr/lib/news
-BINDIR = /usr/bin
+LIBDIR = /usr/new/lib/news
+BINDIR = /usr/new/bin
 DESTDIR =
 UUXFLAGS = -r -z -n -gd
+MAXPERBATCH = 250000
+MINDISKFREE = 500
+SPOOL_DISK = /usr/spool
 
-LNRNEWS = ln
-#VMS LNRNEWS = cp	# No links in Eunice
+CC = ./mkstrcc
+
+
+LNRNEWS = ln -s
 DEBUG =
-#SCCSID = -DSCCSID
-DEFS =	-DRNEWS=\"$(BINDIR)/rnews\" -DSPOOLDIR=\"$(SPOOLDIR)\" \
-	-DBATCHDIR=\"$(BATCHDIR)\" -DLIBDIR=\"$(LIBDIR)\" \
-	-DBINDIR=\"$(BINDIR)\" -DNEWSUSR=\"$(NEWSUSR)\" \
-	-DNEWSGRP=\"$(NEWSGRP)\"
+
+
+# Order is important here
+INST = full
+
+NFSSPOOLDIR = /nfsnews/$(SPOOLDIR)
+NFSLIBDIR = /nfsnews/$(LIBDIR)
+
+DEFS =	-DRNEWS=\"$(DESTDIR)$(BINDIR)/rnews\" \
+	-DSPOOLDIR=\"$(DESTDIR)$(SPOOLDIR)\" \
+	-DBATCHDIR=\"$(DESTDIR)$(BATCHDIR)\" -DLIBDIR=\"$(DESTDIR)$(LIBDIR)\" \
+	-DBINDIR=\"$(DESTDIR)$(BINDIR)\" -DNEWSUSR=\"$(NEWSUSR)\" \
+	-DNEWSGRP=\"$(NEWSGRP)\" ${SERVER} ${NFSCLIENT}
 
 # Order is important here
 INSCOMPRESS=
-#BSD4_3 INSCOMPRESS= rm -f $(DESTDIR)$(LIBDIR)/compress; ln -s /usr/ucb/compress $(DESTDIR)$(LIBDIR)/compress
+INSCOMPRESS= rm -f $(DESTDIR)$(LIBDIR)/compress; ln -s /usr/ucb/compress $(DESTDIR)$(LIBDIR)/compress
 COMPRESS= compress
-#BSD4_3 COMPRESS=
+COMPRESS=
 
 VFORK=-Dvfork=fork
+VFORK=
 
-#BSD4_2 VFORK=
-#BSD4_3 VFORK=
-
-CFLAGS = ${DEBUG} -O -DDBM ${DEFS} ${SCCSID} ${VFORK}
-LFLAGS = ${DEBUG} -i -x -X
+CFLAGS = -O ${DEBUG} -DDBM ${DEFS} ${SCCSID} ${VFORK} ${NETINCLUDE}
+LFLAGS = ${DEBUG} -i
 LIBS = -ldbm
-LINTFLAGS = -chba -DDBM ${DEFS}
+LINTFLAGS = -chba -DDBM ${DEFS} ${NETINCLUDE}
+
 
 TERMLIB = -ltermlib
 FIXACTIVE =
 
-#VMS TERMLIB = -ltrmlib
-#VMS LIBS = -ldbm
-#VMS CFLAGS = ${DEBUG} -O -DDBM ${DEFS} -DVMS ${SCCSID} ${VFORK}
-#VMS MISC = uname.o
-#VMS LINTFLAGS = -chba -DDBM -DVMS ${DEFS}
-#VMS VFORK=
-#VMS FIXACTIVE = /etc/vmstounix $(LIBDIR)/active
 
-MISC = uname.o
-OBJECTS = funcs.o funcs2.o getdate.o header.o ndir.o $(MISC)
+MISC = uname.o ${CLIENTLIB}
+OBJECTS = funcs.o funcs2.o header.o ndir.o $(MISC) getdate.o 
 IOBJECTS = inews.o ifuncs.o iextern.o control.o fullname.o \
-	ipathinit.o $(OBJECTS)
+	$(OBJECTS) ipathinit.o 
 
 POBJECTS = postnews.o rextern.o rpathinit.o funcs.o $(MISC)
 ROBJECTS = readnews.o rfuncs.o rfuncs2.o rextern.o readr.o \
-	process.o rpathinit.o digest.o $(OBJECTS)
-VOBJECTS = readnews.o rfuncs.o rfuncs2.o rextern.o process.o rpathinit.o \
-	$(OBJECTS) visual.o virtterm.o
-EXPOBJS = expire.o header.o funcs.o getdate.o iextern.o epathinit.o \
-	funcs2.o ndir.o $(MISC)
+	process.o digest.o $(OBJECTS) rpathinit.o 
+VOBJECTDEP = readnews.o rfuncs.o rfuncs2.o rextern.o process.o \
+	$(OBJECTS) visual.o virtterm.o rpathinit.o 
+VOBJECTS = -Z readnews.o rfuncs2.o rextern.o process.o -Z rfuncs.o  \
+	-Z virtterm.o -Y $(OBJECTS) visual.o rpathinit.o 
+EXPOBJS = expire.o header.o funcs.o getdate.o iextern.o \
+	funcs2.o ndir.o $(MISC) epathinit.o 
+
+ALLOBJ = $(OBJECTS) $(IOBJECTS) $(POBJECTS) $(VOBJECTS) $(EOBJECTS) $(MISC)
+
 
 SRCS = funcs.c funcs2.c header.c
 ISRCS = inews.c ifuncs.c iextern.c control.c fullname.c  $(SRCS)
-PSRCS = postnews.c rextern.c funcs.c
+PSRCS = postnews.c rextern.c funcs.c $(CSRCS)
 RSRCS = readnews.c rfuncs.c rfuncs2.c rextern.c readr.c process.c  \
-	digest.c $(SRCS)
+	digest.c $(SRCS) $(CSRCS)
 VSRCS = readnews.c rfuncs.c rfuncs2.c rextern.c process.c $(SRCS) \
-	visual.c virtterm.c
+	visual.c virtterm.c $(CSRCS)
 ESRCS = expire.c header.c funcs.c iextern.c \
 	funcs2.c
-OSRCS = uurec.c recnews.c sendnews.c batch.c unbatch.c caesar.c \
+OSRCS = uurec.c recnews.c sendnews.c batch.c caesar.c \
 	recmail.c compress.c
 
-UTILS = inews uurec recnews sendnews expire batch unbatch caesar recmail \
+
+
+UTILS = uurec recnews sendnews expire batch caesar recmail \
 	encode decode $(COMPRESS)
 SCRIPTS = sendbatch rmgroup checkgroups
-OTHERS = $(UTILS) $(SCRIPTS)
-COMMANDS = readnews checknews postnews
+NFSOTHERS = inews
+OTHERS = $(NFSOTHERS) $(UTILS) $(SCRIPTS)
+COMMANDS = checknews postnews
 
 # dependencies
-all: $(OTHERS) $(COMMANDS)
+all: $(INST)all
 
-install: all help vnews.help
-	-mkdir $(DESTDIR)$(BINDIR)
-	-mkdir $(DESTDIR)$(LIBDIR)
-	cp $(COMMANDS) $(DESTDIR)$(BINDIR)
-	-cd $(DESTDIR)$(BINDIR); \
-		strip $(COMMANDS); \
-		chown $(NEWSUSR) $(COMMANDS); \
-		chgrp $(NEWSGRP) $(COMMANDS); \
-		chmod 755 $(COMMANDS)
-	cp help vnews.help $(OTHERS) $(DESTDIR)$(LIBDIR)
-	cd $(DESTDIR)$(LIBDIR); \
-		strip $(UTILS); \
-		chown $(NEWSUSR) $(OTHERS); \
-		chgrp $(NEWSGRP) $(OTHERS); \
-		chmod 755 $(OTHERS)
-	-rm -f $(DESTDIR)$(BINDIR)/rnews $(DESTDIR)$(BINDIR)/inews
+mkstrcc: Makefile
+	chmod 755 mkstrcc
+	touch mkstrcc
+
+$(ALLOBJ): mkstrcc
+
+fullall: $(P) $(OTHERS) $(COMMANDS)
+
+nfsall: $(P) $(NFSOTHERS) $(COMMANDS)
+
+install: $(INST)install
+
+fullinstall: all help vnews.help installit
+	chmod 755 ./installit
+	-test -d $(DESTDIR)$(BINDIR) || mkdir $(DESTDIR)$(BINDIR)
+	-test -d $(DESTDIR)$(LIBDIR) || mkdir $(DESTDIR)$(LIBDIR)
+	for i in $(COMMANDS); do \
+		./installit -m 755 -o $(NEWSUSR) -g $(NEWSGRP) -s $$i \
+			$(DESTDIR)$(BINDIR); \
+	done
+	cp help vnews.help $(DESTDIR)$(LIBDIR)
+	for i in $(UTILS); do \
+		./installit -m 755 -o $(NEWSUSR) -g $(NEWSGRP) -s $$i \
+			$(DESTDIR)$(LIBDIR); \
+	done
+	for i in $(SCRIPTS); do \
+		./installit -m 755 -o $(NEWSUSR) -g $(NEWSGRP) $$i \
+		$(DESTDIR)$(LIBDIR); \
+	done
+	./installit -m 6755 -o $(NEWSUSR) -g $(NEWSGRP) -s inews \
+		$(DESTDIR)$(LIBDIR)
+	-rm -f $(DESTDIR)$(BINDIR)/rnews 
 	${LNRNEWS} $(DESTDIR)$(LIBDIR)/inews $(DESTDIR)$(BINDIR)/rnews
-	chown $(NEWSUSR) $(DESTDIR)$(LIBDIR)/inews
-	chgrp $(NEWSGRP) $(DESTDIR)$(LIBDIR)/inews
 	chmod 6755 $(DESTDIR)$(LIBDIR)/inews $(DESTDIR)$(BINDIR)/rnews
 	$(INSCOMPRESS)
-#VMS 	vms -v @euninstal
+	./installit -c -m 644 -o $(NEWSUSR) -g $(NEWSGRP) news_strings \
+		$(DESTDIR)$(LIBDIR)
+
+nfsinstall: nfsall help vnews.help
+	chmod 755 ./installit
+	-test -d $(DESTDIR)$(BINDIR) || mkdir $(DESTDIR)$(BINDIR)
+	-test -d $(DESTDIR)$(LIBDIR) || mkdir $(DESTDIR)$(LIBDIR)
+	for i in $(COMMANDS); do \
+		./installit -m 755 -o $(NEWSUSR) -g $(NEWSGRP) -s $$i \
+			$(DESTDIR)$(BINDIR); \
+	done
+	cp help vnews.help $(DESTDIR)$(LIBDIR)
+	./installit -m 6755 -o root -g $(NEWSGRP) -s inews \
+		$(DESTDIR)$(LIBDIR)
+	-rm -f $(DESTDIR)$(BINDIR)/rnews
 
 defs.h:	defs.dist localize.sh Makefile.dst Makefile
 	sh localize.sh
@@ -125,38 +172,45 @@ Makefile: localize.sh defs.dist Makefile.dst
 	@echo Localize has been run. Restart the make.
 	@exit 1
 
-update: install.sh makeactive.sh
-	sh install.sh $(SPOOLDIR) $(LIBDIR) $(BINDIR) $(NEWSUSR) $(NEWSGRP) $(OSTYPE)
-	chmod 6755 $(LIBDIR)/inews
+update: $(INST)update
+
+fullupdate: install.sh makeactive.sh
+	sh install.sh $(DESTDIR)$(SPOOLDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(NEWSUSR) $(DESTDIR)$(NEWSGRP) $(DESTDIR)$(OSTYPE)
+	chmod 6755 $(DESTDIR)$(LIBDIR)/inews
+
+nfsupdate: install.sh
+	sh install.sh $(DESTDIR)$(SPOOLDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(BINDIR) $(DESTDIR)$(NEWSUSR) $(DESTDIR)$(NEWSGRP) $(DESTDIR)$(OSTYPE) $(DESTDIR)$(NFSSPOOLDIR) $(DESTDIR)$(NFSLIBDIR)
+	chown root $(DESTDIR)$(LIBDIR)/inews
+	chmod 6755 $(DESTDIR)$(LIBDIR)/inews
+
 
 clean:
 	rm -f $(COMMANDS) $(OTHERS) *.o a.out
 	rm -f core index errs getdate.c
+	rm -f mk.c xxmk.c news_strings
 
 lint:  ilint vlint rlint elint plint olint
-ilint: defs.h params.h iparams.h header.h $(ISRCS) pathinit.c
+ilint: defs.h params.h iparams.h header.h patchlevel.h $(ISRCS) pathinit.c
 	lint $(LINTFLAGS) $(ISRCS) -DINEW pathinit.c
-vlint: defs.h params.h rparams.h header.h $(VSRCS) pathinit.c
+vlint: defs.h params.h rparams.h header.h patchlevel.h $(VSRCS) pathinit.c
 	lint $(LINTFLAGS) $(VSRCS) -DREAD pathinit.c
-rlint: defs.h params.h rparams.h header.h $(RSRCS) pathinit.c
+rlint: defs.h params.h rparams.h header.h patchlevel.h $(RSRCS) pathinit.c
 	lint $(LINTFLAGS) $(RSRCS) -DREAD pathinit.c
-elint: defs.h params.h iparams.h header.h $(ESRCS) pathinit.c
+elint: defs.h params.h iparams.h header.h patchlevel.h $(ESRCS) pathinit.c
 	lint $(LINTFLAGS) $(ESRCS) -DEXP pathinit.c
-plint: defs.h params.h iparams.h header.h $(PSRCS) pathinit.c
+plint: defs.h params.h iparams.h header.h patchlevel.h $(PSRCS) pathinit.c
 	lint $(LINTFLAGS) $(PSRCS) -DREAD pathinit.c
 
 olint: defs.h params.h iparams.h header.h $(OSRCS)
 	for i in $(OSRCS); do lint $(LINTFLAGS) $$i; done
 
-inews:  $(IOBJECTS)
+inews:  $(P) $(IOBJECTS)
 	$(CC) $(LFLAGS) $(IOBJECTS) -o inews $(LIBS)  
-#VMS 	vms link/notrace inews.o,ifuncs.o,iextern.o,control.o, \
-#VMS 	fullname.o,ipathinit.o,funcs.o,funcs2.o,getdate.o,header.o, \
-#VMS 	ndir.o,uname.o,lib:libdbm/lib,lib:libc/lib/exe=inews.
 
-readnews:  $(ROBJECTS)
-	$(CC) $(LFLAGS) $(ROBJECTS) -o readnews $(LIBS)
-#VMS 	mv readnews.exe readnews
+readnews:  $(P) $(ROBJECTS)
+	$(CC) $(LFLAGS) $(ROBJECTS) -o readnews $(NETLIB) $(LIBS)
+
+
 
 funcs.o:  funcs.c params.h defs.h header.h Makefile
 	$(CC) $(CFLAGS) -c funcs.c
@@ -180,12 +234,11 @@ ifuncs.o:  ifuncs.c iparams.h defs.h params.h header.h Makefile
 iextern.o:  iextern.c iparams.h defs.h params.h Makefile header.h
 	$(CC) $(CFLAGS) $(HOMENAME) -c iextern.c
 
-postnews: $(POBJECTS)
-	$(CC) $(CFLAGS) $(LFLAGS) $(POBJECTS) -o postnews
-#VMS 	mv postnews.exe postnews
+postnews: $(P) $(POBJECTS)
+	$(CC) $(CFLAGS) $(LFLAGS) $(POBJECTS) -o postnews $(NETLIB) $(LIBS)
 
-postnews.o: postnews.c defs.h params.h header.h Makefile
-	$(CC) $(CFLAGS) -c postnews.c
+postnews.o: postnews.c defs.h params.h header.h  Makefile
+	$(CC) $(CFLAGS) -c postnews.c 
 
 readnews.o:  readnews.c rparams.h defs.h params.h header.h Makefile
 	$(CC) $(CFLAGS) $(HOMENAME) -c readnews.c
@@ -205,9 +258,8 @@ readr.o:  readr.c rparams.h defs.h params.h Makefile ndir.h header.h
 checknews.o:  checknews.c defs.h header.h Makefile params.h
 	$(CC) $(CFLAGS) -c checknews.c
 
-vnews:	$(VOBJECTS)
-	$(CC) $(LFLAGS) $(VOBJECTS) $(TERMLIB) $(LIBS) -o $@
-#VMS 	mv vnews.exe vnews
+vnews:	$(P) $(VOBJECTDEP)
+	$(CC) $(LFLAGS) $(VOBJECTS)  -o $@  $(TERMLIB) $(NETLIB) $(LIBS)
 
 visual.o:  visual.c rparams.h defs.h params.h ndir.h header.h Makefile
 	$(CC) $(CFLAGS) -c visual.c
@@ -225,67 +277,53 @@ ndir.o: ndir.c ndir.h defs.h
 	$(CC) $(CFLAGS) -c ndir.c
 
 uurec:  uurec.c defs.h Makefile
-	$(CC) $(CFLAGS) $(LFLAGS) uurec.c -o uurec
-#VMS 	mv uurec.exe uurec
+	$(CC) $(CFLAGS) $(LFLAGS) uurec.c -o uurec $(LIBS)
 
-recnews:  recnews.c defs.h header.h Makefile
-	$(CC) $(CFLAGS) $(LFLAGS) recnews.c -o recnews
-#VMS 	mv recnews.exe recnews
+recnews:  recnews.c defs.h header.h params.h Makefile
+	$(CC) $(CFLAGS) $(LFLAGS) recnews.c -o recnews $(LIBS)
 
 sendnews:  sendnews.o defs.h
-	$(CC) $(LFLAGS) sendnews.o -o sendnews
-#VMS 	mv sendnews.exe sendnews
+	$(CC) $(LFLAGS) sendnews.o -o sendnews $(LIBS)
 
 batch:  batch.c Makefile defs.h
-	$(CC) $(CFLAGS) $(LFLAGS) batch.c -o batch
-#VMS 	mv batch.exe batch
-
-unbatch:  unbatch.c Makefile
-	$(CC) $(CFLAGS) $(LFLAGS) unbatch.c -o unbatch
-#VMS 	mv unbatch.exe unbatch
+	$(CC) $(CFLAGS) $(LFLAGS) batch.c -o batch $(LIBS)
 
 encode:	encode.c
-	$(CC) $(CFLAGS) $(LFLAGS) encode.c -o encode
-#VMS 	mv encode.exe encode
+	$(CC) $(CFLAGS) $(LFLAGS) encode.c -o encode $(LIBS)
 
 decode:	decode.c
-	$(CC) $(CFLAGS) $(LFLAGS) decode.c -o decode
-#VMS 	mv decode.exe decode
+	$(CC) $(CFLAGS) $(LFLAGS) decode.c -o decode $(LIBS)
 
 caesar:  caesar.c Makefile
-	$(CC) $(CFLAGS) $(LFLAGS) caesar.c -o caesar -lm
-#VMS 	mv caesar.exe caesar
+	$(CC) $(CFLAGS) $(LFLAGS) caesar.c -o caesar -lm $(LIBS)
 
 compress: compress.c
-	$(CC) $(CFLAGS) $(LFLAGS) -o compress compress.c
-#VMS 	mv compress.exe compress
+	$(CC) $(CFLAGS) $(LFLAGS) -o compress compress.c $(LIBS)
 
 recmail:  recmail.c defs.h params.h header.h
-	$(CC) $(CFLAGS) $(LFLAGS) recmail.c -o recmail
-#VMS 	mv recmail.exe recmail
+	$(CC) $(CFLAGS) $(LFLAGS) recmail.c -o recmail $(LIBS)
 
 process.o:  process.c rparams.h defs.h params.h header.h Makefile
 	$(CC) $(CFLAGS) -c process.c
 
-checknews:  checknews.o process.o cpathinit.o rextern.o
-	$(CC) $(LFLAGS) checknews.o process.o cpathinit.o rextern.o -o checknews
-#VMS 	mv checknews.exe checknews
+checknews:  $(P) checknews.o process.o cpathinit.o rextern.o $(NNTP) $(CLIENTLIB) 
+	$(CC) $(LFLAGS) checknews.o process.o cpathinit.o rextern.o $(NNTP) $(CLIENTLIB) -o checknews $(NETLIB) $(LIBS)
 
 sendbatch: sendbatch.sh Makefile
-	sed -e "s%LIBDIR%$(LIBDIR)%g" \
+	sed -e "s%LIBDIR%$(DESTDIR)$(LIBDIR)%g" \
 	 -e "s%UUXFLAGS%$(UUXFLAGS)%g" \
-	 -e "s%BATCHDIR%$(BATCHDIR)%g" sendbatch.sh > sendbatch
-#VMS 	/etc/unixtovms sendbatch
+	 -e "s%MAXPERBATCH%$(MAXPERBATCH)%g" \
+	 -e "s%MINDISKFREE%$(MINDISKFREE)%g" \
+	 -e "s%SPOOL_DISK%$(SPOOL_DISK)%g" \
+	 -e "s%BATCHDIR%$(DESTDIR)$(BATCHDIR)%g" sendbatch.sh > sendbatch
 
 rmgroup: rmgroup.sh Makefile
-	sed -e "s%LIBDIR%$(LIBDIR)%g" \
+	sed -e "s%LIBDIR%$(DESTDIR)$(LIBDIR)%g" \
 	 -e "s%FIXACTIVE%$(FIXACTIVE)%g" \
-	 -e "s%SPOOLDIR%$(SPOOLDIR)%g" rmgroup.sh > rmgroup
-#VMS 	/etc/unixtovms rmgroup
+	 -e "s%SPOOLDIR%$(DESTDIR)$(SPOOLDIR)%g" rmgroup.sh > rmgroup
 
 checkgroups: checkgroups.sh Makefile
-	sed -e "s%LIBDIR%$(LIBDIR)%g" checkgroups.sh > checkgroups
-#VMS 	/etc/unixtovms checkgroups
+	sed -e "s%LIBDIR%$(DESTDIR)$(LIBDIR)%g" checkgroups.sh > checkgroups
 
 sendnews.o: sendnews.c defs.h
 	$(CC) $(CFLAGS) -c sendnews.c
@@ -293,9 +331,8 @@ sendnews.o: sendnews.c defs.h
 fullname.o: defs.h params.h header.h Makefile
 	$(CC) $(CFLAGS) -c fullname.c
 
-expire: $(EXPOBJS)
+expire: $(P) $(EXPOBJS)
 	$(CC) $(LFLAGS) -o expire $(EXPOBJS) $(LIBS)
-#VMS 	mv expire.exe expire
 
 header.o:  header.c header.h defs.h patchlevel.h params.h Makefile
 	$(CC) $(CFLAGS) -c header.c
@@ -326,14 +363,14 @@ epathinit.o:  pathinit.c iparams.h header.h params.h defs.h Makefile
 tags:	/tmp
 	ctags -w *.h *.c
 
-$(LIBDIR):
-	mkdir $(LIBDIR)
-	chmod 755 $(LIBDIR)
-	chown $(NEWSUSR) $(LIBDIR)
-	chgrp $(NEWSGRP) $(LIBDIR)
+$(DESTDIR)$(LIBDIR):
+	mkdir $(DESTDIR)$(LIBDIR)
+	chmod 755 $(DESTDIR)$(LIBDIR)
+	chown $(NEWSUSR) $(DESTDIR)$(LIBDIR)
+	chgrp $(NEWSGRP) $(DESTDIR)$(LIBDIR)
 
-$(BINDIR):
-	mkdir $(BINDIR)
-	chmod 755 $(BINDIR)
-	chown $(NEWSUSR) $(BINDIR)
-	chgrp $(NEWSGRP) $(BINDIR)
+$(DESTDIR)$(BINDIR):
+	mkdir $(DESTDIR)$(BINDIR)
+	chmod 755 $(DESTDIR)$(BINDIR)
+	chown $(NEWSUSR) $(DESTDIR)$(BINDIR)
+	chgrp $(NEWSGRP) $(DESTDIR)$(BINDIR)

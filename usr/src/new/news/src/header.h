@@ -2,7 +2,7 @@
  * header.h - Article header format
  */
 
-/*	@(#)header.h	2.20	2/22/87	*/
+/*	@(#)header.h	2.21	10/7/87	*/
 
 #define NUNREC 50
 
@@ -10,7 +10,7 @@
 struct	hbuf {
 	char	from[BUFLEN];		/* From:		*/
 	char	path[PATHLEN];		/* Path:		*/
-	char	nbuf[LBUFLEN];		/* Newsgroups:		*/
+	char	nbuf[CBUFLEN];		/* Newsgroups:		*/
 	char	title[BUFLEN];		/* Subject:		*/
 	char	ident[BUFLEN];		/* Message-ID:		*/
 	char	replyto[BUFLEN];	/* Reply-To:		*/
@@ -30,8 +30,9 @@ struct	hbuf {
 	char	approved[BUFLEN];	/* Approved:		*/
 	char	nf_id[BUFLEN];		/* Nf-ID:		*/
 	char	nf_from[BUFLEN];	/* Nf-From:		*/
+	char 	supersedes[BUFLEN];	/* Supersedes:		*/
 #ifdef DOXREFS
-	char 	xref[BUFLEN];		/* Xref:		*/
+	char 	xref[CBUFLEN];		/* Xref:		*/
 #endif /* DOXREFS */
 	char	*unrec[NUNREC];		/* unrecognized lines	*/
 };

@@ -90,7 +90,6 @@ impattach(ui, reset)
 	struct imp_softc *sc;
 	register struct ifnet *ifp;
 
-	printf("impattach(%x,%x)\n", ui, reset);
 #ifdef lint
 	impintr();
 #endif
@@ -124,7 +123,6 @@ impinit(unit)
 	int s = splimp();
 	register struct imp_softc *sc = &imp_softc[unit];
 
-	printf("impinit(%d)\n", unit);
 	if (sc->imp_if.if_addrlist == 0)
 		return;
 	if ((*sc->imp_cb.ic_init)(unit) == 0) {
@@ -140,7 +138,7 @@ impinit(unit)
 }
 
 #ifdef IMPLEADERS
-int	impprintfs = 1;
+int	impprintfs = 0;
 #endif
 
 /*
@@ -164,8 +162,6 @@ impinput(unit, m)
 	struct mbuf *next;
 	struct sockaddr_in *sin;
 
-	printf("impinput(%d,%x)|n", unit, m);
-	MAPSAVE();
 	/*
 	 * Pull the interface pointer out of the mbuf
 	 * and save for later; adjust mbuf to look at rest of data.
@@ -249,7 +245,7 @@ impinput(unit, m)
 			break;
 		if ((ip->il_link & IMP_DMASK) == 0) {
 			sc->imp_state = IMPS_GOINGDOWN;
-			timeout(impdown, (caddr_t)sc, 30 * hz);
+			TIMEOUT(impdown, (caddr_t)sc, 30 * hz);
 		}
 		impmsg(sc, "going down %s",
 			(u_int)impmessage[ip->il_link&IMP_DMASK]);
@@ -348,34 +344,30 @@ rawlinkin:
 	 * Re-insert interface pointer in the mbuf chain
 	 * for the next protocol up.
 	 */
-	if (m->m_off <= MMAXOFF &&
-	    m->m_off >= MMINOFF + sizeof(struct ifnet *)) {
-		m->m_off -= sizeof(struct ifnet *);
-		m->m_len += sizeof(struct ifnet *);
-	} else {
+	if (M_HASCL(m) && (mtod(m, int) & CLOFSET) < sizeof(struct ifnet *)) {
 		struct mbuf *n;
 
 		MGET(n, M_DONTWAIT, MT_HEADER);
 		if (n == 0)
 			goto drop;
-		n->m_off = MMINOFF;
-		n->m_len = sizeof(struct ifnet *);
 		n->m_next = m;
 		m = n;
+		m->m_len = 0;
+		m->m_off = MMINOFF + sizeof(struct ifnet  *);
 	}
-
+	m->m_off -= sizeof(struct ifnet *);
+	m->m_len += sizeof(struct ifnet *);
 	*(mtod(m, struct ifnet **)) = ifp;
+
 	if (IF_QFULL(inq)) {
 		IF_DROP(inq);
 		goto drop;
 	}
 	IF_ENQUEUE(inq, m);
-	MAPUNSAVE();
 	return;
 
 drop:
 	m_freem(m);
-	MAPREST();
 }
 
 /*
@@ -386,7 +378,6 @@ impdown(sc)
 {
 	int s = splimp();
 
-	printf("impdown(%x)\n", sc);
 	sc->imp_state = IMPS_DOWN;
 	impmsg(sc, "marked down");
 	hostreset(((struct in_ifaddr *)&sc->imp_if.if_addrlist)->ia_net);
@@ -422,7 +413,6 @@ impintr()
 	struct ifnet *ifp;
 	int s;
 
-	MAPSAVE();
 	for (;;) {
 		s = splimp();
 		IF_DEQUEUEIF(&impintrq, m, ifp);
@@ -453,7 +443,6 @@ impintr()
 		raw_input(m, &impproto, (struct sockaddr *)&impsrc,
 		  (struct sockaddr *)&impdst);
 	}
-	MAPREST();
 }
 
 /*
@@ -472,8 +461,6 @@ impoutput(ifp, m0, dst)
 	int dlink, len;
 	int error = 0;
 
-	printf("impoutput(%x,%x)\n", ifp, m0);
-	MAPSAVE();
 	/*
 	 * Don't even try if the IMP is unavailable.
 	 */
@@ -484,7 +471,6 @@ impoutput(ifp, m0, dst)
 
 	switch (dst->sa_family) {
 
-#ifdef INET
 	case AF_INET: {
 		struct ip *ip = mtod(m, struct ip *);
 
@@ -492,7 +478,6 @@ impoutput(ifp, m0, dst)
 		len = ntohs((u_short)ip->ip_len);
 		break;
 	}
-#endif INET
 
 	case AF_IMPLINK:
 		len = 0;
@@ -537,11 +522,9 @@ impoutput(ifp, m0, dst)
 	imp->il_flags = imp->il_htype = imp->il_subtype = 0;
 
 leaderexists:
-	MAPUNSAVE();
 	return (impsnd(ifp, m));
 drop:
 	m_freem(m0);
-	MAPREST();
 	return (error);
 }
 
@@ -559,7 +542,6 @@ impsnd(ifp, m)
 	struct impcb *icp;
 	int s, error;
 
-	MAPREST();
 	ip = mtod(m, struct imp_leader *);
 
 	/*
@@ -608,7 +590,6 @@ enque:
 bad:
 		m_freem(m);
 		splx(s);
-		MAPUNSAVE();
 		return (error);
 	}
 	IF_ENQUEUE(&ifp->if_snd, m);
@@ -617,7 +598,6 @@ start:
 	if (icp->ic_oactive == 0)
 		(*icp->ic_start)(ifp->if_unit);
 	splx(s);
-	MAPREST();
 	return (0);
 }
 
@@ -636,14 +616,12 @@ impnoops(sc)
 	register struct mbuf *m;
 	register struct control_leader *cp;
 
-	MAPSAVE();
 	sc->imp_dropcnt = IMP_DROPCNT;
-	for (i = 0; i < IMP_DROPCNT + 1; i++ ) { 
-		if ((m = m_get(M_DONTWAIT, MT_HEADER)) == 0)
+	for (i = 0; i < IMP_DROPCNT + 1; i++) { 
+		if ((m = m_getclr(M_DONTWAIT, MT_HEADER)) == 0)
 			return;
 		m->m_len = sizeof(struct control_leader);
 		cp = mtod(m, struct control_leader *);
-		bzero((caddr_t)cp, m->m_len);
 		cp->dl_format = IMP_NFF;
                 cp->dl_link = i;
                 cp->dl_mtype = IMPTYPE_NOOP;
@@ -651,7 +629,6 @@ impnoops(sc)
 	}
 	if (sc->imp_cb.ic_oactive == 0)
 		(*sc->imp_cb.ic_start)(sc->imp_if.if_unit);
-	MAPREST();
 }
 
 /*
@@ -665,7 +642,6 @@ impioctl(ifp, cmd, data)
 	struct ifaddr *ifa = (struct ifaddr *) data;
 	int s = splimp(), error = 0;
 
-	printf("impioctl(%x,%x,%x)\n", ifp, cmd, data);
 	switch (cmd) {
 
 	case SIOCSIFADDR:

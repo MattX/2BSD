@@ -725,7 +725,15 @@ nlist()
 		if (nbuf.n_name[0] != '_' )
 			continue;
 		flag = nbuf.n_type & (N_TYPE | N_EXT);
-		if ((nbuf.n_type & N_TYPE) != N_ABS && flag !=  (N_EXT | N_DATA) && flag != (N_EXT | N_BSS))
+		/*
+		 * Skip over anything which isn't an external data or bss
+		 * symbol, except "_u".  The exception is tacky, but if
+		 * we let all N_ABS symbols through we match on symbols
+		 * inserted during the unix/netnix cross binding.
+		 */
+		if (!(flag == (N_EXT | N_DATA) || flag == (N_EXT | N_BSS)
+		      || (nbuf.n_name[0] == '_' && nbuf.n_name[1] == 'u'
+		          && nbuf.n_name[2] == '\0')))
 			continue;
 		if (!nflg)
 			addchan(nbuf.n_name + 1,(unsigned)(nbuf.n_value));

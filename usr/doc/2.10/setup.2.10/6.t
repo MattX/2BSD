@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)6.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)6.t	6.2 (Berkeley) 10/1/88
 .\"
 .de IR
 \fI\\$1\fP\|\\$2

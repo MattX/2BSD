@@ -1,19 +1,35 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
 #include "ctype.h"
 
+#ifdef MAC
+#	undef private
+#	define private
+#endif
+
+#ifdef	LINT_ARGS
+private void to_sent(int);
+#else
+private void to_sent();
+#endif
+
+#ifdef MAC
+#	undef private
+#	define private static
+#endif
+
 static int	line_pos;
 
+void
 f_char(n)
 register int	n;
 {
-
 	if (n < 0) {
 		b_char(-n);
 		return;
@@ -24,14 +40,14 @@ register int	n;
 				break;
 			SetLine(curline->l_next);
 		} else
-			curchar++;
+			curchar += 1;
 	}
 }
 
+void
 b_char(n)
 register int	n;
 {
-
 	if (n < 0) {
 		f_char(-n);
 		return;
@@ -43,20 +59,23 @@ register int	n;
 			SetLine(curline->l_prev);
 			Eol();
 		} else
-			--curchar;
+			curchar -= 1;
 	}
 }
 
+void
 ForChar()
 {
 	f_char(arg_value());
 }
 
+void
 BackChar()
 {
 	b_char(arg_value());
 }
 
+void
 NextLine()
 {
 	if ((curline == curbuf->b_last) && eolp())
@@ -64,6 +83,7 @@ NextLine()
 	line_move(FORWARD, arg_value(), YES);
 }
 
+void
 PrevLine()
 {
 	if ((curline == curbuf->b_first) && bolp())
@@ -75,6 +95,7 @@ PrevLine()
    being called from NextLine() or PrevLine(), in which case it tries
    to line up the column with the column of the current line */
 
+void
 line_move(dir, n, line_cmd)
 {
 	Line	*(*proc)() = (dir == FORWARD) ? next_line : prev_line;
@@ -82,7 +103,10 @@ line_move(dir, n, line_cmd)
 
 	line = (*proc)(curline, n);
 	if (line == curline) {
-		(dir == FORWARD) ? Eol() : Bol();
+		if (dir == FORWARD)
+			Eol();
+		else
+			Bol();
 		return;
 	}
 
@@ -98,6 +122,7 @@ line_move(dir, n, line_cmd)
 
 /* returns what cur_char should be for that position col */
 
+int
 how_far(line, col)
 Line	*line;
 {
@@ -109,35 +134,39 @@ Line	*line;
 	base = lp = lcontents(line);
 	pos = 0;
 
-	while (pos < col && (c = (*lp & 0177))) {
+	while (pos < col && (c = (*lp & CHARMASK))) {
 		if (c == '\t')
 			pos += (tabstop - (pos % tabstop));
 		else if (isctrl(c))
 			pos += 2;
 		else
-			pos++;
-		lp++;
+			pos += 1;
+		lp += 1;
 	}
 
 	return lp - base;
 }
 
+void
 Bol()
 {
 	curchar = 0;
 }
 
+void
 Eol()
 {
 	curchar = strlen(linebuf);
 }
 
+void
 Eof()
 {
 	PushPntp(curbuf->b_last);
 	ToLast();
 }
 
+void
 Bof()
 {
 	PushPntp(curbuf->b_first);
@@ -148,7 +177,7 @@ Bof()
    with all the kludgery involved with paragraphs, and moving backwards
    is particularly yucky. */
 
-private
+private void
 to_sent(dir)
 {
 	Bufpos	*new,
@@ -159,7 +188,10 @@ to_sent(dir)
 
 	new = dosearch("^[ \t]*$\\|[?.!]", dir, 1);
 	if (new == 0) {
-		(dir == BACKWARD) ? ToFirst() : ToLast();
+		if (dir == BACKWARD)
+			ToFirst();
+		else
+			ToLast();
 		return;
 	}
 	SetDot(new);
@@ -185,12 +217,13 @@ to_sent(dir)
 
 		curchar = REbom + 1;	/* Just after the [?.!] */
 		if (LookingAt("[\")]  *\\|[\")]$", linebuf, curchar))
-			curchar++;
+			curchar += 1;
 		else if (!eolp() && !LookingAt("  *", linebuf, curchar))
 			to_sent(dir);
 	}
 }
 
+void
 Bos()
 {
 	register int	num = arg_value();
@@ -208,6 +241,7 @@ Bos()
 	}
 }
 
+void
 Eos()
 {
 	register int	num = arg_value();
@@ -225,11 +259,11 @@ Eos()
 	}
 }
 
+void
 f_word(num)
 register int	num;
 {
 	register char	c;
-
 	if (num < 0) {
 		b_word(-num);
 		return;
@@ -237,13 +271,14 @@ register int	num;
 	while (--num >= 0) {
 		to_word(FORWARD);
 		while ((c = linebuf[curchar]) != 0 && isword(c))
-			curchar++;
+			curchar += 1;
 		if (eobp())
 			break;
 	}
 	this_cmd = 0;	/* Semi kludge to stop some unfavorable behavior */
 }
 
+void
 b_word(num)
 register int	num;
 {
@@ -256,20 +291,21 @@ register int	num;
 	while (--num >= 0) {
 		to_word(BACKWARD);
 		while (!bolp() && (c = linebuf[curchar - 1], isword(c)))
-			--curchar;
+			curchar -= 1;
 		if (bobp())
 			break;
 	}
 	this_cmd = 0;
 }
 
+void
 ForWord()
 {
 	f_word(arg_value());
 }
 
+void
 BackWord()
 {
 	b_word(arg_value());
 }
-

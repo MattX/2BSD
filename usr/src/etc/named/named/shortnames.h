@@ -1,0 +1,11 @@
+#define	dZoneName	AdZoneName
+#define	distributed	Adistributed
+#define	getprotocol	Agetprotocol
+#define	getservices	Agetservices
+#define	gettime		Agettime
+#define	maxMatchLen	AmaxMatchLen
+#define	ns_maint	Ans_maint
+#define	p_protocal	Ap_protocal
+#define	return_msg	Areturn_msg
+#define	versions	Aversions
+#define	zoneName	AzoneName

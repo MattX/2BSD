@@ -1,11 +1,17 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983,1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)mbuf.c	5.1 (Berkeley) 6/4/85";
+static char sccsid[] = "@(#)mbuf.c	5.3 (Berkeley) 2/3/87";
 #endif not lint
 
 #include <stdio.h>
@@ -38,7 +44,11 @@ static struct mbtypes {
 };
 
 int nmbtypes = sizeof(mbstat.m_mtypes) / sizeof(short);
-bool seen[NMBTYPES];			/* "have we seen this type yet?" */
+bool seen[NMBTYPES];		/* "have we seen this type yet?" */
+
+#ifdef BSD2_10
+#define klseek slseek
+#endif
 
 /*
  * Print mbuf statistics.
@@ -46,7 +56,8 @@ bool seen[NMBTYPES];			/* "have we seen this type yet?" */
 mbpr(mbaddr)
 	off_t mbaddr;
 {
-	register int totmem, totfree, totmbufs;
+	register int totmbufs;
+	long totmem, totfree;
 	register int i;
 	register struct mbtypes *mp;
 
@@ -58,49 +69,40 @@ mbpr(mbaddr)
 		printf("mbstat: symbol not in namelist\n");
 		return;
 	}
-	klseek(kmem, (off_t)mbaddr, 0);
-	if (read(kmem, &mbstat, sizeof (mbstat)) != sizeof (mbstat)) {
+	klseek(kmem, mbaddr, 0);
+	if (read(kmem, (char *)&mbstat, sizeof (mbstat)) != sizeof (mbstat)) {
 		printf("mbstat: bad read\n");
 		return;
 	}
-#ifndef BSD2_10
-	printf("%d/%d mbufs in use:\n",
+	printf("%u/%u mbufs in use:\n",
 		mbstat.m_mbufs - mbstat.m_mtypes[MT_FREE], mbstat.m_mbufs);
-#endif
 	totmbufs = 0;
 	for (mp = mbtypes; mp->mt_name; mp++)
 		if (mbstat.m_mtypes[mp->mt_type]) {
 			seen[mp->mt_type] = YES;
-			printf("\t%d mbufs allocated to %s\n",
+			printf("\t%u mbufs allocated to %s\n",
 			    mbstat.m_mtypes[mp->mt_type], mp->mt_name);
 			totmbufs += mbstat.m_mtypes[mp->mt_type];
 		}
 	seen[MT_FREE] = YES;
 	for (i = 0; i < nmbtypes; i++)
 		if (!seen[i] && mbstat.m_mtypes[i]) {
-			printf("\t%d mbufs allocated to <mbuf type %d>\n",
+			printf("\t%u mbufs allocated to <mbuf type %d>\n",
 			    mbstat.m_mtypes[i], i);
 			totmbufs += mbstat.m_mtypes[i];
 		}
-#ifdef BSD2_10
-	totmem = mbstat.m_words<<1;
-	totfree = mbstat.m_clfree;
-	printf("%d/%d/%d mbufs free (min/current/max)\n",
-		mbstat.m_mbufs, mbstat.m_mbfree, mbstat.m_total);
-	printf("%d/%d/%d bytes free (min/current/max)\n",
-		mbstat.m_clusters, mbstat.m_clfree, totmem);
-	printf("%3.1f Kbytes allocated to network (%3.1f%% in use)\n",
-		(totmem+51) / 1024., (totmem - totfree) * 100. / totmem);
-#else
 	if (totmbufs != mbstat.m_mbufs - mbstat.m_mtypes[MT_FREE])
-		printf("*** %d mbufs missing ***\n",
+		printf("*** %u mbufs missing ***\n",
 			(mbstat.m_mbufs - mbstat.m_mtypes[MT_FREE]) - totmbufs);
-	printf("%d/%d mapped pages in use\n",
+	printf("%u/%u mapped pages in use\n",
 		mbstat.m_clusters - mbstat.m_clfree, mbstat.m_clusters);
-	totmem = mbstat.m_mbufs * MSIZE + mbstat.m_clusters * CLBYTES;
+	printf("%u interface pages allocated\n", mbstat.m_space);
+	totmem = mbstat.m_mbufs * MSIZE + mbstat.m_clusters * CLBYTES +
+	    mbstat.m_space * CLBYTES;
 	totfree = mbstat.m_mtypes[MT_FREE]*MSIZE + mbstat.m_clfree * CLBYTES;
-	printf("%d Kbytes allocated to network (%d%% in use)\n",
+	printf("%lu Kbytes allocated to network (%ld%% in use)\n",
 		totmem / 1024, (totmem - totfree) * 100 / totmem);
-#endif
-	printf("%d requests for memory denied\n", mbstat.m_drops);
+	printf("%u requests for memory denied\n", mbstat.m_drops);
+	printf("%u requests for memory delayed\n", mbstat.m_wait);
+	printf("%u calls to protocol drain routines\n", mbstat.m_drain);
 }

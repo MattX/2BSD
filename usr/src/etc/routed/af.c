@@ -44,11 +44,20 @@ inet_hash(sin, hp)
 
 	n = inet_netof(sin->sin_addr);
 	if (n)
-	    while ((n & 0xff) == 0)
+	    while ((n & 0xff) == 0) {
 		n >>= 8;
+#ifdef BSD2_10
+		/* 2.10BSD compiler doesn't support unsigned longs */
+		n &= 0x00ffffff;
+#endif
+	    }
 	hp->afh_nethash = n;
 	hp->afh_hosthash = ntohl(sin->sin_addr.s_addr);
+#ifdef pdp11
+	hp->afh_hosthash &= 0x7fff;
+#else
 	hp->afh_hosthash &= 0x7fffffff;
+#endif
 }
 
 inet_netmatch(sin1, sin2)
@@ -103,13 +112,14 @@ inet_output(s, flags, sin, size)
 inet_checkhost(sin)
 	struct sockaddr_in *sin;
 {
-	u_long i = ntohl(sin->sin_addr.s_addr);
+	u_long n = ntohl(sin->sin_addr.s_addr);
+	int i;
 
-#define	IN_BADCLASS(i)	(((long) (i) & 0xe0000000) == 0xe0000000)
+#define	IN_BADCLASS(n)	(((long) (n) & 0xe0000000) == 0xe0000000)
 
-	if (IN_BADCLASS(i) || sin->sin_port != 0)
+	if (IN_BADCLASS(n) || sin->sin_port != 0)
 		return (0);
-	if (i != 0 && (i & 0xff000000) == 0)
+	if (n != 0 && (n & 0xff000000) == 0)
 		return (0);
 	for (i = 0; i < sizeof(sin->sin_zero)/sizeof(sin->sin_zero[0]); i++)
 		if (sin->sin_zero[i])

@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)gets.s	5.5 (Berkeley) 2/4/87\0>
+	<@(#)gets.s	5.6 (Berkeley) 9/2/88\0>
 	.even
 #endif LIBC_SCCS
 
@@ -45,7 +45,7 @@ ENTRY(gets)
 	 * If no characters, call _filbuf() to get some.
 	 */
 	tst	_CNT(IOP)
-	bne	Lscan
+	bgt	Lscan
 
 Lloop:
 	mov	IOP,-(sp)		/ _filbuf(stdin)

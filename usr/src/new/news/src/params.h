@@ -2,7 +2,7 @@
  * params.h - parameters for everyone.
  */
 
-/*	@(#)params.h	2.23	4/6/87	*/
+/*	@(#)params.h	2.28	11/30/87	*/
 
 #include <stdio.h>
 #include <signal.h>
@@ -14,7 +14,7 @@
 
 #include "defs.h"
 
-#if defined(BSD4_2) || defined(BSD4_1C)
+#ifdef BSD4_2
 #include <sys/time.h>
 #else /* sane */
 #include <time.h>
@@ -65,7 +65,7 @@ extern	struct	hbuf header;
 extern	char	bfr[LBUFLEN], *username, *userhome;
 
 extern	char	*SPOOL, *LIB, *BIN, *SUBFILE, *ACTIVE;
-extern	char	*LOCKFILE, *SEQFILE, *ARTFILE;
+extern	char	*LOCKFILE, *SEQFILE, *ARTFILE, *BUGFILE;
 extern	char	*news_version, *Progname;
 
 #ifdef NOTIFY
@@ -85,7 +85,8 @@ extern	char	*ctime(), *mktemp(), *malloc(), *realloc(), *getenv();
 extern	char	*arpadate(), *dirname(), *AllocCpy(), *strpbrk();
 extern	char	*errmsg();
 extern	struct	passwd *getpwnam(), *getpwuid(), *getpwent();
-extern	struct	group *getgrnam();
+extern	struct	group *getgrnam(), *getgrent();
+extern	void	setgrent();
 extern	time_t	time(), getdate(), cgtdate();
 extern	int	broadcast(), save(), newssave(), ushell(), onsig();
 extern	long	atol();
@@ -123,3 +124,76 @@ FILE *art_open(), *xart_open();
 #    define GENERICPATH HIDDENNET
 #  endif
 #endif
+
+#ifdef M_XENIX
+#define LOCKING
+#endif M_XENIX
+
+#ifdef LOCKING
+# ifndef LOCKF
+# define LOCKF
+# endif  /* LOCKF */
+/* fake SVID adivsory locking with xenix routines */
+#define lockf	locking
+#define F_ULOCK	0
+#define F_LOCK	3
+#define F_TLOCK	4
+#endif /* LOCKING */
+
+#ifdef IHCC
+#define DOGETUSER
+#define LOGDIR
+#endif /* IHCC */
+
+#ifdef BSD4_2
+#define MKDIRSUB
+#define READDIR
+#define RENAMESUB
+#endif /* BSD4_2 */
+
+#ifdef READDIR
+#include <sys/dir.h>
+#else /* !READDIR */
+#include "ndir.h"
+#endif /* !READDIR */
+
+#if defined(DBM) && !defined(M_XENIX)
+typedef struct {
+	char *dptr;
+	int dsize;
+} datum;
+#endif /* DBM &! XENIX */
+
+/* We save almost .5k by eliminating the multiple declarations of explicit  */
+/* strings these macros generate (e.g. STRCMP("dummy", cp) declares "dummy" */
+/* three times).  It's better than having unbuffered i/o. */
+#ifdef MKSTR
+#define	STRCMP(a,b)	strcmp(a,b)
+#define	STRNCMP(a,b,n)	strncmp(a,b,n)
+#else
+#define STRCMP(a,b)  ((*(a) != *(b)) ? (*(a)-*(b)) : strcmp((a)+1, (b)+1))
+#define STRNCMP(a,b,n)  ((*(a) != *(b)) ? (*(a)-*(b)) : strncmp(a, b, n))
+#endif
+extern char charmap[];
+#define PREFIX(a,b)  ((charmap[*(a)] != charmap[*(b)]) ? FALSE : prefix((a)+1, (b)+1))
+#define MKTEMP(a)	{if (mktemp(a) == 0) xerror("mktemp(%s): ", a);}
+
+#ifdef SERVER
+/* from clientlib.c */
+extern	char	*getserverbyfile();
+extern	int	server_init();
+extern  void	put_server();
+extern	int	get_server();
+extern	void	close_server();
+/* from nntp.c */
+extern	FILE	*open_active();
+extern	int	open_server();
+extern	char	*set_group();
+extern	char	*active_name();
+extern	char	*group_name();
+extern	FILE	*getarticle();
+extern	FILE	*getartbyid();
+extern	char	*article_name();
+extern	void	sync_server();
+extern	int	strindex();
+#endif /* SERVER */

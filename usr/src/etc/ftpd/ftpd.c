@@ -1,18 +1,29 @@
 /*
  * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #ifndef lint
 char copyright[] =
 "@(#) Copyright (c) 1985 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif /* not lint */
 
 #ifndef lint
-static char sccsid[] = "@(#)ftpd.c	5.9 (Berkeley) 4/23/87";
-#endif not lint
+static char sccsid[] = "@(#)ftpd.c	5.17 (Berkeley) 11/1/88";
+#endif /* not lint */
 
 /*
  * FTP server.
@@ -53,6 +64,7 @@ extern	char version[];
 extern	char *home;		/* pointer to home directory for glob */
 extern	FILE *popen(), *fopen(), *freopen();
 extern	int  pclose(), fclose();
+extern	time_t time();
 extern	char *getline();
 extern	char cbuf[];
 
@@ -69,7 +81,6 @@ int	debug;
 int	timeout = 900;    /* timeout after 15 minutes of inactivity */
 int	logging;
 int	guest;
-int	wtmp;
 int	type;
 int	form;
 int	stru;			/* avoid C keyword */
@@ -150,9 +161,9 @@ nextopt:
 	(void) freopen("/dev/null", "w", stderr);
 	(void) signal(SIGPIPE, lostconn);
 	(void) signal(SIGCHLD, SIG_IGN);
-	if (signal(SIGURG, myoob) < 0) {
+	if ((int)signal(SIGURG, myoob) < 0)
 		syslog(LOG_ERR, "signal: %m");
-	}
+
 	/* handle urgent data inline */
 #ifdef SO_OOBINLINE
 	if (setsockopt(0, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)) < 0) {
@@ -168,7 +179,6 @@ nextopt:
 	/*
 	 * Set up default state
 	 */
-	logged_in = 0;
 	data = -1;
 	type = TYPE_A;
 	form = FORM_N;
@@ -192,11 +202,69 @@ lostconn()
 	dologout(-1);
 }
 
+static char ttyline[20];
+
+/*
+ * Helper function for sgetpwnam().
+ */
+char *
+sgetsave(s)
+	char *s;
+{
+#ifdef notdef
+	char *new = strdup(s);
+#else
+	char *malloc();
+	char *new = malloc((unsigned) strlen(s) + 1);
+#endif
+	
+	if (new == NULL) {
+		reply(553, "Local resource failure");
+		dologout(1);
+	}
+#ifndef notdef
+	(void) strcpy(new, s);
+#endif
+	return (new);
+}
+
+/*
+ * Save the result of a getpwnam.  Used for USER command, since
+ * the data returned must not be clobbered by any other command
+ * (e.g., globbing).
+ */
+struct passwd *
+sgetpwnam(name)
+	char *name;
+{
+	static struct passwd save;
+	register struct passwd *p;
+	char *sgetsave();
+
+	if ((p = getpwnam(name)) == NULL)
+		return (p);
+	if (save.pw_name) {
+		free(save.pw_name);
+		free(save.pw_passwd);
+		free(save.pw_comment);
+		free(save.pw_gecos);
+		free(save.pw_dir);
+		free(save.pw_shell);
+	}
+	save = *p;
+	save.pw_name = sgetsave(p->pw_name);
+	save.pw_passwd = sgetsave(p->pw_passwd);
+	save.pw_comment = sgetsave(p->pw_comment);
+	save.pw_gecos = sgetsave(p->pw_gecos);
+	save.pw_dir = sgetsave(p->pw_dir);
+	save.pw_shell = sgetsave(p->pw_shell);
+	return (&save);
+}
+
 pass(passwd)
 	char *passwd;
 {
-	char *xpasswd, *savestr();
-	static struct passwd save;
+	char *xpasswd;
 
 	if (logged_in || pw == NULL) {
 		reply(503, "Login with USER first.");
@@ -219,52 +287,25 @@ pass(passwd)
 		goto bad;
 	}
 
-	/* grab wtmp before chroot */
-	wtmp = open("/usr/adm/wtmp", O_WRONLY|O_APPEND);
-	if (guest && chroot(pw->pw_dir) < 0) {
-		reply(550, "Can't set guest privileges.");
-		if (wtmp >= 0) {
-			(void) close(wtmp);
-			wtmp = -1;
-		}
-		goto bad;
-	}
-	if (!guest)
-		reply(230, "User %s logged in.", pw->pw_name);
-	else
-		reply(230, "Guest login ok, access restrictions apply.");
+	/* open wtmp before chroot */
+	(void)sprintf(ttyline, "ftp%d", getpid());
+	logwtmp(ttyline, pw->pw_name, remotehost);
 	logged_in = 1;
-	dologin(pw);
+
+	if (guest) {
+		if (chroot(pw->pw_dir) < 0) {
+			reply(550, "Can't set guest privileges.");
+			goto bad;
+		}
+		reply(230, "Guest login ok, access restrictions apply.");
+	} else
+		reply(230, "User %s logged in.", pw->pw_name);
 	seteuid(pw->pw_uid);
-	/*
-	 * Save everything so globbing doesn't
-	 * clobber the fields.
-	 */
-	save = *pw;
-	save.pw_name = savestr(pw->pw_name);
-	save.pw_passwd = savestr(pw->pw_passwd);
-	save.pw_comment = savestr(pw->pw_comment);
-	save.pw_gecos = savestr(pw->pw_gecos);
-	save.pw_dir = savestr(pw->pw_dir);
-	save.pw_shell = savestr(pw->pw_shell);
-	pw = &save;
 	home = pw->pw_dir;		/* home dir for globbing */
 	return;
 bad:
 	seteuid(0);
 	pw = NULL;
-}
-
-char *
-savestr(s)
-	char *s;
-{
-	char *malloc();
-	char *new = malloc((unsigned) strlen(s) + 1);
-	
-	if (new != NULL)
-		(void) strcpy(new, s);
-	return (new);
 }
 
 retrieve(cmd, name)
@@ -422,9 +463,8 @@ dataconn(name, size, mode)
 		}
 		(void) close(pdata);
 		pdata = s;
-		reply(150, "Openning data connection for %s (%s,%d)%s.",
-		     name, inet_ntoa(from.sin_addr),
-		     ntohs(from.sin_port), sizebuf);
+		reply(150, "Opening data connection for %s (%s mode)%s.",
+		     name, type == TYPE_A ? "ascii" : "binary", sizebuf);
 		return(fdopen(pdata, mode));
 	}
 	if (data >= 0) {
@@ -457,9 +497,8 @@ dataconn(name, size, mode)
 		data = -1;
 		return (NULL);
 	}
-	reply(150, "Opening data connection for %s (%s,%d)%s.",
-	    name, inet_ntoa(data_dest.sin_addr),
-	    ntohs(data_dest.sin_port), sizebuf);
+	reply(150, "Opening data connection for %s (%s mode)%s.",
+	    name, type == TYPE_A ? "ascii" : "binary", sizebuf);
 	return (file);
 }
 
@@ -594,34 +633,32 @@ fatal(s)
 	dologout(0);
 }
 
-/*VARARGS2*/
-reply(n, s, args)
+reply(n, s, p0, p1, p2, p3, p4)
 	int n;
 	char *s;
 {
 
 	printf("%d ", n);
-	_doprnt(s, &args, stdout);
+	printf(s, p0, p1, p2, p3, p4);
 	printf("\r\n");
 	(void) fflush(stdout);
 	if (debug) {
 		syslog(LOG_DEBUG, "<--- %d ", n);
-		syslog(LOG_DEBUG, s, &args);
+		syslog(LOG_DEBUG, s, p0, p1, p2, p3, p4);
 	}
 }
 
-/*VARARGS2*/
-lreply(n, s, args)
+lreply(n, s, p0, p1, p2, p3, p4)
 	int n;
 	char *s;
 {
 	printf("%d-", n);
-	_doprnt(s, &args, stdout);
+	printf(s, p0, p1, p2, p3, p4);
 	printf("\r\n");
 	(void) fflush(stdout);
 	if (debug) {
 		syslog(LOG_DEBUG, "<--- %d- ", n);
-		syslog(LOG_DEBUG, s, &args);
+		syslog(LOG_DEBUG, s, p0, p1, p2, p3, p4);
 	}
 }
 
@@ -764,34 +801,6 @@ dolog(sin)
 	syslog(LOG_INFO,"FTPD: connection from %s at %s", remotehost, ctime(&t));
 }
 
-#include <utmp.h>
-
-#define	SCPYN(a, b)	(void) strncpy(a, b, sizeof (a))
-struct	utmp utmp;
-
-/*
- * Record login in wtmp file.
- */
-dologin(pw)
-	struct passwd *pw;
-{
-	char line[32];
-
-	if (wtmp >= 0) {
-		/* hack, but must be unique and no tty line */
-		(void) sprintf(line, "ftp%d", getpid());
-		SCPYN(utmp.ut_line, line);
-		SCPYN(utmp.ut_name, pw->pw_name);
-		SCPYN(utmp.ut_host, remotehost);
-		utmp.ut_time = (long) time((time_t *) 0);
-		(void) write(wtmp, (char *)&utmp, sizeof (utmp));
-		if (!guest) {		/* anon must hang on */
-			(void) close(wtmp);
-			wtmp = -1;
-		}
-	}
-}
-
 /*
  * Record logout in wtmp file
  * and exit with supplied status.
@@ -799,129 +808,12 @@ dologin(pw)
 dologout(status)
 	int status;
 {
-
 	if (logged_in) {
 		(void) seteuid(0);
-		if (wtmp < 0)
-			wtmp = open("/usr/adm/wtmp", O_WRONLY|O_APPEND);
-		if (wtmp >= 0) {
-			SCPYN(utmp.ut_name, "");
-			SCPYN(utmp.ut_host, "");
-			utmp.ut_time = (long) time((time_t *) 0);
-			(void) write(wtmp, (char *)&utmp, sizeof (utmp));
-			(void) close(wtmp);
-		}
+		logwtmp(ttyline, "", "");
 	}
 	/* beware of flushing buffers after a SIGPIPE */
 	_exit(status);
-}
-
-/*
- * Special version of popen which avoids
- * call to shell.  This insures noone may 
- * create a pipe to a hidden program as a side
- * effect of a list or dir command.
- */
-#define	tst(a,b)	(*mode == 'r'? (b) : (a))
-#define	RDR	0
-#define	WTR	1
-static	int popen_pid[5];
-
-static char *
-nextarg(cpp)
-	char *cpp;
-{
-	register char *cp = cpp;
-
-	if (cp == 0)
-		return (cp);
-	while (*cp && *cp != ' ' && *cp != '\t')
-		cp++;
-	if (*cp == ' ' || *cp == '\t') {
-		*cp++ = '\0';
-		while (*cp == ' ' || *cp == '\t')
-			cp++;
-	}
-	if (cp == cpp)
-		return ((char *)0);
-	return (cp);
-}
-
-FILE *
-popen(cmd, mode)
-	char *cmd, *mode;
-{
-	int p[2], ac, gac;
-	register myside, hisside, pid;
-	char *av[20], *gav[512];
-	register char *cp;
-
-	if (pipe(p) < 0)
-		return (NULL);
-	cp = cmd, ac = 0;
-	/* break up string into pieces */
-	do {
-		av[ac++] = cp;
-		cp = nextarg(cp);
-	} while (cp && *cp && ac < 20);
-	av[ac] = (char *)0;
-	gav[0] = av[0];
-	/* glob each piece */
-	for (gac = ac = 1; av[ac] != NULL; ac++) {
-		char **pop;
-		extern char **glob(), **copyblk();
-
-		pop = glob(av[ac]);
-		if (pop == (char **)NULL) {	/* globbing failed */
-			char *vv[2];
-
-			vv[0] = av[ac];
-			vv[1] = 0;
-			pop = copyblk(vv);
-		}
-		av[ac] = (char *)pop;		/* save to free later */
-		while (*pop && gac < 512)
-			gav[gac++] = *pop++;
-	}
-	gav[gac] = (char *)0;
-	myside = tst(p[WTR], p[RDR]);
-	hisside = tst(p[RDR], p[WTR]);
-	if ((pid = fork()) == 0) {
-		/* myside and hisside reverse roles in child */
-		(void) close(myside);
-		(void) dup2(hisside, tst(0, 1));
-		(void) close(hisside);
-		execv(gav[0], gav);
-		_exit(1);
-	}
-	for (ac = 1; av[ac] != NULL; ac++)
-		blkfree((char **)av[ac]);
-	if (pid == -1)
-		return (NULL);
-	popen_pid[myside] = pid;
-	(void) close(hisside);
-	return (fdopen(myside, mode));
-}
-
-pclose(ptr)
-	FILE *ptr;
-{
-	register f, r, (*hstat)(), (*istat)(), (*qstat)();
-	int status;
-
-	f = fileno(ptr);
-	(void) fclose(ptr);
-	istat = signal(SIGINT, SIG_IGN);
-	qstat = signal(SIGQUIT, SIG_IGN);
-	hstat = signal(SIGHUP, SIG_IGN);
-	while ((r = wait(&status)) != popen_pid[f] && r != -1)
-		;
-	if (r == -1)
-		status = -1;
-	(void) signal(SIGINT, istat);
-	(void) signal(SIGQUIT, qstat);
-	(void) signal(SIGHUP, hstat);
-	return (status);
 }
 
 /*
@@ -935,28 +827,26 @@ checkuser(name)
 	register char *name;
 {
 	register char *cp;
-	char line[BUFSIZ], *index(), *getusershell();
 	FILE *fd;
-	struct passwd *pw;
+	struct passwd *p;
+	char *shell;
 	int found = 0;
+	char line[BUFSIZ], *index(), *getusershell();
 
-	pw = getpwnam(name);
-	if (pw == NULL)
+	if ((p = getpwnam(name)) == NULL)
 		return (0);
-	if (pw ->pw_shell == NULL || pw->pw_shell[0] == NULL)
-		pw->pw_shell = "/bin/sh";
+	if ((shell = p->pw_shell) == NULL || *shell == 0)
+		shell = "/bin/sh";
 	while ((cp = getusershell()) != NULL)
-		if (strcmp(cp, pw->pw_shell) == 0)
+		if (strcmp(cp, shell) == 0)
 			break;
 	endusershell();
 	if (cp == NULL)
 		return (0);
-	fd = fopen(FTPUSERS, "r");
-	if (fd == NULL)
+	if ((fd = fopen(FTPUSERS, "r")) == NULL)
 		return (1);
 	while (fgets(line, sizeof (line), fd) != NULL) {
-		cp = index(line, '\n');
-		if (cp)
+		if ((cp = index(line, '\n')) != NULL)
 			*cp = '\0';
 		if (strcmp(line, name) == 0) {
 			found++;

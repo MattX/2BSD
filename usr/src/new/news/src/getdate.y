@@ -3,8 +3,9 @@
 	/* 	Originally from: Steven M. Bellovin (unc!smb)	*/ 
 	/*	Dept. of Computer Science			*/
 	/*	University of North Carolina at Chapel Hill	*/
-	/*	@(#)getdate.y	2.15	12/16/86	*/
+	/*	@(#)getdate.y	2.17	11/30/87			*/
 
+#include "defs.h"
 #include <sys/types.h>
 #ifdef USG
 struct timeb
@@ -19,7 +20,6 @@ struct timeb
 #endif
 #include <ctype.h>
 
-#include "defs.h"
 #if defined(BSD4_2) || defined (BSD4_1C)
 #include <sys/time.h>
 #else /* sane */
@@ -244,7 +244,7 @@ yylex()
 		} else if (isalpha(c)) {
 			p = idbuf;
 			while (isalpha(c = *lptr++) || c=='.')
-				*p++ = c;
+				if (p < &idbuf[sizeof(idbuf)-1]) *p++ = c;
 			*p = '\0';
 			lptr--;
 			return (lookup(idbuf));
@@ -557,7 +557,11 @@ struct timeb *now;
 		sdate += tod;
 	}
 
-	return sdate;
+	/*
+	** Have to do *something* with a legitimate -1 so it's distinguishable
+	** from the error return value.  (Alternately could set errno on error.)
+	*/
+	return (sdate == -1) ? 0 : sdate;
 }
 
 yyerror(s) char *s;

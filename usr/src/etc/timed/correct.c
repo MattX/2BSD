@@ -23,7 +23,7 @@ correct(avdelta)
 long avdelta;
 {
 	int i;
-	int corr;
+	long corr;
 	struct timeval adjlocal;
 	struct tsp msgs;
 	struct timeval mstotvround();
@@ -34,7 +34,7 @@ long avdelta;
 		if (hp[i].delta == HOSTDOWN)
 			fprintf(fp, "%s\t", "down");
 		else { 
-			fprintf(fp, "%d\t", hp[i].delta);
+			fprintf(fp, "%ld\t", hp[i].delta);
 		}
 	}
 	fprintf(fp, "\n");
@@ -43,7 +43,7 @@ long avdelta;
 	adjlocal = mstotvround(&corr);
 	adjclock(&adjlocal);
 #ifdef MEASURE
-	fprintf(fp, "%d\t", corr);
+	fprintf(fp, "%ld\t", corr);
 #endif
 
 	for(i=1; i<slvcount; i++) {
@@ -59,7 +59,7 @@ long avdelta;
 #ifdef MEASURE
 				fprintf(fp, "%s\t", "down");
 			} else {
-				fprintf(fp, "%d\t", corr);
+				fprintf(fp, "%ld\t", corr);
 #endif
 			}
 		} else {
@@ -79,7 +79,7 @@ long avdelta;
  */
  
 struct timeval mstotvround(x)
-int *x;
+long *x;
 {
 	int temp;
 	struct timeval adj;
@@ -112,7 +112,7 @@ struct timeval *corr;
 			(void)adjtime(corr, (struct timeval *)0);
 		} else {
 			syslog(LOG_WARNING,
-			    "clock correction too large to adjust (%d sec)",
+			    "clock correction too large to adjust (%ld sec)",
 			    corr->tv_sec);
 			(void) gettimeofday(&now, (struct timezone *)0);
 			timevaladd(&now, corr);

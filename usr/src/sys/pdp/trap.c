@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)trap.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)trap.c	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 #include "param.h"
@@ -18,6 +18,12 @@
 #include "proc.h"
 #include "vm.h"
 
+extern int fpp;
+
+#ifdef UCB_NET
+extern int netoff;
+#endif
+
 #ifdef DIAGNOSTIC
 extern int hasmap;
 static int savhasmap;
@@ -31,7 +37,6 @@ char regloc[] = {
 	R0, R1, R2, R3, R4, R5, R6, R7, RPS
 };
 
-#ifndef NONFP
 /*
  * Translation table to convert the FP-11 FECs (Floating Exception Codes) to
  * the various FPE_... codes defined in <signal.h>.  On the VAX these come
@@ -55,7 +60,6 @@ static int	pdpfec[16] = {
 	FPE_MAINT_TRAP,		/* 14: maintenance trap */
 	FPE_CRAZY,		/* 15: not a legal FEC code */
 };
-#endif
 
 /*
  * Called from mch.s when a processor trap occurs.
@@ -97,8 +101,12 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	if (USERMODE(ps))
 		dev |= USER;
 	else
-		/* guarantee normal kernel mapping */
-		savemap(kernelmap);
+#ifdef UCB_NET
+	if (SUPVMODE(ps))
+		dev |= SUPV;
+	else
+#endif
+		savemap(kernelmap);	/* guarantee normal kernel mapping */
 	syst = u.u_ru.ru_stime;
 	p = u.u_procp;
 #ifndef NONFP
@@ -139,19 +147,40 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 		printf("trap type %o\n", dev);
 		splx(i);
 		panic("trap");
+		/*NOTREACHED*/
 
 	case T_BUSFLT + USER:
 		i = SIGBUS;
 		break;
 
-	/*
-	 * If illegal instructions are not being caught and the offending
-	 * instruction is a SETD, the trap is ignored.  This is because C
-	 * produces a SETD at the beginning of every program which will
-	 * trap on CPUs without an FP-11.
-	 */
-#define	SETD	0170011		/* SETD instruction */
 	case T_INSTRAP + USER:
+#if defined(FPSIM) || defined(GENERIC)
+		/*
+		 * If no floating point hardware is present, see if the
+		 * offending instruction was a floating point instruction ...
+		 */
+		if (fpp == 0) {
+			i = fptrap();
+#ifdef UCB_METER
+			if (i != SIGILL) {
+				cnt.v_fpsim++;
+			}
+#endif
+			if (i == 0)
+				goto out;
+			if (i == SIGTRAP)
+				ps &= ~PSL_T;
+			u.u_code = pdpfec[(unsigned)u.u_fperr.f_fec & 0xf];
+			break;
+		}
+#endif
+		/*
+		 * If illegal instructions are not being caught and the
+		 * offending instruction is a SETD, the trap is ignored.
+		 * This is because C produces a SETD at the beginning of
+		 * every program which will trap on CPUs without an FP-11.
+		 */
+#define	SETD	0170011		/* SETD instruction */
 		if(fuiword((caddr_t)(pc-2)) == SETD && u.u_signal[SIGILL] == 0)
 			goto out;
 		i = SIGILL;
@@ -178,17 +207,13 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 * case, a signal is sent to the current process to be picked
 	 * up later.
 	 */
+#ifdef UCB_NET
+	case T_ARITHTRAP+SUPV:
+#endif
 	case T_ARITHTRAP:
-		stst(&u.u_fperr);	/* save error code and address */
-		u.u_code = pdpfec[(unsigned)u.u_fperr.f_fec & 0xf];
-		psignal(p, SIGFPE);
-		runrun++;
-		restormap(kernelmap);
-		return;
-
 	case T_ARITHTRAP + USER:
 		i = SIGFPE;
-		stst(&u.u_fperr);
+		stst(&u.u_fperr);	/* save error code and address */
 		u.u_code = pdpfec[(unsigned)u.u_fperr.f_fec & 0xf];
 		break;
 #endif
@@ -221,6 +246,9 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 */
 	case T_PARITYFLT:
 	case T_PARITYFLT + USER:
+#ifdef UCB_NET
+	case T_PARITYFLT + SUPV:
+#endif
 		printf("parity\n");
 		if ((cputype == 70) || (cputype == 44)) {
 			for(i = 0; i < 4; i++)
@@ -233,6 +261,7 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 			}
 		}
 		panic("parity");
+		/*NOTREACHED*/
 #endif
 
 	/*
@@ -240,6 +269,27 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 	 */
 	case T_SWITCHTRAP + USER:
 		goto out;
+#ifdef UCB_NET
+	case T_BUSFLT+SUPV:
+	case T_INSTRAP+SUPV:
+	case T_BPTTRAP+SUPV:
+	case T_IOTTRAP+SUPV:
+	case T_EMTTRAP+SUPV:
+	case T_PIRQ+SUPV:
+	case T_SEGFLT+SUPV:
+	case T_SYSCALL+SUPV:
+	case T_SWITCHTRAP+SUPV:
+	case T_ZEROTRAP+SUPV:
+	case T_RANDOMTRAP+SUPV:
+		i = splhigh();
+		printf("Unexpected net code trap (%o)\n", dev-SUPV);
+		printf("ka6 = %o\n", *ka6);
+		printf("aps = %o\n", &ps);
+		printf("pc = %o ps = %o\n", pc, ps);
+		splx(i);
+		panic("net crashed");
+		/*NOTREACHED*/
+#endif
 
 	/*
 	 * Whenever possible, locations 0-2 specify this style trap, since
@@ -260,25 +310,7 @@ trap(dev, sp, r1, ov, nps, r0, pc, ps)
 			restormap(kernelmap);
 		return;
 	}
-
-	/*
-	 * If there is a trap from user mode and it is caught, send the
-	 * signal now.  This prevents user-mode exceptions from being
-	 * delayed by other signals, and in addition is more efficient in
-	 * the case of SIGILL and floating-point simulation.
-	 */
-	{
-		long mask = sigmask(i);
-
-		if ((mask & p->p_sigcatch) && !(mask & p->p_sigmask)
-		    && !(p->p_flag & STRC)) {
-			p->p_sig &= ~mask;	/* just in case ... */
-			p->p_cursig = i;
-			psig();
-		}
-		else
-			psignal(p, i);
-	}
+	psignal(p, i);
 out:
 	if (p->p_cursig || ISSIG(p))
 		psig();

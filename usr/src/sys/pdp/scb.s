@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)scb.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)scb.s	1.1 (2.10BSD Berkeley) 7/8/88
  */
 
 #include "DEFS.h"
@@ -11,36 +11,42 @@
 #include "../machine/mch_iopage.h"
 #include "../machine/koverlay.h"	/* for OVLY_TABLE_BASE */
 
+#include "acc.h"
+#include "css.h"
 #include "de.h"
 #include "dh.h"
 #include "dhu.h"
+#include "dn.h"
 #include "dr.h"
 #include "dz.h"
+#include "ec.h"
 #include "hk.h"
 #include "ht.h"
 #include "il.h"
-#include "imp.h"
 #include "lp.h"
-#include "npup.h"
 #include "qe.h"
 #include "ra.h"
 #include "rk.h"
 #include "rl.h"
+#include "br.h"
 #include "rx.h"
 #include "si.h"
 #include "sri.h"
 #include "tm.h"
 #include "ts.h"
-#include "vv.h"
 #include "xp.h"
+#include "vv.h"
+
+/*
+ * Reference the global symbol "_end" so that ld(1) will define it for us.
+ * Checksys needs this so it can verify that NOKA5 isn't defined if the
+ * kernel's data space extends into segment five.
+ */
+.globl _end
 
 
-#ifndef NONFP
-#	define	instrap	trap
-#endif
-
-
-br4 = 200
+sup = 40000				/* current supervisor previous kernel */
+br4 = 200				/* PS interrupt priority masks */
 br5 = 240
 br6 = 300
 br7 = 340
@@ -68,15 +74,19 @@ SETDOT(0)
 	 */
 	42			/* illegal instruction if jump */
 	777			/* trace trap at high priority if trap */
-#else !KERN_NONSEP
+#else
 	TRAP(trap,	br7+T_ZEROTRAP)	/* trap-to-zero trap */
-#endif KERN_NONSEP
+#endif
 
 SETDOT(4)				/* trap vectors */
-	TRAP(buserr,	br7+T_BUSFLT)	/* bus error */
-	TRAP(instrap,	br7+T_INSTRAP)	/* illegal instruction */
+	TRAP(trap,	br7+T_BUSFLT)	/* bus error */
+	TRAP(trap,	br7+T_INSTRAP)	/* illegal instruction */
 	TRAP(trap,	br7+T_BPTTRAP)	/* bpt-trace trap */
+#ifdef UCB_NET
+	TRAP(iothndlr,	br7+T_IOTTRAP)	/* network uses iot */
+#else
 	TRAP(trap,	br7+T_IOTTRAP)	/* iot trap */
+#endif
 	TRAP(powrdown,	br7+T_POWRFAIL)	/* power fail */
 	TRAP(emt,	br7+T_EMTTRAP)	/* emulator trap */
 	TRAP(start,	br7+T_SYSCALL)	/* system (overlaid by 'syscall') */
@@ -95,7 +105,6 @@ SETDOT(50)				/* handler for jump-to-zero panic. */
 	jsr	pc, _panic
 #endif
 
-
 	DEVTRAP(60,	cnrint,	br4)	/* KL11 console */
 	DEVTRAP(64,	cnxint,	br4)
 
@@ -103,9 +112,9 @@ SETDOT(50)				/* handler for jump-to-zero panic. */
 
 #ifdef PROFILE
 	DEVTRAP(104,	_sprof,	br7)	/* KW11-P clock */
-#else !PROFILE
+#else
 	DEVTRAP(104,	hardclock, br6)
-#endif PROFILE
+#endif
 
 
 SETDOT(114)
@@ -113,7 +122,12 @@ SETDOT(114)
 
 
 #if NDE > 0				/* DEUNA */
-	DEVTRAP(120,	deintr,	br5)
+	DEVTRAP(120,	deintr,	sup|br5)
+#endif
+
+#if NCSS > 0				/* IMP-11A */
+	DEVTRAP(124,	cssrint,sup|br5)
+	/* note that the transmit interrupt vector is up at 274 ... */
 #endif
 
 #if NDR > 0				/* DR-11W */
@@ -133,10 +147,6 @@ SETDOT(114)
 	DEVTRAP(170,	siintr,	br5)
 #endif
 
-#if NLP > 0				/* LP-11 */
-	DEVTRAP(200,	lpintr,	br4)
-#endif
-
 #if NHK > 0				/* RK611, RK06/07 */
 	DEVTRAP(210,	hkintr,	br5)
 #endif
@@ -151,6 +161,9 @@ SETDOT(240)
 	TRAP(trap,	br7+T_ARITHTRAP)	/* floating point */
 	TRAP(trap,	br7+T_SEGFLT)		/* segmentation violation */
 
+#if NBR > 0
+	DEVTRAP(254,	brintr, br5)	/* EATON BR1537 or EATON BR1711 */
+#endif
 
 #if NXPD > 0				/* RM02/03/05, RP04/05/06 */
 					/* DIVA, SI Eagle */
@@ -162,27 +175,45 @@ SETDOT(240)
 #endif
 
 #if NACC > 0				/* ACC LH/DH-11 */
-	DEVTRAP(270,	accrint, br5+0.)
-	DEVTRAP(274,	accxint, br5+0.)
+	DEVTRAP(270,	accrint, sup|br5)
+	DEVTRAP(274,	accxint, sup|br5)
+#endif
+
+#if NCSS > 0				/* IMP-11A */
+	/* note that the receive interrupt vector is down at 124 ... */
+	DEVTRAP(274,	cssxint,sup|br5)
 #endif
 
 #if NIL > 0				/* Interlan Ethernet */
-	DEVTRAP(340,	ilrint,	br5+0.)
-	DEVTRAP(344,	ilcint,	br5+0.)
+	DEVTRAP(340,	ilrint,	sup|br5)
+	DEVTRAP(344,	ilcint,	sup|br5)
 #endif
 
 #if NVV > 0				/* V2LNI */
-	DEVTRAP(350,	vvrint,	br5+0.)
-	DEVTRAP(354,	vvxint,	br5+0.)
+	DEVTRAP(350,	vvrint,	sup|br5)
+	DEVTRAP(354,	vvxint,	sup|br5)
+#endif
+
+#if NEC > 0				/* 3Com ethernet */
+	/*
+	 * These are almost certainly wrong for any given site since the
+	 * 3Com seems to be somewhat randomly configured.  Pay particular
+	 * attention to the interrupt priority levels: if they're too low
+	 * you'll get recursive interrupts; if they're too high you'll lock
+	 * out important interrupts (like the clock).
+	 */
+	DEVTRAP(360,	ecrint,	sup|br6)
+	DEVTRAP(364,	eccollide,sup|br4)
+	DEVTRAP(370,	ecxint,	sup|br6)
 #endif
 
 #if NQE > 0				/* DEQNA */
-	DEVTRAP(400,	qeintr,	br5+0.)
+	DEVTRAP(400,	qeintr,	sup|br5)
 #endif
 
 #if NSRI > 0				/* SRI DR11-C ARPAnet IMP */
-	DEVTRAP(500,	srixint, br5+0.)
-	DEVTRAP(504,	srirint, br5+0.)
+	DEVTRAP(500,	srixint, sup|br5)
+	DEVTRAP(504,	srirint, sup|br5)
 #endif
 
 
@@ -191,7 +222,7 @@ SETDOT(240)
  * should be at least 450.
  */
 SETDOT(1000)
-endvec = .
+CONST(GLOBAL, endvec, .)
 
 /*
  * The overlay tables are initialized by boot.  Ovhndlr, cret and call use
@@ -214,7 +245,7 @@ TEXTZERO:				/ base of system program text
 	mov	$zjmp,-(sp)
 	jsr	pc,_panic
 	/*NOTREACHED*/
-#endif !KERN_NONSEP
+#endif
 
 STRING(LOCAL, zjmp, <jump to 0\0>)
 
@@ -229,7 +260,7 @@ ASENTRY(unmap)
 	 * The next instruction executed is from unmap+2 in physical memory,
 	 * which is unmap+2 in data space.
 	 */
-#endif !KERN_NONSEP
+#endif
 
 /*
  * Halt cpu in its tracks ...
@@ -276,15 +307,10 @@ do_panic:
 #define	HANDLER(handler)	.globl _/**/handler; \
 				handler: jsr r0,call; jmp _/**/handler
 
-
 	HANDLER(cnrint)			/* KL-11, DL-11 */
 	HANDLER(cnxint)
 
 	HANDLER(hardclock)
-
-#if NDE > 0				/* DEUNA */
-	HANDLER(deintr)
-#endif
 
 #if NDR > 0				/* DR-11W */
 	HANDLER(drintr)
@@ -314,8 +340,8 @@ do_panic:
 	HANDLER(rkintr)
 #endif
 
-#ifdef USE_PIRQS
-	HANDLER(pirint)			/* program interrupt request */
+#if NBR > 0
+	HANDLER(brintr)			/* EATON BR1537/BR1711 */
 #endif
 
 #if NXPD > 0				/* RM02/03/05, RP04/05/06 */
@@ -324,30 +350,6 @@ do_panic:
 
 #if NRX > 0				/* RX01/02 */
 	HANDLER(rxintr)
-#endif
-
-#if NACC > 0
-	HANDLER(accrint)
-	HANDLER(accxint)
-#endif
-
-#if NIL > 0				/* Interlan Ethernet */
-	HANDLER(ilrint)
-	HANDLER(ilcint)
-#endif
-
-#if NVV > 0				/* V2LNI */
-	HANDLER(vvrint)
-	HANDLER(vvxint)
-#endif
-
-#if NSRI > 0				/* SRI DR11-C ARPAnet IMP */
-	HANDLER(srirint)
-	HANDLER(srixint)
-#endif
-
-#if NQE > 0				/* DEQNA */
-	HANDLER(qeintr)
 #endif
 
 #if NHT > 0				/* TJU77, TWU77, TJE16, TWE16 */
@@ -374,6 +376,10 @@ do_panic:
 #if NDHU > 0				/* DHU, DHV */
 	HANDLER(dhurint)
 	HANDLER(dhuxint)
+#endif
+
+#if NDN > 0				/* DN11 */
+	HANDLER(dnint)
 #endif
 
 #if NDZ > 0				/* DZ */

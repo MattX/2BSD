@@ -25,6 +25,7 @@ char usedir[100];
 static int full = 1000;
 static int tags = 0;
 char *sinput, *soutput, *tagout;
+extern int keepold;
 long indexdate = 0, gdate();
 int soutlen = 1000;
 int taglen = 1000;
@@ -124,6 +125,9 @@ char *argv[];
 
 		if (ckexist(indexname, ".ib"))
 		{
+			keepold = 0;	/* Use index file, even if out of date
+					 * (but print warning).
+					 */
 # if D1
 			fprintf(stderr, "found old index\n");
 # endif

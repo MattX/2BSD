@@ -1,31 +1,29 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_uba.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_uba.c	7.9 (Berkeley) 5/24/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
-#include "domain.h"
-#include "protosw.h"
 #include "mbuf.h"
-#include "buf.h"
-#include "pdpuba/ubavar.h"
-
-#ifdef UNIBUS_MAP
 #include "map.h"
-#include "uba.h"
-#endif
-
+#include "buf.h"
+#include "cmap.h"
+#include "vmmac.h"
 #include "socket.h"
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <vaxif/if_uba.h>
+#include "syslog.h"
+#include "malloc.h"
+
+#include "../net/if.h"
+
+#include "../vax/pte.h"
+#include "../vax/mtpr.h"
+#include "if_uba.h"
+#include "../vaxuba/ubareg.h"
+#include "../vaxuba/ubavar.h"
 
 /*
  * Routines supporting UNIBUS network interfaces.
@@ -34,28 +32,104 @@
  *	Support interfaces using only one BDP statically.
  */
 
-if_ubainit(ifu, uban, hlen, nmr)
-	register struct ifuba *ifu;
-	int uban, hlen, nmr;		/* nmr in 64 byte clicks */
+/*
+ * Init UNIBUS for interface on uban whose headers of size hlen are to
+ * end on a page boundary.  We allocate a UNIBUS map register for the page
+ * with the header, and nmr more UNIBUS map registers for i/o on the adapter,
+ * doing this once for each read and once for each write buffer.  We also
+ * allocate page frames in the mbuffer pool for these pages.
+ */
+if_ubaminit(ifu, uban, hlen, nmr, ifr, nr, ifw, nw)
+	register struct ifubinfo *ifu;
+	int uban, hlen, nmr, nr, nw;
+	register struct ifrw *ifr;
+	register struct ifxmt *ifw;
 {
-	if (ifu->ifu_r.ifrw_click)
-		return(1);
-	nmr = ctob(nmr);		/* convert clicks back to bytes */
-	ifu->ifu_r.ifrw_click = m_ioget(nmr+hlen);
-	ifu->ifu_w.ifrw_click = m_ioget(nmr+hlen);
-	if (ifu->ifu_r.ifrw_click == 0 || ifu->ifu_w.ifrw_click == 0) {
-		ifu->ifu_r.ifrw_click = ifu->ifu_w.ifrw_click = 0;
-		return(0);
+	register caddr_t p;
+	caddr_t cp;
+	int i, nclbytes, off;
+
+	if (hlen)
+		off = CLBYTES - hlen;
+	else
+		off = 0;
+	nclbytes = CLBYTES * (clrnd(nmr) / CLSIZE);
+	if (hlen)
+		nclbytes += CLBYTES;
+	if (ifr[0].ifrw_addr)
+		cp = ifr[0].ifrw_addr - off;
+	else {
+		cp = (caddr_t)malloc((u_long)((nr + nw) * nclbytes), M_DEVBUF,
+		    M_NOWAIT);
+		if (cp == 0)
+			return (0);
+		p = cp;
+		for (i = 0; i < nr; i++) {
+			ifr[i].ifrw_addr = p + off;
+			p += nclbytes;
+		}
+		for (i = 0; i < nw; i++) {
+			ifw[i].ifw_base = p;
+			ifw[i].ifw_addr = p + off;
+			p += nclbytes;
+		}
+		ifu->iff_hlen = hlen;
+		ifu->iff_uban = uban;
+		ifu->iff_uba = uba_hd[uban].uh_uba;
+		ifu->iff_ubamr = uba_hd[uban].uh_mr;
 	}
-#ifdef UNIBUS_MAP
-	ifu->ifu_r.ifrw_info = ubmalloc(0, ifu->ifu_r.ifrw_click, nmr+hlen, 0);
-	ifu->ifu_w.ifrw_info = ubmalloc(0, ifu->ifu_w.ifrw_click, nmr+hlen, 0);
-#else
-	ifu->ifu_r.ifrw_info = ((long)ifu->ifu_r.ifrw_click) * 64L;
-	ifu->ifu_w.ifrw_info = ((long)ifu->ifu_w.ifrw_click) * 64L;
-#endif
-	ifu->ifu_hlen = hlen;
-	return(1);
+	for (i = 0; i < nr; i++)
+		if (if_ubaalloc(ifu, &ifr[i], nmr) == 0) {
+			nr = i;
+			nw = 0;
+			goto bad;
+		}
+	for (i = 0; i < nw; i++)
+		if (if_ubaalloc(ifu, &ifw[i].ifrw, nmr) == 0) {
+			nw = i;
+			goto bad;
+		}
+	while (--nw >= 0) {
+		for (i = 0; i < nmr; i++)
+			ifw[nw].ifw_wmap[i] = ifw[nw].ifw_mr[i];
+		ifw[nw].ifw_xswapd = 0;
+		ifw[nw].ifw_flags = IFRW_W;
+		ifw[nw].ifw_nmr = nmr;
+	}
+	return (1);
+bad:
+	while (--nw >= 0)
+		ubarelse(ifu->iff_uban, &ifw[nw].ifw_info);
+	while (--nr >= 0)
+		ubarelse(ifu->iff_uban, &ifr[nr].ifrw_info);
+	free(cp, M_DEVBUF);
+	ifr[0].ifrw_addr = 0;
+	return (0);
+}
+
+/*
+ * Setup an ifrw structure by allocating UNIBUS map registers,
+ * possibly a buffered data path, and initializing the fields of
+ * the ifrw structure to minimize run-time overhead.
+ */
+static
+if_ubaalloc(ifu, ifrw, nmr)
+	struct ifubinfo *ifu;
+	register struct ifrw *ifrw;
+	int nmr;
+{
+	register int info;
+
+	info =
+	    uballoc(ifu->iff_uban, ifrw->ifrw_addr, nmr*NBPG + ifu->iff_hlen,
+	        ifu->iff_flags);
+	if (info == 0)
+		return (0);
+	ifrw->ifrw_info = info;
+	ifrw->ifrw_bdp = UBAI_BDP(info);
+	ifrw->ifrw_proto = UBAMR_MRV | (UBAI_BDP(info) << UBAMR_DPSHIFT);
+	ifrw->ifrw_mr = &ifu->iff_ubamr[UBAI_MR(info) + (ifu->iff_hlen? 1 : 0)];
+	return (1);
 }
 
 /*
@@ -64,22 +138,32 @@ if_ubainit(ifu, uban, hlen, nmr)
  * Off is non-zero if a trailer protocol was used, and
  * gives the offset of the trailer information.
  * We copy the trailer information and then all the normal
- * data into mbufs.
+ * data into mbufs.  When full cluster sized units are present
+ * on the interface on cluster boundaries we can get them more
+ * easily by remapping, and take advantage of this here.
+ * Prepend a pointer to the interface structure,
+ * so that protocols can determine where incoming packets arrived.
+ * Note: we may be called to receive from a transmit buffer by some
+ * devices.  In that case, we must force normal mapping of the buffer,
+ * so that the correct data will appear (only unibus maps are 
+ * changed when remapping the transmit buffers).
  */
 struct mbuf *
-if_rubaget(ifu, totlen, off0, ifp)
-	register struct ifuba *ifu;
+if_ubaget(ifu, ifr, totlen, off0, ifp)
+	struct ifubinfo *ifu;
+	register struct ifrw *ifr;
 	int totlen, off0;
 	struct ifnet *ifp;
 {
-	register caddr_t cp = (caddr_t)ifu->ifu_hlen;
-	register struct mbuf *m;
 	struct mbuf *top, **mp;
-	int click = ifu->ifu_r.ifrw_click;
+	register struct mbuf *m;
 	int off = off0, len;
+	register caddr_t cp = ifr->ifrw_addr + ifu->iff_hlen, pp;
 
 	top = 0;
 	mp = &top;
+	if (ifr->ifrw_flags & IFRW_W)
+		rcv_xmtbuf((struct ifxmt *)ifr);
 	while (totlen > 0) {
 		MGET(m, M_DONTWAIT, MT_DATA);
 		if (m == 0) {
@@ -89,21 +173,61 @@ if_rubaget(ifu, totlen, off0, ifp)
 		}
 		if (off) {
 			len = totlen - off;
-			cp = (caddr_t) (ifu->ifu_hlen + off);
+			cp = ifr->ifrw_addr + ifu->iff_hlen + off;
 		} else
 			len = totlen;
+		if (len >= CLBYTES/2) {
+			struct pte *cpte, *ppte;
+			int x, *ip, i;
+
+			/*
+			 * If doing the first mbuf and
+			 * the interface pointer hasn't been put in,
+			 * put it in a separate mbuf to preserve alignment.
+			 */
+			if (ifp) {
+				len = 0;
+				goto nopage;
+			}
+			MCLGET(m);
+			if (m->m_len != CLBYTES)
+				goto nopage;
+			m->m_len = MIN(len, CLBYTES);
+			if (!claligned(cp))
+				goto copy;
+
+			/*
+			 * Switch pages mapped to UNIBUS with new page pp,
+			 * as quick form of copy.  Remap UNIBUS and invalidate.
+			 */
+			pp = mtod(m, char *);
+			cpte = kvtopte(cp);
+			ppte = kvtopte(pp);
+			x = btop(cp - ifr->ifrw_addr);
+			ip = (int *)&ifr->ifrw_mr[x];
+			for (i = 0; i < CLSIZE; i++) {
+				struct pte t;
+				t = *ppte; *ppte++ = *cpte; *cpte = t;
+				*ip++ = cpte++->pg_pfnum|ifr->ifrw_proto;
+				mtpr(TBIS, cp);
+				cp += NBPG;
+				mtpr(TBIS, (caddr_t)pp);
+				pp += NBPG;
+			}
+			goto nocopy;
+		}
 nopage:
 		m->m_off = MMINOFF;
 		if (ifp) {
 			/*
-			 *	Leave room for ifp.
+			 * Leave room for ifp.
 			 */
 			m->m_len = MIN(MLEN - sizeof(ifp), len);
 			m->m_off += sizeof(ifp);
-		} else
+		} else 
 			m->m_len = MIN(MLEN, len);
 copy:
-		copyv(click, cp, m->m_click, m->m_off,(u_int)m->m_len);
+		bcopy(cp, mtod(m, caddr_t), (unsigned)m->m_len);
 		cp += m->m_len;
 nocopy:
 		*mp = m;
@@ -112,7 +236,7 @@ nocopy:
 			/* sort of an ALGOL-W style for statement... */
 			off += m->m_len;
 			if (off == totlen) {
-				cp = (caddr_t) ifu->ifu_hlen;
+				cp = ifr->ifrw_addr + ifu->iff_hlen;
 				off = 0;
 				totlen = off0;
 			}
@@ -120,142 +244,134 @@ nocopy:
 			totlen -= m->m_len;
 		if (ifp) {
 			/*
-			 *	Prepend interface pointer to first mbuf.
+			 * Prepend interface pointer to first mbuf.
 			 */
 			m->m_len += sizeof(ifp);
 			m->m_off -= sizeof(ifp);
-			MAPSAVE();
 			*(mtod(m, struct ifnet **)) = ifp;
-			MAPREST();
-			ifp = NULL;
+			ifp = (struct ifnet *)0;
 		}
 	}
 out:
-	return(top);
+	if (ifr->ifrw_flags & IFRW_W)
+		restor_xmtbuf((struct ifxmt *)ifr);
+	return (top);
+}
+
+/*
+ * Change the mapping on a transmit buffer so that if_ubaget may
+ * receive from that buffer.  Copy data from any pages mapped to Unibus
+ * into the pages mapped to normal kernel virtual memory, so that
+ * they can be accessed and swapped as usual.  We take advantage
+ * of the fact that clusters are placed on the xtofree list
+ * in inverse order, finding the last one.
+ */
+static
+rcv_xmtbuf(ifw)
+	register struct ifxmt *ifw;
+{
+	register struct mbuf *m;
+	struct mbuf **mprev;
+	register i;
+	char *cp;
+
+	while (i = ffs((long)ifw->ifw_xswapd)) {
+		cp = ifw->ifw_base + i * CLBYTES;
+		i--;
+		ifw->ifw_xswapd &= ~(1<<i);
+		mprev = &ifw->ifw_xtofree;
+		for (m = ifw->ifw_xtofree; m && m->m_next; m = m->m_next)
+			mprev = &m->m_next;
+		if (m == NULL)
+			break;
+		bcopy(mtod(m, caddr_t), cp, CLBYTES);
+		(void) m_free(m);
+		*mprev = NULL;
+	}
+	ifw->ifw_xswapd = 0;
+	for (i = 0; i < ifw->ifw_nmr; i++)
+		ifw->ifw_mr[i] = ifw->ifw_wmap[i];
+}
+
+/*
+ * Put a transmit buffer back together after doing an if_ubaget on it,
+ * which may have swapped pages.
+ */
+static
+restor_xmtbuf(ifw)
+	register struct ifxmt *ifw;
+{
+	register i;
+
+	for (i = 0; i < ifw->ifw_nmr; i++)
+		ifw->ifw_wmap[i] = ifw->ifw_mr[i];
 }
 
 /*
  * Map a chain of mbufs onto a network interface
  * in preparation for an i/o operation.
  * The argument chain of mbufs includes the local network
- * header.
+ * header which is copied to be in the mapped, aligned
+ * i/o space.
  */
-if_wubaput(ifu, m)
-	register struct ifuba *ifu;
+if_ubaput(ifu, ifw, m)
+	struct ifubinfo *ifu;
+	register struct ifxmt *ifw;
 	register struct mbuf *m;
 {
 	register struct mbuf *mp;
-	u_short off = 0;
-	u_short click = ifu->ifu_w.ifrw_click;
+	register caddr_t cp, dp;
+	register int i;
+	int xswapd = 0;
+	int x, cc, t;
 
+	cp = ifw->ifw_addr;
 	while (m) {
-		copyv(m->m_click, m->m_off, click, off, (u_int)m->m_len);
-		off += m->m_len;
-		MFREE(m, mp);
+		dp = mtod(m, char *);
+		if (claligned(cp) && claligned(dp) &&
+		    (m->m_len == CLBYTES || m->m_next == (struct mbuf *)0)) {
+			struct pte *pte;
+			int *ip;
+
+			pte = kvtopte(dp);
+			x = btop(cp - ifw->ifw_addr);
+			ip = (int *)&ifw->ifw_mr[x];
+			for (i = 0; i < CLSIZE; i++)
+				*ip++ = ifw->ifw_proto | pte++->pg_pfnum;
+			xswapd |= 1 << (x>>(CLSHIFT-PGSHIFT));
+			mp = m->m_next;
+			m->m_next = ifw->ifw_xtofree;
+			ifw->ifw_xtofree = m;
+			cp += m->m_len;
+		} else {
+			bcopy(mtod(m, caddr_t), cp, (unsigned)m->m_len);
+			cp += m->m_len;
+			MFREE(m, mp);
+		}
 		m = mp;
 	}
-	return(off);
+
+	/*
+	 * Xswapd is the set of clusters we just mapped out.  Ifu->iff_xswapd
+	 * is the set of clusters mapped out from before.  We compute
+	 * the number of clusters involved in this operation in x.
+	 * Clusters mapped out before and involved in this operation
+	 * should be unmapped so original pages will be accessed by the device.
+	 */
+	cc = cp - ifw->ifw_addr;
+	x = ((cc - ifu->iff_hlen) + CLBYTES - 1) >> CLSHIFT;
+	ifw->ifw_xswapd &= ~xswapd;
+	while (i = ffs((long)ifw->ifw_xswapd)) {
+		i--;
+		if (i >= x)
+			break;
+		ifw->ifw_xswapd &= ~(1<<i);
+		i *= CLSIZE;
+		for (t = 0; t < CLSIZE; t++) {
+			ifw->ifw_mr[i] = ifw->ifw_wmap[i];
+			i++;
+		}
+	}
+	ifw->ifw_xswapd |= xswapd;
+	return (cc);
 }
-
-#ifdef UNIBUS_MAP
-#define	KDSA	((u_short *)0172360)
-
-#ifdef UCB_METER
-extern struct ubmeter	ub_meter;
-#endif
-/*
- *	Map UNIBUS virtual memory over some address in kernel data
- *	space.  We're similar to the "mapalloc" routine used for
- *	raw I/O, but for different objects.
- */
-ubadr_t uballoc(ubanum, addr, size, x)
-	int ubanum;				/* NOTUSED */
-	caddr_t addr;
-	u_int size;
-{
-	register int nregs, s;
-	register struct ubmap *ubp;
-	ubadr_t paddr, vaddr;
-	u_int click, first;
-	int page, offset;
-
-	page = (((int)addr >> 13) & 07);
-	offset = ((int)addr & 017777);
-	click = KDSA[page];
-	paddr = (ubadr_t)click << 6;
-	paddr += offset;
-	if (!ubmap || !ub_inited)
-		return(paddr);
-#ifdef UCB_METER
-	++ub_meter.ub_calls;
-#endif
-	nregs = (int) btoub(size);
-	s = splhigh();
-	while ((first = malloc(ub_map, nregs)) == NULL) {
-#ifdef UCB_METER
-		ub_meter.ub_fails++;
-#endif
-		ub_wantmr = 1;
-		sleep(ub_map, PSWP+1);
-	}
-	splx(s);
-#ifdef UCB_METER
-	ub_meter.ub_pages += nregs;
-#endif
-	ubp = &UBMAP[first];
-	vaddr = (ubadr_t)first << 13;
-
-	while (nregs--) {
-		ubp->ub_lo = loint(paddr);
-		ubp->ub_hi = hiint(paddr);
-		ubp++;
-		paddr += (ubadr_t) UBPAGE;
-	}
-	return(vaddr);
-}
-
-/*
- *	Now for mapping an arbitrary piece of physical memory into
- *	UNIBUS virtual address space.
- */
-ubadr_t ubmalloc(ubanum, addr, size, x)
-	int ubanum;		/* NOTUSED */
-	u_int addr, size;	/* pdp11 "clicks" */
-{
-	register struct ubmap *ubp;
-	register int nregs, s;
-	ubadr_t paddr, vaddr;
-	u_int first;
-
-	paddr = (ubadr_t)addr << 6;
-
-	if (!ubmap || !ub_inited)
-		return(paddr);
-
-#ifdef UCB_METER
-	ub_meter.ub_calls++;
-#endif
-	nregs = (int)btoub(size);
-	s = splhigh();
-	while ((first = malloc(ub_map, nregs)) == NULL) {
-#ifdef UCB_METER
-		ub_meter.ub_fails++;
-#endif
-		ub_wantmr = 1;
-		sleep(ub_map, PSWP+1);
-	}
-	splx(s);
-#ifdef UCB_METER
-	ub_meter.ub_pages += nregs;
-#endif
-	ubp = &UBMAP[first];
-	vaddr = (ubadr_t)first << 13;
-	while (nregs--) {
-		ubp->ub_lo = loint(paddr);
-		ubp->ub_hi = hiint(paddr);
-		ubp++;
-		paddr += (ubadr_t) UBPAGE;
-	}
-	return(vaddr);
-}
-#endif /* UNIBUS_MAP */

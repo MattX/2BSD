@@ -1,9 +1,15 @@
 /*
  * Copyright (c) 1980, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)raw_cb.h	7.1 (Berkeley) 6/4/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)raw_cb.h	7.2 (Berkeley) 12/30/87
  */
 
 /*
@@ -50,6 +56,6 @@ struct raw_header {
 	struct	sockaddr raw_src;	/* src address for sbappendaddr */
 };
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 struct rawcb rawcb;			/* head of list */
 #endif

@@ -8,9 +8,12 @@
  *      2.0: 09/01/83
  */
 
-static char rnid[] = "@(#)$Header: rn.c,v 4.3.1.3 85/05/16 16:47:10 lwall Exp $";
+static char rnid[] = "@(#)$Header: rn.c,v 4.3.1.4 85/09/10 11:05:13 lwall Exp $";
 
 /* $Log:	rn.c,v $
+ * Revision 4.3.1.4  85/09/10  11:05:13  lwall
+ * Improved %m in in_char().
+ * 
  * Revision 4.3.1.3  85/05/16  16:47:10  lwall
  * Catchup confirmation didn't grok -t.
  * 
@@ -338,11 +341,11 @@ newsgroup use the g<newsgroup> command.\n\
 reask_catchup:
 #ifdef VERBOSE
 		IF(verbose)
-		    in_char("\nDo you really want to mark everything as read? [yn] ");
+		    in_char("\nDo you really want to mark everything as read? [yn] ", 'C');
 		ELSE
 #endif
 #ifdef TERSE
-		    in_char("\nReally? [ynh] ");
+		    in_char("\nReally? [ynh] ", 'C');
 #endif
 		    putchar('\n') FLUSH;
 		    setdef(buf,"y");

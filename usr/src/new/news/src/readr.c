@@ -16,15 +16,10 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)readr.c	2.61	3/21/87";
+static char	*SccsId = "@(#)readr.c	2.66	11/30/87";
 #endif /* SCCSID */
 
 #include "rparams.h"
-#if defined(BSD4_2) || defined(BSD4_1C)
-#include <sys/dir.h>
-#else
-#include "ndir.h"
-#endif /* !BSD4_2 && !BSD4_1C */
 #include <setjmp.h>
 #include <errno.h>
 
@@ -49,7 +44,9 @@ char *tft = "/tmp/folXXXXXX";
  * things into register variables, but I don't know what
  * breaks the u370 cc.
  */
+#ifndef SERVER
 static char goodone[BUFLEN];		/* last decent article		*/
+#endif	/* !SERVER */
 static char ogroupdir[BUFLEN];		/* last groupdir		*/
 static char address[PATHLEN];		/* for reply copy		*/
 static char edcmdbuf[128];
@@ -99,7 +96,7 @@ readr()
 
 #ifdef DEBUG
 	fprintf(stderr, "readr()\n");
-#endif
+#endif	/* DEBUG */
 	if (aflag) {
 		if (*datebuf) {
 			if ((atime = cgtdate(datebuf)) == -1)
@@ -119,7 +116,7 @@ readr()
 	ofp = stdout;
 	if (cflag && coptbuf[0] != '\0') {
 		(void) umask(022);
-		(void) mktemp(outfile);	/* get "unique" file name */
+		MKTEMP(outfile);	/* get "unique" file name */
 		(void) close(creat(outfile,0666));
 		ofp = xfopen(outfile, "w");
 		(void) umask(N_UMASK);
@@ -137,8 +134,10 @@ readr()
 #ifdef DEBUG
 		fprintf(stderr,"after getnextart, fp %x, pos %ld, bit %ld, group '%s', filename '%s'\n",
 			fp, ftell(fp), bit, groupdir, filename);
-#endif
+#endif	/* DEBUG */
+#ifndef SERVER
 		(void) strcpy(goodone, filename);
+#endif	/* SERVER */
 		if (pflag || lflag || eflag) {
 			/* This code should be gotten rid of */
 			if (SigTrap) {
@@ -159,7 +158,7 @@ readr()
 			int (*ointr)();
 #ifdef	SIGCONT
 			int (*ocont)();
-#endif
+#endif	/* SIGCONT */
 			(void) setjmp(sigjmpbuf);
 			canlongjmp = TRUE;
 
@@ -184,20 +183,20 @@ readr()
 			ointr = signal(SIGINT, catchcont);
 #ifdef SIGCONT
 			ocont = signal(SIGCONT, catchcont);
-#endif
+#endif	/* SIGCONT */
 			pp = fgets(bptr, BUFLEN, stdin);
 			canlongjmp = FALSE;
 			(void) signal(SIGINT, ointr);
 #ifdef SIGCONT
 			(void) signal(SIGCONT, ocont);
-#endif
+#endif	/* SIGCONT */
 			if (pp != NULL)
 				break;
 			if (!SigTrap)
 				return;
 #ifdef SIGCONT
 			if (SigTrap != SIGCONT)
-#endif
+#endif	/* SIGCONT */
 				fprintf(ofp, "\n");
 		}
 		(void) nstrip(bptr);
@@ -221,6 +220,9 @@ command()
 {
 	char *findhist();
 	long i;
+#ifdef SERVER
+	char workspace[256];
+#endif	/* !SERVER */
 
 	switch (*bptr++) {
 
@@ -392,9 +394,9 @@ minus:
 		(void) strcpy(filename, ofilename1);
 		(void) strcpy(ofilename1, bfr);
 		obit = bit;
-		if (strcmp(groupdir, ogroupdir)) {
+		if (STRCMP(groupdir, ogroupdir)) {
 			(void) strcpy(bfr, groupdir);
-			selectng(ogroupdir, TRUE, FALSE);
+			selectng(ogroupdir, FALSE, FALSE);
 			(void) strcpy(groupdir, ogroupdir);
 			(void) strcpy(ogroupdir, bfr);
 			ngrp = 1;
@@ -442,7 +444,7 @@ caseplus:
 	case 'c':
 		(void) cancel_command();
 		break;
-
+#ifndef NOSHELL
 	/* escape to shell */
 	case '!':
 		fwait(fsubr(ushell, bptr, (char *)NULL));
@@ -451,6 +453,7 @@ caseplus:
 		break;
 
 	/* mail reply */
+#endif	/* !NOSHELL */
 	case 'r':
 		(void) reply_command();
 		break;
@@ -526,7 +529,7 @@ tryartnum:
 			*ptr2 = '\0';
 		ptr2 = index(ptr3, '/');
 		if (!ptr2) {
-			if (strcmp(ptr3, "cancelled") == 0) {
+			if (STRCMP(ptr3, "cancelled") == 0) {
 				fprintf(ofp, "Article %s has been cancelled.\n",
 					bptr);
 				break;
@@ -545,7 +548,7 @@ tryartnum:
 		}
 		saveart;
 		(void) strcpy(ogroupdir, ptr3);
-		if (strcmp(groupdir, ogroupdir)) {
+		if (STRCMP(groupdir, ogroupdir)) {
 			(void) strcpy(bfr, groupdir);
 			selectng(ogroupdir, TRUE, PERHAPS);
 			(void) strcpy(groupdir, ogroupdir);
@@ -558,7 +561,7 @@ tryartnum:
 		obit = -1;
 		i = bit;
 		(void) getnextart(TRUE);
-		if (bit != i || strcmp(groupdir, ptr3) != 0) {
+		if (bit != i || STRCMP(groupdir, ptr3) != 0) {
 			(void) fprintf(ofp, "Can't read %s/%ld.\n", ptr3, i);
 			goto minus;
 		}
@@ -567,7 +570,7 @@ tryartnum:
 
 	/* follow-up article */
 	case 'f':
-		if (strcmp(h->followto, "poster") == 0) {
+		if (STRCMP(h->followto, "poster") == 0) {
 			(void) reply_command();
 			break;
 		}
@@ -576,14 +579,19 @@ tryartnum:
 			tfilename = ofilename1;
 		else
 			tfilename = filename;
+#ifdef SERVER
+		(void) sprintf(bfr,"%s/%s %s/%s/%ld", BIN, "postnews", 
+				SPOOL,groupdir,bit);
+#else	/* !SERVER */
 		(void) sprintf(bfr,"%s/%s %s", BIN, "postnews", tfilename);
+#endif	/* !SERVER */
 		(void) system(bfr);
 		break;
 
 	/* erase - pretend we haven't seen this article. */
 	case 'e':
 		if (rfq || *bptr == '-') {
-			if (strcmp(groupdir, ogroupdir)) {
+			if (STRCMP(groupdir, ogroupdir)) {
 				i = bit;
 				(void) strcpy(bfr, groupdir);
 				selectng(ogroupdir, FALSE, PERHAPS);
@@ -656,7 +664,7 @@ cancel_command()
 	ptr1 = index(rcbuf, ' ');
 	if (ptr1)
 		*ptr1 = 0;
-	notauthor = strcmp(username, rcbuf);
+	notauthor = STRCMP(username, rcbuf);
 	if (uid != ROOTID && uid && notauthor) {
 		fprintf(ofp, "Can't cancel what you didn't write.\n");
 		return FALSE;
@@ -749,7 +757,7 @@ reply_command()
 		bptr++;
 	if (*bptr != '\0')
 		(void) strcpy(subj, bptr);
-	if (!prefix(subj, "Re:")){
+	if (!PREFIX(subj, "Re:")){
 		(void) strcpy(bfr, subj);
 		(void) sprintf(subj, "Re: %s", bfr);
 	}
@@ -766,7 +774,7 @@ reply_command()
 		int oumask;
 
 		(void) strcpy(tf, tft);
-		(void) mktemp(tf);
+		MKTEMP(tf);
 
 		ed = getenv("EDITOR");
 		if (ed == NULL)
@@ -838,10 +846,12 @@ xmit_command()
 		fprintf(ofp, "Missing system name.\n");
 		return;
 	}
-	if (s_find(&srec, bptr) == NULL) {
+#ifndef SERVER
+	if (s_find(&srec, bptr) == 0) {
 		fprintf(ofp, "%s not in SYSFILE\n", bptr);
 		return;
 	}
+#endif	/* !SERVER */
 	(void) transmit(&srec, tfilename);
 }
 
@@ -955,7 +965,7 @@ FILE *fd;
 		holdup = TRUE;
 	}
 	else
-#endif
+#endif	/* PAGE */
 		tprint(fd, ofp, FALSE);
 }
 
@@ -967,8 +977,12 @@ getnextart(minus)
 int minus;
 {
  	int noaccess;
+#ifdef SERVER
+	char workspace[256];
+#else	/* !SERVER */
  	register DIR *dirp;
  	register struct direct *dir;
+#endif	/* !SERVER */
  	long nextnum, tnum;
 
  	noaccess = 0;
@@ -1022,12 +1036,21 @@ nextart:
 nextart2:
 #ifdef DEBUG
 	fprintf(stderr, "article: %s/%ld\n", groupdir, bit);
-#endif
+#endif	/* DEBUG */
 	if (rcreadok)
 		rcreadok = 2;	/* have seen >= 1 article */
+#ifdef SERVER
+	if (bit == 0 || (fp = getarticle(groupdir, bit, "ARTICLE")) == NULL)
+		goto badart;
+	strcpy(filename, article_name());
+	(void) fclose(fp);
+	fp = NULL;
+#else	/* !SERVER */
 	(void) sprintf(filename, "%s/%ld", dirname(groupdir), bit);
+
 	if (rfq && goodone[0])
 		strcpy(filename, goodone);
+#endif	/* !SERVER */
 	if (SigTrap) {
 		if (SigTrap == SIGHUP)
 			return 1;
@@ -1042,7 +1065,7 @@ nextart2:
 	}
 #ifdef DEBUG
 	fprintf(stderr, "filename = '%s'\n", filename);
-#endif
+#endif	/* DEBUG */
 	/* Decide if we want to show this article. */
  	if (bit <= 0 || (fp = art_open(filename, "r")) == NULL) {
 		/* don't show the header if the article was specifically
@@ -1059,22 +1082,48 @@ nextart2:
  		if (++noaccess < 5)
  			goto badart;
 		noaccess = 0;
+#ifdef SERVER
+		if (*groupdir == ' ' || *groupdir == '\0' || 
+			set_group(groupdir) == NULL)
+			goto badart;
+#else	/* !SERVER */
  		dirp = opendir(dirname(groupdir));
  		if (dirp == NULL) {
 			if (errno != EACCES)
 				fprintf(stderr,"Can't open %s\n", dirname(groupdir));
  			goto badart;
  		}
+#endif	/* !SERVER */
  		nextnum = rflag ? minartno - 1 : ngsize + 1;
+#ifdef SERVER 
+		tnum = nextnum;
+		for(;;){
+			(void) sprintf(bfr,"STAT %ld",tnum);
+			put_server(bfr);
+			(void) get_server(workspace,sizeof(workspace));
+			if (*workspace != CHAR_OK) {
+				if (rflag)
+					tnum++;
+				else
+					tnum--;
+				continue;
+			}
+#else	/* !SERVER */
  		while ((dir = readdir(dirp)) != NULL) {
  			tnum = atol(dir->d_name);
  			if (tnum <= 0)
  				continue;
+#endif	/* !SERVER */
  			if (rflag ? (tnum > nextnum && tnum < bit)
  				  : (tnum < nextnum && tnum > bit))
  				nextnum = tnum;
+#ifdef SERVER
+			break;		/* not exactly right */
+#endif	/* !SERVER */
  		}
+#ifndef SERVER
  		closedir(dirp);
+#endif	/* SERVER */
  		if (rflag ? (nextnum >= bit) : (nextnum <= bit))
  			goto badart;
 #ifdef DEBUG
@@ -1097,9 +1146,11 @@ nextart2:
 		if (ignorenews)
 			news = TRUE;
  badart:
+#ifndef SERVER
 #ifdef DEBUG
 		fprintf(stderr, "Bad article '%s'\n", filename);
-#endif
+#endif	/* DEBUG */
+#endif	/* !SERVER */
 		FCLOSE(fp);
 		clear(bit);
 		obit = -1;
@@ -1122,6 +1173,9 @@ nextart2:
 		FCLOSE(fp);
 	}
 	obit = bit;
+#ifdef SERVER
+	(void) unlink(filename);
+#endif	/* SERVER */
 	return 0;
 }
 
@@ -1201,5 +1255,9 @@ int	status;
 	if (strncmp(ACTIVE,"/tmp/", 5) == 0)
 		(void) unlink(ACTIVE);
 #endif /* SORTACTIVE */
+#ifdef SERVER
+	(void) unlink(active_name());
+	close_server();	
+#endif	/* SERVER */
 	exit(status);
 }

@@ -14,6 +14,7 @@
 #include "intrp.h"
 #include "final.h"
 #include "rcln.h"
+#include "util.h"
 #include "INTERN.h"
 #include "ngdata.h"
 
@@ -86,6 +87,13 @@ register NG_NUM num;
 #else
 	    abs1st = tmp;
 #endif
+	if (!in_ng) {
+	    for (s++; isdigit(*s); s++) ;
+	    while (isspace(*s)) s++;
+	    moderated = (!*s || *s == 'y'
+		? nullstr
+		: getval("MODSTRING"," (moderated)") );
+	}
     }
 #endif
     return atol(tmpbuf+len+1);

@@ -26,10 +26,18 @@
  *		like midnight/noon?
  */
 
+#ifndef lint
 static char rcsid[]=
-"$Header: /usr/wft/RCS/SRC/RCS/partime.c,v 1.1 82/05/06 11:38:26 wft Exp $";
+"$Header: /arthur/src/local/bin/rcs/src/RCS/partime.c,v 1.2 87/03/27 14:21:53 jenkins Exp $";
+#endif
 
 /* $Log:	partime.c,v $
+ * Revision 1.2  87/03/27  14:21:53  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:07  kcs
+ * Initial revision
+ * 
  * Revision 1.1  82/05/06  11:38:26  wft
  * Initial revision
  * 
@@ -39,11 +47,16 @@ static char rcsid[]=
 #include <ctype.h>
 #include "time.h"
 
+#ifndef lint
 static char timeid[] = TIMEID;
+#endif
 
 struct tmwent {
 	char *went;
-	int wval;
+	union {
+		int wvint;
+		int (*wvfn)();
+	} wval;		/* must be big enough to hold pointer or integer */
 	char wflgs;
 	char wtype;
 };
@@ -56,10 +69,7 @@ struct tmwent {
 int pt12hack();
 int ptnoise();
 struct tmwent tmwords [] = {
-	{"january",
-      0,
-0,
-TM_MON},
+	{"january",      0, 0, TM_MON},
 	{"february",     1, 0, TM_MON},
 	{"march",        2, 0, TM_MON},
 	{"april",        3, 0, TM_MON},
@@ -110,7 +120,7 @@ TM_MON},
 	{"pm",           2, TWTIME, TM_AMPM},
 	{"noon",         12,TWTIME+TW1200, 0},    /* Special frobs */
 	{"midnight",     0, TWTIME+TW1200, 0},
-	{"at",           (int)ptnoise, TWSPEC, 0},    /* Noise word */
+	{"at",           ptnoise, TWSPEC, 0},    /* Noise word */
 
 	{0, 0, 0, 0},             /* Zero entry to terminate searches */
 };
@@ -157,16 +167,16 @@ domore:
 	if(btoken.tflg == 0)		/* Alpha? */
 	  {     twp = btoken.tval.ttmw;         /* Yes, get ptr to entry */
 		if(twp->wflgs&TWSPEC)		/* Special alpha crock */
-		  {     aproc = (int (*) ()) (twp->wval);
+		  {     aproc = (twp->wval.wvfn);
 			if(!(*aproc)(tp, twp, &btoken))
 				return(0);	/* ERR: special word err */
 			goto domore;
 		  }
 		if(twp->wflgs&TW1200)
-			if(ptstash(&midnoon,twp->wval))
+			if(ptstash(&midnoon,twp->wval.wvint))
 				return(0);	/* ERR: noon/midnite clash */
 			else goto domore;
-		if(ptstash(&tp[twp->wtype],twp->wval))
+		if(ptstash(&tp[twp->wtype],twp->wval.wvint))
 			return(0);		/* ERR: val already set */
 		if(twp->wtype == TM_ZON)	/* If was zone, hack DST */
 			if(ptstash(&tp[TM_ISDST],(twp->wflgs&TWDST)))
@@ -354,7 +364,7 @@ ptnoise() { return(1); }
 
 ptitoken(astr, tkp)
 register struct token *tkp;
-struct token *astr;
+char *astr;
 {
 	register char *cp;
 	register int i;
@@ -362,7 +372,7 @@ struct token *astr;
 	tkp->tval.tnum = 0;
 	if(pttoken(astr,tkp) == 0)
 #ifdef DEBUG
-	printf("EOF\n");
+	VOID printf("EOF\n");
 #endif DEBUG
 		return(0);
 	cp = tkp->tcp;
@@ -370,7 +380,7 @@ struct token *astr;
 #ifdef DEBUG
 	i = cp[tkp->tcnt];
 	cp[tkp->tcnt] = 0;
-	printf("Token: \"%s\" ",cp);
+	VOID printf("Token: \"%s\" ",cp);
 	cp[tkp->tcnt] = i;
 #endif DEBUG
 
@@ -378,11 +388,11 @@ struct token *astr;
 		for(i = tkp->tcnt; i > 0; i--)
 			tkp->tval.tnum = (int)tkp->tval.tnum*10 + ((*cp++)-'0');
 	else
-	  {     i = ptmatchstr(cp, tkp->tcnt, tmwords, sizeof (struct tmwent));
+	  {     i = ptmatchstr(cp, tkp->tcnt, tmwords);
 		tkp->tval.tnum = i ? i : -1;         /* Set -1 for error */
 
 #ifdef DEBUG
-		if(!i) printf("Not found!\n");
+		if(!i) VOID printf("Not found!\n");
 #endif DEBUG
 
 		if(!i) return(0);
@@ -390,9 +400,9 @@ struct token *astr;
 
 #ifdef DEBUG
 	if(tkp->tflg)
-		printf("Val: %d.\n",tkp->tval.tnum);
-	else printf("Found: \"%s\", val: %d., type %d\n",
-		tkp->tval.ttmw->went,tkp->tval.ttmw->wval,tkp->tval.ttmw->wtype);
+		VOID printf("Val: %d.\n",tkp->tval.tnum);
+	else VOID printf("Found: \"%s\", val: %d., type %d\n",
+		tkp->tval.ttmw->went,tkp->tval.ttmw->wval.wvint,tkp->tval.ttmw->wtype);
 #endif DEBUG
 
 	return(1);
@@ -441,9 +451,9 @@ char *astr;
 }
 
 
-ptmatchstr(astr,cnt,astruc,size)
+ptmatchstr(astr,cnt,astruc)
 char *astr;
-int cnt,size;
+int cnt;
 struct tmwent *astruc;
 {	register char *cp, *mp;
 	register int c;
@@ -472,11 +482,10 @@ struct tmwent *astruc;
 
 
 
-zaptime(atm)
-struct tm *atm;
-/* clears atm */
-{	register int *tp, i;
-	tp = (int *)atm;
+zaptime(tp)
+register int *tp;
+/* clears tm structure pointed to by tp */
+{	register int i;
 	i = (sizeof (struct tm))/(sizeof (int));
 	do *tp++ = TMNULL;		/* Set entry to "unspecified" */
 	while(--i);			/* Faster than FOR */

@@ -92,21 +92,34 @@ struct nlist nl[] = {
 	"",
 };
 
+#ifdef BSD2_10
+u_int base2_10;
+struct nlist kl[] = {
+#define N_NETDATA	0
+	{ "_netdata" },
+	"",
+};
+#endif
+
 flushroutes()
 {
-	register struct rtentry *rt;
-#ifdef	BSD2_10
-	struct rtentry rte;
-	struct rtentry **routehash;
-#else
 	struct mbuf mb;
+	register struct rtentry *rt;
 	register struct mbuf *m;
 	struct mbuf **routehash;
-#endif
 	int rthashsize, i, doinghost = 1, kmem;
 	char *routename(), *netname();
 
+#ifdef BSD2_10
+	nlist("/unix", kl);
+	if (kl[N_NETDATA].n_value == 0) {
+		printf("route: \"netdata\", symbol not in namelist\n");
+		exit(1);
+	}
+	nlist("/netnix", nl);
+#else
 	nlist("/unix", nl);
+#endif
 	if (nl[N_RTHOST].n_value == 0) {
 		printf("route: \"rthost\", symbol not in namelist\n");
 		exit(1);
@@ -119,43 +132,45 @@ flushroutes()
 		printf("route: \"rthashsize\", symbol not in namelist\n");
 		exit(1);
 	}
+#ifdef BSD2_10
+	kmem = open("/dev/mem", 0);
+#else
 	kmem = open("/dev/kmem", 0);
+#endif
 	if (kmem < 0) {
 		perror("route: /dev/kmem");
 		exit(1);
 	}
-	lseek(kmem, (off_t)nl[N_RTHASHSIZE].n_value, 0);
-	read(kmem, &rthashsize, sizeof (rthashsize));
-#ifdef	BSD2_10
-	routehash =
-	    (struct rtentry **)malloc(rthashsize*sizeof (struct rtentry *));
-
-	lseek(kmem, (off_t)nl[N_RTHOST].n_value, 0);
-	read(kmem, routehash, rthashsize*sizeof (struct rtentry *));
+#ifdef BSD2_10
+	lseek(kmem, (off_t)kl[N_NETDATA].n_value, 0);
+	read(kmem, &base2_10, sizeof(base2_10));
+	lseek(kmem, (off_t)nl[N_RTHASHSIZE].n_value + ctob((long)base2_10), 0);
 #else
+	lseek(kmem, (off_t)nl[N_RTHASHSIZE].n_value, 0);
+#endif
+	read(kmem, &rthashsize, sizeof (rthashsize));
 	routehash = (struct mbuf **)malloc(rthashsize*sizeof (struct mbuf *));
 
+#ifdef BSD2_10
+	lseek(kmem, (off_t)nl[N_RTHOST].n_value + ctob((long)base2_10), 0);
+#else
 	lseek(kmem, (off_t)nl[N_RTHOST].n_value, 0);
-	read(kmem, routehash, rthashsize*sizeof (struct mbuf *));
 #endif
+	read(kmem, routehash, rthashsize*sizeof (struct mbuf *));
 	printf("Flushing routing tables:\n");
 again:
 	for (i = 0; i < rthashsize; i++) {
 		if (routehash[i] == 0)
 			continue;
-#ifdef	BSD2_10
-		rt = routehash[i];
-		while (rt) {
-			lseek(kmem, (off_t)rt, 0);
-			read(kmem, &rte, sizeof (rte));
-			rt = (struct rtentry *)&rte;
-#else
 		m = routehash[i];
 		while (m) {
+#ifdef BSD2_10
+			lseek(kmem, (off_t)m + ctob((long)base2_10), 0);
+#else
 			lseek(kmem, (off_t)m, 0);
+#endif
 			read(kmem, &mb, sizeof (mb));
 			rt = mtod(&mb, struct rtentry *);
-#endif	BSD2_10
 			if (rt->rt_flags & RTF_GATEWAY) {
 				printf("%-20.20s ", doinghost ?
 				    routename(&rt->rt_dst) :
@@ -166,15 +181,15 @@ again:
 				else
 					printf("done\n");
 			}
-#ifdef	BSD2_10
-			rt = rt->rt_next;
-#else
 			m = mb.m_next;
-#endif
 		}
 	}
 	if (doinghost) {
+#ifdef BSD2_10
+		lseek(kmem, (off_t)nl[N_RTNET].n_value+ctob((long)base2_10), 0);
+#else
 		lseek(kmem, (off_t)nl[N_RTNET].n_value, 0);
+#endif
 		read(kmem, routehash, rthashsize*sizeof (struct mbuf *));
 		doinghost = 0;
 		goto again;
@@ -225,9 +240,13 @@ routename(sa)
 		if (cp)
 			strcpy(line, cp);
 		else {
+#ifdef BSD2_10
 #define C(x)	(((int)(x)) & 0xff)
+#else
+#define C(x)	((x) & 0xff)
+#endif
 			in.s_addr = ntohl(in.s_addr);
-			sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
+			(void)sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
 			   C(in.s_addr >> 16), C(in.s_addr >> 8), C(in.s_addr));
 		}
 		break;
@@ -239,8 +258,8 @@ routename(sa)
 	default:
 	    {	u_short *s = (u_short *)sa->sa_data;
 
-		sprintf(line, "af %d: %x %x %x %x %x %x %x", sa->sa_family,
-			s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
+		(void)sprintf(line, "af %d: %x %x %x %x %x %x %x",
+		    sa->sa_family, s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
 		break;
 	    }
 	}
@@ -255,12 +274,13 @@ char *
 netname(sa)
 	struct sockaddr *sa;
 {
-	char *cp = 0, *ns_print();
+	char *cp = 0;
 	static char line[50];
 	struct netent *np = 0;
 	u_long net, mask;
-	register i;
+	register u_long i;
 	int subnetshift;
+	char *ns_print();
 
 	switch (sa->sa_family) {
 
@@ -268,7 +288,7 @@ netname(sa)
 	    {	struct in_addr in;
 		in = ((struct sockaddr_in *)sa)->sin_addr;
 
-		in.s_addr = ntohl(in.s_addr);
+		i = in.s_addr = ntohl(in.s_addr);
 		if (in.s_addr == 0)
 			cp = "default";
 		else if (!nflag) {
@@ -291,8 +311,15 @@ netname(sa)
 			while (in.s_addr &~ mask)
 				mask = (long)mask >> subnetshift;
 			net = in.s_addr & mask;
-			while ((mask & 1) == 0)
-				mask >>= 1, net >>= 1;
+			while ((mask & 1) == 0) {
+				mask >>= 1;
+				net >>= 1;
+#ifdef BSD2_10
+				/* 2.10BSD compiler doesn't support u_long */
+				mask &= 0x7fffffff;
+				net &= 0x7fffffff;
+#endif
+			}
 			np = getnetbyaddr(net, AF_INET);
 			if (np)
 				cp = np->n_name;
@@ -300,15 +327,15 @@ netname(sa)
 		if (cp)
 			strcpy(line, cp);
 		else if ((in.s_addr & 0xffffff) == 0)
-			sprintf(line, "%u", C(in.s_addr >> 24));
+			(void)sprintf(line, "%u", C(in.s_addr >> 24));
 		else if ((in.s_addr & 0xffffL) == 0)
-			sprintf(line, "%u.%u", C(in.s_addr >> 24),
+			(void)sprintf(line, "%u.%u", C(in.s_addr >> 24),
 			    C(in.s_addr >> 16));
 		else if ((in.s_addr & 0xff) == 0)
-			sprintf(line, "%u.%u.%u", C(in.s_addr >> 24),
+			(void)sprintf(line, "%u.%u.%u", C(in.s_addr >> 24),
 			    C(in.s_addr >> 16), C(in.s_addr >> 8));
 		else
-			sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
+			(void)sprintf(line, "%u.%u.%u.%u", C(in.s_addr >> 24),
 			    C(in.s_addr >> 16), C(in.s_addr >> 8),
 			    C(in.s_addr));
 		break;
@@ -321,15 +348,13 @@ netname(sa)
 	default:
 	    {	u_short *s = (u_short *)sa->sa_data;
 
-		sprintf(line, "af %d: %x %x %x %x %x %x %x", sa->sa_family,
-			s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
+		(void)sprintf(line, "af %d: %x %x %x %x %x %x %x",
+		    sa->sa_family, s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
 		break;
 	    }
 	}
 	return (line);
 }
-
-extern int errno;
 
 newroute(argc, argv)
 	int argc;
@@ -339,6 +364,7 @@ newroute(argc, argv)
 	char *cmd, *dest, *gateway;
 	int ishost, metric = 0, ret, attempts, oerrno;
 	struct hostent *hp;
+	extern int errno;
 
 	cmd = argv[0];
 	if ((strcmp(argv[1], "host")) == 0) {
@@ -414,15 +440,21 @@ changeroute(argc, argv)
 error(cmd)
 	char *cmd;
 {
+	extern int errno;
 
-	if (errno == ESRCH)
+	switch(errno) {
+	case ESRCH:
 		fprintf(stderr, "not in table\n");
-	else if (errno == EBUSY)
+		break;
+	case EBUSY:
 		fprintf(stderr, "entry in use\n");
-	else if (errno == ENOBUFS)
+		break;
+	case ENOBUFS:
 		fprintf(stderr, "routing table overflow\n");
-	else
+		break;
+	default:
 		perror(cmd);
+	}
 }
 
 char *
@@ -516,10 +548,10 @@ struct sockaddr_ns *sns;
 	net.net_e  = work.x_net;
 	if (ns_nullhost(work) && net.long_e == 0) {
 		if (port ) {
-			sprintf(mybuf, "*.%xH", port);
+			(void)sprintf(mybuf, "*.%xH", port);
 			upHex(mybuf);
 		} else
-			sprintf(mybuf, "*.*");
+			(void)sprintf(mybuf, "*.*");
 		return (mybuf);
 	}
 
@@ -529,17 +561,17 @@ struct sockaddr_ns *sns;
 		host = "*";
 	} else {
 		q = work.x_host.c_host;
-		sprintf(chost, "%02x%02x%02x%02x%02x%02xH",
+		(void)sprintf(chost, "%02x%02x%02x%02x%02x%02xH",
 			q[0], q[1], q[2], q[3], q[4], q[5]);
 		for (p = chost; *p == '0' && p < chost + 12; p++);
 		host = p;
 	}
 	if (port)
-		sprintf(cport, ".%xH", htons(port));
+		(void)sprintf(cport, ".%xH", htons(port));
 	else
 		*cport = 0;
 
-	sprintf(mybuf,"%xH.%s%s", ntohl(net.long_e), host, cport);
+	(void)sprintf(mybuf,"%xH.%s%s", ntohl(net.long_e), host, cport);
 	upHex(mybuf);
 	return(mybuf);
 }

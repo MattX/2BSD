@@ -13,7 +13,7 @@ static char sccsid[] = "@(#)timer.c	5.3 (Berkeley) 11/20/85";
  */
 #include "defs.h"
 
-int	timeval = -TIMER_RATE;
+long	timeval = -TIMER_RATE;
 
 /*
  * Timer routine.  Performs routing information supply

@@ -1,11 +1,17 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983,1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)unix.c	5.3 (Berkeley) 5/8/86";
+static char sccsid[] = "@(#)unix.c	5.5 (Berkeley) 2/7/88";
 #endif not lint
 
 /*
@@ -19,61 +25,66 @@ static char sccsid[] = "@(#)unix.c	5.3 (Berkeley) 5/8/86";
 #include <sys/un.h>
 #include <sys/unpcb.h>
 #define	KERNEL
-#include "file.h"
+#include <sys/file.h>
 
 int	Aflag;
 int	kmem;
+extern	char *calloc();
 
 unixpr(nfileaddr, fileaddr, unixsw)
 	off_t nfileaddr, fileaddr;
 	struct protosw *unixsw;
 {
 	register struct file *fp;
-	struct file *filep;
+	struct file *filep, *fil, *fileNFILE;
 	struct socket sock, *so = &sock;
 
 	if (nfileaddr == 0 || fileaddr == 0) {
 		printf("nfile or file not in namelist.\n");
 		return;
 	}
-	klseek(kmem, (off_t)nfileaddr, L_SET);
-	if (read(kmem, &nfile, sizeof (nfile)) != sizeof (nfile)) {
+	klseek(kmem, nfileaddr, L_SET);
+	if (read(kmem, (char *)&nfile, sizeof (nfile)) != sizeof (nfile)) {
 		printf("nfile: bad read.\n");
 		return;
 	}
-#ifdef BSD2_10
-	filep = (struct file *)fileaddr;
-#else
-	klseek(kmem, (off_t)fileaddr, L_SET);
-	if (read(kmem, filep, sizeof(filep)) != sizeof(filep)) {
+	klseek(kmem, fileaddr, L_SET);
+#ifndef BSD2_10
+	if (read(kmem, (char *)&filep, sizeof (filep)) != sizeof (filep)) {
 		printf("File table address, bad read.\n");
 		return;
 	}
 #endif
-	file = (struct file *)calloc(nfile, sizeof (struct file));
-	if (file == (struct file *)0) {
+	fil = (struct file *)calloc(nfile, sizeof (struct file));
+	if (fil == (struct file *)0) {
 		printf("Out of memory (file table).\n");
 		return;
 	}
+#ifndef BSD2_10
 	klseek(kmem, (off_t)filep, L_SET);
-	if (read(kmem, file, nfile * sizeof (struct file)) !=
+#endif
+	if (read(kmem, (char *)fil, nfile * sizeof (struct file)) !=
 	    nfile * sizeof (struct file)) {
 		printf("File table read error.\n");
 		return;
 	}
-	fileNFILE = file + nfile;
-	for (fp = file; fp < fileNFILE; fp++) {
+	fileNFILE = fil + nfile;
+	for (fp = fil; fp < fileNFILE; fp++) {
 		if (fp->f_count == 0 || fp->f_type != DTYPE_SOCKET)
 			continue;
+#ifdef BSD2_10
+		slseek(kmem, (off_t)fp->f_data, L_SET);
+#else
 		klseek(kmem, (off_t)fp->f_data, L_SET);
-		if (read(kmem, so, sizeof (*so)) != sizeof (*so))
+#endif
+		if (read(kmem, (char *)so, sizeof (*so)) != sizeof (*so))
 			continue;
 		/* kludge */
 		if (so->so_proto >= unixsw && so->so_proto <= unixsw + 2)
 			if (so->so_pcb)
 				unixdomainpr(so, fp->f_data);
 	}
-	free((char *)file);
+	free((char *)fil);
 }
 
 static	char *socktype[] =
@@ -85,30 +96,21 @@ unixdomainpr(so, soaddr)
 {
 	struct unpcb unpcb, *unp = &unpcb;
 	struct mbuf mbuf, *m;
-	struct sockaddr_un *sa, sabuf;
+	struct sockaddr_un *sa;
 	static int first = 1;
+#ifdef BSD2_10
+#define klseek slseek
+#endif
 
 	klseek(kmem, (off_t)so->so_pcb, L_SET);
-	if (read(kmem, unp, sizeof (*unp)) != sizeof (*unp))
+	if (read(kmem, (char *)unp, sizeof (*unp)) != sizeof (*unp))
 		return;
 	if (unp->unp_addr) {
 		m = &mbuf;
 		klseek(kmem, (off_t)unp->unp_addr, L_SET);
-		if (read(kmem, m, sizeof (*m)) != sizeof (*m))
+		if (read(kmem, (char *)m, sizeof (*m)) != sizeof (*m))
 			m = (struct mbuf *)0;
-#ifdef BSD2_10
-		sa = &sabuf;
-	{ int mem = open("/dev/mem", O_RDONLY);
-		if (mem > 0) {
-			klseek(mem, ((off_t)m->m_click)<<6+4, 0);
-			if (read(mem, sa, sizeof(*sa)) != sizeof (*sa))
-				m = (struct mbuf *)0;
-			close(mem);
-		}
-	}
-#else
 		sa = mtod(m, struct sockaddr_un *);
-#endif
 	} else
 		m = (struct mbuf *)0;
 	if (first) {

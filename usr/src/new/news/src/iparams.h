@@ -2,7 +2,7 @@
  * iparams - parameters for inews.
  */
 
-/*	@(#)iparams.h	2.17	11/21/86	*/
+/*	@(#)iparams.h	2.18	11/19/87	*/
 
 #include "params.h"
 #include <errno.h>
@@ -18,6 +18,10 @@ extern	int	ROOTID;
 extern	char	*TELLME;
 #endif /* NOTIFY */
 
+#ifdef NFSCLIENT
+extern	char	*NFSSYSNAME;
+#endif /* NFSCLIENT */
+
 struct msgtype {
 	char *m_name;
 	char *m_who_to;
@@ -27,5 +31,5 @@ struct msgtype {
 extern struct msgtype msgtype[];
 
 extern	FILE	*infp, *actfp;
-extern	int	tty, is_ctl;
+extern	int	tty, is_ctl, is_mod_file_okay;
 extern	char	filename[BUFLEN], is_mod[NAMELEN], not_here[SBUFLEN], *DFLTNG;

@@ -139,7 +139,7 @@ dev_t	dev;
 	register struct	buf *bp;
 
 	bp = &chtbuf;
-	s = spl5();
+	s = splbio();
 	while(bp->b_flags & B_BUSY) {
 		/*
 		 * This special check is because B_BUSY never
@@ -201,7 +201,7 @@ register struct	buf *bp;
 		}
 	}
 	bp->av_forw = NULL;
-	s = spl5();
+	s = splbio();
 	if (httab.b_actf == NULL)
 		httab.b_actf = bp;
 	else

@@ -34,6 +34,7 @@ char *name;
 {
 	register DIR *dirp;
 	register int fd;
+	char *malloc();
 
 	if ((fd = open(name, 0)) == -1)
 		return NULL;

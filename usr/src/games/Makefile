@@ -22,11 +22,12 @@ SCRIPT=	wargames
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	arithmetic banner bcd cfscores fish morse number ppt wump
+STD=	arithmetic banner bcd cfscores factor fish morse number ppt \
+	wump
 
 # C programs that live in the current directory and need explicit make lines.
 #
-NSTD=	canfield rain worm worms
+NSTD=	canfield primes rain worm worms
 
 all:	${SUBDIR} ${STD} ${NSTD}
 
@@ -74,7 +75,7 @@ depend:
 # Files listed in ${NSTD} have explicit make lines given below.
 
 canfield:
-	cc -o canfield ${CFLAGS} $${SEPFLAG} canfield.c -lcurses -ltermcap
+	cc -o canfield ${CFLAGS} ${SEPFLAG} canfield.c -lcurses -ltermcap
 
 primes:
 	cc -o primes ${CFLAGS} ${SEPFLAG} primes.c -lm

@@ -40,6 +40,7 @@ you convert them to simply push their parameters onto the stack and call
 the standard library routines.  \fBObviously, there is no binary
 compatibility with previous versions of PDP
 .UX.
+2.10BSD is, however, binarily compatible with 2.10.1BSD.
 .IP
 \fRThere have been many changes in the system calls available to user
 programs, as approximately thirty new system calls have been added and
@@ -150,11 +151,31 @@ routine for examples of what needs to be done to make it behave correctly.
 This, however, will be fairly difficult.  We suggest that if you want to
 use \fBCGL_RTP\fP that you comment out the use of \fIuiofmove\fP() in
 \fIuiomove\fP().
-.IP 18
+.IP 14)
 Most of the conditional compilation defines in the 2.9BSD kernel have
 been removed because the features they controlled are now either standard
 or no longer supported in 4.3BSD.  Other features have been grouped
 together and are now controlled by the same define.
+.PP
+The following table lists \fI#defines\fP that have been removed
+from 2.10BSD.
+.TS
+center box;
+l | l | l
+l | l | l.
+define name	feature	comment
+_
+DISKMON	keep statistics on the buffer cache	absorbed by UCB_METER
+INTRLVE	interleave file systems across devices	not supported in 4.3BSD
+MPX_FILS	multiplexed files	not supported in 4.3BSD
+UCB_GRPMAST	``group'' super-users	not supported in 4.3BSD
+UCB_LOGIN	``login'' system call	not supported in 4.3BSD
+UCB_PGRP	V7 bug fix	supplanted by job-control
+UCB_SUBM	``submit'' system call	not supported in 4.3BSD
+UNFAST	turn off inline macros
+UCB_QUOTAS	dynamic disk quota scheme
+TEXAS_AUTOBAUD	getty feature	part of ported 4.3BSD source
+.TE
 .bp
 .PP
 The following \fI#defines\fP are new or remain largely unchanged since 2.9BSD.
@@ -174,6 +195,7 @@ HZ	line clock frequency	renamed "LINEHZ"
 MAXMEM	limit process memory
 NOKA5	only buffers and clists use KA5
 Q22	22-bit QBUS
+QUOTA	dynamic file system quotas	\fBvery\fP expensive
 SMALL	smaller queues and hash tables	untested in quite some time
 UCB_CLIST	map out clists
 UCB_FRCSWAP	force swap on forks/expands
@@ -183,7 +205,7 @@ UCB_RUSAGE	resource accounting
 UNIBUS_MAP	18-bit Unibus mapping
 VIRUS_VFORK	the \fIvfork\fP(2) system call
 .TE
-.sp 3
+.sp 2
 .PP
 The following table lists \fI#defines\fP that are now a standard part
 of 2.10BSD.
@@ -217,25 +239,4 @@ UCB_SCRIPT	scripts may specify interpreters
 UCB_SYMLINKS	support symbolic links
 UCB_UPRINTF	send error messages to users
 UCB_VHANGUP	revoke access to tty after logout
-.TE
-.PP
-.bp
-The following table lists \fI#defines\fP that have been removed
-from 2.10BSD.
-.TS
-center box;
-l | l | l
-l | l | l.
-define name	feature	comment
-_
-DISKMON	keep statistics on the buffer cache	absorbed by UCB_METER
-INTRLVE	interleave file systems across devices	not supported in 4.3BSD
-MPX_FILS	multiplexed files	not supported in 4.3BSD
-UCB_GRPMAST	``group'' super-users	not supported in 4.3BSD
-UCB_LOGIN	``login'' system call	not supported in 4.3BSD
-UCB_PGRP	V7 bug fix	supplanted by job-control
-UCB_SUBM	``submit'' system call	not supported in 4.3BSD
-UNFAST	turn off inline macros
-UCB_QUOTAS	dynamic disk quota scheme
-TEXAS_AUTOBAUD	getty feature	part of ported 4.3BSD source
 .TE

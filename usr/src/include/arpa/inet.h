@@ -10,11 +10,22 @@
  * External definitions for
  * functions in inet(3N)
  */
+#ifdef BSD2_10
 #include <short_names.h>
 
-u_long inet_addr();
+long inet_addr();
 char	*inet_ntoa();
 struct	in_addr inet_makeaddr();
-u_long inet_network();
-u_long inet_netof();
-u_long inet_lnaof();
+long inet_network();
+long inet_netof();
+long inet_lnaof();
+
+#else
+
+unsigned long inet_addr();
+char	*inet_ntoa();
+struct	in_addr inet_makeaddr();
+unsigned long inet_network();
+unsigned long inet_netof();
+unsigned long inet_lnaof();
+#endif

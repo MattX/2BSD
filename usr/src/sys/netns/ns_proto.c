@@ -1,14 +1,22 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns_proto.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns_proto.c	7.2 (Berkeley) 1/20/88
  */
 
 #include "param.h"
+#ifdef	NS
 #include "socket.h"
 #include "protosw.h"
+#include "domain.h"
 #include "mbuf.h"
 
 #include "ns.h"
@@ -63,18 +71,4 @@ struct domain nsdomain =
     { AF_NS, "network systems", 0, 0, 0, 
       nssw, &nssw[sizeof(nssw)/sizeof(nssw[0])] };
 
-idp_abort()		{ return(0); }
-idp_input()		{ return(0); }
-idp_output()		{ return(0); }
-idp_ctlinput()		{ return(0); }
-idp_usrreq()		{ return(0); }
-idp_raw_usrreq()	{ return(0); }
-idp_ctloutput()		{ return(0); }
-spp_input()		{ return(0); }
-spp_ctlinput()		{ return(0); }
-spp_usrreq()		{ return(0); }
-spp_usrreq_sp()		{ return(0); }
-spp_ctloutput()		{ return(0); }
-spp_init()		{ return(0); }
-spp_fasttimo()		{ return(0); }
-spp_slowtimo()		{ return(0); }
+#endif

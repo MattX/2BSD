@@ -16,7 +16,7 @@ rkprobe(addr)
 	struct rkdevice *addr;
 {
 	stuff(RKCS_IDE | RKCS_DRESET | RKCS_GO, (&(addr->rkcs)));
-	DELAY(10);
+	DELAY(10L);
 	stuff(0, (&(addr->rkcs)));
 	return(ACP_IFINTR);
 }

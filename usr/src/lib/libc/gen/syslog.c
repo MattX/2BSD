@@ -44,6 +44,7 @@ static char	logname[] = "/dev/log";
 static char	ctty[] = "/dev/console";
 #ifdef BSD2_10
 static char	logfile[] = "/usr/adm/messages";
+static int	ToFile = 0;		/* set if logfile is used */
 #endif
 
 static int	LogFile = -1;		/* fd for log */
@@ -124,10 +125,13 @@ syslog(pri, fmt, p0, p1, p2, p3, p4)
 
 	/* output the message to the local logger */
 #ifdef BSD2_10
-	if (write(LogFile, outline, c) >= c)
-#else
-	if (sendto(LogFile, outline, c, 0, &SyslogAddr, sizeof SyslogAddr) >= 0)
+	if (ToFile) {
+		if (write(LogFile, outline, c) == c)
+			return;
+	}
+	else
 #endif
+	if (sendto(LogFile, outline, c, 0, &SyslogAddr, sizeof SyslogAddr) >= 0)
 		return;
 	if (!(LogStat & LOG_CONS))
 		return;
@@ -173,10 +177,14 @@ openlog(ident, logstat, logfac)
 	SyslogAddr.sa_family = AF_UNIX;
 	strncpy(SyslogAddr.sa_data, logname, sizeof SyslogAddr.sa_data);
 	if (LogStat & LOG_NDELAY) {
-#ifdef BSD2_10
-		LogFile = open(logfile, O_WRONLY|O_APPEND);
-#else
 		LogFile = socket(AF_UNIX, SOCK_DGRAM, 0);
+#ifdef BSD2_10
+		if (LogFile < 0) {
+			LogFile = open(logfile, O_WRONLY|O_APPEND);
+			ToFile = 1;
+		}
+		else
+			ToFile = 0;
 #endif
 		fcntl(LogFile, F_SETFD, 1);
 	}

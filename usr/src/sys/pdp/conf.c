@@ -69,6 +69,19 @@ int	xpopen(), xpstrategy(), xpread(), xpwrite(), xproot();
 #define	xpwrite		nodev
 #endif
 
+#include "br.h"
+#if NBR > 0
+int	bropen(), brstrategy(), brread(), brwrite(), brroot();
+#define	brclose		nulldev
+#else
+#define	bropen		nodev
+#define	brclose		nodev
+#define	brroot		nulldev
+#define	brstrategy	nodev
+#define	brread		nodev
+#define	brwrite		nodev
+#endif
+
 #include "ht.h"
 #if NHT > 0
 int	htopen(), htclose(), htread(), htwrite(), htstrategy(), htioctl();
@@ -178,6 +191,8 @@ struct bdevsw	bdevsw[] = {
 	siopen,		siclose,	sistrategy,	siroot,		0,
 /* xp = 10 */
 	xpopen,		xpclose,	xpstrategy,	xproot,		0,
+/* br = 11 */
+	bropen,		brclose,	brstrategy,	brroot,		0,
 };
 int	nblkdev = sizeof(bdevsw) / sizeof(bdevsw[0]);
 
@@ -268,7 +283,20 @@ extern struct tty	dhu_tty[];
 #define	dhu_tty		((struct tty *) NULL)
 #endif
 
-int	syopen(),syread(),sywrite(),syioctl(),syselect();
+#include "dn.h"
+#if NDN > 0
+int	dnopen(), dnclose(), dnwrite();
+#define	dnread		nodev
+#define	dnioctl		nodev
+#else
+#define	dnopen		nodev
+#define	dnclose		nodev
+#define	dnread		nodev
+#define	dnwrite		nodev
+#define	dnioctl		nodev
+#endif
+
+int	syopen(), syread(), sywrite(), syioctl(), syselect();
 
 int	mmread(),mmwrite();
 #define	mmselect	seltrue
@@ -336,6 +364,12 @@ struct cdevsw	cdevsw[] = {
 /* xp = 19 */
 	xpopen,		xpclose,	xpread,		xpwrite,
 	nodev,		nulldev,	0,		seltrue,
+/* br = 20 */
+	bropen,		brclose,	brread,		brwrite,
+	nodev,		nulldev,	0,		seltrue,
+/* dn = 21 */
+	dnopen,		dnclose,	dnread,		dnwrite,
+	dnioctl,	nulldev,	0,		seltrue,
 };
 
 int	nchrdev = sizeof(cdevsw) / sizeof(cdevsw[0]);

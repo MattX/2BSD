@@ -1,6 +1,7 @@
 0,10,20,30,40,50 * * * *	root	/etc/dmesg - >> /usr/adm/messages
 0,15,30,45 * * * *	root /usr/lib/atrun
-00 1 * * *	daemon	/usr/new/lib/news/daily
+0,15,30,45 * * * *	root	/bin/date > /dev/console
+0 1 * * *	daemon	/usr/new/lib/news/daily
 0 0 * * *	uucp	/usr/local/lib/uucp.daily
 7 5,12,18 * * *	uucp	/usr/local/lib/uucp.6hours
 0 2 * * *	root	/bin/sh /usr/adm/daily 2>&1 | mail root

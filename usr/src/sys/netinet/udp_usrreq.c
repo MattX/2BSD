@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)udp_usrreq.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)udp_usrreq.c	7.5 (Berkeley) 3/11/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
 #include "user.h"
 #include "mbuf.h"
-#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
@@ -19,6 +23,7 @@
 #include "../net/if.h"
 #include "../net/route.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -43,6 +48,7 @@ int	udpcksum = 1;
 #else
 int	udpcksum = 0;		/* XXX */
 #endif
+int	udp_ttl = UDP_TTL;
 
 struct	sockaddr_in udp_in = { AF_INET };
 
@@ -65,8 +71,6 @@ udp_input(m0, ifp)
 		udpstat.udps_hdrops++;
 		return;
 	}
-#define	return	goto finishup
-	MAPSAVE();
 	ui = mtod(m, struct udpiphdr *);
 	if (((struct ip *)ui)->ip_hl > (sizeof (struct ip) >> 2))
 		ip_stripoptions((struct ip *)ui, (struct mbuf *)0);
@@ -135,10 +139,6 @@ udp_input(m0, ifp)
 	return;
 bad:
 	m_freem(m);
-#undef	return
-finishup:
-	MAPREST();
-
 }
 
 /*
@@ -217,9 +217,9 @@ udp_output(inp, m0)
 	m->m_off = MMAXOFF - sizeof (struct udpiphdr);
 	m->m_len = sizeof (struct udpiphdr);
 	m->m_next = m0;
-	MAPSAVE();
 	ui = mtod(m, struct udpiphdr *);
 	ui->ui_next = ui->ui_prev = 0;
+	ui->ui_pad = 0;
 	ui->ui_x1 = 0;
 	ui->ui_pr = IPPROTO_UDP;
 	ui->ui_len = htons((u_short)len + sizeof (struct udphdr));
@@ -235,11 +235,10 @@ udp_output(inp, m0)
 	ui->ui_sum = 0;
 	if (udpcksum) {
 	    if ((ui->ui_sum = in_cksum(m, sizeof (struct udpiphdr) + len)) == 0)
-		ui->ui_sum = -1;
+		ui->ui_sum = 0xffff;
 	}
 	((struct ip *)ui)->ip_len = sizeof (struct udpiphdr) + len;
-	((struct ip *)ui)->ip_ttl = UDP_TTL;
-	MAPREST();
+	((struct ip *)ui)->ip_ttl = udp_ttl;
 	return (ip_output(m, inp->inp_options, &inp->inp_route,
 	    inp->inp_socket->so_options & (SO_DONTROUTE | SO_BROADCAST)));
 }
@@ -256,14 +255,9 @@ udp_usrreq(so, req, m, nam, rights)
 	struct inpcb *inp = sotoinpcb(so);
 	int error = 0;
 
-	MAPSAVE();
-	if (req == PRU_CONTROL) {
-		register int	retval;
-		retval = in_control(so, (int)m, (caddr_t)nam,
-		    (struct ifnet *)rights);
-		MAPUNSAVE();
-		return (retval);
-	}
+	if (req == PRU_CONTROL)
+		return (in_control(so, (int)m, (caddr_t)nam,
+			(struct ifnet *)rights));
 	if (rights && rights->m_len) {
 		error = EINVAL;
 		goto release;
@@ -366,8 +360,8 @@ udp_usrreq(so, req, m, nam, rights)
 		break;
 
 	case PRU_ABORT:
-		in_pcbdetach(inp);
 		soisdisconnected(so);
+		in_pcbdetach(inp);
 		break;
 
 	case PRU_SOCKADDR:
@@ -382,7 +376,6 @@ udp_usrreq(so, req, m, nam, rights)
 		/*
 		 * stat: don't bother with a blocksize.
 		 */
-		MAPUNSAVE();
 		return (0);
 
 	case PRU_SENDOOB:
@@ -395,7 +388,6 @@ udp_usrreq(so, req, m, nam, rights)
 
 	case PRU_RCVD:
 	case PRU_RCVOOB:
-		MAPUNSAVE();
 		return (EOPNOTSUPP);	/* do not free mbuf's */
 
 	default:
@@ -404,6 +396,5 @@ udp_usrreq(so, req, m, nam, rights)
 release:
 	if (m != NULL)
 		m_freem(m);
-	MAPREST();
 	return (error);
 }

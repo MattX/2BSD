@@ -5,12 +5,12 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	v6
+SUBDIR=	astags compact dump prep uudiff v6 vpr
 
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	512dumpdir 512restor
+STD=	512dumpdir 512restor regexp
 
 # C programs that live in the current directory and need explicit make lines.
 #

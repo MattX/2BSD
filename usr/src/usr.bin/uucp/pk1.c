@@ -383,10 +383,10 @@ register int n;
 	alarm(pktimeout);
 	while (n > 0) {
 #ifdef notdef
-	/*
-	 * 2.10BSD XXX - this fdef notdef' should be removed as soon as
-	 * select is implemented properly for 2.10BSD.  Casey.
-	 */
+		/*
+		 * XXX - 2.10BSD: This ifdef notdef should be removed as soon
+		 * XXX - as select is properly implemented in 2.10BSD.  Casey.
+		 */
 #ifdef BSD4_2
 		if (linebaudrate > 0) {
 			r = n  * 100000L;

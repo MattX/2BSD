@@ -1,15 +1,19 @@
-/* $Header: bits.c,v 4.3.1.3 86/09/09 16:01:43 lwall Exp $
+/* $Header: bits.c,v 4.3.1.4 86/10/31 15:23:53 lwall Exp $
  *
  * $Log:	bits.c,v $
+ * Revision 4.3.1.4  86/10/31  15:23:53  lwall
+ * Separated firstart into two variables so KILL on new articles won't
+ * accidentally mark articles read.
+ * 
  * Revision 4.3.1.3  86/09/09  16:01:43  lwall
  * Fixed 'n more articles' bug.
  * 
  * Revision 4.3.1.2  86/07/24  14:40:23  lwall
  * Gets host name from path instead of relay-version for news 2.10.3.
- * 
+ *
  * Revision 4.3.1.1  85/05/10  11:31:41  lwall
  * Branch for patches.
- * 
+ *
  * Revision 4.3  85/05/01  11:36:15  lwall
  * Baseline for release with 4.3bsd.
  * 
@@ -162,8 +166,8 @@ onemore(artnum)
 ART_NUM artnum;
 {
 #ifdef DEBUGGING
-    if (debug && artnum < firstart) {
-	printf("onemore: %d < %d\n",artnum,firstart) FLUSH;
+    if (debug && artnum < firstbit) {
+	printf("onemore: %d < %d\n",artnum,firstbit) FLUSH;
 	return;
     }
 #endif
@@ -180,8 +184,8 @@ oneless(artnum)
 ART_NUM artnum;
 {
 #ifdef DEBUGGING
-    if (debug && artnum < firstart) {
-	printf("oneless: %d < %d\n",artnum,firstart) FLUSH;
+    if (debug && artnum < firstbit) {
+	printf("oneless: %d < %d\n",artnum,firstbit) FLUSH;
 	return;
     }
 #endif
@@ -192,7 +196,7 @@ ART_NUM artnum;
     }
 }
 
-/* mark an article as unread, making sure that firstart is properly handled */
+/* mark an article as unread, making sure that firstbit is properly handled */
 /* cross-references are left as read in the other newsgroups */
 
 void
@@ -240,20 +244,20 @@ ART_NUM artnum;
     chase_xrefs(artnum,TRUE);
 }
 
-/* make sure we have bits set correctly down to firstart */
+/* make sure we have bits set correctly down to firstbit */
 
 void
 check_first(min)
 ART_NUM min;
 {
-    register ART_NUM i = firstart;
+    register ART_NUM i = firstbit;
 
     if (min < absfirst)
 	min = absfirst;
     if (min < i) {
 	for (i--; i>=min; i--)
 	    ctl_set(i);		/* mark as read */
-	firstart = min;
+	firstart = firstbit = min;
     }
 }
 
@@ -404,16 +408,15 @@ int markread;
 	    rver_buf = fetchlines(artnum,RVER_LINE);
 	    if ((t = instr(rver_buf,"; site ")) == Nullch)
 #else NORELAY
-
-	    /* In version 2.10.3 of news or afterwards, the Relay-Version
-	     * and Posting-Version header lines have been removed.  For
-	     * the code below to work as intended, I have modified it to
-	     * extract the first component of the Path header line.  This
-	     * should give the same effect as did the old code with respect
-	     * to the use of the Relay-Version site name.
-	     */
-	    rver_buf = fetchlines(artnum,PATH_LINE);
-	    if ((t = instr(rver_buf,"!")) == Nullch)
+          /* In version 2.10.3 of news or afterwards, the Relay-Version
+           * and Posting-Version header lines have been removed.  For
+           * the code below to work as intended, I have modified it to
+           * extract the first component of the Path header line.  This
+           * should give the same effect as did the old code with respect
+           * to the use of the Relay-Version site name.
+           */
+          rver_buf = fetchlines(artnum,PATH_LINE);
+          if ((t = instr(rver_buf,"!")) == Nullch)
 #endif NORELAY
 		inews_site = savestr(nullstr);
 	    else {
@@ -422,7 +425,7 @@ int markread;
 #ifndef NORELAY
 		cpytill(new_site,t + 7,'.');
 #else NORELAY
-		cpytill(new_site,rver_buf,'!');
+              cpytill(new_site,rver_buf,'!');
 #endif NORELAY
 		inews_site = savestr(new_site);
 	    }
@@ -508,28 +511,29 @@ initctl()
     mybuf[i] = '\0';
     s = mybuf;				/* initialize the for loop below */
     if (strnEQ(s,"1-",2)) {		/* can we save some time here? */
-	firstart = atol(s+2)+1;		/* ignore first range thusly */
+	firstbit = atol(s+2)+1;		/* ignore first range thusly */
 	s=index(s,',') + 1;
     }
     else
-	firstart = 1;			/* all the bits are valid for now */
-    if (absfirst > firstart) {		/* do we know already? */
-	firstart = absfirst;		/* no point calling getngmin again */
+	firstbit = 1;			/* all the bits are valid for now */
+    if (absfirst > firstbit) {		/* do we know already? */
+	firstbit = absfirst;		/* no point calling getngmin again */
     }
-    else if (artopen(firstart) == Nullfp) {
+    else if (artopen(firstbit) == Nullfp) {
 					/* first unread article missing? */
-	i = getngmin(".",firstart);	/* see if expire has been busy */
+	i = getngmin(".",firstbit);	/* see if expire has been busy */
 	if (i) {			/* avoid a bunch of extra opens */
-	    firstart = i;
+	    firstbit = i;
 	}
     }
+    firstart = firstbit;		/* firstart > firstbit in KILL */
 #ifdef PENDING
 #   ifdef CACHESUBJ
-	subj_to_get = firstart;
+	subj_to_get = firstbit;
 #   endif
 #endif
-    unread = lastart - firstart + 1;	/* assume this range unread */
-    for (i=OFFSET(firstart)/BITSPERBYTE; i<ctlsize; i++)
+    unread = lastart - firstbit + 1;	/* assume this range unread */
+    for (i=OFFSET(firstbit)/BITSPERBYTE; i<ctlsize; i++)
 	ctlarea[i] = 0;			/* assume unread */
 #ifdef DEBUGGING
     if (debug & DEB_CTLAREA_BITMAP) {
@@ -547,8 +551,8 @@ initctl()
 	if ((h = index(s,'-')) != Nullch) {	/* is there a -? */
 	    min = atol(s);
 	    max = atol(h+1);
-	    if (min < firstart)		/* make sure range is in range */
-		min = firstart;
+	    if (min < firstbit)		/* make sure range is in range */
+		min = firstbit;
 	    if (max > lastart)
 		max = lastart;
 	    if (min <= max)		/* non-null range? */
@@ -556,7 +560,7 @@ initctl()
 	    for (i=min; i<=max; i++)	/* for all articles in range */
 		ctl_set(i);		/* mark them read */
 	}
-	else if ((i = atol(s)) >= firstart && i <= lastart) {
+	else if ((i = atol(s)) >= firstbit && i <= lastart) {
 					/* is single number reasonable? */
 	    ctl_set(i);			/* mark it read */
 	    unread--;			/* decrement articles to read */

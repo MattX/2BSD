@@ -34,10 +34,6 @@ libm/		We haven't made any effort to convert the new math library for
 		happens (sic), 2.10BSD uses libom and hides that fact from
 		applications by linking libm.a to libom.a in /usr/lib.
 
-The directories PORT and OLD are somewhat special.  PORT is the source
-code from the 4.3 distribution that should probably be ported to 2.10
-as soon as someone has the time and inclination to do so.  OLD is the
-source code from the 2.9 CSS distribution that worked (well, mostly worked?)
-with the original 2.9.  It should be especially noted as the repository
-of the original FORTRAN libraries.  The new ones have not been tested,
-although they should work.
+The directorie PORT is somewhat special.  It contains source from the 4.3
+that should probably be ported to 2.10 as soon as someone has the time
+and inclination to do so.

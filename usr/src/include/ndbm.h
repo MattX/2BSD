@@ -10,12 +10,16 @@
  * Hashed key data base library.
  */
 #define PBLKSIZ 1024
+#ifdef BSD2_10
+#define DBLKSIZ 512
+#else
 #define DBLKSIZ 4096
+#endif
 
 #ifdef BSD2_10
 #define dbm_pagbno	dbm_bno		/* 8 char limit */
 #define dbm_dirbno	dbm_dno
-#endif BSD2_10
+#endif
 
 typedef struct {
 	int	dbm_dirf;		/* open directory file */

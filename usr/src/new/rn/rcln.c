@@ -1,6 +1,9 @@
-/* $Header: rcln.c,v 4.3.1.2 85/07/23 17:39:08 lwall Exp $
+/* $Header: rcln.c,v 4.3.1.3 86/11/04 15:57:03 lwall Exp $
  *
  * $Log:	rcln.c,v $
+ * Revision 4.3.1.3  86/11/04  15:57:03  lwall
+ * realloc attempted on unalloced area.
+ * 
  * Revision 4.3.1.2  85/07/23  17:39:08  lwall
  * Oops, was freeing a static buf on -c in checkexpired.
  * 
@@ -427,7 +430,7 @@ ART_NUM ngsize;
 	*t++ = ',';
 	strcpy(t,s);
     }
-    if (mbuf == rcline[ngnum]) {
+    if (!checkflag && mbuf == rcline[ngnum]) {
 	rcline[ngnum] = saferealloc(rcline[ngnum],
 	    (MEM_SIZE)(rcnums[ngnum] + strlen(newnum) + 1));
     }

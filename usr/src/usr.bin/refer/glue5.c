@@ -12,8 +12,13 @@ static char *sccsid = "@(#)glue5.c	4.2 (Berkeley) 1/9/85";
  *		1 - ok, but no matches
  *		2 - some error
  */
+#ifdef BSD2_10
+#define	MAXSIZ 350
+#define QSIZE 200
+#else
 #define	MAXSIZ 700
 #define QSIZE 400
+#endif
 struct words {
 	char 	inp;
 	char	out;

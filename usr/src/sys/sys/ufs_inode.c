@@ -18,6 +18,9 @@
 #include "buf.h"
 #include "text.h"
 #include "systm.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 #ifdef SMALL
 #define	INOHSZ	16		/* must be power of two */
@@ -106,6 +109,10 @@ iget(dev, fs, ino)
 	union ihead *ih;
 	struct buf *bp;
 	struct dinode *dp;
+#ifdef EXTERNALITIMES
+	struct icommon2 xic2;
+	segm sav5;
+#endif
 
 loop:
 	ih = &ihead[INOHASH(dev, ino)];
@@ -182,6 +189,11 @@ loop:
 	ip->i_flag = ILOCKED;
 	ip->i_count++;
 	ip->i_lastr = 0;
+#ifdef QUOTA
+	QUOTAMAP();
+	dqrele(ix_dquot[ip - inode]);
+	QUOTAUNMAP();
+#endif
 	bp = bread(dev, itod(ino));
 	/*
 	 * Check I/O errors
@@ -203,6 +215,11 @@ loop:
 		 * (probably the two methods are interchangable)
 		 */
 		ip->i_number = 0;
+#ifdef QUOTA
+		QUOTAMAP();
+		ix_dquot[ip - inode] = NODQUOT;
+		QUOTAUNMAP();
+#endif
 		iput(ip);
 		return(NULL);
 	}
@@ -213,7 +230,11 @@ loop:
 		int cnt;
 
 		ip->i_ic1 = dp->di_ic1;
+#ifdef EXTERNALITIMES
+		xic2 = dp->di_ic2;
+#else
 		ip->i_ic2 = dp->di_ic2;
+#endif
 		p1 = (char *)ip->i_addr;
 		p2 = (char *)dp->di_addr;
 		for (cnt = 0;cnt < NADDR;cnt++) {
@@ -225,6 +246,20 @@ loop:
 	}
 	mapout(bp);
 	brelse(bp);
+#ifdef EXTERNALITIMES
+	saveseg5(sav5);
+	mapseg5(xitimes, xitdesc);
+	((struct icommon2 *)0120000)[ip-inode] = xic2;
+	restorseg5(sav5);
+#endif
+#ifdef QUOTA
+	QUOTAMAP();
+	if	(ip->i_mode == 0)
+		ix_dquot[ip - inode] = NODQUOT;
+	else
+		ix_dquot[ip - inode] = inoquota(ip);
+	QUOTAUNMAP();
+#endif
 	return (ip);
 }
 
@@ -263,6 +298,13 @@ irele(ip)
 			ip->i_rdev = 0;
 			ip->i_flag |= IUPD|ICHG;
 			ifree(ip, ip->i_number);
+#ifdef QUOTA
+			QUOTAMAP();
+			(void) chkiq(ip->i_dev, ip, ip->i_uid, 0);
+			dqrele(ix_dquot[ip - inode]);
+			ix_dquot[ip - inode] = NODQUOT;
+			QUOTAUNMAP();
+#endif
 		}
 		IUPDAT(ip, &time, &time, 0);
 		IUNLOCK(ip);
@@ -306,6 +348,10 @@ iupdat(ip, ta, tm, waitfor)
 {
 	struct buf *bp;
 	struct dinode *dp;
+#ifdef EXTERNALITIMES
+	struct icommon2 xic2, *xicp2;
+	segm sav5;
+#endif
 {
 	register struct inode *tip = ip;
 
@@ -318,16 +364,34 @@ iupdat(ip, ta, tm, waitfor)
 		brelse(bp);
 		return;
 	}
+#ifdef EXTERNALITIMES
+	saveseg5(sav5);
+	mapseg5(xitimes, xitdesc);
+	xicp2 = &((struct icommon2 *)0120000)[ip - inode];
+	if (tip->i_flag & IACC)
+		xicp2->ic_atime = ta->tv_sec;
+	if (tip->i_flag & IUPD)
+		xicp2->ic_mtime = tm->tv_sec;
+	if (tip->i_flag & ICHG)
+		xicp2->ic_ctime = time.tv_sec;
+	xic2 = *xicp2;
+	restorseg5(sav5);
+#else
 	if (tip->i_flag&IACC)
 		tip->i_atime = ta->tv_sec;
 	if (tip->i_flag&IUPD)
 		tip->i_mtime = tm->tv_sec;
 	if (tip->i_flag&ICHG)
 		tip->i_ctime = time.tv_sec;
+#endif
 	tip->i_flag &= ~(IUPD|IACC|ICHG|IMOD);
 	dp = (struct dinode *)mapin(bp) + itoo(tip->i_number);
 	dp->di_ic1 = tip->i_ic1;
+#ifdef EXTERNALITIMES
+	dp->di_ic2 = xic2;
+#else
 	dp->di_ic2 = tip->i_ic2;
+#endif
 }
 {
 	register char *p1, *p2;
@@ -376,6 +440,9 @@ itrunc(oip,length)
 	struct buf *bp;
 	int offset, level;
 	struct inode tip;
+#ifdef QUOTA
+	long bytesreleased;
+#endif
 
 	/*
 	 * special hack for pipes, since size for them isn't the size of
@@ -432,6 +499,9 @@ itrunc(oip,length)
 	 * for calls to indirtrunc below.
 	 */
 	tip = *oip;
+#ifdef QUOTA
+	bytesreleased = oip->i_size - length;
+#endif
 	oip->i_size = length;
 	for (level = TRIPLE; level >= SINGLE; level--)
 		if (lastiblock[level] < 0) {
@@ -485,6 +555,11 @@ done:
 /* END PARANOIA */
 #endif
 	oip->i_flag |= ICHG;
+#ifdef QUOTA
+	QUOTAMAP();
+	(void)chkdq(oip, -bytesreleased, 0);
+	QUOTAUNMAP();
+#endif
 }
 
 /*
@@ -626,14 +701,23 @@ trsingle(ip, bp,last)
  *
  * this is called from sumount()/sys3.c when dev is being unmounted
  */
+#ifdef QUOTA
+iflush(dev, iq)
+	struct inode *iq;
+#else
 iflush(dev)
+#endif
 	dev_t dev;
 {
 	register struct inode *ip;
 	register open = 0;
 
 	for (ip = inode; ip < inodeNINODE; ip++) {
+#ifdef QUOTA
+		if (ip != iq && ip->i_dev == dev)
+#else
 		if (ip->i_dev == dev)
+#endif
 			if (ip->i_count)
 				return(-1);
 			else {
@@ -649,6 +733,12 @@ iflush(dev)
 				 * infrequently, we would gain very little,
 				 * while making the code bigger.
 				 */
+#ifdef QUOTA
+				QUOTAMAP();
+				dqrele(ix_dquot[ip - inode]);
+				ix_dquot[ip - inode] = NODQUOT;
+				QUOTAUNMAP();
+#endif
 			}
 		else if (ip->i_count && (ip->i_mode&IFMT)==IFBLK &&
 		    ip->i_rdev == dev)

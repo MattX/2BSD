@@ -6,11 +6,8 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-#SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
-#	m4 neqn nroff plot prof ratfor refer spell struct tbl tip troff uucp \
-#	yacc
 SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex \
-	m4 neqn nroff plot prof ratfor refer spell tbl tip troff uucp \
+	m4 neqn plot prof ratfor refer roff spell struct tbl tip uucp \
 	yacc
 
 # Shell scripts that need only be installed and are never removed.
@@ -38,7 +35,7 @@ NSTD=	bc egrep
 
 # Programs that must run set-group-id kmem.
 #
-#KMEM=	iostat
+KMEM=	iostat
 
 all: ${SUBDIR} ${STD} ${NSTD} ${KMEM} xinstall
 
@@ -55,8 +52,8 @@ install:
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do \
 		(install -c -m 555 $$i.sh ${DESTDIR}/usr/bin/$$i); done
-#	-for i in ${KMEM}; do \
-#		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
+	-for i in ${KMEM}; do \
+		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
 	install -s ${STD} ${NSTD} ${DESTDIR}/usr/bin
 	install -s -m 755 xinstall ${DESTDIR}/usr/bin/install
 	install -c -m 755 units.lib ${DESTDIR}/usr/lib/units

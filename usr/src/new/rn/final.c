@@ -1,6 +1,9 @@
-/* $Header: final.c,v 4.3 85/05/01 11:38:08 lwall Exp $
+/* $Header: /usr/src/local/rn/RCS/final.c,v 1.2 87/06/25 18:39:43 bin Exp $
  *
  * $Log:	final.c,v $
+ * Revision 1.2  87/06/25  18:39:43  bin
+ * Fixed bug with signal catcher on pdp11's.
+ * 
  * Revision 4.3  85/05/01  11:38:08  lwall
  * Baseline for release with 4.3bsd.
  * 
@@ -167,7 +170,6 @@ sig_catcher(signo)
 
 #ifdef SIGTSTP
 /* come here on stop signal */
-long sigblock();
 
 int
 stop_catcher()
@@ -181,7 +183,7 @@ stop_catcher()
 #endif
 	sigset(SIGTSTP,SIG_DFL);	/* enable stop */
 #ifdef BSD42
-	sigsetmask(sigblock(0) & ~(1L << (SIGTSTP-1)));
+	sigsetmask(sigblock(0L) & ~(1L << (SIGTSTP-1)));
 #endif
 	kill(0,SIGTSTP);		/* and do the stop */
     }

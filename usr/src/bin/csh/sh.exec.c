@@ -228,8 +228,8 @@ texec(f, t)
 		t[0] = f;
 		t = blkspl(vp, t);		/* Splice up the new arglst */
 		f = *t;
-		execv(f, t);
 		xfree((char *)t);
+		execv(f, t);
 		/* The sky is falling, the sky is falling! */
 
 	case ENOMEM:
@@ -327,7 +327,8 @@ hashstat()
 
 	if (hits+misses)
 		printf("%d hits, %d misses, %d%%\n",
-			hits, misses, 100 * hits / (hits + misses));
+			hits, misses,
+			(int)(100L * hits / (hits + misses)));
 }
 #endif
 

@@ -1,3 +1,3 @@
-#define	PATCHLEVEL	8
+#define	PATCHLEVEL	14
 
-#define NEWS_VERSION   "B 2.11 4/10/87"
+#define NEWS_VERSION   "B 2.11 12/1/87"

@@ -24,6 +24,7 @@ static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 2/7/86";
 #include <sys/file.h>
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <signal.h>
 #include <stdio.h>

@@ -196,10 +196,10 @@ recipient(a, sendq)
 	{
 		a->q_mailer = m = ProgMailer;
 		a->q_user++;
-		if (a->q_alias == NULL && !tTd(0, 1) && !QueueRun && !ForceMail)
+		if (a->q_alias == NULL && !QueueRun && !ForceMail)
 		{
 			usrerr("Cannot mail directly to programs");
-			a->q_flags |= QDONTSEND;
+			a->q_flags |= QDONTSEND|QBADADDR;
 		}
 	}
 

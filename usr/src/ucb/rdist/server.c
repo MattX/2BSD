@@ -377,9 +377,9 @@ sendf(rname, opts)
 		if (response() < 0)
 			return;
 		sizerr = (readlink(target, buf, BUFSIZ) != stb.st_size);
-		(void) write(rem, buf, stb.st_size);
+		(void) write(rem, buf, (int)stb.st_size);
 		if (debug)
-			printf("readlink = %.*s\n", stb.st_size, buf);
+			printf("readlink = %.*s\n", (int)stb.st_size, buf);
 		goto done;
 
 	case S_IFREG:
@@ -759,7 +759,7 @@ recvf(cmd, type)
 		ack();
 		cp = buf;
 		for (i = 0; i < size; i += j) {
-			if ((j = read(rem, cp, size - i)) <= 0)
+			if ((j = read(rem, cp, (int)(size - i))) <= 0)
 				cleanup();
 			cp += j;
 		}

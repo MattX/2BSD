@@ -22,16 +22,30 @@
 #define	NIADDR	3			/* indirect addresses in inode */
 #define	NADDR	(NDADDR + NIADDR)	/* total addresses in inode */
 
+struct icommon2 {
+	time_t	ic_atime;		/* time last accessed */
+	time_t	ic_mtime;		/* time last modified */
+	time_t	ic_ctime;		/* time created */
+};
+
 struct inode {
 	struct	inode *i_chain[2];	/* must be first */
 	u_short	i_flag;
 	u_short	i_count;	/* reference count */
 	dev_t	i_dev;		/* device where inode resides */
-	u_short	i_shlockc;	/* count of shared locks on inode */
-	u_short	i_exlockc;	/* count of exclusive locks on inode */
 	ino_t	i_number;	/* i number, 1-to-1 with device address */
 	struct	fs *i_fs;	/* file sys associated with this inode */
-	struct	text *i_text;	/* text entry, if any (should be region) */
+	union {
+		struct {
+			u_char	I_shlockc;	/* count of shared locks */
+			u_char	I_exlockc;	/* count of exclusive locks */
+		} i_l;
+		struct	proc *I_rsel;	/* pipe read select */
+	} i_un0;
+	union {
+		struct	text *I_text;	/* text entry, if any */
+		struct	proc *I_wsel;	/* pipe write select */
+	} i_un1;
 	union {
 		daddr_t	I_addr[NADDR];		/* normal file/directory */
 		struct {
@@ -47,17 +61,15 @@ struct inode {
 			u_short	I_dummy;
 			dev_t	I_rdev;		/* dev type */
 		} i_d;
-	} i_un1;
+	} i_un2;
 	union {
 		daddr_t	if_lastr;	/* last read (read-ahead) */
-#ifdef UCB_NET
 		struct	socket *is_socket;
-#endif
 		struct	{
 			struct inode  *if_freef;	/* free list forward */
 			struct inode **if_freeb;	/* free list back */
 		} i_fr;
-	} i_un2;
+	} i_un3;
 	struct icommon1 {
 		u_short	ic_mode;	/* mode and type of file */
 		u_short	ic_nlink;	/* number of links to file */
@@ -65,11 +77,9 @@ struct inode {
 		gid_t	ic_gid;		/* owner's group id */
 		off_t	ic_size;	/* number of bytes in file */
 	} i_ic1;
-	struct icommon2 {
-		time_t	ic_atime;	/* time last accessed */
-		time_t	ic_mtime;	/* time last modified */
-		time_t	ic_ctime;	/* time created */
-	} i_ic2;
+#ifndef EXTERNALITIMES
+	struct icommon2 i_ic2;
+#endif
 };
 
 /*
@@ -87,20 +97,27 @@ struct dinode {
 #define	i_uid		i_ic1.ic_uid
 #define	i_gid		i_ic1.ic_gid
 #define	i_size		i_ic1.ic_size
-#define	i_db		i_un1.i_f.I_db
-#define	i_ib		i_un1.i_f.I_ib
+#define	i_shlockc	i_un0.i_l.I_shlockc
+#define	i_exlockc	i_un0.i_l.I_exlockc
+#define	i_rsel		i_un0.I_rsel
+#define	i_text		i_un1.I_text
+#define	i_wsel		i_un1.I_wsel
+#define	i_db		i_un2.i_f.I_db
+#define	i_ib		i_un2.i_f.I_ib
+#ifndef EXTERNALITIMES
 #define	i_atime		i_ic2.ic_atime
 #define	i_mtime		i_ic2.ic_mtime
 #define	i_ctime		i_ic2.ic_ctime
-#define	i_rdev		i_un1.i_d.I_rdev
-#define	i_lastr		i_un2.if_lastr
-#define	i_socket	i_un2.is_socket
+#endif
+#define	i_rdev		i_un2.i_d.I_rdev
+#define	i_addr		i_un2.I_addr
+#define	i_dummy		i_un2.i_d.I_dummy
+#define	i_lastr		i_un3.if_lastr
+#define	i_socket	i_un3.is_socket
 #define	i_forw		i_chain[0]
 #define	i_back		i_chain[1]
-#define	i_freef		i_un2.i_fr.if_freef
-#define	i_freeb		i_un2.i_fr.if_freeb
-#define	i_addr		i_un1.I_addr
-#define	i_dummy		i_un1.i_d.I_dummy
+#define	i_freef		i_un3.i_fr.if_freef
+#define	i_freeb		i_un3.i_fr.if_freeb
 
 #define di_ic1		di_icom1
 #define di_ic2		di_icom2
@@ -113,7 +130,11 @@ struct dinode {
 #define	di_mtime	di_ic2.ic_mtime
 #define	di_ctime	di_ic2.ic_ctime
 
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
+#ifdef EXTERNALITIMES
+memaddr	xitimes;
+u_int	xitdesc;
+#endif
 struct inode inode[];		/* the inode table itself */
 struct inode *inodeNINODE;	/* the end of the inode table */
 int	ninode;			/* the number of slots in the table */
@@ -141,6 +162,8 @@ struct	inode *namei();
 #define	IMOD		0x400		/* inode has been modified */
 #define	IRENAME		0x800		/* inode is being renamed */
 #define	IPIPE		0x1000		/* inode is a pipe */
+#define	IRCOLL		0x2000		/* read select collision on pipe */
+#define	IWCOLL		0x4000		/* write select collision on pipe */
 #define	IXMOD		0x8000		/* inode is text, but impure (XXX) */
 
 /* modes */
@@ -158,6 +181,7 @@ struct	inode *namei();
 #define	IWRITE		0200
 #define	IEXEC		0100
 
+#ifndef SUPERVISOR
 #define	ILOCK(ip) { \
 	while ((ip)->i_flag & ILOCKED) { \
 		(ip)->i_flag |= IWANT; \
@@ -179,6 +203,25 @@ struct	inode *namei();
 		iupdat(ip, t1, t2, waitfor); \
 }
 
+#ifdef EXTERNALITIMES
+#define	ITIMES(ip, t1, t2) { \
+	if ((ip)->i_flag&(IUPD|IACC|ICHG)) { \
+		struct icommon2 *ic2= &((struct icommon2 *)0120000)[ip-inode]; \
+		segm sav5; \
+		saveseg5(sav5); \
+		mapseg5(xitimes, xitdesc); \
+		(ip)->i_flag |= IMOD; \
+		if ((ip)->i_flag&IACC) \
+			ic2->ic_atime = (t1)->tv_sec; \
+		if ((ip)->i_flag&IUPD) \
+			ic2->ic_mtime = (t2)->tv_sec; \
+		if ((ip)->i_flag&ICHG) \
+			ic2->ic_ctime = time.tv_sec; \
+		(ip)->i_flag &= ~(IACC|IUPD|ICHG); \
+		restorseg5(sav5); \
+	} \
+}
+#else
 #define	ITIMES(ip, t1, t2) { \
 	if ((ip)->i_flag&(IUPD|IACC|ICHG)) { \
 		(ip)->i_flag |= IMOD; \
@@ -191,3 +234,5 @@ struct	inode *namei();
 		(ip)->i_flag &= ~(IACC|IUPD|ICHG); \
 	} \
 }
+#endif
+#endif

@@ -137,8 +137,8 @@ char **argv;
 					hours > 1 ? "s": "");
 				minutes -= 60 * hours;
 			}
-			printf("%3.1f minutes (@ effective baudrate of %d)",
-				minutes,(int)baudrate/6);
+			printf("%3.1f minutes (@ effective baudrate of %ld)",
+				minutes,(long)(baudrate/6));
 		}
 		putchar('\n');
 		if (hflag)

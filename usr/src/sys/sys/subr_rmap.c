@@ -97,6 +97,16 @@ again:
 	return((memaddr)NULL);
 }
 
+#ifdef UCB_NET
+/* corealloc allows the network code to call malloc(). */
+memaddr
+corealloc(n)
+	size_t n;
+{
+	return(malloc(coremap, n));
+}
+#endif
+
 /*
  * Free the previously allocated size units at addr into the specified
  * map.  Sort addr into map and combine on one or both ends if possible.
@@ -181,7 +191,7 @@ mfree(mp, size, addr)
 		 * and toss it.
 		 */
 		printf("%s: overflow, lost %u clicks at 0%o\n",
-		    mp->m_name, addr, size);
+		    mp->m_name, size, addr);
 	else {
 		for (ep = bp - 1; ep >= start; *bp-- = *ep--);
 		start->m_addr = addr;

@@ -455,13 +455,11 @@ dhstart(tp)
 			tp->t_state &= ~TS_ASLEEP;
 				wakeup((caddr_t)&tp->t_outq);
 		}
-#ifdef UCB_NET
 		if (tp->t_wsel) {
 			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
 			tp->t_wsel = 0;
 			tp->t_state &= ~TS_WCOLL;
 		}
-#endif
 	}
 	/*
 	 * Now restart transmission unless the output queue is

@@ -162,7 +162,7 @@ fcntl()
 }
 
 fset(fp, bit, value)
-	register struct file *fp;
+	struct file *fp;
 	int bit, value;
 {
 
@@ -170,42 +170,38 @@ fset(fp, bit, value)
 		fp->f_flag |= bit;
 	else
 		fp->f_flag &= ~bit;
-	return (ino_ioctl(fp, (u_int)(bit == FNDELAY ? FIONBIO : FIOASYNC),
+	return (fioctl(fp, (u_int)(bit == FNDELAY ? FIONBIO : FIOASYNC),
 	    (caddr_t)&value));
 }
 
 fgetown(fp, valuep)
-	register struct file *fp;
-	register int *valuep;
+	struct file *fp;
+	int *valuep;
 {
 	register int error;
 
-	switch (fp->f_type) {
-
 #ifdef UCB_NET
-	case DTYPE_SOCKET:
-		*valuep = ((struct socket *)fp->f_data)->so_pgrp;
+	if (fp->f_type == DTYPE_SOCKET) {
+		*valuep = mfsd(&fp->f_socket->so_pgrp);
 		return (0);
-#endif UCB_NET
-
-	default:
-		error = ino_ioctl(fp, (u_int)TIOCGPGRP, (caddr_t)valuep);
-		*valuep = -*valuep;
-		return (error);
 	}
+#endif
+	error = ino_ioctl(fp, (u_int)TIOCGPGRP, (caddr_t)valuep);
+	*valuep = -*valuep;
+	return (error);
 }
 
 fsetown(fp, value)
-	register struct file *fp;
+	struct file *fp;
 	int value;
 {
 
 #ifdef UCB_NET
 	if (fp->f_type == DTYPE_SOCKET) {
-		((struct socket *)fp->f_data)->so_pgrp = value;
+		mtsd(&fp->f_socket->so_pgrp, value);
 		return (0);
 	}
-#endif UCB_NET
+#endif
 	if (value > 0) {
 		struct proc *p = pfind(value);
 		if (p == 0)
@@ -214,6 +210,18 @@ fsetown(fp, value)
 	} else
 		value = -value;
 	return (ino_ioctl(fp, (u_int)TIOCSPGRP, (caddr_t)&value));
+}
+
+fioctl(fp, cmd, value)
+	struct file *fp;
+	int cmd;
+	caddr_t value;
+{
+#ifdef UCB_NET
+	if (fp->f_type == DTYPE_SOCKET)
+		return (SOO_IOCTL(fp, cmd, value));
+#endif
+	return (ino_ioctl(fp, cmd, value));
 }
 
 close()
@@ -254,9 +262,9 @@ fstat()
 
 #ifdef UCB_NET
 	case DTYPE_SOCKET:
-		u.u_error = soo_stat((struct socket *)fp->f_data, &ub);
+		u.u_error = SOO_STAT(fp->f_socket, &ub);
 		break;
-#endif UCB_NET
+#endif
 	default:
 		panic("fstat");
 		/*NOTREACHED*/
@@ -266,6 +274,7 @@ fstat()
 		    sizeof (ub));
 }
 
+/* copied, for supervisory networking, to sys_net.c */
 /*
  * Allocate a user file descriptor.
  */
@@ -285,7 +294,8 @@ ufalloc(i)
 	return (-1);
 }
 
-#ifdef UCB_NET
+/* moved, for supervisory networking, to sys_net.c */
+#ifdef notdef
 ufavail()
 {
 	register int i, avail = 0;
@@ -374,7 +384,7 @@ closef(fp,nouser)
 #ifdef UCB_NET
 		case DTYPE_SOCKET:
 			u.u_error = 0;			/* XXX */
-			soclose(fp->f_socket, nouser);
+			SOCLOSE(fp->f_socket);
 			if (nouser == 0 && u.u_error)
 				return;
 			fp->f_socket = 0;

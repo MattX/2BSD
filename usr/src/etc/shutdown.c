@@ -63,7 +63,7 @@ extern	off_t lseek();
 
 struct	utmp utmp;
 int	sint;
-int	stogo;
+long	stogo;
 char	tpath[] =	"/dev/";
 int	nlflag = 1;		/* nolog yet to be done */
 int	killflg = 1;
@@ -335,8 +335,8 @@ getsdt(s)
 	tim *= 60;
 	t1 = time((long *) 0);
 	lt = localtime(&t1);
-	t = lt->tm_sec + lt->tm_min*60 + lt->tm_hour*3600;
-	if (tim < t || tim >= (24*3600)) {
+	t = lt->tm_sec + lt->tm_min*60 + (long)lt->tm_hour*3600;
+	if (tim < t || tim >= ((long)24*3600)) {
 		/* before now or after midnight */
 		printf("That must be tomorrow\nCan't you wait till then?\n");
 		finish();

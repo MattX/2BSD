@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.1 (Berkeley) 5/13/86
+#	@(#)Makefile	6.2 (Berkeley) 9/8/88
 #
 PRINTER=-Plz
 TROFF=	ditroff ${PRINTER}
@@ -14,10 +14,10 @@ LPR=	lpr -n ${PRINTER}
 SRC=	0.t 1.t 2.t 3.t 4.t 5.t 6.t a.t
 
 all: ${SRC}
-	${EQN} ${SRC} | ${TBL} | ${TROFF} -msU
+	${EQN} ${SRC} | ${TBL} | ${TROFF} ${PAGES} -ms
 
 clean:
-	rm -f setup.out ?.t.spell errs Errs
+	rm -f setup.out ?.t.spell errs Errs MAKELOG
 
 spell:	${SRC}
 	@for i in ${SRC}; do \

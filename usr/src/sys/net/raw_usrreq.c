@@ -1,14 +1,18 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1980, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)raw_usrreq.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)raw_usrreq.c	7.3 (Berkeley) 12/30/87
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "mbuf.h"
 #include "domain.h"
 #include "protosw.h"
@@ -20,8 +24,6 @@
 #include "route.h"
 #include "netisr.h"
 #include "raw_cb.h"
-
-#include "../netinet/in_systm.h"
 
 /*
  * Initialize raw connection block q.
@@ -55,12 +57,10 @@ raw_input(m0, proto, src, dst)
 	}
 	m->m_next = m0;
 	m->m_len = sizeof(struct raw_header);
-	MAPSAVE();
 	rh = mtod(m, struct raw_header *);
 	rh->raw_dst = *dst;
 	rh->raw_src = *src;
 	rh->raw_proto = *proto;
-	MAPREST();
 
 	/*
 	 * Header now contains enough info to decide
@@ -90,13 +90,12 @@ rawintr()
 	register struct rawcb *rp;
 	register struct raw_header *rh;
 	struct socket *last;
-	struct sockaddr src;
 
 next:
 	s = splimp();
 	IF_DEQUEUE(&rawintrq, m);
 	splx(s);
-	if (m == 0) 
+	if (m == 0)
 		return;
 	rh = mtod(m, struct raw_header *);
 	last = 0;
@@ -122,8 +121,7 @@ next:
 		if (last) {
 			struct mbuf *n;
 			if (n = m_copy(m->m_next, 0, (int)M_COPYALL)) {
-				src = rh->raw_src;
-				if (sbappendaddr(&last->so_rcv, &src,
+				if (sbappendaddr(&last->so_rcv, &rh->raw_src,
 				    n, (struct mbuf *)0) == 0)
 					/* should notify about lost packet */
 					m_freem(n);
@@ -134,8 +132,7 @@ next:
 		last = rp->rcb_socket;
 	}
 	if (last) {
-		src = rh->raw_src;
-		if (sbappendaddr(&last->so_rcv, &src,
+		if (sbappendaddr(&last->so_rcv, &rh->raw_src,
 		    m->m_next, (struct mbuf *)0) == 0)
 			m_freem(m->m_next);
 		else
@@ -168,7 +165,6 @@ raw_usrreq(so, req, m, nam, rights)
 
 	if (req == PRU_CONTROL)
 		return (EOPNOTSUPP);
-	MAPSAVE();
 	if (rights && rights->m_len) {
 		error = EOPNOTSUPP;
 		goto release;
@@ -177,7 +173,6 @@ raw_usrreq(so, req, m, nam, rights)
 		error = EINVAL;
 		goto release;
 	}
-
 	switch (req) {
 
 	/*
@@ -283,7 +278,6 @@ raw_usrreq(so, req, m, nam, rights)
 		/*
 		 * stat: don't bother with a blocksize.
 		 */
-		MAPUNSAVE();
 		return (0);
 
 	/*
@@ -291,7 +285,6 @@ raw_usrreq(so, req, m, nam, rights)
 	 */
 	case PRU_RCVOOB:
 	case PRU_RCVD:
-		MAPUNSAVE();
 		return(EOPNOTSUPP);
 
 	case PRU_LISTEN:
@@ -301,13 +294,13 @@ raw_usrreq(so, req, m, nam, rights)
 		break;
 
 	case PRU_SOCKADDR:
-		bcopy((caddr_t)&rp->rcb_laddr, MTOD(nam, caddr_t),
+		bcopy((caddr_t)&rp->rcb_laddr, mtod(nam, caddr_t),
 		    sizeof (struct sockaddr));
 		nam->m_len = sizeof (struct sockaddr);
 		break;
 
 	case PRU_PEERADDR:
-		bcopy((caddr_t)&rp->rcb_faddr, MTOD(nam, caddr_t),
+		bcopy((caddr_t)&rp->rcb_faddr, mtod(nam, caddr_t),
 		    sizeof (struct sockaddr));
 		nam->m_len = sizeof (struct sockaddr);
 		break;
@@ -318,6 +311,5 @@ raw_usrreq(so, req, m, nam, rights)
 release:
 	if (m != NULL)
 		m_freem(m);
-	MAPREST();
 	return (error);
 }

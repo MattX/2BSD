@@ -1,25 +1,29 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)tcp_subr.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp_subr.c	7.13.1.1 (Berkeley) 2/7/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
-#include "domain.h"
-#include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
+#include "protosw.h"
 #include "errno.h"
 
 #include "../net/route.h"
 #include "../net/if.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -43,8 +47,6 @@ tcp_init()
 
 	tcp_iss = 1;		/* wrong */
 	tcb.inp_next = tcb.inp_prev = &tcb;
-	tcp_alpha = TCP_ALPHA;
-	tcp_beta = TCP_BETA;
 }
 
 /*
@@ -58,14 +60,20 @@ tcp_template(tp)
 	struct tcpcb *tp;
 {
 	register struct inpcb *inp = tp->t_inpcb;
+	register struct mbuf *m;
 	register struct tcpiphdr *n;
 
-	MSGET(n, struct tcpiphdr, M_CLEAR);
-	if (n == NULL)
-		return ((struct tcpiphdr *)0);
+	if ((n = tp->t_template) == 0) {
+		m = m_get(M_DONTWAIT, MT_HEADER);
+		if (m == NULL)
+			return (0);
+		m->m_off = MMAXOFF - sizeof (struct tcpiphdr);
+		m->m_len = sizeof (struct tcpiphdr);
+		n = mtod(m, struct tcpiphdr *);
+	}
 	n->ti_next = n->ti_prev = 0;
-	n->ti_pad = 0;
 	n->ti_x1 = 0;
+	n->ti_pad = 0;
 	n->ti_pr = IPPROTO_TCP;
 	n->ti_len = htons(sizeof (struct tcpiphdr) - sizeof (struct ip));
 	n->ti_src = inp->inp_laddr;
@@ -106,44 +114,38 @@ tcp_respond(tp, ti, ack, seq, flags)
 	int win = 0, tlen;
 	struct route *ro = 0;
 
-	MAPSAVE();
 	if (tp) {
 		win = sbspace(&tp->t_inpcb->inp_socket->so_rcv);
 		ro = &tp->t_inpcb->inp_route;
 	}
 	if (flags == 0) {
 		m = m_get(M_DONTWAIT, MT_HEADER);
-		if (m == NULL) {
-			MAPUNSAVE();
+		if (m == NULL)
 			return;
-		}
-		m->m_len = sizeof (struct tcpiphdr) + 1;
-/* THIS WON'T WORK!!! (ti is in an mbuf) */
-		bcopy((caddr_t)ti, mtod(m, caddr_t), sizeof *ti);
-		ti = mtod(m, struct tcpiphdr *);
-		flags = TH_ACK;
 #ifdef TCP_COMPAT_42
 		tlen = 1;
 #else
 		tlen = 0;
 #endif
+		m->m_len = sizeof (struct tcpiphdr) + tlen;
+		*mtod(m, struct tcpiphdr *) = *ti;
+		ti = mtod(m, struct tcpiphdr *);
+		flags = TH_ACK;
 	} else {
 		m = dtom(ti);
 		m_freem(m->m_next);
 		m->m_next = 0;
-#ifdef BSD2_10
-		m->m_off = (caddr_t)ti - (caddr_t)MBX;
-#else
 		m->m_off = (int)ti - (int)m;
-#endif
+		tlen = 0;
 		m->m_len = sizeof (struct tcpiphdr);
 #define xchg(a,b,type) { type t; t=a; a=b; b=t; }
 		xchg(ti->ti_dst.s_addr, ti->ti_src.s_addr, u_long);
 		xchg(ti->ti_dport, ti->ti_sport, u_short);
 #undef xchg
-		tlen = 0;
 	}
-	bzero((caddr_t)ti, 9);
+	ti->ti_next = ti->ti_prev = 0;
+	ti->ti_x1 = 0;
+	ti->ti_pad = 0;
 	ti->ti_len = htons((u_short)(sizeof (struct tcphdr) + tlen));
 	ti->ti_seq = htonl(seq);
 	ti->ti_ack = htonl(ack);
@@ -154,8 +156,7 @@ tcp_respond(tp, ti, ack, seq, flags)
 	ti->ti_urp = 0;
 	ti->ti_sum = in_cksum(m, sizeof (struct tcpiphdr) + tlen);
 	((struct ip *)ti)->ip_len = sizeof (struct tcpiphdr) + tlen;
-	((struct ip *)ti)->ip_ttl = TCP_TTL;
-	MAPREST();
+	((struct ip *)ti)->ip_ttl = tcp_ttl;
 	(void) ip_output(m, (struct mbuf *)0, ro, 0);
 }
 
@@ -168,17 +169,28 @@ struct tcpcb *
 tcp_newtcpcb(inp)
 	struct inpcb *inp;
 {
+	struct mbuf *m = m_getclr(M_DONTWAIT, MT_PCB);
 	register struct tcpcb *tp;
 
-	MSGET(tp, struct tcpcb, M_CLEAR);
-	if (tp == NULL)
+	if (m == NULL)
 		return ((struct tcpcb *)0);
+	tp = mtod(m, struct tcpcb *);
 	tp->seg_next = tp->seg_prev = (struct tcpiphdr *)tp;
 	tp->t_maxseg = TCP_MSS;
 	tp->t_flags = 0;		/* sends options! */
 	tp->t_inpcb = inp;
+	/*
+	 * Init srtt to TCPTV_SRTTBASE (0), so we can tell that we have no
+	 * rtt estimate.  Set rttvar so that srtt + 2 * rttvar gives
+	 * reasonable initial retransmit time.
+	 */
 	tp->t_srtt = TCPTV_SRTTBASE;
+	tp->t_rttvar = TCPTV_SRTTDFLT << 2;
+	TCPT_RANGESET(tp->t_rxtcur, 
+	    ((TCPTV_SRTTBASE >> 2) + (TCPTV_SRTTDFLT << 2)) >> 1,
+	    TCPTV_MIN, TCPTV_REXMTMAX);
 	tp->snd_cwnd = sbspace(&inp->inp_socket->so_snd);
+	tp->snd_ssthresh = 65535;		/* XXX */
 	inp->inp_ppcb = (caddr_t)tp;
 	return (tp);
 }
@@ -198,17 +210,12 @@ tcp_drop(tp, errno)
 	if (TCPS_HAVERCVDSYN(tp->t_state)) {
 		tp->t_state = TCPS_CLOSED;
 		(void) tcp_output(tp);
-	}
+		tcpstat.tcps_drops++;
+	} else
+		tcpstat.tcps_conndrops++;
 	so->so_error = errno;
 	return (tcp_close(tp));
 }
-
-#ifdef BSD2_10
-#define ti_mbuf ti_sum
-#define DTOM(d) ( (struct mbuf *) ((d)->ti_mbuf) )
-#else
-#define DTOM(d) dtom(d)
-#endif
 
 /*
  * Close a TCP control block:
@@ -220,28 +227,25 @@ struct tcpcb *
 tcp_close(tp)
 	register struct tcpcb *tp;
 {
-	register struct tcpiphdr *t,*to;
+	register struct tcpiphdr *t;
 	struct inpcb *inp = tp->t_inpcb;
 	struct socket *so = inp->inp_socket;
+	register struct mbuf *m;
 
 	t = tp->seg_next;
 	while (t != (struct tcpiphdr *)tp) {
-		m_freem(DTOM(t));
-		to = t;
-		remque(to);
 		t = (struct tcpiphdr *)t->ti_next;
-#ifdef BSD2_10
-		MSFREE(to);
-#endif
+		m = dtom(t->ti_prev);
+		remque(t->ti_prev);
+		m_freem(m);
 	}
 	if (tp->t_template)
-		(void) MSFREE(tp->t_template);
-	if (tp->t_tcpopt)
-		(void) m_free(tp->t_tcpopt);
-	(void) MSFREE(tp);
+		(void) m_free(dtom(tp->t_template));
+	(void) m_free(dtom(tp));
 	inp->inp_ppcb = 0;
 	soisdisconnected(so);
 	in_pcbdetach(inp);
+	tcpstat.tcps_closed++;
 	return ((struct tcpcb *)0);
 }
 
@@ -250,7 +254,6 @@ tcp_drain()
 
 }
 
-#ifdef notdef
 /*
  * Notify a tcp user of an asynchronous error;
  * just wake up so that he can collect error status.
@@ -259,11 +262,10 @@ tcp_notify(inp)
 	register struct inpcb *inp;
 {
 
-	wakeup((caddr_t) &inp->inp_socket->so_timeo);
+	WAKEUP((caddr_t) &inp->inp_socket->so_timeo);
 	sorwakeup(inp->inp_socket);
 	sowwakeup(inp->inp_socket);
 }
-#endif
 tcp_ctlinput(cmd, sa)
 	int cmd;
 	struct sockaddr *sa;
@@ -291,20 +293,31 @@ tcp_ctlinput(cmd, sa)
 	case PRC_REDIRECT_HOST:
 	case PRC_REDIRECT_TOSNET:
 	case PRC_REDIRECT_TOSHOST:
+#if BSD>=43
 		in_pcbnotify(&tcb, &sin->sin_addr, 0, in_rtchange);
+#endif
 		break;
 
 	default:
 		if (inetctlerrmap[cmd] == 0)
 			return;		/* XXX */
 		in_pcbnotify(&tcb, &sin->sin_addr, (int)inetctlerrmap[cmd],
-			(int (*)())0);
+			tcp_notify);
 	}
 }
 
+#if BSD<43
+/* XXX fake routine */
+tcp_abort(inp)
+	struct inpcb *inp;
+{
+	return;
+}
+#endif
+
 /*
  * When a source quench is received, close congestion window
- * to 80% of the outstanding data (but not less than one segment).
+ * to one segment.  We will gradually open it again as we proceed.
  */
 tcp_quench(inp)
 	struct inpcb *inp;
@@ -312,6 +325,6 @@ tcp_quench(inp)
 	struct tcpcb *tp = intotcpcb(inp);
 
 	if (tp)
-	    tp->snd_cwnd = MAX(8 * ((tp->snd_nxt - tp->snd_una) / 10),
-		tp->t_maxseg);
+		tp->snd_cwnd = tp->t_maxseg;
 }
+

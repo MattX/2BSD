@@ -3,10 +3,10 @@
 CFLAGS=	-O ${DEFS}
 SRCS=	getopt.c memccpy.c memchr.c memcmp.c memcpy.c memset.c \
 	strcatn.c strchr.c strcmpn.c strcpyn.c strcspn.c strpbrk.c \
-	strrchr.c strspn.c strtok.c tmpnam.c
+	strrchr.c strspn.c strtok.c strtol.c tmpnam.c
 OBJS=	getopt.o memccpy.o memchr.o memcmp.o memcpy.o memset.o \
 	strcatn.o strchr.o strcmpn.o strcpyn.o strcspn.o strpbrk.o \
-	strrchr.o strspn.o strtok.o tmpnam.o
+	strrchr.o strspn.o strtok.o strtol.o tmpnam.o
 TAGSFILE=tags
 
 .c.o:

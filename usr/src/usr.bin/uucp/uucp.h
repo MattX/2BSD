@@ -103,10 +103,6 @@
  * define BUSYLOOP if you must do a busy loop.
  * Look at uucpdelay() in condevs.c for details.
  */
-/*
- * 2.10BSD XXX - this should be changed to use INTERVALITIMER as soon as
- * the select call is implemented for 2.10 BSD.  Casey.
- */
 /*#define INTERVALTIMER /**/
 /*#define FASTTIMER /**/
 #define FTIME /**/

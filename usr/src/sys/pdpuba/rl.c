@@ -156,7 +156,7 @@ bad:
 
 	bp->av_forw = NULL;
 	bp->b_cylin = (int)(bp->b_blkno/20l);
-	s = spl5();
+	s = splbio();
 	disksort(&rlutab[drive], bp);	/* Put the request on drive Q */
 	if(rltab.b_active == NULL)
 		rlstart();

@@ -1,0 +1,330 @@
+
+
+
+REBOOT(8)	    UNIX Programmer's Manual		REBOOT(8)
+
+
+
+NNAAMMEE
+     reboot - UNIX bootstrapping procedures
+
+SSYYNNOOPPSSIISS
+     //eettcc//rreebboooott [ --llqqnnhhddaarrssff ]
+     //eettcc//hhaalltt [ --llqqnnddaarrss ]
+     //eettcc//ffaassttbboooott [ --llqqnnddaarrss ]
+
+DDEESSCCRRIIPPTTIIOONN
+     UNIX is started by placing it in memory at location zero and
+     transferring to its entry point.  Since the system is not
+     reentrant, it is necessary to read it in from disk or tape
+     each time it is to be boot strapped.
+
+     RReebboooottiinngg aa rruunnnniinngg ssyysstteemm:: When UNIX is running and a
+     reboot is desired, _s_h_u_t_d_o_w_n(8) is normally used to stop time
+     sharing and put the system into single user mode.	If there
+     are no users then //eettcc//rreebboooott can be used without shutting
+     the system down first.
+
+     Reboot normally causes the disks to be synced and allows the
+     system to perform other shutdown activities such as resyn-
+     chronizing hardware time-of-day clocks.  A multi-user reboot
+     (as described below) is then initiated.  This causes a sys-
+     tem to be booted and an automatic disk check to be per-
+     formed.  If all this succeeds without incident, the system
+     is then brought up for multi-user operation.
+
+     Options to reboot are:
+
+     --ll   Don't try to tell _s_y_s_l_o_g_d(8) what's about to happen.
+
+     --qq   Reboot quickly and ungracefully, without shutting down
+	  running processes first.
+
+     --nn   Don't sync before rebooting.	This can be used if a
+	  disk or the processor is on fire.
+
+     --hh   Don't reboot, simply halt the processor.
+
+     --dd   Dump memory onto the dump device, usually part of swap,
+	  before rebooting.  The dump is done in the same way as
+	  after a panic.
+
+     --aa   Have the system booter ask for the name of the system
+	  to be booted, rather than immediately booting the
+	  default system.
+
+     --rr   Mount the root file system as _r_e_a_d _o_n_l_y when the system
+	  reboots.
+
+     --ss   Don't enter multi-user mode after system has rebooted -
+
+
+
+Printed 12/28/88	September 6, 1988			1
+
+
+
+
+
+
+REBOOT(8)	    UNIX Programmer's Manual		REBOOT(8)
+
+
+
+	  stay in single user mode.
+
+     --ff   Fast reboot.	Omit the automatic file system con-
+	  sistency check when the system reboots and goes multi-
+	  user.  This is accomplished by passing a _f_a_s_t _r_e_b_o_o_t
+	  flag on to the rebooting kernel.  This currently
+	  prevents the use of --ff flag in conjunction with the --hh
+	  (halt) flag.
+
+     _R_e_b_o_o_t normally places a shutdown record in the login
+     accounting file /usr/adm/wtmp.  This is inhibited if the --qq
+     or --nn options are present.  Note that the --ff (fast reboot)
+     and --nn (don't sync) options are contradictory; the request
+     for a fast reboot is ignored in this case.
+
+     _H_a_l_t and _f_a_s_t_b_o_o_t are synonymous with ``rreebboooott --hh'' and
+     ``rreebboooott --ff'', respectively.
+
+     PPoowweerr ffaaiill aanndd ccrraasshh rreeccoovveerryy:: Normally, the system will
+     reboot itself at power-up or after crashes (if the contents
+     of low memory are intact.) An automatic consistency check of
+     the file systems will be performed, and unless this fails,
+     the system will resume multi-user operations.
+
+     CCoolldd ssttaarrttss:: A PDP-11 UNIX system is started by a two-stage
+     process.  The first is a primary bootstrap which is able to
+     read in relatively small stand-alone programs; the second
+     (called _b_o_o_t) is used to read in the system itself.
+
+     The primary bootstrap must reside in the otherwise unused
+     block zero of the boot device.  It can be read in and
+     started by standard ROM cold boot routines or, if necessary,
+     by keying in a small startup routine.  The primary bootstrap
+     is capable of loading type 0407 executable files (impure
+     (non-shared), non-separate I&D.) Copies of the block zero
+     bootstraps are kept in the directory /_m_d_e_c.  _N_e_w_f_s(8) will
+     normally place a copy of the appropriate bootstrap in block
+     zero of new file systems.
+
+     The primary bootstrap will normally load _b_o_o_t from the file
+     system that starts at block 0 of drive 0 of the boot device
+     (this is usually root.) If _b_o_o_t is not found, the name of
+     another file to try will be read from the console.  Some
+     devices' primary bootstraps, when asking for alternate pro-
+     grams to boot, will prompt with a `>', others have no prompt
+     because of space considerations (and some, like the RA boot,
+     can't even ask for alternate program names.)  No diagnostic
+     message results if the file cannot be found, and no provi-
+     sion is made for correcting typographical errors when enter-
+     ing alternate names.  Hitting a return will cause an error
+     and allow restarting.
+
+
+
+
+Printed 12/28/88	September 6, 1988			2
+
+
+
+
+
+
+REBOOT(8)	    UNIX Programmer's Manual		REBOOT(8)
+
+
+
+     o+	  IInn aann eemmeerrggeennccyy, the bootstrap methods described in the
+	  paper _I_n_s_t_a_l_l_i_n_g _a_n_d _O_p_e_r_a_t_i_n_g _2._1_0_b_s_d can be used to
+	  boot from a distribution tape.
+
+     The secondary boot step, called _b_o_o_t, actually brings in the
+     system.  When read into location 0 and executed, _b_o_o_t sets
+     up memory management, relocates itself into high memory, and
+     types its name and a `:' on the console.  If this is an
+     automatic, unattended reboot, _b_o_o_t will use a default file
+     specification for the installation, typing the file's name
+     after the prompt.	Otherwise, it reads a file specification
+     from the console.	Normal line editing characters can be
+     used to make corrections while typing this (see below for
+     file specification format.) If only a carriage return is
+     typed, a default name will be used.  _B_o_o_t finds the [speci-
+     fied] file and loads it into memory location zero, sets up
+     memory management as required, and calls the program by exe-
+     cuting a `trap' instruction.
+
+     Conventionally, the secondary boot program is `/boot' (if
+     the root is the first file system on disk 0 of the boot dev-
+     ice) and the name of the current version of the system is
+     `/unix'.
+
+     For the system to boot, /_e_t_c/_i_n_i_t must exist and be execut-
+     able; if it is not, the kernel will print a message to that
+     effect and loop.  Further, for a single user boot, the files
+     /_b_i_n/_s_h and /_d_e_v/_c_o_n_s_o_l_e must also exist and /_b_i_n/_s_h must be
+     executable (if either of these is missing, _i_n_i_t will attempt
+     multi-user operation.) For a multi-user boot the file
+     /_e_t_c/_t_t_y_s must exist (if missing, _i_n_i_t will attempt single
+     user operation.)
+
+     When the system is running in single user mode, it starts a
+     single user shell on the console which types a `#' prompt.
+     After doing any file system checks and setting the date
+     (_d_a_t_e(1)) a multi-user system can be brought up by typing an
+     EOT (control-d) in response to the `#' prompt.
+
+     BBoooott ffiillee ssppeecciiffiiccaattiioonn ffoorrmmaatt:: The file specifications used
+     with _b_o_o_t are of the form:
+
+	  _d_e_v_i_c_e(_u_n_i_t,_o_f_f_s_e_t)_p_a_t_h
+
+     where _d_e_v_i_c_e is the type of the device to be searched; _u_n_i_t
+     is the unit number of the disk or tape; _o_f_f_s_e_t is the block
+     offset of a UNIX file system on the specified disk, in phy-
+     sical (512 byte) blocks, or the tape file number if the dev-
+     ice is a tape; and _p_a_t_h is the path name of a disk file to
+     be loaded with all mount prefixes stripped off (_p_a_t_h should
+     be omitted for tape files.)  Tape files are separated by
+     single tape marks.  _D_e_v_i_c_e is one of the following
+
+
+
+Printed 12/28/88	September 6, 1988			3
+
+
+
+
+
+
+REBOOT(8)	    UNIX Programmer's Manual		REBOOT(8)
+
+
+
+	  xp   RM02/03/05, RP04/05/06, DIVA, SI Eagle, CDC 9766, Fuji 160
+	  rp   RP03
+	  rk   RK05
+	  hk   RK06/7
+	  rl   RL01/2
+	  si   RM05, CDC 9766
+	  ra   RA60/80/81, RX50, RD51/52/53, RC25
+	  ht   TU/TE16
+	  tm   TU/TE10
+	  ts   TS-11
+
+     The stand alone tape drive unit number is specially encoded
+     to specify both unit number and tape density (BPI).  Most
+     tape subsystems either automatically adjust to tape density
+     or have switches on the drives to force the density to a
+     particular setting, but for those which don't the following
+     density select mechanisms may be necessary.  The ttss only
+     operates at 1600BPI, so there is no special unit density
+     encoding.	The hhtt will operate at either 800BPI or 1600BPI.
+     Units 0 through 3 correspond to 800BPI, and 4 through 7 to
+     1600BPI on drives 0 through 3 respectively.  The standard
+     DEC ttmm only supports 800BPI (and hence can't be used with
+     the standard  distribution tape), but several widely used ttmm
+     emulators support 1600BPI and even 6250BPI.  Units 0 through
+     3 correspond to 800BPI, 4 through 7 to 1600BPI, and 8
+     through 11 to 6250BPI on drives 0 through 3 respectively.
+
+     For example, to boot a system which starts at block 0 of
+     unit 0 on an RK07, type "hk(0,0)unix" to the boot prompt.
+     The specification "ra(0,9700)unix" indicates an MSCP disk,
+     unit 0, and the file system found starting at block 9700
+     which would be appropriate for partition `b' of an RD51,
+     '52, or '53.  And the specification "ts(0,3)" would cause
+     the fourth file on a tape threaded on `ts' tape drive 0 to
+     be loaded and executed.
+
+     CCoolldd bboooott llooaaddeerrss:: The following programs to load and exe-
+     cute the primary bootstrap may be installed in read-only
+     memories or manually keyed into main memory.  Each program
+     is position-independent but should be placed well above
+     location 0 so it will not be overwritten.	Each reads a
+     block from the beginning of a device into core location
+     zero.  The octal words constituting the program are listed
+     on the left.
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	September 6, 1988			4
+
+
+
+
+
+
+REBOOT(8)	    UNIX Programmer's Manual		REBOOT(8)
+
+
+
+     RK (drive 0):
+	012700	    mov     $rkda,r0
+	177412
+	005040	    clr     -(r0)	   / rkda cleared by start
+	010040	    mov     r0,-(r0)
+	012740	    mov     $5,-(r0)
+	000005
+	105710	1:  tstb    (r0)
+	002376	    bge     1b
+	005007	    clr     pc
+
+     RP (drive 0)
+	012700	    mov     $rpmr,r0
+	176726
+	005040	    clr     -(r0)
+	005040	    clr     -(r0)
+	005040	    clr     -(r0)
+	010040	    mov     r0,-(r0)
+	012740	    mov     $5,-(r0)
+	000005
+	105710	1:  tstb    (r0)
+	002376	    bge     1b
+	005007	    clr     pc
+
+     TM and TS (drive 0):
+	012700	    mov     $tmba,r0
+	172526
+	010040	    mov     r0,-(r0)
+	012740	    mov     $60003,-(r0)
+	060003
+	000777	    br	    .
+
+FFIILLEESS
+     /unix	     system code
+     /boot	     system bootstrap
+     /etc/init	     system process dispatcher
+     /mdec/xxuboot   sector 0 boot blocks, xx is disk type
+
+SSEEEE AALLSSOO
+     crash(8V), fsck(8), init(8), newfs(8), rc(8), shutdown(8),
+     syslogd(8)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	September 6, 1988			5
+
+
+

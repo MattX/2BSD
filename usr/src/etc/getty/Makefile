@@ -7,14 +7,16 @@
 #
 DESTDIR=
 CFLAGS=	-O
+SEPFLAG=-i
+
 OBJS=	main.o init.o subr.o gettytab.o get_date.o
 
 all:	getty
 
 getty:	${OBJS}
-	${CC} -o getty ${OBJS}
+	${CC} ${SEPFLAG} -o getty ${OBJS}
 
-install: all
+install: all ${DESTDIR}/etc/gettytab
 	install -s getty ${DESTDIR}/etc/getty
 	install -c -m 444 gettytab ${DESTDIR}/etc/gettytab
 

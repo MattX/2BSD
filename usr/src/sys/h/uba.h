@@ -10,10 +10,6 @@
  *	Structure to access UNIBUS map registers.
  */
 
-#ifdef	UCB_NET
-int	ub_inited;	/* UNIBUS map initialized yet? */
-#endif
-
 struct	ubmap	{
 	short	ub_lo;
 	short	ub_hi;

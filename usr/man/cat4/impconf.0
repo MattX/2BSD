@@ -1,0 +1,132 @@
+
+
+
+IMP(4)		    UNIX Programmer's Manual		   IMP(4)
+
+
+
+NNAAMMEE
+     imp - 1822 network interface
+
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNIIMMPP _c_o_u_n_t	 ## AARRPPAAnneett IIMMPP 11882222 iinntteerrffaaccee
+
+DDEESSCCRRIIPPTTIIOONN
+     The _i_m_p interface, as described in BBN Report 1822, provides
+     access to an intelligent message processor normally used
+     when participating in the Department of Defense ARPA net-
+     work.  The network interface communicates through a device
+     controller, usually an ACC LH/DH or HDH or a DEC IMP-11A,
+     with the IMP.  The interface is "reliable" and "flow-
+     controlled" by the host-IMP protocol.
+
+     To configure IMP support, at least one of _a_c_c(4), _c_s_s(4) or
+     _h_d_h(4) must be included.  The _c_o_u_n_t specifies the total
+     number of IMP connections.  The network number on which the
+     interface resides is specified at boot time using the SIOC-
+     SIFADDR ioctl.  The host number is discovered through
+     receipt of NOOP messages from the IMP.
+
+     The network interface is always in one of four states: up,
+     down, initializing, or going down.  When the system is
+     booted, the interface is marked down.  If the hardware con-
+     troller is successfully probed, the interface enters the
+     initializing state and transmits three NOOP messages to the
+     IMP.  It then waits for the IMP to respond with two or more
+     NOOP messages in reply.  When it receives these messages it
+     enters the up state.  The ``going down'' state is entered
+     only when notified by the IMP of an impending shutdown.
+     Packets may be sent through the interface only while it is
+     in the up state.  Outgoing packets are dropped with the
+     error ENETDOWN returned to the caller if the interface is in
+     any other state.
+
+DDIIAAGGNNOOSSTTIICCSS
+     iimmpp%%dd:: nnoott ccoonnffiigguurreedd.  A hardware interface could not be
+     attached during autoconfiguration because too few IMP
+     pseudo-devices were configured.
+
+     iimmpp%%dd:: lleeaaddeerr eerrrroorr.  The IMP reported an error in a leader
+     (1822 message header).  This causes the interface to be
+     reset and any packets queued up for transmission to be
+     purged.
+
+     iimmpp%%dd:: ggooiinngg ddoowwnn iinn 3300 sseeccoonnddss.
+     iimmpp%%dd:: ggooiinngg ddoowwnn ffoorr hhaarrddwwaarree PPMM.
+     iimmpp%%dd:: ggooiinngg ddoowwnn ffoorr rreellooaadd ssooffttwwaarree.
+     iimmpp%%dd:: ggooiinngg ddoowwnn ffoorr eemmeerrggeennccyy rreesseett.  The Network Control
+     Center (NCC) is manipulating the IMP.  By convention these
+
+
+
+Printed 12/28/88	 August 2, 1987                         1
+
+
+
+
+
+
+IMP(4)		    UNIX Programmer's Manual		   IMP(4)
+
+
+
+     messages are reported to all hosts on an IMP.
+
+     iimmpp??:: hhoosstt %%xx,, lloosstt %%dd rrffnnmmss.  The IMP had messages out-
+     standing to the host listed, but no RFNM (Request for Next
+     Message) messages were received from the IMP in 127 seconds.
+     The software state for that host is reinitialized.
+
+     iimmpp%%dd:: iinntteerrffaaccee rreesseett.  The host has received an interface
+     reset message from the IMP.
+
+     iimmpp%%dd:: aaddddrreessss rreesseett ttoo xx%%xx ((%%dd//%%dd)).  The host has received
+     a NOOP message which caused it to reset its notion of its
+     current address.  The Internet address is printed in hexade-
+     cimal, with the host and IMP numbers following.  This indi-
+     cates that the address originally set by _i_f_c_o_n_f_i_g(8) was
+     incorrect, that the IMP has undergone an identity crisis, or
+     that communication between the IMP and the host is being
+     garbled.
+
+     iimmpp%%dd:: ddaattaa eerrrroorr.  The IMP noted an error in data transmit-
+     ted.  The host-IMP interface is reset and the host enters
+     the init state (awaiting NOOP messages).
+
+     iimmpp%%dd:: iinntteerrffaaccee rreesseett.  The reset process has been com-
+     pleted.
+
+     iimmpp%%dd:: mmaarrkkeedd ddoowwnn.  After receiving a "going down in 30
+     seconds" message, and waiting 30 seconds, the host has
+     marked the IMP unavailable.  Before packets may be sent to
+     the IMP again, the IMP must notify the host, through a
+     series of NOOP messages, that it is back up.
+
+     iimmpp%%dd:: ccaann''tt hhaannddllee aaff%%dd.	The interface was handed a mes-
+     sage with addresses formatting in an unsuitable address fam-
+     ily; the packet was dropped.
+
+SSEEEE AALLSSOO
+     intro(4N), inet(4F), acc(4), css(4), hdh(4), implog(8),
+     implogd(8)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	 August 2, 1987                         2
+
+
+

@@ -1,18 +1,25 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_vv.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_vv.h	7.1 (Berkeley) 6/5/86
  */
 
 /*
- * Local network header for V2LNI Ring
- * This is arbitrated by "V2LNI-PEOPLE@MIT-MC"
- * (aka Joel N. Chiappa)
+ * ECO 176-748 changed the braodcast address from 0 to 0xff, at
+ * CTL (p1002) serial number around 150.
+ * It was implemented in August, 1982. This is a field-installable ECO,
+ * which improves net reliability. If the broadcast address has not been
+ * changed, comment out the following line.
  */
+#define	NEW_BROADCAST		/* new chip for broadcast problem */
 
-#define	NEW_BROADCAST		/* new plas for broadcast problem */
+/*
+ * Local network header for proNET Ring
+ * This is arbitrated by "jas@proteon"
+ * (aka John Shriver, 617-655-3340)
+ */
 
 struct vv_header {
 	 /* the first two fields are required by the hardware */
@@ -27,12 +34,21 @@ struct vv_header {
 #define	RING_VERSION	2	/* current version of v2lni header */
 
 /*
- * Packet types (protocol numbers) in v2lni header
+ * Packet types (protocol numbers) in proNET protocol header
+ * Other types are defined, but are proprietary.
  */
 #define	RING_IP		1
-#define	RING_IPTrailer	2
-#define	RING_IPNTrailer	16
-#define	RING_WHOAMI	0xa5	/* insure some bit transitions */
+#define	RING_TRAILER	2	/* offset now in vh_info only */
+#define RING_ARP	3
+#define RING_HDLC	4
+#define RING_VAXDB	5
+#define RING_RINGWAY	6
+#define RING_RINGWAYM	8
+#define	RING_NOVELL	10
+#define RING_PUP	12
+#define RING_XNS	14
+#define	RING_DIAGNOSTICS 15	/* protocol type for testing */
+#define	RING_ECHO	16
 
 #ifdef NEW_BROADCAST
 #define	VV_BROADCAST	0xff	/* hardware-defined broadcast address */
@@ -41,8 +57,8 @@ struct vv_header {
 #endif
 
 /*
- * Proteon V2LNI Hardware definitions
- * register bit definitions - new style
+ * Proteon proNET Hardware definitions
+ * register bit definitions
  */
 #define	VV_ENB	01		/* Enable Operation */
 #define	VV_DEN	02		/* Enable DMA */
@@ -59,16 +75,17 @@ struct vv_header {
 #define	VV_RFS	0400		/* Refused (Xmit) */
 #define	VV_NXM	01000		/* Non Existent Memory */
 #define	VV_OVR	02000		/* Overrun */
-#define	VV_ODB	04000		/* Odd Byte (Achtung, mein Fuehrer) (Rcv) */
+#define	VV_ODB	04000		/* Odd Byte (Rcv) */
 #define	VV_UT2	04000		/* Unused (Xmit) */
-#define	VV_LDE	010000		/* Link Data Error (Rcv) */
+#define	VV_LDE	010000		/* Parity on 10 megabit (Rcv), */
+				/* Link Data Error on 80 megabit (Rcv) */
 #define	VV_OPT	010000		/* Output Timeout (Xmit) */
 #define	VV_NOK	020000		/* Ring Not OK */
 #define	VV_BDF	040000		/* Bad Format in Operation */
 #define	VV_NIR	0100000		/* Not in Ring */
 
 #define	VVXERR	(VV_NXM|VV_OVR|VV_OPT|VV_BDF)	/* Xmit errs */
-#define	VVRERR	(VV_NXM|VV_OVR|VV_ODB|VV_BDF)	/* Rcv errs */
+#define	VVRERR	(VV_NXM|VV_OVR|VV_ODB|VV_BDF|VV_DPR)	/* Rcv errs */
 #define	VVFE	(VV_NXM|VV_OVR)			/* Fatal errors */
 
 #define VV_IBITS \
@@ -90,5 +107,6 @@ struct vvreg {
 };
 
 #define	VVRETRY	7		/* output retry limit */
-#define VVIDENTRETRY 10		/* identify loop retry limit */
+#define VVIDENTSUCC 5		/* number of successes required in self-test */
+#define VVIDENTRETRY 10		/* identify loop attempt limit */
 #define VVTIMEOUT 60		/* seconds before a transmit timeout */

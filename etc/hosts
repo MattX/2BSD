@@ -7,7 +7,6 @@
 10.0.0.51	sri-nic.arpa sri-nic
 26.0.0.73	sri-nic.arpa sri-nic
 192.12.206.192	iuvax.cs.indiana.edu iuvax
-128.32.140.10	okeeffe okeeffe.berkeley.edu
 
 # These are needed for arpa and ucbvax to ifconfig imp's.
 10.2.0.78		ucb-vax ucbvax-imp
@@ -28,6 +27,7 @@
 128.32.130.1		calder.berkeley.edu calder
 128.32.130.2		vangogh.berkeley.edu vangogh ucbvangogh
 128.32.130.3		okeeffe.berkeley.edu okeeffe ucbokeeffe
+128.32.140.10		okeeffe.berkeley.edu okeeffe ucbokeeffe
 128.32.130.4		renoir.berkeley.edu renoir ucbrenoir
 128.32.130.5		cogsci.berkeley.edu cogsci ucbcogsci
 128.32.130.6		monet.berkeley.edu monet monet-cs
@@ -932,3 +932,4 @@
 # Off Campus Hosts and Networks (from SRI-NIC hostname server)
 #
 # No longer maintained here.  All addresses come from named.
+128.97.40.23		admin.cognet.ucla.edu

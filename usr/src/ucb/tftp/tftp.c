@@ -388,7 +388,7 @@ u_long amount;
 	delta = ((tstop.tv_sec*10.)+(tstop.tv_usec/100000L)) -
 		((tstart.tv_sec*10.)+(tstart.tv_usec/100000L));
 	delta = delta/10.;      /* back to seconds */
-	printf("%s %d bytes in %.1f seconds", direction, amount, delta);
+	printf("%s %ld bytes in %.1f seconds", direction, amount, delta);
 	if (verbose)
 		printf(" [%.0f bits/sec]", (amount*8.)/delta);
 	putchar('\n');

@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)tcp_usrreq.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp_usrreq.c	7.7.1.2 (Berkeley) 3/16/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
 #include "systm.h"
 #include "mbuf.h"
-#include "domain.h"
 #include "socket.h"
 #include "socketvar.h"
 #include "protosw.h"
@@ -20,6 +24,7 @@
 #include "../net/if.h"
 #include "../net/route.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -38,7 +43,6 @@
  */
 extern	char *tcpstates[];
 struct	tcpcb *tcp_newtcpcb();
-int	tcpsenderrors;
 
 /*
  * Process a TCP user request for TCP tb.  If this is a send request
@@ -57,18 +61,16 @@ tcp_usrreq(so, req, m, nam, rights)
 	int error = 0;
 	int ostate;
 
-	MAPSAVE();
-	if (req == PRU_CONTROL) {
-		register int	retval;
-		retval = in_control(so, (int)m, (caddr_t)nam,
-		    (struct ifnet *)rights);
-		MAPUNSAVE();
-		return (retval);
-	}
-	if (rights && rights->m_len) {
-		MAPUNSAVE();
+#if BSD>=43
+	if (req == PRU_CONTROL)
+		return (in_control(so, (int)m, (caddr_t)nam,
+			(struct ifnet *)rights));
+#else
+	if (req == PRU_CONTROL)
+		return(EOPNOTSUPP);
+#endif
+	if (rights && rights->m_len)
 		return (EINVAL);
-	}
 
 	s = splnet();
 	inp = sotoinpcb(so);
@@ -79,7 +81,6 @@ tcp_usrreq(so, req, m, nam, rights)
 	 */
 	if (inp == 0 && req != PRU_ATTACH) {
 		splx(s);
-		MAPUNSAVE();
 		return (EINVAL);		/* XXX */
 	}
 	if (inp) {
@@ -166,8 +167,9 @@ tcp_usrreq(so, req, m, nam, rights)
 			break;
 		}
 		soisconnecting(so);
+		tcpstat.tcps_connattempt++;
 		tp->t_state = TCPS_SYN_SENT;
-		tp->t_timer[TCPT_KEEP] = TCPTV_KEEP;
+		tp->t_timer[TCPT_KEEP] = TCPTV_KEEP_INIT;
 		tp->iss = tcp_iss; tcp_iss += TCP_ISSINCR/2;
 		tcp_sendseqinit(tp);
 		error = tcp_output(tp);
@@ -201,7 +203,7 @@ tcp_usrreq(so, req, m, nam, rights)
 	 * of the peer, storing through addr.
 	 */
 	case PRU_ACCEPT: {
-		struct sockaddr_in *sin = MTOD(nam, struct sockaddr_in *);
+		struct sockaddr_in *sin = mtod(nam, struct sockaddr_in *);
 
 		nam->m_len = sizeof (struct sockaddr_in);
 		sin->sin_family = AF_INET;
@@ -234,11 +236,6 @@ tcp_usrreq(so, req, m, nam, rights)
 	case PRU_SEND:
 		sbappend(&so->so_snd, m);
 		error = tcp_output(tp);
-		if (error) {		/* XXX fix to use other path */
-			if (error == ENOBUFS)		/* XXX */
-				error = 0;		/* XXX */
-			tcpsenderrors++;
-		}
 		break;
 
 	/*
@@ -251,13 +248,14 @@ tcp_usrreq(so, req, m, nam, rights)
 	case PRU_SENSE:
 		((struct stat *) m)->st_blksize = so->so_snd.sb_hiwat;
 		(void) splx(s);
-		MAPUNSAVE();
 		return (0);
 
 	case PRU_RCVOOB:
 		if ((so->so_oobmark == 0 &&
 		    (so->so_state & SS_RCVATMARK) == 0) ||
+#ifdef SO_OOBINLINE
 		    so->so_options & SO_OOBINLINE ||
+#endif
 		    tp->t_oobflags & TCPOOB_HADDATA) {
 			error = EINVAL;
 			break;
@@ -315,11 +313,11 @@ tcp_usrreq(so, req, m, nam, rights)
 	}
 	if (tp && (so->so_options & SO_DEBUG))
 		tcp_trace(TA_USER, ostate, tp, (struct tcpiphdr *)0, req);
-	MAPREST();
 	splx(s);
 	return (error);
 }
 
+#if BSD>=43
 tcp_ctloutput(op, so, level, optname, mp)
 	int op;
 	struct socket *so;
@@ -334,7 +332,6 @@ tcp_ctloutput(op, so, level, optname, mp)
 	if (level != IPPROTO_TCP)
 		return (ip_ctloutput(op, so, level, optname, mp));
 
-	MAPSAVE();
 	switch (op) {
 
 	case PRCO_SETOPT:
@@ -376,9 +373,9 @@ tcp_ctloutput(op, so, level, optname, mp)
 		}
 		break;
 	}
-	MAPREST();
 	return (error);
 }
+#endif
 
 int	tcp_sendspace = 1024*4;
 int	tcp_recvspace = 1024*4;

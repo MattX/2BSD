@@ -1,6 +1,12 @@
-/* $Header: help.c,v 4.3 85/05/01 11:38:59 lwall Exp $
+/* $Header: help.c,v 4.3.1.2 85/09/10 11:05:39 lwall Exp $
  *
  * $Log:	help.c,v $
+ * Revision 4.3.1.2  85/09/10  11:05:39  lwall
+ * Improved %m in in_char().
+ * 
+ * Revision 4.3.1.1  85/05/10  11:33:10  lwall
+ * Branch for patches.
+ * 
  * Revision 4.3  85/05/01  11:38:59  lwall
  * Baseline for release with 4.3bsd.
  * 
@@ -267,7 +273,8 @@ I	Reference indicator mark (see -F switch)\n\
     (cmd = print_lines("\
 l	News administrator's login name, if any\n\
 L	Login name (yours)\n\
-m	Current mode, first letter of (init,newsgroup,article,pager,misc)\n\
+m	Current mode, first letter of (init, newsgroup, article, pager,\n\
+		Add, Catchup, Delete bogus, Mailbox, Resubscribe)\n\
 M	Number of article marked with M\n\
 n	Newsgroups from current article\n\
 N	Full name (yours)\n\

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)5.t	6.2 (Berkeley) 10/1/88
 .\"
 .ds lq ``
 .ds rq ''
@@ -22,18 +22,29 @@
 .NL
 .PP
 The following section has been lightly edited to correspond to
-the current \*(2B networking.  Several parts of it will not apply to
+the current \*(2B networking.  Several parts of it do not really apply to
 \*(2B, for example, it is unlikely that anyone will connect a PDP to
-an IMP, or that anyone will need to run the nameserver.  The "correct"
+an IMP, or that anyone will need to run the nameserver.
+The ``correct''
 use of the networking in \*(2B is probably with a list of the local net
-addresses in the \fI/etc/hosts\fP file and with one default route for
-all network traffic.  This is doubly true if SLIP is being used as
-the primary connection to the outside world.
+addresses in the \fI/etc/hosts\fP file and with one default gateway for
+all network traffic.  In particular, do not run
+.IR routed (8)
+unless you're extremely sure that you know what you're doing.  This is
+doubly true if SLIP is being used as the primary connection to the
+outside world.  Much of the \*(2B networking is ported but untested.
+This means that sites that wish to hook \*(2B into more than a simple
+local ethernet may have to do some kernel work.
 .PP
-\*(2B networking is fairly stable, depending on the job mix and the
-configuration, but it still needs lots of work.  If you plan to do
-serious networking, you're probably going to have to spend some time
-in the kernel.
+The networking in \*(2B, runs in supervisor
+mode, separate from the mainstream kernel.  This is a major win, as
+it allows the networking to maintain its mbufs in normal data space,
+among other things.  The networking portion of the kernel resides in
+``/netnix'', and is
+loaded after the kernel is running.  As the kernel looks for this
+file only, and will not run if it's unable to load it, sites should
+build and keep a non-networking kernel in ``/'' at all times, as a
+backup.
 .PP
 \*(2B provides support for the DARPA standard Internet
 protocols IP, ICMP, TCP, and UDP.  These protocols may be used
@@ -52,14 +63,15 @@ System configuration
 .PP
 To configure the kernel to include the Internet communication
 protocols, define the UCB_NET option.  This automatically defines
-the INET option.  Xerox NS support is enabled with the NS option.
-In either case, include the pseudo-devices
-``pty'', and ``loop'' in your machine's configuration
-file, using the options NPTY and NLOOP.
+the INET, TCP_COMPAT_42, and NLOOP options.  Xerox NS support is
+enabled with the NS option.
+In either case, include the pseudo-device
+``pty'' in your machine's configuration
+file, using the NPTY options.
 The ``pty'' pseudo-device forces the pseudo terminal device driver
-to be configured into the system, see \fIpty\fP\|(4), while
-the ``loop'' pseudo-device forces inclusion of the software loopback
-interface driver.  The loop driver is used in network testing.
+to be configured into the system, see \fIpty\fP\|(4).  The NLOOP
+option forces inclusion of the software loopback interface driver.
+The loop driver is used in network testing.
 .PP
 If you are planning to use the Internet network facilities on a 10Mb/s
 Ethernet, the pseudo-device ``ether'' should also be included
@@ -67,32 +79,37 @@ in the configuration using the NETHER option; this forces inclusion of
 the Address Resolution Protocol module used in mapping between 48-bit
 Ethernet and 32-bit Internet addresses.  Also, if you have an IMP
 connection, you will need to include the pseudo-device ``imp'', using
-the option NIMP.
+the option NIMP.  The IMP software is ported, but untested.
 .PP
 Before configuring the appropriate networking hardware, you should
 consult the manual pages in section 4 of the Programmer's Manual.
 The following table lists the devices for which software support
 exists.  Again, much of this software is unported and untested; only
-the basic networking has been stressed at all.
+the basic networking has been stressed at all.  Many other devices
+are available, but unported.  Porting should simply be a matter of
+making the hardware device work.  The directories ``/sys/pdpif'' and
+``/sys/vaxif'' contain many drivers.  The ones in ``pdpif'' are
+either the current, working drivers, or drivers that, at some time,
+worked on pdp-11's.  The ones in ``vaxif'' are the current VAX drivers,
+and, as such, will have to have their memory usage changed, but serve
+as an excellent example of how the hardware works.~
 .DS
 .TS
 l l.
 Device name	Manufacturer and product
 _
-acc	ACC LH/DH interface to IMP
-css	DEC IMP-11A interface to IMP
-dmc	DEC DMC-11 (also works with DMR-11)
-de	DEC DEUNA 10Mb/s Ethernet
+de	DEC DEUNA/DELUA 10Mb/s Ethernet
+qe	DEC DEQNA 10Mb/s Ethernet
 ec	3Com 10Mb/s Ethernet
-en	Xerox 3Mb/s prototype Ethernet (not a product)
-hy	NSC Hyperchannel, w/ DR-11B and PI-13 interfaces
 il	Interlan 1010 and 10101A 10Mb/s Ethernet interfaces
-ix	Interlan NP100 10Mb/s Ethernet interface
-pcl	DEC PCL-11
-sri	SRI DR11C interface to IMP
-vv	Proteon 10Mb/s and 80Mb/s proNET ring network (V2LNI)
 .TE
 .DE
+.PP
+SLIP is also available.  It is currently fairly slow, as the interface
+between the supervisor and kernel mode sections of the kernel for SLIP
+are quite painful, in that it passes single characters to the networking
+portion of the kernel.  A few days work in fixing this interface could be
+quite rewarding in terms of real throughput.
 .PP
 All network interface drivers including the loopback interface,
 require that their host address(es) be defined at boot time.
@@ -116,10 +133,14 @@ or ``published'' by a \*(2B host by use of the
 command.  Note that the use of trailer link-level is now negotiated
 between \*(2B hosts using ARP, and it is thus no longer necessary to
 disable the use of trailers with \fIifconfig\fP.  It is \fBSTRONGLY\fP
-recommended, however, that \*(2B networking be run without trailers.
+recommended, however, that \*(2B networking be run without trailers,
+as the trailer code in most of the drivers has either been commented
+out as untested or is \fBknown\fP not to work.  This is a problem with
+certain releases of \fIUltrix\fP, which has to be explicitly configured
+not to send trailers if it and \*(2B are to coexist.
 .PP
 To use the pseudo terminals just configured, device
-entries must be created in the /dev directory.  To create 32
+entries must be created in the ``/dev'' directory.  To create 32
 pseudo terminals (plenty, you can probably get by with many less)
 execute the following commands.
 .DS
@@ -127,7 +148,7 @@ execute the following commands.
 \fB#\fP MAKEDEV pty0 pty1
 .DE
 More pseudo terminals may be made by specifying \fIpty2\fP, \fIpty3\fP,
-etc.  The kernel normally includes support for 32 pseudo terminals
+etc.  The kernel normally includes support for 16 pseudo terminals
 unless the configuration file specifies a different number.
 Each pseudo terminal really consists of two files in /dev:
 a master and a slave.  The master pseudo terminal file is named
@@ -298,7 +319,9 @@ created as a result of routing redirect messages, etc.
 .NH 2
 Use of \*(2B machines as gateways
 .PP
-Several changes have been made in \*(2B in the area of gateway support
+Only sheer insanity could prompt the use of \*(2B machines as gateways.
+However, if you have no choice, several changes have been made in \*(2B
+in the area of gateway support
 (or packet forwarding, if one prefers).
 A new configuration option, GATEWAY, is used when configuring
 a machine to be used as a gateway.
@@ -480,10 +503,6 @@ calder
 dali
 ernie
 kim
-matisse
-monet
-ucbvax
-miro
 degas
 .DE
 .NH 3

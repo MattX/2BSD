@@ -1,6 +1,12 @@
-/* $Header: term.c,v 4.3.1.2 85/05/16 16:45:35 lwall Exp $
+/* $Header: /usr/src/local/rn/RCS/term.c,v 1.2 87/07/10 10:04:24 bin Exp $
  *
  * $Log:	term.c,v $
+ * Revision 1.2  87/07/10  10:04:24  bin
+ * Fix missing pushchar() bug.
+ * 
+ * Revision 4.3.1.3  85/09/10  11:05:23  lwall
+ * Improved %m in in_char().
+ * 
  * Revision 4.3.1.2  85/05/16  16:45:35  lwall
  * Forced \r to \n on input.
  * Fix for terminfo braindamage regarding bc emulation.
@@ -604,6 +610,12 @@ char c;
 }
 
 #else PUSHBACK
+void
+pushchar(c)
+char c;
+{
+}
+
 #ifndef read_tty
 /* read a character from the terminal, with hacks for O_NDELAY reads */
 
@@ -618,7 +630,7 @@ int size;
 	return 1;
     }
     else {
-	size = read(0,addr,size)
+	size = read(0,addr,size);
 #ifdef RAWONLY
 	*addr &= 0177;
 #endif
@@ -847,8 +859,9 @@ reask_anything:
 }
 
 void
-in_char(prompt)
+in_char(prompt, newmode)
 char *prompt;
+char newmode;
 {
     char oldmode = mode;
 
@@ -857,7 +870,7 @@ reask_in_char:
     fputs(prompt,stdout);
     fflush(stdout);
     eat_typeahead();
-    mode = 'm';
+    mode = newmode;
     getcmd(buf);
     if (errno || *buf == '\f') {
 	putchar('\n') FLUSH;		/* if return from stop signal */

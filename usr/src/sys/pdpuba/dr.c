@@ -104,7 +104,7 @@ register struct buf *bp;
 	}
 	dp = &(drptr->i_tab);		/* point to buffer */
 	bp->av_forw = NULL;
-	s = spl5();			/* lock out interrupts */
+	s = splbio();			/* lock out interrupts */
 
 #ifdef	UNIBUS_MAP
 	mapalloc(bp);

@@ -1,27 +1,21 @@
-#	%W%	(Berkeley)	%G%
-#
 DESTDIR=
-SEPFLAG=-i
 CFLAGS=	-O
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
+#SUBDIR=	src man doc
 SUBDIR=	src man
 
-all:	src/Makefile ${SUBDIR}
+all:	${SUBDIR}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
-
-src/Makefile:
-	@echo assuming src/localize.sh is correct...
-	cd src; make -f Makefile.dst Makefile
+	cd $@; make ${MFLAGS}
 
 install:
-	-for i in ${SUBDIR}; do \
+	for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 
 clean:
-	-for i in ${SUBDIR}; do (echo $$i; cd $$i; make ${MFLAGS} clean); done
+	for i in ${SUBDIR}; do (echo $$i; cd $$i; make ${MFLAGS} clean); done
 
 FRC:

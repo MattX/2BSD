@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)nameser.h	5.13 (Berkeley) 11/5/86
+ *	@(#)nameser.h	5.17 (Berkeley) 11/17/87
  */
 
 /*
@@ -28,8 +28,8 @@
  */
 #define QUERY		0x0		/* standard query */
 #define IQUERY		0x1		/* inverse query */
-#define CQUERYM		0x2		/* completion query (multiple) */
-#define CQUERYU		0x3		/* completion query (unique) */
+#define STATUS		0x2		/* nameserver status query */
+/*#define xxx		0x3		/* 0x3 reserved */
 	/* non standard */
 #define UPDATEA		0x9		/* add resource record */
 #define UPDATED		0xa		/* delete a specific resource record */
@@ -123,7 +123,7 @@ typedef struct {
 	u_char	unused:2;	/* unused bits */
 	u_char	rcode:4;	/* response code */
 #else
-#if defined (vax) || defined (BIT_ZERO_ON_RIGHT)
+#if defined (vax) || defined(ns32000) || defined (BIT_ZERO_ON_RIGHT)
 	/* Bit zero on right:  VAX */
 			/* fields in third byte */
 	u_char	rd:1;		/* recursion desired */
@@ -180,5 +180,40 @@ struct rrec {
 	char	*r_data;		/* pointer to data */
 };
 
-extern	u_short	getshort();
-extern	u_long	getlong();
+extern	u_short	_getshort();
+extern	u_long	_getlong();
+
+/*
+ * Inline versions of get/put short/long.
+ * Pointer is advanced; we assume that both arguments
+ * are lvalues and will already be in registers.
+ * cp MUST be u_char *.
+ */
+#define GETSHORT(s, cp) { \
+	(s) = *(cp)++ << 8; \
+	(s) |= *(cp)++; \
+}
+
+#define GETLONG(l, cp) { \
+	(l) = *(cp)++ << 8; \
+	(l) |= *(cp)++; (l) <<= 8; \
+	(l) |= *(cp)++; (l) <<= 8; \
+	(l) |= *(cp)++; \
+}
+
+
+#define PUTSHORT(s, cp) { \
+	*(cp)++ = (s) >> 8; \
+	*(cp)++ = (s); \
+}
+
+/*
+ * Warning: PUTLONG destroys its first argument.
+ */
+#define PUTLONG(l, cp) { \
+	(cp)[3] = l; \
+	(cp)[2] = (l >>= 8); \
+	(cp)[1] = (l >>= 8); \
+	(cp)[0] = l >> 8; \
+	(cp) += sizeof(u_long); \
+}

@@ -228,18 +228,6 @@ gtime(ap)
 	return(0);
 }
 
-#ifdef BSD2_10
-/*
- * For now, 2.10BSD doesn't do sockets.  This bogus netsettime routine returns
- * failure to cause the main program to degenerate into the old date program
- * and simply set the time on the local machine.
- */
-netsettime(tv)
-	struct timeval tv;
-{
-	return (0);
-}
-#else !BSD2_10
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -282,8 +270,9 @@ netsettime(ntv)
 	dest.sin_addr.s_addr = htonl((u_long)INADDR_ANY);
 	s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s < 0) {
-		if (errno != EPROTONOSUPPORT)
-			perror("date: socket");
+		if (errno == EPROTONOSUPPORT)
+			return(0);
+		perror("date: socket");
 		goto bad;
 	}
 	bzero((char *)&sin, sizeof (sin));
@@ -376,4 +365,3 @@ bad:
 	retval = 2;
 	return (0);
 }
-#endif BSD2_10

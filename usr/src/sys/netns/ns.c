@@ -1,12 +1,19 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns.c	7.2 (Berkeley) 1/20/88
  */
 
 #include "param.h"
+#ifdef	NS
 #include "mbuf.h"
 #include "ioctl.h"
 #include "protosw.h"
@@ -107,20 +114,6 @@ ns_control(so, cmd, data, ifp)
 	case SIOCSIFADDR:
 	case SIOCSIFDSTADDR:
 		if (ia == (struct ns_ifaddr *)0) {
-#if	BSD2_10
-			struct ns_ifaddr *iam;
-
-			MSGET(iam, struct ns_ifaddr, M_CLEAR);
-			if (iam == (struct ns_ifaddr *)NULL)
-				return (ENOBUFS);
-			if (ia = ns_ifaddr) {
-				for ( ; ia->ia_next; ia = ia->ia_next)
-					;
-				ia->ia_next = iam;
-			} else
-				ns_ifaddr = iam;
-			ia = iam;
-#else
 			m = m_getclr(M_WAIT, MT_IFADDR);
 			if (m == (struct mbuf *)NULL)
 				return (ENOBUFS);
@@ -131,7 +124,6 @@ ns_control(so, cmd, data, ifp)
 			} else
 				ns_ifaddr = mtod(m, struct ns_ifaddr *);
 			ia = mtod(m, struct ns_ifaddr *);
-#endif	BSD2_10
 			if (ifa = ifp->if_addrlist) {
 				for ( ; ifa->ifa_next; ifa = ifa->ifa_next)
 					;
@@ -300,3 +292,4 @@ ns_iaonnetof(dst)
 	}
 	return (ia_maybe);
 }
+#endif

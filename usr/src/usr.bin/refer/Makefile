@@ -37,7 +37,7 @@ lookbib: lookbib.o
 sortbib: sortbib.o
 	cc ${SEPFLAG} sortbib.o -o sortbib
 
-install: all
+install: all /usr/dict/papers
 	install -s mkey $(DESTDIR)/usr/lib/refer
 	install -s inv  $(DESTDIR)/usr/lib/refer
 	install -s hunt $(DESTDIR)/usr/lib/refer
@@ -48,6 +48,8 @@ install: all
 	install -c indxbib.sh $(DESTDIR)/usr/bin/indxbib
 	install -s lookbib $(DESTDIR)/usr/bin
 	install -c tmac.bib $(DESTDIR)/usr/lib/tmac
+	(cd /usr/dict/papers; /bin/sh runinv)
+
 clean:
 	rm -f refer inv hunt mkey addbib lookbib sortbib *.o
 

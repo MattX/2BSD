@@ -6,8 +6,6 @@
  *	@(#)quota.h	7.1 (Berkeley) 6/4/86
  */
 
-#undef QUOTA			/* 2.10BSD DOES NOT HAVE QUOTAS!!! */
-
 /*
  * MELBOURNE DISC QUOTAS
  *
@@ -36,7 +34,7 @@ struct quota {
 
 #define	NOQUOTA	((struct quota *) 0)
 
-#if defined(KERNEL) && defined(QUOTA)
+#if defined(KERNEL) && defined(QUOTA) && !defined(SUPERVISOR)
 struct	quota *quota, *quotaNQUOTA;
 int	nquota;
 struct	quota *getquota(), *qfind();
@@ -112,7 +110,7 @@ struct	dquot {
 #define	NODQUOT		((struct dquot *) 0)
 #define	LOSTDQUOT	((struct dquot *) 1)
 
-#if defined(KERNEL) && defined(QUOTA)
+#if defined(KERNEL) && defined(QUOTA) && !defined(SUPERVISOR)
 struct	dquot *dquot, *dquotNDQUOT;
 int	ndquot;
 struct	dquot *discquota(), *inoquota(), *dqalloc(), *dqp();
@@ -144,3 +142,30 @@ struct	dqwarn {
 	u_char	dw_bwarn;
 	u_char	dw_iwarn;
 };
+
+#if defined(KERNEL) && defined(QUOTA) && defined(BSD2_10) && !defined(SUPERVISOR)
+#include "../machine/seg.h"
+
+struct	qhash {
+	struct	qhash *qh_forw;
+	struct	qhash *qh_back;
+};
+
+struct	dqhead {
+	struct	dqhead *dqh_forw;
+	struct	dqhead *dqh_back;
+};
+
+#define	QUOTAMAP()	mapseg5(quotreg, quotdesc)
+#define	QUOTAUNMAP()	normalseg5()
+
+memaddr	quotreg;
+u_short	quotdesc;
+struct	quota **px_quota;
+struct	dquot **ix_dquot;
+
+#define	NQHASH		16	/* small power of 2 */
+#define	NDQHASH		37	/* 4.3bsd used 51 which isn't even prime */
+#define	NQUOTA		40
+#define	NDQUOT		150
+#endif

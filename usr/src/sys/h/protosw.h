@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)protosw.h	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)protosw.h	7.2 (Berkeley) 12/30/87
  */
 
 /*
@@ -98,7 +104,7 @@ struct protosw {
 
 #define	PRU_NREQ		21
 
-#ifdef PRUREQUESTS
+#if	defined(PRUREQUESTS) && defined(SUPERVISOR)
 char *prurequests[] = {
 	"ATTACH",	"DETACH",	"BIND",		"LISTEN",
 	"CONNECT",	"ACCEPT",	"DISCONNECT",	"SHUTDOWN",
@@ -143,7 +149,7 @@ char *prurequests[] = {
 
 #define	PRC_NCMDS		21
 
-#ifdef PRCREQUESTS
+#if	defined(PRCREQUESTS) && defined(SUPERVISOR)
 char	*prcrequests[] = {
 	"IFDOWN", "ROUTEDEAD", "#2", "#3",
 	"QUENCH", "MSGSIZE", "HOSTDEAD", "HOSTUNREACH",
@@ -172,12 +178,12 @@ char	*prcrequests[] = {
 
 #define	PRCO_NCMDS	2
 
-#ifdef PRCOREQUESTS
+#if	defined(PRCOREQUESTS) && defined(SUPERVISOR)
 char	*prcorequests[] = {
 	"GETOPT", "SETOPT",
 };
 #endif
 
-#if (defined(KERNEL) && defined(UCB_NET))
+#if defined(KERNEL) && defined(UCB_NET) && defined(SUPERVISOR)
 extern	struct protosw *pffindproto(), *pffindtype();
 #endif

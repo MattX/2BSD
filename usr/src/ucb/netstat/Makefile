@@ -1,20 +1,42 @@
+# Copyright (c) 1987 Regents of the University of California.
+# All rights reserved.
 #
-# Copyright (c) 1983 Regents of the University of California.
-# All rights reserved.  The Berkeley software License Agreement
-# specifies the terms and conditions for redistribution.
+# Redistribution and use in source and binary forms are permitted
+# provided that this notice is preserved and that due credit is given
+# to the University of California at Berkeley. The name of the University
+# may not be used to endorse or promote products derived from this
+# software without specific prior written permission. This software
+# is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.5 (Berkeley) 1/18/86
+#	@(#)Makefile	5.8 (Berkeley) 2/7/88
 #
+#
+CFLAGS=	-O -i
+LIBC=	/lib/libc.a
+SRCS=	host.c inet.c if.c main.c mbuf.c route.c unix.c ns.c
 OBJS=	host.o inet.o if.o main.o mbuf.o route.o unix.o ns.o
-CFLAGS=-O
-LFLAG=	-i
-DESTDIR=
 
-netstat: ${OBJS}
-	${CC} ${LFLAG} ${OBJS} -o netstat
+all: netstat
 
-install: netstat
-	install -s -m 2755 -g kmem netstat ${DESTDIR}/usr/ucb/netstat
+netstat: ${OBJS} ${LIBC}
+	${CC} -o $@ ${CFLAGS} ${OBJS}
 
-clean:
-	rm -f *.o core a.out errs netstat
+clean: FRC
+	rm -f ${OBJS} core netstat
+
+depend: FRC
+	mkdep ${CFLAGS} ${SRCS}
+
+install: FRC
+	install -s -g kmem -m 2755 netstat ${DESTDIR}/usr/ucb/netstat
+
+lint: FRC
+	lint ${CFLAGS} ${SRCS}
+
+tags: FRC
+	ctags ${SRCS}
+
+FRC:
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

@@ -3,26 +3,10 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stdio.h	5.4 (Berkeley) 3/4/87
+ *	@(#)stdio.h	5.3 (Berkeley) 3/15/86
  */
 
 # ifndef FILE
-
-/*
- * The stdio macros getc, getchar, putc and putchar use fgetc and fputc
- * unless USE_STDIO_MACROS is defined.  Using fgetc and fputc almost always
- * saves text space and if assembly versions are available can save time as
- * well.  As the macros and routines are completely compatible, there is no
- * harm in mixing objects that do and don't use the macros - which is most
- * easily proven by noting that the C versions of fgetc and fputc use the
- * macros themselves ...  The funny ifndef below is so one can define
- * USE_STDIO_MACROS before including <stdio.h> and not get a `... redefined'
- * message from cpp.
- */
-#ifndef USE_STDIO_MACROS
-/*#define	USE_STDIO_MACROS	/**/
-#endif !USE_STDIO_MACROS
-
 #define	BUFSIZ	1024
 extern	struct	_iobuf {
 	int	_cnt;
@@ -49,8 +33,6 @@ extern	struct	_iobuf {
 #define	stdin	(&_iob[0])
 #define	stdout	(&_iob[1])
 #define	stderr	(&_iob[2])
-
-#ifdef USE_STDIO_MACROS
 #ifndef lint
 #define	getc(p)		(--(p)->_cnt>=0? (int)(*(unsigned char *)(p)->_ptr++):_filbuf(p))
 #endif not lint
@@ -65,13 +47,6 @@ extern	struct	_iobuf {
 		_flsbuf((unsigned char)(x), p)))
 #endif not lint
 #define	putchar(x)	putc(x,stdout)
-#else !USE_STDIO_MACROS
-#define	getc(p)		fgetc(p)
-#define	getchar()	fgetc(stdin)
-#define	putc(x, p)	fputc(x, p)
-#define	putchar(x)	fputc(x, stdout)
-#endif USE_STDIO_MACROS
-
 #define	feof(p)		(((p)->_flag&_IOEOF)!=0)
 #define	ferror(p)	(((p)->_flag&_IOERR)!=0)
 #define	fileno(p)	((p)->_file)

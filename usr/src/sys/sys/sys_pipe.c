@@ -11,6 +11,7 @@
 
 #include "systm.h"
 #include "user.h"
+#include "proc.h"
 #include "inode.h"
 #include "file.h"
 #include "fs.h"
@@ -91,7 +92,7 @@ loop:
 	/* Very conservative locking. */
 	ILOCK(ip);
 
-	/* If nothing in the pipe, wait. */
+	/* If nothing in the pipe, wait (unless FNDELAY is set). */
 	if (ip->i_size == 0) {
 		/*
 		 * If there are not both reader and writer active,
@@ -100,6 +101,10 @@ loop:
 		IUNLOCK(ip);
 		if (ip->i_count != 2)
 			return;
+		if (fp->f_flag & FNDELAY) {
+			u.u_error = EWOULDBLOCK;
+			return;
+		}
 		ip->i_mode |= IREAD;
 		sleep((caddr_t)ip+2, PPIPE);
 		goto loop;
@@ -121,6 +126,11 @@ loop:
 			ip->i_mode &= ~IWRITE;
 			wakeup((caddr_t)ip+1);
 		}
+		if (ip->i_wsel) {
+			selwakeup(ip->i_wsel, (long)(ip->i_flag & IWCOLL));
+			ip->i_wsel = 0;
+			ip->i_flag &= ~IWCOLL;
+		}
 	}
 	IUNLOCK(ip);
 }
@@ -133,13 +143,16 @@ writep(fp)
 
 	ip = (struct inode *)fp->f_data;
 	c = u.u_count;
+	ILOCK(ip);
+	if ((fp->f_flag & FNDELAY) && ip->i_size + c >= MAXPIPSIZ) {
+		u.u_error = EWOULDBLOCK;
+		goto done;
+	}
 loop:
 	/* If all done, return. */
-	ILOCK(ip);
 	if (c == 0) {
-		IUNLOCK(ip);
 		u.u_count = 0;
-		return;
+		goto done;
 	}
 
 	/*
@@ -147,9 +160,9 @@ loop:
 	 * return error and signal too.
 	 */
 	if (ip->i_count != 2) {
-		IUNLOCK(ip);
 		u.u_error = EPIPE;
 		psignal(u.u_procp, SIGPIPE);
+done:		IUNLOCK(ip);
 		return;
 	}
 
@@ -161,6 +174,7 @@ loop:
 		ip->i_mode |= IWRITE;
 		IUNLOCK(ip);
 		sleep((caddr_t)ip+1, PPIPE);
+		ILOCK(ip);
 		goto loop;
 	}
 
@@ -174,10 +188,54 @@ loop:
 	u.u_count = MIN((u_int)c, (u_int)MAXPIPSIZ);
 	c -= u.u_count;
 	writei(ip);
-	IUNLOCK(ip);
 	if (ip->i_mode&IREAD) {
 		ip->i_mode &= ~IREAD;
 		wakeup((caddr_t)ip+2);
 	}
+	if (ip->i_rsel) {
+		selwakeup(ip->i_rsel, (long)(ip->i_flag & IRCOLL));
+		ip->i_rsel = 0;
+		ip->i_flag &= ~IRCOLL;
+	}
 	goto loop;
+}
+
+pipe_select(fp, which)
+	struct file *fp;
+	int which;
+{
+	register struct inode *ip = (struct inode *)fp->f_data;
+	register struct proc *p;
+	register int retval = 0;
+	extern int selwait;
+
+	ILOCK(ip);
+	if (ip->i_count != 2)
+		retval = 1;
+
+	else switch (which) {
+	case FREAD:
+		if (ip->i_size) {
+			retval = 1;
+			break;
+		}
+		if ((p = ip->i_rsel) && p->p_wchan == (caddr_t)&selwait)
+			ip->i_flag |= IRCOLL;
+		else
+			ip->i_rsel = u.u_procp;
+		break;
+
+	case FWRITE:
+		if (ip->i_size < MAXPIPSIZ) {
+			retval = 1;
+			break;
+		}
+		if ((p = ip->i_wsel) && p->p_wchan == (caddr_t)&selwait)
+			ip->i_flag |= IWCOLL;
+		else
+			ip->i_wsel = u.u_procp;
+		break;
+	}
+	IUNLOCK(ip);
+	return(retval);
 }

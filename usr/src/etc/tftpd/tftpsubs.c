@@ -190,7 +190,7 @@ write_behind(file, convert)
 	    c = *p++;                   /* pick up a character */
 	    if (prevchar == '\r') {     /* if prev char was cr */
 		if (c == '\n')          /* if have cr,lf then just */
-		   fseek(file, -1, 1);  /* smash lf on top of the cr */
+		   fseek(file, -1L, 1);  /* smash lf on top of the cr */
 		else
 		   if (c == '\0')       /* if have cr,nul then */
 			goto skipit;    /* just skip over the putc */

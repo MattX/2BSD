@@ -22,6 +22,9 @@
 #include "uio.h"
 #include "kernel.h"
 #include "systm.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 readi(ip)
 	register struct inode *ip;
@@ -128,6 +131,29 @@ writei(ip)
 		u.u_error = EFBIG;
 		return;
 	}
+#ifdef QUOTA
+	/*
+	 * we do bytes, see the comment on 'blocks' in ino_stat().
+	 * sure hope we never try to extend the quota file and exceed
+	 * RLIMIT_FSIZE, yuck!
+	 *
+	 * we make the simplifying assumption that the entire write will
+	 * succeed, otherwise we have to check the quota on each block.
+	 * can you say slow?  i knew you could.
+	 *
+	 * SMS
+	 */
+	if (type == IFREG || type == IFDIR || type == IFLNK) {
+		if (u.u_offset + u.u_count > ip->i_size) {
+			QUOTAMAP();
+			u.u_error = chkdq(ip, 
+			    u.u_offset + u.u_count - ip->i_size, 0);
+			QUOTAUNMAP();
+			if (u.u_error)
+				return;
+		}
+	}
+#endif
 	do {
 		bn = lblkno(u.u_offset);
 		on = blkoff(u.u_offset);
@@ -172,6 +198,49 @@ writei(ip)
 			ip->i_size = u.u_offset;
 	} while (!u.u_error && u.u_count);
 }
+
+#ifdef QUOTA
+/*
+ * Following is the quota system's interface into readi/writei, we don't 
+ * have the luxury of simply creating a new uio structure and letting
+ * fly.  The residual argument is not implemented since the 4.3bsd quota
+ * system didn't use it.
+ */
+rdwri(rw, ip, base, len, offset, segflg)
+	struct inode *ip;
+	caddr_t base;
+	int len, segflg;
+	off_t offset;
+	enum uio_rw rw;
+{
+	struct uio savu;
+	struct iovec iov;
+	register int saverr, reterr;
+
+	iov.iov_len = u.u_count;
+	iov.iov_base = u.u_base;
+	savu.uio_offset = u.u_offset;
+	savu.uio_segflg = u.u_segflg;
+	saverr = u.u_error;
+	u.u_offset = offset;
+	u.u_count = len;
+	u.u_base = base;
+	u.u_segflg = segflg;
+	if (rw == UIO_READ)
+		readi(ip);
+	else if (rw == UIO_WRITE)
+		writei(ip);
+	else
+		panic("rdwri");
+	reterr = u.u_error;
+	u.u_error = saverr;
+	u.u_count = iov.iov_len;
+	u.u_base = iov.iov_base;
+	u.u_segflg = savu.uio_segflg;
+	u.u_offset = savu.uio_offset;
+	return(reterr);
+}
+#endif
 
 ino_ioctl(fp, com, data)
 	struct file *fp;
@@ -237,6 +306,7 @@ ino_stat(ip, sb)
 	register struct stat *sb;
 {
 
+#ifndef	EXTERNALITIMES
 	ITIMES(ip, &time, &time);
 	/*
 	 * Copy from inode table
@@ -261,6 +331,48 @@ ino_stat(ip, sb)
 	 */
 	sb->st_blocks = btodb(ip->i_size + MAXBSIZE - 1);
 	sb->st_spare4[0] = sb->st_spare4[1] = 0;
+#else
+	/*
+	 * ITIMES is inlined to avoid mapping twice, once in the macro and a
+	 * second time to fill in the stat structure.
+	 */
+	segm sav5;
+	struct icommon2 *ic2 = &((struct icommon2 *)0120000)[ip - inode];
+
+	saveseg5(sav5);
+	mapseg5(xitimes, xitdesc);
+	if (ip->i_flag & (IUPD | IACC | ICHG)) {
+		ip->i_flag |= IMOD;
+		if (ip->i_flag & IACC)
+			ic2->ic_atime = time.tv_sec;
+		if (ip->i_flag & IUPD)
+			ic2->ic_mtime = time.tv_sec;
+		if (ip->i_flag & ICHG)
+			ic2->ic_ctime = time.tv_sec;
+		ip->i_flag &= ~(IACC | IUPD | ICHG);
+	}
+	sb->st_dev = ip->i_dev;
+	sb->st_ino = ip->i_number;
+	sb->st_mode = ip->i_mode;
+	sb->st_nlink = ip->i_nlink;
+	sb->st_uid = ip->i_uid;
+	sb->st_gid = ip->i_gid;
+	sb->st_rdev = (dev_t)ip->i_rdev;
+	sb->st_size = ip->i_size;
+	sb->st_atime = ic2->ic_atime;
+	sb->st_spare1 = 0;
+	sb->st_mtime = ic2->ic_mtime;
+	sb->st_spare2 = 0;
+	sb->st_ctime = ic2->ic_ctime;
+	sb->st_spare3 = 0;
+	sb->st_blksize = MAXBSIZE;
+	/*
+	 * blocks are too tough to do; it's not worth the effort.
+	 */
+	sb->st_blocks = btodb(ip->i_size + MAXBSIZE - 1);
+	sb->st_spare4[0] = sb->st_spare4[1] = 0;
+	restorseg5(sav5);
+#endif
 	return (0);
 }
 
@@ -280,6 +392,16 @@ ino_close(fp)
 	mode = ip->i_mode & IFMT;
 	ilock(ip);
 	if (fp->f_type == DTYPE_PIPE) {
+		if (ip->i_rsel) {
+			selwakeup(ip->i_rsel, (long)(ip->i_flag & IRCOLL));
+			ip->i_rsel = 0;
+			ip->i_flag &= ~IRCOLL;
+		}
+		if (ip->i_wsel) {
+			selwakeup(ip->i_wsel, (long)(ip->i_flag & IWCOLL));
+			ip->i_wsel = 0;
+			ip->i_flag &= ~IWCOLL;
+		}
 		ip->i_mode &= ~(IREAD|IWRITE);
 		wakeup((caddr_t)ip+1);
 		wakeup((caddr_t)ip+2);

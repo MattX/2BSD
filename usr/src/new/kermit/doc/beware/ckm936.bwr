@@ -1,0 +1,653 @@
+19-Jan-88 12:39:38-EST,2159;000000000001
+Return-Path: <schullman%aqua.DEC@decwrl.dec.com>
+Received: from decwrl.dec.com by CU20B.COLUMBIA.EDU with TCP; Tue 19 Jan 88 12:39:15-EST
+Received: by decwrl.dec.com (5.54.4/4.7.34)
+	id AA25695; Tue, 19 Jan 88 09:37:57 PST
+Message-Id: <8801191737.AA25695@decwrl.dec.com>
+From: schullman%aqua.DEC@decwrl.dec.com (Dan Schullman * {617-46,29}7-4576 * MRO1-2/E47)
+Date: 19 Jan 88 12:34
+To: f_dacruz%aqua.DEC@decwrl.dec.com
+Subject: MAC Kermit problems ?
+
+Frank,
+
+	Most of the following is "Greek" to me... perhaps because
+	I've never seen or run MultiFinder... but thought I'd pass
+	it along.
+
+						--Dan S.
+
+	p.s.  One person claimed they preferred the old icon.  I
+	haven't seen the new version yet, but I certainly did like
+	the old "frog" myself!
+
+================================================================================
+Note 1352.10            New MacKermit, MultiFinder-aware.               10 of 12
+VINO::MCARLETON "Reality; what a concept!"           22 lines  15-JAN-1988 09:56
+                                -< Minor bugs >-
+--------------------------------------------------------------------------------
+
+    This program worked fine for me last night.  Background download
+    is neat.  I wish I had the memory to take more advantage of it.
+    I noticed a few minor problems.
+    
+    1) When a section of the terminal window is updated (because another
+       window was moved or a dialog box is removed) reverse video
+       characters are updated as positive video.  This might be a problem
+       if reverse video characters have some special meaning.
+    
+    2) The transfer dialog box does not unhighlight when I switch to
+       another application under multifinder.  It looks like I have more
+       than one active window.
+    
+    3) Under multifinder, I can only switch applications by ckicking
+       the right side of the menu bar and cycling through all of the other
+       applications.  It would be nice if I could also pull down the apple
+       menu and choose the the one I want.  I might prefer to do this
+       so I can control which windows are on top.
+
+    				MJC
+26-Jan-88 14:50:33-EST,13209;000000000001
+Mail-From: SY.CHRISTINE created at 26-Jan-88 14:50:31
+Date: Tue 26 Jan 88 14:50:31-EST
+From: Christine M Gianone <SY.CHRISTINE@CU20B.COLUMBIA.EDU>
+Subject: MacKermit Messages
+To: paul@OHIO-STATE.ARPA
+cc: sy.fdc@CU20B.COLUMBIA.EDU
+Message-ID: <12369743512.15.SY.CHRISTINE@CU20B.COLUMBIA.EDU>
+
+Hi Paul -
+
+I received some messages via MM and thought you might like to respond
+to them so I can put them in the Info-Kermit Digest with your comments.
+I have 3 from you so far for the next digest.
+
+Thanks again for all your work.
+
+/Chris
+
+--------------------------------------
+
+Date: 7 Jan 88 01:25
+From:	DSSDEV::HALLGRIMSSON "Eirikur, CDA Product Manager
+Subject: some feedback on new MAC Kermit, f.y.i.
+Keywords: MacKermit 0.9(36)b4
+
+This is a fine update of the original Mac Kermit. I was able to remap my
+separate keypad easily, but I had to know the characters to transmit for
+each key. It's a good VT100 emulator. Runs Emacs, EVE, Notes, etc., just
+fine.
+
+It seems to be hardwired for the modem port--there's no selection that I
+could find.  Oh, well, it's preliminary...
+
+The VAX Kermit that I have on DSSDEV has a transmit packet maximum of 90,
+making the turnaround time annoying.
+
+This new Kermit works really well under MultiFinder. I put up MultiFinder
+just for this, (don't have it on my hard disk yet) and I could have a file
+transfer going, be editing in MS-Word, and use the Finder all at once.
+
+------------------------------
+
+Date: Sun 10 Jan 88 23:38:18-PST
+From: Christopher Ho <CHRIS%Acrux.usc.edu@oberon.USC.EDU>
+Subject: Bug in Macintosh Kermit
+Keywords: MacKermit 0.9(36)b4
+
+The following bug existed in previous versions of Mac Kermit, and is still
+present in the 9(36)b4 release:
+	if an attempt is made to receive a file with too long a filename
+	(say, 33 characters) Mac Kermit enters an apparently infinite loop
+	in a dialog box saying "zchki failed"
+
+chris@oberon.usc.edu
+
+------------------------------
+
+Date: Mon, 04 Jan 88 13:35:07 -0500
+From: abe@j.cc.purdue.edu (Vic Abell)
+Subject: MacKermit 0.9(36)b4
+Keywords: MacKermit 0.9(36)
+
+It's really a pleasure to have a long packet MacKermit at last.  Several
+rough edges persist, however:
+
+1. Cloverleaf-R doesn't isn't the equivalent of selecting
+   "Receive File" from the menu.
+
+2. If the receive packet size is set to 1024, MacKermit and
+   Kermit enter a retry loop.  (Sizes up to 1000 seem to work
+   properly.)  Clicking on Cancel calls up an "OK" dialog box
+   whose text is the first part of the file being transferred.
+   Perhaps the receive buffer is too short.
+
+3. I have been unable to set the send packet size to anything
+   other than 90 and have the setting remain.
+
+------------------------------
+
+Date: Wed, 6 Jan 1988 13:30 CST
+From: William Bruce Curtis <NU024414%NDSUVM1.BITNET@CUVMA.COLUMBIA.EDU>
+Subject: Parity Bug in Mac Kermit 0.9(36)b4
+Keywords: MacKermit 0.9(36)
+
+Hi,
+
+   While testing out Mac Kermit 0.9(36)b4 I found that it will not send out
+even parity.  Since the default setting for all of the computers on our
+campus is even parity I couldn't test it out much further.
+
+Thanks,
+Bruce
+
+------------------------------
+
+Date: Tue, 29 Dec 87 17:45:35 EST
+From: Chris Schanzle <chris@umbc3.UMD.EDU>
+Subject: Macintosh Kermit wants/wishes before 1.0 release
+Keywords: MacKermit
+
+There are two things I feel must be included in Kermit before the 1.0
+release.  First is an EDIT menu!  Why can't one select text with the mouse,
+cut and paste with the clipboard?  ALL Macintosh terminal programs should be
+able to do this.
+
+The second one here could be an oversight on my part, but how does/can one
+change the volume to receive files?  Moving my default document around to
+different download disks is a pain.  (if you double-click on the settings
+document that resides on another volume, that volume will be come the
+default receive volume.)  Others have implemented it by putting up a
+"SFgetvol" box, showing the amount of space available on each volume.  I
+would prefer a dialog box showing all mounted (and unmounted) volumes
+displaying lots of neat info, allowing you to simply select a volume by
+clicking on it, it then being highlighted, then press <RETURN> or the <OK>
+box.
+
+One final bit if strangeness: Kermit .9(36)b3 responds to the inquery
+terminal with "<ESC>[?1;2c".  This is how the old VersaTerm responds, and a
+termcap entry for our unix machine allows insert/delete character in the
+middle of the line (thereby not having to redraw the rest of the line, a
+real timesaver at 1200 baud!).  Kermit deletes characters out of the middle
+of the line properly, but inserts are "typeovers", that is, it doesn't shove
+the end of the line to the right.
+
+Kermit sure has come a long way in the last year or two!  Thanks guys!
+
+			- Chris Schanzle
+ARPA   : chris@umbc3.UMD.EDU		BITNET : chris@umbc
+"He was betrayed by the limits of his own potential."
+
+------------------------------
+
+Date: Wed, 30 Dec 87 15:08:10 CST
+From: brian@sally.utexas.edu (Brian H. Powell)
+Subject: Impressions of MacKermit 0.9(36)b4
+Keywords: MacKermit 0.9(36)
+
+     This version of kermit seems to be an improvement over 0.9(36)b2, but
+it's still got some problems:
+
+	* I set option to mean meta.  This yields apparent nonsense.  e.g.,
+
+		option-		should be	yields
+		  A		\301		\201
+		  a		\341		\214
+		  b		\342		\272
+		  c		\343		\215
+		  d		\344		\266
+			etc. etc.
+
+	* There still seems to be a problem with dead keys.  For example, you
+	  have to press option-e twice before it sends anything.
+
+	* The bug concerning improper updating of the screen after dialog
+	  boxes are removed persists.  (i.e., sometimes 1) a dialog box is
+	  removed, 2) the screen is updated, 3) the area under the dialog box
+	  is erased (filled with white).)
+
+	* An unrelated bug in the update procedure:  items in reverse video
+	  are not updated properly.  For example, if you are running emacs,
+	  the mode line is typically in reverse video.  If you bring up the
+	  "response" window, for example, the mode line is updated in
+	  non-reverse mode (i.e., black on white).
+
+	* Cmd-key equivalents still appear in the menu, even if you've turned
+	  them off.
+
+Besides fixing these things, I'd also like to see the following:
+	* Because the new MacKermit uses the new serial driver, it hangs up
+	  the phone when the program quits.  (i.e., it drops DTR.)  I'd like
+	  to see it issue the _Control call to not negate DTR when the program
+	  quits.  (See csCode=16 on page IV-226 (The Serial Driver) in Inside
+	  Mac Volume IV.)
+
+     Thanks for fixing the other bugs.  I'm nearly confident enough to replace
+my use of 0.8(34) with this version.
+
+Brian H. Powell
+		UUCP:	...!uunet!ut-sally!brian
+		ARPA:	brian@sally.UTEXAS.EDU
+
+		P.O. Box 5899
+		Austin, TX 78763-5899
+		(512) 346-0835
+
+------------------------------
+
+Date: Thu, 31 Dec 87 09:11:49 EST
+From: Bob Rahe <CES00661%UDACSVM.BITNET@CUVMA.COLUMBIA.EDU>
+Subject: Problems with MacKermit(B4)
+Keywords: MacKermit 0.9(36)
+
+  I seem to be having a couple of problems with MacKermit 0.9(36)b4 that
+weren't in the b3 version.  The first is that no matter how I try I can't
+seem to convince him to use even parity.  I'm not sure what he is really using
+but it ain't even.
+
+  The second problem has to do with setting a key to shortbreak.  When I go
+back to look at the key it displays without the backslash and with a lot of
+other miscellaneous garbage after the word 'break'.
+
+  Anyone else seen these?  I've gone back to b3 for now which works great.
+Love them long packets!  :-)
+
+      Bob
+
+------------------------------
+
+Date: Mon, 4 Jan 88 13:37:53 PST
+From: coherent!dplatt@ames.arpa (Dave Platt)
+Subject: Suggestion re the new Kermit
+Keywords: MacKermit 0.9(36)
+
+There's one change that could be made to the Macintosh version of Kermit
+that would be of great help: minimal support, at least, for the Edit menu.
+
+Currently, MacKermit doesn't permit any cutting and pasting at all, either
+within Kermit windows or within desk-accessory windows.  It would be nice
+(and quite convenient) to be able to copy text from a Kermit window (lots
+easier than saving stuff to the session log), and to paste text from the
+clipboard into a Kermit window (thus transmitting the text as if it had been
+typed by hand).  I realize that the internal design of CKMKER's windows
+might make text-copying difficult to implement... is it possible?
+
+Even if copying and pasting within Kermit windows is prohibitively
+difficult, I really feel that MacKermit should support the usual Edit menu
+capabilities when a desk accessory window is in front.  It's currently
+almost impossible to use a simple text-editing accessory such as SigmaEdit
+or MockWrite, because MacKermit doesn't provide any way to copy, cut, or
+paste.  I seem to recall that this flies in the face of one of Apple's
+user-interface guidelines: if you support desk accessories, you must supply
+the Edit menu and have the usual Edit capabilities in their standard
+positions.
+
+It appears that it wouldn't be very difficult to include the Edit menu in
+the MacKermit menu bar, and simply disable the Edit menu (or all of the
+commands within the menu) when the frontmost window on the screen belongs to
+MacKermit.  Any chance that this could be implemented for the release (1.0)
+version of MacKermit?
+
+P.S... many thanks for the enhancements to b4, Paul!
+
+------------------------------
+
+Date: Mon, 4 Jan 88 22:40 CST
+From: Les LaCroix <LLACROIX%carleton.edu@RELAY.CS.NET>
+Subject: MacKermit 0.9(36)B4, ...B3
+Keywords: MacKermit 0.9(36)
+
+Last Saturday (Jan 2) I tried dialing up the various Kermit distribution
+servers to get a copy of MacKermit0.9(36)B4 (as stored in xkm936.hqx).
+Okstate didn't have it, but the University of Toledo did.  Unfortunately,
+when I got it back it said it was ...B3, not B4.  So, I have a question and
+a few comments:
+
+Will ...B4 be available for downloading via a Kermit server?  I cannot do
+FTPs from here (anonymous or otherwise).
+
+Comment 1:  good job!
+
+Comment 2: I found a kink or two in the "Set key macros..." section: I could
+find no way to define the two-character sequence of ESC (ASCII 27) followed
+by any ASCII digit, say '0'.  I stumbled across this curiosity by misreading
+the "ESC O w" as "ESC 0 w" in my Vis100 manual.  Anyway, I tried "\0270w",
+which was later displayed as "\14w" (270-256=14).  I don't know if "ESC 0"
+(or 1, etc) would ever happen in nature, but I suppose it would be nice to
+do just in case.  How about stopping the numeric interpretation after 3
+digits, since it appears that the arithmetic is modulo 256 anyway?
+
+Comment 3: I also tried "\27\0w", which was later displayed as "\27".  I can
+only guess that the key macros are stored as standard C strings (terminated
+with '\0'), and therefore cannot contain ASCII NULs.  Again, I don't know if
+there would ever be a need to include a NUL in a key macro.
+
+Les LaCroix		llacroix@carleton.edu   (csnet)
+SPSS, Inc.		llacroix@carleton.csnet (bitnet)
+402 Washington, Northfield MN USA 55057-2027
+
+------------------------------
+
+Date: Tue, 19 Jan 88 11:28:14 PST
+From: Nike Horton <horton%reed%tektronix.tek.com@RELAY.CS.NET>
+Subject: question about mac kermit
+
+Can you point me in the direction of some documentation on the current
+release of MacKermit?  I'm particularly interested in seeing if long packets
+are in the works.  If this is not currently being done, I would like to 
+volunteer to help with this (though I'm sure someone is working on it).
+
+Sorry to bother you with this.
+
+Nike
+
+------------------------------
+
+Date: Sun 24 Jan 88 23:48:42-PST
+From: Barry Eynon <EYNON@Score.Stanford.EDU>
+Subject: MacKermit 0.9(34)b4 notes
+To: info-kermit@cu20b.columbia.edu
+Message-ID: <12369349963.21.EYNON@Score.Stanford.EDU>
+
+I noticed the following on the Echomac conference on Fidonet:
+==========
+From:    Alan Ackerman
+To:      Dave Platt                               Msg #242, 21-Jan-88 06:52am
+Subject: Re: Kermit?
+
+The KERMIT available here on BMUG seems to be quite buggy -- is a better
+version available?  The file here, called KERMIT936B4 is KERMIT 0.9(36)B4.
+Some of the bugs are:
+  1.File transfer at 1000 bytpe packet-size works fine, but at 1024 packet
+size it fails.  (The actual cut-off seems to be near 1005 -- at 1005 file
+transfer works about half the time.)  The error message is an alert with "Lost
+a packet", or sometimes with garbage in it.
+  2.The screen is not fully refreshed after displaying the "File Transfer
+Status" alert.  (The last line type on the screen is partly blanked out,
+if it is near the top of the screen.)  You can force a screen restore by
+selecting "About Kermit".
+  3.Occasional, unexplained, bombs.
+  Can someone please pass these bugs along to Columbia University.  (I have no
+access to BITNET.)  Thank you!
+--- TBBS v2.0
+ * Origin: BMUG Multiline TBBS - Berkeley, CA [415] 849-BMUG  (161/444)
+============
+-Barry Eynon
+<eynon@score.stanford.edu>
+-------
+-------
+26-Jan-88 22:34:08-EST,3183;000000000001
+Return-Path: <paul@tut.cis.ohio-state.edu>
+Received: from tut.cis.ohio-state.edu (OHIO-STATE.ARPA) by CU20B.COLUMBIA.EDU with TCP; Tue 26 Jan 88 22:33:52-EST
+Received: by tut.cis.ohio-state.edu (5.54/0.2)
+	id AA28720; Tue, 26 Jan 88 22:34:23 EST
+Date: Tue, 26 Jan 88 22:34:23 EST
+From: paul@tut.cis.ohio-state.edu (Paul W. Placeway)
+Message-Id: <8801270334.AA28720@tut.cis.ohio-state.edu>
+To: SY.CHRISTINE@CU20B.COLUMBIA.EDU
+Cc: sy.fdc@CU20B.COLUMBIA.EDU, CHRIS%Acrux.usc.edu@oberon.USC.EDU,
+        abe@j.cc.purdue.edu, NU024414@NDSUVM1.BITNET, chris@umbc3.UMD.EDU,
+        brian@sally.utexas.edu, CES00661@UDACSVM.BITNET, dplatt@coherent.UUCP,
+        LLACROIX%carleton.edu@RELAY.CS.NET
+In-Reply-To: Christine M Gianone's message of Tue 26 Jan 88 14:50:31-EST <12369743512.15.SY.CHRISTINE@CU20B.COLUMBIA.EDU>
+Subject: re: MacKermit Messages
+Reply-To: paul@tut.cis.ohio-state.edu
+
+Thanks everyone for all the comments.  To save a bit of time, I am
+replying to all of the message that Christine sent me...
+
+Yes, MacKermit does _still_ need to be made to work on the modem port.
+If anyone wants to make the changes, I will add it in (It isn't that
+hard, but I havn't had time to do it yet).
+
+I have fixed (at least partially) the "zchki failed" loop.  It now
+does 3 different (cryptic) messages, but doesn't loop.
+
+I will look into the Command-R problem, and the 1024k retry loop.
+If you set the send packet size to I, but the sending side says it
+will use J characters, and J < I, then Kermit will use J (to be safe:
+slow transfer is better than none at all).
+
+I have fixed the even parity bug.  MacKermit is now using the C-Kermit
+software parity stuff again (for the same reasons as it did a while
+ago: the Mac won't do mark parity in the driver, and sometimes won't
+do even and odd right).
+
+Yes, there is an EDIT menu, that does work with DA editors.
+
+A set default volume dialog would be real nice (hint, hint).  I won't
+have time to do it for a while, but if someone else wants to...
+
+The kermit I am running (0.9(37) on an XL, system 3.2) seems to do
+insert character just fine.  Any pointers on why it may overstrike?
+
+The keyboard stuff still needs work.  I canget 8 bits through now, but
+the Option key handling is still not right, and Meta may not be
+either.
+
+The terminal emulator needs a good hard look.  No atributes are saved,
+and it doesn't seem to be redrawn after the transfer status dialog
+goes away.  I don't know exactly what all to do about this, but
+eventually I would like to see an emulator window that has scrollback,
+will do cut/paste (paste "types" the characters at the serial port),
+and do refresh correctly...
+
+Kermit drops DTR because it actually closes the serial driver on exit
+(thus ending a long-standing bug).  I will see about making it stay up
+on close (maybe as yet another option).
+
+I also fixed the bug with \break in the set macro dialog.  It now puts
+the right stuff back into the edit line all the time.
+
+I will change the code so that \nnnnn macros stop after 3 digits.
+The macro strings are now Pascal strings, however (so you can include
+\0 as a character).
+
+		-- Paul
+ 3-Feb-88 09:05:01-EST,1950;000000000001
+Return-Path: <schullman%aqua.DEC@decwrl.dec.com>
+Received: from decwrl.dec.com by CU20B.COLUMBIA.EDU with TCP; Wed 3 Feb 88 09:04:51-EST
+Received: by decwrl.dec.com (5.54.4/4.7.34)
+	id AA29061; Wed, 3 Feb 88 06:04:57 PST
+Message-Id: <8802031404.AA29061@decwrl.dec.com>
+From: schullman%aqua.DEC@decwrl.dec.com (Dan Schullman * {617-46,29}7-4576 * MRO1-2/E47)
+Date: 3 Feb 88 09:03
+To: f_dacruz%aqua.DEC@decwrl.dec.com
+Subject: MAC Kermit, 1 of 2
+
+Frank,
+
+	Some more info on MAC KERMIT... don't know if this is a "pilot"
+	error or something else.
+
+	Also sending some other notes (as 2 of 2).
+
+						--Dan S.
+
+================================================================================
+Note 419.1       PRELIMINARY new version of MAC KERMIT available          1 of 1
+LEDS::ENGELSON "Gary S. Engelson"                    22 lines  18-JAN-1988 16:31
+                             -< Problem quitting >-
+--------------------------------------------------------------------------------
+
+    I gather from the activity reported in the .HLP file that
+    there are folks using V0.9(36)B4, which is the version in the
+    .HQX file.  Therefore, I must conclude that there is
+    something peculiar about what I am doing, or how my system is
+    configured.  The problem is that after quitting out of
+    Kermit, the mouse is frozen.  If you are lucky, and it
+    freezes over another application, you may open the other
+    application, but still not unfreeze the mouse.  The only way
+    to get it back is to reboot.
+
+    Here is my configuration:
+
+    Macintosh 512K with HyperDrive-10 internal hard disk, 64K
+    (old) ROMS, and AppleTalk turned on.  The System is V3.2,
+    Finder is V5.3.
+
+    I will cross-post this in the Macintosh file, in case I have
+    overlooked something obvious.  Thanks to the developers--this
+    looks like a super version, when I can get it to work
+    properly.
+
+    --Gary
+ 3-Feb-88 09:09:59-EST,4249;000000000001
+Return-Path: <schullman%aqua.DEC@decwrl.dec.com>
+Received: from decwrl.dec.com by CU20B.COLUMBIA.EDU with TCP; Wed 3 Feb 88 09:09:35-EST
+Received: by decwrl.dec.com (5.54.4/4.7.34)
+	id AA29142; Wed, 3 Feb 88 06:09:40 PST
+Message-Id: <8802031409.AA29142@decwrl.dec.com>
+From: schullman%aqua.DEC@decwrl.dec.com (Dan Schullman * {617-46,29}7-4576 * MRO1-2/E47)
+Date: 3 Feb 88 09:08
+To: f_dacruz%aqua.DEC@decwrl.dec.com
+Subject: MAC KERMIT (2 of 2), "secure VMS KERMIT"
+
+Frank,
+
+	Here's some more comments on the new MAC KERMIT.
+
+	Also, I read a note about someone requesting a "secure" VMS KERMIT.
+	The "problem" with spawning subprocess can be prevent by modifying
+	the system authorization file (sort of like /etc/passwd) to not
+	allow subprocesses for that user.  Of course, that affects ALL
+	attempts by that user to use such... not just in KERMIT.  I would
+	also suggest that they "solve" the file-protection problem by
+	using the normal VMS UIC-based and new ACL-based protection schemes.
+
+						--Dan S.
+
+================================================================================
+Note 1352.16            New MacKermit, MultiFinder-aware.               16 of 18
+STAR::PIPER "Derrell Piper - VMS Engineering"        24 lines  25-JAN-1988 15:07
+                     -< Worst diaglog box of the year... >-
+--------------------------------------------------------------------------------
+
+    Has anyone seen the following:
+
+	SE SC20
+	MultiFinder or Finder
+	Latest Kermit
+
+    Attempting to download certain files in any mode (SERVER or SEND)
+    results in a dialog box with the following message:
+
+	+-------------------+
+	|		    |
+	|   zchki   -37	    |
+	|		    |
+	|	 OK	    |
+	+-------------------+
+
+    After mumbling "no, it's not okay, and what the f*&^ does "zchki"
+    mean?", I find that no amount of clicking on the OK button will get rid
+    of the error condition.  It repeats forever, requiring a reboot.
+
+    XMODEM is able to transfer the file without error.  The problem seems
+    to be very early on when the Kermits are exchanging file information.
+
+    Does anyone have any clues as to either the problem or the error message?
+================================================================================
+Note 1352.17            New MacKermit, MultiFinder-aware.               17 of 18
+HPSMEG::BUCKLEY "Single Point of Entry, whata conce" 29 lines  25-JAN-1988 15:29
+                              -< Sounds Familiar >-
+--------------------------------------------------------------------------------
+
+< Note 1352.16 by STAR::PIPER "Derrell Piper - VMS Engineering" >
+                     -< Worst diaglog box of the year... >-
+
+ ;   Has anyone seen the following:
+
+ ;	SE SC20
+ ;	MultiFinder or Finder
+ ;	Latest Kermit
+
+ ;   Attempting to download certain files in any mode (SERVER or SEND)
+ ;   results in a dialog box with the following message:
+
+ ;	+-------------------+
+ ;	|		    |
+ ;	|   zchki   -37	    |
+ ;	|		    |
+ ;	|	 OK	    |
+ ;	+-------------------+
+  
+        I was seeing this also, when trying to kermit files (using the GET 
+        Filename) over the weekend.  After much frustration, I  decided to 
+        renames  the  files  to a smaller file name (they were quite long) 
+        and low and behold I was able to kermit them down with no problem. 
+        As the case, I wanted to bring down several files with the .binary 
+        file  extention.    so  I  issued the GET *.binary from kermit and 
+        binhexed them successfully.  Give it a try, and good luck...
+        
+        Mike
+        
+================================================================================
+Note 1352.18            New MacKermit, MultiFinder-aware.               18 of 18
+BELKER::MASON "Explaining is not understanding"       5 lines  25-JAN-1988 18:42
+                                 -< Yessir... >-
+--------------------------------------------------------------------------------
+
+    Indeed.  In an earlier note in this conference, I related the same
+    problem.  There is a limit (32?) to the size of the name you can
+    transmit. The reply and my discovery arrived at about the same time.
+    
+    Gary
+ 3-Feb-88 15:09:41-EST,1282;000000000001
+Return-Path: <paul@brachiosaur.cis.ohio-state.edu>
+Received: from tut.cis.ohio-state.edu (OHIO-STATE.ARPA) by CU20B.COLUMBIA.EDU with TCP; Wed 3 Feb 88 15:09:30-EST
+Received: by tut.cis.ohio-state.edu (5.54/0.2)
+	id AA11806; Wed, 3 Feb 88 15:09:25 EST
+Received: by brachiosaur.cis.ohio-state.edu (3.2/0.2)
+	id AA01763; Wed, 3 Feb 88 15:09:19 EST
+Date: Wed, 3 Feb 88 15:09:19 EST
+From: paul@brachiosaur.cis.ohio-state.edu (Paul Placeway)
+Message-Id: <8802032009.AA01763@brachiosaur.cis.ohio-state.edu>
+To: SY.FDC@CU20B.COLUMBIA.EDU
+In-Reply-To: Frank da Cruz's message of Wed 3 Feb 88 09:24:39-EST <12371781340.164.SY.FDC@CU20B.COLUMBIA.EDU>
+Subject: [schullman%aqua.DEC@decwrl.dec.com (Dan Schullman * {617-46,29}7-4576 * MRO1-2/E47): MAC KERMIT (2 of 2), "secure VMS KERMIT"]
+Reply-To: paul@tut.cis.ohio-state.edu
+
+(you will have to pass this on to DecNet land; I don't know of a
+gateway off hand...)
+
+ ;	Latest Kermit
+
+ ;   Attempting to download certain files in any mode (SERVER or SEND)
+ ;   results in a dialog box with the following message:
+
+ ;	|   zchki   -37	    |
+
+That is the file name too long bug.  By "Latest Kermit" I believe that
+they mean 0.9(36)b4; I fixed this partially for 0.9(37), but it still
+needs a bit more work...
+
+		-- Paul
+ 3-Feb-88 15:13:18-EST,1227;000000000001
+Return-Path: <paul@brachiosaur.cis.ohio-state.edu>
+Received: from tut.cis.ohio-state.edu (OHIO-STATE.ARPA) by CU20B.COLUMBIA.EDU with TCP; Wed 3 Feb 88 15:12:48-EST
+Received: by tut.cis.ohio-state.edu (5.54/0.2)
+	id AA11892; Wed, 3 Feb 88 15:12:15 EST
+Received: by brachiosaur.cis.ohio-state.edu (3.2/0.2)
+	id AA01767; Wed, 3 Feb 88 15:12:02 EST
+Date: Wed, 3 Feb 88 15:12:02 EST
+From: paul@brachiosaur.cis.ohio-state.edu (Paul Placeway)
+Message-Id: <8802032012.AA01767@brachiosaur.cis.ohio-state.edu>
+To: SY.FDC@CU20B.COLUMBIA.EDU
+In-Reply-To: Frank da Cruz's message of Wed 3 Feb 88 09:22:57-EST <12371781030.164.SY.FDC@CU20B.COLUMBIA.EDU>
+Subject: [schullman%aqua.DEC@decwrl.dec.com (Dan Schullman * {617-46,29}7-4576 * MRO1-2/E47): MAC Kermit, 1 of 2]
+Reply-To: paul@tut.cis.ohio-state.edu
+
+
+    ....  The problem is that after quitting out of
+    Kermit, the mouse is frozen.  ...
+
+    Macintosh 512K with HyperDrive-10 internal hard disk, 64K
+    (old) ROMS, and AppleTalk turned on.  The System is V3.2,
+    Finder is V5.3.
+
+I havn't seen this happen, but I will try to cause it to.  I havn't
+seen this happen on the XL that I am using at home (w/Apple Works 3.0:
+old ROM emulation).
+
+		--Paul

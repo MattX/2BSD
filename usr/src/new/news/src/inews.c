@@ -17,7 +17,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)inews.c	2.80	4/10/87";
+static char	*SccsId = "@(#)inews.c	2.85	11/30/87";
 #endif /* SCCSID */
 
 #include "iparams.h"
@@ -26,16 +26,14 @@ static char	*SccsId = "@(#)inews.c	2.80	4/10/87";
 # include <unistd.h>
 # include <fcntl.h>
 
-#  ifdef F_RDLCK
+# if defined(F_RDLCK) && defined(F_SETLK)
 struct flock news_lock;
-#  endif /* F_RDLCK */
+#  endif /* F_RDLCK  && F_SETLK */
 # endif /* LOCKF */
 
 #ifdef BSD4_2
-# include <sys/dir.h>
 # include <sys/file.h>
 #else	/* !BSD4_2 */
-# include "ndir.h"
 # if defined(USG) && !defined(LOCKF)
 # include <fcntl.h>
 # endif /* USG */
@@ -58,8 +56,6 @@ int spool_news = DONT_SPOOL;
 
 extern char histline[];
 char	forgedname[NAMELEN];	/* A user specified -f option. */
-/* Fake sys line in case they forget their own system */
-struct srec dummy_srec = { "MEMEME", "", "all", "", "" };
 
 char *Progname = "inews";	/* used by xerror to identify failing program */
 
@@ -80,7 +76,8 @@ optlet	filchar		flag	oldmode	newmode		buf	*/
 'f',	'\0',		FALSE,	UNPROC,	UNKNOWN,	forgedname,
 'F',	' ',		FALSE,	UNPROC,	UNKNOWN,	header.followid,
 'c',	' ',		FALSE,	UNKNOWN,UNKNOWN,	header.ctlmsg,
-'C',	' ',		FALSE,	UNKNOWN,CREATENG,	header.ctlmsg,
+#define COPT 'C'
+COPT,	' ',		FALSE,	UNKNOWN,CREATENG,	header.ctlmsg,
 #define hflag	options[9].flag
 'h',	'\0',		FALSE,	UNPROC,	UNKNOWN,	filename,
 #define oflag	options[10].flag
@@ -93,11 +90,13 @@ optlet	filchar		flag	oldmode	newmode		buf	*/
 'S',	'\0',		FALSE,	UNKNOWN|PROC, 	UNPROC,	filename,
 'x',	'\0',		FALSE,	UNPROC, UNKNOWN,	not_here,
 'r',	'\0',		FALSE,	UNPROC, UNKNOWN,	header.replyto,
+#define vflag	options[17].flag
+'v',	'\0',		FALSE,	UNPROC, UNKNOWN,	filename,
 '\0',	'\0',		0,	0,	0,		(char *)NULL
 };
 
 FILE *mailhdr();
-extern int errno;
+extern int errno, xxit();
 
 struct timeb Now;
 
@@ -125,7 +124,7 @@ register char **argv;
 	register int	i;
 	FILE	*mfd;		/* mail file file-descriptor		*/
 
-	/* uuxqt doesn't close all it's files */
+	/* uuxqt doesn't close all its files */
 	for (i = 3; !close(i); i++)
 		;
 	/* set up defaults and initialize. */
@@ -137,12 +136,13 @@ register char **argv;
 	if (!ptr)
 		ptr = *argv - 1;
 	actfp = xfopen(ACTIVE, "r+");
+#ifndef NFSCLIENT
 #ifdef	LOCKF
-# ifdef	F_RDLCK
+# if	defined(F_RDLCK) && defined(F_SETLK)
 	news_lock.l_type = F_RDLCK;
 	if (fcntl(fileno(actfp), F_SETLK, &news_lock) < 0) {
 # else /* !F_RDLCK */
-	if (lockf(fileno(actfp), F_TLOCK, 0) < 0) {
+	if (lockf(fileno(actfp), F_TLOCK, 0L) < 0) {
 # endif /* !F_RDLCK */
 		if (errno != EAGAIN && errno != EACCES)
 #else	/* !LOCKF */
@@ -159,7 +159,7 @@ register char **argv;
 		spool_news = EXPIRE_RUNNING;
 	} else {
 #ifdef SPOOLNEWS
-		if (argc > 1 && !strcmp(*(argv+1), "-S")) {
+		if (argc > 1 && !STRCMP(*(argv+1), "-S")) {
 			argc--;
 			argv++;
 			Sflag = 1;
@@ -171,7 +171,7 @@ register char **argv;
 	if (spool_news != EXPIRE_RUNNING) {
 		/* only unlock if we locked */
 #ifdef	LOCKF
-		(void) lockf(fileno(actfp), F_ULOCK, 0);
+		(void) lockf(fileno(actfp), F_ULOCK, 0L);
 #else	/* !LOCKF */
 #ifdef 	BSD4_2
 		(void) flock(fileno(actfp), LOCK_UN);
@@ -180,23 +180,34 @@ register char **argv;
 #endif 	/* V7 */
 #endif	/* !BSD4_2 */
 	} else {	/* expire is running */
-		if (argc > 1 && !strcmp(*(argv+1), "-S"))
+		if (argc > 1 && !STRCMP(*(argv+1), "-S"))
 			exit(42);	/* inform rnews -U by exit status */
 	}
-	if (argc > 1 && !strcmp(*(argv+1), "-U")) {
+	(void) signal(SIGTERM, xxit);
+	if (argc > 1 && !STRCMP(*(argv+1), "-U")) {
 		/* can't unspool while things are locked */
 		if (spool_news == EXPIRE_RUNNING)
 			xxit(0);
 		dounspool();
 		/* NOT REACHED */
 	}
+#endif /* !NFSCLIENT */
 
-	if (!strncmp(ptr+1, "rnews", 5)) {
+	if (!STRNCMP(ptr+1, "rnews", 5)) {
+#ifndef NFSCLIENT
 		mode = PROC;
 		if (spool_news != DONT_SPOOL) {
 			dospool((char *)NULL, FALSE);
 			/* NOT REACHED */
 		}
+#else /* NFSCLIENT */
+		mfd = mailhdr((struct hbuf *)NULL, "Improper use of INEWS");
+		if (mfd != NULL) {
+		    fprintf(mfd,"System: %s\n\nINEWS is running improperly as RNEWS on slave NFS site by user %s.\n", LOCALSYSNAME, username);
+		    (void) mclose(mfd);
+		    exit(1);
+		}
+#endif /* NFSCLIENT */
 #ifdef NICENESS
 		if (nice(0) < NICENESS)
 			(void) nice(NICENESS);
@@ -226,16 +237,34 @@ register char **argv;
 		(void) signal(SIGHUP, onsig);
 		(void) signal(SIGINT, onsig);
 	}
+	/*
+	 * Catch "filesize exceeded" signals on 4.2BSD systems
+	 * - the history files may exceed this limit.
+	 */
+#ifdef  SIGXFSZ
+	(void) signal(SIGXFSZ, SIG_IGN);
+#endif /* SIGXFSZ */
 	uid = getuid();
 	gid = getgid();
 	duid = geteuid();
 	dgid = getegid();
 	(void) ftime(&Now);
+#ifndef NFSCLIENT
 	if (uid == 0 && duid == 0) {
+#else /* NFSCLIENT */
+        if (duid == 0) {
+#endif /* NFSCLIENT */
 		/*
 		 * Must go through with this kludge since
 		 * some systems do not honor the setuid bit
 		 * when root invokes a setuid program.
+		 *
+		 * On NFS slave systems, inews is setuid to ROOT.  This allows
+		 * inews to setuid/gid (real and effective) to NEWSUSR and
+		 * NEWSGRP respectively.  This *must* happen so that the "rsh"
+		 * program will run as user NEWSUSR and not as the user running
+		 * inews. "rsh" runs as the "real" user even when the program
+		 * calling it is setuid.
 		 */
 		if ((pw = getpwnam(NEWSUSR)) == NULL)
 			xerror("Cannot get NEWSU pw entry");
@@ -248,22 +277,22 @@ register char **argv;
 		(void) setuid(duid);
 	}
 
+#ifndef DOGETUSER
 	/*
-	 * IHCC forces the use of 'getuser()' to prevent forgery of articles
+	 * Force the use of 'getuser()' to prevent forgery of articles
 	 * by just changing $LOGNAME
 	 */
-#ifndef IHCC 
 	if (isatty(fileno(stderr))) {
 		if ((user = getenv("USER")) == NULL)
 			user = getenv("LOGNAME");
 		if ((home = getenv("HOME")) == NULL)
 			home = getenv("LOGDIR");
 	}
-#endif /* !IHCC */
+#endif /* !DOGETUSER */
 	if (user == NULL || home == NULL)
 		getuser();
 	else {
-		if (username == NULL || username[0] == 0) {
+		if (STRCMP(username, "Unknown") == 0 || username[0] == 0) {
 			username = AllocCpy(user);
 		}
 		userhome = AllocCpy(home);
@@ -293,6 +322,12 @@ usage:
 			xxit(1);
 
 		    found:;
+#ifdef NFSCLIENT
+			if (optpt->optlet == COPT) {
+			    fprintf(stderr, "Cannot create new newsgroups from an NFS slave system.\n\n");
+			    xxit(1);
+			}
+#endif /* NFSCLIENT */
 			if (optpt->flag == TRUE || (mode != UNKNOWN &&
 			    (mode&optpt->oldmode) == 0)) {
 				xerror("Bad %c option", **argv);
@@ -344,8 +379,10 @@ usage:
 
 	tty = isatty(fileno(infp));
 
+#ifndef NFSCLIENT
 	if (mode == CREATENG)
 		createng();
+#endif /* !NFSCLIENT */
 
 	if (header.ctlmsg[0] != '\0' && header.title[0] == '\0')
 		(void) strcpy(header.title, header.ctlmsg);
@@ -365,7 +402,7 @@ usage:
 			(void) hread(&header, infp, FALSE);
 			/* there are certain fields we won't let him specify. */
 			if (header.from[0]) {
-				(void) fixfrom(header.from);
+				(void) fixfrom(&header);
 				if (Sflag && !Mflag && !header.approved[0] &
 					!header.sender[0]) {
 					register char *p;
@@ -401,7 +438,7 @@ usage:
 			else if (!header.path[0]) {
 				(void) strcpy(header.path, forgedname);
 
-				if ((p1 = strpbrk(header.path, "@ (<")) != NULL)
+				if ((p1 = strpbrk(header.path, " (<")) != NULL)
 					*p1 = '\0';
 			}
 			if (!Mflag && !strpbrk(forgedname, "@ (<"))
@@ -419,7 +456,7 @@ usage:
 		if (header.organization[0] == '\0' && !Mflag &&
 			header.sender[0] == '\0') {
 			strncpy(header.organization, MYORG, BUFLEN);
-			if (strncmp(header.organization, "Frobozz", 7) == 0)
+			if (STRNCMP(header.organization, "Frobozz", 7) == 0)
 				header.organization[0] = '\0';
 			if (ptr = getenv("ORGANIZATION"))
 				strncpy(header.organization, ptr, BUFLEN);
@@ -434,9 +471,9 @@ usage:
 					(void) fgets(header.organization, sizeof header.organization, mfd);
 					(void) fclose(mfd);
 				} else {
-					header.organization[0] = '\0';
 					logerr("Couldn't open %s",
 						header.organization);
+					header.organization[0] = '\0';
 				}
 				ptr = index(header.organization, '\n');
 				if (ptr)
@@ -448,6 +485,14 @@ usage:
 
 	/* Authorize newsgroups. */
 	if (mode == PROC) {
+#ifdef NFSCLIENT
+		mfd = mailhdr((struct hbuf *)NULL, "Improper use of INEWS");
+		if (mfd != NULL) {
+		    fprintf(mfd,"System: %s\n\nINEWS is running improperly as RNEWS on slave NFS site by user %s.\n", LOCALSYSNAME, username);
+		    (void) mclose(mfd);
+		    exit(1);
+		}
+#else /* !NFSCLIENT */
 		checkbatch();
 		(void) signal(SIGHUP, SIG_IGN);
 		(void) signal(SIGINT, SIG_IGN);
@@ -455,7 +500,7 @@ usage:
 		header.ident[0] = '\0';
 		if (hread(&header, infp, TRUE) == NULL)
 			xerror("%s: Inbound news is garbled", filename);
-		input();
+		input(bfr[0] != '\n');
 	}
 	/* always check history */
 
@@ -463,10 +508,11 @@ usage:
 		log("Duplicate article %s rejected. Path: %s",
 			header.ident, header.path);
 		xxit(0);
+#endif /* !NFSCLIENT */
 	}
 
 	/* Easy way to make control messages, since all.all.ctl is unblessed */
-	if (mode != PROC && prefix(header.title, "cmsg ") && header.ctlmsg[0] == 0)
+	if (mode != PROC && PREFIX(header.title, "cmsg ") && header.ctlmsg[0] == 0)
 		(void) strcpy(header.ctlmsg, &header.title[5]);
 	is_ctl = mode != CREATENG &&
 		(ngmatch(header.nbuf, "all.all.ctl,") || header.ctlmsg[0]);
@@ -484,19 +530,23 @@ usage:
 
 	if (mode <= UNPROC) {
 #ifdef FASCIST
-		if (uid && uid != ROOTID && fascist(user, header.nbuf))
+		if (uid && uid != ROOTID && fascist(username, header.nbuf))
 			xerror("User %s is not authorized to post to newsgroup %s",
-				user, header.nbuf);
+				username, header.nbuf);
 #endif /* FASCIST */
+#ifndef NFSCLIENT
 		ctlcheck();
+#endif /* !NFSCLIENT */
 	}
 
+#ifndef NFSCLIENT
 	if (mode == CREATENG)
 		createng();
+#endif /* !NFSCLIENT */
 
 	/* Determine input. */
 	if (mode != PROC)
-		input();
+		input(FALSE);
 	if (header.intnumlines == 0 && !is_ctl)
 		error("%s rejected: no text lines", header.ident);
 
@@ -523,12 +573,16 @@ char *f;
 	putc('\n', mfd);
 	fprintf(mfd, "System: %s\n\nThere was a problem with %s!!\n",
 		LOCALSYSNAME, f);
+#ifndef NFSCLIENT
 	(void) sprintf(cbuf, "touch %s;chmod 666 %s", f, f);
 	(void) system(cbuf);
 	if (rwaccess(f))
 		fprintf(mfd, "The problem has been taken care of.\n");
 	else
 		fprintf(mfd, "Corrective action failed - check suid bits.\n");
+#else /* NFSCLIENT */
+	fprintf(mfd, "Corrective action must take place on \"%s\", the master NFS news system.\n", NFSSYSNAME);
+#endif /* NFSCLIENT */
 	(void) mclose(mfd);
 }
 
@@ -550,11 +604,15 @@ char *d;
 	putc('\n', mfd);
 	fprintf(mfd, "System: %s\n\nThere was a problem with %s!\n",
 		LOCALSYSNAME, dir);
+#ifndef NFSCLIENT
 	(void) mkdir(dir, 0775);
 	if (eaccess(dir, 07) == 0)
 		fprintf(mfd, "The problem has been taken care of.\n");
 	else
 		fprintf(mfd, "Corrective action failed - check suid bits.\n");
+#else /* NFSCLIENT */
+	fprintf(mfd, "Corrective action must take place on \"%s\", the master NFS news system.\n", NFSSYSNAME);
+#endif /* NFSCLIENT */
 	(void) mclose(mfd);
 }
 
@@ -602,6 +660,7 @@ register int mode;
 }
 #endif /* DBM */
 
+#ifndef NFSCLIENT
 dospool(batchcmd, dolhwrite)
 char *batchcmd;
 int dolhwrite;
@@ -614,7 +673,8 @@ int dolhwrite;
 	extern struct tm *gmtime();
 
 	(void) sprintf(sfile, "%s/.spXXXXXX", SPOOL);
-	sp = xfopen(mktemp(sfile), "w");
+	MKTEMP(sfile);
+	sp = xfopen(sfile, "w");
 	if (batchcmd != NULL) {
 		if (not_here[0] != '\0')
 			fprintf(sp, "%s -x %s\n", batchcmd, not_here);
@@ -645,6 +705,11 @@ int dolhwrite;
 		SPOOL,
 		tp->tm_year, tp->tm_mon+1, tp->tm_mday,
 		tp->tm_hour, tp->tm_min, getpid());
+
+#ifdef IHCC
+	log("Spooling %s into %s", header.ident, (rindex(buf,'/') + 1));
+#endif /* IHCC */
+
 	if (LINK(sfile, buf) < 0) {
 		char dbuf[BUFLEN];
 #ifdef VMS
@@ -729,9 +794,9 @@ char	*ngname;
 			logerr("Can't find \"%s\" in active file", ngname);
 			return FALSE;		/* No such newsgroup locally */
 		}
-		if (prefix(afline, ngname)) {
+		if (PREFIX(afline, ngname)) {
 			(void) sscanf(afline, "%s %ld", bfr, &ngsize);
-			if (strcmp(bfr, ngname) == 0) {
+			if (STRCMP(bfr, ngname) == 0) {
 				if (ngsize < 0 || ngsize > 99998) {
 					logerr("found bad ngsize %ld ng %s, setting to 1", ngsize, bfr);
 					ngsize = 1;
@@ -822,6 +887,7 @@ char	*ngname;
 	addhist(bfr);
 	return ngsize+1;
 }
+#endif /* !NFSCLIENT */
 
 /*
  *	Localize for each newsgroup and broadcast.
@@ -841,8 +907,13 @@ insert()
 #endif /* DOXREFS */
 
 	/* Clean up Newsgroups: line */
-	if (!is_ctl && mode != CREATENG)
-		is_invalid = ngfcheck(mode == PROC);
+	if (!is_ctl && mode != CREATENG) {
+#ifdef MODFILEONLY
+	    if (mode <= UNPROC) header.approved[0] = '\0';
+#endif /* MODFILEONLY */
+	    is_invalid =
+		ngfcheck(username, mode == PROC, header.approved[0] != '\0');
+	}
 
 	(void) time(&now);
 	tm = gmtime(&now);
@@ -860,8 +931,10 @@ insert()
 		header.ident, header.nbuf, header.title, header.from);
 
 	/* Write article to temp file. */
-	tfp = xfopen(mktemp(ARTICLE), "w");
+	MKTEMP(ARTICLE);
+	tfp = xfopen(ARTICLE, "w");
 
+#ifndef NFSCLIENT
 	if (is_invalid) {
 		logerr("No valid newsgroups found, moved to junk");
 		if (localize("junk"))
@@ -871,7 +944,7 @@ insert()
 	}
 
 #ifdef ZAPNOTES
-	if (strncmp(header.title, "Re: Orphaned Response", 21) == 0) {
+	if (STRNCMP(header.title, "Re: Orphaned Response", 21) == 0) {
 		logerr("Orphaned Response, moved to junk");
 		if (localize("junk"))
 			savehist(histline);
@@ -887,56 +960,67 @@ insert()
 		exitcode = 1;
 		goto writeout;
 	}
+#endif /* !NFSCLIENT */
 
 	if (is_mod[0] != '\0' 	/* one of the groups is moderated */
-		&& header.approved[0] == '\0') { /* and unapproved */
-		struct hbuf mhdr;
-		FILE *mfd, *mhopen();
-		register char *p;
-		char modadd[BUFLEN], *replyname();
+	    && header.approved[0] == '\0') { /* and unapproved */
+		if (is_mod_file_okay) {
+			(void) sprintf(header.approved, "%s@%s",
+					username, FROMSYSNAME);
+		} else {
+			struct hbuf mhdr;
+			FILE *mfd, *mhopen();
+			register char *p;
+			char modadd[BUFLEN], *replyname();
+#ifndef NFSCLIENT
 #ifdef DONTFOWARD
-		if(mode == PROC) {
-			logerr("Unapproved article in moderated group %s",
-				is_mod);
-			if (localize("junk"))
-				savehist(histline);
-			goto writeout;
-		}
+			if(mode == PROC) {
+				logerr("Unapproved article in moderated group %s",
+					is_mod);
+				if (localize("junk"))
+					savehist(histline);
+				goto writeout;
+			}
 #endif /* DONTFORWARD */
-		fprintf(stderr,"%s is moderated and may not be posted to",
-			is_mod);
-		fprintf(stderr," directly.\nYour article is being mailed to");
-		fprintf(stderr," the moderator who will post it for you.\n");
-		/* Let's find a path to the backbone */
-		sprintf(bfr, "%s/mailpaths", LIB);
-		mfd = xfopen(bfr, "r");
-		do {
-			if (fscanf(mfd, "%s %s", bfr, modadd) != 2)
-				xerror("Can't find backbone in %s/mailpaths",
-					LIB);
-		} while (strcmp(bfr, "backbone") != 0 && !ngmatch(is_mod, bfr));
-		(void) fclose(mfd);
-		/* fake a header for mailhdr */
-		mhdr.from[0] = '\0';
-		mhdr.replyto[0] = '\0';
-		p = is_mod;
-		while (*++p)
-			if (*p == '.')
-				*p = '-';
-		sprintf(mhdr.path, modadd, is_mod);
-		mfd = mhopen(&mhdr);
-		if (mfd == NULL)
-			xerror("Can't send mail to %s", mhdr.path);
-		fprintf(mfd, "To: %s\n", replyname(mhdr.path));
-		lhwrite(&header, mfd);
-		putc('\n', mfd);
-		while ((c = getc(infp)) != EOF)
-			putc(c, mfd);
-		mclose(mfd);
-		log("Article mailed to %s", mhdr.path);
-		xxit(0);
+#endif /* !NFSCLIENT */
+			fprintf(stderr,"%s is moderated and may not ", is_mod);
+			fprintf(stderr,"be posted to directly.\nYour ");
+			fprintf(stderr, "article is being mailed to the ");
+			fprintf(stderr, "moderator who will post it for ");
+			fprintf(stderr, "you.\n");
+			/* Let's find a path to the backbone */
+			sprintf(bfr, "%s/mailpaths", LIB);
+			mfd = xfopen(bfr, "r");
+			do {
+				if (fscanf(mfd, "%s %s", bfr, modadd) != 2)
+					xerror("Can't find backbone in %s/mailpaths",
+						LIB);
+			} while (STRCMP(bfr, "backbone") != 0
+			     && !ngmatch(is_mod, bfr));
+			(void) fclose(mfd);
+			/* fake a header for mailhdr */
+			mhdr.from[0] = '\0';
+			mhdr.replyto[0] = '\0';
+			p = is_mod;
+			while (*++p)
+				if (*p == '.')
+					*p = '-';
+			sprintf(mhdr.path, modadd, is_mod);
+			mfd = mhopen(&mhdr);
+			if (mfd == NULL)
+				xerror("Can't send mail to %s", mhdr.path);
+			fprintf(mfd, "To: %s\n", replyname(&mhdr));
+			lhwrite(&header, mfd);
+			putc('\n', mfd);
+			while ((c = getc(infp)) != EOF)
+				putc(c, mfd);
+			mclose(mfd);
+			log("Article mailed to %s", mhdr.path);
+			xxit(0);
+		}
 	}
 
+#ifndef NFSCLIENT
 	if (mode != PROC && spool_news != DONT_SPOOL)  {
 		if (spool_news != EXPIRE_RUNNING
 			&& ngmatch(header.nbuf,"to.all.ctl"))
@@ -948,16 +1032,23 @@ insert()
 			/* NOT REACHED */
 		}
 	}
+#endif /* !NFSCLIENT */
 
 	if (is_ctl) {
 		exitcode = control(&header);
+#ifndef NFSCLIENT
 		if (localize("control") && exitcode != 0)
 			savehist(histline);
 	} else {
 		if (s_find(&srec, LOCALPATHSYSNAME) == FALSE) {
 			logerr("Cannot find my name '%s' in %s",
 				LOCALPATHSYSNAME, SUBFILE);
-			srec = dummy_srec;
+		/* Fake sys line in case they forget their own system */
+			strcpy(srec.s_name, "MEMEME");
+			srec.s_nosend = "";
+			strcpy(srec.s_nbuf, "all");
+			srec.s_flags[0] = '\0';
+			srec.s_xmit[0] = '\0';
 		}
 #ifdef DOXREFS
 		(void) strncpy(nextref, PATHSYSNAME, BUFLEN);
@@ -979,6 +1070,7 @@ insert()
 			logerr("Newsgroups in active, but not sys");
 			(void) localize("junk");
 		}
+#endif /* !NFSCLIENT */
 	}
 #ifdef DOXREFS
 	if (index(header.nbuf, NGDELIM) == NULL)
@@ -1019,8 +1111,13 @@ writeout:
 	(void) fclose(tfp);
 	(void) fclose(infp);
 	if(exitcode == 0) {
+		if (vflag) {
+			printf("%s\n", header.ident);
+			fflush(stdout);
+		}
 		/* article has passed all the checks, so work in background */
 		if (mode != PROC) {
+#ifndef NFSCLIENT
 			int pid;
 			if ((pid=fork()) < 0)
 				xerror("Can't fork");
@@ -1031,13 +1128,30 @@ writeout:
 		(void) signal(SIGTTOU, SIG_IGN);
 #endif /* SIGTTOU */
 		savehist(histline);
+		if (header.supersedes[0] != '\0') {
+			char *av[2];
+
+			av[0] = "cancel";
+			av[1] = header.supersedes;
+			c_cancel(2, av);
+		}
 		broadcast(mode==PROC);
+#else /* NFSCLIENT */
+			int status;
+			char command[LBUFLEN];
+
+			(void) sprintf(command, NFSCMDFORMAT, NFSCMDARGS);
+			status = system(command);
+			(void) unlink(ARTICLE);
+			exit(status);
+		}
+#endif /* NFSCLIENT */
 	}
 	xxit((mode == PROC && filename[0] == '\0') ? 0 :
 		(exitcode < 0 ? 0 : exitcode));
 }
 
-input()
+input(usegunk)
 {
 	register char *cp;
 	register int c;
@@ -1047,8 +1161,16 @@ input()
 	int linecount = 0;
 	int linserted = 0;
 
-	tmpfp = xfopen(mktemp(INFILE), "w");
-	while (!SigTrap && fgets(bfr, BUFLEN, infp) != NULL) {
+	MKTEMP(INFILE);
+	tmpfp = xfopen(INFILE, "w");
+	for ( ; ; ) {
+		if (SigTrap)
+			break;
+		if (usegunk)
+			usegunk = FALSE;
+		else if (fgets(bfr, BUFLEN, infp) != bfr)
+			break;
+#ifndef NFSCLIENT
  		if (mode == PROC) {	/* zap trailing empty lines */
 #ifdef ZAPNOTES
 			if (empty && bfr[0] == '#' && bfr[2] == ':'
@@ -1068,7 +1190,7 @@ input()
 
 				/* Strip trailing " - (nf)" */
 				if ((cp = rindex(header.title, '-')) != NULL
-				    && !strcmp(--cp, " - (nf)"))
+				    && !STRCMP(--cp, " - (nf)"))
 					*cp = '\0';
 				log("Stripped notes header on %s", header.ident);
 				continue;
@@ -1087,7 +1209,8 @@ input()
 				linecount++;
 			}
  		}
-		if (mode != PROC && tty && strcmp(bfr, ".\n") == 0)
+#endif /* !NFSCLIENT */
+		if (mode != PROC && tty && STRCMP(bfr, ".\n") == 0)
 			break;
 		for (cp = bfr; c = toascii(*cp); cp++) {
 			if (isprint(c) || isspace(c) || c == '\b')
@@ -1185,6 +1308,8 @@ finish:
 	}
 }
 
+#ifndef NFSCLIENT
+
 /*
  * Make the directory for a new newsgroup.  ngname should be the
  * full pathname of the directory.  Do the other stuff too.
@@ -1200,14 +1325,56 @@ mknewsg(fulldir, ngname)
 char	*fulldir;
 char	*ngname;
 {
+#ifdef USG
+	register char *p;
+	char parent[200];
+	char sysbuf[200];
+	struct stat sbuf;
+#endif /* USG */
+
 	if (ngname == NULL || !isalpha(ngname[0]))
 		xerror("Tried to make illegal newsgroup %s", ngname);
 
+#ifdef USG
+	/*
+	 * If the parent is 755 the setuid(getuid)
+	 * will fail, and since mkdir is suid, and our real uid is random,
+	 * the mkdir will fail.  So we have to temporarily chmod it to 777.
+	 */
+	(void) strcpy(parent, fulldir);
+	while (p = rindex(parent, '/')) {
+		*p = '\0';
+		if (stat(parent, &sbuf) == 0) {
+			(void) chmod(parent, 0777);
+			break;
+		}
+	}
+#endif /* USG */
+
 	/* Create the directory */
 	mkparents(fulldir);
-
 	if (mkdir(fulldir, 0777) < 0)
 		xerror("Cannot mkdir %s: %s", fulldir, errmsg(errno));
+
+#ifdef USG
+	/*
+	 * Give away the directories we just created which were assigned
+	 * our real uid.
+	 */
+	(void) setuid(uid);
+	(void) chown(fulldir, duid, dgid);
+
+	(void) strcpy(sysbuf, fulldir);
+	while (p = rindex(sysbuf, '/')) {
+		*p = '\0';
+		/* stop when get to last known good parent */
+		if (STRCMP(sysbuf, parent) == 0)
+			break;
+		(void) chown(sysbuf, duid, dgid);
+	}
+	(void) setuid(duid);
+	(void) chmod(parent, (int)sbuf.st_mode);	/* put it back */
+#endif /* USG */
 
 	log("make newsgroup %s in dir %s", ngname, fulldir);
 }
@@ -1230,22 +1397,6 @@ char *dname;
 	mkparents(buf);
 	if (mkdir(buf, 0777) < 0)
 		xerror("Can not mkdir %s: %s", buf, errmsg(errno));
-}
-
-cancel()
-{
-	register FILE *fp;
-
-	log("cancel article %s", filename);
-	fp = fopen(filename, "r");
-	if (fp == NULL) {
-		log("article %s not found", filename);
-		return;
-	}
-	if (hread(&header, fp, TRUE) == NULL)
-		error("Article is garbled.");
-	(void) fclose(fp);
-	(void) unlink(filename);
 }
 
 dounspool()
@@ -1272,7 +1423,7 @@ dounspool()
 		xerror("opendir can't open .:%s", errmsg(errno));
 #ifdef	LOCKF
 	LockFd = xfopen(SEQFILE, "r+w");
-	if (lockf(fileno(LockFd), F_TLOCK, 0) < 0) {
+	if (lockf(fileno(LockFd), F_TLOCK, 0L) < 0) {
 		if (errno != EAGAIN && errno != EACCES)
 #else	/* !LOCKF */
 #ifdef BSD4_2
@@ -1300,18 +1451,23 @@ dounspool()
 		while ((dir=readdir(dirp)) != NULL) {
 			if (dir->d_name[0] == '.')
 				continue;
+
+#ifdef IHCC
+			log("Unspooling from %s", dir->d_name);
+#endif /* IHCC */
+
 			if ((pid=vfork()) == -1)
 				xerror("Can't fork: %s", errmsg(errno));
 			if (pid == 0) {
-#ifdef IHCC
+#ifdef LOGDIR
 				char bufr[BUFSIZ];
 				sprintf(bufr, "%s/%s", logdir(HOME), RNEWS);
 				execl(bufr, "rnews", "-S", "-p", dir->d_name,
 					(char *) NULL);
-#else /* !IHCC */
+#else /* !LOGDIR */
 				execl(RNEWS, "rnews", "-S", "-p", dir->d_name,
 					(char *) NULL);
-#endif /* !IHCC */
+#endif /* !LOGDIR */
 				_exit(1);
 			}
 			
@@ -1326,15 +1482,20 @@ dounspool()
 			if (status != 0) {
 				sprintf(bfr, "../%s", dir->d_name);
 				(void) LINK(dir->d_name, bfr);
-				logerr("rnews failed, status %d. Batch saved in %s/%s",
-					status, SPOOL, dir->d_name);
+				logerr("rnews failed, status %ld. Batch saved in %s/%s",
+					(long)status, SPOOL, dir->d_name);
 			}
 			(void) unlink(dir->d_name);
 			foundsome++;
 		}
 		rewinddir(dirp);
 	} while (foundsome); /* keep rereading the directory until it's empty */
+#ifndef LOCKF
+#ifndef BSD4_2
 	(void) UNLINK(spbuf);
+#endif
+#endif
 
 	xxit(0);
 }
+#endif /* !NFSCLIENT */

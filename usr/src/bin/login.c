@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1980 Regents of the University of California.
+ * Copyright (c) 1980,1987 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  */
@@ -11,19 +11,21 @@ char copyright[] =
 #endif not lint
 
 #ifndef lint
-static char sccsid[] = "@(#)login.c	5.15 (Berkeley) 4/12/86";
+static char sccsid[] = "@(#)login.c	5.20 (Berkeley) 10/1/87";
 #endif not lint
 
 /*
  * login [ name ]
- * login -r hostname (for rlogind)
- * login -h hostname (for telnetd, etc.)
+ * login -r hostname	(for rlogind)
+ * login -h hostname	(for telnetd, etc.)
+ * login -f name	(for pre-authenticated login: datakit, xterm, etc.)
  */
 
 #ifdef BSD2_10
-#define doremotelogin	_drmtlgn
+#include <short_names.h>
+#define	doremotelogin	_drmtlgn
 #define	doremoteterm	_drmttrm
-#endif BSD2_10
+#endif
 
 #include <sys/param.h>
 #include <sys/quota.h>
@@ -63,23 +65,22 @@ struct	passwd nouser = {"", "nope", -1, -1, -1, "", "", "", "" };
 struct	sgttyb ttyb;
 struct	utmp utmp;
 char	minusnam[16] = "-";
-char	*envinit[] = { 0 };		/* now set by setenv calls */
+char	*envinit[1];			/* now set by setenv calls */
 /*
  * This bounds the time given to login.  We initialize it here
  * so it can be patched on machines where it's too small.
  */
-int	timeout = 60;
+int	timeout = 300;
 
 char	term[64];
 
 struct	passwd *pwd;
-char	*strcat(), *rindex(), *index(), *malloc(), *realloc();
+char	*strcat(), *rindex(), *index();
 int	timedout();
 char	*ttyname();
 char	*crypt();
 char	*getpass();
 char	*stypeof();
-extern	char **environ;
 extern	int errno;
 
 struct	tchars tc = {
@@ -96,18 +97,20 @@ int	usererr = -1;
 char	rusername[NMAX+1], lusername[NMAX+1];
 char	rpassword[NMAX+1];
 char	name[NMAX+1];
+char	me[MAXHOSTNAMELEN];
 char	*rhost;
 
 main(argc, argv)
 	char *argv[];
 {
+	extern	char **environ;
 	register char *namep;
-	int pflag = 0, hflag = 0, t, f, c;
+	int pflag = 0, hflag = 0, fflag = 0, t, f, c;
 	int invalid, quietlog;
 	FILE *nlfd;
 	char *ttyn, *tty;
 	int ldisc = 0, zero = 0, i;
-	char **envnew;
+	char *p, *domain, *index();
 
 	signal(SIGALRM, timedout);
 	alarm(timeout);
@@ -118,29 +121,52 @@ main(argc, argv)
 	/*
 	 * -p is used by getty to tell login not to destroy the environment
 	 * -r is used by rlogind to cause the autologin protocol;
+ 	 * -f is used to skip a second login authentication 
 	 * -h is used by other servers to pass the name of the
 	 * remote host to login so that it may be placed in utmp and wtmp
 	 */
+	(void) gethostname(me, sizeof(me));
+	domain = index(me, '.');
 	while (argc > 1) {
 		if (strcmp(argv[1], "-r") == 0) {
-			if (rflag || hflag) {
-				printf("Only one of -r and -h allowed\n");
+			if (rflag || hflag || fflag) {
+				printf("Other options not allowed with -r\n");
 				exit(1);
 			}
+			if (argv[2] == 0)
+				exit(1);
 			rflag = 1;
 			usererr = doremotelogin(argv[2]);
+			if ((p = index(argv[2], '.')) && strcmp(p, domain) == 0)
+				*p = 0;
 			SCPYN(utmp.ut_host, argv[2]);
 			argc -= 2;
 			argv += 2;
 			continue;
 		}
-		if (strcmp(argv[1], "-h") == 0 && getuid() == 0) {
-			if (rflag || hflag) {
-				printf("Only one of -r and -h allowed\n");
+		if (strcmp(argv[1], "-h") == 0) {
+			if (getuid() == 0) {
+				if (rflag || hflag) {
+				    printf("Only one of -r and -h allowed\n");
+				    exit(1);
+				}
+				hflag = 1;
+				if ((p = index(argv[2], '.')) &&
+				    strcmp(p, domain) == 0)
+					*p = 0;
+				SCPYN(utmp.ut_host, argv[2]);
+			}
+			argc -= 2;
+			argv += 2;
+			continue;
+		}
+		if (strcmp(argv[1], "-f") == 0 && argc > 2) {
+			if (rflag) {
+				printf("Only one of -r and -f allowed\n");
 				exit(1);
 			}
-			hflag = 1;
-			SCPYN(utmp.ut_host, argv[2]);
+			fflag = 1;
+			SCPYN(utmp.ut_name, argv[2]);
 			argc -= 2;
 			argv += 2;
 			continue;
@@ -186,7 +212,8 @@ main(argc, argv)
 	do {
 		ldisc = 0;
 		ioctl(0, TIOCSETD, &ldisc);
-		SCPYN(utmp.ut_name, "");
+		if (fflag == 0)
+			SCPYN(utmp.ut_name, "");
 		/*
 		 * Name specified, take it.
 		 */
@@ -200,19 +227,36 @@ main(argc, argv)
 		 */
 		if (rflag && !invalid)
 			SCPYN(utmp.ut_name, lusername);
-		else
+		else {
 			getloginname(&utmp);
+			if (utmp.ut_name[0] == '-') {
+				puts("login names may not start with '-'.");
+				invalid = TRUE;
+				continue;
+			}
+		}
 		invalid = FALSE;
 		if (!strcmp(pwd->pw_shell, "/bin/csh")) {
 			ldisc = NTTYDISC;
 			ioctl(0, TIOCSETD, &ldisc);
+		}
+		if (fflag) {
+			int uid = getuid();
+
+			if (uid != 0 && uid != pwd->pw_uid)
+				fflag = 0;
+			/*
+			 * Disallow automatic login for root.
+			 */
+			if (pwd->pw_uid == 0)
+				fflag = 0;
 		}
 		/*
 		 * If no remote login authentication and
 		 * a password exists for this user, prompt
 		 * for one and verify it.
 		 */
-		if (usererr == -1 && *pwd->pw_passwd != '\0') {
+		if (usererr == -1 && fflag == 0 && *pwd->pw_passwd != '\0') {
 			char *pp;
 
 			setpriority(PRIO_PROCESS, 0, -4);
@@ -250,13 +294,13 @@ main(argc, argv)
 			printf("Login incorrect\n");
 			if (++t >= 5) {
 				if (utmp.ut_host[0])
-					syslog(LOG_CRIT,
-					    "REPEATED LOGIN FAILURES ON %s FROM %.*s, %.*s",
+					syslog(LOG_ERR,
+			    "REPEATED LOGIN FAILURES ON %s FROM %.*s, %.*s",
 					    tty, HMAX, utmp.ut_host,
 					    NMAX, utmp.ut_name);
 				else
-					syslog(LOG_CRIT,
-					    "REPEATED LOGIN FAILURES ON %s, %.*s",
+					syslog(LOG_ERR,
+				    "REPEATED LOGIN FAILURES ON %s, %.*s",
 						tty, NMAX, utmp.ut_name);
 				ioctl(0, TIOCHPCL, (struct sgttyb *) 0);
 				close(0), close(1), close(2);
@@ -343,27 +387,17 @@ main(argc, argv)
 	initgroups(name, pwd->pw_gid);
 	quota(Q_DOWARN, pwd->pw_uid, (dev_t)-1, 0);
 	setuid(pwd->pw_uid);
+
 	/* destroy environment unless user has asked to preserve it */
 	if (!pflag)
 		environ = envinit;
-
-	/* set up environment, this time without destruction */
-	/* copy the environment before setenving */
-	i = 0;
-	while (environ[i] != NULL)
-		i++;
-	envnew = (char **) malloc(sizeof (char *) * (i + 1));
-	for (; i >= 0; i--)
-		envnew[i] = environ[i];
-	environ = envnew;
-
-	setenv("HOME=", pwd->pw_dir, 1);
-	setenv("SHELL=", pwd->pw_shell, 1);
+	setenv("HOME", pwd->pw_dir, 1);
+	setenv("SHELL", pwd->pw_shell, 1);
 	if (term[0] == '\0')
 		strncpy(term, stypeof(tty), sizeof(term));
-	setenv("TERM=", term, 0);
-	setenv("USER=", pwd->pw_name, 1);
-	setenv("PATH=", ":/usr/ucb:/bin:/usr/bin", 0);
+	setenv("TERM", term, 0);
+	setenv("USER", pwd->pw_name, 1);
+	setenv("PATH", ":/usr/ucb:/bin:/usr/bin", 0);
 
 	if ((namep = rindex(pwd->pw_shell, '/')) == NULL)
 		namep = pwd->pw_shell;
@@ -537,43 +571,6 @@ doremoteterm(term, tp)
 			}
 	}
 	tp->sg_flags = ECHO|CRMOD|ANYP|XTABS;
-}
-
-/*
- * Set the value of var to be arg in the Unix 4.2 BSD environment env.
- * Var should end with '='.
- * (bindings are of the form "var=value")
- * This procedure assumes the memory for the first level of environ
- * was allocated using malloc.
- */
-setenv(var, value, clobber)
-	char *var, *value;
-{
-	extern char **environ;
-	int index = 0;
-	int varlen = strlen(var);
-	int vallen = strlen(value);
-
-	for (index = 0; environ[index] != NULL; index++) {
-		if (strncmp(environ[index], var, varlen) == 0) {
-			/* found it */
-			if (!clobber)
-				return;
-			environ[index] = malloc(varlen + vallen + 1);
-			strcpy(environ[index], var);
-			strcat(environ[index], value);
-			return;
-		}
-	}
-	environ = (char **) realloc(environ, sizeof (char *) * (index + 2));
-	if (environ == NULL) {
-		fprintf(stderr, "login: malloc out of memory\n");
-		exit(1);
-	}
-	environ[index] = malloc(varlen + vallen + 1);
-	strcpy(environ[index], var);
-	strcat(environ[index], value);
-	environ[++index] = NULL;
 }
 
 tty_gid(default_gid)

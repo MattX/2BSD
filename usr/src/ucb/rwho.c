@@ -36,10 +36,10 @@ int	nusers;
 /* 
  * this macro should be shared with ruptime.
  */
-#define	down(w,now)	((now) - (w)->wd_recvtime > 11 * 60)
+#define	down(w,now)	((now) - (w)->wd_recvtime > 11L * 60L)
 
 char	*ctime(), *strcpy();
-int	now;
+time_t	now;
 int	aflg;
 
 main(argc, argv)

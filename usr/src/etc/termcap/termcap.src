@@ -1,16 +1,17 @@
 # ------------------------
 #
-#	Termcap source file	@(#)termcap.src	5.28 (Berkeley) 6/7/86
-#	Kevin Layer, Berkeley
+#	Termcap source file	@(#)termcap.src	5.40 (Berkeley) 8/22/88
+#	John Kunze, Berkeley
 #	Craig Leres, Berkeley
-#	Mark Horton, Berkeley
 #
-# Please mail changes to (arpanet): termcap@berkeley
+# Please mail changes to (arpanet):  termcap@berkeley
+# See DESCRIPTION section for information about contents.
 #
 # Copyright (c) 1980 Regents of the University of California.
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
+# DESCRIPTION:
 # This file describes capabilities of various terminals, as needed by
 # software such as screen editors.  It does not attempt to describe
 # printing terminals very well, nor graphics terminals.  Someday.
@@ -47,6 +48,13 @@
 # because tgetent picks the first match in /etc/termcap.
 # The list of names intentionally duplicated is:
 # 2621, c108, dtc, hp2621, teleray, tvi, vt100.
+#
+# To easily test a new terminal description, put it in $HOME/.termcap
+# and programs will look there before looking in /etc/termcap.
+# You can also setenv TERMPATH to a list of full pathnames (separated
+# by spaces or colons) to be searched by tgetent() in the order listed.
+# The TERMCAP environment variable is usually set to the termcap
+# entry itself to avoid reading files when starting up a program.
 #
 # If you absolutely MUST check for a specific terminal (this is discouraged)
 # check for the 2nd entry (the canonical form) since all other codes are
@@ -147,7 +155,7 @@ Ar|q102|qume102|Qume 102:\
 	:k0=^A@\r:k1=^AA\r:k2=^AB\r:k3=^AC\r:kd=^J:kl=^H:kr=^L:ku=^K:\
 	:le=^H:li#24:ma=^K^P^L :nd=^L:\
 	:se=\EG0:sg#1:so=\EG4:st=\E1:\
-	:ue=\EG0:ug#1:ul:up=^K:us=\EG8:
+	:ue=\EG0:ug#1:up=^K:us=\EG8:
 # From ucbvax!mtxinu!sybase!tim (Tim Wood) Fri Sep 27 10:25:24 PDT 1985
 # This entry supports line and character insert and delete, scroll up and
 # down and the arrow keys.  To use it, perform the following on your qvt-101
@@ -164,6 +172,65 @@ Aq|q101|qvt101|qvt-101|Qume 101 $310 special:\
 # I suspect the xerox1720 is the same as the diablo 1620.
 Ax|x1720|x1700|1700|x1750|xerox 1720:\
 	:co#132:le=^H:bs:hc:os:pt:do=^J:ct=\E2:st=\E1:
+# # --------------------------------
+#
+# B: AT&T ATT
+#
+# AT&T Teletype 5410 Terminal (a.k.a. 4410)
+# From: carvalho%kepler@Berkeley.EDU (Marcio de Carvalho)
+# Date: Thu, 26 Feb 87 09:16:50 PST
+#
+# Although the 5410 supports labels, it blanks the screen after
+# each label is programmed creating to much visual activity.
+# To use the labels, use FL=\E[%d;00q%-16s
+#
+Ba|5410|4410|tty5410|att4410|AT&T Teletype 5410 terminal with 80 columns:\
+	:al=\E[L:am:bs:cd=\E[J:ce=\E[K:cl=\E[H\E[J:\
+	:cm=5\E[%i%2;%2H:co#80:dc=\E[P:dl=\E[M:im=:ei=:ic=\E[@:\
+	:kd=\E[B:kh=\E[H:kl=\E[D:kr=\E[C:ku=\E[A:\
+	:li#24:nd=\E[C:se=\E[m:so=\E[2;7m:sr=\EM:\
+	:ue=\E[m:up=\E[A:us=\E[4m:EE=\E[m:BO=\E[0;7m:DS=\E[2m:\
+	:KM=/usr/lib/ua/kmap.5410:is=\E[0m^O\E[?6l:kn#8:\
+	:k1=\EOc:k2=\EOd:k3=\EOe:k4=\EOf:k4=\EOg:k6=\EOh:\
+	:k7=\EOi:k8=\EOj:ko=nd,up,ho:
+# AT&T Teletype 5420 Terminal (a.k.a. 4415) June 5, 1985
+Bb|5420|4415|tty5420|att4415|AT&T Teletype 5420 terminal:\
+	:al=\E[L:am:bs:cd=\E[J:ce=\E[K:cl=\E[H\E[J:\
+	:cm=\E[%i%2;%2H:co#80:dc=\E[P:dl=\E[M:im=\E[4h:ei=\E[4l:\
+	:kd=\E[B:kh=\E[H:kl=\E[D:kr=\E[C:ku=\E[A:\
+	:li#24:nd=\E[C:se=\E[m:so=\E[2;7m:sr=\EM:\
+	:ue=\E[m:up=\E[A:us=\E[4m:EE=\E[m:BO=\E[0;7m:DS=\E[2m:\
+	:KM=/usr/lib/ua/kmap.5420:\
+	:is=\E[0m^O\E[1;2;3;4;6l\E[12;13;14;20l\E[?6;97;99l\E[?7h\E[4i\Ex\E[25;1j\212\E[8;0j\E[9;0j\E[10;0j\E[19;1j:\
+	:db:mi:pt:kn#8:k1=\EOc:k2=\EOd:k3=\EOe:k4=\EOf:k5=\EOg:k6=\EOh:\
+	:k7=\EOi:k8=\EOj:ve=\E[11;0j:\
+	:vs=\E[11;1j:ko=bt,nd,up,dc,dl,ho,im,al:
+# AT&T Teletype 5425 Terminal (a.k.a 4425) June 5, 1985
+Bc|5425|4425|tty5425|att4425|AT&T Teletype 5425:\
+	:FL=\E[%d;00q%-16s\E~:FE=\E|:KM=/usr/lib/ua/kmap.5425:\
+	:is=\E[0m^O\E[1;2;3;4;6l\E[12;13;14;20l\E[?6l\E[?7h\E[4i\E[9;0j\E[10;0j\E[11;0j\E[21;1j\E[25;1j\212:\
+	:ve=\E[12;0j:vs=\E[12;1j:tc=5420:
+Bd|t4|4420|tty4420|Teletype 4420:\
+	:vs=\ER:ve=\ER:am:da:db:mi:cr=\EG:\
+	:im=:ei=:dm=:ed=:nl=\EG\EB:li#23:\
+	:co#80:cl=\EH\EJ:cd=\EJ:cm=\EY%+ %+ :\
+	:bs:up=\E7:do=\EB:nd=\EC:al=\EL:\
+	:dl=\EM:dc=\EP:ic=\E\136:sf=\EH\EM\EY5 :sr=\ET:kb=^H:
+Be|pc6300plus|6300|6300plus:\
+	:al=\E[1L:am:bs:cd=\E[0J:ce=\E[0K:cl=\E[2J\E[H:cm=\E[%i%2;%2H:co#80:\
+	:dc=\E[1P:dl=\E[1M:do=\E[B:ei=:ho=\E[H:\
+	:ic=\E[1@:im=:kb=\10:kd=\E[B:kl=\E[D:kr=\E[C:ku=\E[A:li#24:\
+	:k1=\EOc:k2=\EOd:k3=\EOe:k4=\EOf:k5=\EOg:k6=\EOh:k7=\EOi:k8=\EOj:\
+	:k9=\EOk:k10=\EOu:nd=\E[C:se=\E[m:so=\E[7m:ue=\E[m:up=\E[A:us=\E[4m:\
+	:EE=\E[m:BO=\E[0;7m:CV=\E[=C:CI=\E[=1C:KM=/usr/lib/ua/kmap.s5:
+Bf|s4|PC7300|unixpc|pc7300|7300|3b1|Safari 4:\
+	:so=\E[2;7m:DS=\E[2m:XS=\E[9m:KM=/usr/lib/ua/kmap.s4:tc=pc6300plus:
+# AT&T Teletype 610 Terminal
+Bg|b610|610|610bct|tty610:\
+	:CV=\E[25h:CI=\E[25l:KM=/usr/lib/ua/kmap.s4:\
+	:FL=\E[%d;00q%-16s\E[0p:FE=\E[2p:cl=\E[1;1H\E[J:\
+	:is=\E[0m^O\E[25;1|^J\E[8;0|\E[4;13;20l\E[?5l\E[12h\E[?7h\E[?4i:\
+	:ve=\E[?12l:vs=\E[?12h:tc=5420:
 # # --------------------------------
 #
 # C: CONTROL DATA
@@ -234,11 +301,11 @@ H4|h1420|hazeltine 1420:\
 	:up=\E^L:nd=^P:ce=\E^O:ta=^N:cm=\E^Q%r%.%+ :so=\E\037:se=\E^Y:
 H5|h1500|hazeltine 1500:\
 	:do=^J:al=40~^Z:am:le=^H:bs:cd=10~^X:ce=~^O:cl=~^\:cm=~^Q%r%.%.:\
-	:co#80:dl=40~^S:do=~^K:li#24:nd=^P:.se=~^_:.so=~^Y:up=~^L:
+	:co#80:dl=40~^S:do=~^K:hz:li#24:nd=^P:.se=~^_:.so=~^Y:up=~^L:
 # h1510 assumed to be in sane escape mode.  Else use h1500.
 H6|h1510|hazeltine 1510:\
 	:do=^J:al=\E^Z:am:le=^H:bs:cd=\E^X:ce=\E^O:cl=\E^\:cm=\E^Q%r%.%.:\
-	:co#80:dl=\E^S:do=\E^K:li#24:nd=^P:.se=\E^_:.so=\E^Y:up=\E^L:
+	:co#80:dl=\E^S:do=\E^K:hz:li#24:nd=^P:.se=\E^_:.so=\E^Y:up=\E^L:
 H8|h1520|hazeltine 1520:\
 	:do=^J:al=~^Z:am:le=^H:bs:cd=~^X:ce=~^O:cl=~\034:cm=~^Q%r%.%.\200:\
 	:co#80:dl=~^S:do=~^K:hz:li#24:nd=^P:se=~^Y:so=~\037:up=~^L:ho=~^R:
@@ -255,35 +322,47 @@ HF|esprit-am|hazeltine esprit auto-margin:\
 	:am:tc=esprit:
 # # --------------------------------
 #
-# I: IBM, INTERACTIVE SYSTEMS, and INTECOLOR
+# I: IBM
 #
-# Some of these should go in the misc category, IBM, ISC, and ISC can't
-# all have I.  I will wait to see who comes out with more terminals.
-# These compucolors appear similar, but they at least have different
-# sized screens.  I don't know what's going on here.
-I8|8001|ISC8001|compucolor|intecolor:\
-	:do=^J:al=\EU:am:le=^Z:bc=^Z:cl=3*^L:cm=^C%r%.%.:\
-	:co#80:cd=\EQ:dm=\EQ:ed=\EF:dc=\177:dl=\EV:ei=\EF:\
-	:im=\EQ:li#40:nd=1^Y:ta=8\t:up=^\:ho=1^H:pc=^@:
-IG|compucolor2|compucolorII:\
-	:do=^J:pt:am:cm=%r^C%.%.:le=^Z:bc=^Z:li#32:co#64:\
-	:cl=^L:ho=^H:nd=^Y:up=^\:
-# From cithep!eric  Wed Sep 16 08:06:44 1981
-It|intext|Interactive Systems Corporation modified owl 1200:\
-	:do=^J:al=5.5*\020:am:le=^_:bc=^_:le=^H:bs:bt=^Y:cd=5.5*\026J:\
-	:ce=^K\160^R:cl=132\014:cm=\017%+ %+ :co#80:dc=5.5*\022:dl=5.5*\021:\
-	:ei=\026\074:im=\026\073:ip=5.5*:li#24:nd=\036:pt:up=\034:\
-	:se=^V# :sg#1:so=^V$,:ma=^K^P^R^L^L :\
-	:kl=^_:kd=^J:kr=^^:ku=\034:kb=^H:kh=^Z:\
-	:k1=^VA\r:k2=^VB\r:k3=^VC\r:k4=^VD\r:k5=^VE\r:\
-	:k6=^VF\r:k7=^VG\r:k8=^VH\r:k9=^VI\r:k0=^VJ\r:
-I9|ibm|ibm3101|3101|i3101|IBM 3101-10:\
+# ibm61 and ibm63 from Warren Gish (cswarren@violet.berkeley.edu).
+# installed 12-17-86.
+# 3161 only opens a new line if a null line exists on the screen.
+# To ensure a null line exists, an SBA is performed, positioning the
+# Buffer Address in column 0 of the last line.  The last line is then
+# cleared to nulls, BA mode is cancelled, and the new line is opened
+# at the cursor position.
+I1|ibm61|ibm3161|3161|IBM 3161-11:\
+	:am:bs:bw:cl=\EL:li#24:co#80:cd=\EJ:al=\EX7 \EI\E Z\EN:\
+	:ce=\EI:cm=\EY%+\040%+\040:nd=\EC:up=\EA:do=\EB:\
+	:dl=\EO:dc=\EQ:kd=\EB:ku=\EA:kl=\ED:kr=\EC:kh=\EH:\
+	:us=\E4\102:ue=\E4\100:so=\E4\110:se=\E4\100:
+I3|ibm63|ibm3163|3163|i3163|IBM 3163:\
+	:tc=ibm61:
+I4|ibm|ibm3101|3101|i3101|IBM 3101-10:\
 	:do=^J:ct=\EH:st=\E0:\
 	:if=/usr/lib/tabset/ibm3101:\
 	:am:le=^H:bs:cl=\EK:li#24:co#80:nd=\EC:up=\EA:cd=\EJ:ce=\EI:\
 	:kd=\EB:kl=\ED:kr=\EC:ku=\EA:ho=\EH:cm=\EY%+\40%+\40:pt:
 Ia|ibm-apl|apl|IBM apl terminal simulator:\
 	:li#25:tc=dm1520:
+# ibmapa* and ibmmono entries come from ACIS 4.3 distribution
+Ib|rtpc|ibmapa16|ibm6155|IBM 6155 Extended Monochrome Graphics Display:\
+	:ts=\Ej\EY@%+ \Eo:ds=\Ej\EY@\40\EI\Ek:li#32:tc=ibmconsole:
+# Advanced Monochrome (6153) and Color (6154) Graphics Display:
+Ic|ibmapa8c|ibmapa8|ibm6154|ibm6153|IBM 6153/4 Advanced Graphics Display:\
+	:ts=\Ej\EY?%+ \Eo:ds=\Ej\EY?\40\EI\Ek:li#31:tc=ibmconsole:
+Id|ibmapa8c-c|ibm6154-c|IBM 6154 Advanced Color Graphics Display color termcap:\
+	:ts=\Ej\EY?%+ \Eo:ds=\Ej\EY?\40\EI\Ek:li#31:mh=\EF\Ef7;:tc=ibmega-c:
+Ie|ibmmono|ibmconsole|ibm5151|IBM workstation monochrome:\
+	:se=\Ez:so=\EZ:sr=\EA:al=\EL:dl=\EM:\
+	:kb=^H:us=\EW:ue=\Ew:\
+	:k1=\ES:k2=\ET:k3=\EU:k4=\EV:k5=\EW:k6=\EP:k7=\EQ:k8=\ER:k9=\EY:\
+	:k0=\E<:I0=f10:kI=\000:kh=\EH:kR=\EG:kP=\Eg:kF=\EE:kN=\EE:\
+	:md=\EZ:me=\Ew\Eq\Ez\EB:mk=\EF\Ef0;\Eb0;:mr=\Ep:\
+	:ts=\Ej\EY8%+ \Eo:fs=\Ek:ds=\Ej\EY8\40\EI\Ek:es:hs:sb:tc=ibm3101:
+If|ibmega-c|ibm5154-c|IBM Enhanced Color Display color termcap:\
+	:se=\EB:so=\EF\Ef3;:ue=\EB:us=\EF\Ef2;:tc=ibmconsole:
+# # --------------------------------
 #
 # M: MISCELLANEOUS TERMINALS
 #
@@ -328,7 +407,7 @@ M9|vc404-s|volker-craig 404 w/standout mode:\
 MA|vc404-na|volker-craig 404 w/no arrow keys:\
 	:ma@:kr@:ku@:tc=vc404:
 MB|vc404-s-na|volker-craig 404 w/standout mode and no arrow keys:\
-	:se=^O:so=^N:tc=vc404na:
+	:se=^O:so=^N:tc=vc404-na:
 # missing in vc303a and vc303 descriptions:  they scroll 2 lines at a time
 MC|vc303a|vc403a|volker-craig 303a:\
 	:do=^J:am:le=^H:bs:ce=20^V:cl=40^X:co#80:ho=40^Y:kd=^J:kl=^H::kr=^U:\
@@ -347,7 +426,7 @@ MF|falco-p|falco ts-1sp|falco with paging option:\
 	:dl=\ER:kd=\E[B:kl=\E[D:ei=\Er:im=\Eq:pt:db:\
 	:kr=\E[C:ku=\E[A:li#24:nd=\E[C:se=\Eg0:so=\Eg4:\
 	:up=\E[A:us=\Eg1:ti=\E_d:te=\E_b:\
-	:ue=\Eg0:do=\E[B:cm=\E=%+ %+ :ms:ul:kh=\E[H:da:mi:bt=\EI:
+	:ue=\Eg0:do=\E[B:cm=\E=%+ %+ :ms:kh=\E[H:da:mi:bt=\EI:
 #NOTE: bg can scroll, it just would rather not (ns) - rwells 3/13/81.
 # (Shouldn't you take out ns and put in an nl instead? - mrh)
 MG|bg|bitgraph|BBN BitGraph terminal:\
@@ -383,7 +462,7 @@ MK|tec500|tec 500:\
 	:do=^J:am:le=^H:bs:cm=\E=%+ %+ :cl=20^Z:\
 	:co#80:ho=^^:li#24:nd=^L:up=^K:so=^]:se=^\:
 # I would appreciate more information on this terminal, such as the
-# manufacturer and the model number.  There is too many tecs in here.
+# manufacturer and the model number.  There are too many tecs in here.
 ML|tec:\
 	:li#24:co#80:cl=^l:up=^k:nd=\037:\
 	:am:le=^H:bs:ho=\036:ma=^K^P^_ :do=^J:
@@ -424,15 +503,14 @@ MS|aed|AED|aed512|AED512|aed 512:\
 	:ti=\E\07200>8000140{<04<0??00001010L<0\072004=0002??00\001:\
 	:te=\E\07200>8000100{804<0??00001000L80\072004=000200??\001:\
 	:so=\E\07200>8000140[80C00\001:se=\E[00C80\001:\
-	:is=\EG1MMM.`40K0001202080K8001????00^L\EC80L80{80^L\EK010100????K\
-0601??0000c818100\EG1HHH.\07210000019A27FD006A280D002A200A52429FE852486108\
-6118612861360N031B4C3F3F1800N041B0C1B4C38301800N001B3B313030301800N011B3B3\
-13030341800N021B3B313030381800N050800N061B3B313335301800\07211000015A58E8D\
-5011A58F8D5111A5908D5211A5918D531160\07212000015AD5011858EAD5111858FAD5211\
-8590AD5311859160\0721300004B2071C5858E0A18658E0A0A858EA900858F268FA5278590\
-A50A29018591A9F51865908590A90165918591A59038E58E8590A591E58F290185912071C5\
-180A0A0A0901858EA900858F268F60\0721350000BA9472031DEA9502031DE60\E\E\E\EG1\
-MMM.^A:
+	:is=\EG1MMM.`40K0001202080K8001????00^L\EC80L80{80^L\EK010100????K060\
+1??0000c818100\EG1HHH.\07210000019A27FD006A280D002A200A52429FE852486108611861\
+2861360N031B4C3F3F1800N041B0C1B4C38301800N001B3B313030301800N011B3B3130303418\
+00N021B3B313030381800N050800N061B3B313335301800\07211000015A58E8D5011A58F8D51\
+11A5908D5211A5918D531160\07212000015AD5011858EAD5111858FAD52118590AD531185916\
+0\0721300004B2071C5858E0A18658E0A0A858EA900858F268FA5278590A50A29018591A9F518\
+65908590A90165918591A59038E58E8590A591E58F290185912071C5180A0A0A0901858EA9008\
+58F268F60\0721350000BA9472031DEA9502031DE60\E\E\E\EG1MMM.^A:
 zL|aed-ucb|AED-UCB|aed512-ucb|AED512-UCB|aed 512 w/o UCB ROM:\
 	:db:co#64:li#40:cl=^L:bs:nd=\Ei0800\001:up=^K:\
 	:ve=\E\E\E\E\E\E\E\072004=000200??\001:\
@@ -556,7 +634,7 @@ zM|f110-v|freedom110-v|freedom110 for 9600 vi or 1200 emacs:\
 	:vb=\Eb\200\200\200\200\200\200\200\200\200\200\200\200\200\200\200\Ed:\
 	:tc=freedom100:
 # (from kerch@lll-crg)
-L1|f200|freedom200| Freedom 200 VDT by Liberty Electronics :\
+Q1|f200|freedom200| Freedom 200 VDT by Liberty Electronics :\
 	:if=/usr/lib/tabset/stdcrt:al=\EE:am:bs:bt=\EI:cd=\EY:\
 	:ce=\ET:cl=^Z:cm=\E=%+ %+ :co#80:dc=\EW:dl=\ER:do=^V:\
 	:ds=\Eh:ei=\Er:im=\Eq:is=\Eg\El\E\041\062:\
@@ -569,6 +647,30 @@ L1|f200|freedom200| Freedom 200 VDT by Liberty Electronics :\
 Mg|dg|dg6053|data general 6053:\
 	:do=^J:am:le=^H:bs:cm=^P%r%.%.:cl=^L:ho=^H:nd=^S:\
 	:up=^W:ce=^K:co#80:li#24:
+# dg450 and dg200 from cornell
+Mj|dg450|dg6134|data general 6134:\
+	:nd=\030:bs@:tc=dg200:
+Mk|dg200|data general Dasher 200:\
+	:am:bc=^Y:bs=0:ce=^K:cl=^L:cm=^P%r%+\200%+\200:co#80:do=^Z:\
+	:ho=^H:li#24:\
+	:ll=\036FP0017:se=\036E:so=\036D:up=^W:\
+	:is=\036O\036FQ2\036FB000\036FE\036FA\036FQ2:
+# Note: lesser Dasher terminals will not work with vi because vi insists upon
+# having a command to move straight down from any position on the bottom line
+# and scroll the screen up, or a direct vertical scroll command.  The 460 and
+# above have both, the D210/211, for instance, has neither.  We must use ANSI
+# mode rather than DG mode because standard UNIX tty drivers assume that ^H is
+# backspace on all terminals.  This is not so in DG mode.
+zF|dg460-ansi|Data General Dasher 460, ANSI-mode:\
+	:al=\E[L:am:bs:cd=\E[J:ce=\E[K:cl=\E[2J:\
+	:cm=\E[%i%2;%2H:co#80:dc=\E[P:dl=\E[M:do=\E[B:\
+	:ei=:ho=\E[H:ic=\E[@:im=:ue=\E[05:ul:up=\E[A:us=\E[4m:is=\036F@:\
+	:k0=\E[001z:k1=\E[002z:k2=\E[003z:k3=\E[004z:k4=\E[005z:k5=\E[006z:\
+	:k6=\E[007z:k7=\E[008z:k8=\E[009z:k9=\E[00\:z:\
+	:kb=\E[D:kd=\E[B:kh=\E[H:kl=\E[D:kr=\E[C:ku=\E[A:kn#6:\
+	:l0=f1:l1=f2:l2=f3:l3=f4:l4=f5:l5=f6:l6=f7:l7=f8:l9=f10:\
+	:le=^H:li#24:mb=\E[5m:me=\E[0m:mh=\E[2m:mr=\E[7m:ms:mu=\EW:\
+	:nd=\E[C:nl=\ED:pt:se=\E[0m:sf=\E[S:so=\E[7m:sr=\E[T:
 Mi|cdi|cdi1203:\
 	:am:le=^H:bs:hc:os:co#80:dC#200:do=^J:
 # ^S is an arrow key!  Boy is this guy in for a surprise on v7!
@@ -625,6 +727,17 @@ M5|sun-1|Sun 1-line window for sysline:\
 	:li#1:co#80:es:hs:ts=\r:fs=\E[K:ds=^L:tc=sun:
 M6|sun-e|sun-nic|sune|Sun Microsystems Workstation without insert character:\
 	:ic@:im@:ei@:tc=sun:
+LS|apollo:\
+	:al=\EI:am:bs:cd=\EJ:ce=\EK:ch=\EN%d:cl=^L:cm=\EM%+ %d):\
+	:cv=\EO+ :dc=\EP:dl=\EL:do=\EB:ei=\ER:im=\EQ:mi:nd=\EC:se=\ET:sf=\EE:\
+	:so=\ES:sr=\ED:te=\EX:ti=\EW:ue=\EV:up=\EA:us=\EU:co#88:li#53:
+# Apollo termcaps from Gary Darland, goodmanc@garnet
+LP|apollo_15P|apollo 15 inch display:\
+	:dN@:tc=vt132:
+LQ|apollo_19L|apollo 19 inch display:\
+	:dN@:tc=vt132:
+LR|apollo_color|apollo color display:\
+	:dN@:tc=vt132:
 Mv|virtual|VIRTUAL|cb unix virtual terminal:\
 	:do=^J:co#80:li#24:am:cl=\E\112:le=^H:bs:cm=\E\107%r%.%.:nd=\E\103:\
 	:up=\E\101:ce=\E\113:cd=\E\114:al=\E\120:dl=\E\116:im=:ei=:ic=\E\117:\
@@ -659,6 +772,36 @@ MX|dmchat|dmchat version of datamedia 2500:\
 	:MT:km:\
 	:dl=2^P^Z^X^]:\
 	:tc=dm2500:
+#from Carol Block at ear (cblock@ear)
+#
+m7|mt70|m70|morrow mt70:\
+	:is=EGO\E"5:\
+	:cl=^Z:\
+	:cm=\E=%+ %+ :\
+	:do=^J:\
+	:im=:ic=\EQ:ei:\
+	:dm=:dc=\EW:ed=:\
+	:kl=\034L:kr=\034M:ku=\034J:kd=\034K:\
+	:so=\EG4:se=\EGO:\
+	:us=\EG1:ue=\EGO:\
+	:vs=\E"2:ve=\E"5\E(:\
+	:tc=adm31:
+# from keith bostic (bostic@monet)
+#
+m2|mod2|Modgraph GX-1000, set to 80x24, keypad not enabled:\
+	:is=\E<\E\^5;2s\E\^7;1s\E[3g\E\^11;9s\E\^11;17s\E\^11;25s\E\^11;33s\E\^11;41s\E\^11;49s\E\^11;57s\E\^11;65s\E\^11;73s\E\^11;81s\E\^11;89s\E\^12;0s\E\^14;2s\E\^15;9s\E\^25;1s\E\^9;1s\E\^27;1:\
+	:bs:cd=50\EJ:ce=3\EK:cl=50\EH\EJ:cm=5\EY%+ %+ :co#80:li#24:nd=2\EC:\
+	:pt:sr=5\EI:up=2\EA:da:db:am:
+S1|wsiris|iris40|iris emulating a 40 line visual 50 (approximately):\
+	:am:al=\EL:is=\E7B0\E7F7\E7C2\E7R3:\
+	:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:ho=\EH:cm=\EY%+ %+ :co#80:li#40:nd=\EC:\
+	:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:\
+	:k0=\E0:k1=\E1:k2=\E2:k3=\E3:k4=\E4:k5=\E5:k6=\E6:k7=\E7:k8=\E8:k9=\E9:\
+	:vs=\E;:ve=\E>:cl=\Ev:ho=\EH:dl=\EM:so=\E9P:se=\E0@:\
+	:HS=\E7F2:HE=\E7F7:\
+	:us=\E7R2\E9P:ue=\E7R3\E0@:\
+	:CT#2:CZ=*Bblack,red,green,yellow,blue,magenta,cyan,*Fwhite:
+	
 # # --------------------------------
 #
 # N: ANN ARBOR
@@ -672,10 +815,10 @@ MX|dmchat|dmchat version of datamedia 2500:\
 # status line moved to top of screen, vb removed 5/82
 #
 # assumes the following setup:
-# A: 0000 1010  0001 0000
-# B: 9600  0100 1000  0000 0000  1000 0000  17  19
-# C: 56   66   0    0    9600  0110 1100
-# D: 0110 1001   1   0
+#   A menu: 0000 1010  0001 0000
+#   B menu: 9600  0100 1000  0000 0000  1000 0000  17  19
+#   C menu: 56   66   0    0    9600  0110 1100
+#   D menu: 0110 1001   1   0
 #
 #	Briefly, the settings are for the following modes:
 #	   (values are for bit set/clear with * indicating our preference
@@ -773,8 +916,6 @@ MX|dmchat|dmchat version of datamedia 2500:\
 #
 #	unused
 #
-N0|aaa-29-np|aaa-29 with no padding (for psl):\
-	:al=\E[L:ce=\E[K:cl=\E[H\E[J:dc=\E[P:dl=\E[M:ic=\E[@:tc=aaa-29:
 NA|aaa-unk|ann arbor ambassador (internal - don't use this directly):\
 	:do=^J:al=3\E[L:am:le=^H:bs:\
 	:cd=\E[J:ce=5\E[K:cl=156\E[H\E[J:cm=\E[%i%d;%dH:co#80:\
@@ -783,7 +924,7 @@ NA|aaa-unk|ann arbor ambassador (internal - don't use this directly):\
 	:ku=\EM:kd=\ED:kl=\E[D:kr=\E[C:kh=\E[H:ko=cl,dc,dl,ce,cd:\
 	:ks=\EP`?z~[H~[[J`>z~[[J`8xz~[M`4xz~[[D`6xz~[[C`2xz~[D\E\\:\
 	:ke=\EP`?y~[H~[[J`>y~[[2J`8xy~[M`4xy~[[D`6xy~[[C`2xy~[D\E\\:\
-	:ch=\E[%i%d`:ul:ei=:im=:pt:bw:bt=\E[Z:\
+	:ch=\E[%i%d`:ei=:im=:pt:bw:bt=\E[Z:\
 	:mi:nd=\E[C:se=\E[m:so=\E[7m:ue=\E[m:us=\E[4m:up=\EM:
 NB|aaa-18|ann arbor ambassador/18 lines:\
 	:ti=\E[2J\E[18;0;0;18p:te=\E[60;0;0;18p\E[18;1H\E[J:\
@@ -1038,6 +1179,51 @@ N1|aa|annarbor|4080|ann arbor 4080:\
 	:kb=^^:kd=^J:ku=^N:kl=^H:kr=^_:kh=^K:ma=^_ ^N^P:
 # # --------------------------------
 #
+# P: PC entries for use with kermit
+#
+# greg small (gts@populi)
+#
+# Cannot use :pt:, it does not work (why?).  :ho: seems required (why?). [gts]
+# Caution: 4.3 BSD tset does not pass li#25 to stty rows except during login?
+# :cl: clears attributes and sets wrap at margin before clearing the screen.
+P1|ansi.sys|ansisys|PC-DOS 3.1 ANSI.SYS:\
+	:am:bs:ce=\E[K:cl=\E[m\E[7h\E[2J:cm=\E[%i%d;%dH:co#80:\
+	:ku=^K:kd=^J:kl=^H:kr=^L:kh=^^:ma=^Hh\012j^Kk^Ll^^H:\
+	:ho=\E[H:li#25:nd=\E[C:up=\E[A:\
+	:ms:md=\E[1m:me=\E[m:mr=\E[7m:se=\E[m:so=\E[1m:ue=\E[m:us=\E[4m:\
+	:is=U1 PC-DOS 3.1 ANSI.SYS 9-23-86\n\E[m\E[7h:
+#
+# Define IBM PC keypad keys for vi as per MS-Kermit while using ANSI.SYS.
+# This should only be used when the terminal emulator cannot redefine the keys.
+# Since redefining keys with ansi.sys also affects PC-DOS programs, the key
+# definitions must be restored.  If the terminal emulator is quit while in vi
+# or others using :ks:ke:, the keypad keys will not be defined as per PC-DOS.
+# The PgUp and PgDn are prefixed with ESC so that tn3270 can be used on Unix
+# (^U and ^D are already defined for tn3270).  The ESC is safe for vi but it
+# does "beep".  ESC ESC i is used for Ins to avoid tn3270 ESC i for coltab.
+# Left arrow is always BS, because PC-dos can tolerate this change.
+# Caution: vi is limited to 256 string bytes, longer crashes or wierds vi.
+# Consequently the End keypad key could not be set (it is relatively safe and
+# actually useful because it sends ^@ O, which beeps and opens a line above).
+P2|ansi.sysk|ansisysk|PC-DOS 3.1 ANSI.SYS with keypad redefined for vi:\
+	:ks=\E[;71;30p\E[;72;11p\E[;73;27;21p\E[;77;12p\E[;80;10p\E[;81;27;4p\E[;82;27;27;105p\E[;83;127p:\
+	:ke=\E[;71;0;71p\E[;72;0;72p\E[;73;0;73p\E[;77;0;77p\E[;80;0;80p\E[;81;0;81p\E[;82;0;82p\E[;83;0;83p:\
+	:is=U2 PC-DOS 3.1 ANSI.SYS with keypad redefined for vi 9-29-86\n\E[;75;8p:\
+	:tc=ansi.sys
+#
+# Adds ins/del line/character, hence vi reverse scrolls/inserts/deletes nicer.
+P3|nansi.sys|nansisys||PC-DOS Public Domain NANSI.SYS:\
+	:al=\E[1L:dl=\E[1M:ic=\E[1@:dc=\E[1P:\
+	:is=U3 PC-DOS Public Domain NANSI.SYS 9-23-86\n:\
+	:tc=ansi.sys:
+#
+# See U2 ansi.sysk and U3 nansi.sys above.
+P4|nansi.sysk|nansisysk|PC-DOS Public Domain NANSI.SYS with keypad redefined for vi:\
+	:al=\E[1L:dl=\E[1M:ic=\E[1@:dc=\E[1P:\
+	:is=U4 PC-DOS Public Domain NANSI.SYS with keypad redefined for vi 9-29-86\n\E[;75;8p:\
+	:tc=ansi.sysk:
+# # --------------------------------
+#
 # T: TELETYPE
 #
 # We need descriptions for the model 40.  There are known to be at least three
@@ -1137,7 +1323,7 @@ Xd|tek4015|4015|tektronix 4015:\
 Xe|tek4014-sm|4014-sm|tektronix 4014 in small font:\
 	:is=\E^O\E\072:co#121:li#58:tc=tek4014:
 Xf|tek4015-sm|4015-sm|tektronix 4015 in small font:\
-	:as=\E^N:ae=\E^O:tc=4014sm:
+	:as=\E^N:ae=\E^O:tc=4014-sm:
 # I think the 1000UP is supposed to be so expensive it never happens.
 X4|tek4023|4023|tex|tektronix 4023:\
 	:do=^J:so=^_P:se=^_@:cm=\034%r%+ %+ :nd=\t:le=^H:\
@@ -1163,7 +1349,7 @@ X8|4025-17ws|4027-17ws|tek 4025 17 line window in workspace:\
 X9|4025ex|4027ex|tek 4025 w/!:\
 	:ti=\41com 31\r:te=^_com 33\r:\
 	:is=^_com 33\r\n\41sto 9,17,25,33,41,49,57,65,73\r:tc=4025:
-# From jcoker @ ucbic
+# From jcoker@ucbic
 Xp|4107|tek4107|Tektronix 4107 graphics terminal with memory:\
 	:ti=\E[?6l\E[H\E[J:te=\E[?6h\E%!0\ELBP0\E%!1\E[32;1f:\
 	:is=\E%!0\ELBP0\E%!1\E[H\E[2g\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[8C\EH\E[J:\
@@ -1171,7 +1357,7 @@ Xp|4107|tek4107|Tektronix 4107 graphics terminal with memory:\
 	:ce=5\E[K:cl=156\E[H\E[J:cm=\E[%i%d;%dH:co#80:dc=4\E[P:dl=3\E[M:\
 	:ho=\E[H:ic=4\E[@:md=\E[1m:mr=\E[7m:mb=\E[5m:me=\E[m:ku=\EM:\
 	:kd=\ED:kl=\E[D:kr=\E[C:kh=\E[H:\
-	:ul:ei=:im=:pt:bw:bt=\E[Z:mi:nd=\E[C:se=\E[m:so=\E[7m:\
+	:ei=:im=:pt:bw:bt=\E[Z:mi:nd=\E[C:se=\E[m:so=\E[7m:\
 	:ue=\E[m:us=\E[4m:up=\EM:
 #  Tektronix 4107 with sysline
 Xq|4107-s|tek4107-s|Tektronix 4107 with sysline but no memory:\
@@ -1223,7 +1409,7 @@ Xz|4105|tek4105:\
 	:al=\E[1L:am:bs:cd=\E[J:ce=\E[K:cl=\E[2J\E[H:cm=\E[%i%2;%2H:co#80:\
 	:dc=\E[1P:dl=\E[1M:dn=\E[1B:ho=\E[H:im=\E[4h:li#30:mi:nd=\E[1C:\
 	:as=\E[1m:ae=\E[0m:ms:pt:se=\E[0m:so=\E[7m:up=\E[1A:kb=^h:ku=\E[1A:\
-	:kd=\E[1B:kl=\E[1D:kr=\E[1C:ul:us=\E[4m:ue=\E[0m:is=\E%!1\E[?6l\E[0m:\
+	:kd=\E[1B:kl=\E[1D:kr=\E[1C:us=\E[4m:ue=\E[0m:is=\E%!1\E[?6l\E[0m:\
 	:mr=\E[<3m:md=\E[<4m:mh=\E[<6m:mb=\E[<7m:me=\E[<1m:ti=\E%!1\E[?6l:xt:
 # This entry is from Tek. Inc.  (Brian Biehl)
 Xz|4115|tek4115|Tektronix 4115:\
@@ -1242,11 +1428,11 @@ Xz|4115|tek4115|Tektronix 4115:\
 # command is ignored. The following entry replaces the cs with the
 # needed al, dl, and im; removes some cursor pad commands that the tek4125
 # chokes on; and adds a lot of initialization for the tek dialog area.
-# Note that this entry uses all 34 lines and sets the cursor color to green
+# Note that this entry uses all 34 lines and sets the cursor color to green.
 # Steve Jacobson 8/85
 XB|tek4125:\
 	:ks=\E=:li#34:\
-	:is=\EQD1\EUX03\E%\!0\EKA\ELBB2\ELCE0\ELI100\ELJ2\ELLB2\ELM0\ELS1\ELX00\ELV1\E%\!1\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h:dl=\E[1M:\
+	:is=\E%\!0\EQD1\EUX03\EKA\ELBB2\ELCE0\ELI100\ELJ2\ELLB2\ELM0\ELS1\ELX00\ELV1\E%\!1\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h:dl=\E[1M:\
 	:al=\E[1L:cs@:sc@:rc@:im=\E1:tc=vt100:
 # From carolyn@dali.berkeley.edu  Thu Oct 31 12:54:27 1985
 XA|4404|tek4404:\
@@ -1256,6 +1442,28 @@ XA|4404|tek4404:\
 	:md=\E[1m:me=\E[m:nd=\E[C:pt:rc=\E8:sc=\E7:se=\E[27m:so=\E[7m:\
 	:ta=\E[2I:ti=\E%\!1\E[1;32r\E[?6l\E>:te=\E[1;1H\E[0J\E[?6h\E[?1l:\
 	:ue=\E[m:up=\E[A:us=\E[4m:
+# # --------------------------------
+#
+# Z: Miscellaneous
+#
+# These compucolors appear similar, but they at least have different
+# sized screens.  I don't know what's going on here.
+Z1|8001|ISC8001|compucolor|intecolor:\
+	:do=^J:al=\EU:am:le=^Z:bc=^Z:cl=3*^L:cm=^C%r%.%.:\
+	:co#80:cd=\EQ:dm=\EQ:ed=\EF:dc=\177:dl=\EV:ei=\EF:\
+	:im=\EQ:li#40:nd=1^Y:ta=8\t:up=^\:ho=1^H:pc=^@:
+Z2|compucolor2|compucolorII:\
+	:do=^J:pt:am:cm=%r^C%.%.:le=^Z:bc=^Z:li#32:co#64:\
+	:cl=^L:ho=^H:nd=^Y:up=^\:
+# From cithep!eric  Wed Sep 16 08:06:44 1981
+Z3|intext|Interactive Systems Corporation modified owl 1200:\
+	:do=^J:al=5.5*\020:am:le=^_:bc=^_:le=^H:bs:bt=^Y:cd=5.5*\026J:\
+	:ce=^K\160^R:cl=132\014:cm=\017%+ %+ :co#80:dc=5.5*\022:dl=5.5*\021:\
+	:ei=\026\074:im=\026\073:ip=5.5*:li#24:nd=\036:pt:up=\034:\
+	:se=^V# :sg#1:so=^V$,:ma=^K^P^R^L^L :\
+	:kl=^_:kd=^J:kr=^^:ku=\034:kb=^H:kh=^Z:\
+	:k1=^VA\r:k2=^VB\r:k3=^VC\r:k4=^VD\r:k5=^VE\r:\
+	:k6=^VF\r:k7=^VG\r:k8=^VH\r:k9=^VI\r:k0=^VJ\r:
 # # --------------------------------
 #
 # a: ADDS
@@ -1282,6 +1490,24 @@ a6|regent60|regent200|Adds Regent 60:se=\ER\E0@\EV:so=\ER\E0P\EV:dc=\EE:ei=\EF:\
 	:im=\EF:is=\EV\EB:ko=dc,im,ei:tc=regent40+:
 a7|regent60na|regent 60 w/no arrow keys:\
 	kl@:kr@:ku@:kd@:tc=regent60:
+#
+# adds viewpoint 90 - from cornell
+# Note:  emacs sends ei occasionally to insure the terminal is out of
+#        insert mode. This unfortunately puts the viewpoint90 IN insert
+#        mode.  A hack to get around this is:  ic=\EF \EF^U.  (Also,
+#   -    ei=:im=: must be present.)
+#   -    xs indicates glich that attributes stick to location
+#   -    bs save to move in standout mode
+#   -    cl=\EG\Ek clears screen and visual attributes without affecting
+#               the status line
+a9|vp90|viewpoint90|adds viewpoint 90:\
+	:bs:bw:cd=\Ek:ce=\EK:cl=\EG\Ek:cm=\EY%+ %+ :co#80:\
+	:dc=\EE:dl=\El:dm=:do=^J:ed=:ei=:im=:ic=\EF \EF^U:ho=\EY  :\
+	:nd=^F:up=^Z:\
+	:kb=^H:kd=^J:kh=^A:kl=^U:kr=^F:ku=^Z:li#24:ll=^A:\
+	:so=\ER\E0Q\EV:se=\ER\E0@\EV:\
+	:us=\ER\E0`\EV:ue=\ER\E0@\EV:\
+	:xs:ms:
 # Note: if return acts weird on a980, check internal switch #2
 # on the top chip on the CONTROL pc board.
 ac|a980|adds consul 980:\
@@ -1338,6 +1564,28 @@ bs|sb1|superbee|superb|beehive super bee:\
 	:nd=\EC:pt:up=\EA:ho=\EH:ve=\n:\
 	:k1=\Ep:k2=\Eq:k3=\Er:k4=\Es:k5=\Et:k6=\Eu:k7=\Ev:k8=\Ew:\
 	:kd=\EB:kh=\EH:kl=\ED:kr=\EC:ku=\EA:
+# 8675, 8686, and bee from Cyrus Rahman
+b7|8675|harris 8675:\
+	:k1=^F:k2=^P:k3=^N:k4=^V:k5=^J:k6=^T:k7=^H:k8=\177:k9=\Ee:k10=\Ed:\
+	:k11=^W:k12=\ER:k13=\EE:k14=\EI:k15=\Ei:k16=\Eg:\
+	:is=\ES\E#\E*\Eh\Em\E?\E1\E9\E@\EX\EU:\
+	:tc=bee:
+b8|8686|harris 8686:\
+	:k1=^B^[p^C:k2=^B^[q^C:k3=^B^[r^C:k4=^B^[s^C:k5=\E3:\
+	:k6=\EI:k7=\ER:k8=\EJ:k9=\E(:k10=\Ej:k11=\EW:\
+	:k12=^B^[{^C:k13=^B^[|^C:k14=^B^[}^C:k15=^B^[~^C:k16=^B^[\177^C:\
+	:is=\ES\E#\E*\Eh\Em\E?\E1\E9\E@\EX\EU\E"*Z01\
+	\E"8F35021B7C83#\E"8F45021B7D83#\E"8F55021B7E83#\E"8F65021B7F83#\
+	\E"8F75021B7383#\E"8F851BD7#\E"8F95021B7083#\E"8FA5021B7183#\
+	\E"8FB5021B7283#:\
+	:tc=bee:
+be|bee|harris beehive:\
+	:co#80:li#24:am:bs:cd=\EJ:ce=\EK:cl=\EE:nd=\EC:\
+	:cm=\EF%+ %+ :up=\EA:do=\EB:ho=\EH:bt=\E>:\
+	:al=\EL:dc=\EP:dl=\EM:ei=\E@:im=\EQ:ic=:mi:\
+	:kl=\ED:kr=\EC:ku=\EA:kd=\EB:kh=\EH:kb=^H:\
+	:us=\Ed`:ue=\Ed@:so=\EdP:se=\Ed@:\
+	:ko=al,bt,ce,cl,dc,dl,ei,ho,ic,im:
 # # --------------------------------
 #
 # c: CONCEPT (HUMAN DESIGNED SYSTEMS)
@@ -1384,7 +1632,7 @@ c3|c108-4p|concept108-4p|concept 108 w/4 pages:\
 	:ti=\EU\Ev  8p\Ep\r:te=\Ev  \177p\Ep\r\n:\
 	:al=\E^R:le=^H:bs:cd=\E^C:ce=\E^S:cl=\E?\E^E:cm=\Ea%+ %+ :co#80:\
 	:dc=\E^Q:dl=\E^B:ei=\E\200:eo:im=\E^P:li#24:mi:nd=\E=:\
-	:kb=^h:ul:up=\E;:db:us=\EG:ue=\Eg:vs=\EW:ve=\Ew:am:xn:\
+	:kb=^h:up=\E;:db:us=\EG:ue=\Eg:vs=\EW:ve=\Ew:am:xn:\
 	:vb=\Ek\200\200\200\200\200\200\200\200\200\200\200\200\200\200\EK:\
 	:ks=\EX:ke=\Ex:ku=\E;:kd=\E<:kl=\E>:kr=\E=:kh=\E?:\
 	:k1=\E5:k2=\E6:k3=\E7:k4=\E8:k5=\E9:k6=\E\72:\
@@ -1401,7 +1649,7 @@ c6|c108-na|c108-na-8p|concept108-na-8p|concept 108 w/8 pages, no arrows:\
 	:ks@:ke@:k7=\E;:k8=\E<:k9=\E=:tc=c108-8p
 c7|c108-rv-na|c108-rv-na-8p|concept 108 w/8 pages, no arrows in rev video:\
 	:ts=\E z"\E?\E^C\EE\Ea %+ :fs=\Ee\E z :\
-	:ks@:ke@:k7=\E;:k8=\E<:k9=\E=:tc=c108-rv8p
+	:ks@:ke@:k7=\E;:k8=\E<:k9=\E=:tc=c108-rv-8p
 # this needs new frotz in the cm capability for 2-char addrs when > 95....
 c8|c108-w|c108-w-8p|concept108-w-8p|concept 108 w/8 pages in wide mode:\
 	:is=\EU\E F\Ef\E7\E5\E8\El\ENH\EK\E\200\Eo&\200\Eo\47\E\E"\E^G!\E^HA@ :\
@@ -1430,7 +1678,7 @@ cE|avt|HDS concept avt w/4 or 8 pages, 80 columns:\
 	:ks=\E[1;4!z\E[1;8!z\E[1;10!z\E[1;11!z\E[1;12!z\E[1;14!z\E[3;7!z\E[3;9!z:\
 	:ke=\E[;4!z\E[;8!z\E[;10!z\E[;11!z\E[;12!z\E[3;14!z\E[;7!z\E[;9!z:\
 	:ku=\E[A:li#24:mi:nd=\E[C:pt:se=\E[7!{:so=\E[7m:\
-	:te=\E[w\E2\n:ti=\E[1;24w\E2\n:ue=\E[4!{:ul:\
+	:te=\E[w\E2\n:ti=\E[1;24w\E2\n:ue=\E[4!{:\
 	:up=\E[A:us=\E[4m:ve=\E[=4;119l:vs=\E[4l\E[=119h:xn:
 #
 # Concepts have only window relative cursor addressing, not screen relative.
@@ -1445,22 +1693,22 @@ cE|avt|HDS concept avt w/4 or 8 pages, 80 columns:\
 # 2 nulls padding on te isn't always enough.  6 works fine.  Maybe less
 # than 6 but more than 2 will work.
 ca|c100|concept|c1004p|c100-4p|concept100|concept 100:\
-	:is=\EU\Ef\E7\E5\E8\El\ENH\EK\E\200\Eo&\200\Eo\47\E\E^G\041\E^HA@ :\
+	:is=\EU\Ef\E7\200\200\E5\E8\200\200\El\ENH\EK\E\200\Eo&\200\Eo\47\E\E^G\041\E^HA@ :\
 	:ti=\EU\Ev  8p\Ep\r:te=\Ev    \200\200\200\200\200\200\Ep\r\n:\
 	:al=3*\E^R:am:le=^H:bs:cd=16*\E^C:ce=16\E^U:cl=2*^L:cm=\Ea%+ %+ :co#80:\
 	:dc=16\E^Q:dl=3*\E^B:ei=\E\200:eo:im=\E^P:ip=16*:li#24:mi:nd=\E=:\
-	:pt:kb=^h:ta=8\t:ul:up=\E;:db:us=\EG:ue=\Eg:xn:\
+	:pt:kb=^h:ta=8\t:up=\E;:db:us=\EG:ue=\Eg:xn:\
 	:vb=\Ek\200\200\200\200\200\200\200\200\200\200\200\200\200\200\EK:\
 	:.dN#9:dC#9:pb#9600:vt#8:us=\EG:ue=\Eg:so=\EE\ED:se=\Ed\Ee:\
 	:mh=\EE:mr=\ED:mb=\EC:mp=\EI:mk=\EH:me=\EN\200:do=^J:\
 	:ks=\EX:ke=\Ex:ku=\E;:kd=\E<:kl=\E>:kr=\E=:kh=\E?:k1=\E5:k2=\E6:k3=\E7:
 cb|c100-rv-pp|c100-rv-4p-pp|concept100-rv-pp|c100rv4ppp|w/ printer port:\
-	:is=\EU\Ef\E7\E5\E8\El\ENH\Ek\E\200\Eo&\200\Eo\041\200\EQ"\EY(^W\Eo\47\E\E^G\041\E^HA@ :\
+	:is=\EU\Ef\E7\200\200\E5\E8\200\200\El\ENH\Ek\E\200\Eo&\200\Eo\041\200\EQ"\EY(^W\Eo\47\E\E^G\041\E^HA@ :\
 	:tc=c100-rv:
 cc|c100-rv-na|c100-rv-4p-na|concept100-rv-na|c100rv4pna|c100 with no arrows:\
 	:ks@:ke@:tc=c100-rv:
 cd|c100-rv|c100-rv-4p|concept100-rv|c100rv4p|c100rv|c100 rev video:\
-	:is=\EU\Ef\E7\E5\E8\El\ENH\Ek\E\200\Eo&\200\Eo\47\E\E^G\041\E^HA@ :\
+	:is=\EU\Ef\E7\200\200\E5\E8\200\200\El\ENH\Ek\E\200\Eo&\200\Eo\47\E\E^G\041\E^HA@ :\
 	:vb=\EK\200\200\200\200\200\200\200\200\200\200\200\200\200\200\Ek:\
 	:so=\EE:se=\Ee:tc=c100:
 # This is useful at 1200 baud.
@@ -1503,14 +1751,14 @@ dp|vt100-np|vt100 with no padding (for psl games):\
 	:ce=\E[K:cd=\E[J:so=\E[7m:se=\E[m:us=\E[4m:ue=\E[m:\
 	:md=\E[1m:mr=\E[7m:mb=\E[5m:me=\E[m:tc=vt100:
 d0|vt100|vt100-am|vt100am|dec vt100:\
-	:do=^J:co#80:li#24:cl=50\E[;H\E[2J:sf=5\ED:\
+	:do=^J:co#80:li#24:cl=50\E[;H\E[2J:sf=2*\ED:\
 	:le=^H:bs:am:cm=5\E[%i%d;%dH:nd=2\E[C:up=2\E[A:\
 	:ce=3\E[K:cd=50\E[J:so=2\E[7m:se=2\E[m:us=2\E[4m:ue=2\E[m:\
 	:md=2\E[1m:mr=2\E[7m:mb=2\E[5m:me=2\E[m:is=\E[1;24r\E[24;1H:\
 	:rf=/usr/lib/tabset/vt100:\
 	:rs=\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h:ks=\E[?1h\E=:ke=\E[?1l\E>:\
 	:ku=\EOA:kd=\EOB:kr=\EOC:kl=\EOD:kb=^H:\
-	:ho=\E[H:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:pt:sr=5\EM:vt#3:xn:\
+	:ho=\E[H:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:pt:sr=2*\EM:vt#3:xn:\
 	:sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
 d1|vt100-nam|vt100nam|vt100 w/no am:\
 	:am@:xn@:\
@@ -1525,7 +1773,7 @@ d4|gt40|dec gt40:\
 d5|vt50|dec vt50:\
 	:do=^J:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:co#80:li#12:nd=\EC:pt:up=\EA:
 d6|vt125|vt125-am|DEC vt125:\
-	:xn:do=^J:co#80:li#24:cl=50\E[H\E[2J:\
+	:xn:do=^J:co#80:li#24:cl=50\E[H\E[2J:dC=10:dN=10:\
 	:le=^H:am:bs:cm=5\E[%i%d;%dH:nd=2\E[C:up=2\E[A:ce=3\E[K:cd=50\E[J:\
 	:so=2\E[7m:se=2\E[m:us=2\E[4m:ue=2\E[m:md=2\E[1m:mr=2\E[7m:mb=2\E[5m:\
 	:me=2\E[m:is=\E[1;24r\E[24;1H\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h:\
@@ -1534,7 +1782,7 @@ d6|vt125|vt125-am|DEC vt125:\
 	:pt:sr=5\EM:vt#3:sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
 d9|vt125-nam|DEC vt125 no automatic margin:\
 	:am@:tc=vt125-am:
-# DEC gigi color graphic terminal , same as vt52
+# DEC gigi color graphic terminal, same as vt52
 d7|gigi|dec gigi terminal:\
 	:co#80:is=200\E>\E[?4l\E[?5l\E[?7h\E[?8h:\
 	:li#24:cl=100\E[;H\E[2J:bs:cm=50\E[%i%2;%2H:nd=200\E[C:up=100\E[A:\
@@ -1568,8 +1816,13 @@ dt|vt100-w|dec vt100 132 cols (w/advanced video):\
 	:co#132:li#24:rs=\E>\E[?3h\E[?4l\E[?5l\E[?8h:tc=vt100-am:
 dv|vt100-w-nam|dec vt100 132 cols (w/advanced video), no am:\
 	:co#132:li#24:rs=\E>\E[?3h\E[?4l\E[?5l\E[?8h:vt@:tc=vt100-nam:
-# vt 102	(from lai@decwrl)
-dy|vt102|vt-102|dec vt102:\
+d8|vt102|vt100 w/adv. video:\
+	:al=\E[1L:dl=\E[1M:im=\E[4h:ei=\E[4l:mi:dc=\E[1P:ku=\EOA:kd=\EOB:\
+	:kr=\EOC:kl=\EOD:k0=\EOp:k1=\EOq:k2=\EOr:k3=\EOs:k4=\EOt:k5=\EOu:\
+	:k6=\EOv:k7=\EOw:k8=\EOx:k9=\EOy:as=\E(0:ae=\E(B:am@:xn@:tc=vt100am:
+# (from lai@decwrl) should be a vt102, but have heard enough
+# unsubstantiated complaints to make it an alternate (obsolete) version
+dy|vt102-obs|dec vt102:\
 	:do=^J:co#80:li#24:cl=50\E[;H\E[2J:\
 	:le=^H:bs:cm=5\E[%i%d;%dH:nd=2\E[C:up=2\E[A:\
 	:ce=3\E[K:cd=50\E[J:so=2\E[7m:se=2\E[m:us=2\E[4m:ue=2\E[m:\
@@ -1620,17 +1873,20 @@ do|vt200-ws|vt220-ws|dec vt200 series; 132 col.; smooth scroll:\
 	:is=\E>\E[?3h\E[?4h\E[?5l\E[?7h\E[?8h\E[1;24r\E[24;1H:\
 	:rs=\E>\E[?3h\E[?4h\E[?5l\E[?7h\E[?8h:\
 	:co#132:tc=vt200:
+# @(#)termcap	X10/6.6	11/7/86, minus alternate screen, plus :cs
 vs|xterm|vs100|xterm terminal emulator (X window system):\
 	:do=^J:le=^H:ho=\E[H:\
-	:co#80:li#65:cl=\E[H\E[2J:bs:.am:cm=\E[%i%d;%dH:nd=\E[C:up=\E[A:\
-	:ce=\E[K:cd=\E[J:so=\E[7m:se=2\E[m:us=\E[4m:ue=\E[m:\
-	:md=\E[1m:mr=\E[7m:me=2\E[m:\
+	:co#80:li#65:cl=\E[H\E[2J:bs:am:cm=\E[%i%d;%dH:nd=\E[C:up=\E[A:\
+	:ce=\E[K:cd=\E[J:so=\E[7m:se=\E[m:us=\E[4m:ue=\E[m:\
+	:md=\E[1m:mr=\E[7m:me=\E[m:\
 	:ku=\EOA:kd=\EOB:kr=\EOC:kl=\EOD:kb=^H:\
 	:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:pt:sf=\n:sr=\EM:\
-	:al=\E[L:dl=\E[M:ic=\E[@:dc=\E[P:\
-	:MT:ks=\E[?1h\E=:ke=\E[?1l\E>:\
-	:is=\E[r\E\E[m\E[H\E[?7h\E[?1;3;4;6l:\
-	:rs=\E[r\E<\E[m\E[H\E[?7h\E[?1;3;4;6l:xn:cs=\E[%i%d;%dr:
+	:al=\E[L:dl=\E[M:im=\E[4h:ei=\E[4l:mi:dc=\E[P:\
+	:MT:ks=\E[?1h\E=:ke=\E[?1l\E>:xn:\
+	:AL=\E[%dL:DL=\E[%dM:IC=\E[%d@:DC=\E[%dP:\
+	:hs:ts=\E[?E\E[?%i%dT:fs=\E[?F:es:ds=\E[?E:\
+	:is=\E\E[m\E[?7h\E[?1;4l:cs=\E[%i%d;%dr:\
+	:rs=\E[r\E<\E[m\E[H\E[2J\E[?7h\E[?1;3;4;6l:
 v2|xterms|vs100s|xterm terminal emulator (small)(X window system):\
 	:co#80:li#24:tc=xterm:
 # vs100 emulator using tsim	(from lai@decwrl)
@@ -1720,7 +1976,7 @@ hz|2392|hp2392|hp2392a:\
 	:ml=\El:MT:mu=\Em:km:\
 	:mh=\E&dH:mr=\E&dB:us=\E&dD:mb=\E&dA:me=\E&d@:\
 	:ku=\EA:kd=\EB:kl=\ED:kr=\EC:kh=\Eh:ks=\E&s1A:ke=\E&s0A:tc=hp:
-#HP 236 console running 4.3 BSD
+#HP 236 console
 #from ddavis@ic.berkeley.edu
 h7|236|hp236|HP236 internal terminal emulator:\
 	:am:bs:li#24:co#80:cl=\EF:cm=\EE%+ %+ :\
@@ -1955,8 +2211,8 @@ mv|mime2a|mime2a-v|microterm mime2a (emulating an enhanced vt52):\
 	:do=^J:al=20*^A:le=^H:bs:cd=20*\EQ:co#80:ce=\EP:cl=\EL:cm=\EY%+ %+ :\
 	:is=^Ydc=^N:dl=20*^W:ip=2:ei=^Z:ho=\EH:im=^O:kd=\EB:kl=\ED:kr=\EC:\
 	:ku=\EA:li#24:nd=\EC:pt:se=\E9:so=\E8:up=\EA:sr=\EA:us=\E4:ue=\E5:
-mx|mime-3ax|mime1 emulating enhanced 3a:\
-	:al=80^A:dl=80^W:pt:ce=^X:cd=^_:tc=mime-3a:
+mx|mime3ax|mime-3ax|mime1 emulating enhanced 3a:\
+	:al=80^A:dl=80^W:pt:ce=^X:cd=^_:tc=mime3a:
 # # --------------------------------
 #
 # p: PERKIN ELMER
@@ -1990,6 +2246,9 @@ qb|ex3000:\
 qc|carlock|klc:\
 	:do=^J:al=^E:am:bs:ce=^U:cl=100^Z:cm=\E=%+ %+ :co#80:dc=\177:dl=^D:\
 	:dm=:ed=:ei=^T:ho=^^:im=^T:li#24:nd=^L:se=^V:so=^V:up=^K:vb=\EV\EV:
+# uVAX
+qd|qdss|qdcons|qdss glass tty:\
+	:am:do=^J:le=^H:bs:cm=\E=%.%.:cl=1^Z:co#128:li#57::nd=^L:up=^K:
 qe|exidy|exidy2500|exidy sorcerer as dm2500:\
 	:do=^J:al=^P^J^X:am:le=^H:bs:ce=^W:cl=^^:cm=^L%r%n%.%.:co#64:\
 	:dc=\b:dl=^P^Z^X:dm=^P:ed=^X:ei=^X:ho=^B:ic=^\:\
@@ -2047,6 +2306,10 @@ t4|ti745|745|743|ti silent 745:\
 	:do=^J:le=^H:bs:co#80:hc:os:
 t8|ti800|ti omni 800:\
 	:do=^J:le=^H:bs:co#132:hc:os:
+# From lesleymw@topaz.berkeley.edu
+t9|ti931|ti 931:\
+	al=\EN:am:bs:cd=\EJ:ce=\EI:cl=\EL:cm=\EY%+ %+ :co=#80:dl=\EO:do=\EB:\
+	eo:ho=\EH:li=#24:ku=\EA:kd=\EB:kr=\EC:kl=\ED:mi:nd:sf=\Eb:sr=\Ea:up=\EA:
 # # --------------------------------
 #
 # v: TELEVIDEO
@@ -2068,11 +2331,11 @@ v2|912b|912c|tvi912b|tvi912c|tvi|new televideo 912:\
 	:al=5*\EE:dl=5*\ER:tc=tvi912:
 v3|920b|920c|tvi920b|tvi920c|new televideo 920:\
 	:k0=^AI\r:k1=^A@\r:k2=^AA\r:k3=^AB\r:k4=^AC\r:k5=^AD\r:\
-	:k6=^AE\r:k7=^AF\r:k8=^AG\r:k9=^AH\r:tc=tvi912b:
+	:k6=^AE\r:k7=^AF\r:k8=^AG\r:k9=^AH\r:al=5*\EE:dl=5*\ER:tc=tvi912:
 # set to page 1 when entering ex (\E-17 )
 # reset to page 0 when exiting ex (\E-07 )
 v4|tvi912-2p|tvi920-2p|912-2p|920-2p|tvi-2p|televideo w/2 pages:\
-	:ti=\E-17 :te=\E-07 :tc=tvi912:\
+	:ti=\E-17 :te=\E-07 :tc=tvi912:
 v5|tvi950-ap|tvi 950 w/alt pages:\
 	:is=\E\\1:ti=\E-06 :te=\E-16 :tc=tvi950:
 v6|tvi950-b|bare tvi950 no is:\
@@ -2103,7 +2366,7 @@ v9|925a|tvi925a|TeleVideo Model 925:\
 	:al=\EE:am:bs:bt=\EI:bw:cd=\EY:ce=\ET:cl=^Z:cm=\E=%+ %+ :co#80:dc=\EW:\
 	:dl=\ER:do=^V:ei=:ic=\EQ:if=/usr/lib/tabset/std:im=:kb=^H:kd=^V:\
 	:kh=^^:kl=^H:kn#12:kr=^L:ku=^K:li#24:nd=^L:pt:se=\EG0:sg=#1:so=\EG4:\
-	:ue=\EG0:ug#1:ul:up=^K:us=\EG8:is=\El\
+	:ue=\EG0:ug#1:up=^K:us=\EG8:is=\El\
 	:vb=\Eb\200\200\200\200\200\200\200\200\200\200\200\200\200\200\Ed:\
 	:ve=\E.4:vs=\E.2:
 # The following tvi descriptions from B:pjphar and virus!mike
@@ -2124,12 +2387,12 @@ v9|925a|tvi925a|TeleVideo Model 925:\
 #	start-protected field delimiter (\Ex2\200\200)
 #	end-protected field delimiter (\Ex3\200\200)
 # set end of text delimiter to carriage return/null (\Ex4\r\200)
-#
+# CHANGED 4-29-87 to set tabs and keep status line --John Kunze (jak@opal)
 va|tvi950|950|televideo950:\
 	:ct=\E3:st=\E1:do=^J:\
-	:is=\EDF\EC\Ed\EG0\Eg\Er\EO\E\047\E(\E%\Ew\EX\Ee ^O\
+	:is=\EDF\EC\Ed\EG0\Er\EO\E\047\E(\E%\Ew\EX\Ee ^O\
 	\El\E016\E004\Ex0\200\200\Ex1\200\200\Ex2\200\200\
-	\Ex3\200\200\Ex4\r\200\Ef\r:\
+	\Ex3\200\200\Ex4\r\200\Ef\r:if=/usr/lib/tabset/stdcrt:\
 	:al=\EE:am:le=^H:bs:bt=\EI:cd=\Ey:ce=\Et:cl=\E*:cm=\E=%+ %+ :\
 	:co#80:dc=\EW:dl=\ER:do=^V:ei=\Er:ho=^^:im=\Eq:k0=^A0\r:\
 	:k1=^A@\r:k2=^AA\r:k3=^AB\r:k4=^AC\r:k5=^AD\r:k6=^AE\r:\
@@ -2222,6 +2485,13 @@ vp|tvipt|televideopt:if=/usr/lib/tabset/stdcrt:\
 	:is=\Ev\Eu\EK:al=5*\EE:am:bs:bt=\EI:ce=\ET:cm=\E=%+ %+ :cl=^Z:co#80:\
 	:dl=5*\ER:kb=^H:ku=^K:kd=^J:kl=^H:kr=^L:ho=^^:li#24:nd=^L:se=\EF:\
 	:so=\EG1@A\EH:ue=\EF:us=\EG1B@\EH:up=^K:ma=^Kk^Ll^R^L:
+# Vanilla tvi910 -- W. Gish (cswarren@violet) 10/29/86
+vm|tvi910|910|televideo model 910:if=/usr/lib/tabset/stdcrt:\
+	:bs:bt=\EI:cd=\EY:ce=\ET:cm=\E=%+ %+ :cl=^Z:co#80:\
+	:kb=^H:ku=^K:kd=^J:kl=^H:kr=^L:k1=^A@\r:k2=^AA\r:k3=^AB\r:k4=^AC\r:\
+	:k5=^AD\r:k6=^AE\r:k7=^AF\r:k8=^AG\r:k9=^AH\r:k0=^AI\r:\
+	:li#24:nd=^L:pt:se=\EG0:so=\EG4:up=^K:us=\EG8:ue=\EG0:\
+	:ho=\E=\001\001:ma=^Kk^Ll^R^L:sg#1:
 # from Alan R. Rogers (rogers%albany@csnet-relay)
 vh|tvi910+|910+|televideo 910+:\
 	:al=5*\EE:am:bs:bt=\EI:cd=\EY:ce=\ET:cl=^Z:cm=\E=%+\040%+\040:\
@@ -2294,10 +2564,16 @@ ye|w50|wyse50|Wyse 50:\
 	:kd=^J:kl=^H:kr=^L:ku=^K:li#24:nd=^L:up=^K:us=\EG8:ue=\EG0:\
 	:so=\EG4:se=\EG0:sg#1:sr=\Ej:ho=^^:ug#1:
 # it is not known if the status line works with sysline
-yh|w50-s|wyse50-s|Wyse 50 for sysline
+yh|w50-s|wyse50-s|Wyse 50 for sysline:\
 	:hs:ts=\Ef:fs=\r:ds=\Ef\r:es:tc=w50:
 yg|w50-w|w50-132|wyse50-132|Wyse 50-132:\
 	:cm=\Ea%i%dR%dC:co#132:is=\E`;\200\EC\EDF\E0\E'\E(\EA21:tc=w50:
+w6|w60|wyse60|Wyse 60 in native mode:\
+	:ae=\EcD:al=\EE:am:as=\EcE:bs:bt=\EI:bw:cd=\Ey:ce=\Et:\
+	:cl=^Z:cm=\E=%+\040%+\040:co#80:ct=\E0:dc=\EW:dl=\ER:do=^J:\
+	:ei=\Er:im=\Eq:is=:kb=^?:kd=^N:ke=\E~2:kl=^B:kr=^F:ks=\E~3:ku=^P:\
+	:le=^H:li#43:ll=^^^K:mb=\EG2:me=\EG0:mh=\EGp:mi:mr=\EG4:ms:\
+	:nd=^L:pt:se=\EG0:sf=\n:so=\EG4:sr=\Ej:ue=\EG0:up=^K:us=\EG8:
 # from John Gillmore hoptoad!gnu@lll-crg.arpa
 wv|wyse-vp|wyse|Wyse 50 in ADDS Viewpoint emulation mode with "enhance" on:\
 	:am:do=^J:if=/usr/lib/tabset/wyse-adds:\
@@ -2321,7 +2597,7 @@ wx|wyse75|wy75|wyse 75 terminal :\
 	:k5=\E[17~:k6=\E[31~:k7=\E[18~:k8=\E[19~:k9=\E[20~:kn#10:\
 	:l0=PF1:l1=PF2:l2=PF3:l3=PF4:l4=F5:\
 	:l5=F6:l6=F7:l7=F8:l8=F9:l9=F10:\
-	:is=\E[1;24r\E[?10;3;1l\E[4l\E[?25h\E[m\E(B\E>:\
+	:is=\E[1;24r\E[24;1H\E[35;?25h\E[4;?10;3;1l\E[m\E(B\E>:\
 	:ds=\E7\E[>,//\E8:ts=\E7\E[>,^A:fs=^A\E8:
 wx|wyse75-80|wy75-80|wyse 75 terminal with 80-column initialization:\
 	:is=\E[?3l:tc=wy75:
@@ -2349,10 +2625,9 @@ Wc|wy85|wyse85|wyse-85:\
 	:dc=\E[P:dl=\E[M:al=\E[L:ei=\E[4l:im=\E[4h:\
 	:vb=\E[?5h\E[?5l:\
 	:hs:es:ts=\E7\E[?25l\E[40h\E[25;%dH\E[2K:fs=\E[1;24r\E8\E[?25h:
-#
 # # --------------------------------
 #
-# z: MISC (cont)
+# z: Miscellaneous
 #
 z0|wind:\
 	:bs:cm=\Ep%r%.%.:cl=\En\120\030\Eo:co#80:\
@@ -2387,10 +2662,6 @@ z7|trs2|trsII|trs80II|Radio Shack Model II using P&T CP/M:\
 	:nl=^_:al=^D:am:bs:cd=^B:ce=^A:cl=^L:cm=\EY%+ %+ :co#80:\
 	:dl=^K:do=^_:ho=^F:li#24:nd=^]:ms:pt:se=^O:so=^N:up:=^^:\
 	:kb=^H:kd=^_:kl=^\:kr=^]:ku=^^:
-z8|apollo:\
-	:al=\EI:am:bs:cd=\EJ:ce=\EK:ch=\EN%d:cl=^L:cm=\EM%+ %d):\
-	:cv=\EO+ :dc=\EP:dl=\EL:do=\EB:ei=\ER:im=\EQ:mi:nd=\EC:se=\ET:sf=\EE:\
-	:so=\ES:sr=\ED:te=\EX:ti=\EW:ue=\EV:ul:up=\EA:us=\EU:co#88:li#53:
 z9|ps300|Picture System 300:us@:ue@:so@:se@:xt:pt@:tc=vt100:
 za|masscomp2:co#64:li#21:tc=masscomp:
 zb|masscomp1:co#104:li#36:tc=masscomp:
@@ -2526,11 +2797,16 @@ zw|sanyo55|sanyo|sanyo mbc-55x pc compatible:\
 	:co#80:li#25:am:cl=\E[H\E[J:bs:cm=\E[%i%d;%dH:nd=\E[C:up=\E[A:\
 	:ce=\E[K:cd=\E[J:so=\E[7m:se=\E[m:us=\E[4m:ue=\E[m:
 #From: Simson L. Garfinkel <simsong@media-lab.mit.edu>
-st|ST|atari st:\
+zC|ST|atari st:\
 	:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#80:li#25:nd=\EC:\
 	:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:\
 	:do=\EB:\
 	:so=\Ep:se=\Eq:dl=\EM:al=\EL:am:
+# UniTerm terminal program for the Atari ST:  49-line VT220 emulation mode
+# From Paul M. Aoki, aoki@ucbvax.Berkeley.EDU
+zD|uniterm|uniterm49|UniTerm VT200 emulator, 49 lines:\
+	:li#49:is=\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h\E[1;49r\E[49;1H:\
+	:tc=vt200:
 # YTERM standard version 1.0.  (gts 9-25-84)
 # Straight old ascii keyboard except function keys are Yale (e.g.,ASCII.KBD).
 # Only 80 tab columns (else yterm 1.1 bug).  No :xn: in 1.0.
@@ -2582,7 +2858,7 @@ K3|pckermit120|UCB IBMPC Kermit 1.20:\
 # Initialization must escape from that region by cursor position to line 24.
 # Does not use am: because autowrap mode lost when kermit dropped and restarted.
 # Reverse video for standout like H19.
-K4|mskermit227|msk227|MS-DOS Kermit 2.27 for the IBMPC:\
+K4|msk227|mskermit227|MS-DOS Kermit 2.27 for the IBMPC:\
 	:al=\EL:am@:bs:cd=\EJ:ce=\EK:cl=\EE:cm=\EY%+ %+ :co#80:\
 	:dc=\EN:dl=\EM:do=\EB:ei=\EO:im=\E@:\
 	:ho=\EH:li#24:nd=\EC:up=\EA:pt:rc=\Ek:sc=\Ej:se=\Eq:so=\Ep:\
@@ -2590,14 +2866,14 @@ K4|mskermit227|msk227|MS-DOS Kermit 2.27 for the IBMPC:\
 	:is=\EO\Eq\EG\Ew\EJ\EY7 K4 MS Kermit 2.27 for the IBMPC 3-17-85\n:\
 	:vs=\EO\Eq\EG\EwK4:
 # MS-DOS Kermit 2.27 with automatic margins	(UCB gts 3-17-85)
-K5|mskermit227am|msk227am|UCB MS-DOS Kermit 2.27 with automatic margins:\
+K5|msk227am|mskermit227am|UCB MS-DOS Kermit 2.27 with automatic margins:\
 	:am:\
 	:is=\EO\Eq\EG\Ev\EJ\EY7 K5 MS Kermit 2.27 +automatic margins 3-17-85\n:\
 	:vs=\EO\Eq\EG\EvK5:tc=mskermit227:
 # MS-DOS Kermit 2.27 UCB 227.14 for the IBM PC	(UCB gts 3-17-85)
 # Automatic margins now default.  Use ansi set graphic rendition for standout,
 # underline and ul codes (md,me,mr).  Define function keys.
-K6|mskermit22714|msk22714|UCB MS-DOS Kermit 2.27 UCB 227.14 IBM PC:\
+K6|msk22714|mskermit22714|UCB MS-DOS Kermit 2.27 UCB 227.14 IBM PC:\
 	:am:kn#10:\
 	:k0=\E0:k1=\E1:k2=\E2:k3=\E3:k4=\E4:k5=\E5:k6=\E6:k7=\E7:k8=\E8:k9=\E9:\
 	:md=\E[1m:me=\E[m:mr=\E[7m:se=\E[m:so=\E[1m:ue=\E[m:us=\E[4m:\
@@ -2605,7 +2881,7 @@ K6|mskermit22714|msk22714|UCB MS-DOS Kermit 2.27 UCB 227.14 IBM PC:\
 	:vs=\EO\Eq\EG\EvK6:tc=mskermit227:
 # From earle@smeagol.UUCP 29 Oct 85 05:40:18 GMT
 # MS-Kermit with Heath-19 emulation mode enabled
-Kh|h19kermit|h19k|heathkit emulation provided by Kermit (no auto margin):\
+Kh|h19k|h19kermit|heathkit emulation provided by Kermit (no auto margin):\
 	:am@:ta@:pt@:xt:da:db:tc=h19-u:
 # rough draft of Amiga termcap by Mike Meyer
 AA|amiga|Amiga ANSI:\
@@ -2670,6 +2946,11 @@ zA|653|t653x|Tandem 653x multipage terminal:\
 	:if=/usr/lib/tabset/tandem653:sb=\ES:sr=\ET:da:db:so=\E6$:se=\E6 :\
 	:us=\E60:ue=\E6 :sg#1:ug#1:up=\EA:do=\012:le=\010:nd=\EC:\
 	:hs:ts=\Eo:fs=\r:ds=\Eo\r:ws#64:
+# From Paul Leondis, unllab@amber.berkeley.edu
+zB|ifmr|Informer D304:\
+	:am:bs:cd=\E/:ce=\EQ:cl=\EZ:cm=\EY%r%+ %+ :co#80:dc=\E\\:\
+	:do=^J:im=:ei=:ic=\E[:li#24:nd=\EC:so=\EJ:se=\EK:up=\EA:\
+	:sr=\En:ho=\EH:
 #
 # END OF TERMCAP
 #  ------------------------

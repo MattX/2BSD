@@ -3,7 +3,7 @@ case $CONFIG in
 esac
 echo "Extracting Makefile (with variable substitutions)"
 cat >Makefile <<!GROK!THIS!
-# $Header: Makefile.SH,v 4.3.1.2 85/05/13 17:21:18 lwall Exp $
+# $Header: Makefile.SH,v 1.1 88/08/10 12:59:35 bin Locked $
 #
 # $Log:	Makefile.SH,v $
 # Revision 4.3.1.2  85/05/13  17:21:18  lwall
@@ -17,13 +17,13 @@ cat >Makefile <<!GROK!THIS!
 # 
 
 CC = $cc
-rnbin = $rnbin
-rnlib = $rnlib
-mansrc = $mansrc
+rnbin = \${DESTDIR}$rnbin
+rnlib = \${DESTDIR}$rnlib
+mansrc = \${DESTDIR}$mansrc
 manext = $manext
 CFLAGS = $iandd -O
-LDFLAGS = $iandd
 SEPFLAG = $iandd
+LDFLAGS = $iandd
 NDIRC = $ndirc
 NDIRO = $ndiro
 
@@ -57,20 +57,6 @@ obj4 = respond.o rn.o search.o sw.o term.o util.o
 
 obj = $(obj1) $(obj2) $(obj3) $(obj4)
 
-# Overlay scheme for 2.10BSD - should work on most systems with separate I&D.
-# Uses a seven segment base (<= 56Kb) and 2 one segment overlays (each <= 8Kb).
-# For a machine without separate I/D you'll have to come up with another
-# overlay scheme (a painful process, hence its absence here - I have a 44 ...)
-# Casey Leedom (csustan!casey@lll-crg.arpa)
-
-base=	art.o artio.o artsrch.o backpage.o bits.o cheat.o head.o intrp.o \
-	ngdata.o respond.o rn.o search.o term.o util.o ng.o ngsrch.o \
-	ngstuff.o only.o
-ov1=	addng.o final.o help.o init.o kfile.o last.o sw.o
-ov2=	rcln.o rcstuff.o
-
-# End of overlay definitions
-
 lintflags = -phbvxac
 
 add1 = Makefile.old Pnews Rnmail art.help
@@ -91,11 +77,16 @@ all: $(public) $(private) $(util)
 	touch all
 
 rn: $(obj)
-	-if [ X$(SEPFLAG) = X-i ]; then \
-		ld $(SEPFLAG) /lib/crt0.o $(base) -Z $(ov1) -Z $(ov2) -Y \
-			$(libs) -lc -o rn; \
-	else \
+	-if [ X$(SEPFLAG) = X ]; then \
 		$(CC) $(LDFLAGS) $(obj) $(libs) -o rn; \
+	elif [ X$(SEPFLAG) = X-i ]; then \
+		ld -i -X /lib/crt0.o $(obj1) \
+			-Z $(obj3) \
+			-Z $(obj4) \
+			-Z $(obj2) \
+			-Y $(libs) -lc -o rn; \
+	else \
+		echo "Need an overlay scheme for non-separate I&D load"; \
 	fi
 
 # if a .h file depends on another .h file...

@@ -10,7 +10,8 @@
  * XXX - Current system profiling code doesn't really work with the new
  * kernel.  As soon as I've figured out how I'm going to implement
  * general profiling, I'll integrate it into the kernel.
- * Casey.
+ *
+ * Casey
  */
 
 #ifdef PROF
@@ -48,9 +49,25 @@ ENTRY(sprof)
 	br	2f			/   and we're done
 1:
 	mov	$010340,PS		/ set previous mode to supervisor
+#ifdef UCB_NET
+	mov	SISA2, -(sp)		/ save supervisor mapping
+	mov	SISD2, -(sp)
+	mov	SISA3, -(sp)
+	mov	SISD3, -(sp)
+	mov	_proloc, SISA2
+	mov	77406, SISD2
+	mov	_proloc+2, SISA3
+	mov	77406, SISD3
+#endif
 	mfpi	40000(r0)		/   and increment 040000[r0]
 	inc	(sp)			/   (the rtt will reset the PS
-	mtpi	040000(r0)		/   properly)
+	mtpi	40000(r0)		/   properly)
+#ifdef UCB_NET
+	mov	(sp)+, SISD3
+	mov	(sp)+, SISA3
+	mov	(sp)+, SISD2
+	mov	(sp)+, SISA2
+#endif
 2:
 	mov	(sp)+,r0		/ restore the used register
 	rtt				/   and return from the interrupt

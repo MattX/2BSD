@@ -1,28 +1,44 @@
-#! /bin/sh
+#!/bin/sh -
 #
-#	@(#)mkdep.sh	1.5	(Berkeley)	6/18/87
+# Copyright (c) 1987 Regents of the University of California.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms are permitted
+# provided that this notice is preserved and that due credit is given
+# to the University of California at Berkeley. The name of the University
+# may not be used to endorse or promote products derived from this
+# software without specific prior written permission. This software
+# is provided ``as is'' without express or implied warranty.
+#
+#	@(#)mkdep.sh	5.11 (Berkeley) 5/5/88
 #
 
-PATH=:/bin:/usr/bin:/usr/ucb
-
-if [ $# = 0 ] ; then
-	echo 'usage: mkdep [-p] [-f makefile] flags file ...'
-	exit 1
-fi
+PATH=/bin:/usr/bin:/usr/ucb
+export PATH
 
 MAKE=Makefile			# default makefile name is "Makefile"
-case $1 in
-	# -f allows you to select a makefile name
-	-f)
-		MAKE=$2
-		shift; shift ;;
 
-	# the -p flag produces "program: program.c" style dependencies
-	# so .o's don't get produced
-	-p)
-		SED='-e s;\.o;;'
-		shift ;;
-esac
+while :
+	do case "$1" in
+		# -f allows you to select a makefile name
+		-f)
+			MAKE=$2
+			shift; shift ;;
+
+		# the -p flag produces "program: program.c" style dependencies
+		# so .o's don't get produced
+		-p)
+			SED='s;\.o;;'
+			shift ;;
+		*)
+			break ;;
+	esac
+done
+
+if [ $# = 0 ] ; then
+	echo 'usage: mkdep [-p] [-f makefile] [flags] file ...'
+	exit 1
+fi
 
 if [ ! -w $MAKE ]; then
 	echo "mkdep: no writeable file \"$MAKE\""
@@ -43,22 +59,37 @@ cat << _EOF_ >> $TMP
 
 _EOF_
 
-cc -M $* | /bin/sed -e "s; \./; ;g" $SED | \
-	awk ' { \
-		if ($1 != prev) { \
-			if (rec != "") \
-				print rec; rec = $0; prev = $1; \
-		} \
-		else { \
-			if (length(rec $2) > 78) { \
-				print rec; rec = $0; \
-			} else \
-				rec = rec " " $2 \
-		} \
-	} \
-	END { \
-		print rec \
-	} ' >> $TMP
+# If your compiler doesn't have -M, add it.  If you can't, the next two
+# lines will try and replace the "cc -M".  The real problem is that this
+# hack can't deal with anything that requires a search path, and doesn't
+# even try for anything using bracket (<>) syntax.
+#
+# egrep '^#include[ 	]*".*"' /dev/null $* |
+# sed -e 's/:[^"]*"\([^"]*\)".*/: \1/' -e 's/\.c/.o/' |
+
+cc -M $* |
+sed "
+	s; \./; ;g
+	$SED" |
+awk '{
+	if ($1 != prev) {
+		if (rec != "")
+			print rec;
+		rec = $0;
+		prev = $1;
+	}
+	else {
+		if (length(rec $2) > 78) {
+			print rec;
+			rec = $0;
+		}
+		else
+			rec = rec " " $2
+	}
+}
+END {
+	print rec
+}' >> $TMP
 
 cat << _EOF_ >> $TMP
 

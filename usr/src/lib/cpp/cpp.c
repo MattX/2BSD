@@ -112,11 +112,13 @@ char *ptrtab;
 char buffer[NCPS+BUFSIZ+BUFSIZ+NCPS];
 
 #ifdef pdp11
-# define SBSIZE 32766		/* 32766 is biggest possible on pdp11 */
+# define SBSIZE ((unsigned)0112160)	/* PDP compiler doesn't like 41000 */
+short	sbff[SBSIZE/2];
+# define sbf ((char *)sbff)
 #else !pdp11
 # define SBSIZE 60000		/* std = 12000, wnj aug 1979 */
-#endif pdp11
 char	sbf[SBSIZE];
+#endif pdp11
 char	*savch	= sbf;
 
 # define DROP 0xFE	/* special character not legal ASCII or EBCDIC */

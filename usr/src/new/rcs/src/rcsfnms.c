@@ -1,8 +1,10 @@
 /*
  *                     RCS file name handling
  */
- static char rcsid[]=
- "$Header: rcsfnms.c,v 3.9 86/05/15 02:24:55 lepreau Exp $ Purdue CS";
+#ifndef lint
+ static char
+ rcsid[]= "$Id: rcsfnms.c,v 3.10 88/02/18 11:57:27 bostic Exp $ Purdue CS";
+#endif
 /****************************************************************************
  *                     creation and deletion of semaphorefile,
  *                     creation of temporary filenames and cleanup()
@@ -23,15 +25,37 @@
 
 
 /* $Log:	rcsfnms.c,v $
- * Revision 3.9  86/05/15  02:24:55  lepreau
- * add suffix .el for gnulisp
+ * Revision 3.10  88/02/18  11:57:27  bostic
+ * replaced with version 4
  * 
- * Revision 3.8  86/01/12  01:20:29  lepreau
- * add suffixes csh,cl,sl,red for csh, common lisp,
- * psl, and rlisp respectively.
+ * Revision 4.6  87/12/18  11:40:23  narten
+ * additional file types added from 4.3 BSD version, and SPARC assembler
+ * comment character added. Also, more lint cleanups. (Guy Harris)
  * 
- * Revision 3.7  83/05/11  15:01:58  wft
- * *** empty log message ***
+ * Revision 4.5  87/10/18  10:34:16  narten
+ * Updating version numbers. Changes relative to 1.1 actually relative
+ * to verion 4.3
+ * 
+ * Revision 1.3  87/03/27  14:22:21  jenkins
+ * Port to suns
+ * 
+ * Revision 1.2  85/06/26  07:34:28  svb
+ * Comment leader '% ' for '*.tex' files added.
+ * 
+ * Revision 1.1  84/01/23  14:50:24  kcs
+ * Initial revision
+ * 
+ * Revision 4.3  83/12/15  12:26:48  wft
+ * Added check for KDELIM in file names to pairfilenames().
+ * 
+ * Revision 4.2  83/12/02  22:47:45  wft
+ * Added csh, red, and sl file name suffixes.
+ * 
+ * Revision 4.1  83/05/11  16:23:39  wft
+ * Added initialization of Dbranch to InitAdmin(). Canged pairfilenames():
+ * 1. added copying of path from workfile to RCS file, if RCS file is omitted;
+ * 2. added getting the file status of RCS and working files;
+ * 3. added ignoring of directories.
  * 
  * Revision 3.7  83/05/11  15:01:58  wft
  * Added comtable[] which pairs file name suffixes with comment leaders;
@@ -44,7 +68,7 @@
  * Added getwd() and rename(); these can be removed by defining
  * V4_2BSD, since they are not needed in 4.2 bsd.
  * Changed sys/param.h to sys/types.h.
- * 
+ *
  * Revision 3.4  82/12/08  21:55:20  wft
  * removed unused variable.
  *
@@ -67,20 +91,27 @@
 
 
 #include "rcsbase.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/dir.h>
+
 extern char * rindex();
 extern char * mktemp();
 extern char * malloc();
 extern FILE * fopen();
 extern char * getwd();         /* get working directory; forward decl       */
+extern int    stat(), fstat();
 
 extern FILE * finptr;          /* RCS input file descriptor                 */
 extern FILE * frewrite;        /* New RCS file descriptor                   */
 extern char * RCSfilename, * workfilename; /* filenames                     */
-
+struct stat RCSstat, workstat; /* file status for RCS file and working file */
+int    haveRCSstat,  haveworkstat; /* indicators if status availalble       */
 
 
 char tempfilename [NCPFN+10];  /* used for derived file names               */
-char subfilename  [NCPFN+14];  /* used for files RCS/file.sfx,v             */
+char sub1filename [NCPPN];     /* used for files path/file.sfx,v            */
+char sub2filename [NCPPN];     /* used for files path/RCS/file.sfx,v        */
 char semafilename [NCPPN];     /* name of semaphore file                    */
 int  madesema;                 /* indicates whether a semaphore file has been set */
 char * tfnames[10] =           /* temp. file names to be unlinked when finished   */
@@ -99,30 +130,45 @@ struct compair comtable[] = {
 /* suffix during initial ci (see InitAdmin()). Comment leaders are needed   */
 /* for languages without multiline comments; for others they are optional.  */
         "c",   " * ",   /* C           */
+	"csh", "# ",    /* shell       */
+        "e",   "# ",    /* efl         */
+        "f",   "c ",    /* fortran     */
         "h",   " * ",   /* C-header    */
+        "l",   " * ",   /* lex         NOTE: conflict between lex and franzlisp*/
+        "mac", "; ",    /* macro       vms or dec-20 or pdp-11 macro */
+        "me",  "\\\" ", /* me-macros   t/nroff*/
+	"mm",  "\\\" ", /* mm-macros   t/nroff*/
+        "ms",  "\\\" ", /* ms-macros   t/nroff*/
         "p",   " * ",   /* pascal      */
-        "sh",  "# ",    /* shell       */
-        "csh", "# ",    /* shell       */
+        "r",   "# ",    /* ratfor      */
+        "red", "% ",    /* psl/rlisp   */
+
+#ifdef sparc
+        "s",   "! ",    /* assembler   */
+#endif
+#ifdef mc68000
+        "s",   "| ",    /* assembler   */
+#endif
+#ifdef pdp11
+        "s",   "/ ",    /* assembler   */
+#endif
+#ifdef vax
         "s",   "# ",    /* assembler   */
+#endif
+
+        "sh",  "# ",    /* shell       */
         "sl",  "% ",    /* psl         */
         "red", "% ",    /* psl/rlisp   */
-        "cl", ";;; ",    /* common lisp   */
-        "r",   "# ",    /* ratfor      */
-        "e",   "# ",    /* efl         */
-        "l",   " * ",   /* lex         NOTE: conflict between lex and franzlisp*/
-        "y",   " * ",   /* yacc        */
-        "yr",  " * ",   /* yacc-ratfor */
-        "ye",  " * ",   /* yacc-efl    */
+        "cl",  ";;; ",  /* common lisp   */
         "ml",  "; ",    /* mocklisp    */
         "el",  "; ",    /* gnulisp     */
-        "mac", "; ",    /* macro       vms or dec-20 or pdp-11 macro */
-        "f",   "c ",    /* fortran     */
-        "ms",  "\\\" ", /* ms-macros   t/nroff*/
-        "me",  "\\\" ", /* me-macros   t/nroff*/
+	"tex", "% ",	/* tex	       */
+        "y",   " * ",   /* yacc        */
+        "ye",  " * ",   /* yacc-efl    */
+        "yr",  " * ",   /* yacc-ratfor */
         "",    "# ",    /* default for empty suffix */
         nil,   ""       /* default for unknown suffix; must always be last */
 };
-
 
 
 ffclose(fptr)
@@ -173,7 +219,7 @@ char * RCSfilename; int makesema;
                      error("Can't create semaphore file for RCS file %s",RCSfilename);
                      return false;
                 } else
-                     close(fdesc);
+                     VOID close(fdesc);
                      madesema=true;
         }
         return true;
@@ -209,10 +255,10 @@ cleanup()
 {
         register int i;
 
-        if (finptr!=NULL)   fclose(finptr);
-        if (frewrite!=NULL) fclose(frewrite);
+        if (finptr!=NULL)   VOID fclose(finptr);
+        if (frewrite!=NULL) VOID fclose(frewrite);
         for (i=0; i<=lastfilename; i++) {
-            if (tfnames[i][0]!='\0')  unlink(tfnames[i]);
+            if (tfnames[i][0]!='\0')  VOID unlink(tfnames[i]);
         }
         InitCleanup();
         return (rmsema());
@@ -261,12 +307,14 @@ register char * sp, c;
 
 
 
+
+
 InitAdmin()
 /* function: initializes an admin node */
 {       register char * Suffix;
         register int i;
 
-	Head=nil; AccessList=nil; Symbols=nil; Locks=nil;
+        Head=Dbranch=nil; AccessList=nil; Symbols=nil; Locks=nil;
         StrictLocks=STRICT_LOCKING;
 
         /* guess the comment leader from the suffix*/
@@ -283,10 +331,6 @@ InitAdmin()
         }
         Lexinit(); /* Note: if finptr==NULL, reads nothing; only initializes*/
 }
-
-
-
-
 
 
 
@@ -322,15 +366,19 @@ int argc; char ** argv; int mustread, tostdout;
  * If both the workfilename and the RCS filename are given, and tostdout
  * is true, a warning is printed.
  *
+ * If the working file exists, places its status into workstat and
+ * sets haveworkstat to 0; otherwise, haveworkstat is set to -1;
+ * Similarly for the RCS file and the variables RCSstat and haveRCSstat.
+ *
  * If the RCS file exists, it is opened for reading, the file pointer
  * is placed into finptr, and the admin-node is read in; returns 1.
  * If the RCS file does not exist and mustread==true, an error is printed
  * and 0 returned.
  * If the RCS file does not exist and mustread==false, the admin node
- * is initialized to empty (Head, AccessList, Locks, Symbols, StrictLocks),
+ * is initialized to empty (Head, AccessList, Locks, Symbols, StrictLocks, Dbranch)
  * and -1 returned.
  *
- * 0 is returned on all errors.
+ * 0 is returned on all errors. Files that are directories are errors.
  * Also calls InitCleanup();
  */
 {
@@ -338,9 +386,14 @@ int argc; char ** argv; int mustread, tostdout;
         char * lastsep, * purefname, * pureRCSname;
         int opened, returncode;
         char * RCS1;
+	char prefdir[NCPPN];
 
         if (*argv == nil) return 0; /* already paired filename */
-
+	if (rindex(*argv,KDELIM)!=0) {
+		/* KDELIM causes havoc in keyword expansion    */
+		error("RCS file name may not contain %c",KDELIM);
+		return 0;
+	}
         InitCleanup();
 
         /* first check suffix to see whether it is an RCS file or not */
@@ -374,12 +427,17 @@ int argc; char ** argv; int mustread, tostdout;
                 }
         }
         /* now we have a (tentative) RCS filename in RCS1 and workfilename  */
-
+        /* First, get status of workfilename */
+        haveworkstat=stat(workfilename, &workstat);
+        if ((haveworkstat==0) && ((workstat.st_mode & S_IFDIR) == S_IFDIR)) {
+                diagnose("Directory %s ignored",workfilename);
+                return 0;
+        }
+        /* Second, try to find the right RCS file */
         if (pureRCSname!=RCS1) {
                 /* a path for RCSfile is given; single RCS file to look for */
                 finptr=fopen(RCSfilename=RCS1, "r");
                 if (finptr!=NULL) {
-                    Lexinit(); getadmin();
                     returncode=1;
                 } else { /* could not open */
                     if (access(RCSfilename,0)==0) {
@@ -391,45 +449,68 @@ int argc; char ** argv; int mustread, tostdout;
                         return 0;
                     } else {
                         /* initialize if not mustread */
-                        InitAdmin();
                         returncode = -1;
                     }
                 }
         } else {
-                /* build second RCS file name by prefixing it with RCSDIR*/
-                /* then try to open one of them */
-                strcpy(subfilename,RCSDIR); strcat(subfilename,RCS1);
+		/* no path for RCS file name. Prefix it with path of work */
+		/* file if RCS file omitted. Make a second name including */
+		/* RCSDIR and try to open that one first.                 */
+		sub1filename[0]=sub2filename[0]= '\0';
+		if (RCS1==tempfilename) {
+			/* RCS file name not given; prepend work path */
+			sp= *argv; tp= sub1filename;
+			while (sp<purefname) *tp++ = *sp ++;
+			*tp='\0';
+			VOID strcpy(sub2filename,sub1filename); /* second one */
+		}
+		VOID strcat(sub1filename,RCSDIR);
+		VOID strcpy(prefdir,sub1filename); /* preferred directory for RCS file*/
+		VOID strcat(sub1filename,RCS1); VOID strcat(sub2filename,RCS1);
+
+
                 opened=(
-                ((finptr=fopen(RCSfilename=subfilename, "r"))!=NULL) ||
-                ((finptr=fopen(RCSfilename=RCS1,"r"))!=NULL) );
+		((finptr=fopen(RCSfilename=sub1filename, "r"))!=NULL) ||
+		((finptr=fopen(RCSfilename=sub2filename,"r"))!=NULL) );
 
                 if (opened) {
                         /* open succeeded */
-                        Lexinit(); getadmin();
                         returncode=1;
                 } else {
                         /* open failed; may be read protected */
-                        if ((access(RCSfilename=subfilename,0)==0) ||
-                            (access(RCSfilename=RCS1,0)==0)) {
+			if ((access(RCSfilename=sub1filename,0)==0) ||
+			    (access(RCSfilename=sub2filename,0)==0)) {
                                 error("Can't open existing %s",RCSfilename);
                                 return 0;
                         }
                         if (mustread) {
-                                error("Can't find %s nor %s",subfilename,RCS1);
+				error("Can't find %s nor %s",sub1filename,sub2filename);
                                 return 0;
                         } else {
                                 /* initialize new file. Put into ./RCS if possible, strip off suffix*/
-                                RCSfilename= (access(RCSDIR,0)==0)?subfilename:RCS1;
-                                InitAdmin();
+				RCSfilename= (access(prefdir,0)==0)?sub1filename:sub2filename;
                                 returncode= -1;
-                                }
                         }
                 }
-                if (tostdout&&
-                    !(RCS1==tempfilename||workfilename==tempfilename))
-                        /*The last term determines whether a pair of        */
-                        /* file names was given in the argument list        */
-                        warn("Option -p is set; ignoring output file %s",workfilename);
+        }
+
+        if (returncode == 1) { /* RCS file open */
+                haveRCSstat=fstat(fileno(finptr),&RCSstat);
+                if ((haveRCSstat== 0) && ((RCSstat.st_mode & S_IFDIR) == S_IFDIR)) {
+                        diagnose("Directory %s ignored",RCSfilename);
+                        return 0;
+                }
+                Lexinit(); getadmin();
+        } else {  /* returncode == -1; RCS file nonexisting */
+                haveRCSstat = -1;
+                InitAdmin();
+        };
+
+        if (tostdout&&
+            !(RCS1==tempfilename||workfilename==tempfilename))
+                /*The last term determines whether a pair of        */
+                /* file names was given in the argument list        */
+                warn("Option -p is set; ignoring output file %s",workfilename);
 
         return returncode;
 }
@@ -490,8 +571,8 @@ char * getfullRCSname()
                 } else {
                     /* build full path name */
                     realpathlength=lastpathchar-pathbuf+1;
-                    strncpy(namebuf,pathbuf,realpathlength);
-                    strcpy(&namebuf[realpathlength],realname);
+                    VOID strncpy(namebuf,pathbuf,realpathlength);
+                    VOID strcpy(&namebuf[realpathlength],realname);
                     return(namebuf);
                 }
         }
@@ -541,7 +622,7 @@ char * from, *to;
 /* Function: renames a file with the name given by from to the name given by to.
  * unlinks the to-file if it already exists. returns -1 on error, 0 otherwise.
  */
-{       unlink(to);      /* no need to check return code; will be caught by link*/
+{       VOID unlink(to);      /* no need to check return code; will be caught by link*/
                          /* no harm done if file "to" does not exist            */
         if (link(from,to)<0) return -1;
         return(unlink(from));
@@ -549,9 +630,6 @@ char * from, *to;
 
 
 
-#include        <sys/types.h>
-#include        <sys/stat.h>
-#include        <sys/dir.h>
 #define dot     "."
 #define dotdot  ".."
 
@@ -594,7 +672,7 @@ char * name;
                         if(d.st_ino == dd.st_ino) {
                             if (name[off] == '/') name[off] = '\0';
                             chdir(name); /*change back to current directory*/
-                            fclose(file);
+                            VOID fclose(file);
                             return name;
                         }
                         do {
@@ -608,7 +686,7 @@ char * name;
                         }
                         stat(dir.d_name, &dd);
                 } while(dd.st_ino != d.st_ino || dd.st_dev != d.st_dev);
-                fclose(file);
+                VOID fclose(file);
 
                 /* concatenate file name */
                 i = -1;
@@ -621,7 +699,7 @@ char * name;
                         name[i+1] = dir.d_name[i];
         } /* end for */
 
-fail:   fclose(file);
+fail:   VOID fclose(file);
         return NULL;
 }
 
@@ -632,13 +710,14 @@ fail:   fclose(file);
 #ifdef PAIRTEST
 /* test program for pairfilenames() and getfullRCSname() */
 char * workfilename, *RCSfilename;
+extern int quietflag;
 
 main(argc, argv)
 int argc; char *argv[];
 {
         int result;
         int initflag,tostdout;
-        tostdout=initflag=false;
+        quietflag=tostdout=initflag=false;
         cmdid="pair";
 
         while(--argc, ++argv, argc>=1 && ((*argv)[0] == '-')) {
@@ -647,6 +726,10 @@ int argc; char *argv[];
                 case 'p':       tostdout=true;
                                 break;
                 case 'i':       initflag=true;
+                                break;
+                case 'q':       quietflag=true;
+                                break;
+                default:        error("unknown option: %s", *argv);
                                 break;
                 }
         }
@@ -662,11 +745,11 @@ int argc; char *argv[];
                         case 0: continue; /* already paired file */
 
                         case 1: if (initflag) {
-                                    error("RCS file exists already");
-                                    continue;
+                                    error("RCS file %s exists already",RCSfilename);
                                 } else {
-                                    diagnose("RCS file exists");
+                                    diagnose("RCS file %s exists",RCSfilename);
                                 }
+                                VOID fclose(finptr);
                                 break;
 
                         case -1:diagnose("RCS file does not exist");

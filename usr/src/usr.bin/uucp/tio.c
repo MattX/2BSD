@@ -6,10 +6,12 @@ static char sccsid[] = "@(#)tio.c	4.6 (Berkeley) 1/24/86";
 #include "uucp.h"
 #include <setjmp.h>
 #include <sys/stat.h>
+#include <netinet/in.h>
 
 extern int pkfail();
 #define TPACKSIZE	512
 #define TBUFSIZE	1024
+#define	LBUFSIZE	128
 #define min(a,b)	(((a)<(b))?(a):(b))
 
 /*
@@ -95,7 +97,7 @@ FILE *fp1;
 	int ret, mil;
 	struct timeb t1, t2;
 	long bytes;
-	char text[TBUFSIZE];
+	char text[LBUFSIZE];
 
 	if(setjmp(Failbuf))
 		return FAIL;

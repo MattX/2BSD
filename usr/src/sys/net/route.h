@@ -1,18 +1,22 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1980, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)route.h	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)route.h	7.3 (Berkeley) 12/30/87
  */
 
 /*
  * Kernel resident routing tables.
  * 
- * The routing tables are initialized at boot time by
- * making entries for all directly connected interfaces.
- * Routing daemons can thereafter update the routing tables.
- *
+ * The routing tables are initialized when interface addresses
+ * are set by making entries for all directly connected interfaces.
  */
 
 /*
@@ -25,14 +29,6 @@ struct route {
 	struct	sockaddr ro_dst;
 };
 
-#ifdef KERNEL
-/*
- * The route ``routetoif'' is a special atom passed to the output routines
- * to implement the SO_DONTROUTE option.
- */
-struct	route routetoif;
-#endif
-
 /*
  * We distinguish between routes to hosts and routes to networks,
  * preferring the former if available.  For each route we infer
@@ -42,7 +38,6 @@ struct	route routetoif;
  * gateway rather than the ultimate destination.
  */
 struct rtentry {
-	struct  rtentry *rt_next;       /* next pointer */
 	u_int   rt_hash;                /* to speed lookups */
 	struct	sockaddr rt_dst;	/* key */
 	struct	sockaddr rt_gateway;	/* value */
@@ -69,24 +64,24 @@ struct	rtstat {
 	short	rts_wildcard;		/* lookups satisfied by a wildcard */
 };
 
+#ifdef SUPERVISOR
 #define	RTFREE(rt) \
 	if ((rt)->rt_refcnt == 1) \
 		rtfree(rt); \
 	else \
 		(rt)->rt_refcnt--;
 
-#ifdef KERNEL
 #ifdef	GATEWAY
 #define	RTHASHSIZ	64
 #else
-#define	RTHASHSIZ	17
+#define	RTHASHSIZ	8
 #endif
 #if	(RTHASHSIZ & (RTHASHSIZ - 1)) == 0
 #define RTHASHMOD(h)	((h) & (RTHASHSIZ - 1))
 #else
 #define RTHASHMOD(h)	((h) % RTHASHSIZ)
 #endif
-struct	rtentry *rthost[RTHASHSIZ];
-struct	rtentry *rtnet[RTHASHSIZ];
+struct	mbuf *rthost[RTHASHSIZ];
+struct	mbuf *rtnet[RTHASHSIZ];
 struct	rtstat	rtstat;
 #endif

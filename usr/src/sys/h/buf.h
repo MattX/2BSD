@@ -75,9 +75,9 @@ struct buf
 #define	dkunit(bp)	(minor((bp)->b_dev) >> 3)
 #define	geterror(bp)	((bp)->b_flags&B_ERROR ? (bp)->b_error ? (bp)->b_error : EIO : 0)
 
-#ifdef	KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 #ifdef SMALL
-#define	BUFHSZ	8	/* must be power of 2 */
+#define	BUFHSZ	16	/* must be power of 2 */
 #else
 #define	BUFHSZ	64	/* must be power of 2 */
 #endif

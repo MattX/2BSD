@@ -76,6 +76,8 @@
 #define	ns_zeronet		ns_nzero	/* ns.h */
 #define	protoswLAST		protoLAST
 #define	rawintr			rawint
+#define	res_query		rs_qry
+#define	res_querydomain		rs_qrydom
 #define	sbappendaddr		sbappadd
 #define	sbappendrecord		sbapprecord	/* socketsubr.c */
 #define	sbappendrights		sbapprights	/* socketsubr.c */
@@ -87,6 +89,7 @@
 #define	sockaddr_pup		sock_pup	/* XXX delete? */
 #define	sockaddr_un		sock_un
 #define	soconnect2		soconn2
+#define	SOCONNECT2		SOCONN2		/* supervisor soconnect2 */
 #define	soisconnected		soisced
 #define	soisconnecting		soiscing
 #define	soisdisconnected	soisded
@@ -117,4 +120,4 @@
 #define	nsintr_getpck		nsi_getpck	/* ns_input.c */
 #define	nsintr_swtch		nsi_swtch	/* ns_input.c */
 #define	sockaddr_ns		sock_ns
-#endif !_SHORT_NAMES
+#endif /* !_SHORT_NAMES */

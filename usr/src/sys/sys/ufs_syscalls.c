@@ -15,6 +15,9 @@
 #include "file.h"
 #include "stat.h"
 #include "kernel.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 struct	file *getinode();
 
@@ -610,7 +613,9 @@ chown1(ip, uid, gid)
 	register struct inode *ip;
 	int uid, gid;
 {
-
+#ifdef QUOTA
+	long change;
+#endif
 	if (ip->i_fs->fs_ronly)
 		return (EROFS);
 	if (uid == -1)
@@ -621,12 +626,30 @@ chown1(ip, uid, gid)
 		return (u.u_error);
 	if (gid != ip->i_gid && !groupmember((gid_t)gid) && !suser())
 		return (u.u_error);
+#ifdef QUOTA
+	QUOTAMAP();
+	if (ip->i_uid == uid)
+		change = 0;
+	else
+		change = ip->i_size;
+	(void) chkdq(ip, -change, 1);
+	(void) chkiq(ip->i_dev, ip, ip->i_uid, 1);
+	dqrele(ix_dquot[ip - inode]);
+#endif
 	ip->i_uid = uid;
 	ip->i_gid = gid;
 	ip->i_flag |= ICHG;
 	if (u.u_ruid != 0)
 		ip->i_mode &= ~(ISUID|ISGID);
+#ifdef QUOTA
+	ix_dquot[ip - inode] = inoquota(ip);
+	(void) chkdq(ip, change, 1);
+	(void) chkiq(ip->i_dev, (struct inode *)NULL, (uid_t)uid, 1);
+	QUOTAUNMAP();
+	return (u.u_error);		/* should == 0 ALWAYS !! */
+#else
 	return (0);
+#endif
 }
 
 utimes()
@@ -1054,6 +1077,11 @@ maknode(mode)
 		iput(pdir);
 		return (NULL);
 	}
+#ifdef QUOTA
+	QUOTAMAP();
+	if (ix_dquot[ip - inode] != NODQUOT)
+		panic("maknode: dquot");
+#endif
 	ip->i_flag |= IACC|IUPD|ICHG;
 	if ((mode & IFMT) == 0)
 		mode |= IFREG;
@@ -1063,6 +1091,10 @@ maknode(mode)
 	ip->i_gid = pdir->i_gid;
 	if (ip->i_mode & ISGID && !groupmember(ip->i_gid))
 		ip->i_mode &= ~ISGID;
+#ifdef QUOTA
+	ix_dquot[ip - inode] = inoquota(ip);
+	QUOTAUNMAP();
+#endif
 
 	/*
 	 * Make sure inode goes to disk before directory entry.
@@ -1127,11 +1159,20 @@ mkdir()
 		iput(dp);
 		return;
 	}
+#ifdef QUOTA
+	QUOTAMAP();
+	if (ix_dquot[ip - inode] != NODQUOT)
+		panic("mkdir: dquot");
+#endif
 	ip->i_flag |= IACC|IUPD|ICHG;
 	ip->i_mode = uap->dmode & ~u.u_cmask;
 	ip->i_nlink = 2;
 	ip->i_uid = u.u_uid;
 	ip->i_gid = dp->i_gid;
+#ifdef QUOTA
+	ix_dquot[ip - inode] = inoquota(ip);
+	QUOTAUNMAP();
+#endif
 	iupdat(ip, &time, &time, 1);
 
 	/*

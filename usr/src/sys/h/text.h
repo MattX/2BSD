@@ -26,12 +26,9 @@ struct text
 	char	dummy;		/* room for one more */
 };
 
-#ifdef	KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 extern struct	text text[], *textNTEXT;
 int	ntext;
-#ifdef UCB_METER
-extern char textcounted[];
-#endif
 #endif
 
 #define	XTRC	0x01		/* Text may be written, exclusive use */

@@ -7,7 +7,7 @@
  */
 
 #ifdef BSD2_10
-#include "short_names.h"
+#include "shortnames.h"
 #endif BSD2_10
 
 #include <sys/time.h>

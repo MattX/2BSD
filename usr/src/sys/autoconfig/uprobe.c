@@ -24,7 +24,8 @@
 
 int	xpprobe(), hkprobe(), rlprobe(), rkprobe(), htprobe(), siprobe(),
 	tmprobe(), tsprobe(), cnprobe(), dzprobe(), dhprobe(), dmprobe(),
-	drprobe(), lpprobe(), dhuprobe(), raprobe(), rxprobe();
+	drprobe(), lpprobe(), dhuprobe(), raprobe(), rxprobe(), brprobe(),
+	dnprobe();
 
 UPROBE uprobe[] = {
 	"hk",	hkprobe,	/* hk -- rk611, rk06/07 */
@@ -45,5 +46,7 @@ UPROBE uprobe[] = {
 	"cn",	cnprobe,	/* cn -- kl11, dl11 */
 	"lp",	lpprobe,	/* lp -- line printer */
 	"rx",	rxprobe,	/* rx -- RX01/02 */
+	"br",	brprobe,	/* br -- EATON 1538 BR1537/BR1711 */
+	"dn",	dnprobe,	/* dn -- dn11 autodialer */
 	0,	0,
 };

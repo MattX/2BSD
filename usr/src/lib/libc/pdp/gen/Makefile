@@ -6,13 +6,13 @@
 #	@(#)Makefile	5.6 (Berkeley) 1/25/87
 #
 SRCS=	_setjmp.s abs.s alloca.s atof.c bcmp.s bcopy.s bzero.s disktab.c \
-	ecvt.c fabs.s ffs.s frexp.s index.s insque.s ldexp.s modf.s remque.s \
-	rindex.s rollback.s setjmp.s setjmperr.c strcat.s strcmp.s strcpy.s \
-	strlen.s strncat.s strncmp.s strncpy.s
+	ecvt.c fabs.s ffs.s frexp.s index.s insque.s ldexp.s ldfps.s \
+	modf.s remque.s rindex.s rollback.s setjmp.s setjmperr.c strcat.s \
+	strcmp.s strcpy.s strlen.s strncat.s strncmp.s strncpy.s
 OBJS=	_setjmp.o abs.o alloca.o atof.o bcmp.o bcopy.o bzero.o disktab.o \
-	ecvt.o fabs.o ffs.o frexp.o index.o insque.o ldexp.o modf.o remque.o \
-	rindex.o rollback.o setjmp.o setjmperr.o strcat.o strcmp.o strcpy.o \
-	strlen.o strncat.o strncmp.o strncpy.o
+	ecvt.o fabs.o ffs.o frexp.o index.o insque.o ldexp.o ldfps.o \
+	modf.o remque.o rindex.o rollback.o setjmp.o setjmperr.o strcat.o \
+	strcmp.o strcpy.o strlen.o strncat.o strncmp.o strncpy.o
 CFLAGS=	-O ${DEFS}
 TAGSFILE=tags
 

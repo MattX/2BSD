@@ -1,15 +1,22 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns_input.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns_input.c	7.2 (Berkeley) 1/20/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
+#ifdef	NS
 #include "systm.h"
 #include "mbuf.h"
+#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
@@ -75,9 +82,7 @@ nsintr()
 	register int i;
 	int len, s, error;
 	char oddpacketp;
-	segm save5;
 
-	saveseg5(save5);
 next:
 	/*
 	 * Get next datagram off input queue and get IDP header
@@ -87,17 +92,14 @@ next:
 	IF_DEQUEUEIF(&nsintrq, m, ifp);
 	splx(s);
 	nsintr_getpck++;
-	if (m == 0) {
-		restorseg5(save5);
+	if (m == 0)
 		return;
-	}
 	if ((m->m_off > MMAXOFF || m->m_len < sizeof (struct idp)) &&
 	    (m = m_pullup(m, sizeof (struct idp))) == 0) {
 		idpstat.idps_toosmall++;
 		goto next;
 	}
 
-#ifdef	HACK
 	/*
 	 * Give any raw listeners a crack at the packet
 	 */
@@ -105,7 +107,6 @@ next:
 		struct mbuf *m1 = m_copy(m, 0, (int)M_COPYALL);
 		if (m1) idp_input(m1, nsp, ifp);
 	}
-#endif	HACK
 
 	idp = mtod(m, struct idp *);
 	len = ntohs(idp->idp_len);
@@ -140,7 +141,6 @@ next:
 			m_adj(m0, -i);
 	}
 	m = m0;
-#ifdef	HACK	/* spp_input(),ns_err_inp,idp_input(), ns_error() AOK */
 	if (idpcksum && ((i = idp->idp_sum)!=0xffff)) {
 		idp->idp_sum = 0;
 		if (i != (idp->idp_sum = ns_cksum(m,len))) {
@@ -212,14 +212,12 @@ next:
 		ns_error(m, NS_ERR_NOSOCK, 0);
 	}
 	goto next;
-#endif	HACK
 
 bad:
 	m_freem(m);
 	goto next;
 }
 
-#ifdef	HACKALL
 u_char nsctlerrmap[PRC_NCMDS] = {
 	ECONNABORTED,	ECONNABORTED,	0,		0,
 	0,		0,		EHOSTDOWN,	EHOSTUNREACH,
@@ -278,7 +276,7 @@ idp_ctlinput(cmd, arg)
 	}
 }
 
-int	idpprintfs = 1;
+int	idpprintfs = 0;
 int	idpforwarding = 1;
 /*
  * Forward a packet.  If some error occurs return the sender
@@ -306,7 +304,6 @@ idp_forward(idp)
 		ns_printhost(&idp->idp_dna);
 		printf("hop count %d\n", idp->idp_tc);
 	}
-#ifdef	HACK	/* m_copy, several dtom's */
 	if (idpforwarding == 0) {
 		/* can't tell difference between net and host */
 		type = NS_ERR_UNREACH_HOST, code = 0;
@@ -406,7 +403,6 @@ cleanup:
 		idp_undo_route(&idp_sroute);
 	if (mcopy != NULL)
 		m_freem(mcopy);
-#endif	HACK
 }
 
 idp_do_route(src, ro)
@@ -478,4 +474,4 @@ struct ifnet *ifp;
 		}
 	}
 }
-#endif	HACKALL
+#endif	NS

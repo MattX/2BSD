@@ -20,6 +20,7 @@ static char sccsid[] = "@(#)cmds.c	5.5 (Berkeley) 3/7/86";
 #include <stdio.h>
 #include <errno.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <ctype.h>
 #include <sys/wait.h>
 

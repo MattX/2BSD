@@ -7,6 +7,12 @@
  */
 
 #include "param.h"
+#include "../pdp/seg.h"
+
+#include "file.h"
+#include "ioctl.h"
+#include "tty.h"
+#include "errno.h"
 #include "conf.h"
 
 int	nodev();
@@ -26,7 +32,7 @@ int	tbopen(),tbclose(),tbread(),tbinput(),tbioctl();
 #endif
 #include "sl.h"
 #if NSL > 0
-int	slopen(),slclose(),slinput(),sltioctl(),slstart();
+int	SLOPEN(),SLCLOSE(),SLINPUT(),SLTIOCTL(),SLSTART();
 #endif
 
 
@@ -51,8 +57,8 @@ struct	linesw linesw[] =
 	nodev, nodev, nodev, nodev, nodev,
 #endif
 #if NSL > 0
-	slopen, slclose, nodev, nodev, sltioctl,
-	slinput, nodev, nulldev, slstart, nulldev,	/* 4- SLIPDISC */
+	SLOPEN, SLCLOSE, nodev, nodev, SLTIOCTL,
+	SLINPUT, nodev, nulldev, SLSTART, nulldev,	/* 4- SLIPDISC */
 #else
 	nodev, nodev, nodev, nodev, nodev,
 	nodev, nodev, nodev, nodev, nodev,
@@ -78,3 +84,65 @@ nullioctl(tp, cmd, data, flags)
 #endif
 	return (-1);
 }
+
+#if NSL > 0
+SLOPEN(dev, tp)
+	dev_t dev;
+	struct tty *tp;
+{
+	int error, slopen();
+
+	if (!suser())
+		return (EPERM);
+	if (tp->t_line == SLIPDISC)
+		return (EBUSY);
+	error = KScall(slopen, sizeof(dev_t) + sizeof(struct tty *), dev, tp);
+	if (!error)
+		ttyflush(tp, FREAD | FWRITE);
+	return(error);
+}
+
+SLCLOSE(tp)
+	struct tty *tp;
+{
+	int slclose();
+
+	ttywflush(tp);
+	tp->t_line = 0;
+	KScall(slclose, sizeof(struct tty *), tp);
+}
+
+SLTIOCTL(tp, cmd, data, flag)
+	struct tty *tp;
+	int cmd, flag;
+	caddr_t data;
+{
+	int sltioctl();
+
+	return(KScall(sltioctl, sizeof(struct tty *) + sizeof(int) +
+	    sizeof(caddr_t) + sizeof(int), tp, cmd, data, flag));
+}
+
+SLSTART(tp)
+	struct tty *tp;
+{
+	mapinfo map;
+	void slstart();
+
+	savemap(map);
+	KScall(slstart, sizeof(struct tty *), tp);
+	restormap(map);
+}
+
+SLINPUT(c, tp)
+	int c;
+	struct tty *tp;
+{
+	mapinfo map;
+	void slinput();
+
+	savemap(map);
+	KScall(slinput, sizeof(int) + sizeof(struct tty *), c, tp);
+	restormap(map);
+}
+#endif

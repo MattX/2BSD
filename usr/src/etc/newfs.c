@@ -11,7 +11,7 @@ char copyright[] =
 #endif not lint
 
 #ifndef lint
-static char sccsid[] = "@(#)newfs.c	5.2 (Berkeley) 9/11/85";
+static char sccsid[] = "@(#)newfs.c	5.2 (Berkeley) 8/18/88";
 #endif not lint
 
 /*
@@ -50,6 +50,8 @@ static INDX disks[] = {
 	{ "rd52-rqdx3", 14 },	/* type */
 	{ "rd53-rqdx3", 14 },
 	{ "rx02", 15 },
+	{ "rp03", 16 },
+	{ "br1538d", 17 },
 	{ 0, 0 }
 };
 
@@ -93,6 +95,8 @@ static struct mn {
 /* RQDX2 */	{ { 2, 36}, { 2, 36}, { 2, 36}, { 2, 36}, { 2, 36}, { 2, 36} },
 /* RQDX3 */	{ { 7, 36}, { 7, 36}, { 7, 36}, { 7, 36}, { 7, 36}, { 7, 36} },
 /* RX02 */	{ { 1,  7}, { 1,  7}, { 1,  7}, { 1,  7}, { 1,  7}, { 1,  7} },
+/* RP03 */	{ {16,304}, {15,304}, {12,304}, { 7,304}, {11,304}, { 5,304} },
+/* BR1538D */	{ {16,304}, {15,304}, {12,304}, { 7,304}, {11,304}, { 6,304} },
 };
 
 main(argc, argv)
@@ -107,16 +111,26 @@ main(argc, argv)
 	register char	*cp;
 	struct stat	st;
 	long	fssize;
-	int	disk, cpu, ch, just_looking, status;
+	int	disk, cpu, ch, status;
+	int	just_looking, copy_boot;
+	char	*uboot;
 	char	device[MAXPATHLEN], cmd[BUFSIZ],
 		*index(), *rindex();
 
 	just_looking = 0;
-	while ((ch = getopt(argc,argv,"Nv")) != EOF)
+	copy_boot = 0;
+	uboot = (char *)0;
+	while ((ch = getopt(argc,argv,"NvbB:")) != EOF)
 		switch((char)ch) {
 		case 'N':
 		case 'v':
 			++just_looking;
+			break;
+		case 'B':
+			uboot = optarg;
+			/*FALLTHROUGH*/
+		case 'b':
+			++copy_boot;
 			break;
 		case '?':
 		default:
@@ -172,7 +186,7 @@ main(argc, argv)
 	/* see if disk is in disktab table */
 	dp = getdiskbyname(argv[1]);
 	if (dp == 0) {
-		fprintf(stderr, "newfs: %s: unknown disk type.\n", argv[1]);
+		fprintf(stderr, "newfs: %s not in /etc/disktab.\n", argv[1]);
 		exit(1);
 	}
 
@@ -190,7 +204,11 @@ main(argc, argv)
 		fprintf(stderr, "newfs: %s: no default size for `%c' partition.\n", argv[1], *cp);
 		exit(1);
 	}
-	fssize /= 2;	/* convert from sectors to logical blocks */
+	/*
+	 * Convert from sectors to logical blocks.  Note that sector size
+	 * must evenly devide DEV_BSIZE!!!!!
+	 */
+	fssize /= DEV_BSIZE/dp->d_secsize;
 
 	/* build command */
 	sprintf(cmd, "/etc/mkfs %s %ld %d %d",
@@ -200,8 +218,19 @@ main(argc, argv)
 		exit(0);
 	if (status = system(cmd))
 		exit(status >> 8);
-	if (*cp == 'a')
-		fputs("newfs: don't forget to install a deadstart block.\n", stderr);
+
+	/* copy boot if requested */
+	if (copy_boot) {
+		if (!uboot && !(uboot = dp->d_uboot)) {
+			fprintf(stderr, "newfs: no default boot block available for an %s.\n",
+				argv[1]);
+			exit(1);
+		}
+		sprintf(cmd, "/bin/dd if=%s of=%s bs=512 count=1 conv=sync",
+		    uboot, device);
+		if (status = system(cmd))
+			exit(status >> 8);
+	}
 	exit(0);
 }
 
@@ -211,7 +240,7 @@ usage()
 	register INDX	*off;
 	register int	cnt, len;
 
-	fputs("usage: newfs [ -N ] special-device device-type cpu\n", stderr);
+	fputs("usage: newfs [ -N ] [ -b ] [ -B boot-block ] special-device device-type cpu\n", stderr);
 	fputs("Known device-types are:\n\t", stderr);
 	for (cnt = 8, off = disks;;) {
 		len = strlen(off->key) + 2;

@@ -1,12 +1,18 @@
-.\" Copyright (c) 1986 Regents of the University of California.
-.\" All rights reserved.  The Berkeley software License Agreement
-.\" specifies the terms and conditions for redistribution.
+.\" Copyright (c) 1986, 1988 Regents of the University of California.
+.\" All rights reserved.
 .\"
-.\"	@(#)types.me	6.1 (Berkeley) 5/7/86
+.\" Redistribution and use in source and binary forms are permitted
+.\" provided that this notice is preserved and that due credit is given
+.\" to the University of California at Berkeley. The name of the University
+.\" may not be used to endorse or promote products derived from this
+.\" software without specific prior written permission. This software
+.\" is provided ``as is'' without express or implied warranty.
+.\"
+.\"	@(#)types.me	6.2 (Berkeley) 2/28/88
 .\"
 .sh 1 "Types of Servers"
 .pp
-There are three types of servers, Master, Caching and Remote.
+There are several types of servers: Master, Caching, Remote, and Slave.
 .sh 2 "Master Servers"
 .pp
 A Master Server for a domain is the authority for that domain.
@@ -47,3 +53,27 @@ With this option you can run all of the networking programs that use
 the name server without the name server running on the local machine.
 All of the queries are serviced by a name server that is running on another 
 machine on the network.
+.sh 2 "Slave Server"
+.pp
+A Slave Server is a server that always forwards queries it cannot
+satisfy locally to a fixed list of \fIforwarding\fP servers
+instead of interacting
+with the master nameservers for the root and other domains.
+The queries to the \fIforwarding servers\fP are recursive queries.
+There may be one or more forwarding servers, and they are tried in turn
+until the list is exhausted.
+A Slave and forwarder configuration is typically used when you do not
+wish all the servers at a give site to be interacting with the rest
+of the Internet servers.  A typically senario would involve a number of
+workstations and a departmental timesharing machine with Internet
+access.  The workstations might be
+administratively prohibited from having Internet access.
+To give the workstations the appearance of access to the Internet
+domain system, the workstations could be Slave servers to the timesharing
+machine which would forward the queries and interact with other
+nameservers to resolv the query before returning the answer.
+An added benefit of using the forwarding feature is that the central
+machine develops a much more complete cache of information that
+all the workstations can take advantage of.  The use Slave mode
+and forwarding is discussed further under the description of
+the named bootfile commands.

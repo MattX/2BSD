@@ -24,7 +24,7 @@ lpprobe(addr)
 	struct lpdevice	*addr;
 {
 	stuff(grab(&(addr->lpcs)) | LP_IE, &(addr->lpcs));
-	DELAY(10);
+	DELAY(10L);
 	stuff(0, &(addr->lpcs));
 	return(ACP_IFINTR);
 }

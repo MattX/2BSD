@@ -22,6 +22,7 @@
  * SHOULD REPLACE THIS WITH A DRIVER THAT CAN BE READ TO SIMPLIFY.
  */
 struct	inode *acctp;
+struct	inode *savacctp;
 
 /*
  * Perform process accounting functions.
@@ -34,6 +35,10 @@ sysacct()
 	} *uap = (struct a *)u.u_ap;
 
 	if (suser()) {
+		if (savacctp) {
+			acctp = savacctp;
+			savacctp = NULL;
+		}
 		if (uap->fname==NULL) {
 			if (ip = acctp) {
 				irele(ip);
@@ -64,6 +69,9 @@ sysacct()
 	}
 }
 
+int	acctsuspend = 2;	/* stop accounting when < 2% free space left */
+int	acctresume = 4;		/* resume when free space risen to > 4% */
+
 struct	acct acctbuf;
 /*
  * On exit, write a record on the accounting file.
@@ -71,10 +79,26 @@ struct	acct acctbuf;
 acct()
 {
 	register struct inode *ip;
+	register struct fs *fs;
 	off_t siz;
 
+	if (savacctp) {
+		fs = savacctp->i_fs;
+		if (freespace(fs, acctresume) > 0) {
+			acctp = savacctp;
+			savacctp = NULL;
+			printf("Accounting resumed\n");
+		}
+	}
 	if ((ip = acctp) == NULL)
 		return;
+	fs = acctp->i_fs;
+	if (freespace(fs, acctsuspend) <= 0) {
+		savacctp = acctp;
+		acctp = NULL;
+		printf("Accounting suspended\n");
+		return;
+	}
 	ilock(ip);
 	bcopy(u.u_comm, acctbuf.ac_comm, sizeof(acctbuf.ac_comm));
 	acctbuf.ac_utime = compress(u.u_ru.ru_utime);
@@ -96,8 +120,8 @@ acct()
 	u.u_segflg = UIO_SYSSPACE;
 	u.u_error = 0;
 	writei(ip);
-	if(u.u_error)
-		ip->i_size = siz;
+	if (u.u_error)
+		itrunc(ip, (u_long)siz);
 	iunlock(ip);
 }
 

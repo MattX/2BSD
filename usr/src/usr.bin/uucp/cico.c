@@ -14,6 +14,7 @@ static char sccsid[] = "@(#)cico.c	5.14 (Berkeley) 4/14/86";
 #ifdef BSDTCP
 #include <netdb.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #endif BSDTCP
 #include <sys/stat.h>

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)vm_proc.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)vm_proc.c	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 #include "param.h"
@@ -82,7 +82,7 @@ expand(newsize,segment)
 		return;
 	}
 #ifndef NONFP
-	if (u.u_fpsaved==0) {
+	if (u.u_fpsaved == 0) {
 		savfp(&u.u_fps);
 		u.u_fpsaved = 1;
 	}

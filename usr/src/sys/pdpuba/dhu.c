@@ -28,6 +28,7 @@
 #include "tty.h"
 #include "clist.h"
 #include "map.h"
+#include "proc.h"
 #include "uba.h"
 #include "ubavar.h"
 #include "systm.h"
@@ -427,7 +428,7 @@ dhuparam(unit)
 	lpar = (dhu_speeds[tp->t_ospeed]<<12) | (dhu_speeds[tp->t_ispeed]<<8);
 	if ((tp->t_ispeed) == B134)
 		lpar |= DHU_LP_BITS6|DHU_LP_PENABLE;
-	else if (tp->t_flags & (RAW|LLITOUT|PASS8))
+	else if (tp->t_flags & (RAW|LITOUT|PASS8))
 		lpar |= DHU_LP_BITS8;
 	else
 		lpar |= DHU_LP_BITS7|DHU_LP_PENABLE;
@@ -533,13 +534,11 @@ dhustart(tp)
 			tp->t_state &= ~TS_ASLEEP;
 			wakeup((caddr_t)&tp->t_outq);
 		}
-#ifdef UCB_NET
 		if (tp->t_wsel) {
 			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
 			tp->t_wsel = 0;
 			tp->t_state &= ~TS_WCOLL;
 		}
-#endif
 	}
 	/*
 	 * Now restart transmission unless the output queue is

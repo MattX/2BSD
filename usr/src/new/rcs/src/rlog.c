@@ -1,8 +1,10 @@
 /*
  *                       RLOG    operation
  */
+#ifndef lint
 static char rcsid[]=
-"$Header: /usr/wft/RCS/SRC/RCS/rlog.c,v 3.7 83/05/11 14:24:13 wft Exp $ Purdue CS";
+"$Header: /usr/src/local/bin/rcs/src/RCS/rlog.c,v 4.5 87/12/18 11:46:38 narten Exp $ Purdue CS";
+#endif
 /*****************************************************************************
  *                       print contents of RCS files
  *****************************************************************************
@@ -20,6 +22,30 @@ static char rcsid[]=
 
 
 /* $Log:	rlog.c,v $
+ * Revision 4.5  87/12/18  11:46:38  narten
+ * more lint cleanups (Guy Harris)
+ * 
+ * Revision 4.4  87/10/18  10:41:12  narten
+ * Updating version numbers
+ * Changes relative to 1.1 actually relative to 4.2
+ * 
+ * Revision 1.3  87/09/24  14:01:10  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:45  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:45  kcs
+ * Initial revision
+ * 
+ * Revision 4.2  83/12/05  09:18:09  wft
+ * changed rewriteflag to external.
+ * 
+ * Revision 4.1  83/05/11  16:16:55  wft
+ * Added -b, updated getnumericrev() accordingly.
+ * Replaced getpwuid() with getcaller().
+ * 
  * Revision 3.7  83/05/11  14:24:13  wft
  * Added options -L and -R;
  * Fixed selection bug with -l on multiple files.
@@ -51,20 +77,20 @@ static char rcsid[]=
 
 
 
-#include <pwd.h>
 #include "time.h"
 #include "rcsbase.h"
+#ifndef lint
 static char rcsbaseid[] = RCSBASE;
+#endif
 
-
+extern char * partialno();
 extern FILE * fopen();
-extern struct passwd *getpwuid();
+extern char * getcaller();          /*get login of caller                   */
 extern char * malloc();
 extern        free();
 extern struct hshentry * genrevs(); /*generate delta numbers                */
 extern int    countnumflds();
 extern int    compartial();
-extern char * partialno();
 extern int    expandsym();          /*get numeric name of a revision        */
 extern char * getfullRCSname();     /*get full path name of RCS file        */
 extern int nextc;                   /*next input character                  */
@@ -77,16 +103,13 @@ extern int  pairfilenames();
 extern struct hshentry  * getnum();
 extern FILE * finptr;               /* RCS input file                       */
 extern FILE * frewrite;             /* new RCS file                         */
+extern int    rewriteflag;          /* indicates whether input should be    */
+				    /* echoed to frewrite */
 extern int    nerror;               /* error counter                        */
 
 char * RCSfilename, * workfilename;
-int    rewriteflag; /* indicates whether input should be echoed to frewrite */
 
 char * caller;                        /* caller's login;                    */
-
-char numericrev[revlength];           /* holds expanded revision number     */
-struct hshentry * gendeltas[hshsize]; /* stores deltas to be generated      */
-struct hshentry * targetdelta;        /* final delta to be generated        */
 int  descflag, selectflag, selectop;  /* option to print access list, symbolic  */
                                       /* names, descriptive text, locks and */
                                       /* Head                               */
@@ -128,6 +151,7 @@ char   Dotstring[200];                /* string of numeric revision name    */
 char   * Nextdotstring;               /* next available place of Dotstring  */
 struct  Datepairs       * datelist,  * duelst;
 struct  Revpairs        * revlist, * Revlst;
+int                     branchflag; /* set on -b */
 struct  lockers         * lockerlist;
 struct  stateattri      * statelist;
 struct  authors         * authorlist;
@@ -144,7 +168,7 @@ char * argv[];
         struct  lock          * currlock;
         char * cmdusage;
 
-	cmdusage = "command format:\nrlog -L -R -h -t -ddates -l[lockers] -rrevisions -sstates -w[logins] file ...";
+	cmdusage = "command format:\nrlog -L -R -h -t -b -ddates -l[lockers] -rrevisions -sstates -w[logins] file ...";
         cmdid = "rlog";
         descflag = selectflag = true;
         lockflag = onlylockflag = selectop = false;
@@ -153,8 +177,9 @@ char * argv[];
         authorlist = nil;
         statelist = nil;
         Revlst = revlist = nil;
+        branchflag= false;
         duelst = datelist = nil;
-        caller=getpwuid(getuid())->pw_name;
+	caller=getcaller();
 
         while (--argc,++argv, argc>=1 && ((*argv)[0] == '-')) {
                 switch ((*argv)[1]) {
@@ -171,6 +196,11 @@ char * argv[];
                         selectop = true;
                         lockflag = true;
                         getlocker( (*argv)+2 );
+                        break;
+
+                case 'b':
+                        selectop = true;
+                        branchflag = true;
                         break;
 
                 case 'r':
@@ -232,51 +262,52 @@ char * argv[];
 	    if ( onlylockflag && Locks == nil ) goto loopend;
 
 	    if ( onlyRCSflag ) {
-		fprintf(stdout, "%s\n", RCSfilename);
+		VOID fprintf(stdout, "%s\n", RCSfilename);
 		goto loopend;
 	    }
             /*   print RCS filename , working filename and optional
                  administrative information                         */
-            fprintf(stdout, "\nRCS file:        %s;   ",RCSfilename);
+            VOID fprintf(stdout, "\nRCS file:        %s;   ",RCSfilename);
             /* could use getfullRCSname() here, but that is very slow */
-            fprintf(stdout, "Working file:    %s\n", workfilename);
-            fprintf(stdout, "head:            %s\n", Head==nil?"":Head->num);
+            VOID fprintf(stdout, "Working file:    %s\n", workfilename);
+            VOID fprintf(stdout, "head:            %s\n", Head==nil?"":Head->num);
+            VOID fprintf(stdout, "branch:          %s\n", Dbranch==nil?"":Dbranch->num);
 
-            fputs("locks:         ", stdout);  /*  print locker list   */
+            VOID fputs("locks:         ", stdout);  /*  print locker list   */
             currlock = Locks;
             while( currlock ) {
-                fprintf(stdout,"  %s: %s;", currlock->login,
+                VOID fprintf(stdout,"  %s: %s;", currlock->login,
                                 currlock->delta->num);
                 currlock = currlock->nextlock;
             }
             if ( StrictLocks )
-                fputs(Locks==nil?"  ;  strict":"  strict",stdout);
+                VOID fputs(Locks==nil?"  ;  strict":"  strict",stdout);
 
-            fputs("\naccess list:   ", stdout);      /*  print access list  */
+            VOID fputs("\naccess list:   ", stdout);      /*  print access list  */
             curaccess = AccessList;
             while(curaccess) {
-                fputs("  ",stdout);
-                fputs(curaccess->login, stdout);
+                VOID fputs("  ",stdout);
+                VOID fputs(curaccess->login, stdout);
                 curaccess = curaccess->nextaccess;
             }
 
-            fputs("\nsymbolic names:", stdout);   /*  print symbolic names   */
+            VOID fputs("\nsymbolic names:", stdout);   /*  print symbolic names   */
             curassoc = Symbols;
             while( curassoc ) {
-                fprintf(stdout, "  %s: %s;",curassoc->symbol,
+                VOID fprintf(stdout, "  %s: %s;",curassoc->symbol,
                            curassoc->delta->num);
                 curassoc = curassoc->nextassoc;
             }
 
-            fprintf(stdout,"\ncomment leader:  \"%s\"\n",Comment);
+            VOID fprintf(stdout,"\ncomment leader:  \"%s\"\n",Comment);
 
             gettree();
-            fprintf(stdout, "total revisions: %d;    ", TotalDeltas);
+            VOID fprintf(stdout, "total revisions: %d;    ", TotalDeltas);
             if ( Head == nil || !selectflag || !descflag) {
-                putc('\n',stdout);
-                if (descflag) fputs("description:\n", stdout);
+                VOID putc('\n',stdout);
+                if (descflag) VOID fputs("description:\n", stdout);
                 getdesc(descflag);
-                fputs("=============================================================================\n",stdout);
+                VOID fputs("=============================================================================\n",stdout);
                 goto loopend;
             }
 
@@ -301,14 +332,14 @@ char * argv[];
             /*  reinitialize the date specification list   */
             currdate = duelst;
             while(currdate) {
-                sprintf(currdate->strtdate,DATEFORM,0,0,0,0,0,0);
+                VOID sprintf(currdate->strtdate,DATEFORM,0,0,0,0,0,0);
                 currdate = currdate->dnext;
             }
 
             if ( selectop || ( selectflag && descflag) )
-                fprintf(stdout, "selected revisions: %d", revno);
-            putc('\n', stdout);
-            if (descflag) fputs("description:\n", stdout);
+                VOID fprintf(stdout, "selected revisions: %d", revno);
+            VOID putc('\n', stdout);
+            if (descflag) VOID fputs("description:\n", stdout);
             getdesc(descflag);
             while( (nexttok != EOFILE) && readdeltalog());
             if (selectflag && descflag && revno) {
@@ -317,9 +348,9 @@ char * argv[];
                 if (nextlex(), nexttok != EOFILE)
                     fatserror("syntax error; expecting EOF");
             }
-            fputs("=============================================================================\n",stdout);
+            VOID fputs("=============================================================================\n",stdout);
         loopend:
-            fclose(finptr);
+            VOID fclose(finptr);
         } while( ++argv, --argc >= 1);
         exit(nerror!=0);
 }
@@ -409,41 +440,41 @@ int                              trunk;
         if ( ( node == nil) || ( node->selector == 'u'))
             return;
 
-        fprintf(stdout,"----------------------------\n");
-        fprintf(stdout, "revision %s        ",node->num);
+        VOID fprintf(stdout,"----------------------------\n");
+        VOID fprintf(stdout, "revision %s        ",node->num);
         if ( node->lockedby )
-           fprintf(stdout, "locked by: %s;       ", node->lockedby);
-        putc('\n', stdout);
+           VOID fprintf(stdout, "locked by: %s;       ", node->lockedby);
+        VOID putc('\n', stdout);
 
-        fputs("date: ",stdout);
-        PRINTDATE(stdout,node->date); putc(' ',stdout);
-        PRINTTIME(stdout,node->date);
-        fprintf(stdout, ";  author: %s;  ", node->author);
-        fprintf(stdout, "state: %s;  ", node->state);
+        VOID fputs("date: ",stdout);
+        VOID PRINTDATE(stdout,node->date); VOID putc(' ',stdout);
+        VOID PRINTTIME(stdout,node->date);
+        VOID fprintf(stdout, ";  author: %s;  ", node->author);
+        VOID fprintf(stdout, "state: %s;  ", node->state);
 
         if ( editscript )
            if(trunk)
-              fprintf(stdout,"lines added/del: %d/%d",
+              VOID fprintf(stdout,"lines added/del: %d/%d",
                              editscript->deletelns, editscript->insertlns);
            else
-              fprintf(stdout,"lines added/del: %d/%d",
+              VOID fprintf(stdout,"lines added/del: %d/%d",
                              editscript->insertlns, editscript->deletelns);
 
-        putc('\n', stdout);
+        VOID putc('\n', stdout);
 
         branchnum = & (branch[0]);
         newbranch = node->branches;
         if ( newbranch ) {
-           fputs("branches:  ", stdout);
+           VOID fputs("branches:  ", stdout);
            while( newbranch ) {
                 getbranchno(newbranch->hsh->num, branchnum);
-                fprintf(stdout, "%s;  ", branchnum);
+                VOID fprintf(stdout, "%s;  ", branchnum);
                 newbranch = newbranch->nextbranch;
            }
-           putc('\n', stdout);
+           VOID putc('\n', stdout);
         }
 
-        fputs(node->log,stdout);
+        VOID fputs(node->log,stdout);
 }
 
 
@@ -464,7 +495,7 @@ readdeltalog()
         if ( ! getkey(Klog) || ( nexttok != STRING ) )
                 fatserror("Missing log entry");
         Delta->log = malloc(logsize);
-        savestring(Delta->log, logsize);
+        VOID savestring(Delta->log, logsize);
         nextlex();
         if ( ! getkey(Ktext) || (nexttok != STRING) )
                 fatserror("Missing delta text");
@@ -702,7 +733,7 @@ struct	Datepairs	* pd;
         if ( root->selector == 's') {
              if ( cmpnum(root->date, pd->strtdate) >= 0 &&
                   cmpnum(root->date, pd->enddate) <= 0)
-		strcpy(pd->strtdate, root->date);
+		VOID strcpy(pd->strtdate, root->date);
         }
 
         recentdate(root->next, pd);
@@ -850,7 +881,7 @@ char * target, * source;
 	    return nil;
 	}
 	ftm = localtime(&unixtime);
-	sprintf(target,DATEFORM,
+	VOID sprintf(target,DATEFORM,
 	ftm->tm_year,ftm->tm_mon+1,ftm->tm_mday,ftm->tm_hour,ftm->tm_min,ftm->tm_sec);
 	return target;
 }
@@ -895,8 +926,8 @@ getdatepair(argv)
 		if (procdate(switchflag?nextdate->enddate:nextdate->strtdate,
 			     rawdate)==nil) continue;
 		if ( c == ';' || c == '\0') {  /*  case: -d date  */
-		    strcpy(nextdate->enddate,nextdate->strtdate);
-		    sprintf(nextdate->strtdate,DATEFORM,0,0,0,0,0,0);
+		    VOID strcpy(nextdate->enddate,nextdate->strtdate);
+		    VOID sprintf(nextdate->strtdate,DATEFORM,0,0,0,0,0,0);
                     nextdate->dnext = duelst;
                     duelst = nextdate;
 		    goto end;
@@ -925,7 +956,7 @@ getdatepair(argv)
 	    datelist = nextdate;
      end:
 /*
-	    printf("startdate: %s; enddate: %s;\n", nextdate->strtdate,nextdate->enddate);
+	    VOID printf("startdate: %s; enddate: %s;\n", nextdate->strtdate,nextdate->enddate);
 */
 	    if ( c == '\0')  return;
             while( (c = *++argv) == ';' || c == ' ' || c == '\t' || c =='\n');
@@ -939,6 +970,7 @@ getdatepair(argv)
 getnumericrev()
 /*  function:  get the numeric name of revisions which stored in revlist  */
 /*             and then stored the numeric names in Revlst                */
+/*             if branchflag, also add default branch                     */
 
 {
         struct  Revpairs        * ptr, *pt;
@@ -948,7 +980,7 @@ getnumericrev()
         /*  free the previous numeric revision list  */
         pt = Revlst;
         while( pt) {
-           free(pt);
+           free((char *)pt);
            pt = pt->rnext;
         }
         Nextdotstring = &Dotstring[0]; /* reset buffer */
@@ -1014,8 +1046,24 @@ getnumericrev()
                 Revlst = pt;
              }
              else
-                free(pt);
+                free((char *)pt);
              ptr = ptr->rnext;
+        }
+        /* Now take care of branchflag */
+        if (branchflag) {
+            flag =true;
+            pt = (struct Revpairs *) malloc(sizeof(struct Revpairs));
+            if (Dbranch) {
+                pt->strtrev = pt->endrev = Dbranch->num;
+            } elsif (Head!=nil) {
+                pt->strtrev = pt->endrev = /* branch number of head */
+                    partialno(Nextdotstring,Head->num,1);
+                while( *Nextdotstring++ != '\0' ) ;
+            } else flag = false;
+            if (flag) { /* prepend new node */
+                pt->rnext=Revlst; Revlst=pt;
+                pt->numfld = countnumflds(pt->strtrev);
+            }
         }
 
 }

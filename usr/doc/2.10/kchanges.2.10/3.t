@@ -82,6 +82,7 @@ use the following structure, also found in \fIh/dir.h\fP.
 	};
 .ft R
 .fi
+.bp
 This allows access to both the old and new directory structures.
 Make sure that you change all of the references, e.g. ``struct direct''
 should be ``struct v7direct''.  \fIFsck\fP(8) and \fIdump\fP(8) are
@@ -138,9 +139,8 @@ you'll have to scan any source you plan on porting for calls to
 \fIsigblock\fP, \fIsigpause\fP, or \fIsigsetmask\fP that take an int
 as a parameter or store their return value in an int.
 .IP
-To give an indication of the subtlety the \fIlong/int\fP problem can take
+To give an indication of the subtlety the long/int problem can take
 on, consider the following code fragment taken from /sys/sys/tty.c:
-.bp
 .nf
 .ft B
 
@@ -163,6 +163,7 @@ simple in this instance and yields the following:
 .fi
 This particular type of low word masking bit us no less than 33 times in
 the kernel.  Other possibilities that are even more annoying:
+.bp
 .nf
 .ft B
 .ta .5i +\w'#define   'u +\w'FLAG32    'u
@@ -215,7 +216,7 @@ The 4.3BSD loader uses the \fI-L\fP flag to specify a list of library
 directories that should be searched for libraries specified with the
 \fI-l\fP option.  The old meaning of the \fI-L\fP flag, the termination
 of overlaid text, is now the function of the \fI-Y\fP flag.
-.IP 13
+.IP 13)
 \fIreadv\fP(2) and \fIwritev\fP(2) are implemented as compatibility
 routines in the standard library and are semantically identical to the
 4.3BSD \fIreadv\fP and \fIwritev\fP on all current descriptors, with the

@@ -8,7 +8,8 @@
 ALL=	routed
 OBJS=	af.o if.o input.o main.o output.o startup.o tables.o timer.o \
 	trace.o inet.o
-CFLAGS=
+CFLAGS=	-O
+SEPFLAG=-i
 C2=	/lib/c2
 INLINE= /sys/machine/inline/inline
 DESTDIR=
@@ -17,7 +18,7 @@ LDFLAGS=
 all:	${ALL}
 
 routed: ${OBJS}
-	${CC} -o routed ${LDFLAGS} ${OBJS}
+	${CC} ${SEPFLAG} -o routed ${LDFLAGS} ${OBJS}
 
 install: routed
 	install -s routed ${DESTDIR}/etc

@@ -1,0 +1,703 @@
+AAFILES.HLP                                                      (29 Feb 88)
+
+                    COLUMBIA UNIVERSITY KERMIT DISTRIBUTION
+
+This file explains what files are in the Kermit distribution and gives the
+naming conventions for them.
+
+        If you are reading this from a handout supplied with a
+        Kermit distribution tape, please note that this information
+        might not be quite up to date -- there may be files on the
+        tape that are not listed here.  The copy of this file,
+        AAFILES.HLP, on the tape might be more current.
+
+The file AAFILx.DIR contains an up-to-date alphabetical directory listing of
+all the files in the respective Kermit distribution area (KER:, Tape A; K2:,
+Tape B; K3:, Tape C; etc.) -- one such file is created in each area by a
+nightly batch job (x is A, B, C, etc).  The directory listing supplied on paper
+with your tape should reflect exactly which files are on the tape, and in what
+order.
+
+The Kermit distribution areas include all the versions of Kermit which are
+in our possession.  The files have names of the form
+
+        NAME.TYPE
+
+where NAME is the name of file, and TYPE is its type (program source,
+documentation, executable core image, etc).  No NAME is more than 9
+characters long (the maximum accepted by VAX/VMS), and every NAME starts
+with a letter and is unique in the first 6 characters (the maximum under
+TOPS-10, RSTS/E, etc).  On TOPS-10 BACKUP Interchange tapes, names longer
+than 6 will be truncated to 6.  No type is longer than 3 characters.  NAME
+and TYPE are separated by a period.
+
+* Types
+
+The files types don't follow a strict convention because the files originate
+on so many different systems.  But there are some patterns; here are some
+commonly used file types --
+
+For Text Files:
+
+  .BLD - Instructions for building
+  .BWR - A "beware" file, listing known bugs, limitations, or other problems
+  .DIF - Differences (produced by file comparison program)
+  .DOC - Documentation (usually long)
+  .HLP - Help message (like DOC but usually shorter)
+  .INS - Installation instructions
+  .MAN - A manual
+  .MEM - Documentation ("memo") produced by DEC Runoff
+  .MSG - A text or mail message of some kind
+  .MSS - Scribe text formatter source (for some of the .DOC files)
+  .NR  - Nroff text formatter source
+  .RNH - Runoff text formatter source for .HLP files
+  .RNO - Runoff text formatter source for .MEM files
+  .TEX - TeX source
+  .TXT - Text (usually shorter, sometimes in electronic mail message format)
+  .UPD - Program update history
+
+For Program Source:
+
+  .A   - Assembler
+  .A68 - Algol-68
+  .A86 - 8086 assembler
+  .ADA - Ada
+  .ALG - Algol-60
+  .ASM - Assembler
+  .B   - B language
+  .BAS - Basic
+  .BLI - Bliss
+  .BOO - "boo" format printable encoding of object or executable program
+  .C   - C language
+  .CLU - CLU language
+  .F   - Fortran (Unix)
+  .F77 - Fortran-77
+  .FOR - Fortran
+  .FTN - Fortran
+  .H   - Header file for C or ASM program
+  .H86 - 8086 hexadecimal encoding of object or executable program
+  .HEX - Hexadecimal encoding of object or executable program
+  .HQX - "binhex" encoding of object or executable program
+  .LSP - Lisp source code
+  .MAC - Macro assembler
+  .MAR - VAX assembler
+  .PAS - Pascal
+  .PL1 - PL/I
+  .PLC - PL/C
+  .PLI - PL/I
+  .PLM - PL/M
+  .REQ - VAX "require" (header) file
+  .SAI - Sail
+  .SCR - A FORTH "screen"
+  .SRC - Source program
+
+For System or Command Files:
+
+  .BAT - A batch control file (e.g. for MS-DOS)
+  .CMD - A command file of some kind
+  .COM - VAX or PDP-11 DCL command file
+  .CTL - A batch control file (e.g. for DEC-10/20)
+  .INI - Initialization command file
+  .JCL - Job control language (e.g. for Harris)
+
+* Prefixed File Names:
+
+The file names for files associated with each implementation of Kermit are
+prefixed by a few characters denoting the implementation.  Although the files
+are kept in separate areas, each prefix is unique among all the Kermit files,
+so that areas can be combined into a single area without any confusion.  The
+following are presently used, (Items marked with asterisk have fuller
+explanations below):
+
+-- "micros" (tape A) --
+
+        APP     Apple II               DOS 3.3 or ProDos     6502 Assembler
+        AST     Atari ST Series        GEM                   C
+        ATA     Atari Home Computer    DOS                   Action!
+        C64     Commodore 64           DOS                   CROSS (or FORTH*)
+       *C86     8086/8088 (see below)  CP/M-86               ASM86
+        CC      TRS-80 Color Computer Disk-Extended Color BASIC EDTASM
+       *CP4     8080,8085,Z80(see below) CP/M-80             LASM
+       *CPM     8080,8085,Z80 -- obsolete, see below --
+        CX      Experimental new release of CP/M-80 Kermit   LASM
+        K6      OS9/68000 Portable     various               Assembler
+        M4      TRS-80 Model 4         TRSDOS                ASM
+       *MS      Various (see below)    MS-DOS or PC-DOS      MASM
+        QK      (various, see below)                         Turbo Pascal
+        TA2     Tandy 2000             MS DOS                MASM
+        TRS     TRS-80 I and III       TRSDOS                Z80 Assembler
+        TR2     TRS-80 Model II        TRSDOS                Z80 Assembler
+        WIN     IBM PC, etc            MS-DOS w/MS-Windows   Microsoft C 4.0
+        WK      IBM PC family          PC DOS                Lattice C
+
+      * See below for notes about MS-DOS and CP/M Kermits.
+
+-- "mainframes" (Tape B) --
+
+      Prefix    Machine(s)             Operating System      Language
+
+       *CK      VAX, SUN, many others  UNIX                  C
+       *CK      VAX                    VMS                   C
+       *CK      Apple Macintosh        Mac OS                C
+       *CK      Commodore Amiga        AmigaDOS/Intuition    C
+       *CK      Data General MV Series AOS/VS                C
+       *CK      Apollo                 Aegis                 C
+        CM2     IBM 370 Series         VM/CMS                Pascal/VS
+        IK      IBM 370 Series         VM/CMS                IBM Assembler
+        K10     DECsystem-10           TOPS-10               MACRO-10
+       *K11     DEC PDP-11             RSX11,RSTS/E,RT11,TSX MACRO-11
+       *K11     DEC PDP-11             P/OS, Pro/RT, IAS 3.1 MACRO-11
+        K20     DECSYSTEM-20           TOPS-20               MACRO-20
+        MP      DEC PDP-11             MUMPS (M/11)          MUMPS
+       *TSO     IBM 370-series/3705    MVS/TSO               Assembler
+       *TS2     IBM 370-series/Series1 MVS/TSO               Pascal/VS,PL/I,etc
+       *TS3     IBM 370-series/3708    MVS/TSO               Assembler
+       *TSN     IBM 370-series/3705    MVS/TSO               Assembler/ALP
+        UX      Old, old, small Unix Kermit                  C
+       *VMS     VAX                    VMS                   Bliss-32
+
+* C-Kermit (Prefix CK, Tape B):
+
+C-Kermit is a transportable version of Kermit written in the C language.  It is
+composed of many modules, some system-independent, some system-specific.
+C-Kermit has been implemented on many systems, some "mainframes" and some
+"micros".  In particular, the Unix version runs on machines ranging from large
+IBM mainframes to VAX and other minicomputers to small PC's, and Kermit
+programs for the Apple Macintosh, the Commodore Amiga, VAX/VMS, DG AOS/VS,
+Apollo Aegis, CDC VX/VE, and many other systems can also be generated from
+C-Kermit.  All the C-Kermit source files are kept together on tape B to avoid
+the problems that would be introduced by splitting up the files or keeping
+duplicate copies.  See the file CKAAAA.HLP for an explanation of the file
+naming conventions for C-Kermit.
+
+* The K11 files include support for RSX, RSTS, RT11, TSX+, IAS, and P/OS -- See
+  K11INS.DOC for details.
+
+* The VAX/VMS Bliss version is also provided in MACRO-32 (.MAR) source form for
+  those sites that do not have a Bliss compiler, as well as in a hexadecimal
+  encoding of the task image.  YOU DON'T NEED TO HAVE BLISS IN ORDER TO RUN
+  THIS VERSION.  See VMSAAA.HLP.
+
+* Among the TSO Kermits, you should probably try the TSN version first.  The
+  TSO versions (one for linemode, a separate one for Series/1-style 3270
+  emulation) are very old and primitive.  The Pascal version requires a Pascal
+  compiler and supports only linemode connections.  The TSN version, from
+  NIH, supports only linemode connections, but includes many advanced features.
+  There's also version with the prefix TS3, which supports the 3708 front end.
+  Many of these will be replaced by "portable 370" Kermit soon, under prefix
+  IK0 and IKT.
+
+  For VM/CMS, please try the new IK*.* version.  This is "portable 370"
+  Kermit, which is a very advanced Kermit implementation, to which support for
+  other IBM 370 operating systems, like MVS/TSO, DOS/VSE, MTS, MUSIC, etc,
+  should be easy to add.  It supports most of the advanced Kermit options
+  (long packets, etc), and both line mode and full screen connections.
+
+-- Less popular micros & workstations (tape C) --
+
+        AC      Acorn BBC Workstation  Panos                 C
+        AM      Alpha Micro 68000      AMOSL                 Alpha Asm 68K
+        APL     Apollo                 Aegis                 Pascal
+        APO     Apollo                 Aegis                 Pascal
+        BBC     Acorn BBC Micro        OS1,2,3,Panos         (various)
+        CIE     CIES 680/XX            REGULUS               C
+        CN8     (various)              Concurrent CP/M-86    ASM86
+	EXP     TI Explorer              -		     Common Lisp
+	FL      Motorola 6809          FLEX-09 or SK*DOS     C or 6809 Asm
+        HL6     Honeywell L6/10        MS-DOS                MASM
+        HP2     HP-264x                  ?                   8080 Assembler
+        HP8     HP-86, HP-87           HP BASIC              HP BASIC
+        HP9     HP-98x6                UCSD p-System         HP Pascal
+        I86     Intel 86/380           iRMX-86               PL/M
+        IRMX    Intel 86/380           iRMX-86               PL/M
+        LM      LMI or Symbolics       Lisp Machines         ZetaLisp
+        LUX     Luxor ABC-800          ABCDOS                BASIC-II
+        M2      Lilith Workstation     Medos                 Modula-2
+        MD2     Intel Development System ISIS                PL/M
+        MDS     Intel Development System ISIS                PL/M
+        OS9     Various                Os9                   C
+        PQK     ICL/3 Rivers PERQ      PERQ OS               Pascal
+        PRO     DEC Professional-350   P/OS                  Bliss
+        QLK     Sinclair QL            QDOS                  C
+        QL2     Sinclair QL            QDOS                  BCPL
+        QNX     IBM PC, Rainbow, etc   QNX                   C
+        RML     Research Machines      ROS, ...              C
+        RMX     Intel 286/10, etc      RMX-86                PL/M
+        TRI     various                TRIPOS                BCPL
+        UCA     Apple II               UCSD p-System         Pascal
+        UCI     IBM PC                 UCSD p-System IV.x    Pascal
+        UCJ     Joyce Loebl Magiscan 2 UCSD p-System         Pascal
+        UCM     Pascal Microengine     UCSD p-System         Pascal
+        UCT     Terak 8510a            UCSD p-System II.0    Pascal, Macro-11
+        UM      U-Micro U-Man 1000     CP/M-68K              C & 68000 Asm
+        VIC     Sirius 1/Victor 9000   MS-DOS                C
+
+-- Less popular minis & mainframes (tape D) --
+
+        AOS     Data General           AOS, AOS/VS           Fortan, Pascal
+        B68     Burroughs B6800        ?                     Algol
+        B78     Burroughs B7800 & A    ?                     Algol
+        B79     Burroughs B7900        ?                     Algol
+        CDC     CDC Cyber 170          NOS                   Fortran-77
+        CD3     CDC Cyber              NOS                   Fortran 5
+        CR      Cray-1, Cray-XMP       CTSS                  Fortran-77
+       *CUC     (various)              Unix                  C
+	CVK     Computervision         CGOS                  Fortran S
+        CYB     CDC Cyber              NOS 2.2               Compass
+        DGM     Data General           AOS/VS with MV/UX     C
+        DTS     Honeywell 6000         DTSS                  Virtual PL/I
+        GEC     GEC 4000 Series        OS-4000 (RAL)         SERC
+        GM      Gould/SEL-32           MPX-32                Fortran 77+
+        GUTS    IBM 370 Series         GUTS                  Assembler
+        H1      Harris 100             VOS                   Fortran
+        H8      Harris 800             VOS                   Pascal, Assembler
+        HC6     Honeywell DPS 8, 66    CP6                   PL/6
+        HCP     Honeywell DPS 8, 66    CP6                   Pascal
+        HD6     Honeywell DPS 6        GCOS 6                ? (no source)
+        HDP     Honeywell DPS 8, 66    GCOS                  B
+        HG      Honeywell DPS 8, 66    GCOS3 or 8            C
+        HP3     Hewlett-Packard 3000   MPE                   SPL
+        HPM     Hewlett-Packard 1000   RTE-6/VM & RTE-A      F-77 & Asm
+        IMU     IBM 370 Series         MUSIC                 Assembler
+        K08     DEC PDP-8              OS8, RTS8             PAL-8
+        K27     DEC PDP-8              OS-278                PAL-8
+	MOD	MODCOMP Classic        MAX IV                Fortran/ASM
+        MTS     IBM 370 Series         MTS                   Assembler, Pascal
+        MT2     IBM 370 Series         MTS                   PLUS
+        MU      Honewyell              MULTICS               PL/I
+        ND      ND-10/100/500          Simtran III Rev J     ND Pascal J
+        NOS     CDC Cyber              NOS 2.4               Compass
+        PER     Perkin-Elmer 3200      OS/32                 Fortran
+        PE2     Perkin-Elmer 3200      OS/32 MT72            Fortran
+        PE7     Perkin-Elmer 7000      IDRIS                 C
+        PIC     Microdata (McD-Dougl)  REALITY (PICK)        DATA/BASIC
+        PRI     PRIME                  PRIMOS                PL/P (PL/I)
+        RDOS    Data General Nova      RDOS                  Fortran
+        RD2     Data General Nova      RDOS                  Basic
+        RT      PDP-11                 RT-11                 OMSI Pascal
+        SP9     Sperry 90/60           VS9                   Assembler
+        ST      HP3000, Univac, etc    Software Tools        Ratfor
+        TAN     Tandem                 Nonstop               TAL
+        TI9     TI-990                 DX10                  Pascal
+        UN      Sperry/Univac-1100     EXEC                  Assembler
+        VME     ICL 2900               VME                   S3
+        VX      VAX                    VMS                   Pascal and Fortran
+
+* UCL C-Kermit (Prefix CUC, Tape D):
+
+A trim version of Kermit from England, written in C, without all the fancy
+features of the above C-Kermit, but possibly somewhat more efficient.  Runs on
+Berkeley and ATT Unix systems.
+
+-- Documentation sources, mail archives, etc. (Tape E) --
+
+        BY      Byte Mag Kermit Article, Jun-Jul 84          English
+        GER     Kermit documentation in...                   German
+        IBM     IBM mainframe Kermit discussion panel        English
+        KP      Kermit Protocol Manual                       English
+        KU      Kermit User Guide                            English
+        MA      Info-Kermit Electronic Mail Digests '83-now  English
+        NEW     Kermit Newsletters                           English
+        POR     Kermit documentation in...                   Portuguese
+
+* Manuals and other documentation (Tape E):
+
+    Note: The protocol manual and user guide were recently moved to
+    Tape E due to lack of space on the other tapes.
+
+There are two Kermit manuals: KUSER and KPROTO, a user's guide and a protocol
+manual, respectively.  They are provided in three forms:
+
+ .MSS    Scribe (UNILOGIC Ltd text formatter) source.
+ .DOC    No special effects, suitable for reading at a terminal.
+ .FOR    Fortran carriage control for overprinting, etc.
+
+If you have Scribe and the appropriate Scribe device drivers, you can run the
+.MSS files through it to produce output suitable for printing on any device
+supported at your site, including the Xerox-9700, Imagen, Apple LaserWriter, or
+other multifont laser printers or photocomposers.  Note that some parts of the
+user manual rely on underlining to clarify examples; the underlines are missing
+from the .DOC files, but will be produced if you run the .MSS files through
+Scribe for a device capable of underlining (line printer, daisy wheel, laser
+printer, etc).
+
+The user's guide is intended for users of Kermit (including those who want to
+install it), the protocol manual is for those who would like to write a new
+implementation (i.e. a Kermit program for a new machine or operating system).
+
+IMPORTANT: The Users Guide is always out of date.  New implementations of
+Kermit, and new versions of old ones, arrive in a steady stream.  It's
+impossible to keep the manual totally current.  The general description of
+Kermit operation remains valid, but detailed descriptions of the various
+versions are better obtained from the accompanying help (.HLP), beware (.BWR),
+documentation (.DOC), memo (.MEM), or manual (.MAN) files.  Look to these files
+for information missing from the user manual.
+
+    For a detailed presentation of Kermit, from tutorials on computers,
+    files, and data communications, to a thorough description of the
+    protocol itself, plus a command reference, command summary,
+    troubleshooting guide, glossary, index, and many tables and
+    illustrations, see the book "Kermit, A File Transfer Protocol," by
+    Frank da Cruz, Digital Press (1986), ISBN 0-932376-88-6, available
+    from Kermit Distribution at Columbia, or directly from Digital
+    Press, 12A Esquire Road, Billerica, MA 01862, order number
+    EY-6705E-DP, $25.00.
+
+ASCII.MSS is the ASCII/EBCDIC character table, which is included as an
+appendix in both manuals.
+
+KUSER.HYP is a hyphenation dictionary for building the manuals with Scribe.
+
+BYTE.MSS is the manuscript of the KERMIT article that was published in BYTE
+Magazine in June and July, 1984.  BYTE.DOC is suitable for reading at the
+terminal, BYTE.MSS may be run through Scribe to produce output for various
+printing devices, BYTE.BIB is the bibliography.
+
+MAIL.* is the archive of the CCNET/BITNET/ARPANET KERMIT discussion group.
+MAIL.TXT is the current, active mail file, found on Tape A.  MAIL.yyx (e.g.
+MAIL.83A) files contain older messages, and these are kept on Tape C.
+MAIL.HLP describes the format of the mail files.
+
+*** IMPORTANT ***
+
+        Before doing anything with any particular version, look for
+        an associated file with the suffix ".HLP" (help) or ".BWR"
+        (beware).  These files will often tell you special things
+        you should know before starting to put together a working
+        program from the distribution.
+
+* MS-DOS Kermit Implementations (Prefix MS, Tape A):
+
+See the file MSAAAA.HLP for an explanation of MS-DOS Kermit file naming
+conventions.  The following .BOO files are provided for current MS-DOS
+implementions.  BOO files are downloaded and decoded into .EXE files using
+MSBOOT.FOR on the mainframe and MSBPCB.BAS on the MS-DOS system, or downloaded
+directly to the PC and translated to .EXE files using MSBPCT.BAS or MSBPCT.EXE
+(compiled from MSBPCT.C), or MSBPCT.PAS (Turbo Pascal).  Some of the MSV*.BOO
+files correspond to version 2.30 of MS-DOS Kermit, others to 2.29, and still
+others perhaps even to earlier version.  It depends on which was the latest
+version successfully tested on that machine.  For fallback purposes, BOO files
+for old releases for some systems may be found in MSO*.BOO.  Beta tests of new
+releases are in MST*.BOO.
+ 
+ MSV55X.BOO       Sanyo MBC-550 with IBM compatible video board
+ MSVAP3.BOO       NEC APC3
+ MSVAPC.BOO       NEC APC
+ MSVAPR.BOO       ACT Apricot
+ MSVDM2.BOO       DECmate-II,III with XPU (MS-DOS) option
+ MSVGEN.BOO       Generic MS-DOS
+ MSVGRI.BOO       Grid Compass II
+ MSVHP1.BOO       Hewlett-Packard 150
+ MSVHPX.BOO       HP-110 and HP Portable Plus
+ MSVIBM.BOO       IBM PC, Portable PC, XT, AT, PCjr**, and compatibles
+ MSVMBC.BOO       Sanyo MBC-550
+ MSVRB1.BOO       DEC Rainbow 100 Series
+ MSVRB2.BOO       A special fancy Rainbow version that does VT220 emulation
+ MSVRMX.BOO       Intel 300 series with iRMX-86
+ MSVTIP.BOO       Texas Instruments Professional PC
+ MSVWNG.BOO       Wang PC
+ MSVZ10.BOO       Heath/Zenith 100
+ MXVV90.BOO       Victor 9000 (Sirius 1)
+
+ Source and other MS-DOS Kermit files:
+
+ MSSDEF.H,MSS*.ASM Sources
+ MSG*.ASM         System dependent graphics terminal emulation
+ MSU*.ASM         System dependent keyboard support
+ MSX*.ASM         System dependent source modules
+ MSY*.ASM         Terminal emulation modules
+ MSZ*.ASM         Continuation of terminal emulation when MSY module too big
+ MSKERM.DOC       Kermit User Guide chapter for MS-DOS Kermit (long)
+ MSKERM.HLP       Brielf list of MS-Kermit commands
+ MSKERM.BWR       "Beware File" -- Known bugs & limitations.  Read it!
+ MS*.HLP, MS*.BWR Help and Beware files for specific systems.
+
+The IBM version runs on the entire IBM PC and PS/2 families, clones and
+compatibles (e.g. Compaq, AT&T 6300, DEC VAXmate), and near-clones like the
+Heath/Zenith 100 with UCI EZPC board, Olivetti M24, Seequa Chameleon, and
+Data General/1.
+
+The generic version (MSVGEN) should run on any MS-DOS system, because it
+operates using only DOS calls.  But this means it runs slowly (usually 1200
+baud or less), and cannot do fancy screen management or terminal emulation.
+
+The Tandy, Honeywell, and some other MS-DOS versions listed above under their
+own prefixes are based on older versions of IBM PC Kermit; these have yet to be
+merged with the current MS/PC-DOS version.  Volunteers?
+
+* WKERMIT (Tape A):
+
+An adaptation of an early version of C-Kermit to run on the IBM PC family
+and compatibles.  It is the first PC implementation of Kermit with the sliding
+window protocol extension.  The .EXE file is formatted as a .BOO file (see
+above).  It requires a modem, or a null modem cable that provides normal
+modem signals.  The source code for WKERMIT should not be used as the basis
+for any development, as it is several releases behind C-Kermit.
+
+* WINKERM (Tape A):
+
+A version of Kermit specifically tailored for the multitasking Microsoft
+Windows environment.
+
+* CP/M-80 Kermit Implementations (Tape A):
+
+The following .HEX files for specific CP/M-80 implementations are included:
+
+ CP4*.ASM     The current, working source files for CP/M KERMIT.
+ CP4KER.DOC   User documentation (chapter from the manual).
+
+ CP4KER.HEX   System-independent portion, to be combined with one of
+              the following system-dependent "overlays":
+
+ CP4380.HEX   Research Machines RM380Z
+ CP438M.HEX   Research Machines RM380Z
+ CP4820.HEX   Xerox 820
+ CP4ACC.HEX   Access-Matrix
+ CP4ADV.HEX   North Star Advantage
+ CP4APC.HEX   Apple II, Z80 Softcard, CPS serial card
+ CP4APL.HEX   Apple II, Z80 Softcard, 6551 ACIA in serial interface
+ CP4APM.HEX   Apple II, Z80 Softcard, Micromodem II in slot 2
+ CP4BB2.HEX   BigBoard II (terminal required)
+ CP4BBC.HEX   Acorn BBC Micro, Z80 second processor
+ CP4BRA.HEX   Intertec SuperBrain, aux port.
+ CP4BRM.HEX   Intertec SuperBrain, main port.
+ CP4BRN.HEX   Intertec SuperBrain.
+ CP4CIF.HEX   Cifer 1886
+ CP4COM.HEX   Comart Communicator
+ CP4CP3.HEX   "generic": CP/M 3.0 (CP/M Plus) systems (terminal req'd)
+ CP4CPT.HEX   CPT-85xx word processors with CompuPak CP/M
+ CP4CRO.HEX   Cromemco
+ CP4DEL.HEX   Digicomp Delphi 100 (terminal required)
+ CP4DIS.HEX   Action Computer Enterprises Discovery
+ CP4DM2.HEX   DECmate II with CP/M option
+ CP4GEN.HEX   "generic": CPM 2.2 systems with IOBYTE (terminal req'd)
+ CP4H89.HEX   Heath/Zenith H89.
+ CP4HOR.HEX   North Star Horizon without SIO board
+ CP4HP1.HEX   Hewlett-Packard 125
+ CP4KPR.HEX   Kaypro-II (and 4; probably supports all Kaypro systems)
+ CP4LOB.HEX   Lobo Max-80
+ CP4MDI.HEX   Morrow Decision I (terminal required)
+ CP4MIK.HEX   MikroMikko
+ CP4NST.HEX   Northstar Horizon with Northstar CP/M and SIO-4 board
+ CP4OSB.HEX   Osborne 1
+ CP4OSI.HEX   Ohio Scientific
+ CP4PMM.HEX   Personal Micro Computer MicroMate
+ CP4PX8.HEX   Epson PX8 Portable
+ CP4ROB.HEX   DEC VT180
+ CP4TEL.HEX   TELCON Zorba portable
+ CP4TLB.HEX   TRS-80 model II with Lifeboat 2.25C CP/M Display
+ CP4TOR.HEX   BBC Torch Series
+ CP4TPT.HEX   TRS-80 model II with Pickles + Trout CP/M Display
+ CP4TTK.HEX   Teletek with ADM-22 terminal
+ CP4UDI.HEX   Morrow Micro Decision I (terminal required)
+ CP4VEC.HEX   Vector Graphics.
+ CP4Z00.HEX   Z-100 under CP/M-85
+
+The following are standalone hex files that can be directly loaded (not
+combined with CP4KER.HEX):
+
+ CPMH8.HEX    Heath H8 (based on version 3.5 of CP/M-80 Kermit)
+ CPMPRO.HEX   Compupro Interfacer 3/4  (based on version 3.9)
+ CPMSYO.HEX   Sanyo MBC 1100 (version 3.9)
+
+The Kermit User Guide contains instructions for installing or bootstrapping
+the various versions of CP/M Kermit.  The bootstrapping program is also stored
+in the files CP4FET.*.  A BASIC program, CP4HEX.BAS, can be used on the CP/M
+system to verify and edit a downloaded hex file prior to loading.
+
+* CP/M-86 Kermit Implementations (Tape A):
+
+The CP/M-86 Kermit file names all start with C86.  Those whose fourth
+character is X are system-dependent files for particular systems:
+
+ C86XAP       NEC APC
+ C86XFJ       Fujitsu Micro 16s
+ C86XFU       Future FX20/FX30
+ C86XRB       DEC Rainbow, CP/M-86/80 V2 (C86XR2 is an alternate version)
+ C86XTX       Tektronix 4170
+ C86XV9       Victor 9000/Sirius 1
+
+The .H86 files are hex files, convertible to runnable .CMD files by
+running them through GENCMD on the micro.  There's also a Concurrent CP/M-86
+version under the prefix CN8 (on Tape C).
+
+* Queen's University Turbo Pascal Kermit (Tape A)
+
+Runs on several systems.  All source files concatenated together into
+a big source file, QKKER.PAS, with component file separated by lines like
+
+(* +FILE+ filename *)
+
+The runnable program image (.COM file) is encoded into straight hexadecimal
+(2 hex digits for one byte from the .COM file) for the following systems:
+
+ QKMSTV.HEX	IBM PC family, MS-DOS, with VT100 & Tektronix 4010 emulation
+ QKMSVT.HEX     IBM PC family, MS-DOS, with VT100 emulation
+ QKCPK2.HEX     Kaypro II, CP/M-80
+ QKAPP2.HEX     Apple II, DOS
+
+A simple Turbo Pascal program is provided to convert these hex files back
+into .COM files -- QKHEXC.PAS.  Key definition files are also provided; you
+need to have one on your current disk in order to run the program.
+
+* Other Files (All tapes):
+
+AAAREAD.ME is a file that describes some other files which can help you
+find your way among the hundreds of Kermit files.
+
+AAFILES.HLP is this file.
+
+AATAPE.HLP explains the format and layout of Kermit tapes.
+
+AAXFLY.DOC is the Kermit "brochure" and order form.
+
+AAVNEW.HLP is a list of the current versions of Kermit in reverse chronological
+order, to help you see what has changed since the last time you looked.
+
+AAWAIT.HLP is a list of Kermit versions reportedly under development, for
+which we are still waiting.
+
+AAXCOM.HLP is a policy statement concerning commercial use of Kermit.
+
+AABLIND.HLP is a list of hints for use of Kermit, and microcomputers in
+general, by the blind or people with other disabilities.
+
+KERMIT.FOR is a short receive-only version of Kermit written in Fortran,
+to be used for bootstrapping Kermit onto systems that don't have a real
+Kermit from a system that does.
+
+
+* Tools (Tape A):
+
+LASM and MLOAD are the public-domain CP/M-80 linking assembler and loader,
+that run on the CP/M system, and may be used to build Kermit-80.
+
+UUDECO.C is a version of UUDECODE that has been changed to supply any trailing
+blanks on lines in UUENCODEd files that may have had them stripped off by
+electronic mail (like on BITNET).
+
+XXU.C is a program for use on Unix systems that renames files with "foreign"
+names (e.g. uppercase, or including directory or path information, generation
+numbers, etc), to have normal Unix-style names.
+
+XXTAPE.* is a program to write ANSI and EBCDIC labeled tapes on a Unix system.
+Also needs XXATOE.C.
+
+APXA*.* is a program written in C that does what CROSS does, but only produces
+6502 output (CROSS can produce many formats).  This program can assemble
+Apple DOS Kermit (APPLEK.M65).  (Actually, there might be minor differences in
+syntax, like whether or not a colon is required after a label...)
+
+* DEC-10/20 Tools:
+
+The following tools are specific to DECsystem-10 and DECSYSTEM-20 computers,
+and will not appear on distribution tapes for other kinds of systems, and will
+only appear at the end of DEC-10/20 tapes if there is sufficient room.  The
+tools files are stored separately in KT:, <KERMIT-TOOLS>.
+
+The files MAC80.*, M80UNV, etc, are an 8080/8085/Z80 cross assembler that runs
+on the DEC-10 or DEC-20; MAC80.DOC is a brief description.  TORTUR.M80 is an
+8080 instruction set "torture test" for MAC80, which illustrates its features.
+ZORTUR.M80 is a Z80 instruction set torture test.  MAC80 is used to assemble
+CP/M KERMIT, and is mostly compatible with the standard CP/M 8080 assembler,
+D.R. ASM.
+
+HEXIFY.* is a program for converting a CP/M .COM file resident on the DEC-10
+or DEC-20 to a CP/M .HEX file.  This is handy when binary file transfers are
+failing to work for some reason.  The .HEX file can be LOADed on the CP/M
+system in the normal way to reconstruct the original .COM file.  HEXCOM.* is
+the inverse of HEXIFY, and provides .HEX-to-.COM file conversion.
+
+The files CROSS.* are a general purpose cross assembler that runs only on the
+DEC-10 and -20; CROSS.DOC is the manual.  CROSS is used to assemble Apple DOS
+and Commodore-64 Kermits.
+
+WRITEL is a program to write ANSI labeled ASCII tapes on the DEC-20; it is
+written in Rutgers Pascal, and requires that you have the Rutgers Pascal
+runtime library on your system.
+
+
+* Finally...
+
+If you make any significant modifications to Kermit, fix any major bugs, or
+write any new implementations or documentation, please send them back to us on
+magnetic tape (or IBM PC DOS format diskettes) so we can distribute them to
+other Kermit users:
+
+        Kermit Distribution
+        Columbia University
+        Center for Computing Activities
+        612 West 115th Street
+        New York, NY  10025
+
+We'll return your tapes back to you with the latest Kermit distribution (if you
+send full-size reels).  Specify format and tape selection according the Kermit
+order form (copy in AAXFLY.DOC).
+
+
+* OTHER WAYS TO GET KERMIT *
+
+To get Kermit on magnetic tape from Columbia University, follow the directions
+in the file AAXFLY.DOC.  There are also other ways to get Kermit:
+
+. Network Distribution:
+
+The file AANETW.HLP contains instructions for accessing the Kermit distribution
+over a variety of computer networks and dialup hosts.  AANOKS.HLP tells in
+detail how to access the Kermit archive at Oklahoma State University.
+
+. Floppy Disk Distribution:
+
+A list of volunteer individuals and organizations distributing Kermit on floppy
+disks of various formats can be found in the file AADISK.HLP.  Kermit diskettes
+may also be ordered in several formats from Columbia University (see
+AAXFLY.DOC).
+
+. Overseas sources for Kermit Distribution tapes:
+
+UK and Ireland (ANSI and VAX/VMS BACKUP tapes, selected diskettes):
+    Alan Phillips
+    Communications Group
+    Department of Computing
+    Computer Building
+    Lancaster University
+    Lancaster LA1 4YW, ENGLAND
+    Phone 0524-65201 x 4881
+    E-Mail (UK Network): SYSKERMIT@VAX1.LANCS.AC.UK
+
+France, Belgium, etc.
+    Jean Dutertre
+    Club Kermit
+    9 Av. Vergriand
+    78600 Maisons Laffitte
+    FRANCE
+    E-Mail (DEC Easynet, Arpa gateway at DECWRL.DEC.COM):  evoail::dutertre
+
+West Germany (ANSI tapes):
+    Dr. Hans-Magnus Aus
+    Institut fuer Virologie und Immunbiologie
+    Universitaet Wuerzburg
+    Versbacherstrasse 7
+    D-8700 Wuerzburg
+    WEST GERMANY
+    Phone (931) 201-3954
+
+Australia:
+    Rodney Van Cooten (or The Kermit Coordinator)
+    University Computing Services
+    University of Melbourne,
+    Parkville,
+    Victoria, 3052,
+    AUSTRALIA
+    E-Mail: "munnari!murdu.oz.au!rvc"@UUNET.UU.NET
+
+Japan
+    Ken-ichiro Murakami
+    NTT Basic Research Laboratories
+    3-9-11 Midori-cho, Musashino-shi
+    Tokyo, 180
+    JAPAN
+    Telephone : 0422-59-3589
+    E-mail:  MURAKAMI@NTT-20.NTT.JUNET (via RELAY.CS.NET)
+
+[End of AAFILES.HLP]

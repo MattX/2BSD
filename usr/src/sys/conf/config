@@ -15,6 +15,13 @@ if [ ! -s $MACHINE ]; then
 	exit 1
 fi
 
+if mkdir ../$MACHINE; then
+	echo "Creating ../$MACHINE."
+	chmod 775 ../$MACHINE
+else
+	exit 1
+fi
+
 # read in specification file
 eval `awk '/^#/ || /^$/ || /^	/ {next} $1 != "" { printf "%s=\\"%s\\"\\n", $1, $2 }' $MACHINE`
 
@@ -52,35 +59,31 @@ EOF
 
 case $PDP11 in
 	23|24|34)
-		SPLFIX=:splfix.mtps
-		echo "#define KERN_NONSEP"	>> $LO ;;
+		KERN_NONSEP=YES
+		SPLFIX=:splfix.mtps;;
 	GENERIC)
-		SPLFIX=:splfix.movb ;;
-#		echo "#define KERN_NONSEP"	>> $LO
 #		if [ $NONFP = NO ]; then
 #			echo "NONFP changed; should be set for GENERIC kernels."
 #			NONFP=YES
-#		fi ;;
+#		fi
+#		eventually: KERN_NONSEP=YES
+		KERN_NONSEP=NO
+		SPLFIX=:splfix.movb;;
 	35|40|60)
-		SPLFIX=:splfix.movb
-		echo "#define KERN_NONSEP"	>> $LO ;;
+		KERN_NONSEP=YES
+		SPLFIX=:splfix.movb;;
 	53|73|83)
-		SPLFIX=:splfix.mtps ;;
+		KERN_NONSEP=NO
+		SPLFIX=:splfix.mtps;;
 	44|45|50|55|70|84)
-		SPLFIX=:splfix.spl ;;
+		KERN_NONSEP=NO
+		SPLFIX=:splfix.spl;;
 	*)
 		echo "$0: unrecognized PDP11 type $PDP11."
 		echo 'use GENERIC, 23, 24, 34, 35, 40, 44, 45, 50, 53, 55,'
 		echo '	60, 70, 73, 83, 84.'
-		exit 1 ;;
+		exit 1;;
 esac
-
-if mkdir ../$MACHINE ; then
-	echo "Creating ../$MACHINE."
-	chmod 775 ../$MACHINE
-else
-	exit 1
-fi
 
 if [ $NKL -lt 1 ]; then
 	echo "$0: NKL must be at least one (for the console)."
@@ -95,10 +98,29 @@ if [ $MACHINE = VAX ]; then
 	cp VAX.compile/VAX.c VAX.compile/Makefile ../$MACHINE
 else
 	echo "Copying standard files to ../$MACHINE."
-	cp $SPLFIX ../$MACHINE/SPLFIX
+	if [ $NEC = 0 ]; then
+		if [ $UCB_NET = YES ]; then
+			cp spl/:splfix.movb ../$MACHINE/NETSPLFIX
+		fi
+		cp spl/$SPLFIX ../$MACHINE/SPLFIX
+	else
+		if [ $UCB_NET = YES ]; then
+			cp spl_3com/:splfix.movb ../$MACHINE/NETSPLFIX
+		fi
+		cp spl_3com/$SPLFIX ../$MACHINE/SPLFIX
+	fi
+	if [ $UCB_NET = YES ]; then
+		cp Make.nsunix ../$MACHINE/Makefile
+		cp Make.sys Make.net Make.pdpnet Make.pdpuba Make.pdp \
+			Make.pdpmba ../$MACHINE
+	elif [ $KERN_NONSEP = NO ]; then
+		cp Make.sunix ../$MACHINE/Makefile
+		cp Make.sys Make.pdpuba Make.pdp Make.pdpmba ../$MACHINE
+	else
+		cp Make.unix ../$MACHINE/Makefile
+		cp Make.sys Make.pdpuba Make.pdp Make.pdpmba ../$MACHINE
+	fi
 	cp boot/${BOOTDEV}boot.s ../$MACHINE/boot.s
-	cp Makefile Make.sys Make.net Make.pdpuba Make.pdp \
-		Make.pdpmba ../$MACHINE
 fi
 
 sed	-e "s/%ROOTDEV%/$ROOTDEV/" \
@@ -122,11 +144,23 @@ fi
 echo "#define PDP11	$PDP11"		>> $LO
 echo "#define MAXMEM	$MAXMEM"	>> $LO
 echo "#define LINEHZ	$LINEHZ"	>> $LO
+if [ $NONFP = YES -a $FPSIM = NO ]; then
+	echo NONFP is YES and FPSIM is NO.  You have to provide some form of
+	echo floating point support!!!!
+	exit 1
+fi
 if [ $NONFP = YES ]; then
 	echo "#define NONFP 1"		>> $LO
 fi
+if [ $FPSIM = YES ]; then
+	echo "#define FPSIM 1"		>> $LO
+fi
 echo "#ifdef KERNEL"			>> $LO
 echo "#define NBUF	$NBUF"		>> $LO
+
+if [ $KERN_NONSEP = YES ]; then
+	echo "#define KERN_NONSEP"	>> $LO
+fi
 
 if [ $UNIBUS_MAP = YES ]; then
 	echo "#define UNIBUS_MAP 1"	>> $LO
@@ -136,6 +170,9 @@ if [ $Q22 = YES ]; then
 fi
 if [ $VIRUS_VFORK = YES ]; then
 	echo "#define VIRUS_VFORK 1"	>> $LO
+fi
+if [ $EXTERNALITIMES = YES ]; then
+	echo "#define EXTERNALITIMES 1"	>> $LO
 fi
 if [ $CGL_RTP = YES ]; then
 	echo "#define CGL_RTP 1"	>> $LO
@@ -153,17 +190,22 @@ if [ $UCB_NET = YES ]; then
 	echo "#define UCB_NET 1"	>> $LO
 	echo "#define INET 1"		>> $LO
 	echo "#define TCP_COMPAT_42"	>> $LO
-	if [ $NOKA5 = YES ] ; then
-		echo "You may not define both NOKA5 and UCB_NET."
-		exit 1
-	fi
+	echo "#define NLOOP	1"	> ../$MACHINE/loop.h
+else
+	echo "#define NLOOP	0"	> ../$MACHINE/loop.h
 fi
 if [ $BADSECT = YES ]; then
 	echo "#define BADSECT 1"	>> $LO
 fi
+if [ $CHECKSTACK = YES ]; then
+	echo "#define CHECKSTACK 1"	>> $LO
+fi
 if [ $DIAGNOSTIC = YES ]; then
 	echo "#define DIAGNOSTIC 1"	>> $LO
 	echo "#define ICMPPRINTFS"	>> $LO
+fi
+if [ $QUOTA = YES ]; then
+	echo "#define QUOTA 1"		>> $LO
 fi
 if [ $UCB_FRCSWAP = YES ]; then
 	echo "#define UCB_FRCSWAP 1"	>> $LO
@@ -185,6 +227,7 @@ echo "#define NCSS	$NCSS"		> ../$MACHINE/css.h
 echo "#define NDE	$NDE"		> ../$MACHINE/de.h
 echo "#define NDH	$NDH"		> ../$MACHINE/dh.h
 echo "#define NDM	$NDM"		>> ../$MACHINE/dh.h
+echo "#define NDN	$NDN"		> ../$MACHINE/dn.h
 echo "#define NDHU	$NDHU"		> ../$MACHINE/dhu.h
 echo "#define NDMC	$NDMC"		> ../$MACHINE/dmc.h
 echo "#define NDR	$NDR"		> ../$MACHINE/dr.h
@@ -197,7 +240,6 @@ echo "#define NHY	$NHY"		> ../$MACHINE/hy.h
 echo "#define NIL	$NIL"		> ../$MACHINE/il.h
 echo "#define NIMP	$NIMP"		> ../$MACHINE/imp.h
 echo "#define NKL	$NKL"		> ../$MACHINE/cn.h
-echo "#define NLOOP	$NLOOP"		> ../$MACHINE/loop.h
 echo "#define NLP	$NLP"		> ../$MACHINE/lp.h
 echo "#define LP_MAXCOL	$LP_MAXCOL"	>> ../$MACHINE/lp.h
 echo "#define NPTY	$NPTY"		> ../$MACHINE/pty.h
@@ -231,6 +273,11 @@ fi
 echo "#define NRL	$NRL"		> ../$MACHINE/rl.h
 if [ $DUMPROUTINE = rldump ]; then
 	echo "#define RL_DUMP 1"	>> ../$MACHINE/rl.h
+fi
+
+echo "#define NBR	$NBR"		> ../$MACHINE/br.h
+if [ $DUMPROUTINE = brdump ]; then
+	echo "#define BR_DUMP 1"	>> ../$MACHINE/br.h
 fi
 
 echo "#define NSI	$NSI"		> ../$MACHINE/si.h

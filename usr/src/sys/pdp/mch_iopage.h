@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_iopage.h	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_iopage.h	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 /*
@@ -22,7 +22,6 @@
 #define	STACKLIM 0177774	/* Stack Limit register */
 #define	PS	0177776		/* Processor Status register */
 #define	PIR	0177772		/* Program Interrupt Request register */
-#define	TBIT	020		/* trace bit in PS */
 
 /*
  *	ENABLE/34 registers
@@ -81,15 +80,37 @@
 #define	SISD1	0172202
 #define	SISD2	0172204
 #define	SISD3	0172206
+#define	SISD4	0172210
+#define	SISD5	0172212
+#define	SISD6	0172214
+#define	SISD7	0172216
 
 #define	SDSD0	0172220
+#define	SDSD1	0172222
+#define	SDSD2	0172224
+#define	SDSD3	0172226
+#define	SDSD4	0172230
+#define	SDSD5	0172232
+#define	SDSD6	0172234
+#define	SDSD7	0172236
 
 #define	SISA0	0172240
 #define	SISA1	0172242
 #define	SISA2	0172244
+#define	SISA3	0172246
+#define	SISA4	0172250
+#define	SISA5	0172252
+#define	SISA6	0172254
 #define	SISA7	0172256
 
 #define	SDSA0	0172260
+#define	SDSA1	0172262
+#define	SDSA2	0172264
+#define	SDSA3	0172266
+#define	SDSA4	0172270
+#define	SDSA5	0172272
+#define	SDSA6	0172274
+#define	SDSA7	0172276
 
 /*
  * Kernel segmentation registers:
@@ -110,10 +131,12 @@
 #   define	KDSD0	KISD0
 #   define	KDSD5	KISD5
 #   define	KDSD6	KISD6
+#   define	KDSD7	KISD7
 #else
 #   define	KDSD0	0172320
 #   define	KDSD5	0172332
 #   define	KDSD6	0172334
+#   define	KDSD7	0172336
 #endif
 
 #ifdef ENABLE34

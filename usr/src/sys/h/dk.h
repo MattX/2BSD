@@ -18,7 +18,7 @@
 
 #define	DK_NDRIVE	5
 
-#if defined(KERNEL) && defined(UCB_METER)
+#if defined(KERNEL) && defined(UCB_METER) && !defined(SUPERVISOR)
 long	cp_time[CPUSTATES];	/* number of ticks spent in each cpu state */
 int	dk_ndrive;		/* number of drives being monitored */
 int	dk_busy;		/* bit array of drive busy flags */

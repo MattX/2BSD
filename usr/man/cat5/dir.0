@@ -1,0 +1,132 @@
+
+
+
+DIR(5)		    UNIX Programmer's Manual		   DIR(5)
+
+
+
+NNAAMMEE
+     dir - format of directories (2BSD)
+
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ddiirr..hh>>
+
+DDEESSCCRRIIPPTTIIOONN
+     A directory behaves exactly like an ordinary file, save that
+     no user may write into a directory.  The fact that a file is
+     a directory is indicated by a bit in the flag word of its
+     i-node entry; see _f_s(5).  The structure of an on disk direc-
+     tory entry as given in the include file is:
+
+     #define MAXNAMLEN 14
+
+     /*
+      * Actual directory structure as it appears on disk.  For use by programs
+      * and routines which need to know what a directory really looks like.
+      */
+     struct v7direct {
+	    ino_t   d_ino;
+	    char    d_name[MAXNAMLEN];
+     };
+
+     By convention, the first two entries in each directory are
+     for `.' and `..'.	The first is an entry for the directory
+     itself.  The second is for the parent directory.  The mean-
+     ing of `..' is modified for the root directory of the master
+     file system ("/") and for the root directories of removable
+     file systems.  In the first case, there is no parent, and in
+     the second, the parent will be relative to the mounted-on
+     file.  Therefore in both cases `..' has the same inode
+     number as `.'.
+
+     For portability, most programs should use the standard
+     library directory scanning routines which hide the actual
+     disk structure of directories presenting them in an imple-
+     mentation independent manner.  The structure of a portable
+     directory entry as given in the include file is:
+
+     #define DIRBLKSIZ 512
+
+     /*
+      * The DIRSIZ macro gives the minimum record length which will hold
+      * the directory entry.  This requires the amount of space in struct direct
+      * without the d_name field, plus enough space for the name with a terminating
+      * null byte (dp->d_namlen+1), rounded up to a 4 byte boundary.
+      */
+     #define DIRSIZ(dp)     ((sizeof (struct direct) - (MAXNAMLEN+1)) + (((dp)->d_namlen+1 + 3) &~ 3))
+
+     struct direct {
+
+
+
+Printed 12/28/88	January 26, 1987			1
+
+
+
+
+
+
+DIR(5)		    UNIX Programmer's Manual		   DIR(5)
+
+
+
+	    u_long  d_ino;		 /* inode number of entry */
+	    u_short d_reclen;		 /* length of this record */
+	    u_short d_namlen;		 /* length of string in d_name */
+	    char    d_name[MAXNAMLEN+1]; /* name must be no longer than this */
+     };
+
+     /*
+      * Definitions for library routines operating on directories.
+      */
+
+     typedef struct _dirdesc {
+	    int     dd_fd;
+	    long    dd_loc;
+	    long    dd_size;
+	    char    dd_buf[DIRBLKSIZ];
+     } DIR;
+
+SSEEEE AALLSSOO
+     closedir(3), opendir(3), readdir(3), scandir(3), seekdir(3),
+     telldir(3), fs(5)
+
+BBUUGGSS
+     The 14 character MAXNAMLEN value of 2BSD is far shorter than
+     the 255 characters allowed by 4BSD.  This sometimes leads to
+     file name portability problems.
+
+     The 2BSD disk format of directories is different from the
+     4BSD directory format.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	January 26, 1987			2
+
+
+

@@ -1,32 +1,29 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_il.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_il.c	7.2 (Berkeley) 8/7/86
  */
 
 #include "il.h"
-#if	NIL > 0
+#if NIL > 0
 
 /*
  * Interlan Ethernet Communications Controller interface
  */
-#include "param.h"
-#include "../machine/seg.h"
+#include "../machine/pte.h"
 
+#include "param.h"
 #include "systm.h"
 #include "mbuf.h"
 #include "buf.h"
-#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
+#include "vmmac.h"
 #include "ioctl.h"
-#include "if_ilreg.h"
-#include "if_il.h"
-#include "if_uba.h"
 #include "errno.h"
-#include "../pdpuba/ubavar.h"
+#include "syslog.h"
 
 #include "../net/if.h"
 #include "../net/netisr.h"
@@ -37,7 +34,6 @@
 #include "../netinet/in_systm.h"
 #include "../netinet/in_var.h"
 #include "../netinet/ip.h"
-#include "../netinet/ip_var.h"
 #include "../netinet/if_ether.h"
 #endif
 
@@ -45,6 +41,14 @@
 #include "../netns/ns.h"
 #include "../netns/ns_if.h"
 #endif
+
+#include "../vax/cpu.h"
+#include "../vax/mtpr.h"
+#include "if_il.h"
+#include "if_ilreg.h"
+#include "if_uba.h"
+#include "../vaxuba/ubareg.h"
+#include "../vaxuba/ubavar.h"
 
 int	ilprobe(), ilattach(), ilrint(), ilcint();
 struct	uba_device *ilinfo[NIL];
@@ -83,13 +87,12 @@ struct	il_softc {
 #define	ILWATCHINTERVAL	60		/* once every 60 seconds */
 	struct	il_stats is_stats;	/* holds on-board statistics */
 	struct	il_stats is_sum;	/* summation over time */
-	long    is_ubaddr;              /* mapping registers of is_stats */
+	int	is_ubaddr;		/* mapping registers of is_stats */
 } il_softc[NIL];
 
 ilprobe(reg)
 	caddr_t reg;
 {
-#ifdef notdef
 	register int br, cvec;		/* r11, r10 value-result */
 	register struct ildevice *addr = (struct ildevice *)reg;
 	register i;
@@ -105,7 +108,6 @@ ilprobe(reg)
 	if (cvec > 0 && cvec != 0x200)
 		cvec -= 4;
 	return (1);
-#endif
 }
 
 /*
@@ -133,21 +135,11 @@ ilattach(ui)
 	addr->il_csr = ILC_RESET;
 	(void)ilwait(ui, "reset");
 	
-#ifdef UNIBUS_MAP
 	is->is_ubaddr = uballoc(ui->ui_ubanum, (caddr_t)&is->is_stats,
 	    sizeof (struct il_stats), 0);
-#else
-	is->is_ubaddr = (long)((caddr_t)&is->is_stats);
-#endif
 	addr->il_bar = is->is_ubaddr & 0xffff;
 	addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-	addr->il_ber = (is->is_ubaddr >> 16) & 077;
-	addr->il_csr = ILC_STAT;
-#else
 	addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
-#endif
-
 	(void)ilwait(ui, "status");
 	ubarelse(ui->ui_ubanum, &is->is_ubaddr);
 	if (ildebug)
@@ -225,12 +217,8 @@ ilinit(unit)
 			is->is_if.if_flags &= ~IFF_UP;
 			return;
 		}
-#ifdef UNIBUS_MAP
 		is->is_ubaddr = uballoc(ui->ui_ubanum, (caddr_t)&is->is_stats,
 		    sizeof (struct il_stats), 0);
-#else
-		is->is_ubaddr = (long)((caddr_t)&is->is_stats);
-#endif
 	}
 	ifp->if_watchdog = ilwatch;
 	is->is_scaninterval = ILWATCHINTERVAL;
@@ -255,7 +243,7 @@ ilinit(unit)
 		;
 	/*
 	 * If we must reprogram this board's physical ethernet
-	 * address (as for secondary NS interfaces), we do so
+	 * address (as for secondary XNS interfaces), we do so
 	 * before putting it on line, and starting receive requests.
 	 * If you try this on an older 1010 board, it will total
 	 * wedge the board.
@@ -265,22 +253,12 @@ ilinit(unit)
 							sizeof is->is_addr);
 		addr->il_bar = is->is_ubaddr & 0xffff;
 		addr->il_bcr = sizeof is->is_addr;
-#ifdef Q22
-		addr->il_ber = ((is->is_ubaddr >> 16) & 077);
-		addr->il_csr = ILC_LDPA;
-#else
 		addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_LDPA;
-#endif
 		if (ilwait(ui, "setaddr"))
 			return;
 		addr->il_bar = is->is_ubaddr & 0xffff;
 		addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-		addr->il_ber = ((is->is_ubaddr >> 16) & 077);
-		addr->il_csr = ILC_STAT;
-#else
 		addr->il_csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT;
-#endif
 		if (ilwait(ui, "verifying setaddr"))
 			return;
 		if (bcmp((caddr_t)is->is_stats.ils_addr, (caddr_t)is->is_addr,
@@ -301,13 +279,8 @@ ilinit(unit)
 		;
 	addr->il_bar = is->is_ifuba.ifu_r.ifrw_info & 0xffff;
 	addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-	addr->il_ber = ((is->is_ifuba.ifu_r.ifrw_info >> 16) & 077);
-	addr->il_csr = ILC_RCV|IL_RIE;
-#else
 	addr->il_csr =
 	    ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
 	while ((addr->il_csr & IL_CDONE) == 0)
 		;
 	is->is_flags = ILF_OACTIVE;
@@ -340,12 +313,7 @@ ilstart(dev)
 			return;
 		addr->il_bar = is->is_ubaddr & 0xffff;
 		addr->il_bcr = sizeof (struct il_stats);
-#ifdef Q22
-		addr->il_ber = (is->is_ubaddr >> 16) & 077;
-		csr = ILC_STAT|IL_RIE|IL_CIE;
-#else
 		csr = ((is->is_ubaddr >> 2) & IL_EUA)|ILC_STAT|IL_RIE|IL_CIE;
-#endif
 		is->is_flags &= ~ILF_STATPENDING;
 		goto startcmd;
 	}
@@ -359,16 +327,13 @@ ilstart(dev)
 	 */
 	if (len - sizeof(struct ether_header) < ETHERMIN)
 		len = ETHERMIN + sizeof(struct ether_header);
-
+	if (is->is_ifuba.ifu_flags & UBA_NEEDBDP)
+		UBAPURGE(is->is_ifuba.ifu_uba, is->is_ifuba.ifu_w.ifrw_bdp);
 	addr->il_bar = is->is_ifuba.ifu_w.ifrw_info & 0xffff;
 	addr->il_bcr = len;
-#ifdef Q22
-	addr->il_ber = (is->is_ifuba.ifu_w.ifrw_info >> 16) & 077;
-	csr = ILC_XMIT|IL_CIE|IL_RIE;
-#else
 	csr =
 	  ((is->is_ifuba.ifu_w.ifrw_info >> 2) & IL_EUA)|ILC_XMIT|IL_CIE|IL_RIE;
-#endif
+
 startcmd:
 	is->is_lastcmd = csr & IL_CMD;
 	addr->il_csr = csr;
@@ -385,13 +350,11 @@ ilcint(unit)
 	struct uba_device *ui = ilinfo[unit];
 	register struct ildevice *addr = (struct ildevice *)ui->ui_addr;
 	short csr;
-	mapinfo map;
 
-	savemap(map);
 	if ((is->is_flags & ILF_OACTIVE) == 0) {
 		printf("il%d: stray xmit interrupt, csr=%b\n", unit,
 			addr->il_csr, IL_BITS);
-		goto out;
+		return;
 	}
 
 	csr = addr->il_csr;
@@ -404,13 +367,8 @@ ilcint(unit)
 
 		addr->il_bar = is->is_ifuba.ifu_r.ifrw_info & 0xffff;
 		addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-		addr->il_ber = (is->is_ifuba.ifu_r.ifrw_info >> 16) & 077;
-		addr->il_csr = ILC_RCV|IL_RIE;
-#else
 		addr->il_csr =
 		  ((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
 		s = splhigh();
 		while ((addr->il_csr & IL_CDONE) == 0)
 			;
@@ -437,8 +395,6 @@ ilcint(unit)
 		is->is_ifuba.ifu_xtofree = 0;
 	}
 	ilstart(unit);
-out:
-	restormap(map);
 }
 
 /*
@@ -459,16 +415,19 @@ ilrint(unit)
     	struct mbuf *m;
 	int len, off, resid, s;
 	register struct ifqueue *inq;
-	mapinfo map;
 
-	savemap(map);
 	is->is_if.if_ipackets++;
-	mapseg5(is->is_ifuba.ifu_r.ifrw_click,MBMAPSIZE);
-	il = (struct il_rheader *)MBX;
+	if (is->is_ifuba.ifu_flags & UBA_NEEDBDP)
+		UBAPURGE(is->is_ifuba.ifu_uba, is->is_ifuba.ifu_r.ifrw_bdp);
+	il = (struct il_rheader *)(is->is_ifuba.ifu_r.ifrw_addr);
 	len = il->ilr_length - sizeof(struct il_rheader);
-	if ((il->ilr_status&(ILFSTAT_A|ILFSTAT_C)) || len < ETHERMIN ||
+	if ((il->ilr_status&(ILFSTAT_A|ILFSTAT_C)) || len < 46 ||
 	    len > ETHERMTU) {
 		is->is_if.if_ierrors++;
+#ifdef notdef
+		if (is->is_if.if_ierrors % 100 == 0)
+			printf("il%d: += 100 input errors\n", unit);
+#endif
 		goto setup;
 	}
 
@@ -503,7 +462,6 @@ ilrint(unit)
 	m = if_rubaget(&is->is_ifuba, len, off, &is->is_if);
 	if (m == 0)
 		goto setup;
-	s = il->ilr_type;	/* save type so we don't have to MAPSAVE() */
 	if (off) {
 		struct ifnet *ifp;
 
@@ -512,7 +470,7 @@ ilrint(unit)
 		m->m_len -= 2 * sizeof (u_short);
 		*(mtod(m, struct ifnet **)) = ifp;
 	}
-	switch (s) {		/* use saved type here */
+	switch (il->ilr_type) {
 
 #ifdef INET
 	case ETHERTYPE_IP:
@@ -552,23 +510,16 @@ setup:
 	 */
 	if (is->is_flags & ILF_OACTIVE) {
 		is->is_flags |= ILF_RCVPENDING;
-		goto out;
+		return;
 	}
 	addr->il_bar = is->is_ifuba.ifu_r.ifrw_info & 0xffff;
 	addr->il_bcr = sizeof(struct il_rheader) + ETHERMTU + 6;
-#ifdef Q22
-	addr->il_ber = (is->is_ifuba.ifu_r.ifrw_info >> 16) & 077;
-	addr->il_csr = ILC_RCV|IL_RIE;
-#else
 	addr->il_csr =
 		((is->is_ifuba.ifu_r.ifrw_info >> 2) & IL_EUA)|ILC_RCV|IL_RIE;
-#endif
 	s = splhigh();
 	while ((addr->il_csr & IL_CDONE) == 0)
 		;
 	splx(s);
-out:
-	restormap(map);
 }
 
 /*
@@ -590,9 +541,7 @@ iloutput(ifp, m0, dst)
 	register struct ether_header *il;
 	register int off;
 	int usetrailers;
-	segm save5;	/* XXX */
 
-	saveseg5(save5);	/* XXX */
 	if ((ifp->if_flags & (IFF_UP|IFF_RUNNING)) != (IFF_UP|IFF_RUNNING)) {
 		error = ENETDOWN;
 		goto bad;
@@ -686,20 +635,16 @@ gottype:
 		IF_DROP(&ifp->if_snd);
 		splx(s);
 		m_freem(m);
-		error = ENOBUFS;
-		goto exit;
+		return (ENOBUFS);
 	}
 	IF_ENQUEUE(&ifp->if_snd, m);
 	if ((is->is_flags & ILF_OACTIVE) == 0)
 		ilstart(ifp->if_unit);
 	splx(s);
-	restorseg5(save5);	/* XXX */
 	return (0);
 
 bad:
 	m_freem(m0);
-exit:
-	restorseg5(save5);	/* XXX */
 	return (error);
 }
 
@@ -739,6 +684,13 @@ iltotal(is)
 	while (sum < end)
 		*sum++ += *interval++;
 	is->is_if.if_collisions = is->is_sum.ils_collis;
+	if ((is->is_flags & ILF_SETADDR) &&
+	    (bcmp((caddr_t)is->is_stats.ils_addr, (caddr_t)is->is_addr,
+					sizeof (is->is_addr)) != 0)) {
+		log(LOG_ERR, "il%d: physaddr reverted\n", is->is_if.if_unit);
+		is->is_flags &= ~ILF_RUNNING;
+		ilinit(is->is_if.if_unit);
+	}
 }
 
 /*
@@ -753,7 +705,6 @@ ilioctl(ifp, cmd, data)
 	register struct il_softc *is = &il_softc[ifp->if_unit];
 	int s = splimp(), error = 0;
 
-/*	printf("\tilioctl new:%X\n", ntohl(IA_SIN(ifa)->sin_addr.s_addr));/**/
 	switch (cmd) {
 
 	case SIOCSIFADDR:
@@ -767,7 +718,7 @@ ilioctl(ifp, cmd, data)
 				IA_SIN(ifa)->sin_addr;
 			arpwhohas((struct arpcom *)ifp, &IA_SIN(ifa)->sin_addr);
 			break;
-#endif INET
+#endif
 #ifdef NS
 		case AF_NS:
 		    {
@@ -782,7 +733,7 @@ ilioctl(ifp, cmd, data)
 			}
 			break;
 		    }
-#endif NS
+#endif
 		}
 		break;
 
@@ -807,7 +758,6 @@ ilioctl(ifp, cmd, data)
 /*
  * set ethernet address for unit
  */
-#ifdef	NS	/* NS way to set addr */
 il_setaddr(physaddr, unit)
 u_char *physaddr;
 int unit;
@@ -822,5 +772,4 @@ int unit;
 	is->is_flags |= ILF_SETADDR;
 	ilinit(unit);
 }
-#endif	NS
-#endif	NIL
+#endif

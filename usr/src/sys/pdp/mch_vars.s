@@ -3,17 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_vars.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_vars.s	1.1 (2.10BSD Berkeley) 6/11/88
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
 
 CONST(GLOBAL, _u, 0140000)
 
-#ifndef NONFP
-	INT(GLOBAL, fpp, 0)		/ we have a floating point processor
-#endif
-
+INT(GLOBAL, _fpp, 0)			/ we have a floating point processor
 CHAR(GLOBAL, _ubmap, 0)			/ we have a unibus map
 CHAR(GLOBAL, _sep_id, 0)		/ we have a separate I&D CPU
 

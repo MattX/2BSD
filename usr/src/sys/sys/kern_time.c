@@ -31,14 +31,9 @@ gettimeofday()
 	if (uap->tp) {
 		/*
 		 * We don't resolve the milliseconds on every clock tick; it's
-		 * easier to do it here, have to check to see if lbolt has
-		 * rolled over anyway.  Long casts are out of paranoia.
+		 * easier to do it here.  Long casts are out of paranoia.
 		 */
-		s = _spl7(); atv = time; ms = lbolt; splx(s);
-		if (ms > LINEHZ) {
-			ms -= LINEHZ;
-			++atv.tv_sec;
-		}
+		s = splhigh(); atv = time; ms = lbolt; splx(s);
 		atv.tv_usec = (long)ms * 1000000L / (long)LINEHZ;
 		u.u_error = copyout((caddr_t)&atv, (caddr_t)(uap->tp),
 			sizeof(atv));
@@ -83,7 +78,9 @@ setthetime(tv)
 		return;
 /* WHAT DO WE DO ABOUT PENDING REAL-TIME TIMEOUTS??? */
 	boottime.tv_sec += tv->tv_sec - time.tv_sec;
-	s = spl7(); time = *tv; splx(s);
+	s = splhigh();
+	time = *tv; lbolt = time.tv_usec / (1000000L / LINEHZ);
+	splx(s);
 #ifndef BSD2_10
 	/*
 	 * if you have a time of day board, use it here
@@ -92,11 +89,6 @@ setthetime(tv)
 #endif
 }
 
-/*
- * 2.10 adjtime simply increments/decrements immediately, resulting
- * in olddelta always being zero.  This is because we don't want to
- * make hardclock() do any more processing than necessary.
- */
 adjtime()
 {
 	register struct a {
@@ -105,6 +97,7 @@ adjtime()
 	} *uap = (struct a *)u.u_ap;
 	struct timeval atv;
 	register int s;
+	long adjust;
 
 	if (!suser()) 
 		return;
@@ -112,19 +105,31 @@ adjtime()
 		sizeof (struct timeval));
 	if (u.u_error)
 		return;
-	s = splclock();
-	time.tv_sec += atv.tv_sec;
-	/*
-	 * The kernel doesn't do divides by large longs.
-	 *	lbolt += time.tv_usec * LINEHZ / 1000000L;
-	 */
-	splx(s);
-
-	if (uap->olddelta) {
+	adjust = atv.tv_sec * LINEHZ + atv.tv_usec / (1000000L / LINEHZ);
+	/* if unstoreable values, just set the clock */
+	if (adjust > 0x7fff || adjust < 0x8000) {
+		s = splclock();
+		time.tv_sec += atv.tv_sec;
+		lbolt += atv.tv_usec / (1000000L / LINEHZ);
+		while (lbolt >= LINEHZ) {
+			lbolt -= LINEHZ;
+			++time.tv_sec;
+		}
+		splx(s);
+		if (!uap->olddelta) 
+			return;
 		atv.tv_sec = atv.tv_usec = 0;
-		(void) copyout((caddr_t)&atv, (caddr_t)uap->olddelta,
-			sizeof (struct timeval));
+	} else {
+		if (!uap->olddelta) {
+			adjdelta = adjust;
+			return;
+		}
+		atv.tv_sec = adjdelta / LINEHZ;
+		atv.tv_usec = (adjdelta % LINEHZ) * (1000000L / LINEHZ);
+		adjdelta = adjust;
 	}
+	(void) copyout((caddr_t)&atv, (caddr_t)uap->olddelta,
+	    sizeof (struct timeval));
 }
 
 getitimer()

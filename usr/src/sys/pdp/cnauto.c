@@ -14,8 +14,8 @@ cnprobe(addr)
 struct dldevice *addr;
 {
 	stuff(grab(&(addr->dlxcsr)) | DLXCSR_TIE, &(addr->dlxcsr));
-	DELAY(35000);
-	DELAY(35000);
+	DELAY(35000L);
+	DELAY(35000L);
 	/*
 	 *  Leave TIE enabled; cons.c never turns it off
 	 *  (and this could be the console).

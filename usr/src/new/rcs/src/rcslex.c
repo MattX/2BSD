@@ -1,8 +1,9 @@
 /*
  *                     RCS file input
  */
- static char rcsid[]=
- "$Header: /usr/wft/RCS/SRC/RCS/rcslex.c,v 3.3 82/12/10 16:22:37 wft Exp $ Purdue CS";
+#ifndef lint
+static char rcsid[]= "$Id: rcslex.c,v 4.4 87/12/18 11:44:47 narten Exp $ Purdue CS";
+#endif
 /*********************************************************************************
  *                     Lexical Analysis.
  *                     Character mapping table,
@@ -25,9 +26,30 @@
  */
 
 /* $Log:	rcslex.c,v $
+ * Revision 4.4  87/12/18  11:44:47  narten
+ * fixed to use "varargs" in "fprintf"; this is required if it is to
+ * work on a SPARC machine such as a Sun-4
+ * 
+ * Revision 4.3  87/10/18  10:37:18  narten
+ * Updating version numbers. Changes relative to 1.1 actually relative
+ * to version 4.1
+ * 
+ * Revision 1.3  87/09/24  14:00:17  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:33  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:33  kcs
+ * Initial revision
+ * 
+ * Revision 4.1  83/03/25  18:12:51  wft
+ * Only changed $Header to $Id.
+ * 
  * Revision 3.3  82/12/10  16:22:37  wft
  * Improved error messages, changed exit status on error to 1.
- * 
+ *
  * Revision 3.2  82/11/28  21:27:10  wft
  * Renamed ctab to map and included EOFILE; ctab is now a macro in rcsbase.h.
  * Added fflsbuf(), fputs(), and fprintf(), which abort the RCS operations
@@ -50,6 +72,7 @@
 
 
 #include "rcsbase.h"
+#include <varargs.h>
 
 
 
@@ -149,7 +172,7 @@ lookup() {
                         hshtab[ihash].num = NextString;
                         nexthsh= &hshtab[ihash];/*save hashtable address*/
 #                       ifdef LEXDB
-                        printf("\nEntered: %s at %d ",nexthsh->num, ihash);
+                        VOID printf("\nEntered: %s at %d ",nexthsh->num, ihash);
 #                       endif
                         return;
                 }
@@ -243,7 +266,7 @@ loop:
         case NEWLN:
                 line++;
 #               ifdef LEXDB
-                putchar('\n');
+                VOID putchar('\n');
 #               endif
                 /* Note: falls into next case */
 
@@ -423,7 +446,7 @@ printstring()
                                 return;
                         }
                 }
-                putchar(c);
+                VOID putchar(c);
         }
         nextc = c;
         error("Unterminated string");
@@ -514,70 +537,76 @@ char    *id, delim;
 }
 
 
+/*VARARGS1*/
 serror(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* non-fatal syntax error */
 {       nerror++;
-        fprintf(stderr,"%s error, line %d: ", cmdid, line);
-        fprintf(stderr,e, e1, e2, e3, e4, e5);
-        putc('\n',stderr);
+        VOID fprintf(stderr,"%s error, line %d: ", cmdid, line);
+        VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+        VOID putc('\n',stderr);
 }
 
+/*VARARGS1*/
 error(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* non-fatal error */
 {       nerror++;
-        fprintf(stderr,"%s error: ",cmdid);
-        fprintf(stderr,e, e1, e2, e3, e4, e5);
-        putc('\n',stderr);
+        VOID fprintf(stderr,"%s error: ",cmdid);
+        VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+        VOID putc('\n',stderr);
 }
 
+/*VARARGS1*/
 fatserror(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* fatal syntax error */
 {       nerror++;
-        fprintf(stderr,"%s error, line %d: ", cmdid,line);
-        fprintf(stderr,e, e1, e2, e3, e4, e5);
-        fprintf(stderr,"\n%s aborted\n",cmdid);
-        cleanup();
+        VOID fprintf(stderr,"%s error, line %d: ", cmdid,line);
+        VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+        VOID fprintf(stderr,"\n%s aborted\n",cmdid);
+        VOID cleanup();
         exit(1);
 }
 
+/*VARARGS1*/
 faterror(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* fatal error, terminates program after cleanup */
 {       nerror++;
-        fprintf(stderr,"%s error: ",cmdid);
-        fprintf(stderr,e, e1, e2, e3, e4, e5);
-        fprintf(stderr,"\n%s aborted\n",cmdid);
-        cleanup();
+        VOID fprintf(stderr,"%s error: ",cmdid);
+        VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+        VOID fprintf(stderr,"\n%s aborted\n",cmdid);
+        VOID cleanup();
         exit(1);
 }
 
+/*VARARGS1*/
 warn(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* prints a warning message */
 {       nwarn++;
-        fprintf(stderr,"%s warning: ",cmdid);
-        fprintf(stderr,e, e1, e2, e3, e4, e5);
-        putc('\n',stderr);
+        VOID fprintf(stderr,"%s warning: ",cmdid);
+        VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+        VOID putc('\n',stderr);
 }
 
 
+/*VARARGS1*/
 diagnose(e,e1,e2,e3,e4,e5)
-char * e, * e1;
+char * e, * e1, * e2, * e3, * e4, * e5;
 /* prints a diagnostic message */
 {
         if (!quietflag) {
-                fprintf(stderr,e, e1, e2, e3, e4, e5);
-                putc('\n',stderr);
+                VOID fprintf(stderr,e, e1, e2, e3, e4, e5);
+                VOID putc('\n',stderr);
         }
 }
 
 
 
 fflsbuf(c, iop)
-int c; register FILE * iop;
+unsigned c; register FILE * iop;
 /* Function: Flush iop.
  * Same routine as _flsbuf in stdio, but aborts program on error.
  */
@@ -605,18 +634,29 @@ register FILE *iop;
 
 
 
-fprintf(iop, fmt, args)
+fprintf(iop, fmt, va_alist)
 FILE *iop;
 char *fmt;
+va_dcl
 /* Function: formatted output. Same as fprintf in stdio,
  * but aborts program on error
  */
 {
-	_doprnt(fmt, &args, iop);
+	register int value;
+	va_list ap;
+
+	va_start(ap);
+#ifdef VFPRINTF
+	VOID vfprintf(iop, fmt, ap);
+#else
+	_doprnt(fmt, ap, iop);
+#endif VFPRINTF
         if (ferror(iop)) {
                 faterror("write error");
-                return EOF;
-        } else return 0;
+                value = EOF;
+        } else value = 0;
+	va_end(ap);
+	return value;
 }
 
 
@@ -632,7 +672,7 @@ int argc; char * argv[];
 {
         cmdid="lextest";
         if (argc<2) {
-                fputs("No input file\n",stderr);
+                VOID fputs("No input file\n",stderr);
                 exit(1);
         }
         if ((finptr=fopen(argv[1], "r")) == NULL) {
@@ -644,37 +684,37 @@ int argc; char * argv[];
         switch (nexttok) {
 
         case ID:
-                printf("ID: %s",NextString);
+                VOID printf("ID: %s",NextString);
                 break;
 
         case NUM:
                 if (hshenter==true)
-                   printf("NUM: %s, index: %d",nexthsh->num, nexthsh-hshtab);
+                   VOID printf("NUM: %s, index: %d",nexthsh->num, nexthsh-hshtab);
                 else
-                   printf("NUM, unentered: %s",NextString);
+                   VOID printf("NUM, unentered: %s",NextString);
                 hshenter = !hshenter; /*alternate between dates and numbers*/
                 break;
 
         case COLON:
-                printf("COLON"); break;
+                VOID printf("COLON"); break;
 
         case SEMI:
-                printf("SEMI"); break;
+                VOID printf("SEMI"); break;
 
         case STRING:
                 readstring();
-                printf("STRING"); break;
+                VOID printf("STRING"); break;
 
         case UNKN:
-                printf("UNKN"); break;
+                VOID printf("UNKN"); break;
 
         default:
-                printf("DEFAULT"); break;
+                VOID printf("DEFAULT"); break;
         }
-        printf(" | ");
+        VOID printf(" | ");
         nextlex();
         }
-        printf("\nEnd of lexical analyzer test\n");
+        VOID printf("\nEnd of lexical analyzer test\n");
 }
 
 cleanup()

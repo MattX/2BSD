@@ -74,10 +74,16 @@ struct te_softc {
 #define	SCOM	3
 #define	SREW	4
 
-/* bits in minor device */
-#define	TEUNIT(dev)	(minor(dev)&03)
+/*
+ * Bits in minor device.
+ */
+#define	TEUNIT(dev)	(minor(dev) & 03)
 #define	T_NOREWIND	04
-#define	T_1600BPI	0x8
+#ifdef AVIV
+#define	TEDENS(dev)	((minor(dev) & 030) >> 3)
+#else
+#define	TEDENS(dev)	((minor(dev) & 010) >> 3)
+#endif
 
 #define	INF	32760
 
@@ -105,9 +111,7 @@ int unit;
  * for a tape you should timeout in user code.
  */
 
-#ifdef AVIV
-int tmdens[4] = { 0x6000, 0x0000, 0x2000, 0 };
-#endif AVIV
+u_short tmdens[4] = { TM_D800, TM_D1600, TM_D6250, TM_D800 };
 
 tmopen(dev, flag)
 register dev_t dev;
@@ -122,13 +126,7 @@ register dev_t dev;
 	else if (sc->sc_openf)
 		return(EBUSY);
 	olddens = sc->sc_dens;
-	dens = TM_IE | TM_GO | (teunit << 8);
-#ifndef AVIV
-	if ((minor(dev) & T_1600BPI) == 0)
-		dens |= TM_D800;
-#else AVIV
-	dens |= tmdens[(minor(dev)>>3)&03];
-#endif AVIV
+	dens = TM_IE | TM_GO | (teunit << 8) | tmdens[TEDENS(dev)];
 	sc->sc_dens = dens;
 
 	tmtab.b_flags |= B_TAPE;
@@ -157,7 +155,7 @@ get:
 	sc->sc_nxrec = (daddr_t) 65535;
 	sc->sc_lastiow = 0;
 	sc->sc_dens = dens;
-	s = spl6();
+	s = splclock();
 	if (sc->sc_tact == 0) {
 		sc->sc_timo = INF;
 		sc->sc_tact = 1;
@@ -209,7 +207,7 @@ register u_short count;
 	register struct buf *bp;
 
 	bp = &ctmbuf;
-	s = spl5();
+	s = splbio();
 	while (bp->b_flags & B_BUSY) {
 		/*
 		 * This special check is because B_BUSY never
@@ -252,7 +250,7 @@ register struct buf *bp;
 		mapalloc(bp);
 #endif
 	bp->av_forw = NULL;
-	s = spl5();
+	s = splbio();
 	if (tmtab.b_actf == NULL)
 		tmtab.b_actf = bp;
 	else
@@ -540,13 +538,13 @@ opcont:
 tmtimer(dev)
 register dev_t	dev;
 {
-	register s;
+	register int s;
 	register struct te_softc *sc = &te_softc[TEUNIT(dev)];
 
 	if (sc->sc_timo != INF && (sc->sc_timo -= 5) < 0) {
 		printf("te%d: lost interrupt\n", TEUNIT(dev));
 		sc->sc_timo = INF;
-		s = spl5();
+		s = splbio();
 		tmintr();
 		splx(s);
 	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_sig.c	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 #include "param.h"
@@ -339,7 +339,7 @@ psignal(p, sig)
 	/* see comment in kill above */
 	if ((unsigned)sig >= NSIG)
 		return;
-#endif DIAGNOSTIC
+#endif
 	mask = sigmask(sig);
 
 	/*
@@ -737,7 +737,7 @@ psig()
 		panic("psig");
 #endif DIAGNOSTIC
 #ifndef NONFP
-	if (u.u_fpsaved==0) {
+	if (u.u_fpsaved == 0) {
 		savfp(&u.u_fps);
 		u.u_fpsaved = 1;
 	}

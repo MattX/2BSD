@@ -7,7 +7,7 @@
  */
 
 #define	BSD	210		/* 2.10 * 10, as cpp doesn't do floats */
-#define BSD2_10	1
+#define	BSD2_10	1
 
 #ifdef KERNEL
 #include "localopts.h"
@@ -23,15 +23,6 @@
 #include "../machine/machparam.h"
 #else
 #include <machine/machparam.h>
-#endif
-
-/*
- * Network constructs
- */
-#ifdef UCB_NET
-#include "../machine/net.h"
-#else
-#include <machine/net.h>
 #endif
 
 /*
@@ -86,6 +77,12 @@
 #define	CMASK	022		/* default mask for file creation */
 #define	NODEV	(dev_t)(-1)
 
+#define	CLBYTES		(CLSIZE*NBPG)
+#define	CLOFSET		(CLBYTES-1)
+#define	claligned(x)	((((int)(x))&CLOFSET)==0)
+#define	CLOFF		CLOFSET
+#define	CLSHIFT		(PGSHIFT + CLSIZELOG2)
+
 /* round a number of clicks up to a whole cluster */
 #define	clrnd(i)	(((i) + (CLSIZE-1)) &~ ((long)(CLSIZE-1)))
 
@@ -118,7 +115,7 @@
  * enough to allow all legitimate uses, but halt infinite loops
  * reasonably quickly.
  */
-#define MAXPATHLEN	1024
+#define MAXPATHLEN	256
 #define MAXSYMLINKS	8
 
 /*
@@ -139,3 +136,7 @@
  * Maximum size of hostname recognized and stored in the kernel.
  */
 #define MAXHOSTNAMELEN	64
+
+#if defined(KERNEL) && defined(UCB_NET)
+#include "../machine/net_mac.h"
+#endif

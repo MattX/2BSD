@@ -318,7 +318,7 @@ long mydelta;
 		if (status & SLAVE) {
 			/* called by a submaster */
 			if (trace)
-				fprintf(fd, "submaster correct: %d ms.\n",
+				fprintf(fd, "submaster correct: %ld ms.\n",
 				    mydelta);
 			correct(mydelta);	
 		} else {
@@ -326,7 +326,7 @@ long mydelta;
 				netdelta = networkdelta();
 				if (trace)
 					fprintf(fd,
-					    "master correct: %d ms.\n",
+					    "master correct: %ld ms.\n",
 					    mydelta);
 				correct(netdelta);
 			}

@@ -6,8 +6,13 @@
 
 #define FLAG 003
 #define AFLAG 007
+#ifdef BSD2_10
+#define NRFTXT 5000
+#define NRFTBL 250
+#else
 #define NRFTXT 10000
 #define NRFTBL 500
+#endif
 #define NTFILE 20
 #define QLEN 512
 #define ANSLEN 1024

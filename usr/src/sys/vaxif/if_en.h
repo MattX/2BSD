@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_en.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_en.h	7.1 (Berkeley) 6/5/86
  */
 
 /*
@@ -15,13 +15,16 @@ struct	en_header {
 	u_short	en_type;
 };
 
-#define	ENPUP_PUPTYPE	0x0400		/* PUP protocol */
-#define	ENPUP_IPTYPE	0x0800		/* IP protocol */
+#define	ENTYPE_PUP	0x0200		/* PUP protocol */
+#define	ENTYPE_IP	0x0201		/* IP protocol */
 
 /*
- * The ENPUP_NTRAILER packet types starting at ENPUP_TRAIL have
- * (type-ENPUP_TRAIL)*512 bytes of data followed
- * by a PUP type (as given above) and then the (variable-length) header.
+ * The ENTYPE_NTRAILER packet types starting at
+ * ENTYPE_TRAIL have (type-ENTYPE_TRAIL)*512 bytes
+ * of data followed by an Ethernet type (as given above)
+ * and then the (variable-length) header.
  */
-#define	ENPUP_TRAIL	0x1000		/* Trailer PUP */
-#define	ENPUP_NTRAILER	16
+#define	ENTYPE_TRAIL	0x1000		/* Trailer type */
+#define	ENTYPE_NTRAILER	16
+
+#define EN_BROADCAST	0		/* Hardware broadcast address */

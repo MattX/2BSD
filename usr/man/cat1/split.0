@@ -1,0 +1,66 @@
+
+
+
+SPLIT(1)	    UNIX Programmer's Manual		 SPLIT(1)
+
+
+
+NNAAMMEE
+     split - split a file into pieces
+
+SSYYNNOOPPSSIISS
+     sspplliitt [ --_n ] [ file [ name ] ]
+
+DDEESSCCRRIIPPTTIIOONN
+     _S_p_l_i_t reads _f_i_l_e and writes it in _n-line pieces (default
+     1000), as many as necessary, onto a set of output files.
+     The name of the first output file is _n_a_m_e with aaaa appended,
+     and so on lexicographically.  If no output name is given, xx
+     is default.
+
+     If no input file is given, or if -- is given in its stead,
+     then the standard input file is used.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	 April 29, 1985                         1
+
+
+

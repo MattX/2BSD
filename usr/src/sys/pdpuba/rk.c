@@ -11,7 +11,8 @@
  */
 
 #include "rk.h"
-#if	NRK > 0
+
+#if NRK > 0
 #include "param.h"
 #include "systm.h"
 #include "buf.h"
@@ -27,7 +28,7 @@ struct	rkdevice *RKADDR;
 struct	buf	rktab;
 struct	buf	rrkbuf[NRK];
 
-#define	rkunit(dev)	((minor(dev) >> 3) & 07)
+#define	rkunit(dev)	minor(dev)
 
 #ifdef UCB_METER
 static	int		rk_dkn = -1;	/* number for iostat */
@@ -78,7 +79,7 @@ bad:		bp->b_flags |= B_ERROR;
 	mapalloc(bp);
 #endif
 	bp->av_forw = (struct buf *)NULL;
-	s = spl5();
+	s = splbio();
 	if(rktab.b_actf == NULL)
 		rktab.b_actf = bp;
 	else

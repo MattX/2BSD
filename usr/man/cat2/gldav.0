@@ -1,0 +1,66 @@
+
+
+
+GLDAV(2)	    UNIX Programmer's Manual		 GLDAV(2)
+
+
+
+NNAAMMEE
+     gldav - get load average (2BSD)
+
+SSYYNNOOPPSSIISS
+     ggllddaavv((ssvveecc))
+     sshhoorrtt ssvveecc[[33]];;
+
+DDEESSCCRRIIPPTTIIOONN
+     _G_l_d_a_v returns the load average on the system in internal
+     format.  The only routine which should call _g_l_d_a_v is
+     _l_o_a_d_a_v(3).  All user programs should call _l_o_a_d_a_v(3), which
+     translates the vector into a reasonable format.
+
+     The three numbers returned are the contents of the kernel
+     variable _a_v_e_n_r_u_n.	This variable contains the 1, 5, and 15
+     minute load averages in a psuedo-floating point format.  The
+     leftmost 8 bits are to the left of the decimal point, the
+     rightmost 8 bits are to the right.
+
+EERRRROORRSS
+     [EFAULT]	    _S_v_e_c points to an address not in the
+		    process's allocated address space.
+
+SSEEEE AALLSSOO
+     w(1), loadav(3)
+
+BBUUGGSS
+     _G_l_d_a_v is unique to the PDP-11 and 2BSD; its use is
+     discouraged.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	January 22, 1987			1
+
+
+

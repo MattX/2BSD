@@ -1,23 +1,28 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ip_output.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)ip_output.c	7.9 (Berkeley) 3/15/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
 #include "mbuf.h"
 #include "errno.h"
 #include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
-#include "domain.h"
 
 #include "../net/if.h"
 #include "../net/route.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -30,29 +35,32 @@
 #endif
 
 #define ovbcopy(a,b,c)	bcopy(a,b,c)
-
 struct mbuf *ip_insertoptions();
 
 /*
  * IP output.  The packet in mbuf chain m contains a skeletal IP
- * header (as ipovly).  The mbuf chain containing the packet will
- * be freed.  The mbuf opt, if present, will not be freed.
+ * header (with len, off, ttl, proto, tos, src, dst).
+ * The mbuf chain containing the packet will be freed.
+ * The mbuf opt, if present, will not be freed.
  */
-ip_output(m, opt, ro, flags)
-	struct mbuf *m;
+ip_output(m0, opt, ro, flags)
+	struct mbuf *m0;
 	struct mbuf *opt;
 	struct route *ro;
 	int flags;
 {
-	register struct ip *ip;
+	register struct ip *ip, *mhip;
 	register struct ifnet *ifp;
-	int len, hlen = sizeof (struct ip), off, error = 0;
+	register struct mbuf *m = m0;
+	register int hlen = sizeof (struct ip);
+	int len, off, error = 0;
 	struct route iproute;
 	struct sockaddr_in *dst;
 
-	MAPSAVE();
-	if (opt)
-		m = ip_insertoptions(m, opt, &hlen);
+	if (opt) {
+		m = ip_insertoptions(m, opt, &len);
+		hlen = len;
+	}
 	ip = mtod(m, struct ip *);
 	/*
 	 * Fill in IP header.
@@ -116,7 +124,6 @@ ip_output(m, opt, ro, flags)
 		if (ro->ro_rt->rt_flags & RTF_GATEWAY)
 			dst = (struct sockaddr_in *)&ro->ro_rt->rt_gateway;
 	}
-
 #ifndef notdef
 	/*
 	 * If source address not specified yet, use address
@@ -179,70 +186,76 @@ ip_output(m, opt, ro, flags)
 		goto bad;
 	}
 
-	/*
-	 * Discard IP header from logical mbuf for m_copy's sake.
-	 * Loop through length of segment, make a copy of each
-	 * part and output.
-	 */
-#ifdef BSD2_10
-	{
-	u_char ipcopy[64];
-	bcopy((caddr_t)ip, (caddr_t)ipcopy, hlen&0x3f);
-#define	IP	((struct ip *)&ipcopy[0])
-#else
-#define	IP	ip
-#endif
-	m->m_len -= sizeof (struct ip);
-	m->m_off += sizeof (struct ip);
-	for (off = 0; off < IP->ip_len-hlen; off += len) {
-		struct mbuf *mh = m_get(M_DONTWAIT, MT_HEADER);
-		struct ip *mhip;
+    {
+	int mhlen, firstlen = len;
+	struct mbuf **mnext = &m->m_act;
 
-		if (mh == 0) {
+	/*
+	 * Loop through length of segment after first fragment,
+	 * make new header and copy data of each part and link onto chain.
+	 */
+	m0 = m;
+	mhlen = sizeof (struct ip);
+	for (off = hlen + len; off < ip->ip_len; off += len) {
+		MGET(m, M_DONTWAIT, MT_HEADER);
+		if (m == 0) {
 			error = ENOBUFS;
 			goto bad;
 		}
-		mh->m_off = MMAXOFF - hlen;
-		mhip = mtod(mh, struct ip *);
-		*mhip = *IP;
+		m->m_off = MMAXOFF - hlen;
+		mhip = mtod(m, struct ip *);
+		*mhip = *ip;
 		if (hlen > sizeof (struct ip)) {
-			int olen = ip_optcopy(IP, mhip, off);
-			mh->m_len = sizeof (struct ip) + olen;
-		} else
-			mh->m_len = sizeof (struct ip);
-		mhip->ip_off = (off >> 3) + (IP->ip_off & ~IP_MF);
-		if (IP->ip_off & IP_MF)
-			mhip->ip_off |= IP_MF;
-		if (off + len >= IP->ip_len-hlen)
-			len = mhip->ip_len = IP->ip_len - hlen - off;
-		else {
-			mhip->ip_len = len;
-			mhip->ip_off |= IP_MF;
+			mhlen = ip_optcopy(ip, mhip) + sizeof (struct ip);
+			mhip->ip_hl = mhlen >> 2;
 		}
-		mhip->ip_len += sizeof (struct ip);
-		mhip->ip_len = htons((u_short)mhip->ip_len);
-		mh->m_next = m_copy(m, off, len);
-		if (mh->m_next == 0) {
-			(void) m_free(mh);
+		m->m_len = mhlen;
+		mhip->ip_off = ((off - hlen) >> 3) + (ip->ip_off & ~IP_MF);
+		if (ip->ip_off & IP_MF)
+			mhip->ip_off |= IP_MF;
+		if (off + len >= ip->ip_len)
+			len = ip->ip_len - off;
+		else
+			mhip->ip_off |= IP_MF;
+		mhip->ip_len = htons((u_short)(len + mhlen));
+		m->m_next = m_copy(m0, off, len);
+		if (m->m_next == 0) {
 			error = ENOBUFS;	/* ??? */
-			goto bad;
+			goto sendorfree;
 		}
 		mhip->ip_off = htons((u_short)mhip->ip_off);
 		mhip->ip_sum = 0;
-		mhip->ip_sum = in_cksum(mh, hlen);
-		if (error = (*ifp->if_output)(ifp, mh, (struct sockaddr *)dst))
-			break;
+		mhip->ip_sum = in_cksum(m, mhlen);
+		*mnext = m;
+		mnext = &m->m_act;
 	}
-#ifdef BSD2_10
+	/*
+	 * Update first fragment by trimming what's been copied out
+	 * and updating header, then send each fragment (in order).
+	 */
+	m_adj(m0, hlen + firstlen - ip->ip_len);
+	ip->ip_len = htons((u_short)(hlen + firstlen));
+	ip->ip_off = htons((u_short)(ip->ip_off | IP_MF));
+	ip->ip_sum = 0;
+	ip->ip_sum = in_cksum(m0, hlen);
+sendorfree:
+	for (m = m0; m; m = m0) {
+		m0 = m->m_act;
+		m->m_act = 0;
+		if (error == 0)
+			error = (*ifp->if_output)(ifp, m,
+			    (struct sockaddr *)dst);
+		else
+			m_freem(m);
 	}
-#endif
-bad:
-	m_freem(m);
+    }
 done:
 	if (ro == &iproute && (flags & IP_ROUTETOIF) == 0 && ro->ro_rt)
 		RTFREE(ro->ro_rt);
-	MAPREST();
 	return (error);
+bad:
+	m_freem(m0);
+	goto done;
 }
 
 /*
@@ -256,28 +269,18 @@ ip_insertoptions(m, opt, phlen)
 	struct mbuf *opt;
 	int *phlen;
 {
-	register struct ipoption *p;
+	register struct ipoption *p = mtod(opt, struct ipoption *);
 	struct mbuf *n;
-	register struct ip *ip;
+	register struct ip *ip = mtod(m, struct ip *);
 	unsigned optlen;
-	char svlist[MSIZE];	/* save area for p->ipopt_list */
 
-	MAPSAVE();
-	p = mtod(opt, struct ipoption *);
 	optlen = opt->m_len - sizeof(p->ipopt_dst);
-	if (p->ipopt_dst.s_addr) {
-		struct in_addr svdst;
-		svdst = p->ipopt_dst;
-		bcopy((caddr_t)p->ipopt_list, (caddr_t)svlist, optlen);
-		ip = mtod(m, struct ip *);
-		ip->ip_dst = svdst;
-	}
+	if (p->ipopt_dst.s_addr)
+		ip->ip_dst = p->ipopt_dst;
 	if (m->m_off >= MMAXOFF || MMINOFF + optlen > m->m_off) {
 		MGET(n, M_DONTWAIT, MT_HEADER);
-		if (n == 0) {
-			MAPUNSAVE();
+		if (n == 0)
 			return (m);
-		}
 		m->m_len -= sizeof(struct ip);
 		m->m_off += sizeof(struct ip);
 		n->m_next = m;
@@ -291,21 +294,18 @@ ip_insertoptions(m, opt, phlen)
 		ovbcopy((caddr_t)ip, mtod(m, caddr_t), sizeof(struct ip));
 	}
 	ip = mtod(m, struct ip *);
-	bcopy((caddr_t)svlist, (caddr_t)(ip + 1), (unsigned)optlen);
+	bcopy((caddr_t)p->ipopt_list, (caddr_t)(ip + 1), (unsigned)optlen);
 	*phlen = sizeof(struct ip) + optlen;
 	ip->ip_len += optlen;
-	MAPREST();
 	return (m);
 }
 
 /*
- * Copy options from ip to jp.
- * If off is 0 all options are copied
- * otherwise copy selectively.
+ * Copy options from ip to jp,
+ * omitting those not copied during fragmentation.
  */
-ip_optcopy(ip, jp, off)
+ip_optcopy(ip, jp)
 	struct ip *ip, *jp;
-	int off;
 {
 	register u_char *cp, *dp;
 	int opt, optlen, cnt;
@@ -321,9 +321,10 @@ ip_optcopy(ip, jp, off)
 			optlen = 1;
 		else
 			optlen = UCHAR(cp[IPOPT_OLEN]);
-		if (optlen > cnt)			/* XXX */
-			optlen = cnt;			/* XXX */
-		if (off == 0 || IPOPT_COPIED(opt)) {
+		/* bogus lengths should have been caught by ip_dooptions */
+		if (optlen > cnt)
+			optlen = cnt;
+		if (IPOPT_COPIED(opt)) {
 			bcopy((caddr_t)cp, (caddr_t)dp, (unsigned)optlen);
 			dp += optlen;
 		}
@@ -367,11 +368,8 @@ ip_ctloutput(op, so, level, optname, m)
 			if (inp->inp_options) {
 				(*m)->m_off = inp->inp_options->m_off;
 				(*m)->m_len = inp->inp_options->m_len;
-				MAPSAVE();
-/* THIS ISN'T GOING TO WORK!!! */
 				bcopy(mtod(inp->inp_options, caddr_t),
 				    mtod(*m, caddr_t), (unsigned)(*m)->m_len);
-				MAPREST();
 			} else
 				(*m)->m_len = 0;
 			break;
@@ -430,7 +428,6 @@ ip_pcbopts(pcbopt, m)
 #endif
 	cnt = m->m_len;
 	m->m_len += sizeof(struct in_addr);
-	MAPSAVE();
 	cp = mtod(m, u_char *) + sizeof(struct in_addr);
 	ovbcopy(mtod(m, caddr_t), (caddr_t)cp, (unsigned)cnt);
 	bzero(mtod(m, caddr_t), sizeof(struct in_addr));
@@ -484,11 +481,9 @@ ip_pcbopts(pcbopt, m)
 		}
 	}
 	*pcbopt = m;
-	MAPUNSAVE();
 	return (0);
 
 bad:
-	MAPREST();
 	(void)m_free(m);
 	return (EINVAL);
 }

@@ -10,11 +10,9 @@
  *	SI 9500 CDC 9766 Stand Alone disk driver
  */
 
-#include <sys/param.h>
-
+#include "../h/param.h"
+#include "../h/inode.h"
 #include "../pdpuba/sireg.h"
-
-#include <sys/inode.h>
 #include "saio.h"
 
 #define SIADDR ((struct sidevice *)0176700)
@@ -27,17 +25,16 @@
 static int dualsi;
 
 sistrategy(io, func)
-register struct iob *io;
+	register struct iob *io;
 {
 	register unit;
 	register ii;
 	daddr_t bn;
 	int sn, cn, tn;
 
-	if(((unit = io->i_unit) & 04) == 0)
+	if (((unit = io->i_unit) & 04) == 0)
 		bn = io->i_bn;
-	else
-	{
+	else {
 		unit &= 03;
 		bn = io->i_bn;
 		bn -= io->i_boff;
@@ -52,28 +49,18 @@ register struct iob *io;
 	tn = sn / (NSECT);
 	sn = sn % (NSECT);
 
-	if(!dualsi)
-	{
-		if(SIADDR->siscr != 0)
-		{
+	if (!dualsi) {
+		if (SIADDR->siscr != 0)
 			dualsi++;
-		}
 		else
-		{
-			if((SIADDR->sierr & (SIERR_ERR | SIERR_CNT)) == (SIERR_ERR | SIERR_CNT))
-			{
+			if ((SIADDR->sierr & (SIERR_ERR | SIERR_CNT)) == (SIERR_ERR | SIERR_CNT))
 				dualsi++;
-			}
-		}
 	}
-	if(dualsi)
-	{
-		while(!(SIADDR->siscr & 0200))
-		{
+	if (dualsi)
+		while (!(SIADDR->siscr & 0200)) {
 			SIADDR->sicnr = SI_RESET;
 			SIADDR->siscr = 1;
 		}
-	}
 	SIADDR->sipcr = cn;
 	SIADDR->sihsr = (tn << 5) + sn;
 	SIADDR->simar = io->i_ma;
@@ -82,18 +69,17 @@ register struct iob *io;
 	 * warning: unit is being used as a temporary.
 	 */
 	unit = ((segflag & 03) << 4) | SI_GO;
-	if(func == READ)
+	if (func == READ)
 		unit |= SI_READ;
-	else if(func == WRITE)
+	else if (func == WRITE)
 		unit |= SI_WRITE;
 	
 	SIADDR->sicnr = unit;
 
-	while((SIADDR->sicnr & SI_DONE) == 0)
-		;
-	
-	if(SIADDR->sierr & SIERR_ERR)
-	{
+	while ((SIADDR->sicnr & SI_DONE) == 0)
+		continue;
+
+	if (SIADDR->sierr & SIERR_ERR) {
 		printf("disk error cyl=%d head=%d sect=%d cnr=%o, err=%o\n",
 			cn, tn, sn, SIADDR->sicnr, SIADDR->sierr);
 		return(-1);

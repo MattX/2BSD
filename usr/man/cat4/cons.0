@@ -1,0 +1,66 @@
+
+
+
+CONS(4)             UNIX Programmer's Manual		  CONS(4)
+
+
+
+NNAAMMEE
+     cons - PDP-11 console interface
+
+DDEESSCCRRIIPPTTIIOONN
+     The console is available to the processor through the con-
+     sole registers.  It acts like a normal terminal, except that
+     typing control-P on the consoles of some PDP-11's puts the
+     console in local console mode with an ODT (console debugger
+     mode) prompt.  The operation of the console in this mode
+     varies per-processor.  See the PDP-11 Processor Handbook for
+     your particular processor.
+
+     On an 11/44 the console can be put into local mode by typing
+     a control-P.  The ODT prompt is ``>>>''.  The processor is
+     not stopped by entering local console mode.  The CPU may be
+     halted with the ``halt'' command, which may be abbreviated
+     to ``h.'' Conversational mode is re-entered by using the
+     command ``c'' (continue).
+
+     On 11/73 the processor's front panel halt switch must be
+     pressed to put the console into ODT mode.	The ODT prompt is
+     an ``@''.	No characters typed on the console are special
+     while UNIX is in control of the console.
+
+FFIILLEESS
+     /dev/console
+
+SSEEEE AALLSSOO
+     tty(4), reboot(8)
+     PDP-11 Hardware Handbook specific to hardware
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	  July 27, 1987                         1
+
+
+

@@ -1,6 +1,9 @@
-/* $Header: respond.c,v 4.3.1.4 85/05/23 17:24:49 lwall Exp $
+/* $Header: respond.c,v 4.3.1.5 85/09/10 11:05:00 lwall Exp $
  *
  * $Log:	respond.c,v $
+ * Revision 4.3.1.5  85/09/10  11:05:00  lwall
+ * Improved %m in in_char().
+ * 
  * Revision 4.3.1.4  85/05/23  17:24:49  lwall
  * Now allows 'r' and 'f' on null articles.
  * 
@@ -156,7 +159,7 @@ Saving null articles is not very productive!  :-)\n\
 		"\nFile %s doesn't exist--\n	use mailbox format? [%s] ",
 		  s,dflt);
 	      reask_save:
-		in_char(cmd_buf);
+		in_char(cmd_buf, 'M');
 		putchar('\n') FLUSH;
 		setdef(buf,dflt);
 #ifdef VERIFY

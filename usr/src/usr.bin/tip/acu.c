@@ -5,7 +5,7 @@
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)acu.c	5.3 (Berkeley) 4/3/86";
+static char sccsid[] = "@(#)acu.c	5.5 (Berkeley) 12/4/87";
 #endif not lint
 
 #include "tip.h"
@@ -42,6 +42,7 @@ connect()
 	if (!DU) {		/* regular connect message */
 		if (CM != NOSTR)
 			pwrite(FD, CM, size(CM));
+		logent(value(HOST), "", DV, "call completed");
 		return (NOSTR);
 	}
 	/*
@@ -62,8 +63,7 @@ connect()
 			else
 				(*acu->acu_abort)();
 		}
-		delock(uucplock);
-		exit(1);
+		return ("interrupt");
 	}
 	if ((acu = acutype(AT)) == NOACU)
 		return ("unknown ACU type");
@@ -131,8 +131,10 @@ connect()
 disconnect(reason)
 	char *reason;
 {
-	if (!conflag)
+	if (!conflag) {
+		logent(value(HOST), "", DV, "call terminated");
 		return;
+	}
 	if (reason == NOSTR) {
 		logent(value(HOST), "", acu->acu_name, "call terminated");
 		if (boolean(value(VERBOSE)))

@@ -39,8 +39,7 @@ SETUID=	ping
 
 # C programs that must run set-group-id kmem.
 #
-#KMEM=	pstat arp dmesg kgmon trpt
-KMEM=	arp dmesg kgmon trpt
+KMEM=	fstat pstat arp dmesg kgmon trpt
 
 # C programs that must run set-group-id operator.
 #
@@ -83,7 +82,7 @@ install:
 clean:
 	-rm -f a.out core *.s *.o
 	-for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
-	-rm -f ${STD} ${NSTD} ${KMEM} ${SETUID}
+	-rm -f ${STD} ${NSTD} ${KMEM} ${SETUID} ${OPERATOR} ${OPTIONAL}
 
 FRC:
 

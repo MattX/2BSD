@@ -1,49 +1,20 @@
-PATH=/etc:/bin:/usr/ucb:/usr/bin
+# site-specific startup actions, daemons
 
-# myname is my symbolic name
-# myhostid is my internet address in #.#.#.# format
-# my-netmask is specified in /etc/networks
-#
-hostname kazoo
-#ifconfig imp0 netmask my-netmask `hostname`
-#ifconfig en0 netmask my-netmask `hostname`
-#ifconfig il0 `hostname` netmask ucb-netmask broadcast xcs-net up -trailers
-ifconfig qe0 `hostname` netmask ucb-netmask broadcast xcs-net up -trailers
-ifconfig lo0 localhost up -trailers
-slattach tty00 19200
-ifconfig sl0 128.32.140.11 128.32.140.10
-route add `hostname` localhost 0
-route add default csgw-xcs 1
-hostid `hostname`
-
-strings /unix | grep UNIX >/tmp/t1
+strings /vmunix | grep UNIX >/tmp/t1
 tail +2 /etc/motd >>/tmp/t1
 mv /tmp/t1 /etc/motd
 chmod 666 /etc/motd
 
-# syslogd doesn't belong here, but needs to be started before the others.
-if [ -f /etc/syslogd ]; then
-			echo 'starting system logger'	>/dev/console
-	rm -f /dev/log
-#	/etc/syslogd
+echo -n			starting local daemons:			>/dev/console 2>&1
+#if [ $UCB_NET = YES -a -f /etc/timed ]; then
+#	timed &				echo -n ' timed'	>/dev/console 2>&1
+#fi
+if [ -f /usr/lib/sendmail ]; then
+	(cd /usr/spool/mqueue; rm -f lf*)
+	if [ $UCB_NET = YES ]; then
+		/usr/lib/sendmail -bd -q30m; echo -n ' sendmail'>/dev/console 2>&1
+	else
+		/usr/lib/sendmail -q30m; echo -n ' sendmail'	>/dev/console 2>&1
+	fi
 fi
-
-		echo -n 'checking for core dump... '	>/dev/console
-		savecore /crash				>/dev/console 2>&1
-		echo ''					>/dev/console
-
-			echo -n starting local daemons:	>/dev/console
-#if [ -f /etc/routed ]; then
-#	/etc/routed;	 	echo -n ' routed'	>/dev/console
-#fi
-#if [ -f /etc/named ]; then
-#	/etc/named /etc/named.boot; echo -n ' named'	>/dev/console
-#fi
-#if [ -f /etc/timed ]; then
-#	/etc/timed -t;		echo -n ' timed'	>/dev/console
-#fi
-#if [ -f /usr/lib/sendmail ]; then
-#	(cd /usr/spool/mqueue; rm -f lf*)
-#	/usr/lib/sendmail -q30m; echo -n ' sendmail'	>/dev/console
-#fi
-				echo '.'		>/dev/console
+				echo '.'			>/dev/console 2>&1

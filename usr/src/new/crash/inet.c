@@ -35,6 +35,7 @@ static char sccsid[] = "@(#)inet.c	5.4 (Berkeley) 2/25/86";
 #include <netinet/udp.h>
 #include <netinet/udp_var.h>
 
+#include <arpa/inet.h>
 #include <netdb.h>
 #include "net.h"	/* for CRASH only */
 

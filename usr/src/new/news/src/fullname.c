@@ -14,7 +14,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)fullname.c	1.11	9/16/86";
+static char	*SccsId = "@(#)fullname.c	1.13	11/4/87";
 #endif /* SCCSID */
 
 #include "params.h"
@@ -125,7 +125,7 @@ buildfname(p, login, buf)
 		p++;
 	while (*p != '\0' && *p != ',' && *p != ';' && *p != ':' && *p != '(')
 	{
-		if (*p == '-') {
+		if (*p == '-' && (isdigit(p[-1]) || isspace(p[-1]))) {
 			bp = buf;
 			p++;
 		}

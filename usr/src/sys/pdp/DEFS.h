@@ -15,11 +15,7 @@
 #include "localopts.h"
 #include "assym.h"
 
-#ifdef UCB_NET
-#	define	INTSTK	1000.		/* bytes for interrupt stack */
-#else
-#	define	INTSTK	500.
-#endif
+#define	INTSTK	500.			/* bytes for interrupt stack */
 
 #ifdef PROF
 #	define	HIGH	06		/* See also the :splfix files */
@@ -35,59 +31,39 @@
 #endif
 
 
-#if PDP11 == GENERIC			/* adapt to any 11 at boot */
-#	undef	NONSEPARATE		/* support sep I/D if present */
-#	define	SPLHIGH		bis	$HIPRI,PS
-#	define	SPL7		bis	$0340,PS
-#	define	SPLLOW		bic	$HIPRI,PS
-#	ifdef UCB_NET
-#		define	SPLNET	bis	$NETPRI,PS
-#	endif
-#else
-#   ifdef NONSEPARATE			/* 11/40, 34, 23, 24 */
-#	define	SPLHIGH		bis	$HIPRI,PS
-#	define	SPL7		bis	$0340,PS
-#	define	SPLLOW		bic	$HIPRI,PS
-#	ifdef UCB_NET
-#		define	SPLNET	bis	$NETPRI,PS
-#	endif
+/*
+ * adapt to any 11 at boot
+ */
+#if PDP11 == GENERIC
+#	undef	NONSEPARATE	/* Enable support for separate I&D if found */
+#endif
+
+#ifdef NONSEPARATE		/* 11/40, 34, 23, 24 */
 #	define mfpd		mfpi
 #	define mtpd		mtpi
-#   else !NONSEPARATE			/* 11/44, 45, 70, 73 */
+#endif
+
+#if PDP11 == GENERIC || defined(SUPERVISOR) || defined(NONSEPARATE)
+	/*
+	 * GENERIC: movb instruction are available on all PDP-11s.
+	 *
+	 * SUPERVISOR: can't use spl instructions even if the machine
+	 * supports them since spl is a privileged instruction.
+	 */
+#	define	SPLHIGH		movb	$HIPRI,PS
+#	define	SPL7		movb	$0340,PS
+#	define	SPLLOW		clrb	PS
+#	ifdef UCB_NET
+#		define	SPLNET	movb	$NETPRI,PS
+#	endif
+#else
 #	define SPLHIGH		spl	HIGH
 #	define SPL7		spl	7
 #	define SPLLOW		spl	0
 #	ifdef UCB_NET
 #		define	SPLNET	spl	NET
 #	endif
-#   endif
 #endif
-
-
-/*
- * Non-UNIX /bin/as instructions.  Most of these instructions are CPU
- * and configuration dependent.
- */
-mfpi	= 6500^tst	/ move from previous instruction space
-mtpi	= 6600^tst	/ move to previous instruction space
-mfpd	= 106500^tst	/ move from previous data space
-mtpd	= 106600^tst	/ move to previous data space
-
-stst	= 170300^tst	/ store floating error status registers
-ldfps	= 170100^tst	/ load floating processor status register
-stfps	= 170200^tst	/ store floating processor status register
-
-spl	= 230		/ set priority level
-mfps	= 106700^tst	/ move from PS
-mtps	= 106400^tst	/ move to PS
-mfpt	= 000007	/ move from processor (get processor model code)
-
-halt	= 0		/ halt cpu
-wait	= 1		/ wait for interrupt
-iot	= 4		/ perform I/O trap sequence
-reset	= 5		/ reset all unibus devices
-rtt	= 6		/ return from trap
-
 
 
 #define	CONST(s, x, v)	DEC_/**/s(x); x=v;

@@ -94,7 +94,7 @@ struct tty {
 #define	TTMASK	15
 #define	OBUFSIZ	100
 #define	TTYHOG	255
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 short	tthiwat[NSPEEDS], ttlowat[NSPEEDS];
 #define	TTHIWAT(tp)	tthiwat[(tp)->t_ospeed&TTMASK]
 #define	TTLOWAT(tp)	ttlowat[(tp)->t_ospeed&TTMASK]

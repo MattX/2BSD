@@ -30,21 +30,28 @@ read_dtab()
 			*cdp;
 	UPROBE	*up;
 	HAND	*sp;
+	FILE	*fp;
 	int	nhandlers,	/* number of handlers per line */
 		line;		/* line number in dtab file */
 	short	cnt;		/* general counter */
 	char	*cp,		/* traveling char pointer */
 		*save,		/* save string position */
-		buf[80],	/* line buffer */
+		buf[500],	/* line buffer */
 		name[20],	/* device name */
 		unit[5],	/* unit number */
-		*malloc(), *strcpy(), *gets();
+		*index(), *malloc(), *strcpy(), *fgets();
 
-	if (!(freopen(dtab_name,"r",stdin))) {
+	if (!(fp = fopen(dtab_name,"r"))) {
 		perror(dtab_name);
 		exit(AC_SETUP);
 	}
-	for (line = 1,devs = NULL;gets(buf);++line) {
+	for (line = 1,devs = NULL;fgets(buf, sizeof(buf), fp);++line) {
+		if (cp = index(buf, '\n'))
+			*cp = EOS;
+		else {
+			fprintf(stderr,"%s: line %d too long.\n",myname,line);
+			exit(AC_SINGLE);
+		}
 		for (cp = buf;isspace(*cp);++cp);
 		if (!*cp || cp == ';' || *cp == '#')
 			continue;

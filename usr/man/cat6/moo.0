@@ -1,0 +1,66 @@
+
+
+
+MOO(6)		    UNIX Programmer's Manual		   MOO(6)
+
+
+
+NNAAMMEE
+     moo - guessing game
+
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//mmoooo
+
+DDEESSCCRRIIPPTTIIOONN
+     _M_o_o is a guessing game imported from England.  The computer
+     picks a number consisting of four distinct decimal digits.
+     The player guesses four distinct digits being scored on each
+     guess.  A `cow' is a correct digit in an incorrect position.
+     A `bull' is a correct digit in a correct position.  The game
+     continues until the player guesses the number (a score of
+     four bulls).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						1
+
+
+

@@ -17,6 +17,7 @@ static char sccsid[] = "@(#)uucpd.c	5.4 (Berkeley) 6/23/85";
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <pwd.h>

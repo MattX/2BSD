@@ -18,6 +18,7 @@ static char sccsid[] = "@(#)trace.c	5.3 (Berkeley) 2/12/86";
 #include <sys/protosw.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h>

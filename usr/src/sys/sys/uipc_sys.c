@@ -8,7 +8,6 @@
 
 #include "param.h"
 
-#ifdef UCB_NET
 #include "../machine/seg.h"
 #include "../machine/psl.h"
 
@@ -24,14 +23,19 @@
 #include "socketvar.h"
 #include "uio.h"
 #include "domain.h"
-#include "vaxif/if_uba.h"
+#include "pdpif/if_uba.h"
 #include "netinet/in.h"
 #include "netinet/in_systm.h"
+
+#define	MBZAP(m, len, type) \
+	(m)->m_next = 0; (m)->m_off = MMINOFF; (m)->m_len = (len); \
+	(m)->m_type = (type); (m)->m_act = 0;
 
 /*
  * System call interface to the socket abstraction.
  */
 
+extern int netoff;
 struct file *gtsockf();
 
 socket()
@@ -44,14 +48,16 @@ socket()
 	struct socket *so;
 	register struct file *fp;
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	if ((fp = falloc()) == NULL)
 		return;
 	fp->f_flag = FREAD|FWRITE;
 	fp->f_type = DTYPE_SOCKET;
-	u.u_error = socreate(uap->domain, &so, uap->type, uap->protocol);
+	u.u_error = SOCREATE(uap->domain, &so, uap->type, uap->protocol);
 	if (u.u_error)
 		goto bad;
-	fp->f_data = (caddr_t)so;
+	fp->f_socket = so;
 	return;
 bad:
 	u.u_ofile[u.u_r.r_val1] = 0;
@@ -63,23 +69,25 @@ bind()
 	register struct a {
 		int	s;
 		caddr_t	name;
-		int	namelen;
+		u_int	namelen;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 	register struct mbuf *nam;
 	char sabuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
 	nam = (struct mbuf *)sabuf;
+	MBZAP(nam, uap->namelen, MT_SONAME);
 	if (uap->namelen > MLEN)
-		return (EINVAL);
-	u.u_error = copyin(uap->name, MTOD(nam, caddr_t), uap->namelen);
+		return (u.u_error = EINVAL);
+	u.u_error = copyin(uap->name, mtod(nam, caddr_t), uap->namelen);
 	if (u.u_error)
 		return;
-	MBZAP(nam, uap->namelen, MT_SONAME);
-	u.u_error = sobind((struct socket *)fp->f_data, nam);
+	u.u_error = SOBIND(fp->f_socket, nam);
 }
 
 listen()
@@ -90,10 +98,12 @@ listen()
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
-	u.u_error = solisten((struct socket *)fp->f_data, uap->backlog);
+	u.u_error = SOLISTEN(fp->f_socket, uap->backlog);
 }
 
 accept()
@@ -110,6 +120,8 @@ accept()
 	register struct socket *so;
 	char sabuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	if (uap->name == 0)
 		goto noname;
 	u.u_error = copyin((caddr_t)uap->anamelen, (caddr_t)&namelen,
@@ -127,27 +139,8 @@ noname:
 	if (fp == 0)
 		return;
 	s = splnet();
-	so = (struct socket *)fp->f_data;
-	if ((so->so_options & SO_ACCEPTCONN) == 0) {
-		u.u_error = EINVAL;
-		splx(s);
-		return;
-	}
-	if ((so->so_state & SS_NBIO) && so->so_qlen == 0) {
-		u.u_error = EWOULDBLOCK;
-		splx(s);
-		return;
-	}
-	while (so->so_qlen == 0 && so->so_error == 0) {
-		if (so->so_state & SS_CANTRCVMORE) {
-			so->so_error = ECONNABORTED;
-			break;
-		}
-		sleep((caddr_t)&so->so_timeo, PZERO+1);
-	}
-	if (so->so_error) {
-		u.u_error = so->so_error;
-		so->so_error = 0;
+	so = fp->f_socket;
+	if (SOACC1(so)) {
 		splx(s);
 		return;
 	}
@@ -161,22 +154,19 @@ noname:
 		splx(s);
 		return;
 	}
-	{ struct socket *aso = so->so_q;
-	  if (soqremque(aso, 1) == 0)
+	if (!(so = (struct socket *)ASOQREMQUE(so, 1)))	/* deQ in super */
 		panic("accept");
-	  so = aso;
-	}
 	fp->f_type = DTYPE_SOCKET;
 	fp->f_flag = FREAD|FWRITE;
-	fp->f_data = (caddr_t)so;
+	fp->f_socket = so;
 	nam = (struct mbuf *)sabuf;
 	MBZAP(nam, 0, MT_SONAME);
-	u.u_error = soaccept(so, nam);
+	u.u_error = SOACCEPT(so, nam);
 	if (uap->name) {
 		if (namelen > nam->m_len)
 			namelen = nam->m_len;
 		/* SHOULD COPY OUT A CHAIN HERE */
-		(void) copyout(MTOD(nam, caddr_t), (caddr_t)uap->name,
+		(void) copyout(mtod(nam, caddr_t), (caddr_t)uap->name,
 		    (u_int)namelen);
 		(void) copyout((caddr_t)&namelen, (caddr_t)uap->anamelen,
 		    sizeof (*uap->anamelen));
@@ -189,52 +179,51 @@ connect()
 	register struct a {
 		int	s;
 		caddr_t	name;
-		int	namelen;
+		u_int	namelen;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 	register struct socket *so;
 	struct mbuf *nam;
 	int s;
 	char sabuf[MSIZE];
+	struct	socket	kcopy;
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
-	so = (struct socket *)fp->f_data;
-	if ((so->so_state & SS_NBIO) &&
-	    (so->so_state & SS_ISCONNECTING)) {
-		u.u_error = EALREADY;
-		return;
-	}
 	if (uap->namelen > MLEN)
-		return (EINVAL);
+		return (u.u_error = EINVAL);
 	nam = (struct mbuf *)sabuf;
-	u.u_error = copyin(uap->name, MTOD(nam, caddr_t), uap->namelen);
-	if (u.u_error)
-		return;
 	MBZAP(nam, uap->namelen, MT_SONAME);
-	u.u_error = soconnect(so, nam);
+	u.u_error = copyin(uap->name, mtod(nam, caddr_t), uap->namelen);
 	if (u.u_error)
-		goto bad;
-	if ((so->so_state & SS_NBIO) &&
-	    (so->so_state & SS_ISCONNECTING)) {
-		u.u_error = EINPROGRESS;
 		return;
-	}
+	so = fp->f_socket;
+	/*
+	 * soconnect was modified to clear the isconnecting bit on errors.
+	 * also, it was changed to return the EINPROGRESS error if
+	 * nonblocking, etc.
+	 */
+	u.u_error = SOCON1(so, nam);
+	if (u.u_error)
+		return;
+	/*
+	 * i don't think the setjmp stuff works too hot in supervisor mode,
+	 * so what is done instead is do the setjmp here and then go back
+	 * to supervisor mode to do the "while (isconnecting && !error)
+	 * sleep()" loop.
+	 */
 	s = splnet();
 	if (setjmp(&u.u_qsave)) {
 		if (u.u_error == 0)
 			u.u_error = EINTR;
 		goto bad2;
 	}
-	while ((so->so_state & SS_ISCONNECTING) && so->so_error == 0)
-		sleep((caddr_t)&so->so_timeo, PZERO+1);
-	u.u_error = so->so_error;
-	so->so_error = 0;
+	u.u_error = CONNWHILE(so);
 bad2:
 	splx(s);
-bad:
-	so->so_state &= ~SS_ISCONNECTING;
 }
 
 socketpair()
@@ -255,10 +244,12 @@ socketpair()
 		return;
 	}
 #endif
-	u.u_error = socreate(uap->domain, &so1, uap->type, uap->protocol);
+	if (netoff)
+		return(u.u_error = ENETDOWN);
+	u.u_error = SOCREATE(uap->domain, &so1, uap->type, uap->protocol);
 	if (u.u_error)
 		return;
-	u.u_error = socreate(uap->domain, &so2, uap->type, uap->protocol);
+	u.u_error = SOCREATE(uap->domain, &so2, uap->type, uap->protocol);
 	if (u.u_error)
 		goto free;
 	fp1 = falloc();
@@ -267,22 +258,22 @@ socketpair()
 	sv[0] = u.u_r.r_val1;
 	fp1->f_flag = FREAD|FWRITE;
 	fp1->f_type = DTYPE_SOCKET;
-	fp1->f_data = (caddr_t)so1;
+	fp1->f_socket = so1;
 	fp2 = falloc();
 	if (fp2 == NULL)
 		goto free3;
 	fp2->f_flag = FREAD|FWRITE;
 	fp2->f_type = DTYPE_SOCKET;
-	fp2->f_data = (caddr_t)so2;
+	fp2->f_socket = so2;
 	sv[1] = u.u_r.r_val1;
-	u.u_error = soconnect2(so1, so2);
+	u.u_error = SOCON2(so1, so2);
 	if (u.u_error)
 		goto free4;
 	if (uap->type == SOCK_DGRAM) {
 		/*
 		 * Datagram socket connection is asymmetric.
 		 */
-		 u.u_error = soconnect2(so2, so1);
+		 u.u_error = SOCON2(so2, so1);
 		 if (u.u_error)
 			goto free4;
 	}
@@ -296,9 +287,9 @@ free3:
 	fp1->f_count = 0;
 	u.u_ofile[sv[0]] = 0;
 free2:
-	(void)soclose(so2);
+	(void)SOCLOSE(so2);
 free:
-	(void)soclose(so1);
+	(void)SOCLOSE(so1);
 }
 
 sendto()
@@ -376,10 +367,12 @@ sendit(s, mp, flags)
 	register struct file *fp;
 	register struct iovec *iov;
 	register int i;
-	struct mbuf *to;
+	struct mbuf *to, *rights;
 	int len;
-	char sabuf[MSIZE];
+	char sabuf[MSIZE], ribuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(s);
 	if (fp == 0)
 		return;
@@ -387,16 +380,26 @@ sendit(s, mp, flags)
 	u.u_offset = 0;				/* XXX */
 	if (mp->msg_name) {
 		to = (struct mbuf *)sabuf;
+		MBZAP(to, mp->msg_namelen, MT_SONAME);
 		u.u_error =
-		    copyin(mp->msg_name, MTOD(to, caddr_t), mp->msg_namelen);
+		    copyin(mp->msg_name, mtod(to, caddr_t), mp->msg_namelen);
 		if (u.u_error)
 			return;
-		MBZAP(to, mp->msg_namelen, MT_SONAME);
 	} else
 		to = 0;
+	if (mp->msg_accrights) {
+		rights = (struct mbuf *)ribuf;
+		MBZAP(rights, mp->msg_accrightslen, MT_RIGHTS);
+		if (mp->msg_accrightslen > MLEN)
+			return(u.u_error = EINVAL);
+		u.u_error = copyin(mp->msg_accrights, mtod(rights, caddr_t),
+				mp->msg_accrightslen);
+		if (u.u_error)
+			return;
+	} else
+		rights = 0;
 	len = u.u_count;
-	u.u_error =
-	    sosend((struct socket *)fp->f_data, to, flags, (struct mbuf *)0);
+	u.u_error = SOSEND(fp->f_socket, to, flags, rights);
 	u.u_r.r_val1 = len - u.u_count;
 }
 
@@ -482,31 +485,38 @@ recvit(s, mp, flags, namelenp, rightslenp)
 	register struct iovec *iov;
 	register int i;
 	struct mbuf *from, *rights;
-	int len;
-	char sabuf[MSIZE];
+	int len, m_freem();
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(s);
 	if (fp == 0)
 		return;
 	u.u_segflg = UIO_USERSPACE;
 	u.u_offset = 0;				/* XXX */
 	len = u.u_count;
-	from = (struct mbuf *)sabuf;
-	u.u_error = soreceive((struct socket *)fp->f_data, &from,
-	    flags, &rights);
+	u.u_error = SORECEIVE(fp->f_socket, &from, flags, &rights);
 	u.u_r.r_val1 = len - u.u_count;
 	if (mp->msg_name) {
 		len = mp->msg_namelen;
 		if (len <= 0 || from == 0)
 			len = 0;
-		else {
-			if (len > from->m_len)
-				len = from->m_len;
-			(void) copyout((caddr_t)MTOD(from, caddr_t),
-			    (caddr_t)mp->msg_name, (unsigned)len);
-		}
-		(void) copyout((caddr_t)&len, namelenp, sizeof (int));
+		else
+			(void) NETCOPYOUT(from, mp->msg_name, &len);
+		(void) copyout((caddr_t)&len, namelenp, sizeof(int));
 	}
+	if (mp->msg_accrights) {
+		len = mp->msg_accrightslen;
+		if (len <= 0 || rights == 0)
+			len = 0;
+		else
+			(void) NETCOPYOUT(rights, mp->msg_accrights, &len);
+		(void) copyout((caddr_t)&len, rightslenp, sizeof(int));
+	}
+	if (rights)
+		M_FREEM(rights);
+	if (from)
+		M_FREEM(from);
 }
 
 shutdown()
@@ -517,10 +527,12 @@ shutdown()
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
-	u.u_error = soshutdown((struct socket *)fp->f_data, uap->how);
+	u.u_error = SOSHUTDOWN(fp->f_socket, uap->how);
 }
 
 setsockopt()
@@ -530,12 +542,14 @@ setsockopt()
 		int	level;
 		int	name;
 		caddr_t	val;
-		int	valsize;
+		u_int	valsize;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
 	register struct mbuf *m = NULL;
 	char optbuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
@@ -545,14 +559,13 @@ setsockopt()
 	}
 	if (uap->val) {
 		m = (struct mbuf *)optbuf;
+		MBZAP(m, uap->valsize, MT_SOOPTS);
 		u.u_error =
-		    copyin(uap->val, MTOD(m, caddr_t), (u_int)uap->valsize);
+		    copyin(uap->val, mtod(m, caddr_t), (u_int)uap->valsize);
 		if (u.u_error)
 			return;
-		MBZAP(m, uap->valsize, MT_SOOPTS);
 	}
-	u.u_error =
-	    sosetopt((struct socket *)fp->f_data, uap->level, uap->name, m);
+	u.u_error = SOSETOPT(fp->f_socket, uap->level, uap->name, m);
 }
 
 getsockopt()
@@ -565,10 +578,11 @@ getsockopt()
 		int	*avalsize;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
-	register struct mbuf *m = NULL;
+	struct mbuf *m = NULL, *m_free();
 	int valsize;
-	char optbuf[MSIZE];		/* XXX why not allocate an mbuf */
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->s);
 	if (fp == 0)
 		return;
@@ -579,20 +593,20 @@ getsockopt()
 			return;
 	} else
 		valsize = 0;
-	m = (struct mbuf *)optbuf;
 	u.u_error =
-	    sogetopt((struct socket *)fp->f_data, uap->level, uap->name, m);
+	    SOGETOPT(fp->f_socket, uap->level, uap->name, &m);
 	if (u.u_error)
-		return;
+		goto bad;
 	if (uap->val && valsize && m != NULL) {
-		if (valsize > m->m_len)
-			valsize = m->m_len;
-		u.u_error = copyout(MTOD(m, caddr_t), uap->val, (u_int)valsize);
+		u.u_error = NETCOPYOUT(m, uap->val, &valsize);
 		if (u.u_error)
-			return;
+			goto bad;
 		u.u_error = copyout((caddr_t)&valsize, (caddr_t)uap->avalsize,
 		    sizeof (valsize));
 	}
+bad:
+	if (m != NULL)
+		M_FREE(m);
 }
 
 /*
@@ -606,27 +620,26 @@ getsockname()
 		int	*alen;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
-	register struct socket *so;
 	struct mbuf *m;
 	int len;
 	char sabuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->fdes);
 	if (fp == 0)
 		return;
 	u.u_error = copyin((caddr_t)uap->alen, (caddr_t)&len, sizeof (len));
 	if (u.u_error)
 		return;
-	so = (struct socket *)fp->f_data;
 	m = (struct mbuf *)sabuf;
-	MAPSAVE();
-	u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_SOCKADDR, 0, m, 0);
-	MAPREST();
+	MBZAP(m, 0, MT_SONAME);
+	u.u_error = SOGETNAM(fp->f_socket, m);
 	if (u.u_error)
 		return;
 	if (len > m->m_len)
 		len = m->m_len;
-	u.u_error = copyout(MTOD(m, caddr_t), (caddr_t)uap->asa, (u_int)len);
+	u.u_error = copyout(mtod(m, caddr_t), (caddr_t)uap->asa, (u_int)len);
 	if (u.u_error)
 		return;
 	u.u_error = copyout((caddr_t)&len, (caddr_t)uap->alen, sizeof (len));
@@ -643,31 +656,26 @@ getpeername()
 		int	*alen;
 	} *uap = (struct a *)u.u_ap;
 	register struct file *fp;
-	register struct socket *so;
 	struct mbuf *m;
-	int len;
+	u_int len;
 	char sabuf[MSIZE];
 
+	if (netoff)
+		return(u.u_error = ENETDOWN);
 	fp = gtsockf(uap->fdes);
 	if (fp == 0)
 		return;
-	so = (struct socket *)fp->f_data;
-	if ((so->so_state & SS_ISCONNECTED) == 0) {
-		u.u_error = ENOTCONN;
-		return;
-	}
 	m = (struct mbuf *)sabuf;
+	MBZAP(m, 0, MT_SONAME);
 	u.u_error = copyin((caddr_t)uap->alen, (caddr_t)&len, sizeof (len));
 	if (u.u_error)
 		return;
-	MAPSAVE();
-	u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_PEERADDR, 0, m, 0);
-	MAPREST();
+	u.u_error = SOGETPEER(fp->f_socket, m);
 	if (u.u_error)
 		return;
 	if (len > m->m_len)
 		len = m->m_len;
-	u.u_error = copyout(MTOD(m, caddr_t), (caddr_t)uap->asa, (u_int)len);
+	u.u_error = copyout(mtod(m, caddr_t), (caddr_t)uap->asa, (u_int)len);
 	if (u.u_error)
 		return;
 	u.u_error = copyout((caddr_t)&len, (caddr_t)uap->alen, sizeof (len));
@@ -681,6 +689,7 @@ sockargs(aname, name, namelen, type)
 {
 	register struct mbuf *m;
 	int error;
+	struct mbuf *m_free();
 
 	if (namelen > MLEN)
 		return (EINVAL);
@@ -712,4 +721,3 @@ gtsockf(fdes)
 	}
 	return (fp);
 }
-#endif

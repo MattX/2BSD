@@ -14,7 +14,7 @@ static char sccsid[] = "@(#)getpwent.c	5.2 (Berkeley) 3/9/86";
 
 static char EMPTY[] = "";
 static FILE *pwf = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct passwd passwd;
 
 /*
@@ -65,7 +65,7 @@ getpwent()
 		if ((pwf = fopen( _pw_file, "r" )) == NULL)
 			return(0);
 	}
-	p = fgets(line, BUFSIZ, pwf);
+	p = fgets(line, sizeof(line)-1, pwf);
 	if (p == NULL)
 		return(0);
 	passwd.pw_name = p;

@@ -1,8 +1,9 @@
 /*
  *                     RCS utilities
  */
- static char rcsid[]=
- "$Header: /usr/wft/RCS/SRC/RCS/rcsutil.c,v 3.8 83/02/15 15:41:49 wft Exp $ Purdue CS";
+#ifndef lint
+static char rcsid[]= "$Id: rcsutil.c,v 4.3 87/10/18 10:40:22 narten Exp $ Purdue CS";
+#endif
 /*****************************************************************************
  *****************************************************************************
  *
@@ -20,9 +21,29 @@
 
 
 /* $Log:	rcsutil.c,v $
+ * Revision 4.3  87/10/18  10:40:22  narten
+ * Updating version numbers. Changes relative to 1.1 actually
+ * relative to 4.1
+ * 
+ * Revision 1.3  87/09/24  14:01:01  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:43  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:43  kcs
+ * Initial revision
+ * 
+ * Revision 4.1  83/05/10  15:53:13  wft
+ * Added getcaller() and findlock().
+ * Changed catchints() to check SIGINT for SIG_IGN before setting up the signal
+ * (needed for background jobs in older shells). Added restoreints().
+ * Removed printing of full RCS path from logcommand().
+ * 
  * Revision 3.8  83/02/15  15:41:49  wft
  * Added routine fastcopy() to copy remainder of a file in blocks.
- * 
+ *
  * Revision 3.7  82/12/24  15:25:19  wft
  * added catchints(), ignoreints() for catching and ingnoring interrupts;
  * fixed catchsig().
@@ -57,12 +78,70 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include "rcsbase.h"
+#include <pwd.h>
 
 extern char * malloc();
+extern char * bindex();
 extern FILE * finptr;
-extern char * getfullRCSname();
+extern char * RCSfilename;
+extern char * getlogin();
+extern struct passwd *getpwuid();
 
-struct hshentry dummy;         /* dummy delta for reservations  */
+int    (*oldSIGINT)();         /* saves the original value for SIGINT */
+
+
+
+char * getcaller()
+/* Function: gets the callers login from his uid.
+ * If the uid is root, tries to get the true login with getlogin().
+ */
+{       char * name;
+	int uid;
+	uid=getuid();
+	if (uid==0) {
+		/* super user; try getlogin() to distinguish */
+		name = getlogin();
+		if (name!=nil && *name!='\0')
+			return name;
+	}
+	return(getpwuid(uid)->pw_name);
+}
+
+
+
+struct hshentry * findlock(who,delete)
+char * who; int delete;
+/* Finds the first lock held by who and returns a pointer
+ * to the locked delta; also removes the lock if delete==true.
+ * Returns nil if there is no lock held by who.
+ */
+{
+        register struct lock * next, * trail;
+        struct lock dummy;
+
+        dummy.nextlock=next=Locks;
+        trail = &dummy;
+        while (next!=nil) {
+                if(strcmp(who,next->login)==0) break; /*found a lock*/
+                trail=next;
+                next=next->nextlock;
+        }
+        if (next!=nil) {
+		/* found one */
+		if (delete) {
+		    /* delete it */
+		    trail->nextlock=next->nextlock;
+		    Locks=dummy.nextlock;
+		    next->delta->lockedby=nil; /* reset locked-by */
+		}
+                return next->delta;
+        } else  return nil;
+}
+
+
+
+
+
 
 
 struct lock * addlock(delta,who)
@@ -161,33 +240,51 @@ char * who;
                 next=next->nextaccess;
         } while (next!=nil);
 
-        fstat(fileno(finptr),&statbuf);  /* get owner of file */
+        VOID fstat(fileno(finptr),&statbuf);  /* get owner of file */
         if (getuid() == statbuf.st_uid) return true;
 
         error("User %s not on the access list",who);
         return false;
 }
 
-void catchsig(sig)
+catchsig(sig)
 {
-	signal(sig, SIG_IGN);
+	VOID signal(sig, SIG_IGN);
         diagnose("\nRCS: cleaning up\n");
-        cleanup();
+        VOID cleanup();
         exit(1);
 }
 
-void catchints()
+  
+  void catchints()
+  {
+        cksignal(SIGINT); cksignal(SIGHUP);
+        cksignal(SIGQUIT); cksignal(SIGPIPE);
+ 	cksignal(SIGTERM);
+  }
+  
+ 
+cksignal(sig)
+int	sig;
 {
-        signal(SIGINT,catchsig); signal(SIGHUP,catchsig);
-        signal(SIGQUIT,catchsig); signal(SIGPIPE,catchsig);
-	signal(SIGTERM,catchsig);
+	if (signal(sig,SIG_IGN) != SIG_IGN)
+		VOID signal(sig,catchsig);
 }
 
-void ignoreints()
+  void ignoreints()
+  {
+        VOID signal(SIGINT,SIG_IGN); VOID signal(SIGHUP,SIG_IGN);
+        VOID signal(SIGQUIT,SIG_IGN); VOID signal(SIGPIPE,SIG_IGN);
+	VOID signal(SIGTERM,SIG_IGN);
+  }
+  
+  
+void restoreints()
 {
-        signal(SIGINT,SIG_IGN); signal(SIGHUP,SIG_IGN);
-        signal(SIGQUIT,SIG_IGN); signal(SIGPIPE,SIG_IGN);
-	signal(SIGTERM,SIG_IGN);
+        if (oldSIGINT!=SIG_IGN)
+                VOID signal(SIGINT,catchsig);
+        VOID signal(SIGHUP,catchsig); VOID signal(SIGQUIT,catchsig);
+        VOID signal(SIGPIPE,catchsig); VOID signal(SIGTERM,catchsig);
 }
 
 
@@ -202,9 +299,11 @@ FILE * inf, * outf;
 
         /* write the rest of the buffer to outf */
         while ((--inf->_cnt)>=0) {
-                putc(*inf->_ptr++&0377,outf);
+                VOID putc(*inf->_ptr++&0377,outf);
         }
-        fflush(outf);
+        if (fflush(outf) == EOF) {
+		faterror("write error");
+	}
 
         /*now read the rest of the file in blocks*/
         while ((rcount=read(fileno(inf),buf,BUFSIZ))>0) {
@@ -233,7 +332,7 @@ char* commandname; struct hshentry * delta, * sequence[];char * login;
  * Each line in the log file contains the following information:
  * operation, revision(r), backward deltas applied(b), forward deltas applied(f),
  * total deltas present(t), creation date of delta(d), date of operation(o),
- * login of caller, full path of RCS file
+ * login of caller, RCS file name.
  */
 {
         char command[200];
@@ -242,10 +341,10 @@ char* commandname; struct hshentry * delta, * sequence[];char * login;
         long clock;
         struct tm * tm;
 
-        clock=time(0);
+        clock=time((long *)0);
         tm=localtime(&clock);
 
-        sprintf(curdate,DATEFORM,
+        VOID sprintf(curdate,DATEFORM,
                 tm->tm_year, tm->tm_mon+1, tm->tm_mday,
                 tm->tm_hour, tm->tm_min, tm->tm_sec);
 
@@ -256,9 +355,18 @@ char* commandname; struct hshentry * delta, * sequence[];char * login;
         else    forward++;   /* branch delta  */
         i++;
         }
-        sprintf(command,"%s \"%s %10sr %3db %3df %3dt %sc %so %s %s\" &\n",
+        VOID sprintf(command,"%s \"%s %10sr %3db %3df %3dt %sc %so %s %s\" &\n",
                 SNOOP, commandname,delta->num,backward,forward,TotalDeltas,delta->date,
-                curdate,login,getfullRCSname());
-        system(command);
+                curdate,login,bindex(RCSfilename,'/'));
+        VOID system(command);
 }
 #endif
+
+
+
+
+
+
+
+
+

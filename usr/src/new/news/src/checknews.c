@@ -16,7 +16,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)checknews.c	2.29	4/6/87";
+static char	*SccsId = "@(#)checknews.c	2.31	11/30/87";
 #endif /* SCCSID */
 
 char *Progname = "checknews";		/* used by xerror */
@@ -127,6 +127,10 @@ register char **argv;
 #else
 	getuser();
 #endif
+#ifdef SERVER
+	if (open_server() < 0)
+		xerror("NNTP connection failed.");
+#endif /* SERVER */
 	ptr = getenv("NEWSRC");
 	if (ptr == NULL)
 		sprintf(newsrc, "%s/%s", userhome, NEWSRC);
@@ -211,9 +215,12 @@ register char **argv;
 			xerror("Not enough memory");
 		strcpy(rcline[line], rcbuf);
 	}
+#ifdef SERVER
+	if ((actfp = open_active(ACTIVE, "r")) == NULL)
+#else /* !SERVER */
 	if ((actfp = fopen(ACTIVE, "r")) == NULL)
+#endif /* !SERVER */
 		xerror("Cannot open active newsgroups file");
-
 #ifdef DEBUG
 	fprintf(stderr, "header.nbuf = %s\n", header.nbuf);
 #endif
@@ -257,14 +264,6 @@ char **argv;
 
 		if (index(rcbuf, '!') != NULL)
 			continue;
-		if (index(rcbuf, ',') != NULL) {
-			if (verbose > 1)
-				printf("Comma in %s newsrc line\n", bfr);
-			else {
-				isnews++;
-				continue;
-			}
-		}
 		while (*ptr)
 			ptr++;
 		while (!isdigit(*--ptr) && *ptr != ':' && ptr >= rcbuf)
@@ -287,7 +286,14 @@ char **argv;
 			}
 			yep(argv);
 		}
-contin:;
+		if (index(rcbuf, ',') != NULL) {
+			if (verbose > 1)
+				printf("Comma in %s newsrc line\n", bfr);
+			else {
+				isnews++;
+				continue;
+			}
+		}
 	}
 	if (isnews)
 		yep(argv);
@@ -334,6 +340,63 @@ int arg1, arg2;
 	fprintf(stderr, "checknews: %s.\n", buffer);
 	exit(1);
 }
+
+#ifdef MKSTR
+strfile = -1;
+errprep(offset, buf)
+int offset;
+char *buf;
+{
+	char filename[BUFLEN];
+
+	if (strfile < 0) {
+		sprintf(filename, "%s/news_strings", LIBDIR);
+		strfile = open(filename, 0);
+		if (strfile < 0) {
+oops:
+			perror(filename);
+			exit(1);
+		}
+	}
+	if (lseek(strfile, (long) offset, 0) < 0
+			|| read(strfile, buf, 256) <= 0)
+		goto oops;
+}
+
+/* VARARGS1 */
+strxerror(message, arg1, arg2, arg3)
+int message;
+long arg1, arg2, arg3;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	xerror(buf, arg1, arg2, arg3);
+}
+
+/* VARARGS1 */
+strprerror(message, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int message;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	printf(buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+/* VARARGS1 */
+strfprerror(message, file, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int message;
+FILE *file;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	fprintf(file, buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+#endif
 
 /*
  * Append NGDELIM to string.
@@ -542,5 +605,8 @@ char *string, *searchfor;
 
 xxit(i)
 {
+#ifdef SERVER
+	close_server();
+#endif /* SERVER */
 	exit(i);
 }

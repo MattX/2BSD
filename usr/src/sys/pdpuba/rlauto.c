@@ -16,7 +16,7 @@ rlprobe(addr)
 	struct rldevice *addr;
 {
 	stuff(RL_NOP | RL_IE, (&(addr->rlcs)));
-	DELAY(10);
+	DELAY(10L);
 	stuff(RL_CRDY, (&(addr->rlcs)));
 	return(ACP_IFINTR);
 }

@@ -17,7 +17,7 @@ siprobe(addr)
 {
 	stuff(SI_IE | SI_READ, &(addr->sicnr));
 	stuff(SI_IE | SI_READ | SI_DONE, &(addr->sicnr));
-	DELAY(10);
+	DELAY(10L);
 	stuff(0, &(addr->sicnr));
 	return(0);
 }

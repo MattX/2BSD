@@ -9,11 +9,8 @@ static char sccsid[] = "@(#)inet_network.c	5.2 (Berkeley) 3/9/86";
 #endif LIBC_SCCS and not lint
 
 #include <sys/types.h>
+#include <netinet/in.h>
 #include <ctype.h>
-
-#ifdef BSD2_10
-#include <netdb.h>
-#endif BSD2_10
 
 /*
  * Internet network address interpretation routine.

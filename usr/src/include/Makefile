@@ -27,7 +27,7 @@ STD=	a.out.h ar.h assert.h ctype.h curses.h disktab.h fcntl.h \
 	varargs.h vfont.h
 LINKS=	errno.h signal.h syslog.h
 MACHINE=pdp
-MACHDEP=${MACHINE} vaxif pdpuba pdpmba vaxuba
+MACHDEP=${MACHINE} pdpif pdpuba pdpmba vaxuba
 NETDIRS=net netimp netinet netns netpup
 SYSDIRS=${NETDIRS} ${MACHDEP}
 SHARED=	symlinks

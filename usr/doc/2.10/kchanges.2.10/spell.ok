@@ -8,6 +8,7 @@ CLIST
 Copystr
 DEFS
 DEFS.h
+DEQNA
 DEVERR
 DH11
 DIRSIZ
@@ -340,6 +341,7 @@ syslocal
 syslog.h
 systm.h
 tablet.h
+tahoe
 tb.c
 text.c
 text.h

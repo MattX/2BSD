@@ -1,9 +1,15 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)in.h	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)in.h	7.5 (Berkeley) 2/22/88
  */
 
 /*
@@ -20,7 +26,7 @@
  */
 #define	IPPROTO_IP		0		/* dummy for IP */
 #define	IPPROTO_ICMP		1		/* control message protocol */
-#define	IPPROTO_GGP		2		/* gateway^2 (deprecated) */
+#define	IPPROTO_GGP		3		/* gateway^2 (deprecated) */
 #define	IPPROTO_TCP		6		/* tcp */
 #define	IPPROTO_EGP		8		/* exterior gateway protocol */
 #define	IPPROTO_PUP		12		/* pup */
@@ -71,7 +77,7 @@ struct in_addr {
 #define	IN_CLASSB_HOST		0x0000ffffL
 #define	IN_CLASSB_MAX		65536
 
-#define	IN_CLASSC(i)		(((long)(i) & 0xc0000000L) == 0xc0000000L)
+#define	IN_CLASSC(i)		(((long)(i) & 0xe0000000L) == 0xc0000000L)
 #define	IN_CLASSC_NET		0xffffff00L
 #define	IN_CLASSC_NSHIFT	8
 #define	IN_CLASSC_HOST		0x000000ffL
@@ -111,7 +117,13 @@ struct sockaddr_in {
  */
 #define	IP_OPTIONS	1		/* set/get IP per-packet options */
 
-#ifdef KERNEL
+/*
+ * Macros for number representation conversion.
+ */
+u_short	ntohs(), htons();
+u_long	ntohl(), htonl();
+
+#ifdef SUPERVISOR
 extern	struct domain inetdomain;
 extern	struct protosw inetsw[];
 struct	in_addr in_makeaddr();

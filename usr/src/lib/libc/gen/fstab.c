@@ -13,7 +13,7 @@ static char sccsid[] = "@(#)fstab.c	5.2 (Berkeley) 3/9/86";
 #include <ctype.h>
 
 static	struct fstab fs;
-static	char line[BUFSIZ+1];
+static	char line[256+1];
 static	FILE *fs_file = 0;
 
 static char *
@@ -56,7 +56,7 @@ fstabscan(fs)
 {
 	register char *cp;
 
-	cp = fgets(line, 256, fs_file);
+	cp = fgets(line, sizeof(line)-1, fs_file);
 	if (cp == NULL)
 		return (EOF);
 	fs->fs_spec = cp;

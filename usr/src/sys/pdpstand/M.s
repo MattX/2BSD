@@ -5,28 +5,6 @@
 / Supports 11/40, 11/45, 11/70, 11/23, 11/23+I/O map (11/24), 11/73
 / and similar machines.
 
-/ Non-UNIX /bin/as instructions.  Most of these instructions are CPU
-/ and configuration dependent.
-
-mfpi	= 6500^tst	/ move from previous instruction space
-mtpi	= 6600^tst	/ move to previous instruction space
-mfpd	= 106500^tst	/ move from previous data space
-mtpd	= 106600^tst	/ move to previous data space
-
-stst	= 170300^tst	/ store floating error status registers
-ldfps	= 170100^tst	/ load floating processor status register
-stfps	= 170200^tst	/ store floating processor status register
-
-spl	= 230		/ set priority level
-mfps	= 106700^tst	/ move from PS
-mtps	= 106400^tst	/ move to PS
-mfpt	= 000007	/ move from processor (get processor model code)
-
-halt	= 0		/ halt cpu
-wait	= 1		/ wait for interrupt
-iot	= 4		/ perform I/O trap sequence
-reset	= 5		/ reset all unibus devices
-rtt	= 6		/ return from trap
 systrap = 104400	/ trap 0
 
 /  The boot options and device are placed in the last SZFLAGS bytes
@@ -54,6 +32,17 @@ CHECKWORD=	6
 	trap;345	/ EMT
 tvec:
 	start;346	/ TRAP
+
+/	NOTE	NOTE	NOTE	NOTE	NOTE	NOTE
+/
+/ Here is a totally tacky ``fix'' if your kernel is larger than
+/ 192K and therefore overwrites boot here.  Just change the .=400^.
+/ below to something like .=10240^.  This will move the critical
+/ sections of boot up far enough so that the load can finish.
+/ We can't actually load boot higher than 192K since it has to be
+/ loaded on a 64K boundry and it can't use memory above 256-8K (so
+/ it can run on any system).
+/
 .=400^.
 
 start:
@@ -228,6 +217,7 @@ N	= 3			/ 3*64Kb = 192Kb
 / copy program to user I space
 	mov	$_end,r0
 	asr	r0
+	bic	$100000,r0
 	clr	r1
 1:
 	mov	(r1),-(sp)
@@ -235,14 +225,17 @@ N	= 3			/ 3*64Kb = 192Kb
 	sob	r0,1b
 
 
-/ continue execution in user space copy
+/ continue execution in user space copy; return protocol uses
+/ absolute address 140000.
+	mov	$140004,sp
 	tstb	_sep_id
 	bne	1f
 	clr	*$KISA6
 	br	2f
 1:
 	clr	*$KDSA6
-2:	mov	$140340,-(sp)
+2:
+	mov	$140340,-(sp)
 	mov	$user,-(sp)
 	rtt
 user:

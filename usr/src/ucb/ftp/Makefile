@@ -5,6 +5,7 @@
 #
 #	@(#)Makefile	5.4	(Berkeley)	7/22/87
 #
+SEPFLAG=-i
 CFLAGS=	-O
 LIBC=	/lib/libc.a
 SRCS=	cmds.c cmdtab.c ftp.c getpass.c glob.c main.c pclose.c ruserpass.c              domacro.c

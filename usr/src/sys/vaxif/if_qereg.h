@@ -1,13 +1,30 @@
+/*	@(#)if_qereg.h	7.1 (Berkeley) 6/5/86 */
 
-/**********************************************************************
- *   Copyright (c) Digital Equipment Corporation 1984, 1985.	      *
- *   All Rights Reserved. 					      *
- *   Reference "/usr/include/COPYRIGHT" for applicable restrictions.  *
- **********************************************************************/
-/*
- * SCCSID: @(#)if_qereg.h	2.2	(ULTRIX-11)	10/7/85
- */
-
+/* @(#)if_qereg.h	1.2 (ULTRIX) 1/3/85 */
+ 
+/****************************************************************
+ *								*
+ *        Licensed from Digital Equipment Corporation 		*
+ *                       Copyright (c) 				*
+ *               Digital Equipment Corporation			*
+ *                   Maynard, Massachusetts 			*
+ *                         1985, 1986 				*
+ *                    All rights reserved. 			*
+ *								*
+ *        The Information in this software is subject to change *
+ *   without notice and should not be construed as a commitment *
+ *   by  Digital  Equipment  Corporation.   Digital   makes  no *
+ *   representations about the suitability of this software for *
+ *   any purpose.  It is supplied "As Is" without expressed  or *
+ *   implied  warranty. 					*
+ *								*
+ *        If the Regents of the University of California or its *
+ *   licensees modify the software in a manner creating  	*
+ *   diriviative copyright rights, appropriate copyright  	*
+ *   legends may be placed on  the drivative work in addition   *
+ *   to that set forth above. 					*
+ *								*
+ ****************************************************************/
 /* ---------------------------------------------------------------------
  * Modification History 
  *
@@ -17,33 +34,20 @@
  * 
  * ---------------------------------------------------------------------
  */
-
+ 
 /*
  * Digital Q-BUS to NI Adapter 
  */
-#ifdef	pdp11
-#define	qe_rcvlist_lo		qe_LOrcv
-#define	qe_rcvlist_hi		qe_HIrcv
-#define	qe_xmtlist_lo		qe_LOxmt
-#define	qe_xmtlist_hi		qe_HIxmt
-#define	qe_status1		qe_stat1
-#define	qe_status2		qe_stat2
-#define	qe_odd_begin		qe_begin_odd
-#define	qe_odd_end		qe_end_odd
-#define	qe_addr_hi		qe_HIaddr
-#define	qe_addr_lo		qe_LOaddr
-#endif	pdp11
-
 struct qedevice {
 	u_short	qe_sta_addr[2]; 	/* Station address (actually 6 	*/
-	u_short	qe_rcvlist_lo; 		/* Recieve list lo address 	*/
-	u_short	qe_rcvlist_hi; 		/* Recieve list hi address 	*/
+	u_short	qe_rcvlist_lo; 		/* Receive list lo address 	*/
+	u_short	qe_rcvlist_hi; 		/* Receive list hi address 	*/
 	u_short	qe_xmtlist_lo;		/* Transmit list lo address 	*/
 	u_short	qe_xmtlist_hi;		/* Transmit list hi address 	*/
 	u_short	qe_vector;		/* Interrupt vector 		*/
 	u_short	qe_csr;			/* Command and Status Register 	*/
 };
-
+ 
 /*
  * Command and status bits (csr)
  */
@@ -61,7 +65,7 @@ struct qedevice {
 #define QE_POWERUP	0x1000		/* Tranceiver power on		*/
 #define QE_CARRIER	0x2000		/* Carrier detect		*/
 #define QE_RCV_INT	0x8000		/* Receiver interrupt		*/
-
+ 
 /*
  * Transmit and receive ring discriptor ---------------------------
  *
@@ -88,7 +92,7 @@ struct qe_ring	{
 	u_short qe_status1;		/* Status word one		*/
 	u_short qe_status2;		/* Status word two		*/
 };
-
+ 
 /*
  * Status word definations (receive)
  *	word1
@@ -105,7 +109,7 @@ struct qe_ring	{
 #define QE_LASTNOT		0x8000	/* Not the last in the packet	*/
 /*	word2								*/
 #define QE_RBL_LO		0x00ff	/* Low bits of receive len	*/
-
+ 
 /*
  * Status word definations (transmit)
  *	word1
@@ -118,15 +122,14 @@ struct qe_ring	{
 #define QE_LOSS			0x1000	/* Loss of carrier while xmit	*/
 /*	word2								*/
 #define QE_TDR			0x3fff	/* Time domain reflectometry	*/
-
+ 
 /*
  * General constant definations
  */
 #define QEALLOC 		0	/* Allocate an mbuf		*/
 #define QENOALLOC		1	/* No mbuf allocation		*/
 #define QEDEALLOC		2	/* Release an mbuf chain	*/
-#define	QEREALLOC		3	/* Re-allocate an mbuf		*/
-
+ 
 #define QE_NOTYET		0x8000	/* Descriptor not in use yet	*/
 #define QE_INUSE		0x4000	/* Descriptor being used by QNA	*/
 #define QE_MASK			0xc000	/* Lastnot/error/used mask	*/

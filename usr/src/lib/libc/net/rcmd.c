@@ -18,6 +18,7 @@ static char sccsid[] = "@(#)rcmd.c	5.11 (Berkeley) 5/6/86";
 #include <sys/stat.h>
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <netdb.h>
 #include <errno.h>

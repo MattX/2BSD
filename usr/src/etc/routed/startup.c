@@ -300,7 +300,7 @@ getnetorhostname(type, name, sin)
 
 	if (strcmp(type, "net") == 0) {
 		struct netent *np = getnetbyname(name);
-		int n;
+		u_long n;
 
 		if (np == 0)
 			n = inet_network(name);

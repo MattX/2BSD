@@ -1,10 +1,35 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)ip.h	7.3 (Berkeley) 12/15/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)ip.h	7.6.1.1 (Berkeley) 3/15/88
  */
+#ifndef BYTE_ORDER
+/*
+ * Definitions for byte order,
+ * according to byte significance from low address to high.
+ */
+#define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax) */
+#define	BIG_ENDIAN	4321	/* most-significant byte first (IBM, net) */
+#define	PDP_ENDIAN	3412	/* LSB first in word, MSW first in long (pdp) */
+
+#ifdef vax
+#define	BYTE_ORDER	LITTLE_ENDIAN
+#else
+#ifdef pdp11
+#define	BYTE_ORDER	PDP_ENDIAN
+#else
+#define	BYTE_ORDER	BIG_ENDIAN	/* mc68000, tahoe, most others */
+#endif
+#endif
+#endif BYTE_ORDER
 
 /*
  * Definitions for internet protocol version 4.
@@ -20,15 +45,15 @@
  * against negative integers quite easily, and fail in subtle ways.
  */
 struct ip {
-#if ENDIAN == LITTLE
+#if BYTE_ORDER == LITTLE_ENDIAN
 	u_char	ip_hl:4,		/* header length */
 		ip_v:4;			/* version */
 #endif
-#if ENDIAN == BIG
+#if BYTE_ORDER == BIG_ENDIAN
 	u_char	ip_v:4,			/* version */
 		ip_hl:4;		/* header length */
 #endif
-#if ENDIAN == PDP
+#if BYTE_ORDER == PDP_ENDIAN
 	u_int	ip_hl:4,		/* header length */
 		ip_v:4;			/* version */
 #endif
@@ -43,6 +68,8 @@ struct ip {
 	u_short	ip_sum;			/* checksum */
 	struct	in_addr ip_src,ip_dst;	/* source and dest address */
 };
+
+#define	IP_MAXPACKET	65535L		/* maximum packet size */
 
 /*
  * Definitions for options.
@@ -81,25 +108,25 @@ struct	ip_timestamp {
 	u_char	ipt_code;		/* IPOPT_TS */
 	u_char	ipt_len;		/* size of structure (variable) */
 	u_char	ipt_ptr;		/* index of current entry */
-#if ENDIAN == LITTLE
+#if BYTE_ORDER == LITTLE_ENDIAN
 	u_char	ipt_flg:4,		/* flags, see below */
 		ipt_oflw:4;		/* overflow counter */
 #endif
-#if ENDIAN == BIG
+#if BYTE_ORDER == BIG_ENDIAN
 	u_char	ipt_oflw:4,		/* overflow counter */
 		ipt_flg:4;		/* flags, see below */
 #endif
-#if ENDIAN == PDP
+#if BYTE_ORDER == PDP_ENDIAN
 	u_char	ipt_flg:4,		/* flags, see below */
 		ipt_oflw:4;		/* overflow counter */
 #endif
-	union {
+	union ipt_timestamp {
 		n_long	ipt_time[1];
 		struct	ipt_ta {
 			struct in_addr ipt_addr;
 			n_long ipt_time;
 		} ipt_ta[1];
-	}
+	} ipt_timestamp;
 };
 
 /* flag bits for ipt_flg */

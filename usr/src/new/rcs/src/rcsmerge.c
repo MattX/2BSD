@@ -1,8 +1,10 @@
 /*
  *                       rcsmerge operation
  */
- static char rcsid[]=
- "$Header: /usr/wft/RCS/SRC/RCS/rcsmerge.c,v 3.3 82/12/24 15:29:00 wft Exp $ Purdue CS";
+#ifndef lint
+static char rcsid[]=
+"$Header: /arthur/src/local/bin/rcs/src/RCS/rcsmerge.c,v 4.3 87/10/18 10:38:02 narten Exp $ Purdue CS";
+#endif
 /*****************************************************************************
  *                       join 2 revisions with respect to a third
  *****************************************************************************
@@ -20,9 +22,26 @@
 
 
 /* $Log:	rcsmerge.c,v $
+ * Revision 4.3  87/10/18  10:38:02  narten
+ * Updating version numbers. Changes relative to version 1.1 
+ * actually relative to 4.1
+ * 
+ * Revision 1.3  87/09/24  14:00:31  narten
+ * Sources now pass through lint (if you ignore printf/sprintf/fprintf 
+ * warnings)
+ * 
+ * Revision 1.2  87/03/27  14:22:36  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:36  kcs
+ * Initial revision
+ * 
+ * Revision 4.1  83/03/28  11:14:57  wft
+ * Added handling of default branch.
+ * 
  * Revision 3.3  82/12/24  15:29:00  wft
  * Added call to catchsig().
- * 
+ *
  * Revision 3.2  82/12/10  21:32:02  wft
  * Replaced getdelta() with gettree(); improved error messages.
  *
@@ -31,7 +50,9 @@
  *
  */
 #include "rcsbase.h"
+#ifndef lint
 static char rcsbaseid[] = RCSBASE;
+#endif
 
 extern int  cleanup();              /* cleanup after signals                */
 extern char * mktempfile();         /*temporary file name generator         */
@@ -102,24 +123,25 @@ int argc; char **argv;
 
 
                 if (!expandsym(rev1,numericrev)) goto end;
-                if (!(target=genrevs(numericrev,nil,nil,nil,gendeltas))) goto end;
+                if (!(target=genrevs(numericrev, (char *)nil, (char *)nil, (char *)nil,gendeltas))) goto end;
                 rev1=target->num;
-                if (revnums==1) rev2=Head->num; /* default for rev2 */
+                if (revnums==1)  /*get default for rev2 */
+                        rev2=Dbranch!=nil?Dbranch->num:Head->num;
                 if (!expandsym(rev2,numericrev)) goto end;
-                if (!(target=genrevs(numericrev,nil,nil,nil,gendeltas))) goto end;
+                if (!(target=genrevs(numericrev, (char *)nil, (char *)nil, (char *)nil,gendeltas))) goto end;
                 rev2=target->num;
 
                 temp1file=mktempfile("/tmp/",TMPFILE1);
                 temp2file=mktempfile("/tmp/",TMPFILE2);
 
                 diagnose("retrieving revision %s",rev1);
-                sprintf(command,"%s/co -q -p%s %s > %s\n",
+                VOID sprintf(command,"%s/co -q -p%s %s > %s\n",
                         TARGETDIR,rev1,RCSfilename,temp1file);
                 if (system(command)){
                         faterror("co failed");
                 }
                 diagnose("retrieving revision %s",rev2);
-                sprintf(command,"%s/co -q -p%s %s > %s\n",
+                VOID sprintf(command,"%s/co -q -p%s %s > %s\n",
                          TARGETDIR,rev2,RCSfilename,temp2file);
                 if (system(command)){
                         faterror("co failed");
@@ -128,7 +150,7 @@ int argc; char **argv;
                          rev1, rev2, workfilename,
                          tostdout?"; result to stdout":"");
 
-                sprintf(command,"%s %s%s %s %s %s %s\n",MERGE,tostdout?"-p ":"",
+                VOID sprintf(command,"%s %s%s %s %s %s %s\n",MERGE,tostdout?"-p ":"",
                         workfilename,temp1file,temp2file,workfilename,rev2);
                 if (system(command)) {
                         faterror("merge failed");
@@ -136,7 +158,7 @@ int argc; char **argv;
         }
 
 end:
-        cleanup();
+        VOID cleanup();
         exit(nerror!=0);
 
 }

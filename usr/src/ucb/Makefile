@@ -11,9 +11,9 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	Mail compress dbx error ex fp ftp indent \
-	more msgs netstat pascal rdist sendbug tftp \
-	tset vgrind vlp window
+SUBDIR=	Mail compress dbx error ex fp ftp indent man \
+	more msgs netstat pascal rdist sendbug talk tftp \
+	tn3270 tset vgrind vlp window
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -23,7 +23,7 @@ CSHSCRIPT= which
 # explicit make lines.
 #
 STD=	apply biff checknr colcrt colrm ctags expand finger fold \
-	from gprof grep groups head last lastcomm leave lock logger man mkstr \
+	from gprof grep groups head last lastcomm leave lock logger mkstr \
 	printenv ruptime rwho sccs script soelim strings symorder tail tcopy \
 	telnet unexpand unifdef users whereis whoami whois what wc xstr yes
 
@@ -37,8 +37,7 @@ SETUID=	quota rlogin rsh
 
 # Programs that must run set-group-id kmem.
 #
-#KMEM=	gcore vmstat w
-KMEM=	gcore w
+KMEM=	gcore vmstat w
 
 all:	${SUBDIR} ${STD} ${NSTD} ${KMEM} ${SETUID}
 
@@ -62,9 +61,6 @@ install:
 	rm -f ${DESTDIR}/usr/ucb/uptime ${DESTDIR}/usr/ucb/f
 	ln ${DESTDIR}/usr/ucb/w ${DESTDIR}/usr/ucb/uptime
 	ln ${DESTDIR}/usr/ucb/finger ${DESTDIR}/usr/ucb/f
-	rm -f ${DESTDIR}/usr/ucb/apropos ${DESTDIR}/usr/ucb/whatis
-	ln ${DESTDIR}/usr/ucb/man ${DESTDIR}/usr/ucb/apropos
-	ln ${DESTDIR}/usr/ucb/man ${DESTDIR}/usr/ucb/whatis
 	rm -f ${DESTDIR}/usr/ucb/u
 	ln ${DESTDIR}/usr/ucb/users ${DESTDIR}/usr/ucb/u
 

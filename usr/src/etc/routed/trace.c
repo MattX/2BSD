@@ -99,7 +99,7 @@ trace(ifd, who, p, len, m)
 		free(t->ift_packet);
 		t->ift_packet = 0;
 	}
-	t->ift_stamp = time(0);
+	t->ift_stamp = time((time_t *)0);
 	t->ift_who = *who;
 	if (len > 0 && t->ift_packet == 0) {
 		t->ift_packet = malloc(len);

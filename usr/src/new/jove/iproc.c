@@ -1,11 +1,12 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
+#include "re.h"
 #include <varargs.h>
 
 #ifdef IPROCS
@@ -18,7 +19,7 @@ int	proc_child();
 #   include "iproc-ptys.c"
 #endif
 
-char	proc_prompt[80] = "% ";
+char	proc_prompt[128] = "% ";
 
 KillProcs()
 {
@@ -58,8 +59,8 @@ char	*buf;
 	Buffer	*saveb = curbuf;
 	register Window	*w;
 	register Mark	*savepoint;
-	int	sameplace = 0,
-		do_disp = 0;
+	int	sameplace = NO,
+		do_disp = NO;
 
 	if (curwind->w_bufp == p->p_buffer)
 		w = curwind;
@@ -71,7 +72,7 @@ char	*buf;
 	savepoint = MakeMark(curline, curchar, M_FLOATER);
 	ToMark(p->p_mark);		/* where output last stopped */
 	if (savepoint->m_line == curline && savepoint->m_char == curchar)
-		sameplace++;
+		sameplace = YES;
 
 	ins_str(buf, YES);
 	MarkSet(p->p_mark, curline, curchar);
@@ -98,41 +99,52 @@ register Process	*p;
 		s_mess("Cannot kill %s!", proc_buf(p));
 }
 
-/* Deal with a process' death.  Go through all processes and find
-   the ones which have gotten EOF.  Delete them from the list and
-   free up the memory, and insert a status string. */
+/* Free process CHILD.  Do all the necessary cleaning up (closing fd's,
+   etc.). */
 
-DealWDeath()
+free_proc(child)
+Process	*child;
 {
 	register Process	*p,
-				*next,
 				*prev = 0;
+
+	if (!isdead(child))
+		return;	
+	for (p = procs; p != child; prev = p, p = p->p_next)
+		;
+	if (prev == 0)
+		procs = child->p_next;
+	else
+		prev->p_next = child->p_next;
+	proc_close(child);		/* if not already closed */
 	
-	for (p = procs; p != 0; p = next) {
-		next = p->p_next;
-		if (p->p_state != DEAD) {
-			prev = p;
-			continue;
-		}
-		proc_close(p);
-		PopPBs();			/* not a process anymore */
-		p->p_buffer->b_process = 0;	/* we're killing ourself */
-		free((char *) p->p_name);
-		free((char *) p);
-		if (prev)
-			prev->p_next = next;
-		else
-			procs = next;
+	/* It's possible that the buffer has been given another process
+	   between the time CHILD dies and CHILD's death is noticed (via
+	   list-processes).  So we only set it the buffer's process to
+	   0 if CHILD is still the controlling process. */
+	if (child->p_buffer->b_process == child) {
+		child->p_buffer->b_process = 0;
+		if (curbuf == child->p_buffer)
+			PopPBs();
 	}
+	{
+		Buffer	*old = curbuf;
+
+		SetBuf(child->p_buffer);
+		DelMark(child->p_mark);
+		SetBuf(old);
+	}
+	free((char *) child->p_name);
+	free((char *) child);
 }
 
 ProcList()
 {
-	register Process	*p;
+	register Process	*p,
+				*next;
 	char	*fmt = "%-15s  %-15s  %-8s %s",
-		pidstr[10];
+		pidstr[16];
 
-	DealWDeath();
 	if (procs == 0) {
 		message("[No subprocesses]");
 		return;
@@ -141,20 +153,31 @@ ProcList()
 
 	Typeout(fmt, "Buffer", "Status", "Pid ", "Command");
 	Typeout(fmt, "------", "------", "--- ", "-------");
-	for (p = procs; p != 0; p = p->p_next) {
+	for (p = procs; p != 0; p = next) {
+		next = p->p_next;
 		sprintf(pidstr, "%d", p->p_pid);
 		Typeout(fmt, proc_buf(p), pstate(p), pidstr, p->p_name);
+		if (isdead(p)) {
+			free_proc(p);
+			UpdModLine = YES;
+		}
 	}
 	TOstop();
 }
 
 ProcNewline()
 {
+#ifdef ABBREV
+	MaybeAbbrevExpand();
+#endif
 	SendData(YES);
 }
 
 ProcSendData()
 {
+#ifdef ABBREV
+	MaybeAbbrevExpand();
+#endif
 	SendData(NO);
 }
 
@@ -182,8 +205,13 @@ SendData(newlinep)
 		DOTsave(&bp);
 		ToLast();
 		Bol();
-		while (LookingAt(proc_prompt, linebuf, curchar))
-			SetDot(dosearch(proc_prompt, 1, 1));
+		/* While we're looking at a prompt, and while we're
+		   moving forward.  This is for people who accidently
+		   set their process-prompt to ">*" which will always
+		   match! */
+		while ((LookingAt(proc_prompt, linebuf, curchar)) &&
+ 		       (REeom > curchar))
+			curchar = REeom;
 		MarkSet(p->p_mark, curline, curchar);
 		SetDot(&bp);
 	}
@@ -195,16 +223,36 @@ SendData(newlinep)
 		do_rtp(p->p_mark);
 		MarkSet(p->p_mark, curline, curchar);
 	} else {
+		/* Either we're looking at a prompt, or we're not, in
+		   which case we want to strip off the beginning of the
+		   line anything that looks like what the prompt at the
+		   end of the file is.  In other words, if "(dbx) stop in
+		   ProcessNewline" is the line we're on, and the last
+		   line in the buffer is "(dbx) ", then we strip off the
+		   leading "(dbx) " from this line, because we know it's
+		   part of the prompt.  But this only happens if "(dbx) "
+		   isn't one of the process prompts ... follow what I'm
+		   saying? */
 		Bol();
-		while (LookingAt(proc_prompt, linebuf, curchar))
-			SetDot(dosearch(proc_prompt, 1, 1));
-		strcpy(genbuf, linebuf + curchar);
-		Eof();
-		gp = genbuf;
-		lp = linebuf;
-		while (*lp == *gp && *lp != '\0')
-			lp++, gp++;
-		ins_str(gp, NO);
+		if (LookingAt(proc_prompt, linebuf, curchar)) {
+			do
+				curchar = REeom;
+			while ((LookingAt(proc_prompt, linebuf, curchar)) &&
+			       (REeom > curchar));
+			strcpy(genbuf, linebuf + curchar);
+			Eof();
+			ins_str(genbuf, NO);
+		} else {
+			strcpy(genbuf, linebuf + curchar);
+			Eof();
+			gp = genbuf;
+			lp = linebuf;
+			while (*lp == *gp && *lp != '\0') {
+				lp += 1;
+				gp += 1;
+			}
+			ins_str(gp, NO);
+		}
 	}
 }
 
@@ -224,10 +272,18 @@ Iprocess()
 	extern char	ShcomBuf[100],
 			*MakeName();
 	register char	*command;
+	char	scratch[64],
+		*bufname;
+	int	cnt = 1;
+	Buffer	*bp;
 
 	command = ask(ShcomBuf, ProcFmt);
 	null_ncpy(ShcomBuf, command, (sizeof ShcomBuf) - 1);
-	proc_strt(MakeName(command), YES, Shell, ShFlags, command, (char *) 0);
+	bufname = MakeName(command);
+	strcpy(scratch, bufname);
+	while ((bp = buf_exists(scratch)) && !isdead(bp->b_process))
+		sprintf(scratch, "%s.%d", bufname, cnt++);
+	proc_strt(scratch, YES, Shell, ShFlags, command, (char *) 0);
 }
 
 proc_child()
@@ -363,4 +419,5 @@ data_obj	**map,
 	}
 }
 
-#endif IPROCS
+#endif /* IPROCS */
+

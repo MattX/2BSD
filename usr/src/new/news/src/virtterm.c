@@ -5,7 +5,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)virtterm.c	1.13	12/16/86";
+static char	*SccsId = "@(#)virtterm.c	1.14	9/24/87";
 #endif /* SCCSID */
 
 /*LINTLIBRARY*/
@@ -811,6 +811,7 @@ _setul(on)
  * rad@tek
  */
 int tputs_len;
+/*ARGSUSED*/
 countit(c) { tputs_len++; }
 
 initterm()

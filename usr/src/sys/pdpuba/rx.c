@@ -170,7 +170,7 @@ rxintr()
 {
 	register struct buf *bp;
 	int sector, track;
-	char addr, xmem;
+	char *addr, xmem;
 
 	if (rxtab.b_state == SINIT) {
 		rxstart();

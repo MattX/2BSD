@@ -46,6 +46,7 @@ char	*panicstr;
  *	reg=3<BITTWO,BITONE>
  */
 
+/* copied, for supervisory networking, to sys_net.c */
 /*VARARGS1*/
 printf(fmt, x1)
 	char *fmt;
@@ -78,6 +79,7 @@ uprintf(fmt, x1)
 		prf(fmt, &x1, TOTTY);
 }
 
+/* copied, for supervisory networking, to sys_net.c */
 prf(fmt, adx, flags)
 	register char *fmt;
 	register u_int *adx;
@@ -181,6 +183,7 @@ number:		printn((long)*adx, b, flags);
  * Printn prints a number n in base b.
  * We don't use recursion to avoid deep kernels stacks.
  */
+/* copied, for supervisory networking, to sys_net.c */
 printn(n, b, flags)
 	long n;
 	u_int b;

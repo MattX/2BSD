@@ -127,6 +127,14 @@ hardclock(dev,sp,r1,ov,nps,r0,pc,ps)
 	 * low cpu priority, so we don't keep the relatively  high
 	 * clock interrupt priority any longer than necessary.
 	 */
+	if (adjdelta) 
+		if (adjdelta > 0) {
+			++lbolt;
+			--adjdelta;
+		} else {
+			--lbolt;
+			++adjdelta;
+		}
 	if (++lbolt >= LINEHZ) {
 		lbolt -= LINEHZ;
 		++time.tv_sec;
@@ -222,6 +230,12 @@ softclock(pc, ps)
 		p1->c_next = callfree;
 		callfree = p1;
 		splx(s);
+#ifdef UCB_NET
+		if (ISSUPERADD(func))
+			KScall(KERNELADD(func), sizeof(arg) + sizeof(a),
+			    arg, a);
+		else
+#endif
 		(*func)(arg, a);
 	}
 	/*
@@ -329,9 +343,9 @@ profil()
 hzto(tv)
 	register struct timeval *tv;
 {
-	long ticks;
-	long sec;
-	register int s = spl7();
+	register long ticks;
+	register long sec;
+	register int s = splhigh();
 
 	/*
 	 * If number of milliseconds will fit in 32 bit arithmetic,
@@ -343,13 +357,18 @@ hzto(tv)
 	 * Maximum value for any timeout in 10ms ticks is 250 days.
 	 */
 	sec = tv->tv_sec - time.tv_sec;
-	if (sec <= 0x7fff / 1000 - 1000)
+	if (sec <= 0x7fffffff / 1000 - 1000)
 		ticks = ((tv->tv_sec - time.tv_sec) * 1000 +
 			(tv->tv_usec - time.tv_usec) / 1000) / (1000/hz);
-	else if (sec <= 0x7fff / hz)
+	else if (sec <= 0x7fffffff / hz)
 		ticks = sec * hz;
 	else
-		ticks = 0x7fff;
+		ticks = 0x7fffffff;
 	splx(s);
+#ifdef BSD2_10
+	/* stored in an "int", so 16-bit max */
+	if (ticks > 0x7fff)
+		ticks = 0x7fff;
+#endif
 	return ((int)ticks);
 }

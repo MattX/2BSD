@@ -164,7 +164,7 @@ f5:					/ movei, movfi
 ff1:					/ ldfps
 ff2:					/ stfps
 ff3:					/ stst
-#endif NONFP
+#endif /* !NONFP */
 	mov	r1,r0
 	br	setreg
 
@@ -282,7 +282,7 @@ f7:
 	br	f1			/ movof
 
 ff0:					/ cfcc, setf, setd, seti, setl
-#endif !NONFP
+#endif /* !NONFP */
 
 u1:					/ br
 u2:					/ br
@@ -322,7 +322,7 @@ setreg:
 	beq	3f
 	asl	r0
 3:
-#endif !NONFP
+#endif /* !NONFP */
 
 	bisb	r0,r2
 	rts	pc

@@ -24,7 +24,7 @@ struct bdevsw
 	int	d_flags;
 };
 
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 extern struct	bdevsw bdevsw[];
 #endif
 
@@ -42,7 +42,7 @@ struct cdevsw
 	struct tty *d_ttys;
 	int	(*d_select)();
 };
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 extern struct	cdevsw cdevsw[];
 #endif
 
@@ -62,6 +62,6 @@ struct linesw
 	int	(*l_start)();
 	int	(*l_modem)();
 };
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 extern struct	linesw linesw[];
 #endif

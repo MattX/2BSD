@@ -713,7 +713,7 @@ say which one it does.
 Delete next character.
 .IP "Rubout" 20n
 Delete previous character.
-.IP "ESC \\\\\\\\" 20n
+.IP "ESC \e" 20n
 Delete spaces and tabs around point.
 .IP "C-X C-O" 20n
 Delete blank lines around the current line.
@@ -754,7 +754,7 @@ characters:
 spaces,
 tabs,
 and line separators.
-ESC \\ (\fIdelete-white-space\fP)
+ESC \e (\fIdelete-white-space\fP)
 deletes all the spaces and tab characters before and after point.
 C-X C-O (\fIdelete-blank-lines\fP) deletes all blank lines after the current line,
 and if the current line is blank deletes all the blank

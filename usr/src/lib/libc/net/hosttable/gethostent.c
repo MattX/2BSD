@@ -11,6 +11,7 @@ static char sccsid[] = "@(#)gethostent.c	5.3 (Berkeley) 3/9/86";
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <ctype.h>
 #include <ndbm.h>
@@ -22,7 +23,7 @@ static char sccsid[] = "@(#)gethostent.c	5.3 (Berkeley) 3/9/86";
 #define	MAXADDRSIZE	14
 
 static FILE *hostf = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static char hostaddr[MAXADDRSIZE];
 static struct hostent host;
 static char *host_aliases[MAXALIASES];
@@ -70,7 +71,7 @@ gethostent()
 	if (hostf == NULL && (hostf = fopen(_host_file, "r" )) == NULL)
 		return (NULL);
 again:
-	if ((p = fgets(line, BUFSIZ, hostf)) == NULL)
+	if ((p = fgets(line, sizeof(line)-1, hostf)) == NULL)
 		return (NULL);
 	if (*p == '#')
 		goto again;

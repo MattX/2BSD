@@ -14,7 +14,9 @@
 	name.
 */
 
-/*#define	IP_ACCT			/* needs work on 2.10 */
+#ifndef BSD2_10
+#define	IP_ACCT				/* doesn't work in 2.10BSD */
+#endif
 
 struct ip_acct {
 	char c_d[2];			/* the bottom two bytes of ip addr */
@@ -23,4 +25,4 @@ struct ip_acct {
 
 #define	N_IPHOSTS	64		/* number of hosts to count */
 
-#define	INTERFACE	"il0"		/* what interface to account */
+#define	INTERFACE	"ec0"		/* what interface to account */

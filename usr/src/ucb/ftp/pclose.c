@@ -73,7 +73,8 @@ pabort()
 mypclose(ptr)
 	FILE *ptr;
 {
-	int child, pid, omask, pabort(), (*istat)();
+	int child, pid, pabort(), (*istat)();
+	long omask;
 	union wait status;
 
 	child = popen_pid[fileno(ptr)];

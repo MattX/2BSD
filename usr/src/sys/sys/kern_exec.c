@@ -346,9 +346,7 @@ badarg:
 	 * setregs(exdata.ex_exec.a_entry);
 	 */
 	u.u_ar0[PC] = exdata.ex_exec.a_entry & ~01;
-#ifndef NONFP
 	u.u_fps.u_fpsr = 0;
-#endif
 
 	/*
 	 * Remember file name for accounting.

@@ -24,6 +24,13 @@ OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 	macro.o util.o clock.o trace.o envelope.o
 OBJS2=	sysexits.o arpadate.o convtime.o
 OBJS=	$(OBJS1) $(OBJS2)
+
+SBASE=	conf.o collect.o parseaddr.o alias.o deliver.o stab.o headers.o \
+	recipient.o stats.o srvrsmtp.o queue.o macro.o util.o clock.o \
+	trace.o envelope.o sysexits.o arpadate.o convtime.o Version.o
+SOV1=	main.o readcf.o
+SOV2=	daemon.o savemail.o usersmtp.o err.o
+
 SRCS1=	conf.h sendmail.h \
 	conf.c deliver.c main.c parseaddr.c err.c alias.c savemail.c \
 	sysexits.c util.c arpadate.c version.c collect.c \
@@ -67,10 +74,11 @@ OBJMODE=755
 	as -V - -o $*.o _xx.s
 	rm -f $*.s _xx.s
 
-sendmail: $(OBJS1) $(OBJS2) Version.o
+sendmail: $(OBJS) Version.o
 	-if [ X$(SEPFLAG) = X-i ]; then \
-		$(CC) $(SEPFLAG) $(COPTS) -o sendmail \
-			Version.o $(OBJS1) $(OBJS2) $(LIBS); \
+		ld $(SEPFLAG) $(COPTS) /lib/crt0.o -o sendmail \
+			-Z $(SOV1) -Z $(SOV2) \
+			-Y $(SBASE) $(LIBS) -lc; \
 	else \
 		echo "Need an overlay scheme for non-separate I&D load"; \
 	fi

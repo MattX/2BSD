@@ -1,17 +1,20 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ip_icmp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)ip_icmp.c	7.7 (Berkeley) 12/7/87
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
-#include "domain.h"
 #include "protosw.h"
 #include "socket.h"
 #include "time.h"
@@ -20,6 +23,7 @@
 #include "../net/route.h"
 #include "../net/if.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_systm.h"
 #include "in_var.h"
@@ -50,11 +54,9 @@ icmp_error(oip, type, code, ifp, dest)
 	register unsigned oiplen = oip->ip_hl << 2;
 	register struct icmp *icp;
 	struct mbuf *m;
-	struct mbuf *om = dtom(oip);
 	struct ip *nip;
 	unsigned icmplen;
 
-	MAPSAVE();
 #ifdef ICMPPRINTFS
 	if (icmpprintfs)
 		printf("icmp_error(%x, %d, %d)\n", oip, type, code);
@@ -68,7 +70,8 @@ icmp_error(oip, type, code, ifp, dest)
 	 */
 	if (oip->ip_off &~ (IP_MF|IP_DF))
 		goto free;
-	if (oip->ip_p == IPPROTO_ICMP && type != ICMP_REDIRECT) {
+	if (oip->ip_p == IPPROTO_ICMP && type != ICMP_REDIRECT &&
+	  !ICMP_INFOTYPE(((struct icmp *)((caddr_t)oip + oiplen))->icmp_type)) {
 		icmpstat.icps_oldicmp++;
 		goto free;
 	}
@@ -96,7 +99,7 @@ icmp_error(oip, type, code, ifp, dest)
 		code = 0;
 	}
 	icp->icmp_code = code;
-	MBCOPY(om, 0, m, (((struct icmp *)&icp->icmp_ip) - icp), oiplen + 8);
+	bcopy((caddr_t)oip, (caddr_t)&icp->icmp_ip, icmplen);
 	nip = &icp->icmp_ip;
 	nip->ip_len += oiplen;
 	nip->ip_len = htons((u_short)nip->ip_len);
@@ -111,14 +114,13 @@ icmp_error(oip, type, code, ifp, dest)
 	m->m_off -= oiplen;
 	m->m_len += oiplen;
 	nip = mtod(m, struct ip *);
-	MBCOPY(om, 0, m, 0, oiplen);
+	bcopy((caddr_t)oip, (caddr_t)nip, oiplen);
 	nip->ip_len = m->m_len;
 	nip->ip_p = IPPROTO_ICMP;
 	icmp_reflect(nip, ifp);
 
 free:
-	m_freem(om);
-	MAPREST();
+	m_freem(dtom(oip));
 }
 
 static struct sockproto icmproto = { AF_INET, IPPROTO_ICMP };
@@ -135,8 +137,8 @@ icmp_input(m, ifp)
 	struct ifnet *ifp;
 {
 	register struct icmp *icp;
-	register struct ip *ip;
-	int icmplen, hlen;
+	register struct ip *ip = mtod(m, struct ip *);
+	int icmplen = ip->ip_len, hlen = ip->ip_hl << 2;
 	register int i;
 	struct in_ifaddr *ia;
 	int (*ctlfunc)(), code;
@@ -151,11 +153,6 @@ icmp_input(m, ifp)
 	if (icmpprintfs)
 		printf("icmp_input src %X len %d", ntohl(ip->ip_src), icmplen);
 #endif
-#define	return	goto finishup
-	MAPSAVE();
-	ip = mtod(m, struct ip *);
-	icmplen = ip->ip_len;
-	hlen = ip->ip_hl << 2;
 	if (icmplen < ICMP_MINLEN) {
 		icmpstat.icps_tooshort++;
 		goto free;
@@ -182,14 +179,14 @@ icmp_input(m, ifp)
 	 * Message type specific processing.
 	 */
 	if (icmpprintfs)
-		printf("icmp_input,  type %d code %d\n", icp->icmp_type,
+		printf("icmp_input, type %d code %d\n", icp->icmp_type,
 		    icp->icmp_code);
 #endif
 	if (icp->icmp_type > ICMP_MAXTYPE)
 		goto raw;
 	icmpstat.icps_inhist[icp->icmp_type]++;
 	code = icp->icmp_code;
-	switch (i = UCHAR(icp->icmp_type)) {
+	switch (UCHAR(icp->icmp_type)) {
 
 	case ICMP_UNREACH:
 		if (code > 5)
@@ -261,7 +258,7 @@ icmp_input(m, ifp)
 		if (icmplen < ICMP_MASKLEN || (ia = ifptoia(ifp)) == 0)
 			break;
 		icp->icmp_type = ICMP_MASKREPLY;
-		icp->icmp_mask = ntohl(ia->ia_netmask);
+		icp->icmp_mask = htonl(ia->ia_subnetmask);
 		if (ip->ip_src.s_addr == 0) {
 			if (ia->ia_ifp->if_flags & IFF_BROADCAST)
 			    ip->ip_src = satosin(&ia->ia_broadaddr)->sin_addr;
@@ -334,9 +331,6 @@ raw:
 
 free:
 	m_freem(m);
-#undef	return
-finishup:
-	MAPREST();
 }
 
 /*
@@ -412,7 +406,6 @@ icmp_send(ip, opts)
 	register struct icmp *icp;
 	register struct mbuf *m;
 
-	MAPSAVE();
 	m = dtom(ip);
 	hlen = ip->ip_hl << 2;
 	m->m_off += hlen;
@@ -427,16 +420,20 @@ icmp_send(ip, opts)
 		printf("icmp_send dst %X src %X\n", ntohl(ip->ip_dst.s_addr), ntohl(ip->ip_src.s_addr));
 #endif
 	(void) ip_output(m, opts, (struct route *)0, 0);
-	MAPREST();
 }
 
 n_time
 iptime()
 {
-	int s = spl6();
+	struct timeval atv;
+	int s = splhigh();
 	u_long t;
+	extern struct timeval time;
+	extern int lbolt, hz;
 
-	t = (time.tv_sec % (24*60*60)) * 1000 + lbolt * hz;
+	cpfromkern(&time, &atv, sizeof(struct timeval));
+	t = (atv.tv_sec % (24L*60L*60L)) * 1000L
+	  + (long)mfkd(&lbolt) * 1000L / (long)hz;
 	splx(s);
 	return (htonl(t));
 }

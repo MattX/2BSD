@@ -1,0 +1,198 @@
+
+
+
+HK(4)		    UNIX Programmer's Manual		    HK(4)
+
+
+
+NNAAMMEE
+     hk - RK6-11/RK06 and RK07 moving head disk
+
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNHHKK  _h_k__d_r_i_v_e_s ## RRKK661111,, RRKK0066//0077
+
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  hhkk	??     117777444400 221100    55  hhkkiinnttrr	       ## rrkk661111//771111 rrkk0066//0077
+
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 1133
+	  bblloocckk:: 44
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy ppaarrttiittiioonn ooff HHKK ddrriivvee
+	  bbiittss 00007700 ssppeecciiffyy HHKK ddrriivvee
+
+DDEESSCCRRIIPPTTIIOONN
+     Files with minor device numbers 0 through 7 refer to various
+     portions of drive 0; minor devices 8 through 15 refer to
+     drive 1, etc.  The standard device names begin with ``hk''
+     followed by the drive number and then a letter a-h for par-
+     titions 0-7 respectively.	The character ? stands here for a
+     drive number in the range 0-7.
+
+     The block files access the disk via the system's normal
+     buffering mechanism and may be read and written without
+     regard to physical disk records.  There is also a `raw'
+     interface which provides for direct transmission between the
+     disk and the user's read or write buffer.	A single read or
+     write call results in exactly one I/O operation and there-
+     fore raw I/O is considerably more efficient when many words
+     are transmitted.  The names of the raw files conventionally
+     begin with an extra `r.'
+
+     In raw I/O the buffer must begin on a word (even) boundary,
+     and counts should be a multiple of 512 bytes (a disk sec-
+     tor).  Likewise _s_e_e_k calls should specify a multiple of 512
+     bytes.
+
+DDIISSKK SSUUPPPPOORRTT
+     The origin and size (in sectors) of the pseudo-disks on each
+     drive are as follows:
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	 August 29, 1987			1
+
+
+
+
+
+
+HK(4)		    UNIX Programmer's Manual		    HK(4)
+
+
+
+     RK06 partitions:
+	  disk	 start	length	     cyls  comments
+	  hk?a	     0	  5940	  0 -  89  too small to hold 2.10BSD root
+	  hk?b	  5940	  2376	 90 - 125
+	  hk?c	unusable
+	  hk?d	  8316	 18810	126 - 410*
+	  hk?e	     0	  8316	  0 - 125  overlaps a & b (2.10BSD root)
+	  hk?f	unused
+	  hk?g	     0	 27126	  0 - 410* whole pack
+	  hk?h	unusable
+
+     RK07 partitions:
+	  disk	 start	length	     cyls  comments
+	  hk?a	     0	  5940	  0 -  89  too small to hold 2.10BSD root
+	  hk?b	  5940	  2376	 90 - 125
+	  hk?c	  8316	 45474	126 - 814*
+	  hk?d	  8316	 18810	126 - 410
+	  hk?e	     0	  8316	  0 - 125  overlaps a & b (2.10BSD root)
+	  hk?f	unused
+	  hk?g	     0	 27126	  0 - 410
+	  hk?h	     0	 53790	  0 - 814* whole pack
+
+     Those partitions marked with an asterisk (``*'') allow
+     access to bad block information stored at the end of some
+     packs.  Extreme care must be taken when creating file sys-
+     tems on these partitions to avoid overwriting any bad block
+     information present.  I general it's best to use _n_e_w_f_s(8) to
+     create file systems since it uses the ``safe'' partition
+     sizes recored in /_e_t_c/_d_i_s_k_t_a_b.
+
+     On a dual RK-07 system partition hk?e is used for the root
+     for one drive and partition hk?c for the /usr file system,
+     while partition hk?a on the other drive would be used for
+     swap.  If large jobs are to be run using hk?e on the second
+     drive as swap area provides a 4Mbyte swap area.  Otherwise
+     partitions hk?b and hk?c on the other drive can be used as
+     /tmp and a large (sic) file system.
+
+FFIILLEESS
+     /dev/hk[0-7][a-h]	 block files
+     /dev/rhk[0-7][a-h]  raw files
+     /dev/MAKEDEV	 script to create special files
+     /dev/MAKEDEV.local  script to localize special files
+
+SSEEEE AALLSSOO
+     ra(4), ram(4), rk(4), rl(4), rx(4), si(4), xp(4), dtab(5),
+     autoconfig(8)
+
+DDIIAAGGNNOOSSTTIICCSS
+     hhkk%%dd%%cc:: hhaarrdd eerrrroorr ssnn%%dd ccss22==%%bb ddss==%%bb eerr==%%bb.  An unrecover-
+     able error occurred during transfer of the specified sector
+     of the specified disk partition.  The contents of the cs2,
+
+
+
+Printed 12/28/88	 August 29, 1987			2
+
+
+
+
+
+
+HK(4)		    UNIX Programmer's Manual		    HK(4)
+
+
+
+     ds and er registers are printed in octal and symbolically
+     with bits decoded.  The error was either unrecoverable, or a
+     large number of retry attempts (including offset positioning
+     and drive recalibration) could not recover the error.
+
+     hhkk%%dd:: wwrriittee lloocckkeedd.  The write protect switch was set on the
+     drive when a write was attempted.	The write operation is
+     not recoverable.
+
+     rrkk%%dd:: nnoott rreeaaddyy.  The drive was spun down or off line when
+     it was accessed.  The i/o operation is not recoverable.
+
+     rrkk%%dd:: nnoott rreeaaddyy ((ccaammee bbaacckk!!)).  The drive was not ready, but
+     after printing the message about being not ready (which
+     takes a fraction of a second) was ready.  The operation is
+     recovered if no further errors occur.
+
+     hhkk%%dd%%cc:: ssoofftt eecccc ssnn%%dd.  A recoverable ECC error occurred on
+     the specified sector of the specified disk partition. This
+     happens normally a few times a week.  If it happens more
+     frequently than this the sectors where the errors are occur-
+     ing should be checked to see if certain cylinders on the
+     pack, spots on the carriage of the drive or heads are indi-
+     cated.
+
+BBUUGGSS
+     In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to 512-
+     byte block boundaries, and _w_r_i_t_e scribbles on the tail of
+     incomplete blocks.  Thus, in programs that are likely to
+     access raw devices, _r_e_a_d, _w_r_i_t_e and _l_s_e_e_k(2) should always
+     deal in 512-byte multiples.
+
+     DEC-standard error logging should be supported.
+
+     A program to analyze the logged error information (even in
+     its present reduced form) is needed.
+
+     The partition tables for the file systems should be read off
+     of each pack, as they are never quite what any single
+     installation would prefer, and this would make packs more
+     portable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	 August 29, 1987			3
+
+
+

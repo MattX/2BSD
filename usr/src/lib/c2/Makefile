@@ -1,9 +1,10 @@
-CFLAGS = -O -n -s
-LIB = /lib
+SEPFLAG=-i
+CFLAGS=	-O
+
+LIB=	/lib
 
 c2: c20.o c21.o
-# Was cc -i -o : turned off for 11/23
-	${CC} -o c2 c20.o c21.o
+	cc ${CFLAGS} ${SEPFLAG} -o c2 c20.o c21.o
 
 c20.o c21.o: c2.h
 

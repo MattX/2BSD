@@ -50,9 +50,9 @@ USENIX may also be contacted by electronic mail at:
 If you have technical questions about the release, please contact
 Keith Bostic at:
 .RS
-{ucbvax,seismo}!keith
+seismo!keith, ucbvax!bostic
 .br
-keith@okeeffe.berkeley.edu
+bostic@okeeffe.berkeley.edu
 .br
 +1 415 642-4948
 .RE

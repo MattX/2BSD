@@ -214,7 +214,7 @@ stop_catcher()
 #endif
 	sigset(SIGTSTP,SIG_DFL);	/* enable stop */
 #ifdef BSD42
-	sigsetmask(sigblock(0) & ~sigmask(SIGTSTP));
+	sigsetmask(sigblock(0L) & ~sigmask(SIGTSTP));
 #endif
 	kill(0,SIGTSTP);		/* and do the stop */
     }

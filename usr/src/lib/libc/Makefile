@@ -27,8 +27,10 @@
 # system call stubs, add -DLIBC_SCCS to DEFS below; to put these
 # strings into system call stubs, use -DSYSLIBC_SCCS.
 #
-# To compile a non-floating point version of the standard library add
-# -DNONFP.  To compile a non-separate I&D version add -DNONSEPARATE.
+# To compile a non-floating point versions of some standard library
+# routines add -DNONFP.  This will speed up some operations if you don't
+# have hardware floating point.  To compile a non-separate I&D version add
+# -DNONSEPARATE.
 #
 # There are two possible methods of doing host name look up.  They are
 # to use the name server or /etc/hosts. HOSTLOOKUP defines which method
@@ -64,8 +66,6 @@ libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 	ar ma exit.o libc.a fakcu.o
 	ar ma fltpr.o libc.a doprnt.o
 	ar ma doprnt.o libc.a ffltpr.o
-	ar ma fpsim.o libc.a setfpt.o
-#	ar ma setfpt.o libc.a ffpsim.o
 	rm -rf tmp
 	-mkdir tmp
 	cd tmp; \
@@ -77,8 +77,6 @@ libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 	ar ma exit.o libc_p.a fakcu.o
 	ar ma fltpr.o libc_p.a doprnt.o
 	ar ma doprnt.o libc_p.a ffltpr.o
-	ar ma fpsim.o libc_p.a setfpt.o
-#	ar ma setfpt.o libc_p.a ffpsim.o
 	rm -rf tmp
 
 ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}: FRC

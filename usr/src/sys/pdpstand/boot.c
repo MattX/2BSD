@@ -5,16 +5,15 @@
  *
  *	@(#)boot.c	1.1 (2.10BSD Berkeley) 12/1/86
  */
-#include <sys/param.h>
-
+#include "../h/param.h"
 #include "../machine/seg.h"
 #include "../machine/koverlay.h"
-
-#include <sys/fs.h>
-#include <sys/inode.h>
-#include <sys/reboot.h>
-#include <a.out.h>
+#include "../h/fs.h"
+#include "../h/inode.h"
+#include "../h/reboot.h"
 #include "saio.h"
+
+#include <a.out.h>
 
 #ifndef RB_DEFNAME
 #	define	RB_DEFNAME	"xp(0,0)unix"
@@ -35,16 +34,19 @@
 #define	SEG_TEXT	02
 #define	SEG_OVLY	04
 
-extern	int	cputype;
-extern	bool_t	ksep;			/* Is kernel mode currently separated */
-extern	bool_t	sep_id;			/* Does the cpu support separate I/D? */
-extern	int	bootopts, bootdev, checkword;
-char	module[] = "Boot";	/* This program's name (used by trap) */
-char	line[100] = RB_DEFNAME;
-bool_t	overlaid = 0;
-u_short	pdrproto[16 + NOVL] = {0};
-struct	exec	exec;
-struct	ovlhdr	ovlhdr;
+extern int	bootopts;	/* boot options from previous incarnation */
+extern int	bootdev;	/* UNIX dev we were booted from (not used) */
+extern int	checkword;	/* one's complements of bootopts */
+extern int	cputype;	/* 24, 40, 44, 45, 70, or 73 */
+extern bool_t	ksep;		/* is kernel mode currently separated */
+extern bool_t	sep_id;		/* does the cpu support separate I/D? */
+
+char		module[] = "Boot"; /* this program's name (used by trap) */
+char		line[100] = RB_DEFNAME;
+bool_t		overlaid = 0;
+u_short		pdrproto[16 + NOVL] = {0};
+struct exec	exec;
+struct ovlhdr	ovlhdr;
 unsigned	btoc();
 
 struct	loadmap {
@@ -192,10 +194,10 @@ setup(io)
 	if (exec.a_magic == A_MAGIC5 || exec.a_magic == A_MAGIC6) {
 		overlaid++;
 		ovlhdr.max_ovl = getw(io);
-		for(i = 0; i < NOVL; i++)
+		for (i = 0; i < NOVL; i++)
 			ovlhdr.ov_siz[i] = (unsigned) getw(io);
 	}
-	for(i = 0; i < sizeof(loadtable) / sizeof(struct loadtable); i++)
+	for (i = 0; i < sizeof(loadtable) / sizeof(struct loadtable); i++)
 		if (loadtable[i].lt_magic == exec.a_magic)
 			return(&loadtable[i]);
 	printf("Bad magic number 0%o\n", exec.a_magic);
@@ -231,7 +233,7 @@ checkunix(io, lt)
 	 */
 	ovseg = 0;
 	while (segtype = lm->seg_type) {
-		switch(segtype) {
+		switch (segtype) {
 			case SEG_TEXT:
 				/*
 				 * Round text size to nearest page.
@@ -284,7 +286,7 @@ checkunix(io, lt)
 			return(-1);
 		}
 		if (segtype == SEG_TEXT)
-		    switch(exec.a_magic) {
+		    switch (exec.a_magic) {
 			case A_MAGIC5:
 			    if (seglen <= 8 KB) {
 				printf("Base segment too small, 8K minimum\n");
@@ -329,7 +331,7 @@ copyunix(io, lt)
 	lm = lt->lt_map;
 	while (segtype = lm++->seg_type) {
 		segoff = (off_t) N_TXTOFF(exec);
-		switch(segtype) {
+		switch (segtype) {
 			case SEG_TEXT:
 				seglen = exec.a_text;
 				break;
@@ -343,7 +345,7 @@ copyunix(io, lt)
 				if (exec.a_magic != A_MAGIC1 && exec.a_magic != A_MAGICU) {
 					segoff += (off_t) exec.a_text;
 					if (overlaid)
-						for(i = 0; i < NOVL; i++)
+						for (i = 0; i < NOVL; i++)
 							segoff += (off_t) ovlhdr.ov_siz[i];
 				} else
 					seglen += exec.a_text;
@@ -353,7 +355,7 @@ copyunix(io, lt)
 			case SEG_OVLY:
 				seglen = ovlhdr.ov_siz[ovseg];
 				segoff += (off_t) exec.a_text;
-				for(i = 0; i < ovseg; i++)
+				for (i = 0; i < ovseg; i++)
 					segoff += (off_t) ovlhdr.ov_siz[i];
 				ovseg++;
 				break;
@@ -368,7 +370,7 @@ copyunix(io, lt)
 		setseg(phys);
 		if (exec.a_magic != A_MAGIC1)
 			(void) lseek(io, segoff, 0);
-		for(addr = 0; addr < seglen; addr += 2)
+		for (addr = 0; addr < seglen; addr += 2)
 			mtpi(getw(io), addr);
 
 		if (segtype == SEG_DATA) {
@@ -410,14 +412,14 @@ setregs(lt)
 	 */
 	par_base = KISA0;
 	pdr_base = KISD0;
-	for(i = 0; i <(ksep ?  8 : 7); i++) {
+	for (i = 0; i <(ksep ?  8 : 7); i++) {
 		*par_base++ = 0;
 		*pdr_base++ = NOACC;
 	}
 	if (ksep) {
 		par_base = KDSA0;
 		pdr_base = KDSD0;
-		for(i = 0; i < 7; i++) {
+		for (i = 0; i < 7; i++) {
 			*par_base++ = 0;
 			*pdr_base++ = NOACC;
 		}
@@ -435,7 +437,7 @@ setregs(lt)
 			*KISD0 = ((128 -1) << 8) | RW;
 		par_base = &(((u_short *) OVLY_TABLE_BASE)[0]);
 		pdr_base = &(((u_short *) OVLY_TABLE_BASE)[1 + NOVL]);
-		for(i = 0; i < NOVL; i++) {
+		for (i = 0; i < NOVL; i++) {
 			mtpd(0, par_base++);
 			mtpd(NOACC, pdr_base++);
 		}
@@ -449,7 +451,7 @@ setregs(lt)
 		if (!(npages = ctos(pdrproto[nseg])))
 			continue;
 
-		switch(segtype) {
+		switch (segtype) {
 			case SEG_TEXT:
 				/*
 				 * Text always starts at KI0;
@@ -486,7 +488,7 @@ setregs(lt)
 				break;
 		}
 
-		for(i = 0; i < npages; i++) {
+		for (i = 0; i < npages; i++) {
 			pagelen = MIN(btoc((int)(8 KB)), pdrproto[nseg]);
 			if (segtype == SEG_OVLY) {
 				mtpd(phys, par_base);

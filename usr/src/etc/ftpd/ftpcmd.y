@@ -1,7 +1,20 @@
 /*
  * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *	@(#)ftpcmd.y	5.12 (Berkeley) 10/30/88
  */
 
 /*
@@ -12,8 +25,8 @@
 %{
 
 #ifndef lint
-static	char sccsid[] = "@(#)ftpcmd.y	5.9 (Berkeley) 5/15/87";
-#endif
+static char sccsid[] = "@(#)ftpcmd.y	5.12 (Berkeley) 10/30/88";
+#endif /* not lint */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -86,12 +99,12 @@ cmd_list:	/* empty */
 
 cmd:		USER SP username CRLF
 		= {
-			extern struct passwd *getpwnam();
+			extern struct passwd *sgetpwnam();
 
 			logged_in = 0;
 			if (strcmp((char *) $3, "ftp") == 0 ||
 			  strcmp((char *) $3, "anonymous") == 0) {
-				if ((pw = getpwnam("ftp")) != NULL) {
+				if ((pw = sgetpwnam("ftp")) != NULL) {
 					guest = 1;
 					reply(331,
 				  "Guest login ok, send ident as password.");
@@ -101,7 +114,7 @@ cmd:		USER SP username CRLF
 				}
 			} else if (checkuser((char *) $3)) {
 				guest = 0;
-				pw = getpwnam((char *) $3);
+				pw = sgetpwnam((char *) $3);
 				if (pw == NULL) {
 					reply(530, "User %s unknown.", $3);
 				}

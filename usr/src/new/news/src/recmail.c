@@ -20,7 +20,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)recmail.c	1.15	10/23/86";
+static char	*SccsId = "@(#)recmail.c	1.16	9/24/87";
 #endif /* SCCSID */
 
 #include "params.h"
@@ -245,7 +245,7 @@ char *errf;
 	}
 	(void) fclose(errfd);
 	if ((logn = getlogin()) == NULL && (logn = getenv("USER")) == NULL) {
-		if ((pwd = getpwent(getuid())) == NULL)
+		if ((pwd = getpwuid(getuid())) == NULL)
 			return;
 		logn = pwd->pw_name;
 	}

@@ -44,7 +44,8 @@ void
 writelast()
 {
     if ((tmpfp = fopen(lastname,"w")) != Nullfp) {
-	fprintf(tmpfp,"%s\n%ld\n%ld\n",ngname,(long)lasttime,(long)lastactsiz);
+	fprintf(tmpfp,"%s\n%ld\n%ld\n",
+	    (ngname==Nullch?nullstr:ngname),(long)lasttime,(long)lastactsiz);
 	fclose(tmpfp);
     }
     else

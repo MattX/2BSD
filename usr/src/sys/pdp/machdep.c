@@ -16,7 +16,7 @@
 #include "map.h"
 #include "uba.h"
 
-#ifdef EXPANDED_INLINE
+#ifdef CURRENTLY_EXPANDED_INLINE
 /*
  * Clear registers on exec
  */
@@ -24,9 +24,7 @@ setregs(entry)
 	u_int entry;
 {
 	u.u_ar0[PC] = entry & ~01;
-#ifndef NONFP
 	u.u_fps.u_fpsr = 0;
-#endif !NONFP
 }
 #endif
 
@@ -264,4 +262,4 @@ mapfree(bp)
 		bp->b_flags &= ~B_UBAREMAP;
 	}
 }
-#endif UNIBUS_MAP
+#endif /* UNIBUS_MAP */

@@ -1,0 +1,132 @@
+
+
+
+AUTOCONFIG(8)	    UNIX Programmer's Manual	    AUTOCONFIG(8)
+
+
+
+NNAAMMEE
+     autoconfig - configure the running system to the hardware
+
+SSYYNNOOPPSSIISS
+     aauuttooccoonnffiigg [[ --ii iiffiillee ]] [[
+
+DDEESSCCRRIIPPTTIIOONN
+     _A_u_t_o_c_o_n_f_i_g is called by _i_n_i_t(8) to configure the currently
+     running system.  Init checks the exit status of autoconfig
+     to determine if the configuration was successful.	_A_u_t_o_c_o_n_-
+     _f_i_g reads the device table /_e_t_c/_d_t_a_b for a list of devices
+     which may be on the system.  It first verifies that the ker-
+     nel has an attach routine for each device (and therefore has
+     a device handler), and that either the kernel has a probe
+     routine.  It then checks each of these devices to see if it
+     is present, and if it is, attempts to make it interrupt (if
+     possible) to verify that the interrupt vector is correct.
+     The interrupt vector is checked to see that it has not pre-
+     viously been used.  An interrupt through any of the device's
+     consecutive vectors is sufficient.  If the address and vec-
+     tor are correct, it then attaches the device by passing the
+     address and unit number to the kernel's attach routine and
+     setting up the interrupt vector according to the interrupt
+     handlers and priority listed in the device table.	If the
+     unit number is given as a '?' in the device table, it will
+     be assigned the next available unit number if the device
+     exists.  If the device is not present or the vector is
+     incorrect, and if the unit number was specified (not a '?'),
+     then the kernel is notified that that unit is not present,
+     preventing accesses to a nonexistent device address.
+
+     There are only a few flags which are mostly useful for
+     debugging but for completeness, here they are.
+
+     --ii _i_f_i_l_e  Use _i_f_i_l_e instead of /_e_t_c/_d_t_a_b as the device
+	       table.
+
+     --nn _n_f_i_l_e  Use _n_f_i_l_e instead of /_u_n_i_x for finding the namel-
+	       ist of the currently running kernel.
+
+     --kk _k_f_i_l_e  The file _k_f_i_l_e should be used instead of /_d_e_v/_k_m_e_m
+	       to alter and read kernel memory.
+
+     --vv        Verbose output, indicates reason for rejecting any
+	       device in the device table.  Normally only
+	       attached devices are reported.
+
+     --cc        Report error messages for devices skipped because
+	       of problems with their interrupt vectors.
+
+BBUUGGSS
+     Devices of the same type must be listed with ascending unit
+
+
+
+Printed 12/28/88	January 24, 1987			1
+
+
+
+
+
+
+AUTOCONFIG(8)	    UNIX Programmer's Manual	    AUTOCONFIG(8)
+
+
+
+     numbers or with wildcards.
+
+     Disks that could be root devices must have their addresses
+     and vectors initialized in the kernel; the kernel uses a
+     root attach entry in the block device switch to allow disk
+     drivers to do any probes necessary before autoconfiguration.
+
+FFIILLEESS
+     /etc/dtab		 device table
+     /unix
+     /dev/kmem
+
+SSEEEE AALLSSOO
+     ucall(2), dtab(5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	January 24, 1987			2
+
+
+

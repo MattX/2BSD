@@ -16,14 +16,14 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)funcs.c	2.35	12/16/86";
+static char	*SccsId = "@(#)funcs.c	2.38	11/30/87";
 #endif /* SCCSID */
 
 /*LINTLIBRARY*/
 
 #include "params.h"
 #include <errno.h>
-#if defined(USG) || defined(BSD4_2) || defined(BSD4_1C)
+#if defined(USG) || defined(BSD4_2)
 #include <fcntl.h>
 #endif /* !v7 */
 
@@ -231,19 +231,78 @@ int code;
 	} else
 		return sys_errlist[code];
 }
+/* From UC Berkeley @(#)strcasecmp.c	1.3 (Berkeley) 8/3/87 */
+
+/*
+ * This array is designed for mapping upper and lower case letter
+ * together for a case independent comparison.  The mappings are
+ * based upon ascii character sequences.
+ */
+char charmap[] = {
+	'\000', '\001', '\002', '\003', '\004', '\005', '\006', '\007',
+	'\010', '\011', '\012', '\013', '\014', '\015', '\016', '\017',
+	'\020', '\021', '\022', '\023', '\024', '\025', '\026', '\027',
+	'\030', '\031', '\032', '\033', '\034', '\035', '\036', '\037',
+	'\040', '\041', '\042', '\043', '\044', '\045', '\046', '\047',
+	'\050', '\051', '\052', '\053', '\054', '\055', '\056', '\057',
+	'\060', '\061', '\062', '\063', '\064', '\065', '\066', '\067',
+	'\070', '\071', '\072', '\073', '\074', '\075', '\076', '\077',
+	'\100', '\141', '\142', '\143', '\144', '\145', '\146', '\147',
+	'\150', '\151', '\152', '\153', '\154', '\155', '\156', '\157',
+	'\160', '\161', '\162', '\163', '\164', '\165', '\166', '\167',
+	'\170', '\171', '\172', '\133', '\134', '\135', '\136', '\137',
+	'\140', '\141', '\142', '\143', '\144', '\145', '\146', '\147',
+	'\150', '\151', '\152', '\153', '\154', '\155', '\156', '\157',
+	'\160', '\161', '\162', '\163', '\164', '\165', '\166', '\167',
+	'\170', '\171', '\172', '\173', '\174', '\175', '\176', '\177',
+	'\200', '\201', '\202', '\203', '\204', '\205', '\206', '\207',
+	'\210', '\211', '\212', '\213', '\214', '\215', '\216', '\217',
+	'\220', '\221', '\222', '\223', '\224', '\225', '\226', '\227',
+	'\230', '\231', '\232', '\233', '\234', '\235', '\236', '\237',
+	'\240', '\241', '\242', '\243', '\244', '\245', '\246', '\247',
+	'\250', '\251', '\252', '\253', '\254', '\255', '\256', '\257',
+	'\260', '\261', '\262', '\263', '\264', '\265', '\266', '\267',
+	'\270', '\271', '\272', '\273', '\274', '\275', '\276', '\277',
+	'\300', '\341', '\342', '\343', '\344', '\345', '\346', '\347',
+	'\350', '\351', '\352', '\353', '\354', '\355', '\356', '\357',
+	'\360', '\361', '\362', '\363', '\364', '\365', '\366', '\367',
+	'\370', '\371', '\372', '\333', '\334', '\335', '\336', '\337',
+	'\340', '\341', '\342', '\343', '\344', '\345', '\346', '\347',
+	'\350', '\351', '\352', '\353', '\354', '\355', '\356', '\357',
+	'\360', '\361', '\362', '\363', '\364', '\365', '\366', '\367',
+	'\370', '\371', '\372', '\373', '\374', '\375', '\376', '\377',
+};
+
+strcasecmp(s1, s2)
+register char *s1, *s2;
+{
+	register char *cm = charmap;
+
+	while (cm[*s1] == cm[*s2++])
+		if (*s1++ == '\0')
+			return 0;
+	return cm[*s1] - cm[*--s2];
+}
+
+strncasecmp(s1, s2, n)
+register char *s1, *s2;
+register int n;
+{
+	register char *cm = charmap;
+
+	while (--n >= 0 && cm[*s1] == cm[*s2++])
+		if (*s1++ == '\0')
+			return 0;
+	return n < 0 ? 0 : cm[*s1] - cm[*--s2];
+}
 
 prefix(full, pref)
 register char *full, *pref;
 {
-	register char fc, pc;
+	register char *cm = charmap;
 
-	while ((pc = *pref++) != '\0') {
-		fc = *full++;
-		if (isupper(fc))
-			fc = tolower(fc);
-		if (isupper(pc))
-			pc = tolower(pc);
-		if (fc != pc)
+	while (*pref != '\0') {
+		if (cm[*full++] != cm[*pref++])
 			return FALSE;
 	}
 	return TRUE;
@@ -301,6 +360,85 @@ long arg1, arg2, arg3;
 	logerr(buffer);
 	xxit(1);
 }
+
+#ifdef MKSTR
+strfile = -1;
+errprep(offset, buf)
+int offset;
+char *buf;
+{
+	char filename[BUFLEN];
+
+	if (strfile < 0) {
+		sprintf(filename, "%s/news_strings", LIBDIR);
+		strfile = open(filename, 0);
+		if (strfile < 0) {
+oops:
+			perror(filename);
+			exit(1);
+		}
+	}
+	if (lseek(strfile, (long) offset, 0) < 0
+			|| read(strfile, buf, 256) <= 0)
+		goto oops;
+}
+
+/* VARARGS1 */
+strxerror(message, arg1, arg2, arg3)
+int message;
+long arg1, arg2, arg3;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	xerror(buf, arg1, arg2, arg3);
+}
+
+/* VARARGS1 */
+strprerror(message, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int message;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	printf(buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+/* VARARGS1 */
+strfprerror(message, file, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int message;
+FILE *file;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(message, buf);
+	fprintf(file, buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+/* VARARGS1 */
+rlogerror(fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int fmt;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(fmt, buf);
+	_dolog(0, buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+/* VARARGS1 */
+errlogerror(fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+int fmt;
+long a1, a2, a3, a4, a5, a6, a7, a8, a9;
+{
+	char buf[256];
+
+	errprep(fmt, buf);
+	_dolog(1, buf, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+#endif
 
 /* VARARGS1 */
 log(fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
@@ -371,7 +509,7 @@ long a1, a2, a3, a4, a5, a6, a7, a8, a9;
 		(void) sprintf(logfname, "%s/%s", LIB, lfsuffix[i]);
 
 		if (access(logfname, 0) == 0 && (logfile = fopen(logfname, "a")) != NULL) {
-#if defined(USG) || defined(BSD4_2) || defined(BSD4_1C)
+#if defined(USG) || defined(BSD4_2)
 			int flags;
 			flags = fcntl(fileno(logfile), F_GETFL, 0);
 			(void) fcntl(fileno(logfile), F_SETFL, flags|O_APPEND);
@@ -461,7 +599,7 @@ char *file;
 }
 #endif /* VMS */
 
-#if !defined(BSD4_2) && !defined(BSD4_1C)
+#ifdef MKDIRSUB
 /*
  * make a directory. Also make sure that the directory is owned
  * by the right userid
@@ -520,7 +658,21 @@ int perm;
 #endif
 	return status;
 }
-#endif /* !BSD4_2 && ! BSD4_1C */
+#endif /* !BSD4_2 */
+
+#ifndef	RENAMESUB
+rename(from,to)
+register char *from, *to;
+{
+	(void) unlink(to);
+	if (link(from, to) < 0)
+		return -1;
+
+	(void) unlink(from);
+	return 0;
+}
+#endif /* !RENAMESUB */
+
 #ifndef USG
 char *
 strpbrk(str, chars)
@@ -577,6 +729,8 @@ register char *user, *newsgroups;
 {
 	FILE *facfd;
 	char facuser[BUFLEN], facgroups[BUFLEN], factemp[BUFLEN];
+	char *getgrplist();
+	char *grplist = NULL;
 	register char  *facptr;
 
 	/* First, open the necessary file...$LIBDIR/authorized and see if there
@@ -586,14 +740,26 @@ register char *user, *newsgroups;
 	(void) strncpy(facgroups, FASCIST, BUFLEN);
 	sprintf(factemp, "%s/%s", LIB, "authorized");
 	facfd = fopen(factemp, "r");
-
-	if (facfd != NULL) { /* If no such file, we go with the global default */
-		while (fscanf(facfd, "%[^:]:%s\n", facuser, factemp) != EOF)
-			if (strncmp(facuser, user, BUFLEN) == 0) {
+	if (facfd != NULL) { /* If no such file, use global default only */
+		while (fscanf(facfd, "%[^:]:%s\n", facuser, factemp) != EOF) {
+			if (feof(facfd))
+				break;
+			if (facuser[0] == '#') continue;
+			if (facuser[0] == '\\') {
+				if (!grplist) grplist = getgrplist(user);
+				facptr = facuser;
+				facptr++;
+				if (ngmatch(facptr, grplist)) {
+					(void) strcat(facgroups, ",");
+					(void) strcat(facgroups, factemp);
+					continue;
+				}
+			} else if (STRNCMP(facuser, user, BUFLEN) == 0) {
 				(void) strcat(facgroups, ",");
 				(void) strcat(facgroups, factemp);
 				break;
 			}
+		}
 		fclose (facfd);
 	}
 #ifdef DEBUG
@@ -629,3 +795,52 @@ register char *user, *newsgroups;
 	return FALSE;
 }
 #endif /* FASCIST */
+
+/*  This routine is meant to be called only once.  On a system with a
+ *  large /etc/group file, this routine is a HOG!!!!!  In order to save
+ *  ourselves from pain, this routine will look up groups for "user"
+ * the first time.  After that, it will always return the same results...
+ */
+
+char *
+getgrplist(user)
+register char *user;
+{
+	register struct group *gr;
+	register struct passwd *pw;
+	register char **cp;
+	register int len;
+	static int grpdone = FALSE;
+	static char grplist[LBUFLEN];
+
+#ifdef DEBUG
+	fprintf(stderr, "getgrplist entered...\n");
+#endif /* DEBUG */
+
+	if (grpdone == FALSE) {
+#ifdef DEBUG
+		fprintf(stderr, "... actually reading /etc/group...\n");
+#endif /* DEBUG */
+		pw = getpwnam(user);
+		setgrent();
+		while (gr = getgrent()) {
+			if (pw) if (pw->pw_gid == gr->gr_gid) {
+				strcat(grplist, gr->gr_name);
+				strcat(grplist, ",");
+				continue;
+			}	
+			for (cp = gr->gr_mem; cp && *cp; cp++)
+				if (STRCMP(*cp, user) == 0) {
+					strcat(grplist, gr->gr_name);
+					strcat(grplist, ",");
+					break;
+				}
+		}
+		if ((len = strlen(grplist))) grplist[len-1] = '\0';
+		grpdone = TRUE;
+	}
+#ifdef DEBUG
+	fprintf(stderr, "Group list - %s\n", grplist);
+#endif /* DEBUG */
+	return grplist;
+}

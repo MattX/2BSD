@@ -14,6 +14,9 @@
 #include "buf.h"
 #include "user.h"
 #include "kernel.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 typedef	struct fblk *FBLKP;
 
@@ -136,6 +139,13 @@ ialloc(pip)
 	fs = pip->i_fs;
 	while (fs->fs_ilock)
 		sleep((caddr_t)&fs->fs_ilock, PINOD);
+#ifdef QUOTA
+	QUOTAMAP();
+	u.u_error = chkiq(pip->i_dev, NULL, u.u_uid, 0);
+	QUOTAUNMAP();
+	if (u.u_error)
+		return(NULL);
+#endif
 loop:
 	if (fs->fs_ninode > 0) {
 		ino = fs->fs_inode[--fs->fs_ninode];

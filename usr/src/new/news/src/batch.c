@@ -32,7 +32,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)batch.c	1.18	12/16/86";
+static char	*SccsId = "@(#)batch.c	1.20	11/30/87";
 #endif /* SCCSID */
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ static char	*SccsId = "@(#)batch.c	1.18	12/16/86";
 #include <errno.h>
 #include "defs.h"
 
-#if defined(USG) || defined(BSD4_2) || defined(BSD4_1C)
+#if defined(USG) || defined(BSD4_2)
 #include <fcntl.h>
 #endif
 
@@ -62,6 +62,7 @@ char **argv;
 	long atol();
 	char fname[512];
 	char workfile[512];
+	char cbuf[BUFSIZ];
 	char *index(), *fgets();
 
 	if (argc < 2) {
@@ -100,6 +101,8 @@ char **argv;
 		cp = index(fname, '\n');
 		if (cp)
 			*cp = '\0';
+		if (fname[0] == '\0')
+			continue;
 		nfd = fopen(fname, "r");
 		if (nfd == NULL) {
 			perror(fname);
@@ -108,6 +111,10 @@ char **argv;
 		(void) fstat(fileno(nfd), &sbuf);
 		if (cp)
 			*cp = '\n';
+		if (sbuf.st_size == 0) {
+			(void) fclose(nfd);
+			continue;
+		}
 		nbytes += sbuf.st_size;
 		if (nbytes > maxbytes && nbytes != sbuf.st_size)
 			break;
@@ -115,15 +122,16 @@ char **argv;
 		/* guess length of #! rnews string */
 		nbytes += 13;
 		n = 0;
-		while ((c = getc(nfd)) != EOF) {
-			putchar(c);
-			n++;
+		while (c = fread(cbuf, 1, sizeof cbuf, nfd)) {
+			fwrite(cbuf, 1, c, stdout);
+			n += c;
 		}
 		(void) fclose(nfd);
 		if (ferror(stdout)){
 			logerror("stdout write %s", sys_errlist[errno]);
 			exit(1);
 		}
+		(void) fflush(stdout);
 		if (n != sbuf.st_size) { /* paranoia */
 			logerror("%s, expected %ld bytes, got %ld", fname,
 				n, sbuf.st_size);
@@ -184,7 +192,7 @@ long a1, a2, a3, a4, a5, a6, a7, a8, a9;
 	logtime[16] = 0;
 	logtime += 4;
 
-#if defined(IHCC) || defined(HOME)
+#if defined(LOGDIR) || defined(HOME)
 	(void) sprintf(lfname, "%s/%s/errlog", logdir(HOME), LIBDIR);
 #else
 	(void) sprintf(lfname, "%s/errlog", LIBDIR);
@@ -193,7 +201,7 @@ long a1, a2, a3, a4, a5, a6, a7, a8, a9;
 	(void) sprintf(bfr, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 	fprintf(stderr, bfr);
 	if (access(lfname, 0) == 0 && (logfile = fopen(lfname, "a")) != NULL) {
-#if defined(USG) || defined(BSD4_2) || defined(BSD4_1C)
+#if defined(USG) || defined(BSD4_2)
 		int flags;
 		flags = fcntl(fileno(logfile), F_GETFL, 0);
 		(void) fcntl(fileno(logfile), F_SETFL, flags|O_APPEND);
@@ -205,7 +213,7 @@ long a1, a2, a3, a4, a5, a6, a7, a8, a9;
 	}
 }
 
-#if !defined(BSD4_2) && !defined(BSD4_1C)
+#ifndef RENAMESUB
 rename(from, to)
 register char *from, *to;
 {
@@ -216,4 +224,4 @@ register char *from, *to;
 	(void) unlink(from);
 	return 0;
 }
-#endif /* !BSD4_2 && !BSD4_1C */
+#endif /* !RENAMESUB */

@@ -28,8 +28,9 @@ install: ${LESSONS} ${FILES}
 		echo copy $$i; \
 		install -c -m 644 $$i ${DESTDIR}/usr/lib/learn/$$i; \
 	done
-# For some unknown reason the following line fails with an exit -115 ...
-#	tar cf - ${LESSONS} | (cd ${DESTDIR}/usr/lib/learn; tar xpf -)
+# For some unknown reason the following line sometimes fails with an
+# exit -115 ...
+	-tar cf - ${LESSONS} | (cd ${DESTDIR}/usr/lib/learn; tar xpf -)
 	-chmod 555 ${DESTDIR}/usr/lib/learn/*/Init
 	cd ${DESTDIR}/usr/lib/learn/C; cc -O -c getline.c getnum.c
 

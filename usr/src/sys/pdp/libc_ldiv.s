@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)ldiv.s	2.3 (Berkeley) 1/28/87\0>
+	<@(#)ldiv.s	2.3 (Berkeley) 8/23/88\0>
 	.even
 #endif LIBC_SCCS
 
@@ -177,10 +177,6 @@ ret:
  * after the shift in the loop) ...
  */
 hardldiv:
-#ifdef KERNEL
-iot = 4				/ for now the kernel doesn't divide by large
-	iot			/   longs ...
-#else !KERNEL
 	mov	10.(sp),r1	/ r1 = loint(lhs)
 	mov	8.(sp),r0	/ r0 = hiint(lhs)
 	sxt	-(sp)		/ flag = sign(lhs)
@@ -218,5 +214,4 @@ iot = 4				/ for now the kernel doesn't divide by large
 	tst	(sp)+		/ test negative flag
 	bge	ret		/   and head off to the appropriate return
 	br	negret
-#endif KERNEL
 #endif

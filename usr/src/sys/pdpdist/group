@@ -4,6 +4,7 @@ kmem:*:2:root
 sys:*:3:root
 tty:*:4:root
 operator:*:5:root
-staff:*:10:root
+bin:*:10:
+staff:*:20:root
 guest:*:31:root
 ingres:*:74:ingres

@@ -23,6 +23,7 @@ static char sccsid[] = "@(#)trsp.c	6.1 (Berkeley) 10/8/85";
 #include <net/route.h>
 #include <net/if.h>
 
+#include <netinet/in.h>
 #define TCPSTATES
 #include <netinet/tcp_fsm.h>
 #define	TCPTIMERS

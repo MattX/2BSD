@@ -71,11 +71,11 @@ register struct entrypoint *p;
 
 p = ALLOC(entrypoint);
 if(class == CLMAIN)
-	puthead("MAIN__", CLMAIN);
+	puthead("MAIN_", CLMAIN);
 else
 	puthead(NULL, CLBLOCK);
 if(class == CLMAIN)
-	newentry( mkname(5, "MAIN_") );
+	newentry( mkname(5, "MAIN") );
 p->entryname = progname;
 p->entrylabel = newlabel();
 entries = p;

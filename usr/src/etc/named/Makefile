@@ -1,44 +1,29 @@
 #
-# Copyright (c) 1980 Regents of the University of California.
-# All rights reserved.  The Berkeley software License Agreement
-# specifies the terms and conditions for redistribution.
+# Copyright (c) 1987 Regents of the University of California.
+# All rights reserved.
 #
-#	@(#)Makefile	5.3 (Berkeley) 2/18/86
+# Redistribution and use in source and binary forms are permitted
+# provided that this notice is preserved and that due credit is given
+# to the University of California at Berkeley. The name of the University
+# may not be used to endorse or promote products derived from this
+# software without specific prior written permission. This software
+# is provided ``as is'' without express or implied warranty.
 #
+#	@(#)Makefile	4.14 (Berkeley) 2/28/88
 #
-CFILES=	named.c
-OBJS=	named.o
-SEPFLAG= -i
-CFLAGS=-O
+SUBDIR=	tools named
 
-named: ${OBJS}
-	${CC} ${OBJS} ${SEPFLAG} -o named
+all: named
 
-clean:
-	rm -f ${OBJS} named
+named: FRC
+	(cd named; make ${MFLAGS} named);
 
-install:
-	install -s named ${DESTDIR}/etc/named
+clean: FRC
+	for i in ${SUBDIR}; do \
+		(cd $$i; make ${MFLAGS} clean); \
+	done
 
-lint: ${CFILES}
-	lint ${CFILES}
+install: FRC
+	install -s -o bin -m 755 named/named ${DESTDIR}/etc/named
 
-depend:
-	grep '^#include' ${CFILES} | grep -v '<' | \
-	sed -e 's/:[^"]*"\([^"]*\)".*/: \1/' \
-	    -e 's/\.c/.o/' \
-	    -e 's,../[a-zA-Z]*/,,' | \
-	awk ' { if ($$1 != prev) { print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		       else rec = rec " " $$2 } } \
-	      END { print rec } ' > makedep
-	echo '$$r makedep' >>eddep
-	echo '/^# DO NOT DELETE THIS LINE/+1,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
-
-# DO NOT DELETE THIS LINE -- make depend uses it
-
+FRC:

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_synch.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_synch.c	1.1 (2.10BSD Berkeley) 6/12/88
  */
 
 #include "param.h"
@@ -18,7 +18,7 @@
 #include "systm.h"
 
 #ifdef SMALL
-#define	SQSIZE	010	/* Must be power of 2 */
+#define	SQSIZE	020	/* Must be power of 2 */
 #else
 #define	SQSIZE	0100	/* Must be power of 2 */
 #endif
@@ -373,7 +373,7 @@ swtch()
 			return;
 		}
 #ifndef NONFP
-		if (!u.u_fpsaved) {
+		if (u.u_fpsaved == 0) {
 			savfp(&u.u_fps);
 			u.u_fpsaved = 1;
 		}

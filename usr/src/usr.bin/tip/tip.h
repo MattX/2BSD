@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tip.h	5.2 (Berkeley) 1/13/86
+ *	@(#)tip.h	5.3 (Berkeley) 10/19/86
  */
 
 /*

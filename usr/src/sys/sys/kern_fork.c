@@ -20,6 +20,9 @@
 #include "vm.h"
 #include "text.h"
 #include "kernel.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 /*
  * fork --
@@ -160,15 +163,17 @@ again:
 		panic("no procs");
 
 	freeproc = rpp->p_nxt;			/* off freeproc */
-	rpp->p_nxt = allproc;			/* onto allproc */
-	rpp->p_nxt->p_prev = &rpp->p_nxt;	/*   (allproc is never NULL) */
-	rpp->p_prev = &allproc;
-	allproc = rpp;
 
 	/*
 	 * Make a proc table entry for the new process.
 	 */
 	rip = u.u_procp;
+#ifdef QUOTA
+	QUOTAMAP();
+	px_quota[rpp - proc] = px_quota[rip - proc];
+	px_quota[rpp - proc]->q_cnt++;
+	QUOTAUNMAP();
+#endif
 	rpp->p_stat = SIDL;
 	rpp->p_realtimer.it_value = 0;
 	rpp->p_flag = SLOAD | (rip->p_flag & SDETACH);
@@ -199,6 +204,16 @@ again:
 	n = PIDHASH(rpp->p_pid);
 	rpp->p_idhash = pidhash[n];
 	pidhash[n] = rpp - proc;
+	/*
+	 * some shuffling here -- in most UNIX kernels, the allproc assign
+	 * is done after grabbing the struct off of the freeproc list.  We
+	 * wait so that if the clock interrupts us and vmtotal walks allproc
+	 * the text pointer isn't garbage.
+	 */
+	rpp->p_nxt = allproc;			/* onto allproc */
+	rpp->p_nxt->p_prev = &rpp->p_nxt;	/*   (allproc is never NULL) */
+	rpp->p_prev = &allproc;
+	allproc = rpp;
 #ifdef UCB_METER
 	multprog++;
 #endif

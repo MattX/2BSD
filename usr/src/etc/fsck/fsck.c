@@ -304,6 +304,7 @@ char	*argv[];
 		anygtr = tempbase = 0;
 		do {
 		    if (!strcmp(fsp->fs_type, FSTAB_RW) ||
+			!strcmp(fsp->fs_type, FSTAB_RQ) ||
 			!strcmp(fsp->fs_type, FSTAB_RO)) {
 			if (preen == 0 || passno == 1 &&
 			    fsp->fs_passno == passno) {

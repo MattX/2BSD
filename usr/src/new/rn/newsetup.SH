@@ -58,14 +58,6 @@ $sort <\$active | $sed >/tmp/n.tmp\$\$	\\
 	-e "  w /tmp/n.test\$\$"	\\
 	-e '  d'			\\
 	-e '}'				\\
-	-e "/^net\./{"			\\
-	-e "  w /tmp/n.net\$\$"		\\
-	-e '  d'			\\
-	-e '}'				\\
-	-e "/^mod\./{"			\\
-	-e "  w /tmp/n.mod\$\$"		\\
-	-e '  d'			\\
-	-e '}'				\\
 	-e "/^\$locorg\./{"		\\
 	-e "  w /tmp/n.\$locorg\$\$"	\\
 	-e '  d'			\\
@@ -78,20 +70,24 @@ $sort <\$active | $sed >/tmp/n.tmp\$\$	\\
 	-e "  w /tmp/n.\$city\$\$"	\\
 	-e '  d'			\\
 	-e '}'				\\
-	-e "/^\$state\./{" 		\\
+	-e "/^\$state\./{"		\\
 	-e "  w /tmp/n.\$state\$\$"	\\
 	-e '  d'			\\
 	-e '}'				\\
-	-e "/^fa\./{"			\\
-	-e "  w /tmp/n.fa\$\$"		\\
+	-e "/^unix-pc\./{"		\\
+	-e "  w /tmp/n.unixpc\$\$"	\\
+	-e '  d'			\\
+	-e '}'				\\
+	-e "/^alt\./{"		\\
+	-e "  w /tmp/n.alt\$\$"	\\
+	-e '  d'			\\
+	-e '}'				\\
+	-e "/^\$cntry\./{"		\\
+	-e "  w /tmp/n.\$cntry\$\$"	\\
 	-e '  d'			\\
 	-e '}'
 
-$sed </tmp/n.tmp\$\$ >/tmp/n.local\$\$	\\
-	-e "/^\$cntry\./{" 		\\
-	-e "  w /tmp/n.\$cntry\$\$"	\\
-	-e '  d'			\\
-	-e '}'				\\
+$sed </tmp/n.tmp\$\$ >/tmp/n.loc\$\$	\\
 	-e "/^\$cont\./{" 		\\
 	-e "  w /tmp/n.\$cont\$\$"	\\
 	-e '  d'			\\
@@ -137,14 +133,15 @@ fi
 
 : newsrc order determined here
 $cat \\
-    /tmp/n.local\$\$ \\
+    /tmp/n.loc\$\$ \\
     /tmp/n.\$locorg\$\$ \\
     /tmp/n.\$organization\$\$ \\
     /tmp/n.\$city\$\$ \\
     /tmp/n.\$state\$\$ \\
     /tmp/n.\$cntry\$\$ \\
     /tmp/n.\$cont\$\$ \\
-    /tmp/n.mod\$\$ \\
+    /tmp/n.alt\$\$ \\
+    /tmp/n.unixpc\$\$ \\
     /tmp/n.news\$\$ \\
     /tmp/n.comp\$\$ \\
     /tmp/n.sci\$\$ \\
@@ -152,29 +149,26 @@ $cat \\
     /tmp/n.soc\$\$ \\
     /tmp/n.misc\$\$ \\
     /tmp/n.talk\$\$ \\
-    /tmp/n.net\$\$ \\
-    /tmp/n.fa\$\$ \\
     /tmp/n.test\$\$ \\
 | $uniq >\$dotdir/.newsrc
 
 $rm -f	/tmp/n.to\$\$ \\
 	/tmp/n.tmp\$\$ \\
-	/tmp/n.local\$\$ \\
+	/tmp/n.loc\$\$ \\
 	/tmp/n.\$locorg\$\$ \\
 	/tmp/n.\$organization\$\$ \\
 	/tmp/n.\$city\$\$ \\
 	/tmp/n.\$state\$\$ \\
 	/tmp/n.\$cntry\$\$ \\
 	/tmp/n.\$cont\$\$ \\
-	/tmp/n.mod\$\$ \\
+	/tmp/n.alt\$\$ \\
+	/tmp/n.unixpc\$\$ \\
 	/tmp/n.news\$\$ \\
 	/tmp/n.comp\$\$ \\
 	/tmp/n.sci\$\$ \\
 	/tmp/n.soc\$\$ \\
 	/tmp/n.rec\$\$ \\
 	/tmp/n.talk\$\$ \\
-	/tmp/n.net\$\$ \\
-	/tmp/n.fa\$\$ \\
 	/tmp/n.misc\$\$ \\
 	/tmp/n.test\$\$
 

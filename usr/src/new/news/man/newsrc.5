@@ -9,8 +9,8 @@
 .de Ch
 \\$3\\*(Lq\\$1\\*(Rq\\$2
 ..
-.TH NEWSRC 5 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH NEWSRC 5 "October 19, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 newsrc \- information file for readnews(1) and checknews(1)
 .SH DESCRIPTION
@@ -32,11 +32,11 @@ For instance:
 .LP
 .B general: 1-78,80,85-90
 .br
-.B mod.computers.laser-printers: 1-7
+.B comp.laser-printers: 1-7
 .br
-.B net.news: 1
+.B news.misc: 1
 .br
-.B mod.ai! 1-5
+.B comp.ai! 1-5
 .br
 .LP
 If the
@@ -44,14 +44,16 @@ If the
 is replaced with an
 .Ch !
 (as in
-.B mod.ai
+.B comp.ai
 above) the newsgroup
 is not subscribed to and will not be shown to the user.
 .LP
 An options line starts with the word
 .B options
 (left-justified).  Then there are the list of options just as they
-would be on the command line.  For instance:
+would be on the 
+.I readnews
+command line.  For instance:
 .LP
 .B "options \-n all !net.sf-lovers !mod.human-nets \-r"
 .br

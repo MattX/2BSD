@@ -9,7 +9,7 @@ static char sccsid[] = "@(#)getgrent.c	5.2 (Berkeley) 3/9/86";
 
 static char GROUP[] = "/etc/group";
 static FILE *grf = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct group group;
 static char *gr_mem[MAXGRP];
 
@@ -46,7 +46,7 @@ getgrent()
 
 	if( !grf && !(grf = fopen( GROUP, "r" )) )
 		return(NULL);
-	if( !(p = fgets( line, BUFSIZ, grf )) )
+	if( !(p = fgets( line, sizeof(line)-1, grf )) )
 		return(NULL);
 	group.gr_name = p;
 	group.gr_passwd = p = grskip(p,':');

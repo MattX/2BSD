@@ -1,0 +1,58 @@
+*** orgs/mch_click.s	Sat Aug 22 02:16:41 1987
+--- mch_click.s	Fri Dec  4 12:56:51 1987
+***************
+*** 8,13 ****
+--- 8,14 ----
+  
+  #include "DEFS.h"
+  #include "../machine/mch_iopage.h"
++ #include "jpn.h"
+  
+  
+  /*
+***************
+*** 225,231 ****
+  #endif CGL_RTP
+  
+  
+! #ifdef UCB_NET
+  /*
+   * copyv(fromaddr, toaddr, count)
+   *	virtual_addr	fromaddr,
+--- 226,232 ----
+  #endif CGL_RTP
+  
+  
+! #if defined(UCB_NET) || defined(SOFUB_MAP)
+  /*
+   * copyv(fromaddr, toaddr, count)
+   *	virtual_addr	fromaddr,
+***************
+*** 262,268 ****
+--- 263,271 ----
+  	mov	PS,-(sp)		/ save current PS
+  	bit	$0340,(sp)		/ are we currently at SPL?
+  	bne	2f
++ #ifdef	UCB_NET
+  	SPLNET				/ nope, lock out the network
++ #endif	UCB_NET
+  2:
+  	mov	KDSA5,-(sp)		/ save seg5
+  	mov	KDSD5,-(sp)
+***************
+*** 298,304 ****
+  4:
+  	clr	r0			/ clear r0 and r1 (why?)
+  	rts	pc			/   and return
+! #endif UCB_NET
+  
+  
+  /*
+--- 301,307 ----
+  4:
+  	clr	r0			/ clear r0 and r1 (why?)
+  	rts	pc			/   and return
+! #endif UCB_NET | SOFUB_MAP
+  
+  
+  /*

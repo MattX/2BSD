@@ -1,27 +1,30 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)if_loop.c	7.2 (Berkeley) 10/28/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)if_loop.c	7.3 (Berkeley) 12/30/87
  */
 
 /*
  * Loopback interface driver for protocol testing and timing.
  */
-#include "loop.h"
-#if NLOOP > 0
 
 #include "param.h"
-#include "../machine/seg.h"
-
 #include "systm.h"
 #include "mbuf.h"
 #include "socket.h"
-#include "domain.h"
-#include "protosw.h"
 #include "errno.h"
 #include "ioctl.h"
+
+#include "domain.h"
+#include "protosw.h"
 
 #include "../net/if.h"
 #include "../net/netisr.h"
@@ -30,8 +33,8 @@
 #ifdef	INET
 #include "../netinet/in.h"
 #include "../netinet/in_systm.h"
-#include "../netinet/ip.h"
 #include "../netinet/in_var.h"
+#include "../netinet/ip.h"
 #endif
 
 #ifdef NS
@@ -82,9 +85,7 @@ looutput(ifp, m0, dst)
 		m->m_next = m0;
 		m0 = m;
 	}
-	MAPSAVE();
 	*(mtod(m0, struct ifnet **)) = ifp;
-	MAPREST();
 	s = splimp();
 	ifp->if_opackets++;
 	switch (dst->sa_family) {
@@ -152,4 +153,3 @@ loioctl(ifp, cmd, data)
 	}
 	return (error);
 }
-#endif

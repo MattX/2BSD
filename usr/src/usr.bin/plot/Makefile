@@ -61,4 +61,4 @@ install: all
 	install -c plot.sh ${DESTDIR}/usr/bin/plot
 
 clean:
-	rm -f *.o ${ALL} a.out core errs
+	rm -f *.o ${ALL} a.out core errs debug

@@ -14,7 +14,7 @@ static char sccsid[] = "@(#)getpwnamuid.c	5.2 (Berkeley) 3/9/86";
 
 #include <sys/file.h>
 
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct passwd passwd;
 
 /*

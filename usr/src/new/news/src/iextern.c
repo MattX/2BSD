@@ -1,9 +1,10 @@
 /*
  * iextern - external definitions for inews.
  */
+/*LINTLIBRARY*/
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)iextern.c	2.17	9/19/86";
+static char	*SccsId = "@(#)iextern.c	2.19	11/19/87";
 #endif /* SCCSID */
 
 #include "iparams.h"
@@ -31,3 +32,5 @@ char	*PARTIAL = "dead.article";	/* place to save partial news */
 char	*SHELL = "/bin/sh";		/* shell for inews to use	*/
 int	is_ctl;				/* true for a control message */
 char	is_mod[NAMELEN];		/* contains newsgroup if moderated */
+int	is_mod_file_okay;		/* true if /usr/lib/news/moderators */
+					/*  okays posting by the user */

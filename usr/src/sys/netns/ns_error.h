@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1988  Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns_error.h	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns_error.h	7.3 (Berkeley) 1/28/88
  */
 
 /*
@@ -35,10 +41,7 @@ struct  ns_epidp {
 				   some intermediate gateway.  The error
 				   parameter field contains the max packet
 				   size that can be accommodated */
-#define NS_ERR_ATHOST	4
-#define NS_ERR_ENROUTE	5
-#define NS_ERR_MAX (NS_ERR_ATHOST + NS_ERR_ENROUTE + 1)
-#define ns_err_x(c) (((c)&0x200) ? ((c) - 0x200 + NS_ERR_ATHOST) : c )
+#define NS_ERR_MAX 20
 
 /*
  * Variables related to this implementation
@@ -46,19 +49,21 @@ struct  ns_epidp {
  */
 struct	ns_errstat {
 /* statistics related to ns_err packets generated */
-	int	ns_es_error;		/* # of calls to ns_error */
-	int	ns_es_oldshort;		/* no error 'cuz old ip too short */
-	int	ns_es_oldns_err;	/* no error 'cuz old was ns_err */
-	int	ns_es_outhist[NS_ERR_MAX];
+	long	ns_es_error;		/* # of calls to ns_error */
+	long	ns_es_oldshort;		/* no error 'cuz old ip too short */
+	long	ns_es_oldns_err;	/* no error 'cuz old was ns_err */
+	long	ns_es_outhist[NS_ERR_MAX];
 /* statistics related to input messages processed */
-	int	ns_es_badcode;		/* ns_err_code out of range */
-	int	ns_es_tooshort;		/* packet < IDP_MINLEN */
-	int	ns_es_checksum;		/* bad checksum */
-	int	ns_es_badlen;		/* calculated bound mismatch */
-	int	ns_es_reflect;		/* number of responses */
-	int	ns_es_inhist[NS_ERR_MAX];
+	long	ns_es_badcode;		/* ns_err_code out of range */
+	long	ns_es_tooshort;		/* packet < IDP_MINLEN */
+	long	ns_es_checksum;		/* bad checksum */
+	long	ns_es_badlen;		/* calculated bound mismatch */
+	long	ns_es_reflect;		/* number of responses */
+	long	ns_es_inhist[NS_ERR_MAX];
+	u_short	ns_es_codes[NS_ERR_MAX];/* which error code for outhist
+					   since we might not know all */
 };
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 struct	ns_errstat ns_errstat;
 #endif

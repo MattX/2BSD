@@ -19,6 +19,7 @@
 #define	PSL_IPL		0x000000e0	/* interrupt priority level */
 #define	PSL_PRVMOD	0x00003000	/* previous mode (all on is user) */
 #define	PSL_CURMOD	0x0000c000	/* current mode (all on is user) */
+#define	PSL_CURSUP	0x00004000	/* current supervisor previous kernel */
 #define	PSL_BR0		0x00000000	/* bus request level 0 */
 #define	PSL_BR1		0x00000020	/* bus request level 1 */
 #define	PSL_BR2		0x00000040	/* bus request level 2 */

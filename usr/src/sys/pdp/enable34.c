@@ -69,7 +69,7 @@ enableon()
 		if (*ENABLE_SSR4)
 			return;
 		else
-			s	= spl7();
+			s	= splhigh();
 
 	for (i = 0; i < 31; i++)
 		A[i]	= (u_short) 0200 * (u_short) i;
@@ -132,7 +132,7 @@ enableon()
 
 #define	MapUI7								\
 			register saveuisa7	= *DEC_UISA7;		\
-			register s	= spl7();			\
+			register s	= splhigh();			\
 			*DEC_UISA7	= 0177600;
 #define	UnmapUI7							\
 			*DEC_UISA7	= saveuisa7;			\

@@ -51,7 +51,6 @@ rimp_output(m, so)
 	 * Verify user has supplied necessary space
 	 * for the leader and check parameters in it.
 	 */
-	MAPSAVE();
 	if ((m->m_off > MMAXOFF || m->m_len < sizeof(struct control_leader)) &&
 	    (m = m_pullup(m, sizeof(struct control_leader))) == 0) {
 		error = EMSGSIZE;	/* XXX */
@@ -89,14 +88,11 @@ rimp_output(m, so)
 	imp_addr_to_leader(ip, sin->sin_addr.s_addr);	/* BRL */
 	/* no routing here */
 	ia = in_iaonnetof(in_netof(sin->sin_addr));
-	if (ia) {
-		MAPUNSAVE();
+	if (ia)
 		return (impoutput(ia->ia_ifp, m, (struct sockaddr *)sin));
-	}
 	error = ENETUNREACH;
 bad:
 	m_freem(m);
-	MAPREST();
 	return (error);
 }
 #endif

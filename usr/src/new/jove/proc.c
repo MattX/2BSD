@@ -1,9 +1,9 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
 #include "io.h"
@@ -12,11 +12,48 @@
 #include <signal.h>
 #include <varargs.h>
 
+#ifdef MSDOS
+# include <io.h>
+# include <process.h>
+#endif
+
+
+#ifdef	LINT_ARGS
+private void
+	DoShell(char *, char *),
+	com_finish(int, char *),
+	toerror(int, int),
+	closepipe(void);
+	
+private int
+	okay_error(void),
+	openforpipe(void),
+	reopenforpipe(void);
+
+private struct error
+	* AddError(struct error *, Line *, Buffer *, Line *, int);
+#else
+private void
+	DoShell(),
+	com_finish(),
+	toerror(),
+	closepipe();
+
+private int
+	openforpipe(),
+	okay_error(),
+	reopenforpipe();
+
+private struct error
+	* AddError();
+#endif
+
+long	SigMask = 0;
+
 /* This disgusting RE search string parses output from the GREP
    family, from the pdp11 compiler, pcc, and lint.  Jay (HACK)
    Fenlasen changed this to work for the lint errors. */
-private char
-	*errfmt = "^\\{\",\\}\\([^:\"( \t]*\\)\\{\"\\, line ,:,(\\} *\\([0-9][0-9]*\\)[:)]\
+char	ErrFmtStr[256] = "^\\{\",\\}\\([^:\"( \t]*\\)\\{\"\\, line ,:,(\\} *\\([0-9][0-9]*\\)[:)]\
 \\|::  *\\([^(]*\\)(\\([0-9]*\\))$\
 \\|( \\([^(]*\\)(\\([0-9]*\\)) ),";
 
@@ -65,26 +102,13 @@ Buffer	*buf;
 	return new;
 }
 
-ParseAll()
-{
-	ErrParse(errfmt);
-}
+/* Parse errors of the form specified in ErrFmtStr in the current
+   buffer.  Do a show error of the first error.  This is neat because this
+   will work for any kind of output that prints a file name and a line
+   number on the same line. */
 
-XParse()
-{
-	char	*sstr;
-
-	sstr = ask(errfmt, ProcFmt);
-	ErrParse(sstr);
-}
-
-/* Parse for {C,LINT} errors (or anything that matches fmtstr) in the
-   current buffer.  Set up for the next-error command.  This is neat
-   because this will work for any kind of output that prints a file
-   name and a line number on the same line. */
-
-ErrParse(fmtstr)
-char	*fmtstr;
+void
+ErrParse()
 {
 	Bufpos	*bp;
 	char	fname[FILESIZE],
@@ -101,7 +125,7 @@ char	*fmtstr;
 	ErrFree();		/* This is important! */
 	ToFirst();
 	perr_buf = curbuf;
-	REcompile(fmtstr, 1, REbuf, REalts);
+	REcompile(ErrFmtStr, 1, REbuf, REalts);
 	/* Find a line with a number on it. */
 	while (bp = docompiled(FORWARD, REbuf, REalts)) {
 		SetDot(bp);
@@ -113,7 +137,7 @@ char	*fmtstr;
 			last_lnum = -1;		/* signals new file */
 			err_line = buf->b_first;
 		}
-		lnum = chr_to_int(lineno, 10, 0);
+		(void) chr_to_int(lineno, 10, NO, &lnum);
 		if (lnum == last_lnum)	/* one error per line is nicer */
 			continue;
 		if (last_lnum == -1)
@@ -128,6 +152,7 @@ char	*fmtstr;
 
 /* Free up all the errors */
 
+void
 ErrFree()
 {
 	register struct error	*ep;
@@ -143,7 +168,7 @@ ErrFree()
 private char	errbounds[] = "You're at the %s error.",
 		noerrs[] = "No errors!";
 
-private
+private void
 toerror(forward, num)
 {
 	register struct error	*e = cur_error;
@@ -161,17 +186,19 @@ toerror(forward, num)
 	}
 }
 
+void
 NextError()
 {
 	ToError(1);
 }
 
+void
 PrevError()
 {
 	ToError(0);
 }
 
-private
+private int
 okay_error()
 {
 	return ((inlist(perr_buf->b_first, cur_error->er_mess)) &&
@@ -182,6 +209,7 @@ okay_error()
    one window and the buffer with the error in another window.
    It checks to make sure that the error actually exists. */
 
+void
 ToError(forward)
 {
 	do {
@@ -193,6 +221,7 @@ ToError(forward)
 int	EWSize = 20;	/* percentage of screen the error window
 			   should be */
 
+void
 set_wsize(wsize)
 int	wsize;
 {
@@ -205,6 +234,7 @@ int	wsize;
    in one window, and the buffer containing the actual error in another
    window. */
 
+void
 ShowErr()
 {
 	Window	*err_wind,
@@ -274,6 +304,7 @@ char	*command;
 
 char	make_cmd[128] = "make";
 
+void
 MakeErrors()
 {
 	Window	*old = curwind;
@@ -301,7 +332,7 @@ MakeErrors()
 	status = UnixToBuf(MakeName(make_cmd), YES, EWSize, YES, Shell, ShFlags, make_cmd, (char *) 0);
 	com_finish(status, make_cmd);
 
-	ErrParse(errfmt);
+	ErrParse();
 
 	if (!cur_error)
 		SetWind(old);
@@ -309,6 +340,7 @@ MakeErrors()
 
 #ifdef SPELL
 
+void
 SpelBuffer()
 {
 	char	*Spell = "Spell",
@@ -319,11 +351,13 @@ SpelBuffer()
 	sprintf(com, "spell %s", curbuf->b_fname);
 	(void) UnixToBuf(Spell, YES, EWSize, YES, Shell, ShFlags, com, (char *) 0);
 	message("[Delete the irrelevant words and then type C-X C-C]");
+	ToFirst();
 	Recur();
 	SetWind(savewp);
 	SpelParse(Spell);
 }
 
+void
 SpelWords()
 {
 	char	*buftospel;
@@ -335,6 +369,7 @@ SpelWords()
 	SpelParse(wordsb->b_name);
 }
 
+void
 SpelParse(bname)
 char	*bname;
 {
@@ -370,8 +405,9 @@ char	*bname;
 	ShowErr();
 }
 
-#endif SPELL
+#endif /* SPELL */
 
+void
 ShToBuf()
 {
 	char	bufname[128],
@@ -382,17 +418,40 @@ ShToBuf()
 	DoShell(bufname, cmd);
 }
 
+void
 ShellCom()
 {
 	null_ncpy(ShcomBuf, ask(ShcomBuf, ProcFmt), (sizeof ShcomBuf) - 1);
 	DoShell(MakeName(ShcomBuf), ShcomBuf);
 }
 
+ShNoBuf()
+{
+	int	status;
+
+	null_ncpy(ShcomBuf, ask(ShcomBuf, ProcFmt), (sizeof ShcomBuf) - 1);
+	status = UnixToBuf((char *) 0, NO, 0, NO, Shell, ShFlags, ShcomBuf, (char *) 0);
+	com_finish(status, ShcomBuf);
+}
+
+Shtypeout()
+{
+	int	status;
+
+	null_ncpy(ShcomBuf, ask(ShcomBuf, ProcFmt), (sizeof ShcomBuf) - 1);
+	status = UnixToBuf((char *) 0, YES, 0, NO, Shell, ShFlags, ShcomBuf, (char *) 0);
+	if (status == 0)
+		Typeout("[%s: completed successfully]", ShcomBuf);
+	else
+		Typeout("[%s: exited (%d)]", ShcomBuf, status);
+	TOstop();
+}
+
 /* Run the shell command into `bufname'.  Empty the buffer except when we
    give a numeric argument, in which case it inserts the output at the
    current position in the buffer.  */
 
-private
+private void
 DoShell(bufname, command)
 char	*bufname,
 	*command;
@@ -406,9 +465,9 @@ char	*bufname,
 	SetWind(savewp);
 }
 
-private
+private void
 com_finish(status, cmd)
-register int	status;
+int	status;
 char	*cmd;
 {
 	s_mess("[%s: ", cmd);
@@ -419,33 +478,35 @@ char	*cmd;
 	add_mess("]");
 }
 
+#ifndef MSDOS
+void
 dowait(pid, status)
 int	pid,
 	*status;
 {
-#ifndef IPROCS
+# ifndef IPROCS
 
 	int	rpid;
 
 	while ((rpid = wait(status)) != pid)
 		;
-#else
+# else
 
-#ifdef BSD4_2
+#  ifdef BSD4_2
 #   include <sys/wait.h>
-#else
+#  else
 #   include <wait.h>
-#endif
+#  endif
 
 	union wait	w;
 	int	rpid;
 
 	for (;;) {
-#ifndef BSD4_2
+#  ifndef BSD4_2
 		rpid = wait2(&w.w_status, 0);
-#else
+#  else
 		rpid = wait3(&w, 0, (struct rusage *) 0);
-#endif
+#  endif
 		if (rpid == pid) {
 			if (status)
 				*status = w.w_status;
@@ -453,8 +514,9 @@ int	pid,
 		} else
 			kill_off(rpid, w);
 	}
-#endif IPROCS
+# endif /* IPROCS */
 }
+#endif /* MSDOS */
 
 /* Run the command to bufname, erase the buffer if clobber is non-zero,
    and redisplay if disp is non-zero.  Leaves current buffer in `bufname'
@@ -462,16 +524,24 @@ int	pid,
    to fix everything up after we're done.  (Usually there's nothing to
    fix up.) */
 
-/* VARARGS4 */
+/* VARARGS5 */
 
+int
 UnixToBuf(bufname, disp, wsize, clobber, va_alist)
 char	*bufname;
 va_dcl
 {
+#ifndef MSDOS
 	int	p[2],
 		pid,
-		eof,
-		status;
+		status,
+#else /* MSDOS */
+	int	p0,
+		oldo,
+		olde,
+		retcode,
+#endif /* MSDOS */
+		eof;
 	va_list	ap;
 	char	*argv[32],
 		*mess;
@@ -481,13 +551,20 @@ va_dcl
 	va_start(ap);
 	make_argv(argv, ap);
 	va_end(ap);
-	if (clobber)
+	if (bufname != 0 && clobber == YES)
 		isprocbuf(bufname);
 	if (disp) {
-		message("Starting up...");
-		pop_wind(bufname, clobber, clobber ? B_PROCESS : B_FILE);
-		set_wsize(wsize);
-		redisplay();
+		if (bufname != 0)
+			message("Starting up...");
+		else {
+			TOstart(argv[0], TRUE);
+			Typeout("Starting up...");
+		}
+		if (bufname != 0) {
+			pop_wind(bufname, clobber, clobber ? B_PROCESS : B_FILE);
+			set_wsize(wsize);
+			redisplay();
+		}
 	}
 	/* Now I will attempt to describe how I deal with signals during
 	   the execution of the shell command.  My desire was to be able
@@ -506,28 +583,43 @@ va_dcl
 	   little while longer before trying again.  Now that is fixed,
 	   in that you just have to type it twice. */
 
-#ifdef IPROCS
+#ifndef MSDOS
+# ifdef IPROCS
 	sighold(SIGCHLD);
-#endif
-#ifdef JOB_CONTROL
+# endif
+# ifdef JOB_CONTROL
 	sighold(SIGINT);
-#else
+# else
 	old_int = signal(SIGINT, SIG_IGN),
-#endif
+# endif
 	dopipe(p);
-	pid = fork();
+	pid = vfork();
 	if (pid == -1) {
 		pclose(p);
 		complain("[Fork failed]");
 	}
 	if (pid == 0) {
-#ifdef IPROCS
-		sigrelse(SIGCHLD);   /* don't know if this matters */
-#endif IPROCS
+# ifdef BSD4_2
+		/*
+		 * We want to release SIGCHLD and SIGINT in the child, but
+		 * we can't use sigrelse because that would change Jove's
+		 * copy of the SigMask variable (because we're in a
+		 * vfork).  So we simply set set the mask directly.  There
+		 * are several other forks in Jove, but this is the only
+		 * one we execute often enough to make it worth using a
+		 * vfork.
+		 */
 		(void) signal(SIGINT, SIG_DFL);
-#ifdef JOB_CONTROL
+		(void) sigsetmask(SigMask & ~(sigmask(SIGCHLD)|sigmask(SIGINT)));
+# else /* BSD4_2 */
+# ifdef IPROCS
+		sigrelse(SIGCHLD);   /* don't know if this matters */
+# endif /* IPROCS */
+		(void) signal(SIGINT, SIG_DFL);
+# ifdef JOB_CONTROL
 		sigrelse(SIGINT);
-#endif
+# endif
+# endif /* BSD4_2 */
 		(void) close(0);
 		(void) open("/dev/null", 0);
 		(void) close(1);
@@ -539,19 +631,51 @@ va_dcl
 		(void) write(1, "Execl failed.\n", 14);
 		_exit(1);
 	}
-#ifdef JOB_CONTROL
+# ifdef JOB_CONTROL
 	old_int = signal(SIGINT, SIG_IGN);
-#endif	
+# endif	
 	(void) close(p[1]);
 	fp = fd_open(argv[1], F_READ, p[0], iobuff, LBSIZE);
+#else /* MSDOS */
+	if ((p0 = openforpipe()) < 0)
+	   complain("cannot make pipe for filter");
+
+	oldo = dup(1);
+	olde = dup(2);
+	close(1);
+	close(2);
+	dup(p0);
+	dup(1);
+	close(p0);
+	retcode = spawnv(0, argv[0], &argv[1]);
+	p0 = reopenforpipe();
+	close(1);
+	close(2);
+	dup(oldo);
+	dup(olde);
+	close(oldo);
+	close(olde);
+
+	if (retcode < 0)
+		complain("[Spawn failed]");
+
+	fp = fd_open(argv[1], F_READ, p0, iobuff, LBSIZE);
+#endif /* MSDOS */
 	do {
+#ifndef MSDOS
 		inIOread = 1;
+#endif
  		eof = f_gets(fp, genbuf, LBSIZE);
+#ifndef MSDOS
 		inIOread = 0;
-		ins_str(genbuf, YES);
-		if (!eof)
-			LineInsert(1);
-		if (disp != 0 && fp->f_cnt <= 0) {
+#endif
+		if (bufname != 0) {
+			ins_str(genbuf, YES);
+			if (!eof)
+				LineInsert(1);
+		} else if (disp == YES)
+			Typeout("%s", genbuf);
+		if (bufname != 0 && disp != 0 && fp->f_cnt <= 0) {
 #ifdef LOAD_AV
 		    {
 		    	double	theavg;
@@ -566,45 +690,39 @@ va_dcl
 		    }
 #else
 			mess = "Chugging along...";
-#endif LOAD_AV
-			message(mess);
-			redisplay();
+#endif /* LOAD_AV */
+			if (bufname != 0) {
+				message(mess);
+				redisplay();
+			}
 		}
 	} while (!eof);
 	if (disp)
 		DrawMesg(NO);
 	close_file(fp);
+#ifndef MSDOS
 	dowait(pid, &status);
-#ifdef JOB_CONTROL
+# ifdef JOB_CONTROL
 	(void) sigrelse(SIGINT);
-#endif
+# endif
+#else /* MSDOS */
+	closepipe();
+#endif /* MSDOS */
 	(void) signal(SIGINT, old_int);
-#ifdef IPROCS
+#ifndef MSDOS
+# ifdef IPROCS
 	sigrelse(SIGCHLD);
-#endif
+# endif
 	return status;
+#else /* MSDOS */
+# ifdef CHDIR
+	getCWD();
+# endif	
+	return retcode;
+#endif /* MSDOS */
 }
 
-#ifdef BSD4_2
-
-private long	SigMask = 0;
-
-#ifndef sigmask
-#	define	sigmask(s)	(1L << ((s)-1))
-#endif
-
-sighold(sig)
-{
-	(void) sigblock(SigMask |= sigmask(sig));
-}
-
-sigrelse(sig)
-{
-	(void) sigsetmask(SigMask &= ~sigmask(sig));
-}
-
-#endif
-
+void
 FilterRegion()
 {
 	char	*cmd = ask((char *) 0, ": %f (through command) ", ProcFmt);
@@ -615,35 +733,73 @@ FilterRegion()
 /* Send the current region to CMD and insert the output from the
    command into OUT_BUF. */
 
+void
 RegToUnix(outbuf, cmd)
 Buffer	*outbuf;
 char	*cmd;
 {
 	Mark	*m = CurMark();
+#ifndef MSDOS
 	char	*tname = mktemp("/tmp/jfilterXXXXXX"),
 		combuf[128];
+#endif /* MSDOS */
 	Window	*save_wind = curwind;
 	int	status,
 		error = NO;
+#ifdef MSDOS
+	int p0, oldi;
+#endif /* MSDOS */
 	File	*fp;
 
+#ifndef MSDOS
 	fp = open_file(tname, iobuff, F_WRITE, COMPLAIN, QUIET);
+#else /* MSDOS */
+	p0 = openforpipe();
+#endif /* MSDOS */
     CATCH
+#ifdef MSDOS
+	fp = fd_open(cmd, F_WRITE, p0, iobuff, LBSIZE);
+#endif /* MSDOS */
 	putreg(fp, m->m_line, m->m_char, curline, curchar, YES);
 	DelReg();
+#ifndef MSDOS
 	sprintf(combuf, "%s < %s", cmd, tname);
+#else /* MSDOS */
+	f_close(fp);
+	p0 = reopenforpipe();
+    oldi = dup(0);
+	close(0);
+	dup(p0);
+	close(p0);
+#endif /* MSDOS */
 	status = UnixToBuf(outbuf->b_name, NO, 0, outbuf->b_type == B_SCRATCH,
+#ifndef MSDOS
 			   Shell, ShFlags, combuf, (char *) 0);
+#else /* MSDOS */
+			   Shell, ShFlags, cmd, (char *) 0);
+#endif /* MSDOS */
     ONERROR
 	error = YES;
     ENDCATCH
+#ifndef MSDOS
 	f_close(fp);
 	(void) unlink(tname);
+#else /* MSDOS */
+	close(0);
+	open("con", 0);	/* dup(oldi);	*/
+	close(oldi);
+	closepipe();
+#endif /* MSDOS */
 	SetWind(save_wind);
 	if (error == NO)
+#ifndef MSDOS
 		com_finish(status, combuf);
+#else
+		com_finish(status, cmd);
+#endif
 }
 
+void
 isprocbuf(bufname)
 char	*bufname;
 {
@@ -652,3 +808,57 @@ char	*bufname;
 	if ((bp = buf_exists(bufname)) != 0 && bp->b_type != B_PROCESS)
 		confirm("Over-write buffer %s?", bufname);
 }
+
+#ifdef MSDOS
+/*	msdos specific hacks to allow for pipes */
+
+#include <dos.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+static char pipeiname[64];
+static char pipeoname[64];
+static int  pipehandle;
+
+extern char TmpFilePath[];
+
+private int
+openforpipe()
+{
+   sprintf(pipeiname, "%s/%s", TmpFilePath, "Jove-I");
+   sprintf(pipeoname, "%s/%s", TmpFilePath, "Jove-O");
+
+   return(pipehandle = creat(pipeoname, S_IWRITE|S_IREAD));
+}
+
+private int
+reopenforpipe()
+{		       
+   close(pipehandle);
+   unlink(pipeiname);
+   rename(pipeoname, pipeiname);
+   if ((pipehandle = open(pipeiname, 0)) >= 0)
+      return(pipehandle);
+   closepipe();
+   return(-1);
+}
+
+private void
+closepipe()
+{	 
+   unlink(pipeoname);
+   unlink(pipeiname);
+}
+         
+char 
+switchar()
+{
+  union REGS regs;
+  
+  regs.h.ah = 0x37;
+  regs.h.al = 0;   
+  intdos(&regs, &regs);
+  return(regs.h.dl);
+}
+#endif /* MSDOS */

@@ -1,14 +1,19 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1980, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)if.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	%W% (Berkeley) %G%
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
+#include "mbuf.h"
 #include "systm.h"
 #include "socket.h"
 #include "socketvar.h"
@@ -17,7 +22,6 @@
 #include "kernel.h"
 #include "ioctl.h"
 #include "errno.h"
-#include "mbuf.h"
 
 #include "if.h"
 #include "af.h"
@@ -43,6 +47,7 @@ ifinit()
 	if_slowtimo();
 }
 
+#ifdef vax
 /*
  * Call each interface on a Unibus reset.
  */
@@ -55,6 +60,7 @@ ifubareset(uban)
 		if (ifp->if_reset)
 			(*ifp->if_reset)(ifp->if_unit, uban);
 }
+#endif
 
 /*
  * Attach an interface to the
@@ -73,6 +79,7 @@ if_attach(ifp)
 /*
  * Locate an interface based on a complete address.
  */
+/*ARGSUSED*/
 struct ifaddr *
 ifa_ifwithaddr(addr)
 	struct sockaddr *addr;
@@ -94,7 +101,6 @@ ifa_ifwithaddr(addr)
 	}
 	return ((struct ifaddr *)0);
 }
-
 /*
  * Locate the point to point interface with a given destination address.
  */
@@ -165,7 +171,7 @@ ifa_ifwithaf(af)
 /*
  * Mark an interface down and notify protocols of
  * the transition.
- * NOTE: must be called at splnet or equivalent.
+ * NOTE: must be called at splnet or eqivalent.
  */
 if_down(ifp)
 	register struct ifnet *ifp;
@@ -175,6 +181,25 @@ if_down(ifp)
 	ifp->if_flags &= ~IFF_UP;
 	for (ifa = ifp->if_addrlist; ifa; ifa = ifa->ifa_next)
 		pfctlinput(PRC_IFDOWN, &ifa->ifa_addr);
+	if_qflush(&ifp->if_snd);
+}
+
+/*
+ * Flush an interface queue.
+ */
+if_qflush(ifq)
+	register struct ifqueue *ifq;
+{
+	register struct mbuf *m, *n;
+
+	n = ifq->ifq_head;
+	while (m = n) {
+		n = m->m_act;
+		m_freem(m);
+	}
+	ifq->ifq_head = 0;
+	ifq->ifq_tail = 0;
+	ifq->ifq_len = 0;
 }
 
 /*
@@ -184,18 +209,16 @@ if_down(ifp)
  */
 if_slowtimo()
 {
+extern int hz;
 	register struct ifnet *ifp;
 
 	for (ifp = ifnet; ifp; ifp = ifp->if_next) {
 		if (ifp->if_timer == 0 || --ifp->if_timer)
 			continue;
-		if (ifp->if_watchdog) {
-			MAPSAVE();
+		if (ifp->if_watchdog)
 			(*ifp->if_watchdog)(ifp->if_unit);
-			MAPREST();
-		}
 	}
-	timeout(if_slowtimo, (caddr_t)0, hz / IFNET_SLOWHZ);
+	TIMEOUT(if_slowtimo, (caddr_t)0, hz / IFNET_SLOWHZ);
 }
 
 /*

@@ -7,9 +7,6 @@
  */
 
 #include "param.h"
-#include "../machine/seg.h"
-
-#include "systm.h"
 #include "user.h"
 #include "mbuf.h"
 #include "domain.h"
@@ -23,7 +20,6 @@
 #include "file.h"
 #include "stat.h"
 
-#ifdef UCB_NET
 /*
  * Unix communications domain.
  *
@@ -32,8 +28,13 @@
  *	rethink name space problems
  *	need a proper out-of-band
  */
-struct	sockaddr sun_noname = { AF_UNIX };
-ino_t	unp_ino;			/* prototype for fake inode numbers */
+struct sockaddr sun_noname = { AF_UNIX };
+ino_t unp_ino;			/* prototype for fake inode numbers */
+
+#ifdef BSD2_10
+extern void unpdisc(), unpgc1();
+extern int fadjust();
+#endif
 
 /*ARGSUSED*/
 uipc_usrreq(so, req, m, nam, rights)
@@ -98,13 +99,11 @@ uipc_usrreq(so, req, m, nam, rights)
 		 */
 		if (unp->unp_conn && unp->unp_conn->unp_addr) {
 			nam->m_len = unp->unp_conn->unp_addr->m_len;
-			MAPSAVE();
 			bcopy(mtod(unp->unp_conn->unp_addr, caddr_t),
-			    MTOD(nam, caddr_t), (unsigned)nam->m_len);
-			MAPREST();
+			    mtod(nam, caddr_t), (unsigned)nam->m_len);
 		} else {
 			nam->m_len = sizeof(sun_noname);
-			*(MTOD(nam, struct sockaddr *)) = sun_noname;
+			*(mtod(nam, struct sockaddr *)) = sun_noname;
 		}
 		break;
 
@@ -170,11 +169,8 @@ uipc_usrreq(so, req, m, nam, rights)
 				}
 			}
 			so2 = unp->unp_conn->unp_socket;
-			if (unp->unp_addr) {
-				MAPSAVE();
+			if (unp->unp_addr)
 				from = mtod(unp->unp_addr, struct sockaddr *);
-				MAPREST();
-			}
 			else
 				from = &sun_noname;
 			if (sbspace(&so2->so_rcv) > 0 &&
@@ -203,11 +199,9 @@ uipc_usrreq(so, req, m, nam, rights)
 			 * send buffer hiwater marks to maintain backpressure.
 			 * Wake up readers.
 			 */
-#ifndef FIX_RIGHTS
 			if (rights)
 				(void)sbappendrights(rcv, m, rights);
 			else
-#endif
 				sbappend(rcv, m);
 			snd->sb_mbmax -=
 			    rcv->sb_mbcnt - unp->unp_conn->unp_mbcnt;
@@ -254,10 +248,8 @@ uipc_usrreq(so, req, m, nam, rights)
 	case PRU_PEERADDR:
 		if (unp->unp_conn && unp->unp_conn->unp_addr) {
 			nam->m_len = unp->unp_conn->unp_addr->m_len;
-			MAPSAVE();
 			bcopy(mtod(unp->unp_conn->unp_addr, caddr_t),
-			    MTOD(nam, caddr_t), (unsigned)nam->m_len);
-			MAPREST();
+			    mtod(nam, caddr_t), (unsigned)nam->m_len);
 		}
 		break;
 
@@ -308,16 +300,10 @@ unp_attach(so)
 	}
 	if (error)
 		return (error);
-#ifdef FIX_MBUF
 	m = m_getclr(M_DONTWAIT, MT_PCB);
 	if (m == NULL)
 		return (ENOBUFS);
 	unp = mtod(m, struct unpcb *);
-#else
-	MSGET(unp, struct unpcb, M_CLEAR);
-	if (unp == NULL)
-		return (ENOBUFS);
-#endif
 	so->so_pcb = (caddr_t)unp;
 	unp->unp_socket = so;
 	return (0);
@@ -328,8 +314,12 @@ unp_detach(unp)
 {
 	
 	if (unp->unp_inode) {
+#ifdef BSD2_10
+		UNPDET(unp->unp_inode);
+#else
 		unp->unp_inode->i_socket = 0;
 		irele(unp->unp_inode);
+#endif
 		unp->unp_inode = 0;
 	}
 	if (unp->unp_conn)
@@ -339,11 +329,7 @@ unp_detach(unp)
 	soisdisconnected(unp->unp_socket);
 	unp->unp_socket->so_pcb = 0;
 	m_freem(unp->unp_addr);
-#ifdef FIX_MBUF
 	(void) m_free(dtom(unp));
-#else
-	MSFREE(unp);
-#endif
 	if (unp_rights)
 		unp_gc();
 }
@@ -352,17 +338,24 @@ unp_bind(unp, nam)
 	struct unpcb *unp;
 	struct mbuf *nam;
 {
-	struct sockaddr_un *soun = MTOD(nam, struct sockaddr_un *);
-	register struct inode *ip;
+	struct sockaddr_un *soun = mtod(nam, struct sockaddr_un *);
+	struct inode *ip;
 	int error;
 
-	if (unp->unp_inode != NULL || nam->m_len == MLEN)
+	if (unp->unp_inode != NULL || nam->m_len >= MLEN)
 		return (EINVAL);
-	*(MTOD(nam, caddr_t) + nam->m_len) = 0;
+	*(mtod(nam, caddr_t) + nam->m_len) = 0;
+#ifdef BSD2_10
+	error = UNPBIND(soun->sun_path, nam->m_len, &ip, unp->unp_socket);
+	if (error)
+		return(error);
+	if (!ip)
+		panic("unp_bind");
+	unp->unp_inode = ip;
+	unp->unp_addr = m_copy(nam, 0, M_COPYALL);
+#else
 	u.u_segflg = UIO_SYSSPACE;
 	u.u_dirp = soun->sun_path;
-	if (unp->unp_inode != NULL)
-		return (EINVAL);
 	u.u_dirp[nam->m_len-2] = 0;
 	ip = namei(CREATE | FOLLOW);
 	if (ip) {
@@ -381,20 +374,9 @@ unp_bind(unp, nam)
 	}
 	ip->i_socket = unp->unp_socket;
 	unp->unp_inode = ip;
-#ifdef FIX_43
 	unp->unp_addr = m_copy(nam, 0, (int)M_COPYALL);
-#else
-	{	struct mbuf *m = m_get(M_WAIT, MT_SONAME);
-		if (m == 0)
-			return(ENOBUFS);
-		m->m_len = nam->m_len;
-		MAPSAVE();
-		bcopy(MTOD(nam, caddr_t), mtod(m, caddr_t), m->m_len);
-		MAPREST();
-		unp->unp_addr = m;
-	}
-#endif
 	iunlock(ip);			/* but keep reference */
+#endif
 	return (0);
 }
 
@@ -402,14 +384,33 @@ unp_connect(so, nam)
 	struct socket *so;
 	struct mbuf *nam;
 {
-	register struct sockaddr_un *soun = MTOD(nam, struct sockaddr_un *);
-	register struct inode *ip;
+	register struct sockaddr_un *soun = mtod(nam, struct sockaddr_un *);
+	struct inode *ip;
 	int error;
-	register struct socket *so2;
+	struct socket *so2;
 
 	if (nam->m_len + (nam->m_off - MMINOFF) == MLEN)
 		return (EMSGSIZE);
-	*(MTOD(nam, caddr_t) + nam->m_len) = 0;
+	*(mtod(nam, caddr_t) + nam->m_len) = 0;
+#ifdef BSD2_10
+	error = UNPCONN(soun->sun_path, nam->m_len, &so2, &ip);
+	if (error || !so2 || !ip)
+		goto bad;
+	if (so->so_type != so2->so_type) {
+		error = EPROTOTYPE;
+		goto bad;
+	}
+	if (so->so_proto->pr_flags & PR_CONNREQUIRED &&
+	    ((so2->so_options&SO_ACCEPTCONN) == 0 ||
+	    (so2 = sonewconn(so2)) == 0)) {
+		error = ECONNREFUSED;
+		goto bad;
+	}
+	error = unp_connect2(so, so2);
+bad:
+	if (ip)
+		IPUT(ip);
+#else
 	u.u_segflg = UIO_SYSSPACE;
 	u.u_dirp = soun->sun_path;
 	u.u_dirp[nam->m_len-2] = 0;
@@ -417,7 +418,7 @@ unp_connect(so, nam)
 	if (ip == 0) {
 		error = u.u_error;
 		u.u_error = 0;
-		return(error);
+		return (error);		/* XXX */
 	}
 	if (access(ip, IWRITE)) {
 		error = u.u_error;
@@ -446,6 +447,7 @@ unp_connect(so, nam)
 	error = unp_connect2(so, so2);
 bad:
 	iput(ip);
+#endif
 	return (error);
 }
 
@@ -543,11 +545,7 @@ unp_drop(unp, errno)
 	if (so->so_head) {
 		so->so_pcb = (caddr_t) 0;
 		m_freem(unp->unp_addr);
-#ifdef FIX_MBUF
 		(void) m_free(dtom(unp));
-#else
-		MSFREE(unp);
-#endif
 		sofree(so);
 	}
 }
@@ -564,20 +562,17 @@ unp_externalize(rights)
 {
 	int newfds = rights->m_len / sizeof (int);
 	register int i;
-	register struct file **rp;
+	register struct file **rp = mtod(rights, struct file **);
 	register struct file *fp;
 	int f;
 
-printf("\texternalize %x\n", rights);
-	MAPSAVE();
-	rp = mtod(rights, struct file **);
+	printf("unp_externalize(0%o)\n",rights);
 	if (newfds > ufavail()) {
 		for (i = 0; i < newfds; i++) {
 			fp = *rp;
 			unp_discard(fp);
 			*rp++ = 0;
 		}
-		MAPUNSAVE();
 		return (EMSGSIZE);
 	}
 	for (i = 0; i < newfds; i++) {
@@ -586,11 +581,16 @@ printf("\texternalize %x\n", rights);
 			panic("unp_externalize");
 		fp = *rp;
 		u.u_ofile[f] = fp;
+#ifdef BSD2_10
+		/* -1 added to msgcount, 0 to count */
+		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
+		    fp, -1, 0);
+#else
 		fp->f_msgcount--;
+#endif
 		unp_rights--;
 		*(int *)rp++ = f;
 	}
-	MAPREST();
 	return (0);
 }
 
@@ -602,23 +602,24 @@ unp_internalize(rights)
 	register int i;
 	register struct file *fp;
 
-printf("\tinternalize %x\n", rights);
-	MAPSAVE();
+	printf("unp_internalize(0%o)\n",rights);
 	rp = mtod(rights, struct file **);
-	for (i = 0; i < oldfds; i++)
-		if (getf(*(int *)rp++) == 0) {
-			MAPUNSAVE();
-			return (EBADF);
-		}
+	for (i = 0; i < oldfds; i++, rp++)
+		GETF(fp, *(int *)rp);
 	rp = mtod(rights, struct file **);
 	for (i = 0; i < oldfds; i++) {
-		fp = getf(*(int *)rp);
+		GETF(fp, *(int *)rp);
 		*rp++ = fp;
+#ifdef BSD2_10
+		/* bump both the message count and reference count of fp */
+		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
+		    fp, 1, 1);
+#else
 		fp->f_count++;
 		fp->f_msgcount++;
+#endif
 		unp_rights++;
 	}
-	MAPREST();
 	return (0);
 }
 
@@ -626,35 +627,41 @@ int	unp_defer, unp_gcing;
 int	unp_mark();
 extern	struct domain unixdomain;
 
+/*
+ * What I did to the next routine isn't pretty, feel free to redo it, but
+ * I doubt it'd be worth it since this isn't used very much.  SMS
+ */
 unp_gc()
 {
 	register struct file *fp;
 	register struct socket *so;
+	struct file *file, *fileNFILE, xf;
 
 	if (unp_gcing)
 		return;
 	unp_gcing = 1;
 restart:
 	unp_defer = 0;
-	for (fp = file; fp < fileNFILE; fp++)
-		fp->f_flag &= ~(FMARK|FDEFER);
+	/* get limits AND clear FMARK|FDEFER in all file table entries */
+	SKcall(unpgc1, sizeof(file) + sizeof(fileNFILE), &file, &fileNFILE);
 	do {
 		for (fp = file; fp < fileNFILE; fp++) {
-			if (fp->f_count == 0)
+			/* get file table entry, the return value is f_count */
+			if (FPFETCH(fp, &xf) == 0)
 				continue;
-			if (fp->f_flag & FDEFER) {
-				fp->f_flag &= ~FDEFER;
+			if (xf.f_flag & FDEFER) {
+				FPFLAGS(fp, 0, FDEFER);
 				unp_defer--;
 			} else {
-				if (fp->f_flag & FMARK)
+				if (xf.f_flag & FMARK)
 					continue;
-				if (fp->f_count == fp->f_msgcount)
+				if (xf.f_count == xf.f_msgcount)
 					continue;
-				fp->f_flag |= FMARK;
+				FPFLAGS(fp, FMARK, 0);
 			}
-			if (fp->f_type != DTYPE_SOCKET)
+			if (xf.f_type != DTYPE_SOCKET)
 				continue;
-			so = (struct socket *)fp->f_socket;
+			so = xf.f_socket;
 			if (so->so_proto->pr_domain != &unixdomain ||
 			    (so->so_proto->pr_flags&PR_RIGHTS) == 0)
 				continue;
@@ -666,10 +673,10 @@ restart:
 		}
 	} while (unp_defer);
 	for (fp = file; fp < fileNFILE; fp++) {
-		if (fp->f_count == 0)
+		if (FPFETCH(fp, &xf) == 0)
 			continue;
-		if (fp->f_count == fp->f_msgcount && (fp->f_flag & FMARK) == 0)
-			while (fp->f_msgcount)
+		if (xf.f_count == xf.f_msgcount && (xf.f_flag & FMARK) == 0)
+			while (FPFETCH(fp, &xf) && xf.f_msgcount)
 				unp_discard(fp);
 	}
 	unp_gcing = 0;
@@ -693,7 +700,6 @@ unp_scan(m0, op)
 	register int i;
 	int qfds;
 
-	MAPSAVE();
 	while (m0) {
 		for (m = m0; m; m = m->m_next)
 			if (m->m_type == MT_RIGHTS && m->m_len) {
@@ -705,25 +711,23 @@ unp_scan(m0, op)
 			}
 		m0 = m0->m_act;
 	}
-	MAPREST();
 }
 
 unp_mark(fp)
 	struct file *fp;
 {
+	struct file xf;
 
-	if (fp->f_flag & FMARK)
+	FPFETCH(fp, &xf);
+	if (xf.f_flag & FMARK)
 		return;
 	unp_defer++;
-	fp->f_flag |= (FMARK|FDEFER);
+	FPFLAGS(fp, FMARK|FDEFER, 0);
 }
 
 unp_discard(fp)
 	struct file *fp;
 {
-
-	fp->f_msgcount--;
 	unp_rights--;
-	closef(fp);
+	SKcall(unpdisc, sizeof(fp), fp);
 }
-#endif

@@ -8,35 +8,50 @@
 .\"
 .\" This package was written using  only  the  "NROFF/TROFF Users' Guide",
 .\" and  therefore  if  you  can run NROFF/TROFF, you can legitimately use
-.\" this package.  However, because the header, footer, and footnote  rou-
-.\" tines  are  closely  based  on  the ones in there, I cannot place this
-.\" package in the public domain.  This should not matter, because if  you
-.\" legitimately have NROFF/TROFF, you have the documentation; if not, you
-.\" can't run off the documentation anyway.
+.\" this package.  However, because NROFF/TROFF are proprietary  programs,
+.\" I  cannot  place  this  package in the public domain.  This should not
+.\" matter, because if you legitimately have  NROFF/TROFF,  you  have  the
+.\" documentation; if not, you can't run off the documentation anyway.
 .\"
 .\" This  package may be circulated freely with the news documentation; it
 .\" may not be sold, but is to be distributed with  the  unformatted  news
 .\" documents.  However,  the name of the author and the place at which it
 .\" was written (in the author's own  time,  of  course)  are  not  to  be
-.\" removed from the package regardless of how it is modified or altered.
+.\" removed  from the package regardless of how it is modified or altered.
+.\" Further, please do not distribute this package if you make any changes
+.\" because  I  don't want to get bug reports of macros I haven't written;
+.\" if you have a goodie you want me to add, send it to me and we'll talk.
+.\" (I really do like feedback!)  I'd really appreciate your cooperation.
 .\"
 .\" Author:	Matt Bishop
 .\"		Research Institute for Advanced Computer Science
 .\"		Mail Stop 230-5
 .\" 		NASA Ames Research Center
-.\"		Moffett Field, CA  94086
+.\"		Moffett Field, CA  94035
 .\"
 .\" version 1.0		September 28, 1985	mab@riacs.arpa
 .\" 	initial version
+.\" version 1.1		October 25, 1985	mab@riacs.arpa
+.\"	fixed an incredibly obscure footnote bug (that occurred twice in
+.\"	the news documentation!) which put footnoted words on  one  page
+.\"	and the footnote on the next if the word was in the next-to-last
+.\"	or last line; commented it, and generally cleaned up
+.\" Version 1.2		October 27, 1985	mab@riacs.arpa
+.\"	Added a few more comments and a check to keep footnotes lined up
+.\"	with the bottom margin.
+.\" Version 1.3		February 12, 1986	mab@riacs.arpa
+.\"	Added an error check to catch unmatched ef's and ed's
 .\"
+.\" **********
 .\" these preserve and restore various things
+.\" they are used to shorten other macros
 .de yf					\" restore fonts
 .ft \\n(f2				\" previous font
 .ft \\n(f1				\" current font
 ..
 .de yi					\" restore indents
-.in \\n(i2u				\" previous indent
-.in \\n(i1u				\" current indent
+'in \\n(i2u				\" previous indent
+'in \\n(i1u				\" current indent
 ..
 .de ys					\" restore point sizes
 .ps \\n(s2				\" previous point size
@@ -46,6 +61,12 @@
 .vs \\n(v2u				\" previous vertical spacing
 .vs \\n(v1u				\" current vertical spacing
 ..
+.de ya					\" restore everything
+.yf					\" restore fonts
+.yi					\" restore indents
+.ys					\" restore point sizes
+.yv					\" restore vertical spacing
+..
 .de zf					\" preserve fonts
 .nr f1 \\n(.f				\" current font
 .ft					\" switch to previous font
@@ -54,9 +75,9 @@
 ..
 .de zi					\" preserve indents
 .nr i1 \\n(.iu				\" current indent
-.in					\" switch to previous indent
+'in					\" switch to previous indent
 .nr i2 \\n(.iu				\" previous indent
-.in					\" back to current indent
+'in					\" back to current indent
 ..
 .de zs					\" preserve point sizes
 .nr s1 \\n(.su				\" current point size
@@ -70,88 +91,170 @@
 .nr v2 \\n(.vu				\" previous vertical spacing
 .vs					\" back to current vertical spacing
 ..
-.\" header and footer macros
-.de pt
+.de za					\" save everything
+.zf					\" save fonts
+.zi					\" save indents
+.zs					\" save point sizes
+.zv					\" save vertical spacings
+..
+.\" **********
+.\" these actually print the header and footer titles
+.\" they are defined separately from the "hd" and "fo" macros
+.\" to make user redefinition easy
+.de pt					\" print header title
+.					\" omit header on first page
 .if \\n%>1 \{\
 '	sp |\\$1u			\" move to proper position
 .	ft 1				\" change to default font
 .	ps \\n(ps			\" change to default point size
 .	vs \\n(vs			\" change to default spacing
 .	tl '\\*(h0'\\*(h1'\\*(h2'	\" center title
-.	vs
-.	ps
-.	ft
+.	vs				\" restore current vertical spacing
+.	ps				\" restore current point size
+.	ft				\" restore current font
 .\}
 ..
-.de pf
+.de pf					\" print footer title
 .ft 1					\" change to default font
 .ps \\n(ps				\" change to default point size
 .vs \\n(vs				\" change to default spacing
-.ie \\n%=1 .tl '\\*(h0'\\*(h1'\\*(h2'	\" center footer
-.el        .tl '\\*(f0'\\*(f1'\\*(f2'	\" center footer
-.vs
-.ps
-.ft
+.ie \\n%=1 .tl '\\*(h0'\\*(h1'\\*(h2'	\" on first page, print the header here
+.el        .tl '\\*(f0'\\*(f1'\\*(f2'	\" on other pages, print the footer
+.vs					\" restore current vertical spacing
+.ps					\" restore current point size
+.ft					\" restore current font
 ..
-.de hd					\" header
-.if t .if \\n(cm .tl '\(rn'''		\" drop cut mark
-.pt \\n(ttu				\" drop title
+.\" **********
+.\" these are the top of page (header) and bottom of page (footer) macros
+.\" they don't actually print anything, just call the right macros
+.de hd					\" header -- do top of page processing
+.if t .if \\n(cm .tl '\(rn'''		\" drop cut mark if needed
+.pt \\n(ttu				\" print header
 .nr fc 0 1				\" init footnote count
-.nr fp 0-\\n(bmu			\" current footer place
+.nr fs \\n(.pu-\\n(bmu-1u		\" if any footnotes, start print here
+.nr fp 0-\\n(bmu			\" reset current footer place
 .ch fo -\\n(bmu				\" reset footer trap
-.if \\n(dn .fz				\" leftover footnotes
-.yf					\" restore fonts
-.yi					\" restore indents
-.ys					\" restore point sizes
-.yv					\" restore vertical spacing
+.if \\n(dn .fz				\" put leftover footnotes st bottom
+.ya					\" restore font, etc.
 'sp |\\n(tmu				\" move to top of body
 .ns					\" don't allow any more space
 ..
-.de fo					\" footer
-.zf					\" save fonts
-.zi					\" save indents
-.zs					\" save point sizes
-.zv					\" save vertical spacings
-.rs					\" spacing is put out
-.nr dn 0				\" zero last diversion size
-.if \\n(fc .fd				\" drop any excess footnotes
+.de fo					\" footer -- do bottom of page processing
+.za					\" save font, etc.
+.rs					\" you want motions here
+.nr dn 0				\" clobber diversion size register
+.if \\n(fc .fd				\" now print the footnotes, if any
 'bp					\" force out page
 ..
+.\" **********
+.\" these are the footnote macros
+.\" here's an overview:
+.\"	Footnotes are processed in environment #1, which is  initialized
+.\"	at the bottom of this package.  When "fn" is called, nroff/troff
+.\"	switches to this environment.  The body of the footnote is saved
+.\"	in  the  diversion  "tf" (for "temporary footnote"), so you will
+.\"	NEVER spring a trap during the first reading of a footnote. When
+.\"	"ef" ("end footnote" is called,  the  diversion  is  closed.  If
+.\"	this  is the first footnote on the page (ie, the number register
+.\"	"fc" is 1), and the footnote height (plus the height of 1  line)
+.\"	crosses  the  bottom  margin,  you get the footnoted word on one
+.\"	page and the footnote on the other.  In this case we  just  call
+.\"	"fo"  manually  (taking case it cannot be re-invoked on the same
+.\"	page!)  If this situation does not occur,  we  just  adjust  the
+.\"	footer  trap's  position upwards (we'll get to how far in a min-
+.\"	ute); if this puts the trap above the current line,  we  reposi-
+.\"	tion  the trap just beneath the current line to be sure of trig-
+.\"	triggering it once the current line is forced out.
+.\"	 To reposition the footer trap, we proceed as  follows.  Because
+.\"	the  trap  may be sprung in the middle of a line, it is possible
+.\"	that the footnote will not fit on the page (regardless of  where
+.\"	on the page the footnoted word occurs -- really!) if we move the
+.\"	trap up by the size of  the  footnote  diversion  "tf".  So,  we
+.\"	fudge things a little bit -- for the first footnote on each page
+.\"	we move the footer trap up 1 extra line ("line" being 1v in env-
+.\"	ironment  #0).   Unless  the point size and vertical spacing are
+.\"	increased between the first footnote and the footer trap's being
+.\"	sprung,  this  will  keep  the footnotes on the same page as the
+.\"	footnoted word.  But as there may be now as much as 1v of  space
+.\"	between the footnote and the bottom margin, which looks HIDEOUS,
+.\"	we use the number register "fs" to mark where  the  footer  trap
+.\"	would  REALLY go, and just space to it when it comes time to put
+.\"	out the footnotes.
 .de fd					\" dump footnotes
+.nr gs 1v				\" get a measure of 1 line in env #0
 .ev 1					\" switch to footnote environment
-.nf					\" retain vertical size
-.in 0					\" no indent
-.tf					\" text of footnotes
+.nr gs +2v				\" min of 2 lines of footnotes
+.					\" if the number register ns > 0,
+.					\" the last text line may contain a
+.					\" footnote that is too big to fit;
+.					\" this checks for such a note and
+.					\" if so, forces the footnote into
+.					\" the "fy" diversion that carries
+.					\" it onto the next text page
+.ie (\\n(nsu>0)&(\\n(gsu>=\\n(.tu) 'sp \\n(gsu	\" be sure you can get it down
+.el .if \\n(fsu>\\n(nlu 'sp \\n(fsu-\\n(nlu	\" move to footnote start position
+'nf					\" don't reprocess footnotes
+'in 0					\" don't indent them any more either
+.tf					\" drop text of footnotes
 .rm tf
-.if '\\n(.z'fy' .di			\" end overflow diversion
-.nr fc 0 1				\" init footnote count
-.ev					\" pop environment
+.if '\\n(.z'fy' .di			\" end overflow diversion, if any
+.nr fc 0				\" re-init footnote count
+.ev					\" return to usual environment
 ..
-.\" footnote macros
 .de fn					\" start footnote
-.ie \\n(if>0 .tm ** ERROR ** footnote within footnote, line \\n(.c
-.el .da tf				\" divert (append) footnote
+.					\" look for nested footnotes -- ILLEGAL
+.ie \\n(if>0 .er "footnote within footnote"
+.el .da tf				\" append footnote to footnote diversion
 .nr if +1				\" increment level of footnoting
-.ev 1					\" ... in footnote environment
-.if \\n+(fc=1 .fs			\" separator
-.br					\" flush out any previous line
-.fi					\" do it in fill mode
+.nr fc +1				\" one more footnote on this page
+.if \\n(fc=1 .nr fp -1v			\" The reason for this "fudge factor"
+.					\" is that there is no way to force
+.					\" NROFF/TROFF to invoke a macro at
+.					\" the end of each line.  At times,
+.					\" the trap boundary will not match up
+.					\" with the bottom of a line, so the
+.					\" "fo" trap which is set at 2320 may
+.					\" not be triggered until 2340 -- and
+.					\" then the footnote won't fit.  This
+.					\" gives some slack so the footnote is
+.					\" more likely to fit. *sigh*
+.ev 1					\" enter footnote environment
+.if \\n(fc=1 .fs			\" drop separator if first footnote
+.br					\" flush out any previous line in footnote
+.fi					\" process footnote in fill mode
 ..
 .de ef					\" end footnote
-.br					\" flush out the line
-.nr if -1				\" decrement level of footnoting
-.ev					\" back to usual environment
-.ie \\n(if=0 \{\
-.	di				\" end of footnote proper
-.	nr fp -\\n(dn			\" new footer position
-.	if \\n(fc=1 .nr fp -(\\n(.vu-\\n(fsu)	\" fudge factor
-.	ch fo \\n(fpu			\" reposition the footer trap
-.	if (\\n(nlu+1v)>(\\n(.pu+\\n(fpu) .ch fo \\n(nlu+1u \" footnote too big
+.br					\" flush out the line in footnote
+.ie \\n(if<=0 .er "end footnote has no corresponding begin footnote"
+.el \{\
+.	nr if -1			\" decrement level of footnoting
+.	nr fg 2v			\" remember this for repositioning fo
+.	ev				\" back to usual environment
+.	if \\n(if=0 \{\
+.		di			\" end of footnote proper
+.		nr fp -\\n(dnu		\" "fo" will be moved at least up this far
+.		nr fs -\\n(dnu		\" increase size of footnote
+.		ch fo \\n(fpu		\" reposition "fo" trap (first guess)
+.					\" the first part of the "ie" clause
+.					\" is taken in the special case
+.					\" described above
+.		ie (\\n(fc=1)&((\\n(nlu+1v+\\n(fgu)>=(\\n(.pu-\\n(bmu)) \{\
+.			nr ns \\n(dnu	\" suppress footnote separator
+.					\" since this footnote contains it
+.					\" keep "fo" from being invoked twice
+.			ch fo \\n(.pu+1i
+.			fo		\" force the page out AT ONCE
+.			nr ns 0		\" re-enable footnote separator
+.		\}
+.					\" footnote won't fit completely
+.		el .if (\\n(nlu+1v)>=(\\n(.pu+\\n(fpu) .ch fo \\n(nlu+1u
+.	\}
 .\}
 ..
 .de fs					\" drop footnote separator
-\l'1i'
-.nr fs \\n(.v				\" save spacing for fudge factor
+.					\" only if not already dropped
+.if \\n(ns=0 \l'1i'
+.nr ns 0				\" in case footnotes are over 1 page long
 ..
 .de fx					\" process footnote overflow
 .if \\n(fc .di fy			\" stuff them in the right place
@@ -160,36 +263,39 @@
 .fn					\" treat it as a footnote
 .nf					\" it's already been processed
 .in 0					\"   and indented
-.fy					\" fx put it here
+.fy					\" "fx" put it here
 .ef					\" end the footnote
 ..
+.\" **********
+.\" the ones after here are user-invoked (like "fn" and "ef" above)
 .\" title, author, etc.
 .de mt					\" main title
 \&
 .sp |\\n(mtu				\" space
 .ft 3					\" in bold
-.ps \\n(psp+2p				\" large point size and
-.vs \\n(vsp+2p				\" vertical spacing
+.ps \\n(ps+2p				\" large point size and
+.vs \\n(vs+2p				\" vertical spacing
 .ce 1000				\" center the title
+.nr t2 1				\" space it
 ..
 .de au					\" author
-.if !\\n(t2 .sp 2v			\" space
-.nr t2 1				\" last thing down was an author
+.nr t2 0				\" spacing here
+.sp 2v					\" space
 .ft 2					\" in italics
-.ps \\n(psp				\" usual point size and
-.vs \\n(vsp				\" vertical spacing
+.ps \\n(ps				\" usual point size and
+.vs \\n(vs				\" vertical spacing
 .ce 1000				\" center the name(s)
 ..
 .de ai					\" author's institution
-.ie !\\n(t2 .sp 2v			\" space unless after an author's name
-.el         .sp 1v			\" space after an author's name
+.if \\n(t2 .sp 2v			\" space after a title
 .nr t2 0				\" institution
 .ft 2					\" in italics
-.ps \\n(psp				\" usual point size and
-.vs \\n(vsp				\" vertical spacing
+.ps \\n(ps				\" usual point size and
+.vs \\n(vs				\" vertical spacing
 .ce 1000				\" center the name(s)
 ..
 .de bt					\" begin text macro
+.nr t2 0				\" hold it here
 .nr it +1				\" mark as called
 .ce 0					\" end any centering
 .sn 3v					\" a little bit of space
@@ -237,8 +343,8 @@
 .if !\\n(it .bt				\" end the title and such
 .br					\" force out previous line
 .b
-.ps \\n(psp
-.vs \\n(vsp
+.ps \\n(ps
+.vs \\n(vs
 .in \\n(l\\n(lmu			\" stop any indenting
 .sn \\n(hsu				\" inter-section spacing
 .ne 3v+\\n(.Vu				\" slightly more than 3 lines
@@ -276,7 +382,8 @@
 ..
 .\" displays (no floats, thank God!)
 .de sd					\" start display
-.ie \\n(id>0 .tm ** ERROR ** display within display, line \\n(.c
+.					\" look for nested displays -- ILLEGAL
+.ie \\n(id>0 .er "display within display"
 .el \{\
 .	ie '\\$1'c' .nr sf 1		\" center the sucker
 .	el          .nr sf 0		\" don't center it
@@ -290,29 +397,29 @@
 ..
 .de ed					\" end display
 .br					\" flush line
-.nr id -1				\" decrement level of display
-.if \\n(id=0 \{\
-.	di				\" end diversion
-.	fi				\" resume filling
-.	in -\\n(piu			\" dedent
-.	ev				\" pop environment
-.	ne \\n(dnu			\" be sure you have room
-.	nf				\" don't reprocess display
-.	rs				\" don't eat leading space
-.	nr i1 \\n(.iu			\" save the indent
-.	in				\" get previous indent
-.	nr i2 \\n(.iu			\" save it
-.	in				\" put back current indent
-.	ie \\n(sf .in (\\n(llu-\\n(dlu)/2u	\" center on the line length
-.	el .in +\\n(piu			\" indent the sucker
-.	dd				\" drop display
-.	in \\n(i2u			\" restore oldest indent
-.	in \\n(i1u			\" restore current indent
+.ie \\n(id<=0 .er "end display has no corresponding begin display"
+.el \{\
+.	nr id -1			\" decrement level of display
+.	if \\n(id=0 \{\
+.		di			\" end diversion
+.		fi			\" resume filling
+.		in -\\n(piu		\" dedent
+.		ev			\" pop environment
+.		ne \\n(dnu		\" be sure you have room
+.		nf			\" don't reprocess display
+.		rs			\" don't eat leading space
+.		zi			\" save indents
+.		ie \\n(sf .in (\\n(llu-\\n(dlu)/2u	\" center on the line length
+.		el .in +\\n(piu		\" indent the sucker
+.		dd			\" drop display
+.		yi			\" restore indents
+.	\}
 .\}
 .fi					\" resume filling
 .sn \\n(pdu				\" a little bit of space
 ..
-.\" font fun
+.\" **********
+.\" fonts -- if argument(s), apply only to first
 .de b					\" bold (font 3)
 .ie \\n(.$>0 \\&\\$3\\f3\\$1\\fP\\$2
 .el .ft 3
@@ -322,13 +429,14 @@
 .el .ft 2
 ..
 .de r					\" roman (font 1)
-.ft 1
+.ft 1					\" just restore it
 ..
 .de bi					\" bold italics (embolden font 2)
 \\&\\$3\c
 \\kb\\f2\\$1\\fP\\h'|\\nbu+2u'\\f2\\$1\\fP\\$2
 ..
-.\" point sizes
+.\" **********
+.\" point sizes -- if argument(s), apply only to first
 .de sm					\" reduce point size by 2
 .ie \\n(.$>0 \\&\\$3\\s-2\\$1\\s0\\$2
 .el .ps -2
@@ -338,9 +446,10 @@
 .el .ps +2
 ..
 .de nl					\" return to normal size
-.ps \\n(ps
+.ps \\n(ps				\" just reset the point size
 ..
-.\" miscellaneous
+.\" **********
+.\" handy force space/inhibit more space macros
 .de sn					\" space, then turn on nospace mode
 .sp \\$1				\" space
 .ns					\" ignore any more space requests
@@ -349,13 +458,29 @@
 .rs					\" turn on spacing mode
 .sp \\$1				\" space
 ..
+.\" **********
+.\" end of text and error macros
 .de et					\" end of text macro
 .br					\" flush out remaining line
 .tf					\" dump any footnotes
-.if \\n(id>0 .tm ** ERROR ** unclosed display
-.if \\n(if>0 .tm ** ERROR ** unclosed footnote
+.					\" check for open displays or footnotes
+.if \\n(id>0 .er "unfinished display"
+.if \\n(if>0 .er "unfinished footnote"
+.					\" this one means an -mn bug (*sigh*)
+.if !'\\n(.z'' .er "diversion \\n(.z not closed"
 ..
-.\" local macros (for the news documents)
+.de er					\" print error message
+.					\" flag it as an error
+.ds ws "** ERROR **
+.					\" if you have it, give the file name
+.if !'\\*(.f'' .as ws " file \\*(.f,
+.					\" put out the line number
+.as ws " line \\n(.c
+.					\" and finally the error message
+.tm \\*(ws: \\$1
+..
+.\" **********
+.\" macros in this section are VERY specific to the news documentation
 .de pa					\" protocol appellation (darn names!)
 \\&\\$3\\f2\\$1\\fP\\$2
 ..
@@ -380,38 +505,40 @@
 .de op					\" option
 \\&\\$3\\f3\\$1\\fP\\$2
 ..
-.\" footnoted names
+.\" **********
+.\" trademarked names
 .de pd					\" print "PDP-11"
-.ie \\n(p1 \\$2\\s-1PDP\\s0-11\\$1
+.ie \\n(p1 \\&\\$2\\s-1PDP\\s0-11\\$1
 .el \{\
-.nr p1 +1				\" drop footnote
-\\$2\\s-1PDP\\s0-11\\*(dg\\$1
-.fn
-\\*(dgPDP-11 is a Trademark of Digital Equipment Corporation.
-.ef
+.	nr p1 +1			\" mark footnote as dropped
+\\&\\$2\\s-1PDP\\s0-11\\*(dg\\$1
+.	fn				\" put out the footnote
+\\&\\*(dgPDP-11 is a trademark of Digital Equipment Corporation.
+.	ef				\" short and sweet ...
 .\}
 ..
 .de ux					\" print "UNIX"
-.ie \\n(ux \\$2\\s-1UNIX\\s0\\$1
+.ie \\n(ux \\&\\$2\\s-1UNIX\\s0\\$1
 .el \{\
-.nr ux +1				\" drop footnote
-\\$2\\s-1UNIX\\s0\\*(dg\\$1
-.fn
-\\*(dgUNIX is a Trademark of Bell Laboratories.
-.ef
+.	nr ux +1			\" mark footnote as dropped
+\\&\\$2\\s-1UNIX\\s0\\s-5\\u\\*(rg\\s0\\d\\$1
+.	fn				\" put out the footnote
+\\&\\s-5\\u\\*(rg\\s0\\dUNIX is a registered trademark of AT&T.
+.	ef				\" short and sweet ...
 .\}
 ..
 .de vx					\" print "VAX"
-.ie \\n(vx \\$2\\s-1VAX\\s0\\$1
+.ie \\n(vx \\&\\$2\\s-1VAX\\s0\\$1
 .el \{\
-.nr vx +1				\" drop footnote
-\\$2\\s-1VAX\\s0\\*(dg\\$1
-.fn
-\\*(dgVAX is a Trademark of Digital Equipment Corporation.
-.ef
+.	nr vx +1			\" mark footnote as dropped
+\\&\\$2\\s-1VAX\\s0\\*(dg\\$1
+.	fn				\" put out the footnote
+\\&\\*(dgVAX is a trademark of Digital Equipment Corporation.
+.	ef				\" short and sweet ...
 .\}
 ..
-.\" set up various things
+.\" **********
+.\" set up string and number registers
 .					\" set up for the date
 .if \n(mo=1  .ds mo January
 .if \n(mo=2  .ds mo February
@@ -437,26 +564,29 @@
 .if n \{\
 .					\" string registers
 .	ds dg *
+.	ds rg *
 .	ds lq ""
 .	ds rq ""
 .	ds f1 "\*(dy
 .					\" number registers
 .	nr hs 1v			\" space before section header
 .	nr pd 1v			\" inter-paragraph spacing
+.	nr bm 1.0i			\" height of bottom margin
 .\}
 .if t \{\
 .					\" string registers
 .	ds dg \(dg
+.	ds rg \(rg
 .	ds lq ``
 .	ds rq ''
 .					\" number registers
 .	nr hs 1v			\" space before section header
 .	nr pd 0.3v			\" inter-paragraph spacing
+.	nr bm 1.0i+1v			\" height of bottom margin (wacky laser)
 .\}
 .					\" these are the same for [NT]ROFF
-.ds vr "News Version B2.10.3
+.ds vr "News Version B 2.11
 .ds h1 - % -
-.nr bm 1.0i				\" height of bottom margin
 .nr bt 0.5i+1v				\" bottom of page to footer
 .nr cm 0				\" no cut marks
 .nr fc 0 1				\" init footnote count
@@ -470,19 +600,19 @@
 .nr if 0				\" 1 in keep
 .nr it 0				\" 1 when beyond title, etc.
 .nr li 5n				\" indent for labelled paragraph
-.nr ll 6i				\" line length
+.nr ll 6.5i				\" line length
 .nr lm 0				\" left margin
 .nr l0 0				\" first indent level
 .nr mt 1.5i+1v				\" title goes down this far
 .nr pi 5n				\" regular paragraph indent
-.nr po 1.25i				\" page offset
-.nr ps 12				\" point size
+.nr po 1.0i				\" page offset
+.nr ps 10				\" point size
 .nr tm 1.0i				\" height of top margin
-.nr tt 0.5i-1v				\" top of page to header
+.nr tt 0.5i-0.5v			\" top of page to header
 .nr p1 0				\" no PDP-TM message yet
 .nr ux 0				\" no UNIX-TM message yet
 .nr vx 0				\" no VAX-TM message yet
-.nr vs 16				\" vertical spacing
+.nr vs 12				\" vertical spacing
 .\" set things up
 .po \n(pou				\" set page offset
 .ps \n(ps				\" set previous, current
@@ -515,5 +645,5 @@
 .wh -\n(btu pf				\" print the bottom margin here
 .em et					\" at end of file, call et
 .\" couple of miscellaneous requests
-.bd S B 2				\" embolden special font chars if B
+.bd S 3 3				\" embolden special font chars if B
 .hy 2					\" don't hyphenate last lines

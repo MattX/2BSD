@@ -1,56 +1,52 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
+#include "ctype.h"
+#include "io.h"
 
-/*
- * Host/network long integer translations:
- * If we're either 4.2BSD (at least) the standard library does this for
- * us.  Pyramid is a special case: it's 4.1c but is defined as 4.2 in
- * tune.h for simplicity, so we have to provide the translations.
- */
-#if defined(BSD4_2) && !defined(pyr)
-long	htonl();
-long	ntohl();
+#ifdef MAC
+#	undef private
+#	define private
+#endif
 
+#ifdef	LINT_ARGS
+private void
+	add_mac(struct macro *),
+	del_mac(struct macro *),
+	pop_macro_stack(void),
+	push_macro_stack(struct macro *, int);
+	
+private int
+	PrefChar(int);
+
+private struct macro * mac_exists(char *);
 #else
+private void
+	add_mac(),
+	del_mac(),
+	pop_macro_stack(),
+	push_macro_stack();
+	
+private int
+	PrefChar();
 
-long
-htonl(x)
-	register long x;
-{
-#ifdef vax
-	return(	(((x >>  0) & 0377) << 24) |
-		(((x >>  8) & 0377) << 16) |
-		(((x >> 16) & 0377) <<  8) |
-		(((x >> 24) & 0377) <<  0) );
-#else !vax
-	return x;
+private struct macro * mac_exists();
+#endif	/* LINT_ARGS */
+
+#ifdef MAC
+#	undef private
+#	define private static
 #endif
-}
 
-long
-ntohl(x)
-	register long x;
-{
-#ifdef vax
-	return(	(((x >>  0) & 0377) << 24) |
-		(((x >>  8) & 0377) << 16) |
-		(((x >> 16) & 0377) <<  8) |
-		(((x >> 24) & 0377) <<  0) );
-#else !vax
-	return x;
-#endif
-}
-#endif /* host/network long translations */
+struct macro	*macros = 0;		/* macros */
+int	InMacDefine = NO;
 
-struct macro	*macros = 0;		/* Macros */
-
-private
+private void
 add_mac(new)
 struct macro	*new;
 {
@@ -69,7 +65,7 @@ struct macro	*new;
 	new->Type = MACRO;
 }
 
-private
+private void
 del_mac(mac)
 struct macro	*mac;
 {
@@ -87,54 +83,70 @@ struct macro	*mac;
 
 struct macro	KeyMacro;	/* Macro used for defining */
 
-#define NMACROS	40		/* This is bad, bad, BAD! */
+/* To execute a macro, we have a "stack" of running macros.  Whenever
+   we execute a macro, we push it on the stack, run it, then pop it
+   from the stack.  */
+struct m_thread {
+	struct m_thread	*mt_prev;
+	struct macro	*mt_mp;
+	int	mt_offset,
+		mt_count;
+};
 
-struct macro	*macstack[NMACROS];
-private int	stackp = -1;
+private struct m_thread	*mac_stack = 0;
 
-fix_macros()
+void
+unwind_macro_stack()
 {
-	register int	i;
-	register struct macro	*mp;
-
-	for (i = 0; macstack[i]; i++) {
-		mp = macstack[i];
-		macstack[i] = 0;
-		mp->m_flags = mp->m_offset = 0;
-	}
-	stackp = -1;
-	KeyMacro.m_flags = KeyMacro.m_offset = 0;
+	while (mac_stack != 0)
+		pop_macro_stack();
 }
 
-private
-mac_err(err)
-char	*err;
+private void
+pop_macro_stack()
 {
-	KeyMacro.m_flags = 0;
-	MacNolen(&KeyMacro);
-	complain(err);
+	register struct m_thread	*m;
+
+	if ((m = mac_stack) == 0)
+		return;
+	mac_stack = m->mt_prev;
+	free_mthread(m);
 }
 
+struct m_thread *
+alloc_mthread()
+{
+	return (struct m_thread *) emalloc(sizeof (struct m_thread));
+}
+
+void
+free_mthread(t)
+struct m_thread	*t;
+{
+	free((char *) t);
+}
+
+private void
+push_macro_stack(m, count)
+struct macro	*m;
+{
+	struct m_thread	*t;
+
+	if (count <= 0)
+		complain("[Cannot execute macro a negative number of times]");
+	t = alloc_mthread();
+	t->mt_prev = mac_stack;
+	mac_stack = t;
+	t->mt_offset = 0;
+	t->mt_mp = m;
+	t->mt_count = count;
+}
+
+void
 do_macro(mac)
 struct macro	*mac;
 {
-	if (mac->m_flags & EXECUTE)
-		mac_err("[Attempt to execute macro recursively!]");
-	if (++stackp >= NMACROS) {
-		stackp--;
-		complain("[Too many macros at once!]");
-	}
-	macstack[stackp] = mac;
-	mac->m_offset = 0;
-	mac->m_ntimes = arg_value();
-	mac->m_flags |= EXECUTE;
-}
-
-private
-MacNolen(m)
-struct macro	*m;
-{
-	m->m_len = m->m_offset = 0;
+	push_macro_stack(mac, arg_value());
 }
 
 private struct macro *
@@ -149,52 +161,56 @@ char	*name;
 	return 0;
 }
 
+void
 mac_init()
 {
 	add_mac(&KeyMacro);
-	MacNolen(&KeyMacro);
 	KeyMacro.Name = "keyboard-macro";
+	KeyMacro.m_len = 0;
 	KeyMacro.m_buflen = 16;
 	KeyMacro.m_body = emalloc(KeyMacro.m_buflen);
-	KeyMacro.m_ntimes = KeyMacro.m_flags = 0;
-	fix_macros();
 }
 
+void
 mac_putc(c)
 int	c;
 {
 	if (KeyMacro.m_len >= KeyMacro.m_buflen) {
 		KeyMacro.m_buflen += 16;
 		KeyMacro.m_body = realloc(KeyMacro.m_body, (unsigned) KeyMacro.m_buflen);
-		if (KeyMacro.m_body == 0)
-			mac_err("[Can't allocate storage for keyboard macro]");
+		if (KeyMacro.m_body == 0) {
+			KeyMacro.m_buflen = KeyMacro.m_len = 0;
+			complain("[Can't allocate storage for keyboard macro]");
+		}
 	}
-	KeyMacro.m_body[KeyMacro.m_offset++] = c;
-	KeyMacro.m_len++;
+	KeyMacro.m_body[KeyMacro.m_len++] = c;
 }
 
+int
 in_macro()
 {
-	return ((stackp >= 0) && ((macstack[stackp])->m_flags & EXECUTE));
+	return (mac_stack != 0);
 }
 
+int
 mac_getc()
 {
+	struct m_thread	*mthread;
 	struct macro	*m;
 
-	if (stackp < 0 || ((m = macstack[stackp])->m_flags & EXECUTE) == 0)
+	if ((mthread = mac_stack) == 0)
 		return -1;
-	if (m->m_offset == m->m_len) {
-		m->m_offset = 0;
-		if (--m->m_ntimes == 0) {
-			m->m_flags &= ~EXECUTE;
-			stackp--;
-		}
+	m = mthread->mt_mp;
+	if (mthread->mt_offset == m->m_len) {
+		mthread->mt_offset = 0;
+		if (--mthread->mt_count == 0)
+			pop_macro_stack();
 		return mac_getc();
 	}
-	return m->m_body[m->m_offset++];
+	return m->m_body[mthread->mt_offset++];
 }
 
+void
 NameMac()
 {
 	char	*name;
@@ -202,7 +218,7 @@ NameMac()
 
 	if (KeyMacro.m_len == 0)
 		complain("[No keyboard macro to name!]");
-	if (KeyMacro.m_flags & (DEFINE | EXECUTE))
+	if (in_macro() || InMacDefine)
 		complain("[Can't name while defining/executing]");
 	if ((m = mac_exists(name = ask((char *) 0, ProcFmt))) == 0)
 		m = (struct macro *) emalloc(sizeof *m);
@@ -218,12 +234,12 @@ NameMac()
 	m->m_buflen = KeyMacro.m_buflen;
 	m->m_body = emalloc(m->m_buflen);
 	byte_copy(KeyMacro.m_body, m->m_body, m->m_len);
-	m->m_ntimes = m->m_offset = 0;	/* At the beginning */
 	m->m_flags = SAVE;
 	m->Name = name;
 	add_mac(m);
-}	
+}
 
+void
 RunMacro()
 {
 	struct macro	*m;
@@ -232,179 +248,138 @@ RunMacro()
 		do_macro(m);
 }
 
-private int	mac_fd;
-
-private
-mac_io(fcn, ptr, nbytes)
-int	(*fcn)();
-char	*ptr;
+void
+pr_putc(c, fp)
+File	*fp;
 {
-	int	nio;
-
-	if ((nio = (*fcn)(mac_fd, ptr, nbytes)) != nbytes)
-		complain("[Macro %s error: %d got %d]",
-			 (fcn == read) ? "read" : "write",
-			 nbytes,
-			 nio);
+	if (c == '\\' || c == '^')
+		putc('\\', fp);
+	 else if (isctrl(c)) {
+		putc('^', fp);
+		c = (c == RUBOUT) ? '?' : (c + '@');
+	}
+	putc(c, fp);
 }
 
+void
 WriteMacs()
 {
 	struct macro	*m;
-	int	namelen,
-		nmacs = 0;
 	char	*file,
 		filebuf[FILESIZE];
-	long	netl;
+	File	*fp;
+	int	i;
 
 	file = ask_file((char *) 0, (char *) 0, filebuf);
-	if ((mac_fd = creat(file, 0666)) == -1)
-		complain(IOerr("create", file));
-	f_mess("\"%s\"", file);
+	fp = open_file(file, iobuff, F_WRITE, COMPLAIN, QUIET);
 
 	/* Don't write the keyboard macro which is always the first */
 	for (m = macros->m_nextm; m != 0; m = m->m_nextm) {
-		if (m->m_len == 0)
-			continue;
-		nmacs++;
-		netl = htonl((long)m->m_len);
-		mac_io(write, (char *) &netl, sizeof netl);
-		namelen = strlen(m->Name) + 1;	/* Including the null */
-		netl = htonl((long)namelen);
-		mac_io(write, (char *) &netl, sizeof netl);
-		mac_io(write, m->Name, namelen);
-		mac_io(write, m->m_body, m->m_len);
+		fprintf(fp, "define-macro %s ", m->Name);
+		for (i = 0; i < m->m_len; i++)
+			pr_putc(m->m_body[i], fp);
+		putc('\n', fp);
 		m->m_flags &= ~SAVE;
 	}
-	(void) close(mac_fd);
-	add_mess(" %d macro%n saved.", nmacs, nmacs);
+	close_file(fp);
 }
 
-#define NEWWAY	1
-#define OLDWAY	0
-
-/* Formatting int's the old way or the new "improved" way? */
-private int	int_how = NEWWAY;
-
-long
-int_fmt(l)
-	long	l;
+void
+DefKBDMac()
 {
-	if (int_how == NEWWAY)
-		return ntohl(l);
-	return l;
-}
-
-ReadMacs()
-{
-	char	*file,
-		filebuf[FILESIZE];
+	char	*macro_name,
+		*macro_body,
+		nextc,
+		c,
+		macro_buffer[LBSIZE];
+	int	i;
 	struct macro	*m;
-	int	nmacs = 0,
-		namelen,
-		bodylen,
-		he_is_sure = 0,
-		save_em = FALSE;
-	long	netl;
 
-	file = ask_file((char *) 0, (char *) 0, filebuf);
-	if ((mac_fd = open(file, 0)) == -1)
-		complain(IOerr("open", file));
-
-	f_mess("\"%s\"", file);
-	while (read(mac_fd, (char *) &netl, sizeof netl) == (sizeof netl)) {
-retry:		bodylen = int_fmt(netl);
-		if (!he_is_sure && (bodylen <= 0 || bodylen > 10000)) {
-			if (int_how == NEWWAY) {
-				int_how = OLDWAY;
-				save_em = TRUE;
-				goto retry;
-			} else {
-				confirm("Are you sure \"%s\" is a JOVE macro file? ", filebuf);
-				he_is_sure = 1;
-			}
+	macro_name = do_ask(" \r\n", (int (*)()) 0, (char *) 0, ProcFmt);
+	if (macro_name == 0)
+		complain("[No default]");
+	macro_name = copystr(macro_name);
+	if (m = mac_exists(macro_name))
+		del_mac(m);
+	macro_body = ask((char *) 0, ": %f %s enter body: ", macro_name);
+	i = 0;
+	while ((c = *macro_body++) != '\0') {
+		if (c == '\\') {
+			if ((nextc = *macro_body++) == LF)
+				complain("[Premature end of line]");
+			c = nextc;
+		} else if (c == '^') {
+			if ((nextc = *macro_body++) == '?')
+				c = RUBOUT;
+			else if (isalpha(nextc) || index("@[\\]^_", nextc))
+				c = CTL(nextc);
+			else
+				complain("Bad control-character: '%c'", nextc);
 		}
-		nmacs++;
-		m = (struct macro *) emalloc (sizeof *m);
-		m->m_flags = 0;
-		m->m_len = bodylen;
-		m->m_buflen = m->m_len;
-		mac_io(read, (char *) &netl, sizeof netl);
-		namelen = int_fmt(netl);
-		m->Name = emalloc(namelen);
-		mac_io(read, m->Name, namelen);
-		m->m_body = emalloc(m->m_buflen);
-		mac_io(read, m->m_body, m->m_len);
-		add_mac(m);
+		macro_buffer[i++] = c;
 	}
-	(void) close(mac_fd);
-	add_mess(" %d macro%n defined.", nmacs, nmacs);
-	if (save_em) {
-		char	*msg = "OK to convert to the new format? ",
-			ibuf[FILESIZE + 1];
-
-		if (!InJoverc) {
-			TOstart("Warning", TRUE);
-			Typeout("Warning: your macros file is in the old format.");
-			Typeout("Do you want me to convert \"%s\" to the new", pr_name(file, YES));
-			Typeout("format?");
-			f_mess(msg);
-			TOstop();
-			confirm(msg);
-		}
-		/* WriteMacs requests a file name.  This is what it'll get. */
-		sprintf(ibuf, "%s\n", file);
-		Inputp = ibuf;
-		WriteMacs();
-	}		
+	m = (struct macro *) emalloc(sizeof (*m));
+	m->Name = macro_name;
+	m->m_len = m->m_buflen = i;
+	m->m_body = emalloc(i);
+	m->m_flags = InJoverc ? 0 : SAVE;
+	byte_copy(macro_buffer, m->m_body, i);
+	add_mac(m);
 }
 
+void
 Remember()
 {
-	if (KeyMacro.m_flags & EXECUTE)
-		/* We're already executing the macro; ignore any attempts
-		   to define the keyboard macro while we are executing. */
+	/* We're already executing the macro; ignore any attempts
+	   to define the keyboard macro while we are executing. */
+	if (in_macro())
 		return;
-	if (KeyMacro.m_flags & DEFINE)
-		message("[Already remembering ... continue with definition]");
+	if (InMacDefine)
+		message("[Already defining ... continue with definition]");
 	else {
-		UpdModLine++;
-		KeyMacro.m_flags |= DEFINE;
-		MacNolen(&KeyMacro);
-		message("Remembering...");
+		UpdModLine = YES;
+		InMacDefine = YES;
+		KeyMacro.m_len = 0;
+		message("Defining...");
 	}
 }
 
 /* Is `c' a prefix character */
 
-private
+private int
 PrefChar(c)
 {
 	return (int) IsPrefix(mainmap[c]);
 }
 
+void
 Forget()
 {
 	char	*cp;
 	struct macro	*m = &KeyMacro;
 
-	UpdModLine++;
-	if (m->m_flags & DEFINE) {
+	UpdModLine = YES;
+	if (InMacDefine) {
 		message("Keyboard macro defined.");
-		m->m_flags &= ~DEFINE;
+		InMacDefine = NO;
+
+		/* try and strip off the key sequence that invoked us */
 		cp = &m->m_body[m->m_len - 2];
 		if (PrefChar(*cp))
 			m->m_len -= 2;
-		else if (commands[*++cp].c_proc == Forget)
-			m->m_len--;
-	}
+		else if (commands[cp[1]].c_proc == Forget)
+			m->m_len -= 1;
+	} else
+		complain("[end-kbd-macro: not currently defining macro!]");
 }
 
+void
 ExecMacro()
 {
 	do_macro(&KeyMacro);
 }
 
+void
 MacInter()
 {
 	extern int	Interactive;
@@ -414,14 +389,15 @@ MacInter()
 	Interactive = 1;
 }
 
+int
 ModMacs()
 {
 	register struct macro	*m;
 
 	for (m = macros->m_nextm; m != 0; m = m->m_nextm)
 		if (m->m_flags & SAVE)
-			return 1;
-	return 0;
+			return YES;
+	return NO;
 }
 
 data_obj *
@@ -445,6 +421,7 @@ char	*prompt;
 	return (data_obj *) m;
 }
 
+void
 DelMacro()
 {
 	struct macro	*m;

@@ -1,14 +1,20 @@
 /*
- * Copyright (c) 1985 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1985, 1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)gethostnamadr.c	6.12 (Berkeley) 5/19/86";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)gethostnamadr.c	6.31 (Berkeley) 3/14/88";
+#endif /* LIBC_SCCS and not lint */
 
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <ctype.h>
@@ -19,26 +25,37 @@ static char sccsid[] = "@(#)gethostnamadr.c	6.12 (Berkeley) 5/19/86";
 #include <arpa/nameser.h>
 #include <resolv.h>
 
+#ifdef BSD2_10
+#define host_addrs	h_addrs
+#define _gethtbyaddr	_ghtbaddr
+#define _gethtbyname	_ghtbname
+#endif
+
 #define	MAXALIASES	35
-#define MAXADDRS	35
+#define	MAXADDRS	35
 
 static char *h_addr_ptrs[MAXADDRS + 1];
 
 static struct hostent host;
 static char *host_aliases[MAXALIASES];
-static char hostbuf[BUFSIZ+1];
+static char hostbuf[256+1];
 static struct in_addr host_addr;
 static char HOSTDB[] = "/etc/hosts";
 static FILE *hostf = NULL;
-static char line[BUFSIZ+1];
 static char hostaddr[MAXADDRS];
 static char *host_addrs[2];
 static int stayopen = 0;
 static char *any();
 
+#if PACKETSZ > 1024
+#define	MAXPACKET	PACKETSZ
+#else
+#define	MAXPACKET	1024
+#endif
+
 typedef union {
-    HEADER qb1;
-    char qb2[PACKETSZ];
+    HEADER hdr;
+    u_char buf[MAXPACKET];
 } querybuf;
 
 static union {
@@ -51,73 +68,36 @@ int h_errno;
 extern errno;
 
 static struct hostent *
-getanswer(msg, msglen, iquery)
-	char *msg;
-	int msglen, iquery;
+getanswer(answer, anslen, iquery)
+	querybuf *answer;
+	int anslen;
+	int iquery;
 {
 	register HEADER *hp;
-	register char *cp;
+	register u_char *cp;
 	register int n;
-	querybuf answer;
-	char *eom, *bp, **ap;
+	u_char *eom;
+	char *bp, **ap;
 	int type, class, buflen, ancount, qdcount;
 	int haveanswer, getclass = C_ANY;
 	char **hap;
 
-	n = res_send(msg, msglen, (char *)&answer, sizeof(answer));
-	if (n < 0) {
-#ifdef DEBUG
-		int terrno;
-		terrno = errno;
-		if (_res.options & RES_DEBUG)
-			printf("res_send failed\n");
-		errno = terrno;
-#endif
-		h_errno = TRY_AGAIN;
-		return (NULL);
-	}
-	eom = (char *)&answer + n;
+	eom = answer->buf + anslen;
 	/*
 	 * find first satisfactory answer
 	 */
-	hp = (HEADER *) &answer;
+	hp = &answer->hdr;
 	ancount = ntohs(hp->ancount);
 	qdcount = ntohs(hp->qdcount);
-	if (hp->rcode != NOERROR || ancount == 0) {
-#ifdef DEBUG
-		if (_res.options & RES_DEBUG)
-			printf("rcode = %d, ancount=%d\n", hp->rcode, ancount);
-#endif
-		switch (hp->rcode) {
-			case NXDOMAIN:
-				/* Check if it's an authoritive answer */
-				if (hp->aa)
-					h_errno = HOST_NOT_FOUND;
-				else
-					h_errno = TRY_AGAIN;
-				break;
-			case SERVFAIL:
-				h_errno = TRY_AGAIN;
-				break;
-			case NOERROR:
-				h_errno = NO_ADDRESS;
-				break;
-			case FORMERR:
-			case NOTIMP:
-			case REFUSED:
-				h_errno = NO_RECOVERY;
-		}
-		return (NULL);
-	}
 	bp = hostbuf;
 	buflen = sizeof(hostbuf);
-	cp = (char *)&answer + sizeof(HEADER);
+	cp = answer->buf + sizeof(HEADER);
 	if (qdcount) {
 		if (iquery) {
-			if ((n = dn_expand((char *)&answer, eom,
+			if ((n = dn_expand((char *)answer->buf, eom,
 			     cp, bp, buflen)) < 0) {
 				h_errno = NO_RECOVERY;
-				return (NULL);
+				return ((struct hostent *) NULL);
 			}
 			cp += n + QFIXEDSZ;
 			host.h_name = bp;
@@ -125,30 +105,32 @@ getanswer(msg, msglen, iquery)
 			bp += n;
 			buflen -= n;
 		} else
-			cp += dn_skip(cp) + QFIXEDSZ;
+			cp += dn_skipname(cp, eom) + QFIXEDSZ;
 		while (--qdcount > 0)
-			cp += dn_skip(cp) + QFIXEDSZ;
+			cp += dn_skipname(cp, eom) + QFIXEDSZ;
 	} else if (iquery) {
 		if (hp->aa)
 			h_errno = HOST_NOT_FOUND;
 		else
 			h_errno = TRY_AGAIN;
-		return (NULL);
+		return ((struct hostent *) NULL);
 	}
 	ap = host_aliases;
 	host.h_aliases = host_aliases;
 	hap = h_addr_ptrs;
+#if BSD >= 43 || defined(h_addr)	/* new-style hostent structure */
 	host.h_addr_list = h_addr_ptrs;
+#endif
 	haveanswer = 0;
 	while (--ancount >= 0 && cp < eom) {
-		if ((n = dn_expand((char *)&answer, eom, cp, bp, buflen)) < 0)
+		if ((n = dn_expand((char *)answer->buf, eom, cp, bp, buflen)) < 0)
 			break;
 		cp += n;
-		type = getshort(cp);
+		type = _getshort(cp);
  		cp += sizeof(u_short);
-		class = getshort(cp);
+		class = _getshort(cp);
  		cp += sizeof(u_short) + sizeof(u_long);
-		n = getshort(cp);
+		n = _getshort(cp);
 		cp += sizeof(u_short);
 		if (type == T_CNAME) {
 			cp += n;
@@ -160,8 +142,8 @@ getanswer(msg, msglen, iquery)
 			buflen -= n;
 			continue;
 		}
-		if (type == T_PTR) {
-			if ((n = dn_expand((char *)&answer, eom,
+		if (iquery && type == T_PTR) {
+			if ((n = dn_expand((char *)answer->buf, eom,
 			    cp, bp, buflen)) < 0) {
 				cp += n;
 				continue;
@@ -170,7 +152,7 @@ getanswer(msg, msglen, iquery)
 			host.h_name = bp;
 			return(&host);
 		}
-		if (type != T_A)  {
+		if (iquery || type != T_A)  {
 #ifdef DEBUG
 			if (_res.options & RES_DEBUG)
 				printf("unexpected answer type %d, size %d\n",
@@ -198,7 +180,7 @@ getanswer(msg, msglen, iquery)
 			}
 		}
 
-		bp += ((u_long)bp % sizeof(align));
+		bp += sizeof(align) - ((u_long)bp % sizeof(align));
 
 		if (bp + n >= &hostbuf[sizeof(hostbuf)]) {
 #ifdef DEBUG
@@ -214,11 +196,15 @@ getanswer(msg, msglen, iquery)
 	}
 	if (haveanswer) {
 		*ap = NULL;
+#if BSD >= 43 || defined(h_addr)	/* new-style hostent structure */
 		*hap = NULL;
+#else
+		host.h_addr = h_addr_ptrs[0];
+#endif
 		return (&host);
 	} else {
 		h_errno = TRY_AGAIN;
-		return (NULL);
+		return ((struct hostent *) NULL);
 	}
 }
 
@@ -226,24 +212,39 @@ struct hostent *
 gethostbyname(name)
 	char *name;
 {
-	int n;
 	querybuf buf;
-	register struct hostent *hp;
+	register char *cp;
+	int n;
+	struct hostent *hp, *gethostdomain();
 	extern struct hostent *_gethtbyname();
 
-	n = res_mkquery(QUERY, name, C_IN, T_A, (char *)NULL, 0, NULL,
-		(char *)&buf, sizeof(buf));
-	if (n < 0) {
+	/*
+	 * disallow names consisting only of digits/dots, unless
+	 * they end in a dot.
+	 */
+	if (isdigit(name[0]))
+		for (cp = name;; ++cp) {
+			if (!*cp) {
+				if (*--cp == '.')
+					break;
+				h_errno = HOST_NOT_FOUND;
+				return ((struct hostent *) NULL);
+			}
+			if (!isdigit(*cp) && *cp != '.') 
+				break;
+		}
+
+	if ((n = res_search(name, C_IN, T_A, buf.buf, sizeof(buf))) < 0) {
 #ifdef DEBUG
 		if (_res.options & RES_DEBUG)
-			printf("res_mkquery failed\n");
+			printf("res_search failed\n");
 #endif
-		return (NULL);
+		if (errno == ECONNREFUSED)
+			return (_gethtbyname(name));
+		else
+			return ((struct hostent *) NULL);
 	}
-	hp = getanswer((char *)&buf, n, 0);
-	if (hp == NULL && errno == ECONNREFUSED)
-		hp = _gethtbyname(name);
-	return(hp);
+	return (getanswer(&buf, n, 0));
 }
 
 struct hostent *
@@ -258,26 +259,25 @@ gethostbyaddr(addr, len, type)
 	extern struct hostent *_gethtbyaddr();
 	
 	if (type != AF_INET)
-		return (NULL);
+		return ((struct hostent *) NULL);
 	(void)sprintf(qbuf, "%d.%d.%d.%d.in-addr.arpa",
 		((unsigned)addr[3] & 0xff),
 		((unsigned)addr[2] & 0xff),
 		((unsigned)addr[1] & 0xff),
 		((unsigned)addr[0] & 0xff));
-	n = res_mkquery(QUERY, qbuf, C_IN, T_PTR, (char *)NULL, 0, NULL,
-		(char *)&buf, sizeof(buf));
+	n = res_query(qbuf, C_IN, T_PTR, (char *)&buf, sizeof(buf));
 	if (n < 0) {
 #ifdef DEBUG
 		if (_res.options & RES_DEBUG)
-			printf("res_mkquery failed\n");
+			printf("res_query failed\n");
 #endif
-		return (NULL);
+		if (errno == ECONNREFUSED)
+			hp = _gethtbyaddr(addr, len, type);
+		return ((struct hostent *) NULL);
 	}
-	hp = getanswer((char *)&buf, n, 1);
-	if (hp == NULL && errno == ECONNREFUSED)
-		hp = _gethtbyaddr(addr, len, type);
+	hp = getanswer(&buf, n, 1);
 	if (hp == NULL)
-		return(NULL);
+		return ((struct hostent *) NULL);
 	hp->h_addrtype = type;
 	hp->h_length = len;
 	h_addr_ptrs[0] = (char *)&host_addr;
@@ -285,7 +285,6 @@ gethostbyaddr(addr, len, type)
 	host_addr = *(struct in_addr *)addr;
 	return(hp);
 }
-
 
 _sethtent(f)
 	int f;
@@ -314,7 +313,7 @@ _gethtent()
 	if (hostf == NULL && (hostf = fopen(HOSTDB, "r" )) == NULL)
 		return (NULL);
 again:
-	if ((p = fgets(line, BUFSIZ, hostf)) == NULL)
+	if ((p = fgets(hostbuf, sizeof(hostbuf)-1, hostf)) == NULL)
 		return (NULL);
 	if (*p == '#')
 		goto again;
@@ -327,7 +326,9 @@ again:
 		goto again;
 	*cp++ = '\0';
 	/* THIS STUFF IS INTERNET SPECIFIC */
+#if BSD >= 43 || defined(h_addr)	/* new-style hostent structure */
 	host.h_addr_list = host_addrs;
+#endif
 	host.h_addr = hostaddr;
 	*((u_long *)host.h_addr) = inet_addr(p);
 	host.h_length = sizeof (u_long);
@@ -376,22 +377,13 @@ _gethtbyname(name)
 {
 	register struct hostent *p;
 	register char **cp;
-	char lowname[128];
-	register char *lp = lowname;
 	
-	while (*name)
-		if (isupper(*name))
-			*lp++ = tolower(*name++);
-		else
-			*lp++ = *name++;
-	*lp = '\0';
-
 	_sethtent(0);
 	while (p = _gethtent()) {
-		if (strcmp(p->h_name, lowname) == 0)
+		if (strcasecmp(p->h_name, name) == 0)
 			break;
 		for (cp = p->h_aliases; *cp != 0; cp++)
-			if (strcmp(*cp, lowname) == 0)
+			if (strcasecmp(*cp, name) == 0)
 				goto found;
 	}
 found:

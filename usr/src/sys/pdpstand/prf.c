@@ -6,16 +6,17 @@
  *	@(#)prf.c	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
+#include "../machine/cons.h"
+
+#define	KLADDR	((struct dldevice *)0177560)
+
 #define	CTRL(x)	('x' & 037)
+
 /*
- * Scaled down version of C Library printf.
- * Only %s %u %d (==%u) %o %x %D are recognized.
- * Used to print diagnostic information
- * directly on console tty.
- * Since it is not interrupt driven,
- * all system activities are pretty much
- * suspended.
- * Printf should not be used for chit-chat.
+ * Scaled down version of C Library printf.  Only %s %u %d (==%u) %o %x %D
+ * are recognized.  Used to print diagnostic information directly on
+ * console tty.  Since it is not interrupt driven, all system activities
+ * are pretty much suspended.  Printf should not be used for chit-chat.
  */
 printf(fmt, x1)
 	register char *fmt;
@@ -27,17 +28,17 @@ printf(fmt, x1)
 
 	adx = &x1;
 loop:
-	while((c = *fmt++) != '%') {
-		if(c == '\0')
+	while ((c = *fmt++) != '%') {
+		if (c == '\0')
 			return;
 		putchar(c);
 	}
 	c = *fmt++;
-	if(c == 'd' || c == 'u' || c == 'o' || c == 'x')
+	if (c == 'd' || c == 'u' || c == 'o' || c == 'x')
 		printn((long)*adx, c=='o'? 8: (c=='x'? 16:10));
-	else if(c == 's') {
+	else if (c == 's') {
 		s = (unsigned char *)*adx;
-		while(c = *s++)
+		while (c = *s++)
 			putchar(c);
 	} else if (c == 'D' || c == 'O') {
 		printn(*(long *)adx, c == 'D' ?  10 : 8);
@@ -57,22 +58,14 @@ printn(n, b)
 {
 	register long a;
 
-	if (n<0) {	/* shouldn't happen */
+	if (n < 0) {	/* shouldn't happen */
 		putchar('-');
 		n = -n;
 	}
-	if(a = n/b)
+	if (a = n/b)
 		printn(a, b);
 	putchar("0123456789ABCDEF"[(int)(n%b)]);
 }
-
-
-
-struct	device	{
-	int	rcsr,rbuf;
-	int	tcsr,tbuf;
-};
-struct	device	*KLADDR	= {(struct device *)0177560};
 
 putchar(c)
 	register c;
@@ -80,25 +73,27 @@ putchar(c)
 	register s;
 	register unsigned timo;
 
+#ifdef notdef
 	/*
 	 *  If last char was a break or null, don't print
-	if ((KLADDR->rbuf&0177) == 0)
+	 */
+	if ((KLADDR->dlrbuf & 0177) == 0)
 		return;
-	*/
+#endif
 	timo = 60000;
 	/*
 	 * Try waiting for the console tty to come ready,
 	 * otherwise give up after a reasonable time.
 	 */
-	while((KLADDR->tcsr&0200) == 0)
-		if(--timo == 0)
+	while ((KLADDR->dlxcsr & DLXCSR_TRDY) == 0)
+		if (--timo == 0)
 			break;
-	if(c == 0)
+	if (c == 0)
 		return(c);
-	s = KLADDR->tcsr;
-	KLADDR->tcsr = 0;
-	KLADDR->tbuf = c;
-	if(c == '\n') {
+	s = KLADDR->dlxcsr;
+	KLADDR->dlxcsr = 0;
+	KLADDR->dlxbuf = c;
+	if (c == '\n') {
 		putchar('\r');
 		putchar(0177);
 		putchar(0177);
@@ -107,7 +102,7 @@ putchar(c)
 		putchar(0177);
 	}
 	putchar(0);
-	KLADDR->tcsr = s;
+	KLADDR->dlxcsr = s;
 	return(c);
 }
 
@@ -115,9 +110,10 @@ getchar()
 {
 	register c;
 
-	KLADDR->rcsr = 1;
-	while((KLADDR->rcsr&0200)==0);
-	c = KLADDR->rbuf&0177;
+	KLADDR->dlrcsr = DL_RE;
+	while ((KLADDR->dlrcsr & DL_RDONE) == 0)
+		continue;
+	c = KLADDR->dlrbuf & 0177;
 	if (c=='\r')
 		c = '\n';
 	return(c);
@@ -132,7 +128,7 @@ gets(buf)
 	lp = buf;
 	for (;;) {
 		c = getchar() & 0177;
-		switch(c) {
+		switch (c) {
 			default:
 				if (c < ' ' || c >= 127)
 					putchar(CTRL(G));

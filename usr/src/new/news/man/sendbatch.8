@@ -6,13 +6,15 @@
 .if n .ds Rq "
 .if t .ds Lq ``
 .if t .ds Rq ''
-.TH SENDBATCH 8 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH SENDBATCH 8 "October 13, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 sendbatch \- send news articles in batches
 .SH SYNOPSIS
 .BR sendbatch " ["
-.BI \-s " size "
+.BI \-s "size "
+] [
+.BI \-i " sitename"
 ] [
 .BR \-c " ] ["
 .BR \-c7 " ] ["
@@ -50,6 +52,12 @@ The
 flag is used to modify the size of the batches. By default, the
 batch size is 50,000 bytes.
 .PP
+The 
+.B \-i
+flag says to send a batch of Message-IDs with the 
+.I ihave
+protocol.
+.PP
 The
 .B \-o
 flag is used with the 
@@ -63,16 +71,22 @@ flags are passed directly to compress and may be used to change
 its compression algorithms if necessary.
 .SH EXAMPLES
 .PP
-To send to a pdp11/70 running 2.10.2 compressed batching:
+To send to a PDP 11/70 running 2.10.2 compressed batching:
 .ti 1i
 sendbatch  \-c \-C \-b12 -o sitename
 .PP
-To send to a Vax running 2.10.3 batching:
+To send to a VAX running 2.11 compressed batching:
 .ti 1i
 sendbatch \-c sitename
 .PP
-To send to a Vax over an X.25 network using batches of 30,000 bytes:
+To send to a VAX over an X.25 network using batches of 30,000 bytes:
 .ti 1i
 sendbatch \-c7 \-s30000 sitename
+.PP
+To send to a Sun running 2.11 compressed batching with 
+.I ihave/sendme
+:
+.ti 1i
+sendbatch \-c \-i sitename
 .SH SEE ALSO
 compress(1)

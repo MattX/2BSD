@@ -196,7 +196,7 @@ register u_short count;
 	register struct buf *bp;
 
 	bp = &ctsbuf;
-	s = spl5();
+	s = splbio();
 	while(bp->b_flags & B_BUSY) {
 		/*
 		 * This special check is because B_BUSY never
@@ -239,7 +239,7 @@ register struct buf *bp;
 		mapalloc(bp);
 #endif
 	bp->av_forw = NULL;
-	s = spl5();
+	s = splbio();
 	if (tstab.b_actf == NULL)
 		tstab.b_actf = bp;
 	else
@@ -602,8 +602,8 @@ tsinit(tsunit)
 	 * mapping necessary.
 	 */
 	if (!sc->sc_mapped) {
-		tbuf.b_xmem = hiint((long)(unsigned)tcmd); /*won't work past*/
-		tbuf.b_un.b_addr = loint((long)(unsigned)tcmd);/*64k any way*/
+		tbuf.b_xmem = 0;	/* won't work past 64k any way */
+		tbuf.b_un.b_addr = (caddr_t)tcmd;
 		tbuf.b_flags = B_PHYS;	/* want map to point to phys. addr. */
 		tbuf.b_bcount = sizeof(struct ts_cmd);
 		mapalloc(&tbuf);

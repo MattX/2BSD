@@ -17,6 +17,7 @@ static char sccsid[] = "@(#)ftp.c	5.15 (Berkeley) 4/23/87";
 #include <sys/param.h>
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <arpa/ftp.h>
 #include <arpa/telnet.h>
 

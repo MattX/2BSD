@@ -1,5 +1,16 @@
-# 2.10BSD network Makefile
-
+#
+# Copyright (c) 1988 Regents of the University of California.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms are permitted
+# provided that this notice is preserved and that due credit is given
+# to the University of California at Berkeley. The name of the University
+# may not be used to endorse or promote products derived from this
+# software without specific prior written permission. This software
+# is provided ``as is'' without express or implied warranty.
+#
+#	%W% (Berkeley) %G%
+#
 N1=	../net
 N1C=	${N1}/af.c ${N1}/if.c ${N1}/if_loop.c ${N1}/if_sl.c		\
 	${N1}/raw_cb.c ${N1}/raw_usrreq.c ${N1}/route.c
@@ -30,27 +41,35 @@ N5C=	${N5}/ns.c ${N5}/ns_pcb.c ${N5}/ns_proto.c ${N5}/ns_error.c	\
 N5O=	ns.o ns_pcb.o ns_proto.o ns_error.o ns_ip.o ns_input.o		\
 	ns_output.o idp_usrreq.o spp_usrreq.o spp_debug.o
 
-N6=	../vaxif
+N6=	../pdpif
 N6C=	${N6}/if_acc.c ${N6}/if_css.c ${N6}/if_de.c ${N6}/if_dmc.c	\
 	${N6}/if_ec.c ${N6}/if_en.c ${N6}/if_il.c ${N6}/if_qe.c		\
 	${N6}/if_sri.c ${N6}/if_uba.c ${N6}/if_vv.c
 N6O=	if_acc.o if_css.o if_de.o if_dmc.o if_ec.o if_en.o if_il.o	\
 	if_qe.o if_sri.o if_uba.o if_vv.o
 
-VPATH=	../net:../netimp:../netinet:../netpup:../netns:../vaxif
-OBJS=	${N1O} ${N3O} ${N6O}
-SRCS=	${N1C} ${N3C} ${N6C}
+S=	../sys
+SC=	${S}/sys_socket.c ${S}/sys_net.c ${S}/uipc_domain.c		\
+	${S}/uipc_mbuf.c ${S}/uipc_proto.c ${S}/uipc_socket.c		\
+	${S}/uipc_socket2.c ${S}/uipc_usrreq.c
+SO=	sys_socket.o sys_net.o uipc_domain.o uipc_mbuf.o uipc_proto.o	\
+	uipc_socket.o uipc_socket2.o uipc_usrreq.o
+
+VPATH=	../net:../netimp:../netinet:../netpup:../netns:../pdpif:../sys
+SRCS=	${N1C} ${N2C} ${N3C} ${N4C} ${N5C} ${N6C} ${SC}
+OBJS=	${N1O} ${N2O} ${N3O} ${N4O} ${N5O} ${N6O} ${SO}
 
 .c.o:
 	${CC} ${CFLAGS} -S $*.c
-	${ED} - < SPLFIX $*.s
+	${ED} - < NETSPLFIX $*.s
 	${AS} - -o $*.o $*.s
 	rm -f $*.s
 
 all: ${OBJS}
 
 depend:
-	mkdep ${CFLAGS} ${SRCS}
+	mkdep -f Make.net ${CFLAGS} ${SRCS}
 
-# DO NOT DELETE THIS LINE
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 

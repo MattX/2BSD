@@ -11,8 +11,11 @@
 /*
  * Host table manipulation routines.
  * Only needed when shipping stuff through an IMP.
+ *
+ * Everything in here is called at splimp from
+ * from the IMP protocol code (if_imp.c), or
+ * interlocks with the code at splimp.
  */
-
 #include "param.h"
 #include "mbuf.h"
 #include "domain.h"
@@ -22,7 +25,6 @@
 #include <netimp/if_imp.h>
 #include <netimp/if_imphost.h>
 
-#if !pdp11
 /*
  * Head of host table hash chains.
  */
@@ -39,21 +41,15 @@ hostlookup(addr)
 	register struct host *hp;
 	register struct mbuf *m;
 	register int hash = HOSTHASH(addr);
-	int s = splnet();
 
-	MAPSAVE();
 	for (m = hosts; m; m = m->m_next) {
 		hp = &mtod(m, struct hmbuf *)->hm_hosts[hash];
 	        if (hp->h_addr.s_addr == addr.s_addr) {
 			hp->h_flags |= HF_INUSE;
-			goto found;
+			return (hp);
 		}
 	}
-	hp = 0;
-found:
-	splx(s);
-	MAPREST();
-	return (hp);
+	return ((struct host *)0);
 }
 
 /*
@@ -68,9 +64,7 @@ hostenter(addr)
 	register struct mbuf *m, **mprev;
 	register struct host *hp, *hp0 = 0;
 	register int hash = HOSTHASH(addr);
-	int s = splnet();
 
-	MAPSAVE();
 	mprev = &hosts;
 	while (m = *mprev) {
 		mprev = &m->m_next;
@@ -92,14 +86,10 @@ hostenter(addr)
 	 * chain of mbuf's, allocate another.
 	 */
 	if (hp0 == 0) {
-		m = m_getclr(M_DONTWAIT);
-		if (m == 0) {
-			splx(s);
-			MAPUNSAVE();
-			return (0);
-		}
+		m = m_getclr(M_DONTWAIT, MT_HTABLE);
+		if (m == NULL)
+			return ((struct host *)0);
 		*mprev = m;
-		m->m_off = MMINOFF;
 		hp0 = &mtod(m, struct hmbuf *)->hm_hosts[hash];
 	}
 	mtod(dtom(hp0), struct hmbuf *)->hm_count++;
@@ -110,8 +100,6 @@ hostenter(addr)
 
 foundhost:
 	hp->h_flags |= HF_INUSE;
-	splx(s);
-	MAPREST();
 	return (hp);
 }
 
@@ -122,12 +110,10 @@ foundhost:
 hostfree(hp)                               
 	register struct host *hp;
 {
-	int s = splnet();
 
 	hp->h_flags &= ~HF_INUSE;
 	hp->h_timer = HOSTTIMER;
 	hp->h_rfnm = 0;
-	splx(s);
 }
 
 /*
@@ -139,29 +125,26 @@ hostreset(net)
 	register struct mbuf *m;
 	register struct host *hp, *lp;
 	struct hmbuf *hm;
-	int s = splnet();
+	struct mbuf *mnext;
 
-	MAPSAVE();
-	for (m = hosts; m; m = m->m_next) {
+	for (m = hosts; m; m = mnext) {
+		mnext = m->m_next;
 		hm = mtod(m, struct hmbuf *);
 		hp = hm->hm_hosts; 
 		lp = hp + HPMBUF;
 		while (hm->hm_count > 0 && hp < lp) {
-			if (hp->h_addr.s_net == net) {
+			if (in_netof(hp->h_addr) == net) {
 				hp->h_flags &= ~HF_INUSE;
 				hostrelease(hp);
 			}
 			hp++;
 		}
 	}
-	splx(s);
-	MAPREST();
 }
 
 /*
  * Remove a host structure and release
  * any resources it's accumulated.
- * This routine is always called at splnet.
  */
 hostrelease(hp)
 	register struct host *hp;
@@ -171,7 +154,6 @@ hostrelease(hp)
 	/*
 	 * Discard any packets left on the waiting q
 	 */
-	MAPSAVE();
 	if (m = hp->h_q) {
 		register struct mbuf *n;
 
@@ -190,7 +172,6 @@ hostrelease(hp)
 	while ((m = *mprev) != mh)
 		mprev = &m->m_next;
 	*mprev = m_free(mh);
-	MAPREST();
 }
 
 /*
@@ -224,52 +205,23 @@ hostslowtimo()
 	register struct mbuf *m;
 	register struct host *hp, *lp;
 	struct hmbuf *hm;
-	int s = splnet();
+	struct mbuf *mnext;
+	int s = splimp();
 
-	MAPSAVE();
-	for (m = hosts; m; m = m->m_next) {
+	for (m = hosts; m; m = mnext) {
+		mnext = m->m_next;
 		hm = mtod(m, struct hmbuf *);
 		hp = hm->hm_hosts; 
 		lp = hp + HPMBUF;
 		for (; hm->hm_count > 0 && hp < lp; hp++) {
-			if (hp->h_flags & HF_INUSE)
-				continue;
 			if (hp->h_timer && --hp->h_timer == 0) {
+				if (hp->h_rfnm)
+				    printf("imp?: host %x, lost %d rfnms\n",
+					ntohl(hp->h_addr.s_addr), hp->h_rfnm);
 				hostrelease(hp);
 			}
 		}
 	}
 	splx(s);
-	MAPREST();
 }
 #endif
-
-#if pdp11       /* horrors!  he's counting his RFNMs before they hatch */
-
-struct host *
-hostlookup(addr)
-	struct in_addr addr;
-{
-	static struct host h;
-
-	h.h_addr = addr;
-	h.h_rfnm = 0;
-	h.h_flags = HF_INUSE;
-	return(&h);
-}
-
-struct host *
-hostenter(addr)
-	struct in_addr addr;
-{
-	return(hostlookup(addr));
-}
-
-hostslowtimo() {}
-hostfree() {}
-hostreset() {}
-hostrelease() {}
-struct mbuf *hostdeque() { return(0); }
-
-#endif pdp11
-#endif NIMP > 0

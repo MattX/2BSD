@@ -5,8 +5,8 @@
 #
 #	@(#)Makefile	7.1 (Berkeley) 6/5/86
 #
-ALL=	dvhpuboot hkuboot hpuboot rauboot rkuboot rluboot rm03uboot \
-	rm05uboot rpuboot si94uboot si95uboot
+ALL=	bruboot dvhpuboot hkuboot hpuboot rauboot rkuboot rluboot \
+	rm03uboot rm05uboot si51uboot si94uboot si95uboot
 
 all: ${ALL}
 
@@ -20,6 +20,7 @@ ${ALL}:
 	dd if=a.out of=b.out bs=16 skip=1
 	dd if=b.out of=$@ conv=sync
 
+bruboot:	bruboot.s
 dvhpuboot:	dvhpuboot.s
 hkuboot:	hkuboot.s
 hpuboot:	hpuboot.s
@@ -28,7 +29,7 @@ rkuboot:	rkuboot.s
 rluboot:	rluboot.s
 rm03uboot:	rm03uboot.s
 rm05uboot:	rm05uboot.s
-rpuboot:	rpuboot.s
+si51uboot:	si51uboot.s
 si94uboot:	si94uboot.s
 si95uboot:	si95uboot.s
 

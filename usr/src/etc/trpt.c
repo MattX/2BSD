@@ -18,7 +18,9 @@ static char sccsid[] = "@(#)trpt.c	5.2 (Berkeley) 9/18/85";
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #define PRUREQUESTS
+#define SUPERVISOR
 #include <sys/protosw.h>
+#undef SUPERVISOR
 
 #include <net/route.h>
 #include <net/if.h>

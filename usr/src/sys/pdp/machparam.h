@@ -35,20 +35,58 @@ unsigned short	ntohs(), htons();
 long		ntohl(), htonl();
 #endif
 
-#define	NBPG	512		/* bytes/page */
-#define	PGOFSET	(NBPG-1)	/* byte offset into page */
-#define	PGSHIFT	9		/* LOG2(NBPG) */
+#define	CHAR_BIT	NBBY
+#define	CHAR_MAX	0x7f
+#define	CHAR_MIN	0x80
+#define	CLK_TCK		60			/* for times() */
+#define	INT_MAX		0x7fff
+#define	INT_MIN		0x8000
+#define	LONG_MAX	0x7fffffff
+#define	LONG_MIN	0x80000000
+#define	SCHAR_MAX	0x7f
+#define	SCHAR_MIN	0x80
+#define	SHRT_MAX	0x7fff
+#define	SHRT_MIN	0x8000
+#define	UCHAR_MAX	0xff
+#define	UINT_MAX	((unsigned int)0xffff)
+#define	ULONG_MAX	0x7fffffff
+#define	USHRT_MAX	((unsigned short)0xffff)
+
+#define	NBPG		512		/* bytes/page */
+#define	PGOFSET		(NBPG-1)	/* byte offset into page */
+#define	PGSHIFT		9		/* LOG2(NBPG) */
 
 #define	DEV_BSIZE	1024
 #define	DEV_BSHIFT	10		/* log2(DEV_BSIZE) */
 #define	DEV_BMASK	0x3ffL		/* DEV_BSIZE - 1 */
 
 #define	CLSIZE		2
+#define	CLSIZELOG2	1
 
-#define	SSIZE	20		/* initial stack size (*64 bytes) */
-#define	SINCR	20		/* increment of stack (*64 bytes) */
+#define	SSIZE	20			/* initial stack size (*64 bytes) */
+#define	SINCR	20			/* increment of stack (*64 bytes) */
 
-#define	USIZE	48		/* size of u-area (*64) */
+/*
+ * User area: a user structure, followed by a stack for the networking code
+ * (running in supervisor space on the PDP-11), followed by the kernel
+ * stack.  The numbers for NET_SSIZE and KERN_SSIZE are determined
+ * empirically.
+ *
+ * Note that the SBASE and STOP constants are only used by the assembly code,
+ * but are defined here to localize information about the user area's
+ * layout (see pdp/genassym.c).  Note also that a networking stack is always
+ * allocated even for non-networking systems.  This prevents problems with
+ * applications having to be recompiled for networking versus non-networking
+ * systems.
+ */
+#define	NET_SSIZE	16	/* size of the network stack (*64) */
+#define	KERN_SSIZE	32	/* size of the kernel stack (*64) */
+#define	USIZE		(btoc(sizeof(struct user)) + NET_SSIZE + KERN_SSIZE)
+
+#define	NET_SBASE	ctob(btoc(sizeof(struct user)))
+#define	NET_STOP	(NET_SBASE + ctob(NET_SSIZE))
+#define	KERN_SBASE	NET_STOP
+#define	KERN_STOP	(KERN_SBASE + ctob(KERN_SSIZE))
 
 /*
  * Some macros for units conversion
@@ -66,9 +104,7 @@ long		ntohl(), htonl();
 /* bytes to clicks */
 #define	btoc(x)	((((unsigned)(x)+63)>>6))
 
-/*
- * These should be fixed to use unsigned longs, if we ever get them.
- */
+/* these should be fixed to use unsigned longs, if we ever get them. */
 #define	btodb(bytes)		/* calculates (bytes / DEV_BSIZE) */ \
 	((long)(bytes) >> DEV_BSHIFT)
 #define	dbtob(db)		/* calculates (db * DEV_BSIZE) */ \
@@ -80,6 +116,7 @@ long		ntohl(), htonl();
 /*
  * Macros to decode processor status word.
  */
+#define	SUPVMODE(ps)	(((ps) & PSL_CURMOD) == PSL_CURSUP)
 #define	USERMODE(ps)	(((ps) & PSL_USERSET) == PSL_USERSET)
 #define	BASEPRI(ps)	(((ps) & PSL_IPL) == 0)
 
@@ -88,9 +125,9 @@ long		ntohl(), htonl();
  * processors.
  */
 #ifdef PDP==44 || PDP==53 || PDP==70 || PDP==73 || PDP==83 || PDP==84
-#define	DELAY(n)	{ register long N = (n)<<1; while (--N > 0); }
+#define	DELAY(n)	{ long N = ((long)(n))<<1; while (--N > 0); }
 #else
-#define	DELAY(n)	{ register long N = (n); while (--N > 0); }
+#define	DELAY(n)	{ long N = (n); while (--N > 0); }
 #endif
 
 /*
@@ -109,6 +146,17 @@ long		ntohl(), htonl();
  * high int of a long
  * low int of a long
  */
-#define	hiint(long)	((int)((long)>>16))
-#define	loint(long)	((int)(long))
+#define	hiint(long)	(((int *)&(long))[0])
+#define	loint(long)	(((int *)&(long))[1])
+
+#ifdef UCB_NET
+/*
+ * SUPERADD is used to distinguish a supervisor-mode address from a
+ * kernel mode address to insure uniqueness over both address spaces.
+ */
+#define	SUPERADD(add)	((int)(add)|01)
+#define	KERNELADD(add)	((int)(add)&~01)
+#define	ISSUPERADD(add)	((int)(add)&01)
+#endif
+
 #endif ENDIAN

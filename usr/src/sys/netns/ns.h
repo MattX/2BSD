@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns.h	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns.h	7.3 (Berkeley) 1/20/88
  */
 
-#ifdef BSD2_10
 #include <short_names.h>
-#endif BSD2_10
-
 /*
  * Constants and Structures defined by the Xerox Network Software
  * per "Internet Transport Protocols", XSIS 028112, December 1981
@@ -107,23 +110,13 @@ struct sockaddr_ns {
 #define ns_nullhost(x) (((x).x_host.s_host[0]==0) && \
 	((x).x_host.s_host[1]==0) && ((x).x_host.s_host[2]==0))
 
-#if !defined(vax) && !defined(pdp11) && !defined(ntohl) && !defined(lint)
 /*
- * Macros for number representation conversion.
+ * Routines for number representation conversion.
  */
-#define	ntohl(x)	(x)
-#define	ntohs(x)	(x)
-#define	htonl(x)	(x)
-#define	htons(x)	(x)
-#endif
-
-#if !defined(ntohl) && (defined(vax) || defined(pdp11) || defined(lint))
 u_short	ntohs(), htons();
 u_long	ntohl(), htonl();
-#endif
 
-#ifdef KERNEL
-#include <sys/domain.h>
+#ifdef SUPERVISOR
 extern struct domain nsdomain;
 union ns_host ns_thishost;
 union ns_host ns_zerohost;

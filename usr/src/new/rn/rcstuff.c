@@ -1,6 +1,12 @@
-/* $Header: rcstuff.c,v 4.3.1.3 85/05/29 09:13:25 lwall Exp $
+/* $Header: rcstuff.c,v 4.3.1.5 86/07/24 14:09:10 lwall Exp $
  *
  * $Log:	rcstuff.c,v $
+ * Revision 4.3.1.5  86/07/24  14:09:10  lwall
+ * Removed check for spool directory existence in get_ng.
+ * 
+ * Revision 4.3.1.4  85/09/10  11:04:44  lwall
+ * Improved %m in in_char().
+ * 
  * Revision 4.3.1.3  85/05/29  09:13:25  lwall
  * %d that should be %ld.
  * 
@@ -264,7 +270,7 @@ bool do_reloc;
 	    sprintf(promptbuf,"\nAdd %s? [yn] ",ngname);
 #endif
 reask_add:
-	in_char(promptbuf);
+	in_char(promptbuf,'A');
 	putchar('\n') FLUSH;
 	setdef(buf,"y");
 #ifdef VERIFY
@@ -309,7 +315,7 @@ reask_add:
 	      FLUSH;
 #endif
 reask_unsub:
-	in_char(promptbuf);
+	in_char(promptbuf,'R');
 	putchar('\n') FLUSH;
 	setdef(buf,"y");
 #ifdef VERIFY
@@ -707,7 +713,7 @@ cleanup_rc()
 	}
 #ifdef DELBOGUS
 reask_bogus:
-	in_char("Delete bogus newsgroups? [ny] ");
+	in_char("Delete bogus newsgroups? [ny] ", 'D');
 	putchar('\n') FLUSH;
 	setdef(buf,"n");
 #ifdef VERIFY

@@ -366,7 +366,7 @@ dzparam(unit)
 		return;
 	}
 	lpr = (dz_speeds[tp->t_ispeed]<<8) | (unit & 07);
-	if (tp->t_flags & (RAW|LLITOUT|PASS8))
+	if (tp->t_flags & (RAW|LITOUT|PASS8))
 		lpr |= BITS8;
 	else
 		lpr |= (BITS7|PENABLE);
@@ -416,17 +416,15 @@ dzstart(tp)
 			tp->t_state &= ~TS_ASLEEP;
 			wakeup((caddr_t) &tp->t_outq);
 		}
-#ifdef UCB_NET
 		if (tp->t_wsel) {
 			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
 			tp->t_wsel = 0;
 			tp->t_state &= ~TS_WCOLL;
 		}
-#endif UCB_NET
 	}
 	if (tp->t_outq.c_cc == 0)
 		goto out;
-	if (tp->t_flags & (RAW|LLITOUT))
+	if (tp->t_flags & (RAW|LITOUT))
 		cc = ndqb(&tp->t_outq, 0);
 	else {
 		cc = ndqb(&tp->t_outq, 0200);

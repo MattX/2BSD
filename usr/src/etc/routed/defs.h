@@ -21,6 +21,7 @@
 
 #include <net/route.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <protocols/routed.h>
 
 #include <stdio.h>
@@ -51,7 +52,7 @@ int	install;		/* if 1 call kernel */
 int	lookforinterfaces;	/* if 1 probe kernel for new up interfaces */
 int	performnlist;		/* if 1 check if /vmunix has changed */
 int	externalinterfaces;	/* # of remote and local interfaces */
-int	timeval;		/* local idea of time */
+long	timeval;		/* local idea of time */
 
 char	packet[MAXPACKETSIZE+1];
 struct	rip *msg;
@@ -62,10 +63,10 @@ struct	servent *sp;
 extern	char *sys_errlist[];
 extern	int errno;
 
-struct	in_addr inet_makeaddr();
 char	*malloc();
 int	exit();
 int	sendmsg();
 int	supply();
 int	timer();
 int	cleanup();
+time_t	time();

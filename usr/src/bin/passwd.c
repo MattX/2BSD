@@ -338,13 +338,15 @@ tryagain:
 	return (crypt(pwbuf, saltc));
 }
 
+#define	STRSIZE	100
+
 char *
 getloginshell(pwd, u, arg)
 	struct passwd *pwd;
 	int u;
 	char *arg;
 {
-	static char newshell[BUFSIZ];
+	static char newshell[STRSIZE];
 	char *cp, *valid, *getusershell();
 
 	if (pwd->pw_shell == 0 || *pwd->pw_shell == '\0')
@@ -422,9 +424,9 @@ char *
 getfingerinfo(pwd)
 	struct passwd *pwd;
 {
-	char in_str[BUFSIZ];
+	char in_str[STRSIZE];
 	struct default_values *defaults, *get_defaults();
-	static char answer[4*BUFSIZ];
+	static char answer[4*STRSIZE];
 
 	answer[0] = '\0';
 	defaults = get_defaults(pwd->pw_gecos);
@@ -436,7 +438,7 @@ getfingerinfo(pwd)
 	 */
 	do {
 		printf("\nName [%s]: ", defaults->name);
-		(void) fgets(in_str, BUFSIZ, stdin);
+		(void) fgets(in_str, STRSIZE, stdin);
 		if (special_case(in_str, defaults->name)) 
 			break;
 	} while (illegal_input(in_str));
@@ -447,7 +449,7 @@ getfingerinfo(pwd)
 	do {
 		printf("Room number (Exs: 597E or 197C) [%s]: ",
 			defaults->office_num);
-		(void) fgets(in_str, BUFSIZ, stdin);
+		(void) fgets(in_str, STRSIZE, stdin);
 		if (special_case(in_str, defaults->office_num))
 			break;
 	} while (illegal_input(in_str) || illegal_building(in_str));
@@ -459,7 +461,7 @@ getfingerinfo(pwd)
 	do {
 		printf("Office Phone (Ex: 6426000) [%s]: ",
 			defaults->office_phone);
-		(void) fgets(in_str, BUFSIZ, stdin);
+		(void) fgets(in_str, STRSIZE, stdin);
 		if (special_case(in_str, defaults->office_phone))
 			break;
 		remove_hyphens(in_str);
@@ -471,7 +473,7 @@ getfingerinfo(pwd)
 	 */
 	do {
 		printf("Home Phone (Ex: 9875432) [%s]: ", defaults->home_phone);
-		(void) fgets(in_str, BUFSIZ, stdin);
+		(void) fgets(in_str, STRSIZE, stdin);
 		if (special_case(in_str, defaults->home_phone))
 			break;
 		remove_hyphens(in_str);
@@ -508,7 +510,7 @@ illegal_input(input_str)
 	if (input_str[length-1] != '\n') {
 		/* the newline and the '\0' eat up two characters */
 		printf("Maximum number of characters allowed is %d\n",
-			BUFSIZ-2);
+			STRSIZE-2);
 		/* flush the rest of the input line */
 		while (getchar() != '\n')
 			/* void */;

@@ -32,7 +32,11 @@ struct fileusage {
 	u_short	fu_uid;
 	char fu_name[LOGINNAMESIZE + 1];
 };
+#ifdef BSD2_10
+#define	FUHASH 337
+#else
 #define FUHASH 997
+#endif
 struct fileusage *fuhead[FUHASH];
 struct fileusage *lookup();
 struct fileusage *adduid();
@@ -158,16 +162,26 @@ repquota(fsdev, fsfile, qffile)
 			printf("%-10s", fup->fu_name);
 		else
 			printf("#%-9d", uid);
+#ifdef BSD2_10
+		printf("%c%c%8ld%8ld%8ld %5u   %5u %5u %5u %5u\n",
+#else
 		printf("%c%c%8d%8d%8d %5d   %5d %5d %5d %5d\n",
+#endif
 			fup->fu_dqblk.dqb_bsoftlimit && 
 			    fup->fu_dqblk.dqb_curblocks >= 
 			    fup->fu_dqblk.dqb_bsoftlimit ? '+' : '-',
 			fup->fu_dqblk.dqb_isoftlimit &&
 			    fup->fu_dqblk.dqb_curinodes >=
 			    fup->fu_dqblk.dqb_isoftlimit ? '+' : '-',
+#ifdef BSD2_10
+			fup->fu_dqblk.dqb_curblocks / 1024,
+			fup->fu_dqblk.dqb_bsoftlimit / 1024,
+			fup->fu_dqblk.dqb_bhardlimit / 1024,
+#else
 			dbtob(fup->fu_dqblk.dqb_curblocks) / 1024,
 			dbtob(fup->fu_dqblk.dqb_bsoftlimit) / 1024,
 			dbtob(fup->fu_dqblk.dqb_bhardlimit) / 1024,
+#endif
 			fup->fu_dqblk.dqb_bwarn,
 			fup->fu_dqblk.dqb_curinodes,
 			fup->fu_dqblk.dqb_isoftlimit,

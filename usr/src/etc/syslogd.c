@@ -333,7 +333,7 @@ untty()
 	if (!Debug) {
 		i = open("/dev/tty", O_RDWR);
 		if (i >= 0) {
-			(void) ioctl(i, (int) TIOCNOTTY, (char *)0);
+			(void) ioctl(i, TIOCNOTTY, (char *)0);
 			(void) close(i);
 		}
 	}
@@ -800,8 +800,14 @@ init()
 	 *  Close all open log files.
 	 */
 	for (f = Files; f < &Files[NLOGS]; f++) {
-		if (f->f_type == F_FILE || f->f_type == F_TTY)
+		switch (f->f_type) {
+		  case F_FILE:
+		  case F_TTY:
+		  case F_FORW:
+		  case F_CONSOLE:
 			(void) close(f->f_file);
+			break;
+		}
 		f->f_type = F_UNUSED;
 	}
 

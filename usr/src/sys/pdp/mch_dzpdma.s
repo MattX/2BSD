@@ -26,12 +26,12 @@
  * };
  */
 ASENTRY(dzdma)
-	mov	PS, -(sp)		/ save new PS, r0-r3 and __ovno (r0
-	mov	r0, -(sp)		/   saved before __ovno so we can
-	mov	__ovno, -(sp)		/   use it to restore overlay
-	mov	r1, -(sp)		/   mapping if necessary)
-	mov	r2, -(sp)
-	mov	r3, -(sp)
+	mov	PS,-(sp)		/ save new PS, r0-r3 and __ovno (r0
+	mov	r0,-(sp)		/   saved before __ovno so we can
+	mov	__ovno,-(sp)		/   use it to restore overlay
+	mov	r1,-(sp)		/   mapping if necessary)
+	mov	r2,-(sp)
+	mov	r3,-(sp)
 #ifdef UCB_METER
 	/*
 	 * 4.3BSD doesn't count this as an interrupt (cnt.v_intr) so we don't
@@ -39,53 +39,53 @@ ASENTRY(dzdma)
 	 */
 	inc	_cnt+V_PDMA		/ cnt.v_pdma++
 #endif
-	mov	12(sp), r3		/ new PS
-	bic	$!37, r3		/ extract device number
-	ash	$3+3, r3		/ r3 = &_dzpdma[dev*8] - 8 lines per DZ
-	add	$_dzpdma, r3
-	mov	(r3)+, r2		/ pd_addr in r2; r3 points to p_mem
+	mov	12(sp),r3		/ new PS
+	bic	$!37,r3			/ extract device number
+	ash	$3+3,r3			/ r3 = &_dzpdma[dev*8] - 8 lines per DZ
+	add	$_dzpdma,r3
+	mov	(r3)+,r2		/ pd_addr in r2; r3 points to p_mem
 #ifdef UCB_CLIST
-	mov	KDSA5, -(sp)		/ save previous mapping
-	mov	KDSD5, -(sp)
-	mov	_clststrt, KDSA5	/ map in clists
-	mov	_clstdesc, KDSD5
+	mov	KDSA5,-(sp)		/ save previous mapping
+	mov	KDSD5,-(sp)
+	mov	_clststrt,KDSA5		/ map in clists
+	mov	_clstdesc,KDSD5
 #endif
 1:					/ loop until no line is ready
-	movb	1(r2), r1		/ dzcsr high byte
+	movb	1(r2),r1		/ dzcsr high byte
 	bge	3f			/ test TRDY; branch if none
-	bic	$!7, r1			/ extract line number
-	ash	$3, r1			/ convert to pdma offset
-	add	r3, r1			/ r1 is pointer to pdma.p_mem for line
-	mov	(r1)+, r0		/ pdma->p_mem
-	cmp	r0, (r1)+		/ cmp p_mem to p_end
+	bic	$!7,r1			/ extract line number
+	ash	$3,r1			/ convert to pdma offset
+	add	r3,r1			/ r1 is pointer to pdma.p_mem for line
+	mov	(r1)+,r0		/ pdma->p_mem
+	cmp	r0,(r1)+		/ cmp p_mem to p_end
 	bhis	2f			/ if p_mem >= p_end
-	movb	(r0)+, 6(r2)		/ dztbuf = *p_mem++
-	mov	r0, -4(r1)		/ update p_mem
+	movb	(r0)+,6(r2)		/ dztbuf = *p_mem++
+	mov	r0,-4(r1)		/ update p_mem
 	br	1b
 2:					/ buffer is empty; call dzxint
-	mov	(r1), -(sp)		/ p_arg
-	jsr	pc, _dzxint		/ r0, r1 are modified!
+	mov	(r1),-(sp)		/ p_arg
+	jsr	pc,_dzxint		/ r0, r1 are modified!
 	tst	(sp)+
 	br	1b
 					/ no more lines ready; return
 3:
 #ifdef UCB_CLIST
-	mov	(sp)+, KDSD5
-	mov	(sp)+, KDSA5		/ restore previous mapping
+	mov	(sp)+,KDSD5
+	mov	(sp)+,KDSA5		/ restore previous mapping
 #endif
-	mov	(sp)+, r3		/ restore saved registers
-	mov	(sp)+, r2
-	mov	(sp)+, r1
+	mov	(sp)+,r3		/ restore saved registers
+	mov	(sp)+,r2
+	mov	(sp)+,r1
 	SPL7
-	mov	(sp)+, r0		/ overlays get switched while we were
-	cmp	r0, __ovno		/   doing our thing?
+	mov	(sp)+,r0		/ overlays get switched while we were
+	cmp	r0,__ovno		/   doing our thing?
 	beq	4f
-	mov	r0, __ovno		/ yes, have to restore the earlier
+	mov	r0,__ovno		/ yes, have to restore the earlier
 	asl	r0			/   overlay mapping
-	mov	ova(r0), OVLY_PAR
-	mov	ovd(r0), OVLY_PDR
+	mov	ova(r0),OVLY_PAR
+	mov	ovd(r0),OVLY_PDR
 4:
-	mov	(sp)+, r0		/ restore r0, toss new PS value
+	mov	(sp)+,r0		/ restore r0, toss new PS value
 	tst	(sp)+			/   and return from the interrupt
 	rtt
 #endif NDZ > 0

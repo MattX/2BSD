@@ -1,11 +1,15 @@
 #
 # name	getty			type		status		comments
 #
-console	"/etc/getty std.9600"	vt100		on secure
-#tty00	"/etc/getty std.9600"	unknown		on
-#tty01	"/etc/getty std.9600"	unknown		on
-#tty02	"/etc/getty std.9600"	unknown		on
-tty03	"/etc/getty std.9600"	unknown		off secure
+console	"/etc/getty Console-1200" unknown	on secure
+tty00	"/etc/getty std.9600"	unknown		on secure
+tty01	"/etc/getty std.9600"	unknown		on secure
+tty02	"/etc/getty std.9600"	unknown		on secure
+tty03	"/etc/getty std.9600"	unknown		on secure
+tty04	"/etc/getty std.9600"	unknown		on secure
+tty05	"/etc/getty std.9600"	unknown		on secure
+tty06	"/etc/getty std.9600"	unknown		on secure
+tty07	"/etc/getty std.9600"	unknown		on secure
 ttyp0	none			network
 ttyp1	none			network
 ttyp2	none			network
@@ -22,3 +26,19 @@ ttypc	none			network
 ttypd	none			network
 ttype	none			network
 ttypf	none			network
+ttyq0	none			network
+ttyq1	none			network
+ttyq2	none			network
+ttyq3	none			network
+ttyq4	none			network
+ttyq5	none			network
+ttyq6	none			network
+ttyq7	none			network
+ttyq8	none			network
+ttyq9	none			network
+ttyqa	none			network
+ttyqb	none			network
+ttyqc	none			network
+ttyqd	none			network
+ttyqe	none			network
+ttyqf	none			network

@@ -14,6 +14,7 @@
 #	tm*	unibus tm11 & te10 emulations (e.g. Emulex tc-11)
 #	ts*	unibus ts11
 # Disks:
+#	br*	unibus Eaton br1538 or br1711
 #	hk*	unibus rk06 and rk07
 #	ra*	unibus uda50 w/ ra??
 #	rk*	unibus rk05
@@ -110,10 +111,10 @@ rx*)
 	mknod ${name}1a b ${blk} 1
 	mknod ${name}0b b ${blk} 2
 	mknod ${name}1b b ${blk} 3
-	mknod r${name}0a b ${blk} 0
-	mknod r${name}1a b ${blk} 1
-	mknod r${name}0b b ${blk} 2
-	mknod r${name}1b b ${blk} 3
+	mknod r${name}0a c ${chr} 0
+	mknod r${name}1a c ${chr} 1
+	mknod r${name}0b c ${chr} 2
+	mknod r${name}1b c ${chr} 3
 	chgrp operator ${name}[01][ab] r${name}[01][ab]
 	chmod 640 ${name}[01][ab] r${name}[01][ab]
 	;;
@@ -129,12 +130,12 @@ ram*)
 	umask 77
 	;;
 
-hk*|ra*|si*|xp*)
+br*|hk*|ra*|si*|xp*)
 	umask 2 ; unit=`expr $i : '..\(.*\)'`
 	case $i in
+	br*) name=br; blk=11; chr=20;;
 	hk*) name=hk; blk=4; chr=13;;
 	ra*) name=ra; blk=5; chr=14;;
-	rx*) name=rx; blk=8; chr=17;;
 	si*) name=si; blk=9; chr=18;;
 	xp*) name=xp; blk=10; chr=19;;
 	esac

@@ -11,40 +11,6 @@
  * RM02/03/05's, RP04/05/06's, and everything using the XP driver.
  */
 
-#if NXPD > 0
-/*
- *	Structures used in the xp driver
- *	to describe drives, controllers, and topology 
- */
-struct xp_controller {
-	struct	buf *xp_actf;		/* pointer to next active xputab */
-	struct	buf *xp_actl;		/* pointer to last active xputab */
-	struct	hpdevice *xp_addr;	/* csr address */
-	char	xp_flags;		/* controller-type flags */
-	char	xp_active;		/* nonzero if doing a transfer */
-};
-
-struct xp_drive {
-	struct	xp_controller *xp_ctlr; /* controller to which slave attached */
-	char	xp_type;		/* drive type */
-	char	xp_unit;		/* slave number */
-	struct	size *xp_sizes;		/* pointer to sizes array */
-	char	xp_nsect;
-	char	xp_ntrack;
-	int	xp_nspc;		/* sectors/cylinder */
-	int	xp_cc;			/* current cylinder, for RM's */
-#ifdef BADSECT
-	int	xp_ncyl;		/* cylinders per pack */
-#endif
-};
-
-/*
- * bits in xp_flags:
- */
-#define	XP_NOCC		1		/* has no current cylinder register */
-#define	XP_RH70		2		/* uses 22-bit addressing */
-#define	XP_NOSEARCH	4		/* won't do search commands */
-
 /*
  * Defines for disk drive type registers
  */
@@ -53,19 +19,24 @@ struct xp_drive {
 #define	RP06	022		/* RP06 */
 #define	RM03	024		/* RM03 */
 #define	RM02	025		/* RM02 */
-#define	RM05	027		/* RM05 */
+#define	RM05	027		/* RM05 or SI 9500, CDC 9766 */
 /*
  * These drive types are dummies because the actual numbers conflict
  * with DEC controllers.  The RM5X and the RM2X actually read as 25; the
  * Diva Comp VI reads as 22.  Xp_drive must be patched at boot time or
  * initialized.
  */
-#define	CAP	072		/* SI Capricorn */
-#define	SI5	073		/* SI 9775 Direct */
-#define	SI	074		/* SI Eagle */
-#define	RM2X	075		/* Fuji 160 with Emulex Controller SC01B */
-#define	RM5X	076		/* Ampex 815 cyl. RM05 with Emulex Controller */
-#define	DV	077		/* Diva Comp VI Controller */
+#define	CAP	072		/* Ampex Capricorn */
+#define	SI5	073		/* SI, CDC 9775 Direct */
+#define	SI	074		/* SI 6100, Fuji Eagle 2351A */
+#define	RM2X	075		/* Emulex SC01B or SI 9400, Fuji 160 */
+#define	RM5X	076		/* Emulex SC-21, Ampex 815 cylider RM05 */
+#define	DV	077		/* Diva Comp V, Ampex 9300 */
+
+#define	HP_SECT		22	/* RP04/05/06 */
+#define	HP_TRAC		19
+#define	RP04_CYL	411	/* RP04/05 */
+#define	RP06_CYL	815	/* RP06 */
 
 #define	RM_SECT		32	/* RM02/03 */
 #define	RM_TRAC		5
@@ -75,81 +46,30 @@ struct xp_drive {
 #define	RM5_TRAC	19
 #define	RM5_CYL		823
 
-#define	RM5X_SECT	32	/* Ampex RM05 with Emulex Controller */
-#define	RM5X_TRAC	19
-#define	RM5X_CYL	815
-
-#define	CAP_SECT	32	/* SI Capricorn */
+#define	CAP_SECT	32	/* Ampex Capricorn */
 #define	CAP_TRAC	16
 #define	CAP_CYL		1024
 
-#define	SI_SECT		48	/* SI Eagle */
-#define	SI_TRAC		20
-#define	SI_CYL		842
-
-#define	SI5_SECT	32	/* SI 9775 direct */
+#define	SI5_SECT	32	/* SI, CDC 9775 direct */
 #define SI5_TRAC	40
 #define SI5_CYL		843
 
-#define	HP_SECT		22	/* RP04/05/06 */
-#define	HP_TRAC		19
-#define	RP04_CYL	411	/* RP04/05 */
-#define	RP06_CYL	815	/* RP06 */
+#define	SI_SECT		48	/* SI 6100, Fuji Eagle 2351A */
+#define	SI_TRAC		20
+#define	SI_CYL		842
 
-#define	DV_SECT		33	/* Diva Comp V */
-#define	DV_TRAC		19
-#define	DV_CYL		815
-
-#define	RM2X_SECT	32	/* Fuji 160 */
+#define	RM2X_SECT	32	/* Emulex SC01B or SI 9400, Fuji 160 */
 #define	RM2X_TRAC	10
 #define	RM2X_CYL	823
 
-#ifdef BADSECT
-#define	NCYL(x)		(x)
-#else !BADSECT
-#define	NCYL(x)		/* not used */
-#endif BADSECT
+#define	RM5X_SECT	32	/* Emulex, Ampex 815 cylider RM05 */
+#define	RM5X_TRAC	19
+#define	RM5X_CYL	815
 
-#ifndef XP_PROBE
-/*
- * Macros to inititialize xp_drive entries.  These can be used as examples,
- * or as the actual initializers in ioconf.c.  The arguments are the number
- * of the controller to which the drive is attached, and the physical
- * drive unit number.  Used only if XP_PROBE is not defined.  See xp.c
- * for more information.
- */
-#define	RM02_INIT(c,u) \
-	{ &xp_controller[c], RM02, u, &rm_sizes, \
-	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
-#define	RM03_INIT(c,u) \
-	{ &xp_controller[c], RM03, u, &rm_sizes, \
-	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
-#define	RM05_INIT(c,u) \
-	{ &xp_controller[c], RM05, u, &rm5_sizes, \
-	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5_CYL)  } 
-#define	RM05X_INIT(c,u) \
-	{ &xp_controller[c], RM05X, u, &rm5_sizes, \
-	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5X_CYL)  } 
-#define	RP06_INIT(c,u) \
-	{ &xp_controller[c], RP06, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP06_CYL)  } 
-#define	RP05_INIT(c,u) \
-	{ &xp_controller[c], RP05, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
-#define	RP04_INIT(c,u) \
-	{ &xp_controller[c], RP04, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
-#define	SI_INIT(c,u) \
-	{ &xp_controller[c], SI, u, &si_sizes, \
-	SI_SECT, SI_TRAC, SI_SECT*SI_TRAC, 0, NCYL(SI_CYL)  }
-#define	DV_INIT(c,u) \
-	{ &xp_controller[c], DV, u, &dv_sizes, \
-	DV_SECT, DV_TRAC, DV_SECT*DV_TRAC, 0, NCYL(DV_CYL)  } 
-#define	RM2X_INIT(c,u) \
-	{ &xp_controller[c], RM2X, u, &rm2x_sizes, \
-	RM2X_SECT, RM2X_TRAC, RM2X_SECT*RM2X_TRAC, 0, NCYL(RM2X_CYL)  }
-#endif !XP_PROBE
-#endif NXPD
+#define	DV_SECT		33	/* Diva Comp V, Ampex 9300 */
+#define	DV_TRAC		19
+#define	DV_CYL		815
+
 
 /*
  *	Controller registers and bits

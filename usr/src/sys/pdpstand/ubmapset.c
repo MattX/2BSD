@@ -6,7 +6,7 @@
  *	@(#)ubmapset.c	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
-#include <sys/types.h>
+#include "../h/types.h"
 
 #define UBMAP	((physadr)0170200)
 

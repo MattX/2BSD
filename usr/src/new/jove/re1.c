@@ -1,17 +1,54 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "jove.h"
 #include "io.h"
 #include "re.h"
-#include <sys/types.h>
-#include <sys/stat.h>
+#include "ctype.h"
 
-private
+#ifdef MAC
+#	include "mac.h"
+#else
+#	include <sys/stat.h>
+#endif
+
+#ifdef MAC
+#	undef private
+#	define private
+#endif
+
+#ifdef	LINT_ARGS
+private Bufpos * doisearch(int, int, int);
+
+private void
+	IncSearch(int),
+	replace(int, int);
+private int
+	isearch(int, Bufpos *),
+	lookup(char *, char *, char *, char *),
+	substitute(int, Line *, int, Line *, int);
+#else
+private Bufpos * doisearch();
+
+private void
+	IncSearch(),
+	replace();
+private int
+	isearch(),
+	lookup(),
+	substitute();
+#endif	/* LINT_ARGS */
+
+#ifdef MAC
+#	undef private
+#	define private static
+#endif
+
+private int
 substitute(query, l1, char1, l2, char2)
 Line	*l1,
 	*l2;
@@ -19,7 +56,7 @@ Line	*l1,
 	Line	*lp;
 	int	numdone = 0,
 		offset = curchar,
-		stop = 0;
+		stop = NO;
 	disk_line	UNDO_da = 0;
 	Line		*UNDO_lp = 0;
 
@@ -39,7 +76,7 @@ Line	*l1,
 reswitch:			redisplay();
 				switch (CharUpcase(getchar())) {
 				case '.':
-					stop++;
+					stop = YES;
 					/* Fall into ... */
 
 				case ' ':
@@ -55,7 +92,7 @@ reswitch:			redisplay();
 
 				case CTL('W'):
 					re_dosub(linebuf, YES);
-					numdone++;
+					numdone += 1;
 					offset = curchar = REbom;
 					makedirty(curline);
 					/* Fall into ... */
@@ -74,7 +111,7 @@ reswitch:			redisplay();
 					lp = UNDO_lp;
 					lp->l_dline = UNDO_da | DIRTY;
 					offset = 0;
-					numdone--;
+					numdone -= 1;
 					continue;
 
 				case 'P':
@@ -98,13 +135,13 @@ message("Space or Y, Period, Rubout or N, C-R or R, C-W, C-U or U, P or !, Retur
 				}
 			}
 			re_dosub(linebuf, NO);
-			numdone++;
+			numdone += 1;
 			modify();
 			offset = curchar = REeom;
 			makedirty(curline);
 			if (query) {
-				message(mesgbuf);	/* No blinking. */
-				redisplay();		/* Show the change. */
+				message(mesgbuf);	/* no blinking */
+				redisplay();		/* show the change */
 			}
 			UNDO_da = curline->l_dline;
 			UNDO_lp = curline;
@@ -112,23 +149,20 @@ message("Space or Y, Period, Rubout or N, C-R or R, C-W, C-U or U, P or !, Retur
 nxtline:			break;
 		}
 	}
-	set_mark();
-done:	s_mess("%d substitution%n.", numdone, numdone);
+done:	return numdone;
 }
 
-/* Prompt for search and replacement strings and do the substitution.  The
-   point is restored when we're done. */
-
-private
+/* prompt for search and replacement strings and do the substitution */
+private void
 replace(query, inreg)
 {
-	Mark	*save = MakeMark(curline, curchar, M_FLOATER),
-		*m;
+	Mark	*m;
 	char	*rep_ptr;
 	Line	*l1 = curline,
 		*l2 = curbuf->b_last;
 	int	char1 = curchar,
-		char2 = length(curbuf->b_last);
+		char2 = length(curbuf->b_last),
+		numdone;
 
 	if (inreg) {
 		m = CurMark();
@@ -137,7 +171,7 @@ replace(query, inreg)
 		(void) fixorder(&l1, &char1, &l2, &char2);
 	}
 
-	/* Get search string. */
+	/* get search string */
 	strcpy(rep_search, ask(rep_search[0] ? rep_search : (char *) 0, ProcFmt));
 	REcompile(rep_search, UseRE, compbuf, alternates);
 	/* Now the replacement string.  Do_ask() so the user can play with
@@ -148,21 +182,28 @@ replace(query, inreg)
 		rep_ptr = NullStr;
 	strcpy(rep_str, rep_ptr);
 
-	substitute(query, l1, char1, l2, char2);
-	ToMark(save);
-	DelMark(save);
+	if (((numdone = substitute(query, l1, char1, l2, char2)) != 0) &&
+	    (inreg == NO)) {
+		do_set_mark(l1, char1);
+		add_mess(" ");		/* just making things pretty */
+	} else
+		message("");
+	add_mess("(%d substitution%n)", numdone, numdone);
 }
 
+void
 RegReplace()
 {
 	replace(0, YES);
 }
 
+void
 QRepSearch()
 {
 	replace(1, NO);
 }
 
+void
 RepSearch()
 {
 	replace(0, NO);
@@ -174,7 +215,7 @@ RepSearch()
    it is possible to comment out the fast tag code (which is clearly
    labeled) and everything else will just work. */
 
-private
+private int
 lookup(searchbuf, filebuf, tag, file)
 char	*searchbuf,
 	*filebuf,
@@ -207,7 +248,8 @@ char	*searchbuf,
 	}
 	if (fast == YES) for (;;) {
 		off_t	mid;
-		int	whichway;
+		int	whichway,
+			chars_eq;
 
 		if (upper - lower < BUFSIZ) {
 			f_seek(fp, lower);
@@ -218,17 +260,16 @@ char	*searchbuf,
 		f_toNL(fp);
 		if (f_gets(fp, line, sizeof line) == EOF)
 			break;
-		whichway = strncmp(line, tag, taglen);
-		if (whichway < 0) {
+		chars_eq = numcomp(line, tag);
+		if (chars_eq == taglen && iswhite(line[chars_eq]))
+			goto found;
+		whichway = line[chars_eq] - tag[chars_eq];
+		if (whichway < 0) {		/* line is BEFORE tag */
 			lower = mid;
 			continue;
-		} else if (whichway > 0) {
+		} else if (whichway > 0) {	/* line is AFTER tag */
 			upper = mid;
 			continue;
-		} else {
-			if (strcmp(tag, line) == 0)	/* exact match */
-				goto found;
-			goto look_harder;
 		}
 	}
 	f_toNL(fp);
@@ -237,7 +278,7 @@ char	*searchbuf,
 	while (f_gets(fp, line, sizeof line) != EOF) {
 		int	cmp;
 
-look_harder:	if (line[0] > *tag)
+		if (line[0] > *tag)
 			break;
 		else if ((cmp = strncmp(line, tag, taglen)) > 0)
 			break;
@@ -251,21 +292,23 @@ found:		if (!LookingAt(pattern, line, 0)) {
 			putmatch(1, filebuf, FILESIZE);
 			putmatch(2, searchbuf, 100);
 			success = YES;
-			if (strcmp(tag, line) == 0)	/* exact match */
-				break;
-			continue;
+			break;
 		}
 	}
 	close_file(fp);
 		
 	if (success == NO)
 		s_mess("Can't find tag \"%s\".", tag);
-
 	return success;
 }
 
-char	TagFile[128] = "./tags";
+#ifndef MSDOS
+char	TagFile[FILESIZE] = "./tags";
+#else /* MSDOS */
+char	TagFile[FILESIZE] = "tags";
+#endif /* MSDOS */
 
+void
 find_tag(tag, localp)
 char	*tag;
 {
@@ -276,12 +319,9 @@ char	*tag;
 	register Buffer	*b;
 	char	*tagfname;
 
-	if (!localp) {
-		char	prompt[128];
-
-		sprintf(prompt, "With tag file (%s default): ", TagFile);
-		tagfname = ask_file(prompt, TagFile, tfbuf);
-	} else
+	if (!localp) 
+		tagfname = ask_file("With tag file: ", TagFile, tfbuf);
+	else
 		tagfname = TagFile;
 	if (lookup(sstr, filebuf, tag, tagfname) == 0)
 		return;
@@ -297,6 +337,7 @@ char	*tag;
 		SetDot(bp);
 }
 
+void
 FindTag()
 {
 	int	localp = !is_an_arg();
@@ -308,6 +349,7 @@ FindTag()
 
 /* Find Tag at Dot. */
 
+void
 FDotTag()
 {
 	int	c1 = curchar,
@@ -317,9 +359,9 @@ FDotTag()
 	if (!ismword(linebuf[curchar]))
 		complain("Not a tag!");
 	while (c1 > 0 && ismword(linebuf[c1 - 1]))
-		c1--;
+		c1 -= 1;
 	while (ismword(linebuf[c2]))
-		c2++;
+		c2 += 1;
 
 	null_ncpy(tagname, linebuf + c1, c2 - c1);
 	find_tag(tagname, !is_an_arg());
@@ -378,17 +420,19 @@ dosrch:	okay_wrap = YES;
 	return bp;
 }
 
+void
 IncFSearch()
 {
 	IncSearch(FORWARD);
 }
 
+void
 IncRSearch()
 {
 	IncSearch(BACKWARD);
 }
 
-static
+private void
 IncSearch(dir)
 {
 	Bufpos	save_env;
@@ -407,7 +451,7 @@ IncSearch(dir)
 
 /* Nicely recursive. */
 
-static
+private int
 isearch(dir, bp)
 Bufpos	*bp;
 {
@@ -494,9 +538,13 @@ Bufpos	*bp;
 
 		default:
 			if (c & 0400)
-				c &= 0177;
+				c &= CHARMASK;
 			else {
+#ifdef IBMPC
+				if (c == RUBOUT || c == 0xff || (c < ' ' && c != '\t')) {
+#else
 				if (c > RUBOUT || (c < ' ' && c != '\t')) {
+#endif
 					Ungetc(c);
 					return STOP;
 				}

@@ -54,11 +54,9 @@
 #define TRUE	1
 #define FALSE	0
 
-/* #define NSYM	1103		/* 1103 originally */
-#define NSYM	2000
-#define NROUT	256
-/* #define NSYMPR	1000	/* 1000 originally */
-#define NSYMPR	800
+#define NSYM	2000		/* 1103 originally */
+#define NROUT	350		/* 256 originally */
+#define NSYMPR	800		/* 1000 originally */
 
 #define N_COMM	05	/* internal use only; other values in a.out.h */
 
@@ -562,7 +560,8 @@ load1arg(cp)
 			error(1, "toc buffer too small");
 		lseek(infil, (long)(sizeof(filhdr.a_magic) + sizeof(archdr)), 0);
 		read(infil, (char *)tab, tnum * sizeof(struct tab));
-		while (ldrand());
+		while (ldrand())
+			;
 		libp->loc = -1;
 		libp++;
 		break;
@@ -680,10 +679,10 @@ load1(libflg, loc)
 		ndef++;
 		sp->n_type = cursym.n_type;
 		sp->n_value = cursym.n_value;
-		if ((sp->n_type &~ N_EXT) == N_TEXT)
-			sp->sovly = curov;
+		sp->sovly = ((sp->n_type &~ N_EXT) == N_TEXT) ? curov : 0;
 		if (trace)
-			printf("%8.8s in overlay %u at %u\n", sp->n_name, sp->sovly, sp->n_value);
+			printf("%8.8s type 0%o in overlay %u at %u\n",
+			    sp->n_name, sp->n_type, sp->sovly, sp->n_value);
 	}
 	if (libflg==0 || ndef) {
 		tsize = add(tsize,filhdr.a_text,"text overflow");
@@ -759,7 +758,7 @@ middle()
 				sp->n_value = tsize;
 				tsize += THUNKSIZ;
 				if (trace)
-					printf("relocating %s in overlay %d from %o to %o\n",sp->n_name, sp->sovly,sp->sovalue, sp->n_value);
+					printf("relocating %.8s in overlay %d from %o to %o\n",sp->n_name, sp->sovly,sp->sovalue, sp->n_value);
 			}
 		}
 	}
@@ -907,7 +906,8 @@ char *acp;
 	if (getfile(cp) == 0) {
 		while (*cp)
 			cp++;
-		while (cp >= acp && *--cp != '/');
+		while (cp >= acp && *--cp != '/')
+			;
 		mkfsym(++cp);
 		load2(0L);
 	} else {	/* scan archive members referenced */
@@ -1290,7 +1290,7 @@ libopen(name, oflags)
 {
 	register char *p, *cp;
 	register int i;
-	static char buf[MAXPATHLEN+1];
+	static char buf[100];
 	int fd = -1;
 
 	if (*name == '\0')			/* backwards compat */
@@ -1535,7 +1535,8 @@ register char *from, *to;
 	register char *te;
 
 	te = to+8;
-	while ((*to++ = *from++) && to < te);
+	while ((*to++ = *from++) && to < te)
+		;
 	while (to < te)
 		*to++ = 0;
 }

@@ -7,8 +7,7 @@
  */
 
 #include "param.h"
-#include "time.h"
-#include "resource.h"
+#include "user.h"
 #include "proc.h"
 #include "text.h"
 #include "vm.h"
@@ -199,6 +198,7 @@ vmtotal()
 	register struct proc *p;
 	register nrun = 0;
 #ifdef UCB_METER
+	char textcounted[100];
 
 	total.t_vmtxt = 0;
 	total.t_avmtxt = 0;

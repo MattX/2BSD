@@ -29,6 +29,8 @@ static char sccsid[] = "@(#)dispnet.c	5.6 (Berkeley) 8/22/87";
 #include <netinet/in_var.h>
 #include <netinet/in_pcb.h>
 
+#include <arpa/inet.h>
+
 #include <netinet/ip_var.h>
 #include <netinet/tcp.h>
 
@@ -47,8 +49,7 @@ char	*subhead;			/* pntr to sub-heading */
 struct arenas	arenash = {0};	/* list head */
 long lseek();
 char	*hoststr(),
-	*sprintf(),
-	*inet_ntoa();
+	*sprintf();
 char DASHES[] = "---------";
 char FWARN[] = "\tWARNING:";
 char Fccd[] = "%schar count discrepancy in %s queue; survey gives %d\n";

@@ -566,7 +566,7 @@ char *s;
 		fprintf(stderr,"%s%d ", s, m);
 }
 
-int	speed[] = {
+unsigned	speed[] = {
 	0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,19200,38400
 };
 
@@ -574,5 +574,5 @@ prspeed(c, s)
 char *c;
 {
 
-	fprintf(stderr,"%s%d baud",  c, speed[s]);
+	fprintf(stderr,"%s%u baud",  c, speed[s]);
 }

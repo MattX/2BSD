@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)2.t	6.2 (Berkeley) 10/1/88
 .\"
 .ds lq ``
 .ds rq ''
@@ -23,27 +23,29 @@
 .PP
 This section explains the bootstrap procedure that can be used
 to get the kernel supplied with this distribution running on your machine.
-It is easiest
-to do a full bootstrap since \*(2B has changed so much from all
+If you are not currently running \*(Ps it's easiest
+to do a full bootstrap since \*(Ps has changed so much from all
 previous versions of UNIX on the PDP but for the really dedicated
 chapter 3 attempts to describe how to upgrade an existing 2.8BSD or
 2.9BSD UNIX system running the \fI1K file system\fP.
+Chapter 3 also describes how to upgrade an existing \*(Ps system.
 An understanding of the operations used in a full bootstrap
 is very helpful in performing an upgrade as well.
 In either case, it is highly desirable to read and understand
 the remainder of this document before proceeding.
 .NH 2
-Converting pre-\*(2B Systems
+Converting pre-\*(Ps Systems
 .PP
-The file system format was changed with 2.8BSD and 2.9BSD (as an option
-UCB_NKB), where the fundamental \fIlogical\fP block size of the file
-system was changed from 512 bytes to 1024 bytes.  \*(2B uses the same 1Kb
-file system of 2.[89]BSD.  Because of this it is absolutely impossible to
-do anything except a full bootstrap of \*(2B on any system other than
-2.[89]BSD running the 1K file system.  It \fIis\fP possible to upgrade a
-2.[89]BSD system running the 1K file system, but you will probably want
-to do a full bootstrap in any case as 2.[89]BSD and \*(2B \fBcannot\fP
-execute each others binaries and device numbering has changed.
+The file system format was changed with 2.8BSD and 2.9BSD (as a kernel
+option UCB_NKB), where the fundamental \fIlogical\fP block size of the
+file system was changed from 512 bytes to 1024 bytes.  \*(2B uses the
+same 1Kb file system of 2.[89]BSD.  Because of this it is absolutely
+impossible to do anything except a full bootstrap of \*(2B on any system
+other than 2.[89]BSD running the 1K file system.  It \fIis\fP possible to
+upgrade a 2.[89]BSD system running the 1K file system, but you will
+probably want to do a full bootstrap in any case as 2.[89]BSD and \*(2B
+\fBcannot\fP execute each others binaries and device numbering has
+changed.
 .PP
 The safest route is to use \fItar\fP\|(1) to dump all of your current
 file systems, do a full bootstrap of \*(2B and then restore user files
@@ -69,19 +71,19 @@ Creating a UNIX ``root'' file system system on disk using \fImkfs\fP\|(8)..
 .IP 3)
 Restore the full root file system using \fIrestor\fP\|(8).
 .IP 4)
-Boot the UNIX system on the new root file system.
+Boot the UNIX system on the new root file system and copy it and an
+appropriate \fIdead start boot block\fP to your boot device.
 .IP 5)
 Build and restore the /usr file system from tape
 with \fItar\fP\|(1).
 .IP 6)
 Restore the include and kernel source from tape.
 .IP 7)
-Build a \fI/boot\fP configured to locate your root file system for
-auto-rebooting and copy it and an appropriate \fIdead start boot block\fP
-to your boot device.
+Extract the remaining source from the second tape.
 .IP 8)
-Extract the system and utility files and contributed software
-as desired.
+Build a \fI/boot\fP configured to locate your root file system for
+auto-rebooting (see section 4.1).  Tailor a version of UNIX to your
+specific hardware (see section 4.2).
 .PP
 Certain of these steps are dependent on your hardware
 configuration.  If your disks require formatting, standard DEC
@@ -137,7 +139,7 @@ Class	PDP11s	Separate I/D	UNIBUS map
 73	73	+	-
 .TE
 .DE
-The bootstrap can be forced to set up the machine as for a different
+The bootstrap can be forced to set up the machine for a different
 class of PDP11 by placing an appropriate value in the console switch register
 (if there is one) while booting it.
 The value to use is the PDP11 class, interpreted as an \fIoctal\fP number
@@ -166,11 +168,15 @@ l l.
 Disk	Root File System Size
 	  (1K-byte blocks)
 
+br	9120 (T300)
+	9196 (T200)
+	9200 (T80)
+	9130 (T50)
 hk	4158\(dg
 ra	7942 (RA60/80/81, RC25)
 	4850 (RD51/52/53)
-rl01	10240\(dd
-rl02	20480\(dd
+rl01	5120\(dd
+rl02	10240\(dd
 xp	4800 (RM02/RM03)\(dg
 	4560 (RM05)
 	5120 (CDC 9775)
@@ -187,9 +193,8 @@ xp	4800 (RM02/RM03)\(dg
 .PP
 If the disk on which you are creating a root file system is an \fBxp\fP
 disk, you should check the drive type register at this time to make sure
-it holds a value that will be recognized correctly by the driver.
-There are numbering conflicts; the
-following numbers are used internally:
+it holds a value that will be recognized correctly by the driver.  There
+are numbering conflicts; the following numbers are used internally:
 .DS
 .TS
 c l
@@ -200,14 +205,15 @@ Low Byte (standard address: 0776726)
 020	RP04
 021	RP05
 022	RP06
-025	RM02/RM03
+024	RM03
+025	RM02
 027	RM05
-072	SI Ampex Capricorn
-073	SI CDC 9775 (direct)
-074	SI Eagle
-075	Fujitsu Eagle 160 with Emulex SC01B controller
-076	Emulex SC-21/300 Mb RM05 emulation (815 cylinders)
-077	Diva Comp-V/300 Mb SMD
+072	Ampex Capricorn
+073	SI, CDC 9775 (direct)
+074	SI 6100, Fuji Eagle 2351A
+075	Emulex SC01B or SI 9400, Fuji 160
+076	Emulex SC-21, Ampex 815 cylinder RM05
+077	Diva Comp V, Ampex 9300
 .TE
 .DE
 Check the drive type number in your controller manual,
@@ -224,8 +230,8 @@ variable can be patched in memory.  After starting each utility
 but before accessing the disk, halt the CPU, place the new drive type
 number at the proper memory location with the console switches or monitor,
 and then continue.  The location of \fIxptype\fP in each utility is
-.\"CHECK
-mkfs:  035016, restor:  033672, icheck:  032230 and boot:  0632124
+.\"CHECK - XXX
+mkfs:  035264, restor:  034140, icheck:  032476 and boot:  0632402
 (the location for boot is higher because it relocates itself).
 Once UNIX itself is booted (see below) you must
 patch it also.
@@ -290,17 +296,15 @@ For example, for an RP06 on an 11/70, \fIm\fP is 7 and \fIn\fP is 209.
 See
 \fImkfs\fP\|(8)
 for more explanation of the values of \fIm\fP and \fIn\fP.
-If you have a disk which emulates a DEC disk,
-use the number for the most similar disk/CPU pair.
 For \fIm\fP/\fIn\fP numbers for other drive types see \fI/etc/disktab\fP.
 .PP
-Then run a standalone version of the \fImkfs\fP (8) program.
+Then run the standalone version of the \fImkfs\fP (8) program.
 In the following procedure, substitute the correct types
 for \fItp\fP and \fIdk\fP and the size determined above for \fIsize\fP:
 .DS
 .TS
 lw(1.5i) l.
-\fB:\|\fP\fItp\|\fP(0,1)
+\fB:\|\fP\fItp\|\fP(0,1)	(\fImkfs\fP is tape file 1)
 \fBMkfs\fP
 \fBfile system:\fP \fIdk\|\fP(0,0)	(root is the first file system on drive 0)
 \fBfile system size:\fP \fIsize\fP	(count of 1024 byte blocks in root)
@@ -321,13 +325,11 @@ To restore the root file system onto it, type
 .DS
 .TS
 lw(1.5i) l.
-\fB:\|\fP\fItp\|\fP(0,3)
+\fB:\|\fP\fItp\|\fP(0,2)	(\fIrestor\fP is tape file 2)
 \fBRestor\fP
-\fBTape?\fP \fItp\|\fP(0,4)	(unit 0, fifth tape file)
+\fBTape?\fP \fItp\|\fP(0,4)	(root \fIdump\fP is tape file 4)
 \fBDisk?\fP \fIdk\|\fP(0,0)	(into root file system)
-\fBLast chance before scribbling on disk.\fP	(just hit return)
-     (30 second pause then tape should move)
-     (tape moves for a few minutes)
+\fBLast chance before scribbling on disk.\fP
 .B
 end of tape
 Exit called
@@ -337,7 +339,7 @@ Exit called
 .TE
 .DE
 If you wish, you may use the \fIicheck\fP program on the tape,
-\fItp\|\fP(0,2), to check the consistency of the file system you have just
+\fItp\|\fP(0,3), to check the consistency of the file system you have just
 installed.
 .NH 3
 Step 4: booting UNIX
@@ -356,8 +358,8 @@ the root file system you just created, and the system should boot:
 .DS
 .B
 .\"CHECK
-2.10 BSD UNIX #1: Sun Sep 6 01:33:03 PDT 1987
-    root@kazoo.Berkeley.EDU:/mnt/2.10/usr/src/sys/GENERIC
+\*(2B BSD UNIX #1: Sun Sep 6 01:33:03 PDT 1987
+    root@kazoo.Berkeley.EDU:/usr/src/sys/GENERIC
 phys mem  = \fI???\fP
 avail mem = \fI???\fP
 user mem  = \fI???\fP
@@ -380,10 +382,10 @@ Halt the processor after it
 has begun printing the version string but before it has finished printing
 the ``mem = ...'' strings.
 Place the drive type number corresponding to your drive
-.\"CHECK
-at location 060354;
+.\"CHECK - XXX
+at location 052624;
 the addresses for
-drive 1 is 060370.
+drive 1 is 052640.
 If you plan to use any drives other than 0 before you recompile
 the system, you should patch these locations.
 Make the patches and continue the CPU.
@@ -399,7 +401,7 @@ Next the
 messages give the amount of real (physical) memory, the amount of memory
 left over after the system has allocated various data structures, and the
 amount of memory available to user programs in bytes.
-On an 11/23 with no clock control register, a message ``No clock???''
+On an 11/23 with no clock control register, a message ``no clock!!''
 will print next; this is a reminder to turn on the clock switch if it is
 not already on, since UNIX cannot enable the clock itself.
 .PP
@@ -426,14 +428,15 @@ whose login name is \*(lqroot\*(rq.
 .PP
 There are a number of copies of \fIunix\fP on the root file system,
 one for each possible type of root file system device.
-All of the systems were created from \fI/generic-unix\fP by the
+All of the systems were created from \fI/genunix\fP by the
 shell script \fI/GENALLSYS\fP.
 If you had to patch the \fIxp\fP type as you
 booted, you may want to use \fIadb\fP (see
 .IR adb (1))
-to make the same patch in a copy of \fIxpunix\fP.
-See \fI/GENALLSYS\fP for examples of using \fIadb\fP to patch the system.
-The system load images for other disk types can be removed.
+to make the same patch in a copy of \fIxpunix\fP.  See \fI/GENALLSYS\fP
+for examples of using \fIadb\fP to patch the system.  See appendix A for
+a description of the generic kernels.  The system load images for disk
+types other than your own can be removed.
 .PP
 The disk with the new root file system on it will not be bootable
 directly until the block 0 bootstrap program for the disk has been installed.
@@ -456,26 +459,28 @@ Block zero bootstraps and the devices they support are:
 l l l.
 boot	driver	devices
 _
-rm03uboot	xp	RM02/03
-rm05uboot	xp	RM05
-rpuboot	xp	RP04/05/06
-si94uboot	xp	Fujitsu Eagle
-dvhpuboot	xp	Diva Comp V, Ampex 9300
-si95uboot	si	SI9500 CDC 9766
+bruboot	br	Eaton BR1538/BR1711
 hkuboot	hk	RK06/07
-rluboot	rl	RL01/02
-rkuboot	rk	RK05
 rauboot	ra	RA60/80/81, RC25, RD51/52/53, RX50
+rkuboot	rk	RK05
+rluboot	rl	RL01/02
+si95uboot	si	SI 9500, CDC 9766
+dvhpuboot	xp	Diva Comp V, Ampex 9300
+hpuboot	xp	RP04/05/06
+rm03uboot	xp	RM02/03
+rm05uboot	xp	RM05 or SI 9500, CDC 9766
+si51uboot	xp	SI 6100, Fujitsu Eagle 2351A
+si94uboot	xp	Emulex SC01B or SI 9400, Fujitsu 160
 .TE
 .DE
-Once this is done, booting from this disk will load and execute
-the block 0 bootstrap, which will in turn load /boot (actually, the
-boot program on the first file system, which is root).
-The console will print
+Once this is done, booting from this disk will load and execute the block
+0 bootstrap, which will in turn load /boot (actually, the boot program on
+the file system starting at block zero of the disk, which is normally
+root).  The console will print
 .DS
 .TS
 lw(1.5i) l.
-\fB>boot\fP	(printed by the block 0 boot)
+\fB>boot\fP	(printed by some block 0 boots)
 
 .B
 \fInn\fPBoot	\fR(printed by /boot)\fP
@@ -514,50 +519,59 @@ l l.
 .TE
 .DE
 .PP
-The next thing to do is to extract the rest of the data from
-the tape.
+The next thing to do is to extract the rest of the data from the tape.
 You might wish to review the disk configuration information in section 4.3
 before continuing; you will have to select a partition to restore the /usr
-file system into which is at least 25Mb in size (this is just barely
-enough for the system binaries and such and leaves no room for the system
-source.)
-The partitions used below are those most appropriate
-in size.
-Find the disk you have in the following table and execute
-the commands in the right hand portion of the table:
+file system into which is at least \fB25\fP Megabytes in size (this is
+just barely enough for the system binaries and such and leaves no room
+for the system source.)  The partitions used below are those most
+appropriate in size.  Find the disk you have in the following table and
+execute the commands in the right hand portion of the table:
 .DS
 .TS
 l l.
 DEC RM02/03	\fB#\fP name=xp0c; type=rm03
 DEC RM05	\fB#\fP name=xp0e; type=rm05
-CDC 9766	\fB#\fP name=xp0e; type=9766
 DEC RP04/05	\fB#\fP name=xp0c; type=rp04
 DEC RP06	\fB#\fP name=xp0c; type=rp06
-AMPEX 300M	\fB#\fP name=xp0e; type=9300
-FUJITSU 160M	\fB#\fP name=xp0d; type=fuji160
-AMPEX 330M	\fB#\fP name=xp0c; type=capricorn
 DEC RK07	\fB#\fP name=hk0c; type=rk07
 DEC RA60	\fB#\fP name=ra0c; type=ra60
 DEC RA80	\fB#\fP name=ra0c; type=ra80
 DEC RA81	\fB#\fP name=ra0c; type=ra81
 DEC RC25	\fB#\fP name=ra0c; type=rc25
+DEC RD52	\fB#\fP name=ra0g; type=rd52-rqdx\fIn\fP*
 DEC RD53	\fB#\fP name=ra0d; type=rd53-rqdx\fIn\fP*
+-
+CDC 9766	\fB#\fP name=xp0e**
+CDC 9775	\fB#\fP name=xp0e**
+AMPEX 300M	\fB#\fP name=xp0e**
+FUJITSU 160M	\fB#\fP name=xp0d**
+FUJITSU 2351A	\fB#\fP name=xp0d**
+AMPEX 330M	\fB#\fP name=xp0c**
 .TE
-.DE
 .FS
-* The type of controller the RD52 is on (RQDX2 or RQDX3) must be specified
-for proper file system free list spacing to be computed.  If you don't
-know what controller your RD53 is on, it is all right to guess, though
-the created file system may not perform as well.
+* The type of controller the RD52 and RD53 are on (RQDX2 or RQDX3) must
+be specified for proper file system free list spacing to be computed.  If
+you don't know what controller your RD is on, it is all right to guess,
+though the created file system may not perform as well.
 .FE
+.FS
+** Unfortunately the \fInewfs\fP(8) program is relatively primitive and
+doesn't know the free list spacing for these non-DEC drives.  An
+appropriate \fImkfs\fP(8) command will have to be substituted for the
+\fInewfs\fP command specified below.  See \fI/etc/disktab\fP for
+[hopefully] appropriate free list \fIm/n\fP numbers for some non-DEC
+disks.
+.FE
+.DE
 Find the tape you have in the following table and execute the
 commands in the right hand portion of the table:
 .DS
 .TS
 l l.
-DEC TE16/TU45/TU77	\fB#\fP cd /dev; MAKEDEV ht0; sync
-DEC TU78	\fB#\fP cd /dev; MAKEDEV mt0; sync
-DEC TS11	\fB#\fP cd /dev; MAKEDEV ts0; sync
+DEC TM02/03, TE16/TU45/TU77	\fB#\fP cd /dev; MAKEDEV ht0; sync
+DEC TS11, TU80/TS05	\fB#\fP cd /dev; MAKEDEV ts0; sync
+DEC TM11, TU10/TE10/TS03	\fB#\fP cd /dev; MAKEDEV tm0; sync
 EMULEX TC11	\fB#\fP cd /dev; MAKEDEV tm0; sync
 .TE
 .DE
@@ -634,9 +648,12 @@ saying
 .DS
 \fB#\fP /etc/mount /dev/${name} /usr
 .DE
+.NH 3
+Step 7: extracting remaining source from the second tape
+.PP
 You can then extract the source code for the commands from the
 second distribution tape
-(except on RK07's and RM03's this will fit in the /usr file system):
+(except on RK07's, RM03's, and RD52's this will fit in the /usr file system):
 .DS
 \fB#\fP cd /usr/src
 \fB#\fP tar xpb 20

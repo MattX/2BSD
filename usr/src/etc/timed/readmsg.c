@@ -406,7 +406,7 @@ struct sockaddr_in *addr;
 	switch (msg->tsp_type) {
 
 	case TSP_LOOP:
-		fprintf(fd, "%s %d %d (#%d) %s %s\n",
+		fprintf(fd, "%s %d %u (#%d) %s %s\n",
 			tsptype[msg->tsp_type],
 			msg->tsp_vers,
 			msg->tsp_seq,
@@ -419,7 +419,7 @@ struct sockaddr_in *addr;
 	case TSP_ADJTIME:
 	case TSP_SETDATE:
 	case TSP_SETDATEREQ:
-		fprintf(fd, "%s %d %d (%d, %d) %s %s\n",
+		fprintf(fd, "%s %d %u (%ld, %ld) %s %s\n",
 			tsptype[msg->tsp_type],
 			msg->tsp_vers,
 			msg->tsp_seq,
@@ -430,7 +430,7 @@ struct sockaddr_in *addr;
 		break;
 
 	default:
-		fprintf(fd, "%s %d %d %s %s\n",
+		fprintf(fd, "%s %d %u %s %s\n",
 			tsptype[msg->tsp_type],
 			msg->tsp_vers,
 			msg->tsp_seq,

@@ -14,9 +14,10 @@
  *
  * header.c - header functions plus some other goodies
  */
+/*LINTLIBRARY*/
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)header.c	2.48	3/20/87";
+static char	*SccsId = "@(#)header.c	2.49	10/7/87";
 #endif /* SCCSID */
 
 #include <stdio.h>
@@ -147,6 +148,7 @@ strip:	/* strip off sys! from front of path. */
 #define XREF		24
 #define SUMMARY		25
 #define XPATH		26
+#define SUPERSEDES	27
 #define OTHER		99
 
 char *malloc();
@@ -157,11 +159,9 @@ register struct hbuf *hp;
 {
 	int	unreccnt = 0;
 	register int	i;
-	long	curpos;
 
 	i = type(bfr);
 	do {
-		curpos = ftell(fp);
 		switch (i) {
 		case PATH:
 			getfield(hp->path, sizeof(hp->path));
@@ -218,7 +218,8 @@ register struct hbuf *hp;
 			break;
 		case DISTRIBUTION:
 			getfield(hp->distribution, sizeof(hp->distribution));
-			if (strcmp(hp->distribution, "net") == 0)
+			if (strcmp(hp->distribution, "net") == 0
+				|| strcmp(hp->distribution, "world") == 0)
 				hp->distribution[0] = '\0';
 			break;
 		case ORGANIZATION:
@@ -239,6 +240,9 @@ register struct hbuf *hp;
 			break;
 		case NFFROM:
 			getfield(hp->nf_from, sizeof(hp->nf_from));
+			break;
+		case SUPERSEDES:
+			getfield(hp->supersedes, sizeof(hp->supersedes));
 			break;
 		/* discard these lines */
 		case XREF:
@@ -263,8 +267,6 @@ register struct hbuf *hp;
 		}
 	} while ((i = type(hfgets(bfr, LBUFLEN, fp))) > 0);
 
-	if (*bfr != '\n')
-		fseek(fp, curpos, 0);
 	if ((hp->from[0] || hp->path[0]) && hp->subdate[0] && hp->ident[0])
 		return TRUE;
 	return FALSE;
@@ -534,7 +536,7 @@ int	size;
 }
 
 
-#define its(type) (prefix(ptr, type))
+#define its(type) (PREFIX(ptr, type))
 type(ptr)
 register char	*ptr;
 {
@@ -562,9 +564,9 @@ register char	*ptr;
 		return TITLE;
 	if (its("Posted: "))
 		return SUBMIT;
+#endif /* OLD */
 	if (its("Received: "))
 		return RECEIVE;
-#endif /* OLD */
 	if (its("Expires: "))
 		return EXPIRE;
 	if (its("Article-I.D.: "))
@@ -581,10 +583,6 @@ register char	*ptr;
 		return SENDER;
 	if (its("Followup-To: "))
 		return FOLLOWTO;
-	if (its("Posting-Version: "))
-		return POSTVERSION;
-	if (its("Relay-Version: "))
-		return RELAYVERSION;
 	if (its("Distribution: "))
 		return DISTRIBUTION;
 	if (its("Organization: "))
@@ -601,10 +599,16 @@ register char	*ptr;
 		return NFID;
 	if (its("Nf-From: "))
 		return NFFROM;
+	if (its("Supersedes: "))
+		return SUPERSEDES;
 	if (its("Xref: "))
 		return XREF;
 	if (its("Xpath: "))
 		return XPATH;
+	if (its("Posting-Version: "))
+		return POSTVERSION;
+	if (its("Relay-Version: "))
+		return RELAYVERSION;
 	if (!isalpha(*ptr))
 		return FALSE;
 	colon = index(ptr, ':');
@@ -618,6 +622,9 @@ register char	*ptr;
  * Write header at 'hp' on stream 'fp' in B+ format.  Include received date
  * if wr is 1.  Leave off sysname if wr is 2.
  */
+#ifndef DOXREFS
+/*ARGSUSED*/
+#endif /* !DOXREFS */
 ihwrite(hp, fp, wr)
 register struct hbuf *hp;
 register FILE *fp;
@@ -633,7 +640,7 @@ int	wr;
 	 * The old one thinks they both mean "Path" but only believes the
 	 * first one it sees, so will ignore the second.
 	 */
-	if (prefix(hp->path, PATHSYSNAME) &&
+	if (PREFIX(hp->path, PATHSYSNAME) &&
 		index(NETCHRS, hp->path[strlen(PATHSYSNAME)]))
 		fprintf(fp, "Path: %s\n", hp->path);
 	else
@@ -689,6 +696,8 @@ int	wr;
 		fprintf(fp, "Nf-ID: %s\n", hp->nf_id);
 	if (*hp->nf_from)
 		fprintf(fp, "Nf-From: %s\n", hp->nf_from);
+	if (*hp->supersedes)
+		fprintf(fp, "Supersedes: %s\n", hp->supersedes);
 #ifdef DOXREFS
 	if ( wr ==1 && *hp->xref)
 		fprintf(fp, "Xref: %s\n", hp->xref);

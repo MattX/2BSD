@@ -1,0 +1,66 @@
+
+
+
+AR(5)		    UNIX Programmer's Manual		    AR(5)
+
+
+
+NNAAMMEE
+     ar - archive (library) file format
+
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<aarr..hh>>
+
+DDEESSCCRRIIPPTTIIOONN
+     The archive command _a_r is used to combine several files into
+     one.  Archives are used mainly as libraries to be searched
+     by the link-editor _l_d.
+
+     A file produced by _a_r has a magic number at the start, fol-
+     lowed by the constituent files, each preceded by a file
+     header.  The magic number and header layout as described in
+     the include file are:
+
+	  #define ARMAG 0177545
+	  struct  ar_hdr {
+		  char	ar_name[14];
+		  long	ar_date;
+		  char	ar_uid;
+		  char	ar_gid;
+		  int	ar_mode;
+		  long	ar_size;
+	  };
+
+     The name is a null-terminated string; the date is in the
+     form of _t_i_m_e(2); the user ID and group ID are numbers; the
+     mode is a bit pattern per _c_h_m_o_d(2); the size is counted in
+     bytes.
+
+     Each file begins on a word boundary; a null byte is inserted
+     between files if necessary.  Nevertheless the size given
+     reflects the actual size of the file exclusive of padding.
+
+     Notice there is no provision for empty areas in an archive
+     file.
+
+SSEEEE AALLSSOO
+     ar(1), ld(1), nm(1)
+
+BBUUGGSS
+     Coding user and group IDs as characters is a botch.
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						1
+
+
+

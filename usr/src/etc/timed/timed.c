@@ -296,6 +296,11 @@ char **argv;
 			while ((mask & 1) == 0) {
 				addr >>= 1;
 				mask >>= 1;
+#ifdef BSD2_10
+				/* 2.10BSD compiler doesn't support u_long */
+				addr &= 0x7fffffff;
+				mask &= 0x7fffffff;
+#endif
 			}
 			for (n = nets ; n ; n = n->next)
 				if (addr == n->net)
@@ -327,7 +332,7 @@ char **argv;
 	 * Take care of some basic initialization.
 	 */
 	/* us. delay to be used in response to broadcast */
-	delay1 = casual((long)10000, 200000);	
+	delay1 = casual((long)10000, (long)200000);	
 
 	/* election timer delay in secs. */
 	delay2 = casual((long)MINTOUT, (long)MAXTOUT);

@@ -16,7 +16,7 @@ hkprobe(addr)
 	struct hkdevice *addr;
 {
 	stuff(HK_CDT | HK_IE | HK_CRDY, (&(addr->hkcs1)));
-	DELAY(10);
+	DELAY(10L);
 	stuff(HK_CDT, (&(addr->hkcs1)));
 	return(ACP_IFINTR);
 }

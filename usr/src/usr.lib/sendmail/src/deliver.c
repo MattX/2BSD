@@ -919,7 +919,7 @@ giveresponse(stat, m, e)
 	register char *statmsg;
 	extern char *SysExMsg[];
 	register int i;
-	extern int N_SysEx;
+	extern int N_SysEx, h_errno;
 	char buf[MAXLINE];
 
 #ifdef lint

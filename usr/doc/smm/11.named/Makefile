@@ -1,26 +1,27 @@
+# Copyright (c) 1986, 1988 Regents of the University of California.
+# All rights reserved.
 #
-# Copyright (c) 1986 Regents of the University of California.
-# All rights reserved.  The Berkeley software License Agreement
-# specifies the terms and conditions for redistribution.
+# Redistribution and use in source and binary forms are permitted
+# provided that this notice is preserved and that due credit is given
+# to the University of California at Berkeley. The name of the University
+# may not be used to endorse or promote products derived from this
+# software without specific prior written permission. This software
+# is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	6.2 (Berkeley) 5/20/86
+#	@(#)Makefile	6.3 (Berkeley) 2/28/88
 #
 FILES=	00macs.me 00title.me intro.me build.me types.me\
 	setup.me files.me named.boot.primary\
 	named.boot.secondary named.boot.cache resolv.conf\
-	named.ca named.local ucbhosts ucbhosts.rev manage.me
+	root.cache named.local ucbhosts ucbhosts.rev manage.me
 ME=	-me
-T=	-Tlp
 NROFF=	nroff -rb3
-ITROFF=	itroff
-DITROFF= ditroff
 PRINTER= -Pdp
+TBL=	dtbl $(PRINTER)
+TROFF= ditroff $(PRINTER)
 
-ditroff: $(FILES)
-	dtbl $(FILES)| $(DITROFF) $(PRINTER) $(ME) $(FLAGS)
-
-itroff: $(FILES)
-	tbl $(FILES)| $(ITROFF) $(ME) $(FLAGS)
+troff: $(FILES)
+	$(TBL) $(FILES)| $(TROFF) $(ME) $(FLAGS)
 
 nroff: $(FILES)
 	tbl $(FILES)| $(NROFF) $(ME) $(FLAGS) > file

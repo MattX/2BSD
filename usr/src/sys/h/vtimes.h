@@ -25,6 +25,3 @@ struct vtimes {
 	long	vm_inblk;		/* block reads */
 	long	vm_oublk;		/* block writes */
 };
-
-#ifdef KERNEL
-#endif

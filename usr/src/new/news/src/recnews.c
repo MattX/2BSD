@@ -1,5 +1,5 @@
 /*
- * recnews [to newsgroup] [from user]
+ * recnews [to newsgroup] [from user] [approved by] [exclude site]
  *
  * Process a news article which has been mailed to some group like msgs.
  * Such articles are in normal mail format and have never seen the insides
@@ -21,6 +21,7 @@
  *		machine.  post-unix-wizards (on the local machine) should
  *		be part of the master mailing list somewhere (on a different
  *		machine.)
+ *	in-gamemasters: "|/usr/lib/news/recnews mail.gamemasters '' news"
  *
  * Recnews is primarily useful in remote places on the usenet which collect
  * mail from mailing lists and funnel them into the network.  It is also
@@ -33,22 +34,24 @@
  * by the time inews is run, it's in the background and too late to
  * ask permission.  If you depend heavily on recordings you probably
  * should not allow recnews (and thus the mail interface) to be used.
-*
+ *
  * 1) We leave the from line alone.  Just escape the double quotes, but let the
  *    mailer do the rest.
  * 2) We give precedence to "From:" over "From " or ">From " in determining
  *    who the article is really from.
  *    Modifications by rad@tek
+ *
+ * John@ODU.EDU: add third argument to cause inews to be invoked with -a,
+ *		 for use with local groups for mailing lists with 2.11.
+ * pleasant@rutgers.EDU: add fourth argument which uses the -x switch in inews
+ *
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)recnews.c	2.13	10/23/86";
+static char	*SccsId = "@(#)recnews.c	2.18	12/4/87";
 #endif /* SCCSID */
 
-#include "defs.h"
-
-#include <stdio.h>
-#include <ctype.h>
+#include "params.h"
 
 /*
  * Note: we assume there are 2 kinds of hosts using recnews:
@@ -88,11 +91,13 @@ char	sender[BFSZ];		/* mailing address of author, if different */
 char	to[BFSZ];		/* Destination of mail (msgs, etc) */
 char	subject[BFSZ];		/* subject of message */
 char	newsgroup[BFSZ];	/* newsgroups of message */
+char	approved[BFSZ];		/* Approved: */
+char	not_this_site[BFSZ];	/* Don't post to this site */
 int	fromset;		/* from passed on command line */
-char	cmdbuf[BFSZ];		/* command to popen */
+char	cmdbuf[BFSZ];		/* command to pipeopen */
 
-extern	char	*strcat(), *strcpy();
-extern	FILE	*popen();
+extern	char	*strcat(), *strcpy(), *index();
+FILE	*pipeopen();
 char	*any();
 
 main(argc, argv)
@@ -105,16 +110,24 @@ char **argv;
 	register int state;
 
 	/* build inews command */
-#ifdef IHCC
+#ifdef LOGDIR
 	sprintf(inews, "%s/%s/%s", logdir(HOME), LIBDIR, "inews");
-#else
+#else	/* !LOGDIR */
 	sprintf(inews, "%s/%s", LIBDIR, "inews");
-#endif
+#endif	/* !LOGDIR */
 
 	if (argc > 1)
 		strcpy(to, argv[1]);
 	if (argc > 2)
 		strcpy(from, argv[2]);
+	if (argc > 3 && *argv[3]) {
+		sprintf(approved," -a \"%s\"", argv[3]);
+	} else
+		approved[0] = '\0';
+	if (argc > 4 && *argv[4]) {
+		sprintf(not_this_site, " -x \"%s\"", argv[4]);
+	} else
+		not_this_site[0] = '\0';
 
 	/*
 	 * Flag that we know who message is from to avoid trying to 
@@ -168,8 +181,8 @@ char **argv;
 			break;
 
 		case INCLUSIVE:
-			sprintf(cmdbuf,"exec %s -p", inews);
-			pipe = popen(cmdbuf,"w");
+			sprintf(cmdbuf,"%s%s -p", inews, not_this_site);
+			pipe = pipeopen(cmdbuf);
 			if (pipe == NULL){
 				perror("recnews: open failed");
 				exit(1);
@@ -187,16 +200,17 @@ char **argv;
 		case BLANK:
 			state = READING;
 			strcpy(newsgroup, to);
-			sprintf(cmdbuf, "exec %s -t \"%s\" -n \"%s\" -f \"%s\"",
+			sprintf(cmdbuf,
+				"%s -t \"%s\" -n \"%s\" -f \"%s\"%s%s",
 				inews, *subject ? subject : "(none)",
-				newsgroup, from);
+				newsgroup, from, approved, not_this_site);
 #ifdef debug
 			pipe = stdout;
 			printf("BLANK: %s\n", cmdbuf);
 #else
-			pipe = popen(cmdbuf, "w");
+			pipe = pipeopen(cmdbuf);
 			if (pipe == NULL) {
-				perror("recnews: popen failed");
+				perror("recnews: pipeopen failed");
 				exit(1);
 			}
 #endif
@@ -214,13 +228,15 @@ char **argv;
 				if (subject[strlen(subject)-1] == '\n')
 					subject[strlen(subject)-1] = '\0';
 			}
-			sprintf(cmdbuf, "exec \"%s\" -t \"%s\" -n \"%s\" -f \"%s\"",
-				inews, subject, newsgroup, from);
+			sprintf(cmdbuf,
+				"%s -t \"%s\" -n \"%s\" -f \"%s\"%s%s",
+				inews, subject, newsgroup, from, approved,
+				not_this_site);
 #ifdef debug
 			pipe = stdout;
 			printf("TEXT: %s\n", cmdbuf);
 #else
-			pipe = popen(cmdbuf, "w");
+			pipe = pipeopen(cmdbuf);
 			if (pipe == NULL) {
 				perror("pipe failed");
 				exit(1);
@@ -233,6 +249,7 @@ char **argv;
 			break;
 		}
 	}
+	pipeclose(pipe);
 	exit(0);
 }
 
@@ -250,14 +267,14 @@ register char *p;
 
 	if (*p == '\n' || *p == 0)
 		return BLANK;
-	if (strncmp(p, ">From", 5) == 0 || strncmp(p, "From", 4) == 0)
+	if (STRNCMP(p, ">From", 5) == 0 || STRNCMP(p, "From", 4) == 0)
 		return FROM;
-	if (strncmp(p, "Subj", 4)==0 || strncmp(p, "Re:", 3)==0 ||
-		strncmp(p, "re:", 3)==0)
+	if (STRNCMP(p, "Subj", 4)==0 || STRNCMP(p, "Re:", 3)==0 ||
+		STRNCMP(p, "re:", 3)==0)
 		return SUBJ;
-	if (strncmp(p, "To", 2)==0)
+	if (STRNCMP(p, "To", 2)==0)
 		return TO;
-	if (strncmp(p, "\1\1\1\1", 4)==0)
+	if (STRNCMP(p, "\1\1\1\1", 4)==0)
 		return EOM;
 	if (firstbl && firstbl[-1] == ':' && isalpha(*p))
 		return HEADER;
@@ -272,7 +289,6 @@ frombreak(buf, fbuf)
 register char *buf, *fbuf;
 {
 	register char *p, *q;
-
 	if (fbuf[0] && fromset) {	/* we already know who it's from */
 		if (sender[0] == 0 || buf[4] == ':') {
 #ifdef debug
@@ -298,7 +314,7 @@ register char *buf, *fbuf;
 		*q++ = *p;
 	}
 	q[-1] = '\0';
-	if ((p=(char *)index(fbuf,'\n')) != NULL)
+	if ((p=index(fbuf,'\n')) != NULL)
 		*p = '\0';
 	if (buf[4] == ':')
 		fromset++;
@@ -323,4 +339,98 @@ char *sp, *sq;
 				return(--sp);
 	}
 	return(NULL);
+}
+
+/*
+ *	This is similar to open, but made more secure.  Rather than
+ *	forking off a shell, you get a bare process.
+ *	You can use "" to get white space into an argument, but 
+ *	nothing else is recognized
+ */
+
+#define	RDR	0
+#define	WTR	1
+#define MAXARGS	20
+static	int	mopen_pid[20];
+
+FILE *
+pipeopen(cmd)
+register char *cmd;
+{
+	int p[2];
+	register myside, hisside, pid;
+
+	if(pipe(p) < 0)
+		return NULL;
+	myside = p[WTR];
+	hisside = p[RDR];
+	if ((pid = vfork()) == 0) {
+		char *args[MAXARGS];
+		register char **ap = args;
+
+		/* myside and hisside reverse roles in child */
+		(void) close(myside);
+		(void) close(0);
+		(void) dup(hisside);
+		(void) close(hisside);
+		(void) setgid(getgid());
+		(void) setuid(getuid());
+
+		while (isspace(*cmd))
+			cmd++;
+
+		while (*cmd != '\0') {
+			*ap++ = cmd;
+			if (ap >= &args[MAXARGS]) {
+				fprintf(stderr, "Too many args to %s", args[0]);
+				_exit(2);
+			}
+			while (*cmd && !isspace(*cmd)) {
+				if (*cmd++ == '"') {
+					register char *bcp = cmd-1;
+					while (*cmd && *cmd != '"')
+						*bcp++ = *cmd++;
+					*bcp = '\0';
+					cmd++;
+				}
+			}
+			if (*cmd)
+				*cmd++ = '\0';
+			while (isspace(*cmd))
+				cmd++;
+		}
+		*ap = (char *)NULL;
+
+		execv(args[0], args);
+		perror("pipeopen exec:");
+		_exit(1);
+	}
+
+	if(pid == -1)
+		return NULL;
+
+	mopen_pid[myside] = pid;
+	(void) close(hisside);
+	return fdopen(myside, "w");
+}
+
+pipeclose(ptr)
+FILE *ptr;
+{
+	register f, r, (*hstat)(), (*istat)(), (*qstat)();
+	int status;
+
+	f = fileno(ptr);
+	(void) fclose(ptr);
+	istat = signal(SIGINT, SIG_IGN);
+	qstat = signal(SIGQUIT, SIG_IGN);
+	hstat = signal(SIGHUP, SIG_IGN);
+	while((r = wait(&status)) != mopen_pid[f] && r != -1)
+		;
+	if(r == -1)
+		status = -1;
+	signal(SIGINT, istat);
+	signal(SIGQUIT, qstat);
+	signal(SIGHUP, hstat);
+	return status;
 }

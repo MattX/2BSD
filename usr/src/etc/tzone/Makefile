@@ -19,6 +19,7 @@ LOCALTIME=	US/Pacific
 # (and add solar87 to the DATA= line below).
 
 CFLAGS= -O
+SEPFLAG=-i
 
 # LINTFLAGS is set for 4.[123]BSD systems.
 # If you're using System V, you'll want to comment out the "LINTFLAGS=" line.
@@ -49,10 +50,10 @@ install:	zic $(DATA)
 		./zic -d ${DESTDIR}/etc/zoneinfo -l $(LOCALTIME) $(DATA)
 
 zdump:		$(TZDOBJS)
-		$(CC) $(CFLAGS) $(LFLAGS) $(TZDOBJS) -o $@
+		$(CC) $(CFLAGS) $(LFLAGS) $(SEPFLAG) $(TZDOBJS) -o $@
 
 zic:		$(TZCOBJS)
-		$(CC) $(CFLAGS) $(LFLAGS) $(TZCOBJS) -o $@
+		$(CC) $(CFLAGS) $(LFLAGS) $(SEPFLAG) $(TZCOBJS) -o $@
 
 BUNDLES:	BUNDLE1 BUNDLE2 BUNDLE3
 

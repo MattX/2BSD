@@ -17,8 +17,8 @@ dzprobe(addr)
 {
 	stuff(grab(&(addr->dzcsr)) | DZ_TIE | DZ_MSE, &(addr->dzcsr));
 	stuff(1, &(addr->dztcr));
-	DELAY(35000);
-	DELAY(35000);
+	DELAY(35000L);
+	DELAY(35000L);
 	stuff(DZ_CLR, &(addr->dzcsr));
 	return(ACP_IFINTR);
 }

@@ -7,10 +7,8 @@
 #
 # Common object files are assembled into a library {uulib.a}
 #
-#ALL=	uucico uucp uux uuxqt uulog uuclean uuname uupoll uusnap \
-#	uuencode uudecode uusend uucpd uuq acucntrl
 ALL=	uucico uucp uux uuxqt uulog uuclean uuname uupoll uusnap \
-	uuencode uudecode uusend uucpd uuq
+	uuencode uudecode uusend uucpd uuq acucntrl
 # Common object files placed in uulib.a
 COMMON=	anlwrk.o anyread.o assert.o cfgets.o chkpth.o \
 	cpmv.o expfile.o gename.o getargs.o getprm.o \
@@ -58,7 +56,7 @@ HOSTNAME=`uuname -l | sed 's/\(.......\).*/\1/'`
 SUBDIRS=C. D.${HOSTNAME}X D.${HOSTNAME} D. X. TM.
 # for make depend
 UNDEF=	-UNDIR -UUNET -USYSIII -UUNAME -UCCWHOAMI -UGETMYHNAME -UDATAKIT \
-	-DBSD4_2 -UUSG -UVMS -UBSD2_9
+	-DBSD4_2 -UUSG -UVMS -UBSD2_9 -DBSD4_3 -DBSD2_10
 
 all:	${ALL} 
 
@@ -162,7 +160,7 @@ install: ${ALL}
 	rm -f ${BIN}/ruusend
 	ln ${BIN}/uusend ${BIN}/ruusend
 	install -s -m 6110 -o ${OWNER} -g ${GROUP} uuxqt ${LIBDIR}
-#	install -s -m 6110 -o root -g ${GROUP} acucntrl ${LIBDIR}
+	install -s -m 6110 -o root -g ${GROUP} acucntrl ${LIBDIR}
 	install -s -m 500 -o uucp uucpd ${ETC}
 	@echo Dont forget to fork off /etc/uucpd in /etc/rc.local
 	@echo if you are not running /etc/inetd
@@ -199,7 +197,7 @@ acucntrl.o: uucp.h
 acucntrl.o: /usr/include/sys/buf.h
 acucntrl.o: /usr/include/signal.h
 acucntrl.o: /usr/include/sys/conf.h
-acucntrl.o: /usr/include/vaxuba/ubavar.h
+acucntrl.o: /usr/include/pdpuba/ubavar.h
 acucntrl.o: /usr/include/sys/stat.h
 acucntrl.o: /usr/include/nlist.h
 acucntrl.o: /usr/include/sgtty.h
@@ -233,6 +231,7 @@ cico.o: /usr/include/setjmp.h
 cico.o: /usr/include/sgtty.h
 cico.o: /usr/include/netdb.h
 cico.o: /usr/include/netinet/in.h
+cico.o: /usr/include/arpa/inet.h
 cico.o: /usr/include/sys/socket.h
 cico.o: /usr/include/sys/stat.h
 cico.o: uust.h
@@ -331,6 +330,7 @@ tio.o: /usr/include/signal.h
 tio.o: uucp.h
 tio.o: /usr/include/setjmp.h
 tio.o: /usr/include/sys/stat.h
+tio.o: /usr/include/netinet/in.h
 ulockf.o: ulockf.c
 ulockf.o: uucp.h
 ulockf.o: /usr/include/sys/stat.h
@@ -352,6 +352,7 @@ uucpd.o: /usr/include/signal.h
 uucpd.o: /usr/include/errno.h
 uucpd.o: /usr/include/sys/socket.h
 uucpd.o: /usr/include/netinet/in.h
+uucpd.o: /usr/include/arpa/inet.h
 uucpd.o: /usr/include/sys/wait.h
 uucpd.o: /usr/include/sys/ioctl.h
 uucpd.o: /usr/include/pwd.h

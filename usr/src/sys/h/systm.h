@@ -6,6 +6,7 @@
  *	@(#)systm.h	1.1 (2.10BSD Berkeley) 12/1/86
  */
 
+#ifndef SUPERVISOR
 /*
  * Random set of variables
  * used by more than one
@@ -58,7 +59,7 @@ extern int	cputype;	/* type of cpu = 40, 44, 45, 60, or 70 */
  */
 extern struct sysent
 {
-	int	sy_narg;		/* total number of arguments */
+	char	sy_narg;		/* total number of arguments */
 	int	(*sy_call)();		/* handler */
 } sysent[];
 
@@ -76,3 +77,4 @@ int	selwait;
 extern	bool_t	sep_id;		/* separate I/D */
 extern	char	regloc[];	/* offsets of saved user registers (trap.c) */
 extern	int	bsize;		/* size of buffers */
+#endif

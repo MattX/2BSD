@@ -1,0 +1,66 @@
+
+
+
+DUMPDIR(8)	    UNIX Programmer's Manual	       DUMPDIR(8)
+
+
+
+NNAAMMEE
+     dumpdir, 512dumpdir - print the names of files on a dump
+     tape
+
+SSYYNNOOPPSSIISS
+     _d_u_m_p_d_i_r [ ff filename ]
+     _5_1_2_d_u_m_p_d_i_r [ ff filename ]
+
+DDEESSCCRRIIPPTTIIOONN
+     _D_u_m_p_d_i_r is used to read magtapes dumped with the _d_u_m_p com-
+     mand and list the names and inode numbers of all the files
+     and directories on the tape.
+
+     The ff option causes _f_i_l_e_n_a_m_e as the name of the tape instead
+     of the default.
+
+     _5_1_2_d_u_m_p_d_i_r is a version of _d_u_m_p_d_i_r that can read tapes writ-
+     ten from 512-byte block file systems.
+
+FFIILLEESS
+     /dev/rmt1		 default file name
+     rst*		 temporary files
+
+SSEEEE AALLSSOO
+     dump(8), restor(8)
+
+DDIIAAGGNNOOSSTTIICCSS
+     If the dump extends over more than one tape, it may ask you
+     to change tapes.  Reply with a newline when the next tape
+     has been mounted.
+
+BBUUGGSS
+     There is redundant information on the tape that could be
+     used in case of tape reading problems.  Unfortunately, _d_u_m_p_-
+     _d_i_r and _5_1_2_d_u_m_p_d_i_r don't use it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						1
+
+
+

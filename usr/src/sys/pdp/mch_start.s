@@ -3,14 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_start.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_start.s	1.1 (2.10BSD Berkeley) 6/11/88
  */
 
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
 #include "../machine/mch_cpu.h"
 #include "../machine/trap.h"
-
 
 ASENTRY(start)
 	bit	$1,SSR0			/ is memory management enabled?
@@ -31,6 +30,24 @@ ASENTRY(start)
 
 	mov	$USIZE-1\<8|RW,KDSD6	/ Get a stack pointer (_u + 64*USIZE)
 	mov	$_u+[USIZE*64.],sp
+
+#ifdef UCB_NET
+	/*
+	 * Initial set up for SUPERVISOR space networking: set SUPERVISOR
+	 * space as split I&D, set stack pointer and map user area and I/O
+	 * page.
+	 */
+	bis	$2,SSR3			/ split i/d for supervisor network
+	mov	PS,-(sp)		/ set SUPERVISOR sp to NET_STOP
+	mov	$010340,PS
+	mov	$NET_STOP,-(sp)
+	mtpd	sp
+	mov	(sp)+,PS
+	mov	KDSA6,SDSA6		/ map user area and I/O page
+	mov	KDSD6,SDSD6
+	mov	KDSD7,SDSD7
+	mov	KDSA7,SDSA7
+#endif
 
 	mov	$_u,r0			/ Clear user block
 1:
@@ -116,12 +133,10 @@ _boothowto:
  * number of different processors.
  */
 hardprobe:
-#ifndef NONFP
 	mov	$1f,nofault
 	setd
-	inc	fpp
+	inc	_fpp
 1:
-#endif
 
 	/*
 	 * Test for SSR3 and UNIBUS map capability.  If there is no SSR3, the

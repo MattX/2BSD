@@ -2,16 +2,17 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)0.t	6.1 (Berkeley) 8/29/87
+.\"	@(#)0.t	6.2 (Berkeley) 10/1/88
 .\"
-.EH 'setup.2.10 - %''Installing and Operating 2.10BSD on the PDP'
-.OH 'Installing and Operating 2.10BSD on the PDP''Setup.2.10 - %'
-.ds 2B 2.10BSD
+.EH 'setup.2.10 - %''Installing and Operating 2.10.1BSD on the PDP'
+.OH 'Installing and Operating 2.10.1BSD on the PDP''Setup.2.10 - %'
+.ds Ps 2.10BSD
+.ds 2B 2.10.1BSD
 .bd S B 3
 .TL
 Installing and Operating \*(2B on the PDP
 .br
-April 20, 1987
+October 1, 1988
 .AU
 Keith Bostic
 .AI
@@ -40,11 +41,10 @@ UNIX\\$1
 Digital Equipment Corporation.
 .FE
 .FS
-** \s-2UNIX\s0 is a Trademark of Bell Laboratories.
+** UNIX is a Trademark of Bell Laboratories.
 .FE
 This document contains instructions for the
-installation and operation of the
-\*(2B release of the PDP*
+installation and operation of the \*(2B PDP*
 .UX **
 system.  It is adapted from the papers \fIInstalling and Operating 4.3BSD
 on the VAX\fP by Michael J. Karels, James M. Bloom, Marshall Kirk McKusick,
@@ -61,12 +61,15 @@ resource control, performance monitoring, and procedures for recompiling
 and reinstalling system software.
 .PP
 This release is not supported, nor should it be considered an official
-Berkeley release.  It was called \*(2B because 2.9BSD has clearly
-become overworked and System V was already taken.  The ``bugs'' address
-supplied with this release (as well as with the 4BSD releases) will
-work for some unknown period of time; \fBmake sure\fP that the ``Index:''
-line of the bug report indicates that the release is ``2.10BSD''.  See
-the \fIsendbug\fP(8) program for more details.  All fixes that
-we make, or that are sent to us, will be posted on \fIUSENET\fP, in
-the news group ``comp.bugs.2bsd''.
+Berkeley release.  It was called \*(2B because 2.9BSD has clearly become
+overworked, System V was already taken, and referring to it simply as
+\*(Ps would engender too much confusion as to whether the first or
+second release was being talked about.
+.PP
+The ``bugs'' address supplied with this release (as well as with the 4BSD
+releases) will work for some unknown period of time; \fBmake sure\fP that
+the ``Index:'' line of the bug report indicates that the release is
+``\*(Ps''.  See the \fIsendbug\fP(8) program for more details.  All
+fixes that we make, or that are sent to us, will be posted on
+\fIUSENET\fP, in the news group ``comp.bugs.2bsd''.
 .AE

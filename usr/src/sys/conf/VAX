@@ -61,7 +61,17 @@ Q22		NO			# 22-bit Qbus with no 18-bit devices
 					# never: 11/24/34/35/40/44/50/
 					#	55/60/70/84
 
+# Defining NONFP to NO compiles in support for hardware floating point.
+# However, this doesn't require that floating point hardware be present.
+# Defining NONFP to YES will save you a few hundred bytes of text.
 NONFP		NO			# if no floating point hardware
+
+# Defining FPSIM to YES compiles a floating point simulator into the kernel
+# which will catch floating point instruction traps from user space.  Note
+# that defining FPSIM to YES will only cost you text space.  If you actually
+# have floating point hardware, the simulator just won't be used.  The floating
+# point simulator is automatically compiled in if PDP11 (below) is GENERIC.
+FPSIM		NO			# floating point simulator
 
 #LINEHZ		50			# clock frequency European
 LINEHZ		60			# clock frequency USA
@@ -78,10 +88,10 @@ PROFILE		NO			# system profiling with KW11P clock
 # PDP-11 machine type; allowable values are GENERIC, 23, 24, 34, 35, 40,
 # 44, 45, 50, 53, 55, 60, 70, 73, 83, 84.  GENERIC should only be used to
 # build a distribution kernel.
-#PDP11		GENERIC			# distribution kernel
+PDP11		GENERIC			# distribution kernel
 #PDP11		44			# PDP-11/44
 #PDP11		70			# PDP-11/70
-PDP11		73			# PDP-11/73
+#PDP11		73			# PDP-11/73
 
 #########################################
 # GENERAL SYSTEM PARAMETERS		#
@@ -137,6 +147,7 @@ DUMPROUTINE	nulldev			# no dump routine.
 #DUMPROUTINE	radump			# ra driver dump routine
 #DUMPROUTINE	rldump			# rl driver dump routine
 #DUMPROUTINE	rmdump			# rm driver dump routine
+#DUMPROUTINE	rpdump			# rp driver dump routine
 #DUMPROUTINE	sidump			# si driver dump routine
 #DUMPROUTINE	xpdump			# xp driver dump routine
 
@@ -150,7 +161,7 @@ NSWAP		2376			# hk?b, RK611, RK06/07
 #NSWAP		5200			# rp?b, RP03
 #NSWAP		9120			# xp?b, RM05
 #NSWAP		17300			# rd?b, RD51/52/53
-#NSWAP		3100			# rd?b, RD51/52/53
+#NSWAP		3100			# rd?c, RD51/52/53
 #NSWAP		10032			# ra?b, RC25
 #NSWAP		33440			# ra?b, RA60/80
 #NSWAP		10240			# rl?, RL01
@@ -162,11 +173,14 @@ NSWAP		2376			# hk?b, RK611, RK06/07
 
 BADSECT		YES			# bad-sector forwarding
 CGL_RTP		YES			# allow one real time process
+EXTERNALITIMES	YES			# external inode times
 SMALL		NO			# smaller inode, buf, sched queues
 UCB_CLIST	YES			# clists moved from kernel data space
 UCB_FRCSWAP	YES			# force swap on expand/fork
 NOKA5		NO			# KA5 not used except for buffers
 					# and clists (_end < 0120000);
+QUOTA		YES			# dynamic file system quotas
+					# NOTE -- *very* expensive
 
 # UCB_METER is fairly expensive.  Unless you really look at the statistics
 # that it produces, don't bother running with it on.  Suggested usage is
@@ -195,6 +209,7 @@ VIRUS_VFORK	YES			# include vfork system call
 # buffers for a 1K file system, NBUF would be 128.  A possible exception would
 # be to reduce the buffers to save on data space, as they were 24 bytes per
 # header, last time I looked.
+# should be 20 for GENERIC, so room for kernel + large program to run.
 NBUF		60			# buffer cache, *must* be <= 240
 
 # MAXMEM is the maximum core per process is allowed.  First number
@@ -255,14 +270,6 @@ DIAGNOSTIC	YES			# misc. diagnostic loops and checks
 #	#define BSLOP	0
 #	int	bsize = BSIZE + BSLOP;		/* size of buffers */
 
-# The QUOTA code in 2.10 was differently done than 4.X and it was fairly
-# easily defeated; it's been removed.  You may see #ifdef QUOTA in some
-# kernel and application areas; don't remove it, it's there because quotas
-# are not mandatory in 4.X, and the source was ported from there.  It
-# actually wouldn't be that tough to put 4.X quotas into 2.10.  It's
-# extremely unclear that it's worth it, however.
-# UCB_QUOTAS		NO		# dynamic file system quotas
-
 # The UCB_NKB flag requires changes to UNIX boot pgms as well as changes to
 # dump, restore, icheck, dcheck, ncheck, mkfs.  It includes the options
 # previously known as UCB_SMINO (smaller inodes, NADDR = 7) and UCB_MOUNT
@@ -275,14 +282,18 @@ DIAGNOSTIC	YES			# misc. diagnostic loops and checks
 # PERIPHERALS: DISK DRIVES		#
 #########################################
 
+NBR		2		# Eaton BR
+
 NHK		2		# RK611, RK06/07
 
-NRAC		2		# NRAD controllers
+NRAC		1		# NRAD controllers
 NRAD		2		# RX50, RC25, RD51/52/53, RA60/80/81
 
 NRK		2		# RK05
 
 NRL		2		# RL01/02
+
+NRP		2		# RP03
 
 NRX		2		# RX02
 
@@ -292,7 +303,7 @@ NSI		2		# SI 9500 driver for CDC 9766 disks
 # controllers, you cannot use XP_PROBE for the Ampex 9300 and
 # Diva drives.  Read through /sys/pdpuba/hpreg.h and /sys/pdpuba/xp.c
 # for information on how to initialize for these drives.
-NXPC		2		# NXPD controllers (RH70/RH11 style)
+NXPC		1		# NXPD controllers (RH70/RH11 style)
 NXPD		2		# RM02/03/05, RP04/05/06, CDC 9766,
 				# Ampex 9300, Diva, Fuji 160, SI Eagle.
 XP_PROBE	YES		# check drive types at boot
@@ -327,6 +338,7 @@ NDZ		2		# DZ11; NDZ is in units of boards (8 each)
 #########################################
 # PERIPHERALS: OTHER			#
 #########################################
+NDN		2		# DN11 dialer
 NLP		2		# Line Printer
 LP_MAXCOL	132		# Maximum number of columns on line printers
 NDR		2		# DR11-W
@@ -334,10 +346,15 @@ NDR		2		# DR11-W
 #########################################
 # PSEUDO DEVICES, PROTOCOLS, NETWORKING	#
 #########################################
-# Networking only works with split I/D, i.e. 11/44/45/50/53/55/70/73/83/84.
-# Note, setting UCB_NET to YES also turns on the option "INET".  NETHER and
-# NLOOP should be non-zero for networking systems
+# Networking only works with split I/D and SUPERVISOR space, i.e. with the
+# 11/44/45/50/53/55/70/73/83/84.  Note, setting UCB_NET to YES also turns on
+# the option "INET".  NLOOP should be non-zero for any networking system,
+# NETHER should be non-zero for networking systems using any ethernet.
+# CHECKSTACK makes sure the networking stack pointer and the kernel stack
+# pointer don't collide; it's fairly expensive at 4 extra instructions for
+# EVERY function call AND return, normally left NO unless debugging.
 UCB_NET		YES		# TCP/IP
+CHECKSTACK	YES		# Kernel&Supervisor stack pointer checking
 NETHER		1		# ether pseudo-device
 NLOOP		1		# loop-back pseudo-device
 
@@ -345,8 +362,12 @@ NLOOP		1		# loop-back pseudo-device
 # the kernel to be configured for networking (UCB_NET).
 NPTY		8		# pseudo-terminals, in groups of 8
 
-NDE		1		# DEUNA
-NIL		1		# Interlan Ethernet
+# To make the 3Com Ethernet board work correctly, splimp has to be promoted
+# to spl6; splfix files that do this are in conf/3Com; the config script
+# hopefully does the right thing.
+NEC		1		# 3Com Ethernet
+NDE		0		# DEUNA
+NIL		0		# Interlan Ethernet
 NSL		1		# Serial Line IP
 NQE		1		# DEQNA
 
@@ -354,10 +375,12 @@ NQE		1		# DEQNA
 # before 2.9BSD.  Some won't even compile.  Most will require modification
 # of various Makefiles to include the correct source.  Good luck.
 ENABLE34	NO		# if have the ENABLE34 board
+
 NACC		0		# ACC LH/DH ARPAnet IMP interface
+PLI		YES		# LH/DH is connected to a PLI
+
 NCSS		0		# DEC/CSS IMP11-A ARPAnet IMP interface
 NDMC		0		# DMC11
-NEC		0		# 3Com Ethernet
 NEN		0		# Xerox prototype (3 Mb) Ethernet
 NHY		0		# Hyperchannel
 NIMP		0		# ARPAnet IMP 1822 interface
@@ -366,4 +389,3 @@ NS		0		# Xerox NS (XNS)
 NSRI		0		# SRI DR11c ARPAnet IMP
 NTB		0		# RS232 interface for Genisco/Hitachi tablets
 NVV		0		# V2LNI (Pronet)
-PLI		YES		# LH/DH is connected to a PLI

@@ -1,9 +1,15 @@
 /*
  * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * All rights reserved.
  *
- *	@(#)tcp_seq.h	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp_seq.h	7.2 (Berkeley) 12/7/87
  */
 
 /*
@@ -30,6 +36,6 @@
 
 #define	TCP_ISSINCR	128		/* increment for tcp_iss each second */
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 tcp_seq	tcp_iss;		/* tcp initial send seq # */
 #endif

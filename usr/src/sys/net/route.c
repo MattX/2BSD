@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1980, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)route.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)route.c	7.3 (Berkeley) 12/30/87
  */
 
 #include "param.h"
@@ -11,7 +17,6 @@
 #include "mbuf.h"
 #include "protosw.h"
 #include "socket.h"
-#include "domain.h"
 #include "user.h"
 #include "ioctl.h"
 #include "errno.h"
@@ -31,24 +36,25 @@ rtalloc(ro)
 	register struct route *ro;
 {
 	register struct rtentry *rt;
+	register struct mbuf *m;
 	register u_int hash;
 	struct sockaddr *dst = &ro->ro_dst;
 	int (*match)(), doinghost, s;
 	struct afhash h;
 	u_int af = dst->sa_family;
-	struct rtentry **table;
+	struct mbuf **table;
 
 	if (ro->ro_rt && ro->ro_rt->rt_ifp && (ro->ro_rt->rt_flags & RTF_UP))
 		return;				 /* XXX */
 	if (af >= AF_MAX)
 		return;
-
 	(*afswitch[af].af_hash)(dst, &h);
 	match = afswitch[af].af_netmatch;
 	hash = h.afh_hosthash, table = rthost, doinghost = 1;
 	s = splnet();
 again:
-	for (rt = table[hash % RTHASHSIZ]; rt; rt = rt->rt_next) {
+	for (m = table[RTHASHMOD(hash)]; m; m = m->m_next) {
+		rt = mtod(m, struct rtentry *);
 		if (rt->rt_hash != hash)
 			continue;
 		if ((rt->rt_flags & RTF_UP) == 0 ||
@@ -95,7 +101,7 @@ rtfree(rt)
 	rt->rt_refcnt--;
 	if (rt->rt_refcnt == 0 && (rt->rt_flags&RTF_UP) == 0) {
 		rttrash--;
-		MSFREE(rt);
+		(void) m_free(dtom(rt));
 	}
 }
 
@@ -174,8 +180,9 @@ rtredirect(dst, gateway, flags, src)
 			 * this destination.
 			 */
 			rt->rt_gateway = *gateway;
+			rt->rt_flags |= RTF_MODIFIED;
+			rtstat.rts_newgateway++;
 		}
-		rtstat.rts_newgateway++;
 	} else
 		rtstat.rts_badredirect++;
 	rtfree(rt);
@@ -188,11 +195,12 @@ rtioctl(cmd, data)
 	int cmd;
 	caddr_t data;
 {
+
 	if (cmd != SIOCADDRT && cmd != SIOCDELRT)
 		return (EINVAL);
 	if (!suser())
 		return (u.u_error);
-	return (rtrequest(cmd, (struct route *)data));
+	return (rtrequest(cmd, (struct rtentry *)data));
 }
 
 /*
@@ -204,7 +212,9 @@ rtrequest(req, entry)
 	int req;
 	register struct rtentry *entry;
 {
-	register struct rtentry *rt,**rtprev;
+	register struct mbuf *m, **mprev;
+	struct mbuf **mfirst;
+	register struct rtentry *rt;
 	struct afhash h;
 	int s, error = 0, (*match)();
 	u_int af;
@@ -218,14 +228,15 @@ rtrequest(req, entry)
 	(*afswitch[af].af_hash)(&entry->rt_dst, &h);
 	if (entry->rt_flags & RTF_HOST) {
 		hash = h.afh_hosthash;
-		rtprev = &rthost[hash % RTHASHSIZ];
+		mprev = &rthost[RTHASHMOD(hash)];
 	} else {
 		hash = h.afh_nethash;
-		rtprev = &rtnet[hash % RTHASHSIZ];
+		mprev = &rtnet[RTHASHMOD(hash)];
 	}
 	match = afswitch[af].af_netmatch;
 	s = splimp();
-	for (; rt = *rtprev; rtprev = &rt->rt_next) {
+	for (mfirst = mprev; m = *mprev; mprev = &m->m_next) {
+		rt = mtod(m, struct rtentry *);
 		if (rt->rt_hash != hash)
 			continue;
 		if (entry->rt_flags & RTF_HOST) {
@@ -242,21 +253,21 @@ rtrequest(req, entry)
 	switch (req) {
 
 	case SIOCDELRT:
-		if (rt == 0) {
+		if (m == 0) {
 			error = ESRCH;
 			goto bad;
 		}
-		*rtprev = rt->rt_next;
+		*mprev = m->m_next;
 		if (rt->rt_refcnt > 0) {
 			rt->rt_flags &= ~RTF_UP;
 			rttrash++;
-			rt->rt_next = 0;
+			m->m_next = 0;
 		} else
-			MSFREE(rt);
+			(void) m_free(m);
 		break;
 
 	case SIOCADDRT:
-		if (rt) {
+		if (m) {
 			error = EEXIST;
 			goto bad;
 		}
@@ -288,12 +299,16 @@ rtrequest(req, entry)
 				goto bad;
 			}
 		}
-		MSGET(rt, struct rtentry, M_CLEAR);
-		if (rt == 0) {
+		m = m_get(M_DONTWAIT, MT_RTABLE);
+		if (m == 0) {
 			error = ENOBUFS;
 			goto bad;
 		}
-		*rtprev = rt;
+		m->m_next = *mfirst;
+		*mfirst = m;
+		m->m_off = MMINOFF;
+		m->m_len = sizeof (struct rtentry);
+		rt = mtod(m, struct rtentry *);
 		rt->rt_hash = hash;
 		rt->rt_dst = entry->rt_dst;
 		rt->rt_gateway = entry->rt_gateway;

@@ -79,7 +79,7 @@
 					/* in specified number of hz */
 #define	VTR_STAMP	4		/* user specified stamp */
 
-#if defined(KERNEL) && defined(UCB_METER)
+#if defined(KERNEL) && defined(UCB_METER) && !defined(SUPERVISOR)
 u_long tracebuf[TR_NUM_210];
 #define	trace(a)	tracebuf[a]++;
 #else

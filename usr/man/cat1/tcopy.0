@@ -1,0 +1,66 @@
+
+
+
+TCOPY(1)	    UNIX Programmer's Manual		 TCOPY(1)
+
+
+
+NNAAMMEE
+     tcopy - copy a mag tape
+
+SSYYNNOOPPSSIISS
+     ttccooppyy ssrrcc [ ddeesstt ]
+
+DDEESSCCRRIIPPTTIIOONN
+     _T_c_o_p_y is designed to copy magnetic tapes.	The only assump-
+     tion made about the tape is that there are two tape marks at
+     the end.  _T_c_o_p_y with only a source tape specified will print
+     information about the sizes of records and tape files.  If a
+     destination is specified, then, a copy will be made of the
+     source tape.  The blocking on the destination tape will be
+     identical to that used on the source tape.  Copying a tape
+     will yield the same output as if just printing the sizes.
+
+SSEEEE AALLSSOO
+     mtio(4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	December 11, 1985			1
+
+
+

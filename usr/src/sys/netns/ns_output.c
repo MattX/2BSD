@@ -1,13 +1,19 @@
 /*
- * Copyright (c) 1984, 1985, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1984, 1985, 1986, 1987 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)ns_output.c	7.1 (Berkeley) 6/5/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *      @(#)ns_output.c	7.2 (Berkeley) 1/20/88
  */
 
 #include "param.h"
-#include "../machine/seg.h"
+#ifdef	NS
 #include "mbuf.h"
 #include "errno.h"
 #include "socket.h"
@@ -41,7 +47,6 @@ ns_output(m0, ro, flags)
 	struct sockaddr_ns *dst;
 	extern int idpcksum;
 
-#ifdef	HACK
 	if (ns_hold_output) {
 		if (ns_lastout) {
 			(void)m_free(ns_lastout);
@@ -122,10 +127,10 @@ bad:
 	if (ns_copy_output) {
 		ns_watch_output(m0, ifp);
 	}
-#endif	HACK
 	m_freem(m0);
 done:
 	if (ro == &idproute && (flags & NS_ROUTETOIF) == 0 && ro->ro_rt)
 		RTFREE(ro->ro_rt);
 	return (error);
 }
+#endif

@@ -523,7 +523,7 @@ shortprint(pers)
 		printf(" %3.3s %-5.5s ", p, p + 11);
 	} else if (pers->loginat == 0)
 		printf(" < .  .  .  . >");
-	else if (tloc - pers->loginat >= 180 * 24 * 60 * 60)
+	else if (tloc - pers->loginat >= (long)180 * 24 * 60 * 60)
 		printf(" <%-6.6s, %-4.4s>", p + 4, p + 20);
 	else
 		printf(" <%-12.12s>", p + 4);
@@ -604,7 +604,7 @@ personprint(pers)
 		}
 	} else if (pers->loginat == 0)
 		printf("\nNever logged in.");
-	else if (tloc - pers->loginat > 180 * 24 * 60 * 60) {
+	else if (tloc - pers->loginat > (long)180 * 24 * 60 * 60) {
 		register char *ep = ctime(&pers->loginat);
 		printf("\nLast login %10.10s, %4.4s on %s",
 			ep, ep+20, pers->tty);

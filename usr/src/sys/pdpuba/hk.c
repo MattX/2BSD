@@ -177,7 +177,7 @@ register struct buf *bp;
 	mapalloc(bp);
 #endif
 	dp = &hkutab[unit];
-	s = spl5();
+	s = splbio();
 	disksort(dp, bp);
 	if (dp->b_active == 0) {
 		hkustart(unit);

@@ -27,7 +27,7 @@ struct rt_entry {
 	union {
 		struct	rtentry rtu_rt;
 		struct {
-			u_long	rtu_hash;
+			u_int	rtu_hash;
 			struct	sockaddr rtu_dst;
 			struct	sockaddr rtu_router;
 			short	rtu_flags;

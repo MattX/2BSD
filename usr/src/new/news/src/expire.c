@@ -17,17 +17,15 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)expire.c	2.53	4/6/87";
+static char	*SccsId = "@(#)expire.c	2.57	11/30/87";
 #endif /* SCCSID */
 
 #include "params.h"
 #include <errno.h>
-#if defined(BSD4_2) || defined(BSD4_1C)
-# include <sys/dir.h>
+
+#ifdef BSD4_2
 # include <sys/file.h>
-#else
-# include "ndir.h"
-#endif
+#endif /* BSD4_2 */
 
 #ifdef LOCKF
 #include <unistd.h>
@@ -76,16 +74,10 @@ struct multhist {
 	char	*mh_file;
 } *multhist;
 unsigned int mh_size;
-char *calloc();
-char *realloc();
+extern char *calloc(), *realloc();
 struct tm *gmtime();
 
-#ifdef DBM
-typedef struct {
-	char *dptr;
-	int dsize;
-} datum;
-#else
+#ifndef DBM
 FILE *nexthistfile();
 #endif /* !DBM */
 
@@ -100,11 +92,10 @@ char	arpat[LBUFLEN];
 int	arpatlen = 0;
 char	ngpat[LBUFLEN];
 int	ngpatlen = 0;
-char	afline[BUFLEN];
+char	afline[CBUFLEN];
 char	grpsleft[BUFLEN];
 struct hbuf h;
-int	ExpireLock;
-int	rmlock();
+int	xxit();
 time_t	today;
 
 main(argc, argv)
@@ -121,17 +112,19 @@ char	**argv;
 	if ((pw = getpwnam(NEWSUSR)) == NULL)
 		xerror("Cannot get NEWSUSR pw entry");
 
-	uid = pw->pw_uid;
+	duid = uid = pw->pw_uid;
 	if ((gp = getgrnam(NEWSGRP)) == NULL)
 		xerror("Cannot get NEWSGRP gr entry");
-	gid = gp->gr_gid;
+	dgid = gid = gp->gr_gid;
 	(void) setgid(gid);
 	(void) setuid(uid);
 
 	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
-		signal(SIGHUP, rmlock);
+		signal(SIGHUP, xxit);
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
-		signal(SIGINT, rmlock);
+		signal(SIGINT, xxit);
+	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
+		signal(SIGTERM, xxit);
 	expincr = DFLTEXP;
 	dropincr = HISTEXP;
 	ngpat[0] = ',';
@@ -315,13 +308,13 @@ char	**argv;
 #ifdef PROFILING
 	monitor((int(*)())0,(int(*)())0,0,0,0);
 #endif /* PROFILING */
-#ifdef IHCC
+#ifdef LOGDIR
 	/*afline happens to be available - (we're getting out anyway)*/
 	sprintf(afline, "%s/%s", logdir(HOME), RNEWS);
 	execl(afline, "rnews", "-U", (char *)NULL);
-#else /* ! IHCC */
+#else /* ! LOGDIR */
 	execl(RNEWS, "rnews", "-U", (char *)NULL);
-#endif /* ! IHCC */
+#endif /* ! LOGDIR */
 	perror(RNEWS);
 	xxit(1);
 	/* NOTREACHED */
@@ -357,7 +350,12 @@ expire()
 					sizeof (struct multhist));
 			mh_size = SPACE_INCREMENT;
 
-			(void) sprintf(afline, "exec sort -t\t +1.6 -2 +1 >%s", NARTFILE);
+			(void) sprintf(afline, "exec sort -t\t +1.6 -2 +1 >%s",
+#ifdef DBM
+			NARTFILE);
+#else /* !DBM */
+			ARTFILE);
+#endif /* !DBM */
 			if ((nhfd = popen(afline, "w")) == NULL)
 				xerror("Cannot exec %s", afline);
 		} else
@@ -365,10 +363,11 @@ expire()
 	} else {
 #ifdef DBM
 		ohfd = xfopen(ARTFILE, "r");
+		nhfd = xfopen(NARTFILE, "w");
 #else
 		ohfd = nexthistfile((FILE *)NULL);
+		nhfd = xfopen(ARTFILE, "w");
 #endif /* DBM */
-		nhfd = xfopen(NARTFILE, "w");
 	}
 
 	dolock();
@@ -384,14 +383,14 @@ expire()
 				if (ngdir == NULL) {
 					if ( ngdirp != NULL )
 						closedir(ngdirp);
-					if (fgets(afline, BUFLEN, ohfd) == NULL)
+					if (fgets(afline, sizeof(afline), ohfd) == NULL)
 						goto out;
 					(void) strcpy(nbuf, afline);
 					p1 = index(nbuf, ' ');
 					if (p1 == NULL)
 						p1 = index(nbuf, '\n');
 					if (p1 != NULL)
-						*p1 = NULL;
+						*p1 = '\0';
 					if (!ngmatch(nbuf, ngpat))
 						continue;
 
@@ -417,10 +416,10 @@ expire()
 		} else {
 			char dc;
 #ifdef DBM
-			if (fgets(afline, BUFLEN, ohfd) == NULL)
+			if (fgets(afline, sizeof(afline), ohfd) == NULL)
 				break;
 #else
-			if (fgets(afline, BUFLEN, ohfd) == NULL)
+			if (fgets(afline, sizeof(afline), ohfd) == NULL)
 				if (!(ohfd = nexthistfile(ohfd)))
 					break;
 				else
@@ -439,6 +438,7 @@ expire()
 				continue;
 			*p2 = '\0';
 			(void) strcpy(recdate, p1+1);
+			(void) strcat(recdate, " GMT");
 			rectime = cgtdate(recdate);
 			*p2++ = '\t';
 			(void) strcpy(nbuf, p2);
@@ -541,10 +541,10 @@ expire()
 			goto checkdate;
 		}
 		for(i=0; i<NUNREC; i++)
- 			if (h.unrec[i] != NULL) {
-  				free(h.unrec[i]);
- 				h.unrec[i] = NULL;
- 			} else
+			if (h.unrec[i] != NULL) {
+				free(h.unrec[i]);
+				h.unrec[i] = NULL;
+			} else
 				break;
 		if (!hread(&h, fp, TRUE)) {
 			printf("Garbled article %s.\n", filename);
@@ -768,11 +768,9 @@ out:
 			xerror("History write failed, %s", errmsg(errno));
 
 	if (dorebuild || !nohistory) {
-#ifndef DBM
-		(void) rename(ARTFILE, OARTFILE);
-#endif /* !DBM */
-		(void) rename(NARTFILE, ARTFILE);
 #ifdef DBM
+		(void) rename(ARTFILE, OARTFILE);
+		(void) rename(NARTFILE, ARTFILE);
 		if (dorebuild)
 			rebuilddbm( );
 		else {
@@ -798,7 +796,7 @@ dolock()
 #if defined(BSD4_2) || defined(LOCKF)
 	LockFd = open(ACTIVE, 2);
 # ifdef	LOCKF
-	if (lockf(LockFd, F_LOCK, 0) < 0)
+	if (lockf(LockFd, F_LOCK, 0L) < 0)
 # else	/* BSD4_2 */
 	if (flock(LockFd, LOCK_EX) < 0)
 # endif	/* BSD4_2 */
@@ -807,8 +805,9 @@ dolock()
 	int i = 0;
 	sprintf(afline,"%s.lock", ACTIVE);
 	while (LINK(ACTIVE, afline) < 0 && errno == EEXIST) {
-		if (i++ > 5)
+		if (i++ > 5) {
 			xerror("Can't get lock for expire");
+		}
 		sleep(i*2);
 	}
 #endif	/* !BSD4_2  && !LOCKF */
@@ -842,7 +841,7 @@ updateactive()
 		int gdsize, hassubs;
 		struct stat stbuf;
 
-		if (fgets(afline, BUFLEN, ohfd) == NULL)
+		if (fgets(afline, sizeof(afline), ohfd) == NULL)
 			continue;
 		if (sscanf(afline,"%s %ld %ld %c",nbuf,&maxart, &minart,
 		    &cansub) < 4)
@@ -931,13 +930,6 @@ struct hbuf *hp;
 			if (p == NULL) {
 				last = 1;
 				p = index(artlist, '\n');
-			}
-			if (p == NULL) {
-				last = 1;
-				fn = dirname(artlist);
-				if (UNLINK(fn) < 0 && errno != ENOENT)
-					perror(fn);
-				return;
 			}
 			if (p)
 				*p = 0;
@@ -1154,7 +1146,8 @@ long fileoff;
  * Open the next history subdirectory file
  */
 
-FILE *nexthistfile(ofp)
+FILE *
+nexthistfile(ofp)
 FILE *ofp;
 {
 	static int histfilecounter = -1;
@@ -1212,6 +1205,18 @@ rebuildhistorydir()
 
 xxit(i)
 {
+	if (i) {
+#ifdef DBM
+		char tempname[BUFLEN];
+		(void) UNLINK(NARTFILE);
+		(void) sprintf(tempname,"%s.pag", NARTFILE);
+		(void) UNLINK(tempname);
+		(void) sprintf(tempname,"%s.dir", NARTFILE);
+		(void) UNLINK(tempname);
+#else	/* !DBM */
+		(void) UNLINK(ARTFILE);
+#endif	/* !DBM */
+	}
 	rmlock();
 	exit(i);
 }

@@ -82,11 +82,14 @@ rwuio(mode)
 			break;
 #ifdef UCB_NET
 		case DTYPE_SOCKET:
-			{
-			int soreceive(), sosend();
-			(*(mode == FREAD ? soreceive : sosend))
-			   ((struct socket *)fp->f_socket, 0, 0, 0);
-			}
+			if (mode == FREAD)
+				u.u_error =
+				    SORECEIVE((struct socket *)fp->f_socket,
+				    0, 0, 0);
+			else
+				u.u_error =
+				    SOSEND((struct socket *)fp->f_socket,
+				    0, 0, 0);
 			break;
 #endif
 	}
@@ -178,17 +181,12 @@ ioctl()
 		u.u_error = fgetown(fp, (int *)data);
 		return;
 	}
-	switch(fp->f_type) {
-		case DTYPE_PIPE:
-		case DTYPE_INODE:
-			u.u_error = ino_ioctl(fp, k_com, data);
-			break;
 #ifdef UCB_NET
-		case DTYPE_SOCKET:
-			u.u_error = soo_ioctl(fp->f_socket, k_com, data);
-			break;
+	if (fp->f_type == DTYPE_SOCKET)
+		u.u_error = SOO_IOCTL(fp, k_com, data);
+	else
 #endif
-	}
+	u.u_error = ino_ioctl(fp, k_com, data);
 	/*
 	 * Copy any data to user, size was
 	 * already set and checked above.
@@ -245,7 +243,10 @@ select()
 			u.u_error = EINVAL;
 			goto done;
 		}
-		s = splhigh(); timevaladd(&atv, &time); splx(s);
+		s = splhigh();
+		time.tv_usec = lbolt * 1000000L / LINEHZ;
+		timevaladd(&atv, &time);
+		splx(s);
 	}
 retry:
 	ncoll = nselcoll;
@@ -255,8 +256,8 @@ retry:
 		goto done;
 	s = splhigh();
 	/* this should be timercmp(&time, &atv, >=) */
-	if (uap->tv && (time.tv_sec > atv.tv_sec ||
-	    time.tv_sec == atv.tv_sec && time.tv_usec >= atv.tv_usec)) {
+	if (uap->tv && (time.tv_sec > atv.tv_sec || (time.tv_sec == atv.tv_sec
+	    && lbolt * 1000000L / LINEHZ >= atv.tv_usec))) {
 		splx(s);
 		goto done;
 	}
@@ -321,20 +322,12 @@ selscan(ibits, obits, nfd)
 	fd_set *ibits, *obits;
 	int nfd;
 {
-	register int which, i, j;
+	register int i, j;
 	register fd_mask bits;
-	int flag;
+	int which, flag;
 	struct file *fp;
 	int n = 0;
-	int (*selroutine)();
 
-#ifdef UCB_NET
-	int soo_select(), ino_select();
-	selroutine = (fp->f_type == DTYPE_SOCKET) ? soo_select : ino_select;
-#else
-	int ino_select();
-	selroutine = ino_select;
-#endif
 	for (which = 0; which < 3; which++) {
 		switch (which) {
 
@@ -356,9 +349,27 @@ selscan(ibits, obits, nfd)
 					u.u_error = EBADF;
 					break;
 				}
-				if ((*selroutine)(fp, flag)) {
-					FD_SET(i + j, &obits[which]);
-					n++;
+				switch(fp->f_type) {
+				case DTYPE_INODE:
+					if (ino_select(fp, flag)) {
+						FD_SET(i + j, &obits[which]);
+						n++;
+					}
+					break;
+				case DTYPE_PIPE:
+					if (pipe_select(fp, flag)) {
+						FD_SET(i + j, &obits[which]);
+						n++;
+					}
+					break;
+#ifdef UCB_NET
+				case DTYPE_SOCKET:
+					if (SOO_SELECT(fp, flag)) {
+						FD_SET(i + j, &obits[which]);
+						n++;
+					}
+					break;
+#endif
 				}
 			}
 		}

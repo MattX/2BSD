@@ -7,69 +7,50 @@
  */
 
 /*
- * TM tape driver
+ * TM11 - TU10/TE10/TS03 standalone tape driver
  */
 
-#include <sys/param.h>
-#include <sys/inode.h>
+#include "../h/param.h"
+#include "../h/inode.h"
+#include "../pdpuba/tmreg.h"
 #include "saio.h"
 
-struct device {
-	int	tmer;
-	int	tmcs;
-	int	tmbc;
-	char	*tmba;
-	int	tmdb;
-	int	tmrd;
-};
-
-#define	TMADDR ((struct device *)0172520)
-
-#define	GO	01
-#define	RCOM	02
-#define	WCOM	04
-#define	WEOF	06
-#define	SFORW	010
-#define	SREV	012
-#define	WIRG	014
-#define	REW	016
-#define	DENS	060000		/* 9-channel */
-#define	IENABLE	0100
-#define	CRDY	0200
-#define GAPSD	010000
-#define	TUR	1
-#define	SDWN	010
-#define	HARD	0102200	/* ILC, EOT, NXM */
-#define	EOF	0040000
-
-#define	SSEEK	1
-#define	SIO	2
+#define	TMADDR ((struct tmdevice *)0172520)
 
 extern int tapemark;	/* flag to indicate tapemark 
 			has been encountered (see sys.c) 	*/
 
+/*
+ * Bits in deivice code.
+ */
+#define	TEUNIT(dev)	((dev) & 03)
+#define	T_NOREWIND	04		/* not used in stand alone driver */
+#define	TEDENS(dev)	(((dev) & 030) >> 3)
 
 tmrew(io)
-register struct iob *io;
+	register struct iob *io;
 {
-	tmstrategy(io, REW);
+	tmstrategy(io, TM_REW);
 }
 
 tmopen(io)
-register struct iob *io;
+	register struct iob *io;
 {
 	register skip;
 
-	tmstrategy(io, REW);
+	tmstrategy(io, TM_REW);
 	skip = io->i_boff;
 	while (skip--) {
 		io->i_cc = 0;
-		while (tmstrategy(io, SFORW))
-			;
+		while (tmstrategy(io, TM_SFORW))
+			continue;
 	}
 }
+
+u_short tmdens[4] = { TM_D800, TM_D1600, TM_D6250, TM_D800 };
+
 tmstrategy(io, func)
-register struct iob *io;
+	register struct iob *io;
 {
 	register int com, unit, errcnt;
 
@@ -77,48 +58,47 @@ register struct iob *io;
 	errcnt = 0;
 retry:
 	tmquiet();
-	com = (unit<<8)|(segflag<<4)|DENS;
+	com = (TEUNIT(unit)<<8)|(segflag<<4) | tmdens[TEDENS(unit)];
 	TMADDR->tmbc = -io->i_cc;
 	TMADDR->tmba = io->i_ma;
 	if (func == READ)
-		TMADDR->tmcs = com | RCOM | GO;
+		TMADDR->tmcs = com | TM_RCOM | TM_GO;
 	else if (func == WRITE)
-		TMADDR->tmcs = com | WCOM | GO;
-	else if (func == SREV) {
+		TMADDR->tmcs = com | TM_WCOM | TM_GO;
+	else if (func == TM_SREV) {
 		TMADDR->tmbc = -1;
-		TMADDR->tmcs = com | SREV | GO;
+		TMADDR->tmcs = com | TM_SREV | TM_GO;
 		return(0);
 	} else
-		TMADDR->tmcs = com | func | GO;
-	while ((TMADDR->tmcs&CRDY) == 0)
-		;
-	if (TMADDR->tmer&EOF)
-	{
+		TMADDR->tmcs = com | func | TM_GO;
+	while ((TMADDR->tmcs&TM_CUR) == 0)
+		continue;
+	if (TMADDR->tmer&TMER_EOF) {
 		tapemark=1;
 		return(0);
 	}
-	if (TMADDR->tmer < 0) {
+	if (TMADDR->tmer & TM_ERR) {
 		if (errcnt == 0)
-			printf("tape error: er=%o", TMADDR->tmer);
-		if (errcnt==10) {
-			printf("\n");
+			printf("\nTM unit %d tape error: er=%o cs=%o",
+				unit, TMADDR->tmer, TMADDR->tmcs);
+		if (errcnt++ == 10) {
+			printf("\n(FATAL ERROR)\n");
 			return(-1);
 		}
-		errcnt++;
-		tmstrategy(io, SREV);
+		tmstrategy(io, TM_SREV);
 		goto retry;
 	}
 	if (errcnt)
-		printf(" recovered by retry\n");
-	return( io->i_cc+TMADDR->tmbc );
+		printf("\n(RECOVERED by retry)\n");
+	return(io->i_cc+TMADDR->tmbc);
 }
 
 tmquiet()
 {
-	while ((TMADDR->tmcs&CRDY) == 0)
-		;
-	while ((TMADDR->tmer&TUR) == 0)
-		;
-	while ((TMADDR->tmer&SDWN) != 0)
-		;
+	while ((TMADDR->tmcs&TM_CUR) == 0)
+		continue;
+	while ((TMADDR->tmer&TMER_TUR) == 0)
+		continue;
+	while ((TMADDR->tmer&TMER_SDWN) != 0)
+		continue;
 }

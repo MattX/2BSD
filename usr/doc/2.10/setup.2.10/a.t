@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)a.t	6.2 (Berkeley) 10/1/88
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -20,6 +20,8 @@ APPENDIX A \- KERNEL CONFIGURATION OPTIONS
 .sp 2
 .R
 .NL
+.NH 2
+Kernel configuration options
 .PP
 The \*(2B kernel has a number of parameters and options that can be
 used to tailor the kernel to site specific needs.
@@ -35,10 +37,98 @@ file to a new file, \fISYSTEM\fP and then editing the options in
 GENERIC as a ``grocery list'', checking off those options you want,
 crossing out those you don't and setting numeric parameters to reasonable
 values.
+.NH 2
+Configuring the number of mountable file systems (NMOUNT)
 .PP
-Following is a copy of the GENERIC configuration file \fI/sys/conf/GENERIC\fP:
-.sp 1
-.ta 8u 16u 24u 32u 40u 48u 56u 72u 80u
+Because of time constraints we were unable to move the
+.B NMOUNT
+constant into the kernel configuration file where it belongs.
+.B NMOUNT
+is used to configure the number of mountable file systems in \*(2B.  Since
+each slot in the kernel mount table takes up close to a half Kb of
+valuable kernel data space, the distribution kernel comes configured
+with
+.B NMOUNT
+set to 5.
+This is almost certainly too small for most sites and should be increased
+to the number of file systems you expect to mount.
+.PP
+.B NMOUNT
+is defined in
+.IR /sys/h/param.h .
+If you change its value, you must recompile the kernel (obviously) and the
+following applications:
+.IR mount ,
+.IR quotaon ,
+.IR edquota ,
+.IR umount ,
+and
+.IR df .
+.NH 2
+GENERIC kernel configuration
+.PP
+All of the generic kernels support the following devices:
+.TS
+l n.
+Device	Number
+-
+RK06/07	2
+MSCP (RA) Controllers	1
+MSCP (RA) Disks	2
+RL01/02	2
+SMD (XP) Controllers	1
+SMD (XP) Disks	2
+TE16, TU45, TU77 (HT) Tape drives	1
+TM11 (TM) Tape drives	1
+TS11 (TS) Tape drives	1
+.TE
+.PP
+The generic kernels are set up with the following disk drive
+configurations:
+.TS
+l l l n l.
+Kernel	root/pipe	swap	nswap	comments
+-
+hkunix	/dev/hk0e	/dev/hk1a	5940	two drive, 0e covers 0a and 0b
+raunix	/dev/ra0a	/dev/ra0b	10032
+rlunix	/dev/rl0h	/dev/rl1h	10240	two drive, no partitions on RLs
+xpunix	/dev/xp0a	/dev/xp0b	8878
+.TE
+.PP
+If these values aren't usable at all, you'll have to patch the kernel
+before it first accesses any of the disks.  Don't do this unless you
+absolutely have to.  It's far better to use the defaults, rebuild a
+kernel for your specific setup, and then rearrange your file systems.
+.\"CHECK - XXX
+.TS
+l l l.
+Variable	location	comments
+-
+rootdev	02336	Root device - a file system
+pipedev	02342	Pipe device - a file system
+swapdev	02340	Swap device - raw chunk of disk
+nswap	02350	Size of swap partition
+.TE
+.PP
+.TS
+l l.
+Device	major*256
+-
+HK	02000
+RA	02400
+RL	03400
+XP	05000
+.TE
+.IR Rootdev ,
+.IR pipedev ,
+and
+.I swapdev
+are 256 * device major number + device minor number.  Device minor numbers
+are 8 * drive + partition.
+.NH 3
+GENERIC kernel configuration file
+.PP
+.ta 8n 16n 24n 32n 40n 48n 56n 72n 80n
 .nf
 # Machine configuration file for 2.10BSD distributed kernel.
 #
@@ -103,7 +193,17 @@ Q22		NO			# 22-bit Qbus with no 18-bit devices
 					# never: 11/24/34/35/40/44/50/
 					#	55/60/70/84
 
+# Defining NONFP to NO compiles in support for hardware floating point.
+# However, this doesn't require that floating point hardware be present.
+# Defining NONFP to YES will save you a few hundred bytes of text.
 NONFP		NO			# if no floating point hardware
+
+# Defining FPSIM to YES compiles a floating point simulator into the kernel
+# which will catch floating point instruction traps from user space.  Note
+# that defining FPSIM to YES will only cost you text space.  If you actually
+# have floating point hardware, the simulator just won't be used.  The floating
+# point simulator is automatically compiled in if PDP11 (below) is GENERIC.
+FPSIM		NO			# floating point simulator
 
 #LINEHZ		50			# clock frequency European
 LINEHZ		60			# clock frequency USA
@@ -141,7 +241,7 @@ BOOTDEV		NONE			# don't autoboot
 #BOOTDEV	ra			# MSCP boot device
 #BOOTDEV	rl			# rl01/02 boot device
 #BOOTDEV	rm			# rm02/03/05 boot device
-#BOOTDEV	rp			# rp03 boot device
+#BOOTDEV	br			# Eaton BR1537/BR1711 boot device
 #BOOTDEV	sc11			# Emulex SC11/B boot device
 #BOOTDEV	sc21			# Emulex SC21 boot device
 #BOOTDEV	si			# si 9500 boot device
@@ -158,8 +258,10 @@ DST		1			# Daylight Savings Time (1 or 0)
 # if you have an SMD drive using the xp driver, rootdev would be xp0a,
 # or "makedev(10,0)".  Swapdev would be the b partition, xp0b, or
 # "makedev(10,1)".  The 10 is the major number of the device (the offset
-# in the bdevsw table in conf.c) and the 0 and 1 are the partitions.
-# You can also get the major numbers from the MAKEDEV script in /dev.
+# in the bdevsw table in conf.c) and the 0 and 1 are the minor numbers
+# which correspond to the partitions as described in the section 4 manual
+# pages.  You can also get the major numbers from the MAKEDEV script in
+# /dev.
 PIPEDEV		makedev(10,0)		# makedev(10,0) xp0a
 ROOTDEV		makedev(10,0)		# makedev(10,0) xp0a
 SWAPDEV		makedev(10,1)		# makedev(10,1) xp0b
@@ -179,6 +281,7 @@ DUMPROUTINE	nulldev			# no dump routine.
 #DUMPROUTINE	radump			# ra driver dump routine
 #DUMPROUTINE	rldump			# rl driver dump routine
 #DUMPROUTINE	rmdump			# rm driver dump routine
+#DUMPROUTINE	brdump			# br driver dump routine
 #DUMPROUTINE	sidump			# si driver dump routine
 #DUMPROUTINE	xpdump			# xp driver dump routine
 
@@ -187,9 +290,9 @@ DUMPROUTINE	nulldev			# no dump routine.
 #NSWAP		9405			# dvhp?b or xp?b, DIVA COMP V
 #NSWAP		5940			# hk?a, RK611, RK06/07
 NSWAP		2376			# hk?b, RK611, RK06/07
+#NSWAP		12122			# br?b, Eaton BR1538 or BR1711
 #NSWAP		8779			# hp?b or xp?b, RP04/05/06
 #NSWAP		4800			# rm?b or xp?b, RM02/03
-#NSWAP		5200			# rp?b, RP03
 #NSWAP		9120			# xp?b, RM05
 #NSWAP		17300			# rd?b, RD51/52/53
 #NSWAP		3100			# rd?c, RD51/52/53
@@ -204,11 +307,14 @@ NSWAP		2376			# hk?b, RK611, RK06/07
 
 BADSECT		NO			# bad-sector forwarding
 CGL_RTP		NO			# allow one real time process
+EXTERNALITIMES	NO			# map out inode time values
 SMALL		NO			# smaller inode, buf, sched queues
 UCB_CLIST	NO			# clists moved from kernel data space
 UCB_FRCSWAP	NO			# force swap on expand/fork
 NOKA5		NO			# KA5 not used except for buffers
 					# and clists (_end < 0120000);
+QUOTA		NO			# dynamic file system quotas
+					# NOTE -- *very* expensive
 
 # UCB_METER is fairly expensive.  Unless you really look at the statistics
 # that it produces, don't bother running with it on.  Suggested usage is
@@ -237,11 +343,12 @@ VIRUS_VFORK	YES			# include vfork system call
 # buffers for a 1K file system, NBUF would be 128.  A possible exception would
 # be to reduce the buffers to save on data space, as they were 24 bytes per
 # header, last time I looked.
-NBUF		60			# buffer cache, *must* be <= 240
+# should be 20 for GENERIC, so room for kernel + large program to run.
+NBUF		20			# buffer cache, *must* be <= 240
 
 # MAXMEM is the maximum core per process is allowed.  First number
 # is Kb.
-MAXMEM		(200*16)		# 200K max per process ...
+MAXMEM		(300*16)		# 300K max per process ...
 
 # DIAGNOSTIC does various run-time checks, some of which are pretty
 # expensive and at a high priority.  Suggested use is when the kernel
@@ -297,14 +404,6 @@ DIAGNOSTIC	NO			# misc. diagnostic loops and checks
 #	#define BSLOP	0
 #	int	bsize = BSIZE + BSLOP;		/* size of buffers */
 
-# The QUOTA code in 2.10 was differently done than 4.X and it was fairly
-# easily defeated; it's been removed.  You may see #ifdef QUOTA in some
-# kernel and application areas; don't remove it, it's there because quotas
-# are not mandatory in 4.X, and the source was ported from there.  It
-# actually wouldn't be that tough to put 4.X quotas into 2.10.  It's
-# extremely unclear that it's worth it, however.
-# UCB_QUOTAS		NO		# dynamic file system quotas
-
 # The UCB_NKB flag requires changes to UNIX boot pgms as well as changes to
 # dump, restore, icheck, dcheck, ncheck, mkfs.  It includes the options
 # previously known as UCB_SMINO (smaller inodes, NADDR = 7) and UCB_MOUNT
@@ -316,6 +415,8 @@ DIAGNOSTIC	NO			# misc. diagnostic loops and checks
 #########################################
 # PERIPHERALS: DISK DRIVES		#
 #########################################
+
+NBR		0		# EATON BR1537/BR1711, BR1538A, B, C, D
 
 NHK		2		# RK611, RK06/07
 
@@ -348,7 +449,8 @@ NRAM		0		# RAM disk size (512-byte blocks)
 NHT		1		# TE16, TU45, TU77
 
 # Setting AVIVTM configures the TM driver for the AVIV 800/1600/6250
-# controller.  For more details, see /sys/pdpuba/tm.c.
+# controller (the standard DEC TM only supports 800BPI).  For more details,
+# see /sys/pdpuba/tm.c.
 NTM		1		# TM11
 AVIVTM		YES		# AVIV 800/1600/6250 controller
 
@@ -369,6 +471,7 @@ NDZ		0		# DZ11; NDZ is in units of boards (8 each)
 #########################################
 # PERIPHERALS: OTHER			#
 #########################################
+NDN		0		# DN11 dialer
 NLP		0		# Line Printer
 LP_MAXCOL	132		# Maximum number of columns on line printers
 NDR		0		# DR11-W
@@ -376,17 +479,28 @@ NDR		0		# DR11-W
 #########################################
 # PSEUDO DEVICES, PROTOCOLS, NETWORKING	#
 #########################################
-# Networking only works with split I/D, i.e. 11/44/45/50/53/55/70/73/83/84.
-# Note, setting UCB_NET to YES also turns on the option "INET".  NETHER and
-# NLOOP should be non-zero for networking systems
+# Networking only works with split I/D and SUPERVISOR space, i.e. with the
+# 11/44/45/50/53/55/70/73/83/84.  NETHER should be non-zero for networking
+# systems using any ethernet.  CHECKSTACK makes sure the networking stack
+# pointer and the kernel stack pointer don't collide; it's fairly expensive
+# at 4 extra instructions for EVERY function call AND return, always left
+# NO unless doing serious debugging.
 UCB_NET		NO		# TCP/IP
+CHECKSTACK	NO		# Kernel & Supervisor stack pointer checking
 NETHER		0		# ether pseudo-device
-NLOOP		0		# loop-back pseudo-device
 
-# Note, PTY's and the select(2) system call do not require
-# the kernel to be configured for networking (UCB_NET).
-NPTY		8		# pseudo-terminals, in groups of 8
+# Note, PTY's and the select(2) system call do not require the kernel to
+# be configured for networking (UCB_NET).  Note that you can allocate PTY's
+# in any number (multiples of 8, of 16, even, odd, prime, whatever).  Nothing
+# in the kernel cares.  PTY's cost 78 bytes apiece in kernel data space.  You
+# should probably have at least 16 since so many applications use them:
+# script, jove, window, rlogin, ...
+NPTY		16		# pseudo-terminals
 
+# To make the 3Com Ethernet board work correctly, splimp has to be promoted
+# to spl6; splfix files that do this are in conf/3Com; the config script
+# hopefully does the right thing.
+NEC		0		# 3Com Ethernet
 NDE		0		# DEUNA
 NIL		0		# Interlan Ethernet
 NSL		0		# Serial Line IP
@@ -402,7 +516,6 @@ PLI		YES		# LH/DH is connected to a PLI
 
 NCSS		0		# DEC/CSS IMP11-A ARPAnet IMP interface
 NDMC		0		# DMC11
-NEC		0		# 3Com Ethernet
 NEN		0		# Xerox prototype (3 Mb) Ethernet
 NHY		0		# Hyperchannel
 NIMP		0		# ARPAnet IMP 1822 interface

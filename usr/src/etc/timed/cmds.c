@@ -228,7 +228,7 @@ char *argv[];
 		argc--; argv++;
 		hp = gethostbyname(*argv);
 		if (hp == NULL) {
-			printf("%s: unknown host %s\n", *argv);
+			printf("%s: unknown host\n", *argv);
 			argc--; argv++;
 			continue;
 		}

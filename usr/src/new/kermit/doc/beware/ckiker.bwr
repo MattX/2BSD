@@ -1,0 +1,57 @@
+CURRENT KNOWN BUGS WITH AMIGA KERMIT
+
+No DIAL or SCRIPT commands yet.
+
+The perror() command used under 3.03 does not give helpful error messages,
+only error numbers, if available.
+
+Depending on unknown factors of AmigaDOS buffering, it is possible that
+wildcard expansion nested inside several levels of directories will cause
+significant disk thrashing.  I have not seen this yet, and have avoided
+complicating the expansion code by modifying it to not thrash.
+
+When the Amiga's serial output is looped back to its serial input, (through
+a modem, say) and the serial device is set to a high baud rate (>100K), when
+a break is sent, the Amiga will hang up.
+
+The setup and cleanup of Kermit's window does not currently support
+Workbench, and the default window created by Lattice's _main is not
+eliminated.  This is easily fixed, but there are other problems with
+Workbench invocation.  See below.
+
+The current directory name is constructed from the previous current
+directory name and a new relative name.  This is similar to the way the CD
+command operates, but it is subject to some peculiarities.  For instance,
+'CWD C:' followed by 'CWD /' results in the current directory being the
+the parent of C: and a directory name of 'C:/'.  It is possible to
+reconstruct the name using the Parent() AmigaDOS function.  (This would
+also allow Kermit under the Workbench to reconstruct the current directory
+name.)  However, the V1.1 RAM: handler has bugs in the Parent() function,
+and so would probably not function with this method.  Under 3.04 Lattice C,
+the Lattice functions are used for chdir() and getcwd(), since they seem to
+use Parent() reconstruction. (Lattice 3.04 C in general assumes use of the
+fixed V1.2 RAM: handler.)
+
+There should be some form of output control and input for one-liners invoked
+with the '!' command.
+
+Due to a bug in all C-Kermit's, the transaction timer is not reset before
+some remote commands are executed on some other versions of Kermit.  The
+reported transaction time will be the elapsed time since the timer was last
+reset, or the base (zero) time of the system, midnight January 1, 1978 on
+the Amiga.  This can be demonstrated by starting C-Kermit, requesting REMOTE
+HELP from a VMS Kermit-32 version 3.2.077 server before any file transfer,
+and then requesting STAT.
+
+An audible bell is needed.
+
+The use of 'SET MODEM-TYPE type' to select modem control usage will have
+to change when the DIAL command is supported.
+
+The 23 by 77 window in connect mode is incompatible with the assumptions of
+many editors.  Emulation of a real terminal like a "not quite" ANSI VT100
+would be nice.
+
+Kermit should support AmigaDOS wildcarding, especially for SEND's.  It can
+be argued that Unix wildcarding is often appropriate for remote GET's from
+the Amiga server, but AmigaDOS wildcarding should be optionally available.

@@ -5,12 +5,6 @@
  *
  *	@(#)talkd.h	5.2 (Berkeley) 3/13/86
  */
-#ifdef	BSD2_10
-#define	announce_proc	ann_proc
-#define	print_response	prt_response
-#define	print_request	prt_request
-#endif
-
 
 #include <sys/types.h>
 #include <sys/socket.h>

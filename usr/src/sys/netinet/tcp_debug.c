@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)tcp_debug.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)tcp_debug.c	7.2 (Berkeley) 12/7/87
  */
 
 #include "param.h"
@@ -12,13 +18,13 @@
 #include "socket.h"
 #include "socketvar.h"
 #define PRUREQUESTS
-#include "domain.h"
 #include "protosw.h"
 #include "errno.h"
 
 #include "../net/route.h"
 #include "../net/if.h"
 
+#include "domain.h"
 #include "in.h"
 #include "in_pcb.h"
 #include "in_systm.h"
@@ -35,7 +41,7 @@
 #define	TANAMES
 #include "tcp_debug.h"
 
-int	tcpconsdebug = 1;
+int	tcpconsdebug = 0;
 /*
  * Tcp debug routines
  */

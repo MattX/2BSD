@@ -84,7 +84,7 @@ struct hmbuf {
 	struct	host hm_hosts[HPMBUF];	/* data structures proper */
 };
 
-#ifdef KERNEL
+#if defined(KERNEL) && defined(SUPERVISOR)
 struct host *hostlookup();
 struct host *hostenter();
 struct mbuf *hostdeque();

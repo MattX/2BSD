@@ -9,17 +9,17 @@
 .de Ch
 \\$3\\*(Lq\\$1\\*(Rq\\$2
 ..
-.TH CHECKNEWS 1 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH CHECKNEWS 1 "October 19, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 checknews \- check to see if user has news
 .SH SYNOPSIS
-.BR checknews " [ " ynqevvN " ]  ["
+.BR checknews " [ " -ynqevvN " ]  ["
 .IR "newsgroup list" " ]  ["
 .IR "readnews options" " ]"
 .SH DESCRIPTION
 .I Checknews
-reports to the user whether or not he has news.
+reports whether or not the user has news.
 .TP 10
 .B \-y
 reports \*(LqThere is news\*(Rq if the user has news to read.
@@ -76,7 +76,7 @@ Active newsgroups
 /usr/lib/news/active
 Options and list of previously read articles
 .SH SEE ALSO
-inews(1),
+inews(8),
 postnews(1),
 readnews(1),
 vnews(1),

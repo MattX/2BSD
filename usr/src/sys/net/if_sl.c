@@ -1,4 +1,16 @@
-/*	@(#)if_sl.c	7.3 (Berkeley) 5/8/87 */
+/*
+ * Copyright (c) 1987 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)if_sl.c	7.6.1.1 (Berkeley) 3/15/88
+ */
 
 /*
  * Serial Line interface
@@ -20,20 +32,18 @@
  * Other changes made at Berkeley, based in part on code by Kirk Smith.
  */
 
-/* $Header: if_sl.c,v 1.12 85/12/20 21:54:55 chris Exp $ */
+/* $Header: /usr/src/sys/net/RCS/if_sl.c,v 1.1 88/08/18 00:28:00 bin Exp Locker: bin $ */
 /* from if_sl.c,v 1.11 84/10/04 12:54:47 rick Exp */
 
 #include "sl.h"
 #if NSL > 0
 
 #include "param.h"
-#include "../machine/seg.h"
-#include "map.h"
-#include "domain.h"
-#include "protosw.h"
 #include "mbuf.h"
 #include "buf.h"
 #include "dk.h"
+#include "domain.h"
+#include "protosw.h"
 #include "socket.h"
 #include "ioctl.h"
 #include "file.h"
@@ -43,23 +53,18 @@
 #include "if.h"
 #include "netisr.h"
 #include "route.h"
-#ifdef INET
+#if INET
 #include "../netinet/in.h"
 #include "../netinet/in_systm.h"
 #include "../netinet/in_var.h"
 #include "../netinet/ip.h"
 #endif
 
-#ifdef vax
-#include "../vax/mtpr.h"
-#endif vax
-
 /*
  * N.B.: SLMTU is now a hard limit on input packet size.
  * SLMTU must be <= CLBYTES - sizeof(struct ifnet *).
  */
 #define	SLMTU	1006
-#define	SLBSIZE	(SLMTU + sizeof(struct ifnet *))
 #define	SLIP_HIWAT	500	/* don't start a new packet if HIWAT on queue */
 #define	CLISTRESERVE	200	/* Can't let clists get too low */
 
@@ -70,12 +75,10 @@ struct sl_softc {
 	struct	tty *sc_ttyp;	/* pointer to tty structure */
 	char	*sc_mp;		/* pointer to next available buf char */
 	char	*sc_buf;	/* input buffer */
-	memaddr	sc_click;	/* click address of input buffer */
 } sl_softc[NSL];
 
 /* flags */
 #define	SC_ESCAPED	0x0001	/* saw a FRAME_ESCAPE */
-#define	SC_OACTIVE	0x0002	/* output tty is active */
 
 #define FRAME_END	 	0300		/* Frame End */
 #define FRAME_ESCAPE		0333		/* Frame Esc */
@@ -84,7 +87,7 @@ struct sl_softc {
 
 #define t_sc T_LINEP
 
-int sloutput(), slioctl(), ttrstrt();
+int sloutput(), slioctl(), slopen(), sltioctl();
 
 /*
  * Called from boot code to establish sl interfaces.
@@ -115,13 +118,15 @@ slopen(dev, tp)
 	dev_t dev;
 	register struct tty *tp;
 {
-	register struct sl_softc *sc;
+	struct sl_softc *sc;
 	register int nsl;
 
+#ifdef DONE_IN_KERNEL_STUB
 	if (!suser())
 		return (EPERM);
 	if (tp->t_line == SLIPDISC)
 		return (EBUSY);
+#endif
 
 	for (nsl = 0, sc = sl_softc; nsl < NSL; nsl++, sc++)
 		if (sc->sc_ttyp == NULL) {
@@ -129,9 +134,11 @@ slopen(dev, tp)
 			sc->sc_ilen = 0;
 			if (slinit(sc) == 0)
 				return (ENOBUFS);
-			tp->t_sc = (caddr_t)sc;
+			mtkd(&tp->t_sc, sc);
 			sc->sc_ttyp = tp;
+#ifdef DONE_IN_KERNEL_STUB
 			ttyflush(tp, FREAD | FWRITE);
+#endif
 			return (0);
 		}
 
@@ -149,15 +156,17 @@ slclose(tp)
 	register struct sl_softc *sc;
 	int s;
 
+#ifdef DONE_IN_KERNEL_STUB
 	ttywflush(tp);
 	tp->t_line = 0;
+#endif
 	s = splimp();		/* paranoid; splnet probably ok */
-	sc = (struct sl_softc *)tp->t_sc;
+	sc = (struct sl_softc *)mfkd(&tp->t_sc);
 	if (sc != NULL) {
 		if_down(&sc->sc_if);
 		sc->sc_ttyp = NULL;
-		tp->t_sc = NULL;
-		mfree(coremap, (size_t)SLBSIZE, sc->sc_click);
+		mtkd(&tp->t_sc, 0);
+		MCLFREE((struct mbuf *)sc->sc_buf);
 		sc->sc_buf = 0;
 	}
 	splx(s);
@@ -174,7 +183,8 @@ sltioctl(tp, cmd, data, flag)
 {
 
 	if (cmd == TIOCGETD) {
-		*(int *)data = ((struct sl_softc *)tp->t_sc)->sc_if.if_unit;
+		mtkd(data,
+		    ((struct sl_softc *)mfkd(&tp->t_sc))->sc_if.if_unit);
 		return (0);
 	}
 	return (-1);
@@ -189,6 +199,7 @@ sloutput(ifp, m, dst)
 	struct sockaddr *dst;
 {
 	register struct sl_softc *sc;
+	long lval;
 	int s;
 
 	/*
@@ -207,7 +218,8 @@ sloutput(ifp, m, dst)
 		m_freem(m);
 		return (ENETDOWN);	/* sort of */
 	}
-	if ((sc->sc_ttyp->t_state & TS_CARR_ON) == 0) {
+	cpfromkern(&sc->sc_ttyp->t_state, &lval, 4);
+	if ((lval & TS_CARR_ON) == 0) {
 		m_freem(m);
 		return (EHOSTUNREACH);
 	}
@@ -220,7 +232,7 @@ sloutput(ifp, m, dst)
 		return (ENOBUFS);
 	}
 	IF_ENQUEUE(&ifp->if_snd, m);
-	if ((sc->sc_flags & SC_OACTIVE) == 0) {
+	if (mfkd(&sc->sc_ttyp->t_outq.c_cc) == 0) {
 		splx(s);
 		slstart(sc->sc_ttyp);
 	} else
@@ -236,23 +248,25 @@ sloutput(ifp, m, dst)
 slstart(tp)
 	register struct tty *tp;
 {
-	register struct sl_softc *sc = (struct sl_softc *)tp->t_sc;
+	register struct sl_softc *sc;
 	register struct mbuf *m;
 	register int len;
 	register u_char *cp;
-	int flush, nd, np, n, s;
+	int nd, np, n, s, t, c_cc;
+	char sup_clist[MLEN];
 	struct mbuf *m2;
 	extern int cfreecount;
 
+	sc = (struct sl_softc *)mfkd(&tp->t_sc);
 	for (;;) {
 		/*
 		 * If there is more in the output queue, just send it now.
 		 * We are being called in lieu of ttstart and must do what
 		 * it would.
 		 */
-		if (tp->t_outq.c_cc > 0)
-			ttstart(tp);
-		if (tp->t_outq.c_cc > SLIP_HIWAT)
+		if ((c_cc = mfkd(&tp->t_outq.c_cc)) > 0)
+			TTSTART(tp);
+		if (c_cc > SLIP_HIWAT)
 			return;
 
 		/*
@@ -265,8 +279,7 @@ slstart(tp)
 		 * If system is getting low on clists
 		 * and we have something running already, stop here.
 		 */
-		if (cfreecount < CLISTRESERVE + SLMTU &&
-		    sc->sc_flags & SC_OACTIVE)
+		if (mfkd(&cfreecount) < CLISTRESERVE + SLMTU && c_cc)
 			return;
 
 		/*
@@ -274,25 +287,18 @@ slstart(tp)
 		 */
 		s = splimp();
 		IF_DEQUEUE(&sc->sc_if.if_snd, m);
-		if (m == NULL) {
-			if (tp->t_outq.c_cc == 0)
-				sc->sc_flags &= ~SC_OACTIVE;
-			splx(s);
-			return;
-		}
-		flush = !(sc->sc_flags & SC_OACTIVE);
-		sc->sc_flags |= SC_OACTIVE;
 		splx(s);
+		if (m == NULL)
+			return;
 
 		/*
 		 * The extra FRAME_END will start up a new packet, and thus
 		 * will flush any accumulated garbage.  We do this whenever
 		 * the line may have been idle for some time.
 		 */
-		if (flush)
-			(void) putc(FRAME_END, &tp->t_outq);
+		if (c_cc == 0)
+			(void) PUTC(FRAME_END, &tp->t_outq);
 
-		MAPSAVE();
 		while (m) {
 			cp = mtod(m, u_char *);
 			len = m->m_len;
@@ -304,28 +310,35 @@ slstart(tp)
 				nd = locc(FRAME_ESCAPE, len, cp);
 				np = locc(FRAME_END, len, cp);
 				n = len - MAX(nd, np);
-				if (n) {
-					/*
-					 * Put n characters at once
-					 * into the tty output queue.
-					 */
-					if (b_to_q((char *)cp, n, &tp->t_outq))
+				/*
+				 * Put n characters into the tty output
+				 * queue.  We do it in chunks of MLEN, using
+				 * the supervisor stack to copy into kernel
+				 * space.
+				 */
+				while (n) {
+					t = n > MLEN ? MLEN : n;
+					bcopy((char *)cp, sup_clist, t);
+					if (B_TO_Q(sup_clist, t, &tp->t_outq))
 						break;
-					len -= n;
-					cp += n;
+					len -= t;
+					cp += t;
+					n -= t;
 				}
+				if (n)
+					break;
 				/*
 				 * If there are characters left in the mbuf,
 				 * the first one must be special..
 				 * Put it out in a different form.
 				 */
 				if (len) {
-					if (putc(FRAME_ESCAPE, &tp->t_outq))
+					if (PUTC(FRAME_ESCAPE, &tp->t_outq))
 						break;
-					if (putc(*cp == FRAME_ESCAPE ?
+					if (PUTC(*cp == FRAME_ESCAPE ?
 					   TRANS_FRAME_ESCAPE : TRANS_FRAME_END,
 					   &tp->t_outq)) {
-						(void) unputc(&tp->t_outq);
+						(void) UNPUTC(&tp->t_outq);
 						break;
 					}
 					cp++;
@@ -335,8 +348,8 @@ slstart(tp)
 			MFREE(m, m2);
 			m = m2;
 		}
-		MAPREST();
-		if (putc(FRAME_END, &tp->t_outq)) {
+
+		if (PUTC(FRAME_END, &tp->t_outq)) {
 			/*
 			 * Not enough room.  Remove a char to make room
 			 * and end the packet normally.
@@ -344,8 +357,8 @@ slstart(tp)
 			 * a day) you probably do not have enough clists
 			 * and you should increase "nclist" in param.c.
 			 */
-			(void) unputc(&tp->t_outq);
-			(void) putc(FRAME_END, &tp->t_outq);
+			(void) UNPUTC(&tp->t_outq);
+			(void) PUTC(FRAME_END, &tp->t_outq);
 			sc->sc_if.if_collisions++;
 		} else
 			sc->sc_if.if_opackets++;
@@ -357,17 +370,18 @@ slinit(sc)
 {
 	struct mbuf *p;
 
-	if (sc->sc_buf == (char *) 0)
-		if ((sc->sc_click = malloc(coremap, (size_t)SLBSIZE)) == 0) {
+	if (sc->sc_buf == (char *) 0) {
+		MCLALLOC(p, 1);
+		if (p) {
+			sc->sc_buf = (char *)p;
+			sc->sc_mp = sc->sc_buf + sizeof(struct ifnet *);
+		} else {
 			printf("sl%d: can't allocate buffer\n", sc - sl_softc);
 			sc->sc_if.if_flags &= ~IFF_UP;
 			return (0);
 		}
-		else {
-			sc->sc_buf = (char *)MBX;
-			sc->sc_mp = sc->sc_buf + sizeof(struct ifnet *);
-			return (1);
-		}
+	}
+	return (1);
 }
 
 /*
@@ -379,28 +393,49 @@ sl_btom(sc, len, ifp)
 	register int len;
 	struct ifnet *ifp;
 {
-	register int offset;
+	register caddr_t cp;
 	register struct mbuf *m, **mp;
 	register unsigned count;
 	struct mbuf *top = NULL;
 
-	offset = sizeof(struct ifnet *);
+	cp = sc->sc_buf + sizeof(struct ifnet *);
 	mp = &top;
-	MAPSAVE();
 	while (len > 0) {
 		MGET(m, M_DONTWAIT, MT_DATA);
 		if ((*mp = m) == NULL) {
 			m_freem(top);
-			MAPUNSAVE();
 			return (NULL);
 		}
 		if (ifp)
 			m->m_off += sizeof(ifp);
+		/*
+		 * If we have at least NBPG bytes,
+		 * allocate a new page.  Swap the current buffer page
+		 * with the new one.  We depend on having a space
+		 * left at the beginning of the buffer
+		 * for the interface pointer.
+		 */
+		if (len >= NBPG) {
+			MCLGET(m);
+			if (m->m_len == CLBYTES) {
+				cp = mtod(m, char *);
+				m->m_off = (int)sc->sc_buf - (int)m;
+				sc->sc_buf = cp;
+				if (ifp) {
+					m->m_off += sizeof(ifp);
+					count = MIN(len,
+					    CLBYTES - sizeof(struct ifnet *));
+				} else
+					count = MIN(len, CLBYTES);
+				goto nocopy;
+			}
+		}
 		if (ifp)
 			count = MIN(len, MLEN - sizeof(ifp));
 		else
 			count = MIN(len, MLEN);
-		copyv(sc->sc_click, offset, m->m_click, m->m_off, count);
+		bcopy(cp, mtod(m, caddr_t), count);
+nocopy:
 		m->m_len = count;
 		if (ifp) {
 			m->m_off -= sizeof(ifp);
@@ -408,11 +443,10 @@ sl_btom(sc, len, ifp)
 			*mtod(m, struct ifnet **) = ifp;
 			ifp = NULL;
 		}
-		offset += count;
+		cp += count;
 		len -= count;
 		mp = &m->m_next;
 	}
-	MAPREST();
 	return (top);
 }
 
@@ -427,8 +461,10 @@ slinput(c, tp)
 	register struct mbuf *m;
 	int s;
 
+#ifdef notdef
 	tk_nin++;
-	sc = (struct sl_softc *)tp->t_sc;
+#endif
+	sc = (struct sl_softc *)mfkd(&tp->t_sc);
 	if (sc == NULL)
 		return;
 
@@ -488,10 +524,7 @@ slinput(c, tp)
 		sc->sc_ilen = 0;
 		return;
 	}
-	MAPSAVE();
-	mapseg5(sc->sc_click, ((btoc(SLBSIZE) - 1) << 8) | RW);
 	*sc->sc_mp++ = c;
-	MAPREST();
 }
 
 /*

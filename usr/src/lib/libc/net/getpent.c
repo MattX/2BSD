@@ -18,7 +18,7 @@ static char sccsid[] = "@(#)getprotoent.c	5.3 (Berkeley) 5/19/86";
 
 static char PROTODB[] = "/etc/protocols";
 static FILE *protof = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct protoent proto;
 static char *proto_aliases[MAXALIASES];
 static char *any();
@@ -52,7 +52,7 @@ getprotoent()
 	if (protof == NULL && (protof = fopen(PROTODB, "r" )) == NULL)
 		return (NULL);
 again:
-	if ((p = fgets(line, BUFSIZ, protof)) == NULL)
+	if ((p = fgets(line, sizeof(line)-1, protof)) == NULL)
 		return (NULL);
 	if (*p == '#')
 		goto again;

@@ -1,19 +1,25 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)in_pcb.c	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)in_pcb.c	7.6 (Berkeley) 12/7/87
  */
 
 #include "param.h"
 #include "systm.h"
 #include "user.h"
 #include "mbuf.h"
-#include "domain.h"
 #include "socket.h"
 #include "socketvar.h"
 #include "ioctl.h"
+#include "domain.h"
 #include "protosw.h"
 #include "in.h"
 #include "in_systm.h"
@@ -29,11 +35,13 @@ in_pcballoc(so, head)
 	struct socket *so;
 	struct inpcb *head;
 {
+	struct mbuf *m;
 	register struct inpcb *inp;
 
-	MSGET(inp, struct inpcb , M_CLEAR);
-	if (inp == NULL)
+	m = m_getclr(M_DONTWAIT, MT_PCB);
+	if (m == NULL)
 		return (ENOBUFS);
+	inp = mtod(m, struct inpcb *);
 	inp->inp_head = head;
 	inp->inp_socket = so;
 	insque(inp, head);
@@ -56,7 +64,7 @@ in_pcbbind(inp, nam)
 		return (EINVAL);
 	if (nam == 0)
 		goto noname;
-	sin = MTOD(nam, struct sockaddr_in *);
+	sin = mtod(nam, struct sockaddr_in *);
 	if (nam->m_len != sizeof (*sin))
 		return (EINVAL);
 	if (sin->sin_addr.s_addr != INADDR_ANY) {
@@ -110,7 +118,7 @@ in_pcbconnect(inp, nam)
 {
 	struct in_ifaddr *ia;
 	struct sockaddr_in *ifaddr;
-	register struct sockaddr_in *sin = MTOD(nam, struct sockaddr_in *);
+	register struct sockaddr_in *sin = mtod(nam, struct sockaddr_in *);
 
 	if (nam->m_len != sizeof (*sin))
 		return (EINVAL);
@@ -189,8 +197,9 @@ in_pcbconnect(inp, nam)
 	if (in_pcblookup(inp->inp_head,
 	    sin->sin_addr,
 	    sin->sin_port,
-	    inp->inp_laddr.s_addr ? inp->inp_laddr.s_addr :
-	    ifaddr->sin_addr.s_addr, inp->inp_lport, 0))
+	    inp->inp_laddr.s_addr ? inp->inp_laddr.s_addr : ifaddr->sin_addr.s_addr,
+	    inp->inp_lport,
+	    0))
 		return (EADDRINUSE);
 	if (inp->inp_laddr.s_addr == INADDR_ANY) {
 		if (inp->inp_lport == 0)
@@ -224,7 +233,7 @@ in_pcbdetach(inp)
 	if (inp->inp_route.ro_rt)
 		rtfree(inp->inp_route.ro_rt);
 	remque(inp);
-	MSFREE(inp);
+	(void) m_free(dtom(inp));
 }
 
 in_setsockaddr(inp, nam)
@@ -234,7 +243,7 @@ in_setsockaddr(inp, nam)
 	register struct sockaddr_in *sin;
 	
 	nam->m_len = sizeof (*sin);
-	sin = MTOD(nam, struct sockaddr_in *);
+	sin = mtod(nam, struct sockaddr_in *);
 	bzero((caddr_t)sin, sizeof (*sin));
 	sin->sin_family = AF_INET;
 	sin->sin_port = inp->inp_lport;
@@ -248,7 +257,7 @@ in_setpeeraddr(inp, nam)
 	register struct sockaddr_in *sin;
 	
 	nam->m_len = sizeof (*sin);
-	sin = MTOD(nam, struct sockaddr_in *);
+	sin = mtod(nam, struct sockaddr_in *);
 	bzero((caddr_t)sin, sizeof (*sin));
 	sin->sin_family = AF_INET;
 	sin->sin_port = inp->inp_fport;

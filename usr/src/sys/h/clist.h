@@ -13,7 +13,7 @@ struct cblock {
 	struct cblock *c_next;
 	char	c_info[CBSIZE];
 };
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 #ifdef UCB_CLIST
 extern struct cblock *cfree;
 extern memaddr clststrt;

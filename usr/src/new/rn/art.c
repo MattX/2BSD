@@ -1,6 +1,9 @@
-/* $Header: art.c,v 4.3.1.4 85/05/23 12:13:31 lwall Exp $
+/* $Header: art.c,v 4.3.1.5 85/09/10 11:07:18 lwall Exp $
  *
  * $Log:	art.c,v $
+ * Revision 4.3.1.5  85/09/10  11:07:18  lwall
+ * %m not restored on some returns.
+ * 
  * Revision 4.3.1.4  85/05/23  12:13:31  lwall
  * shouldn't display article that's really a subdirectory.
  * 
@@ -22,6 +25,7 @@
 #include "common.h"
 #include "rn.h"
 #include "ngstuff.h"
+#include "ngdata.h"
 #include "head.h"
 #include "cheat.h"
 #include "help.h"
@@ -158,6 +162,7 @@ do_article()
 #endif
 		if (htype[NGS_LINE].ht_flags & HT_HIDE)
 		    printf(" in %s", ngname);
+		fputs(moderated,stdout);
 		fputs(":\n",stdout) FLUSH;
 	    }
 	    start_header(art);
@@ -177,6 +182,7 @@ do_article()
 	    if (int_count) {	/* exit via interrupt? */
 		putchar('\n') FLUSH;	/* get to left margin */
 		int_count = 0;	/* reset interrupt count */
+		mode = oldmode;
 		return DA_NORM;	/* skip out of loops */
 	    }
 	    if (restart) {		/* did not finish last line? */
@@ -186,6 +192,7 @@ do_article()
 	    else {			/* not a restart */
 		if (fgets(art_buf,LBUFLEN,artfp)==Nullch) {
 					/* if all done */
+		    mode = oldmode;
 		    return DA_NORM;	/* skip out of loops */
 		}
 		bufptr = art_buf;	/* so start at beginning */
@@ -499,8 +506,10 @@ do_article()
 
 	/* extra loop bombout */
 
-	if (artpos == artsize)	/* did we just now reach EOF? */
+	if (artpos == artsize) {/* did we just now reach EOF? */
+	    mode = oldmode;
 	    return DA_NORM;	/* avoid --MORE--(100%) */
+	}
 
 /* not done with this article, so pretend we are a pager */
 
@@ -797,7 +806,7 @@ page_switch()
 #endif
 	reread = FALSE;
 	do_hiding = TRUE;
-	if (index("nNpP",*buf) == Nullch &&
+	if (index("nNpP",*buf) == Nullch &&
 	  index("wWsS!&|/?123456789.",*buf) != Nullch) {
 	    setdfltcmd();
 	    standout();		/* enter standout mode */

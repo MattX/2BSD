@@ -82,7 +82,7 @@ struct	user {
  *	This prevents the user structure from growing too large.
  */
 #define	USERSLOP	10
-int	maxuser;		/* highest uid from /etc/passwd, + 10 for slop*/
+uid_t	maxuser;		/* highest uid from /etc/passwd, + 10 for slop*/
 
 struct	process {
 	char	name[NC];
@@ -103,6 +103,7 @@ typedef	union Tab cell;
 
 int	(*cmp)();	/* compares 2 cells; set to appropriate func */
 cell	*enter();
+uid_t	getmaxuid();
 struct	user *finduser();
 struct	user *wasuser();
 
@@ -273,7 +274,6 @@ cell	*junkp = 0;
  */
 int	thres = 0;	
 int	htabinstall = 1;
-int	maxuser = -1;
 int	(*cmp)();
 
 /* we assume pagesize is at least 1k */
@@ -481,7 +481,7 @@ doUS:
 		if ((ff = fopen(usracct, "w")) != NULL) {
 			static	struct	user ZeroUser = {0};
 			struct 	user	*up;
-			int	uid;
+			uid_t	uid;
 			/*
 			 *	Write out just enough user slots,
 			 *	filling with zero slots for users that
@@ -566,18 +566,18 @@ doUS:
 
 printmoney()
 {
-	register i;
+	register uid_t uid;
 	register char *cp;
 	register	struct user	*up;
 
 	getnames();		/* fetches all of the names! */
-	for (i = 0; i < maxuser; i++) {
-		if ( (up = wasuser(i)) != 0){
+	for (uid = 0; uid < maxuser; uid++) {
+		if ( (up = wasuser(uid)) != 0){
 			if (up->us_cnt) {
 				if (up->us_name[0])
 					printf("%-8s", up->us_name);
 				else 
-					printf("%-8d", i);
+					printf("%-8u", uid);
 				printf("%7u %9.2fcpu %10.0ftio %12.0fk*sec\n",
 					up->us_cnt, up->us_ctime / 60,
 					up->us_io,
@@ -682,7 +682,7 @@ char *f;
 		z = expand(fbuf.ac_io) / AHZ;
 #endif
 		if (uflg) {
-			printf("%3d %6.2f cpu %8luk mem %6ld io %.*s\n",
+			printf("%3u %6.2f cpu %8luk mem %6ld io %.*s\n",
 			    fbuf.ac_uid, x/(double)AHZ, y, z, NC, fbuf.ac_comm);
 			continue;
 		}
@@ -872,7 +872,7 @@ init()
 	struct process	tbuf;
 	register cell *tp;
 	register struct user *up;
-	int uid;
+	uid_t uid;
 	FILE *f;
 
 	if ((f = fopen(savacct, "r")) == NULL)
@@ -958,7 +958,7 @@ static	char UserKey[NAMELG + 2];
 
 char *
 makekey(uid)
-	int uid;
+	uid_t uid;
 {
 	sprintf(UserKey+1, "%04x", uid);
 	UserKey[0] = USERKEY;
@@ -967,7 +967,7 @@ makekey(uid)
 
 struct user *
 wasuser(uid)
-	int uid;
+	uid_t uid;
 {
 	struct user *tp;
 
@@ -982,11 +982,11 @@ wasuser(uid)
  */
 struct user *
 finduser(uid)
-	int uid;
+	uid_t uid;
 {
 
 	if (uid > maxuser){
-		fprintf(stderr, "Preposterous user id, %d: ignored\n", uid);
+		fprintf(stderr, "Preposterous user id, %u: ignored\n", uid);
 		return(0);
 	}
 	return((struct user*)enter(makekey(uid)));
@@ -1011,13 +1011,13 @@ getnames()
 	endpwent();
 }
 
-int
+uid_t
 getmaxuid()
 {
 	register struct user *tp;
 	register struct passwd *pw;
 	struct passwd *getpwent();
-	int maxuid = -1;
+	uid_t maxuid = 0;
 
 	setpwent();
 	while(pw = getpwent()){

@@ -1,0 +1,15 @@
+#define	connected		cnnctd
+#define	DataFrom3270		DaFr32
+#define	DataFromNetwork		DaFrNt
+#define	DataFromTerminal	DaFrTm
+#define	GetDefinition		GtDf
+#define	GetDefinitions		GtDfs
+#define	GetName			GtNm
+#define	GetNames		GtNms
+#define	GetEntry		GtEn
+#define	GetEntry0		GtEn0
+#define	Highest			Hhst
+#define	Lowest			Lwst
+#define	printnethelp		prt_hlp
+#define	Terminal		Termvar
+#define	TerminalIn		Termin

@@ -1,5 +1,5 @@
 #ifdef SCCSID
-static char	*SccsId = "@(#)compress.c	1.13	12/16/86";
+static char	*SccsId = "@(#)compress.c	1.14	9/24/87";
 #endif /* SCCSID */
 static char rcs_ident[] = "Based on compress.c,v 4.0 85/07/30 12:50:00 joe Release";
 
@@ -73,7 +73,7 @@ static char rcs_ident[] = "Based on compress.c,v 4.0 85/07/30 12:50:00 joe Relea
 #ifdef PBITS		/* Preferred BITS for this memory size */
 # ifndef BITS
 #  define BITS PBITS
-# endif BITS
+# endif /* BITS */
 #endif /* PBITS */
 
 #if BITS == 16
@@ -158,9 +158,9 @@ int maxbits = BITS;			/* user settable max # bits/code */
 code_int maxcode;			/* maximum code, given n_bits */
 code_int maxmaxcode = 1L << BITS;	/* should NEVER generate this code */
 #ifdef COMPATIBLE		/* But wrong! */
-# define MAXCODE(n_bits)	(1 << (n_bits) - 1)
+# define MAXCODE(n_bits)	(1L << (n_bits) - 1)
 #else
-# define MAXCODE(n_bits)	((1 << (n_bits)) - 1)
+# define MAXCODE(n_bits)	((1L << (n_bits)) - 1)
 #endif /* COMPATIBLE */
 
 #ifdef XENIX_16
@@ -1091,7 +1091,7 @@ code_int * sorttab[8] = {stab1, stab2, stab3, stab4, stab5, stab6, stab7,
 						 stab8 } ;
 #define stabof(i) (sorttab[(i) >> 13][(i) & 0x1fff]) 
 #else
-code_int sorttab[SSIZE];	/* sorted pointers into htab */
+code_int sorttab[HSIZE];	/* sorted pointers into htab */
 #define stabof(i) (sorttab[i])
 #endif
 
@@ -1146,8 +1146,8 @@ dump_tab()	/* dump string table */
 			   ent, tab_prefixof(ent), c );
 	   de_stack[--stack_top] = '\n';
 	   de_stack[--stack_top] = '"';
-	   for ( ; ent != NULL;
-		   ent = (ent >= FIRST ? tab_prefixof(ent) : NULL) ) {
+	   for ( ; ent != 0;
+		   ent = (ent >= FIRST ? tab_prefixof(ent) : 0) ) {
 	       stack_top = in_stack(tab_suffixof(ent), stack_top);
 	   }
 	   fwrite( &de_stack[stack_top], 1, STACK_SIZE - stack_top, stderr );

@@ -1,18 +1,29 @@
 /*
- * Copyright (c) 1983 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1983 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 #ifndef lint
 char copyright[] =
-"@(#) Copyright (c) 1983 Regents of the University of California.\n\
+"@(#) Copyright (c) 1983 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif /* not lint */
 
 #ifndef lint
-static char sccsid[] = "@(#)rshd.c	5.7 (Berkeley) 5/9/86";
-#endif not lint
+static char sccsid[] = "@(#)rshd.c	5.12 (Berkeley) 9/1/88";
+#endif /* not lint */
 
 /*
  * remote shell server:
@@ -24,6 +35,7 @@ static char sccsid[] = "@(#)rshd.c	5.7 (Berkeley) 5/9/86";
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 #include <sys/time.h>
 
 #include <netinet/in.h>
@@ -104,17 +116,22 @@ doit(f, fromp)
 	}
 #endif
 	fromp->sin_port = ntohs((u_short)fromp->sin_port);
-	if (fromp->sin_family != AF_INET ||
-	    fromp->sin_port >= IPPORT_RESERVED) {
+	if (fromp->sin_family != AF_INET) {
 		syslog(LOG_ERR, "malformed from address\n");
+		exit(1);
+	}
+	if (fromp->sin_port >= IPPORT_RESERVED ||
+	    fromp->sin_port < IPPORT_RESERVED/2) {
+		syslog(LOG_NOTICE, "connection from bad port\n");
 		exit(1);
 	}
 	(void) alarm(60);
 	port = 0;
 	for (;;) {
 		char c;
-		if (read(f, &c, 1) != 1) {
-			syslog(LOG_ERR, "read: %m");
+		if ((cc = read(f, &c, 1)) != 1) {
+			if (cc < 0)
+				syslog(LOG_NOTICE, "read: %m");
 			shutdown(f, 1+1);
 			exit(1);
 		}
@@ -171,6 +188,10 @@ doit(f, fromp)
 		error("Permission denied.\n");
 		exit(1);
 	}
+	if (pwd->pw_uid && !access("/etc/nologin", F_OK)) {
+		error("Logins currently disabled.\n");
+		exit(1);
+	}
 	(void) write(2, "\0", 1);
 	if (port) {
 		if (pipe(pv) < 0) {
@@ -186,7 +207,7 @@ doit(f, fromp)
 			(void) close(0); (void) close(1); (void) close(2);
 			(void) close(f); (void) close(pv[1]);
 			readfrom = (1L<<s) | (1L<<pv[0]);
-			ioctl(pv[1], FIONBIO, (char *)&one);
+			ioctl(pv[0], FIONBIO, (char *)&one);
 			/* should set s nbio! */
 			do {
 				ready = readfrom;
@@ -230,7 +251,6 @@ doit(f, fromp)
 		cp++;
 	else
 		cp = pwd->pw_shell;
-printf("cmdbuf \"%s\"\n", cmdbuf);
 	execl(pwd->pw_shell, cp, "-c", cmdbuf, 0);
 	perror(pwd->pw_shell);
 	exit(1);

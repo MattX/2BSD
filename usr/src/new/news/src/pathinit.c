@@ -34,7 +34,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)pathinit.c	1.23	4/6/87";
+static char	*SccsId = "@(#)pathinit.c	1.25	11/19/87";
 #endif /* SCCSID */
 
 #if defined(INEW) || defined(EXP)
@@ -52,16 +52,22 @@ static char	*SccsId = "@(#)pathinit.c	1.23	4/6/87";
 
 char *FROMSYSNAME, *PATHSYSNAME, *LOCALSYSNAME, *LOCALPATHSYSNAME;
 char *SPOOL, *LIB, *BIN, *ACTIVE, *SUBFILE, *ARTFILE,
-	*username, *userhome;
+	*username = "Unknown", *userhome;
 
 #ifdef INEW
 char *LOCKFILE, *SEQFILE, *ARTICLE, *INFILE, *TELLME;
+int c_cancel();
 
-int c_cancel(), c_newgroup(), c_ihave(), c_sendme(), c_rmgroup(),
+#ifdef NFSCLIENT
+char *NFSSYSNAME;
+#else /* !NFSCLIENT */
+int c_newgroup(), c_ihave(), c_sendme(), c_rmgroup(),
     c_sendsys(), c_version(), c_checkgroups(), c_unimp();
+#endif /* !NFSCLIENT */
 
 struct msgtype msgtype[] = {
 	"cancel", NULL, c_cancel,
+#ifndef NFSCLIENT
 	"newgroup", NULL, c_newgroup,
 	"ihave", NULL, c_ihave,
 	"sendme", NULL, c_sendme,
@@ -71,12 +77,13 @@ struct msgtype msgtype[] = {
 	"version", NULL, c_version,
 	"checkgroups", NULL, c_checkgroups,
 	"delsub", NULL, c_unimp,
+#endif /* !NFSCLIENT */
 	NULL, NULL, NULL
 };
 #endif /* INEW */
 
 #if defined(INEW) || defined(READ)
-char *ALIASES;
+char *ALIASES, *BUGFILE;
 #endif /* INEW || READ */
 
 #ifdef EXP
@@ -121,12 +128,26 @@ pathinit()
 	struct utsname ubuf;
 	char buf[BUFLEN];
 	extern char *mydomain();
+#endif /* CHKN */
 
+#ifdef HOME
+	/* Relative to the home directory of user HOME */
+	(void) sprintf(bfr, "%s/%s", logdir(HOME), SPOOLDIR);
+	SPOOL = AllocCpy(bfr);
+	(void) sprintf(bfr, "%s/%s", logdir(HOME), LIBDIR);
+	LIB = AllocCpy(bfr);
+#else /* !HOME */
+	/* Fixed paths defined in Makefile */
+	SPOOL = AllocCpy(SPOOLDIR);
+	LIB = AllocCpy(LIBDIR);
+#endif /* !HOME */
+
+#ifndef CHKN
 	uname(&ubuf);
 
 #ifdef HIDDENNET_IN_LOCALSYSNAME
 	/* old compatibility code, remove when HIDDENNET is used no more */
-	if (strcmp(ubuf.nodename, HIDDENNET) != 0)
+	if (STRCMP(ubuf.nodename, HIDDENNET) != 0)
 		(void) sprintf(buf, "%s.%s%s", ubuf.nodename, HIDDENNET,
 			mydomain());
 	else
@@ -152,24 +173,12 @@ pathinit()
 
 #endif /* !CHKN */
 
-#ifdef HOME
-	/* Relative to the home directory of user HOME */
-	(void) sprintf(bfr, "%s/%s", logdir(HOME), SPOOLDIR);
-	SPOOL = AllocCpy(bfr);
-	(void) sprintf(bfr, "%s/%s", logdir(HOME), LIBDIR);
-	LIB = AllocCpy(bfr);
-#else /* !HOME */
-	/* Fixed paths defined in Makefile */
-	SPOOL = AllocCpy(SPOOLDIR);
-	LIB = AllocCpy(LIBDIR);
-#endif /* !HOME */
-
-#ifdef IHCC
+#ifdef LOGDIR
 	(void) sprintf(bfr, "%s/%s", logdir(HOME), BINDIR);
 	BIN = AllocCpy(bfr);
-#else /* !IHCC */
+#else /* !LOGDIR */
 	Sprintf(BIN, "%s", BINDIR);
-#endif /* !IHCC */
+#endif /* !LOGDIR */
 
 	Sprintf(ACTIVE, "%s/active", LIB);
 
@@ -198,12 +207,19 @@ pathinit()
 
 # if defined(READ) || defined(INEW)
 	Sprintf(ALIASES, "%s/aliases", LIB);
+	Sprintf(BUGFILE, "%s/buggroups", LIB);
 # endif /* READ || INEW */
 # ifdef INEW
 	Sprintf(LOCKFILE, "%s/LOCK", LIB);
 	Sprintf(SEQFILE, "%s/seq", LIB);
+#ifndef NFSCLIENT
 	Sprintf(ARTICLE, "%s/.arXXXXXX", SPOOL);
 	Sprintf(INFILE, "%s/.inXXXXXX", SPOOL);
+#else /* NFSCLIENT */
+	Sprintf(ARTICLE, "/tmp/.arXXXXXX", SPOOL);
+	Sprintf(INFILE, "/tmp/.inXXXXXX", SPOOL);
+	parse_nfssysname();
+#endif /* NFSCLIENT */
 /*
  * The person notified by the netnews sub-system.  Again, no name is
  * compiled in, but instead the information is taken from a file.
@@ -289,6 +305,7 @@ parse_notify()
 	for(mp=msgtype; mp->m_name; mp++)
 		if(mp->m_who_to == 0)
 			mp->m_who_to = "";
+	fclose(nfd);
 }
 
 setmsg(what, to)
@@ -301,7 +318,7 @@ char *what, *to;
 	/*
 	 * Special case for "all"
 	 */
-	if(strcmp(what, "all") == 0) {
+	if(STRCMP(what, "all") == 0) {
 		for(mp=msgtype; mp->m_name; mp++) {
 			mp->m_who_to = AllocCpy(to);
 #ifdef debug
@@ -312,7 +329,7 @@ char *what, *to;
 	}
 
 	for(mp=msgtype; mp->m_name; mp++)
-		if(strcmp(mp->m_name, what) == 0) {
+		if(STRCMP(mp->m_name, what) == 0) {
 			mp->m_who_to = AllocCpy(to);
 #ifdef debug
 			log("setmsg: '%s'='%s'", mp->m_name, mp->m_who_to);
@@ -350,6 +367,34 @@ register char *s, *t;
 		return -1;
 }
 #endif /* NOTIFY */
+#ifdef NFSCLIENT
+parse_nfssysname()
+{
+	FILE *nfsfd;
+	extern FILE *mailhdr();
+	char *nfsp;
+	char buf[BUFSIZ];
+
+	sprintf(buf, "%s/nfssysname", LIB);
+
+	if ((nfsfd = fopen(buf, "r"))) {
+		(void) fgets(buf, sizeof buf, nfsfd);
+		(void) fclose(nfsfd);
+		if (nfsp = index(buf, '\n')) *nfsp = '\0';
+		NFSSYSNAME = AllocCpy(buf);
+		return;
+	}
+
+	if (nfsfd = mailhdr((struct hbuf *)NULL, "Missing File")) {
+		(void) fprintf(nfsfd, "Can't find %s.\n\n", buf);
+		(void) fprintf(nfsfd, "On an NFS client, inews cannot ");
+		(void) fprintf(nfsfd, "operate without this file.\n");
+		(void) mclose(nfsfd);
+	}
+
+	xerror("Can't find %s.\nComplain to your new/systems manager.\n", buf);
+}	
+#endif /* NFSCLIENT */
 #endif /* INEW */
 
 #ifndef CHKN

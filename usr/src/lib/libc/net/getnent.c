@@ -19,7 +19,7 @@ static char sccsid[] = "@(#)getnetent.c	5.3 (Berkeley) 5/19/86";
 
 static char NETDB[] = "/etc/networks";
 static FILE *netf = NULL;
-static char line[BUFSIZ+1];
+static char line[256+1];
 static struct netent net;
 static char *net_aliases[MAXALIASES];
 int _net_stayopen;
@@ -53,7 +53,7 @@ getnetent()
 	if (netf == NULL && (netf = fopen(NETDB, "r" )) == NULL)
 		return (NULL);
 again:
-	p = fgets(line, BUFSIZ, netf);
+	p = fgets(line, sizeof(line)-1, netf);
 	if (p == NULL)
 		return (NULL);
 	if (*p == '#')

@@ -87,10 +87,14 @@ struct	proc {
 #define	p_xstat		p_un.p_dead.P_xstat
 #define	p_ru		p_un.p_dead.P_ru
 
+#ifdef SMALL
+#define	PIDHSZ		16
+#else
 #define	PIDHSZ		64
+#endif
 #define	PIDHASH(pid)	((pid) & (PIDHSZ - 1))
 
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 short	pidhash[PIDHSZ];
 struct	proc *pfind();
 struct	proc proc[], *procNPROC;	/* the proc table itself */

@@ -5,7 +5,7 @@
 jove - an interactive display-oriented text editor
 .SH SYNOPSIS
 .nf
-jove [-d directory] [-w] [-t tag] [+n file] [-p file] [files]
+jove [-d directory] [-w] [-t tag] [+[n] file] [-p file] [files]
 jove -r
 .fi
 .SH DESCRIPTION
@@ -74,9 +74,9 @@ can simulate the modified C shell by putting the following lines in your
 C shell initialization file (.cshrc):
 .nf
 .sp 1
-	alias cd        'cd \\!*; setenv CWD $cwd'
-	alias popd      'popd \\!*; setenv CWD $cwd'
-	alias pushd     'pushd \\!*; setenv CWD $cwd'
+	alias cd        'cd \e!*; setenv CWD $cwd'
+	alias popd      'popd \e!*; setenv CWD $cwd'
+	alias pushd     'pushd \e!*; setenv CWD $cwd'
 .fi
 .TP
 .I +n
@@ -85,7 +85,8 @@ the
 .I n'th
 line instead of the (default) 1'st line.  This can be specified more than
 once but it doesn't make sense to use it twice on the same file; in that
-case the second one wins.
+case the second one wins. If no numeric argument is given after the +,
+the point is positioned at the end of the file.
 .TP
 .I -p
 Parses the error messages in the file designated by the following argument.
@@ -95,7 +96,9 @@ LINT, or GREP output.
 .I -t
 Runs the
 .I find-tag 
-command on the following argument (see ctags(1)).
+command on the string of characters immediately following 
+the -t if there is one (as in -tTagname), or on
+the following argument (as in -t Tagname) otherwise (see ctags(1)).
 .TP
 .I -w
 Divides the window in two.  When this happens, either the same file is
@@ -221,8 +224,8 @@ set some variables every time you get into JOVE, you should put them in your
 initialization file.  Here are a few lines from mine:
 .nf
 	set match-regular-expressions on
-	auto-execute-command auto-fill /tmp/Re\\|.*drft
-	bind-to-key i-search-forward ^\\
+	auto-execute-command auto-fill /tmp/Re\e|.*drft
+	bind-to-key i-search-forward ^\e
 	bind-to-key i-search-reverse ^R
 	bind-to-key find-tag-at-point ^[^T
 	bind-to-key scroll-down ^C
@@ -232,11 +235,11 @@ initialization file.  Here are a few lines from mine:
 (Note that the Control Characters can be either two character sequences
 (e.g. ^ and C together as ^C) or the actual control character.  If you want
 to use an ^ by itself you must BackSlash it (e.g., bind-to-key grow-window
-^X\\^ binds grow-window to "^X^").
+^X\e^ binds grow-window to "^X^").
 .SH SOME MINOR DETAILS
-You should type C-\\ instead of C-S in many instances.  For example, the way
+You should type C-\e instead of C-S in many instances.  For example, the way
 to search for a string is documented as being "C-S" but in reality you
-should type "C-\\".  This is because C-S is the XOFF character (what gets
+should type "C-\e".  This is because C-S is the XOFF character (what gets
 sent when you type the NO SCROLL key), and clearly that won't work.  The XON
 character is "C-Q" (what gets sent when you type NO SCROLL again) which is
 documented as the way to do a quoted-insert.  The alternate key for this is

@@ -2,17 +2,23 @@
 /*
  *                     RCS common definitions and data structures
  */
-#define RCSBASE "$Header: /usr/src/new/rcs/src/RCS/rcsbase.h,v 3.7 83/10/19 04:22:11 lepreau Exp $"
+#define RCSBASE "$Id: rcsbase.h,v 4.5 87/12/18 17:06:41 narten Exp $"
 /*****************************************************************************
  * INSTRUCTIONS:
  * =============
- * For USG Unix, define USG; for BSD Unix, don't (see ifdef USG).
- * For 4.2 bsd, define V4_2BSD; this will replace the routines
- * getwd() and rename() with the corresponding ones in the C-library.
- * V4_2BSD also selects different definitions for the macros NCPFN and NCPPN
- * (max. number of characters per filename, number of characters per path name).
- * Define STRICT_LOCKING appropriately (see STRICT_LOCKING).
- * Change BYTESIZ if necessary.
+ * The following should be handled in the Makefile:
+ *     For USG Unix, define USG; for BSD Unix, don't (see ifdef USG).
+ *     For 4.2 bsd, define V4_2BSD; this will replace the routines
+ *     getwd() and rename() with the corresponding ones in the C-library.
+ *     V4_2BSD also selects different definitions for the macros NCPFN and NCPPN
+ *     (max. number of characters per filename, number of characters per path name).
+ *     Define STRICT_LOCKING appropriately (see STRICT_LOCKING).
+ * The following need be changed for porting to a different machine:
+ *     Define SMALLOG for a machine with small memory (like the PDP11).
+ *     SMALLOG conserves space for log messages.
+ *     Change BYTESIZ if necessary.
+ * If you need to change the comment leaders, update the table comtable[]
+ * in rcsfnms.c. (This can wait until you know what a comment leader is.)
  *****************************************************************************
  *
  * Copyright (C) 1982 by Walter F. Tichy
@@ -28,8 +34,33 @@
 
 
 /* $Log:	rcsbase.h,v $
- * Revision 3.7  83/10/19  04:22:11  lepreau
- * Make teeny logsize big
+ * Revision 4.5  87/12/18  17:06:41  narten
+ * made removed BSD ifdef, now uses V4_2BSD
+ * 
+ * Revision 4.4  87/10/18  10:29:49  narten
+ * Updating version numbers
+ * Changes relative to 1.1 are actually relative to 4.2
+ * 
+ * Revision 1.3  87/09/24  14:02:25  narten
+ * changes for lint
+ * 
+ * Revision 1.2  87/03/27  14:22:02  jenkins
+ * Port to suns
+ * 
+ * Revision 1.1  84/01/23  14:50:14  kcs
+ * Initial revision
+ * 
+ * Revision 4.2  83/12/20  16:04:20  wft
+ * merged 3.6.1.1 and 4.1 (SMALLOG, logsize).
+ * moved setting of STRICT_LOCKING to Makefile.
+ * changed DOLLAR to UNKN (conflict with KDELIM).
+ * 
+ * Revision 4.1  83/05/04  09:12:41  wft
+ * Added markers Id and RCSfile.
+ * Added Dbranch for default branches.
+ * 
+ * Revision 3.6.1.1  83/12/02  21:56:22  wft
+ * Increased logsize, added macro SMALLOG.
  * 
  * Revision 3.6  83/01/15  16:43:28  wft
  * 4.2 prerelease
@@ -39,7 +70,7 @@
  * Added variants of NCPFN and NCPPN for bsd 4.2, selected by defining V4_2BSD.
  * Added macro DELNUMFORM to have uniform format for printing delta text nodes.
  * Added macro DELETE to mark deleted deltas.
- * 
+ *
  * Revision 3.5  82/12/10  12:16:56  wft
  * Added two forms of DATEFORM, one using %02d, the other %.2d.
  *
@@ -86,17 +117,18 @@
  */
 #define BYTESIZ             8 /* number of bits in a byte                   */
 
-#define STRICT_LOCKING      1 /* 0 sets the default locking to non-strict;  */
+/*#define STRICT_LOCKING    0 /* 0 sets the default locking to non-strict;  */
                               /* used in experimental environments.         */
                               /* 1 sets the default locking to strict;      */
                               /* used in production environments.           */
+			      /* STRICT_LOCKING is set in the Makefile!     */
 #define hshsize           239 /* hashtable size; MUST be prime and -1 mod 4 */
                               /* other choices: 547 or 719                  */
 #define strtsize (hshsize * 50) /* string table size                        */
-#ifdef pdp11
-# define logsize           1024 /* size of logmessage                        */
+#ifdef SMALLOG
+#  define logsize         1024 /* max. size of log message for pdp11        */
 #else
-# define logsize	   4096
+#  define logsize         4096 /* max. size of log message for others       */
 #endif
 #define revlength          30 /* max. length of revision numbers            */
 #define datelength         20 /* length of a date in RCS format             */
@@ -172,7 +204,7 @@ enum tokens {
 #define BAR      IDCHAR
 #define COMMA    UNKN
 #define DIVIDE   IDCHAR
-#define DOLLAR   IDCHAR
+#define DOLLAR   UNKN                /* overlap with KDELIM */
 #define DQUOTE   IDCHAR
 #define EQUAL    IDCHAR
 #define EXCLA    IDCHAR
@@ -252,9 +284,12 @@ extern struct access   * AccessList;
 extern struct assoc    * Symbols;
 extern struct lock     * Locks;
 extern struct hshentry * Head;
+extern struct hshentry * Dbranch;
 extern int               StrictLocks;
 extern int               TotalDeltas;
+#ifndef lint
 static char copyright[]="Copyright (C) 1982 by Walter F. Tichy";
+#endif
 
 /* common variables (lexical analyzer)*/
 extern enum tokens map[];
@@ -266,10 +301,24 @@ extern int               hshenter;
 extern char            * NextString;
 extern char            * cmdid;
 
+#if defined(USG) || defined(V4_2BSD)
+#define VOID	(void)
+#else
+typedef int void;
+#define VOID
+#endif
+
 /* common routines */
 extern int serror();
 extern int faterror();
 extern int fatserror();
+extern void ignoreints();
+extern void catchints();
+extern void restoreints();
+
+extern char *strcpy();
+extern char *strcat();
+extern char *strncpy();
 
 /*
  * Markers for keyword expansion (used in co and ident)
@@ -277,18 +326,20 @@ extern int fatserror();
 #define AUTHOR          "Author"
 #define DATE            "Date"
 #define HEADER          "Header"
+#define IDH             "Id"
 #define LOCKER          "Locker"
 #define LOG             "Log"
+#define RCSFILE         "RCSfile"
 #define REVISION        "Revision"
 #define SOURCE          "Source"
 #define STATE           "State"
 
-enum markers { Nomatch, Author, Date, Header,
-               Locker, Log, Revision, Source, State };
+enum markers { Nomatch, Author, Date, Header, Id,
+	       Locker, Log, RCSfile, Revision, Source, State };
 
 #define DELNUMFORM      "\n\n%s\n%s\n"
 /* used by putdtext and scanlogtext */
 #define DELETE          'D'
 /* set by rcs -o and used by puttree() in rcssyn */
 
-typedef int void;
+

@@ -1,13 +1,15 @@
 .EH 'Page %''Changes in 2.10BSD'
 .OH 'Changes in 2.10BSD''Page %'
+.ds Ps 2.10BSD
+.ds 2B 2.10.1BSD
 .TL
-Changes in 2.10BSD
+Changes in the \*(Ps kernel
 .sp
 .de D
 .ie \\n(.$>1 \\$1 \\$2 \\$3
 .el DRAFT of \n(mo/\n(dy/\n(yr
 ..
-.D April 20, 1987
+.D October 1, 1988
 .AU
 Keith Bostic
 .AI
@@ -31,7 +33,8 @@ This document summarizes changes in PDP-11\(dg UNIX\(dd between
 .br
 \u\(dd\d\s-2UNIX\s0 is a trademark of Bell Laboratories.
 .FE
-the July 1983 2.9BSD release and the April 1987 2.10BSD distribution.
+the July 1983 2.9BSD release and the April 1987 and October 1988
+\*(Ps distributions.
 .PP
 It is intended to provide sufficient information that those who maintain
 the kernel, have local modifications to install, or who have versions of
@@ -56,7 +59,7 @@ bug fixes,
 .IP \(bu 3
 performance improvements,
 .IP \(bu 3
-addition of 4.3BSD system calls,
+addition of 4.3BSD system calls and application programs,
 .IP \(bu 3
 removal of features no longer supported in the 4.3BSD release,
 .IP \(bu 3
@@ -66,7 +69,7 @@ new protocol and hardware support.
 The major changes to the kernel are:
 .RS
 .IP \(bu 3
-the addition of networking,
+the addition of supervisor space networking,
 .IP \(bu 3
 a complete rewrite of the user/kernel interface,
 .IP \(bu 3
@@ -76,10 +79,40 @@ replacement of much of the high kernel with portions of the 4.3BSD kernel,
 .IP \(bu 3
 the addition of the 4.3BSD tty and serial line drivers,
 .IP \(bu 3
-the addition of inode, swap and text cacheing algorithms,
+the addition of inode, swap and text caching algorithms,
 .IP \(bu 3
 restructuring the kernel into the 4.3BSD structure.
+.IP \(bu 3
+the addition of disk quotas
 .RE
+.PP
+This document also describes changes between the first and second
+releases of 2.10BSD.  The latter has been designated as 2.10.1.
+Although the changes are fairly simple to describe, they cover large
+portions of the distribution.  Most will not be visible to either
+users or administrators; specifically, no recompilation is necessary.
+Administrators should be aware that the 4.3BSD disk quota system
+is now available.  Due to address space considerations, however, it
+is expensive to run.  Also, the source for the on-line manual pages
+has been rearranged as per the 4.3BSD-tahoe release.  See the 2.10.1
+setup document for more information.
+.PP
+The major change, and the reason for the second release, is an
+.B extensive
+reworking of the kernel to move the networking into supervisor space.
+This move eliminated most, if not all, of the instabilities seen
+in the original networking provided with 2.10BSD; it also doubled
+the speed of, for example, file transfer.
+As encouragement to sites that encountered difficulties in using
+the networking in the first release, or encounter difficulties
+in this release, we have beta sites that have been running for
+months without crashing, as well as sites with fifty nodes.
+We are, however, still suspicious of the DEQNA driver...
+.PP
+In application land, many missing pieces of the 4BSD distribution
+have been added, most notably the FORTRAN compiler and library and
+the line printer sub-system.  Many other programs have had minor (and
+not-so-minor) fixes applied.
 .PP
 This document is not intended to be an introduction to the kernel, but
 assumes familiarity with prior versions of the kernel, particularly the
@@ -103,15 +136,27 @@ the news group ``comp.bugs.2bsd''.
 .PP
 The authors gratefully acknowledge the contributions of many other
 people to the work described here.  Major contributors include
+Steven Schultz, of Contel Federal Systems, who did the original port
+of the supervisor space networking and much of the debugging; Cyrus
+Rahman, of Duke University, did much of the applications work for
+2.10.1BSD and should hold some kind of record for being able to get
+the entire kernel rewritten with a single 10-line bug report.
 Gregory Travis and Jeff Johnson of the Institute for Social Research,
-and Steven Uitti of Purdue University.  Cyrus Rahman of Duke University
-should hold some kind of record for being able to get the entire kernel
-rewritten with a single 10-line bug report.  Much credit should also go
-to the authors of 4.2BSD and 4.3BSD from which we stole everything that
-wasn't nailed down and several things that were.  (Just ``diff'' this
-document against \fIChanges to the Kernel in 4.2BSD\fP if you don't
-believe that!)  We are also grateful for the invaluable guidance
-provided by Michael Karels, of the Computer Science Research Group,
-at Berkeley \- although we felt that his suggestion that we ``just buy
-a VAX'', while perhaps more practical, was not entirely within the spirit
-of the project.
+and Steven Uitti of Purdue University were also extremely helpful.
+.PP
+We also wish to acknowledge that Digital Equipment Corporation donated
+the ULTRIX-11 Version 3.1 release source code to this effort.  Portions
+of the 2.10.1BSD release, in particular, the floating point simulation
+code, are directly derived from this contribution.  Various networking
+drivers are also derived from source code Digital has previously
+contributed to the 4BSD effort.
+.PP
+Finally, much credit should go to the authors of 4.2BSD and 4.3BSD from
+which we stole everything that wasn't nailed down and several things
+that were.
+(Just ``diff'' this document against \fIChanges to the
+Kernel in 4.2BSD\fP if you don't believe that!)
+We are also grateful for the invaluable guidance provided by Michael
+Karels, of the Computer Science Research Group, at Berkeley \- although
+we felt that his suggestion that we ``just buy a VAX'', while perhaps
+more practical, was not entirely within the spirit of the project.

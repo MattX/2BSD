@@ -151,7 +151,7 @@ needkwd = 0;
 
 ++procno;
 proctype = TYUNKNOWN;
-procname = "MAIN_    ";
+procname = "MAIN     ";
 procclass = CLUNKNOWN;
 nentry = 0;
 multitype = NO;

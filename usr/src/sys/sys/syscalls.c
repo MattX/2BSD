@@ -163,4 +163,4 @@ char *syscallnames[] = {
 	"quota",		/* 149 = quota */
 	"getsockname",		/* 150 = getsockname */
 };
-#endif !BSD2_10
+#endif /* !BSD2_10 */

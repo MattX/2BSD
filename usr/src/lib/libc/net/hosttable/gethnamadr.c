@@ -19,7 +19,7 @@ static char sccsid[] = "@(#)gethostnamadr.c	5.5 (Berkeley) 3/9/86";
 
 static struct hostent host;
 static char *host_aliases[MAXALIASES];
-static char hostbuf[BUFSIZ+1];
+static char hostbuf[256+1];
 static char *host_addrs[2];
 
 int h_errno;

@@ -15,9 +15,7 @@ struct	file {
 	int	f_flag;		/* see below */
 	char	f_type;		/* descriptor type */
 	char	f_count;	/* reference count */
-#ifdef UCB_NET
 	short	f_msgcount;	/* references from message queue */
-#endif
 	union {
 		caddr_t	f_Data;
 		struct socket *f_Socket;
@@ -27,8 +25,11 @@ struct	file {
 #define f_data		f_un.f_Data
 #define f_socket	f_un.f_Socket
 
+#ifndef SUPERVISOR
 extern struct	file file[], *fileNFILE;
 int	nfile;
+#endif
+
 struct	file *getf();
 struct	file *falloc();
 #endif

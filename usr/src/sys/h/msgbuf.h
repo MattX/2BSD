@@ -7,11 +7,15 @@
  */
 
 #define	MSG_MAGIC	0x063061
+#ifdef SMALL
+#define	MSG_BSIZE	(128 - 1 * sizeof (long))
+#else
 #define	MSG_BSIZE	(512 - 1 * sizeof (long))
+#endif
 struct	msgbuf {
 	long	msg_bufx;
 	char	msg_bufc[MSG_BSIZE];
 };
-#ifdef KERNEL
+#if defined(KERNEL) && !defined(SUPERVISOR)
 struct	msgbuf msgbuf;
 #endif

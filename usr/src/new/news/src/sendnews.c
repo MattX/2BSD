@@ -3,7 +3,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)sendnews.c	2.12	3/21/87";
+static char	*SccsId = "@(#)sendnews.c	2.13	9/24/87";
 #endif /* SCCSID */
 
 #include <stdio.h>
@@ -45,7 +45,11 @@ char **argv;
 #ifdef SENDMAIL
 	(void) sprintf(buffer, "%s -i -odq %s", SENDMAIL, *argv);
 #else /* !SENDMAIL */
+#ifdef M_XENIX
+	(void) sprintf(buffer, "/usr/bin/mail %s", *argv);
+#else /* XENIX is not quite Unix.... */
 	(void) sprintf(buffer, "/bin/mail %s", *argv);
+#endif /* !M_XENIX */
 #endif /* !SENDMAIL */
 #endif
 	if ((out = popen(buffer, "w")) == NULL) {

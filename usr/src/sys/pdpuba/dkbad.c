@@ -33,4 +33,4 @@ isbad(bt, cyl, trk, sec)
 	}
 	return (-1);
 }
-#endif BADSECT
+#endif

@@ -1,0 +1,66 @@
+
+
+
+FILE(1)             UNIX Programmer's Manual		  FILE(1)
+
+
+
+NNAAMMEE
+     file - determine file type
+
+SSYYNNOOPPSSIISS
+     ffiillee [ -ff name ]
+     ffiillee file1 ... filen
+
+DDEESSCCRRIIPPTTIIOONN
+     _F_i_l_e performs a series of tests on each argument in an
+     attempt to classify it.  If an argument appears to be ASCII,
+     _f_i_l_e examines the first 512 bytes and tries to guess its
+     language.
+
+     If -f is used, _f_i_l_e reads its argument list from the file
+     _n_a_m_e.
+
+BBUUGGSS
+     It often makes mistakes.  In particular it often suggests
+     that command files are C programs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88						1
+
+
+

@@ -16,7 +16,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)rfuncs2.c	1.35	3/21/87";
+static char	*SccsId = "@(#)rfuncs2.c	1.36	11/30/87";
 #endif /* SCCSID */
 
 /*LINTLIBRARY*/
@@ -363,7 +363,8 @@ char	*file;
 	if (hread(&hh, ifp, TRUE) == NULL)
 		return;
 	strcpy(TRANS, "/tmp/trXXXXXX");
-	ofp = xfopen(mktemp(TRANS), "w");
+	MKTEMP(TRANS);
+	ofp = xfopen(TRANS, "w");
 	if (index(sp->s_flags, 'A') == NULL)
 		hwrite(&hh, ofp);
 	else {

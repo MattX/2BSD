@@ -32,6 +32,7 @@ static char sccsid[] = "@(#)htable.c	5.5 (Berkeley) 4/15/86";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define	DATELINES	3	/* these lines usually contain the date */
 #define	MAXNETS		30	/* array size for local, connected nets */
@@ -41,9 +42,9 @@ FILE	*gf;			/* gateways file */
 FILE	*nf;			/* networks file */
 struct gateway *savegateway(), *gatewayto();
 
-int connected_nets[MAXNETS];
+u_long connected_nets[MAXNETS];
 int nconnected;
-int local_nets[MAXNETS];
+u_long local_nets[MAXNETS];
 int nlocal;
 char *myname;
 
@@ -231,7 +232,7 @@ do_entry(keyword, addrlist, namelist, cputype, opsys, protos)
 			struct gateway *gw, *firstgw = (struct gateway *) NULL;
 
 			for (al = addrlist; al; al = al->addr_link) {
-				register int net;
+				register u_long net;
 
 				net = inet_netof(al->addr_val);
 				gw = savegateway(namelist, net,
@@ -251,7 +252,7 @@ do_entry(keyword, addrlist, namelist, cputype, opsys, protos)
 		 */
 		connect_addr = al;
 		for (al = addrlist; al; al = al->addr_link) {
-			register int net;
+			register u_long net;
 
 			/* suppress duplicates -- not optimal */
 			net = inet_netof(al->addr_val);
@@ -297,11 +298,13 @@ do_entry(keyword, addrlist, namelist, cputype, opsys, protos)
 	}
 	freenames(namelist);
 dontfree:
+	freenames(cputype);
+	freenames(opsys);
 	freenames(protos);
 }
 
 printgateway(net, name, metric)
-	int net;
+	u_long net;
 	char *name;
 	int metric;
 {
@@ -351,8 +354,8 @@ copygateways(f, filename)
 	char gname[80];
 	char junk[80];
 	char buf[500];
-	u_long addr;
-	int net, metric;
+	u_long addr, net;
+	int metric;
 	extern int errno;
 
 	lhf = fopen(filename, "r");
@@ -388,7 +391,7 @@ copygateways(f, filename)
 
 getnetaddr(name, addr)
 	char *name;
-	int *addr;
+	u_long *addr;
 {
 	struct netent *np = getnetbyname(name);
 	int n;
@@ -444,10 +447,10 @@ copycomments(in, out, ccount)
  */
 putnet(f, v)
 	FILE *f;
-	register int v;
+	register u_long v;
 {
 	if (v < 128)
-		fprintf(f, "%d", v);
+		fprintf(f, "%d", (int)v);
 	else if (v < 65536)
 		fprintf(f, "%d.%d", UC(v >> 8), UC(v));
 	else
@@ -493,7 +496,7 @@ struct gateway *lastgateway = 0;
 
 struct gateway *
 gatewayto(net)
-	register int net;
+	register u_long net;
 {
 	register struct gateway *gp;
 
@@ -506,8 +509,8 @@ gatewayto(net)
 struct gateway *
 savegateway(namelist, net, addr, metric)
 	struct name *namelist;
-	u_long addr;
-	int net, metric;
+	u_long addr, net;
+	int metric;
 {
 	register struct gateway *gp;
 

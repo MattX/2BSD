@@ -3,12 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mch_xxx.s	1.1 (2.10BSD Berkeley) 2/10/87
+ *	@(#)mch_xxx.s	1.1 (2.10BSD Berkeley) 6/12/88
  */
 #include "DEFS.h"
 #include "../machine/mch_iopage.h"
 #include "../machine/koverlay.h"
-
 
 /*
  * noop()
@@ -67,13 +66,36 @@ ENTRY(delay)
  *
  * Sit and wait for something to happen ...
  */
+
+#ifdef IDLE_DISPLAY
+/*
+ * If you have a console display it's ammusing to define IDLE_DISPLAY.  If
+ * your system is mostly idle, you'll see a slowly rotating sequence of
+ * lights on the console display.  If the system is very active the display
+ * will appear blurred.
+ */
+INT(LOCAL, rdisply, 0377)		/ idle pattern
+INT(LOCAL, wcount, 2)			/ rotate rdisply every wcount calls
+#endif /* IDLE_DISPLAY */
+
 ENTRY(idle)
-	mov	PS,-(sp)
-	mov	$1,_noproc
-	SPLLOW
-	wait
-	mov	(sp)+,PS
-	rts	pc
+	mov	PS,-(sp)		/ save current SPL, indicate that no
+	mov	$1,_noproc		/   process is running
+#ifdef IDLE_DISPLAY
+	dec	wcount			/ if (--wcount <= 0) {
+	bgt	1f
+	mov	$2,wcount		/   wcount = 2
+	clc				/   rdisply <<= 1
+	rol	rdisply
+	bpl	1f			/   if (``one shifted out'')
+	bis	$1,rdisply		/     rdisply |= 1
+1:					/ }
+	mov	rdisply,r0		/ wait displays contents of r0
+#endif /* IDLE_DISPLAY */
+	SPLLOW				/ set SPL low so we can be interrupted
+	wait				/ wait for something to happen
+	mov	(sp)+,PS		/ restore previous SPL
+	rts	pc			/   and return
 
 #ifdef PROF
 /*
@@ -107,7 +129,7 @@ ENTRY(idle)
  *
  * This longjmp differs from the longjmp found in the standard library and the
  * VAX BSD4.3 kernel - it's actually closer to the resume routine of the 4.3
- * kernel and, indeed, even use to be called resume in the BSD2.9 kernel.
+ * kernel and, indeed, even used to be called resume in the BSD2.9 kernel.
  * We've given it both names to promote some degree of compatibility between
  * the 4.3 and 2.10 C kernel source ...
  */
@@ -119,10 +141,26 @@ ENTRY(setjmp)
 	mov	r4,(r0)+
 	mov	r5,(r0)+		/   frame pointer,
 	mov	sp,(r0)+		/   stack pointer,
+#ifdef UCB_NET
+	mov	PS,-(sp)		/   network stack pointer,
+	mov	$010340,PS
+	mfpd	sp
+#ifdef CHECKSTACK
+	cmp	(sp),$NET_STOP		/   (check network stack pointer to
+	bhi	1f			/     make sure it's in the network
+	cmp	(sp),$NET_SBASE		/     stack ...)
+	bhi	2f
+1:
+	halt
+2:
+#endif
+	mov	(sp)+,(r0)+
+	mov	(sp)+,PS
+#endif
 	mov	__ovno,(r0)+		/   overlay number,
 	mov	r1,(r0)+		/   and return address
-	clr	r0			/ and return a zero for the setjmp
-	jmp	(r1)			/   call
+	clr	r0			/ return a zero for the setjmp call
+	jmp	(r1)
 
 ENTRY(longjmp)
 ENTRY(resume)
@@ -131,18 +169,28 @@ ENTRY(resume)
 	SPL7				/ can't let anything in till we
 					/   (at least) get a valid stack ...
 	mov	r0,KDSA6		/ map new process' u structure in
+#ifdef UCB_NET
+	mov	r0,SDSA6		/ map supervisor stack area to same
+#endif
 	mov	(r1)+,r2		/ restore register variables
 	mov	(r1)+,r3		/   from env ...
 	mov	(r1)+,r4
 	mov	(r1)+,r5		/   frame pointer,
-	mov	(r1)+,sp		/   stack pointer
+	mov	(r1)+,sp		/   stack pointer,
+#ifdef UCB_NET
+	mov	PS,-(sp)		/   network stack pointer,
+	mov	$010340,PS
+	mov	(r1)+,-(sp)
+	mtpd	sp
+	mov	(sp)+,PS
+#endif
 	mov	(r1)+,r0		/ grab return overlay number ...
 	cmp	r0,__ovno		/ old overlay currently mapped in?
 	beq	1f
 	mov	r0,__ovno		/ nope, set new overlay number
 	asl	r0			/ compute descriptor index and map
-	mov	ova(r0), OVLY_PAR	/   the old overlay back in ...
-	mov	ovd(r0), OVLY_PDR
+	mov	ova(r0),OVLY_PAR	/   the old overlay back in ...
+	mov	ovd(r0),OVLY_PDR
 1:
 	mov	$1001,SSR0		/ J-11 bug, force MMU registers to start
 					/   tracking again between processes
@@ -173,43 +221,54 @@ ENTRY(spl0)
 ENTRY(spl1)
 ENTRY(splsoftclock)
 	movb	PS,r0
-	movb	$40, PS
+	movb	$40,PS
 	rts	pc
 
 ENTRY(spl2)
 ENTRY(splnet)
 	movb	PS,r0
-	movb	$100, PS
+	movb	$100,PS
 	rts	pc
 
 ENTRY(spl3)
 	movb	PS,r0
-	movb	$140, PS
+	movb	$140,PS
 	rts	pc
 
 ENTRY(spl4)
 	movb	PS,r0
-	movb	$200, PS
+	movb	$200,PS
 	rts	pc
+
+/*
+ * splimp() needs to be spl6 if the 3com ethernet board is present,
+ * as it interrupts at 6.
+ */
+#include "ec.h"
 
 ENTRY(spl5)
 ENTRY(splbio)
-ENTRY(splimp)
 ENTRY(spltty)
+#if NEC == 0
+ENTRY(splimp)
+#endif
 	movb	PS,r0
-	movb	$240, PS
+	movb	$240,PS
 	rts	pc
 
 ENTRY(spl6)
 ENTRY(splclock)
+#if NEC != 0
+ENTRY(splimp)
+#endif
 	movb	PS,r0
-	movb	$300, PS
+	movb	$300,PS
 	rts	pc
 
 ENTRY(spl7)
 ENTRY(splhigh)
 	movb	PS,r0
-	movb	$HIPRI, PS
+	movb	$HIPRI,PS
 	rts	pc
 #endif
 
@@ -333,17 +392,13 @@ ENTRY(copystr)
 ENTRY(clrbuf)
 	mov	2(sp),-(sp)		/ pass bp to mapin
 	jsr	pc,_mapin		/ r0 = buffer pointer
-#if defined(GENERIC) || defined(NONFP)
-	tst	(sp)+			/ clean up (is used in !NONFP below)
-	mov	$MAXBSIZE\/8.,r1	/ clear 8 bytes per loop
-1:
-	clr	(r0)+
-	clr	(r0)+
-	clr	(r0)+
-	clr	(r0)+
-	sob	r1,1b
-#else
-	stfps	(sp)			/ save old floating point status
+	tst	(sp)+
+
+#ifndef NONFP
+	tst	_fpp			/ do we have floating point hardware?
+	beq	2f			/ nope, use regular clr instructions
+
+	stfps	-(sp)			/ save old floating point status
 	setd				/ use double precision
 	mov	$MAXBSIZE\/32.,r1	/ clear 32 bytes per loop
 1:
@@ -354,21 +409,31 @@ ENTRY(clrbuf)
 	sob	r1,1b
 
 	ldfps	(sp)+			/ restore floating point status
-#endif
+	br	4f
+2:
+#endif /* !NONFP */
+	mov	$MAXBSIZE\/8.,r1	/ clear 8 bytes per loop
+3:
+	clr	(r0)+
+	clr	(r0)+
+	clr	(r0)+
+	clr	(r0)+
+	sob	r1,1b
+4:
 #ifdef DIAGNOSTIC
 	jmp	_mapout			/ map out buffer
 
 #else
 
-#  ifdef UCB_NET
+#ifdef QUOTA
 	mov	_Bmapsave+SE_DESC,KDSD5	/ restorseg5(Bmapsave)
 	mov	_Bmapsave+SE_ADDR,KDSA5
-#  else
-#    ifndef NOKA5
+#else
+#ifndef NOKA5
 	mov	_seg5+SE_DESC,KDSD5	/ normalseg5() - a noop if NOKA5
 	mov	_seg5+SE_ADDR,KDSA5
-#    endif
-#  endif
+#endif
+#endif
 	rts	pc
 #endif
 
@@ -377,7 +442,7 @@ ENTRY(clrbuf)
 SPACE(GLOBAL, _hasmap, 2)		/ (struct bp *): SEG5 mapped
 #endif
 
-#ifdef UCB_NET
+#ifdef QUOTA
 SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
 #endif
 
@@ -404,9 +469,9 @@ SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
  *		register u_int paddr;
  *		register u_int offset;
  *
- *	#ifdef UCB_NET
+ *	#ifdef QUOTA
  *		saveseg5(Bmapsave);
- *	#endif UCB_NET
+ *	#endif
  *	#ifdef DIAGNOSTIC
  *		if (hasmap) {
  *			printf("mapping %o over %o\n", bp, hasmap);
@@ -424,7 +489,7 @@ SPACE(GLOBAL, _Bmapsave, 4)		/ desc & addr of saved SEG5
 ENTRY(mapin)
 	mov	2(sp),r0		/ r0 = bp
 
-#ifdef UCB_NET
+#ifdef QUOTA
 	mov	KDSD5,_Bmapsave+SE_DESC	/ saveseg5(Bmapsave)
 	mov	KDSA5,_Bmapsave+SE_ADDR
 #endif
@@ -472,7 +537,7 @@ ENTRY(mapin)
  *		}
  *		hasmap = NULL;
  *	
- *	#ifdef UCB_NET
+ *	#ifdef QUOTA
  *		restorseg5(Bmapsave);
  *	#else
  *		normalseg5();
@@ -495,14 +560,14 @@ ENTRY(mapout)
 	/*NOTREACHED*/
 9:
 	clr	_hasmap			/ indicate mapping clear
-#ifdef UCB_NET
+#ifdef QUOTA
 	mov	_Bmapsave+SE_DESC,KDSD5	/ restorseg5(Bmapsave)
 	mov	_Bmapsave+SE_ADDR,KDSA5
 #else
-#  ifndef NOKA5
+#ifndef NOKA5
 	mov	_seg5+SE_DESC,KDSD5	/ normalseg5() - a noop if NOKA5
 	mov	_seg5+SE_ADDR,KDSA5
-#  endif
+#endif
 #endif
 	rts	pc
 #endif
@@ -537,8 +602,10 @@ ENTRY(savemap)
 	mov	$USIZE-1\<8|RW,KDSD6	/ yep, map it in, *KDSD6 = (USIZE, RW)
 	mov	_kdsa6,KDSA6		/   *KDSA6 = kdsa6
 9:
+#ifndef NOKA5
 	mov	_seg5+SE_DESC,KDSD5	/ normalseg5()
 	mov	_seg5+SE_ADDR,KDSA5
+#endif
 	rts	pc
 
 /*
@@ -561,32 +628,6 @@ ENTRY(restormap)
 	mov	(r0),KDSA6		/ *KDSA6 = map[1].se_addr
 	rts	pc
 
-
-#if defined(UCB_NET) && !defined(DIAGNOSTIC)
-/*
- * Mbuf address to data address; called from "mtod" macro which does type
- * cast.  There's an incredibly nasty C version of this which is used when
- * DIAGNOSTIC is defined.
- *
- *	mtodf(m)
- *		register struct mbuf *m;
- *	{
- *		mapseg5(m->m_click, MBMAPSIZE);
- *		MBX->m_mbuf = m;
- *		return((memaddr)MBX + m->m_off);
- *	}
- */
-ENTRY(mtodf)
-	mov	2(sp),r0		/ grab m
-	mov	$MBMAPSIZE,KDSD5	/ mapseg5(m->m_click, MBMAPSIZE)
-	mov	M_CLICK(r0),KDSA5
-	mov	r0,MBX+M_MBUF		/ MBX->m_mbuf = m
-	mov	M_OFF(r0),r0		/ return(MBX + m->m_off)
-	add	$MBX,r0
-	rts	pc
-#endif
-
-
 #ifndef NONFP
 /*
  * savfp(fps)
@@ -596,7 +637,7 @@ ENTRY(mtodf)
  * and all six floating point registers.
  */
 ENTRY(savfp)
-	tst	fpp			/ do we really have floating point
+	tst	_fpp			/ do we really have floating point
 	beq	1f			/   hardware??
 
 	mov	2(sp),r1		/ r1 = fps
@@ -620,7 +661,7 @@ ENTRY(savfp)
  * Restore floating point processor state.
  */
 ENTRY(restfp)
-	tst	fpp			/ do we really have floating point
+	tst	_fpp			/ do we really have floating point
 	beq	1f			/   hardware??
 
 	mov	2(sp),r1		/ r0 = r1 = fps
@@ -647,9 +688,68 @@ ENTRY(restfp)
  * word structure as defined in <pdp/fperr>.
  */
 ENTRY(stst)
-	tst	fpp			/ do we really have floating point
+	tst	_fpp			/ do we really have floating point
 	beq	1f			/   hardware??
 	stst	*2(sp)			/ simple, no?
 1:
 	rts	pc
-#endif !NONFP
+#endif /* !NONFP */
+
+
+/*
+ * scanc(size, str, table, mask)
+ * 	u_int size;
+ * 	u_char *str, table[];
+ * 	u_char mask;
+ *
+ * Scan through str up to (but not including str[size]) stopping when a
+ * character who's entry in table has mask bits set.  Return number of
+ * characters left in str.
+ */
+ENTRY(scanc)
+	mov	2(sp),r0		/ r0 = size
+	beq	3f			/   exit early if zero
+	mov	4(sp),r1		/ r1 = str
+	mov	r2,-(sp)		/ r2 = table
+	mov	6+2(sp),r2
+	mov	r3,-(sp)		/ r3 = mask
+	mov	10+4(sp),r3
+	mov	r4,-(sp)		/ r4 is temporary
+1:					/ do
+	clr	r4			/   if (table[*str++] & mask)
+	bisb	(r1)+,r4
+	add	r2,r4
+	bitb	r3,(r4)
+	bne	2f			/     break;
+	sob	r0,1b			/ while (--size != 0)
+2:
+	mov	(sp)+,r4		/ restore registers
+	mov	(sp)+,r3
+	mov	(sp)+,r2
+3:
+	rts	pc			/ and return size
+
+
+/*
+ * locc(mask, size, str)
+ * 	u_char mask;
+ * 	u_int size;
+ * 	u_char *str;
+ *
+ * Scan through str up to (but not including str[size]) stopping when a
+ * character equals mask.  Return number of characters left in str.
+ */
+ENTRY(locc)
+	mov	4(sp),r0		/ r0 = size
+	beq	3f			/   exit early if zero
+	mov	6(sp),r1		/ r1 = str
+	mov	r2,-(sp)		/ r2 = mask
+	mov	2+2(sp),r2
+1:					/ do
+	cmpb	(r1)+,r2		/   if (*str++ == mask)
+	beq	2f
+	sob	r0,1b			/ while (--size != 0)
+2:
+	mov	(sp)+,r2		/ restore registers
+3:
+	rts	pc			/ and return size

@@ -280,8 +280,8 @@ char *systab[] = {
 	"setrlimit",
 	"killpg",
 	"147 (nosys)",
+	"setquota",
 	"quota",
-	"qquota",
 	"getsockname",
 	/*
 	 * BSD2.10 special calls
@@ -292,7 +292,6 @@ char *systab[] = {
 	"ucall",
 	"fperr",
 	"gldav",
-	"login",
 };
 
 STRING  regname[] = { "r0", "r1", "r2", "r3", "r4", "r5", "sp", "pc"};
@@ -448,6 +447,3 @@ REG INT         a;
 		return;
 	}
 }
-
-
-

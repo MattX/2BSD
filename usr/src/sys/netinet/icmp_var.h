@@ -1,9 +1,15 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
+ * All rights reserved.
  *
- *	@(#)icmp_var.h	1.1 (2.10BSD Berkeley) 12/1/86
+ * Redistribution and use in source and binary forms are permitted
+ * provided that this notice is preserved and that due credit is given
+ * to the University of California at Berkeley. The name of the University
+ * may not be used to endorse or promote products derived from this
+ * software without specific prior written permission. This software
+ * is provided ``as is'' without express or implied warranty.
+ *
+ *	@(#)icmp_var.h	7.3 (Berkeley) 12/7/87
  */
 
 /*
@@ -32,6 +38,6 @@ struct	icmpstat {
 	long	icps_inhist[ICMP_MAXTYPE + 1];
 };
 
-#ifdef KERNEL
+#ifdef SUPERVISOR
 struct	icmpstat icmpstat;
 #endif

@@ -3,20 +3,6 @@
 /      note that the bootstrap passes the cputype through in
 /      r0.
 
-/ non-UNIX instructions
-mfpi	= 6500^tst
-stst	= 170300^tst
-mtpi	= 6600^tst
-mfpd	= 106500^tst
-mtpd	= 106600^tst
-spl	= 230
-ldfps	= 170100^tst
-stfps	= 170200^tst
-wait	= 1
-rtt	= 6
-reset	= 5
-/ trap	= 104400
-
 PS	= 177776
 
 .globl	_end

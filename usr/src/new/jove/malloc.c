@@ -1,9 +1,9 @@
-/************************************************************************
- * This program is Copyright (C) 1986 by Jonathan Payne.  JOVE is       *
- * provided to you without charge, and with no warranty.  You may give  *
- * away copies of JOVE, including sources, provided that this notice is *
- * included in all the files.                                           *
- ************************************************************************/
+/***************************************************************************
+ * This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE *
+ * is provided to you without charge, and with no warranty.  You may give  *
+ * away copies of JOVE, including sources, provided that this notice is    *
+ * included in all the files.                                              *
+ ***************************************************************************/
 
 #include "tune.h"
 
@@ -11,9 +11,9 @@
 
 /*	avoid break bug */
 #ifdef pdp11
-#	define GRANULE 64
+# define GRANULE 64
 #else
-#	define GRANULE 0
+# define GRANULE 0
 #endif
 
 /*	C storage allocator
@@ -162,4 +162,4 @@ unsigned int	nbytes;
 	return (char *) q;
 }
 
-#endif MY_MALLOC
+#endif /* MY_MALLOC */

@@ -36,6 +36,7 @@ ENTRY(strncat)
 	movb	(r2)+,(r1)+	/ copy s2 to the end of s1 stopping at the
 	beq	3f		/   end of s2 or when n runs out ...
 	sob	r0,2b
+	clrb	(r1)
 3:
 	mov	(sp)+,r2	/ restore r2
 4:

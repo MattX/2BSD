@@ -1,5 +1,3 @@
-#define		BUFSIZ	1024.
-
 #define		_CNT
 #define		_PTR	2.
 #define		_BASE	4.

@@ -19,8 +19,8 @@ fold.c		4.3
 fp/		UNIMPLEMENTED
 from.c		4.3
 ftp/		4.3+
-gcore.c		UNIMPLEMENTED (4.3 should be ported)
-gprof/		UNIMPLEMENTED (4.3 should be ported)
+gcore.c		2.10 (or maybe V7, or maybe 2.9 - should 4.3 be ported?)
+gprof/		UNIMPLEMENTED (4.3 should be ported (all the hooks are there))
 grep.c		4.3
 groups.c	4.3
 head.c		4.3
@@ -28,7 +28,7 @@ indent/		4.3
 last.c		4.3
 lastcomm.c	4.3
 leave.c		4.3
-lisp/		2.10 (currently not installed)
+lisp/		UNIMPLEMENTED (see ../new/OLD/lisp11.tar.Z)
 lock.c		4.3
 logger.c	4.3
 man.c		4.3
@@ -36,9 +36,9 @@ mkstr.c		4.3
 more/		4.3
 msgs/		4.3
 netstat/	4.3  (many, many long/int fixes)
-pascal/		2.10 (currently not installed)
+pascal/		2.10 (should 4.3 be ported?)
 printenv.c	4.3
-quota.c		UNIMPLEMENTED
+quota.c		4.3
 rdist/		4.3
 rlogin.c	4.3
 rsh.c		4.3
@@ -53,7 +53,7 @@ symorder.c	UNIMPLEMENTED (4.3 should be ported)
 sysline/	UNIMPLEMENTED (4.3 should be ported)
 systat/		UNIMPLEMENTED (4.3 should be ported)
 tail.c		4.3
-talk/		UNIMPLEMENTED (4.3 should be ported)
+talk/		4.3
 tcopy.c		4.3
 telnet.c	4.3
 tftp/		4.3
@@ -66,20 +66,18 @@ users.c		4.3
 vacation.c	4.3
 vgrind/		4.3
 vlp/		UNIMPLEMENTED (but possible, I suspect)
-vmstat.c	UNIMPLEMENTED (4.3 should be ported)
+vmstat.c	4.3
 w.c		2.10 (4.3 should be ported)
 wc.c		4.3
 what.c		4.3
 whereis.c	4.3
-which.csh/	4.3
+which.csh	4.3
 whoami.c	4.3
 whois.c		4.3
-window/		UNIMPLEMENTED
+window/		4.3
 xstr.c		4.3
 yes.c		4.3
 
-The directories OLD and PORT are special.  They contain source code from
-the 2.9 and 4.3 distributions that should probably be ported to 2.10 as
-soon as someone has the time and inclination to do so.  The directory NET
-contains networking programs that once worked under the 2.9 CSS August '85
-distribution.
+The directorie PORT is special.  It contains source code from the 4.3
+distribution that should probably be ported to 2.10 as soon as someone
+has the time and inclination to do so.

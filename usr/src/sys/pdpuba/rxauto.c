@@ -19,7 +19,7 @@ rxprobe(addr)
 	struct rxdevice *addr;
 {
 	stuff(RX_INIT | RX_IE, (&(addr)->rxcs));
-	DELAY(1000);
+	DELAY(1000L);
 	stuff(0, (&(addr)->rxcs));
 	return(ACP_IFINTR);
 }

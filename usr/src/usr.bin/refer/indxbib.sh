@@ -5,10 +5,10 @@
 #	indxbib sh script
 #
 if test $1
-	then /usr/lib/refer/mkey $* | /usr/lib/refer/inv _$1
-	mv _$1.ia $1.ia
-	mv _$1.ib $1.ib
-	mv _$1.ic $1.ic
+	then /usr/lib/refer/mkey $* | /usr/lib/refer/inv $1_
+	mv $1.ia_ $1.ia
+	mv $1.ib_ $1.ib
+	mv $1.ic_ $1.ic
 else
 	echo 'Usage:  indxbib database [ ... ]
 	first argument is the basename for indexes

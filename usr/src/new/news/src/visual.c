@@ -4,7 +4,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)visual.c	1.36	3/21/87";
+static char	*SccsId = "@(#)visual.c	1.40	11/30/87";
 #endif /* SCCSID */
 
 #include "rparams.h"
@@ -17,16 +17,12 @@ static char	*SccsId = "@(#)visual.c	1.36	3/21/87";
 #endif /* !USG */
 
 #include <errno.h>
-#if defined(BSD4_2) || defined(BSD4_1C)
-#include <sys/dir.h>
-#else
-#include "ndir.h"
-#endif
 #ifdef BSD4_2
 #ifndef sigmask
 #define sigmask(m) (1<<((m)-1))
 #endif /* !sigmask */
 #endif /* BSD4_2 */
+
 #ifdef MYDB
 #include "db.h"
 #endif /* MYDB */
@@ -44,12 +40,12 @@ extern int errno;
 #define SPLINE	1	/* secondary prompt line */
 #define ARTWIN	2	/* first line of article window */
 #define SECPRLEN 81	/* length of secondary prompter */
-#else
+#else	/* !STATTOP */
 #define PRLINE	(ROWS-1)/* prompter line */
 #define SPLINE	(ROWS-2)/* secondary prompt line */
 #define ARTWIN	0	/* first line of article window */
 #define SECPRLEN 100	/* length of secondary prompter */
-#endif
+#endif	/* !STATTOP */
 
 #define PIPECHAR '|'	/* indicate save command should pipe to program */
 #define	CAGAIN	('e'&0x1F)	/* Save-to-same-place indicator */
@@ -76,7 +72,7 @@ extern int errno;
 
 /* terminal handler stuff */
 extern int _junked;
-#define clearok(xxx, flag) _junked = flag
+#define okclear() (_junked = 1)
 extern int COLS;
 extern int ROWS;
 extern int hasscroll;
@@ -136,11 +132,11 @@ static int hasdb;			/* true if article data base exists */
 
 #ifdef DIGPAGE
 static int endsuba;			/* end of sub-article in digest */
-#endif
+#endif /* DIGPAGE */
 
 #ifdef MYDEBUG
 FILE *debugf;				/* file to write debugging info on */
-#endif
+#endif	/* MYDEBUG */
 
 char *tft = "/tmp/folXXXXXX";
 
@@ -153,7 +149,10 @@ char *tft = "/tmp/folXXXXXX";
  * things into register variables, but I don't know what
  * breaks the u370 cc.
  */
+#ifndef SERVER
 static char goodone[BUFLEN];		/* last decent article		*/
+#endif	/* !SERVER */
+
 static char ogroupdir[BUFLEN];		/* last groupdir		*/
 static char edcmdbuf[128];
 static int rfq = 0;			/* for last article		*/
@@ -179,7 +178,7 @@ readr()
 #ifdef MYDEBUG
 	debugf = fopen("DEBUG", "w");
 	setbuf(debugf, (char *)NULL);
-#endif
+#endif	/* MYDEBUG */
 	if (aflag) {
 		if (*datebuf) {
 			if ((atime = cgtdate(datebuf)) == -1)
@@ -190,7 +189,7 @@ readr()
 
 	if (SigTrap)
 		xxit(1);
-	(void) mktemp(tfname);
+	MKTEMP(tfname);
 	(void) close(creat(tfname,0666));
 	if ((tfp = fopen(tfname, "w+")) == NULL)
 		xerror("Can't create temp file");
@@ -202,7 +201,7 @@ readr()
 		fputs("Using article data base\n", stderr);	/*DEBUG*/
 		getng();
 	}
-#endif
+#endif	/* MYDB */
 	ttysave();
 	(void) signal(SIGINT, onint);
 	(void) signal(SIGQUIT, xxit);
@@ -219,7 +218,9 @@ readr()
 	while (quitflg == 0) {
 		if (getnextart(FALSE))
 			break;
+#ifndef SERVER
 		(void) strcpy(goodone, filename);
+#endif	/* !SERVER */
 		if (SigTrap)
 			return;
 		vcmd();
@@ -250,9 +251,9 @@ vcmd() {
 	endsuba = findend(dlinno);
 	if (artlines > dlinno + ARTWLEN
 	 || endsuba > 0 && endsuba < artlines
-#else
+#else	/* !DIGPAGE */
 	if (artlines > dlinno + ARTWLEN
-#endif
+#endif	/* !DIGPAGE */
 	 || (prflags & HDRONLY) && artlines > hdrend) {
 		atend = 0;
 		if (prflags&HDRONLY || maxlinno == 0)
@@ -297,9 +298,9 @@ vcmd() {
 		} else {
 #ifdef TIOCGLTC
 			if (c == ckill || c == cwerase) {
-#else
+#else	/* !TIOCGLTC */
 			if (c == ckill) {
-#endif
+#endif	/* !TIOCGLTC */
 				if (countset == 0)
 					break;
 				countset = 0;
@@ -354,10 +355,10 @@ int countset;
 	case 'L':
 		botscreen();
 		ttycooked();
-		list_group(groupdir, countset ? count : 0,
+		list_group(groupdir, countset ? (int) count : 0,
 			(c == 'l') ? FALSE : TRUE, pngsize);
 		ttyraw();
-		clearok(curscr, 1);
+		okclear();
 		updscr();
 		break;
 
@@ -384,11 +385,11 @@ int countset;
 					goto next;
 				else
 					appfile(fp, lastlin + 1);
-			} while(strncmp(linebuf, "------------------------", 24)
+			} while(STRNCMP(linebuf, "------------------------", 24)
 				!= 0);
 			dlinno = endsuba = lastlin;
 		}
-#endif
+#endif	/* DIGPAGE */
 		else if ((appfile(fp, dlinno + 2 * ARTWLEN), artread)
 		 && hasscroll && artlines - dlinno <= ARTWLEN + 2)
 			dlinno = artlines - ARTWLEN;
@@ -634,7 +635,7 @@ caseminus:
 		(void) strcpy(filename, ofilename1);
 		(void) strcpy(ofilename1, bfr);
 		obit = bit;
-		if (strcmp(groupdir, ogroupdir)) {
+		if (STRCMP(groupdir, ogroupdir)) {
 			(void) strcpy(bfr, groupdir);
 			selectng(ogroupdir, FALSE, FALSE);
 			(void) strcpy(groupdir, ogroupdir);
@@ -792,7 +793,7 @@ backupone:
 			updscr();				/*DEBUG*/
 			goto selectart;
 		}
-#endif
+#endif	/* MYDB */
 		if (h->followid[0] == '\0') {
 			msg("no references line");
 			break;
@@ -852,7 +853,7 @@ searchid:	secpr[0] = '\0';
 			*ptr2 = '\0';
 		ptr2 = index(ptr3, '/');
 		if (!ptr2) {
-			if (strcmp(ptr3, "cancelled") == 0)
+			if (STRCMP(ptr3, "cancelled") == 0)
 				msg("%s has been cancelled", linebuf);
 			else
 				msg("%s has expired", linebuf);
@@ -872,7 +873,7 @@ selectart:
 		FCLOSE(fp);
 		saveart;
 		(void) strcpy(ogroupdir, ptr3);
-		if (strcmp(groupdir, ogroupdir)) {
+		if (STRCMP(groupdir, ogroupdir)) {
 			(void) strcpy(bfr, groupdir);
 			selectng(ogroupdir, TRUE, PERHAPS);
 			(void) strcpy(groupdir, ogroupdir);
@@ -884,7 +885,7 @@ selectart:
 		oobit = obit;
 		obit = -1;
 		getnextart(TRUE);
-		if (bit != nart || strcmp(groupdir, ptr3) != 0) {
+		if (bit != nart || STRCMP(groupdir, ptr3) != 0) {
 			msg("can't read %s/%ld", ptr3, nart);
 			goto caseminus;
 		}
@@ -893,11 +894,16 @@ selectart:
 
 	/* follow-up article */
 	case 'f':
-		if (strcmp(h->followto, "poster") == 0) {
+		if (STRCMP(h->followto, "poster") == 0) {
 			reply(FALSE);
 			break;
 		}
+#ifdef SERVER
+		(void) sprintf(bfr, "%s/%s %s/%s/%ld", BIN, "postnews",
+				SPOOL,groupdir,bit);
+#else	/* !SERVER */
 		(void) sprintf(bfr, "%s/%s %s", BIN, "postnews", goodone);
+#endif	/* !SERVER */
 		shcmd(bfr, CWAIT);
 		break;
 
@@ -932,7 +938,7 @@ selectart:
 		if (c != ckill && c != cintr && c != cerase) 
 #ifdef TIOCGLTC
 			if (c != cwerase)
-#endif
+#endif	/* TIOCGLTC */
 			{
 				beep();
 				msg("Illegal command");
@@ -947,7 +953,7 @@ cancel_command()
 	int notauthor;
 	char *senderof();
 
-	poster = senderof(&h);
+	poster = senderof(h);
 	/* only compare up to '.' or ' ' */
 	r = index(poster,'.');
 	if (r == NULL)
@@ -955,7 +961,7 @@ cancel_command()
 	if (r != NULL)
 		*r = '\0';
 	tfilename = filename;
-	notauthor = strcmp(username, poster);
+	notauthor = STRCMP(username, poster);
 	if (uid != ROOTID && uid && notauthor) {
 		msg("Can't cancel what you didn't write.");
 		return;
@@ -997,14 +1003,14 @@ reply(include)
 	arg[1] = "-c";
 
 	(void) strcpy(tf, tft);
-	(void) mktemp(tf);
+	MKTEMP(tf);
 	(void) close(creat(tf,0600));
 	if ((rfp = fopen(tf, "w")) == NULL) {
 		msg("Can't create %s", tf) ;
 		return;
 	}
 	(void) strcpy(subj, h->title);
-	if (!prefix(subj, "Re:")){
+	if (!PREFIX(subj, "Re:")){
 		(void) strcpy(bfr, subj);
 		(void) sprintf(subj, "Re: %s", bfr);
 	}
@@ -1022,6 +1028,7 @@ reply(include)
 		FILE *of;
 		char buf[BUFSIZ];
 
+#ifndef SERVER
 		of = xart_open(goodone, "r");
 		while (fgets(buf, sizeof buf, of) != NULL)
 			if (buf[0] == '\n')
@@ -1030,7 +1037,9 @@ reply(include)
 			fprintf(rfp, "> %s", buf);
 		fclose(of);
 		putc('\n', rfp);
+#endif	/* !SERVER */
 	}
+
 	fflush(rfp);
 	(void) fstat(fileno(rfp), &statb);
 	creatm = statb.st_mtime;
@@ -1134,11 +1143,14 @@ getnextart(minus)
 int minus;
 {
 	int noaccess;
+#ifdef SERVER
+	char workspace[256];
+#else	/* !SERVER */
 	register DIR *dirp;
 	register struct direct *dir;
+#endif	/* !SERVER */
 	long nextnum, tnum;
 	long atol();
-
 	noaccess = 0;
 	if (minus)
 		goto nextart2;	/* Kludge for "-" command. */
@@ -1183,9 +1195,17 @@ nextart:
 nextart2:
 	if (rcreadok)
 		rcreadok = 2;	/* have seen >= 1 article */
+#ifdef SERVER
+	if (bit == 0  || (fp = getarticle(groupdir, bit, "ARTICLE")) == NULL)
+		goto badart;
+	strcpy(filename, article_name());
+	(void) fclose(fp);
+	fp = NULL;
+#else	/* !SERVER */
 	(void) sprintf(filename, "%s/%ld", dirname(groupdir), bit);
 	if (rfq && goodone[0])	/* ??? */
 		strcpy(filename, goodone);
+#endif	/* !SERVER */
 	if (SigTrap == SIGHUP)
 		return 1;
 	/* Decide if we want to show this article. */
@@ -1196,24 +1216,50 @@ nextart2:
 		if (++noaccess < 5)
 			goto badart;
 		noaccess = 0;
+#ifdef SERVER
+		if (*groupdir == ' ' || *groupdir == '\0' || 
+			set_group(groupdir) == NULL)
+			goto nextart;
+#else	/* !SERVER */
 		dirp = opendir(dirname(groupdir));
 		if (dirp == NULL) {
 			if (errno != EACCES)
 				msg("Can't open %s", dirname(groupdir));
 			goto nextart;
 		}
+#endif	/* !SERVER */
 		nextnum = rflag ? minartno - 1 : ngsize + 1;
+#ifdef SERVER 
+		tnum = nextnum;
+		for(;;){
+			(void) sprintf(bfr,"STAT %ld",tnum);
+			put_server(bfr);
+			(void) get_server(workspace,sizeof(workspace));
+			if (*workspace != CHAR_OK) {
+				if (rflag)
+					tnum++;
+				else
+					tnum--;
+				continue;
+			}
+#else	/* !SERVER */
 		while ((dir = readdir(dirp)) != NULL) {
 			if (!dir->d_ino)
 				continue;
 			tnum = atol(dir->d_name);
 			if (tnum <= 0)
 				continue;
+#endif	/* !SERVER */
 			if (rflag ? (tnum > nextnum && tnum < bit)
 				  : (tnum < nextnum && tnum > bit))
 				nextnum = tnum;
+#ifdef SERVER
+			break;		/* not exactly right */
+#endif	/* SERVER */
 		}
+#ifndef SERVER
 		closedir(dirp);
+#endif	/* !SERVER */
 		if (rflag ? (nextnum >= bit) : (nextnum <= bit))
 			goto badart;
 		do {
@@ -1251,6 +1297,9 @@ badart:
 	erased = 0;
 
 	obit = bit;
+#ifdef SERVER
+	(void) unlink(filename);
+#endif	/* SERVER */
 	return 0;
 }
 
@@ -1281,7 +1330,7 @@ fmthdr() {
 					p = index(ibuf, '\t');
 					if (p)
 						*p++ = '\0';
-					if (strcmp(ibuf, groupdir) == 0) {
+					if (STRCMP(ibuf, groupdir) == 0) {
 						register char *q;
 						q = rindex(p, '\t');
 						if (q) {
@@ -1424,9 +1473,9 @@ int	verbose;
 		 * understand internet format here, or if there is no reply-to.
 		 */
 		(void) sprintf(linebuf, "From: %s", hp->from);
-#else
+#else	/* !INTERNET */
 		(void) sprintf(linebuf, "Path: %s", tailpath(hp));
-#endif
+#endif	/* !INTERNET */
 		if (fname[0] || (hp->organization[0] && !hflag)) {
 			(void) strcat(linebuf, " (");
 			if (fname[0] == '\0') {
@@ -1467,7 +1516,7 @@ int	verbose;
 			tfappend(linebuf);
 		}
 	}
-	else if (strcmp(hp->nbuf, groupdir) != 0) {
+	else if (STRCMP(hp->nbuf, groupdir) != 0) {
 		(void) sprintf(linebuf, "Newsgroups: %s", hp->nbuf);
 		tfappend(linebuf);
 		timer();
@@ -1497,7 +1546,7 @@ long *num;
 	return ngname(a.groups[0].newsgroup);
 }
 
-#endif
+#endif	/* MYDB */
 
 
 /*
@@ -1586,7 +1635,7 @@ char *col;
 outline()
 {
 	*maxcol = '\0';
-	if (strncmp(linebuf, ">From ", 6) == 0) {
+	if (STRNCMP(linebuf, ">From ", 6) == 0) {
 		register char *p;
 		for (p = linebuf ; (*p = p[1]) != '\0' ; p++);
 	}
@@ -1654,7 +1703,7 @@ char *prompter, *buf;
 				while (r > buf && r[-1] != ' ' && r[-1] != '\t')
 					r--;
 			}
-#endif
+#endif	/* TIOCGLTC */
 		} else {
 			*r++ = c;
 		}
@@ -1702,7 +1751,7 @@ char **args;
 		(void) signal(SIGTSTP, SIG_DFL);
 		(void) signal(SIGTTIN, SIG_DFL);
 		(void) signal(SIGTTOU, SIG_DFL);
-#endif
+#endif	/* SIGTSTP */
 	}
 #if defined(BSD4_2) && !defined(sun)
 	while ((pid = vfork()) == -1)
@@ -1721,7 +1770,7 @@ char **args;
 			(void) signal(SIGTSTP, SIG_IGN);
 			(void) signal(SIGTTIN, SIG_IGN);
 			(void) signal(SIGTTOU, SIG_IGN);
-#endif
+#endif	/* SIGTSTP */
 			(void) close(0);
 			(void) close(1);
 			(void) open("/dev/null", 2);
@@ -1756,12 +1805,12 @@ char **args;
 		}
 		(void) signal(SIGQUIT, savequit);
 		ttyraw();
-		clearok(curscr, 1);
+		okclear();
 #ifdef SIGTSTP
 		(void) signal(SIGTSTP, onstop);
 		(void) signal(SIGTTIN, onstop);
 		(void) signal(SIGTTOU, onstop);
-#endif
+#endif	/* SIGTSTP */
 		return retval;
 	} else
 		return 0;
@@ -1783,7 +1832,7 @@ findend(l)
 		tfget(linebuf, i);
 		for (p = linebuf ; *p == '-' ; p++)
 			;
-		n = (int)p - (int)linebuf;
+		n = (int) (p - linebuf);
 		if ( (n > 23 && n < 33) || (n > 65 && n < 79)) {
 			tfget(linebuf, ++i);
 			if (linebuf[0] == '\0')
@@ -1793,7 +1842,7 @@ findend(l)
 	return 0;
 }
 
-#endif
+#endif	/* DIGPAGE */
 
 
 /*** Routines for handling temporary file ***/
@@ -1907,7 +1956,7 @@ winch_upd()
 		/* fix up the screen */
 		curflag = saveflag;
 		strcpy(prompt,"more? ");
-		clearok(curscr, 1);
+		okclear();
 		updscr();
 	}
 }
@@ -1937,7 +1986,7 @@ updscr()
 #ifdef DIGPAGE
 		if (endsuba > 0 && count > endsuba - dlinno)
 			count = endsuba - dlinno;
-#endif
+#endif	/* DIGPAGE */
 		if ((prflags & NEWART) == 0)
 			ushift(ARTWIN, ARTWIN+ARTWLEN-1, dlinno - savelinno);
 		if (count > lastlin - dlinno)
@@ -1955,10 +2004,10 @@ updscr()
 	clrline(SPLINE), clrline(PRLINE);
 #ifdef STATTOP
 	mvaddstr(PRLINE, 0, prompt);
-#else
+#else	/* !STATOP */
 	if (strlen(secpr) <= COLS)
 		mvaddstr(PRLINE, 0, prompt);
-#endif
+#endif	/* !STATOP */
 	mvaddstr(PRLINE, 59, timestr);
 	mvaddstr(PRLINE, 17, groupdir);
 	addch(' '); addnum(bit); addch('/'); addnum(pngsize); addch(' ');
@@ -2003,7 +2052,7 @@ onalarm()
 		longjmp(alrmjmp, 1);
 #else /* !SIGTSTP */
 	alflag++;
-#endif
+#endif	/* !SIGTSTP */
 }
 
 /*
@@ -2091,7 +2140,7 @@ char *innext;				/* next input character */
 char *outnext = outbuf;			/* next space in output buffer */
 #ifdef USG
 int oflags;				/* fcntl flags (for nodelay read) */
-#endif
+#endif	/* USG */
 
 /*
  * Input a character
@@ -2100,9 +2149,9 @@ int oflags;				/* fcntl flags (for nodelay read) */
 vgetc()
 {
 	register c;
-#if defined(BSD4_2) || defined(BSD4_1C)
+#ifdef BSD4_2
 	int readfds, exceptfds;
-#endif
+#endif	/* BSD4_2 */
 
 recurse:
 	if (--innleft >= 0) {
@@ -2120,7 +2169,7 @@ recurse:
 				oflags &=~ O_NDELAY;
 				fcntl(0, F_SETFL, oflags);
 			}
-#endif
+#endif	/* USG */
 #ifdef SIGTSTP
 			if (setjmp(alrmjmp))
 				continue;
@@ -2128,13 +2177,13 @@ recurse:
 				return cintr;
 			reading = TRUE;
 #endif /* SIGTSTP */
-#if defined(BSD4_2) || defined(BSD4_1C)
+#ifdef BSD4_2
 			/* Use a select because it can be interrupted. */
 			readfds = 1; exceptfds = 1;
 			select(1, &readfds, (int *)0, &exceptfds, (int *)0);
 			if (!(readfds & 1))
 				break;
-#endif
+#endif	/* BSD4_2 */
 			innleft = read(0, inbuf, INBUFSIZ);
 #ifdef SIGTSTP
 			reading = FALSE;
@@ -2161,10 +2210,10 @@ recurse:
 	c &= 0177;
 	if (c == '\034')	/* FS character */
 		xxit(0);
-#endif
-#endif
+#endif	/* !CBREAK */
+#endif	/* !USG */
 	if (c == '\f') {
-		clearok(curscr, 1);
+		okclear();
 		prflags &=~ NOPRT;
 		goto recurse;
 	}
@@ -2194,12 +2243,12 @@ checkin()
 {
 #ifdef FIONREAD
 	int count;
-#endif
+#endif	/* FIONREAD */
 #ifdef STATTOP
 	if (innleft > 0)
-#else
+#else	/* !STATOP */
 	if (innleft > 0 || alflag)
-#endif
+#endif	/* !STATOP */
 		return 1;
 #if defined(USG) || defined(FIONREAD)
 	if (ospeed >= B9600)
@@ -2216,14 +2265,14 @@ checkin()
 		innext = inbuf;
 		return 1;
 	}
-#endif
+#endif	/* USG */
 #ifdef FIONREAD
 	count = 0;			/* in case FIONREAD fails */
 	(void) ioctl(0, FIONREAD, (char *)&count);
 	if (count)
 		return 1;
-#endif
-#endif
+#endif	/* FIONREAD */
+#endif	/* USG || FIONREAD */
 	return 0;
 }
 
@@ -2237,15 +2286,15 @@ clearin()
 {
 #ifdef USG
 	(void) ioctl(0, TCFLSH, (char *)0);
-#else
+#else	/* !USG */
 #ifdef TIOCFLUSH
 	(void) ioctl(0, TIOCFLUSH, (char *)0);
-#else
+#else	/* !TIOCFLUSH */
 	struct sgttyb tty;
 	(void) ioctl(0, TIOCGETP, &tty);
 	(void) ioctl(0, TIOCSETP, &tty);
-#endif
-#endif
+#endif	/* !TIOCFLUSH */
+#endif	/* !USG */
 	innleft = 0;
 }
 
@@ -2268,15 +2317,15 @@ vflush()
 	register int i;
 #ifdef BSD4_2
 	int mask;
-#else
+#else	/* !BSD4_2 */
 	unsigned oalarm;
-#endif
+#endif	/* !BSD4_2 */
 
 #ifdef BSD4_2
 	mask = sigblock(1 << (SIGALRM-1));
-#else
+#else	/* !BSD4_2 */
 	oalarm = alarm(0);
-#endif
+#endif	/* !BSD4_2 */
 	for (p = outbuf ; p < outnext ; p += i) {
 		if ((i = write(1, p, outnext - p)) < 0) {
 			if (errno != EINTR)
@@ -2288,9 +2337,9 @@ vflush()
 	outnext = outbuf;
 #ifdef BSD4_2
 	sigsetmask(mask);
-#else
+#else	/* !BSD4_2 */
 	(void) alarm(oalarm);
-#endif
+#endif	/* !BSD4_2 */
 }
 
 /*** terminal modes ***/
@@ -2357,7 +2406,7 @@ ttycooked()
 static struct sgttyb oldtty, newtty;
 #ifdef TIOCGLTC
 static struct ltchars oldltchars, newltchars;
-#endif
+#endif	/* TIOCGLTC */
 
 /*
  * Save tty modes
@@ -2367,7 +2416,7 @@ ttysave()
 {
 #ifdef CBREAK
 	struct tchars tchars;	/* special characters, including interrupt */
-#endif
+#endif	/* CBREAK */
 #ifdef SIGTSTP
 	int getpgrp();
 #if defined(BSD4_2) || defined(BSD4_1C)
@@ -2522,7 +2571,7 @@ int signo;
 #ifdef TIOCGWINSZ
 	winch();	/* get current window size and redraw screen */
 #else 	/* !TIOCGWINSZ */
-	clearok(curscr, 1);
+	okclear();
 	updscr();
 #endif 	/* !TIOCGWINSZ */
 #ifdef BSD4_2
@@ -2557,7 +2606,7 @@ register char *to;
 		}
 		flags |= OVWRITE;
 		(void) strcpy(temp, "/tmp/vnXXXXXX");
-		(void) mktemp(temp);
+		MKTEMP(temp);
 		fname = temp;
 		_amove(ROWS - 1, 0);
 		vflush();
@@ -2626,7 +2675,7 @@ register char *to;
 	 * writes "disk full" messages to the user's tty.
 	 */
 	if (err) {
-		clearok(curscr, 1);
+		okclear();
 		updscr();
 	}
 
@@ -2644,9 +2693,13 @@ int	status;
 	(void) unlink(infile);
 	(void) unlink(outfile);
 #ifdef SORTACTIVE
-	if (strncmp(ACTIVE,"/tmp/", 5) == 0)
+	if (STRNCMP(ACTIVE,"/tmp/", 5) == 0)
 		(void) unlink(ACTIVE);
 #endif /* SORTACTIVE */
+#ifdef SERVER
+	(void) unlink(active_name());
+	close_server();	
+#endif	/* SERVER */
 	if (ospeed) {	/* is == 0, we haven't been in raw mode yet */
 		botscreen();
 		vflush();

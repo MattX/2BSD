@@ -1,0 +1,132 @@
+
+
+
+NEWFS(8)	    UNIX Programmer's Manual		 NEWFS(8)
+
+
+
+NNAAMMEE
+     newfs - construct a new file system
+
+SSYYNNOOPPSSIISS
+     //eettcc//nneewwffss [ --NN ] [ --bb ] [ --BB bboooottbblloocckk ] ssppeecciiaall ddiisskk--ttyyppee
+     ccppuu--ttyyppee
+
+DDEESSCCRRIIPPTTIIOONN
+     _N_e_w_f_s is a ``friendly'' front-end to the _m_k_f_s(8) program.
+     _N_e_w_f_s will look up the type of disk a file system is being
+     created on in the disk description file /_e_t_c/_d_i_s_k_t_a_b, calcu-
+     late the appropriate parameters to use in calling _m_k_f_s, then
+     build the file system by forking _m_k_f_s.  The -_N option causes
+     the file system parameters to be printed out without actu-
+     ally creating the file system.
+
+     The -_band-_B options specify that a primary block zero
+     bootstrap should be installed in block zero of _s_p_e_c_i_a_l.
+     This is typically done for `a' partitions to make disks
+     bootable.	If -_b is specified, _n_e_w_f_s will attempt to use a
+     default boot block (defined in /_e_t_c/_d_i_s_k_t_a_b).  The -_B option
+     allows one to specify the file to read the boot block from
+     (_b_o_o_t_b_l_o_c_k).  Note that a boot block can always be copied
+     separately via:
+
+	  dddd iiff==_b_o_o_t_b_l_o_c_k ooff==_s_p_e_c_i_a_l bbss==551122 ccoouunntt==11 ccoonnvv==ssyynncc
+
+     _N_e_w_f_s without arguments will print a list of the disk and
+     cpu types that it is familiar with.
+
+FFIILLEESS
+     /etc/disktab   for disk geometry and file system partition
+     information
+     /etc/mkfs to actually build the file system
+     /mdec/*   block zero bootstraps
+
+SSEEEE AALLSSOO
+     disktab(5), fs(5), diskpart(8), fsck(8), format(8), mkfs(8),
+     tunefs(8)
+
+BBUUGGSS
+     Should figure out the disk and cpu types without the user's
+     help.
+
+     The standard 4.3BSD C libarary disktab structure, as
+     declared in /_u_s_r/_i_n_c_l_u_d_e/_d_i_s_k_t_a_b._h, was not sufficient to
+     convey the information the PDP-11 needs, such as the rela-
+     tionship between the cpu type and the M/N values.	There-
+     fore, the relevant values were extracted from the
+     /_e_t_c/_d_i_s_k_t_a_b file and hardwired into the _n_e_w_f_s program.  If
+     you have an unknown disk or cpu type, you may want to read
+     through /_e_t_c/_d_i_s_k_t_a_b and _n_e_w_f_s to find a similar disk or
+
+
+
+Printed 12/28/88	  May 21, 1986				1
+
+
+
+
+
+
+NEWFS(8)	    UNIX Programmer's Manual		 NEWFS(8)
+
+
+
+     cpu.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/28/88	  May 21, 1986				2
+
+
+

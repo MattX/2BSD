@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)lrem.s	2.3 (Berkeley) 1/28/87\0>
+	<@(#)lrem.s	2.3 (Berkeley) 8/23/88\0>
 	.even
 #endif LIBC_SCCS
 
@@ -18,7 +18,7 @@
  */
 #include "DEFS.h"
 
-#ifdef !defined(KERNEL) && !defined(NONFP)
+#if !defined(KERNEL) && !defined(NONFP)
 /*
  * Lrem for floating point hardware.  Check for divide by zero.  Don't want
  * floating point divide trap in integer math.
@@ -165,10 +165,6 @@ ret:
  * r1:r2 ...
  */
 hardlrem:
-#ifdef KERNEL
-iot = 4				/ for now the kernel doesn't divide by large
-	iot			/   longs ...
-#else !KERNEL
 	mov	10.(sp),r2	/ r2 = loint(lhs)
 	mov	8.(sp),r1	/ r1 = hiint(lhs)
 	bpl	1f		/ if lhs < 0
@@ -203,5 +199,4 @@ iot = 4				/ for now the kernel doesn't divide by large
 	bge	ret		/   return immediately
 	negl(r0, r1)		/ else negate answer before returning
 	br	ret
-#endif KERNEL
 #endif

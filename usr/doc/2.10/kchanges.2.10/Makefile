@@ -14,7 +14,7 @@ LPR=	lpr -n ${PRINTER}
 SRC=	0.t 1.t 2.t 3.t
 
 all: ${SRC}
-	${EQN} ${SRC} | ${TBL} | ${TROFF} -ms
+	${EQN} ${SRC} | ${TBL} | ${TROFF} -ms ${PAGES}
 
 clean:
 	rm -f kchanges.out *.t.spell errs Errs

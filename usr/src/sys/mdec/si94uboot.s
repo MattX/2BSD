@@ -1,4 +1,4 @@
-/ Fujitsu 160 on SI 9400 Controller bootstrap
+/ Fujitsu 160 on SI 9400 or Emulex SC01B Controller bootstrap
 / Actually just a small modification of the RM02/03/05 bootstrap
 /
 / disk boot program to load and transfer

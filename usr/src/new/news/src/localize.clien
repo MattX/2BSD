@@ -1,0 +1,168 @@
+# -- DISCUSSION --
+# 
+# With this latest release of the Netnews software, it may appear to some that
+# the new NNTP support code and the new NFS support code do more or less the
+# same thing.  You're probably asking yourself, "What are the differences if
+# any and what do I go by to help me choose which way to go?"  Well, first let
+# me say that neither method is better than the other.  I can clearly see a
+# use for both models right here at Rutgers University.  And, that's what we
+# really have here - two different models - two different means of supporting
+# a distributed network news system.  The difference between the two is
+# mostly one of administration.
+# 
+# The NNTP extensions to the Netnews code allow your users to take advantage
+# of something that only rn users were able to take advantage of up until now.
+# Now, your users may use their favorite user interface program to access the
+# news from a distant host.  Administratively, the NNTP model implies that
+# complete control of the news system is done solely on the master NNTP
+# server.  If you do not need the ability to have some level of control at the
+# client system level, use of the NNTP extensions is definitely the way to go.
+# 
+# The NFS extensions allows for local administration of the news system at the
+# client level.  Right after installation, most of the administrative files in
+# LIBDIR will simply be soft links to the same files on the NFS master.
+# However, you can break these links and create actual files on the client.
+# Certainly, some files must remain as links.  Files such as "active" or
+# "newsgroups" should always remain as links to the master NFS system for
+# instance.  The ability to break links may, for example, allow you to choose
+# a different set of users to apply the fascist code to or name a moderator of
+# a moderated newsgroup but only allow him to post from his client (and not
+# from the NFS master news server), etc...  Essentially, the NFS client
+# version of inews is a stripped down version of the real thing.  The only
+# thing it doesn't do is attempt to write to NFSSPOOLDIR and NFSLIBDIR.  All
+# consistency checks performed by the real inews in the normal case are
+# performed by the NFS client version on the local system.  So, if you're
+# environment is such that you need local administrative control on the client
+# systems, the use of the NFS extensions is your best bet.
+# 
+# 
+# -- INSTALLATION --
+# 
+# The file "localize.client" is a slightly modified copy of the shell script
+# used at Rutgers University to establish a particular system as a news NFS
+# client system.  One should be familiar with NFS before attempting to use
+# this new feature.  News should be installed on the master NFS server before
+# attempting to install it on client system(s).
+# 
+# The NFSCLIENT code is enabled by including the NFSCLIENT (non-optional),
+# NFSSPOOLDIR (optional) and NFSLIBDIR (optional) definitions in your Makefile
+# edit script. NFSSPOOLDIR and NFSLIBDIR are needed only during the initial
+# installation of the code and are, in fact, only used by the Makefile when
+# calling the install.sh script.  NFSSPOOLDIR and NFSLIBDIR default to
+# /nfsnews/$(SPOOLDIR) and /nfsnews/$(LIBDIR) where "nfsnews" is expected to
+# be a mount point or soft link on the local system which ultimately points at
+# the master system.
+# 
+# With the NFSCLIENT code enabled the Makefile and installation scripts will
+# do the following:
+# 
+# 	o - On an NFS client system, only a small number of the programs in
+# 	this source directory need to be compiled.  Makefile will be
+# 	configured to compile only those modules.
+# 
+# 	o - The installation script will attempt to install only those
+# 	modules compiled.  It will also attempt to establish a soft link
+# 	from SPOOLDIR to NFSSPOOLDIR.  It will create a local LIBDIR,
+# 	install a very select group of programs in it and attempt to create
+# 	soft links from the local LIBDIR configuration files to those found
+# 	in NFSLIBDIR.  Obviously, news should be installed on the master NFS
+# 	server first.
+# 
+# *NOTE* - You will need to create a file called LIBDIR/nfssysname.  In it,
+# place the fully qualified host name of the system which is to act as the NFS
+# news server.  You do this right after installing the software.
+# 
+# 
+# -- CAVEATS --
+# 
+# 	Under the default configuration, an NFS client will attempt to use
+# 	"rsh" to send news from the client to the server.  To make this
+# 	work, inews on the client will set itself to run both real and
+# 	effectively as the "news" user.  Unfortunately, rsh requires that
+# 	the real uid match between the two systems.  The hidden implication
+# 	here is that the .rhosts file in the news home directory on the
+# 	master NFS system will have to be modified to allow all clients to
+# 	rsh to it.
+# 
+# 	If you look below, you'll see that edits have been made to
+# 	NFSCMDFORMAT and NFSCMDARGS which are located in defs.dist.  In
+# 	effect, you may change the program that inews attempts to use to
+# 	deliver articles to the NFS server.  In this example, I'm using a
+# 	modified nntpxmit which will accept a host name and a file name as
+# 	its arguments.  For those of you who are aware of how nntpxmit
+# 	works, the new -a switch says that the file contains the actual
+# 	article as opposed to a list of filenames containing articles.  This
+# 	feature will be supported in nntpxmit 1.4.  With the new nntpxmit,
+# 	the .rhosts hacking mentioned above will not be needed.
+# 
+# -- BUGS --
+# 
+# 	I don't know of any.  This code has been running at Rutgers since
+# 	version 2.10.3 of news.
+# 
+# 	I have not attempted to run this code together with Stan Barber's
+# 	nntp support code.  Offhand, I'm guessing that you'll be in for some
+# 	nasty surprises if you attempt to do so.
+# 
+# -- WHERE TO FIND HELP --
+# 
+# 	This script and a real working knowledge of NFS is all one really
+# 	needs.  However, I'm am willing to answer most any question
+# 	regarding the NFS support code.  My address and telephone number are
+# 	given below....
+#
+#  Mel Pleasant
+#  (201) 932-2023  --  uucp: {most-any-backbone-site}!rutgers!pleasant
+#		   internet: pleasant@RUTGERS.EDU
+#
+rm -f Makefile
+cp Makefile.dst Makefile
+chmod u+w Makefile
+ed - Makefile  <<'EOF'
+/HOME=/s/exptools//
+/NEWSGRP/s/news/daemon/
+/BATCHDIR/s;batch;newsbatch/batch;
+/BINDIR/s;bin;local/bin;
+/UUXFLAGS/s/-r -z/-r -z -n -gd/
+/LNRNEWS/s/ln/ln -s/
+g/^#NFSCLIENT /s///
+g/^#V7 /s///
+g/^#USG /d
+g/^#BSD4_3 /d
+g/^#BSD4_2 /s///
+g/^#BSD4_1 /d
+g/#NOTVMS/s/#NOTVMS.*//
+w
+q
+EOF
+rm -f defs.h
+cp defs.dist defs.h
+chmod u+w defs.h
+ed - defs.h <<'EOF'
+/ROOTID/s/10/100/
+/N_UMASK/s/000/022/
+/DFLTSUB/s/general,all.announce/all,all.all/
+/ADMSUB/s/general,all.announce/announce,all.announce,general,all.general/
+/DFTXMIT/s/-z/-z -gd/
+s;uux;/usr/bin/uux;
+/UXMIT/s/-z/-z -gd/
+s;uux;/usr/bin/uux;
+/DFTEDITOR/s;vi;/bin/emacs;
+/INTERNET/s;/\* ;;
+/MYDOMAIN/s/\.UUCP//
+/GHNAME/s;/\* ;;
+/DOXREFS/s;/\* ;;
+/BSD4_2/s;/\* ;;
+/ALWAYSALIAS/s;/\* ;;
+/SENDMAIL/s;/\* ;;
+/MYORG/s/Frobozz Inc., St. Louis/Rutgers Univ., New Brunswick, N.J./
+/FASCIST/s;/\* ;;
+s/all\.all/systems.dev/
+/ORGDISTRIB/s;/\* ;;
+s/froozum/ru/
+/MODFILEONLY/s;/\* ;;
+/NFSCMDFORMAT/s;".*";"/usr/lib/news/nntpxmit -a \\"%s\\" \\"%s\\"";
+/NFSCMDARGS/s/NFSSYSNAME,ARTICLE/ARTICLE,NFSSYSNAME/
+w
+q
+EOF

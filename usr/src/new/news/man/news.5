@@ -9,8 +9,8 @@
 .de Ch
 \\$3\\*(Lq\\$1\\*(Rq\\$2
 ..
-.TH NEWS 5 "January 17, 1986"
-.ds ]W  Version B 2.10.3
+.TH NEWS 5 "July 5, 1986"
+.ds ]W  Version B 2.11
 .SH NAME
 news \- USENET network news article, utility files
 .SH DESCRIPTION
@@ -91,6 +91,7 @@ Date: Friday, 19 Nov 82 16:14:55 EST
 Followup-To: net.news
 Expires: Saturday, 1 Jan 83 00:00:00 EST
 Organization: Bell Labs, Murray Hill
+Lines: 42
 
 The body of the article comes here, after a blank line.
 .fi
@@ -160,6 +161,8 @@ file, there must be a line for the host system.  This line has no
 A
 .Ch #
 as the first character in a line denotes a comment.
+A logical line may be continued to the next physical line by
+putting a \\ at end of the line.
 .LP
 The
 .IR history ,
@@ -169,7 +172,7 @@ and
 files have one line per item.
 .SH SEE ALSO
 checknews(1),
-inews(1),
+inews(8),
 postnews(1),
 readnews(1),
 vnews(1),

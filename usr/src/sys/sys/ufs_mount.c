@@ -18,6 +18,9 @@
 #include "file.h"
 #include "namei.h"
 #include "conf.h"
+#ifdef QUOTA
+#include "quota.h"
+#endif
 
 smount()
 {
@@ -154,8 +157,18 @@ unmount1(fname)
 found:
 	xumount(dev);	/* remove unused sticky files from text table */
 	update();
+#ifdef QUOTA
+	if (iflush(dev, mp->m_qinod) < 0)
+#else
 	if (iflush(dev) < 0)
+#endif
 		return (EBUSY);
+#ifdef QUOTA
+	QUOTAMAP();
+	closedq(mp);
+	QUOTAUNMAP();
+	(void)iflush(dev, (struct inode *)NULL);
+#endif
 	ip = mp->m_inodp;
 	ip->i_flag &= ~IMOUNT;
 	irele(ip);

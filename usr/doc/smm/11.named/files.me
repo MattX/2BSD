@@ -1,8 +1,14 @@
-.\" Copyright (c) 1986 Regents of the University of California.
-.\" All rights reserved.  The Berkeley software License Agreement
-.\" specifies the terms and conditions for redistribution.
+.\" Copyright (c) 1986, 1988 Regents of the University of California.
+.\" All rights reserved.
 .\"
-.\"	@(#)files.me	6.3 (Berkeley) 5/20/86
+.\" Redistribution and use in source and binary forms are permitted
+.\" provided that this notice is preserved and that due credit is given
+.\" to the University of California at Berkeley. The name of the University
+.\" may not be used to endorse or promote products derived from this
+.\" software without specific prior written permission. This software
+.\" is provided ``as is'' without express or implied warranty.
+.\"
+.\"	@(#)files.me	6.5 (Berkeley) 2/28/88
 .\"
 .sh 1 "Files
 .pp
@@ -21,24 +27,42 @@ or by specifying
 the location on the command line when \fInamed\fP is started up.
 .sh 3 "Domain"
 .pp
-The line in the boot file that designates the default domain 
-for the server looks as follows:
+A default domain may be specified for the nameserver
+using a line such as
 .(b l
 .ta 0.5i +\w`secondary   `u +\w`berkeley.edu   `u +.5i +.5i
 \fIdomain 	Berkeley\fP\fB\|.\|\fP\fIEdu\fP
 .)b
 .re
 The name server uses this information when it receives a query for a
-name without a ``\fB.\fP''.
+name without a ``\fB.\fP'' that is not known.
 When it receives one of these queries, it appends the name in the second
 field to the query name.
+This is an obsolete facility which will be removed from future releases.
+.sh 3 "Directory"
+.pp
+The directory line specifies the directory in which the nameserver should
+run, allowing the other file names in the boot file to use relative
+path names.
+.(b l
+.ta 0.5i +\w`secondary   `u +\w`berkeley.edu   `u +.5i +.5i
+\fIdirectory  	/usr/local/domain\fP
+.)b
+.re
+If you have more than a couple of named files to be maintained,
+you may wish to place the named files in a directory such as
+/usr/local/domain and adjust the directory command properly.
+The main purposes of this command are to make sure named is
+in the proper directory when trying to include files by relative
+path names with $Include and to allow named to run in a location
+that is reasonable to dump core if it feels the urge.
 .sh 3 "Primary Master"
 .pp
 The line in the boot file that designates the server as a primary server 
 for a zone looks as follows:
 .(b l
 .ta 0.5i +\w`secondary   `u +\w`berkeley.edu   `u +.5i +.5i
-\fIprimary  	Berkeley\fP\fB\|.\|\fP\fIEdu	/etc/ucbhosts\fP
+\fIprimary  	Berkeley\fP\fB\|.\|\fP\fIEdu	ucbhosts\fP
 .)b
 .re
 The first field specifies that the server is a primary one for the zone 
@@ -47,19 +71,25 @@ The third field is the name of the file from which the data is read.
 .sh 3 "Secondary Master"
 .pp
 The line for a secondary server is similar to the primary except
-for the word secondary and the third field.
+that it lists addresses of other servers (usually primary servers)
+from which the zone data will be obtained.
 .(b l
 .ta 0.5i +\w`secondary   `u +\w`berkeley.edu   `u +.5i +.5i
-\fIsecondary	Berkeley\fP\fB\|.\|\fP\fIEdu	128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI10	\fP\fI128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI4\fP
+\fIsecondary	Berkeley\fP\fB\|.\|\fP\fIEdu	128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI10	\fP\fI128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI4\fP \fIucbhosts.bak\fP
 .)b
 .re
 The first field specifies that the server is a secondary master server for
 the zone stated in the second field.
-The rest of the line, lists the network addresses 
-for the name servers that are primary for the zone.
+The two network addresses 
+specify the name servers that are primary for the zone.
 The secondary server gets its data across the network from the listed servers.
 Each server is tried in the order listed until it successfully receives the data
 from a listed server.
+If a filename is present after the list of primary servers, data for the zone
+will be dumped into that file as a backup.
+When the server is first started, the data are loaded from the backup file
+if possible, and a primary server is then consulted to check that the zone
+is still up-to-date.
 .sh 3 "Caching Only Server"
 .pp
 You do not need a special line to designate that a server is a caching server.
@@ -69,9 +99,44 @@ lines, such as \fIsecondary\fP or \fIprimary\fP in the boot file.
 All servers should have a line as follows in the boot file to
 prime the name servers cache:
 .(b l
-\fIcache		\fP\fB.\fP\fI	/etc/named\fP\fB.\fP\fIca\fP
+\fIcache		\fP\fB.\fP\fI	root\fP\fB.\fP\fIcache\fP
 .)b
+All cache files listed will be read in at named boot time and
+any values still valid will be reinstated in the cache and the root
+nameserver information in the cache files will always be used.
 For information on cache file see section on \fICache Initialization\fP.
+.sh 3 "Forwarders"
+Any server can make use of \fIforwarders\fP.  A \fIforwarder\fP is another
+server capable of processing recursive queries that is willing to try
+resolving queries on behalf of other systems.  The \fIforwaders\fP
+command specifies forwarders by internet address as follows:
+.(b l
+\fIforwarders		\fI128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI10	\fP\fI128\fP\fB.\fP\fI32\fP\fB.\fP\fI0\fP\fB.\fP\fI4\fP
+.)b
+.re
+There are two main reasons
+for wanting to do so.  First, the other systems may not have full network
+access and may be prevent from sending any IP packets into the rest of
+the network and therefore must rely on a forwarder which does have
+access to the full net.  The second reason is that the forwarder sees
+a union of all queries as they pass through his server and therefore he
+builds up a very rich cache of data compared to the cache in a typical
+workstation nameserver.  In effect, the \fIforwarder\fP becomes a meta-cache
+that all hosts can benefit from, thereby reducing the total number of queries
+from that site to the rest of the net.
+.sh 3 "Slave Mode"
+.pp
+Slave mode is used if the use of forwarders is the only possible way
+to resolve queries due to lack of full net access or if you wish to prevent
+the nameserver from using other than the listed forwarders.
+Slave mode is activated by placing the simple command
+.(b l
+\fIslave\fP
+.)b
+in the bootfile.  If \fIslave\fP is used, then you must specify forwarders.
+When in slave mode, the server will forward each query to each of the
+the forwarders until an answer is found or the list of forwarders is
+exhausted.
 .sh 3 "Remote Server"
 .pp
 To set up a host that will use a remote server instead of a local
@@ -83,14 +148,15 @@ It is not advisable to create this file if you have a local server
 running.  If this file exists it is read almost every time
 \fIgethostbyname\|()\fP or \fIgethostbyaddr\|()\fP is called.
 .sh 2 "Cache Initialization"
-.sh 3 named.ca
+.sh 3 root.cache
 .pp
-The name server needs to know the server that is the authoritative 
-name server for the network.
-To do this we have to prime the name server's cache with the address
+The name server needs to know the servers that are the authoritative 
+name servers for the root domain of the network.
+To do this we have to prime the name server's cache with the addresses
 of these higher authorities.  
 The location of this file is specified in the boot file.
-This file uses the Standard Resource Record Format covered further on
+This file uses the Standard Resource Record Format (aka. Masterfile Format)
+covered further on
 in this paper.
 .sh 2 "Domain Data Files"
 .pp
@@ -131,7 +197,8 @@ l l l l l.
 \fI{name}	{ttl}	addr-class	Record Type	Record Specific data\fP 
 .TE
 Resource records have a standard format shown above.
-The first field is always the name of the domain record.
+The first field is always the name of the domain record
+and it must always start in column 1.
 For some RR's the name may be left blank;
 in that case it takes on the name of the previous RR.
 The second field is an optional time to live field.
@@ -299,9 +366,11 @@ ucbmonet		IN	CNAME	monet
 .TE
 \fICanonical Name\fP resource record, \fICNAME\fP, specifies an 
 alias for a canonical name.
-An alias should be unique and all other resource records should be
+An alias should be the only record associated with the alias name;
+all other resource records should be
 associated with the canonical name and not with the alias.
-Do not create an alias and then use it in other resource records.
+Any resource records that include a domain name as their value (e.g. NS or MX)
+should list the canonical name, not the alias.
 .sh 3 "PTR - Domain Name Pointer"
 .TS
 l l l l l. 

@@ -14,10 +14,10 @@
 # boot the hk distribution kernel you have to have two drives: drive 0
 # partition `e' (/dev/hk0e) is root, drive 1 partition `a' (/dev/hk1a) is swap.
 
-cp generic-unix hkunix
+cp genunix hkunix
 adb -w hkunix << EOF
 rootdev?*w 02004
-pipedev?*w 02000
+pipedev?*w 02004
 swapdev?*w 02011
 nswap?*w 5940
 EOF
@@ -29,7 +29,7 @@ echo "hkunix configured"
 # Nswap is set to the smallest partition `b' of any drive that the ra driver
 # supports (RD51/52/53, RA60/80/81, RC25).  This happens to be on the rc25.
 
-cp generic-unix raunix
+cp genunix raunix
 adb -w raunix << EOF
 rootdev?*w 02400
 pipedev?*w 02400
@@ -45,7 +45,7 @@ echo "raunix configured"
 # distribution kernel you have to have two drives: drive 0 (/dev/rl0h) is
 # root, drive 1 (/dev/rl1h) is swap.  Nswap is set to the size of an RL01.
 
-cp generic-unix rlunix
+cp genunix rlunix
 adb -w rlunix << EOF
 rootdev?*w 03400
 pipedev?*w 03400
@@ -62,7 +62,7 @@ echo "rlunix configured"
 # Comp V controlling an Ampex 9300, RP04/05/06, Fuji 160, RM05).  This happens
 # to be the RP drives.
 
-cp generic-unix xpunix
+cp genunix xpunix
 adb -w xpunix << EOF
 rootdev?*w 05000
 pipedev?*w 05000
@@ -80,7 +80,7 @@ echo "xpunix configured"
 # distribution kernel you have to have two drives: drive 0 partition `f'
 # (/dev/xp0f) is root, drive 1 partition `a' (/dev/xp1a) is swap.
 
-cp generic-unix rmunix
+cp genunix rmunix
 adb -w rmunix << EOF
 rootdev?*w 05005
 pipedev?*w 05005

@@ -18,6 +18,7 @@ EXT int softtries INIT(0), softmisses INIT(0);
 # endif
 #endif
 
+EXT char *moderated;
 
 void	ngdata_init();
 ART_NUM	getngsize();

@@ -16,7 +16,7 @@
  */
 
 #ifdef SCCSID
-static char	*SccsId = "@(#)rfuncs.c	2.40	2/22/87";
+static char	*SccsId = "@(#)rfuncs.c	2.44	11/30/87";
 #endif /* SCCSID */
 
 /*LINTLIBRARY*/
@@ -33,13 +33,13 @@ nextng()
 	long	curpos;
 #ifdef DEBUG
 	fprintf(stderr, "nextng()\n");
-#endif
+#endif	/* DEBUG */
 	curpos = ftell(actfp);
 
 next:
 #ifdef DEBUG
 	fprintf(stderr, "next:\n");
-#endif
+#endif	/* DEBUG */
 	if (actdirect == BACKWARD) {
 		if (back()) {
 			(void) fseek(actfp, curpos, 0);
@@ -59,7 +59,7 @@ next:
 	}
 #ifdef DEBUG
 	fprintf(stderr, "bfr = '%s'\n", bfr);
-#endif
+#endif	/* DEBUG */
 
 	if (!ngmatch(bfr, header.nbuf))
 		goto next;
@@ -91,11 +91,11 @@ char	*name;
 	if (*groupdir)
 		updaterc();
 	last = 1;
-	if (strcmp(name, bfr)) {
+	if (STRCMP(name, bfr)) {
 		af = xfopen(ACTIVE, "r");
 		while (fgets(buf, sizeof buf, af) != NULL) {
 			if (sscanf(buf, "%s %ld %ld", n, &s, &sm) == 3 &&
-			     strcmp(n, name) == 0) {
+			     STRCMP(n, name) == 0) {
 				ngsize = s;
 				minartno = sm;
 				break;
@@ -109,7 +109,7 @@ char	*name;
 #ifdef DEBUG
 	fprintf(stderr, "selectng(%s) sets ngsize to %ld, minartno to %ld\n",
 		name, ngsize, minartno);
-#endif
+#endif	/* DEBUG */
 	(void) strcpy(groupdir, name);
 	if (!xflag) {
 		i = findrcline(name);
@@ -159,7 +159,7 @@ char	*name;
 			if (*p == ',' && cur == ngsize) {
 #ifdef DEBUG
 				fprintf(stderr, "Group: %s, all read\n", groupdir);
-#endif
+#endif	/* DEBUG */
 				groupdir[0] = 0;
 				return 1;
 			}
@@ -245,26 +245,43 @@ Mail()
 	register FILE *fp = NULL, *ofp;
 	struct hbuf h;
 	register char	*ptr, *fname;
-	int	news = 0;
+	int	isnews = FALSE;
 	register int i;
 
 	for(i=0;i<NUNREC;i++)
 		h.unrec[i] = NULL;
 
-	ofp = xfopen(mktemp(outfile), "w");
+	MKTEMP(outfile);
+	ofp = xfopen(outfile, "w");
 	if (aflag && *datebuf)
 		if ((atime = cgtdate(datebuf)) == -1)
 			xerror("Cannot parse date string");
 	while (!nextng())
 		while (bit <= ngsize) {
-			(void) sprintf(filename, "%s/%ld", dirname(groupdir), bit);
+#ifdef SERVER
+		if ((fp = getarticle(groupdir,bit,"ARTICLE")) != NULL) {
+			strcpy(filename, article_name());
+			(void) fclose(fp);
+			fp = NULL;
+		} else {
+#ifdef DEBUG
+			fprintf(stderr, "Bad article '%s/%d'\n", groupdir,
+					bit);
+#endif	/* DEBUG */
+			clear(bit);
+			nextbit();
+			continue;
+		}
+#else	/* !SERVER */
+		(void) sprintf(filename, "%s/%ld", dirname(groupdir), bit);
+#endif	/* !SERVER */
 			if (access(filename, 4)
 			|| ((fp = art_open (filename, "r")) == NULL)
 			|| (hread(&h, fp, TRUE) == NULL)
 			|| !aselect(&h, FALSE)) {
 #ifdef DEBUG
 				fprintf(stderr, "Bad article '%s'\n", filename);
-#endif
+#endif	/* DEBUG */
 				if (fp != NULL) {
 					(void) fclose(fp);
 					fp = NULL;
@@ -288,7 +305,7 @@ Mail()
 			fprintf(ofp, "From %s %s",
 #ifdef INTERNET
 			    h.from[0] ? h.from :
-#endif
+#endif	/* INTERNET */
 			    h.path, ctime(&h.subtime));
 			if (fname)
 				fprintf(ofp, "Full-Name: %s\n", fname);
@@ -297,21 +314,25 @@ Mail()
 			fprintf(ofp, "Article-ID: %s/%ld\n\n", groupdir, bit);
 			tprint(fp, ofp, TRUE);
 			putc('\n', ofp);
-			news = TRUE;
+			isnews = TRUE;
 			(void) fclose(fp);
+#ifdef SERVER
+			(void) unlink(filename); /* get rid of temp file */
+#endif	/* SERVER */
 			fp = NULL;
 			nextbit();
 		}
 	updaterc();
 	(void) fclose(ofp);
-	if (!news) {
+	if (!isnews) {
 		fprintf(stderr, "No news.\n");
 		(void) unlink(outfile);
 		return;
 	}
 	(void) signal(SIGHUP, catchterm);
 	(void) signal(SIGTERM, catchterm);
-	(void) sprintf(bfr, "%s -f %s -T %s", TMAIL, outfile, mktemp(infile));
+	MKTEMP(infile);
+	(void) sprintf(bfr, "%s -f %s -T %s", TMAIL, outfile, infile);
 	fwait(fsubr(ushell, bfr, (char *)NULL));
 	ofp = xfopen(infile, "r");
 	(void) fseek(actfp, 0L, 0);
@@ -331,7 +352,7 @@ Mail()
 			(void) nstrip(groupdir);
 			ptr = index(groupdir, '/');
 			*ptr = 0;
-			if (strcmp(bfr, groupdir))
+			if (STRCMP(bfr, groupdir))
 				continue;
 			(void) sscanf(++ptr, "%ld", &last);
 			clear(last);
@@ -344,7 +365,7 @@ Mail()
 	(void) unlink(infile);
 	(void) unlink(outfile);
 }
-#endif
+#endif	/* TMAIL */
 
 updaterc()
 {
@@ -470,7 +491,7 @@ int	insist;
 		return FALSE;
 	if (index(hp->nbuf, ',') && !rightgroup(hp))
 		return FALSE;
-	if (fflag && (hp->followid[0] || prefix(hp->title, "Re:")))
+	if (fflag && (hp->followid[0] || PREFIX(hp->title, "Re:")))
 		return FALSE;
 	return TRUE;
 }
@@ -497,7 +518,7 @@ struct hbuf *hp;
 			while (*p == ' ')
 				p++;
 		}
-		if (strcmp(g, groupdir) == 0)
+		if (STRCMP(g, groupdir) == 0)
 			return flag;
 		if (ngmatch(g, header.nbuf)
 		    && ((i = findrcline(g)) >= 0
@@ -567,7 +588,7 @@ register char *name;
 loop:
 	for ( ; i <= top; ++i)
 		if (lentab[i] == len && rcline[i] != NULL &&
-			strncmp(name, rcline[i], len) == 0)
+			STRNCMP(name, rcline[i], len) == 0)
 			return prev = i;
 	if (i > line && line > prev - 1) {
 		i = 0;
@@ -611,7 +632,8 @@ sortactive()
 
 #ifdef SORTACTIVE
 	/* make a new sorted copy of ACTIVE */
-	nfp = fopen(mktemp(newactivename), "w");
+	MKTEMP(newactivename);
+	nfp = fopen(newactivename, "w");
 	(void) chmod(newactivename, 0600);
 	if (nfp == NULL) {
 		perror(newactivename);
@@ -622,6 +644,7 @@ sortactive()
 	p = ACTIVE;
 	ACTIVE = newactivename;
 	afp = xfopen(p, "r");
+
 #else /* !SORTACTIVE */
 	afp = xfopen(ACTIVE, "r");
 #endif /* !SORTACTIVE */
@@ -681,7 +704,7 @@ sortactive()
 	/* copy active to newactive, in the new order */
 	for (i = 0; i < nlines; i++) {
 		while (++lastline < tp->rcindex) {
-			if (strncmp(rcline[lastline], "options ", 8) == 0) {
+			if (STRNCMP(rcline[lastline], "options ", 8) == 0) {
 				fprintf(nfp, "%s\n", rcline[lastline]);
 			} else {
 				fprintf(stderr, "Duplicate .newsrc line or bad group %s\n",
@@ -704,12 +727,16 @@ sortactive()
 #endif /* SORTACTIVE */
 }
 
-#if defined(BSD4_2) || defined(BSD4_1C)
-#include <sys/dir.h>
-# else
-#include "ndir.h"
-#endif
 #include <errno.h>
+
+#ifdef SMALL_ADDRESS_SPACE
+list_group(lgroup, displines, flag, pngsize)
+char *lgroup;
+int displines, flag;
+long pngsize;
+{
+	printf("Not enough memory on your machine to include this function.\n");}
+#else /* !SMALL_ADDRESS_SPACE */
 
 /*
  * Routine to display header lines for all articles in newsgroup. If the flag
@@ -738,8 +765,10 @@ long pngsize;
 {
 	char *briefdate();
 	struct hbuf hh;
+#ifndef SERVER
 	register DIR *dirp;
 	register struct direct *dir;
+#endif	/* !SERVER */
 	register FILE *fp_art;
 	int i;
 	int entries;
@@ -747,26 +776,45 @@ long pngsize;
 	int (*old_sig) ();
 	extern lg_trap();
 	char *gets();
-
+#ifdef SERVER 
+	int lowgp,highgp;
+	char *workspace;
+	if (*lgroup == ' ' || *lgroup == '\0' ||
+		(workspace = set_group(lgroup)) == NULL) {
+		printf("Group %s is invalid.\n", lgroup);
+		return;
+	}
+	/* We assume that the server will return a line of this format */
+	(void) sscanf(workspace, "%s %ld %ld %ld", bfr, &i, &lowgp, &highgp);
+	if (i == 0) {
+		printf("There are no articles in %s\n", lgroup);
+		return;
+	}
+#else	/* !SERVER */
 	/* This should get the numbers from the active file XXX */
 	if ((dirp = opendir(dirname(lgroup))) == NULL) {
 		printf("Can't open %s\r\n", dirname(lgroup));
 		return;
 	}
+#endif	/* !SERVER */
 	entries = 0;
 	if (lg_array == NULL) {
 		lg_max = 50;
 		alloc_size = lg_max * sizeof(int);
 		lg_array = (int *) malloc(alloc_size);
 	}
+#ifdef SERVER
+	for(i = lowgp; i < highgp; i++){
+#else	/* !SERVER */
 	while ((dir = readdir(dirp)) != NULL) {
 		if (dir->d_ino == 0)
 			continue;
 		i = atoi(dir->d_name);
+#endif	/* !SERVER */
 		if ((i < 1) || (i > pngsize))
 			continue;
 		if (flag == FALSE) {
-			if (get(i) == 0)
+			if (get((long)i) == 0)
 				continue;
 		}
 		if (++entries > lg_max) {
@@ -787,7 +835,18 @@ long pngsize;
 	old_sig = signal(SIGINT, lg_trap);
 	hh.unrec[0] = NULL;
 	for (lg_entry = lg_array; *lg_entry != 0 && int_sig == 0; lg_entry++) {
+#ifdef SERVER
+/* we'll see if just getting the header will work here */
+	if ((fp_art = getarticle(lgroup, *lg_entry, "HEAD")) != NULL) {
+			strcpy(filename, article_name());
+			(void) fclose(fp_art);
+			fp_art = NULL;
+		}
+	else
+		continue;
+#else	/* !SERVER */
 		(void) sprintf(filename, "%s/%d", dirname(lgroup), *lg_entry);
+#endif	/* !SERVER */
 		fp_art = fopen(filename, "r");
 		if (fp_art == NULL)
 			continue;
@@ -809,12 +868,15 @@ long pngsize;
 			i++;
 		}
 		(void) fclose(fp_art);
+#ifdef SERVER
+		(void) unlink(filename);
+#endif	/* SERVER */
 	}
 	(void) fflush(stdout);
-
+#ifndef SERVER
 	closedir(dirp);
+#endif	/* !SERVER */
 	(void) signal(SIGINT, old_sig);	/* restore to old value */
-
 	printf("[Press RETURN to continue]");
 	(void) fflush(stdout);
 
@@ -834,6 +896,7 @@ long pngsize;
 	lg_array = NULL;
 
 }
+#endif /* !SMALL_ADDRESS_SPACE */
 
 lg_trap(code)
 int code;

@@ -1,13 +1,12 @@
 #ifndef lint
-static char sccsid[] = "@(#)mail.c	4.25 (Berkeley) 5/1/85";
+static char sccsid[] = "@(#)mail.c	4.33 (Berkeley) 2/27/88";
 #endif
 
 #ifdef BSD2_10
 #include <short_names.h>
-#include <sys/localopts.h>	/* to find out if we have networking */
-#endif BSD2_10
+#endif
 
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 
@@ -49,7 +48,7 @@ char	dead[] = "dead.letter";
 char	forwmsg[] = " forwarded\n";
 FILE	*tmpf;
 FILE	*malf;
-char	*my_name;
+char	my_name[60];
 char	*getlogin();
 int	error;
 int	changed;
@@ -68,24 +67,14 @@ int	rmail;
 main(argc, argv)
 char **argv;
 {
-	register i;
+	register int i;
+	char *name;
 	struct passwd *pwent;
 
-	my_name = getlogin();
-	if (my_name == NULL || *my_name == '\0') {
+	if (!(name = getlogin()) || !*name || !(pwent = getpwnam(name)) ||
+	    getuid() != pwent->pw_uid) 
 		pwent = getpwuid(getuid());
-		if (pwent==NULL)
-			my_name = "???";
-		else
-			my_name = pwent->pw_name;
-	}
-	else {
-		pwent = getpwnam(my_name);
-		if ( getuid() != pwent->pw_uid) {
-			pwent = getpwuid(getuid());
-			my_name = pwent->pw_name;
-		}
-	}
+	strncpy(my_name, pwent ? pwent->pw_name : "???", sizeof(my_name)-1);
 	if (setjmp(sjbuf))
 		done();
 	for (i=SIGHUP; i<=SIGTERM; i++)
@@ -317,9 +306,9 @@ printmail(argc, argv)
 /* copy temp or whatever back to /usr/spool/mail */
 copyback()
 {
-	register i, c;
-	int fd, new = 0;
+	register int i, c;
 	long oldmask;
+	int fd, new = 0;
 	struct stat stbuf;
 
 	oldmask = sigblock(sigmask(SIGINT)|sigmask(SIGHUP)|sigmask(SIGQUIT));
@@ -372,7 +361,7 @@ copylet(n, f, type)
 {
 	int ch;
 	long k;
-	char hostname[32];
+	char hostname[MAXHOSTNAMELEN];
 
 	fseek(tmpf, let[n].adr, L_SET);
 	k = let[n+1].adr - let[n].adr;
@@ -422,16 +411,16 @@ register char *lp;
 bulkmail(argc, argv)
 char **argv;
 {
-	char truename[100];
+	char *truename;
 	int first;
 	register char *cp;
-	int gaver = 0;
 	char *newargv[1000];
 	register char **ap;
 	register char **vp;
 	int dflag;
 
 	dflag = 0;
+	delflg = 0;
 	if (argc < 1) {
 		fprintf(stderr, "puke\n");
 		return;
@@ -452,7 +441,7 @@ char **argv;
 		exit(EX_UNAVAILABLE);
 	}
 
-	truename[0] = 0;
+	truename = 0;
 	line[0] = '\0';
 
 	/*
@@ -467,8 +456,7 @@ char **argv;
 		case 'r':
 			if (argc <= 1)
 				usage();
-			gaver++;
-			strcpy(truename, argv[1]);
+			truename = argv[1];
 			fgets(line, LSIZE, stdin);
 			if (strcmpn("From", line, 4) == 0)
 				line[0] = '\0';
@@ -493,8 +481,8 @@ char **argv;
 	}
 	if (argc <= 1)
 		usage();
-	if (gaver == 0)
-		strcpy(truename, my_name);
+	if (truename == 0)
+		truename = my_name;
 	time(&iop);
 	fprintf(tmpf, "%s%s %s", from, truename, ctime(&iop));
 	iop = ftell(tmpf);
@@ -582,9 +570,9 @@ skip:
 	}
 	setuid(getuid());
 	if (any('!', name+1))
-		sprintf(cmd, "uux - %s!rmail \\(%s\\)", rsys, name+1);
+		(void)sprintf(cmd, "uux - %s!rmail \\(%s\\)", rsys, name+1);
 	else
-		sprintf(cmd, "uux - %s!rmail %s", rsys, name+1);
+		(void)sprintf(cmd, "uux - %s!rmail %s", rsys, name+1);
 	if ((rmf=popen(cmd, "w")) == NULL)
 		exit(1);
 	copylet(n, rmf, REMOTE);
@@ -667,7 +655,7 @@ sendmail(n, name, fromaddr)
 		return(0);
 	}
 	fchown(fd, pw->pw_uid, pw->pw_gid);
-	sprintf(buf, "%s@%ld\n", name, ftell(malf)); 
+	(void)sprintf(buf, "%s@%ld\n", name, ftell(malf));
 	copylet(n, malf, ORDINARY);
 	fclose(malf);
 	notifybiff(buf);
@@ -676,10 +664,15 @@ sendmail(n, name, fromaddr)
 
 delex(i)
 {
-	setsig(i, delex);
+	if (i != SIGINT) {
+		setsig(i, SIG_DFL);
+		sigsetmask(sigblock(0L) &~ sigmask(i));
+	}
 	putc('\n', stderr);
 	if (delflg)
 		longjmp(sjbuf, 1);
+	if (error == 0)
+		error = i;
 	done();
 }
 

@@ -1,22 +1,13 @@
-startdir=/usr/spool/news/net
-history=/usr/lib/news/history
-rm=rm
-sed -e "
-1i\\
-cd $startdir
-s/.*	//
-s/ .*//
-s/net\.//
-s!\.!/!g
-s!^!sed '/^\$/q' !
-" $history | sh |
-awk '
+#
+#	Note, Date-Received knows abotu yout local timezone
+#
+./grabheaders | awk '
 BEGIN{
 	t = "Jan 31 Feb 28 Mar 31 Apr 30 May 31 Jun 30 Jul 31 Aug 31 Sep 30 Oct 31 Nov 30 Dec 31"
 	split(t,x)
 	n = 0;
 	for(i=1;i<24;i+=2) {
-		month[x[i]] = (i+1)/2
+		month[x[i]] = month[(i+1)/2] = (i+1)/2
 		days[(i+1)/2] = n
 		n += x[i+1]
 	}
@@ -49,33 +40,22 @@ BEGIN{
 	sent += x[1] * 60 + x[2]
 }
 /^Date-Received: /{
-	if (NF == 7 ){
-		t = $6
-		x[1] = $3
-		x[2] = $4
-		x[3] = $5
-	} else if (NF == 5 && split($3,x,"-") == 3) {
-		t = $4
-	} else if (NF == 4 && split($2,x,"-") == 3) {
-		t = $3
-	}else if (NF == 6) {
-		t = $5
-		x[1] = $2
-		x[2] = $3
-		x[3] = $4
-	}else{
-		print "Bad date",messageid, $0
-		continue
+	if (NF < 3){
+		print "Date-received", messageid ,$0
+		rec = 0
+		next
 	}
-	rec = x[3]*10000 +  month[x[2]]* 100 + x[1]
+	split($2,x,"/")
+	rec = x[2] + days[x[1]+0] +(x[3]-80)*365
+	if (x[3]%4 == 0 && x[1] > 2)
+		rec++
+	split($3,x,":")
+	rec *= 60*24
+	rec += x[1] * 60 + x[2] + 1.44
+	if ($4 != "GMT")
+		rec += 60*5
 	if (rec > today)
 		today = rec
-	rec = x[1] + days[month[x[2]]] + (x[3]-80)*365
-	if (x[3]%4 == 0 && month[x[2]] > 2)
-		rec++
-	split(t,x,":")
-	rec *= 60*24
-	rec += x[1] * 60 + x[2] +1.44
 }
 /^Message-ID: /{messageid = $2}
 /^Path: /{
@@ -85,7 +65,7 @@ BEGIN{
 	else
 		feed = x[1]
 }
-/^Relay-Version: /{
+/^$/{
 	n = int((rec - sent)/(60*24)+0.999)
 	if( rec > 0 ) {
 		if ( n >= 0) {

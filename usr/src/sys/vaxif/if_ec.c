@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 1986 Regents of the University of California.
+ * Copyright (c) 1982, 1986 Regents of the University of California.
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_ec.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_ec.c	7.2 (Berkeley) 10/23/87
  */
 
 #include "ec.h"
@@ -12,6 +12,7 @@
 /*
  * 3Com Ethernet Controller interface
  */
+#include "../machine/pte.h"
 
 #include "param.h"
 #include "systm.h"
@@ -19,34 +20,47 @@
 #include "buf.h"
 #include "protosw.h"
 #include "socket.h"
-#include "pdpuba/ubavar.h"
-#ifdef notdef
-	#include "ecreg.h"
-#endif notdef
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <net/if.h>
-#include <vaxif/if_ec.h>
-#include <vaxif/if_uba.h>
-#include <netinet/ip.h>
-#include <netinet/ip_var.h>
-#include <netpup/pup.h>
-#include <net/route.h>
-#include <errno.h>
+#include "syslog.h"
+#include "vmmac.h"
+#include "ioctl.h"
+#include "errno.h"
 
-#define	ECMTU	1500
-#define	ECMEM	0000000
+#include "../net/if.h"
+#include "../net/netisr.h"
+#include "../net/route.h"
 
-int	ecprobe(), ecattach(), ecrint(), ecxint(), eccollide();
+#ifdef INET
+#include "../netinet/in.h"
+#include "../netinet/in_systm.h"
+#include "../netinet/in_var.h"
+#include "../netinet/ip.h"
+#include "../netinet/if_ether.h"
+#endif
+
+#ifdef NS
+#include "../netns/ns.h"
+#include "../netns/ns_if.h"
+#endif
+
+#include "../vax/cpu.h"
+#include "../vax/mtpr.h"
+#include "if_ecreg.h"
+#include "if_uba.h"
+#include "../vaxuba/ubareg.h"
+#include "../vaxuba/ubavar.h"
+
+#if CLSIZE == 2
+#define ECBUFSIZE	32		/* on-board memory, clusters */
+#endif
+
+int	ecubamem(), ecprobe(), ecattach(), ecrint(), ecxint(), eccollide();
 struct	uba_device *ecinfo[NEC];
 u_short ecstd[] = { 0 };
 struct	uba_driver ecdriver =
-	{ ecprobe, 0, ecattach, 0, ecstd, "ec", ecinfo };
-u_char	ec_iltop[3] = { 0x02, 0x07, 0x01 };
-#define	ECUNIT(x)	minor(x)
+	{ ecprobe, 0, ecattach, 0, ecstd, "ec", ecinfo, 0, 0, 0, 0, ecubamem };
 
-int	ecinit(),ecoutput(),ecreset();
-struct mbuf *ecget();
+int	ecinit(),ecioctl(),ecoutput(),ecreset();
+struct	mbuf *ecget();
 
 extern struct ifnet loif;
 
@@ -63,68 +77,98 @@ extern struct ifnet loif;
  * efficiently.
  */
 struct	ec_softc {
-	struct	ifnet es_if;		/* network-visible interface */
+	struct	arpcom es_ac;		/* common Ethernet structures */
+#define	es_if	es_ac.ac_if		/* network-visible interface */
+#define	es_addr	es_ac.ac_enaddr		/* hardware Ethernet address */
 	struct	ifuba es_ifuba;		/* UNIBUS resources */
 	short	es_mask;		/* mask for current output delay */
 	short	es_oactive;		/* is output active? */
-	caddr_t	es_buf[16];		/* virtual addresses of buffers */
-	u_char	es_enaddr[6];		/* board's ethernet address */
+	u_char	*es_buf[16];		/* virtual addresses of buffers */
 } ec_softc[NEC];
 
 /*
- * Do output DMA to determine interface presence and
- * interrupt vector.  DMA is too short to disturb other hosts.
+ * Configure on-board memory for an interface.
+ * Called from autoconfig and after a uba reset.
+ * The address of the memory on the uba is supplied in the device flags.
  */
-ecprobe(reg)
-	caddr_t reg;
+ecubamem(ui, uban)
+	register struct uba_device *ui;
 {
-	register int br, cvec;		/* r11, r10 value-result */
-	register struct ecdevice *addr = (struct ecdevice *)reg;
-	register caddr_t ecbuf = (caddr_t) &umem[numuba][ECMEM];
+	register caddr_t ecbuf = (caddr_t) &umem[uban][ui->ui_flags];
+	register struct ecdevice *addr = (struct ecdevice *)ui->ui_addr;
 
-#ifdef lint
-	br = 0; cvec = br; br = cvec;
-	ecrint(0); ecxint(0); eccollide(0);
+	/*
+	 * Make sure csr is there (we run before ecprobe).
+	 */
+	if (badaddr((caddr_t)addr, 2))
+		return (-1);
+#if VAX780
+	if (cpu == VAX_780 && uba_hd[uban].uh_uba->uba_sr) {
+		uba_hd[uban].uh_uba->uba_sr = uba_hd[uban].uh_uba->uba_sr;
+		return (-1);
+	}
 #endif
 	/*
 	 * Make sure memory is turned on
 	 */
 	addr->ec_rcr = EC_AROM;
 	/*
-	 * Disable map registers for ec unibus space,
-	 * but don't allocate yet.
-	 */
-	ubamem(numuba, ECMEM, 32*2, 0);
-	/*
-	 * Check for existence of buffers on Unibus.
-	 */
-	if (badaddr((caddr_t) ecbuf, 2)) {
-	bad1:
-		printf("ec: buffer mem not found\n");
-	bad2:
-		ubamem(numuba, 0, 0, 0);	/* reenable map (780 only) */
-		addr->ec_rcr = EC_MDISAB;	/* disable memory */
-		return (0);
-	}
-#if VAX780
-	if (cpu == VAX_780 && uba_hd[numuba].uh_uba->uba_sr) {
-		uba_hd[numuba].uh_uba->uba_sr = uba_hd[numuba].uh_uba->uba_sr;
-		goto bad1;
-	}
-#endif
-
-	/*
 	 * Tell the system that the board has memory here, so it won't
 	 * attempt to allocate the addresses later.
 	 */
-	if (ubamem(numuba, ECMEM, 32*2, 1) == 0) {
-		printf("ecprobe: cannot reserve uba addresses\n");
-		goto bad2;
+	if (ubamem(uban, ui->ui_flags, ECBUFSIZE*CLSIZE, 1) == 0) {
+		printf("ec%d: cannot reserve uba addresses\n", ui->ui_unit);
+		addr->ec_rcr = EC_MDISAB;	/* disable memory */
+		return (-1);
 	}
+	/*
+	 * Check for existence of buffers on Unibus.
+	 */
+	if (badaddr((caddr_t)ecbuf, 2)) {
+bad:
+		printf("ec%d: buffer mem not found\n", ui->ui_unit);
+		(void) ubamem(uban, ui->ui_flags, ECBUFSIZE*2, 0);
+		addr->ec_rcr = EC_MDISAB;	/* disable memory */
+		return (-1);
+	}
+#if VAX780
+	if (cpu == VAX_780 && uba_hd[uban].uh_uba->uba_sr) {
+		uba_hd[uban].uh_uba->uba_sr = uba_hd[uban].uh_uba->uba_sr;
+		goto bad;
+	}
+#endif
+	if (ui->ui_alive == 0)		/* Only printf from autoconfig */
+		printf("ec%d: mem %x-%x\n", ui->ui_unit,
+			ui->ui_flags, ui->ui_flags + ECBUFSIZE*CLBYTES - 1);
+	ui->ui_type = 1;		/* Memory on, allocated */
+	return (0);
+}
+
+/*
+ * Do output DMA to determine interface presence and
+ * interrupt vector.  DMA is too short to disturb other hosts.
+ */
+ecprobe(reg, ui)
+	caddr_t reg;
+	struct uba_device *ui;
+{
+	register int br, cvec;		/* r11, r10 value-result */
+	register struct ecdevice *addr = (struct ecdevice *)reg;
+	register caddr_t ecbuf = (caddr_t) &umem[ui->ui_ubanum][ui->ui_flags];
+
+#ifdef lint
+	br = 0; cvec = br; br = cvec;
+	ecrint(0); ecxint(0); eccollide(0);
+#endif
 
 	/*
+	 * Check that buffer memory was found and enabled.
+	 */
+	if (ui->ui_type == 0)
+		return(0);
+	/*
 	 * Make a one byte packet in what should be buffer #0.
-	 * Submit it for sending.  This whould cause an xmit interrupt.
+	 * Submit it for sending.  This should cause an xmit interrupt.
 	 * The xmit interrupt vector is 8 bytes after the receive vector,
 	 * so adjust for this before returning.
 	 */
@@ -136,7 +180,7 @@ ecprobe(reg)
 	if (cvec > 0 && cvec != 0x200) {
 		if (cvec & 04) {	/* collision interrupt */
 			cvec -= 04;
-			br += 1;		/* rcv is xmit + 1 */
+			br += 1;		/* rcv is collision + 1 */
 		} else {		/* xmit interrupt */
 			cvec -= 010;
 			br += 2;		/* rcv is xmit + 2 */
@@ -156,23 +200,21 @@ ecattach(ui)
 	struct ec_softc *es = &ec_softc[ui->ui_unit];
 	register struct ifnet *ifp = &es->es_if;
 	register struct ecdevice *addr = (struct ecdevice *)ui->ui_addr;
-	struct sockaddr_in *sin;
 	int i, j;
 	u_char *cp;
 
 	ifp->if_unit = ui->ui_unit;
 	ifp->if_name = "ec";
-	ifp->if_mtu = ECMTU;
-	ifp->if_net = ui->ui_flags;
+	ifp->if_mtu = ETHERMTU;
 
 	/*
 	 * Read the ethernet address off the board, one nibble at a time.
 	 */
-	addr->ec_xcr = EC_UECLR;
+	addr->ec_xcr = EC_UECLR; /* zero address pointer */
 	addr->ec_rcr = EC_AROM;
-	cp = es->es_enaddr;
+	cp = es->es_addr;
 #define	NEXTBIT	addr->ec_rcr = EC_AROM|EC_ASTEP; addr->ec_rcr = EC_AROM
-	for (i=0; i<6; i++) {
+	for (i=0; i < sizeof (es->es_addr); i++) {
 		*cp = 0;
 		for (j=0; j<=4; j+=4) {
 			*cp |= ((addr->ec_rcr >> 8) & 0xf) << j;
@@ -180,28 +222,16 @@ ecattach(ui)
 		}
 		cp++;
 	}
-#ifdef notdef
-	printf("ec%d: addr=%x:%x:%x:%x:%x:%x\n", ui->ui_unit,
-		es->es_enaddr[0]&0xff, es->es_enaddr[1]&0xff,
-		es->es_enaddr[2]&0xff, es->es_enaddr[3]&0xff,
-		es->es_enaddr[4]&0xff, es->es_enaddr[5]&0xff);
-#endif
-	ifp->if_host[0] = ((es->es_enaddr[3]&0xff)<<16) |
-	    ((es->es_enaddr[4]&0xff)<<8) | (es->es_enaddr[5]&0xff);
-	sin = (struct sockaddr_in *)&es->es_if.if_addr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(ifp->if_net, ifp->if_host[0]);
-
-	sin = (struct sockaddr_in *)&ifp->if_broadaddr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(ifp->if_net, INADDR_ANY);
-	ifp->if_flags = IFF_BROADCAST;
-
+	printf("ec%d: hardware address %s\n", ui->ui_unit,
+		ether_sprintf(es->es_addr));
 	ifp->if_init = ecinit;
+	ifp->if_ioctl = ecioctl;
 	ifp->if_output = ecoutput;
-	ifp->if_ubareset = ecreset;
+	ifp->if_reset = ecreset;
+	ifp->if_flags = IFF_BROADCAST;
 	for (i=0; i<16; i++)
-		es->es_buf[i] = &umem[ui->ui_ubanum][ECMEM+2048*i];
+		es->es_buf[i] 
+		    = (u_char *)&umem[ui->ui_ubanum][ui->ui_flags + 2048*i];
 	if_attach(ifp);
 }
 
@@ -218,7 +248,7 @@ ecreset(unit, uban)
 	    ui->ui_ubanum != uban)
 		return;
 	printf(" ec%d", unit);
-	ubamem(uban, ECMEM, 32*2, 0);	/* map register disable (no alloc) */
+	ec_softc[unit].es_if.if_flags &= ~IFF_RUNNING;
 	ecinit(unit);
 }
 
@@ -231,54 +261,59 @@ ecinit(unit)
 {
 	struct ec_softc *es = &ec_softc[unit];
 	struct ecdevice *addr;
+	register struct ifnet *ifp = &es->es_if;
 	int i, s;
+
+	/* not yet, if address still unknown */
+	if (ifp->if_addrlist == (struct ifaddr *)0)
+		return;
 
 	/*
 	 * Hang receive buffers and start any pending writes.
 	 * Writing into the rcr also makes sure the memory
 	 * is turned on.
 	 */
-	addr = (struct ecdevice *)ecinfo[unit]->ui_addr;
-	s = splimp();
-	for (i=ECRHBF; i>=ECRLBF; i--)
-		addr->ec_rcr = EC_READ|i;
-	es->es_oactive = 0;
-	es->es_mask = ~0;
-	es->es_if.if_flags |= IFF_UP;
-	if (es->es_if.if_snd.ifq_head)
-		ecstart(unit);
-	splx(s);
-	if_rtinit(&es->es_if, RTF_UP);
+	if ((ifp->if_flags & IFF_RUNNING) == 0) {
+		addr = (struct ecdevice *)ecinfo[unit]->ui_addr;
+		s = splimp();
+		/*
+		 * write our ethernet address into the address recognition ROM 
+		 * so we can always use the same EC_READ bits (referencing ROM),
+		 * in case we change the address sometime.
+		 * Note that this is safe here as the receiver is NOT armed.
+		 */
+		ec_setaddr(es->es_addr, unit);
+		/*
+		 * Arm the receiver
+		 */
+		for (i = ECRHBF; i >= ECRLBF; i--)
+			addr->ec_rcr = EC_READ | i;
+		es->es_oactive = 0;
+		es->es_mask = ~0;
+		es->es_if.if_flags |= IFF_RUNNING;
+		if (es->es_if.if_snd.ifq_head)
+			ecstart(unit);
+		splx(s);
+	}
 }
 
 /*
- * Start or restart output on interface.
- * If interface is already active, then this is a retransmit
- * after a collision, and just restuff registers.
- * If interface is not already active, get another datagram
- * to send off of the interface queue, and map it to the interface
+ * Start output on interface.  Get another datagram to send
+ * off of the interface queue, and copy it to the interface
  * before starting the output.
  */
-ecstart(dev)
-	dev_t dev;
+ecstart(unit)
 {
-        int unit = ECUNIT(dev), dest;
-	struct ec_softc *es = &ec_softc[unit];
+	register struct ec_softc *es = &ec_softc[unit];
 	struct ecdevice *addr;
 	struct mbuf *m;
-	caddr_t ecbuf;
 
-	if (es->es_oactive)
-		goto restart;
-
-	IF_DEQUEUE(&es->es_if.if_snd, m);
-	if (m == 0) {
-		es->es_oactive = 0;
+	if ((es->es_if.if_flags & IFF_RUNNING) == 0)
 		return;
-	}
+	IF_DEQUEUE(&es->es_if.if_snd, m);
+	if (m == 0)
+		return;
 	ecput(es->es_buf[ECTBF], m);
-
-restart:
 	addr = (struct ecdevice *)ecinfo[unit]->ui_addr;
 	addr->ec_xcr = EC_WRITE|ECTBF;
 	es->es_oactive = 1;
@@ -320,21 +355,15 @@ ecxint(unit)
 eccollide(unit)
 	int unit;
 {
-	struct ec_softc *es = &ec_softc[unit];
-
-	es->es_if.if_collisions++;
-	if (es->es_oactive)
-		ecdocoll(unit);
-}
-
-ecdocoll(unit)
-	int unit;
-{
 	register struct ec_softc *es = &ec_softc[unit];
 	register struct ecdevice *addr =
 	    (struct ecdevice *)ecinfo[unit]->ui_addr;
 	register i;
 	int delay;
+
+	es->es_if.if_collisions++;
+	if (es->es_oactive == 0)
+		return;
 
 	/*
 	 * Es_mask is a 16 bit number with n low zero bits, with
@@ -343,7 +372,7 @@ ecdocoll(unit)
 	 */
 	if (es->es_mask == 0) {
 		es->es_if.if_oerrors++;
-		printf("ec%d: send error\n", unit);
+		log(LOG_ERR, "ec%d: send error\n", unit);
 		/*
 		 * Reset interface, then requeue rcv buffers.
 		 * Some incoming packets may be lost, but that
@@ -363,13 +392,14 @@ ecdocoll(unit)
 	}
 	/*
 	 * Do exponential backoff.  Compute delay based on low bits
-	 * of the interval timer.  Then delay for that number of
+	 * of the interval timer (1 bit for each transmission attempt,
+	 * but at most 5 bits).  Then delay for that number of
 	 * slot times.  A slot time is 51.2 microseconds (rounded to 51).
 	 * This does not take into account the time already used to
 	 * process the interrupt.
 	 */
 	es->es_mask <<= 1;
-	delay = mfpr(ICR) &~ es->es_mask;
+	delay = mfpr(ICR) & 0x1f &~ es->es_mask;
 	DELAY(delay * 51);
 	/*
 	 * Clear the controller's collision flag, thus enabling retransmit.
@@ -380,7 +410,7 @@ ecdocoll(unit)
 /*
  * Ethernet interface receiver interrupt.
  * If input error just drop packet.
- * Otherwise purge input buffered data path and examine 
+ * Otherwise examine 
  * packet to determine type.  If can't determine length
  * from type, then have to drop packet.  Othewise decapsulate
  * packet based on type and pass to type specific higher-level
@@ -400,17 +430,17 @@ ecread(unit)
 {
 	register struct ec_softc *es = &ec_softc[unit];
 	struct ecdevice *addr = (struct ecdevice *)ecinfo[unit]->ui_addr;
-	register struct ec_header *ec;
+	register struct ether_header *ec;
     	struct mbuf *m;
-	int len, off, resid, ecoff, buf;
+	int len, off, resid, ecoff, rbuf;
 	register struct ifqueue *inq;
-	caddr_t ecbuf;
+	u_char *ecbuf;
 
 	es->es_if.if_ipackets++;
-	buf = addr->ec_rcr & EC_RBN;
-	if (buf < ECRLBF || buf > ECRHBF)
+	rbuf = addr->ec_rcr & EC_RBN;
+	if (rbuf < ECRLBF || rbuf > ECRHBF)
 		panic("ecrint");
-	ecbuf = es->es_buf[buf];
+	ecbuf = es->es_buf[rbuf];
 	ecoff = *(short *)ecbuf;
 	if (ecoff <= ECRDOFF || ecoff > 2046) {
 		es->es_if.if_ierrors++;
@@ -424,20 +454,21 @@ ecread(unit)
 	/*
 	 * Get input data length.
 	 * Get pointer to ethernet header (in input buffer).
-	 * Deal with trailer protocol: if type is PUP trailer
+	 * Deal with trailer protocol: if type is trailer type
 	 * get true type from first 16-bit word past data.
 	 * Remember that type was trailer by setting off.
 	 */
-	len = ecoff - ECRDOFF - sizeof (struct ec_header);
-	ec = (struct ec_header *)(ecbuf + ECRDOFF);
+	len = ecoff - ECRDOFF - sizeof (struct ether_header);
+	ec = (struct ether_header *)(ecbuf + ECRDOFF);
+	ec->ether_type = ntohs((u_short)ec->ether_type);
 #define	ecdataaddr(ec, off, type)	((type)(((caddr_t)((ec)+1)+(off))))
-	if (ec->ec_type >= ECPUP_TRAIL &&
-	    ec->ec_type < ECPUP_TRAIL+ECPUP_NTRAILER) {
-		off = (ec->ec_type - ECPUP_TRAIL) * 512;
-		if (off >= ECMTU)
+	if (ec->ether_type >= ETHERTYPE_TRAIL &&
+	    ec->ether_type < ETHERTYPE_TRAIL+ETHERTYPE_NTRAILER) {
+		off = (ec->ether_type - ETHERTYPE_TRAIL) * 512;
+		if (off >= ETHERMTU)
 			goto setup;		/* sanity */
-		ec->ec_type = *ecdataaddr(ec, off, u_short *);
-		resid = *(ecdataaddr(ec, off+2, u_short *));
+		ec->ether_type = ntohs(*ecdataaddr(ec, off, u_short *));
+		resid = ntohs(*(ecdataaddr(ec, off+2, u_short *)));
 		if (off + resid > len)
 			goto setup;		/* sanity */
 		len = off + resid;
@@ -452,20 +483,35 @@ ecread(unit)
 	 * information to be at the front, but we still have to drop
 	 * the type and length which are at the front of any trailer data.
 	 */
-	m = ecget(ecbuf, len, off);
+	m = ecget(ecbuf, len, off, &es->es_if);
 	if (m == 0)
 		goto setup;
 	if (off) {
+		struct ifnet *ifp;
+
+		ifp = *(mtod(m, struct ifnet **));
 		m->m_off += 2 * sizeof (u_short);
 		m->m_len -= 2 * sizeof (u_short);
+		*(mtod(m, struct ifnet **)) = ifp;
 	}
-	switch (ec->ec_type) {
+	switch (ec->ether_type) {
 
 #ifdef INET
-	case ECPUP_IPTYPE:
+	case ETHERTYPE_IP:
 		schednetisr(NETISR_IP);
 		inq = &ipintrq;
 		break;
+
+	case ETHERTYPE_ARP:
+		arpinput(&es->es_ac, m);
+		goto setup;
+#endif
+#ifdef NS
+	case ETHERTYPE_NS:
+		schednetisr(NETISR_NS);
+		inq = &nsintrq;
+		break;
+
 #endif
 	default:
 		m_freem(m);
@@ -483,7 +529,7 @@ setup:
 	/*
 	 * Reset for next packet.
 	 */
-	addr->ec_rcr = EC_READ|EC_RCLR|buf;
+	addr->ec_rcr = EC_READ|EC_RCLR|rbuf;
 }
 
 /*
@@ -500,39 +546,69 @@ ecoutput(ifp, m0, dst)
 	struct mbuf *m0;
 	struct sockaddr *dst;
 {
-	int type, dest, s, error;
+	int type, s, error;
+ 	u_char edst[6];
+	struct in_addr idst;
 	register struct ec_softc *es = &ec_softc[ifp->if_unit];
 	register struct mbuf *m = m0;
-	register struct ec_header *ec;
-	register int off, i;
-	struct mbuf *mcopy = (struct mbuf *) 0;		/* Null */
+	register struct ether_header *ec;
+	register int off;
+	struct mbuf *mcopy = (struct mbuf *)0;
+	int usetrailers;
 
+	if ((ifp->if_flags & (IFF_UP|IFF_RUNNING)) != (IFF_UP|IFF_RUNNING)) {
+		error = ENETDOWN;
+		goto bad;
+	}
 	switch (dst->sa_family) {
 
 #ifdef INET
 	case AF_INET:
-		dest = ((struct sockaddr_in *)dst)->sin_addr.s_addr;
-		if ((dest &~ 0xff) == 0)
-			mcopy = m_copy(m, 0, M_COPYALL);
-		else if (dest == ((struct sockaddr_in *)&es->es_if.if_addr)->
-		    sin_addr.s_addr) {
-			mcopy = m;
-			goto gotlocal;
-		}
+		idst = ((struct sockaddr_in *)dst)->sin_addr;
+		if (!arpresolve(&es->es_ac, m, &idst, edst, &usetrailers))
+			return (0);	/* if not yet resolved */
+		if (!bcmp((caddr_t)edst, (caddr_t)etherbroadcastaddr,
+		    sizeof(edst)))
+			mcopy = m_copy(m, 0, (int)M_COPYALL);
 		off = ntohs((u_short)mtod(m, struct ip *)->ip_len) - m->m_len;
-		if (off > 0 && (off & 0x1ff) == 0 &&
+		/* need per host negotiation */
+		if (usetrailers && off > 0 && (off & 0x1ff) == 0 &&
 		    m->m_off >= MMINOFF + 2 * sizeof (u_short)) {
-			type = ECPUP_TRAIL + (off>>9);
+			type = ETHERTYPE_TRAIL + (off>>9);
 			m->m_off -= 2 * sizeof (u_short);
 			m->m_len += 2 * sizeof (u_short);
-			*mtod(m, u_short *) = ECPUP_IPTYPE;
-			*(mtod(m, u_short *) + 1) = m->m_len;
+			*mtod(m, u_short *) = ntohs((u_short)ETHERTYPE_IP);
+			*(mtod(m, u_short *) + 1) = ntohs((u_short)m->m_len);
 			goto gottrailertype;
 		}
-		type = ECPUP_IPTYPE;
+		type = ETHERTYPE_IP;
 		off = 0;
 		goto gottype;
 #endif
+#ifdef NS
+	case AF_NS:
+ 		bcopy((caddr_t)&(((struct sockaddr_ns *)dst)->sns_addr.x_host),
+		    (caddr_t)edst, sizeof (edst));
+
+		if (!bcmp((caddr_t)edst, (caddr_t)&ns_broadhost,
+			sizeof(edst))) {
+
+				mcopy = m_copy(m, 0, (int)M_COPYALL);
+		} else if (!bcmp((caddr_t)edst, (caddr_t)&ns_thishost,
+			sizeof(edst))) {
+
+				return(looutput(&loif, m, dst));
+		}
+		type = ETHERTYPE_NS;
+		off = 0;
+		goto gottype;
+#endif
+
+	case AF_UNSPEC:
+		ec = (struct ether_header *)dst->sa_data;
+ 		bcopy((caddr_t)ec->ether_dhost, (caddr_t)edst, sizeof (edst));
+		type = ec->ether_type;
+		goto gottype;
 
 	default:
 		printf("ec%d: can't handle af%d\n", ifp->if_unit,
@@ -559,41 +635,24 @@ gottype:
 	 * allocate another.
 	 */
 	if (m->m_off > MMAXOFF ||
-	    MMINOFF + sizeof (struct ec_header) > m->m_off) {
-		m = m_get(M_DONTWAIT);
+	    MMINOFF + sizeof (struct ether_header) > m->m_off) {
+		m = m_get(M_DONTWAIT, MT_HEADER);
 		if (m == 0) {
 			error = ENOBUFS;
 			goto bad;
 		}
 		m->m_next = m0;
 		m->m_off = MMINOFF;
-		m->m_len = sizeof (struct ec_header);
+		m->m_len = sizeof (struct ether_header);
 	} else {
-		m->m_off -= sizeof (struct ec_header);
-		m->m_len += sizeof (struct ec_header);
+		m->m_off -= sizeof (struct ether_header);
+		m->m_len += sizeof (struct ether_header);
 	}
-	ec = mtod(m, struct ec_header *);
-	for (i=0; i<6; i++)
-		ec->ec_shost[i] = es->es_enaddr[i];
-	if ((dest &~ 0xff) == 0)
-		/* broadcast address */
-		for (i=0; i<6; i++)
-			ec->ec_dhost[i] = 0xff;
-	else {
-		if (dest & 0x8000) {
-			ec->ec_dhost[0] = ec_iltop[0];
-			ec->ec_dhost[1] = ec_iltop[1];
-			ec->ec_dhost[2] = ec_iltop[2];
-		} else {
-			ec->ec_dhost[0] = es->es_enaddr[0];
-			ec->ec_dhost[1] = es->es_enaddr[1];
-			ec->ec_dhost[2] = es->es_enaddr[2];
-		}
-		ec->ec_dhost[3] = (dest>>8) & 0x7f;
-		ec->ec_dhost[4] = (dest>>16) & 0xff;
-		ec->ec_dhost[5] = (dest>>24) & 0xff;
-	}
-	ec->ec_type = type;
+	ec = mtod(m, struct ether_header *);
+ 	bcopy((caddr_t)edst, (caddr_t)ec->ether_dhost, sizeof (edst));
+	bcopy((caddr_t)es->es_addr, (caddr_t)ec->ether_shost,
+	    sizeof(ec->ether_shost));
+	ec->ether_type = htons((u_short)type);
 
 	/*
 	 * Queue message on interface, and start output if interface
@@ -609,21 +668,24 @@ gottype:
 	if (es->es_oactive == 0)
 		ecstart(ifp->if_unit);
 	splx(s);
-
-gotlocal:
-	return(mcopy ? looutput(&loif, mcopy, dst) : 0);
+	return (mcopy ? looutput(&loif, mcopy, dst) : 0);
 
 qfull:
 	m0 = m;
 	splx(s);
 bad:
 	m_freem(m0);
-	return(error);
+	if (mcopy)
+		m_freem(mcopy);
+	return (error);
 }
 
 /*
- * Routine to copy from mbuf chain to transmitter
+ * Routine to copy from mbuf chain to transmit
  * buffer in UNIBUS memory.
+ * If packet size is less than the minimum legal size,
+ * the buffer is expanded.  We probably should zero out the extra
+ * bytes for security, but that would slow things down.
  */
 ecput(ecbuf, m)
 	u_char *ecbuf;
@@ -635,6 +697,8 @@ ecput(ecbuf, m)
 
 	for (off = 2048, mp = m; mp; mp = mp->m_next)
 		off -= mp->m_len;
+	if (2048 - off < ETHERMIN + sizeof (struct ether_header))
+		off = 2048 - ETHERMIN - sizeof (struct ether_header);
 	*(u_short *)ecbuf = off;
 	bp = (u_char *)(ecbuf + off);
 	for (mp = m; mp; mp = mp->m_next) {
@@ -662,10 +726,6 @@ ecput(ecbuf, m)
 		if (len & 01)
 			*bp++ = *mcp++;
 	}
-#ifdef notdef
-	if (bp - ecbuf != 2048)
-		printf("ec: bad ecput, diff=%d\n", bp-ecbuf);
-#endif
 	m_freem(m);
 }
 
@@ -677,44 +737,52 @@ ecput(ecbuf, m)
  * mbufs have even lengths.
  */
 struct mbuf *
-ecget(ecbuf, totlen, off0)
+ecget(ecbuf, totlen, off0, ifp)
 	u_char *ecbuf;
 	int totlen, off0;
+	struct ifnet *ifp;
 {
 	register struct mbuf *m;
 	struct mbuf *top = 0, **mp = &top;
 	register int off = off0, len;
 	u_char *cp;
 
-	cp = ecbuf + ECRDOFF + sizeof (struct ec_header);
+	cp = ecbuf + ECRDOFF + sizeof (struct ether_header);
 	while (totlen > 0) {
 		register int words;
 		u_char *mcp;
 
-		MGET(m, 0);
+		MGET(m, M_DONTWAIT, MT_DATA);
 		if (m == 0)
 			goto bad;
 		if (off) {
 			len = totlen - off;
-			cp = ecbuf + ECRDOFF + sizeof (struct ec_header) + off;
+			cp = ecbuf + ECRDOFF +
+				sizeof (struct ether_header) + off;
 		} else
 			len = totlen;
-		if (len >= CLBYTES) {
-			struct mbuf *p;
-
-			MCLGET(p, 1);
-			if (p != 0) {
-				m->m_len = len = CLBYTES;
-				m->m_off = (int)p - (int)m;
-			} else {
+		if (ifp)
+			len += sizeof(ifp);
+		if (len >= NBPG) {
+			MCLGET(m);
+			if (m->m_len == CLBYTES)
+				m->m_len = len = MIN(len, CLBYTES);
+			else
 				m->m_len = len = MIN(MLEN, len);
-				m->m_off = MMINOFF;
-			}
 		} else {
 			m->m_len = len = MIN(MLEN, len);
 			m->m_off = MMINOFF;
 		}
 		mcp = mtod(m, u_char *);
+		if (ifp) {
+			/*
+			 * Prepend interface pointer to first mbuf.
+			 */
+			*(mtod(m, struct ifnet **)) = ifp;
+			mcp += sizeof(ifp);
+			len -= sizeof(ifp);
+			ifp = (struct ifnet *)0;
+		}
 		if (words = (len >> 1)) {
 			register u_short *to, *from;
 
@@ -736,7 +804,7 @@ ecget(ecbuf, totlen, off0)
 		}
 		off += len;
 		if (off == totlen) {
-			cp = ecbuf + ECRDOFF + sizeof (struct ec_header);
+			cp = ecbuf + ECRDOFF + sizeof (struct ether_header);
 			off = 0;
 			totlen = off0;
 		}
@@ -746,4 +814,143 @@ bad:
 	m_freem(top);
 	return (0);
 }
-#endif NEC
+
+/*
+ * Process an ioctl request.
+ */
+ecioctl(ifp, cmd, data)
+	register struct ifnet *ifp;
+	int cmd;
+	caddr_t data;
+{
+	register struct ifaddr *ifa = (struct ifaddr *)data;
+	struct ec_softc *es = &ec_softc[ifp->if_unit];
+	struct ecdevice *addr;
+	int s = splimp(), error = 0;
+
+	addr = (struct ecdevice *)(ecinfo[ifp->if_unit]->ui_addr);
+
+	switch (cmd) {
+
+	case SIOCSIFADDR:
+		ifp->if_flags |= IFF_UP;
+
+		switch (ifa->ifa_addr.sa_family) {
+#ifdef INET
+		case AF_INET:
+			ecinit(ifp->if_unit);	/* before arpwhohas */
+			((struct arpcom *)ifp)->ac_ipaddr =
+				IA_SIN(ifa)->sin_addr;
+			arpwhohas((struct arpcom *)ifp, &IA_SIN(ifa)->sin_addr);
+			break;
+#endif
+#ifdef NS
+		case AF_NS:
+		    {
+			register struct ns_addr *ina = &(IA_SNS(ifa)->sns_addr);
+
+			if (ns_nullhost(*ina))
+				ina->x_host = *(union ns_host *)(es->es_addr);
+			else {
+				/* 
+				 * The manual says we can't change the address 
+				 * while the receiver is armed,
+				 * so reset everything
+				 */
+				ifp->if_flags &= ~IFF_RUNNING; 
+				bcopy((caddr_t)ina->x_host.c_host,
+				    (caddr_t)es->es_addr, sizeof(es->es_addr));
+			}
+			ecinit(ifp->if_unit); /* does ec_setaddr() */
+			break;
+		    }
+#endif
+		default:
+			ecinit(ifp->if_unit);
+			break;
+		}
+		break;
+
+	case SIOCSIFFLAGS:
+		if ((ifp->if_flags & IFF_UP) == 0 &&
+		    ifp->if_flags & IFF_RUNNING) {
+			addr->ec_xcr = EC_UECLR;
+			ifp->if_flags &= ~IFF_RUNNING;
+		} else if (ifp->if_flags & IFF_UP &&
+		    (ifp->if_flags & IFF_RUNNING) == 0)
+			ecinit(ifp->if_unit);
+		break;
+
+	default:
+		error = EINVAL;
+	}
+	splx(s);
+	return (error);
+}
+
+ec_setaddr(physaddr,unit)
+	u_char *physaddr;
+	int unit;
+{
+	struct ec_softc *es = &ec_softc[unit];
+	struct uba_device *ui = ecinfo[unit];
+	register struct ecdevice *addr = (struct ecdevice *)ui->ui_addr;
+	register char nibble;
+	register int i, j;
+
+	/*
+	 * Use the ethernet address supplied
+	 * Note that we do a UECLR here, so the receive buffers
+	 * must be requeued.
+	 */
+	
+#ifdef DEBUG
+	printf("ec_setaddr: setting address for unit %d = %s",
+		unit, ether_sprintf(physaddr));
+#endif
+	addr->ec_xcr = EC_UECLR;
+	addr->ec_rcr = 0;
+	/* load requested address */
+	for (i = 0; i < 6; i++) { /* 6 bytes of address */
+	    es->es_addr[i] = physaddr[i];
+	    nibble = physaddr[i] & 0xf; /* lower nibble */
+	    addr->ec_rcr = (nibble << 8);
+	    addr->ec_rcr = (nibble << 8) + EC_AWCLK; /* latch nibble */
+	    addr->ec_rcr = (nibble << 8);
+	    for (j=0; j < 4; j++) {
+		addr->ec_rcr = 0;
+		addr->ec_rcr = EC_ASTEP; /* step counter */
+		addr->ec_rcr = 0;
+	    }
+	    nibble = (physaddr[i] >> 4) & 0xf; /* upper nibble */
+	    addr->ec_rcr = (nibble << 8);
+	    addr->ec_rcr = (nibble << 8) + EC_AWCLK; /* latch nibble */
+	    addr->ec_rcr = (nibble << 8);
+	    for (j=0; j < 4; j++) {
+		addr->ec_rcr = 0;
+		addr->ec_rcr = EC_ASTEP; /* step counter */
+		addr->ec_rcr = 0;
+	    }
+	}
+#ifdef DEBUG
+	/*
+	 * Read the ethernet address off the board, one nibble at a time.
+	 */
+	addr->ec_xcr = EC_UECLR;
+	addr->ec_rcr = 0; /* read RAM */
+	cp = es->es_addr;
+#undef NEXTBIT
+#define	NEXTBIT	addr->ec_rcr = EC_ASTEP; addr->ec_rcr = 0
+	for (i=0; i < sizeof (es->es_addr); i++) {
+		*cp = 0;
+		for (j=0; j<=4; j+=4) {
+			*cp |= ((addr->ec_rcr >> 8) & 0xf) << j;
+			NEXTBIT; NEXTBIT; NEXTBIT; NEXTBIT;
+		}
+		cp++;
+	}
+	printf("ec_setaddr: RAM address for unit %d = %s",
+		unit, ether_sprintf(physaddr));
+#endif
+}
+#endif
