@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)conn.c	5.10 (Berkeley) 1/24/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)conn.c	5.10.1 (2.11BSD) 1996/3/22";
 #endif
 
 #include <signal.h>
@@ -24,8 +24,7 @@ static char sccsid[] = "@(#)conn.c	5.10 (Berkeley) 1/24/86";
 
 extern jmp_buf Sjbuf;
 jmp_buf Cjbuf;
-extern int errno, onesys;
-extern char *sys_errlist[];
+extern int onesys;
 extern char MaxGrade, DefMaxGrade;
 
 /* Parity control during login procedure */
@@ -276,7 +275,7 @@ clsacu()
 	 */
 #ifdef	TIOCNXCL
 	if (!IsTcpIp && Dcf >= 0 && ioctl(Dcf, TIOCNXCL, STBNULL) < 0)
-		DEBUG(5, "clsacu ioctl %s\n", sys_errlist[errno]);
+		DEBUG(5, "clsacu ioctl %s\n", strerror(errno));
 #endif
 	if  (setjmp(Sjbuf))
 		logent(Rmtname, "CLOSE TIMEOUT");
@@ -812,7 +811,7 @@ char c;
 {
 	c = par_tab[c&0177];
 	if (write(fd, &c, 1) != 1) {
-		logent(sys_errlist[errno], "BAD WRITE");
+		logent(strerror(errno), "BAD WRITE");
 		longjmp(Cjbuf, 2);
 	}
 }

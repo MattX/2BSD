@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)ttinit.c	3.14 4/24/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)ttinit.c	3.14.1 1996/3/22";
 #endif
 
 /*
@@ -50,7 +50,7 @@ ttinit()
 		p++;
 	for (q = p; *q && *q != '|' && *q != ':'; q++)
 		;
-	if (q != p && (t = malloc((unsigned) (q - p + 1))) != 0) {
+	if (q != p && (t = (char *)malloc((unsigned) (q - p + 1))) != 0) {
 		wwterm = t;
 		while (p < q)
 			*t++ = *p++;

@@ -1,5 +1,5 @@
 /*
- * @(#)ww.h	3.37 5/2/86	
+ * @(#)ww.h	3.37.1 1996/3/22
  */
 
 /*
@@ -10,6 +10,9 @@
 
 #include <sgtty.h>
 #include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #ifdef pdp11
 #define NWW	9		/* maximum number of windows */
@@ -247,14 +250,7 @@ char **wwalloc();
 char *wwerror();
 
 	/* c library functions */
-char *malloc();
-char *calloc();
-char *getenv();
 char *tgetstr();
-char *rindex();
-char *strcpy();
-char *strcat();
-char *sprintf();
 
 #undef MIN
 #undef MAX

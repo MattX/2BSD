@@ -4,11 +4,15 @@
  * Version 1.0 August 1977
  *
  * Bill Joy, Charles Haley, Ken Thompson
+ *
+ * 1996/3/22 - make Perror look like that in ../pi/subr.c
  */
 
 #include "0x.h"
 #include "opcode.h"
 #include "E.h"
+#include <sys/types.h>
+#include <sys/uio.h>
 
 int	display[20]	= { display };
 
@@ -108,15 +112,25 @@ oops:
 	interpret(bp, size);
 }
 
+/*
+ * Can't use 'fprintf(stderr...)' because that would require stdio.h and
+ * that can't be used because the 'ferror' macro would conflict with the routine
+ * of the same name.   But we don't want to use sys_errlist[] because that's
+ * ~2kb of D space.
+*/
+
 Perror(file, mesg)
 	char *file, *mesg;
 {
-	extern int errno;
-	extern char *sys_errlist[];
+	struct	iovec	iov[3];
 
-	errno = 0;
-	sys_errlist[0] = mesg;
-	perror(file);
+	iov[0].iov_base = file;
+	iov[0].iov_len = strlen(file);
+	iov[1].iov_base = ": ";
+	iov[1].iov_len = 2;
+	iov[2].iov_base = mesg;
+	iov[2].iov_len = strlen(mesg);
+	writev(2, iov, 3);
 }
 
 /*

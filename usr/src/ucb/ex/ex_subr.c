@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)ex_subr.c	7.10 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)ex_subr.c	7.10.1 (2.11BSD) 1996/3/22";
 #endif
 
 #include "ex.h"
@@ -646,16 +646,10 @@ strcLIN(dp)
 
 syserror()
 {
-	register int e = errno;
-	extern int sys_nerr;
-	extern char *sys_errlist[];
 
 	dirtcnt = 0;
 	putchar(' ');
-	if (e >= 0 && e <= sys_nerr)
-		error("%s", sys_errlist[e]);
-	else
-		error("System error %d", e);
+	error("%s", strerror(errno));
 }
 
 /*

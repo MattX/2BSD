@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)context.c	3.7 4/24/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)context.c	3.7.1 1996/3/22";
 #endif
 
 /*
@@ -17,8 +17,6 @@ static char sccsid[] = "@(#)context.c	3.7 4/24/85";
 /*
  * Context push/pop for nested command files.
  */
-
-char *malloc();
 
 cx_alloc()
 {

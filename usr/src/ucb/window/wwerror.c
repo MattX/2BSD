@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)wwerror.c	3.3 4/24/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)wwerror.c	3.3.1 1996/3/22";
 #endif
 
 /*
@@ -14,13 +14,12 @@ char *
 wwerror()
 {
 	extern errno;
-	extern char *sys_errlist[];
 
 	switch (wwerrno) {
 	case WWE_NOERR:
 		return "No error";
 	case WWE_SYS:
-		return sys_errlist[errno];
+		return strerror(errno);
 	case WWE_NOMEM:
 		return "Out of memory";
 	case WWE_TOOMANY:

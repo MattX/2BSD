@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)startdaemon.c	5.1.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)startdaemon.c	5.1.2 (2.11BSD GTE) 1996/3/22";
 #endif
 
 /*
@@ -85,11 +85,6 @@ perr(msg)
 	char *msg;
 {
 	extern char *name;
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	extern int errno;
 
-	printf("%s: %s: ", name, msg);
-	fputs(errno < sys_nerr ? sys_errlist[errno] : "Unknown error" , stdout);
-	putchar('\n');
+	printf("%s: %s: %s\n", name, msg, strerror(errno));
 }

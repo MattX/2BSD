@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.10.3 (2.11BSD GTE) 3/07/95
+#	@(#)Makefile.m4	5.10.4 (2.11BSD GTE) 1996/3/22
 #
 #
 #  SENDMAIL Makefile.
@@ -32,10 +32,11 @@ OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) Version.o str.o
 
 SBASE=	conf.o parseaddr.o alias.o deliver.o headers.o \
 	recipient.o srvrsmtp.o queue.o util.o \
-	envelope.o sysexits.o arpadate.o convtime.o Version.o \
+	envelope.o sysexits.o convtime.o Version.o \
 	$(EXTRACT) str.o
 SOV1=	main.o readcf.o macro.o ctime.o
-SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o
+SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o \
+	arpadate.o
 SOV3=	collect.o
 
 SRCS=	\

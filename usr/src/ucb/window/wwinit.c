@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)wwinit.c	3.26 5/1/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)wwinit.c	3.26.1 1996/3/22";
 #endif
 
 /*
@@ -81,7 +81,7 @@ wwinit()
 	else if (wwavailmodes & WWM_UL)
 		wwcursormodes = WWM_UL;
 
-	if ((wwib = malloc((unsigned) 512)) == 0)
+	if ((wwib = (char *)malloc((unsigned) 512)) == 0)
 		goto bad;
 	wwibe = wwib + 512;
 	wwibq = wwibp = wwib;
@@ -107,7 +107,7 @@ wwinit()
 		for (j = 0; j < wwncol; j++)
 			wwns[i][j].c_w = ' ';
 
-	wwtouched = malloc((unsigned) wwnrow);
+	wwtouched = (char *)malloc((unsigned) wwnrow);
 	if (wwtouched == 0) {
 		wwerrno = WWE_NOMEM;
 		goto bad;

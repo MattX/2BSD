@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)bsdtcp.c	4.3.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)bsdtcp.c	4.3.2 (2.11BSD GTE) 1996/3/22";
 #endif
 
 #include "../condevs.h"
@@ -24,7 +24,6 @@ register char *flds[];
 	struct	sockaddr_in hisctladdr;
 	int s = -1, port;
 	extern int errno;
-	extern char *sys_errlist[];
 
 	sp = getservbyname(flds[F_CLASS], "tcp");
 	if (sp == NULL) {
@@ -78,7 +77,7 @@ bad:
 	alarm(0);
 	bsdtcpcls(s);
 	DEBUG(5, "tcpopen failed: errno %d\n", errno);
-	logent(sys_errlist[errno], _FAILED);
+	logent(strerror(errno), _FAILED);
 	return CF_DIAL;
 }
 

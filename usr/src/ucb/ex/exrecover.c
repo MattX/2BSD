@@ -9,7 +9,7 @@ char *copyright =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char *sccsid = "@(#)exrecover.c	7.9 (Berkeley) 6/7/85";
+static char *sccsid = "@(#)exrecover.c	7.9.1 (2.11BSD) 1996/3/22";
 #endif
 
 #include <stdio.h>	/* mjm: BUFSIZ: stdio = 512, VMUNIX = 1024 */
@@ -756,15 +756,10 @@ blkio(b, buf, iofcn)
 
 syserror()
 {
-	extern int sys_nerr;
-	extern char *sys_errlist[];
 
 	dirtcnt = 0;
 	write(2, " ", 1);
-	if (errno >= 0 && errno <= sys_nerr)
-		error("%s", sys_errlist[errno]);
-	else
-		error("System error %d", errno);
+	error("%s", strerror(errno));
 	exit(1);
 }
 

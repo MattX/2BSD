@@ -3,12 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)defs.h	5.2.2 (2.11BSD GTE) 1995/05/09
+ *	@(#)defs.h	5.2.3 (2.11BSD GTE) 1996/3/22
  */
 
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <string.h>
 #include <pwd.h>
 #include <grp.h>
 #include <sys/param.h>
@@ -116,8 +117,6 @@ extern struct passwd *pw;	/* pointer to static area used by getpwent */
 extern struct group *gr;	/* pointer to static area used by getgrent */
 extern char host[];		/* host name of master copy */
 extern char buf[];		/* general purpose buffer */
-extern int errno;		/* system error number */
-extern char *strerror();
 
 char *makestr();
 struct namelist *makenl();
@@ -126,5 +125,3 @@ struct namelist *lookup();
 struct namelist *expand();
 char *exptilde();
 char *malloc();
-char *rindex();
-char *index();

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)wwopen.c	3.21 4/24/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)wwopen.c	3.21.1 1996/3/22";
 #endif
 
 /*
@@ -88,7 +88,7 @@ wwopen(flags, nrow, ncol, row, col, nline)
 		w->ww_socket = d[1];
 	}
 	if (flags & (WWO_PTY|WWO_SOCKET)) {
-		if ((w->ww_ob = malloc(512)) == 0) {
+		if ((w->ww_ob = (char *)malloc(512)) == 0) {
 			wwerrno = WWE_NOMEM;
 			goto bad;
 		}

@@ -1,11 +1,13 @@
-#ifndef lint
-static char sccsid[] = "@(#)pk1.c	5.9 (Berkeley) 5/30/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)pk1.c	5.9.1 (2.11BSD) 1996/3/22";
 #endif
 
 #include <signal.h>
 #include "uucp.h"
 #include "pk.h"
 #include <setjmp.h>
+#include <errno.h>
+#include <string.h>
 #ifdef BSD4_2
 #include <sys/time.h>
 #endif BSD4_2
@@ -22,9 +24,7 @@ int iomask[2];
 #define CONNODATA 10
 #define MAXTIMEOUT 32
 
-extern int errno;
 extern int Retries;
-extern char *sys_errlist[];
 extern jmp_buf Sjbuf;
 extern	char *malloc();
 
@@ -293,7 +293,7 @@ register x;
 	if (x < 0) {
 		if(write(pk->p_ofn, p, HDRSIZ) != HDRSIZ) {
 			alarm(0);
-			logent("PKXSTART write failed", sys_errlist[errno]);
+			logent("PKXSTART write failed", strerror(errno));
 			longjmp(Sjbuf, 4);
 		}
 	} else {
@@ -310,7 +310,7 @@ register x;
 		if (write(pk->p_ofn, buf, pk->p_xsize + HDRSIZ + TAILSIZE)
 		    != (HDRSIZ + TAILSIZE + pk->p_xsize)) {
 			alarm(0);
-			logent("PKXSTART write failed", sys_errlist[errno]);
+			logent("PKXSTART write failed", strerror(errno));
 			longjmp(Sjbuf, 5);
 		}
 		Connodata = 0;
@@ -420,7 +420,7 @@ register int n;
 		}
 		if (ret <= 0) {
 			alarm(0);
-			logent(sys_errlist[errno],"FAILED pkcget Read");
+			logent(strerror(errno),"FAILED pkcget Read");
 			longjmp(Sjbuf, 6);
 		}
  		b += ret;

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)io.c	5.1 (Berkeley) 6/6/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)io.c	5.1.1 (2.11BSD) 1996/3/22";
+#endif
 
 /*
  * This file contains the I/O handling and the exchange of 
@@ -17,6 +17,7 @@ static char sccsid[] = "@(#)io.c	5.1 (Berkeley) 6/6/85";
 #include "talk.h"
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/time.h>
 
 #define A_LONG_TIME 10000000
@@ -82,10 +83,6 @@ talk()
 	}
 }
 
-extern	int errno;
-extern	int sys_nerr;
-extern	char *sys_errlist[];
-
 /*
  * p_error prints the system error message on the standard location
  * on the screen and then exits. (i.e. a curses version of perror)
@@ -95,9 +92,7 @@ p_error(string)
 {
 	char *sys;
 
-	sys = "Unknown error";
-	if (errno < sys_nerr)
-		sys = sys_errlist[errno];
+	sys = strerror(errno);
 	wmove(my_win.x_win, current_line%my_win.x_nlines, 0);
 	wprintw(my_win.x_win, "[%s : %s (%d)]\n", string, sys, errno);
 	wrefresh(my_win.x_win);

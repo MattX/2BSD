@@ -1,4 +1,4 @@
-/*	@(#)subr.c	2.3	SCCS id keyword	*/
+/*	@(#)subr.c	2.3.1	(2.11BSD) 1996/3/21 */
 /* Copyright (c) 1979 Regents of the University of California */
 #include "whoami"
 /*
@@ -96,7 +96,6 @@ inpflist(fp)
 #endif
 
 extern	int errno;
-extern	char *sys_errlist[];
 
 /*
  * Boom!

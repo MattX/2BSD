@@ -9,9 +9,13 @@
  *
  * Bill Joy UCB
  * Version 1.2 January 1979
+ *
+ * 1996/3/22 - make Perror look like that in ../pi/subr.c
  */
 
 #include "0.h"
+#include <sys/types.h>
+#include <sys/uio.h>
 
 #ifndef PI1
 /*
@@ -90,19 +94,27 @@ inpflist(fp)
 }
 #endif
 
-extern	int errno;
-extern	char *sys_errlist[];
-
 /*
  * Boom!
- */
-Perror(file, error)
-	char *file, *error;
-{
+ *
+ * Can't use 'fprintf(stderr...)' because that would require stdio.h and
+ * that can't be used because the 'ferror' macro would conflict with the routine
+ * of the same name.   But we don't want to use sys_errlist[] because that's
+ * ~2kb of D space.
+*/
 
-	errno = 0;
-	sys_errlist[0] = error;
-	perror(file);
+Perror(file, mesg)
+	char *file, *mesg;
+{
+	struct	iovec	iov[3];
+
+	iov[0].iov_base = file;
+	iov[0].iov_len = strlen(file);
+	iov[1].iov_base = ": ";
+	iov[1].iov_len = 2;
+	iov[2].iov_base = mesg;
+	iov[2].iov_len = strlen(mesg);
+	writev(2, iov, 3);
 }
 
 calloc(num, size)
@@ -121,49 +133,6 @@ calloc(num, size)
 	return (p1);
 }
 
-/*
- * Compare strings:  s1>s2: >0  s1==s2: 0  s1<s2: <0
- */
-strcmp(s1, s2)
-	register char *s1, *s2;
-{
-
-	while (*s1 == *s2++)
-		if (*s1++=='\0')
-			return (0);
-	return (*s1 - *--s2);
-}
-
-/*
- * Copy string s2 to s1.
- * S1 must be large enough.
- * Return s1.
- */
-strcpy(s1, s2)
-	register char *s1, *s2;
-{
-	register os1;
-
-	os1 = s1;
-	while (*s1++ = *s2++)
-		continue;
-	return (os1);
-}
-
-/*
- * Strlen is currently a freebie of perror
- * Take the length of a string.
- * Note that this does not include the trailing null!
-strlen(cp)
-	register char *cp;
-{
-	register int i;
-
-	for (i = 0; *cp != 0; cp++)
-		i++;
-	return (i);
-}
- */
 copy(to, from, bytes)
 	register char *to, *from;
 	register int bytes;

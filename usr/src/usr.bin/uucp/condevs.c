@@ -1,9 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)condevs.c	5.15 (Berkeley) 2/12/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)condevs.c	5.15.1 (2.11BSD) 1996/3/22";
 #endif
-
-extern int errno;
-extern char *sys_errlist[];
 
 /*
  * Here are various dialers to establish the machine-machine connection.
@@ -27,6 +24,7 @@ extern char *sys_errlist[];
  * THE FIX: Don't declare variables to be register
  */
 
+#include <string.h>
 #include "condevs.h"
 
 struct condev condevs[] = {
@@ -437,15 +435,15 @@ register int fn, bnulls;
 {
 #ifdef	USG
 	if (ioctl(fn, TCSBRK, STBNULL) < 0)
-		DEBUG(5, "break TCSBRK %s\n", sys_errlist[errno]);
+		DEBUG(5, "break TCSBRK %s\n", strerror(errno));
 #else	!USG
 # ifdef	TIOCSBRK
 	if (ioctl(fn, TIOCSBRK, STBNULL) < 0)
-		DEBUG(5, "break TIOCSBRK %s\n", sys_errlist[errno]);
+		DEBUG(5, "break TIOCSBRK %s\n", strerror(errno));
 # ifdef	TIOCCBRK
 	uucpdelay(bnulls, 10);
 	if (ioctl(fn, TIOCCBRK, STBNULL) < 0)
-		DEBUG(5, "break TIOCCBRK %s\n", sys_errlist[errno]);
+		DEBUG(5, "break TIOCCBRK %s\n", strerror(errno));
 # endif TIOCCBRK
 	DEBUG(4, "ioctl %f second break\n", (float) bnulls/10 );
 # else !TIOCSBRK
@@ -453,20 +451,20 @@ register int fn, bnulls;
 	register int sospeed;
 
 	if (ioctl(fn, TIOCGETP, &ttbuf) < 0)
-		DEBUG(5, "break TIOCGETP %s\n", sys_errlist[errno]);
+		DEBUG(5, "break TIOCGETP %s\n", strerror(errno));
 	sospeed = ttbuf.sg_ospeed;
 	ttbuf.sg_ospeed = BSPEED;
 	if (ioctl(fn, TIOCSETP, &ttbuf) < 0)
-		DEBUG(5, "break TIOCSETP %s\n", sys_errlist[errno]);
+		DEBUG(5, "break TIOCSETP %s\n", strerror(errno));
 	if (write(fn, "\0\0\0\0\0\0\0\0\0\0\0\0", bnulls) != bnulls) {
 badbreak:
-		logent(sys_errlist[errno], "BAD WRITE genbrk");
+		logent(strerror(errno), "BAD WRITE genbrk");
 		alarm(0);
 		longjmp(Sjbuf, 3);
 	}
 	ttbuf.sg_ospeed = sospeed;
 	if (ioctl(fn, TIOCSETP, &ttbuf) < 0)
-		DEBUG(5, "break ioctl %s\n", sys_errlist[errno]);
+		DEBUG(5, "break ioctl %s\n", strerror(errno));
 	if (write(fn, "@", 1) != 1)
 		goto badbreak;
 	DEBUG(4, "sent BREAK nulls - %d\n", bnulls);

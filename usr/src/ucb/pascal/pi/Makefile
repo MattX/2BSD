@@ -1,5 +1,5 @@
 #
-# pi Makefile - 1.1 1996/1/27
+# pi Makefile - 1.2 1996/3/22
 #
 
 DESTDIR=
@@ -49,7 +49,10 @@ UTILS=		version
 ERRORSTRINGS=	pi1.2strings
 ALL=		${INSTALL} ${UTILS} ${ERRORSTRINGS}
 
-all: ${ALL}
+all: ${TEMPDIR} ${ALL}
+
+tmp:
+	-mkdir tmp
 
 .c.o:
 	rm -f ${TEMPDIR}/$*.c

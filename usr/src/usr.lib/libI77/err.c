@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)err.c	5.2	7/30/85
+ *	@(#)err.c	5.2.1	1996/3/22
  */
 
 /*
@@ -47,12 +47,8 @@ struct ioiflg ioiflg_;	/* initialization flags */
 
 /*error messages*/
 
-extern char *sys_errlist[];
-extern int sys_nerr;
-
 extern char *f_errlist[];
 extern int f_nerr;
-
 
 fatal(n,s) char *s;
 {
@@ -62,12 +58,10 @@ fatal(n,s) char *s;
 		flush_(&lu);
 	if(n<0)
 		fprintf(stderr,"%s: [%d] end of file\n",s,n);
-	else if(n>=0 && n<sys_nerr)
-		fprintf(stderr,"%s: [%d] %s\n",s,n,sys_errlist[n]);
 	else if(n>=F_ER && n<F_MAXERR)
 		fprintf(stderr,"%s: [%d] %s\n",s,n,f_errlist[n-F_ER]);
 	else
-		fprintf(stderr,"%s: [%d] unknown error number\n",s,n);
+		fprintf(stderr,"%s: [%d] %s\n",s,n,strerror(n));
 	if(external)
 	{
 		if(!lfname) switch (lunit)

@@ -1,4 +1,4 @@
-/*	condevs.h	4.7	1/1/94	*/
+/*	condevs.h	4.7.1	1996/3/22	*/
 
 #include "uucp.h"
 #include <errno.h>
@@ -14,7 +14,7 @@
 #endif
 
 extern char devSel[];	/* name to pass to delock() in close */
-extern int errno, next_fd;
+extern int next_fd;
 extern jmp_buf Sjbuf;
 extern int alarmtr();
 int nulldev(), nodev(), Acuopn(), diropn(), dircls();

@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)acucntrl.c	5.8.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)acucntrl.c	5.8.2 (2.11BSD GTE) 1996/3/22";
 #endif
 
 /*  acucntrl - turn around tty line between dialin and dialout
@@ -65,6 +65,8 @@ static char sccsid[] = "@(#)acucntrl.c	5.8.1 (2.11BSD GTE) 1/1/94";
 #include <pwd.h>
 #include <stdio.h>
 #include <sys/file.h>
+#include <errno.h>
+#include <string.h>
 
 #define NDZLINE	8	/* lines/dz */
 #define NDHLINE	16	/* lines/dh */
@@ -130,9 +132,6 @@ int etcutmp;
 off_t utmploc;
 off_t ttyslnbeg;
 
-extern int errno;
-extern char *sys_errlist[];
-
 #define NAMSIZ	sizeof(utmp.ut_name)
 #define	LINSIZ	sizeof(utmp.ut_line)
 
@@ -183,7 +182,7 @@ int argc; char *argv[];
 	/* Chdir to /dev */
 	if(chdir(Devhome) < 0) {
 		fprintf(stderr, "Cannot chdir to %s: %s\r\n",
-			Devhome, sys_errlist[errno]);
+			Devhome, strerror(errno));
 		exit(1);
 	}
 
@@ -209,7 +208,7 @@ int argc; char *argv[];
 	/* check to see if line is being used */
 	if( (etcutmp = open(Etcutmp, 2)) < 0) {
 		fprintf(stderr, "On open %s open: %s\n",
-			Etcutmp, sys_errlist[errno]);
+			Etcutmp, strerror(errno));
 		exit(1);
 	}
 
@@ -242,24 +241,24 @@ int argc; char *argv[];
 	if (enable) {
 		if((devfile = open(device, 1)) < 0) {
 			fprintf(stderr, "On open of %s: %s\n",
-				device, sys_errlist[errno]);
+				device, strerror(errno));
 			(void)setmodem(device, resetmodem);
 			exit(1);
 		}
 		/* Try one last time to hang up */
 		if (ioctl(devfile, TIOCCDTR, (char *)0) < 0)
 			fprintf(stderr, "On TIOCCDTR ioctl: %s\n",
-				sys_errlist[errno]);
+				strerror(errno));
 
 		if (ioctl(devfile, TIOCNXCL, (char *)0) < 0)
 			fprintf(stderr,
 			    "Cannot clear Exclusive Use on %s: %s\n",
-				device, sys_errlist[errno]);
+				device, strerror(errno));
 
 		if (ioctl(devfile, TIOCHPCL, (char *)0) < 0)
 			fprintf(stderr,
 			    "Cannot set hangup on close on %s: %s\n",
-				device, sys_errlist[errno]);
+				device, strerror(errno));
 
 		i = resetmodem;
 
@@ -287,7 +286,7 @@ int argc; char *argv[];
 
 			if((devfile = open(device, 1)) < 0) {
 				fprintf(stderr, "On open of %s: %s\n",
-					device, sys_errlist[errno]);
+					device, strerror(errno));
 				(void)setmodem(device, resetmodem);
 				exit(1);
 			}
@@ -306,7 +305,7 @@ int argc; char *argv[];
 		/* chown device */
 		if(chown(device, uid, gid) < 0)
 			fprintf(stderr, "Cannot chown %s: %s\n",
-				device, sys_errlist[errno]);
+				device, strerror(errno));
 
 
 		/* poke init */
@@ -318,12 +317,12 @@ int argc; char *argv[];
 		post(device, Uname);
 		if((devfile = open(device, O_RDWR|O_NDELAY)) < 0) {
 			fprintf(stderr, "On %s open: %s\n",
-				device, sys_errlist[errno]);
+				device, strerror(errno));
 		} else {
 			if(ioctl(devfile, TIOCSDTR, (char *)0) < 0)
 				fprintf(stderr,
 				    "Cannot set DTR on %s: %s\n",
-					device, sys_errlist[errno]);
+					device, strerror(errno));
 		}
 	}
 
@@ -350,10 +349,10 @@ char *device, *name;
 	strncpy(utmp.ut_name, name,  NAMSIZ);
 	if (lseek(etcutmp, utmploc, 0) < 0)
 		fprintf(stderr, "on lseek in /etc/utmp: %s",
-			sys_errlist[errno]);
+			strerror(errno));
 	if (write(etcutmp, (char *)&utmp, sizeof(utmp)) < 0)
 		fprintf(stderr, "on write in /etc/utmp: %s",
-			sys_errlist[errno]);
+			strerror(errno));
 }
 	
 /* poke process 1 and wait for it to do its thing */
@@ -369,7 +368,7 @@ char *uname, *device; int enable;
 	if (kill(1, SIGHUP)) {
 		fprintf(stderr,
 		    "Cannot send hangup to init process: %s\n",
-			sys_errlist[errno]);
+			strerror(errno));
 		(void)settys(resettty);
 		(void)setmodem(device, resetmodem);
 		exit(1);
@@ -384,10 +383,10 @@ char *uname, *device; int enable;
 		sleep(1);
 		if (lseek(etcutmp, utmploc, 0) < 0)
 			fprintf(stderr, "On lseek in /etc/utmp: %s",
-				sys_errlist[errno]);
+				strerror(errno));
 		if (read(etcutmp, (char *)&utmp, sizeof utmp) < 0)
 			fprintf(stderr, "On read from /etc/utmp: %s",
-				sys_errlist[errno]);
+				strerror(errno));
 	} while (utmp.ut_name[0] != '\0' && --i > 0);
 }
 
@@ -410,14 +409,14 @@ char *device;
 		ttysfile = fopen(Etcttys, "r");
 		if(ttysfile == NULL) {
 			fprintf(stderr, "Cannot open %s: %s\n", Etcttys,
-				sys_errlist[errno]);
+				strerror(errno));
 			exit(1);
 		}
 	} while (flock(fileno(ttysfile), LOCK_NB|LOCK_EX) < 0);
 	nttysfile = fopen(NEtcttys, "w");
 	if(nttysfile == NULL) {
 		fprintf(stderr, "Cannot open %s: %s\n", Etcttys,
-			sys_errlist[errno]);
+			strerror(errno));
 		exit(1);
 	}
 
@@ -436,7 +435,7 @@ char *device;
 			utmploc += sizeof(utmp);
 		if (fputs(linebuf, nttysfile) == NULL) {
 			fprintf(stderr, "On %s write: %s\n",
-				Etcttys, sys_errlist[errno]);
+				Etcttys, strerror(errno));
 			exit(1);
 		}
 		
@@ -457,7 +456,7 @@ int enable;
 	(void) fseek(ttysfile, ttyslnbeg, 0);
 	if(fgets(lbuf, BUFSIZ, ttysfile) == NULL) {
 		fprintf(stderr, "On %s read: %s\n",
-			Etcttys, sys_errlist[errno]);
+			Etcttys, strerror(errno));
 		exit(1);
 	}
 	/* format is now */
@@ -499,13 +498,13 @@ int enable;
 	fprintf(nttysfile,"%s%c%s%c%s", lbuf, c1, enable ? "on" : "off", c2, cp);
 	if (ferror(nttysfile)) {
 		fprintf(stderr, "On %s fprintf: %s\n",
-			NEtcttys, sys_errlist[errno]);
+			NEtcttys, strerror(errno));
 		exit(1);
 	}
 	while(fgets(lbuf, sizeof(lbuf) - 1, ttysfile) != NULL) {
 		if (fputs(lbuf, nttysfile) == NULL) {
 			fprintf(stderr, "On %s write: %s\n",
-				NEtcttys, sys_errlist[errno]);
+				NEtcttys, strerror(errno));
 			exit(1);
 		}
 	}
@@ -540,7 +539,7 @@ char *device;
 	ttysfile = fopen(Etcttys, "r");
 	if(ttysfile == NULL) {
 		fprintf(stderr, "Cannot open %s: %s\n", Etcttys,
-			sys_errlist[errno]);
+			strerror(errno));
 		exit(1);
 	}
 
@@ -573,13 +572,13 @@ int enable;
 	ittysfil = open(Etcttys, 2);
 	if(ittysfil < 0) {
 		fprintf(stderr, "Cannot open %s for output: %s\n",
-			Etcttys, sys_errlist[errno]);
+			Etcttys, strerror(errno));
 		exit(1);
 	}
 	(void)lseek(ittysfil, ttyslnbeg, 0);
 	if(read(ittysfil, &in, 1)<0) {
 		fprintf(stderr, "On %s write: %s\n",
-			Etcttys, sys_errlist[errno]);
+			Etcttys, strerror(errno));
 		exit(1);
 	}
 	resettty = (in == '1');
@@ -587,7 +586,7 @@ int enable;
 	(void)lseek(ittysfil, ttyslnbeg, 0);
 	if(write(ittysfil, &out, 1)<0) {
 		fprintf(stderr, "On %s write: %s\n",
-			Etcttys, sys_errlist[errno]);
+			Etcttys, strerror(errno));
 		exit(1);
 	}
 	(void)close(ittysfil);
@@ -648,12 +647,12 @@ char *ttyline; int enable;
 	}
 
 	if((kmem = open("/dev/kmem", 2)) < 0) {
-		fprintf(stderr, "/dev/kmem open: %s\n", sys_errlist[errno]);
+		fprintf(stderr, "/dev/kmem open: %s\n", strerror(errno));
 		return(-1);
 	}
 
 	if(stat(ttyline, &statb) < 0) {
-		fprintf(stderr, "%s stat: %s\n", ttyline, sys_errlist[errno]);
+		fprintf(stderr, "%s stat: %s\n", ttyline, strerror(errno));
 		return(-1);
 	}
 
