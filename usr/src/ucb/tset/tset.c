@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)tset.c	5.8 (Berkeley) 4/28/86";
-#endif not lint
+static char sccsid[] = "@(#)tset.c	5.8.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 /*
 **  TSET -- set terminal modes
@@ -1084,10 +1082,6 @@ ask:
 		setdelay("dB", BSdelay, BSbits, &mode.sg_flags);
 		setdelay("dF", FFdelay, FFbits, &mode.sg_flags);
 		setdelay("dT", TBdelay, TBbits, &mode.sg_flags);
-		if (tgetflag("UC") || (command[0] & 0140) == 0100)
-			mode.sg_flags |= LCASE;
-		else if (tgetflag("LC"))
-			mode.sg_flags &= ~LCASE;
 		mode.sg_flags &= ~(EVENP | ODDP | RAW);
 # ifdef CBREAK
 		mode.sg_flags &= ~CBREAK;

@@ -1,4 +1,4 @@
-static char *sccsid = "@(#)tabs.c	4.1 (Berkeley) 10/1/80";
+static char *sccsid = "@(#)tabs.c	4.1.1 (2.11BSD) 12/9/94";
 #include <stdio.h>
 #include <sgtty.h>
 
@@ -88,12 +88,12 @@ int argc; char **argv;
 
 		default:
 				gtty (0, &tb);
-				if ( (tb.sg_flags & (LCASE|CRMOD)) == CRMOD) {
-					/* test for CR map on, upper case off, i.e. terminet but not 33 */
+				if (tb.sg_flags & CRMOD) {
+					/* test for CR map on, i.e. terminet but not 33 */
 					if ((tb.sg_ispeed) == B300) /* test for 300 baud */
 						misc();
 				}
-				else if ((tb.sg_flags & (CRMOD|LCASE)) == 0 && (tb.sg_ispeed ) == B150) {
+				else if ((tb.sg_flags & CRMOD) == 0 && (tb.sg_ispeed ) == B150) {
 					/* apparent model 37 */
 					tty37();
 				}
