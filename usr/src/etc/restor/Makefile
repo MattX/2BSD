@@ -1,11 +1,6 @@
 #
-# restor makefile
+# restor makefile - SEPFLAG must be -i, restor will not run unless built -i
 #
-
-# If SEPFLAG is not "-i" then DEFS must include "-DNONSEPARATE" on the
-# PDP-11.  Ex:
-#	SEPFLAG= -n
-#	DEFS= -DNONSEPARATE
 
 SEPFLAG= -i
 DEFS= 
@@ -28,3 +23,6 @@ tags:
 	for i in ${SRCS}; do \
 		ctags -a -f tags $$cwd/$$i; \
 	done
+
+lint:
+	lint -haxcz restor.c

@@ -1,8 +1,11 @@
 /*
- *	NOTE:	This Program is must be loaded 407
- *		to run standalone.  Make sure to keep
- *		the size under 48K or it will run out
- *		of stack space
+ * 1995/06/09 - standalone restor must be loaded split I/D because the
+ *		disklabel handling increased the size of standalone programs.
+ *		This is not too much of a problem since the Kernel has been
+ *		required to be split I/D for several years.
+ *
+ *		Since split I/D is now required the NCACHE parameter is no
+ *		longer ifdef'd on STANDALONE (and is always 3 instead of 1).
  */
 
 #include <sys/param.h>
@@ -13,11 +16,7 @@
 #endif
 #define BITS	8
 #define MAXXTR	60
-#ifndef	STANDALONE
 #define NCACHE	3
-#else
-#define NCACHE	1	/* Size reduction as refered to above */
-#endif
 #define	flsht()	(bct = NTREC + 1)
 
 #ifndef STANDALONE

@@ -1,7 +1,7 @@
-char	*sccsid = "@(#)mkfs.c	2.7";
+char	*sccsid = "@(#)mkfs.c	2.8 1995/06/12";
 
 /*
- * Make a file system prototype.
+ * Make a file system.  Normally run by 'newfs' and not directly by users.
  * usage: mkfs filsys size [ m n ]
  */
 #include <sys/param.h>
@@ -11,15 +11,17 @@ char	*sccsid = "@(#)mkfs.c	2.7";
  * See /sys/h/localtimes.h and /sys/conf.
 */
 #undef	EXTERNALITIMES
-#ifndef STANDALONE
-#include <stdio.h>
-#endif
 
 #include <sys/file.h>
-#include <sys/fs.h>
-#include <sys/inode.h>
 #include <sys/dir.h>
 #include <sys/stat.h>
+#ifndef STANDALONE
+#include <stdio.h>
+#include <sys/fs.h>
+#include <sys/inode.h>
+#else
+#include "saio.h"
+#endif
 
 #define	UMASK	0755
 #define	NIPB	(DEV_BSIZE/sizeof(struct dinode))
@@ -30,6 +32,8 @@ time_t	utime;
 #ifdef STANDALONE
 int	fin;
 char	module[] = "Mkfs";
+extern	char	*ltoa();
+extern	struct	iob	iob[];
 #endif
 
 int	fsi;
@@ -47,9 +51,11 @@ union {
 } filsys;
 
 int	f_n	= 100;
-int	f_m	= 5;
+int	f_m	= 2;
 
-daddr_t	alloc();
+	daddr_t	alloc();
+
+extern	long	atol();
 
 main(argc,argv)
 int	argc;
@@ -58,6 +64,11 @@ char	**argv;
 register int f, c;
 	long n;
 register char *size;
+#ifdef	STANDALONE
+	struct	disklabel *lp;
+	struct	partition *pp;
+	struct	iob	*io;
+#endif
 
 #ifndef STANDALONE
 	time(&utime);
@@ -66,6 +77,14 @@ register char *size;
 		exit(1);
 	}
 	size = argv[2];
+/*
+ * NOTE: this will fail if the device is currently mounted and the system
+ * is at securelevel 1 or higher.
+ *
+ * We do not get the partition information because 'newfs' has already
+ * done so and invoked us.  This program should not be run manually unless
+ * you are absolutely sure you know what you are doing - use 'newfs' instead.
+*/
 	fso = creat(argv[1], 0666);
 	if(fso < 0) {
 		printf("%s: cannot create\n", argv[1]);
@@ -77,6 +96,11 @@ register char *size;
 		exit(1);
 	}
 #else
+/*
+ * Something more modern than January 1, 1970 - the date that the new 
+ * standalone mkfs worked.  1995/06/08 2121.
+*/
+	utime = 802671684L;
 	printf("%s\n",module);
 	do {
 		printf("file system: ");
@@ -85,13 +109,67 @@ register char *size;
 		fsi = open(buf, 0);
 	} while (fso < 0 || fsi < 0);
 
-	printf("file sys size: ");
+/*
+ * If the underlying driver supports disklabels then do not make a file
+ * system unless: there is a valid label present, the specified partition
+ * is of type FS_V71K, and the size is not zero.
+ *
+ * The 'open' above will have already fetched the label if the driver supports
+ * labels - the check below will only fail if the driver doesn't do labels
+ * or if the drive blew up in the millisecond since the last read.
+*/
+	io = &iob[fsi - 3];
+	lp = &io->i_label;
+	pp = &lp->d_partitions[io->i_part];
+
+	if	(devlabel(io, READLABEL) < 0)
+		{
+/*
+ * The driver does not implement labels.  The 'iob' structure still contains
+ * a label structure so initialize the items that will be looked at later.
+*/
+		pp->p_size = 0;
+		lp->d_secpercyl = 0;
+		goto nolabels;
+		}
+	if	(lp->d_magic != DISKMAGIC || lp->d_magic2 != DISKMAGIC ||
+		 dkcksum(lp))
+		{
+		printf("'%s' is either unlabeled or the label is corrupt.\n",
+			buf);
+		printf("Since the driver for '%s' supports disklabels you\n",
+			buf);
+		printf("must use the standalone 'disklabel' before making\n");
+		printf("a filesystem on '%s'\n", buf);
+		return;
+		}
+	if	(pp->p_fstype != FS_V71K)
+		{
+		printf("%s is not a 2.11BSD (FS_V71K) partition.", buf);
+		return;
+		}
+	if	(pp->p_size == 0)
+		{
+		printf("%s is a zero length partition.\n", buf);
+		return;
+		}
+nolabels:
+	printf("file sys size [%D]: ", dbtofsb(pp->p_size));
 	size = buf+128;
 	gets(size);
+	if	(size[0] == '\0')
+		strcpy(size, ltoa(dbtofsb(pp->p_size)));
+	if	(pp->p_size && atol(size) > pp->p_size)
+		{
+		printf("specified size is larger than the disklabel says.\n");
+		return;
+		}
 	printf("interleaving factor (m; %d default): ", f_m);
 	gets(buf);
 	if (buf[0])
 		f_m = atoi(buf);
+	if	(lp->d_secpercyl)
+		f_n = dbtofsb(lp->d_secpercyl);
 	printf("interleaving modulus (n; %d default): ", f_n);
 	gets(buf);
 	if (buf[0])
@@ -112,6 +190,11 @@ register char *size;
 		n = n*10 + (c-'0');
 	}
 	filsys.fs.fs_fsize = n;
+	if	(!n)
+		{
+		printf("Can't make zero length filesystem\n");
+		return;
+		}
 	/*
 	 * Minor hack for standalone root and other
 	 * small filesystems: reduce ilist size.
@@ -139,7 +222,7 @@ register char *size;
 	filsys.fs.fs_cyl = f_n;
 	printf("m/n = %d %d\n", f_m, f_n);
 	if(filsys.fs.fs_isize >= filsys.fs.fs_fsize) {
-		printf("%ld/%ld: bad ratio\n", filsys.fs.fs_fsize, filsys.fs.fs_isize-2);
+		printf("%D/%D: bad ratio\n", filsys.fs.fs_fsize, filsys.fs.fs_isize-2);
 		exit(1);
 	}
 	filsys.fs.fs_tfree = 0;
