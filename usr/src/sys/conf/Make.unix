@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.1 (2.11BSD GTE) 2/14/95
+#	2.2 (2.11BSD GTE) 1995/04/13
 #
 #########################################################
 # Non-networking, non-separate I/D kernel		#
@@ -62,7 +62,7 @@ BASE=	br.o clock.o cons.o dh.o dhu.o dhv.o dkbad.o dn.o dr.o dz.o hk.o ht.o  \
 	ufs_bio.o ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o \
 	ufs_mount.o ufs_namei.o ufs_subr.o ufs_syscalls.o \
 	vm_proc.o vm_sched.o vm_swap.o vm_swp.o vm_text.o xp.o subr_log.o \
-	kern_sysctl.o ingreslock.o
+	kern_sysctl.o ingreslock.o ufs_disksubr.o
 
 OV1=	
 OV2=	
