@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)ls.c	5.9.1 (2.11BSD GTE) 12/3/94";
+static char sccsid[] = "@(#)ls.c	5.9.2 (2.11BSD GTE) 1996/12/23";
 #endif
 
 /*
@@ -91,12 +91,21 @@ main(argc, argv)
 		usetabs = 1;
 	while ((ch = getopt(argc, argv, "1ACLFRacdfgiloqrstu")) != EOF)
 		switch((char)ch) {
+/*
+ * The -1, -C, and -l options override each other so shell aliasing 
+ * works right.
+*/
 		case '1':
+			lflg = 0;
 			Cflg = 0; break;
+		case 'C':
+			lflg = 0;
+			Cflg = 1; break;
+		case 'l':
+			Cflg = 0;
+			lflg++; break;
 		case 'A':
 			Aflg++; break;
-		case 'C':
-			Cflg = 1; break;
 		case 'L':
 			Lflg++; break;
 		case 'F':
@@ -106,8 +115,10 @@ main(argc, argv)
 		case 'a':
 			aflg++; break;
 		case 'c':
+			uflg = 0;	/* -c overrides -u */
 			cflg++; break;
 		case 'd':
+			Rflg = 0;	/* -d overrides -R */
 			dflg++; break;
 		case 'f':
 			fflg++; break;
@@ -115,8 +126,6 @@ main(argc, argv)
 			gflg++; break;
 		case 'i':
 			iflg++; break;
-		case 'l':
-			lflg++; break;
 		case 'o':
 			oflg++; break;
 		case 'q':
@@ -128,6 +137,7 @@ main(argc, argv)
 		case 't':
 			tflg++; break;
 		case 'u':
+			cflg = 0;	/* -u overrides -c */
 			uflg++; break;
 		case '?':
 		default:
@@ -136,7 +146,8 @@ main(argc, argv)
 	}
 	if (!lflg)
 		oflg = 0;
-	if (fflg) { 
+	if (fflg) {
+		Aflg++;
 		aflg++; lflg = 0; sflg = 0; tflg = 0;
 	}
 	if (lflg)
@@ -162,11 +173,13 @@ main(argc, argv)
 		argv++;
 	}
 	fplast = fp;
-	qsort(fp0, fplast - fp0, sizeof (struct afile), fcmp);
+	if (fflg == 0)
+		qsort(fp0, fplast - fp0, sizeof (struct afile), fcmp);
 	if (dflg) {
 		formatf(fp0, fplast);
 		exit(0);
 	}
+
 	if (fflg)
 		fp = fp0;
 	else {
@@ -174,6 +187,7 @@ main(argc, argv)
 			continue;
 		formatf(fp0, fp);
 	}
+
 	if (fp < fplast) {
 		if (fp > fp0)
 			putchar('\n');
@@ -196,22 +210,23 @@ main(argc, argv)
 	exit(0);
 }
 
-formatd(name, title)
+formatd(name, dotitle)
 	char *name;
-	int title;
+	int dotitle;
 {
 	register struct afile *fp;
 	register struct subdirs *dp;
 	struct afile *dfp0, *dfplast;
+	int isadir;
 	long nkb, getdir();
 
-	nkb = getdir(name, &dfp0, &dfplast);
+	nkb = getdir(name, &dfp0, &dfplast, &isadir);
 	if (dfp0 == 0)
 		return;
 	if (fflg == 0)
 		qsort(dfp0, dfplast - dfp0, sizeof (struct afile), fcmp);
-	if (title)
-		printf("%s:\n", name);
+	if (dotitle)
+		printf("%s%s\n", name, isadir ? ":" : "");
 	if (lflg || sflg)
 		printf("total %ld\n", nkb);
 	formatf(dfp0, dfplast);
@@ -235,13 +250,15 @@ formatd(name, title)
 }
 
 long
-getdir(dir, pfp0, pfplast)
+getdir(dir, pfp0, pfplast, isadir)
 	char *dir;
 	struct afile **pfp0, **pfplast;
+	int *isadir;
 {
 	register struct afile *fp;
 	DIR *dirp;
 	register struct direct *dp;
+	struct	stat st;
 	long nb;
 	int nent = 20;
 
@@ -251,6 +268,11 @@ getdir(dir, pfp0, pfplast)
 		printf("%s unreadable\n", dir);		/* not stderr! */
 		return (0);
 	}
+	fstat(dirfd(dirp), &st);
+	if (S_ISDIR(st.st_mode))
+		*isadir = 1;
+	else
+		*isadir = 0;
 	fp = *pfp0 = (struct afile *)calloc(nent, sizeof (struct afile));
 	*pfplast = *pfp0 + nent;
 	nb = 0;

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ls.1	6.4.1 (2.11BSD GTE) 12/12/94
+.\"	@(#)ls.1	6.4.2 (2.11BSD GTE) 1996/12/23
 .\"
 .TH LS 1 "December 20, 1994"
 .UC
@@ -86,17 +86,7 @@ Use time of file creation for sorting or printing.
 For each file, print the i-number in the first column of the report.
 .TP
 .B \-f
-Force each argument to be interpreted as a directory
-and list the name found in each slot.
-This option turns off
-.B "\-l, \-t, \-s,"
-and
-.B \-r,
-and
-turns on
-.B \-a;
-the order is the order in which entries
-appear in the directory.
+Output is not sorted.
 .TP
 .B \-F
 cause directories to be marked with a trailing `/',

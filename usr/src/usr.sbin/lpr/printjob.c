@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)printjob.c	5.2.2 (2.11BSD GTE) 1996/10/24";
+static char sccsid[] = "@(#)printjob.c	5.2.3 (2.11BSD GTE) 1996/12/23";
 #endif
 
 /*
@@ -16,6 +16,7 @@ static char sccsid[] = "@(#)printjob.c	5.2.2 (2.11BSD GTE) 1996/10/24";
  */
 
 #include "lp.h"
+#include <sys/time.h>
 
 #define DORETURN	0	/* absorb fork error */
 #define DOABORT		1	/* abort if dofork fails */
@@ -45,7 +46,7 @@ int	remote;			/* true if sending files to remote */
 dev_t	fdev;			/* device of file pointed to by symlink */
 ino_t	fino;			/* inode of file pointed to by symlink */
 
-char	fromhost[32];		/* user's host machine */
+char	fromhost[64];		/* user's host machine */
 char	logname[32];		/* user's login name */
 char	jobname[100];		/* job or file name */
 char	class[32];		/* classification field */
@@ -207,7 +208,7 @@ again:
 
 char	fonts[4][50];	/* fonts for troff */
 
-char ifonts[4][18] = {
+char *ifonts[4] = {
 	"/usr/share/vfont/R",
 	"/usr/share/vfont/I",
 	"/usr/share/vfont/B",
@@ -786,7 +787,6 @@ banner(name1, name2)
 	char *name1, *name2;
 {
 	time_t tvec;
-	extern char *ctime();
 
 	time(&tvec);
 	if (!SF && !tof)
