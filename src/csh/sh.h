@@ -113,7 +113,7 @@ int	(*parterm)();		/* Parents terminate catch */
  * The eighth bit of characters is used to prevent recognition,
  * and eventually stripped.
  */
-#define QUOTE 	0200		/* Eighth char bit used internally for 'ing */
+#define	QUOTE 	0200		/* Eighth char bit used internally for 'ing */
 #define	TRIM	0177		/* Mask to strip quote bit */
 
 /*
@@ -217,14 +217,14 @@ struct	command {
 #define	TOR	5		/* t_dlef || t_drit		*/
 #define	TAND	6		/* t_dlef && t_drit		*/
 
-#define FAND	(1<<0)		/* executes in background	*/
-#define FCAT	(1<<1)		/* output is redirected >>	*/
-#define FPIN	(1<<2)		/* input is a pipe		*/
-#define FPOU	(1<<3)		/* output is a pipe		*/
-#define FPAR	(1<<4)		/* don't fork, last ()ized cmd	*/
-#define FINT	(1<<5)		/* don't make interruptible	*/
-#define FPRS	(1<<6)		/* print number when forked	*/
-#define FDIAG	(1<<7)		/* redirect unit 2 with unit 1	*/
+#define	FAND	(1<<0)		/* executes in background	*/
+#define	FCAT	(1<<1)		/* output is redirected >>	*/
+#define	FPIN	(1<<2)		/* input is a pipe		*/
+#define	FPOU	(1<<3)		/* output is a pipe		*/
+#define	FPAR	(1<<4)		/* don't fork, last ()ized cmd	*/
+#define	FINT	(1<<5)		/* don't make interruptible	*/
+#define	FPRS	(1<<6)		/* print number when forked	*/
+#define	FDIAG	(1<<7)		/* redirect unit 2 with unit 1	*/
 #define	FANY	(1<<8)		/* output was !			*/
 #define	FHERE	(1<<9)		/* input redirection is <<	*/
 #define	FREDO	(1<<10)		/* reexec aft if, repeat,...	*/

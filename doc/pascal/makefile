@@ -10,7 +10,7 @@ FIGURES=\
 	primes primes-d\
 	comments1.p commentsout
 puman: ${FIGURES}
-	soelim puman0.n | tbl | /usr/new/vtroff -o-1
+	soelim puman[45A].n | tbl | /usr/ucb/vtroff -n31
 csfix:
 	cc -O csfix.c -o csfix -lS
 firstout: first.p csfix
