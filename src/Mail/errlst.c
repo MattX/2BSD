@@ -1,20 +1,19 @@
-/* Copyright (c) 1979 Regents of the University of California */
-char	*sys_errlist[] {
+char	*sys_errlist[] = {
 	"Error 0",
-	"Not super-user",
+	"Not owner",
 	"No such file or directory",
 	"No such process",
 	"Interrupted system call",
 	"I/O error",
 	"No such device or address",
-	"Arguments too long",
+	"Arg list too long",
 	"Exec format error",
 	"Bad file number",
 	"No children",
 	"No more processes",
 	"Not enough core",
 	"Permission denied",
-	"Error 14",
+	"Bad address",
 	"Block device required",
 	"Mount device busy",
 	"File exists",
@@ -32,7 +31,8 @@ char	*sys_errlist[] {
 	"Illegal seek",
 	"Read-only file system",
 	"Too many links",
-	"Broken Pipe",
-	"Disk quota exceeded",
+	"Broken pipe",
+	"Argument too large",
+	"Result too large",
 };
-int	sys_nerr { sizeof sys_errlist/sizeof sys_errlist[0] };
+int	sys_nerr = { sizeof sys_errlist/sizeof sys_errlist[0] };

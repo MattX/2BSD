@@ -1,7 +1,6 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
-#include "def.h"
+#include "rcv.h"
 
 /*
  * Mail -- a mail program
@@ -20,23 +19,35 @@ ishead(linebuf)
 {
 	register char *cp;
 	struct headline hl;
+	char parbuf[BUFSIZ];
 
 	cp = linebuf;
 	if (!isname("From ", cp, 5))
 		return(0);
-	parse(cp, &hl);
-	if (hl.l_from == NOSTR || hl.l_date == NOSTR)
+	parse(cp, &hl, parbuf);
+	if (hl.l_from == NOSTR || hl.l_date == NOSTR) {
+		fail(linebuf, "No from or date field");
 		return(0);
-	if (strlen(hl.l_from) >= 17)
+	}
+	if (!isdate(hl.l_date)) {
+		fail(linebuf, "Date field not legal date");
 		return(0);
-	if (!isdate(hl.l_date))
-		return(0);
+	}
 	
 	/*
 	 * I guess we got it!
 	 */
 
 	return(1);
+}
+
+fail(linebuf, reason)
+	char linebuf[], reason[];
+{
+
+	/* if (value("debug") == NOSTR)
+		return; */
+	fprintf(stderr, "\"%s\"\nnot a header because %s\n", linebuf, reason);
 }
 
 /*
@@ -46,17 +57,19 @@ ishead(linebuf)
  * structure.  Actually, it scans.
  */
 
-parse(line, hl)
-	char line[];
+parse(line, hl, pbuf)
+	char line[], pbuf[];
 	struct headline *hl;
 {
 	register char *cp, *dp;
+	char *sp;
 	char word[LINESIZE];
 
 	hl->l_from = NOSTR;
 	hl->l_tty = NOSTR;
 	hl->l_date = NOSTR;
 	cp = line;
+	sp = pbuf;
 
 	/*
 	 * Skip the first "word" of the line, which should be "From"
@@ -66,16 +79,40 @@ parse(line, hl)
 	cp = nextword(cp, word);
 	dp = nextword(cp, word);
 	if (!equal(word, ""))
-		hl->l_from = savestr(word);
+		hl->l_from = copyin(word, &sp);
 	if (isname(dp, "tty", 3)) {
 		cp = nextword(dp, word);
-		hl->l_tty = savestr(word);
+		hl->l_tty = copyin(word, &sp);
 		if (cp != NOSTR)
-			hl->l_date = savestr(cp);
+			hl->l_date = copyin(cp, &sp);
 	}
 	else
 		if (dp != NOSTR)
-			hl->l_date = savestr(dp);
+			hl->l_date = copyin(dp, &sp);
+}
+
+/*
+ * Copy the string on the left into the string on the right
+ * and bump the right (reference) string pointer by the length.
+ * Thus, dynamically allocate space in the right string, copying
+ * the left string into it.
+ */
+
+char *
+copyin(src, space)
+	char src[];
+	char **space;
+{
+	register char *cp, *top;
+	register int s;
+
+	s = strlen(src);
+	cp = *space;
+	top = cp;
+	strcpy(cp, src);
+	cp += s + 1;
+	*space = cp;
+	return(top);
 }
 
 /*
@@ -104,30 +141,55 @@ isname(as1, as2, acount)
  * Test to see if the passed string is a ctime(3) generated
  * date string as documented in the manual.  The template
  * below is used as the criterion of correctness.
+ * Also, we check for a possible trailing time zone using
+ * the auxtype template.
  */
 
-#define	L	1		/* An alpha char */
+#define	L	1		/* A lower case char */
 #define	S	2		/* A space */
 #define	D	3		/* A digit */
 #define	O	4		/* An optional digit or space */
 #define	C	5		/* A colon */
 #define	N	6		/* A new line */
+#define U	7		/* An upper case char */
 
-char ctypes[] = {L,L,L,S,L,L,L,S,O,D,S,D,D,C,D,D,C,D,D,S,D,D,D,D,0};
+char ctypes[] = {U,L,L,S,U,L,L,S,O,D,S,D,D,C,D,D,C,D,D,S,D,D,D,D,0};
+char tmztypes[] = {U,L,L,S,U,L,L,S,O,D,S,D,D,C,D,D,C,D,D,S,U,U,U,S,D,D,D,D,0};
 
 isdate(date)
 	char date[];
 {
+	register char *cp;
+
+	cp = date;
+	if (cmatch(cp, ctypes))
+		return(1);
+	return(cmatch(cp, tmztypes));
+}
+
+/*
+ * Match the given string against the given template.
+ * Return 1 if they match, 0 if they don't
+ */
+
+cmatch(str, temp)
+	char str[], temp[];
+{
 	register char *cp, *tp;
 	register int c;
 
-	cp = date;
-	tp = ctypes;
+	cp = str;
+	tp = temp;
 	while (*cp != '\0' && *tp != 0) {
 		c = *cp++;
 		switch (*tp++) {
 		case L:
-			if (!isalpha(c))
+			if (c < 'a' || c > 'z')
+				return(0);
+			break;
+
+		case U:
+			if (c < 'A' || c > 'Z')
 				return(0);
 			break;
 

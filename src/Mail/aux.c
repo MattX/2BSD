@@ -1,9 +1,9 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
 #include <sys/stat.h>
 #include <sgtty.h>
+#include <ctype.h>
 
 /*
  * Mail -- a mail program
@@ -188,7 +188,7 @@ isatty(f)
 
 /*
  * Return the desired header line from the passed message
- * pointer (or NOSTR if the desired header field is not available.
+ * pointer (or NOSTR if the desired header field is not available).
  */
 
 char *
@@ -196,29 +196,173 @@ hfield(field, mp)
 	char field[];
 	struct message *mp;
 {
-	FILE *ibuf;
+	register FILE *ibuf;
 	char linebuf[LINESIZE];
-	register char *cp, *cp2;
-	int hfc;
+	register int lc;
 
 	ibuf = setinput(mp);
-	hfc = 0;
-	while (readline(ibuf, linebuf) > 0 && hfc < HDRFIELDS) {
-		if (equal(linebuf, ""))
+	if ((lc = mp->m_lines) <= 0)
+		return(NOSTR);
+	if (readline(ibuf, linebuf) < 0)
+		return(NOSTR);
+	lc--;
+	do {
+		lc = gethfield(ibuf, linebuf, lc);
+		if (lc == -1)
 			return(NOSTR);
-		cp = linebuf;
-		cp2 = field;
-		while (raise(*cp++) == raise(*cp2++))
-			;
-		if (*--cp == ':' && *--cp2 == '\0') {
-			cp++;
-			while (any(*cp, " \t"))
-				cp++;
-			return(savestr(cp));
-		}
-		hfc++;
-	}
+		if (ishfield(linebuf, field))
+			return(savestr(hcontents(linebuf)));
+	} while (lc > 0);
 	return(NOSTR);
+}
+
+/*
+ * Return the next header field found in the given message.
+ * Return > 0 if something found, <= 0 elsewise.
+ * Must deal with \ continuations & other such fraud.
+ */
+
+gethfield(f, linebuf, rem)
+	register FILE *f;
+	char linebuf[];
+	register int rem;
+{
+	char line2[LINESIZE];
+	long loc;
+	register char *cp, *cp2;
+	register int c;
+
+
+	for (;;) {
+		if (rem <= 0)
+			return(-1);
+		if (readline(f, linebuf) < 0)
+			return(-1);
+		rem--;
+		if (strlen(linebuf) == 0)
+			return(-1);
+		if (isspace(linebuf[0]))
+			continue;
+		if (linebuf[0] == '>')
+			continue;
+		cp = index(linebuf, ':');
+		if (cp == NOSTR)
+			continue;
+		for (cp2 = linebuf; cp2 < cp; cp2++)
+			if (isdigit(*cp2))
+				continue;
+		
+		/*
+		 * I guess we got a headline.
+		 * Handle wraparounding
+		 */
+		
+		for (;;) {
+			if (rem <= 0)
+				break;
+#ifdef CANTELL
+			loc = ftell(f);
+			if (readline(f, line2) < 0)
+				break;
+			rem--;
+			if (!isspace(line2[0])) {
+				fseek(f, loc, 0);
+				rem++;
+				break;
+			}
+#else
+			c = getc(f);
+			ungetc(c, f);
+			if (!isspace(c) || c == '\n')
+				break;
+			if (readline(f, line2) < 0)
+				break;
+			rem--;
+#endif
+			cp2 = line2;
+			for (cp2 = line2; *cp2 != 0 && isspace(*cp2); cp2++)
+				;
+			if (strlen(linebuf) + strlen(cp2) >= LINESIZE-2)
+				break;
+			cp = &linebuf[strlen(linebuf)];
+			while (cp > linebuf &&
+			    (isspace(cp[-1]) || cp[-1] == '\\'))
+				cp--;
+			*cp++ = ' ';
+			for (cp2 = line2; *cp2 != 0 && isspace(*cp2); cp2++)
+				;
+			strcpy(cp, cp2);
+		}
+		if ((c = strlen(linebuf)) > 0) {
+			cp = &linebuf[c-1];
+			while (cp > linebuf && isspace(*cp))
+				cp--;
+			*++cp = 0;
+		}
+		return(rem);
+	}
+	/* NOTREACHED */
+}
+
+/*
+ * Check whether the passed line is a header line of
+ * the desired breed.
+ */
+
+ishfield(linebuf, field)
+	char linebuf[], field[];
+{
+	register char *cp;
+	register int c;
+
+	if ((cp = index(linebuf, ':')) == NOSTR)
+		return(0);
+	if (cp == linebuf)
+		return(0);
+	cp--;
+	while (cp > linebuf && isspace(*cp))
+		cp--;
+	c = *++cp;
+	*cp = 0;
+	if (icequal(linebuf ,field)) {
+		*cp = c;
+		return(1);
+	}
+	*cp = c;
+	return(0);
+}
+
+/*
+ * Extract the non label information from the given header field
+ * and return it.
+ */
+
+char *
+hcontents(hfield)
+	char hfield[];
+{
+	register char *cp;
+
+	if ((cp = index(hfield, ':')) == NOSTR)
+		return(NOSTR);
+	cp++;
+	while (*cp && isspace(*cp))
+		cp++;
+	return(cp);
+}
+
+/*
+ * Compare two strings, ignoring case.
+ */
+
+icequal(s1, s2)
+	register char *s1, *s2;
+{
+
+	while (raise(*s1++) == raise(*s2))
+		if (*s2++ == 0)
+			return(1);
+	return(0);
 }
 
 /*
@@ -337,22 +481,139 @@ char *
 nameof(mp)
 	register struct message *mp;
 {
-	static char namebuf[NAMESIZE];
+	char namebuf[LINESIZE];
 	char linebuf[LINESIZE];
 	register char *cp, *cp2;
 	register FILE *ibuf;
+	int first = 1;
 
+	if ((cp = hfield("reply-to", mp)) != NOSTR) {
+		strcpy(namebuf, cp);
+		return(namebuf);
+	}
 	ibuf = setinput(mp);
 	copy("", namebuf);
 	if (readline(ibuf, linebuf) <= 0)
-		return(namebuf);
+		return(savestr(namebuf));
+newname:
 	for (cp = linebuf; *cp != ' '; cp++)
 		;
 	while (any(*cp, " \t"))
 		cp++;
-	for (cp2 = namebuf; *cp && !any(*cp, " \t") &&
-	    cp2-namebuf < NAMESIZE-1; *cp2++ = *cp++)
+	for (cp2 = &namebuf[strlen(namebuf)]; *cp && !any(*cp, " \t") &&
+	    cp2-namebuf < LINESIZE-1; *cp2++ = *cp++)
 		;
 	*cp2 = '\0';
-	return(namebuf);
+	if (readline(ibuf, linebuf) <= 0)
+		return(savestr(namebuf));
+	if ((cp = index(linebuf, 'F')) == NULL)
+		return(savestr(namebuf));
+	if (strncmp(cp, "From", 4) != 0)
+		return(savestr(namebuf));
+	while ((cp = index(cp, 'r')) != NULL) {
+		if (strncmp(cp, "remote", 6) == 0) {
+			if ((cp = index(cp, 'f')) == NULL)
+				break;
+			if (strncmp(cp, "from", 4) != 0)
+				break;
+			if ((cp = index(cp, ' ')) == NULL)
+				break;
+			cp++;
+			if (first) {
+				copy(cp, namebuf);
+				first = 0;
+			} else
+				strcpy(rindex(namebuf, '!')+1, cp);
+			strcat(namebuf, "!");
+			goto newname;
+		}
+		cp++;
+	}
+	return(savestr(namebuf));
 }
+
+/*
+ * Find the rightmost pointer to an instance of the
+ * character in the string and return it.
+ */
+
+char *
+rindex(str, c)
+	char str[];
+	register int c;
+{
+	register char *cp, *cp2;
+
+	for (cp = str, cp2 = NOSTR; *cp; cp++)
+		if (c == *cp)
+			cp2 = cp;
+	return(cp2);
+}
+
+/*
+ * See if the string is a number.
+ */
+
+numeric(str)
+	char str[];
+{
+	register char *cp = str;
+
+	while (*cp)
+		if (!isdigit(*cp++))
+			return(0);
+	return(1);
+}
+
+/*
+ * Are any of the characters in the two strings the same?
+ */
+
+anyof(s1, s2)
+	register char *s1, *s2;
+{
+	register int c;
+
+	while (c = *s1++)
+		if (any(c, s2))
+			return(1);
+	return(0);
+}
+
+/*
+ * Determine the leftmost index of the character
+ * in the string.
+ */
+
+char *
+index(str, ch)
+	char *str;
+{
+	register char *cp;
+	register int c;
+
+	for (c = ch, cp = str; *cp; cp++)
+		if (*cp == c)
+			return(cp);
+	return(NOSTR);
+}
+
+/*
+ * String compare two strings of bounded length.
+ */
+
+strncmp(as1, as2, an)
+	char *as1, *as2;
+{
+	register char *s1, *s2;
+	register int n;
+
+	s1 = as1;
+	s2 = as2;
+	n = an;
+	while (--n >= 0 && *s1 == *s2++)
+		if (*s1++ == '\0')
+			return(0);
+	return(n<0 ? 0 : *s1 - *--s2);
+}
+

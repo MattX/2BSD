@@ -1,5 +1,10 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.wait.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
+#ifdef VMUNIX
+#include <sys/vtimes.h>
+struct	vtimes zvms;
+#endif
 
 /*
  * C Shell
@@ -36,22 +41,63 @@ dotime(v, kp)
 {
 	struct tbuffer timeszer, timesdol, *tzp;
 	time_t timezer, timedol;
+#ifdef VMUNIX
+	struct vtimes vm0, vm1, vmme;
+#endif
 
 	if (v[1] != 0) {
 		time(&timezer), times(&timeszer);
+#ifdef VMUNIX
+		vtimes(0, &vm0);
+#endif
 		lshift(v, 1);
 		if (func(kp) == 0) {
 			timflg = 1;
 			return (0);
 		}
 		tzp = &timeszer;
-	} else
+#ifdef VMUNIX
+		vmme = zvms;
+#endif
+	} else {
 		timezer = time0, tzp = &times0;
+#ifdef VMUNIX
+		vm0 = zvms;
+		vtimes(&vmme, 0);
+#endif
+	}
 	time(&timedol);
 	times(&timesdol);
+#ifdef VMUNIX
+	vtimes(0, &vm1);
+	vmsadd(&vm1, &vmme);
+#else
 	ptimes(timedol - timezer, tzp, &timesdol);
+#endif
+#ifdef VMUNIX
+	pvtimes(&vm0, &vm1, timedol - timezer);
+#endif
 	return (1);
 }
+
+#ifdef VMUNIX
+vmsadd(vp, wp)
+	register struct vtimes *vp, *wp;
+{
+
+	vp->vm_utime += wp->vm_utime;
+	vp->vm_stime += wp->vm_stime;
+	vp->vm_nswap += wp->vm_nswap;
+	vp->vm_idsrss += wp->vm_idsrss;
+	vp->vm_ixrss += wp->vm_ixrss;
+	if (vp->vm_maxrss < wp->vm_maxrss)
+		vp->vm_maxrss = wp->vm_maxrss;
+	vp->vm_majflt += wp->vm_majflt;
+	vp->vm_minflt += wp->vm_minflt;
+	vp->vm_inblk += wp->vm_inblk;
+	vp->vm_oublk += wp->vm_oublk;
+}
+#endif
 
 donice(v)
 	register char **v;
@@ -60,18 +106,18 @@ donice(v)
 
 	v++, cp = *v++;
 	if (cp == 0) {
-#ifndef V6
+/*
 		nice(20);
 		nice(-10);
-#endif
+*/
 		nice(4);
 		return (1);
 	}
 	if (*v == 0 && any(cp[0], "+-")) {
-#ifndef V6
+/*
 		nice(20);
 		nice(-10);
-#endif
+*/
 		nice(getn(cp));
 		return (1);
 	}
@@ -79,6 +125,9 @@ donice(v)
 }
 
 struct	tbuffer bef, aft;
+#ifdef VMUNIX
+struct	vtimes vms;
+#endif
 time_t	btim, atim;
 
 pwait(i)
@@ -93,7 +142,11 @@ pwait(i)
 	time(&btim);
 	do {
 		times(&bef);
+#ifndef VMUNIX
 		p = wait(&s);
+#else
+		p = vwait(&s, &vms);
+#endif
 		if (p == -1)
 			return;
 		times(&aft);
@@ -137,10 +190,15 @@ pwait(i)
 	} while (i != p);
 	if (timflg || (!child && adrof("time") && secs(&bef, &aft) / 60 >= getn(value("time")))) {
 		timflg = 0;
+#ifndef VMUNIX
 		ptimes(atim - btim, &bef, &aft);
+#else
+		pvtimes(&zvms, &vms, atim- btim);
+#endif
 	}
 }
 
+#ifndef VMUNIX
 ptimes(sec, bef, aft)
 	time_t sec;
 	register struct tbuffer *bef, *aft;
@@ -151,8 +209,90 @@ ptimes(sec, bef, aft)
 	p60ths(aft->cst - bef->cst);
 	printf("s ");
 	psecs(sec);
-	printf(" %d%%\n", (int) ((100 * secs(bef, aft)) / (60 * (sec ? sec : 1))));
+	printf(" %d%%", (int) ((100 * secs(bef, aft)) / (60 * (sec ? sec : 1))));
+#ifndef VMUNIX
+	putchar('\n');
+#endif
 }
+#endif
+
+#ifdef VMUNIX
+pvtimes(v0, v1, sec)
+	register struct vtimes *v0, *v1;
+	time_t sec;
+{
+	register time_t t =
+	    (v1->vm_utime-v0->vm_utime)+(v1->vm_stime-v0->vm_stime);
+	register char *cp;
+	register int i;
+	register struct varent *vp = adrof("time");
+
+	cp = "%Uu %Ss %E %P %X+%Dk %I+%Oio %Fpf+%Ww";
+	if (vp && vp->vec[0] && vp->vec[1])
+		cp = vp->vec[1];
+	for (; *cp; cp++)
+	if (*cp != '%')
+		putchar(*cp);
+	else if (cp[1]) switch(*++cp) {
+
+	case 'U':
+		p60ths(v1->vm_utime - v0->vm_utime);
+		break;
+
+	case 'S':
+		p60ths(v1->vm_stime - v0->vm_stime);
+		break;
+
+	case 'E':
+		psecs(sec);
+		break;
+
+	case 'P':
+		printf("%d%%", (int) ((100 * t) / (60 * (sec ? sec : 1))));
+		break;
+
+	case 'W':
+		i = v1->vm_nswap - v0->vm_nswap;
+		printf("%d", i);
+		break;
+
+	case 'X':
+		printf("%d", t == 0 ? 0 : (v1->vm_ixrss-v0->vm_ixrss)/(2*t));
+		break;
+
+	case 'D':
+		printf("%d", t == 0 ? 0 : (v1->vm_idsrss-v0->vm_idsrss)/(2*t));
+		break;
+
+	case 'K':
+		printf("%d", t == 0 ? 0 : ((v1->vm_ixrss+v1->vm_idsrss) -
+		   (v0->vm_ixrss+v0->vm_idsrss))/(2*t));
+		break;
+
+	case 'M':
+		printf("%d", v1->vm_maxrss/2);
+		break;
+
+	case 'F':
+		printf("%d", v1->vm_majflt-v0->vm_majflt);
+		break;
+
+	case 'R':
+		printf("%d", v1->vm_minflt-v0->vm_minflt);
+		break;
+
+	case 'I':
+		printf("%d", v1->vm_inblk-v0->vm_inblk);
+		break;
+
+	case 'O':
+		printf("%d", v1->vm_oublk-v0->vm_oublk);
+		break;
+
+	}
+	putchar('\n');
+}
+#endif
 
 endwait()
 {

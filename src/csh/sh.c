@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+static	char	*sccsid[] =	"@(#)sh.c	2.1";	/*	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -49,6 +50,10 @@ main(c, av)
 	 */
 
 	set("status", "0");
+
+	/* Default history characters */
+	HIST = '!'; HISTSUB = '^';
+
 	if (hp == 0)
 		fast++;			/* No home -> can't read scripts */
 	else
@@ -58,34 +63,12 @@ main(c, av)
 	set1("path", saveblk(pathlist), &shvhed);
 	/*
 	 * Re-initialize path if set in environment
-	 *
+	 */
 	cp = getenv("PATH");
 	if (cp != 0) {
-		register int i = 0;
-		register char *dp;
-		register char **pv;
-
-		for (dp = cp; *dp; dp++)
-			if (*dp == ':')
-				i++;
-		pv = calloc(i+1, sizeof (char **));
-		dp = cp;
-		i = 0;
-		while (*dp) {
-			if (*dp == ':') {
-				*dp = 0;
-				pv[i++] = savestr(cp);
-				*dp = ':';
-			} else if (*dp == 0) {
-				pv[i++] = savestr(cp);
-				break;
-			}
-			dp++;
-		}
-		pv[i] = 0;
-		set1("path", pv, &shvhed);
+		importpath(cp);
 	}
-*/
+
 	set("shell", SHELLPATH);
 
 	doldol = putn(getpid());		/* For $$ */
@@ -269,6 +252,8 @@ main(c, av)
 		reenter++;
 		/* Will have value("home") here because set fast if don't */
 		srccat(value("home"), "/.cshrc");
+		if (!fast && !arginp && !onelflg)
+			dohash();
 		if (loginsh)
 #ifdef NOHELP
 			srccat("", ".login");
@@ -305,6 +290,43 @@ main(c, av)
 	exitstat();
 }
 
+importpath(cp)
+char *cp;
+{
+	register int i = 0;
+	register char *dp;
+	register char **pv;
+	int c;
+	static char dot[2] = {'.', 0};
+
+	for (dp = cp; *dp; dp++)
+		if (*dp == ':')
+			i++;
+	/*
+	 * i+2 where i is the number of colons in the path.
+	 * There are i+1 directories in the path plus we need
+	 * room for a zero terminator.
+	 */
+	pv = (char **) calloc(i+2, sizeof (char **));
+	dp = cp;
+	i = 0;
+	for (;;) {
+		if ((c = *dp) == ':' || c == 0) {
+			*dp = 0;
+			pv[i++] = savestr(*cp ? cp : dot);
+			if (c) {
+				cp = dp + 1;
+				*dp = ':';
+			} else
+				break;
+		}
+		dp++;
+	}
+	pv[i] = 0;
+	set1("path", pv, &shvhed);
+	dohash();
+}
+
 /*
  * Source to the file which is the catenation of the argument names.
  */
@@ -316,11 +338,7 @@ srccat(cp, dp)
 
 	/* ioctl(unit, FIOCLEX, NULL); */
 	xfree(ep);
-#ifdef INGRES
 	srcunit(unit, 0);
-#else
-	srcunit(unit, 1);
-#endif
 }
 
 /*
@@ -352,16 +370,10 @@ srcunit(unit, onlyown)
 	if (onlyown) {
 		struct stat stb;
 
-#ifdef CC
+#ifdef V69
 		if (fstat(unit, &stb) < 0 || (stb.st_uid != uid && stb.st_uid != (uid &~ 0377))) {
-#endif
-#ifdef CORY
-		if (fstat(unit, &stb) < 0 || (stb.st_uid != uid && stb.st_uid != (uid &~ 0377))) {
-#endif
-#ifndef CC
-#ifndef CORY
-		if (fstat(unit, &stb) < 0 || stb.st_uid != uid) {
-#endif
+#else
+		if (fstat(unit, &stb) < 0 || (stb.st_uid != uid && stb.st_gid != getgid())) {
 #endif
 			close(unit);
 			return;
@@ -466,6 +478,7 @@ exitstat()
  */
 pintr()
 {
+	register char **v;
 
 	if (setintr)
 		signal(SIGINT, SIG_IGN);
@@ -479,6 +492,10 @@ pintr()
 	if (gointr) {
 		search(ZGOTO, 0, gointr);
 		timflg = 0;
+		if (v = pargv)
+			pargv = 0, blkfree(v);
+		if (v = gargv)
+			gargv = 0, blkfree(v);
 		reset();
 	} else if (intty)
 		printf("\n");		/* Some like this, others don't */
@@ -504,7 +521,6 @@ process(catch)
 {
 	register char *cp;
 	jmp_buf osetexit;
-	struct wordent paraml;
 	struct command *t;
 
 	getexit(osetexit);
@@ -561,10 +577,10 @@ process(catch)
 			if (fseekp == feobp)
 				if (!whyles)
 					for (cp = value("prompt"); *cp; cp++)
-						if (*cp == '!')
+						if (*cp == HIST)
 							printf("%d", eventno + 1);
 						else {
-							if (*cp == '\\' && cp[1] == '!')
+							if (*cp == '\\' && cp[1] == HIST)
 								cp++;
 							putchar(*cp | QUOTE);
 						}
@@ -649,6 +665,7 @@ dosource(t)
 	xfree(f);
 	if (u < 0)
 		Perror(f);
+	didfds = 0;
 	srcunit(u, 0);
 }
 
@@ -658,7 +675,7 @@ dosource(t)
  * about any mail file unless its been modified
  * after the time we started.
  * This prevents us from telling the user things he already
- * knows, since the login program insist on saying
+ * knows, since the login program insists on saying
  * "You have mail."
  */
 mailchk()
@@ -689,11 +706,9 @@ mailchk()
 		 * We assume that a file has been read if the access time is
 		 * greater than the mod time.
 		 */
-#ifndef CORY
 		if (stb.st_size == 0)
 			continue;
-#endif
-		if (stb.st_atime > stb.st_mtime || stb.st_atime < chktim)
+		if (stb.st_atime > stb.st_mtime || (stb.st_atime < chktim && stb.st_mtime < chktim))
 			continue;
 		new = stb.st_mtime > time0;
 		if (loginsh && !new)
@@ -716,8 +731,9 @@ mailchk()
 gethdir(home)
 	char *home;
 {
-	register struct passwd *pp = getpwnam(home);
+	register struct passwd *pp;
 
+	pp = getpwnam(home);
 	if (pp == 0)
 		return (1);
 	strcpy(home, pp->pw_dir);

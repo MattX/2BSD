@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.parse.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -19,6 +20,10 @@ alias(lex)
 
 	getexit(osetexit);
 	setexit();
+#ifdef ALDEBUG
+	prlex(lex);
+	printf("\n");
+#endif
 	if (haderr) {
 		resexit(osetexit);
 		reset();
@@ -106,6 +111,16 @@ asyn3(p1, p2)
 	alhistp = p1->prev;
 	alhistt = p2;
 	alvec = ap->vec;
+#ifdef ALDEBUG
+	printf("applying: %s --> ", p1->word);
+	blkpr(ap->vec);
+	printf("\n");
+	printf("to: ");
+	{ struct wordent *wp; for (wp = alhistp; wp != alhistt; wp = wp->next)
+		printf("%s ", wp->word);
+	  printf("\n");
+	}
+#endif
 	redid = lex(&alout);
 	alhistp = alhistt = 0;
 	alvec = 0;

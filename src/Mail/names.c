@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 /*
@@ -24,6 +23,7 @@ nalloc(str)
 	np = (struct name *) salloc(sizeof *np);
 	np->n_flink = NIL;
 	np->n_blink = NIL;
+	np->n_type = -1;
 	np->n_name = savestr(str);
 	return(np);
 }
@@ -53,20 +53,34 @@ tailof(name)
  */
 
 struct name *
-extract(line)
+extract(line, ntype)
 	char line[];
 {
 	register char *cp;
 	register struct name *top, *np, *t;
-	char nbuf[BUFSIZ];
+	char nbuf[BUFSIZ], abuf[BUFSIZ];
 
-	if (line == NOSTR)
+	if (line == NOSTR || strlen(line) == 0)
 		return(NIL);
 	top = NIL;
 	np = NIL;
 	cp = line;
 	while ((cp = yankword(cp, nbuf)) != NOSTR) {
+		if (np != NIL && equal(nbuf, "at")) {
+			strcpy(abuf, nbuf);
+			if ((cp = yankword(cp, nbuf)) == NOSTR) {
+				strcpy(nbuf, abuf);
+				goto normal;
+			}
+			strcpy(abuf, np->n_name);
+			stradd(abuf, '@');
+			strcat(abuf, nbuf);
+			np->n_name = savestr(abuf);
+			continue;
+		}
+normal:
 		t = nalloc(nbuf);
+		t->n_type = ntype;
 		if (top == NIL)
 			top = t;
 		else
@@ -74,6 +88,41 @@ extract(line)
 		t->n_blink = np;
 		np = t;
 	}
+	return(top);
+}
+
+/*
+ * Turn a list of names into a string of the same names.
+ */
+
+char *
+detract(np, ntype)
+	register struct name *np;
+{
+	register int s;
+	register char *cp, *top;
+	register struct name *p;
+
+	if (np == NIL)
+		return(NOSTR);
+	s = 0;
+	for (p = np; p != NIL; p = p->n_flink) {
+		if (ntype && (p->n_type & GMASK) != ntype)
+			continue;
+		s += strlen(p->n_name) + 1;
+	}
+	if (s == 0)
+		return(NOSTR);
+	s += 2;
+	top = salloc(s);
+	cp = top;
+	for (p = np; p != NIL; p = p->n_flink) {
+		if (ntype && (p->n_type & GMASK) != ntype)
+			continue;
+		cp = copy(p->n_name, cp);
+		*cp++ = ' ';
+	}
+	*--cp = 0;
 	return(top);
 }
 
@@ -89,7 +138,7 @@ yankword(ap, wbuf)
 	register char *cp, *cp2;
 
 	do {
-		for (cp = ap; *cp && any(*cp, " \t"); cp++)
+		for (cp = ap; *cp && any(*cp, " \t,"); cp++)
 			;
 		if (*cp == '(') {
 			while (*cp && *cp != ')')
@@ -99,8 +148,8 @@ yankword(ap, wbuf)
 		}
 		if (*cp == '\0')
 			return(NOSTR);
-	} while (any(*cp, " \t("));
-	for (cp2 = wbuf; *cp && !any(*cp, " \t("); *cp2++ = *cp++)
+	} while (any(*cp, " \t,("));
+	for (cp2 = wbuf; *cp && !any(*cp, " \t,("); *cp2++ = *cp++)
 		;
 	*cp2 = '\0';
 	return(cp);
@@ -116,12 +165,27 @@ verify(names)
 	struct name *names;
 {
 	register struct name *np, *top, *t, *x;
+	register char *cp;
 
 	top = names;
 	np = names;
 	while (np != NIL) {
-		if (any(':', np->n_name) || getuserid(np->n_name) != -1
-		    || strcmp(np->n_name, "msgs") == 0) {
+		if (np->n_type & GDEL) {
+			np = np->n_flink;
+			continue;
+		}
+		for (cp = "!:@^"; *cp; cp++)
+			if (any(*cp, np->n_name))
+				break;
+		if (*cp != 0) {
+			np = np->n_flink;
+			continue;
+		}
+		cp = np->n_name;
+		while (*cp == '\\')
+			cp++;
+		if (equal(cp, "msgs") ||
+		    getuserid(cp) != -1) {
 			np = np->n_flink;
 			continue;
 		}
@@ -148,6 +212,9 @@ verify(names)
  * For each recipient in the passed name list with a /
  * in the name, append the message to the end of the named file
  * and remove him from the recipient list.
+ *
+ * Recipients whose name begins with | are piped through the given
+ * program and removed.
  */
 
 struct name *
@@ -159,33 +226,119 @@ outof(names, fo, hp)
 	register int c;
 	register struct name *np, *top, *t, *x;
 	long now;
-	char *date, *ctime();
-	FILE *fout;
+	char *date, *fname, *shell, *ctime();
+	FILE *fout, *fin;
+	int ispipe, s, pid;
+	extern char tempEdit[];
 
 	top = names;
 	np = names;
 	time(&now);
 	date = ctime(&now);
 	while (np != NIL) {
-		if (!any('/', np->n_name)) {
+		if (!any('/', np->n_name) && np->n_name[0] != '|') {
 			np = np->n_flink;
 			continue;
 		}
-		if ((fout = fopen(np->n_name, "a")) == NULL) {
-			perror(np->n_name);
-			senderr++;
+		ispipe = np->n_name[0] == '|';
+		if (ispipe)
+			fname = np->n_name+1;
+		else
+			fname = expand(np->n_name);
+
+		/*
+		 * See if we have copied the complete message out yet.
+		 * If not, do so.
+		 */
+
+		if (image < 0) {
+			if ((fout = fopen(tempEdit, "a")) == NULL) {
+				perror(tempEdit);
+				senderr++;
+				goto cant;
+			}
+			image = open(tempEdit, 2);
+			unlink(tempEdit);
+			if (image < 0) {
+				perror(tempEdit);
+				senderr++;
+				goto cant;
+			}
+			else {
+				rewind(fo);
+				fprintf(fout, "From %s %s", myname, date);
+				puthead(hp, fout, GTO|GSUBJECT|GCC|GNL);
+				while ((c = getc(fo)) != EOF)
+					putc(c, fout);
+				rewind(fo);
+				putc('\n', fout);
+				fflush(fout);
+				if (ferror(fout))
+					perror(tempEdit);
+				fclose(fout);
+			}
+		}
+
+		/*
+		 * Now either copy "image" to the desired file
+		 * or give it as the standard input to the desired
+		 * program as appropriate.
+		 */
+
+		if (ispipe) {
+			wait(&s);
+			switch (pid = fork()) {
+			case 0:
+				signal(SIGHUP, SIG_IGN);
+				signal(SIGINT, SIG_IGN);
+				signal(SIGQUIT, SIG_IGN);
+				close(0);
+				dup(image);
+				close(image);
+				if ((shell = value("SHELL")) == NOSTR)
+					shell = SHELL;
+				execl(shell, shell, "-c", fname, 0);
+				perror(shell);
+				exit(1);
+				break;
+
+			case -1:
+				perror("fork");
+				senderr++;
+				goto cant;
+			}
 		}
 		else {
-			rewind(fo);
-			fprintf(fout, "From %s %s", myname, date);
-			puthead(hp, fout);
-			while ((c = getc(fo)) != EOF)
+			if ((fout = fopen(fname, "a")) == NULL) {
+				perror(fname);
+				senderr++;
+				goto cant;
+			}
+			fin = Fdopen(image, "r");
+			if (fin == NULL) {
+				fprintf(stderr, "Can't reopen image\n");
+				fclose(fout);
+				senderr++;
+				goto cant;
+			}
+			rewind(fin);
+			while ((c = getc(fin)) != EOF)
 				putc(c, fout);
-			fflush(fout);
 			if (ferror(fout))
-				perror(np->n_name);
+				senderr++, perror(fname);
 			fclose(fout);
+			fclose(fin);
 		}
+
+cant:
+
+		/*
+		 * In days of old we removed the entry from the
+		 * the list; now for sake of header expansion
+		 * we leave it in and mark it as deleted.
+		 */
+
+#ifdef CRAZYWOW
 		if (np == top) {
 			top = np->n_flink;
 			if (top != NIL)
@@ -199,13 +352,23 @@ outof(names, fo, hp)
 		if (t != NIL)
 			t->n_blink = x;
 		np = t;
+#endif
+
+		np->n_type |= GDEL;
+		np = np->n_flink;
+	}
+	if (image >= 0) {
+		close(image);
+		image = -1;
 	}
 	return(top);
 }
 
 /*
- * Map all of the aliased users in the invoker's sendrc
+ * Map all of the aliased users in the invoker's mailrc
  * file and insert them into the list.
+ * Changed after all these months of service to recursively
+ * expand names (2/14/80).
  */
 
 struct name *
@@ -213,40 +376,83 @@ usermap(names)
 	struct name *names;
 {
 	register struct name *new, *np, *cp;
+	struct name *getto;
 	struct grouphead *gh;
-	struct group *gp;
 	register int metoo;
 
 	new = NIL;
 	np = names;
+	getto = NIL;
 	metoo = (value("metoo") != NOSTR);
 	while (np != NIL) {
 		if (np->n_name[0] == '\\') {
-			while (*np->n_name == '\\')
-				(np->n_name)++;
 			cp = np->n_flink;
 			new = put(new, np);
 			np = cp;
 			continue;
 		}
-		if ((gh = findgroup(np->n_name)) != NOGRP) {
-			for (gp = gh->g_list; gp != NOGE; gp = gp->ge_link) {
-				if (!metoo && equal(gp->ge_name, myname))
-					continue;
-				cp = nalloc(gp->ge_name);
-				new = put(new, cp);
-			}
-			np = np->n_flink;
-			continue;
-		}
-		else {
-			cp = np->n_flink;
+		gh = findgroup(np->n_name);
+		cp = np->n_flink;
+		if (gh != NOGRP)
+			new = gexpand(new, gh, metoo, np->n_type);
+		else
 			new = put(new, np);
-			np = cp;
-		}
+		np = cp;
 	}
 	return(new);
 }
+
+/*
+ * Recursively expand a group name.  We limit the expansion to some
+ * fixed level to keep things from going haywire.
+ * Direct recursion is not expanded for convenience.
+ */
+
+struct name *
+gexpand(nlist, gh, metoo, ntype)
+	struct name *nlist;
+	struct grouphead *gh;
+{
+	struct group *gp;
+	struct grouphead *ngh;
+	struct name *np;
+	static int depth;
+	char *cp;
+
+	if (depth > MAXEXP) {
+		printf("Expanding alias to depth larger than %d\n", MAXEXP);
+		return(nlist);
+	}
+	depth++;
+	for (gp = gh->g_list; gp != NOGE; gp = gp->ge_link) {
+		cp = gp->ge_name;
+		if (*cp == '\\')
+			goto quote;
+		if (strcmp(cp, gh->g_name) == 0)
+			goto quote;
+		if ((ngh = findgroup(cp)) != NOGRP) {
+			nlist = gexpand(nlist, ngh, metoo, ntype);
+			continue;
+		}
+quote:
+		np = nalloc(cp);
+		np->n_type = ntype;
+		/*
+		 * At this point should allow to expand
+		 * to self if only person in group
+		 */
+		if (gp == gh->g_list && gp->ge_link == NOGE)
+			goto skip;
+		if (!metoo && strcmp(cp, myname) == 0)
+			np->n_type |= GDEL;
+skip:
+		nlist = put(nlist, np);
+	}
+	depth--;
+	return(nlist);
+}
+
+
 
 /*
  * Compute the length of the passed name list and
@@ -296,16 +502,46 @@ unpack(np)
 	register char **ap, **top;
 	register struct name *n;
 	char *cp;
-	int t;
+	char hbuf[10];
+	int t, extra;
 
 	n = np;
 	if ((t = lengthof(n)) == 0)
 		panic("No names to unpack");
-	top = (char **) salloc((t+2) * sizeof cp);
+
+	/*
+	 * Compute the number of extra arguments we will need.
+	 * We need at least two extra -- one for "mail" and one for
+	 * the terminating 0 pointer.  Additional spots may be needed
+	 * to pass along -r and -f to the host mailer.
+	 */
+
+	extra = 2;
+	if (rflag != NOSTR)
+		extra += 2;
+	if (hflag)
+		extra += 2;
+	top = (char **) salloc((t + extra) * sizeof cp);
 	ap = top;
 	*ap++ = "mail";
+	if (rflag != NOSTR) {
+		*ap++ = "-r";
+		*ap++ = rflag;
+	}
+	if (hflag) {
+		*ap++ = "-h";
+		sprintf(hbuf, "%d", hflag);
+		*ap++ = savestr(hbuf);
+	}
 	while (n != NIL) {
-		*ap++ = n->n_name;
+		if (n->n_type & GDEL) {
+			n = n->n_flink;
+			continue;
+		}
+		cp = n->n_name;
+		while (*cp == '\\')
+			cp++;
+		*ap++ = cp;
 		n = n->n_flink;
 	}
 	*ap = NOSTR;
@@ -327,7 +563,7 @@ mechk(names)
 	if (getname(uid, myname) < 0)
 		return;
 	for (np = names; np != NIL; np = np->n_flink)
-		if (equal(myname, np->n_name)) {
+		if ((np->n_type & GDEL) == 0 && equal(myname, np->n_name)) {
 			selfsent++;
 			return;
 		}
@@ -346,6 +582,8 @@ elide(names)
 	register struct name *np, *t, *new;
 	struct name *x;
 
+	if (names == NIL)
+		return(NIL);
 	new = names;
 	np = names;
 	np = np->n_flink;
@@ -354,7 +592,7 @@ elide(names)
 	new->n_flink = NIL;
 	while (np != NIL) {
 		t = new;
-		while (strcmp(t->n_name, np->n_name) > 0) {
+		while (strcmp(t->n_name, np->n_name) < 0) {
 			if (t->n_flink == NIL)
 				break;
 			t = t->n_flink;
@@ -365,7 +603,7 @@ elide(names)
 		 * the current value of t.
 		 */
 
-		if (strcmp(t->n_name, np->n_name) > 0) {
+		if (strcmp(t->n_name, np->n_name) < 0) {
 			t->n_flink = np;
 			np->n_blink = t;
 			t = np;
@@ -465,19 +703,64 @@ count(np)
 }
 
 /*
+ * Delete the given name from a namelist.
+ */
+
+struct name *
+delname(np, name)
+	register struct name *np;
+	char name[];
+{
+	register struct name *p;
+
+	for (p = np; p != NIL; p = p->n_flink)
+		if (equal(p->n_name, name)) {
+			if (p->n_blink == NIL) {
+				if (p->n_flink != NIL)
+					p->n_flink->n_blink = NIL;
+				np = p->n_flink;
+				continue;
+			}
+			if (p->n_flink == NIL) {
+				if (p->n_blink != NIL)
+					p->n_blink->n_flink = NIL;
+				continue;
+			}
+			p->n_blink->n_flink = p->n_flink;
+			p->n_flink->n_blink = p->n_blink;
+		}
+	return(np);
+}
+
+/*
+ * Call the given routine on each element of the name
+ * list, replacing said value if need be.
+ */
+
+mapf(np, from)
+	register struct name *np;
+	char *from;
+{
+	register struct name *p;
+
+	for (p = np; p != NIL; p = p->n_flink)
+		p->n_name = netmap(p->n_name, from);
+}
+
+/*
  * Pretty print a name list
  * Uncomment it if you need it.
- *
- * prettyprint(name)
- * 	struct name *name;
- * {
- * 	register struct name *np;
- * 
- * 	np = name;
- * 	while (np != NIL) {
- * 		fprintf(stderr, "%s ", np->n_name);
- * 		np = np->n_flink;
- * 	}
- * 	fprintf(stderr, "\n");
- * }
  */
+
+prettyprint(name)
+	struct name *name;
+{
+	register struct name *np;
+
+	np = name;
+	while (np != NIL) {
+		fprintf(stderr, "%s(%d) ", np->n_name, np->n_type);
+		np = np->n_flink;
+	}
+	fprintf(stderr, "\n");
+}

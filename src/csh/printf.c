@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)printf.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 /*
  * Hacked "printf" which prints through putchar.
  * DONT USE WITH STDIO!
@@ -9,7 +10,7 @@ char *fmt;
 	_doprnt(fmt, &args, 0);
 }
 
-_strout(count, string, adjust, foo, fillch)
+_strout(string, count, adjust, foo, fillch)
 register char *string;
 register int count;
 int adjust;

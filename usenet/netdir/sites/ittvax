@@ -1,0 +1,55 @@
+# A brief description of ittvax
+# This is contained in the file ~uucp/pubinfo/configuration
+# Other interesting stuff is kept in ~uucp/pubinfo
+Address:
+	ITT Programming Technology Center
+	1000 Oronoque Lane
+	Stratford, Ct. 06798
+	(203) 375-0200
+
+Operating System:
+	4BSD UNIX (arrived Feb, 1981)
+
+UUCP Connections:
+	None direct, unless you count an ONYX (system onyxasw).
+	The system "decvax" polls us every day.
+
+Contact:
+		Sam H. Praul	(shp)
+		Alan S. Watt	(swatt)
+		Maude M. Sawyer	(sawyer)
+
+	mail "DA" (Directory Assistance - all caps) for
+	help if you don't have any other contact person.
+
+Purpose in Life:
+	The Programming Technology Center is a research organization
+	within ITT dedicated to improving software production by
+	application of the best existing technology and the development
+	of new ones.  Our aggregate interests run the entire gamut
+	of current computer technology.
+
+			Hardware
+
+CPU:	VAX 11/780 4 M-bytes memory
+
+disks:	2 rp06's
+tape:	1 tu77
+ttys:	6 (count 'em 6!) dz-11's
+modems:	1 dz dedicated to Racal-Vadic 3451 triple modems
+dialin:	(203) 378-8897 (8-line rotary) if you want 1200 baud,
+	(203) 377-1077 (2-line rotary) if you want 300 baud;
+	both numbers will switch to the other speed.
+
+	If you don't have a UUCP name assigned to you, you can
+	use "uucp", with password "topsecret".
+
+dialout:
+	not yet; we're working on it.
+
+other:	11" Versatec plotter/printer,
+	MEGATEC 7200 vector graphics tube; a color rastor
+	display is on order.
+
+
+

@@ -1,0 +1,29 @@
+From vax135!allegra!honey  Mon Mar  9 15:36:59 1981
+To: vax135!ucbvax!mark
+Subject: usenet map
+Status: R
+
+system name = allegra. (formerly mh135a)
+
+path = ucbvax!vax135!allegra.
+
+contact = peter honeyman, (201) 582-4334, allegra!honey.
+
+number of perusers = 16.
+
+we are the digital sytems research lab -- we do some real-time
+animation, natural language understanding, speech analysis/synthesis,
+programming language design, relational database theory and practive,
+computer games, digital signal processing, videodisk applications,
+fault-tolerant computing, distributed computing, telephony of the
+future, computer network implementation, vlsi design tools, human
+factors stuff, voice storage/processing.  (so what don't we do?)
+
+at present our acu's are down -- we have a dn board and 2 acu's;  they
+are wired wrong, we have no dn driver, our kernel hacker (i guess
+that's me) refuses to get involved, we are in the process of hiring a
+shogun.  thus, we are willing to be called, and will be willing (bourne
+willing) to call others as soon as the acu's are online.
+
+remote login: uucpa.  password: evomr1
+

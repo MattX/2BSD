@@ -6,7 +6,6 @@ struct sgttyb {
 	int	sg_flags;
 };
 
-#define	CBREAK	02
 #define	LCASE	04
 #define	ECHO	010
 #define	CRMOD	020

@@ -1,7 +1,7 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include <stdio.h>
+#include <ctype.h>
 
 /*
  * fmt -- format the concatenation of input files or standard input
@@ -19,7 +19,7 @@ int	lineno;			/* Current input line */
 int	mark;			/* Last place we saw a head line */
 
 char	*calloc();		/* for lint . . . */
-char	*headnames[] = {"To", "Subj", "Cc", 0};
+char	*headnames[] = {"To", "Subject", "Cc", 0};
 
 /*
  * Drive the whole formatter by managing input files.  Also,
@@ -199,11 +199,21 @@ split(line)
 	cp = line;
 	while (*cp) {
 		cp2 = word;
-		while (*cp && *cp != ' ')
+
+		/*
+		 * Collect a 'word,' allowing it to contain escaped
+		 * white space.
+		 */
+
+		while (*cp && *cp != ' ') {
+			if (*cp == '\\' && isspace(cp[1]))
+				*cp2++ = *cp++;
 			*cp2++ = *cp++;
+		}
 
 		/*
 		 * Guarantee a space at end of line.
+		 * Two spaces after end of sentence punctuation.
 		 */
 
 		if (*cp == '\0') {

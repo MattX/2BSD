@@ -1,0 +1,30 @@
+		USENET Logical Map
+		June 17, 1981
+		!-	Uucp links
+		:	Berknet links
+		@	Arpanet links
+		Some usenet links are one-direction, but mail will travel
+		in both directions over all links here.
+
+	  yale-comix		  pdp                         pur-ee--purdue
+	      !     (Misc)	   ! (NC)	(Misc)          !
+   ittvax--decvax sii  reed  phs--unc--grumpy  duke34  utzoo  cincy teklabs
+	      ! !  !    !     !    !             !	 !	!      !
+	      ! +--+----+-----+-+--+-------------+-------+------+----+ !
+	      !                 !				     ! !
+	      !               duke                                   ! ! 
+	      !                 !                                    ! !
+	      !              +--+                         harpo-----chico
+	      !              !  !                           !
+     ucbopt   !    allegra   !  +-----mhtsa---+-------------+
+	:     !       !      !  !      !      !               (Bell Labs)
+     ucbcory  !     vax135  research  eagle hocsr    ihnss
+  (UCB) :     !       !                !               !          
+     ucbvax--++-------+--------+-------++--------------++
+	:    @                 !        !               ! (Silicon Valley)
+     ucbarpa @      (UCSD) sdcsvax---ucsfcgl          menlo70--hao
+	:    @     sdcatta-----+                      !    !
+     ucbonyx @     sdcattb-----+                    sytek sri-unix
+	     @     phonlab-----+
+         cca-unix   arthur-----+
+			    sdcarl

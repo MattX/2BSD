@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -20,6 +19,7 @@ tinit()
 {
 	register char *cp, *cp2;
 	char uname[9];
+	register int err = 0;
 
 	copy("/tmp/RsXXXXX", tempMail);
 	copy("/tmp/RqXXXXX", tempResid);
@@ -34,12 +34,24 @@ tinit()
 	mktemp(tempSet);
 	mktemp(tempMesg);
 
-	uid = getuid() & UIDMASK;
-	if (getname(uid, uname) < 0) {
-		printf("Who are you!?\n");
-		exit(1);
+	if (strlen(myname) != 0) {
+		uid = getuserid(myname);
+		if (uid == -1)
+			goto youlose;
 	}
-	copy(uname, myname);
+	else {
+		uid = getuid() & UIDMASK;
+		if (username(uid, uname) < 0) {
+			copy("ubluit", myname);
+youlose:
+			err++;
+			if (rcvmode) {
+				printf("Who are you!?\n");
+				exit(1);
+			}
+		}
+		copy(uname, myname);
+	}
 	mailname = mailspace;
 	cp = value("HOME");
 	if (cp == NOSTR)
@@ -52,4 +64,10 @@ tinit()
 	copy("/.mailrc", cp);
 	cp = copy(homedir, deadletter);
 	copy("/dead.letter", cp);
+	if (debug) {
+		printf("uid = %d, user = %s, mailname = %s\n",
+		    uid, myname, mailname);
+		printf("deadletter = %s, mailrc = %s, mbox = %s\n",
+		    deadletter, mailrc, mbox);
+	}
 }

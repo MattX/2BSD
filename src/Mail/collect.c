@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 /*
@@ -16,7 +15,6 @@
  * or NULL on error.
  */
 
-
 /*
  * The following hokiness with global variables is so that on
  * receipt of an interrupt signal, the partial message can be salted
@@ -29,21 +27,29 @@ static	int	(*savesig)();		/* Previous SIGINT value */
 static	FILE	*newi;			/* File for saving away */
 static	FILE	*newo;			/* Output side of same */
 static	int	hf;			/* Ignore interrups */
+static	int	nofault;		/* Soft signal if set */
+static	int	hadintr;		/* Have seen one SIGINT so far */
+
+static	jmp_buf	coljmp;			/* To get back to work */
 
 FILE *
 collect(hp)
 	struct header *hp;
 {
 	FILE *ibuf, *fbuf, *obuf;
-	int lc, cc, escape, collrub(), intack();
+	int lc, cc, escape, collrub(), intack(), stopdot;
 	register int c, t;
 	char linebuf[LINESIZE], *cp;
 	extern char tempMail[];
 
+	stopdot = (value("dot") != NOSTR) && intty;
+	ibuf = obuf = NULL;
 	if (value("ignore") != NOSTR)
 		hf = 1;
 	else
 		hf = 0;
+	nofault = 1;
+	hadintr = 0;
 	if ((savesig = signal(SIGINT, SIG_IGN)) != SIG_IGN)
 		signal(SIGINT, hf ? intack : collrub);
 	newi = NULL;
@@ -60,23 +66,44 @@ collect(hp)
 		goto err;
 	}
 	newi = ibuf;
-	unlink(tempMail);
+	remove(tempMail);
+
+	/*
+	 * If we are going to prompt for a subject,
+	 * refrain from printing a newline after
+	 * the headers (since some people mind).
+	 */
+
+	t = GTO|GSUBJECT|GCC|GNL;
+	c = 0;
+	if (intty && sflag == NOSTR && hp->h_subject == NOSTR && value("ask"))
+		t &= ~GNL, c++;
 	if (hp->h_seq != 0) {
-		puthead(hp, stdout);
+		puthead(hp, stdout, t);
 		fflush(stdout);
 	}
-	if (intty && hp->h_subj == NOSTR && value("ask"))
-		grabh(hp, GSUBJ);
+	if (c)
+		grabh(hp, GSUBJECT);
 	escape = ESCAPE;
 	if ((cp = value("escape")) != NOSTR)
 		escape = *cp;
-	while (readline(stdin, linebuf) > 0) {
-		if (linebuf[0] != escape) {
+	for (;;) {
+		setjmp(coljmp);
+		nofault = 0;
+		flush();
+		if (readline(stdin, linebuf) <= 0)
+			break;
+		hadintr = 0;
+		if (stopdot && equal(".", linebuf))
+			break;
+		if (linebuf[0] != escape ||
+		    (!intty && value("henry") == NOSTR)) {
 			if ((t = putline(obuf, linebuf)) < 0)
 				goto err;
 			continue;
 		}
 		c = linebuf[1];
+		nofault= 0;
 		switch (c) {
 		default:
 			/*
@@ -110,6 +137,16 @@ collect(hp)
 			shell(&linebuf[2]);
 			break;
 
+		case ':':
+		case '_':
+			/*
+			 * Escape to command mode, but be nice!
+			 */
+
+			nofault = 0;
+			execute(&linebuf[2]);
+			break;
+
 		case '.':
 			/*
 			 * Simulate end of file on input.
@@ -123,6 +160,8 @@ collect(hp)
 			 * Act like an interrupt happened.
 			 */
 
+			nofault = 0;
+			hadintr++;
 			collrub(SIGINT);
 			exit(1);
 
@@ -134,7 +173,7 @@ collect(hp)
 				printf("~h: no can do!?\n");
 				break;
 			}
-			grabh(hp, GTO|GSUBJ|GCC);
+			grabh(hp, GTO|GSUBJECT|GCC|GBCC);
 			printf("(continue)\n");
 			break;
 
@@ -149,13 +188,13 @@ collect(hp)
 
 		case 's':
 			/*
-			 * Set the Subj list.
+			 * Set the Subject list.
 			 */
 
 			cp = &linebuf[2];
 			while (any(*cp, " \t"))
 				cp++;
-			hp->h_subj = savestr(cp);
+			hp->h_subject = savestr(cp);
 			hp->h_seq++;
 			break;
 
@@ -165,6 +204,14 @@ collect(hp)
 			 */
 
 			hp->h_cc = addto(hp->h_cc, &linebuf[2]);
+			hp->h_seq++;
+			break;
+
+		case 'b':
+			/*
+			 * Add stuff to blind carbon copies list.
+			 */
+			hp->h_bcc = addto(hp->h_bcc, &linebuf[2]);
 			hp->h_seq++;
 			break;
 
@@ -186,6 +233,9 @@ collect(hp)
 				printf("Interpolate what file?\n");
 				break;
 			}
+			cp = expand(cp);
+			if (cp == NOSTR)
+				break;
 			if (isdir(cp)) {
 				printf("%s: directory\n");
 				break;
@@ -222,16 +272,20 @@ collect(hp)
 				fprintf(stderr, "Write what file!?\n");
 				break;
 			}
+			if ((cp = expand(cp)) == NOSTR)
+				break;
 			fflush(obuf);
 			rewind(ibuf);
 			exwrite(cp, ibuf, 1);
 			break;
 
 		case 'm':
+		case 'f':
 			/*
 			 * Interpolate the named messages, if we
 			 * are in receiving mail mode.  Does the
 			 * standard list processing garbage.
+			 * If ~f is given, we don't shift over.
 			 */
 
 			if (!rcvmode) {
@@ -241,12 +295,13 @@ collect(hp)
 			cp = &linebuf[2];
 			while (any(*cp, " \t"))
 				cp++;
-			if (forward(cp, obuf) < 0)
+			if (forward(cp, obuf, c) < 0)
 				goto err;
 			printf("(continue)\n");
 			break;
 
 		case '?':
+			nofault = 0;
 			if ((fbuf = fopen(THELPFILE, "r")) == NULL) {
 				printf("No help just now.\n");
 				break;
@@ -267,8 +322,9 @@ collect(hp)
 
 			fflush(obuf);
 			rewind(ibuf);
+			nofault = 0;
 			printf("-------\nMessage contains:\n");
-			puthead(hp, stdout);
+			puthead(hp, stdout, GTO|GSUBJECT|GCC|GBCC|GNL);
 			t = getc(ibuf);
 			while (t != EOF) {
 				putchar(t);
@@ -307,7 +363,6 @@ collect(hp)
 			break;
 			break;
 		}
-		flush();
 	}
 eof:
 	fclose(obuf);
@@ -316,10 +371,25 @@ eof:
 	return(ibuf);
 
 err:
-	fclose(ibuf);
-	fclose(obuf);
+	if (ibuf != NULL)
+		fclose(ibuf);
+	if (obuf != NULL)
+		fclose(obuf);
 	signal(SIGINT, savesig);
 	return(NULL);
+}
+
+/*
+ * Non destructively interrogate the value of the given signal.
+ */
+
+psig(n)
+{
+	register (*wassig)();
+
+	wassig = signal(n, SIG_IGN);
+	signal(n, wassig);
+	return((int) wassig);
 }
 
 /*
@@ -336,20 +406,22 @@ exwrite(name, ibuf, f)
 	int lc;
 	struct stat junk;
 
-	if (stat(name, &junk) >= 0) {
-		fprintf(stderr, "%s: File exists\n", name);
-		return(-1);
-	}
-	if ((of = fopen(name, "w")) == NULL) {
-		perror(name);
-		return(-1);
-	}
-	lc = 0;
-	cc = 0;
 	if (f) {
 		printf("\"%s\" ", name);
 		fflush(stdout);
 	}
+	if (stat(name, &junk) >= 0) {
+		if (!f)
+			fprintf(stderr, "%s: ", name);
+		fprintf(stderr, "File exists\n", name);
+		return(-1);
+	}
+	if ((of = fopen(name, "w")) == NULL) {
+		perror(NOSTR);
+		return(-1);
+	}
+	lc = 0;
+	cc = 0;
 	while ((c = getc(ibuf)) != EOF) {
 		cc++;
 		if (c == '\n')
@@ -407,30 +479,30 @@ mesedit(ibuf, obuf, c)
 	fflush(fbuf);
 	if (ferror(fbuf)) {
 		perror(tempEdit);
-		unlink(tempEdit);
+		remove(tempEdit);
 		goto fix;
 	}
 	fclose(fbuf);
-	pid = fork();
+	if ((edit = value(c == 'e' ? "EDITOR" : "VISUAL")) == NOSTR)
+		edit = c == 'e' ? EDITOR : VISUAL;
+	pid = vfork();
 	if (pid == 0) {
 		if (sig != SIG_IGN)
 			signal(SIGINT, SIG_DFL);
-		if ((edit = value(c == 'e' ? "EDITOR" : "VISUAL")) == NOSTR)
-			edit = c == 'e' ? EDITOR : VISUAL;
 		execl(edit, edit, tempEdit, 0);
 		perror(edit);
-		exit(1);
+		_exit(1);
 	}
 	if (pid == -1) {
 		perror("fork");
-		unlink(tempEdit);
+		remove(tempEdit);
 		goto out;
 	}
 	while (wait(&s) != pid)
 		;
 	if (s != 0) {
-		printf("Fatal error in \"%s\"\n", EDITOR);
-		unlink(tempEdit);
+		printf("Fatal error in \"%s\"\n", edit);
+		remove(tempEdit);
 		goto out;
 	}
 
@@ -440,16 +512,16 @@ mesedit(ibuf, obuf, c)
 
 	if ((fbuf = fopen(tempEdit, "a")) == NULL) {
 		perror(tempEdit);
-		unlink(tempEdit);
+		remove(tempEdit);
 		goto out;
 	}
 	if ((ibuf = fopen(tempEdit, "r")) == NULL) {
 		perror(tempEdit);
 		fclose(fbuf);
-		unlink(tempEdit);
+		remove(tempEdit);
 		goto out;
 	}
-	unlink(tempEdit);
+	remove(tempEdit);
 	fclose(obuf);
 	fclose(newi);
 	obuf = fbuf;
@@ -487,16 +559,16 @@ mespipe(ibuf, obuf, cmd)
 	if ((ni = fopen(tempEdit, "r")) == NULL) {
 		perror(tempEdit);
 		fclose(no);
-		unlink(tempEdit);
+		remove(tempEdit);
 		return(obuf);
 	}
-	unlink(tempEdit);
+	remove(tempEdit);
 	savesig = signal(SIGINT, SIG_IGN);
 	fflush(obuf);
 	rewind(ibuf);
 	if ((Shell = value("SHELL")) == NULL)
 		Shell = "/bin/sh";
-	if ((pid = fork()) == -1) {
+	if ((pid = vfork()) == -1) {
 		perror("fork");
 		goto err;
 	}
@@ -514,11 +586,11 @@ mespipe(ibuf, obuf, cmd)
 			close(s);
 		execl(Shell, Shell, "-c", cmd, 0);
 		perror(Shell);
-		exit(1);
+		_exit(1);
 	}
 	while (wait(&s) != pid)
 		;
-	if (s != 0) {
+	if (s != 0 || pid == -1) {
 		fprintf(stderr, "\"%s\" failed!?\n", cmd);
 		goto err;
 	}
@@ -549,10 +621,11 @@ err:
  * message, preceding each line with a tab.
  * Return a count of the number of characters now in
  * the message, or -1 if an error is encountered writing
- * the message temporary.
+ * the message temporary.  The flag argument is 'm' if we
+ * should shift over and 'f' if not.
  */
 
-forward(ms, obuf)
+forward(ms, obuf, f)
 	char ms[];
 	FILE *obuf;
 {
@@ -576,10 +649,16 @@ forward(ms, obuf)
 	for (ip = msgvec; *ip != NULL; ip++) {
 		touch(*ip);
 		printf(" %d", *ip);
-		if (transmit(&message[*ip-1], obuf) < 0) {
-			perror(tempMail);
-			return(-1);
-		}
+		if (f == 'm') {
+			if (transmit(&message[*ip-1], obuf) < 0) {
+				perror(tempMail);
+				return(-1);
+			}
+		} else
+			if (send(&message[*ip-1], obuf) < 0) {
+				perror(tempMail);
+				return(-1);
+			}
 	}
 	printf("\n");
 	return(0);
@@ -641,10 +720,33 @@ collrub(s)
 	register FILE *dbuf;
 	register int c;
 
+#ifdef V7
+	signal(s, SIG_IGN);
+#else
 	signal(SIGINT, SIG_IGN);
+#endif
+	if (nofault) {
+#ifdef V7
+		signal(s, collrub);
+#else
+		signal(SIGINT, collrub);
+#endif
+		return;
+	}
+	if (hadintr == 0) {
+		hadintr++;
+		clrbuf(stdout);
+		printf("\n(Interrupt -- one more to kill letter)\n");
+#ifdef V7
+		signal(s, collrub);
+#else
+		signal(SIGINT, collrub);
+#endif
+		longjmp(coljmp, 1);
+	}
 	fclose(newo);
 	rewind(newi);
-	if (value("save") == NOSTR)
+	if (value("nosave") != NOSTR || fsize(newi) == 0)
 		goto done;
 	if ((dbuf = fopen(deadletter, "w")) == NULL)
 		goto done;
@@ -670,7 +772,7 @@ intack(s)
 {
 	
 	signal(SIGINT, SIG_IGN);
-	putchar('@');
+	puts("@");
 	fflush(stdout);
 	clearerr(stdin);
 	signal(SIGINT, intack);

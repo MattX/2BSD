@@ -1,0 +1,26 @@
+From decvax!duke!utzoo!henry  Sat May 23 21:40:10 1981
+
+This is to announce the presence on Usenet of duke!utzoo, the U of Toronto
+zoology department.  We are the only U of T site on the net at the moment,
+and will forward things (within reason) to local non-net sites like the
+Computer Systems Research Group.
+
+Although this is the largest zoology school in the western hemisphere,
+the computer-systems operation is not very large, mostly because it
+is a fairly recent acquisition.  We have an 11/44 with a 300-meg disk,
+a bunch of (sigh) DZ11's, and several smaller cpus.  We run V7+PWB plus
+assorted other software from various places.  We do text processing,
+data acquisition (using two satellite 11/05's), some research in areas
+like database systems, and a bunch of miscellaneous odds and ends.
+
+We're interested in better text-handling software (especially formatters),
+data acquisition and analysis tools, distributed processing a la Ethernet,
+general Unix improvement and enhancement, and VAXes.
+
+Contact for net matters (and almost anything else) is Henry Spencer,
+duke!utzoo!henry (preferred), (416)978-6060 (if you must).
+
+At present, we connect only to Duke.  We have no autodialer (yet) and
+hence are unwilling to call other people;  we are TENTATIVELY willing
+to let other people call us, and several local Unix sites have expressed
+interest in doing so.  Details not yet figured out.

@@ -1,11 +1,11 @@
-/* Copyright (c) 1979 Regents of the University of California */
-#include <retrofit.h>
-#include <sgtty.h>
+/* load me with -ltermlib */
+/* #include <retrofit.h> on version 6 */
 /*
  * clear - clear the screen
  */
 
 #include <stdio.h>
+#include <sgtty.h>
 
 char	*getenv();
 char	*tgetstr();
@@ -22,7 +22,7 @@ main()
 	char *clbp = clbuf;
 	char *pcbp = pcbuf;
 	char *clear;
-	char buf[BUFSIZ];
+	char buf[1024];
 	char *pc;
 	struct sgttyb tty;
 

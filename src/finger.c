@@ -1,5 +1,6 @@
-/* Copyright (c) 1979 Regents of the University of California */
-#include <retrofit.h>
+static	char	sccsid[] = "@(#)finger.c	2.2";	/*	SCCS id keyword	*/
+
+
 /*  This is a finger program.  It prints out useful information about users
  *  by digging it up from various system files.  It is not very portable
  *  because the most useful parts of the information (the full user name,
@@ -44,15 +45,18 @@
 #include	<signal.h>
 #include	<pwd.h>
 #include	<stdio.h>
-#include	<sccs.h>
-#include	<lastlog.h>
+#include	<ctype.h>
+#ifdef notdef
+# include	<sccs.h>
+# include	<lastlog.h>
+#endif
 /* This is <lastlog.h> which login must maintain!
  * It should be a file /usr/adm/lastlog of such structures indexed by uid
+ */
 struct lastlog {
 	time_t	ll_time;
 	char	ll_line[8];
 };
- */
 #include	<time.h>
 
 #define		ASTERISK	'*'	/* ignore this in real name */
@@ -63,6 +67,7 @@ struct lastlog {
 #define		CORY		'C'	/* cory hall office */
 #define		EVANS		'E'	/* evans hall office */
 #define		LINEBREAK	012	/* line feed */
+#define		NULLSTR		""	/* a null string, opposed to a null */
 #define		SAMENAME	'&'	/* repeat login name in real name */
 #define		TALKABLE	0222	/* tty is writeable if 222 mode */
 
@@ -71,8 +76,8 @@ struct  person  {			/* one for each person fingered */
 	char		tty[ 9 ];	/* NULL terminated tty line */
 	long		loginat;	/* time of login (possibly last) */
 	long		idletime;	/* how long idle (if logged in) */
-	short int	loggedin;	/* flag for being logged in */
-	short int	writeable;	/* flag for tty being writeable */
+	short		loggedin;	/* flag for being logged in */
+	short		writeable;	/* flag for tty being writeable */
 	char		*realname;	/* pointer to full name */
 	char		*office;	/* pointer to office name */
 	char		*officephone;	/* pointer to office phone no. */
@@ -98,11 +103,14 @@ int		header		= 1;		/* -f option default */
 int		hack		= 1;		/* -h option default */
 int		idle		= 0;		/* -i option default */
 int		large		= 0;		/* -l option default */
-int		match		= 0;		/* -m option default */
+int		match		= 1;		/* -m option default */
 int		plan		= 1;		/* -p option default */
 int		unquick		= 1;		/* -q option default */
 int		small		= 0;		/* -s option default */
 int		wide		= 1;		/* -w option default */
+
+int		lf;
+int		llopenerr;
 
 long		tloc;				/* current time */
 
@@ -132,62 +140,69 @@ main( argc, argv )
 	int			usize = sizeof user;
 	int			unshort;
 	int			i, j;
+	int			fngrlogin;
 
 	setbuf( stdout, outbuf );			/* buffer output */
 
     /*  parse command line for (optional) arguments */
 
 	i = 1;
-	while( i++ < argc  &&  (*++argv)[0] == COMMAND )  {
-	    for( s = argv[0] + 1; *s != NULL; s++ )  {
-		    switch  (*s)  {
+	if(  strcmp( *argv, "sh" )  )  {
+	    fngrlogin = 0;
+	    while( i++ < argc  &&  (*++argv)[0] == COMMAND )  {
+		for( s = argv[0] + 1; *s != NULL; s++ )  {
+			switch  (*s)  {
 
-			case 'b':
-				unbrief = 0;
-				break;
+			    case 'b':
+				    unbrief = 0;
+				    break;
 
-			case 'f':
-				header = 0;
-				break;
+			    case 'f':
+				    header = 0;
+				    break;
 
-			case 'h':
-				hack = 0;
-				break;
+			    case 'h':
+				    hack = 0;
+				    break;
 
-			case 'i':
-				idle = 1;
-				unquick = 0;
-				break;
+			    case 'i':
+				    idle = 1;
+				    unquick = 0;
+				    break;
 
-			case 'l':
-				large = 1;
-				break;
+			    case 'l':
+				    large = 1;
+				    break;
 
-			case 'm':
-				match = 1;
-				break;
+			    case 'm':
+				    match = 0;
+				    break;
 
-			case 'p':
-				plan = 0;
-				break;
+			    case 'p':
+				    plan = 0;
+				    break;
 
-			case 'q':
-				unquick = 0;
-				break;
+			    case 'q':
+				    unquick = 0;
+				    break;
 
-			case 's':
-				small = 1;
-				break;
+			    case 's':
+				    small = 1;
+				    break;
 
-			case 'w':
-				wide = 0;
-				break;
+			    case 'w':
+				    wide = 0;
+				    break;
 
-			default:
-			    fprintf( stderr, "finger: Usage -- 'finger [-bfhilmpqsw] [login1 [login2 ...] ]'\n" );
-			    exit( 1 );
-		    }
+			    default:
+				fprintf( stderr, "finger: Usage -- 'finger [-bfhilmpqsw] [login1 [login2 ...] ]'\n" );
+				exit( 1 );
+			}
+		}
 	    }
+	}
+	else  {
+	    fngrlogin = 1;
 	}
 	if( unquick )  {
 	    time( &tloc );
@@ -200,7 +215,7 @@ main( argc, argv )
 
     /*  i > argc means no login names given so get them by reading USERLOG */
 
-	if( i > argc )  {
+	if(  (i > argc)  ||  fngrlogin  )  {
 	    unshort = large;
 	    if(  ( uf = open(USERLOG, 0) ) >= 0  )  {
 		user.ut_name[0] = NULL;
@@ -237,7 +252,8 @@ main( argc, argv )
 		    p->loggedin = 1;
 		    numnames++;
 		}
-	    p->link = NILPERS;
+		p->link = NILPERS;
+		close( uf );
 	    }
 	    else  {
 		fprintf( stderr, "finger: error opening %s\n", USERLOG );
@@ -248,6 +264,7 @@ main( argc, argv )
 
 	    if( unquick )  {
 		setpwent();
+		fwopen();
 		i = numnames;
 		while(  ( (pw = getpwent()) != NILPWD )  &&  ( i > 0 )  )  {
 		    p = person1;
@@ -263,6 +280,7 @@ main( argc, argv )
 			p = p->link;
 		    }  while( p != NILPERS );
 		}
+		fwclose();
 		endpwent();
 	    }
 	}
@@ -304,7 +322,8 @@ main( argc, argv )
 				p->pwd = (struct passwd  *) malloc( pwdsize );
 				pwdcopy( p->pwd, pw );
 			    }
-			    else  {
+			    else  {	/* handle multiple logins -- append new
+					   "duplicate" entry to end of list */
 				pend->link = (struct person  *) malloc(persize);
 				pend = pend->link;
 				pend->link = NILPERS;
@@ -329,16 +348,18 @@ main( argc, argv )
 		    do  {
 			pw = p->pwd;
 			if( pw == NILPWD )  {
-			    p = p->link;
-			    continue;
+			    i = ( strcmp( p->name, user.ut_name ) ? 0 : 8 );
 			}
-			i = 0;
-			while((i < 8) && (pw->pw_name[i] == user.ut_name[i]))  {
-			    if( pw->pw_name[i] == NULL )  {
-				i = 8;
-				break;
+			else  {
+			    i = 0;
+			    while(  (i < 8)  &&
+				    ( pw->pw_name[i] == user.ut_name[i])  )  {
+				if( pw->pw_name[i] == NULL )  {
+				    i = 8;
+				    break;
+				}
+				i++;
 			    }
-			    i++;
 			}
 			if( i == 8 )  {
 			    if( p->loggedin == 1 )  {
@@ -352,8 +373,13 @@ main( argc, argv )
 				pend->tty[ 8 ] = NULL;
 				pend->loginat = user.ut_time;
 				pend->loggedin = 2;
-				pend->pwd = (struct passwd  *) malloc(pwdsize);
-				pwdcopy( pend->pwd, pw );
+				if(  pw == NILPWD  )  {
+				    pend ->pwd = NILPWD;
+				}
+				else  {
+				    pend->pwd = (struct passwd  *) malloc(pwdsize);
+				    pwdcopy( pend->pwd, pw );
+				}
 				numnames++;
 			    }
 			    else  {
@@ -370,6 +396,7 @@ main( argc, argv )
 			p = p->link;
 		    }  while( p != NILPERS );
 		}
+		fwopen();
 		p = person1;
 		while( p != NILPERS )  {
 		    if( p->loggedin == 2 )  {
@@ -378,6 +405,8 @@ main( argc, argv )
 		    decode( p );
 		    p = p->link;
 		}
+		fwclose();
+		close( uf );
 	    }
 	    else  {
 		fprintf( stderr, "finger: error opening %s\n", USERLOG );
@@ -392,11 +421,11 @@ main( argc, argv )
 		if( !unshort )  {
 		    if( wide )  {
 			printf(
-"Login       Name          TTY Idle    When           Office\n" );
+"Login       Name               TTY  Idle    When            Office\n" );
 		    }
 		    else  {
 			printf(
-"Login    TTY Idle    When           Office\n" );
+"Login     TTY  Idle    When            Office\n" );
 		    }
 		}
 	    }
@@ -459,6 +488,7 @@ main( argc, argv )
 	    }
 	    p = p->link;
 	}  while( p != NILPERS );
+	exit(1);
 }
 
 
@@ -543,10 +573,10 @@ shortprint( pers )
 	dialup = 0;
 	if( wide )  {
 	    if(  strlen( pers->realname ) > 0  )  {
-		printf( " %-16.16s", pers->realname );
+		printf( " %-20.20s", pers->realname );
 	    }
 	    else  {
-		printf( "       ???       " );
+		printf( "        ???          " );
 	    }
 	}
 	if( pers->loggedin )  {
@@ -571,10 +601,10 @@ shortprint( pers )
 	    if(  (buf[0] == 'd')  &&  pers->loggedin  )  {
 		dialup = 1;
 	    }
-	    printf( "%-2.2s ", buf );
+	    printf( "%-4.4s ", buf );
 	}
 	else  {
-	    printf( "   " );
+	    printf( "     " );
 	}
 	strcpy( buf, ctime( &pers->loginat ) );
 	if( pers->loggedin )  {
@@ -596,14 +626,14 @@ shortprint( pers )
 	len = strlen( pers->homephone );
 	if(  dialup  &&  (len > 0)  )  {
 	    if( len == 8 )  {
-		printf( "            " );
+		printf( "             " );
 	    }
 	    else  {
 		if( len == 12 )  {
-		    printf( "        " );
+		    printf( "         " );
 		}
 		else {
-		    for( i = 1; i <= 20 - len; i++ )  {
+		    for( i = 1; i <= 21 - len; i++ )  {
 			printf( " " );
 		    }
 		}
@@ -612,27 +642,27 @@ shortprint( pers )
 	}
 	else  {
 	    if(  strlen( pers->office ) > 0  )  {
-		printf( " %-10.10s", pers->office );
+		printf( " %-11.11s", pers->office );
 		if(  strlen( pers->officephone ) > 0  )  {
-		    printf( " %s", pers->officephone );
+		    printf( " %8.8s", pers->officephone );
 		}
 		else  {
 		    if( len == 8 )  {
-			printf( " %s", pers->homephone );
+			printf( " %8.8s", pers->homephone );
 		    }
 		}
 	    }
 	    else  {
 		if(  strlen( pers->officephone ) > 0  )  {
-		    printf( "             %s", pers->officephone );
+		    printf( "             %8.8s", pers->officephone );
 		}
 		else  {
 		    if( len == 8 )  {
-			printf( "            ", pers->homephone );
+			printf( "             %8.8s", pers->homephone );
 		    }
 		    else  {
 			if( len == 12 )  {
-			    printf( "        ", pers->homephone );
+			    printf( "         %12.12s", pers->homephone );
 			}
 		    }
 		}
@@ -649,7 +679,6 @@ shortprint( pers )
 personprint( pers )
 
     struct  person	*pers;
-
 {
 	struct  passwd		*pwdt = pers->pwd;
 	int			idleprinted;
@@ -676,7 +705,7 @@ personprint( pers )
 	    printf( "In real life: %-s", pers->realname );
 	}
 	if(  strlen( pers->office ) > 0  )  {
-	    printf( "\nOffice: %-.10s", pers->office );
+	    printf( "\nOffice: %-.11s", pers->office );
 	    if(  strlen( pers->officephone ) > 0  )  {
 		printf( ", %s", pers->officephone );
 		if(  strlen( pers->homephone ) > 0  )  {
@@ -749,7 +778,8 @@ personprint( pers )
 }
 
 
-/*  very hacky section of code to print phone numbers.  filled with
+/*
+ *  very hacky section of code to format phone numbers.  filled with
  *  magic constants like 4, 7 and 10.
  */
 
@@ -762,7 +792,7 @@ char  *phone( s, len )
 	char		fonebuf[ 15 ];
 	int		i;
 
-	switch  (len)  {
+	switch(  len  )  {
 
 	    case  4:
 		fonebuf[ 0 ] = ' ';
@@ -772,6 +802,7 @@ char  *phone( s, len )
 		for( i = 0; i <= 3; i++ )  {
 		    fonebuf[ 4 + i ] = *s++;
 		}
+		fonebuf[ 8 ] = NULL;
 		return( strsave( &fonebuf[0] ) );
 		break;
 
@@ -783,6 +814,7 @@ char  *phone( s, len )
 		for( i = 0; i <= 3; i++ )  {
 		    fonebuf[ 4 + i ] = *s++;
 		}
+		fonebuf[ 8 ] = NULL;
 		return( strsave( &fonebuf[0] ) );
 		break;
 
@@ -798,6 +830,7 @@ char  *phone( s, len )
 		for( i = 0; i <= 3; i++ )  {
 		    fonebuf[ 8 + i ] = *s++;
 		}
+		fonebuf[ 12 ] = NULL;
 		return( strsave( &fonebuf[0] ) );
 		break;
 
@@ -825,18 +858,18 @@ decode( pers )
 	int			len;
 	int			i;
 
-	pers->realname = NULL;
-	pers->office = NULL;
-	pers->officephone = NULL;
-	pers->homephone = NULL;
-	pers->random = NULL;
+	pers->realname = NULLSTR;
+	pers->office = NULLSTR;
+	pers->officephone = NULLSTR;
+	pers->homephone = NULLSTR;
+	pers->random = NULLSTR;
 	if(  pwdt != NILPWD )  {
 	    gp = pwdt->pw_gecos;
 	    bp = &buffer[ 0 ];
 	    if( *gp == ASTERISK )  {
 		gp++;
 	    }
-	    while(  (*gp != NULL)  &&  (*gp != COMMA)  )  {
+	    while(  (*gp != NULL)  &&  (*gp != COMMA)  )  {	/* name */
 		if( *gp == SAMENAME )  {
 		    lp = pwdt->pw_name;
 		    *bp++ = CAPITALIZE(*lp++);
@@ -845,14 +878,20 @@ decode( pers )
 		    }
 		}
 		else  {
-		    *bp++ = *gp;
+		    if( *gp == '$' )  {
+			while(  (*gp != NULL)  &&  (*gp != COMMA)  )  gp++;
+			break;
+		    }
+		    else  {
+			*bp++ = *gp;
+		    }
 		}
 		gp++;
 	    }
 	    *bp = NULL;
 	    pers->realname = malloc( strlen( &buffer[0] ) + 1 );
 	    strcpy( pers->realname, &buffer[0] );
-	    if( *gp++ == COMMA )  {
+	    if( *gp++ == COMMA )  {			/* office, supposedly */
 		alldigits = 1;
 		bp = &buffer[ 0 ];
 		while(  (*gp != NULL)  &&  (*gp != COMMA)  )  {
@@ -862,7 +901,7 @@ decode( pers )
 		}
 		*bp = NULL;
 		len = strlen( &buffer[0] );
-		if( buffer[ len - 1]  ==  CORY )  {
+		if( buffer[ len - 1 ]  ==  CORY )  {
 		    strcpy( &buffer[ len - 1 ], " Cory" );
 		    pers->office = malloc( len + 5 );
 		    strcpy( pers->office, &buffer[0] );
@@ -897,7 +936,7 @@ decode( pers )
 			}
 		    }
 		}
-		if( *gp++ == COMMA )  {
+		if( *gp++ == COMMA )  {	    /* office phone, theoretically */
 		    bp = &buffer[ 0 ];
 		    alldigits = 1;
 		    while(  (*gp != NULL)  &&  (*gp != COMMA)  )  {
@@ -925,7 +964,7 @@ decode( pers )
 			pers->random = malloc( len + 1 );
 			strcpy( pers->random, &buffer[0] );
 		    }
-		    if( *gp++ == COMMA )  {
+		    if( *gp++ == COMMA )  {		/* home phone?? */
 			bp = &buffer[ 0 ];
 			alldigits = 1;
 			    while(  (*gp != NULL)  &&  (*gp != COMMA)  )  {
@@ -937,7 +976,7 @@ decode( pers )
 			*bp = NULL;
 			len = strlen( &buffer[0] );
 			if( alldigits  &&  ( (len == 7) || (len == 10) )  )  {
-			    if( pers->homephone != NULL )  {
+			    if( *pers->homephone != NULL )  {
 				pers->officephone = pers->homephone;
 			    }
 			    pers->homephone = phone( &buffer[0], len );
@@ -964,6 +1003,21 @@ decode( pers )
  *  the uid is known (which it isn't in quick mode)
  */
 
+fwopen()
+{
+	if(  ( lf = open(LASTLOG, 0) ) >= 0  )  {
+	    llopenerr = 0;
+	}
+	else  {
+#ifdef notdef
+/* lots of places don't have lastlog, so don't complain */
+	    fprintf( stderr, "finger: lastlog open error\n" );
+#endif
+	    llopenerr = 1;
+	}
+}
+
+
 findwhen( pers )
 
     struct  person	*pers;
@@ -971,11 +1025,10 @@ findwhen( pers )
 	struct  passwd		*pwdt = pers->pwd;
 	struct  lastlog		ll;
 	int			llsize = sizeof ll;
-	int			lf;
 	int			i;
 
-	if(  ( lf = open(LASTLOG, 0) ) >= 0  )  {
-	    lseek( lf, pwdt->pw_uid*llsize, 0 );
+	if( !llopenerr )  {
+	    lseek( lf, (long) ((unsigned) (pwdt->pw_uid)*llsize), 0 );
 	    if( read( lf, (char *) &ll, llsize ) == llsize )  {
 		    for( i = 0; i < 8; i++ )  {
 			pers->tty[ i ] = ll.ll_line[ i ];
@@ -985,11 +1038,21 @@ findwhen( pers )
 	    }
 	    else  {
 		fprintf( stderr, "finger: lastlog read error\n" );
+		pers->tty[ 0 ] = NULL;
+		pers->loginat = 0L;
 	    }
 	}
 	else  {
-	    fprintf( stderr, "finger: lastlog open error\n" );
-	    exit( 3 );
+	    pers->tty[ 0 ] = NULL;
+	    pers->loginat = 0L;
+	}
+}
+
+
+fwclose()
+{
+	if( !llopenerr )  {
+	    close( lf );
 	}
 }
 
@@ -1319,3 +1382,343 @@ char  *strsave( s )
 	strcpy( p, s );
 }
 
+/*
+ * This version of printf is compatible with the Version 7 C
+ * printf.  It is from ls.c and is included to get around a
+ * bug in v7 doprnt.s which prints too many leading zeros.  V7
+ * printf is more general (and is much larger) and includes
+ * provisions for floating point.
+ */
+
+#define MAXOCT  11          /* Maximum octal digits in a long */
+#define MAXINT  32767       /* largest normal length positive integer */
+#define BIG     1000000000  /* largest power of 10 less than an unsigned long */
+#define MAXDIGS 10          /* number of digits in BIG */
+
+static int width, sign, fill;
+
+#include <varargs.h>
+
+char *b_dconv();
+
+printf(va_alist)
+        va_dcl
+{
+        va_list ap;
+        register char *fmt;
+        char fcode;
+        int prec;
+        int length,mask1,nbits,n;
+        long int mask2, num;
+        register char *bptr;
+        char *ptr;
+        char buf[134];
+
+        va_start(ap);
+        fmt = va_arg(ap,char *);
+        for (;;) {
+                /* process format string first */
+                while ((fcode = *fmt++)!='%') {
+                        /* ordinary (non-%) character */
+                        if (fcode=='\0')
+                                return;
+                        putchar(fcode);
+                }
+                /* length modifier: -1 for h, 1 for l, 0 for none */
+                length = 0;
+                /* check for a leading - sign */
+                sign = 0;
+                if (*fmt == '-') {
+                        sign++;
+                        fmt++;
+                }
+                /* a '0' may follow the - sign */
+                /* this is the requested fill character */
+                fill = 1;
+                if (*fmt == '0') {
+                        fill--;
+                        fmt++;
+                }
+                
+                /* Now comes a digit string which may be a '*' */
+                if (*fmt == '*') {
+                        width = va_arg(ap, int);
+                        if (width < 0) {
+                                width = -width;
+                                sign = !sign;
+                        }
+                        fmt++;
+                }
+                else {
+                        width = 0;
+                        while (*fmt>='0' && *fmt<='9')
+                                width = width * 10 + (*fmt++ - '0');
+                }
+                
+                /* maybe a decimal point followed by more digits (or '*') */
+                if (*fmt=='.') {
+                        if (*++fmt == '*') {
+                                prec = va_arg(ap, int);
+                                fmt++;
+                        }
+                        else {
+                                prec = 0;
+                                while (*fmt>='0' && *fmt<='9')
+                                        prec = prec * 10 + (*fmt++ - '0');
+                        }
+                }
+                else
+                        prec = -1;
+                
+                /*
+                 * At this point, "sign" is nonzero if there was
+                 * a sign, "fill" is 0 if there was a leading
+                 * zero and 1 otherwise, "width" and "prec"
+                 * contain numbers corresponding to the digit
+                 * strings before and after the decimal point,
+                 * respectively, and "fmt" addresses the next
+                 * character after the whole mess. If there was
+                 * no decimal point, "prec" will be -1.
+                 */
+                switch (*fmt) {
+                        case 'L':
+                        case 'l':
+                                length = 2;
+                                /* no break!! */
+                        case 'h':
+                        case 'H':
+                                length--;
+                                fmt++;
+                                break;
+                }
+                
+                /*
+                 * At exit from the following switch, we will
+                 * emit the characters starting at "bptr" and
+                 * ending at "ptr"-1, unless fcode is '\0'.
+                 */
+                switch (fcode = *fmt++) {
+                        /* process characters and strings first */
+                        case 'c':
+                                buf[0] = va_arg(ap, int);
+                                ptr = bptr = &buf[0];
+                                if (buf[0] != '\0')
+                                        ptr++;
+                                break;
+                        case 's':
+                                bptr = va_arg(ap,char *);
+                                if (bptr==0)
+                                        bptr = "(null pointer)";
+                                if (prec < 0)
+                                        prec = MAXINT;
+                                for (n=0; *bptr++ && n < prec; n++) ;
+                                ptr = --bptr;
+                                bptr -= n;
+                                break;
+                        case 'O':
+                                length = 1;
+                                fcode = 'o';
+                                /* no break */
+                        case 'o':
+                        case 'X':
+                        case 'x':
+                                if (length > 0)
+                                        num = va_arg(ap,long);
+                                else
+                                        num = (unsigned)va_arg(ap,int);
+                                if (fcode=='o') {
+                                        mask1 = 0x7;
+                                        mask2 = 0x1fffffffL;
+                                        nbits = 3;
+                                }
+                                else {
+                                        mask1 = 0xf;
+                                        mask2 = 0x0fffffffL;
+                                        nbits = 4;
+                                }
+                                n = (num!=0);
+                                bptr = buf + MAXOCT + 3;
+                                /* shift and mask for speed */
+                                do
+                                    if (((int) num & mask1) < 10)
+                                        *--bptr = ((int) num & mask1) + 060;
+                                    else
+                                        *--bptr = ((int) num & mask1) + 0127;
+                                while (num = (num >> nbits) & mask2);
+                                
+                                if (fcode=='o') {
+                                        if (n)
+                                                *--bptr = '0';
+                                }
+                                else
+                                        if (!sign && fill <= 0) {
+                                                putchar('0');
+                                                putchar(fcode);
+                                                width -= 2;
+                                        }
+                                        else {
+                                                *--bptr = fcode;
+                                                *--bptr = '0';
+                                        }
+                                ptr = buf + MAXOCT + 3;
+                                break;
+                        case 'D':
+                        case 'U':
+                        case 'I':
+                                length = 1;
+          
+                      fcode = fcode + 'a' - 'A';
+                                /* no break */
+                        case 'd':
+                        case 'i':
+                        case 'u':
+                                if (length > 0)
+                                        num = va_arg(ap,long);
+                                else {
+                                        n = va_arg(ap,int);
+                                        if (fcode=='u')
+                                                num = (unsigned) n;
+                                        else
+                                                num = (long) n;
+                                }
+                                if (n = (fcode != 'u' && num < 0))
+                                        num = -num;
+                                /* now convert to digits */
+                                bptr = b_dconv(num, buf);
+                                if (n)
+                                        *--bptr = '-';
+                                if (fill == 0)
+                                        fill = -1;
+                                ptr = buf + MAXDIGS + 1;
+                                break;
+                        default:
+                                /* not a control character, 
+                                 * print it.
+                                 */
+                                ptr = bptr = &fcode;
+                                ptr++;
+                                break;
+                        }
+                        if (fcode != '\0')
+                                b_emit(bptr,ptr);
+        }
+        va_end(ap);
+}
+
+/* b_dconv converts the unsigned long integer "value" to
+ * printable decimal and places it in "buffer", right-justified.
+ * The value returned is the address of the first non-zero character,
+ * or the address of the last character if all are zero.
+ * The result is NOT null terminated, and is MAXDIGS characters long,
+ * starting at buffer[1] (to allow for insertion of a sign).
+ *
+ * This program assumes it is running on 2's complement machine
+ * with reasonable overflow treatment.
+ */
+char *
+b_dconv(value, buffer)
+        long value;
+        char *buffer;
+{
+        register char *bp;
+        register int svalue;
+        int n;
+        long lval;
+        
+        bp = buffer;
+        
+        /* zero is a special case */
+        if (value == 0) {
+                bp += MAXDIGS;
+                *bp = '0';
+                return(bp);
+        }
+        
+        /* develop the leading digit of the value in "n" */
+        n = 0;
+        while (value < 0) {
+                value -= BIG;   /* will eventually underflow */
+                n++;
+        }
+        while ((lval = value - BIG) >= 0) {
+                value = lval;
+                n++;
+        }
+        
+        /* stash it in buffer[1] to allow for a sign */
+        bp[1] = n + '0';
+        /*
+         * Now develop the rest of the digits. Since speed counts here,
+         * we do it in two loops. The first gets "value" down until it
+         * is no larger than MAXINT. The second one uses integer divides
+         * rather than long divides to speed it up.
+         */
+        bp += MAXDIGS + 1;
+        while (value > MAXINT) {
+                *--bp = (int)(value % 10) + '0';
+                value /= 10;
+        }
+        
+        /* cannot lose precision */
+        svalue = value;
+        while (svalue > 0) {
+                *--bp = (svalue % 10) + '0';
+                svalue /= 10;
+        }
+        
+        /* fill in intermediate zeroes if needed */
+        if (buffer[1] != '0') {
+                while (bp > buffer + 2)
+                        *--bp = '0';
+                --bp;
+        }
+        return(bp);
+}
+
+/*
+ * This program sends string "s" to putchar. The character after
+ * the end of "s" is given by "send". This allows the size of the
+ * field to be computed; it is stored in "alen". "width" contains the
+ * user specified length. If width<alen, the width will be taken to
+ * be alen. "sign" is zero if the string is to be right-justified
+ * in the field, nonzero if it is to be left-justified. "fill" is
+ * 0 if the string is to be padded with '0', positive if it is to be
+ * padded with ' ', and negative if an initial '-' should appear before
+ * any padding in right-justification (to avoid printing "-3" as
+ * "000-3" where "-0003" was intended).
+ */
+b_emit(s, send)
+        register char *s;
+        char *send;
+{
+        char cfill;
+        register int alen;
+        int npad;
+        
+        alen = send - s;
+        if (alen > width)
+                width = alen;
+        cfill = fill>0? ' ': '0';
+        
+        /* we may want to print a leading '-' before anything */
+        if (*s == '-' && fill < 0) {
+                putchar(*s++);
+                alen--;
+                width--;
+        }
+        npad = width - alen;
+        
+        /* emit any leading pad characters */
+        if (!sign)
+                while (--npad >= 0)
+                        putchar(cfill);
+                        
+        /* emit the string itself */
+        while (--alen >= 0)
+                putchar(*s++);
+                
+        /* emit trailing pad characters */
+        if (sign)
+                while (--npad >= 0)
+                        putchar(cfill);
+}

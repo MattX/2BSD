@@ -1,0 +1,7 @@
+A copy of the -ms macro package tmac.s is enclosed,
+in case you don't have that macro package available.
+This is primarily aimed at PWB and Bell Labs sites
+which have only -mm.  It might be of use on version 6
+but I suspect not unless you have a more recent nroff
+or troff than v6.  Almost all the documentation here
+uses -ms except the -me documentation.

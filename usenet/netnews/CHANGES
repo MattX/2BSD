@@ -1,0 +1,48 @@
+Option processor now table driven.  Smaller, more obscure.
+
+New option: "-r" prints articles newest first (default: oldest first).
+Mostly used as "news -ar" to review recent news.
+
+-t argument no longer implies -an ALL, and selection is restricted
+to titles containing one or more of the specified strings.
+
+Speedups:
+.uindex and .nindex files: ":general" dropped.
+Sorted newest date first, so searches usually take 1 disk read.
+News is no longer locked when just reading news, which is faster,
+but if an article is inserted just as a user finishes reading new news
+the BITFILE may erroneously record no new news for the user.
+That is corrected when the next article is inserted (or cancelled).
+News itself is not affected since it does not use BITFILE.
+
+.sys: each line may have two additional fields.
+First field is still sysname, second field is still subscription list.
+Optional third field is unused (for future expansion).
+Optional fourth field contains command line used for article transmission;
+the article is presented as standard input to the command line.
+If fourth field is missing "uux - sysname!rnews" is assumed.
+
+ngmatch: supports "not" newsgroups.  e.g.: "news -n NET.ALL !NET.news"
+prints all NET articles except those submitted only to NET.news.
+"news -s ALL !NET.ALL" subscribes only to "local" articles.
+
+readr: interrupt causes skip to "? " query.
+"q" reply updates last read time. "x" does not.
+
+insert() changes lines beginning "From " to ">From ".
+
+system names are only significant to 8 chars.
+
+insert() refuses to write on an existing file.
+Otherwise, a bogus net article named ".sys" (for example) breaks news.
+
+Unsubscribed-to newsgroups are elided on transmission
+as well as on reception.
+The transmission program is run with PATH=/bin:/usr/bin
+to prevent control from going to a bogus program.
+
+(Of interest to Berkeley only (hopefully)):
+nchk.c fast newscheck program.
+The '-c' option is now supported, but not documented.
+'w' and 'r' replies now support 'w-' and 'r-'. sigh.
+Thu Jun  5 10:55:52 EDT 1980

@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.sem.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -13,7 +14,13 @@ execute(t, pipein, pipeout)
 	register struct command *t1;
 	register char *cp;
 	bool forked = 0;
-	bool shudint;
+	bool shudint, shudhup;
+#ifdef VFORK
+	int (*savint)(), vffree();
+	int ochild, osetintr, ohaderr, otimflg, odidfds, odidcch;
+	int oSHIN, oSHOUT, oSHDIAG, oOLDSTD;
+	int isvfork = 0;
+#endif
 
 	if (t == 0)
 		return;
@@ -25,6 +32,8 @@ execute(t, pipein, pipeout)
 			strcpy(cp, cp + 1);
 		if ((t->t_dflg & FREDO) == 0)
 			Dfix(t);		/* $ " ' \ */
+		if (t->t_dcom[0] == 0)
+			return;
 		/* fall into... */
 
 	case TPAR:
@@ -39,6 +48,7 @@ execute(t, pipein, pipeout)
 		 *	we must not have had an "onintr -"
 		 */
 		shudint = setintr && (flags & FINT) == 0 && (!gointr || !eq(gointr, "-"));
+		shudhup = (flags & FAND) == 0;
 
 		/*
 		 * Must do << early so parent will know
@@ -71,7 +81,7 @@ execute(t, pipein, pipeout)
 			 * then do it now, so we won't block.
 			 */
 			if ((flags & (FPOU|FAND)) && (flags & FPAR) == 0)
-				pid = dofork(shudint), forked++;
+				pid = dofork(shudint, shudhup), forked++;
 
 			/*
 			 * If the builtin is actually executed (some, e.g.
@@ -109,7 +119,44 @@ execute(t, pipein, pipeout)
 		 * requires a child.
 		 */
 		if (!forked && (flags & FPAR) == 0)
-			pid = dofork(shudint);
+#ifdef VFORK
+			if (t->t_dtyp == TPAR || (flags&FREDO) ||
+			    eq(t->t_dcom[0], "nice") || eq(t->t_dcom[0], "nohup"))
+#endif
+				pid = dofork(shudint, shudhup);
+#ifdef VFORK
+			else {
+				savint = signal(SIGINT, SIG_IGN);
+				ochild = child; osetintr = setintr;
+				ohaderr = haderr; otimflg = timflg;
+				odidfds = didfds; odidcch = didcch;
+				oSHIN = SHIN; oSHOUT = SHOUT;
+				oSHDIAG = SHDIAG; oOLDSTD = OLDSTD;
+				Vsav = Vdp = 0; Vav = 0;
+				isvfork++;
+				pid = vfork();
+				if (pid < 0) {
+					signal(SIGINT, savint);
+					error("No more processes");
+				}
+				if (pid == 0) {
+					child++;
+					signal(SIGINT, shudint ? SIG_DFL : savint);
+					if (!shudhup)
+						signal(SIGHUP, SIG_IGN);
+				} else {
+					child = ochild; setintr = osetintr;
+					haderr = ohaderr; timflg = otimflg;
+					didfds = odidfds; didcch = odidcch;
+					SHIN = oSHIN; SHOUT = oSHOUT;
+					SHDIAG = oSHDIAG; OLDSTD = oOLDSTD;
+					xfree(Vsav), Vsav = 0;
+					xfree(Vdp), Vdp = 0;
+					xfree(Vav), Vav = 0;
+					signal(SIGINT, savint);
+				}
+			}
+#endif
 		if (pid != 0) {
 			/*
 			 * The parent path (or nobody does this if
@@ -153,8 +200,15 @@ execute(t, pipein, pipeout)
 		 * interrupt mucking occurs.
 		 */
 		if (setintr) {
-			if (shudint)
-				signal(SIGINT, SIG_DFL), signal(SIGQUIT, SIG_DFL);
+			if (shudint) {
+				signal(SIGQUIT, SIG_DFL);
+#ifdef VFORK
+				if (isvfork)
+					signal(SIGINT, vffree);
+				else
+#endif
+					signal(SIGINT, SIG_DFL);
+			}
 			signal(SIGTERM, parterm);
 			if (flags & FINT)
 				setintr = 0;
@@ -191,6 +245,7 @@ execute(t, pipein, pipeout)
 		if (eq(t->t_dcom[0], "nohup")) {
 			if (setintr == 0)
 				signal(SIGHUP, SIG_IGN);
+			signal(SIGTERM, SIG_IGN);
 			lshift(t->t_dcom, 1);
 			t->t_dflg = FPAR | FREDO;
 			execute(t);
@@ -231,12 +286,26 @@ execute(t, pipein, pipeout)
 	}
 }
 
+#ifdef VFORK
+vffree()
+{
+	register char **v;
+
+	if (v = gargv)
+		gargv = 0, xfree(gargv);
+	if (v = pargv)
+		pargv = 0, xfree(pargv);
+	_exit(1);
+}
+#endif
+
 doio(t, pipein, pipeout)
 	register struct command *t;
 	int *pipein, *pipeout;
 {
 	register char *cp;
 	register int flags = t->t_dflg;
+	char *dp;
 
 	if (didfds || (flags & FREDO))
 		return;
@@ -244,7 +313,8 @@ doio(t, pipein, pipeout)
 		goto skipin;
 	close(0);
 	if (cp = t->t_dlef) {
-		cp = globone(Dfix1(cp));
+		cp = globone(dp = Dfix1(cp));
+		xfree(dp);
 		xfree(cp);
 		if (open(cp, 0) < 0)
 			Perror(cp);
@@ -258,7 +328,8 @@ doio(t, pipein, pipeout)
 skipin:
 	close(1);
 	if (cp = t->t_drit) {
-		cp = globone(Dfix1(cp));
+		cp = globone(dp = Dfix1(cp));
+		xfree(dp);
 		xfree(cp);
 		if ((flags & FCAT) && open(cp, 1) >= 0)
 			lseek(1, 0l, 2);
@@ -268,8 +339,13 @@ skipin:
 					Perror(cp);
 				chkclob(cp);
 			}
+#ifdef V6
 			if (creat(cp, 0644) < 0)
 				Perror(cp);
+#else
+			if (creat(cp, 0666) < 0)
+				Perror(cp);
+#endif
 		}
 	} else
 		dup((flags & FPOU) ? pipeout[1] : SHOUT);
@@ -279,8 +355,8 @@ skipin:
 	didfds = 1;
 }
 
-dofork(shudint)
-	bool shudint;
+dofork(shudint, shudhup)
+	bool shudint, shudhup;
 {
 	register int pid, (*savint)();
 
@@ -293,6 +369,8 @@ dofork(shudint)
 	if (pid == 0) {
 		child++;
 		signal(SIGINT, shudint ? SIG_DFL : savint);
+		if (!shudhup)
+			signal(SIGHUP, SIG_IGN);
 	} else
 		signal(SIGINT, savint);
 	return (pid);

@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -23,17 +22,17 @@ shell(str)
 	char *Shell;
 
 	if ((Shell = value("SHELL")) == NOSTR)
-		Shell = "/bin/sh";
+		Shell = SHELL;
 	for (t = 2; t < 4; t++)
 		sig[t-2] = signal(t, SIG_IGN);
-	t = fork();
+	t = vfork();
 	if (t == 0) {
 		for (t = 2; t < 4; t++)
 			if (sig[t-2] != SIG_IGN)
 				signal(t, SIG_DFL);
 		execl(Shell, Shell, "-c", str, 0);
 		perror(Shell);
-		exit(1);
+		_exit(1);
 	}
 	while (wait(stat) != t)
 		;
@@ -42,6 +41,40 @@ shell(str)
 	for (t = 2; t < 4; t++)
 		signal(t, sig[t-2]);
 	printf("!\n");
+	return(0);
+}
+
+/*
+ * Fork an interactive shell.
+ */
+
+dosh(str)
+	char *str;
+{
+	int (*sig[2])(), stat[1];
+	register int t;
+	char *Shell;
+
+	if ((Shell = value("SHELL")) == NOSTR)
+		Shell = SHELL;
+	for (t = 2; t < 4; t++)
+		sig[t-2] = signal(t, SIG_IGN);
+	t = vfork();
+	if (t == 0) {
+		for (t = 2; t < 4; t++)
+			if (sig[t-2] != SIG_IGN)
+				signal(t, SIG_DFL);
+		execl(Shell, Shell, 0);
+		perror(Shell);
+		_exit(1);
+	}
+	while (wait(stat) != t)
+		;
+	if (t == -1)
+		perror("fork");
+	for (t = 2; t < 4; t++)
+		signal(t, sig[t-2]);
+	putchar('\n');
 	return(0);
 }
 
@@ -77,6 +110,9 @@ schdir(str)
 		;
 	if (*cp == '\0')
 		cp = homedir;
+	else
+		if ((cp = expand(cp)) == NOSTR)
+			return(1);
 	if (chdir(cp) < 0) {
 		perror(cp);
 		return(1);
@@ -86,40 +122,55 @@ schdir(str)
 
 /*
  * Reply to a list of messages.  Extract each name from the
- * message header and send them off to mail()
+ * message header and send them off to mail1()
  */
 
 respond(msgvec)
 	int *msgvec;
 {
-	register struct message *mp;
-	register char **ap;
-	register int *ip;
-	int s;
-	char *cp2, *buf;
+	struct message *mp;
+	char *cp, buf[2 * LINESIZE], *rcv;
+	struct name *np;
 	struct header head;
+	char *netmap();
 
-	for (ip = msgvec, s = 0; *ip; ip++) {
-		mp = &message[*ip - 1];
-		s += strlen(nameof(mp))+1;
+	if (msgvec[1] != 0) {
+		printf("Sorry, can't reply to multiple messages at once\n");
+		return(1);
 	}
-	buf = salloc(s+1);
-	cp2 = buf;
-	for (ip = msgvec; *ip; ip++) {
-		touch(*ip);
-		mp = &message[*ip - 1];
-		dot = mp;
-		cp2 = copy(nameof(mp), cp2);
-		*cp2++ = ' ';
-	}
-	if (cp2 != buf)
-		cp2--;
-	*cp2 = '\0';
-	mp = &message[msgvec[0]-1];
+	mp = &message[msgvec[0] - 1];
+	dot = mp;
+	rcv = nameof(mp);
+	strcpy(buf, "");
+	cp = hfield("to", mp);
+	if (cp != NOSTR)
+		strcpy(buf, cp);
+	np = elide(extract(buf, GTO));
+	/* rcv = rename(rcv); */
+	mapf(np, rcv);
+	np = delname(np, myname);
 	head.h_seq = 1;
+	cp = detract(np, 0);
+	if (cp != NOSTR) {
+		strcpy(buf, cp);
+		strcat(buf, " ");
+		strcat(buf, rcv);
+	}
+	else
+		strcpy(buf, rcv);
 	head.h_to = buf;
-	head.h_subj = hfield("subj", mp);
-	head.h_cc = hfield("cc", mp);
+	head.h_subject = hfield("subject", mp);
+	if (head.h_subject == NOSTR)
+		head.h_subject = hfield("subj", mp);
+	head.h_cc = NOSTR;
+	cp = hfield("cc", mp);
+	if (cp != NOSTR) {
+		np = elide(extract(cp, GCC));
+		mapf(np, rcv);
+		np = delname(np, myname);
+		head.h_cc = detract(np, 0);
+	}
+	head.h_bcc = NOSTR;
 	mail1(&head);
 	return(0);
 }
@@ -241,8 +292,10 @@ unset(arglist)
 	errs = 0;
 	for (ap = arglist; *ap != NOSTR; ap++) {
 		if ((vp2 = lookup(*ap)) == NOVAR) {
-			printf("\"%s\": undefined variable\n", *ap);
-			errs++;
+			if (!sourcing) {
+				printf("\"%s\": undefined variable\n", *ap);
+				errs++;
+			}
 			continue;
 		}
 		h = hash(*ap);
@@ -306,7 +359,7 @@ group(argv)
 
 	/*
 	 * Insert names from the command list into the group.
-	 * Who cares if there are duplicates?  They got tossed
+	 * Who cares if there are duplicates?  They get tossed
 	 * later anyway.
 	 */
 
@@ -354,5 +407,83 @@ diction(a, b)
 
 null(e)
 {
+	return(0);
+}
+
+/*
+ * Print out the current edit file, if we are editting.
+ * Otherwise, print the name of the person who's mail
+ * we are reading.
+ */
+
+file(e)
+{
+	register char *cp;
+
+	if (edit)
+		printf("Reading \"%s\"\n", editfile);
+	else
+		printf("Reading %s's mail\n", rindex(mailname, '/') + 1);
+	return(0);
+}
+
+/*
+ * Expand file names like echo
+ */
+
+echo(argv)
+	char **argv;
+{
+	register char **ap;
+	register char *cp;
+
+	for (ap = argv; *ap != NOSTR; ap++) {
+		cp = *ap;
+		if ((cp = expand(cp)) != NOSTR)
+			printf("%s\n", cp);
+	}
+	return(0);
+}
+
+/*
+ * Reply to a series of messages by simply mailing to the senders
+ * and not messing around with the To: and Cc: lists as in normal
+ * reply.
+ */
+
+Respond(msgvec)
+	int msgvec[];
+{
+	struct header head;
+	struct message *mp;
+	register int s, *ap;
+	register char *cp, *subject;
+
+	for (s = 0, ap = msgvec; *ap != 0; ap++) {
+		mp = &message[*ap - 1];
+		dot = mp;
+		s += strlen(nameof(mp)) + 1;
+	}
+	if (s == 0)
+		return(0);
+	cp = salloc(s + 2);
+	head.h_to = cp;
+	for (ap = msgvec; *ap != 0; ap++) {
+		mp = &message[*ap - 1];
+		cp = copy(nameof(mp), cp);
+		*cp++ = ' ';
+	}
+	*--cp = 0;
+	mp = &message[msgvec[0] - 1];
+	subject = hfield("subject", mp);
+	head.h_seq = 0;
+	if (subject == NOSTR)
+		subject = hfield("subj", mp);
+	head.h_subject = subject;
+	if (subject != NOSTR)
+		head.h_seq++;
+	head.h_cc = NOSTR;
+	head.h_bcc = NOSTR;
+	mail1(&head);
 	return(0);
 }

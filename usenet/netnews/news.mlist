@@ -1,0 +1,320 @@
+Here is the mail from the arpanet about network news, and a list of the
+people who have expressed an interest.
+(This article is long, about 320 lines.)
+--- current mailing lists
+news_g:wnj,kas,o:dlw,i:keller,cory:schultz,vax135!hpk,vax135!duke!swd,
+    vax135!duke!trt,vax135!duke!jte,vax135!duke!phs!dennis,
+    vax135!duke!unc!smb,cory:kridle
+arpanews:RWK@MIT-MC,Zellich@OFFICE-1,david@UTEXAS,SWG@MIT-DMS,HAINES@LL,
+    COINS@USC-ISI,Zellich@OFFICE-1,Meyers@SRI-KL,Obrien@Rand-Unix,
+    Walker.9993i6180@RADC-Multics,MORGAN@WHARTON,Lauren@UCLA-Security,
+    wedel@UTEXAS
+
+--- comments
+From OAF@MIT-MC  Fri May 16 05:10:12 1980
+Date: 16 MAY 1980 0809-EDT
+From: OAF at MIT-MC (Oded Feingold)
+Subject: a new network news program
+To: CSVAX.mark at BERKELEY
+
+News like AP or news like news-about-networks?
+I'm the wrong liaison to hear about it since all I have is
+a TIP, but if it's news like AP is this officially sanctioned?
+  ...(paranoiac)...
+
+				Yours, 
+					Oded Feingold
+					MIT-TIP  liaison
+
+From MOON@MIT-MC  Fri May 16 18:24:32 1980
+Date: 16 MAY 1980 2125-EDT
+From: MOON at MIT-MC (David A. Moon)
+Subject: a new network news program
+To: CSVAX.mark at BERKELEY
+
+Actually I see no way in which this differs from the present mechanisms
+for *msgs in ITS.
+
+
+From mark Fri May 16 20:32:24 1980
+To: MOON@MIT-MC
+Subject: a new network news program
+
+Can you specify on ITS that you only want to receive messages about
+certain subjects?  Network news has newsgroups to which you can
+subscribe.  If I understand msgs correctly (we are running something
+here that was copied from msgs) everything goes into one group and
+you get to look at the first line or two to decide if you want to see it.
+This causes a problem here - too much junk mail gets thrown around.
+Your msgs is also somewhat local in nature, although so is ITS so
+that's probably all you need.
+
+	Mark
+
+From Lauren@UCLA-Security  Fri May 16 18:31:34 1980
+Date: 16 May 1980 1807-PDT (Friday)
+From: Lauren at UCLA-Security (Lauren Weinstein)
+Subject: network news
+In-reply-to: Your message of 16 May 1980 13:36:35-PDT
+To: CSVAX.mark at Berkeley
+CC: CSVAX>swd at UCB
+
+I am interested in being kept informed about developments in this area.
+I dunno exactly how we'd deal with it though, since we already have a 
+local new/bboard systems that presents users with new news items, supports
+expiration dates and dated logs, etc.  Any attempt to change this might
+meet with heavy resistance from users and implementors (I fall into
+both catagories as far as the news program is concerned.)
+
+--Lauren--
+-------
+
+From Lauren@UCLA-Security  Fri May 16 22:03:49 1980
+Date: 16 May 1980 2150-PDT (Friday)
+From: Lauren at UCLA-Security (Lauren Weinstein)
+Subject: network news
+In-reply-to: Your message of 16 May 1980 20:37:48-PDT
+To: CSVAX.mark at Berkeley
+
+sounds good.  By the way, the other guy I tried to send to (swk?) turned
+out not to exist!
+
+--Lauren--
+-------
+
+From mark Fri May 16 22:06:31 1980
+To: Lauren@UCLA-Security,
+Subject: network news
+Cc: swd
+	
+The message I got seemed to be addressed to csvax>swd@berkeley instead
+of csvax.swd@berkeley.  It may have just been a typo.  He is Steven
+Daniels of Duke, the author of the program.
+
+	Mark
+
+From mark Fri May 16 23:08:11 1980
+To: Lauren@UCLA-Security
+Subject: network news
+
+Does your news system have any particularly nice features that might
+want to be included in the netnews program?  If you're worried about
+the user interface, consider this:  one of the features of netnews
+is that you can have it write a phony mailbox file for you (using
+Bell conventions - you'd have to gimmick it slightly to put in 4
+control A's on your system, probably) and then you can invoke your
+favorite mail system on it.  The default interface happens to look
+just like /bin/mail (on V7), but other mailers, such as msg, could
+be used instead.  In particular, it might not be hard for you to
+make up an interface program that looks to the user like the news
+command you are running now.  (I don't know what your news system
+looks like.)  I know this would be possible in our case, since we
+use msgs right now.
+	Mark
+
+--- interested people
+From RWK@MIT-MC  Fri May 16 02:57:18 1980
+Date: 16 MAY 1980 0552-EDT
+From: RWK at MIT-MC (Robert W. Kerns)
+To: CSVAX.mark at BERKELEY, CSVAX.swd at BERKELEY
+CC: ELLEN at MIT-MC
+
+I'd be interested in functional specs on your news-net frob, as well as some
+idea just what it gets used for.  The C software would be helpful for
+implementing it on the VAX, as well, although it may be better to integrate it
+into a mail system I'm writing.
+
+You realize, of course, that BBOARD and :MSGS type messages are seen by a user
+only once, and are not seen by him again unless he explicitly requests it.
+Your note to ARPA-LIASONS implies this isn't true by comparing them with your
+news-net.
+
+
+From Zellich@OFFICE-1  Fri May 16 05:30:08 1980
+Date: 16 May 1980 0525-PDT
+From: Zellich at OFFICE-1
+Subject: Re: a new network news program
+To:   CSVAX.mark at BERKELEY
+cc:   ZELLICH
+
+In response to your message sent  16 May 1980 04:45:35-PDT
+
+Thanks for the initial information on the news facilities.  I am
+very definitely interested, from a couple of standpoints -- I would
+like to supply the news to my inhouse users currently on the ARPANET
+thru Tymshare's OFFICE-1 and OFFICE-2 hosts; and we are shortly to have
+one or more UNIX systems inhouse, at least one of which will be an
+ARPANET host.
+
+Please add me to your mailing list for future information on the
+news program.
+
+Cheers,
+Rich <ZELLICH at OFFICE-1>
+-------
+
+From david@UTEXAS  Fri May 16 06:21:30 1980
+Date: 16 May 1980 at 0813-CDT
+From: david at UTEXAS
+Subject: Reply to: a new network news program
+To: CSVAX.mark at Berkeley
+
+I would certainly like to learn more about this news program.
+Sounds like a very useful facility.
+
+One suggestion I would have off-hand:  it would be desirable
+to have a facility to have some person screen some categories
+of news.  For instance, if there is a system news category, you
+might want to allow only official system-types to mail to it.
+For other categories some sites might want to screen messages
+before they are retransmitted.
+-------
+
+From SWG@MIT-DMS  Fri May 16 06:35:45 1980
+Date: 16 May 1980 0936-EDT
+From: SWG at MIT-DMS (S. W. Galley)
+To: CSVAX.mark at BERKELEY
+In-reply-to: Message of 16 May 80 at 0400 EDT by CSVAX.mark@Berkeley
+Subject: [Re: a new network news program]
+Message-id: <[MIT-DMS].147206>
+
+Our host might be interested in joining the news network.
+We can't guarantee that the news would be handled exactly as you described,
+since we don't run Unix, our support for C is chancy, and we have limited
+resources for generating new programs.  However, it would be trivial to
+forward all news to users requesting it, or to store it all in a file for
+perusal.  We can't guarantee detection of multiple copies of the same news,
+so we would have to be a leaf in the network.
+
+
+From HAINES@LL  Fri May 16 06:42:53 1980
+Date: 05/16/80 0942-EDT
+From: HAINES at LL
+Subject: News
+To: CSVAX.mark at Berkeley
+
+We might be interested in your news service; please put me on
+your mailing list.     Ted Haines   (liaison at ll)
+-------
+
+From COINS@USC-ISI  Fri May 16 07:04:55 1980
+Date: 16 May 1980 0655-PDT
+Sender: COINS at USC-ISI
+Subject: Re: a new network news program
+From: COINS at USC-ISI
+To: CSVAX.mark at BERKELEY
+Message-ID: <[USC-ISI]16-May-80 06:55:39.COINS>
+In-Reply-To: Your message of 16 May 1980 02:26:57-PDT
+
+date 16 may 80
+
+plse send us more information about this new network news
+program.
+
+we r interested in it for our own network usage.
+we r a unix-based host.
+
+tnk u.
+coins
+
+From Zellich@OFFICE-1  Fri May 16 05:30:08 1980
+Date: 16 May 1980 0525-PDT
+From: Zellich at OFFICE-1
+Subject: Re: a new network news program
+To:   CSVAX.mark at BERKELEY
+cc:   ZELLICH
+
+In response to your message sent  16 May 1980 04:45:35-PDT
+
+Thanks for the initial information on the news facilities.  I am
+very definitely interested, from a couple of standpoints -- I would
+like to supply the news to my inhouse users currently on the ARPANET
+thru Tymshare's OFFICE-1 and OFFICE-2 hosts; and we are shortly to have
+one or more UNIX systems inhouse, at least one of which will be an
+ARPANET host.
+
+Please add me to your mailing list for future information on the
+news program.
+
+Cheers,
+Rich <ZELLICH at OFFICE-1>
+-------
+
+From Meyers@SRI-KL  Fri May 16 11:10:18 1980
+Date: 16 May 1980 1106-PDT
+From: Meyers at SRI-KL (Harris A. Meyers)
+Subject: Re: a new network news program
+To: CSVAX.mark at BERKELEY
+In-Reply-To: Your message of 16-May-80 0322-PDT
+
+Sounds interesting, could you send out some specs on the system?
+
+thanks
+harris
+-------
+
+From Obrien@Rand-Unix  Fri May 16 13:38:54 1980
+From: Obrien at Rand-Unix
+Date: 16 May 1980 at 1009-PDT
+To: CSVAX.mark at Berkeley
+cc: Liaison at Rand-Unix
+Subject: Re: a new network news program
+In-reply-to: Your message of 16 May 1980 04:09:16-PDT.
+
+	Certainly, you should add "liaison at rand-unix" to the mailing
+list about network news.  It sounds like a real step up in bringing life
+to the rather primitive information-passing facilities of the ARPAnet.
+
+From Walker.9993i6180@RADC-Multics  Fri May 16 13:55:32 1980
+Date:  16 May 1980 12:51 edt
+From:  Walker.9993i6180 at RADC-Multics
+Subject:  Re: a new network news program
+To:  CSVAX.mark at BERKELEY
+In-Reply-To:  Msg of 05/16/80 10:59 from CSVAX.mark
+
+Yes.  I am interested in participating in a network news program.  Please
+send me more information and keep me informed about developments.
+
+-Bob Walker-
+
+From MORGAN@WHARTON  Fri May 16 20:39:11 1980
+Date: 16 May 1980 (Friday) 2336-EDT
+From: MORGAN at WHARTON (Howard Morgan)
+Subject: re: a new network news program
+To:   CSVAX.mark at BERKEL
+
+We at Wharton would be most interested in working on the news article
+programs. Please keep us posted.
+Howard L. Morgan
+
+
+From Lauren@UCLA-Security  Fri May 16 23:00:32 1980
+Date: 16 May 1980 2246-PDT (Friday)
+From: Lauren at UCLA-Security (Lauren Weinstein)
+Subject: network news
+In-reply-to: Your message of 16 May 1980 22:07:34-PDT
+To: CSVAX.mark at Berkeley
+
+No doubt I could rig something up to take news items and drop them
+into our news system I guess.
+
+--Lauren--
+-------
+
+
+From wedel@UTEXAS  Sat May 17 08:11:12 1980
+Date: 17 May 1980 at 0958-CDT
+From: wedel at UTEXAS
+Subject: Network News Service
+To: csvax.swd at berkeley
+cc: csvax.mark at berkeley
+
+I would like to express our interest at UTexas  in  your  Network
+News  Service effort.  If you are willing to share your UNIX Net-
+work Mail code, I would like to obtain a copy.   We  do  not  yet
+have  UNIX  UUCP support available but expect to have that by the
+end of the summer.  In the meantime,  our  affiliation  would  be
+through the ARPANET.  Please keep me posted on your progress.
+-------
+
+--- end

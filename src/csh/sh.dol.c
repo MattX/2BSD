@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.dol.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -340,12 +341,12 @@ Dgetdol()
 			}
 			break;
 		}
-		if (!letter(c))
+		if (!alnum(c))
 			goto syntax;
 		for (;;) {
 			*np++ = c;
 			c = DgetC(0);
-			if (!letter(c))
+			if (!alnum(c))
 				break;
 			if (np >= &name[sizeof name - 2])
 syntax:
@@ -356,11 +357,18 @@ syntax:
 		vp = adrof(name);
 	}
 	if (isset) {
-		dolp = vp ? "1" : "0";
+		dolp = (vp || getenv(name)) ? "1" : "0";
 		goto eatbrac;
 	}
-	if (vp == 0)
+	if (vp == 0) {
+		char *cp = getenv(name);
+
+		if (cp) {
+			addla(cp);
+			return;
+		}
 		udvar(name);
+	}
 	c = DgetC(0);
 	upb = blklen(vp->vec);
 	if (dimen == 0 && subscr == 0 && c == '[') {

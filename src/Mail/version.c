@@ -1,2 +1,1 @@
-/* Copyright (c) 1979 Regents of the University of California */
-char	*version = "April 2, 1979";
+char	*version = "April 23, 1980";

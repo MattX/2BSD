@@ -1,0 +1,31 @@
+From sdcsvax!arthur!jmcg  Tue Mar 10 04:21:12 1981
+To: sdcsvax^ucbvax^mark
+Subject: UUCPnet directory
+Status: R
+
+System name: ARTHUR
+Path: ucbvax!sdcsvax!arthur
+Person to contact:	Jim McGinness
+			UC San Diego
+			Department of Chemistry  B-014
+			La Jolla, CA  92093
+			(714)452-4016
+			uucpname: ucbvax!sdcsvax!jmcg
+			(arthur is only up under vmunix part time, so I get
+			my mail at sdcsvax)
+No. of netnews users:	none
+Site's purpose:	We are funded as a Biomedical Research Resource by NIH.
+		Most of the work that goes on here is number crunching and
+		computer graphics associated with protein xray crystallography
+		and molecular dynamics.
+Willingness to call new systems: nil, since our schedule wouldn't permit it
+		even if we had an autodialer.
+uucp login name: uucp, whatnot, (714)452-3119
+Names in .SYS file: sdcsvax, sdcarl
+Notes: We are currently running VMUNIX only Monday noon through Wed noon.  The
+rest of the time we run VMS.  I expect that we will go to full-time VMS if we
+can get EUNICE [FORTRAN performance is the dominant criterion for several of
+our heaviest users].  When the department's VAX 750 comes up (probable name:
+sdkemist or sdchemist), we plan to use it as the gateway for all our network
+transactions, so ARTHUR will probably disappear from the network's view.
+

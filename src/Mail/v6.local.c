@@ -1,10 +1,14 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 /*
  * Mail -- a mail program
  *
  * Unix version 6.0
+ *
+ * Local routines that are installation dependent.
+ * All fiddlers please note:  if you make careful note of
+ * what you change here, I will incorporate your changes and
+ * you won't have to remake them each release.
  */
 
 #include "rcv.h"
@@ -84,4 +88,15 @@ unlock()
 {
 
 	return(0);
+}
+
+/*
+ * Discover user login name.
+ */
+
+username(uid, namebuf)
+	char namebuf[];
+{
+
+	return(getname(uid, namebuf));
 }

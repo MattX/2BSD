@@ -1,0 +1,12 @@
+Sat Apr 21 15:20:02 PST 1979
+
+This directory and subdirectories contains binaries for standard
+version 6 systems.  Run the script install to install them all.
+
+Tue Jan 13 21:44:20 PST 1981
+
+Some of the binaries in this directory are missing or out of date,
+due to the fact that 2bsd is distributed from a vax and not all
+pdp-11 binaries are conveniently available.  The ex/vi and csh
+binaries are promised to be up to date for both v6 and v7.  It
+is probably a good idea to recompile everything you want.

@@ -26,7 +26,7 @@ a version of the text editor
 was designed to provide an informative environment
 for new and casual users.
 .PP
-This edition documents Version 2.0 of
+This edition documents Versions 2.0 thru 3.1 of
 .I edit
 and
 .I ex .
@@ -1866,6 +1866,7 @@ We welcome comments and suggestions concerning this item
 and the \s-2UNIX\s0 documentation in general.
 Contact the \s-2UNIX\s0 consultant in 217 Evans, 642-4072.
 .fl
+.bp
 .bd I
 .ND
 .TL

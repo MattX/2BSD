@@ -356,10 +356,10 @@ not\fR contain the expression \fIpattern\fR.
 T}	\^
 .SP
 \fR(.)\fBinsert	i	T{
-Inserts new lines of text immediately before the speciffied line.
+Inserts new lines of text immediately before the specified line.
 Differs from
 .I append
-only in that text is placed before, rather than after, the indicated lne.
+only in that text is placed before, rather than after, the indicated line.
 In other words, \fB1i\fR has the same effect as \fB0a\fR.
 T}	T{
 .nf
@@ -457,7 +457,7 @@ T}
 \fR(.,.)\fBprint	p	Prints the text of line(s).	T{
 .nf
 :\fB+2,+3p\fR
-The second and third lnes
+The second and third lines
 after the current line
 :
 .fi
@@ -534,7 +534,7 @@ T}
 \fBsubstitute/\fIpattern\fB/\fIreplacement\fB/
 substitute/\fIpattern\fB/\fIreplacement\fB/gc
 .fi
-\fRReplaces the first ocurrence of \fIpattern\fR
+\fRReplaces the first occurrence of \fIpattern\fR
 on a line
 with \fIreplacement\fP.
 Including a \fBg\fR after the command

@@ -1,12 +1,12 @@
 /* Copyright (c) 1979 Regents of the University of California */
-#include	<stdio.h>
+#include	<nstdio.h>
 
 struct _iobuf *fopen(file, mode)
 register char *mode;
 {
 	register f;
 	register struct _iobuf *iop;
-	int unixmode, a_flag;
+	int unixmode, a_flag, noclob;
 
 	for (iop = _iob; iop->_flag&(_IOREAD|_IOWRT); iop++)
 		if (iop >= _iob + _NFILE)
@@ -14,6 +14,7 @@ register char *mode;
 	iop->_flag = 0;
 	iop->_delta = 0;
 	a_flag = 0;
+	noclob = 0;
 	for(;*mode;mode++) {
 		switch(*mode) {
 
@@ -27,14 +28,22 @@ register char *mode;
 
 		case 'a':
 			a_flag = 1;
+			noclob = 1;
 			iop->_flag |= _IOWRT ;
+			break;
+
+		case '+':
+			if (iop->_flag & _IOREAD)
+				noclob = 1;
+			iop->_flag |= (_IOREAD | _IOWRT);
+			break;
 		}
 	}
 	if((unixmode = (iop->_flag & 3) - 1) < 0) {
 		unixmode = 0;
 		iop->_flag = 1;
 	}
-	if ((iop->_flag & _IOWRT) && a_flag==0 ) {
+	if ((iop->_flag & _IOWRT) && noclob==0 ) {
 		f = creat(file, 0644);
 		if((iop->_flag &  _IOREAD) && (f>0)) {
 			close(f);
@@ -42,7 +51,7 @@ register char *mode;
 		}
 	}
 	else
-		if ((0 >(f = open(file, unixmode))) && (a_flag || !(iop->_flag&_IOREAD))) {
+		if ((0 >(f = open(file, unixmode))) && (noclob || !(iop->_flag&_IOREAD))) {
 			f = creat(file, 0644);
 			close(f);
 			f = open(file,unixmode);

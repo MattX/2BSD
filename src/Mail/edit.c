@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -51,7 +50,7 @@ edit1(msgvec, ed)
 {
 	register char *cp, *cp2;
 	register int c;
-	int *ip, pid, mesg;
+	int *ip, pid, mesg, lines;
 	unsigned int ms;
 	int (*sigint)(), (*sigquit)();
 	FILE *ibuf, *obuf;
@@ -108,12 +107,12 @@ edit1(msgvec, ed)
 		if (send(mp, obuf) < 0) {
 			perror(edname);
 			fclose(obuf);
-			unlink(edname);
+			remove(edname);
 			goto out;
 		}
 		fflush(obuf);
 		if (ferror(obuf)) {
-			unlink(edname);
+			remove(edname);
 			fclose(obuf);
 			goto out;
 		}
@@ -123,10 +122,10 @@ edit1(msgvec, ed)
 		 * Fork/execl the editor on the edit file.
 		 */
 
-		pid = fork();
+		pid = vfork();
 		if (pid == -1) {
 			perror("fork");
-			unlink(edname);
+			remove(edname);
 			goto out;
 		}
 		if (pid == 0) {
@@ -136,7 +135,7 @@ edit1(msgvec, ed)
 				signal(SIGQUIT, SIG_DFL);
 			execl(ed, ed, edname, 0);
 			perror(ed);
-			exit(1);
+			_exit(1);
 		}
 		while (wait(&mesg) != pid)
 			;
@@ -148,22 +147,26 @@ edit1(msgvec, ed)
 
 		if ((ibuf = fopen(edname, "r")) == NULL) {
 			perror(edname);
-			unlink(edname);
+			remove(edname);
 			goto out;
 		}
-		unlink(edname);
+		remove(edname);
 		fseek(otf, (long) 0, 2);
 		size = fsize(otf);
 		mp->m_block = blockof(size);
 		mp->m_offset = offsetof(size);
 		ms = 0;
+		lines = 0;
 		while ((c = getc(ibuf)) != EOF) {
+			if (c == '\n')
+				lines++;
 			putc(c, otf);
 			if (ferror(otf))
 				break;
 			ms++;
 		}
 		mp->m_size = ms;
+		mp->m_lines = lines;
 		if (ferror(otf))
 			perror("/tmp");
 		fclose(ibuf);

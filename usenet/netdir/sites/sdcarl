@@ -1,0 +1,25 @@
+From sdcarl!rusty  Wed Feb 25 17:36:30 1981
+To: mark
+Subject: establishing a usenet map
+Status: RO
+
+[1] system name
+	sdcarl
+[2] path to the system from duke, ucbvax, or decvax
+	ucbvax!sdcarl
+[3] name of usenet/uucp contact at that system, phone, login name
+	714-452-4384, rusty
+[4] number of users at the site running netnews (check .uindex)
+	3 (not many more in /etc/passwd either!)
+[5] what the site is all about (if not a secret)
+	computer music
+[6] willingness to (1) call new sites or (2) be called or (3) call
+	sites if they pay the bill, (4) or lack thereof
+	we will poll any sites in San Diego, Calif. i.e. not long
+	distance. anybody can call us.
+[7] uucp login name/password/phone number, (if you want it to be public)
+	machine:	sdcarl
+	phone:		(714) 4524745	(300 baud, soon to be vadic "triple")
+	login:		uucp
+	password:	whatnot
+

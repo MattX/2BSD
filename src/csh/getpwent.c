@@ -1,11 +1,34 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*
+ * Modified version of getpwent which doesn't use stdio.
+ * This is done to keep it (and hence csh) small at a small
+ * cost in speed.
+ *
+ * This version also uses the UCB hashed password file if whoami.h
+ * indicates that UCB_PWHASH is available.  In any case if it fails
+ * it tries the regular linear search.
+ *
+ * Define BBGETPW (Bare Bones GETPW) if all you are interested in is
+ * the name, uid, and directory fields.  This will make getpwent smaller
+ * and a bit faster and is useful for things like csh.
+ */
 #include <pwd.h>
+#include <whoami.h>
 
-#define	BUFSIZ	160
+#ifdef UCB_PWHASH
+#define pwf _pw_file				/* unlikely symbol name */
+#endif
 
-static int pwf = -1;
-static char line[BUFSIZ+1];
-static struct passwd passwd;
+/*
+ * predefined strings
+ */
+
+#define BUFSIZ 160
+
+int	pwf = -1;			/* password file pointer */
+
+char	line[BUFSIZ+1];			/* input buffer */
+
+struct passwd	passwd;			/* password entry */
 
 setpwent()
 {
@@ -54,46 +77,28 @@ getpwent()
 	p = line;
 	passwd.pw_name = p;
 	p = pwskip(p);
-/*	passwd.pw_passwd = p; */
-	p = q = pwskip(p);
-/*	passwd.pw_uid = atoi(p); */
+#ifndef BBGETPW
+	passwd.pw_passwd = p;
+#endif
 	p = pwskip(p);
-	p[-1] = 0;
-	passwd.pw_uid = atou(q);
-/*	passwd.pw_gid = atoi(p); */
-/*	passwd.pw_quota = 0; */
-/*	passwd.pw_comment = ""; */
-	q = p;
+	passwd.pw_uid = atoi(p);
 	p = pwskip(p);
-	p[-1] = 0;
-#ifdef CORY
-	passwd.pw_uid =+ atou(q) << 8;
+#ifndef BBGETPW
+	passwd.pw_gid = atoi(p);
+	passwd.pw_quota = 0;
+	passwd.pw_comment = "";
 #endif
-#ifdef CC
-	passwd.pw_uid =+ atou(q) << 8;
+	p = pwskip(p);
+#ifndef BBGETPW
+	passwd.pw_gecos = p;
 #endif
-#ifndef CORY
-#ifndef CC
-	passwd.pw_gid = atou(q);
-#endif
-#endif
-/*	passwd.pw_gecos = p; */
 	p = pwskip(p);
 	passwd.pw_dir = p;
+#ifndef BBGETPW
 	p = pwskip(p);
-/*	passwd.pw_shell = p; */
-/* 	while(*p && *p != '\n') p++; */
+	passwd.pw_shell = p;
+ 	while(*p && *p != '\n') p++;
 	*p = '\0';
+#endif
 	return(&passwd);
-}
-
-atou(p)
-	register char *p;
-{
-	register int i = 0;
-
-	if (p != 0)
-		while (*p)
-			i = i * 10 + *p++ - '0';
-	return (i);
 }

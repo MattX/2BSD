@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.misc.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -19,6 +20,12 @@ digit(c)
 	return (c >= '0' && c <= '9');
 }
 
+alnum(c)
+	register char c;
+{
+	return (letter(c) || digit(c));
+}
+
 any(c, s)
 	register int c;
 	register char *s;
@@ -36,12 +43,23 @@ calloc(i, j)
 	int j;
 {
 	register char *cp, *dp;
+#ifdef debug
+	static char *av[2] = {0, 0};
+#endif
 
 	i *= j;
 	cp = (char *) malloc(i);
 	if (cp == 0) {
 		child++;
+#ifndef debug
 		error("Out of memory");
+#else
+		showall(av);
+		printf("i=%d, j=%d: ", i/j, j);
+		printf("Out of memory\n");
+		chdir("/usr/bill/cshcore");
+		abort();
+#endif
 	}
 	dp = cp;
 	if (i > 0)
@@ -213,7 +231,13 @@ dmove(i, j)
 
 	if (i == j || i < 0)
 		return (i);
-	j = dcopy(i, j);
+#ifdef V7
+	if (j >= 0) {
+		dup2(i, j);
+		return (j);
+	} else
+#endif
+		j = dcopy(i, j);
 	if (j != i)
 		close(i);
 	return (j);
@@ -225,6 +249,12 @@ dcopy(i, j)
 
 	if (i == j || i < 0 || j < 0 && i > 2)
 		return (i);
+#ifdef V7
+	if (j >= 0) {
+		dup2(i, j);
+		return (j);
+	}
+#endif
 	close(j);
 	return (renum(i, j));
 }

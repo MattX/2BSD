@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 
@@ -75,6 +74,37 @@ getpw(uid, linebuf)
 				linebuf[strlen(linebuf)-1] = '\0';
 			return(0);
 		}
+	return(-1);
+}
+
+/*
+ * Look for passwd line belonging to 'name'
+ */
+
+getpwnam(name, linebuf)
+	char name[], linebuf[];
+{
+	register char *cp, *cp2;
+
+	if (name == NOSTR) {
+		if (pwfile != NULL)
+			fclose(pwfile);
+		pwfile = NULL;
+		return(0);
+	}
+	if (pwfile == NULL && (pwfile = fopen(pwname, "r")) == NULL) {
+		perror(pwname);
+		return(-1);
+	}
+	rewind(pwfile);
+	while (fgets(linebuf, BUFSIZ, pwfile) != NULL) {
+		cp = linebuf;
+		cp2 = name;
+		while (*cp2++ == *cp++)
+			;
+		if (*--cp == ':' && *--cp2 == 0)
+			return(0);
+	}
 	return(-1);
 }
 

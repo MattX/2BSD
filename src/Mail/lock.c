@@ -1,7 +1,18 @@
-/* Copyright (c) 1979 Regents of the University of California */
-char	maillock[]	= ".lock";		/* Lock suffix for mailname */
-char	locktmp[]	= "/usr/spool/mail/tmXXXXXX";
-char	curlock[50];				/* Last used name of lock */
+#
+
+/*
+ * A mailing program.
+ *
+ * Stuff to do version 7 style locking.
+ */
+
+#include "rcv.h"
+#include <sys/stat.h>
+
+char	*maillock	= ".lock";		/* Lock suffix for mailname */
+char	*lockname	= "/usr/spool/mail/tmXXXXXX";
+char	locktmp[30];				/* Usable lock temporary */
+static char		curlock[50];		/* Last used name of lock */
 static	int		locked;			/* To note that we locked it */
 
 /*
@@ -9,7 +20,7 @@ static	int		locked;			/* To note that we locked it */
  * We must, of course, be careful to remove the lock file by a call
  * to unlock before we stop.  The algorithm used here is to see if
  * the lock exists, and if it does, to check its modify time.  If it
- * is older than 200 seconds, we assume error and set our own file.
+ * is older than 30 seconds, we assume error and set our own file.
  * Otherwise, we wait for 5 seconds and try again.
  */
 
@@ -20,28 +31,32 @@ char *file;
 	struct stat sbuf;
 	long curtime;
 
+	if (file == NOSTR) {
+		printf("Locked = %d\n", locked);
+		return(0);
+	}
 	if (locked)
 		return(0);
-	strcpy(curlock, mailname);
+	strcpy(curlock, file);
 	strcat(curlock, maillock);
+	strcpy(locktmp, lockname);
 	mktemp(locktmp);
-	unlink(locktmp);
+	remove(locktmp);
 	for (;;) {
 		f = lock1(locktmp, curlock);
 		if (f == 0) {
 			locked = 1;
 			return(0);
 		}
-		stat(curlock, &sbuf);
+		if (stat(curlock, &sbuf) < 0)
+			return(0);
 		time(&curtime);
-		if (curtime < sbuf.st_ctime + 200) {
+		if (curtime < sbuf.st_ctime + 30) {
 			sleep(5);
 			continue;
 		}
-		unlink(curlock);
-		cnt++;
+		remove(curlock);
 	}
-	return(-1);
 }
 
 /*
@@ -52,7 +67,7 @@ char *file;
 unlock()
 {
 
-	unlink(curlock);
+	remove(curlock);
 	locked = 0;
 }
 
@@ -69,11 +84,11 @@ lock1(tempfile, name)
 	fd = creat(tempfile, 0);
 	if (fd < 0)
 		return(-1);
+	close(fd);
 	if (link(tempfile, name) < 0) {
-		unlink(tempfile);
+		remove(tempfile);
 		return(-1);
 	}
-	unlink(tempfile);
-	close(fd);
+	remove(tempfile);
 	return(0);
 }

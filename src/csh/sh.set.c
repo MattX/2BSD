@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.set.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -10,6 +11,7 @@ doset(v)
 {
 	register char *p;
 	char *vp, op;
+	char **vecp;
 	bool hadsub;
 	int subscr;
 
@@ -21,7 +23,7 @@ doset(v)
 	}
 	do {
 		hadsub = 0;
-		for (vp = p; letter(*p); p++)
+		for (vp = p; alnum(*p); p++)
 			continue;
 		if (vp == p)
 			goto setsyn;
@@ -53,12 +55,28 @@ setsyn:
 					break;
 				e++;
 			}
-			p = *e, *e = 0, set1(vp, saveblk(v), &shvhed), *e = p;
+			p = *e;
+			*e = 0;
+			vecp = saveblk(v);
+			set1(vp, vecp, &shvhed);
+#ifndef V6
+			if (eq(vp, "path"))
+				exportpath(vecp);
+#endif
+			*e = p;
 			v = e + 1;
 		} else if (hadsub)
 			asx(vp, subscr, savestr(p));
 		else
 			set(vp, savestr(p));
+		if (eq(vp, "path"))
+			dohash();
+		else if (eq(vp, "histchars")) {
+			register char *p = value("histchars");
+
+			HIST = *p++;
+			HISTSUB = *p;
+		}
 	} while (p = *v++);
 }
 
@@ -175,6 +193,8 @@ letsyn:
 #endif
 			else
 				set(vp, operate(op, value(vp), p));
+		if (strcmp(vp, "path") == 0)
+			dohash();
 		xfree(vp);
 		if (c != '=')
 			xfree(p);
@@ -435,6 +455,10 @@ unset(v)
 {
 
 	unset1(v, &shvhed);
+	if (adrof("histchars") == 0) {
+		HIST = '!';
+		HISTSUB = '^';
+	}
 }
 
 unset1(v, head)
@@ -514,3 +538,24 @@ deletev(cp)
 	if (adrof(cp))
 		unsetv(cp);
 }
+
+#ifndef V6
+exportpath(val)
+char **val;
+{
+	char exppath[128];
+	register char *p, *dir;
+
+	exppath[0] = 0;
+	for(;;) {
+		dir = *val;
+		if (!eq(dir, "."))
+			strcat(exppath, dir);
+		if ((dir = *++val) && !eq(dir, ")"))
+			strcat(exppath, ":");
+		else
+			break;
+	}
+	setenv("PATH", exppath);
+}
+#endif

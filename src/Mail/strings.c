@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 /*
@@ -39,11 +38,15 @@ salloc(size)
 		index++;
 	}
 	if (sp >= &stringdope[NSPACE])
-		panic("Ran out of memory!");
+		panic("String too large");
 	if (sp->s_topFree == NOSTR) {
 		index = sp - &stringdope[0];
 		sp->s_topFree = (char *) calloc(STRINGSIZE << index,
 		    (unsigned) 1);
+		if (sp->s_topFree == NOSTR) {
+			fprintf(stderr, "No room for space %d\n", index);
+			panic("Internal error");
+		}
 		sp->s_nextFree = sp->s_topFree;
 		sp->s_nleft = STRINGSIZE << index;
 	}
@@ -64,6 +67,7 @@ sreset()
 	register struct strings *sp;
 	register int index;
 
+	minit();
 	index = 0;
 	for (sp = &stringdope[0]; sp < &stringdope[NSPACE]; sp++) {
 		if (sp->s_topFree == NOSTR)

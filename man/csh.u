@@ -5,7 +5,8 @@
 .if n .ds ga `
 .if t .ds ga \(ga
 .if t .tr *\(**
-.TH CSH UCB 2/24/79 UCB
+.TH CSH 1 1/18/81
+.UC
 .SH NAME
 csh \- a shell (command interpreter) with C-like syntax
 .SH SYNOPSIS
@@ -76,6 +77,10 @@ Sequences of pipelines may be separated by `;', and are then executed
 sequentially.
 A sequence of pipelines may be executed without waiting for it to terminate
 by following it with an `&'.
+Such a sequence is automatically prevented from being terminated by
+a hangup signal; the
+.I nohup
+command need not be used.
 .PP
 Any of the above may be placed in `(' `)' to form a simple command (which
 may be a component of a pipeline, etc.)
@@ -146,6 +151,9 @@ of the specified events, each separated by a single blank.
 As a special case `!!' refers to the previous command; thus `!!'
 alone is essentially a
 .I redo.
+The form `!#' references the current command (the one being typed in).
+It allows a word to be selected from further left
+in the line, to avoid retyping a long name, as in `!#:1'.
 .PP
 To select words from an event we can follow the event specification by
 a `:' and a designator for the desired words.
@@ -179,7 +187,7 @@ The following modifiers are defined:
 .nf
 	h		Remove a trailing pathname component, leaving the head.
 	r		Remove a trailing `.xxx' component, leaving the root name.
-	s/\fIl\fR\|/\fIr\fR\|/	Substitute \fIr\fR for \fIr\fR
+	s/\fIl\fR\|/\fIr\fR\|/		Substitute \fIl\fR for \fIr\fR
 	t		Remove all leading pathname components, leaving the tail.
 	&		Repeat the previous substitution.
 	g		Apply the change globally, prefixing the above, e.g. `g&'.
@@ -360,8 +368,16 @@ each separated by a blank.
 Braces insulate
 .I name
 from following characters which would otherwise be part of it.
-Shell variables have names consisting of up to 20 letters
+Shell variables have names consisting of up to 20 letters, digits,
 and underscores.
+.PP
+If
+.I name
+is not a shell variable,
+but is set in the environment,
+then that value is returned
+(but : modifiers and the other forms given below are not
+available in this case).
 .HP 5
 $name[selector]
 .br
@@ -773,6 +789,19 @@ statement as discussed below.
 Change the shells working directory to directory
 .I name.
 If no argument is given then change to the home directory of the user.
+.PP
+If
+.I name
+is not found as a subdirectory of the current directory
+(and does not begin with `/', `./', or `../'),
+then each component of the variable
+.I cdpath
+is checked to see if it has a subdirectory
+.IR name .
+Finally, if all else fails but
+.I name
+is a shell variable whose value begins with `/',
+then this is tried to see if it is a directory.
 .HP 5
 .B  continue
 .br
@@ -966,6 +995,13 @@ the
 must appear alone on its input line or after an
 .I else.)
 .HP 5
+.B  login
+.br
+Terminate a login shell, replacing it with an instance of
+.B /bin/login.
+This is one way to log off, included for compatibility with
+.B /bin/sh.
+.HP 5
 .B  logout
 .br
 Terminate a login shell.
@@ -1017,6 +1053,11 @@ the process.
 Unless the shell is running detached,
 .I nohup
 has no effect.
+All processes detached with ``&'' are automatically
+.I nohup'ed.
+(Thus,
+.I nohup
+is not really needed.)
 .HP 5
 .B  onintr
 .br
@@ -1042,6 +1083,18 @@ being ignored, all forms of
 .I onintr
 have no meaning and interrupts
 continue to be ignored by the shell and all invoked commands.
+.HP 5
+.BR rehash
+.br
+Causes the internal hash table of the contents of the directories in
+the
+.I path
+variable to be recomputed.  This is needed if new commands are added
+to directories in the
+.I path
+while you are logged in.  This should only be necessary if you add
+commands to one of your own directories, or if a systems programmer
+changes the contents of one of the system directories.
 .HP 5
 .BR repeat " count command"
 .br
@@ -1235,6 +1288,11 @@ Thus all aliases are removed by `unalias *'.
 It is not an error for nothing to be
 .I unaliased.
 .HP 5
+.BR unhash
+.br
+Use of the internal hash table to speed location of executed programs
+is disabled.
+.HP 5
 .BR unset " pattern"
 .br
 All variables whose names match the specified pattern are removed.
@@ -1336,12 +1394,37 @@ and
 this setting occurs only at initialization;
 these variables will not then be modified unless this is done
 explicitly by the user.
+.PP
+The shell copies the environment variable PATH into the variable
+.IR path ,
+and copies the value back into the environment whenever
+.I path
+is set.
+Thus is is not necessary to worry about its setting other than
+in the file
+.I .cshrc
+as inferior
+.I csh
+processes will import the definition of
+.I path
+from the environment.
+(It could be set once in the
+.I .login
+except that commands through
+.IR net (1)
+would not see the definition.)
 .TP 15
 .B argv
 \c
 Set to the arguments to the shell, it is from this variable that
 positional parameters are substituted, i.e. `$1' is replaced by
 `$argv[1]', etc.
+.TP 15
+.B cdpath
+\c
+Gives a list of alternate directories searched to find subdirectories in
+.I chdir
+commands.
 .TP 15
 .B child
 The process number printed when the last command was forked with `&'.
@@ -1359,6 +1442,15 @@ to be echoed just before it is executed.
 For non-builtin commands all expansions occur before echoing.
 Builtin commands are echoed before command and filename substitution,
 since these substitutions are then done selectively.
+.TP 15
+.B histchars
+\c
+Can be assigned a two character string.
+The first character is used as a history character
+in place of ``!'', the second character is used in
+place of the ``^'' substitution mechanism.
+For example, ``set histchars=",;"'' will cause
+the history characters to be comma and semicolon.
 .TP 15
 .B history
 \c
@@ -1433,6 +1525,20 @@ variable then only full path names will execute.
 The usual search path is `.', `/bin' and `/usr/bin', but this
 may vary from system to system.
 For the super-user the default search path is `/etc', `/bin' and `/usr/bin'.
+A shell which is given neither the
+.B \-c
+nor the
+.B \-t
+option will normally hash the contents of the directories in the
+.I path
+variable after reading
+.I \&.cshrc,
+and each time the
+.I path
+variable is reset.  If new commands are added to these directories
+while the shell is active, it may be necessary to give the
+.I rehash
+or the commands may not be found.
 .TP 15
 .B prompt
 \c
@@ -1481,9 +1587,29 @@ the shell attempts to execute the command via
 .IR  exec (2).
 Each word in the variable
 .I path
-names a directory which
+names a directory from which the shell will attempt to execute the command.
+If it is given neither a
+.B \-c
+nor a
+.B \-t
+option, the shell will hash the names in these directories into an internal
+table so that it will only try an
+.I exec
+in a directory if there is a possibility that the command resides there.
+This greatly speeds command location when a large number of directories
+are present in the search path.
+If this mechanism has been turned off (via
+.I unhash),
+or if the shell was given a
+.B \-c
+or
+.B \-t
+argument, and in any case for each directory component of
+.I path
+which does not begin with a ``/'',
 the shell concatenates with the given command name to form a path name
 of a file which it then attempts to execute.
+.PP
 Parenthesized commands are always executed in a subshell.
 Thus `(cd ; pwd) ; pwd' prints the
 .I home
@@ -1629,18 +1755,18 @@ In no case are interrupts allowed when a login shell is reading the file
 .SH AUTHOR
 William Joy
 .SH FILES
-.DT
+.ta 1.75i
 .nf
-~/.cshrc		Read at beginning of execution by each shell.
-~/.login		Read by login shell, after `.cshrc' at login.
-~/.logout		Read by login shell, at logout.
-/bin/sh		Standard shell, for shell scripts not starting with a `#'.
-/tmp/sh*		Temporary file for `<<'.
-/dev/null		Source of empty file.
-/etc/passwd		Source of home directories for `~name'.
+~/.cshrc	Read at beginning of execution by each shell.
+~/.login	Read by login shell, after `.cshrc' at login.
+~/.logout	Read by login shell, at logout.
+/bin/sh	Standard shell, for shell scripts not starting with a `#'.
+/tmp/sh*	Temporary file for `<<'.
+/dev/null	Source of empty file.
+/etc/passwd	Source of home directories for `~name'.
 .fi
 .SH LIMITATIONS
-Words can be no longer that 512 characters.
+Words can be no longer than 512 characters.
 The number of characters in an argument varies from system to system.
 Early version 6 systems typically have 512 character limits
 while later version 6 and version 7 systems have 5120 character limits.
@@ -1683,3 +1809,18 @@ open files other than the normal standard input and output and diagnostic
 output.
 If the input and output are redirected and the new command does not
 close these files, some files may be held open unnecessarily.
+.PP
+There are a number of bugs associated with the importing/exporting
+of the PATH.
+For example, directories in the path using the ~
+syntax are not expanded in the PATH.
+Unusual paths,
+such as (), can cause csh to core dump.
+.PP
+This version of
+.I csh
+does not support or use the process control features
+of the 4th Berkeley Distribution.
+It contains a number of known bugs which
+have been fixed in the process control version.
+This version is not supported.

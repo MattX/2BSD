@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -44,7 +43,7 @@ next(msgvec)
 			if (*ip2 == NULL)
 				ip2 = msgvec;
 			mp = &message[*ip2 - 1];
-			if ((mp->m_flag & (MDELETED|MSAVED)) == 0) {
+			if ((mp->m_flag & MDELETED) == 0) {
 				dot = mp;
 				goto hitit;
 			}
@@ -95,11 +94,12 @@ save(str)
 {
 	register int *ip, mesg;
 	register struct message *mp;
-	char *file;
+	char *file, *disp;
 	int f, *msgvec, lc, cc, t;
 	FILE *obuf;
+	struct stat statb;
 
-	msgvec = (int *) salloc((msgCount * sizeof *msgvec) + 2);
+	msgvec = (int *) salloc((msgCount + 2) * sizeof *msgvec);
 	if ((file = snarf(str, &f)) == NOSTR)
 		return(1);
 	if (!f) {
@@ -112,12 +112,18 @@ save(str)
 	}
 	if (f && getmsglist(str, msgvec, 0) < 0)
 		return(1);
-	if ((obuf = fopen(file, "a")) == NULL) {
-		perror(file);
+	if ((file = expand(file)) == NOSTR)
 		return(1);
-	}
 	printf("\"%s\" ", file);
 	flush();
+	if (stat(file, &statb) >= 0)
+		disp = "[Appended]";
+	else
+		disp = "[New file]";
+	if ((obuf = fopen(file, "a")) == NULL) {
+		perror(NOSTR);
+		return(1);
+	}
 	cc = lc = 0;
 	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
 		mesg = *ip;
@@ -136,7 +142,72 @@ save(str)
 	if (ferror(obuf))
 		perror(file);
 	fclose(obuf);
-	printf("%d/%d\n", lc, cc);
+	printf("%s %d/%d\n", disp, lc, cc);
+	return(0);
+}
+
+/*
+ * Write the indicated messages at the end of the passed
+ * file name, minus header and trailing blank line.
+ */
+
+swrite(str)
+	char str[];
+{
+	register int *ip, mesg;
+	register struct message *mp;
+	register char *file, *disp;
+	char linebuf[BUFSIZ];
+	int f, *msgvec, lc, cc, t;
+	FILE *obuf, *mesf;
+	struct stat statb;
+
+	msgvec = (int *) salloc((msgCount + 2) * sizeof *msgvec);
+	if ((file = snarf(str, &f)) == NOSTR)
+		return(1);
+	if ((file = expand(file)) == NOSTR)
+		return(1);
+	if (!f) {
+		*msgvec = first(0, MMNORM);
+		if (*msgvec == NULL) {
+			printf("No messages to write.\n");
+			return(1);
+		}
+		msgvec[1] = NULL;
+	}
+	if (f && getmsglist(str, msgvec, 0) < 0)
+		return(1);
+	printf("\"%s\" ", file);
+	flush();
+	if (stat(file, &statb) >= 0)
+		disp = "[Appended]";
+	else
+		disp = "[New file]";
+	if ((obuf = fopen(file, "a")) == NULL) {
+		perror(NOSTR);
+		return(1);
+	}
+	cc = lc = 0;
+	for (ip = msgvec; *ip && ip-msgvec < msgCount; ip++) {
+		mesg = *ip;
+		touch(mesg);
+		mp = &message[mesg-1];
+		mesf = setinput(mp);
+		t = mp->m_lines - 2;
+		readline(mesf, linebuf);
+		while (t-- > 0) {
+			fgets(linebuf, BUFSIZ, mesf);
+			fputs(linebuf, obuf);
+			cc += strlen(linebuf);
+		}
+		lc += mp->m_lines - 2;
+		mp->m_flag |= MSAVED;
+	}
+	fflush(obuf);
+	if (ferror(obuf))
+		perror(file);
+	fclose(obuf);
+	printf("%s %d/%d\n", disp, lc, cc);
 	return(0);
 }
 
@@ -235,7 +306,7 @@ delm(msgvec)
 		touch(mesg);
 		mp = &message[mesg-1];
 		mp->m_flag |= MDELETED;
-		mp->m_flag &= ~MPRESERVE;
+		mp->m_flag &= ~(MPRESERVE|MSAVED);
 		last = mesg;
 	}
 	if (last != NULL) {
@@ -288,13 +359,13 @@ core()
 	register int pid;
 	int status;
 
-	if ((pid = fork()) == -1) {
+	if ((pid = vfork()) == -1) {
 		perror("fork");
 		return(1);
 	}
 	if (pid == 0) {
 		abort();
-		exit(1);
+		_exit(1);
 	}
 	printf("Okie dokie");
 	fflush(stdout);

@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 #include "rcv.h"
 #include <sys/stat.h>
@@ -13,47 +12,21 @@
  * Print the current active headings.
  */
 
-headers(argv)
-	char **argv;
+static int screen;
+
+headers(msgvec)
+	int *msgvec;
 {
-	register int mesg, flag;
+	register int n, mesg, flag;
 	register struct message *mp;
-	char c, *str;
-	static screen;
 
-	str = argv[0];
-	if (argcount(argv) == 0)
-		c = 0;
-	else
-		c = str[0];
-	if (c) {
-		switch (c) {
-		case '0':
-			/*
-			 * Go back to top.
-			 */
-			screen = 0;
-			break;
-
-		case '+':
-			/*
-			 * scroll down.
-			 */
-			screen++;
-			break;
-
-		case '-':
-			/*
-			 * scroll up.
-			 */
-			screen--;
-			break;
-		}
-		if (screen < 0)
-			screen = 0;
-	}
+	n = msgvec[0];
+	if (n != 0)
+		screen = (n-1)/SCREEN;
+	if (screen < 0)
+		screen = 0;
 	mp = &message[screen * SCREEN];
-	if (mp > &message[msgCount])
+	if (mp >= &message[msgCount])
 		mp = &message[msgCount - SCREEN];
 	if (mp < &message[0])
 		mp = &message[0];
@@ -70,11 +43,50 @@ headers(argv)
 		sreset();
 	}
 	if (flag == 0) {
-		printf("No more messages.\n");
+		printf("No more mail.\n");
 		return(1);
 	}
 	return(0);
 }
+
+/*
+ * Scroll to the next/previous screen
+ */
+
+scroll(arg)
+	char arg[];
+{
+	register int s;
+	int cur[1];
+
+	cur[0] = 0;
+	s = screen;
+	switch (*arg) {
+	case 0:
+	case '+':
+		s++;
+		if (s*SCREEN > msgCount) {
+			printf("On last screenful of messages\n");
+			return(0);
+		}
+		screen = s;
+		break;
+
+	case '-':
+		if (--s < 0) {
+			printf("On first screenful of messages\n");
+			return(0);
+		}
+		screen = s;
+		break;
+
+	default:
+		printf("Unrecognized scrolling command \"%s\"\n", arg);
+		return(1);
+	}
+	return(headers(cur));
+}
+
 
 /*
  * Print out the headlines for each message
@@ -105,6 +117,7 @@ printhead(mesg)
 	struct message *mp;
 	FILE *ibuf;
 	char headline[LINESIZE], wcount[10], *subjline, dispc;
+	char pbuf[BUFSIZ];
 	int s;
 	struct headline hl;
 	register char *cp;
@@ -112,21 +125,22 @@ printhead(mesg)
 	mp = &message[mesg-1];
 	ibuf = setinput(mp);
 	readline(ibuf, headline);
-	subjline = hfield("subj", mp);
+	subjline = hfield("subject", mp);
+	if (subjline == NOSTR)
+		subjline = hfield("subj", mp);
 
 	/*
 	 * Bletch!
 	 */
 
-	if (subjline != NOSTR)
+	if (subjline != NOSTR && strlen(subjline) > 28)
 		subjline[29] = '\0';
+	dispc = ' ';
 	if (mp->m_flag & MSAVED)
 		dispc = '*';
-	else if (mp->m_flag & MPRESERVED)
+	if (mp->m_flag & MPRESERVED)
 		dispc = 'P';
-	else
-		dispc = ' ';
-	parse(headline, &hl);
+	parse(headline, &hl, pbuf);
 	sprintf(wcount, " %d/%d", mp->m_lines, mp->m_size);
 	s = strlen(wcount);
 	cp = wcount + s;
@@ -135,10 +149,10 @@ printhead(mesg)
 	*cp = '\0';
 	if (subjline != NOSTR)
 		printf("%c%3d %-8s %16.16s %s \"%s\"\n", dispc, mesg,
-		    hl.l_from, hl.l_date, wcount, subjline);
+		    nameof(mp), hl.l_date, wcount, subjline);
 	else
 		printf("%c%3d %-8s %16.16s %s\n", dispc, mesg,
-		    hl.l_from, hl.l_date, wcount);
+		    nameof(mp), hl.l_date, wcount);
 }
 
 /*
@@ -174,35 +188,6 @@ pcmdlist()
 			printf("%s\n", cp->c_name);
 	}
 	return(0);
-}
-
-/*
- * Go to the previous message and type it.
- * If at the top, just bitch.
- */
-
-previous(argv)
-	char **argv;
-{
-	register struct message *mp;
-	register int c;
-	int list[2];
-
-	c = 1;
-	if (argcount(argv) != 0)
-		c = atoi(argv[0]);
-	while (c--) {
-		mp = dot;
-		mp--;
-		if (mp < &message[0]) {
-			printf("Nonzero address required\n");
-			return(0);
-		}
-		dot = mp;
-	}
-	list[0] = dot - &message[0] + 1;
-	list[1] = NULL;
-	return(type(list));
 }
 
 /*
@@ -300,6 +285,7 @@ stouch(msgvec)
 	for (ip = msgvec; *ip != 0; ip++) {
 		touch(*ip);
 		dot = &message[*ip-1];
+		dot->m_flag &= ~MPRESERVE;
 	}
 	return(0);
 }

@@ -1,22 +1,23 @@
-/* Copyright (c) 1979 Regents of the University of California */
-/*
- * Declarations and constants specific to an installation.
- * Version 7.
- */
- 
-#define	MAIL		"/bin/mail"	/* Name of mail sender */
-#define	EDITOR		"/usr/ucb/ex"	/* Name of text editor */
-#define	VISUAL		"/usr/ucb/vi"	/* Name of display editor */
-#define	HELPFILE	"/usr/lib/Mail.help"
-					/* Name of casual help file */
-#define	THELPFILE	"/usr/lib/Mail.help.~"
-					/* Name of casual tilde help */
-#define	UIDMASK		0177777		/* Significant uid bits */
-#define	MASTER		"/usr/lib/Mail.rc"
-#define	APPENDS				/* New mail goes to end of mailbox */
+#ifdef V7
+#include "v7.local.h"
+#endif
 
-/*
- * Machine dependent type declarations.
- */
+#ifdef CORY
+#include "c.local.h"
+#endif
 
-typedef	short	flag_t;			/* flag arguments everywhere */
+#ifdef INGRES
+#include "ing.local.h"
+#endif
+
+#ifdef V6
+#include "v6.local.h"
+#endif
+
+#ifdef CC
+#include "cc.local.h"
+#endif
+
+#ifdef V40
+#include "40.local.h"
+#endif

@@ -1,4 +1,5 @@
-.TH TSET UCB 3/1/79 UCB
+.TH TSET 1 7/11/80 1
+.UC
 .SH NAME
 tset \- set terminal modes
 .SH SYNOPSIS
@@ -6,24 +7,19 @@ tset \- set terminal modes
 [
 .B \-
 ] [
-.B \-r
+.B \-hrsuIQS
 ] [
-.B \-e
+.BR \-e [\fIc\fP]
 ] [
-.B \-E
+.BR \-E [\fIc\fP]
 ] [
-.B \-k
-] [
-.B \-d
-.I type
-] [
-.B \-p
-.I type
-] [
-.B \-b
-.I type
-] [
-.B \-h
+.BR \-k [\fIc\fP]
+]
+.br
+[
+.B \-m
+[\fIident\fP][\fItest
+.IR baudrate ]:\fItype
 ] [
 .I type
 ]
@@ -47,39 +43,71 @@ If
 .I type
 is not specified,
 the terminal type is read from
-the environment
-unless some of the
-.B \-h,
-.B \-d,
-.B \-b,
-or
-.B \-p
-flags are set.
+.I /etc/htmp
+(the home directory and terminal type database),
+or the environment TERM,
+unless the
+.B \-h
+flag is set or any
+.B \-m argument was given.
 In this case
 the type is read from
 .I /etc/ttytype
-(the terminal code to terminal type database).
-The terminal id is specified by a
-.IR  ttyn (3)
+(the port name to terminal type database).
+The port name is determined by a
+.IR  ttyname (3)
 call on the diagnostic output.
+If the port is not found in
+.I /etc/ttytype
+the terminal type is set to
+.I unknown.
 .PP
-If the type turns out to be a dialup and the
-.B \-d
-flag is specified,
-the terminal type is taken to be the named type.
-Similarly,
-if the type turns out to be a plugboard
-and the
-.B \-p
-flag is specified,
-the terminal type assumed is taken to be
-.I type .
-The same applies the the
-.B \-b
-flag on a bussiplexer port.
+Ports for which the terminal type is indeterminate are identified in
+.I /etc/ttytype
+as 
+.I dialup,
+.I plugboard,
+etc.
+The user can specify how these identifiers should map to an
+actual terminal type.
+The mapping flag,
+.B \-m,
+is followed by the appropriate identifier (a 4 character or longer
+substring is adequate), an optional test for baud rate, and the
+terminal type to be used if the mapping conditions are satisfied.
+If more than one mapping is specified, the first correct mapping prevails.
+A missing identifier matches all identifiers.
+Baud rates are specified as with stty(1), and are compared with the
+speed of the diagnostic output.
+The test may be any combination of:
+.B >,
+.B =,
+.B <,
+.B @,
+and
+.B !.
+(Note:
+.B @
+is a synonym for
+.B =
+and
+.B !
+inverts the sense of the test. Remember to escape characters meaningful
+to the shell.)
+.PP
+If the
+.I type
+as determined above begins with a question mark,
+the user is asked if s/he really wants that type.
+A null response means to use that type;
+otherwise, another type can be entered which will be used instead.
+(The question mark must be escaped
+to prevent filename expansion by the shell.)
 .PP
 On terminals that can backspace but not overstrike
-(such as a \s-2CRT\s0)
+(such as a \s-2CRT\s0),
+and when the erase character is the default erase character
+(`#' on standard systems),
 the erase character is changed to a Control-H
 (backspace).
 The
@@ -91,7 +119,17 @@ so to override this option one can say
 .BR \-e #.
 The default for
 .I c
-is Control-H.
+is the backspace character on the terminal,
+usually
+Control-H.
+The
+.B \-E
+flag is identical to
+.B \-e
+except that it only operates on terminals
+that can backspace;
+it might be used if you had the misfortune
+to be stuck with an ASR33.
 The
 .B \-k
 option works similarly,
@@ -101,36 +139,112 @@ defaulting to Control-X.
 No kill processing is done if
 .B \-k
 is not specified.
+In all of these flags,
+``^X'' where X is any character
+is equivalent to control-X.
+.PP
+On version 6 systems, the terminal type specified in 
+.I htmp
+is updated unless
+.B \-u
+is specified.
 .PP
 The
 .B \-
 option prints the terminal type
-on the standard output.
+on the standard output;
+this can be used to get the terminal type by saying:
+.br
+	set termtype = \`tset -\`
+.br
+If no other options are given,
+.I tset
+operates in ``fast mode''
+and
+.I only
+outputs the terminal type,
+bypassing all other processing.
+The
+.B \-s
+option outputs ``setenv'' commands
+(if your default shell is csh)
+or ``export'' and assignment commands
+(if your default shell is the Bourne shell);
+the
+.B \-S
+option only outputs the strings to be placed in the environment variables.
+The
+.B \-s
+option can be used as:
+.br
+	\`tset -s ...\`
+.br
+Actually, this is not possible because of a problem in the shell.
+Instead, if you are using the Bourne shell, use:
+.nf
+	tset -s ... > /tmp/tset$$
+	/tmp/tset$$
+	rm /tmp/tset$$
+.fi
+If you are using csh, use:
+.nf
+	set noglob
+	set term=(`tset -S ....`)
+	setenv TERM $term[1]
+	setenv TERMCAP "$term[2]"
+	unset term
+	unset noglob
+.fi
 .PP
 The
 .B \-r
 option prints the terminal type
 on the diagnostic output.
+The
+.B \-Q
+option supresses printing the
+``Erase set to'' and ``Kill set to'' messages.
+The
+.B \-I
+option supresses outputing the terminal initialization
+strings.
 .PP
 .I Tset
 is most useful when included in the
 .B \&.login
+(for
+.IR csh (1))
+or
+.B \&.profile
+(for
+.IR sh (1))
 file executed automatically at login,
 with
-.B \-d
-used to specify the terminal type you most frequently dial in on.
-.SH EXAMPLE
-tset -dti733 -e -k!
-.br
-.if \n(V7 setenv TERM `tset -dadm3a - -e# -r`
-.br
+.B \-m
+mapping used to specify the terminal type you most frequently dial in on.
+.SH EXAMPLES
 tset gt42
+.br
+tset \-mdialup\e>300:adm3a \-mdialup:dw2 \-Qr \-e#
+.br
+tset \-m dial:ti733 \-m plug:\e?hp2621 \-m unknown:\e? \-e \-k^U
 .SH FILES
 .DT
-/etc/ttytype		Terminal id to type map database
+/etc/htmp	Terminal type database (version 6 only)
+.br
+/etc/ttytype	Port name to terminal type map database
 .br
 /etc/termcap	Terminal capability database
 .SH SEE\ ALSO
-setenv (in csh (UCB))
+setenv(1), ttytype(5), termcap(5), stty(1)
 .SH AUTHOR
 Eric P. Allman
+.SH NOTES
+For compatibility with earlier versions of tset, the following flags
+are accepted and mapped internally as shown:
+.nf
+	-d type   ->   -m dialup:type
+	-p type   ->   -m plugboard:type
+	-a type   ->   -m arpanet:type
+.fi
+These flags will disappear eventually.

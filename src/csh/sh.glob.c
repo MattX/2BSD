@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.glob.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -89,8 +90,10 @@ acollect(as)
 	gpathp = gpath; *gpathp = 0; globbed = 0;
 	expand(as);
 	if (gargc == ogargc) {
-		if (nonomatch)
+		if (nonomatch) {
 			Gcat(as, "");
+			sort();
+		}
 	} else
 		sort();
 }
@@ -167,7 +170,7 @@ matchdir(pattern)
 	char *pattern;
 {
 	struct stat stb;
-	struct direct dirbuf[512 / sizeof (struct direct)];
+	struct direct dirbuf[BUFSIZ / sizeof (struct direct)];
 	char d_name[DIRSIZ+1];
 	register int dirf, cnt;
 
@@ -247,7 +250,7 @@ pend:
 	if (brclev || !*pe)
 		error("Missing }");
 	for (pl = pm = p; pm <= pe; pm++)
-	switch (*pm) {
+	switch ((*pm) & 0377) {
 
 	case '{':
 		brclev++;
@@ -259,6 +262,7 @@ pend:
 		}
 		goto doit;
 	case ',':
+	case ',' | QUOTE:
 		if (brclev)
 			continue;
 doit:

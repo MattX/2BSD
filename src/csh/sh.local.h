@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.local.h	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 /*
  * This file defines certain local parameters
  * A symbol should be defined in Makefile for conditional
@@ -15,15 +16,26 @@
  *	MAILINTVL	How often to mailcheck; more often is more expensive
  */
 
-#define	BUFSIZ	512
+#ifdef VMUNIX
+#include <pagsiz.h>
+#define BUFSIZ		BSIZE
+#else
+# ifndef BUFSIZ
+#  define BUFSIZ		512
+# endif
+#endif
+
 #define	SHELLPATH	"/bin/csh"
 #define	OTHERSH		"/bin/sh"
 /*
  * Note that the first component of SRCHPATH is set to /etc for root
  * in the file sh.c.
+ *
+ * Note also that the SRCHPATH is meaningless unless you are on a v6
+ * system since the default path will be imported from the environment.
  */
-#define	SRCHPATH	".", "/bin", "/usr/bin"
-#define	MAILINTVL	600				/* 10 minutes */
+#define	SRCHPATH	".", "/usr/ucb", "/bin", "/usr/bin"
+#define	MAILINTVL	300				/* 10 minutes */
 
 /*
  * NCARGS and NOFILE are from <sys/param.h> which we choose not
@@ -44,7 +56,7 @@
 
 #define	V7
 
-#ifdef	CORY
+#ifdef	V69
 #undef	V7
 #define V6
 #include <retrofit.h>

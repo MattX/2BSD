@@ -1,13 +1,17 @@
 /* Copyright (c) 1979 Regents of the University of California */
-#define	BUFSIZ	512
+#define	BUFSIZ	1024
+#define MAXHOP	32	/* max number of tc= indirections */
 
 #include <ctype.h>
+#include "local/uparm.h"
 /*
  * termcap - routines for dealing with the terminal capability data base
  *
  * BUG:		Should use a "last" pointer in tbuf, so that searching
  *		for capabilities alphabetically would not be a n**2/2
  *		process when large numbers of capabilities are given.
+ * Note:	If we add a last pointer now we will screw up the
+ *		tc capability. We really should compile termcap.
  *
  * Essentially all the work here is scanning and decoding escapes
  * in string capabilities.  We don't use stdio because the editor
@@ -15,9 +19,11 @@
  */
 
 static	char *tbuf;
+static	int hopcount;	/* detect infinite loops in termcap, init 0 */
 char	*tskip();
 char	*tgetstr();
 char	*tdecode();
+char	*getenv();
 
 /*
  * Get an entry for terminal name in buffer bp,
@@ -31,14 +37,36 @@ tgetent(bp, name)
 	register int c;
 	register int i = 0, cnt = 0;
 	char ibuf[BUFSIZ];
+	char *cp2;
 	int tf;
 
 	tbuf = bp;
+	tf = 0;
 #ifndef V6
 	cp = getenv("TERMCAP");
-	tf = open(cp ? cp : "/etc/termcap", 0);
+	/*
+	 * TERMCAP can have one of two things in it. It can be the
+	 * name of a file to use instead of /etc/termcap. In this
+	 * case it better start with a "/". Or it can be an entry to
+	 * use so we don't have to read the file. In this case it
+	 * has to already have the newlines crunched out.
+	 */
+	if (cp && *cp) {
+		if (*cp!='/') {
+			cp2 = getenv("TERM");
+			if (cp2==(char *) 0 || strcmp(name,cp2)==0) {
+				strcpy(bp,cp);
+				return(tnchktc());
+			} else {
+				tf = open(E_TERMCAP, 0);
+			}
+		} else
+			tf = open(cp, 0);
+	}
+	if (tf==0)
+		tf = open(E_TERMCAP, 0);
 #else
-	tf = open("/etc/termcap", 0);
+	tf = open(E_TERMCAP, 0);
 #endif
 	if (tf < 0)
 		return (-1);
@@ -61,7 +89,11 @@ tgetent(bp, name)
 				}
 				break;
 			}
-			*cp++ = c;
+			if (cp >= bp+BUFSIZ) {
+				write(2,"Termcap entry too long\n", 23);
+				break;
+			} else
+				*cp++ = c;
 		}
 		*cp = 0;
 
@@ -70,9 +102,57 @@ tgetent(bp, name)
 		 */
 		if (tnamatch(name)) {
 			close(tf);
-			return (1);
+			return(tnchktc());
 		}
 	}
+}
+
+/*
+ * tnchktc: check the last entry, see if it's tc=xxx. If so,
+ * recursively find xxx and append that entry (minus the names)
+ * to take the place of the tc=xxx entry. This allows termcap
+ * entries to say "like an HP2621 but doesn't turn on the labels".
+ * Note that this works because of the left to right scan.
+ */
+tnchktc()
+{
+	register char *p, *q;
+	char tcname[16];	/* name of similar terminal */
+	char tcbuf[BUFSIZ];
+	char *holdtbuf = tbuf;
+	int l;
+
+	p = tbuf + strlen(tbuf) - 2;	/* before the last colon */
+	while (*--p != ':')
+		if (p<tbuf) {
+			write(2, "Bad termcap entry\n", 18);
+			return (0);
+		}
+	p++;
+	/* p now points to beginning of last field */
+	if (p[0] != 't' || p[1] != 'c')
+		return(1);
+	strcpy(tcname,p+3);
+	q = tcname;
+	while (q && *q != ':')
+		q++;
+	*q = 0;
+	if (++hopcount > MAXHOP) {
+		write(2, "Infinite tc= loop\n", 18);
+		return (0);
+	}
+	if (tgetent(tcbuf, tcname) != 1)
+		return(0);
+	for (q=tcbuf; *q != ':'; q++)
+		;
+	l = p - holdtbuf + strlen(q);
+	if (l > BUFSIZ) {
+		write(2, "Termcap entry too long\n", 23);
+		q[BUFSIZ - (p-tbuf)] = 0;
+	}
+	strcpy(p, q+1);
+	tbuf = holdtbuf;
+	return(1);
 }
 
 /*
@@ -87,6 +167,8 @@ tnamatch(np)
 	register char *Np, *Bp;
 
 	Bp = tbuf;
+	if (*Bp == '#')
+		return(0);
 	for (;;) {
 		for (Np = np; *Np && *Bp == *Np; Bp++, Np++)
 			continue;
@@ -137,6 +219,8 @@ tgetnum(id)
 			return (-1);
 		if (*bp++ != id[0] || *bp == 0 || *bp++ != id[1])
 			continue;
+		if (*bp == '@')
+			return(-1);
 		if (*bp != '#')
 			continue;
 		bp++;
@@ -165,8 +249,12 @@ tgetflag(id)
 		bp = tskip(bp);
 		if (!*bp)
 			return (0);
-		if (*bp++ == id[0] && *bp != 0 && *bp++ == id[1] && (!*bp || *bp == ':'))
-			return (1);
+		if (*bp++ == id[0] && *bp != 0 && *bp++ == id[1]) {
+			if (!*bp || *bp == ':')
+				return (1);
+			else if (*bp == '@')
+				return(0);
+		}
 	}
 }
 
@@ -190,6 +278,8 @@ tgetstr(id, area)
 			return (0);
 		if (*bp++ != id[0] || *bp == 0 || *bp++ != id[1])
 			continue;
+		if (*bp == '@')
+			return(0);
 		if (*bp != '=')
 			continue;
 		bp++;

@@ -1,0 +1,27 @@
+From chico!harpo!jerry  Wed Jun 17 11:57:09 1981
+To: chico!ucbvax!Onyx:glickman
+Subject: new netnews
+Cc:  chico!ucbvax!mark
+Status: R
+
+
+Most of what you propose sounds good.  I have
+two questions/comments.
+
+There was recently a discussion via netnews of a protocol to 
+avoid transmissions of long messages that a system has already
+received.  Could you incorporate it?  If you didn't see it
+I will send a summary to you.
+
+Is the expiration date associated with the item globally 
+(i.e. through out the net) or locally (i.e. on an individual
+machine).  It seems to me there is a need for both.
+The global date is needed because some items are inherently
+dated (e.g. announcements of meetings).  On the other hand
+it seems likely that different systems want different policies
+towards retaining fa.sf-lovers and the like. (We cancel
+them after three weeks. I know some systems cancel them after one.)
+
+
+
+

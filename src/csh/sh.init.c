@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.init.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.local.h"
 /*
  * C shell
@@ -18,16 +19,21 @@ extern	int doexit();
 extern	int doforeach();
 extern	int doglob();
 extern	int dogoto();
+extern	int dohash();
 extern	int dohist();
 extern	int doif();
 extern	int dolet();
+extern	int dologin();
 extern	int dologout();
+extern	int donewgrp();
 extern	int donice();
 extern	int donohup();
 extern	int doonintr();
 extern	int dorepeat();
 extern	int doset();
+#ifndef V6
 extern	int dosetenv();
+#endif
 extern	int dosource();
 extern	int doswbrk();
 extern	int doswitch();
@@ -38,10 +44,14 @@ extern	int doumask();
 extern	int dowhile();
 extern	int dozip();
 extern	int execash();
+#ifdef VFORK
+extern	int hashstat();
+#endif
 extern	int goodbye();
 extern	int shift();
 extern	int showall();
 extern	int unalias();
+extern	int dounhash();
 extern	int unset();
 
 #define INF	1000
@@ -73,12 +83,18 @@ struct	biltins {
 	"foreach",	doforeach,	3,	INF,
 	"glob",		doglob,		0,	INF,
 	"goto",		dogoto,		1,	1,
+#ifdef VFORK
+	"hashstat",	hashstat,	0,	0,
+#endif
 	"history",	dohist,		0,	0,
 	"if",		doif,		1,	INF,
+	"login",	dologin,	0,	1,
 	"logout",	dologout,	0,	0,
+	"newgrp",	donewgrp,	1,	1,
 	"nice",		donice,		0,	INF,
 	"nohup",	donohup,	0,	INF,
 	"onintr",	doonintr,	0,	2,
+	"rehash",	dohash,		0,	0,
 	"repeat",	dorepeat,	2,	INF,
 	"set",		doset,		0,	INF,
 #ifndef V6
@@ -92,6 +108,7 @@ struct	biltins {
 	"umask",	doumask,	0,	1,
 #endif
 	"unalias",	unalias,	1,	INF,
+	"unhash",	dounhash,		0,	0,
 	"unset",	unset,		1,	INF,
 	"wait",		await,		0,	0,
 	"while",	dowhile,	1,	INF,

@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 /*
@@ -12,6 +11,7 @@
 
 static	int	c_erase;		/* Current erase char */
 static	int	c_kill;			/* Current kill char */
+static	int	ttyset;			/* We must now do erase/kill */
 
 /*
  * Read all relevant header fields.
@@ -22,10 +22,10 @@ grabh(hp, gflags)
 {
 	struct sgttyb ttybuf;
 	register int s;
-	int (*savesigs[2])(), errs, set;
+	int (*savesigs[2])(), errs;
 
 	errs = 0;
-	set = 0;
+	ttyset = 0;
 	if (gtty(fileno(stdin), &ttybuf) < 0) {
 		perror("gtty");
 		return(-1);
@@ -38,29 +38,36 @@ grabh(hp, gflags)
 		if ((savesigs[s-SIGINT] = signal(s, SIG_IGN)) == SIG_DFL)
 			signal(s, SIG_DFL);
 	if (gflags & GTO) {
-		if (!set && hp->h_to != NOSTR)
-			set++, stty(fileno(stdin), &ttybuf);
+		if (!ttyset && hp->h_to != NOSTR)
+			ttyset++, stty(fileno(stdin), &ttybuf);
 		hp->h_to = readtty("To: ", hp->h_to);
 		if (hp->h_to != NOSTR)
 			hp->h_seq++;
 	}
-	if (gflags & GSUBJ) {
-		if (!set && hp->h_subj != NOSTR)
-			set++, stty(fileno(stdin), &ttybuf);
-		hp->h_subj = readtty("Subj: ", hp->h_subj);
-		if (hp->h_subj != NOSTR)
+	if (gflags & GSUBJECT) {
+		if (!ttyset && hp->h_subject != NOSTR)
+			ttyset++, stty(fileno(stdin), &ttybuf);
+		hp->h_subject = readtty("Subject: ", hp->h_subject);
+		if (hp->h_subject != NOSTR)
 			hp->h_seq++;
 	}
 	if (gflags & GCC) {
-		if (!set && hp->h_cc != NOSTR)
-			set++, stty(fileno(stdin), &ttybuf);
+		if (!ttyset && hp->h_cc != NOSTR)
+			ttyset++, stty(fileno(stdin), &ttybuf);
 		hp->h_cc = readtty("Cc: ", hp->h_cc);
 		if (hp->h_cc != NOSTR)
 			hp->h_seq++;
 	}
+	if (gflags & GBCC) {
+		if (!ttyset && hp->h_bcc != NOSTR)
+			ttyset++, stty(fileno(stdin), &ttybuf);
+		hp->h_bcc = readtty("Bcc: ", hp->h_bcc);
+		if (hp->h_bcc != NOSTR)
+			hp->h_seq++;
+	}
 	ttybuf.sg_erase = c_erase;
 	ttybuf.sg_kill = c_kill;
-	if (set)
+	if (ttyset)
 		stty(fileno(stdin), &ttybuf);
 
 out:
@@ -85,16 +92,23 @@ readtty(pr, src)
 	register char *cp, *cp2;
 
 	fputs(pr, stdout);
+	if (src != NOSTR && strlen(src) > BUFSIZ - 2) {
+		printf("too long to edit\n");
+		return(src);
+	}
 	if (src != NOSTR)
 		cp = copy(src, canonb);
 	else
 		cp = copy("", canonb);
 	fputs(canonb, stdout);
 	fflush(stdout);
-	if ((cp2 = gets(cp)) == NOSTR || *cp2 == '\0')
+	cp2 = fgets(cp, BUFSIZ - (cp - canonb), stdin);
+	canonb[strlen(canonb) - 1] = '\0';
+	if (cp2 == NOSTR || *cp2 == '\0')
 		return(src);
-	cp = canonb;
-	cp2 = cp;
+	cp = cp2;
+	if (!ttyset)
+		return(strlen(canonb) > 0 ? savestr(canonb) : NOSTR);
 	while (*cp != '\0') {
 		c = *cp++;
 		if (c == c_erase) {

@@ -1,5 +1,7 @@
 /* Copyright (c) 1979 Regents of the University of California */
+#ifdef V6
 #include <retrofit.h>
+#endif
 #include <stdio.h>
 
 /*

@@ -6,7 +6,9 @@ For installation instructions:
 
 Subdirectories:
 
-	bin		Binaries for standard version 6 systems
+	bin.v6		Binaries for standard version 6 systems
+
+	bin.v7		Binaries for standard version 7 systems
 
 	doc		Source for documents
 
@@ -17,3 +19,15 @@ Subdirectories:
 	src		Source for programs/troff macros
 
 	upgrade		doc/man/src/include for version 6 systems
+			extra v7 include files can be found here
+
+Fri Feb 20 22:34:06 PST 1981
+
+No promises are made that the binaries on this tape correspond
+to the sources, since no standard v6 or v7 systems are around to test them
+on.  The v6 binaries are the same ones that were on 2bsd, except that
+the ex and csh binaries have been updated.  The v7 binaries
+were taken from our Cory system, so may involve modifications made by
+the Cory people.  For example, they use buffered stdio.
+We recommend that you recompile everything (unless you have a vanilla
+version 6 system and cannot recompile).

@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)malloc.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #ifdef debug
 #define ASSERT(p) if(!(p))botch("p");else
 botch(s)

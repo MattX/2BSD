@@ -1,0 +1,29 @@
+From mark Sun Apr  5 00:04:09 1981
+Subject: usenet map
+
+System name: ucbvax (Ernie CoVax)
+Path:	ucbvax
+Contact:Mark Horton (ucbvax!mark, csvax.mark@berkeley) (415) 642-4948
+Number of netnews users: 48
+
+Willingness to call new sites:
+	Must be cleared with Prof. Fateman.  Generally if it is not
+	a local call we prefer you call us.
+Willingness to be called:
+	Must be cleared with Prof. Fateman.  A faculty sponsor here
+	at Berkeley is required.  A research connection with Berkeley
+	is generally also required.  We especially do not want to be
+	used as a communications gateway for other sites.
+	Prof. Fateman's phone number is (415) 642-1879.
+Availability of autodialer:
+	300 baud and vadic 1200 baud.  Cannot dial using 212 protocol.
+	Answering modems: 6 300 baud only and 5 Vadic triples.
+
+.sys file entries: ucbcory ucbopt ucbarpa ucbonyx
+	vax135 decvax ucsfcgl sdcsvax sdcarl menlo70 eagle mhtsa ihnss
+	utexas rand ucla-s (arpanet, not fully on usenet)
+
+Purpose of machine:  General purpose machine for Computer Science research
+in the C.S. Division at Berkeley.
+
+

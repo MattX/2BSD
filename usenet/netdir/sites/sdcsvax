@@ -1,0 +1,60 @@
+From sdcsvax!phil  Wed Feb 25 23:02:53 1981
+To: mark
+Subject: usenet information
+Status: R
+
+System Location:
+	U.C. San Diego Department of Electrical Engineering
+	and Computer Sciences  (EECS)
+	
+Configuration:
+	VAX 11/780 running 4BSD unix
+
+Contact Person:
+	Phil Cohen
+	Sr. Programmer
+	U.C.S.D.  C-014
+	La Jolla, CA.  92093
+	(714) 452-4708
+	Mon - Fri, 8 a.m. - 4:30 p.m.
+
+	Our system is used as a computing resource for faculty members 
+and graduate students in the EECS and Psychology Departments.
+
+
+UUCP/Netnews information:
+	Known as ucbvax!sdcsvax, we share netnews with ucbvax, cmevax 
+(ucbvax!cmevax) and phonlab (ucbvax!sdcsvax!phonlab).  There are between 
+20 and 30 users on sdcsvax that read the network news daily.
+
+	Our .sys file has entries for:
+
+		ucbvax
+		cmevax
+		ucsfcgl
+		ihnss
+		phonlab --  ucsd phonetics laboratory
+	       *arthur  --  ucsd chemistry department 
+	       *csl     --  ucsd cognitive science laboratory
+	       *aaron   --  Harold Cohen's art research system
+	       *ucscvax --  UC Santa Cruz Vax
+
+	* -->> indicates system on uucp but not running netnews
+
+Connection policy:
+	If someone wants to call us or it is a local phone call for us to 
+call them, we can probably work something out to provide a uucp/netnews 
+connection.  We have 300/1200 dialup capability and 300 baud dialout.
+Please refer people interested, directly to Phil Cohen.
+
+Let me clarify our long distance calling policy.  Our system is set up
+to call three longdistance sites, ucbvax, ucscvax, and ucsfcgl.  No
+calls are made to these sites during normal business hours, we only
+call them between midnight and 8 a.m. during the week.  On weekends, we
+will place calls to them on demand.
+
+	I anticipate adding one or two more local systems in the near
+futrue.  At that time, I will mail you the additional information.
+
+	Phil
+

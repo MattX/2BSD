@@ -1,0 +1,61 @@
+NOTE: this is not 2.6BSD and these have been corrected in the current
+version, but the list is included for reference if you are having
+problems.
+
+			2.6BSD Errata Sheet
+
+The following problems are known to exist in 2.6bsd.  Here are the fixes:
+
+csh:
+	sh.hist.c, routine dohist1, remove "goto top".
+	sh.print.c, put "#ifdef VMUNIX" around #include <sys/ioctl.h>
+	doprnt.c is for a vax.  On an 11, remove it, copy
+		/usr/src/libc/stdio/doprnt.s in, and fix the makefile
+		to assemble doprnt.s instead of the kludge being used.
+	printf.c, reverse the order of the first two arguments to doprnt
+		(do this on v7, not on a vax.  To test it, once csh is
+		compiled, do a "set" command.  If all you get is ()(),
+		the order of the first two arguments should be reversed.)
+	On an 11, change the makefile to compile csh split I/D (cc -i)
+		and comment out the two lines containing :rofix (by
+		putting a # in column 1.)
+		Take out the -DVMUNIX and -DVFORK cflags.  Add the -u
+		flag for the assembler.
+
+ex2.12:	in ex_tune.h, change the 3 2.11's to 2.12 and recompile.
+
+finger:	finger includes <sccs.h> and <lastlog.h>.  Here they are:
+	<sccs.h>
+	#define SCCSID(arg) static char Sccsid[] = "arg";
+	<lastlog.h>
+	struct lastlog {
+		time_t	ll_time;
+		char	ll_line[8];
+	};
+	Finger will complain about lastlog open error unless you run
+	the berkeley last login database.  This code should be taken out.
+	A bug in stdio causes the output to have ugly leading zeros printed.
+	I don't have the fix but here's a trivial line to step on the bug:
+		printf("%02d", 5);
+
+Mail:	in makefile, take out -DVFORK, -z ld flag.
+	in the AS line add the -u option
+	head.c calls value.  Comment this out.
+
+ctags:	if the lex library -ll can't be found, try -lln
+
+vsh:	The sources were missing, as well as the manual page.  The
+	following vsh errata apply to an older version you might have somehow:
+	in mydir.h, change <dir.h> to <sys/dir.h>
+	in mydir.h and dir.c, change struct dir to struct direct
+	in cmdrun.c, line 31, indirect the function call (*(...)) (...)
+	in file.c, replace strcpyn by strncpy.
+
+users:	8 character login names produce garbage.  Before the printf
+	assign a null to the 9th character.
+
+binaries:
+	These binaries were compiled on the Cory system at a time when
+	utmp was in a nonstandard format and a bug existed in getpwent.
+	As a result, any program using utmp (w, users, whoami, finger) should
+	be recompiled, as should any program using getpwent (ls).

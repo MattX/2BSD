@@ -1,24 +1,31 @@
 .sh 1 Introduction
 .pp
-Mail provides a friendly environment for sending and receiving mail
-by dividing incoming mail into
-its constituent messages and allowing the user to deal with them
-in any order.  It provides a set of
+.i Mail
+provides a simple and friendly environment for sending and receiving mail.
+It divides incoming mail into
+its constituent messages and allows the user to deal with them
+in any order.  In addition, it provides a set of
 .i ed -\c
 like commands for manipulating messages and sending mail.
+.i Mail
+offers the user simple editing capabilities to ease the composition
+of outgoing messages, as well as providing the ability to define and send
+to names which address groups of users.  Finally,
+.i Mail
+is able to send and receive messages across such networks as the
+ARPANET, Bell Telephone net, Berkeley network, and COCANET.
 .pp
-This document describes the Mail command at an
-introductory level appropriate for the casual user as well as a
-more detailed level appropriate for those whose usage of Mail
-is sufficiently frequent to justify such familiarity.
-The reader is assumed to be familiar with the \s-2UNIX\s0\**
+This document describes how to use the
+.i Mail
+program to send and receive messages.  The reader is not assumed to
+be familiar with other message handling systems, but should be
+familiar with the \s-2UNIX\s0\**
 .(f
 \** \s-1UNIX\s0 is a trademark of Bell Laboratories.
 .)f
-Shell, the text editor, and some of the common \s-2UNIX\s0 commands.
-If you are a neophyte Mail user, section two of this
-document should provide enough information to allow you to effectively
-use Mail.
-The balance of
-this document describes more advanced features, which are useful
-to those commonly barraged with a large volume of mail.
+shell, the text editor, and some of the common \s-2UNIX\s0 commands.
+.q "The \s-2UNIX\s0 Programmer's Manual,"
+.q "An Introduction to Csh,"
+and
+.q "Text Editing with Ex and Vi"
+can be consulted for more information on these topics.

@@ -1,0 +1,45 @@
+From decvax!duke!reed!ross  Tue Mar 17 06:51:58 1981
+Status: R
+
+The name is duke!reed.
+Contact ross, valer or cag.  Those names go with:
+	Graham Ross, interested alumnus.
+	Jim Valerio, interested student.
+	Charlie Green, Director, Academic Cumputing, (503)-771-1112x329
+
+Reed is a small, coed liberal arts college in Portland, OR.
+We have an 11/70 running V7 Unix (with modifications to the
+RP06 driver and with power-fail recovery capability).  There
+are two DH11s, an RP06, 500 Kbyte of core, a TU16, an LP11,
+two RX01s (our users use mountable floppies for portable
+storage) and an optically-isolated high-speed terminal net-
+work going out to the science departments.  We have licenses
+for V6, PWB V1, and V7 Unix.
+
+	Our /etc/passwd has 803 lines in it, but we seldom find
+more than 20 people logged in at once.  The user community
+breaks down into four groups:
+	1) Students and Faculty whose uses are tied directly
+	   to the college's curricula;
+	2) Students who use nroff to format papers and theses;
+	3) Students who write and/or play games; and
+	4) Students and alumni who maintain the system and use it as
+	   it as a playground in OS tweaking and language development.
+Out of 800 users, only a few subscribe to network news.  Here's
+the demography:
+	12 subscribe to NET.ALL
+	3 subscribe only to NET.sf-lovers
+	1 subscribes only to NET.general
+	3 subscribe to NET.ALL, excluding sf-lovers and human-nets.
+NET.ALL isn't much, because our .sys file only allows NET.general,
+NET.v7vbugs, and NET.news.  (So, we're defrauding some of our
+users -- so what?)
+
+I think we are happy with just one connection (through Duke),
+though it might make more sense to keep West Coast mail on the
+West Coast.
+
+Our .sys file has reed and duke, that's all.
+
+When you finish your map, give us a copy.  It sounds like fun.
+

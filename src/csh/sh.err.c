@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.err.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -35,9 +36,9 @@ error(s, arg)
 	haderr = 1;		/* Now to diagnostic output */
 	timflg = 0;		/* This isn't otherwise reset */
 	if (v = pargv)
-		blkfree(v), pargv = 0;
+		pargv = 0, blkfree(v);
 	if (v = gargv)
-		blkfree(v), gargv = 0;
+		gargv = 0, blkfree(v);
 
 	/*
 	 * A zero arguments causes no printing, else print
@@ -47,8 +48,10 @@ error(s, arg)
 		printf(s, arg), printf(".\n");
 
 	didfds = 0;		/* Forget about 0,1,2 */
-	if ((ep = err) && errspl)
+	if ((ep = err) && errspl) {
+		errspl = 0;
 		xfree(ep);
+	}
 	errspl = 0;
 
 	/*

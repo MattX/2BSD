@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)alloc.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.local.h"
 #ifdef debug
 #define ASSERT(p) if(!(p))botch("p");else
@@ -6,6 +7,7 @@ botch(s)
 char *s;
 {
 	printf("assertion botched: %s\n",s);
+	chdir("/usr/bill/cshcore");
 	abort();
 }
 #else
@@ -135,44 +137,6 @@ register char *ap;
 /* 	ASSERT(testbusy(p->ptr)); */
 	p->ptr = clearbusy(p->ptr);
 	ASSERT(p->ptr > allocp && p->ptr <= alloct);
-}
-
-/*	realloc(p, nbytes) reallocates a block obtained from malloc()
- *	and freed since last call of malloc()
- *	to have new size nbytes, and old content
- *	returns new location, or 0 on failure
-*/
-
-char *
-realloc(p, nbytes)
-register union store *p;
-unsigned nbytes;
-{
-	register union store *q;
-	union store *s, *t;
-	register unsigned nw;
-	unsigned onw;
-
-	if(testbusy(p[-1].ptr))
-		free((char *)p);
-	onw = p[-1].ptr - p;
-	q = (union store *)malloc(nbytes);
-	if(q==NULL || q==p)
-		return((char *)q);
-	s = p;
-	t = q;
-	nw = (nbytes+WORD-1)/WORD;
-	if(nw<onw)
-		onw = nw;
-	while(onw--!=0)
-#ifdef	V6
-		copy(t++, s++, sizeof (*t));
-#else
-		*t++ = *s++;
-#endif
-	if(q<p && q+nw>=p)
-		(q+(q+nw-p))->ptr = allocx;
-	return((char *)q);
 }
 
 #ifdef debug

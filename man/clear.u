@@ -1,4 +1,5 @@
-.TH CLEAR UCB 2/24/79 UCB
+.TH CLEAR 1 2/24/79
+.UC
 .SH NAME
 clear \- clear terminal screen
 .SH SYNOPSIS

@@ -4,6 +4,9 @@ These programs are all off our vax version 7 UNIX system.
 To run under version 6 many will need to be compiled
 	cc -I/usr/include/retrofit ... -lretro -lS
 
+Note that Mail, csh, ex, termlib, and v7 pascal are also in ../newstuff.
+You should probably use the version there instead of the one here.
+
 Mkstr and xstr are essential to bringing up ex, Mail and csh.
 
 All of the programs here except "ex" will run on 11/34's and 11/40's.
@@ -28,6 +31,7 @@ ex		a new version of the editor with a powerful screen editor
 		combined with a command mode similar to ed
 
 eyacc		a modified yacc used by the pascal interpreter
+		(Does not work on v7.)
 
 libNS		a modified standard i/o library which allows simultaneous
 		reading and writing

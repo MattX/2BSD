@@ -11,6 +11,7 @@ extern	char	_ctype[];
 #define	isupper(c)	(_ctype[c]&_U)
 #define	islower(c)	(_ctype[c]&_L)
 #define	isdigit(c)	(_ctype[c]&_N)
+#define	isalnum(c)	(_ctype[c]&(_A|_N))
 #define	isspace(c)	(_ctype[c]&_S)
 #define	toupper(c)	((c)-'a'+'A')
 #define	tolower(c)	((c)-'A'+'a')

@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.lex.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -63,7 +64,7 @@ lex(hp)
 	do
 		c = readc(0);
 	while (c == ' ' || c == '\t');
-	if (c == '^' && intty)
+	if (c == HISTSUB && intty)
 		/* ^lef^rit	from tty is short !:s^lef^rit */
 		getexcl(c);
 	else
@@ -147,6 +148,9 @@ word()
 	register bool dolflg;
 	register int i;
 
+/*
+	wbuf[0] = wbuf[250] = wbuf[500] = wbuf[750] = wbuf[1000];
+*/
 	wp = wbuf;
 	i = BUFSIZ - 4;
 loop:
@@ -173,7 +177,7 @@ loop:
 			}
 			if (c == '\\') {
 				c = getC(0);
-				if (c == '!')
+				if (c == HIST)
 					c |= QUOTE;
 				else {
 					if (c == '\n' && c1 != '`')
@@ -231,7 +235,7 @@ casebksl:
 				onelflg = 2;
 			goto loop;
 		}
-		if (c != '!')
+		if (c != HIST)
 			*wp++ = '\\', --i;
 		c |= QUOTE;
 		break;
@@ -247,7 +251,7 @@ pack:
 					onelflg = 2;
 				goto ret;
 			}
-			if (c != '!')
+			if (c != HIST)
 				*wp++ = '\\', --i;
 			c |= QUOTE;
 		}
@@ -317,7 +321,7 @@ top:
 		getdol();
 		goto top;
 	}
-	if (c == '!' && (flag & DOEXCL)) {
+	if (c == HIST && (flag & DOEXCL)) {
 		getexcl(0);
 		goto top;
 	}
@@ -427,7 +431,7 @@ addla(cp)
 {
 	char buf[BUFSIZ];
 
-	if (lap != 0 && strlen(cp) + strlen(lap) >= BUFSIZ - 4) {
+	if (lap != 0 && strlen(cp) + strlen(lap) >= sizeof (labuf) - 4) {
 		seterr("Expansion buf ovflo");
 		return;
 	}
@@ -472,8 +476,8 @@ getexcl(sc)
 		for (ip = hp->next->next; ip != hp->prev; ip = ip->next)
 			dol++;
 	left = 0, right = dol;
-	if (sc == '^') {
-		ungetC('s'), unreadc('^'), c = ':';
+	if (sc == HISTSUB) {
+		ungetC('s'), unreadc(HISTSUB), c = ':';
 		goto subst;
 	}
 	c = getC(0);
@@ -504,7 +508,7 @@ subst:
 	exclc = right - left + 1;
 	while (--left >= 0)
 		hp = hp->next;
-	if (sc == '^' || c == ':') {
+	if (sc == HISTSUB || c == ':') {
 		do {
 			hp = getsub(hp);
 			c = getC(0);
@@ -877,6 +881,7 @@ bad:
 		return (0);
 	}
 	return (1);
+
 }
 
 struct wordent *
@@ -889,7 +894,13 @@ gethent(sc)
 	int event;
 	bool back = 0;
 
-	c = sc == '^' ? '!' : getC(0);
+	c = sc == HISTSUB ? HIST : getC(0);
+	if (c == HIST) {
+		if (alhistp)
+			return (alhistp);
+		event = eventno;
+		goto skip;
+	}
 	switch (c) {
 
 	case ':':
@@ -903,19 +914,18 @@ gethent(sc)
 		event = lastev;
 		break;
 
-	case '!':
-		event = eventno;
-		break;
-
 	case '-':
 		back = 1;
 		c = getC(0);
 		goto number;
 
+	case '#':			/* !# is command being typed in (mrh) */
+		return(&paraml);
+
 	default:
 		if (any(c, "(=")) {
 			unreadc(c);
-			ungetC('!');
+			ungetC(HIST);
 			return (0);
 		}
 		if (digit(c))
@@ -928,7 +938,7 @@ gethent(sc)
 		}
 		unreadc(c);
 		if (np == lhsb) {
-			ungetC('!');
+			ungetC(HIST);
 			return (0);
 		}
 		*np++ = 0;
@@ -973,6 +983,7 @@ gethent(sc)
 		unreadc(c);
 		break;
 	}
+skip:
 	for (hp = Histlist.Hnext; hp; hp = hp->Hnext)
 		if (hp->Hnum == event) {
 			hp->Href = eventno;
@@ -1013,7 +1024,7 @@ matchev(hp, cp, anyarg)
 	register char *dp;
 	struct wordent *lp = &hp->Hlex;
 	int argno = 0;
-	
+
 	for (;;) {
 		lp = lp->next;
 		if (lp->word[0] == '\n')

@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.h	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.local.h"
 /*
  * C shell
@@ -113,7 +114,7 @@ int	(*parterm)();		/* Parents terminate catch */
  * The eighth bit of characters is used to prevent recognition,
  * and eventually stripped.
  */
-#define QUOTE 	0200		/* Eighth char bit used internally for 'ing */
+#define	QUOTE 	0200		/* Eighth char bit used internally for 'ing */
 #define	TRIM	0177		/* Mask to strip quote bit */
 
 /*
@@ -181,7 +182,7 @@ struct	wordent {
  * process id's from `$$', and modified variable values (from qualifiers
  * during expansion in sh.dol.c) here.
  */
-char	labuf[256];
+char	labuf[BUFSIZ];
 char	*lap;
 
 /*
@@ -217,14 +218,14 @@ struct	command {
 #define	TOR	5		/* t_dlef || t_drit		*/
 #define	TAND	6		/* t_dlef && t_drit		*/
 
-#define FAND	(1<<0)		/* executes in background	*/
-#define FCAT	(1<<1)		/* output is redirected >>	*/
-#define FPIN	(1<<2)		/* input is a pipe		*/
-#define FPOU	(1<<3)		/* output is a pipe		*/
-#define FPAR	(1<<4)		/* don't fork, last ()ized cmd	*/
-#define FINT	(1<<5)		/* don't make interruptible	*/
-#define FPRS	(1<<6)		/* print number when forked	*/
-#define FDIAG	(1<<7)		/* redirect unit 2 with unit 1	*/
+#define	FAND	(1<<0)		/* executes in background	*/
+#define	FCAT	(1<<1)		/* output is redirected >>	*/
+#define	FPIN	(1<<2)		/* input is a pipe		*/
+#define	FPOU	(1<<3)		/* output is a pipe		*/
+#define	FPAR	(1<<4)		/* don't fork, last ()ized cmd	*/
+#define	FINT	(1<<5)		/* don't make interruptible	*/
+#define	FPRS	(1<<6)		/* print number when forked	*/
+#define	FDIAG	(1<<7)		/* redirect unit 2 with unit 1	*/
 #define	FANY	(1<<8)		/* output was !			*/
 #define	FHERE	(1<<9)		/* input redirection is <<	*/
 #define	FREDO	(1<<10)		/* reexec aft if, repeat,...	*/
@@ -329,8 +330,12 @@ struct	Hist {
 	struct	Hist *Hnext;
 } Histlist;
 
+struct	wordent	paraml;			/* Current lexical word list */
 int	eventno;			/* Next events number */
 int	lastev;				/* Last event reference (default) */
+
+char	HIST;				/* history invocation character */
+char	HISTSUB;			/* auto-substitute character */
 
 char	*Dfix1();
 struct	varent *adrof(), *adrof1();
@@ -394,3 +399,9 @@ char	*xset();
  */
 char	*bname;
 #define	setname(a)	bname = (a);
+
+#ifdef VFORK
+char	*Vsav;
+char	**Vav;
+char	*Vdp;
+#endif

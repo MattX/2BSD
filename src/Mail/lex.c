@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -14,14 +13,13 @@
  * print no prompt.
  */
 
+int	*msgvec;
+
 commands()
 {
-	int *msgvec, prompt, firstsw, stop(), e;
-	char linebuf[LINESIZE], word[LINESIZE];
-	char *arglist[MAXARGC];
-	struct cmd *com, *quitp;
-	register char *cp, *cp2;
-	register int c;
+	int prompt, firstsw, stop();
+	register int n;
+	char linebuf[LINESIZE];
 
 	msgvec = (int *) calloc((unsigned) (msgCount + 1), sizeof *msgvec);
 	if (rcvmode)
@@ -32,9 +30,6 @@ commands()
 	if (!intty)
 		prompt = 0;
 	firstsw = 1;
-	quitp = lex("quit");
-	if (quitp == NONE)
-		panic("No quit command!?!");
 	for (;;) {
 		setexit();
 		if (firstsw > 0) {
@@ -72,188 +67,220 @@ commands()
 		 * and handle end of file specially.
 		 */
 
-		if (readline(input, linebuf) <= 0) {
-			if (sourcing) {
-				unstack();
-				continue;
-			}
-			if (!edit) {
-				signal(SIGINT, SIG_IGN);
+		n = 0;
+		for (;;) {
+			if (readline(input, &linebuf[n]) <= 0) {
+				if (n != 0)
+					break;
+				if (sourcing) {
+					unstack();
+					goto more;
+				}
+				if (!edit) {
+					signal(SIGINT, SIG_IGN);
+					return;
+				}
+				edstop();
 				return;
 			}
-			edstop();
+			if ((n = strlen(linebuf)) == 0)
+				break;
+			n--;
+			if (linebuf[n] != '\\')
+				break;
+			linebuf[n++] = ' ';
+		}
+		if (execute(linebuf))
 			return;
-		}
-
-		/*
-		 * Strip the white space away from the beginning
-		 * of the command, then scan out a word, which
-		 * consists of anything except digits and white space.
-		 *
-		 * Handle ! escapes differently to get the correct
-		 * lexical conventions.
-		 */
-
-		cp = linebuf;
-		while (any(*cp, " \t"))
-			cp++;
-		if (*cp == '!') {
-			if (sourcing) {
-				printf("Can't \"!\" while sourcing\n");
-				unstack();
-				continue;
-			}
-			shell(cp+1);
-			continue;
-		}
-		cp2 = word;
-		while (*cp && !any(*cp, " \t0123456789$^.*'\""))
-			*cp2++ = *cp++;
-		*cp2 = '\0';
-
-		/*
-		 * Look up the command; if not found, bitch.
-		 * Normally, a blank command would map to the
-		 * first command in the table; while sourcing,
-		 * however, we ignore blank lines to eliminate
-		 * confusion.
-		 */
-
-		if (sourcing && equal(word, ""))
-			continue;
-		com = lex(word);
-		if (com == NONE) {
-			printf("What?\n");
-			if (sourcing)
-				unstack();
-			continue;
-		}
-
-		/*
-		 * Special case so that quit causes a return to
-		 * main, who will call the quit code directly.
-		 * If we are in a source file, just unstack.
-		 */
-
-		if (com == quitp && sourcing) {
-			unstack();
-			continue;
-		}
-		if (!edit && com == quitp) {
-			signal(SIGINT, SIG_IGN);
-			return;
-		}
-
-		/*
-		 * Process the arguments to the command, depending
-		 * on the type he expects.  Default to an error.
-		 * If we are sourcing an interactive command, it's
-		 * an error.
-		 */
-
-		if (!rcvmode && (com->c_argtype & M) == 0) {
-			printf("May not execute \"%s\" while sending\n",
-			    com->c_name);
-			unstack();
-			continue;
-		}
-		if (sourcing && com->c_argtype & I) {
-			printf("May not execute \"%s\" while sourcing\n",
-			    com->c_name);
-			unstack();
-			continue;
-		}
-		e = 1;
-		switch (com->c_argtype & ~(P|I|M)) {
-		case MSGLIST:
-			/*
-			 * A message list defaulting to nearest forward
-			 * legal message.
-			 */
-			if ((c = getmsglist(cp, msgvec, com->c_msgflags)) < 0)
-				break;
-			if (c  == 0) {
-				*msgvec = first(com->c_msgflags,
-					com->c_msgmask);
-				msgvec[1] = NULL;
-			}
-			if (*msgvec == NULL) {
-				printf("No applicable messages\n");
-				break;
-			}
-			e = (*com->c_func)(msgvec);
-			break;
-
-		case NDMLIST:
-			/*
-			 * A message list with no defaults, but no error
-			 * if none exist.
-			 */
-			if (getmsglist(cp, msgvec, com->c_msgflags) < 0)
-				break;
-			e = (*com->c_func)(msgvec);
-			break;
-
-		case STRLIST:
-			/*
-			 * Just the straight string, with
-			 * leading blanks removed.
-			 */
-			while (any(*cp, " \t"))
-				cp++;
-			e = (*com->c_func)(cp);
-			break;
-
-		case RAWLIST:
-			/*
-			 * A vector of strings, in shell style.
-			 */
-			if ((c = getrawlist(cp, arglist)) < 0)
-				break;
-			if (c < com->c_minargs) {
-				printf("%s requires at least %d arg(s)\n",
-					com->c_name, com->c_minargs);
-				break;
-			}
-			if (c > com->c_maxargs) {
-				printf("%s takes no more than %d arg(s)\n",
-					com->c_name, com->c_maxargs);
-				break;
-			}
-			e = (*com->c_func)(arglist);
-			break;
-
-		case NOLIST:
-			/*
-			 * Just the constant zero, for exiting,
-			 * eg.
-			 */
-			e = (*com->c_func)(0);
-			break;
-
-		default:
-			panic("Unknown argtype");
-		}
-
-		/*
-		 * Exit the current source file on
-		 * error.
-		 */
-
-		if (e && sourcing)
-			unstack();
-		if (com == quitp)
-			return;
-		if (value("autoprint") != NOSTR && com->c_argtype & P)
-			if ((dot->m_flag & MDELETED) == 0)
-				print(dot);
-		if (!sourcing)
-			sawcom = 1;
+more:		;
 	}
 }
 
 /*
- * Find the correct command in the command tble corresponding
+ * Execute a single command.  If the command executed
+ * is "quit," then return non-zero so that the caller
+ * will know to return back to main, if he cares.
+ */
+
+execute(linebuf)
+	char linebuf[];
+{
+	char word[LINESIZE];
+	char *arglist[MAXARGC];
+	struct cmd *com;
+	register char *cp, *cp2;
+	register int c;
+	int edstop(), e;
+
+	/*
+	 * Strip the white space away from the beginning
+	 * of the command, then scan out a word, which
+	 * consists of anything except digits and white space.
+	 *
+	 * Handle ! escapes differently to get the correct
+	 * lexical conventions.
+	 */
+
+	cp = linebuf;
+	while (any(*cp, " \t"))
+		cp++;
+	if (*cp == '!') {
+		if (sourcing) {
+			printf("Can't \"!\" while sourcing\n");
+			unstack();
+			return(0);
+		}
+		shell(cp+1);
+		return(0);
+	}
+	cp2 = word;
+	while (*cp && !any(*cp, " \t0123456789$^.-+*'\""))
+		*cp2++ = *cp++;
+	*cp2 = '\0';
+
+	/*
+	 * Look up the command; if not found, bitch.
+	 * Normally, a blank command would map to the
+	 * first command in the table; while sourcing,
+	 * however, we ignore blank lines to eliminate
+	 * confusion.
+	 */
+
+	if (sourcing && equal(word, ""))
+		return(0);
+	com = lex(word);
+	if (com == NONE) {
+		printf("What?\n");
+		if (sourcing)
+			unstack();
+		return(0);
+	}
+
+	/*
+	 * Special case so that quit causes a return to
+	 * main, who will call the quit code directly.
+	 * If we are in a source file, just unstack.
+	 */
+
+	if (com->c_func == edstop && sourcing) {
+		unstack();
+		return(0);
+	}
+	if (!edit && com->c_func == edstop) {
+		signal(SIGINT, SIG_IGN);
+		return(1);
+	}
+
+	/*
+	 * Process the arguments to the command, depending
+	 * on the type he expects.  Default to an error.
+	 * If we are sourcing an interactive command, it's
+	 * an error.
+	 */
+
+	if (!rcvmode && (com->c_argtype & M) == 0) {
+		printf("May not execute \"%s\" while sending\n",
+		    com->c_name);
+		unstack();
+		return(0);
+	}
+	if (sourcing && com->c_argtype & I) {
+		printf("May not execute \"%s\" while sourcing\n",
+		    com->c_name);
+		unstack();
+		return(0);
+	}
+	e = 1;
+	switch (com->c_argtype & ~(P|I|M)) {
+	case MSGLIST:
+		/*
+		 * A message list defaulting to nearest forward
+		 * legal message.
+		 */
+		if ((c = getmsglist(cp, msgvec, com->c_msgflags)) < 0)
+			break;
+		if (c  == 0) {
+			*msgvec = first(com->c_msgflags,
+				com->c_msgmask);
+			msgvec[1] = NULL;
+		}
+		if (*msgvec == NULL) {
+			printf("No applicable messages\n");
+			break;
+		}
+		e = (*com->c_func)(msgvec);
+		break;
+
+	case NDMLIST:
+		/*
+		 * A message list with no defaults, but no error
+		 * if none exist.
+		 */
+		if (getmsglist(cp, msgvec, com->c_msgflags) < 0)
+			break;
+		e = (*com->c_func)(msgvec);
+		break;
+
+	case STRLIST:
+		/*
+		 * Just the straight string, with
+		 * leading blanks removed.
+		 */
+		while (any(*cp, " \t"))
+			cp++;
+		e = (*com->c_func)(cp);
+		break;
+
+	case RAWLIST:
+		/*
+		 * A vector of strings, in shell style.
+		 */
+		if ((c = getrawlist(cp, arglist)) < 0)
+			break;
+		if (c < com->c_minargs) {
+			printf("%s requires at least %d arg(s)\n",
+				com->c_name, com->c_minargs);
+			break;
+		}
+		if (c > com->c_maxargs) {
+			printf("%s takes no more than %d arg(s)\n",
+				com->c_name, com->c_maxargs);
+			break;
+		}
+		e = (*com->c_func)(arglist);
+		break;
+
+	case NOLIST:
+		/*
+		 * Just the constant zero, for exiting,
+		 * eg.
+		 */
+		e = (*com->c_func)(0);
+		break;
+
+	default:
+		panic("Unknown argtype");
+	}
+
+	/*
+	 * Exit the current source file on
+	 * error.
+	 */
+
+	if (e && sourcing)
+		unstack();
+	if (com->c_func == edstop)
+		return(1);
+	if (value("autoprint") != NOSTR && com->c_argtype & P)
+		if ((dot->m_flag & MDELETED) == 0)
+			print(dot);
+	if (!sourcing)
+		sawcom = 1;
+	return(0);
+}
+
+/*
+ * Find the correct command in the command table corresponding
  * to the passed command "word"
  */
 
@@ -303,6 +330,7 @@ stop()
 	register FILE *fp;
 
 	signal(SIGINT, SIG_IGN);
+	sawcom++;
 	while (sourcing)
 		unstack();
 	getuserid((char *) -1);
@@ -315,10 +343,14 @@ stop()
 			continue;
 		fclose(fp);
 	}
+	if (image >= 0) {
+		close(image);
+		image = -1;
+	}
 	clrbuf(stdout);
 	printf("Interrupt\n");
 	signal(SIGINT, stop);
-	reset();
+	reset(0);
 }
 
 /*
@@ -326,15 +358,15 @@ stop()
  * give the message count, and print a header listing.
  */
 
-char	*greeting	= "Mail version 1.3 %s.  Type ? for help.\n";
+char	*greeting	= "Mail version 2.0 %s.  Type ? for help.\n";
 
 announce()
 {
-	char *vec[2];
+	int vec[2];
 	extern char *version;
 
-	vec[0] = "0";
-	vec[1] = NULL;
+	vec[0] = 1;
+	vec[1] = 0;
 	if (value("quiet") == NOSTR)
 		printf(greeting, version);
 	if (msgCount == 1)

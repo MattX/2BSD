@@ -1,4 +1,5 @@
-/* Copyright (c) 1979 Regents of the University of California */
+/*	@(#)sh.func.c	2.1	SCCS id keyword	*/
+/* Copyright (c) 1980 Regents of the University of California */
 #include "sh.h"
 
 /*
@@ -104,6 +105,7 @@ chngd(vp)
 {
 	register int i;
 	register char *dp;
+	register char **cdp;
 
 	vp++;
 	dp = *vp;
@@ -115,6 +117,29 @@ chngd(vp)
 			bferr("No home");
 	}
 	i = chdir(dp);
+	if (i < 0 && dp[0] != '/') {
+		struct varent *c = adrof("cdpath");
+
+		if (c == 0)
+			goto simple;
+		for (cdp = c->vec; *cdp; cdp++) {
+			char buf[BUFSIZ];
+
+			strcpy(buf, *cdp);
+			strcat(buf, "/");
+			strcat(buf, dp);
+			i = chdir(buf);
+			if (i >= 0)
+				goto simple;
+		}
+	}
+simple:
+	if (i < 0 && adrof(dp)) {
+		char *cp = value(dp);
+
+		if (cp[0] == '/')
+			i = chdir(cp);
+	}
 	if (*vp)
 		xfree(dp);
 	if (i < 0)
@@ -162,6 +187,26 @@ dologout()
 
 	islogin();
 	goodbye();
+}
+
+dologin(v)
+	char **v;
+{
+
+	islogin();
+	execl("/bin/login", "login", v[1], 0);
+	exit(1);
+}
+
+donewgrp(v)
+	char **v;
+{
+
+#ifndef V6
+	execlp("newgrp", "newgrp", v[1], 0);
+#endif
+	execl("/bin/newgrp", "newgrp", v[1], 0);	/* just in case */
+	execl("/usr/bin/newgrp", "newgrp", v[1], 0);
 }
 
 islogin()
@@ -333,7 +378,7 @@ dowhile(v)
 	char **v;
 {
 	register int status;
-	register bool again = whyles != 0 && whyles->w_start == lineloc;
+	register bool again = whyles && whyles->w_start == lineloc && whyles->w_fename == 0;
 
 	v++;
 	/*
@@ -717,6 +762,8 @@ dosetenv(v)
 	char *lp = globone(v[2]);
 
 	setenv(v[1], lp);
+	if (eq(v[1], "PATH"))
+		importpath(lp);
 	xfree(lp);
 }
 
@@ -736,6 +783,7 @@ setenv(name, value)
 		xfree(*ep);
 		*ep = strspl(name, cp);
 		xfree(cp);
+		scan(ep, trim);
 		return;
 	}
 	blk[0] = strspl(name, "="); blk[1] = 0;

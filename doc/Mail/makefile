@@ -1,6 +1,8 @@
+TBL=tbl
+VTROFF=/bin/csh /usr/ucb/vtroff
 
 vpr:
-	/usr/new/vtroff -me mail?.nr;
+	$(TBL) mail?.nr | $(VTROFF) -me
 
 lpr:
-	nroff -me -Tlpr mail?.nr | lpr
+	$(TBL) mail?.nr | nroff -me -Tlpr | lpr

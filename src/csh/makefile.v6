@@ -1,29 +1,25 @@
 #
 # Skeleton for version 6
 #
-# Flags you can define
-#	NOHELP		login doesnt setenv HOME, thus do ./.login
-#	NORMAL6		standard version 6 arg lists, number of units
-#	TELL		have tell system call
-#
-# The -t1 version of the C compiler makes text larger and data smaller.
-# Use it if you have it; it isn't critical
+# The -t1 version of the C compiler puts switch code in I space
+# Give -DTELL in CFLAGS if your system has a tell() system call
 #
 BINDIR=	/bin
-CFLAGS=	-O -I/usr/include/retrofit -Dpdp11 -t1 -DNORMAL6 -DNOHELP
+CFLAGS=	-O -I/usr/include/retrofit -t1 -Dpdp11 -DNORMAL6
 XSTR=	/usr/ucb/xstr
 ED=	-ed
-AS=	-as
+CC=	ncc
+AS=	-nas
 RM=	-rm
-CXREF=	/usr/ucb/cxref
+CXREF=	cxref
 
 #
 # strings.o must be last in OBJS since it can change when previous files compile
 #
 OBJS=sh.o sh.dol.o sh.err.o sh.exec.o sh.exp.o sh.func.o sh.glob.o sh.hist.o \
 	sh.lex.o sh.misc.o sh.parse.o sh.print.o sh.sem.o sh.set.o \
-	sh.wait.o alloc.o sh.init.o 11printf.o getpwent.o getpwnam.o  \
-	getpwuid.o errlst.o strings.o
+	sh.wait.o alloc.o sh.init.o printf.o doprnt.o getpwent.o getpwnam.o  \
+	getpwuid.o strings.o
 
 #
 # Special massaging of C files for sharing of strings
@@ -42,7 +38,7 @@ a.out: ${OBJS} sh.local.h
 strings.o: strings
 	${XSTR}
 	${CC} -S xs.c
-	${ED} - <:rofix xs.s
+	echo ${ED} - <:rofix xs.s
 	${AS} -o strings.o xs.s
 	${RM} xs.s
 
@@ -74,10 +70,10 @@ print:
 install: a.out sh.local.h
 	cp a.out x
 	strip x
-	${RM} -f ${BINDIR}/csh
-	mv x ${BINDIR}/csh
-	${RM} -f ${BINDIR}/makesh
-	ln ${BINDIR}/csh ${BINDIR}/makesh
+	${RM} -f ${DESTDIR}${BINDIR}/csh
+	mv x ${DESTDIR}${BINDIR}/csh
+	-chown bin ${DESTDIR}${BINDIR}/csh
+	chmod 711 ${DESTDIR}${BINDIR}/csh
 
 clean:
 	${RM} -f a.out strings x.c xs.c

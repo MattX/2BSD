@@ -1,3 +1,17 @@
+.de v2
+\(dd
+.FS
+\(dd
+Not available in all v2 editors due to memory constraints.
+.FE
+..
+.de v3
+\(dd\(dd
+.FS
+\(dd\(dd
+Version 3 only.
+.FE
+..
 .de ZP
 .nr pd \\n()P
 .nr )P 0
@@ -19,9 +33,12 @@
 .TL
 Ex Reference Manual
 .br
-Version 2.0 \- April, 1979
+Version 3.5/2.13 \- September, 1980
 .AU
-William Joy*
+William Joy
+.sp
+\fI\s-2Revised for versions 3.5/2.13 by\s0\fP
+Mark Horton
 .AI
 Computer Science Division
 Department of Electrical Engineering and Computer Science
@@ -49,7 +66,7 @@ card.
 Starting ex
 .PP
 .FS
-* The financial support of an \s-2IBM\s0 Graduate Fellowship and the National
+The financial support of an \s-2IBM\s0 Graduate Fellowship and the National
 Science Foundation under grants MCS74-07644-A03 and MCS78-07291 is gratefully
 acknowledged.
 .FE
@@ -67,14 +84,23 @@ assume the default settings of the options.
 When invoked,
 .I ex
 determines the terminal type from the \s-2TERM\s0 variable in the environment.
-If there is a file
+It there is a \s-2TERMCAP\s0 variable in the environment, and the type
+of the terminal described there matches the \s-2TERM\s0 variable,
+then that description
+is used.  Also if the \s-2TERMCAP\s0 variable contains a pathname (beginning
+with a \fB/\fR) then the editor will seek the description of the terminal
+in that file (rather than the default /etc/termcap.)
+If there is a variable \s-2EXINIT\s0 in the environment, then the editor
+will execute the commands in that variable, otherwise
+if there is a file
 .I \&.exrc
 in your \s-2HOME\s0 directory
 .I ex
 reads commands from that file, simulating a
 .I source
 command.
-Options setting commands placed in
+Option setting commands placed in
+\s-2EXINIT\s0 or
 .I \&.exrc
 will be executed before each editor session.
 .PP
@@ -85,7 +111,7 @@ has the following prototype:\(dg
 \(dg Brackets `[' `]' surround optional parameters here.
 .FE
 .DS
-\fBex\fR [ \fB\-\fR ] [ \fB\-v\fR ] [ \fB\-t\fR \fItag\fR ]  [ \fB\-r\fR ] [ \fB+\fIlineno\fR ] name ...
+\fBex\fP [ \fB\-\fP ] [ \fB\-v\fP ] [ \fB\-t\fP \fItag\fP ] [ \fB\-r\fP ] [ \fB\-l\fP ] [ \fB\-w\fP\fIn\fP ] [ \fB\-x\fP ] [ \fB\-R\fP ] [ \fB+\fP\fIcommand\fP ] name ...
 .DE
 The most common case edits a single file with no options, i.e.:
 .DS
@@ -115,12 +141,45 @@ option is used in recovering after an editor or system crash,
 retrieving the last saved version of the named file or,
 if no file is specified,
 typing a list of saved files.
+The
+.B \-l
+option sets up for editing \s-2LISP\s0, setting the
+.I showmatch
+and
+.I lisp
+options.
+The
+.B \-w
+option sets the default window size to
+.I n,
+and is useful on dialups to start in small windows.
+The
+.B \-x
+option causes
+.I ex
+to prompt for a
+.I key ,
+which is used to encrypt and decrypt the contents of the file,
+which should already be encrypted using the same key,
+see
+.I crypt (1).
+The
+.B \-R
+option sets the
+.I readonly
+option at the start.
+.v2
 .I Name
 arguments indicate files to be edited.
 An argument of the form
-\fB+\fIlineno\fR
-indicates that the editor should begin at the specified line in the first
-file rather than at the last line.
+\fB+\fIcommand\fR
+indicates that the editor should begin by executing the specified command.
+If
+.I command
+is omitted, then it defaults to ``$'', positioning the editor at the last
+line of the first file initially.  Other useful commands here are scanning
+patterns of the form ``/pat'' or line numbers, e.g. ``+100'' starting
+at line 100.
 .NH 1
 File manipulation
 .NH 2
@@ -236,6 +295,33 @@ the upper case buffers are the same as the lower but commands
 append to named buffers rather than replacing
 if upper case names are used.
 .FE
+.NH 2
+Read only
+.PP
+It is possible to use
+.I ex
+in
+.I "read only"
+mode to look at files that you have no intention of modifying.
+This mode protects you from accidently overwriting the file.
+Read only mode is on when the
+.I readonly
+option is set.
+It can be turned on with the
+.B \-R
+command line option,
+by the
+.I view
+command line invocation,
+or by setting the
+.I readonly
+option.
+It can be cleared by setting
+.I noreadonly .
+It is possible to write, even while in read only mode, by indicating
+that you really know what you are doing.
+You can write to a different file, or can use the ! form of write,
+even while in read only mode.
 .NH 1
 Exceptional Conditions
 .NH 2
@@ -267,7 +353,7 @@ option.  If you were editing the file
 then you should change
 to the directory where you were when the crash occurred, giving the command
 .DS
-\fBex \-r\fI resume\fR
+\fBex \-r\fP\fI resume\fP
 .DE
 After checking that the retrieved file is indeed ok, you can
 .I write
@@ -276,9 +362,12 @@ it over the previous contents of that file.
 You will normally get mail from the system telling you when a file has
 been saved after a crash.  The command
 .DS
-\fBex\fR \-\fBr\fR
+\fBex\fP \-\fBr\fP
 .DE
 will print a list of the files which have been saved for you.
+(In the case of a hangup,
+the file will not appear in the list,
+although it can be recovered.)
 .NH 1
 Editing modes
 .PP
@@ -379,9 +468,9 @@ in this case, the `!' serves to toggle the default.
 .NH 2
 Flags after commands
 .PP
-The characters `#', `p' and `l' may be placed after many commands.*
+The characters `#', `p' and `l' may be placed after many commands.**
 .FS
-*
+**
 A `p' or `l' must be preceded by a blank or tab
 except in the single special case `dp'.
 .FE
@@ -394,6 +483,17 @@ Any number of `+' or `\-' characters may also be given with these flags.
 If they appear, the specified offset is applied to the current line
 value before the printing command is executed.
 .NH 2
+Comments
+.PP
+It is possible to give editor commands which are ignored.
+This is useful when making complex editor scripts
+for which comments are desired.
+The comment character is the double quote: ".
+Any command line beginning with " is ignored.
+Comments beginning with " may also be placed at the ends
+of commands, except in cases where they could be confused as part
+of text (shell escapes and the substitute and map commands).
+.NH 2
 Multiple commands per line
 .PP
 More than one command may be placed on a line by separating each pair
@@ -401,6 +501,7 @@ of commands by a `|' character.
 However the
 .I global
 commands,
+comments,
 and the shell escape `!'
 must be the last command on a line, as they are not terminated by a `|'.
 .NH 2
@@ -433,12 +534,14 @@ The \fIn\fRth line in the editor's buffer, lines being numbered
 sequentially from 1.
 .IP \fB$\fR 20
 The last line in the buffer.
+.IP \fB%\fR 20
+An abbreviation for ``1,$'', the entire buffer.
 .IP \fI+n\fR\ \fI\-n\fR 20
 An offset relative to the current buffer line.\(dg
 .FS
 \(dg
-The forms `.+2' `++;2' and `++' are all equivalent;
-if the current line is line 100 they all address line 102.
+The forms `.+3' `+3' and `+++' are all equivalent;
+if the current line is line 100 they all address line 103.
 .FE
 .IP \fB/\fIpat\fR\fB/\fR\ \fB?\fIpat\fR\fB?\fR 20
 Scan forward and backward respectively for a line containing \fIpat\fR, a
@@ -446,15 +549,15 @@ regular expression (as defined below).  The scans normally wrap around the end
 of the buffer.
 If all that is desired is to print the next line containing \fIpat\fR, then
 the trailing \fB/\fR or \fB?\fR may be omitted.
-If \fIpat\fR is omitted or explicitly empty, then the last
+If \fIpat\fP is omitted or explicitly empty, then the last
 regular expression specified is located.\(dd
 .FS
-\(dd The forms \fB\e/\fR and \fB\e?\fR scan
+\(dd The forms \fB\e/\fP and \fB\e?\fP scan
 using the last regular expression used in a scan; after a substitute
-\fB//\fR and \fB??\fR would scan using the substitute's regular expression.
+\fB//\fP and \fB??\fP would scan using the substitute's regular expression.
 .FE
-.IP \fB\(aa\(aa\fR\ \fB\(aa\fIx\fR 20
-Before each non-relative motion of the current line `\fB.\fR',
+.IP \fB\(aa\(aa\fP\ \fB\(aa\fP\fIx\fP 20
+Before each non-relative motion of the current line `\fB.\fP',
 the previous current line is marked with a tag, subsequently referred to as
 `\(aa\(aa'.
 This makes it easy to refer or return to this previous context.
@@ -493,7 +596,11 @@ commands:
 \fIaddress\fR \fBcommand\fR \fI! parameters count flags\fR
 .DE
 All parts are optional; the degenerate case is the empty command which prints
-the next line in the file.
+the next line in the file.  For sanity with use from within
+.I visual
+mode,
+.I ex
+ignores a ``:'' preceding any command.
 .PP
 In the following command descriptions, the
 default addresses are shown in parentheses,
@@ -501,6 +608,14 @@ which are
 .I not,
 however,
 part of the command.
+.LC
+\fBabbreviate\fR \fIword rhs\fP	abbr: \fBab\fP
+.ZP
+Add the named abbreviation to the current list.
+When in input mode in visual, if
+.I word
+is typed as a complete word, it will be changed to
+.I rhs .
 .LC
 ( \fB.\fR ) \fBappend\fR	abbr: \fBa\fR
 .br
@@ -532,48 +647,52 @@ option during the input of
 .ZP
 The members of the argument list are printed, with the current argument
 delimited by `[' and `]'.
-...PP
-..\fBcd\fR \fIdirectory\fR
-...ZP
-..The
-...I cd
-..command is a synonym for
-...I chdir.
-.LC
-( \fB.\fR , \fB.\fR ) \fBchange\fR \fIcount\fR	abbr: \fBc\fR
-.br
-\fItext\fR
-.br
-\&\fB.\fR
+.ig
+.PP
+\fBcd\fR \fIdirectory\fR
 .ZP
-Replaces the specified lines with the input \fItext\fR.
+The
+.I cd
+command is a synonym for
+.I chdir.
+..
+.LC
+( \fB.\fP , \fB.\fP ) \fBchange\fP \fIcount\fP	abbr: \fBc\fP
+.br
+\fItext\fP
+.br
+\&\fB.\fP
+.ZP
+Replaces the specified lines with the input \fItext\fP.
 The current line becomes the last line input;
 if no lines were input it is left as for a
-\fIdelete\fR.
+\fIdelete\fP.
 .LC
-\fBc!\fR
+\fBc!\fP
 .br
-\fItext\fR
+\fItext\fP
 .br
-\&\fB.\fR
+\&\fB.\fP
 .ZP
 The variant toggles
 .I autoindent
 during the
 .I change.
-...LC
-..\fBchdir\fR \fIdirectory\fR
-...ZP
-..The specified \fIdirectory\fR becomes the current directory.
-..If no directory is specified, the current value of the
-...I home
-..option is used as the target directory.
-..After a
-...I chdir
-..the current file is not considered to have been
-..edited so that write restrictions on pre-existing files apply.
+.ig
 .LC
-( \fB.\fR , \fB.\fR )\|\fBcopy\fR \fIaddr\fR \fIflags\fR	abbr: \fBco\fR
+\fBchdir\fR \fIdirectory\fR
+.ZP
+The specified \fIdirectory\fR becomes the current directory.
+If no directory is specified, the current value of the
+.I home
+option is used as the target directory.
+After a
+.I chdir
+the current file is not considered to have been
+edited so that write restrictions on pre-existing files apply.
+..
+.LC
+( \fB.\fP , \fB.\fP )\|\fBcopy\fP \fIaddr\fP \fIflags\fP	abbr: \fBco\fP
 .ZP
 A
 .I copy
@@ -655,7 +774,8 @@ discarding all changes which have been made before editing the new file.
 .ZP
 Causes the editor to begin at line
 .I n
-rather than at the last line.
+rather than at the last line;
+\fIn\fR may also be an editor command containing no spaces, e.g.: ``+/pat''.
 .LC
 \fBfile\fR	abbr: \fBf\fR
 .ZP
@@ -663,8 +783,11 @@ Prints the current file name,
 whether it has been `[Modified]' since the last
 .I write 
 command,
+whether it is
+.I "read only" ,
 the current line,
-and the number of lines in the buffer.*
+the number of lines in the buffer,
+and the percentage of the way through the buffer of the current line.*
 .FS
 * In the rare case that the current file is `[Not edited]' this is
 noted also; in this case you have to use the form \fBw!\fR to write to
@@ -689,6 +812,11 @@ set to each marked line.
 The command list consists of the remaining commands on the current
 input line and may continue to multiple lines by ending all but the
 last such line with a `\e'.
+If
+.I cmds
+(and possibly the trailing \fB/\fR delimiter) is omitted, each line matching
+.I pat
+is printed.
 .I Append,
 .I insert,
 and
@@ -719,7 +847,7 @@ and
 .I autoindent
 are inhibited during a
 .I global,
-and the value of the
+(and possibly the trailing \fB/\fR delimiter) and the value of the
 .I report
 option is temporarily infinite,
 in deference to a \fIreport\fR for the entire global.
@@ -737,17 +865,6 @@ within the
 .IP
 The variant form of \fIglobal\fR runs \fIcmds\fR at each line not matching
 \fIpat\fR.
-...LC
-..\fBhelp\fR \fItopic\fR
-...ZP
-..The 
-...I help
-..command accepts keywords related to the editor and,
-..if there is information in its data base about that
-...I topic
-..supplies the information.
-..A list of topics can be had by
-...I help\ index.
 .LC
 ( \fB.\fR )\|\fBinsert\fR	abbr: \fBi\fR
 .br
@@ -807,6 +924,23 @@ tabs are printed as `^I'
 and the end of each line is marked with a trailing `$'.
 The current line is left at the last line printed.
 .LC
+\fBmap\fR \fIlhs\fR \fIrhs\fR
+.ZP
+The
+.I map
+command is used to define macros for use in
+.I visual
+mode.
+.I Lhs
+should be a single character, or the sequence ``#n'', for n a digit,
+referring to function key \fIn\fR.  When this character or function key
+is typed in
+.I visual
+mode, it will be as though the corresponding \fIrhs\fR had been typed.
+On terminals without function keys, you can type ``#n''.
+See section 6.9 of the ``Introduction to Display Editing with Vi''
+for more details.
+.LC
 ( \fB.\fR ) \fBmark\fR \fIx\fR
 .ZP
 Gives the specified line mark
@@ -837,14 +971,19 @@ having been written out, discarding (irretrievably) any changes which may
 have been made.
 .LC
 \fBn\fR \fIfilelist\fR
+.br
+\fBn\fR \fB+\fIcommand\fR \fIfilelist\fR
 .ZP
 The specified
 .I filelist
 is expanded and the resulting list replaces the
 current argument list;
 the first file in the new list is then edited.
+If
+.I command
+is given (it must contain no spaces), then it is executed after editing the first such file.
 .LC
-( \fB.\fR , \fB.\fR ) \fBnumber\fR \fIcount\fR \fIflags\fR	abbr: \fB#\fRf or \fBnu\fR
+( \fB.\fR , \fB.\fR ) \fBnumber\fR \fIcount\fR \fIflags\fR	abbr: \fB#\fR or \fBnu\fR
 .ZP
 Prints each specified line preceded by its buffer line
 number.
@@ -861,10 +1000,12 @@ If
 is given,
 then the cursor will be placed initially at the beginning of the
 string matched by the pattern.
+To exit this mode use Q.
 See
 .I "An Introduction to Display Editing with Vi"
 for more details.
 .KE
+.v2
 .LC
 \fBpreserve\fR
 .ZP
@@ -876,7 +1017,7 @@ After a
 .I preserve
 you should seek help.
 .LC
-( \fB.\fR , \fB.\fR )\|\fBprint\fR \fIcount\fR	abbr: \fBp\fR
+( \fB.\fR , \fB.\fR )\|\fBprint\fR \fIcount\fR	abbr: \fBp\fR or \fBP\fR
 .ZP
 Prints the specified lines
 with non-printing characters printed as control characters `^\fIx\fR\|';
@@ -940,7 +1081,7 @@ if you wish to discard them, use the \fBq!\fR command variant.
 .LC
 \fBq!\fR
 .ZP
-Quits from the editor, discarding changes to the buffer without complaint.\(dg
+Quits from the editor, discarding changes to the buffer without complaint.
 .LC
 ( \fB.\fR ) \fBread\fR \fIfile\fR	abbr: \fBr\fR
 .ZP
@@ -1049,7 +1190,7 @@ Reads and executes commands from the specified file.
 .I Source
 commands may be nested.
 .LC
-( \fB.\fR , \fB.\fR ) \fBsubstitute\fR /\fIpat\fR\|/\fIrepl\fR\|/ \fIoptions\fR \fIcount\fR \fIflags\fR	addr: \fBs\fR
+( \fB.\fR , \fB.\fR ) \fBsubstitute\fR /\fIpat\fR\|/\fIrepl\fR\|/ \fIoptions\fR \fIcount\fR \fIflags\fR	abbr: \fBs\fR
 .IP
 On each specified line, the first instance of pattern
 .I pat
@@ -1075,19 +1216,35 @@ Lines may be split by substituting
 new-line characters into them.
 The newline in
 .I repl
-must be escaped by preceding it with a `\e'.\(dg
-.FS
-\(dg If the 
-.I substitute
-is within a
-.I global,
-then two escaping `\e' characters will be needed.)
-.FE
+must be escaped by preceding it with a `\e'.
 Other metacharacters available in
 .I pat
 and
 .I repl
 are described below.
+.LC
+.B stop
+.ZP
+Suspends the editor, returning control to the top level shell.
+If
+.I autowrite
+is set and there are unsaved changes,
+a write is done first unless the form
+.B stop !
+is used.
+This commands is only available where supported by the teletype driver
+and operating system.
+.LC
+( \fB.\fR , \fB.\fR ) \fBsubstitute\fR \fIoptions\fR \fIcount\fR \fIflags\fR	abbr: \fBs\fR
+.ZP
+If
+.I pat
+and
+.I repl
+are omitted, then the last substitution is repeated.
+This is a synonym for the
+.B &
+command.
 .LC
 ( \fB.\fR , \fB.\fR ) \fBt\fR \fIaddr\fR \fIflags\fR
 .ZP
@@ -1119,7 +1276,18 @@ or tabs.  The first field gives the name of the tag,
 the second the name of the file where the tag resides, and the third
 gives an addressing form which can be used by the editor to find the tag;
 this field is usually a contextual scan using `/\fIpat\fR/' to be immune
-to minor changes in the file.
+to minor changes in the file.  Such scans are always performed as if
+.I nomagic
+was set.
+.PP
+The tag names in the tags file must be sorted alphabetically.
+.v2
+.LC
+\fBunabbreviate\fR \fIword\fP	abbr: \fBuna\fP
+.ZP
+Delete
+.I word
+from the list of abbreviations.
 .LC
 \fBundo\fR	abbr: \fBu\fR
 .ZP
@@ -1154,8 +1322,16 @@ such as
 .I global
 and
 .I visual
-the current line regains it pre-command value after an
+the current line regains it's pre-command value after an
 .I undo.
+.LC
+\fBunmap\fR \fIlhs\fR
+.ZP
+The macro expansion associated by
+.I map
+for
+.I lhs
+is removed.
 .LC
 ( 1 , $ ) \fBv\fR /\fIpat\fR\|/ \fIcmds\fR
 .ZP
@@ -1167,7 +1343,7 @@ line which does not match \fIpat\fR.
 \fBversion\fR	abbr: \fBve\fR
 .ZP
 Prints the current version number of the editor
-as well as the date the binary was created.
+as well as the date the editor was last changed.
 .LC
 ( \fB.\fR ) \fBvisual\fR \fItype\fR \fIcount\fR \fIflags\fR	abbr: \fBvi\fR
 .ZP
@@ -1187,6 +1363,14 @@ specifies an initial window size; the default is the value of the option
 See the document
 .I "An Introduction to Display Editing with Vi"
 for more details.
+To exit this mode, type Q.
+.LC
+\fBvisual\fP file
+.br
+\fBvisual\fP +\fIn\fP file
+.ZP
+From visual mode,
+this command is the same as edit.
 .LC
 ( 1 , $ ) \fBwrite\fR \fIfile\fR	abbr: \fBw\fR
 .ZP
@@ -1242,6 +1426,11 @@ The variant overrides checking on the sensibility of the
 .I write
 command, as \fBw!\fR does.
 .LC
+\fBxit\fP \fIname\fR
+.ZP
+If any changes have been made and not written, writes the buffer out.
+Then, in any case, quits.
+.LC
 ( \fB.\fR , \fB.\fR )\|\fByank\fR \fIbuffer\fR \fIcount\fR	abbr: \fBya\fR
 .ZP
 Places the specified lines in the named
@@ -1251,13 +1440,17 @@ for later retrieval via
 If no buffer name is specified, the lines go to a more volatile place;
 see the \fIput\fR command description.
 .LC
+( \fB.+1\fR ) \fBz\fR \fIcount\fR
+.ZP
+Print the next \fIcount\fR lines, default \fIwindow\fR.
+.LC
 ( \fB.\fR ) \fBz\fR \fItype\fR \fIcount\fR
 .ZP
 Prints a window of text with the specified line at the top.
 If \fItype\fR is `\-' the line is placed at the bottom; a `\fB.\fR' causes
 the line to be placed in the center.*
 A count gives the number of lines to be displayed rather than
-the number specified by the \fIwindow\fR option.
+double the number specified by the \fIscroll\fR option.
 On a \s-2CRT\s0 the screen is cleared before display begins unless a
 count which is less than the screen size is given.
 The current line is left at the last line printed.
@@ -1267,6 +1460,9 @@ center, surrounds it with lines of `\-' characters and leaves the current
 line at this line.  The form `z\(ua' prints the window before `z\-'
 would.  The characters `+', `\(ua' and `\-' may be repeated for cumulative
 effect.
+On some v2 editors, no
+.I type
+may be given.
 .FE
 .LC
 \fB!\fR \fIcommand\fR\fR
@@ -1324,11 +1520,11 @@ The
 .I scroll
 option specifies the size of the scroll, normally a half screen of text.
 .LC
-( \fB.\fR+1 )
+( \fB.\fR+1 , \fB.\fR+1 )
 .br
-( \fB.\fR+1 ) |
+( \fB.\fR+1 , \fB.\fR+1 ) |
 .ZP
-An address alone causes the addressed line to be printed.
+An address alone causes the addressed lines to be printed.
 A blank line prints the next line in the file.
 .LC
 ( \fB.\fR , \fB.\fR ) \fB&\fR \fIoptions\fR \fIcount\fR \fIflags\fR
@@ -1370,6 +1566,8 @@ the
 option.
 The
 .I ex
+and
+.I vi
 default setting of
 .I magic
 gives quick access to a powerful set of regular expression
@@ -1383,9 +1581,7 @@ to use them as ``ordinary'' characters.
 With
 .I nomagic,
 the default for
-.I edit
-and
-.I vi,
+.I edit,
 regular expressions are much simpler,
 there being only two metacharacters.
 The power of the other metacharacters is still available by preceding
@@ -1510,6 +1706,13 @@ the replacement to be converted to upper- or lower-case respectively
 if this character is a letter.
 The sequences `\eU' and `\eL' turn such conversion on, either until
 `\eE' or `\ee' is encountered, or until the end of the replacement pattern.
+.de LC
+.br
+.sp .1i
+.ne 4
+.LP
+.ta 3i
+..
 .NH 1
 Option descriptions
 .PP
@@ -1594,6 +1797,47 @@ to each such command.
 is suppressed in globals,
 and only applies to the last of many commands on a line.
 .LC
+\fBautowrite\fR, \fBaw\fR	default: noaw
+.ZP
+Causes the contents of the buffer to be written to the current file
+if you have modified it and give a
+.I next,
+.I rewind,
+.I stop,
+.I tag,
+or
+.I !
+command, or a \fB^\(ua\fR (switch files) or \fB^]\fR (tag goto) command
+in
+.I visual.
+Note, that the
+.I edit
+and
+.I ex
+commands do
+.B not
+autowrite.
+In each case, there is an equivalent way of switching when autowrite
+is set to avoid the
+.I autowrite
+(\fIedit\fR
+for
+.I next ,
+.I rewind!
+for .I rewind ,
+.I stop!
+for
+.I stop ,
+.I tag!
+for
+.I tag ,
+.I shell
+for
+.I ! ,
+and
+\fB:e\ #\fR and a \fB:ta!\fR command from within
+.I visual).
+.LC
 \fBbeautify\fR, \fBbf\fR	default: nobeautify
 .ZP
 Causes all control characters except tab, newline and form-feed
@@ -1612,7 +1856,22 @@ If this directory in not
 writable, then the editor will exit abruptly when it fails to be
 able to create its buffer there.
 .LC
-\fBerrorbells\fR, \fBeb\fR	default: eb
+\fBedcompatible\fR	default: noedcompatible
+.ZP
+Causes the presence of absence of
+.B g
+and
+.B c
+suffixes on substitute commands to be remembered, and to be toggled
+by repeating the suffices.  The suffix
+.B r
+makes the substitution be as in the
+.I ~
+command, instead of like
+.I &.
+.v3
+.LC
+\fBerrorbells\fR, \fBeb\fR	default: noeb
 .ZP
 Error messages are preceded by a bell.*
 .FS
@@ -1625,6 +1884,11 @@ on errors is not suppressed by setting
 .FE
 If possible the editor always places the error message in a standout mode of the
 terminal (such as inverse video) instead of ringing the bell.
+.LC
+\fBhardtabs\fR, \fBht\fR	default: ht=8
+.ZP
+Gives the boundaries on which terminal hardware tabs are set (or
+on which the system expands tabs).
 .LC
 \fBignorecase\fR, \fBic\fR	default: noic
 .ZP
@@ -1650,9 +1914,9 @@ showing tabs and end-of-lines as in the
 .I list
 command.
 .LC
-\fBmagic\fR	default: magic for \fIex\fR\(dg
+\fBmagic\fR	default: magic for \fIex\fR and \fIvi\fR\(dg
 .FS
-\(dg \fINomagic\fR for \fIedit\fR and \fIvi\fR.
+\(dg \fINomagic\fR for \fIedit\fR.
 .FE
 .ZP
 If
@@ -1669,6 +1933,14 @@ All the normal metacharacters may be made
 when
 .I nomagic
 is set by preceding them with a `\e'.
+.LC
+\fBmesg\fR	default: mesg
+.ZP
+Causes write permission to be turned off to the terminal
+while you are in visual mode, if
+.I nomesg
+is set.
+.v3
 .LC
 \fBnumber, nu\fR	default: nonumber
 .ZP
@@ -1693,11 +1965,11 @@ open or visual mode.
 .ZP
 Throughput of text is expedited by setting the terminal
 to not do automatic carriage returns
-when printing more than one (logical) line of output.
+when printing more than one (logical) line of output,
 greatly speeding output on terminals without addressable
 cursors when text with leading white space is printed.
 .LC
-\fBparagraphs,\ para\fR	default: para=IPLPPPQPbp
+\fBparagraphs,\ para\fR	default: para=IPLPPPQPP\0LIbp
 .ZP
 Specifies the paragraphs for the \fB{\fR and \fB}\fR operations in
 .I open
@@ -1709,6 +1981,38 @@ of the macros which start paragraphs.
 \fBprompt\fR	default: prompt
 .ZP
 Command mode input is prompted for with a `:'.
+.LC
+\fBredraw\fR	default: noredraw
+.ZP
+The editor simulates (using great amounts of output), an intelligent
+terminal on a dumb terminal (e.g. during insertions in
+.I visual
+the characters to the right of the cursor position are refreshed
+as each input character is typed.)
+Useful only at very high speed.
+.LC
+\fBremap\fP	default: remap
+.ZP
+If on, macros are repeatedly tried until they are unchanged.
+.v3
+For example, if
+.B o
+is mapped to
+.B O ,
+and
+.B O
+is mapped to
+.B I ,
+then if
+.I remap
+is set,
+.B o
+will map to
+.B I ,
+but if
+.I noremap
+is set, it will map to
+.B O .
 .LC
 \fBreport\fR	default: report=5\(dg
 .FS
@@ -1731,12 +2035,16 @@ Thus notification is suppressed during a
 .I global
 command on the individual commands performed.
 .LC
-\fBscroll\fR	default: scroll=12
+\fBscroll\fR	default: scroll=\(12 window
 .ZP
 Determines the number of logical lines scrolled when an end-of-file
-is received from a terminal input.
+is received from a terminal input in command mode,
+and the number of lines printed by a command mode
+.I z
+command (double the value of
+.I scroll ).
 .LC
-\fBsections\fR	default: sections=SHNH
+\fBsections\fR	default: sections=SHNHH\0HU
 .ZP
 Specifies the section macros for the \fB[[\fR and \fB]]\fR operations
 in
@@ -1752,6 +2060,7 @@ Gives the path name of the shell forked for
 the shell escape command `!', and by the
 .I shell
 command.
+The default is taken from SHELL in the environment, if present.
 .LC
 \fBshiftwidth\fR, \fBsw\fR	default: sw=8
 .ZP
@@ -1788,7 +2097,24 @@ The editor expands tabs in the input file to be on
 .I tabstop
 boundaries for the purposes of display.
 .LC
-\fBterm\fR	from environment
+\fBtaglength,\ tl\fR	default: tl=0
+.ZP
+Tags are not significant beyond this many characters.
+A value of zero (the default) means that all characters are significant.
+.LC
+\fBtags\fR	default: tags=tags /usr/lib/tags
+.ZP
+A path of files to be used as tag files for the
+.I tag
+command.
+.v3
+A requested tag is searched for in the specified files, sequentially.
+By default (even in version 2) files called
+.B tags
+are searched for in the current directory and in /usr/lib (a master
+file for the entire system.)
+.LC
+\fBterm\fR	from environment TERM
 .ZP
 The terminal type of the output device.
 .LC
@@ -1801,15 +2127,25 @@ Shorter error diagnostics are produced for the experienced user.
 Warn if there has been `[No write since last change]' before a `!'
 command escape.
 .LC
-\fBwindow\fR	default: window=23
+\fBwindow\fR	default: window=speed dependent
 .ZP
-The number of lines in a text window for the
-.I z
-and
+The number of lines in a text window in the
 .I visual
-commands.
+command.
+The default is 8 at slow speeds (600 baud or less),
+16 at medium speed (1200 baud),
+and the full screen (minus one line) at higher speeds.
 .LC
-\fBwrapscap\fR, \fBws\fR	default: ws
+\fBw300,\ w1200\, w9600\fR
+.ZP
+These are not true options but set
+.B window
+only if the speed is slow (300), medium (1200), or high (9600),
+respectively.
+They are suitable for an EXINIT
+and make it easy to change the 8/16/full screen rule.
+.LC
+\fBwrapscan\fR, \fBws\fR	default: ws
 .ZP
 Searches using the regular expressions in addressing
 will wrap around past the end of the file.
@@ -1833,42 +2169,32 @@ mechanism will allow.
 .NH 1
 Limitations
 .PP
-This editor uses a temporary file as a workspace
-and each line in the buffer is represented by an in-core pointer to the
-image of that line on the disk.
-The editor does
-.I not
-reclaim space in this temporary file used by lines which are
-deleted or changed.
-This means that files which are larger than 128K characters
-may be difficult to edit, and that
-systematic changes on large numbers of lines may
-run the editor out of temporary file space.
-.PP
-If the editor runs out of temporary space you can write the file
-and then use an
-.I edit
-command to read it back in.
-This will reclaim the lost space.
-A better solution is to split the file into smaller pieces or to use a stream
-editor such as
-.I sed
-on the file.
-.PP
-Other editor limits that the user is likely to encounter are as follows:
-512 characters per line,
+Editor limits that the user is likely to encounter are as follows:
+1024 characters per line,
 256 characters per global command list,
-64 characters per file name,
+128 characters per file name,
 128 characters in the previous inserted and deleted text in
 .I open
 or
 .I visual,
 100 characters in a shell escape command,
-30 characters in a string valued option,
-30 characters in a tag name,
-and
-256K characters in the temporary file.
-The limit on the number of lines depends on the amount of core:
-each line takes at least 1 word, and to effect
-.I undo
-occasionally up to 2.
+63 characters in a string valued option,
+and 30 characters in a tag name, and
+a limit of 250000 lines in the file is silently enforced.
+.PP
+The
+.I visual
+implementation limits the number of macros defined with map to
+32, and the total number of characters in macros to be less than 512.
+.LP
+.LP
+.I Acknowledgments.
+Chuck Haley contributed greatly to the early development of
+.I ex.
+Bruce Englar encouraged the redesign which led to
+.I ex
+version 1.
+Bill Joy wrote versions 1 and 2.0 through 2.7,
+and created the framework that users see in the present editor.
+Mark Horton added macros and other features and made the
+editor work on a large number of terminals and Unix systems.

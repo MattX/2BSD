@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 /*
  * A bunch of global variable declarations lie herein.
  * def.h must be included first.
@@ -8,14 +7,18 @@ int	msgCount;			/* Count of messages read in */
 int	mypid;				/* Current process id */
 int	rcvmode;			/* True if receiving mail */
 int	sawcom;				/* Set after first command */
+int	hflag;				/* Sequence number for network -h */
+char	*rflag;				/* -r address for network */
 int	selfsent;			/* User sent self something */
 int	senderr;			/* An error while checking */
 int	edit;				/* Indicates editing a file */
 int	sourcing;			/* Currently reading variant file */
 FILE	*itf;				/* Input temp file buffer */
 FILE	*otf;				/* Output temp file buffer */
+int	image;				/* File descriptor for image of msg */
 FILE	*input;				/* Current command input file */
 char	*editfile;			/* Name of file being edited */
+char	*sflag;				/* Subject given from non tty */
 int	outtty;				/* True if standard output a tty */
 int	intty;				/* True if standard input a tty */
 char	mbox[PATHSIZE];			/* Name of mailbox file */
@@ -37,6 +40,13 @@ struct	message	*dot;			/* Pointer to current message */
 struct	message	*message;		/* The actual message structure */
 struct	var	*variables[HSHSIZE];	/* Pointer to active var list */
 struct	grouphead	*groups[HSHSIZE];/* Pointer to active groups */
+int	debug;				/* Debug flag set */
+int	rmail;				/* Being called as rmail */
+
+#include <setjmp.h>
+
+jmp_buf	srbuf;
+
 
 /*
  * The pointers for the string allocation routines,
@@ -45,7 +55,7 @@ struct	grouphead	*groups[HSHSIZE];/* Pointer to active groups */
  * twice as much, and so on.
  */
 
-#define	NSPACE	5			/* Total number of string spaces */
+#define	NSPACE	8			/* Total number of string spaces */
 struct strings {
 	char	*s_topFree;		/* Beginning of this area */
 	char	*s_nextFree;		/* Next alloctable place here */

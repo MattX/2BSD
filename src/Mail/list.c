@@ -1,7 +1,7 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
+#include <ctype.h>
 
 /*
  * Mail -- a mail program
@@ -45,8 +45,9 @@ markall(buf, f)
 	register char **np;
 	register int i;
 	char *namelist[NMLSIZE], *bufp;
-	int tok, beg, mc, star, other;
+	int tok, beg, mc, star, other, valdot;
 
+	valdot = dot - &message[0] + 1;
 	for (i = 1; i <= msgCount; i++)
 		unmark(i);
 	bufp = buf;
@@ -86,10 +87,27 @@ number:
 			}
 			break;
 
+		case TPLUS:
+			if (beg != 0) {
+				printf("Non-numeric second argument\n");
+				return(-1);
+			}
+			if (valdot < msgCount)
+				mark(valdot+1);
+			else {
+				printf("Referencing beyond EOF\n");
+				return(-1);
+			}
+			break;
+
 		case TDASH:
 			if (beg == 0) {
-				printf("Unexpected leading dash\n");
-				return(-1);
+				if (valdot > 1)
+					mark(valdot-1);
+				else {
+					printf("Referencing before 1\n");
+					return(-1);
+				}
 			}
 			break;
 
@@ -259,6 +277,7 @@ struct lex {
 	'^',	TUP,
 	'*',	TSTAR,
 	'-',	TDASH,
+	'+',	TPLUS,
 	'(',	TOPEN,
 	')',	TCLOSE,
 	0,	0
@@ -391,8 +410,9 @@ first(f, m)
 	register int mesg;
 	register struct message *mp;
 
-	mesg = dot - &message[0];
-	mesg++;
+	mesg = dot - &message[0] + 1;
+	f &= MDELETED;
+	m &= MDELETED;
 	for (mp = dot; mp < &message[msgCount]; mp++) {
 		if ((mp->m_flag & m) == f)
 			return(mesg);
@@ -416,9 +436,11 @@ sender(str, mesg)
 	char *str;
 {
 	register struct message *mp;
+	register char *cp;
 
 	mp = &message[mesg-1];
-	return(!strcmp(nameof(mp), str));
+	cp = nameof(mp);
+	return(icequal(cp, str));
 }
 
 /*

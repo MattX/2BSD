@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -64,8 +63,9 @@ mail(people)
 		cp2--;
 	*cp2 = '\0';
 	head.h_to = buf;
-	head.h_subj = NOSTR;
+	head.h_subject = NOSTR;
 	head.h_cc = NOSTR;
+	head.h_bcc = NOSTR;
 	head.h_seq = 0;
 	mail1(&head);
 	return(0);
@@ -89,8 +89,9 @@ sendmail(str)
 		head.h_to = NOSTR;
 	else
 		head.h_to = str;
-	head.h_subj = NOSTR;
+	head.h_subject = NOSTR;
 	head.h_cc = NOSTR;
+	head.h_bcc = NOSTR;
 	head.h_seq = 0;
 	mail1(&head);
 	return(0);
@@ -105,10 +106,11 @@ mail1(hp)
 	struct header *hp;
 {
 	register char *cp;
-	int pid, i, s;
+	int pid, i, s, p, gotcha;
 	char **namelist;
-	struct name *to;
-	FILE *mtf;
+	struct name *to, *np;
+	FILE *mtf, *postage;
+	int remote = rflag != NOSTR || rmail;
 
 	/*
 	 * Collect user's mail from standard input.
@@ -116,13 +118,12 @@ mail1(hp)
 	 */
 
 	pid = -1;
-	if (hp->h_subj == NOSTR)
-		hp->h_seq = 0;
-	else
-		hp->h_seq = 1;
 	if ((mtf = collect(hp)) == NULL)
 		return(-1);
-	if (fsize(mtf) == 0 && hp->h_subj == NOSTR) {
+	hp->h_seq = 1;
+	if (hp->h_subject == NOSTR)
+		hp->h_subject = sflag;
+	if (fsize(mtf) == 0 && hp->h_subject == NOSTR) {
 		printf("No message !?!\n");
 		goto out;
 	}
@@ -140,7 +141,8 @@ mail1(hp)
 	 */
 
 	senderr = 0;
-	to = usermap(cat(extract(hp->h_to), extract(hp->h_cc)));
+	to = usermap(cat(extract(hp->h_bcc, GBCC),
+	    cat(extract(hp->h_to, GTO), extract(hp->h_cc, GCC))));
 	if (to == NIL) {
 		printf("No recipients specified\n");
 		goto topdog;
@@ -152,26 +154,40 @@ mail1(hp)
 	 */
 
 	to = outof(to, mtf, hp);
+	rewind(mtf);
 	to = verify(to);
-	if (senderr) {
+	if (senderr && !remote) {
 topdog:
-		unlink(deadletter);
-		exwrite(deadletter, mtf, 1);
+
+		if (fsize(mtf) != 0) {
+			remove(deadletter);
+			exwrite(deadletter, mtf, 1);
+			rewind(mtf);
+		}
 	}
-	if (to == NIL)
+	for (gotcha = 0, np = to; np != NIL; np = np->n_flink)
+		if ((np->n_type & GDEL) == 0) {
+			gotcha++;
+			break;
+		}
+	if (!gotcha)
 		goto out;
 	to = elide(to);
 	mechk(to);
 	if (count(to) > 1)
 		hp->h_seq++;
-	if (hp->h_seq > 0)
+	if (hp->h_seq > 0 && !remote) {
+		fixhead(hp, to);
+		if (fsize(mtf) == 0)
+			printf("Null message body; hope that's ok\n");
 		if ((mtf = infix(hp, mtf)) == NULL) {
 			fprintf(stderr, ". . . message lost, sorry.\n");
 			return(-1);
 		}
+	}
 	namelist = unpack(to);
-	if (value("record") != NOSTR)
-		savemail(value("record"), hp, mtf, namelist);
+	if ((cp = value("record")) != NOSTR)
+		savemail(expand(cp), hp, mtf);
 
 	/*
 	 * Wait, to absorb a potential zombie, then
@@ -186,11 +202,18 @@ topdog:
 	pid = fork();
 	if (pid == -1) {
 		perror("fork");
+		remove(deadletter);
+		exwrite(deadletter, mtf, 1);
 		goto out;
 	}
 	if (pid == 0) {
-		for (i = 1; i  < 17; i++)
+		for (i = SIGHUP; i <= SIGQUIT; i++)
 			signal(i, SIG_IGN);
+		if ((postage = fopen("/crp/kurt/postage", "a")) != NULL) {
+			fprintf(postage, "%s %d %d\n", myname,
+			    count(to), fsize(mtf));
+			fclose(postage);
+		}
 		s = fileno(mtf);
 		for (i = 3; i < 15; i++)
 			if (i != s)
@@ -198,14 +221,39 @@ topdog:
 		close(0);
 		dup(s);
 		close(s);
+#ifdef CC
+		submit(getpid());
+#endif
 		execv(MAIL, namelist);
 		perror(MAIL);
 		exit(1);
 	}
 
 out:
+	if (remote) {
+		while ((p = wait(&s)) != pid && p != -1)
+			;
+		if (s != 0)
+			senderr++;
+		pid = 0;
+	}
 	fclose(mtf);
 	return(pid);
+}
+
+/*
+ * Fix the header by glopping all of the expanded names from
+ * the distribution list into the appropriate fields.
+ */
+
+fixhead(hp, tolist)
+	struct header *hp;
+	struct name *tolist;
+{
+	register struct name *nlist;
+
+	hp->h_to = detract(tolist, GTO);
+	hp->h_cc = detract(tolist, GCC);
 }
 
 /*
@@ -231,12 +279,18 @@ infix(hp, fi)
 		fclose(nfo);
 		return(fi);
 	}
-	unlink(tempMail);
-	puthead(hp, nfo);
+	remove(tempMail);
+	puthead(hp, nfo, GTO|GSUBJECT|GCC|GNL);
+	rewind(fi);
 	c = getc(fi);
 	while (c != EOF) {
 		putc(c, nfo);
 		c = getc(fi);
+	}
+	if (ferror(fi)) {
+		perror("read");
+		fprintf(stderr, "Please notify Kurt Shoens\n");
+		return(fi);
 	}
 	fflush(nfo);
 	if (ferror(nfo)) {
@@ -252,44 +306,79 @@ infix(hp, fi)
 }
 
 /*
- * Dump the to, subj, cc header on the
+ * Dump the to, subject, cc header on the
  * passed file buffer.
  */
 
-puthead(hp, fo)
+puthead(hp, fo, w)
 	struct header *hp;
 	FILE *fo;
 {
-	if (hp->h_to != NOSTR)
-		fprintf(fo, "To: %s\n", hp->h_to);
-	if (hp->h_subj != NOSTR)
-		fprintf(fo, "Subj: %s\n", hp->h_subj);
-	if (hp->h_cc != NOSTR)
-		fprintf(fo, "Cc: %s\n", hp->h_cc);
-	if (hp->h_to != NOSTR || hp->h_subj != NOSTR || hp->h_cc != NOSTR)
+	register int gotcha;
+
+	gotcha = 0;
+	if (hp->h_to != NOSTR && w & GTO)
+		fprintf(fo, "To: "), fmt(hp->h_to, fo), gotcha++;
+	if (hp->h_subject != NOSTR && w & GSUBJECT)
+		fprintf(fo, "Subject: %s\n", hp->h_subject), gotcha++;
+	if (hp->h_cc != NOSTR && w & GCC)
+		fprintf(fo, "Cc: "), fmt(hp->h_cc, fo), gotcha++;
+	if (hp->h_bcc != NOSTR && w & GBCC)
+		fprintf(fo, "Bcc: "), fmt(hp->h_bcc, fo), gotcha++;
+	if (gotcha && w & GNL)
 		putc('\n', fo);
 	return(0);
+}
+
+/*
+ * Format the given text to not exceed 72 characters.
+ */
+
+fmt(str, fo)
+	register char *str;
+	register FILE *fo;
+{
+	register int col;
+	register char *cp;
+
+	cp = str;
+	col = 0;
+	while (*cp) {
+		if (*cp == ' ' && col > 65) {
+			fprintf(fo, "\n    ");
+			col = 4;
+			cp++;
+			continue;
+		}
+		putc(*cp++, fo);
+		col++;
+	}
+	putc('\n', fo);
 }
 
 /*
  * Save the outgoing mail on the passed file.
  */
 
-savemail(name, hp, fi, tolist)
-	char name[], **tolist;
+savemail(name, hp, fi)
+	char name[];
 	struct header *hp;
 	FILE *fi;
 {
 	register FILE *fo;
 	register int c;
 	long now;
+	char *n;
 
 	if ((fo = fopen(name, "a")) == NULL) {
 		perror(name);
 		return(-1);
 	}
 	time(&now);
-	fprintf(fo, "From %s %s", *(tolist+1), ctime(&now));
+	n = rflag;
+	if (n == NOSTR)
+		n = myname;
+	fprintf(fo, "From %s %s", n, ctime(&now));
 	rewind(fi);
 	for (c = getc(fi); c != EOF; c = getc(fi))
 		putc(c, fo);

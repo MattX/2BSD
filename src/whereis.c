@@ -1,41 +1,71 @@
-/* Copyright (c) 1979 Regents of the University of California */
+static char *sccsid = "@(#)whereis.c	4.1 (Berkeley) 10/1/80";
 #include <sys/types.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/dir.h>
+#include <whoami.h>
 
 static char *bindirs[] = {
 	"/etc",
 	"/bin",
 	"/usr/bin",
-	"/usr/new",
 	"/usr/games",
+#ifdef CSVAX
+	"/lib",
+	"/usr/ucb",
+	"/usr/lib",
+	"/usr/local",
+	"/usr/new",
+	"/usr/old",
+#endif
+#ifdef CORY
+	"/usr/bin/eecs",
+	"/usr/bin/new",
+	"/usr/bin/v7",
+	"/usr/bin/old",
+	"/usr/bin/UNSUPPORTED",
+#endif
 	0
 };
 static char *mandirs[] = {
-	"man1",
-	"man2",
-	"man3",
-	"man4",
-	"man5",
-	"man6",
-	"man7",
-	"man8",
-	"mann",
-	"127local",
+	"/usr/man/man1",
+	"/usr/man/man2",
+	"/usr/man/man3",
+	"/usr/man/man4",
+	"/usr/man/man5",
+	"/usr/man/man6",
+	"/usr/man/man7",
+	"/usr/man/man8",
+#ifdef CORY
+	"/usr/man/manu",
+	"/usr/man/manc",
+	"/usr/man/manv7",
+	"/usr/bin/eecs/mane",
+#endif
 	0
 };
 static char *srcdirs[]  = {
-	"cmd",
-	"libc/gen",
-	"libc/stdio",
-	"games",
-	"/usr/ucb/src/cmd",
-	"/usr/ucb/src/new",
-	"/usr/ucb/src/libc/gen",
-	"/usr/ucb/src/libc/stdio",
+	"/usr/src/cmd",
+	"/usr/src/games",
+	"/usr/src/libc/gen",
+	"/usr/src/libc/stdio",
+#ifdef CSVAX
+	"/usr/src/libc/sys",
+	"/usr/src/new",
+	"/usr/src/old",
+	"/usr/src/local",
+	"/usr/src/undoc",
+#endif
+#ifdef CORY
+	"/usr/bin/eecs/src",
+	"/usr/src/cmd/v7",
+	"/usr/src/cmd/new",
+	"/usr/src/cmd/old",
+	"/usr/src/cmd/UNSUPPORTED",
+#endif
 	0
 };
+
 char	sflag = 1;
 char	bflag = 1;
 char	mflag = 1;
@@ -197,7 +227,6 @@ looksrc(cp)
 	char *cp;
 {
 	if (Sflag == 0) {
-		chdir("/usr/src");
 		find(srcdirs, cp);
 	} else
 		findv(Sflag, Scnt, cp);
@@ -216,7 +245,6 @@ lookman(cp)
 	char *cp;
 {
 	if (Mflag == 0) {
-		chdir("/usr/man");
 		find(mandirs, cp);
 	} else
 		findv(Mflag, Mcnt, cp);
@@ -279,7 +307,7 @@ itsit(cp, dp)
 		--i;
 		while (i > 0 && *dp)
 			if (--i, *dp++ == '.')
-				return (*dp++ == 'P' && *dp++ == 0);
+				return (*dp++ == 'C' && *dp++ == 0);
 		return (1);
 	}
 	return (0);

@@ -1,3 +1,5 @@
-#
-tar cr0 tar tar.1 tar.ms install.ms READ_ME bin create doc man misc setup src tarit upgrade
+tar crfb /dev/rmt0 20 tar tar.1 install.ms READ_ME bin.v6 bin.v7 doc man misc setup src tarit upgrade ingres kernel usenet
+tar tf /dev/rmt0 >/tmp/tar.list
+wc -l /tmp/tar.list
+echo tape done | write mark
 echo tar done

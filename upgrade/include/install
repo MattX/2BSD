@@ -1,5 +1,5 @@
 mkdir /usr/include
-mkdir /usr/include/retrofit /usr/include/retrofit/sys
+mkdir /usr/include/retrofit /usr/include/retrofit/sys /usr/include/retrofit/local
 cp ctype.h /usr/include/retrofit/ctype.h
 cp errno.h /usr/include/retrofit/errno.h
 cp pwd.h /usr/include/retrofit/pwd.h
@@ -7,6 +7,7 @@ cp retrofit.h /usr/include/retrofit/retrofit.h
 cp setjmp.h /usr/include/retrofit/setjmp.h
 cp sgtty.h /usr/include/retrofit/sgtty.h
 cp signal.h /usr/include/retrofit/signal.h
+cp varargs.h /usr/include/retrofit/varargs.h
 cp sys/dir.h /usr/include/retrofit/sys/dir.h
 cp sys/stat.h /usr/include/retrofit/sys/stat.h
 cp sys/types.h /usr/include/retrofit/sys/types.h

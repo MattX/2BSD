@@ -1,4 +1,3 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
@@ -35,24 +34,25 @@ quit()
 	 * a message.
 	 *
 	 * If the luser has sent mail to himself, refuse to do
-	 * anything with the mailbox.
+	 * anything with the mailbox, unless mail locking works.
 	 */
 
+	lock(mailname);
+#ifndef CANLOCK
 	if (selfsent) {
-newmail:
 		printf("You have new mail.\n");
 		unlock();
 		return;
 	}
+#endif
 	rbuf = NULL;
-	lock(mailname);
 	if (stat(mailname, &minfo) >= 0 && minfo.st_size > mailsize) {
 		printf("New mail has arrived.\n");
 		rbuf = fopen(tempResid, "w");
 		fbuf = fopen(mailname, "r");
 		if (rbuf == NULL || fbuf == NULL)
 			goto newmail;
-#ifdef APPENDS
+#ifdef APPEND
 		fseek(fbuf, mailsize, 0);
 		while ((c = getc(fbuf)) != EOF)
 			putc(c, rbuf);
@@ -69,7 +69,7 @@ newmail:
 		fclose(rbuf);
 		if ((rbuf = fopen(tempResid, "r")) == NULL)
 			goto newmail;
-		unlink(tempResid);
+		remove(tempResid);
 	}
 	for (mp = &message[0]; mp < &message[msgCount]; mp++) {
 		if (mp->m_flag & MDELETED)
@@ -86,7 +86,7 @@ newmail:
 		if (mp->m_flag & MODIFY)
 			modify++;
 	}
-	if (p == msgCount && !modify && rbuf == NULL) {
+	if (p == msgCount && !modify) {
 		if (p == 1)
 			printf("Held 1 message in %s\n", mailname);
 		else
@@ -100,7 +100,7 @@ newmail:
 			unlock();
 			return;
 		}
-		goto remove;
+		goto cream;
 	}
 
 	/*
@@ -119,12 +119,12 @@ newmail:
 		}
 		if ((ibuf = fopen(tempQuit, "r")) == NULL) {
 			perror(tempQuit);
-			unlink(tempQuit);
+			remove(tempQuit);
 			fclose(obuf);
 			unlock();
 			return;
 		}
-		unlink(tempQuit);
+		remove(tempQuit);
 		if ((fbuf = fopen(mbox, "r")) != NULL) {
 			while ((c = getc(fbuf)) != EOF)
 				putc(c, obuf);
@@ -208,7 +208,7 @@ newmail:
 	 * If new mail has arrived, copy it back.
 	 */
 
-remove:
+cream:
 	if (rbuf != NULL) {
 		fbuf = fopen(mailname, "w");
 		if (fbuf == NULL)
@@ -222,6 +222,11 @@ remove:
 		return;
 	}
 	demail();
+	unlock();
+	return;
+
+newmail:
+	printf("Thou hast new mail.\n");
 	unlock();
 }
 

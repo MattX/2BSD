@@ -1,8 +1,8 @@
-/* Copyright (c) 1979 Regents of the University of California */
 #
 
 #include "rcv.h"
 #include <sys/stat.h>
+#include <errno.h>
 
 /*
  * Mail -- a mail program
@@ -105,13 +105,12 @@ readline(ibuf, linebuf)
 	char *linebuf;
 {
 	register char *cp;
-	register c;
+	register int c;
 
-again:
 	do {
 		clearerr(ibuf);
 		for (cp=linebuf, c=getc(ibuf); c!='\n' && c!= EOF; c=getc(ibuf))
-			if (cp - linebuf < LINESIZE-1)
+			if (cp - linebuf < LINESIZE-2)
 					*cp++ = c;
 	} while (ferror(ibuf) && ibuf == stdin);
 	*cp = 0;
@@ -161,7 +160,7 @@ makemessage(f)
 	message = (struct message *) mp;
 	dot = message;
 	lseek(f, 0L, 0);
-	while (count = read(f, mp, 512))
+	while (count = read(f, mp, BUFSIZ))
 		mp += count;
 	for (m = &message[0]; m < &message[msgCount]; m++) {
 		m->m_size = (m+1)->m_size;
@@ -185,13 +184,32 @@ append(mp, f)
 }
 
 /*
+ * Delete a file, but only if the file is a plain file.
+ */
+
+remove(name)
+	char name[];
+{
+	struct stat statb;
+	extern int errno;
+
+	if (stat(name, &statb) < 0)
+		return(-1);
+	if ((statb.st_mode & S_IFMT) != S_IFREG) {
+		errno = EISDIR;
+		return(-1);
+	}
+	return(unlink(name));
+}
+
+/*
  * Terminate an editing session by attempting to write out the user's
  * file from the temporary.
  */
 
 edstop()
 {
-	register int gotcha;
+	register int gotcha, c;
 	register struct message *mp;
 	FILE *obuf;
 
@@ -206,22 +224,29 @@ edstop()
 	flush();
 	if ((obuf = fopen(editfile, "w")) == NULL) {
 		perror(editfile);
-		reset();
+		reset(0);
 	}
+	c = 0;
 	for (mp = &message[0]; mp < &message[msgCount]; mp++) {
-		if ((mp->m_flag & (MDELETED|MSAVED)) != 0)
+		if ((mp->m_flag & MDELETED) != 0)
 			continue;
+		c++;
 		if (send(mp, obuf) < 0) {
 			perror(editfile);
-			reset();
+			reset(0);
 		}
 	}
 	fflush(obuf);
 	if (ferror(obuf)) {
 		perror(editfile);
-		reset();
+		reset(0);
 	}
-	printf("complete\n");
+	if (c == 0) {
+		remove(editfile);
+		printf("removed\n");
+	}
+	else
+		printf("complete\n");
 	flush();
 }
 
@@ -255,10 +280,10 @@ opentemp(file)
 	close(f);
 	if ((f = open(file, 2)) < 0) {
 		perror(file);
-		unlink(file);
+		remove(file);
 		return(-1);
 	}
-	unlink(file);
+	remove(file);
 	return(f);
 }
 
@@ -288,4 +313,106 @@ fsize(iob)
 	if (fstat(f, &sbuf) < 0)
 		return(0);
 	return(sbuf.st_size);
+}
+
+/*
+ * Take a file name, possibly with shell meta characters
+ * in it and expand it by using "sh -c echo filename"
+ * Return the file name as a dynamic string.
+ */
+
+char *
+expand(name)
+	char name[];
+{
+	char xname[BUFSIZ];
+	char cmdbuf[BUFSIZ];
+	register int pid, l, rc;
+	register char *cp, *Shell;
+	int s, pivec[2], (*sigint)();
+	struct stat sbuf;
+
+	if (!anyof(name, "~{[*?$`'\"\\"))
+		return(name);
+	/* sigint = signal(SIGINT, SIG_IGN); */
+	if (pipe(pivec) < 0) {
+		perror("pipe");
+		/* signal(SIGINT, sigint) */
+		return(name);
+	}
+	sprintf(cmdbuf, "echo %s", name);
+	if ((pid = vfork()) == 0) {
+		Shell = value("SHELL");
+		if (Shell == NOSTR)
+			Shell = SHELL;
+		close(pivec[0]);
+		close(1);
+		dup(pivec[1]);
+		close(pivec[1]);
+		close(2);
+		execl(Shell, Shell, "-c", cmdbuf, 0);
+		_exit(1);
+	}
+	if (pid == -1) {
+		perror("fork");
+		close(pivec[0]);
+		close(pivec[1]);
+		return(NOSTR);
+	}
+	close(pivec[1]);
+	l = read(pivec[0], xname, BUFSIZ);
+	close(pivec[0]);
+	while (wait(&s) != pid);
+		;
+	s &= 0377;
+	if (s != 0 && s != SIGPIPE) {
+		fprintf(stderr, "\"Echo\" failed\n");
+		goto err;
+	}
+	if (l < 0) {
+		perror("read");
+		goto err;
+	}
+	if (l == 0) {
+		fprintf(stderr, "\"%s\": No match\n", name);
+		goto err;
+	}
+	if (l == BUFSIZ) {
+		fprintf(stderr, "Buffer overflow expanding \"%s\"\n", name);
+		goto err;
+	}
+	xname[l] = 0;
+	for (cp = &xname[l-1]; *cp == '\n' && cp > xname; cp--)
+		;
+	*++cp = '\0';
+	if (any(' ', xname) && stat(xname, &sbuf) < 0) {
+		fprintf(stderr, "\"%s\": Ambiguous\n", name);
+		goto err;
+	}
+	/* signal(SIGINT, sigint) */
+	return(savestr(xname));
+
+err:
+	/* signal(SIGINT, sigint); */
+	return(NOSTR);
+}
+
+/*
+ * A nicer version of Fdopen, which allows us to fclose
+ * without losing the open file.
+ */
+
+FILE *
+Fdopen(fildes, mode)
+	char *mode;
+{
+	register int f;
+	FILE *fdopen();
+
+	f = dup(fildes);
+	if (f < 0) {
+		perror("dup");
+		return(NULL);
+	}
+	return(fdopen(f, mode));
 }
