@@ -1,4 +1,6 @@
 /*
+ *	12/20/94 - Missing casts caused errors in reporting on swapped
+ *		   processes - sms
  *	1/7/93 - Heavily revised when the symbol table format changed - sms
  *
  *	ps - process status
@@ -410,9 +412,9 @@ savcom(puid)
 		file = mem;
 	}
 	else {
-		addr = procp->p_addr << 9;
-		daddr = procp->p_daddr << 9;
-		saddr = procp->p_saddr << 9;
+		addr = (off_t)procp->p_addr << 9;
+		daddr = (off_t)procp->p_daddr << 9;
+		saddr = (off_t)procp->p_saddr << 9;
 		file = swap;
 	}
 	lseek(file, addr, 0);
