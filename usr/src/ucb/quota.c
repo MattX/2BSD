@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)quota.c	5.4.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)quota.c	5.4.2 (2.11BSD GTE) 1996/1/21";
 #endif
 
 /*
@@ -20,6 +20,7 @@ static char sccsid[] = "@(#)quota.c	5.4.1 (2.11BSD GTE) 1/1/94";
 #include <ctype.h>
 #include <pwd.h>
 #include <errno.h>
+#include <string.h>
 
 #include <sys/param.h>
 #include <sys/quota.h>
@@ -107,8 +108,9 @@ showquotas(uid, name)
 	register struct fstab *fs;
 	register char *msgi, *msgb;
 	register enab = 1;
-	dev_t	fsdev;
+	dev_t fsdev;
 	struct	stat statb;
+	char *qfpathname;
 	struct	dqblk dqblk;
 	int myuid, fd;
 	char qfilename[MAXPATHLEN + 1], iwarn[8], dwarn[8];
@@ -121,14 +123,23 @@ showquotas(uid, name)
 	done = 0;
 	(void) setfsent();
 	while (fs = getfsent()) {
+		if (strcmp(fs->fs_vfstype, "ufs"))
+			continue;
+		if (!hasquota(fs, &qfpathname))
+			continue;
 		if (stat(fs->fs_spec, &statb) < 0)
 			continue;
 		msgi = msgb = (char *) 0;
+		(void) sprintf(qfilename, "%s/%s", fs->fs_file, qfpathname);
+/*
+ * This check for the quota file being in the filesystem to which the quotas
+ * belong is silly but the kernel enforces it.   When the kernel is fixed the
+ * check can be removed.
+*/
 		fsdev = statb.st_rdev;
-		(void) sprintf(qfilename, "%s/%s", fs->fs_file, qfname);
 		if (stat(qfilename, &statb) < 0 || statb.st_dev != fsdev)
 			continue;
-		if (quota(Q_GETDLIM, uid, fsdev, (caddr_t)&dqblk) != 0) {
+		if (quota(Q_GETDLIM, uid, fsdev, (caddr_t)&dqblk)) {
 			fd = open(qfilename, O_RDONLY);
 			if (fd < 0)
 				continue;
@@ -285,6 +296,42 @@ xprintf(fmt, arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	printf("%s", buf);
 	column += strlen(buf);
+}
+
+/*
+ * Check to see if a particular quota is to be enabled.
+ */
+hasquota(fs, qfnamep)
+	register struct fstab *fs;
+	char **qfnamep;
+{
+	register char *opt;
+	char *cp;
+	static char initname, usrname[100];
+	static char buf[BUFSIZ];
+
+	if (!initname) {
+		strcpy(usrname, qfname);
+		initname = 1;
+	}
+	strcpy(buf, fs->fs_mntops);
+	for (opt = strtok(buf, ","); opt; opt = strtok(NULL, ",")) {
+		if (cp = index(opt, '='))
+			*cp++ = '\0';
+		if (strcmp(opt, usrname) == 0)
+			break;
+		if (strcmp(opt, FSTAB_RQ) == 0)	/* XXX compatibility */
+			break;
+	}
+	if (!opt)
+		return (0);
+	if (cp) {
+		*qfnamep = cp;
+		return (1);
+	}
+	(void) sprintf(buf, "%s/%s", fs->fs_file, qfname);
+	*qfnamep = buf;
+	return (1);
 }
 
 alldigits(s)

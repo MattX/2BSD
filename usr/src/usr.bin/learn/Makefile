@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.6	(Berkeley)	6/18/87
+#	@(#)Makefile	4.6.1	(2.11BSD)	1996/1/28
 #
 # Flag BSD4_2 means 4.2 or later.
 CFLAGS=	-O -DBSD4_2
@@ -20,14 +20,14 @@ all: learn lrntee lcount
 learn: ${OBJS} ${LIBC}
 	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
-lcount: lcount.c ${LIBC}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lcount.c
+lcount: lcount.o ${LIBC}
+	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lcount.o
 
-lrntee: lrntee.c ${LIBC}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lrntee.c
+lrntee: lrntee.o ${LIBC}
+	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lrntee.o
 
 clean: FRC
-	rm -f ${OBJS} core learn lrntee lcount
+	rm -f *.o core learn lrntee lcount
 
 depend: FRC
 	mkdep ${CFLAGS} ${SRCS} lcount.c lrntee.c

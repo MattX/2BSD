@@ -1,13 +1,16 @@
+#
+# checkobj Makefile.  Revised 1996/.1/28
+#
 DESTDIR=
 
 DEFS=
 CFLAGS=	-O ${DEFS}
 SEPFLAG=-i
 
-all: checkobj
+all: checkobj checkobj.0
 
-checkobj: checkobj.c
-	cc ${CFLAGS} ${SEPFLAG} checkobj.c -o checkobj
+checkobj: checkobj.o
+	cc ${CFLAGS} ${SEPFLAG} checkobj.o -o checkobj
 
 install: checkobj checkobj.0
 	install -s checkobj ${DESTDIR}/usr/new/checkobj

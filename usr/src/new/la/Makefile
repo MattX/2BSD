@@ -1,13 +1,16 @@
+#
+# la Makefile.  Revised 1996/1/28
+#
 DESTDIR=
 
 DEFS=
 CFLAGS=	-O ${DEFS}
 SEPFLAG=-i
 
-all: la
+all: la la.0
 
-la: la.c
-	cc ${CFLAGS} ${SEPFLAG} la.c -o la
+la: la.o
+	cc ${CFLAGS} ${SEPFLAG} la.o -o la
 
 install: la la.0
 	install -s la ${DESTDIR}/usr/new/la

@@ -1,5 +1,4 @@
-# $Id: Makefile,v 1.6 90/12/12 08:23:27 christos Exp $
-#	Makefile	4.3	6/11/83
+#	Makefile	4.3.1	1996/1/28
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
@@ -176,7 +175,7 @@ STRINGS=strings.o
 #ALLOC=tc.alloc.o 
 ALLOC=tc.alloc.o alloc11.o
 
-all: mkprstr tcsh
+all: mkprstr tcsh tcsh.${CATSECT}
 
 mkprstr:  mkprstr.c
 	${CC} -O -o  mkprstr  mkprstr.c
@@ -357,19 +356,15 @@ install: tcsh  tcsh.${CATSECT}
 	-mv -f ${DESTDIR}${BINDIR}/tcsh  ${DESTDIR}${BINDIR}/tcsh.old
 	install -s -m 555 -o bin -g bin tcsh ${DESTDIR}${BINDIR}/tcsh
 	install -c -m 444 -o bin -g bin  ${STRINGFILE} ${DESTDIR}${STRINGDIR}
-	install -m 444 -o bin -g bin tcsh.${CATSECT} ${DESTDIR}${DESTCAT}
+	install -c -m 444 -o bin -g bin tcsh.${CATSECT} ${DESTDIR}${DESTCAT}
 
 tcsh.${CATSECT}:  tcsh.man
 	/usr/man/manroff tcsh.man > tcsh.${CATSECT}
 
-manpage: tcsh.man
-	cp tcsh.man ${DESTMAN}/tcsh.${MANSECT}
-	chmod 444 ${DESTMAN}/tcsh.${MANSECT}
-
 clean:
 	${RM} -f a.out strings x.c xs.c tcsh _MAKE_LOG core ./mkprstr
 	${RM} -f *.${SUF} sh.prof.c ed.defns.h tc.const.h sh.err.h
-	${RM} -f ${STRINGFILE}
+	${RM} -f ${STRINGFILE} tcsh.${CATSECT}
 
 veryclean: clean
 	${RM} -f *~ #*

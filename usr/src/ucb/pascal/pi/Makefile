@@ -1,5 +1,5 @@
 #
-# pi Makefile
+# pi Makefile - 1.1 1996/1/27
 #
 
 DESTDIR=
@@ -64,8 +64,6 @@ px_header.out: px_header.c
 	${CC} ${CFLAGS} ${DEFS} -o px_header.out px_header.c
 
 pi: ${OBJS} version
-	./version > Version.c
-	${CC} -c Version.c
 	-if [ X${SEPFLAG} = X-i ]; then \
 		${CC} ${SEPFLAG} ${CFLAGS} -o pi ${OBJS} Version.c; \
 	else \
@@ -81,6 +79,9 @@ y.tab.h y.tab.c: pas.y
 
 version: version.c
 	${CC} -o version version.c
+
+Version.c: version
+	./version > Version.c
 
 install: ${ALL}
 	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/lib
@@ -98,7 +99,8 @@ FRC:
 
 clean:
 	rm -f *.o ${TEMPDIR}/* y.tab.c y.tab.h \
-		${ALL} core *.list tags
+		${ALL} core *.list tags Version.c
+	rm -fr tmp
 
 print :
 	@ls -ls | pr
@@ -109,6 +111,7 @@ print :
 
 yy.h:		y.tab.h
 Version.o:	Version.c
+		cc -c Version.c
 TRdata.o:	whoami 0.h
 ato.o:		0.h whoami ato.c
 call.o:		whoami 0.h tree.h opcode.h call.c

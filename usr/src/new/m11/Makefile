@@ -1,3 +1,5 @@
+# m11 Makefile.  Revised 1996/1/28
+#
 # Note that the pathname for macxrf is wired into exec.m11 ...
 
 DESTDIR=
@@ -25,7 +27,7 @@ OBJS=	exec.obj macro.obj code.obj expr.obj fltg.obj getl.obj \
 	lout.obj mac.obj srch.obj xlat.obj misc.obj pst.obj \
 	errs.obj debug.obj often.obj xpcor.obj syscalls.obj
 
-all: m11 macxrf
+all: m11 macxrf m11.0
 
 m11: ${OBJS}
 	${L11} -ls ${SEPFLAG} ${OBJS}

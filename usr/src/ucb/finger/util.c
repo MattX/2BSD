@@ -18,8 +18,8 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)util.c	5.8 (Berkeley) 2/7/90";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)util.c	5.8.1 (2.11BSD) 1996/1/12";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -38,7 +38,6 @@ find_idle_and_ttywrite(w)
 	extern time_t now;
 	extern int errno;
 	struct stat sb;
-	char *strerror();
 
 	(void)sprintf(tbuf, "%s/%s", _PATH_DEV, w->tty);
 	if (stat(tbuf, &sb) < 0) {
@@ -57,6 +56,7 @@ userinfo(pn, pw)
 	register struct passwd *pw;
 {
 	register char *p, *t;
+	char	*bp;
 	char name[256];
 
 	pn->realname = pn->office = pn->officephone = pn->homephone = NULL;
@@ -67,12 +67,12 @@ userinfo(pn, pw)
 	pn->shell = strdup(pw->pw_shell);
 
 	/* why do we skip asterisks!?!? */
-	(void)strcpy(p = tbuf, pw->pw_gecos);
-	if (*p == '*')
-		++p;
+	(void)strcpy(bp = tbuf, pw->pw_gecos);
+	if (*bp == '*')
+		++bp;
 
 	/* ampersands get replaced by the login name */
-	if (!(p = strsep(p, ",")))
+	if (!(p = strsep(&bp, ",")))
 		return;
 	for (t = name; *t = *p; ++p)
 		if (*t == '&') {
@@ -84,11 +84,11 @@ userinfo(pn, pw)
 		else
 			++t;
 	pn->realname = strdup(name);
-	pn->office = ((p = strsep((char *)NULL, ",")) && *p) ?
+	pn->office = ((p = strsep(&bp, ",")) && *p) ?
 	    strdup(p) : NULL;
-	pn->officephone = ((p = strsep((char *)NULL, ",")) && *p) ?
+	pn->officephone = ((p = strsep(&bp, ",")) && *p) ?
 	    strdup(p) : NULL;
-	pn->homephone = ((p = strsep((char *)NULL, ",")) && *p) ?
+	pn->homephone = ((p = strsep(&bp, ",")) && *p) ?
 	    strdup(p) : NULL;
 }
 

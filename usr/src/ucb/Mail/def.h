@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)def.h	5.22 (Berkeley) 6/25/90
+ *	@(#)def.h	5.22.1 (2.11BSD) 1996/1/27
  */
 
 #include <sys/param.h>		/* includes <sys/types.h> */
@@ -89,7 +89,7 @@ struct message {
  * Given a file address, determine the block number it represents.
  */
 #define blockof(off)			((int) ((off) / 4096))
-#define offsetof(off)			((int) ((off) % 4096))
+#define offstof(off)			((int) ((off) % 4096))
 #define positionof(block, offset)	((off_t)(block) * 4096 + (offset))
 
 /*

@@ -32,7 +32,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)fio.c	5.24 (Berkeley) 2/3/91";
+static char sccsid[] = "@(#)fio.c	5.24.1 (2.11BSD) 1996/1/27";
 #endif
 
 #include "rcv.h"
@@ -109,7 +109,7 @@ setptr(ibuf)
 			this.m_size = 0;
 			this.m_lines = 0;
 			this.m_block = blockof(offset);
-			this.m_offset = offsetof(offset);
+			this.m_offset = offstof(offset);
 			inhead = 1;
 		} else if (linebuf[0] == 0) {
 			inhead = 0;

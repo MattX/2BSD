@@ -2,7 +2,7 @@
 #	generating code for the PDP11,
 #	using the Ritchie pass 2
 #
-#	1995/06/09 - 2.11BSD
+#	1996/1/28 - 2.11BSD
 #
 
 AS=		as -V
@@ -57,7 +57,8 @@ gram.o:		gram.c
 		${CC} -S ${CFLAGS} xxgram.c 
 		mv xxgram.s gram.s
 #	Eliminate yacc data structures
-		-if [ X${SEPFLAG} = X-n ]; then ed - gram.s < :gram.fix; fi
+		-if [ X${SEPFLAG} = X-n ]; then ed - gram.s < :gram.fix; \
+			else :; fi
 		rm xxgram.c
 		${AS} -u -o gram.o gram.s
 		rm gram.s
@@ -74,7 +75,8 @@ gram.c:		gram.head gram.dcl gram.expr gram.exec gram.io tokdefs
 		mkstr - f77_strings xx $*.c
 		${CC} -S ${CFLAGS} xx$*.c
 #	Move switch code to text space
-		-if [ X${SEPFLAG} = X-n ]; then ed - xx$*.s < :rofix; fi
+		-if [ X${SEPFLAG} = X-n ]; \
+			then ed - xx$*.s < :rofix; else :; fi
 		${C2} xx$*.s | ${AS} -u -o $*.o
 		rm xx$*.c xx$*.s
 

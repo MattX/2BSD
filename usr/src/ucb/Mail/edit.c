@@ -32,7 +32,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)edit.c	5.15 (Berkeley) 6/25/90";
+static char sccsid[] = "@(#)edit.c	5.15.1 (2.11BSD) 1996/1/27";
 #endif
 
 #include "rcv.h"
@@ -109,7 +109,7 @@ edit1(msgvec, type)
 			(void) fseek(otf, (long) 0, 2);
 			size = ftell(otf);
 			mp->m_block = blockof(size);
-			mp->m_offset = offsetof(size);
+			mp->m_offset = offstof(size);
 			mp->m_size = fsize(fp);
 			mp->m_lines = 0;
 			mp->m_flag |= MODIFY;

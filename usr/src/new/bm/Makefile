@@ -1,3 +1,6 @@
+#
+# bm Makefile - revised 1996/1/28
+#
 DESTDIR=
 
 CFLAGS = -O
@@ -14,12 +17,12 @@ OBJS=	Execute.o GetPatFile.o Global.o MakeDesc.o MakeSkip.o MatchFound.o \
 .1.0:
 	/usr/man/manroff $*.1 > $*.0
 
-bm: ${OBJS}
+bm: ${OBJS} bm.0
 	cc -o $@ ${SEPFLAG} ${OBJS}
 
 install: bm bm.0
 	install -s bm ${DESTDIR}/usr/new/bm
-	install -m 444 -o bin -g bin  bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
+	install -c -m 444 -o bin -g bin  bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
 
 tags: ${HDRS} ${SRCS}
 	ctags $<

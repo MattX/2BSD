@@ -14,7 +14,7 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2 (Berkeley) 5/10/89
+# @(#)Makefile	5.2.1 (2.11BSD) 1996/1/28
 #
 
 SEPFLAG= -i
@@ -24,7 +24,7 @@ SRCS=	finger.c lprint.c net.c sprint.c util.c
 OBJS=	finger.o lprint.o net.o sprint.o util.o
 MAN=	finger.0
 
-all: finger
+all: finger ${MAN}
 
 finger: ${LIBC} ${OBJS}
 	${CC} -o $@ ${CFLAGS} ${OBJS}
@@ -36,7 +36,7 @@ cleandir: clean
 	rm -f ${MAN} tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 # install: ${MAN}
 install: finger ${MAN}

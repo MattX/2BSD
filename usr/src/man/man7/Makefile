@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4 (Berkeley) 7/9/88
+#	@(#)Makefile	5.4.1 (2.11BSD) 1996/01/26
 #
 MDIR=	/usr/man/cat7
 SRCS=	ascii.7 environ.7 eqnchar.7 hier.7 hostname.7  intro.7 mailaddr.7 \
@@ -35,9 +35,8 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
 	rm -f ${DESTDIR}${MDIR}/miscellaneous.0
 	ln ${DESTDIR}${MDIR}/intro.0 ${DESTDIR}${MDIR}/miscellaneous.0
 
 FRC:
-

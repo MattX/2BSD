@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	based on 5.9 (Berkeley) 4/20/89
+#	@(#)Makefile	5.9.1 (2.11BSD) 1996/1/28
 #
 CFLAGS=	-O -I.
 LIBC=	/lib/libc.a
@@ -24,7 +24,7 @@ OBJS=	cmds.o cmdtab.o ftp.o glob.o main.o ruserpass.o domacro.o
 MAN=	ftp.0
 MANSRC=	ftp.1
 
-all: ftp
+all: ftp ${MAN}
 
 ftp: ${OBJS} ${LIBC}
 	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}

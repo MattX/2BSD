@@ -1,3 +1,6 @@
+#
+# shar Makefile.  Revised 1996/1/28
+#
 DESTDIR=
 
 CFLAGS=	-O
@@ -11,10 +14,12 @@ OBJS=	shar.o traverse.o
 .1.0:
 	/usr/man/manroff $*.1 > $*.0
 
+all: shar traverse shar.0
+
 shar: ${OBJS} Makefile
 	cc ${CFLAGS} ${SEPFLAG} -o shar ${OBJS}
 
-traverse:
+traverse: traverse.c
 	cc -o traverse -DSTANDALONE traverse.c
 
 lint:
@@ -22,6 +27,7 @@ lint:
 
 install: shar shar.0
 	install -s shar ${DESTDIR}/usr/new/shar
+	install -s traverse ${DESTDIR}/usr/new/traverse
 	install -c -m 444 -o bin -g bin shar.0 ${DESTDIR}/usr/new/man/cat1
 
 tags: ${SRCS}

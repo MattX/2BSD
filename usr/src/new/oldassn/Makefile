@@ -1,10 +1,13 @@
+#
+# oldassn Makefile.  Revised 1996/1/28
+#
 DESTDIR=
 
 DEFS=
 CFLAGS=	-O ${DEFS}
 SEPFLAG=-i
 
-all: oldassn
+all: oldassn oldassn.0
 
 oldassn: oldassn.l
 	lex oldassn.l

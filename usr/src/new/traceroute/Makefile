@@ -1,13 +1,18 @@
+#
+# traceroute Makefile.  Revised 1996/1/28
+#
 INCL =
 CFLAGS = -O -i
 LIBS =
 
-traceroute: traceroute.c
-	cc $(CFLAGS) $(INCL) -o traceroute traceroute.c $(LIBS)
+all: traceroute traceroute.0
+
+traceroute: traceroute.o
+	cc $(CFLAGS) $(INCL) -o traceroute traceroute.o $(LIBS)
 
 install: traceroute traceroute.0
 	install -s -o root -g bin -m 4551 traceroute ${DESTDIR}/etc/traceroute 
-	install -m 444 -o bin -g bin traceroute.0 ${DESTDIR}/usr/new/man/cat8
+	install -c -m 444 -o bin -g bin traceroute.0 ${DESTDIR}/usr/new/man/cat8
 
 traceroute.0: traceroute.8
 	/usr/man/manroff traceroute.8 > traceroute.0

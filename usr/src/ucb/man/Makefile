@@ -14,27 +14,29 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.5 (Berkeley) 6/29/88
+#	@(#)Makefile	5.5.1 (2.11BSD) 1996/1/28
 #
 CFLAGS=	-O
 SEPFLAG= -i
 LIBC=	/lib/libc.a
 ASRCS=	apropos.c
+AOBJS=	apropos.o
 MSRCS=	man.c
+MOBJS=	man.o
 
 all: man apropos
 
-apropos: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${ASRCS}
+apropos: ${LIBC} ${AOBJS}
+	${CC} ${SEPFLAG} -o $@ ${AOBJS}
 
-man: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${MSRCS}
+man: ${LIBC} ${MOBJS}
+	${CC} ${SEPFLAG} -o $@ ${MOBJS}
 
 clean: FRC
-	rm -f core apropos man
+	rm -f core apropos man *.o
 
 depend: FRC
-	mkdep -p ${CFLAGS} ${ASRCS} ${MSRCS}
+	mkdep ${CFLAGS} ${ASRCS} ${MSRCS}
 
 install: man apropos
 	rm -f ${DESTDIR}/usr/ucb/whatis ${DESTDIR}/usr/ucb/apropos
@@ -52,17 +54,19 @@ tags: FRC
 	sort -o tags tags
 
 FRC:
-
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-apropos: apropos.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-apropos: /usr/include/machine/machparam.h /usr/include/signal.h
-apropos: /usr/include/sys/types.h /usr/include/stdio.h /usr/include/ctype.h
-apropos: /usr/include/strings.h
-man: man.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-man: /usr/include/machine/machparam.h /usr/include/signal.h
-man: /usr/include/sys/types.h /usr/include/sys/file.h /usr/include/sys/dir.h
-man: /usr/include/stdio.h /usr/include/ctype.h
+apropos.o: apropos.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+apropos.o: /usr/include/sys/stddef.h /usr/include/machine/machparam.h
+apropos.o: /usr/include/sys/types.h /usr/include/signal.h
+apropos.o: /usr/include/sys/types.h /usr/include/stdio.h /usr/include/ctype.h
+apropos.o: /usr/include/strings.h /usr/include/string.h
+apropos.o: /usr/include/sys/types.h
+man.o: man.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+man.o: /usr/include/sys/stddef.h /usr/include/machine/machparam.h
+man.o: /usr/include/sys/types.h /usr/include/signal.h /usr/include/sys/types.h
+man.o: /usr/include/sys/file.h /usr/include/fcntl.h /usr/include/sys/types.h
+man.o: /usr/include/sys/dir.h /usr/include/stdio.h /usr/include/ctype.h
 
 # IF YOU PUT ANYTHING HERE IT WILL GO AWAY

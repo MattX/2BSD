@@ -1,3 +1,6 @@
+#
+# patch Makefile.  Revised 1996/1/28
+#
 DESTDIR=
 
 DEFS=	
@@ -14,7 +17,7 @@ OBJS=	patch.o pch.o inp.o util.o version.o
 .man.0:
 	/usr/man/manroff $*.man > $*.0
 
-patch: ${OBJS}
+patch: ${OBJS} patch.0
 	cc ${SEPFLAG} ${OBJS} -o patch
 
 install: patch patch.0

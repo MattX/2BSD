@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4 (Berkeley) 7/9/88
+#	@(#)Makefile	5.4.1 (2.11BSD) 1996/01/26
 #
 MDIR=	/usr/man/cat6
 SRCS=	aardvark.6 adventure.6 arithmetic.6 backgammon.6 banner.6 \
@@ -41,7 +41,7 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
 	rm -f ${DESTDIR}${MDIR}/snscore.0
 	ln ${DESTDIR}${MDIR}/snake.0 ${DESTDIR}${MDIR}/snscore.0
 	rm -f ${DESTDIR}${MDIR}/cfscores.0
