@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	based on 5.10 (Berkeley) 4/20/89
+#	@(#)Makefile	1.2 (2.11BSD) 1996/1/28
 #
 CFLAGS=	-O -I../ftp -I. -DSETPROCTITLE -I/usr/local/include
 SEPFLAG= -i
@@ -26,7 +26,7 @@ MANSRC=	ftpd.8
 
 all: ftpd
 
-ftpd: ${OBJS} ${LIBC}
+ftpd: ${OBJS} ${LIBC} ${MAN}
 	${CC} ${SEPFLAG} -o $@ ${OBJS}
 
 vers.o: ftpd.c ftpcmd.y

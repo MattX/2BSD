@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stdio.h	5.3 (Berkeley) 3/15/86
+ *	@(#)stdio.h	5.3.1 (2.11BSD) 1996/1/15
  */
 
 # ifndef FILE
@@ -26,7 +26,11 @@ extern	struct	_iobuf {
 #define	_IOSTRG	0100
 #define	_IOLBF	0200
 #define	_IORW	0400
+
+#ifndef	NULL
 #define	NULL	0
+#endif
+
 #define	FILE	struct _iobuf
 #define	EOF	(-1)
 
@@ -59,7 +63,4 @@ FILE	*popen();
 long	ftell();
 char	*fgets();
 char	*gets();
-#ifdef vax
-char	*sprintf();		/* too painful to do right */
-#endif
-# endif
+# endif /* _FILE */

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.1 (Berkeley) 2/22/89
+#	@(#)Makefile	5.1.1 (2.11BSD) 1996/1/27
 #
 CFLAGS=	-I. -O
 SEPFLAG= -i
@@ -24,7 +24,7 @@ OBJS=	chpass.o field.o util.o
 MAN=	chpass.0
 MANSRC=	chpass.1
 
-all: chpass
+all: chpass ${MAN}
 
 chpass: ${LIBC} ${OBJS}
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}

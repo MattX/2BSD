@@ -14,21 +14,21 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.2 (Berkeley) 4/18/89
+#	@(#)Makefile	5.2.1 (2.11BSD) 1996/1/27
 #
 
 CFLAGS=	-O
 SEPFLAG= -i
 LIBC=	/lib/libc.a
 SRCS=	chroot.c
-OBJS=
+OBJS=	chroot.o
 MAN=	chroot.0
 MANSRC=	chroot.8
 
-all: chroot
+all: chroot ${MAN}
 
-chroot: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} $@.c
+chroot: ${LIBC} ${OBJS}
+	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
 chroot.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -40,7 +40,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} chroot
 	install -s -o root -g bin -m 4751 chroot ${DESTDIR}/etc

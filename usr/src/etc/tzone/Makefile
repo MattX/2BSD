@@ -1,4 +1,4 @@
-# @(#)Makefile	1.1 Makefile 3/4/87
+# @(#)Makefile	1.2 Makefile 196/1/28
 
 DESTDIR=
 
@@ -50,7 +50,7 @@ ZDUMANSRC=	zdump.8
 MAN=		$(ZICMAN) $(ZDUMAN)
 MANSRC=		$(ZICMANSRC) $(ZDUMAN)
 
-all:		zdump zic
+all:		zdump zic ${ZICMAN} ${ZDUMAN}
 
 install:	zic $(DATA) $(MAN)
 		./zic -d ${DESTDIR}/etc/zoneinfo -l $(LOCALTIME) $(DATA)

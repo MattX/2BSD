@@ -15,9 +15,9 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)util.c	5.9 (Berkeley) 3/27/89";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)util.c	5.9.1 (2.11BSD) 1996/1/12";
+#endif
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -28,7 +28,7 @@ static char sccsid[] = "@(#)util.c	5.9 (Berkeley) 3/27/89";
 #include <ctype.h>
 #include "pathnames.h"
 
-static int dmsize[] =
+static char dmsize[] =
 	{ -1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 static char *months[] =
 	{ "January", "February", "March", "April", "May", "June",
@@ -38,7 +38,7 @@ char *
 ttoa(tval)
 	time_t tval;
 {
-	struct tm *tp;
+	register struct tm *tp;
 	static char tbuf[50];
 
 	if (tval) {
@@ -115,10 +115,11 @@ bad:		return(1);
 }
 
 print(fp, pw)
-	FILE *fp;
+	register FILE *fp;
 	struct passwd *pw;
 {
 	register char *p;
+	char	*bp;
 	char *getusershell(), *ttoa();
 
 	fprintf(fp, "#Changing user database information for %s.\n",
@@ -147,12 +148,13 @@ print(fp, pw)
 				break;
 			}
 	}
-	p = strsep(pw->pw_gecos, ",");
+	bp = pw->pw_gecos;
+	p = strsep(&bp, ",");
 	fprintf(fp, "Full Name: %s\n", p ? p : "");
-	p = strsep((char *)NULL, ",");
+	p = strsep(&bp, ",");
 	fprintf(fp, "Location: %s\n", p ? p : "");
-	p = strsep((char *)NULL, ",");
+	p = strsep(&bp, ",");
 	fprintf(fp, "Office Phone: %s\n", p ? p : "");
-	p = strsep((char *)NULL, ",");
+	p = strsep(&bp, ",");
 	fprintf(fp, "Home Phone: %s\n", p ? p : "");
 }

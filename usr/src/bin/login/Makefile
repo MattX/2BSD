@@ -14,19 +14,19 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.3 (Berkeley) 5/9/89
+# @(#)Makefile	5.3.1 (2.11BSD) 1996/1/28
 #
 
 CFLAGS=	-O -i
 LIBC=	/lib/libc.a
 SRCS=	login.c
-OBJS=
+OBJS=	login.o
 MAN=
 
 all: login
 
-login: ${LIBC}
-	${CC} -o $@ ${CFLAGS} $@.c -lutil
+login: ${LIBC} ${OBJS}
+	${CC} -o $@ ${CFLAGS} ${OBJS} -lutil
 
 clean:
 	rm -f ${OBJS} core login
@@ -35,7 +35,7 @@ cleandir: clean
 	rm -f ${MAN} tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: login
 	install -s -o root -g bin -m 4755 login ${DESTDIR}/bin/login

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)mail.c	4.33.2 (2.11BSD GTE) 6/11/94";
+static char sccsid[] = "@(#)mail.c	4.33.3 (2.11BSD GTE) 1996/1/27";
 #endif
 
 #include <sys/param.h>
@@ -453,7 +453,7 @@ char **argv;
 				usage();
 			truename = argv[1];
 			fgets(line, LSIZE, stdin);
-			if (strcmpn("From", line, 4) == 0)
+			if (strncmp("From", line, 4) == 0)
 				line[0] = '\0';
 			argv++;
 			argc--;

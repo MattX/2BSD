@@ -14,21 +14,21 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.1 (Berkeley) 10/19/88
+# @(#)Makefile	5.1.2 (2.11BSD) 1996/1/28
 #
 
-CFLAGS=	-O -DUSHRT_MAX=0xffff
+CFLAGS=	-O
 SEPFLAG= -i
 LIBC=	/lib/libc.a
 SRCS=	vipw.c
-OBJS=
+OBJS=	vipw.o
 MAN=	vipw.0
 MANSRC=	vipw.8
 
-all: vipw
+all: vipw ${MAN}
 
-vipw: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} $@.c
+vipw: ${LIBC} ${OBJS}
+	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
 vipw.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -40,7 +40,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} vipw
 	install -s -o bin -g bin -m 755 vipw ${DESTDIR}/etc

@@ -1,3 +1,7 @@
+
+#
+#	@(#)rc	1.1 (2.111BSD) 1996/1/24
+#
 HOME=/; export HOME
 PATH=/etc:/bin:/usr/ucb:/usr/bin; export PATH
 
@@ -67,8 +71,16 @@ then
  	echo 'password file may be incorrect' > /dev/console
 fi
 
+#
+# First umount everything in case the system is going back into multiuser
+# mode.  If the system is being booted for the first time nothing is mounted
+# except the root filesystem and umount ignores attempts to unmount /.
+#
 umount -a
-cp /dev/null /etc/mtab
+#
+# Now mount everything mentioned in /etc/fstab *except* filesystems with the
+# 'na' (noauto) option.
+#
 mount -a						>/dev/console 2>&1
 
 if [ ${RAMSIZE} != 0 ]
@@ -78,7 +90,7 @@ then
 fi
 
 	echo -n 'checking quotas:'	>/dev/console 2>&1
-/etc/quotacheck -a -p			>/dev/console 2>&1
+/etc/quotacheck -a 			>/dev/console 2>&1
 	echo ' done.'			>/dev/console 2>&1
 /etc/quotaon -a
 

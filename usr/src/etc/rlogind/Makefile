@@ -14,20 +14,20 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.5 (Berkeley) 5/9/89
+# @(#)Makefile	5.5.1 (2.11BSD) 1996/1/28
 #
 
 CFLAGS=	-O -i
 LIBC=	/lib/libc.a
 SRCS=	rlogind.c
-OBJS=
+OBJS=	rlogind.o
 MAN=	rlogind.0
 MANSRC=	rlogind.8
 
-all: rlogind
+all: rlogind ${MAN}
 
-rlogind: ${SRCS} ${LIBC}
-	${CC} -o $@ ${CFLAGS} ${SRCS} -lutil
+rlogind: ${LIBC} ${OBJS}
+	${CC} -o $@ ${CFLAGS} ${OBJS} -lutil
 
 clean:
 	rm -f ${OBJS} ${MAN} core rlogind
@@ -36,7 +36,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} rlogind
 	install -s -o bin -g bin -m 755 rlogind ${DESTDIR}/etc

@@ -1,5 +1,3 @@
-/*	BSDI	ping.c,v 2.1 1995/02/03 07:30:55 polk Exp	*/
-
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -41,7 +39,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1989, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)ping.c	8.1 (Berkeley) 6/5/93";
+static char sccsid[] = "@(#)ping.c	8.1.2 (2.11BSD) 1996/1/18";
 #endif /* not lint */
 
 /*
@@ -73,6 +71,7 @@ static char sccsid[] = "@(#)ping.c	8.1 (Berkeley) 6/5/93";
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/ip_var.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <ctype.h>

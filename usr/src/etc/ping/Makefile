@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1995/12/22
+#	@(#)Makefile	1.1 (2.11BSD) 1996/1/28
 #
 
 CFLAGS=	-O
@@ -12,8 +12,8 @@ MANSRC=	ping.8
 
 all: ping ${MAN}
 
-ping: ${LIBC}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} $@.c
+ping: ${LIBC} ${OBJS}
+	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
 ping.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,7 +25,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} ping
 	install -s -o root -g bin -m 4751 ping ${DESTDIR}/etc

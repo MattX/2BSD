@@ -41,7 +41,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1980, 1990, 1993, 1994\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)df.c	8.7.1 (2.11BSD) 1995/12/26";
+static char sccsid[] = "@(#)df.c	8.7.2 (2.11BSD) 1996/1/18";
 #endif
 
 #include <sys/param.h>
@@ -249,7 +249,7 @@ ufs_df(file, maxwidth)
 	sfsp->f_flags = 0;
 	sfsp->f_bsize = MAXBSIZE;
 	sfsp->f_iosize = MAXBSIZE;
-	sfsp->f_blocks = sblock.fs_fsize;
+	sfsp->f_blocks = sblock.fs_fsize - sblock.fs_isize;
 	sfsp->f_bfree = sblock.fs_tfree;
 	sfsp->f_bavail = sblock.fs_tfree;
 	if (sfsp->f_bavail < 0)

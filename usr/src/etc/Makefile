@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14.4 (2.11BSD GTE) 1995/12/26
+#	@(#)Makefile	5.14.5 (2.11BSD GTE) 1996/1/15
 #
 DESTDIR=
 CFLAGS=	-O
@@ -13,7 +13,7 @@ SEPFLAG= -i
 #
 SUBDIR=	chroot config dev_mkdb dump fingerd fsck ftpd getty htable implog \
 	named restor routed talkd termcap tftpd timed tzone XNSrouted \
-	mkpasswd ping vipw rlogind rshd tcpd
+	mkpasswd mount ping quotacheck vipw rlogind rshd tcpd umount
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -25,9 +25,9 @@ SCRIPT= mklost+found
 STD=	ac accton arff bad144 badsect catman chown clri comsat \
 	cron dcheck diskpart dumpfs edquota flcopy \
 	gettable ifconfig icheck inetd init newfs mkfs mknod \
-	mkproto mount ncheck quotaon quotacheck reboot renice \
+	mkproto ncheck quotaon reboot renice \
 	repquota rexecd rmt route rwhod rxformat sa savecore \
-	shutdown slattach swapon syslogd telnetd tunefs umount update
+	shutdown slattach swapon syslogd telnetd tunefs update
 
 # C programs that live in the current directory and need explicit make lines.
 #

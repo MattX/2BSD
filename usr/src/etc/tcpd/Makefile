@@ -1,4 +1,4 @@
-# @(#) Makefile 1.18 95/01/30 19:51:42
+# @(#) Makefile 1.19 1996/1/28
 #  Tailored and trimmed version created for 2.11BSD on April 7, 1995.
 
 REAL_DAEMON_DIR=/etc
@@ -53,12 +53,12 @@ install: all
 	install -s -m 751 -o root -g staff try-from /usr/ucb/try-from
 	install -s -m 751 -o root -g staff safe_finger /usr/ucb/safe_finger
 	install -s -m 751 -o root -g staff tcpdchk /usr/ucb/tcpdchk
-	install -m 444 -o bin -g bin hosts3access.0 /usr/man/cat3/hosts_access.0
-	install -m 444 -o bin -g bin hosts5access.0 /usr/man/cat5/hosts_access.0
-	install -m 444 -o bin -g bin hosts_options.0 /usr/man/cat5/hosts_options.0
-	install -m 444 -o bin -g bin tcpd.0 /usr/man/cat8/tcpd.0
-	install -m 444 -o bin -g bin tcpdchk.0 /usr/man/cat8/tcpdchk.0
-	install -m 444 -o bin -g bin tcpdmatch.0 /usr/man/cat8/tcpdmatch.0
+	install -c -m 444 -o bin -g bin hosts3access.0 /usr/man/cat3/hosts_access.0
+	install -c -m 444 -o bin -g bin hosts5access.0 /usr/man/cat5/hosts_access.0
+	install -c -m 444 -o bin -g bin hosts_options.0 /usr/man/cat5/hosts_options.0
+	install -c -m 444 -o bin -g bin tcpd.0 /usr/man/cat8/tcpd.0
+	install -c -m 444 -o bin -g bin tcpdchk.0 /usr/man/cat8/tcpdchk.0
+	install -c -m 444 -o bin -g bin tcpdmatch.0 /usr/man/cat8/tcpdmatch.0
 
 clean:
 	rm -f tcpd miscd safe_finger tcpdmatch tcpdchk try-from *.[oa] *.core \

@@ -14,20 +14,20 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2 (Berkeley) 5/9/89
+# @(#)Makefile	5.2.1 (2.11BSD) 1996/1/28
 #
 
 CFLAGS=	-O -i
 LIBC=	/lib/libc.a
 SRCS=	rshd.c
-OBJS=
+OBJS=	rshd.o
 MAN=	rshd.0
 MANSRC=	rshd.8
 
-all: rshd
+all: rshd ${MAN}
 
-rshd: ${LIBC}
-	${CC} -o $@ ${CFLAGS} $@.c
+rshd: ${LIBC} ${OBJS}
+	${CC} -o $@ ${CFLAGS} ${OBJS}
 
 clean:
 	rm -f ${OBJS} ${MAN} core rshd
@@ -36,7 +36,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} rshd
 	install -s -o bin -g bin -m 755 rshd ${DESTDIR}/etc

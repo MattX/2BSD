@@ -32,21 +32,11 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)strmode.c	5.3.1 (2.11BSD GTE) 1/5/95";
+static char sccsid[] = "@(#)strmode.c	5.3.2 (2.11BSD GTE) 1996/1/27";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#define	S_IRUSR	S_IREAD
-#define	S_IWUSR	S_IWRITE
-#define	S_IXUSR	S_IEXEC
-#define	S_IRGRP (S_IREAD >> 3)
-#define	S_IWGRP (S_IWRITE >> 3)
-#define	S_IXGRP	(S_IEXEC >> 3)
-#define	S_IROTH	(S_IREAD >> 6)
-#define	S_IWOTH	(S_IWRITE >> 6)
-#define	S_IXOTH	(S_IEXEC >> 6)
 
 void
 strmode(mode, p)

@@ -15,14 +15,12 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1987 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)vipw.c	5.9 (Berkeley) 4/22/89";
+static char sccsid[] = "@(#)vipw.c	5.9.1 (2.11BSD) 1996/1/12";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -35,12 +33,12 @@ static char sccsid[] = "@(#)vipw.c	5.9 (Berkeley) 4/22/89";
 #include <pwd.h>
 #include <stdio.h>
 #include <strings.h>
+#include <stdlib.h>
 
 char *passwd, *temp;
 
 main()
 {
-	extern int errno;
 	register int n, fd_passwd, fd;
 	struct rlimit rlim;
 	struct stat s1, s2;
@@ -153,23 +151,26 @@ syserr:		(void)fprintf(stderr, "vipw: %s: %s; ",
 check(tfp)
 	FILE *tfp;
 {
-	register long id;
-	register int lcnt, root;
+	long id;
+	int	root;
+	register int lcnt;
 	register char *p, *sh;
-	long atol();
 	char buf[256], *getusershell();
+	char *bp;
 
 	for (lcnt = 1; fgets(buf, sizeof(buf), tfp); ++lcnt) {
+		bp = buf;
 		/* skip lines that are too big */
-		if (!index(buf, '\n')) {
+		if (!(p = index(buf, '\n'))) {
 			(void)fprintf(stderr, "vipw: line too long");
 			goto bad;
 		}
-		if (!(p = strsep(buf, ":\n")))		/* login */
+		*p = '\0';
+		if (!(p = strsep(&bp, ":")))	/* login */
 			goto general;
 		root = !strcmp(p, "root");
-		(void)strsep((char *)NULL, ":\n");	/* passwd */
-		if (!(p = strsep((char *)NULL, ":\n")))	/* uid */
+		(void)strsep(&bp, ":");		/* passwd */
+		if (!(p = strsep(&bp, ":")))	/* uid */
 			goto general;
 		id = atol(p);
 		if (root && id) {
@@ -177,24 +178,24 @@ check(tfp)
 			goto bad;
 		}
 		if (id > USHRT_MAX) {
-			(void)fprintf(stderr, "vipw: %s > max uid value (%d)",
+			(void)fprintf(stderr, "vipw: %s > max uid value (%u)",
 			    p, USHRT_MAX);
 			goto bad;
 		}
-		if (!(p = strsep((char *)NULL, ":\n")))	/* gid */
+		if (!(p = strsep(&bp, ":")))	/* gid */
 			goto general;
 		id = atol(p);
 		if (id > USHRT_MAX) {
-			(void)fprintf(stderr, "vipw: %s > max gid value (%d)",
+			(void)fprintf(stderr, "vipw: %s > max gid value (%u)",
 			    p, USHRT_MAX);
 			goto bad;
 		}
-		(void)strsep((char *)NULL, ":\n");	/* class */
-		(void)strsep((char *)NULL, ":\n");	/* change */
-		(void)strsep((char *)NULL, ":\n");	/* expire */
-		(void)strsep((char *)NULL, ":\n");	/* gecos */
-		(void)strsep((char *)NULL, ":\n");	/* directory */
-		if (!(p = strsep((char *)NULL, ":\n")))	/* shell */
+		(void)strsep(&bp, ":");		/* class */
+		(void)strsep(&bp, ":");		/* change */
+		(void)strsep(&bp, ":");		/* expire */
+		(void)strsep(&bp, ":");		/* gecos */
+		(void)strsep(&bp, ":");		/* directory */
+		if (!(p = strsep(&bp, ":")))	/* shell */
 			goto general;
 		if (root && *p)				/* empty == /bin/sh */
 			for (setusershell();;)
@@ -205,7 +206,7 @@ check(tfp)
 				}
 				else if (!strcmp(p, sh))
 					break;
-		if (strsep((char *)NULL, ":\n")) {	/* too many */
+		if (strsep(&bp, ":")) {	/* too many */
 general:		(void)fprintf(stderr, "vipw: corrupted entry");
 bad:			(void)fprintf(stderr, "; line #%d.\n", lcnt);
 			(void)fflush(stderr);
@@ -230,9 +231,8 @@ makedb(file)
 
 edit()
 {
-	extern int errno;
 	int status, pid, w;
-	char *p, *editor, *getenv(), *strerror();
+	char *p, *editor;
 
 	if (editor = getenv("EDITOR")) {
 		if (p = rindex(editor, '/'))

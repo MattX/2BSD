@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)syslogd.c	5.13.1 (2.11BSD GTE) 12/31/93";
+static char sccsid[] = "@(#)syslogd.c	5.13.2 (2.11BSD GTE) 1996/1/24";
 #endif
 
 /*
@@ -657,15 +657,17 @@ wallmsg(f, iov)
 				continue;
 		}
 
-		/* compute the device name */
-		p = "/dev/12345678";
-		strcpyn(&p[5], ut.ut_line, UNAMESZ);
-
 		/*
 		 * Might as well fork instead of using nonblocking I/O
 		 * and doing notty().
 		 */
 		if (fork() == 0) {
+
+			/* compute the device name */
+			p = (char *)calloc(1, sizeof ("/dev/") + UNAMESZ + 2);
+			strcpy(p, "/dev/");
+			strncat(p+5, ut.ut_line, UNAMESZ);
+
 			if (f->f_type == F_WALL) {
 				iov[0].iov_base = greetings;
 				iov[0].iov_len = len;

@@ -15,14 +15,12 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980, 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)mkpasswd.c	5.4 (Berkeley) 2/22/89";
+static char sccsid[] = "@(#)mkpasswd.c	5.4.1 (2.11BSD) 1996/1/12";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -30,6 +28,8 @@ static char sccsid[] = "@(#)mkpasswd.c	5.4 (Berkeley) 2/22/89";
 #include <ndbm.h>
 #include <pwd.h>
 #include <stdio.h>
+#include <strings.h>
+#include <stdlib.h>
 
 static FILE *_pw_fp;
 static struct passwd _pw_passwd;
@@ -60,7 +60,7 @@ main(argc, argv)
 	DBM *dp;
 	datum key, content;
 	int ch;
-	char buf[256], nbuf[50], *strerror();
+	char buf[256], nbuf[50];
 
 	makeold = 0;
 	while ((ch = getopt(argc, argv, "pv")) != EOF)
@@ -167,7 +167,7 @@ rmall(fname)
 	char *fname;
 {
 	register char *p;
-	char buf[MAXPATHLEN], *strcpy();
+	char buf[MAXPATHLEN];
 
 	for (p = strcpy(buf, fname); *p; ++p);
 	bcopy(".pag", p, 5);
@@ -190,40 +190,41 @@ static
 scanpw()
 {
 	register char *cp;
-	long atol(), ftell();
-	char *fgets(), *strsep(), *index();
+	char	*bp;
 
 	for (;;) {
 		offset = ftell(_pw_fp);
 		if (!(fgets(line, sizeof(line), _pw_fp)))
 			return(0);
+		bp = line;
 		/* skip lines that are too big */
-		if (!index(line, '\n')) {
+		if (!(cp = index(line, '\n'))) {
 			int ch;
 
 			while ((ch = getc(_pw_fp)) != '\n' && ch != EOF)
 				;
 			continue;
 		}
-		_pw_passwd.pw_name = strsep(line, ":\n");
-		_pw_passwd.pw_passwd = strsep((char *)NULL, ":\n");
+		*cp = '\0';
+		_pw_passwd.pw_name = strsep(&bp, ":");
+		_pw_passwd.pw_passwd = strsep(&bp, ":");
 		offset += _pw_passwd.pw_passwd - line;
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_uid = atoi(cp);
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_gid = atoi(cp);
-		_pw_passwd.pw_class = strsep((char *)NULL, ":\n");
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		_pw_passwd.pw_class = strsep(&bp, ":");
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_change = atol(cp);
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_expire = atol(cp);
-		_pw_passwd.pw_gecos = strsep((char *)NULL, ":\n");
-		_pw_passwd.pw_dir = strsep((char *)NULL, ":\n");
-		_pw_passwd.pw_shell = strsep((char *)NULL, ":\n");
+		_pw_passwd.pw_gecos = strsep(&bp, ":");
+		_pw_passwd.pw_dir = strsep(&bp, ":");
+		_pw_passwd.pw_shell = strsep(&bp, ":");
 		return(1);
 	}
 	/* NOTREACHED */

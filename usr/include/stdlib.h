@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)stdlib.h	8.3.1 (2.11BSD) 12995/12/26
+ *	@(#)stdlib.h	8.3.2 (2.11BSD) 1996/1/12
  *
  * Adapted from the 4.4-Lite CD.  The odds of a ANSI C compiler for 2.11BSD
  * being slipped under the door are not distinguishable from 0 - so the 
@@ -99,10 +99,8 @@ extern char *optarg;			/* getopt(3) external variables */
 extern int opterr, optind, optopt;
 int	getopt();
 
-#ifdef	notyet
 extern char *suboptarg;			/* getsubopt(3) external variable */
 int	getsubopt();
-#endif
 
 long	random();
 char	*setstate();

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4 (Berkeley) 2/22/89
+#	@(#)Makefile	5.4.1 (2.11BSD) 1996/1/27
 #
 CFLAGS=	-I. -O
 SEPFLAG= -i
@@ -24,7 +24,7 @@ OBJS=	passwd.o
 MAN=	passwd.0
 MANSRC=	passwd.1
 
-all: passwd
+all: passwd ${MAN}
 
 passwd: ${LIBC} ${OBJS}
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
@@ -39,7 +39,7 @@ cleandir: clean
 	rm -f tags .depend
 
 depend: ${SRCS}
-	mkdep -p ${CFLAGS} ${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} passwd
 	install -s -o root -g bin -m 4755 passwd ${DESTDIR}/bin/passwd

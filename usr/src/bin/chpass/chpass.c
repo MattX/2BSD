@@ -15,14 +15,12 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1988 The Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)chpass.c	5.10 (Berkeley) 3/26/89";
+static char sccsid[] = "@(#)chpass.c	5.10.1 (2.11BSD) 1996/1/12";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -37,6 +35,7 @@ static char sccsid[] = "@(#)chpass.c	5.10 (Berkeley) 3/26/89";
 #include <ctype.h>
 #include <chpass.h>
 #include <strings.h>
+#include <stdlib.h>
 
 char e1[] = ": ";
 char e2[] = ":,";
@@ -425,28 +424,27 @@ loadpw(arg, pw)
 	register struct passwd *pw;
 {
 	register char *cp;
-	long atol();
-	char *strsep();
+	char	*bp = arg;
 
-	pw->pw_name = strsep(arg, ":");
-	pw->pw_passwd = strsep((char *)NULL, ":");
-	if (!(cp = strsep((char *)NULL, ":")))
+	pw->pw_name = strsep(&bp, ":");
+	pw->pw_passwd = strsep(&bp, ":");
+	if (!(cp = strsep(&bp, ":")))
 		goto bad;
 	pw->pw_uid = atoi(cp);
-	if (!(cp = strsep((char *)NULL, ":")))
+	if (!(cp = strsep(&bp, ":")))
 		goto bad;
 	pw->pw_gid = atoi(cp);
-	pw->pw_class = strsep((char *)NULL, ":");
-	if (!(cp = strsep((char *)NULL, ":")))
+	pw->pw_class = strsep(&bp, ":");
+	if (!(cp = strsep(&bp, ":")))
 		goto bad;
 	pw->pw_change = atol(cp);
-	if (!(cp = strsep((char *)NULL, ":")))
+	if (!(cp = strsep(&bp, ":")))
 		goto bad;
 	pw->pw_expire = atol(cp);
-	pw->pw_gecos = strsep((char *)NULL, ":");
-	pw->pw_dir = strsep((char *)NULL, ":");
-	pw->pw_shell = strsep((char *)NULL, ":");
-	if (!pw->pw_shell || strsep((char *)NULL, ":")) {
+	pw->pw_gecos = strsep(&bp, ":");
+	pw->pw_dir = strsep(&bp, ":");
+	pw->pw_shell = strsep(&bp, ":");
+	if (!pw->pw_shell || strsep(&bp, ":")) {
 bad:		(void)fprintf(stderr, "chpass: bad password list.\n");
 		exit(1);
 	}

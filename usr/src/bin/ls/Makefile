@@ -1,12 +1,12 @@
 #
 # Public Domain.  12/3/1994 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 12/3/94
+#	@(#)Makefile	1.1 (2.11BSD GTE) 1996/1/12
 #
 CFLAGS=	 -O
 SEPFLAG= -i
-SRCS=	ls.c stat_flags.c strsep.c
-OBJS=	ls.o stat_flags.o strsep.o
+SRCS=	ls.c stat_flags.c
+OBJS=	ls.o stat_flags.o
 
 all: ls
 

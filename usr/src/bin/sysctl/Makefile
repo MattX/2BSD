@@ -1,13 +1,12 @@
 #
 # Public Domain.  1/15/1995 - Steven Schultz
 #
-#	@(#)Makefile	1.1 (2.11BSD GTE) 2/3/95
+#	@(#)Makefile	1.2 (2.11BSD GTE) 1996/1/12
 #
 CFLAGS=	 -O
 SEPFLAG= -i
-VPATH= ../ls
-SRCS=	sysctl.c strsep.c
-OBJS=	sysctl.o strsep.o
+SRCS=	sysctl.c
+OBJS=	sysctl.o
 MAN=	sysctl.0
 MANSRC=	sysctl.8
 
