@@ -1,7 +1,7 @@
 #
 # Public Domain.  12/3/1994 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 12/3/94
+#	@(#)Makefile	1.1 (2.11BSD GTE) 12/26/94
 #
 CFLAGS=	 -O
 SEPFLAG= -i
@@ -11,13 +11,13 @@ OBJS=	chflags.o stat_flags.o strsep.o
 MAN=	chflags.0
 MANSRC=	chflags.1
 
+all: chflags chflags.0
+
+chflags: ${OBJS}
+	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+
 chflags.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
-
-all: chflags
-
-chflags: ${MAN} ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
 
 clean:
 	rm -f ${OBJS} ${MAN} chflags tags 

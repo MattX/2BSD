@@ -1,3 +1,7 @@
+#if	!defined(lint) && defined(DOSCCS)
+static	char	sccsid[] = "@(#)opset.c 2.0 (2.11BSD GTE) 12/26/94";
+#endif
+
 #include "defs.h"
 
 	char	*errflg;
@@ -145,8 +149,8 @@ char *systab[] = {
 	"mknod",
 	"chmod",
 	"chown",
-	NULL,			/* 17 - old sbreak */
-	NULL,			/* 18 - old stat */
+	"chflags",
+	"fchflags",
 	"lseek",
 	"getpid",
 	"mount",
