@@ -2,16 +2,16 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ls.1	6.4 (Berkeley) 5/12/86
+.\"	@(#)ls.1	6.4.1 (2.11BSD GTE) 12/12/94
 .\"
-.TH LS 1 "May 12, 1986"
+.TH LS 1 "December 20, 1994"
 .UC
 .SH NAME
 ls \- list contents of directory
 .SH SYNOPSIS
 .B ls
 [
-.B \-acdfgilqrstu1ACLFR
+.B \-acdfgiloqrstu1ACLFR
 ] name ...
 .br
 .SH DESCRIPTION
@@ -39,6 +39,9 @@ If the file is a special file the size field will instead contain
 the major and minor device numbers.
 If the file is a symbolic link the pathname of
 the linked-to file is printed preceded by ``\->''.
+.TP
+.B \-o
+Include the file flags in a long (\-l) output.
 .TP
 .B \-g
 Include the group ownership of the file in a long output.

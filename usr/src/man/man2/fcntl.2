@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)fcntl.2	6.4 (Berkeley) 5/22/86
+.\"	@(#)fcntl.2	6.4.1 (2.11BSD GTE) 11/30/94
 .\"
-.TH FCNTL 2 "May 22, 1986"
+.TH FCNTL 2 "Nov 30, 1994"
 .UC 5
 .SH NAME
 fcntl \- file control
@@ -86,18 +86,18 @@ is interpreted as a process ID.
 .LP
 The flags for the F_GETFL and F_SETFL flags are as follows:
 .TP 15
-FNDELAY
+O_NONBLOCK
 Non-blocking I/O; if no data is available to a
 .I read
 call, or if a write operation would block,
 the call returns -1 with the error EWOULDBLOCK.
 .TP
-FAPPEND
+O_APPEND
 Force each write to append at the end of file;
 corresponds to the O_APPEND flag of
 .IR open (2).
 .TP
-FASYNC
+O_ASYNC
 Enable the SIGIO signal to be sent to the process group
 when I/O is possible, e.g.,
 upon availability of data to be read.
@@ -146,5 +146,5 @@ the process ID given as argument is not in use.
 .SH "SEE ALSO
 close(2), execve(2), getdtablesize(2), open(2), sigvec(2)
 .SH BUGS
-The asynchronous I/O facilities of FNDELAY and FASYNC
+The asynchronous I/O facilities of O_NONBLOCK and O_ASYNC
 are currently available only for tty and socket operations.

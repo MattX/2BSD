@@ -14,11 +14,12 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.2 (2.11BSD GTE) 4/21/94
+#	@(#)Makefile	2.3 (2.11BSD GTE) 12/12/94
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
 	chown.2 chroot.2 close.2 connect.2 creat.2 dup.2 execve.2 exit.2 \
+	chflags.2 \
 	fcntl.2 fetchi.2 flock.2 fork.2 fperr.2 fsync.2 getdtablesize.2 \
 	getgid.2 getgroups.2 gethostid.2 gethostname.2 getitimer.2 \
 	getpagesize.2 getpeername.2 getpgrp.2 getpid.2 getpriority.2 \
@@ -33,6 +34,7 @@ SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
 	umask.2 unlink.2 utimes.2 vfork.2 vhangup.2 wait.2 write.2
 OBJS=	accept.0 access.0 acct.0 adjtime.0 bind.0 brk.0 chdir.0 chmod.0 \
 	chown.0 chroot.0 close.0 connect.0 creat.0 dup.0 execve.0 exit.0 \
+	chflags.0 \
 	fcntl.0 fetchi.0 flock.0 fork.0 fperr.0 fsync.0 getdtablesize.0 \
 	getgid.0 getgroups.0 gethostid.0 gethostname.0 getitimer.0 \
 	getpagesize.0 getpeername.0 getpgrp.0 getpid.0 getpriority.0 \
@@ -86,6 +88,8 @@ install: _make_01
 	ln ${DESTDIR}${MDIR}/wait.0 ${DESTDIR}${MDIR}/waitpid.0
 	rm -f ${DESTDIR}${MDIR}/fchdir.0
 	ln ${DESTDIR}${MDIR}/chmod.0 ${DESTDIR}${MDIR}/fchdir.0
+	rm -f ${DESTDIR}${MDIR}/fchflags.0
+	ln ${DESTDIR}${MDIR}/chflags.0 ${DESTDIR}${MDIR}/fchflags.0
 	rm -f ${DESTDIR}${MDIR}/fchmod.0
 	ln ${DESTDIR}${MDIR}/chmod.0 ${DESTDIR}${MDIR}/fchmod.0
 	rm -f ${DESTDIR}${MDIR}/fchown.0
@@ -118,4 +122,3 @@ install: _make_01
 	ln ${DESTDIR}${MDIR}/gettimeofday.0 ${DESTDIR}${MDIR}/settimeofday.0
 
 FRC:
-

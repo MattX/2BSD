@@ -2,16 +2,16 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)open.2	6.4 (Berkeley) 5/14/86
+.\"	@(#)open.2	6.4.1 (2.11BSD GTE) 11/30/94
 .\"
-.TH OPEN 2 "May 14, 1986"
+.TH OPEN 2 "Nov 30, 1994"
 .UC 4
 .SH NAME
 open \- open a file for reading or writing, or create a new file
 .SH SYNOPSIS
 .nf
 .ft B
-#include <sys/file.h>
+#include <fcntl.h>
 .PP
 .ft B
 open(path, flags, mode)
@@ -47,11 +47,14 @@ the following values
  O_RDONLY	open for reading only
  O_WRONLY	open for writing only
  O_RDWR	open for reading and writing
- O_NDELAY	do not block on open
+ O_NONBLOCK	do not block on open
  O_APPEND	append on each write
  O_CREAT	create file if it does not exist
  O_TRUNC	truncate size to 0
  O_EXCL	error if create and file exists
+ O_NOCTTY	do not acquire as controlling terminal
+ O_SHLOCK	atomically obtain a shared lock
+ O_EXLOCK	atomically obtain an exclusive lock
 .RE
 .PP
 Opening a file with O_APPEND set causes each write on the file
@@ -63,11 +66,23 @@ implement a simple exclusive access locking mechanism.
 If O_EXCL is set and the last component of the pathname is
 a symbolic link, the open will fail even if the symbolic
 link points to a non-existent name.
-If the O_NDELAY flag is specified and the open call would result
+If the O_NONBLOCK flag is specified and the open call would result
 in the process being blocked for some reason (e.g. waiting for
 carrier on a dialup line), the open returns immediately. 
 The first time the process attempts to perform i/o on the open
-file it will block (not currently implemented).
+file it will block.
+.PP
+The flag O_NOCTTY indicates that even if the file is a terminal device,
+the call should not result in acquiring the terminal device as the 
+controlling terminal of the caller.  This flag is not the default and
+is currently unimplemented (it will be Real Soon Now).
+.PP
+When opening a file, a lock with 
+.IR flock(2)
+semantics can be obtained by
+setting O_SHLOCK for a shared lock, or O_EXLOCK for an exclusive lock.
+If creating a file with O_CREAT, the request for the lock will never
+fail.
 .PP
 Upon successful completion a non-negative integer termed a
 file descriptor is returned.

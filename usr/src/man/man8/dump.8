@@ -1,25 +1,21 @@
+.\"
+.\"	@(#)dump.8	1.1 (2.11BSD GTE) 12/10/94
+.\"
 .TH DUMP 8
 .UC 4
 .SH NAME
 dump \- incremental file system dump
 .SH SYNOPSIS
 .B /etc/dump
-[ key [
-.I argument
-\&... ] filesystem ]
+[0123456789BchfusTdWwn [\fIargument\fP\& ...]] [filesystem]
 .SH DESCRIPTION
 .I Dump
 copies to magnetic tape all files
 changed after a certain date
 in the
 .I filesystem.
-The
-.I key
-specifies the date and other options about the dump.
-.I Key
-consists of characters from
-the set
-.B 0123456789fuJsdWn.
+.PP
+The following options are supported by dump:
 .TP 5
 .B  0\-9
 This number is the `dump level'.
@@ -34,11 +30,25 @@ thus the option
 .B 0
 causes the entire filesystem to be dumped.
 .TP 5
+.B B records
+The number of dump records per volume.  This option overrides the
+calculation of tape size based on length and density.
+.TP 5
+.B c
+This option requires no further options.  Used to specify that the
+tape is a \fIcartridge\fP drive rather than a 9\-track.
+.TP 5
+.B h level
+Honor the user 'nodump' flags only for dumps at or above the given
+\fBlevel\fP.  The default honor level is 1, so that incremental backups
+omit such files but full backups retain them.
+.TP 5
 .B f
 Place the dump on the next 
 .I argument 
 file
-instead of the tape.
+instead of the tape.  If '-' is given then standard out (stdout) is written
+to.
 .TP 5
 .B u
 If the dump completes successfully,
@@ -66,22 +76,6 @@ maintained in
 .I /etc/ddate,
 although the information content is identical.
 .TP 5
-.B  J
-This option is intended to be invoked only when
-the old format 
-.I /etc/ddate
-files are
-updated to the new format
-.I /etc/dumpdates
-format.
-The effect of this option is to convert between
-the old, obsolete format and to the new format.
-If the
-.B J
-option is invoked, all other options are ignored, and 
-.I dump
-terminates immediately.
-.TP 5
 .B s
 The size of the dump tape is specified in feet.
 The number of feet is taken from the next
@@ -97,6 +91,14 @@ is taken from the next
 .I argument.
 This is used in calculating the amount of tape
 used per reel. The default is 1600.
+.TP 5
+.B T date
+Use the specified date as the starting time for the dump instead of
+the time determined from looking in \fB/etc/dumpdates\fP.  The format
+of \fBdate\fP is the same as that of \fIctime(3)\fP.  This option is
+useful for automated dump scripts that wish to dump over a specific 
+period of time.  The \fBT\fP option is mutually exclusive with the 
+\fBu\fP option.
 .TP 5
 .B W
 .I Dump
