@@ -23,14 +23,13 @@
  * globbing stuff since we don't need it.  also execvp instead of execv.
  */
 
-#ifndef lint
-static char rcsid[] = "$Id: popen.c,v 1.5 1994/01/15 20:43:43 vixie Exp $";
-static char sccsid[] = "@(#)popen.c	5.7 (Berkeley) 2/14/89";
-#endif /* not lint */
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)popen.c	5.7.2 (2.11BSD) 1999/08/05";
+#endif
 
 #include "cron.h"
+#include <errno.h>
 #include <sys/signal.h>
-
 
 #define WANT_GLOBBING 0
 
@@ -146,9 +145,9 @@ cron_pclose(iop)
 	FILE *iop;
 {
 	register int fdes;
-	int omask;
+	sigset_t omask, nmask;
 	WAIT_T stat_loc;
-	PID_T pid;
+	register PID_T pid;
 
 	/*
 	 * pclose returns -1 if stream is not associated with a
@@ -157,10 +156,15 @@ cron_pclose(iop)
 	if (pids == 0 || pids[fdes = fileno(iop)] == 0)
 		return(-1);
 	(void)fclose(iop);
-	omask = sigblock(sigmask(SIGINT)|sigmask(SIGQUIT)|sigmask(SIGHUP));
-	while ((pid = wait(&stat_loc)) != pids[fdes] && pid != -1)
-		;
-	(void)sigsetmask(omask);
+	sigemptyset(&nmask);
+	sigaddset(&nmask, SIGINT);
+	sigaddset(&nmask, SIGQUIT);
+	sigaddset(&nmask, SIGHUP);
+	sigprocmask(SIG_BLOCK, &nmask, &omask);
+	do	{
+		pid = waitpid(pids[fdes], &stat_loc, NULL);
+		} while (pid == -1 && errno == EINTR);
+	(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 	pids[fdes] = 0;
 	return (pid == -1 ? -1 : WEXITSTATUS(stat_loc));
 }

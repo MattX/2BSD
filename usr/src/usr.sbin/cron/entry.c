@@ -15,8 +15,8 @@
  * Paul Vixie          <paul@vix.com>          uunet!decwrl!vixie!paul
  */
 
-#if !defined(lint) && !defined(LINT)
-static char rcsid[] = "$Id: entry.c,v 2.12 1994/01/17 03:20:37 vixie Exp $";
+#if !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)entry.c 2.12.2 (2.11BSD) 1999/08/05";
 #endif
 
 /* vix 26jan87 [RCS'd; rest of log is in RCS file]
@@ -25,9 +25,7 @@ static char rcsid[] = "$Id: entry.c,v 2.12 1994/01/17 03:20:37 vixie Exp $";
  * vix 30dec86 [written]
  */
 
-
 #include "cron.h"
-
 
 typedef	enum ecode {
 	e_none, e_minute, e_hour, e_dom, e_month, e_dow,
@@ -322,9 +320,10 @@ get_list(bits, low, high, names, ch, file)
 	/* list = range {"," range}
 	 */
 	
-	/* clear the bit string, since the default is 'off'.
+	/* clear the bit string, since the default is 'off'.  DONT add an
+	 * extra bit here, that's done in the macro!
 	 */
-	bit_nclear(bits, 0, (high-low+1));
+	bit_nclear(bits, 0, (high-low));
 
 	/* process all ranges
 	 */

@@ -15,13 +15,11 @@
  * Paul Vixie          <paul@vix.com>          uunet!decwrl!vixie!paul
  */
 
-#if !defined(lint) && !defined(LINT)
-static char rcsid[] = "$Id: cron.c,v 2.11 1994/01/15 20:43:43 vixie Exp $";
+#if !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)cron.c 2.11.1 (2.11BSD) 1999/08/05";
 #endif
 
-
 #define	MAIN_PROGRAM
-
 
 #include "cron.h"
 #include <sys/signal.h>
