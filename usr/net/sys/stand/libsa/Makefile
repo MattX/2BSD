@@ -1,5 +1,5 @@
 INCLUDES=	-I.. -I/usr/include
-CFLAGS=		-O ${INCLUDES}
+CFLAGS=		-O -DGOO ${INCLUDES}
 
 DRIVERS=	prf.o\
 		xp.o\
@@ -10,6 +10,8 @@ DRIVERS=	prf.o\
 		rp.o\
 		hk.o\
 		ts.o\
+		rd.o\
+		r5.o\
 		tm.o
 
 ../libsa.a:	SYS.o ${DRIVERS} 

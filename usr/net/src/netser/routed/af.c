@@ -4,7 +4,7 @@ static char sccsid[] = "@(#)af.c	4.8 10/7/82";
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #include "router.h"
 #include "rip.h"

@@ -32,7 +32,7 @@ loattach()
 	ifp->if_net = htonl((u_long)LONET);
 	sin = (struct sockaddr_in *)&ifp->if_addr;
 	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(ifp->if_net, 0);
+	sin->sin_addr = if_makeaddr(ifp->if_net, 1);
 	ifp->if_flags = IFF_UP;
 	ifp->if_output = looutput;
 	if_attach(ifp);
@@ -44,9 +44,10 @@ looutput(ifp, m0, dst)
 	struct mbuf *m0;
 	struct sockaddr *dst;
 {
-	int s = splimp();
+	int s;
 	register struct ifqueue *ifq;
 
+	s = splimp();
 	ifp->if_opackets++;
 	switch (dst->sa_family) {
 
@@ -65,7 +66,7 @@ looutput(ifp, m0, dst)
 #endif
 	default:
 		splx(s);
-		printf("lo%d: can't handle af%d\n", ifp->if_unit,
+		printf("lo%d:ch af%d\n", ifp->if_unit,
 			dst->sa_family);
 		m_freem(m0);
 		return (EAFNOSUPPORT);

@@ -2,12 +2,10 @@
 #
 ALL=	ftp ftpd
 DESTDIR=
-INCLUDE = -I../../net -I../../../../../include
-INC	= ../../../../../include
-LIBC	= ../../net/netlib ../../../../../../lib/libc.a
-CFLAGS=	-O -I. ${INCLUDE} -I../../../../../src/sys -DTCP4_1a -DMENLO_JCL -DUCB_NET
+INCLUDE = -I/usr/include
+LIBC	= -lnet -lndir
+CFLAGS=	-O -I. ${INCLUDE}  -DTCP4_1a -DMENLO_JCL -DUCB_NET -Dpdp11
 TYPE=	-n
-SETIDS= fakedir.o setreuid.o setregid.o
 LD= ld
 
 all:	${ALL}
@@ -26,23 +24,13 @@ ftp.h: compat.h
 ftpvar.h: varpat.h
 	touch ftpvar.h
 
-ftpd:	ftpd.o ftpcmd.o vers.o glob.o compat.o ${SETIDS}
-	${CC} ${TYPE} ftpd.o ftpcmd.o glob.o compat.o ${SETIDS}\
-	 -o ftpd vers.o -ljobs -lndir ${LIBC}
+ftpd:	ftpd.o ftpcmd.o vers.o glob.o compat.o fakedir.o
+	${CC} ${TYPE} ftpd.o ftpcmd.o glob.o compat.o fakedir.o \
+	 -o ftpd vers.o -ljobs ${LIBC}
 
 vers.o:	ftpd.c ftpcmd.y
 	sh newvers.sh
 	${CC} -c vers.c
-
-setreuid.o: setreuid.s
-	${AS} -o setreuid.o ${INC}/sys.s setreuid.s
-	-${LD} -r -x setreuid.o
-	mv a.out setreuid.o
-
-setregid.o: setregid.s
-	${AS} -o setregid.o ${INC}/sys.s setregid.s
-	-${LD} -r -x setregid.o
-	mv a.out setregid.o
 
 install:
 	install -s ftp ${DESTDIR}/usr/ucb/ftp

@@ -64,12 +64,19 @@ struct	device	{
 	int	tcsr,tbuf;
 };
 struct	device	*KLADDR	{0177560};
+#ifdef GOO
+char quietflg;
+#endif GOO
 putchar(c)
 register c;
 {
 	register s;
 	register unsigned timo;
 
+#ifdef GOO
+	/* If quietflg is set do not print out on console. */
+	if (quietflg) return;
+#endif GOO
 	/*
 	 *  If last char was a break or null, don't print
 	if ((KLADDR->rbuf&0177) == 0)

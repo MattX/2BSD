@@ -171,7 +171,7 @@ sriinit(unit)
 	int x, info;
 
 	if (unit >= NSRI || (ui = sriinfo[unit]) == 0 || ui->ui_alive == 0) {
-		printf("sri%d: not alive\n", unit);
+		printf("sri%d:na\n", unit);
 		return (0);
 	}
 	sc = &sri_softc[unit];
@@ -185,7 +185,7 @@ sriinit(unit)
 
 	if (if_ubainit(&sc->sri_ifuba, ui->ui_ubanum, 0,
 	     (int)btoc(IMPMTU)) == 0) {
-		printf("sri%d: can't initialize\n", unit);
+		printf("sri%d:ci\n", unit);
 		goto down;
 	}
 	addr = (struct sridevice *)ui->ui_addr;
@@ -307,14 +307,14 @@ srixint(unit)
 
 	addr->csr &= ~SRI_OINT;
 	if (sc->sri_ic->ic_oactive == 0) {
-		printf("sri%d: stray xmit interrupt\n", unit);
+		printf("sri%d:xint\n", unit);
 		goto out;
 	}
 	sridump("out",IFWADDR,sc->sri_olen);
 	sc->sri_if->if_opackets++;
 	sc->sri_ic->ic_oactive = 0;
 	if (sc->sri_obc != 0) { /* only happens if IMP ready drop */
-		printf("sri%d: output error, csr=%b\n", unit,
+		printf("sri%d:oer%b\n", unit,
 			addr->csr, SRI_BITS);
 		sc->sri_if->if_oerrors++;
 	}
@@ -378,7 +378,7 @@ srirint(unit)
 	if (sc->sri_ifuba.ifu_flags & UBA_NEEDBDP)
 		UBAPURGE(sc->sri_ifuba.ifu_uba, sc->sri_ifuba.ifu_r.ifrw_bdp);
 	if ((x & IN_INRDY)) {
-		printf("sri%d: input error, ibf=%b\n", unit,
+		printf("sri%d:ier%b\n", unit,
 		    x, SRI_INBITS);
 		sc->sri_if->if_ierrors++;
 		sc->sri_flush = 1;
@@ -399,7 +399,7 @@ srirint(unit)
 	}
 	len = IMPMTU - sc->sri_ibc;
 	if (len < 10 || len > IMPMTU) {
-		printf("sri%d: bad length=%d\n", len);
+		printf("sri%d:bl=%d\n", len);
 		sc->sri_if->if_ierrors++;
 		goto setup;
 	}
@@ -445,14 +445,14 @@ char *str,*aba;
 
 	if(str[0] != 07)
 		if(!sridebug()) return;
-	printf("%s  ",str);
+	printf("%s ",str);
 	col = 0;
 	for(; abc ; abc--) {
 		i = *aba++ & 0377;
 		printf("%o ",i);
 		if(++col > 31) {
 			col = 0;
-			printf("\n   ");
+			printf("\n ");
 		}
 	}
 	printf("\n");

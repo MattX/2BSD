@@ -5,7 +5,7 @@ static char sccsid[] = "@(#)rexec.c	4.3 82/04/01";
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 
 extern	errno;

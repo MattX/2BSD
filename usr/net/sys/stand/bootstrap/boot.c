@@ -32,6 +32,12 @@ extern	int	cputype;
 extern	bool_t	ksep;			/* Is kernel mode currently separated */
 extern	bool_t	sep_id;			/* Does the cpu support separate I/D? */
 extern	int	bootopts, bootdev, checkword;
+#ifdef	BIGKOV
+int	bigkov = 0;
+#endif
+#ifdef GOO
+extern	char quietflg;
+#endif GOO
 char	module[]	= "Boot";	/* This program's name (used by trap) */
 char	line[100]	= RB_DEFNAME;
 bool_t	overlaid	= 0;
@@ -75,6 +81,20 @@ struct	loadmap	load430[]	=	{
 	SEG_OVLY,	8  KB,
 	0,		0  KB
 	};
+#ifdef	BIGKOV
+struct	loadmap big430[]	=	{
+	SEG_TEXT,	8 KB,			/* minumum, 8 KB + 1 */
+	SEG_OVLY,	16  KB,
+	SEG_DATA,	24 KB,
+	SEG_OVLY,	16  KB,
+	SEG_OVLY,	16  KB,
+	SEG_OVLY,	16  KB,
+	SEG_OVLY,	16  KB,
+	SEG_OVLY,	16  KB,
+	SEG_OVLY,	16  KB,
+	0,		0   KB
+};
+#endif
 struct	loadmap	load431[]	=	{
 	SEG_DATA,	56 KB,			/* minumum, 48 KB + 1 */
 	SEG_TEXT,	56 KB,
@@ -103,8 +123,10 @@ main ()
 	struct	loadtable	*setup ();
 
 	segflag	= 3;			/* device drivers care about this */
-
+#ifndef GOO
 	printf ("\n%d%s\n", cputype, module);
+#endif GOO
+
 #ifdef  UCB_AUTOBOOT
 	/*
 	 *	The machine language will have gotten the bootopts
@@ -115,6 +137,11 @@ main ()
 	if (checkword != ~bootopts)
 #endif
 		bootopts	= RB_SINGLE | RB_ASKNAME;
+#ifdef GOO
+	if (bootopts & RB_QUIET)
+		quietflg = 1;
+	printf ("\n%d%s\n", cputype, module);
+#endif GOO
 	do	{
 		if (bootopts & RB_ASKNAME)	{
 			printf (": ");
@@ -166,10 +193,19 @@ register io;
 		for (i = 0; i < NOVL; i++)
 			ovlhdr.ov_siz[i]	= (unsigned) getw (io);
 		}
+#ifdef	BIGKOV
+	if (exec.a_magic == A_MAGIC5 && exec.a_text <= 8192)
+		bigkov = 1;
+#endif
 	
 	for (i = 0; i < sizeof (loadtable) / sizeof (struct loadtable); i++)
-		if (loadtable[i].lt_magic == exec.a_magic)
+		if (loadtable[i].lt_magic == exec.a_magic) {
+#ifdef	BIGKOV
+			if (exec.a_magic == A_MAGIC5 && bigkov)
+				loadtable[i].lt_map = big430;
+#endif
 			return (&loadtable[i]);
+		}
 
 	printf ("Bad magic number 0%o\n", exec.a_magic);
 	return ((struct loadtable *) NULL);
@@ -261,7 +297,11 @@ struct	loadtable	*lt;
 		if (segtype == SEG_TEXT)
 		    switch (exec.a_magic) {
 			case A_MAGIC5:
+#ifdef	BIGKOV
+			    if (seglen <= 8 KB && bigkov == 0) {
+#else
 			    if (seglen <= 8 KB) {
+#endif
 				printf("Base segment too small, 8K minimum\n");
 				return(-1);
 			    }
@@ -412,6 +452,12 @@ struct	loadtable	*lt;
 		par_base	= &(((u_short *) OVLY_TABLE_BASE)[0]);
 		pdr_base	= &(((u_short *) OVLY_TABLE_BASE)[1 + NOVL]);
 		for (i = 0; i < NOVL; i++)	{
+#ifdef	BIGKOV
+		     if (bigkov) {
+			mtpd (0, (par_base+16));
+			mtpd (NOACC, (pdr_base+16));
+		     }
+#endif	BIGKOV
 			mtpd (0, par_base++);
 			mtpd (NOACC, pdr_base++);
 			}
@@ -462,7 +508,7 @@ struct	loadtable	*lt;
 			case SEG_OVLY:
 				par_base	= &(((u_short *) OVLY_TABLE_BASE)[1 + novlypgs]);
 				pdr_base	= &(((u_short *) OVLY_TABLE_BASE)[1 + NOVL + 1 + novlypgs]);
-				novlypgs	+= npages;
+				novlypgs	+= 1;
 				break;
 
 			}
@@ -492,7 +538,16 @@ struct	loadtable	*lt;
 				else
 					*pdr_base	= ((pagelen - 1) << 8) | RW;
 				}
+#ifdef	BIGKOV
+			if (segtype == SEG_OVLY && bigkov) {
+				par_base += 16;
+				pdr_base += 16;
+			} else {
+#endif	BIGKOV
 			par_base++, pdr_base++;
+#ifdef	BIGKOV
+			}
+#endif	BIGKOV
 			if (donedata)
 				phys	+= pagelen;
 			else
@@ -519,6 +574,11 @@ struct	loadtable	*lt;
 		}
 
 	if (overlaid)
+#ifdef	BIGKOV
+	    if (bigkov)
+		mtpd (phys, &(((u_short *) OVLY_TABLE_BASE)[32]));
+	    else
+#endif
 		mtpd (phys, &(((u_short *) OVLY_TABLE_BASE)[1 + NOVL + 1 + NOVL]));
 }
 

@@ -11,7 +11,7 @@
 
 #include "../net/if.h"
 #include "../net/in.h"
-#include "../net/if_il.h"
+#include "../net/if_ether.h"
 #include "../net/in_systm.h"
 #include <errno.h>
 
@@ -26,21 +26,25 @@ struct	arptab {
 	u_char	at_timer;		/* minutes since last reference */
 	u_char	at_flags;		/* flags */
 };
+#define	ARPTSIZ	14			/* Size of arptab in bytes */
 /* at_flags field values */
 #define	ATF_INUSE	1		/* entry in use */
 #define ATF_COM		2		/* completed entry (enaddr valid) */
 
-#define	ARPTAB_BSIZ	5		/* bucket size */
-#define	ARPTAB_NB	19		/* number of buckets */
+#define	ARPTAB_BSIZ	4		/* bucket size */
+#define	ARPTAB_NB	2		/* number of buckets */
 #define	ARPTAB_SIZE	(ARPTAB_BSIZ * ARPTAB_NB)
-struct	arptab arptab[ARPTAB_SIZE];
+#define	ARPSEG		(((btoc(ARPTAB_SIZE*ARPTSIZ)-1)<<8)|RW)
+u_int	arpbase;
+u_int	arpsize = (ARPTAB_SIZE*ARPTSIZ);
 
 #define	ARPTAB_HASH(a) \
 	((short)((((a) >> 16) ^ (a)) & 0x7fff) % ARPTAB_NB)
 
 #define	ARPTAB_LOOK(at,addr) { \
 	register n; \
-	at = &arptab[ARPTAB_HASH(addr) * ARPTAB_BSIZ]; \
+	at = ((struct arptab *) 0120000); \
+	at += ARPTAB_HASH(addr)*ARPTAB_BSIZ; \
 	for (n = 0 ; n < ARPTAB_BSIZ ; n++,at++) \
 		if (at->at_iaddr.s_addr == addr) \
 			break; \
@@ -85,8 +89,10 @@ arptimer()
 {
 	register struct arptab *at;
 	register i;
+	segm save;
 
 	timeout(arptimer, (caddr_t)0, hz);
+	saveseg5(save);
 #ifdef notdef
 	if (++arpt_sanity > ARPT_SANITY) {
 		register struct arpcom *ac;
@@ -104,7 +110,8 @@ arptimer()
 #endif
 	if (++arpt_age > ARPT_AGE) {
 		arpt_age = 0;
-		at = &arptab[0];
+		mapseg5(arpbase, ARPSEG);
+		at = ((struct arptab *) 0120000);
 		for (i = 0; i < ARPTAB_SIZE; i++, at++) {
 			if (at->at_flags == 0)
 				continue;
@@ -115,6 +122,7 @@ arptimer()
 			arptfree(at);
 		}
 	}
+	restorseg5(save);
 }
 
 /*
@@ -125,22 +133,25 @@ arpwhohas(ac, addr)
 	struct in_addr *addr;
 {
 	register struct mbuf *m;
-	register struct il_xheader *eh;
-	register struct ether_arp *ea;
+	register struct eth_header *eh;
+	register struct eth_arp *ea;
 	struct sockaddr sa;
 
 	if ((m = m_get(M_DONTWAIT)) == NULL)
 		return;
+#ifdef notdef
 	m->m_len = sizeof *ea + sizeof *eh;
+#endif
+	m->m_len = sizeof *ea;
 	m->m_off = MMAXOFF - m->m_len;
-	ea = mtod(m, struct ether_arp *);
-	eh = (struct il_xheader *)sa.sa_data;
+	ea = mtod(m, struct eth_arp *);
+	eh = (struct eth_header *)sa.sa_data;
 	bzero((caddr_t)ea, sizeof (*ea));
-	bcopy((caddr_t)etherbroadcastaddr, (caddr_t)eh->ilx_dhost,
+	bcopy((caddr_t)etherbroadcastaddr, (caddr_t)eh->eth_dhost,
 	   sizeof (etherbroadcastaddr));
-	eh->ilx_type = ILPUP_ARPTYPE;	/* if_output will swap */
+	eh->eth_type = ETHERPUP_ARPTYPE;	/* if_output will swap */
 	ea->arp_hrd = htons(ARPHRD_ETHER);
-	ea->arp_pro = htons(ILPUP_IPTYPE);
+	ea->arp_pro = htons(ETHERPUP_IPTYPE);
 	ea->arp_hln = sizeof ea->arp_sha;	/* hardware address length */
 	ea->arp_pln = sizeof ea->arp_spa;	/* protocol address length */
 	ea->arp_op = htons(ARPOP_REQUEST);
@@ -166,7 +177,7 @@ arpwhohas(ac, addr)
  * NB: setting oldmap to zero completely disables ARP
  *     (i.e. identical to setting IFF_NOARP with an ioctl).
  */
-long	oldmap = 700;
+long	oldmap = 1024;
 
 /*
  * Resolve an IP address into an ethernet address.  If success, 
@@ -177,7 +188,7 @@ long	oldmap = 700;
  *
  * We do some (conservative) locking here at splimp, since
  * arptab is also altered from input interrupt service (ecintr/ilintr
- * calls arpinput when ILPUP_ARPTYPE packets come in).
+ * calls arpinput when ETHERPUP_ARPTYPE packets come in).
  */
 arpresolve(ac, m, destip, desten)
 	register struct arpcom *ac;
@@ -190,6 +201,7 @@ arpresolve(ac, m, destip, desten)
 	struct sockaddr_in sin;
 	int s;
 	long lna;
+	segm save;
 
 	lna = in_lnaof(*destip);
 	if (lna == INADDR_ANY) {	/* broadcast address */
@@ -207,24 +219,30 @@ arpresolve(ac, m, destip, desten)
 	}
 	lna = htonl(lna);
 	if (lna >= oldmap) {
-		bcopy((caddr_t)ac->ac_enaddr, (caddr_t)desten, 3);
+		bcopy((caddr_t)ac->ac_enaddr, (caddr_t)desten, 5);
+		/*
 		desten[3] = (lna >> 16) & 0x7f;
 		desten[4] = (lna >> 8) & 0xff;
+		*/
 		desten[5] = lna & 0xff;
 		return (1);
 	}
 	s = splimp();
+	saveseg5(save);
+	mapseg5(arpbase, ARPSEG);
 	ARPTAB_LOOK(at, destip->s_addr);
 	if (at == 0) {			/* not found */
 		at = arptnew(destip);
 		at->at_hold = m;
 		arpwhohas(ac, destip);
+		restorseg5(save);
 		splx(s);
 		return (0);
 	}
 	at->at_timer = 0;		/* restart the timer */
 	if (at->at_flags & ATF_COM) {	/* entry IS complete */
 		bcopy((caddr_t)at->at_enaddr, (caddr_t)desten, 6);
+		restorseg5(save);
 		splx(s);
 		return (1);
 	}
@@ -237,6 +255,7 @@ arpresolve(ac, m, destip, desten)
 		m_freem(at->at_hold);
 	at->at_hold = m;
 	arpwhohas(ac, destip);		/* ask again */
+	restorseg5(save);
 	splx(s);
 	return (0);
 }
@@ -264,7 +283,7 @@ arpmyaddr(ac)
 }
 
 /*
- * Called from ecintr/ilintr when ether packet type ILPUP_ARP
+ * Called from ecintr/ilintr when ether packet type ETHERPUP_ARP
  * is received.  Algorithm is exactly that given in RFC 826.
  * In addition, a sanity check is performed on the sender
  * protocol address, to catch impersonators.
@@ -273,19 +292,21 @@ arpinput(ac, m)
 	register struct arpcom *ac;
 	struct mbuf *m;
 {
-	register struct ether_arp *ea;
-	struct il_xheader *eh;
-	register struct arptab *at = 0;  /* same as "merge" flag */
+	register struct eth_arp *ea;
+	struct eth_header *eh;
+	register struct arptab *at;  /* same as "merge" flag */
 	struct sockaddr_in sin;
 	struct sockaddr sa;
 	struct mbuf *mhold;
 	struct in_addr isaddr,itaddr,myaddr;
+	segm save;
 
 	if (m->m_len < sizeof *ea)
 		goto out;
 	myaddr = ((struct sockaddr_in *)&ac->ac_if.if_addr)->sin_addr;
-	ea = mtod(m, struct ether_arp *);
-	if (ntohs(ea->arp_pro) != ILPUP_IPTYPE)
+	saveseg5(save);
+	ea = mtod(m, struct eth_arp *);
+	if (ntohs(ea->arp_pro) != ETHERPUP_IPTYPE)
 		goto out;
 	isaddr.s_addr = ((struct in_addr *)ea->arp_spa)->s_addr;
 	itaddr.s_addr = ((struct in_addr *)ea->arp_tpa)->s_addr;
@@ -293,7 +314,7 @@ arpinput(ac, m)
 	  sizeof (ac->ac_enaddr)))
 		goto out;	/* it's from me, ignore it. */
 	if (isaddr.s_addr == myaddr.s_addr) {
-		printf("duplicate IP address!! sent from ethernet address: ");
+		printf("dpIPad:");
 		printf("%x %x %x %x %x %x\n", ea->arp_sha[0], ea->arp_sha[1],
 		    ea->arp_sha[2], ea->arp_sha[3],
 		    ea->arp_sha[4], ea->arp_sha[5]);
@@ -301,10 +322,12 @@ arpinput(ac, m)
 			goto reply;
 		goto out;
 	}
+	mapseg5(arpbase, ARPSEG);
 	ARPTAB_LOOK(at, isaddr.s_addr);
 	if (at) {
-		bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
-		   sizeof (ea->arp_sha));
+		copyv(m->m_click, ((unsigned)ea->arp_sha)-0120000,
+			arpbase, ((unsigned)at->at_enaddr)-0120000,
+			sizeof (ea->arp_sha));
 		at->at_flags |= ATF_COM;
 		if (at->at_hold) {
 			mhold = at->at_hold;
@@ -319,10 +342,12 @@ arpinput(ac, m)
 		goto out;	/* if I am not the target */
 	if (at == 0) {		/* ensure we have a table entry */
 		at = arptnew(&isaddr);
-		bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
-		   sizeof (ea->arp_sha));
+		copyv(m->m_click, ((unsigned)ea->arp_sha)-0120000,
+			arpbase, ((unsigned)at->at_enaddr)-0120000,
+			sizeof (ea->arp_sha));
 		at->at_flags |= ATF_COM;
 	}
+	ea = mtod(m, struct eth_arp *);
 	if (ntohs(ea->arp_op) != ARPOP_REQUEST)
 		goto out;
 reply:
@@ -335,15 +360,17 @@ reply:
 	bcopy((caddr_t)&myaddr, (caddr_t)ea->arp_spa,
 	   sizeof (ea->arp_spa));
 	ea->arp_op = htons(ARPOP_REPLY);
-	eh = (struct il_xheader *)sa.sa_data;
-	bcopy((caddr_t)ea->arp_tha, (caddr_t)eh->ilx_dhost,
-	   sizeof (eh->ilx_dhost));
-	eh->ilx_type = ILPUP_ARPTYPE;
+	eh = (struct eth_header *)sa.sa_data;
+	bcopy((caddr_t)ea->arp_tha, (caddr_t)eh->eth_dhost,
+	   sizeof (eh->eth_dhost));
+	eh->eth_type = ETHERPUP_ARPTYPE;
 	sa.sa_family = AF_UNSPEC;
+	restorseg5(save);
 	(*ac->ac_if.if_output)(&ac->ac_if, m, &sa);
 	return;
 out:
 	m_freem(m);
+	restorseg5(save);
 	return;
 }
 
@@ -375,7 +402,8 @@ arptnew(addr)
 	int oldest = 0;
 	register struct arptab *at, *ato;
 
-	ato = at = &arptab[ARPTAB_HASH(addr->s_addr) * ARPTAB_BSIZ];
+	at = ((struct arptab *) 0120000);
+	ato = (at += ARPTAB_HASH(addr->s_addr)*ARPTAB_BSIZ);
 	for (n = 0 ; n < ARPTAB_BSIZ ; n++,at++) {
 		if (at->at_flags == 0)
 			goto out;	 /* found an empty entry */

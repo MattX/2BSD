@@ -139,7 +139,11 @@ nospace:
 	/* SHOULD RATHER SEND A SIGNAL AND SUSPEND THE PROCESS IN A */
 	/* STATE FROM WHICH THE SYSTEM CALL WILL RESTART */
 #ifdef	UCB_UPRINTF
+#ifndef SHORTPRT
 	uprintf("\n%s: write failed, file system is full\n", fp->s_fsmnt);
+#else
+	uprintf("\n%s: filsys full\n", fp->s_fsmnt);
+#endif	SHORTPRT
 #endif
 	for (i = 0; i < 5; i++)
 		sleep((caddr_t)&lbolt, PRIBIO);
@@ -302,10 +306,23 @@ fromtop:
 			ino += INOPB;
 			continue;
 		}
+#ifndef IOUT
 		dp = (struct dinode *) mapin(bp);
+#endif
 		for(i=0; i<INOPB; i++) {
-			if(dp->di_mode != 0)
+#ifdef	IOUT
+			dp = (struct dinode *) mapin(bp);
+			dp += i;
+#endif
+			if(dp->di_mode != 0) {
+#ifdef	IOUT
+				mapout(bp);
+#endif
 				goto cont;
+			}
+#ifdef	IOUT
+			mapout(bp);
+#endif
 #ifdef	UCB_IHASH
 			if(ifind(dev, ino))
 				goto cont;
@@ -319,9 +336,13 @@ fromtop:
 				break;
 		cont:
 			ino++;
+#ifndef	IOUT
 			dp++;
+#endif
 		}
+#ifndef	IOUT
 		mapout(bp);
+#endif
 		brelse(bp);
 		if(fp->s_ninode >= NICINOD)
 			break;
@@ -336,7 +357,11 @@ fromtop:
 		goto loop;
 	fserr(fp, "out of inodes");
 #ifdef	UCB_UPRINTF
+#ifndef	SHORTPRT
 	uprintf("\n%s:  create failed, no inodes free\n", fp->s_fsmnt);
+#else
+	uprintf("\n%s:no inod\n", fp->s_fsmnt);
+#endif	SHORTPRT
 #endif
 nofs:
 	u.u_error = ENOSPC;
@@ -413,7 +438,11 @@ dev_t dev;
 		}
 		return(fp);
 	}
+#ifndef	SHORTPRT
 	printf("no fs on dev %u/%u\n", major(dev), minor(dev));
+#else
+	printf("nfs %u\n",dev);
+#endif	SHORTPRT
 	return((struct filsys *) NULL);
 }
 

@@ -14,6 +14,9 @@
 #include <sys/proc.h>
 #endif
 #include <sys/inline.h>
+#ifdef	UCB_NET
+#include <sys/mbuf.h>
+#endif
 
 
 /*
@@ -73,10 +76,11 @@ register mode;
 #endif
 #ifdef  UCB_NET
 	if (fp->f_flag & FSOCKET) {
-		if (mode == FREAD)
+		if (mode == FREAD) {
 			u.u_error = soreceive(fp->f_socket, (struct sockaddr *)0);
-		else
+		} else {
 			u.u_error = sosend(fp->f_socket, (struct sockaddr *)0);
+		}
 	} else
 #endif
 		if((fp->f_flag & FPIPE) != 0) {

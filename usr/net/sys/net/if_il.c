@@ -112,7 +112,7 @@ ilattach(ui)
 	while ((addr->il_csr&IL_CDONE) == 0)
 		;
 	if (addr->il_csr&IL_STATUS)
-		printf("il%d: reset failed, csr=%b\n", ui->ui_unit,
+		printf("il%d:rf%b\n", ui->ui_unit,
 			addr->il_csr, IL_BITS);
 	
 	is->is_ubaddr = uballoc(ui->ui_ubanum, (caddr_t)&is->is_stats,
@@ -123,10 +123,10 @@ ilattach(ui)
 	while ((addr->il_csr&IL_CDONE) == 0)
 		;
 	if (addr->il_csr&IL_STATUS)
-		printf("il%d: status failed, csr=%b\n", ui->ui_unit,
+		printf("il%d:sf%b\n", ui->ui_unit,
 			addr->il_csr, IL_BITS);
 	ubarelse(ui->ui_ubanum, &is->is_ubaddr);
-	printf("il%d: addr=%x:%x:%x:%x:%x:%x module=%s firmware=%s\n",
+	printf("il%d:ad=%x:%x:%x:%x:%x:%x m=%s f=%s\n",
 		ui->ui_unit,
 		is->is_stats.ils_addr[0]&0xff, is->is_stats.ils_addr[1]&0xff,
 		is->is_stats.ils_addr[2]&0xff, is->is_stats.ils_addr[3]&0xff,
@@ -189,7 +189,7 @@ ilinit(unit)
 		goto justarp;
 	if (if_ubainit(&is->is_ifuba, ui->ui_ubanum,
 	    sizeof (struct il_rheader), (int)btoc(ILMTU)) == 0) { 
-		printf("il%d: can't initialize\n", unit);
+		printf("il%d:if\n", unit);
 		is->is_if.if_flags &= ~IFF_UP;
 		return;
 	}
@@ -263,7 +263,7 @@ ilstart(dev)
 		is->is_flags &= ~ILF_STATPENDING;
 		goto startcmd;
 	}
-	len = if_wubaput(&is->is_ifuba, m);
+	len = if_wubaput(&is->is_ifuba, m, 0);
 	/*
 	 * Ensure minimum packet length.
 	 * This makes the safe assumtion that there are no virtual holes
@@ -298,9 +298,9 @@ ilcint(unit)
 	short csr;
 	mapinfo map;
 
-	savemap(map);
+	Savemap(map);
 	if ((is->is_flags & ILF_OACTIVE) == 0) {
-		printf("il%d: stray xmit interrupt, csr=%b\n", unit,
+		printf("il%d:xint%b\n", unit,
 			addr->il_csr, IL_BITS);
 		goto out;
 	}
@@ -340,7 +340,7 @@ ilcint(unit)
 	}
 	ilstart(unit);
 out:
-	restormap(map);
+	Restormap(map);
 }
 
 /*
@@ -364,7 +364,7 @@ ilrint(unit)
 	u_char *ptr;
 	mapinfo map;
 
-	savemap(map);
+	Savemap(map);
 	is->is_if.if_ipackets++;
 	if (is->is_ifuba.ifu_flags & UBA_NEEDBDP)
 		UBAPURGE(is->is_ifuba.ifu_uba, is->is_ifuba.ifu_r.ifrw_bdp);
@@ -377,15 +377,15 @@ ilrint(unit)
 	len = il->ilr_length - sizeof(struct il_rheader);
 	ptr = il->ilr_shost;
 	/* if (unit == 1) {
-	printf("source addr = %x:%x:%x:%x:%x:%x len = %d\n",
+	printf("ad=%x:%x:%x:%x:%x:%x l=%d\n",
 	ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], len);
 	ptr = il->ilr_dhost;
-	printf("dest addr = %x:%x:%x:%x:%x:%x type = %x\n",
+	printf("dad=%x:%x:%x:%x:%x:%x t=%x\n",
 	ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], il->ilr_type);
 	} */
 	if ((il->ilr_status&(ILFSTAT_A|ILFSTAT_C)) || len < ILMIN || len > ILMTU){
 		is->is_if.if_ierrors++;
-		printf("il%d: packet error status = %x len = %d\n", unit,il->ilr_status,len);
+		printf("il%d:per s=%x l=%d\n", unit,il->ilr_status,len);
 #ifdef notdef
 		if (is->is_if.if_ierrors % 100 == 0)
 #endif
@@ -405,20 +405,20 @@ ilrint(unit)
 	    il->ilr_type < ILPUP_TRAIL+ILPUP_NTRAILER) {
 		off = (il->ilr_type - ILPUP_TRAIL) * 512;
 		if (off >= ILMTU) {
-			printf("off >= ILMTU\n");
+			printf("of>=ILMTU\n");
 			goto setup;		/* sanity */
 		}
 		il->ilr_type = ntohs(*ildataaddr(il, off, u_short *));
 		resid = ntohs(*(ildataaddr(il, off+2, u_short *)));
 		if (off + resid > len) {
-			printf("off + resid\n");
+			printf("of+rd\n");
 			goto setup;		/* sanity */
 		}
 		len = off + resid;
 	} else
 		off = 0;
 	if (len == 0) {
-		printf("il%d:(1)len=%d type=0x%x\n", unit, len, il->ilr_type);
+		printf("il%d:(1)l=%d t=%x\n", unit, len, il->ilr_type);
 		goto setup;
 	}
 
@@ -430,7 +430,7 @@ ilrint(unit)
 	 */
 	m = if_rubaget(&is->is_ifuba, len, off);
 	if (m == 0) {
-		printf("il%d:(2)m=%d len=%d type=0x%x\n", unit,m,len,il->ilr_type);
+		printf("il%d:(2)m=%d l=%d t=%x\n", unit,m,len,il->ilr_type);
 		goto setup;
 	}
 	if (off) {
@@ -452,7 +452,7 @@ ilrint(unit)
 #endif
 	default:
 		if (il->ilr_type != 0)
-  		printf("il%d:(3)len=%d type=0x%x\n", unit, len, il->ilr_type);
+  		printf("il%d:(3)l=%d t=%x\n", unit, len, il->ilr_type);
 		m_freem(m);
 		goto setup;
 	}
@@ -460,7 +460,7 @@ ilrint(unit)
 	if (IF_QFULL(inq)) {
 		IF_DROP(inq);
 		m_freem(m);
-		printf("QFULL\n");
+		printf("QF\n");
 		goto setup;
 	}
 	IF_ENQUEUE(inq, m);
@@ -482,7 +482,7 @@ setup:
 	while ((addr->il_csr & IL_CDONE) == 0)
 		;
 out:
-	restormap(map);
+	Restormap(map);
 }
 
 /*
@@ -544,7 +544,7 @@ iloutput(ifp, m0, dst)
 		goto gottype;
 
 	default:
-		printf("il%d: can't handle af%d\n", ifp->if_unit,
+		printf("il%d: ch af%d\n", ifp->if_unit,
 			dst->sa_family);
 		error = EAFNOSUPPORT;
 		goto bad;

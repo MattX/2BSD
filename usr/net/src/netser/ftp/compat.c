@@ -1,6 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <netdb.h>
 /*
  * Must not include ftp.h (which includes compat.h),

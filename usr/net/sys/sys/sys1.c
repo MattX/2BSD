@@ -668,7 +668,11 @@ exit(rv)
 		 * either.
 		 */
 		if (u.u_ssize == 0) {
+#ifndef	SHORTPRT
 			printf("Can't exec /etc/init\n");
+#else
+			printf("cxinit\n");
+#endif	SHORTPRT
 			for (;;)
 				idle();
 		}

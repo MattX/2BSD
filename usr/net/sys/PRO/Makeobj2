@@ -1,0 +1,259 @@
+# first phase of make check .o dependencies and remove them if they
+# need to be recompiled.
+R =	touch -c
+I =	/usr/include
+
+OFILE =	unix
+
+# move nami.o into the base segment if possible
+OV5 =	if_ec.o if_il.o if_sri.o if_uba.o in.o \
+	in_pcb.o ip_icmp.o ip_input.o \
+	ip_output.o raw_cb.o raw_imp.o if_qn.o if_dc.o
+OV6 =	ipc.o mbuf.o mbuf11.o proto.o socket.o socketsubr.o pty.o \
+	tcp_debug.o tcp_input.o
+OV7 =	af.o if.o if_loop.o if_imp.o \
+	if_imphost.o if_ether.o \
+	raw_ip.o raw_pup.o raw_usrreq.o \
+	tcp_output.o tcp_subr.o tcp_timer.o \
+	tcp_usrreq.o udp_usrreq.o in_cksum.o route.o
+
+#	boot.o must be loaded in the base well above 0 data
+
+#	l.o MUST be loaded first, param.o MUST be loaded last
+${OFILE}: ${OV5} ${OV6} ${OV7}
+	rm -f ${OFILE}
+
+.PRECIOUS: Makeobj2
+
+# DO NOT DELETE THIS LINE
+
+af.o: ../net/af.c
+af.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+af.o: ${I}/sys/socketvar.h ../net/af.h
+	${R} ../net/af.c
+if.o: ../net/if.c
+if.o: param.h ${I}/sys/systm.h ${I}/sys/socket.h ${I}/sys/protosw.h
+if.o: ${I}/sys/ioctl.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/errno.h
+if.o: ../net/in.h ../net/in_systm.h ../net/if.h ../net/af.h
+	${R} ../net/if.c
+if_loop.o: ../net/if_loop.c
+if_loop.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+if_loop.o: ../net/in.h ../net/in_systm.h ../net/if.h ../net/ip.h
+if_loop.o: ../net/ip_var.h ../net/route.h ${I}/errno.h
+	${R} ../net/if_loop.c
+if_imp.o: ../net/if_imp.c
+if_imp.o: imp.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_imp.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_imp.o: ../net/in.h ../net/in_systm.h ../net/if.h ../net/if_imp.h
+if_imp.o: ../net/if_imphost.h ../net/ip.h ../net/ip_var.h ../net/route.h
+if_imp.o: ${I}/errno.h
+	${R} ../net/if_imp.c
+if_imphost.o: ../net/if_imphost.c
+if_imphost.o: imp.h param.h ${I}/sys/mbuf.h ../net/in.h ../net/in_systm.h
+if_imphost.o: ../net/if_imp.h ../net/if_imphost.h
+	${R} ../net/if_imphost.c
+if_ether.o: ../net/if_ether.c
+if_ether.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+if_ether.o: ../net/if.h ../net/in.h ../net/if_il.h ../net/in_systm.h
+if_ether.o: ${I}/errno.h
+	${R} ../net/if_ether.c
+if_il.o: ../net/if_il.c
+if_il.o: il.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_il.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_il.o: ${I}/sys/ilreg.h ${I}/sys/ioctl.h ../net/in.h ../net/in_systm.h
+if_il.o: ../net/if.h ../net/if_il.h ../net/if_uba.h ../net/ip.h
+if_il.o: ../net/ip_var.h ../net/pup.h ../net/route.h ${I}/errno.h
+	${R} ../net/if_il.c
+if_sri.o: ../net/if_sri.c
+if_sri.o: sri.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_sri.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_sri.o: ../net/in.h ../net/in_systm.h ../net/if.h ../net/if_sri.h
+if_sri.o: ../net/if_imp.h ../net/if_uba.h
+	${R} ../net/if_sri.c
+if_uba.o: ../net/if_uba.c
+if_uba.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_uba.o: ${I}/sys/ubavar.h ${I}/sys/map.h ${I}/sys/uba.h
+if_uba.o: ${I}/sys/socket.h ../net/in.h ../net/in_systm.h ../net/if.h
+if_uba.o: ../net/if_uba.h
+	${R} ../net/if_uba.c
+in.o: ../net/in.c
+in.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+in.o: ${I}/sys/socketvar.h ../net/in.h ../net/in_systm.h ../net/if.h
+in.o: ../net/route.h ../net/af.h
+	${R} ../net/in.c
+in_pcb.o: ../net/in_pcb.c
+in_pcb.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+in_pcb.o: ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+in_pcb.o: ../net/in.h ../net/in_systm.h ../net/if.h ../net/route.h
+in_pcb.o: ../net/in_pcb.h ${I}/sys/protosw.h
+	${R} ../net/in_pcb.c
+ip_icmp.o: ../net/ip_icmp.c
+ip_icmp.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+ip_icmp.o: ${I}/sys/socket.h ../net/in.h ../net/in_systm.h ../net/ip.h
+ip_icmp.o: ../net/ip_icmp.h
+	${R} ../net/ip_icmp.c
+ip_input.o: ../net/ip_input.c
+ip_input.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+ip_input.o: ${I}/sys/socket.h ../net/in.h ../net/in_systm.h ../net/if.h
+ip_input.o: ../net/ip.h ../net/ip_var.h ../net/ip_icmp.h ../net/tcp.h
+ip_input.o: ${I}/errno.h
+	${R} ../net/ip_input.c
+ip_output.o: ../net/ip_output.c
+ip_output.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+ip_output.o: ${I}/sys/socketvar.h ../net/in.h ../net/in_systm.h
+ip_output.o: ../net/if.h ../net/ip.h ../net/ip_var.h ../net/route.h
+ip_output.o: ${I}/errno.h
+	${R} ../net/ip_output.c
+raw_cb.o: ../net/raw_cb.c
+raw_cb.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+raw_cb.o: ${I}/sys/socketvar.h ../net/in.h ../net/in_systm.h ../net/if.h
+raw_cb.o: ../net/raw_cb.h ../net/pup.h ${I}/errno.h
+	${R} ../net/raw_cb.c
+raw_imp.o: ../net/raw_imp.c
+raw_imp.o: imp.h param.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+raw_imp.o: ${I}/sys/protosw.h ${I}/sys/socketvar.h ../net/in.h
+raw_imp.o: ../net/in_systm.h ../net/if.h ../net/if_imp.h ../net/raw_cb.h
+raw_imp.o: ${I}/errno.h
+	${R} ../net/raw_imp.c
+raw_ip.o: ../net/raw_ip.c
+raw_ip.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/protosw.h
+raw_ip.o: ${I}/sys/socketvar.h ../net/if.h ../net/in.h ../net/in_systm.h
+raw_ip.o: ../net/ip.h ../net/ip_var.h ../net/raw_cb.h ../net/route.h
+raw_ip.o: ${I}/errno.h
+	${R} ../net/raw_ip.c
+raw_pup.o: ../net/raw_pup.c
+raw_pup.o: param.h ${I}/sys/mbuf.h ${I}/sys/socket.h ${I}/sys/protosw.h
+raw_pup.o: ${I}/sys/socketvar.h ../net/in.h ../net/in_systm.h
+raw_pup.o: ../net/pup.h ../net/raw_cb.h ../net/if.h ${I}/errno.h
+	${R} ../net/raw_pup.c
+raw_usrreq.o: ../net/raw_usrreq.c
+raw_usrreq.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+raw_usrreq.o: ${I}/sys/socket.h ${I}/sys/socketvar.h ../net/in.h
+raw_usrreq.o: ../net/in_systm.h ../net/if.h ../net/raw_cb.h ${I}/errno.h
+	${R} ../net/raw_usrreq.c
+route.o: ../net/route.c
+route.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/protosw.h
+route.o: ${I}/sys/socket.h ${I}/sys/ioctl.h ../net/in.h ../net/in_systm.h
+route.o: ../net/if.h ../net/af.h ../net/route.h ${I}/errno.h
+	${R} ../net/route.c
+tcp_debug.o: ../net/tcp_debug.c
+tcp_debug.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_debug.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ../net/in.h
+tcp_debug.o: ../net/route.h ../net/in_pcb.h ../net/in_systm.h ../net/if.h
+tcp_debug.o: ../net/ip.h ../net/ip_var.h ../net/tcp.h ../net/tcp_fsm.h
+tcp_debug.o: ../net/tcp_seq.h ../net/tcp_timer.h ../net/tcp_var.h
+tcp_debug.o: ../net/tcpip.h ../net/tcp_debug.h ${I}/errno.h
+	${R} ../net/tcp_debug.c
+tcp_input.o: ../net/tcp_input.c
+tcp_input.o: param.h ${I}/sys/systm.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+tcp_input.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+tcp_input.o: ../net/in.h ../net/route.h ../net/in_pcb.h ../net/in_systm.h
+tcp_input.o: ../net/if.h ../net/ip.h ../net/ip_var.h ../net/tcp.h
+tcp_input.o: ../net/tcp_fsm.h ../net/tcp_seq.h ../net/tcp_timer.h
+tcp_input.o: ../net/tcp_var.h ../net/tcpip.h ../net/tcp_debug.h
+tcp_input.o: ${I}/errno.h
+	${R} ../net/tcp_input.c
+tcp_output.o: ../net/tcp_output.c
+tcp_output.o: param.h ${I}/sys/systm.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+tcp_output.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+tcp_output.o: ../net/in.h ../net/route.h ../net/in_pcb.h
+tcp_output.o: ../net/in_systm.h ../net/ip.h ../net/ip_var.h ../net/tcp.h
+tcp_output.o: ../net/tcp_fsm.h ../net/tcp_seq.h ../net/tcp_timer.h
+tcp_output.o: ../net/tcp_var.h ../net/tcpip.h ../net/tcp_debug.h
+tcp_output.o: ${I}/errno.h
+	${R} ../net/tcp_output.c
+tcp_subr.o: ../net/tcp_subr.c
+tcp_subr.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_subr.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ../net/in.h
+tcp_subr.o: ../net/route.h ../net/in_pcb.h ../net/in_systm.h ../net/if.h
+tcp_subr.o: ../net/ip.h ../net/ip_var.h ../net/ip_icmp.h ../net/tcp.h
+tcp_subr.o: ../net/tcp_fsm.h ../net/tcp_seq.h ../net/tcp_timer.h
+tcp_subr.o: ../net/tcp_var.h ../net/tcpip.h ${I}/errno.h
+	${R} ../net/tcp_subr.c
+tcp_timer.o: ../net/tcp_timer.c
+tcp_timer.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_timer.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ../net/in.h
+tcp_timer.o: ../net/route.h ../net/in_pcb.h ../net/in_systm.h ../net/if.h
+tcp_timer.o: ../net/ip.h ../net/ip_var.h ../net/tcp.h ../net/tcp_fsm.h
+tcp_timer.o: ../net/tcp_seq.h ../net/tcp_timer.h ../net/tcp_var.h
+tcp_timer.o: ../net/tcpip.h ${I}/errno.h
+	${R} ../net/tcp_timer.c
+if_ec.o: ../net/if_ec.c
+if_ec.o: ec.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_ec.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_ec.o: ${I}/sys/ecreg.h ${I}/sys/ioctl.h ../net/in.h ../net/in_systm.h
+if_ec.o: ../net/if.h ../net/if_ec.h ../net/if_uba.h ../net/ip.h
+if_ec.o: ../net/ip_var.h ../net/pup.h ../net/route.h ${I}/errno.h
+	${R} ../net/if_ec.c
+if_qn.o: ../net/if_qn.c
+if_qn.o: qn.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_qn.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_qn.o: ${I}/sys/qnreg.h ${I}/sys/ioctl.h ../net/in.h ../net/in_systm.h
+if_qn.o: ../net/if.h ../net/if_ether.h ../net/if_uba.h ../net/ip.h
+if_qn.o: ../net/ip_var.h ../net/pup.h ../net/route.h ${I}/errno.h
+	${R} ../net/if_qn.c
+if_dc.o: ../net/if_dc.c
+if_dc.o: dc.h param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/buf.h
+if_dc.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/ubavar.h
+if_dc.o: ${I}/sys/dcreg.h ${I}/sys/ioctl.h ../net/in.h ../net/in_systm.h
+if_dc.o: ../net/if.h ../net/if_ether.h ../net/if_uba.h ../net/ip.h
+if_dc.o: ../net/ip_var.h ../net/pup.h ../net/route.h ${I}/errno.h
+	${R} ../net/if_dc.c
+tcp_usrreq.o: ../net/tcp_usrreq.c
+tcp_usrreq.o: param.h ${I}/sys/systm.h ${I}/sys/mbuf.h ${I}/sys/socket.h
+tcp_usrreq.o: ${I}/sys/socketvar.h ${I}/sys/protosw.h ../net/in.h
+tcp_usrreq.o: ../net/route.h ../net/in_pcb.h ../net/in_systm.h
+tcp_usrreq.o: ../net/if.h ../net/ip.h ../net/ip_var.h ../net/tcp.h
+tcp_usrreq.o: ../net/tcp_fsm.h ../net/tcp_seq.h ../net/tcp_timer.h
+tcp_usrreq.o: ../net/tcp_var.h ../net/tcpip.h ../net/tcp_debug.h
+tcp_usrreq.o: ${I}/errno.h
+	${R} ../net/tcp_usrreq.c
+udp_usrreq.o: ../net/udp_usrreq.c
+udp_usrreq.o: param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/mbuf.h
+udp_usrreq.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+udp_usrreq.o: ../net/in.h ../net/if.h ../net/route.h ../net/in_pcb.h
+udp_usrreq.o: ../net/in_systm.h ../net/ip.h ../net/ip_var.h
+udp_usrreq.o: ../net/ip_icmp.h ../net/udp.h ../net/udp_var.h ${I}/errno.h
+	${R} ../net/udp_usrreq.c
+in_cksum.o: ../net/in_cksum.c
+in_cksum.o: param.h ${I}/sys/mbuf.h ../net/in.h ../net/in_systm.h
+in_cksum.o: ${I}/sys/types.h
+	${R} ../net/in_cksum.c
+ipc.o: ../sys/ipc.c
+ipc.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+ipc.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/buf.h
+ipc.o: ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+ipc.o: ${I}/sys/socketvar.h ../net/in.h ../net/in_systm.h
+	${R} ../sys/ipc.c
+mbuf.o: ../sys/mbuf.c
+mbuf.o: param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/proc.h
+mbuf.o: ${I}/sys/mbuf.h ../net/in_systm.h
+	${R} ../sys/mbuf.c
+mbuf11.o: ../sys/mbuf11.c
+mbuf11.o: param.h ${I}/sys/seg.h ${I}/sys/mbuf.h ../net/in_systm.h
+	${R} ../sys/mbuf11.c
+proto.o: ../sys/proto.c
+proto.o: param.h ${I}/sys/socket.h ${I}/sys/protosw.h ${I}/sys/mbuf.h
+proto.o: ../net/in.h ../net/in_systm.h imp.h pup.h
+	${R} ../sys/proto.c
+socket.o: ../sys/socket.c
+socket.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+socket.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/buf.h
+socket.o: ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+socket.o: ${I}/sys/socketvar.h ${I}/sys/stat.h ${I}/sys/ioctl.h
+socket.o: ../net/in.h ../net/in_systm.h ../net/route.h
+	${R} ../sys/socket.c
+socketsubr.o: ../sys/socketsubr.c
+socketsubr.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h ${I}/sys/user.h
+socketsubr.o: ${I}/sys/proc.h ${I}/sys/file.h ${I}/sys/inode.h
+socketsubr.o: ${I}/sys/buf.h ${I}/sys/seg.h ${I}/sys/mbuf.h
+socketsubr.o: ${I}/sys/protosw.h ${I}/sys/socket.h ${I}/sys/socketvar.h
+socketsubr.o: ../net/in.h ../net/in_systm.h
+	${R} ../sys/socketsubr.c
+pty.o: ../dev/pty.c
+pty.o: pty.h param.h ${I}/sys/systm.h ${I}/sys/tty.h ${I}/sys/dir.h
+pty.o: ${I}/sys/user.h ${I}/sys/conf.h ${I}/sys/buf.h ${I}/sys/file.h
+	${R} ../dev/pty.c
+# DEPENDENCIES MUST END HERE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

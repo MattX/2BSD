@@ -26,20 +26,38 @@
 #include "../net/tcp_debug.h"
 #include <errno.h>
 
-int     tcpconsdebug = 1;
+/* #define TCPDEBUG	1		/* Define to run trace */
+u_int	tcpbase;
+#ifdef	TCPDEBUG
+u_int	tcpsize = (TCP_NDEBUG*TCP_DSIZ);
+#else
+u_int	tcpsize = 0;
+#endif
+int     tcpconsdebug = 0;
+#define	TCPSEG	(((btoc(TCP_NDEBUG*TCP_DSIZ)-1)<<8)|RW)
 /*
  * Tcp debug routines
  */
+
 tcp_trace(act, ostate, tp, ti, req)
 	short act, ostate;
 	struct tcpcb *tp;
 	struct tcpiphdr *ti;
 	int req;
 {
+#ifndef	TCPDEBUG
+	return;
+}
+#else
 	tcp_seq seq, ack;
 	int len, flags;
-	struct tcp_debug *td = &tcp_debug[tcp_debx++];
+	struct tcp_debug *td;
+	segm save;
 
+	saveseg5(save);
+	mapseg5(tcpbase, TCPSEG);
+	td = ((struct tcp_debug *) 0120000);
+	td += tcp_debx++;
 	if (tcp_debx == TCP_NDEBUG)
 		tcp_debx = 0;
 	td->td_time = iptime();
@@ -55,12 +73,13 @@ tcp_trace(act, ostate, tp, ti, req)
 	else
 		bzero((caddr_t)&td->td_ti, sizeof (*ti));
 	td->td_req = req;
+	restorseg5(save);
 	if (tcpconsdebug == 0)
 		return;
 	if (tp)
 		printf("%x %s:", tp, tcpstates[ostate]);
 	else
-		printf("???????? ");
+		printf("? ");
 	printf("%s ", tanames[act]);
 	switch (act) {
 
@@ -101,13 +120,14 @@ tcp_trace(act, ostate, tp, ti, req)
 		break;
 	}
 	if (tp)
-		printf(" -> %s", tcpstates[tp->t_state]);
+		printf("->%s", tcpstates[tp->t_state]);
 	/* print out internal state of tp !?! */
 	printf("\n");
 	if (tp == 0 || tcpconsdebug == 2)
 		return;
-	printf("\trcv_(nxt,wnd) (%X,%x) snd_(una,nxt,max) (%X,%X,%X)\n",
+	printf("\tr(%X,%x) s(%X,%X,%X)\n",
 	    tp->rcv_nxt, tp->rcv_wnd, tp->snd_una, tp->snd_nxt, tp->snd_max);
-	printf("\tsnd_(wl1,wl2,wnd) (%X,%X,%x)\n",
+	printf("\ts(%X,%X,%x)\n",
 	    tp->snd_wl1, tp->snd_wl2, tp->snd_wnd);
 }
+#endif

@@ -48,12 +48,21 @@ gsignal(pgrp, sig)
 register pgrp;
 {
 	register struct proc *p;
+#if !defined(NOKA5) && defined(UCB_NET)
+	mapinfo save;
+#endif
 
 	if(pgrp == 0)
 		return;
+#if !defined(NOKA5) && defined(UCB_NET)
+	savemap(save);
+#endif
 	for(p = &proc[0]; p <= maxproc; p++)
 		if(p->p_pgrp == pgrp)
 			psignal(p, sig);
+#if !defined(NOKA5) && defined(UCB_NET)
+	restormap(save);
+#endif
 }
 
 /*
@@ -64,15 +73,24 @@ psignal(p, sig)
 register struct proc *p;
 register sig;
 {
+#if !defined(NOKA5) && defined(UCB_NET)
+	mapinfo save;
+#endif
 
 	if((unsigned)sig >= NSIG)
 		return;
+#if !defined(NOKA5) && defined(UCB_NET)
+	savemap(save);
+#endif
 	if(sig)
 		p->p_sig |= 1<<(sig-1);
 	if(p->p_pri > PUSER)
 		p->p_pri = PUSER;
 	if(p->p_stat == SSLEEP && p->p_pri > PZERO)
 		setrun(p);
+#if !defined(NOKA5) && defined(UCB_NET)
+	restormap(save);
+#endif
 }
 
 /*

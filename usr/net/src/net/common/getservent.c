@@ -7,7 +7,7 @@
 
 #define	MAXALIASES	35
 
-static char SERVDB[] = "/usr/lib/services";
+static char SERVDB[] = "/etc/services";
 static FILE *servf = NULL;
 static char line[BUFSIZ+1];
 static struct servent serv;
@@ -61,7 +61,7 @@ again:
 	if (cp == NULL)
 		goto again;
 	*cp++ = '\0';
-	serv.s_port = atoi(p);
+	serv.s_port = htons(atoi(p));
 	serv.s_proto = cp;
 	cp = any(cp, " \t");
 	if (cp != NULL)

@@ -6,7 +6,7 @@ static char sccsid[] = "@(#)rlogind.c	4.2 82/10/07";
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <pwd.h>
 #include <wait.h>
@@ -57,7 +57,7 @@ main(argc, argv)
 	  }
 	}
 #endif
-	sin.sin_port = htons(sp->s_port);
+	sin.sin_port = sp->s_port;
 	argc--, argv++;
 	if (argc > 0 && !strcmp(argv[0], "-d"))
 		options |= SO_DEBUG, argv++, argc--;
@@ -247,7 +247,7 @@ gotpty:
 	dup2(t, 1);
 	dup2(t, 2);
 	close(t);
-#if	!pdp11
+#if	pdp11
 	execl("/bin/login", "login", "-r", hp->h_name, 0);
 #else
 	execl("/etc/getty", "-", line, 0);

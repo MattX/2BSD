@@ -5,7 +5,7 @@ static char sccsid[] = "@(#)rcmd.c	4.2 82/10/07";
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <netdb.h>
 

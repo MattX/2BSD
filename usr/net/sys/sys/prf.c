@@ -200,7 +200,11 @@ register char *s;
 tablefull(tab)
 char	*tab;
 {
+#ifndef	SHORTPRT
 	printf("%s: table is full\n", tab);
+#else
+	printf("%s:tfl\n", tab);
+#endif	SHORTPRT
 }
 
 /*
@@ -211,7 +215,11 @@ harderr(bp, cp)
 struct buf *bp;
 char *cp;
 {
+#ifndef	SHORTPRT
 	printf("%s%d%c: hard error bn %D ", cp,
+#else
+	printf("%s%d%c:her bn%D ", cp,
+#endif	SHORTPRT
 	     dkunit(bp), 'a' + (minor(bp->b_dev) & 07), bp->b_blkno);
 }
 
@@ -247,7 +255,11 @@ register struct buf *bp;
 				fp = &mp->m_filsys;
 				fserr(fp, "err");
 			}
+#ifndef	SHORTPRT
 	printf("err on dev %u/%u\n", major(bp->b_dev), minor(bp->b_dev));
+#else
+	printf("erd %u/%u\n", major(bp->b_dev), minor(bp->b_dev));
+#endif	SHORTPRT
 	printf("bn=%D er=%o,%o\n", bp->b_blkno, o1, o2);
 }
 #endif	UCB_DEVERR

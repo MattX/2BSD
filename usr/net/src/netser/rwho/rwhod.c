@@ -5,7 +5,7 @@ static char sccsid[] = "@(#)rwhod.c	4.4 82/10/10";
 #include <stdio.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <errno.h>
 #include <utmp.h>
@@ -25,7 +25,7 @@ long	time();
 
 extern	errno;
 
-char	*localnet = "localnet";
+char	*localnet = "goo-net";
 char	myname[33];
 struct hostent *thishost;
 struct netent *thisnet;
@@ -46,6 +46,7 @@ char	*strcpy(), *sprintf();
 long	lseek();
 int	getkmem();
 
+#define	WHDRSIZE	(sizeof (mywd) - sizeof(mywd.wd_we))
 main()
 {
 	struct sockaddr_in from;
@@ -53,15 +54,12 @@ main()
 	int addr;
 	struct servent *sp;
 
-	gethostname(myname, sizeof myname);
+	gethostname(myname, sizeof(myname));
 	sp = getservbyname("who", "udp");
 	if (sp == 0) {
 		fprintf(stderr, "rwhod: udp/who: unknown service\n");
 		exit(1);
 	}
-#if vax || pdp11
-	sp->s_port = htons(sp->s_port);
-#endif
 	sin.sin_port = sp->s_port;
 #ifndef DEBUG
 	if (fork())
@@ -99,6 +97,9 @@ main()
 	sin.sin_addr.s_addr = thisnet->n_net;
 #endif
 	strncpy(mywd.wd_hostname, myname, sizeof (mywd.wd_hostname) - 1);
+	/* Version and type compatible with 4.2bsd */
+	mywd.wd_vers = 01;
+	mywd.wd_type = 01;
 	utmpf = open("/etc/utmp", 0);
 	if (utmpf < 0) {
 		(void) close(creat("/etc/utmp", 0644));
@@ -116,9 +117,6 @@ again:
 		goto again;
 	}
 	sin.sin_addr = inet_makeaddr(thisnet->n_net,(long)INADDR_ANY);
-#if	vax || pdp11
-	sin.sin_addr.s_addr = htonl(sin.sin_addr.s_addr);
-#endif
 	sigset(SIGALRM, onalrm);
 	onalrm();
 	for (;;) {
@@ -148,13 +146,32 @@ again:
 				from.sin_addr);
 			continue;
 		}
-		(void) sprintf(path, "/etc/whod.%s", wd.wd_hostname);
+		(void) sprintf(path, "/usr/spool/rwho/whod.%s", wd.wd_hostname);
 		whod = creat(path, 0666);
 		if (whod < 0) {
 			fprintf(stderr, "rwhod: ");
 			perror(path);
 			continue;
 		}
+#if vax || pdp11
+		{
+			int i, n = (cc - WHDRSIZE)/sizeof(struct whoent);
+			struct whoent *we;
+
+			/* undo header byte swapping before writing to file */
+			wd.wd_sendtime = ntohl(wd.wd_sendtime);
+			for (i = 0; i < 3; i++)
+				wd.wd_loadav[i] = ntohl(wd.wd_loadav[i]);
+			wd.wd_bootime = ntohl(wd.wd_bootime);
+			we = wd.wd_we;
+			for (i = 0; i < n; i++) {
+				we->we_idle = ntohl(we->we_idle);
+				we->we_utmp.ut_time =
+				    ntohl(we->we_utmp.ut_time);
+				we++;
+			}
+		}
+#endif
 		(void) time(&wd.wd_recvtime);
 		(void) write(whod, (char *)&wd, cc);
 		(void) close(whod);
@@ -209,6 +226,7 @@ onalrm()
 		for (i = 0; i < utmpent; i++)
 			if (utmp[i].ut_name[0]) {
 				we->we_utmp = utmp[i];
+				we->we_utmp.ut_time = htonl(utmp[i].ut_time);
 				if (we >= wlast)
 					break;
 				we++;
@@ -218,15 +236,17 @@ onalrm()
 	we = mywd.wd_we;
 	for (i = 0; i < utmpent; i++) {
 		if (stat(we->we_utmp.ut_line, &stb) >= 0)
-			we->we_idle = now - stb.st_atime;
+			we->we_idle = htonl(now - stb.st_atime);
 		we++;
 	}
 	(void) lseek(kmemf, (long)nl[NL_AVENRUN].n_value, 0);
 	(void) read(kmemf, (char *)avenrun, sizeof (avenrun));
 	for (i = 0; i < 3; i++)
-		mywd.wd_loadav[i] = (long)avenrun[i] * 100L;
+		mywd.wd_loadav[i] = htonl((long)((avenrun[i]/256.0)*100L));
 	cc = (char *)we - (char *)&mywd;
-	(void) time(&mywd.wd_sendtime);
+	mywd.wd_sendtime = htonl(time(0));
+	mywd.wd_vers = 1;
+	mywd.wd_type = 1;
 	send(s, &sin, (char *)&mywd, cc);
 	(void) alarm(60);
 }
@@ -257,4 +277,5 @@ loop:
 	}
 	(void) lseek(kmemf, (long)nl[NL_BOOTIME].n_value, 0);
 	(void) read(kmemf, (char *)&mywd.wd_bootime, sizeof (mywd.wd_bootime));
+	mywd.wd_bootime = htonl(mywd.wd_bootime);
 }

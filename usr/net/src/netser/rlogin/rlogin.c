@@ -6,7 +6,7 @@ static char sccsid[] = "@(#)rlogin.c	4.2 82/04/06";
 #include <sgtty.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <pwd.h>
 
@@ -156,6 +156,7 @@ cumain()
 	mode(1);
 	efk = fk;
 	wr();
+	signal(SIGCHLD, SIG_IGN);
 	if (fk != -1) kill(fk, SIGKILL);
 	prf("Disconnected.");
 	done();
@@ -191,7 +192,7 @@ wr()
 			if (p == b+1 && b[0] == cmdchar) lcl=(c!=cmdchar);
 			if (!lcl) {
 				c = oc;
-				if (wrc(rem) == 0) {
+				if (wrc(rem) <= 0) {
 					prf("line gone"); return;
 				}
 				if (eight == 0)

@@ -8,7 +8,7 @@ static char sccsid[] = "@(#)routed.c	4.25 10/8/82";
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <net/if.h>
 #include <errno.h>
 #include <stdio.h>
@@ -123,8 +123,8 @@ main(argc, argv)
 		fprintf(stderr, "routed: udp/router: unknown service\n");
 		exit(1);
 	}
-	routingaddr.sin_port = htons(sp->s_port);
-	noroutingaddr.sin_port = htons(sp->s_port + 1);
+	routingaddr.sin_port = sp->s_port;
+	noroutingaddr.sin_port = htons(ntohs(sp->s_port)+1);
 again:
 	s = socket(SOCK_DGRAM, 0, &routingaddr, SO_ACCEPTCONN);
 	if (s < 0) {

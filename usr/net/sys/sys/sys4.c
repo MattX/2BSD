@@ -68,6 +68,9 @@ stime()
 		uap = (struct a *)u.u_ap;
 		bootime += uap->time - time;
 		time = uap->time;
+#if	PDP11 == 21 || PDP11 == 71
+		sdtime();
+#endif
 	}
 }
 

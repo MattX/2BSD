@@ -13,6 +13,9 @@
 #include <sys/inode.h>
 #include <sys/reg.h>
 #include <sys/acct.h>
+#ifdef	UCB_NET
+#include <sys/mbuf.h>
+#endif
 
 /*
  * Convert a user supplied

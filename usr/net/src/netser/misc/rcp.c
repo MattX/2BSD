@@ -7,7 +7,8 @@ static char sccsid[] = "@(#)rcp.c	4.3 82/05/09";
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <net/in.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <pwd.h>
 #include <ctype.h>
 #include <errno.h>

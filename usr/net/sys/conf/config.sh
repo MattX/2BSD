@@ -33,6 +33,8 @@ dumproutine="UNSPECIFIED"
 NBK=0 NDH=0 NDM=0 LOWDM=0 NDN=0 NDZ=0 NHK=0 NHP=0
 NHS=0 NHT=0 NKL=1 NLP=0 NRF=0 NRK=0 NRL=0
 NRM=0 NRP=0 NTM=0 NTS=0 NVP=0 NXP=0 NXP_CONTROLLER=0
+NCN=0 NPC=0 NRD=0 NR5=0 NRA=0
+NIMP=0 NIL=0 NEC=0 NQN=0 NSRI=0 NPUP=0 NPTY=0
 
 machine=$1
 
@@ -44,12 +46,12 @@ case $pdp11 in
 		splfix=:splfix.movb
 		makefile=Ovmakefile
 		;;
-	34|23|24)
-		splfix=:splfix.mtps
+	34|23|24|22|21)
+		splfix=:splfix.net23
 		makefile=Ovmakefile
 		;;
-	44|45|70)
-		splfix=:splfix.spl
+	44|45|70|71)
+		splfix=:splfix.net
 		makefile=Makefile
 		;;
 	*)
@@ -57,11 +59,6 @@ case $pdp11 in
 		exit 1
 		;;
 esac
-if [ $NKL -lt 1 ]
-then
-	echo "NKL must be at least one (for the console)"
-	exit 1
-fi
 
 if [ -d ../$machine ]
 then
@@ -78,14 +75,18 @@ cp c.c genassym.c ioconf.c l.s param.c ../$machine
 cp whoami.h localopts.h param.h ../$machine
 cp bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h ../$machine
 cp rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h ../$machine
+cp rd.h ra.h r5.h pc.h cn.h ../$machine
+cp pty.h pup.h imp.h sri.h il.h ec.h qn.h dc.h ../$machine
 cp :comm-to-bss $splfix ../$machine
-cp Depend newvers.sh checksys.c ../$machine
+cp Objdep1 Objdep2 Depend newvers.sh checksys.c ../$machine
 chmod 664 ../$machine/param.h
 
 : copy in the cpu-dependent files and modify as necessary
 
 echo "Setting up boot.s, Makefile, whoami.h, param.c, ioconf.c."
 cp $makefile ../$machine/Makefile
+cp Makeobj1 ../$machine/Makeobj1
+cp Makeobj2 ../$machine/Makeobj2
 if [ $bootdev = "none" ]
 then
 	bootdev="no"
@@ -101,7 +102,7 @@ q
 EOF
 
 chmod 664 ../$machine/whoami.h 
-ex - ../$machine/whoami.h << EOF
+ed - ../$machine/whoami.h << EOF
 /%PDP%/s//$pdp11/
 /%IDENT%/s//$ident/
 /%ident%/s//\L$ident/
@@ -134,7 +135,7 @@ EOF
 :  Now edit all of the device header files.
 
 echo "Setting up device header files."
-for hd in bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h 
+for hd in bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h  rd.h r5.h ra.h pc.h cn.h imp.h sri.h il.h qn.h ec.h pup.h pty.h dc.h
 do
 	chmod 664 ../$machine/$hd
 done
@@ -229,6 +230,71 @@ EOF
 ed - ../$machine/xp.h << EOF
 /%NXP%/s//$NXP/
 /%NXP_CONTROLLER%/s//$NXP_CONTROLLER/
+w
+q
+EOF
+ed - ../$machine/rd.h << EOF
+/%NRD%/s//$NRD/
+w
+q
+EOF
+ed - ../$machine/r5.h << EOF
+/%NR5%/s//$NR5/
+w
+q
+EOF
+ed - ../$machine/ra.h << EOF
+/%NRA%/s//$NRA/
+w
+q
+EOF
+ed - ../$machine/cn.h << EOF
+/%NCN%/s//$NCN/
+w
+q
+EOF
+ed - ../$machine/pc.h << EOF
+/%NPC%/s//$NPC/
+w
+q
+EOF
+ed - ../$machine/imp.h << EOF
+/%NIMP%/s//$NIMP/
+w
+q
+EOF
+ed - ../$machine/sri.h << EOF
+/%NSRI%/s//$NSRI/
+w
+q
+EOF
+ed - ../$machine/il.h << EOF
+/%NIL%/s//$NIL/
+w
+q
+EOF
+ed - ../$machine/qn.h << EOF
+/%NQN%/s//$NQN/
+w
+q
+EOF
+ed - ../$machine/dc.h << EOF
+/%NDC%/s//$NDC/
+w
+q
+EOF
+ed - ../$machine/ec.h << EOF
+/%NEC%/s//$NEC/
+w
+q
+EOF
+ed - ../$machine/pup.h << EOF
+/%NPUP%/s//$NPUP/
+w
+q
+EOF
+ed - ../$machine/pty.h << EOF
+/%NPTY%/s//$NPTY/
 w
 q
 EOF

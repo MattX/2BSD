@@ -76,11 +76,17 @@ register int sig;
 	int s;
 	register int (*action)();
 	long sigmask;
+#if !defined(NOKA5) && defined(UCB_NET)
+	mapinfo save;
+#endif
 
 	if((unsigned)sig >= NSIG)
 		return;
 	sigmask = (1L << (sig-1));
 
+#if !defined(NOKA5) && defined(UCB_NET)
+	savemap(save);
+#endif
 	/*
 	 * If proc is traced, always give parent a chance.
 	 * Otherwise get the signal action from the bits in the proc table.
@@ -102,8 +108,12 @@ register int sig;
 		/*
 		 * If the signal is ignored, we forget about it immediately.
 		 */
-		if (action == SIG_IGN)
+		if (action == SIG_IGN) {
+#if !defined(NOKA5) && defined(UCB_NET)
+			restormap(save);
+#endif
 			return;
+		}
 	}
 #define mask(sig) (1L<<(sig-1))
 #define stops	(mask(SIGSTOP)|mask(SIGTSTP)|mask(SIGTTIN)|mask(SIGTTOU))
@@ -128,8 +138,12 @@ register int sig;
 	/*
 	 * Defer further processing for signals which are held.
 	 */
-	if (action == SIG_HOLD)
+	if (action == SIG_HOLD) {
+#if !defined(NOKA5) && defined(UCB_NET)
+		restormap(save);
+#endif
 		return;
+	}
 	s = spl6();
 	switch (p->p_stat) {
 
@@ -168,6 +182,12 @@ register int sig;
 			if (sig != SIGSTOP && p->p_pptr == &proc[1]) {
 				psignal(p, SIGKILL);
 				p->p_sig &= ~sigmask;
+#ifndef	notdef
+				splx(s);
+#endif
+#if !defined(NOKA5) && defined(UCB_NET)
+				restormap(save);
+#endif
 				return;
 			}
 #ifdef	VIRUS_VFORK
@@ -272,6 +292,9 @@ run:
 	setrun(p);
 out:
 	splx(s);
+#if !defined(NOKA5) && defined(UCB_NET)
+	restormap(save);
+#endif
 }
 
 /*

@@ -8,7 +8,7 @@ static char sccsid[] = "@(#)glob.c	4.1 1/14/83";
 
 #include <sys/param.h>
 #include <sys/stat.h>
-#if TCP4_1a
+#ifdef TCP4_1a
 #include <ndir.h>
 #else
 #include <sys/dir.h>

@@ -58,7 +58,11 @@ caddr_t chan;
 	struct proc *q;
 #endif
 	register s;
+#ifdef	UCB_NET
+	mapinfo save;
 
+	savemap(save);
+#endif
 	rp = u.u_procp;
 	s = spl6();
 #ifdef	MENLO_JCL
@@ -86,7 +90,11 @@ caddr_t chan;
 	 */
 	for(q=slpque[h]; q!=NULL; q=q->p_link)
 		if(q == rp) {
+#ifndef	SHORTPRT
 			printf("proc asleep %d\n", rp->p_pid);
+#else
+			printf("slp %d\n", rp->p_pid);
+#endif	SHORTPRT
 			goto cont;
 		}
 	rp->p_link = slpque[h];
@@ -137,6 +145,9 @@ cont:
 out:
 #endif
 	splx(s);
+#ifdef	UCB_NET
+	restormap(save);
+#endif
 	return;
 
 	/*
@@ -147,6 +158,9 @@ out:
 	 * (see trap.c)
 	 */
 psig:
+#ifdef	UCB_NET
+	restormap(save);
+#endif
 	resume(u.u_procp->p_addr, u.u_qsav);
 	/*NOTREACHED*/
 }
@@ -235,7 +249,11 @@ struct proc *p;
 #ifdef	DIAGNOSTIC
 	for(q=runq; q!=NULL; q=q->p_link)
 		if(q == p) {
+#ifndef	SHORTPRT
 			printf("proc on q\n");
+#else
+			printf("poq\n");
+#endif	SHORTPRT
 			goto out;
 		}
 #endif
@@ -626,6 +644,10 @@ swtch()
 	extern struct buf *hasmap;
 	if(hasmap != (struct buf *)0)
 		panic("swtch hasmap");
+	if (*KDSA5 != seg5.se_addr) {
+		printf("swtch not nseg5=%o\n",*KDSA5);
+		normalseg5();
+	}
 #endif
 	/*
 	 * If not the idle process, resume the idle process.

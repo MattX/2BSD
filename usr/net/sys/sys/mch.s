@@ -347,6 +347,9 @@ _halt:
 
 	.globl	_etext, _main, start
 #ifdef	MENLO_KOV
+#ifdef	BIGKOV
+	.globl	ova1, ovd1
+#endif	BIGKOV
 	.globl	ovend, ova, ovd
 #endif
 
@@ -583,6 +586,13 @@ call:
 	.globl	_cnt
 	inc	_cnt+V_INTR		/ count device interrupts
 #endif UCB_METER
+#if	PDP11==21 || PDP11==71
+/	This reprimes the pro's clock chip for interrupts
+/	If this is done in clock(), there is an intermittent
+/	clock hang due to a lost interrupt
+clkclr:	tst	*$173030
+	bne	clkclr
+#endif
 #ifdef	MENLO_KOV
 	mov	6(sp), -(sp)
 #else
@@ -623,6 +633,10 @@ call:
 	asl	r0
 	mov	ova(r0), OVLY_PAR
 	mov	ovd(r0), OVLY_PDR
+#ifdef	BIGKOV
+	mov	ova1(r0), OVLY_PA1
+	mov	ovd1(r0), OVLY_PD1
+#endif	BIGKOV
 	mov	(sp)+,PS		/ restore PS, unmask interrupts
 1:
 #endif	MENLO_KOV
@@ -768,6 +782,10 @@ dzdma:
 	asl	r0
 	mov	ova(r0), OVLY_PAR
 	mov	ovd(r0), OVLY_PDR
+#ifdef	BIGKOV
+	mov	ova1(r0), OVLY_PA1
+	mov	ovd1(r0), OVLY_PD1
+#endif	BIGKOV
 1:
 #endif
 	mov	(sp)+, r0
@@ -1461,6 +1479,10 @@ _resume:
 	asl	r0
 	mov	ova(r0), OVLY_PAR
 	mov	ovd(r0), OVLY_PDR
+#ifdef	BIGKOV
+	mov	ova1(r0), OVLY_PA1
+	mov	ovd1(r0), OVLY_PD1
+#endif	BIGKOV
 1:
 #endif	MENLO_KOV
 	mov	$1,r0
@@ -1476,31 +1498,55 @@ _resume:
  *	are always expanded in-line and do not return the previous priority.
  */
 
-#if	defined(KERN_NONSEP) && PDP11 != 34 && PDP11 != 23 && PDP11 != 24
+#if	defined(KERN_NONSEP) && PDP11 > 34
 	/  Spl's for machines (like 11/40) without spl or m[tf]ps instructions.
 	.globl	_spl0, _spl1, _spl4, _spl5, _spl6, _spl7
 _spl0:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	clrb	PS
 	rts	pc
 _spl1:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	movb	$40, PS
 	rts	pc
 _spl4:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	movb	$200, PS
 	rts	pc
 _spl5:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	movb	$240, PS
 	rts	pc
 _spl6:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	movb	$300, PS
 	rts	pc
 _spl7:
+#ifdef	UCB_NET
+	mov	PS,r0
+#else
 	movb	PS,r0
+#endif
 	movb	$HIPRI, PS
 	rts	pc
 #endif
@@ -2167,6 +2213,10 @@ cret:
 	asl	r4
 	mov	ova(r4), OVLY_PAR
 	mov	ovd(r4), OVLY_PDR
+#ifdef	BIGKOV
+	mov	ova1(r4), OVLY_PA1
+	mov	ovd1(r4), OVLY_PD1
+#endif	BIGKOV
 	mov	(sp)+,PS			/ restore PS, unmask interrupts
 	/ Could measure switches[ovno][r4]++ here.
 	jmp	2b
@@ -2221,6 +2271,10 @@ ovhndlr:
 	asl	r0
 	mov	ova(r0), OVLY_PAR
 	mov	ovd(r0), OVLY_PDR
+#ifdef	BIGKOV
+	mov	ova1(r0), OVLY_PA1
+	mov	ovd1(r0), OVLY_PD1
+#endif	BIGKOV
 	mov	(sp)+,PS		/ restore PS, unmask interrupts
 	jbr	1b
 #endif	MENLO_KOV

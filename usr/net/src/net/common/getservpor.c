@@ -9,6 +9,7 @@ getservbyport(port, proto)
 {
 	register struct servent *p;
 
+	port = htons(port);
 	setservent(0);
 	while (p = getservent()) {
 		if (p->s_port != port)

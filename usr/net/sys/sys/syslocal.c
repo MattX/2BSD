@@ -174,6 +174,9 @@ struct inode *ub;
 	register struct dinode *dp;
 	register struct buf *bp;
 	struct qstat qs, *qp;
+#ifdef	IOUT
+	ino_t t_number;
+#endif
 
 #ifdef UCB_FSFIX
 	iupdat(ip, &time, &time, 0);
@@ -191,8 +194,15 @@ struct inode *ub;
 	 * next the dates in the disk
 	 */
 	bp = bread(ip->i_dev, itod(ip->i_number));
+#ifdef	IOUT
+	t_number = ip->i_number;
+#endif
 	dp = (struct dinode *) mapin(bp);
+#ifdef	IOUT
+	dp += itoo(t_number);
+#else
 	dp += itoo(ip->i_number);
+#endif
 	qs.qs_atime = dp->di_atime;
 	qs.qs_mtime = dp->di_mtime;
 	qs.qs_ctime = dp->di_ctime;
@@ -481,9 +491,11 @@ ucall()
 
 extern	u_long LocalAddr;	/* Generic local net address	*/
 
+#ifdef	notdef
 int	nlbase;         /* net error log area in clicks */
 int	nlsize = 01000;
 int	nlclick, nlbyte;
+#endif
 
 int	netoff = 0;
 int	protoslow;
@@ -502,7 +514,10 @@ netinit()
 
 	if (netoff)
 		return;
-	nlbase = nlclick = malloc(coremap, nlsize);  /* net error log */
+#ifdef	notdef
+	/* if used, should be moved to startup() in machdep.c */
+	nlbase = nlclick = malloc(coremap, nlsize);  
+#endif
 	MAPSAVE();
 	mbinit();
 	for (ui = &ubdinit ; udp = ui->ui_driver ; ui++) {
@@ -527,9 +542,9 @@ netinit()
 netintr()
 {
 	int onetisr;
-	mapinfo map;
+	mapinfo save;
 
-	savemap(map);
+	Savemap(save);
 	while (spl7(), (onetisr = netisr)) {
 		netisr = 0;
 		splnet();
@@ -550,10 +565,11 @@ netintr()
 			if_slowtimo();
 		}
 	}
-	restormap(map);
+	splnet();
+	Restormap(save);
 }
 
-int	nprint = 0;            /* enable nprintf */
+int	enprint = 0;            /* enable nprintf */
 
 /*
  * net printf.  prints to net log area in memory (nlbase, nlsize).
@@ -663,9 +679,9 @@ selscan(nfd, fds, nfdp, flag)
 			u.u_error = EBADF;
 			return (0);
 		}
-		if (fp->f_flag & FSOCKET)
+		if (fp->f_flag & FSOCKET) {
 			able = soselect(fp->f_socket, flag);
-		else {
+		} else {
 			ip = fp->f_inode;
 			switch (ip->i_mode & IFMT) {
 
@@ -726,11 +742,17 @@ selwakeup(p, coll)
 	int coll;
 {
 	int s;
+#ifndef NOKA5
+	mapinfo save;
+#endif
 
 	if (coll) {
 		nselcoll++;
 		wakeup((caddr_t) &selwait);
 	}
+#ifndef NOKA5
+	savemap(save);
+#endif
 	s = spl6();
 	if (p)
 		if (p->p_wchan == (caddr_t) &selwait)
@@ -739,6 +761,9 @@ selwakeup(p, coll)
 			if (p->p_flag & SSEL)
 				p->p_flag &= ~SSEL;
 	splx(s);
+#ifndef NOKA5
+	restormap(save);
+#endif
 }
 
 char	hostname[32] = "hostnameunknown";
@@ -754,7 +779,7 @@ gethostname()
 
 	len = uap->len;
 	if (len > hostnamelen)
-		len = hostnamelen;
+		len = hostnamelen+1;
 	if (copyout((caddr_t) hostname, (caddr_t) uap->hostname, len))
 		u.u_error = EFAULT;
 }
@@ -830,7 +855,7 @@ tsleep(chan, pri, seconds)
 /*
  * Provide about n microseconds of delay
  */
-delay(n)
+udelay(n)
 long n;
 {
 	register hi,low;

@@ -30,8 +30,8 @@
 #   ifdef	KERN_NONSEP
 #	define	ENABLE_KDSA1	0163702
 #	define	ENABLE_KDSA2	0163704
-#	define	ENABLE_KDSA5	0163712
-#	define	ENABLE_KDSA6	0163714
+#	define	ENABLE_KDSA5	0163702
+#	define	ENABLE_KDSA6	0163704
 #	define	DEC_KDSA1	0172342
 #	define	DEC_KDSA2	0172344
 #	define	DEC_KDSA5	0172352
@@ -82,7 +82,7 @@
 #endif
 
 #ifdef	ENABLE34
-#   define	KISA0	*_KISA0
+#   define	KISA0	_KISA0
 #else
 #   define	KISA0	0172340
 #endif
@@ -91,7 +91,7 @@
 #define	KISA4	0172350
 #define	KISA5	0172352
 #ifdef	ENABLE34
-#   define	KISA6	*_KISA6
+#   define	KISA6	_KISA6
 #else
 #   define	KISA6	0172354
 #endif
@@ -99,10 +99,10 @@
 #ifdef	KERN_NONSEP
 #   define	KDSA0	KISA0
 #   ifdef	ENABLE34
-#	define	KDSA1	*_KDSA1
-#	define	KDSA2	*_KDSA2
-#	define	KDSA5	*_KDSA5
-#	define	KDSA6	*_KDSA6
+#	define	KDSA1	_KDSA1
+#	define	KDSA2	_KDSA2
+#	define	KDSA5	_KDSA5
+#	define	KDSA6	_KDSA6
 #   else
 #	define	KDSA1	KISA1
 #	define	KDSA2	KISA2
@@ -113,10 +113,10 @@
 #else	KERN_NONSEP
 #   define	KDSA0	0172360
 #   ifdef	ENABLE34
-#	define	KDSA1	*_KDSA1
-#	define	KDSA2	*_KDSA2
-#	define	KDSA5	*_KDSA5
-#	define	KDSA6	*_KDSA6
+#	define	KDSA1	_KDSA1
+#	define	KDSA2	_KDSA2
+#	define	KDSA5	_KDSA5
+#	define	KDSA6	_KDSA6
 #   else
 #	define	KDSA1	0172362
 #	define	KDSA2	0172364
@@ -134,8 +134,8 @@
 #define	SSR1	0177574
 #define	SSR2	0177576
 #ifdef	ENABLE34
-#   define	UISA	*_UISA
-#   define	UDSA	*_UDSA
+#   define	UISA	_UISA
+#   define	UDSA	_UDSA
 #else
 #   define	UISA	0177640
 #   define	UDSA	0177660

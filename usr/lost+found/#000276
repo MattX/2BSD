@@ -1,0 +1,97 @@
+/******************************************************************************/
+/*                                                                            */
+/*                   LOCAL AREA NETWORK SIMULATION PROGRAM                    */
+/*                   =====================================                    */
+/*                                                                            */
+/*                   Pawel Gburzynski, Jan 1985                               */
+/*                                                                            */
+/******************************************************************************/
+
+
+#include	<stdio.h>
+
+#define		MAXNODES	100	/* Maximum number of nodes */
+#define		MAXEVNTS	100	/* Maximum number of pending events */
+#define		MAXMSKDS	8	/* Maximum number of message kinds */
+
+#define		BROADCAST	1	/* Broadcast type message flag */
+#define		ACKREQSTD	2	/* Message to be acknowledged */
+#define		TALKSPURT	1	/* Flag = node in talkspurt */
+#define		SILENCE		0	/* Node in silence */
+#define		BUSY		1	/* Bus busy status */
+
+/* Types */
+
+typedef	enum		{		/* Event types */
+
+	TRANSFER,			/* Message transfer request */
+	RECEIVER,			/* Accept message, ssend ack */
+	CONSUMER,			/* Release message buffer */
+	GMESSAGE,			/* Generate next message */
+	CALLSTUP,			/* Voice call request */
+	CALLTERM,			/* Voice call termination */
+	TSTOGGLE			/* Talkspurt-Silence switch */
+
+}	EVENT;
+
+typedef	enum		{		/* Node states */
+
+	IDLE    ,			/* As advertised */
+	CONTNDNG,			/* Within contention period */
+	WACK    ,			/* Awaiting acknowledgement */
+	CALLSATT,			/* Attempting voice call */
+	CALLRTRY			/* Call setup retry due to collision */
+
+}	NSTATE;
+
+struct	event		{		/* Event */
+
+	struct	event	  *nxtevent,	/* Next event in the queue */
+			  *prvevent;	/* Previous event in the queue */
+	long		  time;		/* The event happens then */
+	char		  mstrnode,	/* Master node of the event */
+			  scndnode;	/* Second node (used sometimes) */
+	EVENT		  evnttype;	/* What an event it is */
+	struct	msgkind	  *mstype;	/* Associated message type */
+};
+
+struct	message		{		/* Element of the node message queue */
+
+	struct	message	  *nxtmess;	/* Next message in the queue */
+	int		  msglngth;	/* Message length */
+};
+
+struct	node		{		/* Network node */
+
+	int		  bfrspace;	/* Free buffer space */
+	struct	message	  *currmess,	/* First message in the queue */
+			  *lastmess;	/* Last message in the queue */
+	NSTATE		  nstate;	/* Node state */
+	char		  tlkspurt,	/* Flag = node in talkspurt */
+			  amp,		/* Acceptable messages pattern */
+			  emp;		/* Emitable messages pattern */
+};
+
+struct	msgkind		{		/* Message kind descriptor */
+
+	float		  arrate;	/* Mean arrival rate */
+	int		  msgsize,      /* Mean message length */
+			  msgsmin,	/* Minimum message length */
+			  msgsmax;	/* Maximum message length */
+	char		  flags;	/* Broadcast, acknowledged, etc */
+};
+
+/* Global data structures and variables */
+
+struct	node		  nodes [MAXNODES];
+
+struct	event		  *events,	/* Next pending event */
+			  *freeev;	/* Freeitem list for event no muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka muka muka muka muka muka muka muka
+muka muka muka muka muka muka muka muka m

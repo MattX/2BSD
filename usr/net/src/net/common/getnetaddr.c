@@ -4,7 +4,8 @@
 
 struct netent *
 getnetbyaddr(net, type)
-	register int net, type;
+	long net;
+	register int type;
 {
 	register struct netent *p;
 

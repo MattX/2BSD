@@ -7,7 +7,7 @@
 
 #define	MAXALIASES	35
 
-static char *PROTODB = "/usr/lib/protocols";
+static char *PROTODB = "/etc/protocols";
 static FILE *protof = NULL;
 static char line[BUFSIZ+1];
 static struct protoent proto;

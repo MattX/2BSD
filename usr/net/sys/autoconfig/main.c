@@ -47,34 +47,4 @@ char **argv;
 		exit(AC_SETUP);
 	}
 
-	/* -k file -- use file instead of "/dev/kmem" */
-	if (! debug) {
-		if (strings('k'))
-			kmem_name = strings('k');
-		if ((kmem = open(kmem_name, 2)) < 0) {
-			perror(kmem_name);
-			exit(AC_SETUP);
-		}
-	}
-
-	/* -n file -- Namelist is in file instead of /unix */
-	if (strings('n'))
-		nlist_name = strings('n');
-
-	/* Read the dtab into internal tables so we can play with it */
-	read_dtab();
-
-	/* Now set up for and call nlist so we can get kernel symbols */
-	read_nlist();
-
-	/* And at last change the kernel to suit ourselves */
-	auto_config();
-
-	/* All done go bye bye now */
-	exit(AC_OK);
-}
-
-char *strsave(cp)
-{
-	return strcpy(malloc(strlen(cp) + 1), cp);
-}
+	/* -k file -- use file instead of "/dev/kmem턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬턬

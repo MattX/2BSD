@@ -10,7 +10,7 @@ static char sccsid[] = "@(#)telnet.c	4.11 (Berkeley) 10/7/82";
 #include <setjmp.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #define	connected	cnctd
 #define	TELOPTS
@@ -156,7 +156,7 @@ tn(argc, argv)
 		strcpy(hnamebuf, argv[1]);
 		hostname = hnamebuf;
 	}
-	sin.sin_port = sp->s_port;
+	sin.sin_port = ntohs(sp->s_port);
 	if (argc == 3) {
 		sin.sin_port = atoi(argv[2]);
 		if (sin.sin_port < 0) {

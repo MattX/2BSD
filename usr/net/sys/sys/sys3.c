@@ -16,6 +16,9 @@
 #include <sys/conf.h>
 #include <sys/stat.h>
 #include <sys/inline.h>
+#ifdef	UCB_NET
+#include <sys/mbuf.h>
+#endif
 
 
 /*
@@ -34,9 +37,9 @@ fstat()
 	if (fp == NULL)
 		return;
 #ifdef  UCB_NET
-	if (fp->f_flag & FSOCKET)
+	if (fp->f_flag & FSOCKET) {
 		u.u_error = sostat(fp->f_socket, uap->sb);
-	else
+	} else
 #endif
 		stat1(fp->f_inode, uap->sb, fp->f_flag & FPIPE?  fp->f_un.f_offset: (off_t) 0);
 }
@@ -119,7 +122,11 @@ off_t pipeadj;
 	 */
 	bp = bread(ip->i_dev, itod(ip->i_number));
 	dp = (struct dinode *) mapin(bp);
+#ifdef	IOUT
+	dp += itoo(ds.st_ino);
+#else
 	dp += itoo(ip->i_number);
+#endif
 	ds.st_atime = dp->di_atime;
 	ds.st_mtime = dp->di_mtime;
 	ds.st_ctime = dp->di_ctime;
@@ -266,6 +273,9 @@ sumount()
 		return;
 	xumount(dev);	/* remove unused sticky files from text table */
 	update();
+#if	PDP11 <= 22 || PDP11 > 70
+	delay(2);
+#endif
 	for (mp = mount; mp < mountNMOUNT; mp++)
 		if (mp->m_inodp != NULL && dev == mp->m_dev) {
 			for(ip = inode; ip < inodeNINODE; ip++)

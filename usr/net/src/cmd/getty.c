@@ -59,112 +59,112 @@ struct	tab {
 	'0', 1,
 	ANYP+RAW+NL1+CR1, ANYP+XTABS+ECHO+CRMOD+CR2,
 	B300, B300,
-	"\n\rlogin: ",
+	"login:",
 
 	1, 2,
 	ANYP+RAW+NL1+CR1, ANYP+XTABS+ECHO+CRMOD+FF1,
 	B1200, B1200,
-	"\n\rlogin: ",
+	"login:",
 
 	2, 3,
 	ANYP+RAW+NL1+CR1, EVENP+ECHO+FF1+CR2+TAB1+NL1,
 	B150, B150,
-	"\n\rlogin: ",
+	"login:",
 
 	3, '0',
 	ANYP+RAW+NL1+CR1, ANYP+ECHO+CRMOD+XTABS+LCASE+CR1,
 	B110, B110,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '-' -- Console TTY 110 */
 	'-', '-',
 	ANYP+RAW+NL1+CR1, ANYP+ECHO+CRMOD+XTABS+LCASE+CR1,
 	B110, B110,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '1' -- 150 */
 	'1', '1',
 	ANYP+RAW+NL1+CR1, EVENP+ECHO+FF1+CR2+TAB1+NL1,
 	B150, B150,
-	"\n\r\033:\006\006\017login: ",
+	"login:",
 
 /* table '2' -- 9600 */
 	'2', '2',
 	ANYP+RAW+NL1+CR1, ANYP+XTABS+ECHO+CRMOD,
 	B9600, B9600,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '3'-'5' -- 1200,300 */
 	'3', '5',
 	ANYP+RAW+NL1+CR1, ANYP+XTABS+ECHO+CRMOD+FF1,
 	B1200, B1200,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '5'-'3' -- 300,1200 */
 	'5', '3',
 	ANYP+RAW+NL1+CR1, ANYP+ECHO+CR1,
 	B300, B300,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '4' -- Console Decwriter */
 	'4', '4',
 	ANYP+RAW, ANYP+ECHO+CRMOD+XTABS,
 	B300, B300,
-	"\n\rlogin: ",
+	"login:",
 
 /* table '6' -- 2400  */
 	'6', '6' ,
 	ANYP+RAW,  ANYP+ECHO+CRMOD,
 	B2400 , B2400 ,
-	"\n\rlogin: ",
+	"login:",
  
 /* table '7' - - 4800 */
 	'7' , '7' ,
 	ANYP+RAW , ANYP+ECHO+CRMOD ,
 	B4800 , B4800 ,
-	"\n\rlogin: " ,
+	"login:" ,
 
 /* table '8'-'9' - 9600 */
 	'8', '9',
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B9600, B9600,
-	"\n\rlogin: ",
+	"login:",
 
 	/* table '9' - - 4800 */
 	'9' , 'a' ,
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B4800 , B4800 ,
-	"\n\rlogin: " ,
+	"login:" ,
 
 	/* table 'a' -- 2400  */
 	'a', 'b' ,
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B2400 , B2400 ,
-	"\n\rlogin: ",
+	"login:",
  
 	/* table 'b' - 1200 */
 	'b', 'c',
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B1200, B1200,
-	"\n\rlogin: ",
+	"login:",
 
 	/* table 'c' - 300 */
 	'c', 'd',
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B300, B300,
-	"\n\rlogin: ",
+	"login:",
 
 	/* table 'c' - 600 */
 	'd', '8',
 	ANYP+RAW/*+HUPCLS*/, ANYP+XTABS+ECHO+CRMOD/*+HUPCLS*/,
 	B600, B600,
-	"\n\rlogin: ",
+	"login:",
 
 /* table 'i' -- Interdata Console */
 	'i', 'i',
 	RAW+CRMOD, CRMOD+ECHO+LCASE,
 	0, 0,
-	"\n\rlogin: ",
+	"login:",
 
 /* table 'l' -- LSI Chess Terminal */
 	'l', 'l',
@@ -181,7 +181,7 @@ struct	tab {
 	TB_AUTOBAUD, TB_AUTOBAUD,
 	ANYP+RAW,	ANYP+XTABS+ECHO+CRMOD,
 	B9600, B9600,
-	"\n\r;login: ",
+	"login:",
 #endif
 
 #ifdef	SSC_RTSCTS
@@ -194,7 +194,7 @@ struct	tab {
 	TB_RTSCTS, TB_RTSCTS,
 	ANYP+RAW,	ANYP+XTABS+ECHO+CRMOD,
 	B9600, B9600,
-	"\n\r;login: ",
+	"login:",
 #endif
 };
 
@@ -283,10 +283,10 @@ char **argv;
 			puts("\n\r\n\r");
 		else
 			puts("\n\r\r\r\r\r\n\r\r\r\r\r");
-		puts(hostname);
-		puts(": ");
 		puts(banner);
 		puts("\n\r\r\r\r");
+		puts(hostname);
+		puts(" ");
 		puts(tabp->message);
 #ifdef TEK_TIMEOUT
 		if (tabp->tname != '4')

@@ -4,7 +4,7 @@ static char sccsid[] = "@(#)if.c	4.3 82/10/07";
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <net/if.h>
 #include <stdio.h>
 
@@ -66,13 +66,15 @@ intpr(interval, ifnetaddr)
 		*cp = '\0';
 		printf("%-5.5s %-5d ", name, ifnet.if_mtu);
 		sin = (struct sockaddr_in *)&ifnet.if_addr;
-		in = inet_makeaddr((long)ifnet.if_net, (long)INADDR_ANY);
+		in = inet_makeaddr((ntohl(ifnet.if_net)>>8)&0xffffff, 
+			(long)INADDR_ANY);
 #ifdef	pdp11
+		/*
 		in.s_addr = htonl(in.s_addr);
-		in.s_addr = (long)(in.s_addr << 16) | (long)((in.s_addr >> 16) & 0xffff);
+		*/
 #endif
 		printf("%-10.10s  ", routename(in));
-		printf("%-12.12s %-7d %-5d %-7d %-5d %-6d",
+		printf("%-12.12s %-7D %-5D %-7D %-5D %-6D",
 		    routename(sin->sin_addr),
 		    ifnet.if_ipackets, ifnet.if_ierrors,
 		    ifnet.if_opackets, ifnet.if_oerrors,

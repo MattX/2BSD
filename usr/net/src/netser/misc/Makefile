@@ -1,7 +1,7 @@
 # @(#)Makefile	4.5 10/14/82
 ALL=	rcp rexecd rmt route trpt
-CFLAGS=	-DTCP4_1b -DUCB_NET -DMENLO_JCL -O -I../../net -I../../../../../include -I../../../../../src/sys
-LIBC=	-lndir ../../../../../../lib/libc.a
+CFLAGS= -DTCP4_1b -DUCB_NET -DMENLO_JCL -Dpdp11 -O -I../../../sys  -I/usr/include
+LIBC=	-lndir -lc
 TYPE=	-n
 
 all:	${ALL}
@@ -13,19 +13,19 @@ all:	${ALL}
 	rm -f $*.s $*.S
 
 rcp:	rcp.o
-	${CC} rcp.o ${TYPE} -o rcp ../../net/netlib -ljobs ${LIBC}
+	${CC} rcp.o ${TYPE} -o rcp -lnet -ljobs ${LIBC}
 
 rexecd:	rexecd.o
-	${CC} rexecd.o ${TYPE} -o rexecd ../../net/netlib -ljobs ${LIBC}
+	${CC} rexecd.o ${TYPE} -o rexecd -lnet -ljobs ${LIBC}
 
 rmt:	rmt.o
-	${CC} ${TYPE} -o rmt rmt.o ../../net/netlib -ljobs ${LIBC}
+	${CC} ${TYPE} -o rmt rmt.o -lnet -ljobs ${LIBC}
 
 route:	route.o
-	${CC} route.o ../../net/netlib ${TYPE} -o route ${LIBC}
+	${CC} route.o -lnet ${TYPE} -o route ${LIBC}
 
 trpt:	trpt.o
-	${CC} trpt.o ../../net/netlib ${TYPE} -o trpt ${LIBC}
+	${CC} trpt.o -lnet ${TYPE} -o trpt ${LIBC}
 
 clean:
 	rm -f ${ALL} *.o *.s

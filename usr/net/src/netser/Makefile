@@ -1,5 +1,6 @@
 # @(#)Makefile	4.2 10/10/82
-ALL=	ftp implog misc netstat rlogin routed rsh rwho telnet tftp 
+#ALL=	ftp implog misc netstat rlogin routed rsh rwho telnet tftp 
+ALL=	ftp misc netstat rlogin routed rsh rwho telnet tftp 
 
 all:	${ALL}
 

@@ -4,7 +4,7 @@
  * TFTP User Program -- Protocol Machines
  */
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <signal.h>
 #include <stdio.h>
@@ -18,13 +18,15 @@
 extern	int errno;
 extern	struct sockaddr_in sin;
 extern	char mode[];
+time_t	time();
 int	f;
 int	trace;
 int	verbose;
 int	connected;
-char	buf[BUFSIZ];
+char	buf2[SEGSIZE+5], buf[SEGSIZE+5];
 int	timeout;
 jmp_buf	toplevel;
+jmp_buf	retryit;
 
 timer()
 {
@@ -44,16 +46,54 @@ sendfile(fd, name)
 	char *name;
 {
 	register struct tftphdr *tp = (struct tftphdr *)buf;
-	register int block = 0, size, n, amount = 0;
+	int block = 0, size, n, amount = 0;
 	struct sockaddr_in from;
 	time_t start = time(0), delta;
+#ifdef	GOO
+	struct sockaddr_in svsin;
+	FILE *fld;
+	register char *ptr1, *ptr2;
+	char savechar = '\0';
 
+	svsin.sin_port = sin.sin_port;
+	if (strcmp(mode, "netascii") == 0) {
+		fld = fdopen(fd, "r");
+	}
+#endif
 	size = makerequest(WRQ, name) - 4;
 	timeout = 0;
 	sigset(SIGALRM, timer);
 	do {
+		tp = (struct tftphdr *)buf;
 		if (block != 0) {
-			size = read(fd, tp->th_data, SEGSIZE);
+#ifdef	GOO
+			if (strcmp(mode, "netascii") == 0) {
+				size = SEGSIZE;
+				ptr1 = tp->th_data;
+				if (savechar)
+					*ptr1++ = savechar;
+				while (ptr1 < (tp->th_data+SEGSIZE)) {
+					if (fgets(ptr1,(SEGSIZE+1)-(ptr1-
+					   tp->th_data),fld)!=NULL)
+					   if((ptr2=index(ptr1,'\n'))!=NULL) {
+						ptr1 = ptr2;
+						*ptr1++ = '\r';
+						*ptr1++ = '\n';
+						if (ptr1>(tp->th_data+SEGSIZE))
+						    savechar = '\n';
+						else
+						    savechar = '\0';
+					   } else {
+						ptr1 += SEGSIZE;
+					   }
+					else {
+					   size = ptr1-tp->th_data;
+					   ptr1 += SEGSIZE;
+					}
+				}
+			} else
+#endif
+				size = read(fd, tp->th_data, SEGSIZE);
 			if (size < 0) {
 				nak(errno + 100);
 				break;
@@ -67,11 +107,12 @@ rexmt:
 		if (trace)
 			tpacket("sent", tp, size + 4);
 		if (send(f, &sin, buf, size + 4) != size + 4) {
+			alarm(0);
 			perror("send");
 			break;
 		}
 again:
-		n = receive(f, &from, buf, sizeof (buf));
+		n = receive(f, &from, buf2, sizeof (buf2));
 		if (n <= 0) {
 			if (n == 0)
 				goto again;
@@ -82,6 +123,10 @@ again:
 			break;
 		}
 		alarm(0);
+#ifdef	GOO
+		sin.sin_port = from.sin_port;
+		tp = (struct tftphdr *)buf2;
+#endif
 		if (trace)
 			tpacket("received", tp, n);
 #if vax || pdp11
@@ -93,8 +138,10 @@ again:
 				tp->th_msg);
 			break;
 		}
-		if (tp->th_opcode != ACK || block != tp->th_block)
+		if (tp->th_opcode != ACK || block != tp->th_block) {
+			alarm(TIMEOUT);
 			goto again;
+		}
 		if (block > 0)
 			amount += size;
 		block++;
@@ -103,8 +150,11 @@ again:
 	(void) close(fd);
 	if (amount > 0) {
 		delta = time(0) - start;
-		printf("Sent %d bytes in %d seconds.\n", amount, delta);
+		printf("Sent %d bytes in %D seconds.\n", amount, delta);
 	}
+#ifdef	GOO
+	sin.sin_port = svsin.sin_port;
+#endif
 }
 
 /*
@@ -114,11 +164,18 @@ recvfile(fd, name)
 	int fd;
 	char *name;
 {
-	register struct tftphdr *tp = (struct tftphdr *)buf;
-	register int block = 1, n, size, amount = 0;
+	struct tftphdr *tp = (struct tftphdr *)buf;
+	int block = 1, n, size, amount = 0;
 	struct sockaddr_in from;
 	time_t start = time(0), delta;
+#ifdef	GOO
+	struct sockaddr_in svsin;
+	register char *ptr1, *ptr2;
+	register int i;
+	int sz;
 
+	svsin.sin_port = sin.sin_port;
+#endif
 	size = makerequest(RRQ, name);
 	timeout = 0;
 	sigset(SIGALRM, timer);
@@ -127,6 +184,7 @@ recvfile(fd, name)
 	do {
 		timeout = 0;
 		alarm(TIMEOUT);
+		tp = (struct tftphdr *)buf;
 		tp->th_opcode = htons((u_short)ACK);
 		tp->th_block = htons((u_short)(block));
 		size = 4;
@@ -139,7 +197,7 @@ rexmt:
 			break;
 		}
 again:
-		n = receive(f, &from, buf, sizeof (buf));
+		n = receive(f, &from, buf2, sizeof (buf2));
 		if (n <= 0) {
 			if (n == 0)
 				goto again;
@@ -150,6 +208,10 @@ again:
 			break;
 		}
 		alarm(0);
+#ifdef	GOO
+		sin.sin_port = from.sin_port;
+		tp = (struct tftphdr *)buf2;
+#endif
 		if (trace)
 			tpacket("received", tp, n);
 #if vax || pdp11
@@ -161,24 +223,43 @@ again:
 				tp->th_msg);
 			break;
 		}
-		if (tp->th_opcode != DATA || block != tp->th_block)
+		if (tp->th_opcode != DATA || block != tp->th_block) {
+			alarm(TIMEOUT);
 			goto again;
-		size = write(fd, tp->th_data, n - 4);
-		if (size < 0) {
+		}
+#ifdef	GOO
+		if (strcmp(mode, "netascii") == 0) {
+			sz = 0;
+			ptr1 = ptr2 = tp->th_data;
+			for (i = 0; i < (n-4); i++, ptr1++)
+				if (*ptr1 != '\0' && *ptr1 != '\r') {
+					*ptr2++ = *ptr1;
+					sz++;
+				}
+		} else
+#endif
+			sz = (n > 4)?(n-4):0;
+		sz = write(fd, tp->th_data, sz);
+		size = n-4;
+		if (sz < 0) {
 			nak(errno + 100);
 			break;
 		}
-		amount += size;
+		amount += sz;
 	} while (size == SEGSIZE);
 	alarm(0);
+	tp = (struct tftphdr *)buf;
 	tp->th_opcode = htons((u_short)ACK);
 	tp->th_block = htons((u_short)block);
 	(void) send(f, &sin, buf, 4);
 	(void) close(fd);
 	if (amount > 0) {
 		delta = time(0) - start;
-		printf("Received %d bytes in %d seconds.\n", amount, delta);
+		printf("Received %d bytes in %D seconds.\n", amount, delta);
 	}
+#ifdef	GOO
+	sin.sin_port = svsin.sin_port;
+#endif
 }
 
 makerequest(request, name)

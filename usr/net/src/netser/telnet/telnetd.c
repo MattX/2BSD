@@ -5,6 +5,7 @@ static char sccsid[] = "@(#)telnetd.c	4.9 82/10/10";
 /*
  * Stripped-down telnet server.
  */
+#include <whoami.h>
 #include <stdio.h>
 #include <signal.h>
 #include <errno.h>
@@ -12,7 +13,7 @@ static char sccsid[] = "@(#)telnetd.c	4.9 82/10/10";
 #include <wait.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #include "telnet.h"
 #define	wait3(a,b,c) wait2(&a,b)
@@ -41,6 +42,7 @@ int	pty, net;
 int	inter;
 extern	int errno;
 char	line[] = "/dev/ptyp0";
+char	hostnm[33];
 
 struct	sockaddr_in sin = { AF_INET };
 int	options = SO_ACCEPTCONN|SO_KEEPALIVE;
@@ -57,7 +59,8 @@ main(argc, argv)
 		fprintf(stderr, "telnetd: tcp/telnet: unknown service\n");
 		exit(1);
 	}
-	sin.sin_port = sp->s_port;
+	gethostname(hostnm, sizeof(hostnm));
+	sin.sin_port = ntohs(sp->s_port);
 	argc--, argv++;
 	if (argc > 0 && !strcmp(argv[0], "-d"))
 		options |= SO_DEBUG, argc--, argv++;
@@ -161,7 +164,15 @@ gotpty:
 	dup2(t, 1);
 	dup2(t, 2);
 	close(t);
+#ifdef	GOO
+	puts("\r");
+	puts(banner);
+#endif
+#ifdef	notdef
 	execl("/bin/login", "telnet-login", 0);
+#else
+	execl("/bin/login", "telnet-login", "-h", hostnm, 0);
+#endif
 	perror("/bin/login");
 	exit(1);
 }

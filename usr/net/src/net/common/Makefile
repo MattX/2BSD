@@ -4,13 +4,12 @@ OBJS=	gethostnam.o gethostadd.o gethostent.o \
 	getproto.o getprotent.o getprotnum.o \
 	getservent.o getservpor.o getservnam.o \
 	raddr.o rcmd.o rexec.o rhost.o ruserpass.o
-CFLAGS=	-DUCB_NET -DMENLO_JCL -O -I.. -I../../../../../include -I../../../../../src/sys
+CFLAGS=	-Dpdp11=1 -DUCB_NET -DMENLO_JCL -O -I.. -I../../../../../include -I../../../../../src/sys
 
 .c.o:
 	${CC} -S ${CFLAGS} -c $*.c
-	sed -f ../asm.sed $*.s > $*.S
-	as - -o $*.o $*.S
-	rm -f $*.s $*.S
+	as - -o $*.o $*.s
+	rm -f $*.s
 	-ld -x -r $*.o
 	mv a.out $*.o
 

@@ -4,7 +4,7 @@
  * TFTP User Program -- Command Interface.
  */
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <signal.h>
 #include <stdio.h>
@@ -78,7 +78,7 @@ main(argc, argv)
 		fprintf(stderr, "tftp: udp/tftp: unknown service\n");
 		exit(1);
 	}
-	sin.sin_port = htons(sp->s_port);
+	sin.sin_port = sp->s_port;
 	if (argc > 1 && !strcmp(argv[1], "-d")) {
 		options |= SO_DEBUG;
 		argc--, argv++;
@@ -135,7 +135,7 @@ setpeer(argc, argv)
 		strcpy(hnamebuf, argv[1]);
 		hostname = hnamebuf;
 	}
-	sin.sin_port = sp->s_port;
+	sin.sin_port = ntohs(sp->s_port);
 	if (argc == 3) {
 		sin.sin_port = atoi(argv[2]);
 		if (sin.sin_port < 0) {

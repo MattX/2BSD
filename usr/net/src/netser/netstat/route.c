@@ -6,7 +6,7 @@ static char sccsid[] = "@(#)route.c	4.4 82/10/07";
 #include <sys/socket.h>
 #include <sys/mbuf.h>
 #include <net/if.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #define	KERNEL		/* to get routehash and RTHASHSIZ */
 #include <net/route.h>
 #include <netdb.h>
@@ -157,10 +157,10 @@ routename(in)
 	else {
 		u_char *ucp = (u_char *)&in;
 		if (lna == INADDR_ANY)
-			sprintf(line, "%u.%u.%u", ucp[0], ucp[1], ucp[2]);
+			sprintf(line, "%u.%u.%u", (ucp[0]&0377), (ucp[1]&0377), (ucp[2]&0377));
 		else
-			sprintf(line, "%u.%u.%u.%u", ucp[0], ucp[1],
-				ucp[2], ucp[3]);
+			sprintf(line, "%u.%u.%u.%u", (ucp[0]&0377), (ucp[1]&0377),
+				(ucp[2]&0377), (ucp[3]&0377));
 	}
 	return (line);
 }

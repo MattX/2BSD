@@ -6,7 +6,7 @@
  *	SCCS id	@(#)dhfdm.c	2.1	(Berkeley)	8/5/83
  */
 
-#include <sys/param.h>
+#include "param.h"
 #include <sys/tty.h>
 #include <sys/conf.h>
 

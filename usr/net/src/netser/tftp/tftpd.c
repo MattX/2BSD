@@ -4,7 +4,7 @@
  * Trivial file transfer protocol server.
  */
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <signal.h>
 #include <sys/ioctl.h>
@@ -24,7 +24,8 @@ extern	int errno;
 struct	sockaddr_in sin = { AF_INET };
 int	f;
 int	options;
-char	buf[BUFSIZ];
+int	fd;			/* file being transferred */
+char	buf2[SEGSIZE+5], buf[SEGSIZE+5];
 
 main(argc, argv)
 	char *argv[];
@@ -40,7 +41,7 @@ main(argc, argv)
 		fprintf(stderr, "tftpd: udp/tftp: unknown service\n");
 		exit(1);
 	}
-	sin.sin_port = htons(sp->s_port);
+	sin.sin_port = sp->s_port;
 #ifndef DEBUG
 	if (fork())
 		exit(0);
@@ -107,7 +108,6 @@ struct formats {
 	{ 0 }
 };
 
-int	fd;			/* file being transferred */
 
 /*
  * Handle initial connection protocol.
@@ -181,8 +181,31 @@ validate_access(file, client, mode)
 
 	if (*file != '/')
 		return (EACCESS);
-	if (stat(file, &stbuf) < 0)
+	if (stat(file, &stbuf) < 0) {
+#ifdef GOO
+		if (errno == ENOENT && mode == WRQ &&
+			inet_lnaof(*client) >= 50l) {
+			char tc, *tpr;
+			int tf;
+			tpr = rindex(file, '/');
+			if (tpr == 0)
+				tpr = file;
+			tc = *++tpr;
+			*tpr = '\0';
+			if (stat(file, &stbuf) < 0) {
+				*tpr = tc;
+				return (errno == ENOENT ? ENOTFOUND : EACCESS);
+			}
+			*tpr = tc;
+			tf = creat(file, 0666);
+			chown(file, stbuf.st_uid, stbuf.st_gid);
+			chmod(file, 0666);
+			fstat(tf, &stbuf);
+			close(tf);
+		} else
+#endif
 		return (errno == ENOENT ? ENOTFOUND : EACCESS);
+	}
 	if (mode == RRQ) {
 		if ((stbuf.st_mode&(S_IREAD >> 6)) == 0)
 			return (EACCESS);
@@ -210,14 +233,50 @@ timer()
  * Send the requested file.
  */
 sendfile(pf)
-	struct format *pf;
+	struct formats *pf;
 {
 	register struct tftphdr *tp;
-	register int block = 1, size, n;
+	int block = 1, size, n;
+#ifdef	GOO
+	FILE *fld;
+	register char *ptr1, *ptr2;
+	char savechar = '\0';
+
+	if (strcmp(pf->f_mode, "netascii") == 0) {
+		fld = fdopen(fd, "r");
+	}
+#endif
 
 	sigset(SIGALRM, timer);
-	tp = (struct tftphdr *)buf;
 	do {
+		tp = (struct tftphdr *)buf;
+#ifdef	GOO
+		if (strcmp(pf->f_mode, "netascii") == 0) {
+			size = SEGSIZE;
+			ptr1 = tp->th_data;
+			if (savechar)
+				*ptr1++ = savechar;
+			while (ptr1 < (tp->th_data+SEGSIZE)) {
+				if (fgets(ptr1,(SEGSIZE+1)-(ptr1-
+				   tp->th_data),fld)!=NULL)
+				   if((ptr2=index(ptr1,'\n'))!=NULL) {
+					ptr1 = ptr2;
+					*ptr1++ = '\r';
+					*ptr1++ = '\n';
+					if (ptr1>(tp->th_data+SEGSIZE))
+					    savechar = '\n';
+					else
+					    savechar = '\0';
+				   } else {
+					ptr1 += SEGSIZE;
+				   }
+				else {
+				   size = ptr1-tp->th_data;
+				   ptr1 += SEGSIZE;
+				}
+			}
+		} else
+#endif
 		size = read(fd, tp->th_data, SEGSIZE);
 		if (size < 0) {
 			nak(errno + 100);
@@ -233,7 +292,7 @@ rexmt:
 			break;
 		}
 again:
-		n = read(f, buf, sizeof (buf));
+		n = read(f, buf2, sizeof (buf2));
 		if (n <= 0) {
 			if (n == 0)
 				goto again;
@@ -244,14 +303,17 @@ again:
 			break;
 		}
 		alarm(0);
+		tp = (struct tftphdr *)buf2;
 #if vax || pdp11
 		tp->th_opcode = ntohs(tp->th_opcode);
 		tp->th_block = ntohs(tp->th_block);
 #endif
 		if (tp->th_opcode == ERROR)
 			break;
-		if (tp->th_opcode != ACK || tp->th_block != block)
+		if (tp->th_opcode != ACK || tp->th_block != block) {
+			alarm(TIMEOUT);
 			goto again;
+		}
 		block++;
 	} while (size == SEGSIZE);
 	(void) close(fd);
@@ -261,14 +323,19 @@ again:
  * Receive a file.
  */
 recvfile(pf)
-	struct format *pf;
+	struct formats *pf;
 {
 	register struct tftphdr *tp;
-	register int block = 0, n, size;
+	int block = 0, n, size;
+#ifdef	GOO
+	register char *ptr1, *ptr2;
+	register int i;
+	int sz;
+#endif
 
 	sigset(SIGALRM, timer);
-	tp = (struct tftphdr *)buf;
 	do {
+		tp = (struct tftphdr *)buf;
 		timeout = 0;
 		alarm(TIMEOUT);
 		tp->th_opcode = htons((u_short)ACK);
@@ -280,7 +347,7 @@ rexmt:
 			break;
 		}
 again:
-		n = read(f, buf, sizeof (buf));
+		n = read(f, buf2, sizeof (buf2));
 		if (n <= 0) {
 			if (n == 0)
 				goto again;
@@ -291,20 +358,37 @@ again:
 			break;
 		}
 		alarm(0);
+		tp = (struct tftphdr *)buf2;
 #if vax || pdp11
 		tp->th_opcode = ntohs(tp->th_opcode);
 		tp->th_block = ntohs(tp->th_block);
 #endif
 		if (tp->th_opcode == ERROR)
 			break;
-		if (tp->th_opcode != DATA || block != tp->th_block)
+		if (tp->th_opcode != DATA || block != tp->th_block) {
+			alarm(TIMEOUT);
 			goto again;
-		size = write(fd, tp->th_data, n - 4);
+		}
+#ifdef	GOO
+		if (strcmp(pf->f_mode, "netascii") == 0) {
+			sz = 0;
+			ptr1 = ptr2 = tp->th_data;
+			for (i = 0; i < (n-4); i++, ptr1++)
+				if (*ptr1 != '\0' && *ptr1 != '\r') {
+					*ptr2++ = *ptr1;
+					sz++;
+				}
+		} else
+#endif
+			sz = (n > 4)?(n-4):0;
+		sz = write(fd, tp->th_data, sz);
+		size = n-4;
 		if (size < 0) {
 			nak(errno + 100);
 			break;
 		}
 	} while (size == SEGSIZE);
+	tp = (struct tftphdr *)buf;
 	tp->th_opcode = htons((u_short)ACK);
 	tp->th_block = htons((u_short)(block));
 	(void) write(f, buf, 4);

@@ -40,7 +40,7 @@ typedef	u_long	n_time;			/* ms since 00:00 GMT, byte rev */
 #endif
 #if pdp11  /* (V7 timeout code wont run if ANY kernel spl set) */
 #define splnet          spl1
-#define splimp          spl5
+#define splimp          spl6
 #define setsoftnet()
 #define clearsoftnet()
 #define NETISR_CLOCK    15              /* avoids net numbers below */

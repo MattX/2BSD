@@ -1,0 +1,169 @@
+#	Makefile for Berkeley UNIX kernel, overlay version
+#
+#	Makefile Configuration:
+#		First, edit the Depend file to include any optional
+#		device drivers you need to include.
+#		Then check the global definitions, MAXUSERS, and include file
+#		search paths below.
+#		INCLUDE is the directory with the normal complement of
+#		include files, normally /usr/include.
+#		Finally, run "make depend" and stand back.
+#
+#	After having made a unix binary the first time, the overlay
+#	structure specified below will probably have to change.
+#	The base segment must be between 8194 and 16384 inclusive,
+#	and each overlay (7 maximum) must be <= 8192.
+
+# global definitions
+DEFS =	-DKERNEL -Dpdp11
+
+# maxusers is used to scale the size of kernel data structures.
+MAXUSERS=4
+
+# SPLFIX should be one of :splfix.movb, :splfix.mtps or :splfix.spl
+SPLFIX=	:splfix.net23
+
+# include file search path
+INCLUDE= /usr/include
+
+CPPFLAGS= ${DEFS} -I. -I${INCLUDE}
+CFLAGS=	-O ${CPPFLAGS}
+CC =	cc -V
+CPP =	/lib/cpp -P
+AS =	as -V
+LD =	ld
+
+#  shorthand to avoid running make out of space
+C =	${CC} -S ${CFLAGS}
+E =	ed - < ${SPLFIX}
+A =	${AS} - -o
+K =	ed - < ../net/cksum-fix
+I =	${INCLUDE}
+
+OFILE =	unix
+
+# move nami.o into the base segment if possible
+OV1 =	sys2.o sys4.o fio.o pipe.o alloc.o iget.o  slp.o rdwri.o dsort.o ra.o \
+	sys.o ttyold.o tm.o dh.o
+OV2 =	text.o ureg.o malloc.o sys1.o main.o mem.o sig.o trap.o clock.o rd.o \
+	r5.o xp.o hp.o
+OV3 =	bio.o dkbad.o dkleave.o subr.o machdep.o sys3.o syslocal.o \
+	acct.o prf.o ioctl.o cn.o dz.o prostuff.o
+OV4 =	ttyold.o ttynew.o tty.o prim.o kl.o partab.o nami.o hk.o pc.o
+OV5 =	if_qn.o if_ec.o if_il.o if_sri.o if_uba.o in.o \
+	in_pcb.o ip_icmp.o ip_input.o \
+	ip_output.o raw_cb.o raw_imp.o
+OV6 =	ipc.o mbuf.o mbuf11.o proto.o socket.o socketsubr.o pty.o \
+	tcp_debug.o tcp_input.o
+OV7 =	af.o if.o if_loop.o if_imp.o \
+	if_imphost.o if_ether.o \
+	raw_ip.o raw_pup.o raw_usrreq.o \
+	tcp_output.o tcp_subr.o tcp_timer.o \
+	tcp_usrreq.o udp_usrreq.o in_cksum.o route.o
+BASE =	sysent.o
+
+#	boot.o must be loaded in the base well above 0 data
+CONFOBJ = l.o mch.o c.o ioconf.o boot.o 
+
+
+#	l.o MUST be loaded first, param.o MUST be loaded last
+${OFILE}: Nofile ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} ${OV6} ${OV7} ${BASE} ${CONFOBJ} \
+    param.o Makefile checksys
+	sh newvers.sh
+	${CC} -c vers.c
+	${LD} -X -n -o ${OFILE}\
+		${CONFOBJ}\
+		-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4}\
+		-Z ${OV5} -Z ${OV6} -Z ${OV7}\
+		-L ${BASE} vers.o param.o
+	size ${OFILE}
+	./checksys -b ${OFILE}
+
+.PRECIOUS: whoami.h param.h Makefile ../sys/sig.c
+
+Nofile:
+	@make -f Makeobj1 > /dev/null
+	@make -f Makeobj2 > /dev/null
+
+whoami.h:  localopts.h
+	touch whoami.h
+
+param.h: whoami.h ${I}/signal.h ${I}/sys/psw.h \
+	${I}/sys/types.h 
+	touch param.h
+
+mch.o:	assym.s ../sys/mch.s whoami.h dz.h ht.h tm.h \
+	${I}/a.out.h ${I}/sys/cpu.m ${I}/sys/trap.h \
+	${I}/sys/reboot.h ${I}/sys/iopage.m \
+	${I}/sys/koverlay.h
+	${CPP} ${CPPFLAGS} ../sys/mch.s >mch.i
+	${AS} -o mch.o assym.s mch.i
+	-rm mch.i
+
+l.o:	l.s whoami.h ${I}/a.out.h \
+	${I}/sys/trap.h ${I}/sys/koverlay.h \
+	dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h \
+	rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+	${CPP} ${CPPFLAGS} l.s >l.i
+	${AS} -o l.o l.i
+	-rm l.i
+
+boot.o:	boot.s whoami.h
+	${CPP} ${CPPFLAGS} boot.s >boot.i
+	${AS} -o boot.o boot.i
+	-rm boot.i
+
+assym.s: genassym.c param.h dz.h \
+	${I}/sys/user.h  ${I}/sys/vm.h ${I}/sys/proc.h \
+	${I}/sys/dir.h ${I}/sys/inode.h ${I}/sys/seg.h
+	cc ${CFLAGS} genassym.c; ./a.out >assym.s; rm -f a.out
+
+paramed:  localopts.h
+	${CPP} ${CPPFLAGS} :comm-to-bss|sed -e '/^[ 	]*$$/d'>paramed
+
+param.o: paramed param.c param.h Makefile ${I}/sys/proc.h \
+	${I}/sys/text.h ${I}/sys/file.h ${I}/sys/inode.h \
+	${I}/sys/dir.h ${I}/sys/buf.h ${I}/sys/tty.h \
+	${I}/sys/conf.h ${I}/sys/user.h ${I}/sys/filsys.h \
+	${I}/sys/mount.h ${I}/sys/acct.h ${I}/sys/systm.h \
+	${I}/sys/map.h
+	${CC} -S -DMAXUSERS=${MAXUSERS} ${CFLAGS} param.c
+	ed - param.s <paramed
+	${AS} -o param.o param.s
+	-rm param.s
+
+in_cksum.o:
+	${C} ../net/in_cksum.c
+	${K} in_cksum.s
+	${E} in_cksum.s
+	${A} in_cksum.o in_cksum.s
+	-rm in_cksum.s
+
+checksys: checksys.c
+	${CC} -I. -I${INCLUDE} -O -o checksys checksys.c
+
+../sys/sig.c: ../sys/sigjcl.c ../sys/signojcl.c
+	touch ../sys/sig.c
+
+sig.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h \
+	${I}/sys/user.h ${I}/sys/proc.h ${I}/sys/inode.h \
+	${I}/sys/reg.h ${I}/sys/text.h ${I}/sys/seg.h \
+	${I}/sys/vm.h
+	${C} ../sys/sig.c
+	${E} sig.s
+	${A} sig.o sig.s
+	-rm sig.s
+
+depend:
+	@make -f Objdep1 depend
+	@make -f Objdep2 depend
+	@make -f Depend depend
+
+clean:
+	rm -f *.o *.i
+
+# DO NOT DELETE THIS LINE
+
+c.o: c.c
+c.o: param.h ${I}/sys/systm.h ${I}/sys/buf.h ${I}/sys/tty.h ${I}/sys/conf.h
+c.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/dir.h ${I}/sys/user.h

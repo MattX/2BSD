@@ -178,7 +178,7 @@ gotif:
 
 unreachable:
 	if (ipnorouteprint)
-		printf("no route to %X (from %X, len %d)\n",
+		printf("nrt %X(f %X, l %d)\n",
 		    ip->ip_dst.s_addr, ip->ip_src.s_addr, ip->ip_len);
 	error = ENETUNREACH;
 bad:

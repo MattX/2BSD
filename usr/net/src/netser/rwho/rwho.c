@@ -15,7 +15,7 @@ int	utmpcmp();
 #define	NUSERS	500
 struct	myutmp {
 	char	myhost[32];
-	int	myidle;
+	long	myidle;
 	struct	utmp myxutmp;
 } myutmp[NUSERS];
 int	nusers;
@@ -45,13 +45,13 @@ again:
 		goto again;
 	}
 	(void) time(&now);
-	if (chdir("/etc") < 0) {
-		perror("/etc");
+	if (chdir("/usr/spool/rwho") < 0) {
+		perror("/usr/spool/rwho");
 		exit(1);
 	}
 	etc = opendir(".");
 	if (etc == NULL) {
-		perror("/etc");
+		perror("/usr/spool/rwho");
 		exit(1);
 	}
 	mp = myutmp;
@@ -107,18 +107,18 @@ again:
 		   width,
 		   buf,
 		   ctime((time_t *)&mp->myxutmp.ut_time)+4);
-		mp->myidle /= 60;
+		mp->myidle /= 60l;
 		if (mp->myidle) {
 			if (aflg) {
-				if (mp->myidle >= 100*60)
-					mp->myidle = 100*60 - 1;
-				if (mp->myidle >= 60)
-					printf(" %2d", mp->myidle / 60);
+				if (mp->myidle >= ((long)100*60))
+					mp->myidle = (long)(100*60 - 1);
+				if (mp->myidle >= 60l)
+					printf(" %2D", mp->myidle / 60l);
 				else
 					printf("   ");
 			} else
 				printf(" ");
-			printf(":%02d", mp->myidle % 60);
+			printf(":%02D", mp->myidle % 60l);
 		}
 		printf("\n");
 		mp++;

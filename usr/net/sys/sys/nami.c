@@ -145,9 +145,16 @@ eloop:
 	 * is appropriate as per flag.
 	 */
 
+#ifdef	IOUT
+	if (bp != NULL) {
+		mapout(bp);
+	}
+#endif
 	if(u.u_offset >= dp->i_size) {
 		if(bp != NULL) {
+#ifndef	IOUT
 			mapout(bp);
+#endif
 			brelse(bp);
 		}
 		if(flag==CREATE && c=='\0') {
@@ -163,6 +170,10 @@ eloop:
 		u.u_error = ENOENT;
 		goto out;
 	}
+#ifdef	IOUT
+	if (bp != NULL)
+		mapin(bp);
+#endif
 
 	/*
 	 * If offset is on a block boundary,
@@ -207,14 +218,25 @@ eloop:
 	   (dirp->d_name[1] == 'q') && 
 	   (dirp->d_name[2] == '\0'))
 	{
+#ifdef	IOUT
+		ino_t t_ino;
+
+		t_ino = dirp->d_ino;
+		mapout(bp);
+#endif
 		cp = dp->i_quot;
 		/*
 		 * If no quota is associated yet or a new quot is
 		 * around, then . . .
 		 */
+#ifdef	IOUT
+		if (cp == NULL || cp->i_number != t_ino) {
+			u.u_dent.d_ino = t_ino;
+#else
 		if (cp == NULL || cp->i_number != dirp->d_ino) {
 			u.u_dent.d_ino = dirp->d_ino;
 			mapout(bp);
+#endif
 			cp = iget(dp->i_dev, u.u_dent.d_ino);
 			if (cp != NULL) {
 				prele(cp);
@@ -233,7 +255,9 @@ eloop:
 			 * and there is a static relationship between
 			 * buffer headers and the buffers proper.
 			 */
+#ifndef	IOUT
 			mapin(bp);
+#endif
 			if (cp != NULL) {
 				/*
 				 * set up hierarchical inode chains
@@ -254,6 +278,9 @@ eloop:
 			dp->i_flag |= IQUOT;
 
 		}
+#ifdef	IOUT
+		mapin(bp);
+#endif
 	}
 #endif
 	for(i=0; i<DIRSIZ; i++) {

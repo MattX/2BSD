@@ -232,8 +232,9 @@ in_pcbnotify(head, dst, errno, abort)
 	int errno, (*abort)();
 {
 	register struct inpcb *inp, *oinp;
-	int s = splimp();
+	int s;
 
+	s = splimp();
 	for (inp = head->inp_next; inp != head;) {
 		if (inp->inp_faddr.s_addr != dst->s_addr) {
 	next:

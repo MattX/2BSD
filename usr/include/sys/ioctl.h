@@ -24,20 +24,20 @@ struct ltchars {
  * local mode settings
  */
 #define	LCRTBS	0000001		/* correct backspacing for crt */
-#define	LPRTERA	0000002		/* printing terminal \ ... / erase */
+#define	LPRTERA 0000002		/* printing terminal \ ... / erase */
 #define	LCRTERA	0000004		/* do " \b " to wipe out character */
 #define	LTILDE	0000010		/* IIASA - hazeltine tilde kludge */
 #define	LMDMBUF	0000020		/* IIASA - start/stop output on carrier intr */
 #define	LLITOUT	0000040		/* IIASA - suppress any output translations */
 #define	LTOSTOP	0000100		/* send stop for any background tty output */
 #define	LFLUSHO	0000200		/* flush output sent to terminal */
-#define	LNOHANG	0000400		/* IIASA - don't send hangup on carrier drop */
-#define	LETXACK	0001000		/* IIASA - diablo style buffer hacking */
+#define	LNOHANG 0000400		/* IIASA - don't send hangup on carrier drop */
+#define	LETXACK 0001000		/* IIASA - diablo style buffer hacking */
 #define	LCRTKIL	0002000		/* erase whole line on kill with " \b " */
-#define	LINTRUP	0004000		/* interrupt on every input char - SIGTINT */
+#define	LINTRUP 0004000		/* interrupt on every input char - SIGTINT */
 #define	LCTLECH	0010000		/* echo control characters as ^X */
 #define	LPENDIN	0020000		/* tp->t_rawq is waiting to be reread */
-#define	LDECCTQ	0040000		/* only ^Q starts after ^S */
+#define	LDECCTQ 0040000		/* only ^Q starts after ^S */
 #define	LNOFLSH	0100000		/* don't flush output on signals */
 
 /* local mode extension (t_xflags) */
@@ -104,17 +104,17 @@ struct ltchars {
 #define	TIOCMGET	(('t'<<8)|106)	/* get all modem bits */
 #define	TIOCREMOTE	(('t'<<8)|105)	/* remote input editing */
 #ifdef	TEXAS_AUTOBAUD
-#define	TIOCSIMG        (('t'<<8)|104)	/* set image mode */
-#define	TIOCCIMG        (('t'<<8)|103)	/* clear image mode */
+#define TIOCSIMG        (('t'<<8)|104)  /* set image mode */
+#define TIOCCIMG        (('t'<<8)|103)  /* clear image mode */
 #endif
 
-#define	OTTYDISC	0		/* old, v7 std tty driver */
-#define	NTTYDISC	1		/* new tty discipline */
-#define	NETLDISC	2		/* line discip for berk net */
+#define OTTYDISC	0		/* old, v7 std tty driver */
+#define NTTYDISC	1		/* new tty discipline */
+#define NETLDISC	2		/* line discip for berk net */
 #ifdef	OLDTTY
-#	define	DFLT_LDISC	OTTYDISC	/* default disc. on initial open */
+#   define DFLT_LDISC	OTTYDISC	/* default disc. on initial open */
 #else
-#	define	DFLT_LDISC	NTTYDISC	/* default disc. on initial open */
+#   define DFLT_LDISC	NTTYDISC	/* default disc. on initial open */
 #endif
 
 #define	FIOCLEX		(('f'<<8)|1)
@@ -122,7 +122,7 @@ struct ltchars {
 /* another local */
 #define	FIONREAD	(('f'<<8)|127)	/* get # bytes to read */
 
-#ifdef	UCB_NET
+#ifdef  UCB_NET
 #define	FIONBIO		(('f'<<8)|126)
 #define	FIOASYNC	(('f'<<8)|125)
 #define	SIOCDONE	(('s'<<8)|0)	/* shutdown read/write on socket */
@@ -138,5 +138,12 @@ struct ltchars {
 #define	SIOCADDRT	(('s'<<8)|10)	/* add a routing table entry */
 #define	SIOCDELRT	(('s'<<8)|11)	/* delete a routing table entry */
 #define	SIOCCHGRT	(('s'<<8)|12)	/* change a routing table entry */
+#define	SIOCSIFADDR	(('i'<<8)|13)	/* set ifnet address */
+#define	SIOCGIFADDR	(('i'<<8)|14)	/* get ifnet address */
+#define	SIOCSIFDSTADDR	(('i'<<8)|15)	/* set p-p address */
+#define	SIOCGIFDSTADDR	(('i'<<8)|16)	/* get p-p address */
+#define	SIOCSIFFLAGS	(('i'<<8)|17)	/* set ifnet flags */
+#define	SIOCGIFFLAGS	(('i'<<8)|18)	/* get ifnet flags */
+#define	SIOCGIFCONF	(('i'<<8)|19)	/* get ifnet list */
 #endif
-#endif	_IOCTL_
+#endif 	_IOCTL_

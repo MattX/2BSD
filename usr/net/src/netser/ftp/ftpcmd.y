@@ -12,7 +12,7 @@ static char sccsid[] = "@(#)ftpcmd.y	4.7 83/02/02";
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <net/in.h>
+#include <netinet/in.h>
 
 #include <stdio.h>
 #include <ctype.h>

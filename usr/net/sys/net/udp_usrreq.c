@@ -76,7 +76,7 @@ udp_input(m0)
 		ui->ui_len = ui->ui_ulen;
 		if (ui->ui_sum = in_cksum(m, len)) {
 			udpstat.udps_badsum++;
-			printf("udp cksum %x\n", ui->ui_sum);
+			printf("uck%x\n", ui->ui_sum);
 			m_freem(m);
 			return;
 		}

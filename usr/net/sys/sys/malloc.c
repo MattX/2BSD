@@ -88,7 +88,11 @@ again:
 		 * Attempt to avoid running out of swap--
 		 * free ALL unused sticky text segments.
 		 */
+#ifndef	SHORTPRT
 		printf("short of swap\n");
+#else
+		printf("sswp\n");
+#endif	SHORTPRT
 		xumount(NODEV);
 		goto again;
 	}
@@ -212,7 +216,11 @@ register memaddr addr;
 		 * and move the last entry back one.
 		 */
 		bp--;
+#ifndef	SHORTPRT
 		printf("%s: map ovflo, lost [%d-%d)\n", mp->m_name,
+#else
+		printf("%s:mol[%d-%d)\n", mp->m_name,
+#endif	SHORTPRT
 		    (bp-1)->m_addr, (bp-1)->m_addr+(bp-1)->m_size);
 		bp[-1] = bp[0];
 		bp->m_size = bp->m_addr = 0;
@@ -273,7 +281,11 @@ again:
 			 * Attempt to avoid running out of swap--
 			 * free ALL unused sticky text segments.
 			 */
+#ifndef	SHORTPRT
 			printf("short of swap\n");
+#else
+			printf("sswp\n");
+#endif	SHORTPRT
 			xumount(NODEV);
 			goto again;
 		}

@@ -107,7 +107,7 @@ in_cksum(m, len)
 		 */
 		for (;;) {
 			if (m == 0) {
-				printf("cksum: out of data\n");
+				printf("cks:ood\n");
 				goto done;
 			}
 			if (m->m_len)
@@ -165,7 +165,7 @@ in_cksum(m, len)
 		len -= mlen;
 		plen = mlen;
 		if ((w&01) && in_ckodd++ == 0)
-			printf("cksum: odd\n");
+			printf("cks:od\n");
 		if (mlen > 0)
 			in_ckbuf();     /* arguments already in registers */
 		if (len == 0)
@@ -175,7 +175,7 @@ in_cksum(m, len)
 		 */
 		for (;;) {
 			if (m == 0) {
-				printf("cksum: out of data\n");
+				printf("cks:ood\n");
 				goto done;
 			}
 			if (m->m_len)

@@ -103,6 +103,9 @@ ino_t ino;
 #endif
 	struct buf *bp;
 	struct dinode *dp;
+#ifdef	IOUT
+	struct dinode tdi;
+#endif
 
 loop:
 #ifdef	UCB_IHASH
@@ -192,8 +195,14 @@ loop:
 	}
 	dp = (struct dinode *) mapin(bp);
 	dp += itoo(ino);
+#ifdef	IOUT
+	tdi = *dp;
+	mapout(bp);
+	iexpand(ip, &tdi);
+#else
 	iexpand(ip, dp);
 	mapout(bp);
+#endif
 	brelse(bp);
 	return(ip);
 }
@@ -323,6 +332,10 @@ int waitfor;
 	struct filsys *fp;
 	char *p1, *p2;
 	int i;
+#ifdef	IOUT
+	struct dinode tdi;
+	ino_t toff;
+#endif
 
 	if((ip->i_flag&(IUPD|IACC|ICHG)) != 0) {
 		if ((fp = getfs(ip->i_dev)) == NULL || fp->s_ronly)
@@ -332,8 +345,18 @@ int waitfor;
 			brelse(bp);
 			return;
 		}
+#ifdef	IOUT
+		toff = ip->i_number;
+#endif
 		dp = (struct dinode *) mapin(bp);
+#ifdef	IOUT
+		dp += itoo(toff);
+		tdi = *dp;
+		mapout(bp);
+		dp = &tdi;
+#else
 		dp += itoo(ip->i_number);
+#endif
 		dp->di_mode = ip->i_mode;
 		dp->di_nlink = ip->i_nlink;
 		dp->di_uid = ip->i_uid;
@@ -349,7 +372,11 @@ int waitfor;
 #else
 			if(*p2++ != 0)
 #endif
+#ifndef	SHORTPRT
 			   printf("iaddr[%d] > 2^24(%D), inum = %d, dev = %d\n",
+#else
+			   printf("i[%d]>%D i=%d d=%d\n",
+#endif	SHORTPRT
 				i, ip->i_un.i_addr[i], ip->i_number, ip->i_dev);
 			*p1++ = *p2++;
 			*p1++ = *p2++;
@@ -361,6 +388,11 @@ int waitfor;
 		if(ip->i_flag&ICHG)
 			dp->di_ctime = time;
 		ip->i_flag &= ~(IUPD|IACC|ICHG);
+#ifdef	IOUT
+		dp = (struct dinode *) mapin(bp);
+		dp += itoo(toff);
+		*dp = tdi;
+#endif
 		mapout(bp);
 #ifdef UCB_FSFIX
 		if (waitfor)

@@ -201,3 +201,128 @@ _ntohs:
 	swab    r0
 	rts     pc
 
+/ error = gethostid();
+/ should be hostid instead of hstid, but ...
+
+.globl  _gethstid
+_gethstid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	sys	local; 9f
+	bec	1f
+	jmp	cerror
+1:
+	mov	(sp)+,r5
+	rts	pc
+.data
+9:
+	sys	gethstid
+.text
+/ should be hostid instead of hstid, but ...
+.globl  _sethstid
+_sethstid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov     4.(r5),0f
+	mov     6.(r5),0f+2
+	sys	local; 9f
+	bec	1f
+	jmp	cerror
+1:
+	mov	(sp)+,r5
+	clr	r0
+	rts	pc
+.data
+9:
+	sys	sethstid; 0:..; ..
+.text
+/ error = setrgid (rgid)
+/	  int rgid;
+/
+/ error = setegid (egid)
+/	  int egid;
+/
+/ error = setregid(rgid, egid);
+/	  int rgid, egid;
+
+.globl	_setrgid
+.globl	_setegid
+.globl	_setregid
+.globl	cerror
+
+_setrgid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	mov	$-1,r1
+	br	0f
+
+_setegid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	$-1,r0
+	mov	4(r5),r1
+	br	0f
+
+_setregid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	mov	6(r5),r1
+0:
+	sys	local; 9f
+	bec	1f
+	jmp	cerror
+1:
+	clr	r0
+	mov	(sp)+,r5
+	rts	pc
+.data
+9:
+	sys	setregid
+.text
+/ error = setruid (ruid)
+/	  int ruid;
+/
+/ error = seteuid (euid)
+/	  int euid;
+/
+/ error = setreuid(ruid, euid);
+/	  int ruid, euid;
+
+.globl	_setruid
+.globl	_seteuid
+.globl	_setreuid
+.globl	cerror
+
+_setruid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	mov	$-1,r1
+	br	0f
+
+_seteuid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	$-1,r0
+	mov	4(r5),r1
+	br	0f
+
+_setreuid:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	mov	6(r5),r1
+0:
+	sys	local; 9f
+	bec	1f
+	jmp	cerror
+1:
+	clr	r0
+	mov	(sp)+,r5
+	rts	pc
+.data
+9:
+	sys	setreuid
+.text

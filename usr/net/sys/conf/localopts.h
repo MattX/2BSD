@@ -17,17 +17,20 @@
 /* #define UCB_SYMLINKS		/* Symbolic links */
 /* #define TEXAS_AUTOBAUD	/* tty image mode to support autobauding */
 
-/* #define UCB_AUTOBOOT		/* System is able to reboot itself */
+#define UCB_AUTOBOOT		/* System is able to reboot itself */
 #define	UCB_UPRINTF		/* Send error messages to user */
 #define	UCB_VHANGUP		/* Revoke control tty access when user leaves */
 #define UCB_LOAD		/* load average and uptime */
-#define UCB_METER		/* vmstat performance metering */
+/* #define UCB_METER		/* vmstat performance metering */
 /* #define OLDTTY		/* old line discipline */
 #define UCB_NTTY		/* new tty driver */
 #define MENLO_JCL		/* Job Control */
 #define MENLO_OVLY		/* process text overlays */
 #define VIRUS_VFORK		/* vfork system call */
 #define UCB_RENICE		/* renice system call */
+#define SHORTPRT		/* Short text strings in printf's */
+#define BIGKOV			/* big kernel overlays */
+#define	IOUT			/* Inode table in last 8K */
 
 /*
  * Internal changes
@@ -44,7 +47,7 @@
 				/* (_end must be before 0120000) */
 /* #define UCB_FRCSWAP		/* Force swap on expand/fork */
 #define UCB_BHASH		/* hashed buffer accessing */
-/* #define UCB_CLIST		/* Clists moved out of kernel data space */
+#define UCB_CLIST		/* Clists moved out of kernel data space */
 #define	UCB_DEVERR		/* Print device errors in mnemonics */
 #define	UCB_ECC			/* Disk drivers should do ECC if possible */
 /* #define BADSECT		/* Bad-sector forwarding */
@@ -59,11 +62,9 @@
  *	machine type set in whoami.h
  */
 #if	PDP11 == GENERIC
-#	define	MENLO_KOV
 #	define	KERN_NONSEP		/* kernel is not separate I/D */
 #else
 #   if	PDP11 <= 40 || PDP11 == 60
-#	define	MENLO_KOV
 #	define	NONSEPARATE
 #	define	KERN_NONSEP		/* kernel is not separate I/D */
 #   endif
@@ -72,6 +73,7 @@
 #if	PDP11 == 44 || PDP11 == 70 || PDP11 == 24 || PDP11 == GENERIC || defined(ENABLE34)
 #	define	UNIBUS_MAP
 #endif
+#	define	MENLO_KOV
 
 /*
  * Standard Bell V7 features you may or may not want
@@ -92,4 +94,4 @@
  *  UCB_NET requires that the additional files in /usr/net/sys
  *  be merged in here-- only the hooks are installed on this ifdef.
  */
-/* #define UCB_NET		/* UCB TCP/IP Kernel */
+#define UCB_NET		/* UCB TCP/IP Kernel */

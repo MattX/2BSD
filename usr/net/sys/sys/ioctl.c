@@ -18,6 +18,9 @@
 #include <sys/file.h>
 #include <sys/reg.h>
 #include <sys/conf.h>
+#ifdef	UCB_NET
+#include <sys/mbuf.h>
+#endif
 
 /*
  * stty/gtty writearound

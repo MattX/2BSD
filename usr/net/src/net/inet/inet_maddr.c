@@ -1,7 +1,7 @@
 /*	inet_maddr.c	4.2	82/10/07	*/
 
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <netdb.h>
 
 /*
@@ -14,7 +14,7 @@ inet_makeaddr(net, host)
 {
 	u_long addr;
 
-#if	!pdp11
+#if	pdp11
 	if (net < 128)
 		addr = (net << 24) | host;
 	else if (net < 65536)

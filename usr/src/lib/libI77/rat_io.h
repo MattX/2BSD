@@ -1,8 +1,0 @@
-define(STDIN,	0)
-define(STDOUT,	1)
-define(STDERR,	2)
-define(EOF,	char(-1))
-define(NEWLINE,	'\\n')
-define(TAB,	'\\t')
-define(BACKSPACE,	'\\b')
-define(BLANK,	' ')

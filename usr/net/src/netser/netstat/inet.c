@@ -9,7 +9,7 @@ static char sccsid[] = "@(#)inet.c	4.4 82/10/07";
 #include <sys/protosw.h>
 #include <net/route.h>
 #define TCPSTATES
-#include <netser/inet.h>
+#include <netinet/inet.h>
 #include <netdb.h>
 
 struct	inpcb inpcb;
@@ -161,7 +161,7 @@ inetname(in)
 		strcpy(line, cp);
 	else {
 		u_char *ucp = (u_char *)&in;
-		sprintf(line, "%u.%u.%u.%u", ucp[0], ucp[1], ucp[2], ucp[3]);
+		sprintf(line, "%u.%u.%u.%u", (ucp[0]&0377), (ucp[1]&0377), (ucp[2]&0377), (ucp[3]&0377));
 	}
 	return (line);
 }

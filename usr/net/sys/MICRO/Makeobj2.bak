@@ -1,0 +1,33 @@
+# first phase of make check .o dependencies and remove them if they
+# need to be recompiled.
+R =	touch -c
+I =	/usr/include
+
+OFILE =	unix
+
+# move nami.o into the base segment if possible
+OV5 =	if_ec.o if_il.o if_sri.o if_uba.o in.o \
+	in_pcb.o ip_icmp.o ip_input.o \
+	ip_output.o raw_cb.o raw_imp.o
+OV6 =	ipc.o mbuf.o mbuf11.o proto.o socket.o socketsubr.o pty.o \
+	tcp_debug.o tcp_input.o
+OV7 =	af.o if.o if_loop.o if_imp.o \
+	if_imphost.o if_ether.o \
+	raw_ip.o raw_pup.o raw_usrreq.o \
+	tcp_output.o tcp_subr.o tcp_timer.o \
+	tcp_usrreq.o udp_usrreq.o in_cksum.o route.o
+
+#	boot.o must be loaded in the base well above 0 data
+
+#	l.o MUST be loaded first, param.o MUST be loaded last
+${OFILE}: ${OV5} ${OV6} ${OV7}
+	rm -f ${OFILE}
+
+.PRECIOUS: Makeobj2
+
+# DO NOT DELETE THIS LINE
+
+af.o: ../net/af.c
+af.o: param.h ${I}/sys/mbuf.h ${I}/sys/protosw.h ${I}/sys/socket.h
+af.o: ${I}/sys/socketvar.h ../net/af.h
+	${R} af.o

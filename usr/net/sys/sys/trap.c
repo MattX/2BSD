@@ -110,17 +110,21 @@ dev_t	dev;
 		savhasmap = hasmap;
 		hasmap = 0;
 #endif
-		printf("ka6 = %o\n", *ka6);
-		printf("aps = %o\n", &ps);
-		printf("pc = %o ps = %o\n", pc, ps);
+		printf("ka6=%o\n", *ka6);
+		printf("aps=%o\n", &ps);
+		printf("pc=%o ps=%o\n", pc, ps);
 #ifdef	MENLO_KOV
-		printf("__ovno = %d\n", ov);
+		printf("__ovno=%d\n", ov);
 #endif
 #if	PDP11 == 44 || PDP11 == 70 || PDP11 == GENERIC
 		if((cputype == 70) || (cputype == 44))
-			printf("cpuerr = %o\n", *CPUERR);
+			printf("cpuerr=%o\n", *CPUERR);
 #endif
+#ifndef	SHORTPRT
 		printf("trap type %o\n", dev);
+#else
+		printf("tt%o\n", dev);
+#endif	SHORTPRT
 		panic("trap");
 
 	case BUSFLT + USER:
@@ -207,7 +211,11 @@ dev_t	dev;
 	 */
 	case PARITYFLT:
 	case PARITYFLT + USER:
+#ifndef	SHORTPRT
 		printf("parity\n");
+#else
+		printf("per\n");
+#endif	SHORTPRT
 		if((cputype == 70) || (cputype == 44)) {
 			for(i = 0; i < 4; i++)
 				printf("%o ", MEMERRLO[i]);
@@ -240,11 +248,19 @@ dev_t	dev;
 	 */
 	case ZEROTRAP:
 	case ZEROTRAP + USER:
+#ifndef	SHORTPRT
 		printf("Trap to 0: ");
+#else
+		printf("Tto0:");
+#endif	SHORTPRT
 		/*FALL THROUGH*/
 	case RANDOMTRAP:
 	case RANDOMTRAP + USER:
+#ifndef	SHORTPRT
 		printf("Random interrupt ignored\n");
+#else
+		printf("Rint\n");
+#endif	SHORTPRT
 		if ((dev & USER) != 0)
 			return;
 
@@ -286,8 +302,9 @@ out:
 #endif
 		psig();
 	curpri = setpri(u.u_procp);
-	if (runrun)
+	if (runrun) {
 		qswtch();
+	}
 	if(u.u_prof.pr_scale)
 		addupc((caddr_t) pc, &u.u_prof, (int) (u.u_stime - syst));
 #ifndef	NONFP
@@ -320,6 +337,12 @@ int *pc;
 	int *opc;	/* save original pc in case we must restart syscall */
 #endif
 
+#if defined(DIAGNOSTIC) && !defined(NOKA5)
+	if (*KDSA5 != seg5.se_addr) {
+		printf("syscall not nseg5=%o\n",*KDSA5);
+		normalseg5();
+	}
+#endif
 	if (!USERMODE(ps))
 		panic("syscall");
 	syst = u.u_stime;
@@ -419,8 +442,9 @@ int *pc;
 #endif
 		psig();
 	curpri = setpri(u.u_procp);
-	if (runrun)
+	if (runrun) {
 		qswtch();
+	}
 	if(u.u_prof.pr_scale)
 		addupc((caddr_t)pc, &u.u_prof, (int)(u.u_stime - syst));
 #ifndef NONFP

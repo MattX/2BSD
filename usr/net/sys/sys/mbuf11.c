@@ -7,7 +7,7 @@
 #include "../net/in_systm.h"
 
 
-#define debug   1               /* consistency checks */
+/* #define debug   1               /* consistency checks */
 
 #ifdef debug
 #define MBTRACE(type,arg) mbtrace(type,arg)
@@ -41,7 +41,7 @@ u_int   miobase;                /* click of DMA area */
 u_int   miosize = IOSIZE;
 u_int   mbfree;                 /* free list */
 
-u_int   mbhalt = 1;             /* halt on any drop (for debugging) */
+u_int   mbhalt = 0;             /* halt on any drop (for debugging) */
 
 
 /*
@@ -53,9 +53,10 @@ struct mbuf *
 m_bget()
 {
 	register struct mbuf *m;
-	int s = splimp();
+	int s;
 	u_int click;
 
+	s = splimp();
 	if (mbicache) {
 		m = mbcache[--mbicache];
 		mbstat.m_mbfree--;
@@ -101,9 +102,10 @@ m_bfree(m)
 	struct mbuf *m;
 {
 	register struct mbuf *n;
-	int s = splimp();
+	int s;
 	u_int click;
 
+	s = splimp();
 	MAPSAVE();
 	n = m->m_next;
 #ifdef debug
@@ -197,7 +199,11 @@ union store *alloct;    /*arena top*/
 botch(s)
 char *s;
 {
+#ifndef	SHORTPRT
 	printf("botch %s\n",s);
+#else
+	printf("bt %s\n",s);
+#endif	SHORTPRT
 	panic("mbuf11");
 }
 #ifdef longdebug
@@ -227,9 +233,10 @@ unsigned nbytes,clr;
 	register union store *p, *q;
 	register nw;
 	int temp,val;
-	int s = splimp();
+	int s;
 #define ret(v) { val = (v); goto out; }
 
+	s = splimp();
 	nw = (nbytes+WORD+WORD-1)/WORD;
 	ASSERT(allocp>=allocs && allocp<=alloct);
 	ASSERT(allock());
@@ -282,8 +289,9 @@ m_sfree(ap)
 register char *ap;
 {
 	register union store *p = (union store *)ap;
-	int s = splimp();
+	int s;
 
+	s = splimp();
 	MBTRACE(5,ap);
 	/* ASSERT(p>clearbusy(allocs[1].ptr)&&p<=alloct); */
 	ASSERT(p>allocs&&p<=alloct);
@@ -349,38 +357,56 @@ mbinit()
 	MAPREST();
 }
 
-
+#define	MBTSIZ	6		/* Size of mbtbuf in bytes */
+#define NMBTBUF 5		/* Num. of mbtbuf's */
+u_int	mbtbase;
+#ifdef	debug
+u_int	mbtsize = (NMBTBUF*MBTSIZ);
+#else
+u_int	mbtsize = 0;
+#endif
 #ifdef debug
-
-#define NMBTBUF 40
-
 struct mbtbuf {
 	u_int   mt_type;        /* type plus KISA6 */
 	u_int   mt_pc;
 	u_int   mt_arg;
-} mbtbuf[NMBTBUF], *mbitbuf = mbtbuf;
+};
+
+#define	MBTSEG	(((btoc(NMBTBUF*MBTSIZ)-1)<<8)|RW)
+u_int	mbtpos;
 
 mbtrace(type,arg)
 {
 	int s = spl7();
 	register int *ip;
-	register struct mbtbuf *mt = mbitbuf;
+	register struct mbtbuf *mt;
 	extern int _ovno;
+	segm save;
 
-	if (++mbitbuf >= &mbtbuf[NMBTBUF])
-		mbitbuf = mbtbuf;
+	saveseg5(save);
+	mapseg5(mbtbase, MBTSEG);
+	mt = ((struct mbtbuf *) 0120000);
+	mt += mbtpos;
+	if (++mbtpos >= NMBTBUF)
+		mbtpos = 0;
 	mt->mt_type = (type << 12) | _ovno;
 	ip = &type;  ip--;  ip--;
 	ip = *ip;  ip++;
 	mt->mt_pc = *ip;
 	mt->mt_arg = arg;
+	restorseg5(save);
 	splx(s);
 }
+#endif
 
 mbprint(m,s)
 register struct mbuf *m;
 char *s;
 {
+#ifndef	debug
+	return;
+}
+#else
 	extern enprint;
 	register char *ba;
 	int col,i,bc;
@@ -392,7 +418,11 @@ char *s;
 		if (m == 0) break;
 		ba = mtod(m, char *);
 		col = 0;  bc = m->m_len;
+#ifndef	SHORTPRT
 		nprintf("m%o next%o off%o len%o click%o act%o back%o ref%o\n",
+#else
+		nprintf("m%o n%o o%o l%o c%o a%o b%o r%o\n",
+#endif	SHORTPRT
 			m, m->m_next, m->m_off, m->m_len, m->m_click, m->m_act,
 			MBX->m_mbuf, MBX->m_ref);
 		for(; bc ; bc--) {
@@ -408,6 +438,5 @@ char *s;
 	}
 	MAPREST();
 }
-
 #endif debug
 #endif	UCB_NET

@@ -26,7 +26,7 @@
 #endif
 
 							/* default path */
-#define	PATH	"PATH=:/usr/ucb:/bin:/usr/bin:/usr/local:/usr/hosts"
+#define	PATH	"PATH=.:/usr/ucb:/bin:/usr/bin:/usr/local"
 #define	SHELL	"/bin/sh"				/* default shell */
 #define	JCLCSH	"/bin/csh"	/* job control shell, needs new line disc. */
 #define	TIMEOUT	60			/* maximum amount of time to login */
@@ -36,7 +36,7 @@
 	 * highly secret).  0 is wide open (everything readable and writable
 	 * by anyone.)  022 is moderate.  027 is also a possibility.
 	 */
-#define UMASK	022
+#define UMASK	077
 
 #define SCPYN(a, b)	strncpy(a, b, sizeof(a))
 #define NMAX	sizeof(utmp.ut_name)
@@ -457,7 +457,7 @@ getloginname(up)
 
 	while (up->ut_name[0] == '\0') {
 		namep = up->ut_name;
-		printf("%s login: ", hostname);
+		printf("%s login:", hostname);
 		fflush(stdout);
 		while ((c = getchar()) != '\n') {
 			if (c == ' ')

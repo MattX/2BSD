@@ -33,8 +33,8 @@ extern	struct	cblock	cfree[];
 #endif	UCB_CLIST
 extern	ubadr_t	clstaddr;
 #ifdef	UCB_NET
-extern	memaddr mbbase;
-extern	int mbsize;
+extern	memaddr mbbase, arpbase, mbtbase, tcpbase;
+extern	int mbsize, arpsize, mbtsize, tcpsize;
 #endif
 
 #ifdef	UCB_AUTOBOOT
@@ -91,6 +91,9 @@ startup()
 	register memaddr i, freebase;
 	extern	end;
 
+#if	PDP11 == 21 || PDP11 == 71
+	ivinit();
+#endif
 #ifndef	NOKA5
 	saveseg5(seg5);		/* must be done before clear() is called */
 	if (&remap_area > SEG5)
@@ -100,6 +103,9 @@ startup()
 		panic("_end > 0120000");
 #endif
 
+#if PDP11 <= 22 || PDP11 > 70
+	*SSR3 |= 020;		/* Enable 22 bit memory mgmnt */
+#endif
 	/*
 	 * zero and free all of core
 	 */
@@ -114,11 +120,14 @@ startup()
 		/*
 		 * avoid testing locations on the IO page if possible,
 		 * since some people have dz's at 0160000 (0760000).
-		 * Note that more than 248K of memory is not currently
-		 * supported without a Unibus map anyway.
 		 * (3968 is btoc(248K); the macro doesn't do longs.)
+		 * (65408 is btoc(4088K))
 		 */
+#if PDP11 <= 22 || PDP11 > 70
+		if (!ubmap && i >= 0xff80)
+#else
 		if (!ubmap && i >= 3968)
+#endif
 			break;
 	}
 	clear(freebase, i - freebase);
@@ -149,9 +158,22 @@ startup()
 	if ((mbbase = malloc(coremap, btoc(mbsize))) == 0)
 		panic("mbbase");
 	maxmem -= btoc(mbsize);
+	if ((arpbase = malloc(coremap, btoc(arpsize))) == 0)
+		panic("arpbase");
+	maxmem -= btoc(arpsize);
+	if (mbtsize != 0 && (mbtbase = malloc(coremap, btoc(mbtsize))) == 0)
+		panic("mbtbase");
+	maxmem -= btoc(mbtsize);
+	if (tcpsize != 0 && (tcpbase = malloc(coremap, btoc(tcpsize))) == 0)
+		panic("tcpbase");
+	maxmem -= btoc(tcpsize);
 #endif
 
+#ifndef	SHORTPRT
 	printf("mem = %D\n", ctob((long)maxmem));
+#else
+	printf("m=%D\n", ctob((long)maxmem));
+#endif	SHORTPRT
 	if (MAXMEM < maxmem)
 		maxmem = MAXMEM;
 	mfree(swapmap, nswap, 1);
@@ -205,7 +227,11 @@ esprof()
 {
 	clear(proloc, nproclicks);
 	isprof();
+#ifndef	SHORTPRT
 	printf("profiling on\n");
+#else
+	printf("pon\n");
+#endif	SHORTPRT
 }
 #endif	defined(PROFILE) && !defined(ENABLE34)
 
@@ -319,16 +345,25 @@ bad:
  */
 clkstart()
 {
+#if	PDP11 == 21 || PDP11 == 71
+	proclock();
+	lks = 0;
+#else
 	lks = LKS;
 	if (fioword((caddr_t)lks) == -1) {
 		lks = KW11P_CSR;
 		if (fioword((caddr_t)lks) == -1) {
+#ifndef	SHORTPRT
 			printf("no clock??\n");
+#else
+			printf("nocl\n");
+#endif	SHORTPRT
 			lks = 0;
 		}
 	}
 	if (lks)
 		*lks = 0115;
+#endif
 }
 
 #ifndef	ENABLE34
@@ -602,9 +637,13 @@ register struct buf *bp;
 #ifdef	UCB_NET
 	saveseg5(Bmapsave);
 #endif
-#if	!defined(NOKA5) && defined(DIAGNOSTIC)
+#if	!defined(NOKA5) && defined(DIAGNOSTIC) 
 	if (hasmap != (struct buf *) 0) {
+#ifndef	SHORTPRT
 		printf("mapping %o over %o\n", bp, hasmap);
+#else
+		printf("m %o o %o\n", bp, hasmap);
+#endif	SHORTPRT
 		panic("mapin");
 	}
 	hasmap = bp;
@@ -621,9 +660,13 @@ void
 mapout(bp)
 register struct buf *bp;
 {
-#ifdef	DIAGNOSTIC
+#if	defined(DIAGNOSTIC) 
 	if (bp != hasmap) {
+#ifndef	SHORTPRT
 		printf("unmapping %o, not %o\n", bp, hasmap);
+#else
+		printf("um %o n %o\n", bp, hasmap);
+#endif	SHORTPRT
 		panic("mapout");
 	}
 	hasmap = (struct buf *) NULL;
@@ -643,14 +686,22 @@ dev_t	dev;
 int	howto;
 {
 	if ((howto & RB_NOSYNC) == 0 && bfreelist.b_forw) {
+#ifndef	SHORTPRT
 		printf("syncing disks ... ");
+#else
+		printf("sd..");
+#endif	SHORTPRT
 		update();
 		delay(5);
 		printf("done\n\n");
 	}
 	(void) _spl7();
 	if (howto & RB_HALT) {
+#ifndef	SHORTPRT
 		printf("halting\n");
+#else
+		printf("h..\n");
+#endif	SHORTPRT
 		halt();
 		/*NOTREACHED*/
 	} else {
@@ -667,6 +718,70 @@ int	howto;
 }
 
 /*
+ *  Dumpsys takes a dump of memory by calling (*dump)(), which must
+ *  correspond to dumpdev.  *(dump)() should dump from dumplo blocks
+ *  to the end of memory or to the end of the logical device.
+ */
+dumpsys()
+{
+	extern	int (*dump)();
+
+	if (dumpdev != NODEV) {
+#ifndef	SHORTPRT
+		printf("\ndumping to dev %o, offset %D\n", dumpdev, dumplo);
+#else
+		printf("\ndto %o of %D\n", dumpdev, dumplo);
+#endif	SHORTPRT
+#ifndef	SHORTPRT
+		printf("dump ");
+#else
+		printf("d ");
+#endif	SHORTPRT
+		switch ((*dump)(dumpdev)) {
+
+		case EFAULT:
+#ifndef	SHORTPRT
+			printf("device not ready\n");
+#else
+			printf("dnr\n");
+#endif	SHORTPRT
+			break;
+		case EINVAL:
+#ifndef	SHORTPRT
+			printf("arguments invalid\n");
+#else
+			printf("iarg\n");
+#endif	SHORTPRT
+			break;
+		case EIO:
+#ifndef	SHORTPRT
+			printf("I/O error\n");
+#else
+			printf("Ier\n");
+#endif	SHORTPRT
+			break;
+		default:
+#ifndef	SHORTPRT
+			printf("error(?)\n");
+#else
+			printf("er\n");
+#endif	SHORTPRT
+			break;
+		case 0:
+#ifndef	SHORTPRT
+			printf("succeeded\n");
+#else
+			printf("suc\n");
+#endif	SHORTPRT
+			return (1);
+		}
+	}
+	return (0);	/* failure */
+}
+#endif	UCB_AUTOBOOT
+
+#if defined(UCB_AUTOBOOT) || PDP11<=22 || PDP11 > 70
+/*
  * wait for time "del", approximately in seconds.
  * Used to avoid rescheduling from sleep().
  */
@@ -681,41 +796,7 @@ int del;
 				;
 	}
 }
-
-/*
- *  Dumpsys takes a dump of memory by calling (*dump)(), which must
- *  correspond to dumpdev.  *(dump)() should dump from dumplo blocks
- *  to the end of memory or to the end of the logical device.
- */
-dumpsys()
-{
-	extern	int (*dump)();
-
-	if (dumpdev != NODEV) {
-		printf("\ndumping to dev %o, offset %D\n", dumpdev, dumplo);
-		printf("dump ");
-		switch ((*dump)(dumpdev)) {
-
-		case EFAULT:
-			printf("device not ready\n");
-			break;
-		case EINVAL:
-			printf("arguments invalid\n");
-			break;
-		case EIO:
-			printf("I/O error\n");
-			break;
-		default:
-			printf("error(?)\n");
-			break;
-		case 0:
-			printf("succeeded\n");
-			return (1);
-		}
-	}
-	return (0);	/* failure */
-}
-#endif	UCB_AUTOBOOT
+#endif
 
 /*
  * lock user into core as much

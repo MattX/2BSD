@@ -33,7 +33,7 @@ icmp_error(oip, type, code)
 
 	MAPSAVE();
 	if (icmpprintfs)
-		printf("icmp_error(%x, %d, %d)\n", oip, type, code);
+		printf("icmper(%x, %d, %d)\n", oip, type, code);
 	/*
 	 * Make sure that the old IP packet had 8 bytes of data to return;
 	 * if not, don't bother.  Also don't EVER error if the old
@@ -113,7 +113,7 @@ icmp_input(m)
 	 * that not corrupted and of at least minimum length.
 	 */
 	if (icmpprintfs)
-		printf("icmp_input from %u.%u.%u.%u, len %d\n",
+		printf("icmpinf %u.%u.%u.%u, len %d\n",
 		(unsigned)ip->ip_src.s_addr.s_net,
 		(unsigned)ip->ip_src.s_addr.s_host,
 		(unsigned)ip->ip_src.s_addr.s_lh,
@@ -128,7 +128,7 @@ icmp_input(m)
 	i = icp->icmp_cksum;
 	icp->icmp_cksum = 0;
 	if (i != in_cksum(m, icmplen)) {
-		printf("icmp: cksum %x\n", i);
+		printf("icmp:cks%x\n", i);
 		goto free;
 	}
 
@@ -136,7 +136,7 @@ icmp_input(m)
 	 * Message type specific processing.
 	 */
 	if (icmpprintfs)
-		printf("icmp_input, type %d code %d\n", icp->icmp_type,
+		printf("icmpipt %d c %d\n", icp->icmp_type,
 			icp->icmp_code);
 	switch (i = UCHAR(icp->icmp_type)) {
 
@@ -154,7 +154,7 @@ icmp_input(m)
 		if (icmplen < ICMP_ADVLENMIN || icmplen < ICMP_ADVLEN(icp))
 			goto free;
 		if (icmpprintfs)
-			printf("deliver to protocol %d\n", icp->icmp_ip.ip_p);
+			printf("dtop%d\n", icp->icmp_ip.ip_p);
 		if (ctlfunc = protosw[ip_protox[UCHAR(icp->icmp_ip.ip_p)]].pr_ctlinput) {
 #if !pdp11
 			(*ctlfunc)(icmpmap[i] + icp->icmp_code, (caddr_t)icp);
@@ -245,7 +245,7 @@ icmp_send(ip)
 	m->m_off -= hlen;
 	m->m_len += hlen;
 	if (icmpprintfs)
-		printf("icmp_send dst %u.%u.%u.%u src %u.%u.%u.%u\n",
+		printf("icmpsd %u.%u.%u.%u s %u.%u.%u.%u\n",
 		 (unsigned)ip->ip_dst.s_addr.s_net,
 		 (unsigned)ip->ip_dst.s_addr.s_host,
 		 (unsigned)ip->ip_dst.s_addr.s_lh,

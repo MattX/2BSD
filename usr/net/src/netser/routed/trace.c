@@ -5,7 +5,7 @@ static char sccsid[] = "@(#)trace.c	4.2 10/6/82";
 #include <sys/param.h>
 #include <sys/protosw.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h>
@@ -58,7 +58,7 @@ usage:
 		printf("udp/router: service unknown\n");
 		exit(1);
 	}
-	router.sin_port = htons(sp->s_port);
+	router.sin_port = sp->s_port;
 	while (argc > 0) {
 		hp = gethostbyname(*argv);
 		if (hp == 0) {

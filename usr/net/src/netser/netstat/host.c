@@ -11,7 +11,7 @@ static char sccsid[] = "@(#)host.c	4.1 82/08/25";
 #if	NIMP > 0
 #include <sys/types.h>
 #include <sys/mbuf.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <net/if_imp.h>
 #include <net/if_imphost.h>
 #define	h_addr	h_xaddr

@@ -305,8 +305,10 @@ ssocketaddr()
 		return;
 	}
 	so = fp->f_socket;
+	MAPSAVE();
 	u.u_error =
 		(*so->so_proto->pr_usrreq)(so, PRU_SOCKADDR, 0, (caddr_t)&addr);
+	MAPREST();
 	if (u.u_error)
 		return;
 	if (copyout((caddr_t)&addr, (caddr_t)uap->asa, sizeof (addr)))

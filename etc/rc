@@ -38,16 +38,24 @@ date >/dev/console
 cp /dev/null /etc/mtab
 cp /dev/null /etc/utmp
 mount -a			>/dev/console 2>&1
-savecore /usr/sys >/dev/console 2>&1
-/usr/lib/ex3.7preserve -a
+:savecore /usr/sys >/dev/console 2>&1
+:/usr/lib/ex3.7preserve -a
 rm -rf /usr/tmp/*
 rm -rf /tmp/*
 rm -f /usr/spool/uucp/LCK..*
 rm -f /usr/spool/lpd/lock
 rm -f /usr/spool/vpd/lock
-/etc/update
+/etc/update &
 /etc/cron
 ps -U
-/etc/accton /usr/adm/acct
-/etc/hostname hostnameunknown
+: /etc/accton /usr/adm/acct
+/etc/hostname uogpdp3
+:/etc/setclock uogvax2
+/etc/rwhod
+/etc/rshd
+:/etc/telnetd
+/etc/tftpd
+:/etc/named
+:/etc/timed
+/etc/rlogind &
 exit 0

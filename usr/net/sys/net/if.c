@@ -244,7 +244,8 @@ ifioctl(cmd, data)
 
 	case SIOCSIFFLAGS:
 		if (ifp->if_flags & IFF_UP && (ifr->ifr_flags & IFF_UP) == 0) {
-			int s = splimp();
+			int s;
+			s = splimp();
 			if_down(ifp);
 			splx(s);
   		}

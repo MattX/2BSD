@@ -3,7 +3,7 @@ static char sccsid[] = "@(#)rhost.c	4.3 10/10/82";
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
-#include <net/in.h>
+#include <netinet/in.h>
 
 char	*any(), *rany(), *malloc();
 
@@ -23,9 +23,9 @@ rhost(ahost)
 
 	if (isdigit(**ahost) && (addr = (int)inet_addr(*ahost)) >= 0)
 		return (addr);
-	hf = fopen("/usr/lib/hosts", "r");
+	hf = fopen("/etc/hosts", "r");
 	if (hf == NULL) {
-		perror("/usr/lib/hosts");
+		perror("/etc/hosts");
 		exit(1);
 	}
 top:

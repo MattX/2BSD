@@ -1,0 +1,56 @@
+Limited packet size / Single traffic / Variable message length
+===========================================================
+Debug level			= 0
+Idle period			= 50000
+Slot size			= 0		
+Number of slots			= 0		
+Maximum length of data packet	= 100		(virtually unlimited)
+Message consumption rate	= 2.0		(message units / time units)
+Contention protocol type        = 0		(collision protocol)
+Transfer protocol type          = 1		(wait before sending)
+Window mode			= 0		(no changing window size)
+Maximum window size             = 32000		(dummy not likely to be reached)
+Level A contention period	= 9		(time units)
+Level B contention period	= 9		(time units)
+End to end propagation delay    = 5
+Data packet header length	= 10
+===========================================================
+Number of nodes			= 100
+Number of message types		= 1
+Acknowledgement timeout		= 30000		(irrelevant, acks don't contend)
+Delay between measurements	= 0		(final report only)
+Data packet backoff		= 3+8		(logarithmic exp. distrib.)
+Data packet backoff factor	= 28.0
+===========================================================
+Dummy parameters for voice traffic
+===========================================================
+Voice packet backoff		= 0		(exponential)
+Voice packet backoff factor	= 1.0		(dummy)
+Voice packet service type	= 0		(contention mode)
+Voice packet time		= 10		(time units)
+Voice interpacket time		= 90		(time units)
+===========================================================
+Message type description:
+===========================================================
+Mean interarrival time		= 2300.0
+Flags				= 1+8		(acknwldgd, exp. distr.)
+Minimum length			= 1000
+Maximum length			= 1000
+Senders				= 0 99
+Receivers			= 0 99
+===========================================================
+Acknowledgement size		= 10		
+Acknowledgement service type	= 1		(Acks do not contend)
+Acknowledgement gen. time       = 0
+===========================================================
+Description of nodes:
+===========================================================
+For nodes 00:99
+###############
+Buffer space			= 32000
+***********************************************************
+Maximum simulation time		= 350000000	(time units)
+Maximum number of events	= 11100000
+Maximum number of messages	= 200000
+CPU time limit			= 1000		(seconds)
+Maximum number of calls		= 200		(dummy)

@@ -6,7 +6,7 @@
  * GP DR11C driver used for C/A/T
  */
 
-#include <sys/param.h>
+#include "param.h"
 #include <sys/dir.h>
 #include <sys/user.h>
 #include <sys/tty.h>

@@ -6,10 +6,8 @@
 #include <sys/buf.h>
 #include <sys/ubavar.h>
 #ifdef	pdp11
-#ifdef	UNIBUS_MAP
 #include <sys/map.h>
 #include <sys/uba.h>
-#endif
 #endif
 #include <sys/socket.h>
 #include "../net/in.h"
@@ -335,14 +333,15 @@ bad:
  * The argument chain of mbufs includes the local network
  * header.
  */
-if_wubaput(ifu, m)
+if_wubaput(ifu, m, off)
 	register struct ifuba *ifu;
 	register struct mbuf *m;
+	u_short off;
 {
 	register struct mbuf *mp;
-	u_short off,click;
+	u_short click;
 
-	click = ifu->ifu_w.ifrw_click;  off = 0;
+	click = ifu->ifu_w.ifrw_click;
 	while (m) {
 		copyv(m->m_click,m->m_off,click,off,(u_int)m->m_len);
 		off += m->m_len;
@@ -354,9 +353,23 @@ if_wubaput(ifu, m)
 #endif pdp11
 
 #ifdef	pdp11
-#ifdef	UNIBUS_MAP
-#define	KDSA	((u_short *) 0172360)
+/* This should probably be in seg.h */
+#ifdef	KERN_NONSEP
+#ifndef	   ENABLE34
+#define	      KDSA	((u_short *) 0172340)
+#else
+#define       KDSA	((u_short *) 0163700)
+#endif
+#else
+#ifndef    ENABLE34
+#define	      KDSA	((u_short *) 0172360)
+#else
+#define       KDSA	((u_short *) 0163760)
+#endif
+#endif
+#ifdef	UCB_UBMETER
 struct ubmeter ub_meter;
+#endif	UCB_UBMETER
 int	ub_wantmr;
 
 /*
@@ -381,22 +394,25 @@ unsigned size;
 	click = KDSA[page];
 	paddr = (ubadr_t)click << 6L;
 	paddr += offset;
+#ifdef	UNIBUS_MAP
 	if (!ubmap || !ub_inited)
+#endif	UNIBUS_MAP
 		return(paddr);
-#ifdef	UCB_METER
+#ifdef	UNIBUS_MAP
+#ifdef	UCB_UBMETER
 	ub_meter.ub_calls++;
 #endif
 	nregs = (int) btoub(size);
 	s = spl6();
 	while ((first = malloc(ub_map, nregs)) == NULL) {
-#ifdef	UCB_METER
+#ifdef	UCB_UBMETER
 		ub_meter.ub_fail++;
 #endif
 		ub_wantmr = 1;
 		sleep(ub_map, PSWP+1);
 	}
 	splx(s);
-#ifdef	UCB_METER
+#ifdef	UCB_UBMETER
 	ub_meter.ub_pgs += (long)nregs;
 #endif
 
@@ -410,6 +426,7 @@ unsigned size;
 		paddr += (ubadr_t) UBPAGE;
 	}
 	return(vaddr);
+#endif	UNIBUS_MAP
 };	/* end of uballoc */
 
 /*
@@ -429,23 +446,26 @@ unsigned size;
 
 	paddr = (ubadr_t)addr << 6L;
 
+#ifdef	UNIBUS_MAP
 	if (!ubmap || !ub_inited)
+#endif	UNIBUS_MAP
 		return(paddr);
 
-#ifdef	UCB_METER
+#ifdef	UNIBUS_MAP
+#ifdef	UCB_UBMETER
 	ub_meter.ub_calls++;
 #endif
 	nregs = (int)btoub(size);
 	s = spl6();
 	while ((first = malloc(ub_map, nregs)) == NULL) {
-#ifdef	UCB_METER
+#ifdef	UCB_UBMETER
 		ub_meter.ub_fail++;
 #endif
 		ub_wantmr = 1;
 		sleep(ub_map, PSWP+1);
 	}
 	splx(s);
-#ifdef	UCB_METER
+#ifdef	UCB_UBMETER
 	ub_meter.ub_pgs += (long)nregs;
 #endif
 
@@ -458,6 +478,6 @@ unsigned size;
 		paddr += (ubadr_t) UBPAGE;
 	}
 	return(vaddr);
-};	/* end of ubmalloc */
 #endif	UNIBUS_MAP
+};	/* end of ubmalloc */
 #endif	pdp11

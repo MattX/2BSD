@@ -2,6 +2,7 @@
  *   KL/DL-11 driver
  */
 #include "kl.h"
+#if	NKL > 0
 #include "param.h"
 #include <sys/conf.h>
 #include <sys/dir.h>
@@ -244,3 +245,4 @@ register c;
 #endif
 	kladdr->dlxcsr = s;
 }
+#endif

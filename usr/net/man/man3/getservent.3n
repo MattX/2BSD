@@ -41,7 +41,7 @@ fields of a line in the network services data base,
 struct	servent {
 	char	*s_name;	/* official name of service */
 	char	**s_aliases;	/* alias list */
-	long	s_port;		/* port service resides at */
+	int	s_port;		/* port service resides at */
 	char	*s_proto;	/* protocol to use */
 };
 .ft R

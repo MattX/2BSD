@@ -1,8 +1,8 @@
 # %W% %G%
 ALL=	rsh rshd 
-CFLAGS=	-DUCB_NET -DMENLO_JCL -O -I../../net -I../../../../../include -I../../../../../src/sys
+CFLAGS=	-DUCB_NET -DMENLO_JCL -Dpdp11 -O -I/usr/include
 TYPE=	-n
-LIBC=	../../../../../../lib/libc.a
+LIBC=	-lc
 
 all:	${ALL}
 
@@ -14,10 +14,10 @@ all:	${ALL}
 
 
 rsh:	rsh.o
-	${CC} rsh.o ${TYPE} -o rsh -ljobs ../../net/netlib ${LIBC}
+	${CC} rsh.o ${TYPE} -o rsh -ljobs -lnet ${LIBC}
 
 rshd:	rshd.o
-	${CC} rshd.o ${TYPE} -o rshd -ljobs ../../net/netlib ${LIBC}
+	${CC} rshd.o ${TYPE} -o rshd -ljobs -lnet ${LIBC}
 
 clean:
 	rm -f ${ALL} *.o *.s

@@ -4,8 +4,8 @@
  * Trivial File Transfer Protocol (IEN-133)
  */
 #define	SEGSIZE		512		/* data segment size */
-#define	TIMEOUT		5		/* retransmits every 5 seconds */
-#define	MAXTIMEOUT	(5*TIMEOUT)	/* abort if no success by then */
+#define	TIMEOUT		2		/* retransmits every 5 seconds */
+#define	MAXTIMEOUT	(10*TIMEOUT)	/* abort if no success by then */
 
 /*
  * Packet types.

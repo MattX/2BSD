@@ -10,8 +10,11 @@
 #define	RB_DUMP		020
 #define	RB_NOFSCK	040
 #define	RB_POWRFAIL	0100
+#ifdef GOO
+#define RB_QUIET	0200
+#endif GOO
 
 /*
  * The name of system to boot on automatic reboots.
  */
-#define	RB_DEFNAME	"xp(0,0)unix"
+#define	RB_DEFNAME	"rd(0,64)unix"

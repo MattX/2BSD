@@ -1,0 +1,15 @@
+OV1 =	sys2.o sys4.o fio.o pipe.o alloc.o iget.o  slp.o rdwri.o dsort.o ra.o \
+	sys.o ttyold.o tm.o dh.o
+OV2 =	text.o ureg.o malloc.o sys1.o main.o mem.o sig.o trap.o clock.o rd.o r5.o
+OV3 =	bio.o dkbad.o dkleave.o subr.o machdep.o sys3.o syslocal.o \
+	acct.o prf.o ioctl.o cn.o dz.o
+OV4 =	ttynew.o tty.o prim.o kl.o partab.o nami.o hk.o pc.o
+OV5 =	if_ec.o if_il.o if_sri.o if_uba.o in.o \
+	in_pcb.o ip_icmp.o ip_input.o \
+	ip_output.o raw_cb.o raw_imp.o
+OV6 =	ipc.o mbuf.o mbuf11.o proto.o socket.o socketsubr.o pty.o
+OV7 =	af.o if.o if_loop.o if_imp.o \
+	if_imphost.o if_ether.o \
+	raw_ip.o raw_pup.o raw_usrreq.o \
+	tcp_output.o tcp_subr.o tcp_timer.o \
+	tcp_usrreq.o udp_usrreq.o in_cksum.o

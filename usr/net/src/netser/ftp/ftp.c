@@ -7,7 +7,7 @@ static char sccsid[] = "@(#)ftp.c	4.1 (Berkeley) 1/15/83";
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-#include <net/in.h>
+#include <netinet/in.h>
 
 #include <stdio.h>
 #include <signal.h>

@@ -38,6 +38,9 @@ int	lpprobe(), vpprobe();
 #ifdef	VIRUS
 int	caryprobe();
 #endif
+#ifdef	GOO
+int	raprobe(), rdprobe(), r5probe(), cnprobe(), pcprobe();
+#endif
 extern	int errno;
 
 struct uprobe uprobe[] = {
@@ -79,6 +82,13 @@ struct uprobe uprobe[] = {
 	 *	Don't ask
 	 */
 	"cary",	caryprobe,
+#endif
+#ifdef	GOO
+	"ra",	raprobe,
+	"rd",	rdprobe,
+	"r5",	r5probe,
+	"pc",	pcprobe,
+	"cn",	cnprobe,
 #endif
 	0,	0
 };
@@ -176,3 +186,39 @@ struct tsdevice *addr;
 		return(ACP_NXDEV);
 	return(ACP_EXISTS);
 }
+
+#ifdef	GOO
+raprobe(addr)
+int *addr;
+{
+	errno = 0;
+	grab(addr);
+	if (errno == 0)
+		return(ACP_NXDEV);
+	return(ACP_EXISTS);
+}
+
+rdprobe(addr)
+int *addr;
+{
+	return(ACP_EXISTS);
+}
+
+r5probe(addr)
+int *addr;
+{
+	return(ACP_EXISTS);
+}
+
+pcprobe(addr)
+int *addr;
+{
+	return(ACP_EXISTS);
+}
+
+cnprobe(addr)
+int *addr;
+{
+	return(ACP_EXISTS);
+}
+#endif

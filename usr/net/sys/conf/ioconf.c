@@ -8,6 +8,20 @@
 #include	"rm.h"
 #include	"rp.h"
 #include	"xp.h"
+#include	"ra.h"
+#include	"rd.h"
+#include	"r5.h"
+#include	"pc.h"
+#include	"cn.h"
+#include	"kl.h"
+#ifdef	UCB_NET
+#include	<sys/ubavar.h>
+#include	"il.h"
+#include	"sri.h"
+#include	"ec.h"
+#include	"qn.h"
+#include	"dc.h"
+#endif	UCB_NET
 
 dev_t	rootdev	= %ROOTDEV%;
 dev_t	swapdev	= %SWAPDEV%;
@@ -35,10 +49,10 @@ struct	hkdevice *HKADDR = 0177440;
 struct	size hk_sizes[] = {
 	5940,	0,		/* cyl   0 - 89 */
 	2376,	90,		/* cyl  90 - 125 */
-	45474,	126,		/* cyl 126 - 814 */
-	18810,	126,		/* cyl 126 - 410 */
-	0,	0,
-	0,	0,
+	45408,	126,		/* cyl 126 - 813 */
+	18744,	126,		/* cyl 126 - 409 */
+	27060,	0,		/* cyl	0-409, whole RK06 minus BAD144 */
+	53724,	0,		/* cyl	0-813, whole RK07 minus BAD144 */
 	27126,	0,		/* cyl   0 - 410, whole RK06 */
 	53790,	0		/* cyl   0 - 814, whole RK07 */
 };
@@ -64,11 +78,58 @@ struct	size hp_sizes[] = {
 struct	hsdevice *HSADDR = 0172040;
 #endif	NHS
 
+#if	NKL > 0
 struct	dldevice *KLADDR = 0177560;
+#endif	NKL
 
 #if	NRK > 0
 struct	rkdevice *RKADDR = 0177400;
 #endif	NRK
+
+#if	NR5 > 0
+struct	r5device *R5ADDR = 0174200;
+#endif	NR5
+
+#if	NRA > 0
+struct	radevice *RAADDR = 0172150;
+struct size ra_sizes[] = {
+	4480,	0,
+	1920,	70,
+	-1,	100,
+	6400,	70,
+	128000,	170,
+	-1,	2170,
+	0,	0,
+	-1,	0,
+};
+#endif	NRA
+
+#if	NRD > 0
+struct	rddevice *RDADDR = 0174000;
+struct size rd_sizes[] = {
+	4480,	1,
+	1920,	71,
+	13056,	101,
+	3264,	101,
+	0,	0,
+	0,	0,
+	0,	0,
+	-1,	0,
+};
+#endif	NRD
+
+#if	NCN > 0
+#if	PDP11 == 71
+struct scdevice *SCADDR = 0175400;
+#else
+struct scdevice *SCADDR = 0174400;
+#endif
+struct kbdevice *KBADDR = 0173500;
+#endif	NCN
+
+#if	NPC > 0
+struct	pcdevice *PCADDR = 0173300;
+#endif	NPC
 
 #if	NRL > 0
 struct	rldevice *RLADDR = 0174400;
@@ -176,3 +237,48 @@ struct	xp_drive xp_drive[NXP] = {
 #endif	XP_PROBE
 };
 #endif	NXP
+#ifdef UCB_NET
+
+u_long	LocalAddr;		/* Internet address for this host */
+
+#if	NSRI > 0
+struct uba_driver sridriver;
+#endif
+
+#if	NIL > 0
+struct uba_driver ildriver;
+#endif
+
+#if	NEC > 0
+struct uba_driver ecdriver;
+#endif
+
+#if	NQN > 0
+struct uba_driver qndriver;
+#endif
+
+#if	NDC > 0
+struct uba_driver dcdriver;
+#endif
+
+struct uba_device ubdinit[] = {
+	/* driver,  unit,  ubanum,   addr,	flags*/
+#if	NSRI > 0
+	{ &sridriver,   0,     0,   0167770,	0x0a000000 }, /*net 10, lh 0*/
+#endif
+#if	NIL > 0
+	{ &ildriver,	0,     0,   0164000,	0x80120000 }, /* 128.18.0.0 */
+#endif
+#if	NEC > 0
+	{ &ecdriver,	0,	0,  0164330,	0xc0400102 }, /* 192.64.1.2 */
+#endif
+#if	NQN > 0
+	{ &qndriver,	0,	0,  0174440,	0xc0400103 }, /* 192.64.1.3 */
+#endif
+#if	NDC > 0
+	{ &dcdriver,	0,	0,  0175000,	0xc0400104 }, /* 192.64.1.4 */
+#endif
+	0
+};
+
+#endif UCB_NET

@@ -5,7 +5,7 @@ static char sccsid[] = "@(#)query.c	4.5 10/7/82";
 #include <sys/param.h>
 #include <sys/protosw.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h>
@@ -76,7 +76,7 @@ query(host)
 		printf("udp/router: service unknown\n");
 		exit(1);
 	}
-	router.sin_port = htons(sp->s_port);
+	router.sin_port = sp->s_port;
 	msg->rip_cmd = RIPCMD_REQUEST;
 	msg->rip_nets[0].rip_dst.sa_family = AF_UNSPEC;
 	msg->rip_nets[0].rip_metric = HOPCNT_INFINITY;

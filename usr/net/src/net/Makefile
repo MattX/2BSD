@@ -7,7 +7,8 @@ all:
 	cc -c -O bcmp.c
 	cc -c -O insque.c
 	as - -o bzero.o bzero.s
-	ar rv netlib bcopy.o bzero.o insque.o bcmp.o
+	as - -o netsys.o /usr/include/sys.s netsys.s
+	ar rv netlib bcopy.o bzero.o insque.o bcmp.o netsys.o
 	ranlib netlib
 
 clean:

@@ -7,7 +7,7 @@
 
 #define	MAXALIASES	35
 
-static char *NETDB = "/usr/lib/networks";
+static char *NETDB = "/etc/networks";
 static FILE *netf = NULL;
 static char line[BUFSIZ+1];
 static struct netent net;

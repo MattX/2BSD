@@ -9,6 +9,7 @@ struct	tcp_debug {
 	short	td_req;
 	struct	tcpcb td_cb;
 };
+#define	TCP_DSIZ	142		/* Size of tcp_debug in bytes */
 
 #define	TA_INPUT 	0
 #define	TA_OUTPUT	1
@@ -25,7 +26,9 @@ char	*tanames[] =
 #define	TCP_NDEBUG 100
 #endif
 #if pdp11
-#define TCP_NDEBUG 2
+#define TCP_NDEBUG 5
 #endif
+#if !pdp11
 struct	tcp_debug tcp_debug[TCP_NDEBUG];
+#endif
 int	tcp_debx;

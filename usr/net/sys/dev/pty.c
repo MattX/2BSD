@@ -89,12 +89,14 @@ again:
 	if (pti->pt_flags & PF_REMOTE) {
 		while (tp == u.u_ttyp && u.u_procp->p_pgrp != tp->t_pgrp) {
 			if (u.u_signal[SIGTTIN] == SIG_IGN ||
-			    u.u_signal[SIGTTIN] == SIG_HOLD ||
+			    u.u_signal[SIGTTIN] == SIG_HOLD
 	/*
-			    (u.u_procp->p_flag&SDETACH) ||
+			    || (u.u_procp->p_flag&SDETACH)
 	*/
-			    u.u_procp->p_flag&SVFORK)
-				return;
+#ifdef	VIRUS_VFORK
+			    || (u.u_procp->p_flag&SVFORK)
+#endif
+			    )	return;
 			gsignal(u.u_procp->p_pgrp, SIGTTIN);
 			sleep((caddr_t)&lbolt, TTIPRI);
 		}

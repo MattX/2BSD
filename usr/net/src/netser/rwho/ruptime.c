@@ -64,13 +64,13 @@ again:
 		argc--, argv++;
 		goto again;
 	}
-	if (chdir("/etc") < 0) {
-		perror("/etc");
+	if (chdir("/usr/spool/rwho") < 0) {
+		perror("/usr/spool/rwho");
 		exit(1);
 	}
 	etc = opendir(".");
 	if (etc == NULL) {
-		perror("/etc");
+		perror("/usr/spool/rwho");
 		exit(1);
 	}
 	while (dp = readdir(etc)) {
@@ -122,11 +122,11 @@ again:
 		    hsp->hs_nusers,
 		    hsp->hs_nusers == 1 ? ", " : "s,",
 		    maxloadav >= 1000 ? 5 : 4,
-			hsp->hs_wd->wd_loadav[0] / 25600.0,
+			hsp->hs_wd->wd_loadav[0]/100.0,
 		    maxloadav >= 1000 ? 5 : 4,
-		        hsp->hs_wd->wd_loadav[1] / 25600.0,
+		        hsp->hs_wd->wd_loadav[1] / 100.0,
 		    maxloadav >= 1000 ? 5 : 4,
-		        hsp->hs_wd->wd_loadav[2] / 25600.0);
+		        hsp->hs_wd->wd_loadav[2] / 100.0);
 		cfree(hsp->hs_wd);
 	}
 	exit(0);

@@ -1,8 +1,8 @@
 # Makefile 10/14/82
 ALL=	tftp tftpd
-CFLAGS=	-DUCB_NET -DMENLO_JCL -O -I../../net -I../../../../../include -I../../../../../src/sys
+CFLAGS= -DGOO -DUCB_NET -DMENLO_JCL -Dpdp11 -O -I/usr/include
 TYPE=	-n
-LIBC=	../../../../../../lib/libc.a
+LIBC=	-lc
 
 all: ${ALL}
 
@@ -13,10 +13,10 @@ all: ${ALL}
 	rm -f $*.s $*.S
 
 tftp:	main.o tftp.o
-	${CC} main.o tftp.o ${TYPE} -o tftp -ljobs ../../net/netlib ${LIBC}
+	${CC} main.o tftp.o ${TYPE} -o tftp -ljobs -lnet ${LIBC}
 
 tftpd:	tftpd.o
-	${CC} tftpd.o ${TYPE} -o tftpd -ljobs ../../net/netlib ${LIBC}
+	${CC} tftpd.o ${TYPE} -o tftpd -ljobs -lnet ${LIBC}
 
 clean:
 	rm -f ${ALL} *.o *.s errs core a.out t.?

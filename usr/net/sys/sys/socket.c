@@ -38,7 +38,9 @@ socreate(aso, type, asp, asa, options)
 	register struct protosw *prp;
 	register struct socket *so;
 	int pf, proto, error;
+	segm save;
 
+	saveseg5(save);
 	/*
 	 * Use process standard protocol/protocol family if none
 	 * specified by address argument.
@@ -59,15 +61,19 @@ socreate(aso, type, asp, asa, options)
 		prp = pffindproto(pf, proto);
 	else
 		prp = pffindtype(pf, type);
-	if (prp == 0)
+	if (prp == 0) {
+		restorseg5(save);
 		return (EPROTONOSUPPORT);
+	}
 
 	/*
 	 * Get a socket structure.
 	 */
 	MSGET(so, struct socket, 1);
-	if (so == 0)
+	if (so == 0) {
+		restorseg5(save);
 		return (ENOBUFS);
+	}
 	so->so_options = options;
 	so->so_state = 0;
 	if (u.u_uid == 0)
@@ -84,25 +90,34 @@ socreate(aso, type, asp, asa, options)
 #ifdef	NEVER
 			panic("socreate");
 #else
+#ifndef	SHORTPRT
 			printf("panic: socreate\n");
+#else
+			printf("p:soc\n");
+#endif	SHORTPRT
 #endif	NEVER
 		so->so_state |= SS_USERGONE;
 		sofree(so);
+		restorseg5(save);
 		return (error);
 	}
 	*aso = so;
+	restorseg5(save);
 	return (0);
 }
 
 sofree(so)
 	struct socket *so;
 {
+	segm save;
 
+	saveseg5(save);
 	if (so->so_pcb || (so->so_state & SS_USERGONE) == 0)
 		return;
 	sbrelease(&so->so_snd);
 	sbrelease(&so->so_rcv);
 	(void) MSFREE(so);
+	restorseg5(save);
 }
 
 /*
@@ -116,8 +131,10 @@ soclose(so, exiting)
 	register struct socket *so;
 	int exiting;
 {
+	segm save;
 	int s = splnet();		/* conservative */
 
+	saveseg5(save);
 	if (so->so_pcb == 0)
 		goto discard;
 	if (exiting)
@@ -129,6 +146,7 @@ soclose(so, exiting)
 				if (exiting)
 					goto drop;
 				splx(s);
+				restorseg5(save);
 				return;
 			}
 		}
@@ -138,11 +156,15 @@ soclose(so, exiting)
 			    exiting == 0) {
 				u.u_error = EINPROGRESS;
 				splx(s);
+				restorseg5(save);
 				return;
 			}
-			/* should use tsleep here, for at most linger */
+			/* uses tsleep set for so_linger sec. ram */
 			while (so->so_state & SS_ISCONNECTED)
+				/*
 				sleep((caddr_t)&so->so_timeo, PZERO+1);
+				*/
+				tsleep((caddr_t)&so->so_timeo, PZERO+1, so->so_linger);
 		}
 	}
 drop:
@@ -150,6 +172,7 @@ drop:
 		u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_DETACH, 0, 0);
 		if (exiting == 0 && u.u_error) {
 			splx(s);
+			restorseg5(save);
 			return;
 		}
 	}
@@ -157,6 +180,7 @@ discard:
 	so->so_state |= SS_USERGONE;
 	sofree(so);
 	splx(s);
+	restorseg5(save);
 }
 
 /*ARGSUSED*/
@@ -179,9 +203,11 @@ soaccept(so, asa)
 	struct socket *so;
 	struct sockaddr *asa;
 {
+	segm save;
 	int s = splnet();
 	int error;
 
+	saveseg5(save);
 	if ((so->so_options & SO_ACCEPTCONN) == 0) {
 		error = EINVAL;			/* XXX */
 		goto bad;
@@ -194,6 +220,7 @@ soaccept(so, asa)
 	error = (*so->so_proto->pr_usrreq)(so, PRU_ACCEPT, 0, (caddr_t)asa);
 bad:
 	splx(s);
+	restorseg5(save);
 	return (error);
 }
 
@@ -206,9 +233,11 @@ soconnect(so, asa)
 	struct socket *so;
 	struct sockaddr *asa;
 {
+	segm save;
 	int s = splnet();
 	int error;
 
+	saveseg5(save);
 	if (so->so_state & (SS_ISCONNECTED|SS_ISCONNECTING)) {
 		error = EISCONN;
 		goto bad;
@@ -216,6 +245,7 @@ soconnect(so, asa)
 	error = (*so->so_proto->pr_usrreq)(so, PRU_CONNECT, 0, (caddr_t)asa);
 bad:
 	splx(s);
+	restorseg5(save);
 	return (error);
 }
 
@@ -229,9 +259,11 @@ sodisconnect(so, asa)
 	struct socket *so;
 	struct sockaddr *asa;
 {
+	segm save;
 	int s = splnet();
 	int error;
 
+	saveseg5(save);
 	if ((so->so_state & SS_ISCONNECTED) == 0) {
 		error = ENOTCONN;
 		goto bad;
@@ -243,6 +275,7 @@ sodisconnect(so, asa)
 	error = (*so->so_proto->pr_usrreq)(so, PRU_DISCONNECT, 0, asa);
 bad:
 	splx(s);
+	restorseg5(save);
 	return (error);
 }
 
@@ -262,13 +295,19 @@ sosend(so, asa)
 	register struct mbuf *m, **mp = &top;
 	register u_int len;
 	int error = 0, space, s;
+	segm save;
 
-	if (sosendallatonce(so) && u.u_count > so->so_snd.sb_hiwat)
+	saveseg5(save);
+	if (sosendallatonce(so) && u.u_count > so->so_snd.sb_hiwat) {
+		restorseg5(save);
 		return (EMSGSIZE);
+	}
 #ifdef notdef
 	/* NEED TO PREVENT BUSY WAITING IN SELECT FOR WRITING */
-	if ((so->so_snd.sb_flags & SB_LOCK) && (so->so_state & SS_NBIO))
+	if ((so->so_snd.sb_flags & SB_LOCK) && (so->so_state & SS_NBIO)) {
+		restorseg5(save);
 		return (EWOULDBLOCK);
+	}
 #endif
 restart:
 	sblock(&so->so_snd);
@@ -351,6 +390,7 @@ release:
 	sbunlock(&so->so_snd);
 	if (top)
 		m_freem(top);
+	restorseg5(save);
 	return (error);
 }
 
@@ -362,7 +402,9 @@ soreceive(so, asa)
 	u_int len;
 	int eor, s, error = 0, cnt = u.u_count;
 	caddr_t base = u.u_base;
+	segm save;
 
+	saveseg5(save);
 restart:
 	sblock(&so->so_rcv);
 	s = splnet();
@@ -445,6 +487,7 @@ restart:
 release:
 	sbunlock(&so->so_rcv);
 	splx(s);
+	restorseg5(save);
 	return (error);
 }
 
@@ -470,7 +513,9 @@ soioctl(so, cmd, cmdp)
 	int cmd;
 	register caddr_t cmdp;
 {
+	segm save;
 
+	saveseg5(save);
 	switch (cmd) {
 
 	case FIONBIO: {
@@ -573,13 +618,15 @@ soioctl(so, cmd, cmdp)
 		}
 		flags++;
 		if (flags & FREAD) {
-			int s = splimp();
+			int s;
+			s = splimp();
 			socantrcvmore(so);
 			sbflush(&so->so_rcv);
 			splx(s);
 		}
 		if (flags & FWRITE)
 			u.u_error = (*so->so_proto->pr_usrreq)(so, PRU_SHUTDOWN, (struct mbuf *)0, 0);
+		restorseg5(save);
 		return;
 	}
 
@@ -593,12 +640,14 @@ soioctl(so, cmd, cmdp)
 		m = m_get(M_DONTWAIT);
 		if (m == 0) {
 			u.u_error = ENOBUFS;
+			restorseg5(save);
 			return;
 		}
 		m->m_off = MMINOFF;
 		m->m_len = 1;
 		*mtod(m, caddr_t) = oob;
 		(*so->so_proto->pr_usrreq)(so, PRU_SENDOOB, m, 0);
+		restorseg5(save);
 		return;
 	}
 
@@ -606,6 +655,7 @@ soioctl(so, cmd, cmdp)
 		struct mbuf *m = m_get(M_DONTWAIT);
 		if (m == 0) {
 			u.u_error = ENOBUFS;
+			restorseg5(save);
 			return;
 		}
 		m->m_off = MMINOFF; *mtod(m, caddr_t) = 0;
@@ -613,9 +663,11 @@ soioctl(so, cmd, cmdp)
 		/* Change from J. Stewart & 2.8 */
 		if (copyout(mtod(m, caddr_t), cmdp, sizeof (int))) {
 			u.u_error = EFAULT;
+			restorseg5(save);
 			return;
 		}
 		m_free(m);
+		restorseg5(save);
 		return;
 	}
 
@@ -640,6 +692,7 @@ soioctl(so, cmd, cmdp)
 			return;
 		}
 		u.u_error = rtrequest(cmd, &route);
+		restorseg5(save);
 		return;
 	}
 
@@ -653,6 +706,7 @@ soioctl(so, cmd, cmdp)
 		if (!suser())
 			return;
 		u.u_error = ifioctl(cmd, cmdp);
+		restorseg5(save);
 		return;
 
 	/* type/protocol specific ioctls */
@@ -666,10 +720,15 @@ pfind(pid)
 {
 	register struct proc *p;
 	extern struct proc *procNPROC;
+	mapinfo save;
 
+	savemap(save);
 	for (p = proc; p < procNPROC; p++)
-		if (p->p_pid == pid)
+		if (p->p_pid == pid) {
+			restormap(save);
 			return(p);
+		}
+	restormap(save);
 	return ((struct proc *)NULL);
 }
 #endif	UCB_NET

@@ -3,7 +3,7 @@ if (-x /usr/ucb/tset) then
 	set noglob; eval `/usr/ucb/tset -s -m du:\?adm3a`; unset noglob
 endif
 if (`tty` == /dev/console) then
-	stty cr2 nl2 new
+	stty new
 else
 	stty newcrt
 endif

@@ -1,0 +1,3 @@
+/dev/rd0a:/:rw:1:1
+/dev/rd0b:/mnt:sw:1:2
+/dev/rd0c:/usr:rw:1:3

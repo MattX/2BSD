@@ -46,7 +46,7 @@ setpeer(argc, argv)
 		printf("usage: %s host-name [port]\n", argv[0]);
 		return;
 	}
-	port = htons(sp->s_port);
+	port = sp->s_port;
 	if (argc > 2) {
 #ifndef never
 		port = atoi(argv[2]);

@@ -155,9 +155,9 @@ register struct inode *ip;
 				return;
 			dev = ip->i_dev;
 		}
-		if (n == BSIZE) 
+		if (n == BSIZE)  {
 			bp = getblk(dev, bn);
-		else {
+		} else {
 			bp = bread(dev, bn);
 			/*
 			 * Tape drivers don't clear buffers on end-of-tape
@@ -179,6 +179,20 @@ register struct inode *ip;
 			brelse(bp);
 		} else {
 #ifdef	UCB_FSFIX
+#ifdef	IOUT
+			mapout(bp);
+			if ((ip->i_mode & IFMT) == IFDIR) {
+				dp = (struct direct *)((unsigned)mapin(bp)+on);
+				if (dp->d_ino == 0) {
+					mapout(bp);
+					bwrite(bp);
+				} else {
+					mapout(bp);
+					goto out;
+				}
+			} else {
+out:
+#else
 			if ((ip->i_mode&IFMT) == IFDIR && (dp->d_ino == 0)) {
 				mapout(bp);
 				/*
@@ -192,12 +206,14 @@ register struct inode *ip;
 				bwrite(bp);
 			} else {
 				mapout(bp);
+#endif
 				if (((u.u_offset & BMASK) == 0)
 				   && (ip->i_flag & IPIPE) == 0) {
 					bp->b_flags |= B_AGE;
 					bawrite(bp);
-				} else
+				} else {
 					bdwrite(bp);
+				}
 			}
 #else	UCB_FSFIX
 

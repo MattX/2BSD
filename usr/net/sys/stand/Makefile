@@ -13,17 +13,17 @@ BOOT = bootstrap/*.[sc]
 
 ADB = ${SRCDIR}/adb/*.c
 
-CFLAGS = -O -DSTANDALONE ${INCLUDES}
+CFLAGS = -O -DGOO -DSTANDALONE ${INCLUDES}
 
-ALL=	restor cat icheck mkfs mtboot tsboot maketape boot 
+ALL=	restor cat icheck mkfs mtboot tsboot maketape boot  rdfmt
 
 all:	$(ALL) size
 
 libsa.a:${LIBSA}
 	(cd libsa; make INCLUDES="${INCLUDES}" ../libsa.a)
 
-restor:	libsa.a srt0.o ${SRCDIR}/restor.c c.o
-	cc -c ${CFLAGS} ${SRCDIR}/restor.c
+restor:	libsa.a srt0.o /usr/rick/restor.c c.o
+	cc -c ${CFLAGS} /usr/rick/restor.c
 	ld  -o restor srt0.o restor.o c.o libsa.a -lnonfpc
 	rm restor.o
 
@@ -32,10 +32,15 @@ cat:	libsa.a srt0.o c.o
 	ld -s -o cat srt0.o cat.o c.o libsa.a -lnonfpc
 	rm cat.o
 
-mkfs:	libsa.a srt0.o ${SRCDIR}/mkfs.c c.o
-	cc -c ${CFLAGS} ${SRCDIR}/mkfs.c 
+mkfs:	libsa.a srt0.o /usr/rick/mkfs.c c.o
+	cc -c ${CFLAGS} /usr/rick/mkfs.c 
 	ld  -o mkfs srt0.o mkfs.o c.o libsa.a -lnonfpc
 	rm mkfs.o
+
+rdfmt:	libsa.a srt0.o util/rdfmt.c c.o
+	cc -c ${CFLAGS} util/rdfmt.c
+	ld -o rdfmt srt0.o rdfmt.o c.o libsa.a -lnonfpc
+	rm rdfmt.o
 
 icheck:	libsa.a srt0.o ${SRCDIR}/icheck.c c.o
 	cc -c ${CFLAGS} ${SRCDIR}/icheck.c 

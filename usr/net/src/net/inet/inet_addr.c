@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 #include <ctype.h>
-#include <net/in.h>
+#include <netinet/in.h>
 
 /*
  * Internet address interpretation routine.

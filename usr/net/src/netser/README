@@ -1,0 +1,11 @@
+- all the utilities in this subtree have been setup to run on 2.9 in
+  a 4.2bsd compatible way except for the "Other" dir.
+- the makefile in netstat requires that SYSDIR be defined as the path
+  to the system directory netstat is being made for
+- the net library in ../net and the ndir library must be created and
+  installed in /usr/lib/libnet.a and /usr/lib/libndir.a
+- there is an ifdef GOO in tftpd that opens up security for creating
+  new files from another host
+- rlogin and rcp will gripe if there is something weird in the .cshrc
+- you will notice that "asm.sed" is bunk for the pdp11, but I left it
+  in for vax compatibility (it doesn't do anything for pdp11 assembler)

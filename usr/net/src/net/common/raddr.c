@@ -13,13 +13,13 @@ char *
 raddr(desaddr)
 	int desaddr;
 {
-	FILE *hf = fopen("/usr/lib/hosts", "r");
+	FILE *hf = fopen("/etc/hosts", "r");
 	char hbuf[BUFSIZ], *host;
 	register char *cp;
 	int first = 1;
 
 	if (hf == NULL) {
-		perror("/usr/lib/hosts");
+		perror("/etc/hosts");
 		exit(1);
 	}
 top:

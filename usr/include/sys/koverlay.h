@@ -26,7 +26,11 @@
 #define	OVLY_TABLE_BASE		01000
 
 #define	I_NUM_TEXT_REGS		7	/* 8 - # ovly regs */
+#ifdef	BIGKOV
+#define	N_NUM_TEXT_REGS		1
+#else
 #define	N_NUM_TEXT_REGS		2
+#endif	BIGKOV
 #ifndef	KERN_NONSEP
 #define	NUM_TEXT_REGS		I_NUM_TEXT_REGS
 #else
@@ -62,6 +66,10 @@
 #ifdef	KERN_NONSEP
 #define	OVLY_PAR		KISA2	/* &KISA[NUM_TEXT_REGS] */
 #define	OVLY_PDR		KISD2	/* &KISD[NUM_TEXT_REGS] */
+#ifdef	BIGKOV
+#define	OVLY_PA1		KISA1
+#define	OVLY_PD1		KISD1
+#endif	BIGKOV
 #else
 #define	OVLY_PAR		KISA7	/* &KISA[NUM_TEXT_REGS] */
 #define	OVLY_PDR		KISD7	/* &KISD[NUM_TEXT_REGS] */

@@ -1,0 +1,5 @@
+cp tcp_input.c old/tcp_input.c
+cp tcp_output.c old/tcp_output.c
+cp tcp_subr.c old/tcp_subr.c
+cp tcp_timer.c old/tcp_timer.c
+cp tcp_usrreq.c old/tcp_usrreq.c

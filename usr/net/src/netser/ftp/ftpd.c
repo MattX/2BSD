@@ -10,7 +10,7 @@ static char sccsid[] = "@(#)ftpd.c	4.15 (Berkeley) 2/2/83";
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-#include <net/in.h>
+#include <netinet/in.h>
 
 #include <stdio.h>
 #include <signal.h>
@@ -77,7 +77,7 @@ main(argc, argv)
 		fprintf(stderr, "ftpd: ftp/tcp: unknown service\n");
 		exit(1);
 	}
-	ctrl_addr.sin_port = htons(sp->s_port);
+	ctrl_addr.sin_port = sp->s_port;
 	data_source.sin_port = htons(ntohs(sp->s_port) - 1);
 	signal(SIGPIPE, lostconn);
 	debug = 0;

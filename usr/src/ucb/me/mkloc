@@ -1,3 +1,0 @@
-rm /usr/lib/me/local.me 
-cp local.me /usr/lib/me
-ed - /usr/lib/me/local.me <strip-me.ed

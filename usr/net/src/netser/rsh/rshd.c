@@ -6,7 +6,7 @@ static char sccsid[] = "@(#)rshd.c	4.2 82/10/07";
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <pwd.h>
 #include <wait.h>
@@ -58,7 +58,7 @@ main(argc, argv)
 	  }
 	}
 #endif
-	sin.sin_port = htons(sp->s_port);
+	sin.sin_port = sp->s_port;
 	argc--, argv++;
 	if (argc > 0 && !strcmp(argv[0], "-d"))
 		options |= SO_DEBUG, argc--, argv++;

@@ -43,8 +43,13 @@ main()
 {
 	extern char version[];
 
+#if	PDP11 != 21 && PDP11 != 71
 	printf("\n%s", version);
+#endif
 	startup();
+#if	PDP11 == 21 || PDP11 == 71
+	printf("\n%s", version);
+#endif
 
 	/*
 	 * set up system process
@@ -147,6 +152,9 @@ iinit()
 	fp->s_fsmnt[0] = '/';
 	for (i = 1; i < sizeof(fp->s_fsmnt); i++)
 		fp->s_fsmnt[i] = 0;
+#if PDP11 == 21 || PDP11 == 71
+	if (time == 0)
+#endif
 	time = fp->s_time;
 	bootime = time;
 }

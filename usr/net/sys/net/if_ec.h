@@ -8,9 +8,11 @@ struct	ec_header {
 	u_char	ec_shost[6];
 	u_short	ec_type;
 };
+struct in_addr arpmyaddr();
 
 #define	ECPUP_PUPTYPE	0x0400		/* PUP protocol */
 #define	ECPUP_IPTYPE	0x0800		/* IP protocol */
+#define	ECPUP_ARPTYPE	0x0806		/* ARP protocol */
 
 /*
  * The ECPUP_NTRAILER packet types starting at ECPUP_TRAIL have
@@ -19,3 +21,8 @@ struct	ec_header {
  */
 #define	ECPUP_TRAIL	0x1000		/* Trailer PUP */
 #define	ECPUP_NTRAILER	16
+struct	arpcom {
+	struct 	ifnet ac_if;	/* network-visible interface */
+	u_char	ac_enaddr[6];	/* ethernet hardware address */
+	struct	arpcom *ac_ac;	/* link to next ether driver */
+};

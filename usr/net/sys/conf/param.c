@@ -73,7 +73,9 @@ int	cmapsiz	= CMAPSIZ;
 int	smapsiz	= SMAPSIZ;
 
 struct	mount	mount[NMOUNT];
+#ifndef	IOUT
 struct	inode	inode[NINODE];
+#endif
 struct	buf	buf[NBUF];
 struct	callout	callout[NCALL + 1];	/* last one used as a delimiter */
 struct	buf	bfreelist;
@@ -132,3 +134,6 @@ int	remap_area;	/* start of possibly mapped area; must be first */
 struct	proc	proc[NPROC];
 struct	file	file[NFILE];
 struct	text	text[NTEXT];
+#ifdef	IOUT
+struct	inode	inode[NINODE];
+#endif

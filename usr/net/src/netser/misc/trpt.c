@@ -7,7 +7,7 @@ static char sccsid[] = "@(#)trpt.c	4.2 82/10/07";
 #include <sys/socketvar.h>
 #define PRUREQUESTS
 #include <sys/protosw.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <net/route.h>
 #include <net/in_pcb.h>
 #include <net/in_systm.h>
@@ -26,7 +26,7 @@ static char sccsid[] = "@(#)trpt.c	4.2 82/10/07";
 #include <net/tcp_debug.h>
 #include <errno.h>
 
-#include <nlist.h>
+#include <a.out.h>
 
 n_time	ntime;
 int	sflag;

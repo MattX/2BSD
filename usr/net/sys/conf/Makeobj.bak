@@ -1,0 +1,90 @@
+# first phase of make check .o dependencies and remove them if they
+# need to be recompiled.
+R =	rm
+
+OFILE =	unix
+
+# move nami.o into the base segment if possible
+OV1 =	sys2.o sys4.o fio.o pipe.o alloc.o iget.o  slp.o rdwri.o dsort.o ra.o
+OV2 =	text.o ureg.o malloc.o sys1.o main.o mem.o sig.o trap.o clock.o rd.o r5.o
+OV3 =	bio.o dkbad.o dkleave.o subr.o machdep.o sys3.o syslocal.o \
+	route.o tcp_debug.o tcp_input.o cn.o dz.o
+OV4 =	ttynew.o tty.o prim.o kl.o partab.o nami.o hk.o pc.o
+OV5 =	acct.o prf.o ioctl.o sys.o ttyold.o tm.o \
+	if_ec.o if_il.o if_sri.o if_uba.o in.o \
+	in_pcb.o ip_icmp.o ip_input.o \
+	ip_output.o raw_cb.o raw_imp.o
+OV6 =	dh.o ipc.o mbuf.o mbuf11.o proto.o socket.o socketsubr.o pty.o
+OV7 =	af.o if.o if_loop.o if_imp.o \
+	if_imphost.o if_ether.o \
+	raw_ip.o raw_pup.o raw_usrreq.o \
+	tcp_output.o tcp_subr.o tcp_timer.o \
+	tcp_usrreq.o udp_usrreq.o in_cksum.o
+BASE =	sysent.o
+
+#	boot.o must be loaded in the base well above 0 data
+CONFOBJ = l.o mch.o c.o ioconf.o boot.o 
+
+
+#	l.o MUST be loaded first, param.o MUST be loaded last
+${OFILE}: ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} ${OV6} ${OV7} ${BASE} ${CONFOBJ} \
+    param.o checksys
+	size ${OFILE}
+
+.PRECIOUS: whoami.h param.h Makefile ../sys/sig.c
+
+whoami.h:  localopts.h
+	touch whoami.h
+
+param.h: whoami.h ${I}/signal.h ${I}/sys/psw.h \
+	${I}/sys/types.h 
+	touch param.h
+
+mch.o:	assym.s ../sys/mch.s whoami.h dz.h ht.h tm.h \
+	${I}/a.out.h ${I}/sys/cpu.m ${I}/sys/trap.h \
+	${I}/sys/reboot.h ${I}/sys/iopage.m \
+	${I}/sys/koverlay.h
+	${R} mch.o
+
+l.o:	l.s whoami.h ${I}/a.out.h \
+	${I}/sys/trap.h ${I}/sys/koverlay.h \
+	dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h \
+	rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+	${R} l.o
+
+in_cksum.o: ../net/in_cksum.c param.h ${I}/sys/mbuf.h ../net/in.h \
+	../net/in_systm.h ${I}/sys/seg.h
+	${R} in_cksum.o
+
+boot.o:	boot.s whoami.h
+	${R} boot.o
+
+assym.s: genassym.c param.h dz.h \
+	${I}/sys/user.h  ${I}/sys/vm.h ${I}/sys/proc.h \
+	${I}/sys/dir.h ${I}/sys/inode.h ${I}/sys/seg.h
+	${R} assym.s
+
+param.o: param.c param.h Makefile ${I}/sys/proc.h \
+	${I}/sys/text.h ${I}/sys/file.h ${I}/sys/inode.h \
+	${I}/sys/dir.h ${I}/sys/buf.h ${I}/sys/tty.h \
+	${I}/sys/conf.h ${I}/sys/user.h ${I}/sys/filsys.h \
+	${I}/sys/mount.h ${I}/sys/acct.h ${I}/sys/systm.h \
+	${I}/sys/map.h
+	${R} param.o
+
+checksys: checksys.c
+	${R} checksys
+
+../sys/sig.c: ../sys/sigjcl.c ../sys/signojcl.c
+	touch ../sys/sig.c
+
+sig.o: param.h ${I}/sys/systm.h ${I}/sys/dir.h \
+	${I}/sys/user.h ${I}/sys/proc.h ${I}/sys/inode.h \
+	${I}/sys/reg.h ${I}/sys/text.h ${I}/sys/seg.h \
+	${I}/sys/vm.h
+	${R} sig.o
+
+# DO NOT DELETE THIS LINE
+
+
+

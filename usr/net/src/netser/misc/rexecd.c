@@ -6,7 +6,7 @@ static char sccsid[] = "@(#)rexecd.c	4.1 82/04/02";
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/socket.h>
-#include <net/in.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include <pwd.h>
 #include <wait.h>
@@ -64,9 +64,6 @@ main(argc, argv)
 		if (sp)
 			sin.sin_port = sp->s_port;
 	}
-#endif
-#if	vax || pdp11
-	sin.sin_port = htons(sin.sin_port);
 #endif
 	argc--, argv++;
 	if (argc > 0 && !strcmp(argv[0], "-d"))
