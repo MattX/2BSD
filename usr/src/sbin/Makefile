@@ -1,14 +1,14 @@
 #
 # Public domain - 1996/10/26 - sms
 #
-#	@(#)Makefile	1.1 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.2 (2.11BSD) 1997/1/10
 #
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG= -i
 
 SUBDIR= XNSrouted badsect clri dcheck dmesg dump dumpfs fsck icheck \
-	ifconfig mkfs mknod mkpasswd mount ncheck newfs \
+	ifconfig init mkfs mknod mkpasswd mount ncheck newfs \
 	quotacheck reboot restor route routed savecore \
 	shutdown slattach swapon testnet tunefs umount
 

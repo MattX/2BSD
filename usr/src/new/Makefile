@@ -9,17 +9,17 @@ SEPFLAG=-i
 #
 # Default programs that are installed
 #
-STDINST=ansi bm checkobj jove l11 la m11 nmcoll oldassn \
-	patch pathalias rcs shar shortc tcsh vmsbackup
+STDINST=ansi bm jove l11 la m11 \
+	pathalias rcs vmsbackup
 
 #
 # Special purpose software that requires custom installation,
 # or may not be needed by all sites
 #
-OPTDIR=	crash oldassn kermit5.188 pathalias rcs rn notes nntp
+OPTDIR=	crash kermit5.188 pathalias rcs rn notes nntp
 
-SUBDIR= ansi bm checkobj crash jove kermit5.188 l11 la m11 nmcoll nntp \
-	notes oldassn patch pathalias rcs rn shar shortc tcsh \
+SUBDIR= ansi bm crash jove kermit5.188 l11 la m11 nntp \
+	notes pathalias rcs rn \
 	vmsbackup
 
 all:	${STDINST}

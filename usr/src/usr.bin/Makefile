@@ -1,4 +1,4 @@
-#	Makefile	1.6 (2.11BSD GTE) 1996/11/19
+#	Makefile	1.7 (2.11BSD GTE) 1997/1/10
 #
 DESTDIR=
 CFLAGS=	-O
@@ -8,8 +8,8 @@ SEPFLAG= -i
 #
 SUBDIR=	at calendar dc diction diff3 eqn fstat f77 find graph learn lex lint \
 	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
-	mkerrlst \
-	renice tip uucp uname whereis yacc xargs xinstall
+	mkerrlst patch \
+	renice shar tip uucp uname whereis yacc xargs xinstall
 
 # Shell scripts that need only be installed and are never removed.
 #

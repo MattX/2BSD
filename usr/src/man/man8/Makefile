@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.6 (2.11BSD) 1996/11/16
+#	@(#)Makefile	5.4.7 (2.11BSD) 1997/1/10
 #
 MDIR=	/usr/man/cat8
 SRCS=	XNSrouted.8 adduser.8 autoconfig.8 \
@@ -23,7 +23,7 @@ SRCS=	XNSrouted.8 adduser.8 autoconfig.8 \
 	drtest.8 dump.8 dumpdir.8 \
 	format.8 fsck.8 \
 	getty.8 htable.8 \
-	init.8 intro.8 lpc.8 lpd.8 makedev.8 \
+	intro.8 lpc.8 lpd.8 makedev.8 \
 	makekey.8 \
 	named.8 pac.8 \
 	rc.8 rdump.8 \
@@ -38,7 +38,7 @@ OBJS=	XNSrouted.0 adduser.0 autoconfig.0 \
 	drtest.0 dump.0 dumpdir.0 \
 	format.0 fsck.0 \
 	getty.0 htable.0 \
-	init.0 intro.0 lpc.0 lpd.0 makedev.0 \
+	intro.0 lpc.0 lpd.0 makedev.0 \
 	makekey.0 \
 	named.0 pac.0 \
 	rc.0 rdump.0 \
