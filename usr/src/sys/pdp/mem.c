@@ -3,17 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mem.c	1.2 (2.11BSD GTE) 11/29/94
+ *	@(#)mem.c	1.3 (2.11BSD GTE) 1996/5/15
  */
 
 #include "param.h"
 #include "../machine/seg.h"
-
 #include "user.h"
 #include "conf.h"
 #include "uio.h"
-#include "hk.h"
-#include "xp.h"
 
 /*
  * This routine is callable only from the high
@@ -30,7 +27,10 @@ mmrw(dev, uio, flag)
 	int error = 0;
 register u_int c;
 	u_int on;
+	char	zero[1024];
 
+	if	(minor(dev) == 3)
+		bzero(zero, sizeof (zero));
 	while (uio->uio_resid && error == 0) {
 		iov = uio->uio_iov;
 		if (iov->iov_len == 0) {
@@ -42,7 +42,7 @@ register u_int c;
 		}
 		switch (minor(dev)) {
 
-/* minor device 0 is physical memory */
+/* minor device 0 is physical memory (/dev/mem) */
 		case 0:
 			mapseg5((memaddr)(uio->uio_offset>>6),
 				   ((btoc(8192)-1)<<8)|RW);
@@ -50,29 +50,35 @@ register u_int c;
 			c = MIN(iov->iov_len, 8192 - on);
 			error = uiomove(SEG5+on, c, uio);
 			normalseg5();
-			continue;
-/* minor device 1 is kernel memory */
+			break;
+/* minor device 1 is kernel memory (/dev/kmem) */
 		case 1:
 			error = uiomove((caddr_t)uio->uio_offset, iov->iov_len, uio);
-			continue;
-/* minor device 2 is EOF/RATHOLE */
+			break;
+/* minor device 2 is EOF/RATHOLE (/dev/null) */
 		case 2:
 			if (uio->uio_rw == UIO_READ)
 				return(0);
 			c = iov->iov_len;
+			iov->iov_base += c;
+			iov->iov_len -= c;
+			uio->uio_offset += c;
+			uio->uio_resid -= c;
 			break;
-		}
-		if (error)
+/* minor device 3 is ZERO (/dev/zero) */
+		case 3:
+			if	(uio->uio_rw == UIO_WRITE)
+				return(EIO);
+			c = MIN(iov->iov_len, sizeof (zero));
+			error = uiomove(zero, c, uio);
 			break;
-		iov->iov_base += c;
-		iov->iov_len -= c;
-		uio->uio_offset += c;
-		uio->uio_resid -= c;
-	}
+		default:
+			return(EINVAL);
+		} /* switch */
+	} /* while */
 	return(error);
 }
 
-#if NHK > 0 || NXPD > 0
 /*
  * Internal versions of mmread(), mmwrite()
  * used by disk driver ecc routines.
@@ -114,4 +120,3 @@ putmemc(addr,contents)
 	UISA[0] = a;
 	UISD[0] = d;
 }
-#endif
