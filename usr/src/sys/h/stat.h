@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stat.h	7.1.4 (2.11BSD) 1995/03/13
+ *	@(#)stat.h	7.1.5 (2.11BSD) 1996/09/20
  */
 
 #ifndef	_STAT_H_
@@ -65,6 +65,11 @@ struct	stat
 #define S_IROTH 0000004		/* R for other */
 #define S_IWOTH 0000002		/* W for other */
 #define S_IXOTH 0000001		/* X for other */
+
+#define	S_ISDIR(m)	((m & 0170000) == 0040000)	/* directory */
+#define	S_ISCHR(m)	((m & 0170000) == 0020000)	/* char special */
+#define	S_ISBLK(m)	((m & 0170000) == 0060000)	/* block special */
+#define	S_ISREG(m)	((m & 0170000) == 0100000)	/* regular file */
 
 /*
  * Definitions of flags stored in file flags word.  Different from 4.4 because

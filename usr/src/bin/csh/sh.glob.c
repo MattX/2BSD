@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.glob.c	5.4 (Berkeley) 5/13/86";
+static char *sccsid = "@(#)sh.glob.c	5.4.1 (2.11BSD) 1996/9/20";
 #endif
 
 #include "sh.h"
@@ -189,7 +189,7 @@ matchdir(pattern)
 	}
 	if (fstat(dirp->dd_fd, &stb) < 0)
 		goto patherr1;
-	if (!isdir(stb)) {
+	if (!S_ISDIR(stb.st_mode)) {
 		errno = ENOTDIR;
 		goto patherr1;
 	}
@@ -376,7 +376,7 @@ slash:
 			while (*s)
 				addpath(*s++);
 			addpath('/');
-			if (stat(gpath, &stb) == 0 && isdir(stb))
+			if (stat(gpath, &stb) == 0 && S_ISDIR(stb.st_mode))
 				if (*p == 0) {
 					Gcat(gpath, "");
 					globcnt++;

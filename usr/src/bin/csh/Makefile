@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley Software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3.1 (2.11BSD GTE) 4/9/94
+#	@(#)Makefile	5.3.2 (2.11BSD GTE) 1996/9/20
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
@@ -29,8 +29,9 @@ BASE=	alloc11.o doprnt11.o printf.o sh.char.o sh.dir.o sh.dol.o \
 	sh.init.o sh.lex.o sh.misc.o sh.parse.o sh.print.o sh.proc.o sh.sem.o \
 	sh.set.o
 OV1= 	sh.o sh.exec.o sh.time.o
+OV2=	sh.exec2.o
 
-OBJS=	${BASE} ${OV1}
+OBJS=	${BASE} ${OV1} ${OV2}
 
 LIBOBJS= ndbm.o getpwent.o
 
@@ -47,7 +48,7 @@ csh: ${OBJS} strings.o
 	rm -f csh
 	/bin/ld ${SEPFLAG} /lib/crt0.o ${BASE} \
 		-Z ${OV1} \
-		-Z ${LIBOBJS} \
+		-Z ${OV2} ${LIBOBJS} \
 		-Y strings.o -o csh ${LIBES};
 
 .DEFAULT:
@@ -91,14 +92,14 @@ vgrind:
 	${VGRIND} -t -x -h Index index >grind/index.t
 
 install: csh
-	install -s csh ${DESTDIR}/bin/csh
+	install -m 755 -o bin -g bin -s csh ${DESTDIR}/bin/csh
 
 clean:
 	${RM} -f a.out strings x.c xs.c csh errs
 	${RM} -f *.o
 	${RM} -rf vgrind
 
-tags:
+tags:	*.h sh*.c
 	${CTAGS} -t *.h sh*.c
 
 sh.o: sh.h sh.local.h sh.char.h
@@ -107,6 +108,7 @@ sh.dir.o: sh.h sh.local.h sh.dir.h
 sh.dol.o: sh.h sh.local.h sh.char.h
 sh.err.o: sh.h sh.local.h sh.char.h
 sh.exec.o: sh.h sh.local.h sh.char.h
+sh.exec2.o: sh.h sh.local.h sh.char.h
 sh.exp.o: sh.h sh.local.h sh.char.h
 sh.file.o: sh.h sh.local.h sh.char.h
 sh.func.o: sh.h sh.local.h sh.char.h

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley Software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sh.h	5.3.1 (2.11BSD GTE) 1/1/94
+ *	@(#)sh.h	5.3.2 (2.11BSD GTE) 1996/9/20
  */
 
 #include <sys/time.h>
@@ -25,8 +25,6 @@
  * Jim Kulp, IIASA, Laxenburg Austria
  * April, 1980
  */
-
-#define	isdir(d)	((d.st_mode & S_IFMT) == S_IFDIR)
 
 typedef	char	bool;
 

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.init.c	5.2 (Berkeley) 6/6/85";
+static char *sccsid = "@(#)sh.init.c	5.2.1 (2.11BSD) 1996/9/20";
 #endif
 
 #include "sh.local.h"
@@ -66,6 +66,7 @@ extern	int dounlimit();
 extern	int doumask();
 extern	int dowait();
 extern	int dowhile();
+extern	int dowhich();
 extern	int dozip();
 extern	int execash();
 extern	int goodbye();
@@ -159,6 +160,7 @@ struct	biltins {
 	"unset",	unset,		1,	INF,
 	"unsetenv",	dounsetenv,	1,	INF,
 	"wait",		dowait,		0,	0,
+	"which",	dowhich,	1,	INF,
 	"while",	dowhile,	1,	INF,
 };
 int nbfunc = sizeof bfunc / sizeof *bfunc;

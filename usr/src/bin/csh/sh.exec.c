@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.exec.c	5.2.1 (2.11BSD) 1996/3/20";
+static char *sccsid = "@(#)sh.exec.c	5.2.2 (2.11BSD) 1996/9/20";
 #endif
 
 #include "sh.h"
@@ -33,29 +33,7 @@ static char *sccsid = "@(#)sh.exec.c	5.2.1 (2.11BSD) 1996/3/20";
 char	*exerr;			/* Execution error message */
 char	*expath;		/* Path for exerr */
 
-/*
- * Xhash is an array of HSHSIZ bits (HSHSIZ / 8 chars), which are used
- * to hash execs.  If it is allocated (havhash true), then to tell
- * whether ``name'' is (possibly) present in the i'th component
- * of the variable path, you look at the bit in xhash indexed by
- * hash(hashname("name"), i).  This is setup automatically
- * after .login is executed, and recomputed whenever ``path'' is
- * changed.
- * The two part hash function is designed to let texec() call the
- * more expensive hashname() only once and the simple hash() several
- * times (once for each path component checked).
- * Byte size is assumed to be 8.
- */
-#define	HSHSIZ		8192			/* 1k bytes */
-#define HSHMASK		(HSHSIZ - 1)
-#define HSHMUL		243
-char	xhash[HSHSIZ / 8];
-#define hash(a, b)	((a) * HSHMUL + (b) & HSHMASK)
-#define bit(h, b)	((h)[(b) >> 3] & 1 << ((b) & 7))	/* bit test */
-#define bis(h, b)	((h)[(b) >> 3] |= 1 << ((b) & 7))	/* bit set */
-#ifdef VFORK
-int	hits, misses;
-#endif
+#include "sh.exec.h"
 
 /* Dummy search path for just absolute search when no path */
 char	*justabs[] =	{ "", 0 };
@@ -297,7 +275,7 @@ dohash()
 		dirp = opendir(*pv);
 		if (dirp == NULL)
 			continue;
-		if (fstat(dirp->dd_fd, &stb) < 0 || !isdir(stb)) {
+		if (fstat(dirp->dd_fd, &stb) < 0 || !S_ISDIR(stb.st_mode)) {
 			closedir(dirp);
 			continue;
 		}
