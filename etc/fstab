@@ -1,0 +1,3 @@
+/dev/ra0a:/:rw:7:1
+/dev/ra0b:swap:sw:0:0
+/dev/ra0c:/usr:rw:7:2

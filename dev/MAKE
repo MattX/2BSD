@@ -59,7 +59,7 @@ tm*|ts*)
 	esac
 	;;
 
-hk*|hp*|rm*|rp*|xp*)
+hk*|hp*|rm*|rp*|xp*|ra*)
 	unit=`expr $i : '..\(.\).'`
 	suf=`expr $i : '...\(.\)'`
 	case $i in
@@ -68,6 +68,7 @@ hk*|hp*|rm*|rp*|xp*)
 	rm*) name=rm; blk=6; chr=14;;
 	xp*) name=xp; blk=6; chr=14;;
 	rp*) name=rp; blk=1; chr=11;;
+	ra*) name=ra; blk=2; chr=6;;
 	esac
 	case $suf in
 	a) sect=0 ;;

@@ -35,10 +35,12 @@ int	rpstrategy();
 int	rkstrategy();
 int	hkstrategy();
 int	rlstrategy();
+int	rastrategy(),raopen();
 int	nullsys();
 int	tmstrategy(), tmrew(), tmopen();
 int	htstrategy(), htopen(), htclose();
 int	tsstrategy(), tsopen(), tsclose();
+int	vtstrategy(), vtopen(), vtclose();
 struct devsw devsw[] {
 	"xp",	xpstrategy,	nullsys,	nullsys,
 	"rp",	rpstrategy,	nullsys,	nullsys,
@@ -48,8 +50,10 @@ struct devsw devsw[] {
 	"rk",	rkstrategy,	nullsys,	nullsys,
 	"hk",	hkstrategy,	nullsys,	nullsys,
 	"rl",	rlstrategy,	nullsys,	nullsys,
+	"ra",	rastrategy,	raopen,		nullsys,
 	"tm",	tmstrategy,	tmopen,		tmrew,
 	"ht",	htstrategy,	htopen,		htclose,
 	"ts",	tsstrategy,	tsopen,		tsclose,
+	"vt",	vtstrategy,	vtopen,		vtclose,
 	0,0,0,0
 };

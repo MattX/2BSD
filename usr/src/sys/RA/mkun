@@ -1,0 +1,10 @@
+tar xvf /dev/xp2h
+make unix
+cp unix /image
+sync
+ls -l unix
+sync
+ls -l unix
+sync
+ls -l unix
+

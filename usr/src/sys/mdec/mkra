@@ -1,0 +1,4 @@
+as -o rauboot.o rauboot.s
+size rauboot.o
+strip rauboot.o
+dd if=rauboot.o of=rauboot bs=16 skip=1

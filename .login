@@ -10,3 +10,6 @@ endif
 setenv HOME /
 setenv SHELL /bin/csh
 setenv PATH /usr/ucb:/bin:/usr/bin:/etc:.
+stty dec
+stty crt
+stty crterase

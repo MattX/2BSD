@@ -8,6 +8,7 @@
 #include	"rm.h"
 #include	"rp.h"
 #include	"xp.h"
+#include	"ra.h"
 
 dev_t	rootdev	= %ROOTDEV%;
 dev_t	swapdev	= %SWAPDEV%;
@@ -69,6 +70,20 @@ struct	dldevice *KLADDR = 0177560;
 #if	NRK > 0
 struct	rkdevice *RKADDR = 0177400;
 #endif	NRK
+
+#if	NRA > 0
+struct	radevice *RAADDR = 0172150;
+struct size ra_sizes[] = {
+	4500,	0,
+	1900,	45,
+	-1,	64,
+	9000,	0,
+	9000,	90,
+	-1,	180,
+	790,	0,
+	-1,	0,
+};
+#endif	NRA
 
 #if	NRL > 0
 struct	rldevice *RLADDR = 0174400;

@@ -1,0 +1,443 @@
+.ND
+.TL 
+Bootstrapping 2.9BSD on the Pro350
+.sp
+.LP
+.SH
+Preliminaries
+.sp
+.PP
+The Pro350 is essentially an 11/23+ with floating pt.,
+a bit mapped screen, 3 serial ports, two disk subsystems
+and a weird little time of day clock.  For 2.9, I've named
+the devices as follows:
+.sp
+.TS
+center;
+l c l l l.
+Device	Driver Name	/dev name	Special	File #'s
+_
+					b	c
+.sp
+-bit mapped	cn.c	/dev/console	--	5,0
+ screen and
+ keyboard
+.sp
+-serial port	pc.c	/dev/tty00	--	1,0
+ & com. port		& /dev/tty01		1,1
+.sp
+a
+-RX50 floppies	r5.c	/dev/[r]r50	11,0	16,0
+		& /dev/[r]r51	11,1	16,1
+.sp
+RD5X hard disk	rd.c	/dev/[r]rd0[a-h]	10,0-7	10,0-7
+.TE
+.sp
+The hard disk partitions are:
+.sp
+.TS
+center;
+c c c c
+c l n l.
+name	filesystem	start (512 blocks)	size (512 blocks)
+		offset
+_
+.sp
+a	/	64	4480
+.sp
+b	swap	4544	1920
+.sp
+c	/usr for RD51	6464	13056
+.sp
+d	/usr for RD50	6464	3264
+.sp
+h	whole disk	0	19584 (RD51)
+		or	9792 (RD50)
+.TE
+.sp
+The printer and com. ports can both be used as
+ordinary terminal lines.  If pins 8-9 are jumpered
+on the printer port it can also be used as a
+maintenance terminal (i.e., hit <break> and you
+halt the cpu and end up in ODT).  Also, DSR is used
+as carrier on the printer port.
+.sp
+.bp
+.TL
+Bootstrapping 2.9 on the Pro350
+.sp
+.SH
+Phase 1
+.LP
+(requires a running 2.9BSD system)
+.sp
+.PP
+Generate a bootable kernel and an appropriate system disk
+using the modified sources.  Briefly, this involves 
+the following:
+.in+2
+-kernel sysgen:
+.in+2
+.sp
+.ti-1
+--install the new source files in the appropriate directories and modify
+  the files ../sys/sys according to diffs.sys
+.sp
+--set up an appropriate config file
+.br
+eg.
+.nf
+#  Machine configuration file.
+#  Format:
+#	name	value		comments
+#
+#  The value field may not contain blanks;
+#  blank lines are not allowed.
+#
+#	General parameters
+pdp11		21
+ident		jay
+maxusers	2
+bootdev		rd
+timezone	5			# Pacific
+dst		1
+#
+#	Filesystem configuration
+rootdev		makedev(10,0)		# rd0a
+swapdev		makedev(10,1)		# rd0b
+dumpdev		NODEV
+pipedev		makedev(10,0)		# rd0a
+swplo		0
+nswap		1920
+dumplo		0
+dumproutine	nodev
+#
+#	Device configuration
+NXP		0
+NXP_CONTROLLER 	0
+NHK		0
+NRK		0
+NRL		0
+NRP		0
+NR5		2
+NRD		1
+NHT		0
+NTM		0
+NTS		0
+NDZ		0		# in units of boards (8 each)
+NDH		0		# in units of boards (16 each)
+NDM		0		# in units of boards (16 each)
+LOWDM		0		# LOWDM is in units of lines
+NKL		0
+NLP		0
+NPC		2
+.fl
+note pdp11 type of '21'
+.sp
+.ti-1
+--run config 
+.ti+5
+-config PRO
+.br
+.ti+5
+-cd ../PRO
+.sp
+.ti-1
+--edit localopts as required:
+.in-2
+.sp
+.ti-1
+--edit param.c to set HZ to 64 (The rate of the PRO's weird 
+clock) "make" to generate the kernel
+.sp
+.ti-1
+--run "make" in directory ../sys/stand to generate
+the stand alone utilities that know how to talk to
+the RX50 and RD5X.
+.sp
+.ti-1
+--run "make.sh" in directory, ../mdec to generate
+the boot blocks for the RX50 and RD5X.
+.sp
+.ti-1
+--now make a root file system on an appropriate
+disk partition
+.sp
+# mkfs /dev/r??? 2240
+.sp
+.in+2
+-copy all the normal root stuff 
+including "rdfmt", "getfile" and "rdboot" just
+created into the '/' directory
+.in-2
+.sp
+.ti-1
+--now make the file system for the maintenance floppy
+.sp
+# mkfs /dev/r??? proto where "proto" is the following:
+.nf
+/mdec/rkuboot
+200 128
+d--777 0 0
+$
+.fi
+# mount /dev/r??? /mnt
+.sp
+.in+2
+-copy the following to /mnt
+.in+2
+.sp
+boot, restor, mkfs, rdfmt and getfile
+.br
+/unix with root and swap on the r50 (swaplo 400, nswap 390)
+.br
+(will have to be stripped to fit on floppy)
+.sp
+and put the r5 bootstrap block in block 0
+.sp
+# umount /dev/r???
+.br
+# dd if= ... mdec/r5uboot of=/dev/r??? count=1
+.br
+ .
+.br
+ .
+.br
+ .
+.br
+#
+.sp
+--now just 'dd' the floppy filesystem into
+an ordinary file in preparation for downloading
+.sp
+# dd if=/dev/r??? of=d bs=10b count=40
+.br
+#
+.in0
+.sp
+.SH
+Phase 2
+.LP
+.sp
+.in+2
+.ti-1
+--downloading the maintenance floppy requires
+.sp
+.in+2
+.ti-1
+--make up an mtc (maintenance terminal cable, see Appendix B)
+.sp
+.ti-1
+--free up a 9600 baud serial port on your running 2.9BSD system
+(no login etc.) with a male end ready to plug the mtc. into it
+.sp
+.ti-1
+a scratch rx50 floppy
+.sp
+.ti-1
+an ascii terminal-setup, 9600 baud, 8 bit-no parity
+.sp
+.in-2
+.ti-1
+--plug the cable into the pro's printer port and the terminal
+.sp
+.ti-1
+--power up the pro
+.sp
+.ti-1
+--hit "break"
+.br
+you should now get an '@' indicating you are in ODT
+.sp
+.ti-1
+--insert the scratch floppy in drive 0
+.sp
+.ti-1
+--toggle in the primitive form of 'getfile' as per Appendix A
+.sp
+.ti-1
+unplug the cable from the terminal and connect it to the serial
+port on the 2.9BSD system
+.sp
+.ti-1
+type '# putfile d /dev/tty??' on the 2.9BSD system
+to initiate downloading 
+.sp
+.in+2
+-the floppy should be writing away for about 10 minutes
+.in-2
+.sp
+.ti-1
+--when 'putfile' returns, you should have a bootable 
+maintenance floppy
+.sp
+.ti-1
+--boot the floppy via
+.in+2
+<break>
+.br
+@160000g
+.br
+ .
+.br
+ .
+.br
+ .
+.br
+40boot
+.br
+:
+.in0
+.sp
+.SH
+Phase 3
+.LP
+.sp
+.in+2
+.ti-1
+--setting up the hard disk
+.sp
+.ti-1
+--format the hard disk
+.sp
+:r5(0,0)rdfmt
+.br
+ .
+.br
+ .
+.br
+ .
+.br
+(0-RD51, 1-RD50)?0 <cr>
+.br
+ . 
+.br
+ . 
+.br
+ .
+.br
+:
+.sp
+.ti-1
+--download the / filesystem
+.sp
+:r5(0,0)getfile
+.br
+Controller#(0-R5, 1-RD, 2-RA)?1 <cr>
+.br
+Drive #0 <cr>
+.br
+Start Offset #64 <cr>
+.br
+Ready for putfile command
+.sp
+and now type "# putfile /dev/??? /dev/tty??
+.br
+to start the download
+.br
+NOTE: Use the block special file for the disk.
+.br
+(this takes about 1 1/2 hours)
+.in0
+.sp
+.in+3
+.ti-1
+--now boot unix
+.br
+:rd(0,64)unix
+.br
+ .
+.br
+ .
+.br
+ .
+.sp
+.ti-1
+--it should come up single user on the console
+screen/keyboard
+.sp
+.ti-1
+--copy in RD bootstrap
+.sp
+# dd if=/rdboot of=/dev/rrd0h
+.sp
+--create a full dump of / on floppies
+.sp
+# sync; dump 0fs /dev/rr50 23 /dev/rrd0a
+.sp
+.ti-1
+--you may now choose to download /usr in a similar
+manner to / or to use 'mkfs' to make an empty file
+system and add stuff as you go along
+.sp
+.ti-1
+--to download with 'getfile' use start offset of 6464
+.sp
+.ti-1
+--for 'mkfs' use
+.sp
+# mkfs /dev/rrd0c 6528
+.sp
+.in-3
+.ul
+Final Remarks
+.in+3
+.sp
+.ti-1
+--if you need to recover from a bad crash, you can
+boot unix on the floppy and run mkfs and restore from the
+maintenance floppy to recover the full dump on floppies
+.sp
+.ti-1
+--you will then have to boot /unix using the floppy boot and use 'dd'
+to put the RD bootstrap back.
+.sp
+.ti-1
+--you can move individual files using the modified 'cu'
+on the printer or com. port.
+.sp
+.ti-1
+--for major transfers, getfile/putfile to a floppy
+is the easiest.
+.sp
+.SH
+Appendix A
+.LP
+.nf
+@0/17777 12737<lf>
+@2/17777 340<lf>
+...
+using the following data:
+0000000 012737 000340 177776 005002 012706 157776 032737 000010
+0000020 174204 001774 004567 000234 022700 000005 001373 005003
+0000040 012701 001000 005037 174222 004567 000210 060003 010037
+0000060 174226 077106 004567 000174 042703 177400 020003 001046
+0000100 010205 010446 006305 005004 071427 000012 060405 011604
+0000120 006304 060405 005004 071427 000012 005205 010537 174210
+0000140 012604 005204 010437 174206 012737 000160 174204 005037
+0000160 174224 032737 000010 174204 001774 105737 174204 100406
+0000200 005202 012700 000007 004567 000036 000704 012737 000060
+0000220 174204 005037 174224 032737 000010 174204 001774 012700
+0000240 000011 004567 000002 000666 105737 177564 002375 010037
+0000260 177566 000205 105737 177560 002375 013700 177562 000205
+.sp
+until 276/177777 205<cr>
+then start execution with:
+@R7/0 0<cr>
+@p<cr>
+the system should be now ready to connect the cable to the 2.9BSD line and
+issue the 'putfile d /dev/tty??' command.
+.sp
+.SH
+Appendix B
+.LP
+.sp
+The mtc is cabled as follows:
+	pins	9 pin D		25 pin D
+		1		1
+		2		3
+		3		2
+		7		7
+	plus jumpers on 9 pin
+		5-6
+		8-9 (for maintenance purposes only)

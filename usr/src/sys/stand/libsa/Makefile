@@ -7,10 +7,12 @@ DRIVERS=	prf.o\
 		rk.o\
 		rm.o\
 		rl.o\
+		ra.o\
 		rp.o\
 		hk.o\
 		ts.o\
-		tm.o
+		tm.o\
+		vt.o
 
 ../libsa.a:	SYS.o ${DRIVERS} 
 		ar rv ../libsa.a $?
