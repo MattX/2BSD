@@ -1,3 +1,7 @@
+#
+# 'nmcoll' is remnant from the era before long(er) symbol names were
+# supported in object files.
+#
 DESTDIR=
 
 DEFS=
@@ -14,6 +18,8 @@ nmcoll.0: nmcoll.1
 	/usr/man/manroff nmcoll.1 > nmcoll.0
 
 clean:
+	-rm -f nmcoll.0
+
 depend:
 tags:
 lint:

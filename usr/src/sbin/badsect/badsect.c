@@ -12,10 +12,9 @@
  * Sanity check on sector number August 10,1993 by Steven Schultz
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/param.h>
 #include <sys/inode.h>
-
-long	atol();
 
 main(argc, argv)
 	int argc;

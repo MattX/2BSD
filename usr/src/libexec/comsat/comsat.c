@@ -10,15 +10,13 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)comsat.c	5.11 (Berkeley) 3/29/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)comsat.c	5.11.1 (2.11BSD) 1996/11/16";
+#endif
 
 #include <sys/param.h>
 #include <sys/socket.h>
@@ -36,6 +34,7 @@ static char sccsid[] = "@(#)comsat.c	5.11 (Berkeley) 3/29/88";
 #include <netdb.h>
 #include <syslog.h>
 #include <strings.h>
+#include <time.h>
 
 /*
  * comsat
@@ -47,14 +46,13 @@ int	debug = 0;
 
 char	hostname[MAXHOSTNAMELEN];
 struct	utmp *utmp = NULL;
-time_t	lastmsgtime, time();
+time_t	lastmsgtime;
 int	nutmp, uf;
 
 main(argc, argv)
 	int argc;
 	char **argv;
 {
-	extern int errno;
 	register int cc;
 	char msgbuf[100];
 	struct sockaddr_in from;
@@ -69,11 +67,11 @@ main(argc, argv)
 	}
 	openlog("comsat", LOG_PID, LOG_DAEMON);
 	if (chdir("/usr/spool/mail")) {
-		syslog(LOG_ERR, "chdir: /usr/spool/mail");
+		syslog(LOG_ERR, "chdir: /usr/spool/mail: %m");
 		exit(1);
 	}
-	if ((uf = open("/etc/utmp", O_RDONLY, 0)) < 0) {
-		syslog(LOG_ERR, ".main: /etc/utmp: %m");
+	if ((uf = open(_PATH_UTMP, O_RDONLY, 0)) < 0) {
+		syslog(LOG_ERR, ".main: %s: %m", _PATH_UTMP);
 		(void) recv(0, msgbuf, sizeof (msgbuf) - 1, 0);
 		exit(1);
 	}
