@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.3 (2.11BSD) 1995/06/15
+ *	@(#)conf.c	2.4 (2.11BSD) 1995/07/17
  */
 
 #include "../h/param.h"
@@ -11,7 +11,7 @@
 
 	int	nullsys();
 
-extern	int	xpstrategy(), xpopen();
+extern	int	xpstrategy(), xpopen(), xpclose(), xplabel();
 extern	int	brstrategy(), bropen();
 extern	int	rkstrategy(), rkopen();
 extern	int	hkstrategy(), hkopen();
@@ -52,8 +52,8 @@ struct devsw devsw[] = {
 	nullsys, nullsys,
 	"si",	sistrategy,	siopen,		nullsys,	SIcsr, /* 9 */
 	nullsys, nullsys,
-	"xp",	xpstrategy,	xpopen,		nullsys,	XPcsr, /* 10 */
-	nullsys, nullsys,
+	"xp",	xpstrategy,	xpopen,		xpclose,	XPcsr, /* 10 */
+	xplabel, nullsys,
 	"br",	brstrategy,	bropen,		nullsys,	BRcsr, /* 11 */
 	nullsys, nullsys,
 	"tms",  tmscpstrategy,	tmscpopen,	tmscpclose,	TMScsr,/* 12 */

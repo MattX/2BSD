@@ -3,79 +3,17 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hpreg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)hpreg.h	2.0 (2.11BSD) 1995/07/20
  */
 
 /*
- * Definitions for SMD-type disk drives and drivers.  That includes
- * RM02/03/05's, RP04/05/06's, and everything using the XP driver.
- * Also added RP07. /BQT 930612
+ * Definitions for SMD-type disk drives and drivers.
  */
 
-/*
- * Defines for disk drive type registers
- */
-#define	RP04	020		/* RP04 */
-#define	RP05	021		/* RP05 */
-#define	RP06	022		/* RP06 */
-#define RP07	042		/* RP07 */
-#define	RM03	024		/* RM03 */
-#define	RM02	025		/* RM02 */
-#define	RM05	027		/* RM05 or SI 9500, CDC 9766 */
-/*
- * These drive types are dummies because the actual numbers conflict
- * with DEC controllers.  The RM5X and the RM2X actually read as 25; the
- * Diva Comp VI reads as 22.  Xp_drive must be patched at boot time or
- * initialized.
- */
-#define	CAP	072		/* Ampex Capricorn */
-#define	SI5	073		/* SI, CDC 9775 Direct */
-#define	SI	074		/* SI 6100, Fuji Eagle 2351A */
-#define	RM2X	075		/* Emulex SC01B or SI 9400, Fuji 160 */
-#define	RM5X	076		/* Emulex SC-21, Ampex 815 cylider RM05 */
-#define	DV	077		/* Diva Comp V, Ampex 9300 */
-
-#define	HP_SECT		22	/* RP04/05/06 */
-#define	HP_TRAC		19
-#define	RP04_CYL	411	/* RP04/05 */
-#define	RP06_CYL	815	/* RP06 */
-
-#define RP7_SECT	50	/* DEC RP07 */
-#define RP7_TRAC	32
-#define RP7_CYL		630
-
-#define	RM_SECT		32	/* RM02/03 */
-#define	RM_TRAC		5
-#define	RM_CYL		823
-
-#define	RM5_SECT	32	/* RM05, CDC 9766 */
-#define	RM5_TRAC	19
-#define	RM5_CYL		823
-
-#define	CAP_SECT	32	/* Ampex Capricorn */
-#define	CAP_TRAC	16
-#define	CAP_CYL		1024
-
-#define	SI5_SECT	32	/* SI, CDC 9775 direct */
-#define SI5_TRAC	40
-#define SI5_CYL		843
-
-#define	SI_SECT		48	/* SI 6100, Fuji Eagle 2351A */
-#define	SI_TRAC		20
-#define	SI_CYL		842
-
-#define	RM2X_SECT	32	/* Emulex SC01B or SI 9400, Fuji 160 */
-#define	RM2X_TRAC	10
-#define	RM2X_CYL	823
-
-#define	RM5X_SECT	32	/* Emulex, Ampex 815 cylider RM05 */
-#define	RM5X_TRAC	19
-#define	RM5X_CYL	815
-
-#define	DV_SECT		33	/* Diva Comp V, Ampex 9300 */
-#define	DV_TRAC		19
-#define	DV_CYL		815
-
+#define	XP_CC	0x1	/* drivedata[0] bit indicating presence of current
+			 * cylinder 'hpcc' register.  Only set for RP04,5,6,7.
+			*/
+#define	XP_NOSEARCH 0x2	/* drivedata[0] bit indicating lack of search cmd */
 
 /*
  *	Controller registers and bits
@@ -104,7 +42,7 @@ struct hpdevice
 	short	hpof;		/* offset register */
 	short	hpdc;		/* desired cylinder address register */
 	short	hpcc;		/* HP: current cylinder register */
-#define	rmhr	hpcc;		/* RM: holding register */
+#define	rmhr	hpcc		/* RM: holding register */
 	short	hper2;		/* HP: error register 2 */
 #define	rmmr2	hper2		/* RM: maintenance register 2 */
 	short	hper3;		/* HP: error register 3 */
@@ -131,6 +69,7 @@ struct hpdevice
 
 /* commands */
 #define	HP_NOP		000
+#define	HP_UNLOAD	002		/* offline drive */
 #define	HP_SEEK		004		/* seek */
 #define	HP_RECAL	006		/* recalibrate */
 #define	HP_DCLR		010		/* drive clear */
@@ -220,10 +159,12 @@ struct hpdevice
 #define	HPDT_DRR	0004000		/* drive request required  */
 /* bits 10-9 are unused */
 /* bits 8-0 are drive type; the correct values are hard to determine */
-#define	HPDT_RM05SP	0000047		/* single ported rm05 */
-#define	HPDT_RM05DP	0000027		/* dual ported rm05 */
 #define	HPDT_RM02	0000025		/* rm02, possibly rm03? */
+#define	HPDT_RM80	0000026		/* rm80 */
+#define	HPDT_RM05	0000027		/* rm05 */
 #define	HPDT_RM03	0000024		/* rm03 */
+#define	HPDT_RP04	0000020		/* rp04 */
+#define	HPDT_RP05	0000021		/* rp05 */
 #define	HPDT_RP06	0000022		/* rp06 */
 #define HPDT_RP07	0000042		/* rp07 */
 
@@ -242,6 +183,16 @@ struct hpdevice
 
 #define	HPOF_BITS	\
 "\10\15FMT22\14ECI\13HCI\10OD"
+
+/*
+ * rmhr
+ *
+ * Emulex (i.e non DEC) controllers implement the ability to query for
+ * the drive geometry by placing these codes into the 'holding register'.
+*/
+#define	HPHR_MAXCYL	0x8017		/* max cylinder */
+#define	HPHR_MAXTRAK	0x8018		/* max track/cylinder */
+#define	HPHR_MAXSECT	0x8019		/* max sector/track */
 
 /* rmer2: These are the bits for an RM error register 2 */
 #define	RMER2_BSE	0100000		/* bad sector error */
@@ -279,7 +230,6 @@ struct hpdevice
 #define	SIMB_MB	0xff00		/* model byte value */
 #define	SIMB_S6	0x2000		/* switch s6 */
 #define	SIMB_LU	0x0007		/* logical unit (should = drive #) */
-#define	SIMB_XX	0x4000		/* for some reason this is sometimes set */
 
 #define	SI9775D	0x0700		/* 9775 direct */
 #define	SI9775M	0x0e00		/* 9775 mapped */

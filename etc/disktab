@@ -129,12 +129,12 @@ rm2x|160|fuji|fuji160|Fujitsu 160:\
 	:b0=/mdec/si94uboot:\
 	:pa#9600:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
 	:pb#9600:ob#9600:bb#1024:fb#1024:tb=swap:\
-	:pc#244002:oc#19200:bc#1024:fc#1024:tc=2.11BSD:\
-	:pd#164800:od#19200:bd#1024:fd#1024:td=2.11BSD:\
-	:pe#79360:oe#184000:be#1024:fe#1024:te=2.11BSD:\
-	:pf#39680:of#184000:bf#1024:ff#1024:tf=2.11BSD:\
-	:pg#39680:og#223680:bg#1024:fg#1024:tg=2.11BSD:\
-	:ph#263202:bh#1024:fh#1024:th=2.11BSD
+	:pc#244160:oc#19200:bc#1024:fc#1024:tc=2.11BSD:\
+	:pd#164800:od#19200:bd#1024:fd#1024:td=unused:\
+	:pe#79360:oe#184000:be#1024:fe#1024:te=unused:\
+	:pf#39680:of#184000:bf#1024:ff#1024:tf=unused:\
+	:pg#39680:og#223680:bg#1024:fg#1024:tg=unused:\
+	:ph#263360:oh#0:bh#1024:fh#1024:th=unused
 
 diva|DIVA|9300|Diva Comp V, Ampex 9300 (in direct mode):\
 	:ty=fixed:ns#33:nt#19:nc#815:sf:\

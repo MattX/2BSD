@@ -3,19 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	1.8 (2.11BSD GTE) 1995/04/13
+ *	@(#)xp.c	2.2 (2.11BSD GTE) 1995/08/21
  */
 
 /*
- * RM02/03/05, RP04/05/06, Ampex 9300, CDC 9766, DIVA, Fuji 160, and SI
- * Eagle.  This driver will handle most variants of SMD drives on one or more
- * controllers.  If XP_PROBE is defined, it includes a probe routine that
- * will determine the number and type of drives attached to each controller;
- * otherwise, the data structures must be initialized.
- * Added RP07.  /BQT 930612
- *
- * For simplicity we use hpreg.h instead of an xpreg.h.
- * The bits are the same.
+ * RM02/03/05, RP04/05/06/07, CDC 9766, SI, Fuji 160 and Eagle.  This
+ * driver will handle most variants of SMD drives on one or more controllers.
  */
 
 #include "xp.h"
@@ -33,12 +26,26 @@
 #include "dk.h"
 #include "disklabel.h"
 #include "disk.h"
+#include "file.h"
 #include "map.h"
 #include "uba.h"
+#include "stat.h"
+#include "syslog.h"
 
 #define	XP_SDIST	2
 #define	XP_RDIST	6
-#define	xpunit(dev)	((minor(dev) >> 3) & 07)
+
+/*
+ * 'xp' is unique amoung 2.11BSD disk drivers.  Drives are not organized
+ * into groups of 8 drives per controller.  Instead drives are numbered
+ * across controllers:  the second drive ("unit 1") could be on the 2nd
+ * controller.  This has the effect of turning the high 5 bits of the minor
+ * device number into the unit number and drives are thus numbered 0 thru 31.
+ *
+ * NOTE: this  is different than /boot's view of the world.  Sigh.
+*/
+
+#define	XPUNIT(dev)	((minor(dev) >> 3) & 0x1f)
 
 int xp_offset[] = {
 	HPOF_P400,	HPOF_M400,	HPOF_P400,	HPOF_M400,
@@ -51,236 +58,33 @@ struct xp_controller {
 	struct	buf *xp_actf;		/* pointer to next active xputab */
 	struct	buf *xp_actl;		/* pointer to last active xputab */
 	struct	hpdevice *xp_addr;	/* csr address */
-	char	xp_flags;		/* controller-type flags */
+	char	xp_rh70;		/* massbus flag */
 	char	xp_active;		/* nonzero if doing a transfer */
 };
 
 struct xp_drive {
 	struct	xp_controller *xp_ctlr; /* controller to which slave attached */
-	char	xp_type;		/* drive type */
-	char	xp_unit;		/* slave number */
-	struct	size *xp_sizes;		/* pointer to sizes array */
-	char	xp_nsect;
-	char	xp_ntrack;
-	int	xp_nspc;		/* sectors/cylinder */
-	int	xp_cc;			/* current cylinder, for RM's */
-#ifdef BADSECT
-	int	xp_ncyl;		/* cylinders per pack */
-#endif
-};
-
+	int	xp_unit;		/* slave number */
+	u_short	xp_nsect;
+	u_short	xp_ntrack;
+	u_short	xp_nspc;		/* sectors/cylinder */
+	u_short	xp_cc;			/* current cylinder, for RM's */
+	u_long	xp_dd0;			/* drivedata longword 0 */
+	struct	dkdevice xp_dk;		/* kernel resident portion of label */
+	u_short	xp_ncyl;		/* cylinders per pack */
+	};
 /*
- * bits in xp_flags:
- */
-#define	XP_NOCC		1		/* has no current cylinder register */
-#define	XP_RH70		2		/* uses 22-bit addressing */
-#define	XP_NOSEARCH	4		/* won't do search commands */
+ * Some shorthand for accessing the in-kernel label structure.
+*/
+#define	xp_bopen	xp_dk.dk_bopenmask
+#define	xp_copen	xp_dk.dk_copenmask
+#define	xp_open		xp_dk.dk_openmask
+#define	xp_flags	xp_dk.dk_flags
+#define	xp_label	xp_dk.dk_label
+#define	xp_parts	xp_dk.dk_parts
 
-#ifdef BADSECT
-#define	NCYL(x)		(x)
-#else !BADSECT
-#define	NCYL(x)		/* not used */
-#endif BADSECT
-
-#ifndef XP_PROBE
-/*
- * Macros to inititialize xp_drive entries.  These can be used as examples,
- * or as the actual initializers in ioconf.c.  The arguments are the number
- * of the controller to which the drive is attached, and the physical
- * drive unit number.  Used only if XP_PROBE is not defined.  See xp.c
- * for more information.
- */
-#define	RM02_INIT(c,u) \
-	{ &xp_controller[c], RM02, u, &rm_sizes, \
-	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
-#define	RM03_INIT(c,u) \
-	{ &xp_controller[c], RM03, u, &rm_sizes, \
-	RM_SECT, RM_TRAC, RM_SECT*RM_TRAC, 0, NCYL(RM_CYL)  } 
-#define	RM05_INIT(c,u) \
-	{ &xp_controller[c], RM05, u, &rm5_sizes, \
-	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5_CYL)  } 
-#define	RM05X_INIT(c,u) \
-	{ &xp_controller[c], RM05X, u, &rm5_sizes, \
-	RM5_SECT, RM5_TRAC, RM5_SECT*RM5_TRAC, 0, NCYL(RM5X_CYL)  } 
-#define	RP06_INIT(c,u) \
-	{ &xp_controller[c], RP06, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP06_CYL)  } 
-#define	RP05_INIT(c,u) \
-	{ &xp_controller[c], RP05, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
-#define	RP04_INIT(c,u) \
-	{ &xp_controller[c], RP04, u, &hp_sizes, \
-	HP_SECT, HP_TRAC, HP_SECT*HP_TRAC, 0, NCYL(RP04_CYL)  } 
-#define	SI_INIT(c,u) \
-	{ &xp_controller[c], SI, u, &si_sizes, \
-	SI_SECT, SI_TRAC, SI_SECT*SI_TRAC, 0, NCYL(SI_CYL)  }
-#define	DV_INIT(c,u) \
-	{ &xp_controller[c], DV, u, &dv_sizes, \
-	DV_SECT, DV_TRAC, DV_SECT*DV_TRAC, 0, NCYL(DV_CYL)  } 
-#define	RM2X_INIT(c,u) \
-	{ &xp_controller[c], RM2X, u, &rm2x_sizes, \
-	RM2X_SECT, RM2X_TRAC, RM2X_SECT*RM2X_TRAC, 0, NCYL(RM2X_CYL)  }
-#endif !XP_PROBE
-
-
-/*
- * xp_drive and xp_controller may be initialized here, or filled in at boot
- * time if XP_PROBE is enabled.  xp_controller address fields must be
- * initialized for any boot devices, however.
- *
- * xp_controller structure: one line per controller.  Only the address need
- * be initialized in the controller structure if XP_PROBE is defined (at least
- * the address for the root device); otherwise the flags must be here also.
- * The XP_NOCC flag is set for RM02/03/05's (with no current cylinder
- * register); XP_NOSEARCH is set for Diva's without the search command.  The
- * XP_RH70 flag need not be set here, the driver will always check that.
- */
-#define XPADDR	((struct hpdevice *)0176700)
-
-struct xp_controller	xp_controller[NXPC] = {
-/*	0	0	addr	flags			0 */
-#ifdef XP_PROBE
-	0,	0,	XPADDR,	0,			0
-#else
-	0,	0,	XPADDR,	XP_NOCC|XP_NOSEARCH,	0
-#endif
-};
-
-/*
- * xp_drive structure: one entry per drive.  The drive structure must be
- * initialized if XP_PROBE is not enabled.  Macros are provided in hpreg.h
- * to initialize entries according to drive type, and controller and drive
- * numbers.  See those for examples on how to set up other types of drives.
- * With XP_PROBE defined, xpslave will fill in this structure, and any
- * initialization will be overridden.  There is one exception; if the
- * drive-type field is set, it will be used instead of the drive-type register
- * to determine the drive's type.
- */
-struct xp_drive	xp_drive[NXPD]
-#ifndef XP_PROBE
-= {
-	RM02_INIT(0,0),		/* RM02, controller 0, drive 0 */
-	RM02_INIT(0,1),		/* RM02, controller 0, drive 1 */
-	RM2X_INIT(0,0)		/* Fuji 160, controller 0, drive 0 */
-	RM2X_INIT(0,1)		/* Fuji 160, controller 0, drive 1 */
-	RM05X_INIT(0,2)		/* 815-cyl RM05, controller 0, drive 2 */
-}
-#endif
-;
-
-/* THIS SHOULD BE READ OFF THE PACK, PER DRIVE */
-struct size {
-	daddr_t	nblocks;
-	int	cyloff;
-} hp_sizes[8] = { /* RP04/05/06 */
-	   9614,	  0,	/* a: cyl   0 - 22 */
-	   8778,	 23,	/* b: cyl  23 - 43 */
-	 153406,	 44,	/* c: cyl  44 - 410, RP04/05 */
-	 168872,	411,	/* d: cyl 411 - 814, RP06 */
-	 322278,	 44,	/* e: cyl  44 - 814, RP06 */
-	      0,	  0,	/* f: Not Defined */
-	 171798,	  0,	/* g: cyl   0 - 410, whole RP04/05 */
-	 340670,	  0,	/* h: cyl   0 - 814, whole RP06 */
-}, rp_sizes[8] = { /* RP07 */
-	  19200,	  0,	/* a: cyl   0 - 11 */
-	  51200,	 12,	/* b: cyl  12 - 43 */
-	1008000,	  0,	/* c: cyl   0 - 629, whole RP07 */
-	 320000,	 44,	/* d: cyl  44 - 243 */
-	 320000,	244,	/* e: cyl 244 - 443 */
-	 297600,	444,	/* f: cyl 444 - 629 */
-	 937600,	 44,	/* g: cyl  44 - 629 */
-	1008000,	  0,	/* h: cyl   0 - 629, whole RP07 */
-}, rm_sizes[8] = { /* RM02/03 */
-	   9600,	  0,	/* a: cyl   0 -  59 */
-	   9600,	 60,	/* b: cyl  60 - 119 */
-	 131680,	  0,	/* c: cyl   0 - 822, whole RM02/03 */
-	      0,	  0,	/* d: Not Defined */
-	      0,	  0,	/* e: Not Defined */
-	 121920,	 60,	/* f: cyl  60 - 821 */
-	 112320,	120,	/* g: cyl 120 - 821 */
-	 131680,	  0,	/* h: cyl   0 - 822, whole RM02/03 */
-}, rm5_sizes[8] = { /* RM05, or SI 9500, CDC 9766 */
-	   9120,	  0,	/* a: cyl   0 -  14 */
-	   9120,	 15,	/* b: cyl  15 -  29 */
-	 234080,	 30,	/* c: cyl  30 - 414 */
-	 248064,	415,	/* d: cyl 415 - 822 */
-	 164160,	 30,	/* e: cyl  30 - 299 */
-	 152000,	300,	/* f: cyl 300 - 549 */
-	 165984,	550,	/* g: cyl 550 - 822 */
-	 500384,	  0,	/* h: cyl   0 - 822 */
-}, cap_sizes[8] = { /* Ampex Capricorn */
-	  16384,	  0,	/* a: cyl   0 thru   31 */
-	  33792,	 32,	/* b: cyl  32 thru   97 */
-	 291840,	 98,	/* c: cyl  98 thru  667 */
-	  16384,	668,	/* d: cyl 668 thru  699 */
-	  56320,	700,	/* e: cyl 700 thru  809 */
-	 109568,	810,	/* f: cyl 810 thru 1023 */
-	 182272,	668,	/* g: cyl 668 thru 1023 */
-	 524288,	  0,	/* h: cyl   0 thru 1023 */
-}, si5_sizes[8] = { /* SI, CDC 9775, direct mapping */
-	  10240,	  0,	/* a: cyl   0 -   7 */
-	  10240,	  8,	/* b: cyl   8 -  15 */
-	 510720,	 16,	/* c: cyl  16 - 414 */
-	 547840,	415,	/* d: cyl 415 - 842 */
-	 363520,	 16,	/* e: cyl  16 - 299 */
-	 320000,	300,	/* f: cyl 300 - 549 */
-	 375040,	550,	/* g: cyl 550 - 842 */
-	1079040,	  0,	/* h: cyl   0 - 842 */
-}, si_sizes[8] = { /* SI 6100, Fuji Eagle 2351A */
-	  11520,	  0,	/* a: cyl   0 -  11 */
-	  11520,	 12,	/* b: cyl  12 -  23 */
-	 474240,	 24,	/* c: cyl  24 - 517 */
-	  92160,	518,	/* d: cyl 518 - 613 */
-	 218880,	614,	/* e: cyl 614 - 841 */
-	      0,	  0,	/* f: Not Defined */
-	      0,	  0,	/* g: Not Defined */
-	 808320,	  0,	/* h: cyl   0 - 841 (everything) */
-}, rm2x_sizes[8] = { /* Emulex SC01B or SI 9400, Fuji 160 */
-	   9600,	  0,	/* a: cyl   0 -  29 */
-	   9600,	 30,	/* b: cyl  30 -  59 */
-	 244160,	 60,	/* c: cyl  60 - 822 */
-	 164800,	 60,	/* d: cyl  60 - 574 */
-	  79360,	575,	/* e: cyl 575 - 822 */
-	  39680,	575,	/* f: cyl 575 - 698 */
-	  39680,	699,	/* g: cyl 699 - 822 */
-	 263360,	  0,	/* h: cyl   0 - 822 */
-}, dv_sizes[8] = { /* Diva Comp V, Ampex 9300 in direct mode */
-	   9405,	  0,	/* a: cyl   0 -  14 */
-	   9405,	 15,	/* b: cyl  15 -  29 */
-	 241395,	 30,	/* c: cyl  30 - 414 */
-	 250800,	415,	/* d: cyl 415 - 814 */
-	 169290,	 30,	/* e: cyl  30 - 299 */
-	 156750,	300,	/* f: cyl 300 - 549 */
-	 166155,	550,	/* g: cyl 550 - 814 */
-	 511005,	  0,	/* h: cyl   0 - 814 */
-};
-/* END OF STUFF WHICH SHOULD BE READ IN PER DISK */
-
-#ifdef XP_PROBE
-struct xpst {
-	short	type;		/* value from controller type register */
-	short	nsect;		/* number of sectors/track */
-	short	ntrack;		/* number of tracks/cylinder */
-	short	ncyl;		/* number of cylinders */
-	struct	size *sizes;	/* partition tables */
-	short	flags;		/* controller flags */
-} xpst[] = {
-	{ RP04, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
-	{ RP05, HP_SECT,   HP_TRAC,   RP04_CYL, hp_sizes,   0 },
-	{ RP06, HP_SECT,   HP_TRAC,   RP06_CYL, hp_sizes,   0 },
-	{ RP07, RP7_SECT,  RP7_TRAC,  RP7_CYL,  rp_sizes,   0 },
-	{ RM02, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
-	{ RM03, RM_SECT,   RM_TRAC,   RM_CYL,   rm_sizes,   XP_NOCC },
-	{ RM05, RM5_SECT,  RM5_TRAC,  RM5_CYL,  rm5_sizes,  XP_NOCC },
-	{ CAP,  CAP_SECT,  CAP_TRAC,  CAP_CYL,  cap_sizes,  XP_NOCC },
-	{ SI5,  SI5_SECT,  SI5_TRAC,  SI5_CYL,  si5_sizes,  XP_NOCC },
-	{ SI,   SI_SECT,   SI_TRAC,   SI_CYL,   si_sizes,   XP_NOCC },
-	{ RM2X, RM2X_SECT, RM2X_TRAC, RM2X_CYL, rm2x_sizes, XP_NOCC },
-	{ RM5X, RM5X_SECT, RM5X_TRAC, RM5X_CYL, rm5_sizes,  XP_NOCC },
-	{ DV,   DV_SECT,   DV_TRAC,   DV_CYL,	dv_sizes,   XP_NOSEARCH },
-	{ 0,    0,         0,         0,        0 }
-};
-#endif
+struct xp_controller	xp_controller[NXPC];
+struct xp_drive	xp_drive[NXPD];
 
 struct	buf	xptab;
 struct	buf	xputab[NXPD];
@@ -288,78 +92,67 @@ struct	buf	xputab[NXPD];
 #ifdef BADSECT
 struct	dkbad	xpbad[NXPD];
 struct	buf	bxpbuf[NXPD];
-bool_t	xp_init[NXPD];
 #endif
 
 #ifdef UCB_METER
 static	int		xp_dkn = -1;	/* number for iostat */
 #endif
 
-/*
- * Attach controllers whose addresses are known at boot time.  Stop at the
- * first not found, so that the drive numbering won't get confused.
- */
-xproot()
-{
-	register int i;
-	register struct hpdevice *xpaddr;
+	int	xpstrategy();
+	void	xpgetinfo();
+	daddr_t	xpsize();
+extern	size_t	physmem;
 
-#ifdef	GENERIC
-	printf("\nxp_drive=0%o xp_controller=0%o\n",xp_drive,xp_controller);
-	delay(10000000L);	/* 10 secs to halt and patch xp_drive */
-#endif
-	for (i = 0; i < NXPC; i++)
-		if (((xpaddr = xp_controller[i].xp_addr) == 0)
-			|| (xpattach(xpaddr, i) == 0))
-			break;
-}
+/*
+ * Setup root SMD ('xp') device (use bootcsr passed from ROMs).  In the event
+ * that the system was not booted from a SMD drive but swapdev is a SMD device
+ * we attach the first (0176700) controller.  This would be a very unusual
+ * configuration and is unlikely to be encountered.
+ *
+ * This is very confusing, it is an ugly hack, but short of moving autoconfig
+ * back into the kernel there's nothing else I can think of to do.
+ *
+ * NOTE:  the swap device must be on the controller used for booting since 
+ * that is the only one attached here - the other controllers are attached 
+ * by /etc/autoconfig when it runs later.
+ */
+
+xproot(csr)
+	register struct	hpdevice *csr;
+	{
+
+	if	(!csr)					/* XXX */
+		csr = (struct hpdevice *)0176700;	/* XXX */
+	xpattach(csr, 0);
+	}
 
 /*
  * Attach controller at xpaddr.  Mark as nonexistent if xpaddr is 0; otherwise
- * attach slaves if probing.  NOTE: if probing for drives, this routine must
- * be called once per controller, in ascending controller numbers.
+ * attach slaves.  This routine must be called once per controller
+ * in ascending controller numbers.
+ *
+ * NOTE: This means that the 'xp' lines in /etc/dtab _MUST_ be in order
+ * starting with 'xp 0' first.
  */
+
 xpattach(xpaddr, unit)
 	register struct hpdevice *xpaddr;
-	int unit;
+	int unit;	/* controller number */
 {
 	register struct xp_controller *xc = &xp_controller[unit];
-#ifdef XP_PROBE
 	static int last_attached = -1;
-#endif
 
 #ifdef UCB_METER
-	if (xp_dkn < 0) {
+	if (xp_dkn < 0)
 		dk_alloc(&xp_dkn, NXPD+NXPC, "xp", 0L);
-#ifndef XP_PROBE
-		/*
-		 * Hard coded drive configuration - snag the number of
-		 * sectors per track for each drive and compute drive
-		 * transfer rate assuming 3600rpm (the Fujitsu Eagle 2351A
-		 * (SI Eagle) is actually 3961rpm; it's just not worth the
-		 * effort to fix the assumption.)  If XP_PROBE is defined we
-		 * grab the number of sectors/track for each drive in
-		 * xpslave.
-		 */
-		if (xp_dkn >= 0) {
-			register int i;
-			register long *lp;
-
-			for (i = 0, lp = &dk_wps[xp_dkn]; i < NXPD; i++)
-				*lp++ = (long)xp_drive[i].xp_nsect
- 					* (60L * 256L);
-		}
-#endif
-	}
 #endif
 
 	if ((unsigned)unit >= NXPC)
 		return(0);
-	if ((xpaddr != 0) && (fioword(xpaddr) != -1)) {
+	if (xpaddr && (fioword(xpaddr) != -1)) {
 		xc->xp_addr = xpaddr;
 		if (fioword(&xpaddr->hpbae) != -1)
-			xc->xp_flags |= XP_RH70;
-#ifdef XP_PROBE
+			xc->xp_rh70 = 1;
 	/*
 	 *  If already attached, ignore (don't want to renumber drives)
 	 */
@@ -367,17 +160,15 @@ xpattach(xpaddr, unit)
 			last_attached = unit;
 			xpslave(xpaddr, xc);
 		}
-#endif
 		return(1);
 	}
 	xc->xp_addr = 0;
 	return(0);
 }
 
-#ifdef XP_PROBE
 /*
- * Determine what drives are attached to a controller; guess their types and
- * fill in the drive structures.
+ * Determine what drives are attached to a controller; the type and geometry
+ * information will be retrieved at open time from the disklabel.
  */
 xpslave(xpaddr, xc)
 register struct hpdevice *xpaddr;
@@ -389,7 +180,7 @@ struct xp_controller *xc;
 	static int nxp = 0;
 
 	for (j = 0; j < 8; j++) {
-		xpaddr->hpcs1.w = 0;
+		xpaddr->hpcs1.w = HP_NOP;
 		xpaddr->hpcs2.w = j;
 		xpaddr->hpcs1.w = HP_GO;	/* testing... */
 		delay(6000L);
@@ -402,135 +193,263 @@ struct xp_controller *xc;
 			xd = &xp_drive[nxp++];
 			xd->xp_ctlr = xc;
 			xd->xp_unit = j;
-			/* If drive type is initialized, believe it. */
-			if (xd->xp_type == 0) {
-				xd->xp_type = xpaddr->hpdt & 077;
-				xd->xp_type = xpmaptype(xd, xpaddr->hpsn);
-			}
-			for (st = xpst; st->type; st++)
-				if (st->type == xd->xp_type) {
-					xd->xp_nsect = st->nsect;
-					xd->xp_ntrack = st->ntrack;
-					xd->xp_nspc = st->nsect * st->ntrack;
-#ifdef BADSECT
-					xd->xp_ncyl = st->ncyl;
-#endif
-					xd->xp_sizes = st->sizes;
-					xd->xp_ctlr->xp_flags |= st->flags;
-					break;
-				}
-			if (!st->type) {
-				printf("xp%d: drive type %o unrecognized\n",nxp - 1, xd->xp_type);
-				xd->xp_ctlr = NULL;
-			}
-
-#ifdef UCB_METER
-			if (xp_dkn >= 0 && xd->xp_ctlr)
-				dk_wps[xd - &xp_drive[0]]
- 					= (long)xd->xp_nsect * (60L * 256L);
-#endif
+/*
+ * Allocate the disklabel now.  This is very early in the system's life
+ * so fragmentation will be minimized if any labels are allocated from 
+ * main memory.  Then initialize the flags to indicate a drive is present.
+*/
+			xd->xp_label = disklabelalloc();
+			xd->xp_flags = DKF_ALIVE;
 		}
 	}
 }
 
-static
-xpmaptype(xd, hpsn)
-	register struct xp_drive *xd;
-	register u_short hpsn;
-{
-	register u_short type = xd->xp_type;
+xpopen(dev, flags, mode)
+	dev_t	dev;
+	int	flags, mode;
+	{
+register struct xp_drive *xd;
+	int	unit = XPUNIT(dev);
+	int	i, part = dkpart(dev), rpm;
+register int	mask;
 
-	/*
-	 * Model-byte processing for SI controllers.
-	 * NB:  Only deals with RM02, RM03 and RM05 emulations.
-	 */
-	if ((type == RM02 || type == RM03 || type == RM05)
-	    && (hpsn & SIMB_LU) == xd->xp_unit) {
-		switch (hpsn & (SIMB_MB & ~(SIMB_S6|SIMB_XX|SIRM03|SIRM05))) {
-		case SI9775D:
-			type = SI5;
-			break;
-
-		case SI9775M:
-			type = RM05;
-			break;
-
-		case SI9730D:
-			type = RM2X;
-			break;
-
-		case SI9766:
-			type = RM05;
-			break;
-
-		case SI9762:
-			type = RM03;
-			break;
-
-		case SICAPD:
-			type = CAP;
-			break;
-
-		case SI9751D:
-			type = SI;
-			break;
+	if	(unit >= NXPD)
+		return(ENXIO);
+ 	xd = &xp_drive[unit];
+	if	((xd->xp_flags & DKF_ALIVE) == 0)
+		return(ENXIO);
+/*
+ * Now we read the label.  First wait for any pending opens/closes to
+ * complete.
+*/
+	while	(xd->xp_flags & (DKF_OPENING|DKF_CLOSING))
+		sleep(xd, PRIBIO);
+/*
+ * On first open get label (which has the geometry information as well as
+ * the partition tables).  We may block reading the label so be careful to
+ * stop any other opens.
+*/
+	if	(xd->xp_open == 0)
+		{
+		xd->xp_flags |= DKF_OPENING;
+		xpgetinfo(xd, dev);
+		xd->xp_flags &= ~DKF_OPENING;
+		wakeup(xd);
 		}
+/*
+ * Need to make sure the partition is not out of bounds.  This requires
+ * mapping in the external label.  Since this only happens when a partition
+ * is opened (at mount time for example) it is unlikely to be  an efficiency
+ * concern.
+*/
+	mapseg5(xd->xp_label, LABELDESC);
+	i = ((struct disklabel *)SEG5)->d_npartitions;
+	rpm = ((struct disklabel *)SEG5)->d_rpm;
+	normalseg5();
+	if	(part >= i)
+		return(ENXIO);
+#ifdef	UCB_METER
+	if	(xp_dkn >= 0)
+		dk_wps[xd - xp_drive] = (long) xd->xp_nsect * (rpm / 60) * 256L;
+#endif
+	mask = 1 << part;
+	dkoverlapchk(xd->xp_open, dev, xd->xp_label, "xp");
+	if	(mode == S_IFCHR)
+		xd->xp_copen |= mask;
+	else if	(mode == S_IFBLK)
+		xd->xp_bopen |= mask;
+	else
+		return(EINVAL);
+	xd->xp_open |= mask;
+	return(0);
 	}
-	return(type);
-}
-#endif XP_PROBE
 
-xpopen(dev)
-	dev_t dev;
-{
+xpclose(dev, flags, mode)
+	dev_t	dev;
+	int	flags, mode;
+	{
+	int	s;
+register int mask;
+register struct xp_drive *xd;
+	int	unit = XPUNIT(dev);
+
+	xd = &xp_drive[unit];
+	mask = 1 << dkpart(dev);
+	if	(mode == S_IFCHR)
+		xd->xp_copen &= ~mask;
+	else if	(mode == S_IFBLK)
+		xd->xp_bopen &= ~mask;
+	else
+		return(EINVAL);
+	xd->xp_open = xd->xp_copen | xd->xp_bopen;
+	if	(xd->xp_open == 0)
+		{
+		xd->xp_flags |= DKF_CLOSING;
+		s = splbio();
+		while	(xputab[unit].b_actf)
+			sleep(&xputab[unit], PRIBIO);
+		xd->xp_flags &= ~DKF_CLOSING;
+		splx(s);
+		wakeup(xd);
+		}
+	return(0);
+	}
+
+void
+xpdfltlbl(xd, lp)
+	register struct	xp_drive *xd;
+	register struct	disklabel *lp;
+	{
+	register struct partition *pi = &lp->d_partitions[0];
+
+/*
+ * NOTE: partition 0 ('a') is used to read the label.  Therefore 'a' must
+ * start at the beginning of the disk!  If there is no label or the label
+ * is corrupted then a label containing a geometry sufficient *only* to 
+ * read/write sector 1 (LABELSECTOR) is created.  1 track, 1 cylinder and
+ * 2 sectors per track.
+*/
+
+	bzero(lp, sizeof (*lp));
+	lp->d_type = DTYPE_SMD;
+	lp->d_secsize = 512;			/* XXX */
+	lp->d_nsectors = LABELSECTOR + 1;	/* # sectors/track */
+	lp->d_ntracks = 1;			/* # tracks/cylinder */
+	lp->d_secpercyl = LABELSECTOR + 1;	/* # sectors/cylinder */
+	lp->d_ncylinders = 1;			/* # cylinders */
+	lp->d_npartitions = 1;			/* 1 partition  = 'a' */
+/*
+ * Need to put the information where the driver expects it.  This is normally
+ * done after reading the label.  Since we're creating a fake label we have to
+ * copy the invented geometry information to the right place.
+*/
+	xd->xp_nsect = lp->d_nsectors;
+	xd->xp_ntrack = lp->d_ntracks;
+	xd->xp_nspc = lp->d_secpercyl;
+	xd->xp_ncyl = lp->d_ncylinders;
+	xd->xp_dd0 = lp->d_drivedata[0];
+
+	pi->p_size = LABELSECTOR + 1;
+	pi->p_fstype = FS_V71K;
+	pi->p_frag = 1;
+	pi->p_fsize = 1024;
+	bcopy(pi, xd->xp_parts, sizeof (lp->d_partitions));
+	}
+
+/*
+ * Read disklabel.  It is tempting to generalize this routine so that
+ * all disk drivers could share it.  However by the time all of the 
+ * necessary parameters are setup and passed the savings vanish.  Also,
+ * each driver has a different method of calculating the number of blocks
+ * to use if one large partition must cover the disk.
+ *
+ * This routine used to always return success and callers carefully checked
+ * the return status.  Silly.  This routine will fake a label (a single
+ * partition spanning the drive) if necessary but will never return an error.
+ *
+ * It is the caller's responsibility to check the validity of partition 
+ * numbers, etc.
+*/
+
+void
+xpgetinfo(xd, dev)
 	register struct xp_drive *xd;
-	register int unit = xpunit(dev);
+	dev_t	dev;
+	{
+	struct	disklabel locallabel;
+	char	*msg;
+	register struct disklabel *lp = &locallabel;
 
-	if (unit >= NXPD || !(xd = &xp_drive[unit])->xp_ctlr ||
-		!xd->xp_ctlr->xp_addr)
-		return (ENXIO);
-	return (0);
-}
+	xpdfltlbl(xd, lp);
+	msg = readdisklabel((dev & ~7) | 0, xpstrategy, lp);	/* 'a' */
+	if	(msg != 0)
+		{
+		log(LOG_NOTICE, "xp%da using labelonly geometry: %s\n",
+			XPUNIT(dev), msg);
+		xpdfltlbl(xd, lp);
+		}
+	mapseg5(xd->xp_label, LABELDESC);
+	bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
+	normalseg5();
+	bcopy(lp->d_partitions, xd->xp_parts, sizeof (lp->d_partitions));
+	xd->xp_nsect = lp->d_nsectors;
+	xd->xp_ntrack = lp->d_ntracks;
+	xd->xp_nspc = lp->d_secpercyl;
+	xd->xp_ncyl = lp->d_ncylinders;
+	xd->xp_dd0 = lp->d_drivedata[0];
+	return;
+	}
 
 xpstrategy(bp)
 register struct buf *bp;
-{
+	{
 	register struct xp_drive *xd;
-	register int unit;
+	register struct partition *pi;
+	int	unit, part;
 	struct buf *dp;
-	short pseudo_unit;
-	int s;
-	long bn;
+	int	s;
+	daddr_t	sz;
 
-	unit = dkunit(bp->b_dev);
-	pseudo_unit = dkpart(bp->b_dev);
+	unit = XPUNIT(bp->b_dev);
+	part = dkpart(bp->b_dev);
+	xd = &xp_drive[unit];
 
-	if ((unit >= NXPD) || ((xd = &xp_drive[unit])->xp_ctlr == 0) ||
-		(xd->xp_ctlr->xp_addr == 0)) {
+	if	(unit >= NXPD || !xd->xp_ctlr || !(xd->xp_flags & DKF_ALIVE))
+		{
 		bp->b_error = ENXIO;
-		goto errexit;
-	}
-	if ((bp->b_blkno < 0) || ((bn = bp->b_blkno) + ((bp->b_bcount + 511)
-		>> 9) > xd->xp_sizes[pseudo_unit].nblocks)) {
-		bp->b_error = EINVAL;
-errexit:
-		bp->b_flags |= B_ERROR;
-		iodone(bp);
-		return;
-	}
-	if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
+		goto bad;
+		}
+	pi = &xd->xp_parts[part];
+
+	sz = (bp->b_bcount + 511) >> 9;
+	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
+		{
+		sz = pi->p_size - bp->b_blkno;
+		/* If exactly at end of disk, return an EOF */
+		if	(sz == 0)
+			{
+			bp->b_resid = bp->b_bcount;
+			goto done;
+			}
+		/* or truncate if part of it fits */
+		if	(sz < 0)
+			{
+			bp->b_error = EINVAL;
+			goto bad;
+			}
+		bp->b_bcount = dbtob(sz);	/* compute byte count */
+		}
+/*
+ * Check for write to write-protected label area.  This does not include
+ * sector 0 which is the boot block.
+*/
+	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
+		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
+		 !(bp->b_flags & B_READ) && !(xd->xp_flags & DKF_WLABEL))
+		{
+		bp->b_error = EROFS;
+		goto bad;
+		}
+	if	(xd->xp_ctlr->xp_rh70 == 0)
 		mapalloc(bp);
-	bp->b_cylin = bn / xd->xp_nspc + xd->xp_sizes[pseudo_unit].cyloff;
+	bp->b_cylin = (bp->b_blkno + pi->p_offset) / xd->xp_nspc;
 	dp = &xputab[unit];
 	s = splbio();
 	disksort(dp, bp);
-	if (dp->b_active == 0) {
+	if	(dp->b_active == 0)
+		{
 		xpustart(unit);
-		if (xd->xp_ctlr->xp_active == 0)
+		if	(xd->xp_ctlr->xp_active == 0)
 			xpstart(xd->xp_ctlr);
-	}
+		}
 	splx(s);
-}
+	return;
+bad:
+	bp->b_flags |= B_ERROR;
+done:
+	iodone(bp);
+	return;
+	}
 
 /*
  * Unit start routine.  Seek the drive to where the data are and then generate
@@ -540,12 +459,12 @@ errexit:
  * for transfer (to avoid positioning forever without transferring).
  */
 xpustart(unit)
-int unit;
+	int unit;
 {
 	register struct xp_drive *xd;
 	register struct hpdevice *xpaddr;
 	register struct buf *dp;
-	struct buf *bp;
+	struct buf *bp, *bbp;
 	daddr_t bn;
 	int	sn, cn, csn;
 
@@ -554,8 +473,6 @@ int unit;
 	xpaddr->hpcs2.w = xd->xp_unit;
 	xpaddr->hpcs1.c[0] = HP_IE;
 	xpaddr->hpas = 1 << xd->xp_unit;
-	if (unit >= NXPD)
-		return;
 #ifdef UCB_METER
 	if (xp_dkn >= 0)
 		dk_busy &= ~(1 << (xp_dkn + unit));
@@ -573,42 +490,44 @@ int unit;
 	/*
 	 * If drive has just come up, set up the pack.
 	 */
-#ifdef BADSECT
-	if (((xpaddr->hpds & HPDS_VV) == 0) || (xp_init[unit] == 0)) {
-		struct buf *bbp = &bxpbuf[unit];
-#else
-	if ((xpaddr->hpds & HPDS_VV) == 0) {
-#endif
-	/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
-#ifdef XP_DEBUG
-		printf("preset-unit=%d\n", unit);
-#endif
+	if (((xpaddr->hpds & HPDS_VV) == 0) || !(xd->xp_flags & DKF_ONLINE)) {
 		xpaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
-#ifdef XP_DEBUG
-		printf("preset done\n");
-#endif
 		xpaddr->hpof = HPOF_FMT22;
+		xd->xp_flags |= DKF_ONLINE;
+#ifdef	XPDEBUG
+		log(LOG_NOTICE, "xp%d preset done\n", unit);
+#endif
+	}
+/*
+ * XXX - The 'h' partition is used below to access the bad block area.  This
+ * XXX - will almost certainly be wrong if the user has defined another 
+ * XXX - partition to span the entire drive including the bad block area.  It
+ * XXX - is not known what to do about this.
+*/
 #ifdef BADSECT
-		xp_init[unit] = 1;
+		bbp = &bxpbuf[unit];
 		bbp->b_flags = B_READ | B_BUSY | B_PHYS;
 		bbp->b_dev = bp->b_dev | 7;	/* "h" partition whole disk */
 		bbp->b_bcount = sizeof(struct dkbad);
 		bbp->b_un.b_addr = (caddr_t)&xpbad[unit];
 		bbp->b_blkno = (daddr_t)xd->xp_ncyl * xd->xp_nspc - xd->xp_nsect;
 		bbp->b_cylin = xd->xp_ncyl - 1;
-		if ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)
+		if (xd->xp_ctlr->xp_rh70 == 0)
 			mapalloc(bbp);
 		dp->b_actf = bbp;
 		bbp->av_forw = bp;
 		bp = bbp;
 #endif BADSECT
-	}
+
 #if NXPD > 1
 	/*
 	 * If drive is offline, forget about positioning.
 	 */
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
+	if	(xpaddr->hpds & (HPDS_DREADY) != (HPDS_DREADY))
+		{
+		xd->xp_flags &= ~DKF_ONLINE;
 		goto done;
+		}
 	/*
 	 * Figure out where this transfer is going to
 	 * and see if we are close enough to justify not searching.
@@ -619,10 +538,10 @@ int unit;
 	sn += xd->xp_nsect - XP_SDIST;
 	sn %= xd->xp_nsect;
 
-	if (((xd->xp_ctlr->xp_flags & XP_NOCC) && (xd->xp_cc != cn))
-		|| xpaddr->hpcc != cn)
+	if	((!(xd->xp_dd0 & XP_CC) && (xd->xp_cc != cn))
+		 || xpaddr->hpcc != cn)
 		goto search;
-	if (xd->xp_ctlr->xp_flags & XP_NOSEARCH)
+	if	(xd->xp_dd0 & XP_NOSEARCH)
 		goto done;
 	csn = (xpaddr->hpla >> 6) - sn + XP_SDIST - 1;
 	if (csn < 0)
@@ -632,7 +551,7 @@ int unit;
 search:
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = sn;
-	xpaddr->hpcs1.c[0] = (xd->xp_ctlr->xp_flags & XP_NOSEARCH) ?
+	xpaddr->hpcs1.c[0] = (xd->xp_dd0 & XP_NOSEARCH) ?
 		(HP_IE | HP_SEEK | HP_GO) : (HP_IE | HP_SEARCH | HP_GO);
 	xd->xp_cc = cn;
 #ifdef UCB_METER
@@ -671,9 +590,8 @@ register struct xp_controller *xc;
 	register struct buf *bp;
 	struct xp_drive *xd;
 	struct buf *dp;
-	short pseudo_unit;
 	daddr_t bn;
-	int	unit, sn, tn, cn;
+	int	unit, part, sn, tn, cn;
 
 	xpaddr = xc->xp_addr;
 loop:
@@ -683,19 +601,29 @@ loop:
 	if ((dp = xc->xp_actf) == NULL)
 		return;
 	if ((bp = dp->b_actf) == NULL) {
+/*
+ * No more requests for this drive, remove from controller queue and
+ * look at next drive.  We know we're at the head of the controller queue.
+ * The drive may not need anything, in which case it might be shutting
+ * down in xpclose() and a wakeup is done.
+*/
+		dp->b_active = 0;
 		xc->xp_actf = dp->b_forw;
+		unit = dp - xputab;
+		xd = &xp_drive[unit];
+		if	(xd->xp_open == 0)
+			wakeup(dp);	/* finish close protocol */
 		goto loop;
 	}
 	/*
 	 * Mark controller busy and determine destination of this request.
 	 */
 	xc->xp_active++;
-	pseudo_unit = dkpart(bp->b_dev);
-	unit = dkunit(bp->b_dev);
+	part = dkpart(bp->b_dev);
+	unit = XPUNIT(bp->b_dev);
 	xd = &xp_drive[unit];
 	bn = bp->b_blkno;
-	cn = xd->xp_sizes[pseudo_unit].cyloff;
-	cn += bn / xd->xp_nspc;
+	cn = (xd->xp_parts[part].p_offset + bn) / xd->xp_nspc;
 	sn = bn % xd->xp_nspc;
 	tn = sn / xd->xp_nsect;
 	sn = sn % xd->xp_nsect;
@@ -706,7 +634,8 @@ loop:
 	/*
  	 * Check that it is ready and online.
 	 */
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL)) {
+	if ((xpaddr->hpds & HPDS_DREADY) != (HPDS_DREADY)) {
+		xd->xp_flags &= ~DKF_ONLINE;
 		xc->xp_active = 0;
 		dp->b_errcnt = 0;
 		dp->b_actf = bp->av_forw;
@@ -714,6 +643,8 @@ loop:
 		iodone(bp);
 		goto loop;
 	}
+	xd->xp_flags |= DKF_ONLINE;
+
 	if (dp->b_errcnt >= 16 && (bp->b_flags & B_READ)) {
 		xpaddr->hpof = xp_offset[dp->b_errcnt & 017] | HPOF_FMT22;
 		xpaddr->hpcs1.w = HP_OFFSET | HP_GO;
@@ -722,7 +653,7 @@ loop:
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpba = bp->b_un.b_addr;
-	if (xc->xp_flags & XP_RH70)
+	if (xc->xp_rh70)
 		xpaddr->hpbae = bp->b_xmem;
 	xpaddr->hpwc = -(bp->b_bcount >> 1);
 	/*
@@ -784,7 +715,7 @@ int dev;
 			if (xpecc(bp, CONT))
 				return;
 #endif
-		unit = dkunit(bp->b_dev);
+		unit = XPUNIT(bp->b_dev);
 		xd = &xp_drive[unit];
 		xpaddr->hpcs2.c[0] = xd->xp_unit;
 		/*
@@ -796,7 +727,7 @@ int dev;
 			/*
 			 * Give up on write locked deviced immediately.
 			 */
-				printf("xp%d: write locked\n", unit);
+				log(LOG_NOTICE, "xp%d: write locked\n", unit);
 				bp->b_flags |= B_ERROR;
 #ifdef BADSECT
 			}
@@ -823,14 +754,10 @@ int dev;
 				if (++dp->b_errcnt > 28) {
 hard:
 					harderr(bp, "xp");
-#ifdef XP_DEBUG
-					/*
-					 * for RM drives
-					 */
-					printf("cs2=%b er1=%b er2=%b\n",xpaddr->hpcs2.w, HPCS2_BITS, xpaddr->hper1, HPER1_BITS, xpaddr->rmer2, RMER2_BITS);
-#else
-					printf("cs2=%b er1=%b\n", xpaddr->hpcs2.w, HPCS2_BITS, xpaddr->hper1, HPER1_BITS);
-#endif
+					log(LOG_NOTICE,"cs2=%b er1=%b er2=%b\n",
+						xpaddr->hpcs2.w, HPCS2_BITS,
+						xpaddr->hper1, HPER1_BITS,
+						xpaddr->rmer2, RMER2_BITS);
 					bp->b_flags |= B_ERROR;
 				}
 				else
@@ -892,6 +819,7 @@ errdone:
  */
 xpecc(bp, flag)
 register struct	buf *bp;
+	int	flag;
 {
 	register struct xp_drive *xd;
 	register struct hpdevice *xpaddr;
@@ -910,7 +838,7 @@ register struct	buf *bp;
 	 * ndone is #bytes including the error which is assumed to be in the
 	 * last disk page transferred.
 	 */
-	unit = dkunit(bp->b_dev);
+	unit = XPUNIT(bp->b_dev);
 	xd = &xp_drive[unit];
 	xpaddr = xd->xp_ctlr->xp_addr;
 #ifdef BADSECT
@@ -940,7 +868,9 @@ register struct	buf *bp;
 	sn %= xd->xp_nsect;
 	switch (flag) {
 		case ECC:
-			printf("xp%d%c: soft ecc sn%D\n",unit, 'a' + (minor(bp->b_dev) & 07), bp->b_blkno + (npx - 1));
+			log(LOG_NOTICE, "xp%d%c: soft ecc sn%D\n",
+				unit, 'a' + dkpart(bp->b_dev),
+				bp->b_blkno + (npx - 1));
 			wrong = xpaddr->hpec2;
 			if (wrong == 0) {
 				xpaddr->hpof = HPOF_FMT22;
@@ -988,16 +918,14 @@ register struct	buf *bp;
 			tn = sn;
 			tn /= xd->xp_nsect;
 			sn %= xd->xp_nsect;
-#ifdef DEBUG
-			printf("revector to cn %d tn %d sn %d\n", cn, tn, sn);
-#endif
+			log(LOG_NOTICE, "revector to cn %d tn %d sn %d\n",
+				cn, tn, sn);
 			wc = -(512 / (int)NBPW);
 			break;
 		case CONT:
 			bp->b_flags &= ~B_BAD;
-#ifdef DEBUG
-			printf("xpecc CONT: bn %D cn %d tn %d sn %d\n", bn, cn, tn, sn);
-#endif
+			log(LOG_NOTICE, "xpecc CONT: bn %D cn %d tn %d sn %d\n",
+				bn, cn, tn, sn);
 			break;
 #endif BADSECT
 	}
@@ -1017,11 +945,24 @@ register struct	buf *bp;
 	xpaddr->hpda = (tn << 8) + sn;
 	xpaddr->hpwc = wc;
 	xpaddr->hpba = (caddr_t)addr;
-	if (xd->xp_ctlr->xp_flags & XP_RH70)
+	if (xd->xp_ctlr->xp_rh70)
 		xpaddr->hpbae = (int)(addr >> 16);
 	xpaddr->hpcs1.w = ocmd;
 	return (1);
 }
+
+xpioctl(dev, cmd, data, flag)
+	dev_t	dev;
+	int	cmd;
+	caddr_t	data;
+	int	flag;
+	{
+	register int error;
+	struct	dkdevice *disk = &xp_drive[XPUNIT(dev)].xp_dk;
+
+	error = ioctldisklabel(dev, cmd, data, flag, disk, xpstrategy);
+	return(error);
+	}
 
 #ifdef XP_DUMP
 /*
@@ -1032,89 +973,115 @@ register struct	buf *bp;
 
 xpdump(dev)
 	dev_t dev;
-{
-	/*
-	 * ONLY USE 2 REGISTER VARIABLES, OR C COMPILER CHOKES
-	 */
-	register struct xp_drive *xd;
+	{
+	struct xp_drive *xd;
 	register struct hpdevice *xpaddr;
+	struct	partition *pi;
 	daddr_t bn, dumpsize;
-	long paddr;
-	int	sn, count;
-	struct ubmap *ubp;
+	long	paddr;
+	int	sn, count, memblks, unit;
+	register struct	ubmap *ubp;
 
-	if ((bdevsw[major(dev)].d_strategy != xpstrategy)	/* paranoia */
-		|| ((dev=minor(dev)) > (NXPD << 3)))
+	unit = XPUNIT(dev);
+	xd = &xp_drive[unit];
+
+	if	(unit > NXPD || xd->xp_ctlr == 0)
 		return(EINVAL);
-	xd = &xp_drive[xpunit(dev)];
-	dev &= 07;
-	if (xd->xp_ctlr == 0)
-		return(EINVAL);
+	if	(!(xd->xp_flags & DKF_ALIVE))
+		return(ENXIO);
+	if	(pi->p_fstype != FS_SWAP)
+		return(EFTYPE);
+
+	pi = &xd->xp_parts[dkpart(dev)];
 	xpaddr = xd->xp_ctlr->xp_addr;
-	dumpsize = xd->xp_sizes[dev].nblocks;
-	if ((dumplo < 0) || (dumplo >= dumpsize))
+
+	dumpsize = xpsize(dev) - dumplo;
+	memblks = ctod(physmem);
+
+	if	(dumplo < 0 || dumpsize <= 0)
 		return(EINVAL);
-	dumpsize -= dumplo;
+	if	(memblks > dumpsize)
+		memblks = dumpsize;
+	bn = dumplo + pi->p_offset;
+
 	xpaddr->hpcs2.w = xd->xp_unit;
-	if ((xpaddr->hpds & HPDS_VV) == 0) {
+	if	((xpaddr->hpds & HPDS_VV) == 0)
+		{
 		xpaddr->hpcs1.w = HP_DCLR | HP_GO;
 		xpaddr->hpcs1.w = HP_PRESET | HP_GO;
 		xpaddr->hpof = HPOF_FMT22;
-	}
-	if ((xpaddr->hpds & (HPDS_DPR | HPDS_MOL)) != (HPDS_DPR | HPDS_MOL))
+		}
+	if	((xpaddr->hpds & HPDS_DREADY) != (HPDS_DREADY))
 		return(EFAULT);
 	ubp = &UBMAP[0];
-	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
-		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
-		bn = dumplo + (paddr >> PGSHIFT);
-		xpaddr->hpdc = bn / xd->xp_nspc + xd->xp_sizes[dev].cyloff;
+	for	(paddr = 0L; memblks > 0; )
+		{
+		count = MIN(memblks, DBSIZE);
+		xpaddr->hpdc = bn / xd->xp_nspc;
 		sn = bn % xd->xp_nspc;
 		xpaddr->hpda = ((sn / xd->xp_nsect) << 8) | (sn % xd->xp_nsect);
 		xpaddr->hpwc = -(count << (PGSHIFT - 1));
 		xpaddr->hper1 = 0;
 		xpaddr->hper3 = 0;
-		if (ubmap && ((xd->xp_ctlr->xp_flags & XP_RH70) == 0)) {
+		if	(ubmap && (xd->xp_ctlr->xp_rh70 == 0))
+			{
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			xpaddr->hpba = 0;
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO;
-		}
-		else {
+			}
+		else
+			{
 			/*
 			 * Non-UNIBUS map, or 11/70 RH70 (MASSBUS)
 			 */
-			xpaddr->hpba = loint(paddr);
-			if (xd->xp_ctlr->xp_flags & XP_RH70)
+			xpaddr->hpba = (caddr_t)loint(paddr);
+			if	(xd->xp_ctlr->xp_rh70)
 				xpaddr->hpbae = hiint(paddr);
 			xpaddr->hpcs1.w = HP_WCOM | HP_GO | ((paddr >> 8) & (03 << 8));
-		}
+			}
 		/* Emulex controller emulating two RM03's needs a delay */
 		delay(50000L);
-		while (xpaddr->hpcs1.w & HP_GO)
+		while	(xpaddr->hpcs1.w & HP_GO)
 			continue;
-		if (xpaddr->hpcs1.w & HP_TRE) {
-			if (xpaddr->hpcs2.w & HPCS2_NEM)
-				return(0);	/* made it to end of memory */
+		if	(xpaddr->hpcs1.w & HP_TRE)
 			return(EIO);
-		}
 		paddr += (DBSIZE << PGSHIFT);
-	}
-	return(0);		/* filled disk minor dev */
+		bn += count;
+		memblks -= count;
+		}
+	return(0);
 }
 #endif XP_DUMP
 
 /*
- * By this time either the slaves have been "probed" for or the drive
- * information was statically initialized - either way the lookup of
- * partition size is straightforward.
+ * Return the number of blocks in a partition.  Call xpopen() to read the
+ * label if necessary.  If an open is necessary then a matching close
+ * will be done.
 */
 daddr_t
 xpsize(dev)
-	register dev_t	dev;
+	register dev_t dev;
 	{
 	register struct xp_drive *xd;
+	daddr_t	psize;
+	int	didopen = 0;
 
-	xd = &xp_drive[xpunit(dev)];
-	return(xd->xp_sizes[dev & 7].nblocks);
+	xd = &xp_drive[XPUNIT(dev)];
+/*
+ * This should never happen but if we get called early in the kernel's
+ * life (before opening the swap or root devices) then we have to do
+ * the open here.
+*/
+	if	(xd->xp_open == 0)
+		{
+		if	(xpopen(dev, FREAD|FWRITE, S_IFBLK))
+			return(-1);
+		didopen = 1;
+		}
+	psize = xd->xp_parts[dkpart(dev)].p_size;
+	if	(didopen)
+		xpclose(dev, FREAD|FWRITE, S_IFBLK);
+	return(psize);
 	}
-#endif NXPD
+#endif /* NXPD */

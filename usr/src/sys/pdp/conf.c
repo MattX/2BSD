@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.7 (2.11BSD GTE) 1995/06/19
+ *	@(#)conf.c	2.8 (2.11BSD GTE) 1995/07/24
  */
 
 #include "param.h"
@@ -58,12 +58,12 @@ daddr_t	hksize();
 
 #include "xp.h"
 #if NXPD > 0
-int	xpopen(), xpstrategy(), xproot();
+int	xpopen(), xpstrategy(), xproot(), xpclose(), xpioctl();
 daddr_t	xpsize();
-#define	xpclose		nulldev
 #else
 #define	xpopen		nodev
 #define	xpclose		nodev
+#define	xpioctl		nodev
 #define	xproot		nulldev
 #define	xpstrategy	nodev
 #define	xpsize		NULL
@@ -431,7 +431,7 @@ struct cdevsw	cdevsw[] = {
 	sistrategy,
 /* xp = 19 */
 	xpopen,		xpclose,	rawrw,		rawrw,
-	nodev,		nulldev,	0,		seltrue,
+	xpioctl,	nulldev,	0,		seltrue,
 	xpstrategy,
 /* br = 20 */
 	bropen,		brclose,	rawrw,		rawrw,
