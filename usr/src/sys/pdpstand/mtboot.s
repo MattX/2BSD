@@ -1,6 +1,8 @@
 /*
  * Primary tape boot program to load and execute secondary boot.
  *
+ * 1995/05/31 - unit number changed to be in bits 3-5 of 'bootdev'
+ *
  * This is a universal tape boot which can handle HT, TM, TS and TMSCP
  * tapes.  This boot is FULL.  Some of the more extended error
  * checking had to be left out to get all the drivers to fit.
@@ -100,6 +102,7 @@ done:
 	blo	1b
 	mov	csr,r1			/ put things where 'boot'
 	mov	unit,r3			/  expects them
+	ash	$3,r3			/ unit # in bits 3-5
 	bis	major,r3		/ the major device to high byte
 	clr	pc			/ go to location 0 ... no return
 

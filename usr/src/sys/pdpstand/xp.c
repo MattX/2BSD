@@ -3,14 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)xp.c	2.1 (2.11BSD) 1995/06/08
  */
 
 /*
  * SMD disk driver
  */
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/hpreg.h"
 #include "../machine/iopage.h"
 #include "saio.h"
@@ -32,12 +31,12 @@ int	xptype[NXP] = 0;
 xpstrategy(io, func)
 	register struct iob *io;
 {
-	int unit = UNITn(io->i_unit);
-	int ctlr = CTLRn(io->i_unit);
+	int unit = io->i_unit;
+	int ctlr = io->i_ctlr;
 	int i;
 	register nm_sect_per_cyl, nsect;
 	daddr_t bn;
-	int sn, cn, tn;
+	int sn, cn, tn, bae, lo16;
 	struct hpdevice *xpaddr = XPcsr[ctlr];
 
 	bn = io->i_bn;
@@ -113,11 +112,12 @@ xpstrategy(io, func)
 	tn = sn/nsect;
 	sn = sn%nsect;
 
+	iomapadr(io->i_ma, &bae, &lo16);
 	xpaddr->hpdc = cn;
 	xpaddr->hpda = (tn << 8) + sn;
-	xpaddr->hpba = io->i_ma;
+	xpaddr->hpba = (caddr_t)lo16;
 	xpaddr->hpwc = -(io->i_cc>>1);
-	i = (segflag << 8) | HP_GO;
+	i = (bae << 8) | HP_GO;
 	if (func == READ)
 		i |= HP_RCOM;
 	else if (func == WRITE)

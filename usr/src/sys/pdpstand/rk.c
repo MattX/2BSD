@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rk.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)rk.c	2.1 (2.11BSD) 1995/06/08
  */
 
 /*
@@ -11,7 +11,6 @@
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/rkreg.h"
 #include "saio.h"
 
@@ -30,17 +29,18 @@ rkstrategy(io, func)
 	register com;
 	register struct rkdevice *rkaddr;
 	daddr_t bn;
-	int dn, cn, sn;
+	int dn, cn, sn, bae, lo16;
 
 	bn = io->i_bn;
-	dn = UNITn(io->i_unit);
+	dn = io->i_unit;
 	cn = bn/12;
 	sn = bn%12;
-	rkaddr = RKcsr[CTLRn(io->i_unit)];
+	iomapadr(io->i_ma, &bae, &lo16);
+	rkaddr = RKcsr[io->i_ctlr];
 	rkaddr->rkda = (dn<<13) | (cn<<4) | sn;
-	rkaddr->rkba = io->i_ma;
+	rkaddr->rkba = (caddr_t)lo16;
 	rkaddr->rkwc = -(io->i_cc>>1);
-	com = (segflag<<4)|RKCS_GO;
+	com = (bae<<4)|RKCS_GO;
 	if (func == READ)
 		com |= RKCS_RCOM;
 	else
@@ -50,8 +50,7 @@ rkstrategy(io, func)
 		continue;
 	if (rkaddr->rkcs<0) {	/* error bit */
 		printf("RK%d,%d err cy=%d sc=%d, er=%o, ds=%o\n",
-		    CTLRn(io->i_unit), UNITn(io->i_unit), cn, sn,
-		    rkaddr->rker, rkaddr->rkds);
+		    io->i_ctlr, io->i_unit, cn, sn, rkaddr->rker, rkaddr->rkds);
 		return(-1);
 	}
 	return(io->i_cc);

@@ -3,13 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)boot.c	2.2 (2.11BSD) 1/1/93
+ *	@(#)boot.c	2.3 (2.11BSD) 1995/06/08
  */
 #include "../h/param.h"
 #include "../machine/seg.h"
 #include "../machine/koverlay.h"
-#include "../h/fs.h"
-#include "../h/inode.h"
 #include "../h/reboot.h"
 #include "saio.h"
 #include <a.out.h>
@@ -30,6 +28,7 @@
 #define	SEG_OVLY	04
 
 extern	caddr_t	*bootcsr;	/* csr of boot controller */
+extern	int	bootctlr;	/* boot controller number */
 extern	int	bootopts;	/* boot options from previous incarnation */
 extern	int	bootdev;	/* makedev(major,unit) booted from */
 extern	int	checkword;	/* one's complements of bootopts */
@@ -38,6 +37,10 @@ extern	bool_t	ksep;		/* is kernel mode currently separated */
 extern	bool_t	sep_id;		/* does the cpu support separate I/D? */
 extern	int	ndevsw;		/* number of devices in devsw[] */
 extern	char	ADJcsr[];	/* adjustments for ROM csr addresses */
+extern	char	*itoa();
+extern	char	*index();
+extern	struct	devsw devsw[];	/* device table */
+extern	struct	iob	iob[];	/* I/O descriptor table */
 
 char		module[] = "Boot"; /* this program's name (used by trap) */
 bool_t		overlaid = 0;
@@ -121,16 +124,17 @@ struct	loadtable	loadtable[] = {
 main()
 {
 	register int i, j, maj;
-	int retry = 0;
+	int retry = 0, unit, part;
 	caddr_t	*adjcsr;
 	struct loadtable *setup();
 	struct iob *file;
-	char	line[64], defnam[64], *itoa();
+	char	*cp, *defname = "unix", line[64], defdev[64];
 
 	maj = major(bootdev);
 	if (maj >= ndevsw)
 		_stop("bad major");		/* can't happen */
 	adjcsr = (caddr_t *)((short)bootcsr - ADJcsr[maj]);
+
 	for (i = 0; devsw[maj].dv_csr != (caddr_t) -1; i++) {
 		if (adjcsr == devsw[maj].dv_csr[i])
 			break;
@@ -139,17 +143,27 @@ main()
 			break;
 		}
 	}
+
 	if (devsw[maj].dv_csr[i] == (caddr_t *) -1)
 		_stop("no free csr slots");
 	bootdev &= ~(3 << 6);
 	bootdev |= (i << 6);	/* controller # to bits 6&7 */
-	printf("\n%d%s from %s(%d,0,0%o)\n", cputype, module, 
-		devsw[major(bootdev)].dv_name, minor(bootdev), bootcsr);
-	strcpy(defnam, devsw[major(bootdev)].dv_name);
-	strcat(defnam, "(");
-	strcat(defnam, itoa(minor(bootdev)));
-	strcat(defnam, ",0)unix");
-	strcpy(line, defnam);
+	bootctlr = i;
+	unit = (minor(bootdev) >> 3) & 7;
+	part = minor(bootdev) & 7;
+
+	printf("\n%d%s from %s(%d,%d,%d) at 0%o\n", cputype, module, 
+		devsw[major(bootdev)].dv_name, bootctlr, unit, part, bootcsr);
+
+	strcpy(defdev, devsw[major(bootdev)].dv_name);
+	strcat(defdev, "(");
+	strcat(defdev, itoa(bootctlr));
+	strcat(defdev, ",");
+	strcat(defdev, itoa(unit));
+	strcat(defdev, ",");
+	strcat(defdev, itoa(part));
+	strcat(defdev, ")");
+
 	/*
 	 * The machine language will have gotten the bootopts
 	 * if we're an autoboot and will pass them along.
@@ -162,12 +176,26 @@ main()
 		if (bootopts & RB_ASKNAME) {
 			printf(": ");
 			gets(line);
-		} else
-			printf(": %s\n", line);
-		if (line[0] == '\0') {
-			strcpy(line, defnam);
+		} else {
+			strcpy(line, defdev);
+			strcat(line, defname);
 			printf(": %s\n", line);
 		}
+		if (line[0] == '\0') {
+			strcpy(line, defdev);
+			strcat(line, defname);
+			printf(": %s\n", line);
+		}
+/*
+ * If a plain filename (/unix) is entered then prepend the default
+ * device, e.g. ra(0,1,0) to the filename.
+*/
+		cp = index(line, ')');
+		if	(!cp)
+			{
+			bcopy(line, line + strlen(defdev), strlen(line) + 1);
+			bcopy(defdev, line, strlen(defdev));
+			}
 		i = open(line, 0);
 		j = -1;
 		if (i >= 0) {
@@ -179,8 +207,9 @@ main()
 			bootopts = RB_SINGLE | RB_ASKNAME;
 	} while (j < 0);
 	i = file->i_ino.i_dev;
-	bootdev = makedev(i, file->i_unit);
-	bootcsr = devsw[i].dv_csr[(file->i_unit >> 6) & 3];
+	bootdev = makedev(i, 
+		((file->i_ctlr << 6) | (file->i_unit << 3) | file->i_part));
+	bootcsr = devsw[i].dv_csr[file->i_ctlr];
 	bootcsr = (caddr_t *)((short)bootcsr + ADJcsr[i]);
 	printf("%s: bootdev=0%o bootcsr=0%o\n", module, bootdev, bootcsr);
 }
@@ -222,7 +251,7 @@ setup(io)
 checkunix(io, lt)
 	struct loadtable *lt;
 {
-	char *segname;
+	char *segname, *toosmall = "Base too small, %dK min\n";
 	register int ovseg, segtype;
 	register unsigned seglen;
 	struct loadmap *lm = lt->lt_map;
@@ -304,13 +333,13 @@ checkunix(io, lt)
 		    switch (exec.a_magic) {
 			case A_MAGIC5:
 			    if (seglen <= 8 KB) {
-				printf("Base too small, 8K min\n");
+				printf(toosmall, 8);
 				return(-1);
 			    }
 			    break;
 			case A_MAGIC6:
 			    if (seglen <= 48 KB) {
-				printf("Base too small, 48K min\n");
+				printf(toosmall, 48);
 				return(-1);
 			    }
 			    break;
@@ -375,7 +404,7 @@ copyunix(io, lt)
 				ovseg++;
 				break;
 			default:
-				printf("copyunix: bad segment type %d\n", segtype);
+				printf("copyunix: bad seg type %d\n", segtype);
 				seglen=0;
 				break;
 		}
@@ -383,6 +412,11 @@ copyunix(io, lt)
 		if (!seglen)
 			continue;
 		setseg(phys);
+/*
+ * ARGH!  Despite (or in spite of) the earlier cautions against seeking and
+ * tape devices here is an 'lseek' that caused problems loading split I/D
+ * images from tape!
+*/
 		if (exec.a_magic != A_MAGIC1)
 			(void) lseek(io, segoff, 0);
 		for (addr = 0; addr < seglen; addr += 2)
@@ -557,18 +591,4 @@ btoc(nclicks)
 	register unsigned nclicks;
 {
 	return((unsigned)(((((long) nclicks) + ((long) 63)) >> 6)));
-}
-
-char *
-itoa(i)
-	register int i;
-{
-	static char x[8];
-	register char *cp = x+8;
-
-	do {
-		*--cp = (i % 10) + '0';
-		i /= 10;
-	} while (i);
-	return(cp);
 }

@@ -1,4 +1,4 @@
-/*	@(#)tmscp.c	7.1 (Berkeley) 6/5/86 */
+/*	@(#)tmscp.c	7.1.2 (2.11BSD GTE) 1995/06/08 */
 
 /****************************************************************
  *        Licensed from Digital Equipment Corporation           *
@@ -30,8 +30,9 @@
 /* ------------------------------------------------------------------------
  * Modification History: /sys/pdpstand/tmscp.c
  *
+ * 5-30-95 sms - new iob structure.
  * 4-20-91 sms - add multi controller and unit support (sms)
- * 8-20-90 steven m. schultz (sms@wlv.imsd.contel.com)
+ * 8-20-90 steven m. schultz (sms@wlv.iipo.gtegsc.com)
  *	Port from 4.3BSD to 2.11BSD
  * 3-15-85  afd
  *	Don't ask for an interrupt when commands are issued and
@@ -43,7 +44,6 @@
  */
  
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "saio.h"
 
 /*
@@ -89,11 +89,13 @@ tmscpopen(io)
 	register struct iob *io;
 {
 	register struct tmscpdevice *tmscpaddr;
-	int ctlr = CTLRn(io->i_unit);
+	int	ctlr = io->i_ctlr;
+	int	unit = io->i_unit, bae, lo16;
 	register struct tmscp *tms = &tmscp[ctlr];
  
 	if (genopen(NTMS, io) < 0)
 		return(-1);
+	io->i_flgs |= F_TAPE;
 	tmscpaddr = TMScsr[ctlr];
 
 	/*
@@ -113,26 +115,27 @@ tmscpopen(io)
  
 		while ((tmscpaddr->tmscpsa & TMSCP_STEP2) == 0)
 			;
-#		define STEP1MASK 0174377
-#		define STEP1GOOD (TMSCP_STEP2|TMSCP_IE|(NCMDL2<<3)|NRSPL2)
+#define STEP1MASK 0174377
+#define STEP1GOOD (TMSCP_STEP2|TMSCP_IE|(NCMDL2<<3)|NRSPL2)
+		iomapadr(&tms->tmscp_ca.ca_ringbase, &bae, &lo16);
 		if ((tmscpaddr->tmscpsa&STEP1MASK) != STEP1GOOD)
 			printf(opnmsg, ctlr, 1, tmscpaddr->tmscpsa);
-		tmscpaddr->tmscpsa = (short)&tms->tmscp_ca.ca_ringbase;
+		tmscpaddr->tmscpsa = lo16;
  
 		while ((tmscpaddr->tmscpsa & TMSCP_STEP3) == 0)
 			;
-#		define STEP2MASK 0174377
-#		define STEP2GOOD (TMSCP_STEP3)
+#define STEP2MASK 0174377
+#define STEP2GOOD (TMSCP_STEP3)
 		if ((tmscpaddr->tmscpsa&STEP2MASK) != STEP2GOOD)
 			printf(opnmsg, ctlr, 2, tmscpaddr->tmscpsa);
-		tmscpaddr->tmscpsa = segflag;
+		tmscpaddr->tmscpsa = bae;
  
 		while ((tmscpaddr->tmscpsa & TMSCP_STEP4) == 0)
 			;
-#		define STEP3MASK 0174000
-#		define STEP3GOOD TMSCP_STEP4
+#define STEP3MASK 0174000
+#define STEP3GOOD TMSCP_STEP4
 		if ((tmscpaddr->tmscpsa&STEP3MASK) != STEP3GOOD)
-			printf(opnmsg, ctlr, 2, tmscpaddr->tmscpsa);
+			printf(opnmsg, ctlr, 3, tmscpaddr->tmscpsa);
 		tmscpaddr->tmscpsa = TMSCP_GO;
 		if (tmscpcmd(ctlr, M_OP_STCON, 0) == 0)
 			{
@@ -141,30 +144,26 @@ tmscpopen(io)
 			}
 		tmsoffline[ctlr] = 0;
 		}
-	tms->tmscp_cmd.mscp_unit = UNITn(io->i_unit);
+	tms->tmscp_cmd.mscp_unit = unit;
 	/* 
 	 * Has this unit been issued an ONLIN?
 	 */
-	if (tms_offline[ctlr][tms->tmscp_cmd.mscp_unit])
+	if (tms_offline[ctlr][unit])
 		{
 		if (tmscpcmd(ctlr, M_OP_ONLIN, 0) == 0)
 			{
-			printf("tms%d ONLIN", ctlr);
+			printf("tms%d,%d ONLIN", ctlr, unit);
 			return(-1);
 			}
-		tms_offline[ctlr][tms->tmscp_cmd.mscp_unit] = 0;
+		tms_offline[ctlr][unit] = 0;
 		}
 	tmscpclose(io);		/* close just does a rewind */
-	if (io->i_boff < 0) {
-		printf("tms%d bad offset", ctlr);
-		return(-1);
-	}
-	else if (io->i_boff > 0)
+	if	(io->i_part > 0)
 		/*
 		 * Skip forward the appropriate number of files on the tape.
 		 */
 		{
-		tms->tmscp_cmd.mscp_tmkcnt = io->i_boff;
+		tms->tmscp_cmd.mscp_tmkcnt = io->i_part;
 		tms->tmscp_cmd.mscp_buffer_h = 0;
 		tms->tmscp_cmd.mscp_bytecnt = 0;
 		tmscpcmd(ctlr, M_OP_REPOS, 0);
@@ -179,14 +178,13 @@ tmscpopen(io)
 tmscpclose(io)
 	register struct iob *io;
 {
-	register int ctlr = CTLRn(io->i_unit);
-	register struct tmscp *tms = &tmscp[ctlr];
+	register struct tmscp *tms = &tmscp[io->i_ctlr];
 
 	tms->tmscp_cmd.mscp_buffer_l = 0;	/* tmkcnt */
 	tms->tmscp_cmd.mscp_buffer_h = 0;
 	tms->tmscp_cmd.mscp_bytecnt = 0;
-	tms->tmscp_cmd.mscp_unit = UNITn(io->i_unit);
-	tmscpcmd(ctlr, M_OP_REPOS, M_MD_REWND | M_MD_CLSEX);
+	tms->tmscp_cmd.mscp_unit = io->i_unit;
+	tmscpcmd(io->i_ctlr, M_OP_REPOS, M_MD_REWND | M_MD_CLSEX);
 }
  
 /*
@@ -200,16 +198,20 @@ tmscpcmd(ctlr, op,mod)
 	register struct tmscp *tms = &tmscp[ctlr];
 	register struct mscp *mp;	/* ptr to cmd packet */
 	int i;				/* read into to init polling */
+	int	bae, lo16;
  
 	/*
 	 * Init cmd & rsp area
 	 */
-	tms->tmscp_ca.ca_cmddsc[0].lsh = (short)&tms->tmscp_cmd.mscp_cmdref;
-	tms->tmscp_ca.ca_cmddsc[0].hsh = segflag;
+	iomapadr(&tms->tmscp_cmd.mscp_cmdref, &bae, &lo16);
+	tms->tmscp_ca.ca_cmddsc[0].lsh = lo16;
+	tms->tmscp_ca.ca_cmddsc[0].hsh = bae;
 	tms->tmscp_cmd.mscp_dscptr = (long *)tms->tmscp_ca.ca_cmddsc;
 	tms->tmscp_cmd.mscp_header.tmscp_vcid = 1;	/* for tape */
-	tms->tmscp_ca.ca_rspdsc[0].lsh = (short)&tms->tmscp_rsp.mscp_cmdref;
-	tms->tmscp_ca.ca_rspdsc[0].hsh = segflag;
+
+	iomapadr(&tms->tmscp_rsp.mscp_cmdref, &bae, &lo16);
+	tms->tmscp_ca.ca_rspdsc[0].lsh = lo16;
+	tms->tmscp_ca.ca_rspdsc[0].hsh = bae;
 	tms->tmscp_rsp.mscp_dscptr = (long *)tms->tmscp_ca.ca_rspdsc;
 	tms->tmscp_cmd.mscp_cntflgs = 0;
 
@@ -225,7 +227,7 @@ tmscpcmd(ctlr, op,mod)
 	for (;;)
 		{
 		if (TMScsr[ctlr]->tmscpsa & TMSCP_ERR) {
-			printf("tmscp%d: Fatal error sa=%o\n",
+			printf("tms%d: Fatal error sa=%o\n",
 				ctlr, TMScsr[ctlr]->tmscpsa);
 			return(0);
 		}
@@ -258,6 +260,8 @@ tmscpcmd(ctlr, op,mod)
 			tapemark = 1;
 			return(1);
 		}
+		printf("tms%d,%d: I/O err 0%o op=0%o mod=0%o\n", ctlr,
+			mp->mscp_unit, mp->mscp_status, op, mod);
 		return(0);
 	}
 	return(1);
@@ -270,21 +274,21 @@ tmscpstrategy(io, func)
 	register struct iob *io;
 	int func;
 {
-	int ctlr = CTLRn(io->i_unit);
+	int	ctlr = io->i_ctlr, unit = io->i_unit;
+	int	bae, lo16;
 	register struct tmscp *tms = &tmscp[ctlr];
 	register struct mscp *mp;
  
 	mp = &tms->tmscp_cmd;
 	mp->mscp_lbn_l = loint(io->i_bn);
 	mp->mscp_lbn_h = hiint(io->i_bn);
-	mp->mscp_unit = UNITn(io->i_unit);
+	mp->mscp_unit = unit;
 	mp->mscp_bytecnt = io->i_cc;
-	mp->mscp_buffer_l = (u_short)io->i_ma;
-	mp->mscp_buffer_h = segflag;
-	if (tmscpcmd(ctlr, func == READ ? M_OP_READ : M_OP_WRITE, 0)==0) {
-		printf("tms%d,%d: I/O err\n", ctlr, UNITn(io->i_unit));
+	iomapadr(io->i_ma, &bae, &lo16);
+	mp->mscp_buffer_l = lo16;
+	mp->mscp_buffer_h = bae;
+	if	(tmscpcmd(ctlr, func == READ ? M_OP_READ : M_OP_WRITE, 0) ==0)
 		return(-1);
-	}
 	/*
 	 * Detect hitting tape mark so we do it gracefully and return a
 	 * character count of 0 to signify end of copy.
@@ -293,3 +297,27 @@ tmscpstrategy(io, func)
 		return(0);
 	return(io->i_cc);
 }
+
+tmscpseek(io, space)
+	register struct iob *io;
+	int	space;
+	{
+	register struct tmscp *tms = &tmscp[io->i_ctlr];
+	int	mod;
+
+	if	(space == 0)
+		return(0);
+	if	(space < 0)
+		{
+		mod = M_MD_REVRS;
+		space = -space;
+		}
+	else
+		mod = 0;
+	tms->tmscp_cmd.mscp_buffer_l = 0;
+	tms->tmscp_cmd.mscp_buffer_h = 0;
+	tms->tmscp_cmd.mscp_unit = io->i_unit;
+	tms->tmscp_cmd.mscp_reccnt = space;
+	tmscpcmd(io->i_ctlr, M_OP_REPOS, mod | M_MD_OBJCT);
+	return(0);
+	}

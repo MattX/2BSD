@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)tm.c	2.1 (2.11BSD) 1995/06/08
  */
 
 /*
@@ -11,7 +11,6 @@
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/tmreg.h"
 #include "saio.h"
 
@@ -46,8 +45,9 @@ tmopen(io)
 
 	if (genopen(NTM, io) < 0)
 		return(-1);
+	io->i_flgs |= F_TAPE;
 	tmstrategy(io, TM_REW);
-	skip = io->i_boff;
+	skip = io->i_part;
 	while (skip--) {
 		io->i_cc = 0;
 		while (tmstrategy(io, TM_SFORW))
@@ -61,9 +61,9 @@ u_short tmdens[4] = { TM_D800, TM_D1600, TM_D6250, TM_D800 };
 tmstrategy(io, func)
 	register struct iob *io;
 {
-	register int com, unit = UNITn(io->i_unit);
+	register int com, unit = io->i_unit;
 	register struct tmdevice *tmaddr;
-	int errcnt = 0, ctlr = CTLRn(io->i_unit);
+	int errcnt = 0, ctlr = io->i_ctlr, bae, lo16;
 
 	tmaddr = TMcsr[ctlr];
 retry:
@@ -73,9 +73,10 @@ retry:
 		continue;
 	while ((tmaddr->tmer&TMER_SDWN) != 0)
 		continue;
-	com = (unit<<8)|(segflag<<4) | tmdens[TMDENS(unit)];
+	iomapadr(io->i_ma, &bae, &lo16);
+	com = (unit<<8)|(bae<<4) | tmdens[TMDENS(unit)];
 	tmaddr->tmbc = -io->i_cc;
-	tmaddr->tmba = io->i_ma;
+	tmaddr->tmba = (caddr_t)lo16;
 	if (func == READ)
 		tmaddr->tmcs = com | TM_RCOM | TM_GO;
 	else if (func == WRITE)
@@ -94,7 +95,7 @@ retry:
 	}
 	if (tmaddr->tmer & TM_ERR) {
 		if (errcnt == 0)
-			printf("\nTM%d,%d err: er=%o cs=%o",
+			printf("\ntm%d,%d err: er=%o cs=%o",
 				ctlr, unit, tmaddr->tmer, tmaddr->tmcs);
 		if (errcnt++ == 10) {
 			printf("\n(FATAL ERROR)\n");
@@ -105,3 +106,21 @@ retry:
 	}
 	return(io->i_cc+tmaddr->tmbc);
 }
+
+tmseek(io, space)
+	register struct iob *io;
+	int	space;
+	{
+	int	fnc;
+
+	if	(space < 0)
+		{
+		fnc = TM_SREV;
+		space = -space;
+		}
+	else
+		fnc = TM_SFORW;
+	while	(space--)
+		tmstrategy(io, fnc);
+	return(0);
+	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ht.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)ht.c	2.2 (2.11BSD) 1995/06/08
  */
 
 /*
@@ -11,7 +11,6 @@
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/htreg.h"
 #include "saio.h"
 
@@ -32,20 +31,18 @@ htopen(io)
 	register struct iob *io;
 {
 	register skip;
-	register int ctlr = CTLRn(io->i_unit);
-	int i;
+	register int ctlr = io->i_ctlr;
 
 	if (genopen(NHT, io) < 0)
 		return(-1);
+	io->i_flgs |= F_TAPE;
 	htstrategy(io, HT_REW);
-	skip = io->i_boff;
+	skip = io->i_part;
 	while (skip--) {
 		io->i_cc = -1;
 		while (htstrategy(io, HT_SFORW))
 			continue;
-		i = 0;
-		while (--i)
-			continue;
+		delay(30000);
 		htstrategy(io, HT_SENSE);
 	}
 	return(0);
@@ -57,15 +54,47 @@ htclose(io)
 	htstrategy(io, HT_REW);
 }
 
+/*
+ * Copy the space logic from the open routine but add the check for spacing
+ * backwards.
+*/
+
+htseek(io, space)
+	struct	iob	*io;
+	register int	space;
+	{
+	register int	fnc;
+
+	if	(space < 0)
+		{
+		space = -space;
+		fnc = HT_SREV;
+		}
+	else
+		fnc = HT_SFORW;
+	while	(space--)
+		{
+		io->i_cc = -1;
+		htstrategy(io, fnc);
+		delay(30000);
+		htstrategy(io, HT_SENSE);
+		}
+	}
+
+/*
+ * Returns 0 if no tape mark was seen.  Returns 1 if a tape mark (or error)
+ * has been encountered.
+*/
+
 htstrategy(io, func)
 	register struct iob *io;
 {
 	register unit, com;
-	int errcnt, ctlr;
+	int errcnt, ctlr, bae, lo16;
 	register struct htdevice *htaddr;
 
-	unit = UNITn(io->i_unit);
-	ctlr = CTLRn(io->i_unit);
+	unit = io->i_unit;
+	ctlr = io->i_ctlr;
 	htaddr = HTcsr[ctlr];
 	errcnt = 0;
 retry:
@@ -74,13 +103,14 @@ retry:
 	while (htaddr->htfs & HTFS_PIP)
 		continue;
 
+	iomapadr(io->i_ma, &bae, &lo16);
 	htaddr->httc =
 		((io->i_unit&H_1600BPI) ? HTTC_1600BPI : HTTC_800BPI)
 		| HTTC_PDP11 | unit;
-	htaddr->htba = io->i_ma;
+	htaddr->htba = (caddr_t) lo16;
 	htaddr->htfc = -io->i_cc;
 	htaddr->htwc = -(io->i_cc >> 1);
-	com = ((segflag) << 8) | HT_GO;
+	com = (bae << 8) | HT_GO;
 	if (func == READ)
 		com |= HT_RCOM;
 	else if (func == WRITE)
@@ -101,7 +131,7 @@ retry:
 	}
 	if (htaddr->htcs1 & HT_TRE) {
 		if (errcnt == 0)
-			printf("\nHT%d,%d err: cs2=%o, er=%o",
+			printf("\nht%d,%d err: cs2=%o, er=%o",
 			    ctlr, unit, htaddr->htcs2, htaddr->hter);
 		htinit(htaddr);
 		if (errcnt++ == 10) {

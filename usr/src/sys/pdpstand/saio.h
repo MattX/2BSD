@@ -3,37 +3,51 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)saio.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)saio.h	2.1 (2.11BSD GTE) 1995/06/08
  */
 
 /*
- * header file for standalone package
- */
+ * This must be done so that the standalone I/O system uses the same
+ * size for the inode structure as the utilities (restor, mkfs, etc).
+ * See the comments in mkfs.c for more information.
+*/
+#undef	EXTERNALITIMES
+
+#include <sys/fs.h>
+#include <sys/inode.h>
+#include <sys/disklabel.h>
 
 /*
  * io block: includes an
- * inode, cells for the use of seek, etc,
- * and a buffer.
+ * inode, cells for the use of seek, etc, a buffer
+ * and a disklabel.
  */
 struct	iob {
 	char	i_flgs;
+	char	i_ctlr;
 	struct	inode	i_ino;
-	int	i_unit;
+	short	i_unit;
+	short	i_part;
 	daddr_t	i_boff;
-	daddr_t	i_cyloff;
 	off_t	i_offset;
 	daddr_t	i_bn;
 	char	*i_ma;
 	int	i_cc;
 	char	i_buf[DEV_BSIZE];
+	struct	disklabel i_label;
 };
 
 #define	F_READ	01
 #define	F_WRITE	02
 #define	F_ALLOC	04
 #define	F_FILE	010
+#define	F_TAPE	020
 #define	READ	F_READ
 #define	WRITE	F_WRITE
+
+#define	READLABEL	0x1
+#define	WRITELABEL	0x2
+#define	DEFAULTLABEL	0x3
 
 /*
  * device switch
@@ -44,28 +58,13 @@ struct	devsw {
 	int	(*dv_open)();
 	int	(*dv_close)();
 	caddr_t	**dv_csr;
+	int	(*dv_label)();
+	int	(*dv_seek)();
 };
 
-struct	devsw	devsw[];
-
-#define	NBUFS	4
-
-char	b[NBUFS][DEV_BSIZE];
-daddr_t	blknos[NBUFS];
-
-#define	NFILES	4
-struct	iob	iob[NFILES];
-
 /*
- * Set to which 64Kb segment the code is physically running in.
- * Must be set by the user's main (or thereabouts).
- */
-int	segflag;
-
-/*
- * macros to extract the controller and unit number.  common to all drivers
- * so the macros are defined here rather than in each driver.
+ * Set to inhibit 'disklabel missing or corrupt' error messages.  This
+ * is normally left off and only set by the standalone disklabeling utility
+ * when it expects to be reading an unlabeled disk.
 */
-
-#define	CTLRn(dev)	((minor(dev) >> 6) & 3)
-#define	UNITn(dev)	(minor(dev) & 7)
+int	Nolabelerr;

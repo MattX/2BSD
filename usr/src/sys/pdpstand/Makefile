@@ -1,13 +1,25 @@
-#
 #	Standalone Makefile
 #
-#	Note that there are limitations on how large a program may
-#	be loaded along with all device drivers.  This is especially
-#	a problem with restor.  Programs should be <= 48K to be safe.
+#	The limitations on program size have been removed.  The addition
+#	of disklabel support pushed 'restor' over the limit.  Even with
+#	additional space saving measures it was impossible to fit restor
+#	into 48kb.  'icheck' and 'restor' are now built with split I/D.
+#
+#	This is not as bad as it sounds - the kernel has not been able to
+#	run on a non split machine for many years.  It made little sense 
+#	to restrict the standalone utilities to non-split mode when the
+#	operating system itself required split I/D.
+#
+#	It is still possible to hand craft a version of the utilities by leaving
+#	out all but the necessary drivers. 
 #
 #	If a GENERIC kernel distribution is being created be sure
 #	to install /sys/pdpdist/dtab (or /etc/dtab.save) as ${ROOT}/etc/dtab 
 #	so that the GENERIC kernel can find the tape device.
+#
+# 1995/06/05 - add disklabel program to Makefile.
+# 1995/06/01 - use split I/D for icheck and restor.
+# 1995/05/30 - Begin adding disklabel support.
 
 # DISK	which disk to take a root dump of for the distribution tape
 # TAPE	which tape to write the distribution on
@@ -23,15 +35,17 @@ MKFS=	${ETCSRC}/mkfs.c
 RESTOR=	${ETCSRC}/restor/restor.c
 ICHECK=	${ETCSRC}/icheck.c
 
-DEFS=	-DSTANDALONE -I${ROOT}/usr/include
+DEFS=	-DSTANDALONE -I${ROOT}/usr/include -I${ROOT}.
 CFLAGS=	-O ${DEFS}
 
 BOOT=	M.o boot.o ubmapset.o
-DRIVERS=prf.o sys.o \
+DRIVERS=prf.o sys.o label.o \
 	ht.o tm.o ts.o tmscp.o \
 	xp.o rk.o rl.o br.o hk.o si.o ra.o
 
-ALL=	mtboot boot mkfs restor icheck maketape toyset
+ALL=	mtboot boot disklabel mkfs restor icheck maketape toyset
+
+all: ${ALL}
 
 .c.o:
 	cc ${CFLAGS} -c $*.c
@@ -39,7 +53,8 @@ ALL=	mtboot boot mkfs restor icheck maketape toyset
 .s.o:
 	/lib/cpp -P ${DEFS} $< | as -u -V -o $@
 
-all: ${ALL}
+srt0-i.o: srt0.s
+	/lib/cpp -P -DSPLIT_ID ${DEFS} srt0.s | as -u -V -o $@
 
 distribution: tape1 switch_tapes tape2
 
@@ -90,7 +105,6 @@ libsa.a: ${DRIVERS}
 	ar rv $@ $?
 	ranlib $@
 
-
 mkfs.o: ${MKFS}
 	cc ${CFLAGS} -c ${MKFS}
 
@@ -109,19 +123,22 @@ boot: M.o conf.o boot.o ubmapset.o libsa.a
 	ld -X -o $@ M.o conf.o boot.o ubmapset.o libsa.a -lc
 
 mkfs: srt0.o conf.o libsa.a mkfs.o
-	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
+	ld -X -o $@ srt0.o conf.o $@.o libsa.a -lc
 
-restor: srt0.o conf.o libsa.a restor.o
-	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
+restor: srt0-i.o conf.o libsa.a restor.o
+	ld -X -i -o $@ srt0-i.o conf.o $@.o libsa.a -lc
 
-icheck: srt0.o conf.o libsa.a icheck.o
-	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
+icheck: srt0-i.o conf.o libsa.a icheck.o
+	ld -X -i -o $@ srt0-i.o conf.o $@.o libsa.a -lc
+
+disklabel: srt0.o conf.o libsa.a disklabel.o displaylab.o
+	ld -X -o $@ srt0.o conf.o $@.o displaylab.o libsa.a -lc
 
 maketape: maketape.c
 	cc -o $@ maketape.c
 
 toyset: toyset.o srt0.o conf.o libsa.a
-	ld -o $@ srt0.o conf.o $@.o libsa.a -lc
+	ld -X -o $@ srt0.o conf.o $@.o libsa.a -lc
 
 tags: FRC
 	rm -f tags
@@ -141,14 +158,18 @@ clean:
 boot.o:		boot.c
 conf.o:		conf.c
 cat.o:		cat.c
+displaylab.o:	displaylab.c
+disklabel.o:	disklabel.c
 hk.o:		hk.c
 ht.o:		ht.c
+label.o:	label.c
 mtboot.o:	mtboot.s
 prf.o:		prf.c
 rk.o:		rk.c
 rl.o:		rl.c
 br.o:		br.c
 srt0.o:		srt0.s
+srt0-i.o:	srt0.s
 sys.o:		sys.c
 tm.o:		tm.c
 tmscp.o:	tmscp.c

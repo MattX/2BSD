@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)br.c	2.1 (2.11BSD) 1/2/93
+ *	@(#)br.c	2.2 (2.11BSD) 1995/06/08
  */
 
 /*
@@ -13,7 +13,6 @@
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/brreg.h"
 #include "saio.h"
 
@@ -35,10 +34,10 @@ brstrategy(io, func)
 {
 	register struct brdevice *braddr;
 	register int ctlr;
-	int com, cn, tn, sn, unit, sectrk, trkcyl, ctr;
+	int com, cn, tn, sn, unit, sectrk, trkcyl, ctr, bae, lo16;
 
-	unit = UNITn(io->i_unit);
-	ctlr = CTLRn(io->i_unit);
+	unit = io->i_unit;
+	ctlr = io->i_ctlr;
 	braddr = BRcsr[ctlr];
 
 	/* if we haven't gotten the characteristics yet, do so now. */
@@ -69,13 +68,15 @@ brstrategy(io, func)
 	sn = io->i_bn%(sectrk * trkcyl);
 	tn = sn/sectrk;
 	sn = sn%sectrk;
+
+	iomapadr(io->i_ma, &bae, &lo16);
 	braddr->brcs.w = (unit<<8);
 	braddr->brda = (tn<<8) | sn;
 	braddr->brca = cn;
-	braddr->brba = io->i_ma;
+	braddr->brba = (caddr_t)lo16;
 	braddr->brwc = -(io->i_cc>>1);
-	braddr->brae = segflag;
-	com = (segflag<<4)|BR_GO;
+	braddr->brae = bae;
+	com = (bae<<4)|BR_GO;
 	if (func == READ)
 		com |= BR_RCOM;
 	else

@@ -3,13 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)si.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)si.c	2.1 (2.11BSD) 1995/06/08
  *
  *	SI 9500 CDC 9766 Stand Alone disk driver
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/sireg.h"
 #include "saio.h"
 
@@ -32,12 +31,12 @@ static u_char dualsi[NSI];
 sistrategy(io, func)
 	register struct iob *io;
 {
-	int unit = UNITn(io->i_unit);
-	register int ctlr = CTLRn(io->i_unit);
+	int unit = io->i_unit;
+	register int ctlr = io->i_ctlr;
 	register struct sidevice *siaddr = SIcsr[ctlr];
 	int ii;
 	daddr_t bn;
-	int sn, cn, tn;
+	int sn, cn, tn, bae, lo16;
 
 	/*
 	 * weirdness with bit 2 (04) removed - see xp.c for comments
@@ -61,11 +60,12 @@ sistrategy(io, func)
 			siaddr->sicnr = SI_RESET;
 			siaddr->siscr = 1;
 		}
+	iomapadr(io->i_ma, &bae, &lo16);
 	siaddr->sipcr = cn + (unit <<10);
 	siaddr->sihsr = (tn << 5) + sn;
-	siaddr->simar = io->i_ma;
+	siaddr->simar = (caddr_t)lo16;
 	siaddr->siwcr = io->i_cc >> 1;
-	ii = (segflag << 4) | SI_GO;
+	ii = (bae << 4) | SI_GO;
 	if (func == READ)
 		ii |= SI_READ;
 	else if (func == WRITE)
@@ -77,7 +77,7 @@ sistrategy(io, func)
 		continue;
 
 	if (siaddr->sierr & SIERR_ERR) {
-		printf("SI%d,%d err cy=%d hd=%d sc=%d cnr=%o, err=%o\n",
+		printf("si%d,%d err cy=%d hd=%d sc=%d cnr=%o, err=%o\n",
 			ctlr, unit, cn, tn, sn, siaddr->sicnr, siaddr->sierr);
 		return(-1);
 	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	2.0 (2.11BSD) 4/20/91
+ *	@(#)hk.c	2.1 (2.11BSD) 1995/06/08
  */
 
 /*
@@ -11,7 +11,6 @@
  */
 
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../pdpuba/hkreg.h"
 #include "saio.h"
 
@@ -35,10 +34,10 @@ hkstrategy(io, func)
 	register unit, com;
 	register struct hkdevice *hkaddr;
 	daddr_t bn;
-	int sn, cn, tn, ctlr;
+	int sn, cn, tn, ctlr, bae, lo16;
 
-	unit = UNITn(io->i_unit);
-	ctlr = CTLRn(io->i_unit);
+	unit = io->i_unit;
+	ctlr = io->i_ctlr;
 	hkaddr = HKcsr[ctlr];
 	if (hk_mntflg[ctlr][unit] != '1') {
 		hk_drvtyp[ctlr][unit] = 0;
@@ -70,11 +69,12 @@ hkstrategy(io, func)
 	tn = sn/NSECT;
 	sn = sn%NSECT;
 
+	iomapadr(io->i_ma, &bae, &lo16);
 	hkaddr->hkcyl = cn;
 	hkaddr->hkda = (tn<<8) | sn;
-	hkaddr->hkba = io->i_ma;
+	hkaddr->hkba = (caddr_t)lo16;
 	hkaddr->hkwc = -(io->i_cc>>1);
-	com = hk_drvtyp[ctlr][unit]|(segflag << 8) | HK_GO;
+	com = hk_drvtyp[ctlr][unit]|(bae << 8) | HK_GO;
 	if (func == READ)
 		com |= HK_READ;
 	else if (func == WRITE)

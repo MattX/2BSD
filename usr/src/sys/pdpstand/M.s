@@ -1,6 +1,6 @@
 /
 /	SCCS id	@(#)M.s	1.7 (Berkeley)	7/11/83
-/		@(#)M.s	3.0 (2.11BSD)	7/03/92 (sms@wlv.iipo.gtegsc.com)
+/		@(#)M.s	3.1 (2.11BSD)	1995/06/01 (sms@wlv.iipo.gtegsc.com)
 /
 / Startup code for two-stage bootstrap with support for autoboot.
 / Supports 11/45, 11/70, 11/53, 11/73, 11/83, 11/84, 11/93, 11/94
@@ -37,9 +37,8 @@ tvec:
 / 192K and therefore overwrites boot here.  Just change the .=400^.
 / below to something like .=10240^.  This will move the critical
 / sections of boot up far enough so that the load can finish.
-/ We can't actually load boot higher than 192K since it has to be
-/ loaded on a 64K boundry and it can't use memory above 256-8K (so
-/ it can run on any system).
+/ We can't actually load boot too much higher because it can't use memory
+/ above 256-8K (to avoid UNIBUS mapping problems).
 /
 .=400^.
 
@@ -79,21 +78,19 @@ start:
 
 
 / Set user I space registers to physical N*64kb and I/O page.  This is
-/ where boot will copy itself to.  Boot is very simple minded about its
-/ I/O addressing.  To compute physical memory addresses for I/O devices,
-/ it simply hands off an address within itself as the low word and
-/ ``segflag'' as the high order word.  This has the immediate consequence
-/ that boot *MUST* be located on a 64Kb boundry.
+/ where boot will copy itself to.  Boot is less simple minded about its
+/ I/O addressing than it used to be.  Physical memory addresses are now
+/ calculated (because support was needed for running split I/D utilities)
+/ rather than assuming that boot is loaded on a 64kb boundary. 
 /
-/ Also, several constraints force us to keep boot in the bootom 248Kb of
-/ memory (UNIBUS mapping being a primary contender.)  If boot is ever
-/ fixed so that it can be located on a non-64Kb boundry this constraint
-/ will still be present.
+/ The constraint forcing us to keep boot in the bottom 248Kb of
+/ memory is UNIBUS mapping.  There would be little difficulty in relocating
+/ Boot much higher on a Qbus system.
 /
-/ All told, unless boot's method of managing its I/O addressing and
-/ physical addressing is completely reworked, 3*64Kb is probably the
-/ highest we'll ever see boot relocated.  This means that the maximum size
-/ of any program boot can load is 192Kb.  That size includes text, data
+/ Unless boot's method of managing its I/O addressing and physical addressing 
+/ is reworked some more, 3*64Kb +/- a couple Kb is probably the highest
+/ we'll ever relocate boot.  This means that the maximum size
+/ of any program boot can load is ~192Kb.  That size includes text, data
 / and bss.
 
 N	= 3			/ 3*64Kb = 192Kb
@@ -177,9 +174,6 @@ user:
 	sob	r1,1b
 	mov	$_end+512.,sp
 	mov	sp,r5
-
-	.globl	_segflag
-	mov	$N,_segflag
 
 	jsr	pc,_main
 	mov	_cputype,r0
@@ -294,9 +288,9 @@ _setsep:
 .globl	_clrseg
 _clrseg:
 	mov	4(sp),r0
-	beq	2f
 	asr	r0
 	bic	$!77777,r0
+	beq	2f
 	mov	2(sp),r1
 1:
 	clr	-(sp)
@@ -323,9 +317,11 @@ _mtpi:
 
 .globl	__rtt
 __rtt:
-	halt
+	br	.		/ Can't do halt because that is an illegal
+				/   instruction in 'user mode' (which Boot
+				/   runs in).
 
-.globl	_trap
+	.globl	_trap
 
 trap:
 	mov	*$PS,-(sp)
@@ -365,9 +361,12 @@ UBMAP	= 170200
 
 .data
 .globl	_cputype
-.globl	_ksep, _sep_id, _ubmap
-.globl	_bootopts, _bootdev, _checkword, _bootcsr
+.globl	_ksep, _sep_id, _ubmap, _ssr3copy
+.globl	_bootopts, _bootdev, _checkword, _bootcsr, _bootctlr
 
+_ssr3copy:	.=.+2	/ copy of SSR3.  Always 0 in Boot because that runs
+			/ in user mode.  The standalone utilities which run
+			/ in kernel mode have their copy of SSR3 in srt0.s
 nofault:	.=.+2	/ where to go on predicted trap
 _cputype:	.=.+2	/ cpu type
 _sep_id:	.=.+1	/ 1 if we have separate I and D
@@ -376,5 +375,6 @@ _ubmap:		.=.+2	/ 1 if we have a unibus map
 _bootopts:	.=.+2	/ flags if an autoboot
 _bootdev:	.=.+2	/ device booted from
 _bootcsr:	.=.+2	/ csr of device booted from
+_bootctlr:	.=.+2	/ number of controller booted from
 _checkword:	.=.+2	/ saved r2, complement of bootopts if an autoboot
 j11typ:	.byte 0, 73., 83., 0, 53., 93.

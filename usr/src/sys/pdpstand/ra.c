@@ -3,14 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.3 (2.11BSD GTE) 1/1/93
+ *	@(#)ra.c	2.5 (2.11BSD GTE) 1995/07/10
  */
 
 /*
  * MSCP disk device driver (rx23, rx33, rx50, rd??, ra??, rz??)
  */
 #include "../h/param.h"
-#include "../h/inode.h"
 #include "../machine/mscp.h"
 #include "../pdpuba/rareg.h"
 #include "saio.h"
@@ -52,6 +51,16 @@ static	struct	ra {
 } rd[NRA];
 
 static	u_char 	rainit[NRA];
+static	int	mx();
+
+extern	char	*itoa();
+
+/*
+ * This contains the volume size in sectors of units which have been
+ * brought online.  This value is used at default label generation time
+ * along with the results of a 'get unit status' command to compute the
+ * "geometry" of the drive.
+*/
 static	long	raonline[NRA][8];
 
 raopen(io)
@@ -59,11 +68,12 @@ raopen(io)
 {
 	register struct radevice *raaddr;
 	register struct ra *racom;
-	int i, ctlr, unit;
+	struct 	disklabel *lp = &io->i_label;
+	int i, ctlr, unit, bae, lo16;
 
-	ctlr = CTLRn(io->i_unit);
-	unit = UNITn(io->i_unit);
-	if (genopen(NRA, io) < 0)
+	ctlr = io->i_ctlr;
+	unit = io->i_unit;
+	if	(genopen(NRA, io) < 0)
 		return(-1);
 	raaddr = RAcsr[ctlr];
 	racom = &rd[ctlr];
@@ -75,20 +85,16 @@ again:		raaddr->raip = 0;
 		raaddr->rasa = RA_ERR | (0154/4);
 		if	(ra_step(raaddr, RA_STEP2, 2))
 			goto again;
-		raaddr->rasa = (short)&racom->ra_ca.ca_ringbase;
+		iomapadr(&racom->ra_ca.ca_ringbase, &bae, &lo16);
+		raaddr->rasa = lo16;
 		if	(ra_step(raaddr, RA_STEP3, 3))
 			goto again;
-		raaddr->rasa = segflag;
+		raaddr->rasa = bae;
 		if	(ra_step(raaddr, RA_STEP4, 4))
 			goto again;
 		raaddr->rasa = RA_GO;
-		racom->ra_ca.ca_rspl = (short)&racom->ra_rsp.m_cmdref;
-		racom->ra_ca.ca_rsph = segflag;
-		racom->ra_ca.ca_cmdl = (short)&racom->ra_cmd.m_cmdref;
-		racom->ra_ca.ca_cmdh = segflag;
-		racom->ra_cmd.m_cntflgs = 0;
-		if (racmd(M_O_STCON, io->i_unit) < 0) {
-			printf("RA%d STCON err\n", ctlr);
+		if (racmd(M_O_STCON, io) < 0) {
+			printf("ra%d STCON err\n", ctlr);
 			return(-1);
 		}
 		rainit[ctlr] = 1;
@@ -97,24 +103,34 @@ again:		raaddr->raip = 0;
 	if (raonline[ctlr][unit] == 0)
 		if (ramount(io) == -1)
 			return(-1);
+	if	(devlabel(io, READLABEL) == -1)
+		return(-1);
+	if	(io->i_part >= lp->d_npartitions ||
+		 lp->d_partitions[io->i_part].p_size == 0)
+		{
+		printf("ra%d,%d%c bad partition # or size = 0\n",
+			ctlr, unit, 'a' + io->i_part);
+		return(-1);
+		}
+	io->i_boff = lp->d_partitions[io->i_part].p_offset;
 	return(0);
 }
 
 raclose(io)
 	register struct iob *io;
 {
-	raonline[CTLRn(io->i_unit)][UNITn(io->i_unit)] = 0;
+	raonline[io->i_ctlr][io->i_unit] = 0;
 	return(0);
 }
 
 ramount(io)
 	register struct iob *io;
 {
-	register int ctlr = CTLRn(io->i_unit);
-	register int unit = UNITn(io->i_unit);
+	register int ctlr = io->i_ctlr;
+	register int unit = io->i_unit;
 
-	if (racmd(M_O_ONLIN, io->i_unit) < 0) {
-		printf("RA%d: online err\n", io->i_unit);
+	if (racmd(M_O_ONLIN, io) < 0) {
+		printf("ra%d,%d: !online\n", ctlr, unit);
 		return(-1);
 	}
 	raonline[ctlr][unit] = rd[ctlr].ra_rsp.m_uslow +  
@@ -122,22 +138,33 @@ ramount(io)
 	return(0);
 }
 
-racmd(op, unit)
-	int op, unit;
+racmd(op, io)
+	int op;
+	struct iob *io;
 {
 	register struct mscp *mp;
-	register int ctlr = CTLRn(unit);
+	int ctlr = io->i_ctlr;
+	int unit = io->i_unit;
 	register struct ra *racom = &rd[ctlr];
 	struct	radevice *csr = RAcsr[ctlr];
-	int i;
+	int i, bae, lo16;
 
 	racom->ra_cmd.m_opcode = op;
-	racom->ra_cmd.m_unit = UNITn(unit);
+	racom->ra_cmd.m_unit = unit;
+	racom->ra_cmd.m_cntflgs = 0;
 	racom->ra_rsp.m_header.ra_msglen = sizeof(struct mscp);
 	racom->ra_cmd.m_header.ra_msglen = sizeof(struct mscp);
-	racom->ra_ca.ca_rsph = RA_OWN | segflag;
-	racom->ra_ca.ca_cmdh = RA_OWN | segflag;
+
+	iomapadr(&racom->ra_rsp.m_cmdref, &bae, &lo16);
+	racom->ra_ca.ca_rspl = lo16;
+	racom->ra_ca.ca_rsph = RA_OWN | bae;
+
+	iomapadr(&racom->ra_cmd.m_cmdref, &bae, &lo16);
+	racom->ra_ca.ca_cmdl = lo16;
+	racom->ra_ca.ca_cmdh = RA_OWN | bae;
+
 	i = csr->raip;
+
 	mp = &racom->ra_rsp;
 	while (1) {
 		while	(racom->ra_ca.ca_cmdh & RA_OWN) {
@@ -154,38 +181,37 @@ racmd(op, unit)
 		racom->ra_ca.ca_rspint = 0;
 		if (mp->m_opcode == (op | M_O_END))
 			break;
-		printf("RA%d: rsp %x op %x ignored\n",
-			unit,mp->m_header.ra_credits & 0xf0, mp->m_opcode);
+		printf("ra%d: rsp %x op %x ignored\n",
+			ctlr,mp->m_header.ra_credits & 0xf0, mp->m_opcode);
 		racom->ra_ca.ca_rsph |= RA_OWN;
 	}
 	if ((mp->m_status & M_S_MASK) != M_S_SUCC) {
-		printf("RA%d: err op=%x sts=%x\n",unit,
+		printf("ra%d,%d: err op=%x sts=%x\n", ctlr, unit,
 			mp->m_opcode, mp->m_status);
 		return(-1);
 	}
 	return(0);
 fail:
-	printf("RA%d: rasa=%o\n", ctlr, csr->rasa);
+	printf("ra%d: rasa=%o\n", ctlr, csr->rasa);
 }
 
 rastrategy(io, func)
 	register struct iob *io;
+	int func;
 {
 	register struct mscp *mp;
 	struct ra *racom;
-	register int ctlr = CTLRn(io->i_unit);
+	int	bae, lo16;
 
-	if (io->i_bn >= raonline[ctlr][UNITn(io->i_unit)])
-		return(0);
-
-	racom = &rd[ctlr];
+	racom = &rd[io->i_ctlr];
 	mp = &racom->ra_cmd;
+	iomapadr(io->i_ma, &bae, &lo16);
 	mp->m_lbn_l = loint(io->i_bn);
 	mp->m_lbn_h = hiint(io->i_bn);
 	mp->m_bytecnt = io->i_cc;
-	mp->m_buf_l = (ushort)io->i_ma;
-	mp->m_buf_h = segflag;
-	if (racmd(func == READ ? M_O_READ : M_O_WRITE, io->i_unit) < 0)
+	mp->m_buf_l = lo16;
+	mp->m_buf_h = bae;
+	if	(racmd(func == READ ? M_O_READ : M_O_WRITE, io) < 0)
 		return(-1);
 	return(io->i_cc);
 }
@@ -200,7 +226,7 @@ ra_step(csr, mask, step)
 		{
 		delay(2000);
 		cnt++;
-		if	(cnt < 10000)
+		if	(cnt < 5000)
 			continue;
 		printf("RA(%o) failed step %d. retrying\n",csr,step);
 		return(1);
@@ -208,10 +234,78 @@ ra_step(csr, mask, step)
 	return(0);
 	}
 
-delay(l)
-	int	l;
-	{
+/*
+ * This routine is called by the general 'devlabel' routine out of conf.c
+ * and is used by the standalone disklabel program to initialize the
+ * default disklabel.  The MSCP driver does not need geometry info but
+ * it is almost trivial (because the drive has already been brought online by
+ * 'raopen') to fetch the required information with a 'get unit status' 
+ * command.
+*/
 
-	while	(l > 0)
-		l--;
+ralabel(io)
+	struct	iob	*io;
+	{
+	register struct disklabel *lp = &io->i_label;
+	register char *cp, *dp;
+	daddr_t	nblks = raonline[io->i_ctlr][io->i_unit];
+	struct	mscp *mp = &rd[io->i_ctlr].ra_rsp;
+	int	nameid, numid;
+
+	lp->d_type = DTYPE_MSCP;
+	lp->d_partitions[0].p_size = nblks;  /* span the drive with 'a' */
+/*	lp->d_secperunit = nblks;	     /* size of entire volume */
+
+	if	(racmd(M_O_GTUNT, io) != 0)
+		{
+		printf("ra%d,%d M_OP_GTUNT failed\n", io->i_ctlr, io->i_unit);
+		return(-1);
+		}
+/*
+ * Yes it's a lot of code but since the standalone utilities (at least 'restor')
+ * are likely going to end up split I/D anyhow why not get the information.
+ *
+ * sectors/track
+ * tracks/group * group/cyl = tracks/cyl
+ * sectors/track * tracks/cyl = sectors/cyl
+ * sectors / sectors/cyl = cyl
+*/
+	lp->d_nsectors = mp->m_track;
+	lp->d_ntracks = mp->m_group * mp->m_cylinder;
+	lp->d_secpercyl = lp->d_nsectors * lp->d_ntracks;
+	lp->d_ncylinders = nblks / lp->d_secpercyl;
+	nameid = (((loint(mp->m_mediaid) & 0x3f) << 9) |
+		  ((hiint(mp->m_mediaid) >> 7) & 0x1ff));
+	numid = hiint(mp->m_mediaid) & 0x7f;
+/*
+ * Next put 'RA81' or 'RD54', etc into the typename field.
+*/
+	cp = lp->d_typename;
+	*cp++ = mx(nameid, 2);
+	*cp++ = mx(nameid, 1);
+	dp = itoa(numid);
+	while	(*cp++ = *dp++)
+		;
+	*cp = mx(nameid, 0);
+	if	(*cp != ' ')
+		cp++;
+	*cp = '\0';
+	return(0);
+	}
+
+/*
+ * this is a routine rather than a macro to save space - shifting, etc 
+ * generates a lot of code.
+*/
+
+static
+mx(l, i)
+	int l, i;
+	{
+	register int c;
+
+	c = (l >> (5 * i)) & 0x1f;
+	if	(c == 0)
+		c = ' ' - '@';
+	return(c + '@');
 	}

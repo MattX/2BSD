@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)prf.c	1.2 (2.11BSD) 4/20/91
+ *	@(#)prf.c	1.3 (2.11BSD) 1995/06/04
  */
 
 #include "../machine/cons.h"
@@ -95,10 +95,6 @@ putchar(c)
 	KLADDR->dlxbuf = c;
 	if (c == '\n') {
 		putchar('\r');
-		putchar(0177);
-		putchar(0177);
-		putchar(0177);
-		putchar(0177);
 		putchar(0177);
 	}
 	putchar(0);
