@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.9 (2.11BSD GTE) 1995/07/03
+ *	@(#)ra.c	3.0 (2.11BSD GTE) 1995/08/01
  */
 
  /***********************************************************************
@@ -14,6 +14,11 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	August 1, 1995
+ * Fix a bug which prohibited labeling previously disks which were unlabeled 
+ * or had a corrupted label.  The default ('a' partition spanning the volume)
+ * must be left in place to allow the write of the label.
+ *
  * Date:	July 3, 1995
  * Fix a couple bugs and simplify the close protocol.
  *
@@ -226,7 +231,7 @@ daddr_t	rasize();
 extern	int	wakeup();
 extern	ubadr_t	_iomap();
 extern	size_t	physmem;	/* used by the crash dump routine */
-void	ragetinfo();
+void	ragetinfo(), radfltlbl();
 struct	mscp 	*ragetcp();
 
 #define	b_qsize	b_resid		/* queue size per drive, in rqdtab */
@@ -501,6 +506,37 @@ raclose(dev, flag, mode)
 	}
 
 /*
+ * This code was moved from ragetinfo() because it is fairly large and used
+ * twice - once to initialize for reading the label and a second time if
+ * there is no valid label present on the drive and the default one must be
+ * used.
+*/
+
+void
+radfltlbl(disk, lp)
+	ra_infoT *disk;
+	register struct	disklabel *lp;
+	{
+	register struct	partition *pi = &lp->d_partitions[0];
+
+	bzero(lp, sizeof (*lp));
+	lp->d_type = DTYPE_MSCP;
+	lp->d_secsize = 512;		/* XXX */
+	lp->d_nsectors = 32;
+	lp->d_ntracks = 1;
+	lp->d_secpercyl = 20 * 32;
+	lp->d_npartitions = 1;		/* 'a' */
+	pi->p_size = disk->ra_nblks;	/* entire volume */
+	pi->p_fstype = FS_V71K;
+	pi->p_frag = 1;
+	pi->p_fsize = 1024;
+/*
+ * Put where rastrategy() will look.
+*/
+	bcopy(pi, disk->ra_parts, sizeof (lp->d_partitions));
+	}
+
+/*
  * Read disklabel.  It is tempting to generalize this routine so that
  * all disk drivers could share it.  However by the time all of the 
  * necessary parameters are setup and passed the savings vanish.  Also,
@@ -523,39 +559,23 @@ ragetinfo(disk, dev)
 	struct	disklabel locallabel;
 	char	*msg;
 	register struct disklabel *lp = &locallabel;
-	int	part = dkpart(dev);
 /*
  * NOTE: partition 0 ('a') is used to read the label.  Therefore 'a' must
  * start at the beginning of the disk!  If there is no label or the label
  * is corrupted then 'a' will span the entire disk
 */
-	register struct partition *pi = lp->d_partitions;
-	struct	partition *kpi = disk->ra_parts;
 
-	bzero(lp, sizeof (*lp));
-	lp->d_type = DTYPE_MSCP;
-	lp->d_secsize = 512;		/* XXX */
-	lp->d_nsectors = 32;
-	lp->d_ntracks = 1;
-	lp->d_secpercyl = 20 * 32;
-	lp->d_npartitions = 1;		/* 'a' */
-	pi[0].p_offset = 0;
-	pi[0].p_size = LABELSECTOR + 1;
-	pi[0].p_fstype = FS_V71K;
-	kpi[0].p_offset = 0;		/* put where rastrategy will look */
-	kpi[0].p_size = LABELSECTOR + 1;
-	kpi[0].p_fstype = FS_V71K;
+	radfltlbl(disk, lp);		/* set  up default/fake label */
 	msg = readdisklabel((dev & ~7) | 0, rastrategy, lp);	/* 'a' */
-	if	(msg == 0)
+	if	(msg != 0)
 		{
-		mapseg5(disk->ra_label, LABELDESC);
-		bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
-		normalseg5();
-		bcopy(pi, kpi, sizeof (lp->d_partitions));
-		return;
+		log(LOG_NOTICE, "ra%da is entire disk: %s\n", dkunit(dev), msg);
+		radfltlbl(disk, lp);
 		}
-	log(LOG_NOTICE, "ra%da is entire disk: '%s'\n", dkunit(dev), msg);
-	kpi[0].p_size = disk->ra_nblks;
+	mapseg5(disk->ra_label, LABELDESC);
+	bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
+	normalseg5();
+	bcopy(lp->d_partitions, disk->ra_parts, sizeof (lp->d_partitions));
 	return;
 	}
 

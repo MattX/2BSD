@@ -3,11 +3,15 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.5 (2.11BSD GTE) 1995/06/28
+ *	@(#)rl.c	1.6 (2.11BSD GTE) 1995/08/01
  */
 
 /*
  *  RL01/RL02 disk driver
+ * Date: August 1, 1995
+ * Fix bug which prevented labeling disks with no label or a corrupted label.
+ * Correct typographical error, the raclose() routine was being called by
+ * mistake in the rlsize() routine.
  * 
  * Date: June 15, 1995.
  * Modified to handle disklabels.  This provides the ability to partition
@@ -52,6 +56,8 @@ static	int	q22bae = 1;
 
 	daddr_t	rlsize();
 	int	rlstrategy();
+	void	rldfltlbl();
+
 struct	buf	rlutab[NRL];	/* Seek structure for each device */
 struct	buf	rltab;
 
@@ -212,6 +218,38 @@ rlclose(dev, flag, mode)
 	}
 
 /*
+ * This code was moved from rlgetinfo() because it is fairly large and used
+ * twice - once to initialize for reading the label and a second time if
+ * there is no valid label present on the drive and the default one must be
+ * used.
+*/
+
+void
+rldfltlbl(disk, lp, dev)
+	struct dkdevice *disk;
+	register struct	disklabel *lp;
+	dev_t	dev;
+	{
+	register struct	partition *pi = &lp->d_partitions[0];
+
+	bzero(lp, sizeof (*lp));
+	lp->d_type = DTYPE_DEC;
+	lp->d_secsize = 512;		/* XXX */
+	lp->d_nsectors = 20;
+	lp->d_ntracks = 2;
+	lp->d_secpercyl = 2 * 20;
+	lp->d_npartitions = 1;		/* 'a' */
+	pi->p_size = rl.nblks[dkunit(dev)];	/* entire volume */
+	pi->p_fstype = FS_V71K;
+	pi->p_frag = 1;
+	pi->p_fsize = 1024;
+/*
+ * Put where rlstrategy() will look.
+*/
+	bcopy(pi, disk->dk_parts, sizeof (lp->d_partitions));
+	}
+
+/*
  * Read disklabel.  It is tempting to generalize this routine so that
  * all disk drivers could share it.  However by the time all of the 
  * necessary parameters are setup and passed the savings vanish.  Also,
@@ -234,39 +272,23 @@ rlgetinfo(disk, dev)
 	struct	disklabel locallabel;
 	char	*msg;
 	register struct disklabel *lp = &locallabel;
-	int	part = dkpart(dev);
 /*
  * NOTE: partition 0 ('a') is used to read the label.  Therefore 'a' must
  * start at the beginning of the disk!  If there is no label or the label
  * is corrupted then 'a' will span the entire disk
 */
-	register struct partition *pi = lp->d_partitions;
-	struct	partition *kpi = disk->dk_parts;
 
-	bzero(lp, sizeof (*lp));
-	lp->d_type = DTYPE_DEC;
-	lp->d_secsize = 512;		/* XXX */
-	lp->d_nsectors = 20;
-	lp->d_ntracks = 2;
-	lp->d_secpercyl = 2 * 20;
-	lp->d_npartitions = 1;		/* 'a' */
-	pi[0].p_offset = 0;
-	pi[0].p_size = LABELSECTOR + 1;
-	pi[0].p_fstype = FS_V71K;
-	kpi[0].p_offset = 0;		/* put where rlstrategy will look */
-	kpi[0].p_size = LABELSECTOR + 1;
-	kpi[0].p_fstype = FS_V71K;
+	rldfltlbl(disk, lp, dev);
 	msg = readdisklabel((dev & ~7) | 0, rlstrategy, lp);	/* 'a' */
-	if	(msg == 0)
+	if	(msg != 0)
 		{
-		mapseg5(disk->dk_label, LABELDESC)
-		bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
-		normalseg5();
-		bcopy(pi, kpi, sizeof (lp->d_partitions));
-		return;
+		log(LOG_NOTICE, "rl%da is entire disk: %s\n", dkunit(dev), msg);
+		rldfltlbl(disk, lp, dev);
 		}
-	log(LOG_NOTICE, "rl%da is entire disk: '%s'\n", dkunit(dev), msg);
-	kpi[0].p_size = rl.nblks[dkunit(dev)];
+	mapseg5(disk->dk_label, LABELDESC)
+	bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
+	normalseg5();
+	bcopy(lp->d_partitions, disk->dk_parts, sizeof (lp->d_partitions));
 	return;
 	}
 
@@ -593,6 +615,8 @@ rldump(dev)
 	register struct ubmap *ubp;
 
 	unit = RLUNIT(dev);
+	if	(unit >= NRL)
+		return(EINVAL);
 	partition = dkpart(dev);
 	disk = &rl_dk[unit];
 	pi = &disk->dk_parts[partition];
@@ -693,7 +717,7 @@ rlsize(dev)
 		}
 	psize = disk->dk_parts[dkpart(dev)].p_size;
 	if	(didopen)
-		raclose(dev, FREAD|FWRITE, S_IFBLK);
+		rlclose(dev, FREAD|FWRITE, S_IFBLK);
 	return(psize);
 	}
 

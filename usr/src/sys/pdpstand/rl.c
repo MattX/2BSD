@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	2.3 (2.11BSD) 1995/06/15
+ *	@(#)rl.c	2.4 (2.11BSD) 1995/08/01
  */
 
 /*
@@ -140,13 +140,6 @@ rlopen(io)
 	rlgsts(io);		/* get status and head position */
 	if	(devlabel(io, READLABEL) < 0)
 		return(-1);
-	if	(part >= lp->d_npartitions || 
-		 lp->d_partitions[part].p_size == 0)
-		{
-		printf("rl%d,%d%c bad partition # or size = 0\n",
-			io->i_ctlr, io->i_unit, 'a' + part);
-		return(-1);
-		}
 	io->i_boff = lp->d_partitions[part].p_offset;
 	return(0);
 	}

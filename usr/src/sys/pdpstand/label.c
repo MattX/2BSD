@@ -1,7 +1,14 @@
 /*-
  * Public domain, May 1995
  *
- *	@(#)label.c	1.0 (2.11BSD GTE) 1995/06/08
+ *	@(#)label.c	1.1 (2.11BSD GTE) 1995/08/01
+ *
+ * Date: 1995/08/01
+ * Move the check for a partition number being out of bounds to the
+ * readlabel routine.  This is necessary in order to permit unlabeled disks
+ * (or disks whose label is corrupt) to be open'd.  This check can't be done
+ * in the open routine because a corrupt or missing label could have garbage
+ * for the number of partitions.
  */
 
 #include "../h/param.h"
@@ -45,6 +52,13 @@ readlabel(io, strat, name)
 		{
 		printf("%s%d,%d disklabel missing or corrupt\n", name,
 			io->i_ctlr, io->i_unit);
+		return(-1);
+		}
+	if	(io->i_part >= lp->d_npartitions ||
+			lp->d_partitions[io->i_part].p_size == 0)
+		{
+		printf("%s%d,%d%c bad partition # or size = 0\n",
+			name, io->i_ctlr, io->i_unit, 'a' + io->i_part);
 		return(-1);
 		}
 	return(0);

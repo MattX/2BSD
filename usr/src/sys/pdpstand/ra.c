@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.5 (2.11BSD GTE) 1995/07/10
+ *	@(#)ra.c	2.6 (2.11BSD GTE) 1995/08/01
  */
 
 /*
@@ -105,13 +105,6 @@ again:		raaddr->raip = 0;
 			return(-1);
 	if	(devlabel(io, READLABEL) == -1)
 		return(-1);
-	if	(io->i_part >= lp->d_npartitions ||
-		 lp->d_partitions[io->i_part].p_size == 0)
-		{
-		printf("ra%d,%d%c bad partition # or size = 0\n",
-			ctlr, unit, 'a' + io->i_part);
-		return(-1);
-		}
 	io->i_boff = lp->d_partitions[io->i_part].p_offset;
 	return(0);
 }
