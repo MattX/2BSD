@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)fs.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)fs.h	1.2 (2.11BSD GTE) 11/26/94
  */
 
 /*
@@ -58,6 +58,7 @@ struct	fs
 	char	fs_fsmnt[MAXMNTLEN];	/* ordinary file mounted on */
 	ino_t	fs_lasti;		/* start place for circular search */
 	ino_t	fs_nbehind;		/* est # free inodes before s_lasti */
+	u_short	fs_flags;		/* mount time flags */
 /* actually longer */
 };
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)inode.h	1.2 (2.10BSD Berkeley) 1/26/90
+ *	@(#)inode.h	1.3 (2.11BSD GTE) 11/25/94
  */
 
 /*
@@ -78,6 +78,12 @@ struct inode {
 		gid_t	ic_gid;		/* owner's group id */
 		off_t	ic_size;	/* number of bytes in file */
 	} i_ic1;
+/*
+ * Can't afford another 4 bytes and mapping the flags out would be prohibitively
+ * expensive.  So, a 'u_short' is used for the flags - see the comments in
+ * stat.h for more information.
+*/
+	u_short	i_flags;		/* user changeable flags */ 
 #ifndef EXTERNALITIMES
 	struct icommon2 i_ic2;
 #endif
@@ -90,7 +96,8 @@ struct inode {
 struct dinode {
 	struct	icommon1 di_icom1;
 	daddr_t	di_addr[7];		/* 7 block addresses 4 bytes each */
-	daddr_t	di_reserved[3];		/* pad of 12 to make total size 64 */
+	u_short	di_reserved[5];		/* pad of 10 to make total size 64 */
+	u_short	di_flags;
 	struct	icommon2 di_icom2;
 };
 
@@ -167,7 +174,7 @@ struct	inode *maknode();
 struct	inode *namei();
 #endif
 
-/* flags */
+/* i_flag */
 #define	ILOCKED		0x1		/* inode is locked */
 #define	IUPD		0x2		/* file has been modified */
 #define	IACC		0x4		/* inode access time to be updated */
@@ -185,7 +192,7 @@ struct	inode *namei();
 #define	IWCOLL		0x4000		/* write select collision on pipe */
 #define	IXMOD		0x8000		/* inode is text, but impure (XXX) */
 
-/* modes */
+/* i_mode */
 #define	IFMT		0170000		/* type of file */
 #define	IFCHR		0020000		/* character special */
 #define	IFDIR		0040000		/* directory */
@@ -199,6 +206,60 @@ struct	inode *namei();
 #define	IREAD		0400		/* read, write, execute permissions */
 #define	IWRITE		0200
 #define	IEXEC		0100
+
+#if	defined(KERNEL) && !defined(SUPERVISOR)
+/*
+ * Flags for va_cflags.
+ */
+#define	VA_UTIMES_NULL	0x01		/* utimes argument was NULL */
+
+/*
+ * Flags for ioflag.
+ */
+#define	IO_UNIT		0x01		/* do I/O as atomic unit */
+#define	IO_APPEND	0x02		/* append write to end */
+#define	IO_SYNC		0x04		/* do I/O synchronously */
+/* #define	IO_NODELOCKED	0x08		/* not implemented */
+#define	IO_NDELAY	0x10		/* FNDELAY flag set in file table */
+
+/*
+ * Token indicating no attribute value yet assigned.
+ */
+#define	VNOVAL	(-1)
+
+#define	VATTR_NULL(vp) (vattr_null(vp))
+
+/*
+ * This is a bit of a misnomer.  2.11BSD does not have 'vnodes' but it was
+ * easier/simpler to keep the name 'vattr' than changing the name to something
+ * like 'iattr'.
+ *
+ * This structure is a _subset_ of 4.4BSD's vnode attribute structure.  ONLY
+ * those attributes which can be *changed by the user* are present.  Since we
+ * do not have vnodes why initialize (and carry around) un-used members.
+ *
+ * NOTE: For reasons of speed the function 'vattr_null()' was written in
+ * very compact assembly code and placed in pdp/mch_xxx.s.  If you change
+ * the 'vattr' structure be sure and change vattr_null in pdp/mch_xxx.s!
+*/
+
+	struct	vattr
+		{
+		mode_t	va_mode;
+		uid_t	va_uid;
+		gid_t	va_gid;
+		off_t	va_size;
+		time_t	va_atime;
+		time_t	va_mtime;
+		u_short	va_flags;
+		u_short	va_vaflags;
+		};
+
+/*
+ * N.B:  If the above structure changes be sure to modify the function
+ * vattr_null in pdp/mch_xxx.s!
+*/
+#endif
 
 #ifndef SUPERVISOR
 #define	ILOCK(ip) { \

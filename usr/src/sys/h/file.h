@@ -3,8 +3,10 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)file.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)file.h	1.2 (2.11BSD GTE) 11/25/94
  */
+
+#include <fcntl.h>
 
 #ifdef KERNEL
 /*
@@ -41,68 +43,6 @@ int	nfile;
 struct	file *getf();
 struct	file *falloc();
 #endif
-
-/*
- * flags- also for fcntl call.
- */
-#define	FOPEN		(-1)
-#define	FREAD		00001		/* descriptor read/receive'able */
-#define	FWRITE		00002		/* descriptor write/send'able */
-#ifndef	F_DUPFD
-#define	FNDELAY		00004		/* no delay */
-#define	FAPPEND		00010		/* append on each write */
-#endif
-#define	FMARK		00020		/* mark during gc() */
-#define	FDEFER		00040		/* defer for next gc pass */
-#ifndef	F_DUPFD
-#define	FASYNC		00100		/* signal pgrp when data ready */
-#endif
-#define	FSHLOCK		00200		/* shared lock present */
-#define	FEXLOCK		00400		/* exclusive lock present */
-
-/* bits to save after open */
-#define	FMASK		00113
-#define	FCNTLCANT	(FREAD|FWRITE|FMARK|FDEFER|FSHLOCK|FEXLOCK)
-
-/* open only modes */
-#define	FCREAT		01000		/* create if nonexistant */
-#define	FTRUNC		02000		/* truncate to zero length */
-#define	FEXCL		04000		/* error if already created */
-
-#ifndef	F_DUPFD
-/* fcntl(2) requests--from <fcntl.h> */
-#define	F_DUPFD	0	/* Duplicate fildes */
-#define	F_GETFD	1	/* Get fildes flags */
-#define	F_SETFD	2	/* Set fildes flags */
-#define	F_GETFL	3	/* Get file flags */
-#define	F_SETFL	4	/* Set file flags */
-#define	F_GETOWN 5	/* Get owner */
-#define F_SETOWN 6	/* Set owner */
-#endif
-
-/*
- * User definitions.
- */
-
-/*
- * Open call.
- */
-#define	O_RDONLY	000		/* open for reading */
-#define	O_WRONLY	001		/* open for writing */
-#define	O_RDWR		002		/* open for read & write */
-#define	O_NDELAY	FNDELAY		/* non-blocking open */
-#define	O_APPEND	FAPPEND		/* append on each write */
-#define	O_CREAT		FCREAT		/* open with file create */
-#define	O_TRUNC		FTRUNC		/* open with truncation */
-#define	O_EXCL		FEXCL		/* error on create if file exists */
-
-/*
- * Flock call.
- */
-#define	LOCK_SH		1	/* shared lock */
-#define	LOCK_EX		2	/* exclusive lock */
-#define	LOCK_NB		4	/* don't block when locking */
-#define	LOCK_UN		8	/* unlock */
 
 /*
  * Access call.

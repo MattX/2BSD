@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.2 (2.11BSD GTE) 4/21/94
+ *	@(#)syscall.h	5.4.3 (2.11BSD GTE) 11/25/94
  */
 
 #define	SYS_exit	1
@@ -22,8 +22,8 @@
 #define	SYS_mknod	14
 #define	SYS_chmod	15
 #define	SYS_chown	16
-				/* 17 is old: sbreak */
-				/* 18 is old: stat */
+#define	SYS_chflags	17
+#define	SYS_fchflags	18
 #define	SYS_lseek	19
 #define	SYS_getpid	20
 #define	SYS_mount	21
@@ -70,20 +70,20 @@
 #define	SYS_fstat	62
 				/* 63 is unused */
 #define	SYS_getpagesize 64
-#define	SYS_mremap	65
+				/* 65 is unused 4.3: mremap */
 #define	SYS_vfork	66
 				/* 67 is old: vread */
 				/* 68 is old: vwrite */
 #define	SYS_sbrk	69
 #define	SYS_sstk	70
-#define	SYS_mmap	71
-				/* 72 is old: vadvise */
-#define	SYS_munmap	73
-#define	SYS_mprotect	74
-#define	SYS_madvise	75
+				/* 71 is unused 4.3: mmap */
+				/* 72 is unused 4.3: vadvise */
+				/* 73 is unused 4.3: munmap */
+				/* 74 is unused 4.3: mprotect */
+				/* 75 is unused 4.3: madvise */
 #define	SYS_vhangup	76
 				/* 77 is old: vlimit */
-#define	SYS_mincore	78
+				/* 78 is unused 4.3: mincore */
 #define	SYS_getgroups	79
 #define	SYS_setgroups	80
 #define	SYS_getpgrp	81
@@ -96,10 +96,10 @@
 #define	SYS_sethostname	88
 #define	SYS_getdtablesize 89
 #define	SYS_dup2	90
-#define	SYS_getdopt	91
+				/* 91 is unused 4.3: getdopt */
 #define	SYS_fcntl	92
 #define	SYS_select	93
-#define	SYS_setdopt	94
+				/* 94 is unused 4.3: setdopt */
 #define	SYS_fsync	95
 #define	SYS_setpriority	96
 #define	SYS_socket	97

@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)stat.h	7.1.1 (2.11BSD GTE) 12/31/93
+ *	@(#)stat.h	7.1.2 (2.11BSD GTE) 11/25/94
  */
+
+#ifndef	_STAT_H_
+#define	_STAT_H_
 
 struct	stat
 {
@@ -24,7 +27,8 @@ struct	stat
 	int	st_spare3;
 	long	st_blksize;
 	long	st_blocks;
-	long	st_spare4[2];
+	u_short	st_flags;
+	u_short	st_spare4[3];
 };
 
 #define	S_IFMT	0170000		/* type of file */
@@ -40,3 +44,33 @@ struct	stat
 #define	S_IREAD	0000400		/* read permission, owner */
 #define	S_IWRITE 0000200	/* write permission, owner */
 #define	S_IEXEC	0000100		/* execute/search permission, owner */
+
+/*
+ * Definitions of flags stored in file flags word.  Different from 4.4 because
+ * 2.11BSD only could afford a u_short for the flags.  It is not a great
+ * inconvenience since there are still 5 bits in each byte available for
+ * future use.
+ *
+ * Super-user and owner changeable flags.
+ */
+#define	UF_SETTABLE	0x00ff		/* mask of owner changeable flags */
+#define	UF_NODUMP	0x0001		/* do not dump file */
+#define	UF_IMMUTABLE	0x0002		/* file may not be changed */
+#define	UF_APPEND	0x0004		/* writes to file may only append */
+/*
+ * Super-user changeable flags.
+ */
+#define	SF_SETTABLE	0xff00		/* mask of superuser changeable flags */
+#define	SF_ARCHIVED	0x0100		/* file is archived */
+#define	SF_IMMUTABLE	0x0200		/* file may not be changed */
+#define	SF_APPEND	0x0400		/* writes to file may only append */
+
+#ifdef KERNEL
+/*
+ * Shorthand abbreviations of above.
+ */
+#define	APPEND		(UF_APPEND | SF_APPEND)
+#define	IMMUTABLE	(UF_IMMUTABLE | SF_IMMUTABLE)
+#endif
+
+#endif /* !_STAT_H_ */

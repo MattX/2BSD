@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ioctl.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ioctl.h	1.2 (2.11BSD GTE) 12/9/94
  */
 
 /*
@@ -136,7 +136,7 @@ struct ttysize {
 #define	TIOCGETC	_IOR(t,18,struct tchars)/* get special characters */
 #define		TANDEM		0x00000001	/* send stopc on out q full */
 #define		CBREAK		0x00000002	/* half-cooked mode */
-#define		LCASE		0x00000004	/* simulate lower case */
+#define		LCASE		0x00000004	/* (obsolete) - place holder */
 #define		ECHO		0x00000008	/* echo input */
 #define		CRMOD		0x00000010	/* map \r to \r\n on output */
 #define		RAW		0x00000020	/* no i/o processing */
@@ -168,7 +168,7 @@ struct ttysize {
 #define		CRTBS		0x00010000	/* do backspacing for crt */
 #define		PRTERA		0x00020000	/* \ ... / erase */
 #define		CRTERA		0x00040000	/* " \b " to wipe out char */
-#define		TILDE		0x00080000	/* hazeltine tilde kludge */
+#define		TILDE		0x00080000	/* (obsolete) place holder */
 #define		MDMBUF		0x00100000	/* start/stop output on carrier intr */
 #define		LITOUT		0x00200000	/* literal output */
 #define		TOSTOP		0x00400000	/* SIGSTOP on background output */
@@ -189,7 +189,7 @@ struct ttysize {
 #define		LCRTBS		((int)(CRTBS>>16))
 #define		LPRTERA		((int)(PRTERA>>16))
 #define		LCRTERA		((int)(CRTERA>>16))
-#define		LTILDE		((int)(TILDE>>16))
+#define		LTILDE		((int)TILDE>>16)) /* (obsolete) place holder */
 #define		LMDMBUF		((int)(MDMBUF>>16))
 #define		LLITOUT		((int)(LITOUT>>16))
 #define		LTOSTOP		((int)(TOSTOP>>16))
