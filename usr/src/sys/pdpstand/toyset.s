@@ -1,5 +1,10 @@
 TOYCSR	= 177526
 
+/ April 10, 1997 - sms@moe.2bsd.com
+/ The day of week calculation was incorrect and would return -1 for Saturday
+/ rather than 6.  Alan Sieving spotted this one too (toyset.s must be favorite
+/ reading material ;-))
+/
 / February 6, 1997 - sms@moe.2bsd.com
 / Forgot that May has 31 days.  Thanks to Alan Sieving (ars@quickware.com) for
 / spotting this.
@@ -289,12 +294,12 @@ t2dow:
 	mov	r4,r1
 	clr	r0
 	div	$7,r0			/ divide total by 7
-	dec	r1			/ Sunday?
-	bne	3f			/ no - br
-	mov	$7,r1			/ yes - set it to day 7
+	dec	r1			/ Saturday or Sunday?
+	bgt	3f			/ no - br
+	add	$7,r1			/ yes - set Saturday to 6, Sunday to 7
 3:
 	mov	r1,r0			/ put return value in right place
-	jmp	cret
+	jmp	cret			/ 1 = Monday ... 7 = Sunday
 
 / (((y) % 4) == 0 && ((y) % 100) != 0 || ((y) % 400) == 0)
 
