@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.7 (2.11BSD GTE) 1996/3/1
+ *	@(#)ufs_mount.c	1.8 (2.11BSD GTE) 1996/4/20
  */
 
 #include "param.h"
@@ -35,55 +35,105 @@ smount()
 	dev_t dev;
 	register struct inode *ip;
 	register struct fs *fs;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata *ndp = &u.u_nd;
+	struct	mount	*mp;
 	u_int lenon, lenfrom;
+	int	error = 0;
 	char	mnton[MNAMELEN], mntfrom[MNAMELEN];
 
-	u.u_error = getmdev(&dev, uap->fspec);
-	if (u.u_error)
+	if	(u.u_error = getmdev(&dev, uap->fspec))
 		return;
 	ndp->ni_nameiop = LOOKUP | FOLLOW;
 	ndp->ni_segflg = UIO_USERSPACE;
 	ndp->ni_dirp = (caddr_t)uap->freg;
-	ip = namei(ndp);
-	if (ip == NULL)
+	if	((ip = namei(ndp)) == NULL)
 		return;
+	if ((ip->i_mode&IFMT) != IFDIR) {
+		error = ENOTDIR;
+		goto	cmnout;
+	}
 /*
- * This is a hack to update the 'from' field for the root filesystem.  When
- * the kernel boots the string 'root_device' placed there as a place holder
- * until the "mount -a" is done from /etc/rc - at that time the name of the
- * root device is known and passed thru to here.  If '/' is the directory
- * then only the 'from' and 'on' fields are updated.
- *
  * The following two copyinstr calls will not fault because getmdev() or
  * namei() would have returned an error for invalid parameters.
 */
 	copyinstr(uap->freg, mnton, sizeof (mnton) - 1, &lenon);
 	copyinstr(uap->fspec, mntfrom, sizeof (mntfrom) - 1, &lenfrom);
-	if	(mnton[0] == '/' && mnton[1] == '\0')
-		{
-		iput(ip);
-		if	(dev != mount[0].m_dev)
-			return(u.u_error = EINVAL);
-		fs = &mount[0].m_filsys;
-		goto updname;
-		}
-	if (ip->i_count != 1 || (ip->i_number == ROOTINO)) {
-		iput(ip);
-		u.u_error = EBUSY;
-		return;
-	}
-	if ((ip->i_mode&IFMT) != IFDIR) {
-		iput(ip);
-		u.u_error = ENOTDIR;
-		return;
-	}
 
-	fs = mountfs(dev, uap->flags, ip);
-	if (fs == 0)
-		return;
+	if	(uap->flags & MNT_UPDATE)
+		{
+		fs = ip->i_fs;
+		mp = (struct mount *)
+			((int)fs - offsetof(struct mount, m_filsys));
+		if	(ip->i_number != ROOTINO)
+			{
+			error = EINVAL;		/* Not a mount point */
+			goto	cmnout;
+			}
+/*
+ * Check that the device passed in is the same one that is in the mount 
+ * table entry for this mount point.
+*/
+		if	(dev != mp->m_dev)
+			{
+			error = EINVAL;		/* not right mount point */
+			goto	cmnout;
+			}
+/*
+ * This is where the RW to RO transformation would be done.  It is, for now,
+ * too much work to port pages of code to do (besides which most
+ * programs get very upset at having access yanked out from under them).
+*/
+		if	(fs->fs_ronly == 0 && (uap->flags & MNT_RDONLY))
+			{
+			error = EPERM;		/* ! RW to RO updates */
+			goto	cmnout;
+			}
+/*
+ * However, going from RO to RW is easy.  Then merge in the new
+ * flags (async, sync, nodev, etc) passed in from the program.
+*/
+		if	(fs->fs_ronly && ((uap->flags & MNT_RDONLY) == 0))
+			{
+			fs->fs_ronly = 0;
+			mp->m_flags &= ~MNT_RDONLY;
+			}
+#define	_MF (MNT_NOSUID | MNT_NODEV | MNT_NOEXEC | MNT_ASYNC | MNT_SYNCHRONOUS)
+		mp->m_flags &= ~_MF;
+		mp->m_flags |= (uap->flags & _MF);
+#undef _MF
+		iput(ip);
+		u.u_error = 0;
+		goto	updname;
+		}
+	else
+		{
+/*
+ * This is where a new mount (not an update of an existing mount point) is 
+ * done.
+ *
+ * The directory being mounted on can have no other references AND can not
+ * currently be a mount point.  Mount points have an inode number of (you
+ * guessed it) ROOTINO which is 2.
+*/
+		if	(ip->i_count != 1 || (ip->i_number == ROOTINO))
+			{
+			error = EBUSY;
+			goto cmnout;
+			}
+		fs = mountfs(dev, uap->flags, ip);
+		if	(fs == 0)
+			return;
+		}
+/*
+ * Lastly, both for new mounts and updates of existing mounts, update the
+ * mounted-on and mounted-from fields.
+*/
 updname:
 	mount_updname(fs, mnton, mntfrom, lenon, lenfrom);
+	return;
+cmnout:
+	iput(ip);
+	return(u.u_error = error);
 }
 
 mount_updname(fs, on, from, lenon, lenfrom)

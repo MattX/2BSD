@@ -29,7 +29,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)mount.8	8.7.1 (2.11BSD) 1996/1/16
+.\"     @(#)mount.8	8.7.2 (2.11BSD) 1996/4/18
 .\"
 .TH MOUNT 8 "January 16, 1996"
 .UC 7
@@ -104,15 +104,14 @@ This is a
 .B dangerous
 flag to set,
 and should not be used unless you are prepared to recreate the file
-system should your system crash.  This option is not currently implemented
-in 2.11BSD but is planned for the future.
+system should your system crash.
 .TP 10
 force
 The same as
 \fB\-f\fP;
 forces the revocation of write access when trying to downgrade
-a filesystem mount status from read-write to read-only.   Currently a NOP
-in 2.11BSD.
+a filesystem mount status from read-write to read-only.   This is not
+(and likely never will be) supported in 2.11BSD.
 .TP 10
 nodev
 Do not interpret character or block special devices on the file system.
@@ -134,14 +133,12 @@ mount the file system read-only (even the super-user may not write it).
 .TP 10
 sync
 All I/O
-to the file system should be done synchronously.  Not implemented yet in
-2.11BSD but is planned for the future.
+to the file system should be done synchronously.
 .TP 10
 update
 The same as
 \fB\-u\fP;
 indicate that the status of an already mounted file system should be changed.
-Not currently implemented in 2.11BSD.
 .PP
 Any additional options specific to a filesystem type that is not
 one of the internally known types (see the
@@ -226,8 +223,8 @@ An attempt to change from read-write to read-only will fail if any
 files on the filesystem are currently open for writing unless the
 \fB\-f\fP
 flag is also specified.
-This is currently not implemented in 2.11BSD but it is planned that 
-the ability to change the flags (nodev, nosuid, etc) will be implemented.
+This is currently not implemented in 2.11BSD.
+The ability to change the flags (nodev, nosuid, etc) is however supported.
 The set of options is determined by first extracting the options
 for the file system from the
 .I fstab
@@ -261,7 +258,7 @@ It is possible for a corrupted file system to cause a crash.
 and this manpage were ported from 4.4BSD-Lite to 2.11BSD to gain the
 ability to set the various flags such as \fBnodev\fP, \fBnosuid\fP and
 so on.   Multiple filesystem types are not supported and several of the
-options and flags are not yet implemented.
+options and flags are not implemented.
 .SH HISTORY
 A
 .B mount

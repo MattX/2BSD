@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1980, 1989, 1993, 1994\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)mount.c	8.19.1 (2.11BSD) 1996/1/16";
+static char sccsid[] = "@(#)mount.c	8.19.2 (2.11BSD) 1996/4/18";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -73,9 +73,7 @@ static struct opt {
 	int o_opt;
 	char *o_name;
 } optnames[] = {
-#ifdef	notnow
 	{ MNT_ASYNC,		"asynchronous" },
-#endif
 	{ MNT_NODEV,		"nodev" },
 	{ MNT_NOEXEC,		"noexec" },
 	{ MNT_NOSUID,		"nosuid" },

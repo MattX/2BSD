@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mount.h	7.2.3 (2.11BSD GTE) 1995/12/29
+ *	@(#)mount.h	7.2.4 (2.11BSD GTE) 1996/4/18
  */
 
 /*
@@ -76,11 +76,8 @@ struct	xmount
 #define	MNT_NOEXEC	0x0004		/* can't exec from filesystem */
 #define	MNT_NOSUID	0x0008		/* don't honor setuid bits on fs */
 #define	MNT_NODEV	0x0010		/* don't interpret special files */
-
-/* 
- * Flags set by internal operations.
-*/
 #define	MNT_QUOTA	0x0020		/* quotas are enabled on filesystem */
+#define	MNT_ASYNC	0x0040		/* file system written asynchronously */
 
 /*
  * Mask of flags that are visible to statfs().
