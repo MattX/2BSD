@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)dh.4	6.3 (Berkeley) 7/23/92
+.\"	@(#)dh.4	6.4 (2.11BSD) 1997/5/31
 .\"
-.TH DH 4 "January 28, 1988"
+.TH DH 4 "May 31, 1997"
 .UC 2
 .SH NAME
 dh \- DH-11/DM-11 communications multiplexer
@@ -27,7 +27,7 @@ major device number(s):
 minor device encoding:
 	bits 0017 specify line on DH unit
 	bits 0060 specify DH unit
-	bit  0100 unused
+	bit  0100 specify RTS/CTS (``hardware'') flowcontrol
 	bit  0200 specifies non-blocking open (``CD always on'')
 .fi
 .ft R
@@ -53,7 +53,11 @@ may be set to say that a line is not properly
 connected, and that the line should be treated as hard-wired with carrier
 always present.  Thus creating the special character device node "3, 130" via
 .I "mknod /dev/ttyh2 c 3 130"
-would cause line ttyh2 to be treated in this way.
+would cause line ttyh2 to be treated in this way.  Bit
+.I 0100
+of the minor device number enables RTS/CTS (also called ``hardware'') flow
+control. It is enabled by adding 64 to the minor device number:
+.I "mknod /dev/ttyh2 c 3 194"
 .PP
 The
 .I dh
@@ -77,14 +81,12 @@ tty(4),
 dtab(5),
 autoconfig(8)
 .SH DIAGNOSTICS
-\fBdh%d: NXM\fR.  No response from UNIBUS on a dma transfer
-within a timeout period.  This is often followed by a UNIBUS adapter
-error.  This occurs most frequently when the UNIBUS is heavily loaded
-and when devices which hog the bus (such as rk07's) are present.
+\fBdh%d NXM\fR.  No response from UNIBUS on a dma transfer
+within a timeout period.  This has never been observed on a PDP-11 and is
+a carryover from the VAX driver when it was ported.
 It is not serious.
 .PP
-\fBdh%d: silo overflow\fR.  The character input silo overflowed
-before it could be serviced.  This can happen if a hard error occurs
-when the CPU is running with elevated priority, as the system will
-then print a message on the console with interrupts disabled.
-It is not serious.
+\fBdh%d %d overruns\fR.  The character input silo overflowed
+before it could be serviced.  This message is only printed at line close time.
+It is not serious but does indicate that the system was not able to keep up
+with the data flow.

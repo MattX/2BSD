@@ -3,10 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhu.c	2.2 (2.11BSD GTE) 1997/2/14
+ *	@(#)dhu.c	2.3 (2.11BSD GTE) 1997/5/9
  */
 
 /*
+ * Rewritten for hardware flow control - sms 1997/5/9
+ *
  * based on	dh.c 6.3	84/03/15
  * and on	dmf.c	6.2	84/02/16
  *
@@ -32,21 +34,19 @@
 #include "uba.h"
 #include "ubavar.h"
 #include "systm.h"
+#include "syslog.h"
 #include <sys/kernel.h>
 
 struct	uba_device dhuinfo[NDHU];
 
 #define	NDHULINE	(NDHU*16)
 
-#define	UNIT(x)	(minor(x) & 0177)
+#define	UNIT(x)	(minor(x) & 077)
+#define	SOFTCAR	0x80
+#define	HWFLOW	0x40
 
-#ifndef PORTSELECTOR
 #define ISPEED	B9600
 #define IFLAGS	(EVENP|ODDP|ECHO)
-#else
-#define ISPEED	B4800
-#define IFLAGS	(EVENP|ODDP)
-#endif
 
 /*
  * default receive silo timeout value -- valid values are 2..255
@@ -54,21 +54,8 @@ struct	uba_device dhuinfo[NDHU];
  *
  * A value of 20 gives same response as ABLE dh/dm with silo alarm = 0
  */
-#define	DHU_DEF_TIMO	20
+int	dhu_def_timo = 20;
 
-/*
- * Other values for silo timeout register defined here but not used:
- * receive interrupt only on modem control or silo alarm (3/4 full)
- */
-#define DHU_POLL_TIMO	0
-/*
- * receive interrupt immediately on receive character
- */
-#define DHU_NO_TIMO	1
-
-/*
- * Local variables for the driver
- */
 /*
  * Baud rates: no 50, 200, or 38400 baud; all other rates are from "Group B".
  *	EXTA => 19200 baud
@@ -77,13 +64,13 @@ struct	uba_device dhuinfo[NDHU];
 char	dhu_speeds[] =
 	{ 0, 0, 1, 2, 3, 4, 0, 5, 6, 7, 8, 10, 11, 13, 14, 9 };
 
-short	dhusoftCAR[NDHU];
-
 struct	tty dhu_tty[NDHULINE];
 int	ndhu = NDHULINE;
 int	dhuact;				/* mask of active dhu's */
-int	dhustart(), ttrstrt();
+int	dhu_overrun[NDHULINE];
+int	dhustart();
 long	dhumctl(),dmtodhu();
+extern	int wakeup();
 
 #if defined(UCB_CLIST)
 extern	ubadr_t clstaddr;
@@ -99,18 +86,19 @@ extern	ubadr_t clstaddr;
 duattach(addr,unit)
 	register caddr_t addr;
 	register u_int unit;
-{
+	{
 	register struct uba_device *ui;
 
-	if (addr && unit < NDHU && !dhuinfo[unit].ui_addr) {
+	if	(addr && unit < NDHU && !dhuinfo[unit].ui_addr)
+		{
 		ui = &dhuinfo[unit];
 		ui->ui_unit = unit;
 		ui->ui_addr = addr;
 		ui->ui_alive = 1;
-		return (1);
+		return(1);
+		}
+	return(0);
 	}
-	return (0);
-}
 
 /*
  * Open a DHU11 line, mapping the clist onto the uba if this
@@ -120,179 +108,211 @@ duattach(addr,unit)
 /*ARGSUSED*/
 dhuopen(dev, flag)
 	dev_t dev;
-{
+	int	flag;
+	{
 	register struct tty *tp;
-	register int unit, dhu;
+	int unit, dhu;
 	register struct dhudevice *addr;
 	register struct uba_device *ui;
-	int s;
+	int s, error;
 
 	unit = UNIT(dev);
 	dhu = unit >> 4;
-	if (dev & 0200)
-		dhusoftCAR[dhu] |= (1<<(unit&0xf));
-	else
-		dhusoftCAR[dhu] &= ~(1<<(unit&0xf));
-	if (unit >= NDHULINE || (ui = &dhuinfo[dhu])->ui_alive == 0)
+	if	(unit >= NDHULINE || (ui = &dhuinfo[dhu])->ui_alive == 0)
 		return (ENXIO);
 	tp = &dhu_tty[unit];
-	if (tp->t_state & TS_XCLUDE && u.u_uid != 0)
-		return (EBUSY);
 	addr = (struct dhudevice *)ui->ui_addr;
 	tp->t_addr = (caddr_t)addr;
 	tp->t_oproc = dhustart;
-	/*
-	 * While setting up state for this uba and this dhu,
-	 * block uba resets which can clear the state.
-	 */
-	s = spl5();
-	if ((dhuact&(1<<dhu)) == 0) {
+
+	if	((dhuact&(1<<dhu)) == 0)
+		{
 		addr->dhucsr = DHU_SELECT(0) | DHU_IE;
-		addr->dhutimo = DHU_DEF_TIMO;
+		addr->dhutimo = dhu_def_timo;
 		dhuact |= (1<<dhu);
 		/* anything else to configure whole board */
-	}
-	(void) splx(s);
+		}
 	/*
 	 * If this is first open, initialize tty state to default.
 	 */
-	if ((tp->t_state&TS_ISOPEN) == 0) {
-		ttychars(tp);
-#ifndef PORTSELECTOR
-		if (tp->t_ispeed == 0) {
-#else
+	s = spltty();
+	if	((tp->t_state&TS_ISOPEN) == 0)
+		{
+		tp->t_state |= TS_WOPEN;
+		if	(tp->t_ispeed == 0)
+			{
 			tp->t_state |= TS_HUPCLS;
-#endif PORTSELECTOR
 			tp->t_ispeed = ISPEED;
 			tp->t_ospeed = ISPEED;
 			tp->t_flags = IFLAGS;
-#ifndef PORTSELECTOR
-		}
-#endif PORTSELECTOR
+			}
+		ttychars(tp);
 		tp->t_dev = dev;
+		if	(dev & HWFLOW)
+			tp->t_flags |= RTSCTS;
+		else
+			tp->t_flags &= ~RTSCTS;
 		dhuparam(unit);
-	}
-	/*
-	 * Wait for carrier, then process line discipline specific open.
-	 */
-	s = spl5();
-	if ((dhumctl(dev, (long)DHU_ON, DMSET) & DHU_CAR) ||
-	    (dhusoftCAR[dhu] & (1<<(unit&0xf))))
+		}
+	else if (tp->t_state & TS_XCLUDE && u.u_uid)
+		{
+		error = EBUSY;
+		goto out;
+		}
+/*
+ * Turn the device on.  Wait for carrier (the wait is short if this is a
+ * softcarrier/hardwired line ;-)).  Then do the line discipline specific open.
+*/
+	dhumctl(dev, (long)DHU_ON, DMSET);
+	addr->dhucsr = DHU_SELECT(unit) | DHU_IE;
+	if	((addr->dhustat & DHU_ST_DCD) || (dev & SOFTCAR))
 		tp->t_state |= TS_CARR_ON;
-	while ((tp->t_state & TS_CARR_ON) == 0) {
+	while	((tp->t_state & TS_CARR_ON) == 0 &&
+		 (flag & O_NONBLOCK) == 0)
+		{
 		tp->t_state |= TS_WOPEN;
 		sleep((caddr_t)&tp->t_rawq, TTIPRI);
+		}
+	error = (*linesw[tp->t_line].l_open)(dev, tp);
+out:
+	splx(s);
+	return(error);
 	}
-	(void) splx(s);
-	return ((*linesw[tp->t_line].l_open)(dev, tp));
-}
 
 /*
- * Close a DHU11 line, turning off the modem control.
+ * Close a DHU11 line.  Clear the 'break' state in case it's asserted and 
+ * then drop DTR+RTS.
  */
 /*ARGSUSED*/
 dhuclose(dev, flag)
 	dev_t dev;
 	int flag;
-{
+	{
 	register struct tty *tp;
-	register unit;
+	register int unit;
 
 	unit = UNIT(dev);
 	tp = &dhu_tty[unit];
+/*
+ * Do we need to do this?  Perhaps this should be ifdef'd.  I can't see how
+ * this can happen...
+*/
+	if	(!(tp->t_state & TS_ISOPEN))
+		return(EBADF);
 	(*linesw[tp->t_line].l_close)(tp, flag);
 	(void) dhumctl(unit, (long)DHU_BRK, DMBIC);
-	if ((tp->t_state&(TS_HUPCLS|TS_WOPEN)) || (tp->t_state&TS_ISOPEN)==0)
-#ifdef PORTSELECTOR
-	{
-		extern int wakeup();
-
-		(void) dhumctl(unit, (long)DHU_OFF, DMSET);
-		/* Hold DTR low for 0.5 seconds */
-		timeout(wakeup, (caddr_t) &tp->t_dev, hz/2);
-		sleep((caddr_t) &tp->t_dev, PZERO);
-	}
-#else
-		(void) dhumctl(unit, DHU_OFF, DMSET);
-#endif PORTSELECTOR
+	(void) dhumctl(unit, DHU_OFF, DMSET);
 	ttyclose(tp);
-}
+	if	(dhu_overrun[unit])
+		{
+		log(LOG_NOTICE, "dhu%d %d overruns\n", unit, dhu_overrun[unit]);
+		dhu_overrun[unit] = 0;
+		}
+	return(0);
+	}
+
+dhuselect(dev, rw)
+	dev_t	dev;
+	int	rw;
+	{
+
+	return(ttyselect(&dhu_tty[UNIT(dev)], rw));
+	}
 
 dhuread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
-{
+	{
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
 	return ((*linesw[tp->t_line].l_read)(tp, uio, flag));
-}
+	}
 
 dhuwrite(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
-{
+	{
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
 	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
-}
+	}
 
 /*
  * DHU11 receiver interrupt.
 */
 dhurint(dhu)
 	int dhu;
-{
+	{
 	register struct tty *tp;
-	register c;
+	register int	c;
 	register struct dhudevice *addr;
-	register struct tty *tp0;
-	register struct uba_device *ui;
-	register line;
-	int overrun = 0;
+	struct tty *tp0;
+	struct uba_device *ui;
+	int	line;
 
 	ui = &dhuinfo[dhu];
-	if (ui == 0 || ui->ui_alive == 0)
-		return;
 	addr = (struct dhudevice *)ui->ui_addr;
+	if	(!addr)
+		return;
 	tp0 = &dhu_tty[dhu<<4];
 	/*
 	 * Loop fetching characters from the silo for this
 	 * dhu until there are no more in the silo.
 	*/
-	while ((c = addr->dhurbuf) < 0) {	/* (c & DHU_RB_VALID) == on */
+	while	((c = addr->dhurbuf) < 0)
+		{	/* (c & DHU_RB_VALID) == on */
 		line = DHU_RX_LINE(c);
 		tp = tp0 + line;
-		if ((c & DHU_RB_STAT) == DHU_RB_STAT) {
+		if	((c & DHU_RB_STAT) == DHU_RB_STAT)
+			{
 			/*
 			 * modem changed or diag info
 			 */
-			if (c & DHU_RB_DIAG) {
-				/* decode diagnostic messages */
+			if	(c & DHU_RB_DIAG)
+				{
+				if	((c & 0xff) > 0201)
+					log(LOG_NOTICE,"dhu%d diag %o\n",
+						dhu, c);
 				continue;
-			}
-			if (c & DHU_ST_DCD)
-				(void)(*linesw[tp->t_line].l_modem)(tp, 1);
-			else if ((dhusoftCAR[dhu] & (1<<line)) == 0 &&
-			    (*linesw[tp->t_line].l_modem)(tp, 0) == 0)
-				(void) dhumctl((dhu<<4)|line, DHU_OFF, DMSET);
+				}
+			if	(!(tp->t_dev & SOFTCAR) ||
+				  (tp->t_flags & MDMBUF))
+				(*linesw[tp->t_line].l_modem)(tp,
+						(c & DHU_ST_DCD) != 0);
+			if	(tp->t_flags & RTSCTS)
+				{
+				if	(c & DHU_ST_CTS)
+					{
+					tp->t_state &= ~TS_TTSTOP;
+					ttstart(tp);
+					}
+				else
+					{
+					tp->t_state |= TS_TTSTOP;
+					dhustop(tp, 0);
+					}
+				}
 			continue;
-		}
-		if ((tp->t_state&TS_ISOPEN) == 0) {
+			}
+		if	((tp->t_state&TS_ISOPEN) == 0)
+			{
 			wakeup((caddr_t)&tp->t_rawq);
-#ifdef PORTSELECTOR
-			if ((tp->t_state&TS_WOPEN) == 0)
-#endif
+			continue;
+			}
+		if	(c & DHU_RB_PE)
+			if	((tp->t_flags&(EVENP|ODDP)) == EVENP ||
+				 (tp->t_flags&(EVENP|ODDP)) == ODDP)
 				continue;
-		}
-		if (c & DHU_RB_PE)
-			if ((tp->t_flags&(EVENP|ODDP)) == EVENP ||
-			    (tp->t_flags&(EVENP|ODDP)) == ODDP)
-				continue;
-		if ((c & DHU_RB_DO) && overrun == 0) {
-			printf("dhu%d: silo overflow\n", dhu);
-			overrun = 1;
-		}
-		if (c & DHU_RB_FE)
+		if	(c & DHU_RB_DO)
+			{
+			dhu_overrun[(dhu << 4) + line]++;
+			/* bit bucket the silo to free the cpu */
+			while	(addr->dhurbuf & DHU_RB_VALID)
+				;
+			break;
+			}
+		if	(c & DHU_RB_FE)
+			{
 			/*
 			 * At framing error (break) generate
 			 * a null (in raw mode, for getty), or a
@@ -306,15 +326,18 @@ dhurint(dhu)
 #else
 				c = tp->t_brkc;
 #endif
+			}
 #if NBK > 0
-		if (tp->t_line == NETLDISC) {
+		if	(tp->t_line == NETLDISC)
+			{
 			c &= 0x7f;
 			BKINPUT(c, tp);
-		} else
+			}
+		else
 #endif
 			(*linesw[tp->t_line].l_rint)(c, tp);
+		}
 	}
-}
 
 /*
  * Ioctl for DHU11.
@@ -323,88 +346,83 @@ dhurint(dhu)
 dhuioctl(dev, cmd, data, flag)
 	u_int cmd;
 	caddr_t data;
-{
+	{
 	register struct tty *tp;
 	register int unit = UNIT(dev);
 	int error;
 
 	tp = &dhu_tty[unit];
 	error = (*linesw[tp->t_line].l_ioctl)(tp, cmd, data, flag);
-	if (error >= 0)
-		return (error);
+	if	(error >= 0)
+		return(error);
 	error = ttioctl(tp, cmd, data, flag);
-	if (error >= 0) {
-		if (cmd == TIOCSETP || cmd == TIOCSETN || cmd == TIOCLSET ||
-		    cmd == TIOCLBIC || cmd == TIOCLBIS)
+	if	(error >= 0)
+		{
+		if	(cmd == TIOCSETP || cmd == TIOCSETN || 
+			 cmd == TIOCLSET || cmd == TIOCLBIC || cmd == TIOCLBIS)
 			dhuparam(unit);
-		return (error);
+		return(error);
+		}
+
+	switch	(cmd)
+		{
+		case	TIOCSBRK:
+			(void) dhumctl(unit, (long)DHU_BRK, DMBIS);
+			break;
+		case	TIOCCBRK:
+			(void) dhumctl(unit, (long)DHU_BRK, DMBIC);
+			break;
+		case	TIOCSDTR:
+			(void) dhumctl(unit, (long)DHU_DTR|DHU_RTS, DMBIS);
+			break;
+		case	TIOCCDTR:
+			(void) dhumctl(unit, (long)DHU_DTR|DHU_RTS, DMBIC);
+			break;
+		case	TIOCMSET:
+			(void) dhumctl(dev, dmtodhu(*(int *)data), DMSET);
+			break;
+		case	TIOCMBIS:
+			(void) dhumctl(dev, dmtodhu(*(int *)data), DMBIS);
+			break;
+		case	TIOCMBIC:
+			(void) dhumctl(dev, dmtodhu(*(int *)data), DMBIC);
+			break;
+		case	TIOCMGET:
+			*(int *)data = dhutodm(dhumctl(dev, 0L, DMGET));
+			break;
+		default:
+			return(ENOTTY);
+		}
+	return(0);
 	}
-
-	switch (cmd) {
-	case TIOCSBRK:
-		(void) dhumctl(unit, (long)DHU_BRK, DMBIS);
-		break;
-
-	case TIOCCBRK:
-		(void) dhumctl(unit, (long)DHU_BRK, DMBIC);
-		break;
-
-	case TIOCSDTR:
-		(void) dhumctl(unit, (long)DHU_DTR|DHU_RTS, DMBIS);
-		break;
-
-	case TIOCCDTR:
-		(void) dhumctl(unit, (long)DHU_DTR|DHU_RTS, DMBIC);
-		break;
-
-	case TIOCMSET:
-		(void) dhumctl(dev, dmtodhu(*(int *)data), DMSET);
-		break;
-
-	case TIOCMBIS:
-		(void) dhumctl(dev, dmtodhu(*(int *)data), DMBIS);
-		break;
-
-	case TIOCMBIC:
-		(void) dhumctl(dev, dmtodhu(*(int *)data), DMBIC);
-		break;
-
-	case TIOCMGET:
-		*(int *)data = dhutodm(dhumctl(dev, 0L, DMGET));
-		break;
-	default:
-		return (ENOTTY);
-	}
-	return (0);
-}
 
 static long
 dmtodhu(bits)
 	register int bits;
-{
+	{
 	long b = 0;
 
-	if (bits & DML_RTS) b |= DHU_RTS;
-	if (bits & DML_DTR) b |= DHU_DTR;
-	if (bits & DML_LE) b |= DHU_LE;
+	if	(bits & TIOCM_RTS) b |= DHU_RTS;
+	if	(bits & TIOCM_DTR) b |= DHU_DTR;
+	if	(bits & TIOCM_LE) b |= DHU_LE;
 	return(b);
-}
+	}
 
 static
 dhutodm(bits)
 	long bits;
-{
+	{
 	register int b = 0;
 
-	if (bits & DHU_DSR) b |= DML_DSR;
-	if (bits & DHU_RNG) b |= DML_RNG;
-	if (bits & DHU_CAR) b |= DML_CAR;
-	if (bits & DHU_CTS) b |= DML_CTS;
-	if (bits & DHU_RTS) b |= DML_RTS;
-	if (bits & DHU_DTR) b |= DML_DTR;
-	if (bits & DHU_LE) b |= DML_LE;
+	if	(bits & DHU_DSR) b |= TIOCM_DSR;
+	if	(bits & DHU_RNG) b |= TIOCM_RNG;
+	if	(bits & DHU_CAR) b |= TIOCM_CAR;
+	if	(bits & DHU_CTS) b |= TIOCM_CTS;
+	if	(bits & DHU_RTS) b |= TIOCM_RTS;
+	if	(bits & DHU_DTR) b |= TIOCM_DTR;
+	if	(bits & DHU_LE) b |= TIOCM_LE;
 	return(b);
-}
+	}
 
 /*
  * Set parameters from open or stty into the DHU hardware
@@ -413,7 +431,7 @@ dhutodm(bits)
 static
 dhuparam(unit)
 	register int unit;
-{
+	{
 	register struct tty *tp;
 	register struct dhudevice *addr;
 	register int lpar;
@@ -425,28 +443,30 @@ dhuparam(unit)
 	 * Block interrupts so parameters will be set
 	 * before the line interrupts.
 	 */
-	s = spl5();
-	if ((tp->t_ispeed) == 0) {
+	s = spltty();
+	if	(tp->t_ispeed == 0)
+		{
 		tp->t_state |= TS_HUPCLS;
 		(void)dhumctl(unit, (long)DHU_OFF, DMSET);
-		splx(s);
-		return;
-	}
+		goto out;
+		}
 	lpar = (dhu_speeds[tp->t_ospeed]<<12) | (dhu_speeds[tp->t_ispeed]<<8);
-	if ((tp->t_ispeed) == B134)
+	if	((tp->t_ispeed) == B134)
 		lpar |= DHU_LP_BITS6|DHU_LP_PENABLE;
 	else if (tp->t_flags & (RAW|LITOUT|PASS8))
 		lpar |= DHU_LP_BITS8;
 	else
 		lpar |= DHU_LP_BITS7|DHU_LP_PENABLE;
-	if (tp->t_flags&EVENP)
+	if	(tp->t_flags&EVENP)
 		lpar |= DHU_LP_EPAR;
-	if ((tp->t_ospeed) == B110)
+	if	((tp->t_ospeed) == B110)
 		lpar |= DHU_LP_TWOSB;
 	addr->dhucsr = DHU_SELECT(unit) | DHU_IE;
 	addr->dhulpr = lpar;
+out:
 	splx(s);
-}
+	return;
+	}
 
 /*
  * DHU11 transmitter interrupt.
@@ -455,11 +475,11 @@ dhuparam(unit)
  */
 dhuxint(dhu)
 	int dhu;
-{
+	{
 	register struct tty *tp;
 	register struct dhudevice *addr;
-	register struct tty *tp0;
-	register struct uba_device *ui;
+	struct tty *tp0;
+	struct uba_device *ui;
 	register int line, t;
 	u_short cntr;
 	ubadr_t	base;
@@ -467,17 +487,20 @@ dhuxint(dhu)
 	ui = &dhuinfo[dhu];
 	tp0 = &dhu_tty[dhu<<4];
 	addr = (struct dhudevice *)ui->ui_addr;
-	while ((t = addr->dhucsrh) & DHU_CSH_TI) {
+	while	((t = addr->dhucsrh) & DHU_CSH_TI)
+		{
 		line = DHU_TX_LINE(t);
 		tp = tp0 + line;
 		tp->t_state &= ~TS_BUSY;
-		if (t & DHU_CSH_NXM) {
-			printf("dhu(%d,%d): NXM fault\n", dhu, line);
+		if	(t & DHU_CSH_NXM)
+			{
+			log(LOG_NOTICE, "dhu%d,%d NXM\n", dhu, line);
 			/* SHOULD RESTART OR SOMETHING... */
-		}
-		if (tp->t_state&TS_FLUSH)
+			}
+		if	(tp->t_state&TS_FLUSH)
 			tp->t_state &= ~TS_FLUSH;
-		else {
+		else	
+			{
 			addr->dhucsrl = DHU_SELECT(line) | DHU_IE;
 			base = (ubadr_t) addr->dhubar1;
 			/*
@@ -489,96 +512,86 @@ dhuxint(dhu)
 			 *
 			 * In either case, the extension bits are 0.
 			*/
-			if (!ubmap)
+			if	(!ubmap)
 				base |= (ubadr_t)((addr->dhubar2 & 037) << 16);
 			cntr = base - cpaddr(tp->t_outq.c_cf);
-			ndflush(&tp->t_outq,cntr);
-		}
-		if (tp->t_line)
+			ndflush(&tp->t_outq, cntr);
+			}
+		if	(tp->t_line)
 			(*linesw[tp->t_line].l_start)(tp);
 		else
 			dhustart(tp);
+		}
 	}
-}
 
 /*
  * Start (restart) transmission on the given DHU11 line.
  */
 dhustart(tp)
 	register struct tty *tp;
-{
+	{
 	register struct dhudevice *addr;
 	register int unit, nch;
 	ubadr_t car;
 	int s;
 
-	unit = minor(tp->t_dev);
-	unit &= 0xf;
+	unit = UNIT(tp->t_dev);
 	addr = (struct dhudevice *)tp->t_addr;
 
-	/*
-	 * Must hold interrupts in following code to prevent
-	 * state of the tp from changing.
-	 */
-	s = spl5();
+	s = spltty();
 	/*
 	 * If it's currently active, or delaying, no need to do anything.
 	 */
-	if (tp->t_state&(TS_TIMEOUT|TS_BUSY|TS_TTSTOP))
+	if	(tp->t_state&(TS_TIMEOUT|TS_BUSY|TS_TTSTOP))
 		goto out;
 	/*
 	 * If there are sleepers, and output has drained below low
 	 * water mark, wake up the sleepers..
 	 */
-	if (tp->t_outq.c_cc<=TTLOWAT(tp)) {
-		if (tp->t_state&TS_ASLEEP) {
-			tp->t_state &= ~TS_ASLEEP;
-			wakeup((caddr_t)&tp->t_outq);
-		}
-		if (tp->t_wsel) {
-			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
-			tp->t_wsel = 0;
-			tp->t_state &= ~TS_WCOLL;
-		}
-	}
+	ttyowake(tp);
+
 	/*
 	 * Now restart transmission unless the output queue is
 	 * empty.
 	 */
-	if (tp->t_outq.c_cc == 0)
+	if	(tp->t_outq.c_cc == 0)
 		goto out;
-	if (tp->t_flags & (RAW|LITOUT))
-		nch = ndqb(&tp->t_outq, 0);
-	else {
-		nch = ndqb(&tp->t_outq, 0200);
-		/*
-		 * If first thing on queue is a delay process it.
-		 */
-		if (nch == 0) {
-			nch = getc(&tp->t_outq);
-			timeout(ttrstrt, (caddr_t)tp, (nch&0x7f)+6);
-			tp->t_state |= TS_TIMEOUT;
-			goto out;
+	addr->dhucsrl = DHU_SELECT(unit) | DHU_IE;
+/*
+ * If CTS is off and we're doing hardware flow control then mark the output
+ * as stopped and do not transmit anything.
+*/
+	if	((addr->dhustat & DHU_ST_CTS) == 0 && (tp->t_flags & RTSCTS))
+		{
+		tp->t_state |= TS_TTSTOP;
+		goto out;
 		}
-	}
+/*
+ * This is where any per character delay handling for special characters 
+ * would go if ever implemented again.  The call to ndqb would be replaced
+ * with a scan for special characters and then the appropriate sleep/wakeup
+ * done.
+*/
+	nch = ndqb(&tp->t_outq, 0);
 	/*
 	 * If characters to transmit, restart transmission.
 	 */
-	if (nch) {
+	if	(nch)
+		{
 		car = cpaddr(tp->t_outq.c_cf);
 		addr->dhucsrl = DHU_SELECT(unit) | DHU_IE;
 		addr->dhulcr &= ~DHU_LC_TXABORT;
 		addr->dhubcr = nch;
 		addr->dhubar1 = loint(car);
-		if (ubmap)
+		if	(ubmap)
 			addr->dhubar2 = (hiint(car) & DHU_BA2_XBA) | DHU_BA2_DMAGO;
 		else
 			addr->dhubar2 = (hiint(car) & 037) | DHU_BA2_DMAGO;
 		tp->t_state |= TS_BUSY;
-	}
+		}
 out:
 	splx(s);
-}
+	}
 
 /*
  * Stop output on a line, e.g. for ^S/^Q or output flush.
@@ -586,7 +599,7 @@ out:
 /*ARGSUSED*/
 dhustop(tp, flag)
 	register struct tty *tp;
-{
+	{
 	register struct dhudevice *addr;
 	register int unit, s;
 
@@ -594,8 +607,9 @@ dhustop(tp, flag)
 	/*
 	 * Block input/output interrupts while messing with state.
 	 */
-	s = spl5();
-	if (tp->t_state & TS_BUSY) {
+	s = spltty();
+	if	(tp->t_state & TS_BUSY)
+		{
 		/*
 		 * Device is transmitting; stop output
 		 * by selecting the line and setting the
@@ -605,14 +619,14 @@ dhustop(tp, flag)
 		 * TS_FLUSH is set, the outq will be flushed.
 		 * In either case, dhustart will clear the TXABORT bit.
 		 */
-		unit = minor(tp->t_dev);
+		unit = UNIT(tp->t_dev);
 		addr->dhucsrl = DHU_SELECT(unit) | DHU_IE;
 		addr->dhulcr |= DHU_LC_TXABORT;
-		if ((tp->t_state&TS_TTSTOP)==0)
+		if	((tp->t_state&TS_TTSTOP)==0)
 			tp->t_state |= TS_FLUSH;
-	}
+		}
 	(void) splx(s);
-}
+	}
 
 /*
  * DHU11 modem control
@@ -622,42 +636,39 @@ dhumctl(dev, bits, how)
 	dev_t dev;
 	long bits;
 	int how;
-{
+	{
 	register struct dhudevice *dhuaddr;
-	register int unit;
+	register int unit, line;
 	long mbits;
 	int s;
 
 	unit = UNIT(dev);
 	dhuaddr = (struct dhudevice *)(dhu_tty[unit].t_addr);
-	unit &= 0xf;
-	s = spl5();
-	dhuaddr->dhucsr = DHU_SELECT(unit) | DHU_IE;
+	line = unit & 0xf;
+	s = spltty();
+	dhuaddr->dhucsr = DHU_SELECT(line) | DHU_IE;
 	/*
 	 * combine byte from stat register (read only, bits 16..23)
 	 * with lcr register (read write, bits 0..15).
 	 */
 	mbits = (u_short)dhuaddr->dhulcr | ((long)dhuaddr->dhustat << 16);
-	switch (how) {
-
-	case DMSET:
-		mbits = (mbits & 0xff0000L) | bits;
-		break;
-
-	case DMBIS:
-		mbits |= bits;
-		break;
-
-	case DMBIC:
-		mbits &= ~bits;
-		break;
-
-	case DMGET:
-		(void) splx(s);
-		return(mbits);
-	}
-	dhuaddr->dhulcr = (mbits & 0xffff) | DHU_LC_RXEN;
+	switch	(how)
+		{
+		case	DMSET:
+			mbits = (mbits & 0xff0000L) | bits;
+			break;
+		case	DMBIS:
+			mbits |= bits;
+			break;
+		case	DMBIC:
+			mbits &= ~bits;
+			break;
+		case	DMGET:
+			goto out;
+		}
+	dhuaddr->dhulcr = (mbits & 0xffffL) | DHU_LC_RXEN;
 	dhuaddr->dhulcr2 = DHU_LC2_TXEN;
+out:
 	(void) splx(s);
 	return(mbits);
 }

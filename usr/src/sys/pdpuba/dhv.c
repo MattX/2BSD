@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhv.c	2.3 (2.11BSD 2.11BSD) 1997/5/1
+ *	@(#)dhv.c	2.4 (2.11BSD 2.11BSD) 1997/5/31
  */
 
 /*
@@ -202,8 +202,8 @@ dhvclose(dev, flag)
 
 	unit = UNIT(dev);
 	tp = &dhv_tty[unit];
-	if	(!(tp->t_state & TS_ISOPEN))
-		return;
+	if	(!(tp->t_state & (TS_WOPEN|TS_ISOPEN)))
+		return(0);
 	(*linesw[tp->t_line].l_close)(tp, flag);
 	(void) dhvmctl(unit, (long)DHV_BRK, DMBIC);
 	(void) dhvmctl(unit, (long)DHV_OFF, DMSET);
@@ -281,7 +281,7 @@ dhvrint(dhv)
 			if	(c & DHV_RB_DIAG)
 				{
 				if	((c & 0xff) > 0201)
-					printf ("dhv%d: diag %o\n",dhv, c&0xff);
+					log(LOG_NOTICE,"dhv%d diag %o\n",dhv, c&0xff);
 			    	continue;
 				}
 			if	(!(tp->t_dev & SOFTCAR) || 
@@ -533,7 +533,7 @@ dhvxint(dhv)
 		tp->t_state &= ~TS_BUSY;
 		if	(t & DHV_CSH_NXM)
 			{
-			printf("dhv(%d,%d) NXM\n", dhv, line);
+			log(LOG_NOTICE, "dhv%d,%d NXM\n", dhv, line);
 			/* SHOULD RESTART OR SOMETHING... */
 			}
 		if	(tp->t_state&TS_FLUSH)

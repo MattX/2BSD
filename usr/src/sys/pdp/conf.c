@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	3.0 (2.11BSD GTE) 1997/1/30
+ *	@(#)conf.c	3.1 (2.11BSD GTE) 1997/5/31
  */
 
 #include "param.h"
@@ -230,6 +230,7 @@ int	lpopen(), lpclose(), lpwrite();
 #include "dh.h"
 #if NDH > 0
 int	dhopen(), dhclose(), dhread(), dhwrite(), dhioctl(), dhstop();
+int	dhselect();
 extern struct tty	dh11[];
 #else
 #define	dhopen		nodev
@@ -238,6 +239,7 @@ extern struct tty	dh11[];
 #define	dhwrite		nodev
 #define	dhioctl		nodev
 #define	dhstop		nodev
+#define	dhselect	nodev
 #define	dh11		((struct tty *) NULL)
 #endif
 
@@ -290,6 +292,7 @@ int	dropen(), drclose(), drioctl(), drstrategy();
 #include "dhu.h"
 #if NDHU > 0
 int	dhuopen(), dhuclose(), dhuread(), dhuwrite(), dhuioctl(), dhustop();
+int	dhuselect();
 extern struct tty	dhu_tty[];
 #else
 #define	dhuopen		nodev
@@ -298,6 +301,7 @@ extern struct tty	dhu_tty[];
 #define	dhuwrite	nodev
 #define	dhuioctl	nodev
 #define	dhustop		nodev
+#define	dhuselect	nodev
 #define	dhu_tty		((struct tty *) NULL)
 #endif
 
@@ -368,11 +372,11 @@ struct cdevsw	cdevsw[] = {
 	nulldev,
 /* dh = 3 */
 	dhopen,		dhclose,	dhread,		dhwrite,
-	dhioctl,	dhstop,		dh11,		ttselect,
+	dhioctl,	dhstop,		dh11,		dhselect,
 	nulldev,
 /* dhu = 4 */
 	dhuopen,	dhuclose,	dhuread,	dhuwrite,
-	dhuioctl,	dhustop,	dhu_tty,	ttselect,
+	dhuioctl,	dhustop,	dhu_tty,	dhuselect,
 	nulldev,
 /* lp = 5 */
 	lpopen,		lpclose,	nodev,		lpwrite,

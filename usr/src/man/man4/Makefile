@@ -14,16 +14,18 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.2 (2.11BSD) 1997/2/4
+#	@(#)Makefile	5.4.3 (2.11BSD) 1997/5/31
 #
 DESTDIR=
 MDIR=	${DESTDIR}/usr/man/cat4
-SRCS=	acc.4 arp.4 bk.4 br.4 cons.4 css.4 de.4 dh.4 dhu.4 dmc.4 dr.4 dz.4  \
+SRCS=	acc.4 arp.4 bk.4 br.4 cons.4 css.4 de.4 dh.4 dhu.4 dhv.4 \
+	dmc.4 dr.4 dz.4  \
 	ec.4 en.4 fd.4 hk.4 ht.4 hy.4 icmp.4 idp.4 il.4 imp.4 impconf.4 inet.4 \
 	intro.4 ip.4 lo.4 lp.4 mem.4 mtio.4 networking.4 ns.4 nsip.4 \
 	null.4 pty.4 qe.4 ra.4 ram.4 rk.4 rl.4 rx.4 si.4 spp.4 sri.4 \
 	swap.4 tb.4 tcp.4 tm.4 tmscp.4 ts.4 tty.4 udp.4 vv.4 xp.4
-OBJS=	acc.0 arp.0 bk.0 br.0 cons.0 css.0 de.0 dh.0 dhu.0 dmc.0 dr.0 \
+OBJS=	acc.0 arp.0 bk.0 br.0 cons.0 css.0 de.0 dh.0 dhu.0 dhv.0 \
+	dmc.0 dr.0 \
 	dz.0 ec.0 en.0 fd.0 hk.0 ht.0 hy.0 icmp.0 idp.0 il.0 imp.0 impconf.0 \
 	inet.0 intro.0 ip.0 lo.0 lp.0 mem.0 mtio.0 networking.0 ns.0 \
 	nsip.0 null.0 pty.0 qe.0 ra.0 ram.0 rk.0 rl.0 rx.0 si.0 spp.0 \
