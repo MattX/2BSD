@@ -4,7 +4,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)MAKEDEV	4.27.1 (2.11BSD GTE) 2/14/95
+#	@(#)MAKEDEV	4.27.2 (2.11BSD GTE) 1995/06/17
 #
 # Device "make" file.  Valid arguments:
 #	std	standard devices
@@ -123,14 +123,13 @@ ht*|tm*|ts*|tu*)
 	umask 77
 	;;
 
-rk*|rl*)
-	# The 2.10BSD rk and rl drivers don't support partitions.  We create
+rk*)
+	# The 2.11BSD rk driver doesn't support partitions.  We create
 	# a single block and charater inode pair for each unit and
-	# call it rkNh and rlNh.
+	# call it rkNh.
 	umask 2 ; unit=`expr $i : '..\(.*\)'`
 	case $i in
 	rk*) name=rk; blk=6; chr=15;;
-	rl*) name=rl; blk=7; chr=16;;
 	esac
 	/etc/mknod ${name}${unit}h b ${blk} ${unit}
 	/etc/mknod r${name}${unit}h c ${chr} ${unit}
@@ -164,7 +163,7 @@ ram*)
 	umask 77
 	;;
 
-br*|hk*|ra*|si*|xp*)
+br*|hk*|ra*|si*|xp*|rl*)
 	umask 2 ; unit=`expr $i : '..\(.*\)'`
 	case $i in
 	br*) name=rp; blk=11; chr=20;;
@@ -172,6 +171,7 @@ br*|hk*|ra*|si*|xp*)
 	ra*) name=ra; blk=5; chr=14;;
 	si*) name=si; blk=9; chr=18;;
 	xp*) name=xp; blk=10; chr=19;;
+	rl*) name=rl; blk=7; chr=16;;
 	esac
 	case $unit in
 	0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|\
