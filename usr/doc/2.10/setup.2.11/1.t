@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)1.t	2.3 (GTE) 1995/06/13
+.\"	@(#)1.t	2.4 (GTE) 1995/11/27
 .\"
 .ds lq ``
 .ds rq ''
@@ -181,7 +181,7 @@ _
 0	512	1	primary tape boot block
 	512	1	boot block (some tape boot ROMs go for this copy)
 	512	14	standalone \fBboot\fP program
-1	512	23	standalone \fBdisklabel\fP
+1	1024	23	standalone \fBdisklabel\fP
 2	1024	28	standalone \fBmkfs\fP(8)
 3	1024	27	standalone \fBrestor\fP(8)
 4	1024	26	standalone \fBicheck\fP(8)
