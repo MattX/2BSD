@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rl.4	6.2 (Berkeley) 8/20/87
+.\"	@(#)rl.4	6.2.1 (2.11BSD) 1995/06/17
 .\"
 .TH RL 4 "August 20, 1987"
 .UC 2
@@ -24,15 +24,11 @@ major device number(s):
 	raw: 16
 	block: 7
 minor device encoding:
-	specifies drive: <rl_drive>
+	bits 0007 specify partition of RL drive
+	bits 0070 specify RL drive
 .fi
 .ft R
 .SH DESCRIPTION
-Minor device numbers are drive numbers on one controller.
-The standard device names begin with ``rl'' followed by
-the drive number and then the letter "h".
-The character ? stands here for a drive number in the range 0-3.
-.PP
 The block files access the disk via the system's normal
 buffering mechanism and may be read and written without regard to
 physical disk records.  There is also a `raw' interface
@@ -49,22 +45,17 @@ Likewise
 .I seek
 calls should specify a multiple of 512 bytes.
 .SH "DISK SUPPORT"
-The
-.I rl
-driver does not support pseudo-disks (partitions).  Each file
-.I rl?h
-refers to the entire drive as a single sequentially addressed
-file.  The RL01 drives are each 10240 blocks long
+The RL01 drives are each 10240 blocks long
 and the RL02 drives are 20480 blocks long.
 .PP
-On a dual RL02 system
-one drive would be used for root and /usr
-while the other would be used for swap.
+On a RL02 there is room for a full sized root ('a') partition and a
+reasonable sized swap ('b') partition.  The RL01 can only (realistically)
+have a single 5mb partition.
 .SH FILES
 .ta \w'/dev/MAKEDEV.local  'u
-/dev/rl[0-3]h	block files
+/dev/rl[0-3][a-h]	block files
 .br
-/dev/rrl[0-3]h	raw files
+/dev/rrl[0-3][a-h]	raw files
 .br
 /dev/MAKEDEV	script to create special files
 .br

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ra.4	6.2 (Berkeley) 9/6/87
+.\"	@(#)ra.4	6.2.1 (2.11BSD) 1995/06/17
 .\"
 .TH RA 4 "September 6, 1987"
 .UC 2
@@ -65,146 +65,13 @@ Likewise
 calls should specify a multiple of 512 bytes.
 .SH "DISK SUPPORT"
 This driver configures the drive type of each drive
-when it is first opened.
-A partition table in the driver is required for each type of disk.
-The origin and size (in sectors) of the pseudo-disks
-on each drive are shown below.
-Not all partitions begin on
-cylinder boundaries, as on other drives, because previous drivers
-used one partition table for all drive types.
-Variants of the partition tables are common;
-check the driver and the file
-.I /etc/disktab
-.RI ( disktab (5))
-for other possibilities.
-.nf
-.ta .5i +\w'disk  'u +\w'000000  'u +\w'000000  'u +\w'000000  'u
-.PP
-.ne 10
-RC25 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 25915	 10032	swap
-	ra?c	 25916	 50799	 24884	/usr
-	ra?d	unused
-	ra?e	unused
-	ra?f	unused
-	ra?g	unused
-	ra?h	     0	 50799	 50800	whole disk
-.PP
-.ne 10
-RX33/50 partitions
-	disk	 start	   end	length	comments
-	ra?a	unusable
-	ra?b	unusable
-	ra?c	unusable
-	ra?d	unusable
-	ra?e	unusable
-	ra?f	unusable
-	ra?g	unusable
-	ra?h	     0	  1637	  1638	whole disk
-.PP
-.ne 10
-RD51 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	  9699	  9700
-	ra?b	 unusable
-	ra?c	 unusable
-	ra?d	 unusable
-	ra?e	     0	  7459	  7460	/
-	ra?f	  7460	  9699	  2240	swap
-	ra?g	  9700	 21567	 11868	/usr
-	ra?h	     0	 21567	 21568	whole disk
-.PP
-.ne 10
-RD52 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	  9699	  9700	/
-	ra?b	  9700	 26999	 17300
-	ra?c	 27000	 30099	  3100	swap
-	ra?d	 30100	 60447	 30348	/usr
-	ra?e	     0	  7459	  7460
-	ra?f	  7460	  9699	  2240
-	ra?g	  9700	 60447	 50748
-	ra?h	     0	 60447	 60448  whole disk
-.PP
-.ne 10
-RD53 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	  9699	  9700	/
-	ra?b	  9700	 26999	 17300
-	ra?c	 27000	 30099	  3100	swap
-	ra?d	 30100	138639	108540	/usr
-	ra?e	     0	  7459	  7460
-	ra?f	  7460	  9699	  2240
-	ra?g	  9700	138639	128940
-	ra?h	     0	138639	138640	whole disk
-.PP
-.ne 10
-RD54 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 32603	 16720  swap
-	ra?c	 32604  331167  298564  /usr
-	ra?d	 unused
-	ra?e	 unused
-	ra?f	 unused
-	ra?g	 unused
-	ra?h	     0	331167	331168	whole disk
-.PP
-.ne 10
-RA60 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 49323	 33440	swap
-	ra?c	 49324	242605	193282	/usr
-	ra?d	242606	258489	 15884
-	ra?e	258490	399175	140686
-	ra?f	unused
-	ra?g	242606	399175	156570
-	ra?h	     0	399175	399176	whole disk
-.PP
-.ne 10
-RA80 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 49323	 33440	swap
-	ra?c	 49324	236211	186888	/usr
-	ra?d	unused
-	ra?e	unused
-	ra?f	unused
-	ra?g	unused
-	ra?h	0	236211	236212	whole disk
-.PP
-.ne 10
-RA81 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 49323	 33440	swap
-	ra?c	 49324	242605	193282	/usr
-	ra?d	242606	258489	 15884
-	ra?e	258490	565689	307200
-	ra?f	565690	890071	324382
-	ra?g	242606	890071	647466
-	ra?h	     0	890071	890072	whole disk
-.PP
-.ne 10
-RA82 partitions
-	disk	 start	   end	length	comments
-	ra?a	     0	 15883	 15884	/
-	ra?b	 15884	 32603	 16720	swap
-	ra?c	 32604	336313	303710	/usr
-	ra?d	336314	640023	303710
-	ra?e	640024	943733	303710
-	ra?f	943734 1247443	303710
-	ra?g	unused
-	ra?h	     0 1247449 1247450	whole disk
-.DT
-.fi
+when it is first opened.  Partition information is read from the disklabel.
+If there is no label or the label is corrupt then the 'a' partition is
+used to span the entire drive.
 .PP
 The ra?a partition is normally used for the root file system,
 the ra?b partition as a swap area,
-and the ra?h partition for pack-pack copying (it maps the entire disk).
+and the ra?c partition for pack-pack copying (it maps the entire disk).
 .SH FILES
 .ta \w'/dev/MAKEDEV.local  'u
 /dev/ra[0-7][a-h]
@@ -223,7 +90,8 @@ rx(4),
 si(4),
 xp(4),
 dtab(5),
-autoconfig(8)
+autoconfig(8),
+disklabel(8)
 .SH DIAGNOSTICS
 .BR "rasa %o, state %d" .
 (Additional status information given after a hard i/o error.)
@@ -281,8 +149,3 @@ in programs that are likely to access raw devices,
 and
 .IR lseek (2)
 should always deal in 512-byte multiples.
-.PP
-The partition tables attempt to combine compatibility
-with previous drivers and functionality; this is impossible.
-The best solution would be to read the partition tables
-off the drive.
