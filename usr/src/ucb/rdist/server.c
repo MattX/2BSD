@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)server.c	5.3.1 (2.11BSD) 1995/05/09";
+static char sccsid[] = "@(#)server.c	5.3.2 (2.11BSD) 1995/05/16";
 #endif
 
 #include "defs.h"
@@ -289,13 +289,15 @@ sendf(rname, opts)
 
 	if (pw == NULL || pw->pw_uid != stb.st_uid)
 		if ((pw = getpwuid(stb.st_uid)) == NULL) {
-			log(lfp, "%s: no password entry for uid \n", target);
+			log(lfp, "%s: no password entry for uid %d\n",
+				target, stb.st_uid);
 			pw = NULL;
 			sprintf(user, ":%d", stb.st_uid);
 		}
 	if (gr == NULL || gr->gr_gid != stb.st_gid)
 		if ((gr = getgrgid(stb.st_gid)) == NULL) {
-			log(lfp, "%s: no name for group %d\n", target);
+			log(lfp, "%s: no name for group %d\n",
+				target, stb.st_gid);
 			gr = NULL;
 			sprintf(group, ":%d", stb.st_gid);
 		}
