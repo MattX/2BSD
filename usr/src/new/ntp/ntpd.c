@@ -1,9 +1,12 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *rcsid = "$Source: /usr/src/new/ntp/ntpd.c,v $ $Revision: 3.4.1.10 $ $Date: 95/01/27 17:20:17 $";
+static char *rcsid = "$Source: /usr/src/new/ntp/ntpd.c,v $ $Revision: 3.4.1.11 $ $Date: 95/01/31 20:35:17 $";
 #endif	lint
 
 /*
  *  $Log:	ntpd.c,v $
+ * Revision 3.4.1.11 95/01/31 20:35:17 sms
+ * Fix missing initializer before calling sysctl().
+ *
  * Revision 3.4.1.10 95/01/27 17:20:17 sms
  * 2.11BSD - remove SETTICKADJ from ntpd.c.  This was done for several reasons:
  * 1) tickadj does not (and never has) existed, 2) this is an old version and
@@ -1032,6 +1035,7 @@ init_kern_vars() {
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_CLOCKRATE;
+	size = sizeof (struct clockinfo);
 	if	(sysctl(mib, 2, &cinfo, &size, NULL, 0) < 0)
 		{
 		syslog(LOG_ERR, "sysctl() for kern.clockrate: %m\n");
