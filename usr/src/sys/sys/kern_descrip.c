@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_descrip.c	1.4 (2.11BSD GTE) 1997/1/30
+ *	@(#)kern_descrip.c	1.5 (2.11BSD) 1999/3/9
  */
 
 #include "param.h"
@@ -131,7 +131,7 @@ fcntl()
 
 	case F_SETFL:
 		fp->f_flag &= ~FCNTLFLAGS;
-		fp->f_flag |= (FFLAGS(uap->arg)) & ~FCNTLFLAGS;
+		fp->f_flag |= (FFLAGS(uap->arg)) & FCNTLFLAGS;
 		u.u_error = fset(fp, FNONBLOCK, fp->f_flag & FNONBLOCK);
 		if (u.u_error)
 			break;
