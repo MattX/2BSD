@@ -1,6 +1,6 @@
 #define	TMSDEBUG	1
 
-/*	@(#)tmscp.c	1.9 (2.11BSD GTE) 1998/2/1 */
+/*	@(#)tmscp.c	1.10 (2.11BSD GTE) 1998/3/7 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -31,6 +31,12 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
  * tmscp.c - TMSCP (TK50/TU81) tape device driver
  * 
  * Modification History:
+ *
+ * 07-Mar-98 - sms
+ *	Fix a bug that caused EOM to be 'sticky'.  Once EndOfMedia was detected
+ *	the only way to clear it was to unload and reload the tape.  Remove
+ *	unused flag definitions.  Only use a single 'written' flag instead of
+ *	two (one in tms_flags and another in Tflags).
  *
  * 01-Feb-98 - sms
  *	Initially the thought was the driver was broken sometime around June
@@ -263,17 +269,14 @@ struct	tms_info tms_info[NTMS];		/* Drive info */
 
 #define	_SEREX		0x0001		/* Serious Exception exists */
 #define	_CLSEREX	0x0002		/* Do Clear Serious Exception */
-#define	_EOM		0x0004		/* At End Of Media */
-#define	_BOM		0x0008		/* At Beginning Of Media */
-#define	_WRITTEN	0x0010		/* Tape has been Written */
-#define	_LOST		0x0020		/* Position lost error happened */
-#define	_BUFMARK	0x0040		/* Encountered a tape mark */
-#define	_HASCACHE	0x0080		/* Drive has cache capability */
-#define	_CACHE_ON	0x0100		/* Cache enabled */
-#define	_CACHE_LOST	0x0200		/* Cache data loss has happened */
-#define	_CACHE_WRITTEN	0x0400		/* Cache has been written */
-#define	_INUSE		0x0800		/* Drive is in use */
-#define	_ONLINE		0x1000		/* Drive is online */
+#define	_LOST		0x0004		/* Position lost error happened */
+#define	_BUFMARK	0x0008		/* Encountered a tape mark */
+#define	_HASCACHE	0x0010		/* Drive has cache capability */
+#define	_CACHE_ON	0x0020		/* Cache enabled */
+#define	_CACHE_LOST	0x0040		/* Cache data loss has happened */
+#define	_CACHE_WRITTEN	0x0080		/* Cache has been written */
+#define	_INUSE		0x0100		/* Drive is in use */
+#define	_ONLINE		0x0200		/* Drive is online */
 
 /*
  * Internal (ioctl) command codes (these must also be declared in the
@@ -751,10 +754,9 @@ tmscpclose(dev, flag)
 			tms->Tflags &= ~_CACHE_WRITTEN;
 			}
 		}
-	tms->tms_flags &= ~MTF_CSE;
-	if	(tms->Tflags & _WRITTEN)
+	if	(tms->tms_flags & MTF_WRITTEN)
 		tms_wrteof(dev, tms);
-	tms->Tflags &= ~(_WRITTEN | _BUFMARK | _INUSE);
+	tms->Tflags &= ~(_BUFMARK | _INUSE);
 	if	((dev & T_NOREWIND) == 0)
 		{
 		tmscpcommand(dev, TMS_REW, 0);
@@ -1293,10 +1295,12 @@ tmscpstrategy (bp)
 		return;
 		}
 /*
- * If we're at the end of the tape and no Clear Serious Exception has been
- * done then return an error rather than reading off the end of the tape.
+ * If we're at the end of the tape and this is not an 'ioctl' command
+ * then return an error rather than reading or writing off the end of the tape.
+ * Ioctl commands are allowed to proceed so that tapemarks can be written and
+ * repositioning (rewind, etc) can be done.
 */
-	if	((tms->tms_flags & MTF_CSE) == 0 && (tms->tms_flags & MTF_EOM))
+	if	((tms->tms_flags & MTF_EOM) && bp != &sc->sc_cmdbuf)
 		{
 		bp->b_resid = bp->b_bcount;
 		bp->b_error = ENOSPC;
@@ -1575,8 +1579,7 @@ tms_cache_cmn(sc, tms, mp)
 
 	if	(tms->Tflags & _CACHE_LOST)
 		{
-		if	(!(tms->Tflags & _CACHE_WRITTEN) || 
-			   (tms->tms_flags & MTF_CSE))
+		if	(!(tms->Tflags & _CACHE_WRITTEN))
 			{
 			tms->Tflags &= ~(_CACHE_LOST | _CACHE_WRITTEN);
 			mp->mscp_modifier |= M_MD_CDATL;
@@ -1602,7 +1605,7 @@ tms_repos_em(mp, sc)
 	if	(em_status == M_ST_SUCC)
 		{
 		if	(tms->tms_position != mp->mscp_position)
-			tms->Tflags &= ~_WRITTEN;
+			tms->tms_flags &= ~MTF_WRITTEN;
 		if	(tms->tms_position = mp->mscp_position)
 			tms->tms_flags &= ~MTF_BOM;
 		else
@@ -1653,7 +1656,7 @@ tms_wtm_em(mp, sc)
 
 	if	(em_status == M_ST_SUCC)
 		{
-		tms->Tflags &= ~_WRITTEN;
+		tms->tms_flags &= ~MTF_WRITTEN;
 		tms->tms_position = mp->mscp_position;
 		}
 	(void)tms_check_ret(mp, sc);
@@ -1751,10 +1754,7 @@ tms_rw_em(mp, sc)
 	if	(em_status == M_ST_SUCC)
 		{
 		if	((tms->tms_endcode & ~M_OP_END) == M_OP_WRITE)
-			{
-			tms->Tflags |= _WRITTEN;
 			tms->tms_flags |= MTF_WRITTEN;
-			}
 		else
 			tms->Tflags &= ~_CACHE_WRITTEN;
 		}

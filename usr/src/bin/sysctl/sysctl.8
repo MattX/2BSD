@@ -29,7 +29,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)sysctl.8	8.1.3 (2.11BSD GTE) 1998/1/29
+.\"	@(#)sysctl.8	8.1.4 (2.11BSD GTE) 1998/4/3
 .\"
 .TH SYSCTL 8 "June 6, 1993"
 .UC 4
@@ -138,6 +138,7 @@ privilege can change the value.
 	kern.boottime	struct	no
 	vm.loadavg	struct	no
 	machdep.console_device	dev_t	no
+	machdep.mscp.printf	integer	yes
 	machdep.tmscp.cache	integer	yes
 	machdep.tmscp.printf	integer	yes
 	net.inet.ip.forwarding	integer	yes

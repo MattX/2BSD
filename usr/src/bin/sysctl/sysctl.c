@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)sysctl.c	8.1.3 (2.11BSD GTE) 1995/10/11";
+static char sccsid[] = "@(#)sysctl.c	8.1.4 (2.11BSD GTE) 1998/4/3";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -302,6 +302,12 @@ parse(string, flags)
 				goto doit;
 			return;
 		}
+		if (mib[1] == CPU_MSCP) {
+			len = sysctl_mscp(string, &bufp, mib, flags, &type);
+			if (len >= 0)
+				goto doit;
+			return;
+		}
 		break;
 
 	case CTL_FS:
@@ -439,6 +445,9 @@ doit:
 struct	ctlname tmscpname[]  = TMSCP_NAMES;
 struct	list tmscplist = { tmscpname, TMSCP_MAXID };
 
+struct	ctlname mscpname[]  = MSCP_NAMES;
+struct	list mscplist = { mscpname, MSCP_MAXID };
+
 /*
  * Handle machdep.tmscp.x 
 */
@@ -459,6 +468,29 @@ sysctl_tmscp(string, bufpp, mib, flags, typep)
 		return (-1);
 	mib[2] = indx;
 	*typep = tmscpname[indx].ctl_type;
+	return (3);
+}
+
+/*
+ * Handle machdep.mscp.x 
+*/
+sysctl_mscp(string, bufpp, mib, flags, typep)
+	char *string;
+	char **bufpp;
+	int mib[];
+	int flags;
+	int *typep;
+{
+	int indx;
+
+	if (*bufpp == NULL) {
+		listall(string, &mscplist);
+		return (-1);
+	}
+	if ((indx = findname(string, "third", bufpp, &mscplist)) == -1)
+		return (-1);
+	mib[2] = indx;
+	*typep = mscpname[indx].ctl_type;
 	return (3);
 }
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.5 (2.11BSD GTE) 1997/11/11
+ *	@(#)xp.c	2.6 (2.11BSD GTE) 1998/4/3
  */
 
 /*
@@ -45,7 +45,7 @@
  * NOTE: this  is different than /boot's view of the world.  Sigh.
 */
 
-#define	XPUNIT(dev)	((minor(dev) >> 3) & 0x1f)
+#define	XPUNIT(dev)	(dkunit(dev) & 0x1f)
 
 int xp_offset[] = {
 	HPOF_P400,	HPOF_M400,	HPOF_P400,	HPOF_M400,
@@ -386,14 +386,12 @@ xpstrategy(bp)
 register struct buf *bp;
 	{
 	register struct xp_drive *xd;
-	register struct partition *pi;
-	int	unit, part;
+	struct partition *pi;
+	int	unit;
 	struct buf *dp;
-	int	s;
-	daddr_t	sz;
+	register int	s;
 
 	unit = XPUNIT(bp->b_dev);
-	part = dkpart(bp->b_dev);
 	xd = &xp_drive[unit];
 
 	if	(unit >= NXPD || !xd->xp_ctlr || !(xd->xp_flags & DKF_ALIVE))
@@ -401,39 +399,14 @@ register struct buf *bp;
 		bp->b_error = ENXIO;
 		goto bad;
 		}
-	pi = &xd->xp_parts[part];
-
-	sz = (bp->b_bcount + 511) >> 9;
-	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
-		{
-		sz = pi->p_size - bp->b_blkno;
-		/* If exactly at end of disk, return an EOF */
-		if	(sz == 0)
-			{
-			bp->b_resid = bp->b_bcount;
-			goto done;
-			}
-		/* or truncate if part of it fits */
-		if	(sz < 0)
-			{
-			bp->b_error = EINVAL;
-			goto bad;
-			}
-		bp->b_bcount = dbtob(sz);	/* compute byte count */
-		}
-/*
- * Check for write to write-protected label area.  This does not include
- * sector 0 which is the boot block.
-*/
-	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
-		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
-		 !(bp->b_flags & B_READ) && !(xd->xp_flags & DKF_WLABEL))
-		{
-		bp->b_error = EROFS;
+	s = partition_check(bp, &xd->xp_dk);
+	if	(s < 0)
 		goto bad;
-		}
+	if	(s == 0)
+		goto done;
 	if	(xd->xp_ctlr->xp_rh70 == 0)
 		mapalloc(bp);
+	pi = &xd->xp_parts[dkpart(bp->b_dev)];
 	bp->b_cylin = (bp->b_blkno + pi->p_offset) / xd->xp_nspc;
 	dp = &xputab[unit];
 	s = splbio();

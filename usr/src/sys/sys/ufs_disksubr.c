@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)ufs_disksubr.c	8.5.4 (2.11BSD GTE) 1997/1/18
+ *	@(#)ufs_disksubr.c	8.5.5 (2.11BSD GTE) 1998/4/3
  */
 
 #include <errno.h>
@@ -360,4 +360,56 @@ ioctldisklabel(dev, cmd, data, flag, disk, strat)
 			return(error);
 		}
 	return(EINVAL);
+	}
+
+
+/*
+ * This was extracted from the MSCP driver so it could be shared between
+ * all disk drivers which implement disk labels.
+*/
+
+partition_check(bp, dk)
+	struct	buf *bp;
+	struct	dkdevice *dk;
+	{
+	struct	partition *pi;
+	daddr_t	sz;
+
+	pi = &dk->dk_parts[dkpart(bp->b_dev)];
+
+	/* Valid block in device partition */
+	sz = (bp->b_bcount + 511) >> 9;
+	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
+		{
+		sz = pi->p_size - bp->b_blkno;
+		/* if exactly at end of disk, return an EOF */
+		if	(sz == 0)
+			{
+			bp->b_resid = bp->b_bcount;
+			goto done;	
+			}
+		/* or truncate if part of it fits */
+		if	(sz < 0)
+			{
+			bp->b_error = EINVAL;
+			goto bad;
+			}
+		bp->b_bcount = dbtob(sz);	/* compute byte count */
+		}
+/*
+ * Check for write to write-protected label area.  This does not include
+ * sector 0 which is the boot block.
+*/
+	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
+		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
+		 !(bp->b_flags & B_READ) && !(dk->dk_flags & DKF_WLABEL))
+		{
+		bp->b_error = EROFS;
+		goto bad;
+		}
+	return(1);		/* success */
+bad:
+	return(-1);
+done:
+	return(0);
 	}

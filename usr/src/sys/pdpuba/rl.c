@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.10 (2.11BSD GTE) 1997/7/20
+ *	@(#)rl.c	1.11 (2.11BSD GTE) 1998/4/3
  */
 
 /*
@@ -64,7 +64,7 @@ error to have more than 4 drives - only 1 controller is supported.
 #define	RL_SECSZ	256	/* bytes per sector */
 
 #define	rlwait(r)	while (((r)->rlcs & RL_CRDY) == 0)
-#define	RLUNIT(x) 	((minor(x) >> 3) & 7)
+#define	RLUNIT(x) 	(dkunit(x) & 7)
 #define RLMP_MASK	( ~( RLMP_WL | RLMP_DTYP | RLMP_HSEL ) )
 #define RLMP_OK		( RLMP_HO | RLMP_BH | RLMP_LCKON )
 
@@ -110,7 +110,7 @@ rlroot()
 }
 
 rlattach(addr, unit)
-	struct rldevice *addr;
+	register struct rldevice *addr;
 {
 #ifdef UCB_METER
 	if (rl_dkn < 0) {
@@ -320,14 +320,11 @@ rlgetinfo(disk, dev)
 rlstrategy(bp)
 	register struct	buf *bp;
 {
-	int	drive, part;
-	int	s, ctr;
-	daddr_t	sz;
+	int	drive;
+	register int	s;
 	register struct dkdevice *disk;
-	register struct partition *pi;
 
 	drive = RLUNIT(bp->b_dev);
-	part = dkpart(bp->b_dev);
 	disk = &rl_dk[drive];
 
 	if	(drive >= NRL || !RLADDR || !(disk->dk_flags & DKF_ALIVE))
@@ -335,39 +332,11 @@ rlstrategy(bp)
 		bp->b_error = ENXIO;
 		goto bad;
 		}
-
-	pi = &disk->dk_parts[part];
-
-	/* Valid block in device partition */
-	sz = (bp->b_bcount + 511) >> 9;
-	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
-		{
-		sz = pi->p_size - bp->b_blkno;
-		/* if exactly at end of disk, return an EOF */
-		if	(sz == 0)
-			{
-			bp->b_resid = bp->b_bcount;
-			goto done;	
-			}
-		/* or truncate if part of it fits */
-		if	(sz < 0)
-			{
-			bp->b_error = EINVAL;
-			goto bad;
-			}
-		bp->b_bcount = dbtob(sz);	/* compute byte count */
-		}
-/*
- * Check for write to write-protected label area.  This does not include
- * sector 0 which is the boot block.
-*/
-	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
-		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
-		 !(bp->b_flags & B_READ) && !(disk->dk_flags & DKF_WLABEL))
-		{
-		bp->b_error = EROFS;
+	s = partition_check(bp, disk);
+	if	(s < 0)
 		goto bad;
-		}
+	if	(s == 0)
+		goto done;
 #ifdef	SOFUB_MAP
 	if	(rlsoftmap == 1)
 		{
@@ -773,7 +742,7 @@ rlsize(dev)
  * attempts, then an error message is printed.
  */
 rlgsts(drive)
-	int	drive;
+	register int	drive;
 	{
 	register int	ctr = 0;
 	register struct	rldevice *rp = RLADDR;
@@ -785,7 +754,7 @@ rlgsts(drive)
 		} while (((rp->rlmp & RLMP_MASK) != RLMP_OK) && (++ctr < 16));
 	if	(ctr >= 16)
 		{
-		log(LOG_ERR, "rl%d: !status cs=%b da=%b\n", drive,
+		log(LOG_ERR, "rl%d: !sts cs=%b da=%b\n", drive,
 			rp->rlcs, RL_BITS, rp->rlda, RLDA_BITS);
 		rl_dk[drive].dk_flags &= ~DKF_ALIVE;
 		return(-1);

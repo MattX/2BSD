@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mtio.h	7.1.1 (2.11BSD) 1995/12/12
+ *	@(#)mtio.h	7.1.2 (2.11BSD) 1998/3/7
  */
 
 /*
@@ -67,7 +67,6 @@ struct	mtget	{
 #define	MTF_OFFLINE	0x04		/* Drive is offline */
 #define	MTF_WRTLCK	0x08		/* Drive is write protected */
 #define	MTF_WRITTEN	0x10		/* Tape has been written */
-#define	MTF_CSE		0x20		/* Clear serious exception done */
 
 /* mag tape io control commands */
 #define	MTIOCTOP	_IOW(m, 1, struct mtop)		/* do a mag tape op */

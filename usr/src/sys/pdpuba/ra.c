@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	3.3 (2.11BSD GTE) 1998/1/28
+ *	@(#)ra.c	3.4 (2.11BSD GTE) 1998/4/3
  */
 
  /***********************************************************************
@@ -14,6 +14,12 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	April 3, 1998
+ * Implement a sysctl interface for manipulating datagram/error logging (as was
+ * done for the TMSCP driver earlier).  Finish changing printf() statements to
+ * log() statements.  Clean the drive up by removing obsolete debugging state-
+ * ments.
+ *
  * Date:	January 28, 1998
  * Define the 'mscp_header' structure in the mscp_common.h and change the
  * member names from ra_* to mscp_*.  A small step towards merging the MSCP
@@ -143,7 +149,7 @@
 #include <sys/kernel.h>
 
 #define	RACON(x)			((minor(x) >> 6) & 03)
-#define	RAUNIT(x)			((minor(x) >> 3) & 07)
+#define	RAUNIT(x)			(dkunit(x) & 07)
 
 #define	NRSPL2	3		/* log2 number of response packets */
 #define	NCMDL2	3		/* log2 number of command packets */
@@ -228,20 +234,15 @@ static	int		ra_dkn = -1;	/* number for iostat */
 #define	S_SCHAR	4		/* doing "set controller characteristics" */
 #define	S_RUN	5		/* running */
 
-#ifdef RADEBUG
-#define PRINTD(x)	printf x 
-#else
-#define PRINTD(x)
-#endif
-
-#ifdef RABUGDUMP
-#define PRINTB(x)	printf x 
-#else
-#define PRINTB(x)
-#endif
-
 int	rastrategy();
 daddr_t	rasize();
+/*
+ * Bit 0 = print/log all non successful response packets
+ * Bit 1 = print/log datagram arrival
+ * Bit 2 = print status of all response packets _except_ for datagrams
+ * Bit 3 = enable debug/log statements not covered by one of the above
+*/
+	int	mscpprintf = 0x1;
 
 extern	int	wakeup();
 extern	ubadr_t	_iomap();
@@ -356,8 +357,6 @@ raopen(dev, flag, mode)
 	int	mask;
 	int	s, i;
 
-	PRINTD(("raopen: dev=%x, flags=%d\n", dev, flag));
-
 	/* Check that controller exists */
 	if	(ctlr >= NRAC || sc->RAADDR == NULL)
 		return(ENXIO);
@@ -390,14 +389,14 @@ raopen(dev, flag, mode)
 	 */
 	disk = sc->sc_drives[unit];
 	if (disk == NULL) {
-		PRINTD(("raopen: opening new disk %d\n", unit));
 		s = splbio();
 		/* Allocate disk table entry for disk */
 		if ((disk = ragetdd()) != NULL) {
 			sc->sc_drives[unit] = disk;
 			disk->ra_unit = ctlr;	/* controller number */
 		} else {
-			printf("ra: !disk structs\n");
+			if	(mscpprintf & 0x8)
+				log(LOG_NOTICE, "ra: !disk struc\n");
 			splx(s);
 			return(ENXIO);
 		}
@@ -424,12 +423,11 @@ raopen(dev, flag, mode)
 
 	/* Did it go online? */
 	if ((disk->ra_flags & DKF_ONLINE) == 0) {
-		PRINTD(("raopen: disk didn't go online\n"));
 		s = splbio();
 		disk->ra_flags = 0;
 		sc->sc_drives[unit] = NULL;
 		splx(s);
-		return(ENXIO);
+		return(EIO);
 	}
 /*
  * Now we read the label.  Allocate an external label structure if one has
@@ -481,7 +479,6 @@ raopen(dev, flag, mode)
 	else
 		return(EINVAL);
 	disk->ra_open |= mask;
-	PRINTD(("raopen: disk online\n"));
 	return(0);
 }
 
@@ -584,7 +581,9 @@ ragetinfo(disk, dev)
 	msg = readdisklabel((dev & ~7) | 0, rastrategy, lp);	/* 'a' */
 	if	(msg != 0)
 		{
-		log(LOG_NOTICE, "ra%da is entire disk: %s\n", dkunit(dev), msg);
+		if	(mscpprintf & 0x8)
+			log(LOG_NOTICE, "ra%da=entire disk: %s\n", 
+				dkunit(dev), msg);
 		radfltlbl(disk, lp);
 		}
 	mapseg5(disk->ra_label, LABELDESC);
@@ -607,7 +606,6 @@ rainit(sc)
 	 * Cold init of controller
 	 */
 	++sc->sc_ctab.b_active;
-	PRINTD(("rainit: unit=%d, vec=%o\n", sc->sc_unit, sc->sc_ivec));
 
 	/*
 	 * Get physical address of RINGBASE
@@ -642,52 +640,20 @@ rainit(sc)
 rastrategy(bp)
 	register struct	buf *bp;
 {
-	register ra_infoT *disk;
+	ra_infoT *disk;
 	register struct buf *dp;
-	ra_softcT *sc = &ra_sc[RACON(bp->b_dev)];
-	int	unit = RAUNIT(bp->b_dev);
-	int	part = dkpart(bp->b_dev);
-	struct	partition *pi;
-	daddr_t sz, maxsz;
+	register ra_softcT *sc = &ra_sc[RACON(bp->b_dev)];
 	int s;
 
 	/* Is disk online */
-	if ((disk = sc->sc_drives[unit]) == NULL || 
+	if	((disk = sc->sc_drives[RAUNIT(bp->b_dev)]) == NULL || 
 			!(disk->ra_flags & (DKF_ONLINE | DKF_ALIVE)))
 		goto bad;
-	pi = &disk->ra_parts[part];
-
-	/* Valid block in device partition */
-	sz = (bp->b_bcount + 511) >> 9;
-	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
-		{
-		sz = pi->p_size - bp->b_blkno;
-		/* if exactly at end of disk, return an EOF */
-		if	(sz == 0)
-			{
-			bp->b_resid = bp->b_bcount;
-			goto done;	
-			}
-		/* or truncate if part of it fits */
-		if	(sz < 0)
-			{
-			bp->b_error = EINVAL;
-			goto bad;
-			}
-		bp->b_bcount = dbtob(sz);	/* compute byte count */
-		}
-/*
- * Check for write to write-protected label area.  This does not include
- * sector 0 which is the boot block.
-*/
-	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
-		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
-		 !(bp->b_flags & B_READ) && !(disk->ra_flags & DKF_WLABEL))
-		{
-		bp->b_error = EROFS;
+	s = partition_check(bp, &disk->ra_dk);
+	if	(s < 0)
 		goto bad;
-		}
-
+	if	(s == 0)
+		goto done;
 	mapalloc(bp);		/* Unibus Map buffer if required */
 
 	/*
@@ -718,9 +684,8 @@ rastrategy(bp)
 	/*
 	 * Start controller if idle.
 	 */
-	if (sc->sc_ctab.b_active == 0) {
+	if (sc->sc_ctab.b_active == 0)
 		rastart(sc);
-	}
 	splx(s);
 	return;
 bad:
@@ -782,8 +747,6 @@ loop:
 	++sc->sc_ctab.b_active;
 	if (sc->RAADDR->rasa & RA_ERR || sc->sc_state != S_RUN) {
 		harderr(bp, "ra");
-		log(LOG_INFO, "rasa %o state %d\n", sc->RAADDR->rasa,
-			sc->sc_state);
 		/* Should requeue outstanding requests somehow */
 		rainit(sc);
 out:
@@ -806,12 +769,7 @@ out:
 	mp->m_bytecnt = bp->b_bcount;
 	mp->m_buf_l = (u_short)bp->b_un.b_addr;
 	mp->m_buf_h = bp->b_xmem;
-	PRINTD(("ra: unit=%d op=0%o lbn=%d,%d len=%d buf=0%o,0%o\n",
-		mp->m_unit, mp->m_opcode, mp->m_lbn_h, mp->m_lbn_l,
-		mp->m_bytecnt, mp->m_buf_h, mp->m_buf_l));
 	((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
-	if (sc->RAADDR->rasa & RA_ERR)
-		printf("ra: Err %d\n", sc->RAADDR->rasa);
 	i = sc->RAADDR->raip;		/* initiate polling */
 
 #ifdef UCB_METER
@@ -860,50 +818,33 @@ raintr(unit)
 	u_int i;
 	segm seg5;
 
-	PRINTD(("raintr%d: state %d, rasa %o\n", unit, sc->sc_state,
-		sc->RAADDR->rasa));
-
 	saveseg5(seg5);		/* save it just once */
 
 	switch (sc->sc_state) {
 	case S_STEP1:
 #define	STEP1MASK	0174377
 #define	STEP1GOOD	(RA_STEP2|RA_IE|(NCMDL2<<3)|NRSPL2)
-		if ((sc->RAADDR->rasa & STEP1MASK) != STEP1GOOD) {
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			wakeup((caddr_t)&sc->sc_ctab);
+		if	(radostep(sc, STEP1MASK, STEP1GOOD))
 			return;
-		}
 		sc->RAADDR->rasa = (short)sc->sc_ctab.b_un.b_addr;
 		sc->sc_state = S_STEP2;
 		return;
-
 	case S_STEP2:
 #define	STEP2MASK	0174377
 #define	STEP2GOOD	(RA_STEP3|RA_IE|(sc->sc_ivec/4))
-		if ((sc->RAADDR->rasa & STEP2MASK) != STEP2GOOD) {
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			wakeup((caddr_t)&sc->sc_ctab);
+		if	(radostep(sc, STEP2MASK, STEP2GOOD))
 			return;
-		}
 		sc->RAADDR->rasa = sc->sc_ctab.b_xmem;
 		sc->sc_state = S_STEP3;
 		return;
-
 	case S_STEP3:
 #define	STEP3MASK	0174000
 #define	STEP3GOOD	RA_STEP4
-		if ((sc->RAADDR->rasa & STEP3MASK) != STEP3GOOD) {
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			wakeup((caddr_t)&sc->sc_ctab);
+		if	(radostep(sc, STEP3MASK, STEP3GOOD))
 			return;
-		}
 		i = sc->RAADDR->rasa;
-		PRINTD(("ra: Version %d model %d\n",
-				i & 0xf, (i >> 4) & 0xf));
+		log(LOG_NOTICE, "ra%d: Ver %d mod %d\n", sc->sc_unit,
+				i & 0xf, (i >> 4) & 0xf);
 		sc->RAADDR->rasa = RA_GO;
 		sc->sc_state = S_SCHAR;
 
@@ -927,25 +868,19 @@ raintr(unit)
 		i = sc->RAADDR->raip;
 		restorseg5(seg5);
 		return;
-
 	case S_SCHAR:
 	case S_RUN:
 		break;
-
 	default:
-		printf("ra: state %d ign\n", sc->sc_state);
+		log(LOG_NOTICE, "ra: st %d\n", sc->sc_state);
 		return;
 	}
 
 	/*
 	 * If this happens we are in BIG trouble!
 	 */
-	if (sc->RAADDR->rasa & RA_ERR) {
-		printf("ra: fatal err %o\n", sc->RAADDR->rasa);
-		sc->sc_state = S_IDLE;
-		sc->sc_ctab.b_active = 0;
-		wakeup((caddr_t)&sc->sc_ctab);
-	}
+	if	(radostep(sc, RA_ERR, 0))
+		log(LOG_ERR, "ra: err %o\n", sc->RAADDR->rasa);
 
 	mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
 
@@ -960,9 +895,8 @@ raintr(unit)
 	/*
 	 * Check for response ring transition.
 	 */
-	if (sc->sc_com->ra_ca.ca_rspint) {
+	if (sc->sc_com->ra_ca.ca_rspint)
 		rarspring(sc);
-	}
 
 	/*
 	 * Check for command ring transition (Should never happen!)
@@ -977,6 +911,21 @@ raintr(unit)
 		wakeup((caddr_t)&sc->sc_cp_wait);
 	rastart(sc);
 }
+
+radostep(sc, mask, good)
+	register ra_softcT *sc;
+	int	mask, good;
+	{
+
+	if	((sc->RAADDR->rasa & mask) != good)
+		{
+		sc->sc_state = S_IDLE;
+		sc->sc_ctab.b_active = 0;
+		wakeup((caddr_t)&sc->sc_ctab);
+		return(1);
+		}
+	return(0);
+	}
 
 /*
  * Init mscp communications area
@@ -1089,7 +1038,7 @@ rarsp(mp, sc)
 	 * pass it on for more extensive processing.
 	 */
 	if ((mp->m_header.mscp_credits & 0xf0) == 0x10) {
-		ra_error((struct mslg *)mp);
+		ra_error(sc->sc_unit, (struct mslg *)mp);
 		return;
 	}
 
@@ -1097,6 +1046,11 @@ rarsp(mp, sc)
 	 * The controller interrupts as drive ZERO so check for it first.
 	 */
 	st = mp->m_status & M_ST_MASK;
+	if	(mscpprintf & 0x4 || ((mscpprintf & 0x1) && (st != M_ST_SUCC)))
+		log(LOG_INFO, "ra%d st=%x sb=%x fl=%x en=%x\n",
+			sc->sc_unit*8 + mp->m_unit, st,
+			mp->m_status >> M_ST_SBBIT,
+			mp->m_flags, mp->m_opcode & ~M_OP_END);
 	if (mp->m_opcode == (M_OP_STCON|M_OP_END)) {
 		if (st == M_ST_SUCC)
 			sc->sc_state = S_RUN;
@@ -1112,11 +1066,8 @@ rarsp(mp, sc)
 	 */
 	switch (mp->m_opcode) {
 	case M_OP_ONLIN|M_OP_END:
-		if ((disk = sc->sc_drives[mp->m_unit]) == NULL) {
-			log(LOG_NOTICE,"ra%d !ONLINE\n", sc->sc_unit * 8 +
-				mp->m_unit);
+		if	((disk = sc->sc_drives[mp->m_unit]) == NULL)
 			break;
-		}
 		dp = &disk->ra_utab;
 
 		if (st == M_ST_SUCC) {
@@ -1132,7 +1083,6 @@ rarsp(mp, sc)
 			radisksetup(disk, mp);
 			dp->b_active = 1;
 		} else {
-			printf("ra%d: OFFLINE\n", sc->sc_unit * 8 + mp->m_unit);
 			while (bp = dp->b_actf) {
 				dp->b_actf = bp->av_forw;
 				bp->b_flags |= B_ERROR;
@@ -1144,20 +1094,15 @@ rarsp(mp, sc)
 		if (mp->m_cmdref != NULL)
 			wakeup((caddr_t)mp->m_cmdref);
 		break;
-
 	case M_OP_AVATN:
 		/* it went offline and we didn't notice */
-		PRINTD(("ra%d: attention\n", sc->sc_unit * 8 + mp->m_unit));
 		if ((disk = sc->sc_drives[mp->m_unit]) != NULL)
 			disk->ra_flags &= ~DKF_ONLINE;
 		break;
-
 	case M_OP_END:
 		/* controller incorrectly returns code 0200 instead of 0241 */
-		PRINTD(("ra: back logical block request\n"));
 		bp = (struct buf *)mp->m_cmdref;
 		bp->b_flags |= B_ERROR;
-
 	case M_OP_READ | M_OP_END:
 	case M_OP_WRITE | M_OP_END:
 		/* normal termination of read/write request */
@@ -1208,13 +1153,10 @@ rarsp(mp, sc)
 		bp->b_resid = bp->b_bcount - mp->m_bytecnt;
 		iodone(bp);
 		break;
-
 	case M_OP_GTUNT|M_OP_END:
 		break;
-
 	default:
-		log(LOG_INFO,"ra: op %o\n", mp->m_opcode);
-		ra_error((caddr_t)mp);
+		ra_error(sc->sc_unit, (caddr_t)mp);
 	}
 }
 
@@ -1273,54 +1215,26 @@ raioctl(dev, cmd, data, flag)
 	}
 
 /*
- * Process an error log message
- *
- * For now, just log the error on the console.  Only minimal decoding is done,
- * only "useful" information is printed.  Eventually should send message to
- * an error logger.  At least 90 bytes of D space were saved without losing
- * functionality.
+ * For now just count the datagrams and log a short message of (hopefully)
+ * interesting fields if the appropriate bit in turned on in mscpprintf.
+ * 
+ * An error log daemon is in the process of being written.  When it is ready
+ * many drivers (including this one) will be converted to use it.
  */
-ra_error(mp)
+
+	u_short	mscp_datagrams[NRAC];
+
+ra_error(ctlr, mp)
+	int	ctlr;
 	register struct mslg *mp;
-{
-	printf("ra: %s err, ",
-		mp->me_flags & (M_LF_SUCC|M_LF_CONT) ? "soft" : "hard");
-
-	switch (mp->me_format) {
-	case M_FM_CNTERR:
-		printf("ctlr");
-		break;
-	case M_FM_BUSADDR:
-		printf("M_F_BUSADDR %o", mp->me_busaddr);
-		break;
-	case M_FM_DISKTRN:
-		printf("disk xfr, unit %d grp x%x hdr x%x",
-			mp->me_unit, mp->me_group, mp->me_hdr);
-		break;
-	case M_FM_SDI:
-		printf("SDI unit %d hdr x%x", mp->me_unit, mp->me_hdr);
-		break;
-	case M_FM_SMLDSK:
-		printf("small disk unit %d cyl %d", mp->me_unit, mp->me_sdecyl);
-		break;
-	default:
-		printf("?, unit %d format %o",mp->me_unit,mp->me_format);
-	}
-
-	printf(", event 0%o\n", mp->me_event);
-
-#ifdef RADEBUG
-	/* If error debug on, do hex dump */
 	{
-		register char *p = (char *)mp;
-		register int i;
 
-		for (i = mp->me_header.mscp_msglen; i--; /*void*/)
-			printf("%x ", *p++ & 0xff);
-		printf("\n");
+	mscp_datagrams[ctlr]++;
+	if	(mscpprintf & 0x2)
+		log(LOG_INFO, "ra%d dgram fmt %x grp %x hdr %x evt %x cyl %x\n",
+			ctlr*8 + mp->me_unit, mp->me_format, mp->me_group,
+			mp->me_hdr, mp->me_event, mp->me_sdecyl);
 	}
-#endif
-}
 
 /*
  * RA dump routines (act like stand alone driver)
@@ -1394,22 +1308,15 @@ radump(dev)
 		/*void*/;
 	sc->RAADDR->rasa = RA_GO;
 	ramsginit(sc, sc->sc_com->ra_ca.ca_rsp, mp, 0, 2, 0);
-	if (!racmd(M_OP_STCON, unit, sc)) {
-		PRINTB(("radump: failed start controller\n"));
+	if (!racmd(M_OP_STCON, unit, sc))
 		return(EFAULT);
-	}
-	PRINTB(("radump: controller up\n"));
 
 	/* Bring disk for dump online */
-	if (!(mp = racmd(M_OP_ONLIN, unit, sc))) {
-		PRINTB(("radump: failed online\n"));
+	if (!(mp = racmd(M_OP_ONLIN, unit, sc)))
 		return(EFAULT);
-	}
 
  	dumpsize = rasize(dev) - dumplo;
 	memblks = ctod(physmem);
-	PRINTB(("radump: disk up, size=%D, type=%d\n",
-		dumpsize, hiint(mp->m_mediaid) & 0xff));
 
 	/* Check if dump ok on this disk */
 	if (dumplo < 0 || dumpsize <= 0)
@@ -1439,7 +1346,6 @@ radump(dev)
 		mp->m_buf_h = hiint(maddr);
 		if (racmd(M_OP_WRITE, unit, sc) == 0)
 			return(EIO);
-
 		paddr += (count << PGSHIFT);
 		bn += count;
 		memblks -= count;
@@ -1479,7 +1385,7 @@ racmd(op, unit, sc)
 	sc->sc_com->ra_ca.ca_cmdint = 0;
 	if (rmp->m_opcode != (op | M_OP_END)
 	    || (rmp->m_status & M_ST_MASK) != M_ST_SUCC) {
-		ra_error(rmp);
+		ra_error(sc->sc_unit, rmp);
 		return(0);
 	}
 	return(rmp);

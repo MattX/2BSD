@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_pdp.c	1.2 (2.11BSD) 1997/8/27
+ *	@(#)kern_pdp.c	1.3 (2.11BSD) 1998/4/3
  */
 
 #include "param.h"
@@ -190,12 +190,16 @@ bad:
 }
 
 /*
- * This is ugly but it's either this or always include TMSCP code even
+ * This is ugly but it's either this or always include [T]MSCP code even
  * for systems without that type of device.
 */
 #include "tms.h"
+#include "ra.h"
 #if NTMSCP > 0
 	extern	int tmscpprintf, tmscpcache;		/* see pdpuba/tmscp.c */
+#endif
+#if	NRAC > 0
+	extern	int mscpprintf;
 #endif
 	extern	struct tty cons[];
 
@@ -214,13 +218,11 @@ cpu_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 	size_t newlen;
 	{
 
-	/* all sysctl names at this level are terminal except TMSCP */
-	if	(namelen != 1 && name[0] != CPU_TMSCP)
-		return(ENOTDIR);		/* overloaded */
-
 	switch	(name[0])
 		{
 		case	CPU_CONSDEV:
+			if	(namelen != 1)
+				return(ENOTDIR);
 			return(sysctl_rdstruct(oldp, oldlenp, newp, 
 					&cons[0].t_dev, sizeof &cons[0].t_dev));
 #if NTMSCP > 0
@@ -236,6 +238,20 @@ cpu_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 				case	TMSCP_PRINTF:
 					return(sysctl_int(oldp, oldlenp, newp,
 						newlen,&tmscpprintf));
+				default:
+					return(EOPNOTSUPP);
+				}
+#endif
+#ifdef	NRAC > 0
+		case	CPU_MSCP:
+		/* All sysctl names at this level are terminal */
+			if	(namelen != 2)
+				return(ENOTDIR);
+			switch	(name[1])
+				{
+				case	MSCP_PRINTF:
+					return(sysctl_int(oldp, oldlenp, newp,
+						newlen,&mscpprintf));
 				default:
 					return(EOPNOTSUPP);
 				}
