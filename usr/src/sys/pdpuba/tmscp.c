@@ -1,6 +1,6 @@
 #define	TMSDEBUG	1
 
-/*	@(#)tmscp.c	1.11 (2.11BSD GTE) 1998/4/24 */
+/*	@(#)tmscp.c	1.12 (2.11BSD) 1999/2/25 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -31,6 +31,25 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
  * tmscp.c - TMSCP (TK50/TU81) tape device driver
  * 
  * Modification History:
+ * 25-Feb-99 - sms
+ *	Fix density selection to preserve the high byte of m_format.  This
+ *	is required devices (such as the TK70) which have a nonzero value
+ *	in this field.
+ *
+ * 22-Feb-99 - sms
+ *	Add timeout logic to tmscpcommand to catch hardware going catatonic.
+ *	When tmscpcommand() was first created the only use was to issue a
+ *	nonblocking rewind upon close.  Tmscpcommand is now called for many
+ *	other functions some of which can leave a process (and the drive) hung
+ *	unless a timeout is done.
+ *
+ *	Remove special treatment of OFFLINE and AVLBL status codes in 
+ *	tms_iodone().  The code is suspected of having been a bug even in
+ *	its old location but is definitely causing problems now - if a read
+ *	completes with a 'AVLBL' status the drive is hung because an iodone()
+ *	is never performed.
+ *
+ *	Minor cleanup done thruout (reduce D space consumption ,etc).
  *
  * 24-Apr-98 - sms
  *	An incorrect pointer was being passed to tms_iodone() from tmscprsp()
@@ -318,6 +337,7 @@ static	char *tmscpstepfailed = "step%d init failed: sa %x\n";
 int	tmscp_cp_wait = 0;	/* Something to wait on for command */
 				/* packets and or credits. */
 int	wakeup();
+	int	tmswatchdog();
 extern	int	hz;		/* Should find the right include */
 extern	long	_iomap();
 extern	u_int	tmscp_cache;	/* See pdp/kern_pdp.c */
@@ -528,7 +548,7 @@ tmsintr(dev)
 		break;
 
 	default:
-	    log(LOG_INFO, "tms%d: state %d\n", dev, sc->sc_state);
+	    log(LOG_INFO, "tms%d: ST %d\n", dev, sc->sc_state);
 	    return;
 	}	/* end switch */
 
@@ -604,6 +624,7 @@ tmscpopen(dev, flag)
 	register struct tms_info *tms;
 	register struct mscp *mp;
 	struct tmscpdevice *tmscpaddr;
+	u_short	cmdref;
 	int s,i;
 	
 	if (ctlr >= NTMSCP)
@@ -628,7 +649,7 @@ tmscpopen(dev, flag)
 		if (sc->sc_state == S_IDLE)
 			if	(!tkini(sc))
 				{
-				log(LOG_INFO, "tms%d init fail\n", ctlr);
+				log(LOG_INFO, "tms%d init\n", ctlr);
 				sc->sc_drives[unit] = NULL;
 				tms->Tflags = 0;
 				tms->tms_type = 0;
@@ -671,8 +692,9 @@ tmscpopen(dev, flag)
 		mp->mscp_opcode = M_OP_ONLIN;
 		mp->mscp_unit = unit;		/* unit? */
 		tms_clrerr(tms, mp);
-		mp->mscp_cmdref = (u_short)&tms->tms_type;
-					    /* need to sleep on something */
+	/* calculate this once instead of 4 times */
+		cmdref = (u_short)&tms->tms_type;	
+		mp->mscp_cmdref = cmdref; 	/* need to sleep on something */
 		((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN | TMSCP_INT);
 		normalseg5();
 		i = tmscpaddr->tmscpip;
@@ -682,9 +704,9 @@ tmscpopen(dev, flag)
 		 * 240 seconds (4 minutes) is necessary since a rewind
 		 * can take a few minutes.
 		 */
-		timeout(wakeup,(caddr_t) &tms->tms_type,240 * hz);
-		sleep((caddr_t) &tms->tms_type,PSWP+1);
-		untimeout(wakeup, &tms->tms_type);
+		timeout(wakeup,(caddr_t) cmdref,240 * hz);
+		sleep((caddr_t)cmdref,PSWP+1);
+		untimeout(wakeup, cmdref);
 		}
 	if	(!(tms->Tflags & _ONLINE))
 		{
@@ -754,8 +776,7 @@ tmscpclose(dev, flag)
  * exception state, leave that alone for the non-rewind case so that further
  * operations fail.  About all that can be done now is log the error.
 */
-			log(LOG_INFO, "tms%d,%d flush fail\n", 
-					TMSCTLR(dev), unit);
+			log(LOG_INFO, "tms%d,%d flsh\n", TMSCTLR(dev), unit);
 			tms->Tflags &= ~_CACHE_WRITTEN;
 			}
 		}
@@ -790,7 +811,7 @@ tmscpcommand(dev, com, count)
 	bp = &tmscp_softc[TMSCTLR(dev)].sc_cmdbuf;
 
 	s = spl5();
-	while (bp->b_flags&B_BUSY)
+	while	(bp->b_flags&B_BUSY)
 		{
 		bp->b_flags |= B_WANTED;
 		sleep((caddr_t)bp, PRIBIO);
@@ -807,16 +828,31 @@ tmscpcommand(dev, com, count)
 	bp->b_bcount = count;
 	bp->b_resid = com;
 	bp->b_blkno = 0;
-	tmscpstrategy(bp);
 /*
- * It is safe to wait here because the rewind done on a close specifies
- * the modifier M_MD_IMMED which causes an immediate return.
+ * Start the timer before entering the strategy routine.  If it declares
+ * an immediate error it will also perform an iodone which will cause us
+ * to fall thru and cancel the timer.
 */
+	timeout(tmswatchdog, bp, 240 * hz);
+	tmscpstrategy(bp);
 	iowait(bp);
-	if (bp->b_flags&B_WANTED)
-		wakeup((caddr_t)bp);
-	bp->b_flags &= B_ERROR;
+	untimeout(tmswatchdog, bp);
+	if	(bp->b_flags & B_WANTED)	/* Anyone waiting above? */
+		wakeup(bp);
+	bp->b_flags &= B_ERROR;		/* Clears B_BUSY */
 }
+
+/*
+ * If this routine is called then  (after 4 minutes) something is hung.
+ * Set the I/O done flag, set error to be ETIMEDOUT, and issue the wakeup.
+*/
+tmswatchdog(bp)
+	struct	buf *bp;
+	{
+
+	bp->b_error = ETIMEDOUT;
+	biodone(bp);
+	}
 
 /*
  * Init mscp communications area
@@ -968,7 +1004,7 @@ tmsstart(sc)
 	tms = sc->sc_drives[unit];
 	if	((tmscpaddr->tmscpsa&TMSCP_ERR) || sc->sc_state != S_RUN)
 		{
-		log(LOG_INFO, "tms%d,%d: sa %x state %d\n", sc->sc_unit,
+		log(LOG_INFO, "tms%d,%d: sa %x st %d\n", sc->sc_unit,
 			unit, tmscpaddr->tmscpsa, sc->sc_state);
 		(void)tkini(sc);
 		/* SHOULD REQUEUE OUTSTANDING REQUESTS, LIKE TMSCPRESET */
@@ -1062,11 +1098,12 @@ tmsstart(sc)
 			tms_repos_st(mp, sc, M_MD_OBJCT);
 			break;
 		case TMS_SETDENSITY:
-			tms->tms_format = Dmatrix[TMSDENS(bp->b_dev)][tms->tms_fmtmenu & FMTMASK];
+			tms->tms_format &= ~M_TF_MASK;
+			tms->tms_format |= Dmatrix[TMSDENS(bp->b_dev)][tms->tms_fmtmenu & FMTMASK];
 			tms_stunt_st(mp, sc, 0);
 			break;
 		default:
-			log(LOG_INFO, "tms ioctl %x\n", bp->b_resid);
+			log(LOG_INFO, "ioctl %x\n", bp->b_resid);
 			/* Need a no-op. Reposition no amount */
 			mp->mscp_opcode = M_OP_REPOS;
 			break;
@@ -1087,6 +1124,13 @@ tmsstart(sc)
 		{
 		tms->Tflags &= ~(_BUFMARK | _CLSEREX);
 		mp->mscp_modifier |= M_MD_CLSEX;
+		}
+
+	if	(tmscpprintf & 0x8)
+		{
+		log(LOG_INFO, "tms%d,%d -> op %x fl %x mod %x\n",
+			sc->sc_unit, mp->mscp_unit,
+			mp->mscp_opcode, mp->mscp_flags, mp->mscp_modifier);
 		}
 
 	((Trl *)mp->mscp_dscptr)->hsh |= (TMSCP_OWN|TMSCP_INT);
@@ -1242,7 +1286,13 @@ tmscprsp(sc, i)
 	case	M_OP_AVATN:
 		tms->Tflags &= ~_ONLINE;
 		return;
-	case 0:
+/*
+ * An endcode with no opcode (0x80) is an invalid command.  This is supposed
+ * to indicate a protocol error (illegal opcode, parameter error, etc) but
+ * without the real opcode we don't know which command (reposition, write,
+ * read, ...) failed.  So, just declare I/O done and hope for the best.
+*/
+	case	0:
 		if	(tmscpprintf & 0x8)
 			log(LOG_INFO, "tms%d,%d: inv end=%x st=%x\n",
 				sc->sc_unit,mp->mscp_unit,em_endcode,em_status);
@@ -1272,7 +1322,7 @@ tmscprsp(sc, i)
 		return;
 	default:
 		if	(tmscpprintf & 0x8)
-			log(LOG_INFO, "tms%d,%d bad rsp: %x\n", sc->sc_unit,
+			log(LOG_INFO, "tms%d,%d rsp %x\n", sc->sc_unit,
 				mp->mscp_unit, em_endcode);
 		return;
 	}	/* end switch mp->mscp_opcode */
@@ -1590,7 +1640,7 @@ tms_cache_cmn(sc, tms, mp)
 			mp->mscp_modifier |= M_MD_CDATL;
 			}
 		else
-			log(LOG_INFO, "tms%d,%d cache lost\n",
+			log(LOG_INFO, "tms%d,%d clost\n",
 				sc->sc_unit, mp->mscp_unit);
 		}
 	}
@@ -1675,9 +1725,8 @@ tms_avail_em(mp, sc)
 	{
 	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
 
-	tms->Tflags &= ~_INUSE;
 	(void)tms_check_ret(mp, sc);
-	tms->Tflags &= ~_ONLINE;
+	tms->Tflags &= ~(_INUSE | _ONLINE);
 	tms->tms_position = 0;
 	tms->tms_flags |= MTF_BOM;
 	if	(tms->tms_status == M_ST_SUCC)
@@ -1696,7 +1745,7 @@ tms_flush_em(mp, sc)
 	if	(em_status == M_ST_SUCC)
 		tms->Tflags &= ~_CACHE_WRITTEN;
 	else
-		log(LOG_INFO, "tms%d,%d flush fail\n",sc->sc_unit,mp->mscp_unit);
+		log(LOG_INFO, "tms%d,%d Flush\n",sc->sc_unit,mp->mscp_unit);
 	tms->tms_position = mp->mscp_position;
 	(void)tms_check_ret(mp, sc);
 	tms->tms_resid = 0;
@@ -1771,12 +1820,6 @@ tms_rw_em(mp, sc)
 	tms_iodone(mp, sc);
 	}
 
-/*
- * This routine removes the buffer from the I/O wait queue, decrements the
- * drive queue size, stores the residual value in the buffer header and
- * calls iodone.
-*/
-
 tms_iodone(mp, sc)
 	struct	mscp	*mp;
 	struct	tmscp_softc *sc;
@@ -1784,42 +1827,14 @@ tms_iodone(mp, sc)
 	struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
 	register struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
 	register struct	buf	*dp = &tms->tms_dtab;
-	u_short	st = tms->tms_status;
 
 /*
- * Remove the buffer from the I/O wait queue.
+ * Remove the buffer from the I/O wait queue.  Set the residual count and
+ * declare the I/O done.
 */
 	bp->av_back->av_forw = bp->av_forw;
 	bp->av_forw->av_back = bp->av_back;
 	dp->b_qsize--;
-/*
- * The weird (and not fully understood) treatment of the OFFLIN and AVLBL
- * status values was moved intact.  It is not clear why the error bit can't
- * simply be set and iodone called as for other not successful status codes.
-*/
-	if	(st == M_ST_OFFLN || st == M_ST_AVLBL)
-		{
-/*
- * Link buffer on to the front of the drive queue.
-*/
-		if	((bp->av_forw = dp->b_actf) == 0)
-			dp->b_actf = bp;
-		dp->b_actf = bp;
-/*
- * Link the drive onto the controller queue.
-*/
-		if	(dp->b_active == 0)
-			{
-			dp->b_forw = NULL;
-			if	(sc->sc_ctab.b_actf == NULL)
-				sc->sc_ctab.b_actf = dp;
-			else
-				sc->sc_ctab.b_actl->b_forw = dp;
-			sc->sc_ctab.b_actl = dp;
-			dp->b_active = 1;
-			}
-		return;
-		}
 	bp->b_resid = tms->tms_resid;
 	iodone(bp);
 	}
@@ -1890,7 +1905,7 @@ tms_check_ret(mp, sc)
 			tms->Tflags &= ~_ONLINE;
 			if	((tms->Tflags & _CACHE_ON) && 
 				 (tms->Tflags & _CACHE_WRITTEN))
-				log(LOG_INFO, "tms%d,%d cache loss2\n",
+				log(LOG_INFO, "tms%d,%d closs2\n",
 					sc->sc_unit, mp->mscp_unit);
 			berr = ENXIO;
 			break;
@@ -1926,7 +1941,7 @@ tms_check_ret(mp, sc)
 			else
 				{
 				tms->Tflags &= ~_CLSEREX;
-				log(LOG_INFO, "tms%d,%d serex, subcode %x\n",
+				log(LOG_INFO, "tms%d,%d serex sb %x\n",
 					sc->sc_unit, mp->mscp_unit, em_subcode);
 				berr = EIO;
 				}
@@ -1957,7 +1972,7 @@ tms_check_ret(mp, sc)
 			break;
 		}
 	if	(unkerr)
-		log(LOG_INFO, "tms%d,%d: bad st/sb =%x/%x\n",
+		log(LOG_INFO, "tms%d,%d: st/sb =%x/%x\n",
 			sc->sc_unit, mp->mscp_unit, em_status, em_subcode);
 	if	(berr && bp)
 		{

@@ -1,5 +1,5 @@
 /*
- *	1.2	(2.11BSD) 1998/2/31
+ *	1.3	(2.11BSD) 1999/2/25
  *
  * Definitions common to both MSCP and TMSCP were moved here from tmscp.h.
  * Eventually the MSCP driver and include file will be modified to use these
@@ -336,9 +336,26 @@ struct mscp_header {
 /*
  * Tape Format Flag Values
  */
+#define	M_TF_MASK	0x00ff	/* Density bits */
+#define	M_TF_CODE	0x0100	/* Format code multiplier */
 #define	M_TF_800	0x01	/* NRZI 800 bpi */
 #define	M_TF_PE		0x02	/* Phase Encoded 1600 bpi */
 #define	M_TF_GCR	0x04	/* Group Code Recording 6250 bpi */
 #define	M_TF_BLK	0x08	/* Cartridge Block Mode */
+
+#ifdef	notnow
+/*
+ * Define a few of the common controller and drive types for reference but
+ * don't actually force the preprocessor to handle even more defines.
+*/
+#define	M_CM_UDA50	2
+#define	M_CM_TU81	5
+#define	M_CM_UDA50A	6
+#define	M_CM_TK50	9
+#define	M_CM_TQK50	9
+#define	M_CM_TK70	14
+#define	M_CM_TQK70	14
+#define	M_CM_RQDX3	19
+#endif
 
 #endif	/* _MSCP_COMMON_H_ */
