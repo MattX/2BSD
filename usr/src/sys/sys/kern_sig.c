@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.11 (2.11BSD) 1999/9/9
+ *	@(#)kern_sig.c	1.12 (2.11BSD) 1999/9/24
  */
 
 #include "param.h"
@@ -34,7 +34,7 @@ extern	char	sigprop[];	/* XXX - defined in kern_sig2.c */
  * 1) either the real or effective user ids match OR 2) if the signal is 
  * SIGCONT and the target process is a descendant of the current process
 */
-cansignal(q,signum)
+cansignal(q, signum)
 	register struct proc *q;
 	int	signum;
 	{
@@ -230,7 +230,7 @@ kill()
 			error = ESRCH;
 			goto out;
 		}
-		if (!cansignal(p))
+		if (!cansignal(p, uap->signo))
 			error = EPERM;
 		else if (uap->signo)
 			psignal(p, uap->signo);
@@ -286,7 +286,7 @@ killpg1(signo, pgrp, all)
 		if ((p->p_pgrp != pgrp && !all) || p->p_ppid == 0 ||
 		    (p->p_flag&SSYS) || (all && p == u.u_procp))
 			continue;
-		if (!cansignal(p)) {
+		if (!cansignal(p, signo)) {
 			if (!all)
 				error = EPERM;
 			continue;
