@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty.h	7.1.1 (2.11BSD GTE) 12/7/94
+ *	@(#)tty.h	7.1.2 (2.11BSD GTE) 1997/4/10
  */
 
 #ifdef KERNEL
@@ -93,7 +93,7 @@ struct tty {
 #define	NSPEEDS	16
 #define	TTMASK	15
 #define	OBUFSIZ	100
-#define	TTYHOG	255
+
 #if defined(KERNEL) && !defined(SUPERVISOR)
 short	tthiwat[NSPEEDS], ttlowat[NSPEEDS];
 #define	TTHIWAT(tp)	tthiwat[(tp)->t_ospeed&TTMASK]
@@ -117,14 +117,12 @@ extern	struct ttychars ttydefaults;
 #define	TS_WCOLL	0x001000L	/* collision in write select */
 #define	TS_ASYNC	0x004000L	/* tty in async i/o mode */
 /* state for intra-line fancy editing work */
-#define	TS_BKSL		0x010000L	/* state for lowercase \ work */
-#define	TS_QUOT		0x020000L	/* last character input was \ */
 #define	TS_ERASE	0x040000L	/* within a \.../ for PRTRUB */
 #define	TS_LNCH		0x080000L	/* next character is literal */
 #define	TS_TYPEN	0x100000L	/* retyping suspended input (PENDIN) */
 #define	TS_CNTTB	0x200000L	/* counting tab width; leave FLUSHO alone */
 
-#define	TS_LOCAL	(TS_BKSL|TS_QUOT|TS_ERASE|TS_LNCH|TS_TYPEN|TS_CNTTB)
+#define	TS_LOCAL	(TS_ERASE|TS_LNCH|TS_TYPEN|TS_CNTTB)
 
 /* define partab character types */
 #define	ORDINARY	0

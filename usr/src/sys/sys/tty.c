@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty.c	1.4 (2.11BSD GTE) 12/8/94
+ *	@(#)tty.c	1.5 (2.11BSD GTE) 1997/5/4
  */
 
 #include "param.h"
@@ -18,6 +18,27 @@
 #include "kernel.h"
 #include "systm.h"
 #include "inode.h"
+#include "syslog.h"
+
+/*
+ * These were moved here from tty.h so that they could be easily modified
+ * and/or patched instead of recompiling the kernel.  There is only 1 other
+ * place which references these - see tty_pty.c
+ *
+ * The block and unblock numbers may look low but certain devices (the DHV-11
+ * for example) have poor silo handling and at high data rates (19200) the
+ * raw queue overflows even though we've stopped the sending device.  At 192
+ * characters for the 'block' point c-kermit would regularily see dropped data
+ * during interactive mode at 19200.
+ *
+ * It would be nice to have a larger than 8kb clist area and raise these limits
+ * but that would require 2 mapping registers and/or a rewrite of the entire
+ * clist handling.
+*/
+
+	int	TTYHOG = 255;
+	int	TTYBLOCK=128;
+	int	TTYUNBLOCK=64;
 
 /*
  * Table giving parity for characters and indicating
@@ -79,12 +100,45 @@ struct	ttychars ttydefaults = {
 	CBRK,	CSUSP,	CDSUSP, CRPRNT, CFLUSH, CWERASE,CLNEXT
 };
 
+#define	SET(t,f)	(t) |= (f)
+#define	CLR(t,f)	(t) &= ~(f)
+#define	ISSET(t,f)	((t) & (f))
+
+extern	char	*nextc();
+extern	int	nldisp;
+extern	int	wakeup();
+
 ttychars(tp)
 	struct tty *tp;
 {
 
 	tp->t_chars = ttydefaults;
 }
+
+/*
+ * Wakeup processes waiting on output flow control (TS_ASLEEP).  Normally
+ * called from driver start routine (dhvstart, etc) after a transmit done
+ * interrupt.  If t_outq.c_cc <= t_lowat then do the wakeup.
+*/
+ttyowake(tp)
+	register struct tty *tp;
+	{
+
+	if	(tp->t_outq.c_cc <= TTLOWAT(tp))
+		{
+		if	(ISSET(tp->t_state,TS_ASLEEP))
+			{
+			CLR(tp->t_state,TS_ASLEEP);
+			wakeup((caddr_t)&tp->t_outq);
+			}
+		if	(tp->t_wsel)
+			{
+			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
+			tp->t_wsel = 0;
+			CLR(tp->t_state,TS_WCOLL);
+			}
+		}
+	}
 
 /*
  * Wait for output to drain, then flush input waiting.
@@ -105,8 +159,16 @@ ttywait(tp)
 	while ((tp->t_outq.c_cc || tp->t_state&TS_BUSY) &&
 	    tp->t_state&TS_CARR_ON && tp->t_oproc) {
 		(*tp->t_oproc)(tp);
+/*
+ * If the output routine drains the queue and the device is no longer busy
+ * then don't wait for something that's already happened.
+*/
+		if	(tp->t_outq.c_cc == 0 && !ISSET(tp->t_state,TS_BUSY))
+			break;
 		tp->t_state |= TS_ASLEEP;
 		sleep((caddr_t)&tp->t_outq, TTOPRI);
+		splx(s);	/* drop priority, give interrupts a chance */
+		s = spltty();
 	}
 	splx(s);
 }
@@ -117,61 +179,97 @@ ttywait(tp)
 ttyflush(tp, rw)
 	register struct tty *tp;
 {
-	register s;
+	register int s;
 
 	s = spltty();
 	if (rw & FREAD) {
 		while (getc(&tp->t_canq) >= 0)
 			;
-		wakeup((caddr_t)&tp->t_rawq);
-	}
-	if (rw & FWRITE) {
-		wakeup((caddr_t)&tp->t_outq);
-		tp->t_state &= ~TS_TTSTOP;
-		(*cdevsw[major(tp->t_dev)].d_stop)(tp, rw);
-		while (getc(&tp->t_outq) >= 0)
-			;
-	}
-	if (rw & FREAD) {
 		while (getc(&tp->t_rawq) >= 0)
 			;
 		tp->t_rocount = 0;
 		tp->t_rocol = 0;
 		tp->t_state &= ~TS_LOCAL;
+		ttwakeup(tp);
 	}
+	if (rw & FWRITE) {
+		tp->t_state &= ~TS_TTSTOP;
+		(*cdevsw[major(tp->t_dev)].d_stop)(tp, rw);
+		wakeup((caddr_t)&tp->t_outq);
+		while (getc(&tp->t_outq) >= 0)
+			;
+		selwakeup(&tp->t_wsel, tp->t_state & TS_WCOLL);
+		CLR(tp->t_state, TS_WCOLL);
+		tp->t_wsel = 0;
+	}
+	if (rw & FREAD && ISSET(tp->t_state,TS_TBLOCK))
+		ttyunblock(tp);
 	splx(s);
 }
+
+static	int	rts = TIOCM_RTS;
 
 /*
  * Send stop character on input overflow.
  */
 ttyblock(tp)
 	register struct tty *tp;
-{
-	register x;
+	{
+	register int total;
 
-	x = tp->t_rawq.c_cc + tp->t_canq.c_cc;
-	if (tp->t_rawq.c_cc > TTYHOG) {
-		ttyflush(tp, FREAD|FWRITE);
-		tp->t_state &= ~TS_TBLOCK;
-	}
+	total = tp->t_rawq.c_cc + tp->t_canq.c_cc;
 	/*
 	 * Block further input iff:
 	 * Current input > threshold AND input is available to user program
 	 */
-	if (x >= TTYHOG/2 && 
-	    ((tp->t_flags & (RAW|CBREAK)) || (tp->t_canq.c_cc > 0)) &&
-	    (tp->t_state&TS_TBLOCK) == 0) {
-		if (putc(tp->t_stopc, &tp->t_outq)==0) {
-			tp->t_state |= TS_TBLOCK;
+	if	(total >= TTYBLOCK && 
+		 ((tp->t_flags & (RAW|CBREAK)) || (tp->t_canq.c_cc > 0)) &&
+		 (tp->t_state&TS_TBLOCK) == 0)
+		{
+/*
+ * TANDEM is the same as IXOFF for all intents and purposes.  Since we could
+ * get called for either software or hardware flow control we need to check
+ * the IXOFF bit.
+*/
+		if	(ISSET(tp->t_flags,TANDEM) && 
+			 tp->t_stopc != _POSIX_VDISABLE && 
+			 putc(tp->t_stopc, &tp->t_outq) == 0)
+			{
+			SET(tp->t_state, TS_TBLOCK);
 			ttstart(tp);
+			}
+/*
+ * If queue is full, drop RTS to tell modem to stop sending us stuff
+*/
+		if	(ISSET(tp->t_flags, RTSCTS) &&
+			 (*cdevsw[major(tp->t_dev)].d_ioctl)(tp->t_dev,TIOCMBIC, &rts, 0) == 0)
+			{
+			SET(tp->t_state, TS_TBLOCK);
+			}
 		}
 	}
-}
+
+ttyunblock(tp)
+	register struct tty *tp;
+	{
+	register int s = spltty();
+
+	if	(ISSET(tp->t_flags,TANDEM) &&
+		 tp->t_startc != _POSIX_VDISABLE && 
+		 putc(tp->t_startc, &tp->t_outq) == 0)
+		{
+		CLR(tp->t_state,TS_TBLOCK);
+		ttstart(tp);
+		}
+	if	(ISSET(tp->t_flags, RTSCTS) && 
+		 (*cdevsw[major(tp->t_dev)].d_ioctl)(tp->t_dev,TIOCMBIS,&rts,0) == 0)
+		{
+		CLR(tp->t_state, TS_TBLOCK);
+		}
+	}
 
 /*
- * Restart typewriter output following a delay
- * timeout.
+ * Restart typewriter output following a delay timeout.
  * The name of the routine is passed to the timeout
  * subroutine and it is called during a clock interrupt.
  */
@@ -179,10 +277,6 @@ ttrstrt(tp)
 	register struct tty *tp;
 {
 
-#ifdef	DIAGNOSTIC
-	if (tp == 0)
-		panic("ttrstrt");
-#endif
 	tp->t_state &= ~TS_TIMEOUT;
 	ttstart(tp);
 }
@@ -192,18 +286,16 @@ ttrstrt(tp)
  * after some characters have been put on the output queue,
  * from the interrupt routine to transmit the next
  * character, and after a timeout has finished.
+ *
+ * The spl calls were removed because the priority should already be spltty.
  */
 ttstart(tp)
 	register struct tty *tp;
-{
-	register s;
+	{
 
-	s = spltty();
-	if ((tp->t_state & (TS_TIMEOUT|TS_TTSTOP|TS_BUSY)) == 0 &&
-	    tp->t_oproc)		/* kludge for pty */
+	if	(tp->t_oproc)		/* kludge for pty */
 		(*tp->t_oproc)(tp);
-	splx(s);
-}
+	}
 
 /*
  * Common code for tty ioctls.
@@ -216,7 +308,6 @@ ttioctl(tp, com, data, flag)
 	int flag;
 {
 	int dev = tp->t_dev;
-	extern int nldisp;
 	int s;
 	long newflags;
 
@@ -483,9 +574,9 @@ ttioctl(tp, com, data, flag)
 }
 
 ttnread(tp)
-	struct tty *tp;
+	register struct tty *tp;
 {
-	int nread = 0;
+	register int nread = 0;
 
 	if (tp->t_flags & PENDIN)
 		ttypend(tp);
@@ -495,17 +586,29 @@ ttnread(tp)
 	return (nread);
 }
 
+/*
+ * XXX - this cleans up the minor device number by stripping off the 
+ * softcarrier bit.  Drives which use more bits of the minor device
+ * MUST call their own select routine.  See dhv.c for an example.
+ *
+ * This routine will go away when all the drivers have been updated/converted
+*/
+
 ttselect(dev, rw)
-	dev_t dev;
+	register dev_t dev;
 	int rw;
-{
-#ifdef pdp11
-	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)&0177];
-#else
-	register struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)];
-#endif
+	{
+	struct tty *tp = &cdevsw[major(dev)].d_ttys[minor(dev)&0177];
+
+	return(ttyselect(tp,rw));
+	}
+
+ttyselect(tp,rw)
+	register struct tty *tp;
+	int	rw;
+	{
 	int nread;
-	int s = spltty();
+	register int s = spltty();
 
 	switch (rw) {
 
@@ -570,6 +673,7 @@ ttyopen(dev, tp)
  */
 ttylclose(tp, flag)
 	register struct tty *tp;
+	int flag;
 {
 
 /*
@@ -604,6 +708,7 @@ ttyclose(tp)
  */
 ttymodem(tp, flag)
 	register struct tty *tp;
+	int flag;
 {
 
 	if ((tp->t_state&TS_WOPEN) == 0 && (tp->t_flags & MDMBUF)) {
@@ -664,7 +769,7 @@ ttypend(tp)
 	register struct tty *tp;
 {
 	struct clist tq;
-	register c;
+	register int c;
 
 	tp->t_flags &= ~PENDIN;
 	tp->t_state |= TS_TYPEN;
@@ -684,7 +789,7 @@ ttypend(tp)
  * appropriate tty structure.
  */
 ttyinput(c, tp)
-	register c;
+	register int c;
 	register struct tty *tp;
 {
 	long t_flags = tp->t_flags;
@@ -703,7 +808,7 @@ ttyinput(c, tp)
 	/*
 	 * In tandem mode, check high water mark.
 	 */
-	if (t_flags&TANDEM)
+	if	(t_flags & (TANDEM|RTSCTS))
 		ttyblock(tp);
 
 	if (t_flags&RAW) {
@@ -714,7 +819,7 @@ ttyinput(c, tp)
 		if (tp->t_rawq.c_cc > TTYHOG) 
 			ttyflush(tp, FREAD|FWRITE);
 		else {
-			if (putc(c, &tp->t_rawq) >= 0)
+			if (putc(c, &tp->t_rawq) == 0)
 				ttwakeup(tp);
 			ttyecho(c, tp);
 		}
@@ -727,8 +832,22 @@ ttyinput(c, tp)
 	 */
 	if ((tp->t_state&TS_TYPEN) == 0 && (t_flags&PASS8) == 0)
 		c &= 0177;
+
 	/*
-	 * Check for literal nexting very first
+	 * Check for literal nexting very first.  This is the _ONLY_ place
+	 * left which ORs in 0200.  Handling literal nexting this way is
+	 * what keeps the tty subsystem from being 8 bit clean.  The fix is
+	 * horrendous though and is put off for now.  And to think that ALL
+	 * of this is made necessary by ttyrubout() - it's the only place that
+	 * actually _checks_ the 0200 bit and only for newline and tab chars
+	 * at that!
+	 *
+	 * If we had 9 bit bytes life would be a lot simpler ;)
+	 *
+	 * The basic idea is to flag the character as "special" and also
+	 * modify it so that the character does not match any of the special
+	 * editing or control characters.  We could just as simply jump directly
+	 * to the test for 'cbreak' below.
 	 */
 	if (tp->t_state&TS_LNCH) {
 		c |= 0200;
@@ -743,13 +862,13 @@ ttyinput(c, tp)
 	 * it after a case match, or similar.
 	 */
 	if (tp->t_line == NTTYDISC) {
-		if (c == tp->t_lnextc) {
+		if (CCEQ(tp->t_lnextc,c)) {
 			if (t_flags&ECHO)
 				ttyout("^\b", tp);
 			tp->t_state |= TS_LNCH;
 			goto endcase;
 		}
-		if (c == tp->t_flushc) {
+		if (CCEQ(tp->t_flushc,c)) {
 			if (t_flags&FLUSHO)
 				tp->t_flags &= ~FLUSHO;
 			else {
@@ -761,7 +880,7 @@ ttyinput(c, tp)
 			}
 			goto startoutput;
 		}
-		if (c == tp->t_suspc) {
+		if (CCEQ(tp->t_suspc,c)) {
 			if ((t_flags&NOFLSH) == 0)
 				ttyflush(tp, FREAD);
 			ttyecho(c, tp);
@@ -773,27 +892,27 @@ ttyinput(c, tp)
 	/*
 	 * Handle start/stop characters.
 	 */
-	if (c == tp->t_stopc) {
+	if (CCEQ(tp->t_stopc,c)) {
 		if ((tp->t_state&TS_TTSTOP) == 0) {
 			tp->t_state |= TS_TTSTOP;
 			(*cdevsw[major(tp->t_dev)].d_stop)(tp, 0);
 			return;
 		}
-		if (c != tp->t_startc)
+		if (CCEQ(tp->t_startc,c))
 			return;
 		goto endcase;
 	}
-	if (c == tp->t_startc)
+	if (CCEQ(tp->t_startc,c))
 		goto restartoutput;
 
 	/*
 	 * Look for interrupt/quit chars.
 	 */
-	if (c == tp->t_intrc || c == tp->t_quitc) {
+	if (CCEQ(tp->t_intrc,c) || CCEQ(tp->t_quitc,c)) {
 		if ((t_flags&NOFLSH) == 0)
 			ttyflush(tp, FREAD|FWRITE);
 		ttyecho(c, tp);
-		gsignal(tp->t_pgrp, c == tp->t_intrc ? SIGINT : SIGQUIT);
+		gsignal(tp->t_pgrp, CCEQ(tp->t_intrc,c) ? SIGINT : SIGQUIT);
 		goto endcase;
 	}
 
@@ -806,7 +925,7 @@ ttyinput(c, tp)
 			if (tp->t_outq.c_cc < TTHIWAT(tp) &&
 			    tp->t_line == NTTYDISC)
 				(void) ttyoutput(CTRL(g), tp);
-		} else if (putc(c, &tp->t_rawq) >= 0) {
+		} else if (putc(c, &tp->t_rawq) == 0) {
 			ttwakeup(tp);
 			ttyecho(c, tp);
 		}
@@ -817,17 +936,12 @@ ttyinput(c, tp)
 	 * From here on down cooked mode character
 	 * processing takes place.
 	 */
-	if ((tp->t_state&TS_QUOT) &&
-	    (c == tp->t_erase || c == tp->t_kill)) {
-		ttyrub(unputc(&tp->t_rawq), tp);
-		c |= 0200;
-	}
-	if (c == tp->t_erase) {
+	if (CCEQ(tp->t_erase,c)) {
 		if (tp->t_rawq.c_cc)
 			ttyrub(unputc(&tp->t_rawq), tp);
 		goto endcase;
 	}
-	if (c == tp->t_kill) {
+	if (CCEQ(tp->t_kill,c)) {
 		if (t_flags&CRTKIL &&
 		    tp->t_rawq.c_cc == tp->t_rocount) {
 			while (tp->t_rawq.c_cc)
@@ -848,7 +962,7 @@ ttyinput(c, tp)
 	 * check word erase/reprint line.
 	 */
 	if (tp->t_line == NTTYDISC) {
-		if (c == tp->t_werasc) {
+		if (CCEQ(tp->t_werasc,c)) {
 			if (tp->t_rawq.c_cc == 0)
 				goto endcase;
 			do {
@@ -868,7 +982,7 @@ ttyinput(c, tp)
 			(void) putc(c, &tp->t_rawq);
 			goto endcase;
 		}
-		if (c == tp->t_rprntc) {
+		if (CCEQ(tp->t_rprntc,c)) {
 			ttyretype(tp);
 			goto endcase;
 		}
@@ -887,23 +1001,20 @@ ttyinput(c, tp)
 	 * Put data char in q for user and
 	 * wakeup on seeing a line delimiter.
 	 */
-	if (putc(c, &tp->t_rawq) >= 0) {
+	if (putc(c, &tp->t_rawq) == 0) {
 		if (ttbreakc(c, tp)) {
 			tp->t_rocount = 0;
 			catq(&tp->t_rawq, &tp->t_canq);
 			ttwakeup(tp);
 		} else if (tp->t_rocount++ == 0)
 			tp->t_rocol = tp->t_col;
-		tp->t_state &= ~TS_QUOT;
-		if (c == '\\')
-			tp->t_state |= TS_QUOT;
 		if (tp->t_state&TS_ERASE) {
 			tp->t_state &= ~TS_ERASE;
 			(void) ttyoutput('/', tp);
 		}
 		i = tp->t_col;
 		ttyecho(c, tp);
-		if (c == tp->t_eofc && t_flags&ECHO) {
+		if (CCEQ(tp->t_eofc,c) && t_flags&ECHO) {
 			i = MIN(2, tp->t_col - i);
 			while (i > 0) {
 				(void) ttyoutput('\b', tp);
@@ -933,37 +1044,37 @@ startoutput:
  * and from interrupt level for echoing.
  * The arguments are the character and the tty structure.
  * Returns < 0 if putc succeeds, otherwise returns char to resend
- * Must be recursive.
  */
 ttyoutput(c, tp)
-	register c;
+	register int c;
 	register struct tty *tp;
 {
-	register char *colp;
-	register ctype;
+	register int col;
 
 	if (tp->t_flags & (RAW|LITOUT)) {
 		if (tp->t_flags&FLUSHO)
 			return (-1);
 		if (putc(c, &tp->t_outq))
-			return (c);
+			return(c);
 #ifdef UCB_METER
 		tk_nout++;
 #endif
-		return (-1);
+		return(-1);
 	}
 
+	c &= 0177;
+#ifdef	whybother
 	/*
 	 * Ignore EOT in normal mode to avoid
 	 * hanging up certain terminals.
 	 */
-	c &= 0177;
 	if (c == CEOT && (tp->t_flags&CBREAK) == 0)
-		return (-1);
+		return(-1);
+#endif
 	/*
 	 * Turn tabs to spaces as required
 	 */
-	if (c == '\t' && (tp->t_flags&TBDELAY) == XTABS) {
+	if (c == '\t' && (tp->t_flags&XTABS)) {
 		register int s;
 
 		c = 8 - (tp->t_col&7);
@@ -985,91 +1096,38 @@ ttyoutput(c, tp)
 	 * turn <nl> to <cr><lf> if desired.
 	 */
 	if (c == '\n' && tp->t_flags&CRMOD)
-		if (ttyoutput('\r', tp) >= 0)
-			return (c);
+		{
+		if (putc('\r', &tp->t_outq))
+			return(c);
+#ifdef UCB_METER
+		tk_nout++;
+#endif
+		}
 	if ((tp->t_flags&FLUSHO) == 0 && putc(c, &tp->t_outq))
 		return (c);
-	/*
-	 * Calculate delays.
-	 * The numbers here represent clock ticks
-	 * and are not necessarily optimal for all terminals.
-	 * The delays are indicated by characters above 0200.
-	 * In raw mode there are no delays and the
-	 * transmission path is 8 bits wide.
-	 *
-	 * SHOULD JUST ALLOW USER TO SPECIFY DELAYS
-	 */
-	colp = &tp->t_col;
-	ctype = partab[c];
-	c = 0;
-	switch (ctype&077) {
+
+	col = tp->t_col;
+	switch (partab[c]&077) {
 
 	case ORDINARY:
-		(*colp)++;
-
+		col++;
 	case CONTROL:
 		break;
-
 	case BACKSPACE:
-		if (*colp)
-			(*colp)--;
+		if (col)
+			col--;
 		break;
-
-	/*
-	 * This macro is close enough to the correct thing;
-	 * it should be replaced by real user settable delays
-	 * in any event...
-	 */
-#define	mstohz(ms)	(((ms) * hz) >> 10)
 	case NEWLINE:
-		ctype = (tp->t_flags >> 8) & 03L;
-		if (ctype == 1) { /* tty 37 */
-			if (*colp > 0) {
-				c = (((unsigned)*colp) >> 4) + 3;
-				if ((unsigned)c > 6)
-					c = 6;
-			}
-		} else if (ctype == 2) /* vt05 */
-			c = mstohz(100);
-		*colp = 0;
-		break;
-
-	case TAB:
-		ctype = (tp->t_flags >> 10) & 03L;
-		if (ctype == 1) { /* tty 37 */
-			c = 1 - (*colp | ~07);
-			if (c < 5)
-				c = 0;
-		}
-		*colp |= 07;
-		(*colp)++;
-		break;
-
-	case VTAB:
-		if (tp->t_flags&VTDELAY) /* tty 37 */
-			c = 0177;
-		break;
-
 	case RETURN:
-		ctype = (tp->t_flags >> 12) & 03L;
-		if (ctype == 1) /* tn 300 */
-			c = mstohz(83);
-		else if (ctype == 2) /* ti 700 */
-			c = mstohz(166);
-		else if (ctype == 3) { /* concept 100 */
-			int i;
-
-			if ((i = *colp) >= 0)
-				for (; i < 9; i++)
-					(void) putc(0177, &tp->t_outq);
-		}
-		*colp = 0;
+		col = 0;
+		break;
+	case TAB:
+		col = (col | 07) + 1;
+		break;
 	}
-	if (c && (tp->t_flags&FLUSHO) == 0)
-		(void) putc(c|0200, &tp->t_outq);
-	return (-1);
+	tp->t_col = col;
+	return(-1);
 }
-#undef mstohz
 
 /*
  * Called from device's read routine after it has
@@ -1080,9 +1138,9 @@ ttread(tp, uio, flag)
 	struct uio *uio;
 {
 	register struct clist *qp;
-	register c;
+	register int c;
 	long t_flags;
-	int s, first, error = 0;
+	int s, first, error = 0, carrier;
 
 loop:
 	/*
@@ -1092,9 +1150,6 @@ loop:
 	if (tp->t_flags&PENDIN)
 		ttypend(tp);
 	splx(s);
-
-	if ((tp->t_state&TS_CARR_ON)==0)
-		return (EIO);
 
 	/*
 	 * Hang process if it's in the background.
@@ -1118,11 +1173,17 @@ loop:
 	if (t_flags&RAW) {
 		s = spltty();
 		if (tp->t_rawq.c_cc <= 0) {
-			if ((tp->t_state&TS_CARR_ON) == 0 ||
-			    (flag & IO_NDELAY)) {
+			carrier = ISSET(tp->t_state, TS_CARR_ON);
+			if (!carrier && ISSET(tp->t_state, TS_ISOPEN))
+				{
 				splx(s);
-				return (EWOULDBLOCK);
-			}
+				return(0);	/* EOF */
+				}
+			if (flag & IO_NDELAY)
+				{
+				splx(s);
+				return(EWOULDBLOCK);
+				}
 			sleep((caddr_t)&tp->t_rawq, TTIPRI);
 			splx(s);
 			goto loop;
@@ -1145,10 +1206,17 @@ loop:
 	 */
 	s = spltty();
 	if (qp->c_cc <= 0) {
-		if ((tp->t_state&TS_CARR_ON) == 0 || (flag & IO_NDELAY)) {
+		carrier = ISSET(tp->t_state, TS_CARR_ON);
+		if (!carrier && ISSET(tp->t_state,TS_ISOPEN))
+			{
 			splx(s);
-			return (EWOULDBLOCK);
-		}
+			return(0);	/* EOF */
+			}
+		if (flag & IO_NDELAY)
+			{
+			splx(s);
+			return(EWOULDBLOCK);
+			}
 		sleep((caddr_t)&tp->t_rawq, TTIPRI);
 		splx(s);
 		goto loop;
@@ -1166,7 +1234,7 @@ loop:
 		/*
 		 * Check for delayed suspend character.
 		 */
-		if (tp->t_line == NTTYDISC && c == tp->t_dsuspc) {
+		if (tp->t_line == NTTYDISC && CCEQ(tp->t_dsuspc,c)) {
 			gsignal(tp->t_pgrp, SIGTSTP);
 			if (first) {
 				sleep((caddr_t)&lbolt, TTIPRI);
@@ -1177,7 +1245,7 @@ loop:
 		/*
 		 * Interpret EOF only in cooked mode.
 		 */
-		if (c == tp->t_eofc && (t_flags&CBREAK) == 0)
+		if (CCEQ(tp->t_eofc,c) && (t_flags&CBREAK) == 0)
 			break;
 		/*
 		 * Give user character.
@@ -1201,14 +1269,11 @@ checktandem:
 	 * Look to unblock output now that (presumably)
 	 * the input queue has gone down.
 	 */
-	if (tp->t_state&TS_TBLOCK && 
-	    (tp->t_rawq.c_cc+tp->t_canq.c_cc < TTYHOG/5 ||
-	    (t_flags&(RAW|CBREAK)) == 0 && tp->t_canq.c_cc == 0))
-		if (putc(tp->t_startc, &tp->t_outq) == 0) {
-			tp->t_state &= ~TS_TBLOCK;
-			ttstart(tp);
-		}
-	return (error);
+	s = spltty();
+	if	(ISSET(tp->t_state,TS_TBLOCK) && tp->t_rawq.c_cc < TTYUNBLOCK)
+		ttyunblock(tp);
+	splx(s);
+	return(error);
 }
 
 /*
@@ -1224,7 +1289,6 @@ ttycheckoutq(tp, wait)
 	int wait;
 {
 	int hiwat, s, oldsig;
-	int	wakeup();
 
 	hiwat = TTHIWAT(tp);
 	s = spltty();
@@ -1234,14 +1298,14 @@ ttycheckoutq(tp, wait)
 		ttstart(tp);
 		if (wait == 0 || u.u_procp->p_sig != oldsig) {
 			splx(s);
-			return (0);
+			return(0);
 		}
 		timeout(wakeup, (caddr_t)&tp->t_outq, hz);
 		tp->t_state |= TS_ASLEEP;
 		sleep((caddr_t)&tp->t_outq, PZERO - 1);
 	}
 	splx(s);
-	return (1);
+	return(1);
 }
 
 /*
@@ -1414,13 +1478,12 @@ ovhiwat:
  * as cleanly as possible.
  */
 ttyrub(c, tp)
-	register c;
+	register int c;
 	register struct tty *tp;
 {
 	register char *cp;
-	register int savecol;
+	int savecol;
 	int s;
-	char *nextc();
 
 	if ((tp->t_flags&ECHO) == 0)
 		return;
@@ -1434,6 +1497,10 @@ ttyrub(c, tp)
 			ttyretype(tp);
 			return;
 		}
+/*
+ * Out of the ENTIRE tty subsystem would believe this is the ONLY place
+ * that the "9th" bit (quoted chars) is tested?
+*/
 		if (c == ('\t'|0200) || c == ('\n'|0200))
 			ttyrubo(tp, 2);
 		else switch (partab[c&=0177]&0177) {
@@ -1508,11 +1575,11 @@ ttyrub(c, tp)
  */
 ttyrubo(tp, cnt)
 	register struct tty *tp;
-	int cnt;
+	register int cnt;
 {
 	register char *rubostring = tp->t_flags&CRTERA ? "\b \b" : "\b";
 
-	while (--cnt >= 0)
+	while	(--cnt >= 0)
 		ttyout(rubostring, tp);
 }
 
@@ -1524,10 +1591,9 @@ ttyretype(tp)
 	register struct tty *tp;
 {
 	register char *cp;
-	char *nextc();
 	int s;
 
-	if (tp->t_rprntc != 0377)
+	if (tp->t_rprntc != _POSIX_VDISABLE)
 		ttyecho(tp->t_rprntc, tp);
 	(void) ttyoutput('\n', tp);
 	s = spltty();
@@ -1560,42 +1626,44 @@ ttyretype(tp)
  * Echo a typed character to the terminal
  */
 ttyecho(c, tp)
-	register c;
+	register int c;
 	register struct tty *tp;
 {
+	register int c7;
 
 	if ((tp->t_state&TS_CNTTB) == 0)
 		tp->t_flags &= ~FLUSHO;
 	if ((tp->t_flags&ECHO) == 0)
 		return;
 	c &= 0377;
+
 	if (tp->t_flags&RAW) {
 		(void) ttyoutput(c, tp);
 		return;
 	}
 	if (c == '\r' && tp->t_flags&CRMOD)
 		c = '\n';
+	c7 = c & 0177;
 	if (tp->t_flags&CTLECH) {
-		if ((c&0177) <= 037 && c!='\t' && c!='\n' || (c&0177)==0177) {
+		if (c7 <= 037 && c != '\t' && c != '\n' || c7 == 0177) {
 			(void) ttyoutput('^', tp);
-			c &= 0177;
-			if (c == 0177)
-				c = '?';
+			if (c7 == 0177)
+				c7 = '?';
 			else
-				c += 'A' - 1;
+				c7 += 'A' - 1;
 		}
 	}
-	(void) ttyoutput(c&0177, tp);
+	(void) ttyoutput(c7, tp);
 }
 
 /*
  * Is c a break char for tp?
  */
 ttbreakc(c, tp)
-	register c;
+	register int c;
 	register struct tty *tp;
 {
-	return (c == '\n' || c == tp->t_eofc || c == tp->t_brkc ||
+	return (c == '\n' || CCEQ(tp->t_eofc,c) || CCEQ(tp->t_brkc,c) ||
 		c == '\r' && (tp->t_flags&CRMOD));
 }
 
@@ -1606,14 +1674,14 @@ ttyout(cp, tp)
 	register char *cp;
 	register struct tty *tp;
 {
-	register char c;
+	register int c;
 
 	while (c = *cp++)
 		(void) ttyoutput(c, tp);
 }
 
 ttwakeup(tp)
-	struct tty *tp;
+	register struct tty *tp;
 {
 
 	if (tp->t_rsel) {

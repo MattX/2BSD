@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ioctl.h	1.3 (2.11BSD GTE) 1995/05/21
+ *	@(#)ioctl.h	1.4 (2.11BSD GTE) 1997/3/28
  */
 
 /*
@@ -136,45 +136,31 @@ struct ttysize {
 #define	TIOCGETC	_IOR(t,18,struct tchars)/* get special characters */
 #define		TANDEM		0x00000001	/* send stopc on out q full */
 #define		CBREAK		0x00000002	/* half-cooked mode */
-#define		LCASE		0x00000004	/* (obsolete) - place holder */
+						/* 0x4 (old LCASE) */
 #define		ECHO		0x00000008	/* echo input */
 #define		CRMOD		0x00000010	/* map \r to \r\n on output */
 #define		RAW		0x00000020	/* no i/o processing */
 #define		ODDP		0x00000040	/* get/send odd parity */
 #define		EVENP		0x00000080	/* get/send even parity */
 #define		ANYP		0x000000c0	/* get any parity/send none */
-#define		NLDELAY		0x00000300	/* \n delay */
-#define			NL0	0x00000000
-#define			NL1	0x00000100	/* tty 37 */
-#define			NL2	0x00000200	/* vt05 */
-#define			NL3	0x00000300
-#define		TBDELAY		0x00000c00	/* horizontal tab delay */
-#define			TAB0	0x00000000
-#define			TAB1	0x00000400	/* tty 37 */
-#define			TAB2	0x00000800
-#define		XTABS		0x00000c00	/* expand tabs on output */
-#define		CRDELAY		0x00003000	/* \r delay */
-#define			CR0	0x00000000
-#define			CR1	0x00001000	/* tn 300 */
-#define			CR2	0x00002000	/* tty 37 */
-#define			CR3	0x00003000	/* concept 100 */
-#define		VTDELAY		0x00004000	/* vertical tab delay */
-#define			FF0	0x00000000
-#define			FF1	0x00004000	/* tty 37 */
-#define		BSDELAY		((unsigned)0x00008000)	/* \b delay */
-#define			BS0	0x00000000
-#define			BS1	((unsigned)0x00008000)
-#define		ALLDELAY	(NLDELAY|TBDELAY|CRDELAY|VTDELAY|BSDELAY)
+						/* 0x100 (old NLDELAY) */
+						/* 0x200 */
+#define		XTABS		0x00000400	/* expand tabs on output */
+						/* 0x0800 (part of old XTABS) */
+						/* 0x1000 (old CRDELAY) */
+						/* 0x2000 */
+						/* 0x4000 (old VTDELAY) */
+						/* 0x8000 (old BSDELAY) */
 #define		CRTBS		0x00010000	/* do backspacing for crt */
 #define		PRTERA		0x00020000	/* \ ... / erase */
 #define		CRTERA		0x00040000	/* " \b " to wipe out char */
-#define		TILDE		0x00080000	/* (obsolete) place holder */
+						/* 0x00080000 (old TILDE) */
 #define		MDMBUF		0x00100000	/* start/stop output on carrier intr */
 #define		LITOUT		0x00200000	/* literal output */
 #define		TOSTOP		0x00400000	/* SIGSTOP on background output */
 #define		FLUSHO		0x00800000	/* flush output to terminal */
 #define		NOHANG		0x01000000	/* no SIGHUP on carrier drop */
-#define		L001000		0x02000000
+#define		RTSCTS		0x02000000	/* use RTS/CTS flow control */
 #define		CRTKIL		0x04000000	/* kill line with " \b " */
 #define		PASS8		0x08000000
 #define		CTLECH		0x10000000	/* echo control chars as ^X */
@@ -189,12 +175,12 @@ struct ttysize {
 #define		LCRTBS		((int)(CRTBS>>16))
 #define		LPRTERA		((int)(PRTERA>>16))
 #define		LCRTERA		((int)(CRTERA>>16))
-#define		LTILDE		((int)TILDE>>16)) /* (obsolete) place holder */
 #define		LMDMBUF		((int)(MDMBUF>>16))
 #define		LLITOUT		((int)(LITOUT>>16))
 #define		LTOSTOP		((int)(TOSTOP>>16))
 #define		LFLUSHO		((int)(FLUSHO>>16))
 #define		LNOHANG		((int)(NOHANG>>16))
+#define		LRTSCTS		((int)(RTSCTS>>16))
 #define		LCRTKIL		((int)(CRTKIL>>16))
 #define		LPASS8		((int)(PASS8>>16))
 #define		LCTLECH		((int)(CTLECH>>16))

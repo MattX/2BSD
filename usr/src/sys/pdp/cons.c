@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)cons.c	1.2 (2.11BSD GTE) 11/29/94
+ *	@(#)cons.c	1.3 (2.11BSD GTE) 1997/4/25
  */
 
 /*
@@ -32,7 +32,6 @@ struct dldevice *cnaddr = (struct dldevice *)0177560;
 int	nkl11 = NKL;			/* for pstat */
 struct	tty cons[NKL];
 int	cnstart();
-int	ttrstrt();
 char	partab[];
 
 cnattach(addr, unit)
@@ -80,6 +79,7 @@ cnclose(dev, flag)
 
 	(*linesw[tp->t_line].l_close)(tp, flag);
 	ttyclose(tp);
+	return(0);
 }
 
 /*ARGSUSED*/
@@ -154,17 +154,7 @@ cnstart(tp)
 	s = spltty();
 	if (tp->t_state & (TS_TIMEOUT|TS_BUSY|TS_TTSTOP))
 		goto out;
-	if (tp->t_outq.c_cc <= TTLOWAT(tp)) {
-		if (tp->t_state&TS_ASLEEP) {
-			tp->t_state &= ~TS_ASLEEP;
-			wakeup((caddr_t)&tp->t_outq);
-		}
-		if (tp->t_wsel) {
-			selwakeup(tp->t_wsel, tp->t_state & TS_WCOLL);
-			tp->t_wsel = 0;
-			tp->t_state &= ~TS_WCOLL;
-		}
-	}
+	ttyowake(tp);
 	if (tp->t_outq.c_cc == 0)
 		goto out;
 	addr = (struct dldevice *)tp->t_addr;
@@ -173,13 +163,8 @@ cnstart(tp)
 	c = getc(&tp->t_outq);
 	if (tp->t_flags & (RAW|LITOUT))
 		addr->dlxbuf = c&0xff;
-	else if (c <= 0177)
-		addr->dlxbuf = (c | ((partab[c]&0200))&0xff);
-	else {
-		timeout(ttrstrt, (caddr_t)tp, c&0177);
-		tp->t_state |= TS_TIMEOUT;
-		goto out;
-	}
+	else
+		addr->dlxbuf = c | (partab[c] & 0200);
 	tp->t_state |= TS_BUSY;
 out:
 	splx(s);
@@ -187,7 +172,7 @@ out:
 
 /* copied, for supervisory networking, to sys_sup.c */
 cnputc(c)
-	register int c;
+	char c;
 {
 	register int s, timo;
 
@@ -203,7 +188,7 @@ cnputc(c)
 		return;
 	s = cnaddr->dlxcsr;
 	cnaddr->dlxcsr = 0;
-	cnaddr->dlxbuf = c&0xff;
+	cnaddr->dlxbuf = c;
 	if (c == '\n')
 		cnputc('\r');
 	cnputc(0);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhvreg.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)dhvreg.h	1.2 (2.11BSD) 1997/5/1
  */
 
 /* 
@@ -91,7 +91,7 @@ struct dhvdevice {
 #define	DHV_ST_DSR	0x80		/* data set ready */
 #define	DHV_ST_RI	0x20		/* ring indicator */
 #define	DHV_ST_DCD	0x10		/* carrier detect */
-#define	DHV_ST_CTS	0x04		/* clear to send */
+#define	DHV_ST_CTS	0x08		/* clear to send */
 #define	DHV_ST_DHU	0x01		/* always one on a dhu, zero on dhv */
 
 /* Bits in dhvlcr */
@@ -127,14 +127,3 @@ struct dhvdevice {
 #define	DHV_DTR	DHV_LC_DTR
 #define DHV_BRK	DHV_LC_BREAK
 #define DHV_LE	DHV_LC_MODEM
-
-/* bits in dm lsr, copied from dmreg.h */
-#define	DML_DSR		0000400		/* data set ready, not a real DM bit */
-#define	DML_RNG		0000200		/* ring */
-#define	DML_CAR		0000100		/* carrier detect */
-#define	DML_CTS		0000040		/* clear to send */
-#define	DML_SR		0000020		/* secondary receive */
-#define	DML_ST		0000010		/* secondary transmit */
-#define	DML_RTS		0000004		/* request to send */
-#define	DML_DTR		0000002		/* data terminal ready */
-#define	DML_LE		0000001		/* line enable */

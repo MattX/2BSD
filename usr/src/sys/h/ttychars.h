@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ttychars.h	7.1 (Berkeley) 6/4/86
+ *	@(#)ttychars.h	7.2 (2.11BSD) 1997/4/15
  */
 
 /*
@@ -30,6 +30,8 @@ struct ttychars {
 };
 
 #define	CTRL(c)	('c'&037)
+#define	_POSIX_VDISABLE	((unsigned char)'\377')
+#define	CCEQ(val,c)	(c == val ? val != _POSIX_VDISABLE : 0)
 
 /* default special characters */
 #define	CERASE	0177
@@ -40,11 +42,11 @@ struct ttychars {
 #define	CSTOP	CTRL(s)
 #define	CEOF	CTRL(d)
 #define	CEOT	CEOF
-#define	CBRK	0377
+#define	CBRK	_POSIX_VDISABLE
 #define	CSUSP	CTRL(z)
 #define	CDSUSP	CTRL(y)
 #define	CRPRNT	CTRL(r)
 #define	CFLUSH	CTRL(o)
 #define	CWERASE	CTRL(w)
 #define	CLNEXT	CTRL(v)
-#endif
+#endif /* _TTYCHARS_ */
