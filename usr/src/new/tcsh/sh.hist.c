@@ -1,4 +1,3 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/sh.hist.c,v 3.0 1991/07/04 21:49:28 christos Exp $ */
 /*
  * sh.hist.c: Shell history expansions and substitutions
  */
@@ -37,7 +36,7 @@
 #include "config.h"
 #if !defined(lint) && !defined(pdp11)
 static char *rcsid() 
-    { return "$Id: sh.hist.c,v 3.0 1991/07/04 21:49:28 christos Exp $"; }
+    { return "$Id: sh.hist.c,v 3.0.1 1996/04/04 21:49:28 sms Exp $"; }
 #endif
 
 #include "sh.h"
@@ -171,8 +170,9 @@ dohist(vp)
 
 static void
 dohist1(hp, np, rflg, hflg, tflg)
-    struct Hist *hp;
-    int    *np, rflg, hflg, tflg;
+    register struct Hist *hp;
+    register int    *np;
+    int    rflg, hflg, tflg;
 {
     bool    print = (*np) > 0;
 
@@ -195,7 +195,7 @@ phist(hp, hflg, tflg)
     register struct Hist *hp;
     int     hflg, tflg;
 {
-    struct tm *t;
+    register struct tm *t;
     char    ampm = 'a';
 
     if (hflg == 0) {

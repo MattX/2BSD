@@ -1,4 +1,3 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/ed.defns.c,v 3.0 1991/07/04 21:49:28 christos Exp $ */
 /*
  * ed.defns.c: Editor function definitions and initialization
  */
@@ -37,7 +36,7 @@
 #include "config.h"
 #if !defined(lint) && !defined(pdp11)
 static char *rcsid()
-    { return "$Id: ed.defns.c,v 3.0 1991/07/04 21:49:28 christos Exp $"; }
+    { return "$Id: ed.defns.c,v 3.0.1 1996/04/04 21:49:28 sms Exp $"; }
 #endif
 
 #include "sh.h"
@@ -1482,7 +1481,7 @@ ed_IMetaBindings()
 {
     Char    buf[3];
     register int i;
-    KEYCMD *map;
+    register KEYCMD *map;
 
     map = CcKeyMap;
     for (i = 0; i <= 0377 && CcKeyMap[i] != F_METANEXT; i++);

@@ -1,16 +1,38 @@
 #if !defined(lint) && !defined(NOSCCS)
-static	char *sccsid = "@(#)alloc.c 4.1 10/9/80";
+static	char *sccsid = "@(#)alloc.c 4.1.1 1996/4/4";
 #endif
 
 #include "config.h"
-/* #include "sh.local.h" */
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+
 #define debug
 #ifdef debug
 #define ASSERT(p) if(!(p))botch("p");else
+
+/*
+ * Can't use 'printf' below because that can call malloc().  If the malloc
+ * arena is corrupt the result is a recursive loop which underflows the stack
+ * and obfuscates the initial problem.
+*/
 botch(s)
 char *s;
 {
-	printf("assertion botched: %s\n",s);
+	struct	iovec	iov[3];
+	register struct iovec *v = iov;
+	char	*ab = "assertion botched: ";
+
+	v->iov_base = ab;
+	v->iov_len = strlen(ab);
+	v++;
+	v->iov_base = s;
+	v->iov_len = strlen(s);
+	v++;
+	v->iov_base = "\n";
+	v->iov_len = 1;
+
+	writev(STDOUT_FILENO, iov, 3);
 	abort();
 }
 #else
@@ -47,7 +69,7 @@ char *s;
 #define WORD sizeof(union store)
 #define BLOCK 1024	/* a multiple of WORD*/
 #define BUSY 1
-#define NULL 0
+
 #define testbusy(p) ((INT)(p)&BUSY)
 #define setbusy(p) (union store *)((INT)(p)|BUSY)
 #define clearbusy(p) (union store *)((INT)(p)&~BUSY)
@@ -220,5 +242,5 @@ showall(s)
 			free += i;
 		}
 	}
-	printf("%d used, %d free, %u end\n", used, free, clearbusy(alloct));
+	printf("%u used, %u free, %u end\n", used, free, clearbusy(alloct));
 }

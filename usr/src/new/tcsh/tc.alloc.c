@@ -1,4 +1,3 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/tc.alloc.c,v 3.0 1991/07/04 21:49:28 christos Exp $ */
 /*
  * tc.alloc.c (Caltech) 2/21/82
  * Chris Kingsley, kingsley@cit-20.
@@ -45,7 +44,7 @@
 #include "config.h"
 #if !defined(lint) && !defined(pdp11)
 static char *rcsid() 
-    { return "$Id: tc.alloc.c,v 3.0 1991/07/04 21:49:28 christos Exp $"; }
+    { return "$Id: tc.alloc.c,v 3.0.1 1996/04/04 21:49:28 sms Exp $"; }
 #endif
 
 
@@ -496,7 +495,7 @@ Malloc(n)
 memalign_t
 Realloc(p, n)
     ptr_t   p;
-    size_t  n;
+    register size_t  n;
 {
     ptr_t   ptr;
 
@@ -510,9 +509,9 @@ Realloc(p, n)
 
 memalign_t
 Calloc(s, n)
-    size_t  s, n;
+    register size_t  s, n;
 {
-    char   *sptr;
+    register char   *sptr;
     ptr_t   ptr;
 
     n *= s;

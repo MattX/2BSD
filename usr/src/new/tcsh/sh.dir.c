@@ -1,4 +1,3 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/sh.dir.c,v 3.0 1991/07/04 21:49:28 christos Exp $ */
 /*
  * sh.dir.c: Directory manipulation functions
  */
@@ -37,7 +36,7 @@
 #include "config.h"
 #if !defined(lint) && !defined(pdp11)
 static char *rcsid() 
-    { return "$Id: sh.dir.c,v 3.0 1991/07/04 21:49:28 christos Exp $"; }
+    { return "$Id: sh.dir.c,v 3.0.1 1996/04/04 21:49:28 sms Exp $"; }
 #endif
 
 
@@ -160,7 +159,7 @@ skipargs(v, str)
     Char ***v;
     char   *str;
 {
-    Char  **n = *v, *s;
+    register Char  **n = *v, *s;
 
     dirflag = 0;
     for (n++; *n != NOSTR && (*n)[0] == '-'; n++)
@@ -248,7 +247,7 @@ dtildepr(home, dir)
 void
 dtilde()
 {
-    struct directory *d = dcwd;
+    register struct directory *d = dcwd;
 
     do {
 	if (d == &dhead)
@@ -266,7 +265,7 @@ dtilde()
  */
 Char   *
 dnormalize(cp)
-    Char   *cp;
+    register Char   *cp;
 {
 
 #define UC (unsigned char)
@@ -279,7 +278,7 @@ dnormalize(cp)
 #ifdef S_IFLNK
     if (adrof(STRig__symlinks)) {
 	int     dotdot = 0;
-	Char   *dp, *cwd;
+	register Char   *dp, *cwd;
 #ifdef apollo
 	bool slashslash;
 #endif
@@ -974,7 +973,7 @@ dcanon(cp, p)
 	     */
 	    p2 = cp + Strlen(p2);
 	    sp = newcp = (Char *) xmalloc((size_t)
-					  ((cc + Strlen(p2)) * sizeof(Char)));
+					((cc + Strlen(p2) + 1) * sizeof(Char)));
 	    while (*p1)
 		*sp++ = *p1++;
 	    while (*p2)
@@ -1031,7 +1030,7 @@ getstakd(s, cnt)
     Char   *s;
     int     cnt;
 {
-    struct directory *dp;
+    register struct directory *dp;
 
     dp = dcwd;
     if (cnt < 0) {		/* < 0 ==> last dir requested. */
@@ -1061,7 +1060,7 @@ getstakd(s, cnt)
  */
 void
 dextract(dp)
-    struct directory *dp;
+    register struct directory *dp;
 {
     if (dp == dcwd)
 	return;
