@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_il.c	2.0 (2.11BSD GTE) 12/29/92
+ *	@(#)if_il.c	2.1 (2.11BSD GTE) 12/17/94
  *
  *	12/29/92 - sms: remove Q22 ifdefs, replacing them with runtime tests
  *		  for a Unibus Map.
@@ -35,6 +35,7 @@
 #include "if_uba.h"
 #include "errno.h"
 #include "../pdpuba/ubavar.h"
+#include "map.h"
 #include "uba.h"
 
 #include "../net/if.h"
