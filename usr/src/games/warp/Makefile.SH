@@ -170,7 +170,7 @@ sm: sm.c
 	cc sm.c $(SMALL) -o sm
 
 depend: makedepend
-	./makedepend
+	/bin/sh ./makedepend
 
 clist:
 	echo $(c) | tr ' ' '\012' >.clist
@@ -185,6 +185,6 @@ shlist:
 $(obj):
 	@ echo "You haven't done a "'"make depend" yet!'; exit 1
 makedepend: makedepend.SH
-	/bin/sh makedepend.SH
+	/bin/sh ./makedepend.SH
 !NO!SUBS!
 $eunicefix Makefile

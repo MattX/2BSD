@@ -30,12 +30,13 @@ OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 OBJS2=	sysexits.o arpadate.o convtime.o ctime.o
 OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) Version.o str.o
 
-SBASE=	conf.o collect.o parseaddr.o alias.o deliver.o headers.o \
+SBASE=	conf.o parseaddr.o alias.o deliver.o headers.o \
 	recipient.o srvrsmtp.o queue.o util.o \
 	envelope.o sysexits.o arpadate.o convtime.o Version.o \
 	$(EXTRACT) str.o
 SOV1=	main.o readcf.o macro.o ctime.o
 SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o
+SOV3=	collect.o
 
 SRCS=	\
 	conf.c deliver.c main.c parseaddr.c err.c alias.c savemail.c \
@@ -65,7 +66,7 @@ all: $(ALL)
 
 sendmail: $(OBJS)
 	ld $(SEPFLAG) $(COPTS) /lib/crt0.o -o sendmail \
-		-Z $(SOV1) -Z $(SOV2) -Y $(SBASE) $(LIBS) -lc
+		-Z $(SOV1) -Z $(SOV2) -Z $(SOV3) -Y $(SBASE) $(LIBS) -lc
 	chmod $(OBJMODE) sendmail
 	size sendmail; ls -l sendmail
 

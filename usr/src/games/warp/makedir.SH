@@ -1,5 +1,5 @@
 case $CONFIG in
-    '') . config.sh ;;
+    '') . ./config.sh ;;
 esac
 echo "Extracting makedir (with variable substitutions)"
 $spitshell >makedir <<!GROK!THIS!
