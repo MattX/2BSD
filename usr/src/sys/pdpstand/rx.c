@@ -1,5 +1,6 @@
 /*
  * RX02 Standalone disk driver.
+ * 96/3/8, Steve Schultz (sms@moe.2bsd.com)
  * 95/12/02, Tim Shoppa (shoppa@altair.krl.caltech.edu)
  *
  *	Layout of logical devices:
@@ -94,7 +95,7 @@ rxretry:    		rxaddr->rxcs=RX_RSECT|RXGD|(UNIT<<4);
 	}
 	return(io->i_cc);
 
-rxerr:	printf("rx error: rxcs %o rxes %o\n",rxaddr->rxcs,rxaddr->rxes);
+rxerr:	printf("%s rxcs %o rxes %o\n",devname(io), rxaddr->rxcs,rxaddr->rxes);
 	return(-1);
 }
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)saio.h	2.1 (2.11BSD GTE) 1995/06/08
+ *	@(#)saio.h	2.2 (2.11BSD GTE) 1996/3/8
  */
 
 /*
@@ -68,3 +68,6 @@ struct	devsw {
  * when it expects to be reading an unlabeled disk.
 */
 int	Nolabelerr;
+
+extern	char	*itoa();
+extern	char	*devname();

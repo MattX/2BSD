@@ -1,4 +1,4 @@
-/*	@(#)tmscp.c	7.1.3 (2.11BSD GTE) 1995/12/31 */
+/*	@(#)tmscp.c	7.1.4 (2.11BSD GTE) 1996/3/8 */
 
 /****************************************************************
  *        Licensed from Digital Equipment Corporation           *
@@ -131,9 +131,9 @@ tmscpopen(io)
 		if ((tmscpaddr->tmscpsa&STEP3MASK) != STEP3GOOD)
 			printf(opnmsg, ctlr, 3, tmscpaddr->tmscpsa);
 		tmscpaddr->tmscpsa = TMSCP_GO;
-		if (tmscpcmd(ctlr, M_OP_STCON, 0) == 0)
+		if (tmscpcmd(io, M_OP_STCON, 0) == 0)
 			{
-			printf("tms%d STCON", ctlr);
+			printf("%s STCON", devname(io));
 			return(-1);
 			}
 		tmsoffline[ctlr] = 0;
@@ -144,9 +144,9 @@ tmscpopen(io)
 	 */
 	if (tms_offline[ctlr][unit])
 		{
-		if (tmscpcmd(ctlr, M_OP_ONLIN, 0) == 0)
+		if (tmscpcmd(io, M_OP_ONLIN, 0) == 0)
 			{
-			printf("tms%d,%d ONLIN", ctlr, unit);
+			printf("%s ONLIN", devname(io));
 			return(-1);
 			}
 		tms_offline[ctlr][unit] = 0;
@@ -160,7 +160,7 @@ tmscpopen(io)
 		tms->tmscp_cmd[0].mscp_tmkcnt = io->i_part;
 		tms->tmscp_cmd[0].mscp_buffer_h = 0;
 		tms->tmscp_cmd[0].mscp_bytecnt = 0;
-		tmscpcmd(ctlr, M_OP_REPOS, 0);
+		tmscpcmd(io, M_OP_REPOS, 0);
 		tms->tmscp_cmd[0].mscp_tmkcnt = 0;
 		}
 	return(0);
@@ -178,17 +178,18 @@ tmscpclose(io)
 	tms->tmscp_cmd[0].mscp_buffer_h = 0;
 	tms->tmscp_cmd[0].mscp_bytecnt = 0;
 	tms->tmscp_cmd[0].mscp_unit = io->i_unit;
-	tmscpcmd(io->i_ctlr, M_OP_REPOS, M_MD_REWND | M_MD_CLSEX);
+	tmscpcmd(io, M_OP_REPOS, M_MD_REWND | M_MD_CLSEX);
 }
  
 /*
  * Set up tmscp command packet.  Cause the controller to poll to pick up
  * the command.
  */
-tmscpcmd(ctlr, op,mod)
-	register int ctlr;
+tmscpcmd(io, op,mod)
+	struct	iob *io;
 	int op, mod;		/* opcode and modifier (usu 0) */
 {
+	int ctlr = io->i_ctlr;
 	register struct tmscp *tms = &tmscp[ctlr];
 	register struct mscp *mp;	/* ptr to cmd packet */
 	int i;				/* read into to init polling */
@@ -221,8 +222,8 @@ tmscpcmd(ctlr, op,mod)
 	for (;;)
 		{
 		if (TMScsr[ctlr]->tmscpsa & TMSCP_ERR) {
-			printf("tms%d: Fatal error sa=%o\n",
-				ctlr, TMScsr[ctlr]->tmscpsa);
+			printf("%s Fatal err sa=%o\n",
+				devname(io), TMScsr[ctlr]->tmscpsa);
 			return(0);
 		}
  
@@ -254,8 +255,8 @@ tmscpcmd(ctlr, op,mod)
 			tapemark = 1;
 			return(1);
 		}
-		printf("tms%d,%d: I/O err 0%o op=0%o mod=0%o\n", ctlr,
-			mp->mscp_unit, mp->mscp_status, op, mod);
+		printf("%s I/O err 0%o op=0%o mod=0%o\n", devname(io),
+			mp->mscp_status, op, mod);
 		return(0);
 	}
 	return(1);
@@ -281,7 +282,7 @@ tmscpstrategy(io, func)
 	iomapadr(io->i_ma, &bae, &lo16);
 	mp->mscp_buffer_l = lo16;
 	mp->mscp_buffer_h = bae;
-	if	(tmscpcmd(ctlr, func == READ ? M_OP_READ : M_OP_WRITE, 0) ==0)
+	if	(tmscpcmd(io, func == READ ? M_OP_READ : M_OP_WRITE, 0) ==0)
 		return(-1);
 	/*
 	 * Detect hitting tape mark so we do it gracefully and return a
@@ -312,6 +313,6 @@ tmscpseek(io, space)
 	tms->tmscp_cmd[0].mscp_buffer_h = 0;
 	tms->tmscp_cmd[0].mscp_unit = io->i_unit;
 	tms->tmscp_cmd[0].mscp_reccnt = space;
-	tmscpcmd(io->i_ctlr, M_OP_REPOS, mod | M_MD_OBJCT);
+	tmscpcmd(io, M_OP_REPOS, mod | M_MD_OBJCT);
 	return(0);
 	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	2.4 (2.11BSD) 1995/08/01
+ *	@(#)rl.c	2.5 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -64,6 +64,10 @@ rlstrategy(io, func)
 	rladdr = RLcsr[ctlr];
 	rlp = &rl[ctlr];
 
+	dif = deveovchk(io);
+	if	(dif <= 0)
+		return(dif);
+
 	iomapadr(io->i_ma, &bae, &lo16);
 	rlp->chn = io->i_bn/20;
 	rlp->sn = (io->i_bn%20) << 1;
@@ -109,8 +113,8 @@ reading:
 			while ((rladdr->rlcs & RL_CRDY) == 0)	/* wait for controller */
 				continue;
 		}
-		printf("rl%d,%d err cy=%d, hd=%d, sc=%d, rlcs=%o, rlmp=%o\n",
-			ctlr, drive, rlp->chn>>01, rlp->chn&01, rlp->sn, 
+		printf("%s err cy=%d, hd=%d, sc=%d, rlcs=%o, rlmp=%o\n",
+			devname(io), rlp->chn>>01, rlp->chn&01, rlp->sn, 
 			rladdr->rlcs, rladdr->rlmp);
 		return(-1);
 	}
@@ -185,7 +189,7 @@ rlgsts(io)
 				continue;
 		} while (((rladdr->rlmp & 0177477) != 035) && (++ctr < 8));
 		if (ctr >= 8)
-			printf("\nCan't get rl%d,%d sts\n", ctlr, drive);
+			printf("\nCan't get %s sts\n", devname(io));
 		if (rladdr->rlmp & RLMP_DTYP) 
 			rlp->type[drive] = BLKRL2;	/* drive is RL02 */
 		else

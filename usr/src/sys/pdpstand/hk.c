@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	2.1 (2.11BSD) 1995/06/08
+ *	@(#)hk.c	2.2 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -85,8 +85,8 @@ hkstrategy(io, func)
 		continue;
 
 	if (hkaddr->hkcs1 & HK_CERR) {
-		printf("hk%d,%d err: cy=%d tr=%d sc=%d cs2=%d er=%o\n",
-			ctlr, unit, cn, tn, sn, hkaddr->hkcs2, hkaddr->hker);
+		printf("%s err: cy=%d tr=%d sc=%d cs2=%d er=%o\n",
+			devname(io), cn, tn, sn, hkaddr->hkcs2, hkaddr->hker);
 		return(-1);
 	}
 	return(io->i_cc);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys.c	2.3 (2.11BSD) 1995/08/23
+ *	@(#)sys.c	2.4 (2.11BSD) 1996/3/8
  */
 
 #include "../h/param.h"
@@ -411,7 +411,8 @@ read(fdesc, buf, count)
 		file->i_cc = count;
 		file->i_ma = buf;
 		i = devread(file);
-		file->i_bn += (count / NBPG);
+		if	(i > 0)
+			file->i_bn += (i / NBPG);
 		return(i);
 	}
 	else {

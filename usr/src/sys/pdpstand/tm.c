@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	2.1 (2.11BSD) 1995/06/08
+ *	@(#)tm.c	2.2 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -95,8 +95,8 @@ retry:
 	}
 	if (tmaddr->tmer & TM_ERR) {
 		if (errcnt == 0)
-			printf("\ntm%d,%d err: er=%o cs=%o",
-				ctlr, unit, tmaddr->tmer, tmaddr->tmcs);
+			printf("\n%s err: er=%o cs=%o",
+				devname(io), tmaddr->tmer, tmaddr->tmcs);
 		if (errcnt++ == 10) {
 			printf("\n(FATAL ERROR)\n");
 			return(-1);

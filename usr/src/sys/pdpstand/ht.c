@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ht.c	2.2 (2.11BSD) 1995/06/08
+ *	@(#)ht.c	2.3 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -131,8 +131,8 @@ retry:
 	}
 	if (htaddr->htcs1 & HT_TRE) {
 		if (errcnt == 0)
-			printf("\nht%d,%d err: cs2=%o, er=%o",
-			    ctlr, unit, htaddr->htcs2, htaddr->hter);
+			printf("\n%s err: cs2=%o, er=%o",
+			    devname(io), htaddr->htcs2, htaddr->hter);
 		htinit(htaddr);
 		if (errcnt++ == 10) {
 			printf("\n(FATAL ERROR)\n");

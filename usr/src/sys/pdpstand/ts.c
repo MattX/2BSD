@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ts.c	2.2 (2.11BSD) 1995/06/08
+ *	@(#)ts.c	2.3 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -125,8 +125,8 @@ retry:
 	}
 	if (tsaddr->tssr & TS_SC) {
 		if (errcnt == 0)
-		    printf("\nts%d,%d err sr=%o xs0=%o xs1=%o xs2=%o xs3=%o",
-			ctlr, unit, tsaddr->tssr,
+		    printf("\n%s err sr=%o xs0=%o xs1=%o xs2=%o xs3=%o",
+			devname(io), tsaddr->tssr,
 			mesbuf[ctlr].s_xs0, mesbuf[ctlr].s_xs1,
 			mesbuf[ctlr].s_xs2, mesbuf[ctlr].s_xs3);
 		if (errcnt++ == 10) {

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)br.c	2.2 (2.11BSD) 1995/06/08
+ *	@(#)br.c	2.3 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -49,7 +49,7 @@ brstrategy(io, func)
 		while ((braddr->brcs.w & BR_RDY) == 0 && --ctr)
 			continue;
 		if (braddr->brcs.w & BR_HE) {
-			printf("br%d,%d !ready\n", ctlr,unit);
+			printf("%s !ready\n", devname(io));
 			return(-1);
 		}
 		com = braddr->brae;
@@ -85,8 +85,8 @@ brstrategy(io, func)
 	while ((braddr->brcs.w& BR_RDY)==0)
 		continue;
 	if (braddr->brcs.w < 0) {	/* error bit */
-		printf("br%d err: cy=%d tr=%d sc=%d er=%o ds=%o\n",
-		    unit, cn, tn, sn, braddr->brer, braddr->brds);
+		printf("%s err: cy=%d tr=%d sc=%d er=%o ds=%o\n",
+		    devname(io), cn, tn, sn, braddr->brer, braddr->brds);
 		return(-1);
 	}
 	return(io->i_cc);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.6 (2.11BSD GTE) 1995/08/01
+ *	@(#)ra.c	2.7 (2.11BSD GTE) 1996/3/8
  */
 
 /*
@@ -53,8 +53,6 @@ static	struct	ra {
 static	u_char 	rainit[NRA];
 static	int	mx();
 
-extern	char	*itoa();
-
 /*
  * This contains the volume size in sectors of units which have been
  * brought online.  This value is used at default label generation time
@@ -94,7 +92,7 @@ again:		raaddr->raip = 0;
 			goto again;
 		raaddr->rasa = RA_GO;
 		if (racmd(M_O_STCON, io) < 0) {
-			printf("ra%d STCON err\n", ctlr);
+			printf("%s STCON err\n", devname(io));
 			return(-1);
 		}
 		rainit[ctlr] = 1;
@@ -123,7 +121,7 @@ ramount(io)
 	register int unit = io->i_unit;
 
 	if (racmd(M_O_ONLIN, io) < 0) {
-		printf("ra%d,%d: !online\n", ctlr, unit);
+		printf("%s !online\n", devname(io));
 		return(-1);
 	}
 	raonline[ctlr][unit] = rd[ctlr].ra_rsp.m_uslow +  
@@ -174,18 +172,18 @@ racmd(op, io)
 		racom->ra_ca.ca_rspint = 0;
 		if (mp->m_opcode == (op | M_O_END))
 			break;
-		printf("ra%d: rsp %x op %x ignored\n",
-			ctlr,mp->m_header.ra_credits & 0xf0, mp->m_opcode);
+		printf("%s rsp %x op %x ignored\n", devname(io),
+			mp->m_header.ra_credits & 0xf0, mp->m_opcode);
 		racom->ra_ca.ca_rsph |= RA_OWN;
 	}
 	if ((mp->m_status & M_S_MASK) != M_S_SUCC) {
-		printf("ra%d,%d: err op=%x sts=%x\n", ctlr, unit,
+		printf("%s err op=%x sts=%x\n", devname(io),
 			mp->m_opcode, mp->m_status);
 		return(-1);
 	}
 	return(0);
 fail:
-	printf("ra%d: rasa=%o\n", ctlr, csr->rasa);
+	printf("%s rasa=%x\n", devname(io), csr->rasa);
 }
 
 rastrategy(io, func)
@@ -194,7 +192,11 @@ rastrategy(io, func)
 {
 	register struct mscp *mp;
 	struct ra *racom;
-	int	bae, lo16;
+	int	bae, lo16, i;
+
+	i = deveovchk(io);		/* check for end of volume/partition */
+	if	(i <= 0)
+		return(i);
 
 	racom = &rd[io->i_ctlr];
 	mp = &racom->ra_cmd;
@@ -221,7 +223,7 @@ ra_step(csr, mask, step)
 		cnt++;
 		if	(cnt < 5000)
 			continue;
-		printf("RA(%o) failed step %d. retrying\n",csr,step);
+		printf("ra(%o) fail step %d. retrying\n",csr,step);
 		return(1);
 		}
 	return(0);
@@ -251,7 +253,7 @@ ralabel(io)
 
 	if	(racmd(M_O_GTUNT, io) != 0)
 		{
-		printf("ra%d,%d M_OP_GTUNT failed\n", io->i_ctlr, io->i_unit);
+		printf("%s M_OP_GTUNT failed\n", devname(io));
 		return(-1);
 		}
 /*

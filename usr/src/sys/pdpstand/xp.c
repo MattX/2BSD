@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.2 (2.11BSD) 1995/08/01
+ *	@(#)xp.c	2.3 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -76,6 +76,10 @@ xpstrategy(io, func)
 	register struct hpdevice *xpaddr = XPcsr[io->i_ctlr];
 	register struct disklabel *lp = &io->i_label;
 
+	i = deveovchk(io);
+	if	(i <= 0)
+		return(i);
+
 	bn = io->i_bn;
 	xpaddr->hpcs2.w = io->i_unit;
 
@@ -102,8 +106,8 @@ xpstrategy(io, func)
 	while ((xpaddr->hpcs1.w & HP_RDY) == 0)
 			continue;
 	if (xpaddr->hpcs1.w & HP_TRE) {
-		printf("xp%d,%d err cy=%d tr=%d sc=%d cs2=%o er1=%o\n",
-		    io->i_ctlr, io->i_unit, cn, tn, sn, xpaddr->hpcs2,
+		printf("%s err cy=%d tr=%d sc=%d cs2=%o er1=%o\n",
+		    devname(io), cn, tn, sn, xpaddr->hpcs2,
 		    xpaddr->hper1);
 		return(-1);
 	}
@@ -220,8 +224,8 @@ xplabel(io)
 				st->ntpc, st->nspt);
 			break;
 		default:
-			printf("xp%d,%d unknown drive type: %d -- ", 
-				io->i_ctlr, io->i_unit, type);
+			printf("%s unknown drive type: %d -- ", 
+				devname(io), type);
 			printf("using 1 cyl, 1 trk, 2 sec/trk\n");
 			st = &default_st;
 			break;
@@ -257,8 +261,8 @@ xplabel(io)
 				st = &eagle_st;
 				break;
 			default:
-				printf("xp%d,%d unknown SI drive model %d -- ", 
-					io->i_ctlr, io->i_unit, xpsn);
+				printf("%s unknown SI drive model %d -- ", 
+					devname(io), xpsn);
 				printf("using 1 cyl, 1 trk, 2 sec/trk\n");
 				st = &default_st;
 				break;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rk.c	2.1 (2.11BSD) 1995/06/08
+ *	@(#)rk.c	2.2 (2.11BSD) 1996/3/8
  */
 
 /*
@@ -49,8 +49,8 @@ rkstrategy(io, func)
 	while ((rkaddr->rkcs & RKCS_RDY) == 0)
 		continue;
 	if (rkaddr->rkcs<0) {	/* error bit */
-		printf("RK%d,%d err cy=%d sc=%d, er=%o, ds=%o\n",
-		    io->i_ctlr, io->i_unit, cn, sn, rkaddr->rker, rkaddr->rkds);
+		printf("%s err cy=%d sc=%d, er=%o, ds=%o\n",
+		    devname(io), cn, sn, rkaddr->rker, rkaddr->rkds);
 		return(-1);
 	}
 	return(io->i_cc);

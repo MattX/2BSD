@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)si.c	2.1 (2.11BSD) 1995/06/08
+ *	@(#)si.c	2.2 (2.11BSD) 1996/3/8
  *
  *	SI 9500 CDC 9766 Stand Alone disk driver
  */
@@ -77,8 +77,8 @@ sistrategy(io, func)
 		continue;
 
 	if (siaddr->sierr & SIERR_ERR) {
-		printf("si%d,%d err cy=%d hd=%d sc=%d cnr=%o, err=%o\n",
-			ctlr, unit, cn, tn, sn, siaddr->sicnr, siaddr->sierr);
+		printf("%s err cy=%d hd=%d sc=%d cnr=%o, err=%o\n",
+			devname(io), cn, tn, sn, siaddr->sicnr, siaddr->sierr);
 		return(-1);
 	}
 	return(io->i_cc);

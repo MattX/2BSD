@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.5 (2.11BSD) 1995/12/05
+ *	@(#)conf.c	2.6 (2.11BSD) 1996/3/8
  */
 
 #include "../h/param.h"
@@ -127,14 +127,13 @@ devlabel(io, fnc)
 	int	(*strat)() = devsw[io->i_ino.i_dev].dv_strategy;
 	register struct disklabel *lp;
 	register struct partition *pi;
-	char	*name = devsw[io->i_ino.i_dev].dv_name;
 	
 	switch	(fnc)
 		{
 		case	WRITELABEL:
-			return(writelabel(io, strat, name));
+			return(writelabel(io, strat));
 		case	READLABEL:
-			return(readlabel(io, strat, name));
+			return(readlabel(io, strat));
 		case	DEFAULTLABEL:
 /*
  * Zero out the label buffer and then assign defaults common to all drivers.
@@ -171,6 +170,77 @@ devlabel(io, fnc)
 			printf("devlabel: bad fnc %d\n");
 			return(-1);
 		}
+	}
+
+/*
+ * Common routine to print out the full device name in the form:
+ *
+ *	dev(ctlr,unit,part)
+ * 
+ * Have to do it the hard way since there's no sprintf to call.  Register
+ * oriented string copies are small though.
+*/
+
+char	*
+devname(io)
+	register struct iob *io;
+	{
+	static	char	dname[16];
+	register char *cp, *dp;
+
+	cp = dname;
+	dp = devsw[io->i_ino.i_dev].dv_name;
+	while	(*cp = *dp++)
+		cp++;
+	*cp++ = '(';
+	dp = itoa(io->i_ctlr);
+	while	(*cp = *dp++)
+		cp++;
+	*cp++ = ',';
+	dp = itoa(io->i_unit);
+	while	(*cp = *dp++)
+		cp++;
+	*cp++ = ',';
+	dp = itoa(io->i_part);
+	while	(*cp = *dp++)
+		cp++;
+	*cp++ = ')';
+	*cp++ = '\0';
+	return(dname);
+	}
+/*
+ * Check for end of volume.  Actually this checks for end of partition.
+ * Since this is almost always called when reading unlabeled disks (treating
+ * a floppy as a short tape for example) it's effectively an EOV check.
+*/
+
+deveovchk(io)
+	register struct iob *io;
+	{
+	register struct partition *pi;
+	daddr_t  sz, eov;
+
+	pi = &io->i_label.d_partitions[io->i_part];
+	sz = io->i_cc / 512;
+/*
+ * i_bn already has the p_offset added in, thus we have to add in the partition
+ * offset when calculating the end point. 
+*/
+	eov = pi->p_offset + pi->p_size;
+	if	(io->i_bn + sz > eov)
+		{
+		sz = eov - io->i_bn;
+		if	(sz == 0)
+			return(0);	/* EOF */
+/*
+ * Probably should call this EOF too since there is no 'errno' to specify
+ * what type of error has happened.
+*/
+		if	(sz < 0)
+			return(-1);
+		io->i_cc = dbtob(sz);
+		}
+	return(1);
 	}
 
 nullsys()
