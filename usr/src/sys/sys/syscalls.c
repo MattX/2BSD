@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.9 (2.11BSD GTE) 1997/11/28
+ *	@(#)syscalls.c	1.10 (2.11BSD GTE) 1997/12/31
  */
 
 /*
@@ -75,7 +75,7 @@ char *syscallnames[] = {
 	"chroot",		/*  61 = chroot */
 	"fstat",		/*  62 = fstat */
 	"#63",			/*  63 = unused */
-	"getpagesize",		/*  64 = getpagesize */
+	"old getpagesize",	/*  64 = getpagesize COMPAT */
 	"#65",			/*  65 = unused */
 	"vfork",		/*  66 = vfork */
 	"#67",			/*  67 = unused */

@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.5 (2.11BSD) 1997/11/30
+#	@(#)Makefile	1.6 (2.11BSD) 1997/12/31
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -47,7 +47,7 @@ ERROR= sigsuspend.o
 
 # these are generated with a second argument to SYSCALL of 'noerror'
 
-NOERROR= getgid.o getegid.o getpagesize.o getpgrp.o getpid.o \
+NOERROR= getgid.o getegid.o getpgrp.o getpid.o \
 	getppid.o getuid.o geteuid.o profil.o sigpending.o sync.o \
 	umask.o vhangup.o
 

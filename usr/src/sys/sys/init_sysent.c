@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.12 (2.11BSD GTE) 1997/11/28
+ *	@(#)init_sysent.c	1.13 (2.11BSD GTE) 1997/12/31
  */
 
 /*
@@ -29,7 +29,7 @@ int	ucall();					/* 2BSD calls */
 
 /* 1.2 memory management */
 int	sbrk();
-int	getpagesize();
+int	getpagesize();					/* COMPAT-43 */
 int	lock(),phys(),fetchi(),nostk(),fperr();		/* 2BSD calls */
 
 /* 1.3 signals */
@@ -175,7 +175,7 @@ struct sysent sysent[] = {
 	1, chroot,			/*  61 = chroot */
 	2, fstat,			/*  62 = fstat */
 	0, nosys,			/*  63 = reserved */
-	0, getpagesize,			/*  64 = getpagesize */
+	0, getpagesize,			/*  64 = getpagesize COMPAT-43 */
 	0, nosys,			/*  65 = unused */
 	0, vfork,			/*  66 = vfork */
 	0, nosys,			/*  67 = unused */

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.8 (2.11BSD GTE) 1997/11/30
+ *	@(#)syscall.h	5.4.8 (2.11BSD GTE) 1997/12/31
  */
 
 /*
@@ -74,7 +74,7 @@
 #define	SYS_chroot	61
 #define	SYS_fstat	62
 				/* 63 is unused */
-#define	SYS_getpagesize 64
+				/* 64 - old getpagesize */
 				/* 65 is unused 4.3: mremap */
 #define	SYS_vfork	66
 				/* 67 is old: vread */

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.5 (2.11BSD GTE) 1997/11/30";
+static	char	sccsid[] = "@(#)opset.c 2.6 (2.11BSD GTE) 1998/1/3";
 #endif
 
 #include "defs.h"
@@ -196,7 +196,7 @@ char *systab[] = {
 	"chroot",
 	"fstat",
 	NULL,			/* 63 - unused */
-	"getpagesize",
+	"old getpagesize",	/* 64 - old getpagesize COMPAT-43 */
 	NULL,			/* 65 - mremap */
 	"vfork",
 	NULL,			/* 67 - unused */

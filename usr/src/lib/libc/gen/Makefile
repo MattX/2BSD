@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.10 (2.11BSD) 1997/11/30
+#	@(#)Makefile	5.7.11 (2.11BSD) 1997/12/31
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -17,7 +17,7 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	ctime.c ctype_.c daemon.c devname.c disklabel.c err.c \
 	execvp.c fakcu.c \
 	fstab.c gcvt.c getenv.c getgrent.c getgrgid.c getgrnam.c getlogin.c \
-	getgrouplist.c gethostname.c \
+	getgrouplist.c gethostname.c getpagesize.c \
 	getpass.c getpwent.c getloadavg.c getmntinfo.c \
 	getttyent.c getttynam.c getusershell.c getwd.c \
 	initgroups.c isatty.c malloc.c mktemp.c ndbm.c nlist.c \
@@ -34,7 +34,7 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o \
 	execvp.o fakcu.o \
 	fstab.o gcvt.o getenv.o getgrent.o getgrgid.o getgrnam.o getlogin.o \
-	getgrouplist.o gethostname.o \
+	getgrouplist.o gethostname.o getpagesize.o \
 	getpass.o getpwent.o getloadavg.o getmntinfo.o \
 	getttyent.o getttynam.o getusershell.o getwd.o \
 	initgroups.o isatty.o malloc.o mktemp.o ndbm.o nlist.o \
