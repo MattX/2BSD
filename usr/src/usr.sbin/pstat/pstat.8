@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)pstat.8	6.3.1 (2.11BSD) 1996/11/17
+.\"	@(#)pstat.8	6.3.2 (2.11BSD) 1997/9/2
 .\"
-.TH PSTAT 8 "November 17, 1996"
+.TH PSTAT 8 "September 2, 1997"
 .UC 4
 .SH NAME
 pstat \- print system facts
@@ -164,56 +164,31 @@ Miscellaneous state variables, or'ed together (hexadecimal):
 .IP 0001 9n
 loaded
 .IP 0002
-the scheduler process
+system process (swapper)
 .IP 0004
 locked for swap out
 .IP 0008
-swapped out
+swap save area
 .IP 0010
 traced
 .IP 0020
 used in tracing
-.	\".IP 000040
-.	\"locked in by
-.	\".IR lock (2).
-.IP 0080
-in page-wait
+.IP 0040
+user settable lock in core
 .IP 0100
-prevented from swapping during
-.IR fork (2)
+process resulted from
+.IR vfork (2)
 .IP 0200
-will restore old mask after taking signal
+parent in vfork, waiting for child
 .IP 0400
-exiting
-.IP 0800
-doing physical I/O (bio.c)
+parent has released child in vfork
 .IP 1000
-process resulted from a
-.IR vfork (2)
-which is not yet complete
+detached inherited by init
 .IP 2000
-another flag for
-.IR vfork (2)
+no SIGCHLD signal to parent
 .IP 4000
-process has no virtual memory, as it is a parent in the context of
-.IR vfork (2)
-.IP 8000
-process is demand paging data pages from its text inode.
-.IP 10000
-process using sequential VM patterns
-.IP 20000
-process using random VM patterns
-.IP 100000
-using old 4.1-compatible signal semantics
-.IP 200000
-process needs profiling tick
-.IP 400000
-process is scanning descriptors during select
-.IP 1000000
-process page tables have changed
+selecting; wakeup/waiting danger
 .RE
-.IP POIP
-number of pages currently being pushed out from this process.
 .IP PRI
 Scheduling priority, see
 .IR setpriority (2).

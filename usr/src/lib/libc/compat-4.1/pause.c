@@ -5,15 +5,18 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)pause.c	5.2 (Berkeley) 3/9/86";
+static char sccsid[] = "@(#)pause.c	5.2.1 (2.11BSD) 1997/9/9";
 #endif LIBC_SCCS and not lint
+
+#include <signal.h>
 
 /*
  * Backwards compatible pause.
  */
 pause()
 {
-	long sigblock();
+	sigset_t set;
 
-	sigpause(sigblock(0L));
+	sigemptyset(&set);
+	sigsuspend(&set);
 }

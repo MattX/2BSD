@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD) 1997/7/29";
+static char sccsid[] = "@(#)main.c	5.1.2 (2.11BSD) 1997/9/9";
 #endif
 
 #include "externs.h"
@@ -79,3 +79,31 @@ main(argc, argv)
 	}
 	/*NOTREACHED*/
 }
+
+/*
+ * These used to be macros in machdep.h.  The macros were wrong (didn't use
+ * sigmask() and thus only computed 16 bit signal masks).  The signal handling
+ * in 2.11BSD is now that of 4.4BSD and the macros were fixed (i.e. rewritten)
+ * and made into routines to avoid the plethora of inline 'long' operations.
+*/
+
+void
+blockalarm()
+	{
+	sigset_t set;
+
+	sigemptyset(&set);
+	sigaddset(&set, SIGALRM);
+
+	(void)sigprocmask(SIG_BLOCK, &set, NULL);
+	}
+
+void
+unblockalarm()
+	{
+	sigset_t set;
+
+	sigemptyset(&set);
+	sigaddset(&set, SIGALRM);
+	(void)sigprocmask(SIG_UNBLOCK, &set, NULL);
+	}

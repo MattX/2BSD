@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.19.1 (2.11BSD) 1996/1/12
+#	@(#)Makefile	4.19.2 (2.11BSD) 1997/8/28
 #
 # The system has two monitoring schemes, utilizing either ``prof''
 # or ``gprof''. DFLMON determines the default profiler; mon.o
@@ -48,7 +48,7 @@ INSTALL=install -m 644
 DFLMON=	mon.o
 MACHINE=pdp
 DEFS=
-COMPAT=	compat-4.1 compat-sys5
+COMPAT=	compat-4.1 compat-sys5 compat-43
 ALL=	gen inet net ns stdio stdlib string ${MACHINE} ${COMPAT}
 TAGSFILE=tags
 

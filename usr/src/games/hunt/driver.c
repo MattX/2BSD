@@ -6,6 +6,8 @@
  *  Copyright (c) 1985 Regents of the University of California.
  *  All rights reserved.  The Berkeley software License Agreement
  *  specifies the terms and conditions for redistribution.
+ *
+ * 1997/9/9 - updated to use sigprocmask (and compute the alarm mask correctly)
  */
 
 # include	"hunt.h"
@@ -49,7 +51,7 @@ main()
 	SOCKET		test;
 # endif INTERNET
 # ifdef CONSTANT_MOVE
-	register int	enable_alarm, disable_alarm;
+	sigset_t	alarm_sigset;
 # endif CONSTANT_MOVE
 	static long	read_fds;
 
@@ -60,15 +62,15 @@ main()
 # endif INTERNET
 
 # ifdef CONSTANT_MOVE
-	enable_alarm = sigblock(0);
-	disable_alarm = enable_alarm | (1 << (SIGALRM - 1));
-	(void) sigsetmask(disable_alarm);
+	sigemptyset(&alarm_sigset);
+	sigaddset(&alarm_sigset, SIGALRM);
+	(void) sigprocmask(SIG_BLOCK, &alarm_sigset, NULL);
 	(void) signal(SIGALRM, moveshots);
 # endif CONSTANT_MOVE
 
 	while (Nplayer > 0) {
 # ifdef CONSTANT_MOVE
-		(void) sigsetmask(enable_alarm);
+		(void) sigprocmask(SIG_UNBLOCK, &alarm_sigset, NULL);
 # endif CONSTANT_MOVE
 		read_fds = Fds_mask;
 		errno = 0;
@@ -87,7 +89,7 @@ main()
 		}
 		Have_inp = read_fds;
 # ifdef CONSTANT_MOVE
-		(void) sigsetmask(disable_alarm);
+		(void) sigprocmask(SIG_BLOCK, &alarm_sigset, NULL);
 # endif CONSTANT_MOVE
 # ifdef INTERNET
 		if (read_fds & test_mask) {

@@ -2,20 +2,21 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sigpause.2	6.2 (Berkeley) 5/15/86
+.\"	@(#)sigpause.2	6.2.1 (2.11BSD) 97/9/2
 .\"
-.TH SIGPAUSE 2 "May 15, 1986"
+.TH SIGPAUSE 2 "September 2, 1997"
 .UC 4
 .SH NAME
 sigpause \- atomically release blocked signals and wait for interrupt
 .SH SYNOPSIS
-.ft B
-sigpause(sigmask)
+\fBsigpause\fP(\fIsigmask\fP)
 .br
-long sigmask;
-.ft R
+long \fIsigmask\fP;
 .SH DESCRIPTION
-.I Sigpause
+.B This interface is made obsolete by:
+sigsuspend(2).
+.PP
+.B Sigpause()
 assigns 
 .I sigmask
 to the set of masked signals
@@ -24,18 +25,14 @@ on return the set of masked signals is restored.
 .I Sigmask
 is usually 0L to indicate that no
 signals are now to be blocked.
-.I Sigpause
+.B Sigpause
 always terminates by being interrupted, returning \-1 with
 .I errno
 set to EINTR.
-.PP
-In normal usage, a signal is blocked using
-.IR sigblock (2),
-to begin a critical section, variables modified on the occurrence
-of the signal are examined to determine that there is no work
-to be done, and the process pauses awaiting work by using
-.I sigpause
-with the mask returned by
-.IR sigblock .
 .SH SEE ALSO
-sigblock(2), sigvec(2)
+sigsuspend(2), kill(2), sigaction(2), sigprocmask(2), sigblock(2),
+sigvec(2)
+.SH HISTORY
+The
+.B sigpause
+function call appeared in 4.2BSD and has been deprecated.

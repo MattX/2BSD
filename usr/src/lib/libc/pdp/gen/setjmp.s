@@ -5,7 +5,7 @@
  */
 
 #if	defined(LIBC_SCCS) && !defined(lint)
-	<@(#)setjmp.s	1.4 (2.11BSD GTE) 1/1/94\0>
+	<@(#)setjmp.s	1.5 (2.11BSD GTE) 1997/9/7\0>
 	.even
 #endif
 
@@ -27,25 +27,32 @@
  */
 #include "DEFS.h"
 
-.globl	_sigstack, _sigblock	/ needed to create sigcontext
+SIG_SETMASK = 3				/ XXX - from signal.h
+
+.globl	_sigaltstack, _sigprocmask	/ needed to create sigcontext
 .globl	__ovno
 
 ENTRY(setjmp)
 	mov	r2,-(sp)	/ save r2
 	mov	4(sp),r2	/ r2 = env
-	sub	$4.,sp		/ allocate sizeof(struct sigstack)
-	mov	sp,r0		/   and get current sigstack via
-	mov	r0,-(sp)	/   sigstack(0, sp) (can't use "mov sp,-(sp)")
+	sub	$6.,sp		/ allocate sizeof(struct sigaltstack)
+	mov	sp,r0		/   and get current sigaltstack via
+	mov	r0,-(sp)	/   sigaltstack(0, sp) (cant use "mov sp,-(sp)")
 	clr	-(sp)
-	jsr	pc,_sigstack
-	add	$6.,sp		/ toss signal stack value and
-	mov	(sp)+,(r2)+	/   save onsigstack status of caller
-	clr	-(sp)		/ get current signal mask via
-	clr	-(sp)		/   sigblock(0L)
-	jsr	pc,_sigblock
-	cmp	(sp)+,(sp)+
-	mov	r0,(r2)+	/ save signal mask of caller
-	mov	r1,(r2)+
+	jsr	pc,_sigaltstack
+	add	$8.,sp		/ toss 0, &oss, ss_sp, ss_size,
+	mov	(sp)+,(r2)+	/   save ss_flags of caller
+
+	sub	$4,sp		/ sizeof (sigset_t) - oset
+	mov	sp,r0		/ can't use mov sp,-(sp)
+	mov	r0,-(sp)	/ 'oset'
+	clr	-(sp)		/ 'set'
+	mov	$SIG_SETMASK,-(sp)	/ 'how'
+	jsr	pc,_sigprocmask	/ sigprocmask(SIG_SETMASK, NULL, &oset)
+	add	$6,sp		/ toss how, set, &oset
+	mov	(sp)+,(r2)+	/ oset(hi) to env
+	mov	(sp)+,(r2)+	/ oset(lo) to env
+
 	mov	sp,(r2)		/ calculate caller's pre jsr pc,setjmp
 	add	$4,(r2)+	/   sp as (sp + saved r2 + ret addr)
 	mov	r5,(r2)+	/ save caller's frame pointer

@@ -16,7 +16,7 @@
 +/"ov_offst"n16un"nseg"ndn64+
 +/"sigmask"n32Dn
 +/"sigonstack"16t"sigintr"16t"oldmask"n3Xn"code"ndn
-+/"onstack"8t"sigsp"nodn
++/"psflags"8t"sigaltstack"n+bodon
 +/"ofile"n30on"pofile"n30bn
 +/"lastfile"ndn
 +/"cdir"8t"rdir"n2on
@@ -32,3 +32,4 @@
 +/"rlimits"n12D
 +/"quota"non
 +/"nc_off"16t"nc_inum"8t"nc_dev"nDubbn
++/"login"16tsn

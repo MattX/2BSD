@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.8 (2.11BSD) 1997/06/29
+#	@(#)Makefile	5.7.9 (2.11BSD) 1997/08/28
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -25,6 +25,7 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	regex.c scandir.c seekdir.c setgid.c setegid.c setrgid.c setuid.c \
 	setmode.c \
 	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
+	sigsetops.c \
 	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
 	syserrlst.c \
 	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
@@ -41,6 +42,7 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	regex.o scandir.o seekdir.o setgid.o setegid.o setrgid.o setuid.o \
 	setmode.o \
 	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
+	sigsetops.o \
 	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
 	syserrlst.o \
 	telldir.o time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o \

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sigvec.2	6.3 (Berkeley) 1/8/86
+.\"	@(#)sigvec.2	6.3.1 (2.11BSD) 97/9/3
 .\"
-.TH SIGVEC 2 "January 8, 1986"
+.TH SIGVEC 2 "September 3, 1997"
 .UC 4
 .ie t .ds d \(dg
 .el .ds d \z'|+'
@@ -27,6 +27,9 @@ sigvec \- software signal facilities
 .B struct sigvec *vec, *ovec;
 .fi
 .SH DESCRIPTION
+.B This interface has been made obsolete by:
+sigaction(2).
+.sp
 The system defines a set of signals that may be delivered to a process.
 Signal delivery resembles the occurence of a hardware interrupt:
 the signal is blocked from further occurrence, the current process 

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)pstat.c	5.8.3 (2.11BSD GTE) 1997/1/19";
+static char sccsid[] = "@(#)pstat.c	5.8.4 (2.11BSD GTE) 1997/9/1";
 #endif
 
 /*
@@ -383,13 +383,13 @@ doproc()
 		return;
 	}
 	printf("%d/%d processes\n", np, nproc);
-printf("   LOC   S       F PRI      SIG   UID SLP TIM  CPU  NI   PGRP    PID   PPID    ADDR   SADDR   DADDR    SIZE   WCHAN    LINK   TEXTP\n");
+printf("   LOC   S       F PRI      SIG   UID SLP TIM  CPU  NI   PGRP    PID   PPID    ADDR   SADDR   DADDR    SIZE   WCHAN    LINK   TEXTP SIGM\n");
 	for (pp=xproc; pp<&xproc[nproc]; pp++) {
 		if (pp->p_stat==0 && allflg==0)
 			continue;
 		printf("%7.1o", aproc + (pp - xproc)*sizeof (*pp));
 		printf(" %2d", pp->p_stat);
-		printf(" %7.1o", pp->p_flag);
+		printf(" %7.1x", pp->p_flag);
 		printf(" %3d", pp->p_pri);
 		printf(" %8.1lx", pp->p_sig);
 		printf(" %5u", pp->p_uid);
@@ -407,6 +407,7 @@ printf("   LOC   S       F PRI      SIG   UID SLP TIM  CPU  NI   PGRP    PID   P
 		printf(" %7.1o", pp->p_wchan);
 		printf(" %7.1o", pp->p_link);
 		printf(" %7.1o", pp->p_textp);
+		printf(" %8.1lx", pp->p_sigmask);
 		printf("\n");
 	}
 	free(xproc);
@@ -610,7 +611,9 @@ dousr()
 	printf("sigintr\t%.1lo\n", U.u_sigintr);
 	printf("oldmask\t%.1lo\n", U.u_oldmask);
 	printf("code\t%u\n", U.u_code);
-	printf("onstack\t%d %.1o\n", U.u_onstack, U.u_sigsp);
+	printf("psflags\t%d\n", U.u_psflags);
+	printf("ss_base\t%.1o ss_size %.1o ss_flags %.1o\n",
+		U.u_sigstk.ss_base, U.u_sigstk.ss_size, U.u_sigstk.ss_flags);
 	printf("ofile");
 	for	(i = 0; i < NOFILE; i++)
 		{
@@ -672,6 +675,7 @@ dousr()
 	printf("ncache\t%ld %u %d,%d\n", U.u_ncache.nc_prevoffset,
 		U.u_ncache.nc_inumber, major(U.u_ncache.nc_dev),	
 		minor(U.u_ncache.nc_dev));
+	printf("login\t%*s\n", MAXLOGNAME, U.u_login);
 }
 
 oatoi(s)

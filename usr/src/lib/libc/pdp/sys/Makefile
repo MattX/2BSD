@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.2 (2.11BSD) 1995/12/24
+#	@(#)Makefile	1.3 (2.11BSD) 1997/9/9
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -11,19 +11,19 @@ AS= /bin/as
 # source files associated with them.
 
 PDPSRCS= _exit.s brk.s execl.s execle.s execv.s fork.s pipe.s ptrace.s sbrk.s \
-	sigreturn.s sigvec.s vfork.s
+	sigaction.s sigreturn.s vfork.s
 
 PDPOBJS= _exit.o brk.o execl.o execle.o execv.o fork.o pipe.o ptrace.o sbrk.o \
-	sigreturn.o sigvec.o vfork.o
+	sigaction.o sigreturn.o vfork.o
 
 # these are generated with a second argument to SYSCALL of 'norm'.  Have to
 # split into more than one list because 'make' only permits 80 "lefts".
 
 NORM1= __sysctl.o accept.o access.o acct.o adjtime.o bind.o chdir.o chflags.o \
-	chmod.o chown.o chroot.o close.o connect.o creat.o dup.o dup2.o \
+	chmod.o chown.o chroot.o close.o connect.o dup.o dup2.o \
 	execve.o fchdir.o fchflags.o fchmod.o fchown.o fcntl.o flock.o fstat.o \
 	fsync.o ftruncate.o getdtablesize.o getgroups.o getitimer.o \
-	gethostname.o getsockname.o sethostid.o sethostname.o \
+	gethostname.o getsockname.o sethostname.o \
 	getpeername.o getpriority.o getrlimit.o getrusage.o getsockopt.o \
 	gettimeofday.o ioctl.o kill.o killpg.o link.o listen.o lstat.o mkdir.o
 
@@ -31,7 +31,8 @@ NORM2=  mknod.o mount.o open.o quota.o read.o readlink.o readv.o reboot.o \
 	recv.o recvfrom.o recvmsg.o rename.o rmdir.o select.o send.o sendmsg.o \
 	sendto.o setgroups.o setitimer.o setpgrp.o setpriority.o setquota.o \
 	setregid.o setreuid.o setrlimit.o setsockopt.o settimeofday.o \
-	shutdown.o sigstack.o socket.o socketpair.o stat.o symlink.o \
+	shutdown.o sigaltstack.o socket.o socketpair.o stat.o symlink.o \
+	sigprocmask.o sigstack.o \
 	statfs.o fstatfs.o getfsstat.o \
 	truncate.o umount.o unlink.o utimes.o wait4.o write.o writev.o
 
@@ -41,12 +42,12 @@ LONG=	lseek.o
 
 # these are generated with a second argument to SYSCALL of 'error'
 
-ERROR= sigpause.o
+ERROR= sigsuspend.o
 
 # these are generated with a second argument to SYSCALL of 'noerror'
 
-NOERROR= getgid.o getegid.o gethostid.o getpagesize.o getpgrp.o getpid.o \
-	getppid.o getuid.o geteuid.o profil.o sigblock.o sigsetmask.o sync.o \
+NOERROR= getgid.o getegid.o getpagesize.o getpgrp.o getpid.o \
+	getppid.o getuid.o geteuid.o profil.o sigpending.o sync.o \
 	umask.o vhangup.o
 
 OBJS= ${PDPOBJS} ${NORM1} ${NORM2} ${LONG} ${ERROR} ${NOERROR}

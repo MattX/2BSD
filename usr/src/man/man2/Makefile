@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.6 (2.11BSD GTE) 1996/1/26
+#	@(#)Makefile	2.7 (2.11BSD GTE) 1997/9/3
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
@@ -30,6 +30,7 @@ SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
 	pipe.2 profil.2 ptrace.2 quota.2 read.2 readlink.2 reboot.2 \
 	recv.2 rename.2 rmdir.2 select.2 send.2 setgroups.2 setpgrp.2 \
 	setquota.2 setregid.2 setreuid.2 shutdown.2 sigblock.2 sigpause.2 \
+	sigaction.2 sigaltstack.2 sigpending.2 sigprocmask.2 sigsuspend.2 \
 	sigreturn.2 sigsetmask.2 sigstack.2 sigvec.2 socket.2 socketpair.2 \
 	stat.2 statfs.2 swapon.2 symlink.2 sync.2 syscall.2 truncate.2 ucall.2 \
 	umask.2 unlink.2 utimes.2 vfork.2 vhangup.2 wait.2 write.2
@@ -46,6 +47,7 @@ OBJS=	accept.0 access.0 acct.0 adjtime.0 bind.0 brk.0 chdir.0 chmod.0 \
 	pipe.0 profil.0 ptrace.0 quota.0 read.0 readlink.0 reboot.0 \
 	recv.0 rename.0 rmdir.0 select.0 send.0 setgroups.0 setpgrp.0 \
 	setquota.0 setregid.0 setreuid.0 shutdown.0 sigblock.0 sigpause.0 \
+	sigaction.0 sigaltstack.0 sigpending.0 sigprocmask.0 sigsuspend.0 \
 	sigreturn.0 sigsetmask.0 sigstack.0 sigvec.0 socket.0 socketpair.0 \
 	stat.0 statfs.0 swapon.0 symlink.0 sync.0 syscall.0 truncate.0 ucall.0 \
 	umask.0 unlink.0 utimes.0 vfork.0 vhangup.0 wait.0 write.0

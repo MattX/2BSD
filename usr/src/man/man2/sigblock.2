@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sigblock.2	6.3 (Berkeley) 5/14/86
+.\"	@(#)sigblock.2	6.3.1 (2.11BSD) 97/9/2
 .\"
-.TH SIGBLOCK 2 "May 14, 1986"
+.TH SIGBLOCK 2 "September 2, 1997"
 .UC 5
 .SH NAME
 sigblock \- block signals
@@ -12,14 +12,17 @@ sigblock \- block signals
 .nf
 .B #include <signal.h>
 
-.B omask = sigblock(mask);
-.B long omask, mask;
+\fIomask\fP = \fBsigblock\fP(\fImask\fP);
+long \fIomask, mask\fP;
 
-.B mask = sigmask(signum)
-.B long mask;
-.B int signum;
+\fImask\fP = \fBsigmask\fP(\fIsignum\fP)
+long \fImask\fP;
+int \fIsignum\fP;
 .SH DESCRIPTION
-.I Sigblock
+.B This interface is made obsolete by:
+sigprocmask(2).
+.PP
+.B Sigblock
 causes the signals specified in
 .I mask
 to be added to the set of signals currently
@@ -28,7 +31,7 @@ Signals are blocked if the
 corresponding bit in 
 .I mask
 is a 1; the macro
-.I sigmask
+.B sigmask
 is provided to construct the mask for a given
 .IR signum .
 .PP
@@ -38,4 +41,7 @@ imposed by the system.
 .SH "RETURN VALUE
 The previous set of masked signals is returned.
 .SH "SEE ALSO"
-kill(2), sigvec(2), sigsetmask(2)
+kill(2), sigprocmask(2), sigaction(2), sigsetmask(2), sigsetops(2)
+.SH "HISTORY"
+The \fBsigblock\fP function call appeared in 4.2BSD and has been
+deprecated.

@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sigsetmask.2	6.3 (Berkeley) 5/14/86
+.\"	@(#)sigsetmask.2	6.3.1 (2.11BSD) 97/9/3
 .\"
-.TH SIGSETMASK 2 "May 14, 1986"
+.TH SIGSETMASK 2 "September 3, 1997"
 .UC 5
 .SH NAME
 sigsetmask \- set current signal mask
@@ -19,6 +19,9 @@ sigsetmask \- set current signal mask
 .B long mask;
 .B int signum;
 .SH DESCRIPTION
+.B This interface is made obsolete by:
+.sigprocmask(2).
+.sp
 .I Sigsetmask
 sets the current signal mask (those signals
 that are blocked from delivery).
@@ -37,3 +40,7 @@ be blocked.
 The previous set of masked signals is returned.
 .SH "SEE ALSO"
 kill(2), sigvec(2), sigblock(2), sigpause(2)
+.SH HISTORY
+The
+.B sigsetmask
+function call appeared in 4.2BSD and has been deprecated.

@@ -113,7 +113,7 @@ psignals()
 		 * (This can be the case if we are reading; see comment above.)
 		 * So we ask the silly system for permission to do so.
 		 */
-		sigsetmask(0);
+		sigsetmask(0L);
 #endif
 		kill(getpid(), SIGTSTP);
 		/*

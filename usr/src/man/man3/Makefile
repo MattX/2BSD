@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.12 (2.11BSD) 1997/7/29
+#	@(#)Makefile	5.4.13 (2.11BSD) 1997/9/3
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -32,7 +32,7 @@ SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	qsort.3 rand.3 random.3 rcmd.3 regex.3 resolver.3 rexec.3 scandir.3 \
 	scanf.3 setbuf.3 setjmp.3 setuid.3 siginterrupt.3 signal.3 sin.3 \
 	sinh.3 sleep.3 sqrt.3 stdio.3 strftime.3 string.3 strtok.3 stty.3 \
-	setmode.3 \
+	setmode.3 sigsetops.3 \
 	strcspn.3 strpbrk.3 strsep.3 strspn.3 strtol.3 strtoul.3 strstr.3 \
 	swab.3 sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 uname.3 ungetc.3 \
@@ -53,7 +53,7 @@ OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	qsort.0 rand.0 random.0 rcmd.0 regex.0 resolver.0 rexec.0 scandir.0 \
 	scanf.0 setbuf.0 setjmp.0 setuid.0 siginterrupt.0 signal.0 sin.0 \
 	sinh.0 sleep.0 sqrt.0 stdio.0 strftime.0 string.0 strtok.0 stty.0 \
-	setmode.0 \
+	setmode.0 sigsetops.0 \
 	strcspn.0 strpbrk.0 strsep.0 strspn.0 strtol.0 strtoul.0 strstr.0 \
 	swab.0 sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 uname.0 ungetc.0 \
@@ -86,7 +86,7 @@ REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
 	sprintf.0 vfprintf.0 vprintf.0 vsprintf.0 alphasort.0 bcmp.0 bcopy.0 \
 	bzero.0 clearerr.0 feof.0 fflush.0 ffs.0 fileno.0 fprintf.0 gamma.0  \
 	getdiskbyname.0 isatty.0 moncontrol.0 monstartup.0 setbuffer.0 \
-	setlinebuf.0 setvbuf.o sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
+	setlinebuf.0 setvbuf.0 sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
 	endpwent.0 getfsfile.0 getfsspec.0 getfstype.0 getgrgid.0 
 
 REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
@@ -101,7 +101,9 @@ REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
 	memset.0 strchr.0 strrchr.0 tmpnam.0 tmpfile.0 \
 	tempnam.0 getmode.0
 
-REMO4=	verr.0 errx.0 verrx.0 warn.0 warnx.0 vwarnx.0
+REMO4=	verr.0 errx.0 verrx.0 warn.0 warnx.0 vwarnx.0 
+
+REMO5 = sigaddset.0 sigdelset.0 sigemptyset.0 sigfillset.0 sigismember.0
 
 .SUFFIXES: .3 .0
 
@@ -136,6 +138,13 @@ install: _make_01 _make_02
 	for i in ${REMO4}; do \
 		ln ${DESTDIR}/${MDIR}/err.0 ${DESTDIR}${MDIR}/$$i; \
 	done
+	for i in ${REMO5}; do \
+		rm -f ${DESTDIR}${MDIR}/$$i; \
+	done
+	for i in ${REMO5}; do \
+		ln ${DESTDIR}/${MDIR}/sigsetops.0 ${DESTDIR}${MDIR}/$$i; \
+	done
+
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/edata.0
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/etext.0
 	ln ${DESTDIR}${MDIR}/j0.0 ${DESTDIR}${MDIR}/j1.0

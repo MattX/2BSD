@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sigstack.2	6.2 (Berkeley) 6/30/85
+.\"	@(#)sigstack.2	6.2.1 (2.11BSD) 97/9/3
 .\"
-.TH SIGSTACK 2 "June 30, 1985"
+.TH SIGSTACK 2 "September 3, 1997"
 .UC 5
 .SH NAME
 sigstack \- set and/or get signal stack context
@@ -20,6 +20,9 @@ sigstack \- set and/or get signal stack context
 .B sigstack(ss, oss);
 .B struct sigstack *ss, *oss;
 .SH DESCRIPTION
+.B This interface has been made obsolete by:
+sigaltstack(2).
+.sp
 .I Sigstack
 allows users to define an alternate stack on which signals
 are to be processed.  If
@@ -63,3 +66,7 @@ points to memory that is not a valid part of the process
 address space.
 .SH "SEE ALSO"
 sigvec(2), setjmp(3)
+.SH HISTORY
+The 
+.B sigstack 
+function call appeared in 4.2BSD and has been deprecated.
