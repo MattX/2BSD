@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.7 (2.11BSD GTE) 1996/9/14
+ *	@(#)machdep2.c	2.8 (2.11BSD) 1998/3/2
  */
 
 #include "param.h"
@@ -45,7 +45,7 @@ size_t	physmem;	/* total amount of physical memory (for savecore) */
 #if	NRAC > 0 || NTMSCP > 0
 memaddr	_iostart, _iobase;
 ubadr_t	_ioumr;
-u_short	_iosize = 2 * (1928 + 1096 + 128);  /* enough for 2 TMSCP and 2 MSCP */
+u_short	_iosize = ((NTMSCP * (ctob(btoc(1864)))) + (NRAC * (ctob(btoc(1096)))));
 #endif
 
 #ifdef	SOFUB_MAP
@@ -214,7 +214,7 @@ register int B;
 #if	NRAC > 0 || NTMSCP > 0
 	if ((_iobase = malloc(coremap, btoc(_iosize))) == 0)
 		panic("_iobase");
-#endif	NRAC
+#endif
 
 #define B	(size_t)(((long)nbuf * (MAXBSIZE)) / ctob(1))
 	if ((bpaddr = malloc(coremap, B)) == 0)
@@ -372,7 +372,7 @@ ubinit()
 		ubp++;
 		paddr += (ubadr_t)UBPAGE;
 	}
-#endif	NRAC
+#endif
 }
 
 int waittime = -1;
@@ -492,7 +492,7 @@ _iomap(addr)
 	{
 	return(((ubadr_t)(addr - _iostart) << 6) + _ioumr);
 	}
-#endif NRAC
+#endif
 
 #define	NLABELS	6
 

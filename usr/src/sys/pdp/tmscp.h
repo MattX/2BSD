@@ -1,9 +1,4 @@
-/*	@(#)tmscp.h	1.1 (2.11BSD) 1995/12/12 */
-
-/*
- *	@(#)tmscp.h	1.3	10/21/85
- * Definitions for the Tape Mass Storage Control Protocol
- */
+/*	@(#)tmscp.h	1.2 (2.11BSD) 1998/2/23 */
 
 /****************************************************************
  *                                                              *
@@ -29,7 +24,18 @@
  *								*
  ****************************************************************
  *
- * Modification history: /sys/pdp/tmscp.h
+ * Modification history:
+ *
+ * 23-Feb-98 - sms
+ *	The version number and revision history were accidentally omitted
+ *	when update #401 was prepared (29-Jan-98).
+ *
+ *	Rearrange and clarify tmscp packet structure.  It was apparently
+ *	possible for the 'mscp_dscptr' field to be overwritten with status
+ *	information by the controller.  The 'm_filler' field was not used,
+ *	no longer needed and in fact was just wasting 6 bytes of space.  It
+ *	was removed.  The per controller structure is now 1864 bytes instead
+ *	of 1896.
  *
  * 12-Dec-95 - sms
  *	Begin process of moving definitions common to MSCP and TMSCP into
@@ -48,7 +54,10 @@
 #include <machine/mscp_common.h>
 
 /*
- * An MSCP packet
+ * A TMSCP packet. 
+ *
+ * WARNING!  If this structure grows be sure to change the '1864' in the
+ * file pdp/machdep2.c!!!
  */
  
 struct mscp {
@@ -228,7 +237,7 @@ struct tmscp {
 	struct tmscpca	tmscp_ca;         /* communications area */
 	struct mscp	tmscp_rsp[NRSP];  /* response packets */
 	struct mscp	tmscp_cmd[NCMD];  /* command packets */
-};					  /* 1896 bytes per controller! */
+};					  /* 1864 bytes per controller! */
 
 /*
  * Per drive information structure.
