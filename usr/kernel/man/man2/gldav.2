@@ -1,0 +1,31 @@
+.TH GLDAV 2 
+.SH NAME
+gldav \- get load average
+.SH SYNOPSIS
+.B gldav(svec)
+.br
+.B short svec[3];
+.SH DESCRIPTION
+.I Gldav
+returns the load average on the system in internal format.
+The only routine which should call gldav is loadav(3).
+All user programs should call loadav(3), which translates
+the vector into a reasonable format.
+.PP
+The three numbers returned are the contents of the kernel
+variable
+.BR avenrun .
+This variable contains the 1, 5, and 15 minute load averages
+in a psuedo-floating point format.
+The leftmost 8 bits are to the left of the decimal point,
+the rightmost 8 bits are to the right.
+.SH "SEE ALSO"
+loadav(3), w(1), la(1)
+.SH ASSEMBLER
+(gldav = local 14.)
+.br
+(address of vec in r0)
+.br
+.B sys local; 9f
+.br
+9:	sys gldav

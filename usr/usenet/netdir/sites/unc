@@ -1,0 +1,88 @@
+From decvax!duke!unc!lynn  Thu Feb 26 13:36:16 1981
+To: duke!decvax!ucbvax!mark
+Subject: unc on the uucp network
+Cc: mp tas
+Status: R
+
+You may be getting several replies from unc on your network request,
+because we have not really centralized control of the network.
+
+unc is the Computer Science Department of the University of North
+Carolina at Chapel Hill.  We are running UNIX on two VAX's and a
+PDP-11/45.  The only external network connection is via the VAX
+named "unc", but the other two machines also use uucp to talk to
+one another.  The other VAX is "grumpy" and the 11/45 is "pdp".
+We are accessible directly from duke, which we poll hourly.
+
+People "in charge" are:
+Lynn TenEyck, "lynn", (919) 933-1380, facilities manager
+Tim Seaver, "tas", (919) 933-5698, grad student who actually does all
+	of the work keeping us running
+Mike Pique, "mp", (919) 933-5698, who does just about everything tas
+	doesn't do
+
+We have 26 users subscribing to NET news items.
+
+unc is for general department educational use and research.  grumpy
+is used for research in high performance graphics.  pdp is used for
+some production graphics use and as a link to the main campus number
+crunchers (if we ever get the UNIX device driver for the DX-11 running!).
+
+We are willing to do some limited calling of other systems, negotiated
+on a per case basis.  We prefer that people call us via duke, so we
+don't have a long list of sites to notify if we make uucp changes.
+Also, our communications equipment is limited and our phone budget
+not terribly large.
+
+If you don't have our uucp login information, you can have it on request
+but it is not general information.
+
+Systems we can call directly:
+duke, phs (Duke University Dept. Physiology), wolfvax (North Carolina
+State University Dept. of EE), ucsfcgl, alice, and of course ucbvax.
+The only sites we normally call are duke, phs, and wolfvax; we route all of
+our network traffic through duke.
+
+>From unc!mp  Sat Mar  7 15:46:10 1981
+To: ucbvax!mark
+Status: R
+
+ Mark: here is an updated version of our unc "site description". Please
+ note a correction to the `uuname' list sent by unc!lynn last week:
+	for 'ncsu' read 'wolfvax' [they changed their uucp name].
+	That's the NC State machine, running UNIX part-time for VLSI classes.
+ Our uucp login line is as follows, although to insulate our correspondents
+ from changes, we suggest you reach us through duke.
+unc Any ACU 300 919-933-9911 "" CR "" "" *--*--* 21 login:-BREAK1-login: LF "" uucp ssword gibble
+
+ Our .uindex has 184 lines, 27 of them containing 'NET'.
+	Mike Pique. (919) 933-5698
+ Site desc follows, surrounded by lines of asterisks:
+	***************************************
+University of North Carolina Dept. of Computer Science.
+	New West Hall 035A UNC, Chapel Hill, NC 27514
+USENET address: duke!unc (main CPU), duke!unc!grumpy, duke!unc!pdp (see below).
+Tech contacts:
+	jem: John Menges, Dept. Software coordinator. (919) 933-7339.
+	lynn: Lynn TenEyck, System administrator. (919) 933-1380.
+	tas : Tim Seaver, System manager. (919) 933-5698.
+	mp: Michael Pique, Molecular graphics project. (919) 933-5698.
+	Mail sent to jem will be forwarded as needed.
+UNC CS operates three UNIX systems:
+unc:	General Dept education & research- algorithms, compilers, IC design.
+	VAX-11/780 2 Meg, two 256 Meg disks, Berkeley 4bsd VMUNIX.
+unc!grumpy: Dedicated interactive graphics- molecular biology, crystallography,
+	medical imaging, VLSI layout and simulation.
+	VAX-11/780 2 Meg, one 256 Meg disk, 800/1600 tape, Berkeley 4bsd VMUNIX.
+	Also 1024x1024x6-bit Ikonas RDS-3000 color video frame buffer, video
+	digitizer, Vector General 3303 3-d line-drawing display, A-to-D cnvtr.
+unc!pdp:Interactive graphics research and production- molecular biology,
+	shape-description algorithms. PDP-11/45 248K, 14 Meg disk, v7 UNIX.
+	Also Vector General Series 3 3-d line-drawing display, A-to-D.
+
+The `unc' machine polls duke frequently; it runs UNIX 24 hours a day.
+Both `grumpy' and `pdp' are special-purpose machines; outside mail is forwarded
+	but not encouraged.
+	*************************************************
+
+

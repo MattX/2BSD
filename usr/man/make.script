@@ -1,0 +1,4 @@
+mkdir /usr/man/manu
+cp *.u /usr/man/manu
+cp *.3 /usr/man/man3
+cp *.5 /usr/man/man5

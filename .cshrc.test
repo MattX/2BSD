@@ -1,0 +1,11 @@
+set path=(. /ya/distr/root/bin )
+alias ls ls -F
+if ($?prompt) then
+	set history = 40
+	alias h history
+	if ("$prompt" == '% ') then
+		set prompt = '\! <DISTR> '
+	else if ("$prompt" == '# ') then
+		set prompt = '\! #DISTR# '
+	endif
+endif

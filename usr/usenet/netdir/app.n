@@ -1,0 +1,82 @@
+.vs 13
+.hy 15
+..lt 76
+..ll 76
+.sp .5i
+.ce
+.ps +2
+.ft 3
+USENET  -  Connection to Duke University
+.ps -2
+.ft P
+.sp 1.5
+.tl 'Institution: ____________________________________''Network-id: _________'
+.tl '''(\(<= 6 chars)'
+.nf
+.sp 1
+.in 4
+.ti -4
+Name and Address of Contact at above Institution:
+.sp 5
+.ti -4
+To what user-id can Duke send "mail" on your system? __________
+.in 0
+.fi
+.sp .5
+Please complete parts A and/or B below as applicable
+and return this form with a copy of the signature page
+of your license agreement with Western Electric.
+     License(s):  ___ V6  ___ PWB  ___ V7  ___ mini  ___ other _____________
+.sp .5
+A.) We wish to be able to initiate communication by
+calling Duke.
+.sp .5
+Duke will try to reserve one or more 10 minute windows
+of time between 3:00 and 7:00 AM
+EST for your machine to connect.
+Please indicate any preferences as to what time (EST) you would
+like reserved for your call.
+.sp .5
+.ti +4
+Reserved times: _______________________________________________
+.sp 1
+Calls outside 3:00 - 7:00 AM may be made at any time.
+To help us in planning,
+please indicate what times you are likely to call Duke
+outside your reserved window.
+.nf
+.in +4
+__ Demand (i.e. whenever data is ready for transmission to Duke)
+__ ____ times daily at the following times   (e.g. hourly, noon,
+   11:45 pm) ___________________________________________________
+__ Other (e.g. Sunday noon) ____________________________________
+__ None
+.sp .5
+.fi
+.in 0
+Note: Duke dial-in currently supports up to 300 baud.
+Detailed login information will be sent upon receipt of this form.
+.sp 1
+B.) We request that Duke initiate communication by calling
+our system as indicated below.
+We agree to reimburse Duke for long-distance phone charges.
+.ti +4
+Billing Information (Purchase Order #, Address, etc.):
+.sp 5
+Duke should attempt calls only at the following times:
+.in 4
+.nf
+__ Demand (i.e. whenever data is ready for transmission from Duke)
+__ ____ times daily at the following times _______________________
+__ Other (specify) _______________________________________________
+.in 0
+.sp 1
+Please indicate phone number(s) Duke should use and type of connection.
+Duke's dial out supports up to 300 baud, full duplex.
+    Phone (____)___________  Service _________________________________
+    Login to be used by Duke _____________  Password _____________
+.br
+.fi
+Special Connection Information (e.g. port selectors)
+.sp 3
+Signature _________________________ Position _________________ Date ______

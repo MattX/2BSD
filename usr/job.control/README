@@ -1,0 +1,29 @@
+This directory contains the kernel changes needed for process control.
+They are ifdeffed as MENLO_JCL.  Note that the code in here is
+NOT DEBUGGED and if you intend to install it you should be prepared
+to do a good deal of debugging.  As I understand it, the system
+crashes when this stuff is in.  Something about signals getting
+sent to process zero.
+
+Note that the files in this directory are taken from a kernel about
+4 weeks older than the distributed kernel, so there may be fixes that
+need to be installed to these files.  In other words, don't just copy
+them into the sys directory.
+
+A copy of the 4.1bsd csh is enclosed, since you'll need that to make
+any use of these facilities.  Some other programs should be recompiled
+after this is installed, notably ex, more, tset, Mail, and curses.
+Probably some others too (snake?).  Most of these programs use ifdefs
+on things like SIGTSTP rather than MENLO_JCL, so if you just install
+the new signal.h and recompile without running process control,
+bad things will probably happen.
+
+As I understand it (thirdhand) the changes to make process control
+work include:
+	32 signals
+	signal mechanism reworked drastically to make it more reliable.
+	tty driver: ^Z sends SIGTSTP to all processes in pgrp, ^Y does
+		too but not until it's read from tty.
+	A stopped process is put into the "trace" state used by ptrace.
+	A started process picks up where it left off.
+	There are more signals, and more ioctls.

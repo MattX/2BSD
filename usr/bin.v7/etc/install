@@ -1,0 +1,2 @@
+cp termcap /etc/termcap
+cat /dev/null >> /etc/ttytype

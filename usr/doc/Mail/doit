@@ -1,0 +1,3 @@
+foreach i (mail0.nr mail1.nr mail2.nr mail3.nr mail4.nr mail5.nr mail6.nr makefile)
+/usr/ucb/Mail -s $i A:peterl < $i
+end

@@ -1,0 +1,22 @@
+/* INTRINSIC FUNCTIONS: The compiler needs to recognize the name of an
+intrinsic function, decide on which C routine to call depending on the 
+type of the arguement, then call that routine and tell the compiler
+the type of the result.
+     The structure intrblock is the intrinsic function table. Each line
+of the table contains the intrinsic function name (intrtab[i].intrfname)
+and three numbers that are actually packed into one long word with the
+structure intrbits. The first number (intrtab.intrval.f1) tells how the
+type is to be checked and converted if necessary. The second number
+(intrtab.intrval.f2) tells either the type of the argument required
+or in the case of INTRGEN tells how many lines of the spectable to 
+search. The third number (intrtab.intrval.f3) tells which line of the
+spectable to go to or to begin at.
+     The spectable is the structure specblock and contains four columns:
+the type of argument(s) required, the type of result returned, the number
+of arguments required, and the name of the C routine to be called.
+     INTRCONV, INTRBOOL, INTRMAX, and INTRMIN are all done internally
+with no subroutine call necessary. INTRSPEC requires that the argument
+be of the type specified. INTRGEN requires that the argument be of one
+of the types specified in the spectable beginning at line intrtab.intrval.
+f3 and going for intrtab.intrval.f2 lines.
+PLWard, Menlo  4/8/80                    */

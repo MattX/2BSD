@@ -1,0 +1,22 @@
+./maketape /dev/nrmt0 tapes/tapedir
+mtboot: block 0, file 0
+mtboot: block 0, file 0
+boot: block 0, file 0
+cat: block 0, file 1
+tapes/instructions: block 0, file 2
+tapes/contents: block 0, file 3
+mkfs: block 0, file 4
+restor: block 0, file 5
+icheck: block 0, file 6
+dump 0f /dev/nrmt0 /dev/rhp0e
+     date = Mon Jul  6 08:28:07 1981
+dump date = the epoch
+dumping /dev/rhp0e to /dev/nrmt0
+I
+II
+estimated 2139 tape blocks on 0 tape(s)
+III
+IV
+DONE
+2190 tape blocks on 1 tape(s)
+(chdir /ya/distr/usr ; tar cfb /dev/rmt0 20 . )

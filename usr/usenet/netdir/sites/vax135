@@ -1,0 +1,28 @@
+From vax135!hpk  Wed Feb 25 18:40:22 1981
+To: ucbvax!mark
+Subject: uucp info for vax135
+Status: R
+
+vax135
+ucbvax!vax135
+Howard P. Katseff, 201 949-5337, vax135!hpk
+9 users at the site running netnews
+Bell Labs, Interactive Computer Systems Research Department
+we are willing to call sites that we have mail for,
+	its ok to call us,
+	our current policy is to forward outside mail only for
+	other sites within Bell Labs, 
+names of sites in .sys file: mh135a, ucbvax
+
+phone number: 2019467800-0000-7369 
+	the "-" is a pause.  The first must be a long one (10 seconds),
+	the second need only be 2 seconds
+
+login:	ruucp
+ssword: ebwhite
+
+This is a 1200 baud (212A,  what else?) line.
+A BREAK will switch it to 300 baud.
+If you can't send BREAK, but must call at 300 baud, try
+	login:--login: @ruucp
+

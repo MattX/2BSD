@@ -1,0 +1,3 @@
+setenv HOME /ya/distr/root
+setenv SHELL /bin/csh
+setenv PATH .:/ya/distr/root/bin

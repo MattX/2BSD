@@ -1,0 +1,21 @@
+From research!dmr  Sat Mar  7 21:56:36 1981
+
+Site "research" (Bell Labs Computer Science Research Center):
+We are unable to forward news or mail, but willing to accept incoming
+calls with news or mail.  Although we are connected to duke, decvax, and ucbvax,
+we would prefer to receive incoming mail directly instead of burdening
+these sites.  Polling is possible, but will be considered only if
+traffic warrants.
+
+	Phone: 201 582 5940  (300 baud only)
+	       201 582 9800-0000-4106  (300 or 1200 baud; 212 format only;
+					speed adapts automatically)
+	The - signs in the second number represent required delays
+	for 2nd and 3rd dial tones.  Only Touch-tone works!
+
+	login: nuucp
+	Password: usgusg
+
+20 of the 200 entries in the .uindex file seem to be active.
+Only duke and research appear in the .sys file.
+

@@ -1,0 +1,116 @@
+ovas -o m40.o ../conf/mch0.s ../conf/m40.s
+./covld -X -n -o ovunix l40.o m40.o c40.o -Z pipe.o sys1.o sys2.o sys4.o prim.o fakemx.o -Z sys3.o ioctl.o kl.o partab.o lp.o ttynew.o -Z machdep.o sig.o bio.o ht.o dsort.o  -Z fio.o alloc.o  sys.o mem.o tty.o ttyold.o -Z main.o acct.o malloc.o text.o syslocal.o clock.o  ureg.o dkleave.o -Z xp.o rl.o rk.o hk.o dz.o -Z rp.o tm.o ts.o dvhp.o nami.o -L prf.o rdwri.o slp.o subr.o sysent.o trap.o iget.o
+size ovunix
+text	data	bss	dec	oct
+16384 +	4074 +	10710 =	31168 =	74700	ovunix
+64704 total text, overlays: (8128,7104,6784,7360,6400,5760,6784)
+csh ./getsymb.sh
+symbas=68810,tell()=32
+? map	    `ovunix'
+b1 = 0		     e1	= 03777777	  f1 = 0117240
+	{ bo = 040000	       eo = 0		    fo = 0		 }
+b2 = 0		     e2	= 07752		  f2 = 0176340
+/ map	    `-'
+b1 = 0		     e1	= 0100000000	  f1 = 0
+b2 = 0		     e2	= 0		  f2 = 0
+				Default	Vect	Contents	Bdev/Cdev
+		tmio		0224		0472		3/12
+		htio		0230		0512		7/15
+		tsio		0234		0502		13/26
+		rkio		0220		0552		0/9
+		hkio		0210		0562		10/25
+		rlio		0320		0572		8/18
+		rpio		0254		0542		1/14
+		dvhpio		0260		0532		14/23
+		xpio		0264		0522		12/20
+		dzin		0300		0612		-/22
+		dzou		0304		0622		-/22
+		lpou		0320		0602		-/2
+		Offset of data in load image 0117240
+		Offset of data in loaded core image 0117200
+		Virtual	address	of xp_type = 064210
+		Physical address of xp_type = 03410
+		Load image address of xp_type =	03450
+		Virtual	address	of dz_addr = 065114
+		Physical address of dz_addr = 04314
+		Load image address of dz_addr =	04354
+065114:		Value of dz_addr[0] = 05144
+061162:		Rootdev	= 03407
+061164:		Swapdev	= 03407
+061172:		Swplo =	117901063	(512 block offset)
+061176:		Nswap =	-180	(512 blocks)
+size ovunix
+text	data	bss	dec	oct
+16384 +	4074 +	10710 =	31168 =	74700	ovunix
+64704 total text, overlays: (8128,7104,6784,7360,6400,5760,6784)
+csh ./getsymb.sh
+symbas=68810,tell()=32
+? map	    `ovunix'
+b1 = 0		     e1	= 03777777	  f1 = 0116340
+	{ bo = 040000	       eo = 0		    fo = 0		 }
+b2 = 0		     e2	= 07752		  f2 = 0176340
+/ map	    `-'
+b1 = 0		     e1	= 0100000000	  f1 = 0
+b2 = 0		     e2	= 0		  f2 = 0
+				Default	Vect	Contents	Bdev/Cdev
+		tmio		0224		0472		3/12
+		htio		0230		0512		7/15
+		tsio		0234		0502		13/26
+		rkio		0220		0552		0/9
+		hkio		0210		0562		10/25
+		rlio		0320		0572		8/18
+		rpio		0254		0542		1/14
+		dvhpio		0260		0532		14/23
+		xpio		0264		0522		12/20
+		dzin		0300		0612		-/22
+		dzou		0304		0622		-/22
+		lpou		0320		0602		-/2
+		Offset of data in load image 0116340
+		Offset of data in loaded core image 0116300
+		Virtual	address	of xp_type = 064210
+		Physical address of xp_type = 02510
+		Load image address of xp_type =	02550
+		Virtual	address	of dz_addr = 065114
+		Physical address of dz_addr = 03414
+		Load image address of dz_addr =	03454
+065114:		Value of dz_addr[0] = 0160000
+061162:		Rootdev	= 06000
+061164:		Swapdev	= 06000
+061172:		Swplo =	8192		(512 block offset)
+061176:		Nswap =	2048	(512 blocks)
+csh ./genallsys.sh
+symbas=68810,tell()=32
+061164:		06000	=	04000
+061162:		06000	=	04000
+061166:		06000	=	04000
+symbas=68810,tell()=32
+ZERO+0254:	0522	=	0542
+061164:		06000	=	0400
+061162:		06000	=	0400
+061166:		06000	=	0400
+symbas=68810,tell()=32
+061164:		06000	=	05000
+061162:		06000	=	05000
+061166:		06000	=	05000
+symbas=68810,tell()=32
+ZERO+0254:	0522	=	0522
+061164:		06000	=	06000
+061162:		06000	=	06000
+061166:		06000	=	06000
+symbas=68810,tell()=32
+061164:		06000	=	0
+061162:		06000	=	0
+061166:		06000	=	0
+061172:		020000		=	07640
+061176:		04000	=	01550
+symbas=68810,tell()=32
+ZERO+0254:	0522	=	0532
+061164:		06000	=	07000
+061162:		06000	=	07000
+061166:		06000	=	07000
+cp rlunix /ya/distr/root
+cp rpunix /ya/distr/root
+cp rkunix /ya/distr/root
+cp xpunix /ya/distr/root
+cp hkunix /ya/distr/root
+cp dvunix /ya/distr/root

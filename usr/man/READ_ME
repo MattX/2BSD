@@ -1,0 +1,26 @@
+Mon Jan 19 23:08:28 PST 1981
+
+Note:
+
+At Berkeley we are no longer using the .u convention.  All our manual pages
+go in sections 1-8, as appropriate.  (On the vax we still have local, new,
+junk, and public directories, but they don't get used much.)  On the pdp-11
+we have hierarchies of usr structures, for example, there are /usr/ucb,
+/usr/new, and /usr/eecs, all of which have bin, src, man, lib, and so on
+as subdirectories, and a full compliment of manual sections.  Your PATH in
+your environment is used to decide what goes where.  We are now beginning
+to feel that the PATH stuff was a mistake, and are phasing it out, although
+we may go to projects, which are usr structures supported in some sense be
+the kernel.  Basically what's needed is a program's ability to refer to a
+lib or bin or man file in the same project the binary lives in, no matter
+how the binary was invoked.  The <local/uparm.h> mechanism does this, but
+requires recompilation when a binary is moved.  This is an area of somewhat
+hot controversy and little energy to do anything about it.
+
+The moral of all this is that you should feel free, and even encouraged,
+to rename all the .u files in this directory as .1 and put them in either
+/usr/man/man1 or /usr/ucb/man/man1.  They were only left as .u from 2bsd
+tradition.  (Note that the man command included here, being from the vax,
+does not support the path notion and only looks in /usr/man.  It has other
+wins over the 11 man command, such as automatic updating of cat pages,
+and is better written.)

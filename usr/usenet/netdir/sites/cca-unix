@@ -1,0 +1,33 @@
+From z@CCA-UNIX  Mon Jun  1 07:22:59 1981
+Date: 1 Jun 1981 10:23:26-EDT
+From: z at CCA-UNIX (Steve Zimmerman)
+To: CSVAX.mark at Berkeley
+Subject: Re: test messages
+Status: R
+
+In response to your message of Fri May 29 19:01:47 1981:
+
+Since our mailer prints out stuff as it delivers mail, I put a wait in
+sendanews so that it doesn't go back to the shell until the message is
+delivered.  However, something else isn't waiting for sendanews, so this
+didn't work, and I decided to forget it.
+
+Here's our info:
+
+Site name: CCA-UNIX
+Who we are: Computer Corporation of America
+	    575 Technology Square
+	    Cambridge, Mass. 02139
+What we do: Design, build, and sell custom and commercial DBMS's.  We also
+	    sell a standalone electronic mail system utilizing PDP-11's.
+Contact:    Steven Zimmerman
+	    z@CCA-UNIX
+	    617-491-3670
+
+Since the Arpanet works differently from uucpnet, what does it mean to be
+willing to hook up to other Arpanet sites on usenet?
+
+I'll send off a message to NET.general.
+
+						Steve
+

@@ -1,0 +1,210 @@
+CMAPIN	prim.c	?^#define CMAPIN() oldspl = spl6(); KDSA1->r[0] = cl?
+CMAPOUT	prim.c	?^#define CMAPOUT() KDSA1->r[0] = kdsa1; splx(oldspl?
+HASH	slp.c	?^#define HASH(x)	(( (int) x >> 5) & (SQSIZE-1))$?
+INOHASH	iget.c	?^#define	INOHASH(dev,ino)	(((dev) + (ino)) & (INOHS?
+Mmain	main.c	?^main()$?
+access	fio.c	?^access(ip, mode)$?
+acct	acct.c	?^acct()$?
+alarm	sys4.c	?^alarm()$?
+alloc	alloc.c	?^alloc(dev)$?
+ave	clock.c	?^#define ave(smooth, new, time)	(smooth) = (((time)?
+b_to_q	prim.c	?^b_to_q(cp, cc, q)$?
+badblock	alloc.c	?^badblock(fp, bn, dev)$?
+bcopy	subr.c	?^bcopy(from, to, count)$?
+binit	main.c	?^binit()$?
+bmap	subr.c	?^bmap(ip, bn, rwflg)$?
+catq	prim.c	?^catq(from, to)$?
+chdir	sys4.c	?^chdir()$?
+chdirec	sys4.c	?^chdirec(ipp)$?
+chfile	syslocal.c	?^chfile() {$?
+chmod	sys4.c	?^chmod()$?
+chown	sys4.c	?^chown()$?
+chroot	sys4.c	?^chroot()$?
+cinit	prim.c	?^cinit()$?
+clkstart	machdep.c	?^clkstart()$?
+clock	clock.c	?^clock(dev, sp, r1, nps, r0, pc, ps)$?
+close	sys2.c	?^close()$?
+closef	fio.c	?^closef(fp)$?
+compress	acct.c	?^compress(t)$?
+core	sig.c	?^core()$?
+cpaddr	prim.c	?^cpaddr(cp)$?
+cpass	subr.c	?^cpass()$?
+creat	sys2.c	?^creat()$?
+deverror	prf.c	?^deverror(bp, o1, o2)$?
+dup	sys3.c	?^dup()$?
+estabur	ureg.c	?^estabur(nt, nd, ns, sep, xrw)$?
+exec	sys1.c	?^exec()$?
+exece	sys1.c	?^exece()$?
+exit	sys1.c	?^exit(rv)$?
+expand	slp.c	?^expand(newsize)$?
+falloc	fio.c	?^falloc()$?
+fetchi	syslocal.c	?^fetchi() {$?
+fork	sys1.c	?^fork()$?
+fperr	syslocal.c	?^fperr() {$?
+free	alloc.c	?^free(dev, bno)$?
+fsig	sig.c	?^fsig(p)$?
+fstat	sys3.c	?^fstat()$?
+ftime	sys4.c	?^ftime()$?
+getc	prim.c	?^getc(p)$?
+getf	fio.c	?^getf(f)$?
+getfs	alloc.c	?^getfs(dev)$?
+getgid	sys4.c	?^getgid()$?
+getmdev	sys3.c	?^getmdev()$?
+getpid	sys4.c	?^getpid()$?
+getuid	sys4.c	?^getuid()$?
+getw	prim.c	?^getw(p)$?
+getxfile	sys1.c	?^getxfile(ip, nargc)$?
+gldav	syslocal.c	?^gldav() {$?
+grow	sig.c	?^grow(sp)$?
+gtime	sys4.c	?^gtime()$?
+gtty	ioctl.c	?^gtty()$?
+ialloc	alloc.c	?^ialloc(dev)$?
+iexpand	iget.c	?^iexpand(ip, dp)$?
+ifind	iget.c	?^ifind(dev, ino)$?
+ifree	alloc.c	?^ifree(dev, ino)$?
+iget	iget.c	?^iget(dev, ino)$?
+ihinit	iget.c	?^ihinit()$?
+iinit	main.c	?^iinit()$?
+ioctl	ioctl.c	?^ioctl()$?
+iomove	rdwri.c	?^iomove(cp, n, flag)$?
+iput	iget.c	?^iput(ip)$?
+isname	subr.c	?^isname(c1)$?
+issig	sig.c	?^issig()$?
+itrunc	iget.c	?^itrunc(ip)$?
+iupdat	iget.c	?^iupdat(ip, ta, tm, waitfor)$?
+iwait	syslocal.c	?^iwait()$?
+kill	sys4.c	?^kill()$?
+killbkg	syslocal.c	?^killbkg() {$?
+killgrp	syslocal.c	?^killgrp(pgrp, sig, mask)$?
+killpg	syslocal.c	?^killpg() {$?
+lfstat	syslocal.c	?^lfstat()$?
+link	sys2.c	?^link()$?
+loadav	clock.c	?^loadav(avg, n)$?
+login	syslocal.c	?^login() {$?
+lookc	prim.c	?^lookc(cp)$?
+lstat	syslocal.c	?^lstat()$?
+lstat1	syslocal.c	?^lstat1(ip, ub, pipeadj)$?
+maknode	iget.c	?^maknode(mode)$?
+malloc	malloc.c	?^malloc(mp, size)$?
+mapalloc	machdep.c	?^mapalloc(bp)$?
+mapfree	machdep.c	?^mapfree(bp)$?
+mapin	machdep.c	?^mapin(bp)$?
+mapout	machdep.c	?^mapout(bp)$?
+max	rdwri.c	?^max(a, b)$?
+mcstart	fakemx.c	?^mcstart(p, q)$?
+mcttstart	fakemx.c	?^mcttstart(tp)$?
+meter	clock.c	?^meter()$?
+mfree	malloc.c	?^mfree(mp, size, a)$?
+min	rdwri.c	?^min(a, b)$?
+mknod	sys2.c	?^mknod()$?
+mount1	sys3.c	?^mount1(mp)$?
+mpxchan	fakemx.c	?^mpxchan()$?
+namei	nami.c	?^namei(func, flag)$?
+ndflush	prim.c	?^ndflush(q, cc)$?
+ndqb	prim.c	?^ndqb(q, flag)$?
+newproc	slp.c	?^newproc()$?
+nextc	prim.c	?^nextc(p, cp)$?
+nice	sys4.c	?^nice()$?
+nodev	subr.c	?^nodev()$?
+nostk	syslocal.c	?^nostk() {$?
+nosys	trap.c	?^nosys()$?
+nulldev	subr.c	?^nulldev()$?
+nullioctl	ioctl.c	?^nullioctl(tp, cmd, addr)$?
+nullsys	trap.c	?^nullsys()$?
+open	sys2.c	?^open()$?
+open1	sys2.c	?^open1(ip, mode, trf)$?
+openi	fio.c	?^openi(ip, rw)$?
+own	fio.c	?^own(ip)$?
+owner	fio.c	?^owner()$?
+panic	prf.c	?^panic(s)$?
+passc	subr.c	?^passc(c)$?
+pause	sys4.c	?^pause()$?
+pipe	pipe.c	?^pipe()$?
+plock	pipe.c	?^plock(ip)$?
+prdev	prf.c	?^prdev(str, dev)$?
+prele	pipe.c	?^prele(ip)$?
+printf	prf.c	?^printf(fmt, x1)$?
+printn	prf.c	?^printn(n, b)$?
+procxmt	sig.c	?^procxmt()$?
+profil	sys4.c	?^profil()$?
+psig	sig.c	?^psig()$?
+psignal	sig.c	?^psignal(p, sig)$?
+ptrace	sig.c	?^ptrace()$?
+putc	prim.c	?^putc(c, p)$?
+putw	prim.c	?^putw(c, p)$?
+q_to_b	prim.c	?^q_to_b(q, cp, cc)$?
+qalloc	alloc.c	?^qalloc(ip, d)$?
+qcopy	nami.c	?^qcopy(dp, ip)$?
+qfree	alloc.c	?^qfree(ip, b)$?
+qswtch	slp.c	?^qswtch()$?
+quota	syslocal.c	?^quota()$?
+rdwr	sys2.c	?^rdwr(mode)$?
+read	sys2.c	?^read()$?
+readi	rdwri.c	?^readi(ip)$?
+readp	pipe.c	?^readp(fp)$?
+rexit	sys1.c	?^rexit()$?
+rtp	sys4.c	?^rtp()$?
+runrtp	slp.c	?^runrtp()$?
+saccess	sys2.c	?^saccess()$?
+sbreak	sys1.c	?^sbreak()$?
+schar	nami.c	?^schar()$?
+sched	slp.c	?^sched()$?
+scontrol	fakemx.c	?^scontrol(chan, s, c)$?
+sdata	fakemx.c	?^sdata(cp)$?
+seek	sys2.c	?^seek()$?
+sendsig	machdep.c	?^sendsig(p, signo)$?
+setgid	sys4.c	?^setgid()$?
+setpgrp	syslocal.c	?^setpgrp() {$?
+setpri	slp.c	?^setpri(pp)$?
+setregs	sys1.c	?^setregs()$?
+setrq	slp.c	?^setrq(p)$?
+setrun	slp.c	?^setrun(p)$?
+setuid	sys4.c	?^setuid()$?
+signal	sig.c	?^signal(pgrp, sig)$?
+sleep	slp.c	?^sleep(chan, pri)$?
+smount	sys3.c	?^smount()$?
+ssig	sys4.c	?^ssig()$?
+startup	machdep.c	?^startup()$?
+stat	sys3.c	?^stat()$?
+stat1	sys3.c	?^stat1(ip, ub, pipeadj)$?
+stime	sys4.c	?^stime()$?
+stop	sig.c	?^stop()$?
+stty	ioctl.c	?^stty()$?
+submit	syslocal.c	?^submit() {$?
+sumount	sys3.c	?^sumount()$?
+sureg	ureg.c	?^sureg()$?
+suser	fio.c	?^suser()$?
+swapin	slp.c	?^swapin(p)$?
+swtch	slp.c	?^swtch()$?
+sync	sys4.c	?^sync()$?
+sysacct	acct.c	?^sysacct()$?
+syslock	acct.c	?^syslock()$?
+sysphys	machdep.c	?^sysphys()$?
+timeout	clock.c	?^timeout(fun, arg, tim)$?
+times	sys4.c	?^times()$?
+tloop	iget.c	?^tloop(dev, bn, f1, f2, ip)$?
+trap	trap.c	?^trap(dev, sp, r1, nps, r0, pc, ps)$?
+uchar	nami.c	?^uchar()$?
+ufalloc	fio.c	?^ufalloc()$?
+umask	sys4.c	?^umask()$?
+unlink	sys4.c	?^unlink()$?
+unputc	prim.c	?^unputc(p)$?
+update	alloc.c	?^update()$?
+utime	sys4.c	?^utime()$?
+vmtotal	clock.c	?^vmtotal()$?
+wait	sys1.c	?^wait()$?
+wakeup	slp.c	?^wakeup(chan)$?
+wdir	iget.c	?^wdir(ip)$?
+write	sys2.c	?^write()$?
+writei	rdwri.c	?^writei(ip)$?
+writep	pipe.c	?^writep(fp)$?
+xalloc	text.c	?^xalloc(ip)$?
+xccdec	text.c	?^xccdec(xp)$?
+xexpand	text.c	?^xexpand(xp)$?
+xfree	text.c	?^xfree()$?
+xlock	text.c	?^xlock(xp)$?
+xrele	text.c	?^xrele(ip)$?
+xswap	text.c	?^xswap(p, ff, os)$?
+xumount	text.c	?^xumount(dev)$?
+xunlock	text.c	?^xunlock(xp)$?
+xuntext	text.c	?^xuntext(xp)$?

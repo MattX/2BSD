@@ -1,0 +1,1900 @@
+			USENET DIRECTORY
+			Wed Oct  7 23:32:18 PDT 1981
+
+This directory is a compilation of the sites currently on USENET,
+a logical network of sites running the network news (netnews).
+This network consists entirely of Unix systems, connected by
+various means (uucp net, berknet, arpanet).
+
+The purposes of this directory are (1) so sites on usenet can
+find out who else is on usenet, and (2) so new sites can find
+someone nearby to hook up to.  It is requested that all new
+sites post a message in the format of these messages on NET.general
+announcing that they exist.
+
+Note that the physical networks usenet is embedded in are much
+larger.  The arpanet is organized by a central authority and
+publishes a directory regularly.  The berknet configuration is
+well known to any berknet site by reading /usr/net/network.map.
+However, the uucp net is set up in such a way that for a new node
+to be added, only the immediate neighbors need be aware of it,
+and so noone really knows who all is on the uucp net.  Attempts
+at making a uucp net map have failed because of the lack of a
+global broadcast mechanism.  While an eventual goal of usenet
+is to include all or most uucp net sites, note that the usenet
+map is a subgraph of the uucp net - there are a few hundred uucp
+net sites, most of which are inside Bell Laboratories and do not
+run netnews.  Here is a sample list of the sites one Bell Labs
+site knows:
+
+names in L.sys:  513uxr 952a D1355 NW1 SW1A amacc1 alice arizona at3
+bldg5 cbosg cbuxa cbuxb conceps druxa druxb druxc druxd druxe druxg
+druxj duke eadas eagle gcapwb hocsa hocsb hocsc hocsd houxa houxb houxc
+houxe houxg houxo houxp houxR houxr houxs houxt houxv houxw houxy ihn5a
+ihn5b ihn5c ihnsf ihuxa ihuxb ihuxc ihuxd ihuxe ihuxf ihuxg kcep lab135
+llmsg1 llmsg2 longlines machaids mddm mhLTX1 mhccm mhccvax mhltx1 mhrtb
+mhrtc mhtsa mhtsb mhtsc mhuxm mhuxv mhuxh mhvts mhwpa mhwpb mhwpc mrl
+mtymouse nscs nurd ocsvax pads physics pn-1 pwb1 pwba pwbb pwbcb2 pwbd
+eiss pwbg pwbh pwbi pwbj pwbk pwbl pwbq qplot rbcspwb rdb fs research
+sam34 sb1 sccs ssc1 sysc tandem topes ucbvax Xucbvax ucbvax ucbvaxddd
+ucsfcgl usg vax135 wh5ess whlmos whuxb whuxd whuxla whwpa whwpb mh135z
+mh135y
+
+
+ 
+From sdcarl!rusty  Wed Jun 17 21:27:13 1981
+To: ucbvax!mark
+Subject: Re:  usenet map
+Status: R
+
+	From ucbvax!mark  Wed Jun 17 21:03:12 1981
+	To: sdcarl!rusty
+	Subject: Re:  usenet map
+	
+	So the problem is that there are one way connections that look like
+	two way connections on the map?  I didn't plan to indicate this on
+	the map, since it shouldn't really matter to the user.  Also, it's
+	hard enough to draw this stuff without putting arrows in it.
+	
+	So how is sdcatta connected in?
+	
+		Mark
+
+Yes, I wasn't really expecting you to make it an exact representation;
+I expect that that would be very time consuming (if it is possible).
+And, as you say it shouldn't really matter, if anybody uses that map to
+send mail it should get through, arrows or no.
+
+This is pretty much what it looks like down here, the !'s show a uucp
+connection and the :'s show a berknet connection. sdcarl and sdcsvax
+pretty much poll everyone else. csl and arthur don't recieve netnews,
+aaron only recieves info-micro, info-terms, apollo, and info-cpm (micro-
+computer related stuff), but currently isn't recieving any at all
+because their big disk that was on loan to them was taken back (don't
+ask, it is too confusing). csl is down for a head crash (they schedule
+them about once a month [if not more often]). csl, sdcarl, and sdcsvax
+are the only machines that have dialers, csl doesn't do any polling.
+sdcatt[ab] get their netnews via uucp from sdcsvax or sdcarl.
+
+	sdcatta:::::sdcattb:::::::::sdcsvax::::csl
+	   !		!		!	!
+	   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!sdcarl
+					!	!
+					!!!!!!!!!!!!!!!!!
+					!	!	!
+				      arthur  phonlab  aaron
+
+
+
+ 
+From vax135!allegra!honey  Mon Mar  9 15:36:59 1981
+To: vax135!ucbvax!mark
+Subject: usenet map
+Status: R
+
+system name = allegra. (formerly mh135a)
+
+path = ucbvax!vax135!allegra.
+
+contact = peter honeyman, (201) 582-4334, allegra!honey.
+
+number of perusers = 16.
+
+we are the digital sytems research lab -- we do some real-time
+animation, natural language understanding, speech analysis/synthesis,
+programming language design, relational database theory and practive,
+computer games, digital signal processing, videodisk applications,
+fault-tolerant computing, distributed computing, telephony of the
+future, computer network implementation, vlsi design tools, human
+factors stuff, voice storage/processing.  (so what don't we do?)
+
+at present our acu's are down -- we have a dn board and 2 acu's;  they
+are wired wrong, we have no dn driver, our kernel hacker (i guess
+that's me) refuses to get involved, we are in the process of hiring a
+shogun.  thus, we are willing to be called, and will be willing (bourne
+willing) to call others as soon as the acu's are online.
+
+remote login: uucpa.  password: evomr1
+
+
+ 
+From sdcsvax!arthur!jmcg  Tue Mar 10 04:21:12 1981
+To: sdcsvax^ucbvax^mark
+Subject: UUCPnet directory
+Status: R
+
+System name: ARTHUR
+Path: ucbvax!sdcsvax!arthur
+Person to contact:	Jim McGinness
+			UC San Diego
+			Department of Chemistry  B-014
+			La Jolla, CA  92093
+			(714)452-4016
+			uucpname: ucbvax!sdcsvax!jmcg
+			(arthur is only up under vmunix part time, so I get
+			my mail at sdcsvax)
+No. of netnews users:	none
+Site's purpose:	We are funded as a Biomedical Research Resource by NIH.
+		Most of the work that goes on here is number crunching and
+		computer graphics associated with protein xray crystallography
+		and molecular dynamics.
+Willingness to call new systems: nil, since our schedule wouldn't permit it
+		even if we had an autodialer.
+uucp login name: uucp, whatnot, (714)452-3119
+Names in .SYS file: sdcsvax, sdcarl
+Notes: We are currently running VMUNIX only Monday noon through Wed noon.  The
+rest of the time we run VMS.  I expect that we will go to full-time VMS if we
+can get EUNICE [FORTRAN performance is the dominant criterion for several of
+our heaviest users].  When the department's VAX 750 comes up (probable name:
+sdkemist or sdchemist), we plan to use it as the gateway for all our network
+transactions, so ARTHUR will probably disappear from the network's view.
+
+
+ 
+From z@CCA-UNIX  Mon Jun  1 07:22:59 1981
+Date: 1 Jun 1981 10:23:26-EDT
+From: z at CCA-UNIX (Steve Zimmerman)
+To: CSVAX.mark at Berkeley
+Subject: Re: test messages
+Status: R
+
+In response to your message of Fri May 29 19:01:47 1981:
+
+Since our mailer prints out stuff as it delivers mail, I put a wait in
+sendanews so that it doesn't go back to the shell until the message is
+delivered.  However, something else isn't waiting for sendanews, so this
+didn't work, and I decided to forget it.
+
+Here's our info:
+
+Site name: CCA-UNIX
+Who we are: Computer Corporation of America
+	    575 Technology Square
+	    Cambridge, Mass. 02139
+What we do: Design, build, and sell custom and commercial DBMS's.  We also
+	    sell a standalone electronic mail system utilizing PDP-11's.
+Contact:    Steven Zimmerman
+	    z@CCA-UNIX
+	    617-491-3670
+
+Since the Arpanet works differently from uucpnet, what does it mean to be
+willing to hook up to other Arpanet sites on usenet?
+
+I'll send off a message to NET.general.
+
+						Steve
+
+
+ 
+From chico!harpo!ber  Mon Apr 13 14:00:30 1981
+To: chico!ucbvax!mark
+Subject: usenet
+Status: R
+
+	system name:	chico
+	path:		ucbvax!chico
+	contact(s):	chico!ber	(201) 386-2884	brian redman
+			chico!sarah	(201) 384-4584  sarah wang
+	netnews users:	everyone
+	purpose:	applied research and development support
+	callability:	can call many sites; can be called by many sites.
+	uucp login:	don't make public (info is on ucbvax)
+
+ 
+Site Name:     cincy
+Real Name:     University of Cincinnati Electrical and Computer
+          Engineering Department
+Configuration: PDP 11/60 (soon to be moved to a 34)
+          TU10 lookalike
+          RK05F and J
+          RP03 lookalike (300MB)
+          DZ11s (yuck)
+          Machine is shared between RSX (mainly) UNIX and SOLO.
+What we do:    Supports graduate research in the areas of picture
+          processing, signal processing, graphics.
+          We are making our way into the VLSI field. (slowly)
+          Much solid state research is going on, but there
+          are not very good design tools (being upgraded).
+
+Contact:  Christopher A. Kent (cincy!chris)
+          University of Cincinnati
+          Mail Location 30
+          Cincinnati, OH 45221
+          (513) 475 - 3025
+
+New Sites:     As we don't have dial in facilities now, it will
+          be necessary for us to dial anyone wishing to talk
+          to us. We are willing to call anyone who sounds
+          interesting or interested, as long as it doesn't
+          get out of hand. Contact me here and we'll work
+          something out.
+
+
+
+
+                        May 28, 1981
+
+
+
+
+
+                           - 2 -
+
+
+          When DEC finally delivers our 34, it should run UNIX
+          almost full time, and we will have dial in and out
+          facilities. At that time we would be willing to let
+          almost anyone call us, I think.
+
+About 10 people read net news on the system. This will probably grow
+as we get more users (that number is about 70% of the regular users.)
+
+We currently have direct connections to duke and purdue.
+
+                        May 28, 1981
+
+     This is to announce the presence of cincy on  the  net.
+We  are the University of Cincinnati Electrical and Computer
+Engineering Department.  Current research interests are sig-
+nal  processing  (specifically  residue arithmetic filters),
+pattern recognition and picture  processing,  communications
+networks,  solid  state fabrication technologies, CAD, VLSI,
+computer  architecture,  logic  design,....   (we're   quite
+diversified).  Current  facilities  are a PDP-11/60 which is
+shared between running RSX, UNIX, and SOLO. We  run  a  very
+hacked  V6,  soon  to be converted to V7.  We are getting an
+11/34 as soon as DEC delivers it, which  should  run  mainly
+UNIX.  Cincy  will be moved to that machine then.  It should
+have better phone equipment.  We also foray into the biomed-
+ical  engineering  world, having recently done work in aneu-
+rysm detection.  Our configuration is not  too  stable,  and
+should expand a whole bunch if we get some money.
+
+     We are interested in communicating with people of simi-
+lar interests, or folks who just want to chat about UNIX. We
+have lots of old (IBM 1130?) and  small  (AIM-65)  equipment
+that  is  begging  to  have support software written for it.
+Our SS fab lab is excellent, but their support tools consist
+of a card-based system on the 1130 that drives an aging Cal-
+Comp plotter. I am personally working  to  change  that.   I
+envision  a  CIF based system with graphical front end (home
+written).  It should be operational by the  end  of  summer,
+based on U of Toronto's GPAC. I would be interested in hear-
+ing from people doing this kind of work.
+
+     We are also interested in RJE to Amdahl  systems.  Any-
+body  out  there  doing  this (preferably cheaply?) There is
+talk going around about a  homebrew  Ethernet-like  network,
+too, but no action yet.
+
+
+     We currently connect to purdue and duke.  We have  only
+dial  out  equipment,  so  we would have to call you, if you
+sound interesting (the decision of the judges is final).
+
+                              Chris Kent (cincy!chris)
+
+                        May 28, 1981
+
+ 
+From menlo70!hao!cires!harkins  Thu Jul 16 12:04:39 1981
+Subject: the form
+Status: R
+
+Name of site:	University of Colorado
+		CIRES
+		Campus Box 449
+		Boulder, Co  80309
+
+What the site is all about:	Research, generally; specifically:
+				Geophysics, rock mechanics, atmospheric
+				chemistry-air and water pollution,
+				climatology
+
+Name of contact person at site:	Ernie Harkins
+Electronic mail address of contact person:	ucbvax!menlo70!hao!cires!harkins
+					or	menlo70!cires!harkins
+U.S. Mail address of contact person:	Univ. of Colorado
+					CIRES
+					Campus Box 449
+					Boulder, Co  80309
+Phone number of contact person:	303-492-5528
+			or FTS	320-6516
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):	modified uucp,
+				using Bizcomp's 1030 "smart modem"
+				via Nat'l Center for Atmospheric Research
+				(NCAR)'s High Altitude Observatory (HAO)
+				PWB site here in Boulder; they are the
+				only formal "neighbor" so far; there are
+				about a half dozen others that we may get
+				into usenet fairly soon; we have a BUG--
+				Boulder Unix Group that is growing fairly
+				fast but few wizards about, so we have to
+				do these things slowly; re: forwarding
+				to other sites; yes we would be willing
+				to do local calls once we get them up on uucp
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+				Re: willingness; see above; re: policy;
+				no formal policy yet, but we would probably
+				want to do any forwarding overnight, especially
+				if we become a nexus for more than 4-5 sites
+				locally(I could be overridden on this "policy"
+				but I doubt that I will be); If they would
+				call us that would be that much better, but
+				as yet, we have not raised the issue; we have
+				only had uucp-usenet-netnews working for about
+				a month, so wanted to make sure we had it solid
+				before expanding.
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+
+				No direct ARPA access, though in the not
+				too distant future our Computer Science Dept.
+				is supposed to become a sub-host from the
+				NBS(Nat'l Bureau of Stds) site here in Boulder.
+				but they are extremely un-unixed at this point,
+				ie, a lack of "true believers" who know what
+				they are doing; they got off to a rough start
+				by finding some bugs in the f77 compiler, so the				anti-unix forces in CS have gotten them to
+				run VMS part-time and unix part-time; ugh!;
+				Feldman was out here and after being shown the
+				apparently real bugs reportedly is doing his
+				rewrite; they already have the bell-vax dist,
+				and have gotten also the ucb vax distribution,
+				but at last report are awaiting the new f77
+				to go whole hog to unix; we'll see how it goes.
+If you want to publish your uucp phone number, login, and password,
+include that info.
+				I hate to sound dumb, but I'm a little vague
+				on the protocols, etc. for uucp, since we were
+				handed a package to install by USGS, without
+				knowing what-all was going on; if this question
+				refers to our normal dial-in number, that's
+				303-492-5431, but wouldn't a would be dialer
+				have to have a uucp account here?  as for the
+				login and password, isn't that a function of
+				the uucp account(s) that we might have elsewhere
+				or am i really confused?
+				In general, I would prefer to only have one
+				path for all the incoming news, since I can
+				see (and have already seen a few cases) where
+				we could wind up getting the same stuff more
+				than once if multi-paths existed; i understand
+				that work is underway to try to avoid this, but
+				a small number of paths seems surest to me; ??
+
+
+
+
+
+ 
+Date: 27 Sep 1981 1342-PDT (Sunday)
+From: decvax!cwruecmp!boenke
+To: decvax!ucbvax!glickman
+
+Here's our form, does this mean that a list of all the machines on usenet
+is available, with this information? If so, we would greatly appreciate
+a copy. Thanks.
+				Mark
+
+------------
+Name of site: cwruecmp
+What the site is all about: Research and Instructional support for
+	Department of Computer Engineering and Science, CWRU.
+	Equipment: VAX 11/780 w/FP, 2.5 Mb, 2 RM05's, Able DH/DM, 4.1BSD
+	(We also have several smaller 11's running v6 unix, but these are
+	not on the network)
+
+Name of contact person at site:
+	Mark Boenke, Greg Ordy
+Electronic mail address of contact person:
+	decvax!cwruecmp!boenke, decvax!cwruecmp!ordy
+U.S. Mail address of contact person:
+	Contact either at:
+
+	Case Western Reserve University
+	Department of Computer Engineering
+	Crawford Bldg.
+	10900 Euclid
+	Cleveland, Ohio, 44106
+
+Phone number of contact person:
+	Greg: (216) 368-2819
+	Mark: (216) 368-2986
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):
+	We are polled by decvax, we have 3 vadic triple modems,
+so run at 1200 baud, but we currently do not have an ACU, so
+cannot call out.
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+	We are willing to connect to new sites, but cannot poll
+them, since we do not have a call unit. If any site would like to
+call us, contact either Greg or Mark, and we will set up a uucp
+login for you. We are not on the arpanet. (yet).
+
+If you want to publish your uucp phone number, login, and password,
+include that info.
+	Nope, contact us to get a login.
+
+
+
+
+
+ 
+From decvax!aps  Fri Mar 13 20:51:41 1981
+To: ucbvax!mark
+Subject: decvax and uucp
+Status: R
+
+System name: decvax
+Path: ucbvax!decvax or duke!decvax
+
+	These are the places that we currently talk to.  They are polled at
+various intervals.  [These are UUCP connections, not usenet -- mrh]
+		research --  Bell Labs, Murray Hill Computer Science Research
+		duke -- Duke University
+		ucbvax -- University of California  at Berkeley, CS dept Vax
+		chico -- Bell Labs, Whipany
+		sytek -- Sytek Co.
+		pur-ee -- Purdue University, Dept of Electronic Engineering
+		ihnss -- Bell Labs, Indian Hill
+		ittvax -- ITT Software Technology Center, Shelton Ct.
+		cithep -- California Institute of Technology, Ca.
+		freeport -- Freeport Public Schools, Freeport NY  (NOT UP YET)
+
+	Some of the people that you may wish to talk to on our system are:
+		kjb -- Jerry Brenner
+		fred -- Fred Canter
+		mac -- Mary Anne Cacciola
+		jm -- Joel Magid
+		bm -- Bill Munson
+		lp -- Louise Potter
+		tp -- Terry Prescott
+		rjp -- Rich Ptak
+		shannon -- Bill Shannon
+		aps -- Armando Stettner
+		daw -- Dave Wells
+
+
+	Our current configuration is a VAX-11/780, 1MB memory, 2 RP06's, 1 TE16,
+4 DZ's, and some unannounced stuff.  (We will be expanding soon with some
+additional hardware including 2 RM05's, 1 RL02, 3 MB memory, and some
+more unannounced hardware.)
+	What we do here is UNIX development of drivers for new and prototype
+hardware, hardware evaluation and testing, new processor support, and support
+of Field Service and Sales personnel.
+
+	We prefer not to publish our number at this time.  My name and number
+is Armando P. Stettner at (603) 884-5485.  You got a copy of all the sites
+we talk to.
+
+	Armando.
+
+From decvax!aps  Thu Apr  9 18:37:30 1981
+To: ucbvax!mark
+Subject: Other systems that we talk to.
+Status: R
+
+Hi Mark.
+	Sorry for this late response but here are some of the people that we
+talk to who seem not to be on your list.
+
+	decvax!ittvax	ITT Programming Technology Center.  Alan S. Watt is
+		the contact (decvax!ittvax!swatt)  VAX-11/780 
+
+	decvax!amc70	Advanced Micro Computers Corp.   John A. Lowery is
+		the contact for uucp stuff.  (decvax!amc70!jal)  This is a
+		PDP-11/70.   This link will be up within a week or so.
+
+	decvax!freeport	  Freeport Public Schools.  Frank Farance and myself
+		are the contacts (decvax!freeport!ff and decvax!aps)  PDP-11/44.
+
+I shall try to get the details on these systems.
+Thanks.
+	Armando.
+
+
+
+ 
+From decvax!duke!swd  Wed Mar 11 16:32:45 1981
+Here is the current state of the duke system.
+
+path: we reach you both through decvax and mhtsa
+contact: Steve Danial (swd), 919-684-3048
+	CPS Dept, Duke University, Durham, NC 27706
+news: 147 local users of which 24 subscribe to NET news
+about: We are a research machine for the Computer Science
+	Department. Current research includes natural language
+	processing, VLSI design, and operating systems simulation.
+calling:
+   a) Anyone can call us.
+	We give systems individual logins for accounting,
+	so we don't publish a uucp name and password.
+	Interested nodes should contact swd.
+   b) Typically we will call other sites if they reimburse us
+	for the phone charges. This is cleared through swd.
+uucp connections:
+   BTL nodes:
+	research, vax135, epsvax, topes, chico, mhtsa
+   Local nodes:
+	phs, cleps, duke34
+   Universities:
+	unc
+	uok	- U. Oklahoma
+	reed	- Reed College
+   Others:
+	nybca	Ny Blood Center
+	decvax
+
+
+ 
+From decvax!duke!duke34!chris  Wed Mar 18 22:54:17 1981
+Re: usenet map
+Status: R
+
+We are also on the usenet but we are, in effect, a part of duke.  This
+processor is a PDP-11/34 with 128Kw, an fpu, a Bell 103A dial-in
+( (919)684-4020 ) and a (soon to be two) System Industries 80Mb disc.
+This processor has a hardwire connect to duke.  news IS run, however
+we have never gererated a NET article (but we will if I can get an RX01
+driver).  We do not poll anybody else.
+
+
+ 
+From eagle!jal  Fri Feb 27 16:08:17 1981
+Re: usenet site info
+Status: R
+
+system name:	eagle
+path:		ucbvax!eagle
+contact(s):	eagle!jal	(201) 582-5926	jeff langer
+		eagle!mp	 - none -	mark plotnick
+netnews users:	14
+purpose:	research into distributed computing
+callability:	can call a few sites; can be called by a few sites.
+uucp login:	don't make public (info is on ucbvax)
+.sys file:	ucbvax, mhtsa
+
+
+ 
+From chico!esquire!psl  Tue Jul 21 12:01:07 1981
+Subject: Slightly Modified Answers to Questions
+Status: R
+
+Mark,  For the moment here are the official answers...
+
+Name of site:
+	esquire
+
+What the site is all about:
+	Large law firm using UNIX for office automation
+
+Name of contact persons at site:
+	Peter Langston
+	Nat Howard
+
+Electronic mail addresses of contact persons:
+	chico!esquire!psl
+	chico!esquire!nrh
+
+U.S. Mail address of contact person:
+	Davis Polk & Wardwell
+	1 Chase Manhattan Plaza
+	New York, NY 10005
+
+Phone number of contact persons:
+	(212)-530-4046  (Nat)
+	(212)-530-4116  (Peter)
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):
+	300 baud (103) & 1200 baud (212) to chico
+	We also have 1200 baud 3400 (Vadic)
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+	We'd be willing to poll nearby (New York) sites.
+	We've no hard-and-fast rule on polling yet.  What do other
+	people do?
+
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+	Not on Arpanet.
+
+If you want to publish your uucp phone number, login, and password,
+include that info.
+	We'd rather not publish the stuff yet -- it's in flux anyhow -- but
+	we'd love to receive published data, and to trade numbers & such
+	with people.
+
+
+
+
+ 
+From menlo70!hao!pag  Thu Feb 26 14:35:49 1981
+To: menlo70!ucbvax!mark
+Subject: USENET map
+Status: R
+
+system name:	hao
+path from:	ucbvax
+full path from:	menlo70!ucbvax
+contact:	peter gross
+		(303)-494-5151 ext. 348
+		FTS 322-5348
+		login name: pag
+uucp login:	uucp
+uucp passwd:	uucp
+dialup #:	(303)-494-0930  (300 or 1200 baud)
+.sys sites:	menlo70
+netnews users:	~10 (but we just started a few days ago)
+
+We are the High Altitude Observatory, a division of the National Center for
+Atmospheric Research (NCAR).  Most of our work is in Solar Astrophysics
+research, with RJE to the NCAR CRAY-1 (soon to be a network).  We do not
+have an auto-dialer, but other sites may call us at any time.
+
+
+ 
+From chico!harpo!ber  Mon Apr 13 14:00:30 1981
+To: chico!ucbvax!mark
+Subject: usenet
+Status: R
+
+	system name:	harpo
+	path:		ucbvax!chico!harpo
+	contact(s):	chico!ber	(201) 386-2884	brian redman
+			chico!sarah	(201) 384-4584  sarah wang
+	netnews users:	everyone
+	purpose:	applied research and development support
+	callability:	can call many sites; can be called by many sites.
+	uucp login:	don't make public (info is on ucbvax)
+
+
+ 
+From ucbvax!vax135!hocsr!ggw Tue Apr 14 15:18:40 1981
+Subject: HOCSR joins usenet
+
+This is to announce the presence of hocsr to the usenet!
+
+Status: RO, maybe transfer to other BTL sites
+
+Machine: VAX-11/780, 2 RP06, 1 RM05, TU77, etc.
+
+Purpose: Development of new product support systems in BTL.
+
+Contact: Gregory G. Woodbury
+	 201-949-2636	(BTL-Holmdel x2636)
+	 (will change at some point in future)
+
+	We are running UNIX 4.0! I have obtained news from duke
+	and have it running under 4.0. We poll duke, and can poll
+	vax135 or other btl sites if desired ( Let me hear from
+	all you other BTL people).  We cannot call others but
+	arrangements can be made for them to call us.
+
+	UUCP login and phone numbers available on request.
+
+ 
+From ihnss!karn  Tue Mar 17 15:12:00 1981
+To: ucbvax!mark
+Re: our usenet directory entry.
+Status: R
+
+System name:
+	ihnss
+
+Path to the system from duke, ucbvax, or decvax:
+	ucbvax!ihnss
+
+Name of usenet/uucp contact at that system, phone, login name:
+	Phil Karn: ihnss!karn, 312-462-4083
+	Warren Montgomery: ihnss!warren, 312-462-2494
+
+Number of users at the site running netnews (check .uindex):
+	4, but Human-Nets, SF-Lovers and Info-Micro are forwarded daily
+	(semi-manually now, automatically "soon") to about 18 other systems
+	at Bell Labs Indian Hill. From there, its anybody's guess how
+	many people read them.
+
+What the site is all about (if not a secret):
+	Exploratory studies (applied research) on new
+	telecommunications services
+
+Willingness to (1) call new sites or (2) be called or (3) call
+other sites or (4) lack thereof:
+	No problem, as long as the traffic is reasonable. We have ACU's on
+	WATS lines during the evenings. The modems are Bell 212's, which
+	can make 300 baud or Bell 1200 calls. We can't talk to Vadic
+	1200 baud modems except for Triple Modems.
+
+uucp login name/password/phone number, (if you want it to be public):
+	#: 312-665-4796 (300/1200 baud Bell 212)
+	id: nuucp Password: secure
+	(Please contact us first so our L.sys can be updated)
+
+Names of sites in your .sys file:
+	We don't automatically pass netnews on to any other systems (yet).
+	Nobody at BTL has requested getting \automatic/ netnews shipments
+	from us instead of directly from Berkeley.	
+	(See the item above about manual forwarding to other Indian
+	Hill systems.)
+
+
+ 
+Date: 25 Sep 1981 1103-PDT (Friday)
+From: ihps3!pcl
+To:  ucbvax!glickman
+Subject:  Usenet site description
+Reply-to:  ihnss!ihps3!pcl
+
+
+Name of site:  ihps3
+What the site is all about:
+	Project Support for several projects at BTL - Indian Hill.
+	Main project currently is software development and lab support
+	for the PROMUS (tm) EPROM-pack reprogrammer.
+
+Name of contact person at site:  Paul C. Lustgarten
+Electronic mail address of contact person:  ihnss!ihps3!pcl
+U.S. Mail address of contact person:
+	Rm. 2G-419
+	Bell Laboratories
+	Naperville-Wheaton Rd.
+	Naperville, IL 60566
+Phone number of contact person:  (312) 462-6711
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):
+	high-speed link to ihnss
+	dial-up link to uwvax (University of Wisconsin - Madison Computer
+				Science Dept.; they are currently in a
+				receive-only mode, expected to upgrade soon.)
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+	Willing to work with any site currently having uucp connection to
+	*any* Indian Hill system.  New uucp connections require High Level
+	approval that I can't guarantee.
+	(Not on Arpanet.)
+
+If you want to publish your uucp phone number, login, and password,
+include that info.
+
+
+
+
+ 
+# A brief description of ittvax
+# This is contained in the file ~uucp/pubinfo/configuration
+# Other interesting stuff is kept in ~uucp/pubinfo
+Address:
+	ITT Programming Technology Center
+	1000 Oronoque Lane
+	Stratford, Ct. 06798
+	(203) 375-0200
+
+Operating System:
+	4BSD UNIX (arrived Feb, 1981)
+
+UUCP Connections:
+	None direct, unless you count an ONYX (system onyxasw).
+	The system "decvax" polls us every day.
+
+Contact:
+		Sam H. Praul	(shp)
+		Alan S. Watt	(swatt)
+		Maude M. Sawyer	(sawyer)
+
+	mail "DA" (Directory Assistance - all caps) for
+	help if you don't have any other contact person.
+
+Purpose in Life:
+	The Programming Technology Center is a research organization
+	within ITT dedicated to improving software production by
+	application of the best existing technology and the development
+	of new ones.  Our aggregate interests run the entire gamut
+	of current computer technology.
+
+			Hardware
+
+CPU:	VAX 11/780 4 M-bytes memory
+
+disks:	2 rp06's
+tape:	1 tu77
+ttys:	6 (count 'em 6!) dz-11's
+modems:	1 dz dedicated to Racal-Vadic 3451 triple modems
+dialin:	(203) 378-8897 (8-line rotary) if you want 1200 baud,
+	(203) 377-1077 (2-line rotary) if you want 300 baud;
+	both numbers will switch to the other speed.
+
+	If you don't have a UUCP name assigned to you, you can
+	use "uucp", with password "topsecret".
+
+dialout:
+	not yet; we're working on it.
+
+other:	11" Versatec plotter/printer,
+	MEGATEC 7200 vector graphics tube; a color rastor
+	display is on order.
+
+
+
+
+ 
+From menlo70!bill  Sat Mar  7 12:43:02 1981
+To: ucbvax!mark
+Subject: uucp info
+Status: R
+
+System name: menlo70
+Path:	ucbvax!menlo70
+Contact:Bill Jolitz(menlo70!bill) (415)-323-8111 x2965
+Number of netnews users: 183
+Willingness to call newsites: Some, but our machine is very loaded. Ask.
+Willingness to be called: Sure, but try long xfers at night please.
+Availability of autodialer: currently have one 300 baud, soon to have another
+				1200 baud.
+
+UUCP login name: uucp
+Password: uucp
+Modem: (415)324-2910 (Vadic triple modems -- 300,1200 VADIC(3400),1200 (212))
+L.sys file entries:  menlo34,ucbcory,ucbvax,slu,cires,uw,virus,golden,lamont,
+			hao,nsc,sytek.
+Purpose of machine: This machine is used primarily for the routine siesmic
+data processing of the California Siesmic Network. Preliminary locations of
+major events are automatically done in real time by a locator program.
+
+	Bill.
+
+
+ 
+From mhtsa!mjs  Sat Mar  7 10:39:10 1981
+To: ucbvax!mark
+Subject: netnews survey
+Status: RO
+
+System name:	mhtsa.
+University path:direct via any of duke, eagle, ucbvax.
+Usenet contact:	Marty Shannon, Jr.
+		(201) 582-4989 (rarely)
+		mhtsa!mjs (always)
+User community:	~6 subscribe to NET newsgroups, a few more to non-NET
+		newsgroups.  Netnews isn't quite officially sanctioned
+		here (yet?).  Total real users: ~150 (+/- 10%).
+Purpose:	Support & development for BTL internal UNIX.
+Sites served:	duke, eagle, ucbvax.
+
+	Marty
+
+
+ 
+From sdcsvax!phonlab!elman  Wed Feb 25 18:39:59 1981
+To: sdcsvax!ucbvax!mark 
+Subject: response to USENET survey
+Cc: 
+Message:
+Status: R
+
+Mark, 
+	Here are our answers to your survey. 
+
+system name:
+	* phonlab
+
+path to the system from duke, ucbvax, or decvax:
+	* ucbvax!sdcsvax!phonlab
+
+name of usenet/uucp contact at that system, phone, login name
+	* Jeff Elman, 714-452-2536 or -2537, elman or root
+
+number of users at the site running netnews (check .uindex)
+	* 31
+
+what the site is all about (if not a secret)
+	* Phonetics Lab; research in speech perception/recognition
+
+willingness to (1) call new sites or (2) be called or (3) call
+	sites if they pay the bill, (4) or lack thereof
+	* have 300/1200 dialup, no ACU; willing to be called
+
+uucp login name/password/phone number, (if you want it to be public)
+	* uucp/whatnot/714-452-6788
+
+
+ 
+From decvax!duke!phs!dbl  Tue Mar 10 22:59:15 1981
+
+System name: phs
+Path: duke!phs
+Contact: David Leonard (919) 684-2469  Login name: dbl
+NETnews users: 7
+Site Function: Departmental Computer Facility,
+		Department of Physiology
+		Duke University Medical Center
+Status: R
+
+We presently call Duke and are called by Duke and Unc.
+
+
+ 
+Apur-ee.104
+NET.news
+ucbvax!decvax!duke!cincy!pur-ee!aef
+Wed Jun 17 23:20:37 1981
+Pur-ee on Usenet
+** 'Pur-ee' has joined the Usenet NewsNet. **
+
+This is 'pur-ee', reachable via several routes, currently on the Usenet
+news network by way of 'duke!cincy!pur-ee'.  Our system is operated by
+the Purdue Electrical Engineering Department, George Goble manager of
+the system, at West Lafayette, Indiana.
+
+This machine is a Vax 11/780 with 8 Mb of memory, three 300 Mb CDC disk
+drives, one 6250 BPI mag tape drive, and other peripherals.  We have 6
+Able DMAX's connected to our system at the present time providing 96
+terminals, and support 30+ other ``pseudo'' terminals which come in
+over a network implemented using Dec DMC's to 2 PDP11/70s, 4 PDP11/45s,
+and one other Vax. We are running Berkeleys 4.1 BSD in production as
+modified by ourselves where necessary.  Our system typically supports
+50 to 60 users doing largely instructional programing although 70 or
+more users have often been logged in at the same time.  Our main
+headaches come from having nearly 3000 online accounts at the present
+time.  Within a few weeks our second VAX 11/780 will begin operation.
+
+We have one auto-dialer which currently only operates using Vadic 3400
+operation, and daily call ucbvax, teklabs, and call other sites as
+necesary.  We have a hardwired link to the Computer Science Department
+Vax 11/780 system as well. Our dial-in hardware currently supports both
+Vadic 3400 and Bell 103 operation.
+
+Other UNIX sites at Purdue (some of which will be joining the net soon)
+include the CS Dept Vax 11/780 and the Physics Dept 11/44.  The CS Dept
+is known as ``purdue'' and the Physics Dept is known as ``pur-phy''.
+
+Several contacts here include myself, Art Feather (aef), George Goble
+(ghg), and Peter Miller (pete).  We can be contacted via:
+
+UNIX mail: teklabs!pur-ee!
+	   ucbvax!pur-ee!
+	   decvax!pur-ee!
+	   duke!cincy!pur-ee!
+		among others...
+
+USPS mail:
+	Purdue University
+	Electrical Engineering Dept
+	West Lafayette, IN 47907
+
+From pur-ee!aef  Tue Jun 23 02:40:48 1981
+To: ucbvax!mark
+Subject: Re: Usenet Connection Info
+Status: R
+
+Thanks for the usenet connection info.  We will probably stick with our
+one connection for now.  However, if others want to poll us to get
+news, we will probably have no problem with that.  We pay for all phone
+calls outgoing (long distance) out of strict departmental funds, and
+repayment from others would cause a real beaurocratic paper shuffle
+that probably wouldn't be worth any amount of hastle.  We would prefer
+prior agreement, however on any uucp type connection.
+
+Here is the form you asked for; with this and the notification I sent
+out earlier, you should have a good deal of information on us now!!
+
+			Art
+
+
+******  USENET FORM  ******
+	
+Name of site:  pur-ee
+What the site is all about:
+	Purdue Electrical Engineering Network -- Vax #1
+	part of a 10 machine high-speed computer network (1-Mbaud links)
+	consisting of 3 Vax11/780s, 2 PDP11/70s, 4 PDP11/45s, and 1 PDP11/40.
+	All 11's except one run V7, with that one running a Purdue version
+	of the V6 UNIX system.  All Vaxes run Berkeley 4(.1) BSD.
+
+Name of contact person at site:  Art Feather
+Electronic mail address of contact person:  pur-ee!aef
+		(via ucbvax, teklabs, decvax)
+U.S. Mail address of contact person:  
+		School of Electrical Engineering
+		Purdue University
+		West Lafayette, IN  47907
+Phone number of contact person: 317-494-3188
+		or call George Goble 317-493-9479
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):
+	Usenet:	cincy   - Univ. Cincinnati EE Dept. - called in
+	Uucp:	ucbvax  - UCB                       - call out (long distance)
+		purdue  - Purdue CS Dept.           - direct connect link
+		pur-phy - Purdue Physics Dept.      - call to (local)
+		decvax  - DEC support               - called in
+		ihuxa   - Bell Labs Indian Hill     - called in
+		  .....among others......
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+	See above response.  Willing for call in, with prior agreement.
+
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+	NOT on arpanet, yet...
+
+If you want to publish your uucp phone number, login, and password,
+include that info.
+	Not willing to publish numbers, etc., due to the fact that there
+	are only two dial-in ports at this time, which are technically
+	dedicated for faculty use.  We are willing to have other uucp
+	sites call in, but wish prior agreements if to be done on a regular
+	basis...
+
+
+
+
+ 
+From pur-ee!pur-phy!mad  Fri Jul 17 02:45:42 1981
+Status: RO
+
+Originating from pur-phy at Thu Jul 16 15:32:30 1981
+To: pur-ee!ucbvax!mark
+Subject: Usenet directory
+
+Art Feather, aef at pur-ee, mentioned to me that since pur-phy is
+a new member of Usenet you might be interested in the following
+information for the Usenet directory.
+
+Name of site: pur-phy
+What the site is all about: Pur-phy is a PDP-11/44 operated by the
+	Physics department at Purdue University.  The system supports
+	faculty and graduate student research.
+
+Name of contact person at site: Mike DeMoney
+Electronic mail address of contact person: ucbvax!pur-ee!pur-phy!mad
+U. S. Mail address of contact person: Mike DeMoney
+			    	      Purdue University
+				      Physics Department
+				      West Lafayette, IN
+				      47907
+
+Phone number of contact person: None right now (our modem is on my office
+				phone line!)
+How the site is connected into usenet: via a dialup uucp link with pur-ee
+
+We do run uucp and are willing to be polled by other sites that wish
+to join Usenet.  Unfortunately, the telephone system at Purdue is currently
+in a state of flux (GTE is finally moving away from electro-mechanical
+relays), and telephone numbers are soon to be changed.  It would
+probably not be wise to publish our uucp number.  We soon hope to have an
+acu, so we would also consider polling other sites.
+
+
+
+
+ 
+Date: 20 Sep 1981 2345-PDT (Sunday)
+From: purdue!mab
+To: ucbvax!ARPAVAX:glickman
+Subject: usente info
+
+Matt,
+  Sorry for the delay; here's the usenet form.
+
+Name of site: Department of Computer Sciences, Purdue University
+What the site is all  about:  operating  systems,  performance  evaluation,
+        computer   communications,  security  and  protection,  programming
+        languages, VLSI,  numerical  analysis,  human  factors,  theory  of
+        computation,     information    database    systems,    programming
+        environments, and other stuff. We run Berkeley UNIX on a VAX-11/780
+
+Name of contact person at site: Matt Bishop
+Electronic mail address of contact person: purdue!mab
+U.S. Mail address of contact person:    Matt Bishop
+                                        Department of Computer Sciences
+                                        Purdue University
+                                        West Lafayette, IN  47907
+Phone number of contact person: The department phone number is (317) 494-6000;
+        my office doesn't have a phone.
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):  uucp link to pur-ee (Department of Electrical
+        Engineering, Purdue University)
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+        We aren't on the ARPANET. I don't know the uucp policy but will ask
+        as soon as the person in charge returns. If anyone is interested in
+        calling us, let me know. I'll try to get the policy by Tuesday.
+
+
+========
+
+Hope this is helpful.
+                                        Matt
+
+
+
+ 
+From decvax!duke!reed!ross  Tue Mar 17 06:51:58 1981
+Status: R
+
+The name is duke!reed.
+Contact ross, valer or cag.  Those names go with:
+	Graham Ross, interested alumnus.
+	Jim Valerio, interested student.
+	Charlie Green, Director, Academic Cumputing, (503)-771-1112x329
+
+Reed is a small, coed liberal arts college in Portland, OR.
+We have an 11/70 running V7 Unix (with modifications to the
+RP06 driver and with power-fail recovery capability).  There
+are two DH11s, an RP06, 500 Kbyte of core, a TU16, an LP11,
+two RX01s (our users use mountable floppies for portable
+storage) and an optically-isolated high-speed terminal net-
+work going out to the science departments.  We have licenses
+for V6, PWB V1, and V7 Unix.
+
+	Our /etc/passwd has 803 lines in it, but we seldom find
+more than 20 people logged in at once.  The user community
+breaks down into four groups:
+	1) Students and Faculty whose uses are tied directly
+	   to the college's curricula;
+	2) Students who use nroff to format papers and theses;
+	3) Students who write and/or play games; and
+	4) Students and alumni who maintain the system and use it as
+	   it as a playground in OS tweaking and language development.
+Out of 800 users, only a few subscribe to network news.  Here's
+the demography:
+	12 subscribe to NET.ALL
+	3 subscribe only to NET.sf-lovers
+	1 subscribes only to NET.general
+	3 subscribe to NET.ALL, excluding sf-lovers and human-nets.
+NET.ALL isn't much, because our .sys file only allows NET.general,
+NET.v7vbugs, and NET.news.  (So, we're defrauding some of our
+users -- so what?)
+
+I think we are happy with just one connection (through Duke),
+though it might make more sense to keep West Coast mail on the
+West Coast.
+
+Our .sys file has reed and duke, that's all.
+
+When you finish your map, give us a copy.  It sounds like fun.
+
+
+ 
+From research!dmr  Sat Mar  7 21:56:36 1981
+
+Site "research" (Bell Labs Computer Science Research Center):
+We are unable to forward news or mail, but willing to accept incoming
+calls with news or mail.  Although we are connected to duke, decvax, and ucbvax,
+we would prefer to receive incoming mail directly instead of burdening
+these sites.  Polling is possible, but will be considered only if
+traffic warrants.
+
+	Phone: 201 582 5940  (300 baud only)
+	       201 582 9800-0000-4106  (300 or 1200 baud; 212 format only;
+					speed adapts automatically)
+	The - signs in the second number represent required delays
+	for 2nd and 3rd dial tones.  Only Touch-tone works!
+
+	login: nuucp
+	Password: usgusg
+
+20 of the 200 entries in the .uindex file seem to be active.
+Only duke and research appear in the .sys file.
+
+
+ 
+From sdcarl!rusty  Wed Feb 25 17:36:30 1981
+To: mark
+Subject: establishing a usenet map
+Status: RO
+
+[1] system name
+	sdcarl
+[2] path to the system from duke, ucbvax, or decvax
+	ucbvax!sdcarl
+[3] name of usenet/uucp contact at that system, phone, login name
+	714-452-4384, rusty
+[4] number of users at the site running netnews (check .uindex)
+	3 (not many more in /etc/passwd either!)
+[5] what the site is all about (if not a secret)
+	computer music
+[6] willingness to (1) call new sites or (2) be called or (3) call
+	sites if they pay the bill, (4) or lack thereof
+	we will poll any sites in San Diego, Calif. i.e. not long
+	distance. anybody can call us.
+[7] uucp login name/password/phone number, (if you want it to be public)
+	machine:	sdcarl
+	phone:		(714) 4524745	(300 baud, soon to be vadic "triple")
+	login:		uucp
+	password:	whatnot
+
+
+ 
+From sdcsvax!sdcattb!madden  Wed Apr 15 02:58:03 1981
+To: sdcsvax!ucbvax!mark
+Subject: Usenet sdcattb addition
+Status: R
+
+This is to announce the addition of sdcattb to usenet:
+
+system name:	sdcattb  UCSD computer center.
+path:		ucbvax!sdcsvax!sdcattb
+contact:	Jim Madden
+		(714)-452-2682 or 4050
+		login name: madden
+uucp login:	uucp
+uucp passwd:	whatnot
+dialup #:	(714)-452-4964 (300 baud)
+		Access to machine by dialin is through a front end
+		switch.  After phone is answered, "Request:" will
+		appear.  Respond "cb^M".  Look for "~G~J", then
+		proceed with normal UNIX login.
+.sys sites:	sdcsvax,sdcarl
+
+We have two 11/70's running pre-release Berkeley V7,
+8 DZ-11's, 2 RM03s, 2 CDC9400 300 MB. disks interfaced
+through XYLOGICs controllers, and a CAT phototypesetter.
+These machines are a part of the general purpose computer
+facility of the University of California, San Diego campus,
+and provide document preparation, and text processing support
+to the campus population.  The facility also includes
+a VAX11/780 running VMS and a Burroughs B7805.
+
+We are willing to accept calls from anyone but, lacking an ACU
+have no direct way to call others.
+
+
+
+
+ 
+From sdcsvax!phil  Wed Feb 25 23:02:53 1981
+To: mark
+Subject: usenet information
+Status: R
+
+System Location:
+	U.C. San Diego Department of Electrical Engineering
+	and Computer Sciences  (EECS)
+	
+Configuration:
+	VAX 11/780 running 4BSD unix
+
+Contact Person:
+	Phil Cohen
+	Sr. Programmer
+	U.C.S.D.  C-014
+	La Jolla, CA.  92093
+	(714) 452-4708
+	Mon - Fri, 8 a.m. - 4:30 p.m.
+
+	Our system is used as a computing resource for faculty members 
+and graduate students in the EECS and Psychology Departments.
+
+
+UUCP/Netnews information:
+	Known as ucbvax!sdcsvax, we share netnews with ucbvax, cmevax 
+(ucbvax!cmevax) and phonlab (ucbvax!sdcsvax!phonlab).  There are between 
+20 and 30 users on sdcsvax that read the network news daily.
+
+	Our .sys file has entries for:
+
+		ucbvax
+		cmevax
+		ucsfcgl
+		ihnss
+		phonlab --  ucsd phonetics laboratory
+	       *arthur  --  ucsd chemistry department 
+	       *csl     --  ucsd cognitive science laboratory
+	       *aaron   --  Harold Cohen's art research system
+	       *ucscvax --  UC Santa Cruz Vax
+
+	* -->> indicates system on uucp but not running netnews
+
+Connection policy:
+	If someone wants to call us or it is a local phone call for us to 
+call them, we can probably work something out to provide a uucp/netnews 
+connection.  We have 300/1200 dialup capability and 300 baud dialout.
+Please refer people interested, directly to Phil Cohen.
+
+Let me clarify our long distance calling policy.  Our system is set up
+to call three longdistance sites, ucbvax, ucscvax, and ucsfcgl.  No
+calls are made to these sites during normal business hours, we only
+call them between midnight and 8 a.m. during the week.  On weekends, we
+will place calls to them on demand.
+
+	I anticipate adding one or two more local systems in the near
+futrue.  At that time, I will mail you the additional information.
+
+	Phil
+
+
+ 
+From mark Fri Jul 24 10:34:04 1981
+Status: R
+
+>From sdcsvax!sdqmlab!pjm Fri Jul 24 05:48:08 1981 remote from ucbvax
+To: sdcsvax!ucbvax!mark 
+Subject: USENET directory
+Cc: pjm 
+Message:
+
+We've just installed netnews, so I figured it was time to announce
+our presence on the net.  Here's the system description for the
+USENET directory:
+
+System name: sdqmlab
+Path: ucbvax!sdcsvax!sdqmlab
+Contact:
+	Phil Mercurio
+	University of California, San Diego
+	Dept. of Neurosciences  M-024
+	La Jolla, CA  92093
+
+	uucpname: sdcsvax!sdqmlab!pjm
+Netnews users:  2, but growing rapidly
+Site's Purpose:
+	"qmlab" stands for "Quantitative Morphology Lab".
+	We do computer graphics work on an
+	Evans and Sutherland Picture System II, mostly
+	constructing images of neural structures
+	(cf. our film, "The Human Brain", 1976).
+	Our principal investigator is Dr. Robert B.
+	Livingston.  We're a PDP 11/34 with a V7
+	license running V6 for mostly historical
+	(hysterical?) reasons.
+Calling out:  no autodialer yet.
+Being polled:  we are willing to be polled; currently
+	we get everything from sdcsvax.  Systems wishing
+	to poll us frequently (or even occasionally)
+	should please contact me.
+UUCP login: uucp
+UUCP password: whatnot
+Dial-in: (714) 452-4072  [300 baud]
+Names in .sys: sdcsvax, sdcarl
+	(exactly parallel to "phonlab")
+
+=================
+
+Phil Mercurio
+
+
+
+
+
+
+
+
+ 
+From decvax!duke!sii!wje  Tue May 26 21:39:45 1981
+Status: R
+
+Here is the info:
+
+(1) site name is 'sii'
+(2) which is Software Innovations, Inc. We primarily provide language
+	processors for people migrating to Unix; if someone has 10,000
+	programs written in whatsit 68, and doesn't feel like rewriting
+	them, we give them a whatsit 68 compiler running under Unix.
+	We are running three Onyx systems, going on eight.
+(3) contact:
+	Bill Ezell	(603) 883-9300	duke!sii!wje
+(4) Anyone may call at any time. We are using a Vadic triple modem and
+	cycle 1200-300. Our auto-dial modem hasn't come in yet, so any
+	transmissions originated by us are a pain.
+(5) login: uucp
+ password: Uucp-passwd		at (603) 889-6386
+
+How do we get a copy of the usenet directory?
+
+	Thanks,
+
+	Bill Ezell (duke!sii!wje)
+
+ 
+From menlo70!sytek!sam  Fri Feb 27 12:06:01 1981
+To: menlo70!ucbvax!mark
+Subject: uucp net
+Status: R
+
+As per your request, here is the information about our site that you
+asked for.  We haven't made any mention of our existence before because
+we were in th process of establishing reliable (as opposed to haphazard)
+connection to the net; there should be some NET.general news out very soon
+from us.
+
+System name:	sytek
+
+Relative Path:	duke!decvax!sytek, decvax!sytek, ucbvax!menlo70!sytek
+		(i.e. we poll menlo70 and decvax, and decvax calls us on demand)
+
+Uucp contact:	samuel j. leffler
+		sam	(user name)
+		(408) 734-9000
+
+#users	
+in .uindex:	20
+
+Site activity:	Commerical firm.  Sytek does consulting work in networking,
+		operating sytem design, verification and security analysis, etc.
+		Sytek also markets LocalNet, a broadband based local area
+		network.
+
+Dialing:	(1) We're willing to call local hosts
+		(2) We're willing to allow people to call us*
+		(3) We're not interested in maintaining phone accounts,
+		    so arranging call exchange is probably not possible.
+
+Uucp entry:	* we keep separate logins for each host that uucp's to us,
+		  so that we may keep track of each site that calls us; hence
+		  those who wish to call must first contact me
+
+Sites in .sys:	decvax, menlo70
+
+FYI: At present we are working from an 11/45 with a single 300 baud ACU.
+     Hopefully, in less than two weeks we should be up on a VAX-11/750
+     running VM/UNIX with 4 300 baud ACU's.  At this time we should be
+     able to handle a great deal of traffic and might be interested in
+     supporting a few passive sites local to us.  Also, at that time we
+     will also have MMDF running and have ARAP-net access.
+
+
+ 
+From decvax!duke!chico!teklabs!stevenm Sun Jun  7 11:38:03 1981
+Subject: Teklabs joins the Net
+Newsgroups: NET.general
+
+**************  Teklabs Joins the NewsNet ********************
+
+Teklabs has now joined the NewsNet. It can be reached currently
+at 'duke!chico!teklabs', and soon from other sites.
+
+Teklabs is Tektronix, Inc.'s research arm, which pursues research
+projects in a wide variety of areas in computer science and
+electronics, as well as in other areas.
+
+Teklabs is located in Beaverton, OR, outside of Portland. We have
+a PDP 11/70 with 2 Mb of main memory, three RP06-class disk drives,
+and a wide variety of special peripherals, including a Versatec
+printer/plotter. The machine supports a user community of about
+250 engineers and support personnel involved primarily in research.
+
+Although we will be installing auto-diallers soon, we are not
+willing to poll random hosts (at this point). Hosts which would
+have a specific purpose in being connected to our machine should
+speak to the system manager, Clem Cole.
+
+Contacts:
+
+News:
+	Steven McGeady   (teklabs!stevenm or teklabs!tekmdp!stevenm)
+	(503) 629-1029
+
+System Manager:
+	Clem Cole	(teklabs!clemc)
+
+
+
+
+ 
+From mark Sun Apr  5 00:04:09 1981
+Subject: usenet map
+
+System name: ucbarpa
+Path:	ucbvax!arpavax:user
+Contact:Mark Horton (ucbvax!mark, csvax.mark@berkeley) (415) 642-4948
+
+Willingness to call new sites:
+	No policy exists yet.  A 300 baud dialer exists.  Most uucp
+	traffic is currently routed through ucbvax.
+Willingness to be called:
+	No policy yet.  Uucp traffic routed through ucbvax.
+
+.sys file entries: ucbvax
+	ucbarpa is hooked into usenet over a berknet link
+
+Purpose of machine:  Development machine for the Arpa Project at
+Berkeley.  Support of Berkeley Vax Unix.
+
+
+ 
+From mark Sun Apr  5 00:04:09 1981
+Subject: usenet map
+
+System name: ucbcory
+Path:	ucbvax!cory:user
+Contact:Mark Horton (ucbvax!mark, csvax.mark@berkeley) (415) 642-4948
+
+Willingness to call new sites:
+	No dialer.
+Willingness to be called:
+	Generally not.  Uucp traffic is routed through other machines.
+
+.sys file entries: ucbvax
+
+Purpose of machine:  Instructional 11/70 used for classes
+in the C.S. Division at Berkeley.
+
+
+ 
+From mark Sun Apr  5 00:04:09 1981
+Subject: usenet map
+
+System name: ucbonyx
+Path:	ucbvax!onyx:user
+Contact:Mark Horton (ucbvax!mark, csvax.mark@berkeley) (415) 642-4948
+	Matt Glickman (ucbvax!onyx:glickman)
+Number of netnews users: 1
+
+Willingness to be called:
+	In general we are willing to be called, as long as we don't
+	get much traffic through us (the disk isn't very big) and
+	the dialup (singular) isn't tied up very much by it.
+	There is one dialup - 300/1200 baud, Bell 212 protocol only.
+	However, uucp traffic is currently being routed through ucbvax.
+
+.sys file entries: ucbvax
+	Connected into usenet over berknet link to ucbvax.
+
+Purpose of machine:  The only meaningful project currently on the
+	Onyx (it's a Z8000 running Unix) is netnews.  Matt Glickman
+	is working on it.
+
+
+ 
+From ucbopt!jimbo  Thu Feb 26 12:16:16 1981
+To: ucbvax!mark
+Subject: usenet map
+Status: R
+
+For the record:
+We are connected to ucbvax and chico (at Bell).		Jim
+Path: ucbvax!optvax:user
+
+[Ucbopt is a private Vax at UCB used for Graphics, CAD, various
+kinds of optimization, and hardware design tools.  They are
+connected into usenet over a berknet link.  -- Mark ]
+
+
+ 
+From mark Sun Apr  5 00:04:09 1981
+Subject: usenet map
+
+System name: ucbvax (Ernie CoVax)
+Path:	ucbvax
+Contact:Mark Horton (ucbvax!mark, csvax.mark@berkeley) (415) 642-4948
+Number of netnews users: 48
+
+Willingness to call new sites:
+	Must be cleared with Prof. Fateman.  Generally if it is not
+	a local call we prefer you call us.
+Willingness to be called:
+	Must be cleared with Prof. Fateman.  A faculty sponsor here
+	at Berkeley is required.  A research connection with Berkeley
+	is generally also required.  We especially do not want to be
+	used as a communications gateway for other sites.
+	Prof. Fateman's phone number is (415) 642-1879.
+Availability of autodialer:
+	300 baud and vadic 1200 baud.  Cannot dial using 212 protocol.
+	Answering modems: 6 300 baud only and 5 Vadic triples.
+
+.sys file entries: ucbcory ucbopt ucbarpa ucbonyx
+	vax135 decvax ucsfcgl sdcsvax sdcarl menlo70 eagle mhtsa ihnss
+	utexas rand ucla-s (arpanet, not fully on usenet)
+
+Purpose of machine:  General purpose machine for Computer Science research
+in the C.S. Division at Berkeley.
+
+
+
+ 
+From ucsfcgl!tef  Wed Mar 18 21:39:15 1981
+To: ucbvax!mark
+Subject: netmap
+Status: R
+
+System name: ucsfcgl
+path from ucbvax: ucsfcgl
+# users running netnews: 1 or 2, maybe 4
+what we do: real-time molecular graphics
+willingness to call other sites:  already call cmevax, sdcsvax, duke, research;
+	maybe willing to call others, but phone bill is $197.94 per month now.
+uucp login name/password/phone#: login: uucp password:whatnot telno:564-7319
+	for 300 baud, 564-5211 for 1200 baud vadic format
+names in L.sys: see above + ucbvax (of course)
+
+Let me know if you want more info.
+
+tom
+
+
+ 
+From pur-ee!cincy!uiucdcs!jerry  Mon Jun 22 02:33:57 1981
+To: cincy!pur-ee!ucbvax!mark
+Subject: uiucdcs
+Status: R
+
+This is the PDP 11/60 unix system run by the departmental computer facility
+of the Department of Computer Science, University of Illinois at Urbana-Champaign
+
+We primarily do document preparation but there is some current software
+development doing simulations in C of the NASA/Goodyear MPP computer system.
+In the future since we received a NSF center of excellence grant we
+expect to be running several vaxes doing software engineering,
+database research, analysis of programs for running on large fast cpus,
+concurrent language development, and numerical analysis.
+
+Jerry Wall is the system administrator and contract person for uucp.
+duke!uiucdcs!jerry
+
+US Mail:  Gerard Wall
+	  222 Digital Computer Laboratory
+	  1304 West Springfield
+	  Urbana, IL 61801
+phone: 217-333-6111
+
+We dial duke to connect into usenet.  We are using a 300 baud modem
+and are in the process of obtaining an autodialer to replace/preempt
+a reed relay system.
+
+We are willing to connect to new sites if they are willing to call us.
+If they do not have calling equipment and are local to the Champaign-Urbana
+area, we would be willing to poll them at no cost as long as the
+traffic level is reasonable.
+
+We do not currently have a link onto the apranet. 
+Sites that wish to poll us should send us mail in order to obtain
+phone numbers and a signon.
+
+
+						jerry wall
+						(duke!uiucdcs!jerry)
+
+
+
+
+
+ 
+From decvax!duke!unc!lynn  Thu Feb 26 13:36:16 1981
+To: duke!decvax!ucbvax!mark
+Subject: unc on the uucp network
+Cc: mp tas
+Status: R
+
+You may be getting several replies from unc on your network request,
+because we have not really centralized control of the network.
+
+unc is the Computer Science Department of the University of North
+Carolina at Chapel Hill.  We are running UNIX on two VAX's and a
+PDP-11/45.  The only external network connection is via the VAX
+named "unc", but the other two machines also use uucp to talk to
+one another.  The other VAX is "grumpy" and the 11/45 is "pdp".
+We are accessible directly from duke, which we poll hourly.
+
+People "in charge" are:
+Lynn TenEyck, "lynn", (919) 933-1380, facilities manager
+Tim Seaver, "tas", (919) 933-5698, grad student who actually does all
+	of the work keeping us running
+Mike Pique, "mp", (919) 933-5698, who does just about everything tas
+	doesn't do
+
+We have 26 users subscribing to NET news items.
+
+unc is for general department educational use and research.  grumpy
+is used for research in high performance graphics.  pdp is used for
+some production graphics use and as a link to the main campus number
+crunchers (if we ever get the UNIX device driver for the DX-11 running!).
+
+We are willing to do some limited calling of other systems, negotiated
+on a per case basis.  We prefer that people call us via duke, so we
+don't have a long list of sites to notify if we make uucp changes.
+Also, our communications equipment is limited and our phone budget
+not terribly large.
+
+If you don't have our uucp login information, you can have it on request
+but it is not general information.
+
+Systems we can call directly:
+duke, phs (Duke University Dept. Physiology), wolfvax (North Carolina
+State University Dept. of EE), ucsfcgl, alice, and of course ucbvax.
+The only sites we normally call are duke, phs, and wolfvax; we route all of
+our network traffic through duke.
+
+>From unc!mp  Sat Mar  7 15:46:10 1981
+To: ucbvax!mark
+Status: R
+
+ Mark: here is an updated version of our unc "site description". Please
+ note a correction to the `uuname' list sent by unc!lynn last week:
+	for 'ncsu' read 'wolfvax' [they changed their uucp name].
+	That's the NC State machine, running UNIX part-time for VLSI classes.
+ Our uucp login line is as follows, although to insulate our correspondents
+ from changes, we suggest you reach us through duke.
+unc Any ACU 300 919-933-9911 "" CR "" "" *--*--* 21 login:-BREAK1-login: LF "" uucp ssword gibble
+
+ Our .uindex has 184 lines, 27 of them containing 'NET'.
+	Mike Pique. (919) 933-5698
+ Site desc follows, surrounded by lines of asterisks:
+	***************************************
+University of North Carolina Dept. of Computer Science.
+	New West Hall 035A UNC, Chapel Hill, NC 27514
+USENET address: duke!unc (main CPU), duke!unc!grumpy, duke!unc!pdp (see below).
+Tech contacts:
+	jem: John Menges, Dept. Software coordinator. (919) 933-7339.
+	lynn: Lynn TenEyck, System administrator. (919) 933-1380.
+	tas : Tim Seaver, System manager. (919) 933-5698.
+	mp: Michael Pique, Molecular graphics project. (919) 933-5698.
+	Mail sent to jem will be forwarded as needed.
+UNC CS operates three UNIX systems:
+unc:	General Dept education & research- algorithms, compilers, IC design.
+	VAX-11/780 2 Meg, two 256 Meg disks, Berkeley 4bsd VMUNIX.
+unc!grumpy: Dedicated interactive graphics- molecular biology, crystallography,
+	medical imaging, VLSI layout and simulation.
+	VAX-11/780 2 Meg, one 256 Meg disk, 800/1600 tape, Berkeley 4bsd VMUNIX.
+	Also 1024x1024x6-bit Ikonas RDS-3000 color video frame buffer, video
+	digitizer, Vector General 3303 3-d line-drawing display, A-to-D cnvtr.
+unc!pdp:Interactive graphics research and production- molecular biology,
+	shape-description algorithms. PDP-11/45 248K, 14 Meg disk, v7 UNIX.
+	Also Vector General Series 3 3-d line-drawing display, A-to-D.
+
+The `unc' machine polls duke frequently; it runs UNIX 24 hours a day.
+Both `grumpy' and `pdp' are special-purpose machines; outside mail is forwarded
+	but not encouraged.
+	*************************************************
+
+
+
+ 
+From decvax!duke!utzoo!henry  Sat May 23 21:40:10 1981
+
+This is to announce the presence on Usenet of duke!utzoo, the U of Toronto
+zoology department.  We are the only U of T site on the net at the moment,
+and will forward things (within reason) to local non-net sites like the
+Computer Systems Research Group.
+
+Although this is the largest zoology school in the western hemisphere,
+the computer-systems operation is not very large, mostly because it
+is a fairly recent acquisition.  We have an 11/44 with a 300-meg disk,
+a bunch of (sigh) DZ11's, and several smaller cpus.  We run V7+PWB plus
+assorted other software from various places.  We do text processing,
+data acquisition (using two satellite 11/05's), some research in areas
+like database systems, and a bunch of miscellaneous odds and ends.
+
+We're interested in better text-handling software (especially formatters),
+data acquisition and analysis tools, distributed processing a la Ethernet,
+general Unix improvement and enhancement, and VAXes.
+
+Contact for net matters (and almost anything else) is Henry Spencer,
+duke!utzoo!henry (preferred), (416)978-6060 (if you must).
+
+At present, we connect only to Duke.  We have no autodialer (yet) and
+hence are unwilling to call other people;  we are TENTATIVELY willing
+to let other people call us, and several local Unix sites have expressed
+interest in doing so.  Details not yet figured out.
+
+ 
+From vax135!hpk  Wed Feb 25 18:40:22 1981
+To: ucbvax!mark
+Subject: uucp info for vax135
+Status: R
+
+vax135
+ucbvax!vax135
+Howard P. Katseff, 201 949-5337, vax135!hpk
+9 users at the site running netnews
+Bell Labs, Interactive Computer Systems Research Department
+we are willing to call sites that we have mail for,
+	its ok to call us,
+	our current policy is to forward outside mail only for
+	other sites within Bell Labs, 
+names of sites in .sys file: mh135a, ucbvax
+
+phone number: 2019467800-0000-7369 
+	the "-" is a pause.  The first must be a long one (10 seconds),
+	the second need only be 2 seconds
+
+login:	ruucp
+ssword: ebwhite
+
+This is a 1200 baud (212A,  what else?) line.
+A BREAK will switch it to 300 baud.
+If you can't send BREAK, but must call at 300 baud, try
+	login:--login: @ruucp
+
+
+ 
+Date: 29 Sep 1981 1123-PDT (Tuesday)
+From: cbosg!cbosgd!mark
+To: glickman
+Subject: yale-comix
+
+>From cbosg!decvax!yale-comix!Odonnell Tue Sep 29 11:41:25 1981
+Date:    29-Sep-81 0851-EDT
+From:    John O'Donnell <Odonnell at YALE-CS>
+Subject: Re: netnews dir page
+To:      Decvax!cbosg!cbosgd!mark at YALE-COMIX
+In-Reply-To: Your message of 29-Sep-81 0034-EDT
+Status: R
+
+Name of site: Yale University
+              Department of Computer Science
+              yale-comix (vax 750)
+
+What the site is all about: Systems research (programming languages and nets)
+                            and education
+
+Name of contact person at site: John O'Donnell
+Electronic mail address of contact person: yale-comix!odonnell
+U.S. Mail address of contact person: Box 2158 Yale Station, New Haven, CT 06520
+Phone number of contact person: (203) 436-8160
+
+How the site is connected into usenet (what kind of link,
+who the neighbor(s) are):   triple dialin; Ventel 212 dialout.  Polled by
+                            decvax and ima.
+
+Willingness (or lack thereof) to connect to new sites that
+want to join usenet.  If you run uucp, tell if new sites can
+call you, if you will poll them, what your policy is.
+If on the arpanet, are you willing to forward news on to new
+sites by establishing an arpanet usenet connection?
+
+      We are willing to poll a limited number of sites; get in touch with us
+      about it. We will be on the arpanet Nov 81, and may be willing to
+      forward news.
+
+If you want to publish your uucp phone number, login, and password,
+include that info.
+
+    Contact me directly for it.
+
+
+-------
+
+
+
+
+
+
+

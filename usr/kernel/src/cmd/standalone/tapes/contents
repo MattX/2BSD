@@ -1,0 +1,21 @@
+Contents of this tape:
+
+File 0:
+	2 copies of magtape bootstrap (2 blocks total)
+	The standalone bootstrap
+File 1:
+	A file to console copy program
+File 2:
+	The instructions on how to use this tape.
+File 3:
+	This file
+File 4:
+	The program mkfs
+File 5:
+	The program restor
+File 6:
+	The program icheck
+File 7:
+	A dump of the root file system
+File 8:
+	A tar format dump of the system source.

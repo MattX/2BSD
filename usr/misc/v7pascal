@@ -1,0 +1,31 @@
+A working v7 Pascal can be found in ../newstuff/pascal.
+Note that it is the full sized Pascal, we do not have a
+v7 Pascal for a non-split I/D or a non-floating point machine.
+
+Some of the important changes made to get Pascal to work on v7 include:
+
+A library of v6 I/O routines (the old getc/putc package and a seek)
+were written for pi.
+
+Some fixes were made to px to get it to compile (Bill Joy did these).
+I know at least you have to assemble the file /usr/include/sys.s to
+get the assembler to know about the system calls.
+
+An old bug was fixed that caused the tail ends of listings piped to
+other programs to come out twice.  This is caused by the forked process
+inside pi trying to run gather, the exec failing, and the child exiting.
+When the child exits it calls exit() which flushes stdout.  To fix it either
+have the child call _exit() or put gather up.
+
+None of the floating point routines worked in v7.  These included printing
+a real and the math library.  The problem here was that it's a defined
+property of the C language that the floating point unit must be in single
+integer/double floating mode, but Pascal keeps it in long/double mode.
+It didn't matter in v6 but it does in v7.  Around all the calls to the
+various routines, (such as jsr _sin) place a seti/setl pair, as in
+	seti
+	jsr _sin
+	setl
+All the math routines are in one source file, the I/O routines are in a
+different file, I think, and call ecvt or fcvt.  (All this is from memory,
+I don't have the source handy now.)

@@ -1,0 +1,102 @@
+cd ../sys; make INCLUDES=../../include
+ar rv LIB1 main.o trap.o sig.o iget.o prf.o slp.o subr.o rdwri.o clock.o fio.o malloc.o alloc.o machdep.o nami.o pipe.o prim.o fakemx.o sysent.o sys3.o sys1.o sys4.o sys2.o syslocal.o acct.o ioctl.o text.o ureg.o
+ar: creating LIB1
+a - main.o
+a - trap.o
+a - sig.o
+a - iget.o
+a - prf.o
+a - slp.o
+a - subr.o
+a - rdwri.o
+a - clock.o
+a - fio.o
+a - malloc.o
+a - alloc.o
+a - machdep.o
+a - nami.o
+a - pipe.o
+a - prim.o
+a - fakemx.o
+a - sysent.o
+a - sys3.o
+a - sys1.o
+a - sys4.o
+a - sys2.o
+a - syslocal.o
+a - acct.o
+a - ioctl.o
+a - text.o
+a - ureg.o
+$? list too long
+cd ../dev; make INCLUDES=../../include
+ar rv LIB2 kl.o tty.o ttynew.o ttyold.o bk.o lp.o dz.o bio.o hp.o ht.o rl.o mem.o partab.o sys.o dsort.o dkleave.o dh.o dhdm.o mux.o dvhp.o hs.o rc.o xp.o
+ar: creating LIB2
+a - kl.o
+a - tty.o
+a - ttynew.o
+a - ttyold.o
+a - bk.o
+a - lp.o
+a - dz.o
+a - bio.o
+a - hp.o
+a - ht.o
+a - rl.o
+a - mem.o
+a - partab.o
+a - sys.o
+a - dsort.o
+a - dkleave.o
+a - dh.o
+a - dhdm.o
+a - mux.o
+a - dvhp.o
+a - hs.o
+a - rc.o
+a - xp.o
+ld -o unix -X -i l.o mch.o c.o ../sys/LIB1 ../dev/LIB2 
+Undefined:
+_end
+_edata
+_etext
+_dkblock
+_dkunit
+_disksor
+*** Error code 1
+
+Stop.
+$? list too long
+cd ../dev; make INCLUDES=../../include
+ar rv LIB2 kl.o tty.o ttynew.o ttyold.o bk.o lp.o dz.o bio.o hp.o ht.o rl.o mem.o partab.o sys.o dh.o dhdm.o mux.o dvhp.o hs.o rc.o xp.o dsort.o dkleave.o
+ar: creating LIB2
+a - kl.o
+a - tty.o
+a - ttynew.o
+a - ttyold.o
+a - bk.o
+a - lp.o
+a - dz.o
+a - bio.o
+a - hp.o
+a - ht.o
+a - rl.o
+a - mem.o
+a - partab.o
+a - sys.o
+a - dh.o
+a - dhdm.o
+a - mux.o
+a - dvhp.o
+a - hs.o
+a - rc.o
+a - xp.o
+a - dsort.o
+a - dkleave.o
+ld -o unix -X -i l.o mch.o c.o ../sys/LIB1 ../dev/LIB2 
+nm unix | egrep ' _end| _etext| _edata| _inode| _abuff'
+sh: egrep: not found
+
+*** Error code 1
+
+Stop.

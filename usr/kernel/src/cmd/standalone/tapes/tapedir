@@ -1,0 +1,15 @@
+kernel/src/cmd/standalone/mtboot 1
+kernel/src/cmd/standalone/mtboot 1
+kernel/src/cmd/standalone/boot 1
+* 1
+kernel/src/cmd/standalone/cat 2
+* 1
+kernel/src/cmd/standalone/tapes/instructions 2
+* 1
+kernel/src/cmd/standalone/tapes/contents 2
+* 1
+kernel/src/cmd/standalone/mkfs 2
+* 1
+kernel/src/cmd/standalone/restor 2
+* 1
+kernel/src/cmd/standalone/icheck 2

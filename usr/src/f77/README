@@ -1,0 +1,20 @@
+Error handling has been changed in this version of f77
+to remove error strings from the sources and place them
+in f77_strings using mkstr.  This saves enough space so
+that f77pass1 can run on a nonseparate i/d machine with
+reasonable table sizes.
+
+The file script is an editor script which attempts to
+make the appropriate conversions.
+
+The makefile works on an 11/40 with a different c overlay
+compiler.  It has not been made to work with the version
+on this distribution, but there should be no problem if
+the paths are correct (see c compiler sources re: ucbpath).
+
+				Steve Sizemore 6/16/81
+
+A makefile (``makefile.sep'') suitable for machines with
+separated i/d has been included.
+
+				Carl Smith 10/4/81

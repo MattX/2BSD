@@ -1,0 +1,3 @@
+cp * /usr/ucb
+chmod 4711 /usr/ucb/chsh
+chmod 4711 /usr/ucb/chfn

@@ -1,0 +1,23 @@
+h31285
+s 00010/00000/00000
+d D 2.1 80/09/02 13:59:48 ucb 1 0
+c date and time created 80/09/02 13:59:48 by ucb
+e
+u
+U
+f b 
+f n 
+t
+T
+I 1
+#	%W%	SCCS id keyword
+SFLAGS=
+clean:	sccsclean
+sccsclean:
+	rm -f concat.c openl.c openlp.c ucbpath.c
+
+concat.c:	s.concat.c;	get $(SFLAGS) s.concat.c
+openl.c:	s.openl.c;	get $(SFLAGS) s.openl.c
+openlp.c:	s.openlp.c;	get $(SFLAGS) s.openlp.c
+ucbpath.c:	s.ucbpath.c;	get $(SFLAGS) s.ucbpath.c
+E 1

@@ -1,0 +1,11 @@
+
+#
+echo "			USENET DIRECTORY" > DIR
+echo -n "			" >> DIR
+date >> DIR
+cat READ_ME >> DIR
+cd sites
+foreach i (*)
+	(echo  ; echo " ") >> ../DIR
+	cat $i >> ../DIR
+end

@@ -1,0 +1,69 @@
+
+		HINTS ON CONFIGURING FOR YOUR SYSTEM
+
+
+1.	All autoconfigure stuff has been discarded. You
+	will have to make an l.s, and c.c for your system by hand.
+
+2.	Compile time flags are defined in include/sys/localopts.h,
+	include/whoami.h, include/sys/param.h as well as directly
+	in mch.s. The flags in mch.s are duplicates of those
+	in localopts.h and must be defined the same.
+	Not all features have been tested in all combinations.
+	We suggest you try new things one at a time.
+
+3.	Study 40SYS/makefile and conf/MAKEFILE before trying
+	to gen a system. The first makes a non-separate I/D
+	system (the distribution system) while the second
+	makes a typical 11/70 system.
+
+4.	The virtual memory between 0120000 and 0140000 (KDSA5)
+	is remapped (data only with separate I/D) to point
+	at the 'out of space' buffers when necessary.
+	This allows a large cache of 1k buffers.
+	The remapping is performed by the routines mapin()
+	and mapout() defined in sys/machdep.c. The distribution
+	kernel is small and does not use the space between 0120000,
+	and 0140000 for any other data. (_end < 0120000) If
+	you wish to use this space in constructing a larger
+	system (more inodes for example),
+	the following criteria must be met:
+
+	A.	No data object referenced between calls to
+		mapin() and mapout() may fall in the address
+		range between 0120000 and 0140000. For example,
+		inodes are copied from buffers and must not
+		overlap this range. 
+
+		To check this, make a list of global variables
+		used between mapin() and mapout() calls and
+		compare them with the results of an `nm -ng unix'.
+		You can rearrange declarations as necessary to 
+		meet this criterion. Unfortunately, there is no
+		explicit way to force a variable to appear last
+		in the data space. You may only move objects
+		toward the beginning by referencing them as externs
+		in c.c for example.
+
+	B.	No data referenced at interrupt levels higher
+		than that set in mapin() can fall between 0120000
+		and 0140000. This level is currently spl5 and
+		in our systems the clock interrupt routine data
+		is located in a safe area. A cheap and dirty solution
+		is to set spl7 in mapin(). This will cause poor
+		interrupt latency and may even make the clock
+		lose time.
+
+		Condition B could be eliminated by saving the
+		values of KDSA5 at interrupt time (if it is
+		mapped 'out') and restoring it to the 'normal'
+		place. On returning from the interrupt, it could
+		be mapped back to the old value. We have not gotten
+		around to doing this yet.
+
+5.	Clists are also mapped in and out as necessary using the
+	virtual space between 020000 and 040000 (KDSA1).
+	This is usually less of a problem as clist access is
+	localized in a few routines in sys/prim.c and it is only
+	necessary that the text of these routines be located outside
+	the critical range.

@@ -1,0 +1,740 @@
+
+case 3:
+# line 145 "gram.in"
+{ lastwasbranch = NO; } break;
+case 5:
+# line 148 "gram.in"
+{ if(yypvt[-1] && (yypvt[-1]->labelno==dorange))
+			enddo(yypvt[-1]->labelno);
+		  if(lastwasbranch && thislabel==NULL)
+			warn1("statement cannot be reached");
+		  lastwasbranch = thiswasbranch;
+		  thiswasbranch = NO;
+		} break;
+case 6:
+# line 156 "gram.in"
+{ doinclude( yypvt[-0] ); } break;
+case 7:
+# line 158 "gram.in"
+{ lastwasbranch = NO;  endproc(); } break;
+case 8:
+# line 160 "gram.in"
+{ execerr("unclassifiable statement", 0);  flline(); } break;
+case 9:
+# line 162 "gram.in"
+{ flline();  needkwd = NO;  inioctl = NO; 
+		  yyerrok; yyclearin; } break;
+case 10:
+# line 167 "gram.in"
+{
+		if(yystno != 0)
+			{
+			yyval = thislabel =  mklabel(yystno);
+			if( ! headerdone )
+				puthead(NULL, procclass);
+			if(thislabel->labdefined)
+				execerr("label %s already defined",
+					convic(thislabel->stateno) );
+			else	{
+				if(thislabel->blklevel!=0 && thislabel->blklevel<blklevel
+				    && thislabel->labtype!=LABFORMAT)
+					warn1("there is a branch to label %s from outside block",
+					      convic( (ftnint) (thislabel->stateno) ) );
+				thislabel->blklevel = blklevel;
+				thislabel->labdefined = YES;
+				if(thislabel->labtype != LABFORMAT)
+					putlabel(thislabel->labelno);
+				}
+			}
+		else    yyval = thislabel = NULL;
+		} break;
+case 11:
+# line 192 "gram.in"
+{ startproc(yypvt[-0], CLMAIN); } break;
+case 12:
+# line 194 "gram.in"
+{ startproc(yypvt[-0], CLBLOCK); } break;
+case 13:
+# line 196 "gram.in"
+{ entrypt(CLPROC, TYSUBR, (ftnint) 0,  yypvt[-1], yypvt[-0]); } break;
+case 14:
+# line 198 "gram.in"
+{ entrypt(CLPROC, TYUNKNOWN, (ftnint) 0, yypvt[-1], yypvt[-0]); } break;
+case 15:
+# line 200 "gram.in"
+{ entrypt(CLPROC, yypvt[-4], varleng, yypvt[-1], yypvt[-0]); } break;
+case 16:
+# line 202 "gram.in"
+{ if(parstate==OUTSIDE || procclass==CLMAIN
+			|| procclass==CLBLOCK)
+				execerr("misplaced entry statement", 0);
+		  entrypt(CLENTRY, 0, (ftnint) 0, yypvt[-1], yypvt[-0]);
+		} break;
+case 17:
+# line 210 "gram.in"
+{ newproc(); } break;
+case 18:
+# line 214 "gram.in"
+{ yyval = newentry(yypvt[-0]); } break;
+case 19:
+# line 218 "gram.in"
+{ yyval = mkname(toklen, token); } break;
+case 20:
+# line 221 "gram.in"
+{ yyval = NULL; } break;
+case 22:
+# line 226 "gram.in"
+{ yyval = 0; } break;
+case 23:
+# line 228 "gram.in"
+{ yyval = 0; } break;
+case 24:
+# line 230 "gram.in"
+{yyval = yypvt[-1]; } break;
+case 25:
+# line 234 "gram.in"
+{ yyval = (yypvt[-0] ? mkchain(yypvt[-0],0) : 0 ); } break;
+case 26:
+# line 236 "gram.in"
+{ if(yypvt[-0]) yypvt[-2] = yyval = hookup(yypvt[-2], mkchain(yypvt[-0],0)); } break;
+case 27:
+# line 240 "gram.in"
+{ yypvt[-0]->vstg = STGARG; } break;
+case 28:
+# line 242 "gram.in"
+{ yyval = 0;  substars = YES; } break;
+case 29:
+# line 248 "gram.in"
+{
+		char *s;
+		s = copyn(toklen+1, token);
+		s[toklen] = '\0';
+		yyval = s;
+		} break;
+case 37:
+# line 263 "gram.in"
+{ saveall = YES; } break;
+case 39:
+# line 266 "gram.in"
+{ fmtstmt(thislabel); setfmt(thislabel); } break;
+case 41:
+# line 271 "gram.in"
+{ settype(yypvt[-3], yypvt[-4], yypvt[-1]);
+		  if(ndim>0) setbound(yypvt[-3],ndim,dims);
+		} break;
+case 42:
+# line 275 "gram.in"
+{ settype(yypvt[-2], yypvt[-4], yypvt[-1]);
+		  if(ndim>0) setbound(yypvt[-2],ndim,dims);
+		} break;
+case 43:
+# line 281 "gram.in"
+{ varleng = yypvt[-0]; } break;
+case 44:
+# line 285 "gram.in"
+{ varleng = (yypvt[-0]<0 || yypvt[-0]==TYLONG ? 0 : typesize[yypvt[-0]]); } break;
+case 45:
+# line 288 "gram.in"
+{ yyval = TYLONG; } break;
+case 46:
+# line 289 "gram.in"
+{ yyval = TYREAL; } break;
+case 47:
+# line 290 "gram.in"
+{ yyval = TYCOMPLEX; } break;
+case 48:
+# line 291 "gram.in"
+{ yyval = TYDREAL; } break;
+case 49:
+# line 292 "gram.in"
+{ yyval = TYDCOMPLEX; } break;
+case 50:
+# line 293 "gram.in"
+{ yyval = TYLOGICAL; } break;
+case 51:
+# line 294 "gram.in"
+{ yyval = TYCHAR; } break;
+case 52:
+# line 295 "gram.in"
+{ yyval = TYUNKNOWN; } break;
+case 53:
+# line 296 "gram.in"
+{ yyval = TYUNKNOWN; } break;
+case 54:
+# line 297 "gram.in"
+{ yyval = - STGAUTO; } break;
+case 55:
+# line 298 "gram.in"
+{ yyval = - STGBSS; } break;
+case 56:
+# line 302 "gram.in"
+{ yyval = varleng; } break;
+case 57:
+# line 304 "gram.in"
+{
+		  if( ! ISICON(yypvt[-0]) )
+			{
+			yyval = 0;
+			dclerr("length must be an integer constant", 0);
+			}
+		  else yyval = yypvt[-0]->const.ci;
+		} break;
+case 58:
+# line 313 "gram.in"
+{ yyval = 0; } break;
+case 59:
+# line 317 "gram.in"
+{ incomm( yyval = comblock(0, 0) , yypvt[-0] ); } break;
+case 60:
+# line 319 "gram.in"
+{ yyval = yypvt[-1];  incomm(yypvt[-1], yypvt[-0]); } break;
+case 61:
+# line 321 "gram.in"
+{ yyval = yypvt[-2];  incomm(yypvt[-2], yypvt[-0]); } break;
+case 62:
+# line 323 "gram.in"
+{ incomm(yypvt[-2], yypvt[-0]); } break;
+case 63:
+# line 327 "gram.in"
+{ yyval = comblock(0, 0); } break;
+case 64:
+# line 329 "gram.in"
+{ yyval = comblock(toklen, token); } break;
+case 65:
+# line 333 "gram.in"
+{ setext(yypvt[-0]); } break;
+case 66:
+# line 335 "gram.in"
+{ setext(yypvt[-0]); } break;
+case 67:
+# line 339 "gram.in"
+{ setintr(yypvt[-0]); } break;
+case 68:
+# line 341 "gram.in"
+{ setintr(yypvt[-0]); } break;
+case 71:
+# line 349 "gram.in"
+{
+		struct equivblock *p;
+		if(nequiv >= MAXEQUIV)
+			fatal("too many equivalences");
+		p  =  & eqvclass[nequiv++];
+		p->eqvinit = 0;
+		p->eqvbottom = 0;
+		p->eqvtop = 0;
+		p->equivs = yypvt[-1];
+		} break;
+case 72:
+# line 362 "gram.in"
+{ yyval = ALLOC(eqvchain); yyval->eqvitem = yypvt[-0]; } break;
+case 73:
+# line 364 "gram.in"
+{ yyval = ALLOC(eqvchain); yyval->eqvitem = yypvt[-0]; yyval->nextp = yypvt[-2]; } break;
+case 76:
+# line 372 "gram.in"
+{ if(parstate == OUTSIDE)
+			{
+			newproc();
+			startproc(0, CLMAIN);
+			}
+		  if(parstate < INDATA)
+			{
+			enddcl();
+			parstate = INDATA;
+			}
+		} break;
+case 77:
+# line 386 "gram.in"
+{ ftnint junk;
+		  if(nextdata(&junk,&junk) != NULL)
+			{
+			err("too few initializers");
+			curdtp = NULL;
+			}
+		  frdata(yypvt[-3]);
+		  frrpl();
+		} break;
+case 78:
+# line 397 "gram.in"
+{ toomanyinit = NO; } break;
+case 81:
+# line 402 "gram.in"
+{ dataval(NULL, yypvt[-0]); } break;
+case 82:
+# line 404 "gram.in"
+{ dataval(yypvt[-2], yypvt[-0]); } break;
+case 84:
+# line 409 "gram.in"
+{ if( yypvt[-1]==OPMINUS && ISCONST(yypvt[-0]) )
+			consnegop(yypvt[-0]);
+		  yyval = yypvt[-0];
+		} break;
+case 89:
+# line 422 "gram.in"
+{ int k;
+		  yypvt[-0]->vsave = 1;
+		  k = yypvt[-0]->vstg;
+		if( ! ONEOF(k, M(STGUNKNOWN)|M(STGBSS)|M(STGINIT)) )
+			dclerr("can only save static variables", yypvt[-0]);
+		} break;
+case 90:
+# line 429 "gram.in"
+{ yypvt[-0]->extsave = 1; } break;
+case 93:
+# line 437 "gram.in"
+{ if(yypvt[-2]->vclass == CLUNKNOWN)
+			{ yypvt[-2]->vclass = CLPARAM;
+			  yypvt[-2]->paramval = yypvt[-0];
+			}
+		  else dclerr("cannot make %s parameter", yypvt[-2]);
+		} break;
+case 94:
+# line 446 "gram.in"
+{ if(ndim>0) setbounds(yypvt[-1], ndim, dims); } break;
+case 95:
+# line 450 "gram.in"
+{ ptr np;
+		  vardcl(np = yypvt[-0]->namep);
+		  if(np->vstg == STGBSS)
+			np->vstg = STGINIT;
+		  else if(np->vstg == STGCOMMON)
+			extsymtab[np->vardesc.varno].extinit = YES;
+		  else if(np->vstg==STGEQUIV)
+			eqvclass[np->vardesc.varno].eqvinit = YES;
+		  else if(np->vstg != STGINIT)
+			dclerr("inconsistent storage classes", np);
+		  yyval = mkchain(yypvt[-0], 0);
+		} break;
+case 96:
+# line 463 "gram.in"
+{ chainp p; struct impldoblock *q;
+		q = ALLOC(impldoblock);
+		q->tag = TIMPLDO;
+		q->varnp = yypvt[-1]->datap;
+		p = yypvt[-1]->nextp;
+		if(p)  { q->implb = p->datap; p = p->nextp; }
+		if(p)  { q->impub = p->datap; p = p->nextp; }
+		if(p)  { q->impstep = p->datap; p = p->nextp; }
+		frchain( & (yypvt[-1]) );
+		yyval = mkchain(q, 0);
+		q->datalist = hookup(yypvt[-3], yyval);
+		} break;
+case 97:
+# line 478 "gram.in"
+{ curdtp = yypvt[-0]; curdtelt = 0; } break;
+case 98:
+# line 480 "gram.in"
+{ yyval = hookup(yypvt[-2], yypvt[-0]); } break;
+case 99:
+# line 484 "gram.in"
+{ ndim = 0; } break;
+case 101:
+# line 488 "gram.in"
+{ ndim = 0; } break;
+case 104:
+# line 493 "gram.in"
+{ dims[ndim].lb = 0;
+		  dims[ndim].ub = yypvt[-0];
+		  ++ndim;
+		} break;
+case 105:
+# line 498 "gram.in"
+{ dims[ndim].lb = yypvt[-2];
+		  dims[ndim].ub = yypvt[-0];
+		  ++ndim;
+		} break;
+case 106:
+# line 505 "gram.in"
+{ yyval = 0; } break;
+case 108:
+# line 510 "gram.in"
+{ nstars = 1; labarray[0] = yypvt[-0]; } break;
+case 109:
+# line 512 "gram.in"
+{ if(nstars < MAXLABLIST)  labarray[nstars++] = yypvt[-0]; } break;
+case 110:
+# line 516 "gram.in"
+{ if(yypvt[-0]->labinacc)
+			warn1("illegal branch to inner block, statement %s",
+				convic( (ftnint) (yypvt[-0]->stateno) ));
+		  else if(yypvt[-0]->labdefined == NO)
+			yypvt[-0]->blklevel = blklevel;
+		  yypvt[-0]->labused = YES;
+		} break;
+case 111:
+# line 526 "gram.in"
+{ yyval = mklabel( convci(toklen, token) ); } break;
+case 115:
+# line 536 "gram.in"
+{ needkwd = 1; } break;
+case 116:
+# line 537 "gram.in"
+{ vartype = yypvt[-0]; } break;
+case 119:
+# line 545 "gram.in"
+{ setimpl(vartype, varleng, yypvt[-0], yypvt[-0]); } break;
+case 120:
+# line 547 "gram.in"
+{ setimpl(vartype, varleng, yypvt[-2], yypvt[-0]); } break;
+case 121:
+# line 551 "gram.in"
+{ if(toklen!=1 || token[0]<'a' || token[0]>'z')
+			{
+			dclerr("implicit item must be single letter", 0);
+			yyval = 0;
+			}
+		  else yyval = token[0];
+		} break;
+case 122:
+# line 561 "gram.in"
+{ switch(parstate)	
+			{
+			case OUTSIDE:	newproc();
+					startproc(0, CLMAIN);
+			case INSIDE:	parstate = INDCL;
+			case INDCL:	break;
+
+			default:
+				dclerr("declaration among executables", 0);
+			}
+		} break;
+case 123:
+# line 574 "gram.in"
+{ yyval = 0; } break;
+case 125:
+# line 579 "gram.in"
+{ yyval = mkchain(yypvt[-0], 0); } break;
+case 126:
+# line 581 "gram.in"
+{ yyval = hookup(yypvt[-2], mkchain(yypvt[-0],0) ); } break;
+case 128:
+# line 586 "gram.in"
+{ yyval = yypvt[-1]; } break;
+case 132:
+# line 593 "gram.in"
+{ yyval = mkexpr(yypvt[-1], yypvt[-2], yypvt[-0]); } break;
+case 133:
+# line 595 "gram.in"
+{ yyval = mkexpr(OPSTAR, yypvt[-2], yypvt[-0]); } break;
+case 134:
+# line 597 "gram.in"
+{ yyval = mkexpr(OPSLASH, yypvt[-2], yypvt[-0]); } break;
+case 135:
+# line 599 "gram.in"
+{ yyval = mkexpr(OPPOWER, yypvt[-2], yypvt[-0]); } break;
+case 136:
+# line 601 "gram.in"
+{ if(yypvt[-1] == OPMINUS)
+			yyval = mkexpr(OPNEG, yypvt[-0], 0);
+		  else 	yyval = yypvt[-0];
+		} break;
+case 137:
+# line 606 "gram.in"
+{ yyval = mkexpr(yypvt[-1], yypvt[-2], yypvt[-0]); } break;
+case 138:
+# line 608 "gram.in"
+{ yyval = mkexpr(OPEQV, yypvt[-2],yypvt[-0]); } break;
+case 139:
+# line 610 "gram.in"
+{ yyval = mkexpr(OPNEQV, yypvt[-2], yypvt[-0]); } break;
+case 140:
+# line 612 "gram.in"
+{ yyval = mkexpr(OPOR, yypvt[-2], yypvt[-0]); } break;
+case 141:
+# line 614 "gram.in"
+{ yyval = mkexpr(OPAND, yypvt[-2], yypvt[-0]); } break;
+case 142:
+# line 616 "gram.in"
+{ yyval = mkexpr(OPNOT, yypvt[-0], 0); } break;
+case 143:
+# line 618 "gram.in"
+{ yyval = mkexpr(OPCONCAT, yypvt[-2], yypvt[-0]); } break;
+case 144:
+# line 621 "gram.in"
+{ yyval = OPPLUS; } break;
+case 145:
+# line 622 "gram.in"
+{ yyval = OPMINUS; } break;
+case 146:
+# line 625 "gram.in"
+{ yyval = OPEQ; } break;
+case 147:
+# line 626 "gram.in"
+{ yyval = OPGT; } break;
+case 148:
+# line 627 "gram.in"
+{ yyval = OPLT; } break;
+case 149:
+# line 628 "gram.in"
+{ yyval = OPGE; } break;
+case 150:
+# line 629 "gram.in"
+{ yyval = OPLE; } break;
+case 151:
+# line 630 "gram.in"
+{ yyval = OPNE; } break;
+case 152:
+# line 634 "gram.in"
+{ yyval = mkprim(yypvt[-0], 0, 0, 0); } break;
+case 153:
+# line 636 "gram.in"
+{ yyval = mkprim(yypvt[-5], 0, yypvt[-3], yypvt[-1]); } break;
+case 154:
+# line 638 "gram.in"
+{ yyval = mkprim(yypvt[-3], mklist(yypvt[-1]), 0, 0); } break;
+case 155:
+# line 640 "gram.in"
+{ yyval = mkprim(yypvt[-8], mklist(yypvt[-6]), yypvt[-3], yypvt[-1]); } break;
+case 156:
+# line 644 "gram.in"
+{ yyval = 0; } break;
+case 158:
+# line 649 "gram.in"
+{ if(yypvt[-0]->vclass == CLPARAM)
+			yyval = cpexpr(yypvt[-0]->paramval);
+		} break;
+case 160:
+# line 655 "gram.in"
+{ yyval = mklogcon(1); } break;
+case 161:
+# line 656 "gram.in"
+{ yyval = mklogcon(0); } break;
+case 162:
+# line 657 "gram.in"
+{ yyval = mkstrcon(toklen, token); } break;
+case 163:
+# line 658 "gram.in"
+ { yyval = mkintcon( convci(toklen, token) ); } break;
+case 164:
+# line 659 "gram.in"
+ { yyval = mkrealcon(TYREAL, convcd(toklen, token)); } break;
+case 165:
+# line 660 "gram.in"
+ { yyval = mkrealcon(TYDREAL, convcd(toklen, token)); } break;
+case 166:
+# line 664 "gram.in"
+{ yyval = mkcxcon(yypvt[-3],yypvt[-1]); } break;
+case 167:
+# line 668 "gram.in"
+{ yyval = mkbitcon(4, toklen, token); } break;
+case 168:
+# line 670 "gram.in"
+{ yyval = mkbitcon(3, toklen, token); } break;
+case 169:
+# line 672 "gram.in"
+{ yyval = mkbitcon(1, toklen, token); } break;
+case 171:
+# line 677 "gram.in"
+{ yyval = yypvt[-1]; } break;
+case 174:
+# line 683 "gram.in"
+{ yyval = mkexpr(yypvt[-1], yypvt[-2], yypvt[-0]); } break;
+case 175:
+# line 685 "gram.in"
+{ yyval = mkexpr(OPSTAR, yypvt[-2], yypvt[-0]); } break;
+case 176:
+# line 687 "gram.in"
+{ yyval = mkexpr(OPSLASH, yypvt[-2], yypvt[-0]); } break;
+case 177:
+# line 689 "gram.in"
+{ yyval = mkexpr(OPPOWER, yypvt[-2], yypvt[-0]); } break;
+case 178:
+# line 691 "gram.in"
+{ if(yypvt[-1] == OPMINUS)
+			yyval = mkexpr(OPNEG, yypvt[-0], 0);
+		  else	yyval = yypvt[-0];
+		} break;
+case 179:
+# line 696 "gram.in"
+{ yyval = mkexpr(OPCONCAT, yypvt[-2], yypvt[-0]); } break;
+case 181:
+# line 700 "gram.in"
+{
+		if(yypvt[-1]->labdefined)
+			execerr("no backward DO loops");
+		yypvt[-1]->blklevel = blklevel+1;
+		exdo(yypvt[-1]->labelno, yypvt[-0]);
+		} break;
+case 182:
+# line 707 "gram.in"
+{ exendif();  thiswasbranch = NO; } break;
+case 184:
+# line 710 "gram.in"
+{ exelif(yypvt[-2]); } break;
+case 185:
+# line 712 "gram.in"
+{ exelse(); } break;
+case 186:
+# line 714 "gram.in"
+{ exendif(); } break;
+case 187:
+# line 718 "gram.in"
+{ exif(yypvt[-1]); } break;
+case 188:
+# line 722 "gram.in"
+{ yyval = mkchain(yypvt[-2], yypvt[-0]); } break;
+case 189:
+# line 726 "gram.in"
+{ exequals(yypvt[-2], yypvt[-0]); } break;
+case 190:
+# line 728 "gram.in"
+{ exassign(yypvt[-0], yypvt[-2]); } break;
+case 193:
+# line 732 "gram.in"
+{ inioctl = NO; } break;
+case 194:
+# line 734 "gram.in"
+{ exarif(yypvt[-6], yypvt[-4], yypvt[-2], yypvt[-0]);  thiswasbranch = YES; } break;
+case 195:
+# line 736 "gram.in"
+{ excall(yypvt[-0], 0, 0, labarray); } break;
+case 196:
+# line 738 "gram.in"
+{ excall(yypvt[-2], 0, 0, labarray); } break;
+case 197:
+# line 740 "gram.in"
+{ if(nstars < MAXLABLIST)
+			excall(yypvt[-3], mklist(yypvt[-1]), nstars, labarray);
+		  else
+			err("too many alternate returns");
+		} break;
+case 198:
+# line 746 "gram.in"
+{ exreturn(yypvt[-0]);  thiswasbranch = YES; } break;
+case 199:
+# line 748 "gram.in"
+{ exstop(yypvt[-2], yypvt[-0]);  thiswasbranch = yypvt[-2]; } break;
+case 200:
+# line 752 "gram.in"
+{ if(parstate == OUTSIDE)
+			{
+			newproc();
+			startproc(0, CLMAIN);
+			}
+		} break;
+case 201:
+# line 761 "gram.in"
+{ exgoto(yypvt[-0]);  thiswasbranch = YES; } break;
+case 202:
+# line 763 "gram.in"
+{ exasgoto(yypvt[-0]);  thiswasbranch = YES; } break;
+case 203:
+# line 765 "gram.in"
+{ exasgoto(yypvt[-4]);  thiswasbranch = YES; } break;
+case 204:
+# line 767 "gram.in"
+{ if(nstars < MAXLABLIST)
+			putcmgo(fixtype(yypvt[-0]), nstars, labarray);
+		  else
+			err("computed GOTO list too long");
+		} break;
+case 207:
+# line 779 "gram.in"
+{ nstars = 0; yyval = yypvt[-0]; } break;
+case 208:
+# line 783 "gram.in"
+{ yyval = (yypvt[-0] ? mkchain(yypvt[-0],0) : 0); } break;
+case 209:
+# line 785 "gram.in"
+{ if(yypvt[-0])
+			if(yypvt[-2]) yyval = hookup(yypvt[-2], mkchain(yypvt[-0],0));
+			else yyval = mkchain(yypvt[-0],0);
+		} break;
+case 211:
+# line 793 "gram.in"
+{ if(nstars<MAXLABLIST) labarray[nstars++] = yypvt[-0]; yyval = 0; } break;
+case 212:
+# line 797 "gram.in"
+{ yyval = 0; } break;
+case 213:
+# line 799 "gram.in"
+{ yyval = 1; } break;
+case 214:
+# line 803 "gram.in"
+{ yyval = mkchain(yypvt[-0], 0); } break;
+case 215:
+# line 805 "gram.in"
+{ yyval = hookup(yypvt[-2], mkchain(yypvt[-0],0) ); } break;
+case 216:
+# line 809 "gram.in"
+{ if(parstate == OUTSIDE)
+			{
+			newproc();
+			startproc(0, CLMAIN);
+			}
+		  if(parstate < INDATA) enddcl();
+		} break;
+case 217:
+# line 820 "gram.in"
+{ endio(); } break;
+case 219:
+# line 825 "gram.in"
+{ ioclause(IOSUNIT, yypvt[-0]); endioctl(); } break;
+case 221:
+# line 828 "gram.in"
+{ doio(NULL); } break;
+case 222:
+# line 830 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 223:
+# line 832 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 224:
+# line 834 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 225:
+# line 836 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 226:
+# line 838 "gram.in"
+{ doio(NULL); } break;
+case 227:
+# line 840 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 228:
+# line 842 "gram.in"
+{ doio(NULL); } break;
+case 229:
+# line 844 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 230:
+# line 846 "gram.in"
+{ doio(NULL); } break;
+case 231:
+# line 848 "gram.in"
+{ doio(yypvt[-0]); } break;
+case 233:
+# line 855 "gram.in"
+{ iostmt = IOREWIND; } break;
+case 234:
+# line 857 "gram.in"
+{ iostmt = IOREWIND; } break;
+case 235:
+# line 859 "gram.in"
+{ iostmt = IOENDFILE; } break;
+case 237:
+# line 866 "gram.in"
+{ iostmt = IOINQUIRE; } break;
+case 238:
+# line 868 "gram.in"
+{ iostmt = IOOPEN; } break;
+case 239:
+# line 870 "gram.in"
+{ iostmt = IOCLOSE; } break;
+case 240:
+# line 874 "gram.in"
+{
+		ioclause(IOSUNIT, NULL);
+		ioclause(IOSFMT, yypvt[-0]);
+		endioctl();
+		} break;
+case 241:
+# line 880 "gram.in"
+{
+		ioclause(IOSUNIT, NULL);
+		ioclause(IOSFMT, NULL);
+		endioctl();
+		} break;
+case 242:
+# line 888 "gram.in"
+{ ioclause(IOSUNIT, yypvt[-1]); endioctl(); } break;

@@ -1,14 +1,11 @@
 PATH=/bin:/usr/bin
-echo "Restricted rights: Use, duplication, or disclosure
-is subject to restrictions stated in your contract with
-Western Electric Company, Inc." >/dev/console
-rm /etc/mtab
-cat /dev/null >/etc/utmp
-/etc/mount /dev/rp3 /usr
-rm -f /usr/spool/lpd/lock
-: /etc/accton /usr/adm/acct
-rm -f /usr/tmp/*
+cp /dev/null /etc/mtab
+date > /dev/console
+cp /dev/null /etc/utmp
+rm -rf /usr/tmp/*
+find /usr/preserve -mtime +4 -a \! -type d -a -exec rm -r {} \;
+(cd /tmp; /usr/ucb/lib/ex3.6preserve -a)
 rm -f /tmp/*
+rm -fr /usr/lib/learn/play/*
 /etc/update
-date >/dev/console
 /etc/cron

@@ -1,0 +1,17 @@
+cp ex2.11preserve /usr/lib/ex2.11preserve
+cp ex2.11recover /usr/lib/ex2.11recover
+cp ex2.11strings /usr/lib/ex2.11strings
+cp how_pi /usr/lib/how_pi
+cp how_pix /usr/lib/how_pix
+cp how_pxp /usr/lib/how_pxp
+cp libtermlib.a /usr/lib/libtermlib.a
+cp Mail.help /usr/lib/Mail.help
+cp Mail.help.~ /usr/lib/Mail.help.~
+cp Mail.rc /usr/lib/Mail.rc
+cp pi1.2strings /usr/lib/pi1.2strings
+cp px_header /usr/lib/px_header
+cp tmac.e /usr/lib/tmac.e
+mkdir /usr/lib/me
+cd me ; cp * /usr/lib/me ; cd ..
+mkdir /usr/lib/tabset
+cd tabset ; cp * /usr/lib/tabset ; cd ..

@@ -1,0 +1,11 @@
+0a
+spl = 230
+.
+g/jsr	pc,_spl0/s//mov 177776,r0;spl 0/
+g/jsr	pc,_spl1/s//mov 177776,r0;spl 1/
+g/jsr	pc,_spl4/s//mov 177776,r0;spl 4/
+g/jsr	pc,_spl5/s//mov 177776,r0;spl 5/
+g/jsr	pc,_spl6/s//mov 177776,r0;spl 6/
+g/jsr	pc,_spl7/s//mov 177776,r0;spl 6/
+w
+q

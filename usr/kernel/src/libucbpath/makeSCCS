@@ -1,0 +1,10 @@
+#	@(#)makeSCCS	2.1	SCCS id keyword
+SFLAGS=
+clean:	sccsclean
+sccsclean:
+	rm -f concat.c openl.c openlp.c ucbpath.c
+
+concat.c:	s.concat.c;	get $(SFLAGS) s.concat.c
+openl.c:	s.openl.c;	get $(SFLAGS) s.openl.c
+openlp.c:	s.openlp.c;	get $(SFLAGS) s.openlp.c
+ucbpath.c:	s.ucbpath.c;	get $(SFLAGS) s.ucbpath.c

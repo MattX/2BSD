@@ -1,0 +1,46 @@
+From menlo70!sytek!sam  Fri Feb 27 12:06:01 1981
+To: menlo70!ucbvax!mark
+Subject: uucp net
+Status: R
+
+As per your request, here is the information about our site that you
+asked for.  We haven't made any mention of our existence before because
+we were in th process of establishing reliable (as opposed to haphazard)
+connection to the net; there should be some NET.general news out very soon
+from us.
+
+System name:	sytek
+
+Relative Path:	duke!decvax!sytek, decvax!sytek, ucbvax!menlo70!sytek
+		(i.e. we poll menlo70 and decvax, and decvax calls us on demand)
+
+Uucp contact:	samuel j. leffler
+		sam	(user name)
+		(408) 734-9000
+
+#users	
+in .uindex:	20
+
+Site activity:	Commerical firm.  Sytek does consulting work in networking,
+		operating sytem design, verification and security analysis, etc.
+		Sytek also markets LocalNet, a broadband based local area
+		network.
+
+Dialing:	(1) We're willing to call local hosts
+		(2) We're willing to allow people to call us*
+		(3) We're not interested in maintaining phone accounts,
+		    so arranging call exchange is probably not possible.
+
+Uucp entry:	* we keep separate logins for each host that uucp's to us,
+		  so that we may keep track of each site that calls us; hence
+		  those who wish to call must first contact me
+
+Sites in .sys:	decvax, menlo70
+
+FYI: At present we are working from an 11/45 with a single 300 baud ACU.
+     Hopefully, in less than two weeks we should be up on a VAX-11/750
+     running VM/UNIX with 4 300 baud ACU's.  At this time we should be
+     able to handle a great deal of traffic and might be interested in
+     supporting a few passive sites local to us.  Also, at that time we
+     will also have MMDF running and have ARAP-net access.
+

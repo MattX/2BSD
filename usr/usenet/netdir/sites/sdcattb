@@ -1,0 +1,35 @@
+From sdcsvax!sdcattb!madden  Wed Apr 15 02:58:03 1981
+To: sdcsvax!ucbvax!mark
+Subject: Usenet sdcattb addition
+Status: R
+
+This is to announce the addition of sdcattb to usenet:
+
+system name:	sdcattb  UCSD computer center.
+path:		ucbvax!sdcsvax!sdcattb
+contact:	Jim Madden
+		(714)-452-2682 or 4050
+		login name: madden
+uucp login:	uucp
+uucp passwd:	whatnot
+dialup #:	(714)-452-4964 (300 baud)
+		Access to machine by dialin is through a front end
+		switch.  After phone is answered, "Request:" will
+		appear.  Respond "cb^M".  Look for "~G~J", then
+		proceed with normal UNIX login.
+.sys sites:	sdcsvax,sdcarl
+
+We have two 11/70's running pre-release Berkeley V7,
+8 DZ-11's, 2 RM03s, 2 CDC9400 300 MB. disks interfaced
+through XYLOGICs controllers, and a CAT phototypesetter.
+These machines are a part of the general purpose computer
+facility of the University of California, San Diego campus,
+and provide document preparation, and text processing support
+to the campus population.  The facility also includes
+a VAX11/780 running VMS and a Burroughs B7805.
+
+We are willing to accept calls from anyone but, lacking an ACU
+have no direct way to call others.
+
+
+

@@ -1,0 +1,44 @@
+From ihnss!karn  Tue Mar 17 15:12:00 1981
+To: ucbvax!mark
+Re: our usenet directory entry.
+Status: R
+
+System name:
+	ihnss
+
+Path to the system from duke, ucbvax, or decvax:
+	ucbvax!ihnss
+
+Name of usenet/uucp contact at that system, phone, login name:
+	Phil Karn: ihnss!karn, 312-462-4083
+	Warren Montgomery: ihnss!warren, 312-462-2494
+
+Number of users at the site running netnews (check .uindex):
+	4, but Human-Nets, SF-Lovers and Info-Micro are forwarded daily
+	(semi-manually now, automatically "soon") to about 18 other systems
+	at Bell Labs Indian Hill. From there, its anybody's guess how
+	many people read them.
+
+What the site is all about (if not a secret):
+	Exploratory studies (applied research) on new
+	telecommunications services
+
+Willingness to (1) call new sites or (2) be called or (3) call
+other sites or (4) lack thereof:
+	No problem, as long as the traffic is reasonable. We have ACU's on
+	WATS lines during the evenings. The modems are Bell 212's, which
+	can make 300 baud or Bell 1200 calls. We can't talk to Vadic
+	1200 baud modems except for Triple Modems.
+
+uucp login name/password/phone number, (if you want it to be public):
+	#: 312-665-4796 (300/1200 baud Bell 212)
+	id: nuucp Password: secure
+	(Please contact us first so our L.sys can be updated)
+
+Names of sites in your .sys file:
+	We don't automatically pass netnews on to any other systems (yet).
+	Nobody at BTL has requested getting \automatic/ netnews shipments
+	from us instead of directly from Berkeley.	
+	(See the item above about manual forwarding to other Indian
+	Hill systems.)
+
