@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)rlogin.c	5.10 (Berkeley) 3/30/86";
-#endif not lint
+static char sccsid[] = "@(#)rlogin.c	5.10.1 (2.11BSD) 1997/3/28";
+#endif
 
 /*
  * rlogin - remote login
@@ -168,7 +166,7 @@ int	child;
 int	catchild();
 int	writeroob();
 
-int	defflags, tabflag;
+int	defflags;
 int	deflflags;
 char	deferase, defkill;
 struct	tchars deftc;
@@ -183,9 +181,7 @@ doit(oldmask)
 	struct sgttyb sb;
 
 	ioctl(0, TIOCGETP, (char *)&sb);
-	defflags = sb.sg_flags;
-	tabflag = defflags & TBDELAY;
-	defflags &= ECHO | CRMOD;
+	defflags = sb.sg_flags & (ECHO | CRMOD | XTABS);
 	deferase = sb.sg_erase;
 	defkill = sb.sg_kill;
 	ioctl(0, TIOCLGET, (char *)&deflflags);
@@ -560,8 +556,8 @@ mode(f)
 	switch (f) {
 
 	case 0:
-		sb.sg_flags &= ~(CBREAK|RAW|TBDELAY);
-		sb.sg_flags |= defflags|tabflag;
+		sb.sg_flags &= ~(CBREAK|RAW|XTABS);
+		sb.sg_flags |= defflags;
 		tc = &deftc;
 		ltc = &defltc;
 		sb.sg_kill = defkill;
@@ -572,9 +568,7 @@ mode(f)
 	case 1:
 		sb.sg_flags |= (eight ? RAW : CBREAK);
 		sb.sg_flags &= ~defflags;
-		/* preserve tab delays, but turn off XTABS */
-		if ((sb.sg_flags & TBDELAY) == XTABS)
-			sb.sg_flags &= ~TBDELAY;
+		sb.sg_flags &= ~XTABS;
 		tc = &notc;
 		ltc = &noltc;
 		sb.sg_kill = sb.sg_erase = -1;

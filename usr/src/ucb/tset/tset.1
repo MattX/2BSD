@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)tset.1	6.2 (Berkeley) 5/5/86
+.\"	@(#)tset.1	6.2.1 (2.11BSD) 1997/3/28
 .\"
-.TH TSET 1 "May 5, 1986"
+.TH TSET 1 "March 28, 1997"
 .UC 4
 .SH NAME
 tset \- terminal dependent initialization
@@ -393,7 +393,6 @@ or a way to set the environment of the parent should exist.
 This program can't intuit personal choices for erase, interrupt
 and line kill characters, so it leaves these set to the local system
 standards.
-.ig
 .SH NOTES
 For compatibility with earlier versions of
 .I tset
@@ -414,14 +413,8 @@ equivalent to
 .B \-m
 arpanet:type
 .TP 10
-\fB\-E\fR c
-Sets the erase character to
-.I c
-only if the terminal can backspace.
-.TP 10
 \fB\-\fR
 prints the terminal type on the standard output
 .TP 10
 \fB\-r\fR
 prints the terminal type on the diagnostic output.
-..

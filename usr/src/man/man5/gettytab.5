@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)gettytab.5	6.3 (Berkeley) 5/19/86
+.\"	@(#)gettytab.5	6.3.1 (2.11BSD) 1997/3/28
 .\"
-.TH GETTYTAB 5 "May 19, 1986"
+.TH GETTYTAB 5 "March 28, 1997"
 .UC 5
 .SH NAME
 gettytab \- terminal configuration data base
@@ -47,10 +47,8 @@ table.
 .ta \w'k0-k9  'u +\w'Type  'u +\w'``/bin/login"  'u
 \fBName	Type	Default	Description\fR
 ap	bool	false	terminal uses any parity
-bd	num	0	backspace delay
 bk	str	0377	alternate end of line character (input break)
 cb	bool	false	use crt backspace mode
-cd	num	0	carriage-return delay
 ce	bool	false	use crt erase algorithm
 ck	bool	false	use crt kill algorithm
 cl	str	NULL	screen clear sequence
@@ -65,10 +63,10 @@ ev	str	NULL	initial enviroment
 f0	num	unused	tty mode flags to write messages
 f1	num	unused	tty mode flags to read login name
 f2	num	unused	tty mode flags to leave terminal as
-fd	num	0	form-feed (vertical motion) delay
 fl	str	^O	output flush character
 hc	bool	false	do \s-2NOT\s0 hangup line on last close
 he	str	NULL	hostname editing string
+hf	bool	false	enable hardware (rts/cts) flow control
 hn	str	hostname	hostname
 ht	bool	false	terminal has real tabs
 ig	bool	false	ignore garbage characters in login name
@@ -80,7 +78,6 @@ lc	bool	false	terminal has lower case
 lm	str	login:	login prompt
 ln	str	^V	``literal next'' character
 lo	str	/bin/login	program to exec when name obtained
-nd	num	0	newline (line-feed) delay
 nl	bool	false	terminal has (or might have) a newline character
 nx	str	default	next table (for auto speed selection)
 op	bool	false	terminal uses odd parity
@@ -98,7 +95,6 @@ tc	str	none	table continuation
 to	num	0	timeout (seconds)
 tt	str	NULL	terminal type (for enviroment)
 ub	bool	false	do unbuffered output (of prompts etc)
-uc	bool	false	terminal is known upper case only
 we	str	^W	word erase character
 xc	bool	false	do \s-2NOT\s0 echo control chars as ^X
 xf	str	^S	XOFF (stop output) character
@@ -134,12 +130,6 @@ receive a null character
 it will restart using the table indicated by the
 .B nx
 entry. If there is none, it will re-use its original table.
-.PP
-Delays are specified in milliseconds, the nearest possible
-delay available in the tty driver will be used.
-Should greater certainty be desired, delays
-with values 0, 1, 2, and 3 are interpreted as
-choosing that particular delay algorithm from the driver.
 .PP
 The
 .B cl
@@ -230,11 +220,8 @@ In
 cases, '#' or '^H' typed in a login name will be treated as
 an erase character, and '@' will be treated as a kill character.
 .PP
-The delay stuff is a real crock.
-Apart form its general lack of flexibility, some
-of the delay algorithms are not implemented.
-The terminal driver should support sane delay settings.
-.PP
+The delay stuff is a real crock.  It has been removed from the system
+entirely.
 The
 .B he
 capability is stupid.

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	1.6 (2.11BSD) 1996/11/27
+#	@(#)Makefile	1.7 (2.11BSD) 1997/3/27
 #
 MDIR=	/usr/man/cat1
 SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
@@ -36,10 +36,10 @@ SRCS1=	nroff.1 nslookup.1 od.1 pagesize.1 pdx.1 pi.1 pix.1 \
 	rlogin.1 rm.1 rmail.1 rmdir.1 roffbib.1 rsh.1 ruptime.1 rwho.1 \
 	sccs.1 script.1 sed.1 sendbug.1 sh.1 size.1 sleep.1 soelim.1 \
 	sort.1 sortbib.1 spell.1 spline.1 split.1 strcompact.1 strings.1 \
-	strip.1 struct.1 stty.1 style.1 su.1 sum.1 symcompact.1 symorder.1 \
+	strip.1 struct.1 style.1 su.1 sum.1 symcompact.1 symorder.1 \
 	tabs.1 tail.1 talk.1 \
 	tar.1 tbl.1 tc.1 tcopy.1 tee.1 telnet.1 time.1 \
-	tip.1 tk.1 tn3270.1 touch.1 tp.1 tr.1 troff.1 true.1 tset.1 \
+	tip.1 tk.1 tn3270.1 touch.1 tp.1 tr.1 troff.1 true.1 \
 	tsort.1 tty.1 ul.1 unifdef.1 uniq.1 units.1 uptime.1 users.1 \
 	uucp.1 uuencode.1 uulog.1 uuname.1 uuq.1 uusend.1 uux.1 \
 	vacation.1 vgrind.1 vi.1 vmstat.1 vwidth.1 w.1 wait.1 wall.1 wc.1 \
@@ -64,10 +64,10 @@ OBJS2=	nroff.0 nslookup.0 od.0 pagesize.0 pdx.0 pi.0 pix.0 \
 	rlogin.0 rm.0 rmail.0 rmdir.0 roffbib.0 rsh.0 ruptime.0 rwho.0 \
 	sccs.0 script.0 sed.0 sendbug.0 sh.0 size.0 sleep.0 soelim.0 \
 	sort.0 sortbib.0 spell.0 spline.0 split.0 strcompact.0 strings.0 \
-	strip.0 struct.0 stty.0 style.0 su.0 sum.0 symcompact.0 symorder.0 \
+	strip.0 struct.0 style.0 su.0 sum.0 symcompact.0 symorder.0 \
 	tabs.0 tail.0 talk.0 \
 	tar.0 tbl.0 tc.0 tcopy.0 tee.0 telnet.0 time.0 \
-	tip.0 tk.0 tn3270.0 touch.0 tp.0 tr.0 troff.0 true.0 tset.0 \
+	tip.0 tk.0 tn3270.0 touch.0 tp.0 tr.0 troff.0 true.0 \
 	tsort.0 tty.0 ul.0 unifdef.0 uniq.0 units.0 uptime.0 users.0 \
 	uucp.0 uuencode.0 uulog.0 uuname.0 uuq.0 uusend.0 uux.0 \
 	vacation.0 vgrind.0 vi.0 vmstat.0 vwidth.0 w.0 wait.0 wall.0 wc.0 \
@@ -123,8 +123,6 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/nice.0 ${DESTDIR}${MDIR}/nohup.0
 	rm -f ${DESTDIR}${MDIR}/page.0
 	ln ${DESTDIR}${MDIR}/more.0 ${DESTDIR}${MDIR}/page.0
-	rm -f ${DESTDIR}${MDIR}/reset.0
-	ln ${DESTDIR}${MDIR}/tset.0 ${DESTDIR}${MDIR}/reset.0
 	rm -f ${DESTDIR}${MDIR}/spellin.0
 	ln ${DESTDIR}${MDIR}/spell.0 ${DESTDIR}${MDIR}/spellin.0
 	rm -f ${DESTDIR}${MDIR}/spellout.0

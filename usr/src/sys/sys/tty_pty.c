@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_pty.c	1.2 (2.11BSD GTE) 12/8/94
+ *	@(#)tty_pty.c	1.3 (2.11BSD GTE) 1997/5/2
  */
 
 /*
@@ -24,6 +24,8 @@
 #include "uio.h"
 #include "kernel.h"
 #include "inode.h"
+
+extern	int	TTYHOG;		/* see tty.c */
 
 #if NPTY == 1
 #undef NPTY

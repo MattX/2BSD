@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)vmstat.c	5.4.1 (2.11BSD GTE) 12/31/93";
+static char sccsid[] = "@(#)vmstat.c	5.4.2 (2.11BSD GTE) 1997/3/28";
 #endif
 
 #include <stdio.h>
@@ -485,7 +485,7 @@ printhdr()
 dotimes()
 {
 #ifdef pdp11
-	printf("page in/out/reclamation is not applicable to 2.10BSD\n");
+	printf("page in/out/reclamation is not applicable to 2.11BSD\n");
 #else
 	lseek(mf, (long)nl[X_REC].n_value, L_SET);
 	read(mf, &s.rectime, sizeof s.rectime);
@@ -617,7 +617,7 @@ dointr(nintv)
 	long nintv;
 {
 #ifdef pdp11
-	printf("Device interrupt statistics are not applicable to 2.10BSD\n");
+	printf("Device interrupt statistics are not applicable to 2.11BSD\n");
 #else
 	int nintr, inttotal;
 	long *intrcnt;

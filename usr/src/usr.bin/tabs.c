@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)tabs.c	4.1.1 (2.11BSD) 12/9/94";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)tabs.c	4.1.2 (2.11BSD) 1997/3/28";
+#endif
+
 #include <stdio.h>
 #include <sgtty.h>
 
@@ -156,10 +159,6 @@ nl()
 
 dasi450()
 {
-	struct sgttyb t;
-	gtty(0,&t);
-	t.sg_flags &= ~ALLDELAY;
-	stty(0,&t);
 	clear(8); bs(16); margin(8); escape(MGN); nl(); tabs(16);
 	escape(RHM); nl();
 }
@@ -176,11 +175,6 @@ dasi300()
 
 tn300()
 {
-	struct sgttyb t;
-	gtty(0,&t);
-	t.sg_flags &= ~ALLDELAY;
-	t.sg_flags |= CR1|BS1;
-	stty(0,&t);
 	clear(8); margin(8); escape(SET); tabs(14); nl();
 }
 

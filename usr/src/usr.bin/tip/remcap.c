@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)remcap.c	5.1 (Berkeley) 4/30/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)remcap.c	5.1.1 (2.11BSD) 1997/5/2";
+#endif
 
 /*
  * remcap - routines for dealing with the remote host data base
@@ -255,7 +255,7 @@ tskip(bp)
 
 	while (*bp && *bp != ':')
 		bp++;
-	if (*bp == ':')
+	while (*bp == ':')
 		bp++;
 	return (bp);
 }

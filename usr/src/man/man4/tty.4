@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)tty.4	6.7.1 (2.11BSD GTE) 12/9/94
+.\"	@(#)tty.4	6.7.2 (2.11BSD GTE) 1997/4/10
 .\"
-.TH TTY 4 "August 1, 1987"
+.TH TTY 4 "April 10, 1997"
 .UC 4
 .SH NAME
 tty \- general terminal interface
@@ -129,7 +129,7 @@ A carriage return is usually made synonymous with newline in this mode,
 and replaced with a newline whenever it is typed.
 All driver functions
 (input editing, interrupt generation,
-output processing such as delay generation and tab expansion, etc.)
+output processing such as tab expansion, etc.)
 are available in this mode.
 .IP CBREAK 10
 This mode eliminates the character, word, and line editing input facilities,
@@ -214,9 +214,6 @@ character (default, ^U: control-U)
 logically erasing the entire current input line.
 These characters
 never erase beyond the beginning of the current input line or an eof.
-These characters may be entered literally by
-preceding them with `\e\|'; the `\e\|' will normally be erased when the
-character is typed.
 .PP
 The drivers normally treat either a carriage return or a newline character
 as terminating an input line, replacing the return with a newline and echoing
@@ -230,9 +227,6 @@ which can be typed
 in both cooked and CBREAK mode preceding
 .I any
 character to prevent its special meaning to the terminal handler.
-This is to be preferred to the
-use of `\e\|' escaping erase and kill characters, but `\e\|' is
-retained with its old function in the new line discipline.
 .PP
 The new terminal driver also provides two other editing characters in
 normal mode.  The word-erase character, normally ^W, erases the preceding
@@ -245,8 +239,8 @@ which would normally be erased from the screen are fouled by program output.
 .LP
 .B "Input echoing and redisplay"
 .LP
-The terminal driver has several modes (not present in standard UNIX
-Version 7 systems) for handling the echoing of
+The terminal driver has several modes 
+for handling the echoing of
 terminal input, controlled by bits in a local mode word.
 .LP
 .I "Hardcopy terminals."
@@ -305,17 +299,13 @@ that respond to it from hanging up; programs using RAW or CBREAK mode
 should be careful.
 .PP
 The terminal drivers provide necessary processing for cooked and CBREAK mode
-output including delay generation for certain special characters and parity
-generation.   Delays are available after backspaces ^H, form feeds ^L,
-carriage returns ^M, tabs ^I and newlines ^J.  The driver will also optionally
+output including parity
+generation.
+The driver will also optionally
 expand tabs into spaces, where the tab stops are assumed to be set every
 eight columns, and optionally convert newlines to carriage returns
 followed by newline.  These functions are controlled by bits in the tty
 flags word; see \fBSummary\fR below.
-.PP
-The terminal drivers provide for mapping between upper and lower case
-on terminals lacking lower case, and for other special processing on
-deficient terminals.
 .PP
 Finally, in the new terminal driver, there is a output flush character,
 normally ^O, which sets the LFLUSHO bit in the local mode word, causing
@@ -341,6 +331,14 @@ the input queue is in danger of overflowing, and a start character (default
 ^Q) when the input has drained sufficiently.  This mode is useful
 when the terminal is actually another machine that obeys those
 conventions.
+.PP
+If software flow control is not sufficient (it begins failing above 4800
+bits per second on slow systems) RTS/CTS flow control is now available.  
+Hardware flow control causes RTS to be dropped when the remote system (modem)
+should cease sending and to be raised when additional data can be accepted.
+If the remote system drops CTS then the local host ceases sending data until
+the CTS is raised.  Hardware flow control is enabled via the \fBTIOCLBIS\fP
+(or TIOCLBIC or TIOCLSET) function and the bit \fBLRTSCTS\fP.
 .LP
 .B "Line control and breaks."
 .LP
@@ -537,68 +535,21 @@ field of the argument structure
 contains several bits that determine the
 system's treatment of the terminal:
 .PP
-.ta \w'ALLDELAY 'u +\w'0100000 'u
+.ta \w'TANDEM 'u +\w'0100000 'u
 .nf
-ALLDELAY	0177400	Delay algorithm selection
-BSDELAY	0100000	Select backspace delays (not implemented):
-BS0	0
-BS1	0100000
-VTDELAY	0040000	Select form-feed and vertical-tab delays:
-FF0	0
-FF1	0040000
-CRDELAY	0030000	Select carriage-return delays:
-CR0	0
-CR1	0010000
-CR2	0020000
-CR3	0030000
-TBDELAY	0006000	Select tab delays:
-TAB0	0
-TAB1	0002000
-TAB2	0004000
-XTABS	0006000
-NLDELAY	0001400	Select new-line delays:
-NL0	0
-NL1	0000400
-NL2	0001000
-NL3	0001400
+XTABS	0004000 Expand tabs on output
 EVENP	0000200	Even parity allowed on input
 ODDP	0000100	Odd parity allowed on input
 RAW	0000040	Raw mode: wake up on all characters, 8-bit interface
 CRMOD	0000020	Map CR into LF; output LF as CR-LF
 ECHO	0000010	Echo (full duplex)
 CBREAK	0000002	Return each character as soon as typed
-TANDEM	0000001	Automatic flow control
+TANDEM	0000001	Automatic inbound xon/xoff flow control
 .DT
 .fi
 .PP
-The delay bits specify how long
-transmission stops to allow for mechanical or other movement
-when certain characters are sent to the terminal.
-In all cases a value of 0 indicates no delay.
-.PP
-Backspace delays are currently ignored but might
-be used for Terminet 300's.
-.PP
-If a form-feed/vertical tab delay is specified,
-it lasts for about 2 seconds.
-.PP
-Carriage-return delay type 1 lasts about .08 seconds
-and is suitable for the Terminet 300.
-Delay type 2 lasts about .16 seconds and is suitable
-for the VT05 and the TI 700.
-Delay type 3 is suitable for the concept-100 and pads lines
-to be at least 9 characters at 9600 baud.
-.PP
-New-line delay type 1 is dependent on the current column
-and is tuned for Teletype model 37's.
-Type 2 is useful for the VT05 and is about .10 seconds.
-Type 3 is unimplemented and is 0.
-.PP
-Tab delay type 1 is dependent on the amount of movement
-and is tuned to the Teletype model
-37.
-Type 3, called XTABS,
-is not a delay at all but causes tabs to be replaced
+XTABS,
+causes tabs to be replaced
 by the appropriate number of spaces on output.
 .PP
 The flags for even and odd parity control parity checking on input
@@ -817,7 +768,7 @@ LLITOUT	000040	Suppress output translations
 LTOSTOP	000100	Send SIGTTOU for background output
 LFLUSHO	000200	Output is being flushed
 LNOHANG	000400	Don't send hangup when carrier drops
-LETXACK	001000	Diablo style buffer hacking (unimplemented)
+LRTSCTS	001000	RTS/CTS flow control
 LCRTKIL	002000	BS-space-BS erase entire line on line kill
 LPASS8	004000	Pass all 8 bits through on input, in any mode
 LCTLECH	010000	Echo input control chars as ^X, delete as ^?
