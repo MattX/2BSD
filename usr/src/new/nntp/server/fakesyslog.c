@@ -1,5 +1,5 @@
-#ifndef lint
-static char	*sccsid = "@(#)fakesyslog.c	1.3	(Berkeley) 2/6/88";
+#if	!defined(lint) && defined(DOSCCS)
+static char	*sccsid = "@(#)fakesyslog.c	1.3.1	(2.11BSD) 1996/3/21";
 #endif
 
 /*
@@ -12,18 +12,16 @@ static char	*sccsid = "@(#)fakesyslog.c	1.3	(Berkeley) 2/6/88";
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 #include "../common/conf.h"
 
 #ifdef FAKESYSLOG
 
-extern	int	errno;
-extern	int	sys_nerr;
-extern	char	*sys_errlist[];
-
 static FILE	*logfp;
 
-char	*strcpy(), *strcat(), *ctime();
+char	*ctime();
 
 openlog()
 {
@@ -60,12 +58,7 @@ syslog(pri, msg, x1, x2, x3, x4, x5, x6)
 	for (cp = msg; *cp; cp++) {
 		if (*cp == '%' && cp[1] == 'm') {
 			*bp = '\0';
-			if (errno >= sys_nerr || errno < 0) {
-				char	work[32];
-				sprintf(work, "unknown error #%d", errno);
-				(void) strcat(bp, work);
-			} else
-				(void) strcat(bp, sys_errlist[errno]);
+			(void) strcat(bp, strerror(errno));
 			bp = buf + strlen(buf);
 			cp++;
 		} else {

@@ -1,4 +1,4 @@
-/* $Header: /home/hyperion/mu/christos/src/sys/tcsh-6.00/RCS/sh.h,v 3.1 1991/07/05 19:07:20 christos Exp $ */
+/* $Header: src/sys/tcsh-6.00/RCS/sh.h,v 3.1.1 1996/03/21 19:07:20 christos Exp $ */
 /*
  * sh.h: Catch it all globals and includes file!
  */
@@ -699,15 +699,6 @@ int     lastev;			/* Last event reference (default) */
 
 Char    HIST;			/* history invocation character */
 Char    HISTSUB;		/* auto-substitute character */
-
-/*
- * To print system call errors...
- */
-extern char *sys_errlist[];
-extern int errno, sys_nerr;
-
-#define strerror(e) ((e) < sys_nerr && (e) >= 0 ? sys_errlist[(e)] :\
-		"Unknown Error")
 
 /*
  * strings.h:

@@ -99,10 +99,7 @@ char *
 errmsg(n)
 register int	n;
 {
-	extern	int	sys_nerr;
-	extern 	char	*sys_errlist[];
-
-	return((n >= 0 && n < sys_nerr) ? sys_errlist[n] : "unknown error");
+	return(strerror(n));
 }
 
 mklock(file, pid)

@@ -8,7 +8,7 @@
 #endif	SIGCHLD
 
 #ifdef	RCSIDENT
-static char rcsid[] = "$Header: /usr/local/src/usenet/notes/src/RCS/misc.c,v 1.9 88/11/10 21:49:42 paul Exp $";
+static char rcsid[] = "$Header: src/usenet/notes/src/RCS/misc.c,v 1.9.1 96/3/21 21:49:42 paul Exp $";
 #endif	RCSIDENT
 
 #define		LOCKTRY		10			/* number of shots at grabbing */
@@ -229,8 +229,7 @@ x (cond, p) char   *p;
 
 	sprintf (pbuf2, "%s: aborted", Invokedas);
 	sprintf (pbuf, "Program:\t%s\nMessage:\t%s\n\nerrno:\t\t%d  (%s)\n",
-		Invokedas, p, errno,
-		errno >= sys_nerr ? "Unknown error code" : sys_errlist[errno]);
+		Invokedas, p, errno, strerror(errno));
 #ifdef	DUMPCORE
 	if ((tail = rindex (Invokedas, '/')) == NULL)	/* pathname? */
 	    tail = Invokedas;				/* simple invocation */
@@ -290,7 +289,7 @@ char    c;
 		char    tbuf[256];			/* title */
 		sprintf (pbuf,
 			"lock %c failed for %s,\nerrno = %d (%s)\nProgram = %s\n",
-			c, io -> fullname, holderr, sys_errlist[holderr],
+			c, io -> fullname, holderr, strerror(holderr),
 			Invokedas);
 		sprintf (tbuf, "%s: locked (%c)", io -> nf, c);
 		nfcomment (NFMAINT, pbuf, tbuf, 0, 0);
@@ -362,7 +361,7 @@ char    c;
 		char    pbuf2[256];
 		sprintf (pbuf,
 			"glock %c failed for %s, errno = %d (%s)\nProgram = %s\n",
-			c, io -> fullname, holderr, sys_errlist[holderr],
+			c, io -> fullname, holderr, strerror(holderr),
 			Invokedas);
 		sprintf (pbuf2, "Frozen Global Lock (%c)", c);
 		nfcomment (NFMAINT, pbuf, pbuf2, 0, 0);

@@ -2,7 +2,7 @@
 #include 	"structs.h"
 
 #ifdef	RCSIDENT
-static char rcsid[] = "$Header: miscio.c,v 1.7.0.3 86/02/11 23:06:01 notes Rel $";
+static char rcsid[] = "$Header: miscio.c,v 1.7.0.4 96/3/21 23:06:01 notes Rel $";
 #endif	RCSIDENT
 
 
@@ -126,16 +126,6 @@ ttystrt ()
 	exit (1);
     }
 #endif	defined(USG)
-
-#if	defined(BSD4x) || defined(BSD2x)
-    localbits = LTILDE;					/* zap tildes (hazeltines) */
-    if (ioctl (0, TIOCSETN, &tty) < 0 ||
-	    ioctl (0, TIOCLBIC, &localbits) < 0)
-    {
-	fprintf (stderr, "%s: Unable to set tty state\n", Invokedas);
-	exit (1);
-    }
-#endif
 
     modeset = 1;
     cmstart ();						/* so can cursor address reliably */

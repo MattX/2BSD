@@ -1,10 +1,10 @@
 #define	CONSOLE		"/dev/console"
 #define	dprcons		if (debug) prcons
 /*
- * vpd.c						updated 11/18/82
+ * vpd.c						updated 1996/3/21
  * Varian or Versatec printer daemon
  */
-char vpdSCCSid[] = "@(#)vpd.c	1.4\t11/18/82";
+char vpdSCCSid[] = "@(#)vpd.c	1.4.1	1996/3/21";
 
 #include <stdio.h>
 #include <sys/param.h>
@@ -126,8 +126,7 @@ reopen:
 		if (open(DEVICE, 1) == 3)
 			break;
 		if (errno != EIO) {
-			extern char *sys_errlist[];
-			prcons("%s: %s: %s\n", NAME, DEVICE, sys_errlist[errno]);
+			prcons("%s: %s: %s\n", NAME, DEVICE, strerror(errno));
 			unlink("lock");
 			exit(1);
 		}

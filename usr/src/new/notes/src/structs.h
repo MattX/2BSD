@@ -2,12 +2,8 @@
 #include <sys/param.h>
 
 #if	defined(RCSIDENT) && defined(MAINLINE)
-static char zzstructs[] = "$Header: /usr/local/src/usenet/notes/src/RCS/structs.h,v 1.9 88/11/10 21:48:27 paul Exp $";
+static char zzstructs[] = "$Header: src/usenet/notes/src/RCS/structs.h,v 1.9.1 96/3/21 21:48:27 paul Exp $";
 #endif	defined(RCSIDENT) && defined(MAINLINE)
-
-#ifdef	pdp11
-#define	gettime(a)	_gettime(a)	/* conflicts with gettimeofday() */
-#endif
 
 /*
  *	structure definitions for the notesfile program.
@@ -406,8 +402,6 @@ extern char *rindex ();
  */
 
 extern int  errno;					/* syscall errors */
-extern char *sys_errlist[];				/* errno messages */
-extern int  sys_nerr;					/* and how many */
 #if BSD < 43
 extern char *sprintf ();				/* satisfy lint */
 #endif

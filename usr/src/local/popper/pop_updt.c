@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(lint)
 static char copyright[] = "Copyright (c) 1990 Regents of the University of California.\nAll rights reserved.\n";
-static char SccsId[] = "@(#)@(#)pop_updt.c	2.3  2.3 3/20/91";
+static char SccsId[] = "@(#)@(#)pop_updt.c	2.3.1  (2.11BSD) 1996/3/21";
 #endif not lint
 
 #include <errno.h>
@@ -16,8 +16,6 @@ static char SccsId[] = "@(#)@(#)pop_updt.c	2.3  2.3 3/20/91";
 #include <sys/stat.h>
 #include <sys/file.h>
 #include "popper.h"
-
-extern int      errno;
 
 static char standard_error[] =
     "Error error updating primary drop. Mailbox unchanged";
@@ -75,7 +73,7 @@ POP     *   p;
     if ( flock(mfd,LOCK_EX) == -1 ) {
         (void)fclose(md) ;
         return pop_msg(p,POP_FAILURE, "flock: '%s': %s", p->temp_drop,
-            (errno < sys_nerr) ? sys_errlist[errno] : "");
+            strerror(errno));
     }
 
     /* Go to the right places */

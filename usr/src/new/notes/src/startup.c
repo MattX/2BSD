@@ -1,14 +1,11 @@
 #include	"parms.h"
 #include	"structs.h"
 #include	<pwd.h>
-#ifdef	pdp11
-#include	<short_names.h>
-#endif
 #ifdef	RCSIDENT
-static char rcsid[] = "$Header: startup.c,v 1.7.0.3 85/03/18 20:56:44 notes Rel $";
+static char rcsid[] = "$Header: startup.c,v 1.7.0.4 96/3/21 20:56:44 notes Rel $";
 #endif	RCSIDENT
 
-static char *Bigversion = "Notesfiles: $Revision: 1.7.0.3 $";
+static char *Bigversion = "Notesfiles: $Revision: 1.7.0.4 $";
 
 /*
  *	this file contains code and declarations that are common to

@@ -16,9 +16,9 @@ STDINST=ansi bm checkobj jove l11 la m11 nmcoll ntp oldassn \
 # Special purpose software that requires custom installation,
 # or may not be needed by all sites
 #
-OPTDIR=	crash oldassn kermit5.188 news ntp pathalias rcs rn notes nntp
+OPTDIR=	crash oldassn kermit5.188 ntp pathalias rcs rn notes nntp
 
-SUBDIR= ansi bm checkobj crash jove kermit5.188 l11 la m11 news nmcoll nntp \
+SUBDIR= ansi bm checkobj crash jove kermit5.188 l11 la m11 nmcoll nntp \
 	notes ntp oldassn patch pathalias rcs rn shar shortc tcsh \
 	traceroute vmsbackup
 

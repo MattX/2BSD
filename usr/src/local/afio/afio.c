@@ -24,7 +24,7 @@
  *  o Define CTC3B2 to support AT&T 3B2 streaming cartridge tape.
  */
 
-static char *ident = "$Header: afio.c,v 1.68 86/12/15 13:07:11 mdb Exp $";
+static char *ident = "$Header: afio.c,v 1.68.1 96/3/21 13:07:11 mdb Exp $";
 
 #include <stdio.h>
 #include <errno.h>
@@ -34,6 +34,7 @@ static char *ident = "$Header: afio.c,v 1.68 86/12/15 13:07:11 mdb Exp $";
 #include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
+#include <string.h>
 
 #ifndef	major
 #	include <sys/sysmacros.h>
@@ -333,7 +334,6 @@ void	linkalso();
 Link	*linkfrom();
 void	linkleft();
 Link	*linkto();
-void	memcpy();
 char	*memget();
 char	*memstr();
 int	mkdir();
@@ -383,8 +383,6 @@ int	xwait();
  * External variables.
  */
 extern int	errno;		/* System error code */
-extern char	*sys_errlist[];	/* System error messages */
-extern int	sys_nerr;	/* Number of sys_errlist entries */
 
 /*
  * Static variables.
@@ -2511,15 +2509,11 @@ uint		len;
  *
  * Return pointer to appropriate system error message.
  */
-STATIC char *
+char *
 syserr()
 {
-	static char	msg[40];
 
-	if (errno > 0 && errno < sys_nerr)
-		return (sys_errlist[errno]);
-	VOID sprintf(msg, "Unknown error (errno %d)", errno);
-	return (msg);
+	return (strerror(errno));
 }
 
 /*

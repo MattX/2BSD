@@ -516,15 +516,7 @@ char *
 errmsg(code)
 int code;
 {
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	static char ebuf[6+5+1];
-
-	if (code > sys_nerr || code < 0) {
-		(void) sprintf(ebuf, "Error %d", code);
-		return ebuf;
-	} else
-		return sys_errlist[code];
+	return(strerror(code));
 }
 
 /*

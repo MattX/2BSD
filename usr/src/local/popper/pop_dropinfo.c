@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char copyright[] = "Copyright (c) 1990 Regents of the University of California.\nAll rights reserved.\n";
-static char SccsId[] = "@(#)@(#)pop_dropinfo.c	2.1  2.1 3/18/91";
+static char SccsId[] = "@(#)@(#)pop_dropinfo.c	2.1.1  (2.11BSD) 1996/3/21";
 #endif not lint
 
 #include <errno.h>
@@ -16,10 +16,6 @@ static char SccsId[] = "@(#)@(#)pop_dropinfo.c	2.1  2.1 3/18/91";
 #include <sys/stat.h>
 #include <sys/file.h>
 #include "popper.h"
-
-extern int      errno;
-extern int      sys_nerr;
-extern char    *sys_errlist[];
 
 /* 
  *  dropinfo:   Extract information about the POP maildrop and store 

@@ -4,8 +4,8 @@
  * profit and the author is credited appropriately.
  */
 
-#ifndef lint
-static char *RCSid = "$Header: /am/sol/src/common/usc/lib/libgen/RCS/options.c,v 1.13 90/12/15 18:13:28 mcooper Exp $";
+#if	!defined(lint) && defined(DOSCCS)
+static char *RCSid = "$Header: options.c,v 1.13.1 96/3/23 18:13:28 sms Exp $";
 #endif
 
 /*
@@ -427,7 +427,7 @@ OptStr(opt, value, docopy)
 
     if (docopy) {
 	if ((p = (char *) malloc((unsigned)strlen(value)+1)) == NULL) {
-	    UserError("Cannot malloc memory: %s", SYSERR);
+	    UserError("Cannot malloc memory.");
 	    return(FALSE);
 	}
 	(void) strcpy(p, value);

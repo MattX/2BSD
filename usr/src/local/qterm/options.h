@@ -5,7 +5,7 @@
  */
 
 /*
- * $Header: /am/sol/src/common/usc/lib/libgen/RCS/options.h,v 1.7 90/12/15 18:13:30 mcooper Exp $
+ * $Header: RCS/options.h,v 1.7.1 96/3/23 18:13:30 sms Exp $
  *
  * $Log:	options.h,v $
  * Revision 1.7  90/12/15  18:13:30  mcooper
@@ -40,9 +40,6 @@
 #define HELPSTR		"-help"
 #define __		(caddr_t)
 
-#ifndef SYSERR
-#define SYSERR		sys_errlist[errno]
-#endif
 #ifndef TRUE
 #define TRUE	1
 #endif

@@ -4,7 +4,7 @@
  * specifies the terms and conditions for redistribution.
  *
  * static char copyright[] = "Copyright (c) 1990 Regents of the University of California.\nAll rights reserved.\n";
- * static char SccsId[] = "@(#)@(#)popper.h	2.2.1  (2.11BSD) 6/11/94";
+ * static char SccsId[] = "@(#)@(#)popper.h	2.2.2  (2.11BSD) 1996/3/21";
  *
  */
 
@@ -56,8 +56,6 @@
 #define POP_TERMINATE   '.'
 
 extern int              errno;
-extern int              sys_nerr;
-extern char         *   sys_errlist[];
 extern char         *   sys_siglist[];
 
 #define pop_command         pop_parm[0]     /*  POP command is first token */

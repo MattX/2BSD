@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char copyright[] = "Copyright (c) 1990 Regents of the University of California.\nAll rights reserved.\n";
-static char SccsId[] = "@(#)@(#)pop_dropcopy.c	2.6  2.6 4/3/91";
+static char SccsId[] = "@(#)@(#)pop_dropcopy.c	2.6.1  (2.11BSD) 1996/3/21";
 #endif not lint
 
 #include <errno.h>
@@ -17,10 +17,6 @@ static char SccsId[] = "@(#)@(#)pop_dropcopy.c	2.6  2.6 4/3/91";
 #include <sys/file.h>
 #include <pwd.h>
 #include "popper.h"
-
-extern int      errno;
-extern int      sys_nerr;
-extern char    *sys_errlist[];
 
 /* 
  *  dropcopy:   Make a temporary copy of the user's mail drop and 
@@ -62,7 +58,7 @@ struct passwd	*	pwp;
     if ( (tf=fopen(template,"w+")) == NULL ) {	/* failure, bail out	*/
         pop_log(p,POP_PRIORITY,
             "Unable to create temporary temporary maildrop '%s': %s",template,
-                (errno < sys_nerr) ? sys_errlist[errno] : "") ;
+                strerror(errno));
         return pop_msg(p,POP_FAILURE,
 		"System error, can't create temporary file.");
     }
@@ -92,7 +88,7 @@ struct passwd	*	pwp;
     if ((dfd = open(p->temp_drop,O_RDWR|O_APPEND|O_CREAT,0600)) == -1){
         pop_log(p,POP_PRIORITY,
             "Unable to open temporary maildrop '%s': %s",p->temp_drop,
-                (errno < sys_nerr) ? sys_errlist[errno] : "") ;
+                strerror(errno));
         return pop_msg(p,POP_FAILURE,
 		"System error, can't open temporary file, do you own it?");
     }
@@ -106,7 +102,7 @@ struct passwd	*	pwp;
             /* NOTREACHED */
         default:
             return pop_msg(p,POP_FAILURE,"flock: '%s': %s", p->temp_drop,
-                (errno < sys_nerr) ? sys_errlist[errno] : "");
+                strerror(errno));
             /* NOTREACHED */
         }
     
@@ -120,7 +116,7 @@ struct passwd	*	pwp;
         if (flock (mfd,LOCK_EX) == -1) {
             (void)close(mfd) ;
             return pop_msg(p,POP_FAILURE, "flock: '%s': %s", p->temp_drop,
-                (errno < sys_nerr) ? sys_errlist[errno] : "");
+                strerror(errno));
         }
 
         /*  Copy the actual mail drop into the temporary mail drop */

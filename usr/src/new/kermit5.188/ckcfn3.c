@@ -17,6 +17,7 @@
 #include "ckcasc.h"
 #include "ckcker.h"
 #include "ckcxla.h"
+#include <errno.h>
 
 extern int unkcs, wmax, wcur, discard, bctu, bctl, local, fdispla;
 extern CHAR *data;
@@ -1226,14 +1227,10 @@ opena(f,zz) char *f; struct zattr *zz; {
 
     } else {				/* Did not open file OK. */
 #ifdef ATTSV
-	extern char *sys_errlist[];
-	extern int errno;
-	screen(SCR_EM,0,0l,sys_errlist[errno]);
+	screen(SCR_EM,0,0l,strerror(errno));
 #else
 #ifdef BSD4
-	extern char *sys_errlist[];
-	extern int errno;
-	screen(SCR_EM,0,0l,sys_errlist[errno]);
+	screen(SCR_EM,0,0l,strerror(errno));
 #else
 	screen(SCR_EM,0,0l,"Can't open output file");
 #endif /* BSD4 */
