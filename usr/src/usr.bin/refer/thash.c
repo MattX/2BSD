@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)thash.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)thash.c	4.1.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include <stdio.h>
@@ -7,7 +7,7 @@ static char *sccsid = "@(#)thash.c	4.1 (Berkeley) 5/6/83";
 
 int nh 500;
 int saw[6000];
-char *comname "/usr/lib/eign";
+char *comname "/usr/share/misc/eign";
 
 main (argc,argv)
 char *argv[];

@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)svt6.c	4.1 6/7/82";
-#endif lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)svt6.c	4.1.1 (2.11BSD) 1996/10/23";
+#endif
 
 #include "tdef.h"
 extern
@@ -52,7 +52,7 @@ extern int lss1;
 extern int vflag;
 extern int ch0;
 extern int lg;
-char fontfile[] = "/usr/lib/font/ftXX";
+char fontfile[] = "/usr/share/font/ftXX";
 int ffi = 16;
 extern int bd;
 extern int level;

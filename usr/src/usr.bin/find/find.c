@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)find.c	4.17.2 (2.11BSD GTE) 4/21/94";
+static char *sccsid = "@(#)find.c	4.17.3 (2.11BSD GTE) 1996/10/23";
 #endif
 
 #include <stdio.h>
@@ -59,7 +59,7 @@ char *sbrk();
  *		NASA Ames Research Center, 6/81.
  *
  *		The second form searches a pre-computed filelist
- *		(constructed nightly by /usr/lib/crontab) which is
+ *		(constructed nightly by 'cron') which is
  *		compressed by updatedb (v.i.z.)  The effect of
  *			find <name>
  *		is similar to
@@ -817,7 +817,7 @@ again:
  * provided in the standard 'find'.
  */
 
-#define	FCODES 	"/usr/lib/find/find.codes"
+#define	FCODES 	"/var/db/find.codes"
 #define	YES	1
 #define	NO	0
 #define	OFFSET	14

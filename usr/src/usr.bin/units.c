@@ -1,9 +1,12 @@
-static char *sccsid = "@(#)units.c	4.1 (Berkeley) 10/1/80";
+#if	!defined(lint)
+static char *sccsid = "@(#)units.c	4.1.1 (2.11BSD) 1996/10/23";
+#endif
+
 #include <stdio.h>
 
 #define	NDIM	10
 #define	NTAB	601
-char	*dfile	= "/usr/lib/units";
+char	*dfile	= "/usr/share/misc/units";
 char	*unames[NDIM];
 double	getflt();
 int	fperr();

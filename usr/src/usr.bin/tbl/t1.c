@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)t1.c	4.2 8/11/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)t1.c	4.2.1 (2.11BSD) 1996/10/23";
 #endif
 
  /* t1.c: main control and input switching */
@@ -13,8 +13,8 @@ extern FILE *_f[];
 # endif
 
 # ifdef unix
-# define MACROS "/usr/lib/tmac.s"
-# define PYMACS "/usr/lib/tmac.m"
+# define MACROS "/usr/share/tmac/tmac.s"
+# define PYMACS "/usr/share/tmac/tmac.m"
 # endif
 
 # ifdef gcos

@@ -1,12 +1,13 @@
-static char *sccsid = "@(#)ptx.c	4.2 (Berkeley) 9/23/85";
-#
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)ptx.c	4.2.1 (2.11BSD) 1996/10/23";
+#endif
 
 /*	permuted title index
 	ptx [-t] [-i ignore] [-o only] [-w num] [-f] [input] [output]
 	Ptx reads the input file and permutes on words in it.
 	It excludes all words in the ignore file.
 	Alternately it includes words in the only file.
-	if neither is given it excludes the words in /usr/lib/eign.
+	if neither is given it excludes the words in /usr/share/misc/eign.
 
 	The width of the output line can be changed to num
 	characters.  If omitted 72 is default unless troff than 100.
@@ -20,7 +21,7 @@ static char *sccsid = "@(#)ptx.c	4.2 (Berkeley) 9/23/85";
 #include <stdio.h>
 #include <ctype.h>
 #include <signal.h>
-#define DEFLTX "/usr/lib/eign"
+#define DEFLTX "/usr/share/misc/eign"
 #define TILDE 0177
 #define SORT "/usr/bin/sort"
 #define	N 30

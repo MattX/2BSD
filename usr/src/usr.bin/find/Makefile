@@ -1,8 +1,7 @@
-#	@(#)Makefile	4.3	(Berkeley)	85/06/01
+#	@(#)Makefile	4.3.1	(2.11BSD)	1996/10/23
 #
 DESTDIR=
 CFLAGS=	-O
-LFLAGS=	
 SEPFLAG= -i
 
 # The programs themselves
@@ -16,55 +15,26 @@ SRCS=	find.c bigram.c code.c
 
 all: ${PROG} ${LIBS}
 
-find: find.c
-	cc ${SEPFLAG} ${CFLAGS} -o find find.c
+find: find.o
+	cc ${SEPFLAG} ${CFLAGS} -o find find.o
 
-bigram: bigram.c
-	cc ${SEPFLAG} ${CFLAGS} -o bigram bigram.c
+bigram: bigram.o
+	cc ${SEPFLAG} ${CFLAGS} -o bigram bigram.o
 
-code: code.c
-	cc ${SEPFLAG} ${CFLAGS} -o code code.c
+code: code.o
+	cc ${SEPFLAG} ${CFLAGS} -o code code.o
 
 install: ${PROG} ${LIBS}
-	install -s ${PROG} ${DESTDIR}/usr/bin/${PROG}
-	-mkdir ${DESTDIR}/usr/lib/find
-	install -s bigram ${DESTDIR}/usr/lib/find/bigram
-	install -s code ${DESTDIR}/usr/lib/find/code
-	install -c -m 755 updatedb.csh ${DESTDIR}/usr/lib/find/updatedb
+	install -s -m 755 ${PROG} ${DESTDIR}/usr/bin/${PROG}
+	-mkdir ${DESTDIR}/var/db ${DESTDIR}/usr/libexec/find
+	chmod 755 ${DESTDIR}/usr/libexec/find ${DESTDIR}/var/db
+	install -s -m 755 bigram ${DESTDIR}/usr/libexec/find/bigram
+	install -s -m 755 code ${DESTDIR}/usr/libexec/find/code
+	install -c -m 755 updatedb.csh ${DESTDIR}/usr/libexec/find/updatedb
 
 clean:
-	rm -f a.out core ${LIBS} ${PROG}
+	rm -f *.o a.out core ${LIBS} ${PROG}
 
 depend:
-	cat </dev/null >x.c
-	for i in ${SRCS}; do \
-		(echo `basename $$i .c`.o: $$i >>makedep; \
-		/bin/grep '^#[ 	]*include' x.c $$i | sed \
-			-e 's,<\(.*\)>,"/usr/include/\1",' \
-			-e 's/:[^"]*"\([^"]*\)".*/: \1/' \
-			-e 's/\.c/.o/' >>makedep); done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep x.c
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
-
-# DO NOT DELETE THIS LINE -- make depend uses it
-
-find.o: find.c
-find.o: /usr/include/stdio.h
-find.o: /usr/include/sys/param.h
-find.o: /usr/include/sys/dir.h
-find.o: /usr/include/sys/stat.h
-find.o: /usr/include/signal.h
-bigram.o: bigram.c
-bigram.o: /usr/include/stdio.h
-code.o: code.c
-code.o: /usr/include/stdio.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+	chmod u+w Makefile
+	mkdep ${CFLAGS} ${SRCS}

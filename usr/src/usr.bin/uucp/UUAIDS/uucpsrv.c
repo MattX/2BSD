@@ -35,7 +35,7 @@ char **argv;
 	}
 	close(0); close(1);
 	dup(fd); dup(fd);
-	execl("/usr/lib/uucp/uucico", "uucico", (char *)0);
+	execl("/usr/sbin/uucico", "uucico", (char *)0);
 	perror("uucico server: execl");
 	exit(1);
 }

@@ -1,4 +1,4 @@
-#	@(#)Makefile	4.3	5/25/83
+#	@(#)Makefile	4.3.1 (2.11BSD)	1996/10/23
 
 CFLAGS= -O
 SEPFLAG= -i
@@ -6,7 +6,7 @@ SEPFLAG= -i
 all:	spell hlist hlista hlistb hstop spellin spellout
 
 install:	all
-	install -s spell $(DESTDIR)/usr/lib
+	install -s spell $(DESTDIR)/usr/libexec
 	install -s spellin ${DESTDIR}/usr/bin
 	install -s spellout ${DESTDIR}/usr/bin
 	install -c hlista $(DESTDIR)/usr/dict

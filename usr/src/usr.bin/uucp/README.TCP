@@ -18,8 +18,8 @@ Add a line in /etc/services that looks like:
 uucp		540/tcp		uucpd
 
 Add lines to /etc/rc.local that looks something like:
-if [ -f /etc/uucpd ]; then
-	/etc/uucpd & echo -n ' uucpd'				>/dev/console
+if [ -f /usr/libexec/uucpd ]; then
+	/usr/libexec/uucpd & echo -n ' uucpd'		>/dev/console
 fi
 
 The L.sys entry should look something like:

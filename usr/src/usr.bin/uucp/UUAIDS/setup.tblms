@@ -77,8 +77,8 @@ That way uucp will identified as UUCP in mail messages, etc.,
 which highlights the fact that the messages are machine generated.
 Here are typical lines:
 .DS L
-UUCP:iPkI/ZUX3YX2Y:4:19::/usr/spool/uucppublic:/usr/lib/uucp/uucico
-uucp:iPkI/ZUX3YX2Y:4:19::/usr/spool/uucppublic:/usr/lib/uucp/uucico
+UUCP:iPkI/ZUX3YX2Y:4:19::/usr/spool/uucppublic:/usr/sbin/uucico
+uucp:iPkI/ZUX3YX2Y:4:19::/usr/spool/uucppublic:/usr/sbin/uucico
 .DE
 .NH 1
 Installing uucp programs
@@ -87,7 +87,7 @@ To install uucp, read the INSTALL file in the uucp directory
 and follow the instructions.
 It references other documentation, which should also be read.
 .NH 1
-Files in /usr/lib/uucp
+Files in /etc/uucp
 .PP
 All of these files should have the uid and gid of uucp,
 and should not be readable (or writable) by others.
@@ -105,7 +105,7 @@ that the duke system uses login name Uduke
 and can access the public directory.
 Here is a typical "Uduke" line in /etc/passwd:
 .DS L
-Uduke:PSB8EZ5w2tQ4I:4:19::/usr/spool/uucppublic:/usr/lib/uucp/uucico
+Uduke:PSB8EZ5w2tQ4I:4:19::/usr/spool/uucppublic:/usr/sbin/uucico
 .DE
 This line differs from that for uucp
 only in having a different login name and password.
@@ -182,12 +182,12 @@ Duke runs several shell files via cron(8).
 These are in uuaids/uu.*.
 Systems which call Duke should run the following script occasionally:
 .DS
-/usr/lib/uucp/uucico -r1 -sduke
+/usr/sbin/uucico -r1 -sduke
 .DE
 Systems which call-out can
 request uucp to transmit waiting files:
 .DS
-/usr/lib/uucp/uucico -r1
+/usr/sbin/uucico -r1
 .DE
 The standard version of cron runs with uid "daemon"
 which may not be able to run the cleanup or uucico scripts.

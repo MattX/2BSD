@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)lookbib.c	4.4.1 (2.11BSD GTE) 1/1/94";
+static char *sccsid = "@(#)lookbib.c	4.4.2 (2.11BSD GTE) 1996/10/23";
 #endif
 
 #include <stdio.h>
@@ -9,7 +9,7 @@ main(argc, argv)	/* look in biblio for record matching keywords */
 int argc;
 char **argv;
 {
-	FILE *fp, *hfp, *fopen(), *popen();
+	FILE *fp, *hfp;
 	char s[BUFSIZ], hunt[64], *sprintf();
 	int instructions = 1;
 
@@ -44,7 +44,7 @@ char **argv;
 			exit(1);
 		}
 	}
-	sprintf(hunt, "/usr/lib/refer/hunt %s", argv[1]);
+	sprintf(hunt, "/usr/libexec/refer/hunt %s", argv[1]);
 
 	if (instructions && isatty(fileno(fp)))
 	{
@@ -61,7 +61,7 @@ char **argv;
 			goto again;
 		if ((hfp = popen(hunt, "w")) == NULL)
 		{
-			perror("lookbib: /usr/lib/refer/hunt");
+			perror("lookbib: /usr/libexec/refer/hunt");
 			exit(1);
 		}
 		map_lower(s);

@@ -1,10 +1,10 @@
-#ifndef lint
-static char *sccsid = "@(#)mkey1.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)mkey1.c	4.1.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include <stdio.h>
 
-extern char *comname;	/* "/usr/lib/eign" */
+extern char *comname;	/* "/usr/share/misc/eign" */
 int wholefile = 0;
 int keycount = 100;
 int labels = 1;

@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)copy.c	4.3	(Berkeley)	5/15/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)copy.c	4.3.1	(2.11BSD)	1996/10/23";
+#endif
 
 #include "stdio.h"
 #include "signal.h"
@@ -210,7 +210,7 @@ FILE *fin;
 			if (!logging)
 				break;
 			if (logf[0] == 0)
-				sprintf(logf, "%s/log/%s", direct, sname);
+				sprintf(logf, "%s/%s", LOGDIR, sname);
 			f = fopen((r ? r : logf), "a");
 			if (f == NULL)
 				break;

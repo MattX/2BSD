@@ -3,12 +3,10 @@
 : If you do not have them, delete the '-d....' options below.
 : someone should use shell variables to do this
 : Much better to have subdirectories, however.
-PATH=:/bin:/usr/bin:/usr/ucb
-cd /usr/lib/uucp
+PATH=/bin:/usr/bin:/usr/sbin:/usr/ucb
 #
 umask 2
 deadtime=`expr 24 \* 7`
-cd /usr/lib/uucp
 (
 uuclean -pLTMP. -n24
 uuclean -p/usr/spool/uucp/STST -n24
@@ -22,7 +20,7 @@ uuclean -d/usr/spool/uucp/D.`uuname -l` -pD. -n$deadtime
 uuclean -d/usr/spool/uucp/D.`uuname -l`X -pD. -n$deadtime
 ) >/dev/null 2>&1
 
-/usr/lib/uucp/uucpsummary | /usr/ucb/Mail -s "UUCP Summary" uucplist
+/etc/uucp/uucpsummary | /usr/ucb/Mail -s "UUCP Summary" uucplist
 cd /usr/spool/uucp
 #
 # Ma Bell's uudemon.day saves a week's worth of log file information;

@@ -1,5 +1,5 @@
 INSTALLATION GUIDE
-README	5.6	85/06/24
+README	5.6.1 (2.11BSD)	1996/10/23
 
 This version is based on the "rti uucp" that was on the 4.2BSD tape.
 It contains many additional  features and fixes from Usenet,
@@ -34,7 +34,7 @@ is as close to a standard uucp as there is. Sites which have sitenames
 longer than 7 characters that only send you the first 7 characters are
 broken and should be fixed. However, there is a way of compensating for
 this until they fix their problem. For each site you talk to that has a
-name longer that 7 characters, put a line in /usr/lib/uucp/L.aliases of
+name longer that 7 characters, put a line in /etc/uucp/L.aliases of
 the form:
 	fullname name-truncated-to-7-characters.
 E.g:
@@ -65,7 +65,7 @@ Dialers			Lots of dialers included.
 Subdirectories		/usr/spool/uucp is now split into 7 subdirectories.
 			This is a huge help on busy systems.
 
-/usr/lib/uucp/L.cmds	List of commands permitted for remote execution.
+/etc/uucp/L.cmds	List of commands permitted for remote execution.
 			A line of form 'PATH=...' sets the search path.
 
 expect-send sequence	Escape characters now permitted: \r, \n.
@@ -100,11 +100,9 @@ Some steps will vary slightly from system to system.
 	do
 		cp $i $i.old
 	done					(csh: end )
-	cd /usr/lib/uucp
-	for i in uucico uuxqt uuclean
-	do
-		cp $i $i.old
-	done
+	cp -p /usr/sbin/uucico /usr/sbin/uucico.old
+	cp -p /usr/libexec/uuxqt /usr/libexec/uuxqt.old
+	cp -p /usr/sbin/uuclean /usr/sbin/uuclean.old
 
 2. Editing Makefile and uucp.h
 	4.2 sites using the supported dialers are all set with defaults.
@@ -133,7 +131,7 @@ Some steps will vary slightly from system to system.
 	(If you are chicken, type 'make -n install' first).
 
 6. Edit and install the control files:
-	Look in UUAIDS.  Edit and install into /usr/lib/uucp if necessary
+	Look in UUAIDS.  Edit and install into /etc/uucp if necessary
 	USERFILE, L.cmds, L.sys, L-devices, L-dialcodes.
 	THESE FILES MUST BE OWNED BY THE SAME OWNER AND GROUP AS
 	THE UUCP COMMANDS AND UUCP SPOOL FILES!!! (probably uucp, daemon).
@@ -146,7 +144,7 @@ Some steps will vary slightly from system to system.
 	make mkdirs
 		If your system is duke, then the subdirectories created are
 		named C., D., D.duke, D.dukeX, TM., XTMP and X..
-	rmdir /usr/lib/uucp/.XQTDIR
+	rmdir /etc/uucp/.XQTDIR
 		which is obsolete (XTMP replaces it).
 
 8. Move old Qed files:
@@ -183,7 +181,7 @@ Some steps will vary slightly from system to system.
 	Test by mailing a letter somewhere and back.
 	If it works, the new system is probably fine.
 	Otherwise, figure out what is wrong.
-	Start by examining LOGFILE.  Try /usr/lib/uucp/uucico -r1 -sname -x7
+	Start by examining LOGFILE.  Try /usr/sbin/uucico -r1 -sname -x7
 	If things are no-go, you can back out the changes by restoring the
 	old uu programs and the spooled files.
 	NOTE: The subdirectories foul up a non-subdir version,

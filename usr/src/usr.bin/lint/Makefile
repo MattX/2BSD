@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	1.14	(2.11BSD GTE)	1/17/95
+#	@(#)Makefile	1.15	(2.11BSD GTE)	1996/10/23
 #
 M=/usr/src/lib/mip
 P=/usr/src/lib/pcc
@@ -8,7 +8,7 @@ XSTR=	/usr/ucb/xstr
 MKSTR=	/usr/ucb/mkstr
 
 # turn off the debugging to save string space
-STRINGS=\"/usr/lib/lint/lintstrings\"
+STRINGS=\"/usr/share/misc/lintstrings\"
 CFLAGS=-O -I$M -I. -DBUG1 -DBUG2 -DBUG3 -DBUG4 -DSTRINGFILE=${STRINGS}
 LFLAGS=-i
 
@@ -106,13 +106,15 @@ lintall:
 		common.c pftn.c trees.c optim.c hash.c lint.c
 
 install: all SHELL
-	install -c -m 755 -s lpass1 ${DESTDIR}/usr/lib/lint/lint1
-	install -c -m 755 -s lpass2 ${DESTDIR}/usr/lib/lint/lint2
-	install -c -m 444 lintstrings ${DESTDIR}/usr/lib/lint/lintstrings
+	-mkdir ${DESTDIR}/usr/libexec/lint
+	chmod 755 ${DESTDIR}/usr/libexec/lint
+	install -c -m 755 -s lpass1 ${DESTDIR}/usr/libexec/lint/lint1
+	install -c -m 755 -s lpass2 ${DESTDIR}/usr/libexec/lint/lint2
+	install -c -m 444 lintstrings ${DESTDIR}/usr/share/misc/lintstrings
 	./libs
-	-rm -f ${DESTDIR}/usr/lib/lint/llib-ltermlib*
-	ln -s llib-ltermcap ${DESTDIR}/usr/lib/lint/llib-ltermlib
-	ln -s llib-ltermcap.ln ${DESTDIR}/usr/lib/lint/llib-ltermlib.ln
+	-rm -f ${DESTDIR}/usr/share/lint/llib-ltermlib*
+	ln -s llib-ltermcap ${DESTDIR}/usr/share/lint/llib-ltermlib
+	ln -s llib-ltermcap.ln ${DESTDIR}/usr/share/lint/llib-ltermlib.ln
 	install -c SHELL ${DESTDIR}/usr/bin/lint
 
 clean:

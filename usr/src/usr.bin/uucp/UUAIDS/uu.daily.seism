@@ -1,10 +1,8 @@
-PATH=:/bin:/usr/bin:/usr/ucb
-cd /usr/lib/uucp
+PATH=/bin:/usr/sbin:/usr/bin:/usr/ucb
 #
 umask 2
 # give them 7 days to get through
 deadtime=`expr 24 \* 7`
-cd /usr/lib/uucp
 (
 uuclean -d/usr/spool/uucp/LCK -n24
 uuclean -d/usr/spool/uucp/STST -n24
@@ -20,7 +18,7 @@ uuclean -d/usr/spool/uucp/D.`uuname -l`X -pD. -n$deadtime
 ) >/dev/null 2>&1
 
 cd /usr/spool/uucp
-/usr/lib/uucp/uucpsummary | /usr/ucb/Mail -s "UUCP Summary" uucplist
+/etc/uucp/uucpsummary | /usr/ucb/Mail -s "UUCP Summary" uucplist
 
 cd /usr/spool/uucp/LOG
 for i in uucico uux uuxqt uucp xferstats

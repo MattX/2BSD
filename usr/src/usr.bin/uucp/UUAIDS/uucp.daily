@@ -2,7 +2,7 @@
 : '/*********************************************************************
 	uucp.daily
    
-	Sccsid=@(#)uucp.daily	1.1
+	Sccsid=@(#)uucp.daily	1.1.1 (2.11BSD) 1996/10/25
 
 	usage:
 		Called from cron in the wee early hours of the morning
@@ -18,15 +18,13 @@
 : 'daily UUCP cleanup'
 : 'called in the morning'
 
-uulib=/usr/lib/uucp
 spool=/usr/spool/uucp
 olddir="$spool/OLD"
-b=/usr/local/lib
 PATH="/usr/new:/usr/ucb:/usr/local:/bin:/usr/bin" ; export PATH
 
-uulog
-$uulib/uuclean -m -p LCK. -p X. -p D. -p C. -p TM.
-$uulib/uuclean -p STST. -n 12
+/usr/bin/uulog
+/usr/sbin/uuclean -m -p LCK. -p X. -p D. -p C. -p TM.
+/usr/sbin/uuclean -p STST. -n 12
 
 set `date`
 day=$1

@@ -1,4 +1,4 @@
-#	Makefile	5.11.1 (2.11BSD GTE)	94/12/22
+#	Makefile	5.11.2 (2.11BSD GTE)	1996/10/24
 #
 # LIBS can be set to reference other object modules and libraries needed
 # by uucico, such as -lunet (needed when UNET is defined).
@@ -38,9 +38,9 @@ LDFLAGS=
 SEPFLAG= -i
 LINTFLAGS= -chba
 LIBS= 
-LIBDIR=	${DESTDIR}/usr/lib/uucp
+SBINDIR=	${DESTDIR}/usr/sbin
+LIBEXECDIR=	${DESTDIR}/usr/libexec
 BIN=	${DESTDIR}/usr/bin
-ETC=	${DESTDIR}/etc
 PUBDIR=	${DESTDIR}/usr/spool/uucppublic
 SPOOL=	${DESTDIR}/usr/spool/uucp
 XQTDIR=	${SPOOL}/XTMP
@@ -124,11 +124,8 @@ uuq: uuq.o uulib.a
 acucntrl: acucntrl.o
 	${CC} -o acucntrl ${SEPFLAG} ${LDFLAGS} acucntrl.o ${LIBS}
 
-# Note: mode 700 on ${LIBDIR} would be safer.
-# Also,  L.sys etc should be 600.
-
 mkdirs:
-	-for i in ${LIBDIR} ${SPOOL} ${PUBDIR} ${XQTDIR} ${CORRUPT} \
+	-for i in ${SPOOL} ${PUBDIR} ${XQTDIR} ${CORRUPT} \
 		${AUDIT} ${LCK} ${LOG} ${STST} ; do \
 		rm -f $$i ; mkdir $$i ; \
 		chmod 755 $$i; /etc/chown ${OWNER} $$i; chgrp ${GROUP} $$i ; \
@@ -151,23 +148,20 @@ uulib.a: ${COMMON}
 aculib/aculib.a:
 	cd aculib; make ${MFLAGS} "CFLAGS=${CFLAGS}"
 
-install: ${ALL}
-	/etc/chown ${OWNER} ${LIBDIR}
-	chgrp ${GROUP} ${LIBDIR}
-	chmod 755 ${LIBDIR}
+install: mkdirs ${ALL}
 	for i in uucico uuclean; do \
-		install -s -m 6111 -o ${OWNER} -g ${GROUP} $$i ${LIBDIR} ;\
+		install -s -m 6111 -o ${OWNER} -g ${GROUP} $$i ${SBINDIR} ;\
 	done
 	for i in uucp uux uulog uuname uusnap uupoll uuq uusend; do \
 		install -s -m 6111 -o ${OWNER} -g ${GROUP} $$i ${BIN} ;\
 	done
 	rm -f ${BIN}/ruusend
 	ln ${BIN}/uusend ${BIN}/ruusend
-	install -s -m 6110 -o ${OWNER} -g ${GROUP} uuxqt ${LIBDIR}
-	install -s -m 6110 -o root -g ${GROUP} acucntrl ${LIBDIR}
-	install -s -m 500 -o uucp uucpd ${ETC}
-	@echo Dont forget to fork off /etc/uucpd in /etc/rc.local
-	@echo if you are not running /etc/inetd
+	install -s -m 6110 -o ${OWNER} -g ${GROUP} uuxqt ${LIBEXECDIR}
+	install -s -m 6110 -o root -g ${GROUP} acucntrl ${LIBEXECDIR}
+	install -s -m 500 -o uucp uucpd ${LIBEXECDIR}
+	@echo Dont forget to fork off /usr/libexec/uucpd in /etc/rc.local
+	@echo if you are not running 'inetd'
 	install -s uuencode ${BIN}
 	install -s uudecode ${BIN}
 

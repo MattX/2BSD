@@ -1,14 +1,13 @@
-#ifndef lint
-static char *sccsid = "@(#)mkey3.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)mkey3.c	4.1.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include <stdio.h>
 #define COMNUM 500
 #define COMTSIZE 997
 
-char *comname = "/usr/lib/eign";
+char *comname = "/usr/share/misc/eign";
 static int cgate = 0;
-extern char *comname;
 int comcount = 100;
 static char cbuf[COMNUM*9];
 static char *cwds[COMTSIZE];

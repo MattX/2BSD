@@ -1,12 +1,12 @@
-#ifndef lint
-static char sccsid[] = "@(#)learn.c	4.4	(Berkeley)	5/15/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)learn.c	4.4.1	(2.11BSD)	1996/10/23";
+#endif
 
 #include "stdio.h"
 #include "lrnref.h"
 #include "signal.h"
 
-char	*direct	= "/usr/lib/learn";	/* CHANGE THIS ON YOUR SYSTEM */
+char	*direct	= "/usr/share/learn";	/* CHANGE THIS ON YOUR SYSTEM */
 int	more;
 char	*level;
 int	speed;

@@ -6,13 +6,13 @@ Important changes since 4.2:
 	the documented and dubious "hint" command.  Miscellaneous typos.
 
 Note that play directories are created in /tmp, no longer
-in /usr/lib/learn/play.  The C script is not complete;
+in /usr/share/learn/play.  The C script is not complete;
 use at your own risk.  The editor script still smacks of ed.
 
 Lessons are in (vi lessons are on user-contributed-software tape)
-	/usr/lib/learn/*
+	/usr/share/learn/*
 and auxilliary programs are in
-	/usr/lib/learn/bin
+	/usr/share/learn/bin
 
 Make a learn by
 	make

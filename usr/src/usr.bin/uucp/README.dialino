@@ -14,7 +14,7 @@ note of that --- and I don't have to buy two 2400 baud modems to have two-way
 2400 baud capability.
 
 The key to this is a program is provided in the file acucntrl.c .  This should
-be installed suid to root in the file /usr/lib/uucp/acucntrl .
+be installed suid to root in the file /usr/libexec/acucntrl .
 
 
 uucp notes:

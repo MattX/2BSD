@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)n10.c	4.2 4/17/85";
-#endif lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)n10.c	4.2.1 (2.11BSD) 1996/10/23";
+#endif
 
 #include "tdef.h"
 #include <sgtty.h>
@@ -50,7 +50,7 @@ ptinit(){
 	int x[8];
 	extern char *setbrk();
 
-	if(((i=open(termtab,0)) < 0) && (i=open("/usr/lib/term/tablpr",0)) < 0){
+	if(((i=open(termtab,0)) < 0) && (i=open("/usr/share/term/tablpr",0)) < 0){
 		prstr("Cannot open ");
 		prstr(termtab);
 		prstr("\n");

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)lmain.c	4.3 (Berkeley) 2/21/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)lmain.c	4.3.1 (2.11BSD) 1996/10/23";
 #endif
 
 # include "ldefs.c"
@@ -100,7 +100,7 @@ main(argc,argv)
 # ifdef DEBUG
 	free3core();
 # endif
-	if (ZCH>NCH) cname="/usr/lib/lex/ebcform";
+	if (ZCH>NCH) cname="/usr/libdata/lex/ebcform";
 	fother = fopen(ratfor?ratname:cname,"r");
 	if(fother == NULL)
 		error("Lex driver missing, file %s",ratfor?ratname:cname);

@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)ni.c	4.2 9/15/87";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)ni.c  4.2.1  (2.11BSD) 1996/10/23";
 #endif lint
 
 #include "tdef.h"
@@ -23,11 +23,11 @@ int r[NN] = {
 int pto = 10000;
 int pfrom = 1;
 int print = 1;
-char nextf[NS] = "/usr/lib/tmac/tmac.xxxxx";
-int nfi = 19;
+char nextf[NS] = "/usr/share/tmac/tmac.xxxxx";
+int nfi = 21;
 #ifdef NROFF
-char termtab[NS] = "/usr/lib/term/tablpr";
-int tti = 17;
+char termtab[NS] = "/usr/share/term/tablpr";
+int tti = 19;
 #endif
 #ifndef NROFF
 int oldbits = -1;

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.7	(Berkeley)	6/18/87
+#	@(#)Makefile	4.7.1	(2.11BSD)	1996/10/23
 #
 # Possible options:
 #	make		compile source for all terminal tables below
@@ -12,7 +12,7 @@
 #	make clean	remove tab*.o files lying around
 CFLAGS=	-O
 LIBC=	/lib/libc.a
-DEST=	${DESTDIR}/usr/lib/term
+DEST=	${DESTDIR}/usr/share/term
 SRCS=	tab300-12.c tab300.c tab302-12.c tab302.c tab37.c tab382-12.c \
 	tab382.c tab450-12.c tab450.c tab833-12.c tab833.c tabepson.c \
 	tabitoh.c tabitoh12.c tablpr.c tabnec-t.c tabnec.c tabnec12.c \
@@ -62,8 +62,10 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${ALL}
+	-mkdir -p ${DEST}
+	chmod 755 ${DEST}
 	for file in tab*.o; do \
-		install -s -o bin -g bin -m 755 $$file ${DEST}/`basename $$file .o`; \
+		install -c -s -o bin -g bin -m 755 $$file ${DEST}/`basename $$file .o`; \
 	done
 	rm -f ${DEST}/tabtn300; ln ${DEST}/tablpr ${DEST}/tabtn300
 	rm -f ${DEST}/tabcrt; ln ${DEST}/tablpr ${DEST}/tabcrt

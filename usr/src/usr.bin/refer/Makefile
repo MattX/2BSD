@@ -1,4 +1,4 @@
-#	@(#)Makefile	4.5	(Berkeley)	84/06/05
+#	@(#)Makefile	4.5.1	(2.11BSD)	1996/10/23
 #
 DESTDIR=
 CFLAGS = -O
@@ -38,16 +38,18 @@ sortbib: sortbib.o
 	cc ${SEPFLAG} sortbib.o -o sortbib
 
 install: all /usr/dict/papers
-	install -s mkey $(DESTDIR)/usr/lib/refer
-	install -s inv  $(DESTDIR)/usr/lib/refer
-	install -s hunt $(DESTDIR)/usr/lib/refer
-	install -s refer $(DESTDIR)/usr/bin
-	install -s addbib $(DESTDIR)/usr/bin
-	install -s sortbib $(DESTDIR)/usr/bin
-	install -c roffbib.sh $(DESTDIR)/usr/bin/roffbib
-	install -c indxbib.sh $(DESTDIR)/usr/bin/indxbib
-	install -s lookbib $(DESTDIR)/usr/bin
-	install -c tmac.bib $(DESTDIR)/usr/lib/tmac
+	-mkdir -p ${DESTDIR}/usr/libexec/refer
+	chmod 755 ${DESTDIR}/usr/libexec/refer
+	install -s -m 755 mkey $(DESTDIR)/usr/libexec/refer
+	install -s -m 755 inv  $(DESTDIR)/usr/libexec/refer
+	install -s -m 755 hunt $(DESTDIR)/usr/libexec/refer
+	install -s -m 755 refer $(DESTDIR)/usr/bin
+	install -s -m 755 addbib $(DESTDIR)/usr/bin
+	install -s -m 755 sortbib $(DESTDIR)/usr/bin
+	install -c -m 755 roffbib.sh $(DESTDIR)/usr/bin/roffbib
+	install -c -m 755 indxbib.sh $(DESTDIR)/usr/bin/indxbib
+	install -s -m 755 lookbib $(DESTDIR)/usr/bin
+	install -c -m 444 tmac.bib $(DESTDIR)/usr/share/tmac
 	(cd /usr/dict/papers; /bin/sh runinv)
 
 clean:

@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-#	@(#)spell.sh	1.3	(Berkeley)	83/09/10
+#	@(#)spell.sh	1.3.1	(2.11BSD)	1996/10/23
 #
 : V data for -v, B flags, D dictionary, S stop, H history, F files, T temp
 V=/dev/null		B=			F= 
@@ -27,11 +27,11 @@ do
 done
 IFS=@
 case $H in
-/dev/null)	deroff -w $F | sort -u | /usr/lib/spell $S $T |
-		/usr/lib/spell ${D-/usr/dict/hlista} $V $B |
+/dev/null)	deroff -w $F | sort -u | /usr/libexec/spell $S $T |
+		/usr/libexec/spell ${D-/usr/dict/hlista} $V $B |
 		sort -u +0f +0 - $T ;;
-*)		deroff -w $F | sort -u | /usr/lib/spell $S $T |
-		/usr/lib/spell ${D-/usr/dict/hlista} $V $B |
+*)		deroff -w $F | sort -u | /usr/libexec/spell $S $T |
+		/usr/libexec/spell ${D-/usr/dict/hlista} $V $B |
 		sort -u +0f +0 - $T | tee -a $H
 		who am i >> $H 2> /dev/null ;;
 esac

@@ -5,7 +5,7 @@ BEGIN {
 	printf("\t       Calls     Minutes      Files          Bytes      Effective Unused\n")
 	printf("Site          To/From    To/From     To/From      Sent/Received  Baudrate Bwidth\n")
 E_O_F
-awk '$1 !~ /#/ && $1 !~ /xxx/{print $1,$3}' /usr/lib/uucp/L.sys | sort -u |
+awk '$1 !~ /#/ && $1 !~ /xxx/{print $1,$3}' /etc/uucp/L.sys | sort -u |
 sed 's/\(.*\) \(.*\)/	type["\1"] = "\2"/' >>/tmp/$$a
 cat <<'E_O_F' >>/tmp/$$a
 }

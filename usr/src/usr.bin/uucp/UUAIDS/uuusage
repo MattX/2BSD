@@ -4,7 +4,7 @@
 		Print summary of UUCP usage
 	Alan S. Watt
    
-	Sccsid=@(#)uuusage.sh	1.1
+	Sccsid=@(#)uuusage.sh	1.1.1 (2.11BSD) 1996/10/25
 
 	usage:
 		uuusage [-s] [-t] [period]
@@ -40,9 +40,8 @@
 : '	sbytes[sname] == bytes sent/received at request of sname'
 : '	stime[sname] == time spent at request of sname'
 
-libdir=/usr/lib/uucp
 uudir=/usr/spool/uucp
-uutbl=$libdir/uutbl
+uutbl=/usr/sbin/uutbl
 slogprefix="$uudir/OLD/SYSLOG"
 ologprefix="$uudir/OLD/UUUSAGE"
 month=

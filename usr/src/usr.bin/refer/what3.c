@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)what3.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)what3.c	4.1.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include "what..c"
@@ -28,7 +28,7 @@ char *argv[];
 		close(fpb[RD]); 
 		close(fpc[RD]); 
 		close(fpc[WR]); 
-		execl("/usr/lib/refer/mkey", "mkey", "-s", 0);
+		execl("/usr/libexec/refer/mkey", "mkey", "-s", 0);
 		_assert(0);
 	}
 	if (  (pid2 = fork()) == 0)
@@ -41,7 +41,7 @@ char *argv[];
 		close(fpa[WR]); 
 		close(fpb[WR]); 
 		close(fpc[RD]);
-		execl("/usr/lib/refer/hunt", "hunt",
+		execl("/usr/libexec/refer/hunt", "hunt",
 		/* "-P", */
 		coarg, "-Ty", "-Fn", "/usr/dict/lookall/All", 0);
 		_assert(0);

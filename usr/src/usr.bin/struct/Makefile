@@ -1,4 +1,4 @@
-#	Makefile	4.3	83/08/13
+#	Makefile	4.3.1 (2.11BSD)	1996/10/23
 #
 DESTDIR=
 CFLAGS=-O
@@ -28,9 +28,11 @@ SRCS = $(0FILES.c) $(1FILES.c) $(2FILES.c) \
 all:	structure beautify
 
 install: structure beautify struct
-	install -s structure $(DESTDIR)/usr/lib/struct/structure
-	install -s beautify $(DESTDIR)/usr/lib/struct/beautify
-	install -c struct $(DESTDIR)/usr/bin
+	-mkdir ${DESTDIR}/usr/libexec/struct
+	chmod 755 ${DESTDIR}/usr/libexec/struct
+	install -s -m 755 structure $(DESTDIR)/usr/libexec/struct/structure
+	install -s -m 755 beautify $(DESTDIR)/usr/libexec/struct/beautify
+	install -c -m 755 struct $(DESTDIR)/usr/bin
 clean:
 	rm -f *.o y.tab.h beauty.c structure beautify
 

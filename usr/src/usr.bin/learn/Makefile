@@ -3,13 +3,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.6.1	(2.11BSD)	1996/1/28
+#	@(#)Makefile	4.6.2	(2.11BSD)	1996/10/23
 #
 # Flag BSD4_2 means 4.2 or later.
-CFLAGS=	-O -DBSD4_2
+CFLAGS=	-O -DBSD4_2 -DLOGDIR=\"/var/log/learn\"
 SEPFLAG=-i
-LIBC=	/lib/libc.a
-LLIB=	${DESTDIR}/usr/lib/learn/bin
+LLIB=	${DESTDIR}/usr/share/learn/bin
 SRCS=	copy.c dounit.c getlesson.c learn.c list.c mem.c makpipe.c maktee.c \
 	mysys.c selsub.c selunit.c start.c whatnow.c wrapup.c
 OBJS=	copy.o dounit.o getlesson.o learn.o list.o mem.o makpipe.o maktee.o \
@@ -17,22 +16,25 @@ OBJS=	copy.o dounit.o getlesson.o learn.o list.o mem.o makpipe.o maktee.o \
 
 all: learn lrntee lcount
 
-learn: ${OBJS} ${LIBC}
+learn: ${OBJS}
 	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
-lcount: lcount.o ${LIBC}
+lcount: lcount.o
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lcount.o
 
-lrntee: lrntee.o ${LIBC}
+lrntee: lrntee.o
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ lrntee.o
 
 clean: FRC
 	rm -f *.o core learn lrntee lcount
 
 depend: FRC
+	chmod u+w Makefile
 	mkdep ${CFLAGS} ${SRCS} lcount.c lrntee.c
 
 install: all
+	-mkdir ${DESTDIR}/${LLIB}
+	chmod 755 ${DESTDIR}/${LLIB}
 	install -c -s -m 755 learn ${DESTDIR}/usr/bin/learn
 	install -s -m 755 learn ${LLIB}/learn
 	install -s -m 755 lrntee ${LLIB}/lrntee

@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)glue3.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)glue3.c	4.1.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include "refer..c"
@@ -27,7 +27,7 @@ char *in, *out, *rprog;
 		move (fr1, 0);
 		move (fw2, 1);
 		if (rprog[0]!= '/')
-			chdir("/usr/lib/refer");
+			chdir("/usr/libexec/refer");
 		execl(rprog, "deliv", arg, 0);
 		err ("Can't run %s", rprog);
 	}

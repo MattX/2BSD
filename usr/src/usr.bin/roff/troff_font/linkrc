@@ -1,4 +1,4 @@
-cd /usr/lib/font
+cd /usr/share/font
 rm ftH ftHI ftHM ftFD ftCI
 ln ftG ftH
 ln ftGI ftHI
