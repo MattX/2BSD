@@ -42,7 +42,7 @@ SUB=	sys pdp pdpuba pdpmba
 
 CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
 	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_uldiv.o libc_ulsh.o \
+	libc_udiv.o libc_uldiv.o libc_ulsh.o \
 	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_profile.o mch_start.o \
 	mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
@@ -53,7 +53,7 @@ BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	subr_rmap.o subr_xxx.o sys_inode.o sys_pipe.o trap.o tty.o \
 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
-	ufs_subr.o vm_sched.o vm_text.o xp.o
+	ufs_subr.o vm_sched.o xp.o
 OV1=	sys_generic.o ufs_syscalls.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
 OV3=	clock.o cons.o kern_pdp.o kern_time.o \
@@ -62,8 +62,9 @@ OV3=	clock.o cons.o kern_pdp.o kern_time.o \
 OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
 	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
 OV5=	ht.o tm.o ts.o mem.o
-OV6=	tmscp.o rl.o
+OV6=	tmscp.o ufs_disksubr.o
 OV7=	mch_fpsim.o kern_sysctl.o ingreslock.o
+OV8=	vm_text.o rl.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

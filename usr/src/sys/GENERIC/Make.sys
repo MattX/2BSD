@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.1 (2.11BSD GTE) 2/14/95
+#	2.2 (2.11BSD GTE) 1994/04/13
 #
 S=	../sys
 VPATH=	../sys
@@ -30,6 +30,7 @@ CFILES=	${S}/init_main.c ${S}/init_sysent.c ${S}/kern_acct.c		\
 	${S}/ufs_alloc.c ${S}/ufs_bio.c ${S}/ufs_bmap.c			\
 	${S}/ufs_dsort.c ${S}/ufs_fio.c ${S}/ufs_inode.c		\
 	${S}/ufs_mount.c ${S}/ufs_namei.c ${S}/ufs_subr.c		\
+	${S}/ufs_disksubr.c 						\
 	${S}/ufs_syscalls.c ${S}/uipc_syscalls.c ${S}/vm_proc.c		\
 	${S}/vm_sched.c ${S}/vm_swap.c ${S}/vm_swp.c ${S}/vm_text.c
 OBJS=	init_main.o init_sysent.o kern_acct.o kern_clock.o		\
@@ -43,6 +44,7 @@ OBJS=	init_main.o init_sysent.o kern_acct.o kern_clock.o		\
 	tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o ufs_bmap.o	\
 	ufs_dsort.o ufs_fio.o ufs_inode.o ufs_mount.o ufs_namei.o	\
 	ufs_subr.o ufs_syscalls.o uipc_syscalls.o vm_proc.o vm_sched.o	\
+	ufs_disksubr.o							\
 	vm_swap.o vm_swp.o vm_text.o
 
 .c.o:
