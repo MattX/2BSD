@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.3 (2.11BSD) 1995/04/01
+#	@(#)Makefile	5.7.4 (2.11BSD) 1995/04/13
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -14,7 +14,8 @@ OBJS=	${STDOBJ}
 
 CFLAGS=	-O ${DEFS}
 STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
-	ctime.c ctype_.c daemon.c devname.c err.c errlst.c execvp.c fakcu.c \
+	ctime.c ctype_.c daemon.c devname.c disklabel.c err.c errlst.c \
+	execvp.c fakcu.c \
 	fstab.c gcvt.c getenv.c getgrent.c getgrgid.c getgrnam.c getlogin.c \
 	getpass.c getpwent.c getloadavg.c \
 	getttyent.c getttynam.c getusershell.c getwd.c \
@@ -26,7 +27,8 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
 	valloc.c strdup.c strsep.c uname.c wait.c wait3.c waitpid.c
 STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
-	ctime.o ctype_.o daemon.o devname.o err.o errlst.o execvp.o fakcu.o \
+	ctime.o ctype_.o daemon.o devname.o disklabel.o err.o errlst.o \
+	execvp.o fakcu.o \
 	fstab.o gcvt.o getenv.o getgrent.o getgrgid.o getgrnam.o getlogin.o \
 	getpass.o getpwent.o getloadavg.o \
 	getttyent.o getttynam.o getusershell.o getwd.o \

@@ -3,13 +3,13 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6.2 (2.11BSD GTE) 4/9/94
+#	@(#)Makefile	5.6.3 (2.11BSD GTE) 1995/04/13
 #
-SRCS=	_setjmp.s abs.s alloca.s atof.c bcmp.s bcopy.s bzero.s disktab.c \
+SRCS=	_setjmp.s abs.s alloca.s atof.c bcmp.s bcopy.s bzero.s \
 	ecvt.c fabs.s ffs.s frexp.s index.s insque.s ldexp.s ldfps.s \
 	modf.s nsym.c remque.s rindex.s rollback.s setjmp.s setjmperr.c \
 	strcat.s strcmp.s strcpy.s strlen.s strncat.s strncmp.s strncpy.s
-OBJS=	_setjmp.o abs.o alloca.o atof.o bcmp.o bcopy.o bzero.o disktab.o \
+OBJS=	_setjmp.o abs.o alloca.o atof.o bcmp.o bcopy.o bzero.o \
 	ecvt.o fabs.o ffs.o frexp.o index.o insque.o ldexp.o ldfps.o \
 	modf.o nsym.o remque.o rindex.o rollback.o setjmp.o setjmperr.o \
 	strcat.o strcmp.o strcpy.o strlen.o strncat.o strncmp.o strncpy.o
@@ -41,7 +41,7 @@ genlib genlib_p: ${OBJS}
 
 tags:
 	cwd=`pwd`; \
-	for i in atof.c disktab.c ecvt.c; do \
+	for i in atof.c ecvt.c; do \
 		ctags -a -f ${TAGSFILE} $$cwd/$$i; \
 	done
 
@@ -75,8 +75,6 @@ atof.o: atof.c /usr/include/math.h /usr/include/ctype.h
 bcmp.o: bcmp.s ./DEFS.h
 bcopy.o: bcopy.s ./DEFS.h
 bzero.o: bzero.s ./DEFS.h
-disktab.o: disktab.c /usr/include/disktab.h /usr/include/stdio.h
-disktab.o: /usr/include/ctype.h
 ecvt.o: ecvt.c
 fabs.o: fabs.s ./DEFS.h
 ffs.o: ffs.s ./DEFS.h
