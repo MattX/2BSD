@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ht.c	2.3 (2.11BSD) 1996/3/8
+ *	@(#)ht.c	2.4 (2.11BSD) 1997/1/20
  */
 
 /*
@@ -39,7 +39,7 @@ htopen(io)
 	htstrategy(io, HT_REW);
 	skip = io->i_part;
 	while (skip--) {
-		io->i_cc = -1;
+		io->i_cc = 0;
 		while (htstrategy(io, HT_SFORW))
 			continue;
 		delay(30000);
@@ -72,25 +72,22 @@ htseek(io, space)
 		}
 	else
 		fnc = HT_SFORW;
-	while	(space--)
-		{
-		io->i_cc = -1;
-		htstrategy(io, fnc);
-		delay(30000);
-		htstrategy(io, HT_SENSE);
-		}
+	io->i_cc = space;
+	htstrategy(io, fnc);
+	delay(30000);
+	htstrategy(io, HT_SENSE);
 	}
 
 /*
- * Returns 0 if no tape mark was seen.  Returns 1 if a tape mark (or error)
- * has been encountered.
+ * Returns 0 (and sets 'tapemark') if tape mark was seen.  Returns -1 on fatal
+ * error.  Otherwise the length of data tranferred is returned.
 */
 
 htstrategy(io, func)
 	register struct iob *io;
 {
-	register unit, com;
-	int errcnt, ctlr, bae, lo16;
+	int unit, com;
+	int errcnt, ctlr, bae, lo16, fnc;
 	register struct htdevice *htaddr;
 
 	unit = io->i_unit;
@@ -111,16 +108,19 @@ retry:
 	htaddr->htfc = -io->i_cc;
 	htaddr->htwc = -(io->i_cc >> 1);
 	com = (bae << 8) | HT_GO;
-	if (func == READ)
-		com |= HT_RCOM;
-	else if (func == WRITE)
-		com |= HT_WCOM;
-	else if (func == HT_SREV) {
-		htaddr->htfc = -1;
-		htaddr->htcs1 = com | HT_SREV;
-		return(0);
-	} else
-		com |= func;
+	switch	(func)
+		{
+		case	READ:
+			fnc = HT_RCOM;
+			break;
+		case	WRITE:
+			fnc = HT_WCOM;
+			break;
+		default:
+			fnc = func;
+			break;
+		}
+	com |= fnc;
 	htaddr->htcs1 = com;
 	while ((htaddr->htcs1 & HT_RDY) == 0)
 		continue;

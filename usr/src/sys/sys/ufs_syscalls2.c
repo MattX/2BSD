@@ -1,12 +1,13 @@
 /*
- * 	@(#) 	ufs_syscalls2.c	  1.3 (2.11BSD) 1996/9/13
+ * 	@(#) 	ufs_syscalls2.c	  1.4 (2.11BSD) 1997/1/18
  *
- * ufs_syscalls was getting too large.  New UFS related system calls are
- * placed in this file.
+ * ufs_syscalls was getting too large.  Various UFS related system calls were
+ * relocated to this file.
 */
 
 #include "param.h"
 #include "../machine/seg.h"
+#include "sys/file.h"
 #include "user.h"
 #include "inode.h"
 #include "buf.h"
@@ -23,12 +24,11 @@ statfs()
 		struct	statfs	*buf;
 		} *uap = (struct a *)u.u_ap;
 	register struct	inode	*ip;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 	struct	mount	*mp;
 
-	ndp->ni_nameiop = LOOKUP|FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->path;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->path);
 	ip = namei(ndp);
 	if	(!ip)
 		return(u.u_error);
@@ -191,3 +191,52 @@ syncinodes(fs)
 		iput(ip);
 		}
 	}
+
+/*
+ * mode mask for creation of files
+ */
+umask()
+{
+	register struct a {
+		int	mask;
+	} *uap = (struct a *)u.u_ap;
+
+	u.u_r.r_val1 = u.u_cmask;
+	u.u_cmask = uap->mask & 07777;
+}
+
+/*
+ * Seek system call
+ */
+lseek()
+{
+	register struct file *fp;
+	register struct a {
+		int	fd;
+		off_t	off;
+		int	sbase;
+	} *uap = (struct a *)u.u_ap;
+
+	if ((fp = getf(uap->fd)) == NULL)
+		return;
+	if (fp->f_type != DTYPE_INODE) {
+		u.u_error = ESPIPE;
+		return;
+	}
+	switch (uap->sbase) {
+
+	case L_INCR:
+		fp->f_offset += uap->off;
+		break;
+	case L_XTND:
+		fp->f_offset = uap->off + ((struct inode *)fp->f_data)->i_size;
+		break;
+	case L_SET:
+		fp->f_offset = uap->off;
+		break;
+	default:
+		u.u_error = EINVAL;
+		return;
+	}
+	u.u_r.r_off = fp->f_offset;
+}

@@ -1,4 +1,4 @@
-#	Makefile	(2.11BSD)	2.0	1996/11/16
+#	Makefile	(2.11BSD)	2.1	1997/1/18
 #
 #	The limitations on program size have been removed.  The addition
 #	of disklabel support pushed 'restor' over the limit.  Even with
@@ -45,7 +45,7 @@ DRIVERS=prf.o sys.o label.o \
 	ht.o tm.o ts.o tmscp.o \
 	xp.o rk.o rl.o rx.o br.o hk.o si.o ra.o
 
-ALL=	mtboot boot disklabel mkfs restor icheck maketape toyset
+ALL=	mtboot boot disklabel mkfs restor icheck maketape makesimtape toyset
 
 all: ${ALL}
 
@@ -142,6 +142,9 @@ disklabel: srt0.o conf.o libsa.a disklabel.o displaylab.o
 
 maketape: maketape.c
 	cc -o $@ maketape.c
+
+makesimtape: makesimtape.c
+	cc -o $@ makesimtape.c
 
 toyset: toyset.o srt0.o conf.o libsa.a
 	ld -X -o $@ srt0.o conf.o $@.o libsa.a -lc

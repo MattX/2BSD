@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_css.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_css.c	1.2 (2.11BSD) 1997/1/18
  */
 
 #include "css.h"
@@ -324,6 +324,7 @@ cssxint(unit)
 	if (sc->css_if->if_snd.ifq_head)
 		cssstart(unit);
 out:
+	return;
 }
 
 /*
@@ -396,5 +397,6 @@ setup:
 	addr->css_icsr =
 		IN_HRDY | CSS_IE | IN_WEN | ((info & 0x30000) >> 12) | CSS_GO;
 out:
+	return;
 }
 #endif NCSS

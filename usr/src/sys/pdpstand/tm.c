@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	2.2 (2.11BSD) 1996/3/8
+ *	@(#)tm.c	2.3 (2.11BSD) 1997/1/19
  */
 
 /*
@@ -61,9 +61,9 @@ u_short tmdens[4] = { TM_D800, TM_D1600, TM_D6250, TM_D800 };
 tmstrategy(io, func)
 	register struct iob *io;
 {
-	register int com, unit = io->i_unit;
+	int com, unit = io->i_unit;
 	register struct tmdevice *tmaddr;
-	int errcnt = 0, ctlr = io->i_ctlr, bae, lo16;
+	int errcnt = 0, ctlr = io->i_ctlr, bae, lo16, fnc;
 
 	tmaddr = TMcsr[ctlr];
 retry:
@@ -77,16 +77,23 @@ retry:
 	com = (unit<<8)|(bae<<4) | tmdens[TMDENS(unit)];
 	tmaddr->tmbc = -io->i_cc;
 	tmaddr->tmba = (caddr_t)lo16;
-	if (func == READ)
-		tmaddr->tmcs = com | TM_RCOM | TM_GO;
-	else if (func == WRITE)
-		tmaddr->tmcs = com | TM_WCOM | TM_GO;
-	else if (func == TM_SREV) {
-		tmaddr->tmbc = -1;
-		tmaddr->tmcs = com | TM_SREV | TM_GO;
-		return(0);
-	} else
-		tmaddr->tmcs = com | func | TM_GO;
+	switch	(func)
+		{
+		case	READ:
+			fnc = TM_RCOM;
+			break;
+		case	WRITE:
+			fnc = TM_WCOM;
+			break;
+/*
+ * Just pass all others thru - all other functions are TM_* opcodes and
+ * had better be valid.
+*/
+		default:
+			fnc = func;
+			break;
+		}
+	tmaddr->tmcs = com | fnc | TM_GO;
 	while ((tmaddr->tmcs&TM_CUR) == 0)
 		continue;
 	if (tmaddr->tmer&TMER_EOF) {
@@ -120,7 +127,7 @@ tmseek(io, space)
 		}
 	else
 		fnc = TM_SFORW;
-	while	(space--)
-		tmstrategy(io, fnc);
+	io->i_cc = space;
+	tmstrategy(io, fnc);
 	return(0);
 	}

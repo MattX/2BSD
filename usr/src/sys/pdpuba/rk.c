@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rk.c	1.4 (2.11BSD GTE) 1/2/93
+ *	@(#)rk.c	1.5 (2.11BSD GTE) 1997/1/18
  */
 
 /*
@@ -20,6 +20,9 @@
 #include "user.h"
 #include "dk.h"
 #include "rkreg.h"
+#include "syslog.h"
+#include "map.h"
+#include "uba.h"
 
 #define	NRKBLK	4872	/* Number of blocks per drive */
 
@@ -33,6 +36,13 @@ struct	buf	rktab;
 static	int		rk_dkn = -1;	/* number for iostat */
 #endif
 
+#ifdef	SOFUB_MAP
+	static	int	rksoftmap = -1;	/* -1 = OK to check for softmap
+					 *  0 = Never use softmap
+					 *  1 = Always use softmap
+					*/
+#endif
+
 rkattach(addr, unit)
 struct rkdevice *addr;
 {
@@ -41,8 +51,12 @@ struct rkdevice *addr;
 		dk_alloc(&rk_dkn, 1, "rk", 25L * 12L * 256L);
 #endif
 
-	if (unit != 0)
+	if	(unit != 0)
 		return(0);
+#ifdef	SOFUB_MAP
+	if	(!ubmap && rksoftmap == -1)
+		rksoftmap = 1;
+#endif
 	RKADDR = addr;
 	return(1);
 }
@@ -75,6 +89,14 @@ bad:		bp->b_flags |= B_ERROR;
 		iodone(bp);
 		return;
 	}
+#ifdef	SOFUB_MAP
+	if	(rksoftmap == 1)
+		{
+		if	(sofub_alloc(bp) == 0)
+			return;
+		}
+	else
+#endif
 	mapalloc(bp);
 	bp->av_forw = (struct buf *)NULL;
 	s = splbio();
@@ -143,11 +165,11 @@ rkintr()
 			 *	Give up on write locked devices
 			 *	immediately.
 			 */
-			printf("rk%d: write locked\n", minor(bp->b_dev));
+			uprintf("rk%d: write locked\n", minor(bp->b_dev));
 		else
 			{
 			harderr(bp, "rk");
-			printf("er=%b ds=%b\n", rkaddr->rker, RKER_BITS,
+			log(LOG_NOTICE,"er=%b ds=%b\n", rkaddr->rker, RKER_BITS,
 				rkaddr->rkds, RK_BITS);
 			rkaddr->rkcs = RKCS_RESET | RKCS_GO;
 			while((rkaddr->rkcs & RKCS_RDY) == 0)
@@ -162,6 +184,10 @@ rkintr()
 	rktab.b_errcnt = 0;
 	rktab.b_actf = bp->av_forw;
 	bp->b_resid = -(rkaddr->rkwc << 1);
+#ifdef	SOFUB_MAP
+	if	(rksoftmap == 1)
+		sofub_relse(bp, bp->b_bcount - bp->b_resid);
+#endif
 	iodone(bp);
 	rkstart();
 }

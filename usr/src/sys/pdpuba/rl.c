@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.8 (2.11BSD GTE) 1996/1/8
+ *	@(#)rl.c	1.9 (2.11BSD GTE) 1997/1/19
  */
 
 /*
@@ -38,6 +38,7 @@ error to have more than 4 drives - only 1 controller is supported.
 
 #include "param.h"
 #include "buf.h"
+#include "machine/seg.h"
 #include "user.h"
 #include "systm.h"
 #include "conf.h"

@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)dn.c	2.2 (2.11BSD GTE) 11/29/94
+ *	SCCS id	@(#)dn.c	2.3 (2.11BSD GTE) 1997/1/18
  */
 
 /*
@@ -11,6 +11,7 @@
 #if NDN > 0
 #include "param.h"
 #include "user.h"
+#include "uio.h"
 #include "kernel.h"
 #include "dnreg.h"
 

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)pstat.c	5.8.2 (2.11BSD GTE) 12/7/94";
+static char sccsid[] = "@(#)pstat.c	5.8.3 (2.11BSD GTE) 1997/1/19";
 #endif
 
 /*
@@ -73,23 +73,15 @@ struct nlist nl[] = {
 	{ "_ninode" },
 #define	SPTY	16
 	{ "_pt_tty" },
-#define	SDMF	17
-	{ "_dmf_tty" },
-#define	SNDMF	18
-	{ "_ndmf" },
-#define	SNPTY	19
+#define	SNPTY	17
 	{ "_npty" },
-#define	SDHU	20
+#define	SDHU	18
 	{ "_dhu_tty" },
-#define	SNDHU	21
+#define	SNDHU	19
 	{ "_ndhu" },
-#define	SDMZ	22
-	{ "_dmz_tty" },
-#define	SNDMZ	23
-	{ "_ndmz" },
-#define	SDHV	24
+#define	SDHV	20
 	{ "_dhv_tty" },
-#define	SNDHV	25
+#define	SNDHV	21
 	{ "_ndhv" },
 	{ "" }
 };
@@ -438,12 +430,8 @@ dotty()
 		dottytype("dz", SDZ, SNDZ);
 	if (nl[SNDH].n_type != 0)
 		dottytype("dh", SDH, SNDH);
-	if (nl[SNDMF].n_type != 0)
-		dottytype("dmf", SDMF, SNDMF);
 	if (nl[SNDHU].n_type != 0)
 		dottytype("dhu", SDHU, SNDHU);
-	if (nl[SNDMZ].n_type != 0)
-		dottytype("dmz", SDMZ, SNDMZ);
 	if (nl[SNDHV].n_type != 0)
 		dottytype("dhv", SDHV, SNDHV);
 	if (nl[SNPTY].n_type != 0)
@@ -532,7 +520,6 @@ dousr()
 	struct user U;
 	long	*ip;
 	register i, j;
-	register struct nameidata *nd = &U.u_nd;
 
 	lseek(fm, ubase << 6, 0);
 	read(fm, &U, sizeof(U));
@@ -643,7 +630,6 @@ dousr()
 	printf("lastfile\t%d\n", U.u_lastfile);
 	printf("cdir\t%.1o\n", U.u_cdir);
 	printf("rdir\t%.1o\n", U.u_rdir);
-	printf("pdir\t%.1o\n", nd->ni_pdir);
 	printf("ttyp\t%.1o\n", U.u_ttyp);
 	printf("ttyd\t%d,%d\n", major(U.u_ttyd), minor(U.u_ttyd));
 	printf("cmask\t%.1o\n", U.u_cmask);
@@ -683,15 +669,9 @@ dousr()
 		}
 	printf("\n");
 	printf("quota\t%.1o\n", U.u_quota);
-	printf("base,count,offset\t%.1o %u %ld\n", nd->ni_base,
-		nd->ni_count, nd->ni_offset);
-	printf("segflg\t%d\n", nd->ni_segflg);
 	printf("ncache\t%ld %u %d,%d\n", U.u_ncache.nc_prevoffset,
 		U.u_ncache.nc_inumber, major(U.u_ncache.nc_dev),	
 		minor(U.u_ncache.nc_dev));
-	printf("endoff\t%ld\n", nd->ni_endoff);
-	printf("dirp\t%.1o\n", nd->ni_dirp);
-	printf("dent\t%u %s\n", nd->ni_dent.d_ino, nd->ni_dent.d_name);
 }
 
 oatoi(s)

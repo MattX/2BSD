@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.9 (2.11BSD GTE) 1996/9/13
+ *	@(#)ufs_mount.c	2.0 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -35,7 +35,8 @@ smount()
 	dev_t dev;
 	register struct inode *ip;
 	register struct fs *fs;
-	struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	struct	nameidata *ndp = &nd;
 	struct	mount	*mp;
 	u_int lenon, lenfrom;
 	int	error = 0;
@@ -43,9 +44,7 @@ smount()
 
 	if	(u.u_error = getmdev(&dev, uap->fspec))
 		return;
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = (caddr_t)uap->freg;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->freg);
 	if	((ip = namei(ndp)) == NULL)
 		return;
 	if ((ip->i_mode&IFMT) != IFDIR) {
@@ -326,13 +325,12 @@ getmdev(pdev, fname)
 {
 	register dev_t dev;
 	register struct inode *ip;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	if (!suser())
 		return (u.u_error);
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, fname);
 	ip = namei(ndp);
 	if (ip == NULL) {
 		if (u.u_error == ENOENT)

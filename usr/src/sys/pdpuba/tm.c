@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	2.2 (2.11BSD GTE) 1/2/93
+ *	@(#)tm.c	2.3 (2.11BSD GTE) 1997/1/18
  */
 
 /*
@@ -23,6 +23,9 @@
 #include "kernel.h"
 #include "systm.h"
 #include "tmreg.h"
+#include "syslog.h"
+#include "map.h"
+#include "uba.h"
 
 struct	tmdevice *TMADDR;
 
@@ -83,6 +86,13 @@ struct te_softc {
 
 int	tmtimer ();
 
+#ifdef	SOFUB_MAP
+	static	int	tmsoftmap = -1;	/* -1 = OK to check for softmap
+					 *  0 = Never use softmap
+					 *  1 = Always use softmap
+					*/
+#endif
+
 tmattach(addr, unit)
 struct tmdevice *addr;
 int unit;
@@ -90,11 +100,14 @@ int unit;
 	/*
 	 * This driver supports only one controller.
 	 */
-	if (unit == 0) {
-		TMADDR = addr;
-		return(1);
-	}
-	return(0);
+	if	(unit)
+		return(0);
+#ifdef	SOFUB_MAP
+	if	(!ubmap && tmsoftmap == -1)
+		tmsoftmap = 1;
+#endif
+	TMADDR = addr;
+	return(1);
 }
 
 /*
@@ -240,7 +253,25 @@ register struct buf *bp;
 	register s;
 	register struct te_softc *sc = &te_softc[TEUNIT(bp->b_dev)];
 
+#ifdef	SOFUB_MAP
+/*
+ * The 'soft' map must be allocated here because the transfer may be (although
+ * it very rarely is) going to the buffer cache rather than a user process.
+ * This has the side effect that a rewinding tape can keep the 'soft' map busy
+ * for a fairly long time.  In practice this is not much of a problem since
+ * the main use of 18 bit TM controllers on a 22 bit system is with a PDP-11
+ * simulator - in which case there's no tape to wait for.
+*/
+	if	(tmsoftmap == 1)
+		{
+		if	(sofub_alloc(bp) == 0)
+			return;
+		}
+#endif
 	if (bp->b_flags & B_PHYS) {
+#ifdef	SOFUB_MAP
+		if	(tmsoftmap <= 0)
+#endif
 		mapalloc(bp);
 		sc->sc_blkno = sc->sc_nxrec = dbtofsb(bp->b_blkno);
 		sc->sc_nxrec++;
@@ -395,6 +426,10 @@ next:
 	 */
 	tmtab.b_errcnt = 0;
 	tmtab.b_actf = bp->av_forw;
+#ifdef	SOFUB_MAP
+	if	(tmsoftmap == 1)
+		sofub_relse(bp, bp->b_bcount - bp->b_resid);
+#endif
 	iodone(bp);
 	goto loop;
 }
@@ -481,7 +516,7 @@ tmintr()
 		/*
 		 * Couldn't recover error
 		 */
-		printf("te%d: hard error bn%D er=%b\n",
+		uprintf("te%d: hard error bn%D er=%b\n",
 		   teunit, bp->b_blkno, sc->sc_erreg, TMER_BITS);
 		bp->b_flags |= B_ERROR;
 		goto opdone;
@@ -525,6 +560,10 @@ opdone:
 	tmtab.b_errcnt = 0;
 	tmtab.b_actf = bp->av_forw;
 	bp->b_resid = -tmaddr->tmbc;
+#ifdef	SOFUB_MAP
+	if	(tmsoftmap == 1)
+		sofub_relse(bp, bp->b_bcount - bp->b_resid);
+#endif
 	iodone(bp);
 
 opcont:
@@ -538,7 +577,7 @@ register dev_t	dev;
 	register struct te_softc *sc = &te_softc[TEUNIT(dev)];
 
 	if (sc->sc_timo != INF && (sc->sc_timo -= 5) < 0) {
-		printf("te%d: lost interrupt\n", TEUNIT(dev));
+		log(LOG_NOTICE, "te%d: lost interrupt\n", TEUNIT(dev));
 		sc->sc_timo = INF;
 		s = splbio();
 		tmintr();

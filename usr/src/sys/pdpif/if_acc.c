@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_acc.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_acc.c	1.2 (2.11BSD) 1997/1/19
  */
 
 #include "acc.h"
@@ -305,6 +305,7 @@ accxint(unit)
 	if (sc->acc_if->if_snd.ifq_head)
 		accstart(unit);
 out:
+	return;
 }
 
 /*
@@ -384,5 +385,6 @@ setup:
 	addr->icsr =
 		IN_MRDY | ACC_IE | IN_WEN | ((info & 0x30000) >> 12) | ACC_GO;
 out:
+	return;
 }
 #endif

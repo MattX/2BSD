@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_pipe.c	1.3 (2.11BSD GTE) 11/26/94
+ *	@(#)sys_pipe.c	1.3 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -14,6 +14,7 @@
 #include "file.h"
 #include "fs.h"
 #include "mount.h"
+#include "uio.h"
 
 extern	int	ino_ioctl(), ino_close();
 	int	pipe_rw(), pipe_select();

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)uipc_usrreq.c	7.1.1 (2.11BSD GTE) 12/31/93
+ *	@(#)uipc_usrreq.c	7.1.2 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -13,7 +13,6 @@
 #include "protosw.h"
 #include "socket.h"
 #include "socketvar.h"
-#include "namei.h"
 #include "unpcb.h"
 #include "un.h"
 #include "inode.h"
@@ -31,10 +30,8 @@
 struct sockaddr sun_noname = { AF_UNIX };
 ino_t unp_ino;			/* prototype for fake inode numbers */
 
-#ifdef pdp11
 extern void unpdisc(), unpgc1();
 extern int fadjust();
-#endif
 
 /*ARGSUSED*/
 uipc_usrreq(so, req, m, nam, rights)
@@ -314,12 +311,7 @@ unp_detach(unp)
 {
 	
 	if (unp->unp_inode) {
-#ifdef pdp11
 		UNPDET(unp->unp_inode);
-#else
-		unp->unp_inode->i_socket = 0;
-		irele(unp->unp_inode);
-#endif
 		unp->unp_inode = 0;
 	}
 	if (unp->unp_conn)
@@ -345,7 +337,6 @@ unp_bind(unp, nam)
 	if (unp->unp_inode != NULL || nam->m_len >= MLEN)
 		return (EINVAL);
 	*(mtod(nam, caddr_t) + nam->m_len) = 0;
-#ifdef pdp11
 	error = UNPBIND(soun->sun_path, nam->m_len, &ip, unp->unp_socket);
 	if (error)
 		return(error);
@@ -353,31 +344,6 @@ unp_bind(unp, nam)
 		panic("unp_bind");
 	unp->unp_inode = ip;
 	unp->unp_addr = m_copy(nam, 0, M_COPYALL);
-#else
-	ndp->ni_nameiop = CREATE | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = soun->sun_path;
-	ndp->ni_dirp[nam->m_len-2] = 0;
-	ip = namei(ndp);
-	if (ip) {
-		iput(ip);
-		return (EADDRINUSE);
-	}
-	if (error = u.u_error) {
-		u.u_error = 0;			/* XXX */
-		return (error);
-	}
-	ip = maknode(IFSOCK | 0777, ndp);
-	if (ip == NULL) {
-		error = u.u_error;		/* XXX */
-		u.u_error = 0;			/* XXX */
-		return (error);
-	}
-	ip->i_socket = unp->unp_socket;
-	unp->unp_inode = ip;
-	unp->unp_addr = m_copy(nam, 0, (int)M_COPYALL);
-	iunlock(ip);			/* but keep reference */
-#endif
 	return (0);
 }
 
@@ -393,7 +359,7 @@ unp_connect(so, nam)
 	if (nam->m_len + (nam->m_off - MMINOFF) == MLEN)
 		return (EMSGSIZE);
 	*(mtod(nam, caddr_t) + nam->m_len) = 0;
-#ifdef pdp11
+
 	error = UNPCONN(soun->sun_path, nam->m_len, &so2, &ip);
 	if (error || !so2 || !ip)
 		goto bad;
@@ -411,45 +377,6 @@ unp_connect(so, nam)
 bad:
 	if (ip)
 		IPUT(ip);
-#else
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = soun->sun_path;
-	ndp->ni_dirp[nam->m_len-2] = 0;
-	ip = namei(ndp);
-	if (ip == 0) {
-		error = u.u_error;
-		u.u_error = 0;
-		return (error);		/* XXX */
-	}
-	if (access(ip, IWRITE)) {
-		error = u.u_error;
-		u.u_error = 0; 		/* XXX */
-		goto bad;
-	}
-	if ((ip->i_mode&IFMT) != IFSOCK) {
-		error = ENOTSOCK;
-		goto bad;
-	}
-	so2 = ip->i_socket;
-	if (so2 == 0) {
-		error = ECONNREFUSED;
-		goto bad;
-	}
-	if (so->so_type != so2->so_type) {
-		error = EPROTOTYPE;
-		goto bad;
-	}
-	if (so->so_proto->pr_flags & PR_CONNREQUIRED &&
-	    ((so2->so_options&SO_ACCEPTCONN) == 0 ||
-	     (so2 = sonewconn(so2)) == 0)) {
-		error = ECONNREFUSED;
-		goto bad;
-	}
-	error = unp_connect2(so, so2);
-bad:
-	iput(ip);
-#endif
 	return (error);
 }
 
@@ -583,13 +510,9 @@ unp_externalize(rights)
 			panic("unp_externalize");
 		fp = *rp;
 		u.u_ofile[f] = fp;
-#ifdef pdp11
 		/* -1 added to msgcount, 0 to count */
 		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
 		    fp, -1, 0);
-#else
-		fp->f_msgcount--;
-#endif
 		unp_rights--;
 		*(int *)rp++ = f;
 	}
@@ -612,14 +535,9 @@ unp_internalize(rights)
 	for (i = 0; i < oldfds; i++) {
 		GETF(fp, *(int *)rp);
 		*rp++ = fp;
-#ifdef pdp11
 		/* bump both the message count and reference count of fp */
 		SKcall(fadjust, sizeof(fp) + sizeof(int) + sizeof(int),
 		    fp, 1, 1);
-#else
-		fp->f_count++;
-		fp->f_msgcount++;
-#endif
 		unp_rights++;
 	}
 	return (0);

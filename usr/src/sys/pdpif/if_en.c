@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_en.c	1.2 (2.11BSD GTE) 12/31/93
+ *	@(#)if_en.c	1.3 (2.11BSD GTE) 1997/1/19
  */
 
 #include "en.h"
@@ -21,16 +21,16 @@
 #include "protosw.h"
 #include "socket.h"
 #include "pdpuba/ubavar.h"
-#ifdef notdef
-	#include "enreg.h"
-#endif notdef
+#include "if_enreg.h"
 #include "netinet/in.h"
 #include "netinet/in_systm.h"
+#include "net/netisr.h"
 #include "net/if.h"
 #include "pdpif/if_en.h"
 #include "pdpif/if_uba.h"
 #include "netinet/ip.h"
 #include "netinet/ip_var.h"
+#include "netinet/in_var.h"
 #include "net/route.h"
 #include "errno.h"
 
@@ -44,7 +44,7 @@ struct	uba_driver endriver =
 	{ enprobe, 0, enattach, 0, enstd, "en", eninfo };
 #define	ENUNIT(x)	minor(x)
 
-int	eninit(),enoutput(),enreset();
+int	eninit(),enoutput();
 
 /*
  * Ethernet software status per interface.
@@ -110,37 +110,11 @@ enattach(ui)
 	es->es_if.if_unit = ui->ui_unit;
 	es->es_if.if_name = "en";
 	es->es_if.if_mtu = ENMTU;
-	es->es_if.if_net = ui->ui_flags;
-	es->es_if.if_host[0] =
-	 (~(((struct endevice *)eninfo[ui->ui_unit]->ui_addr)->en_addr)) & 0xff;
-	sin = (struct sockaddr_in *)&es->es_if.if_addr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(es->es_if.if_net, es->es_if.if_host[0]);
-	sin = (struct sockaddr_in *)&es->es_if.if_broadaddr;
-	sin->sin_family = AF_INET;
-	sin->sin_addr = if_makeaddr(es->es_if.if_net, 0);
 	es->es_if.if_flags = IFF_BROADCAST;
 	es->es_if.if_init = eninit;
 	es->es_if.if_output = enoutput;
-	es->es_if.if_ubareset = enreset;
 	es->es_ifuba.ifu_flags = UBA_NEEDBDP | UBA_NEED16 | UBA_CANTWAIT;
 	if_attach(&es->es_if);
-}
-
-/*
- * Reset of interface after UNIBUS reset.
- * If interface is on specified uba, reset its state.
- */
-enreset(unit, uban)
-	int unit, uban;
-{
-	register struct uba_device *ui;
-
-	if (unit >= NEN || (ui = eninfo[unit]) == 0 || ui->ui_alive == 0 ||
-	    ui->ui_ubanum != uban)
-		return;
-	printf(" en%d", unit);
-	eninit(unit);
 }
 
 /*
@@ -305,17 +279,18 @@ endocoll(unit)
 		return;
 	}
 	/*
-	 * Another backoff.  Restart with delay based on n low bits
-	 * of the interval timer.
+	 * Another backoff.
 	 */
 	es->es_mask <<= 1;
-	es->es_delay = mfpr(ICR) &~ es->es_mask;
+	es->es_delay = ffs(es->es_mask);
 	enstart(unit);
 }
 
+#ifdef	notdef
 struct	sockaddr_pup pupsrc = { AF_PUP };
 struct	sockaddr_pup pupdst = { AF_PUP };
 struct	sockproto pupproto = { PF_PUP };
+#endif
 /*
  * Ethernet interface receiver interrupt.
  * If input error just drop packet.
@@ -357,7 +332,7 @@ enrint(unit)
 	len -= sizeof (struct en_header);
 	if (len > ENMRU)
 		goto setup;			/* sanity */
-	en = (struct en_header *)(es->es_ifuba.ifu_r.ifrw_addr);
+	en = (struct en_header *)(es->es_ifuba.ifu_r.ifrw_info);
 #define	endataaddr(en, off, type)	((type)(((caddr_t)((en)+1)+(off))))
 	if (en->en_type >= ENPUP_TRAIL &&
 	    en->en_type < ENPUP_TRAIL+ENPUP_NTRAILER) {
@@ -513,9 +488,8 @@ gottype:
 		m->m_len += sizeof (struct en_header);
 	}
 	en = mtod(m, struct en_header *);
-	en->en_shost = ifp->if_host[0];
 	en->en_dhost = dest;
-	en->en_type = type;
+	en->en_type = htons((u_short)type);
 
 	/*
 	 * Queue message on interface, and start output if interface

@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.7 (2.11BSD GTE) 1996/9/21
+#	2.8 (2.11BSD GTE) 1997/1/21
 #
 #########################################################
 # Non-network, but separate I/D kernel			#
@@ -47,7 +47,7 @@ CONF=	scb.o \
 
 BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	kern_descrip.o kern_mman.o kern_proc.o kern_sig.o kern_subr.o \
-	kern_synch.o lp.o machdep.o ra.o ram.o rk.o si.o \
+	kern_synch.o lp.o machdep.o ra.o ram.o si.o \
 	subr_rmap.o subr_xxx.o sys_inode.o sys_pipe.o trap.o tty.o \
 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
@@ -63,7 +63,7 @@ OV5=	ht.o tm.o ts.o
 OV6=	tmscp.o tmscpdump.o
 OV7=	rl.o mch_fpsim.o ingreslock.o ufs_disksubr.o
 OV8=	rx.o kern_sysctl.o vm_sched.o vm_text.o
-OV9=	kern_pdp.o kern_xxx.o ufs_syscalls2.o mem.o ufs_subr.o
+OV9=	kern_pdp.o kern_xxx.o ufs_syscalls2.o mem.o ufs_subr.o rk.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

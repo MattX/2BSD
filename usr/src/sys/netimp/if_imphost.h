@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_imphost.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)if_imphost.h	1.2 (2.11BSD) 1997/1/19
  */
 
 /*
@@ -46,7 +46,7 @@ struct host {
  * automatically at the time a structure is free'd.
  */
 #define	HPMBUF	((MLEN - sizeof(int)) / sizeof(struct host))
-#define	HOSTHASH(a)	((((a).s_addr>>8)+(a).s_net) % HPMBUF)
+#define	HOSTHASH(a)	(((a).s_addr>>8) % HPMBUF)
 
 /*
  * In-line expansions for queuing operations on

@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.4 (2.11BSD GTE) 1996/12/13
+ *	@(#)kern_sysctl.c	8.4.5 (2.11BSD GTE) 1997/1/18
  */
 
 /*
@@ -53,6 +53,7 @@
 #include <sys/tty.h>
 #include <sys/vm.h>
 #include <sys/map.h>
+#include <machine/seg.h>
 #include <sys/sysctl.h>
 #include <machine/cpu.h>
 #include <conf.h>

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_kern.c	7.1.3 (2.11BSD GTE) 1995/12/29
+ *	@(#)quota_kern.c	7.1.4 (2.11BSD GTE) 1997/1/18
  *
  * I'll say it here and not every other place i've had to hack:
  * Mike Karels was right - " just buy a vax...".  i have traded cpu cycles
@@ -31,7 +31,7 @@
 #include "quota.h"
 #include "fs.h"
 #include "mount.h"
-#include "uio.h"
+#include "namei.h"
 
 /*
  * Quota cache - hash chain headers.
@@ -699,15 +699,14 @@ opendq(mp, fname)
 	register struct inode *ip;
 	register struct quota *q;
 	struct dquot *dq;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 	int i;
 
 	if (mp->m_qinod)
 		closedq(mp);
 	QUOTAUNMAP();			/* paranoia */
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, fname);
 	ip = namei(ndp);
 	QUOTAMAP();
 	if (ip == NULL)

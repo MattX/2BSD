@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)user.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)user.h	1.2 (2.11BSD) 1997/1/18
  */
 
 #ifdef KERNEL
@@ -12,14 +12,12 @@
 #include "exec.h"
 #include "time.h"
 #include "resource.h"
-#include "namei.h"
 #else
 #include <machine/fperr.h>
 #include <sys/dir.h>
 #include <sys/exec.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <sys/namei.h>
 #endif
 
 /*
@@ -140,8 +138,6 @@ struct user {
 		ino_t nc_inumber;	/* inum of cached directory */
 		dev_t nc_dev;		/* dev of cached directory */
 	} u_ncache;
-	struct	nameidata u_nd;
-
 	short	u_stack[1];		/* kernel stack per user
 					 * extends from u + USIZE*64
 					 * backward not to reach here

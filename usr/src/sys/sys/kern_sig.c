@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.6 (2.11BSD GTE) 1996/9/13
+ *	@(#)kern_sig.c	1.7 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -801,7 +801,8 @@ psig()
 core()
 {
 	register struct inode *ip;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	register char *np;
 	char	*cp, name[MAXCOMLEN + 6];
 
@@ -821,9 +822,7 @@ core()
 	while	(*np++ = *cp++)
 		;
 	u.u_error = 0;
-	ndp->ni_nameiop = CREATE | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = name;
+	NDINIT(ndp, CREATE, FOLLOW, UIO_SYSSPACE, name);
 	ip = namei(ndp);
 	if (ip == NULL) {
 		if (u.u_error)

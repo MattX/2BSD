@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	2.3 (2.11BSD) 1996/9/13
+ *	@(#)kern_acct.c	2.4 (2.11BSD) 1997/1/18
  */
 
 #include "param.h"
@@ -12,6 +12,7 @@
 #include "dir.h"
 #include "inode.h"
 #include "user.h"
+#include "namei.h"
 #include "proc.h"
 #include "acct.h"
 #include "kernel.h"
@@ -35,7 +36,8 @@ sysacct()
 	register struct a {
 		char	*fname;
 	} *uap = (struct a *)u.u_ap;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 	int acctwatch();
 
 	if (suser()) {
@@ -52,9 +54,7 @@ sysacct()
 			}
 			return;
 		}
-		ndp->ni_nameiop = LOOKUP | FOLLOW;
-		ndp->ni_segflg = UIO_USERSPACE;
-		ndp->ni_dirp = uap->fname;
+		NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 		ip = namei(ndp);
 		if (ip == NULL)
 			return;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.7 (2.11BSD GTE) 1996/9/13
+ *	@(#)ufs_syscalls.c	1.8 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -76,11 +76,10 @@ chdirec(ipp)
 	struct a {
 		char	*fname;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -140,7 +139,8 @@ copen(mode, arg, fname)
 {
 	register struct inode *ip;
 	register struct file *fp;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	int indx, type;
 
 	mode = FFLAGS(mode);	/* convert from open to kernel flags */
@@ -148,8 +148,7 @@ copen(mode, arg, fname)
 	if (fp == NULL)
 		return;
 	indx = u.u_r.r_val1;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, fname);
 	if (mode & O_CREAT) {
 		if (mode & O_EXCL)
 			ndp->ni_nameiop = CREATE;
@@ -248,13 +247,12 @@ mknod()
 		int	fmode;
 		int	dev;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	if (!suser())
 		return;
-	ndp->ni_nameiop = CREATE;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, CREATE, NOFOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip != NULL) {
 		u.u_error = EEXIST;
@@ -294,11 +292,10 @@ link()
 		char	*target;
 		char	*linkname;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->target;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->target);
 	ip = namei(ndp);	/* well, this routine is doomed anyhow */
 	if (ip == NULL)
 		return;
@@ -316,7 +313,6 @@ link()
 	iupdat(ip, &time, &time, 1);
 	iunlock(ip);
 	ndp->ni_nameiop = CREATE;
-	ndp->ni_segflg = UIO_USERSPACE;
 	ndp->ni_dirp = (caddr_t)uap->linkname;
 	xp = namei(ndp);
 	if (xp != NULL) {
@@ -352,7 +348,8 @@ symlink()
 	register struct inode *ip;
 	char *tp;
 	int c, nc;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	tp = uap->target;
 	nc = 0;
@@ -364,9 +361,7 @@ symlink()
 		tp++;
 		nc++;
 	}
-	ndp->ni_nameiop = CREATE;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->linkname;
+	NDINIT(ndp, CREATE, NOFOLLOW, UIO_USERSPACE, uap->linkname);
 	ip = namei(ndp);
 	if (ip) {
 		iput(ip);
@@ -395,11 +390,10 @@ unlink()
 		char	*fname;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip, *dp;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = DELETE | LOCKPARENT;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, DELETE, LOCKPARENT, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -432,45 +426,6 @@ out:
 }
 
 /*
- * Seek system call
- */
-lseek()
-{
-	register struct file *fp;
-	register struct a {
-		int	fd;
-		off_t	off;
-		int	sbase;
-	} *uap = (struct a *)u.u_ap;
-
-	if ((fp = getf(uap->fd)) == NULL)
-		return;
-	if (fp->f_type != DTYPE_INODE) {
-		u.u_error = ESPIPE;
-		return;
-	}
-	switch (uap->sbase) {
-
-	case L_INCR:
-		fp->f_offset += uap->off;
-		break;
-
-	case L_XTND:
-		fp->f_offset = uap->off + ((struct inode *)fp->f_data)->i_size;
-		break;
-
-	case L_SET:
-		fp->f_offset = uap->off;
-		break;
-
-	default:
-		u.u_error = EINVAL;
-		return;
-	}
-	u.u_r.r_off = fp->f_offset;
-}
-
-/*
  * Access system call
  */
 saccess()
@@ -482,15 +437,14 @@ saccess()
 		char	*fname;
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	svuid = u.u_uid;
 	svgid = u.u_gid;
 	u.u_uid = u.u_ruid;
 	u.u_gid = u.u_rgid;
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip != NULL) {
 		if ((uap->fmode&R_OK) && access(ip, IREAD))
@@ -533,11 +487,10 @@ stat1(follow)
 		struct stat *ub;
 	} *uap = (struct a *)u.u_ap;
 	struct stat sb;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = LOOKUP | follow;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, follow, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -557,12 +510,11 @@ readlink()
 		char	*buf;
 		int	count;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	int resid;
 
-	ndp->ni_nameiop = LOOKUP;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->name;
+	NDINIT(ndp, LOOKUP, NOFOLLOW, UIO_USERSPACE, uap->name);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -587,11 +539,10 @@ chflags()
 		char	*fname;
 		u_short	flags;
 	} *uap = (struct a *)u.u_ap;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = LOOKUP|FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	if	((ip = namei(ndp)) == NULL)
 		return;
 	u.u_error = chflags1(ip, uap->flags);
@@ -638,11 +589,10 @@ chmod()
 		int	fmode;
 	} *uap = (struct a *)u.u_ap;
 	struct	vattr	vattr;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = LOOKUP|FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (!ip)
 		return;
@@ -709,12 +659,11 @@ chown()
 		int	uid;
 		int	gid;
 	} *uap = (struct a *)u.u_ap;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	struct	vattr	vattr;
 
-	ndp->ni_nameiop = LOOKUP | NOFOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, NOFOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -810,7 +759,8 @@ utimes()
 		struct	timeval *tptr;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 	struct timeval tv[2];
 	struct vattr vattr;
 
@@ -820,9 +770,7 @@ utimes()
 		vattr.va_vaflags |= VA_UTIMES_NULL;
 	} else if (u.u_error = copyin((caddr_t)uap->tptr,(caddr_t)tv,sizeof(tv)))
 		return;
-	ndp->ni_nameiop = LOOKUP|FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	if ((ip = namei(ndp)) == NULL)
 		return;
 	vattr.va_atime = tv[0].tv_sec;
@@ -841,12 +789,11 @@ truncate()
 		off_t	length;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	struct	vattr	vattr;
 
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -939,12 +886,11 @@ rename()
 	register struct inode *ip, *xp, *dp;
 	struct dirtemplate dirbuf;
 	int doingdirectory = 0, oldparent = 0, newparent = 0;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 	int error = 0;
 
-	ndp->ni_nameiop = DELETE | LOCKPARENT;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->from;
+	NDINIT(ndp, DELETE, LOCKPARENT, UIO_USERSPACE, uap->from);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -1145,9 +1091,7 @@ rename()
 	/*
 	 * 3) Unlink the source.
 	 */
-	ndp->ni_nameiop = DELETE | LOCKPARENT;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->from;
+	NDINIT(ndp, DELETE, LOCKPARENT, UIO_USERSPACE, uap->from);
 	xp = namei(ndp);
 	if (xp != NULL)
 		dp = ndp->ni_pdir;
@@ -1302,14 +1246,13 @@ mkdir()
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip, *dp;
 	struct dirtemplate dirtemplate;
-	register struct nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct nameidata *ndp = &nd;
 #ifdef	QUOTA
 	struct	dquot **xdq;
 #endif
 
-	ndp->ni_nameiop = CREATE;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->name;
+	NDINIT(ndp, CREATE, NOFOLLOW, UIO_USERSPACE, uap->name);
 	ip = namei(ndp);
 	if (u.u_error)
 		return;
@@ -1384,9 +1327,7 @@ mkdir()
 	u.u_error = direnter(ip, ndp);
 	dp = NULL;
 	if (u.u_error) {
-		ndp->ni_nameiop = LOOKUP | NOCACHE;
-		ndp->ni_segflg = UIO_USERSPACE;
-		ndp->ni_dirp = uap->name;
+		NDINIT(ndp, LOOKUP, NOCACHE, UIO_USERSPACE, uap->name);
 		dp = namei(ndp);
 		if (dp) {
 			dp->i_nlink--;
@@ -1417,11 +1358,10 @@ rmdir()
 		char	*name;
 	} *uap = (struct a *)u.u_ap;
 	register struct inode *ip, *dp;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
-	ndp->ni_nameiop = DELETE | LOCKPARENT;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = uap->name;
+	NDINIT(ndp, DELETE, LOCKPARENT, UIO_USERSPACE, uap->name);
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
@@ -1508,17 +1448,4 @@ getinode(fdes)
 		return ((struct inode *)0);
 	}
 	return((struct inode *)fp->f_data);
-}
-
-/*
- * mode mask for creation of files
- */
-umask()
-{
-	register struct a {
-		int	mask;
-	} *uap = (struct a *)u.u_ap;
-
-	u.u_r.r_val1 = u.u_cmask;
-	u.u_cmask = uap->mask & 07777;
 }

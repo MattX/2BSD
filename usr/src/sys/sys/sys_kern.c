@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	%W% (Berkeley) %G%
+ *	sys_kern.c 1.1 (2.11BSD) 1997/1/18
  */
 
 #include "param.h"
@@ -100,12 +100,11 @@ unpbind(path, len, ipp, unpsock)
 	register struct inode *ip;
 	char pth[MLEN];
 	int error;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	bcopy(path, pth, len);
-	ndp->ni_nameiop = CREATE | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = pth;
+	NDINIT(ndp, CREATE, FOLLOW, UIO_SYSSPACE, pth);
 	ndp->ni_dirp[len - 2] = 0;
 	*ipp = 0;
 	ip = namei(ndp);
@@ -133,14 +132,13 @@ unpconn(path, len, so2, ipp)
 	register struct inode *ip;
 	char pth[MLEN];
 	int error;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	bcopy(path, pth, len);
 	if (!len)
 		return(EINVAL);		/* paranoia */
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = pth;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_SYSSPACE, pth);
 	ndp->ni_dirp[len - 2] = 0;
 	ip = namei(ndp);
 	*ipp = ip;

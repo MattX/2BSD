@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.4 (2.11BSD GTE) 1/13/95
+ *	@(#)kern_exec.c	1.5 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -43,7 +43,7 @@ execve()
 	int nc;
 	register char *cp;
 	register struct buf *bp;
-	struct execa *uap;
+	struct execa *uap = (struct execa *)u.u_ap;
 	int na, ne, ucp, ap;
 	register int cc;
 	unsigned len;
@@ -58,12 +58,11 @@ execve()
 		char	ex_shell[SHSIZE];	/* #! and name of interpreter */
 		struct	exec ex_exec;
 	} exdata;
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 	int resid, error;
 
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_dirp = ((struct execa *)u.u_ap)->fname;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	if ((ip = namei(ndp)) == NULL)
 		return;
 	bno = 0;
@@ -184,7 +183,6 @@ execve()
 	ne = 0;
 	nc = 0;
 	cc = 0;
-	uap = (struct execa *)u.u_ap;
 	bno = malloc(swapmap, ctod((int)btoc(NCARGS + MAXBSIZE)));
 	if (bno == 0) {
 		swkill(u.u_procp, "exec");

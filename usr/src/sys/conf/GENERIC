@@ -1,3 +1,4 @@
+# 1997/1/21 - RK added to GENERIC kernel (for use with Bob Supnik's emulator)
 # 1995/12/14 - RX added to GENERIC kernel.
 # 1995/07/21 - XP_PROBE removed.
 #
@@ -145,7 +146,7 @@ NHK		2		# RK611, RK06/07
 NRAC		2		# NRAD controllers
 NRAD		3		# RX50, RC25, RD51/52/53, RA60/80/81
 
-NRK		0		# RK05
+NRK		8		# RK05
 
 NRL		2		# RL01/02
 

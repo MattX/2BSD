@@ -32,9 +32,3 @@
 +/"rlimits"n12D
 +/"quota"non
 +/"nc_off"16t"nc_inum"8t"nc_dev"nDubbn
-+/"ni_dirp"8t"nameiop"8t"ni_error"nouun
-+/"ni_endoff"8t"ni_pdir"nDon
-+/"ni_base"8t"ni_count"noun
-+/"ni_iov"8t"ni_iovcnt"noun
-+/"ni_offset"8t"ni_segflg"8t"ni_resid"nDuun
-+/"d_inum"8t"d_name"nu14Cn

@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)ufs_disksubr.c	8.5.3 (2.11BSD GTE) 1995/06/16
+ *	@(#)ufs_disksubr.c	8.5.4 (2.11BSD GTE) 1997/1/18
  */
 
 #include <errno.h>
@@ -43,6 +43,7 @@
 #include <sys/param.h>
 #include <sys/user.h>
 #include <sys/systm.h>
+#include <machine/seg.h>
 #include <sys/buf.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>

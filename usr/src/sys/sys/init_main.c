@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	2.1 (2.11BSD GTE) 1996/5/9
+ *	@(#)init_main.c	2.2 (2.11BSD GTE) 1997/1/18
  */
 
 #include "param.h"
@@ -77,8 +77,6 @@ main()
 
 	u.u_procp = p;			/* init user structure */
 	u.u_ap = u.u_arg;
-	u.u_nd.ni_iov = &u.u_nd.ni_iovec;
-	u.u_nd.ni_iovcnt = 1;
 	u.u_cmask = cmask;
 	u.u_lastfile = -1;
 	for (i = 1; i < NGROUPS; i++)
@@ -339,12 +337,11 @@ netinit()
 	off_t	off;
 	int initdata, netdsize, nettsize, ret, err, resid;
 	char oneclick[ctob(1)];
-	register struct	nameidata *ndp = &u.u_nd;
+	struct	nameidata nd;
+	register struct	nameidata *ndp = &nd;
 
 	ret = 1;
-	ndp->ni_nameiop = LOOKUP | FOLLOW;
-	ndp->ni_segflg = UIO_SYSSPACE;
-	ndp->ni_dirp = NETNIX;
+	NDINIT(ndp, LOOKUP, FOLLOW, UIO_SYSSPACE, NETNIX);
 	if (!(ip = namei(ndp))) {
 		printf("%s not found\n", NETNIX);
 		goto leave;
@@ -356,7 +353,7 @@ netinit()
 	err = rdwri(UIO_READ, ip, &ex, sizeof (ex), (off_t)0, UIO_SYSSPACE,
 			IO_UNIT, &resid);
 	if (err || resid) {
-		printf("%s header err %d\n", NETNIX, ret);
+		printf("%s header %d\n", NETNIX, ret);
 		goto leave;
 	}
 	if (ex.a_magic != A_MAGIC3) {
@@ -365,7 +362,7 @@ netinit()
 	}
 	lsize = (long)ex.a_data + (long)ex.a_bss;
 	if (lsize > 48L * 1024L) {
-		printf("%s too big %ld\n", NETNIX, lsize);
+		printf("%s 2big %ld\n", NETNIX, lsize);
 		goto leave;
 	}
 	nettsize = btoc(ex.a_text);
@@ -426,15 +423,6 @@ release:		printf("%s err %d\n", NETNIX, err);
 leave:	if (ip)
 		iput(ip);
 	u.u_error = 0;
-	ndp->ni_dirp = 0;
-	ndp->ni_segflg = UIO_USERSPACE;
-	ndp->ni_endoff = 0;
-	bzero(&u.u_ncache, sizeof(u.u_ncache));
-	bzero(&ndp->ni_dent, sizeof(ndp->ni_dent));
-	if (ndp->ni_pdir) {
-		iput(ndp->ni_pdir);
-		ndp->ni_pdir = 0;
-	}
 	return(ret);
 }
 #endif
