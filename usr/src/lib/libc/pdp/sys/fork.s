@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)fork.s	2.5 (Berkeley) 1/29/87\0>
+_sccsid: <@(#)fork.s	2.6 (2.11BSD GTE) 1995/05/10\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -14,18 +14,13 @@ _sccsid: <@(#)fork.s	2.5 (Berkeley) 1/29/87\0>
  */
 #include "SYS.h"
 
-.comm	_par_uid,2
-
 ENTRY(fork)
 	SYS(fork)
 	br	1f			/ child returns here
-	bes	2f			/ parent returns here
+	bcs	2f			/ parent returns here
 	rts	pc
 1:
-	mov	r0,_par_uid
 	clr	r0			/ child gets a zero
 	rts	pc
 2:
-	mov	r0,_errno
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error

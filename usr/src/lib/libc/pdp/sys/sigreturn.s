@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)sigreturn.s	2.5 (Berkeley) 1/29/87\0>
+_sccsid: <@(#)sigreturn.s	2.6 (2.11BSD GTE) 1995/05/08\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -47,6 +47,4 @@ _sigreturn:
 	/ The last two instructions represent a potential race condition ...
 1:
 	SYS(sigreturn)			/ attempt the sigreturn
-	mov	r0,_errno		/ if we return, it's an error!
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error

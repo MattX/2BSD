@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.7 (2.11BSD GTE) 1/14/95
+ *	@(#)init_sysent.c	1.8 (2.11BSD GTE) 1995/05/08
  */
 
 /*
@@ -17,8 +17,9 @@ int	nosys();
 
 /* 1.1 processes and protection */
 int	sethostid(),gethostid(),sethostname(),gethostname(),getpid();
-int	fork(),rexit(),execv(),execve(),owait(),wait4();
+int	getppid(), fork(),rexit(),execv(),execve(),owait(),wait4();
 int	getuid(),setreuid(),getgid(),getgroups(),setregid(),setgroups();
+int	geteuid(), getegid();
 int	getpgrp(),setpgrp();
 int	ucall();					/* 2BSD calls */
 
@@ -130,9 +131,9 @@ struct sysent sysent[] = {
 	1, umount,			/*  22 = umount */
 	6, __sysctl,			/*  23 = __sysctl */
 	0, getuid,			/*  24 = getuid */
-	0, nosys,			/*  25 = old stime */
+	0, geteuid,			/*  25 = geteuid */
 	4, ptrace,			/*  26 = ptrace */
-	0, nosys,			/*  27 = old alarm */
+	0, getppid,			/*  27 = getppid */
 	0, nosys,			/*  28 = old fstat */
 	0, nosys,			/*  29 = old pause */
 	0, nosys,			/*  30 = old utime */
@@ -153,7 +154,7 @@ struct sysent sysent[] = {
 	0, nosys,			/*  45 = nosys */
 	0, nosys,			/*  46 = old setgid */
 	0, getgid,			/*  47 = getgid */
-	0, nosys,			/*  48 = old sig */
+	0, getegid,			/*  48 = getegid */
 	0, nosys,			/*  49 = reserved for USG */
 	0, nosys,			/*  50 = reserved for USG */
 	1, sysacct,			/*  51 = turn acct off/on */

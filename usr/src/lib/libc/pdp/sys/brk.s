@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)brk.s	2.5 (Berkeley) 1/31/87\0>
+_sccsid: <@(#)brk.s	2.6 (2.11BSD GTE) 1995/05/08\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -23,9 +23,7 @@ ENTRY(brk)
 1:
 	SYS(sbrk)		/ ask for break
 	bes	2f
-	mov	2(sp),curbrk	/   and rember it if it succeeded
+	mov	2(sp),curbrk	/   and remember it if it succeeded
 	rts	pc
 2:
-	mov	r0,_errno
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.1 (2.11BSD GTE) 1/16/95";
+static	char	sccsid[] = "@(#)opset.c 2.2 (2.11BSD GTE) 1995/05/08";
 #endif
 
 #include "defs.h"
@@ -142,7 +142,7 @@ char *systab[] = {
 	"wait4",
 	"creat",
 	"link",
-	"unlink",
+	"unlink",		/* 10 */
 	"execv",
 	"chdir",
 	"fchdir",
@@ -152,16 +152,16 @@ char *systab[] = {
 	"chflags",
 	"fchflags",
 	"lseek",
-	"getpid",
+	"getpid",		/* 20 */
 	"mount",
 	"umount",
 	"__sysctl",
 	"getuid",
-	NULL,			/* 25 - old stime */
+	"geteuid",		/* 25 */
 	"ptrace",
-	"alarm",
+	"getppid",
 	NULL,			/* 28 - old fstat */
-	"pause",
+	NULL,			/* 29 - old pause */
 	NULL,			/* 30 - old utime */
 	NULL,			/* 31 - old stty */
 	NULL,			/* 32 - old gtty */
@@ -175,12 +175,12 @@ char *systab[] = {
 	"lstat",
 	"dup",
 	"pipe",
-	"times",
+	NULL,			/* 43 - old times */
 	"profil",
 	NULL,			/* 45 - unused */
 	NULL,			/* 46 - old setgid */
 	"getgid",
-	"signal",
+	"getegid",
 	NULL,			/* 49 - unused */
 	NULL,			/* 50 - unused */
 	"acct",
@@ -202,7 +202,7 @@ char *systab[] = {
 	NULL,			/* 67 - old vread */
 	NULL,			/* 68 - old vwrite */
 	"sbrk",
-	"sstk",
+	NULL,			/* 70 - old sstk */
 	NULL,			/* 71 - mmap */
 	NULL,			/* 72 - old vadvise */
 	NULL,			/* 73 - munmap */
@@ -217,16 +217,16 @@ char *systab[] = {
 	"setpgrp",
 	"setitimer",
 	"old wait",
-	"swapon",
+	NULL,			/* 85 - 4.3 swapon */
 	"getitimer",
 	"gethostname",
 	"sethostname",
 	"getdtablesize",
 	"dup2",
-	"getdopt",
+	NULL,			/* 91 - unused */
 	"fcntl",
 	"select",
-	"setdopt",
+	NULL,			/* 94 - unused */
 	"fsync",
 	"setpriority",
 	"socket",
@@ -234,7 +234,7 @@ char *systab[] = {
 	"accept",
 	"getpriority",
 	"send",
-	"recv",
+	"recv",			/* 102 - recv */
 	"sigreturn",
 	"bind",
 	"setsockopt",
@@ -247,7 +247,7 @@ char *systab[] = {
 	"sigstack",
 	"recvmsg",
 	"sendmsg",
-	"vtrace",
+	NULL,			/* 115 - 4.3 vtrace */
 	"gettimeofday",
 	"getrusage",
 	"getsockopt",

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.4 (2.11BSD GTE) 11/26/94
+ *	@(#)syscalls.c	1.5 (2.11BSD GTE) 1995/05/08
  */
 
 /*
@@ -36,9 +36,9 @@ char *syscallnames[] = {
 	"umount",		/*  22 = umount */
 	"old setuid - nosys",	/*  23 = old setuid */
 	"getuid",		/*  24 = getuid */
-	"old stime - nosys",	/*  25 = old stime */
+	"geteuid",		/*  25 = geteuid */
 	"ptrace",		/*  26 = ptrace */
-	"old alarm - nosys",	/*  27 = old alarm */
+	"getppid",		/*  27 = getppid */
 	"old fstat - nosys",	/*  28 = old fstat */
 	"old pause",		/*  29 = old pause */
 	"old utime - nosys",	/*  30 = old utime */
@@ -59,7 +59,7 @@ char *syscallnames[] = {
 	"#45",			/*  45 = nosys */
 	"old setgid - nosys",	/*  46 = old setgid */
 	"getgid",		/*  47 = getgid */
-	"old signal",		/*  48 = old sig */
+	"getegid",		/*  48 = getegid */
 	"#49",			/*  49 = reserved for USG */
 	"#50",			/*  50 = reserved for USG */
 	"acct",			/*  51 = turn acct off/on */

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.3 (2.11BSD GTE) 11/25/94
+ *	@(#)syscall.h	5.4.4 (2.11BSD GTE) 1995/05/08
  */
 
 #define	SYS_exit	1
@@ -30,9 +30,9 @@
 #define	SYS_umount	22
 #define	SYS___sysctl	23
 #define	SYS_getuid	24
-				/* 25 is old: stime */
+#define	SYS_geteuid	25
 #define	SYS_ptrace	26
-				/* 27 is old: alarm */
+#define	SYS_getppid	27
 				/* 28 is old: fstat */
 				/* 29 is old: pause */
 				/* 30 is old: utime */
@@ -53,7 +53,7 @@
 				/* 45 is unused */
 				/* 46 is old: setgid */
 #define	SYS_getgid	47
-				/* 48 is old: sigsys */
+#define	SYS_getegid	48
 				/* 49 is unused */
 				/* 50 is unused */
 #define	SYS_acct	51

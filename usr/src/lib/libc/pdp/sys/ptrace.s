@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)ptrace.s	2.5 (Berkeley) 1/29/87\0>
+_sccsid: <@(#)ptrace.s	2.6 (2.11BSD GTE) 1995/05/08\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -17,6 +17,4 @@ ENTRY(ptrace)
 	bes	error		/   disambiguate
 	rts	pc
 error:
-	mov	r0,_errno
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error

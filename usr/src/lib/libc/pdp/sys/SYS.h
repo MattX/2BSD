@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)SYS.h	1.4 (2.11BSD GTE) 3/13/93
+ *	@(#)SYS.h	1.5 (2.11BSD GTE) 1995/05/08
  */
 
 #include <syscall.h>
@@ -35,10 +35,6 @@
 			SYS(s); \
 			EXIT_/**/r
 
-#define	PSEUDO(f, s, r)	ENTRY(f); \
-			SYS(s); \
-			EXIT_/**/r
-
 		.globl	x_norm, x_error
 
 #define	EXIT_norm		jmp	x_norm
@@ -52,6 +48,3 @@
 #define	EXIT_error		jmp	x_error
 
 #define	EXIT_noerror		rts	pc;
-
-#define	EXIT_alt_noerror	mov	r1,r0; \
-				rts	pc;

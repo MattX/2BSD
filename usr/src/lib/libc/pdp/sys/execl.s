@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)execl.s	2.5 (Berkeley) 1/29/87\0>
+_sccsid: <@(#)execl.s	2.6 (2.11BSD GTE) 1995/05/08\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -25,6 +25,4 @@ ENTRY(execl)
 	tst	-(sp)		/ simulate return address stack spacing
 	SYS(execve)		/   and go for it ...
 	add	$8.,sp		/ if we get back it's an error
-	mov	r0,_errno
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error

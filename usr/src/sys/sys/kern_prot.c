@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_prot.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)kern_prot.c	1.2 (2.11BSD GTE) 1995/05/08
  */
 
 /*
@@ -22,7 +22,13 @@ getpid()
 {
 
 	u.u_r.r_val1 = u.u_procp->p_pid;
-	u.u_r.r_val2 = u.u_procp->p_ppid;
+	u.u_r.r_val2 = u.u_procp->p_ppid;	/* XXX - compatibility */
+}
+
+getppid()
+{
+
+	u.u_r.r_val1 = u.u_procp->p_ppid;
 }
 
 getpgrp()
@@ -46,14 +52,26 @@ getuid()
 {
 
 	u.u_r.r_val1 = u.u_ruid;
-	u.u_r.r_val2 = u.u_uid;
+	u.u_r.r_val2 = u.u_uid;		/* XXX */
+}
+
+geteuid()
+{
+
+	u.u_r.r_val1 = u.u_uid;
 }
 
 getgid()
 {
 
 	u.u_r.r_val1 = u.u_rgid;
-	u.u_r.r_val2 = u.u_gid;
+	u.u_r.r_val2 = u.u_gid;		/* XXX */
+}
+
+getegid()
+{
+
+	u.u_r.r_val1 = u.u_gid;
 }
 
 /*

@@ -5,7 +5,7 @@
  */
 
 #ifdef SYSLIBC_SCCS
-_sccsid: <@(#)sbrk.s	2.5 (Berkeley) 1/31/87\0>
+_sccsid: <@(#)sbrk.s	2.6 (2.11BSD GTE) 1995/05/08\0>
 	.even
 #endif SYSLIBC_SCCS
 
@@ -37,6 +37,4 @@ ENTRY(sbrk)
 	rts	pc
 2:
 	cmp	(sp)+,(sp)+	/ (clean up stack)
-	mov	r0,_errno
-	mov	$-1,r0
-	rts	pc
+	jmp	x_error
