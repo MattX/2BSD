@@ -16,12 +16,12 @@
 
 # ifndef SMTP
 #if !defined(lint) && !defined(NOSCCS)
-static char SccsId[] = "@(#)usersmtp.c	5.7.1 (2.11BSD GTE) 7/15/94 (no SMTP)";
+static char SccsId[] = "@(#)usersmtp.c	5.7.2 (2.11BSD GTE) 1996/3/10(no SMTP)";
 # endif
 # else SMTP
 
 #if !defined(lint) && !defined(NOSCCS)
-static char SccsId[] = "@(#)usersmtp.c	5.7.1 (2.11BSD GTE) 7/15/94";
+static char SccsId[] = "@(#)usersmtp.c	5.7.2 (2.11BSD GTE) 1996/3/10";
 # endif
 
 
@@ -75,7 +75,7 @@ smtpinit(m, pvp)
 	register int r;
 	EVENT *gte;
 	char buf[MAXNAME];
-	extern greettimeout();
+	int greettimeout();
 
 	/*
 	**  Open the connection to the mailer.
@@ -213,7 +213,6 @@ smtpinit(m, pvp)
 }
 
 
-static
 greettimeout()
 {
 	/* timeout reading the greeting message */

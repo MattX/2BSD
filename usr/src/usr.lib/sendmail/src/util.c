@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)util.c	5.8.1 (2.11BSD GTE) 3/07/95";
+static char	SccsId[] = "@(#)util.c	5.8.2 (2.11BSD GTE) 1996/3/10";
 #endif
 
 # include <stdio.h>
@@ -615,7 +615,7 @@ sfgets(buf, siz, fp)
 {
 	register EVENT *ev = NULL;
 	register char *p;
-	extern readtimeout();
+	int readtimeout();
 
 	/* set the timeout */
 	if (ReadTimeout != 0)
@@ -655,7 +655,6 @@ sfgets(buf, siz, fp)
 	return (buf);
 }
 
-static
 readtimeout()
 {
 	longjmp(CtxReadTimeout, 1);
