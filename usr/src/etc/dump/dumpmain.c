@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumpmain.c	1.3 (2.11BSD GTE) 12/6/94";
+static	char *sccsid = "@(#)dumpmain.c	1.4 (2.11BSD GTE) 1996/2/7";
 #endif
 
 #include "dump.h"
@@ -308,7 +308,7 @@ main(argc, argv)
 	msg("DUMP IS DONE\n");
 
 	putitime();
-	rewind();
+	tape_rewind();
 	broadcast("DUMP IS DONE!\7\7\n");
 	Exit(X_FINOK);
 }

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)dumptape.c	5.5 (Berkeley) 5/23/86";
+static char sccsid[] = "@(#)dumptape.c	5.5.1 (2.11BSD) 1996/2/7";
 #endif
 
 #include <sys/file.h>
@@ -147,7 +147,7 @@ flusht()
 	timeest();
 }
 
-rewind()
+tape_rewind()
 {
 	int f;
 
@@ -174,7 +174,7 @@ rewind()
 
 close_rewind()
 {
-	rewind();
+	tape_rewind();
 	if (!nogripe) {
 		msg("Change Tapes: Mount tape #%d\n", tapeno+1);
 		broadcast("CHANGE TAPES!\7\7\n");
