@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.6 (2.11BSD GTE) 1995/12/29
+ *	@(#)sys_inode.c	1.7 (2.11BSD GTE) 1996/3/2
  */
 
 #include "param.h"
@@ -611,12 +611,11 @@ openi(ip, mode)
 	dev_t bdev;
 	int error;
 
-	if (ip->i_fs->fs_flags & MNT_NODEV)
-		return(ENXIO);
-
 	switch (ip->i_mode&IFMT) {
 
 	case IFCHR:
+		if (ip->i_fs->fs_flags & MNT_NODEV)
+			return(ENXIO);
 		if ((u_int)maj >= nchrdev)
 			return (ENXIO);
 		if (mode & FWRITE) {
@@ -643,6 +642,8 @@ openi(ip, mode)
 		return ((*cdevsw[maj].d_open)(dev, mode, S_IFCHR));
 
 	case IFBLK:
+		if (ip->i_fs->fs_flags & MNT_NODEV)
+			return(ENXIO);
 		if ((u_int)maj >= nblkdev)
 			return (ENXIO);
 		/*
