@@ -1,4 +1,4 @@
-#	@(#)services	1.16.1 (2.11BSD) 1996/11/13
+#	@(#)services	1.16.2 (2.11BSD) 1996/12/13
 #
 # Network services, Internet style
 #
@@ -35,7 +35,7 @@ hostnames	101/tcp		hostname	# usually from sri-nic
 pop		109/tcp		postoffice
 sunrpc		111/tcp
 sunrpc		111/udp
-auth		113/tcp		authentication
+ident		113/tcp		auth tap authentication
 sftp		115/tcp
 uucp-path	117/tcp
 nntp		119/tcp		readnews untp	# USENET News Transfer Protocol
