@@ -1,5 +1,5 @@
 #!/bin/csh
 #
-#	@(#)named.reload	1.1	(Berkeley)	86/12/08
+#	@(#)named.reload	1.1.1	(2.11BSD)	1996/11/16
 #
-kill -HUP `cat /etc/named.pid`
+kill -HUP `cat /var/run/named.pid`

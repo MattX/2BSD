@@ -14,24 +14,23 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	4.9 (Berkeley) 10/10/88
+#	@(#)Makefile	4.9.1 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-O
 RES=
-LIBC=	/lib/libc.a
 SRCS=	nsquery.c nstest.c
 OBJS=
 
 all: nsquery nstest nslookup
 
-nsquery: ${LIBC}
-	${CC} ${CFLAGS} -i -o $@ nsquery.c ${RES}
+nsquery: nsquery.o
+	${CC} ${CFLAGS} -i -o $@ nsquery.o ${RES}
 
 # test programs and utilities
-nstest: ${LIBC}
+nstest: nstest.o
 	@echo "The resolver routines in libc must be compiled with the -DDEBUG"
 	@echo "option or nstest will not have any output."
-	${CC} ${CFLAGS} -i -o $@ nstest.c ${RES}
+	${CC} ${CFLAGS} -i -o $@ nstest.o ${RES}
 
 nslookup: FRC
 	cd nslookup; make ${MFLAGS} RES=${RES}

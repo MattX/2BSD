@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	4.14 (Berkeley) 2/28/88
+#	@(#)Makefile	4.14.1 (2.11BSD) 1996/11/16
 #
 SEPFLAG= -i
 RES=
@@ -19,7 +19,6 @@ DEFINES=
 ### ALLOC=storage.o
 CFLAGS=	-O ${DEFINES}
 LDFLAGS= ${RES} ${SEPFLAG}
-LIBC=	/lib/libc.a
 SRCS=	db_dump.c db_load.c db_lookup.c db_reload.c db_save.c db_update.c \
 	ns_forw.c ns_init.c ns_main.c ns_maint.c ns_req.c ns_resp.c \
 	ns_sort.c ns_stats.c
@@ -32,7 +31,7 @@ OBJS=	${BASE} ${OBJS1} ${OBJS2} ${ALLOC}
 
 all: named
 
-named:	${OBJS} ${LIBC}
+named:	${OBJS}
 	sh newvers.sh
 # You need overlays if you define DEBUG and STATS.
 #	${CC} ${LDFLAGS} -o $@ version.c ${BASE} -Z ${OBJS1} -Z ${OBJS2} -Y
@@ -45,7 +44,7 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: named
-	install -s -o root -g staff  -m 751 named ${DESTDIR}/etc/named
+	install -s -o root -g staff  -m 751 named ${DESTDIR}/usr/sbin/named
 
 lint: FRC
 	lint -Dlint ${CFLAGS} ${SRCS}

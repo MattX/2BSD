@@ -2,20 +2,20 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rwhod.8c	6.2 (Berkeley) 5/24/86
+.\"	@(#)rwhod.8	6.2.1 (2.11BSD) 1996/11/16
 .\"
-.TH RWHOD 8C "May 24, 1986"
+.TH RWHOD 8 "November 16, 1996"
 .UC 5
 .SH NAME
 rwhod \- system status server
 .SH SYNOPSIS
-.B /etc/rwhod
+.B /usr/sbin/rwhod
 .SH DESCRIPTION
 .I Rwhod
 is the server which maintains the database used by the
-.IR rwho (1C)
+.IR rwho (1)
 and
-.IR ruptime (1C)
+.IR ruptime (1)
 programs.  Its operation is predicated on the ability to
 .I broadcast
 messages on a network.
@@ -100,8 +100,8 @@ on /vmunix every 30 minutes to guard against
 the possibility that this file is not the system
 image currently operating.
 .SH "SEE ALSO"
-rwho(1C),
-ruptime(1C)
+rwho(1),
+ruptime(1)
 .SH BUGS
 There should be a way to relay status information between networks. 
 Status information should be sent only upon request rather than continuously.

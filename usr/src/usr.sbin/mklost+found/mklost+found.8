@@ -4,12 +4,12 @@
 .\"
 .\"	@(#)mklost+found.8	6.1 (Berkeley) 4/27/85
 .\"
-.TH MKLOST+FOUND 8 "April 27, 1985"
+.TH MKLOST+FOUND 8 "November 17, 1996"
 .UC 4
 .SH NAME
 mklost+found \- make a lost+found directory for fsck
 .SH SYNOPSIS
-.B /etc/mklost+found
+.B /usr/sbin/mklost+found
 .SH DESCRIPTION
 A directory
 .I lost+found
@@ -17,11 +17,12 @@ is created in the current directory and a number of empty files
 are created therein and then removed so that there will be
 empty slots for
 .IR fsck (8).
-This command should not normally be needed since 
-.IR mkfs (8)
-automatically creates the
+.PP
+This command is obsolete because
+.IR fsck (8)
+automatically creates and extends the
 .I lost+found
-directory when a new file system is created.
+directory as needed.
 .SH "SEE ALSO"
 fsck(8),
 mkfs(8)

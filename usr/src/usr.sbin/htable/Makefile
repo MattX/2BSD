@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (Berkeley) 9/18/85
+#	@(#)Makefile	5.2.1 (2.11BSD) 1996/11/16
 #
 CFLAGS=	-O
 SEPFLAG= -i
@@ -34,4 +34,4 @@ clean:
 	rm -f ${ALL} *.o *.s parse.c scan.c y.tab.h errs
 
 install: htable
-	install -s htable ${DESTDIR}/etc/htable
+	install -s htable ${DESTDIR}/usr/sbin/htable

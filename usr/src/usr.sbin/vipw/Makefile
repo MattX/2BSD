@@ -14,12 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.1.2 (2.11BSD) 1996/1/28
+# @(#)Makefile	5.1.3 (2.11BSD) 1996/11/16
 #
 
 CFLAGS=	-O
 SEPFLAG= -i
-LIBC=	/lib/libc.a
 SRCS=	vipw.c
 OBJS=	vipw.o
 MAN=	vipw.0
@@ -27,7 +26,7 @@ MANSRC=	vipw.8
 
 all: vipw ${MAN}
 
-vipw: ${LIBC} ${OBJS}
+vipw: ${OBJS}
 	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
 
 vipw.0: ${MANSRC}
@@ -43,7 +42,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} vipw
-	install -s -o bin -g bin -m 755 vipw ${DESTDIR}/etc
+	install -s -o bin -g bin -m 755 vipw ${DESTDIR}/usr/sbin
 	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
 
 lint: ${SRCS}

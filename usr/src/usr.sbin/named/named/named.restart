@@ -1,2 +1,2 @@
-kill -9 `cat /etc/named.pid`
-/etc/named 
+kill -9 `cat /var/run/named.pid`
+/usr/sbin/named 

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)syslogd.c	5.13.3 (2.11BSD GTE) 1996/3/22";
+static char sccsid[] = "@(#)syslogd.c	5.13.4 (2.11BSD GTE) 1996/11/16";
 #endif
 
 /*
@@ -67,7 +67,7 @@ static char sccsid[] = "@(#)syslogd.c	5.13.3 (2.11BSD GTE) 1996/3/22";
 
 char	*LogName = "/dev/log";
 char	*ConfFile = "/etc/syslog.conf";
-char	*PidFile = "/etc/syslog.pid";
+char	*PidFile = "/var/run/syslog.pid";
 char	ctty[] = "/dev/console";
 
 #define FDMASK(fd)	(1 << (fd))
@@ -620,8 +620,8 @@ wallmsg(f, iov)
 		return;
 
 	/* open the user login file */
-	if ((uf = fopen("/etc/utmp", "r")) == NULL) {
-		logerror("/etc/utmp");
+	if ((uf = fopen(_PATH_UTMP, "r")) == NULL) {
+		logerror(_PATH_UTMP);
 		reenter = 0;
 		return;
 	}

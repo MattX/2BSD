@@ -1,8 +1,8 @@
-.TH NTPD 8 "9 December 1988" LOCAL "Clockwatcher's Programming Manual"
+.TH NTPD 8 "27 November 1996" LOCAL "Clockwatcher's Programming Manual"
 .SH NAME
 ntpd \- time synchronization daemon implementing NTP
 .SH SYNOPSIS
-.B /usr/local/etc/ntpd
+.B ntpd
 [-d] [-s] [-t]
 .SH OPTIONS
 .B -d
@@ -55,7 +55,7 @@ is used to make a step adjustment of the local clock.
 When
 .IR ntpd (8)
 is started on the machine, it reads configuration information from
-.I /etc/ntpd.conf
+.I /etc/ntp.conf
 which contains information about other 
 .I ntp
 time servers and host specific information.  Configuration information is

@@ -1,4 +1,4 @@
-# $Source: /usr/users/louie/ntp/RCS/Makefile,v $ $Revision: 3.4.1.7 $ $Date: 89/05/18 12:43:32 $
+# @(#) Makefile 1.0 (2.11BSD) 1996/12/1
 #
 # $Log:	Makefile,v $
 # Revision 3.4.1.7  89/05/18  12:43:32  louie
@@ -55,23 +55,15 @@
 # verify that certain arithmetic operations are done correctly on the
 # host that the code is being compiled on.
 # 
-# 
-#
 DESTDIR=
-INCPATH=
 LDFLAGS= -i
-BINDIR=/etc
-LINKDIR=/etc
+BINDIR=/usr/sbin
 LIBS=
 
 VERS=3.4
 
-#CC=gcc -g -W -Wall
-#CC=gcc -g -W
+INSTALL= install -c -s -m 755
 
-INSTALL= install -c
-
-#
 # FEATURES include:
 #	DEBUG	  - include DEBUG code
 #	BROADCAST_NTP - experimental support for broadcast NTP
@@ -94,7 +86,7 @@ INSTALL= install -c
 FEATURES= -DDEBUG -DLOG_NTP=LOG_LOCAL3
 #FEATURES= -DBROADCAST_NTP -DSETTICKADJ -DDEBUG -DLOG_NTP=LOG_LOCAL3
 
-# for 2.10.1BSD
+# for 2.11BSD
 DEFINES= -DGENERIC_UNS_BUG -DSUN_FLT_BUG
 
 # for 4.3 BSD
@@ -114,7 +106,7 @@ DEFINES= -DGENERIC_UNS_BUG -DSUN_FLT_BUG
 # for a NeXT system, define these pre-processor symbols.
 #DEFINES=-DSUN_FLT_BUG -DGENERIC_UNS_BUG 
 
-CFLAGS= -O ${DEFINES} ${FEATURES} ${INCPATH}
+CFLAGS= -O ${DEFINES} ${FEATURES}
 #
 # Header files
 #
@@ -132,18 +124,21 @@ NTPDOBJ= ntpd.o ntpsubs.o ntp_proto.o ntp_sock.o ntp_adjust.o read_local.o \
 	read_psti.o
 OBJS=	ntp.o ntpdc.o ${NTPDOBJ}
 
-
-DIST= README Makefile man ${SRCS} ${HDRS} ntp.conf test.c extract.pl stat.pl
 PROGS=	ntp ntpd ntpdc ntest
 
-all:	${PROGS}
+all:	${PROGS} man
 	@./ntest
+
+man:	FRC
+	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} all
 
 ntp:	ntp.o ntpsubs.o
 	${CC} ${LDFLAGS} -o ntp ntp.o ntpsubs.o ${LIBS}
 
 ntpd:	${NTPDOBJ}
 	${CC} ${LDFLAGS} -o ntpd ${NTPDOBJ} ${LIBS}
+
+FRC:
 
 ntpdc: ntpdc.o
 	${CC} ${LDFLAGS} -o ntpdc ntpdc.o ${LIBS}
@@ -154,52 +149,22 @@ ntest: test.o ntpsubs.o
 sock_test: ntp_sock.c
 	${CC} ${LDFLAGS} -DTEST -o sock_test ntp_sock.c ${LIBS}
 
-${OBJS}:	ntp.h Makefile
+${OBJS}:	ntp.h
 ntpd.o:	patchlevel.h
 
-install: ${DESTDIR}${BINDIR}/ntpd ${DESTDIR}${BINDIR}/ntp ${DESTDIR}${BINDIR}/ntpdc ntest
+install: ${PROGS}
 	@./ntest
-#
-# If you don't want a symlink to the daemon, comment out the next line
-#	make ${MFLAGS} DESTDIR=${DESTDIR} install-link
-
-${DESTDIR}${BINDIR}/ntpd:	ntpd
 	${INSTALL}  ntpd ${DESTDIR}${BINDIR}/ntpd
-
-${DESTDIR}${BINDIR}/ntp:	ntp
 	${INSTALL}  ntp ${DESTDIR}${BINDIR}/ntp
-
-${DESTDIR}${BINDIR}/ntpdc:	ntpdc
 	${INSTALL}  ntpdc ${DESTDIR}${BINDIR}/ntpdc
-
-install-man:
 	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} install
 
-install-link:
-	rm -f ${BINDIR}/${LINKDIR}/ntpd
-	ln -s ${BINDIR}/ntpd ${DESTDIR}/${LINKDIR}/ntpd
-
-print:
-	enscript -2r -p - Makefile ${HDRS} ${SRCS} | qpr -q lps40
-
 clean:
-	@rm -f *.o *~ core ${PROGS} ntp.tar ntest sock_test
+	rm -f *.o *~ ${PROGS} ntest sock_test
 	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} clean
 
 lint:
 	lint -bac ${DEFINES} ${NTPDSRC}
-
-dist:	ntp.tar.Z
-	mv ntp.tar.Z /usr/ftp/pub/ntp.${VERS}/ntp.tar.Z
-
-test-dist:	ntp.tar.Z
-	mv ntp.tar.Z /usr/ftp/pub/ntp.${VERS}/ntp-test.tar.Z
-
-ntp.tar.Z:	${DIST}
-	rm -f ntp.tar ntp.tar.Z
-	tar cf ntp.tar ${DIST}
-	compress  ntp.tar
-
 
 depend:
 	mkdep $(CFLAGS) $(SRCS)

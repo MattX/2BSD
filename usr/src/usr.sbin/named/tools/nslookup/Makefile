@@ -14,11 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.20.1 (2.11BSD) 1996/10/21
+#	@(#)Makefile	5.20.2 (2.11BSD) 1996/12/1
 #
 CFLAGS=	-O
 RES=
-LIBC=	/lib/libc.a
 LIBS=	-ll ${RES}
 CSRCS=	main.c getinfo.c debug.c send.c skip.c list.c subr.c res_debug.c
 SRCS=	${CSRCS} commands.c
@@ -27,7 +26,7 @@ OBJS=	main.o getinfo.o debug.o send.o skip.o list.o subr.o commands.o \
 
 all: nslookup nslookup.0
 
-nslookup: ${OBJS} ${LIBC}
+nslookup: ${OBJS}
 	${CC} -i -o $@ ${OBJS} ${LIBS}
 
 clean:

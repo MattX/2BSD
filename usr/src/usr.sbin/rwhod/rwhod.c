@@ -9,8 +9,8 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)rwhod.c	5.9.1 (2.11BSD) 1/16/95";
-#endif not lint
+static char sccsid[] = "@(#)rwhod.c	5.9.2 (2.11BSD) 1996/11/16";
+#endif
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -25,6 +25,8 @@ static char sccsid[] = "@(#)rwhod.c	5.9.1 (2.11BSD) 1/16/95";
 
 #include <stdio.h>
 #include <signal.h>
+#include <unistd.h>
+#include <string.h>
 #include <errno.h>
 #include <utmp.h>
 #include <ctype.h>
@@ -40,9 +42,6 @@ static char sccsid[] = "@(#)rwhod.c	5.9.1 (2.11BSD) 1/16/95";
 
 struct	sockaddr_in sin = { AF_INET };
 
-extern	errno;
-
-time_t	time();
 char	myname[MAXHOSTNAMELEN];
 
 /*
@@ -68,8 +67,7 @@ int	s, utmpf;
 #define	RWHODIR		"/usr/spool/rwho"
 
 int	onalrm(), getboottime();
-char	*strcpy(), *sprintf(), *malloc();
-long	lseek();
+	char	*Utmp = _PATH_UTMP;
 
 main()
 {
@@ -78,7 +76,6 @@ main()
 	char path[64];
 	int on = 1;
 	char *cp;
-	extern char *index();
 
 	if (getuid()) {
 		fprintf(stderr, "rwhod: not super user\n");
@@ -121,13 +118,13 @@ main()
 	if ((cp = index(myname, '.')) != NULL)
 		*cp = '\0';
 	strncpy(mywd.wd_hostname, myname, sizeof (myname) - 1);
-	utmpf = open("/etc/utmp", O_RDONLY);
+	utmpf = open(Utmp, O_RDONLY);
 	if (utmpf < 0) {
-		(void) close(creat("/etc/utmp", 0644));
-		utmpf = open("/etc/utmp", O_RDONLY);
+		(void) close(creat(Utmp, 0644));
+		utmpf = open(Utmp, O_RDONLY);
 	}
 	if (utmpf < 0) {
-		syslog(LOG_ERR, "/etc/utmp: %m");
+		syslog(LOG_ERR, "%s: %m", Utmp);
 		exit(1);
 	}
 	getboottime(0);
@@ -268,7 +265,7 @@ onalrm()
 		(void) lseek(utmpf, (long)0, L_SET);
 		cc = read(utmpf, (char *)utmp, (int)stb.st_size);
 		if (cc < 0) {
-			perror("/etc/utmp");
+			perror(Utmp);
 			goto done;
 		}
 		wlast = &mywd.wd_we[1024 / sizeof (struct whoent) - 1];
@@ -369,14 +366,14 @@ configure(s)
 		np = (struct neighbor *)malloc(sizeof (*np));
 		if (np == NULL)
 			continue;
-		np->n_name = malloc(strlen(ifr->ifr_name) + 1);
+		np->n_name = (char *)malloc(strlen(ifr->ifr_name) + 1);
 		if (np->n_name == NULL) {
 			free((char *)np);
 			continue;
 		}
 		strcpy(np->n_name, ifr->ifr_name);
 		np->n_addrlen = sizeof (ifr->ifr_addr);
-		np->n_addr = malloc(np->n_addrlen);
+		np->n_addr = (char *)malloc(np->n_addrlen);
 		if (np->n_addr == NULL) {
 			free(np->n_name);
 			free((char *)np);

@@ -9,7 +9,9 @@
 #include <log.h>
 extern int fout;
 
-static char SccsId[] = "@(#)mail-dm.c	4.1	7/25/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char SccsId[] = "@(#)mail-dm.c	4.1.1	1996/11/29";
+#endif
 
 /*
 Name:
@@ -247,7 +249,7 @@ datamail()
 **		Fork.
 **			Signal "unavailable" and exit on failure
 **			In child:
-**				Call mailer: /etc/delivermail is preferred.
+**				Call mailer: delivermail is preferred.
 **			In parent:
 **				Avoid pipe signals in case delivermail dies.
 **				Save the childs pid.
@@ -267,7 +269,7 @@ datamail()
 **		-1 on failure.
 **
 **	Side Effects:
-**		Forks /etc/delivermail or /bin/mail or /usr/bin/mail.
+**		Forks /usr/sbin/delivermail or /bin/mail or /usr/bin/mail.
 **		Becomes "network" in the child.
 **
 **	Requires:
@@ -292,10 +294,10 @@ datamail()
 **		11/26/79 -- Modified to map upper case to lower
 **			case.  Eric Allman UCB/INGRES.
 **		11/10/79 -- Written by Eric Allman UCB/INGRES
-**		3/6/80 -- Dropped case mapping; delivermail does
+**		3/6/80 -- Dropped case mapping; /usr/sbin/delivermail does
 **			that now.  EPA UCB/INGRES.
 **		8/19/81 -- Added "mode" parameter; call sendmail
-**			instead of delivermail.  EPA
+**			instead of /usr/sbin/delivermail.  EPA
 */
 
 int Mail_pid;
@@ -345,7 +347,7 @@ openmail(who, mode)
 		setuid(NETUID);
 
 		/* try to call something to deliver the mail */
-		execl("/etc/sendmail", "sendmail", "-v", mode == 1 ? "-af" : "-am", w, 0);
+		execl("/usr/sbin/sendmail", "sendmail", "-v", mode == 1 ? "-af" : "-am", w, 0);
 
 		/* doesn't seem to be anything around */
 		netreply("455 Mail server unavailable\r\n");

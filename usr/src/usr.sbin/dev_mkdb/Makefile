@@ -1,7 +1,7 @@
 #
 # Public Domain.  2/3/1995 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 2/3/95
+#	@(#)Makefile	1.1 (2.11BSD GTE) 1996/11/16
 #
 CFLAGS=	 -O
 SEPFLAG= -i
@@ -26,7 +26,7 @@ depend: ${SRCS}
 
 install: all
 	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	install -s -o root -g bin -m 755 dev_mkdb ${DESTDIR}/etc/dev_mkdb
+	install -s -o root -g bin -m 755 dev_mkdb ${DESTDIR}/usr/sbin/dev_mkdb
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

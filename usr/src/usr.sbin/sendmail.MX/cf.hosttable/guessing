@@ -103,7 +103,7 @@ to allow .o files to be configured:
 4. The change to syslog priorities didn't get made in the bbnnet directory.
 Each occurrence of KERN_RECOV should be changed to LOG_INFO.
 
-5. The binary of /etc/arp was out of date.  Recompilation will fix it.
+5. The binary of arp was out of date.  Recompilation will fix it.
 This was due to a change in <netinet/if_ether.h>.
 
 6. There was a bug in ftp, finger and probably other programs that tried

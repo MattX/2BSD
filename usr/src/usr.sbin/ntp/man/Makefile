@@ -1,5 +1,5 @@
 DESTDIR=
-MANDIR=/usr/new/man/cat8
+MANDIR=/usr/man/cat8
 MANSRC= ntp.8 ntpd.8 ntpdc.8
 MAN= ntp.0 ntpd.0 ntpdc.0
 

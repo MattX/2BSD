@@ -10,14 +10,12 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1986 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)ns_main.c	4.30 (Berkeley) 3/7/88";
+static char sccsid[] = "@(#)ns_main.c	4.30.1 (2.11BSD) 1996/11/16";
 #endif /* not lint */
 
 /*
@@ -65,7 +63,7 @@ char	*debugfile = "/usr/tmp/named.run";
 #ifdef PIDFILE 				/* file to store current named PID */
 char	*PidFile = PIDFILE;
 #else
-char	*PidFile = "/etc/named.pid";	
+char	*PidFile = "/var/run/named.pid";	
 #endif
 
 #ifndef FD_SET

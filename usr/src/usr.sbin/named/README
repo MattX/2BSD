@@ -34,11 +34,11 @@ Here is how to install the name server on 4.3BSD:
 9) create the master files (samples in master/*)
 10) edit /etc/rc.local to include:
 
-if [ -f /etc/named ]; then
-        /etc/named; echo -n ' named' >/dev/console
+if [ -f /usr/sbin/named ]; then
+        /usr/sbin/named; echo -n ' named' >/dev/console
 fi
 
-11) recompile network client and server programs that use gethostbyname, etc.
+11) recompile network client and server programs that use gethostbyname,...
 
 
 Here is how to install the name server on 4.2BSD or similar systems.
@@ -102,12 +102,12 @@ OR
 8) create the master files (samples in master/*)
 9) edit /etc/rc.local to include:
 
-if [ -f /etc/named ]; then
-        /etc/named; echo -n ' named' >/dev/console
+if [ -f /usr/sbin/named ]; then
+        /usr/sbin/named; echo -n ' named' >/dev/console
 fi
 
 10) eventually, recompile network client and server programs that use
-gethostbyname, etc.
+gethostbyname,...
 
 If you have any problems or fixes send them to 
 

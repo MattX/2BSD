@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)rmt.8c	6.1 (Berkeley) 4/27/85
+.\"	@(#)rmt.8	6.1.1 (2.11BSD) 1996/11/17
 .\"
-.TH RMT 8C "April 27, 1985"
+.TH RMT 8 "November 17, 1996"
 .UC 5
 .SH NAME
 rmt \- remote magtape protocol module
 .SH SYNOPSIS
-.B /etc/rmt
+.B rmt
 .SH DESCRIPTION
 .I Rmt
 is a program used by the remote dump and restore programs
@@ -17,9 +17,9 @@ in manipulating a magnetic tape drive through an interprocess
 communication connection.
 .I Rmt
 is normally started up with an
-.IR rexec (3X)
+.IR rexec (3)
 or
-.IR rcmd (3X)
+.IR rcmd (3)
 call.
 .PP
 The 
@@ -141,11 +141,11 @@ to exit.
 .SH DIAGNOSTICS
 All responses are of the form described above.
 .SH "SEE ALSO"
-rcmd(3X),
-rexec(3X),
+rcmd(3),
+rexec(3),
 mtio(4),
-rdump(8C),
-rrestore(8C)
+rdump(8),
+rrestore(8)
 .SH BUGS
 People tempted to use this for a remote file access protocol
 are discouraged.

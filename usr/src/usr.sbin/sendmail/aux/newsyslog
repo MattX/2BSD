@@ -10,4 +10,4 @@ mv syslog.0  syslog.1
 mv syslog    syslog.0
 cp /dev/null syslog
 chmod 666    syslog
-kill -1 `cat /etc/syslog.pid`
+kill -1 `cat /var/run/syslog.pid`
