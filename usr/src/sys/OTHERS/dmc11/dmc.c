@@ -9,7 +9,7 @@
  */
 
 /*
- *	SCCS id	@(#)dmc.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)dmc.c	2.2 (2.11BSD GTE) 11/26/94
  */
 
 #include "param.h"
@@ -200,7 +200,7 @@ struct uio *uio;
         (void) _spl0();
 
         if (bp->b_bcount > 0) {
-                uiomove(mapin(bp), bp->b_bcount, B_READ, uio);
+                uiomove(mapin(bp), bp->b_bcount, uio);
                 mapout(bp);
         }
         dp->inbufq = bp->inbufq;

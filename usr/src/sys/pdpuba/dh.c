@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dh.c	1.2 (2.10.1BSD Berkeley) 8/25/89
+ *	@(#)dh.c	1.3 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -185,29 +185,30 @@ dhclose(dev, flag)
 
 	unit = UNIT(dev);
 	tp = &dh11[unit];
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	((struct dhdevice *)(tp->t_addr))->dhbreak &= ~(1<<(unit&017));
 	if (tp->t_state&TS_HUPCLS || (tp->t_state&TS_ISOPEN)==0)
 		dmctl(unit, DML_OFF, DMSET);
 	ttyclose(tp);
 }
 
-dhread(dev, uio)
+dhread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &dh11[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp, uio));
+	return ((*linesw[tp->t_line].l_read)(tp, uio, flag));
 }
 
-dhwrite(dev, uio)
+dhwrite(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
 {
 	register struct tty *tp = &dh11[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp, uio));
+	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
 }
 
 /*

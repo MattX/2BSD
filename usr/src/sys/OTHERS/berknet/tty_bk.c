@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tty_bk.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)tty_bk.c	1.2 (2.11BSD Berkeley) 11/27/94
  */
 
 #include "bk.h"
@@ -96,7 +96,7 @@ bkclose(tp)
  * is waiting.  Our clearing tp->t_rec here allows further input
  * to accumulate.
  */
-bkread(tp)
+bkread(tp, uio)
 	register struct tty *tp;
 {
 	register int s;
@@ -110,7 +110,7 @@ bkread(tp)
 	splx(s);
 	if (tp->t_line != NETLDISC)
 		return (-1);
-	error = uiomove(tp->t_bufp->b_un.b_addr, tp->t_inbuf, UIO_READ);
+	error = uiomove(tp->t_bufp->b_un.b_addr, tp->t_inbuf, uio);
 	tp->t_cp = (char *)tp->t_bufp->b_un.b_addr;
 	tp->t_inbuf = 0;
 	tp->t_rec = 0;

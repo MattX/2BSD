@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)dn.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)dn.c	2.2 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -44,7 +44,7 @@ register dev_t	dev;
 	return(0);
 }
 
-dnclose(dev)
+dnclose(dev, flag)
 register dev_t	dev;
 {
 	dev = minor(dev);
@@ -52,9 +52,10 @@ register dev_t	dev;
 	return(0);
 }
 
-dnwrite(dev, uio)
+dnwrite(dev, uio, flag)
 register dev_t	dev;
 register struct uio *uio;
+	int flag;
 {
 	register int c, *dp;
 	int s;

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dz.c	1.2 (2.11BSD GTE) 12/31/93
+ *	@(#)dz.c	1.3 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -165,6 +165,7 @@ dzopen(dev, flag)
 /*ARGSUSED*/
 dzclose(dev, flag)
 	dev_t dev;
+	int flag;
 {
 	register struct tty *tp;
 	register int unit;
@@ -174,7 +175,7 @@ dzclose(dev, flag)
 	unit = UNIT(dev);
 	dz = unit >> 3;
 	tp = &dz_tty[unit];
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	dzaddr = dzpdma[unit].pd_addr;
 	dzaddr->dzbrk = (dz_brk[dz] &= ~(1 << (unit&07)));
 	if ((tp->t_state&(TS_HUPCLS|TS_WOPEN)) || (tp->t_state&TS_ISOPEN) == 0)
@@ -182,24 +183,26 @@ dzclose(dev, flag)
 	ttyclose(tp);
 }
 
-dzread(dev, uio)
+dzread(dev, uio, flag)
 	register dev_t	dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp;
 
 	tp = &dz_tty[UNIT(dev)];
-	return ((*linesw[tp->t_line].l_read)(tp, uio));
+	return ((*linesw[tp->t_line].l_read)(tp, uio, flag));
 }
 
-dzwrite(dev, uio)
+dzwrite(dev, uio, flag)
 	register dev_t	dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp;
 
 	tp = &dz_tty[UNIT(dev)];
-	return ((*linesw[tp->t_line].l_write)(tp, uio));
+	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
 }
 
 /*ARGSUSED*/

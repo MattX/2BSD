@@ -1,5 +1,5 @@
 /*
- *	SCCS id	@(#)du.c	2.1 (Berkeley)	8/5/83
+ *	SCCS id	@(#)du.c	2.2 (2.11BSD)	11/26/94
  */
 
 /*
@@ -235,7 +235,7 @@ duread(dev, uio)
 	 * Copy the message to the caller's buffer
 	 */
 	nbytes = min(uio->uio_resid, du11.durbufo->msgbc);
-	uiomove(du11.durbufo->msgbufp, nbytes, B_READ, uio);
+	uiomove(du11.durbufo->msgbufp, nbytes, uio);
 	if (++du11.durbufo == du11.durbuff + MSGN)
 		du11.durbufo = du11.durbuff;
 	du11.durbufn--;
@@ -258,7 +258,7 @@ duwrite(dev, uio)
 	 */
 	nbytes = min(uio->uio_resid, MSGLEN);
 	du11.dutbufi->msgbc = nbytes;
-	uiomove(du11.dutbufi->msgbufp, nbytes, B_WRITE, uio);
+	uiomove(du11.dutbufi->msgbufp, nbytes, uio);
 	if (++du11.dutbufi == du11.dutbuff + MSGN)
 		du11.dutbufi = du11.dutbuff;
 	du11.dutbufn++;

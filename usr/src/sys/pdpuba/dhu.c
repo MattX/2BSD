@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhu.c	2.0 (2.11BSD GTE) 1/3/93
+ *	@(#)dhu.c	2.1 (2.11BSD GTE) 11/29/94
  */
 
 /*
@@ -199,7 +199,7 @@ dhuclose(dev, flag)
 
 	unit = UNIT(dev);
 	tp = &dhu_tty[unit];
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	(void) dhumctl(unit, (long)DHU_BRK, DMBIC);
 	if ((tp->t_state&(TS_HUPCLS|TS_WOPEN)) || (tp->t_state&TS_ISOPEN)==0)
 #ifdef PORTSELECTOR
@@ -217,22 +217,22 @@ dhuclose(dev, flag)
 	ttyclose(tp);
 }
 
-dhuread(dev, uio)
+dhuread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
 {
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_read)(tp, uio));
+	return ((*linesw[tp->t_line].l_read)(tp, uio, flag));
 }
 
-dhuwrite(dev, uio)
+dhuwrite(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
 {
 	register struct tty *tp = &dhu_tty[UNIT(dev)];
 
-	return ((*linesw[tp->t_line].l_write)(tp, uio));
+	return ((*linesw[tp->t_line].l_write)(tp, uio, flag));
 }
 
 /*

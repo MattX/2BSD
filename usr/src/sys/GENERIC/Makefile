@@ -54,14 +54,14 @@ BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
 	ufs_subr.o vm_sched.o vm_text.o xp.o
-OV1=	sys_generic.o ufs_syscalls.o mem.o
+OV1=	sys_generic.o ufs_syscalls.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
 OV3=	clock.o cons.o kern_pdp.o kern_time.o \
 	kern_xxx.o machdep2.o quota_sys.o subr_prf.o sys_process.o \
 	syscalls.o ufs_mount.o
 OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
 	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
-OV5=	ht.o tm.o ts.o
+OV5=	ht.o tm.o ts.o mem.o
 OV6=	tmscp.o rl.o
 OV7=	mch_fpsim.o
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ts.c	2.2 (2.11BSD GTE) 1/2/93
+ *	@(#)ts.c	2.3 (2.11BSD GTE) 11/26/94
  */
 
 /*
@@ -84,6 +84,9 @@ struct	buf	ctsbuf[NTS];
 
 u_short softspace[NTS][(sizeof(struct ts_softc)/2) + 1];
 
+static	char	*tsmsg1 = "ts%d: not online\n";
+static	char	*tsmsg2 = "ts%d: no write ring\n";
+
 tsattach(addr, unit)
 struct tsdevice *addr;
 register int unit;
@@ -155,12 +158,12 @@ int	flag;
 	tstab[ts11].b_flags |= B_TAPE;
 	tscommand(dev, TS_SENSE, 1);
 	if ((sc->sc_sts.s_xs0 & TS_ONL) == 0) {
-		uprintf("ts%d: not online\n", ts11);
+		uprintf(tsmsg1, ts11);
 		return(EIO);
 	}
 	if ((flag & (FREAD | FWRITE)) == FWRITE
 	    && (sc->sc_sts.s_xs0 & TS_WLK)) {
-		uprintf("ts%d: no write ring\n", ts11);
+		uprintf(tsmsg2, ts11);
 		return(EIO);
 	}
 	sc->sc_openf = 1;
@@ -495,9 +498,9 @@ tsintr(dev)
 
 			case TS_REJECT:
 				if (state == SIO && sc->sc_sts.s_xs0 & TS_WLE)
-					tprintf(sc->sc_ttyp,"ts%d: no write ring\n", dev);
+					tprintf(sc->sc_ttyp, tsmsg2, dev);
 				if ((sc->sc_sts.s_xs0 & TS_ONL) == 0)
-					tprintf(sc->sc_ttyp,"ts%d: not online\n", dev);
+					tprintf(sc->sc_ttyp, tsmsg1, dev);
 				break;
 		}
 		/*

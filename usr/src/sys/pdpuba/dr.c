@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dr.c	1.3 (2.11BSD GTE) 1/2/93
+ *	@(#)dr.c	1.4 (2.11BSD GTE) 11/30/94
  */
 
 /*
@@ -75,7 +75,7 @@ dev_t dev;
 	return(0);
 }
 
-drclose(dev)
+drclose(dev, flag)
 dev_t dev;
 {
 	register int unit;

@@ -1,4 +1,4 @@
-/*	@(#)tmscp.c	1.3 (2.11BSD) 1/2/93 */
+/*	@(#)tmscp.c	1.4 (2.11BSD GTE) 12/9/94 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -302,6 +302,9 @@ struct tms_info {
 #define S_SCHAR 4               /* doing "set controller characteristics" */
 #define S_RUN   5               /* running */
 
+static	char *tmscpstepfailed = "step%d init failed: sa 0x%x\n";
+static	char *tmscpfatalerr = "tms%d,%d: fatal error 0%o\n";
+
 int     tmscperror = 0;		/* causes hex dump of packets */
 int	tmscp_cp_wait = 0;	/* Something to wait on for command */
 				/* packets and or credits. */
@@ -420,7 +423,7 @@ tmsintr(dev)
 			{
 			sc->sc_state = S_IDLE;
 			sc->sc_ctab.b_active = 0;
-			printf("step1 init failed: sa 0x%x",tmscpaddr->tmscpsa);
+			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
 			wakeup((caddr_t)&sc->sc_ctab);
 			return;
 			}
@@ -448,7 +451,7 @@ tmsintr(dev)
 			{
 			sc->sc_state = S_IDLE;
 			sc->sc_ctab.b_active = 0;
-			printf("step2 init failed: sa 0x%x",tmscpaddr->tmscpsa);
+			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
 			wakeup((caddr_t)&sc->sc_ctab);
 			return;
 			}
@@ -476,7 +479,7 @@ tmsintr(dev)
 			{
 			sc->sc_state = S_IDLE;
 			sc->sc_ctab.b_active = 0;
-			printf("step3 init failed: sa 0x%x",tmscpaddr->tmscpsa);
+			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
 			wakeup((caddr_t)&sc->sc_ctab);
 			return;
 			}
@@ -544,7 +547,7 @@ tmsintr(dev)
 	 */
 	if (tmscpaddr->tmscpsa&TMSCP_ERR)
 		{
-		printf("tms%d: fatal error %o\n", dev, tmscpaddr->tmscpsa);
+		printf(tmscpfatalerr, dev, sc->sc_unit, tmscpaddr->tmscpsa);
 		tmscpaddr->tmscpip = 0;
 		sc->sc_state = S_IDLE;
 		sc->sc_ctab.b_active = 0;
@@ -1015,7 +1018,7 @@ tmsstart(sc)
 		sc->sc_ctab.b_actf = dp->b_forw; /* remove from controller q */
 		((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
 		if (tmscpaddr->tmscpsa&TMSCP_ERR)
-			printf("tms%d,%d fatal error 0%o\n", sc->sc_unit,
+			printf(tmscpfatalerr, sc->sc_unit,
 					TMSUNIT(bp->b_dev), tmscpaddr->tmscpsa);
 		restorseg5(seg5);
 		i = tmscpaddr->tmscpip;
@@ -1172,7 +1175,7 @@ tmsstart(sc)
 	dp->av_back = bp;
 	if (tmscpaddr->tmscpsa&TMSCP_ERR)
 		{
-		printf("tms%d,%d: fatal error 0%o\n",sc->sc_unit, 
+		printf(tmscpfatalerr,sc->sc_unit, 
 			mp->mscp_unit, tmscpaddr->tmscpsa);
 		(void)tkini(sc);
 		break;
@@ -1410,9 +1413,9 @@ common:	/* GTUNT finishes up thru here too */
 			if (st != M_ST_TAPEM)
 				{
 				tprintf(tms->tms_ttyp,
-				"tms%d,%d: hard error bn%ld status:0%o flags:0%o\n",
+				"tms%d,%d: hard err bn%ld status:0%o flags:0%o\n",
 				    sc->sc_unit, mp->mscp_unit, bp->b_blkno,
-				    mp->mscp_status >> 5, mp->mscp_flags);
+				    mp->mscp_status, mp->mscp_flags);
 				bp->b_flags |= B_ERROR;
 				}
 			else
@@ -1624,8 +1627,7 @@ tmscpcmd(op, unit, sc)
 	rlp[0].hsh |= TMSCP_OWN|TMSCP_INT;
 	rlp[1].hsh |= TMSCP_OWN|TMSCP_INT;
 	if (sc->sc_addr->tmscpsa&TMSCP_ERR)
-		printf("tms%d,%d fatal error 0%o\n", sc->sc_unit, unit,
-			sc->sc_addr->tmscpsa);
+		printf(tmscpfatalerr, sc->sc_unit, unit, sc->sc_addr->tmscpsa);
 	i = sc->sc_addr->tmscpip;
 
 	while ((rlp[1].hsh & TMSCP_INT) == 0)

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)lp.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)lp.c	1.2 (2.11BSD GTE) 11/29/94
  */
 
 #include "lp.h"
@@ -109,9 +109,10 @@ lpclose(dev, flag)
 	sc->sc_state &= ~OPEN;
 }
 
-lpwrite(dev, uio)
+lpwrite(dev, uio, flag)
 	register dev_t dev;
 	register struct uio *uio;
+	int flag;
 {
 	register int n;
 	register char *cp;
@@ -120,7 +121,7 @@ lpwrite(dev, uio)
 
 	while (n = MIN(LPBUFSIZE, uio->uio_resid)) {
 		cp = inbuf;
-		error = uiomove(cp, (int)n, UIO_WRITE, uio);
+		error = uiomove(cp, (int)n, uio);
 		if (error)
 			return (error);
 		do

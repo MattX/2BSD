@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhv.c	2.0 (2.11BSD Berkeley) 12/22/91
+ *	@(#)dhv.c	2.1 (2.11BSD Berkeley) 11/29/94
  */
 
 /*
@@ -199,7 +199,7 @@ dhvclose(dev, flag)
 	tp = &dhv_tty[unit];
 	s = spltty();
 	if ( !(tp->t_state & TS_ISOPEN) || tp->t_dev != dev ) return;
-	(*linesw[tp->t_line].l_close)(tp);
+	(*linesw[tp->t_line].l_close)(tp, flag);
 	(void) dhvmctl(unit, (long)DHV_BRK, DMBIC);
 	(void) dhvmctl(unit, (long)DHV_OFF, DMSET);
 	if ( CDWAIT(tp->t_dev) ||
@@ -224,22 +224,24 @@ dhvselect ( dev, rw )	/* filter the minor device number */
     return ( ttselect ( dev & ~0300, rw ) );
 }
 
-dhvread(dev, uio)
+dhvread(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &dhv_tty[UNIT(dev)];
 
-    return((*linesw[tp->t_line].l_read) (tp, uio));
+    return((*linesw[tp->t_line].l_read) (tp, uio, flag));
 }
 
-dhvwrite(dev, uio)
+dhvwrite(dev, uio, flag)
 	dev_t dev;
 	struct uio *uio;
+	int flag;
 {
 	register struct tty *tp = &dhv_tty[UNIT(dev)];
 
-    return((*linesw[tp->t_line].l_write) (tp, uio));
+    return((*linesw[tp->t_line].l_write) (tp, uio, flag));
 }
 
 /*
