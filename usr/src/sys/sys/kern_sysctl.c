@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.2 (2.11BSD GTE) 1995/10/09
+ *	@(#)kern_sysctl.c	8.4.3 (2.11BSD GTE) 1995/10/29
  */
 
 /*
@@ -64,8 +64,10 @@ sysctlfn debug_sysctl;
 #endif
 sysctlfn vm_sysctl;
 sysctlfn fs_sysctl;
+#ifdef	INET
 sysctlfn NET_SYSCTL;
 extern	int	net_sysctl();	/* In supervisor space */
+#endif
 sysctlfn cpu_sysctl;
 
 /*
@@ -115,9 +117,11 @@ __sysctl()
 	case CTL_VM:
 		fn = vm_sysctl;
 		break;
+#ifdef	INET
 	case CTL_NET:
 		fn = NET_SYSCTL;
 		break;
+#endif
 #ifdef notyet
 	case CTL_FS:
 		fn = fs_sysctl;
@@ -360,6 +364,7 @@ debug_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
 }
 #endif /* DEBUG */
 
+#ifdef	INET
 /*
  * In 4.4BSD-Lite these functions were scattered amoungst the various
  * subsystems they dealt with.
@@ -387,6 +392,7 @@ NET_SYSCTL(name, namelen, oldp, oldlenp, newp, newlen)
 	return(KScall(net_sysctl, 6 * sizeof (int),
 			name, namelen, oldp, oldlenp, newp, newlen));
 }
+#endif
 
 /*
  * Rather useless - but it's not very big so let's do it.

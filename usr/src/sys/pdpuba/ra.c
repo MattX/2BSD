@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	3.0 (2.11BSD GTE) 1995/08/01
+ *	@(#)ra.c	3.1 (2.11BSD GTE) 1995/10/28
  */
 
  /***********************************************************************
@@ -14,6 +14,12 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	October 28, 1995
+ * Fix multicontroller support (which was badly broken when disklabels were 
+ * added).  Accessing drives on the second controller would cause serious 
+ * filesystem corruption on the the corresponding drives on the first 
+ * controller.
+ *
  * Date:	August 1, 1995
  * Fix a bug which prohibited labeling previously disks which were unlabeled 
  * or had a corrupted label.  The default ('a' partition spanning the volume)
@@ -127,6 +133,10 @@
 #include "file.h"
 #include "stat.h"
 
+#ifndef	offsetof
+#define	offsetof(type,member) ((size_t)(&((type *)0)->member))
+#endif
+
 #define	RACON(x)			((minor(x) >> 6) & 03)
 #define	RAUNIT(x)			((minor(x) >> 3) & 07)
 
@@ -168,6 +178,7 @@ typedef	struct	ra_info	{
 	struct  dkdevice   ra_dk;	/* General disk info structure */
 	daddr_t		ra_nblks;	/* Volume size from online pkt */
 	short		ra_unit;	/* controller unit # */
+	struct	buf	ra_utab;	/* buffer header for drive */
 } ra_infoT;
 
 #define	ra_bopen	ra_dk.dk_bopenmask
@@ -195,7 +206,6 @@ typedef	struct	{
 ra_softcT	ra_sc[NRAC];	/* Controller table */
 memaddr		ra_com[NRAC];	/* Communications area table */
 ra_infoT	ra_disks[NRAD];	/* Disk table */
-struct	buf	rautab[NRAD];	/* per drive transfer queue */
 
 #define	MAPSEGDESC	(((btoc(sizeof (ra_comT))-1)<<8)|RW)
 
@@ -496,8 +506,8 @@ raclose(dev, flag, mode)
 		{
 		disk->ra_flags |= DKF_CLOSING;
 		s = splbio();
-		while	(rautab[unit].b_actf)
-			sleep(&rautab[unit], PRIBIO);
+		while	(disk->ra_utab.b_actf)
+			sleep(&disk->ra_utab, PRIBIO);
 		splx(s);
 		disk->ra_flags &= ~DKF_CLOSING;
 		wakeup(disk);
@@ -679,7 +689,7 @@ rastrategy(bp)
 	 * Link the buffer onto the drive queue
 	 */
 	s = splbio();
-	dp = &rautab[unit];
+	dp = &disk->ra_utab;
 	if (dp->b_actf == 0)
 		dp->b_actf = bp;
 	else
@@ -757,7 +767,8 @@ loop:
 		 */
 		dp->b_active = 0;
 		sc->sc_ctab.b_actf = dp->b_forw;
-		disk = sc->sc_drives[dp - rautab];
+		i = offsetof(ra_infoT, ra_utab);
+		disk = (ra_infoT *)((int)dp - i);
 		if	(disk->ra_open == 0)
 			wakeup(dp);	/* finish close protocol */
 		goto loop;
@@ -1101,7 +1112,7 @@ rarsp(mp, sc)
 				mp->m_unit);
 			break;
 		}
-		dp = &rautab[mp->m_unit];
+		dp = &disk->ra_utab;
 
 		if (st == M_S_SUCC) {
 			/* Link the drive onto the controller queue */
@@ -1154,7 +1165,7 @@ rarsp(mp, sc)
 		 */
 		bp->av_back->av_forw = bp->av_forw;
 		bp->av_forw->av_back = bp->av_back;
-		dp = &rautab[mp->m_unit];
+		dp = &disk->ra_utab;
 
 #ifdef UCB_METER
 		if (ra_dkn >= 0) {
