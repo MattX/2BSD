@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)vfs_vnops.c	8.14.2 (2.11BSD) 1997/2/7
+ *	@(#)vfs_vnops.c	8.14.3 (2.11BSD) 1997/2/7
  */
 
 #include <sys/param.h>
@@ -209,10 +209,14 @@ vn_close(ip, flags)
 vn_closefile(fp)
 	register struct file *fp;
 	{
-	register int	error;
 	register struct inode *ip = (struct inode *)fp->f_data;
 
-	error = closei(ip, fp->f_flag);
+/*
+ * Need to clear the inode pointer in the file structure so that the
+ * inode is not seen during the scan for aliases of character or block
+ * devices in closei().
+*/
+	fp->f_data = (caddr_t)0;	/* XXX */
 	irele(ip);
-	return(error);
+	return(closei(ip, fp->f_flag));
 	}
