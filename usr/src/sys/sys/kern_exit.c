@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.4 (2.11BSD) 1999/8/11
+ *	@(#)kern_exit.c	2.5 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -52,7 +52,7 @@ exit(rv)
 	struct	proc **pp;
 
 	p = u.u_procp;
-	p->p_flag &= ~(STRC|SULOCK);
+	p->p_flag &= ~(P_TRACED|SULOCK);
 	p->p_sigignore = ~0;
 	p->p_sig = 0;
 	/*
@@ -135,8 +135,8 @@ again:
 				q->p_pptr = &proc[1];
 				q->p_ppid = 1;
 				wakeup((caddr_t)&proc[1]);
-				if (q->p_flag&STRC) {
-					q->p_flag &= ~STRC;
+				if (q->p_flag& P_TRACED) {
+					q->p_flag &= ~P_TRACED;
 					psignal(q, SIGKILL);
 				} else if (q->p_stat == SSTOP) {
 					psignal(q, SIGHUP);
@@ -258,7 +258,6 @@ loop:
 		p->p_pgrp = 0;
 		p->p_flag = 0;
 		p->p_wchan = 0;
-		p->p_cursig = 0;
 		return (0);
 	}
 	for (p = allproc; p;p = p->p_nxt) {
@@ -268,15 +267,15 @@ loop:
 		    p->p_pid != uap->pid && p->p_pgrp != -uap->pid)
 			continue;
 		++nfound;
-		if (p->p_stat == SSTOP && (p->p_flag&SWTED)==0 &&
-		    (p->p_flag&STRC || uap->options&WUNTRACED)) {
-			p->p_flag |= SWTED;
+		if (p->p_stat == SSTOP && (p->p_flag& P_WAITED)==0 &&
+		    (p->p_flag&P_TRACED || uap->options&WUNTRACED)) {
+			p->p_flag |= P_WAITED;
 			retval[0] = p->p_pid;
 			error = 0;
 			if (uap->compat)
-				retval[1] = W_STOPCODE(p->p_cursig);
+				retval[1] = W_STOPCODE(p->p_ptracesig);
 			else if (uap->status) {
-				status = W_STOPCODE(p->p_cursig);
+				status = W_STOPCODE(p->p_ptracesig);
 				error = copyout(&status, uap->status,
 						sizeof (status));
 			}
@@ -289,14 +288,10 @@ loop:
 		retval[0] = 0;
 		return (0);
 	}
-	if (setjmp(&u.u_qsave)) {
-		if ((u.u_sigintr & sigmask(q->p_cursig)) != 0)
-			return(EINTR);
-		u.u_eosys = RESTARTSYS;
-		return (0);
-	}
-	sleep((caddr_t)q, PWAIT);
-	goto loop;
+	error = tsleep(q, PWAIT|PCATCH, 0);
+	if	(error == 0)
+		goto loop;
+	return(error);
 }
 
 /*

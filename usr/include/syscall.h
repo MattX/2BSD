@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.9 (2.11BSD) 1999/2/19
+ *	@(#)syscall.h	5.4.10 (2.11BSD) 1999/9/10
  */
 
 /*
@@ -66,7 +66,7 @@
 #define	SYS_lock	53
 #define	SYS_ioctl	54
 #define	SYS_reboot	55
-				/* 56 is old: mpxchan */
+#define	SYS_sigwait	56
 #define	SYS_symlink	57
 #define	SYS_readlink	58
 #define	SYS_execve	59

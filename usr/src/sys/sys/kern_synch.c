@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_synch.c	1.4 (2.11BSD GTE) 1997/8/29
+ *	@(#)kern_synch.c	1.5 (2.11BSD) 1999/9/13
  */
 
 #include "param.h"
@@ -13,6 +13,7 @@
 #include "proc.h"
 #include "buf.h"
 #include "signal.h"
+#include "signalvar.h"
 #include "vm.h"
 #include "kernel.h"
 #include "systm.h"
@@ -91,95 +92,172 @@ updatepri(p)
 }
 
 /*
- * Give up the processor till a wakeup occurs
- * on chan, at which time the process
- * enters the scheduling queue at priority pri.
- * The most important effect of pri is that when
- * pri<=PZERO a signal cannot disturb the sleep;
- * if pri>PZERO signals will be processed.
- * Callers of this routine must be prepared for
- * premature return, and check that the reason for
- * sleeping has gone away.
+ * General sleep call "borrowed" from 4.4BSD - the 'wmesg' parameter was
+ * removed due to data space concerns.  Sleeps at most timo/hz seconds
+ * 0 means no timeout). NOTE: timeouts in 2.11BSD use a signed int and 
+ * thus can be at most 32767 'ticks' or about 540 seconds in the US with 
+ * 60hz power (~650 seconds if 50hz power is being used).
+ *
+ * If 'pri' includes the PCATCH flag signals are checked before and after
+ * sleeping otherwise  signals are not checked.   Returns 0 if a wakeup was
+ * done, EWOULDBLOCK if the timeout expired, ERESTART if the current system
+ * call should be restarted, and EINTR if the system call should be
+ * interrupted and EINTR returned to the user process.
+*/
+
+int
+tsleep(ident, priority, timo)
+	caddr_t	ident;
+	int	priority;
+	u_short	timo;
+	{
+	register struct proc *p = u.u_procp;
+	register struct proc **qp;
+	int	s;
+	int	sig, catch = priority & PCATCH;
+	void	endtsleep();
+
+	s = splhigh();
+	if	(panicstr)
+		{
+/*
+ * After a panic just give interrupts a chance then just return.  Don't
+ * run any other procs (or panic again below) in case this is the idle
+ * process and already asleep.  The splnet should be spl0 if the network
+ * was being used but for now avoid network interrupts that might cause
+ * another panic.
+*/
+		(void)_splnet();
+		noop();
+		splx(s);
+		return;
+		}
+#ifdef	DIAGNOSTIC
+	if	(ident == NULL || p->p_stat != SRUN)
+		panic("tsleep");
+#endif
+	p->p_wchan = ident;
+	p->p_slptime = 0;
+	p->p_pri = priority & PRIMASK;
+	qp = &slpque[HASH(ident)];
+	p->p_link = *qp;
+	*qp =p;
+	if	(timo)
+		timeout(endtsleep, (caddr_t)p, timo);
+/*
+ * We put outselves on the sleep queue and start the timeout before calling
+ * CURSIG as we could stop there and a wakeup or a SIGCONT (or both) could
+ * occur while we were stopped.  A SIGCONT would cause us to be marked SSLEEP
+ * without resuming us thus we must be ready for sleep when CURSIG is called.
+ * If the wakeup happens while we're stopped p->p_wchan will be 0 upon 
+ * return from CURSIG.
+*/
+	if	(catch)
+		{
+		p->p_flag |= P_SINTR;
+		if	(sig = CURSIG(p))
+			{
+			if	(p->p_wchan)
+				unsleep(p);
+			p->p_stat = SRUN;
+			goto resume;
+			}
+		if	(p->p_wchan == 0)
+			{
+			catch = 0;
+			goto resume;
+			}
+		}
+	else
+		sig = 0;
+	p->p_stat = SSLEEP;
+	u.u_ru.ru_nvcsw++;
+	swtch();
+resume:
+	splx(s);
+	p->p_flag &= ~P_SINTR;
+	if	(p->p_flag & P_TIMEOUT)
+		{
+		p->p_flag &= ~P_TIMEOUT;
+		if	(sig == 0)
+			return(EWOULDBLOCK);
+		}
+	else if (timo)
+		untimeout(endtsleep, (caddr_t)p);
+	if	(catch && (sig != 0 || (sig = CURSIG(p))))
+		{
+		if	(u.u_sigintr & sigmask(sig))
+			return(EINTR);
+		return(ERESTART);
+		}
+	return(0);
+	}
+
+/*
+ * Implement timeout for tsleep above.  If process hasn't been awakened
+ * (p_wchan non zero) then set timeout flag and undo the sleep.  If proc
+ * is stopped just unsleep so it will remain stopped.
+*/
+
+void
+endtsleep(p)
+	register struct proc *p;
+	{
+	register int	s;
+
+	s = splhigh();
+	if	(p->p_wchan)
+		{
+		if	(p->p_stat == SSLEEP)
+			setrun(p);
+		else
+			unsleep(p);
+		p->p_flag |= P_TIMEOUT;
+		}
+	splx(s);
+	}
+
+/*
+ * Give up the processor till a wakeup occurs on chan, at which time the 
+ * process enters the scheduling queue at priority pri.
+ *
+ * This routine was rewritten to use 'tsleep'.  The  old behaviour of sleep
+ * being interruptible (if 'pri>PZERO') is emulated by setting PCATCH and
+ * then performing the 'longjmp' if the return value of 'tsleep' is 
+ * ERESTART.
+ * 
+ * Callers of this routine must be prepared for premature return, and check 
+ * that the reason for sleeping has gone away.
  */
 sleep(chan, pri)
 	caddr_t chan;
 	int pri;
-{
-	register struct proc *rp;
-	register struct proc **qp;
-	register s;
+	{
+	register int priority = pri;
+	
+	if	(pri > PZERO)
+		priority |= PCATCH;
 
-	rp = u.u_procp;
-	s = splhigh();
-	if (panicstr) {
-		/*
-		 * After a panic, just give interrupts a chance, then just
-		 * return; don't run any other procs or panic below, in
-		 * case this is the idle process and already asleep.  The
-		 * splnet should be spl0 if the network was being used
-		 * by the filesystem, but for now avoid network interrupts
-		 * that might cause another panic.
-		 */
-		(void) _splnet();
-		noop();
-		splx(s);
+	u.u_error = tsleep(chan, priority, 0);
+/*
+ * sleep does not return anything.  If it was a non-interruptible sleep _or_ 
+ * a successful/normal sleep (one for which a wakeup was done) then return.
+*/
+	if	((priority & PCATCH) == 0 || (u.u_error == 0))
 		return;
-	}
-	if (!chan || rp->p_stat != SRUN)
-		panic("sleep");
-	rp->p_wchan = chan;
-	rp->p_slptime = 0;
-	rp->p_pri = pri;
-	qp = &slpque[HASH(chan)];
-	rp->p_link = *qp;
-	*qp = rp;
-	if (pri > PZERO) {
-		/*
-		 * If we stop in issig(), wakeup may already have happened
-		 * when we return (rp->p_wchan will then be 0).
-		 */
-		if (ISSIG(rp)) {
-			if (rp->p_wchan)
-				unsleep(rp);
-			rp->p_stat = SRUN;
-			(void) _spl0();
-			goto psig;
-		}
-		if (rp->p_wchan == 0)
-			goto out;
-		rp->p_stat = SSLEEP;
-		(void) _spl0();
-		/*
-		 * maybe a very small core memory, give swapped out
-		 * processes a chance.
-		 */
-		if (runin != 0) {
-			runin = 0;
-			wakeup((caddr_t)&runin);
-		}
-		u.u_ru.ru_nvcsw++;
-		swtch();
-		if (ISSIG(rp))
-			goto psig;
-	} else {
-		rp->p_stat = SSLEEP;
-		(void) _spl0();
-		u.u_ru.ru_nvcsw++;
-		swtch();
-	}
-out:
-	splx(s);
-	return;
-
-	/*
-	 * If priority was low (>PZERO) and there has been a signal,
-	 * execute non-local goto through u.u_qsave, aborting the
-	 * system call in progress (see trap.c)
-	 */
-psig:
+/*
+ * XXX - compatibility uglyness.
+ *
+ * The tsleep() above will leave one of the following in u_error:
+ *
+ * 0 - a wakeup was done, this is handled above
+ * EWOULDBLOCK - since no timeout was passed to tsleep we will not see this
+ * EINTR - put into u_error for trap.c to find (interrupted syscall)
+ * ERESTART - system call to be restared
+*/
 	longjmp(u.u_procp->p_addr, &u.u_qsave);
 	/*NOTREACHED*/
-}
+	}
 
 /*
  * Remove a process from its wait queue

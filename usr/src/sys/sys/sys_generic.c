@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.6 (2.11BSD GTE) 1997/2/14
+ *	@(#)sys_generic.c	1.7 (2.11BSD) 1999/9/10
  */
 
 #include "param.h"
@@ -11,6 +11,7 @@
 
 #include "user.h"
 #include "proc.h"
+#include "signalvar.h"
 #include "inode.h"
 #include "file.h"
 #include "ioctl.h"
@@ -142,39 +143,29 @@ rwuio(uio)
 	total =(off_t)0;
 	uio->uio_resid = 0;
 	uio->uio_segflg = UIO_USERSPACE;
-	iov = uio->uio_iov;
-	for (i = 0; i < uio->uio_iovcnt; i++) {
-#ifdef	pdp11
+	for	(iov = uio->uio_iov, i = 0; i < uio->uio_iovcnt; i++, iov++)
 		total += iov->iov_len;
-#else
-		if (iov->iov_len < 0) {
-			u.u_error = EINVAL;
-			return;
-		}
-		uio->uio_resid += iov->iov_len;
-		if (uio->uio_resid < 0) {
-			u.u_error = EINVAL;
-			return;
-		}
-#endif
-		iov++;
-	}
-#ifdef	pdp11
+
 	uio->uio_resid = total;
-	if (uio->uio_resid != total) {	/* check wraparound */
-		u.u_error = EINVAL;
-		return;
-	}
-#endif
+	if	(uio->uio_resid != total)	/* check wraparound */
+		return(u.u_error = EINVAL);
+
 	count = uio->uio_resid;
-	if (setjmp(&u.u_qsave)) {
-		if (uio->uio_resid == count) {
-			if ((u.u_sigintr & sigmask(u.u_procp->p_cursig)) != 0)
-				u.u_error = EINTR;
-			else
-				u.u_eosys = RESTARTSYS;
+	if	(setjmp(&u.u_qsave))
+		{
+/*
+ * The ONLY way we can get here is via the longjump in sleep.  Thus signals
+ * have been checked and u_error set accordingly.  If no bytes have been 
+ * transferred then all that needs to be done now is 'return'; the system 
+ * call will either be restarted or reported as interrupted.  If bytes have 
+ * been transferred then we need to calculate the number of bytes transferred.
+*/
+		if	(uio->uio_resid == count)
+			return;
+		else
+			u.u_error = 0;
 		}
-	} else
+	else
 		u.u_error = (*Fops[fp->f_type]->fo_rw)(fp, uio);
 	u.u_r.r_val1 = count - uio->uio_resid;
 }
@@ -277,24 +268,24 @@ ioctl()
 			u.u_error = copyout(data, uap->cmarg, size);
 }
 
-int	unselect();
 int	nselcoll;
 
 /*
  * Select system call.
  */
 select()
-{
-	register struct uap  {
+	{
+	register struct uap
+		{
 		int	nd;
 		fd_set	*in, *ou, *ex;
 		struct	timeval *tv;
-	} *uap = (struct uap *)u.u_ap;
+		} *uap = (struct uap *)u.u_ap;
 	fd_set ibits[3], obits[3];
 	struct timeval atv;
-	register int s, ni;
-	int ncoll;
-	label_t lqsave;
+	unsigned int timo = 0;
+	register int error, ni;
+	int ncoll, s;
 
 	bzero((caddr_t)ibits, sizeof(ibits));
 	bzero((caddr_t)obits, sizeof(obits));
@@ -304,9 +295,9 @@ select()
 
 #define	getbits(name, x) \
 	if (uap->name) { \
-		u.u_error = copyin((caddr_t)uap->name, (caddr_t)&ibits[x], \
+		error = copyin((caddr_t)uap->name, (caddr_t)&ibits[x], \
 		    (unsigned)(ni * sizeof(fd_mask))); \
-		if (u.u_error) \
+		if (error) \
 			goto done; \
 	}
 	getbits(in, 0);
@@ -314,99 +305,84 @@ select()
 	getbits(ex, 2);
 #undef	getbits
 
-	if (uap->tv) {
-		u.u_error = copyin((caddr_t)uap->tv, (caddr_t)&atv,
-			sizeof (atv));
-		if (u.u_error)
+	if	(uap->tv)
+		{
+		error = copyin((caddr_t)uap->tv, (caddr_t)&atv, sizeof (atv));
+		if	(error)
 			goto done;
-		if (itimerfix(&atv)) {
-			u.u_error = EINVAL;
+		if	(itimerfix(&atv))
+			{
+			error = EINVAL;
 			goto done;
-		}
+			}
 		s = splhigh();
 		time.tv_usec = lbolt * mshz;
 		timevaladd(&atv, &time);
 		splx(s);
-	}
+		}
 retry:
 	ncoll = nselcoll;
-	u.u_procp->p_flag |= SSEL;
-	u.u_r.r_val1 = selscan(ibits, obits, uap->nd);
-	if (u.u_error || u.u_r.r_val1)
+	u.u_procp->p_flag |= P_SELECT;
+	error = selscan(ibits, obits, uap->nd, &u.u_r.r_val1);
+	if	(error || u.u_r.r_val1)
 		goto done;
 	s = splhigh();
-	/* this should be timercmp(&time, &atv, >=) */
-	if (uap->tv && (time.tv_sec > atv.tv_sec || (time.tv_sec == atv.tv_sec
-	    && lbolt * mshz >= atv.tv_usec))) {
-		splx(s);
-		goto done;
-	}
-	if ((u.u_procp->p_flag & SSEL) == 0 || nselcoll != ncoll) {
-		u.u_procp->p_flag &= ~SSEL;
-		splx(s);
-		goto retry;
-	}
-	u.u_procp->p_flag &= ~SSEL;
-	if (uap->tv) {
-		lqsave = u.u_qsave;
-		if (setjmp(&u.u_qsave)) {
-			untimeout(unselect, (caddr_t)u.u_procp);
-			u.u_error = EINTR;
+	if	(uap->tv)
+		{
+		/* this should be timercmp(&time, &atv, >=) */
+		if	((time.tv_sec > atv.tv_sec || (time.tv_sec == atv.tv_sec
+	    			&& lbolt * mshz >= atv.tv_usec)))
+			{
 			splx(s);
 			goto done;
+			}
+		timo = hzto(&atv);
+		if	(timo == 0)
+			timo = 1;
 		}
-		timeout(unselect, (caddr_t)u.u_procp, hzto(&atv));
-	}
-	sleep((caddr_t)&selwait, PZERO+1);
-	if (uap->tv) {
-		u.u_qsave = lqsave;
-		untimeout(unselect, (caddr_t)u.u_procp);
-	}
+	if	((u.u_procp->p_flag & P_SELECT) == 0 || nselcoll != ncoll)
+		{
+		u.u_procp->p_flag &= ~P_SELECT;
+		splx(s);
+		goto retry;
+		}
+	u.u_procp->p_flag &= ~P_SELECT;
+	error = tsleep(&selwait, PSOCK | PCATCH, timo);
 	splx(s);
-	goto retry;
+	if	(error == 0)
+		goto retry;
 done:
+	u.u_procp->p_flag &= ~P_SELECT;
+	/* select is not restarted after signals... */
+	if	(error == ERESTART)
+		error = EINTR;
+	if	(error == EWOULDBLOCK)
+		error = 0;
 #define	putbits(name, x) \
-	if (uap->name) { \
-		int error = copyout((caddr_t)&obits[x], (caddr_t)uap->name, \
-		    (unsigned)(ni * sizeof(fd_mask))); \
-		if (error) \
-			u.u_error = error; \
-	}
-	if (u.u_error == 0) {
+	if (uap->name && \
+		(error2 = copyout(&obits[x],uap->name,(ni*sizeof(fd_mask))))) \
+			error = error2;
+
+	if	(error == 0)
+		{
+		int error2;
+
 		putbits(in, 0);
 		putbits(ou, 1);
 		putbits(ex, 2);
 #undef putbits
+		}
+	return(u.u_error = error);
 	}
-}
 
-unselect(p)
-	register struct proc *p;
-{
-	register int s = splhigh();
-
-	switch (p->p_stat) {
-
-	case SSLEEP:
-		setrun(p);
-		break;
-
-	case SSTOP:
-		unsleep(p);
-		break;
-	}
-	splx(s);
-}
-
-selscan(ibits, obits, nfd)
+selscan(ibits, obits, nfd, retval)
 	fd_set *ibits, *obits;
-	int nfd;
+	int nfd, *retval;
 {
-	register int i, j;
+	register int i, j, flag;
 	fd_mask bits;
-	register int which, flag;
 	struct file *fp;
-	int n = 0;
+	int	which, n = 0;
 
 	for (which = 0; which < 3; which++) {
 		switch (which) {
@@ -425,10 +401,8 @@ selscan(ibits, obits, nfd)
 			while ((j = ffs(bits)) && i + --j < nfd) {
 				bits &= ~(1L << j);
 				fp = u.u_ofile[i + j];
-				if (fp == NULL) {
-					u.u_error = EBADF;
-					break;
-				}
+				if (fp == NULL)
+					return(EBADF);
 				if ((*Fops[fp->f_type]->fo_select)(fp,flag)) {
 					FD_SET(i + j, &obits[which]);
 					n++;
@@ -436,7 +410,8 @@ selscan(ibits, obits, nfd)
 			}
 		}
 	}
-	return (n);
+	*retval = n;
+	return(0);
 }
 
 /*ARGSUSED*/
@@ -466,8 +441,8 @@ selwakeup(p, coll)
 				setrun(p);
 			else
 				unsleep(p);
-		} else if (p->p_flag & SSEL)
-			p->p_flag &= ~SSEL;
+		} else if (p->p_flag & P_SELECT)
+			p->p_flag &= ~P_SELECT;
 		splx(s);
 	}
 	restormap(map);

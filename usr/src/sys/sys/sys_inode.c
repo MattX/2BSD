@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.10 (2.11BSD GTE) 1997/7/3
+ *	@(#)sys_inode.c	1.11 (2.11BSD) 1999/9/10
  */
 
 #include "param.h"
@@ -11,6 +11,7 @@
 
 #include "user.h"
 #include "proc.h"
+#include "signalvar.h"
 #include "inode.h"
 #include "buf.h"
 #include "fs.h"
@@ -121,9 +122,8 @@ rwip(ip, uio, ioflag)
 	type = ip->i_mode&IFMT;
 /*
  * The write case below checks that i/o is done synchronously to directories
- * and that i/o to append only files takes place at the end of file.  The
- * 'log()' statements below should be ifdef'd.  Also, we do not panic on 
- * non-sync directory i/o - the sync bit is forced on.
+ * and that i/o to append only files takes place at the end of file.
+ * We do not panic on non-sync directory i/o - the sync bit is forced on.
 */
 	if (uio->uio_rw == UIO_READ)
 		{
@@ -142,17 +142,13 @@ rwip(ip, uio, ioflag)
 		    break;
 		case IFDIR:
 		    if  ((ioflag & IO_SYNC) == 0)
-			{
-			log(LOG_ERR, "rwip sync\n");
 			ioflag |= IO_SYNC;
-			}
 		    break;
 		case IFLNK:
 		case IFBLK:
 		case IFCHR:
 		    break;
 		default:
-		    log(LOG_ERR, "rwip: %d\n", type);
 		    return(EFTYPE);
 		}
 	   }
@@ -357,12 +353,13 @@ ino_ioctl(fp, com, data)
 	case IFCHR:
 		dev = ip->i_rdev;
 		u.u_r.r_val1 = 0;
-		if (setjmp(&u.u_qsave)) {
-			if ((u.u_sigintr & sigmask(u.u_procp->p_cursig)) != 0)
-				return(EINTR);
-			u.u_eosys = RESTARTSYS;
-			return (0);
-		}
+		if	(setjmp(&u.u_qsave))
+/*
+ * The ONLY way we can get here is via the longjump in sleep.  Signals have
+ * been checked for and u_error set accordingly.  All that remains to do 
+ * is 'return'.
+*/
+			return(u.u_error);
 		return((*cdevsw[major(dev)].d_ioctl)(dev,com,data,fp->f_flag));
 	}
 }
@@ -524,6 +521,8 @@ closei(ip, flag)
 
 /*
  * Place an advisory lock on an inode.
+ * NOTE: callers of this routine must be prepared to deal with the pseudo
+ *       error return ERESTART.
  */
 ino_lock(fp, cmd)
 	register struct file *fp;
@@ -531,20 +530,21 @@ ino_lock(fp, cmd)
 {
 	register int priority = PLOCK;
 	register struct inode *ip = (struct inode *)fp->f_data;
+	int error;
 
 	if ((cmd & LOCK_EX) == 0)
 		priority += 4;
-	if (setjmp(&u.u_qsave)) {
-		if ((u.u_sigintr & sigmask(u.u_procp->p_cursig)) != 0)
-			return(EINTR);
-		u.u_eosys = RESTARTSYS;
-		return (0);
-	}
-	/*
-	 * If there's a exclusive lock currently applied
-	 * to the file, then we've gotta wait for the
-	 * lock with everyone else.
-	 */
+/*
+ * If there's a exclusive lock currently applied to the file then we've 
+ * gotta wait for the lock with everyone else.
+ *
+ * NOTE:  We can NOT sleep on i_exlockc because it is on an odd byte boundary
+ *	  and the low (oddness) bit is reserved for networking/supervisor mode
+ *	  sleep channels.  Thus we always sleep on i_shlockc and simply check
+ *	  the proper bits to see if the lock we want is granted.  This may 
+ *	  mean an extra wakeup/sleep event is done once in a while but 
+ *	  everything will work correctly.
+*/
 again:
 	while (ip->i_flag & IEXLOCK) {
 		/*
@@ -558,7 +558,9 @@ again:
 		if (cmd & LOCK_NB)
 			return (EWOULDBLOCK);
 		ip->i_flag |= ILWAIT;
-		sleep((caddr_t)&ip->i_exlockc, priority);
+		error = tsleep((caddr_t)&ip->i_shlockc, priority | PCATCH, 0);
+		if	(error)
+			return(error);
 	}
 	if ((cmd & LOCK_EX) && (ip->i_flag & ISHLOCK)) {
 		/*
@@ -575,7 +577,9 @@ again:
 		if (cmd & LOCK_NB)
 			return (EWOULDBLOCK);
 		ip->i_flag |= ILWAIT;
-		sleep((caddr_t)&ip->i_shlockc, PLOCK);
+		error = tsleep((caddr_t)&ip->i_shlockc, PLOCK | PCATCH, 0);
+		if	(error)
+			return(error);
 		goto again;
 	}
 	if (cmd & LOCK_EX) {
@@ -618,7 +622,7 @@ ino_unlock(fp, kind)
 		if (--ip->i_exlockc == 0) {
 			ip->i_flag &= ~(IEXLOCK|ILWAIT);
 			if (flags & ILWAIT)
-				wakeup((caddr_t)&ip->i_exlockc);
+				wakeup((caddr_t)&ip->i_shlockc);
 		}
 		fp->f_flag &= ~FEXLOCK;
 	}

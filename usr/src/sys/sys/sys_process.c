@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_process.c	1.1 (2.10BSD Berkeley) 6/12/88
+ *	@(#)sys_process.c	1.2 (2.11BSD) 1999/9/5
  */
 
 #include "param.h"
@@ -18,11 +18,6 @@
 #include "text.h"
 #include "vm.h"
 #include "ptrace.h"
-
-/*
- * Priority for tracing
- */
-#define	IPCPRI	PZERO
 
 /*
  * Tracing variables.
@@ -55,25 +50,25 @@ ptrace()
 
 	uap = (struct a *)u.u_ap;
 	if (uap->req <= 0) {
-		u.u_procp->p_flag |= STRC;
+		u.u_procp->p_flag |= P_TRACED;
 		return;
 	}
 	p = pfind(uap->pid);
 	if (p == 0 || p->p_stat != SSTOP || p->p_ppid != u.u_procp->p_pid ||
-	    !(p->p_flag & STRC)) {
+	    !(p->p_flag & P_TRACED)) {
 		u.u_error = ESRCH;
 		return;
 	}
 	while (ipc.ip_lock)
-		sleep((caddr_t)&ipc, IPCPRI);
+		sleep((caddr_t)&ipc, PZERO);
 	ipc.ip_lock = p->p_pid;
 	ipc.ip_data = uap->data;
 	ipc.ip_addr = uap->addr;
 	ipc.ip_req = uap->req;
-	p->p_flag &= ~SWTED;
+	p->p_flag &= ~P_WAITED;
 	setrun(p);
 	while (ipc.ip_req > 0)
-		sleep((caddr_t)&ipc, IPCPRI);
+		sleep((caddr_t)&ipc, PZERO);
 	u.u_r.r_val1 = (short)ipc.ip_data;
 	if (ipc.ip_req < 0)
 		u.u_error = EIO;
@@ -188,12 +183,12 @@ procxmt()
 			u.u_ar0[PC] = (int)ipc.ip_addr;
 		if (ipc.ip_data > NSIG)
 			goto error;
-		u.u_procp->p_cursig = ipc.ip_data;
+		u.u_procp->p_ptracesig = ipc.ip_data;
 		return(1);
 
 	/* force exit */
 	case PT_KILL:
-		exit(u.u_procp->p_cursig);
+		exit(u.u_procp->p_ptracesig);
 		/*NOTREACHED*/
 
 	default:
