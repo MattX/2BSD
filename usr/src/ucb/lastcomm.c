@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)lastcomm.c	5.2.3 (2.11BSD GTE) 1997/2/14";
+static char sccsid[] = "@(#)lastcomm.c	5.2.4 (2.11BSD GTE) 1997/5/7";
 #endif
 
 /*
@@ -82,7 +82,7 @@ main(argc, argv)
 			     cp++)
 				if (!isascii(*cp) || iscntrl(*cp))
 					*cp = '?';
-			if (argc > 1 && !ok(argc, argv, acp))
+			if (*argv && !ok(argv, acp))
 				continue;
 			x = expand(acp->ac_utime) + expand(acp->ac_stime);
 			printf("%-*.*s %s %-*s %-*s %6.2f secs %.16s\n",
@@ -128,19 +128,19 @@ flagbits(f)
 	return (flags);
 }
 
-ok(argc, argv, acp)
-	int argc;
+ok(argv, acp)
 	register char *argv[];
 	register struct acct *acp;
 {
-	register int j;
-
-	for (j = 1; j < argc; j++)
-		if (strcmp(getname(acp->ac_uid), argv[j]) &&
-		    strcmp(getdev(acp->ac_tty), argv[j]) &&
-		    strncmp(acp->ac_comm, argv[j], fldsiz(acct, ac_comm)))
-			break;
-	return (j == argc);
+	do {
+		if (!strcmp(getname(acp->ac_uid), *argv))
+			return(1);
+		if (!strcmp(getdev(acp->ac_tty), *argv))
+			return(1);
+		if (!strncmp(acp->ac_comm, *argv, fldsiz(acct, ac_comm)))
+			return(1);
+	} while (*++argv);
+	return (0);
 }
 
 /* should be done with nameserver or database */

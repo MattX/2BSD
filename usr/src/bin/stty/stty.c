@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)stty.c	5.4.2 (2.11BSD GTE) 1997/5/2";
+static char sccsid[] = "@(#)stty.c	5.4.3 (2.11BSD GTE) 1997/5/7";
 #endif
 
 /*
@@ -322,28 +322,31 @@ args:
 			printf("unknown\n");
 			exit(1);
 		}
-		for	(i = 0; modes[0].string; i++)
+		for	(i = 0; modes[i].string; i++)
 			{
 			if	(eq(modes[i].string))
 				{
 				mode.sg_flags &= ~modes[i].reset;
 				mode.sg_flags |= modes[i].set;
+				goto cont;
 				}
 			}
-		for	(i = 0; lmodes[0].string; i++)
+		for	(i = 0; lmodes[i].string; i++)
 			{
 			if	(eq(lmodes[i].string))
 				{
 				lmode &= ~lmodes[i].reset;
 				lmode |= lmodes[i].set;
+				goto cont;
 				}
 			}
-		for	(i = 0; mmodes[0].string; i++)
+		for	(i = 0; mmodes[i].string; i++)
 			{
 			if	(eq(mmodes[i].string))
 				{
 				nmstate &= ~mmodes[i].reset;
 				nmstate |= mmodes[i].set;
+				goto cont;
 				}
 			}
 		if(arg)
@@ -367,16 +370,11 @@ done:
 eq(string)
 char *string;
 {
-	register int i;
 
-	if(!arg)
+	if	(!arg)
 		return(0);
-	i = 0;
-loop:
-	if(arg[i] != string[i])
+	if	(strcmp(arg, string))
 		return(0);
-	if(arg[i++] != '\0')
-		goto loop;
 	arg = 0;
 	return(1);
 }
