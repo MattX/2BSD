@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mount.h	7.2.2 (2.11BSD GTE) 1995/12/24
+ *	@(#)mount.h	7.2.3 (2.11BSD GTE) 1995/12/29
  */
 
 /*
@@ -35,6 +35,13 @@ struct statfs {
  */
 #define	MOUNT_NONE	0
 #define	MOUNT_UFS	1	/* Fast Filesystem */
+#define	MOUNT_MAXTYPE	1
+
+#define	INITMOUNTNAMES { \
+	"none",		/* 0 MOUNT_NONE */ \
+	"ufs",		/* 1 MOUNT_UFS */ \
+	0,				  \
+}
 
 /*
  * Mount structure.
@@ -64,12 +71,27 @@ struct	xmount
 /*
  * Mount flags.
  */
-#define	MNT_RDONLY	0x00000001	/* read only filesystem */
-#define	MNT_SYNCHRONOUS	0x00000002	/* file system written synchronously */
-#define	MNT_NOEXEC	0x00000004	/* can't exec from filesystem */
-#define	MNT_NOSUID	0x00000008	/* don't honor setuid bits on fs */
-#define	MNT_NODEV	0x00000010	/* don't interpret special files */
-#define	MNT_VISFLAGMASK	0x000000ff	/* user visible flags */
+#define	MNT_RDONLY	0x0001		/* read only filesystem */
+#define	MNT_SYNCHRONOUS	0x0002		/* file system written synchronously */
+#define	MNT_NOEXEC	0x0004		/* can't exec from filesystem */
+#define	MNT_NOSUID	0x0008		/* don't honor setuid bits on fs */
+#define	MNT_NODEV	0x0010		/* don't interpret special files */
+
+/* 
+ * Flags set by internal operations.
+*/
+#define	MNT_QUOTA	0x0020		/* quotas are enabled on filesystem */
+
+/*
+ * Mask of flags that are visible to statfs().
+*/
+#define	MNT_VISFLAGMASK	0x0fff
+
+/*
+ * filesystem control flags.  The high 4 bits are used for this.  Since NFS
+ * support will never be a problem we can avoid making the flags into a 'long.
+*/
+#define	MNT_UPDATE	0x1000		/* not a real mount, just an update */
 
 /*
  * Flags for various system call interfaces.

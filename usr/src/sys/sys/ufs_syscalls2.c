@@ -1,5 +1,5 @@
 /*
- * 	@(#) ufs_syscalls2.c	(2.11BSD) 1995/12/24
+ * 	@(#) 	ufs_syscalls2.c	  1.1 (2.11BSD) 1995/12/29
  *
  * ufs_syscalls was getting too large.  New UFS related system calls are
  * placed in this file.
@@ -67,7 +67,7 @@ statfs1(mp, sbp)
 	sfsp->f_type = MOUNT_UFS;
 	sfsp->f_bsize = MAXBSIZE;
 	sfsp->f_iosize = MAXBSIZE;
-	sfsp->f_blocks = fs->fs_fsize;
+	sfsp->f_blocks = fs->fs_fsize - fs->fs_isize;
 	sfsp->f_bfree = fs->fs_tfree;
 	sfsp->f_bavail = fs->fs_tfree;
 	sfsp->f_files = (fs->fs_isize - 2) * INOPB;

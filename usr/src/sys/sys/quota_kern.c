@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)quota_kern.c	7.1.2 (2.11BSD GTE) 11/26/94
+ *	@(#)quota_kern.c	7.1.3 (2.11BSD GTE) 1995/12/29
  *
  * I'll say it here and not every other place i've had to hack:
  * Mike Karels was right - " just buy a vax...".  i have traded cpu cycles
@@ -726,6 +726,7 @@ opendq(mp, fname)
 	 * quota file for this file system.
 	 */
 	mp->m_qinod = ip;
+	mp->m_flags |= MNT_QUOTA;
 	i = mp - mount;
 	for (q = quota; q < quotaNQUOTA; q++)
 		if ((q->q_flags & Q_NDQ) == 0) {
@@ -805,5 +806,6 @@ closedq(mp)
 	irele(mp->m_qinod);
 	QUOTAMAP();
 	mp->m_qinod = NULL;
+	mp->m_flags &= ~MNT_QUOTA;
 }
 #endif
