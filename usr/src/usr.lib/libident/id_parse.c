@@ -2,7 +2,7 @@
 ** id_parse.c                    Receive and parse a reply from an IDENT server
 **
 ** Author: Peter Eriksson <pen@lysator.liu.se>
-** Fiddling: Pdr Emanuelsson <pell@lysator.liu.se>
+** Fiddling: Pär Emanuelsson <pell@lysator.liu.se>
 */
 
 #ifdef NeXT3

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 
@@ -117,16 +117,16 @@ FILES
      file.[fresc]	 input file
      file.o		 object file
      a.out		 loaded output
-     /usr/lib/f77pass1	 compiler pass 1
+     /usr/libexec/f77pass1compiler pass 1
      /lib/c1		 compiler pass 2
      /lib/c2		 optional optimizer
      /usr/lib/libF77.a	 intrinsic function library
-     /usr/lib/libovF77.a intrinsic function library (for overlays)
      /usr/lib/libI77.a	 Fortran I/O library
+     /usr/lib/libU77.a	 Fortran system call library
 
 
 
-Printed 9/9/95							2
+Printed 11/26/99						2
 
 
 
@@ -137,9 +137,6 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
 
 
-     /usr/lib/libovI77.a Fortran I/O library (for overlays)
-     /usr/lib/libU77.a	 Fortran system call library
-     /usr/lib/libovU77.a Fortran system call library (for overlays)
      /lib/libc.a	 C library, see section 3
      /temp/fortPID.[xsad SopzA]temporary files
 
@@ -192,7 +189,10 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95							3
+
+
+
+Printed 11/26/99						3
 
 
 
@@ -258,7 +258,7 @@ F77(1)		    UNIX Programmer's Manual		   F77(1)
 
 
 
-Printed 9/9/95							4
+Printed 11/26/99						4
 
 
 
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 9/9/95							5
+Printed 11/26/99						5
 
 
 
@@ -390,7 +390,7 @@ EXAMPLES
 
 
 
-Printed 9/9/95							6
+Printed 11/26/99						6
 
 
 

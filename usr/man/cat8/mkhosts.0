@@ -9,7 +9,7 @@ NAME
      mkhosts - generate hashed host table
 
 SYNOPSIS
-     /etc/mkhosts [ -v ] hostfile
+     /usr/sbin/mkhosts [ -v ] hostfile
 
 DESCRIPTION
      _M_k_h_o_s_t_s is used to generated the hashed host database used
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 23, 1986				1
+Printed 11/26/99	  May 23, 1986				1
 
 
 

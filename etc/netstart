@@ -23,24 +23,24 @@ named=NO
 #	want to send all your packets, by default.
 #
 
-hostname=your.hostname.here
+hostname=curly.2bsd.com
 netmask=255.255.255.0
-broadcast=192.168.251.255
-default=192.168.251.1
+broadcast=206.139.202.255
+default=206.139.202.1
 
 hostname $hostname					>/dev/console 2>&1
 hostid $hostname					>/dev/console 2>&1
 
 if [ $INET = YES ]; then
-	# /etc/ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up -trailers arp >/dev/console 2>&1
-	# /etc/ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp -trailers >/dev/console 2>&1
-	# /etc/slattach /dev/ttyS6 9600
-	/etc/ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
+	# ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up -trailers arp >/dev/console 2>&1
+	# ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
+	# ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp -trailers >/dev/console 2>&1
+	# slattach /dev/ttyS6 9600
+	ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
 
-	/etc/route add $hostname localhost 0		>/dev/console 2>&1
-	/etc/route add default $default 1		>/dev/console 2>&1
+	route add $hostname localhost 0		>/dev/console 2>&1
+	route add default $default 1		>/dev/console 2>&1
 fi

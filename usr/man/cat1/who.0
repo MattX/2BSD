@@ -15,7 +15,7 @@ DESCRIPTION
      _W_h_o, without an argument, lists the login name, terminal
      name, and login time for each current UNIX user.
 
-     Without an argument, _w_h_o examines the /_e_t_c/_u_t_m_p file to
+     Without an argument, _w_h_o examines the /_v_a_r/_r_u_n/_u_t_m_p file to
      obtain its information.  If a file is given, that file is
      examined.	Typically the given file will be /usr/adm/wtmp,
      which contains a record of all the logins since it was
@@ -31,7 +31,7 @@ DESCRIPTION
      you'), _w_h_o tells who you are logged in as.
 
 FILES
-     /etc/utmp
+     /var/run/utmp
 
 SEE ALSO
      getuid(2), utmp(5)
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	November 27, 1996			1
 
 
 

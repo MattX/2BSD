@@ -9,7 +9,7 @@ NAME
      vgrindefs - vgrind's language definition data base
 
 SYNOPSIS
-     /usr/lib/vgrindefs
+     /usr/share/misc/vgrindefs
 
 DESCRIPTION
      _V_g_r_i_n_d_e_f_s contains all language definitions for vgrind.  The
@@ -60,7 +60,7 @@ FIELDS
 
 
 
-Printed 9/9/95		  May 15, 1985				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -116,17 +116,17 @@ VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
      all the keywords should be specified in lower case.
 
 FILES
-     /usr/lib/vgrindefs  file containing terminal descriptions
+     /usr/share/misc/vgrindefs	   file containing terminal
+     descriptions
 
 SEE ALSO
      vgrind(1), troff(1)
 
-AUTHOR
-     Dave Presotto
 
 
 
-Printed 9/9/95		  May 15, 1985				2
+
+Printed 11/26/99	October 22, 1996			2
 
 
 
@@ -136,6 +136,9 @@ Printed 9/9/95		  May 15, 1985				2
 VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
 
 
+
+AUTHOR
+     Dave Presotto
 
 BUGS
 
@@ -186,10 +189,7 @@ BUGS
 
 
 
-
-
-
-Printed 9/9/95		  May 15, 1985				3
+Printed 11/26/99	October 22, 1996			3
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 
@@ -91,7 +91,7 @@ FILES
      name.i		 include file(s)
      pmon.out		 profile data
      core		 profile data source with -c
-     /usr/lib/how_pxp	 information on basic usage
+     /usr/share/pascal/how_pxpinformation on basic usage
 
 SEE ALSO
      Berkeley Pascal User's Manual
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95							2
+Printed 11/26/99						2
 
 
 

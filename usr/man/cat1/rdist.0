@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 13, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 9/9/95		  May 13, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 
@@ -192,7 +192,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 9/9/95		  May 13, 1986				3
+Printed 11/26/99	October 22, 1996			3
 
 
 
@@ -258,7 +258,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 9/9/95		  May 13, 1986				4
+Printed 11/26/99	October 22, 1996			4
 
 
 
@@ -276,7 +276,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 		     install -R ;
 		     except /usr/lib/${EXLIB} ;
 		     except /usr/games/lib ;
-		     special /usr/lib/sendmail "/usr/lib/sendmail -bz" ;
+		     special /usr/sbin/sendmail "/usr/sbin/sendmail -bz" ;
 
 	  srcs:
 	  /usr/src/bin -> arpa
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 13, 1986				5
+Printed 11/26/99	October 22, 1996			5
 
 
 
@@ -390,7 +390,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 9/9/95		  May 13, 1986				6
+Printed 11/26/99	October 22, 1996			6
 
 
 

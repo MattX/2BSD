@@ -44,7 +44,7 @@ DESCRIPTION
      gested when conversation is about to be terminated.
 
 FILES
-     /etc/utmp to find user
+     /var/run/utmp  to find user
      /bin/sh	    to execute `!'
 
 SEE ALSO
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/26/99	November 27, 1996			1
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/26/99	November 27, 1996			1
 
 
 
@@ -73,7 +73,7 @@ TALK(1)             UNIX Programmer's Manual		  TALK(1)
 
 FILES
      /etc/hosts     to find the recipient's machine
-     /etc/utmp to find the recipient's tty
+     /var/run/utmp  to find the recipient's tty
 
 SEE ALSO
      mesg(1), who(1), mail(1), write(1)
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 5, 1986				2
+Printed 11/26/99	November 27, 1996			2
 
 
 

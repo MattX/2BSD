@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 
@@ -85,7 +85,7 @@ PS(1)		    UNIX Programmer's Manual		    PS(1)
      x	  asks even about processes with no terminal.
 
      U	  causes ps to update a private database where is keeps
-	  system information.  Thus ``ps U'' should be included
+	  system information.  Thus ``ps -U'' should be included
 	  in the /etc/rc file.
 
      #	  A process number may be given, (indicated here by #),
@@ -126,7 +126,7 @@ PS(1)		    UNIX Programmer's Manual		    PS(1)
 
 
 
-Printed 9/9/95							2
+Printed 11/26/99						2
 
 
 
@@ -171,7 +171,7 @@ FILES
      /usr/sys/core	 core file
      /dev		 searched to find swap device and tty
      names
-     /etc/psdatabase	 system namelist and device information
+     /var/run/psdatabase system namelist and device information
 
 SEE ALSO
      kill(1), w(1), pstat(8)
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 9/9/95							3
+Printed 11/26/99						3
 
 
 

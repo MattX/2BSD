@@ -32,12 +32,13 @@ DESCRIPTION
      mapping sequences of keystrokes from the ASCII keyboard into
      appropriate 3270 control strings.	This mapping is terminal
      dependent and is specified in a description file,
-     /_e_t_c/_m_a_p_3_2_7_0, (see _m_a_p_3_2_7_0(5)) or in an environment variable
-     _M_A_P_3_2_7_0 (see _m_s_e_t(1)).  Any special function keys on the
-     ASCII keyboard are used whenever possible.  If an entry for
-     the user's terminal is not found, _t_n_3_2_7_0 looks for an entry
-     for the terminal type unknown. If this is not found, _t_n_3_2_7_0
-     uses a default keyboard mapping (see _m_a_p_3_2_7_0(5)).
+     /_u_s_r/_s_h_a_r_e/_m_i_s_c/_m_a_p_3_2_7_0, (see _m_a_p_3_2_7_0(5)) or in an environ-
+     ment variable _M_A_P_3_2_7_0 (see _m_s_e_t(1)).  Any special function
+     keys on the ASCII keyboard are used whenever possible.  If
+     an entry for the user's terminal is not found, _t_n_3_2_7_0 looks
+     for an entry for the terminal type unknown. If this is not
+     found, _t_n_3_2_7_0 uses a default keyboard mapping (see
+     _m_a_p_3_2_7_0(5)).
 
      The first character of each special keyboard mapping
      sequence is either an ASCII escape (ESC), a control charac-
@@ -56,11 +57,10 @@ DESCRIPTION
 	  close     close the current connection
 	  quit	    exit tn3270
 	  z	    suspend tn3270
-	  status    print connection status
 
 
 
-Printed 9/9/95		January 11, 1986			1
+Printed 11/26/99	November 27, 1996			1
 
 
 
@@ -71,6 +71,7 @@ TN3270(1)	    UNIX Programmer's Manual		TN3270(1)
 
 
 
+	  status    print connection status
 	  ?	    print help information
 
      Other common _t_e_l_n_e_t commands are not available in _t_n_3_2_7_0.
@@ -87,7 +88,7 @@ TN3270(1)	    UNIX Programmer's Manual		TN3270(1)
 
 FILES
      /etc/termcap
-     /etc/map3270
+     /usr/share/misc/map3270
 
 AUTHOR
      Greg Minshall
@@ -125,8 +126,7 @@ BUGS
 
 
 
-
-Printed 9/9/95		January 11, 1986			2
+Printed 11/26/99	November 27, 1996			2
 
 
 

@@ -54,13 +54,13 @@ DESCRIPTION
 FILES
      file.p		 input file
      file.i		 include file(s)
-     /usr/lib/pi_strings text of the error messages
-     /usr/lib/how_pi*	 basic usage explanation
+     /usr/share/pascal/pi_stringstext of the error messages
+     /usr/share/pascal/how_pi*basic usage explanation
      obj		 interpreter code output
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95							2
+Printed 11/26/99						2
 
 
 
@@ -192,7 +192,7 @@ PI(1)		    UNIX Programmer's Manual		    PI(1)
 
 
 
-Printed 9/9/95							3
+Printed 11/26/99						3
 
 
 

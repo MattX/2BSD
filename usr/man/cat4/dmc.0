@@ -33,7 +33,7 @@ DESCRIPTION
      3 -- DDCMP Half Duplex, secondary station
 
      Several device error counters are available via "adb", for
-     more information see the adb script /usr/lib/adb/dmcstats,
+     more information see the adb script /usr/share/adb/dmcstats,
      or the DMC11 technical manual.
 
      The host's address must be specified with an SIOCSIFADDR
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95		 August 20, 1987			1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 August 20, 1987			2
+Printed 11/26/99	October 22, 1996			2
 
 
 

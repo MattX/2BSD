@@ -1,6 +1,8 @@
 #
 # General dialer definitions used below
 #
+dial19200|19200 Baud Hayes attributes:\
+	:br#19200:at=hayes:du:
 dial9600|9600 Baud Hayes attributes:\
 	:br#9600:at=hayes:du:
 dial1200|1200 Baud DN11 attributes:\
@@ -19,6 +21,8 @@ tip300:tc=UNIX-300:
 cu0|cu300:tc=UNIX-300:
 cu1200:tc=UNIX-1200:
 dialer:dv=/dev/cul0:br#1200:
+#wlbr:dv=/dev/ttyS0:pn=@:tc=dial19200:
+wlbr:dv=/dev/ttyS0:pn=@:tc=dial9600:
 
 #--------------------------------------------------------------------
 #The attributes are:

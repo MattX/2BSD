@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95							1
+Printed 11/24/99						1
 
 
 
@@ -80,7 +80,7 @@ RESTOR(8)	    UNIX Programmer's Manual		RESTOR(8)
      tape onto a clear file system or to restore an incremental
      dump tape onto this.  Thus
 
-	  /etc/mkfs /dev/hp0a 4807
+	  mkfs /dev/hp0a 4807
 	  restor r /dev/hp0a
 
      is a typical sequence to restore a complete dump.	Another
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95							2
+Printed 11/24/99						2
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-COMSAT(8C)	    UNIX Programmer's Manual	       COMSAT(8C)
+COMSAT(8)	    UNIX Programmer's Manual		COMSAT(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      comsat - biff server
 
 SYNOPSIS
-     /etc/comsat
+     /usr/libexec/comsat
 
 DESCRIPTION
      _C_o_m_s_a_t is the server process which receives reports of
@@ -31,7 +31,8 @@ DESCRIPTION
      are not included in the displayed message.
 
 FILES
-     /etc/utmp to find out who's logged on and on what terminals
+     /var/run/utmp  to find out who's logged on and on what ter-
+     minals
 
 SEE ALSO
      biff(1), inetd(8)
@@ -59,8 +60,7 @@ BUGS
 
 
 
-
-Printed 9/9/95		  May 20, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 

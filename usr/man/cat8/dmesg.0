@@ -9,7 +9,7 @@ NAME
      dmesg - collect system diagnostic messages to form error log
 
 SYNOPSIS
-     /etc/dmesg [ - ]
+     /sbin/dmesg [ - ]
 
 DESCRIPTION
      N.B.: _D_m_e_s_g is obsoleted by _s_y_s_l_o_g_d(8) for maintenance of
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 19, 1986				1
+Printed 11/24/99	November 17, 1996			1
 
 
 

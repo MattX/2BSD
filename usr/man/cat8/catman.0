@@ -9,7 +9,8 @@ NAME
      catman - create the cat files for the manual
 
 SYNOPSIS
-     /etc/catman [ -p ] [ -n ] [ -w ] [ -M _p_a_t_h ] [ sections ]
+     /usr/sbin/catman [ -p ] [ -n ] [ -w ] [ -M _p_a_t_h ] [ sections
+     ]
 
 DESCRIPTION
      _C_a_t_m_a_n creates the preformatted versions of the on-line
@@ -59,8 +60,7 @@ DESCRIPTION
 
 
 
-
-Printed 9/9/95		  May 28, 1986				1
+Printed 11/26/99	October 23, 1996			1
 
 
 
@@ -81,11 +81,11 @@ CATMAN(8)	    UNIX Programmer's Manual		CATMAN(8)
 
 
 FILES
-     /usr/man		   default manual directory location
-     /usr/man/man?/*.*	   raw (nroff input) manual sections
-     /usr/man/cat?/*.*	   preformatted manual pages
-     /usr/man/whatis	   whatis database
-     /usr/lib/makewhatis   command script to make whatis database
+     /usr/man		    default manual directory location
+     /usr/man/man?/*.*	    raw (nroff input) manual sections
+     /usr/man/cat?/*.*	    preformatted manual pages
+     /usr/man/whatis	    whatis database
+     /usr/sbin/makewhatis   command script to make whatis database
 
 SEE ALSO
      man(1), cron(8), rdist(1)
@@ -93,6 +93,10 @@ SEE ALSO
 BUGS
      Acts oddly on nights with full moons.
 
+     The need for catman(8) is almost but not quite gone.  Most
+     of the manpages have been moved out of /usr/src/man into the
+     sourcecode hierarchy.  The recreation of the whatis database
+     is the main use of catman now.
 
 
 
@@ -122,11 +126,7 @@ BUGS
 
 
 
-
-
-
-
-Printed 9/9/95		  May 28, 1986				2
+Printed 11/26/99	October 23, 1996			2
 
 
 

@@ -9,7 +9,7 @@ NAME
      makekey - generate encryption key
 
 SYNOPSIS
-     /usr/lib/makekey
+     /usr/sbin/makekey
 
 DESCRIPTION
      _M_a_k_e_k_e_y improves the usefulness of encryption schemes
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	October 23, 1996			1
 
 
 

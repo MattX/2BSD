@@ -25,7 +25,7 @@ FILES
      /usr/bin/pi	 Pascal translator
      /usr/bin/px	 Pascal executor
      /tmp/pix?????	 temporary files
-     /usr/lib/how_pix	 basic explanation
+     /usr/share/pascal/how_pixbasic explanation
 
 SEE ALSO
      Berkeley Pascal User's Manual
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
+UUCICO(8)	    UNIX Programmer's Manual		UUCICO(8)
 
 
 
@@ -9,14 +9,14 @@ NAME
      uucico, uucpd - transfer files queued by uucp or uux
 
 SYNOPSIS
-     /usr/lib/uucp/uucico [ -d_s_p_o_o_l_d_i_r ] [ -g_g_r_a_d_e ] [ -r_r_o_l_e ] [
-     -R ] [ -s_s_y_s_t_e_m ] [ -x_d_e_b_u_g ] [ -L ] [ -t_t_u_r_n_a_r_o_u_n_d ]
+     /usr/sbin/uucico [ -d_s_p_o_o_l_d_i_r ] [ -g_g_r_a_d_e ] [ -r_r_o_l_e ] [ -R
+     ] [ -s_s_y_s_t_e_m ] [ -x_d_e_b_u_g ] [ -L ] [ -t_t_u_r_n_a_r_o_u_n_d ]
 
-     /etc/uucpd
+     /usr/libexec/uucpd
 
 DESCRIPTION
      _U_u_c_i_c_o performs the actual work involved in transferring
-     files between systems. _U_u_c_p(1C) and _u_u_x(1C) merely queue
+     files between systems. _U_u_c_p(1) and _u_u_x(1) merely queue
      requests for data transfer which _u_u_c_i_c_o processes.
 
      The following options are available.
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 15, 1986				1
+Printed 11/26/99	October 23, 1996			1
 
 
 
 
 
 
-UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
+UUCICO(8)	    UNIX Programmer's Manual		UUCICO(8)
 
 
 
@@ -104,7 +104,7 @@ UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
      as a ``shell'' for remote systems who call in.  For calling
      out periodically, a typical line in _c_r_o_n_t_a_b would be:
 
-	  0    *    *	 *    *    /usr/lib/uucp/uucico -r1
+	  0    *    *	 *    *    /usr/sbin/uucico -r1
 
      This will run _u_u_c_i_c_o every hour in master role. For each
      system that has transfer requests queued, _u_u_c_i_c_o calls the
@@ -117,7 +117,7 @@ UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
      file must be created, with a login ``shell'' of _u_u_c_i_c_o.  For
      example:
 
-	  nuucp:Password:6:1::/usr/spool/uucppublic:/usr/lib/uucp/uucico
+	  nuucp:Password:6:1::/usr/spool/uucppublic:/usr/sbin/uucico
 
      The UID for UUCP remote logins is not critical, so long as
      it differs from the UUCP Administrative login.  The latter
@@ -126,25 +126,25 @@ UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
 
 
 
-Printed 9/9/95		  May 15, 1986				2
+Printed 11/26/99	October 23, 1996			2
 
 
 
 
 
 
-UUCICO(8C)	    UNIX Programmer's Manual	       UUCICO(8C)
+UUCICO(8)	    UNIX Programmer's Manual		UUCICO(8)
 
 
 
 FILES
-     /usr/lib/uucp/		   UUCP internal files/utilities
-     /usr/lib/uucp/L-devices	   Local device descriptions
-     /usr/lib/uucp/L-dialcodes	   Phone numbers and prefixes
-     /usr/lib/uucp/L.aliases	   Hostname aliases
-     /usr/lib/uucp/L.cmds	   Remote command permissions list
-     /usr/lib/uucp/L.sys	   Host connection specifications
-     /usr/lib/uucp/USERFILE	   Remote directory tree permissions list
+     /etc/uucp/                    UUCP internal files
+     /etc/uucp/L-devices	   Local device descriptions
+     /etc/uucp/L-dialcodes	   Phone numbers and prefixes
+     /etc/uucp/L.aliases	   Hostname aliases
+     /etc/uucp/L.cmds		   Remote command permissions list
+     /etc/uucp/L.sys		   Host connection specifications
+     /etc/uucp/USERFILE            Remote directory tree permissions list
 
      /usr/spool/uucp/		   Spool directory
      /usr/spool/uucp/AUDIT/*	   Debugging audit trails
@@ -164,9 +164,9 @@ FILES
      /usr/spool/uucppublic	   Public access directory
 
 SEE ALSO
-     uucp(1C), uuq(1C), uux(1C), L-devices(5), L-dialcodes(5),
-     L.aliases(5), L.cmds(5), L.sys(5), uuclean(8C), uupoll(8C),
-     uusnap(8C), uuxqt(8C)
+     uucp(1), uuq(1), uux(1), L-devices(5), L-dialcodes(5),
+     L.aliases(5), L.cmds(5), L.sys(5), uuclean(8), uupoll(8),
+     uusnap(8), uuxqt(8)
 
      D. A. Nowitz and M. E. Lesk, _A _D_i_a_l-_U_p _N_e_t_w_o_r_k _o_f _U_N_I_X _S_y_s_-
      _t_e_m_s.
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 15, 1986				3
+Printed 11/26/99	October 23, 1996			3
 
 
 

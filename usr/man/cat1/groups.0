@@ -9,27 +9,21 @@ NAME
      groups - show group memberships
 
 SYNOPSIS
-     groups [user]
+     groups [_u_s_e_r]
 
 DESCRIPTION
-     The _g_r_o_u_p_s command shows the groups to which you or the
-     optionally specified user belong.	Each user belongs to a
-     group specified in the password file /_e_t_c/_p_a_s_s_w_d and possi-
-     bly to other groups as specified in the file /_e_t_c/_g_r_o_u_p.  If
-     you do not own a file but belong to the group which it is
-     owned by then you are granted group access to the file.
+     The groups utility has been obsoleted by the id(1) utility,
+     and is equivalent to ``id -Gn [_u_s_e_r]''.  The command
+     ``id -p'' is suggested for normal interactive use.
 
-     When a new file is created it is given the group of the con-
-     taining directory.
+     The groups utility displays the groups to which you (or the
+     optionally specified user) belong.
+
+     The groups utility exits 0 on success, and >0 if an error
+     occurs.
 
 SEE ALSO
-     setgroups(2)
-
-FILES
-     /etc/passwd, /etc/group
-
-BUGS
-     More groups should be allowed.
+     id(1)
 
 
 
@@ -60,7 +54,13 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+
+
+
+
+
+
+Printed 11/26/99	  June 25, 1997                         1
 
 
 

@@ -9,8 +9,8 @@ NAME
      renice - alter priority of running processes
 
 SYNOPSIS
-     /etc/renice priority [ [ -p ] pid ... ] [ [ -g ] pgrp ... ]
-     [ [ -u ] user ... ]
+     renice priority [ [ -p ] pid ... ] [ [ -g ] pgrp ... ] [ [
+     -u ] user ... ]
 
 DESCRIPTION
      _R_e_n_i_c_e alters the scheduling priority of one or more running
@@ -27,7 +27,7 @@ DESCRIPTION
      interpretation to be (the default) process ID's.  For exam-
      ple,
 
-	  /etc/renice +1 987 -u daemon root -p 32
+	  renice +1 987 -u daemon root -p 32
 
      would change the priority of process ID's 987 and 32, and
      all processes owned by users daemon and root.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 19, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 

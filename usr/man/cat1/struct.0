@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -84,7 +84,7 @@ STRUCT(1)	    UNIX Programmer's Manual		STRUCT(1)
 
 FILES
      /tmp/struct*
-     /usr/lib/struct/*
+     /usr/libexec/struct/*
 
 SEE ALSO
      f77(1)
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

@@ -9,10 +9,10 @@ NAME
      L.sys - UUCP remote host description file
 
 DESCRIPTION
-     The _L._s_y_s file is consulted by the UUCP daemon _u_u_c_i_c_o(8C)
-     for information on remote systems.  _L._s_y_s includes the sys-
-     tem name, appropriate times to call, phone numbers, and a
-     login and password for the remote system.	_L._s_y_s is thus a
+     The _L._s_y_s file is consulted by the UUCP daemon _u_u_c_i_c_o(8) for
+     information on remote systems.  _L._s_y_s includes the system
+     name, appropriate times to call, phone numbers, and a login
+     and password for the remote system.  _L._s_y_s is thus a
      privileged file, owned by the UUCP Administrator; it is
      accessible only to the Administrator and to the superuser.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 
@@ -192,7 +192,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-Printed 9/9/95		 April 24, 1986                         3
+Printed 11/26/99	October 22, 1996			3
 
 
 
@@ -258,7 +258,7 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-Printed 9/9/95		 April 24, 1986                         4
+Printed 11/26/99	October 22, 1996			4
 
 
 
@@ -320,11 +320,11 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
      `ssword:'; when that is received, _s_e_n_d `ufeedme'.''
 
 FILES
-     /usr/lib/uucp/L.sys
+     /etc/uucp/L.sys
 
 
 
-Printed 9/9/95		 April 24, 1986                         5
+Printed 11/26/99	October 22, 1996			5
 
 
 
@@ -335,10 +335,10 @@ L.SYS(5)	    UNIX Programmer's Manual		 L.SYS(5)
 
 
 
-     /usr/lib/uucp/UUAIDS/L.sysL.sys example
+     /etc/uucp/UUAIDS/L.sysL.sys example
 
 SEE ALSO
-     uucp(1C), uux(1C), L-devices(5), services(5), uucico(8C)
+     uucp(1), uux(1), L-devices(5), services(5), uucico(8)
 
 BUGS
      ``ABORT'' in the send/expect script is expressed ``back-
@@ -390,7 +390,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 24, 1986                         6
+Printed 11/26/99	October 22, 1996			6
 
 
 

@@ -22,7 +22,7 @@ DESCRIPTION
       * All rights reserved.  The Berkeley software License Agreement
       * specifies the terms and conditions for redistribution.
       *
-      *      @(#)acct.h              (2.11BSD) 2/21/92
+      *      @(#)acct.h              2.2(2.11BSD) 1999/2/19
       */
 
      /*
@@ -53,14 +53,14 @@ DESCRIPTION
      #define ACOMPAT  0004	     /* used compatibility mode */
      #define ACORE    0010	     /* dumped core */
      #define AXSIG    0020	     /* killed by a signal */
+     #define ASUGID   0040	     /* setuser/group id privileges used */
 
      /*
       * 1/AHZ is the granularity of the data encoded in the various
-      * comp_t fields.	This is not necessarily equal to hz.
 
 
 
-Printed 9/9/95		  May 19, 1986				1
+Printed 11/26/99	  May 19, 1986				1
 
 
 
@@ -71,8 +71,18 @@ ACCT(5)             UNIX Programmer's Manual		  ACCT(5)
 
 
 
+      * comp_t fields.	This is not necessarily equal to hz.
       */
-     #define AHZ LINEHZ
+     #define AHZ 64
+
+     #ifndef KERNEL
+     #define _PATH_ACCTD	     "/usr/libexec/acctd"
+     #define _PATH_ACCTFILE "/usr/adm/acct"
+     #define _PATH_ACCTDPID "/var/run/acctd.pid"
+     #define _PATH_ACCTDCF "/etc/acctd.cf"
+     #define _PATH_DEVALOG "/dev/acctlog"
+     #endif
+
 
      If the process was created by an _e_x_e_c_v_e(2), the first 10
      characters of the filename appear in _a_c__c_o_m_m. The accounting
@@ -116,17 +126,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-
-
-
-
-
-Printed 9/9/95		  May 19, 1986				2
+Printed 11/26/99	  May 19, 1986				2
 
 
 

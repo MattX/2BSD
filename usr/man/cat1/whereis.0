@@ -6,48 +6,28 @@ WHEREIS(1)	    UNIX Programmer's Manual	       WHEREIS(1)
 
 
 NAME
-     whereis - locate source, binary, and or manual for program
+     whereis - locate programs
 
 SYNOPSIS
-     whereis [ -sbm ] [ -u ] [ -SBM dir ...  -f ] name ...
+     whereis program ...
 
 DESCRIPTION
-     _W_h_e_r_e_i_s locates source/binary and manuals sections for
-     specified files.  The supplied names are first stripped of
-     leading pathname components and any (single) trailing exten-
-     sion of the form ``.ext'', e.g. ``.c''.  Prefixes of ``s.''
-     resulting from use of source code control are also dealt
-     with.  _W_h_e_r_e_i_s then attempts to locate the desired program
-     in a list of standard places.  If any of the -b, -s or -m
-     flags are given then _w_h_e_r_e_i_s searches only for binaries,
-     sources or manual sections respectively (or any two
-     thereof).	The -u flag may be used to search for unusual
-     entries.  A file is said to be unusual if it does not have
-     one entry of each requested type.	Thus ``whereis -m -u *''
-     asks for those files in the current directory which have no
-     documentation.
+     The _w_h_e_r_e_i_s utility checks the standard binary directories
+     for the specified programs, printing out the paths of any it
+     finds.
 
-     Finally, the -B -M and -S flags may be used to change or
-     otherwise limit the places where _w_h_e_r_e_i_s searches.  The -f
-     file flags is used to terminate the last such directory list
-     and signal the start of file names.
+     The path searched is the string returned by the _s_y_s_c_t_l(8)
+     utility for the ``user.cs_path'' string.
 
-EXAMPLE
-     The following finds all the files in /usr/bin which are not
-     documented in /usr/man/man1 with source in /usr/src/cmd:
+SEE ALSO
+     _s_y_s_c_t_l(8),
 
-	  cd /usr/ucb
-	  whereis -u -M /usr/man/man1 -S /usr/src/cmd -f *
+COMPATIBILITY
+     The historic flags and arguments for the _w_h_e_r_e_i_s utility are
+     no longer available in this version.
 
-FILES
-     /usr/src/*
-     /usr/{doc,man}/*
-     /lib, /etc, /usr/{lib,bin,ucb,old,new,local}
-
-BUGS
-     Since the program uses _c_h_d_i_r(2) to run faster, pathnames
-     given with the -M -S and -B must be full; i.e. they must
-     begin with a ``/''.
+HISTORY
+     The _w_h_e_r_e_i_s command appeared in 3.0BSD.
 
 
 
@@ -60,7 +40,27 @@ BUGS
 
 
 
-Printed 9/9/95		   May 7, 1986				1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/26/99	November 27, 1996			1
 
 
 

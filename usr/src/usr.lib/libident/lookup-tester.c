@@ -1,7 +1,7 @@
 /*
 ** lookup-tester.c	Tests the high-level ident calls.
 **
-** Author: Pdr Emanuelsson <pell@lysator.liu.se>, 28 March 1993
+** Author: Pär Emanuelsson <pell@lysator.liu.se>, 28 March 1993
 */
 
 #ifdef NeXT3

@@ -1,7 +1,7 @@
 
 
 
-REXECD(8C)	    UNIX Programmer's Manual	       REXECD(8C)
+REXECD(8)	    UNIX Programmer's Manual		REXECD(8)
 
 
 
@@ -9,10 +9,10 @@ NAME
      rexecd - remote execution server
 
 SYNOPSIS
-     /etc/rexecd
+     /usr/libexec/rexecd
 
 DESCRIPTION
-     _R_e_x_e_c_d is the server for the _r_e_x_e_c(3X) routine.  The server
+     _R_e_x_e_c_d is the server for the _r_e_x_e_c(3) routine.  The server
      provides remote execution facilities with authentication
      based on user names and passwords.
 
@@ -60,14 +60,14 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95		   May 9, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 
 
 
 
-REXECD(8C)	    UNIX Programmer's Manual	       REXECD(8C)
+REXECD(8)	    UNIX Programmer's Manual		REXECD(8)
 
 
 
@@ -103,7 +103,7 @@ REXECD(8C)	    UNIX Programmer's Manual	       REXECD(8C)
      and is not preceded by a flag byte.
 
 SEE ALSO
-     rexec(3X)
+     rexec(3)
 
 BUGS
      Indicating ``Login incorrect'' as opposed to ``Password
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 9, 1986				2
+Printed 11/24/99	November 16, 1996			2
 
 
 

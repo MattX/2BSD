@@ -9,10 +9,10 @@ NAME
      L-devices - UUCP device description file
 
 DESCRIPTION
-     The L-devices file is consulted by the UUCP daemon
-     _u_u_c_i_c_o(8C) under the direction of _L._s_y_s(5) for information
-     on the devices that it may use.  Each line describes exactly
-     one device.
+     The L-devices file is consulted by the UUCP daemon _u_u_c_i_c_o(8)
+     under the direction of _L._s_y_s(5) for information on the dev-
+     ices that it may use.  Each line describes exactly one dev-
+     ice.
 
      A line in _L-_d_e_v_i_c_e_s has the form:
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
 
 
 
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 
@@ -158,11 +158,11 @@ L-DEVICES(5)	    UNIX Programmer's Manual	     L-DEVICES(5)
      the _L._s_y_s script is used _a_f_t_e_r.
 
 FILES
-     /usr/lib/uucp/L-devices
-     /usr/lib/uucp/UUAIDS/L-devices	L-devices example
+     /etc/uucp/L-devices
+     /etc/uucp/UUAIDS/L-devices    L-devices example
 
 SEE ALSO
-     uucp(1C), uux(1C), L.sys(5), uucico(8C)
+     uucp(1), uux(1), L.sys(5), uucico(8)
 
 
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 24, 1986                         3
+Printed 11/26/99	October 22, 1996			3
 
 
 

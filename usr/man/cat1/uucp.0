@@ -1,7 +1,7 @@
 
 
 
-UUCP(1C)	    UNIX Programmer's Manual		 UUCP(1C)
+UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	 April 24, 1986                         1
 
 
 
 
 
 
-UUCP(1C)	    UNIX Programmer's Manual		 UUCP(1C)
+UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
@@ -100,7 +100,7 @@ UUCP(1C)	    UNIX Programmer's Manual		 UUCP(1C)
 
 FILES
      /usr/spool/uucp - spool directory
-     /usr/lib/uucp/* - other data and program files
+     /etc/uucp/* - data and configuration files
 
 SEE ALSO
      uux(1C), mail(1)
@@ -126,14 +126,14 @@ BUGS
 
 
 
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	 April 24, 1986                         2
 
 
 
 
 
 
-UUCP(1C)	    UNIX Programmer's Manual		 UUCP(1C)
+UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
@@ -192,7 +192,7 @@ UUCP(1C)	    UNIX Programmer's Manual		 UUCP(1C)
 
 
 
-Printed 9/9/95		 April 24, 1986                         3
+Printed 11/26/99	 April 24, 1986                         3
 
 
 

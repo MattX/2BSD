@@ -9,7 +9,7 @@ NAME
      tunefs - tune up an existing file system
 
 SYNOPSIS
-     /etc/tunefs _t_u_n_e_u_p-_o_p_t_i_o_n_s _s_p_e_c_i_a_l|_f_i_l_e_s_y_s
+     tunefs _t_u_n_e_u_p-_o_p_t_i_o_n_s _s_p_e_c_i_a_l|_f_i_l_e_s_y_s
 
 DESCRIPTION
      _T_u_n_e_f_s is designed to change the dynamic parameters of a
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 22, 1986				1
+Printed 11/24/99	November 17, 1996			1
 
 
 
@@ -100,6 +100,8 @@ BUGS
      dismounted file systems.  To change the root file system,
      the system must be rebooted after the file system is tuned.
 
+     tunefs is not currently implemented in 2.11BSD.
+
      You can tune a file system, but you can't tune a fish.
 
 
@@ -124,9 +126,7 @@ BUGS
 
 
 
-
-
-Printed 9/9/95		  May 22, 1986				2
+Printed 11/24/99	November 17, 1996			2
 
 
 

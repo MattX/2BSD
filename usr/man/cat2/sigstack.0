@@ -20,6 +20,8 @@ SYNOPSIS
      struct sigstack *ss, *oss;
 
 DESCRIPTION
+     This interface has been made obsolete sigaltstack(2).
+
      _S_i_g_s_t_a_c_k allows users to define an alternate stack on which
      signals are to be processed.  If _s_s is non-zero, it speci-
      fies a _s_i_g_n_a_l _s_t_a_c_k on which to deliver signals and tells
@@ -53,6 +55,23 @@ ERRORS
 SEE ALSO
      sigvec(2), setjmp(3)
 
+HISTORY
+     The sigstack function call appeared in 4.2BSD and has been
+
+
+
+Printed 11/26/99	September 3, 1997			1
+
+
+
+
+
+
+SIGSTACK(2)	    UNIX Programmer's Manual	      SIGSTACK(2)
+
+
+
+     deprecated.
 
 
 
@@ -60,7 +79,54 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  June 30, 1985                         1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/26/99	September 3, 1997			2
 
 
 

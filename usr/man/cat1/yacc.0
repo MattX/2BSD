@@ -39,7 +39,7 @@ FILES
      y.tab.c
      y.tab.h		 defines for token names
      yacc.tmp, yacc.acts temporary files
-     /usr/lib/yaccpar	 parser prototype for C programs
+     /usr/share/misc/yaccparparser prototype for C programs
 
 SEE ALSO
      _l_e_x(1)
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 

@@ -15,7 +15,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  *	@(#)nameser.h	5.20.1 (2.11BSD GTE) 12/31/93
- */
+*/
 
 /*
  * Define constants based on rfc883

@@ -1,7 +1,7 @@
 
 
 
-GETTABLE(8C)	    UNIX Programmer's Manual	     GETTABLE(8C)
+GETTABLE(8)	    UNIX Programmer's Manual	      GETTABLE(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      gettable - get NIC format host tables from a host
 
 SYNOPSIS
-     /etc/gettable [ -v ] _h_o_s_t [ outfile ]
+     /usr/sbin/gettable [ -v ] _h_o_s_t [ outfile ]
 
 DESCRIPTION
      _G_e_t_t_a_b_l_e is a simple program used to obtain the NIC standard
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 22, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-popper(8)           UNIX Programmer's Manual            popper(8)
+popper(8)	    UNIX Programmer's Manual		popper(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      popper - pop 3 server
 
 SYNOPSIS
-     /usr/etc/popper [ -d ] [ -t trace-file]
+     /usr/libexec/popper [ -d ] [ -t trace-file]
 
 DESCRIPTION
      _P_o_p_p_e_r is an implementation  of  the  Post  Office  Protocol
@@ -28,22 +28,22 @@ DESCRIPTION
 HOW TO OBTAIN THE SERVER
      The  POP  server  is  available  via  anonymous   ftp   from
      ftp.CC.Berkeley.EDU (128.32.136.9, 128.32.206.12).  It is in
-     two files in  the  pub  directory:  a  compressed  tar  file
+     two files in  the	pub  directory:  a  compressed	tar  file
      popper.tar.Z  and a Macintosh StuffIt archive in BinHex for-
      mat called MacPOP.sit.hqx.
 
 THE POP TRANSACTION CYCLE
      The Berkeley POP server is a single program (called  popper)
      that  is launched by inetd when it gets a service request on
-     the POP TCP port.  (The official port  number  specified  in
+     the POP TCP port.	(The official port  number  specified  in
      RFC  1081 for POP version 3 is port 110.  However, some POP3
      clients attempt to contact the server at port 109,  the  POP
-     version  2  port.  Unless you are running both POP2 and POP3
-     servers, you can simply define both ports  for  use  by  the
+     version  2  port.	Unless you are running both POP2 and POP3
+     servers, you can simply define both ports	for  use  by  the
      POP3 server.  This is explained in the installation instruc-
      tions later on.) The popper program initializes and verifies
      that  the peer IP address is registered in the local domain,
-     logging a warning message when a connection  is  made  to  a
+     logging a warning message when a connection  is  made  to	a
      client whose IP address does not have a canonical name.  For
      systems using BSD 4.3 bind, it also checks to see if a  can-
      nonical  name lookup for the client returns the same peer IP
@@ -51,7 +51,7 @@ THE POP TRANSACTION CYCLE
      server  enters  the  authorization  state,  during which the
      client must correctly identify itself by providing  a  valid
      Unix  userid  and password on the server's host machine.  No
-     other exchanges are allowed during this state (other than  a
+     other exchanges are allowed during this state (other than	a
      request  to  quit.)  If authentication fails, a warning mes-
      sage is logged and the session ends.  Once the user is iden-
      tified,  popper changes its user and group ids to match that
@@ -60,26 +60,26 @@ THE POP TRANSACTION CYCLE
 
 
 
-Printed 9/10/95            August 1990                          1
+Printed 11/24/99	November 27, 1996			1
 
 
 
 
 
 
-popper(8)           UNIX Programmer's Manual            popper(8)
+popper(8)	    UNIX Programmer's Manual		popper(8)
 
 
 
      /usr/spool/mail) which is used for all  subsequent  transac-
      tions.   These  include the bulk of POP commands to retrieve
      mail, delete mail, undelete mail, and so forth.  A  Berkeley
-     extension  also  allows  the user to submit a mail parcel to
+     extension	also  allows  the user to submit a mail parcel to
      the server who mails it using  the  sendmail  program  (this
-     extension  is  supported in the HyperMail client distributed
-     with the server).  When the client quits, the server  enters
+     extension	is  supported in the HyperMail client distributed
+     with the server).	When the client quits, the server  enters
      the  final  update state during which the network connection
-     is terminated and the user's maildrop is  updated  with  the
+     is terminated and the user's maildrop is  updated	with  the
      (possibly) modified temporary maildrop.
 
 LOGGING
@@ -87,29 +87,29 @@ LOGGING
      ties.   On  systems with BSD 4.3 syslogging, the server logs
      (by default) to the "local0" facility at  priority  "notice"
      for  all messages except debugging which is logged at prior-
-     ity    "debug".      The     default     log     file     is
-     /usr/spool/mqueue/POPlog.  These can be changed, if desired.
+     ity    "debug".	  The	  default     log     file     is
+     /usr/spool/mqueue/POPlog.	These can be changed, if desired.
      On systems with 4.2 syslogging all messages  are  logged  to
      the local log file, usually /usr/spool/mqueue/syslog.
 
 DEBUGGING
-     The popper program will log debugging information  when  the
-     -d  parameter  is  specified  after  its  invocation  in the
+     The popper program will log debugging information	when  the
+     -d  parameter  is	specified  after  its  invocation  in the
      inetd.conf file.  Care should be  exercised  in  using  this
      option  since it generates considerable output in the syslog
      file.  Alternatively, the "-t <file-name>" option will place
-     debugging  information into file "<file-name>" using fprintf
+     debugging	information into file "<file-name>" using fprintf
      instead of syslog.
 
-     For SunOS version 3.5, the popper  program  is  launched  by
+     For SunOS version 3.5, the popper	program  is  launched  by
      inetd  from  /etc/servers.   This file does not allow you to
      specify command line arguments.  Therefore, if you  want  to
-     enable   debugging,  you  can  specify  a  shell  script  in
+     enable   debugging,  you  can  specify  a	shell  script  in
      /etc/servers to be launched instead of popper  and  in  this
      script call popper with the desired arguments.
 
      You can confirm that the POP server is running  on  Unix  by
-     telneting  to  port  110 (or 109 if you set it up that way).
+     telneting	to  port  110 (or 109 if you set it up that way).
      For example:
 
      %telnet myhost 110
@@ -122,32 +122,32 @@ DEBUGGING
 
 VERSION 1.7 RELEASE NOTES
      Extensive re-write of the maildrop processing  code  contri-
-     buted  by  Viktor  Dukhovni <viktor@math.princeton.edu> that
+     buted  by	Viktor	Dukhovni <viktor@math.princeton.edu> that
 
 
 
-Printed 9/10/95            August 1990                          2
+Printed 11/24/99	November 27, 1996			2
 
 
 
 
 
 
-popper(8)           UNIX Programmer's Manual            popper(8)
+popper(8)	    UNIX Programmer's Manual		popper(8)
 
 
 
-     greatly reduces the possibility that  the  maildrop  can  be
-     corrupted  as  the  result  of simultaneous access by two or
+     greatly reduces the possibility that  the	maildrop  can  be
+     corrupted	as  the  result  of simultaneous access by two or
      more processes.
 
      Added "pop_dropcopy" module to create a  temporary  maildrop
-     from  the  existing,  standard  maildrop  as root before the
-     setuid and setgid for the user is  done.   This  allows  the
-     temporary  maildrop  to be created in a mail spool area that
+     from  the	existing,  standard  maildrop  as root before the
+     setuid and setgid for the user is	done.	This  allows  the
+     temporary	maildrop  to be created in a mail spool area that
      is not world read-writable.
 
-     This version does *not* send the sendmail "From "  delimiter
+     This version does *not* send the sendmail "From "	delimiter
      line in response to a TOP or RETR command.
 
      Encased all debugging code in #ifdef DEBUG constructs.  This
@@ -158,21 +158,21 @@ popper(8)           UNIX Programmer's Manual            popper(8)
 LIMITATIONS
      The POP server copies the user's entire maildrop to /tmp and
      then operates on that copy.  If the maildrop is particularly
-     large, or inadequate space is available in  /tmp,  then  the
+     large, or inadequate space is available in  /tmp,	then  the
      server will refuse to continue and terminate the connection.
 
      Simultaneous modification of a single maildrop can result in
-     confusing  results.  For example, manipulating messages in a
+     confusing	results.  For example, manipulating messages in a
      maildrop using the Unix /usr/ucb/mail command while  a  copy
-     of  it  is  being  processed by the POP server can cause the
+     of  it  is  being	processed by the POP server can cause the
      changes made by one program to be lost when the  other  ter-
-     minates.   This problem is being worked on and will be fixed
+     minates.	This problem is being worked on and will be fixed
      in a later release.
 
 FILES
-     /usr/spool/mail         mail files
-     /etc/inetd.conf         pop program invocation
-     /etc/syslog.conf        logging specifications
+     /usr/spool/mail	     mail files
+     /etc/inetd.conf	     pop program invocation
+     /etc/syslog.conf	     logging specifications
 
 SEE ALSO
      inetd(8), RFC1081, RFC1082
@@ -192,7 +192,7 @@ AUTHORS
 
 
 
-Printed 9/10/95            August 1990                          3
+Printed 11/24/99	November 27, 1996			3
 
 
 

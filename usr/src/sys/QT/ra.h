@@ -1,3 +1,3 @@
-#define NRAC	1
-#define NRAD	2
+#define NRAC	2
+#define NRAD	4
 #define RA_DUMP 1

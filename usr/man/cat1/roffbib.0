@@ -31,7 +31,7 @@ DESCRIPTION
      A user-defined set of macros may be specified after the -m
      option.  There should be a space between the -m and the
      macro filename.  This set of macros will replace the ones
-     defined in /usr/lib/tmac/tmac.bib.  The -V flag will send
+     defined in /usr/share/tmac/tmac.bib.  The -V flag will send
      output to the Versatec; the -Q flag will queue output for
      the phototypesetter.
 
@@ -48,7 +48,7 @@ DESCRIPTION
      already one inch.
 
 FILES
-     /usr/lib/tmac/tmac.bib  file of macros used by _n_r_o_f_f/_t_r_o_f_f
+     /usr/share/tmac/tmac.bib  file of macros used by _n_r_o_f_f/_t_r_o_f_f
 
 SEE ALSO
      refer(1), addbib(1), sortbib(1), indxbib(1), lookbib(1)
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 7, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 

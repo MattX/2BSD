@@ -51,7 +51,7 @@ DESCRIPTION
      directly (without forking).
 
 FILES
-     /etc/utmp		accounting
+     /var/run/utmp	accounting
      /usr/adm/wtmp	accounting
      /usr/spool/mail/*	mail
      /etc/motd		message-of-the-day
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		   May 8, 1986				1
+Printed 11/26/99	November 27, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 8, 1986				2
+Printed 11/26/99	November 27, 1996			2
 
 
 

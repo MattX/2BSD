@@ -9,7 +9,7 @@ NAME
      autoconfig - configure the running system to the hardware
 
 SYNOPSIS
-     autoconfig [-i ifile] [-n nfile] [-k kfile] [-v] [-c]
+     autoconfig [-i ifile] [-n nfile] [-k kfile] [-v] [-d] [-c]
 
 DESCRIPTION
      _A_u_t_o_c_o_n_f_i_g is called by _i_n_i_t(8) to configure the currently
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		December 30, 1992			1
+Printed 11/26/99	December 30, 1992			1
 
 
 
@@ -80,6 +80,9 @@ AUTOCONFIG(8)	    UNIX Programmer's Manual	    AUTOCONFIG(8)
      -c        Report error messages for devices skipped because
 	       of problems with their interrupt vectors.
 
+     -d        Turn on debugging mode.	Shows many gory details
+	       of autoconfig's internal processing.
+
 BUGS
      Devices of the same type must be listed with ascending unit
      numbers or with wildcards.
@@ -94,6 +97,9 @@ BUGS
      second time results in the error:
 
      "namelist doesn't match running kernel."
+	  Autoconfig attempts to open /dev/kmem for write.  If
+	  the kernel is in securelevel 1 or higher the open of
+	  /dev/kmem will fail.
 
 FILES
      /etc/dtab		 device table
@@ -101,7 +107,7 @@ FILES
      /dev/kmem
 
 SEE ALSO
-     ucall(2), dtab(5)
+     ucall(2), nlist(3), dtab(5)
 
 
 
@@ -120,13 +126,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-
-Printed 9/9/95		December 30, 1992			2
+Printed 11/26/99	December 30, 1992			2
 
 
 

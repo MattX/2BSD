@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		  July 28, 1993                         1
+Printed 11/26/99	December 22, 1995			1
 
 
 
@@ -82,51 +82,51 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
      density (for tri-density tape drives).
 
 DIAGNOSTICS
-     tms controller failed to init.  The controller initializa-
-     tion procedure failed.  This probably indicates a hardware
-     problem.
+     tms: !drives.  Not enough drives were declared when the ker-
+     nel was built.  The NTMS parameter in the kernel config file
+     needs to be increased by at least one.
 
-     tms%d: sa 0%o, state %d.  (Additional status information
-     given after a hard I/O error.) The values of the controller
-     status register and the internal driver state are printed.
+     tms%d stepN init failed: sa %x.  Step N of the 4 step ini-
+     tialization sequence has failed.
 
-     tms%d: random interrupt ignored.  An unexpected interrupt
-     was received (e.g. when no i/o was pending).  The interrupt
-     is ignored.
+     tms%d: random intr.  An unexpected interrupt was received.
+     This is indicative of some other device using the same
+     interrupt vector as the TMSCP controller.	The interrupt is
+     ignored.
 
-     tms%d:  interrupt in unknown state %d ignored.  An interrupt
-     was received when the driver was in an unknown internal
-     state.  Indicates a hardware problem or a driver bug.
+     tms%d Ver %d Mod %d.  The version and model number of the
+     controller are displayed when the controller is initialized.
+     This is an information message and not an error.
 
-     tms%d:  fatal error (0%o).  The controller detected a
-     ``fatal error'' in the status returned to the host.  The
-     contents of the status register are displayed.
+     tms%d: state %d.  The controller state is not one of the 4
+     initialization states or the RUN state.  This indicates a
+     serious problem in the driver and possibly the hardware.
 
-     OFFLINE.  (Additional status information given after a hard
-     I/O error.) A hard I/O error occurred because the drive was
-     not on-line.
+     tms%d:  fatal error %x.  The controller detected a ``fatal
+     error'' in the status returned to the host.  The contents of
+     the status register are displayed.
 
-     The following errors are interpretations of TMSCP error mes-
-     sages returned by the controller to the host.  Each is pre-
-     ceded by either tms%d: hard error or tms%d: soft error.
+     tms%d init fail.  The controller failed to initialize.
+     Indicative of a hardware problem.
 
-     controller error, event 0%o.
+     tms%d,%d flush fail.  The cache failed to flush during a
+     close operation.  Data loss is possible in this case.
 
-     host memory access error, event 0%o, addr 0%o.
+     tms%d,%d: sa %x state %d.	A fatal error.	The controller
+     will be reset in an attempt to resume operation.
 
-     tape transfer error, unit %d, grp 0x%x, event 0%o.
+     tms ioctl.  An invalid internal ioctl function call has been
+     made.  This is a driver bug.
 
-     STI error, unit %d, event 0%o.
-
-     STI Drive Error Log, unit %d, event 0%o.
-
-     STI Formatter Error Log, unit %d, event 0%o.
-
-
+     tms%d,%d inv end.	An invalid end (completion) code has been
+     detected.	A drive has returned 0 as the opcode originally
+     issued.  This is a hardware problem.
 
 
 
-Printed 9/9/95		  July 28, 1993                         2
+
+
+Printed 11/26/99	December 22, 1995			2
 
 
 
@@ -137,7 +137,23 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
 
 
 
-     unknown error, unit %d, format 0%o, event 0%o.
+     tms%d,%d bad rsp: %x.  An unrecognized response has been
+     received.	This is a driver bug.
+
+     tms%d,%d cache lost The cache on the drive has been lost.
+     Data loss is likely.  Usually due to a hardware problem.
+
+     The following error is produced when a TMSCP error log
+     datagram is received:
+
+     tms%d,%d dgram fmt=%x evt=%x grp=%x flg=%x pos=%D.
+
+     Earlier versions of the driver consumed a noticeable amount
+     of kernel D-space decoding and pretty printing more detailed
+     information.  This has been removed in favor of a shorter
+     message.  In the future an error log daemon will be written
+     and the datagrams from the MSCP and TMSCP drivers passed to
+     it for analysis.
 
 SEE ALSO
      mt(1), tar(1), tp(1), mtio(4), tm(4), ts(4), ut(4),
@@ -176,23 +192,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 9/9/95		  July 28, 1993                         3
+Printed 11/26/99	December 22, 1995			3
 
 
 

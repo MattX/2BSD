@@ -9,11 +9,11 @@ NAME
      aliases - aliases file for sendmail
 
 SYNOPSIS
-     /usr/lib/aliases
+     /etc/aliases
 
 DESCRIPTION
      This file describes user id aliases used by
-     /_u_s_r/_l_i_b/_s_e_n_d_m_a_i_l. It is formatted as a series of lines of
+     /_u_s_r/_s_b_i_n/_s_e_n_d_m_a_i_l. It is formatted as a series of lines of
      the form
 	  name: name_1, name2, name_3, . . .
      The _n_a_m_e is the name to alias, and the _n_a_m_e__n are the
@@ -29,9 +29,9 @@ DESCRIPTION
 
      This is only the raw data file; the actual aliasing informa-
      tion is placed into a binary format in the files
-     /_u_s_r/_l_i_b/_a_l_i_a_s_e_s._d_i_r and /_u_s_r/_l_i_b/_a_l_i_a_s_e_s._p_a_g using the pro-
-     gram _n_e_w_a_l_i_a_s_e_s(1).  A _n_e_w_a_l_i_a_s_e_s command should be executed
-     each time the aliases file is changed for the change to take
+     /_e_t_c/_a_l_i_a_s_e_s._d_i_r and /_e_t_c/_a_l_i_a_s_e_s._p_a_g using the program
+     _n_e_w_a_l_i_a_s_e_s(1).  A _n_e_w_a_l_i_a_s_e_s command should be executed each
+     time the aliases file is changed for the change to take
      effect.
 
 SEE  ALSO
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 15, 1985				1
+Printed 11/26/99	October 22, 1996			1
 
 
 

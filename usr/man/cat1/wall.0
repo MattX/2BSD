@@ -21,7 +21,7 @@ DESCRIPTION
 
 FILES
      /dev/tty?
-     /etc/utmp
+     /var/run/utmp
 
 SEE ALSO
      mesg(1), write(1)
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	November 27, 1996			1
 
 
 

@@ -3,7 +3,7 @@
 #	@(#)rc	2.1 (2.111BSD) 1996/10/21
 #
 HOME=/; export HOME
-PATH=/etc:/bin:/sbin:/usr/sbin:/usr/ucb:/usr/bin; export PATH
+PATH=/bin:/sbin:/usr/sbin:/usr/ucb:/usr/bin; export PATH
 
 # If you have a ram disk configured into your system which is listed in
 # /etc/fstab, you'll have to do a mkfs on it here and probably change the

@@ -41,13 +41,13 @@ DESCRIPTION
 
      Some examples:
 
-     console "/etc/getty std.1200"   vt100	  on secure
-     ttyd0   "/etc/getty d1200"      dialup	  on	 # 555-1234
-     ttyh0   "/etc/getty std.9600"   hp2621-nl	  on	 # 254MC
-     ttyh1   "/etc/getty std.9600"   plugboard	  on	 # John's office
-     ttyp0   none		     network
-     ttyp1   none		     network	  off
-     ttyv0   "/usr/new/xterm -L :0"  vs100	  on window="/usr/new/Xvs100 0"
+     console "/usr/libexec/getty std.1200"   vt100	  on secure
+     ttyd0   "/usr/libexec/getty d1200"      dialup	  on	 # 555-1234
+     ttyh0   "/usr/libexec/getty std.9600"   hp2621-nl	  on	 # 254MC
+     ttyh1   "/usr/libexec/getty std.9600"   plugboard	  on	 # John's office
+     ttyp0   none			     network
+     ttyp1   none			     network	  off
+     ttyv0   "/usr/new/xterm -L :0"	     vs100	  on window="/usr/new/Xvs100 0"
 
      The first example permits root login on the console at 1200
      baud, the second allows dialup at 1200 baud without root
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 20, 1986				1
+Printed 11/26/99	November 16, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 20, 1986				2
+Printed 11/26/99	November 16, 1996			2
 
 
 

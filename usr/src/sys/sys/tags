@@ -31,10 +31,9 @@ DHV_TX_LINE	../pdpuba/dhvreg.h	/^#define	DHV_TX_LINE(csrh)	((csrh) & DHV_CSH_TLN
 DIRSIZ	../h/dir.h	/^#define DIRSIZ(dp) \\$/
 DQHASH	../sys/quota_kern.c	/^#define	DQHASH(uid, dev) \\$/
 DQptr	../sys/quota_kern.c	85
-DV_INIT	../pdpuba/xp.c	/^#define	DV_INIT(c,u) \\$/
 ENTRY	../machine/DEFS.h	/^#define	ENTRY(x)	.globl _\/**\/x; _\/**\/x:;$/
 ENUNIT	../pdpif/if_en.c	/^#define	ENUNIT(x)	minor(x)$/
-FBLKP	../sys/ufs_alloc.c	22
+FBLKP	../sys/ufs_alloc.c	23
 FD_CLR	../h/types.h	/^#define	FD_CLR(n, p)	((p)->fds_bits[(n)\/NFDBITS] &/
 FD_ISSET	../h/types.h	/^#define	FD_ISSET(n, p)	((p)->fds_bits[(n)\/NFDBITS]/
 FD_SET	../h/types.h	/^#define	FD_SET(n, p)	((p)->fds_bits[(n)\/NFDBITS] |/
@@ -48,7 +47,7 @@ FREE_AT_TAIL	../sys/vm_text.c	/^#define FREE_AT_TAIL(xp) { \\$/
 GETF	../h/file.h	/^#define	GETF(fp, fd) { \\$/
 GSIGNAL	../machine/net_mac.h	/^#define	GSIGNAL(pgrp, sig) \\$/
 HASH	../sys/kern_synch.c	/^#define	HASH(x)	(((int)x >> 5) & (SQSIZE - 1))$/
-HOSTHASH	../netimp/if_imphost.h	/^#define	HOSTHASH(a)	((((a).s_addr>>8)+(a).s_net) %/
+HOSTHASH	../netimp/if_imphost.h	/^#define	HOSTHASH(a)	(((a).s_addr>>8) % HPMBUF)$/
 HOST_DEQUE	../netimp/if_imphost.h	/^#define	HOST_DEQUE(hp, m) { \\$/
 HOST_ENQUE	../netimp/if_imphost.h	/^#define	HOST_ENQUE(hp, m) { \\$/
 HWFLOW	../pdpuba/dhv.c	/^#define HWFLOW(x)	(minor(x) & 0100)$/
@@ -56,6 +55,7 @@ IA_SIN	../netinet/in_var.h	/^#define	IA_SIN(ia) ((struct sockaddr_in *)(&((stru/
 IA_SNS	../netns/ns_if.h	/^#define	IA_SNS(ia) ((struct sockaddr_ns *)(&((stru/
 ICMP_ADVLEN	../netinet/ip_icmp.h	/^#define	ICMP_ADVLEN(p)	(8 + ((p)->icmp_ip.ip_hl <</
 ICMP_INFOTYPE	../netinet/ip_icmp.h	/^#define	ICMP_INFOTYPE(type) \\$/
+IDENT	/usr/include/ident.h	118
 IF_ADJ	../net/if.h	/^#define	IF_ADJ(m) { \\$/
 IF_DEQUEUE	../net/if.h	/^#define	IF_DEQUEUE(ifq, m) { \\$/
 IF_DEQUEUEIF	../net/if.h	/^#define	IF_DEQUEUEIF(ifq, m, ifp) { \\$/
@@ -97,7 +97,6 @@ LOG_PRI	/usr/include/syslog.h	/^#define	LOG_PRI(p)	((p) & LOG_PRIMASK)$/
 LOG_UPTO	../h/syslog.h	/^#define	LOG_UPTO(pri)	((1 << ((pri)+1)) - 1)	\/* al/
 LOG_UPTO	/usr/include/syslog.h	/^#define	LOG_UPTO(pri)	((1 << ((pri)+1)) - 1)	\/* al/
 LPUNIT	../pdpuba/lp.c	/^#define LPUNIT(dev)	(minor(dev) >> 3)$/
-M15	../pdpuba/ra.c	/^#define M15(a,b,c) ((((((a - '@') & 0x1f) << 10) |/
 MALLOC	../machine/net_mac.h	/^#define	MALLOC(map, size) \\$/
 MAX	../h/param.h	/^#define	MAX(a,b) (((a)>(b))?(a):(b))$/
 MBZAP	../sys/uipc_syscalls.c	/^MBZAP(m, len, type)$/
@@ -113,12 +112,13 @@ M_FREEM	../machine/net_mac.h	/^#define	M_FREEM(m) \\$/
 M_HASCL	../h/mbuf.h	/^#define	M_HASCL(m)	((m)->m_off >= MSIZE)$/
 Mgenassym	../machine/genassym.c	/^main()$/
 Minit_main	../sys/init_main.c	/^main()$/
-NCYL	../pdpuba/xp.c	/^#define	NCYL(x)		(x)$/
+NDINIT	../h/namei.h	/^#define	NDINIT(ndp,op,flags,segflg,namep) {\\$/
 NETCOPYOUT	../machine/net_mac.h	/^#define	NETCOPYOUT(from, to, len) \\$/
 NETCRASH	../machine/net_mac.h	/^#define	NETCRASH() \\$/
 NETPFIND	../machine/net_mac.h	/^#define	NETPFIND(pid) \\$/
 NETPSIGNAL	../machine/net_mac.h	/^#define	NETPSIGNAL(p, sig) \\$/
 NETSTART	../machine/net_mac.h	/^#define	NETSTART() \\$/
+NET_SYSCTL	../sys/kern_sysctl.c	/^NET_SYSCTL(name, namelen, oldp, oldlenp, newp, new/
 NHASH	../sys/ufs_namei.c	/^#define	NHASH(h, i, d)	((unsigned)((h) + (i) + 13 /
 N_BADMAG	/usr/include/a.out.h	/^#define	N_BADMAG(x) \\$/
 N_DATOFF	/usr/include/a.out.h	/^#define	N_DATOFF(e) (n_datoff(&e))$/
@@ -145,16 +145,9 @@ QUOTAUNMAP	../h/quota.h	/^#define	QUOTAUNMAP()	normalseg5()$/
 Qptr	../sys/quota_kern.c	59
 RACON	../pdpuba/ra.c	/^#define	RACON(x)			((minor(x) >> 6) & 03)$/
 RAUNIT	../pdpuba/ra.c	/^#define	RAUNIT(x)			((minor(x) >> 3) & 07)$/
-RM02_INIT	../pdpuba/xp.c	/^#define	RM02_INIT(c,u) \\$/
-RM03_INIT	../pdpuba/xp.c	/^#define	RM03_INIT(c,u) \\$/
-RM05X_INIT	../pdpuba/xp.c	/^#define	RM05X_INIT(c,u) \\$/
-RM05_INIT	../pdpuba/xp.c	/^#define	RM05_INIT(c,u) \\$/
-RM2X_INIT	../pdpuba/xp.c	/^#define	RM2X_INIT(c,u) \\$/
+RLUNIT	../pdpuba/rl.c	/^#define	RLUNIT(x) 	((minor(x) >> 3) & 7)$/
 ROUNDDOWN	../h/gprof.h	/^#define ROUNDDOWN(x,y)	(((x)\/(y))*(y))$/
 ROUNDUP	../h/gprof.h	/^#define ROUNDUP(x,y)	((((x)+(y)-1)\/(y))*(y))$/
-RP04_INIT	../pdpuba/xp.c	/^#define	RP04_INIT(c,u) \\$/
-RP05_INIT	../pdpuba/xp.c	/^#define	RP05_INIT(c,u) \\$/
-RP06_INIT	../pdpuba/xp.c	/^#define	RP06_INIT(c,u) \\$/
 RTFREE	../net/route.h	/^#define	RTFREE(rt) \\$/
 RTHASHMOD	../net/route.h	/^#define RTHASHMOD(h)	((h) & (RTHASHSIZ - 1))$/
 SELWAKEUP	../machine/net_mac.h	/^#define	SELWAKEUP(p, coll) \\$/
@@ -164,7 +157,6 @@ SEQ_LEQ	../netinet/tcp_seq.h	/^#define	SEQ_LEQ(a,b)    ((long)((a)-(b)) <= 0)$/
 SEQ_LT	../netinet/tcp_seq.h	/^#define	SEQ_LT(a,b)     ((long)((a)-(b)) < 0)$/
 SGTTY	/usr/include/curses.h	34
 SI	../netns/spidp.h	/^#define SI(x)	((struct spidp *)x)$/
-SI_INIT	../pdpuba/xp.c	/^#define	SI_INIT(c,u) \\$/
 SKcall	../machine/net_SKcall.s	/^ENTRY(SKcall)$/
 SLCLOSE	../sys/tty_conf.c	/^SLCLOSE(tp, flag)$/
 SLEEP	../machine/net_mac.h	/^#define	SLEEP(chan, pri) \\$/
@@ -200,6 +192,10 @@ SSEQ_LT	../netns/spp_var.h	/^#define	SSEQ_LT(a,b)	((xnsCbug = (short)((a)-(b)))/
 STRING	../machine/DEFS.h	/^#define	STRING(s, x, v)	.data; DEC_\/**\/s(x); x:; v/
 SUPERADD	../machine/machparam.h	/^#define	SUPERADD(add)	((int)(add)|01)$/
 SUPVMODE	../machine/machparam.h	/^#define	SUPVMODE(ps)	(((ps) & PSL_CURMOD) == PSL_C/
+S_ISBLK	../h/stat.h	/^#define	S_ISBLK(m)	((m & 0170000) == 0060000)	\/* b/
+S_ISCHR	../h/stat.h	/^#define	S_ISCHR(m)	((m & 0170000) == 0020000)	\/* c/
+S_ISDIR	../h/stat.h	/^#define	S_ISDIR(m)	((m & 0170000) == 0040000)	\/* d/
+S_ISREG	../h/stat.h	/^#define	S_ISREG(m)	((m & 0170000) == 0100000)	\/* r/
 Sretu	../machine/net_SKcall.s	/^ASENTRY(Sretu)$/
 TCPS_HAVERCVDFIN	../netinet/tcp_fsm.h	/^#define	TCPS_HAVERCVDFIN(s)	((s) >= TCPS_TIME_WAIT/
 TCPS_HAVERCVDSYN	../netinet/tcp_fsm.h	/^#define	TCPS_HAVERCVDSYN(s)	((s) >= TCPS_SYN_RECEI/
@@ -208,9 +204,9 @@ TCP_REASS	../netinet/tcp_input.c	/^#define	TCP_REASS(tp, ti, m, so, flags) { \\$
 TEDENS	../pdpuba/tm.c	/^#define	TEDENS(dev)	((minor(dev) & 030) >> 3)$/
 TEUNIT	../pdpuba/tm.c	/^#define	TEUNIT(dev)	(minor(dev) & 03)$/
 TIMEOUT	../machine/net_mac.h	/^#define	TIMEOUT(fun, arg, t) \\$/
-TMSCTLR	../pdpuba/tmscp.c	/^#define	TMSCTLR(dev)	((minor(dev) >> 6) & 3)$/
-TMSDENS	../pdpuba/tmscp.c	/^#define	TMSDENS(dev)	((minor(dev) >> 3) & 3)$/
-TMSUNIT	../pdpuba/tmscp.c	/^#define	TMSUNIT(dev)	(minor(dev)&03)$/
+TMSCTLR	../machine/tmscp.h	/^#define	TMSCTLR(dev)	((minor(dev) >> 6) & 3)$/
+TMSDENS	../machine/tmscp.h	/^#define	TMSDENS(dev)	((minor(dev) >> 3) & 3)$/
+TMSUNIT	../machine/tmscp.h	/^#define	TMSUNIT(dev)	(minor(dev)&03)$/
 TSCTLR	../pdpuba/ts.c	/^#define	TSCTLR(dev)	((minor(dev) >> 6) & 3)$/
 TSUNIT	../pdpuba/ts.c	/^#define	TSUNIT(dev)	(minor(dev)&03)		\/* not used */
 TTHIWAT	../h/tty.h	/^#define	TTHIWAT(tp)	tthiwat[(tp)->t_ospeed&TTMASK]/
@@ -219,7 +215,7 @@ TTSTART	../machine/net_mac.h	/^#define	TTSTART(tp) \\$/
 TTYFLUSH	../machine/net_mac.h	/^#define	TTYFLUSH(tp, rw) \\$/
 TTYWFLUSH	../machine/net_mac.h	/^#define	TTYWFLUSH(tp) \\$/
 TUUNIT	../pdpuba/ht.c	/^#define	TUUNIT(dev)	(minor(dev) & 03)$/
-Trl	../pdpuba/ra.c	226
+Trl	../pdpuba/ra.c	151
 UCHAR	../netinet/in_systm.h	/^#define	UCHAR(a)	((u_int)((a)&0xff))$/
 UIOCCMD	../h/ioctl.h	/^#define		UIOCCMD(n)	_IO(u, n)		\/* usr cntl op "n" /
 UNIT	../pdpuba/dh.c	/^#define	UNIT(x)	(minor(x) & 0177)$/
@@ -236,11 +232,13 @@ VOID	/usr/include/curses.h	/^# define	VOID(x)	(__void__ = (int) (x))$/
 VSEG	/usr/include/vmf.h	/^#define	VSEG(va) ((short)(va >> LOG2BPS))$/
 VVUNIT	../pdpif/if_vv.c	/^#define	VVUNIT(x)	minor(x)$/
 WAKEUP	../machine/net_mac.h	/^#define	WAKEUP(chan) \\$/
+WEXITSTATUS	../h/wait.h	/^#define	WEXITSTATUS(x)	((x).w_retcode)$/
 WIFEXITED	../h/wait.h	/^#define WIFEXITED(x)	((x).w_stopval != WSTOPPED &&/
 WIFSIGNALED	../h/wait.h	/^#define WIFSIGNALED(x)	((x).w_stopval != WSTOPPED /
 WIFSTOPPED	../h/wait.h	/^#define WIFSTOPPED(x)	((x).w_stopval == WSTOPPED)$/
 W_EXITCODE	../h/wait.h	/^#define	W_EXITCODE(ret,sig)	((ret << 8) | (sig))$/
 W_STOPCODE	../h/wait.h	/^#define	W_STOPCODE(sig)	((sig << 8) | WSTOPPED)$/
+XPUNIT	../pdpuba/xp.c	/^#define	XPUNIT(dev)	((minor(dev) >> 3) & 0x1f)$/
 XUNLOCK	../sys/vm_text.c	/^#define	XUNLOCK(xp) { \\$/
 X_LOCK	../sys/vm_text.c	/^#define X_LOCK(xp) { \\$/
 _IO	../h/ioctl.h	/^#define	_IO(x,y)	(('x'<<8)|y)$/
@@ -269,7 +267,6 @@ addch	/usr/include/curses.h	/^# define	addch(ch)	VOID(waddch(stdscr, ch))$/
 addstr	/usr/include/curses.h	/^# define	addstr(str)	VOID(waddstr(stdscr, str))$/
 addupc	../machine/mch_xxx.s	/^ENTRY(addupc)$/
 adjtime	../sys/kern_time.c	/^adjtime()$/
-alloc	../sys/ufs_alloc.c	/^alloc(ip, clrflg)$/
 arpinput	../netinet/if_ether.c	/^arpinput(ac, m)$/
 arpioctl	../netinet/if_ether.c	/^arpioctl(cmd, data)$/
 arpresolve	../netinet/if_ether.c	/^arpresolve(ac, m, destip, desten, usetrailers)$/
@@ -285,10 +282,9 @@ backup	../machine/mch_backup.s	/^ENTRY(backup)$/
 backup	../machine/mch_backup.s	/^ENTRY(backup)$/
 badaddr	../machine/net_xxx.s	/^ENTRY(badaddr)$/
 badblock	../sys/ufs_subr.c	/^badblock(fp, bn)$/
+balloc	../sys/ufs_alloc.c	/^balloc(ip, flags)$/
 baudrate	/usr/include/curses.h	/^#define baudrate()	(_tty.sg_ospeed)$/
 bawrite	../h/buf.h	/^#define	bawrite(bp)	{(bp)->b_flags |= B_ASYNC; bwr/
-bcmp	../machine/libc_bcmp.s	/^ENTRY(bcmp)$/
-bcopy	../machine/libc_bcopy.s	/^ENTRY(bcopy)$/
 bcopy	../sys/ufs_inode.c	/^	bcopy(dp->di_addr, ip->i_addr, NADDR * sizeof (da/
 bdwrite	../sys/ufs_bio.c	/^bdwrite(bp)$/
 bflush	../sys/ufs_bio.c	/^bflush(dev)$/
@@ -307,8 +303,9 @@ bit	../sys/kern_proc.c	/^#define bit(a)	(1L<<(a-1))$/
 blkatoff	../sys/ufs_namei.c	/^blkatoff(ip, offset, res)$/
 blkflush	../sys/ufs_bio.c	/^blkflush(dev, blkno)$/
 blkoff	../h/fs.h	/^#define blkoff(loc)		\/* calculates (loc % fs->fs_b/
-bmap	../sys/ufs_bmap.c	/^bmap(ip, bn, rwflg, clrflg)$/
-bool_t	../h/types.h	77
+blktochr	../machine/conf.c	/^blktochr(dev)$/
+bmap	../sys/ufs_bmap.c	/^bmap(ip, bn, rwflg, flags)$/
+bool_t	../h/types.h	78
 boot	../machine/machdep2.c	/^boot(dev, howto)$/
 brattach	../pdpuba/br.c	/^brattach(braddr, unit)$/
 brdone	../pdpuba/br.c	/^brdone (bp)$/
@@ -330,7 +327,6 @@ btoc	../machine/machparam.h	/^#define	btoc(x)	((((unsigned)(x)+63)>>6))$/
 btodb	../machine/machparam.h	/^#define	btodb(bytes)		\/* calculates (bytes \/ DEV_B/
 btoub	../h/uba.h	/^#define	btoub(b)	((((long)(b)) + ((long)(UBPAGE - /
 bwrite	../sys/ufs_bio.c	/^bwrite(bp)$/
-bzero	../machine/libc_bzero.s	/^ENTRY(bzero)$/
 bzero	../sys/vm_sched.c	/^	bzero(textcounted, ntext * sizeof(char));$/
 cacheinval	../h/inode.h	/^#define cacheinval(ip) \\$/
 cacheinvalall	../sys/ufs_namei.c	/^cacheinvalall()$/
@@ -364,6 +360,7 @@ clkstart	../machine/clock.c	/^clkstart()$/
 close	../sys/kern_descrip.c	/^close()$/
 closedq	../sys/quota_kern.c	/^closedq(mp)$/
 closef	../sys/kern_descrip.c	/^closef(fp)$/
+closei	../sys/sys_inode.c	/^closei(ip, flag)$/
 clrbuf	../machine/mch_xxx.s	/^ENTRY(clrbuf)$/
 clrnd	../h/param.h	/^#define	clrnd(i)	(((i) + (CLSIZE-1)) &~ ((long)(CL/
 clrtobot	/usr/include/curses.h	/^# define	clrtobot()	VOID(wclrtobot(stdscr))$/
@@ -443,7 +440,7 @@ deput	../pdpif/if_de.c	/^deput(ifu, n, m)$/
 deread	../pdpif/if_de.c	/^deread(ds, ifrw, len)$/
 derecv	../pdpif/if_de.c	/^derecv(unit)$/
 destart	../pdpif/if_de.c	/^destart(unit)$/
-dev_t	../h/types.h	44
+dev_t	../h/types.h	45
 dewait	../pdpif/if_de.c	/^dewait(ui, fn, no_port, only_dni)$/
 dhattach	../pdpuba/dh.c	/^dhattach(addr, unit)$/
 dhclose	../pdpuba/dh.c	/^dhclose(dev, flag)$/
@@ -493,6 +490,7 @@ dirrewrite	../sys/ufs_namei.c	/^dirrewrite(dp, ip, ndp)$/
 discquota	../sys/quota_kern.c	/^discquota(uid, ip)$/
 disklabelalloc	../machine/machdep2.c	/^disklabelalloc()$/
 disksort	../sys/ufs_dsort.c	/^disksort(dp, bp)$/
+div_t	/usr/include/stdlib.h	52
 dk_alloc	../sys/ufs_dsort.c	/^dk_alloc(dkn, slots, name, wps)$/
 dkcksum	../sys/ufs_disksubr.c	/^dkcksum(lp)$/
 dkminor	../h/disk.h	/^#define dkminor(unit, part)	(((unit) << 3) | (part/
@@ -540,6 +538,7 @@ dump	../machine/mch_dump.s	/^ASENTRY(dump)$/
 dumpsys	../machine/machdep2.c	/^dumpsys()$/
 dup	../sys/kern_descrip.c	/^dup()$/
 dup2	../sys/kern_descrip.c	/^dup2()$/
+dupfdopen	../sys/kern_descrip.c	/^dupfdopen(indx, dfd, mode, error)$/
 dupit	../sys/kern_descrip.c	/^dupit(fd, fp, flags)$/
 dzattach	../pdpuba/dz.c	/^dzattach(addr, unit)$/
 dzclose	../pdpuba/dz.c	/^dzclose(dev, flag)$/
@@ -581,7 +580,6 @@ endvfork	../sys/kern_exit.c	/^endvfork()$/
 eninit	../pdpif/if_en.c	/^eninit(unit)$/
 enoutput	../pdpif/if_en.c	/^enoutput(ifp, m0, dst)$/
 enprobe	../pdpif/if_en.c	/^enprobe(reg)$/
-enreset	../pdpif/if_en.c	/^enreset(unit, uban)$/
 enrint	../pdpif/if_en.c	/^enrint(unit)$/
 enstart	../pdpif/if_en.c	/^enstart(dev)$/
 entergroup	../sys/kern_prot.c	/^entergroup(gid)$/
@@ -591,6 +589,7 @@ erasechar	/usr/include/curses.h	/^#define	erasechar()	(_tty.sg_erase)$/
 errnet	../sys/init_sysent.c	/^#define errnet(narg, name)	narg, name$/
 estabur	../sys/kern_mman.c	/^estabur(nt, nd, ns, sep, xrw)$/
 ether_sprintf	../netinet/if_ether.c	/^ether_sprintf(ap)$/
+exad	../machine/machdep.c	/^#define	exad(x,y)	((long)((long)x<<16|(unsigned)y)/
 exadr	../pdpuba/hk.c	/^#define	exadr(x,y)	(((long)(x) << 16) | (unsigned)/
 execv	../sys/kern_exec.c	/^execv()$/
 execve	../sys/kern_exec.c	/^execve()$/
@@ -604,11 +603,11 @@ fchflags	../sys/ufs_syscalls.c	/^fchflags()$/
 fchmod	../sys/ufs_syscalls.c	/^fchmod()$/
 fchown	../sys/ufs_syscalls.c	/^fchown()$/
 fcntl	../sys/kern_descrip.c	/^fcntl()$/
-fd_mask	../h/types.h	62
+fd_mask	../h/types.h	63
+fdopen	../sys/kern_descrip.c	/^fdopen(dev, mode, type)$/
 feof	/usr/include/stdio.h	/^#define	feof(p)		(((p)->_flag&_IOEOF)!=0)$/
 ferror	/usr/include/stdio.h	/^#define	ferror(p)	(((p)->_flag&_IOERR)!=0)$/
 fetchi	../machine/kern_pdp.c	/^fetchi()$/
-ffs	../machine/libc_ffs.s	/^ENTRY(ffs)$/
 fgetown	../sys/kern_descrip.c	/^fgetown(fp, valuep)$/
 fileno	/usr/include/stdio.h	/^#define	fileno(p)	((p)->_file)$/
 fill_eproc	../sys/kern_sysctl.c	/^fill_eproc(p, ep)$/
@@ -637,7 +636,8 @@ fserr	../sys/ufs_alloc.c	/^fserr(fp, cp)$/
 fset	../sys/kern_descrip.c	/^fset(fp, bit, value)$/
 fsetown	../sys/kern_descrip.c	/^fsetown(fp, value)$/
 fstat	../sys/kern_descrip.c	/^fstat()$/
-fsync	../sys/ufs_syscalls.c	/^fsync()$/
+fstatfs	../sys/ufs_syscalls2.c	/^fstatfs()$/
+fsync	../sys/ufs_syscalls2.c	/^fsync()$/
 ftruncate	../sys/ufs_syscalls.c	/^ftruncate()$/
 fubyte	../machine/mch_copy.s	/^ENTRY(fubyte)$/
 fubyte	../machine/net_copy.s	/^ENTRY(fubyte)$/
@@ -655,9 +655,12 @@ getdd	../pdpuba/tmscp.c	/^getdd()$/
 getdlim	../sys/quota_sys.c	/^getdlim(q, dev, addr)$/
 getdtablesize	../sys/kern_descrip.c	/^getdtablesize()$/
 geteblk	../sys/ufs_bio.c	/^geteblk()$/
+getegid	../sys/kern_prot.c	/^getegid()$/
 geterror	../sys/ufs_bio.c	/^geterror(bp)$/
+geteuid	../sys/kern_prot.c	/^geteuid()$/
 getf	../sys/kern_descrip.c	/^getf(f)$/
 getfs	../sys/ufs_subr.c	/^getfs(dev)$/
+getfsstat	../sys/ufs_syscalls2.c	/^getfsstat()$/
 getfsx	../sys/ufs_subr.c	/^getfsx(dev)$/
 getgid	../sys/kern_prot.c	/^getgid()$/
 getgroups	../sys/kern_prot.c	/^getgroups()$/
@@ -672,6 +675,7 @@ getpagesize	../sys/kern_mman.c	/^getpagesize()$/
 getpeername	../sys/uipc_syscalls.c	/^getpeername()$/
 getpgrp	../sys/kern_prot.c	/^getpgrp()$/
 getpid	../sys/kern_prot.c	/^getpid()$/
+getppid	../sys/kern_prot.c	/^getppid()$/
 getpriority	../sys/kern_resource.c	/^getpriority()$/
 getquota	../sys/quota_kern.c	/^getquota(uid, lookuponly, nodq)$/
 getrlimit	../sys/kern_resource.c	/^getrlimit()$/
@@ -685,7 +689,7 @@ getuid	../sys/kern_prot.c	/^getuid()$/
 getw	../sys/tty_subr.c	/^getw(p)$/
 getxfile	../sys/kern_exec.c	/^getxfile(ip, ep, nargc, uid, gid)$/
 getyx	/usr/include/curses.h	/^#define	getyx(win,y,x)	 y = win->_cury, x = win->_/
-gid_t	../h/types.h	47
+gid_t	../h/types.h	48
 gldav	../machine/kern_pdp.c	/^gldav()$/
 groupmember	../sys/kern_prot.c	/^groupmember(gid)$/
 grow	../sys/kern_mman.c	/^grow(sp)$/
@@ -736,7 +740,9 @@ icmp_error	../netinet/ip_icmp.c	/^icmp_error(oip, type, code, ifp, dest)$/
 icmp_input	../netinet/ip_icmp.c	/^icmp_input(m, ifp)$/
 icmp_reflect	../netinet/ip_icmp.c	/^icmp_reflect(ip, ifp)$/
 icmp_send	../netinet/ip_icmp.c	/^icmp_send(ip, opts)$/
+icmp_sysctl	../netinet/ip_icmp.c	/^icmp_sysctl(name, namelen, oldp, oldlenp, newp, ne/
 icode	../machine/mch_start.s	/^ENTRY(icode)$/
+id_fileno	/usr/include/ident.h	/^#define id_fileno(ID)	((ID)->fd)$/
 idle	../machine/mch_xxx.s	/^ENTRY(idle)$/
 idp_abort	../netns/idp_usrreq.c	/^idp_abort(nsp)$/
 idp_ctlinput	../netns/ns_input.c	/^idp_ctlinput(cmd, arg)$/
@@ -824,7 +830,7 @@ in_setpeeraddr	../netinet/in_pcb.c	/^in_setpeeraddr(inp, nam)$/
 in_setsockaddr	../netinet/in_pcb.c	/^in_setsockaddr(inp, nam)$/
 inch	/usr/include/curses.h	/^# define	inch()		VOID(winch(stdscr))$/
 incore	../sys/ufs_bio.c	/^incore(dev, blkno)$/
-indirtrunc	../sys/ufs_inode.c	/^indirtrunc(ip, bn, lastbn, level)$/
+indirtrunc	../sys/ufs_inode.c	/^indirtrunc(ip, bn, lastbn, level, aflags)$/
 inet_hash	../netinet/in.c	/^inet_hash(sin, hp)$/
 inet_netmatch	../netinet/in.c	/^inet_netmatch(sin1, sin2)$/
 inferior	../sys/kern_proc.c	/^inferior(p)$/
@@ -838,7 +844,6 @@ ingres_rma	../sys/ingreslock.c	/^ingres_rma(pd)$/
 ingres_unique	../sys/ingreslock.c	/^ingres_unique(q)$/
 ingres_write	../sys/ingreslock.c	/^ingres_write(dev, uio, flag)$/
 initdisklabels	../machine/machdep2.c	/^initdisklabels()$/
-ino_close	../sys/sys_inode.c	/^ino_close(fp)$/
 ino_ioctl	../sys/sys_inode.c	/^ino_ioctl(fp, com, data)$/
 ino_lock	../sys/sys_inode.c	/^ino_lock(fp, cmd)$/
 ino_rw	../sys/sys_inode.c	/^ino_rw(fp, uio)$/
@@ -850,17 +855,17 @@ inoquota	../sys/quota_ufs.c	/^inoquota(ip)$/
 insch	/usr/include/curses.h	/^# define	insch(c)	VOID(winsch(stdscr,c))$/
 insertln	/usr/include/curses.h	/^# define	insertln()	VOID(winsertln(stdscr))$/
 insque	../h/systm.h	/^#define	insque(q,p)	_insque((caddr_t)q,(caddr_t)p)/
-insque	../machine/libc_insque.s	/^ENTRY(insque)$/
 int	../h/types.h	27
 intotcpcb	../netinet/tcp_var.h	/^#define	intotcpcb(ip)	((struct tcpcb *)(ip)->inp_p/
 ioctl	../sys/sys_generic.c	/^ioctl()$/
+ioctldisklabel	../sys/ufs_disksubr.c	/^ioctldisklabel(dev, cmd, data, flag, disk, strat)$/
 iothndlr	../machine/mch_trap.s	/^ASENTRY(iothndlr)$/
 ip_ctloutput	../netinet/ip_output.c	/^ip_ctloutput(op, so, level, optname, m)$/
 ip_deq	../netinet/ip_input.c	/^ip_deq(p)$/
 ip_dooptions	../netinet/ip_input.c	/^ip_dooptions(ip, ifp)$/
 ip_drain	../netinet/ip_input.c	/^ip_drain()$/
 ip_enq	../netinet/ip_input.c	/^ip_enq(p, prev)$/
-ip_forward	../netinet/ip_input.c	/^ip_forward(ip, ifp)$/
+ip_forward	../netinet/ip_input.c	/^ip_forward(ip, ifp, srcrt)$/
 ip_freef	../netinet/ip_input.c	/^ip_freef(fp)$/
 ip_init	../netinet/ip_input.c	/^ip_init()$/
 ip_insertoptions	../netinet/ip_output.c	/^ip_insertoptions(m, opt, phlen)$/
@@ -872,6 +877,7 @@ ip_rtaddr	../netinet/ip_input.c	/^ip_rtaddr(dst)$/
 ip_slowtimo	../netinet/ip_input.c	/^ip_slowtimo()$/
 ip_srcroute	../netinet/ip_input.c	/^ip_srcroute()$/
 ip_stripoptions	../netinet/ip_input.c	/^ip_stripoptions(ip, mopt)$/
+ip_sysctl	../netinet/ip_input.c	/^ip_sysctl(name, namelen, oldp, oldlenp, newp, newl/
 ipintr	../netinet/ip_input.c	/^ipintr()$/
 iptime	../netinet/ip_icmp.c	/^iptime()$/
 iput	../sys/ufs_inode.c	/^iput(ip)$/
@@ -898,7 +904,7 @@ itimerdecr	../sys/kern_time.c	/^itimerdecr(itp, usec)$/
 itimerfix	../sys/kern_time.c	/^itimerfix(tv)$/
 itod	../h/fs.h	/^#define	itod(x)		((daddr_t)((((u_int)(x) + 2 * INO/
 itoo	../h/fs.h	/^#define	itoo(x)		((int)(((x) + 2 * INOPB - 1) % IN/
-itrunc	../sys/ufs_inode.c	/^itrunc(oip,length)$/
+itrunc	../sys/ufs_inode.c	/^itrunc(oip,length, ioflags)$/
 iunlock	../sys/ufs_inode.c	/^iunlock(ip)$/
 iupdat	../sys/ufs_inode.c	/^iupdat(ip, ta, tm, waitfor)$/
 jmp_buf	/usr/include/setjmp.h	3
@@ -909,18 +915,15 @@ killchar	/usr/include/curses.h	/^#define	killchar()	(_tty.sg_kill)$/
 killpg	../sys/kern_sig.c	/^killpg()$/
 killpg1	../sys/kern_sig.c	/^killpg1(signo, pgrp, all)$/
 lblkno	../h/fs.h	/^#define lblkno(loc)		\/* calculates (loc \/ fs->fs_b/
-ldiv	../machine/libc_ldiv.s	/^ASENTRY(ldiv)$/
-ldiv	../machine/libc_ldiv.s	/^ASENTRY(ldiv)$/
+ldiv_t	/usr/include/stdlib.h	57
 leavegroup	../sys/kern_prot.c	/^leavegroup(gid)$/
 leaveok	/usr/include/curses.h	/^#define	leaveok(win,bf)	 (win->_leave = bf)$/
 link	../sys/ufs_syscalls.c	/^link()$/
 listen	../sys/uipc_syscalls.c	/^listen()$/
-lmul	../machine/libc_lmul.s	/^ASENTRY(lmul)$/
 loadav	../sys/vm_sched.c	/^loadav(avg, n)$/
 loattach	../net/if_loop.c	/^loattach()$/
 locc	../machine/mch_xxx.s	/^ENTRY(locc)$/
 locc	../machine/net_xxx.s	/^ENTRY(locc)$/
-locc	../sys/ufs_subr.c	/^locc(mask, size, cp)$/
 lock	../machine/kern_pdp.c	/^lock()$/
 log	../sys/subr_prf.c	/^log(level, fmt, x1)$/
 logclose	../sys/subr_log.c	/^logclose(dev, flag)$/
@@ -945,9 +948,7 @@ lpopen	../pdpuba/lp.c	/^lpopen(dev, flag)$/
 lpoutput	../pdpuba/lp.c	/^lpoutput(dev, c)$/
 lptout	../pdpuba/lp.c	/^lptout(dev)$/
 lpwrite	../pdpuba/lp.c	/^lpwrite(dev, uio, flag)$/
-lrem	../machine/libc_lrem.s	/^ASENTRY(lrem)$/
-lrem	../machine/libc_lrem.s	/^ASENTRY(lrem)$/
-lseek	../sys/ufs_syscalls.c	/^lseek()$/
+lseek	../sys/ufs_syscalls2.c	/^lseek()$/
 lstat	../sys/ufs_syscalls.c	/^lstat()$/
 m_adj	../sys/uipc_mbuf.c	/^m_adj(mp, len)$/
 m_cat	../sys/uipc_mbuf.c	/^m_cat(m, n)$/
@@ -977,7 +978,7 @@ mbcopyout	../machine/net_mbuf.s	/^ENTRY(mbcopyout)$/
 mbinit	../sys/uipc_mbuf.c	/^mbinit()$/
 mbinit2	../sys/uipc_mbuf.c	/^mbinit2(mem, how, num)$/
 mem_parity	../machine/machdep2.c	/^mem_parity()$/
-memaddr	../h/types.h	78
+memaddr	../h/types.h	79
 mfkd	../machine/net_copy.s	/^ENTRY(mfkd)$/
 mfree	../sys/subr_rmap.c	/^mfree(mp, size, addr)$/
 mfsd	../machine/mch_copy.s	/^ENTRY(mfsd)$/
@@ -985,7 +986,8 @@ minor	../h/types.h	/^#define	minor(x)	((int)((x)&0377))$/
 mkdir	../sys/ufs_syscalls.c	/^mkdir()$/
 mknod	../sys/ufs_syscalls.c	/^mknod()$/
 mmrw	../machine/mem.c	/^mmrw(dev, uio, flag)$/
-mode_t	../h/types.h	49
+mode_t	../h/types.h	50
+mount_updname	../sys/ufs_mount.c	/^mount_updname(fs, on, from, lenon, lenfrom)$/
 mountfs	../sys/ufs_mount.c	/^mountfs(dev, flags, ip)$/
 move	/usr/include/curses.h	/^# define	move(y, x)	VOID(wmove(stdscr, y, x))$/
 msprof	../machine/machdep2.c	/^msprof()$/
@@ -1016,7 +1018,7 @@ nchinit	../sys/ufs_namei.c	/^nchinit()$/
 nchinval	../sys/ufs_namei.c	/^nchinval(dev)$/
 ndflush	../sys/tty_subr.c	/^ndflush(q, cc)$/
 ndqb	../sys/tty_subr.c	/^ndqb(q, flag)$/
-net_sysctl	../sys/kern_sysctl.c	/^net_sysctl(name, namelen, oldp, oldlenp, newp, new/
+net_sysctl	../sys/uipc_domain.c	/^net_sysctl(name, namelen, oldp, oldlenp, newp, new/
 netcopyout	../sys/sys_net.c	/^netcopyout(m, to, len)$/
 netcrash	../sys/sys_kern.c	/^netcrash()$/
 netinit	../sys/init_main.c	/^netinit()$/
@@ -1088,7 +1090,9 @@ null_netmatch	../net/af.c	/^null_netmatch(a1, a2)$/
 nulldev	../sys/subr_xxx.c	/^nulldev()$/
 nullioctl	../sys/tty_conf.c	/^nullioctl(tp, cmd, data, flags)$/
 nullmodem	../sys/tty.c	/^nullmodem(tp, flag)$/
-off_t	../h/types.h	45
+off_t	../h/types.h	46
+offsetof	../h/stddef.h	/^#define	offsetof(type, member)	((size_t)(&((type */
+offsetof	../pdpuba/ra.c	/^#define	offsetof(type,member) ((size_t)(&((type *)/
 open	../sys/ufs_syscalls.c	/^open()$/
 opendq	../sys/quota_kern.c	/^opendq(mp, fname)$/
 openi	../sys/sys_inode.c	/^openi(ip, mode)$/
@@ -1103,8 +1107,9 @@ pfind	../sys/kern_proc.c	/^pfind(pid)$/
 pfslowtimo	../sys/uipc_domain.c	/^pfslowtimo()$/
 phys	../machine/kern_pdp.c	/^phys()$/
 physio	../sys/vm_swp.c	/^physio(strat, bp, dev, rw, uio)$/
-pid_t	../h/types.h	48
+pid_t	../h/types.h	49
 pipe	../sys/sys_pipe.c	/^pipe()$/
+pipe_close	../sys/sys_pipe.c	/^pipe_close(fp)$/
 pipe_rw	../sys/sys_pipe.c	/^pipe_rw(fp, uio, flag)$/
 pipe_select	../sys/sys_pipe.c	/^pipe_select(fp, which)$/
 pointubreg	../h/uba.h	/^#define	pointubreg(v,sep)	{	ubadr_t	x; \\$/
@@ -1181,24 +1186,28 @@ qttint	../pdpif/if_qt.c	/^qttint(unit)$/
 qtturbo	../pdpif/if_qt.c	/^qtturbo(sc)$/
 qwarn	../sys/quota_subr.c	/^qwarn(dq)$/
 raVec	../pdpuba/ra.c	/^raVec(ctlr, vector)$/
-ra_comT	../pdpuba/ra.c	250
+ra_comT	../pdpuba/ra.c	175
 ra_error	../pdpuba/ra.c	/^ra_error(mp)$/
-ra_softcT	../pdpuba/ra.c	272
+ra_softcT	../pdpuba/ra.c	204
 raattach	../pdpuba/ra.c	/^raattach(addr, unit)$/
+raclose	../pdpuba/ra.c	/^raclose(dev, flag, mode)$/
 racmd	../pdpuba/ra.c	/^racmd(op, unit, sc)$/
+radfltlbl	../pdpuba/ra.c	/^radfltlbl(disk, lp)$/
 radisksetup	../pdpuba/ra.c	/^radisksetup(disk, mp)$/
 radump	../pdpuba/ra.c	/^radump(dev)$/
 ragetcp	../pdpuba/ra.c	/^ragetcp(sc)$/
 ragetdd	../pdpuba/ra.c	/^ragetdd()$/
+ragetinfo	../pdpuba/ra.c	/^ragetinfo(disk, dev)$/
 rainit	../pdpuba/ra.c	/^rainit(sc)$/
 raintr	../pdpuba/ra.c	/^raintr(unit)$/
+raioctl	../pdpuba/ra.c	/^raioctl(dev, cmd, data, flag)$/
 raminit	../machine/ram.c	/^raminit()$/
 ramopen	../machine/ram.c	/^ramopen(dev)$/
 ramsgclear	../pdpuba/ra.c	/^ramsgclear(mp)$/
 ramsginit	../pdpuba/ra.c	/^ramsginit(sc, com, msgs, offset, length, flags)$/
 ramstart	../machine/ram.c	/^ramstart(ramaddr, bp)$/
 ramstrategy	../machine/ram.c	/^ramstrategy(bp)$/
-raopen	../pdpuba/ra.c	/^raopen(dev, flag)$/
+raopen	../pdpuba/ra.c	/^raopen(dev, flag, mode)$/
 raroot	../pdpuba/ra.c	/^raroot(csr)$/
 rarsp	../pdpuba/ra.c	/^rarsp(mp, sc)$/
 rarspring	../pdpuba/ra.c	/^rarspring(sc)$/
@@ -1230,7 +1239,6 @@ recvit	../sys/uipc_syscalls.c	/^recvit(s, mp, flags, namelenp, rightslenp)$/
 recvmsg	../sys/uipc_syscalls.c	/^recvmsg()$/
 refresh	/usr/include/curses.h	/^# define	refresh()	VOID(wrefresh(stdscr))$/
 remque	../h/systm.h	/^#define	remque(q)	_remque((caddr_t)q)$/
-remque	../machine/libc_remque.s	/^ENTRY(remque)$/
 remrq	../sys/kern_synch.c	/^remrq(p)$/
 rename	../sys/ufs_syscalls.c	/^rename()$/
 resetty	/usr/include/curses.h	/^#define	resetty() (_tty.sg_flags = _res_flg, (void/
@@ -1252,13 +1260,17 @@ rkstart	../pdpuba/rk.c	/^rkstart()$/
 rkstrategy	../pdpuba/rk.c	/^rkstrategy(bp)$/
 rkunit	../pdpuba/rk.c	/^#define	rkunit(dev)	minor(dev)$/
 rlattach	../pdpuba/rl.c	/^rlattach(addr, unit)$/
+rlclose	../pdpuba/rl.c	/^rlclose(dev, flag, mode)$/
+rldfltlbl	../pdpuba/rl.c	/^rldfltlbl(disk, lp, dev)$/
 rldump	../pdpuba/rl.c	/^rldump(dev)$/
 rlfh	../pdpuba/rl.c	/^rlfh(dev)$/
+rlgetinfo	../pdpuba/rl.c	/^rlgetinfo(disk, dev)$/
 rlgss	../pdpuba/rl.c	/^rlgss()$/
 rlgsts	../pdpuba/rl.c	/^rlgsts(drive)$/
 rlintr	../pdpuba/rl.c	/^rlintr()$/
 rlio	../pdpuba/rl.c	/^rlio()$/
-rlopen	../pdpuba/rl.c	/^rlopen(dev, flag)$/
+rlioctl	../pdpuba/rl.c	/^rlioctl(dev, cmd, data, flag)$/
+rlopen	../pdpuba/rl.c	/^rlopen(dev, flag, mode)$/
 rlroot	../pdpuba/rl.c	/^rlroot()$/
 rlseek	../pdpuba/rl.c	/^rlseek(cyl, dev)$/
 rlsize	../pdpuba/rl.c	/^rlsize(dev)$/
@@ -1316,7 +1328,6 @@ sbunlock	../h/socketvar.h	/^#define	sbunlock(sb) { \\$/
 sbwait	../sys/uipc_socket2.c	/^sbwait(sb)$/
 sbwakeup	../sys/uipc_socket2.c	/^sbwakeup(sb)$/
 scanc	../machine/mch_xxx.s	/^ENTRY(scanc)$/
-scanc	../sys/ufs_subr.c	/^scanc(size, cp, table, mask)$/
 sched	../sys/vm_sched.c	/^sched()$/
 schedcpu	../sys/kern_synch.c	/^schedcpu()$/
 schednetisr	../net/netisr.h	/^#define	schednetisr(anisr)	{ netisr |= 1<<(anisr);/
@@ -1414,6 +1425,8 @@ soctl	../sys/sys_generic.c	/^soctl(fp, com, data)$/
 sodisconnect	../sys/uipc_socket.c	/^sodisconnect(so)$/
 sofree	../sys/uipc_socket.c	/^sofree(so)$/
 softclock	../sys/kern_clock.c	/^softclock(pc, ps)$/
+sofub_alloc	../machine/machdep.c	/^sofub_alloc(bp)$/
+sofub_relse	../machine/machdep.c	/^sofub_relse(bp,count)$/
 sogetnam	../sys/uipc_socket.c	/^sogetnam(so, m)$/
 sogetopt	../sys/uipc_socket.c	/^sogetopt(so, level, optname, mp)$/
 sogetpeer	../sys/uipc_socket.c	/^sogetpeer(so, m)$/
@@ -1483,6 +1496,7 @@ srireset	../pdpif/if_sri.c	/^srireset(unit, uban)$/
 srirint	../pdpif/if_sri.c	/^srirint(unit)$/
 sristart	../pdpif/if_sri.c	/^sristart(dev)$/
 srixint	../pdpif/if_sri.c	/^srixint(unit)$/
+ssize_t	../h/types.h	43
 stackbas	../machine/machparam.h	/^#define	stackbas(siz)	(0x10000L-(siz))$/
 stacktop	../machine/machparam.h	/^#define	stacktop(siz)	(0x10000L)$/
 standend	/usr/include/curses.h	/^# define	standend()	VOID(wstandend(stdscr))$/
@@ -1491,10 +1505,11 @@ start	../machine/mch_start.s	/^ASENTRY(start)$/
 startup	../machine/machdep2.c	/^startup()$/
 stat	../sys/ufs_syscalls.c	/^stat()$/
 stat1	../sys/ufs_syscalls.c	/^stat1(follow)$/
+statfs	../sys/ufs_syscalls2.c	/^statfs()$/
+statfs1	../sys/ufs_syscalls2.c	/^statfs1(mp, sbp)$/
 stoc	../machine/machparam.h	/^#define	stoc(x)	((x)*128)$/
 stop	../sys/kern_sig.c	/^stop(p)$/
 strbase	/usr/include/struct.h	/^#define	strbase(str, ptr, fld)	((struct str *)((ch/
-strlen	../machine/libc_strlen.s	/^ENTRY(strlen)$/
 stst	../machine/mch_xxx.s	/^ENTRY(stst)$/
 subyte	../machine/mch_copy.s	/^ENTRY(subyte)$/
 subyte	../machine/net_copy.s	/^ENTRY(subyte)$/
@@ -1512,7 +1527,8 @@ swkill	../sys/vm_swp.c	/^swkill(p, rout)$/
 swtch	../sys/kern_synch.c	/^swtch()$/
 syioctl	../sys/tty_tty.c	/^syioctl(dev, cmd, addr, flag)$/
 symlink	../sys/ufs_syscalls.c	/^symlink()$/
-sync	../sys/ufs_syscalls.c	/^sync()$/
+sync	../sys/ufs_subr.c	/^sync()$/
+syncinodes	../sys/ufs_syscalls2.c	/^syncinodes(fs)$/
 syncip	../sys/ufs_subr.c	/^syncip(ip)$/
 syopen	../sys/tty_tty.c	/^syopen(dev, flag)$/
 syread	../sys/tty_tty.c	/^syread(dev, uio, flag)$/
@@ -1574,7 +1590,7 @@ tcp_timers	../netinet/tcp_timer.c	/^tcp_timers(tp, timer)$/
 tcp_trace	../netinet/tcp_debug.c	/^tcp_trace(act, ostate, tp, ti, req)$/
 tcp_usrclosed	../netinet/tcp_usrreq.c	/^tcp_usrclosed(tp)$/
 tcp_usrreq	../netinet/tcp_usrreq.c	/^tcp_usrreq(so, req, m, nam, rights)$/
-time_t	../h/types.h	43
+time_t	../h/types.h	44
 timeout	../sys/kern_clock.c	/^timeout(fun, arg, t)$/
 timerclear	../h/time.h	/^#define	timerclear(tvp)		(tvp)->tv_sec = (tvp)->tv/
 timercmp	../h/time.h	/^#define	timercmp(tvp, uvp, cmp)	\\$/
@@ -1590,16 +1606,32 @@ tmintr	../pdpuba/tm.c	/^tmintr()$/
 tmioctl	../pdpuba/tm.c	/^tmioctl(dev, cmd, data, flag)$/
 tmopen	../pdpuba/tm.c	/^tmopen(dev, flag)$/
 tmsVec	../pdpuba/tmscp.c	/^tmsVec(ctlr, vector)$/
+tms_avail_em	../pdpuba/tmscp.c	/^tms_avail_em(mp, sc)$/
+tms_avail_st	../pdpuba/tmscp.c	/^tms_avail_st(mp, sc, flgs)$/
+tms_cache_cmn	../pdpuba/tmscp.c	/^tms_cache_cmn(sc, tms, mp)$/
+tms_check_ret	../pdpuba/tmscp.c	/^tms_check_ret(mp, sc)$/
+tms_flush_em	../pdpuba/tmscp.c	/^tms_flush_em(mp, sc)$/
+tms_gtunt_em	../pdpuba/tmscp.c	/^tms_gtunt_em(mp, sc)$/
+tms_iodone	../pdpuba/tmscp.c	/^tms_iodone(mp, sc)$/
+tms_repos_em	../pdpuba/tmscp.c	/^tms_repos_em(mp, sc)$/
+tms_repos_st	../pdpuba/tmscp.c	/^tms_repos_st(mp, sc, flgs)$/
+tms_reposrec_st	../pdpuba/tmscp.c	/^tms_reposrec_st(mp, sc, flgs)$/
+tms_rw_em	../pdpuba/tmscp.c	/^tms_rw_em(mp, sc)$/
+tms_stunt_em	../pdpuba/tmscp.c	/^tms_stunt_em(mp, sc)$/
+tms_stunt_st	../pdpuba/tmscp.c	/^tms_stunt_st(mp, sc, flgs)$/
+tms_wrteof	../pdpuba/tmscp.c	/^tms_wrteof(dev, tms)$/
+tms_wtm_em	../pdpuba/tmscp.c	/^tms_wtm_em(mp, sc)$/
+tms_wtm_st	../pdpuba/tmscp.c	/^tms_wtm_st(mp, sc, flgs)$/
 tmsattach	../pdpuba/tmscp.c	/^tmsattach(addr, unit)$/
 tmscpclose	../pdpuba/tmscp.c	/^tmscpclose(dev, flag)$/
-tmscpcmd	../pdpuba/tmscp.c	/^tmscpcmd(op, unit, sc)$/
+tmscpcmd	../pdpuba/tmscpdump.c	/^tmscpcmd(op, unit, sc)$/
 tmscpcommand	../pdpuba/tmscp.c	/^tmscpcommand(dev, com, count)$/
 tmscpgetcp	../pdpuba/tmscp.c	/^tmscpgetcp(sc)$/
 tmscpioctl	../pdpuba/tmscp.c	/^tmscpioctl(dev, cmd, data, flag)$/
 tmscpopen	../pdpuba/tmscp.c	/^tmscpopen(dev, flag)$/
 tmscprsp	../pdpuba/tmscp.c	/^tmscprsp(sc, i)$/
 tmscpstrategy	../pdpuba/tmscp.c	/^tmscpstrategy (bp)$/
-tmsdump	../pdpuba/tmscp.c	/^tmsdump(dev)$/
+tmsdump	../pdpuba/tmscpdump.c	/^tmsdump(dev)$/
 tmserror	../pdpuba/tmscp.c	/^tmserror(ctlr, mp)$/
 tmseteof	../pdpuba/tm.c	/^tmseteof(bp)$/
 tmsginit	../pdpuba/tmscp.c	/^tmsginit(sc, com, msgs, offset, length, flags)$/
@@ -1615,7 +1647,7 @@ tprintf	../sys/subr_prf.c	/^tprintf(tp, fmt, x1)$/
 trace	../h/trace.h	/^#define	trace(a)	tracebuf[a]++;$/
 trap	../machine/mch_trap.s	/^ASENTRY(trap)$/
 trap	../machine/trap.c	/^trap(dev, sp, r1, ov, nps, r0, pc, ps)$/
-trsingle	../sys/ufs_inode.c	/^trsingle(ip, bp,last)$/
+trsingle	../sys/ufs_inode.c	/^trsingle(ip, bp,last, aflags)$/
 truncate	../sys/ufs_syscalls.c	/^truncate()$/
 tsattach	../pdpuba/ts.c	/^tsattach(addr, unit)$/
 tsclose	../pdpuba/ts.c	/^tsclose(dev, flag)$/
@@ -1658,36 +1690,31 @@ u_char	../h/types.h	25
 u_int	../h/types.h	27
 u_long	../h/types.h	28
 u_short	../h/types.h	26
-ualdiv	../machine/libc_uldiv.s	/^ENTRY(ualdiv)$/
-ualsh	../machine/libc_ulsh.s	/^ENTRY(ualsh)$/
-ubadr_t	../h/types.h	79
+ubadr_t	../h/types.h	80
 uballoc	../pdpif/if_uba.c	/^uballoc(addr, size)$/
 ubarelse	../pdpif/if_uba.h	/^#define	ubarelse(a,b)$/
 ubarelse	../pdpuba/ubavar.h	/^#define	ubarelse(a,b)$/
 ubinit	../machine/machdep2.c	/^ubinit()$/
 ubmalloc	../pdpif/if_uba.c	/^ubmalloc(addr)$/
 ucall	../machine/kern_pdp.c	/^ucall()$/
-udiv	../machine/libc_udiv.s	/^ASENTRY(udiv)$/
 udp_ctlinput	../netinet/udp_usrreq.c	/^udp_ctlinput(cmd, sa, ip)$/
 udp_detach	../netinet/udp_usrreq.c	/^udp_detach(inp)$/
 udp_init	../netinet/udp_usrreq.c	/^udp_init()$/
 udp_input	../netinet/udp_usrreq.c	/^udp_input(m0, ifp)$/
 udp_notify	../netinet/udp_usrreq.c	/^udp_notify(inp, errno)$/
 udp_output	../netinet/udp_usrreq.c	/^udp_output(inp, m0, addr, control)$/
+udp_sysctl	../netinet/udp_usrreq.c	/^udp_sysctl(name, namelen, oldp, oldlenp, newp, new/
 udp_usrreq	../netinet/udp_usrreq.c	/^udp_usrreq(so, req, m, nam, rights)$/
 ufalloc	../sys/kern_descrip.c	/^ufalloc(i)$/
-ufavail	../sys/kern_descrip.c	/^ufavail()$/
+ufavail	../sys/sys_net.c	/^ufavail()$/
 ufs_mountedon	../sys/ufs_fio.c	/^ufs_mountedon(dev)$/
 ufs_setattr	../sys/ufs_fio.c	/^ufs_setattr(ip, vap)$/
-uid_t	../h/types.h	46
+ufs_sync	../sys/ufs_syscalls2.c	/^ufs_sync(mp)$/
+uid_t	../h/types.h	47
 uiofmove	../sys/kern_subr.c	/^uiofmove(cp, n, uio, iov)$/
 uiomove	../sys/kern_subr.c	/^uiomove(cp, n, uio)$/
 uipc_usrreq	../sys/uipc_usrreq.c	/^uipc_usrreq(so, req, m, nam, rights)$/
-uldiv	../machine/libc_uldiv.s	/^ENTRY(uldiv)$/
-uldiv	../machine/libc_uldiv.s	/^ENTRY(uldiv)$/
-ulsh	../machine/libc_ulsh.s	/^ASENTRY(ulsh)$/
-ulsh	../machine/libc_ulsh.s	/^ENTRY(ulsh)$/
-umask	../sys/ufs_syscalls.c	/^umask()$/
+umask	../sys/ufs_syscalls2.c	/^umask()$/
 umount	../sys/ufs_mount.c	/^umount()$/
 unctrl	/usr/include/curses.h	/^#define	unctrl(c)	_unctrl[(c) & 0177]$/
 unlink	../sys/ufs_syscalls.c	/^unlink()$/
@@ -1719,13 +1746,11 @@ unputc	../sys/tty_subr.c	/^unputc(p)$/
 unselect	../sys/sys_generic.c	/^unselect(p)$/
 unsleep	../sys/kern_synch.c	/^unsleep(p)$/
 untimeout	../sys/kern_clock.c	/^untimeout(fun, arg)$/
-update	../sys/ufs_subr.c	/^update()$/
 updatepri	../sys/kern_synch.c	/^updatepri(p)$/
 uprintf	../sys/subr_prf.c	/^uprintf(fmt, x1)$/
 ureadc	../sys/kern_subr.c	/^ureadc(c, uio)$/
-urem	../machine/libc_udiv.s	/^ASENTRY(urem)$/
 ushort	../h/types.h	29
-utimes	../sys/ufs_syscalls.c	/^utimes()$/
+utimes	../sys/ufs_syscalls2.c	/^utimes()$/
 uwritec	../sys/kern_subr.c	/^uwritec(uio)$/
 va_end	/usr/include/varargs.h	/^# define va_end(list)$/
 va_list	/usr/include/varargs.h	3
@@ -1738,6 +1763,9 @@ vhangup	../sys/sys_inode.c	/^vhangup()$/
 vm_sysctl	../sys/kern_sysctl.c	/^vm_sysctl(name, namelen, oldp, oldlenp, newp, newl/
 vmmeter	../sys/vm_sched.c	/^vmmeter()$/
 vmtotal	../sys/vm_sched.c	/^vmtotal()$/
+vn_close	../sys/vfs_vnops.c	/^vn_close(ip, flags)$/
+vn_closefile	../sys/vfs_vnops.c	/^vn_closefile(fp)$/
+vn_open	../sys/vfs_vnops.c	/^vn_open(ndp, fmode, cmode)$/
 vvattach	../pdpif/if_vv.c	/^vvattach(ui)$/
 vvidentify	../pdpif/if_vv.c	/^vvidentify(unit)$/
 vvinit	../pdpif/if_vv.c	/^vvinit(unit)$/
@@ -1752,6 +1780,7 @@ vvwatchdog	../pdpif/if_vv.c	/^vvwatchdog(unit)$/
 vvxint	../pdpif/if_vv.c	/^vvxint(unit)$/
 wait1	../sys/kern_exit.c	/^wait1(q, uap, retval)$/
 wait4	../sys/kern_exit.c	/^wait4()$/
+wait_step	../pdpuba/tmscp.c	/^wait_step(mask, good, csr, sc)$/
 wakeup	../sys/kern_synch.c	/^wakeup(chan)$/
 winch	/usr/include/curses.h	/^#define	winch(win)	 (win->_y[win->_cury][win->_cur/
 word_t	../sys/tty_subr.c	530
@@ -1766,17 +1795,19 @@ xfree	../sys/vm_text.c	/^xfree()$/
 xinit	../sys/vm_text.c	/^xinit()$/
 xlock	../sys/vm_text.c	/^xlock(xp)$/
 xpattach	../pdpuba/xp.c	/^xpattach(xpaddr, unit)$/
+xpclose	../pdpuba/xp.c	/^xpclose(dev, flags, mode)$/
+xpdfltlbl	../pdpuba/xp.c	/^xpdfltlbl(xd, lp)$/
 xpdump	../pdpuba/xp.c	/^xpdump(dev)$/
 xpecc	../pdpuba/xp.c	/^xpecc(bp, flag)$/
+xpgetinfo	../pdpuba/xp.c	/^xpgetinfo(xd, dev)$/
 xpintr	../pdpuba/xp.c	/^xpintr(dev)$/
-xpmaptype	../pdpuba/xp.c	/^xpmaptype(xd, hpsn)$/
-xpopen	../pdpuba/xp.c	/^xpopen(dev)$/
-xproot	../pdpuba/xp.c	/^xproot()$/
+xpioctl	../pdpuba/xp.c	/^xpioctl(dev, cmd, data, flag)$/
+xpopen	../pdpuba/xp.c	/^xpopen(dev, flags, mode)$/
+xproot	../pdpuba/xp.c	/^xproot(csr)$/
 xpsize	../pdpuba/xp.c	/^xpsize(dev)$/
 xpslave	../pdpuba/xp.c	/^xpslave(xpaddr, xc)$/
 xpstart	../pdpuba/xp.c	/^xpstart(xc)$/
 xpstrategy	../pdpuba/xp.c	/^xpstrategy(bp)$/
-xpunit	../pdpuba/xp.c	/^#define	xpunit(dev)	((minor(dev) >> 3) & 07)$/
 xpustart	../pdpuba/xp.c	/^xpustart(unit)$/
 xumount	../sys/vm_text.c	/^xumount(dev)$/
 xuncore	../sys/vm_text.c	/^xuncore(size)$/

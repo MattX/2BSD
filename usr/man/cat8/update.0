@@ -9,7 +9,7 @@ NAME
      update - periodically update the super block
 
 SYNOPSIS
-     /etc/update
+     update
 
 DESCRIPTION
      _U_p_d_a_t_e is a program that executes the _s_y_n_c(2) primitive
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	November 17, 1996			1
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-UUX(1C)             UNIX Programmer's Manual		  UUX(1C)
+UUX(1)		    UNIX Programmer's Manual		   UUX(1)
 
 
 
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
 
 
 
-UUX(1C)             UNIX Programmer's Manual		  UUX(1C)
+UUX(1)		    UNIX Programmer's Manual		   UUX(1)
 
 
 
@@ -97,7 +97,7 @@ UUX(1C)             UNIX Programmer's Manual		  UUX(1C)
      -g_g_r_a_d_e
 	  _G_r_a_d_e is a single letter/number, from 0 to 9, A to Z,
 	  or a to z; 0 is the highest, and z is the lowest grade.
-	  The default is A; by comparison _u_u_c_p(1C) defaults to n
+	  The default is A; by comparison _u_u_c_p(1) defaults to n
 	  and mail is usually sent at grade C.	Lower grades
 	  should be specified for high-volume jobs, such as news.
 
@@ -126,23 +126,23 @@ UUX(1C)             UNIX Programmer's Manual		  UUX(1C)
 
 
 
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 
 
 
 
-UUX(1C)             UNIX Programmer's Manual		  UUX(1C)
+UUX(1)		    UNIX Programmer's Manual		   UUX(1)
 
 
 
 FILES
      /usr/spool/uucp	   spool directories
-     /usr/lib/uucp/*	   UUCP configuration data and daemons
+     /etc/uucp/*	   UUCP configuration data.
 
 SEE ALSO
-     uucp(1C), uucico(8C), uuxqt(8C).
+     uucp(1), uucico(8), uuxqt(8).
 
 WARNING
      For security reasons, many installations will limit the list
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 24, 1986                         3
+Printed 11/26/99	October 22, 1996			3
 
 
 

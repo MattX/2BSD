@@ -6,50 +6,88 @@ QUOTACHECK(8)	    UNIX Programmer's Manual	    QUOTACHECK(8)
 
 
 NAME
-     quotacheck - file system quota consistency checker
+     quotacheck - filesystem quota consistency checker
 
 SYNOPSIS
-     /etc/quotacheck [ -v ] [ -p ] filesystem...
-     /etc/quotacheck [ -v ] [ -p ] -a
+     quotacheck [ -v ] _f_i_l_e_s_y_s_t_e_m ...
+     quotacheck [ -v ] -a
 
 DESCRIPTION
-     _Q_u_o_t_a_c_h_e_c_k examines each file system, builds a table of
-     current disc usage, and compares this table against that
-     stored in the disc quota file for the file system.  If any
+     Quotacheck examines each filesystem, builds a table of
+     current disk usage, and compares this table against that
+     recorded in the disk quota file for the filesystem.  If any
      inconsistencies are detected, both the quota file and the
      current system copy of the incorrect quotas are updated (the
-     latter only occurs if an active file system is checked).
+     latter only occurs if an active filesystem is checked).
 
-     If the -a flag is supplied in place of any file system
-     names, _q_u_o_t_a_c_h_e_c_k will check all the file systems indicated
-     in /_e_t_c/_f_s_t_a_b to be read-write with disc quotas.
+     Available options:
 
-     Normally _q_u_o_t_a_c_h_e_c_k reports only those quotas modified.  If
-     the -v option is supplied, _q_u_o_t_a_c_h_e_c_k will indicate the cal-
-     culated disc quotas for each user on a particular file sys-
-     tem.
 
-     If the -p flag is supplied then parallel passes will be run
-     on the filesystems required, using the pass numbers in
-     /etc/fstab in an identical fashion to _f_s_c_k(8).
+     -a             If the -a flag is supplied in place of any
+		    filesystem names, quotacheck will check all
+		    the filesystems indicated in /_e_t_c/_f_s_t_a_b to be
+		    read-write with disk quotas.
 
-     _Q_u_o_t_a_c_h_e_c_k expects each file system to be checked to have a
-     quota file named _q_u_o_t_a_s in the root directory.  If none is
-     present, _q_u_o_t_a_c_h_e_c_k will ignore the file system.
+     -v             quotacheck reports discrepancies between the
+		    calculated and recorded disk quotas.
 
-     _Q_u_o_t_a_c_h_e_c_k is normally run at boot time from the
-     /_e_t_c/_r_c._l_o_c_a_l file, see _r_c(8), before enabling disc quotas
-     with _q_u_o_t_a_o_n(8).
+     Parallel passes are run on the filesystems required, using
+     the pass numbers in /_e_t_c/_f_s_t_a_b in an identical fashion to
+     fsck(8).
 
-     _Q_u_o_t_a_c_h_e_c_k accesses the raw device in calculating the actual
-     disc usage for each user.	Thus, the file systems checked
-     should be quiescent while _q_u_o_t_a_c_h_e_c_k is running.
+     Normally quotacheck operates silently.
+
+     Quotacheck expects each filesystem to be checked to have a
+     quota files named _q_u_o_t_a_s located at the root of the associ-
+     ated file system.	These defaults may be overridden in
+     /_e_t_c/_f_s_t_a_b.  If a file is not present, quotacheck will
+     create it.
+
+     Quotacheck is normally run at boot time from the
+     /_e_t_c/_r_c._l_o_c_a_l file, see rc(8), before enabling disk quotas
+     with quotaon(8).
+
+     Quotacheck accesses the raw device in calculating the actual
+     disk usage for each user.	Thus, the filesystems checked
+     should be quiescent while quotacheck is running.
 
 FILES
-     /etc/fstab     default file systems
+     _q_u_o_t_a_s	    at the filesystem root
+
+     /_e_t_c/_f_s_t_a_b     default filesystems
+
+
+
+
+
+Printed 11/24/99	January 24, 1996			1
+
+
+
+
+
+
+QUOTACHECK(8)	    UNIX Programmer's Manual	    QUOTACHECK(8)
+
+
+
+BUGS
+     The _q_u_o_t_a_s file may be named arbitrarily but must reside in
+     the filesystem for which it contains quota information.
+     Quotacheck will give the error:
+
+	  %_s _d_e_v (_0_x%_x) _m_i_s_m_a_t_c_h %_s (_0_x%_x)
+
+     if the _q_u_o_t_a_s file is not in the filesystem being checked.
+     This restriction is enforced by the kernel but may be lifted
+     in the future.
 
 SEE ALSO
-     quota(2), setquota(2), quotaon(8), fsck(8)
+     quota(1), quotactl(2), fstab(5), edquota(8), fsck(8), quo-
+     taon(8), repquota(8)
+
+HISTORY
+     The quotacheck command appeared in 4.2BSD.
 
 
 
@@ -60,7 +98,35 @@ SEE ALSO
 
 
 
-Printed 9/9/95	       September 15, 1985			1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/24/99	January 24, 1996			2
 
 
 

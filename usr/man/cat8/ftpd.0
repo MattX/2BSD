@@ -9,7 +9,8 @@ NAME
      ftpd - DARPA Internet File Transfer Protocol server
 
 SYNOPSIS
-     /etc/ftpd [ -d ] [ -l ] [ -ttimeout ] [ -Tmaxtimeout ]
+     /usr/libexec/ftpd [ -d ] [ -l ] [ -ttimeout ] [ -Tmaxtimeout
+     ]
 
 DESCRIPTION
      _F_t_p_d is the DARPA Internet File Transfer Protocol server
@@ -56,11 +57,10 @@ DESCRIPTION
      REST	    restart incomplete transfer
      RETR	    retrieve a file
      RMD	    remove a directory
-     RNFR	    specify rename-from file name
 
 
 
-Printed 9/10/95         February 23, 1989			1
+Printed 11/24/99	February 23, 1989			1
 
 
 
@@ -71,6 +71,7 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
 
 
 
+     RNFR	    specify rename-from file name
      RNTO	    specify rename-to file name
      SITE	    non-standard commands (see next section)
      SIZE	    return size of file
@@ -122,11 +123,10 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
      2)   The user name must not appear in the file
 	  /_e_t_c/_f_t_p_u_s_e_r_s.
 
-     3)   The user must have a standard shell returned by
 
 
 
-Printed 9/10/95         February 23, 1989			2
+Printed 11/24/99	February 23, 1989			2
 
 
 
@@ -137,6 +137,7 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
 
 
 
+     3)   The user must have a standard shell returned by
 	  _g_e_t_u_s_e_r_s_h_e_l_l(3).
 
      4)   If the user name is ``anonymous'' or ``ftp'', an
@@ -191,8 +192,7 @@ BUGS
 
 
 
-
-Printed 9/10/95         February 23, 1989			3
+Printed 11/24/99	February 23, 1989			3
 
 
 

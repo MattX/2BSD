@@ -1,7 +1,7 @@
 
 
 
-IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
+IFCONFIG(8)	    UNIX Programmer's Manual	      IFCONFIG(8)
 
 
 
@@ -9,9 +9,9 @@ NAME
      ifconfig - configure network interface parameters
 
 SYOPNSIS
-     /etc/ifconfig interface address_family [ _a_d_d_r_e_s_s [
+     /sbin/ifconfig interface address_family [ _a_d_d_r_e_s_s [
      _d_e_s_t__a_d_d_r_e_s_s ] ] [ _p_a_r_a_m_e_t_e_r_s ]
-     /etc/ifconfig interface [ protocol_family ]
+     /sbin/ifconfig interface [ protocol_family ]
 
 DESCRIPTION
      _I_f_c_o_n_f_i_g is used to assign an address to a network interface
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 22, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 
 
 
 
-IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
+IFCONFIG(8)	    UNIX Programmer's Manual	      IFCONFIG(8)
 
 
 
@@ -102,10 +102,10 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 
      metric _n	    Set the routing metric of the interface to _n,
 		    default 0.	The routing metric is used by the
-		    routing protocol (_r_o_u_t_e_d(8c)).  Higher
-		    metrics have the effect of making a route
-		    less favorable; metrics are counted as addi-
-		    tion hops to the destination network or host.
+		    routing protocol (_r_o_u_t_e_d(8)).  Higher metrics
+		    have the effect of making a route less favor-
+		    able; metrics are counted as addition hops to
+		    the destination network or host.
 
      debug	    Enable driver dependent debugging code; usu-
 		    ally, this turns on extra console error log-
@@ -126,14 +126,14 @@ IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
 
 
 
-Printed 9/9/95		  May 22, 1986				2
+Printed 11/24/99	November 16, 1996			2
 
 
 
 
 
 
-IFCONFIG(8C)	    UNIX Programmer's Manual	     IFCONFIG(8C)
+IFCONFIG(8)	    UNIX Programmer's Manual	      IFCONFIG(8)
 
 
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 22, 1986				3
+Printed 11/24/99	November 16, 1996			3
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		January 13, 1995			1
+Printed 11/26/99	January 13, 1995			1
 
 
 
@@ -126,7 +126,7 @@ CTL_DEBUG
 
 
 
-Printed 9/9/95		January 13, 1995			2
+Printed 11/26/99	January 13, 1995			2
 
 
 
@@ -192,7 +192,7 @@ CTL_KERN
 
 
 
-Printed 9/9/95		January 13, 1995			3
+Printed 11/26/99	January 13, 1995			3
 
 
 
@@ -258,7 +258,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-Printed 9/9/95		January 13, 1995			4
+Printed 11/26/99	January 13, 1995			4
 
 
 
@@ -324,7 +324,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-Printed 9/9/95		January 13, 1995			5
+Printed 11/26/99	January 13, 1995			5
 
 
 
@@ -390,7 +390,7 @@ KERN_INODE
 
 
 
-Printed 9/9/95		January 13, 1995			6
+Printed 11/26/99	January 13, 1995			6
 
 
 
@@ -456,7 +456,7 @@ CTL_NET
 
 
 
-Printed 9/9/95		January 13, 1995			7
+Printed 11/26/99	January 13, 1995			7
 
 
 
@@ -522,7 +522,7 @@ CTL_USER
 
 
 
-Printed 9/9/95		January 13, 1995			8
+Printed 11/26/99	January 13, 1995			8
 
 
 
@@ -588,7 +588,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-Printed 9/9/95		January 13, 1995			9
+Printed 11/26/99	January 13, 1995			9
 
 
 
@@ -654,7 +654,7 @@ CTL_VM
 
 
 
-Printed 9/9/95		January 13, 1995		       10
+Printed 11/26/99	January 13, 1995		       10
 
 
 
@@ -720,7 +720,7 @@ FILES
 
 
 
-Printed 9/9/95		January 13, 1995		       11
+Printed 11/26/99	January 13, 1995		       11
 
 
 
@@ -786,7 +786,7 @@ HISTORY
 
 
 
-Printed 9/9/95		January 13, 1995		       12
+Printed 11/26/99	January 13, 1995		       12
 
 
 

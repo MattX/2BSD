@@ -51,16 +51,16 @@ DESCRIPTION
      counterparts are prefixed thus: `brgallon'.  Currency is
      denoted `belgiumfranc', `britainpound', ...
 
-     For a complete list of units, `cat /usr/lib/units'.
+     For a complete list of units, `cat /usr/share/misc/units'.
 
 FILES
-     /usr/lib/units
+     /usr/share/misc/units
 
 
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/10/95                                                 1
+Printed 11/24/99						1
 
 
 
@@ -126,7 +126,7 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
 
 
 
-Printed 9/10/95                                                 2
+Printed 11/24/99						2
 
 
 
@@ -192,7 +192,7 @@ NOTES
 
 
 
-Printed 9/10/95                                                 3
+Printed 11/24/99						3
 
 
 
@@ -217,8 +217,8 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
      bols are taken as undefined global externals.
 
 FILES
-     /usr/lib/sysmac.sml system macro library (for .mcall direc-
-     tive)
+     /usr/share/misc/sysmac.smlsystem macro library (for .mcall
+     directive)
      filen.xrf		 intermediate cross-reference temporary
      file
      lpr(1)		 spooler
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 9/10/95                                                 4
+Printed 11/24/99						4
 
 
 

@@ -6,61 +6,61 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 NAME
-     getopt - get option letter from argv
+     getopt - get option character from command line argument
+     list
 
 SYNOPSIS
-     int getopt(argc, argv, optstring)
-     int argc;
-     char **argv;
-     char *optstring;
+     #include <stdlib.h>
 
      extern char *optarg;
      extern int optind;
+     extern int optopt;
+     extern int opterr;
+     extern int optreset;
+
+     _i_n_t
+     getopt(argc, argv, optstring)
+     _i_n_t _a_r_g_c;
+     _c_h_a_r **_a_r_g_v;
+     _c_h_a_r *_o_p_t_s_t_r_i_n_g;
 
 DESCRIPTION
-     _G_e_t_o_p_t returns the next option letter in _a_r_g_v that matches a
-     letter in _o_p_t_s_t_r_i_n_g.  _O_p_t_s_t_r_i_n_g is a string of recognized
-     option letters; if a letter is followed by a colon, the
-     option is expected to have an argument that may or may not
-     be separated from it by white space.  _O_p_t_a_r_g is set to point
-     to the start of the option argument on return from _g_e_t_o_p_t.
+     The getopt() function incrementally parses a command line
+     argument list _a_r_g_v and returns the next _k_n_o_w_n option charac-
+     ter.  An option character is _k_n_o_w_n if it has been specified
+     in the string of accepted option characters, _o_p_t_s_t_r_i_n_g.
 
-     _G_e_t_o_p_t places in _o_p_t_i_n_d the _a_r_g_v index of the next argument
-     to be processed.  Because _o_p_t_i_n_d is external, it is normally
-     initialized to zero automatically before the first call to
-     _g_e_t_o_p_t.
+     The option string _o_p_t_s_t_r_i_n_g may contain the following ele-
+     ments: individual characters, and characters followed by a
+     colon to indicate an option argument is to follow.  For
+     example, an option string """x"" recognizes an option
+     ``-x'', and an option string """x:"" recognizes an option
+     and argument ``-x _a_r_g_u_m_e_n_t''.  It does not matter to
+     getopt() if a following argument has leading white space.
 
-     When all options have been processed (i.e., up to the first
-     non-option argument), _g_e_t_o_p_t returns EOF.	The special
-     option -- may be used to delimit the end of the options; EOF
-     will be returned, and -- will be skipped.
+     On return from getopt(), _o_p_t_a_r_g points to an option argu-
+     ment, if it is anticipated, and the variable _o_p_t_i_n_d contains
+     the index to the next _a_r_g_v argument for a subsequent call to
+     getopt().	The variable _o_p_t_o_p_t saves the last _k_n_o_w_n option
+     character returned by getopt().
 
-DIAGNOSTICS
-     _G_e_t_o_p_t prints an error message on _s_t_d_e_r_r and returns a ques-
-     tion mark (?) when it encounters an option letter not
-     included in _o_p_t_s_t_r_i_n_g.
+     The variable _o_p_t_e_r_r and _o_p_t_i_n_d are both initialized to 1.
+     The _o_p_t_i_n_d variable may be set to another value before a set
+     of calls to getopt() in order to skip over more or less argv
+     entries.
 
-EXAMPLE
-     The following code fragment shows how one might process the
-     arguments for a command that can take the mutually exclusive
-     options a and b, and the options f and o, both of which
-     require arguments:
+     In order to use getopt() to evaluate multiple sets of argu-
+     ments, or to evaluate a single set of arguments multiple
+     times, the variable _o_p_t_r_e_s_e_t must be set to 1 before the
+     second and each additional set of calls to getopt(), and the
+     variable _o_p_t_i_n_d must be reinitialized.
 
-	  main(argc, argv)
-	  int argc;
-	  char **argv;
-	  {
-	       int c;
-	       extern int optind;
-	       extern char *optarg;
-	       .
-	       .
-	       .
-	       while ((c = getopt(argc, argv, "abf:o:")) != EOF)
+     The getopt() function returns an EOF when the argument list
+     is exhausted, or a non-recognized option is encountered.
 
 
 
-Printed 9/9/95		  May 27, 1986				1
+Printed 11/26/99	January 12, 1996			1
 
 
 
@@ -71,62 +71,62 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-		    switch (c) {
-		    case `a':
-			 if (bflg)
-			      errflg++;
-			 else
-			      aflg++;
-			 break;
-		    case `b':
-			 if (aflg)
-			      errflg++;
-			 else
-			      bproc();
-			 break;
-		    case `f':
-			 ifile = optarg;
-			 break;
-		    case `o':
-			 ofile = optarg;
-			 break;
-		    case `?':
-		    default:
-			 errflg++;
-			 break;
-		    }
-	       if (errflg) {
-		    fprintf(stderr, "Usage: ...");
-		    exit(2);
-	       }
-	       for (; optind < argc; optind++) {
-		    .
-		    .
-		    .
-	       }
-	       .
-	       .
-	       .
-	  }
+     The interpretation of options in the argument list may be
+     cancelled by the option `--' (double dash) which causes
+     getopt() to signal the end of argument processing and return
+     an EOF.  When all options have been processed (i.e., up to
+     the first non-option argument), getopt() returns EOF.
 
-HISTORY
-     Written by Henry Spencer, working from a Bell Labs manual
-     page.  Modified by Keith Bostic to behave more like the Sys-
-     tem V version.
-
-BUGS
-     It is not obvious how `-' standing alone should be treated;
-     this version treats it as a non-option argument, which is
-     not always right.
+DIAGNOSTICS
+     If the getopt() function encounters a character not found in
+     the string _o_p_t_a_r_g or detects a missing option argument it
+     writes an error message and returns `?' to the _s_t_d_e_r_r.  Set-
+     ting _o_p_t_e_r_r to a zero will disable these error messages.  If
+     _o_p_t_s_t_r_i_n_g has a leading `:' then a missing option argument
+     causes a `:' to be returned in addition to suppressing any
+     error messages.
 
      Option arguments are allowed to begin with `-'; this is rea-
      sonable but reduces the amount of error checking possible.
 
+EXTENSIONS
+     The _o_p_t_r_e_s_e_t variable was added to make it possible to call
+     the getopt() function multiple times.  This is an extension
+     to the IEEE Std1003.2 (``POSIX'') specification.
+
+EXAMPLE
+     extern char *optarg;
+     extern int optind;
+     int bflag, ch, fd;
+
+     bflag = 0;
+     while ((ch = getopt(argc, argv, "bf:")) != EOF)
+	  switch(ch) {
+	  case 'b':
+	       bflag = 1;
+	       break;
+	  case 'f':
+	       if ((fd = open(optarg, O_RDONLY, 0)) < 0) {
+		    (void)fprintf(stderr,
+			"myname: %s: %s\n", optarg, strerror(errno));
+		    exit(1);
+	       }
+	       break;
+	  case '?':
+	  default:
+	       usage();
+     }
+     argc -= optind;
+     argv += optind;
+
+HISTORY
+     The getopt() function appeared 4.3BSD.
 
 
 
 
-Printed 9/9/95		  May 27, 1986				2
+
+Printed 11/26/99	January 12, 1996			2
 
 
 
@@ -137,10 +137,38 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-     _G_e_t_o_p_t is quite flexible but the obvious price must be paid:
-     there is much it could do that it doesn't, like checking
-     mutually exclusive options, checking type of option argu-
-     ments, etc.
+BUGS
+     A single dash ``-'' may be specified as an character in _o_p_t_-
+     _s_t_r_i_n_g , however it should never have an argument associated
+     with it.  This allows getopt() to be used with programs that
+     expect ``-'' as an option flag.  This practice is wrong, and
+     should not be used in any current development.  It is pro-
+     vided for backward compatibility only . By default, a single
+     dash causes getopt() to return EOF.  This is, we believe,
+     compatible with System V.
+
+     It is also possible to handle digits as option letters.
+     This allows getopt() to be used with programs that expect a
+     number (``-3'') as an option.  This practice is wrong, and
+     should not be used in any current development.  It is pro-
+     vided for backward compatibility only.  The following code
+     fragment works in most cases.
+
+     int length;
+     char *p;
+
+     while ((c = getopt(argc, argv, "0123456789")) != EOF)
+	  switch (c) {
+	  case '0': case '1': case '2': case '3': case '4':
+	  case '5': case '6': case '7': case '8': case '9':
+	       p = argv[optind - 1];
+	       if (p[0] == '-' && p[1] == ch && !p[2])
+		    length = atoi(++p);
+	       else
+		    length = atoi(argv[optind] + 1);
+	       break;
+	  }
+     }
 
 
 
@@ -164,35 +192,7 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 9/9/95		  May 27, 1986				3
+Printed 11/26/99	January 12, 1996			3
 
 
 

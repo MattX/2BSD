@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  June 5, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ MORE(1)             UNIX Programmer's Manual		  MORE(1)
 
 
 
-Printed 9/9/95		  June 5, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 
@@ -192,7 +192,7 @@ MORE(1)             UNIX Programmer's Manual		  MORE(1)
 
 
 
-Printed 9/9/95		  June 5, 1986				3
+Printed 11/26/99	October 22, 1996			3
 
 
 
@@ -258,7 +258,7 @@ FILES
 
 
 
-Printed 9/9/95		  June 5, 1986				4
+Printed 11/26/99	October 22, 1996			4
 
 
 
@@ -269,7 +269,7 @@ MORE(1)             UNIX Programmer's Manual		  MORE(1)
 
 
 
-     /usr/lib/more.help  Help file
+     /usr/share/misc/more.help	   Help file
 
 SEE ALSO
      csh(1), man(1), msgs(1), script(1), sh(1), environ(7)
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 9/9/95		  June 5, 1986				5
+Printed 11/26/99	October 22, 1996			5
 
 
 

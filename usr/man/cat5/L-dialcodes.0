@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -76,11 +76,11 @@ L-DIALCODES(5)	    UNIX Programmer's Manual	   L-DIALCODES(5)
      the login/password sequences in _L._s_y_s.
 
 FILES
-     /usr/lib/uucp/L-dialcodes
-     /usr/lib/uucp/UUAIDS/L-dialcodes	L-dialcodes example
+     /etc/uucp/L-dialcodes
+     /etc/uucp/UUAIDS/L-dialcodes   L-dialcodes example
 
 SEE ALSO
-     uucp(1C), uux(1C), L.sys(5), uucico(8C).
+     uucp(1), uux(1), L.sys(5), uucico(8).
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

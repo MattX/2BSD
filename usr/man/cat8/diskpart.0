@@ -9,7 +9,7 @@ NAME
      diskpart - calculate default disk partition sizes
 
 SYNOPSIS
-     /etc/diskpart [ -p ] [ -d ] disk-type
+     /usr/sbin/diskpart [ -p ] [ -d ] disk-type
 
 DESCRIPTION
      _D_i_s_k_p_a_r_t is used to calculate the disk partition sizes based
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 30, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 
@@ -126,7 +126,7 @@ DISKPART(8)	    UNIX Programmer's Manual	      DISKPART(8)
 
 
 
-Printed 9/9/95		  May 30, 1986				2
+Printed 11/26/99	November 17, 1996			2
 
 
 

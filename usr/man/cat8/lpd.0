@@ -9,7 +9,7 @@ NAME
      lpd - line printer daemon
 
 SYNOPSIS
-     /usr/lib/lpd [ -l ] [ port # ]
+     /usr/sbin/lpd [ -l ] [ port # ]
 
 DESCRIPTION
      _L_p_d is the line printer daemon (spool area handler)  and  is
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		December 8, 1985			1
+Printed 11/26/99	October 23, 1996			1
 
 
 
@@ -126,7 +126,7 @@ LPD(8)		    UNIX Programmer's Manual		   LPD(8)
 
 
 
-Printed 9/9/95		December 8, 1985			2
+Printed 11/26/99	October 23, 1996			2
 
 
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		December 8, 1985			3
+Printed 11/26/99	October 23, 1996			3
 
 
 

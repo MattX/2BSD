@@ -40,8 +40,8 @@ DESCRIPTION
 	    produce a trailer to allow changing cassettes, and
 	    resume when the typesetter's start button is pressed.
 
-     -m_n_a_m_e Prepend the macro file /usr/lib/tmac/tmac._n_a_m_e to the
-	    input _f_i_l_e_s.
+     -m_n_a_m_e Prepend the macro file /usr/share/tmac/tmac._n_a_m_e to
+	    the input _f_i_l_e_s.
 
      -r_a_N   Set register _a (one-character) to _N.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -88,8 +88,8 @@ TROFF(1)	    UNIX Programmer's Manual		 TROFF(1)
 
      -F_f_o_n_t_d_i_r
 	    The directory _f_o_n_t_d_i_r contains the font width tables
-	    instead of the default directory /usr/lib/fonts. This
-	    option can be used to produce output for devices
+	    instead of the default directory /usr/share/fonts.
+	    This option can be used to produce output for devices
 	    besides the phototypesetter.
 
      If the file /_u_s_r/_a_d_m/_t_r_a_c_c_t is writable, _t_r_o_f_f keeps photo-
@@ -97,12 +97,12 @@ TROFF(1)	    UNIX Programmer's Manual		 TROFF(1)
      file may be secured by making _t_r_o_f_f a 'set user-id' program.
 
 FILES
-     /tmp/ta*		   temporary file
-     /usr/lib/tmac/tmac.*  standard macro files
-     /usr/lib/term/*	   terminal driving tables for _n_r_o_f_f
-     /usr/lib/font/*	   font width tables for _t_r_o_f_f
-     /dev/cat		   phototypesetter
-     /usr/adm/tracct	   accounting statistics for /dev/cat
+     /tmp/ta*		     temporary file
+     /usr/share/tmac/tmac.*  standard macro files
+     /usr/share/term/*	     terminal driving tables for _n_r_o_f_f
+     /usr/share/font/*	     font width tables for _t_r_o_f_f
+     /dev/cat		     phototypesetter
+     /usr/adm/tracct	     accounting statistics for /dev/cat
 
 SEE ALSO
      J. F. Ossanna, _N_r_o_f_f/_T_r_o_f_f _u_s_e_r'_s _m_a_n_u_a_l
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

@@ -1,66 +1,132 @@
 
 
 
-MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
+UMOUNT(8)	    UNIX Programmer's Manual		UMOUNT(8)
 
 
 
 NAME
-     mount, umount - mount and dismount file system
+     umount - unmount file systems
 
 SYNOPSIS
-     /etc/mount [ special name [ -r ] ]
-
-     /etc/mount -a
-
-     /etc/umount special
-
-     /etc/umount -a
+     umount [ -fv ] _s_p_e_c_i_a_l | _n_o_d_e
+     umount -a [ -fv ] [ -t _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
 
 DESCRIPTION
-     _M_o_u_n_t announces to the system that a removable file system
-     is present on the device _s_p_e_c_i_a_l. The file _n_a_m_e must exist
-     already; it must be a directory (unless the root of the
-     mounted file system is not a directory).  It becomes the
-     name of the newly mounted root.  The optional argument -r
-     indicates that the file system is to be mounted read-only.
+     The umount command calls the umount(2) system call to remove
+     a _s_p_e_c_i_a_l _d_e_v_i_c_e from the file system tree at the point
+     _n_o_d_e.  If either _s_p_e_c_i_a_l or _n_o_d_e are not provided, the
+     appropriate information is taken from the fstab(5) file.
 
-     _U_m_o_u_n_t announces to the system that the removable file sys-
-     tem previously mounted on device _s_p_e_c_i_a_l is to be removed.
+     The options are as follows:
 
-     If the -a option is present for either _m_o_u_n_t or _u_m_o_u_n_t, all
-     of the file systems described in /_e_t_c/_f_s_t_a_b are attempted to
-     be mounted or unmounted.  In this case, _s_p_e_c_i_a_l and _n_a_m_e are
-     taken from /_e_t_c/_f_s_t_a_b. The _s_p_e_c_i_a_l file name from /_e_t_c/_f_s_t_a_b
-     is the block special name.
 
-     These commands maintain a table of mounted devices in
-     /_e_t_c/_m_t_a_b. If invoked without an argument, _m_o_u_n_t prints the
-     table.
+     -a        All of the file systems described in fstab(5) are
+	       unmounted.
 
-     Physically write-protected and magnetic tape file systems
-     must be mounted read-only or errors will occur when access
-     times are updated, whether or not any explicit write is
-     attempted.
+     -f        The file system is forcibly unmounted.  Active
+	       special devices continue to work, but all other
+	       files return errors if further accesses are
+	       attempted.  The root file system cannot be forci-
+	       bly unmounted.  This is not currently implemented
+	       in 2.11BSD.
+
+     -t _u_f_s | _e_x_t_e_r_n_a_l _t_y_p_e
+	       Is used to indicate the actions should only be
+	       taken on filesystems of the specified type.  More
+	       than one type may be specified in a comma
+	       separated list.	The list of filesystem types can
+	       be prefixed with no to specify the filesystem
+	       types for which action should not be taken.  For
+	       example, the umount command:
+
+	       umount -a -t nfs,mfs
+
+	       umounts all filesystems of the type NFS and MFS.
+
+	       NOTE: Only UFS is supported by 2.11BSD.	The exam-
+	       ple is for illustrative purposes only.
+
+     -v        Verbose, additional information is printed out as
+	       each file system is unmounted.
 
 FILES
-     /etc/mtab mount table
      /etc/fstab     file system table
 
 SEE ALSO
-     mount(2), mtab(5), fstab(5)
-
-BUGS
-     Mounting file systems full of garbage will crash the system.
-     Mounting a root directory on a non-directory makes some
-     apparently good pathnames invalid.
+     umount(2), fstab(5), mount(8)
 
 
 
 
 
+Printed 11/24/99	January 16, 1996			1
 
-Printed 9/9/95		 April 27, 1985                         1
+
+
+
+
+
+UMOUNT(8)	    UNIX Programmer's Manual		UMOUNT(8)
+
+
+
+HISTORY
+     A umount command appeared in Version 6 AT&T UNIX.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/24/99	January 16, 1996			2
 
 
 

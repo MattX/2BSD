@@ -8,8 +8,8 @@
  * interest of streamlining the tty subsystem (as well as making flag bits
  * available for use without expanding the tty structure).
  *
- * All values are 0.   Since there is no kernel support at all for any of 
- * the flags the only reason to use this file is to avoid having to modify 
+ * All values are 0.   Since there is no kernel support at all for any of
+ * the flags the only reason to use this file is to avoid having to modify
  * the source to whatever application still references the symbols below.
 */
 

@@ -15,7 +15,8 @@ SYNOPSIS
 
 DESCRIPTION
      These macros are used to lay out pages of this manual.  A
-     skeleton page may be found in the file /usr/man/man0/xx.
+     skeleton page may be found in the file
+     /usr/man/man.template.
 
      Any text argument _t may be zero to six words.  Quotes may be
      used to include blanks in a `word'.  If _t_e_x_t is empty, spe-
@@ -40,8 +41,8 @@ DESCRIPTION
      \*S  Change to default type size.
 
 FILES
-     /usr/lib/tmac/tmac.an
-     /usr/man/man0/xx
+     /usr/share/tmac/tmac.an
+     /usr/man/man.template
 
 SEE ALSO
      troff(1), man(1)
@@ -56,11 +57,10 @@ Request      Cause If no    Explanation
 .BI _t	     no    _t=n.t.l. Join words of _t alternating bold and
 			    italic.
 .BR _t	     no    _t=n.t.l. Join words of _t alternating bold and
-			    Roman.
 
 
 
-Printed 9/9/95		  May 15, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -71,6 +71,7 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
+			    Roman.
 .DT	     no    .5i 1i...Restore default tabs.
 .HP _i	     yes   _i=p.i.*  Set prevailing indent to _i. Begin
 			    paragraph with hanging indent.
@@ -125,8 +126,7 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
-
-Printed 9/9/95		  May 15, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 

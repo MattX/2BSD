@@ -105,6 +105,11 @@ EXTERNALITIMES	YES			# map out inode time values
 UCB_CLIST	YES			# clists moved from kernel data space
 QUOTA		YES			# dynamic file system quotas
 					# NOTE -- *very* expensive
+SOFUB_MAP	NO			# Software UNIBUS/QBUS map.  Permits
+					# use of 18 bit controllers in a 22 bit
+					# Qbus system.  Normally NO except for
+					# the GENERIC kernel or if you actually
+					# have an 18 bit RX02 on a Qbus system.
 
 # UCB_METER is fairly expensive, but various programs (iostat, vmstat, etc)
 # use it.
@@ -163,7 +168,7 @@ NHT		0		# TE16, TU45, TU77
 # controller (the standard DEC TM only supports 800BPI).  For more details,
 # see /sys/pdpuba/tm.c.
 NTM		0		# TM11
-AVIVTM		YES		# AVIV 800/1600/6250 controller
+AVIVTM		NO		# AVIV 800/1600/6250 controller
 
 NTS		1		# TS11
 

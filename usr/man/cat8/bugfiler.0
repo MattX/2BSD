@@ -19,7 +19,7 @@ DESCRIPTION
      to be compatible with the Rand MH mail system.  _B_u_g_f_i_l_e_r is
      normally invoked by the mail delivery program through
      _a_l_i_a_s_e_s(5) with a line such as the following in
-     /usr/lib/aliases.
+     /etc/aliases.
 
 	  bugs:"|bugfiler /usr/bugs/mail"
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 20, 1986				1
+Printed 11/26/99	October 23, 1996			1
 
 
 
@@ -80,8 +80,8 @@ BUGFILER(8)	    UNIX Programmer's Manual	      BUGFILER(8)
      lines by ending each but the last with a backslash (`\').
 
 FILES
-     /usr/lib/sendmail	      mail delivery program
-     /usr/lib/unixtomh	      converts unix mail format to mh
+     /usr/sbin/sendmail       mail delivery program
+     /usr/libexec/unixtomh    converts unix mail format to mh
      format
      maildir/.ack	      the message sent in acknowledgement
      maildir/.format	      the message sent when format errors
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 20, 1986				2
+Printed 11/26/99	October 23, 1996			2
 
 
 

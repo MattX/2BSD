@@ -1,1 +1,1 @@
-char version[] = "2.11 BSD UNIX #77: Sun Oct 29 00:10:29 PDT 1995\n    sms1@sms.sms.iipo.gtegsc.com:/usr/src/sys/GENERIC\n";
+char version[] = "2.11 BSD UNIX #115: Sat Apr 22 19:07:25 PDT 2000\n    sms1@curly.2bsd.com:/usr/src/sys/GENERIC\n";

@@ -35,8 +35,8 @@ DESCRIPTION
      tables, and references is acceptable as input.
 
 FILES
-     /usr/lib/tmac/tmac.x
-     /usr/lib/ms/x.???
+     /usr/share/tmac/tmac.x
+     /usr/share/ms/x.???
 
 SEE ALSO
      eqn(1), refer(1), tbl(1), troff(1)
@@ -60,7 +60,7 @@ Name	Value	  Reset?
 
 
 
-UCB Computer Center	  May 20, 1985				1
+UCB Computer Center	October 23, 1996			1
 
 
 
@@ -126,7 +126,7 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 
 
 
-UCB Computer Center	  May 20, 1985				2
+UCB Computer Center	October 23, 1996			2
 
 
 
@@ -192,7 +192,7 @@ REGISTERS
 
 
 
-UCB Computer Center	  May 20, 1985				3
+UCB Computer Center	October 23, 1996			3
 
 
 
@@ -258,7 +258,7 @@ BUGS
 
 
 
-UCB Computer Center	  May 20, 1985				4
+UCB Computer Center	October 23, 1996			4
 
 
 

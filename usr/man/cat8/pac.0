@@ -9,8 +9,8 @@ NAME
      pac - printer/plotter accounting information
 
 SYNOPSIS
-     /etc/pac [ -Pprinter ] [ -pprice ] [ -s ] [ -r ] [ -c ] [ -m
-     ] [ name ... ]
+     /usr/sbin/pac [ -Pprinter ] [ -pprice ] [ -s ] [ -r ] [ -c ]
+     [ -m ] [ name ... ]
 
 DESCRIPTION
      _P_a_c reads the printer/plotter accounting files, accumulating
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		October 30, 1985			1
+Printed 11/26/99	November 1, 1996			1
 
 
 

@@ -23,7 +23,7 @@ DESCRIPTION
      beginning with a `#' character are comments.
 
      All occurrences of _a_l_i_a_s__n_a_m_e are mapped to _r_e_a_l__n_a_m_e by
-     _u_u_c_i_c_o(8C), _u_u_c_p(1), and _u_u_x(1).  The mapping occurs regard-
+     _u_u_c_i_c_o(8), _u_u_c_p(1), and _u_u_x(1).  The mapping occurs regard-
      less of whether the name was typed in by a user or provided
      by a remote site. An exception is the -s option of _u_u_c_i_c_o;
      only the site's real hostname (the name in _L._s_y_s(5)) will be
@@ -33,11 +33,11 @@ DESCRIPTION
      will not be used.
 
 FILES
-     /usr/lib/uucp/L.aliases
-     /usr/lib/uucp/UUAIDS/L.aliases   L.aliases example
+     /etc/uucp/L.aliases /etc/uucp/UUAIDS/L.aliases   L.aliases
+     example
 
 SEE ALSO
-     uucp(1C), uux(1C), L.sys(5), uucico(8C)
+     uucp(1), uux(1), L.sys(5), uucico(8)
 
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 10, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 

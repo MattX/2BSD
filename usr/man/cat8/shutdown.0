@@ -9,8 +9,8 @@ NAME
      shutdown - close down the system at a given time
 
 SYNOPSIS
-     /etc/shutdown [ -k ] [ -r ] [ -h ] [ -f ] [ -n ] time [
-     warning-message ... ]
+     shutdown [ -k ] [ -r ] [ -h ] [ -f ] [ -n ] time [ warning-
+     message ... ]
 
 DESCRIPTION
      _S_h_u_t_d_o_w_n provides an automated shutdown procedure which a
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		  May 26, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 26, 1986				2
+Printed 11/24/99	November 16, 1996			2
 
 
 

@@ -52,15 +52,15 @@ DESCRIPTION
 	    char    fs_fsmnt[MAXMNTLEN]; /* ordinary file mounted on */
 	    ino_t   fs_lasti;		 /* start place for circular search */
 	    ino_t   fs_nbehind;          /* est # free inodes before s_lasti */
+	    u_short fs_flags;		 /* mount time flags */
      };
 
      _F_i_l_e _s_y_s_t_e_m: A file system is described by its super-block.
      Block 0 of each file system partition is unused and is
-     available to contain a bootstrap program, pack label, or
 
 
 
-Printed 9/9/95		 August 11, 1987			1
+Printed 11/26/99	January 27, 1996			1
 
 
 
@@ -71,6 +71,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+     available to contain a bootstrap program, pack label, or
      other information.  Block 1 (SUPERB) is the super block.
      The inode area starts immediately after the super-block, in
      block 2.  _F_s__i_s_i_z_e is the address of the first block after
@@ -81,13 +82,14 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
      _S_u_p_e_r _b_l_o_c_k: The path name on which the file system is
      mounted is maintained in _f_s__f_s_m_n_t.  _F_s__f_l_o_c_k, _f_s__i_l_o_c_k,
-     _f_s__f_m_o_d and _f_s__r_o_n_l_y are flags maintained in the in core
-     copy of the super block while its file system is mounted and
-     their values on disk are immaterial.  _F_s__f_m_o_d is used as a
-     flag to indicate that the super-block has changed and should
-     be copied to the disk during the next periodic update of
-     file system information.  _F_s__r_o_n_l_y is a write-protection
-     indicator.
+     _f_s__f_m_o_d, _f_s__r_o_n_l_y and _f_s__f_l_a_g_s are flags maintained in the
+     in core copy of the super block while its file system is
+     mounted and their values on disk are immaterial.  _F_s__f_m_o_d is
+     used as a flag to indicate that the super-block has changed
+     and should be copied to the disk during the next periodic
+     update of file system information.  _F_s__r_o_n_l_y is a write-
+     protection indicator.  It is a copy of the mount flags
+     _f_s__f_l_a_g_s anded with MNT_RDONLY(see/_s_y_s/_h/_m_o_u_n_t._h).
 
      _F_s__t_i_m_e is the last time the super-block of the file system
      was changed.  During a reboot, the _f_s__t_i_m_e of the super-
@@ -121,12 +123,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 	    gid_t   di_gid;	 /* owner's group id */
 	    off_t   di_size;	 /* number of bytes in file */
 	    daddr_t di_addr[7];  /* 7 block addresses 4 bytes each */
-	    daddr_t di_reserved[3];/* pad of 12 to make total size 64 */
-	    time_t  di_atime;	 /* time last accessed */
 
 
 
-Printed 9/9/95		 August 11, 1987			2
+Printed 11/26/99	January 27, 1996			2
 
 
 
@@ -137,6 +137,9 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+	    u_short di_reserved[5];/* pad of 10 to make total size 64 */
+	    u_short di_flags;
+	    time_t  di_atime;	 /* time last accessed */
 	    time_t  di_mtime;	 /* time last modified */
 	    time_t  di_ctime;	 /* time created */
      };
@@ -186,13 +189,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      the array _d_i__a_d_d_r. For a DEV_BSIZE of 1K bytes, 7 addresses
      are kept in _d_i__a_d_d_r using 28 of the 40 bytes.  The first 4
      addresses specify device blocks directly.	The last 3
-     addresses are singly, doubly and triply indirect and point
-     to blocks containing 256 further block pointers.  There are
-     3 block addresses reserved as a pad to bring the total size
 
 
 
-Printed 9/9/95		 August 11, 1987			3
+Printed 11/26/99	January 27, 1996			3
 
 
 
@@ -203,6 +203,9 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+     addresses are singly, doubly and triply indirect and point
+     to blocks containing 256 further block pointers.  There are
+     3 block addresses reserved as a pad to bring the total size
      of an inode to 64 bytes.  All block addresses are of type
      _d_a_d_d_r__t (see _t_y_p_e_s(5)).
 
@@ -252,13 +255,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      _s__m and _s__n respectively.	_F_s__s_t_e_p is the distance between
      successive blocks and _f_s__c_y_l is the number of blocks before
      the pattern repeats.  A file system's interleaving factors
-     are determined when it is first created by _m_k_f_s(8).  _M_k_f_s
-     lays out the initial free list with these parameters and
-     _f_s_c_k(8) can be used to rebuild the free list optimally (and
 
 
 
-Printed 9/9/95		 August 11, 1987			4
+Printed 11/26/99	January 27, 1996			4
 
 
 
@@ -269,6 +269,9 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+     are determined when it is first created by _m_k_f_s(8).  _M_k_f_s
+     lays out the initial free list with these parameters and
+     _f_s_c_k(8) can be used to rebuild the free list optimally (and
      assign new interleaving factors if necessary).
 
      _F_r_e_e _i_n_o_d_e _l_i_s_t: _F_s__n_i_n_o_d_e is the number of free inode
@@ -317,14 +320,11 @@ BUGS
      starting free inode searches at the position the last search
      ended cuts the time to gather free inodes significantly.
 
-     However, the separation of inodes and data blocks into com-
-     pletely different areas of the disk, the handling of the
-     free list, the lack of any file allocation layout policy
-     encouraging locality such as that found in the 4BSD file
 
 
 
-Printed 9/9/95		 August 11, 1987			5
+
+Printed 11/26/99	January 27, 1996			5
 
 
 
@@ -335,6 +335,10 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
+     However, the separation of inodes and data blocks into com-
+     pletely different areas of the disk, the handling of the
+     free list, the lack of any file allocation layout policy
+     encouraging locality such as that found in the 4BSD file
      system and the still too small block size often leads to
      extremely poor performance.
 
@@ -386,11 +390,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-
-
-
-
-Printed 9/9/95		 August 11, 1987			6
+Printed 11/26/99	January 27, 1996			6
 
 
 

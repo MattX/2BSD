@@ -1,1 +1,1 @@
-#define	NINGRES	0
+#define NINGRES	0

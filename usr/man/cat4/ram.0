@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		 August 21, 1987			1
+Printed 11/26/99	Januray 27, 1996			1
 
 
 
@@ -86,7 +86,7 @@ DIAGNOSTICS
      _r_a_m__s_i_z_e was set to zero.
 
 BUGS
-     The _r_a_m driver is only available under 2.10BSD.
+     The _r_a_m driver is only available under 2.11BSD.
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 August 21, 1987			2
+Printed 11/26/99	Januray 27, 1996			2
 
 
 

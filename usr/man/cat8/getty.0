@@ -9,7 +9,7 @@ NAME
      getty  - set terminal mode
 
 SYNOPSIS
-     /etc/getty [ type [ tty ] ]
+     getty [ type [ tty ] ]
 
 DESCRIPTION
      _G_e_t_t_y is usually invoked by _i_n_i_t(8) to open and initialize
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 22, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 22, 1986				2
+Printed 11/26/99	November 17, 1996			2
 
 
 

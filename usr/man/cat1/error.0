@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/26/99	October 21, 1996			1
 
 
 
@@ -90,10 +90,11 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 	       consumed entirely by _e_r_r_o_r.
 
      _d_i_s_c_a_r_d   Error messages from _l_i_n_t that refer to one of the
-	       two _l_i_n_t libraries, /_u_s_r/_l_i_b/_l_l_i_b-_l_c and
-	       /_u_s_r/_l_i_b/_l_l_i_b-_p_o_r_t are discarded, to prevent
-	       accidently touching these libraries.  Again, these
-	       error messages are consumed entirely by _e_r_r_o_r.
+	       two _l_i_n_t libraries, /_u_s_r/_s_h_a_r_e/_l_i_n_t/_l_l_i_b-_l_c and
+	       /_u_s_r/_s_h_a_r_e/_l_i_n_t/_l_l_i_b-_p_o_r_t are discarded, to
+	       prevent accidently touching these libraries.
+	       Again, these error messages are consumed entirely
+	       by _e_r_r_o_r.
 
      _n_u_l_l_i_f_y   Error messages from _l_i_n_t can be nullified if they
 	       refer to a specific function, which is known to
@@ -125,8 +126,7 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 
 
 
-
-Printed 9/9/95		   May 5, 1986				2
+Printed 11/26/99	October 21, 1996			2
 
 
 
@@ -192,7 +192,7 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 
 
 
-Printed 9/9/95		   May 5, 1986				3
+Printed 11/26/99	October 21, 1996			3
 
 
 
@@ -258,7 +258,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 5, 1986				4
+Printed 11/26/99	October 21, 1996			4
 
 
 

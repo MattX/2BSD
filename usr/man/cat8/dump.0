@@ -9,8 +9,7 @@ NAME
      dump - incremental file system dump
 
 SYNOPSIS
-     /etc/dump [0123456789BchfusTdWwn [_a_r_g_u_m_e_n_t ...]] [filesys-
-     tem]
+     dump [0123456789BchfusTdWwn [_a_r_g_u_m_e_n_t ...]] [filesystem]
 
 DESCRIPTION
      _D_u_m_p copies to magnetic tape all files changed after a cer-
@@ -57,10 +56,11 @@ DESCRIPTION
 	  although the information content is identical.
 
      s	  The size of the dump tape is specified in feet.  The
+	  number of feet is taken from the next _a_r_g_u_m_e_n_t. When
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 
@@ -71,7 +71,6 @@ DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
 
 
 
-	  number of feet is taken from the next _a_r_g_u_m_e_n_t. When
 	  the specified size is reached, _d_u_m_p will wait for reels
 	  to be changed.  The default tape size is 2300 feet.
 
@@ -126,7 +125,8 @@ DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
 
 
 
-Printed 9/9/95							2
+
+Printed 11/26/99						2
 
 
 
@@ -169,7 +169,7 @@ FILES
      /etc/group      to find group _o_p_e_r_a_t_o_r
 
 SEE ALSO
-     restor(1), dump(5), fstab(5), dumpdir(8)
+     restor(8), rdump(8), dump(5), fstab(5), dumpdir(8)
 
 DIAGNOSTICS
      Many, and verbose.
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 9/9/95							3
+Printed 11/26/99						3
 
 
 

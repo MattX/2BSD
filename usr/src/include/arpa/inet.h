@@ -21,7 +21,6 @@
  * External definitions for
  * functions in inet(3N)
  */
-
 unsigned long inet_addr();
 char	*inet_ntoa();
 struct	in_addr inet_makeaddr();

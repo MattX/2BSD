@@ -29,7 +29,7 @@ DESCRIPTION
      Note that inclusion can be suppressed by using `'' instead
      of `.', i.e.
 
-	  'so /usr/lib/tmac.s
+	  'so /usr/share/tmac/tmac.s
 
      A sample usage of _s_o_e_l_i_m would be
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		   May 7, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 

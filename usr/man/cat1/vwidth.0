@@ -10,7 +10,7 @@ NAME
 
 SYNOPSIS
      vwidth fontfile pointsize > ft_x_x.c
-     cc -c ft_x_x.c mv ft_x_x.o /usr/lib/font/ft_x_x
+     cc -c ft_x_x.c mv ft_x_x.o /usr/share/font/ft_x_x
 
 DESCRIPTION
      _V_w_i_d_t_h translates from the width information stored in the
@@ -32,11 +32,11 @@ DESCRIPTION
      Vwidth produces a C program on its standard output.  This
      program should be run through the C compiler and the object
      (that is, the .o file) saved.  The resulting file should be
-     placed in /usr/lib/font in the file ft_x_x where is a one or
+     placed in /usr/share/font in the file ft_x_x where is a one or
      two letter code that is the logical (internal to troff) font
      name.  This name can be found by looking in the file
-     /usr/lib/fontinfo/_f_n_a_m_e* where _f_n_a_m_e is the external name of
-     the font.
+     /usr/share/fontinfo/_f_n_a_m_e* where _f_n_a_m_e is the external name
+     of the font.
 
 SEE ALSO
      fed(1), vfont(5), troff(1), vtroff(1)
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 

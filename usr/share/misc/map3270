@@ -1,4 +1,4 @@
-# /etc/map3270 (/usr/new/etc/map3270 before migration)
+# /usr/share/misc/map3270
 # mail corrections and additions to "termcap"
 #
 # this file contains mappings between characters entered from the keyboard,

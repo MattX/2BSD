@@ -1,15 +1,15 @@
 
 
 
-RXFORMAT(8V)	    UNIX Programmer's Manual	     RXFORMAT(8V)
+RXFORMAT(8)	    UNIX Programmer's Manual	      RXFORMAT(8)
 
 
 
 NAME
-     rxformat - format floppy disks (2.10BSD)
+     rxformat - format floppy disks (2.11BSD)
 
 SYNOPSIS
-     /etc/rxformat special
+     rxformat special
 
 DESCRIPTION
      The _r_x_f_o_r_m_a_t program formats a diskette in the specified
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		 August 18, 1987			1
+Printed 11/26/99	November 17, 1996			1
 
 
 

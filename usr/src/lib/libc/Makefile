@@ -40,8 +40,8 @@
 #	defining HOSTLOOKUP to be "hosttable", compiles
 #	the host lookup routines that use /etc/hosts.
 #
-#HOSTLOOKUP=	named
-HOSTLOOKUP=	hosttable
+HOSTLOOKUP=	named
+#HOSTLOOKUP=	hosttable
 #							
 DESTDIR=
 INSTALL=install -m 644

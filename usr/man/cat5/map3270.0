@@ -10,7 +10,7 @@ NAME
      3270 keys
 
 SYNOPSIS
-     /etc/map3270
+     /usr/share/misc/map3270
 
 DESCRIPTION
      When emulating IBM-syle 3270 terminals under UNIX (see
@@ -60,7 +60,7 @@ FORMAT
 
 
 
-Printed 9/9/95		January 11, 1986			1
+Printed 11/26/99	November 27, 1996			1
 
 
 
@@ -126,7 +126,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 9/9/95		January 11, 1986			2
+Printed 11/26/99	November 27, 1996			2
 
 
 
@@ -192,7 +192,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 9/9/95		January 11, 1986			3
+Printed 11/26/99	November 27, 1996			3
 
 
 
@@ -211,7 +211,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 A SAMPLE ENTRY
      The following entry is used by tn3270(1) when unable to
      locate a reasonable version in the user's environment and in
-     /etc/map3270:
+     /usr/share/misc/map3270:
 
 	     name {	     # actual name comes from TERM variable
 	     clear = '^z';
@@ -258,7 +258,7 @@ IBM 3270 KEY DEFINITONS FOR AN ABOVE DEFINITION
 
 
 
-Printed 9/9/95		January 11, 1986			4
+Printed 11/26/99	November 27, 1996			4
 
 
 
@@ -309,7 +309,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 		    Erase current field           control-u
 
 FILES
-     /etc/map3270
+     /usr/share/misc/map3270
 
 SEE ALSO
      tn3270(1), mset(1), _Y_a_l_e _A_S_C_I_I _T_e_r_m_i_n_a_l _C_o_m_m_u_n_i_c_a_t_i_o_n _S_y_s_t_e_m
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 9/9/95		January 11, 1986			5
+Printed 11/26/99	November 27, 1996			5
 
 
 
@@ -390,7 +390,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 9/9/95		January 11, 1986			6
+Printed 11/26/99	November 27, 1996			6
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-SLATTACH(8C)	    UNIX Programmer's Manual	     SLATTACH(8C)
+SLATTACH(8)	    UNIX Programmer's Manual	      SLATTACH(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      slattach - attach serial lines as network interfaces
 
 SYOPNSIS
-     /etc/slattach ttyname [ _b_a_u_d_r_a_t_e ]
+     slattach ttyname [ _b_a_u_d_r_a_t_e ]
 
 DESCRIPTION
      _S_l_a_t_t_a_c_h is used to assign a tty line to a network inter-
@@ -26,8 +26,8 @@ DESCRIPTION
      the name that is shown by netstat(1)
 
 EXAMPLES
-	     /etc/slattach ttyh8
-	     /etc/slattach /dev/tty01 4800
+	     slattach ttyh8
+	     slattach /dev/tty01 4800
 
 DIAGNOSTICS
      Messages indicating the specified interface does not exit,
@@ -35,7 +35,7 @@ DIAGNOSTICS
      and tried to alter an interface's configuration.
 
 SEE ALSO
-     rc(8), intro(4N), netstat(1), ifconfig(8C)
+     rc(8), intro(4), netstat(1), ifconfig(8)
 
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		February 17, 1986			1
+Printed 11/24/99	November 17, 1996			1
 
 
 

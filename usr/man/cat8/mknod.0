@@ -9,7 +9,7 @@ NAME
      mknod - build special file
 
 SYNOPSIS
-     /etc/mknod name [ c ] [ b ] major minor
+     /sbin/mknod name [ c ] [ b ] major minor
 
 DESCRIPTION
      _M_k_n_o_d makes a special file.  The first argument is the _n_a_m_e
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 19, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 

@@ -1,5 +1,5 @@
 set history=30
-set path=(/etc /usr/ucb /bin /usr/bin /usr/new /usr/local)
+set path=(/bin /sbin /etc /usr/sbin /usr/ucb /usr/bin /usr/new /usr/local)
 if ($?prompt) then
 	set prompt="\!% "
 endif

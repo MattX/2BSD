@@ -10,7 +10,7 @@ OPTS=-DSMS -DUCB_METER -DINET -DQUOTA -DUCB_CLIST
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	%W% (Berkeley) %G%
+#	2.9	(2.11BSD GTE) 1997/8/29
 #
 #########################################################
 # Networking, separate I/D kernel			#
@@ -34,6 +34,7 @@ CFLAGS=	-O ${DEFS}
 CPP=	/lib/cpp -P ${DEFS}
 AS=	/bin/as -V
 ED=	/bin/ed
+SED=	/bin/sed
 
 SUB=	sys pdp pdpuba pdpmba net pdpnet
 
@@ -48,27 +49,23 @@ SUB=	sys pdp pdpuba pdpmba net pdpnet
 # NCONF	Network (network space) assembly binaries.  net_scb.o
 #		doesn't have to be first.
 
-CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
-	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_udiv.o libc_uldiv.o libc_ulsh.o \
-	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
+CONF=	scb.o \
+	mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_KScall.o mch_profile.o \
 	mch_start.o mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
 
-NCONF=	libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o libc_htonl.o \
-	libc_htons.o libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o \
-	libc_uldiv.o libc_ulsh.o \
-	libc_remque.o libc_strlen.o libc_udiv.o net_copy.o net_csv.o \
+NCONF=	net_copy.o net_csv.o \
 	net_mbuf.o net_scb.o net_SKcall.o net_trap.o net_xxx.o
 
 BASE=	br.o cons.o dh.o dhu.o dhv.o dr.o dz.o hk.o ht.o init_sysent.o \
 	kern_clock.o kern_descrip.o kern_mman.o kern_proc.o kern_prot.o \
-	kern_subr.o kern_synch.o kern_xxx.o lp.o machdep.o ra.o ram.o \
+	kern_prot2.o \
+	kern_subr.o kern_synch.o lp.o machdep.o ra.o ram.o \
 	rk.o rl.o rx.o si.o subr_rmap.o sys_inode.o sys_kern.o \
-	tm.o tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o \
-	ufs_bio.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
-	vm_proc.o vm_sched.o vm_swap.o vm_text.o xp.o quota_subr.o
-OV1=	sys_generic.o ufs_syscalls.o
+	tm.o ts.o tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o \
+	ufs_bio.o ufs_fio.o ufs_inode.o ufs_namei.o \
+	vm_proc.o vm_sched.o vm_swap.o xp.o quota_subr.o
+OV1=	sys_generic.o ufs_syscalls.o vfs_vnops.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
 OV3=	kern_time.o sys_process.o ufs_mount.o ufs_subr.o uipc_syscalls.o
 OV4=	dkbad.o kern_sig.o mem.o subr_xxx.o trap.o tty_pty.o tty_tty.o
@@ -77,8 +74,9 @@ OV5=	quota_kern.o quota_ufs.o quota_sys.o ufs_bmap.o	\
 # OV6 gets the (hopefully) never used routines
 OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o \
 	subr_log.o toy.o vm_swp.o
-OV7=	tmscp.o ts.o ufs_disksubr.o
-OV8=	mch_fpsim.o kern_sysctl.o ingreslock.o
+OV7=	ufs_disksubr.o ufs_dsort.o ufs_syscalls2.o kern_sig2.o
+OV8=	mch_fpsim.o kern_sysctl.o kern_xxx.o ingreslock.o vm_text.o
+OV9=	tmscp.o tmscpdump.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \
@@ -90,7 +88,7 @@ LD_KOBJ=${CONF} ${BASE} \
 	-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4} -Z ${OV5} -Z ${OV6} \
 	-Z ${OV7} -Z ${OV8} -Z ${OV9} -Z ${OV10} -Z ${OV11} -Z ${OV12} \
 	-Z ${OV13} -Z ${OV14} -Z ${OV15} -Y \
-	enable34.o vers.o param.o
+	enable34.o vers.o -lkern param.o
 
 NETOBJ=	${NCONF} af.o idp_usrreq.o if.o if_acc.o if_css.o if_de.o \
 	if_dmc.o if_ec.o if_en.o if_ether.o if_il.o if_imp.o if_imphost.o \
@@ -111,7 +109,7 @@ unix: ${SUB} ${KERNOBJ} d.unix.o checksys
 	size unix
 	@echo Compacting symbol table
 	-symcompact unix
-	@echo Compacting strings table - this will take a few minutes
+	@echo Compacting strings table
 	-strcompact unix
 	@echo rearranging symbols
 	-symorder ../pdp/symbols.sort unix
@@ -119,7 +117,7 @@ unix: ${SUB} ${KERNOBJ} d.unix.o checksys
 
 # d.netnix.o must be the last object file in the dependency list!
 netnix: d.netnix.o
-	-ld -X -i -o netnix ${NETOBJ} d.netnix.o
+	-ld -X -i -o netnix ${NETOBJ} -lkern d.netnix.o
 	size netnix
 	@echo Compacting symbol table
 	-symcompact netnix
@@ -134,7 +132,7 @@ netnix: d.netnix.o
 # have enough table space.
 d.unix.o d.netnix.o: netbind FRC
 	ld -q -r -d -X -i -o unix.o ${LD_KOBJ}
-	ld -q -r -d -X -i -o netnix.o ${NETOBJ}
+	ld -q -r -d -X -i -o netnix.o ${NETOBJ} -lkern
 	./netbind unix.o netnix.o
 	rm unix.o netnix.o
 	${AS} - -o d.unix.o d.unix.s
@@ -145,9 +143,7 @@ vers.o: FRC
 	${CC} -c vers.c
 
 boot.o: boot.s
-	${CPP} boot.s > boot.i
-	${AS} -o boot.o boot.i
-	rm -f boot.i
+	${CPP} boot.s | ${AS} -o boot.o
 
 param.o:
 	${CC} -S ${CFLAGS} param.c
@@ -166,15 +162,15 @@ netbind: ../conf/netbind.c
 
 sys pdp pdpuba pdpmba:
 	make -f Make.$@ I=${I} H=${H} M=${M} AS="${AS}" CPP="${CPP}" \
-	    CFLAGS="${CFLAGS}" ED="${ED}"
+	    CFLAGS="${CFLAGS}" SED="${SED}"
 
 net pdpnet:
 	make -f Make.$@ I=${I} H=${H} M=${M} AS="${AS}" \
 	    CPP="${CPP} -DSUPERVISOR" CFLAGS="${CFLAGS} -DSUPERVISOR" \
-	    ED="${ED}"
+	    SED="${SED}" ED="${ED}"
 
 clean:
-	rm -f unix core mklog *.o *.i assym.h genassym checksys
+	rm -f unix core mklog *.o assym.h genassym checksys
 	rm -f netnix netbind d.unix.s d.netnix.s
 
 install:
@@ -202,4 +198,3 @@ FRC:
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
-

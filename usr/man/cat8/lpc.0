@@ -9,7 +9,7 @@ NAME
      lpc - line printer control program
 
 SYNOPSIS
-     /etc/lpc [ command [ argument ... ] ]
+     /usr/sbin/lpc [ command [ argument ... ] ]
 
 DESCRIPTION
      _L_p_c is used by  the  system  administrator  to  control  the
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	November 1, 1996			1
 
 
 
@@ -126,7 +126,7 @@ FILES
 
 
 
-Printed 9/9/95		 April 27, 1985                         2
+Printed 11/26/99	November 1, 1996			2
 
 
 
@@ -192,7 +192,7 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95		 April 27, 1985                         3
+Printed 11/26/99	November 1, 1996			3
 
 
 

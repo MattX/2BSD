@@ -9,7 +9,7 @@ NAME
      ns - Xerox Network Systems(tm) protocol family
 
 SYNOPSIS
-     Not currently supported under 2.10BSD
+     Not currently supported under 2.11BSD
 
 DESCRIPTION
      The NS protocol family is a collection of protocols layered
@@ -60,7 +60,7 @@ ADDRESSING
 
 
 
-Printed 9/9/95		 August 1, 1987                         1
+Printed 11/26/99	January 27, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 August 1, 1987                         2
+Printed 11/26/99	January 27, 1996			2
 
 
 

@@ -1,9 +1,9 @@
 #! /bin/sh
 #
-#	@(#)SHELL	1.7	(Berkeley)	3/11/85
+#	@(#)SHELL	1.7.1	(2.11BSD)	1996/10/23
 #
-L=/usr/lib/lint/lint T=/tmp/lint.$$ PATH=/bin:/usr/bin O="-C -Dlint"
-X= P=unix LL=/usr/lib/lint
+L=/usr/libexec/lint/lint T=/tmp/lint.$$ PATH=/bin:/usr/bin O="-C -Dlint"
+X= P=unix LL=/usr/share/lint
 C=
 trap "rm -f $T; exit" 1 2 15
 for A in $*

@@ -16,7 +16,7 @@ DESCRIPTION
      system in a compact, one-line format.
 
 FILES
-     /etc/utmp
+     /var/run/utmp
 
 SEE ALSO
      who(1)
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	November 27, 1996			1
 
 
 

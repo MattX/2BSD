@@ -22,7 +22,7 @@ DESCRIPTION
      the program's reply.
 
 FILES
-     /usr/lib/book	 opening `book'
+     /usr/games/lib/book opening `book'
 
 DIAGNOSTICS
      The most cryptic diagnostic is `eh?' which means that the
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95							1
+Printed 11/26/99						1
 
 
 

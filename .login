@@ -1,5 +1,5 @@
 unset noglob
-set path=(/etc /usr/ucb /bin /usr/bin /usr/local /usr/new)
+set path=(/bin /etc /sbin /usr/sbin /usr/ucb /usr/bin /usr/local /usr/new)
 umask 26
 stty dec erase ^H kill ^U eof ^D
 set prompt="[\!] root--> "

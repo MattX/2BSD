@@ -1,7 +1,7 @@
 
 
 
-RMT(8C)             UNIX Programmer's Manual		  RMT(8C)
+RMT(8)		    UNIX Programmer's Manual		   RMT(8)
 
 
 
@@ -9,13 +9,13 @@ NAME
      rmt - remote magtape protocol module
 
 SYNOPSIS
-     /etc/rmt
+     rmt
 
 DESCRIPTION
      _R_m_t is a program used by the remote dump and restore pro-
      grams in manipulating a magnetic tape drive through an
      interprocess communication connection.  _R_m_t is normally
-     started up with an _r_e_x_e_c(3X) or _r_c_m_d(3X) call.
+     started up with an _r_e_x_e_c(3) or _r_c_m_d(3) call.
 
      The _r_m_t program accepts requests specific to the manipula-
      tion of magnetic tapes, performs the commands, then responds
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	November 17, 1996			1
 
 
 
 
 
 
-RMT(8C)             UNIX Programmer's Manual		  RMT(8C)
+RMT(8)		    UNIX Programmer's Manual		   RMT(8)
 
 
 
@@ -101,7 +101,7 @@ DIAGNOSTICS
      All responses are of the form described above.
 
 SEE ALSO
-     rcmd(3X), rexec(3X), mtio(4), rdump(8C), rrestore(8C)
+     rcmd(3), rexec(3), mtio(4), rdump(8), rrestore(8)
 
 BUGS
      People tempted to use this for a remote file access protocol
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 27, 1985                         2
+Printed 11/26/99	November 17, 1996			2
 
 
 

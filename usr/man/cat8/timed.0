@@ -9,7 +9,7 @@ NAME
      timed - time server daemon
 
 SYNOPSIS
-     /etc/timed [ -t ] [ -M ] [ -n network ] [ -i network ]
+     timed [ -t ] [ -M ] [ -n network ] [ -i network ]
 
 DESCRIPTION
      _T_i_m_e_d is the time server daemon and is normally  invoked  at
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 28, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 28, 1986				2
+Printed 11/26/99	November 17, 1996			2
 
 
 

@@ -46,6 +46,7 @@ DESCRIPTION
      process with appropriate privilege can change the value.
 
 	  Name			   Type      Changeable
+	  kern.acctthresh	   int	     yes
 	  kern.ostype		   string    no
 	  kern.osrelease	   string    no
 	  kern.osrevision	   long      no
@@ -56,11 +57,10 @@ DESCRIPTION
 	  kern.maxtext		   integer   no
 	  kern.argmax		   integer   no
 	  kern.securelevel	   integer   raise only
-	  kern.hostname            string    yes
 
 
 
-Printed 10/11/95	  June 6, 1993				1
+Printed 11/24/99	 April 24, 1999                         1
 
 
 
@@ -71,6 +71,7 @@ SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 
 
 
+	  kern.hostname            string    yes
 	  kern.hostid		   long      yes
 	  kern.clockrate	   struct    no
 	  kern.posix1version	   integer   no
@@ -80,6 +81,9 @@ SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 	  kern.boottime            struct    no
 	  vm.loadavg		   struct    no
 	  machdep.console_device   dev_t     no
+	  machdep.mscp.printf	   integer   yes
+	  machdep.tmscp.cache	   integer   yes
+	  machdep.tmscp.printf	   integer   yes
 	  net.inet.ip.forwarding   integer   yes
 	  net.inet.ip.redirect	   integer   yes
 	  net.inet.ip.ttl	   integer   yes
@@ -120,13 +124,9 @@ EXAMPLES
      To set the hostname of the system to foo.bar.com, one would
      use the follow request:
 
-	       sysctl -w kern.hostname=foo.bar.com
 
 
-
-
-
-Printed 10/11/95	  June 6, 1993				2
+Printed 11/24/99	 April 24, 1999                         2
 
 
 
@@ -136,6 +136,8 @@ Printed 10/11/95	  June 6, 1993				2
 SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 
 
+
+	       sysctl -w kern.hostname=foo.bar.com
 
      Information about the system clock rate may be obtained
      with:
@@ -157,6 +159,10 @@ FILES
 
      <sys/gmon.h>   definitions for third level profiling iden-
 		    tifiers
+
+     <machine/cpu.h>
+		    definitions for second and third level
+		    machine dependent identifiers
 
      <sys/vmparam.h>
 		    definitions for second level virtual memory
@@ -186,13 +192,7 @@ HISTORY
 
 
 
-
-
-
-
-
-
-Printed 10/11/95	  June 6, 1993				3
+Printed 11/24/99	 April 24, 1999                         3
 
 
 

@@ -1,1 +1,1 @@
-char version[] = "Version 5.79 Sat Sep 9 03:03:24 PDT 1995";
+char version[] = "Version 5.83 Sat Oct 26 15:17:31 PDT 1996";

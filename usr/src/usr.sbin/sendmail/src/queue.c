@@ -968,6 +968,8 @@ queuename(e, type)
 # else QUEUE
 			if (close(creat(qf, FileMode)) >= 0)
 				break;
+			syslog(LOG_ERR, "close(creat(%s,%o) err: %d\n",
+				qf, FileMode, errno);
 # endif QUEUE
 		}
 		if (c1 >= '~' && c2 >= 'Z')

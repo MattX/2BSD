@@ -34,7 +34,8 @@ DESCRIPTION
 
 FILES
      calendar
-     /usr/lib/calendar to figure out today's and tomorrow's dates
+     /usr/libexec/calendar to figure out today's and tomorrow's
+     dates
      /etc/passwd
      /tmp/cal*
      /lib/cpp, egrep, sed, mail as subprocesses
@@ -59,8 +60,7 @@ BUGS
 
 
 
-
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 21, 1996			1
 
 
 

@@ -1,1 +1,2 @@
-larry Any ACU 2400 5552211 "" \r ogin: knockknock assword: stooges
+test Any TCP uucp test.your.domain login: dummy assword: yahoo!
+test Polled TCP uucp test.your.domain

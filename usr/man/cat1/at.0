@@ -53,14 +53,14 @@ DESCRIPTION
 	  at -s -m 1200n week
 
      _A_t programs are executed by periodic execution of the com-
-     mand  /usr/lib/atrun from _c_r_o_n(8).  The granularity of _a_t
-     depends upon the how often atrun is executed.
+     mand  /usr/libexec/atrun from _c_r_o_n(8).  The granularity of
+     _a_t depends upon the how often atrun is executed.
 
 
 
 
 
-Printed 9/9/95		 March 20, 1986                         1
+Printed 11/26/99	October 21, 1996			1
 
 
 
@@ -80,7 +80,7 @@ FILES
      /usr/spool/at/yy.ddd.hhhh.*  job file
      /usr/spool/at/past           directory where jobs are executed from
      /usr/spool/at/lasttimedone   last time atrun was run
-     /usr/lib/atrun		  executor (run by cron(8))
+     /usr/libexec/atrun               executor (run by cron(8))
 
 SEE ALSO
      atq(1), atrm(1), calendar(1), sleep(1), cron(8)
@@ -90,9 +90,9 @@ DIAGNOSTICS
      range.
 
 BUGS
-     Due to the granularity of the execution of /_u_s_r/_l_i_b/_a_t_r_u_n,
-     there may be bugs in scheduling things almost exactly 24
-     hours into the future.
+     Due to the granularity of the execution of
+     /_u_s_r/_l_i_b_e_x_e_c/_a_t_r_u_n, there may be bugs in scheduling things
+     almost exactly 24 hours into the future.
 
      If the system crashes, mail is not sent to the user inform-
      ing them that the job was not completed.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 March 20, 1986                         2
+Printed 11/26/99	October 21, 1996			2
 
 
 

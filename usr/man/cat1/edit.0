@@ -49,9 +49,9 @@ DOCUMENTATION
      ful with the _I_n_t_r_o_d_u_c_t_i_o_n.
 
 FILES
-     /usr/lib/ex?.?strings	   error messages
-     /usr/lib/ex?.?recover	   recover command
-     /usr/lib/ex?.?preserve	   preserve command
+     /usr/share/misc/exstrings		error messages
+     /usr/libexec/exrecover	   recover command
+     /usr/sbin/expreserve	   preserve command
      /etc/termcap	      describes capabilities of terminals
      ~/.exrc		      editor startup file
      /tmp/Ex_n_n_n_n_n	      editor temporary
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		  June 5, 1986				1
+Printed 11/26/99	October 21, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		  June 5, 1986				2
+Printed 11/26/99	October 21, 1996			2
 
 
 

@@ -37,8 +37,8 @@ DESCRIPTION
 
 	  % lpq -l
 
-	  1st: ken			    [job #013ucbarpa]
-	       (standard input)             100 bytes
+	  1st: ken			     [job #013ucbarpa]
+	       (standard input)              100 bytes
 	  % lprm 13
 
      _L_p_r_m will announce the names of any files it removes and is
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

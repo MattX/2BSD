@@ -52,15 +52,15 @@ DESCRIPTION
      nonstandard place.
 
 FILES
-     /usr/lib/learn subtree for all dependent directories and
-     files
+     /usr/share/learn	 subtree for all dependent directories
+     and files
      /usr/tmp/pl*   playpen directories
      $HOME/.learnrc startup information
 
 
 
 
-Printed 9/9/95		  May 15, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 15, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 

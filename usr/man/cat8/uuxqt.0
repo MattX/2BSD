@@ -1,7 +1,7 @@
 
 
 
-UUXQT(8C)	    UNIX Programmer's Manual		UUXQT(8C)
+UUXQT(8)	    UNIX Programmer's Manual		 UUXQT(8)
 
 
 
@@ -9,12 +9,12 @@ NAME
      uuxqt - UUCP execution file interpreter
 
 SYNOPSIS
-     /usr/lib/uucp/uuxqt [ -x_d_e_b_u_g ]
+     /usr/libexec/uuxqt [ -x_d_e_b_u_g ]
 
 DESCRIPTION
      _U_u_x_q_t interprets _e_x_e_c_u_t_i_o_n _f_i_l_e_s created on a remote system
-     via _u_u_x(1C) and transferred to the local system via
-     _u_u_c_i_c_o(8C).  When a user uses _u_u_x to request remote command
+     via _u_u_x(1) and transferred to the local system via
+     _u_u_c_i_c_o(8).  When a user uses _u_u_x to request remote command
      execution, it is _u_u_x_q_t that actually executes the command.
      Normally, _u_u_x_q_t is forked from _u_u_c_i_c_o to process queued exe-
      cution files; for debugging, it may also be run manually by
@@ -25,15 +25,15 @@ DESCRIPTION
      sary.
 
 FILES
-     /usr/lib/uucp/L.cmds	   Remote command permissions list
-     /usr/lib/uucp/USERFILE	   Remote directory tree permissions list
+     /etc/uucp/L.cmds		   Remote command permissions list
+     /etc/uucp/USERFILE            Remote directory tree permissions list
      /usr/spool/uucp/LOGFILE	   UUCP system activity log
      /usr/spool/uucp/LCK/LCK.XQT   _U_u_x_q_t lock file
      /usr/spool/uucp/X./	   Incoming execution file directory
      /usr/spool/uucp/XTMP	   _U_u_x_q_t running directory
 
 SEE ALSO
-     uucp(1C), uux(1C), L.cmds(5), USERFILE(5), uucico(8C)
+     uucp(1), uux(1), L.cmds(5), USERFILE(5), uucico(8)
 
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 23, 1996			1
 
 
 

@@ -1,3 +1,6 @@
+ (ntpd) - time synchronization daemon implementing NTP
+ (shar) - create file storage archive for extraction by /bin/sh
+3 setbuf, setbuffer, setlinebuf, setvbuf -stream buffering operations
 8 ncheck -	generate names from i-numbers
 L-devices (5) - UUCP device description file
 L-dialcodes (5) - UUCP phone number index file
@@ -5,7 +8,7 @@ L.aliases (5) - UUCP hostname alias file
 L.cmds (5) - UUCP remote command permissions file
 L.sys (5) - UUCP remote host description file
 USERFILE (5) - UUCP pathname permissions file
-XNSrouted (8C) - NS Routing Information Protocol daemon
+XNSrouted (8) - NS Routing Information Protocol daemon
 a.out (5) - assembler and link editor output
 aardvark (6) - yet another exploration game
 abort (3) - generate a fault
@@ -18,6 +21,8 @@ access (2) - determine accessibility of file
 access (3F) - determine accessibility of a file
 acct (2) - turn accounting on or off
 acct (5) - execution accounting file
+acctd (8) - system accounting daemon
+accton (8) - enable/disable system accounting
 adb (1) - debugger (2BSD)
 addbib (1) - create or extend bibliographic database
 adduser (8) - procedure for adding new users
@@ -30,7 +35,7 @@ apply (1) - apply a command to a set of arguments
 apropos (1) - locate commands by keyword lookup
 ar (1) - create and maintain library archives
 ar (5) - archive (library) file format
-arff, flcopy (8V) - archiver and copier for floppy
+arff, flcopy (8) - archiver and copier for floppy
 arithmetic (6) - provide drill in number facts
 arp (4P) - Address Resolution Protocol
 arp (8C) - address resolution display and control
@@ -61,6 +66,7 @@ bit (3F) - and, or, xor, not, rshift, lshift bitwise functions
 bj (6) - the game of black jack
 bk (4) - line discipline for machine-machine communication (obsolete)
 boggle (6) - play the game of boggle
+boot (8) - 2.11BSD bootstrap proceedure
 br (4) - EATON BR1537/BR1711 1538[A,B,C,D] moving head disk
 brk, sbrk (2) - change data segment size
 bugfiler (8) - file bug reports in folders automatically
@@ -98,7 +104,7 @@ colcrt (1) - filter nroff output for CRT previewing
 colrm (1) - remove columns from a file
 comm (1) - select or reject lines common to two sorted files
 compress, uncompress, zcat (1) - compress and expand data
-comsat (8C) - biff server
+comsat (8) - biff server
 connect (2) - initiate a connection on a socket
 cons (4) - PDP-11 console interface
 copysign, drem, finite, logb, scalb (3M) - copysign, remainder, exponent manipulations
@@ -107,7 +113,9 @@ cp (1) - copy
 crash (8V) - what happens when the system crashes
 creat (2) - create a new file
 cribbage (6) - the card game cribbage
-cron (8) - clock daemon
+cron (8) - daemon to execute scheduled commands (Vixie Cron)
+crontab (1) - maintain crontab files for individual users (V3)
+crontab (5) - tables for driving cron
 crypt, setkey, encrypt (3) - DES encryption
 csh (1) - a shell (command interpreter) with C-like syntax
 css (4) - DEC IMP-11A LH/DH IMP interface
@@ -129,6 +137,7 @@ devname (3) - get device name
 df (1) - disk free
 dh (4) - DH-11/DM-11 communications multiplexer
 dhu (4) - DHU-11 communications multiplexer
+dhv (4) - DHV-11 communications multiplexer
 diction, explain (1) - print wordy sentences; thesaurus for diction
 diff (1) - differential file and directory comparator
 diff3 (1) - 3-way differential file comparison
@@ -222,18 +231,22 @@ getdtablesize (2) - get descriptor table size
 getenv (3F) - get value of environment variables
 getenv, setenv, unsetenv (3) - manipulate environmental variables
 getfsent, getfsspec, getfsfile, getfstype, setfsent, endfsent (3) - get file system descriptor file entry
-getgid, getegid (2) - get group identity
+getfsstat (2) - get list of all mounted filesystems
+getgid, getegid (2) - get group process identification
 getgrent, getgrgid, getgrnam, setgrent, endgrent (3) - get group file entry
+getgrouplist (3) - calculate group access list
 getgroups (2) - get group access list
-gethostbyname, gethostbyaddr, gethostent, sethostent, endhostent, herror (3N) - get network host entry
+gethostbyname, gethostbyaddr, gethostent, sethostent, endhostent, herror (3) - get network host entry
 gethostid, sethostid (2) - get/set unique identifier of current host
 gethostname, sethostname (2) - get/set name of current host
 getitimer, setitimer (2) - get/set value of interval timer
 getloadavg (3) - get system load averages
 getlog (3F) - get user's login name
-getlogin (3) - get login name
+getlogin, setlogin (2) - get/set login name
+getmntinfo (3) - get information about mounted file systems
+getmode, setmode (3) - modify mode bits
 getnetent, getnetbyaddr, getnetbyname, setnetent, endnetent (3N) - get network entry
-getopt (3) - get option letter from argv
+getopt (3) - get option character from command line argument list
 getpagesize (2) - get system page size
 getpass (3) - read a password
 getpeername (2) - get name of connected peer
@@ -249,12 +262,13 @@ gets, fgets (3S) - get a string from a stream
 getservent, getservbyport, getservbyname, setservent, endservent (3N) - get service entry
 getsockname (2) - get socket name
 getsockopt, setsockopt (2) - get and set options on sockets
-gettable (8C) - get NIC format host tables from a host
+getsubopt (3) - get sub options from an argument
+gettable (8) - get NIC format host tables from a host
 gettimeofday, settimeofday (2) - get/set date and time
 getttyent, getttynam, setttyent, endttyent (3) - get ttys file entry
 getty (8) - set terminal mode
 gettytab (5) - terminal configuration data base
-getuid, geteuid (2) - get user identity
+getuid, geteuid (2) - get user identification
 getuid, getgid (3F) - get user or group ID of the caller
 getusershell, setusershell, endusershell (3) - get legal user shells
 getwd (3) - get current working directory pathname
@@ -262,6 +276,7 @@ graph (1G) - draw a graph
 grep, egrep, fgrep (1) - search a file for a pattern
 group (5) - group file
 groups (1) - show group memberships
+gt307 (8) - read and set GT307 clock board
 hangman (6) - Computer version of the game hangman
 head (1) - give first few lines
 hier (7) - file system hierarchy
@@ -282,14 +297,18 @@ hy (4) - Network Systems Hyperchannel interface
 hypot, cabs (3M) - Euclidean distance, complex absolute value
 icheck (8) - file system storage consistency check
 icmp (4P) - Internet Control Message Protocol
+id (1) - return user identity
 idate, itime (3F) - return date or time in numerical form
+idecrypt (8) - Decrypt tokens obtained from identd
+ident_lookup, ident_id, ident_free, id_open, id_close, id_query, id_parse, id_fileno (3) - query remote IDENT server
+identd, in.identd (8) - TCP/IP IDENT protocol server
 idp (4P) - Xerox Internet Datagram Protocol
-ifconfig (8C) - configure network interface parameters
+ifconfig (8) - configure network interface parameters
 il (4) - Interlan NI1010 10 Mb/s Ethernet interface
 imp (4) - 1822 network interface
 imp (4P) - IMP raw socket interface
-implog (8C) - IMP log interpreter
-implogd (8C) - IMP logger process
+implog (8) - IMP log interpreter
+implogd (8) - IMP logger process
 indent (1) - indent and format C program source
 index, rindex, lnblnk, len (3F) - tell about character objects
 indxbib, lookbib (1) - build inverted index for a bibliography, find references in a bibliography
@@ -369,13 +388,14 @@ map3270 (5) - database for mapping ascii keystrokes into IBM 3270 keys
 math (3M) - introduction to mathematical library functions
 me (7) - macros for formatting papers
 mem, kmem (4) - main memory
-memccpy, memchr, memcmp, memcpy, memset, strchr, strcspn, strpbrk, strrchr, strspn, tempnam, tmpfile, tmpnam (3) - System V compatibility routines
+memccpy, memchr, memcmp, memcpy, memset, strchr, strrchr, tempnam, tmpfile, tmpnam (3) - System V compatibility routines
 mesg (1) - permit or deny messages
 mille (6) - play Mille Bournes
 miscellaneous (7) - miscellaneous useful information pages
 mkdep (1) - construct Makefile dependency list
 mkdir (1) - make directories
 mkdir (2) - make a directory file
+mkerrlst (1) - create system error file
 mkfs (8) - construct a file system
 mkhosts (8) - generate hashed host table
 mklost+found (8) - make a lost+found directory for fsck
@@ -389,13 +409,12 @@ monitor, monstartup, moncontrol (3) - prepare execution profile
 monop (6) - Monopoly game
 moo (6) - guessing game
 more, page (1) - file perusal filter for crt viewing
+mount (8) - mount file systems
 mount, umount (2) - mount or remove file system
-mount, umount (8) - mount and dismount file system
 ms (7) - text formatting macros
 mset (1) - retrieve ASCII to IBM 3270 keyboard map
 msgs (1) - system messages and junk mail program
 mt (1) - magnetic tape manipulating program
-mtab (5) - mounted file system table
 mtio (4) - UNIX magtape interface
 mv (1) - move or rename files
 named (8) - Internet domain name server
@@ -414,6 +433,8 @@ ns (4F) - Xerox Network Systems(tm) protocol family
 ns_addr, ns_ntoa (3N) - Xerox NS(tm)  address conversion routines
 nsip (4) - software network interface encapsulating ns packets in ip packets.
 nslookup (1) - query name servers interactively
+ntp (8) - query an ntp clock
+ntpdc (8) - monitor operation of ntp daemon
 null (4) - data sink
 number (6) - convert Arabic numerals to English
 od (1) - octal, decimal, hex, ascii dump
@@ -423,11 +444,11 @@ pac (8) - printer/plotter accounting information
 pagesize (1) - print system page size
 passwd (1) - change password file information
 passwd (5) - password files
+patch (1) - a program for applying a diff file to an original
 pause (3C) - stop until signal
-pc (1) - Pascal compiler
 pdx (1) - pascal debugger
 perror, gerror, ierrno (3F) - get system error messages
-perror, sys_errlist, sys_nerr (3) - system error messages
+perror, strerror (3) - system error messages
 phantasia (6) - an interterminal fantasy game
 phones (5) - remote host phone number data base
 phys (2) - allow a process to access physical addresses (2BSD)
@@ -441,6 +462,7 @@ plot: openpl et al. (3F) - f77 library interface to plot (3X)     libraries.
 plot: openpl, erase, label, line, circle, arc, move, cont, point, linemod, space, closepl (3X) - graphics interface
 pmerge (1) - pascal file merger
 popen, pclose (3) - initiate I/O to/from a process
+popper (8) - pop 3 server
 pr (1) - print file
 printcap (5) - printer capability data base
 printenv (1) - print out the environment
@@ -450,6 +472,7 @@ prof (1) - display profile data
 profil (2) - execution time profile
 protocols (5) - protocol name data base
 ps (1) - process status
+pselect, select (2) - synchronous I/O multiplexing
 psignal, sys_siglist (3) - system signal messages
 pstat (8) - print system facts
 ptrace (2) - process trace
@@ -469,8 +492,8 @@ quiz (6) - test your knowledge
 quot (8) - summarize file system ownership
 quota (1) - display disc usage and limits
 quota (2) - manipulate disk quotas
-quotacheck (8) - file system quota consistency checker
-quotaon, quotaoff (8) - turn file system quotas on and off
+quotacheck (8) - filesystem quota consistency checker
+quotaon, quotaoff (8) - turn filesystem quotas on and off
 ra (4) - MSCP disk controller interface
 rain (6) - animated raindrops display
 ram (4) - ram disk driver
@@ -485,12 +508,12 @@ rc (8) - command script for auto-reboot and daemons
 rcmd, rresvport, ruserok (3) - routines for returning a stream to a remote command
 rcp (1C) - remote file copy
 rdist (1) - remote file distribution program
-rdump (8C) - file system dump across the network
+rdump (8) - file system dump across the network
 re_comp, re_exec (3) - regular expression handler
 read, readv (2) - read input
 readlink (2) - read value of a symbolic link
 reboot (2) - reboot system or halt processor
-reboot (8) - UNIX bootstrapping procedures
+reboot (8) - stopping and restarting the system
 recv, recvfrom, recvmsg (2) - receive a message from a socket
 refer (1) - find and insert literature references in documents
 remote (5) - remote host description file
@@ -503,7 +526,7 @@ resolver (5) - resolver configuration file
 restor (8) - incremental file system restore
 rev (1) - reverse lines of a file
 rexec (3) - return stream to a remote command
-rexecd (8C) - remote execution server
+rexecd (8) - remote execution server
 rk (4) - RK-11/RK05 disk
 rl (4) - RL-11/RL01, RL02 moving-head disk
 rlogin (1C) - remote login
@@ -512,21 +535,21 @@ rm, rmdir (1) - remove (unlink) files or directories
 rmail (1) - handle remote mail received via uucp
 rmdir (2) - remove a directory file
 rmdir, rm (1) - remove (unlink) directories or files
-rmt (8C) - remote magtape protocol module
+rmt (8) - remote magtape protocol module
 robots (6) - fight off villainous robots
 roffbib (1) - run off bibliographic database
 rogue (6) - Exploring The Dungeons of Doom
-route (8C) - manually manipulate the routing tables
-routed (8C) - network routing daemon
-rrestore (8C) - restore a file system dump across the network
+route (8) - manually manipulate the routing tables
+routed (8) - network routing daemon
+rrestore (8) - restore a file system dump across the network
 rsh (1C) - remote shell
 rshd (8) - remote shell server
 ruptime (1C) - show host status of local machines
 rwho (1C) - who's logged in on local machines
-rwhod (8C) - system status server
+rwhod (8) - system status server
 rx (4) - DEC RX02 floppy disk
-rxformat (8V) - format floppy disks (2.10BSD)
-sa, accton (8) - system accounting
+rxformat (8) - format floppy disks (2.11BSD)
+sa (8) - system accounting
 sail (6) - multi-user wooden ships and iron men
 savecore (8) - save a core dump of the operating system
 scandir, alphasort (3) - scan a directory
@@ -534,40 +557,46 @@ scanf, fscanf, sscanf (3S) - formatted input conversion
 sccs (1) - front end for the SCCS subsystem
 script (1) - make typescript of terminal session
 sed (1) - stream editor
-select (2) - synchronous I/O multiplexing
 send, sendto, sendmsg (2) - send a message from a socket
 sendbug (1) - mail a system bug report to 4bsd-bugs
 sendmail (8) - send mail over the internet
 services (5) - service name data base
-setbuf, setbuffer, setlinebuf (3S) - assign buffering to a stream
 setgroups (2) - set group access list
 setjmp, longjmp (3) - non-local goto
 setpgrp (2) - set process group
 setquota (2) - enable/disable quotas on a file system
 setregid (2) - set real and effective group ID
 setreuid (2) - set real and effective user ID's
-setuid, seteuid, setruid, setgid, setegid, setrgid (3) - set user and group ID
+setruid, setrgid (3) - set user and group ID
+setuid, seteuid,setgid,setegid (2) - set user and group ID
 sh, for, case, if, while, :, ., break, continue, cd, eval, exec, exit, export, login, read, readonly, set, shift, times, trap, umask, wait (1) - command language
 shells (5) - shell database
 shutdown (2) - shut down part of a full-duplex connection
 shutdown (8) - close down the system at a given time
 si (4) - SI 9500/CDC 9766 moving head disk
+sigaction (2) - software signal facilities
+sigaltstack (2) - set and/or get signal stack context
 sigblock (2) - block signals
+sigemptyset, sigfillset, sigaddset, sigdelset, sigismember (3) -     manipulate signal sets
 siginterrupt (3) - allow signals to interrupt system calls
 signal (3C) - simplified software signal facilities
 signal (3F) - change the action for a signal
 sigpause (2) - atomically release blocked signals and wait for interrupt
+sigpending (2) - get pending signals
+sigprocmask (2) - manipulate current signal mask
 sigreturn (2) - return from signal
 sigsetmask (2) - set current signal mask
 sigstack (2) - set and/or get signal stack context
+sigsuspend (2) - atomically release blocked signals and wait for interrupt
 sigvec (2) - software signal facilities
+sigwait (2) - wait for a signal
 sin, cos, tan, asin, acos, atan, atan2 (3M) - trigonometric functions and their inverses
 sinh, cosh, tanh (3M) - hyperbolic functions
 size (1) - size of an object file
-slattach (8C) - attach serial lines as network interfaces
+slattach (8) - attach serial lines as network interfaces
 sleep (1) - suspend execution for an interval
-sleep (3) - suspend execution for interval
 sleep (3F) - suspend execution for an interval
+sleep, usleep (3) - suspend process execution
 snake, snscore (6) - display chase game
 socket (2) - create an endpoint for communication
 socketpair (2) - create a pair of connected sockets
@@ -582,14 +611,22 @@ sri (4) - DR11-C IMP interface
 stack (5) -  2.10BSD PDP-11 C stack frame conventions
 stat, lstat, fstat (2) - get file status
 stat, lstat, fstat (3F) - get file status
+statfs, fstatfs (2) - get file system statistics
 stdio (3S) - standard buffered input/output package
 sticky (8) - persistent text and append-only directories
 strcat, strncat, strcmp, strncmp, strcasecmp, strncasecmp, strcpy, strncpy, strlen, index, rindex (3) - string operations
 strcompact (1) - string compaction for object files
+strcspn (3) - span the complement of a string
 strftime (3) - format date and time
 strings (1) - find the printable strings in a object, or other binary, file
 strip (1) - remove symbols and relocation bits
-strtok, strsep (3) - string token operations
+strpbrk (3) - locate multiple characters in string
+strsep (3) - separate strings
+strspn (3) - span a string
+strstr (3) - locate a substring in a string
+strtok (3) - string tokens
+strtol (3) - convert string value to a long
+strtoul (3) - convert a string to an unsigned long
 struct (1) - structure Fortran programs
 stty (1) - set terminal options
 stty, gtty (3C) - set and get terminal state (defunct)
@@ -608,7 +645,9 @@ sync (8) - update the super block
 syscall (2) - indirect system call
 sysctl (3) - get or set system information
 sysctl (8) - get or set kernel state
-sysline (1) - display system status on status line of a terminal
+syserrlst (5) - error message file format
+syserrlst, __errlst (3) - read system error messages from file
+sysgen (1) - assign DEC standard CSR and vector addresses
 syslog , vsyslog , openlog , closelog , setlogmask (3) - control system log
 syslogd (8) - log systems messages
 system (3) - issue a shell command
@@ -616,7 +655,7 @@ system (3F) - execute a UNIX command
 tabs (1) - set terminal tabs
 tail (1) - deliver the last part of a file
 talk (1) - talk to another user
-talkd (8C) - remote user communication server
+talkd (8) - remote user communication server
 tar (1) - tape archiver
 tar (5) - tape archive file format
 tb (4) - line discipline for digitizing devices
@@ -630,7 +669,7 @@ tcpdmatch (8) - tcp wrapper oracle
 tcsh (1) - C shell with file name completion and command line editing
 tee (1) - pipe fitting
 telnet (1C) - user interface to the TELNET protocol
-telnetd (8C) - DARPA TELNET protocol server
+telnetd (8) - DARPA TELNET protocol server
 term (7) - conventional names for terminals
 termcap (5) - terminal capability data base
 test (1) - condition evaluation utility
@@ -653,8 +692,10 @@ touch (1) - update date last modified of a file
 tp (1) - manipulate tape archive
 tp (5) - DEC/mag tape formats
 tr (1) - translate characters
+traceroute (8) - print the route packets take to network host
 traper (3F) - trap arithmetic errors
 trapov (3F) - trap and repair floating point overflow
+traverse (3WI) - recursively traverse a directory
 trek (6) - trekkie game
 troff, nroff (1) - text formatting and typesetting
 trpfpe, fpecnt (3F) - trap and repair floating point faults
@@ -679,6 +720,7 @@ ucall (2) - call a kernel subroutine from user mode (2BSD)
 udp (4P) - Internet User Datagram Protocol
 ul (1) - do underlining
 umask (2) - set file creation mode mask
+umount (8) - unmount file systems
 uname (1) - display information about the system
 uname (3) - get system identification
 ungetc (3S) - push character back into input stream
@@ -690,23 +732,22 @@ unlink (3F) - remove a directory entry
 update (8) - periodically update the super block
 uptime (1) - show how long system has been up
 users (1) - compact list of users who are on the system
-usleep (3) - suspend execution for interval
 utime (3C) - set file times
 utimes (2) - set file times
 utmp, wtmp (5) - login records
-uucico, uucpd (8C) - transfer files queued by uucp or uux
-uuclean (8C) - uucp spool directory clean-up
-uucp (1C) - unix to unix copy
+uucico, uucpd (8) - transfer files queued by uucp or uux
+uuclean (8) - uucp spool directory clean-up
+uucp (1) - unix to unix copy
 uuencode (5) - format of an encoded uuencode file
 uuencode, uudecode (1C) - encode/decode a binary file for transmission via mail
 uulog (1C) - display UUCP log files
 uuname (1C) - list names of UUCP hosts
-uupoll (8C) - poll a remote UUCP site
+uupoll (8) - poll a remote UUCP site
 uuq (1C) - examine or manipulate the uucp queue
 uusend (1C) - send a file to a remote host
 uusnap (8C) - show snapshot of the UUCP system
-uux (1C) - unix to unix command execution
-uuxqt (8C) - UUCP execution file interpreter
+uux (1) - unix to unix command execution
+uuxqt (8) - UUCP execution file interpreter
 vacation (1) - return ``I am on vacation'' indication
 valloc (3C) - aligned memory allocator
 varargs (3) - variable argument list
@@ -730,10 +771,10 @@ warp (6) - a real-time space war game
 wc (1) - word count
 what (1) - show what versions of object modules were used to construct a file
 whatis (1) - describe what a command is
-whereis (1) - locate source, binary, and or manual for program
+whereis (1) - locate programs
 which (1) - locate a program file including aliases and paths (csh only)
 who (1) - who is on the system
-whoami (1) - print effective current user id
+whoami (1) - display effective user id
 whois (1) - DARPA Internet user name directory service
 window (1) - window environment
 words (6) - word game
@@ -747,5 +788,6 @@ xp (4) - generic SMD moving-head disk
 xstr (1) - extract strings from C programs to implement shared strings
 yacc (1) - yet another compiler-compiler
 yes (1) - be repetitively affirmative
+zdump (8) - time zone dumper
 zic (8) - time zone compiler
 zork (6) - the game of dungeon

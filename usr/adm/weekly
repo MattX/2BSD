@@ -9,7 +9,7 @@ echo "Subject: weekly run output"
 echo ""
 echo "Cleaning up UUCP:"
 su uucp << EOF
-	sh /usr/lib/uucp/clean.weekly
+	sh /etc/uucp/clean.weekly
 EOF
 
 echo ""
@@ -43,5 +43,5 @@ catman
 echo ""
 echo "Rebuilding find database:"
 su nobody << EOF
-	/usr/lib/find/updatedb
+	/usr/libexec/find/updatedb
 EOF

@@ -12,55 +12,55 @@ SYNOPSIS
      #include <fstab.h>
 
 DESCRIPTION
-     The file /_e_t_c/_f_s_t_a_b contains descriptive information about
-     the various file systems.	/_e_t_c/_f_s_t_a_b is only _r_e_a_d by pro-
-     grams, and not written; it is the duty of the system
-     administrator to properly create and maintain this file.
-     The order of records in /_e_t_c/_f_s_t_a_b is important because
-     _f_s_c_k, _m_o_u_n_t, and _u_m_o_u_n_t sequentially iterate through
-     /_e_t_c/_f_s_t_a_b doing their thing.
+     The file fstab contains descriptive information about the
+     various file systems.  fstab is only read by programs, and
+     not written; it is the duty of the system administrator to
+     properly create and maintain this file.  Each filesystem is
+     described on a separate line; fields on each line are
+     separated by tabs or spaces.  The order of records in fstab
+     is important because fsck(8), mount(8), and umount(8)
+     sequentially iterate through fstab doing their thing.
 
-     The special file name is the block special file name, and
-     not the character special file name.  If a program needs the
-     character special file name, the program must create it by
-     appending a ``r'' after the last ``/'' in the special file
-     name.
+     The first field, _f_s__s_p_e_c, describes the block special device
+     or remote filesystem to be mounted.  For filesystems of type
+     _u_f_s, the special file name is the block special file name,
+     and not the character special file name.  If a program needs
+     the character special file name, the program must create it
+     by appending a ``r'' after the last ``/'' in the special
+     file name.
 
-     If _f_s__t_y_p_e is ``rw'' or ``ro'' then the file system whose
-     name is given in the _f_s__f_i_l_e field is normally mounted
-     read-write or read-only on the specified special file.  If
-     _f_s__t_y_p_e is ``rq'', then the file system is normally mounted
-     read-write with disk quotas enabled.  The _f_s__f_r_e_q field is
-     used for these file systems by the _d_u_m_p(8) command to deter-
-     mine which file systems need to be dumped.  The _f_s__p_a_s_s_n_o
-     field is used by the _f_s_c_k(8) program to determine the order
-     in which file system checks are done at reboot time.  The
-     root file system should be specified with a _f_s__p_a_s_s_n_o of 1,
-     and other file systems should have larger numbers.  File
-     systems within a drive should have distinct numbers, but
-     file systems on different drives can be checked on the same
-     pass to utilize parallelism available in the hardware.
+     The second field, _f_s__f_i_l_e, describes the mount point for the
+     filesystem.  For swap partitions, this field should be
+     specified as ``none''.
 
-     If _f_s__t_y_p_e is ``sw'' then the special file is made available
-     as a piece of swap space by the _s_w_a_p_o_n(8) command at the end
-     of the system reboot procedure.  The fields other than
-     _f_s__s_p_e_c and _f_s__t_y_p_e are not used in this case.
+     The third field, _f_s__v_f_s_t_y_p_e, describes the type of the
+     filesystem.  The system currently supports only two types of
+     filesystems:
 
-     If _f_s__t_y_p_e is ``rq'' then at boot time the file system is
-     automatically processed by the _q_u_o_t_a_c_h_e_c_k(8) command and
-     disk quotas are then enabled with _q_u_o_t_a_o_n(8).  File system
-     quotas are maintained in a file ``quotas'', which is located
-     at the root of the associated file system.
+     _u_f_s	    a local UNIX filesystem
 
-     If _f_s__t_y_p_e is specified as ``xx'' the entry is ignored.
-     This is useful to show disk partitions which are currently
-     not used.
+     _s_w_a_p	    a disk partition to be used for swapping
 
-     #define   FSTAB_RW  "rw" /* read-write device */
+     The fourth field, _f_s__m_n_t_o_p_s, describes the mount options
+     associated with the filesystem.  It is formatted as a comma
+     separated list of options.  It contains at least the type of
+     mount (see _f_s__t_y_p_e below) plus any additional options
+     appropriate to the filesystem type.
 
+     If the option ``quotas'' is specified, the filesystem is
+     automatically processed by the quotacheck(8) command, and
+     user disk quotas are enabled with quotaon(8).  Filesystem
+     quotas are maintained in the file named _q_u_o_t_a_s located at
+     the root of the associated filesystem.  This restriction on
+     the location of the quotas file is needlessly imposed by the
+     kernel but may be lifted in the future.  Thus, if the user
+     quota file for /_t_m_p is stored in /_v_a_r/_q_u_o_t_a_s/_t_m_p._u_s_e_r, this
+     location can be specified as:
 
 
-Printed 9/9/95		  May 15, 1985				1
+
+
+Printed 11/26/99	January 15, 1996			1
 
 
 
@@ -71,28 +71,80 @@ FSTAB(5)	    UNIX Programmer's Manual		 FSTAB(5)
 
 
 
+	    quotas=/var/quotas/tmp.user
+
+     The type of the mount is extracted from the _f_s__m_n_t_o_p_s field
+     and stored separately in the _f_s__t_y_p_e field (it is not
+     deleted from the _f_s__m_n_t_o_p_s field).  If _f_s__t_y_p_e is ``rw'' or
+     ``ro'' then the filesystem whose name is given in the
+     _f_s__f_i_l_e field is normally mounted read-write or read-only on
+     the specified special file.  If _f_s__t_y_p_e is ``sw'' then the
+     special file is made available as a piece of swap space by
+     the swapon(8) command at the end of the system reboot pro-
+     cedure.  The fields other than _f_s__s_p_e_c and _f_s__t_y_p_e are
+     unused.  If _f_s__t_y_p_e is specified as ``xx'' the entry is
+     ignored.  This is useful to show disk partitions which are
+     currently unused.
+
+     The fifth field, _f_s__f_r_e_q, is used for these filesystems by
+     the dump(8) command to determine which filesystems need to
+     be dumped.  If the fifth field is not present, a value of
+     zero is returned and dump(8) will assume that the filesystem
+     does not need to be dumped.
+
+     The sixth field, _f_s__p_a_s_s_n_o, is used by the fsck(8) program
+     to determine the order in which filesystem checks are done
+     at reboot time.  The root filesystem should be specified
+     with a _f_s__p_a_s_s_n_o of 1, and other filesystems should have a
+     _f_s__p_a_s_s_n_o of 2.  Filesystems within a drive will be checked
+     sequentially, but filesystems on different drives will be
+     checked at the same time to utilize parallelism available in
+     the hardware.  If the sixth field is not present or zero, a
+     value of zero is returned and fsck(8) will assume that the
+     filesystem does not need to be checked.
+
+     #define   FSTAB_RW  "rw" /* read-write device */
      #define   FSTAB_RO  "ro" /* read-only device */
-     #define   FSTAB_RQ  "rq" /* read-write with quotas */
      #define   FSTAB_SW  "sw" /* swap device */
      #define   FSTAB_XX  "xx" /* ignore totally */
 
      struct fstab {
-	     char  *fs_spec;  /* block special device name */
-	     char  *fs_file;  /* file system path prefix */
-	     char  *fs_type;  /* rw,ro,sw or xx */
-	     int   fs_freq;   /* dump frequency, in days */
-	     int   fs_passno; /* pass number on parallel dump */
+	  char *fs_spec; /* block special device name */
+	  char *fs_file; /* filesystem path prefix */
+	  char *fs_vfstype;   /* type of filesystem */
+	  char *fs_mntops;    /* comma separated mount options */
+	  char *fs_type; /* rw, ro, sw, or xx */
+	  int  fs_freq;  /* dump frequency, in days */
+	  int  fs_passno;     /* pass number on parallel dump */
      };
 
-     The proper way to read records from /_e_t_c/_f_s_t_a_b is to use the
-     routines getfsent(), getfsspec(), getfstype(), and getfs-
-     file().
+     The proper way to read records from _f_s_t_a_b is to use the rou-
+     tines getfsent(3), getfsspec(3), getfstype(3), and getfs-
+     file(3).
+
+
+
+
+
+Printed 11/26/99	January 15, 1996			2
+
+
+
+
+
+
+FSTAB(5)	    UNIX Programmer's Manual		 FSTAB(5)
+
+
 
 FILES
-     /etc/fstab
+     /_e_t_c/_f_s_t_a_b     The file fstab resides in /_e_t_c.
 
 SEE ALSO
-     getfsent(3X)
+     getfsent(3)
+
+HISTORY
+     The fstab file format appeared in 4.0BSD.
 
 
 
@@ -126,7 +178,21 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 15, 1985				2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/26/99	January 15, 1996			3
 
 
 

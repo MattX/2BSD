@@ -9,7 +9,7 @@ NAME
      ntpd - time synchronization daemon implementing NTP
 
 SYNOPSIS
-     /usr/local/etc/ntpd [-d] [-s] [-t]
+     ntpd [-d] [-s] [-t]
 
 OPTIONS
      -d will bump the debug level by one.  May be specified more
@@ -39,7 +39,7 @@ DESCRIPTION
      step adjustment of the local clock.
 
      When _n_t_p_d(8) is started on the machine, it reads configura-
-     tion information from /_e_t_c/_n_t_p_d._c_o_n_f which contains informa-
+     tion information from /_e_t_c/_n_t_p._c_o_n_f which contains informa-
      tion about other _n_t_p time servers and host specific informa-
      tion.  Configuration information is listed one entry per
      line, with fields separated by whitespace.  Lines which
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 7/25/89          9 December 1988			1
+Printed 4/11/100	27 November 1996			1
 
 
 
@@ -126,7 +126,7 @@ NTPD(8)         Clockwatcher's Programming Manual	  NTPD(8)
 
 
 
-Printed 7/25/89          9 December 1988			2
+Printed 4/11/100	27 November 1996			2
 
 
 
@@ -192,7 +192,7 @@ AUTHORS
 
 
 
-Printed 7/25/89          9 December 1988			3
+Printed 4/11/100	27 November 1996			3
 
 
 

@@ -14,16 +14,16 @@ CwLOCAL
 ######################
 
 # local domain names
-DDYOUR.DOMAIN.NAME
+DDYOUR.DOMAIN
 
 # our arpanet gateway
-DARELAY.YOUR.DOMAIN.NAME
+DAGW.YOUR.DOMAIN
 
 # the UUCP relay
-DUuucp.relay.system.
+DU
 
 # local hosts (used to avoid uucp hops if we can contact them directly)
-CSmoe curly shemp
+CS
 
 ###############
 #   Classes   #
@@ -64,7 +64,7 @@ DF$R
 ###############
 
 # location of alias file
-OA/usr/lib/aliases
+OA/etc/aliases
 # wait up to ten minutes for alias file rebuild
 Oa10
 # substitution for space (blank) characters
@@ -78,7 +78,7 @@ OF0600
 # default GID
 Og1
 # location of help file
-OH/usr/lib/sendmail.hf
+OH/usr/share/misc/sendmail.hf
 # log level
 OL9
 # default network name
@@ -90,7 +90,7 @@ OQ/usr/spool/mqueue
 # read timeout -- violates protocols
 Or2h
 # status file
-OS/usr/lib/sendmail.st
+OS/var/log/sendmail.st
 # queue up everything before starting transmission
 Os
 # default timeout interval
@@ -253,23 +253,11 @@ R$*@$*			$@$1<@$2>			Put back the brackets.
 #####		Local and Program Mailer specification
 ############################################################
 
-# Mlocal,	P=/bin/mail, F=rlsDFMmn, S=10, R=20, A=mail -d $u
-Mlocal,	P=/usr/lonex/bin/xmail, F=lsSDFMmn, S=10, R=20, A=xmail -f $g $u
+Mlocal,	P=/bin/mail, F=rlsDFMmn, S=10, R=20, A=mail -d $u
 Mprog,	P=/bin/sh,   F=lsDFMe,   S=10, R=20, A=sh -c $u
 
 S10
 R@			$n			errors to mailer-daemon
-
-############################################################
-#####
-#####		Lonex Domain TCP Mailer specification
-#####
-#####	Messages processed by this specification are assumed to remain
-#####	the Lonex domain -- note: rules 18 and 28 don't exist on purpose.
-#####
-############################################################
-
-Mlonex,	P=[IPC], F=mDFMueXL, S=18, R=28, A=IPC $h, E=\r\n
 
 ############################################################
 #####		Local Domain TCP Mailer specification
@@ -388,7 +376,6 @@ R$*<@$=F.LOCAL>$*	$#tcp$@$F$:$1<@$2.LOCAL>$3	reroute message
 R$*<@$*.UUCP>$*		$#tcpld$@$U$:$2!$1		give to uucp relay
 
 # local domain sites
-R$*<@$*.$D>$*		$#tcpld$@$2$:$1<@$2.$D>$3	user@host.domain
 
 # other non-local names 
 R$*<@$+>$*		$#tcpld$@$A$:$1<@$2>$3		send to big daddy

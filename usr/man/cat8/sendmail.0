@@ -9,7 +9,7 @@ NAME
      sendmail - send mail over the internet
 
 SYNOPSIS
-     /usr/lib/sendmail [ flags ] [ address ...	]
+     /usr/sbin/sendmail [ flags ] [ address ...  ]
 
      newaliases
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 22, 1986				1
+Printed 11/26/99	October 23, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-Printed 9/9/95		  May 22, 1986				2
+Printed 11/26/99	October 23, 1996			2
 
 
 
@@ -192,7 +192,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-Printed 9/9/95		  May 22, 1986				3
+Printed 11/26/99	October 23, 1996			3
 
 
 
@@ -258,7 +258,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-Printed 9/9/95		  May 22, 1986				4
+Printed 11/26/99	October 23, 1996			4
 
 
 
@@ -300,22 +300,22 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
      tents of the mail queue.
 
 FILES
-     Except for /usr/lib/sendmail.cf, these pathnames are all
-     specified in /usr/lib/sendmail.cf.  Thus, these values are
-     only approximations.
+     Except for /etc/sendmail.cf, these pathnames are all speci-
+     fied in /etc/sendmail.cf.	Thus, these values are only
+     approximations.
 
-     /usr/lib/aliases		   raw data for alias names
-     /usr/lib/aliases.pag
-     /usr/lib/aliases.dir	   data base of alias names
-     /usr/lib/sendmail.cf	   configuration file
-     /usr/lib/sendmail.fc	   frozen configuration
-     /usr/lib/sendmail.hf	   help file
-     /usr/lib/sendmail.st	   collected statistics
+     /etc/aliases		   raw data for alias names
+     /etc/aliases.pag
+     /etc/aliases.dir		   data base of alias names
+     /etc/sendmail.cf		   configuration file
+     /etc/sendmail.fc		   frozen configuration
+     /usr/share/misc/sendmail.hf   help file
+     /var/log/sendmail.st	   collected statistics
      /usr/spool/mqueue/*	   temp files
 
 SEE ALSO
-     binmail(1), mail(1), rmail(1), syslog(3), aliases(5),
-     sendmail.cf(5), mailaddr(7), rc(8);
+     mail(1), rmail(1), syslog(3), aliases(5), sendmail.cf(5),
+     mailaddr(7), rc(8);
      DARPA Internet Request For Comments RFC819, RFC821, RFC822;
      _S_e_n_d_m_a_i_l - _A_n _I_n_t_e_r_n_e_t_w_o_r_k _M_a_i_l _R_o_u_t_e_r (SMM:16);
      _S_e_n_d_m_a_i_l _I_n_s_t_a_l_l_a_t_i_o_n _a_n_d _O_p_e_r_a_t_i_o_n _G_u_i_d_e (SMM:7)
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 22, 1986				5
+Printed 11/26/99	October 23, 1996			5
 
 
 

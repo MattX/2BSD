@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/10/95            4 July 1991				1
+Printed 11/24/99	27 November 1996			1
 
 
 
@@ -126,7 +126,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				2
+Printed 11/24/99	27 November 1996			2
 
 
 
@@ -192,7 +192,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				3
+Printed 11/24/99	27 November 1996			3
 
 
 
@@ -258,7 +258,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				4
+Printed 11/24/99	27 November 1996			4
 
 
 
@@ -324,7 +324,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				5
+Printed 11/24/99	27 November 1996			5
 
 
 
@@ -390,7 +390,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				6
+Printed 11/24/99	27 November 1996			6
 
 
 
@@ -456,7 +456,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				7
+Printed 11/24/99	27 November 1996			7
 
 
 
@@ -522,7 +522,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				8
+Printed 11/24/99	27 November 1996			8
 
 
 
@@ -588,7 +588,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991				9
+Printed 11/24/99	27 November 1996			9
 
 
 
@@ -654,7 +654,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       10
+Printed 11/24/99	27 November 1996		       10
 
 
 
@@ -720,7 +720,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       11
+Printed 11/24/99	27 November 1996		       11
 
 
 
@@ -786,7 +786,7 @@ Command Name Recognition
 
 
 
-Printed 9/10/95            4 July 1991			       12
+Printed 11/24/99	27 November 1996		       12
 
 
 
@@ -852,7 +852,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       13
+Printed 11/24/99	27 November 1996		       13
 
 
 
@@ -918,7 +918,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       14
+Printed 11/24/99	27 November 1996		       14
 
 
 
@@ -984,7 +984,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       15
+Printed 11/24/99	27 November 1996		       15
 
 
 
@@ -1050,7 +1050,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       16
+Printed 11/24/99	27 November 1996		       16
 
 
 
@@ -1116,7 +1116,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       17
+Printed 11/24/99	27 November 1996		       17
 
 
 
@@ -1182,7 +1182,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       18
+Printed 11/24/99	27 November 1996		       18
 
 
 
@@ -1248,7 +1248,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       19
+Printed 11/24/99	27 November 1996		       19
 
 
 
@@ -1314,7 +1314,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       20
+Printed 11/24/99	27 November 1996		       20
 
 
 
@@ -1347,9 +1347,9 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 	   %D	       The date in yy-mm-dd format.
 
      The %M and %m sequences are only available on systems that
-     store the remote hostname in /etc/utmp. If _w_h_o is not set,
-     the format defaults to "%n has %a %l from %m.", or "%n has
-     %a %l." on systems that don't store the hostname.
+     store the remote hostname in /var/run/utmp. If _w_h_o is not
+     set, the format defaults to "%n has %a %l from %m.", or "%n
+     has %a %l." on systems that don't store the hostname.
 
 16. TIMED EVENT LIST
      _T_c_s_h now supports a scheduled-event list through the use of
@@ -1370,7 +1370,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      times may have a morning/afternoon specification as well,
      using "am" or "pm." For example,
 
-	   > sched +2:15 /usr/lib/uucp/uucico -r1 -sother
+	   > sched +2:15 /usr/sbin/uucico -r1 -sother
 	   > sched 5pm set prompt='[%h] It\'s after 5; go home: >'
 	   > sched +3am echo This syntax doesn\'t work.
 	   Relative time inconsistent with am/pm.
@@ -1380,7 +1380,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       21
+Printed 11/24/99	27 November 1996		       21
 
 
 
@@ -1397,7 +1397,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      ing the _s_c_h_e_d command with no arguments:
 
 	   > sched
-		1  Wed Apr  4 15:42  /usr/lib/uucp/uucico -r1 -sother
+		1  Wed Apr  4 15:42  /usr/sbin/uucico -r1 -sother
 		2  Wed Apr  4 17:00  set prompt=[%h] It's after 5; go home: >
 	   >
 
@@ -1410,7 +1410,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 	   Not that many scheduled events.
 	   > sched -2
 	   > sched
-		1  Wed Apr  4 15:42  /usr/lib/uucp/uucico -r1 -sother
+		1  Wed Apr  4 15:42  /usr/sbin/uucico -r1 -sother
 	   >
 
      All commands specified on the scheduled-event list will be
@@ -1446,7 +1446,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       22
+Printed 11/24/99	27 November 1996		       22
 
 
 
@@ -1512,7 +1512,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       23
+Printed 11/24/99	27 November 1996		       23
 
 
 
@@ -1578,7 +1578,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       24
+Printed 11/24/99	27 November 1996		       24
 
 
 
@@ -1644,7 +1644,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       25
+Printed 11/24/99	27 November 1996		       25
 
 
 
@@ -1710,7 +1710,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       26
+Printed 11/24/99	27 November 1996		       26
 
 
 
@@ -1776,7 +1776,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       27
+Printed 11/24/99	27 November 1996		       27
 
 
 
@@ -1842,7 +1842,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       28
+Printed 11/24/99	27 November 1996		       28
 
 
 
@@ -1908,7 +1908,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       29
+Printed 11/24/99	27 November 1996		       29
 
 
 
@@ -1974,7 +1974,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       30
+Printed 11/24/99	27 November 1996		       30
 
 
 
@@ -2040,7 +2040,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       31
+Printed 11/24/99	27 November 1996		       31
 
 
 
@@ -2106,7 +2106,7 @@ NEW SHELL VARIABLES
 
 
 
-Printed 9/10/95            4 July 1991			       32
+Printed 11/24/99	27 November 1996		       32
 
 
 
@@ -2172,7 +2172,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       33
+Printed 11/24/99	27 November 1996		       33
 
 
 
@@ -2238,7 +2238,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       34
+Printed 11/24/99	27 November 1996		       34
 
 
 
@@ -2304,7 +2304,7 @@ NEW SPECIAL ALIASES
 
 
 
-Printed 9/10/95            4 July 1991			       35
+Printed 11/24/99	27 November 1996		       35
 
 
 
@@ -2370,7 +2370,7 @@ AUTHORS
 
 
 
-Printed 9/10/95            4 July 1991			       36
+Printed 11/24/99	27 November 1996		       36
 
 
 
@@ -2436,7 +2436,7 @@ BUGFIXES AND ENHANCEMENTS
 
 
 
-Printed 9/10/95            4 July 1991			       37
+Printed 11/24/99	27 November 1996		       37
 
 
 
@@ -2502,7 +2502,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 9/10/95            4 July 1991			       38
+Printed 11/24/99	27 November 1996		       38
 
 
 
@@ -2568,7 +2568,7 @@ THANKS TO
 
 
 
-Printed 9/10/95            4 July 1991			       39
+Printed 11/24/99	27 November 1996		       39
 
 
 

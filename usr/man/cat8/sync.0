@@ -9,7 +9,7 @@ NAME
      sync - update the super block
 
 SYNOPSIS
-     /etc/sync
+     sync
 
 DESCRIPTION
      _S_y_n_c executes the _s_y_n_c system primitive.  _S_y_n_c can be called
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 28, 1986				1
+Printed 11/26/99	November 27, 1996			1
 
 
 

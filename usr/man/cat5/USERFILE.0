@@ -38,9 +38,9 @@ DESCRIPTION
      _P_a_t_h_n_a_m_e is a pathname prefix that is permissible for this
      _l_o_g_i_n and/or _s_y_s_t_e_m.
 
-     When _u_u_c_i_c_o(8C) runs in master role or _u_u_c_p(1C) or _u_u_x(1C)
-     are run by local users, the permitted pathnames are those on
-     the first line with a _l_o_g_i_n_n_a_m_e that matches the name of the
+     When _u_u_c_i_c_o(8) runs in master role or _u_u_c_p(1) or _u_u_x(1) are
+     run by local users, the permitted pathnames are those on the
+     first line with a _l_o_g_i_n_n_a_m_e that matches the name of the
      user who executed the command.  If no such line exists, then
      the first line with a null (missing) _l_o_g_i_n_n_a_m_e field is
      used.  (Beware: _u_u_c_i_c_o is often run by the superuser or the
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	November 27, 1996			1
 
 
 
@@ -87,7 +87,7 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
      determine the current _l_o_g_i_n_n_a_m_e:
 
      1)   If the process is attached to a terminal, a login entry
-	  exists in /_e_t_c/_u_t_m_p, and the UID for the _u_t_m_p name
+	  exists in /_v_a_r/_r_u_n/_u_t_m_p, and the UID for the _u_t_m_p name
 	  matches the current real UID, then _l_o_g_i_n_n_a_m_e is set to
 	  the _u_t_m_p name.
 
@@ -102,12 +102,11 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
      4)   If all of the above fail, the utility aborts.
 
 FILES
-     /usr/lib/uucp/USERFILE
-     /usr/lib/uucp/UUAIDS/USERFILE   USERFILE example
+     /etc/uucp/USERFILE
+     /etc/uucp/UUAIDS/USERFILE	 USERFILE example
 
 SEE ALSO
-     uucp(1C), uux(1C), L.cmds(5), L.sys(5), uucico(8C),
-     uuxqt(8C)
+     uucp(1), uux(1), L.cmds(5), L.sys(5), uucico(8), uuxqt(8)
 
 NOTES
      The UUCP utilities (_u_u_c_i_c_o, _u_u_c_p, _u_u_x, and _u_u_x_q_t) always
@@ -122,11 +121,12 @@ NOTES
      the course of a conversation, regardless of the role it was
      started with.  This affects how _U_S_E_R_F_I_L_E is interpreted.
 
+WARNING
+     _U_S_E_R_F_I_L_E restricts access only on strings that the UUCP
 
 
 
-
-Printed 9/9/95		 April 24, 1986                         2
+Printed 11/26/99	November 27, 1996			2
 
 
 
@@ -137,13 +137,11 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
 
 
 
-WARNING
-     _U_S_E_R_F_I_L_E restricts access only on strings that the UUCP
      utilities identify as being pathnames.  If the wrong holes
      are left in other UUCP control files (notably _L._c_m_d_s), it
      can be easy for an intruder to open files anywhere in the
-     file system.  Arguments to _u_u_c_p(1C) are safe, since it
-     assumes all of its non-option arguments are files.  _U_u_x(1C)
+     file system.  Arguments to _u_u_c_p(1) are safe, since it
+     assumes all of its non-option arguments are files.  _U_u_x(1)
      cannot make such assumptions; hence, it is more dangerous.
 
 BUGS
@@ -156,7 +154,7 @@ BUGS
      spool files against the _U_S_E_R_F_I_L_E pathname permissions.
      Hence, on these systems it is necessary to specify
      /_u_s_r/_s_p_o_o_l/_u_u_c_p as a valid path on the _U_S_E_R_F_I_L_E line used by
-     _u_u_x_q_t.  Otherwise, all _u_u_x(1C) requests are rejected with a
+     _u_u_x_q_t.  Otherwise, all _u_u_x(1) requests are rejected with a
      "PERMISSION DENIED" message.
 
 
@@ -192,7 +190,9 @@ BUGS
 
 
 
-Printed 9/9/95		 April 24, 1986                         3
+
+
+Printed 11/26/99	November 27, 1996			3
 
 
 

@@ -9,7 +9,7 @@ NAME
      vfont - font formats for the Benson-Varian or Versatec
 
 SYNOPSIS
-     /usr/lib/vfont/*
+     /usr/share/vfont/*
 
 DESCRIPTION
      The fonts for the printer/plotters have the following for-
@@ -55,12 +55,12 @@ DESCRIPTION
      base point of the next glyph would be.
 
 FILES
-     /usr/lib/vfont/*
+     /usr/share/vfont/*
 
 
 
 
-Printed 9/9/95		  May 13, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 13, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 

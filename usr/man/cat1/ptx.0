@@ -51,7 +51,7 @@ DESCRIPTION
      -i ignore
 	  Do not use as keywords any words given in the _i_g_n_o_r_e
 	  file.  If the -i and -o options are missing, use
-	  /_u_s_r/_l_i_b/_e_i_g_n as the _i_g_n_o_r_e file.
+	  /_u_s_r/_s_h_a_r_e/_m_i_s_c/_e_i_g_n as the _i_g_n_o_r_e file.
 
      -b break
 	  Use the characters in the _b_r_e_a_k file to separate words.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -80,7 +80,7 @@ PTX(1)		    UNIX Programmer's Manual		   PTX(1)
 
 FILES
      /usr/bin/sort
-     /usr/lib/eign
+     /usr/share/misc/eign
 
 BUGS
      Line length counts do not account for overstriking or pro-
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 22, 1996			2
 
 
 

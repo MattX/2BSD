@@ -10,7 +10,7 @@ NAME
 
 DESCRIPTION
      The _L._c_m_d_s file contains a list of commands, one per line,
-     that are permitted for remote execution via _u_u_x(1C).
+     that are permitted for remote execution via _u_u_x(1).
 
      The default search path is /bin:/usr/bin:/usr/ucb. To change
      the path, include anywhere in the file a line of the form:
@@ -41,15 +41,15 @@ DESCRIPTION
      to include any commands in _L._c_m_d_s that accept local file
      names. In particular, _s_h(1) and _c_s_h(1) are extreme risks.
 
-     It is common (but hazardous) to include _u_u_c_p(1C) in _L._c_m_d_s;
+     It is common (but hazardous) to include _u_u_c_p(1) in _L._c_m_d_s;
      see the NOTES section of _U_S_E_R_F_I_L_E.
 
 FILES
-     /usr/lib/uucp/L.cmds
-     /usr/lib/uucp/UUAIDS/L.cmds   L.cmds example.
+     /etc/uucp/L.cmds
+     /etc/uucp/UUAIDS/L.cmds   L.cmds example.
 
 SEE ALSO
-     uucp(1C), uux(1C), USERFILE(5), uucico(8C), uuxqt(8C)
+     uucp(1), uux(1), USERFILE(5), uucico(8), uuxqt(8)
 
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		 April 24, 1986                         1
+Printed 11/26/99	October 22, 1996			1
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-TALKD(8C)	    UNIX Programmer's Manual		TALKD(8C)
+TALKD(8)	    UNIX Programmer's Manual		 TALKD(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      talkd - remote user communication server
 
 SYNOPSIS
-     /etc/talkd
+     /usr/libexec/ntalkd
 
 DESCRIPTION
      _T_a_l_k_d is the server that notifies a user that somebody else
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		  May 21, 1986				1
+Printed 11/24/99	November 16, 1996			1
 
 
 

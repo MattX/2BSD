@@ -1,16 +1,16 @@
 #
 # name	getty			type		status		comments
 #
-console	"/etc/getty std.9600"	vt100		on secure	#special
-ttyS0	"/etc/getty std.9600"	vt100		off secure
-ttyS1	"/etc/getty std.9600"	vt100		off secure
-ttyS2	"/etc/getty std.9600"	vt100		off secure
-ttyS3	"/etc/getty std.9600"	vt100		off secure
-ttyS4	"/etc/getty std.9600"	vt100		off secure
-ttyS5	"/etc/getty std.9600"	vt100		off secure	#printer
-ttyS6	"/etc/getty std.9600"	vt100		off secure
-ttyS7	"/etc/getty std.9600"	vt100		off secure
-ttyl1	"/etc/getty std.9600"	vt100		off secure	# 2nd DL11
+console	"/usr/libexec/getty std.9600"	vt100		on secure	#special
+ttyS0	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS1	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS2	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS3	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS4	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS5	"/usr/libexec/getty std.9600"	vt100		off secure	#printer
+ttyS6	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyS7	"/usr/libexec/getty std.9600"	vt100		off secure
+ttyl1	"/usr/libexec/getty std.9600"	vt100		off secure
 ttyp0   none                    network         secure
 ttyp1   none                    network		secure
 ttyp2   none                    network		secure

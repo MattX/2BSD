@@ -43,7 +43,7 @@ DESCRIPTION
      can be used to retrieve the message, i.e.:
 
 
-	  char efilname[] =  "/usr/lib/pi_strings";
+	  char efilname[] =  "/usr/share/pascal/pi_strings";
 	  int  efil = -1;
 
 	  error(a1, a2, a3, a4)
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		   May 7, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		   May 7, 1986				2
+Printed 11/26/99	October 22, 1996			2
 
 
 

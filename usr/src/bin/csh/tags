@@ -1,5 +1,4 @@
-Bin	sh.h	/^struct	Bin {$/
-COMMAND	sh.file.c	/^typedef enum {LIST, RECOGNIZE} COMMAND;$/
+COMMAND	sh.file.c	31
 Dfix	sh.dol.c	/^Dfix(t)$/
 Dfix1	sh.dol.c	/^Dfix1(cp)$/
 Dfix2	sh.dol.c	/^Dfix2(v)$/
@@ -11,7 +10,6 @@ Dword	sh.dol.c	/^Dword()$/
 FREE_ITEMS	sh.file.c	/^#define FREE_ITEMS(items) { \\$/
 Gcat	sh.glob.c	/^Gcat(s1, s2)$/
 Gmatch	sh.glob.c	/^Gmatch(s, p)$/
-Hist	sh.h	/^struct	Hist {$/
 Msh	sh.c	/^main(c, av)$/
 Perror	sh.err.c	/^Perror(s)$/
 XFREE	sh.h	/^#define XFREE(cp) { \\$/
@@ -33,10 +31,10 @@ backeval	sh.glob.c	/^backeval(cp, literal)$/
 balance	sh.set.c	/^balance(p, f, d)$/
 beep	sh.file.c	/^beep()$/
 bferr	sh.err.c	/^bferr(cp)$/
+bfree	sh.lex.c	/^bfree()$/
 bgetc	sh.lex.c	/^bgetc()$/
-biltins	sh.h	/^struct	biltins {$/
-bis	sh.exec.c	/^#define bis(h, b)	((h)[(b) >> 3] |= 1 << ((b) & 7)/
-bit	sh.exec.c	/^#define bit(h, b)	((h)[(b) >> 3] & 1 << ((b) & 7))/
+bis	sh.exec.h	/^#define bis(h, b)	((h)[(b) >> 3] |= 1 << ((b) & 7)/
+bit	sh.exec.h	/^#define bit(h, b)	((h)[(b) >> 3] & 1 << ((b) & 7))/
 blkcat	sh.misc.c	/^blkcat(up, vp)$/
 blkcpy	sh.misc.c	/^blkcpy(oav, bv)$/
 blkend	sh.misc.c	/^blkend(up)$/
@@ -44,15 +42,16 @@ blkfree	sh.misc.c	/^blkfree(av0)$/
 blklen	sh.misc.c	/^blklen(av)$/
 blkpr	sh.misc.c	/^blkpr(av)$/
 blkspl	sh.misc.c	/^blkspl(up, vp)$/
-bool	sh.h	/^typedef	char	bool;$/
+bool	sh.h	29
+bseek	sh.lex.c	/^bseek(l)$/
 btell	sh.h	/^#define btell()	fseekp$/
+btoeof	sh.lex.c	/^btoeof()$/
 calloc	sh.misc.c	/^calloc(i, j)$/
 catn	sh.file.c	/^catn(des, src, count)$/
 chkclob	sh.sem.c	/^chkclob(cp)$/
 closem	sh.misc.c	/^closem()$/
 cmap	sh.char.h	/^#define cmap(c, bits)	(_cmap[(unsigned char)(c)] &/
 collect	sh.glob.c	/^collect(as)$/
-command	sh.h	/^struct	command {$/
 copy	sh.local.h	/^#define	copy(to, from, size)	bcopy(from, to, size)/
 copyblk	sh.misc.c	/^copyblk(v)$/
 copylex	sh.lex.c	/^copylex(hp, fp)$/
@@ -64,7 +63,6 @@ dfollow	sh.dir.c	/^dfollow(cp)$/
 dfree	sh.dir.c	/^dfree(dp)$/
 digit	sh.char.h	/^#define digit(c)	cmap(c, _DIG)$/
 dinit	sh.dir.c	/^dinit(hp)$/
-directory	sh.dir.h	/^struct	directory	{$/
 dmove	sh.misc.c	/^dmove(i, j)$/
 dnewcwd	sh.dir.c	/^dnewcwd(dp)$/
 doagain	sh.func.c	/^doagain()$/
@@ -100,6 +98,7 @@ dolimit	sh.func.c	/^dolimit(v)$/
 dologin	sh.func.c	/^dologin(v)$/
 dologout	sh.func.c	/^dologout()$/
 domod	sh.lex.c	/^domod(cp, type)$/
+done	sh.c	/^done(i)$/
 donefds	sh.misc.c	/^donefds()$/
 donewgrp	sh.func.c	/^donewgrp(v)$/
 donice	sh.time.c	/^donice(v)$/
@@ -123,6 +122,7 @@ dounhash	sh.exec.c	/^dounhash()$/
 dounlimit	sh.func.c	/^dounlimit(v)$/
 dounsetenv	sh.func.c	/^dounsetenv(v)$/
 dowait	sh.proc.c	/^dowait()$/
+dowhich	sh.exec2.c	/^dowhich(v, c)$/
 dowhile	sh.func.c	/^dowhile(v)$/
 dozip	sh.func.c	/^dozip()$/
 draino	sh.print.c	/^draino()$/
@@ -137,6 +137,7 @@ etraci	sh.exp.c	/^etraci(str, i, vp)$/
 evalav	sh.exp.c	/^evalav(v)$/
 execash	sh.exec.c	/^execash(t, kp)$/
 execbrc	sh.glob.c	/^execbrc(p, s)$/
+executable	sh.exec2.c	/^executable(dir, name, dir_ok)$/
 execute	sh.sem.c	/^execute(t, wanttty, pipein, pipeout)$/
 exit	sh.local.h	/^#define	exit(n)	done(n)$/
 exitstat	sh.c	/^exitstat()$/
@@ -183,11 +184,12 @@ ginit	sh.glob.c	/^ginit(agargv)$/
 glob	sh.glob.c	/^glob(v)$/
 globone	sh.glob.c	/^globone(str)$/
 goodbye	sh.c	/^goodbye()$/
-hash	sh.exec.c	/^#define hash(a, b)	((a) * HSHMUL + (b) & HSHMASK)$/
+hash	sh.exec.h	/^#define hash(a, b)	((a) * HSHMUL + (b) & HSHMASK)$/
 hashname	sh.exec.c	/^hashname(cp)$/
 hashstat	sh.exec.c	/^hashstat()$/
 heredoc	sh.dol.c	/^heredoc(term)$/
 hfree	sh.hist.c	/^hfree(hp)$/
+if	sh.set.c	/^	} else if (sizeof (int) == 4 && n == -2147483648)/
 ignored	sh.file.c	/^ignored(entry)$/
 importpath	sh.c	/^importpath(cp)$/
 initdesc	sh.c	/^initdesc()$/
@@ -195,7 +197,7 @@ is_prefix	sh.file.c	/^is_prefix(check, template)$/
 is_suffix	sh.file.c	/^is_suffix(check, template)$/
 isa	sh.exp.c	/^isa(cp, what)$/
 isbfunc	sh.func.c	/^isbfunc(t)$/
-isdir	sh.h	/^#define	isdir(d)	((d.st_mode & S_IFMT) == S_IFDIR)/
+iscommand	sh.exec2.c	/^iscommand(name)$/
 isglob	sh.char.h	/^#define isglob(c)	cmap(c, _GLOB)$/
 islogin	sh.func.c	/^islogin()$/
 ismeta	sh.char.h	/^#define ismeta(c)	cmap(c, _META)$/
@@ -204,7 +206,6 @@ isspnl	sh.char.h	/^#define isspnl(c)	cmap(c, _SP|_NL)$/
 lastchr	sh.misc.c	/^lastchr(cp)$/
 letter	sh.char.h	/^#define letter(c)	cmap(c, _LET)$/
 lex	sh.lex.c	/^lex(hp)$/
-limits	sh.func.c	/^struct limits {$/
 limtail	sh.func.c	/^limtail(cp, str0)$/
 lshift	sh.misc.c	/^lshift(v, c)$/
 madrof	sh.set.c	/^madrof(pat, vp)$/
@@ -212,7 +213,6 @@ mailchk	sh.c	/^mailchk()$/
 match	sh.glob.c	/^match(s, p)$/
 matchdir	sh.glob.c	/^matchdir(pattern)$/
 matchs	sh.lex.c	/^matchs(str, pat)$/
-mesg	sh.h	/^struct	mesg {$/
 mypipe	sh.sem.c	/^mypipe(pv)$/
 noev	sh.lex.c	/^noev(cp)$/
 nomem	sh.misc.c	/^nomem(i)$/
@@ -252,7 +252,7 @@ print_by_column	sh.file.c	/^print_by_column(dir, items, count)$/
 print_recognized_stuff	sh.file.c	/^print_recognized_stuff(recognized_part)$/
 printprompt	sh.c	/^printprompt()$/
 prlex	sh.lex.c	/^prlex(sp0)$/
-process	sh.proc.h	/^struct process	{$/
+process	sh.c	/^process(catch)$/
 prusage	sh.time.c	/^prusage(r0, r1, e, b)$/
 prvars	sh.func.c	/^prvars()$/
 psave	sh.glob.c	/^psave(c)$/
@@ -273,6 +273,7 @@ reexecute	sh.func.c	/^reexecute(kp)$/
 renum	sh.misc.c	/^renum(i, j)$/
 reset	sh.h	/^#define	reset()		longjmp(reslab, 0)$/
 resexit	sh.h	/^#define	resexit(a)	copy((char *)reslab, ((char *)(/
+return	sh.set.c	/^	return (savestr(number));$/
 retype	sh.file.c	/^retype()$/
 rleft	sh.set.c	/^#define rleft(p) (\\$/
 rright	sh.set.c	/^#define rright(p) (\\$/
@@ -295,13 +296,13 @@ setexit	sh.h	/^#define	setexit()	((void) setjmp(reslab))$/
 setlim	sh.func.c	/^setlim(lp, hard, limit)$/
 setname	sh.h	/^#define	setname(a)	(bname = (a))$/
 setq	sh.set.c	/^setq(name, vec, p)$/
+settell	sh.lex.c	/^settell()$/
 settimes	sh.time.c	/^settimes()$/
 setup_tty	sh.file.c	/^setup_tty(on)$/
 shift	sh.set.c	/^shift(v)$/
 sort	sh.glob.c	/^#define sort()	qsort((char *)sortbas, &gargv[gargc/
 sortscmp	sh.glob.c	/^sortscmp(a1, a2)$/
 srccat	sh.c	/^srccat(cp, dp)$/
-srch	sh.h	/^struct srch {$/
 srchx	sh.func.c	/^srchx(cp)$/
 srcunit	sh.c	/^srcunit(unit, onlyown, hflg)$/
 strend	sh.misc.c	/^strend(cp)$/
@@ -315,6 +316,7 @@ syn1b	sh.parse.c	/^syn1b(p1, p2, flags)$/
 syn2	sh.parse.c	/^syn2(p1, p2, flags)$/
 syn3	sh.parse.c	/^syn3(p1, p2, flags)$/
 syntax	sh.parse.c	/^syntax(p1, p2, flags)$/
+tellmewhat	sh.exec2.c	/^tellmewhat(lex)$/
 tenex	sh.file.c	/^tenex(inputline, inputline_size)$/
 texec	sh.exec.c	/^texec(f, t)$/
 tglob	sh.glob.c	/^tglob(t)$/
@@ -338,12 +340,9 @@ unsetv1	sh.set.c	/^unsetv1(p)$/
 untty	sh.c	/^untty()$/
 value	sh.h	/^#define value(v)	value1(v, &shvhed)$/
 value1	sh.set.c	/^value1(var, head)$/
-varent	sh.h	/^struct	varent {$/
 vffree	sh.sem.c	/^vffree()$/
 wfree	sh.func.c	/^wfree()$/
-whyle	sh.h	/^struct	whyle {$/
 word	sh.lex.c	/^word()$/
-wordent	sh.h	/^struct	wordent {$/
 xalloc	sh.h	/^#define xalloc(i) ((alloctmp = malloc(i)) ? alloct/
 xechoit	sh.exec.c	/^xechoit(t)$/
 xfree	sh.misc.c	/^xfree(cp)$/

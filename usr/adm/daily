@@ -71,7 +71,7 @@ cd /
 echo ""
 echo "Cleaning up UUCP:"
 su uucp << EOF
-	/usr/lib/uucp/clean.daily
+	/etc/uucp/clean.daily
 EOF
 
 echo ""

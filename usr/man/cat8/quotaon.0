@@ -6,46 +6,48 @@ QUOTAON(8)	    UNIX Programmer's Manual	       QUOTAON(8)
 
 
 NAME
-     quotaon, quotaoff - turn file system quotas on and off
+     quotaon, quotaoff - turn filesystem quotas on and off
 
 SYNOPSIS
-     /etc/quotaon [ -v ] _f_i_l_s_y_s...
-
-     /etc/quotaon [ -v ] -a
-
-     /etc/quotaoff [ -v ] _f_i_l_s_y_s...
-
-     /etc/quotaoff [ -v ] -a
+     quotaon [-v] _f_i_l_e_s_y_s_t_e_m ...
+     quotaon [-v] -a
+     quotaoff [-v] _f_i_l_e_s_y_s_t_e_m ...
+     quotaoff [-v] -a
 
 DESCRIPTION
-     _Q_u_o_t_a_o_n announces to the system that disc quotas should be
-     enabled on one or more file systems.  The file systems
-     specified must have entries in /etc/fstab and be mounted at
-     the time.	The file system quota files must be present in
-     the root directory of the specified file system and be named
-     _q_u_o_t_a_s.  The optional argument -v causes _q_u_o_t_a_o_n to print a
-     message for each file system where quotas are turned on.
-     If, instead of a list of file systems, a -a argument is give
-     to _q_u_o_t_a_o_n, all file systems in /etc/fstab marked read-write
-     with quotas will have their quotas turned on.  This is nor-
-     mally used at boot time to enable quotas.
+     Quotaon announces to the system that disk quotas should be
+     enabled on one or more filesystems.  Quotaoff announces to
+     the system that the specified filesystems should have any
+     disk quotas diskquotas turned off.  The filesystems speci-
+     fied must have entries in /_e_t_c/_f_s_t_a_b and be mounted.  Quo-
+     taon expects each filesystem to have a quota file named _q_u_o_-
+     _t_a_s located at the root of the associated file system.
+     These defaults may be overridden in /_e_t_c/_f_s_t_a_b.
 
-     _Q_u_o_t_a_o_f_f announces to the system that file systems specified
-     should have any disc quotas turned off.  As above, the -v
-     forces a verbose message for each file system affected; and
-     the -a option forces all file systems in /etc/fstab to have
-     their quotas disabled.
+     Available options:
 
-     These commands update the status field of devices located in
-     /_e_t_c/_m_t_a_b to indicate when quotas are on or off for each
-     file system.
+
+     -a             If the -a flag is supplied in place of any
+		    filesystem names, quotaon/quotaoff will
+		    enable/disable all the filesystems indicated
+		    in /_e_t_c/_f_s_t_a_b to be read-write with disk quo-
+		    tas.
+
+     -v             Causes quotaon and quotaoff to print a mes-
+		    sage for each filesystem where quotas are
+		    turned on or off.
 
 FILES
-     /etc/mtab mount table
-     /etc/fstab     file system table
+     _q_u_o_t_a_s	    at the filesystem root with user quotas
+
+     /_e_t_c/_f_s_t_a_b     filesystem table
 
 SEE ALSO
-     setquota(2), mtab(5), fstab(5)
+     quota(1), setquota(2), fstab(5), edquota(8), quotacheck(8),
+     repquota(8)
+
+HISTORY
+     The quotaon command appeared in 4.2BSD.
 
 
 
@@ -58,9 +60,7 @@ SEE ALSO
 
 
 
-
-
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	January 21, 1996			1
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/24/99	 March 28, 1997                         1
 
 
 
@@ -126,7 +126,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
 
-Printed 9/9/95		   May 5, 1986				2
+Printed 11/24/99	 March 28, 1997                         2
 
 
 
@@ -192,7 +192,7 @@ TSET(1)             UNIX Programmer's Manual		  TSET(1)
 
 
 
-Printed 9/9/95		   May 5, 1986				3
+Printed 11/24/99	 March 28, 1997                         3
 
 
 
@@ -258,7 +258,7 @@ EXAMPLES
 
 
 
-Printed 9/9/95		   May 5, 1986				4
+Printed 11/24/99	 March 28, 1997                         4
 
 
 
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		   May 5, 1986				5
+Printed 11/24/99	 March 28, 1997                         5
 
 
 
@@ -350,6 +350,19 @@ BUGS
      rupt and line kill characters, so it leaves these set to the
      local system standards.
 
+NOTES
+     For compatibility with earlier versions of _t_s_e_t a number of
+     flags are accepted whose use is discouraged:
+
+     -d type   equivalent to -m dialup:type
+
+     -p type   equivalent to -m plugboard:type
+
+     -a type   equivalent to -m arpanet:type
+
+     -	       prints the terminal type on the standard output
+
+     -r        prints the terminal type on the diagnostic output.
 
 
 
@@ -377,20 +390,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 9/9/95		   May 5, 1986				6
+Printed 11/24/99	 March 28, 1997                         6
 
 
 

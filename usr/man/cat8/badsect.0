@@ -9,7 +9,7 @@ NAME
      badsect - create files to contain bad sectors
 
 SYNOPSIS
-     /etc/badsect sector ...
+     /sbin/badsect sector ...
 
 DESCRIPTION
      _B_a_d_s_e_c_t makes a file to contain a bad sector.  Normally, bad
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95							1
+Printed 11/24/99						1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95							2
+Printed 11/24/99						2
 
 
 

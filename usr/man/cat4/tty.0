@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 August 1, 1987                         1
+Printed 11/26/99	 April 10, 1997                         1
 
 
 
@@ -126,7 +126,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 9/9/95		 August 1, 1987                         2
+Printed 11/26/99	 April 10, 1997                         2
 
 
 
@@ -139,8 +139,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 	       is typed.  All driver functions (input editing,
 	       interrupt generation, output processing such as
-	       delay generation and tab expansion, etc.) are
-	       available in this mode.
+	       tab expansion, etc.) are available in this mode.
 
      CBREAK    This mode eliminates the character, word, and line
 	       editing input facilities, making the input charac-
@@ -188,11 +187,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      In all of the line disciplines, it is possible to simulate
      terminal input using the TIOCSTI _i_o_c_t_l, which takes, as its
-     third argument, the address of a character.  The system
+     third argument, the address of a character.  The system pre-
+     tends that this character was typed on the argument
 
 
 
-Printed 9/9/95		 August 1, 1987                         3
+Printed 11/26/99	 April 10, 1997                         3
 
 
 
@@ -203,8 +203,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     pretends that this character was typed on the argument ter-
-     minal, which must be the control terminal except for the
+     terminal, which must be the control terminal except for the
      super-user (this call is not in standard version 7 UNIX).
 
      Input characters are normally echoed by putting them in an
@@ -227,9 +226,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      the last character typed and the _s_g__k_i_l_l character (default,
      ^U: control-U) logically erasing the entire current input
      line.  These characters never erase beyond the beginning of
-     the current input line or an eof.	These characters may be
-     entered literally by preceding them with `\'; the `\' will
-     normally be erased when the character is typed.
+     the current input line or an eof.
 
      The drivers normally treat either a carriage return or a
      newline character as terminating an input line, replacing
@@ -242,9 +239,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      In the new driver there is a literal-next character (nor-
      mally ^V) which can be typed in both cooked and CBREAK mode
      preceding _a_n_y character to prevent its special meaning to
-     the terminal handler.  This is to be preferred to the use of
-     `\' escaping erase and kill characters, but `\' is retained
-     with its old function in the new line discipline.
+     the terminal handler.
 
      The new terminal driver also provides two other editing
      characters in normal mode.  The word-erase character, nor-
@@ -254,11 +249,16 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      blanks.  Finally, the reprint character, normally ^R,
      retypes the pending input beginning on a new line.  Retyping
      occurs automatically in cooked mode if characters which
-     would normally be erased from the screen are fouled by
+     would normally be erased from the screen are fouled by pro-
+     gram output.
+
+     Input echoing and redisplay
 
 
 
-Printed 9/9/95		 August 1, 1987                         4
+
+
+Printed 11/26/99	 April 10, 1997                         4
 
 
 
@@ -269,13 +269,9 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     program output.
-
-     Input echoing and redisplay
-
-     The terminal driver has several modes (not present in stan-
-     dard UNIX Version 7 systems) for handling the echoing of
-     terminal input, controlled by bits in a local mode word.
+     The terminal driver has several modes for handling the echo-
+     ing of terminal input, controlled by bits in a local mode
+     word.
 
      _H_a_r_d_c_o_p_y _t_e_r_m_i_n_a_l_s. When a hardcopy terminal is in use, the
      LPRTERA bit is normally set in the local mode word.  Charac-
@@ -321,10 +317,14 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      more rapidly than they can be typed, it will be suspended
      when its output queue exceeds some limit.	When the queue
      has drained down to some threshold the program is resumed.
+     Even parity is normally generated on output.  The EOT char-
+     acter is not transmitted in cooked mode to prevent terminals
+     that respond to it from hanging up; programs using RAW or
+     CBREAK mode should be careful.
 
 
 
-Printed 9/9/95		 August 1, 1987                         5
+Printed 11/26/99	 April 10, 1997                         5
 
 
 
@@ -335,25 +335,13 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     Even parity is normally generated on output.  The EOT char-
-     acter is not transmitted in cooked mode to prevent terminals
-     that respond to it from hanging up; programs using RAW or
-     CBREAK mode should be careful.
-
      The terminal drivers provide necessary processing for cooked
-     and CBREAK mode output including delay generation for cer-
-     tain special characters and parity generation.   Delays are
-     available after backspaces ^H, form feeds ^L, carriage
-     returns ^M, tabs ^I and newlines ^J.  The driver will also
-     optionally expand tabs into spaces, where the tab stops are
-     assumed to be set every eight columns, and optionally con-
-     vert newlines to carriage returns followed by newline.
-     These functions are controlled by bits in the tty flags
-     word; see Summary below.
-
-     The terminal drivers provide for mapping between upper and
-     lower case on terminals lacking lower case, and for other
-     special processing on deficient terminals.
+     and CBREAK mode output including parity generation.  The
+     driver will also optionally expand tabs into spaces, where
+     the tab stops are assumed to be set every eight columns, and
+     optionally convert newlines to carriage returns followed by
+     newline.  These functions are controlled by bits in the tty
+     flags word; see Summary below.
 
      Finally, in the new terminal driver, there is a output flush
      character, normally ^O, which sets the LFLUSHO bit in the
@@ -381,16 +369,28 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      the terminal is actually another machine that obeys those
      conventions.
 
+     If software flow control is not sufficient (it begins fail-
+     ing above 4800 bits per second on slow systems) RTS/CTS flow
+     control is now available. Hardware flow control causes RTS
+     to be dropped when the remote system (modem) should cease
+     sending and to be raised when additional data can be
+     accepted.	If the remote system drops CTS then the local
+     host ceases sending data until the CTS is raised.	Hardware
+     flow control is enabled via the TIOCLBIS (or TIOCLBIC or
+     TIOCLSET) function and the bit LRTSCTS.
+
      Line control and breaks.
 
      There are several _i_o_c_t_l calls available to control the state
      of the terminal line.  The TIOCSBRK _i_o_c_t_l will set the break
      bit in the hardware interface causing a break condition to
      exist; this can be cleared (usually after a delay with
+     _s_l_e_e_p(3)) by TIOCCBRK.  Break conditions in the input are
+     reflected as a null character in RAW mode or as the
 
 
 
-Printed 9/9/95		 August 1, 1987                         6
+Printed 11/26/99	 April 10, 1997                         6
 
 
 
@@ -401,11 +401,9 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     _s_l_e_e_p(3)) by TIOCCBRK.  Break conditions in the input are
-     reflected as a null character in RAW mode or as the inter-
-     rupt character in cooked or CBREAK mode.  The TIOCCDTR _i_o_c_t_l
-     will clear the data terminal ready condition; it can be set
-     again by TIOCSDTR.
+     interrupt character in cooked or CBREAK mode.  The TIOCCDTR
+     _i_o_c_t_l will clear the data terminal ready condition; it can
+     be set again by TIOCSDTR.
 
      When the carrier signal from the dataset drops (usually
      because the user has hung up his terminal) a SIGHUP hangup
@@ -453,10 +451,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      Job access control.
 
+     When using the new terminal driver, if a process which is
+     not in the distinguished process group of its control
 
 
 
-Printed 9/9/95		 August 1, 1987                         7
+Printed 11/26/99	 April 10, 1997                         7
 
 
 
@@ -467,14 +467,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     When using the new terminal driver, if a process which is
-     not in the distinguished process group of its control termi-
-     nal attempts to read from that terminal its process group is
-     sent a SIGTTIN signal.  This signal normally causes the
-     members of that process group to stop. If, however, the pro-
-     cess is ignoring SIGTTIN, has SIGTTIN blocked, or is in the
-     middle of process creation using _v_f_o_r_k(2)), the read will
-     return -1 and set _e_r_r_n_o to EIO.
+     terminal attempts to read from that terminal its process
+     group is sent a SIGTTIN signal.  This signal normally causes
+     the members of that process group to stop. If, however, the
+     process is ignoring SIGTTIN, has SIGTTIN blocked, or is in
+     the middle of process creation using _v_f_o_r_k(2)), the read
+     will return -1 and set _e_r_r_n_o to EIO.
 
      When using the new terminal driver with the LTOSTOP bit set
      in the local modes, a process is prohibited from writing on
@@ -522,7 +520,9 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-Printed 9/9/95		 August 1, 1987                         8
+
+
+Printed 11/26/99	 April 10, 1997                         8
 
 
 
@@ -571,24 +571,24 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      several bits that determine the system's treatment of the
      terminal:
 
-     ALLDELAY 0177400 Delay algorithm selection
-     BSDELAY  0100000 Select backspace delays (not implemented):
-     BS0      0
-     BS1      0100000
-     VTDELAY  0040000 Select form-feed and vertical-tab delays:
-     FF0      0
-     FF1      0040000
-     CRDELAY  0030000 Select carriage-return delays:
-     CR0      0
-     CR1      0010000
-     CR2      0020000
-     CR3      0030000
-     TBDELAY  0006000 Select tab delays:
-     TAB0     0
+     XTABS  0004000 Expand tabs on output
+     EVENP  0000200 Even parity allowed on input
+     ODDP   0000100 Odd parity allowed on input
+     RAW    0000040 Raw mode: wake up on all characters, 8-bit interface
+     CRMOD  0000020 Map CR into LF; output LF as CR-LF
+     ECHO   0000010 Echo (full duplex)
+     CBREAK 0000002 Return each character as soon as typed
+     TANDEM 0000001 Automatic inbound xon/xoff flow control
+
+     XTABS, causes tabs to be replaced by the appropriate number
+     of spaces on output.
+
+     The flags for even and odd parity control parity checking on
+     input and generation on output in cooked and CBREAK mode
 
 
 
-Printed 9/9/95		 August 1, 1987                         9
+Printed 11/26/99	 April 10, 1997                         9
 
 
 
@@ -599,71 +599,11 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
-     TAB1     0002000
-     TAB2     0004000
-     XTABS    0006000
-     NLDELAY  0001400 Select new-line delays:
-     NL0      0
-     NL1      0000400
-     NL2      0001000
-     NL3      0001400
-     EVENP    0000200 Even parity allowed on input
-     ODDP     0000100 Odd parity allowed on input
-     RAW      0000040 Raw mode: wake up on all characters, 8-bit interface
-     CRMOD    0000020 Map CR into LF; output LF as CR-LF
-     ECHO     0000010 Echo (full duplex)
-     CBREAK   0000002 Return each character as soon as typed
-     TANDEM   0000001 Automatic flow control
-
-     The delay bits specify how long transmission stops to allow
-     for mechanical or other movement when certain characters are
-     sent to the terminal.  In all cases a value of 0 indicates
-     no delay.
-
-     Backspace delays are currently ignored but might be used for
-     Terminet 300's.
-
-     If a form-feed/vertical tab delay is specified, it lasts for
-     about 2 seconds.
-
-     Carriage-return delay type 1 lasts about .08 seconds and is
-     suitable for the Terminet 300.  Delay type 2 lasts about .16
-     seconds and is suitable for the VT05 and the TI 700.  Delay
-     type 3 is suitable for the concept-100 and pads lines to be
-     at least 9 characters at 9600 baud.
-
-     New-line delay type 1 is dependent on the current column and
-     is tuned for Teletype model 37's.	Type 2 is useful for the
-     VT05 and is about .10 seconds.  Type 3 is unimplemented and
-     is 0.
-
-     Tab delay type 1 is dependent on the amount of movement and
-     is tuned to the Teletype model 37.  Type 3, called XTABS, is
-     not a delay at all but causes tabs to be replaced by the
-     appropriate number of spaces on output.
-
-     The flags for even and odd parity control parity checking on
-     input and generation on output in cooked and CBREAK mode
      (unless LPASS8 is enabled, see below).  Even parity is gen-
      erated on output unless ODDP is set and EVENP is clear, in
      which case odd parity is generated.  Input characters with
      the wrong parity, as determined by EVENP and ODDP, are
      ignored in cooked and CBREAK mode.
-
-
-
-
-
-Printed 9/9/95		 August 1, 1987                        10
-
-
-
-
-
-
-TTY(4)		    UNIX Programmer's Manual		   TTY(4)
-
-
 
      RAW disables all processing save output flushing with
      LFLUSHO; full 8 bits of input are given as soon as it is
@@ -711,16 +651,10 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      The applicable codes are:
 
      TIOCGETP	    Fetch the basic parameters associated with
-		    the terminal, and store in the pointed-to
-		    _s_g_t_t_y_b structure.
-
-     TIOCSETP	    Set the parameters according to the pointed-
-		    to _s_g_t_t_y_b structure.  The interface delays
-		    until output is quiescent, then throws away
 
 
 
-Printed 9/9/95		 August 1, 1987                        11
+Printed 11/26/99	 April 10, 1997                        10
 
 
 
@@ -731,6 +665,12 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
+		    the terminal, and store in the pointed-to
+		    _s_g_t_t_y_b structure.
+
+     TIOCSETP	    Set the parameters according to the pointed-
+		    to _s_g_t_t_y_b structure.  The interface delays
+		    until output is quiescent, then throws away
 		    any unread characters, before changing the
 		    modes.
 
@@ -777,16 +717,10 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 		    system pretends had been typed on the termi-
 		    nal.
 
-     TIOCSBRK	    the break bit is set in the terminal.
-
-     TIOCCBRK	    the break bit is cleared.
-
-     TIOCSDTR	    data terminal ready is set.
 
 
 
-
-Printed 9/9/95		 August 1, 1987                        12
+Printed 11/26/99	 April 10, 1997                        11
 
 
 
@@ -796,6 +730,12 @@ Printed 9/9/95		 August 1, 1987                        12
 TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
+
+     TIOCSBRK	    the break bit is set in the terminal.
+
+     TIOCCBRK	    the break bit is cleared.
+
+     TIOCSDTR	    data terminal ready is set.
 
      TIOCCDTR	    data terminal ready is cleared.
 
@@ -843,16 +783,10 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      ^D, and -1.  A character value of -1 eliminates the effect
      of that character.  The _t__b_r_k_c character, by default -1,
      acts like a new-line in that it terminates a `line,' is
-     echoed, and is passed to the program.  The `stop' and
-     `start' characters may be the same, to produce a toggle
-     effect.  It is probably counterproductive to make other spe-
-     cial characters (including erase and kill) identical.  The
-     applicable _i_o_c_t_l calls are:
 
 
 
-
-Printed 9/9/95		 August 1, 1987                        13
+Printed 11/26/99	 April 10, 1997                        12
 
 
 
@@ -862,6 +796,12 @@ Printed 9/9/95		 August 1, 1987                        13
 TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
+
+     echoed, and is passed to the program.  The `stop' and
+     `start' characters may be the same, to produce a toggle
+     effect.  It is probably counterproductive to make other spe-
+     cial characters (including erase and kill) identical.  The
+     applicable _i_o_c_t_l calls are:
 
      TIOCGETC	 Get the special characters and put them in the
 		 specified structure.
@@ -882,7 +822,7 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
      LTOSTOP   000100	 Send SIGTTOU for background output
      LFLUSHO   000200	 Output is being flushed
      LNOHANG   000400	 Don't send hangup when carrier drops
-     LETXACK   001000	 Diablo style buffer hacking (unimplemented)
+     LRTSCTS   001000	 RTS/CTS flow control
      LCRTKIL   002000	 BS-space-BS erase entire line on line kill
      LPASS8    004000	 Pass all 8 bits through on input, in any mode
      LCTLECH   010000	 Echo input control chars as ^X, delete as ^?
@@ -908,17 +848,11 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
      _L_o_c_a_l _s_p_e_c_i_a_l _c_h_a_r_s
 
-     The final control structure associated with each terminal is
-     the _l_t_c_h_a_r_s structure which defines control characters for
-     the new terminal driver.  Its structure is:
-
-     struct ltchars {
-	  char t_suspc;  /* stop process signal */
-	  char t_dsuspc; /* delayed stop process signal */
 
 
 
-Printed 9/9/95		 August 1, 1987                        14
+
+Printed 11/26/99	 April 10, 1997                        13
 
 
 
@@ -929,6 +863,13 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
 
+     The final control structure associated with each terminal is
+     the _l_t_c_h_a_r_s structure which defines control characters for
+     the new terminal driver.  Its structure is:
+
+     struct ltchars {
+	  char t_suspc;  /* stop process signal */
+	  char t_dsuspc; /* delayed stop process signal */
 	  char t_rprntc; /* reprint line */
 	  char t_flushc; /* flush output (toggles) */
 	  char t_werasc; /* word erase */
@@ -975,16 +916,9 @@ TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 	  mation, a SIGWINCH signal will be sent to the
 	  terminal's process group.
 
-FILES
-     /dev/tty
-     /dev/tty*
-     /dev/console
 
 
-
-
-
-Printed 9/9/95		 August 1, 1987                        15
+Printed 11/26/99	 April 10, 1997                        14
 
 
 
@@ -994,6 +928,11 @@ Printed 9/9/95		 August 1, 1987                        15
 TTY(4)		    UNIX Programmer's Manual		   TTY(4)
 
 
+
+FILES
+     /dev/tty
+     /dev/tty*
+     /dev/console
 
 SEE ALSO
      csh(1), stty(1), tset(1), ioctl(2), sigvec(2), stty(3C),
@@ -1045,12 +984,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-Printed 9/9/95		 August 1, 1987                        16
+Printed 11/26/99	 April 10, 1997                        15
 
 
 

@@ -9,8 +9,8 @@ NAME
      swapon - specify additional device for paging and swapping
 
 SYNOPSIS
-     /etc/swapon -a
-     /etc/swapon name ...
+     swapon -a
+     swapon name ...
 
 DESCRIPTION
      _S_w_a_p_o_n is used to specify additional devices on which paging
@@ -41,6 +41,7 @@ BUGS
      is therefore not possible to make use of devices which may
      be dismounted during system operation.
 
+     swapon is not implemented in 2.11BSD.
 
 
 
@@ -59,8 +60,7 @@ BUGS
 
 
 
-
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/24/99	November 17, 1996			1
 
 
 

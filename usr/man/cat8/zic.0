@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/10/95                                                 1
+Printed 11/24/99						1
 
 
 
@@ -126,7 +126,7 @@ ZIC(8)		    UNIX Programmer's Manual		   ZIC(8)
 
 
 
-Printed 9/10/95                                                 2
+Printed 11/24/99						2
 
 
 
@@ -192,7 +192,7 @@ ZIC(8)		    UNIX Programmer's Manual		   ZIC(8)
 
 
 
-Printed 9/10/95                                                 3
+Printed 11/24/99						3
 
 
 
@@ -235,7 +235,7 @@ NOTE
      transition time recorded in the compiled file is correct.
 
 FILES
-     /etc/zoneinfo     standard directory used for created files
+     /usr/share/zoneinfostandard directory used for created files
 
 SEE ALSO
      newctime(3), tzfile(5), zdump(8)
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 9/10/95                                                 4
+Printed 11/24/99						4
 
 
 

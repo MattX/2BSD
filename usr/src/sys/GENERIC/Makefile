@@ -1,4 +1,4 @@
-OPTS=-DGENERIC
+OPTS=-DGENERIC -DSOFUB_MAP
 #
 # Copyright (c) 1988 Regents of the University of California.
 # All rights reserved.
@@ -10,7 +10,7 @@ OPTS=-DGENERIC
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	%W% (Berkeley) %G%
+#	2.13 (2.11BSD) 1999/9/24
 #
 #########################################################
 # Non-network, but separate I/D kernel			#
@@ -29,6 +29,7 @@ CFLAGS=	-O ${DEFS}
 CPP=	/lib/cpp -P ${DEFS}
 AS=	/bin/as -V
 ED=	/bin/ed
+SED=	/bin/sed
 
 SUB=	sys pdp pdpuba pdpmba
 
@@ -47,22 +48,24 @@ CONF=	scb.o \
 
 BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	kern_descrip.o kern_mman.o kern_proc.o kern_sig.o kern_subr.o \
-	kern_synch.o lp.o machdep.o ra.o ram.o rk.o rx.o si.o \
-	subr_rmap.o subr_xxx.o sys_inode.o sys_pipe.o trap.o tty.o \
+	kern_prot2.o kern_synch.o lp.o machdep.o ra.o ram.o si.o \
+	subr_rmap.o subr_xxx.o sys_inode.o trap.o tty.o \
 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
-	ufs_subr.o vm_sched.o xp.o
-OV1=	sys_generic.o ufs_syscalls.o
+	xp.o
+OV1=	sys_generic.o ufs_syscalls.o vfs_vnops.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
-OV3=	clock.o cons.o kern_pdp.o kern_time.o \
-	kern_xxx.o machdep2.o quota_sys.o subr_prf.o sys_process.o \
+OV3=	clock.o cons.o kern_time.o \
+	machdep2.o quota_sys.o subr_prf.o sys_process.o \
 	syscalls.o ufs_mount.o
 OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
-	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
-OV5=	ht.o tm.o ts.o mem.o
-OV6=	tmscp.o ufs_disksubr.o
-OV7=	mch_fpsim.o kern_sysctl.o ingreslock.o
-OV8=	vm_text.o rl.o
+	quota_ufs.o vm_swp.o vm_swap.o vm_proc.o
+OV5=	ht.o tm.o ts.o
+OV6=	tmscp.o tmscpdump.o mem.o
+OV7=	rl.o mch_fpsim.o ingreslock.o ufs_disksubr.o
+OV8=	rx.o kern_sysctl.o vm_sched.o vm_text.o
+OV9=	kern_pdp.o kern_xxx.o ufs_syscalls2.o ufs_subr.o rk.o sys_pipe.o \
+	kern_sig2.o toy.o subr_log.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \
@@ -94,14 +97,12 @@ vers.o: FRC
 	${CC} -c vers.c
 
 boot.o: boot.s
-	${CPP} boot.s > boot.i
-	${AS} -o boot.o boot.i
-	rm -f boot.i
+	${CPP} boot.s | ${AS} -o boot.o
 
 param.o:
 	${CC} -S ${CFLAGS} param.c
 	${ED} - param.s < ../conf/:comm-to-bss
-	${AS} - -o param.o param.s
+	${AS} -u -o param.o param.s
 	rm -f param.s
 
 ioconf.o: ioconf.c
@@ -109,13 +110,13 @@ ioconf.o: ioconf.c
 
 sys pdp pdpuba pdpmba:
 	make -f Make.$@ I=${I} H=${H} M=${M} AS="${AS}" CPP="${CPP}" \
-	    CFLAGS="${CFLAGS}" ED="${ED}"
+	    CFLAGS="${CFLAGS}" SED="${SED}"
 
 checksys: ../conf/checksys.c
 	${CC} ${CFLAGS} -o $@ ../conf/checksys.c
 
 clean:
-	rm -f unix core mklog *.o *.i assym.h genassym checksys
+	rm -f unix core mklog *.o assym.h genassym checksys
 
 install:
 	install -c -o root -g kmem -m 744 unix ${DESTDIR}/unix
@@ -141,4 +142,3 @@ FRC:
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
-

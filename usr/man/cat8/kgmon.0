@@ -10,7 +10,8 @@ NAME
      buffers
 
 SYNOPSIS
-     /etc/kgmon [ -b ] [ -h ] [ -r ] [ -p ] [ system ] [ memory ]
+     /usr/sbin/kgmon [ -b ] [ -h ] [ -r ] [ -p ] [ system ] [
+     memory ]
 
 DESCRIPTION
      _K_g_m_o_n is a tool used when profiling the operating system.
@@ -59,8 +60,7 @@ DIAGNOSTICS
 
 
 
-
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	November 17, 1996			1
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		December 20, 1994			1
+Printed 11/26/99	December 20, 1994			1
 
 
 
@@ -76,11 +76,7 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
      -i   For each file, print the i-number in the first column
 	  of the report.
 
-     -f   Force each argument to be interpreted as a directory
-	  and list the name found in each slot.  This option
-	  turns off -l, -t, -s, and -r, and turns on -a; the
-	  order is the order in which entries appear in the
-	  directory.
+     -f   Output is not sorted.
 
      -F   cause directories to be marked with a trailing `/',
 	  sockets with a trailing `=', symbolic links with a
@@ -122,11 +118,15 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
      x	if the file is executable;
      -	if the indicated permission is not granted.
 
+     The group-execute permission character is given as s if the
+     file has the set-group-id bit set; likewise the user-execute
+     permission character is given as s if the file has the set-
+     user-id bit set.
 
 
 
 
-Printed 9/9/95		December 20, 1994			2
+Printed 11/26/99	December 20, 1994			2
 
 
 
@@ -136,11 +136,6 @@ Printed 9/9/95		December 20, 1994			2
 LS(1)		    UNIX Programmer's Manual		    LS(1)
 
 
-
-     The group-execute permission character is given as s if the
-     file has the set-group-id bit set; likewise the user-execute
-     permission character is given as s if the file has the set-
-     user-id bit set.
 
      The last character of the mode (normally `x' or `-') is t if
      the 1000 bit of the mode is on.  See _c_h_m_o_d(1) for the mean-
@@ -192,7 +187,12 @@ BUGS
 
 
 
-Printed 9/9/95		December 20, 1994			3
+
+
+
+
+
+Printed 11/26/99	December 20, 1994			3
 
 
 

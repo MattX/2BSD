@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 11, 1986				1
+Printed 11/26/99	October 11, 1996			1
 
 
 
@@ -126,7 +126,7 @@ FIND(1)             UNIX Programmer's Manual		  FIND(1)
 
 
 
-Printed 9/9/95		  May 11, 1986				2
+Printed 11/26/99	October 11, 1996			2
 
 
 
@@ -174,7 +174,7 @@ EXAMPLES
 FILES
      /etc/passwd
      /etc/group
-     /usr/lib/find/find.codes	  coded pathnames database
+     /var/db/find.codes     coded pathnames database
 
 SEE ALSO
      sh(1), test(1), fs(5)
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 11, 1986				3
+Printed 11/26/99	October 11, 1996			3
 
 
 

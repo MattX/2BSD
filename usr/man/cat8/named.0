@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		February 28, 1988			1
+Printed 11/26/99	February 28, 1988			1
 
 
 
@@ -126,7 +126,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 9/9/95		February 28, 1988			2
+Printed 11/26/99	February 28, 1988			2
 
 
 
@@ -192,7 +192,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 9/9/95		February 28, 1988			3
+Printed 11/26/99	February 28, 1988			3
 
 
 
@@ -258,7 +258,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 9/9/95		February 28, 1988			4
+Printed 11/26/99	February 28, 1988			4
 
 
 
@@ -312,19 +312,19 @@ NOTES
 
 FILES
      /etc/named.boot	      name server configuration boot file
-     /etc/named.pid	      the process id
+     /var/run/named.pid       the process id
      /usr/tmp/named.run       debug output
      /usr/tmp/named_dump.db   dump of the name server database
      /usr/tmp/named.stats     nameserver statistics data
 
 SEE ALSO
-     kill(1), gethostbyname(3N), signal(3c), resolver(3),
+     kill(1), gethostbyname(3), signal(3), resolver(3),
      resolver(5), hostname(7), RFC882, RFC883, RFC973, RFC974,
      _N_a_m_e _S_e_r_v_e_r _O_p_e_r_a_t_i_o_n_s _G_u_i_d_e _f_o_r _B_I_N_D
 
 
 
-Printed 9/9/95		February 28, 1988			5
+Printed 11/26/99	February 28, 1988			5
 
 
 

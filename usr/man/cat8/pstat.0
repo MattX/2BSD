@@ -9,7 +9,8 @@ NAME
      pstat - print system facts
 
 SYNOPSIS
-     /etc/pstat -aixptufT [ suboptions ] [ system ] [ corefile ]
+     /usr/sbin/pstat -aixptufT [ suboptions ] [ system ] [ core-
+     file ]
 
 DESCRIPTION
      _P_s_t_a_t interprets the contents of certain system tables.  If
@@ -56,11 +57,10 @@ DESCRIPTION
 	   T	_p_t_r_a_c_e(2) in effect
 	   W	text not yet written on swap device
 	   L	loading in progress
-	   K	locked
 
 
 
-Printed 9/9/95		  May 24, 1986				1
+Printed 11/26/99	September 2, 1997			1
 
 
 
@@ -71,6 +71,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
+	   K	locked
 	   w	wanted (L flag is on)
 	   P	resulted from demand-page-from-inode exec format
 		(see _e_x_e_c_v_e(2))
@@ -111,22 +112,21 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      F	   Miscellaneous state variables, or'ed together (hexade-
 	   cimal):
 	   0001     loaded
-	   0002     the scheduler process
+	   0002     system process (swapper)
 	   0004     locked for swap out
-	   0008     swapped out
+	   0008     swap save area
 	   0010     traced
 	   0020     used in tracing
-	   0080     in page-wait
-	   0100     prevented from swapping during _f_o_r_k(2)
-	   0200     will restore old mask after taking signal
-	   0400     exiting
-	   0800     doing physical I/O (bio.c)
-	   1000     process resulted from a _v_f_o_r_k(2) which is not
-		    yet complete
+	   0040     user settable lock in core
+	   0100     process resulted from _v_f_o_r_k(2)
+	   0200     parent in vfork, waiting for child
+	   0400     parent has released child in vfork
+	   1000     detached inherited by init
+	   2000     no SIGCHLD signal to parent
 
 
 
-Printed 9/9/95		  May 24, 1986				2
+Printed 11/26/99	September 2, 1997			2
 
 
 
@@ -137,19 +137,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-	   2000     another flag for _v_f_o_r_k(2)
-	   4000     process has no virtual memory, as it is a
-		    parent in the context of _v_f_o_r_k(2)
-	   8000     process is demand paging data pages from its
-		    text inode.
-	   10000    process using sequential VM patterns
-	   20000    process using random VM patterns
-	   100000   using old 4.1-compatible signal semantics
-	   200000   process needs profiling tick
-	   400000   process is scanning descriptors during select
-	   1000000  process page tables have changed
-     POIP  number of pages currently being pushed out from this
-	   process.
+	   4000     selecting; wakeup/waiting danger
      PRI   Scheduling priority, see _s_e_t_p_r_i_o_r_i_t_y(2).
      SIG   Signals received (signals 1-32 coded in bits 0-31),
      UID   Real user ID.
@@ -189,20 +177,6 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   W	waiting for open to complete
 	   O	open
 	   F	outq has been flushed during DMA
-
-
-
-Printed 9/9/95		  May 24, 1986				3
-
-
-
-
-
-
-PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
-
-
-
 	   C	carrier is on
 	   B	busy doing output
 	   A	process is awaiting output
@@ -214,12 +188,26 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   tty'' for NTTYDISC or ``net'' for NETLDISC (see
 	   _b_k(4)).
 
-     -u    print information about a user process; the next argu-
-	   ment is its address as given by _p_s(1).  The process
-	   must be in main memory, or the file used can be a core
-	   image and the address 0.  Only the fields located in
-	   the first page cluster can be located succesfully if
-	   the process is in main memory.
+     -u    print information about a user process; the next
+
+
+
+Printed 11/26/99	September 2, 1997			3
+
+
+
+
+
+
+PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
+
+
+
+	   argument is its address as given by _p_s(1).  The pro-
+	   cess must be in main memory, or the file used can be a
+	   core image and the address 0.  Only the fields located
+	   in the first page cluster can be located succesfully
+	   if the process is in main memory.
 
      -f    Print the open file table with these headings:
 
@@ -256,19 +244,6 @@ SEE ALSO
      iostat(1), ps(1), systat(1), vmstat(1), stat(2), fs(5),
      K. Thompson, _U_N_I_X _I_m_p_l_e_m_e_n_t_a_t_i_o_n
 
-
-
-Printed 9/9/95		  May 24, 1986				4
-
-
-
-
-
-
-PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
-
-
-
 BUGS
      It would be very useful if the system recorded "maximum
      occupancy" on the tables reported by -T; even more useful if
@@ -283,48 +258,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 9/9/95		  May 24, 1986				5
+Printed 11/26/99	September 2, 1997			4
 
 
 

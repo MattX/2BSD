@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  July 25, 1987                         1
+Printed 11/26/99	December 22, 1995			1
 
 
 
@@ -126,7 +126,7 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
 
 
 
-Printed 9/9/95		  July 25, 1987                         2
+Printed 11/26/99	December 22, 1995			2
 
 
 
@@ -141,6 +141,10 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
      zero byte count is returned when a tape mark is read, but
      another read will fetch the first record of the new tape
      file.
+
+     The MTCACHE and MTNOCACHE commands do not apply to all tape
+     drivers.  At present only the TMSCP driver supports those
+     commands and then only for drives such as the TU81+.
 
 FILES
      /dev/mt?
@@ -188,11 +192,7 @@ BUGS
 
 
 
-
-
-
-
-Printed 9/9/95		  July 25, 1987                         3
+Printed 11/26/99	December 22, 1995			3
 
 
 

@@ -9,7 +9,7 @@ NAME
      mkproto - construct a prototype file system
 
 SYNOPSIS
-     /etc/mkproto special proto
+     /usr/sbin/mkproto special proto
 
 DESCRIPTION
      _M_k_p_r_o_t_o is used to bootstrap a new file system.  First a new
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 27, 1985                         1
+Printed 11/26/99	November 17, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 27, 1985                         2
+Printed 11/26/99	November 17, 1996			2
 
 
 

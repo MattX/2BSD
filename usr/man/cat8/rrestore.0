@@ -1,7 +1,7 @@
 
 
 
-RRESTORE(8C)	    UNIX Programmer's Manual	     RRESTORE(8C)
+RRESTORE(8)	    UNIX Programmer's Manual	      RRESTORE(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      rrestore - restore a file system dump across the network
 
 SYNOPSIS
-     /etc/rrestore [ key [ name ... ]
+     rrestore [ key [ name ... ]
 
 DESCRIPTION
      _R_r_e_s_t_o_r_e obtains from magnetic tape files saved by a previ-
@@ -17,11 +17,11 @@ DESCRIPTION
      _r_e_s_t_o_r_e(8) except the _f key should be specified and the file
      supplied should be of the form _m_a_c_h_i_n_e:_d_e_v_i_c_e.
 
-     _R_r_e_s_t_o_r_e creates a remote server, /_e_t_c/_r_m_t, on the client
-     machine to access the tape device.
+     _R_r_e_s_t_o_r_e creates a remote server, _r_m_t, on the client machine
+     to access the tape device.
 
 SEE ALSO
-     restore(8), rmt(8C)
+     restore(8), rmt(8)
 
 DIAGNOSTICS
      Same as _r_e_s_t_o_r_e(8) with a few extra related to the network.
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 9/9/95		  June 3, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 

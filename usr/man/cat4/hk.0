@@ -47,20 +47,20 @@ DESCRIPTION
      bytes.
 
 DISK SUPPORT
-     The origin and size (in sectors) of the pseudo-disks on each
-     drive are as follows:
+     Disks must be labeled using either the standalone _d_i_s_k_l_a_b_e_l
+     program on the boot tape or with the _d_i_s_k_l_a_b_e_l(8) program.
+     There are no partition tables coded into the _h_k drivers,
+     these must be placed on the drive with _d_i_s_k_l_a_b_e_l.
+
+     Traditionally the _h_k?_a partition is used for the root
+     filesystem, the _b partition as a swap area and the _c parti-
+     tion for disk to disk copying (it spans the entire disk).
 
 
 
 
 
-
-
-
-
-
-
-Printed 9/9/95		 January 3, 1993			1
+Printed 11/26/99	December 28, 1997			1
 
 
 
@@ -71,35 +71,13 @@ HK(4)		    UNIX Programmer's Manual		    HK(4)
 
 
 
-     RK06 partitions:
-	  disk	 start	length	     cyls  comments
-	  hk?a	     0	  8316	  0 - 125  root
-	  hk?b	  8316	  8316	126 - 251  swap
-	  hk?c	     0	 27126	  0 - 410* whole pack plus badsect track
-	  hk?d	unused
-	  hk?e	unused
-	  hk?f	unused
-	  hk?g	 16632	 10428	251 - 409  tmp
-	  hk?h	     0	 27060	  0 - 409  whole pack minus badsect track
-
-     RK07 partitions:
-	  disk	 start	length	     cyls  comments
-	  hk?a	     0	  8316	  0 - 125  root
-	  hk?b	  8316	  8316	126 - 251  swap
-	  hk?c	     0	 53790	  0 - 814* whole pack plus badsect track
-	  hk?d	unused
-	  hk?e	unused
-	  hk?f	unused
-	  hk?g	 16632	 37092	252 - 813
-	  hk?h	     0	 53724	  0 - 814  whole pack minus badsect track
-
-     Those partitions marked with an asterisk (``*'') allow
-     access to bad block information stored at the end of some
-     packs.  Extreme care must be taken when creating file sys-
-     tems on these partitions to avoid overwriting any bad block
-     information present.  I general it's best to use _n_e_w_f_s(8) to
-     create file systems since it uses the ``safe'' partition
-     sizes recored in /_e_t_c/_d_i_s_k_t_a_b.
+     The kernel uses the _c partition to access the bad block
+     information stored at the end of some packs.  Extreme care
+     must be taken when creating file systems on this partition
+     to avoid overwriting any bad block information present.
+     User data should use the _h partition which should be at
+     least one track (one cylinder might be best) shorter than
+     the _c partition.
 
 FILES
      /dev/hk[0-7][a-h]	 block files
@@ -108,8 +86,8 @@ FILES
      /dev/MAKEDEV.local  script to localize special files
 
 SEE ALSO
-     ra(4), ram(4), rk(4), rl(4), rx(4), si(4), xp(4), dtab(5),
-     autoconfig(8)
+     ra(4) ram(4), rk(4), rl(4), rx(4), si(4), xp(4), dtab(5),
+     autoconfig(8), disklabel(8)
 
 DIAGNOSTICS
      hk%d%c: hard error sn%d cs2=%b ds=%b er=%b.  An unrecover-
@@ -123,19 +101,6 @@ DIAGNOSTICS
      hk%d: write locked.  The write protect switch was set on the
      drive when a write was attempted.	The write operation is
      not recoverable.
-
-
-
-Printed 9/9/95		 January 3, 1993			2
-
-
-
-
-
-
-HK(4)		    UNIX Programmer's Manual		    HK(4)
-
-
 
      hk%d: not ready.  The drive was spun down or off line when
      it was accessed.  The i/o operation is not recoverable.
@@ -158,6 +123,20 @@ BUGS
      byte block boundaries, and _w_r_i_t_e scribbles on the tail of
      incomplete blocks.  Thus, in programs that are likely to
      access raw devices, _r_e_a_d, _w_r_i_t_e and _l_s_e_e_k(2) should always
+
+
+
+Printed 11/26/99	December 28, 1997			2
+
+
+
+
+
+
+HK(4)		    UNIX Programmer's Manual		    HK(4)
+
+
+
      deal in 512-byte multiples.
 
      DEC-standard error logging should be supported.
@@ -165,10 +144,6 @@ BUGS
      A program to analyze the logged error information (even in
      its present reduced form) is needed.
 
-     The partition tables for the file systems should be read off
-     of each pack, as they are never quite what any single
-     installation would prefer, and this would make packs more
-     portable.
 
 
 
@@ -192,7 +167,32 @@ BUGS
 
 
 
-Printed 9/9/95		 January 3, 1993			3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 11/26/99	December 28, 1997			3
 
 
 

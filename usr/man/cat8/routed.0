@@ -1,7 +1,7 @@
 
 
 
-ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
+ROUTED(8)	    UNIX Programmer's Manual		ROUTED(8)
 
 
 
@@ -9,7 +9,7 @@ NAME
      routed - network routing daemon
 
 SYNOPSIS
-     /etc/routed [ -d ] [ -g ] [ -s ] [ -q ] [ -t ] [ _l_o_g_f_i_l_e ]
+     routed [ -d ] [ -g ] [ -s ] [ -q ] [ -t ] [ _l_o_g_f_i_l_e ]
 
 DESCRIPTION
      _R_o_u_t_e_d is invoked at boot time to manage the network routing
@@ -19,7 +19,7 @@ DESCRIPTION
      capable of use with multiple address types, but is currently
      used only for Internet routing within a cluster of networks.
 
-     In normal operation _r_o_u_t_e_d listens on the _u_d_p(4P) socket for
+     In normal operation _r_o_u_t_e_d listens on the _u_d_p(4) socket for
      the _r_o_u_t_e service (see _s_e_r_v_i_c_e_s(5)) for routing information
      packets.  If the host is an internetwork router, it periodi-
      cally supplies copies of its routing tables to any directly
@@ -60,14 +60,14 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		  May 24, 1986				1
+Printed 11/26/99	November 17, 1996			1
 
 
 
 
 
 
-ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
+ROUTED(8)	    UNIX Programmer's Manual		ROUTED(8)
 
 
 
@@ -126,14 +126,14 @@ ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
 
 
 
-Printed 9/9/95		  May 24, 1986				2
+Printed 11/26/99	November 17, 1996			2
 
 
 
 
 
 
-ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
+ROUTED(8)	    UNIX Programmer's Manual		ROUTED(8)
 
 
 
@@ -186,20 +186,20 @@ ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
      may be a symbolic name located in /_e_t_c/_n_e_t_w_o_r_k_s or
      /_e_t_c/_h_o_s_t_s (or, if started after _n_a_m_e_d(8), known to the name
      server), or an Internet address specified in ``dot'' nota-
-     tion; see _i_n_e_t(3N).
+     tion; see _i_n_e_t(3).
 
 
 
 
 
-Printed 9/9/95		  May 24, 1986				3
+Printed 11/26/99	November 17, 1996			3
 
 
 
 
 
 
-ROUTED(8C)	    UNIX Programmer's Manual	       ROUTED(8C)
+ROUTED(8)	    UNIX Programmer's Manual		ROUTED(8)
 
 
 
@@ -229,7 +229,7 @@ FILES
 SEE ALSO
      ``Internet Transport Protocols'', XSIS 028112, Xerox System
      Integration Standard.
-     udp(4P), XNSrouted(8C), htable(8)
+     udp(4), XNSrouted(8), htable(8)
 
 BUGS
      The kernel's routing tables may not correspond to those of
@@ -237,7 +237,7 @@ BUGS
      for this is to place the routing process in the kernel.
 
      _R_o_u_t_e_d should incorporate other routing protocols, such as
-     Xerox NS (_X_N_S_r_o_u_t_e_d(8C)) and EGP.	Using separate processes
+     Xerox NS (_X_N_S_r_o_u_t_e_d(8)) and EGP.  Using separate processes
      for each requires configuration options to avoid redundant
      or competing routes.
 
@@ -258,7 +258,7 @@ BUGS
 
 
 
-Printed 9/9/95		  May 24, 1986				4
+Printed 11/26/99	November 17, 1996			4
 
 
 

@@ -10,7 +10,7 @@ NAME
 
 DESCRIPTION
      A new user must choose a login name, which must not already
-     appear in /_e_t_c/_p_a_s_s_w_dor /_u_s_r/_l_i_b/_a_l_i_a_s_e_s.	It must also not
+     appear in /_e_t_c/_p_a_s_s_w_dor /_e_t_c/_a_l_i_a_s_e_s.  It must also not
      begin with the hyphen (``-'') character.  It is strongly
      recommended that it be all lower-case, and not contain the
      dot (``.'') character, as that tends to confuse mailers.  An
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 9/9/95		 March 15, 1989                         1
+Printed 11/26/99	October 23, 1996			1
 
 
 

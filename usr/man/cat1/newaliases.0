@@ -13,8 +13,8 @@ SYNOPSIS
 
 DESCRIPTION
      _N_e_w_a_l_i_a_s_e_s rebuilds the random access data base for the mail
-     aliases file /_u_s_r/_l_i_b/_a_l_i_a_s_e_s.  It must be run each time
-     /_u_s_r/_l_i_b/_a_l_i_a_s_e_s is changed in order for the change to take
+     aliases file /_e_t_c/_a_l_i_a_s_e_s.  It must be run each time
+     /_e_t_c/_a_l_i_a_s_e_s is changed in order for the change to take
      effect.
 
 SEE ALSO
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/26/99	October 22, 1996			1
 
 
 

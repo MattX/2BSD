@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 9/9/95		 April 29, 1985                         1
+Printed 11/26/99	October 21, 1996			1
 
 
 
@@ -126,7 +126,7 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
 
 
 
-Printed 9/9/95		 April 29, 1985                         2
+Printed 11/26/99	October 21, 1996			2
 
 
 
@@ -143,8 +143,8 @@ BC(1)		    UNIX Programmer's Manual		    BC(1)
      output instead.
 
 FILES
-     /usr/lib/lib.b mathematical library
-     dc(1)	    desk calculator proper
+     /usr/share/misc/lib.b mathematical library
+     dc(1)		   desk calculator proper
 
 SEE ALSO
      dc(1)
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 9/9/95		 April 29, 1985                         3
+Printed 11/26/99	October 21, 1996			3
 
 
 

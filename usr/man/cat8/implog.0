@@ -1,7 +1,7 @@
 
 
 
-IMPLOG(8C)	    UNIX Programmer's Manual	       IMPLOG(8C)
+IMPLOG(8)	    UNIX Programmer's Manual		IMPLOG(8)
 
 
 
@@ -9,8 +9,8 @@ NAME
      implog - IMP log interpreter
 
 SYNOPSIS
-     /etc/implog [ -D ] [ -f ] [ -c ] [ -r ] [ -l [ _l_i_n_k ] ] [ -h
-     _h_o_s_t# ] [ -i _i_m_p# ] [ -t _m_e_s_s_a_g_e-_t_y_p_e ]
+     /usr/sbin/implog [ -D ] [ -f ] [ -c ] [ -r ] [ -l [ _l_i_n_k ] ]
+     [ -h _h_o_s_t# ] [ -i _i_m_p# ] [ -t _m_e_s_s_a_g_e-_t_y_p_e ]
 
 DESCRIPTION
      _I_m_p_l_o_g is program which interprets the message log produced
@@ -60,14 +60,14 @@ BUGS
 
 
 
-Printed 9/9/95		   May 5, 1986				1
+Printed 11/26/99	November 16, 1996			1
 
 
 
 
 
 
-IMPLOG(8C)	    UNIX Programmer's Manual	       IMPLOG(8C)
+IMPLOG(8)	    UNIX Programmer's Manual		IMPLOG(8)
 
 
 
@@ -126,7 +126,7 @@ IMPLOG(8C)	    UNIX Programmer's Manual	       IMPLOG(8C)
 
 
 
-Printed 9/9/95		   May 5, 1986				2
+Printed 11/26/99	November 16, 1996			2
 
 
 
