@@ -3,8 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)if_il.c	2.1 (2.11BSD GTE) 12/17/94
+ *	@(#)if_il.c	2.2 (2.11BSD GTE) 1/6/95
  *
+ *	1/6/95 - sms: start of network data was already computed in sys_net.c,
+ *		it should no longer be done in this driver.  Using 'startnet'
+ *		as an initialization done flag caused the driver to skip 
+ *		testing for a UNIBUS MAP on an 11/44.  *crash*.
+ *		Trailer output capability was removed (it was already gone from
+ *		the receive routine as well as several other ether drivers).
  *	12/29/92 - sms: remove Q22 ifdefs, replacing them with runtime tests
  *		  for a Unibus Map.
  *	2.11BSD - Remove ilreset since that's a vax'ism and is never
@@ -63,8 +69,8 @@ struct	uba_driver ildriver =
 #define	ILUNIT(x)	minor(x)
 int	ilinit(),iloutput(),ilioctl(),ilwatch();
 int	ildebug = 0;
-short	ilub = 0;
-long	startnet = 0;
+static	short	ilub;
+extern	long	startnet;
 
 /*
  * Ethernet software status per interface.
@@ -132,12 +138,8 @@ ilattach(ui)
 	register struct ifnet *ifp = &is->is_if;
 	register struct ildevice *addr = (struct ildevice *)ui->ui_addr;
 
-	if (!startnet) {
-		extern memaddr netdata;
-		startnet = mfkd(&netdata);
-		startnet = ctob(startnet);
-		ilub = mfkd(&ubmap);	/* get copy of kernel UBmap flag */
-	}
+	ilub = mfkd(&ubmap);	/* get copy of kernel UBmap flag */
+
 	ifp->if_unit = ui->ui_unit;
 	ifp->if_name = "il";
 	ifp->if_mtu = ETHERMTU;
@@ -208,7 +210,7 @@ ilinit(unit)
 	register struct il_softc *is = &il_softc[unit];
 	register struct uba_device *ui = ilinfo[unit];
 	register struct ildevice *addr;
-	register struct ifnet *ifp = &is->is_if;
+	struct ifnet *ifp = &is->is_if;
 	int s;
 
 	/* not yet, if address still unknown */
@@ -583,16 +585,6 @@ iloutput(ifp, m0, dst)
 		idst = ((struct sockaddr_in *)dst)->sin_addr;
  		if (!arpresolve(&is->is_ac, m, &idst, edst, &usetrailers))
 			return (0);	/* if not yet resolved */
-		off = ntohs((u_short)mtod(m, struct ip *)->ip_len) - m->m_len;
-		if (usetrailers && off > 0 && (off & 0x1ff) == 0 &&
-		    m->m_off >= MMINOFF + 2 * sizeof (u_short)) {
-			type = ETHERTYPE_TRAIL + (off>>9);
-			m->m_off -= 2 * sizeof (u_short);
-			m->m_len += 2 * sizeof (u_short);
-			*mtod(m, u_short *) = htons((u_short)ETHERTYPE_IP);
-			*(mtod(m, u_short *) + 1) = htons((u_short)m->m_len);
-			goto gottrailertype;
-		}
 		type = ETHERTYPE_IP;
 		off = 0;
 		goto gottype;
@@ -618,18 +610,6 @@ iloutput(ifp, m0, dst)
 		m_freem(m);
 		return(EAFNOSUPPORT);
 	}
-
-gottrailertype:
-	/*
-	 * Packet to be sent as trailer: move first packet
-	 * (control information) to end of chain.
-	 */
-	while (m->m_next)
-		m = m->m_next;
-	m->m_next = m0;
-	m = m0->m_next;
-	m0->m_next = 0;
-	m0 = m;
 
 gottype:
 	/*
