@@ -1,4 +1,4 @@
-/*	@(#)if_qe.c	1.1 (2.11BSD) 12/28/92 */
+/*	@(#)if_qe.c	1.2 (2.11BSD) 1995/05/20 */
  
 /****************************************************************
  *								*
@@ -829,10 +829,8 @@ qeread(sc, ifuba, len)
 	 */
 	m = if_rubaget(ifuba, len, 0, &sc->is_if);
  
-	if (m == 0) {
-		printf("qe: if_rubaget ret 0\n");
+	if (m == 0)
 		return;
-	}
  
 	switch (type) {
 
