@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)vfs_vnops.c	8.14.1 (2.11BSD) 1997/2/4
+ *	@(#)vfs_vnops.c	8.14.2 (2.11BSD) 1997/2/7
  */
 
 #include <sys/param.h>
@@ -149,18 +149,30 @@ vn_open(ndp, fmode, cmode)
 		{
 		if	((error = u.u_error) == 0)
 			error = EINTR;
-		goto bad;
+		goto lbad;
 		}
 	if	(error = openi(ip, fmode))
-		goto bad;
+		goto lbad;
 	return(0);
+/*
+ * Gratuitous lock but it does (correctly) implement the earlier behaviour of
+ * copen (it also avoids a panic in iput).
+*/
+
+lbad:
+	ilock(ip);
+
 bad:
-	ilock(ip);		/* XXX - iput ignores locked status */
+/*
+ * Do NOT do an 'ilock' here - this tag is to be used only when the inode is
+ * locked (i.e. from namei).
+*/
 	iput(ip);
 	return(error);
 retuerr:
 	return(u.u_error);	/* XXX - Bletch */
 	}
+
 /*
  * Inode close call.  Pipes and sockets do NOT enter here.  This routine is
  * used by the kernel to close files it opened for itself (see kern_acct.c

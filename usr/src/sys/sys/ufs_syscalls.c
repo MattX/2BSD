@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.9 (2.11BSD GTE) 1997/1/30
+ *	@(#)ufs_syscalls.c	1.10 (2.11BSD GTE) 1997/2/7
  */
 
 #include "param.h"
@@ -182,17 +182,8 @@ copen(mode, arg, fname)
 		return;
 		}
 	ip = ndp->ni_ip;
-#ifdef	DIAGNOSTIC
-	if	(!ip)
-		{
-		printf("copen(%o,%o,%s) !ni_ip u_error %d\n", mode, 
-			arg, fname,u.u_error);
-   		}
-#endif
 	u.u_dupfd = 0;
 
-/* Don't need to do this here because 'vn_open' returns an unlocked inode */
-/*	iunlock(ip);	*/
 	fp->f_data = (caddr_t)ip;
 
 	if	(flags & (O_EXLOCK | O_SHLOCK))

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_inode.c	1.6 (2.11BSD GTE) 1996/9/30
+ *	@(#)ufs_inode.c	1.7 (2.11BSD GTE) 1997/2/7
  */
 
 #include "param.h"
@@ -293,7 +293,7 @@ iput(ip)
 	register struct inode *ip;
 {
 
-#ifndef notnow
+#ifdef notnow
 	/*
 	 * This code requires a lot of workarounds, you have to change
 	 * lots of places to gratuitously lock just so we can unlock it.

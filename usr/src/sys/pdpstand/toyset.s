@@ -1,5 +1,9 @@
 TOYCSR	= 177526
 
+/ February 6, 1997 - sms@moe.2bsd.com
+/ Forgot that May has 31 days.  Thanks to Alan Sieving (ars@quickware.com) for
+/ spotting this.
+/
 / August 21, 1993 - Steven M. Schultz (sms@wlv.iipo.gtegsc.com)
 / This is a standalone program which is used to set the TOY (Time Of Year)
 / clock on a PDP-11/93 or 11/94.  If this program is run on other than a
@@ -358,7 +362,7 @@ _gettoy:				/ (void)gettoy(&char[8]);
 
 	.data
 Mtab:
-	.byte	31.,29.,31.,30.,30.,30.
+	.byte	31.,29.,31.,30.,31.,30.
 	.byte	31.,31.,30.,31.,30.,31.
 m_magic:
 	.byte	1,4,4,0,2,5,0,3,6,1,4,6
