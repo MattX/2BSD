@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980,1986 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)reboot.c	5.5.3 (2.11BSD) 1997/2/16";
+static char sccsid[] = "@(#)reboot.c	5.5.4 (2.11BSD) 1997/10/3";
 #endif
 
 /*
@@ -20,6 +20,7 @@ static char sccsid[] = "@(#)reboot.c	5.5.3 (2.11BSD) 1997/2/16";
 #include <errno.h>
 #include <pwd.h>
 #include <sysexits.h>
+#include <unistd.h>
 #include <sys/syslog.h>
 #include <sys/file.h>
 #include <sys/reboot.h>
@@ -88,8 +89,8 @@ main(argc, argv)
 		howto &= ~RB_NOFSCK;
 	}
 	if (needlog) {
-		char *user, *getlogin();
-		struct passwd *pw, *getpwuid();
+		char *user;
+		struct passwd *pw;
 
 		user = getlogin();
 		if (user == (char *)0 && (pw = getpwuid(getuid())))

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983,1986 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)shutdown.c	5.6.2 (2.11BSD GTE) 1996/11/16";
+static char sccsid[] = "@(#)shutdown.c	5.6.3 (2.11BSD GTE) 1997/10/3";
 #endif
 
 #include <stdio.h>
@@ -19,6 +19,9 @@ static char sccsid[] = "@(#)shutdown.c	5.6.2 (2.11BSD GTE) 1996/11/16";
 #include <utmp.h>
 #include <pwd.h>
 #include <paths.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/param.h>
@@ -47,14 +50,6 @@ char	hostname[MAXHOSTNAMELEN];
 
 int	timeout();
 time_t	getsdt();
-
-extern	char *ctime();
-extern	struct tm *localtime();
-extern	long time();
-
-extern	char *strcpy();
-extern	char *strncat();
-extern	off_t lseek();
 
 struct	utmp utmp;
 int	sint;
@@ -97,7 +92,7 @@ struct interval {
 	0 SECONDS,	0 SECONDS
 };
 
-char *shutter, *getlogin();
+char *shutter;
 
 main(argc,argv)
 	int argc;
@@ -110,9 +105,7 @@ main(argc,argv)
 	int h, m;
 	int first;
 	FILE *termf;
-	struct passwd *pw, *getpwuid();
-	extern char *strcat();
-	extern uid_t geteuid();
+	struct passwd *pw;
 
 	shutter = getlogin();
 	if (shutter == 0 && (pw = getpwuid(getuid())))
@@ -374,7 +367,7 @@ warn(term, sdt, now, type)
 
 doitfast()
 {
-	FILE *fastd;
+	register FILE *fastd;
 
 	if ((fastd = fopen(fastboot, "w")) != NULL) {
 		putc('\n', fastd);
@@ -385,7 +378,7 @@ doitfast()
 nolog(sdt)
 	time_t sdt;
 {
-	FILE *nologf;
+	register FILE *nologf;
 
 	(void) unlink(nologin);			/* in case linked to std file */
 	if ((nologf = fopen(nologin, "w")) != NULL) {

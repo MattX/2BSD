@@ -9,15 +9,12 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)conf.c	5.14.5 (2.11BSD GTE) 1997/5/9";
+static char	SccsId[] = "@(#)conf.c	5.14.6 (2.11BSD GTE) 1997/10/2";
 #endif
 
-# include <pwd.h>
-# include <sys/ioctl.h>
-# ifdef sun
-# include <sys/param.h>
-# endif sun
-# include "sendmail.h"
+#include <pwd.h>
+#include <sys/ioctl.h>
+#include "sendmail.h"
 
 /*
 **  CONF.C -- Sendmail Configuration Tables.
@@ -193,9 +190,7 @@ char *
 username()
 {
 	static char *myname = NULL;
-	extern char *getlogin();
 	register struct passwd *pw;
-	extern struct passwd *getpwuid();
 
 	/* cache the result */
 	if (myname == NULL)
@@ -259,8 +254,6 @@ ttypath()
 {
 	struct stat stbuf;
 	register char *pathn;
-	extern char *ttyname();
-	extern char *getlogin();
 
 	/* compute the pathname of the controlling tty */
 	if ((pathn = ttyname(2)) == NULL && (pathn = ttyname(1)) == NULL &&

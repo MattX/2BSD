@@ -1,38 +1,31 @@
 /*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- *
- *  Sendmail
- *  Copyright (c) 1983  Eric P. Allman
- *  Berkeley, California
- */
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
-#include <errno.h>
-#include <sendmail.h>
 
+# include <errno.h>
+# include "sendmail.h"
+
+# ifndef DAEMON
 #if !defined(lint) && !defined(NOSCCS)
-#ifdef DAEMON
-static char sccsid[] = "@(#)daemon.c	5.25 (Berkeley) 4/1/88 (with daemon mode)";
-#else
-static char sccsid[] = "@(#)daemon.c	5.25 (Berkeley) 4/1/88 (without daemon mode)";
-#endif
-#endif /* not lint */
-
-#ifdef DAEMON
+static char	SccsId[] = "@(#)daemon.c 5.21 (2.11BSD) 1997/10/3 (w/o daemon mode)";
+# endif
+# else
 
 # include <netdb.h>
 # include <sys/signal.h>
 # include <sys/wait.h>
-# include <sys/time.h>
 # include <sys/resource.h>
-# include <arpa/inet.h>
+
+#if !defined(lint) && !defined(NOSCCS)
+static char	SccsId[] = "@(#)daemon.c 5.21 (2.11BSD) 1997/10/3 (with daemon mode)";
+# endif
 
 /*
 **  DAEMON.C -- routines to use when running as a daemon.
@@ -306,9 +299,7 @@ makeconnection(host, port, outfile, infile)
 	FILE **outfile;
 	FILE **infile;
 {
-	register int i, s;
-	register struct hostent *hp = (struct hostent *)NULL;
-	extern char *inet_ntoa();
+	register int s;
 	int sav_errno;
 
 	/*
@@ -339,7 +330,8 @@ makeconnection(host, port, outfile, infile)
 	}
 	else
 	{
-		hp = gethostbyname(host);
+		register struct hostent *hp = gethostbyname(host);
+
 		if (hp == NULL)
 		{
 			if (errno == ETIMEDOUT || h_errno == TRY_AGAIN)
@@ -353,7 +345,6 @@ makeconnection(host, port, outfile, infile)
 			return (EX_NOHOST);
 		}
 		bcopy(hp->h_addr, (char *) &SendmailAddress.sin_addr, hp->h_length);
-		i = 1;
 	}
 
 	/*
@@ -378,11 +369,9 @@ makeconnection(host, port, outfile, infile)
 	**  Try to actually open the connection.
 	*/
 
-again:
 # ifdef DEBUG
 	if (tTd(16, 1))
-		printf("makeconnection (%s [%s])\n", host,
-		    inet_ntoa(SendmailAddress.sin_addr.s_addr));
+		printf("makeconnection (%s)\n", host);
 # endif DEBUG
 
 	s = socket(AF_INET, SOCK_STREAM, 0);
@@ -411,13 +400,6 @@ again:
 	{
 		sav_errno = errno;
 		(void) close(s);
-		if (hp && hp->h_addr_list[i])
-		{
-			bcopy(hp->h_addr_list[i++],
-			    (char *)&SendmailAddress.sin_addr, hp->h_length);
-			goto again;
-		}
-
 		/* failure, decide if temporary or not */
 	failure:
 		switch (sav_errno)
@@ -445,7 +427,6 @@ again:
 			return (EX_TEMPFAIL);
 
 		  default:
-			message(Arpa_Info, "%s", errstring(sav_errno));
 			return (EX_UNAVAILABLE);
 		}
 	}
@@ -491,52 +472,64 @@ myhostname(hostbuf, size)
 	else
 		return (NULL);
 }
+/*
+**  MAPHOSTNAME -- turn a hostname into canonical form
+**
+**	Parameters:
+**		hbuf -- a buffer containing a hostname.
+**		hbsize -- the size of hbuf.
+**
+**	Returns:
+**		none.
+**
+**	Side Effects:
+**		Looks up the host specified in hbuf.  If it is not
+**		the canonical name for that host, replace it with
+**		the canonical name.  If the name is unknown, or it
+**		is already the canonical name, leave it unchanged.
+*/
 
-/*
- *  MAPHOSTNAME -- turn a hostname into canonical form
- *
- *	Parameters:
- *		hbuf -- a buffer containing a hostname.
- *		hbsize -- the size of hbuf.
- *
- *	Returns:
- *		none.
- *
- *	Side Effects:
- *		Looks up the host specified in hbuf.  If it is not
- *		the canonical name for that host, replace it with
- *		the canonical name.  If the name is unknown, or it
- *		is already the canonical name, leave it unchanged.
- */
 maphostname(hbuf, hbsize)
 	char *hbuf;
 	int hbsize;
 {
 	register struct hostent *hp;
-	u_long in_addr;
-	char ptr[256];
-	struct hostent *gethostbyaddr();
+	extern struct hostent *gethostbyname();
 
 	/*
-	 * If first character is a bracket, then it is an address
-	 * lookup.  Address is copied into a temporary buffer to
-	 * strip the brackets and to preserve hbuf if address is
-	 * unknown.
-	 */
-	if (*hbuf != '[') {
-		getcanonname(hbuf, hbsize);
-		return;
-	}
-	*index(strcpy(ptr, hbuf), ']') = '\0';
-	in_addr = inet_addr(&ptr[1]);
-	hp = gethostbyaddr((char *)&in_addr, sizeof(struct in_addr), AF_INET);
-	if (hp == NULL)
-		return;
-	if (strlen(hp->h_name) >= hbsize)
-		hp->h_name[hbsize - 1] = '\0';
-	(void)strcpy(hbuf, hp->h_name);
-}
+	**  If first character is a bracket, then it is an address
+	**  lookup.
+	*/
 
+	if (*hbuf == '[')
+	{
+		extern struct hostent *gethostbyaddr();
+		u_long in_addr;
+		register char *bptr;
+
+		bptr = index(hbuf,']');
+		*bptr = '\0';
+		in_addr = inet_addr(&hbuf[1]);
+		*bptr = ']';
+		hp = gethostbyaddr((char *) &in_addr, sizeof(struct in_addr), AF_INET);
+		if (hp == NULL)
+			return;
+	}
+	else
+	{
+		makelower(hbuf);
+		hp = gethostbyname(hbuf);
+	}
+	if (hp != NULL)
+	{
+		int i = strlen(hp->h_name);
+
+		if (i >= hbsize)
+			hp->h_name[--i] = '\0';
+		(void) strcpy(hbuf, hp->h_name);
+	}
+}
+
 # else DAEMON
 /* code for systems without sophisticated networking */
 
@@ -595,5 +588,4 @@ maphostname(hbuf, hbsize)
 {
 	return;
 }
-
 #endif DAEMON

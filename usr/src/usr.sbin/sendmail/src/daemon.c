@@ -14,18 +14,17 @@
 
 # ifndef DAEMON
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)daemon.c	5.20 (2.11BSD) 1/26/93	(w/o daemon mode)";
+static char	SccsId[] = "@(#)daemon.c 5.21 (2.11BSD) 1997/10/3 (w/o daemon mode)";
 # endif
 # else
 
 # include <netdb.h>
 # include <sys/signal.h>
 # include <sys/wait.h>
-# include <sys/time.h>
 # include <sys/resource.h>
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)daemon.c	5.20 (2.11BSD) 1/26/93 (with daemon mode)";
+static char	SccsId[] = "@(#)daemon.c 5.21 (2.11BSD) 1997/10/3 (with daemon mode)";
 # endif
 
 /*

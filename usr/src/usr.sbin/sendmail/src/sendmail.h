@@ -7,7 +7,7 @@
 **  All rights reserved.  The Berkeley software License Agreement
 **  specifies the terms and conditions for redistribution.
 **
-**	@(#)sendmail.h	5.8.2 (2.11BSD GTE) 3/6/95
+**	@(#)sendmail.h	5.8.3 (2.11BSD GTE) 1997/10/3
 */
 
 /*
@@ -19,7 +19,7 @@
 # ifdef _DEFINE
 # define EXTERN
 # if !defined(lint) && !defined(NOSCCS)
-static char SmailSccsId[] =	"@(#)sendmail.h	5.8.2		3/6/95";
+static char SmailSccsId[] =	"@(#)sendmail.h	5.8.3		1997/10/3";
 # endif lint
 # else  _DEFINE
 # define EXTERN extern
@@ -30,6 +30,11 @@ static char SmailSccsId[] =	"@(#)sendmail.h	5.8.2		3/6/95";
 # include <setjmp.h>
 # include "conf.h"
 # include "useful.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 # ifdef LOG
 # include <sys/syslog.h>

@@ -33,11 +33,10 @@
  */
 
 #if	!defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)arpadate.c	8.1.1 (2.11BSD GTE) 3/7/95";
+static char sccsid[] = "@(#)arpadate.c	8.1.2 (2.11BSD GTE) 1997/10/3";
 #endif
 
 #include "sendmail.h"
-#include <time.h>
 
 /*
 **  ARPADATE -- Create date in ARPANET format

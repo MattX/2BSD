@@ -18,9 +18,9 @@
 
 #if !defined(lint) && !defined(NOSCCS)
 #ifdef SMTP
-static char sccsid[] = "@(#)srvrsmtp.c	5.21 (Berkeley) 3/13/88 (with SMTP)";
+static char sccsid[] = "@(#)srvrsmtp.c	5.21.1 (2.11BSD) 1997/10/3 (with SMTP)";
 #else
-static char sccsid[] = "@(#)srvrsmtp.c	5.21 (Berkeley) 3/13/88 (without SMTP)";
+static char sccsid[] = "@(#)srvrsmtp.c	5.21 (2.11BSD) 1997/10/3 (without SMTP)";
 #endif
 #endif /* not lint */
 
@@ -115,7 +115,6 @@ smtp()
 	char *sendinghost;
 	char inp[MAXLINE];
 	char cmdbuf[100];
-	extern char Version[];
 	extern tick();
 	extern bool iswiz();
 	extern char *arpadate();

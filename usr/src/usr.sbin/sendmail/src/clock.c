@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)clock.c	5.4.1 (2.11BSD) 1996/3/10";
+static char	SccsId[] = "@(#)clock.c	5.4.2 (2.11BSD) 1997/10/3";
 #endif
 
 # include "sendmail.h"
@@ -215,6 +215,7 @@ tick()
 
 static bool	SleepDone;
 
+unsigned int
 sleep(intvl)
 	unsigned int intvl;
 {

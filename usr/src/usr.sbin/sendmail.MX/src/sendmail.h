@@ -1,30 +1,25 @@
 /*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- *
- *	@(#)sendmail.h	5.11 (Berkeley) 3/13/88
- *
- *  Sendmail
- *  Copyright (c) 1983  Eric P. Allman
- *  Berkeley, California
- *
- */
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+**
+**	@(#)sendmail.h	5.8.3 (2.11BSD GTE) 1997/10/3
+*/
 
 /*
 **  SENDMAIL.H -- Global definitions for sendmail.
 */
 
+
+
 # ifdef _DEFINE
 # define EXTERN
 # if !defined(lint) && !defined(NOSCCS)
-static char SmailSccsId[] =	"@(#)sendmail.h	5.11		3/13/88";
+static char SmailSccsId[] =	"@(#)sendmail.h	5.8.3		1997/10/3";
 # endif lint
 # else  _DEFINE
 # define EXTERN extern
@@ -35,6 +30,11 @@ static char SmailSccsId[] =	"@(#)sendmail.h	5.11		3/13/88";
 # include <setjmp.h>
 # include "conf.h"
 # include "useful.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 # ifdef LOG
 # include <sys/syslog.h>
@@ -44,6 +44,7 @@ static char SmailSccsId[] =	"@(#)sendmail.h	5.11		3/13/88";
 # ifdef VMUNIX
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # endif VMUNIX
 # endif DAEMON
 
@@ -524,7 +525,11 @@ EXTERN jmp_buf	TopFrame;	/* branch-to-top-of-loop-on-error frame */
 EXTERN bool	QuickAbort;	/*  .... but only if we want a quick abort */
 extern char	*ConfFile;	/* location of configuration file [conf.c] */
 extern char	*FreezeFile;	/* location of frozen memory image [conf.c] */
-extern char	Arpa_Info[];	/* the reply code for Arpanet info [conf.c] */
+extern char	*Arpa_Info;	/* the reply code for Arpanet info [conf.c] */
+extern char	*Arpa_TSyserr;
+extern char	*Arpa_PSyserr;
+extern char	*Arpa_Usrerr;
+extern char	*Version;	/* the version of sendmail [Version.c] */
 extern ADDRESS	NullAddress;	/* a null (template) address [main.c] */
 EXTERN char	SpaceSub;	/* substitution for <lwsp> */
 EXTERN int	WkClassFact;	/* multiplier for message class -> priority */
@@ -579,3 +584,5 @@ extern EVENT	*setevent();
 extern char	*sfgets();
 extern char	*queuename();
 extern time_t	curtime();
+extern bool	shouldqueue();
+extern char	*denlstring();

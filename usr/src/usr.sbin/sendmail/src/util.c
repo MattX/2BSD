@@ -9,17 +9,15 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)util.c	5.8.2 (2.11BSD GTE) 1996/3/10";
+static char	SccsId[] = "@(#)util.c	5.8.3 (2.11BSD GTE) 1997/10/3";
 #endif
 
 # include <stdio.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <sysexits.h>
-# include <errno.h>
 # include <ctype.h>
 # include "sendmail.h"
-#include <string.h>
 
 /*
 **  STRIPQUOTES -- Strip quotes & quote bits from a string.
@@ -144,9 +142,8 @@ xalloc(sz)
 	register int sz;
 {
 	register char *p;
-	extern char *malloc();
 
-	p = malloc((unsigned) sz);
+	p = (char *)malloc((unsigned) sz);
 	if (p == NULL)
 	{
 		syserr("Out of memory!!");

@@ -1,16 +1,8 @@
 /*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- *
- *	@(#)useful.h	4.3 (Berkeley) 3/24/88
- */
+**  USEFUL.H -- Some useful stuff.
+**
+**	@(#)useful.h	4.1.1		1997/10/2
+*/
 
 # ifndef makedev
 # include <sys/types.h>
@@ -53,17 +45,6 @@ typedef char	bool;
 # define SCCSID(arg)
 # endif lint
 
-/* define the types of some common functions */
-extern char	*strcpy(), *strncpy();
-extern char	*strcat(), *strncat();
-extern char	*malloc();
-extern char	*index(), *rindex();
-extern int	errno;
-extern time_t	time();
-extern char	*ctime();
-# ifndef V6
-extern char	*getenv();
-# endif V6
 # ifndef VMUNIX
 typedef unsigned short	u_short;
 typedef long		u_long;

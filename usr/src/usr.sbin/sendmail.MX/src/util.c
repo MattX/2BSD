@@ -9,14 +9,14 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)util.c	5.9 (Berkeley) 12/17/86";
-#endif not lint
+static char	SccsId[] = "@(#)util.c	5.8.3 (2.11BSD GTE) 1997/10/3";
+#endif
 
 # include <stdio.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <sysexits.h>
-# include <errno.h>
+# include <ctype.h>
 # include "sendmail.h"
 
 /*
@@ -142,9 +142,8 @@ xalloc(sz)
 	register int sz;
 {
 	register char *p;
-	extern char *malloc();
 
-	p = malloc((unsigned) sz);
+	p = (char *)malloc((unsigned) sz);
 	if (p == NULL)
 	{
 		syserr("Out of memory!!");
@@ -613,7 +612,7 @@ sfgets(buf, siz, fp)
 {
 	register EVENT *ev = NULL;
 	register char *p;
-	extern readtimeout();
+	int readtimeout();
 
 	/* set the timeout */
 	if (ReadTimeout != 0)
@@ -653,7 +652,6 @@ sfgets(buf, siz, fp)
 	return (buf);
 }
 
-static
 readtimeout()
 {
 	longjmp(CtxReadTimeout, 1);
@@ -678,8 +676,8 @@ readtimeout()
 char *
 fgetfolded(buf, n, f)
 	char *buf;
-	register int n;
-	FILE *f;
+	int n;
+	register FILE *f;
 {
 	register char *p = buf;
 	register int i;
@@ -800,7 +798,7 @@ waitfor(pid)
 	int pid;
 {
 	auto int st;
-	int i;
+	register int i;
 
 	do
 	{
@@ -830,7 +828,7 @@ bitintersect(a, b)
 	BITMAP a;
 	BITMAP b;
 {
-	int i;
+	register int i;
 
 	for (i = BITMAPBYTES / sizeof (int); --i >= 0; )
 		if ((a[i] & b[i]) != 0)
@@ -855,10 +853,96 @@ bool
 bitzerop(map)
 	BITMAP map;
 {
-	int i;
+	register int i;
 
 	for (i = BITMAPBYTES / sizeof (int); --i >= 0; )
 		if (map[i] != 0)
 			return (FALSE);
 	return (TRUE);
+}
+/*
+**  CLEANSTRCPY -- copy string keeping out bogus characters
+**
+**	Parameters:
+**		t -- "to" string.
+**		f -- "from" string.
+**		l -- length of space available in "to" string.
+**
+**	Returns:
+**		none.
+*/
+
+void
+cleanstrcpy(t, f, l)
+	register char *t;
+	register char *f;
+	int l;
+{
+#ifdef LOG
+	/* check for newlines and log if necessary */
+	(void) denlstring(f);
+#endif
+
+	l--;
+	while (l > 0 && *f != '\0')
+	{
+		if (isascii(*f) &&
+		    (isalnum(*f) || strchr("!#$%&'*+-./^_`{|}~", *f) != NULL))
+		{
+			l--;
+			*t++ = *f;
+		}
+		f++;
+	}
+	*t = '\0';
+}
+/*
+**  DENLSTRING -- convert newlines in a string to spaces
+**
+**	Parameters:
+**		s -- the input string
+**
+**	Returns:
+**		A pointer to a version of the string with newlines
+**		mapped to spaces.  This should be copied.
+*/
+
+char *
+denlstring(s)
+	char *s;
+{
+	register char *p;
+	int l;
+	static char *bp = NULL;
+	static int bl = 0;
+	extern	char	*macvalue();
+
+	if (strchr(s, '\n') == NULL)
+		return s;
+
+	l = strlen(s) + 1;
+	if (bl < l)
+	{
+		/* allocate more space */
+		if (bp != NULL)
+			free(bp);
+		bp = xalloc(l);
+		bl = l;
+	}
+	strcpy(bp, s);
+	for (p = bp; (p = strchr(p, '\n')) != NULL; )
+		*p++ = ' ';
+
+#ifdef LOG
+	/*
+	 * V5 doesn't have IDENT capabilities so there is no macro '_'.
+	 * Instead we use the less "trusted" (but better than nothing) 'f'
+	 * macro value.
+	*/
+	p = macvalue('f', CurEnv);
+	syslog(LOG_ALERT, "POSSIBLE ATTACK from %s: newline in string \"%s\"",
+		p == NULL ? "[UNKNOWN]" : p, bp);
+#endif
+
+	return bp;
 }

@@ -1,22 +1,16 @@
 /*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- *
- *  Sendmail
- *  Copyright (c) 1983  Eric P. Allman
- *  Berkeley, California
- */
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)clock.c	5.5 (Berkeley) 3/13/88";
-#endif /* not lint */
+static char	SccsId[] = "@(#)clock.c	5.4.2 (2.11BSD) 1997/10/3";
+#endif
 
 # include "sendmail.h"
 # include <signal.h>
@@ -221,6 +215,7 @@ tick()
 
 static bool	SleepDone;
 
+unsigned int
 sleep(intvl)
 	unsigned int intvl;
 {
@@ -234,7 +229,6 @@ sleep(intvl)
 		pause();
 }
 
-static
 endsleep()
 {
 	SleepDone = TRUE;

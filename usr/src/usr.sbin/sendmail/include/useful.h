@@ -1,7 +1,7 @@
 /*
 **  USEFUL.H -- Some useful stuff.
 **
-**	@(#)useful.h	4.1		7/25/83
+**	@(#)useful.h	4.1.1		1997/10/2
 */
 
 # ifndef makedev
@@ -45,18 +45,6 @@ typedef char	bool;
 # define SCCSID(arg)
 # endif lint
 
-/* define the types of some common functions */
-extern char	*strcpy(), *strncpy();
-extern char	*strcat(), *strncat();
-extern char	*malloc();
-extern char	*index(), *rindex();
-extern int	errno;
-extern char	*sprintf();
-extern time_t	time();
-extern char	*ctime();
-# ifndef V6
-extern char	*getenv();
-# endif V6
 # ifndef VMUNIX
 typedef unsigned short	u_short;
 typedef long		u_long;

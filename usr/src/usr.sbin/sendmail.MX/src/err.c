@@ -15,7 +15,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)err.c	5.8.2 (2.11BSD) 1996/3/23";
+static char sccsid[] = "@(#)err.c	5.8.3 (2.11BSD) 1997/10/3";
 #endif
 
 # include "sendmail.h"
@@ -53,8 +53,6 @@ syserr(fmt, a, b, c, d, e)
 {
 	register char *p;
 	int olderrno = errno;
-	extern char Arpa_PSyserr[];
-	extern char Arpa_TSyserr[];
 
 	/* format and output the error message */
 	if (olderrno == 0)
@@ -104,7 +102,6 @@ usrerr(fmt, a, b, c, d, e)
 	char *fmt;
 {
 	extern char SuprErrs;
-	extern char Arpa_Usrerr[];
 	extern int errno;
 
 	if (SuprErrs)

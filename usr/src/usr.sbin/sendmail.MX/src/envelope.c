@@ -15,7 +15,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)envelope.c	5.14 (Berkeley) 4/1/88";
+static char sccsid[] = "@(#)envelope.c	5.14.1 (2.11BSD) 1997/10/3";
 #endif /* not lint */
 
 #include <pwd.h>
@@ -238,7 +238,6 @@ initsys()
 #endif TTYNAME
 	extern char *ttyname();
 	extern char *macvalue();
-	extern char Version[];
 
 	/*
 	**  Give this envelope a reality.

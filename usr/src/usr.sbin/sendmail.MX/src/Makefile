@@ -44,14 +44,8 @@ PRT=	sccs prt
 	rm -f $*.s _xx.s
 
 sendmail: ${OBJS} Version.o
-	-if [ X${SEPFLAG} = X ]; then \
-		${CC} ${COPTS} -o $@ Version.o ${OBJS} -ldbm; \
-	elif [ X${SEPFLAG} = X-i ]; then \
-		cc ${SEPFLAG} ${COPTS} -o sendmail Version.o ${BASE} \
-			-Z ${OVLY1} -Z ${OVLY2} -Z ${OVLY3} -Y -ldbm; \
-	else \
-		echo "Need an overlay scheme for non-separate I&D load"; \
-	fi
+	cc ${SEPFLAG} ${COPTS} -o sendmail Version.o ${BASE} \
+		-Z ${OVLY1} -Z ${OVLY2} -Z ${OVLY3} -Y -ldbm -lstubs; \
 	size sendmail; ls -l sendmail; ${WHAT} < Version.o
 
 dsendmail: ${OBJS} Version.o
@@ -113,166 +107,230 @@ FRC:
 alias.o: alias.c /usr/include/pwd.h /usr/include/sys/types.h
 alias.o: /usr/include/sys/stat.h /usr/include/signal.h /usr/include/errno.h
 alias.o: sendmail.h /usr/include/stdio.h /usr/include/ctype.h
-alias.o: /usr/include/setjmp.h conf.h ../include/useful.h
+alias.o: /usr/include/setjmp.h conf.h ../include/useful.h /usr/include/errno.h
+alias.o: /usr/include/stdlib.h /usr/include/string.h /usr/include/sys/types.h
+alias.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+alias.o: /usr/include/unistd.h /usr/include/sys/types.h
 alias.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-alias.o: /usr/include/short_names.h /usr/include/netinet/in.h
-alias.o: /usr/include/short_names.h /usr/include/sysexits.h
-alias.o: /usr/include/sys/file.h
-arpadate.o: arpadate.c conf.h /usr/include/sys/time.h /usr/include/time.h
-arpadate.o: /usr/include/sys/types.h /usr/include/sys/timeb.h
-arpadate.o: ../include/useful.h
+alias.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+alias.o: /usr/include/sysexits.h /usr/include/sys/file.h /usr/include/fcntl.h
+alias.o: /usr/include/sys/types.h
+arpadate.o: arpadate.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
+arpadate.o: /usr/include/setjmp.h conf.h ../include/useful.h
+arpadate.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+arpadate.o: /usr/include/string.h /usr/include/sys/types.h
+arpadate.o: /usr/include/sys/time.h /usr/include/time.h
+arpadate.o: /usr/include/sys/types.h /usr/include/unistd.h
+arpadate.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
+arpadate.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+arpadate.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 clock.o: clock.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 clock.o: /usr/include/setjmp.h conf.h ../include/useful.h
+clock.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+clock.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+clock.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 clock.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-clock.o: /usr/include/sys/socket.h /usr/include/short_names.h
-clock.o: /usr/include/netinet/in.h /usr/include/short_names.h
-clock.o: /usr/include/sysexits.h /usr/include/signal.h
+clock.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+clock.o: /usr/include/arpa/inet.h /usr/include/sysexits.h /usr/include/signal.h
 collect.o: collect.c /usr/include/errno.h sendmail.h /usr/include/stdio.h
 collect.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h
-collect.o: ../include/useful.h /usr/include/sys/types.h
+collect.o: ../include/useful.h /usr/include/sys/types.h /usr/include/errno.h
+collect.o: /usr/include/stdlib.h /usr/include/string.h /usr/include/sys/types.h
+collect.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+collect.o: /usr/include/unistd.h /usr/include/sys/types.h
 collect.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-collect.o: /usr/include/short_names.h /usr/include/netinet/in.h
-collect.o: /usr/include/short_names.h /usr/include/sysexits.h
+collect.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+collect.o: /usr/include/sysexits.h
 conf.o: conf.c /usr/include/pwd.h /usr/include/sys/ioctl.h
 conf.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h sendmail.h
 conf.o: /usr/include/stdio.h /usr/include/ctype.h /usr/include/setjmp.h conf.h
-conf.o: ../include/useful.h /usr/include/sys/types.h /usr/include/sys/syslog.h
-conf.o: /usr/include/sys/socket.h /usr/include/short_names.h
-conf.o: /usr/include/netinet/in.h /usr/include/short_names.h
+conf.o: ../include/useful.h /usr/include/sys/types.h /usr/include/errno.h
+conf.o: /usr/include/stdlib.h /usr/include/string.h /usr/include/sys/types.h
+conf.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+conf.o: /usr/include/unistd.h /usr/include/sys/types.h
+conf.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
+conf.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
 conf.o: /usr/include/sysexits.h /usr/include/sys/stat.h /usr/include/sys/wait.h
 convtime.o: convtime.c /usr/include/ctype.h ../include/useful.h
 convtime.o: /usr/include/sys/types.h
 daemon.o: daemon.c /usr/include/errno.h sendmail.h /usr/include/stdio.h
 daemon.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h ../include/useful.h
-daemon.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-daemon.o: /usr/include/sys/socket.h /usr/include/short_names.h
-daemon.o: /usr/include/netinet/in.h /usr/include/short_names.h
+daemon.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+daemon.o: /usr/include/string.h /usr/include/sys/types.h
+daemon.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+daemon.o: /usr/include/unistd.h /usr/include/sys/types.h
+daemon.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
+daemon.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
 daemon.o: /usr/include/sysexits.h /usr/include/netdb.h
-daemon.o: /usr/include/short_names.h /usr/include/sys/signal.h
-daemon.o: /usr/include/sys/wait.h /usr/include/sys/time.h /usr/include/time.h
-daemon.o: /usr/include/sys/resource.h /usr/include/arpa/inet.h
-daemon.o: /usr/include/short_names.h
+daemon.o: /usr/include/sys/signal.h /usr/include/sys/wait.h
+daemon.o: /usr/include/sys/resource.h
 deliver.o: deliver.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 deliver.o: /usr/include/setjmp.h conf.h ../include/useful.h
-deliver.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-deliver.o: /usr/include/sys/socket.h /usr/include/short_names.h
-deliver.o: /usr/include/netinet/in.h /usr/include/short_names.h
+deliver.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+deliver.o: /usr/include/string.h /usr/include/sys/types.h
+deliver.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+deliver.o: /usr/include/unistd.h /usr/include/sys/types.h
+deliver.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
+deliver.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
 deliver.o: /usr/include/sysexits.h /usr/include/sys/signal.h
 deliver.o: /usr/include/sys/stat.h /usr/include/sys/ioctl.h
 deliver.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h
-deliver.o: /usr/include/netdb.h /usr/include/short_names.h /usr/include/errno.h
+deliver.o: /usr/include/netdb.h /usr/include/errno.h
 deliver.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
 domain.o: domain.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 domain.o: /usr/include/setjmp.h conf.h ../include/useful.h
-domain.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-domain.o: /usr/include/sys/socket.h /usr/include/short_names.h
-domain.o: /usr/include/netinet/in.h /usr/include/short_names.h
+domain.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+domain.o: /usr/include/string.h /usr/include/sys/types.h
+domain.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+domain.o: /usr/include/unistd.h /usr/include/sys/types.h
+domain.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
+domain.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
 domain.o: /usr/include/sysexits.h /usr/include/sys/param.h
-domain.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
+domain.o: /usr/include/sys/localopts.h /usr/include/sys/stddef.h
+domain.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
 domain.o: /usr/include/signal.h /usr/include/sys/types.h
 domain.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
-domain.o: /usr/include/netdb.h /usr/include/short_names.h
+domain.o: /usr/include/netdb.h
 envelope.o: envelope.c /usr/include/pwd.h /usr/include/sys/time.h
-envelope.o: /usr/include/time.h sendmail.h /usr/include/stdio.h
-envelope.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h
-envelope.o: ../include/useful.h /usr/include/sys/types.h
+envelope.o: /usr/include/time.h /usr/include/sys/types.h sendmail.h
+envelope.o: /usr/include/stdio.h /usr/include/ctype.h /usr/include/setjmp.h
+envelope.o: conf.h ../include/useful.h /usr/include/errno.h
+envelope.o: /usr/include/stdlib.h /usr/include/string.h
+envelope.o: /usr/include/sys/types.h /usr/include/sys/time.h
+envelope.o: /usr/include/unistd.h /usr/include/sys/types.h
 envelope.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-envelope.o: /usr/include/short_names.h /usr/include/netinet/in.h
-envelope.o: /usr/include/short_names.h /usr/include/sysexits.h
-envelope.o: /usr/include/sys/stat.h
+envelope.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+envelope.o: /usr/include/sysexits.h /usr/include/sys/stat.h
 err.o: err.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 err.o: /usr/include/setjmp.h conf.h ../include/useful.h
+err.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+err.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+err.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 err.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-err.o: /usr/include/sys/socket.h /usr/include/short_names.h
-err.o: /usr/include/netinet/in.h /usr/include/short_names.h
-err.o: /usr/include/sysexits.h /usr/include/errno.h /usr/include/netdb.h
-err.o: /usr/include/short_names.h
+err.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+err.o: /usr/include/arpa/inet.h /usr/include/sysexits.h /usr/include/errno.h
+err.o: /usr/include/netdb.h
 headers.o: headers.c /usr/include/errno.h sendmail.h /usr/include/stdio.h
 headers.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h
-headers.o: ../include/useful.h /usr/include/sys/types.h
+headers.o: ../include/useful.h /usr/include/sys/types.h /usr/include/errno.h
+headers.o: /usr/include/stdlib.h /usr/include/string.h /usr/include/sys/types.h
+headers.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+headers.o: /usr/include/unistd.h /usr/include/sys/types.h
 headers.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-headers.o: /usr/include/short_names.h /usr/include/netinet/in.h
-headers.o: /usr/include/short_names.h /usr/include/sysexits.h
+headers.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+headers.o: /usr/include/sysexits.h
 macro.o: macro.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 macro.o: /usr/include/setjmp.h conf.h ../include/useful.h
+macro.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+macro.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+macro.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 macro.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-macro.o: /usr/include/sys/socket.h /usr/include/short_names.h
-macro.o: /usr/include/netinet/in.h /usr/include/short_names.h
-macro.o: /usr/include/sysexits.h
+macro.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+macro.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 main.o: main.c /usr/include/signal.h /usr/include/sgtty.h
 main.o: /usr/include/sys/ioctl.h /usr/include/sys/ttychars.h
 main.o: /usr/include/sys/ttydev.h sendmail.h /usr/include/stdio.h
 main.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h ../include/useful.h
+main.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+main.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+main.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 main.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-main.o: /usr/include/sys/socket.h /usr/include/short_names.h
-main.o: /usr/include/netinet/in.h /usr/include/short_names.h
-main.o: /usr/include/sysexits.h /usr/include/arpa/nameser.h
-main.o: /usr/include/resolv.h
+main.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+main.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
+main.o: /usr/include/arpa/nameser.h /usr/include/resolv.h
 parseaddr.o: parseaddr.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 parseaddr.o: /usr/include/setjmp.h conf.h ../include/useful.h
+parseaddr.o: /usr/include/sys/types.h /usr/include/errno.h
+parseaddr.o: /usr/include/stdlib.h /usr/include/string.h
+parseaddr.o: /usr/include/sys/types.h /usr/include/sys/time.h
+parseaddr.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 parseaddr.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-parseaddr.o: /usr/include/sys/socket.h /usr/include/short_names.h
-parseaddr.o: /usr/include/netinet/in.h /usr/include/short_names.h
-parseaddr.o: /usr/include/sysexits.h
+parseaddr.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+parseaddr.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 queue.o: queue.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 queue.o: /usr/include/setjmp.h conf.h ../include/useful.h
+queue.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+queue.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+queue.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 queue.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-queue.o: /usr/include/sys/socket.h /usr/include/short_names.h
-queue.o: /usr/include/netinet/in.h /usr/include/short_names.h
-queue.o: /usr/include/sysexits.h /usr/include/sys/stat.h /usr/include/sys/dir.h
-queue.o: /usr/include/signal.h /usr/include/errno.h
+queue.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+queue.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
+queue.o: /usr/include/sys/stat.h /usr/include/sys/dir.h /usr/include/signal.h
+queue.o: /usr/include/errno.h
 recipient.o: recipient.c /usr/include/pwd.h sendmail.h /usr/include/stdio.h
 recipient.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h
-recipient.o: ../include/useful.h /usr/include/sys/types.h
-recipient.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-recipient.o: /usr/include/short_names.h /usr/include/netinet/in.h
-recipient.o: /usr/include/short_names.h /usr/include/sysexits.h
+recipient.o: ../include/useful.h /usr/include/sys/types.h /usr/include/errno.h
+recipient.o: /usr/include/stdlib.h /usr/include/string.h
+recipient.o: /usr/include/sys/types.h /usr/include/sys/time.h
+recipient.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
+recipient.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
+recipient.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+recipient.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 recipient.o: /usr/include/sys/stat.h
 savemail.o: savemail.c /usr/include/pwd.h sendmail.h /usr/include/stdio.h
 savemail.o: /usr/include/ctype.h /usr/include/setjmp.h conf.h
-savemail.o: ../include/useful.h /usr/include/sys/types.h
-savemail.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-savemail.o: /usr/include/short_names.h /usr/include/netinet/in.h
-savemail.o: /usr/include/short_names.h /usr/include/sysexits.h
+savemail.o: ../include/useful.h /usr/include/sys/types.h /usr/include/errno.h
+savemail.o: /usr/include/stdlib.h /usr/include/string.h
+savemail.o: /usr/include/sys/types.h /usr/include/sys/time.h
+savemail.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
+savemail.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
+savemail.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+savemail.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 srvrsmtp.o: srvrsmtp.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 srvrsmtp.o: /usr/include/setjmp.h conf.h ../include/useful.h
+srvrsmtp.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+srvrsmtp.o: /usr/include/string.h /usr/include/sys/types.h
+srvrsmtp.o: /usr/include/sys/time.h /usr/include/time.h
+srvrsmtp.o: /usr/include/sys/types.h /usr/include/unistd.h
 srvrsmtp.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-srvrsmtp.o: /usr/include/sys/socket.h /usr/include/short_names.h
-srvrsmtp.o: /usr/include/netinet/in.h /usr/include/short_names.h
-srvrsmtp.o: /usr/include/sysexits.h /usr/include/errno.h /usr/include/signal.h
+srvrsmtp.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+srvrsmtp.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
+srvrsmtp.o: /usr/include/errno.h /usr/include/signal.h
 stab.o: stab.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 stab.o: /usr/include/setjmp.h conf.h ../include/useful.h
+stab.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+stab.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+stab.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 stab.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-stab.o: /usr/include/sys/socket.h /usr/include/short_names.h
-stab.o: /usr/include/netinet/in.h /usr/include/short_names.h
-stab.o: /usr/include/sysexits.h
+stab.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+stab.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 stats.o: stats.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 stats.o: /usr/include/setjmp.h conf.h ../include/useful.h
+stats.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+stats.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+stats.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 stats.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-stats.o: /usr/include/sys/socket.h /usr/include/short_names.h
-stats.o: /usr/include/netinet/in.h /usr/include/short_names.h
-stats.o: /usr/include/sysexits.h mailstats.h
+stats.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+stats.o: /usr/include/arpa/inet.h /usr/include/sysexits.h mailstats.h
 sysexits.o: sysexits.c /usr/include/sysexits.h
 trace.o: trace.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 trace.o: /usr/include/setjmp.h conf.h ../include/useful.h
+trace.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+trace.o: /usr/include/string.h /usr/include/sys/types.h /usr/include/sys/time.h
+trace.o: /usr/include/time.h /usr/include/sys/types.h /usr/include/unistd.h
 trace.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-trace.o: /usr/include/sys/socket.h /usr/include/short_names.h
-trace.o: /usr/include/netinet/in.h /usr/include/short_names.h
-trace.o: /usr/include/sysexits.h
+trace.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+trace.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
 usersmtp.o: usersmtp.c sendmail.h /usr/include/stdio.h /usr/include/ctype.h
 usersmtp.o: /usr/include/setjmp.h conf.h ../include/useful.h
+usersmtp.o: /usr/include/sys/types.h /usr/include/errno.h /usr/include/stdlib.h
+usersmtp.o: /usr/include/string.h /usr/include/sys/types.h
+usersmtp.o: /usr/include/sys/time.h /usr/include/time.h
+usersmtp.o: /usr/include/sys/types.h /usr/include/unistd.h
 usersmtp.o: /usr/include/sys/types.h /usr/include/sys/syslog.h
-usersmtp.o: /usr/include/sys/socket.h /usr/include/short_names.h
-usersmtp.o: /usr/include/netinet/in.h /usr/include/short_names.h
-usersmtp.o: /usr/include/sysexits.h /usr/include/sysexits.h
-usersmtp.o: /usr/include/errno.h
+usersmtp.o: /usr/include/sys/socket.h /usr/include/netinet/in.h
+usersmtp.o: /usr/include/arpa/inet.h /usr/include/sysexits.h
+usersmtp.o: /usr/include/sysexits.h /usr/include/errno.h
 util.o: util.c /usr/include/stdio.h /usr/include/sys/types.h
-util.o: /usr/include/sys/stat.h /usr/include/sysexits.h /usr/include/errno.h
+util.o: /usr/include/sys/stat.h /usr/include/sysexits.h /usr/include/ctype.h
 util.o: sendmail.h /usr/include/stdio.h /usr/include/ctype.h
-util.o: /usr/include/setjmp.h conf.h ../include/useful.h
+util.o: /usr/include/setjmp.h conf.h ../include/useful.h /usr/include/errno.h
+util.o: /usr/include/stdlib.h /usr/include/string.h /usr/include/sys/types.h
+util.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/sys/types.h
+util.o: /usr/include/unistd.h /usr/include/sys/types.h
 util.o: /usr/include/sys/syslog.h /usr/include/sys/socket.h
-util.o: /usr/include/short_names.h /usr/include/netinet/in.h
-util.o: /usr/include/short_names.h /usr/include/sysexits.h
+util.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+util.o: /usr/include/sysexits.h
 Version.o: Version.c
 
 # IF YOU PUT ANYTHING HERE IT WILL GO AWAY

@@ -18,9 +18,9 @@
 
 #if !defined(lint) && !defined(NOSCCS)
 #ifdef SMTP
-static char sccsid[] = "@(#)usersmtp.c	5.9 (Berkeley) 3/13/88 (with SMTP)";
+static char sccsid[] = "@(#)usersmtp.c	5.9.1 (2.11BSD) 1997/10/3 (with SMTP)";
 #else
-static char sccsid[] = "@(#)usersmtp.c	5.9 (Berkeley) 3/13/88 (without SMTP)";
+static char sccsid[] = "@(#)usersmtp.c	5.9.1 (2.11BSD) 1997/10/3 (without SMTP)";
 #endif
 #endif /* not lint */
 
@@ -403,7 +403,6 @@ reply(m)
 		if (p == NULL)
 		{
 			extern char MsgBuf[];		/* err.c */
-			extern char Arpa_TSyserr[];	/* conf.c */
 
 			/* if the remote end closed early, fake an error */
 			if (errno == 0)

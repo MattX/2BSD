@@ -1,29 +1,20 @@
 /*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of California at Berkeley. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- *
- *  Sendmail
- *  Copyright (c) 1983  Eric P. Allman
- *  Berkeley, California
- */
+**  Sendmail
+**  Copyright (c) 1983  Eric P. Allman
+**  Berkeley, California
+**
+**  Copyright (c) 1983 Regents of the University of California.
+**  All rights reserved.  The Berkeley software License Agreement
+**  specifies the terms and conditions for redistribution.
+*/
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)conf.c	5.16.3 (2.11BSD) 1996/10/24";
-#endif /* not lint */
+static char	SccsId[] = "@(#)conf.c	5.14.6 (2.11BSD GTE) 1997/10/2";
+#endif
 
-# include <pwd.h>
-# include <sys/ioctl.h>
-# ifdef sun
-# include <sys/param.h>
-# endif sun
-# include "sendmail.h"
+#include <pwd.h>
+#include <sys/ioctl.h>
+#include "sendmail.h"
 
 /*
 **  CONF.C -- Sendmail Configuration Tables.
@@ -102,10 +93,10 @@ struct hdrinfo	HdrInfo[] =
 **  ARPANET error message numbers.
 */
 
-char	Arpa_Info[] =		"050";	/* arbitrary info */
-char	Arpa_TSyserr[] =	"451";	/* some (transient) system error */
-char	Arpa_PSyserr[] =	"554";	/* some (permanent) system error */
-char	Arpa_Usrerr[] =		"554";	/* some (fatal) user error */
+char	*Arpa_Info =		"050";	/* arbitrary info */
+char	*Arpa_TSyserr =		"451";	/* some (transient) system error */
+char	*Arpa_PSyserr =		"554";	/* some (permanent) system error */
+char	*Arpa_Usrerr =		"554";	/* some (fatal) user error */
 
 
 
@@ -199,9 +190,7 @@ char *
 username()
 {
 	static char *myname = NULL;
-	extern char *getlogin();
 	register struct passwd *pw;
-	extern struct passwd *getpwuid();
 
 	/* cache the result */
 	if (myname == NULL)
@@ -212,7 +201,7 @@ username()
 
 			pw = getpwuid(getruid());
 			if (pw != NULL)
-				myname = pw->pw_name;
+				myname = newstr(pw->pw_name);
 		}
 		else
 		{
@@ -222,7 +211,7 @@ username()
 			{
 				pw = getpwuid(getuid());
 				if (pw != NULL)
-					myname = pw->pw_name;
+					myname = newstr(pw->pw_name);
 			}
 		}
 		if (myname == NULL || myname[0] == '\0')
@@ -265,8 +254,6 @@ ttypath()
 {
 	struct stat stbuf;
 	register char *pathn;
-	extern char *ttyname();
-	extern char *getlogin();
 
 	/* compute the pathname of the controlling tty */
 	if ((pathn = ttyname(2)) == NULL && (pathn = ttyname(1)) == NULL &&
@@ -338,40 +325,6 @@ checkcompat(to)
 	}
 # endif EXAMPLE_CODE
 	return (TRUE);
-}
-/*
-**  HOLDSIGS -- arrange to hold all signals
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		Arranges that signals are held.
-*/
-
-holdsigs()
-{
-}
-/*
-**  RLSESIGS -- arrange to release all signals
-**
-**	This undoes the effect of holdsigs.
-**
-**	Parameters:
-**		none.
-**
-**	Returns:
-**		none.
-**
-**	Side Effects:
-**		Arranges that signals are released.
-*/
-
-rlsesigs()
-{
 }
 /*
 **  GETLA -- get the current load average
