@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.7 (2.11BSD GTE) 1997/9/2
+ *	@(#)kern_sysctl.c	8.4.8 (2.11BSD GTE) 1998/1/28
  */
 
 /*
@@ -394,35 +394,6 @@ NET_SYSCTL(name, namelen, oldp, oldlenp, newp, newlen)
 			name, namelen, oldp, oldlenp, newp, newlen));
 }
 #endif
-
-/*
- * Rather useless - but it's not very big so let's do it.
-*/
-
-int
-cpu_sysctl(name, namelen, oldp, oldlenp, newp, newlen)
-	int *name;
-	u_int namelen;
-	void *oldp;
-	size_t *oldlenp;
-	void *newp;
-	size_t newlen;
-{
-	extern	struct tty cons[];
-
-	/* all sysctl names at this level are terminal */
-	if (namelen != 1)
-		return (ENOTDIR);		/* overloaded */
-
-	switch (name[0]) {
-	case CPU_CONSDEV:
-		return (sysctl_rdstruct(oldp, oldlenp, newp, &cons[0].t_dev,
-		    sizeof &cons[0].t_dev));
-	default:
-		return (EOPNOTSUPP);
-	}
-	/* NOTREACHED */
-}
 
 /*
  * Bit of a hack.  2.11 currently uses 'short avenrun[3]' and a fixed scale 

@@ -1,5 +1,5 @@
 /*
- *	1.1	(2.11BSD) 1995/12/12
+ *	1.2	(2.11BSD) 1998/2/31
  *
  * Definitions common to both MSCP and TMSCP were moved here from tmscp.h.
  * Eventually the MSCP driver and include file will be modified to use these
@@ -8,6 +8,12 @@
 
 #ifndef	_MSCP_COMMON_H_
 #define	_MSCP_COMMON_H_
+
+struct mscp_header {
+	u_short	mscp_msglen;	/* length of MSCP packet */
+	char	mscp_credits;	/* low 4 bits: credits, high 4 bits: msgtype */
+	char	mscp_vcid;	/* virtual circuit id */
+};
 
 /*
  * Control message opcodes
@@ -163,8 +169,12 @@
 #define	M_SC_DUPUN	0x0004		/* Duplicate unit number */
 #define	M_SC_ALONL	0x0008		/* Already online */
 #define	M_SC_STONL	0x0010		/* Still online */
-#define	M_SC_UNIGN	0x0011		/* Unload ignored */
+#define	M_SC_UNIGN	0x0011		/* Still online/Unload ignored (T) */
 #define	M_SC_EOT	0x0020		/* EOT seen */
+#ifdef	notnow
+#define	M_SC_INREP	0x0020		/* Incomplete replacement (D)
+#define	M_SC_IVRCT	0x0040		/* Invalid RCT */
+#endif
 #define	M_SC_ROVOL	0x0080		/* Read only volume */
 
 /*
@@ -192,6 +202,10 @@
  * Unit available subcodes
 */
 #define	M_SC_AVAIL	0x0000		/* Success */
+#ifdef	notnow
+#define	M_SC_NOMEMB	0x0001		/* No members */
+#define	M_SC_ALUSE	0x0020		/* Online to another host */
+#endif
 
 /*
  * Write protect subcodes
@@ -201,20 +215,122 @@
 #define	M_SC_HARDW	0x0100		/* Hardware write protected */
 
 /*
- * Error Log message format codes
+ * Invalid parameter sub-codes
+*/
+#ifdef	notnow
+#define	M_SC_IVKLN	0x0001		/* Invalid key length */
+#define	M_SC_IVKTP	0x0002		/* Invalid key type */
+#define	M_SC_IVKVL	0x0003		/* Invalid key value */
+
+/*
+ * Media format error sub-codes
+*/
+#define M_SC_NO512	0x0005	/* 576 byte sectors on a 512 byte drive	     */
+#define	M_SC_UNFMT	0x0006	/* Disk unformatted or FCT corrupted	     */
+#define M_SC_RCTBD	0x0008	/* RCT corrupted			     */
+#define M_SC_NORBL	0x0009	/* No replacement block available	     */
+#define M_SC_MULT	0x000A	/* Multi-copy protection warning	     */
+
+/*
+ * Data error sub-codes
+ *
+ * sub-codes marked (*) may also appear in media format errors
+*/
+#define M_SC_FRCER	0x0000	/* Forced error (*)			     */
+#define M_SC_IVHDR	0x0002	/* Invalid header (*)			     */
+#define M_SC_SYNTO	0x0003	/* Data synch timeout (*)		     */
+#define M_SC_ECCFL	0x0004	/* Correctable error in ECC field	     */
+#define M_SC_UNECC	0x0007	/* Uncorrectable ECC error (*)		     */
+#define M_SC_1SECC	0x0008	/* 1 symbol correctable ECC error	     */
+#define M_SC_2SECC	0x0009	/* 2 symbol correctable ECC error	     */
+#define M_SC_3SECC	0x000a	/* 3 symbol correctable ECC error	     */
+#define M_SC_4SECC	0x000b	/* 4 symbol correctable ECC error	     */
+#define M_SC_5SECC	0x000c	/* 5 symbol correctable ECC error	     */
+#define M_SC_6SECC	0x000d	/* 6 symbol correctable ECC error	     */
+#define M_SC_7SECC	0x000e	/* 7 symbol correctable ECC error	     */
+#define M_SC_8SECC	0x000f	/* 8 symbol correctable ECC error	     */
+
+/*
+ * Host buffer access error sub-codes
+ */
+#define M_SC_ODDTA	0x0001	/* Odd transfer address			     */
+#define M_SC_ODDBC	0x0002	/* Odd byte count			     */
+#define M_SC_NXM	0x0003	/* Non-existent memory			     */
+#define M_SC_MPAR	0x0004	/* Host memory parity error		     */
+#define M_SC_IVPTE	0x0005	/* Invalid Page Table Entry (UQSSP)	     */
+#define M_SC_IVBFN	0x0006	/* Invalid buffer name			     */
+#define M_SC_BLENV	0x0007	/* Buffer length violation		     */
+#define M_SC_ACVIO	0x0008	/* Access violation			     */
+
+/*
+ * Controller error sub-codes
+ */
+#define	M_SC_HDETO	0x0000	/* Host detected controller timeout	     */
+#define M_SC_DLATE	0x0001	/* Data late (SERDES) error		     */
+#define M_SC_EDCER	0x0002	/* EDC error				     */
+#define M_SC_DTSTR	0x0003	/* Data structure error			     */
+#define M_SC_IEDC	0x0004	/* Internal EDC error			     */
+#define M_SC_LACIN	0x0005	/* LESI adaptor card input error	     */
+#define M_SC_LACOU	0x0006	/* LESI adaptor card output error	     */
+#define M_SC_LACCB	0x0007	/* LESI adaptor card cable not in place	     */
+#define M_SC_OVRUN	0x0008	/* Controller overrun or underrun	     */
+#define M_SC_MEMER	0x0009	/* Controller memory error		     */
+
+/*
+ * Drive error sub-codes
+ */
+#define M_SC_CMDTO	0x0001	/* SDI command timed out		     */
+#define M_SC_XMSER	0x0002	/* Controller-detected transmission error    */
+#define M_SC_MISSK	0x0003	/* Positioner error (mis-seek)		     */
+#define M_SC_RWRDY	0x0004	/* Lost read/write ready between transfers   */
+#define M_SC_CLKDO	0x0005	/* Drive clock dropout			     */
+#define M_SC_RXRDY	0x0006	/* Lost receiver ready between sectors	     */
+#define M_SC_DRDET	0x0007	/* Drive-detected error			     */
+#define	M_SC_PULSE	0x0008	/* Ctlr-detected pulse/state parity error    */
+#define M_SC_PRTCL	0x000a	/* Controller detected protocol error	     */
+#define	M_SC_FLINI	0x000b	/* Drive failed initialization		     */
+#define	M_SC_IGINI	0x000c	/* Drive ignored initialization		     */
+#define	M_SC_RRCOL	0x000d	/* Receiver ready collision		     */
+
+/*
+ * Informational event only subcodes
+*/
+#define M_SC_IQUAL	0x0001	/* Media Quality Log			     */
+#define M_SC_ISTAT	0x0002	/* Unload, spin down statistics		     */
+
+#endif /* notnow */
+
+/*
+ * Error Log message format codes.  Many of these are ifdef'd out so as to
+ * not overload the C preprocessor.  The symbols themselves are not used by
+ * the kernel but are very handy to have when deciphering datagrams logged
+ * to the console or the messages file.
  */
 #define	M_FM_CNTERR	0	/* Controller error */
 #define	M_FM_BUSADDR	1	/* Host memory access error */
-#define	M_FM_TAPETRN	5	/* Tape transfer error */
-#define	M_FM_STIERR	6	/* STI communication or command failure */
-#define	M_FM_STIDEL	7	/* STI drive error log */
-#define	M_FM_STIFEL   010	/* STI formatter error log */
+#define	M_FM_DISKTRN	2	/* Disk transfer error (D) */
+#define	M_FM_SDI	3	/* SDI errors */
+#define	M_FM_SMLDSK	4	/* Small disk errors */
+#define	M_FM_TAPETRN	5	/* Tape transfer error (T) */
+#define	M_FM_STIERR	6	/* STI communication or command failure (T) */
+#define	M_FM_STIDEL	7	/* STI drive error log (T) */
+#define	M_FM_STIFEL	0x8	/* STI formatter error log (T) */
+#ifdef	notnow
+#define	M_FM_REPLACE	0x9	/* Bad block replacement attempt */
+#define	M_FM_LDRERR	0xa	/* Media loader errors */
+#define	M_FM_IBMSENSE	0xb	/* Sense data error log (T) */
+#endif
  
 /*
  * Error Log message flags
  */
 #define	M_LF_SUCC	0x80	/* Operation successful */
 #define	M_LF_CONT	0x40	/* Operation continuing */
+#ifdef	notnow
+#define	M_LF_BBR	0x20	/* Bad block replacement attempt */
+#define	M_LF_RPLER	0x10	/* Error during replacement */
+#define	M_LF_INFO	0x02	/* Informational */
+#endif
 #define	M_LF_SQNRS	0x01	/* Sequence number reset */
  
 /*

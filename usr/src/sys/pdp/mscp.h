@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mscp.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)mscp.h	1.2 (2.11BSD) 1998/1/28
  */
 
 /*
@@ -21,78 +21,7 @@
  *	Fred Canter 10/22/83
 */
 
-/*
- * Control message opcodes
- */
-#define	M_O_ABORT	0001	/* Abort command */
-#define	M_O_GTCMD	0002	/* Get command status command */
-#define	M_O_GTUNT	0003	/* Get unit status command */
-#define	M_O_STCON	0004	/* Set controller characteristics command */
-#define	M_O_SEREX	0007	/* Serious exception end message */
-#define	M_O_AVAIL	0010	/* Available command */
-#define	M_O_ONLIN	0011	/* Online command */
-#define	M_O_STUNT	0012	/* Set unit characteristics command */
-#define	M_O_DTACP	0013	/* Determine access paths command */
-#define	M_O_ACCES	0020	/* Access command */
-#define	M_O_CMPCD	0021	/* Compare controller data command */
-#define	M_O_ERASE	0022	/* Erase command */
-#define	M_O_FLUSH	0023	/* Flush command */
-#define	M_O_REPLC	0024	/* Replace command */
-#define	M_O_COMP	0040	/* Compare host data command */
-#define	M_O_READ	0041	/* Read command */
-#define	M_O_WRITE	0042	/* Write command */
-#define	M_O_AVATN	0100	/* Available attention message */
-#define	M_O_DUPUN	0101	/* Duplicate unit number attention message */
-#define	M_O_ACPTH	0102	/* Access path attention message */
-#define	M_O_END		0200	/* End message flag */
-
-/*
- * End message flags
-*/
-#define	M_E_BBLR	0200	/* Bad block reported */
-#define	M_E_BBLU	0100	/* Bad block unreported */
-#define	M_E_ERLOG	0040	/* Error log generated */
-#define	M_E_SEREX	0020	/* Serious exception */
-
-
-/*
- * Controller flags
-*/
-#define	M_C_ATTN	0200	/* Enable attention messages */
-#define	M_C_MISC	0100	/* Enable miscellaneous error log messages */
-#define	M_C_OTHER	0040	/* Enable other host's error log messages */
-#define	M_C_THIS	0020	/* Enable this host's error log messages */
-#define	M_C_MLTHS	0004	/* Multi-host */
-#define	M_C_SHADW	0002	/* Shadowing */
-#define	M_C_576		0001	/* 576 byte sectors */
-
-/*
- * Status codes
-*/
-#define	M_S_MASK	037		/* Status code mask */
-#define	M_S_SUCC	000		/* Success */
-#define	M_S_ICMD	001		/* Invalid command */
-#define	M_S_ABRTD	002		/* Command aborted */
-#define	M_S_OFFLN	003		/* Unit offline */
-#define	M_S_AVLBL	004		/* Unit available */
-#define	M_S_MFMTE	005		/* Media format error */
-#define	M_S_WRTPR	006		/* Write protected */
-#define	M_S_COMP	007		/* Compare error */
-#define	M_S_DATA	010		/* Data error */
-#define	M_S_HSTBF	011		/* Host buffer access error */
-#define	M_S_CNTLR	012		/* Controller error */
-#define	M_S_DRIVE	013		/* Drive error */
-#define	M_S_DIAG	037		/* Message from a internal diagnostic */
-
-/*
- * MSCP packet info
-*/
-
-struct mscp_header {
-	u_short	ra_msglen;	/* length of MSCP packet */
-	char	ra_credits;	/* low 4 bits: credits, high 4 bits: msgtype */
-	char	ra_vcid;	/* virtual circuit id */
-};
+#include "pdp/mscp_common.h"
 
 /*
  * An MSCP packet
@@ -225,23 +154,6 @@ struct mscp {
 #define	m_cnttmo	m_hsttmo
 #define	m_cntcmdl	m_usefrac
 #define	m_cntid		m_unitid
-
-
-/*
- * Error Log message format codes
- */
-#define	M_F_CNTERR	0	/* Controller error */
-#define	M_F_BUSADDR	1	/* Host memory access error */
-#define	M_F_DISKTRN	2	/* Disk transfer error */
-#define	M_F_SDI		3	/* SDI error */
-#define	M_F_SMLDSK	4	/* Small disk error */
-
-/*
- * Error Log message flags
- */
-#define	M_LF_SUCC	0200	/* Operation successful */
-#define	M_LF_CONT	0100	/* Operation continuing */
-#define	M_LF_SQNRS	0001	/* Sequence number reset */
 
 /*
  * MSCP Error Log packet

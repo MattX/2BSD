@@ -1,6 +1,4 @@
-/* @(#)tmscpreg.h	7.1 (Berkeley) 6/5/86 */
-
-/*	@(#)tmscpreg.h	1.3	(2.11BSD) 1995/12/31 */
+/*	@(#)tmscpreg.h	1.4	(2.11BSD) 1998/1/28 */
 
 /****************************************************************
  *								*
@@ -90,12 +88,3 @@ struct tmscpca {
  
 #define	TMSCP_OWN	0x8000	/* port owns descriptor (else host owns it) */
 #define	TMSCP_INT	0x4000	/* allow interrupt on ring transition */
- 
-/*
- * TMSCP packet info (same as MSCP)
- */
-struct mscp_header {
-	short	tmscp_msglen;	/* length of MSCP packet */
-	char	tmscp_credits;	/* low 4 bits: credits, high 4 bits: msgtype */
-	char	tmscp_vcid;	/* virtual circuit id (connection id) */
-};

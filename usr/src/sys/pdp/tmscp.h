@@ -61,6 +61,7 @@ struct mscp {
 	u_char	mscp_flags;		/* end message flags */
 	short	mscp_modifier;		/* modifiers */
 	union {
+	char	FILLER[94];		/* sizeof (mslg) after 16 byte header */
 	struct {
 		u_short	bytecnt;	/* byte count (low order) */
 		u_short	zzz2;		/* 64kb max for pdp-11 (high order) */
@@ -69,15 +70,6 @@ struct mscp {
 		long	xxx2[2];	/* unused */
 		u_short	lbn_l;		/* logical block number low word */
 		u_short	lbn_h;		/* logical block number high word */
-		long	xxx4;		/* unused */
-/*
- * TMSCP only looks this far into the command packet.   The 'dscptr' is 26
- * bytes offset from the start of the mscp structure and the 17 longwords of
- * padding are necessary to make this structure the same length as the longest
- * errorlog datagram received
-*/
-		long	*dscptr;	/* pointer to descriptor (software) */
-		long	sftwds[17];	/* software words, padding */
 	} gen;
 	struct {
 		short	version;	/* MSCP version */
@@ -111,10 +103,8 @@ struct mscp {
 		u_long	position;	/* tape position */
 	} rep_em;
 	} un;
-	short m_filler[3];
+	long	*mscp_dscptr;	/* pointer to descriptor (software) */
 };
- 
-#define mscp_msglen (sizeof (struct mscp) - sizeof(struct mscp_header))
  
 /*
  * generic packet
@@ -126,7 +116,6 @@ struct mscp {
 #define	mscp_buffer_l	un.gen.buf_l
 #define	mscp_lbn_h	un.gen.lbn_h
 #define	mscp_lbn_l	un.gen.lbn_l
-#define	mscp_dscptr	un.gen.dscptr
 #define	mscp_status	mscp_modifier
 #define	mscp_endcode	mscp_opcode
 #define	mscp_position	un.rep_em.position

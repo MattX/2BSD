@@ -1,4 +1,4 @@
-/*	@(#)tmscp.c	7.1.4 (2.11BSD GTE) 1996/3/8 */
+/*	@(#)tmscp.c	7.1.5 (2.11BSD GTE) 1998/1/30 */
 
 /****************************************************************
  *        Licensed from Digital Equipment Corporation           *
@@ -202,7 +202,7 @@ tmscpcmd(io, op,mod)
 	tms->tmscp_ca.ca_cmddsc[0].lsh = lo16;
 	tms->tmscp_ca.ca_cmddsc[0].hsh = bae;
 	tms->tmscp_cmd[0].mscp_dscptr = (long *)tms->tmscp_ca.ca_cmddsc;
-	tms->tmscp_cmd[0].mscp_header.tmscp_vcid = 1;	/* for tape */
+	tms->tmscp_cmd[0].mscp_header.mscp_vcid = 1;	/* for tape */
 
 	iomapadr(&tms->tmscp_rsp[0].mscp_cmdref, &bae, &lo16);
 	tms->tmscp_ca.ca_rspdsc[0].lsh = lo16;
@@ -212,9 +212,9 @@ tmscpcmd(io, op,mod)
 
 	tms->tmscp_cmd[0].mscp_opcode = op;
 	tms->tmscp_cmd[0].mscp_modifier = mod;
-	tms->tmscp_cmd[0].mscp_header.tmscp_msglen = mscp_msglen;
+	tms->tmscp_cmd[0].mscp_header.mscp_msglen = sizeof (struct tmscp);
 	tms->tmscp_ca.ca_cmddsc[0].hsh |= TMSCP_OWN;	/* | TMSCP_INT */
-	tms->tmscp_rsp[0].mscp_header.tmscp_msglen = mscp_msglen;
+	tms->tmscp_rsp[0].mscp_header.mscp_msglen = sizeof (struct tmscp);
 	tms->tmscp_ca.ca_rspdsc[0].hsh |= TMSCP_OWN;	/* | TMSCP_INT */
 	tms->tmscp_cmd[0].mscp_zzz2 = 0;
  

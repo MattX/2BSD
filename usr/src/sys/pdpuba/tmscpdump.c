@@ -1,5 +1,5 @@
 /*
- * 	1.1	(2.11BSD)	1995/12/14
+ * 	1.2	(2.11BSD)	1998/1/28
  *
  * This routine was moved from the main TMSCP driver due to size problems.
  * The driver could become over 8kb in size and would not fit within an
@@ -132,8 +132,8 @@ tmscpcmd(op, unit, sc)
 
 	cmp->mscp_opcode = op;
 	cmp->mscp_unit = unit;
-	cmp->mscp_header.tmscp_msglen = mscp_msglen;
-	rmp->mscp_header.tmscp_msglen = mscp_msglen;
+	cmp->mscp_header.mscp_msglen = sizeof (struct mscp);
+	rmp->mscp_header.mscp_msglen = sizeof (struct mscp);
 	rlp[0].hsh |= TMSCP_OWN|TMSCP_INT;
 	rlp[1].hsh |= TMSCP_OWN|TMSCP_INT;
 	if (sc->sc_addr->tmscpsa&TMSCP_ERR)

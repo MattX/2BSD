@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)cpu.h	1.3 (2.11BSD GTE) 1/14/95
+ *	@(#)cpu.h	1.4 (2.11BSD GTE) 1998/1/28
  */
 
 /*
@@ -18,11 +18,25 @@
  * CTL_MACHDEP definitions.
  */
 #define	CPU_CONSDEV		1	/* dev_t: console terminal device */
-#define	CPU_MAXID		2	/* number of valid machdep ids */
+#define	CPU_TMSCP		2	/* tmscp debugging */
+#define	CPU_MAXID		3	/* number of valid machdep ids */
 
 #ifndef	KERNEL
 #define CTL_MACHDEP_NAMES { \
 	{ 0, 0 }, \
 	{ "console_device", CTLTYPE_STRUCT }, \
+	{ "tmscp", CTLTYPE_NODE }, \
+}
+#endif
+
+#define	TMSCP_CACHE	1		/* enable/disable drive cache */
+#define	TMSCP_PRINTF	2		/* get/set print flag */
+#define	TMSCP_MAXID	3		/* number of valid TMSCP ids */
+
+#ifndef	KERNEL
+#define	TMSCP_NAMES { \
+	{ 0, 0 }, \
+	{ "cache", CTLTYPE_INT }, \
+	{ "printf", CTLTYPE_INT }, \
 }
 #endif

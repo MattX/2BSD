@@ -68,9 +68,7 @@ struct ctlname netname[] = CTL_NET_NAMES;
 struct ctlname hwname[] = CTL_HW_NAMES;
 struct ctlname username[] = CTL_USER_NAMES;
 struct ctlname debugname[CTL_DEBUG_MAXID];
-#ifdef CTL_MACHDEP_NAMES
 struct ctlname machdepname[] = CTL_MACHDEP_NAMES;
-#endif
 char names[BUFSIZ];
 
 struct list {
@@ -90,11 +88,7 @@ struct list secondlevel[] = {
 #endif
 	{ 0, CTL_DEBUG_MAXID },		/* CTL_DEBUG */
 	{ hwname, HW_MAXID },		/* CTL_HW */
-#ifdef CTL_MACHDEP_NAMES
 	{ machdepname, CPU_MAXID },	/* CTL_MACHDEP */
-#else
-	{ 0, 0 },			/* CTL_MACHDEP */
-#endif
 	{ username, USER_MAXID },	/* CTL_USER_NAMES */
 };
 
@@ -300,10 +294,14 @@ parse(string, flags)
 		break;
 
 	case CTL_MACHDEP:
-#ifdef CPU_CONSDEV
 		if (mib[1] == CPU_CONSDEV)
 			special |= CONSDEV;
-#endif
+		if (mib[1] == CPU_TMSCP) {
+			len = sysctl_tmscp(string, &bufp, mib, flags, &type);
+			if (len >= 0)
+				goto doit;
+			return;
+		}
 		break;
 
 	case CTL_FS:
@@ -315,6 +313,7 @@ parse(string, flags)
 		return;
 	
 	}
+doit:
 	if (bufp) {
 		fprintf(stderr, "name %s in %s is unknown\n", *bufp, string);
 		return;
@@ -435,6 +434,32 @@ parse(string, flags)
 		    string);
 		return;
 	}
+}
+
+struct	ctlname tmscpname[]  = TMSCP_NAMES;
+struct	list tmscplist = { tmscpname, TMSCP_MAXID };
+
+/*
+ * Handle machdep.tmscp.x 
+*/
+sysctl_tmscp(string, bufpp, mib, flags, typep)
+	char *string;
+	char **bufpp;
+	int mib[];
+	int flags;
+	int *typep;
+{
+	int indx;
+
+	if (*bufpp == NULL) {
+		listall(string, &tmscplist);
+		return (-1);
+	}
+	if ((indx = findname(string, "third", bufpp, &tmscplist)) == -1)
+		return (-1);
+	mib[2] = indx;
+	*typep = tmscpname[indx].ctl_type;
+	return (3);
 }
 
 /*

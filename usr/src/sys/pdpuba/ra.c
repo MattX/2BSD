@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	3.2 (2.11BSD GTE) 1997/2/14
+ *	@(#)ra.c	3.3 (2.11BSD GTE) 1998/1/28
  */
 
  /***********************************************************************
@@ -14,6 +14,11 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	January 28, 1998
+ * Define the 'mscp_header' structure in the mscp_common.h and change the
+ * member names from ra_* to mscp_*.  A small step towards merging the MSCP
+ * and TMSCP drivers.
+ *
  * Date:	February 14, 1997
  * Use 'hz' to calculate delays rather than compile time constant.
  *
@@ -406,7 +411,7 @@ raopen(dev, flag, mode)
 			--sc->sc_cp_wait;
 		}
 		mapseg5(ra_com[sc->sc_unit], MAPSEGDESC);
-		mp->m_opcode = M_O_ONLIN;
+		mp->m_opcode = M_OP_ONLIN;
 		mp->m_unit = unit;
 		mp->m_cmdref = (unsigned)&disk->ra_flags;
 		((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
@@ -791,7 +796,7 @@ out:
 	if ((mp = ragetcp(sc)) == NULL)
 		goto out;
 	mp->m_cmdref = (unsigned)bp;	/* pointer to get back */
-	mp->m_opcode = bp->b_flags & B_READ ? M_O_READ : M_O_WRITE;
+	mp->m_opcode = bp->b_flags & B_READ ? M_OP_READ : M_OP_WRITE;
 	mp->m_unit = RAUNIT(bp->b_dev);
 	disk = sc->sc_drives[mp->m_unit];
 	pi = &disk->ra_parts[dkpart(bp->b_dev)];
@@ -916,8 +921,8 @@ raintr(unit)
 		sc->sc_lastrsp = 0;
 		mp = sc->sc_com->ra_cmd;
 		ramsgclear(mp);
-		mp->m_opcode = M_O_STCON;
-		mp->m_cntflgs = M_C_ATTN | M_C_MISC | M_C_THIS;	
+		mp->m_opcode = M_OP_STCON;
+		mp->m_cntflgs = M_CF_ATTN | M_CF_MISC | M_CF_THIS;	
 		((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
 		i = sc->RAADDR->raip;
 		restorseg5(seg5);
@@ -996,7 +1001,7 @@ ramsginit(sc, com, msgs, offset, length, flags)
 		com->lsh = loint(vaddr);
 		com->hsh = flags | hiint(vaddr);
 		msgs->m_dscptr = (long *)com;
-		msgs->m_header.ra_msglen = sizeof(struct mscp);
+		msgs->m_header.mscp_msglen = sizeof(struct mscp);
 		++com; ++msgs; vaddr += sizeof(struct mscp);
 	}
 }
@@ -1074,16 +1079,16 @@ rarsp(mp, sc)
 	/*
 	 * Reset packet length and check controller credits
 	 */
-	mp->m_header.ra_msglen = sizeof(struct mscp);
-	sc->sc_credits += mp->m_header.ra_credits & 0xf;
-	if ((mp->m_header.ra_credits & 0xf0) > 0x10)
+	mp->m_header.mscp_msglen = sizeof(struct mscp);
+	sc->sc_credits += mp->m_header.mscp_credits & 0xf;
+	if ((mp->m_header.mscp_credits & 0xf0) > 0x10)
 		return;
 
 	/*
 	 * If it's an error log message (datagram),
 	 * pass it on for more extensive processing.
 	 */
-	if ((mp->m_header.ra_credits & 0xf0) == 0x10) {
+	if ((mp->m_header.mscp_credits & 0xf0) == 0x10) {
 		ra_error((struct mslg *)mp);
 		return;
 	}
@@ -1091,9 +1096,9 @@ rarsp(mp, sc)
 	/*
 	 * The controller interrupts as drive ZERO so check for it first.
 	 */
-	st = mp->m_status & M_S_MASK;
-	if (mp->m_opcode == (M_O_STCON|M_O_END)) {
-		if (st == M_S_SUCC)
+	st = mp->m_status & M_ST_MASK;
+	if (mp->m_opcode == (M_OP_STCON|M_OP_END)) {
+		if (st == M_ST_SUCC)
 			sc->sc_state = S_RUN;
 		else
 			sc->sc_state = S_IDLE;
@@ -1106,7 +1111,7 @@ rarsp(mp, sc)
 	 * Check drive and then decode response and take action.
 	 */
 	switch (mp->m_opcode) {
-	case M_O_ONLIN|M_O_END:
+	case M_OP_ONLIN|M_OP_END:
 		if ((disk = sc->sc_drives[mp->m_unit]) == NULL) {
 			log(LOG_NOTICE,"ra%d !ONLINE\n", sc->sc_unit * 8 +
 				mp->m_unit);
@@ -1114,7 +1119,7 @@ rarsp(mp, sc)
 		}
 		dp = &disk->ra_utab;
 
-		if (st == M_S_SUCC) {
+		if (st == M_ST_SUCC) {
 			/* Link the drive onto the controller queue */
 			dp->b_forw = NULL;
 			if (sc->sc_ctab.b_actf == NULL)
@@ -1140,21 +1145,21 @@ rarsp(mp, sc)
 			wakeup((caddr_t)mp->m_cmdref);
 		break;
 
-	case M_O_AVATN:
+	case M_OP_AVATN:
 		/* it went offline and we didn't notice */
 		PRINTD(("ra%d: attention\n", sc->sc_unit * 8 + mp->m_unit));
 		if ((disk = sc->sc_drives[mp->m_unit]) != NULL)
 			disk->ra_flags &= ~DKF_ONLINE;
 		break;
 
-	case M_O_END:
+	case M_OP_END:
 		/* controller incorrectly returns code 0200 instead of 0241 */
 		PRINTD(("ra: back logical block request\n"));
 		bp = (struct buf *)mp->m_cmdref;
 		bp->b_flags |= B_ERROR;
 
-	case M_O_READ | M_O_END:
-	case M_O_WRITE | M_O_END:
+	case M_OP_READ | M_OP_END:
+	case M_OP_WRITE | M_OP_END:
 		/* normal termination of read/write request */
 		if ((disk = sc->sc_drives[mp->m_unit]) == NULL)
 			break;
@@ -1174,7 +1179,7 @@ rarsp(mp, sc)
 				dk_busy &= ~(1 << (ra_dkn + mp->m_unit));
 		}
 #endif
-		if (st == M_S_OFFLN || st == M_S_AVLBL) {
+		if (st == M_ST_OFFLN || st == M_ST_AVLBL) {
 			/* mark unit offline */
 			disk->ra_flags &= ~DKF_ONLINE;
 
@@ -1195,7 +1200,7 @@ rarsp(mp, sc)
 			}
 			return;
 		}
-		if (st != M_S_SUCC) {
+		if (st != M_ST_SUCC) {
 			harderr(bp, "ra");
 			log(LOG_INFO, "status %o\n", mp->m_status);
 			bp->b_flags |= B_ERROR;
@@ -1204,7 +1209,7 @@ rarsp(mp, sc)
 		iodone(bp);
 		break;
 
-	case M_O_GTUNT|M_O_END:
+	case M_OP_GTUNT|M_OP_END:
 		break;
 
 	default:
@@ -1282,20 +1287,20 @@ ra_error(mp)
 		mp->me_flags & (M_LF_SUCC|M_LF_CONT) ? "soft" : "hard");
 
 	switch (mp->me_format) {
-	case M_F_CNTERR:
+	case M_FM_CNTERR:
 		printf("ctlr");
 		break;
-	case M_F_BUSADDR:
+	case M_FM_BUSADDR:
 		printf("M_F_BUSADDR %o", mp->me_busaddr);
 		break;
-	case M_F_DISKTRN:
+	case M_FM_DISKTRN:
 		printf("disk xfr, unit %d grp x%x hdr x%x",
 			mp->me_unit, mp->me_group, mp->me_hdr);
 		break;
-	case M_F_SDI:
+	case M_FM_SDI:
 		printf("SDI unit %d hdr x%x", mp->me_unit, mp->me_hdr);
 		break;
-	case M_F_SMLDSK:
+	case M_FM_SMLDSK:
 		printf("small disk unit %d cyl %d", mp->me_unit, mp->me_sdecyl);
 		break;
 	default:
@@ -1310,7 +1315,7 @@ ra_error(mp)
 		register char *p = (char *)mp;
 		register int i;
 
-		for (i = mp->me_header.ra_msglen; i--; /*void*/)
+		for (i = mp->me_header.mscp_msglen; i--; /*void*/)
 			printf("%x ", *p++ & 0xff);
 		printf("\n");
 	}
@@ -1389,14 +1394,14 @@ radump(dev)
 		/*void*/;
 	sc->RAADDR->rasa = RA_GO;
 	ramsginit(sc, sc->sc_com->ra_ca.ca_rsp, mp, 0, 2, 0);
-	if (!racmd(M_O_STCON, unit, sc)) {
+	if (!racmd(M_OP_STCON, unit, sc)) {
 		PRINTB(("radump: failed start controller\n"));
 		return(EFAULT);
 	}
 	PRINTB(("radump: controller up\n"));
 
 	/* Bring disk for dump online */
-	if (!(mp = racmd(M_O_ONLIN, unit, sc))) {
+	if (!(mp = racmd(M_OP_ONLIN, unit, sc))) {
 		PRINTB(("radump: failed online\n"));
 		return(EFAULT);
 	}
@@ -1432,7 +1437,7 @@ radump(dev)
 		mp->m_bytecnt = count * NBPG;
 		mp->m_buf_l = loint(maddr);
 		mp->m_buf_h = hiint(maddr);
-		if (racmd(M_O_WRITE, unit, sc) == 0)
+		if (racmd(M_OP_WRITE, unit, sc) == 0)
 			return(EIO);
 
 		paddr += (count << PGSHIFT);
@@ -1457,7 +1462,8 @@ racmd(op, unit, sc)
 	rlp = &sc->sc_com->ra_ca.ca_rsp[0];
 	cmp->m_opcode = op;
 	cmp->m_unit = unit;
-	cmp->m_header.ra_msglen = rmp->m_header.ra_msglen = sizeof(struct mscp);
+	cmp->m_header.mscp_msglen = rmp->m_header.mscp_msglen = 
+			sizeof(struct mscp);
 	rlp[0].hsh &= ~RA_INT;
 	rlp[1].hsh &= ~RA_INT;
 	rlp[0].hsh &= ~RA_INT;
@@ -1471,8 +1477,8 @@ racmd(op, unit, sc)
 		/*void*/;
 	sc->sc_com->ra_ca.ca_rspint = 0;
 	sc->sc_com->ra_ca.ca_cmdint = 0;
-	if (rmp->m_opcode != (op | M_O_END)
-	    || (rmp->m_status & M_S_MASK) != M_S_SUCC) {
+	if (rmp->m_opcode != (op | M_OP_END)
+	    || (rmp->m_status & M_ST_MASK) != M_ST_SUCC) {
 		ra_error(rmp);
 		return(0);
 	}

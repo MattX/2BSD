@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	2.7 (2.11BSD GTE) 1996/3/8
+ *	@(#)ra.c	2.8 (2.11BSD GTE) 1998/1/30
  */
 
 /*
@@ -91,7 +91,7 @@ again:		raaddr->raip = 0;
 		if	(ra_step(raaddr, RA_STEP4, 4))
 			goto again;
 		raaddr->rasa = RA_GO;
-		if (racmd(M_O_STCON, io) < 0) {
+		if (racmd(M_OP_STCON, io) < 0) {
 			printf("%s STCON err\n", devname(io));
 			return(-1);
 		}
@@ -120,7 +120,7 @@ ramount(io)
 	register int ctlr = io->i_ctlr;
 	register int unit = io->i_unit;
 
-	if (racmd(M_O_ONLIN, io) < 0) {
+	if (racmd(M_OP_ONLIN, io) < 0) {
 		printf("%s !online\n", devname(io));
 		return(-1);
 	}
@@ -143,8 +143,8 @@ racmd(op, io)
 	racom->ra_cmd.m_opcode = op;
 	racom->ra_cmd.m_unit = unit;
 	racom->ra_cmd.m_cntflgs = 0;
-	racom->ra_rsp.m_header.ra_msglen = sizeof(struct mscp);
-	racom->ra_cmd.m_header.ra_msglen = sizeof(struct mscp);
+	racom->ra_rsp.m_header.mscp_msglen = sizeof(struct mscp);
+	racom->ra_cmd.m_header.mscp_msglen = sizeof(struct mscp);
 
 	iomapadr(&racom->ra_rsp.m_cmdref, &bae, &lo16);
 	racom->ra_ca.ca_rspl = lo16;
@@ -170,13 +170,13 @@ racmd(op, io)
 		}
 		racom->ra_ca.ca_cmdint = 0;
 		racom->ra_ca.ca_rspint = 0;
-		if (mp->m_opcode == (op | M_O_END))
+		if (mp->m_opcode == (op | M_OP_END))
 			break;
 		printf("%s rsp %x op %x ignored\n", devname(io),
-			mp->m_header.ra_credits & 0xf0, mp->m_opcode);
+			mp->m_header.mscp_credits & 0xf0, mp->m_opcode);
 		racom->ra_ca.ca_rsph |= RA_OWN;
 	}
-	if ((mp->m_status & M_S_MASK) != M_S_SUCC) {
+	if ((mp->m_status & M_ST_MASK) != M_ST_SUCC) {
 		printf("%s err op=%x sts=%x\n", devname(io),
 			mp->m_opcode, mp->m_status);
 		return(-1);
@@ -206,7 +206,7 @@ rastrategy(io, func)
 	mp->m_bytecnt = io->i_cc;
 	mp->m_buf_l = lo16;
 	mp->m_buf_h = bae;
-	if	(racmd(func == READ ? M_O_READ : M_O_WRITE, io) < 0)
+	if	(racmd(func == READ ? M_OP_READ : M_OP_WRITE, io) < 0)
 		return(-1);
 	return(io->i_cc);
 }
@@ -251,9 +251,9 @@ ralabel(io)
 	lp->d_partitions[0].p_size = nblks;  /* span the drive with 'a' */
 /*	lp->d_secperunit = nblks;	     /* size of entire volume */
 
-	if	(racmd(M_O_GTUNT, io) != 0)
+	if	(racmd(M_OP_GTUNT, io) != 0)
 		{
-		printf("%s M_OP_GTUNT failed\n", devname(io));
+		printf("%s GTUNT failed\n", devname(io));
 		return(-1);
 		}
 /*
