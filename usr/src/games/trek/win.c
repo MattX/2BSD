@@ -4,12 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)win.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)win.c	5.1.1 (2.11BSD GTE) 11/20/94";
+#endif
 
 # include	"trek.h"
 # include	"getpar.h"
+# include	<setjmp.h>
 
 /*
 **  Signal game won
@@ -27,6 +28,7 @@ static char sccsid[] = "@(#)win.c	5.1 (Berkeley) 5/30/85";
 win()
 {
 	long			s;
+	extern jmp_buf		env;
 	extern long		score();
 	extern struct cvntab	Skitab[];
 	register struct cvntab	*p;
@@ -56,5 +58,5 @@ win()
 
 	/* clean out input, and request new game */
 	skiptonl(0);
-	reset();
+	longjmp(env, 1);
 }

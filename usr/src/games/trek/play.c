@@ -4,12 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)play.c	5.1 (Berkeley) 1/29/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)play.c	5.1.1 (2.11BSD GTE) 11/20/94";
+#endif
 
 # include	"trek.h"
 # include	"getpar.h"
+# include	<setjmp.h>
 
 /*
 **  INSTRUCTION READ AND MAIN PLAY LOOP
@@ -24,7 +25,7 @@ static char sccsid[] = "@(#)play.c	5.1 (Berkeley) 1/29/86";
 extern int	abandon(), capture(), shield(), computer(), dcrept(),
 		destruct(), dock(), help(), impulse(), lrscan(),
 		warp(), dumpgame(), rest(), shell(), srscan(),
-		reset(), torped(), visual(), setwarp(), undock(), phaser();
+		myreset(), torped(), visual(), setwarp(), undock(), phaser();
 
 struct cvntab	Comtab[] =
 {
@@ -47,13 +48,20 @@ struct cvntab	Comtab[] =
 	"sh",			"ield",			shield,	0,
 	"s",			"rscan",		srscan,	0,
 	"st",			"atus",			srscan,	-1,
-	"terminate",		"",			reset,		0,
+	"terminate",		"",			myreset,	0,
 	"t",			"orpedo",		torped,	0,
 	"u",			"ndock",		undock,	0,
 	"v",			"isual",		visual,	0,
 	"w",			"arp",			setwarp,	0,
 	0
 };
+
+myreset()
+{
+	extern	jmp_buf	env;
+
+	longjmp(env, 1);
+}
 
 play()
 {

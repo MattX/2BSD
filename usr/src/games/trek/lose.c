@@ -4,11 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)lose.c	5.1 (Berkeley) 1/29/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)lose.c	5.1.1 (2.11BSD GTE) 11/20/94";
+#endif
 
 # include	"trek.h"
+# include	<setjmp.h>
 
 /*
 **  PRINT OUT LOSER MESSAGES
@@ -38,6 +39,8 @@ char	*Losemsg[] =
 lose(why)
 int	why;
 {
+	extern	jmp_buf	env;
+
 	Game.killed = 1;
 	sleep(1);
 	printf("\n%s\n", Losemsg[why - 1]);
@@ -51,5 +54,5 @@ int	why;
 	Move.endgame = -1;
 	score();
 	skiptonl(0);
-	reset();
+	longjmp(env, 1);
 }

@@ -4,19 +4,19 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.1 (Berkeley) 1/29/86";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD GTE) 11/20/94";
+#endif
 
 # include	"trek.h"
 # include	<stdio.h>
 # include	<sgtty.h>
+# include	<setjmp.h>
+
 # define	PRIO		00	/* default priority */
 
 int	Mother	= 51 + (51 << 8);
@@ -118,6 +118,8 @@ int	Mother	= 51 + (51 << 8);
 ***********************************************************************
 */
 
+jmp_buf	env;
+
 main(argc, argv)
 int	argc;
 char	**argv;
@@ -129,7 +131,6 @@ char	**argv;
 	register int		ac;
 	register char		**av;
 	struct	sgttyb		argp;
-	int			been_here = 0;
 
 	av = argv;
 	ac = argc;
@@ -188,17 +189,13 @@ char	**argv;
 		f_log = fopen(av[0], opencode);
 		*/
 
-	printf("\n   * * *   S T A R   T R E K   * * *\n\n");
-
-	play_with(stdin);
-	ungetc('\n',stdin);
-	setexit();
-	if ( been_here == 1 )
+	printf("\n   * * *   S T A R   T R E K   * * *\n\nPress return to continue.\n");
+	
+	if (setjmp(env))
 	{
 		if ( !getynpar("Another game") )
 			exit(0);
 	}
-	been_here = 1;
 	do
 	{
 		setup();
@@ -206,15 +203,4 @@ char	**argv;
 	} while (getynpar("Another game"));
 
 	fflush(stdout);
-}
-
-play_with(iop)
-register	FILE	*iop;
-{
-	extern	char	_sibuf[];
-
-	iop->_cnt = 0;
-	iop->_base = _sibuf;
-	iop->_ptr = iop->_base;
-	iop->_bufsiz = BUFSIZ;
 }

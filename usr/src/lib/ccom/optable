@@ -1169,7 +1169,9 @@ cr121:
 /* *=, /=, %= for unsigned long */
 cr124:
 %n,nl
+%n,nul
 %nl,n
+%nul,n
 %	[l86]
 
 /* *=, /=, %= for longs */
