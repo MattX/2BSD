@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.1 (2.11BSD GTE) 1/15/95
+ *	@(#)kern_sysctl.c	8.4.2 (2.11BSD GTE) 3/06/95
  */
 
 /*
@@ -55,6 +55,7 @@
 #include <sys/map.h>
 #include <sys/sysctl.h>
 #include <machine/cpu.h>
+#include <conf.h>
 
 sysctlfn kern_sysctl;
 sysctlfn hw_sysctl;
@@ -979,7 +980,7 @@ fill_from_u(p, rup, ttp, tdp)
 	struct	tty	**ttp;
 	dev_t	*tdp;
 	{
-	struct	buf	*bp;
+	register struct	buf	*bp;
 	dev_t	ttyd;
 	uid_t	ruid;
 	struct	tty	*ttyp;
@@ -995,8 +996,16 @@ fill_from_u(p, rup, ttp, tdp)
 		}
 	else
 		{
-		bp = bread(swapdev, (long)p->p_addr);
-		if	(!bp)
+		bp = geteblk();
+		bp->b_dev = swapdev;
+		bp->b_blkno = (daddr_t)p->p_addr;
+		bp->b_bcount = DEV_BSIZE;	/* XXX */
+		bp->b_flags = B_READ;
+
+		(*bdevsw[major(swapdev)].d_strategy)(bp);
+		biowait(bp);
+
+		if	(u.u_error)
 			{
 			ttyd = NODEV;
 			ttyp = NULL;
@@ -1009,12 +1018,12 @@ fill_from_u(p, rup, ttp, tdp)
 			ttyd = up->u_ttyd;	/* u_ttyd = offset 654 */
 			ttyp = up->u_ttyp;	/* u_ttyp = offset 652 */
 			mapout(bp);
-			bp->b_flags |= B_AGE;
-			brelse(bp);
 			}
+		bp->b_flags |= B_AGE;
+		brelse(bp);
+		u.u_error = 0;		/* XXX */
 		}
 	*rup = ruid;
 	*ttp = ttyp;
 	*tdp = ttyd;
-	return;
 	}
