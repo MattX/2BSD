@@ -2,18 +2,25 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)lastcomm.1	6.2 (Berkeley) 1/5/86
+.\"	@(#)lastcomm.1	6.2.1 (2.11BSD) 2/3/05
 .\"
-.TH LASTCOMM 1 "January 5, 1986"
-.UC
+.TH LASTCOMM 1 "February 3, 1995"
+.UC 4
 .SH NAME
 lastcomm \- show last commands executed in reverse order
 .SH SYNOPSIS
 .B lastcomm
-[ command name ] ... [user name] ... [terminal name] ...
+[ -f file ] [ command name ] ... [user name] ... [terminal name] ...
 .SH DESCRIPTION
 .I Lastcomm
 gives information on previously executed commands.
+.sp
+Option:
+.sp
+.TP 10
+\-f \fIfile\fP
+Read from \fIfile\fP rather than the default accounting file.
+.PP
 With no arguments,
 .I lastcomm
 prints information about all the commands recorded
@@ -22,9 +29,10 @@ If called with arguments, only accounting entries with a
 matching command
 name, user name, or terminal name are printed.
 So, for example,
+.sp
 .ti +0.5i
 lastcomm a.out root ttyd0
-.br
+.sp
 would produce a listing of all the
 executions of commands named
 .I a.out
@@ -34,6 +42,7 @@ on the terminal
 .IR ttyd0 .
 .PP
 For each process entry, the following are printed.
+.sp
 .in +0.5i
 The name of the user who ran the process.
 .br
@@ -56,7 +65,9 @@ a fork, but without a following
 .I core
 file, and ``X'' indicates the command was terminated with a signal.
 .SH FILES
+.TP 20
 /usr/adm/acct
+Default accounting file.
 .SH "SEE ALSO"
 last(1),
 sigvec(2),

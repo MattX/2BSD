@@ -36,7 +36,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)sysctl.c	8.1.1 (2.11BSD GTE) 1/12/95";
+static char sccsid[] = "@(#)sysctl.c	8.1.2 (2.11BSD GTE) 2/3/95";
 #endif /* not lint */
 
 #include <sys/param.h>
@@ -382,11 +382,7 @@ parse(string, flags)
 
 		if (!nflag)
 			fprintf(stdout, "%s = %s\n", string,
-#ifdef	notyet
 			    devname(dev, S_IFCHR));
-#else
-			    "/dev/console");
-#endif
 		else
 			fprintf(stdout, "0x%x\n", dev);
 		return;

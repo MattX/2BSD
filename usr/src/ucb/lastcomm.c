@@ -9,11 +9,11 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)lastcomm.c	5.2.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)lastcomm.c	5.2.2 (2.11BSD GTE) 2/3/95";
 #endif
 
 /*
- * last command
+ * lastcomm command
  */
 #include <sys/param.h>
 #include <sys/acct.h>
@@ -33,19 +33,37 @@ char	*flagbits();
 char	*getname();
 char	*getdev();
 
+extern	char	*devname(), *optarg;
+extern	int	optind;
+
 main(argc, argv)
 	char *argv[];
 {
 	register int bn, cc;
 	register struct acct *acp;
-	int fd;
+	int fd, ch;
 	struct stat sb;
+	char *acctfile = "/usr/adm/acct";
 
-	fd = open("/usr/adm/acct", O_RDONLY);
-	if (fd < 0) {
-		perror("/usr/adm/acct");
-		exit(1);
-	}
+	while	((ch = getopt(argc, argv, "f:")) != EOF)
+		{
+		switch	(ch)
+			{
+			case	'f':
+				acctfile = optarg;
+				break;
+			case	'?':
+			default:
+				usage();
+			}
+		}
+	argc -= optind;
+	argv += optind;
+
+	fd = open(acctfile, O_RDONLY);
+	if (fd < 0)
+		err(1, "%s", acctfile);
+
 	fstat(fd, &sb);
 	for (bn = btodb(sb.st_size); bn >= 0; bn--) {
 		lseek(fd, (off_t)dbtob(bn), L_SET);
@@ -113,7 +131,7 @@ flagbits(f)
 }
 
 ok(argc, argv, acp)
-	register int argc;
+	int argc;
 	register char *argv[];
 	register struct acct *acp;
 {
@@ -158,94 +176,27 @@ getname(uid)
 	return(cp->name);
 }
 
-#include <sys/dir.h>
-
-#define N_DEVS		43		/* hash value for device names */
-#define NDEVS		500		/* max number of file names in /dev */
-
-struct	devhash {
-	dev_t	dev_dev;
-	char	dev_name [fldsiz(utmp, ut_line) + 1];
-	struct	devhash * dev_nxt;
-};
-struct	devhash *dev_hash[N_DEVS];
-struct	devhash *dev_chain;
-#define HASH(d)	(((int) d) % N_DEVS)
-
-setupdevs()
-{
-	register DIR * fd;
-	register struct devhash * hashtab;
-	register ndevs = NDEVS;
-	struct direct * dp;
-
-	if ((fd = opendir("/dev")) == NULL) {
-		perror("/dev");
-		return;
-	}
-	hashtab = (struct devhash *)malloc(NDEVS * sizeof(struct devhash));
-	if (hashtab == (struct devhash *)0) {
-		fprintf(stderr, "No mem for dev table\n");
-		closedir(fd);
-		return;
-	}
-	while (dp = readdir(fd)) {
-		if (dp->d_ino == 0)
-			continue;
-		if (dp->d_name[0] != 't' && strcmp(dp->d_name, "console"))
-			continue;
-		strncpy(hashtab->dev_name, dp->d_name, fldsiz(utmp, ut_line));
-		hashtab->dev_name[fldsiz(utmp, ut_line)] = 0;
-		hashtab->dev_nxt = dev_chain;
-		dev_chain = hashtab;
-		hashtab++;
-		if (--ndevs <= 0)
-			break;
-	}
-	closedir(fd);
-}
-
 char *
 getdev(dev)
 	dev_t dev;
 {
-	register struct devhash *hp, *nhp;
-	struct stat statb;
-	char name[fldsiz(devhash, dev_name) + 6];
 	static dev_t lastdev = (dev_t) -1;
 	static char *lastname;
-	static int init = 0;
 
-	if (dev == NODEV)
+	if (dev == NODEV)		/* Special case */
 		return ("__");
-	if (dev == lastdev)
+	if (dev == lastdev)		/* One-element cache. */
 		return (lastname);
-	if (!init) {
-		setupdevs();
-		init++;
-	}
-	for (hp = dev_hash[HASH(dev)]; hp; hp = hp->dev_nxt)
-		if (hp->dev_dev == dev) {
-			lastdev = dev;
-			return (lastname = hp->dev_name);
-		}
-	for (hp = dev_chain; hp; hp = nhp) {
-		nhp = hp->dev_nxt;
-		strcpy(name, "/dev/");
-		strcat(name, hp->dev_name);
-		if (stat(name, &statb) < 0)	/* name truncated usually */
-			continue;
-		if ((statb.st_mode & S_IFMT) != S_IFCHR)
-			continue;
-		hp->dev_dev = statb.st_rdev;
-		hp->dev_nxt = dev_hash[HASH(hp->dev_dev)];
-		dev_hash[HASH(hp->dev_dev)] = hp;
-		if (hp->dev_dev == dev) {
-			dev_chain = nhp;
-			lastdev = dev;
-			return (lastname = hp->dev_name);
-		}
-	}
-	dev_chain = (struct devhash *) 0;
-	return ("??");
+	lastdev = dev;
+	lastname = devname(dev, S_IFCHR);
+	return (lastname);
 }
+
+void
+usage()
+	{
+
+	(void)fprintf(stderr, 
+		"lastcomm [ -f file ] [ command ...] [ user ...] [ tty ...]\n");
+	exit(1);
+	}

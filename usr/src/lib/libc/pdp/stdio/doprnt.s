@@ -6,7 +6,7 @@
 
 #ifdef LIBC_SCCS
 /*	<@(#)doprnt.s	5.4 (Berkeley) 1/25/87\0> */
-	<@(#)doprnt.s	5.5 (GTE) 8/25/92\0>
+	<@(#)doprnt.s	5.6 (2.11BSD GTE) 2/02/95\0>
 	.even
 #endif LIBC_SCCS
 
@@ -19,10 +19,7 @@
  */
 #include "DEFS.h"
 
-.data
-nulstr:
-	<(null)\0>
-	.even
+	.data
 swtab:
 	decimal;	'd
 	octal;		'o
@@ -252,10 +249,6 @@ string:
 	mov	ndigit(r5),r1
 	mov	(r4),r2
 	mov	r2,r3
-	bne	1f
-	mov	$nulstr,r2
-	mov	r2,r3
-	mov	r2,(r4)
 1:
 	tstb	(r2)+
 	beq	1f

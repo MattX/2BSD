@@ -81,6 +81,9 @@ fi
 /etc/quotacheck -a -p			>/dev/console 2>&1
 	echo ' done.'			>/dev/console 2>&1
 /etc/quotaon -a
+
+/etc/dev_mkdb
+
 ps -U					>/dev/console 2>&1
 rm -f /etc/nologin
 rm -f /usr/spool/uucp/LCK.*

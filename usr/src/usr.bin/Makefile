@@ -1,4 +1,4 @@
-#	Makefile	4.39.1.1	86/08/12
+#	Makefile	4.39.1.2	95/02/4
 #
 DESTDIR=
 CFLAGS=	-O
@@ -8,7 +8,7 @@ SEPFLAG= -i
 #
 SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
 	m4 neqn plot prof ranlib ratfor refer roff spell struct tbl tip uucp \
-	yacc
+	uname yacc
 
 # Shell scripts that need only be installed and are never removed.
 #

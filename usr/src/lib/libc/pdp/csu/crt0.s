@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)crt0.s	2.3 (Berkeley) 1/28/87\0>
+	<@(#)crt0.s	2.4 (2.11BSD GTE) 2/02/95\0>
 	.even
 #endif LIBC_SCCS
 
@@ -55,17 +55,28 @@ _environ: .=.+2			/   others
 .text
 
 /*
+ * Paragraph below retained for historical purposes.
+ *
  * The following zero has a number of purposes - it serves as a null terminated
  * string for uninitialized string pointers on separate I&D machines for
  * instance.  But we never would have put it here for that reason; programs
- * which use initialized pointer *should* die.  The real reason it's here is
+ * which use uninitialized pointer *should* die.  The real reason it's here is
  * so you can declare "char blah[] = "foobar" at the start of a C program
  * and not have printf generate "(null)" when you try to print it because
  * blah is at address zero on separate I&D machines ...  sick, sick, sick ...
- */
-.data
-0
-.text
+ *
+ * In porting bits and pieces of the 4.4-Lite C library the global program
+ * name location '___progname' was needed.  Rather than take up another two
+ * bytes of D space the 0th location was used.   The '(null)' string was
+ * removed from doprnt.s so now when programs use uninitialized pointers
+ * they will be rewarded with argv[0].  This is no sicker than before and
+ * may cause bad programs to die sooner.
+*/
+	.data
+	.globl	___progname, _strrchr
+
+___progname: 0
+	.text
 
 .globl	_exit, _main
 
@@ -78,6 +89,7 @@ start:
 	mov	4(sp),(r0)+	/ copy argc down
 	mov	sp,(r0)		/ calculate position of arg pointers
 	add	$6,(r0)
+	mov	*(r0),___progname
 	mov	(r0)+,(r0)	/ calculate position of env pointers
 	add	(sp),(r0)
 	add	(sp),(r0)
@@ -100,6 +112,15 @@ start:
 #endif MCRT0
 
 	clr	r5		/ for adb and longjmp/rollback ...
+	mov	$'/,-(sp)
+	mov	___progname,-(sp)
+	jsr	pc,_strrchr
+	tst	r0
+	beq	1f
+	inc	r0
+	mov	r0,___progname
+1:
+	cmp	(sp)+,(sp)+
 	jsr	pc,_main	/ call main
 	mov	r0,(sp)		/   and pass main's return value to _exit ...
 	jsr	pc,*$_exit

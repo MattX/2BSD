@@ -52,7 +52,7 @@ main()
 		}
 
 	ap = "AP"[(det = localtime(&secs))->tm_hour >= 12];
-	if (det->tm_hour > 0 && det->tm_hour < 12)
+	if (det->tm_hour >= 0 && det->tm_hour < 12)
 		foo = ttime[0];
 	else if (det->tm_hour > 11 && det->tm_hour < 18)
 		foo = ttime[1];

@@ -14,16 +14,19 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *	@(#)pathnames.h	5.3 (2.11BSD) 5/10/93
+ *	@(#)pathnames.h	5.3.1 (2.11BSD) 2/3/95
  */
 
 #define	_PATH_BSHELL	"/bin/sh"
 #define	_PATH_CSHELL	"/bin/csh"
 #define	_PATH_CP	"/bin/cp"
 #define	_PATH_RSH	"/usr/ucb/rsh"
+#define	_PATH_DEVNULL	"/dev/null"
 #define	_PATH_TTY	"/dev/tty"
 #define	_PATH_DEV	"/dev"
 #define	_PATH_LASTLOG	"/usr/adm/lastlog"
 #define	_PATH_TMP	"/tmp/"
 #define	_PATH_VARTMP	"/usr/tmp/"
 #define	_PATH_SENDMAIL	"/usr/lib/sendmail"
+#define	_PATH_DEVDB	"/var/run/dev"
+#define	_PATH_VARRUN	"/var/run/"

@@ -1,7 +1,7 @@
 #
 # Public Domain.  1/15/1995 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1/15/95
+#	@(#)Makefile	1.1 (2.11BSD GTE) 2/3/95
 #
 CFLAGS=	 -O
 SEPFLAG= -i
@@ -25,7 +25,7 @@ clean:
 depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
-install: sysctl
+install: all
 	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
 	install -s -o root -g bin -m 755 sysctl ${DESTDIR}/bin/sysctl
 
