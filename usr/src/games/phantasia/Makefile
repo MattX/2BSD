@@ -1,4 +1,4 @@
-# Makefile for Phantasia 3.2
+# Makefile for Phantasia 3.2 (1.1 2.11BSD - 1996/1/28)
 #
 # MODIFIED TO COMPILE WITHOUT 'XSTR'.
 #
@@ -54,7 +54,7 @@ FLAGS = 	-DPATH=\"${DEST} \
 OFILES =	main.o func0.o func1.o func2.o
 NOOPT=		fight.o
 
-all:		phantasia setfiles phant.help
+all:		phantasia setfiles phant.help phantasia.0
 
 # need separate i/d space on small machines
 #phantasia:	${OFILES} ${NOOPT} strings.o

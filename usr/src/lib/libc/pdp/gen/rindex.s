@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)rindex.s	1.1 (Berkeley) 1/20/87\0>
+	<@(#)rindex.s	1.2 (2.11BSD) 1996/1/12\0>
 	.even
 #endif LIBC_SCCS
 
@@ -18,6 +18,9 @@
  *	char *cp, c;
  */
 #include "DEFS.h"
+
+	.globl	_strrchr
+_strrchr = _rindex ^ .
 
 ENTRY(rindex)
 	mov	2(sp),r0	/ r0 = cp

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.5 (2.11BSD) 1995/12/26
+#	@(#)Makefile	5.4.8 (2.11BSD) 1996/1/25
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -23,7 +23,7 @@ SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
 	exp.3 fclose.3 ferror.3 floor.3 \
 	fopen.3 fread.3 frexp.3 fseek.3 getc.3 getdisk.3 getenv.3 getfsent.3 \
 	getgrent.3 gethostbyname.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
-	getloadavg.3 getmntinfo.3 \
+	getloadavg.3 getmntinfo.3 getsubopt.3 \
 	getprotoent.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
 	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 
 SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
@@ -32,6 +32,7 @@ SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	qsort.3 rand.3 random.3 rcmd.3 regex.3 resolver.3 rexec.3 scandir.3 \
 	scanf.3 setbuf.3 setjmp.3 setuid.3 siginterrupt.3 signal.3 sin.3 \
 	sinh.3 sleep.3 sqrt.3 stdio.3 strftime.3 string.3 strtok.3 stty.3 \
+	strcspn.3 strpbrk.3 strsep.3 strspn.3 strtol.3 strtoul.3 strstr.3 \
 	swab.3 sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 uname.3 ungetc.3 \
 	usleep.3 utime.3 valloc.3 varargs.3
@@ -42,7 +43,7 @@ OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	fopen.0 fread.0 frexp.0 fseek.0 getc.0 getdisk.0 getenv.0 getfsent.0 \
 	getgrent.0 gethostbyname.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
 	getprotoent.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
-	getloadavg.0 getmntinfo.0 \
+	getloadavg.0 getmntinfo.0 getsubopt.0 \
 	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 
 OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	malloc.0 math.0 mktemp.0 monitor.0 mp.0 ndbm.0 nice.0 nlist.0 ns.0 \
@@ -50,6 +51,7 @@ OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	qsort.0 rand.0 random.0 rcmd.0 regex.0 resolver.0 rexec.0 scandir.0 \
 	scanf.0 setbuf.0 setjmp.0 setuid.0 siginterrupt.0 signal.0 sin.0 \
 	sinh.0 sleep.0 sqrt.0 stdio.0 strftime.0 string.0 strtok.0 stty.0 \
+	strcspn.0 strpbrk.0 strsep.0 strspn.0 strtol.0 strtoul.0 strstr.0 \
 	swab.0 sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 uname.0 ungetc.0 \
 	usleep.0 utime.0 valloc.0 varargs.0
@@ -81,6 +83,7 @@ REMO2=	re_comp.0 re_exec.0 scalb.0 setkey.0 space.0 srand.0 tanh.0 \
 	getdiskbyname.0 isatty.0 moncontrol.0 monstartup.0 setbuffer.0 \
 	setlinebuf.0 sys_siglist.0 ttyslot.0 endfsent.0 endgrent.0 \
 	endpwent.0 getfsfile.0 getfsspec.0 getfstype.0 getgrgid.0 
+
 REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
 	setpwfile.0 tgetent.0 tgetflag.0 tgetnum.0 tgetstr.0 tgoto.0 tputs.0 \
 	closedir.0 endttyent.0 getttynam.0 opendir.0 readdir.0 rewinddir.0 \
@@ -90,8 +93,10 @@ REMO3=	getgrnam.0 getpwnam.0 getpwuid.0 setfsent.0 setgrent.0 setpwent.0 \
 	endprotoent.0 endusershell.0 getprotobyname.0 getprotobynumber.0 \
 	setprotoent.0 setusershell.0 endhostent.0 gethostbyaddr.0 gethostent.0 \
 	sethostent.0 sethostfile.0 memccpy.0 memchr.0 memcmp.0 memcpy.0 \
-	memset.0 strchr.0 strcspn.0 strrchr.0 strspn.0 tmpnam.0 tmpfile.0 \
+	memset.0 strchr.0 strrchr.0 tmpnam.0 tmpfile.0 \
 	tempnam.0
+
+REMO4=	verr.0 errx.0 verrx.0 warn.0 warnx.0 vwarnx.0
 
 .SUFFIXES: .3 .0
 
@@ -109,8 +114,8 @@ clean: FRC
 	rm -f ${OBJS2}
 
 install: _make_01 _make_02
-	install -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
-	install -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
 	for i in ${REMO1}; do \
 		rm -f  ${DESTDIR}${MDIR}/$$i; \
 	done
@@ -119,6 +124,12 @@ install: _make_01 _make_02
 	done
 	for i in ${REMO3}; do \
 		rm -f  ${DESTDIR}${MDIR}/$$i; \
+	done
+	for i in ${REMO4}; do \
+		rm -f  ${DESTDIR}${MDIR}/$$i; \
+	done
+	for i in ${REMO4}; do \
+		ln ${DESTDIR}/${MDIR}/err.0 ${DESTDIR}${MDIR}/$$i; \
 	done
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/edata.0
 	ln ${DESTDIR}${MDIR}/end.0 ${DESTDIR}${MDIR}/etext.0
@@ -364,12 +375,9 @@ install: _make_01 _make_02
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/memcpy.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/memset.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strchr.0
-	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strcspn.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strrchr.0
-	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/strspn.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpnam.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tmpfile.0
 	ln ${DESTDIR}${MDIR}/compat-sys5.0 ${DESTDIR}${MDIR}/tempnam.0
 
 FRC:
-

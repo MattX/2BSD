@@ -5,7 +5,7 @@
  */
 
 #ifdef LIBC_SCCS
-	<@(#)index.s	1.1 (Berkeley) 1/20/87\0>
+	<@(#)index.s	1.2 (2.11BSD) 1996/1/12\0>
 	.even
 #endif LIBC_SCCS
 
@@ -18,6 +18,9 @@
  *	char *cp, c;
  */
 #include "DEFS.h"
+
+	.globl	_strchr
+_strchr = _index ^ .
 
 ENTRY(index)
 	mov	2(sp),r0	/ r0 = cp
@@ -36,3 +39,4 @@ ENTRY(index)
 	bne	3b
 	dec	r0		/ back up to '\0'
 	rts	pc		/   and return pointer
+

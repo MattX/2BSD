@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)intro.4	6.3 (Berkeley) 7/25/87
+.\"	@(#)intro.4	6.3.1 (2.11BSD) 1996/1/27
 .\"
-.TH INTRO 4 "July 25, 1987"
+.TH INTRO 4 "January 27, 1996"
 .UC 4
 .SH NAME
 intro \- introduction to special files and hardware support
@@ -63,7 +63,7 @@ intro(4), networking(4), config(8).
 The devices listed below are supported in this incarnation of
 the system.  Pseudo-devices are not listed.
 Listed also are devices which are in various stages of porting to
-2.10BSD from 4.3BSD.
+2.11BSD from 4.3BSD.
 .PP
 Devices are indicated by their functional interface.
 If second vendor products provide functionally identical interfaces
@@ -77,6 +77,7 @@ simply by creating appropriate table entries in the driver.
 .nf
 .ne 4
 .B "The following are known to work:"
+acc	ACC LH/DH IMP communications interface
 de	DEC DEUNA 10Mb/s Ethernet controller
 dh	DH-11 emulators, terminal multiplexor
 dhu	DHU-11 terminal multiplexor
@@ -85,6 +86,7 @@ ec	3Com 10Mb/s Ethernet controller
 hk	RK6-11/RK06 and RK07 moving head disk
 ht	TM03 MASSBUS tape drive interface (with TE-16, TU-45, TU-77)
 il	Interlan 1010, 1010A, 2010A 10Mb/s Ethernet controller
+lp	LP-11 parallel line printer interface
 qe	DEC DEQNA Q-bus 10 Mb/s Ethernet interface
 ra	DEC UDA-50, RQDX, KLESI disk controllers
 rk	DEC RK05 disk controller
@@ -92,22 +94,21 @@ rl	DEC RL-11 disk controller
 rx	DEC RX02 floppy interface
 si	SI 9500 disk controller
 tm	TM-11/TE-10 tape drive interface
+tmscp	TMSCP-compatible tape controllers (e.g., TU81, TK50)
 ts	TS-11 tape drive interface
+vv	Proteon proNET 10Mb/s and 80Mb/s ring network interface
 xp	General purpose SMD disk controller
 
 .ne 4
 .B "The following should work:"
 dr	DR-11W general purpose DMA UNIBUS interface
-lp	LP-11 parallel line printer interface
 
 .ne 4
 .B "The following worked in the past but will probably require work:"
-acc	ACC LH/DH IMP communications interface
 css	DEC IMP-11A communications interface
 dmc	DEC DMC-11/DMR-11 point-to-point communications device
 en	Xerox 3Mb/s Ethernet controller (obsolete)
 sri	DR-11C IMP interface
-vv	Proteon proNET 10Mb/s and 80Mb/s ring network interface
 
 .ne 4
 .B "It should be possible to port these from 4.3BSD:"
@@ -129,7 +130,6 @@ hp	MASSBUS disk interface (with RP06, RM03, RM05, etc.)
 hy	DR-11B or GI-13 interface to an NSC Hyperchannel
 kg	KL-11/DL-11W line clock
 mt	TM78 MASSBUS tape drive interface
-tmscp	TMSCP-compatible tape controllers (e.g., TU81, TK50)
 tu	VAX-11/730 TU58 console cassette interface
 un	DR-11W interface to Ungermann-Bass
 up	Emulex SC-21V, SC-31 UNIBUS disk controller

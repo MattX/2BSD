@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.5 (2.11BSD GTE) 1995/12/26
+#	@(#)Makefile	2.6 (2.11BSD GTE) 1996/1/26
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
@@ -63,7 +63,7 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
 	rm -f ${DESTDIR}${MDIR}/dup2.0
 	ln ${DESTDIR}${MDIR}/dup.0 ${DESTDIR}${MDIR}/dup2.0
 	rm -f ${DESTDIR}${MDIR}/sbrk.0

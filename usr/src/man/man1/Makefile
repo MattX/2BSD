@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	1.2 (2.11BSD) 1995/03/13
+#	@(#)Makefile	1.3 (2.11BSD) 1996/01/26
 #
 MDIR=	/usr/man/cat1
 SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
@@ -93,8 +93,8 @@ clean: FRC
 	rm -f ${OBJS2}
 
 install: _make_01 _make_02
-	install -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
-	install -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
 	rm -f ${DESTDIR}${MDIR}/case.0
 	ln ${DESTDIR}/${MDIR}/sh.0 ${DESTDIR}${MDIR}/case.0
 	rm -f ${DESTDIR}${MDIR}/checkeq.0

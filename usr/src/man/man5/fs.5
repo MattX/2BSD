@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)fs.5	2.3 (Berkeley) 8/11/87
+.\"	@(#)fs.5	2.4 (2.11BSD) 1996/1/27
 .\"
-.TH FS  5 "August 11, 1987"
+.TH FS  5 "January 27, 1996"
 .UC 2
 .SH NAME
 fs, inode \- format of file system volume (2BSD)
@@ -62,6 +62,7 @@ struct fs
 	char	fs_fsmnt[MAXMNTLEN];	/* ordinary file mounted on */
 	ino_t	fs_lasti;		/* start place for circular search */
 	ino_t	fs_nbehind;		/* est # free inodes before s_lasti */
+	u_short	fs_flags;		/* mount time flags */
 };
 .fi
 .PP
@@ -86,15 +87,19 @@ The path name on which the file system is mounted is maintained in
 .IR fs_fsmnt .
 .IR Fs_flock ,
 .IR fs_ilock ,
-.IR fs_fmod " and"
-.IR fs_ronly
+.IR fs_fmod ,
+.IR fs_ronly " and"
+.IR fs_flags
 are flags maintained in the in core copy of the super block while its file
 system is mounted and their values on disk are immaterial.
 .I Fs_fmod
 is used as a flag to indicate that the super-block has changed and should be
 copied to the disk during the next periodic update of file system information.
 .I Fs_ronly
-is a write-protection indicator.
+is a write-protection indicator.  It is a copy of the mount flags
+.I fs_flags
+anded with
+.BR MNT_RDONLY (see \fI/sys/h/mount.h\fP).
 .PP
 .I Fs_time
 is the last time the super-block of the file system was changed.  During a
@@ -133,7 +138,8 @@ struct dinode {
 	gid_t	di_gid;		/* owner's group id */
 	off_t	di_size;	/* number of bytes in file */
 	daddr_t	di_addr[7];	/* 7 block addresses 4 bytes each */
-	daddr_t	di_reserved[3];	/* pad of 12 to make total size 64 */
+	u_short	di_reserved[5];	/* pad of 10 to make total size 64 */
+	u_short	di_flags;
 	time_t	di_atime;	/* time last accessed */
 	time_t	di_mtime;	/* time last modified */
 	time_t	di_ctime;	/* time created */

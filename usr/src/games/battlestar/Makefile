@@ -4,7 +4,7 @@
 # the terms of the Berkeley Software License Agreement.
 #
 
-# @(#)Makefile	1.7 4/25/85
+# @(#)Makefile	1.7.1 1996/1/28
 
 CFLAGS=		-O
 SEPFLAG= -i
@@ -20,7 +20,9 @@ JUNKFILES=	battlestar tags
 DIR=		$(DESTDIR)/usr/games
 LIB=		$(DESTDIR)/usr/games/lib
 LOGFILE=	$(LIB)/battlestar.log
-MAN=		batlestar.0
+MAN=		battlestar.0
+
+all:	battlestar ${MAN}
 
 battlestar: $(OBJS)
 	cc -o battlestar ${SEPFLAG} $(OBJS) $(LIBS)
@@ -58,7 +60,7 @@ lint: $(CFILES)
 
 install: battlestar $(MAN) $(LOGFILE) $(STRINGFILE)
 	install -s battlestar $(DIR)/battlestar
-	install -m 444 -o bin -g bin  battlestar.0 ${DESTDIR}/usr/man/cat6
+	install -m 444 -o bin -g bin  ${MAN} ${DESTDIR}/usr/man/cat6
 
 stringfile $(STRINGFILE): battle_strings
 	install -c -m 644 battle_strings $(LIB)

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4 (Berkeley) 7/9/88
+#	@(#)Makefile	5.4.1 (2.11BSD) 1996/01/26
 #
 MDIR=	/usr/man/cat3f
 
@@ -45,7 +45,7 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
+	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
 	rm -f ${DESTDIR}${MDIR}/and.0
 	ln ${DESTDIR}${MDIR}/bit.0 ${DESTDIR}${MDIR}/and.0
 	rm -f ${DESTDIR}${MDIR}/lshift.0
@@ -190,4 +190,3 @@ install: _make_01
 	ln ${DESTDIR}${MDIR}/ttynam.0 ${DESTDIR}${MDIR}/isatty.0
 
 FRC:
-

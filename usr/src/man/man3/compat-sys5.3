@@ -13,13 +13,12 @@
 .\" IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 .\" WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 .\"
-.\"	@(#)compat-sys5.3	5.6 (Berkeley) 8/3/88
+.\"	@(#)compat-sys5.3	5.6.1 (2.11BSD) 1996/1/12
 .\"
-.TH COMPATS5 3 "August 3, 1988"
+.TH COMPATS5 3 "January 12, 1996"
 .UC 7
 .SH NAME
-memccpy, memchr, memcmp, memcpy, memset, strchr,
-strcspn, strpbrk, strrchr, strspn, tempnam,
+memccpy, memchr, memcmp, memcpy, memset, strchr, strrchr, tempnam,
 tmpfile, tmpnam \- System V compatibility routines
 .SH SYNOPSIS
 .nf
@@ -47,23 +46,6 @@ tmpfile, tmpnam \- System V compatibility routines
 .B char *str;
 .B int ch;
 .PP
-.B int strcspn(str, chars)
-.B char *str, *chars;
-.PP
-.B char *strpbrk(str, chars)
-.B char *str, *chars;
-.PP
-.B char *strrchr(str, ch);
-.B char *str;
-.B int ch;
-.PP
-.B int strspn(str, chars)
-.B char *str, *chars;
-.PP
-.B char *strtol(str, ptr, base)
-.B char *str, **ptr;
-.B int base;
-.PP
 .B char *tempnam(tmpdir, prefix)
 .B char *tmpdir, *prefix;
 .PP
@@ -86,3 +68,12 @@ Also, note that the caveat in the System V manual page that these functions
 can start recycling previously used names is untrue in this system.
 .SH DESCRIPTION
 The above routines are available and behave as in System V.
+.PP
+.BR strchr ()
+and
+.BR strrchr ()
+are simply an alternate entry points into 
+.BR index ()
+and
+.BR rindex ()
+respectively.

@@ -16,10 +16,12 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)getpwent.c	5.9 (Berkeley) 4/1/89";
+static char sccsid[] = "@(#)getpwent.c	5.9.1 (2.11BSD) 1996/1/12";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
+#include <string.h>
+#include <stdlib.h>
 #include <sys/file.h>
 #include <stdio.h>
 #include <pwd.h>
@@ -38,7 +40,7 @@ struct passwd *
 getpwent()
 {
 	datum key;
-	int rval;
+	register int rval;
 
 	if (!_pw_db && !_pw_fp && !start_pw())
 		return((struct passwd *)NULL);
@@ -58,7 +60,7 @@ struct passwd *
 getpwnam(nam)
 	char *nam;
 {
-	int rval;
+	register int rval;
 
 	if (!start_pw())
 		return((struct passwd *)NULL);
@@ -85,7 +87,7 @@ struct passwd *
 getpwuid(uid)
 	int uid;
 {
-	int rval;
+	register int rval;
 
 	if (!start_pw())
 		return((struct passwd *)NULL);
@@ -111,7 +113,7 @@ getpwuid(uid)
 static
 start_pw()
 {
-	char *p;
+	register char *p;
 
 	if (_pw_db) {
 		_pw_rewind = 1;
@@ -172,38 +174,37 @@ static
 scanpw()
 {
 	register char *cp;
-	long atol();
-	char *fgets(), *strsep(), *index();
+	char	*bp = line;
+	register int ch;
 
 	for (;;) {
 		if (!(fgets(line, sizeof(line), _pw_fp)))
 			return(0);
 		/* skip lines that are too big */
-		if (!index(line, '\n')) {
-			int ch;
-
-			while ((ch = getc(_pw_fp)) != '\n' && ch != EOF)
+		if (!(cp = index(line, '\n'))) {
+			while ((ch = fgetc(_pw_fp)) != '\n' && ch != EOF)
 				;
 			continue;
 		}
-		_pw_passwd.pw_name = strsep(line, ":\n");
-		_pw_passwd.pw_passwd = strsep((char *)NULL, ":\n");
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		*cp = '\0';
+		_pw_passwd.pw_name = strsep(&bp, ":");
+		_pw_passwd.pw_passwd = strsep(&bp, ":");
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_uid = atoi(cp);
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_gid = atoi(cp);
-		_pw_passwd.pw_class = strsep((char *)NULL, ":\n");
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		_pw_passwd.pw_class = strsep(&bp, ":");
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_change = atol(cp);
-		if (!(cp = strsep((char *)NULL, ":\n")))
+		if (!(cp = strsep(&bp, ":")))
 			continue;
 		_pw_passwd.pw_expire = atol(cp);
-		_pw_passwd.pw_gecos = strsep((char *)NULL, ":\n");
-		_pw_passwd.pw_dir = strsep((char *)NULL, ":\n");
-		_pw_passwd.pw_shell = strsep((char *)NULL, ":\n");
+		_pw_passwd.pw_gecos = strsep(&bp, ":");
+		_pw_passwd.pw_dir = strsep(&bp, ":");
+		_pw_passwd.pw_shell = strsep(&bp, ":");
 		if (!_pw_passwd.pw_shell)
 			continue;
 		return(1);
@@ -259,9 +260,9 @@ getpw()
 {
 	static char pwbuf[50];
 	off_t lseek();
-	long pos, atol();
+	long pos;
 	int fd, n;
-	char *p;
+	register char *p;
 
 	if (geteuid())
 		return;

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.19 (Berkeley) 3/9/86
+#	@(#)Makefile	4.19.1 (2.11BSD) 1996/1/12
 #
 # The system has two monitoring schemes, utilizing either ``prof''
 # or ``gprof''. DFLMON determines the default profiler; mon.o
@@ -49,12 +49,12 @@ DFLMON=	mon.o
 MACHINE=pdp
 DEFS=
 COMPAT=	compat-4.1 compat-sys5
-ALL=	gen inet net ns stdio ${MACHINE} ${COMPAT}
+ALL=	gen inet net ns stdio stdlib string ${MACHINE} ${COMPAT}
 TAGSFILE=tags
 
 libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 	rm -rf tmp
-	-mkdir tmp
+	mkdir tmp
 	cd tmp; \
 		for i in ${ALL}; do ar x ../$$i/$${i}lib; done; \
 		ar x ../net/${HOSTLOOKUP}/hostlib; \
@@ -65,7 +65,7 @@ libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 	ar ma fltpr.o libc.a doprnt.o
 	ar ma doprnt.o libc.a ffltpr.o
 	rm -rf tmp
-	-mkdir tmp
+	mkdir tmp
 	cd tmp; \
 		for i in ${ALL}; do ar x ../$$i/$${i}lib_p; done; \
 		ar x ../net/${HOSTLOOKUP}/hostlib_p; \
@@ -99,8 +99,7 @@ tags:
 clean:
 	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \
 		do (cd $$i; make ${MFLAGS} clean); done
-	rm -f t1 tmp/*.o
-	-rmdir tmp
+	rm -rf tmp
 
 depend:
 	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \

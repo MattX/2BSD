@@ -1,3 +1,5 @@
+# Revised 1996/1/28
+#
 # Makefile for "less"
 #
 # Invoked as:
@@ -13,7 +15,6 @@
 # Also provided:
 #	make lint	# Runs "lint" on all the sources.
 #	make clean	# Removes "less" and the .o files.
-#	make clobber	# Pretty much the same as make "clean".
 
 
 ##########################################################################
@@ -130,29 +131,18 @@ DEFS =	"-DTERMIO=$(TERMIO)" \
 CFLAGS = $(OPTIM) $(DEFS)
 
 
-all: less
+all: less less.0
 
 less: $(OBJ)
 	cc $(OPTIM) -o less $(OBJ) $(LIBS)
 
-install: install_man install_less install_help
+less.0:	less.nro
+	/usr/man/manroff $(MANUAL) > less.0
 
-install_less: less
-	for f in $(INSTALL_LESS); do  rm -f $$f; cp less $$f;  done
-	chmod 751 $(INSTALL_LESS)
-	touch install_less
-
-install_help: less.help
-	for f in $(INSTALL_HELP); do  rm -f $$f; cp less.help $$f;  done
-	chmod 444 $(INSTALL_HELP)
-	touch install_help
-
-install_man: $(MANUAL)
-	rm -f $(INSTALL_MAN)
-	/usr/man/manroff $(MANUAL) > $(INSTALL_MAN)
-	chmod 444 $(INSTALL_MAN)
-	chown bin.bin $(INSTALL_MAN)
-	touch install_man
+install: less less.0 less.help
+	install -s -m 751 less ${INSTALL_LESS}
+	install -c -m 444 less.help ${INSTALL_HELP}
+	install -c -m 444 -o bin -g bin less.0 $(INSTALL_MAN)
 
 $(OBJ): less.h funcs.h
 
@@ -167,10 +157,7 @@ newfuncs:
 	awk -f mkfuncs.awk $(SRC) >funcs.h
 
 clean:
-	rm -f $(OBJ) less install_help install_less install_man core
-
-clobber:
-	rm -f *.o less install_less install_man
+	rm -f $(OBJ) less less.0
 
 shar:
 	shar -v README install less.man less.help makefile.* *.h *.awk > less.shar.a
