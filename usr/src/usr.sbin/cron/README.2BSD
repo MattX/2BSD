@@ -1,0 +1,44 @@
+	This is the 2.11BSD port of the 'Vixie cron-3.0 patch1'.  
+	
+	The files Part01, Part02 and Patch01 were retrieved from 
+	ftp://ftp.vix.com/pub/vixie/cron-3.0/ 
+
+	In an attempt to 'mark my changes' (so Paul Vixie doesn't get
+	blamed for my mistakes) this file (README.2BSD) has been created
+	and the following paragraph added:
+
+	"DO NOT SEND BUG OR PROBLEM REPORTS to Paul Vixie!    If 'cron'
+	misbehaves under 2.11BSD use the 'sendbug' program OR look for the
+	mail address in that script and send mail there."
+
+	The major change made was to remove the '#ifdef' statements.
+	The removal of the ifdefs was prompted by several factors:
+
+		2.11BSD defines the symbol 'BSD' as "211".  Thus the
+		datestamp based ifdefs ("#if BSD > 930811" for example) were
+		wrong - 2.11 has almost all of the capabilities of later
+		systems.
+
+		2.11BSD has all but one of the capabilities ('setsid') that 
+		were conditionalized on "POSIX" .  Thus POSIX could not be
+		defined.  Neither could POSIX be left undefined because
+		that left out too much.  Sigh.
+
+		Conditionalized code is messy to read.
+
+		The probability that this version will ever be ported back 
+		to a 'sequent', 'convex'  or 'att' system is not at this
+		time distinguishable from 0.
+
+	Other changes include:
+	
+		Adding a lot more 'register' declarations (which helps
+		code size - this cron is still over twice as big as the
+		old one).
+
+		Revised the Makefile and 'putman.sh' script to fit in better 
+		with 2BSD's philosophy of life.
+
+		Moved a few files into a 'grot' subdirectory to avoid 
+		cluttering the main build area.  The file "diffs" is the
+		summary of the changes made.
