@@ -5,11 +5,12 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/17/95";
 #endif
 
+#include <sys/param.h>
+#include <sys/sysctl.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <utmp.h>
 #include <setjmp.h>
 #include <sys/reboot.h>
@@ -60,6 +61,9 @@ int	idle();
 char	*strcpy(), *strcat();
 long	lseek();
 time_t	time();
+void	setsecuritylevel();
+int	getsecuritylevel();
+int	badsys();
 
 struct	sigvec rvec = { reset, sigmask(SIGHUP), 0 };
 
@@ -104,11 +108,17 @@ main(argc, argv)
 	}
 #endif
 #endif
+	if (getuid() != 0)
+		exit(1);
+	if (getpid() != 1)
+		exit(1);
+
 	openlog("init", LOG_CONS|LOG_ODELAY, LOG_AUTH);
 #ifdef pdp11
 	if (autoconfig() == 0)
 		howto = RB_SINGLE;
 #endif
+	signal(SIGSYS, badsys);
 	sigvec(SIGTERM, &rvec, (struct sigvec *)0);
 	signal(SIGTSTP, idle);
 	signal(SIGSTOP, SIG_IGN);
@@ -194,11 +204,88 @@ shutend()
 	return (1);
 }
 
+/*
+ * Catch a SIGSYS signal.
+ *
+ * These may arise if a system does not support sysctl.
+ * We tolerate up to 25 of these, then throw in the towel.
+ */
+int
+badsys(sig)
+	int sig;
+{
+	static int badcount = 0;
+
+	if (badcount++ < 25)
+		return;
+	syslog(LOG_EMERG, "fatal signal: %d", sig);
+	sleep(30);
+	_exit(sig);
+}
+
+/*
+ * Get the security level of the kernel.
+ */
+int
+getsecuritylevel()
+{
+#ifdef KERN_SECURELVL
+	int name[2], curlevel;
+	size_t len;
+	extern int errno;
+
+	name[0] = CTL_KERN;
+	name[1] = KERN_SECURELVL;
+	len = sizeof curlevel;
+	if (sysctl(name, 2, &curlevel, &len, NULL, 0) == -1) {
+		syslog(LOG_EMERG, "cannot get kernel security level: %s",
+		    strerror(errno));
+		return (-1);
+	}
+	return (curlevel);
+#else
+	return (-1);
+#endif
+}
+
+/*
+ * Set the security level of the kernel.
+ */
+void
+setsecuritylevel(newlevel)
+	int newlevel;
+{
+#ifdef KERN_SECURELVL
+	int name[2], curlevel;
+	extern int errno;
+
+	curlevel = getsecuritylevel();
+	if (newlevel == curlevel)
+		return;
+	name[0] = CTL_KERN;
+	name[1] = KERN_SECURELVL;
+	if (sysctl(name, 2, NULL, NULL, &newlevel, sizeof newlevel) == -1) {
+		syslog(LOG_EMERG,
+		    "cannot change kernel security level from %d to %d: %s",
+		    curlevel, newlevel, strerror(errno));
+		return;
+	}
+	syslog(LOG_ALERT, "kernel security level changed from %d to %d",
+	    curlevel, newlevel);
+#endif
+}
+
 single()
 {
 	register pid;
 	register xpid;
 	extern	errno;
+
+	/*
+	 * If the kernel is in secure mode, downgrade it to insecure mode.
+	 */
+	if (getsecuritylevel() > 0)
+		setsecuritylevel(0);
 
 	do {
 		pid = fork();
@@ -284,6 +371,15 @@ multiple()
 	register struct tab *p;
 	register pid;
 	long omask;
+
+	/*
+	 * If the administrator has not set the security level to -1
+	 * to indicate that the kernel should not run multiuser in secure
+	 * mode, and the run script has not set a higher level of security 
+	 * than level 1, then put the kernel into secure mode.
+	 */
+	if (getsecuritylevel() == 0)
+		setsecuritylevel(1);
 
 	sigvec(SIGHUP, &mvec, (struct sigvec *)0);
 	for (EVER) {

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14 (Berkeley) 5/16/86
+#	@(#)Makefile	5.14.1 (2.11BSD GTE) 1/17/95
 #
 DESTDIR=
 CFLAGS=	-O
@@ -77,7 +77,7 @@ install: ${STD} ${NSTD} ${SETUID} ${KMEM}  ${OPERATOR}
 	-ln ${DESTDIR}/etc/reboot ${DESTDIR}/etc/fastboot
 	-ln ${DESTDIR}/etc/reboot ${DESTDIR}/etc/halt
 	-mkdir ${DESTDIR}/usr/spool/rwho
-	-chmod 700 ${DESTDIR}/etc/init
+	-chmod 755 ${DESTDIR}/etc/init
 
 clean:
 	-rm -f a.out core *.s *.o

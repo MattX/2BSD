@@ -1,6 +1,8 @@
+# Version 2.1 January 19, 1994
+
 SRCS=	ld.c
 OBJS=	ld.o
-CFLAGS=	-O -I../ar -DNUM_VM_PAGES=18
+CFLAGS=	-O -I../ar -DNUM_VM_PAGES=20
 
 all:	ld
 

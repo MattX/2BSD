@@ -4,26 +4,25 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
+
+static char sccsid[] = "@(#)rwhod.c	5.9.1 (2.11BSD) 1/16/95";
 #endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)rwhod.c	5.9 (Berkeley) 3/5/86";
-#endif not lint
-
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <sys/sysctl.h>
 #include <sys/file.h>
 
 #include <net/if.h>
 #include <netinet/in.h>
 
-#include <nlist.h>
 #include <stdio.h>
 #include <signal.h>
 #include <errno.h>
@@ -44,15 +43,7 @@ struct	sockaddr_in sin = { AF_INET };
 extern	errno;
 
 time_t	time();
-char	myname[32];
-
-struct	nlist nl[] = {
-#define	NL_AVENRUN	0
-	{ "_avenrun" },
-#define	NL_BOOTTIME	1
-	{ "_boottime" },
-	0
-};
+char	myname[MAXHOSTNAMELEN];
 
 /*
  * We communicate with each neighbor in
@@ -71,15 +62,14 @@ struct	neighbor {
 struct	neighbor *neighbors;
 struct	whod mywd;
 struct	servent *sp;
-int	s, utmpf, kmemf = -1;
+int	s, utmpf;
 
 #define	WHDRSIZE	(sizeof (mywd) - sizeof (mywd.wd_we))
 #define	RWHODIR		"/usr/spool/rwho"
 
-int	onalrm();
+int	onalrm(), getboottime();
 char	*strcpy(), *sprintf(), *malloc();
 long	lseek();
-int	getkmem();
 
 main()
 {
@@ -119,7 +109,7 @@ main()
 		perror(RWHODIR);
 		exit(1);
 	}
-	(void) signal(SIGHUP, getkmem);
+	(void) signal(SIGHUP, getboottime);
 	openlog("rwhod", LOG_PID, LOG_DAEMON);
 	/*
 	 * Establish host name as returned by system.
@@ -140,7 +130,7 @@ main()
 		syslog(LOG_ERR, "/etc/utmp: %m");
 		exit(1);
 	}
-	getkmem();
+	getboottime(0);
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		syslog(LOG_ERR, "socket: %m");
 		exit(1);
@@ -164,7 +154,6 @@ main()
 
 		cc = recvfrom(s, (char *)&wd, sizeof (struct whod), 0,
 			&from, &len);
-if (kmemf != 4 || s != 5 || utmpf != 3) abort("kmemf != 4");
 		if (cc <= 0) {
 			if (cc < 0 && errno != EINTR)
 				syslog(LOG_WARNING, "recv: %m");
@@ -173,13 +162,6 @@ if (kmemf != 4 || s != 5 || utmpf != 3) abort("kmemf != 4");
 		if (from.sin_port != sp->s_port) {
 			syslog(LOG_WARNING, "%d: bad from port",
 				ntohs(from.sin_port));
-			continue;
-		}
-		if (gethostbyname(wd.wd_hostname) == 0) {
-#ifdef notdef
-			syslog(LOG_WARNING, "%s: unknown host",
-				wd.wd_hostname);
-#endif
 			continue;
 		}
 		if (wd.wd_vers != WHODVERSION)
@@ -261,12 +243,12 @@ onalrm()
 	struct stat stb;
 	register struct whoent *we = mywd.wd_we, *wlast;
 	int cc;
-	short avenrun[3];
+	double avenrun[3];
 	time_t now = time(0);
 	register struct neighbor *np;
 
 	if (alarmcount % 10 == 0)
-		getkmem();
+		getboottime(0);
 	alarmcount++;
 	(void) fstat(utmpf, &stb);
 	if ((stb.st_mtime != utmptime) || (stb.st_size > utmpsize)) {
@@ -320,10 +302,9 @@ onalrm()
 			we->we_idle = htonl(now - stb.st_atime);
 		we++;
 	}
-	(void) lseek(kmemf, (long)nl[NL_AVENRUN].n_value, L_SET);
-	(void) read(kmemf, (char *)avenrun, sizeof (avenrun));
+	(void) getloadavg(avenrun, sizeof(avenrun)/sizeof(avenrun[0]));
 	for (i = 0; i < 3; i++)
-		mywd.wd_loadav[i] = htonl((u_long)(100.0 * avenrun[i]/256.0));
+		mywd.wd_loadav[i] = htonl((u_long)(100.0 * avenrun[i]));
 	cc = (char *)we - (char *)&mywd;
 	mywd.wd_sendtime = htonl(time(0));
 	mywd.wd_vers = WHODVERSION;
@@ -339,38 +320,21 @@ done:
 	(void) alarm(AL_INTERVAL);
 }
 
-getkmem()
+getboottime(signo)
+	int	signo;
 {
-	static ino_t vmunixino;
-	static time_t vmunixctime;
-	struct stat sb;
+	int mib[2];
+	size_t size;
+	struct timeval tm;
 
-	if (stat("/unix", &sb) < 0) {
-		if (vmunixctime)
-			return;
-	} else {
-		if (sb.st_ctime == vmunixctime && sb.st_ino == vmunixino)
-			return;
-		vmunixctime = sb.st_ctime;
-		vmunixino= sb.st_ino;
-	}
-	if (kmemf >= 0)
-		(void) close(kmemf);
-loop:
-	if (nlist("/unix", nl)) {
-		syslog(LOG_WARNING, "/unix namelist botch");
-		sleep(300);
-		goto loop;
-	}
-	kmemf = open("/dev/kmem", O_RDONLY);
-	if (kmemf < 0) {
-		syslog(LOG_ERR, "/dev/kmem: %m");
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_BOOTTIME;
+	size = sizeof (tm);
+	if (sysctl(mib, 2, &tm, &size, NULL, 0) == -1) {
+		syslog(LOG_ERR, "cannot get boottime: %m");
 		exit(1);
 	}
-	(void) lseek(kmemf, (long)nl[NL_BOOTTIME].n_value, L_SET);
-	(void) read(kmemf, (char *)&mywd.wd_boottime,
-	    sizeof (mywd.wd_boottime));
-	mywd.wd_boottime = htonl(mywd.wd_boottime);
+	mywd.wd_boottime = htonl(tm.tv_sec);
 }
 
 /*

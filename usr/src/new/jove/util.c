@@ -5,6 +5,11 @@
  * included in all the files.                                              *
  ***************************************************************************/
 
+/*
+ * Modified 1/16/95.  The loadaverage method has changed.  You will need
+ * 'getloadavg()' now.  Heck, if 'mere' pdp-11s have it anyone can ;-).
+*/
+
 #include "jove.h"
 #include "ctype.h"
 #include "termcap.h"
@@ -688,76 +693,13 @@ jmp_buf	savejmp;
 	byte_copy((char *) savejmp, (char *) mainjmp, sizeof (jmp_buf));
 }
 
-#ifdef LOAD_AV
-# if defined(BSD4_2) && !defined(pdp11)
-#   if defined(PURDUE_EE) && (defined(vax) || defined(gould))
-
-void
-get_la(dp)
-double *dp;
-{
-	*dp = (double) loadav(0) / 100.0;
-}
-
-#   else /* !PURDUE_EE || (!vax && !gould) */ 
-
-#ifdef sun
-#   include <sys/param.h>
-#endif
-#include <nlist.h>
-
-static struct	nlist nl[] = {
-	{ "_avenrun" },
-#define	X_AVENRUN	0
-	{ "" }
-};
-
 void
 get_la(dp)
 double	*dp;
 {
-#ifdef sun
-	long	avenrun[3];
-#else
-	double	avenrun[3];
-#endif
-	static int	kmem = 0;
 
-	if (kmem == -1) {
-		*dp = 4.0;	/* So shell commands will say "Chugging" */
-		return;
-	} else if (kmem == 0) {
-		if ((kmem = open("/dev/kmem", 0)) == -1) {
-			f_mess("Can't open kmem for load average.");
-			*dp = 4.0;
-			return;
-		}
-		nlist("/vmunix", nl);
-	}
-	lseek(kmem, (long) nl[X_AVENRUN].n_value, 0);
-	read(kmem, (char *) avenrun, sizeof(avenrun));
-#ifdef sun
-	*dp = (double) avenrun[0] / FSCALE;
-#else
-	*dp = avenrun[0];
-#endif
+	getloadavg(dp, 1);
 }
-
-#    endif
-#  else /* !BSD4_2 || pdp11 */
-
-void
-get_la(dp)
-double	*dp;
-{
-	short	avg[3];
-
-	gldav(avg);
-	*dp = (double) avg[0] / 256;
-}
-
-#  endif
-#endif /* LOAD_AV */
 
 /* get the time buf, designated by *timep, from FROM to TO. */
 char *
@@ -787,20 +729,6 @@ time_t	*timep;
 		return buf;
 	} else
 		return cp;
-}
-
-char *
-index(s, c)
-register char	*s;
-register int	c;
-{
-	register int	c1;
-
-	if (c != 0)
-		while (c1 = *s++)
-			if (c == c1)
-				return s - 1;
-	return 0;
 }
 
 #if !(defined(MSDOS) || defined(MAC))

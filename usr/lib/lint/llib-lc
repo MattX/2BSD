@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.38 (2.11BSD GTE) 11/29/94	*/
+/*	@(#)llib-lc	1.39 (2.11BSD GTE) 1/16/95 */
 
 /* LINTLIBRARY */
 
@@ -12,7 +12,6 @@
 #include <sys/timeb.h>
 #include <sys/times.h>
 #include <sys/uio.h>
-#include <sys/vtimes.h>
 #include <sys/wait.h>
 
 #include <pdp/fperr.h>
@@ -76,6 +75,7 @@ int	getgroups( n, g ) int n, *g; { return 0; }
 u_long	gethostid() { return 1L; }
 int	gethostname( n, l ) char *n; int l; { return 0 ;}
 int	getitimer( w, v ) struct itimerval *v; { return 0; }
+int	getloadavg( d, n) double d[]; int n; { return 0; }
 int	getpagesize() { return 1; }
 int	getpeername(s, n, l) struct sockaddr *n; int *l; { return (0); }
 int	getpgrp(p) { return 1; }
@@ -88,7 +88,6 @@ int	getsockname(s, name, namelen) char *name; int *namelen; { return(0); }
 int	getsockopt( s, level, opt, buf, len ) char *buf; int *len; { return 0;}
 int	gettimeofday( t, z ) struct timeval *t; struct timezone *z; { return 0;}
 uid_t	getuid() { return((uid_t)1); }
-int	gldav(a) short *a; { return(0); }
 int	ioctl( d, r, p) u_long r; char *p; { return 0;}
 int	kill(p, s) { return(0); }
 int	killpg( pg, s) { return 0;}
@@ -165,6 +164,7 @@ char *	sstk( a ) int a; { return (char *)0; }
 int	swapon( s ) char *s; { return 0;}
 int	symlink( t, f) char *t, *f; { return 0;}
 	sync(){;}
+int	sysctl(m, l, b, s, nv, nsz) int m[]; int l; void *b; size_t *s; void *nv; size_t nsz; { return 0; }
 int	truncate( p, l) char *p; off_t l; { return 0;}
 int	ucall(p, f, a0, a1) caddr_t f; { return(0); }
 int	umask( n ) { return n; }
@@ -297,8 +297,7 @@ char *	initstate( s, st, n) unsigned s; char *st; { return st; }
 int	isatty(f) { return 1; }
 void	l3tol(l, c, n) long *l; char *c; {;}
 double	ldexp( v, e) double v; { return v; }
-void	loadav(v) double *v; {;}
-	longjmp( e, v) jmp_buf e; {;}
+void	longjmp( e, v) jmp_buf e; {;}
 	longjmperror() {;}
 void	ltol3(c, l, n) char *c; long *l; {;}
 struct	tm *localtime(c) time_t *c; { return localtime(c); }
@@ -413,8 +412,6 @@ void	unsetenv(n) char *n; {;}
 	usleep(useconds) unsigned useconds; { ; }
 int	utime(name, timep) char *name; time_t *timep; { return 0; }
 char *	valloc(s) unsigned s; { return malloc(s); }
-long	vlimit(limit, value) long value; { return 0; }
-int	vtimes(par, ch) struct vtimes *par, *ch; { return 0; }
 
 	/* standard I/O library */
 

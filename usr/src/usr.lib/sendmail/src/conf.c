@@ -9,7 +9,7 @@
 */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char	SccsId[] = "@(#)conf.c	5.14.2 (2.11BSD GTE) 7/15/94";
+static char	SccsId[] = "@(#)conf.c	5.14.3 (2.11BSD GTE) 1/18/95";
 #endif
 
 # include <pwd.h>
@@ -512,70 +512,13 @@ checkcompat(to)
 **		none.
 */
 
-#ifdef VMUNIX
-#ifdef pdp11
-
 getla()
 {
-	double avenrun[3];
+	double avenrun;
 
-	loadav(avenrun);
-	return(avenrun[0]);
+	getloadavg(&avenrun, 1);
+	return(avenrun);
 }
-
-#else
-
-#include <nlist.h>
-
-struct	nlist Nl[] =
-{
-	{ "_avenrun" },
-#define	X_AVENRUN	0
-	{ 0 },
-};
-
-getla()
-{
-	static int kmem = -1;
-# ifdef sun
-	long avenrun[3];
-# else
-	double avenrun[3];
-# endif
-	extern off_t lseek();
-
-	if (kmem < 0)
-	{
-		kmem = open("/dev/kmem", 0, 0);
-		if (kmem < 0)
-			return (-1);
-		(void) ioctl(kmem, FIOCLEX, (char *) 0);
-		nlist("/vmunix", Nl);
-		if (Nl[0].n_type == 0)
-			return (-1);
-	}
-	if (lseek(kmem, (off_t) Nl[X_AVENRUN].n_value, 0) == -1 ||
-	    read(kmem, (char *) avenrun, sizeof(avenrun)) < (int)sizeof(avenrun))
-	{
-		/* thank you Ian */
-		return (-1);
-	}
-# ifdef sun
-	return ((int) (avenrun[0] + FSCALE/2) >> FSHIFT);
-# else
-	return ((int) (avenrun[0] + 0.5));
-# endif
-}
-
-#endif pdp11
-#else VMUNIX
-
-getla()
-{
-	return (0);
-}
-
-#endif VMUNIX
 /*
 **  SHOULDQUEUE -- should this message be queued or sent?
 **

@@ -3,10 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.1 (2.11BSD GTE) 4/9/94
+#	@(#)Makefile	5.7.2 (2.11BSD GTE) 1/18/95
 #
-SRCS=	fetchi.s fperr.s gldav.s l3.c loadav.c lock.s phys.s ucall.s
-OBJS=	fetchi.o fperr.o gldav.o l3.o loadav.o lock.o phys.o ucall.o
+SRCS=	fetchi.s fperr.s l3.c lock.s phys.s ucall.s
+OBJS=	fetchi.o fperr.o l3.o lock.o phys.o ucall.o
 CFLAGS= -O ${DEFS}
 TAGSFILE=tags
 
@@ -59,9 +59,7 @@ depend:
 
 fetchi.o: fetchi.s ./SYS.h /usr/include/syscall.h
 fperr.o: fperr.s ./SYS.h /usr/include/syscall.h
-gldav.o: gldav.s ./SYS.h /usr/include/syscall.h
 l3.o: l3.c
-loadav.o: loadav.c
 lock.o: lock.s ./SYS.h /usr/include/syscall.h
 phys.o: phys.s ./SYS.h /usr/include/syscall.h
 ucall.o: ucall.s ./SYS.h /usr/include/syscall.h

@@ -19,6 +19,8 @@
  * error in the header.
  *
  * RP07 entry added August 10, 1993 (thanks to Johnny Billquist) - SMS
+ *
+ * lseek() replaced tell() - Jan 21, 1994 - SMS
  */
 #include <sys/param.h>
 #ifndef BADSECT
@@ -54,7 +56,7 @@ union {
 	struct	dkbad bad;
 	char	buf[512];
 } dkbad;
-long tell();
+off_t lseek();
 long atol();
 
 main(argc, argv)
@@ -95,7 +97,7 @@ found:
 		}
 		lseek(f, 512 * (di->di_size - di->di_nsect), 0);
 		printf("bad block information at 0x%X in %s:\n",
-		    tell(f), name);
+		    lseek(f,0L,1), name);
 		if (read(f, &dkbad, 512) != 512) {
 			fprintf(stderr, "%s: can't read bad block info (wrong type disk?)\n", name);
 			exit(1);

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4 (Berkeley) 7/9/88
+#	@(#)Makefile	5.4.1 (2.11BSD GTE) 1/15/95
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -22,31 +22,35 @@ SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
 	ecvt.3 end.3 erf.3 execl.3 exit.3 exp.3 fclose.3 ferror.3 floor.3 \
 	fopen.3 fread.3 frexp.3 fseek.3 getc.3 getdisk.3 getenv.3 getfsent.3 \
 	getgrent.3 gethostbyname.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
-	getprotoent.3 getpw.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
+	getloadavg.3 \
+	getprotoent.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
 	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 
-SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 loadav.3 \
+SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
 	malloc.3 math.3 mktemp.3 monitor.3 mp.3 ndbm.3 nice.3 nlist.3 ns.3 \
 	pause.3 perror.3 plot.3 popen.3 printf.3 psignal.3 putc.3 puts.3 \
 	qsort.3 rand.3 random.3 rcmd.3 regex.3 resolver.3 rexec.3 scandir.3 \
 	scanf.3 setbuf.3 setjmp.3 setuid.3 siginterrupt.3 signal.3 sin.3 \
-	sinh.3 sleep.3 sqrt.3 stdio.3 string.3 strtok.3 stty.3 swab.3 syslog.3 \
+	sinh.3 sleep.3 sqrt.3 stdio.3 string.3 strtok.3 stty.3 swab.3 \
+	sysctl.3 syslog.3 \
 	system.3 termcap.3 time.3 times.3 ttyname.3 ualarm.3 ungetc.3 \
-	usleep.3 utime.3 valloc.3 varargs.3 vlimit.3 vtimes.3
+	usleep.3 utime.3 valloc.3 varargs.3
 OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	compat-sys5.0 crypt.0 ctime.0 ctype.0 curses.0 dbm.0 directory.0 \
 	ecvt.0 end.0 erf.0 execl.0 exit.0 exp.0 fclose.0 ferror.0 floor.0 \
 	fopen.0 fread.0 frexp.0 fseek.0 getc.0 getdisk.0 getenv.0 getfsent.0 \
 	getgrent.0 gethostbyname.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
-	getprotoent.0 getpw.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
+	getprotoent.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
+	getloadavg.0 \
 	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 
-OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 loadav.0 \
+OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	malloc.0 math.0 mktemp.0 monitor.0 mp.0 ndbm.0 nice.0 nlist.0 ns.0 \
 	pause.0 perror.0 plot.0 popen.0 printf.0 psignal.0 putc.0 puts.0 \
 	qsort.0 rand.0 random.0 rcmd.0 regex.0 resolver.0 rexec.0 scandir.0 \
 	scanf.0 setbuf.0 setjmp.0 setuid.0 siginterrupt.0 signal.0 sin.0 \
-	sinh.0 sleep.0 sqrt.0 stdio.0 string.0 strtok.0 stty.0 swab.0 syslog.0 \
+	sinh.0 sleep.0 sqrt.0 stdio.0 string.0 strtok.0 stty.0 swab.0 \
+	sysctl.0 syslog.0 \
 	system.0 termcap.0 time.0 times.0 ttyname.0 ualarm.0 ungetc.0 \
-	usleep.0 utime.0 valloc.0 varargs.0 vlimit.0 vtimes.0
+	usleep.0 utime.0 valloc.0 varargs.0
 REMO1=	edata.0 etext.0 j1.0 jn.0 ns_addr.0 ns_ntoa.0 y0.0 y1.0 yn.0 acos.0 \
 	asin.0 atan.0 atan2.0 atoi.0 atol.0 cos.0 dbm_clearerr.0 dbm_close.0 \
 	dbm_delete.0 dbm_error.0 dbm_fetch.0 dbm_firstkey.0 dbm_nextkey.0 \

@@ -3,18 +3,13 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 9/5/85
+#	@(#)Makefile	5.4.1 (2.11BSD GTE) 1/21/95
 #
 CFLAGS=	-O ${DEFS}
-STDSRCS=ftime.c gtty.c nice.c pause.c rand.c stty.c tell.c \
-	times.c utime.c vlimit.c vtimes.c
-STD=	ftime.o gtty.o nice.o pause.o rand.o stty.o tell.o \
-	times.o utime.o vlimit.o vtimes.o
-# these should just be pitched, but in the interest of compatibility...
-TRASHSRC=getpw.c
-TRASH=	getpw.o 
-SRCS=	${STDSRCS} ${TRASHSRCS}
-OBJS=	${STD} ${TRASH}
+SRCS=ftime.c gtty.c nice.c pause.c rand.c stty.c \
+	times.c utime.c
+OBJS=	ftime.o gtty.o nice.o pause.o rand.o stty.o \
+	times.o utime.o
 TAGSFILE=tags
 
 .c.o:
@@ -69,7 +64,6 @@ pause.o: pause.c
 rand.o: rand.c
 stty.o: stty.c /usr/include/sgtty.h /usr/include/sys/ioctl.h
 stty.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h
-tell.o: tell.c
 times.o: times.c /usr/include/sys/time.h /usr/include/time.h
 times.o: /usr/include/sys/resource.h
 utime.o: utime.c /usr/include/sys/time.h /usr/include/time.h

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7 (Berkeley) 3/26/86
+#	@(#)Makefile	5.7.1 (2.11BSD GTE) 1/15/95
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -21,28 +21,30 @@ CFLAGS=	-O ${DEFS}
 STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	ctime.c ctype_.c errlst.c execvp.c fakcu.c fstab.c gcvt.c getenv.c \
 	getgrent.c getgrgid.c getgrnam.c getlogin.c getpass.c getpwent.c \
+	getloadavg.c \
 	getttyent.c getttynam.c getusershell.c getwd.c \
 	initgroups.c isatty.c malloc.c mktemp.c ndbm.c nlist.c \
 	opendir.c perror.c popen.c psignal.c qsort.c random.c readdir.c \
 	regex.c scandir.c seekdir.c setgid.c setegid.c setrgid.c setuid.c \
 	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
-	sleep.c strcasecmp.c swab.c syslog.c system.c telldir.c time.c \
-	timezone.c ttyname.c ttyslot.c ualarm.c usleep.c valloc.c strdup.c \
-	strsep.c wait.c wait3.c waitpid.c
+	sleep.c strcasecmp.c swab.c sysctl.c syslog.c system.c telldir.c \
+	time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c valloc.c \
+	strdup.c strsep.c wait.c wait3.c waitpid.c
 VAXSRC=	abs.c bcmp.c bcopy.c bzero.c fabs.c ffs.c frexp.c index.c insque.c \
 	rindex.c remque.c strcat.c strcmp.c strcpy.c strlen.c strncat.c \
 	strncmp.c strncpy.c
 STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	ctime.o ctype_.o errlst.o execvp.o fakcu.o fstab.o gcvt.o getenv.o \
 	getgrent.o getgrgid.o getgrnam.o getlogin.o getpass.o getpwent.o \
+	getloadavg.o \
 	getttyent.o getttynam.o getusershell.o getwd.o \
 	initgroups.o isatty.o malloc.o mktemp.o ndbm.o nlist.o \
 	opendir.o perror.o popen.o psignal.o qsort.o random.o readdir.o \
 	regex.o scandir.o seekdir.o setgid.o setegid.o setrgid.o setuid.o \
 	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
-	sleep.o strcasecmp.o swab.o syslog.o system.o telldir.o time.o \
-	timezone.o ttyname.o ttyslot.o ualarm.o usleep.o valloc.o strdup.o \
-	strsep.o wait.o wait3.o waitpid.o
+	sleep.o strcasecmp.o swab.o sysctl.o syslog.o system.o telldir.o \
+	time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o valloc.o \
+	strdup.o strsep.o wait.o wait3.o waitpid.o
 VAXOBJ=	abs.o bcmp.o bcopy.o bzero.o fabs.c ffs.o frexp.o index.o insque.o \
 	rindex.o remque.o strcat.o strcmp.o strcpy.o strlen.o strncat.o \
 	strncmp.o strncpy.o

@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.3 (2.11BSD GTE) 12/12/94
+#	@(#)Makefile	2.4 (2.11BSD GTE) 1/18/95
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
@@ -24,7 +24,7 @@ SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
 	getgid.2 getgroups.2 gethostid.2 gethostname.2 getitimer.2 \
 	getpagesize.2 getpeername.2 getpgrp.2 getpid.2 getpriority.2 \
 	getrlimit.2 getrusage.2 getsockname.2 getsockopt.2 gettimeofday.2 \
-	getuid.2 gldav.2 intro.2 ioctl.2 kill.2 killpg.2 link.2 listen.2 \
+	getuid.2 intro.2 ioctl.2 kill.2 killpg.2 link.2 listen.2 \
 	lock.2 lseek.2 mkdir.2 mknod.2 mount.2 nostk.2 open.2 phys.2 \
 	pipe.2 profil.2 ptrace.2 quota.2 read.2 readlink.2 reboot.2 \
 	recv.2 rename.2 rmdir.2 select.2 send.2 setgroups.2 setpgrp.2 \
@@ -39,7 +39,7 @@ OBJS=	accept.0 access.0 acct.0 adjtime.0 bind.0 brk.0 chdir.0 chmod.0 \
 	getgid.0 getgroups.0 gethostid.0 gethostname.0 getitimer.0 \
 	getpagesize.0 getpeername.0 getpgrp.0 getpid.0 getpriority.0 \
 	getrlimit.0 getrusage.0 getsockname.0 getsockopt.0 gettimeofday.0 \
-	getuid.0 gldav.0 intro.0 ioctl.0 kill.0 killpg.0 link.0 listen.0 \
+	getuid.0 intro.0 ioctl.0 kill.0 killpg.0 link.0 listen.0 \
 	lock.0 lseek.0 mkdir.0 mknod.0 mount.0 nostk.0 open.0 phys.0 \
 	pipe.0 profil.0 ptrace.0 quota.0 read.0 readlink.0 reboot.0 \
 	recv.0 rename.0 rmdir.0 select.0 send.0 setgroups.0 setpgrp.0 \

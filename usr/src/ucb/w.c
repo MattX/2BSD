@@ -1,14 +1,17 @@
 /*
  * w - print system status (who and what)
  *
+ * Rewritten using sysctl, no nlist used  - 1/19/94 - sms.
+ *
  * This program is similar to the systat command on Tenex/Tops 10/20
  * It needs read permission on /dev/mem and /dev/swap.
  */
 #include <sys/param.h>
-#include <nlist.h>
+#include <sys/sysctl.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <utmp.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/user.h>
 #include <sys/proc.h>
@@ -31,33 +34,15 @@ struct smproc {
 	char	w_args[ARGWIDTH+1];	/* args if interesting process */
 } *pr;
 
-struct	nlist nl[] = {
-	{ "_proc" },
-#define	X_PROC		0
-	{ "_swapdev" },
-#define	X_SWAPDEV	1
-	{ "_avenrun" },
-#define	X_AVENRUN	2
-	{ "_boottime" },
-#define	X_BOOTIME	3
-	{ "_nproc" },
-#define	X_NPROC		4
-	{ 0 },
-};
-
-FILE	*ps;
 FILE	*ut;
-FILE	*bootfd;
 int	swmem;
-int	mem;
 int	swap;			/* /dev/mem, mem, and swap */
-int	nswap;
 int	file;
 dev_t	tty;
 char	doing[520];		/* process attached to terminal */
 time_t	proctime;		/* cpu time of process in doing */
-short	avenrun[3];
-double	load[3];
+double	avenrun[3];
+extern	int errno, optind;
 
 #define	DIV60(t)	((t+30)/60)    /* x/60 rounded */ 
 #define	TTYEQ		(tty == pr[i].w_tty)
@@ -65,102 +50,77 @@ double	load[3];
 
 long	round();
 char	*getargs();
-char	*fread();
-char	*ctime();
-char	*rindex();
 char	*getptr();
-FILE	*popen();
-struct	tm *localtime();
 
-int	debug;			/* true if -d flag: debugging output */
+char	*program;
 int	header = 1;		/* true if -h flag: don't print heading */
 int	lflag = 1;		/* true if -l flag: long style output */
-int	login;			/* true if invoked as login shell */
 time_t	idle;			/* number of minutes user is idle */
 int	nusers;			/* number of users logged in now */
 char *	sel_user;		/* login of particular user selected */
-char firstchar;			/* first char of name of prog invoked as */
+int 	wcmd = 1;		/* running as the w command */
 time_t	jobtime;		/* total cpu time visible */
 time_t	now;			/* the current time of day */
 struct	tm *nowt;		/* current time as time struct */
-time_t	boottime, uptime;	/* time of last reboot & elapsed time since */
+struct	timeval	boottime;	/* time since last reboot */
+time_t	uptime;			/* elapsed time since */
 int	np;			/* number of processes currently active */
 struct	utmp utmp;
-struct	proc mproc;
 struct	user up;
-char	fill[512];
 
-struct map {
+struct addrmap {
 	long	b1, e1; long f1;
 	long	b2, e2; long f2;
 };
-struct map datmap;
+struct addrmap datmap;
 
 main(argc, argv)
 	char **argv;
 {
 	int days, hrs, mins;
-	register int i, j;
+	register int i;
 	char *cp;
 	register int curpid, empty;
+	size_t	size;
+	int	mib[2];
 
-	login = (argv[0][0] == '-');
-	cp = rindex(argv[0], '/');
-	firstchar = login ? argv[0][1] : (cp==0) ? argv[0][0] : cp[1];
-	cp = argv[0];	/* for Usage */
+	program = argv[0];
+	if ((cp = rindex(program, '/')) || *(cp = program) == '-')
+		cp++;
+	if (*cp == 'u')
+		wcmd = 0;
 
-	while (argc > 1) {
-		if (argv[1][0] == '-') {
-			for (i=1; argv[1][i]; i++) {
-				switch(argv[1][i]) {
-
-				case 'd':
-					debug++;
-					break;
-
-				case 'h':
-					header = 0;
-					break;
-
-				case 'l':
-					lflag++;
-					break;
-
-				case 's':
-					lflag = 0;
-					break;
-
-				case 'u':
-				case 'w':
-					firstchar = argv[1][1];
-					break;
-
-				default:
-					printf("Bad flag %s\n", argv[1]);
-					exit(1);
-				}
-			}
-		} else {
-			if (!isalnum(argv[1][0]) || argc > 2) {
-				printf("Usage: %s [ -hlsuw ] [ user ]\n", cp);
+	while	((i = getopt(argc, argv, "hlswu")) != EOF)
+		{
+		switch	(i)
+			{
+			case 'h':
+				header = 0;
+				break;
+			case 'l':
+				lflag++;
+				break;
+			case 's':
+				lflag = 0;
+				break;
+			case 'u':
+				wcmd = 0;
+				break;
+			case 'w':
+				wcmd = 1;
+				break;
+			default:
+				fprintf(stderr, "Usage: %s [-hlswu] [user]\n",
+					program);
 				exit(1);
-			} else
-				sel_user = argv[1];
+			}
 		}
-		argc--; argv++;
-	}
+	argc -= optind;
+	argv += optind;
+	if	(*argv)
+		sel_user = *argv;
 
-	if ((mem = open("/dev/kmem", 0)) < 0) {
-		fprintf(stderr, "No mem\n");
-		exit(1);
-	}
-	nlist("/unix", nl);
-	if (nl[0].n_type==0) {
-		fprintf(stderr, "No namelist\n");
-		exit(1);
-	}
-
-	if (firstchar != 'u')
+	if (wcmd)
 		readpr();
 
 	ut = fopen("/etc/utmp","r");
@@ -170,15 +130,12 @@ main(argc, argv)
 		nowt = localtime(&now);
 		prtat(nowt);
 
-		if (nl[X_BOOTIME].n_type > 0) {
-			/*
-			 * Print how long system has been up.
-			 * (Found by looking for "boottime" in kernel)
-			 */
-			lseek(mem, (long)nl[X_BOOTIME].n_value, 0);
-			read(mem, &boottime, sizeof (boottime));
-
-			uptime = now - boottime;
+		mib[0] = CTL_KERN;
+		mib[1] = KERN_BOOTTIME;
+		size = sizeof (boottime);
+		if (sysctl(mib, 2, &boottime, &size, NULL, 0) != -1 &&
+		    boottime.tv_sec != 0) {
+			uptime = now - boottime.tv_sec;
 			days = uptime / (60L*60L*24L);
 			uptime %= (60L*60L*24L);
 			hrs = uptime / (60L*60L);
@@ -206,23 +163,18 @@ main(argc, argv)
 		rewind(ut);
 		printf("  %d user%c", nusers, nusers > 1 ?  's' : '\0');
 
-		if (nl[X_AVENRUN].n_type > 0) {
-			/*
-			 * Print 1, 5, and 15 minute load averages.
-			 * (Found by looking in kernel for avenrun).
-			 */
-			printf(",  load average:");
-			lseek(mem, (long)nl[X_AVENRUN].n_value, 0);
-			read(mem, avenrun, sizeof(avenrun));
+		if (getloadavg(avenrun, sizeof(avenrun) / sizeof(avenrun[0])) == -1)
+			printf(", no load average information available\n");
+		else {
+			printf(",  load averages:");
 			for (i = 0; i < (sizeof(avenrun)/sizeof(avenrun[0])); i++) {
-				load[i] = avenrun[i] / 256.0;
 				if (i > 0)
 					printf(",");
-				printf(" %.2f", load[i]);
+				printf(" %.2f", avenrun[i]);
 			}
 		}
 		printf("\n");
-		if (firstchar == 'u')
+		if (wcmd == 0)
 			exit(0);
 
 		/* Headers for rest of output */
@@ -258,15 +210,6 @@ main(argc, argv)
 				continue;
 			jobtime += pr[i].w_time + pr[i].w_ctime;
 			proctime += pr[i].w_time;
-			if (debug) {
-				printf("\t\t%d\t%s", pr[i].w_pid, pr[i].w_args);
-				if ((j=pr[i].w_igintr) > 0)
-					if (j==IGINT)
-						printf(" &");
-					else
-						printf(" & %d %d", j%3, j/3);
-				printf("\n");
-			}
 			if (empty && pr[i].w_igintr!=IGINT) {
 				empty = 0;
 				curpid = -1;
@@ -303,7 +246,6 @@ gettty()
  */
 putline()
 {
-	register int tm;
 
 	/* print login name of the user */
 	printf("%-*.*s ", NMAX, NMAX, utmp.ut_name);
@@ -385,10 +327,10 @@ prttime(tim, tail)
 
 /* prtat prints a 12 hour time given a pointer to a time of day */
 prtat(p)
-	struct tm *p;
+	register struct tm *p;
 {
 	register int pm;
-	register time_t t;
+	time_t t;
 
 	t = p -> tm_hour;
 	pm = (t > 11);
@@ -405,12 +347,16 @@ prtat(p)
  */
 readpr()
 {
-	int pn, mf, c, nproc;
-	int szpt, pfnum, i;
-	long addr;
-	long daddr, saddr;
+	struct	kinfo_proc *kp;
+register struct	proc	*p;
+register struct smproc *smp;
+	struct	kinfo_proc *kpt;
+	int pn, nproc;
+	long addr, daddr, saddr;
 	long txtsiz, datsiz, stksiz;
 	int septxt;
+	int	mib[4], st;
+	size_t	size;
 
 	if((swmem = open("/dev/mem", 0)) < 0) {
 		perror("/dev/mem");
@@ -420,42 +366,59 @@ readpr()
 		perror("/dev/swap");
 		exit(1);
 	}
-	/*
-	 * read mem to find swap dev.
-	 */
-	lseek(mem, (long)nl[X_SWAPDEV].n_value, 0);
-	read(mem, &nl[X_SWAPDEV].n_value, sizeof(nl[X_SWAPDEV].n_value));
-	if (nl[X_NPROC].n_value == 0) {
-		fprintf(stderr, "nproc not in namelist\n");
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_ALL;
+	size = 0;
+	st = sysctl(mib, 4, NULL, &size, NULL, 0);
+	if (st == -1) {
+		fprintf(stderr, "sysctl: %s \n", strerror(errno));
 		exit(1);
 	}
-	lseek (mem, (off_t) nl[X_NPROC].n_value, 0);
-	read(mem, (char *)&nproc, sizeof(nproc));
+	if (size % sizeof (struct kinfo_proc) != 0) {
+		fprintf(stderr, "proc size mismatch (%d total, %d chunks)\n",
+			size, sizeof(struct kinfo_proc));
+		exit(1);
+	}
+	kpt = (struct kinfo_proc *)malloc(size);
+	if (kpt == (struct kinfo_proc *)NULL) {
+		fprintf(stderr, "Not %d bytes of memory for proc table\n",
+			size);
+		exit(1);
+	}
+	if (sysctl(mib, 4, kpt, &size, NULL, 0) == -1) {
+		fprintf(stderr, "sysctl fetch of proc table failed: %s\n",
+			strerror(errno));
+		exit(1);
+	}
+
+	nproc = size / sizeof (struct kinfo_proc);
 	pr = (struct smproc *) malloc(nproc * sizeof(struct smproc));
 	if (pr == (struct smproc *)NULL) {
 		fprintf(stderr,"Not enough memory for proc table\n");
 		exit(1);
 	}
 	/*
-	 * Locate proc table
+	 * Now step thru the kinfo_proc structures and save interesting
+	 * process's info in the 'smproc' structure.
 	 */
-	np = 0;
-	for (pn=0; pn<nproc; pn++) {
-		lseek(mem, (long)(nl[X_PROC].n_value + pn*(sizeof mproc)), 0);
-		read(mem, &mproc, sizeof mproc);
+	smp = pr;
+	kp = kpt;
+	for (pn = 0; pn < nproc; kp++, pn++) {
+		p = &kp->kp_proc;
 		/* decide if it's an interesting process */
-		if (mproc.p_stat==0 || mproc.p_stat==SZOMB || mproc.p_pgrp==0)
+		if (p->p_stat==0 || p->p_stat==SZOMB || p->p_pgrp==0)
 			continue;
 		/* find & read in the user structure */
-		if (mproc.p_flag&SLOAD) {
-			addr = ctob((long)mproc.p_addr);
-			daddr = ctob((long)mproc.p_daddr);
-			saddr = ctob((long)mproc.p_saddr);
+		if (p->p_flag & SLOAD) {
+			addr = ctob((long)p->p_addr);
+			daddr = ctob((long)p->p_daddr);
+			saddr = ctob((long)p->p_saddr);
 			file = swmem;
 		} else {
-			addr = mproc.p_addr<<9;
-			daddr = mproc.p_daddr<<9;
-			saddr = mproc.p_saddr<<9;
+			addr = (off_t)p->p_addr<<9;
+			daddr = (off_t)p->p_daddr<<9;
+			saddr = (off_t)p->p_saddr<<9;
 			file = swap;
 		}
 		lseek(file, addr, 0);
@@ -477,28 +440,30 @@ readpr()
 		datmap.f2 = saddr;
 
 		/* save the interesting parts */
-		pr[np].w_addr = saddr + ctob((long)mproc.p_ssize) - ARGLIST;
-		pr[np].w_pid = mproc.p_pid;
-		pr[np].w_igintr = (int)(((up.u_signal[2]==1) + 2*(up.u_signal[2]>1) + 3*(up.u_signal[3]==1)) + 6*(up.u_signal[3]>1));
-		pr[np].w_time = up.u_ru.ru_utime + up.u_ru.ru_stime;
-		pr[np].w_ctime = up.u_cru.ru_utime + up.u_cru.ru_stime;
-		pr[np].w_tty = up.u_ttyd;
+		smp->w_addr = saddr + ctob((long)p->p_ssize) - ARGLIST;
+		smp->w_pid = p->p_pid;
+		smp->w_igintr = (int)(((up.u_signal[2]==1) + 2*(up.u_signal[2]>1) + 3*(up.u_signal[3]==1)) + 6*(up.u_signal[3]>1));
+		smp->w_time = up.u_ru.ru_utime + up.u_ru.ru_stime;
+		smp->w_ctime = up.u_cru.ru_utime + up.u_cru.ru_stime;
+		smp->w_tty = up.u_ttyd;
 		up.u_comm[14] = 0;	/* Bug: This bombs next field. */
-		strcpy(pr[np].w_comm, up.u_comm);
+		strcpy(smp->w_comm, up.u_comm);
 		/*
 		 * Get args if there's a chance we'll print it.
 		 * Cant just save pointer: getargs returns static place.
 		 * Cant use strncpy: that crock blank pads.
 		 */
-		pr[np].w_args[0] = 0;
-		strncat(pr[np].w_args,getargs(&pr[np]),ARGWIDTH);
-		if (pr[np].w_args[0]==0 || pr[np].w_args[0]=='-' && pr[np].w_args[1]<=' ' || pr[np].w_args[0] == '?') {
-			strcat(pr[np].w_args, " (");
-			strcat(pr[np].w_args, pr[np].w_comm);
-			strcat(pr[np].w_args, ")");
+		smp->w_args[0] = 0;
+		strncat(smp->w_args,getargs(smp),ARGWIDTH);
+		if (smp->w_args[0]==0 || smp->w_args[0]=='-' && smp->w_args[1]<=' ' || smp->w_args[0] == '?') {
+			strcat(smp->w_args, " (");
+			strcat(smp->w_args, smp->w_comm);
+			strcat(smp->w_args, ")");
 		}
-		np++;
+		smp++;
 	}
+	np = smp - pr;
+	free(kpt);
 }
 
 /*
@@ -578,12 +543,6 @@ getargs(p)
 	return (p->w_comm);
 }
 
-min(a, b)
-{
-
-	return (a < b ? a : b);
-}
-
 char *
 getptr(adr)
 char **adr;
@@ -603,7 +562,7 @@ char **adr;
 getbyte(adr)
 char *adr;
 {
-	register struct map *amap = &datmap;
+	register struct addrmap *amap = &datmap;
 	char b;
 	long saddr;
 

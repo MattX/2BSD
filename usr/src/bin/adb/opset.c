@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.0 (2.11BSD GTE) 12/26/94";
+static	char	sccsid[] = "@(#)opset.c 2.1 (2.11BSD GTE) 1/16/95";
 #endif
 
 #include "defs.h"
@@ -155,7 +155,7 @@ char *systab[] = {
 	"getpid",
 	"mount",
 	"umount",
-	NULL,			/* 23 - old setuid */
+	"__sysctl",
 	"getuid",
 	NULL,			/* 25 - old stime */
 	"ptrace",

@@ -3,10 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6.3 (2.11BSD GTE) 11/25/94
+#	@(#)Makefile	5.6.4 (2.11BSD GTE) 1/13/95
 #
-SRCS=	_exit.s accept.s access.s acct.s adjtime.s bind.s brk.s chdir.s \
-	chflags.s \
+SRCS=	_exit.s __sysctl.s accept.s access.s acct.s adjtime.s bind.s brk.s \
+	chdir.s chflags.s \
 	chmod.s chown.s chroot.s close.s connect.s creat.s dup.s dup2.s \
 	execl.s execle.s execv.s execve.s fchdir.s fchmod.s fchown.s fcntl.s \
 	fchflags.s \
@@ -24,8 +24,8 @@ SRCS=	_exit.s accept.s access.s acct.s adjtime.s bind.s brk.s chdir.s \
 	sigreturn.s sigsetmask.s sigstack.s sigvec.s socket.s socketpair.s \
 	stat.s symlink.s sync.s truncate.s umask.s umount.s unlink.s \
 	utimes.s vfork.s vhangup.s wait4.s write.s writev.s
-OBJS=	_exit.o accept.o access.o acct.o adjtime.o bind.o brk.o chdir.o \
-	chflags.o \
+OBJS=	_exit.o __sysctl.o accept.o access.o acct.o adjtime.o bind.o brk.o \
+	chdir.o chflags.o \
 	chmod.o chown.o chroot.o close.o connect.o creat.o dup.o dup2.o \
 	execl.o execle.o execv.o execve.o fchdir.o fchmod.o fchown.o fcntl.o \
 	fchflags.o \
