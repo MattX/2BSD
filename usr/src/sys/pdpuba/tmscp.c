@@ -1,6 +1,6 @@
 #define	TMSDEBUG	1
 
-/*	@(#)tmscp.c	1.6 (2.11BSD GTE) 1996/5/14 */
+/*	@(#)tmscp.c	1.7 (2.11BSD GTE) 1996/5/17 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -991,6 +991,7 @@ tmsstart(sc)
 				i = M_MD_REWND;
 			else
 				i = M_MD_REWND | M_MD_IMMED;
+			bp->b_bcount = 0;	/* XXX */
 			tms_repos_st(mp, sc, i);
 			break;
 		case TMS_OFFL:
