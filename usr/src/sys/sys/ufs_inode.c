@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_inode.c	1.5 (2.11BSD GTE) 1996/9/19
+ *	@(#)ufs_inode.c	1.6 (2.11BSD GTE) 1996/9/30
  */
 
 #include "param.h"
@@ -474,7 +474,6 @@ itrunc(oip,length, ioflags)
 		bytesreleased = oip->i_size - length;
 #endif
 		oip->i_size = length;
-		bdwrite(bp);
 		goto doquotaupd;
 	}
 
