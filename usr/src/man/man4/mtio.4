@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mtio.4	6.2 (Berkeley) 7/25/87
+.\"	@(#)mtio.4	6.3 (2.11BSD) 1995/12/22
 .\"
-.TH MTIO 4 "July 25, 1987"
+.TH MTIO 4 "December 22, 1995"
 .UC 2
 .SH NAME
 mtio \- UNIX magtape interface
@@ -145,6 +145,10 @@ In raw tape I/O seeks are ignored.
 A zero byte count is returned when a tape mark is read,
 but another read will fetch the first record of the
 new tape file.
+.PP
+The MTCACHE and MTNOCACHE commands do not apply to all tape drivers.  At
+present only the TMSCP driver supports those commands and then only for
+drives such as the TU81+.
 .SH FILES
 /dev/mt?
 .br

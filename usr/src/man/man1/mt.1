@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mt.1	6.2 (Berkeley) 5/9/86
+.\"	@(#)mt.1	6.2.1 (2.11BSD) 1995/12/22
 .\"
-.TH MT 1 "May 9, 1986"
+.TH MT 1 "December 22, 1995"
 .UC 4
 .SH NAME
 mt \- magnetic tape manipulating program
@@ -77,12 +77,32 @@ is ignored).
 .TP
 .B status
 Print status information about the tape unit.
+.TP
+.B cacheon
+Enable the readahead/writebehind cache on the tape unit.
+.TP
+.B cacheoff
+Turn off the readahead/writebehind cache on the tape unit.
 .PP
 .I Mt
 returns a 0 exit status when the operation(s) were successful,
 1 if the command was unrecognized, and 2 if an operation failed.
+.PP
+The 
+.B cacheon
+and
+.B cacheoff
+commands currently only apply to the TMSCP driver and then only
+for certain drives such as the TU81+.  No error is produced by the
+TMSCP driver if the cache commands are used.  Other drivers will 
+return an error code since they do not recognize the 
+.B MTCACHE
+and
+.B MTNOCACHE
+functions codes.  See
+.BR mtio (4).
 .SH FILES
 .DT
 /dev/rmt*	Raw magnetic tape interface
 .SH "SEE ALSO"
-mtio(4), dd(1), ioctl(2), environ(7)
+mtio(4), tmscp(4), dd(1), ioctl(2), environ(7)

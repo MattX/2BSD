@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.1 (2.11BSD) 1995/05/08
+#	@(#)Makefile	1.2 (2.11BSD) 1995/12/24
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -32,6 +32,7 @@ NORM2=  mknod.o mount.o open.o quota.o read.o readlink.o readv.o reboot.o \
 	sendto.o setgroups.o setitimer.o setpgrp.o setpriority.o setquota.o \
 	setregid.o setreuid.o setrlimit.o setsockopt.o settimeofday.o \
 	shutdown.o sigstack.o socket.o socketpair.o stat.o symlink.o \
+	statfs.o fstatfs.o getfsstat.o \
 	truncate.o umount.o unlink.o utimes.o wait4.o write.o writev.o
 
 # these are generated with a second argument to SYSCALL of 'long'

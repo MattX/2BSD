@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.3 (2.11BSD GTE) 1995/11/22
+#	2.4 (2.11BSD GTE) 1995/12/24
 #
 #########################################################
 # Non-network, but separate I/D kernel			#
@@ -55,15 +55,16 @@ BASE=	br.o dh.o dhu.o dhv.o dkbad.o dr.o dz.o init_sysent.o kern_clock.o \
 	ufs_subr.o xp.o
 OV1=	sys_generic.o ufs_syscalls.o mem.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
-OV3=	clock.o cons.o kern_pdp.o kern_time.o \
-	kern_xxx.o machdep2.o quota_sys.o subr_prf.o sys_process.o \
+OV3=	clock.o cons.o kern_time.o \
+	machdep2.o quota_sys.o subr_prf.o sys_process.o \
 	syscalls.o ufs_mount.o
 OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
 	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
 OV5=	ht.o tm.o ts.o
-OV6=	tmscp.o vm_text.o
+OV6=	tmscp.o tmscpdump.o
 OV7=	rl.o mch_fpsim.o ingreslock.o ufs_disksubr.o
-OV8=	rx.o kern_sysctl.o vm_sched.o
+OV8=	rx.o kern_sysctl.o vm_sched.o vm_text.o
+OV9=	kern_pdp.o kern_xxx.o ufs_syscalls2.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

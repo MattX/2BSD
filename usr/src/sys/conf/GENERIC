@@ -1,3 +1,4 @@
+# 1995/12/14 - RX added to GENERIC kernel.
 # 1995/07/21 - XP_PROBE removed.
 #
 # Machine configuration file for 2.11BSD distributed kernel.
@@ -148,7 +149,7 @@ NRK		0		# RK05
 
 NRL		2		# RL01/02
 
-NRX		0		# RX02
+NRX		2		# RX02
 
 NSI		0		# SI 9500 driver for CDC 9766 disks
 

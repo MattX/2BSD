@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.4 (2.11BSD GTE) 1995/05/08
+ *	@(#)syscall.h	5.4.5 (2.11BSD GTE) 1995/12/24
  */
 
 #define	SYS_exit	1
@@ -33,9 +33,9 @@
 #define	SYS_geteuid	25
 #define	SYS_ptrace	26
 #define	SYS_getppid	27
-				/* 28 is old: fstat */
-				/* 29 is old: pause */
-				/* 30 is old: utime */
+#define	SYS_statfs	28
+#define	SYS_fstatfs	29
+#define	SYS_getfsstat	30
 				/* 31 is old: stty */
 				/* 32 is old: gtty */
 #define	SYS_access	33

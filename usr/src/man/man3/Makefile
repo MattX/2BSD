@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.4 (2.11BSD) 1995/09/10
+#	@(#)Makefile	5.4.5 (2.11BSD) 1995/12/26
 #
 MDIR=	/usr/man/cat3
 SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
@@ -23,7 +23,7 @@ SRCS1=	abort.3 abs.3 alarm.3 asinh.3 assert.3 atof.3 bstring.3 byteorder.3 \
 	exp.3 fclose.3 ferror.3 floor.3 \
 	fopen.3 fread.3 frexp.3 fseek.3 getc.3 getdisk.3 getenv.3 getfsent.3 \
 	getgrent.3 gethostbyname.3 getlogin.3 getnetent.3 getopt.3 getpass.3 \
-	getloadavg.3 \
+	getloadavg.3 getmntinfo.3 \
 	getprotoent.3 getpwent.3 gets.3 getservent.3 getttyent.3 \
 	getusershell.3 getwd.3 hypot.3 ieee.3 inet.3 infnan.3 initgroups.3 
 SRCS2=	insque.3 intro.3 j0.3 l3tol.3 ldfps.3 lgamma.3 lib2648.3 \
@@ -42,7 +42,7 @@ OBJS1=	abort.0 abs.0 alarm.0 asinh.0 assert.0 atof.0 bstring.0 byteorder.0 \
 	fopen.0 fread.0 frexp.0 fseek.0 getc.0 getdisk.0 getenv.0 getfsent.0 \
 	getgrent.0 gethostbyname.0 getlogin.0 getnetent.0 getopt.0 getpass.0 \
 	getprotoent.0 getpwent.0 gets.0 getservent.0 getttyent.0 \
-	getloadavg.0 \
+	getloadavg.0 getmntinfo.0 \
 	getusershell.0 getwd.0 hypot.0 ieee.0 inet.0 infnan.0 initgroups.0 
 OBJS2=	insque.0 intro.0 j0.0 l3tol.0 ldfps.0 lgamma.0 lib2648.0 \
 	malloc.0 math.0 mktemp.0 monitor.0 mp.0 ndbm.0 nice.0 nlist.0 ns.0 \

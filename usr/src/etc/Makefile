@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.14.3 (2.11BSD GTE) 4/7/95
+#	@(#)Makefile	5.14.4 (2.11BSD GTE) 1995/12/26
 #
 DESTDIR=
 CFLAGS=	-O
@@ -13,7 +13,7 @@ SEPFLAG= -i
 #
 SUBDIR=	chroot config dev_mkdb dump fingerd fsck ftpd getty htable implog \
 	named restor routed talkd termcap tftpd timed tzone XNSrouted \
-	mkpasswd vipw rlogind rshd tcpd
+	mkpasswd ping vipw rlogind rshd tcpd
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -35,7 +35,7 @@ NSTD=
 
 # Programs that must run setuid to root
 #
-SETUID=	ping
+SETUID=
 
 # C programs that must run set-group-id kmem.
 #

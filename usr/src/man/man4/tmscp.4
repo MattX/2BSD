@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)tmscp.4	1.1 (2.11BSD) 7/28/93
+.\"	@(#)tmscp.4	1.2 (2.11BSD) 1995/12/22
 .\"
-.TH TMSCP 4 "July 28, 1993"
+.TH TMSCP 4 "December 22, 1995"
 .UC 2
 .SH NAME
 tmscp \- DEC TMSCP magtape interface
@@ -78,51 +78,66 @@ the highest density.  Values of 1 and 2 are essentially equivalent
 (because because TMSCP only defines values for three densities) and
 request the middle density (for tri-density tape drives).
 .SH DIAGNOSTICS
-.BR "tms controller failed to init" .
-The controller initialization procedure failed.
-This probably indicates a hardware problem.
+.BR "tms: !drives" .
+Not enough drives were declared when the kernel was built.  The NTMS parameter
+in the kernel config file needs to be increased by at least one.
 .PP
-.BR "tms%d: sa 0%o, state %d" .
-(Additional status information given after a hard I/O error.)
-The values of the controller status register and the internal
-driver state are printed.
+.BR "tms%d stepN init failed: sa %x" .
+Step N of the 4 step initialization sequence has failed.
 .PP
-.BR "tms%d: random interrupt ignored" .
-An unexpected interrupt was received (e.g. when no i/o was
-pending).  The interrupt is ignored.
+.BR "tms%d: random intr" .
+An unexpected interrupt was received.  This is indicative of some other
+device using the same interrupt vector as the TMSCP controller.
+The interrupt is ignored.
 .PP
-.BR "tms%d:  interrupt in unknown state %d ignored" .
-An interrupt was received when the driver was in an unknown
-internal state.  Indicates a hardware problem or a driver bug.
+.BR "tms%d Ver %d Mod %d" .
+The version and model number of the controller are displayed when the
+controller is initialized.  This is an information message and not an error.
 .PP
-.BR "tms%d:  fatal error (0%o)" .
+.BR "tms%d: state %d" .
+The controller state is not one of the 4 initialization states or the RUN
+state.  This indicates a serious problem in the driver and possibly the
+hardware.
+.PP
+.BR "tms%d:  fatal error %x" .
 The controller detected a ``fatal error'' in the status returned
 to the host.  The contents of the status register are displayed.
 .PP
-.BR OFFLINE .
-(Additional status information given after a hard I/O error.)
-A hard I/O error occurred because the drive was not on-line.
+.BR "tms%d init fail" .
+The controller failed to initialize.  Indicative of a hardware problem.
 .PP
-The following errors are interpretations of TMSCP error messages
-returned by the controller to the host.
-Each is preceded by either
-.B "tms%d: hard error"
-or
-.BR "tms%d: soft error" .
+.BR "tms%d,%d flush fail" .
+The cache failed to flush during a close operation.  Data loss is possible
+in this case.
 .PP
-.BR "controller error, event 0%o" .
+.BR "tms%d,%d: sa %x state %d" .
+A fatal error.  The controller will be reset in an attempt to resume
+operation.
 .PP
-.BR "host memory access error, event 0%o, addr 0%o" .
+.BR "tms ioctl" .
+An invalid internal ioctl function call has been made.  This is a driver
+bug.
 .PP
-.BR "tape transfer error, unit %d, grp 0x%x, event 0%o" .
+.BR "tms%d,%d inv end" .
+An invalid end (completion) code has been detected.  A drive has returned
+0 as the opcode originally issued.  This is a hardware problem.
 .PP
-.BR "STI error, unit %d, event 0%o" .
+.BR "tms%d,%d bad rsp: %x" .
+An unrecognized response has been received.  This is a driver bug.
 .PP
-.BR "STI Drive Error Log, unit %d, event 0%o" .
+.BR "tms%d,%d cache lost"
+The cache on the drive has been lost.  Data loss is likely.  Usually due to
+a hardware problem.
 .PP
-.BR "STI Formatter Error Log, unit %d, event 0%o" .
+The following error is produced when a TMSCP error log datagram is received:
+.sp
+.BR "tms%d,%d dgram fmt=%x evt=%x grp=%x flg=%x pos=%D" .
 .PP
-.BR "unknown error, unit %d, format 0%o, event 0%o" .
+Earlier versions of the driver consumed a noticeable amount of kernel D-space
+decoding and pretty printing more detailed information.  This has been 
+removed in favor of a shorter message.  In the future an error
+log daemon will be written and the datagrams from the MSCP and TMSCP
+drivers passed to it for analysis.
 .SH "SEE ALSO"
 mt(1), tar(1), tp(1), mtio(4), tm(4), ts(4), ut(4), dmesg(8), dtab(5),
 autoconfig(8)

@@ -11,7 +11,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)mt.c	2.0 (2.11BSD) 7/6/93";
+static char sccsid[] = "@(#)mt.c	2.1 (2.11BSD) 1995/12/22";
 #endif not lint
 
 /*
@@ -41,6 +41,8 @@ struct commands {
 	{ "offline",	MTOFFL,	1 },
 	{ "rewoffl",	MTOFFL,	1 },
 	{ "status",	MTNOP,	1 },
+	{ "cacheon",	MTCACHE, 1 },
+	{ "cacheoff",	MTNOCACHE, 1 },
 	{ 0 }
 };
 
@@ -121,8 +123,6 @@ main(argc, argv)
 #include <pdpuba/tmreg.h>
 #undef b_repcnt		/* argh */
 #include <pdpuba/tsreg.h>
-#define NRSP 0
-#define NCMD 0
 #include <pdpuba/tmscpreg.h>
 #endif
 

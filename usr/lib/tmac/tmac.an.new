@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)tmac.an.new	6.3 (Berkeley) 2/2/86
+.\"	@(#)tmac.an.new	6.3.1 (2.11BSD) 1995/12/26
 .\"
 '	DT, PD, SM, and B macros invoked internally.
 '	# month name
@@ -53,6 +53,7 @@
 .	if "\\$1"4" .ds ]W 4th Berkeley Distribution
 .	if "\\$1"5" .ds ]W 4.2 Berkeley Distribution
 .	if "\\$1"6" .ds ]W 4.3 Berkeley Distribution
+.	if "\\$1"7" .ds ]W 4.4 Berkeley Distribution
 .\}
 ..
 '	# reset the basic page layout
