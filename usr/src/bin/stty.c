@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)stty.c	5.4 (Berkeley) 4/4/86";
-#endif not lint
+static char sccsid[] = "@(#)stty.c	5.4.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 /*
  * set teletype modes
@@ -66,10 +64,6 @@ struct
 	"nl",		0, CRMOD, 0, 0,
 	"echo",		ECHO, 0, 0, 0,
 	"-echo",	0, ECHO, 0, 0,
-	"LCASE",	LCASE, 0, 0, 0,
-	"lcase",	LCASE, 0, 0, 0,
-	"-LCASE",	0, LCASE, 0, 0,
-	"-lcase",	0, LCASE, 0, 0,
 	"-tabs",	XTABS, 0, 0, 0,
 	"tabs",		0, XTABS, 0, 0,
 	"tandem",	TANDEM, 0, 0, 0,
@@ -110,8 +104,6 @@ struct
 	"-crterase",	0, 0, 0, LCRTERA,
 	"crtkill",	0, 0, LCRTKIL, LPRTERA,
 	"-crtkill",	0, 0, 0, LCRTKIL,
-	"tilde",	0, 0, LTILDE, 0,
-	"-tilde",	0, 0, 0, LTILDE,
 	"mdmbuf",	0, 0, LMDMBUF, 0,
 	"-mdmbuf",	0, 0, 0, LMDMBUF,
 	"litout",	0, 0, LLITOUT, 0,
@@ -374,8 +366,6 @@ prmodes(all)
 		fprintf(stderr,"-nl "+((m&CRMOD)==0));
 	if(all==2 || (m&ECHO)==0)
 		fprintf(stderr,"-echo "+((m&ECHO)!=0));
-	if(all==2 || (m&LCASE))
-		fprintf(stderr,"-lcase "+((m&LCASE)!=0));
 	if(all==2 || (m&TANDEM))
 		fprintf(stderr,"-tandem "+((m&TANDEM)!=0));
 	fprintf(stderr,"-tabs "+((m&XTABS)!=XTABS));
@@ -421,7 +411,6 @@ prmodes(all)
 			any = 0;
 			nothing = 0;
 		}
-		lpit(LTILDE, "-tilde ");
 		lpit(LFLUSHO, "-flusho ");
 		lpit(LMDMBUF, "-mdmbuf ");
 		lpit(LLITOUT, "-litout ");

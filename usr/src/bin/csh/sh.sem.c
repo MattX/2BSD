@@ -5,11 +5,12 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)sh.sem.c	5.4 (Berkeley) 5/13/86";
+static char *sccsid = "@(#)sh.sem.c	5.4.1 (2.11BSD GTE) 12/9/94";
 #endif
 
 #include "sh.h"
 #include "sh.proc.h"
+#include <fcntl.h>
 #include <sys/ioctl.h>
 
 /*
@@ -360,8 +361,8 @@ doio(t, pipein, pipeout)
 	if (cp = t->t_drit) {
 		cp = globone(Dfix1(cp));
 		xfree(cp);
-		if ((flags & FCAT) && open(cp, 1) >= 0)
-			(void) lseek(1, (off_t)0, 2);
+		if ((flags & FCAT) && open(cp, O_WRONLY | O_APPEND) >= 0)
+			;
 		else {
 			if (!(flags & FANY) && adrof("noclobber")) {
 				if (flags & FCAT)

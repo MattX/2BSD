@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)service.c	4.4 3/19/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)service.c	4.4.1 12/9/94";
 #endif
 
 #
@@ -12,7 +12,7 @@ static char sccsid[] = "@(#)service.c	4.4 3/19/85";
  */
 
 #include	"defs.h"
-
+#include	<fcntl.h>
 
 PROC VOID	gsort();
 
@@ -58,8 +58,8 @@ VOID	initio(iop)
 			THEN	fd=chkopen(ion);
 			ELIF flags&rshflg
 			THEN	failed(ion,restricted);
-			ELIF iof&IOAPP ANDF (fd=open(ion,1))>=0
-			THEN	lseek(fd, 0L, 2);
+			ELIF iof&IOAPP ANDF (fd=open(ion,O_WRONLY|O_APPEND))>=0
+			THEN	;
 			ELSE	fd=create(ion);
 			FI
 			IF fd>=0
@@ -91,7 +91,7 @@ INT	pathopen(path, name)
 	REG UFD		f;
 
 	REP path=catpath(path,name);
-	PER (f=open(curstak(),0))<0 ANDF path DONE
+	PER (f=open(curstak(), O_RDONLY))<0 ANDF path DONE
 	return(f);
 }
 

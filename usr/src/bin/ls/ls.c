@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)ls.c	5.9 (Berkeley) 10/22/87";
-#endif not lint
+static char sccsid[] = "@(#)ls.c	5.9.1 (2.11BSD GTE) 12/3/94";
+#endif
 
 /*
  * ls
@@ -25,13 +23,16 @@ static char sccsid[] = "@(#)ls.c	5.9 (Berkeley) 10/22/87";
 #include <sys/dir.h>
 #include <stdio.h>
 #include <sgtty.h>
+#include <strings.h>
+#include <sys/time.h>
 
 #define	kbytes(size)	(((size) + 1023) / 1024)
 
 struct afile {
 	char	ftype;		/* file type, e.g. 'd', 'c', 'f' */
 	ino_t	fnum;		/* inode number of file */
-	short	fflags;		/* mode&~S_IFMT, perhaps ISARG */
+	short	fmode;		/* mode&~S_IFMT, perhaps ISARG */
+	u_short	fflags;		/* st_flags (uappnd, uchg, schg, ...) */
 	short	fnl;		/* number of links */
 	uid_t	fuid;		/* owner id */
 	gid_t	fgid;		/* group id */
@@ -49,10 +50,8 @@ struct subdirs {
 	struct	subdirs *sd_next;
 } *subdirs;
 
-int	aflg, dflg, gflg, lflg, sflg, tflg, uflg, iflg, fflg, cflg, rflg = 1;
-int	qflg, Aflg, Cflg, Fflg, Lflg, Rflg;
-
-int	usetabs;
+char	aflg, dflg, gflg, lflg, sflg, tflg, uflg, iflg, fflg, cflg, rflg = 1;
+char	oflg, qflg, Aflg, Cflg, Fflg, Lflg, Rflg, usetabs;
 
 time_t	now, sixmonthsago;
 
@@ -66,10 +65,6 @@ int	fcmp();
 char	*cat(), *savestr();
 char	*fmtentry();
 char	*getname(), *getgroup();
-
-char	*ctime();
-char	*malloc(), *calloc(), *realloc();
-char	*strcpy(), *strcat();
 
 main(argc, argv)
 	int argc;
@@ -94,7 +89,7 @@ main(argc, argv)
 			usetabs = 1;
 	} else
 		usetabs = 1;
-	while ((ch = getopt(argc, argv, "1ACLFRacdfgilqrstu")) != EOF)
+	while ((ch = getopt(argc, argv, "1ACLFRacdfgiloqrstu")) != EOF)
 		switch((char)ch) {
 		case '1':
 			Cflg = 0; break;
@@ -122,6 +117,8 @@ main(argc, argv)
 			iflg++; break;
 		case 'l':
 			lflg++; break;
+		case 'o':
+			oflg++; break;
 		case 'q':
 			qflg = 1; break;
 		case 'r':
@@ -134,9 +131,11 @@ main(argc, argv)
 			uflg++; break;
 		case '?':
 		default:
-			fputs("usage: ls [ -1ACLFRacdfgilqrstu ] [ file ]\n", stderr);
+			fputs("usage: ls [ -1ACLFRacdfgiloqrstu ] [ file ]\n", stderr);
 			exit(1);
 	}
+	if (!lflg)
+		oflg = 0;
 	if (fflg) { 
 		aflg++; lflg = 0; sflg = 0; tflg = 0;
 	}
@@ -157,7 +156,7 @@ main(argc, argv)
 	for (i = 0; i < argc; i++) {
 		if (gstat(fp, *argv, 1, (int *)0)) {
 			fp->fname = *argv;
-			fp->fflags |= ISARG;
+			fp->fmode |= ISARG;
 			fp++;
 		}
 		argv++;
@@ -227,7 +226,7 @@ formatd(name, title)
 			dp->sd_next = subdirs; subdirs = dp;
 		}
 	for (fp = dfp0; fp < dfplast; fp++) {
-		if ((fp->fflags&ISARG) == 0 && fp->fname)
+		if ((fp->fmode&ISARG) == 0 && fp->fname)
 			cfree(fp->fname);
 		if (fp->flinkto)
 			cfree(fp->flinkto);
@@ -298,7 +297,7 @@ gstat(fp, file, statarg, pnb)
 	static struct afile azerofile;
 
 	*fp = azerofile;
-	fp->fflags = 0;
+	fp->fmode = 0;
 	fp->fnum = 0;
 	fp->ftype = '-';
 	if (statarg || sflg || lflg || tflg) {
@@ -343,7 +342,8 @@ gstat(fp, file, statarg, pnb)
 			break;
 		}
 		fp->fnum = stb.st_ino;
-		fp->fflags = stb.st_mode & ~S_IFMT;
+		fp->fmode = stb.st_mode & ~S_IFMT;
+		fp->fflags = stb.st_flags;
 		fp->fnl = stb.st_nlink;
 		fp->fuid = stb.st_uid;
 		fp->fgid = stb.st_gid;
@@ -365,16 +365,25 @@ formatf(fp0, fplast)
 	register struct afile *fp;
 	register int i, j, w;
 	int width = 0, nentry = fplast - fp0;
-	int columns, lines;
+	int columns, lines, maxflags;
 	char *cp;
 
 	if (fp0 == fplast)
 		return;
+	maxflags = 0;
+	if (oflg) {
+		for (fp = fp0; fp < fplast; fp++)
+		    {
+		    i = strlen(flags_to_string(fp->fflags, "-"));
+		    if (i > maxflags)
+			maxflags = i;
+		    }
+	}
 	if (lflg || Cflg == 0)
 		columns = 1;
 	else {
 		for (fp = fp0; fp < fplast; fp++) {
-			int len = strlen(fmtentry(fp));
+			int len = strlen(fmtentry(fp, maxflags));
 
 			if (len > width)
 				width = len;
@@ -391,7 +400,7 @@ formatf(fp0, fplast)
 	for (i = 0; i < lines; i++) {
 		for (j = 0; j < columns; j++) {
 			fp = fp0 + j * lines + i;
-			cp = fmtentry(fp);
+			cp = fmtentry(fp, maxflags);
 			fputs(cp, stdout);
 			if (fp + lines >= fplast) {
 				putchar('\n');
@@ -415,11 +424,11 @@ fcmp(f1, f2)
 {
 
 	if (dflg == 0 && fflg == 0) {
-		if ((f1->fflags&ISARG) && f1->ftype == 'd') {
-			if ((f2->fflags&ISARG) == 0 || f2->ftype != 'd')
+		if ((f1->fmode&ISARG) && f1->ftype == 'd') {
+			if ((f2->fmode&ISARG) == 0 || f2->ftype != 'd')
 				return (1);
 		} else {
-			if ((f2->fflags&ISARG) && f2->ftype == 'd')
+			if ((f2->fmode&ISARG) && f2->ftype == 'd')
 				return (-1);
 		}
 	}
@@ -457,20 +466,21 @@ char *
 savestr(str)
 	char *str;
 {
-	char *cp = malloc(strlen(str) + 1);
+	register char *cp = strdup(str);
 
 	if (cp == NULL) {
 		fputs("ls: out of memory\n", stderr);
 		exit(1);
 	}
-	return(strcpy(cp, str));
+	return(cp);
 }
 
 char	*fmtinum(), *fmtsize(), *fmtlstuff(), *fmtmode();
 
 char *
-fmtentry(fp)
+fmtentry(fp, maxflags)
 	register struct afile *fp;
+	int maxflags;
 {
 	static char fmtres[BUFSIZ];
 	register char *cp, *dp;
@@ -478,7 +488,7 @@ fmtentry(fp)
 	(void) sprintf(fmtres, "%s%s%s",
 	    iflg ? fmtinum(fp) : "",
 	    sflg ? fmtsize(fp) : "",
-	    lflg ? fmtlstuff(fp) : "");
+	    lflg ? fmtlstuff(fp, maxflags) : "");
 	dp = &fmtres[strlen(fmtres)];
 	for (cp = fp->fname; *cp; cp++)
 		if (qflg && (*cp < ' ' || *cp >= 0177))
@@ -492,7 +502,7 @@ fmtentry(fp)
 			*dp++ = '@';
 		else if (fp->ftype == 's')
 			*dp++ = '=';
-		else if (fp->fflags & 0111)
+		else if (fp->fmode & 0111)
 			*dp++ = '*';
 	}
 	if (lflg && fp->flinkto) {
@@ -521,18 +531,19 @@ char *
 fmtsize(p)
 	register struct afile *p;
 {
-	static char sizebuf[32];
+	static char sizebuf[16];
 
 	(void) sprintf(sizebuf, "%4ld ", kbytes(dbtob(p->fblks)));
 	return (sizebuf);
 }
 
 char *
-fmtlstuff(p)
+fmtlstuff(p, maxflags)
 	register struct afile *p;
+	int maxflags;
 {
 	static char lstuffbuf[256];
-	char gname[32], uname[32], fsize[32], ftime[32];
+	char gname[32], uname[32], fsize[32], ftime[32], fflags[64];
 	register char *lp = lstuffbuf;
 
 	/* type mode uname gname fsize ftime */
@@ -551,6 +562,10 @@ fmtlstuff(p)
 	  else
 		(void) sprintf(gname, "%-9u", p->fgid);
 	}
+/* get flags */
+	if (oflg)
+		(void) sprintf(fflags, "%-*s ", maxflags, 
+				flags_to_string(p->fflags, "-"));
 /* get fsize */
 	if (p->ftype == 'b' || p->ftype == 'c')
 		(void) sprintf(fsize, "%3d,%4d",
@@ -568,9 +583,9 @@ fmtlstuff(p)
 	}
 /* splat */
 	*lp++ = p->ftype;
-	lp = fmtmode(lp, p->fflags);
-	(void) sprintf(lp, "%3d %s%s%s%s",
-	    p->fnl, uname, gflg ? gname : "", fsize, ftime);
+	lp = fmtmode(lp, p->fmode);
+	(void) sprintf(lp, "%3d %s%s%s%s%s",
+	    p->fnl, uname, gflg ? gname : "", oflg ? fflags : "", fsize, ftime);
 	return (lstuffbuf);
 }
 
