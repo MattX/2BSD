@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.19.6 (2.11BSD GTE) 1995/05/02
+#	@(#)Makefile	5.19.7 (2.11BSD GTE) 1995/06/09
 #
 DESTDIR=
 CFLAGS=	-O
@@ -11,8 +11,8 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	adb ar as awk chflags chpass csh diff hostname ld login ls make nm \
-	passwd sed sh sysctl test tp
+SUBDIR=	adb ar as awk chflags chpass csh diff disklabel hostname ld login \
+	ls make nm passwd sed sh sysctl test tp
 
 # Shell scripts that need only be installed and are never removed.
 #
