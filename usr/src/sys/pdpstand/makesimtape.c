@@ -1,5 +1,5 @@
 /*
- *	@(#)makesimtape.c	2.0 (2.11BSD) 1997/8/7
+ *	@(#)makesimtape.c	2.1 (2.11BSD) 1998/12/31
  *		Hacked 'maketape.c' to write a file in a format suitable for
  *		use with Bob Supnik's PDP-11 simulator (V2.3) emulated tape 
  *		driver.
@@ -32,7 +32,8 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 	{
-	int i, j = 0, k = 0, zero = 0;
+	int i, j = 0, k = 0;
+	long zero = 0;
 	register char	*outfile = NULL, *infile = NULL;
 	FILE *mf;
 	struct	stat	st;

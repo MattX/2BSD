@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)mail.c	4.33.4 (2.11BSD GTE) 1997/10/2";
+static char sccsid[] = "@(#)mail.c	4.33.5 (2.11BSD) 1998/12/31";
 #endif
 
 #include <sys/param.h>
@@ -595,9 +595,10 @@ sendmail(n, name, fromaddr)
 	char *name, *fromaddr;
 {
 	char file[256];
-	int mask, fd;
+	int fd;
 	struct passwd *pw;
 	char buf[128];
+	off_t oldsize;
 
 	if (*name=='!')
 		name++;
@@ -610,19 +611,36 @@ sendmail(n, name, fromaddr)
 	cat(file, maildir, name);
 	if (!safefile(file))
 		return(0);
-	fd = open(file, O_WRONLY | O_CREAT, MAILMODE);
-	if (fd >= 0) {
-		flock(fd, LOCK_EX);
+	fd = open(file, O_WRONLY | O_CREAT | O_EXLOCK, MAILMODE);
+	if (fd >= 0)
 		malf = fdopen(fd, "a");
-	}
 	if (fd < 0 || malf == NULL) {
 		close(fd);
 		printf("mail: %s: cannot append\n", file);
 		return(0);
 	}
 	fchown(fd, pw->pw_uid, pw->pw_gid);
-	(void)sprintf(buf, "%s@%ld\n", name, ftell(malf));
-	copylet(n, malf, ORDINARY);
+	oldsize = ftell(malf);
+	(void)sprintf(buf, "%s@%ld\n", name, oldsize);
+
+	copylet(n, malf, ORDINARY);     /* Try to deliver the message */
+
+	/* If there is any error during the delivery of the message,
+	 * the mail file may be corrupted (incomplete last line) and
+	 * any subsequent mail will be apparently lost, since the
+	 * <NL> before the 'From ' won't be there.  So, restore the
+	 * file to the pre-delivery size and report an error.
+	 *
+	 * fflush does "_flag |= _IOERR" so we don't need to check both the
+	 # return from fflush and the ferror status.
+	*/
+	(void)fflush(malf);
+	if (ferror(malf)) {
+		printf("mail: %s: cannot append\n", file);
+		ftruncate(fd, oldsize);
+		fclose(malf);
+		return(0);
+	}
 	fclose(malf);
 	notifybiff(buf);
 	return(1);
