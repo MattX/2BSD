@@ -1,10 +1,11 @@
-#ifndef lint
-static char sccsid[] = "@(#)dc.c	4.3	(Berkeley)	4/26/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)dc.c	4.3.1	(2.11BSD)	2000/2/12";
+#endif
 
 #include <stdio.h>
 #include <signal.h>
 #include "dc.h"
+
 main(argc,argv)
 int argc;
 char *argv[];
@@ -1673,6 +1674,9 @@ int size;
 {
 	register struct blk *hdr;
 	register char *ptr;
+
+	if (size == 0)
+		size++;		/* malloc returns NULL for 0 length requests */
 	all++;
 	nbytes += size;
 	ptr = malloc((unsigned)size);

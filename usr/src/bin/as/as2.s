@@ -2,7 +2,7 @@
 /	calling convention in three places.
 
 	.globl	_signal, _close, _lseek, _unlink, _umask, _chmod, __exit
-	.globl	_write, _read, _brk, _end, _open, _creat, _realloc, _fchmod
+	.globl	_write, _read, _brk, _end, _open, _realloc, _fchmod
 	.globl	pass1, hshsiz, outmod, dot, dotdot, error
 	.globl	checkeos, curfb, savdot, ch, line, savop, inbuf, errflg
 	.globl	fbptr, fbtbl, symnum, hshtab, symblk, symleft, dotrel
@@ -45,7 +45,8 @@ pass1:
 	mov	hshtab,-(sp)
 	jsr	pc,_realloc		/ hshtab = realloc(hshtab, r0)
 	mov	r0,hshtab
-	/ check for failure?
+	bne	1f
+	iot				/ should never happen
 1:
 	mov	hshtab,r1
 	mov	usymtab,r2
@@ -112,7 +113,8 @@ pass1:
 	inc	passno
 	cmp	outmod,$777
 	beq	1f
-	jmp	aexit
+	jsr	pc,aexit
+/ not reached
 1:
 	jsr	pc,setup
 	inc	bsssiz
@@ -199,7 +201,8 @@ pass1:
 9:
 	mov	$txtp,-(sp)
 	jsr	pc,flush
-	br	aexit
+	jsr	pc,aexit
+/ not reached
 
 saexit:
 	mov	pc,errflg
@@ -797,7 +800,8 @@ wrterr:
 	mov	$1,-(sp)
 	jsr	pc,_write
 	add	$6,sp
-	jmp	saexit
+	jsr	pc,saexit
+/ not reached
 
 	.data
 9:

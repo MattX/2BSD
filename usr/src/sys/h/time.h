@@ -3,11 +3,13 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)time.h	1.2 (2.11BSD GTE) 1/14/95
+ *	@(#)time.h	1.3 (2.11BSD) 2000/4/21
  */
 
 #ifndef	_SYS_TIME_H_
 #define	_SYS_TIME_H_
+
+#include <sys/types.h>
 
 /*
  * Structure returned by gettimeofday(2) system call,
@@ -16,6 +18,16 @@
 struct timeval {
 	long	tv_sec;		/* seconds */
 	long	tv_usec;	/* and microseconds */
+};
+
+/*
+ * Structure defined by POSIX.4 to be like a timeval but with nanoseconds
+ * instead of microseconds.  Silly on a PDP-11 but keeping the names the
+ * same makes life simpler than changing the names.
+*/
+struct timespec {
+	time_t tv_sec;		/* seconds */
+	long   tv_nsec;		/* and nanoseconds */
 };
 
 struct timezone {

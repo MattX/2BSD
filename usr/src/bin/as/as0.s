@@ -1,4 +1,4 @@
-	.globl	_main, _write, _close, _execl, __exit, _creat, _brk
+	.globl	_main, _write, _close, _execl, __exit, _brk
 	.globl	_read, _signal, _stat, _open, _mkstemp, _calloc, _realloc
 
 	.globl	error, errore, errora, checkeos, pass1, aexit, argb
@@ -203,7 +203,8 @@ _main:
 
 	tst	errflg			/ any errors?
 	beq	1f			/ yes - br
-	jmp	aexit
+	jsr	pc,aexit
+/ not reached
 1:
 	inc	passno			/ go from -1 to 0
 	clr	line			/ reset line number
@@ -544,7 +545,8 @@ rname:
 	mov	$1,-(sp)
 	jsr	pc,_write
 	add	$6,sp
-	jmp	aexit
+	jsr	pc,aexit
+/ not reached
 
 	.data
 timesaround: 0
@@ -760,7 +762,9 @@ rch:
 	beq	2f
 	mov	$'i,r5
 	jsr	pc,error
-	jmp	aexit
+	jsr	pc,aexit
+/ not reached
+
 2:
 / check for the filename arguments of "-" or "--", these mean to read 'stdin'.
 / Additional filenames are permitted and will be processed when EOF
@@ -790,7 +794,8 @@ rch:
 	mov	*curarg,-(sp)
 	jsr	pc,filerr
 	tst	(sp)+
-	jmp	aexit
+	jsr	pc,aexit
+/not reached
 2:
 	mov	$1,line
 	mov	r4,-(sp)
@@ -968,7 +973,8 @@ rsch:
 4:
 	mov	$'<,r5
 	jsr	pc,error
-	jmp	aexit
+	jsr	pc,aexit
+/ not reached
 
 	.data
 schar:

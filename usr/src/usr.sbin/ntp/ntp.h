@@ -2,6 +2,9 @@
 
 /*
  *  $Log:	ntp.h,v $
+ * Revision 3.4.1.9 2000/04/11 20:55:00 sms
+ * Remove short name hacks - 2.11BSD has long variable names.
+ *
  * Revision 3.4.1.8  95/01/27  17:20:14  sms
  * Fix name 'struct clockinfo' name collision with sysctl.h by renaming our
  * structure xclockinfo.
@@ -413,18 +416,3 @@ struct ntpinfo {
 	u_char fill3;
 	u_char fill4;
 };
-
-#ifdef	pdp11
-#define double_to_s_fixed Adouble_to_s_fixed
-#define adjtime2 Aadjtime2
-#define kern_tickadj Akern_tickadj
-#define refclock Brefclock
-#define read_clock Aread_clock
-#define drift_comp Adrift_comp
-#define init_clock Ainit_clock
-#define stratums Astratums
-#define peer_switches Apeer_switches
-#define refclock_input Arefclock_input
-#define read_clock_local Bread_clock_local
-#define init_clock_local Binit_clock_local
-#endif

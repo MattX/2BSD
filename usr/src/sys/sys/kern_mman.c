@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_mman.c	1.2 (2.11BSD) 1997/12/31
+ *	@(#)kern_mman.c	1.3 (2.11BSD) 2000/2/20
  */
 
 #include "param.h"
@@ -14,15 +14,6 @@
 #include "vm.h"
 #include "text.h"
 #include "systm.h"
-
-/*
- * 4.3 compatibility 
-*/
-getpagesize()
-{
-
-	u.u_r.r_val1 = NBPG * CLSIZE;
-}
 
 sbrk()
 {

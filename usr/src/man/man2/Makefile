@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.10 (2.11BSD) 1999/9/10
+#	@(#)Makefile	2.11 (2.11BSD) 2000/3/4
 #
 MDIR=	/usr/man/cat2
 SRCS=	accept.2 access.2 acct.2 adjtime.2 bind.2 brk.2 chdir.2 chmod.2 \
@@ -73,6 +73,7 @@ P=${DESTDIR}${MDIR}
 REM= sbrk.0 dup2.0 fstat.0 lstat.0 readv.0 recvfrom.0 sendmsg.0 recvmsg.0 \
 	sendto.0 fstatfs.0 wait3.0 wait4.0 waitpid.0 fchdir.0 fchflags.0 \
 	fchmod.0 fchown.0 umount.0 writev.0 getppid.0 ftruncate.0 \
+	pselect.0 \
 	sethostid.0 setitimer.0 setrlimit.0 setsockopt.0 sethostname.0 \
 	setpriority.0 settimeofday.0 setlogin.0 geteuid.0 setgid.0 \
 	seteuid.0 setegid.0 getegid.0
@@ -100,6 +101,7 @@ install: _make_01
 	ln ${P}/chmod.0 ${P}/fchmod.0
 	ln ${P}/chown.0 ${P}/fchown.0
 	ln ${P}/mount.0 ${P}/umount.0
+	ln ${P}/select.0 ${P}/pselect.0
 	ln ${P}/write.0 ${P}/writev.0
 	ln ${P}/getpid.0 ${P}/getppid.0
 	ln ${P}/truncate.0 ${P}/ftruncate.0

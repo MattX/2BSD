@@ -1,3 +1,4 @@
+/ 2000/04/06 - make 'nofault' global so toyset.o can use it
 / 1995/06/04 - devsw[] entries are 14. bytes, need a tape seek routine entry.
 / 1995/06/02 - Modifications for split I/D to work.  The vectors need to be
 /	       in 'data' space.
@@ -111,7 +112,7 @@ trap:
 	rtt
 
 	.data
-.globl	_cputype, _bootcsr, _bootdev, _ssr3copy, _bootctlr
+.globl	nofault, _cputype, _bootcsr, _bootdev, _ssr3copy, _bootctlr
 
 nofault:	.=.+2	/ where to go on predicted trap
 _cputype:	.=.+2	/ cpu type (currently 44, 70, 73)

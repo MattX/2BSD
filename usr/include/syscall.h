@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscall.h	5.4.10 (2.11BSD) 1999/9/10
+ *	@(#)syscall.h	5.4.11 (2.11BSD) 2000/2/20
  */
 
 /*
@@ -18,7 +18,7 @@
 #define	SYS_open	5
 #define	SYS_close	6
 #define	SYS_wait4	7
-				/* 8 - old creat */
+				/* 8 is old; creat */
 #define	SYS_link	9
 #define	SYS_unlink	10
 #define	SYS_execv	11
@@ -61,7 +61,7 @@
 #define	SYS_getegid	48
 #define	SYS_setgid	49
 #define	SYS_setegid	50
-				/* 51 was acct */
+				/* 51 is old; acct */
 #define	SYS_phys	52
 #define	SYS_lock	53
 #define	SYS_ioctl	54
@@ -74,11 +74,11 @@
 #define	SYS_chroot	61
 #define	SYS_fstat	62
 				/* 63 is unused */
-				/* 64 - old getpagesize */
-				/* 65 is unused 4.3: mremap */
+				/* 64 is old; getpagesize */
+#define	SYS_pselect	65
 #define	SYS_vfork	66
-				/* 67 is old: vread */
-				/* 68 is old: vwrite */
+				/* 67 is old; vread */
+				/* 68 is old; vwrite */
 #define	SYS_sbrk	69
 #define	SYS_sstk	70
 				/* 71 is unused 4.3: mmap */
@@ -87,7 +87,7 @@
 				/* 74 is unused 4.3: mprotect */
 				/* 75 is unused 4.3: madvise */
 #define	SYS_vhangup	76
-				/* 77 is old: vlimit */
+				/* 77 is old; vlimit */
 				/* 78 is unused 4.3: mincore */
 #define	SYS_getgroups	79
 #define	SYS_setgroups	80
@@ -97,8 +97,8 @@
 				/* 84 is old; wait,wait3 */
 #define	SYS_swapon	85
 #define	SYS_getitimer	86
-#define	SYS_gethostname	87
-#define	SYS_sethostname	88
+				/* 87 is old; gethostname */
+				/* 88 is old; sethostname */
 #define	SYS_getdtablesize 89
 #define	SYS_dup2	90
 				/* 91 is unused 4.3: getdopt */
@@ -122,27 +122,27 @@
  * 108 thru 112 are 4.3BSD compatibility syscalls.  sigstack has to remain
  * defined because no replacement routine exists.  Sigh.
 */
-				/* 108 - old sigvec */
-				/* 109 - old sigblock */
-				/* 110 - old sigsetmask */
-				/* 111 - old sigpause */
+				/* 108 is old; sigvec */
+				/* 109 is old; sigblock */
+				/* 110 is old; sigsetmask */
+				/* 111 is old; sigpause */
 #define	SYS_sigstack	112
 
 #define	SYS_recvmsg	113
 #define	SYS_sendmsg	114
-				/* 115 is old vtrace */
+				/* 115 is old; vtrace */
 #define	SYS_gettimeofday 116
 #define	SYS_getrusage	117
 #define	SYS_getsockopt	118
-				/* 119 is old resuba */
+				/* 119 is old; resuba */
 #define	SYS_readv	120
 #define	SYS_writev	121
 #define	SYS_settimeofday 122
 #define	SYS_fchown	123
 #define	SYS_fchmod	124
 #define	SYS_recvfrom	125
-				/* 126 - old setreuid */
-				/* 127 - old setregid */
+				/* 126 is old; setreuid */
+				/* 127 is old; setregid */
 #define	SYS_rename	128
 #define	SYS_truncate	129
 #define	SYS_ftruncate	130
@@ -157,8 +157,8 @@
 				/* 139 is unused */
 #define	SYS_adjtime	140
 #define	SYS_getpeername	141
-				/* 142 - old gethostid */
-				/* 143 - old sethostid */
+				/* 142 is old; gethostid */
+				/* 143 is old; sethostid */
 #define	SYS_getrlimit	144
 #define	SYS_setrlimit	145
 #define	SYS_killpg	146

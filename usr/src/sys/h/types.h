@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)types.h	1.4 (2.11BSD Berkeley) 1996/1/12
+ *	@(#)types.h	1.4.1 (2.11BSD) 2000/2/28
  */
 
 #ifndef _TYPES_
@@ -50,30 +50,12 @@ typedef	int	pid_t;
 typedef	u_short	mode_t;
 
 #define	NBBY	8		/* number of bits in a byte */
-/*
- * Select uses bit masks of file descriptors in longs.
- * These macros manipulate such bit fields (the filesystem macros use chars).
- * FD_SETSIZE may be defined by the user, but the default here
- * should be >= NOFILE (param.h).
- */
-#ifndef	FD_SETSIZE
-#define	FD_SETSIZE	32
-#endif
 
-typedef long	fd_mask;
-#define NFDBITS	(sizeof(fd_mask) * NBBY)	/* bits per mask */
 #ifndef howmany
 #define	howmany(x, y)	(((x)+((y)-1))/(y))
 #endif
 
-typedef	struct fd_set {
-	fd_mask	fds_bits[1];
-} fd_set;
-
-#define	FD_SET(n, p)	((p)->fds_bits[(n)/NFDBITS] |= (1L << ((n) % NFDBITS)))
-#define	FD_CLR(n, p)	((p)->fds_bits[(n)/NFDBITS] &= ~(1L << ((n) % NFDBITS)))
-#define	FD_ISSET(n, p)	((p)->fds_bits[(n)/NFDBITS] & (1L << ((n) % NFDBITS)))
-#define FD_ZERO(p)	bzero((char *)(p), sizeof(*(p)))
+#include <sys/select.h>
 
 typedef char	bool_t;		/* boolean */
 typedef u_int	memaddr;	/* core or swap address */

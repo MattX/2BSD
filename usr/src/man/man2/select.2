@@ -2,17 +2,26 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)select.2	6.5.1 (2.11BSD) 1999/9/10
+.\"	@(#)select.2	6.5.2 (2.11BSD) 2000/3/4
 .\"
-.TH SELECT 2 "September 10, 1999"
+.TH SELECT 2 "March 4, 2000"
 .UC 5
 .SH NAME
-select \- synchronous I/O multiplexing
+pselect, select \- synchronous I/O multiplexing
 .SH SYNOPSIS
 .nf
 .ft B
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/select.h>
+#include <signal.h>
+.PP
+.ft B
+nfound = pselect(nfds, readfds, writefds, exceptfds, timeout, sigmask);
+int nfound, nfds;
+fd_set *readfds, *writefds, *exceptfds;
+struct timespec *timeout;
+sigset_t *sigmask;
 .PP
 .ft B
 nfound = select(nfds, readfds, writefds, exceptfds, timeout)
@@ -29,8 +38,10 @@ int fd;
 fd_set fdset;
 .fi
 .SH DESCRIPTION
-.I Select
-examines the I/O descriptor sets whose addresses are passed in
+.I Pselect
+and
+.I select
+examine the I/O descriptor sets whose addresses are passed in
 .IR readfds ,
 .IR writefds ,
 and
@@ -38,6 +49,14 @@ and
 to see if some of their descriptors
 are ready for reading, are ready for writing, or have an exceptional
 condition pending, respectively.
+The two functions are identical except for the type and format of the
+.I timeout
+value, and the additonal 
+.I sigmask
+parameter supplied to the
+.IR pselect ()
+call.
+.PP
 The first
 .I nfds
 descriptors are checked in each set;
@@ -85,9 +104,24 @@ If
 is a non-zero pointer, it specifies a maximum interval to wait for the
 selection to complete.  If 
 .I timeout
-is a zero pointer, the select blocks indefinitely.  To affect a poll, the
+is a zero pointer, 
+.I select
+blocks indefinitely.  To affect a poll, the
 .I timeout
-argument should be non-zero, pointing to a zero-valued timeval structure.
+argument should be non-zero, pointing to a zero-valued timeval
+structure.
+.PP
+If the 
+.I sigmask
+parameter to
+.IR pselect ()
+is not NULL, it points to a signal mask that replaces the previous
+signal mask for the process for the duration of the call,
+and the previous mask is restored upon return; see sigprocmask(3).
+This is normally used so that signals can be blocked while preparing
+for a call to
+.IR pselect ()
+and then atomically unblocking the signals while selecting.
 .PP
 Any of
 .IR readfds ,
@@ -151,3 +185,7 @@ store the number of ticks till expiration the maximum value of a kernel
 timeout is 32767 ticks.  In the US (60hz power) this gives a maximum
 timeout of approximately 9 minutes.  In countries using 50hz power 
 the maximum timeout is about 13 minutes.
+.PP
+.I struct timespec
+on a PDP\-11 is silly since the hardware has nowhere near microsecond
+much less nanosecond clock resolution.

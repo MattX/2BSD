@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.7 (2.11BSD) 1999/9/10
+ *	@(#)sys_generic.c	1.8 (2.11BSD) 2000/2/28
  */
 
 #include "param.h"
@@ -270,19 +270,63 @@ ioctl()
 
 int	nselcoll;
 
+struct	pselect_args
+	{
+	int		nd;
+	fd_set		*in;
+	fd_set		*ou;
+	fd_set		*ex;
+	struct	timespec *ts;
+	sigset_t	*maskp;
+	};
+
 /*
  * Select system call.
- */
+*/
+int
 select()
 	{
-	register struct uap
+	struct uap
 		{
 		int	nd;
 		fd_set	*in, *ou, *ex;
 		struct	timeval *tv;
 		} *uap = (struct uap *)u.u_ap;
+	register struct pselect_args *pselargs = (struct pselect_args *)uap;
+
+	/*
+	 * Fake the 6th parameter of pselect.  See the comment below about the
+	 * number of parameters!
+	*/
+	pselargs->maskp = 0;
+	return(u.u_error = select1(pselargs, 0));
+	}
+
+/*
+ * pselect (posix select)
+ *
+ * N.B.  There is only room for 6 arguments - see user.h - so pselect() is
+ *       at the maximum!  See user.h
+*/
+int
+pselect()
+	{
+	register struct	pselect_args *uap = (struct pselect_args *)u.u_ap;
+
+	return(u.u_error = select1(uap, 1));
+	}
+
+/*
+ * Select helper function common to both select() and pselect()
+ */
+static int
+select1(uap, is_pselect)
+	register struct pselect_args *uap;
+	int	is_pselect;
+	{
 	fd_set ibits[3], obits[3];
 	struct timeval atv;
+	sigset_t sigmsk;
 	unsigned int timo = 0;
 	register int error, ni;
 	int ncoll, s;
@@ -305,11 +349,32 @@ select()
 	getbits(ex, 2);
 #undef	getbits
 
-	if	(uap->tv)
+	if	(uap->maskp)
 		{
-		error = copyin((caddr_t)uap->tv, (caddr_t)&atv, sizeof (atv));
+		error = copyin(uap->maskp, &sigmsk, sizeof(sigmsk));
+		sigmsk &= ~sigcantmask;
 		if	(error)
 			goto done;
+		}
+	if	(uap->ts)
+		{
+		error = copyin((caddr_t)uap->ts, (caddr_t)&atv, sizeof (atv));
+		if	(error)
+			goto done;
+/*
+ * nanoseconds ('struct timespec') on a PDP-11 are stupid since a 50 or 60 hz
+ * clock is all we have.   Keeping the names and logic made porting easier
+ * though.
+*/
+		if	(is_pselect)
+			{
+			struct	timespec *ts = (struct timespec *)&atv;
+
+			if	(ts->tv_sec == 0 && ts->tv_nsec < 1000)
+					atv.tv_usec = 1;
+				else
+					atv.tv_usec = ts->tv_nsec / 1000;
+			}
 		if	(itimerfix(&atv))
 			{
 			error = EINVAL;
@@ -327,7 +392,7 @@ retry:
 	if	(error || u.u_r.r_val1)
 		goto done;
 	s = splhigh();
-	if	(uap->tv)
+	if	(uap->ts)
 		{
 		/* this should be timercmp(&time, &atv, >=) */
 		if	((time.tv_sec > atv.tv_sec || (time.tv_sec == atv.tv_sec
@@ -347,7 +412,20 @@ retry:
 		goto retry;
 		}
 	u.u_procp->p_flag &= ~P_SELECT;
+/*
+ * If doing a pselect() need to set a temporary mask while in tsleep.  
+ * Returning from pselect after catching a signal the old mask has to be
+ * restored.  Save it here and set the appropriate flag.
+*/
+	if	(uap->maskp)
+		{
+		u.u_oldmask = u.u_procp->p_sigmask;
+		u.u_psflags |= SAS_OLDMASK;
+		u.u_procp->p_sigmask = sigmsk;
+		}
 	error = tsleep(&selwait, PSOCK | PCATCH, timo);
+	if	(uap->maskp)
+		u.u_procp->p_sigmask = u.u_oldmask;
 	splx(s);
 	if	(error == 0)
 		goto retry;
@@ -372,7 +450,7 @@ done:
 		putbits(ex, 2);
 #undef putbits
 		}
-	return(u.u_error = error);
+	return(error);
 	}
 
 selscan(ibits, obits, nfd, retval)

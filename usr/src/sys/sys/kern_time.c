@@ -3,13 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_time.c	1.4 (2.11BSD GTE) 1997/2/14
+ *	@(#)kern_time.c	1.5 (2.11BSD) 2000/4/9
  */
 
 #include "param.h"
 #include "user.h"
 #include "proc.h"
 #include "kernel.h"
+#include "systm.h"
 
 /* 
  * Time of day and interval timer support.
@@ -60,6 +61,8 @@ settimeofday()
 		if (u.u_error)
 			return;
 		setthetime(&atv);
+		if	(u.u_error)
+			return;
 	}
 	if (uap->tzp && suser()) {
 		u.u_error = copyin((caddr_t)uap->tzp, (caddr_t)&atz,
@@ -70,24 +73,42 @@ settimeofday()
 }
 
 setthetime(tv)
-	struct timeval *tv;
-{
-	int s;
+	register struct timeval *tv;
+	{
+	int	s;
 
-	if (!suser())
+	if	(!suser())
 		return;
+#ifdef	NOTNOW
+/*
+ * If the system is secure, we do not allow the time to be set to an
+ * earlier value.  The time may be slowed (using adjtime) but not set back.
+ *
+ * NOTE:  Can not do this until ntpd is updated to deal with the coarse (50, 60
+ *	  hz) clocks.  Ntpd wants to adjust time system clock a few microseconds
+ *	  at a time (which gets rounded to 0 in adjtime below). If that fails 
+ *	  ntpd uses settimeofday to step the time backwards which obviously 
+ *	  will fail if the next 'if' is enabled - all that does is fill up the
+ *	  logfiles with "can't set time" messages and the time keeps drifting.
+*/
+	if	(securelevel > 0 && timercmp(tv, &time, <))
+		{
+		u.u_error = EPERM;	/* XXX */
+		return;
+		}
+#endif
 /* WHAT DO WE DO ABOUT PENDING REAL-TIME TIMEOUTS??? */
 	boottime.tv_sec += tv->tv_sec - time.tv_sec;
 	s = splhigh();
 	time = *tv; lbolt = time.tv_usec / mshz;
 	splx(s);
-#ifndef pdp11
+#ifdef	notyet
 	/*
 	 * if you have a time of day board, use it here
 	 */
 	resettodr();
 #endif
-}
+	}
 
 adjtime()
 {

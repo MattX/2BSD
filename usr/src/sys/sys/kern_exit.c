@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.5 (2.11BSD) 1999/9/13
+ *	@(#)kern_exit.c	2.6 (2.11BSD) 2000/2/20
  */
 
 #include "param.h"
@@ -42,7 +42,7 @@ rexit()
 /*
  * Exit: deallocate address space and other resources,
  * change proc state to zombie, and unlink proc from allproc
- * list.  Save exit status and rusage for wait().
+ * list.  Save exit status and rusage for wait4().
  * Check for child processes and orphan them.
  */
 exit(rv)
@@ -163,28 +163,6 @@ again:
 		struct rusage *rusage;
 		int compat;
 		};
-
-owait()
-{
-	int retval[2];
-	register struct	args *uap = (struct args *)u.u_ap;
-
-	if ((u.u_ar0[RPS] & PSL_ALLCC) != PSL_ALLCC) {
-		uap->options = 0;
-		uap->rusage = 0;
-	} else {
-		uap->options = u.u_ar0[R0];
-		uap->rusage = (struct rusage *)u.u_ar0[R1];
-	}
-	uap->pid = WAIT_ANY;
-	uap->status = 0;
-	uap->compat = 1;
-	u.u_error = wait1(u.u_procp, uap, retval);
-	if (!u.u_error) {
-		u.u_r.r_val1 = retval[0];
-		u.u_r.r_val2 = retval[1];
-	}
-}
 
 wait4()
 {

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.13 (2.11BSD) 1999/9/13
+ *	@(#)ufs_syscalls.c	1.14 (2.11BSD) 2000/2/20
  */
 
 #include "param.h"
@@ -114,20 +114,6 @@ open()
 }
 
 /*
- * Creat system call.
- */
-creat()
-{
-	register struct a {
-		char	*fname;
-		int	fmode;
-	} *uap = (struct a *)u.u_ap;
-
-	u.u_error = copen(O_WRONLY|O_CREAT|O_TRUNC, uap->fmode, uap->fname);
-}
-
-/*
- * Common code for open and creat.
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
  */

@@ -35,7 +35,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_prot.c	8.9.1 (2.11BSD) 1997/11/28
+ *	@(#)kern_prot2.c  8.9.2 (2.11BSD) 2000/2/20
  */
 
 #include "param.h"
@@ -161,63 +161,3 @@ _setegid(egid)
 	u.u_acflag |= ASUGID;
 	return (u.u_error = 0);
 	}
-
-/* 4.3 compatibility */
-
-int
-setreuid()
-{
-	register struct a {
-		int ruid;
-		int euid;
-	} *uap = (struct a *)u.u_ap;
-
-	/*
-	 * If ruid == euid then setreuid is being used to emulate setuid,
-	 * just do it.
-	 */
-	if (uap->ruid != -1 && uap->ruid == uap->euid)
-		return (_setuid(uap->ruid));
-	/*
-	 * Otherwise we assume that the intent of setting ruid is to be
-	 * able to get back ruid priviledge (i.e. swapping ruid and euid).
-	 * So we make sure that we will be able to do so, but do not
-	 * actually set the ruid.
-	 */
-	if (uap->ruid != (uid_t)-1 && uap->ruid != u.u_ruid &&
-	    uap->ruid != u.u_svuid)
-		return (u.u_error = EPERM);
-	if (uap->euid == (uid_t)-1)
-		return (u.u_error = 0);
-	return (_seteuid(uap->euid));
-}
-
-/* 4.3 compatibility */
-
-int
-setregid()
-{
-	register struct a {
-		int rgid;
-		int egid;
-	} *uap = (struct a *)u.u_ap;
-
-	/*
-	 * If rgid == egid then setreuid is being used to emulate setgid,
-	 * just do it.
-	 */
-	if (uap->rgid != -1 && uap->rgid == uap->egid)
-		return (_setgid(uap->rgid));
-	/*
-	 * Otherwise we assume that the intent of setting rgid is to be
-	 * able to get back rgid priviledge (i.e. swapping rgid and egid).
-	 * So we make sure that we will be able to do so, but do not
-	 * actually set the rgid.
-	 */
-	if (uap->rgid != (gid_t)-1 && uap->rgid != u.u_rgid &&
-	    uap->rgid != u.u_svgid)
-		return (u.u_error = EPERM);
-	if (uap->egid == (gid_t)-1)
-		return (u.u_error = 0);
-	return (_setegid(uap->egid));
-}

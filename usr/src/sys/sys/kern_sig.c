@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.12 (2.11BSD) 1999/9/24
+ *	@(#)kern_sig.c	1.13 (2.11BSD) 2000/2/20
  */
 
 #include "param.h"
@@ -50,125 +50,6 @@ cansignal(q, signum)
 		 (signum == SIGCONT && inferior(q)))
 		return(1);
 	return(0);
-	}
-
-/*
- * 4.3 Compatibility
- */
-sigvec()
-{
-	register struct a {
-		int	(*sigtramp)();
-		int	signo;
-		struct	sigvec *nsv;
-		struct	sigvec *osv;
-	} *uap = (struct a  *)u.u_ap;
-	struct sigvec vec;
-	register struct sigvec *sv;
-	register int sig;
-	struct	proc	*p;
-	long bit;
-	int error = 0;
-
-	/*
-	 * Save user trampoline code entry address.
-	 */
-	u.u_pcb.pcb_sigc = uap->sigtramp;
-	p = u.u_procp;
-	sig = uap->signo;
-	if (sig <= 0 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
-		error = EINVAL;
-		goto out;
-	}
-	sv = &vec;
-	if (uap->osv) {
-		sv->sv_handler = u.u_signal[sig];
-		sv->sv_mask = u.u_sigmask[sig];
-		bit = sigmask(sig);
-		sv->sv_flags = 0;
-		if ((u.u_sigonstack & bit) != 0)
-			sv->sv_flags |= SV_ONSTACK;
-		if ((u.u_sigintr & bit) != 0)
-			sv->sv_flags |= SV_INTERRUPT;
-		if (p->p_flag & P_NOCLDSTOP)
-			sv->sv_flags |= SA_NOCLDSTOP;
-		error = copyout((caddr_t)sv, (caddr_t)uap->osv, sizeof (vec));
-		if (error)
-			goto out;
-	}
-	if (uap->nsv) {
-		error = copyin((caddr_t)uap->nsv, (caddr_t)sv, sizeof (vec));
-		if (error)
-			goto out;
-		if (sig == SIGCONT && sv->sv_handler == SIG_IGN) {
-			error = EINVAL;
-			goto out;
-		}
-		sv->sv_flags ^= SA_RESTART;	/* opposite of SV_INTERRUPT */
-		setsigvec(sig, (struct sigaction *)sv);
-	}
-out:
-	return(u.u_error = error);
-}
-
-/*
- * 4.3 Compatibility
-*/
-sigblock()
-{
-	register struct a {
-		long	mask;
-	} *uap = (struct a *)u.u_ap;
-	register struct proc *p = u.u_procp;
-
-	(void) _splhigh();
-	u.u_r.r_long = p->p_sigmask;
-	p->p_sigmask |= uap->mask &~ sigcantmask;
-	(void) _spl0();
-	return(0);
-}
-
-/*
- * 4.3 Compatibility
-*/
-sigsetmask()
-{
-	register struct a {
-		long	mask;
-	} *uap = (struct a *)u.u_ap;
-	register struct proc *p = u.u_procp;
-
-	(void) _splhigh();
-	u.u_r.r_long = p->p_sigmask;
-	p->p_sigmask = uap->mask &~ sigcantmask;
-	(void) _spl0();
-	return(0);
-}
-
-/*
- * 4.3 Compatibility
-*/
-sigpause()
-	{
-	struct a {
-		long	mask;
-		} *uap = (struct a *)u.u_ap;
-	register struct proc *p = u.u_procp;
-
-	/*
-	 * When returning from sigpause, we want
-	 * the old mask to be restored after the
-	 * signal handler has finished.  Thus, we
-	 * save it here and mark the proc structure
-	 * to indicate this.
-	 */
-	u.u_oldmask = p->p_sigmask;
-	u.u_psflags |= SAS_OLDMASK;
-	p->p_sigmask = uap->mask &~ sigcantmask;
-	while	(tsleep((caddr_t)&u, PPAUSE|PCATCH, 0) == 0)
-		;
-	/* always return EINTR rather than ERESTART */
-	return(u.u_error = EINTR);	/* XXX */
 	}
 
 /*
@@ -697,9 +578,9 @@ postsig(sig)
 		 * Set the new mask value and also defer further
 		 * occurences of this signal.
 		 *
-		 * Special case: user has done a sigpause.  Here the
+		 * Special case: user has done a sigsuspend.  Here the
 		 * current mask is not of interest, but rather the
-		 * mask from before the sigpause is what we want restored
+		 * mask from before the sigsuspend is what we want restored
 		 * after the signal processing is completed.
 		 */
 		(void) _splhigh();

@@ -1,3 +1,6 @@
+/ April 9, 2000 - modified to probe for the TOY clock rather than checking
+/	the cpu type for 93 or 94.
+
 / the notes say that the TOY clock uses 24 hour time, but then later on
 / mention flags dealing with AM/PM...  So, code is present but disabled
 / to handle 12 hour time.  If this code is needed change the 0 below to
@@ -13,17 +16,20 @@ dayflags=0
 	.globl	TOYCSR
 TOYCSR	= 177526
 
-	.globl	_toyclk
+	.globl	_toyclk, nofault
 	.text
 _toyclk:
 	jsr	r5,csv			/ callable from C, save regs
 	sub	$8.,sp			/ need 8 byte scratch area
 tdata = -20
-	cmp	_cputype,$93.		/ are we a 11/93?
-	beq	1f			/ yes - br
-	cmp	_cputype,$94.		/ are we a 11/94?
-	bne	err			/ no, go return "error"
+	clr	-(sp)
+	mov	$1f, nofault		/ catch trap if no toy clock
+	tst	*$TOYCSR
+	inc	(sp)
 1:
+	clr	nofault			/ done with trap catcher
+	tst	(sp)+			/ did we see a toy clock?
+	beq	err			/ no, go return "error"
 	jsr	pc,initoy		/ initialize the clock for reading
 	mov	r5,(sp)
 	add	$tdata,(sp)		/ pointer to scratch area

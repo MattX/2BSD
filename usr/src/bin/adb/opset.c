@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)opset.c 2.6 (2.11BSD GTE) 1998/1/3";
+static	char	sccsid[] = "@(#)opset.c 2.7 (2.11BSD) 2000/2/28";
 #endif
 
 #include "defs.h"
@@ -140,7 +140,7 @@ char *systab[] = {
 	"open",
 	"close",
 	"wait4",
-	"old creat",		/* 8 - old creat COMPAT-43 */
+	NULL,			/* 8 - unused */
 	"link",
 	"unlink",		/* 10 */
 	"execv",
@@ -196,8 +196,8 @@ char *systab[] = {
 	"chroot",
 	"fstat",
 	NULL,			/* 63 - unused */
-	"old getpagesize",	/* 64 - old getpagesize COMPAT-43 */
-	NULL,			/* 65 - mremap */
+	NULL,			/* 64 - unused */
+	"pselect",		/* 65 - pselect */
 	"vfork",
 	NULL,			/* 67 - unused */
 	NULL,			/* 68 - unused */
@@ -216,11 +216,11 @@ char *systab[] = {
 	"getpgrp",
 	"setpgrp",
 	"setitimer",
-	"old wait",		/* 84 - old wait COMPAT-43 */
+	NULL,			/* 84 - unused */
 	NULL,			/* 85 - unused */
 	"getitimer",
-	"old gethostname",	/* 87 - old gethostname COMPAT-43 */
-	"old sethostname",	/* 88 - old sethostname COMPAT-43 */
+	NULL,			/* 87 - unused */
+	NULL,			/* 88 - unused */
 	"getdtablesize",
 	"dup2",
 	NULL,			/* 91 - unused */
@@ -240,11 +240,11 @@ char *systab[] = {
 	"setsockopt",
 	"listen",
 	"sigsuspend",		/* 107 - sigsuspend */
-	"old sigvec",		/* 108 - sigvec COMPAT-43 */
-	"old sigblock",		/* 109 - sigblock COMPAT-43 */
-	"old sigsetmask",	/* 110 - sigsetmask COMPAT-43 */
-	"old sigpause",		/* 111 - sigpause COMPAT-43 */
-	"old sigstack",		/* 112 - sigstack COMPAT-43 */
+	NULL,			/* 108 - unused */
+	NULL,			/* 109 - unused */
+	NULL,			/* 110 - unused */
+	NULL,			/* 111 - unused */
+	"old sigstack",		/* 112 - sigstack COMPAT-43 for zork */
 	"recvmsg",
 	"sendmsg",
 	NULL,			/* 115 - unused */
@@ -258,8 +258,8 @@ char *systab[] = {
 	"fchown",
 	"fchmod",
 	"recvfrom",
-	"old setreuid",		/* 126 - old setreuid COMPAT-43 */
-	"old setregid",		/* 127 - old setregid COMPAT-43 */
+	NULL,			/* 126 - unused */
+	NULL,			/* 127 - unused */
 	"rename",
 	"truncate",
 	"ftruncate",
@@ -274,8 +274,8 @@ char *systab[] = {
 	NULL,			/* 139 - unused */
 	"adjtime",
 	"getpeername",
-	"old gethostid",	/* 142 - gethostid COMPAT-43 */
-	"old sethostid",	/* 143 - sethostid COMPAT-43 */
+	NULL,			/* 142 - unused */
+	NULL,			/* 143 - unused */
 	"getrlimit",
 	"setrlimit",
 	"killpg",

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.15 (2.11BSD) 1999/9/5
+ *	@(#)init_sysent.c	1.16 (2.11BSD) 2000/2/20
  */
 
 /*
@@ -16,24 +16,20 @@
 int	nosys();
 
 /* 1.1 processes and protection */
-int	sethostid(),gethostid(),sethostname(),gethostname();	/* COMPAT-43 */
 int	getpid();
 int	getppid(), fork(),rexit(),execv(),execve();
-int	owait();					/* COMPAT-43 */
 int	wait4(), getuid(),getgid(),getgroups(),setgroups();
 int	geteuid(), getegid(), getlogin();
 int	getpgrp(),setpgrp(), setlogin();
 int	setgid(), setegid(), setuid(), seteuid();
-int	setregid(), setreuid();				/* COMPAT-43 */
 int	ucall();					/* 2BSD calls */
 
 /* 1.2 memory management */
 int	sbrk();
-int	getpagesize();					/* COMPAT-43 */
 int	lock(),phys(),fetchi(),nostk(),fperr();		/* 2BSD calls */
 
 /* 1.3 signals */
-int	sigvec(),sigblock(),sigsetmask(),sigpause(),sigstack(),sigreturn();
+int	sigstack(),sigreturn();
 int	sigaction(), sigprocmask(), sigpending(), sigaltstack(), sigsuspend();
 int	sigwait(), kill(), killpg();
 
@@ -44,7 +40,7 @@ int	adjtime();
 
 /* 1.5 descriptors */
 int	getdtablesize(),dup(),dup2(),close();
-int	select(),fcntl(),flock();
+int	pselect(),select(),fcntl(),flock();
 
 /* 1.6 resource controls */
 int	getpriority(),setpriority(),getrusage(),getrlimit(),setrlimit();
@@ -60,7 +56,7 @@ int	read(),write(),readv(),writev(),ioctl();
 /* 2.2 file system */
 int	chdir(), fchdir(), chroot();
 int	mkdir(),rmdir(), chflags(), fchflags();
-int	creat(),open(),mknod(),unlink(),stat(),fstat(),lstat();
+int	open(),mknod(),unlink(),stat(),fstat(),lstat();
 int	chown(),fchown(),chmod(),fchmod(),utimes();
 int	link(),symlink(),readlink(),rename();
 int	lseek(),truncate(),ftruncate(),saccess(),fsync();
@@ -119,7 +115,7 @@ struct sysent sysent[] = {
 	3, open,			/*   5 = open */
 	1, close,			/*   6 = close */
 	4, wait4,			/*   7 = wait4 */
-	2, creat,			/*   8 = creat COMPAT-43 */
+	0, nosys,			/*   8 = (old creat) */
 	2, link,			/*   9 = link */
 	1, unlink,			/*  10 = unlink */
 	2, execv,			/*  11 = execv */
@@ -175,8 +171,8 @@ struct sysent sysent[] = {
 	1, chroot,			/*  61 = chroot */
 	2, fstat,			/*  62 = fstat */
 	0, nosys,			/*  63 = reserved */
-	0, getpagesize,			/*  64 = getpagesize COMPAT-43 */
-	0, nosys,			/*  65 = unused */
+	0, nosys,			/*  64 = (old getpagesize) */
+	6, pselect,			/*  65 = pselect */
 	0, vfork,			/*  66 = vfork */
 	0, nosys,			/*  67 = unused */
 	0, nosys,			/*  68 = unused */
@@ -195,11 +191,11 @@ struct sysent sysent[] = {
 	1, getpgrp,			/*  81 = getpgrp */
 	2, setpgrp,			/*  82 = setpgrp */
 	3, setitimer,			/*  83 = setitimer */
-	0, owait,			/*  84 = wait,wait3 COMPAT-43 */
+	0, nosys,			/*  84 = (old wait,wait3) */
 	0, nosys,			/*  85 = unused */
 	2, getitimer,			/*  86 = getitimer */
-	2, gethostname,			/*  87 = gethostname COMPAT-43 */
-	2, sethostname,			/*  88 = sethostname COMPAT-43 */
+	0, nosys,			/*  87 = (old gethostname) */
+	0, nosys,			/*  88 = (old sethostname) */
 	0, getdtablesize,		/*  89 = getdtablesize */
 	2, dup2,			/*  90 = dup2 */
 	0, nosys,			/*  91 = unused */
@@ -219,10 +215,10 @@ struct sysent sysent[] = {
 	ifnet(5, setsockopt),		/* 105 = setsockopt */
 	ifnet(2, listen),		/* 106 = listen */
 	1, sigsuspend,			/* 107 = sigsuspend */
-	4, sigvec,			/* 108 = sigvec COMPAT-43 */
-	2, sigblock,			/* 109 = sigblock COMPAT-43 */
-	2, sigsetmask,			/* 110 = sigsetmask COMPAT-43 */
-	2, sigpause,			/* 111 = sigpause COMPAT-43 */
+	0, nosys,			/* 108 = (old sigvec) */
+	0, nosys,			/* 109 = (old sigblock) */
+	0, nosys,			/* 110 = (old sigsetmask) */
+	0, nosys,			/* 111 = (old sigpause)  */
 	2, sigstack,			/* 112 = sigstack COMPAT-43 */
 	ifnet(3, recvmsg),		/* 113 = recvmsg */
 	ifnet(3, sendmsg),		/* 114 = sendmsg */
@@ -237,8 +233,8 @@ struct sysent sysent[] = {
 	3, fchown,			/* 123 = fchown */
 	2, fchmod,			/* 124 = fchmod */
 	ifnet(6, recvfrom),		/* 125 = recvfrom */
-	2, setreuid,			/* 126 = setreuid - COMPAT43 */
-	2, setregid,			/* 127 = setregid - COMPAT43 */
+	0, nosys,			/* 126 = (old setreuid) */
+	0, nosys,			/* 127 = (old setregid) */
 	2, rename,			/* 128 = rename */
 	3, truncate,			/* 129 = truncate */
 	3, ftruncate,			/* 130 = ftruncate */
@@ -253,8 +249,8 @@ struct sysent sysent[] = {
 	0, nosys,			/* 139 = unused */
 	2, adjtime,			/* 140 = adjtime */
 	ifnet(3, getpeername),		/* 141 = getpeername */
-	0, gethostid,			/* 142 = gethostid COMPAT-43 */
-	2, sethostid,			/* 143 = sethostid COMPAT-43 */
+	0, nosys,			/* 142 = (old gethostid) */
+	0, nosys,			/* 143 = (old sethostid) */
 	2, getrlimit,			/* 144 = getrlimit */
 	2, setrlimit,			/* 145 = setrlimit */
 	2, killpg,			/* 146 = killpg */

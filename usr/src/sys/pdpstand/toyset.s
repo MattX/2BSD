@@ -1,5 +1,10 @@
 TOYCSR	= 177526
 
+/ April 6, 2000 - sms@moe.2bsd.com
+/ Remove the cpu type (93 or 94) restriction and probe for the TOY register.
+/ Some systems have clock boards added _and_ P11 (Begemot Computer Associates'
+/ PDP-11 emulator) have support for the TOY clock.
+/
 / April 10, 1997 - sms@moe.2bsd.com
 / The day of week calculation was incorrect and would return -1 for Saturday
 / rather than 6.  Alan Sieving spotted this one too (toyset.s must be favorite
@@ -24,13 +29,14 @@ TOYCSR	= 177526
 / To not change the date and time simply hit a return and the program will
 / exit, returning control to 'boot'.
 
-	.globl	_main, csv, cret, _printf, _gets, _exit, _cputype, _module
+	.globl	_main, csv, cret, _printf, _gets, _exit, _module
+	.globl	nofault
 
 _main:
 main:
 	jsr	r5,csv			/ srt0.o sets up a C frame...
 
-	jsr	pc,init			/ check cpu type and display current TOY
+	jsr	pc,init			/ probe for clock, display current TOY
 
 	clrb	line			/ init buffer
 	mov	$line,-(sp)
@@ -186,20 +192,21 @@ nosec:
 	clr	r0			/ "exit" status.  ha! ;-)
 	jsr	pc,_exit
 
-/ Check the cpu type - only the 93 and 94 have a TOY.  Then initialize
-/ the TOY and read the current date.  Convert the date into printable
-/ form and print it out along with the prompt.
+/ Probe for the TOY register.  If present initialize the TOY and read the 
+/ current date otherwise print an error message and exit.  Convert the date 
+/ into printable form and print it out along with the prompt.
 
 init:
-	cmp	_cputype,$93.
-	beq	1f
-	cmp	_cputype,$94.
-	beq	1f
+	mov	$1f, nofault		/ catch fault if no TOY clock
+	tst	*$TOYCSR
+	br	2f			/ we have a clock
+1:
 	mov	$errmsg1,-(sp)
 	jsr	pc,_printf
 	mov	$1,r0
 	jsr	pc,_exit
-1:
+2:
+	clr	nofault			/ faults are serious again
 	jsr	pc,initoy		/ init the TOY clock
 	mov	$bcd,-(sp)		/ buffer for the date
 	jsr	pc,_gettoy		/ read the TOY
@@ -372,7 +379,7 @@ Mtab:
 m_magic:
 	.byte	1,4,4,0,2,5,0,3,6,1,4,6
 errmsg1:
-	<Cputype is not 93 or 94.  No TOY present\n\0>
+	<No TOY clock present\n\0>
 timmsg:
 	<Current TOY: >
 timbuf:

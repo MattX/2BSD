@@ -1,4 +1,4 @@
-/* static	char *sccsid = "@(#)doname.c	4.9.1 (2.11BSD GTE) 1/1/94"; */
+/* static	char *sccsid = "@(#)doname.c	4.9.2 (2.11BSD) 2000/2/12"; */
 #include "defs"
 #include <strings.h>
 #include <signal.h>
@@ -317,7 +317,7 @@ if( status = dosys(comstring, nohalt) )
 		if (status & 0200)
 			printf(" - core dumped");
 	} else
-		printf("*** Exit %d", status>>8 );
+		printf("*** Exit %d", (status>>8) & 0xff);
 
 	if(nohalt) printf(" (ignored)\n");
 	else	printf("\n");

@@ -1,6 +1,6 @@
 # Placed in the public domain - 1995/05/06
 #
-#	@(#)Makefile	1.8 (2.11BSD) 1999/9/10
+#	@(#)Makefile	1.9 (2.11BSD) 2000/2/28
 
 CPP= /lib/cpp
 LD= /bin/ld
@@ -27,7 +27,8 @@ NORM1= __sysctl.o accept.o access.o adjtime.o bind.o chdir.o chflags.o \
 	getpeername.o getpriority.o getrlimit.o getrusage.o getsockopt.o \
 	gettimeofday.o ioctl.o kill.o killpg.o link.o listen.o lstat.o mkdir.o
 
-NORM2=  mknod.o mount.o open.o quota.o read.o readlink.o readv.o reboot.o \
+NORM2=  mknod.o mount.o open.o pselect.o quota.o read.o readlink.o readv.o \
+	reboot.o \
 	recv.o recvfrom.o recvmsg.o rename.o rmdir.o select.o send.o sendmsg.o \
 	sendto.o setgroups.o setitimer.o setpgrp.o setpriority.o setquota.o \
 	setuid.o seteuid.o setgid.o setegid.o \

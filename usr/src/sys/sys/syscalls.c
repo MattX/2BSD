@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.11 (2.11BSD) 1999/9/5
+ *	@(#)syscalls.c	1.12 (2.11BSD) 2000/2/20
  */
 
 /*
@@ -19,7 +19,7 @@ char *syscallnames[] = {
 	"open",			/*   5 = open */
 	"close",		/*   6 = close */
 	"wait4",		/*   7 = wait4 */
-	"old creat",		/*   8 = creat COMPAT-43 */
+	"#8",			/*   8 = (old creat) */
 	"link",			/*   9 = link */
 	"unlink",		/*  10 = unlink */
 	"execv",		/*  11 = execv */
@@ -75,8 +75,8 @@ char *syscallnames[] = {
 	"chroot",		/*  61 = chroot */
 	"fstat",		/*  62 = fstat */
 	"#63",			/*  63 = unused */
-	"old getpagesize",	/*  64 = getpagesize COMPAT */
-	"#65",			/*  65 = unused */
+	"#64",			/*  64 = (old getpagesize) */
+	"pselect",		/*  65 = pselect */
 	"vfork",		/*  66 = vfork */
 	"#67",			/*  67 = unused */
 	"#68",			/*  68 = unused */
@@ -98,8 +98,8 @@ char *syscallnames[] = {
 	"old wait",		/*  84 = wait,wait3 COMPAT*/
 	"#85",			/*  85 = unused */
 	"getitimer",		/*  86 = getitimer */
-	"gethostname",		/*  87 = gethostname */
-	"sethostname",		/*  88 = sethostname */
+	"#87",			/*  87 = (old gethostname) */
+	"#88",			/*  88 = (old sethostname) */
 	"getdtablesize",	/*  89 = getdtablesize */
 	"dup2",			/*  90 = dup2 */
 	"#91",			/*  91 = unused */
@@ -119,10 +119,10 @@ char *syscallnames[] = {
 	"setsockopt",		/* 105 = setsockopt */
 	"listen",		/* 106 = listen */
 	"sigsuspend",		/* 107 = sigsuspend */
-	"sigvec",		/* 108 = sigvec COMPAT-43 */
-	"sigblock",		/* 109 = sigblock COMPAT-43 */
-	"sigsetmask",		/* 110 = sigsetmask COMPAT-43 */
-	"sigpause",		/* 111 = sigpause COMPAT-43 */
+	"#108",			/* 108 = (old sigvec) */
+	"#109",			/* 109 = (old sigblock) */
+	"#110",			/* 110 = (old sigsetmask) */
+	"#111",			/* 111 = (old sigpause)  */
 	"sigstack",		/* 112 = sigstack COMPAT-43 */
 	"recvmsg",		/* 113 = recvmsg */
 	"sendmsg",		/* 114 = sendmsg */
@@ -137,8 +137,8 @@ char *syscallnames[] = {
 	"fchown",		/* 123 = fchown */
 	"fchmod",		/* 124 = fchmod */
 	"recvfrom",		/* 125 = recvfrom */
-	"setreuid",		/* 126 = setreuid COMPAT43 */
-	"setregid",		/* 127 = setregid COMPAT43 */
+	"#126",			/* 126 = (old setreuid) */
+	"#127",			/* 127 = (old setregid) */
 	"rename",		/* 128 = rename */
 	"truncate",		/* 129 = truncate */
 	"ftruncate",		/* 130 = ftruncate */
@@ -153,8 +153,8 @@ char *syscallnames[] = {
 	"#139",			/* 139 = unused */
 	"adjtime",		/* 140 = adjtime */
 	"getpeername",		/* 141 = getpeername */
-	"gethostid",		/* 142 = gethostid COMPAT-43 */
-	"sethostid",		/* 143 = sethostid COMPAT-43 */
+	"#142",			/* 142 = (old gethostid) */
+	"#143",			/* 143 = (old sethostid) */
 	"getrlimit",		/* 144 = getrlimit */
 	"setrlimit",		/* 145 = setrlimit */
 	"killpg",		/* 146 = killpg */
