@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1985 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)tcopy.c	1.3 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)tcopy.c	1.4 (2.11BSD GTE) 1996/6/4";
 #endif
 
 #include <stdio.h>
@@ -18,23 +18,22 @@ static char sccsid[] = "@(#)tcopy.c	1.3 (2.11BSD GTE) 1/1/94";
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/mtio.h>
+#include <string.h>
+#include <errno.h>
 
-#ifdef pdp11
 #define SIZE	((unsigned)32 * 1024)
-#else
-#define SIZE	(64 * 1024)
-#endif
 
 char buff[SIZE];
 int filen=1;
 long count, lcount;
 int RUBOUT();
-long itol();
 int nfile;
 long size, tsize;
 int ln;
 char *inf, *outf;
 int copy;
+static char *msg1= "file %d: records %ld to %ld: size %u\n";
+static char *msg2 = "file %d: record %ld: size %u\n";
 
 main(argc, argv)
 char **argv;
@@ -51,15 +50,12 @@ char **argv;
 		outf = argv[2];
 		copy = 1;
 	}
-	if ((inp=open(inf, O_RDONLY, 0666)) < 0) {
-		fprintf(stderr,"Can't open %s\n", inf);
-		exit(1);
-	}
+	if ((inp=open(inf, O_RDONLY, 0666)) < 0)
+		err(1, "Can't open %s", inf);
+
 	if (copy) {
-		if ((outp=open(outf, O_WRONLY, 0666)) < 0) {
-			fprintf(stderr,"Can't open %s\n", outf);
-			exit(3);
-		}
+		if ((outp=open(outf, O_WRONLY, 0666)) < 0)
+			err(3, "Can't open %s", outf);
 	}
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		(void) signal(SIGINT, RUBOUT);
@@ -71,9 +67,17 @@ char **argv;
 		    nw = write(outp, buff, n);
 		    if (copy) {
 			    if (nw != n) {
-				fprintf(stderr, "write (%d) != read (%d)\n",
-					nw, n);
-				fprintf(stderr, "COPY Aborted\n");
+				int error = errno;
+				if (nw == -1)
+					fprintf(stderr, "write error, file %d, record %ld: ",
+						filen, lcount);
+				if (nw == -1)
+					fprintf(stderr, "%s",strerror(error));
+				else
+					fprintf(stderr,
+						"write (%u) != read (%u)\n",
+						nw, n);
+				fprintf(stderr, "copy aborted\n");
 				exit(5);
 			    }
 		    }
@@ -81,11 +85,9 @@ char **argv;
 		    if (n != ln) {
 			if (ln > 0)
 			    if (count - lcount > 1)
-				printf("file %d: records %ld to %ld: size %d\n",
-					filen, lcount, count-1, ln);
+				printf(msg1, filen, lcount, count-1, ln);
 			    else
-				printf("file %d: record %ld: size %d\n",
-					filen, lcount, ln);
+				printf(msg2, filen, lcount, ln);
 			ln = n;
 			lcount = count;
 		    }
@@ -97,11 +99,9 @@ char **argv;
 			}
 			if (ln > 0)
 			    if (count - lcount > 1)
-				printf("file %d: records %ld to %ld: size %d\n",
-					filen, lcount, count-1, ln);
+				printf(msg1, filen, lcount, count-1, ln);
 			    else
-				printf("file %d: record %ld: size %d\n",
-					filen, lcount, ln);
+				printf(msg2, filen, lcount, ln);
 			printf("file %d: eof after %ld records: %ld bytes\n",
 				filen, count-1, size);
 			if (copy) {
@@ -133,13 +133,10 @@ RUBOUT()
 		--count;
 	if (count)
 		if (count > lcount)
-			printf("file %d: records %ld to %ld: size %d\n",
-				filen, lcount, count, ln);
+			printf(msg1, filen, lcount, count, ln);
 		else
-			printf("file %d: record %ld: size %d\n",
-				filen, lcount, ln);
+			printf(msg2, filen, lcount, ln);
 	printf("rubout at file %d: record %ld\n", filen, count);
 	printf("total length: %ld bytes\n", tsize+size);
 	exit(1);
 }
-

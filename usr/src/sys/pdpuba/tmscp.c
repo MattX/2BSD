@@ -1,6 +1,6 @@
 #define	TMSDEBUG	1
 
-/*	@(#)tmscp.c	1.7 (2.11BSD GTE) 1996/5/17 */
+/*	@(#)tmscp.c	1.8 (2.11BSD GTE) 1996/6/5 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -244,7 +244,7 @@ struct	tms_info tms_info[NTMS];		/* Drive info */
 	memaddr	tmscp[NTMSCP];		/* click addresses of ctrl comm area */
 
 /*
- * Bit definitions for Tflags word above.  These take the place of several
+ * Tflags definitions.  These take the place of several
  * individual structure members in tms_info.
 */
 
@@ -356,17 +356,25 @@ tmsattach(addr, unit)
 
 struct tms_info *
 getdd()
-{
-	register int i;
+	{
 	register struct tms_info *p;
 
-	for (i = NTMS, p = tms_info; i--; p++) {
-		if ((p->Tflags & _INUSE) == 0)
+	for	(p = tms_info; p < &tms_info[NTMS]; p++)
+		{
+		if	(p->tms_type == 0)
+			{
+/*
+ * Set the type with a placeholder value - we may have to sleep waiting for
+ * the drive to come on line and we don't want this slot to be grabbed again.
+ * The online response will load the real drive type.
+*/
+			p->tms_type = 1;	/* XXX */
 			return(p);
-	}
+			}
+		}
 	log(LOG_INFO, "tms: !drives\n");
 	return(NULL);
-}
+	}
 
 static int
 wait_step(mask, good, csr, sc)
@@ -578,10 +586,10 @@ tmscpopen(dev, flag)
 		tms = getdd();
 		if (!tms)
 			return(ENXIO);
-		tms->Tflags &= ~_ONLINE;
+		tms->Tflags = 0;
 		sc->sc_drives[unit] = tms;
 	}
-	if	(tms->Tflags & _INUSE)
+	else if	(tms->Tflags & _INUSE)
 		return(EBUSY);
 	tms->Tflags |= _INUSE;
 
@@ -592,6 +600,9 @@ tmscpopen(dev, flag)
 			if	(!tkini(sc))
 				{
 				log(LOG_INFO, "tms%d init fail\n", ctlr);
+				sc->sc_drives[unit] = NULL;
+				tms->Tflags = 0;
+				tms->tms_type = 0;
 				(void) splx(s);
 				return(ENXIO);
 				}
@@ -603,7 +614,8 @@ tmscpopen(dev, flag)
 		if	(sc->sc_state != S_RUN)
 			{
 			sc->sc_drives[unit] = NULL;
-			tms->Tflags &= ~(_INUSE | _ONLINE);
+			tms->Tflags = 0;
+			tms->tms_type = 0;
 			(void) splx(s);
 			return(EIO);
 			}
@@ -647,6 +659,7 @@ tmscpopen(dev, flag)
 	if	(!(tms->Tflags & _ONLINE))
 		{
 oops:		tms->Tflags = 0;
+		tms->tms_type = 0;
 		sc->sc_drives[unit] = NULL;
 		return(ENXIO);  /* Didn't go online */
 		}
@@ -717,7 +730,7 @@ tmscpclose(dev, flag)
 	tms->tms_flags &= ~MTF_CSE;
 	if	(tms->Tflags & _WRITTEN)
 		tms_wrteof(dev, tms);
-	tms->Tflags &= ~(_WRITTEN | _BUFMARK |_INUSE);
+	tms->Tflags &= ~(_WRITTEN | _BUFMARK | _INUSE);
 	if	((dev & T_NOREWIND) == 0)
 		{
 		tmscpcommand(dev, TMS_REW, 0);

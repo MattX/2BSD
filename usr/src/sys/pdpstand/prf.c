@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)prf.c	1.3 (2.11BSD) 1995/06/04
+ *	@(#)prf.c	1.4 (2.11BSD) 1996/06/04
  */
 
 #include "../machine/cons.h"
@@ -80,11 +80,18 @@ putchar(c)
 	if ((KLADDR->dlrbuf & 0177) == 0)
 		return;
 #endif
-	timo = 60000;
+	/*
+         *  If we got a XOFF, wait for a XON
+         */
+	if ((KLADDR->dlrcsr & DL_RDONE) != 0)
+		if ((KLADDR->dlrbuf & 0177) == 19)
+			while ((KLADDR->dlrbuf & 0177) != 17) 
+				continue;
 	/*
 	 * Try waiting for the console tty to come ready,
 	 * otherwise give up after a reasonable time.
 	 */
+	timo=60000;
 	while ((KLADDR->dlxcsr & DLXCSR_TRDY) == 0)
 		if (--timo == 0)
 			break;

@@ -3,11 +3,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.8 (Berkeley) 9/7/85
+#	@(#)Makefile	5.8.1 (2.11BSD) 1996/5/8
 #
 DESTDIR=
 CFLAGS=	-O
 LFLAGS=	-i
+XSTR=	/usr/ucb/xstr
 
 # The program itself
 #
@@ -28,17 +29,26 @@ LOCOBJS=dir.o inode.o main.o pass1.o pass1b.o pass2.o \
 #
 HDRS=	fsck.h
 
-${PROG}: ${OBJS} ${HDRS}
-	cc ${LFLAGS} -o ${PROG} ${OBJS}
+${PROG}: ${OBJS} ${HDRS} strings.o
+	cc ${LFLAGS} -o ${PROG} ${OBJS} strings.o
 
-${LOCOBJS}:
-	cc ${CFLAGS} -c $*.c
+.c.o:
+	cc -E ${CFLAGS} $*.c | ${XSTR} -c -
+	cc ${CFLAGS} -c x.c
+	mv -f x.o $*.o
+	rm -f x.c
+
+strings.o: strings
+	${XSTR}
+	cc -c xs.c
+	mv -f xs.o strings.o
+	rm -f xs.c
 
 install: ${PROG}
 	install -s ${PROG} ${DESTDIR}/etc/${PROG}
 
 clean:
-	rm -f a.out core ${OBJS} ${PROG}
+	rm -f a.out core ${OBJS} ${PROG} strings.o x.c xs.c strings
 
 lint:
 	lint ${INCPATH} ${SRCS}

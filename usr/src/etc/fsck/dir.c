@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)dir.c	5.1 (Berkeley) 6/5/85";
+static char sccsid[] = "@(#)dir.c	5.1.1 (2.11BSD) 1996/5/8";
 #endif not lint
 
 #include <sys/param.h>
@@ -19,7 +19,14 @@ static char sccsid[] = "@(#)dir.c	5.1 (Berkeley) 6/5/85";
 char	*endpathname = &pathname[MAXPATHLEN - 2];
 char	*lfname = "lost+found";
 struct	dirtemplate emptydir = { 0, DIRBLKSIZ };
-struct	dirtemplate dirhead = { 0, 8, 1, ".", 0, DIRBLKSIZ - 8, 2, ".." };
+/*
+ * The strange initialization is due to quoted strings causing problems when
+ * 'xstr' is used to preprocess the sources.  The structure has two members
+ * as 'char dot_name[2]' and 'char dotdot_name[6]' which is NOT the same as
+ * 'char *'.
+*/
+struct	dirtemplate dirhead = { 0, 8, 1, {'.'}, 0, DIRBLKSIZ - 8, 2, 
+				{'.', '.' }};
 
 DIRECT	*fsck_readdir();
 
@@ -322,8 +329,7 @@ linkup(orphan, pdir)
 			}
 		}
 		if (lfdir == 0) {
-			pfatal("SORRY. CANNOT CREATE lost+found DIRECTORY");
-			printf("\n\n");
+			pfatal("SORRY. CANNOT CREATE lost+found DIRECTORY\n\n");
 			return (0);
 		}
 	}
