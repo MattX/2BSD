@@ -4,22 +4,23 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
 /* static char sccsid[] = "@(#)mkhosts.c	5.1 (Berkeley) 5/28/85"; */
-static char sccsid[] = "@(#)mkhosts.c	1.1 (2.10BSD) 10/04/89";
-#endif not lint
+static char sccsid[] = "@(#)mkhosts.c	1.2 (2.11BSD) 1995/08/17";
+#endif
 
+#include <ctype.h>
+#include <sys/param.h>
 #include <sys/file.h>
 #include <stdio.h>
 #include <netdb.h>
 #include <ndbm.h>
 
+void	keylower();
 char	buf[BUFSIZ];
 
 main(argc, argv)
@@ -34,6 +35,7 @@ main(argc, argv)
 	int naliases, naddrs;
 	int verbose = 0, entries = 0, maxlen = 0, error = 0;
 	char tempname[BUFSIZ], newname[BUFSIZ];
+	char lowname[MAXHOSTNAMELEN + 1];
 
 	if (argc > 1 && strcmp(argv[1], "-v") == 0) {
 		verbose++;
@@ -65,8 +67,14 @@ main(argc, argv)
 			;
 		nap = (int *)cp;
 		cp += sizeof (int);
-		key.dptr = hp->h_name;
-		key.dsize = strlen(hp->h_name);
+
+		keylower(lowname, hp->h_name);
+		key.dptr = lowname;
+		key.dsize = strlen(lowname);
+/*
+			key.dptr = hp->h_name;
+			key.dsize = strlen(hp->h_name);
+*/
 		hp2 = (struct hostent *)fetchhost(dp, key);
 		if (hp2) {
 			merge(hp, hp2);
@@ -98,8 +106,13 @@ main(argc, argv)
 			goto err;
 		}
 		for (sp = hp->h_aliases; *sp; sp++) {
-			key.dptr = *sp;
-			key.dsize = strlen(*sp);
+			keylower(lowname, *sp);
+			key.dptr = lowname;
+			key.dsize = strlen(lowname);
+/*
+				key.dptr = *sp;
+				key.dsize = strlen(*sp);
+*/
 			if (dbm_store(dp, key, content, DBM_REPLACE) < 0) {
 				perror(*sp);
 				goto err;
@@ -231,3 +244,18 @@ register char	**sp, **sp2;
 		}
 	}
 }
+
+void
+keylower(out, in)
+	register char *out, *in;
+	{
+
+	while	(*in)
+		{
+		if	(isupper(*in))
+			*out++ = tolower(*in++);
+		else
+			*out++ = *in++;
+		}
+	*out++ = '\0';
+	}
