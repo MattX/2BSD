@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)init.c	5.2 (Berkeley) 1/7/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)init.c	5.2.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 /*
  * Getty table initializations.
@@ -80,8 +80,6 @@ struct	gettyflags gettyflags[] = {
 	{ "pe",	0 },			/* printer erase */
 	{ "rw",	1 },			/* don't use raw */
 	{ "xc",	1 },			/* don't ^X ctl chars */
-	{ "lc",	0 },			/* terminal las lower case */
-	{ "uc",	0 },			/* terminal has no lower case */
 	{ "ig",	0 },			/* ignore garbage */
 	{ "ps",	0 },			/* do port selector speed select */
 	{ "hc",	1 },			/* don't set hangup on close */

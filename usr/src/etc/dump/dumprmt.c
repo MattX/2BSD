@@ -32,7 +32,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)dumprmt.c	5.11 (Berkeley) 3/7/91";
+static char sccsid[] = "@(#)dumprmt.c	1.2 (2.11BSD GTE) 12/7/94";
 #endif
 
 #include <sys/param.h>
@@ -41,18 +41,11 @@ static char sccsid[] = "@(#)dumprmt.c	5.11 (Berkeley) 3/7/91";
 #include <sys/socket.h>
 #include <sys/inode.h>
 #include <signal.h>
-
 #include <netinet/in.h>
-
 #include <netdb.h>
 #include <protocols/dumprestor.h>
 #include <pwd.h>
 #include <stdio.h>
-#ifdef __STDC__
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#endif
 
 #define	TS_CLOSED	0
 #define	TS_OPEN		1
@@ -139,30 +132,6 @@ rmtclose()
 }
 
 int
-rmtread(buf, count)
-	char *buf;
-	int count;
-{
-	char line[30];
-	int n, i, cc;
-	extern errno;
-
-	(void)sprintf(line, "R%d\n", count);
-	n = rmtcall("read", line);
-	if (n < 0) {
-		errno = n;
-		return (-1);
-	}
-	for (i = 0; i < n; i += cc) {
-		cc = read(rmtape, buf+i, n - i);
-		if (cc <= 0) {
-			rmtconnaborted();
-		}
-	}
-	return (n);
-}
-
-int
 rmtwrite(buf, count)
 	char *buf;
 	int count;
@@ -173,71 +142,6 @@ rmtwrite(buf, count)
 	write(rmtape, line, strlen(line));
 	write(rmtape, buf, count);
 	return (rmtreply("write"));
-}
-
-void
-rmtwrt0(count)
-	int count;
-{
-	char line[30];
-
-	(void)sprintf(line, "W%d\n", count);
-	write(rmtape, line, strlen(line));
-}
-
-void
-rmtwrt1(buf, count)
-	char *buf;
-	int count;
-{
-
-	write(rmtape, buf, count);
-}
-
-int
-rmtwrt2()
-{
-
-	return (rmtreply("write"));
-}
-
-int
-rmtseek(offset, pos)
-	off_t offset;
-	int pos;
-{
-	char line[80];
-
-	(void)sprintf(line, "L%ld\n%d\n", offset, pos);
-	return (rmtcall("seek", line));
-}
-
-struct	mtget mts;
-
-struct mtget *
-rmtstatus()
-{
-	register int i;
-	register char *cp;
-
-	if (rmtstate != TS_OPEN)
-		return (0);
-	rmtcall("status", "S\n");
-	for (i = 0, cp = (char *)&mts; i < sizeof(mts); i++)
-		*cp++ = rmtgetb();
-	return (&mts);
-}
-
-int
-rmtioctl(cmd, count)
-	int cmd, count;
-{
-	char buf[256];
-
-	if (count < 0)
-		return (-1);
-	(void)sprintf(buf, "I%d\n%d\n", cmd, count);
-	return (rmtcall("ioctl", buf));
 }
 
 int

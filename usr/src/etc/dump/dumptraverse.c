@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumptraverse.c	1.1 (Berkeley) 10/13/80";
+static	char *sccsid = "@(#)dumptraverse.c	1.2 (2.11BSD GTE) 12/6/94";
 #endif
 
 #include "dump.h"
@@ -87,8 +87,12 @@ int (*fn1)(), (*fn2)();
 	}
 }
 
+#define	CHANGEDSINCE(dp,t)  ((dp)->di_mtime >= (t) || (dp)->di_ctime >= (t))
+#define	WANTTODUMP(dp)  (CHANGEDSINCE(dp,spcl.c_ddate) && \
+			 (nonodump || (dp->di_flags & UF_NODUMP) != UF_NODUMP))
+
 mark(ip)
-struct dinode *ip;
+register struct dinode *ip;
 {
 	register f;
 
@@ -98,8 +102,7 @@ struct dinode *ip;
 	BIS(ino, clrmap);
 	if(f == IFDIR)
 		BIS(ino, dirmap);
-	if(ip->di_mtime >= spcl.c_ddate ||
-	   ip->di_ctime >= spcl.c_ddate) {
+	if (WANTTODUMP(ip)) {
 		BIS(ino, nodmap);
 		if (f != IFREG && f != IFDIR && f != IFLNK){
 			esize++;

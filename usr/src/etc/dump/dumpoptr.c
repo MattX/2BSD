@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumpoptr.c	1.4 (Berkeley) 12/17/80";
+static	char *sccsid = "@(#)dumpoptr.c	1.5 (2.11BSD GTE) 12/6/94";
 #endif
 
 #include "dump.h"
@@ -18,6 +18,7 @@ struct	group *getgrnam();
  */
 int	timeout;
 char	*attnmessage;		/* attemtion message */
+
 query(question)
 	char	*question;
 {
@@ -177,9 +178,9 @@ char *tty, *message;
 {
 	char t[50], buf[BUFSIZ];
 	register char *cp;
-	register int c, ch;
-	int	msize;
-	FILE *f_tty;
+	register int c;
+	int	ch, msize;
+	register FILE *f_tty;
 
 	msize = strlen(message);
 	strcpy(t, "/dev/");
@@ -234,24 +235,8 @@ timeest()
 	}
 }
 
-int blocksontape()
-{
-	/*
-	 *	esize: total number of blocks estimated over all reels
-	 *	blockswritten:	blocks actually written, over all reels
-	 *	etapes:	estimated number of tapes to write
-	 *
-	 *	tsize:	blocks can write on this reel
-	 *	asize:	blocks written on this reel
-	 *	tapeno:	number of tapes written so far
-	 */
-	if (tapeno == etapes)
-		return(esize - (etapes - 1)*tsize);
-	return(tsize);
-}
-
-	/* VARARGS1 */
-	/* ARGSUSED */
+/* VARARGS1 */
+/* ARGSUSED */
 msg(fmt, a1, a2, a3, a4, a5)
 	char	*fmt;
 {
@@ -264,8 +249,8 @@ msg(fmt, a1, a2, a3, a4, a5)
 	fflush(stderr);
 }
 
-	/* VARARGS1 */
-	/* ARGSUSED */
+/* VARARGS1 */
+/* ARGSUSED */
 msgtail(fmt, a1, a2, a3, a4, a5)
 	char	*fmt;
 {
@@ -334,13 +319,4 @@ int	idatesort(p1, p2)
 				return (-1);
 	else
 		return (diff);
-}
-
-int max(a,b)
-{
-	return(a>b?a:b);
-}
-int min(a,b)
-{
-	return(a<b?a:b);
 }

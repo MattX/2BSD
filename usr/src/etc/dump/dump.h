@@ -1,5 +1,5 @@
 /*
- * "@(#)dump.h	1.1 (Berkeley) 10/13/80"
+ * "@(#)dump.h	1.2 (2.11BSD GTE) 12/6/94"
  */
 #define	NI	4	/* number of blocks of inodes per read */
 
@@ -40,11 +40,13 @@ int	fi;		/* disk file descriptor */
 int	to;		/* tape file descriptor */
 int	pipeout;	/* true => output to standard output */
 ino_t	ino;		/* current inumber; used globally */
+int	lastlevel;
+int	nonodump;
 int	nsubdir;
 int	newtape;	/* new tape flag */
 int	nadded;		/* number of added sub directories */
 int	dadded;		/* directory added flag */
-int	density;	/* density in 0.1" units */
+u_short	density;	/* density in 0.1" units */
 long	tsize;		/* tape size in 0.1" units */
 long	esize;		/* estimated tape size, blocks */
 long	asize;		/* number of 0.1" units written on current tape */
@@ -54,7 +56,6 @@ int	notify;		/* notify operator flag */
 long	blockswritten;	/* number of blocks written on current tape */
 int	tapeno;		/* current tape number */
 time_t	tstart_writing;	/* when started writing the first tape block */
-char	*processname;
 
 time_t	time();
 off_t	lseek();
@@ -68,7 +69,6 @@ int	tapsrec();
 int	dmpspc();
 int	dsrch();
 int	nullf();
-char	*getsuffix();
 char	*rawname();
 
 int	interrupt();		/* in case operator bangs on console */

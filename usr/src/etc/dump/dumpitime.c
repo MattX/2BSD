@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumpitime.c	1.1 (Berkeley) 10/13/80";
+static	char *sccsid = "@(#)dumpitime.c	1.2 (2.11BSD GTE) 12/6/94";
 #endif
 
 #include "dump.h"
@@ -7,7 +7,7 @@ static	char *sccsid = "@(#)dumpitime.c	1.1 (Berkeley) 10/13/80";
 char *prdate(d)
 	time_t d;
 {
-	char *p;
+	register char *p;
 
 	if(d == 0)
 		return("the epoch");
@@ -15,11 +15,6 @@ char *prdate(d)
 	p[24] = 0;
 	return(p);
 }
-
-struct	idates	**idatev = 0;
-int	nidates = 0;
-int	idates_in = 0;
-struct	itime	*ithead = 0;
 
 inititimes()
 {
@@ -66,6 +61,7 @@ getitime()
 		fname, increm, incno);
 #endif
 	spcl.c_ddate = 0;
+	lastlevel = '0';
 
 	inititimes();
 	/*
@@ -81,6 +77,7 @@ getitime()
 		if (ip->id_ddate <= spcl.c_ddate)
 			continue;
 		spcl.c_ddate = ip->id_ddate;
+		lastlevel = ip->id_incno;
 	} 
 }
 
@@ -158,43 +155,6 @@ int getrecord(df, idatep)
 		idatep->id_name, idatep->id_incno, prdate(idatep->id_ddate));
 #endif
 	return(0);
-}
-
-/*
- *	Convert from old format to new format
- *	Convert from /etc/ddate to /etc/dumpdates format
- */
-o_nconvert()
-{
-	FILE	*oldfile;
-	FILE	*newfile;
-	struct	idates	idate;
-	struct	idates	idatecopy;
-
-	if( (newfile = fopen(NINCREM, "w")) == NULL){
-		msg("%s: Can not open %s to update.\n", processname, NINCREM);
-		Exit(X_ABORT);
-	}
-	if ( (oldfile = fopen(OINCREM, "r")) != NULL){
-		while(!feof(oldfile)){
-			if (fread((char *)&idate, sizeof(idate), 1, oldfile) != 1)
-				break;
-			/*
-			 *	The old format ddate did not have
-			 *	the full special path name on it;
-			 *	we add the prefix /dev/ to the
-			 *	special name, although this may not be
-			 *	always the right thing to do.
-			 */
-			idatecopy = idate;
-			strcpy(idatecopy.id_name, "/dev/");
-			strncat(idatecopy.id_name, idate.id_name,
-				sizeof(idate.id_name) - sizeof ("/dev/"));
-			recout(newfile, &idatecopy);
-		}
-	}
-	fclose(oldfile);
-	fclose(newfile);
 }
 
 time_t	unctime();

@@ -1,4 +1,4 @@
-# sccsid = "@(#)Makefile	1.3 (Berkeley) 2/20/81"
+# sccsid = "@(#)Makefile	1.4 (2.11BSD GTE) 12/6/94"
 #
 #	dump.h			header file
 #	dumpitime.c		reads /etc/ddate
@@ -43,7 +43,7 @@ clean:
 	rm -f *.o dump rdump dumpdir
 
 lint:
-	lint -chapbx ${CFLAGS} -DRDUMP ${SRCS}
+	lint -chabx ${CFLAGS} -DRDUMP ${SRCS}
 
 ${OBJS}: dump.h
 

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)subr.c	5.4 (Berkeley) 1/7/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)subr.c	5.4.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 /*
  * Melbourne getty.
@@ -148,9 +148,6 @@ setflags(n)
 		f |= ODDP;
 	else if (EP)
 		f |= EVENP;
-
-	if (UC)
-		f |= LCASE;
 
 	if (NL)
 		f |= CRMOD;

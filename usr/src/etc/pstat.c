@@ -4,14 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef never
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-/* static char sccsid[] = "@(#)pstat.c	5.8 (Berkeley) 5/5/86"; */
-static char sccsid[] = "@(#)pstat.c	1.2 (2.11BSD) 12/31/93";
-#endif not lint
+static char sccsid[] = "@(#)pstat.c	5.8.2 (2.11BSD GTE) 12/7/94";
+#endif
 
 /*
  * Print system stuff
@@ -499,7 +498,6 @@ struct tty *atp;
 	putf(tp->t_state&TS_TBLOCK, 'b');
 	putf(tp->t_state&TS_RCOLL, 'r');
 	putf(tp->t_state&TS_WCOLL, 'w');
-	putf(tp->t_state&TS_NBIO, 'n');
 	putf(tp->t_state&TS_ASYNC, 'a');
 	printf("%6d", tp->t_pgrp);
 	switch (tp->t_line) {
@@ -756,7 +754,7 @@ dofile()
 		putf((long)fp->f_flag&FSHLOCK, 'S');
 		putf((long)fp->f_flag&FEXLOCK, 'X');
 		putf((long)fp->f_flag&FASYNC, 'I');
-		putf((long)fp->f_flag&FNDELAY, 'n');
+		putf((long)fp->f_flag&FNONBLOCK, 'n');
 		putf((long)fp->f_flag&FMARK, 'm');
 		putf((long)fp->f_flag&FDEFER, 'd');
 		printf("  %3d", fp->f_count);

@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 1/23/86";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.5.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 /*
  * getty -- adapt to terminal speed on dialup, and call login
@@ -110,7 +108,7 @@ interrupt()
 main(argc, argv)
 	char *argv[];
 {
-	char *tname;
+	register char *tname;
 	long allflags;
 	int repcnt = 0;
 	int someflags;
@@ -225,10 +223,6 @@ main(argc, argv)
 			someflags = allflags >> 16;
 			if (crmod || NL)
 				tmode.sg_flags |= CRMOD;
-			if (upper || UC)
-				tmode.sg_flags |= LCASE;
-			if (lower || LC)
-				tmode.sg_flags &= ~LCASE;
 			ioctl(0, TIOCSETP, &tmode);
 			ioctl(0, TIOCSLTC, &ltc);
 			ioctl(0, TIOCLSET, &someflags);
@@ -288,9 +282,9 @@ getname()
 			putf("\r\n");
 			break;
 		}
-		if (c >= 'a' && c <= 'z')
+		if (islower(c))
 			lower++;
-		else if (c >= 'A' && c <= 'Z')
+		else if (isupper(c))
 			upper++;
 		else if (c == ERASE || c == '#' || c == '\b') {
 			if (np > name) {
@@ -312,7 +306,7 @@ getname()
 			prompt();
 			np = name;
 			continue;
-		} else if (c >= '0' && c <= '9')
+		} else if (isdigit(c))
 			digit++;
 		if (IG && (c <= ' ' || c > 0176))
 			continue;
@@ -323,10 +317,6 @@ getname()
 	*np = 0;
 	if (c == '\r')
 		crmod++;
-	if (upper && !lower && !LC || UC)
-		for (np = name; *np; np++)
-			if (isupper(*np))
-				*np = tolower(*np);
 	return (1);
 }
 

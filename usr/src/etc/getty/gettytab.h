@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)gettytab.h	5.2.1 (2.11BSD GTE) 12/31/93
+ *	@(#)gettytab.h	5.2.2 (2.11BSD GTE) 12/9/94
  */
 
 /*
@@ -97,14 +97,12 @@ struct gettyflags {
 #define	PE	gettyflags[10].value
 #define	RW	gettyflags[11].value
 #define	XC	gettyflags[12].value
-#define	LC	gettyflags[13].value
-#define	UC	gettyflags[14].value
-#define	IG	gettyflags[15].value
-#define	PS	gettyflags[16].value
-#define	HC	gettyflags[17].value
-#define UB	gettyflags[18].value
-#define AB	gettyflags[19].value
-#define DX	gettyflags[20].value
+#define	IG	gettyflags[13].value
+#define	PS	gettyflags[14].value
+#define	HC	gettyflags[15].value
+#define UB	gettyflags[16].value
+#define AB	gettyflags[17].value
+#define DX	gettyflags[18].value
 
 int	getent();
 long	getnum();

@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)get_date.c	5.1 (Berkeley) 4/29/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)get_date.c	5.1.1 (2.11BSD GTE) 12/9/94";
+#endif
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -26,10 +26,10 @@ static char *months[] = {
 get_date(datebuffer)
 	char *datebuffer;
 {
-	struct tm *localtime(), *tmp;
+	register struct tm *tmp;
 	struct timeval tv;
 	int realhour;
-	char *zone;
+	register char *zone;
 
 	gettimeofday(&tv, 0);
 	tmp = localtime(&tv.tv_sec);
