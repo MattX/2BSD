@@ -2,6 +2,9 @@ MAJOR = 5			/ major # from bdevsw[]
 
 / RA bootstrap.
 /
+/ 1995/05/31 - The unit number needs to go in bits 3-5 of bootdev
+/	       because the partition number now goes into bits 0-2.
+/
 / disk boot program to load and transfer to a unix entry.
 / for use with 1 KB byte blocks, CLSIZE is 2.
 / NDIRIN is the number of direct inode addresses (currently 4)
@@ -206,6 +209,7 @@ loadfile:
 2:
 	mov	ENDCORE-BOOTOPTS, r4
 	mov	unit, r3
+	ash	$3,r3			/ unit # in bits 3-5, partition # is 0
 	bis	$MAJOR\<8.,r3
 	mov	ENDCORE-CHECKWORD, r2
 	mov	raip,r1

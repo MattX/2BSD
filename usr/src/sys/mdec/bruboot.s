@@ -3,6 +3,9 @@ MAJOR = 11.			/ major # from bdevsw[]
 / BR bootstrap. supports the 32 sec/trk, 19 trk/cyl EATON 1537/1711 
 /	Controller and 1538A/B/C/D drive. 
 /
+/ 1995/05/31 - The unit number needs to go in bits 3-5 of bootdev
+/	       because the partition number now goes into bits 0-2.
+/
 / disk boot program to load and transfer
 / to a unix entry.
 / for use with 1 KB byte blocks, CLSIZE is 2.
@@ -170,6 +173,7 @@ loadfile:
 2:
 	mov	ENDCORE-BOOTOPTS, r4
 	movb	unit+1,r3
+	ash	$3,r3			/ unit # in bits 3-5, partition # is 0
 	bis	$MAJOR\<8.,r3
 	mov	ENDCORE-CHECKWORD, r2
 	mov	csr,r1
