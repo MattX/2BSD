@@ -32,36 +32,34 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)perror.c	8.1 (Berkeley) 6/4/93";
+static char sccsid[] = "@(#)strerror.c	8.1.1 (2.11BSD) 1996/3/15";
 #endif /* LIBC_SCCS and not lint */
 
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stdio.h>
 #include <string.h>
 
-void
-perror(s)
-	char *s;
+char *
+strerror(num)
+	int num;
 {
-	register struct iovec *v;
-	struct iovec iov[4];
+#define	UPREFIX	"Unknown error: "
+	static char ebuf[30] = UPREFIX;		/* 32-bit number + slop */
+	register unsigned int errnum;
+	register char *p, *t;
+	char tmp[20];
 
-	v = iov;
-	if (s && *s) {
-		v->iov_base = (char *)s;
-		v->iov_len = strlen(s);
-		v++;
-		v->iov_base = ": ";
-		v->iov_len = 2;
-		v++;
+	errnum = num;				/* convert to unsigned */
+	if (p = syserrlst(errnum))
+		return(p);
+
+	/* Do this by hand, so we don't include stdio(3). */
+	t = tmp;
+	do {
+		*t++ = '0' + (errnum % 10);
+	} while (errnum /= 10);
+	for (p = ebuf + sizeof(UPREFIX) - 1;;) {
+		*p++ = *--t;
+		if (t <= tmp)
+			break;
 	}
-	v->iov_base = strerror(errno);
-	v->iov_len = strlen(v->iov_base);
-	v++;
-	v->iov_base = "\n";
-	v->iov_len = 1;
-	(void)writev(STDERR_FILENO, iov, (v - iov) + 1);
+	return(ebuf);
 }
