@@ -49,7 +49,7 @@ extern char authname[NAMESZ + 1];			/* author */
 char    Nfpipe[BUFSIZ];					/* nfpipe pathname */
 char    tmpname[BUFSIZ];				/* scratch file */
 
-char    system_rc[] = "/usr/lib/Mail.rc";
+char    system_rc[] = "/etc/Mail.rc";
 
 #define	MAX_IGNORE	32
 char    ignore[MAX_IGNORE][IGNORESIZE];

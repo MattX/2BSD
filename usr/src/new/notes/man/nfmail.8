@@ -43,7 +43,7 @@ Normally, all header information is retained.
 The ``Subject'', and ``From'' header lines are never removed from
 the letter.
 The file
-.I "/usr/lib/Mail.rc"
+.I "/etc/Mail.rc"
 defines default mail reading characteristics on many BSD systems.
 This file can contain lists of header lines to be ignored when
 presenting messages to users.
@@ -67,13 +67,13 @@ option when you want the inserted note or response to be flagged as
 a director message.
 .PP
 .I Nfmail
-usually appears as a mail alias in the file ``/usr/lib/aliases''
+usually appears as a mail alias in the file ``/etc/aliases''
 in lines such as:
 
 problems:	"|/usr/spool/notes/.utilities/nfmail -s problems"
 .SH BUGS
 .PP
-The dependence on ``/usr/lib/Mail.rc'' for lists of headers to be ignored
+The dependence on ``/etc/Mail.rc'' for lists of headers to be ignored
 should be cleaned up.
 Perhaps something where absence of the file
 means to strip all headers except the Subject and From lines.
@@ -83,10 +83,10 @@ means to strip all headers except the Subject and From lines.
 /usr/spool/notes/.utilities/nfmail
 where this program lives.
 .TP 40
-/usr/lib/aliases
+/etc/aliases
 Mail aliases (BSD UNIX)
 .TP 40
-/usr/lib/Mail.rc
+/etc/Mail.rc
 Mail configuration templates
 .PD
 .SH SEE ALSO

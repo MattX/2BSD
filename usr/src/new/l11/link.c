@@ -154,7 +154,7 @@ char	*argv[];
 	if (Do_odt)
 	{
 		end->nextfile = newfile();
-		end->nextfile->fname = "/usr/lib/odt.obj";
+		end->nextfile->fname = "/usr/libdata/odt.obj";
 	}
 
 	if (Scanerr)

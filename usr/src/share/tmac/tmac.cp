@@ -27,7 +27,7 @@
 ..
 .if \nM=1 .so /usr/mel/aip/countrev
 .if \nM=2 .so /usr/mel/aip/findbig
-.if \nM=0 .so /usr/lib/tmac/tmac.a
+.if \nM=0 .so /usr/share/tmac/tmac.a
 .br
 .af % 1
 .CM
@@ -118,7 +118,7 @@ Murray Hill, New Jersey 07974
 .if n .if \\n(.$>1 \\$1\\c
 .if n .if \\n(.$>1 \\&\\$2
 ..
-.so /usr/lib/tmac/tmac.srefs
+.so /usr/share/tmac/tmac.srefs
 .rm CS CE
 .de UX
 .ie \\n(GA>0 \s-2UNIX\s0\\$1

@@ -12,14 +12,14 @@
 .\"*		1919 Addison Street Suite 105				*
 .\"*		Berkeley, California  94704				*
 .\"*									*
-.\"*	VERSION 2.28	First Release: 11 Sept 1978			*
+.\"*	VERSION 2.29	First Release: 11 Sept 1978			*
 .\"*	See file \*(||/revisions for revision history			*
 .\"*									*
 .\"*	Documentation is available.					*
 .\"*									*
 .\"**********************************************************************
 .\"
-.\"	@(#)tmac.e	2.28	5/12/86
+.\"	@(#)tmac.e	2.29	1996/10/21
 .\"	%beginstrip%
 .\"
 .\"	Code on .de commands:
@@ -1068,7 +1068,7 @@
 .nr ii 5n			\" indent for .ip's and .np's
 .nr $m 1			\" max number of columns
 .nr $s 4n			\" column separation
-.ds || /usr/lib/me
+.ds || /usr/share/me
 .if \n@>0 .ds || .
 .bd S B 3
 .\"		*** OTHER INITIALIZATION ***

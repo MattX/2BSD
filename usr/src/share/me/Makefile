@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.1 (Berkeley) 5/21/86
+#	@(#)Makefile	6.1.1 (2.11BSD) 1996/10/21
 #
 #  Makefile for -me macros
 #
@@ -11,12 +11,13 @@
 #	installs them in the expected directories.
 #
 DESTDIR=
-LIB =	/usr/lib/me
+LIB =	/usr/share/me
 
 SRCS =	tmac.e acm.me chars.me deltext.me eqn.me \
 	float.me footnote.me index.me local.me null.me \
 	refer.me sh.me tbl.me thesis.me
-GET =	sccs get
+
+MISC = 	summary.extern test.accent test.umlaut
 
 all: revisions $(SRCS)
 
@@ -36,10 +37,9 @@ install: revisions $(SRCS)
 		    -e '/\\n@/d' $$i > _mac_tmp_; \
 		install -m 0444 _mac_tmp_ ${DESTDIR}${LIB}/$$i; \
 	done
-	mv ${DESTDIR}${LIB}/tmac.e ${DESTDIR}/usr/lib/tmac/tmac.e
+	-mkdir -p ${DESTDIR}/usr/share/tmac
+	mv ${DESTDIR}${LIB}/tmac.e ${DESTDIR}/usr/share/tmac/tmac.e
 	install -c -m 0444 revisions ${DESTDIR}${LIB}/revisions
+	install -c -m 444 ${MISC} ${DESTDIR}${LIB}
 
 clean:
-
-revisions $(SRCS):
-	$(GET) SCCS/s.$@

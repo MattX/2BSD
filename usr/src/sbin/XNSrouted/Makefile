@@ -3,10 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.5 (Berkeley) 9/17/85";
+#	@(#)Makefile	5.5.1 (2.11BSD) 1996/10/26";
 #
-#	Makefile for Xerox Routing Information Protocol
-#	Daemon
+#	Makefile for Xerox Routing Information Protocol Daemon
 #
 ALL=	XNSrouted
 OBJS=	XNSrouted.o
@@ -19,7 +18,7 @@ XNSrouted: ${OBJS}
 	${CC} ${SEPFLAG} -o XNSrouted ${OBJS}
 
 install: XNSrouted
-	install -s XNSrouted ${DESTDIR}/etc
+	install -s XNSrouted ${DESTDIR}/sbin
 
 clean:
-	rm -f XNSrouted *.o core a.out t.c linterrs typescript errs
+	rm -f XNSrouted *.o core

@@ -405,7 +405,7 @@ This will recompile the notesfile/news gateway programs.
 Check /usr/lib/news/sys
 to see that news will be forwarded to the notesfile system.
 .iz
-Make entries in /usr/lib/crontab to
+Make entries in /etc/crontab to
 invoke newsoutput occcasionally.
 We use every 6 hours.
 .iz

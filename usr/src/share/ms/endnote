@@ -13,6 +13,6 @@ then
 	exit
 fi
 
-awk -f /usr/lib/ms/end.awk $*
+awk -f /usr/share/ms/end.awk $*
 cat endnotes
 rm -f endnotes

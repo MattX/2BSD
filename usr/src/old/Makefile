@@ -5,7 +5,7 @@ SEPFLAG= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	astags compact dump prep uudiff v6 vpr arcv
+SUBDIR=	astags compact dump prep uudiff v6 arcv
 
 # C programs that live in the current directory and do not need
 # explicit make lines.

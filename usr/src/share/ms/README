@@ -1,4 +1,4 @@
-This directory, /usr/lib/ms, contains various macro files used
+The directory /usr/share/ms contains various macro files used
 by the -ms package, along with various scripts that are useful
 for text formatting.  These scripts are not supported commands--
 they are examples that may assist you with document preparation.
@@ -19,20 +19,20 @@ used with numbered footnotes, which are entered like this:
 When you want to produce numbered endnotes instead of footnotes,
 you can run the program as follows:
 
-	% /usr/lib/ms/endnote filename(s) | nroff -ms
+	% /usr/share/ms/endnote filename(s) | nroff -ms
 
 Other nroff options, such as -T to specify terminal type, may
 also be given.  If you're using refer, tbl, or eqn, they should
-follow /usr/lib/ms/endnote, in the proper order.  The endnote
+follow /usr/share/ms/endnote, in the proper order.  The endnote
 program creates the file "endnotes" in the working directory;
 the file is removed afterward endnote finishes.  If this file
 already exists, the program exits with an error message.
 
 After a while you may find it more convenient to copy this script
-to your own directory, rather than saying /usr/lib/ms/endnote
+to your own directory, rather than saying /usr/share/ms/endnote
 every time you want to run it.  To do this, type:
 
-	% cp /usr/lib/ms/endnote endnote
+	% cp /usr/share/ms/endnote endnote
 	% chmod +x endnote
 
 The first command will copy it into your working directory, and
@@ -49,9 +49,8 @@ format (where the come after the accented letter).
 
 The swapacc program is best run from inside the editor:
 
-	:1,$ ! /usr/lib/ms/swapacc
+	:1,$ ! /usr/share/ms/swapacc
 
 The first to the last lines of the editor buffer will be sent to
-the shell, which will run /usr/lib/ms/swapacc, and then return
+the shell, which will run /usr/share/ms/swapacc, and then return
 all lines to where they were before.
-

@@ -13,7 +13,7 @@ int	(*acts[])() =	{0,
 			};
 
 
-char	*ignonl = "/usr/lib/eign";
+char	*ignonl = "/usr/share/misc/eign";
 
 char tab[NUMS][NUMC] = {
 

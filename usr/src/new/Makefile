@@ -36,7 +36,7 @@ install:
 		(mkdir ${MANDIR}/cat$$i; chmod a+r ${MANDIR}/cat$$i); done
 	-for i in ${STDINST}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
-	-sh /usr/src/usr.lib/makewhatis.sh ${MANDIR}
+	-/usr/sbin/makewhatis ${MANDIR}
 
 clean:
 	for i in ${SUBDIR}; do (cd $$i; make -k ${MFLAGS} clean); done

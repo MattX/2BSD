@@ -63,7 +63,7 @@
 ..
 .de TM
 .if \\n(IM=0 .if \\n(MN=0 .pn 0
-.so /usr/lib/tmac/tmac.scover
+.so /usr/share/tmac/tmac.scover
 .if \\n(IM=0 .if \\n(MN=0 .rm IM
 .if \\n(IM=0 .if \\n(MN=0 .rm MF
 .if \\n(IM=0 .if \\n(MN=0 .rm MR

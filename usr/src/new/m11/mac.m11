@@ -839,7 +839,7 @@ mcall:	bis	#lc.md,lcflag	;for listing control
 	entsec	dpure
 sysmac:			;kludged to lower-case
 	.enabl lc
-	.asciz	+/usr/lib/sysmac+
+	.asciz	+/usr/share/misc/sysmac+
 
 	xitsec
 smltst:				;test mcall arguments

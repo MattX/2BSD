@@ -1,5 +1,5 @@
 .\" $Id: tcsh.man,v 3.0 1991/07/04 21:54:11 christos Exp $
-.TH TCSH 1 "4 July 1991" "Cornell"
+.TH TCSH 1 "23 October 1996"
 .SH NAME
 tcsh \- C shell with file name completion and command line editing
 .SH SYNOPSIS
@@ -1473,7 +1473,7 @@ For example,
 .nf
 .sp
 .RS +.6i
-> sched +2:15 /usr/lib/uucp/uucico -r1 -sother
+> sched +2:15 /usr/sbin/uucico -r1 -sother
 > sched 5pm set prompt='[%h] It\\'s after 5; go home: >'
 > sched +3am echo This syntax doesn\\'t work.
 Relative time inconsistent with am/pm.
@@ -1493,7 +1493,7 @@ command with no arguments:
 .sp
 .RS +.6i
 > sched
-     1  Wed Apr  4 15:42  /usr/lib/uucp/uucico -r1 -sother
+     1  Wed Apr  4 15:42  /usr/sbin/uucico -r1 -sother
      2  Wed Apr  4 17:00  set prompt=[%h] It's after 5; go home: >
 >
 .RE
@@ -1510,7 +1510,7 @@ Usage for delete: sched -<item#>.
 Not that many scheduled events.
 > sched -2
 > sched
-     1  Wed Apr  4 15:42  /usr/lib/uucp/uucico -r1 -sother
+     1  Wed Apr  4 15:42  /usr/sbin/uucico -r1 -sother
 >
 .RE
 .sp

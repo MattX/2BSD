@@ -9,7 +9,7 @@
 #include <sys/file.h>
 
 #ifndef TEACHJOVE
-#    define TEACHJOVE	"/usr/lib/jove/teach-jove"
+#    define TEACHJOVE	"/usr/new/lib/jove/teach-jove"
 #endif
 
 #ifndef W_OK

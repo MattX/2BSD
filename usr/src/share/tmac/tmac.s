@@ -1,4 +1,4 @@
-.ds // /usr/lib/ms/
+.ds // /usr/share/ms/
 .	\" IZ - initialize (before text begins)
 .de IZ
 .nr FM 1i

@@ -14,8 +14,8 @@ are specials, and although they don't have to go to the front, they are
 probably quite common and really should go near the front.
 
 Third, if you are not a super user and cannot create the directory
-/usr/lib/tabset, make a corresponding directory somewhere you can and
-add a line to reorder to globally change all /usr/lib/tabset's to your
+/usr/share/tabset, make a corresponding directory somewhere you can and
+add a line to reorder to globally change all /usr/share/tabset's to your
 own path name.  This change is better than just changing the termcap.src
 file because it makes it easier to diff it from newer distributed versions.
 Try to keep the source as is whenever possible, and put mungings into reorder.

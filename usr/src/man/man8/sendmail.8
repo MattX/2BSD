@@ -2,15 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)sendmail.8	6.2 (Berkeley) 5/22/86
+.\"	@(#)sendmail.8	6.2.1 (2.11BSD) 1996/10/23
 .\"
-.\"	@(#)sendmail.8	4.2		7/28/83
-.TH SENDMAIL 8 "May 22, 1986"
+.TH SENDMAIL 8 "October 23, 1996"
 .UC 4
 .SH NAME
 sendmail \- send mail over the internet
 .SH SYNOPSIS
-.B /usr/lib/sendmail
+.B /usr/sbin/sendmail
 [
 flags
 ] [
@@ -385,31 +384,31 @@ If invoked as
 will print the contents of the mail queue.
 .SH FILES
 Except for
-/usr/lib/sendmail.cf,
+/etc/sendmail.cf,
 these pathnames are all specified in
-/usr/lib/sendmail.cf.
+/etc/sendmail.cf.
 Thus,
 these values are only approximations.
 .PP
 .if t .ta 2i
 .if n .ta 3i
-/usr/lib/aliases	raw data for alias names
+/etc/aliases	raw data for alias names
 .br
-/usr/lib/aliases.pag
+/etc/aliases.pag
 .br
-/usr/lib/aliases.dir	data base of alias names
+/etc/aliases.dir	data base of alias names
 .br
-/usr/lib/sendmail.cf	configuration file
+/etc/sendmail.cf	configuration file
 .br
-/usr/lib/sendmail.fc	frozen configuration
+/etc/sendmail.fc	frozen configuration
 .br
-/usr/lib/sendmail.hf	help file
+/usr/share/misc/sendmail.hf	help file
 .br
-/usr/lib/sendmail.st	collected statistics
+/var/log/sendmail.st	collected statistics
 .br
 /usr/spool/mqueue/*	temp files
 .SH SEE\ ALSO
-binmail(1), mail(1), rmail(1),
+mail(1), rmail(1),
 syslog(3),
 aliases(5), sendmail.cf(5),
 mailaddr(7),

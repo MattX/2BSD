@@ -312,7 +312,7 @@ map between notesfiles and news.
 Modify UUCP's ``uuxqt.c'' to allow remote execution of ``nfrcv''.
 This is unnecessary if no notesfile networking will be done
 or if another remote execution mechanism will be used.
-Some versions of UUCP have a file ``/usr/lib/uucp/L.cmds''
+Some versions of UUCP have a file ``/etc/uucp/L.cmds''
 which contains names of permitted commands.
 .iz
 Modify /etc/rc to remove notesfile locks at boot time.
@@ -451,8 +451,8 @@ transmissions around your local network.
 .a1 "Mail to Notesfiles"
 
 	To use the nfmail program with the 4.1 BSD /etc/delivermail
-or the 4.2 BSD /usr/lib/sendmail
-insert lines of the following form in the file /usr/lib/aliases.
+or the 4.2 BSD /usr/sbin/sendmail
+insert lines of the following form in the file /etc/aliases.
 
 .in +1i
 .nf

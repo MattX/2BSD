@@ -22,16 +22,13 @@
 #    Newer versions of diff, support them and diff is no longer distributed with
 #    RCS. The following definitions apply only if you have both old versions
 #    and new versions of diff, and you want RCS to use the new versions.
-#    The default should be :
-#DIFF      = /bin/diff
-#DIFF3     = /usr/lib/diff3
 
 #    Figure out where to put the modified diff and diff3 commands, and
 #     install them. (Read the instructions in the Make-files).
 #     Define the macros DIFF and DIFF3 accordingly (below).
 DESTDIR   =
 DIFF      = /bin/diff
-DIFF3     = /usr/lib/diff3
+DIFF3     = /usr/libexec/diff3
 
 # 2.  Figure out where to put the RCS commands; define RCSDIR accordingly.
 RCSDIR    = /usr/new

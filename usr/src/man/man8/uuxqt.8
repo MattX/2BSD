@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)uuxqt.8c	6.1 (Berkeley) 4/24/86
+.\"	@(#)uuxqt.8	6.1.1 (2.11BSD) 1996/10/23
 .\"
-.TH UUXQT 8C "April 24, 1986"
+.TH UUXQT 8 "October 23, 1996"
 .UC 6
 .SH NAME
 uuxqt \- \s-1UUCP\s+1 execution file interpreter
 .SH SYNOPSIS
-.B /usr/lib/uucp/uuxqt
+.B /usr/libexec/uuxqt
 [
 .BI \-x debug
 ]
@@ -18,9 +18,9 @@ uuxqt \- \s-1UUCP\s+1 execution file interpreter
 interprets
 .I "execution files"
 created on a remote system via
-.IR uux (1C)
+.IR uux (1)
 and transferred to the local system via
-.IR uucico (8C).
+.IR uucico (8).
 When a user uses
 .I uux
 to request remote command execution, it is
@@ -40,12 +40,12 @@ It copies intermediate files to this directory when necessary.
 .SH FILES
 .ta \w'/usr/spool/uucp/LCK/LCK.XQT   'u
 .nf
-/usr/lib/uucp/L.cmds	Remote command permissions list
-/usr/lib/uucp/USERFILE	Remote directory tree permissions list
+/etc/uucp/L.cmds	Remote command permissions list
+/etc/uucp/USERFILE	Remote directory tree permissions list
 /usr/spool/uucp/LOGFILE	UUCP system activity log
 /usr/spool/uucp/LCK/LCK.XQT	\fIUuxqt\fP lock file
 /usr/spool/uucp/X./	Incoming execution file directory
 /usr/spool/uucp/XTMP	\fIUuxqt\fP running directory
 .fi
 .SH SEE ALSO
-uucp(1C), uux(1C), L.cmds(5), USERFILE(5), uucico(8C)
+uucp(1), uux(1), L.cmds(5), USERFILE(5), uucico(8)

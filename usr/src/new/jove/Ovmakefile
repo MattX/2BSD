@@ -19,7 +19,7 @@
 
 DESTDIR =
 TMPDIR = /tmp
-LIBDIR = /usr/lib/jove
+LIBDIR = /usr/new/lib/jove
 BINDIR = /bin
 MANDIR = /usr/man/man1
 MANEXT = 1

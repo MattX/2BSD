@@ -1,11 +1,11 @@
-.\"	@(#)uucico.8c	6.3 (Berkeley) 5/15/86
+.\"	@(#)uucico.8	6.3.1 (2.11BSD) 1996/10/23
 .\"
-.TH UUCICO 8C "May 15, 1986"
+.TH UUCICO 8 "October 23, 1996"
 .UC 6
 .SH NAME
 uucico, uucpd \- transfer files queued by uucp or uux
 .SH SYNOPSIS
-.B /usr/lib/uucp/uucico
+.B /usr/sbin/uucico
 [
 .BI \-d spooldir
 ] [
@@ -24,14 +24,14 @@ uucico, uucpd \- transfer files queued by uucp or uux
 .BI \-t turnaround
 ]
 .PP
-.B /etc/uucpd
+.B /usr/libexec/uucpd
 .SH DESCRIPTION
 .I Uucico
 performs the actual work involved in transferring files between
 systems. 
-.IR Uucp (1C)
+.IR Uucp (1)
 and
-.IR uux (1C)
+.IR uux (1)
 merely queue requests for data transfer which
 .I uucico
 processes.
@@ -157,7 +157,7 @@ For calling out periodically, a typical line in
 would be:
 .PP
 .nf
-	0	*	*	*	*	/usr/lib/uucp/uucico -r1
+	0	*	*	*	*	/usr/sbin/uucico -r1
 .fi
 .PP
 This will run
@@ -178,7 +178,7 @@ file must be created, with a login ``shell'' of
 For example:
 .PP
 .nf
-	nuucp:Password:6:1::/usr/spool/uucppublic:/usr/lib/uucp/uucico
+	nuucp:Password:6:1::/usr/spool/uucppublic:/usr/sbin/uucico
 .fi
 .PP
 The UID for UUCP remote logins is not critical, so long as it differs from
@@ -188,13 +188,13 @@ this UID to a remote login would be an extreme security hazard.
 .SH FILES
 .ta \w'/usr/spool/uucp/D.hostnameX/  'u
 .nf
-/usr/lib/uucp/	UUCP internal files/utilities
-/usr/lib/uucp/L-devices	Local device descriptions
-/usr/lib/uucp/L-dialcodes	Phone numbers and prefixes
-/usr/lib/uucp/L.aliases	Hostname aliases
-/usr/lib/uucp/L.cmds	Remote command permissions list
-/usr/lib/uucp/L.sys	Host connection specifications
-/usr/lib/uucp/USERFILE	Remote directory tree permissions list
+/etc/uucp/	UUCP internal files
+/etc/uucp/L-devices	Local device descriptions
+/etc/uucp/L-dialcodes	Phone numbers and prefixes
+/etc/uucp/L.aliases	Hostname aliases
+/etc/uucp/L.cmds	Remote command permissions list
+/etc/uucp/L.sys	Host connection specifications
+/etc/uucp/USERFILE	Remote directory tree permissions list
 .PP
 /usr/spool/uucp/	Spool directory
 /usr/spool/uucp/AUDIT/*	Debugging audit trails
@@ -214,8 +214,8 @@ this UID to a remote login would be an extreme security hazard.
 /usr/spool/uucppublic	Public access directory
 .fi
 .SH SEE ALSO
-uucp(1C), uuq(1C), uux(1C), L-devices(5), L-dialcodes(5), L.aliases(5),
-L.cmds(5), L.sys(5), uuclean(8C), uupoll(8C), uusnap(8C), uuxqt(8C)
+uucp(1), uuq(1), uux(1), L-devices(5), L-dialcodes(5), L.aliases(5),
+L.cmds(5), L.sys(5), uuclean(8), uupoll(8), uusnap(8), uuxqt(8)
 .PP
 D. A. Nowitz and M. E. Lesk,
 .IR "A Dial-Up Network of UNIX Systems" .

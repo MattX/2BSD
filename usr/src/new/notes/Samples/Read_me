@@ -36,7 +36,7 @@ cronlocal.sh	shell file run "su" to the notesfile owner. This
 		all of our hosts -- we just make sure that the list
 		of notes to send to "yourself" is empty.
 
-crontab		A copy of the added lines in /usr/lib/crontab
+crontab		A copy of the added lines in /etc/crontab
 		that we use for notes management.
 
 net.how		/usr/spool/notes/.utilities/net.how  - The file
