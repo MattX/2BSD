@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/17/95";
+static char sccsid[] = "@(#)init.c	5.6.2 (2.11BSD GTE) 1995/05/04";
 #endif
 
 #include <sys/param.h>
@@ -19,6 +19,7 @@ static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/17/95";
 #include <ttyent.h>
 #include <sys/syslog.h>
 #include <sys/stat.h>
+#include <paths.h>
 
 #define	LINSIZ	sizeof(wtmp.ut_line)
 #define	CMDSIZ	200	/* max string length for getty or window command*/
@@ -27,12 +28,12 @@ static char sccsid[] = "@(#)init.c	5.6.1 (2.11BSD GTE) 1/17/95";
 #define SCPYN(a, b)	strncpy(a, b, sizeof(a))
 #define SCMPN(a, b)	strncmp(a, b, sizeof(a))
 
-char	shell[]	= "/bin/sh";
+char	shell[]	= _PATH_BSHELL;
 char	minus[]	= "-";
 char	runc[]	= "/etc/rc";
-char	utmpf[]	= "/etc/utmp";
-char	wtmpf[]	= "/usr/adm/wtmp";
-char	ctty[]	= "/dev/console";
+char	utmpf[]	= _PATH_UTMP;
+char	wtmpf[]	= _PATH_WTMP;
+char	ctty[]	= _PATH_CONSOLE;
 
 struct utmp wtmp;
 struct	tab
@@ -64,6 +65,7 @@ time_t	time();
 void	setsecuritylevel();
 int	getsecuritylevel();
 int	badsys();
+extern	int errno;
 
 struct	sigvec rvec = { reset, sigmask(SIGHUP), 0 };
 
@@ -232,7 +234,6 @@ getsecuritylevel()
 #ifdef KERN_SECURELVL
 	int name[2], curlevel;
 	size_t len;
-	extern int errno;
 
 	name[0] = CTL_KERN;
 	name[1] = KERN_SECURELVL;
@@ -257,7 +258,6 @@ setsecuritylevel(newlevel)
 {
 #ifdef KERN_SECURELVL
 	int name[2], curlevel;
-	extern int errno;
 
 	curlevel = getsecuritylevel();
 	if (newlevel == curlevel)
@@ -279,7 +279,7 @@ single()
 {
 	register pid;
 	register xpid;
-	extern	errno;
+	int	fd;
 
 	/*
 	 * If the kernel is in secure mode, downgrade it to insecure mode.
@@ -294,7 +294,9 @@ single()
 			signal(SIGHUP, SIG_DFL);
 			signal(SIGALRM, SIG_DFL);
 			signal(SIGTSTP, SIG_IGN);
-			(void) open(ctty, O_RDWR);
+			fd = open(ctty, O_RDWR, 0);
+			if	(fd)
+				dup2(fd, 0);
 			dup2(0, 1);
 			dup2(0, 2);
 			execl(shell, minus, (char *)0);
@@ -316,7 +318,9 @@ runcom(oldhowto)
 
 	pid = fork();
 	if (pid == 0) {
-		(void) open("/", O_RDONLY);
+		f = open("/", O_RDONLY);
+		if	(f)
+			dup2(f, 0);
 		dup2(0, 1);
 		dup2(0, 2);
 #ifdef pdp11
@@ -741,14 +745,16 @@ done:
 
 autoconfig()
 {
-	int pid, status;
+	int pid, status, f;
 	static char config[]= "/etc/autoconfig";
 
-	syslog(LOG_NOTICE, "configure system\n");
 	if (!(pid = fork())) {
-		open(ctty, O_RDWR, 0);
-		dup(0);
-		dup(0);
+		syslog(LOG_NOTICE, "configure system\n");
+		f = open(ctty, O_RDWR, 0);
+		if	(f)
+			dup2(f, 0);
+		dup2(0, 1);
+		dup2(0, 2);
 		execl(config, "autoconfig", "-vc", 0);
 		syslog(LOG_ERR, "init: couldn't exec %s\n", config);
 		exit(AC_SETUP);

@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)syslog.c	8.4.1 (2.11BSD) 1995/04/01";
+static char sccsid[] = "@(#)syslog.c	8.4.2 (2.11BSD) 1995/05/04";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -97,6 +97,7 @@ vsyslog(pri, fmt, ap)
 	time_t now;
 	int fd, saved_errno;
 	char *stdp, tbuf[640], fmt_cpy[512];
+	pid_t	pid;
 
 #define	INTERNALLOG	LOG_ERR|LOG_CONS|LOG_PERROR|LOG_PID
 	/* Check for invalid bits. */
@@ -176,14 +177,28 @@ vsyslog(pri, fmt, ap)
 	 * Output the message to the console; don't worry about blocking,
 	 * if console blocks everything will.  Make sure the error reported
 	 * is the one from the syslogd failure.
+	 *
+	 * 2.11BSD has to do a more complicated dance because we do not
+	 * want to acquire a controlling terminal (bad news for 'init'!).
+	 * Until either the tty driver is ported from 4.4 or O_NOCTTY
+	 * is implemented we have to fork and let the child do the open of
+	 * the console.
 	 */
-	if (LogStat & LOG_CONS &&
-	    (fd = open(_PATH_CONSOLE, O_WRONLY, 0)) >= 0) {
-		(void)strcat(tbuf, "\r\n");
-		cnt += 2;
-		p = index(tbuf, '>') + 1;
-		(void)write(fd, p, cnt - (p - tbuf));
-		(void)close(fd);
+	if (LogStat & LOG_CONS) {
+		pid = vfork();
+		if (pid == -1)
+			return;
+		if (pid == 0) {
+	   		fd = open(_PATH_CONSOLE, O_WRONLY, 0);
+			(void)strcat(tbuf, "\r\n");
+			cnt += 2;
+			p = index(tbuf, '>') + 1;
+			(void)write(fd, p, cnt - (p - tbuf));
+			(void)close(fd);
+			_exit(0);
+		}
+		while (waitpid(pid, NULL, NULL) == -1 && (errno == EINTR))
+			;
 	}
 }
 
