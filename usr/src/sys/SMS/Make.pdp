@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	%W% (Berkeley) %G%
+#	2.0 (2.11BSD GTE) 1995/05/21
 #
 M=	../machine
 VPATH=	../machine
@@ -48,9 +48,7 @@ SOBJS=	libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o libc_insque.o \
 	rm -f $*.s
 
 .s.o:
-	${CPP} $*.s >_xx.s;
-	${AS} - -o $*.o _xx.s;
-	rm -f _xx.s
+	${CPP} $*.s | ${AS} -u -o $*.o
 
 all: assym.h ${COBJS} ${SOBJS} ../pdp/symbols.sort
 

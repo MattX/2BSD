@@ -1,3 +1,5 @@
+# 1995/07/21 - XP_PROBE removed.
+#
 # Machine configuration file for 2.11BSD distributed kernel.
 #
 # Format:
@@ -82,7 +84,7 @@ SWAPDEV		makedev(5,1)		# makedev(10,1) ra0b
 # DUMPLO should leave room for the kernel to start swapping without
 # overwriting the dump.
 DUMPLO		512			# dump start address
-DUMPDEV		NODEV			# makedev(10,1) xp0b
+DUMPDEV		makedev(5,1)		# makedev(10,1) xp0b
 #DUMPROUTINE	nulldev			# no dump routine.
 #DUMPROUTINE	hkdump			# hk driver dump routine
 #DUMPROUTINE	hpdump			# hp driver dump routine
@@ -145,14 +147,9 @@ NRX		0		# RX02
 
 NSI		0		# SI 9500 driver for CDC 9766 disks
 
-# Because the disk drive type registers conflict with other DEC
-# controllers, you cannot use XP_PROBE for the Ampex 9300 and
-# Diva drives.  Read through /sys/pdpuba/hpreg.h and /sys/pdpuba/xp.c
-# for information on how to initialize for these drives.
 NXPC		0		# NXPD controllers (RH70/RH11 style)
 NXPD		0		# RM02/03/05, RP04/05/06, CDC 9766,
 				# Ampex 9300, Diva, Fuji 160, SI Eagle.
-XP_PROBE	YES		# check drive types at boot
 
 NRAM		0		# RAM disk size (512-byte blocks)
 
@@ -168,10 +165,10 @@ NHT		0		# TE16, TU45, TU77
 NTM		0		# TM11
 AVIVTM		YES		# AVIV 800/1600/6250 controller
 
-NTS		0		# TS11
+NTS		1		# TS11
 
-NTMSCP		2		# TMSCP controllers
-NTMS		3		# TMSCP drives
+NTMSCP		0		# TMSCP controllers
+NTMS		0		# TMSCP drives
 TMSCP_DEBUG	NO		# debugging code in TMSCP drive (EXPENSIVE)
 
 #########################################
@@ -180,13 +177,13 @@ TMSCP_DEBUG	NO		# debugging code in TMSCP drive (EXPENSIVE)
 
 # NKL includes both KL11's and DL11's.
 # It should always be at least 1, for the console.
-NKL		2		# KL11, DL11
+NKL		8		# KL11, DL11
 NDH		0		# DH11; NDH is in units of boards (16 each)
 CS02		NO		# DH units above are really Emulex CS02 
 				# boards on a 22bit Qbus.
 NDM		0		# DM11; NDM is in units of boards (16 each)
 NDHU		0		# DHU11
-NDHV		1		# DHV11
+NDHV		0		# DHV11
 NDZ		0		# DZ11; NDZ is in units of boards (8 each)
 
 #########################################
@@ -254,3 +251,5 @@ FPSIM		NO			# floating point simulator
 # Note that profiling is not currently working.  We don't have any plans on
 # fixing it, so this is essentially a non-supported feature.
 PROFILE		NO			# system profiling with KW11P clock
+
+INGRES		YES		# include the Ingres lock driver

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 1/9/94		  May 22, 1986				1
+Printed 9/9/95		  Nov 30, 1994				1
 
 
 
@@ -80,16 +80,16 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
      The flags for the F_GETFL and F_SETFL flags are as follows:
 
-     FNDELAY	    Non-blocking I/O; if no data is available to
+     O_NONBLOCK     Non-blocking I/O; if no data is available to
 		    a _r_e_a_d call, or if a write operation would
 		    block, the call returns -1 with the error
 		    EWOULDBLOCK.
 
-     FAPPEND	    Force each write to append at the end of
+     O_APPEND	    Force each write to append at the end of
 		    file; corresponds to the O_APPEND flag of
 		    _o_p_e_n(2).
 
-     FASYNC	    Enable the SIGIO signal to be sent to the
+     O_ASYNC	    Enable the SIGIO signal to be sent to the
 		    process group when I/O is possible, e.g.,
 		    upon availability of data to be read.
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 1/9/94		  May 22, 1986				2
+Printed 9/9/95		  Nov 30, 1994				2
 
 
 
@@ -138,8 +138,8 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
 
 BUGS
-     The asynchronous I/O facilities of FNDELAY and FASYNC are
-     currently available only for tty and socket operations.
+     The asynchronous I/O facilities of O_NONBLOCK and O_ASYNC
+     are currently available only for tty and socket operations.
 
 
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 1/9/94		  May 22, 1986				3
+Printed 9/9/95		  Nov 30, 1994				3
 
 
 

@@ -10,12 +10,12 @@ ttyS4	"/etc/getty std.9600"	vt100		off secure
 ttyS5	"/etc/getty std.9600"	vt100		off secure	#printer
 ttyS6	"/etc/getty std.9600"	vt100		off secure
 ttyS7	"/etc/getty std.9600"	vt100		off secure
-ttyl1	"/etc/getty std.9600"	vt100		on secure	#2nd KL/DL-11
-ttyp0   none                    network
-ttyp1   none                    network
-ttyp2   none                    network
-ttyp3	none			network
-ttyp4	none			network
+ttyl1	"/etc/getty std.9600"	vt100		off secure	# 2nd DL11
+ttyp0   none                    network         secure
+ttyp1   none                    network		secure
+ttyp2   none                    network		secure
+ttyp3	none			network		secure
+ttyp4	none			network		secure
 ttyp5	none			network
 ttyp6	none			network
 ttyp7	none			network

@@ -1,15 +1,9 @@
- (mailq) - print the mail queue
- (newaliases) - rebuild the data base for the mail aliases file
- (rmail) - handle remote mail received via uucp
- (sendmail) - send mail over the internet
 8 ncheck -	generate names from i-numbers
 L-devices (5) - UUCP device description file
 L-dialcodes (5) - UUCP phone number index file
 L.aliases (5) - UUCP hostname alias file
 L.cmds (5) - UUCP remote command permissions file
 L.sys (5) - UUCP remote host description file
-Pnews (1) - a program for posting news articles
-Rnmail (1) - a program for replying via mail
 USERFILE (5) - UUCP pathname permissions file
 XNSrouted (8C) - NS Routing Information Protocol daemon
 a.out (5) - assembler and link editor output
@@ -83,6 +77,8 @@ chdir (3F) - change default directory
 chdir, fchdir (2) - change current working directory
 checknr (1) - check nroff/troff files
 chess (6) - the game of chess
+chflags (1) - change file flags
+chflags, fchflags (2) - set file flags
 chgrp (1) - change group
 ching (6) - the book of changes and other cookies
 chmod (1) - change mode
@@ -118,6 +114,7 @@ css (4) - DEC IMP-11A LH/DH IMP interface
 ctags (1) - create a tags file
 ctime, localtime, gmtime, asctime, timezone, tzset (3) -  convert date and time to ASCII
 curses (3X) - screen functions with ``optimal'' cursor motion
+daemon (3) - run in the background
 date (1) - print and set the date
 dbm_open, dbm_close, dbm_fetch, dbm_store, dbm_delete, dbm_firstkey, dbm_nextkey, dbm_error, dbm_clearerr (3) - data base subroutines
 dbminit, fetch, store, delete, firstkey, nextkey (3X) - data base subroutines
@@ -127,6 +124,8 @@ dcheck (8) - file system directory consistency check
 dd (1) - convert and copy a file
 de (4) - DEC DEUNA 10 Mb/s Ethernet interface
 deroff (1) - remove nroff, troff, tbl and eqn constructs
+dev_mkdb (8) - create /dev database
+devname (3) - get device name
 df (1) - disk free
 dh (4) - DH-11/DM-11 communications multiplexer
 dhu (4) - DHU-11 communications multiplexer
@@ -134,6 +133,8 @@ diction, explain (1) - print wordy sentences; thesaurus for diction
 diff (1) - differential file and directory comparator
 diff3 (1) - 3-way differential file comparison
 dir (5) - format of directories
+disklabel (5) - disk pack label
+disklabel (8) - read and write disk pack label
 diskpart (8) - calculate default disk partition sizes
 disktab (5) - disk description file
 dmc (4) - DEC DMC-11/DMR-11 point-to-point communications device
@@ -161,6 +162,7 @@ environ (7) - user environment
 eqn, neqn, checkeq (1) - typeset mathematics
 eqnchar (7) - special character definitions for eqn
 erf, erfc (3M) - error functions
+err, verr , errx , verrx , warn , vwarn , warnx , vwarnx (3) -     formatted error messages
 error (1) - analyze and disperse compiler error messages
 etime, dtime (3F) - return elapsed execution time
 ex, edit (1) - text editor
@@ -227,6 +229,7 @@ gethostbyname, gethostbyaddr, gethostent, sethostent, endhostent, herror (3N) - 
 gethostid, sethostid (2) - get/set unique identifier of current host
 gethostname, sethostname (2) - get/set name of current host
 getitimer, setitimer (2) - get/set value of interval timer
+getloadavg (3) - get system load averages
 getlog (3F) - get user's login name
 getlogin (3) - get login name
 getnetent, getnetbyaddr, getnetbyname, setnetent, endnetent (3N) - get network entry
@@ -239,7 +242,6 @@ getpid (3F) - get process id
 getpid, getppid (2) - get process identification
 getpriority, setpriority (2) - get/set program scheduling priority
 getprotoent, getprotobynumber, getprotobyname, setprotoent, endprotoent (3N) - get protocol entry
-getpw (3C) - get name from uid
 getpwent, getpwnam, getpwuid, setpassent, setpwfile, setpwent, endpwent (3) - get password file entries
 getrlimit, setrlimit (2) - control maximum system resource consumption
 getrusage (2) - get information about resource utilization
@@ -256,7 +258,6 @@ getuid, geteuid (2) - get user identity
 getuid, getgid (3F) - get user or group ID of the caller
 getusershell, setusershell, endusershell (3) - get legal user shells
 getwd (3) - get current working directory pathname
-gldav (2) - get load average (2BSD)
 graph (1G) - draw a graph
 grep, egrep, fgrep (1) - search a file for a pattern
 group (5) - group file
@@ -270,6 +271,9 @@ hostname (1) - set or print name of current host system
 hostname (7) - host name resolution description
 hostnm (3F) - get name of current host
 hosts (5) - host name data base
+hosts_access (5) - format of host access control files
+hosts_access, hosts_ctl, request_init, request_set (3) - access control library
+hosts_options (5) - host access control language extensions
 ht (4) - TM-03/TE-16,TU-45,TU-77 MASSBUS magtape interface
 htable (8) - convert NIC standard format host tables
 htonl, htons, ntohl, ntohs (3N) - convert values between host and network byte order
@@ -332,7 +336,6 @@ lisp (1) - lisp interpreter
 listen (2) - listen for connections on a socket
 ln (1) - make links
 lo (4) - software loopback network interface
-loadav (3) - get load average (2BSD)
 loc (3F) - return the address of an object
 lock (1) - reserve a terminal
 lock (2) - lock a process in primary memory (2BSD)
@@ -399,9 +402,8 @@ named (8) - Internet domain name server
 netstat (1) - show network status
 networking (4N) - introduction to networking facilities
 networks (5) - network name data base
+newaliases (1) - rebuild the data base for the mail aliases file
 newfs (8) - construct a new file system
-newsetup (1) - a program to set up a .newsrc file
-newsgroups (1) - a program to list unsubscribed newsgroups.
 nice (3C) - set program priority
 nice, nohup (1) - run a command at low priority (sh only)
 nlist (3) - get entries from name list
@@ -411,7 +413,7 @@ nroff (1) - text formatting
 ns (4F) - Xerox Network Systems(tm) protocol family
 ns_addr, ns_ntoa (3N) - Xerox NS(tm)  address conversion routines
 nsip (4) - software network interface encapsulating ns packets in ip packets.
-nslookup (8) - query Internet name servers interactively
+nslookup (1) - query name servers interactively
 null (4) - data sink
 number (6) - convert Arabic numerals to English
 od (1) - octal, decimal, hex, ascii dump
@@ -442,7 +444,8 @@ popen, pclose (3) - initiate I/O to/from a process
 pr (1) - print file
 printcap (5) - printer capability data base
 printenv (1) - print out the environment
-printf, fprintf, sprintf (3S) - formatted output conversion
+printf (1) - formatted output
+printf, fprintf, sprintf, vfprintf, vsprintf (3S) - formatted output conversion
 prof (1) - display profile data
 profil (2) - execution time profile
 protocols (5) - protocol name data base
@@ -510,7 +513,6 @@ rmail (1) - handle remote mail received via uucp
 rmdir (2) - remove a directory file
 rmdir, rm (1) - remove (unlink) directories or files
 rmt (8C) - remote magtape protocol module
-rn (1) - new read news program
 robots (6) - fight off villainous robots
 roffbib (1) - run off bibliographic database
 rogue (6) - Exploring The Dungeons of Doom
@@ -523,7 +525,6 @@ ruptime (1C) - show host status of local machines
 rwho (1C) - who's logged in on local machines
 rwhod (8C) - system status server
 rx (4) - DEC RX02 floppy disk
-rx, rb, rz (1) - XMODEM, YMODEM, ZMODEM (Batch) file receive
 rxformat (8V) - format floppy disks (2.10BSD)
 sa, accton (8) - system accounting
 sail (6) - multi-user wooden ships and iron men
@@ -536,6 +537,7 @@ sed (1) - stream editor
 select (2) - synchronous I/O multiplexing
 send, sendto, sendmsg (2) - send a message from a socket
 sendbug (1) - mail a system bug report to 4bsd-bugs
+sendmail (8) - send mail over the internet
 services (5) - service name data base
 setbuf, setbuffer, setlinebuf (3S) - assign buffering to a stream
 setgroups (2) - set group access list
@@ -584,6 +586,7 @@ stdio (3S) - standard buffered input/output package
 sticky (8) - persistent text and append-only directories
 strcat, strncat, strcmp, strncmp, strcasecmp, strncasecmp, strcpy, strncpy, strlen, index, rindex (3) - string operations
 strcompact (1) - string compaction for object files
+strftime (3) - format date and time
 strings (1) - find the printable strings in a object, or other binary, file
 strip (1) - remove symbols and relocation bits
 strtok, strsep (3) - string token operations
@@ -597,15 +600,16 @@ swab (3) - swap bytes
 swap (4) - swap device
 swapon (2) - add a swap device for interleaved paging/swapping
 swapon (8) - specify additional device for paging and swapping
-sx, sb, sz (1) - XMODEM, YMODEM, ZMODEM file send
 symcompact (1) - string compaction for object files
 symlink (2) - make symbolic link to a file
 symorder (1) - rearrange name list
 sync (2) - update super-block
 sync (8) - update the super block
 syscall (2) - indirect system call
+sysctl (3) - get or set system information
+sysctl (8) - get or set kernel state
 sysline (1) - display system status on status line of a terminal
-syslog, openlog, closelog, setlogmask (3) - control system log
+syslog , vsyslog , openlog , closelog , setlogmask (3) - control system log
 syslogd (8) - log systems messages
 system (3) - issue a shell command
 system (3F) - execute a UNIX command
@@ -620,13 +624,16 @@ tbl (1) - format tables for nroff or troff
 tc (1) - photoypesetter simulator
 tcopy (1) - copy a mag tape
 tcp (4P) - Internet Transmission Control Protocol
+tcpd (8) - access control facility for internet services
+tcpdchk (8) - tcp wrapper configuration checker
+tcpdmatch (8) - tcp wrapper oracle
 tcsh (1) - C shell with file name completion and command line editing
 tee (1) - pipe fitting
 telnet (1C) - user interface to the TELNET protocol
 telnetd (8C) - DARPA TELNET protocol server
 term (7) - conventional names for terminals
 termcap (5) - terminal capability data base
-test (1) - condition command
+test (1) - condition evaluation utility
 tftp (1) - trivial file transfer program
 tftpd (8) - DARPA Trivial File Transfer Protocol server
 tgetent, tgetnum, tgetflag, tgetstr, tgoto, tputs (3X) - terminal independent operation routines
@@ -646,7 +653,6 @@ touch (1) - update date last modified of a file
 tp (1) - manipulate tape archive
 tp (5) - DEC/mag tape formats
 tr (1) - translate characters
-traceroute (8) - print the route packets take to network host
 traper (3F) - trap arithmetic errors
 trapov (3F) - trap and repair floating point overflow
 trek (6) - trekkie game
@@ -673,6 +679,8 @@ ucall (2) - call a kernel subroutine from user mode (2BSD)
 udp (4P) - Internet User Datagram Protocol
 ul (1) - do underlining
 umask (2) - set file creation mode mask
+uname (1) - display information about the system
+uname (3) - get system identification
 ungetc (3S) - push character back into input stream
 unifdef (1) - remove ifdef'ed lines
 uniq (1) - report repeated lines in a file
@@ -709,10 +717,8 @@ vgrindefs (5) - vgrind's language definition data base
 vhangup (2) - virtually ``hangup'' the current control terminal
 vi (1) - screen oriented (visual) display editor based on ex
 vipw (8) - edit the password file
-vlimit (3C) - control maximum system resource consumption
 vminit, vmopen, vmclose, vmmapseg, vmmodify, vmlock, vmunlock, vmclrseg, vmflush, (3) - disk based virtual memory rou-     tines
 vmstat (1) - report virtual memory statistics
-vtimes (3C) - get information about resource utilization
 vv (4) - Proteon proNET 10 Megabit ring
 vwidth (1) - make troff width table for a font
 w, uptime (1) - who is on and what they are doing; system time up
@@ -736,6 +742,7 @@ worms (6) -  animate worms on a display terminal
 write (1) - write to another user
 write, writev (2) - write output
 wump (6) - the game of hunt-the-wumpus
+xargs (1) - construct argument list(s) and execute utility
 xp (4) - generic SMD moving-head disk
 xstr (1) - extract strings from C programs to implement shared strings
 yacc (1) - yet another compiler-compiler

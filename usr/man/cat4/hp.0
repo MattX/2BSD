@@ -10,14 +10,10 @@ NAME
 
 SYNOPSIS
      /sys/conf/SYSTEM:
-	  # Because the disk drive type registers conflict with other DEC
-	  # controllers, you cannot use XP_PROBE for the Ampex 9300 and
-	  # Diva drives.  Read through /sys/pdpuba/hpreg.h and /sys/pdpuba/xp.c
-	  # for information on how to initialize for these drives.
-	  NXPC	   _x_p__c_o_n_t_r_o_l_l_e_r_s # NXPD controllers (RH70/RH11 style)
-	  NXPD	   _x_p__d_r_i_v_e_s	  # RM02/03/05, RP04/05/06, CDC 9766,
-				  # Ampex 9300, Diva, Fuji 160, SI Eagle.
-	  XP_PROBE _Y_E_S		  # check drive types at boot
+	  NXPC	  _x_p__c_o_n_t_r_o_l_l_e_r_s # Number of controllers
+	  NXPD	  _x_p__d_r_i_v_e_s	 # RM02/03/05, RP04/05/06,
+				 # CDC 9766, Fuji 160, etc.
+	  BADSECT _N_O		 # Bad sector handling (see BUGS)
 
      /etc/dtab:
 	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
@@ -28,15 +24,24 @@ SYNOPSIS
 	  block: 10
      minor device encoding:
 	  bits 0007 specify partition of XP drive
-	  bits 0070 specify XP drive
+	  bits 0370 specify XP drive
 
 DESCRIPTION
      The _x_p driver is a generic SMD storage module disk driver.
-     It can be adapted to most SMD controllers (although
-     bootstrapping will not necessarily be directly possible.)
+     It can be adapted to most SMD controllers although
+     bootstrapping will not necessarily be directly possible.
      The drives are numbered from 0 to _n on controller 0, from
      _n+1 to _m on controller 1, etc.  The drives may have dif-
      ferent geometries.
+
+     The _x_p driver is unique amoungst 2BSD drivers in its number-
+     ing of drives.  Other drivers (_r_a for example) number drives
+     0 thru 7 on controller 1, 8 thru 15 on controller 2 and so
+     on.  _x_p on the other hand can have drives 0 and 1 on con-
+     troller 1, drives 2, 3, 4 and 5 on controller 2 and drives
+     6, 7 and 8 on controller 3.  This is different from boot's
+     view of the world, so if you are booting from other than
+     unit 0 you may have to experiment a bit.
 
      Files with minor device numbers 0 through 7 refer to various
      portions of drive 0; minor devices 8 through 15 refer to
@@ -52,193 +57,42 @@ DESCRIPTION
      disk and the user's read or write buffer.	A single read or
      write call results in exactly one I/O operation and there-
      fore raw I/O is considerably more efficient when many words
+
+
+
+Printed 9/9/95		 August 14, 1995			1
+
+
+
+
+
+
+XP(4)		    UNIX Programmer's Manual		    XP(4)
+
+
+
      are transmitted.  The names of the raw files conventionally
      begin with an extra `r.'
 
      In raw I/O the buffer must begin on a word (even) boundary,
-     and counts should be a multiple of 512 bytes (a disk
-
-
-
-Printed 1/9/94		September 7, 1988			1
-
-
-
-
-
-
-XP(4)		    UNIX Programmer's Manual		    XP(4)
-
-
-
-     sector).  Likewise _s_e_e_k calls should specify a multiple of
-     512 bytes.
+     and counts should be a multiple of 512 bytes (a disk sec-
+     tor).  Likewise _l_s_e_e_k calls should specify a multiple of 512
+     bytes.
 
 DISK SUPPORT
-     If the option XP_PROBE is selected the driver interrogates
-     the controller's drive type register to determine the type
-     of drive attached.  The driver recognizes the following
-     drives automatically:  RM02/03/05 (the CDC 9766 is recog-
-     nized as an RM05), SI 9775, RP04/05/06, Fuji 160, Capricorn
-     and SI Eagle.  The following drives are also supported, but
-     must either be patched at boot time or initialized at com-
-     pile time: Ampex 9300 in direct mode and DIVA Comp V.
-
-     The origin and size (in sectors) of the pseudo-disks on each
-     drive are as follows:
-
-     RP04/05 partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9614    0 -   22  /
-	  xp?b	  9614	    8778   23 -   43  swap
-	  xp?c	 18392	  153406   44 -  410* /usr
-	  xp?d	unusable
-	  xp?e	unusable
-	  xp?f	unused
-	  xp?g	     0	  171798    0 -  410* whole pack
-	  xp?h	unusable
-
-     RP06 partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9614    0 -   22  /
-	  xp?b	  9614	    8778   23 -   43  swap
-	  xp?c	 18392	  153406   44 -  410  /usr
-	  xp?d	171798	  168872  411 -  814*
-	  xp?e	 18392	  322278   44 -  814*
-	  xp?f	unused
-	  xp?g	     0	  171798    0 -  410
-	  xp?h	     0	  340670    0 -  814* whole pack
-
-     RM02/RM03 partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9600    0 -   59  /
-	  xp?b	  9600	    9600   60 -  119  swap
-	  xp?c	     0	  131680    0 -  822* whole pack + bad144 track
-	  xp?d	unused
-	  xp?e	unused
-	  xp?f	unused
-	  xp?g	 19200	  112320  120 -  821
-	  xp?h	       0  131520   0 -	821   whole pack - bad144 track
-
-
-
-
-
-
-
-Printed 1/9/94		September 7, 1988			2
-
-
-
-
-
-
-XP(4)		    UNIX Programmer's Manual		    XP(4)
-
-
-
-     RM05 (or SI 9500, CDC 9766) partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9120    0 -   14  /
-	  xp?b	  9120	    9120   15 -   29  swap
-	  xp?c	 18240	  234080   30 -  414
-	  xp?d	252320	  248064  415 -  822*
-	  xp?e	 18240	  164160   30 -  299  /usr
-	  xp?f	182400	  152000  300 -  549
-	  xp?g	334400	  165984  550 -  822*
-	  xp?h	     0	  500384    0 -  822* whole pack
-
-     Capricorn partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	   16384    0 -   31  /
-	  xp?b	 16384	   33792   32 -   97  swap
-	  xp?c	 50176	  291840   98 -  667  /usr
-	  xp?d	342016	   16384  668 -  699
-	  xp?e	358400	   56320  700 -  809
-	  xp?f	414720	  109568  810 - 1023*
-	  xp?g	342016	  182272  668 - 1023*
-	  xp?h	     0	  524288    0 - 1023* whole pack
-
-     SI, CDC 9775 (direct) partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	   10240    0 -    7  /
-	  xp?b	 10240	   10240    8 -   15  swap
-	  xp?c	 20480	  510720   16 -  414
-	  xp?d	531200	  547840  415 -  842*
-	  xp?e	 20480	  363520   16 -  299  /usr
-	  xp?f	384000	  320000  300 -  549
-	  xp?g	704000	  375040  550 -  842*
-	  xp?h	     0	 1079040    0 -  842* whole pack
-
-     SI 6100, Fuji Eagle 2351A partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	   11520    0 -   11  /
-	  xp?b	  9600	   11520   12 -   23  swap
-	  xp?c	 19200	  474240   24 -  517
-	  xp?d	 19200	   92160  518 -  613  /usr
-	  xp?e	144640	  218880  614 -  841*
-	  xp?f	unused
-	  xp?g	unused
-	  xp?h	     0	  808320    0 -  841* whole pack
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 1/9/94		September 7, 1988			3
-
-
-
-
-
-
-XP(4)		    UNIX Programmer's Manual		    XP(4)
-
-
-
-     Emulex SC01B or SI 9400, Fuji 160 partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9600    0 -   29  /
-	  xp?b	  9600	    9600   30 -   59  swap
-	  xp?c	 19200	  244160   60 -  822*
-	  xp?d	 19200	  125440   60 -  451  /usr
-	  xp?e	144640	  118720  452 -  822*
-	  xp?f	144640	   59520  452 -  637
-	  xp?g	204160	   59200  638 -  822*
-	  xp?h	     0	  263360    0 -  822* whole pack
-
-     Diva Comp V, Ampex 9300 partitions:
-	  disk	 start	  length	cyls  comments
-	  xp?a	     0	    9405    0 -   14  /
-	  xp?b	  9405	    9405   15 -   29  swap
-	  xp?c	 18810	  241395   30 -  414
-	  xp?d	260205	  250800  415 -  814*
-	  xp?e	 18810	  169290   30 -  299  /usr
-	  xp?f	188100	  156750  300 -  549
-	  xp?g	313500	  166155  550 -  814*
-	  xp?h	     0	  511005    0 -  814* whole pack
-
-     Those partitions marked with an asterisk (``*'') allow
-     access to bad block information stored at the end of some
-     packs.  Extreme care must be taken when creating file sys-
-     tems on these partitions to avoid overwriting any bad block
-     information present.  In general it's best to use _n_e_w_f_s(8)
-     to create file systems since it uses the ``safe'' partition
-     sizes recored in /_e_t_c/_d_i_s_k_t_a_b.
+     Disks must be labeled using either the standalone _d_i_s_k_l_a_b_e_l
+     program on the boot tape or with the _d_i_s_k_l_a_b_e_l(8) program.
+     The kernel no longer attempts to determine the drive type
+     and geometry, instead reading this information from the
+     disklabel.  There are no partition tables coded into the _x_p
+     driver, these must be placed on the drive with _d_i_s_k_l_a_b_e_l.
 
      Special files should only be created for the partitions that
      are actually used, as the overlap in these addresses could
-     lead to confusion otherwise.  The xp?a partition is normally
-     used for the root file system, the xp?b partition as a swap
-     area, and the xp?h partition for pack-pack copying (it maps
-     the entire disk).
+     lead to confusion otherwise.  Traditionally the xp?a parti-
+     tion is normally used for the root file system, the xp?b
+     partition as a swap area, and the xp?c partition for pack-
+     pack copying (it maps the entire disk).
 
 FILES
      /dev/xp[0-7][a-h]	 block files
@@ -255,20 +109,6 @@ DIAGNOSTICS
      error occurred during transfer of the specified sector of
      the specified disk partition.  The contents of the two error
      registers are also printed in octal and symbolically with
-
-
-
-Printed 1/9/94		September 7, 1988			4
-
-
-
-
-
-
-XP(4)		    UNIX Programmer's Manual		    XP(4)
-
-
-
      bits decoded.  The error was either unrecoverable, or a
      large number of retry attempts (including offset positioning
      and drive recalibration) could not recover the error.
@@ -282,8 +122,22 @@ XP(4)		    UNIX Programmer's Manual		    XP(4)
      happens normally a few times a week.  If it happens more
      frequently than this the sectors where the errors are occur-
      ring should be checked to see if certain cylinders on the
-     pack, spots on the carriage of the drive or heads are indi-
-     cated.
+     pack, spots on the carriage of the drive or heads are
+
+
+
+Printed 9/9/95		 August 14, 1995			2
+
+
+
+
+
+
+XP(4)		    UNIX Programmer's Manual		    XP(4)
+
+
+
+     indicated.
 
      xp%d: unknown device type 0%o.  The number in the drive's
      drive type register is unknown to the xp driver.
@@ -297,16 +151,13 @@ BUGS
 
      DEC-standard error logging should be supported.
 
-     The partition tables for the file systems should be read off
-     of each pack, as they are never quite what any single
-     installation would prefer, and this would make packs more
-     portable.
-
-     If the drive types and parameters are not initialized, the
-     _x_p driver uses drive type registers to discern the type of
-     disk attached to each drive.  Because of numbering con-
-     flicts, foreign disks and/or controllers frequently cause
-     this automatic recognition scheme to fail.
+     The kernel uses partition 'h' to access the badblock infor-
+     mation.  This should have been 'c' except that almost all of
+     the /etc/disktab entries (and thus existing systems) use 'h'
+     for this purpose.	Unless you are very careful with _d_i_s_k_l_a_-
+     _b_e_l|(8) (to make certain that no data partition overlaps the
+     badblock area) you should probably leave BADSECT undefined
+     in the kernel config file.
 
 
 
@@ -324,7 +175,24 @@ BUGS
 
 
 
-Printed 1/9/94		September 7, 1988			5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 9/9/95		 August 14, 1995			3
 
 
 

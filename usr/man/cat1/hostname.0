@@ -9,17 +9,24 @@ NAME
      hostname - set or print name of current host system
 
 SYNOPSIS
-     hostname [ nameofhost ]
+     hostname [ -s ] [ nameofhost ]
 
 DESCRIPTION
-     The _h_o_s_t_n_a_m_e command prints the name of the current host, as
-     given before the ``login'' prompt.  The super-user can set
-     the hostname by giving an argument; this is usually done in
-     the startup script /etc/rc.local.
+     _H_o_s_t_n_a_m_e prints the name of the current host.  The super-
+     user can set the hostname by supplying an argument; this is
+     usually done in the network initialization script
+     /_e_t_c/_n_e_t_s_t_a_r_t , normally run at boot time.
+
+     Options:
+
+     -s   Trims off any domain information from the printed name.
+
 
 SEE ALSO
      gethostname(2), sethostname(2)
 
+HISTORY
+     The _h_o_s_t_n_a_m_e command appeared in BSD 4.2 .
 
 
 
@@ -53,14 +60,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-
-
-Printed 1/9/94		 April 29, 1985                         1
+Printed 9/9/95		January 29, 1995			1
 
 
 

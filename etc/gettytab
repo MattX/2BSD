@@ -2,7 +2,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)gettytab	5.7 (Berkeley) 2/16/86
+#	@(#)gettytab	5.7.1 (2.11BSD GTE) 12/9/94
 #
 #
 # Most of the table entries here are just copies of the
@@ -29,7 +29,7 @@ default:\
 #	be assigned to any table desired (hopefully the same speed).
 #
 a|std.110|110-baud:\
-	:nd#1:cd#1:uc:sp#110:
+	:nd#1:cd#1:sp#110:
 b|std.134|134.5-baud:\
 	:ep:nd#1:cd#2:ff#1:td#1:sp#134:ht:nl:
 1|std.150|150-baud:\
@@ -72,9 +72,6 @@ d110|Dial-110:\
 
 e|Console-1200|Console Decwriter III:\
 	:fd@:nd@:cd@:rw:tc=1200-baud:
-
-i|Interdata console:\
-	:uc:sp#0:
 
 l|lsi chess terminal:\
 	:sp#300:

@@ -9,13 +9,14 @@ NAME
      dump - incremental file system dump
 
 SYNOPSIS
-     /etc/dump [ key [ _a_r_g_u_m_e_n_t ... ] filesystem ]
+     /etc/dump [0123456789BchfusTdWwn [_a_r_g_u_m_e_n_t ...]] [filesys-
+     tem]
 
 DESCRIPTION
      _D_u_m_p copies to magnetic tape all files changed after a cer-
-     tain date in the _f_i_l_e_s_y_s_t_e_m. The _k_e_y specifies the date and
-     other options about the dump.  _K_e_y consists of characters
-     from the set 0123456789fuJsdWn.
+     tain date in the _f_i_l_e_s_y_s_t_e_m.
+
+     The following options are supported by dump:
 
      0-9  This number is the `dump level'.  All files modified
 	  since the last date stored in the file /_e_t_c/_d_u_m_p_d_a_t_e_s
@@ -24,8 +25,24 @@ DESCRIPTION
 	  beginning of time is assumed; thus the option 0 causes
 	  the entire filesystem to be dumped.
 
+     B records
+	  The number of dump records per volume.  This option
+	  overrides the calculation of tape size based on length
+	  and density.
+
+     c	  This option requires no further options.  Used to
+	  specify that the tape is a _c_a_r_t_r_i_d_g_e drive rather than
+	  a 9-track.
+
+     h level
+	  Honor the user 'nodump' flags only for dumps at or
+	  above the given level.  The default honor level is 1,
+	  so that incremental backups omit such files but full
+	  backups retain them.
+
      f	  Place the dump on the next _a_r_g_u_m_e_n_t file instead of the
-	  tape.
+	  tape.  If '-' is given then standard out (stdout) is
+	  written to.
 
      u	  If the dump completes successfully, write the date of
 	  the beginning of the dump on file /_e_t_c/_d_u_m_p_d_a_t_e_s. This
@@ -39,28 +56,11 @@ DESCRIPTION
 	  previous versions of _d_u_m_p maintained in /_e_t_c/_d_d_a_t_e,
 	  although the information content is identical.
 
-     J	  This option is intended to be invoked only when the old
-	  format /_e_t_c/_d_d_a_t_e files are updated to the new format
-	  /_e_t_c/_d_u_m_p_d_a_t_e_s format.  The effect of this option is to
-	  convert between the old, obsolete format and to the new
-	  format.  If the J option is invoked, all other options
-	  are ignored, and _d_u_m_p terminates immediately.
-
      s	  The size of the dump tape is specified in feet.  The
-	  number of feet is taken from the next _a_r_g_u_m_e_n_t. When
-	  the specified size is reached, _d_u_m_p will wait for reels
-	  to be changed.  The default tape size is 2300 feet.
-
-     d	  The density of the tape, expressed in BPI, is taken
-	  from the next _a_r_g_u_m_e_n_t. This is used in calculating the
-	  amount of tape used per reel. The default is 1600.
-
-     W	  _D_u_m_p tells the operator what file systems need to be
-	  dumped.  This information is gleaned from the files
 
 
 
-Printed 1/9/94							1
+Printed 9/9/95							1
 
 
 
@@ -71,6 +71,25 @@ DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
 
 
 
+	  number of feet is taken from the next _a_r_g_u_m_e_n_t. When
+	  the specified size is reached, _d_u_m_p will wait for reels
+	  to be changed.  The default tape size is 2300 feet.
+
+     d	  The density of the tape, expressed in BPI, is taken
+	  from the next _a_r_g_u_m_e_n_t. This is used in calculating the
+	  amount of tape used per reel. The default is 1600.
+
+     T date
+	  Use the specified date as the starting time for the
+	  dump instead of the time determined from looking in
+	  /etc/dumpdates.  The format of date is the same as that
+	  of _c_t_i_m_e(_3).	This option is useful for automated dump
+	  scripts that wish to dump over a specific period of
+	  time.  The T option is mutually exclusive with the u
+	  option.
+
+     W	  _D_u_m_p tells the operator what file systems need to be
+	  dumped.  This information is gleaned from the files
 	  /_e_t_c/_d_u_m_p_d_a_t_e_s and /_e_t_c/_f_s_t_a_b. The W option causes _d_u_m_p
 	  to print out, for each file system in /_e_t_c/_d_u_m_p_d_a_t_e_s
 	  the most recent dump date and level, and highlights
@@ -104,6 +123,20 @@ DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
      checkpoint after the old tape has been rewound and removed,
      and a new tape has been mounted.
 
+
+
+
+Printed 9/9/95							2
+
+
+
+
+
+
+DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
+
+
+
      _D_u_m_p tells the operator what is going on at periodic inter-
      vals, including usually low estimates of the number of
      blocks to write, the number of tapes it will take, the time
@@ -123,20 +156,6 @@ DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
      For the daily dumps, a set of 10 tapes per dumped file sys-
      tem is used on a cyclical basis.  Each week, a level 1 dump
      is taken, and the daily Hanoi sequence repeats with 3.  For
-
-
-
-Printed 1/9/94							2
-
-
-
-
-
-
-DUMP(8)             UNIX Programmer's Manual		  DUMP(8)
-
-
-
      weekly dumps, a set of 5 tapes per dumped file system is
      used, also on a cyclical basis.  Each month, a level 0 dump
      is taken on a set of fresh tapes that is saved forever.
@@ -173,26 +192,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 1/9/94							3
+Printed 9/9/95							3
 
 
 

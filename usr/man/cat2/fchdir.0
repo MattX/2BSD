@@ -1,42 +1,78 @@
 
 
 
-CHDIR(2)	    UNIX Programmer's Manual		 CHDIR(2)
+CHMOD(2)	    UNIX Programmer's Manual		 CHMOD(2)
 
 
 
 NAME
-     chdir, fchdir - change current working directory
+     chmod - change mode of file
 
 SYNOPSIS
-     chdir(path)
+     chmod(path, mode)
      char *path;
+     int mode;
 
-     fchdir(fd)
-     int fd;
+     fchmod(fd, mode)
+     int fd, mode;
 
 DESCRIPTION
-     The path argument points to the pathname of a directory.
-     The fd argument is a file descriptor which references a
-     directory.  The _c_h_d_i_r function causes this directory to
-     become the current working directory, the starting point for
-     path names not beginning with ``/''.
+     The file whose name is given by _p_a_t_h or referenced by the
+     descriptor _f_d has its mode changed to _m_o_d_e.  Modes are con-
+     structed by _o_r'ing together some combination of the follow-
+     ing, defined in <_s_y_s/_i_n_o_d_e._h>:
 
-     The _f_c_h_d_i_r function causes the directory referenced by fd to
-     become the current working directory, the starting point for
-     path searches of pathnames not beginning with a slahs, '/'.
+	  ISUID   04000   set user ID on execution
+	  ISGID   02000   set group ID on execution
+	  ISVTX   01000   `sticky bit' (see below)
+	  IREAD   00400   read by owner
+	  IWRITE  00200   write by owner
+	  IEXEC   00100   execute (search on directory) by owner
+		  00070   read, write, execute (search) by group
+		  00007   read, write, execute (search) by others
 
-     In order for a directory to become the current directory, a
-     process must have execute (search) access to the directory.
+     If an executable file is set up for sharing (this is the
+     default) then mode ISVTX (the `sticky bit') prevents the
+     system from abandoning the swap-space image of the program-
+     text portion of the file when its last user terminates.
+     Ability to set this bit on executable files is restricted to
+     the super-user.
+
+     If mode ISVTX (the `sticky bit') is set on a directory, an
+     unprivileged user may not delete or rename files of other
+     users in that directory.  For more details of the properties
+     of the sticky bit, see _s_t_i_c_k_y(8).
+
+     Only the owner of a file (or the super-user) may change the
+     mode.
+
+     Writing or changing the owner of a file turns off the set-
+     user-id and set-group-id bits unless the user is the super-
+     user.  This makes the system somewhat more secure by pro-
+     tecting set-user-id (set-group-id) files from remaining
+     set-user-id (set-group-id) if they are modified, at the
+     expense of a degree of compatibility.
 
 RETURN VALUE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
+
+
+Printed 9/9/95		  May 13, 1986				1
+
+
+
+
+
+
+CHMOD(2)	    UNIX Programmer's Manual		 CHMOD(2)
+
+
+
 ERRORS
-     _C_h_d_i_r will fail and the current working directory will be
-     unchanged if one or more of the following are true:
+     _C_h_m_o_d will fail and the file mode will be unchanged if:
 
      [ENOTDIR]	    A component of the path prefix is not a
 		    directory.
@@ -44,52 +80,44 @@ ERRORS
      [EINVAL]	    The pathname contains a character with the
 		    high-order bit set.
 
-     [ENAMETOOLONG] A component of a pathname exceeded 63 charac-
-		    ters, or an entire path name exceeded 255
+     [ENAMETOOLONG] A component of a pathname exceeded 255 char-
+		    acters, or an entire path name exceeded 1023
 		    characters.
 
-     [ENOENT]	    The named directory does not exist.
+     [ENOENT]	    The named file does not exist.
+
+     [EACCES]	    Search permission is denied for a component
+		    of the path prefix.
 
      [ELOOP]	    Too many symbolic links were encountered in
 		    translating the pathname.
 
-     [EACCES]	    Search permission is denied for any component
-		    of the path name.
+     [EPERM]	    The effective user ID does not match the
+		    owner of the file and the effective user ID
+		    is not the super-user.
+
+     [EROFS]	    The named file resides on a read-only file
+		    system.
 
      [EFAULT]	    _P_a_t_h points outside the process's allocated
-
-
-
-Printed 4/21/94          April 21, 1994                         1
-
-
-
-
-
-
-CHDIR(2)	    UNIX Programmer's Manual		 CHDIR(2)
-
-
-
 		    address space.
 
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-     _F_c_h_d_i_r will fail and the current working directory will be
-     unchanged if one or more of the following are true:
+     _F_c_h_m_o_d will fail if:
 
-     [EACCES]	    Search permission is denied for the directory
-		    referenced by the file descriptor.
+     [EBADF]	    The descriptor is not valid.
 
-     [ENOTDIR]	    The file descriptor fd does not reference a
-		    directory.
+     [EINVAL]	    _F_d refers to a socket, not to a file.
 
-     [EBADF]	    The argument fd is not a valid file descrip-
-		    tor.
+     [EROFS]	    The file resides on a read-only file system.
+
+     [EIO]	    An I/O error occurred while reading from or
+		    writing to the file system.
 
 SEE ALSO
-     chroot(2)
+     chmod(1), open(2), chown(2), stat(2), sticky(8)
 
 
 
@@ -98,35 +126,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 4/21/94          April 21, 1994                         2
+Printed 9/9/95		  May 13, 1986				2
 
 
 

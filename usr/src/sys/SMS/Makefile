@@ -50,7 +50,7 @@ SUB=	sys pdp pdpuba pdpmba net pdpnet
 
 CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
 	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_uldiv.o libc_ulsh.o \
+	libc_udiv.o libc_uldiv.o libc_ulsh.o \
 	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_KScall.o mch_profile.o \
 	mch_start.o mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
@@ -63,11 +63,11 @@ NCONF=	libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o libc_htonl.o \
 
 BASE=	br.o cons.o dh.o dhu.o dhv.o dr.o dz.o hk.o ht.o init_sysent.o \
 	kern_clock.o kern_descrip.o kern_mman.o kern_proc.o kern_prot.o \
-	kern_subr.o kern_synch.o kern_xxx.o lp.o machdep.o ra.o ram.o \
+	kern_subr.o kern_synch.o lp.o machdep.o ra.o ram.o \
 	rk.o rl.o rx.o si.o subr_rmap.o sys_inode.o sys_kern.o \
 	tm.o ts.o tty.o tty_conf.o tty_subr.o tty_tb.o ufs_alloc.o \
-	ufs_bio.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
-	vm_proc.o vm_sched.o vm_swap.o vm_text.o xp.o quota_subr.o
+	ufs_bio.o ufs_fio.o ufs_inode.o ufs_namei.o \
+	vm_proc.o vm_sched.o vm_swap.o xp.o quota_subr.o
 OV1=	sys_generic.o ufs_syscalls.o
 OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
 OV3=	kern_time.o sys_process.o ufs_mount.o ufs_subr.o uipc_syscalls.o
@@ -77,8 +77,8 @@ OV5=	quota_kern.o quota_ufs.o quota_sys.o ufs_bmap.o	\
 # OV6 gets the (hopefully) never used routines
 OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o \
 	subr_log.o toy.o vm_swp.o
-OV7=	tmscp.o
-OV8=	mch_fpsim.o
+OV7=	tmscp.o ufs_disksubr.o ufs_dsort.o
+OV8=	mch_fpsim.o kern_sysctl.o kern_xxx.o ingreslock.o vm_text.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \
@@ -133,8 +133,8 @@ netnix: d.netnix.o
 # include ${NETOBJ} and ${KERNOBJ} on dependency line, but the pdp make doesn't
 # have enough table space.
 d.unix.o d.netnix.o: netbind FRC
-	ld -r -d -X -i -o unix.o ${LD_KOBJ}
-	ld -r -d -X -i -o netnix.o ${NETOBJ}
+	ld -q -r -d -X -i -o unix.o ${LD_KOBJ}
+	ld -q -r -d -X -i -o netnix.o ${NETOBJ}
 	./netbind unix.o netnix.o
 	rm unix.o netnix.o
 	${AS} - -o d.unix.o d.unix.s

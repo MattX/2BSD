@@ -1,3 +1,5 @@
+# 1995/07/21 - XP_PROBE removed.
+#
 # Machine configuration file for 2.11BSD distributed kernel.
 #
 # Format:
@@ -145,14 +147,9 @@ NRX		0		# RX02
 
 NSI		0		# SI 9500 driver for CDC 9766 disks
 
-# Because the disk drive type registers conflict with other DEC
-# controllers, you cannot use XP_PROBE for the Ampex 9300 and
-# Diva drives.  Read through /sys/pdpuba/hpreg.h and /sys/pdpuba/xp.c
-# for information on how to initialize for these drives.
 NXPC		0		# NXPD controllers (RH70/RH11 style)
 NXPD		0		# RM02/03/05, RP04/05/06, CDC 9766,
 				# Ampex 9300, Diva, Fuji 160, SI Eagle.
-XP_PROBE	YES		# check drive types at boot
 
 NRAM		0		# RAM disk size (512-byte blocks)
 
@@ -254,3 +251,5 @@ FPSIM		NO			# floating point simulator
 # Note that profiling is not currently working.  We don't have any plans on
 # fixing it, so this is essentially a non-supported feature.
 PROFILE		NO			# system profiling with KW11P clock
+
+INGRES		NO		# include the Ingres lock driver

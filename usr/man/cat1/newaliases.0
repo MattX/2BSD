@@ -1,4 +1,9 @@
-NEWALIASES(1)               UNIX Reference Manual                NEWALIASES(1)
+
+
+
+NEWALIASES(1)	    UNIX Programmer's Manual	    NEWALIASES(1)
+
+
 
 NAME
      newaliases - rebuild the data base for the mail aliases file
@@ -7,14 +12,55 @@ SYNOPSIS
      newaliases
 
 DESCRIPTION
-     Newaliases rebuilds the random access data base for the mail aliases file
-     /_e_t_c/_a_l_i_a_s_e_s. It must be run each time /_e_t_c/_a_l_i_a_s_e_s is changed in order
-     for the change to take effect.
+     _N_e_w_a_l_i_a_s_e_s rebuilds the random access data base for the mail
+     aliases file /_u_s_r/_l_i_b/_a_l_i_a_s_e_s.  It must be run each time
+     /_u_s_r/_l_i_b/_a_l_i_a_s_e_s is changed in order for the change to take
+     effect.
 
 SEE ALSO
-     sendmail(8)
+     aliases(5), sendmail(8)
 
-HISTORY
-     The newaliases command appeared in 4.0BSD.
 
-4th Berkeley Distribution        June 7, 1993                                1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 9/9/95		   May 5, 1986				1
+
+
+

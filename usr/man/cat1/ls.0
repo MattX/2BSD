@@ -9,7 +9,7 @@ NAME
      ls - list contents of directory
 
 SYNOPSIS
-     ls [ -acdfgilqrstu1ACLFR ] name ...
+     ls [ -acdfgiloqrstu1ACLFR ] name ...
 
 DESCRIPTION
      For each directory argument, _l_s lists the contents of the
@@ -30,6 +30,8 @@ DESCRIPTION
 	  device numbers.  If the file is a symbolic link the
 	  pathname of the linked-to file is printed preceded by
 	  ``->''.
+
+     -o   Include the file flags in a long (-l) output.
 
      -g   Include the group ownership of the file in a long out-
 	  put.
@@ -56,11 +58,9 @@ DESCRIPTION
 	  for sorting (with the -t option) and/or printing (with
 	  the -l option).
 
-     -c   Use time of file creation for sorting or printing.
 
 
-
-Printed 1/9/94		  May 12, 1986				1
+Printed 9/9/95		December 20, 1994			1
 
 
 
@@ -70,6 +70,8 @@ Printed 1/9/94		  May 12, 1986				1
 LS(1)		    UNIX Programmer's Manual		    LS(1)
 
 
+
+     -c   Use time of file creation for sorting or printing.
 
      -i   For each file, print the i-number in the first column
 	  of the report.
@@ -120,13 +122,11 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
      x	if the file is executable;
      -	if the indicated permission is not granted.
 
-     The group-execute permission character is given as s if the
-     file has the set-group-id bit set; likewise the user-execute
-     permission character is given as s if the file has the set-
 
 
 
-Printed 1/9/94		  May 12, 1986				2
+
+Printed 9/9/95		December 20, 1994			2
 
 
 
@@ -137,6 +137,9 @@ LS(1)		    UNIX Programmer's Manual		    LS(1)
 
 
 
+     The group-execute permission character is given as s if the
+     file has the set-group-id bit set; likewise the user-execute
+     permission character is given as s if the file has the set-
      user-id bit set.
 
      The last character of the mode (normally `x' or `-') is t if
@@ -189,10 +192,7 @@ BUGS
 
 
 
-
-
-
-Printed 1/9/94		  May 12, 1986				3
+Printed 9/9/95		December 20, 1994			3
 
 
 

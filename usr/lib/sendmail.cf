@@ -7,20 +7,20 @@
 # internet hostname and alias(es)
 Dj$w
 
-CwSMS LOCAL
+CwLOCAL
 
 ######################
 #   General Macros   #
 ######################
 
 # local domain names
-DDmy.domain
+DDYOUR.DOMAIN.NAME
 
 # our arpanet gateway
-DAgateway.my.domain
+DARELAY.YOUR.DOMAIN.NAME
 
 # the UUCP relay
-DUuucp.my.domain
+DUuucp.relay.system.
 
 # local hosts (used to avoid uucp hops if we can contact them directly)
 CSmoe curly shemp
@@ -253,11 +253,23 @@ R$*@$*			$@$1<@$2>			Put back the brackets.
 #####		Local and Program Mailer specification
 ############################################################
 
-Mlocal,	P=/bin/mail, F=rlsDFMmn, S=10, R=20, A=mail -d $u
+# Mlocal,	P=/bin/mail, F=rlsDFMmn, S=10, R=20, A=mail -d $u
+Mlocal,	P=/usr/lonex/bin/xmail, F=lsSDFMmn, S=10, R=20, A=xmail -f $g $u
 Mprog,	P=/bin/sh,   F=lsDFMe,   S=10, R=20, A=sh -c $u
 
 S10
 R@			$n			errors to mailer-daemon
+
+############################################################
+#####
+#####		Lonex Domain TCP Mailer specification
+#####
+#####	Messages processed by this specification are assumed to remain
+#####	the Lonex domain -- note: rules 18 and 28 don't exist on purpose.
+#####
+############################################################
+
+Mlonex,	P=[IPC], F=mDFMueXL, S=18, R=28, A=IPC $h, E=\r\n
 
 ############################################################
 #####		Local Domain TCP Mailer specification

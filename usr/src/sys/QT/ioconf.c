@@ -13,7 +13,7 @@ dev_t	rootdev = makedev(5,0),
 	swapdev = makedev(5,1),
 	pipedev = makedev(5,0);
 
-dev_t	dumpdev = NODEV;
+dev_t	dumpdev = makedev(5,1);
 daddr_t	dumplo = (daddr_t)512;
 int	radump();
 int	(*dump)() = radump;

@@ -73,7 +73,7 @@ main()
 	printf("\033[4;46Hlqqqqqqqqqqqqqqqqk");
 	printf("\033[5;46Hx                x");
 	printf("\033[6;46Hmqwqqqqqqqqqqqqqqj");
-	printf("\033[5;50H\033(B\033)B%s\033(0\033)0",ttyname(0));
+	printf("\033[5;50H\033(B\033)B%s\033(0\033)0",ttyname(ttyslot(0)));
 	printf("\033[7;16Hlqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqvqqqqqqqqk");
 #else   TTY
 	printf("\033[7;16Hlqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk");

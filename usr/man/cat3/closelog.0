@@ -6,61 +6,61 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 NAME
-     syslog, openlog, closelog, setlogmask - control system log
+     syslog , vsyslog , openlog , closelog , setlogmask - control
+     system log
 
 SYNOPSIS
      #include <syslog.h>
+     #include <varargs.h>
 
-     openlog(ident, logopt, facility)
-     char *ident;
-
-     syslog(priority, message, parameters ... )
+     void syslog(priority, message, ...);
+     int priority;
      char *message;
 
-     closelog()
+     void vsyslog(priority, message, args);
+     int priority;
+     char *message;
+     va_list args;
 
-     setlogmask(maskpri)
+     void openlog(ident, logopt, facility);
+     char *ident;
+     int logopt;
+     int facility;
+
+     void closelog();
+
+     int setlogmask(maskpri);
+     int maskpri;
 
 DESCRIPTION
-     _S_y_s_l_o_g arranges to write _m_e_s_s_a_g_e onto the system log main-
-     tained by _s_y_s_l_o_g_d(8).  The message is tagged with _p_r_i_o_r_i_t_y.
-     The message looks like a _p_r_i_n_t_f(3) string except that %m is
-     replaced by the current error message (collected from
-     _e_r_r_n_o).  A trailing newline is added if needed.  This mes-
-     sage will be read by _s_y_s_l_o_g_d(8) and written to the system
-     console, log files, or forwarded to _s_y_s_l_o_g_d on another host
-     as appropriate.
+     The _s_y_s_l_o_g() function writes _m_e_s_s_a_g_e to the system message
+     logger.  The message is then written to the system console,
+     log files, logged-in users, or forwarded to other machines
+     as appropriate. (See _s_y_s_l_o_g_d(8)).
 
-     Priorities are encoded as a _f_a_c_i_l_i_t_y and a _l_e_v_e_l.	The
-     facility describes the part of the system generating the
-     message.  The level is selected from an ordered list:
+     The message is identical to a _p_r_i_n_t_f(3) format string,
+     except that %m is replaced by the current error message as
+     denoted by the global variable _e_r_r_n_o.  See _s_t_r_e_r_r_o_r(3)).  A
+     trailing newline is added if none is present.
 
-     LOG_EMERG	   A panic condition.  This is normally broadcast
-		   to all users.
+     The _v_s_y_s_l_o_g() function is an alternate form in which the
+     arguments have already been captured using the variable-
+     length argument facilities of _v_a_r_a_r_g_s(3).
 
-     LOG_ALERT	   A condition that should be corrected immedi-
-		   ately, such as a corrupted system database.
+     The message is tagged with _p_r_i_o_r_i_t_y.  Priorities are encoded
+     as a _f_a_c_i_l_i_t_y and a _l_e_v_e_l.  The facility describes the part
+     of the system generating the message.  The level is selected
+     from the following _o_r_d_e_r_e_d (high to low) list:
 
-     LOG_CRIT	   Critical conditions, e.g., hard device errors.
+     LOG_EMERG	     A panic condition.  This is normally broad-
+		     cast to all users.
 
-     LOG_ERR	   Errors.
-
-     LOG_WARNING   Warning messages.
-
-     LOG_NOTICE    Conditions that are not error conditions, but
-		   should possibly be handled specially.
-
-     LOG_INFO	   Informational messages.
-
-     LOG_DEBUG	   Messages that contain information normally of
-		   use only when debugging a program.
-
-     If _s_y_s_l_o_g cannot pass the message to _s_y_s_l_o_g_d, it will
-     attempt to write the message on /_d_e_v/_c_o_n_s_o_l_e if the LOG_CONS
+     LOG_ALERT	     A condition that should be corrected immedi-
+		     ately, such as a corrupted system database.
 
 
 
-Printed 1/9/94		  May 15, 1986				1
+Printed 9/9/95		  April 1, 1995                         1
 
 
 
@@ -71,62 +71,62 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-     option is set (see below).
+     LOG_CRIT	     Critical conditions, e.g., hard device
+		     errors.
 
-     If special processing is needed, _o_p_e_n_l_o_g can be called to
-     initialize the log file.  The parameter _i_d_e_n_t is a string
-     that is prepended to every message.  _L_o_g_o_p_t is a bit field
-     indicating logging options.  Current values for _l_o_g_o_p_t are:
+     LOG_ERR	     Errors.
 
-     LOG_PID	   log the process id with each message: useful
-		   for identifying instantiations of daemons.
+     LOG_WARNING     Warning messages.
 
-     LOG_CONS	   Force writing messages to the console if
-		   unable to send it to _s_y_s_l_o_g_d. This option is
-		   safe to use in daemon processes that have no
-		   controlling terminal since _s_y_s_l_o_g will fork
-		   before opening the console.
+     LOG_NOTICE      Conditions that are not error conditions,
+		     but should possibly be handled specially.
 
-     LOG_NDELAY    Open the connection to _s_y_s_l_o_g_d immediately.
-		   Normally the open is delayed until the first
-		   message is logged.  Useful for programs that
-		   need to manage the order in which file
-		   descriptors are allocated.
+     LOG_INFO	     Informational messages.
 
-     LOG_NOWAIT    Don't wait for children forked to log messages
-		   on the console.  This option should be used by
-		   processes that enable notification of child
-		   termination via SIGCHLD, as _s_y_s_l_o_g may other-
-		   wise block waiting for a child whose exit
-		   status has already been collected.
+     LOG_DEBUG	     Messages that contain information normally
+		     of use only when debugging a program.
+
+     The _o_p_e_n_l_o_g() function provides for more specialized pro-
+     cessing of the messages sent by _s_y_s_l_o_g() and _v_s_y_s_l_o_g().  The
+     parameter _i_d_e_n_t is a string that will be prepended to every
+     message.  The _l_o_g_o_p_t argument is a bit field specifying log-
+     ging options, which is formed by OR'ing one or more of the
+     following values:
+
+     LOG_CONS	    If _s_y_s_l_o_g cannot pass the message to _s_y_s_l_o_g_d
+		    it will attempt to write the message to the
+		    console (/dev/console).
+
+     LOG_NDELAY     Open the connection to _s_y_s_l_o_g_d immediately.
+		    Normally the open is delayed until the first
+		    message is logged.	Useful for programs that
+		    need to manage the order in which file
+		    descriptors are allocated.
+
+     LOG_PERROR     Write the message to standard error output as
+		    well to the system log.
+
+     LOG_PID	    Log the process id with each message: useful
+		    for identifying instantiations of daemons.
 
      The _f_a_c_i_l_i_t_y parameter encodes a default facility to be
      assigned to all messages that do not have an explicit facil-
      ity encoded:
 
-     LOG_KERN	   Messages generated by the kernel.  These can-
-		   not be generated by any user processes.
+     LOG_AUTH	    The authorization system: _l_o_g_i_n(1), _s_u(1),
+		    _g_e_t_t_y(8), etc.
 
-     LOG_USER	   Messages generated by random user processes.
-		   This is the default facility identifier if
-		   none is specified.
+     LOG_AUTHPRIV   The same as LOG_AUTH , but logged to a file
+		    readable only by selected individuals.
 
-     LOG_MAIL	   The mail system.
+     LOG_CRON	    The clock daemon.
 
-     LOG_DAEMON    System daemons, such as _f_t_p_d(8), _r_o_u_t_e_d(8),
-		   etc.
-
-     LOG_AUTH	   The authorization system: _l_o_g_i_n(1), _s_u(1),
-		   _g_e_t_t_y(8), etc.
-
-     LOG_LPR	   The line printer spooling system: _l_p_r(1),
-		   _l_p_c(8), _l_p_d(8), etc.
-
-     LOG_LOCAL0    Reserved for local use.  Similarly for
+     LOG_DAEMON     System daemons, such as _r_o_u_t_e_d(8), that are
+		    not provided for explicitly by other
 
 
 
-Printed 1/9/94		  May 15, 1986				2
+Printed 9/9/95		  April 1, 1995                         2
 
 
 
@@ -137,29 +137,79 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-		   LOG_LOCAL1 through LOG_LOCAL7.
+		    facilities.
 
-     _C_l_o_s_e_l_o_g can be used to close the log file.
+     LOG_KERN	    Messages generated by the kernel.  These can-
+		    not be generated by any user processes.
 
-     _S_e_t_l_o_g_m_a_s_k sets the log priority mask to _m_a_s_k_p_r_i and returns
-     the previous mask.  Calls to _s_y_s_l_o_g with a priority not set
-     in _m_a_s_k_p_r_i are rejected.  The mask for an individual prior-
-     ity _p_r_i is calculated by the macro LOG_MASK(_p_r_i); the mask
-     for all priorities up to and including _t_o_p_p_r_i is given by
-     the macro LOG_UPTO(_t_o_p_p_r_i).  The default allows all priori-
-     ties to be logged.
+     LOG_LPR	    The line printer spooling system: _l_p_r(1),
+		    _l_p_c(8), _l_p_d(8), etc.
+
+     LOG_MAIL	    The mail system.
+
+     LOG_NEWS	    The network news system.
+
+     LOG_SYSLOG     Messages generated internally by _s_y_s_l_o_g_d(8).
+
+     LOG_USER	    Messages generated by random user processes.
+		    This is the default facility identifier if
+		    none is specified.
+
+     LOG_UUCP	    The uucp system.
+
+     LOG_LOCAL0     Reserved for local use.  Similarly for
+		    LOG_LOCAL1 through LOG_LOCAL7.
+
+     The _c_l_o_s_e_l_o_g function can be used to close the log file.
+
+     The _s_e_t_l_o_g_m_a_s_k function sets the log priority mask to
+     _m_a_s_k_p_r_i and returns the previous mask.  Calls to _s_y_s_l_o_g with
+     a priority not set in _m_a_s_k_p_r_i are rejected.  The mask for an
+     individual priority _p_r_i is calculated by the macro
+     _L_O_G__M_A_S_K(pri).  The mask for all priorities up to and
+     including _t_o_p_p_r_i is given by the macro _L_O_G__U_P_T_O(toppri).
+     The default allows all priorities to be logged.
+
+RETURN VALUES
+     The routines _c_l_o_s_e_l_o_g(), _o_p_e_n_l_o_g(), _s_y_s_l_o_g() and _v_s_y_s_l_o_g()
+     return no value.
+
+     The routine _s_e_t_l_o_g_m_a_s_k() always returns the previous log
+     mask level.
 
 EXAMPLES
-     syslog(LOG_ALERT, "who: internal error 23");
+	     syslog(LOG_ALERT, "who: internal error 23");
 
-     openlog("ftpd", LOG_PID, LOG_DAEMON);
-     setlogmask(LOG_UPTO(LOG_ERR));
-     syslog(LOG_INFO, "Connection from host %d", CallingHost);
+	     openlog("ftpd", LOG_PID, LOG_DAEMON);
+	     setlogmask(LOG_UPTO(LOG_ERR)); syslog(LOG_INFO,
+	     "Connection from host %d", CallingHost);
 
-     syslog(LOG_INFO|LOG_LOCAL2, "foobar error: %m");
+	     syslog(LOG_INFO|LOG_LOCAL2, "foobar error: %m");
 
 SEE ALSO
-     logger(1), syslogd(8)
+     _l_o_g_g_e_r(_1), _s_y_s_l_o_g_d(_8)
+
+
+
+
+Printed 9/9/95		  April 1, 1995                         3
+
+
+
+
+
+
+SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
+
+
+
+BUGS
+     Under 2.11BSD the logfile /usr/adm/messages is used if a non
+     networking kernel has been booted.  That file must be publi-
+     cally writeable in this case.
+
+HISTORY
+     These functions appeared in 4.2BSD.
 
 
 
@@ -192,7 +242,23 @@ SEE ALSO
 
 
 
-Printed 1/9/94		  May 15, 1986				3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 9/9/95		  April 1, 1995                         4
 
 
 

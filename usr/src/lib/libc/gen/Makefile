@@ -88,20 +88,24 @@ abort.o: abort.c /usr/include/signal.h
 alarm.o: alarm.c /usr/include/sys/time.h /usr/include/time.h
 atoi.o: atoi.c
 atol.o: atol.c
-abort.o: abort.c /usr/include/signal.h
-alarm.o: alarm.c /usr/include/sys/time.h /usr/include/time.h
-atoi.o: atoi.c
-atol.o: atol.c
 calloc.o: calloc.c
 closedir.o: closedir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-closedir.o: /usr/include/machine/machparam.h /usr/include/signal.h
-closedir.o: /usr/include/sys/types.h /usr/include/sys/dir.h
+closedir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+closedir.o: /usr/include/signal.h /usr/include/sys/types.h
+closedir.o: /usr/include/sys/dir.h
 crypt.o: crypt.c
 ctime.o: ctime.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-ctime.o: /usr/include/machine/machparam.h /usr/include/signal.h
-ctime.o: /usr/include/sys/types.h /usr/include/sys/time.h /usr/include/time.h
-ctime.o: /usr/include/tzfile.h
+ctime.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+ctime.o: /usr/include/signal.h /usr/include/sys/types.h /usr/include/sys/time.h
+ctime.o: /usr/include/time.h /usr/include/tzfile.h
 ctype_.o: ctype_.c /usr/include/ctype.h
+daemon.o: daemon.c /usr/include/fcntl.h /usr/include/sys/types.h
+daemon.o: /usr/include/sys/ioctl.h /usr/include/sys/ttychars.h
+daemon.o: /usr/include/sys/ttydev.h /usr/include/paths.h
+devname.o: devname.c /usr/include/sys/types.h /usr/include/ndbm.h
+devname.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/paths.h
+devname.o: /usr/include/stdio.h
+err.o: err.c /usr/include/stdio.h /usr/include/varargs.h
 errlst.o: errlst.c
 execvp.o: execvp.c /usr/include/errno.h
 fakcu.o: fakcu.c
@@ -116,50 +120,126 @@ getpass.o: getpass.c /usr/include/stdio.h /usr/include/signal.h
 getpass.o: /usr/include/sgtty.h /usr/include/sys/ioctl.h
 getpass.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h
 getpwent.o: getpwent.c /usr/include/sys/types.h /usr/include/sys/file.h
-getpwent.o: /usr/include/stdio.h /usr/include/pwd.h /usr/include/ndbm.h
+getpwent.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/stdio.h
+getpwent.o: /usr/include/pwd.h /usr/include/ndbm.h
+getloadavg.o: getloadavg.c /usr/include/sys/param.h
+getloadavg.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
+getloadavg.o: /usr/include/sys/types.h /usr/include/signal.h
+getloadavg.o: /usr/include/sys/types.h /usr/include/sys/sysctl.h
+getloadavg.o: /usr/include/sys/time.h /usr/include/time.h
+getloadavg.o: /usr/include/sys/resource.h /usr/include/sys/file.h
+getloadavg.o: /usr/include/fcntl.h /usr/include/sys/types.h
+getloadavg.o: /usr/include/sys/inode.h /usr/include/sys/text.h
+getloadavg.o: /usr/include/sys/proc.h /usr/include/sys/vm.h
+getloadavg.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
+getloadavg.o: /usr/include/sys/vmmac.h /usr/include/sys/vmmeter.h
+getloadavg.o: /usr/include/sys/vmsystm.h /usr/include/sys/map.h
+getloadavg.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
+getttyent.o: getttyent.c /usr/include/stdio.h /usr/include/strings.h
+getttyent.o: /usr/include/ttyent.h
+abort.o: abort.c /usr/include/signal.h
+alarm.o: alarm.c /usr/include/sys/time.h /usr/include/time.h
+atoi.o: atoi.c
+atol.o: atol.c
+calloc.o: calloc.c
+closedir.o: closedir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+closedir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+closedir.o: /usr/include/signal.h /usr/include/sys/types.h
+closedir.o: /usr/include/sys/dir.h
+crypt.o: crypt.c
+ctime.o: ctime.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+ctime.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+ctime.o: /usr/include/signal.h /usr/include/sys/types.h /usr/include/sys/time.h
+ctime.o: /usr/include/time.h /usr/include/tzfile.h
+ctype_.o: ctype_.c /usr/include/ctype.h
+daemon.o: daemon.c /usr/include/fcntl.h /usr/include/sys/types.h
+daemon.o: /usr/include/sys/ioctl.h /usr/include/sys/ttychars.h
+daemon.o: /usr/include/sys/ttydev.h /usr/include/paths.h
+devname.o: devname.c /usr/include/sys/types.h /usr/include/ndbm.h
+devname.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/paths.h
+devname.o: /usr/include/stdio.h
+err.o: err.c /usr/include/stdio.h /usr/include/varargs.h
+errlst.o: errlst.c
+execvp.o: execvp.c /usr/include/errno.h
+fakcu.o: fakcu.c
+fstab.o: fstab.c /usr/include/fstab.h /usr/include/stdio.h /usr/include/ctype.h
+gcvt.o: gcvt.c
+getenv.o: getenv.c /usr/include/stdio.h
+getgrent.o: getgrent.c /usr/include/stdio.h /usr/include/grp.h
+getgrgid.o: getgrgid.c /usr/include/grp.h
+getgrnam.o: getgrnam.c /usr/include/grp.h
+getlogin.o: getlogin.c /usr/include/utmp.h
+getpass.o: getpass.c /usr/include/stdio.h /usr/include/signal.h
+getpass.o: /usr/include/sgtty.h /usr/include/sys/ioctl.h
+getpass.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h
+getpwent.o: getpwent.c /usr/include/sys/types.h /usr/include/sys/file.h
+getpwent.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/stdio.h
+getpwent.o: /usr/include/pwd.h /usr/include/ndbm.h
+getloadavg.o: getloadavg.c /usr/include/sys/param.h
+getloadavg.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
+getloadavg.o: /usr/include/sys/types.h /usr/include/signal.h
+getloadavg.o: /usr/include/sys/types.h /usr/include/sys/sysctl.h
+getloadavg.o: /usr/include/sys/time.h /usr/include/time.h
+getloadavg.o: /usr/include/sys/resource.h /usr/include/sys/file.h
+getloadavg.o: /usr/include/fcntl.h /usr/include/sys/types.h
+getloadavg.o: /usr/include/sys/inode.h /usr/include/sys/text.h
+getloadavg.o: /usr/include/sys/proc.h /usr/include/sys/vm.h
+getloadavg.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
+getloadavg.o: /usr/include/sys/vmmac.h /usr/include/sys/vmmeter.h
+getloadavg.o: /usr/include/sys/vmsystm.h /usr/include/sys/map.h
+getloadavg.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
 getttyent.o: getttyent.c /usr/include/stdio.h /usr/include/strings.h
 getttyent.o: /usr/include/ttyent.h
 getttynam.o: getttynam.c /usr/include/ttyent.h
 getusershell.o: getusershell.c /usr/include/sys/param.h
 getusershell.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
-getusershell.o: /usr/include/signal.h /usr/include/sys/types.h
-getusershell.o: /usr/include/sys/file.h /usr/include/sys/stat.h
-getusershell.o: /usr/include/ctype.h /usr/include/stdio.h
+getusershell.o: /usr/include/sys/types.h /usr/include/signal.h
+getusershell.o: /usr/include/sys/types.h /usr/include/sys/file.h
+getusershell.o: /usr/include/fcntl.h /usr/include/sys/types.h
+getusershell.o: /usr/include/sys/stat.h /usr/include/ctype.h
+getusershell.o: /usr/include/stdio.h
 getwd.o: getwd.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-getwd.o: /usr/include/machine/machparam.h /usr/include/signal.h
-getwd.o: /usr/include/sys/types.h /usr/include/sys/stat.h
+getwd.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+getwd.o: /usr/include/signal.h /usr/include/sys/types.h /usr/include/sys/stat.h
 getwd.o: /usr/include/sys/dir.h
 initgroups.o: initgroups.c /usr/include/stdio.h /usr/include/sys/param.h
 initgroups.o: /usr/include/sys/localopts.h /usr/include/machine/machparam.h
-initgroups.o: /usr/include/signal.h /usr/include/sys/types.h /usr/include/grp.h
+initgroups.o: /usr/include/sys/types.h /usr/include/signal.h
+initgroups.o: /usr/include/sys/types.h /usr/include/grp.h
 isatty.o: isatty.c /usr/include/sgtty.h /usr/include/sys/ioctl.h
 isatty.o: /usr/include/sys/ttychars.h /usr/include/sys/ttydev.h
 malloc.o: malloc.c
 mktemp.o: mktemp.c /usr/include/sys/types.h /usr/include/sys/file.h
-mktemp.o: /usr/include/sys/stat.h /usr/include/errno.h /usr/include/stdio.h
-mktemp.o: /usr/include/ctype.h
+mktemp.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/sys/stat.h
+mktemp.o: /usr/include/errno.h /usr/include/stdio.h /usr/include/ctype.h
 ndbm.o: ndbm.c /usr/include/sys/types.h /usr/include/sys/stat.h
-ndbm.o: /usr/include/sys/file.h /usr/include/stdio.h /usr/include/errno.h
-ndbm.o: /usr/include/ndbm.h
+ndbm.o: /usr/include/sys/file.h /usr/include/fcntl.h /usr/include/sys/types.h
+ndbm.o: /usr/include/stdio.h /usr/include/errno.h /usr/include/ndbm.h
 nlist.o: nlist.c /usr/include/sys/types.h /usr/include/sys/file.h
-nlist.o: /usr/include/a.out.h /usr/include/sys/exec.h /usr/include/stdio.h
+nlist.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/a.out.h
+nlist.o: /usr/include/sys/exec.h /usr/include/sys/types.h /usr/include/nlist.h
+nlist.o: /usr/include/sys/types.h /usr/include/stdio.h
 opendir.o: opendir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-opendir.o: /usr/include/machine/machparam.h /usr/include/signal.h
-opendir.o: /usr/include/sys/types.h /usr/include/sys/dir.h
+opendir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+opendir.o: /usr/include/signal.h /usr/include/sys/types.h
+opendir.o: /usr/include/sys/dir.h
 perror.o: perror.c /usr/include/sys/types.h /usr/include/sys/uio.h
-popen.o: popen.c /usr/include/stdio.h /usr/include/signal.h
+popen.o: popen.c /usr/include/errno.h /usr/include/sys/signal.h
+popen.o: /usr/include/sys/types.h /usr/include/sys/wait.h /usr/include/stdio.h
 psignal.o: psignal.c /usr/include/signal.h
 qsort.o: qsort.c
 random.o: random.c /usr/include/stdio.h
 readdir.o: readdir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-readdir.o: /usr/include/machine/machparam.h /usr/include/signal.h
-readdir.o: /usr/include/sys/types.h /usr/include/sys/dir.h
+readdir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+readdir.o: /usr/include/signal.h /usr/include/sys/types.h
+readdir.o: /usr/include/sys/dir.h
 regex.o: regex.c
 scandir.o: scandir.c /usr/include/sys/types.h /usr/include/sys/stat.h
 scandir.o: /usr/include/sys/dir.h
 seekdir.o: seekdir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-seekdir.o: /usr/include/machine/machparam.h /usr/include/signal.h
-seekdir.o: /usr/include/sys/types.h /usr/include/sys/dir.h
+seekdir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+seekdir.o: /usr/include/signal.h /usr/include/sys/types.h
+seekdir.o: /usr/include/sys/dir.h
 setgid.o: setgid.c
 setegid.o: setegid.c
 setrgid.o: setrgid.c
@@ -173,24 +253,41 @@ siginterrupt.o: siginterrupt.c /usr/include/signal.h
 sleep.o: sleep.c /usr/include/sys/time.h /usr/include/time.h
 sleep.o: /usr/include/signal.h
 strcasecmp.o: strcasecmp.c
+strftime.o: strftime.c /usr/include/sys/types.h /usr/include/sys/time.h
+strftime.o: /usr/include/time.h /usr/include/tzfile.h /usr/include/string.h
+strftime.o: /usr/include/strings.h
 swab.o: swab.c
-syslog.o: syslog.c /usr/include/sys/types.h /usr/include/netdb.h
-syslog.o: /usr/include/sys/socket.h
-syslog.o: /usr/include/sys/file.h
-syslog.o: /usr/include/sys/signal.h /usr/include/sys/syslog.h
-syslog.o: /usr/include/strings.h
-system.o: system.c /usr/include/signal.h
+sysctl.o: sysctl.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+sysctl.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+sysctl.o: /usr/include/signal.h /usr/include/sys/types.h
+sysctl.o: /usr/include/sys/sysctl.h /usr/include/sys/time.h /usr/include/time.h
+sysctl.o: /usr/include/sys/resource.h /usr/include/sys/file.h
+sysctl.o: /usr/include/fcntl.h /usr/include/sys/types.h
+sysctl.o: /usr/include/sys/inode.h /usr/include/sys/text.h
+sysctl.o: /usr/include/sys/proc.h /usr/include/sys/vm.h
+sysctl.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
+sysctl.o: /usr/include/sys/vmmac.h /usr/include/sys/vmmeter.h
+sysctl.o: /usr/include/sys/vmsystm.h /usr/include/sys/map.h
+sysctl.o: /usr/include/errno.h /usr/include/paths.h
+syslog.o: syslog.c /usr/include/sys/types.h /usr/include/sys/socket.h
+syslog.o: /usr/include/syslog.h /usr/include/sys/uio.h /usr/include/netdb.h
+syslog.o: /usr/include/errno.h /usr/include/fcntl.h /usr/include/sys/types.h
+syslog.o: /usr/include/paths.h /usr/include/stdio.h /usr/include/string.h
+syslog.o: /usr/include/strings.h /usr/include/time.h /usr/include/varargs.h
+system.o: system.c /usr/include/stdio.h /usr/include/sys/types.h
+system.o: /usr/include/sys/signal.h /usr/include/sys/wait.h
 telldir.o: telldir.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-telldir.o: /usr/include/machine/machparam.h /usr/include/signal.h
-telldir.o: /usr/include/sys/types.h /usr/include/sys/dir.h
+telldir.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+telldir.o: /usr/include/signal.h /usr/include/sys/types.h
+telldir.o: /usr/include/sys/dir.h
 time.o: time.c /usr/include/sys/types.h /usr/include/sys/time.h
 time.o: /usr/include/time.h
 timezone.o: timezone.c /usr/include/sys/types.h /usr/include/sys/time.h
 timezone.o: /usr/include/time.h /usr/include/stdio.h /usr/include/tzfile.h
 ttyname.o: ttyname.c /usr/include/sys/param.h /usr/include/sys/localopts.h
-ttyname.o: /usr/include/machine/machparam.h /usr/include/signal.h
-ttyname.o: /usr/include/sys/types.h /usr/include/sys/dir.h
-ttyname.o: /usr/include/sys/stat.h
+ttyname.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+ttyname.o: /usr/include/signal.h /usr/include/sys/types.h
+ttyname.o: /usr/include/sys/dir.h /usr/include/sys/stat.h
 ttyslot.o: ttyslot.c /usr/include/ttyent.h
 ualarm.o: ualarm.c /usr/include/sys/time.h /usr/include/time.h
 usleep.o: usleep.c /usr/include/sys/time.h /usr/include/time.h
@@ -198,6 +295,17 @@ usleep.o: /usr/include/signal.h
 valloc.o: valloc.c
 strdup.o: strdup.c /usr/include/sys/types.h /usr/include/stdio.h
 strsep.o: strsep.c /usr/include/stdio.h
+uname.o: uname.c /usr/include/sys/param.h /usr/include/sys/localopts.h
+uname.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+uname.o: /usr/include/signal.h /usr/include/sys/types.h
+uname.o: /usr/include/sys/sysctl.h /usr/include/sys/time.h /usr/include/time.h
+uname.o: /usr/include/sys/resource.h /usr/include/sys/file.h
+uname.o: /usr/include/fcntl.h /usr/include/sys/types.h /usr/include/sys/inode.h
+uname.o: /usr/include/sys/text.h /usr/include/sys/proc.h /usr/include/sys/vm.h
+uname.o: /usr/include/sys/vmparam.h /usr/include/machine/vmparam.h
+uname.o: /usr/include/sys/vmmac.h /usr/include/sys/vmmeter.h
+uname.o: /usr/include/sys/vmsystm.h /usr/include/sys/map.h
+uname.o: /usr/include/sys/utsname.h
 wait.o: wait.c /usr/include/sys/types.h /usr/include/sys/time.h
 wait.o: /usr/include/time.h /usr/include/sys/wait.h /usr/include/sys/resource.h
 wait3.o: wait3.c /usr/include/sys/types.h /usr/include/sys/time.h

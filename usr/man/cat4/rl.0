@@ -20,14 +20,10 @@ SYNOPSIS
 	  raw: 16
 	  block: 7
      minor device encoding:
-	  specifies drive: <rl_drive>
+	  bits 0007 specify partition of RL drive
+	  bits 0070 specify RL drive
 
 DESCRIPTION
-     Minor device numbers are drive numbers on one controller.
-     The standard device names begin with ``rl'' followed by the
-     drive number and then the letter "h".  The character ?
-     stands here for a drive number in the range 0-3.
-
      The block files access the disk via the system's normal
      buffering mechanism and may be read and written without
      regard to physical disk records.  There is also a `raw'
@@ -44,23 +40,27 @@ DESCRIPTION
      bytes.
 
 DISK SUPPORT
-     The _r_l driver does not support pseudo-disks (partitions).
-     Each file _r_l?_h refers to the entire drive as a single
-     sequentially addressed file.  The RL01 drives are each 10240
-     blocks long and the RL02 drives are 20480 blocks long.
+     The RL01 drives are each 10240 blocks long and the RL02
+     drives are 20480 blocks long.
 
-     On a dual RL02 system one drive would be used for root and
-     /usr while the other would be used for swap.
+     On a RL02 there is room for a full sized root ('a') parti-
+     tion and a reasonable sized swap ('b') partition.	The RL01
+     can only (realistically) have a single 5mb partition.
 
 FILES
-     /dev/rl[0-3]h	 block files
-     /dev/rrl[0-3]h	 raw files
+     /dev/rl[0-3][a-h]	 block files
+     /dev/rrl[0-3][a-h]  raw files
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
+SEE ALSO
+     hk(4), ra(4), ram(4), rk(4), rp(4), rx(4), si(4), xp(4),
+     dtab(5), autoconfig(8)
 
 
-Printed 1/9/94		 August 20, 1987			1
+
+
+Printed 9/9/95		 August 20, 1987			1
 
 
 
@@ -70,10 +70,6 @@ Printed 1/9/94		 August 20, 1987			1
 RL(4)		    UNIX Programmer's Manual		    RL(4)
 
 
-
-SEE ALSO
-     hk(4), ra(4), ram(4), rk(4), rp(4), rx(4), si(4), xp(4),
-     dtab(5), autoconfig(8)
 
 DIAGNOSTICS
      rl%d: hard error sn%d cs=%b da=%b.  An unrecoverable error
@@ -126,7 +122,11 @@ BUGS
 
 
 
-Printed 1/9/94		 August 20, 1987			2
+
+
+
+
+Printed 9/9/95		 August 20, 1987			2
 
 
 

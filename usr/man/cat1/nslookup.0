@@ -1,82 +1,51 @@
 
 
 
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
+NSLOOKUP(1)	    UNIX Programmer's Manual	      NSLOOKUP(1)
 
 
 
 NAME
-     nslookup - query Internet name servers interactively
+     nslookup - query name servers interactively
 
 SYNOPSIS
-     nslookup [ -_o_p_t_i_o_n ... ] [ _h_o_s_t-_t_o-_f_i_n_d | - [ _s_e_r_v_e_r ]]
+     nslookup [ _h_o_s_t-_t_o-_f_i_n_d | - [ _s_e_r_v_e_r _a_d_d_r_e_s_s | _s_e_r_v_e_r _n_a_m_e
+     ]]
 
 DESCRIPTION
-     _N_s_l_o_o_k_u_p is a program to query Internet domain name servers.
-     Nslookup has two modes: interactive and non-interactive.
-     Interactive mode allows the user to query name servers for
-     information about various hosts and domains or to print a
-     list of hosts in a domain. Non-interactive mode is used to
-     print just the name and requested information for a host or
-     domain.
+     _N_s_l_o_o_k_u_p is a program to query DARPA Internet domain name
+     servers. Nslookup has two modes: interactive and non-
+     interactive.  Interactive mode allows the user to query the
+     name server for information about various	hosts and domains
+     or print a list of hosts in the domain. Non-interactive mode
+     is used to print just the name and Internet address of a
+     host or domain.
 
 
 ARGUMENTS
      Interactive mode is entered in the following cases:
 
      a)  when no arguments are given (the default name server
-	 will be used),
+	 will be used), and
 
      b)  when the first argument is a hyphen (-) and the second
-	 argument is the host name or Internet address of a name
-	 server.
+	 argument is the host name of a name server.
 
-     Non-interactive mode is used when the name or Internet
-     address of the host to be looked up is given as the first
-     argument. The optional second argument specifies the host
-     name or address of a name server.
+     Non-interactive mode is used when the name of the host to be
+     looked up is given as the first argument. The optional
+     second argument specifies a name server.
 
-     The options listed under the ``set'' command below can be
-     specified in the .nslookuprc file in the user's home direc-
-     tory if they are listed one per line. Options can also be
-     specified on the command line if they precede the arguments
-     and are prefixed with a hyphen. For example, to change the
-     default query type to host information, and the initial
-     timeout to 10 seconds, type:
-	  nslookup -query=hinfo  -timeout=10
 
 INTERACTIVE COMMANDS
      Commands may be interrupted at any time by typing a
-     control-C.  To exit, type a control-D (EOF) or type exit.
-     The command line length must be less than 256 characters.
-     To treat a built-in command as a host name, precede it with
-     an escape character (\). N.B. an unrecognized command will
-     be interpreted as a host name.
+     control-C.  To exit, type a control-D (EOF).  The command
+     line length must be less than 80 characters.  N.B. an
+     unrecognized command will be interpreted as a host name.
 
-     _h_o_s_t [_s_e_r_v_e_r]
+
+     host [server]
 	  Look up information for _h_o_s_t using the current default
-	  server or using _s_e_r_v_e_r if specified.	If _h_o_s_t is an
-	  Internet address and the query type is A or PTR, the
-
-
-
-Printed 1/15/94           June 24, 1990                         1
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
-	  name of the host is returned.  If _h_o_s_t is a name and
-	  does not have a trailing period, the default domain
-	  name is appended to the name. (This behavior depends on
-	  the state of the set options domain, srchlist, defname,
-	  and search).	To look up a host not in the current
-	  domain, append a period to the name.
+	  server or using _s_e_r_v_e_r if it is specified.
 
 
      server _d_o_m_a_i_n
@@ -88,11 +57,25 @@ NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
 	  servers that might have the answer are returned.
 
 
+
+
+
+Printed 9/9/95		November 21, 1987			1
+
+
+
+
+
+
+NSLOOKUP(1)	    UNIX Programmer's Manual	      NSLOOKUP(1)
+
+
+
      root Changes the default server to the server for the root
-	  of the domain name space.  Currently, the host
-	  ns.internic.net is used.  (This command is a synonym
-	  for lserver ns.internic.net.) The name of the root
-	  server can be changed with the set root command.
+	  of the domain name space.  Currently, the host sri-
+	  nic.arpa is used.  (This command is a synonym for the
+	  lserver sri-nic.arpa.) The name of the root server can
+	  be changed with the set root command.
 
 
      finger [_n_a_m_e] [> _f_i_l_e_n_a_m_e]
@@ -105,45 +88,22 @@ NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
 	  manner.
 
 
-     ls [_o_p_t_i_o_n] _d_o_m_a_i_n [> _f_i_l_e_n_a_m_e]
-     ls [_o_p_t_i_o_n] _d_o_m_a_i_n [>> _f_i_l_e_n_a_m_e]
-	  List the information available for _d_o_m_a_i_n, optionally
-	  creating or appending to _f_i_l_e_n_a_m_e.  The default output
-	  contains host names and their Internet addresses.
-	  _O_p_t_i_o_n can be one of the following:
+     ls _d_o_m_a_i_n [> _f_i_l_e_n_a_m_e]
+     ls _d_o_m_a_i_n [>> _f_i_l_e_n_a_m_e]
+     ls -a _d_o_m_a_i_n [> _f_i_l_e_n_a_m_e]
+     ls -a _d_o_m_a_i_n [>> _f_i_l_e_n_a_m_e]
+     ls -h _d_o_m_a_i_n [> _f_i_l_e_n_a_m_e]
+     ls -h _d_o_m_a_i_n [>> _f_i_l_e_n_a_m_e]
 
-	  -t _q_u_e_r_y_t_y_p_e
-	      lists all records of the specified type (see
-	      _q_u_e_r_y_t_y_p_e below).
-
-	  -a  lists aliases of hosts in the domain. synonym for
-	      -t  CNAME.
-
-	  -d  lists all records for the domain.  synonym for
-	      -t  ANY.
-
-	  -h  lists CPU and operating system information for the
-
-
-
-Printed 1/15/94           June 24, 1990                         2
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
-	      domain.  synonym for -t  HINFO.
-
-	  -s  lists well-known services of hosts in the domain.
-	      synonym for -t  WKS.
-
-	  When output is directed to a file, hash marks are
-	  printed for every 50 records received from the server.
+     ls -d _d_o_m_a_i_n [> _f_i_l_e_n_a_m_e]
+	  List the information available for _d_o_m_a_i_n. The default
+	  output contains host names and their Internet
+	  addresses. The -a option lists aliases of hosts in the
+	  domain.  The -h option lists CPU and operating system
+	  information for the domain.  The -d option lists all
+	  contents of a zone transfer.	When output is directed
+	  to a file, hash marks are printed for every 50 records
+	  received from the server.
 
 
      view _f_i_l_e_n_a_m_e
@@ -156,31 +116,26 @@ NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
      ?	  Prints a brief summary of commands.
 
 
-     exit Exits the program.
-
-
      set _k_e_y_w_o_r_d[=_v_a_l_u_e]
 	  This command is used to change state information that
 	  affects the lookups.	Valid keywords are:
 
-	  all  Prints the current values of the frequently-used
-	       options to set.	Information about the  current
-	       default server and host is also printed.
+	  all  Prints the current values of the various options
+	       to set.	Information about the  current default
+	       server and host is also printed.
 
-	  class=_v_a_l_u_e
-	       Change the query class to one of:
 
-	       IN	 the Internet class.
 
-	       CHAOS	 the Chaos class.
+Printed 9/9/95		November 21, 1987			2
 
-	       HESIOD	 the MIT Athena Hesiod class.
 
-	       ANY	 wildcard (any of the above).
 
-	       The class specifies the protocol group of the
-	       information.
-	       (Default = IN, abbreviation = cl)
+
+
+
+NSLOOKUP(1)	    UNIX Programmer's Manual	      NSLOOKUP(1)
+
+
 
 	  [no]debug
 	       Turn debugging mode on. A lot more information is
@@ -189,117 +144,69 @@ NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
 	       (Default = nodebug, abbreviation = [no]deb)
 
 	  [no]d2
-
-
-
-Printed 1/15/94           June 24, 1990                         3
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
 	       Turn exhaustive debugging mode on.  Essentially
 	       all fields of every packet are printed.
 	       (Default = nod2)
 
-	  domain=_n_a_m_e
-	       Change the default domain name to _n_a_m_e. The
-	       default domain name is appended to a lookup
-	       request depending on the state of the defname and
-	       search options.	The domain search list contains
-	       the parents of the default domain if it has at
-	       least two components in its name. For example, if
-	       the default domain is CC.Berkeley.EDU, the search
-	       list is CC.Berkeley.EDU and Berkeley.EDU.  Use the
-	       set srchlist command to specify a different list.
-	       Use the set all command to display the list.
-	       (Default = value from hostname, /etc/resolv.conf
-	       or LOCALDOMAIN, abbreviation = do)
-
-	  srchlist=_n_a_m_e_1/_n_a_m_e_2/...
-	       Change the default domain name to _n_a_m_e_1 and the
-	       domain search list to _n_a_m_e_1, _n_a_m_e_2, etc. A maximum
-	       of 6 names separated by slashes (/) can be speci-
-	       fied.  For example,
-		   set srchlist=lcs.MIT.EDU/ai.MIT.EDU/MIT.EDU
-	       sets the domain to lcs.MIT.EDU and the search list
-	       to the three names.  This command overrides the
-	       default domain name and search list of the set
-	       domain command.	Use the set all command to
-	       display the list.
-	       (Default = value based on hostname,
-	       /etc/resolv.conf or LOCALDOMAIN, abbreviation =
-	       srchl)
-
 	  [no]defname
-	       If set, append the default domain name to a
-	       single-component lookup request (i.e., one that
-	       does not contain a period).
+	       Append the default domain name to every lookup.
 	       (Default = defname, abbreviation = [no]def)
 
 	  [no]search
-	       If the lookup request contains at least one period
-	       but doesn't end with a trailing period, append the
-	       domain names in the domain search list to the
-	       request until an answer is received.
-	       (Default = search, abbreviation = [no]sea)
+	       With defname, search for each name in parent
+	       domains of the current domain.
+	       (Default = search)
 
-	  port=_v_a_l_u_e
-	       Change the default TCP/UDP name server port to
-	       _v_a_l_u_e.
-	       (Default = 53, abbreviation = po)
+	  domain=_n_a_m_e
+	       Change the default domain name to _n_a_m_e. The
+	       default domain name is appended to all lookup
+	       requests if the defname option has been set.  The
+	       search list is set to parents of the domain with
+	       at least two components in their names.
+	       (Default = value in hostname or /etc/resolv.conf,
+	       abbreviation = do)
 
 	  querytype=_v_a_l_u_e
 
-
-
-Printed 1/15/94           June 24, 1990                         4
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
 	  type=_v_a_l_u_e
-	       Change the type of information query to one of:
+	       Change the type of information returned from a
+	       query to one of:
 
-	       A	 the host's Internet address.
+	       A	 the host's Internet address (the
+			 default).
 
 	       CNAME	 the canonical name for an alias.
 
 	       HINFO	 the host CPU and operating system type.
 
-	       MINFO	 the mailbox or mail list information.
+	       MD	 the mail destination.
 
 	       MX	 the mail exchanger.
 
-	       NS	 the name server for the named zone.
+	       MG	 the mail group member.
 
-	       PTR	 the host name if the query is an Inter-
-			 net address, otherwise the pointer to
-			 other information.
+	       MINFO	 the mailbox or mail list information.
 
-	       SOA	 the domain's ``start-of-authority''
-			 information.
+	       MR	 the mail rename domain name.
 
-	       TXT	 the text information.
 
-	       UINFO	 the user information.
 
-	       WKS	 the supported well-known services.
 
-	       Other types (ANY, AXFR, MB, MD, MF, NULL) are
-	       described in the RFC-1035 document.
-	       (Default = A, abbreviations = q, ty)
+Printed 9/9/95		November 21, 1987			3
+
+
+
+
+
+
+NSLOOKUP(1)	    UNIX Programmer's Manual	      NSLOOKUP(1)
+
+
+
+	       NS	 nameserver for the named zone.
+	  Other types specified in the RFC883 document are valid
+	  but aren't very useful.
+	  (Abbreviation = q)
 
 	  [no]recurse
 	       Tell the name server to query other servers if it
@@ -310,72 +217,62 @@ NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
 	       Set the number of retries to _n_u_m_b_e_r. When a reply
 	       to a request is not received within a certain
 	       amount of time (changed with set timeout), the
-	       timeout period is doubled and the request is
-	       resent. The retry value controls how many times a
-	       request is resent before giving up.
-	       (Default = 4, abbreviation = ret)
+	       request is resent. The retry value controls how
+	       many times a request is resent before giving up.
+	       (Default = 2, abbreviation = ret)
 
 	  root=_h_o_s_t
 	       Change the name of the root server to _h_o_s_t. This
 	       affects the root command.
-	       (Default = ns.internic.net., abbreviation = ro)
+	       (Default = sri-nic.arpa, abbreviation = ro)
 
 	  timeout=_n_u_m_b_e_r
-
-
-
-Printed 1/15/94           June 24, 1990                         5
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
-	       Change the initial timeout interval for waiting
-	       for a reply to _n_u_m_b_e_r seconds. Each retry doubles
-	       the timeout period.
-	       (Default = 5 seconds, abbreviation = ti)
+	       Change the time-out interval for waiting for a
+	       reply to _n_u_m_b_e_r seconds.
+	       (Default = 10 seconds, abbreviation = t)
 
 	  [no]vc
 	       Always use a virtual circuit when sending requests
 	       to the server.
 	       (Default = novc, abbreviation = [no]v)
 
-	  [no]ignoretc
-	       Ignore packet truncation errors.
-	       (Default = noignoretc, abbreviation = [no]ig)
-
 DIAGNOSTICS
      If the lookup request was not successful, an error message
      is printed.  Possible errors are:
 
-     Timed out
+     Time-out
 	  The server did not respond to a request after a certain
 	  amount of time (changed with set timeout=_v_a_l_u_e) and a
 	  certain number of retries (changed with set
 	  retry=_v_a_l_u_e).
 
-     No response from server
-	  No name server is running on the server machine.
-
-     No records
-	  The server does not have resource records of the
-	  current query type for the host, although the host name
-	  is valid.  The query type is specified with the set
-	  querytype command.
+     No information
+	  Depending on the query type set with the set querytype
+	  command, no information about the host was available,
+	  though the host name is valid.
 
      Non-existent domain
 	  The host or domain name does not exist.
 
      Connection refused
+
+
+
+Printed 9/9/95		November 21, 1987			4
+
+
+
+
+
+
+NSLOOKUP(1)	    UNIX Programmer's Manual	      NSLOOKUP(1)
+
+
+
      Network is unreachable
 	  The connection to the name or finger server could not
 	  be made at the current time.	This error commonly
-	  occurs with ls and finger requests.
+	  occurs with finger requests.
 
      Server failure
 	  The name server found an internal inconsistency in its
@@ -384,41 +281,21 @@ DIAGNOSTICS
      Refused
 	  The name server refused to service the request.
 
+
+     The following error should not occur and it indicates a bug
+     in the program.
+
      Format error
 	  The name server found that the request packet was not
-	  in the proper format.  It may indicate an error in
-
-
-
-Printed 1/15/94           June 24, 1990                         6
-
-
-
-
-
-
-NSLOOKUP(8)	    UNIX Programmer's Manual	      NSLOOKUP(8)
-
-
-
-	  _n_s_l_o_o_k_u_p.
+	  in the proper format.
 
 
 FILES
-     /etc/resolv.conf		     initial domain name and
-				     name server addresses.
-     $HOME/.nslookuprc		     user's initial options.
-     /usr/share/misc/nslookup.help   summary of commands.
-
-ENVIRONMENT
-     HOSTALIASES    file containing host aliases.
-     LOCALDOMAIN    overrides default domain.
+     /etc/resolv.conf	 initial domain name and name server
+     addresses.
 
 SEE ALSO
-     resolver(3), resolver(5), named(8),
-     RFC-1034  ``Domain Names - Concepts and Facilities''
-     RFC-1035  ``Domain Names - Implementation and Specifica-
-     tion''
+     resolver(3), resolver(5), named(8), RFC882, RFC883
 
 AUTHOR
      Andrew Cherenson
@@ -447,16 +324,7 @@ AUTHOR
 
 
 
-
-
-
-
-
-
-
-
-
-Printed 1/15/94           June 24, 1990                         7
+Printed 9/9/95		November 21, 1987			5
 
 
 

@@ -14,7 +14,7 @@ export INET
 # to "NO" and set up a default gateway below.
 #
 routedflags=NO
-rwhod=NO
+rwhod=YES
 named=NO
 
 # myname is my symbolic name
@@ -23,10 +23,10 @@ named=NO
 #	want to send all your packets, by default.
 #
 
-hostname=my.domain.name
+hostname=your.hostname.here
 netmask=255.255.255.0
-broadcast=127.255.255.255
-default=127.0.0.0
+broadcast=192.168.251.255
+default=192.168.251.1
 
 hostname $hostname					>/dev/console 2>&1
 hostid $hostname					>/dev/console 2>&1
@@ -36,7 +36,7 @@ if [ $INET = YES ]; then
 	# /etc/ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
 	# /etc/ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up -trailers arp >/dev/console 2>&1
 	# /etc/ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# /etc/ifconfig qe0 inet netmask $netmask 192.26.147.13 broadcast $broadcast up -trailers >/dev/console 2>&1
+	# /etc/ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
 	# /etc/ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp -trailers >/dev/console 2>&1
 	# /etc/slattach /dev/ttyS6 9600
 	/etc/ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1

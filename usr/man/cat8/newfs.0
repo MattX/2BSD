@@ -9,15 +9,18 @@ NAME
      newfs - construct a new file system
 
 SYNOPSIS
-     /etc/newfs [ -N ] [ -m free-gap ] [ -b ] [ -B bootblock ]
-     special disk-type
+     /etc/newfs [ -N ] [ -m free-gap ] [ -s size ] [ -T disk-type
+     ] special
 
 DESCRIPTION
      _N_e_w_f_s is a ``friendly'' front-end to the _m_k_f_s(8) program.
-     _N_e_w_f_s will look up the type of disk a file system is being
-     created on in the disk description file /_e_t_c/_d_i_s_k_t_a_b, calcu-
-     late the appropriate parameters to use in calling _m_k_f_s, then
-     build the file system by forking _m_k_f_s.
+     _N_e_w_f_s will normally read the disklabel from the drive to
+     determine the partition sizes.  If the driver for the disk
+     does not support disklabels the -T option must be used to
+     force a search of /_e_t_c/_d_i_s_k_t_a_b for partition information
+     about _d_r_i_v_e-_t_y_p_e.	_N_e_w_f_s calculates the appropriate parame-
+     ters to use in calling _m_k_f_s, then builds the file system by
+     forking _m_k_f_s.
 
      The -_N option causes the file system parameters to be
      printed out without actually creating the file system.
@@ -28,28 +31,49 @@ DESCRIPTION
      value of 2.  The _n parameter to _m_k_f_s is calcuated by _n_e_w_f_s
      to be 1 cylinder in size.
 
-     The -_b and -_B options specify that a primary block zero
-     bootstrap should be installed in block zero of _s_p_e_c_i_a_l.
-     This is typically done for `a' partitions to make disks
-     bootable.	If -_b is specified, _n_e_w_f_s will attempt to use a
-     default boot block (defined in /_e_t_c/_d_i_s_k_t_a_b).
+     The -_T option must be used if the disk specified by _s_p_e_c_i_a_l
+     has not been labeled with the _d_i_s_k_l_a_b_e_l(8) program.  In this
+     case _d_i_s_k-_t_y_p_e is used by _g_e_t_d_i_s_k_l_a_b_e_l(3) when searching
+     /_e_t_c/_d_i_s_k_t_a_b.  This option is used when the underlying dev-
+     ice driver does not support disklabels.  Care must be taken
+     that the contents of /etc/disktab match the partition tables
+     in the kernel.
 
-     The -_B option allows one to specify the file to read the
-     boot block from (_b_o_o_t_b_l_o_c_k).  Note that a boot block can
-     always be copied separately via:
-
-	  dd if=_b_o_o_t_b_l_o_c_k of=_s_p_e_c_i_a_l bs=512 count=1 conv=sync
+     The -_s option specifies how many sectors the file system is
+     to contain.  There are two sectors per file system block,
+     therefore _s_i_z_e should be even.  This parameter must be less
+     than or equal to the partition size (as determined from the
+     disklabel or /etc/disktab).  An error is printed and no
+     action is taken if the partition size is 0 or too large.
 
 FILES
      /etc/disktab   for disk geometry and file system partition
      information
      /etc/mkfs to actually build the file system
-     /mdec/*   block zero bootstraps
 
 SEE ALSO
-     disktab(5), fs(5), diskpart(8), fsck(8), format(8), mkfs(8)
+     getdisklabel(3), disklabel(8), disktab(5), diskpart(8),
+     fs(5), fsck(8), mkfs(8)
 
 BUGS
+     _n_e_w_f_s(8) no longer places boot blocks on the filesystem.
+
+
+
+Printed 9/9/95		   May 2, 1995				1
+
+
+
+
+
+
+NEWFS(8)	    UNIX Programmer's Manual		 NEWFS(8)
+
+
+
+     That duty has been moved to the _d_i_s_k_l_a_b_e_l(8) program.  If
+     you must place a boot block on a disk whose driver does not
+     support disklabels use _d_d(1).
 
 
 
@@ -57,10 +81,52 @@ BUGS
 
 
 
-Printed 1/9/94		December 28, 1991			1
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 9/9/95		   May 2, 1995				2
 
 
 

@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 1/9/94		February 23, 1987			1
+Printed 9/9/95		  May 08, 1995				1
 
 
 
@@ -95,8 +95,7 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 	  following the end of the text.  This option creates a
 	  `pure executable' format.
 
-     -i (PDP-11 only)
-	  When the output file is executed, the program text and
+     -i   When the output file is executed, the program text and
 	  data areas will live in separate address spaces.  The
 	  only difference between this option and -n is that here
 	  the text and data segments are in separate address
@@ -112,8 +111,7 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 	  makefiles to be copied freely between multiple plat-
 	  forms once again.
 
-     -O (PDP-11 only)
-	  This is a text replacement overlay file; only the text
+     -O   This is a text replacement overlay file; only the text
 	  segment will be replaced by _e_x_e_c_v_e(2).  Shared data
 	  must have the same size as the program overlaid, other-
 	  wise the _e_x_e_c_v_e(2) will fail.  The entry point to the
@@ -124,9 +122,11 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
      -o   The _n_a_m_e argument after -o is used as the name of the
 	  _l_d output file, instead of a.out.
 
+     -r   Generate relocation bits in the output file so that it
 
 
-Printed 1/9/94		February 23, 1987			2
+
+Printed 9/9/95		  May 08, 1995				2
 
 
 
@@ -137,7 +137,6 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 
 
 
-     -r   Generate relocation bits in the output file so that it
 	  can be the subject of another _l_d run.  This flag also
 	  prevents final definitions from being given to common
 	  symbols, and suppresses the `undefined symbol' diagnos-
@@ -149,6 +148,12 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 	  fulness of the debuggers).  This information can also
 	  be removed by _s_t_r_i_p(1).
 
+     -q   ("quiet") Suppress the reporting of undefined symbols.
+	  Normally only used when building networked kernels -
+	  the large number of undefined symbols is normal (due to
+	  the three phase link proceedure) but can be distracting
+	  none the less.
+
      -t   ("trace")  Print the name of each file as it is pro-
 	  cessed.
 
@@ -157,6 +162,11 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 	  loading wholly from a library, since initially the sym-
 	  bol table is empty and an unresolved reference is
 	  needed to force the loading of the first routine.
+
+     -v   ("verbose")  Print the VM statistics.  Printing out the
+	  number of pages swapped to and from the VM tmp file is
+	  now optional and only used when a problem is suspected
+	  (or if you are voyeuristic).
 
      -X   Save local symbols except for those whose names begin
 	  with `L'.  This option is used by _c_c(1) to discard
@@ -172,27 +182,17 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 	  programs, so some debugging information is necessarily
 	  lost if this option is used.
 
-     -Z (PDP-11 only)
-	  Indicate the creation of an automatic-overlay format.
+     -Z   Indicate the creation of an automatic-overlay format.
 	  In addition a -i or -n must be present as overlays only
 	  work with shared text objects.  Repeated instances of
 	  -Z bracket the modules that will be loaded into a given
 	  overlay.  Modules before the first -Z or after the con-
 	  cluding -Y will be loaded into the non-overlaid text
 	  (base) area.	Note that there may be a maximum of NOVL
-	  (currently 15) overlays.  This option produces the
-	  `overlaid pure executable' and the `overlaid separate
-	  executable' formats.	The loader creates a small entry
-	  interface in the base segment for each subroutine in an
-	  overlay.  This interface ("thunk") arranges for the
-	  correct overlay to be present before the actual routine
-	  is entered.
-
-     -Y (PDP-11 only)
 
 
 
-Printed 1/9/94		February 23, 1987			3
+Printed 9/9/95		  May 08, 1995				3
 
 
 
@@ -203,7 +203,15 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 
 
 
-	  Terminate text overlays.  This allows any remaining
+	  (currently 15) overlays.  This option produces the
+	  `overlaid pure executable' and the `overlaid separate
+	  executable' formats.	The loader creates a small entry
+	  interface in the base segment for each subroutine in an
+	  overlay.  This interface ("thunk") arranges for the
+	  correct overlay to be present before the actual routine
+	  is entered.
+
+     -Y   Terminate text overlays.  This allows any remaining
 	  modules or libraries to be loaded into the base area.
 	  Note that the -Y option used to be -_L, but had to be
 	  changed when the loader was brought up to date with the
@@ -247,18 +255,10 @@ AUTOMATIC TEXT OVERLAY EXAMPLE
      registers needed for an overlaid object must be less than or
      equal to 8.  As an example, if the base text segment has
      36800 bytes and the largest overlay takes 14144, the base
-     will fit in 5 segments and the overlays in 2 segments; leav-
-     ing one to spare.	The data and bss together must fit in 7
-     segments (56K bytes), leaving one 8Kb segment for the stack.
-     All of the limits can be checked by using _c_h_e_c_k_o_b_j(1).
-
-     For pure overlaid programs, the rules are similar except
-     that all four sections share one 64K-byte address space.
-     The number of segments required by the text, overlay, data +
 
 
 
-Printed 1/9/94		February 23, 1987			4
+Printed 9/9/95		  May 08, 1995				4
 
 
 
@@ -269,6 +269,14 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 
 
 
+     will fit in 5 segments and the overlays in 2 segments; leav-
+     ing one to spare.	The data and bss together must fit in 7
+     segments (56K bytes), leaving one 8Kb segment for the stack.
+     All of the limits can be checked by using _c_h_e_c_k_o_b_j(1).
+
+     For pure overlaid programs, the rules are similar except
+     that all four sections share one 64K-byte address space.
+     The number of segments required by the text, overlay, data +
      bss and stack are calculated in the same way.  The sum of
      the segments required, including one for the stack, must be
      less than or equal to 8.  Example: a program has 8128 bytes
@@ -289,7 +297,8 @@ SEE ALSO
 
 BUGS
      The text overlay scheme presented is unique to the PDP-11
-     and 2BSD.
+     and 2BSD.	The -i, -P, -Z, -Y options are specific to 2BSD.
+     The -q and -v options are new with 2.11BSD.
 
 
 
@@ -315,16 +324,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-Printed 1/9/94		February 23, 1987			5
+Printed 9/9/95		  May 08, 1995				5
 
 
 

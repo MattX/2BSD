@@ -50,7 +50,7 @@ SUB=	sys pdp pdpuba pdpmba net pdpnet
 
 CONF=	scb.o libc_bcmp.o libc_bcopy.o libc_bzero.o libc_ffs.o \
 	libc_insque.o libc_ldiv.o libc_lmul.o libc_lrem.o libc_remque.o \
-	libc_uldiv.o libc_ulsh.o \
+	libc_udiv.o libc_uldiv.o libc_ulsh.o \
 	libc_strlen.o mch_backup.o mch_click.o mch_copy.o mch_csv.o \
 	mch_dump.o mch_dzpdma.o mch_KScall.o mch_profile.o \
 	mch_start.o mch_trap.o mch_vars.o mch_xxx.o conf.o ioconf.o boot.o
@@ -77,8 +77,8 @@ OV5=	quota_kern.o quota_ufs.o quota_sys.o ufs_bmap.o	\
 # OV6 gets the (hopefully) never used routines
 OV6=	clock.o dn.o init_main.o kern_pdp.o machdep2.o subr_prf.o syscalls.o \
 	subr_log.o toy.o vm_swp.o
-OV7=	tmscp.o ts.o
-OV8=	mch_fpsim.o
+OV7=	tmscp.o ts.o ufs_disksubr.o
+OV8=	mch_fpsim.o kern_sysctl.o ingreslock.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \
@@ -133,8 +133,8 @@ netnix: d.netnix.o
 # include ${NETOBJ} and ${KERNOBJ} on dependency line, but the pdp make doesn't
 # have enough table space.
 d.unix.o d.netnix.o: netbind FRC
-	ld -r -d -X -i -o unix.o ${LD_KOBJ}
-	ld -r -d -X -i -o netnix.o ${NETOBJ}
+	ld -q -r -d -X -i -o unix.o ${LD_KOBJ}
+	ld -q -r -d -X -i -o netnix.o ${NETOBJ}
 	./netbind unix.o netnix.o
 	rm unix.o netnix.o
 	${AS} - -o d.unix.o d.unix.s

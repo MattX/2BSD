@@ -1,6 +1,6 @@
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char yaccpar_sccsid[] = "@(#)yaccpar	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#endif
 
 #
 # define YYFLAG -1000
