@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)ld.1	6.3 (2.11BSD GTE) 5/10/93
+.\"	@(#)ld.1	6.4 (2.11BSD GTE) 1995/05/08
 .\"
-.TH LD 1 "February 23, 1987"
+.TH LD 1 "May 08, 1995"
 .UC 2
 .SH NAME
 ld \- link editor (2BSD)
@@ -129,7 +129,7 @@ end of the text.
 This option creates a `pure executable'
 format.
 .TP 
-.B  "\-i (PDP-11 only)"
+.B  \-i
 When the output file is executed, the program
 text and data areas will live in separate address spaces.
 The only difference between this option
@@ -154,7 +154,7 @@ option.  Adding the
 option to 2.11BSD allows makefiles to be copied freely between multiple 
 platforms once again.
 .TP
-.B "\-O (PDP-11 only)"
+.B \-O
 This is a text replacement overlay file; only the text segment
 will be replaced by
 .IR execve (2).
@@ -196,6 +196,12 @@ usefulness of the debuggers).
 This information can also be removed by
 .IR  strip (1).
 .TP
+.B \-q
+("quiet") Suppress the reporting of undefined symbols.  Normally only
+used when building networked kernels \- the large number of undefined
+symbols is normal (due to the three phase link proceedure) but can be 
+distracting none the less.
+.TP
 .B \-t
 ("trace")  Print the name of each file as it is processed.
 .TP 
@@ -205,6 +211,11 @@ it as undefined in the symbol table.  This is useful
 for loading wholly from a library, since initially the symbol
 table is empty and an unresolved reference is needed
 to force the loading of the first routine.
+.TP
+.B \-v
+("verbose")  Print the VM statistics.  Printing out the number of
+pages swapped to and from the VM tmp file is now optional and only
+used when a problem is suspected (or if you are voyeuristic).
 .TP 
 .B  \-X
 Save local symbols
@@ -226,7 +237,7 @@ Warning: \fIadb\fP uses these local symbols,
 especially when debugging overlaid programs,
 so some debugging information is necessarily lost if this option is used.
 .TP
-.B "\-Z (PDP-11 only)"
+.B \-Z
 Indicate the creation of an automatic-overlay format.  In addition a
 .B \-i
 or
@@ -246,7 +257,7 @@ creates a small entry interface in the base segment for each subroutine in an
 overlay.  This interface ("thunk") arranges for the correct overlay to be
 present before the actual routine is entered.
 .TP
-.B "\-Y (PDP-11 only)
+.B \-Y
 Terminate text overlays.  This allows any remaining modules or libraries to be
 loaded into the base area.  Note that the
 .B \-Y
@@ -318,4 +329,6 @@ a.out	output file
 adb(1), ar(1), as(1), cc(1), checkobj(1), f77(1), file(1), ranlib(1),
 size(1), a.out(5)
 .SH BUGS
-The text overlay scheme presented is unique to the PDP-11 and 2BSD.
+The text overlay scheme presented is unique to the PDP-11 and 2BSD.  The
+\-i, \-P, \-Z, \-Y options are specific to 2BSD.  The \-q and \-v options
+are new with 2.11BSD.

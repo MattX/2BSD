@@ -1,8 +1,13 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)ld.c	4.2 1/2/94";
+static char *sccsid = "@(#)ld.c	4.4 1995/05/08";
 #endif
 
 /*
+ * 4.4 1995/05/08 - sms
+ *	Add -q to turn off undefined symbol reporting.  Used when building
+ *	networking kernels and many undefineds are expected but look worrisome.
+ *	Add -v to enable the VM statistics printout (now optional).
+ *
  * 4.3 1/14/94 - sms
  *	Make the number of VM segments a compile time option in the Makefile.
  * 4.2 1/2/94 - sms
@@ -203,7 +208,9 @@ struct local {
 /*
  * Options.
  */
+int	quiet;		/* -q, suppress undefined error message */
 int	trace;
+int	verbose;	/* -v, emit VM statistics */
 int	xflag;		/* discard local symbols */
 int	Xflag;		/* discard locals starting with 'L' */
 int	Sflag;		/* discard all except locals and globals*/
@@ -416,6 +423,12 @@ char **argv;
 		case 't':
 			trace++;
 			continue;
+		case 'q':
+			quiet++;
+			continue;
+		case 'v':
+			verbose++;
+			continue;
 		case 'L':
 			goto next;
 		case 'O':
@@ -454,7 +467,6 @@ char **argv;
 			}
 			curov++;
 			continue;
-		case 'v':
 		case 'y':
 		case 'A':
 		case 'H':
@@ -477,8 +489,9 @@ delexit()
 	unlink("l.out");
 	if (delarg==0)
 		chmod(ofilename, 0777 & ~umask(0));
-	printf("ld: nswaps: %ld, nmapsegs: %ld sbrk(0): %u\n", nswaps, 
-		nmapsegs, sbrk(0));
+	if (verbose)
+		printf("ld: nswaps: %ld, nmapsegs: %ld sbrk(0): %u\n", nswaps, 
+			nmapsegs, sbrk(0));
 	exit(delarg);
 	}
 
@@ -1091,6 +1104,8 @@ middle()
 				errlev |= 01;
 			if ((arflag==0 || dflag) && sp->n_value==0) {
 				if (i == p_end || i == p_etext || i == p_edata)
+					continue;
+				if (quiet)
 					continue;
 				if (nund==0)
 					printf("Undefined:\n");
