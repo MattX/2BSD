@@ -3,8 +3,11 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)fs.h	1.2 (2.11BSD GTE) 11/26/94
+ *	@(#)fs.h	1.3 (2.11BSD GTE) 1995/12/24
  */
+
+#ifndef	_SYS_FS_H_
+#define	_SYS_FS_H_
 
 /*
  * The root inode is the root of the file system.
@@ -36,7 +39,9 @@
 #define MAXMNTLEN 12
 
 /*
- * Super block for a file system.
+ * Super block for a file system.  NOTE:  The 'fs_flock' and 'fs_ilock'
+ * fields MUST be on an even byte boundary because they are used as sleep()
+ * channels and odd values specify a network sleep().
  */
 struct	fs
 {
@@ -47,8 +52,8 @@ struct	fs
 	short	fs_ninode;		/* number of inodes in fs_inode */
 	ino_t	fs_inode[NICINOD];	/* free inode list */
 	char	fs_flock;		/* lock during free list manipulation */
-	char	fs_ilock;		/* lock during i-list manipulation */
 	char	fs_fmod;		/* super block modified flag */
+	char	fs_ilock;		/* lock during i-list manipulation */
 	char	fs_ronly;		/* mounted read-only flag */
 	time_t	fs_time;		/* last super block update */
 	daddr_t	fs_tfree;		/* total free blocks */
@@ -127,3 +132,4 @@ struct	fblk {
 struct	fs *getfs();
 struct	fs *mountfs();
 #endif
+#endif /* _SYS_FS_H_ */

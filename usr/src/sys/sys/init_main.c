@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	1.9 (2.11BSD GTE) 1995/05/22
+ *	@(#)init_main.c	2.0 (2.11BSD GTE) 1995/12/24
  */
 
 #include "param.h"
@@ -165,7 +165,7 @@ main()
  * support labels and we proceed normally, otherwise the partition must be
  * a swap partition (so that we do not swap on top of a filesystem by mistake).
 */
-	ioctl = cdevsw[major(swapdev)].d_ioctl;
+	ioctl = cdevsw[blktochr(swapdev)].d_ioctl;
 	if	(ioctl && !(*ioctl)(swapdev, DIOCGPART, (caddr_t)&dpart, FREAD))
 		{
 		if	(dpart.part->p_fstype != FS_SWAP)
@@ -181,8 +181,7 @@ main()
 	if (!fs)
 		panic("iinit");
 	mount[0].m_inodp = (struct inode *)1;	/* XXX */
-	fs->fs_fsmnt[0] = '/';
-	fs->fs_fsmnt[1] = '\0';
+	mount_updname(fs, "/", "root", 1, 4);
 	time.tv_sec = fs->fs_time;
 	if	(toytime = toyclk())
 		time.tv_sec = toytime;

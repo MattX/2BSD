@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)inode.h	1.3 (2.11BSD GTE) 11/25/94
+ *	@(#)inode.h	1.4 (2.11BSD GTE) 1995/12/24
  */
 
 /*
@@ -167,6 +167,7 @@ int	ninode;			/* the number of slots in the table */
 
 struct	inode *rootdir;			/* pointer to inode of root directory */
 
+struct	inode *getinode();
 struct	inode *ialloc();
 struct	inode *iget();
 struct	inode *owner();

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.5 (2.11BSD GTE) 1995/05/08
+ *	@(#)syscalls.c	1.6 (2.11BSD GTE) 1995/12/26
  */
 
 /*
@@ -39,9 +39,9 @@ char *syscallnames[] = {
 	"geteuid",		/*  25 = geteuid */
 	"ptrace",		/*  26 = ptrace */
 	"getppid",		/*  27 = getppid */
-	"old fstat - nosys",	/*  28 = old fstat */
-	"old pause",		/*  29 = old pause */
-	"old utime - nosys",	/*  30 = old utime */
+	"statfs",		/*  28 = statfs */
+	"fstatfs",		/*  29 = fstatfs */
+	"getfsstat",		/*  30 = getfsstat */
 	"old stty - nosys",	/*  31 = old stty */
 	"old gtty - nosys",	/*  32 = old gtty */
 	"access",		/*  33 = access */

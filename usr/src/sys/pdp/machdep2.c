@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.5 (2.11BSD GTE) 1995/11/22
+ *	@(#)machdep2.c	2.6 (2.11BSD GTE) 1995/12/24
  */
 
 #include "param.h"
@@ -31,6 +31,7 @@
 #include "tms.h"
 #include "ingres.h"
 #include "disklabel.h"
+#include "mount.h"
 
 #if	NINGRES > 0
 #include <sys/ingreslock.h>
@@ -79,7 +80,7 @@ startup()
 	 * lie at <= 0120000, or other kernel data will be mapped out.
 	 */
 	if (REMAP_AREA > SEG5)
-		panic("remapped area > SEG5");
+		panic("remap > SEG5");
 
 	/*
 	 * Zero and free all of core:
@@ -226,6 +227,11 @@ register int B;
 	msgbuf.msg_magic = MSG_MAGIC;
 	msgbuf.msg_bufc = SEG5;
 	msgbuf.msg_bufx = msgbuf.msg_bufr = 0;
+#undef	C
+
+#define	C	(btoc(sizeof (struct xmount)))
+	for	(i = 0; i < NMOUNT; i++)
+		mount[i].m_extern = (memaddr)malloc(coremap, C);
 #undef	C
 
 #if NINGRES > 0
@@ -439,21 +445,21 @@ dumpsys()
 	register int error;
 
 	if (dumpdev != NODEV) {
-		printf("\ndumping to dev %o, offset %D\ndump ",dumpdev,dumplo);
+		printf("\ndumping to dev %o off %D\ndump ",dumpdev,dumplo);
 		error = (*dump)(dumpdev);
 		switch(error) {
 
 		case EFAULT:
-			printf("device not ready (EFAULT)\n");
+			printf("dev !ready:EFAULT\n");
 			break;
 		case EINVAL:
-			printf("arguments invalid (EINVAL)\n");
+			printf("args:EINVAL\n");
 			break;
 		case EIO:
-			printf("I/O error (EIO)\n");
+			printf("err:EIO\n");
 			break;
 		default:
-			printf("unknown error (%d)\n",error);
+			printf("unknown err:%d\n",error);
 			break;
 		case 0:
 			printf("succeeded\n");

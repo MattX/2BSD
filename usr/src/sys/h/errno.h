@@ -3,12 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)errno.h	7.1.1 (2.11BSD GTE) 11/26/94
+ *	@(#)errno.h	7.1.2 (2.11BSD GTE) 1995/12/26
  */
 
-/*
- * Error codes
- */
+#ifndef	KERNEL
+extern	int	errno;			/* global error number */
+#endif
 
 #define	EPERM		1		/* Not owner */
 #define	ENOENT		2		/* No such file or directory */

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.8 (2.11BSD GTE) 1995/05/08
+ *	@(#)init_sysent.c	1.9 (2.11BSD GTE) 1995/12/24
  */
 
 /*
@@ -60,6 +60,7 @@ int	creat(),open(),mknod(),unlink(),stat(),fstat(),lstat();
 int	chown(),fchown(),chmod(),fchmod(),utimes();
 int	link(),symlink(),readlink(),rename();
 int	lseek(),truncate(),ftruncate(),saccess(),fsync();
+int	statfs(), fstatfs(), getfsstat();
 
 /* 2.3 communications */
 int	socket(),bind(),listen(),accept(),connect();
@@ -134,9 +135,9 @@ struct sysent sysent[] = {
 	0, geteuid,			/*  25 = geteuid */
 	4, ptrace,			/*  26 = ptrace */
 	0, getppid,			/*  27 = getppid */
-	0, nosys,			/*  28 = old fstat */
-	0, nosys,			/*  29 = old pause */
-	0, nosys,			/*  30 = old utime */
+	2, statfs,			/*  28 = statfs */
+	2, fstatfs,			/*  29 = fstatfs */
+	3, getfsstat,			/*  30 = getfsstat */
 	0, nosys,			/*  31 = was stty */
 	0, nosys,			/*  32 = was gtty */
 	2, saccess,			/*  33 = access */

@@ -1,4 +1,4 @@
-/*	@(#)tmscp.h	7.1 (Berkeley) 6/5/86 */
+/*	@(#)tmscp.h	1.1 (2.11BSD) 1995/12/12 */
 
 /*
  *	@(#)tmscp.h	1.3	10/21/85
@@ -31,6 +31,11 @@
  *
  * Modification history: /sys/pdp/tmscp.h
  *
+ * 12-Dec-95 - sms
+ *	Begin process of moving definitions common to MSCP and TMSCP into
+ *	a different include file.  Define additional flags for the (heavily)
+ *	revised TMSCP driver.
+ *
  * 18-Oct-85 - afd
  *	Added: defines for tape format (density) flag values.
  *
@@ -40,109 +45,8 @@
  ************************************************************************/
  
  
-/*
- * Control message opcodes
- */
-#define	M_OP_ABORT	0001	/* Abort command */
-#define	M_OP_GTCMD	0002	/* Get command status command */
-#define	M_OP_GTUNT	0003	/* Get unit status command */
-#define	M_OP_STCON	0004	/* Set controller characteristics command */
-#define	M_OP_AVAIL	0010	/* Available command */
-#define	M_OP_ONLIN	0011	/* Online command */
-#define	M_OP_STUNT	0012	/* Set unit characteristics command */
-#define	M_OP_DTACP	0013	/* Determine access paths command */
-#define	M_OP_ACCES	0020	/* Access command */
-#define	M_OP_CMPCD	0021	/* Compare controller data command */
-#define	M_OP_ERASE	0022	/* Erase command */
-#define	M_OP_FLUSH	0023	/* Flush command */
-#define M_OP_ERGAP	0026	/* Erase gap command */
-#define	M_OP_COMP	0040	/* Compare host data command */
-#define	M_OP_READ	0041	/* Read command */
-#define	M_OP_WRITE	0042	/* Write command */
-#define	M_OP_WRITM	0044	/* Write tape mark command */
-#define	M_OP_REPOS	0045	/* Reposition command */
-#define	M_OP_AVATN	0100	/* Available attention message */
-#define	M_OP_DUPUN	0101	/* Duplicate unit number attention message */
-#define	M_OP_ACPTH	0102	/* Access path attention message */
-#define	M_OP_END	0200	/* End message flag */
- 
- 
-/*
- * Generic command modifiers
- */
-#define	M_MD_COMP	0040000		/* Compare */
-#define	M_MD_CLSEX	0020000		/* Clear serious exception */
-#define	M_MD_SECOR	0001000		/* Suppress error correction */
-#define	M_MD_SEREC	0000400		/* Suppress error recovery */
-#define	M_MD_STWRP	0000004		/* Set write protect */
-#define	M_MD_ALLCD	0000002		/* All class drivers */
-#define	M_MD_NXUNT	0000001		/* Next unit */
- 
-/*
- * TMSCP command modifiers
- */
-#define	M_MD_DLEOT	0000200		/* Delete LEOT */
-#define	M_MD_IMMED	0000100		/* Immediate completion */
-#define	M_MD_EXCAC	0000040		/* Exclusive access */
-#define	M_MD_UNLOD	0000020		/* Unload */
-#define	M_MD_REVRS	0000010		/* reverse */
-#define	M_MD_OBJCT	0000004		/* object count */
-#define	M_MD_REWND	0000002		/* rewind */
- 
-/*
- * End message flags
- */
-#define	M_EF_ERLOG	0040	/* Error log generated */
-#define	M_EF_SEREX	0020	/* Serious exception */
-#define	M_EF_EOT	0010	/* End of tape encountered */
-#define	M_EF_PLS	0004	/* Position lost */
- 
- 
-/*
- * Controller flags
- */
-#define	M_CF_ATTN	0200	/* Enable attention messages */
-#define	M_CF_MISC	0100	/* Enable miscellaneous error log messages */
-#define	M_CF_OTHER	0040	/* Enable other host's error log messages */
-#define	M_CF_THIS	0020	/* Enable this host's error log messages */
- 
- 
-/*
- * Unit flags
- */
-#define	M_UF_WRTPH	0020000		/* Write protect (hardware) */
-#define	M_UF_WRTPS	0010000		/* Write protect (software or volume) */
-#define	M_UF_WBKNV	0000100		/* Write back (enables cache) */
-#define	M_UF_VSMSU	0000040		/* Variable speed mode suppression */
-#define	M_UF_VARSP	0000020		/* Variable speed unit */
-#define	M_UF_CMPWR	0000002		/* Compare writes */
-#define	M_UF_CMPRD	0000001		/* Compare reads */
- 
- 
-/*
- * Status codes
- */
-#define	M_ST_MASK	037		/* Status code mask */
-#define	M_ST_SUCC	000		/* Success */
-#define	M_ST_ICMD	001		/* Invalid command */
-#define	M_ST_ABRTD	002		/* Command aborted */
-#define	M_ST_OFFLN	003		/* Unit offline */
-#define	M_ST_AVLBL	004		/* Unit available */
-#define	M_ST_WRTPR	006		/* Write protected */
-#define	M_ST_COMP	007		/* Compare error */
-#define	M_ST_DATA	010		/* Data error */
-#define	M_ST_HSTBF	011		/* Host buffer access error */
-#define	M_ST_CNTLR	012		/* Controller error */
-#define	M_ST_DRIVE	013		/* Drive error */
-#define	M_ST_FMTER	014		/* Formatter error */
-#define	M_ST_BOT	015		/* BOT encountered */
-#define	M_ST_TAPEM	016		/* Tape mark encountered */
-#define	M_ST_RDTRN	020		/* Record data truncated */
-#define	M_ST_PLOST	021		/* Position lost */
-#define	M_ST_SEX	022		/* Serious exception */
-#define	M_ST_LED	023		/* LEOT detected */
-#define	M_ST_DIAG	037		/* Message from an internal diagnostic */
- 
+#include <machine/mscp_common.h>
+
 /*
  * An MSCP packet
  */
@@ -158,42 +62,55 @@ struct mscp {
 	short	mscp_modifier;		/* modifiers */
 	union {
 	struct {
-		u_short	Ms_bytecnt;	/* byte count */
-		u_short	Ms_zzz2;	/* 64kb max for pdp-11 */
-		u_short	Ms_buf_l;	/* buffer descriptor low word */
-		u_short	Ms_buf_h;	/* buffer descriptor high word */
-		long	Ms_xxx2[2];	/* unused */
-		u_short	Ms_lbn_l;	/* logical block number low word */
-		u_short	Ms_lbn_h;	/* logical block number high word */
-		long	Ms_xxx4;	/* unused */
-		long	*Ms_dscptr;	/* pointer to descriptor (software) */
-		long	Ms_sftwds[17];/* software words, padding */
-	} mscp_generic;
+		u_short	bytecnt;	/* byte count (low order) */
+		u_short	zzz2;		/* 64kb max for pdp-11 (high order) */
+		u_short	buf_l;		/* buffer descriptor low word */
+		u_short	buf_h;		/* buffer descriptor high word */
+		long	xxx2[2];	/* unused */
+		u_short	lbn_l;		/* logical block number low word */
+		u_short	lbn_h;		/* logical block number high word */
+		long	xxx4;		/* unused */
+/*
+ * TMSCP only looks this far into the command packet.   The 'dscptr' is 26
+ * bytes offset from the start of the mscp structure and the 17 longwords of
+ * padding are necessary to make this structure the same length as the longest
+ * errorlog datagram received
+*/
+		long	*dscptr;	/* pointer to descriptor (software) */
+		long	sftwds[17];	/* software words, padding */
+	} gen;
 	struct {
-		short	Ms_version;	/* MSCP version */
-		short	Ms_cntflgs;	/* controller flags */
-		short	Ms_hsttmo;	/* host timeout */
-		short	Ms_usefrac;	/* use fraction */
-		quad	Ms_time;	/* time and date */
-		long	Ms_cntdep;	/* controller dependent parameters */
-	} mscp_setcntchar;
+		short	version;	/* MSCP version */
+		short	cntflgs;	/* controller flags */
+		short	hsttmo;		/* host timeout */
+		short	usefrac;	/* use fraction */
+		u_long	time[2];	/* time and date */
+		long	cntdep;		/* controller dependent parameters */
+	} scc;
 	struct {
-		short	Ms_multunt;	/* multi-unit code */
-		short	Ms_unitflgs;	/* unit flags */
-		long	Ms_hostid;	/* host identifier */
-		quad	Ms_unitid;	/* unit identifier */
-		long	Ms_mediaid;	/* media type identifier */
-		short	Ms_format;	/* format (tape density) */
-		short	Ms_speed;	/* tape speed = (ips * bpi) /1000 */
-		short	Ms_fmtmenu;	/* format menu */
-		short	Ms_group;	/* group size */
-		short	Ms_cylinder;	/* cylinder size */
-		short	Ms_xxx3;	/* reserved */
-		short	Ms_rctsize;	/* RCT table size */
-		char	Ms_rbns;	/* RBNs / track */
-		char	Ms_rctcpys;	/* RCT copies */
-	} mscp_getunitsts;
-	} mscp_un;
+		short	multunt;	/* multi-unit code */
+		short	unitflgs;	/* unit flags */
+		long	hostid;		/* host identifier */
+		u_long	unitid[2];	/* unit identifier */
+		long	mediaid;	/* media type identifier */
+		short	format;		/* format (tape density) */
+		short	speed;		/* tape speed = (ips * bpi) /1000 */
+		short	fmtmenu;	/* format menu */
+		u_short	maxwtrec;	/* max write byte count */
+		u_short	noiserec;	/* max noise record size */
+		u_short	pad;		/* reserved */
+	} gtu;
+/*
+ * Reposition end message.  Note:  the shorts are not swapped in any
+ * of the longs.
+*/
+	struct	{
+		u_long	rcskiped;	/* records skipped */
+		u_long	tmskiped;	/* tapemarks skipped */
+		u_long	pad[2];		/* not used */
+		u_long	position;	/* tape position */
+	} rep_em;
+	} un;
 	short m_filler[3];
 };
  
@@ -203,15 +120,16 @@ struct mscp {
  * generic packet
  */
  
-#define mscp_zzz2	mscp_un.mscp_generic.Ms_zzz2
-#define	mscp_bytecnt	mscp_un.mscp_generic.Ms_bytecnt
-#define	mscp_buffer_h	mscp_un.mscp_generic.Ms_buf_h
-#define	mscp_buffer_l	mscp_un.mscp_generic.Ms_buf_l
-#define	mscp_lbn_h	mscp_un.mscp_generic.Ms_lbn_h
-#define	mscp_lbn_l	mscp_un.mscp_generic.Ms_lbn_l
-#define	mscp_dscptr	mscp_un.mscp_generic.Ms_dscptr
-#define	mscp_sftwds	mscp_un.mscp_generic.Ms_sftwds
+#define mscp_zzz2	un.gen.zzz2
+#define	mscp_bytecnt	un.gen.bytecnt
+#define	mscp_buffer_h	un.gen.buf_h
+#define	mscp_buffer_l	un.gen.buf_l
+#define	mscp_lbn_h	un.gen.lbn_h
+#define	mscp_lbn_l	un.gen.lbn_l
+#define	mscp_dscptr	un.gen.dscptr
 #define	mscp_status	mscp_modifier
+#define	mscp_endcode	mscp_opcode
+#define	mscp_position	un.rep_em.position
  
 /*
  * Abort / Get Command Status packet
@@ -223,12 +141,11 @@ struct mscp {
  * Set Controller Characteristics packet
  */
  
-#define	mscp_version	mscp_un.mscp_setcntchar.Ms_version
-#define	mscp_cntflgs	mscp_un.mscp_setcntchar.Ms_cntflgs
-#define	mscp_hsttmo	mscp_un.mscp_setcntchar.Ms_hsttmo
-#define	mscp_usefrac	mscp_un.mscp_setcntchar.Ms_usefrac
-#define	mscp_time	mscp_un.mscp_setcntchar.Ms_time
-#define	mscp_cntdep	mscp_un.mscp_setcntchar.Ms_cntdep
+#define	mscp_version	un.scc.version
+#define	mscp_cntflgs	un.scc.cntflgs
+#define	mscp_hsttmo	un.scc.hsttmo
+#define	mscp_time	un.scc.time
+#define	mscp_cntdep	un.scc.cntdep
  
 /*
  * Reposition command packet fields
@@ -241,21 +158,14 @@ struct mscp {
  * Get Unit Status end packet
  */
  
-#define	mscp_multunt	mscp_un.mscp_getunitsts.Ms_multunt
-#define	mscp_unitflgs	mscp_un.mscp_getunitsts.Ms_unitflgs
-#define	mscp_hostid	mscp_un.mscp_getunitsts.Ms_hostid
-#define	mscp_unitid	mscp_un.mscp_getunitsts.Ms_unitid
-#define	mscp_mediaid	mscp_un.mscp_getunitsts.Ms_mediaid
-#define	mscp_format	mscp_un.mscp_getunitsts.Ms_format /* density:0=high */
-#define	mscp_speed	mscp_un.mscp_getunitsts.Ms_speed  /* (ips*bpi)/1000 */
-#define	mscp_fmtmenu	mscp_un.mscp_getunitsts.Ms_fmtmenu
- 
-/*
- * Online / Set Unit Characteristics end packet
- */
- 
-#define	mscp_maxwrt	mscp_dscptr	/* max write byte count */
-#define	mscp_noiserec	mscp_cylinder	/* noise record */
+#define	mscp_multunt	un.gtu.multunt
+#define	mscp_unitflgs	un.gtu.unitflgs
+#define	mscp_hostid	un.gtu.hostid
+#define	mscp_unitid	un.gtu.unitid
+#define	mscp_mediaid	un.gtu.mediaid
+#define	mscp_format	un.gtu.format /* density:0=high */
+#define	mscp_speed	un.gtu.speed  /* (ips*bpi)/1000 */
+#define	mscp_fmtmenu	un.gtu.fmtmenu
  
 /*
  * Set Controller Characteristics end packet
@@ -264,32 +174,6 @@ struct mscp {
 #define	mscp_cnttmo	mscp_hsttmo	/* controller timeout */
 #define	mscp_cntcmdl	mscp_usefrac	/* controller soft & hardware version */
 #define	mscp_cntid	mscp_unitid	/* controller id */
- 
- 
-/*
- * Error Log message format codes
- */
-#define	M_FM_CNTERR	0	/* Controller error */
-#define	M_FM_BUSADDR	1	/* Host memory access error */
-#define	M_FM_TAPETRN	5	/* Tape transfer error */
-#define	M_FM_STIERR	6	/* STI communication or command failure */
-#define	M_FM_STIDEL	7	/* STI drive error log */
-#define	M_FM_STIFEL   010	/* STI formatter error log */
- 
-/*
- * Error Log message flags
- */
-#define	M_LF_SUCC	0200	/* Operation successful */
-#define	M_LF_CONT	0100	/* Operation continuing */
-#define	M_LF_SQNRS	0001	/* Sequence number reset */
- 
-/*
- * Tape Format Flag Values
- */
-#define	M_TF_800	001	/* NRZI 800 bpi */
-#define	M_TF_PE		002	/* Phase Encoded 1600 bpi */
-#define	M_TF_GCR	004	/* Group Code Recording 6250 bpi */
-#define	M_TF_BLK	010	/* Cartridge Block Mode */
  
 /*
  * MSCP Error Log packet
@@ -305,11 +189,11 @@ struct mslg {
 	u_char	mslg_format;		/* format */
 	u_char	mslg_flags;		/* error log message flags */
 	short	mslg_event;		/* event code */
-	quad	me_cntid;		/* controller id */
+	u_char	me_cntid[8];		/* controller id */
 	u_char	me_cntsvr;		/* controller software version */
 	u_char	me_cnthvr;		/* controller hardware version */
 	short	mslg_multunt;		/* multi-unit code */
-	quad	me_unitid;		/* unit id */
+	u_long	me_unitid[2];		/* unit id */
 	u_char	me_unitsvr;		/* unit software version */
 	u_char	me_unithvr;		/* unit hardware version */
 	short	mslg_group;		/* group; retry + level */
@@ -322,3 +206,62 @@ struct mslg {
  
 #define	mslg_busaddr	me_unitid.val[0]
 #define	mslg_sdecyl	mslg_group
+
+/*
+ * These definitions were moved here where they could be included by
+ * both the main driver and the tape crash dump module.
+*/
+
+/*
+ * Per controller information structure.
+ */
+struct tmscp_softc {
+	struct	tmscpdevice *sc_addr;	/* controller CSR address */
+	short   sc_state;       /* state of controller */
+	short	sc_ivec;        /* interrupt vector address */
+	short	sc_unit;	/* CONTROLLER number - NOT drive unit # */
+	short   sc_credits;     /* transfer credits */
+	short   sc_lastcmd;     /* pointer into command ring */
+	short   sc_lastrsp;     /* pointer into response ring */
+	struct	buf sc_cmdbuf;	/* internal command buffer */
+	struct	buf sc_ctab;	/* controller queue */
+	struct	buf sc_wtab;	/* I/O wait queue for controller */
+	struct	tmscp *sc_com;	/* communications area pointer */
+	struct	tms_info *sc_drives[4];	/* pointers to per drive info */
+};
+
+/*
+ * The TMSCP packet.  This is the same as MSCP except for the leading 't'
+ * in the structure member names.  Eventually the two drivers will use a
+ * single definition.
+*/
+struct tmscp {
+	struct tmscpca	tmscp_ca;         /* communications area */
+	struct mscp	tmscp_rsp[NRSP];  /* response packets */
+	struct mscp	tmscp_cmd[NCMD];  /* command packets */
+};					  /* 1896 bytes per controller! */
+
+/*
+ * Per drive information structure.
+*/
+struct tms_info {
+	long		tms_type;	/* Drive type field  */
+	int		tms_resid;	/* residual from last xfer */
+	u_char		tms_endcode;	/* last command endcode */
+	u_char		tms_flags;	/* flags visible to user programs */
+	u_short		tms_status;	/* Command status from last command */
+	u_short		Tflags;		/* Internal driver flags */
+	short		tms_fmtmenu;	/* the unit's format (density) menu */
+	short		tms_unitflgs;	/* unit flag parameters */
+	short		tms_format;	/* unit's current format (density) */
+	long		tms_position;	/* Drive position */
+	struct	buf	tms_dtab;	/* I/O tape drive queues */
+};
+
+/* Bits in minor device */
+#define	TMSUNIT(dev)	(minor(dev)&03)
+#define	TMSCTLR(dev)	((minor(dev) >> 6) & 3)
+#define	TMSDENS(dev)	((minor(dev) >> 3) & 3)
+#define	FMTMASK		(M_TF_800|M_TF_PE|M_TF_GCR)	/* = 7 */
+
+#define	T_NOREWIND	04

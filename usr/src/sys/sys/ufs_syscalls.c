@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.5 (2.11BSD GTE) 12/7/94
+ *	@(#)ufs_syscalls.c	1.6 (2.11BSD GTE) 1995/12/24
  */
 
 #include "param.h"
@@ -20,7 +20,6 @@
 #endif
 
 static	void	copen();
-static struct	inode *getinode();
 
 /*
  * Change current working directory (``.'').
@@ -1503,7 +1502,7 @@ out:
 	iput(ip);
 }
 
-static struct inode *
+struct inode *
 getinode(fdes)
 	int fdes;
 {

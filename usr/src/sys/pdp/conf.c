@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.8 (2.11BSD GTE) 1995/07/24
+ *	@(#)conf.c	2.9 (2.11BSD GTE) 1995/12/24
  */
 
 #include "param.h"
@@ -545,6 +545,7 @@ static char chrtoblktbl[MAXDEV] =  {
 	/* 24 */	NODEV,
 	/* 25 */	NODEV
 };
+
 /*
  * Routine to convert from character to block device number.
  *
@@ -559,3 +560,28 @@ chrtoblk(dev)
 		return (NODEV);
 	return (makedev(blkmaj, minor(dev)));
 }
+
+/*
+ * This routine returns the cdevsw[] index of the block device
+ * specified by the input parameter.    Used by init_main and ufs_mount to
+ * find the diskdriver's ioctl entry point so that the label and partition
+ * information can be obtained for 'block' (instead of 'character') disks.
+ *
+ * Rather than create a whole separate table 'chrtoblktbl' is scanned
+ * looking for a match.  This routine is only called a half dozen times during
+ * a system's life so efficiency isn't a big concern.
+*/
+
+blktochr(dev)
+	register dev_t dev;
+	{
+	register int maj = major(dev);
+	register int i;
+
+	for	(i = 0; i < MAXDEV; i++)
+		{
+		if	(maj == chrtoblktbl[i])
+			return(i);
+		}
+	return(NODEV);
+	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.5 (2.11BSD GTE) 1995/05/21
+ *	@(#)ufs_mount.c	1.6 (2.11BSD GTE) 1995/12/24
  */
 
 #include "param.h"
@@ -19,6 +19,8 @@
 #include "namei.h"
 #include "conf.h"
 #include "stat.h"
+#include "disklabel.h"
+#include "ioctl.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
@@ -34,7 +36,8 @@ smount()
 	register struct inode *ip;
 	register struct fs *fs;
 	register struct	nameidata *ndp = &u.u_nd;
-	u_int len;
+	u_int lenon, lenfrom;
+	char	mnton[MNAMELEN], mntfrom[MNAMELEN];
 
 	u.u_error = getmdev(&dev, uap->fspec);
 	if (u.u_error)
@@ -45,7 +48,27 @@ smount()
 	ip = namei(ndp);
 	if (ip == NULL)
 		return;
-	if (ip->i_count != 1) {
+/*
+ * This is a hack to update the 'from' field for the root filesystem.  When
+ * the kernel boots the string 'root_device' placed there as a place holder
+ * until the "mount -a" is done from /etc/rc - at that time the name of the
+ * root device is known and passed thru to here.  If '/' is the directory
+ * then only the 'from' and 'on' fields are updated.
+ *
+ * The following two copyinstr calls will not fault because getmdev() or
+ * namei() would have returned an error for invalid parameters.
+*/
+	copyinstr(uap->freg, mnton, sizeof (mnton) - 1, &lenon);
+	copyinstr(uap->fspec, mntfrom, sizeof (mntfrom) - 1, &lenfrom);
+	if	(mnton[0] == '/' && mnton[1] == '\0')
+		{
+		iput(ip);
+		if	(dev != mount[0].m_dev)
+			return(u.u_error = EINVAL);
+		fs = &mount[0].m_filsys;
+		goto updname;
+		}
+	if (ip->i_count != 1 || (ip->i_number == ROOTINO)) {
 		iput(ip);
 		u.u_error = EBUSY;
 		return;
@@ -55,17 +78,32 @@ smount()
 		u.u_error = ENOTDIR;
 		return;
 	}
-	if (ip->i_number == ROOTINO) {
-		iput(ip);
-		u.u_error = EBUSY;
-		return;
-	}
+
 	fs = mountfs(dev, uap->flags, ip);
 	if (fs == 0)
 		return;
-	(void) copyinstr(uap->freg, fs->fs_fsmnt, sizeof(fs->fs_fsmnt)-1, &len);
-	bzero(fs->fs_fsmnt + len, sizeof (fs->fs_fsmnt) - len);
+updname:
+	mount_updname(fs, mnton, mntfrom, lenon, lenfrom);
 }
+
+mount_updname(fs, on, from, lenon, lenfrom)
+	struct	fs	*fs;
+	char	*on, *from;
+	int	lenon, lenfrom;
+	{
+	struct	mount	*mp;
+	register struct	xmount	*xmp;
+
+	bzero(fs->fs_fsmnt, sizeof (fs->fs_fsmnt));
+	bcopy(on, fs->fs_fsmnt, sizeof (fs->fs_fsmnt) - 1);
+	mp = (struct mount *)((int)fs - offsetof(struct mount, m_filsys));
+	xmp = (struct xmount *)SEG5;
+	mapseg5(mp->m_extern, XMOUNTDESC);
+	bzero(xmp, sizeof (struct xmount));
+	bcopy(on, xmp->xm_mnton, lenon);
+	bcopy(from, xmp->xm_mntfrom, lenfrom);
+	normalseg5();
+	}
 
 /* this routine has races if running twice */
 struct fs *
@@ -80,11 +118,27 @@ mountfs(dev, flags, ip)
 	register int error;
 	int ronly = flags & MNT_RDONLY;
 	int needclose = 0;
+	int (*ioctl)();
+	struct	partinfo dpart;
 
 	error =
 	    (*bdevsw[major(dev)].d_open)(dev, ronly ? FREAD : FREAD|FWRITE, S_IFBLK);
 	if (error)
 		goto out;
+/*
+ * Now make a check that the partition is really a filesystem if the 
+ * underlying driver supports disklabels (there is an ioctl entry point 
+ * and calling it does not return an error).
+*/
+	ioctl = cdevsw[blktochr(dev)].d_ioctl;
+	if	(ioctl && !(*ioctl)(dev, DIOCGPART, &dpart, FREAD))
+		{
+		if	(dpart.part->p_fstype != FS_V71K)
+			{
+			error = EINVAL;
+			goto out;
+			}
+		}
 	needclose = 1;
 	tp = bread(dev, SBLOCK);
 	if (tp->b_flags & B_ERROR)

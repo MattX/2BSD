@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.h	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)param.h	1.4 (2.11BSD GTE) 1995/12/24
  */
 
 #define	BSD	211		/* 2.11 * 10, as cpp doesn't do floats */
@@ -13,6 +13,8 @@
 #else
 #include <sys/localopts.h>
 #endif
+
+#include <sys/stddef.h>		/* for 'offsetof' */
 
 /*
  * Machine type dependent parameters.

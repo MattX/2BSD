@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mtio.h	7.1 (Berkeley) 6/4/86
+ *	@(#)mtio.h	7.1.1 (2.11BSD) 1995/12/12
  */
 
 /*
@@ -27,6 +27,7 @@ struct	mtop	{
 #define MTNOP	7	/* no operation, sets status only */
 #define MTCACHE	8	/* enable controller cache */
 #define MTNOCACHE 9	/* disable controller cache */
+#define	MTFLUSH	10	/* flush cache */
 
 /* structure for MTIOCGET - mag tape get status command */
 
@@ -55,6 +56,18 @@ struct	mtget	{
 #define	MT_ISCPC	0x06		/* SUN */
 #define	MT_ISAR		0x07		/* SUN */
 #define	MT_ISTMSCP	0x08		/* DEC TMSCP protocol (TU81, TK50) */
+
+/*
+ * At present only the TMSCP driver reports this information in the
+ * high byte of the 'drive status' word.  Other drives will (hopefully)
+ * be updated in the future.
+*/
+#define	MTF_BOM		0x01		/* At beginning of media */
+#define	MTF_EOM		0x02		/* At the end of media */
+#define	MTF_OFFLINE	0x04		/* Drive is offline */
+#define	MTF_WRTLCK	0x08		/* Drive is write protected */
+#define	MTF_WRITTEN	0x10		/* Tape has been written */
+#define	MTF_CSE		0x20		/* Clear serious exception done */
 
 /* mag tape io control commands */
 #define	MTIOCTOP	_IOW(m, 1, struct mtop)		/* do a mag tape op */
