@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)mount.h	7.2.4 (2.11BSD GTE) 1996/4/18
+ *	@(#)mount.h	7.2.5 (2.11BSD GTE) 1997/6/29
  */
 
 /*
@@ -78,6 +78,7 @@ struct	xmount
 #define	MNT_NODEV	0x0010		/* don't interpret special files */
 #define	MNT_QUOTA	0x0020		/* quotas are enabled on filesystem */
 #define	MNT_ASYNC	0x0040		/* file system written asynchronously */
+#define	MNT_NOATIME	0x0080		/* don't update access times */
 
 /*
  * Mask of flags that are visible to statfs().

@@ -29,7 +29,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)mount.8	8.7.3 (2.11BSD) 1996/11/16
+.\"     @(#)mount.8	8.7.3 (2.11BSD) 1997/7/3
 .\"
 .TH MOUNT 8 "November 16, 1996"
 .UC 7
@@ -100,11 +100,10 @@ The following options are available:
 async
 All I/O
 to the file system should be done asynchronously.
-This is a
-.B dangerous
-flag to set,
-and should not be used unless you are prepared to recreate the file
-system should your system crash.
+
+.B This is a dangerous flag to set,
+.B and should not be used unless you are prepared to recreate the file
+.B system should your system crash.
 .TP 10
 force
 The same as
@@ -112,6 +111,18 @@ The same as
 forces the revocation of write access when trying to downgrade
 a filesystem mount status from read-write to read-only.   This is not
 (and likely never will be) supported in 2.11BSD.
+.TP 10
+noaccesstime
+File access times are not updated.
+
+.B This is a performance optimization for filesystems used for largely
+.B read-only, short-lived data, e.g., news.
+.TP 10
+noauto
+This filesystem should be skipped when mount is run with the \fB\-a\fP flag.
+.TP 10
+na
+Same as noauto.
 .TP 10
 nodev
 Do not interpret character or block special devices on the file system.

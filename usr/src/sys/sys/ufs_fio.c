@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_fio.c	1.4 (2.11BSD GTE) 1996/9/13
+ *	@(#)ufs_fio.c	1.5 (2.11BSD GTE) 1997/7/3
  */
 
 #include "param.h"
@@ -173,7 +173,8 @@ ufs_setattr(ip, vap)
 			 ((vap->va_vaflags & VA_UTIMES_NULL) == 0 ||
 			 access(ip, IWRITE)))
 			return(u.u_error);
-		if	(vap->va_atime != (time_t)VNOVAL)
+		if	(vap->va_atime != (time_t)VNOVAL &&
+				!(ip->i_fs->fs_flags & MNT_NOATIME))
 			ip->i_flag |= IACC;
 		if	(vap->va_mtime != (time_t)VNOVAL)
 			ip->i_flag |= (IUPD|ICHG);

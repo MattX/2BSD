@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.9 (2.11BSD GTE) 1997/1/30
+ *	@(#)sys_inode.c	1.10 (2.11BSD GTE) 1997/7/3
  */
 
 #include "param.h"
@@ -126,7 +126,10 @@ rwip(ip, uio, ioflag)
  * non-sync directory i/o - the sync bit is forced on.
 */
 	if (uio->uio_rw == UIO_READ)
-		ip->i_flag |= IACC;
+		{
+		if	(!(ip->i_fs->fs_flags & MNT_NOATIME))
+			ip->i_flag |= IACC;
+		}
 	else
 	   {
 	   switch (type)
@@ -169,15 +172,21 @@ rwip(ip, uio, ioflag)
 	if (type == IFREG  || type == IFDIR && (ip->i_fs->fs_flags & MNT_ASYNC))
 		ioflag &= ~IO_SYNC;
 
-	if (type == IFCHR) {
-		if (uio->uio_rw == UIO_READ)
-			error = (*cdevsw[major(dev)].d_read)(dev, uio, ioflag);
-		else {
-			ip->i_flag |= IUPD|ICHG;
-			error = (*cdevsw[major(dev)].d_write)(dev, uio, ioflag);
-		}
+	if (type == IFCHR)
+		{
+		if  (uio->uio_rw == UIO_READ)
+		    {
+		    if	(!(ip->i_fs->fs_flags & MNT_NOATIME))
+			ip->i_flag |= IACC;
+		    error = (*cdevsw[major(dev)].d_read)(dev, uio, ioflag);
+		    }
+		else
+		    {
+		    ip->i_flag |= IUPD|ICHG;
+		    error = (*cdevsw[major(dev)].d_write)(dev, uio, ioflag);
+		    }
 		return (error);
-	}
+		}
 	if (uio->uio_resid == 0)
 		return (0);
 	if (uio->uio_rw == UIO_WRITE && type == IFREG &&

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	2.0 (2.11BSD GTE) 1997/1/18
+ *	@(#)ufs_mount.c	2.1 (2.11BSD GTE) 1997/6/29
  */
 
 #include "param.h"
@@ -96,7 +96,7 @@ smount()
 			fs->fs_ronly = 0;
 			mp->m_flags &= ~MNT_RDONLY;
 			}
-#define	_MF (MNT_NOSUID | MNT_NODEV | MNT_NOEXEC | MNT_ASYNC | MNT_SYNCHRONOUS)
+#define	_MF (MNT_NOSUID | MNT_NODEV | MNT_NOEXEC | MNT_ASYNC | MNT_SYNCHRONOUS | MNT_NOATIME)
 		mp->m_flags &= ~_MF;
 		mp->m_flags |= (uap->flags & _MF);
 #undef _MF
