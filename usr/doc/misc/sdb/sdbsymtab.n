@@ -1,4 +1,4 @@
-.so /usr/lib/tmac/tmac.s
+.so /usr/share/tmac/tmac.s
 .MF
 .TL 
 Symbol Table Format for Sdb

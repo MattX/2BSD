@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)3.t	1.4 (2.11BSD GTE) 1995/06/13
+.\"	@(#)3.t	1.5 (2.11BSD GTE) 1996/10/24
 .\"
 .ds lq ``
 .ds rq ''
@@ -95,16 +95,16 @@ l c l.
 /usr/dict/*	\(dd	for local additions to words and papers
 /usr/hosts/MAKEHOSTS	\(ua	for local changes
 /usr/include/*	\(dd	for local additions
-/usr/lib/aliases	\(ua	mail forwarding data base
-/usr/lib/crontab	\(ua	cron daemon data base
-/usr/lib/font/*	\(dd	for locally developed font libraries
-/usr/lib/lib*.a	\(ua	for locally libraries
-/usr/lib/lint/*	\(dd	for locally developed lint libraries
-/usr/lib/sendmail.cf	\(ua	sendmail configuration
-/usr/lib/tabset/*	\(dd	for locally developed tab setting files
-/usr/lib/term/*	\(dd	for locally developed nroff drive tables
-/usr/lib/tmac/*	\(dd	for locally developed troff/nroff macros
-/usr/lib/uucp/*	\(ua	for local uucp configuration files
+/etc/aliases	\(ua	mail forwarding data base
+/etc/crontab	\(ua	cron daemon data base
+/usr/share/font/*	\(dd	for locally developed font libraries
+/usr/lib/lib*.a	\(ua	for local libraries
+/usr/share/lint/*	\(dd	for locally developed lint libraries
+/etc/sendmail.cf	\(ua	sendmail configuration
+/usr/share/tabset/*	\(dd	for locally developed tab setting files
+/usr/share/term/*	\(dd	for locally developed nroff drive tables
+/usr/share/tmac/*	\(dd	for locally developed troff/nroff macros
+/etc/uucp/*	\(ua	for local uucp configuration files
 /usr/man/manl	*	for manual pages for locally developed programs
 /usr/msgs	\(ua	for current msgs
 /usr/spool/*	\(ua	for current mail, news, uucp files, etc.
@@ -259,7 +259,7 @@ for \fIchpass\fP\|(1), \fIvipw\fP\|(8), \fImkpasswd\fP\|(8), etc.
 \fB#\fP chmod 0600 /etc/master.passwd
 .DE
 .PP
-The format of the cron table, /usr/lib/crontab, is the same as that
+The format of the cron table, /etc/crontab, is the same as that
 of \*(1B.
 .PP
 Some of the commands previously in /etc/rc.local have been 
@@ -411,7 +411,7 @@ you rebuild
 .IR /etc/passwd ,
 .IR /etc/hosts ,
 and
-.I /usr/lib/aliases
+.I /etc/aliases
 databases via the commands:
 .IR "/etc/mkpasswd /etc/passwd" ,
 .IR "/etc/mkhosts /etc/hosts" ,

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)4.t	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -907,12 +907,12 @@ the following files and commands:
 .DS
 .TS
 l l.
-/usr/ucb/lpq	spooling queue examination program
-/usr/ucb/lprm	program to delete jobs from a queue
-/usr/ucb/lpr	program to enter a job in a printer queue
+/usr/bin/lpq	spooling queue examination program
+/usr/bin/lprm	program to delete jobs from a queue
+/usr/bin/lpr	program to enter a job in a printer queue
 /etc/printcap	printer configuration and capability data base
-/usr/lib/lpd	line printer daemon, scans spooling queues
-/etc/lpc	line printer control program
+/usr/sbin/lpd	line printer daemon, scans spooling queues
+/usr/sbin/lpc	line printer control program
 /etc/hosts.lpd	list of host allowed to use the printers
 .TE
 .DE
@@ -958,13 +958,13 @@ The mail system consists of the following commands:
 l l.
 /bin/mail	old standard mail program, \fIbinmail\fP\|(1)
 /usr/ucb/mail	UCB mail program, described in \fImail\fP\|(1)
-/usr/lib/sendmail	mail routing program
+/usr/sbin/sendmail	mail routing program
 /usr/spool/mail	mail spooling directory
 /usr/spool/secretmail	secure mail directory
 /usr/bin/xsend	secure mail sender
 /usr/bin/xget	secure mail receiver
-/usr/lib/aliases	mail forwarding information
-/usr/ucb/newaliases	command to rebuild binary forwarding database
+/etc/aliases	mail forwarding information
+/usr/bin/newaliases	command to rebuild binary forwarding database
 /usr/ucb/biff	mail notification enabler
 /etc/comsat	mail notification daemon
 .TE
@@ -977,7 +977,7 @@ and received, and passes the messages to
 for routing.
 The routing algorithm uses knowledge of the network name syntax,
 aliasing and forwarding information, and network topology, as
-defined in the configuration file /usr/lib/sendmail.cf, to
+defined in the configuration file /etc/sendmail.cf, to
 process each piece of mail.
 Local mail is delivered by giving it to the program /bin/mail
 that adds it to the mailboxes in the directory /usr/spool/mail/\fIusername\fP,
@@ -995,7 +995,7 @@ which encrypts the mail so that no one can read it.
 To set up the mail facility you should read the instructions in the
 file READ_ME in the directory /usr/src/usr.lib/sendmail and then adjust
 the necessary configuration files.
-You should also set up the file /usr/lib/aliases for your installation,
+You should also set up the file /etc/aliases for your installation,
 creating mail groups as appropriate.  Documents describing 
 .IR sendmail 's
 operation and installation are also included in the distribution.
@@ -1047,10 +1047,10 @@ may be of use in tailoring the software to your needs.
 .PP
 The \fIuucp\fP support is located in three major directories:
 /usr/bin,
-/usr/lib/uucp,
+/etc/uucp,
 and /usr/spool/uucp.
 User commands are kept in /usr/bin,
-operational commands in /usr/lib/uucp,
+operational commands in /etc/uucp,
 and /usr/spool/uucp is used as a spooling area.
 The commands in /usr/bin are:
 .DS
@@ -1068,20 +1068,20 @@ l l.
 /usr/bin/uuq	gives information about the queue
 .TE
 .DE
-The important files and commands in /usr/lib/uucp are:
+The important files and commands in /etc/uucp are:
 .DS
 .TS
 l l.
-/usr/lib/uucp/L-devices	list of dialers and hard-wired lines
-/usr/lib/uucp/L-dialcodes	dialcode abbreviations
-/usr/lib/uucp/L.aliases	hostname aliases
-/usr/lib/uucp/L.cmds	commands remote sites may execute
-/usr/lib/uucp/L.sys	systems to communicate with, how to connect, and when
-/usr/lib/uucp/SEQF	sequence numbering control file
-/usr/lib/uucp/USERFILE	remote site pathname access specifications
-/usr/lib/uucp/uucico	\fIuucp\fP protocol daemon
-/usr/lib/uucp/uuclean	cleans up garbage files in spool area
-/usr/lib/uucp/uuxqt	\fIuucp\fP remote execution server
+/etc/uucp/L-devices	list of dialers and hard-wired lines
+/etc/uucp/L-dialcodes	dialcode abbreviations
+/etc/uucp/L.aliases	hostname aliases
+/etc/uucp/L.cmds	commands remote sites may execute
+/etc/uucp/L.sys	systems to communicate with, how to connect, and when
+/etc/uucp/SEQF	sequence numbering control file
+/etc/uucp/USERFILE	remote site pathname access specifications
+/usr/sbin/uucico	\fIuucp\fP protocol daemon
+/etc/uucp/uuclean	cleans up garbage files in spool area
+/usr/libexec/uuxqt	\fIuucp\fP remote execution server
 .TE
 .DE
 while the spooling area contains the following important files and directories:

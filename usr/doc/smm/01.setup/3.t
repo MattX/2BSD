@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)3.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)3.t	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .ds lq ``
 .ds rq ''
@@ -110,16 +110,16 @@ l c l.
 /usr/dict/*	\(dd	for local additions to words and papers
 /usr/hosts/MAKEHOSTS	\(dg	for local changes
 /usr/include/*	\(dd	for local additions
-/usr/lib/aliases	\(dg	mail forwarding data base
-/usr/lib/crontab	*	cron daemon data base
-/usr/lib/font/*	\(dd	for locally developed font libraries
+/etc/aliases	\(dg	mail forwarding data base
+/etc/crontab	*	cron daemon data base
+/usr/share/font/*	\(dd	for locally developed font libraries
 /usr/lib/lib*.a	\(dg	for locally libraries
-/usr/lib/lint/*	\(dd	for locally developed lint libraries
-/usr/lib/sendmail.cf	*	sendmail configuration
-/usr/lib/tabset/*	\(dd	for locally developed tab setting files
-/usr/lib/term/*	\(dd	for locally developed nroff drive tables
-/usr/lib/tmac/*	\(dd	for locally developed troff/nroff macros
-/usr/lib/uucp/*	\(dg	for local uucp configuration files
+/usr/share/lint/*	\(dd	for locally developed lint libraries
+/etc/sendmail.cf	*	sendmail configuration
+/usr/share/tabset/*	\(dd	for locally developed tab setting files
+/usr/share/term/*	\(dd	for locally developed nroff drive tables
+/usr/share/tmac/*	\(dd	for locally developed troff/nroff macros
+/etc/uucp/*	\(dg	for local uucp configuration files
 /usr/man/manl	\(dg	for manual pages for locally developed programs
 /usr/msgs	\(dg	for current msgs
 /usr/spool/*	\(dg	for current mail, news, uucp files, etc.
@@ -306,7 +306,7 @@ you must run \fImkpasswd\fP\|(8) to create the \fIndbm\fP
 password database.
 Note that \fImkpasswd\fP is run whenever \fIvipw\fP\|(8) is run.
 .PP
-The format of the cron table, /usr/lib/crontab, has been changed
+The format of the cron table, /etc/crontab, has been changed
 to specify the user-id that should be used to run a process.
 The userid ``nobody'' is frequently useful for non-privileged programs.
 .PP

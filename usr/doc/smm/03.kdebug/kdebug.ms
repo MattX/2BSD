@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)kdebug.ms	6.4 (Berkeley) 6/3/86
+.\"	@(#)kdebug.ms	6.4.1 (2.11BSD) 1996/10/24
 .\"
 .bd S B 3
 .de UX
@@ -231,7 +231,7 @@ scripts have
 been created to simplify the structured printing of commonly
 referenced kernel data structures.  The scripts normally
 reside in
-the directory \fI/usr/lib/adb\fP, and are invoked
+the directory \fI/usr/share/adb\fP, and are invoked
 with the ``$<'' operator.
 (A later table lists the standard scripts
 distributed with the system.)
@@ -722,7 +722,7 @@ process, then exits.
 Standard Scripts
 .PP
 The following table summarizes the command scripts supplied
-with 4.3BSD; these scripts are found in the directory \fI/usr/lib/adb\fP.
+with 2.11BSD; these scripts are found in the directory \fI/usr/share/adb\fP.
 .TS H
 center, box;
 c s s

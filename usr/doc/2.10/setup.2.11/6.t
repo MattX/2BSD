@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)6.t	2.2 (2.11BSD GTE) 1995/06/16
+.\"	@(#)6.t	2.3 (2.11BSD GTE) 1996/10/24
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -415,8 +415,8 @@ lb a.
 /etc/hosts.equiv	hosts under same administrative control
 /etc/syslog.conf	error log configuration for \fIsyslogd\fP\|(8)
 /etc/ttys	enables/disables ports
-/usr/lib/crontab	commands that are run periodically
-/usr/lib/aliases	mail forwarding and distribution groups
+/etc/crontab	commands that are run periodically
+/etc/aliases	mail forwarding and distribution groups
 /usr/adm/acct	raw process account data
 /usr/adm/messages	system error log
 /usr/adm/shutdownlog	log of system reboots

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)8.t	6.7 (Berkeley) 4/14/86
+.\"	@(#)8.t	6.7.1 (2.11BSD) 1996/10/24
 .\"
 .SH
 .LG
@@ -78,7 +78,7 @@ if different options require their inclusion.
 \fIConfig\fP builds a new file containing definitions for counting
 device interrupts.
 .BP cron
-.I /usr/lib/crontab
+.I /etc/crontab
 has a new format to specify the user-id under which the process should be run.
 .BP diskpart
 Handles disks with either cylinder or sector offsets and that do not use

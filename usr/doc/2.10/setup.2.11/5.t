@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	2.2 (2.11BSD GTE) 1995/06/16
+.\"	@(#)5.t	2.3 (2.11BSD GTE) 1996/10/24
 .\"
 .ds lq ``
 .ds rq ''
@@ -511,7 +511,7 @@ _
 /etc/tftpd	TFTP server	inetd
 /etc/rwhod	system status daemon	/etc/rc
 /etc/syslogd	error logging server	/etc/rc
-/usr/lib/sendmail	SMTP server	/etc/rc
+/usr/sbin/sendmail	SMTP server	/etc/rc
 /etc/routed	routing table management daemon	/etc/rc
 .TE
 .DE

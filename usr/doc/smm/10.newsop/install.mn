@@ -1343,7 +1343,7 @@ Also,
 the list of allowed UUCP commands (in
 .i /usr/src/usr.bin/uucp/uuxqt.c
 or
-.i /usr/lib/uucp/L.cmds ,
+.i /etc/uucp/L.cmds ,
 depending on the version of UUCP)
 should be checked to make sure
 that
@@ -1422,7 +1422,7 @@ or
 .i delivermail ,
 if you are on a system running them.
 Create an alias in
-.i /usr/lib/aliases
+.i /etc/aliases
 as follows:
 .sd c
 rnews: "|/usr/lib/news/uurec"
@@ -1624,7 +1624,7 @@ put a line in
 .i crontab
 to run
 .sd c
-/usr/lib/uucp/uucico \-r1 \-s\f1system\fP
+/usr/sbin/uucico \-r1 \-s\f1system\fP
 .ed
 every hour or so.
 .pg
@@ -2729,7 +2729,7 @@ frobozz:net,mod,na,usa,ca,to.frobozz:F:/usr/spool/batch/frobozz
 .ei
 .pg
 In
-.i /usr/lib/crontab ,
+.i /etc/crontab ,
 find or create at least two news lines:
 one that runs nightly,
 and one that runs every hour or so.
@@ -2834,13 +2834,13 @@ rnews
 .ed
 .ei
 Other systems have a similar file in the
-.i /usr/lib/uucp
+.i /etc/uucp
 directory by which you can specify added programs
 and paths different from the defaults.
 HP-UX,
 for example,
 has a
-.i /usr/lib/uucp/COMMANDS
+.i /etc/uucp/COMMANDS
 file which expands
 .i uuxqt 's
 horizons.

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mail6.nr	6.1 (Berkeley) 5/23/86
+.\"	@(#)mail6.nr	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .bp
 .sh 1 "Command line options"
@@ -32,8 +32,8 @@ for which see the
 .i stty
 shell command.
 .ip \-n
-Inhibit reading of /usr/lib/Mail.rc.  Not generally useful, since
-/usr/lib/Mail.rc is usually empty.
+Inhibit reading of /etc/Mail.rc.  Not generally useful, since
+/etc/Mail.rc is usually empty.
 .ip "\-s string"
 Used for sending mail.
 .i String

@@ -207,7 +207,7 @@ were fixed as well.
 \fIsendmail\fP had a fatal memory leak in alias processing.  A string
 extraction method is used (thank you Cyrus) to reduce sendmail's
 D space requirements by about 5kb - there is now the file 
-\fI/usr/lib/sendmail.sr\fP used to hold much of sendmail's string
+\fI/usr/share/misc/sendmail.sr\fP used to hold much of sendmail's string
 data.
 .IP
 \fIctimed\fP is a program which moves the time zone/daylight savings time

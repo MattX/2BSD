@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	6.4 (Berkeley) 4/28/86
+.\"	@(#)4.t	6.4.1 (2.11BSD) 1996/10/24
 .\"
 .NH 1
 Setting up
@@ -41,7 +41,7 @@ locally via a 1200 baud serial line.
 .DT
 lp|LA-180 DecWriter III:\e
 	:lp=/dev/lp:br#1200:fs#06320:\e
-	:tr=\ef:of=/usr/lib/lpf:lf=/usr/adm/lpd-errs:
+	:tr=\ef:of=/usr/libexec/lpr/lpf:lf=/usr/adm/lpd-errs:
 .DE
 The
 .B lp
@@ -123,12 +123,12 @@ is the Benson-Varian.
 .DS
 .DT
 va|varian|Benson-Varian:\e
-	:lp=/dev/va0:sd=/usr/spool/vad:of=/usr/lib/vpf:\e
-	:tf=/usr/lib/rvcat:mx#2000:pl#58:px=2112:py=1700:tr=\ef:
+	:lp=/dev/va0:sd=/usr/spool/vad:of=/usr/libexec/lpr/vpf:\e
+	:tf=/usr/libexec/lpr/rvcat:mx#2000:pl#58:px=2112:py=1700:tr=\ef:
 .DE
 The
 .B tf
-entry specifies ``/usr/lib/rvcat'' as the filter to be
+entry specifies ``/usr/libexec/lpr/rvcat'' as the filter to be
 used in printing \fItroff\fP\|(1) output.
 This filter is needed to set the device into print mode
 for text, and plot mode for printing
@@ -144,8 +144,8 @@ filter as shown below.
 .DS
 .DT
 va|varian|Benson-Varian:\e
-	:lp=/dev/va0:sd=/usr/spool/vad:of=/usr/lib/vpf:\e
-	:if=/usr/lib/vpf:tf=/usr/lib/rvcat:af=/usr/adm/vaacct:\e
+	:lp=/dev/va0:sd=/usr/spool/vad:of=/usr/libexec/lpr/vpf:\e
+	:if=/usr/libexec/lpr/vpf:tf=/usr/libexec/lpr/rvcat:af=/usr/adm/vaacct:\e
 	:mx#2000:pl#58:px=2112:py=1700:tr=\ef:
 .DE
 .NH 2

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)implement.ms	6.3 (Berkeley) 6/5/86
+.\"	@(#)implement.ms	6.3.1 (2.11BSD) 1996/10/24
 .\"
 .TL
 Installation and Operation of UUCP
@@ -667,7 +667,7 @@ will then call each system and process all
 Call Remote System
 .LP
 The call is made using information from several
-files which reside in the uucp system directory (usually /usr/lib/uucp).
+files which reside in the uucp system directory (usually /etc/uucp).
 At the start of the call process, a lock is
 set to forbid multiple conversations 
 between the same two systems.
@@ -1226,13 +1226,13 @@ These are:
 (/usr/src/usr.bin/uucp)
 This directory contains the source files for the UUCP system.
 .IP system
-(/usr/lib/uucp)
-This directory contains the system binaries and system control files.
+(/etc/uucp)
+This directory contains the system control files.
 .IP spool
 (/usr/spool/uucp)
 This spool directory is used to store transfer requests and data.
 .IP command
-(/usr/bin)
+(/usr/bin /usr/sbin /usr/libexec)
 This directory contains the user-level programs.
 .RE
 .SH
@@ -1240,7 +1240,7 @@ The system directory
 .PP
 The following files are required for execution,
 and should reside in the \fIsystem\fR directory,
-/usr/lib/uucp.
+/etc/uucp.
 .RS
 .IP L-devices 15
 Contains entries for all devices that are to be used by UUCP.
@@ -1259,11 +1259,12 @@ Remote system access rights.
 .IP acucntrl 15
 The program used to control calling remote systems.
 .IP uucico 15
-The actual transfer program.
+The actual transfer program. This program resides in /usr/sbin.
 .IP uuclean 15
 A utility to clean up after UUCP.
 .IP uuxqt 15
-Executes commands received from remote systems.
+Executes commands received from remote systems.  This program resides
+in /usr/libexec.
 .RE
 .SH
 The command directory
@@ -1346,7 +1347,7 @@ on any site.
 .NH
 System file details.
 .PP
-The \fIsystem\fR files in the ``/usr/lib/uucp'' directory can contain comments,
+The \fIsystem\fR files in the ``/etc/uucp'' directory can contain comments,
 by putting a `#' as the first character on a line.
 Lines may be continued by placing a `\e' as the last character of a line.
 This is helpful in making the files more readable.
@@ -2003,7 +2004,7 @@ Is there a line switch front end that will require special Chat dialogue in
 .PP
 Once a \fIlogin\fR connection can be completed the administrator should
 have enough information to allow the correct setup of the \fIsystem\fR files
-in /usr/lib/uucp.
+in /etc/uucp.
 .PP
 The UUCP administrator should then
 negotiate with the remote site's UUCP administrator

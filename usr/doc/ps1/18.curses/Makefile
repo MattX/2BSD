@@ -3,14 +3,14 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.2 (Berkeley) 4/28/86
+#	@(#)Makefile	6.2.1 (2.11BSD) 1996/10/24
 #
 #	makefile for screen package documentation
 #
 NROFF=	nroff
 TROFF=	ditroff
 TBL=	dtbl -Pdp
-VFONT=	/usr/lib/vfontedpr
+VFONT=	/usr/libexec/vfontedpr
 NFLAGS=	-Tcrt
 TFLAGS= -Pdp
 CFLAGS=	-O -n -s

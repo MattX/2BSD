@@ -1,4 +1,4 @@
-.\"	@(#)termdesc.me	6.2 (Berkeley) 5/20/86
+.\"	@(#)termdesc.me	6.2.1 (2.11BSD) 1996/10/24
 .\"
 .+c
 .(l C
@@ -50,7 +50,7 @@ nroff \-T300s
 .i DTC300S
 terminal.
 This terminal is described in the file
-/usr/lib/term/tab300s
+/usr/share/term/tab300s
 on most systems.
 .pp
 If no
@@ -392,9 +392,9 @@ Then, execute the following commands:
 .(b
 cc -c tabterm.c
 strip tabterm.c
-cp tabterm.o /usr/lib/term/tabterm
+cp tabterm.o /usr/share/term/tabterm
 .)b
-The directory /usr/src/cmd/troff/term
+The directory /usr/src/usr.bin/roff/nroff_term
 typically has a shell file to do this.
 .+c
 .ce 2

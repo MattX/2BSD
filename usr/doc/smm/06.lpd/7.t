@@ -45,7 +45,7 @@ Usually it is enough to get a super-user to type the following to
 restart
 .IR lpd .
 .DS
-% /usr/lib/lpd
+% /usr/sbin/lpd
 .DE
 You can also check the state of the master printer daemon with the following.
 .DS
@@ -57,7 +57,7 @@ Another possibility is that the
 program is not set-user-id to \fIroot\fP, set-group-id to group \fIdaemon\fP.
 This can be checked with
 .DS
-% ls \-lg /usr/ucb/lpr
+% ls \-lg /usr/bin/lpr
 .DE
 .SH
 lpr: \fIprinter\fP\|: printer queue is disabled

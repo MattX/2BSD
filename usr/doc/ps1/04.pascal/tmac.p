@@ -1,4 +1,4 @@
-'so /usr/lib/tmac/tmac.s
+'so /usr/share/tmac/tmac.s
 .if t .tr \(rh-
 .if t .tr *\(**=\(eq/\(sl+\(pl
 .bd S B 3

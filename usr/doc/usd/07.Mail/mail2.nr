@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mail2.nr	6.1 (Berkeley) 5/23/86
+.\"	@(#)mail2.nr	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .bp
 .sh 1 "Common usage"
@@ -409,7 +409,7 @@ To make them more convenient to use,
 .i Mail
 always looks for two files when it is invoked.  It first reads
 a system wide file
-.q /usr/lib/Mail.rc,
+.q /etc/Mail.rc,
 then a user specific file,
 .q .mailrc,
 which is found in the user's home directory.
@@ -438,9 +438,9 @@ at the system-wide level
 by the mail delivery
 system
 .i sendmail .
-These aliases are stored in the file /usr/lib/aliases and are
+These aliases are stored in the file /etc/aliases and are
 accessible to all users of the system.
-The lines in /usr/lib/aliases are of
+The lines in /etc/aliases are of
 the form:
 .(l
 alias: name\*<1\*>, name\*<2\*>, name\*<3\*>
@@ -453,7 +453,7 @@ are the members of the list.  Long lists can be continued onto the next
 line by starting the next line with a space or tab.  Remember that you
 must execute the shell command
 .i newaliases
-after editing /usr/lib/aliases since the delivery system
+after editing /etc/aliases since the delivery system
 uses an indexed file created by
 .i newaliases .
 .pp

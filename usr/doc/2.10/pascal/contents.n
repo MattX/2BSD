@@ -1,4 +1,4 @@
-.if !\n(xx .so /usr/lib/tmac.s
+.if !\n(xx .so /usr/share/tmac/tmac.s
 .nr LL 6.5i
 .TL
 UNIX Pascal User's Manual

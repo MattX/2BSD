@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)1.t	6.3 (Berkeley) 4/28/86
+.\"	@(#)1.t	6.3.1 (2.11BSD) 1996/10/24
 .\"
 .NH 1
 Overview
@@ -29,11 +29,11 @@ following files and commands:
 .TS
 l l.
 /etc/printcap	printer configuration and capability data base
-/usr/lib/lpd	line printer daemon, does all the real work
-/usr/ucb/lpr	program to enter a job in a printer queue
-/usr/ucb/lpq	spooling queue examination program
-/usr/ucb/lprm	program to delete jobs from a queue
-/etc/lpc	program to administer printers and spooling queues
+/usr/sbin/lpd	line printer daemon, does all the real work
+/usr/bin/lpr	program to enter a job in a printer queue
+/usr/bin/lpq	spooling queue examination program
+/usr/bin/lprm	program to delete jobs from a queue
+/usr/sbin/lpc	program to administer printers and spooling queues
 /dev/printer	socket on which lpd listens
 .TE
 .DE

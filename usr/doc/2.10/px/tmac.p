@@ -1,4 +1,4 @@
-'if \n(FM=0 'so /usr/lib/tmac/tmac.s
+'if \n(FM=0 'so /usr/share/tmac/tmac.s
 .if n .nr FM 1.2i
 .if t .tr *\(**=\(eq/\(sl+\(pl
 .bd S B 3

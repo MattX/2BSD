@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mail5.nr	6.1 (Berkeley) 5/23/86
+.\"	@(#)mail5.nr	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .bp
 .sh 1 "Additional features"
@@ -179,7 +179,7 @@ creates an alias
 which expands to the four people John, Sue, Willie, and Kathryn.
 .ip \fBalternates\fP
 If you have accounts on several machines, you may find it convenient
-to use the /usr/lib/aliases on all the machines except one to direct
+to use the /etc/aliases on all the machines except one to direct
 your mail to a single account.
 The
 .b alternates
@@ -442,7 +442,7 @@ commands.
 .. The
 .. .b local
 .. command is usually not used be general users since it is designed for
-.. local configuration; it is usually found in the file /usr/lib/Mail.rc.
+.. local configuration; it is usually found in the file /etc/Mail.rc.
 .ip \fBmail\fP
 Send mail to one or more people.  If you have the
 .i ask

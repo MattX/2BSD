@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	2.2 (2.11BSD GTE) 1995/06/16
+.\"	@(#)4.t	2.3 (2.11BSD GTE) 1996/10/24
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -613,10 +613,10 @@ The mail system consists of the following commands:
 l l.
 /bin/mail	old standard mail program, \fIbinmail\fP\|(1)
 /usr/ucb/mail	UCB mail program, described in \fImail\fP\|(1)
-/usr/lib/sendmail	mail routing program
+/usr/sbin/sendmail	mail routing program
 /usr/spool/mail	mail spooling directory
-/usr/lib/aliases	mail forwarding information
-/usr/ucb/newaliases	command to rebuild binary forwarding database
+/etc/aliases	mail forwarding information
+/usr/bin/newaliases	command to rebuild binary forwarding database
 /usr/ucb/biff	mail notification enabler\(ua
 /etc/comsat	mail notification daemon\(ua
 .TE
@@ -629,7 +629,7 @@ and received, and passes the messages to
 for routing.
 The routing algorithm uses knowledge of the network name syntax,
 aliasing and forwarding information, and network topology, as
-defined in the configuration file /usr/lib/sendmail.cf, to
+defined in the configuration file /etc/sendmail.cf, to
 process each piece of mail.
 Local mail is delivered by giving it to the program /bin/mail
 that adds it to the mailboxes in the directory /usr/spool/mail/\fIusername\fP,
@@ -646,7 +646,7 @@ for networking support.
 To set up the mail facility you should read the instructions in the
 file READ_ME in the directory /usr/src/usr.lib/sendmail and then adjust
 the necessary configuration files.
-You should also set up the file /usr/lib/aliases for your installation,
+You should also set up the file /etc/aliases for your installation,
 creating mail groups as appropriate.  Documents describing 
 .IR sendmail 's
 operation and installation are also included on the distribution tape.
@@ -699,10 +699,10 @@ may be of use in tailoring the software to your needs.
 .PP
 The \fIuucp\fP support is located in three major directories:
 /usr/bin,
-/usr/lib/uucp,
+/etc/uucp,
 and /usr/spool/uucp.
 User commands are kept in /usr/bin,
-operational commands in /usr/lib/uucp,
+operational commands in /etc/uucp,
 and /usr/spool/uucp is used as a spooling area.
 The commands in /usr/bin are:
 .DS
@@ -720,20 +720,20 @@ l l.
 /usr/bin/uuq	gives information about the queue
 .TE
 .DE
-The important files and commands in /usr/lib/uucp are:
+The important files and commands in /etc/uucp are:
 .DS
 .TS
 l l.
-/usr/lib/uucp/L-devices	list of dialers and hard-wired lines
-/usr/lib/uucp/L-dialcodes	dialcode abbreviations
-/usr/lib/uucp/L.aliases	hostname aliases
-/usr/lib/uucp/L.cmds	commands remote sites may execute
-/usr/lib/uucp/L.sys	systems to communicate with, how to connect, and when
-/usr/lib/uucp/SEQF	sequence numbering control file
-/usr/lib/uucp/USERFILE	remote site pathname access specifications
-/usr/lib/uucp/uucico	\fIuucp\fP protocol daemon
-/usr/lib/uucp/uuclean	cleans up garbage files in spool area
-/usr/lib/uucp/uuxqt	\fIuucp\fP remote execution server
+/etc/uucp/L-devices	list of dialers and hard-wired lines
+/etc/uucp/L-dialcodes	dialcode abbreviations
+/etc/uucp/L.aliases	hostname aliases
+/etc/uucp/L.cmds	commands remote sites may execute
+/etc/uucp/L.sys	systems to communicate with, how to connect, and when
+/etc/uucp/SEQF	sequence numbering control file
+/etc/uucp/USERFILE	remote site pathname access specifications
+/usr/sbin/uucico	\fIuucp\fP protocol daemon
+/etc/uucp/uuclean	cleans up garbage files in spool area
+/usr/libexec/uuxqt	\fIuucp\fP remote execution server
 .TE
 .DE
 while the spooling area contains the following important files and directories:

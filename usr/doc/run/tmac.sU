@@ -1,7 +1,7 @@
 .\" these are only for typesetting manuals for Usenix distribution
 .\" differences: page numbers even on page 1, MH = Bell Labs
 .\" default line length (and title length) 6.5i instead of 6i.
-.ds // /usr/lib/ms/
+.ds // /usr/share/ms/
 .	\" IZ - initialize (before text begins)
 .de IZ
 .nr FM 1i

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mail9.nr	6.1 (Berkeley) 5/23/86
+.\"	@(#)mail9.nr	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .bp
 .sh 1 "Summary of commands, options, and escapes"
@@ -146,7 +146,7 @@ _
 \-f \fIfile\fP	Show messages in \fIfile\fP or \fI~/mbox\fP
 \-h \fInumber\fP	Pass on hop count for mail forwarding
 \-i	Ignore tty interrupt signals
-\-n	Inhibit reading of /usr/lib/Mail.rc
+\-n	Inhibit reading of /etc/Mail.rc
 \-r \fIname\fP	Pass on \fIname\fP for mail forwarding
 \-s \fIstring\fP	Use \fIstring\fP as subject in outgoing mail
 \-u \fIname\fP	Read \fIname's\fP mail instead of your own

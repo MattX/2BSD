@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)2.t	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .ds lq ``
 .ds rq ''
@@ -787,7 +787,7 @@ All three tape files are in \fItar\fP\|(1) format and
 can be installed by positioning the tape 
 using \fImt\fP\|(1) and reading
 in the files as was done for /usr/src above.  As distributed,
-the fonts should be placed in a directory /usr/lib/vfont, the
+the fonts should be placed in a directory /usr/share/vfont, the
 Ingres system should be placed in /usr/ingres, and the user
 contributed software should be placed in /usr/src/new.  The
 exact contents of the user contributed software is given in

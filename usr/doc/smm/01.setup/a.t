@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.t	6.1 (Berkeley) 5/14/86
+.\"	@(#)a.t	6.1.1 (2.11BSD) 1996/10/24
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -60,7 +60,7 @@ Tape file	# Records	Contents
 _
 one	720	\fItar\fP\|(1) image of /sys, including GENERIC system
 two	2500	\fItar\fP\|(1) image of /usr/src
-three	580	\fItar\fP\|(1) image of /usr/lib/vfont
+three	580	\fItar\fP\|(1) image of /usr/share/vfont
 .TE
 .DE
 The third tape contains the following files:
@@ -275,7 +275,7 @@ cd /nbsd/usr/src; eval tar cf ${tartape} Makefile bin etc games \e
 	include lib local old ucb undoc usr.bin usr.lib \e
 	${remote+'| $remote /usr/local/20b ">" $tape'}
 echo "Add varian fonts"
-cd /usr/lib/vfont; eval tar cf ${tartape} . \e
+cd /usr/share/vfont; eval tar cf ${tartape} . \e
 	${remote+'| $remote /usr/local/20b ">" $tape'}
 if [ ${type} != '6250' ]
 then
