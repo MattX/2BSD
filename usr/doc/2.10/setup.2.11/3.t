@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)3.t	1.3 (2.11BSD GTE) Feb 6, 1993
+.\"	@(#)3.t	1.4 (2.11BSD GTE) 1995/06/13
 .\"
 .ds lq ``
 .ds rq ''
@@ -64,7 +64,7 @@ l c l.
 /.rhosts	\(ua	for trusted machines and users
 /dev/MAKEDEV	\(dd	in case you added anything here
 /dev/MAKEDEV.local	*	for making local devices
-/etc/disktab	\(dd	in case you changed disk partition sizes
+/etc/disktab	*	in case you changed disk partition sizes
 /etc/dtab	\(dd	table of devices to attach at boot time
 /etc/fstab	\(ua	disk configuration data
 /etc/ftpusers	\(ua	for local additions
@@ -133,18 +133,11 @@ If you have any local device drivers,
 they will have to be incorporated into the new kernel.
 See section 4.2.3 and ``Building \*(2B UNIX Systems.''
 .PP
-Disk partitions in \*(2B have changed from those in 2.[89]BSD, especially
-for the RK06/07, RM02/03 and MSCP drivers.  The best place to look for
-more information is in /etc/disktab and /sys/pdpuba/*.c (the driver sources).
-There are several changes between \*(2B and \*(Ps.  If you
-have changed the disk partition sizes, be sure to make the necessary
-table changes and boot your custom kernel BEFORE trying to access any of
-your old file systems!
-.PP
-In any case, the manual pages in section 4 of the manual \fIare\fP correct
-and describe the standard release partition arrangements accurately.
-As always, the BUGS section lists disk labeling as a good thing (it should
-also list providing the time, usw. to do it :-)).
+With the introduction of disklabels the disk partitions in \*(2B the 
+/etc/disktab file has changed dramatically.  There is a detailed description
+later in this chapter about the changes.  If you have modified the 
+partition tables in previous versions of \*(2B you will need to create
+a new disktab entry or modify an existing one.
 .NH 2
 Merging your files from earlier PDP-11 UNIX systems into \*(2B
 .PP
@@ -312,9 +305,9 @@ The format of /etc/ttys is the same as it was under \*(Ps.
 It includes the terminal type and security options that were previously
 in /etc/ttytype and /etc/securettys.
 .PP
-\fIsyslog\fP is the same as it was under \*(Ps.
-See \fIsyslogd\fP\|(8) for details.
-It is used by many of the system daemons
+\fIsyslog\fP is the 4.4BSD-Lite version now.
+See \fIsyslog\fP\|(3) and \fIsyslogd\fP\|(8) for details.
+They are used by many of the system daemons
 to monitor system problems more closely, for example
 network routing changes.
 .PP
@@ -480,3 +473,70 @@ use 63 character file names (MAXNAMLEN is 63 at this time in \*(2B) instead
 of 255.   \fImklost+found\fP\|(8) is really not needed, \fIfsck\fP\|(8) is
 now capable of automatically extending lost+found by up to the number
 of direct blocks in an inode.
+.NH 3
+/etc/disktab
+.PP
+The format of /etc/disktab
+is now the same as 4.3BSD-Reno and 4.4BSD.  Previously to describe a drive
+(an RM03 for example) the /etc/disktab
+file had entries of the form:
+.sp
+.nf
+:ty=removable:ns#32:nt#5:nc#823:sf:
+:b0=/mdec/rm03uboot:
+:pa#9600:ba#1024:fa#1024:
+:pb#9600:bb#1024:fb#1024:
+:pc#131520:bc#1024:fc#1024:
+:pf#121920:bf#1024:ff#1024:
+:pg#112320:bg#1024:fg#1024:
+:ph#131520:bh#1024:fh#1024:
+.fi
+.sp
+Note that there is no information at all about which cylinder a partition
+starts at or which partitions overlap and may not be used simultaneously.
+That information was kept in tables in the driver.  If you modified 
+/etc/disktab it would have no effect without also changing the driver and
+recompiling the kernel.
+.LP
+The new /etc/disktab file looks like this:
+.sp
+.nf
+:ty=removable:ns#32:nt#5:nc#823:sf:
+:b0=/mdec/rm03uboot:
+:pa#9600:oa#0:ba#1024:fa#1024:ta=2.11BSD:
+:pb#9600:ob#9600:bb#1024:fb#1024:tb=swap:
+:pc#131520:oc#0:bc#1024:fc#1024:
+:pf#121920:of#9600:bf#1024:ff#1024:tf=2.11BSD:
+:pg#112320:og#19200:bg#1024:fg#1024:tg=2.11BSD:
+:ph#131520:oh#0:bh#1024:fh#1024:th=2.11BSD
+.fi
+.sp
+.PP
+There are two new fields per partition, the 'o' (oa, ob, usw.) field
+specifies the offset in sectors that the partition begins at.  The 't'
+field specifies the partition type.  Only those partitions which are
+\fB2.11BSD\fP will be recognized by \fInewfs\fP\|(8) and the kernel as 
+filesystems.
+The kernel also will not swap or place a crash dump on a partition that
+is not of type \fBswap\fP.
+.PP
+The two examples above are equivalent and provide an example of a 
+translating an old style disktab entry into a new style entry.  To translate
+a customized disktab entries you will need:  1) a copy of your
+current partition tables from the device driver, 2) a copy of the 
+old disktab entry, 3) your current /etc/fstab file.  In new disktab entries
+you should only place those partitions you actually use.  There is no
+need to declare (as was done in the examples above) all of the possible
+partitions.
+.PP
+If you
+have changed the disk partition sizes, be sure to make the necessary
+/etc/disktab changes and label your disks
+BEFORE trying to access any of
+your old file systems!
+There are two ways to label your disks.  The standalone disklabel program 
+is one way.  It is also possible to label disks using \fIdisklabel\fP\|(8) 
+with the \-r option \- this works even when running on a kernel which does
+not support labels (\-r reads and writes the raw disk, thus it is possible
+to label disks on an older kernel as long as the \fIdisklabel\fP\|(8) 
+program is present).

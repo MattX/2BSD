@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)5.t	2.1 (2.11BSD GTE) Feb 6, 1993
+.\"	@(#)5.t	2.2 (2.11BSD GTE) 1995/06/16
 .\"
 .ds lq ``
 .ds rq ''
@@ -52,7 +52,9 @@ file ``/netnix'', it will not run if it is unable to load ``/netnix''
 , sites should build and keep a non-networking kernel in ``/'' at all times,
 as a backup.  \fBNOTE\fP:  The ``/unix'' and ``/netnix'' imagines must
 have been created at the same time, do not attempt to use mismatched
-images. 
+images.   The ability to have \fBboot\fP tell the kernel which network image
+to load is on the wish list (had to have something take the place of
+wishing for disklabels ;-)).
 .PP
 \*(2B provides support for the DARPA standard Internet
 protocols IP, ICMP, TCP, and UDP.  These protocols may be used
@@ -101,7 +103,7 @@ making the hardware device work.  The directories ``/sys/pdpif'' and
 either the current, working drivers, or drivers that, at some time,
 worked on PDP-11's.  The ones in ``vaxif'' are the current VAX drivers,
 and, as such, will have to have their memory usage changed, but serve
-as an excellent example of how the hardware works.~
+as an excellent example of how the hardware works.
 .DS
 .TS
 l l.
@@ -117,7 +119,7 @@ acc	LH/DH-11 1822 IMP/PSN Interface
 .TE
 .DE
 .PP
-SL/IP is also available.  It is suprisingly efficient.  Over a 9600 baud
+SL/IP is also available.  It is surprisingly efficient.  Over a 9600 baud
 line it is not unusual to see \fBftp\fP rates in the 800 bytes per second
 range (depending how busy the system is).
 .PP
@@ -165,7 +167,7 @@ a master and a slave.  The master pseudo terminal file is named
 /dev/ptyp?, while the slave side is /dev/ttyp?.  Pseudo terminals
 are also used by several programs not related to the network.  \fBNOTE\fP:
 the terminal structures are 78 bytes each, declaring more than 16 pseudo
-terminals is potentially wastefull of kernel D space.  See the comment
+terminals is potentially wasteful of kernel D space.  See the comment
 in the kernel config files.
 In addition to creating the pseudo terminals,
 be sure to install them in the
@@ -367,7 +369,11 @@ and their servers are listed as ``internal.''
 For example, an entry for the file
 transfer protocol server would appear as
 .DS
-ftp	stream	tcp	nowait	root	/etc/ftpd	ftpd
+ftp	stream	tcp	nowait	root	/etc/ftpd	ftpd -l
+.DE
+or if you are using the \fItcp_wrapper\fP program as
+.DS
+ftp	stream	tcp	nowait	root	/etc/tcpd	ftpd -l
 .DE
 Consult
 .IR inetd (8)
@@ -411,33 +417,19 @@ the file \fI/etc/hosts\fP is only used for setting interface addresses
 and at other times that the server is not running,
 and therefore it need only contain addresses for local hosts.
 There is no equivalent service for network names yet.
-The full host and network name data bases are normally derived from
-a file retrieved from the Internet Network Information Center at
-SRI.
-To do this you should use the program /etc/gettable
-to retrieve the NIC host data base, and the program
+The days of retrieving a host file containing all systems on the Internet
+are over.  Besides, you would grow very old and run out of disk space
+while waiting for \fImkhosts\fP\|(8) to process a hosts file containing
+the several million entries.
+Therefore the details of retrieving a master hosts file using
 .IR htable (8)
-to convert it to the format used by the libraries.
-You should change to the directory where you maintain your local
-additions to the host table and execute the following commands.
-.DS
-\fB#\fP /etc/gettable nic.ddn.mil
-\fBConnection to nic.ddn.mil opened.\fP
-\fBHost table received.\fP
-\fBConnection to nic.ddn.mil closed.\fP
-\fB#\fP /etc/htable hosts.txt
-\fBWarning, no localgateways file.\fP
-\fB#\fP
-.DE
-The \fIhtable\fP program generates three files
-in the local directory: \fIhosts\fP, \fInetworks\fP and \fIgateways\fP.
-If a file ``localhosts'' is present in the working directory its
-contents are first copied to the output file.  Similarly, a
-``localnetworks'' file may be prepended to the output created
-by \fIhtable\fP,
-and `localgateways'' will be prepended to \fIgateways\fP.
-It is usually wise to run \fIdiff\fP\|(1) on
-the new host and network data bases before installing them in /etc.
+and 
+.IR gettable (8)
+have been removed from this document.  However if you do use local hosts
+files you will still need to run 
+.IR mkhosts (8)
+and this is described below.
+.PP
 If you are using the host table for host name and address
 mapping, you should run \fImkhosts\fP\|(8) after installing
 \fI/etc/hosts\fP.
@@ -456,9 +448,10 @@ when \fIrouted\fP is started.
 This procedure is essentially obsolete, however, except for individual hosts
 that are on the Milnet and do not forward packets from a local
 network.
-Other situations require the use of an EGP server.  It is highly doubtful
-that an EGP server could ever be made to run on a PDP-11, the networking
-can not even begin to handle the number of routes which would be received.
+Other situations require the use of \fBgated\fP.
+That program can never be made to run on a PDP-11 due to address space
+considerations.  Also, the networking code
+could not even begin to handle the number of routes which would be received.
 .PP
 If you are connected to the Internet, it is highly recommended that
 you use the name server resolver routines for your host name and address
@@ -573,7 +566,7 @@ area, they must be placed in a subdirectory.  In the
 setup here, the directory \fI~ftp/pub\fP is used.
 .PP
 NOTE: Mode 777 on the 'pub' directory can and has been abused!  Changing the
-mode to 555 is a good choice but would require adminstrative assistance for
+mode to 555 is a good choice but would require administrative assistance for
 placing files in the 'pub' directory.  Probably not a bad idea though.
 .PP
 Another issue to consider is the copy of \fI/etc/passwd\fP

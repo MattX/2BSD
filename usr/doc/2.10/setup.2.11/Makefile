@@ -3,27 +3,30 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.2 (Berkeley) 9/8/88
+#	@(#)Makefile	6.2.1 (2.11BSD) 1995/06/12
 #
 PRINTER=-Plz001
-PDEV=	-TLN03
-TROFF=	ditroff
-NROFF=	nroff
-EQN=	dieqn
-TBL=	ditbl 
-LPR=	lpr -h -n ${PRINTER}
+LPR=	lpr -h -n -Plz001
 
-SRC=	0.t 1.t 2.t 3.t 4.t 5.t 6.t a.t
+SRC=	0.t 1.t 2.t 3.t 4.t 5.t 6.t a.t b.t
 
-all: ${SRC}
-	${EQN} ${SRC} | ${TBL} | ${TROFF} ${PAGES} -ms | ${LPR}
+all:
+	@echo pick one of troff, nroff, groff or ditroff
+
+troff: ${SRC}
+	eqn ${SRC} | tbl | troff ${PAGES} -ms > setup.out
 
 nroff: ${SRC}
-	rm -f setup.NROFF
-	${EQN} ${SRC} | ${TBL} | ${NROFF} ${PAGES} -ms > setup.NROFF
+	eqn ${SRC} | tbl | nroff ${PAGES} -ms > setup.out
+
+groff: ${SRC}
+	groff -e -t -ms -Tps ${SRC} > setup.out
+
+ditroff: ${SRC}
+	dieqn ${SRC} | ditbl | ditroff ${PAGES} -ms > setup.out
 
 clean:
-	rm -f setup.out ?.t.spell errs Errs MAKELOG
+	rm -f setup.out ?.t.spell
 
 spell:	${SRC}
 	@for i in ${SRC}; do \

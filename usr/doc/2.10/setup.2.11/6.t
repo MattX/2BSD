@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)6.t	2.1 (2.11BSD GTE) Feb 6, 1993
+.\"	@(#)6.t	2.2 (2.11BSD GTE) 1995/06/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -188,7 +188,7 @@ mkfs, restor and icheck).  This can easily be done by going to
 /sys/pdpstand and doing:
 .DS
 make all
-\\./maketape /dev/nrmtXX maketape.data
+ ./maketape /dev/nrmtXX maketape.data
 dump 0u /
 .DE
 This is especially true when only one disk is available.
@@ -297,7 +297,7 @@ all one has to do is
 \fB#\fP cd /usr/src/bin
 \fB#\fP make date
 .DE
-this will create an unstripped version of the binary of ``date''
+this will create an unstriped version of the binary of ``date''
 in the current directory.  To install the binary image, use the
 install command as in
 .DS

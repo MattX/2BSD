@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)0.t	2.2 (GTE) Feb 6, 1993
+.\"	@(#)0.t	2.3 (GTE) 1995/06/13
 .\"
 .EH 'setup.2.11 - %''Installing and Operating 2.11BSD on the PDP-11'
 .OH 'Installing and Operating 2.11BSD on the PDP-11''Setup.2.11 - %'
@@ -13,13 +13,13 @@
 .TL
 Installing and Operating \*(2B on the PDP-11
 .br
-February 6, 1993
+June 13, 1995
 .AU
 Steven Schultz
 .AI
 GTE Government Systems
-31717 La Tienda Drive
-Westlake Village CA 91359-5027
+112 Lakeview Canyon
+Thousand Oaks CA 91362
 sms@wlv.iipo.gtegsc.com
 .de IR
 \\fI\\$1\|\\fP\\$2

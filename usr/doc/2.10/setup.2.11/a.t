@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.t	2.0 (GTE) Feb 6, 1993
+.\"	@(#)a.t	2.1 (GTE) 1995/06/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -73,9 +73,9 @@ l n.
 Device	Number
 -
 RK06/07	2
-MSCP (RA) Controllers	1
-MSCP (RA) Disks	2
-RL01/02	2
+MSCP (RA) Controllers	2
+MSCP (RA) Disks	3
+RL01/02 Drives	2
 SMD (XP) Controllers	1
 SMD (XP) Disks	2
 TE16, TU45, TU77 (HT) Tape drives	2
@@ -89,11 +89,13 @@ partition on the booted device is automatically made the root filesystem
 and the 'b' partition the swap area (except for the RL02 which uses the
 second drive).  The size of the swap partition is determined at run
 time, the kernel queries the driver for the number of block in the 'b'
-partition.
+partition.  \fBNOTE:\fP If the swap partition is not labeled as being
+of type \fIswap\fP the kernel will panic.
 .NH 3
 GENERIC kernel configuration file
 .PP
 .ta 8n 16n 24n 32n 40n 48n 56n 72n 80n
+.cs R 24
 .nf
 # Machine configuration file for 2.11BSD distributed kernel.
 #
@@ -126,14 +128,14 @@ UNIBUS_MAP	YES			# include support for UNIBUS mapping
 # inappropriate (the if_il.c driver should have been checking if a Unibus
 # Map was present at runtime).
 
-#LINEHZ		50			# clock frequency European
+#LINEHZ		50		# clock frequency European
 LINEHZ		60			# clock frequency USA
 
 # PDP-11 machine type; allowable values are GENERIC, 44, 70, 73.  GENERIC 
 # should only be used to build a distribution kernel.  The only use of this
 # option is to select the proper in-line PS instructions (references to the
 # PSW use 'spl', 'mfps/mtps' or 'movb' instructions depending on the cpu type).
-PDP11		GENERIC			# distribution kernel
+PDP11		GENERIC		# distribution kernel
 #PDP11		44			# PDP-11/44
 #PDP11		70			# PDP-11/70,45,50,55
 #PDP11		73			# PDP-11/73,53,83,93,84,94
@@ -147,7 +149,7 @@ MAXUSERS	4			# maxusers on machine
 
 # BOOTDEV is the letter combination denoting the autoboot device,
 # or NONE if not using the autoboot feature.
-BOOTDEV		NONE			# don't autoboot
+BOOTDEV		NONE		# don't autoboot
 #BOOTDEV	dvhp			# DIVA Comp/V boot device
 #BOOTDEV	hk6			# rk06 boot device
 #BOOTDEV	hk7			# rk07 boot device
@@ -202,8 +204,8 @@ DUMPROUTINE	nulldev			# no dump routine.
 # KERNEL CONFIGURATION			#
 #########################################
 
-BADSECT		NO			# bad-sector forwarding
-EXTERNALITIMES	YES			# map out inode time values
+BADSECT		NO		# bad-sector forwarding
+EXTERNALITIMES	YES		# map out inode time values
 UCB_CLIST	NO			# clists moved from kernel data space
 NOKA5		NO			# KA5 not used except for buffers
 					# and clists (_end < 0120000);
@@ -353,7 +355,7 @@ NTB		0		# RS232 interface for Genisco/Hitachi tablets
 # Defining FPSIM to YES compiles a floating point simulator into the kernel
 # which will catch floating point instruction traps from user space.  This
 # doesn't work at present.
-FPSIM		NO			# floating point simulator
+FPSIM		NO		# floating point simulator
 
 # To enable profiling, the :splfix script must be changed to use spl6 instead
 # of spl7 (see conf/:splfix.profile), also, you have to have a machine with a
@@ -362,6 +364,7 @@ FPSIM		NO			# floating point simulator
 #
 # Note that profiling is not currently working.  We don't have any plans on
 # fixing it, so this is essentially a non-supported feature.
-PROFILE		NO			# system profiling with KW11P clock
+PROFILE		NO		# system profiling with KW11P clock
 
-CGL_RTP		NO			# allow one real time process
+INGRES		NO		# include the Ingres lock driver
+.cs R

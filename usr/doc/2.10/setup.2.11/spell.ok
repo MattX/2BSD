@@ -119,6 +119,7 @@ JCL
 JKReynolds
 KA5
 KB
+KDJ
 KL11
 KL11's
 KOV
@@ -242,6 +243,7 @@ RFC
 RH
 RH11
 RH70
+RK
 RK05
 RK06
 RK06's
@@ -256,6 +258,7 @@ RL02
 RL02's
 RLADDR
 RLs
+RM
 RM02
 RM03
 RM03's
@@ -263,6 +266,7 @@ RM05
 ROM
 ROMs
 ROOTDEV
+RP
 RP03
 RP04
 RP05
@@ -270,11 +274,14 @@ RP06
 RPADDR
 RQDX2
 RQDX3
+RQZX
 RS232
 RTP
 RUSAGE
+RX
 RX02
 RX50
+RZ
 Restor
 Rootdev
 SBI
@@ -299,12 +306,14 @@ Stanislaus
 Swapdev
 TC11
 TCP
+TE
 TE10
 TE16
 TELNET
 TFTP
 TIMEZONE
 TIU
+TK
 TM
 TM02
 TM11
@@ -322,6 +331,7 @@ TU45
 TU77
 TU78
 TU80
+TZ
 Timezone
 Turlock
 UCB
@@ -405,6 +415,8 @@ dialcodes
 dialup
 dialups
 dict
+disklabel
+disklabels
 disktab
 dk
 dmc

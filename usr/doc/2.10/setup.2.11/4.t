@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	2.1 (2.11BSD GTE) Feb 6, 1993
+.\"	@(#)4.t	2.2 (2.11BSD GTE) 1995/06/16
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -237,9 +237,9 @@ is used for a root file system, a backup thereof,
 or a small file system like, /tmp;
 the second partition, xp0b,
 is used for swapping or a small file system; and
-a combination of the fifth,sixth,seventh partitions xp0e, xp0f, xp0g
+a combination of the remaining partitions (xp0d, xp0e, xp0f, xp0g, xp0h)
 would hold user file systems.
-.sp 2
+.sp
 .RS
 .PP
 \fBWarning:\fP  for disks on which DEC standard 144 bad sector forwarding
@@ -266,56 +266,52 @@ disks, but not others.  As a final bug, the hk and xp drivers do not reread
 the bad sector forwarding information when disk packs are changed and so
 will erroneously use bad block forwarding information from the wrong packs!
 .RE
+.sp
 .PP
-.sp 2
-The space available on a disk varies per device.  The amount of space
-available on the common disk partitions is listed in the following table.
-Not shown in the table are the partitions of each drive devoted
-to the root file system and the swapping area.
-.DS
-.TS
-center;
-l l n l n.
-Type	Name	Size	Name	Size
-_
-rm02/03	xp?g	56 Mb	xp?h	65.6 Mb
-rm05	xp?c	114.2 Mb	xp?e	80.1 Mb
-rp04/05	xp?c	74.8 Mb
-rp06	xp?c	74.8 Mb	xp?e	157.2 Mb
-rk06	hk?g	5.1 Mb	hk?h	13 Mb
-rk07	hk?g	18 Mb	hk?h	26.5 Mb
-rd53	ra?d	52.9 Mb
-rd54	ra?c	135.2 Mb
-ra60	ra?c	94.3 Mb	ra?g	76.4 Mb
-ra80	ra?c	91.2 Mb
-ra81	ra?c	94.3 Mb	ra?g	316.1 Mb
-ra82	ra?c	148.3 Mb	ra?f	148.3 Mb
-.TE
-.DE
-.LP
-Consult the manual pages for the specific drivers for other
-supported disks or other partitions.
+The space available on a disk varies, not surprisingly, per device.  
+Disklabels make a table giving sizes meaningless since there are no
+predefined partition sizes embedded in the kernel any longer.  The root
+filesystem (\fBa\fP) must be at least 4Mb, preferably 6 to 7Mb if possible.
+The swap area (almost always the \fBb\fP partition) should be about 3Mb or
+so.  If your system has a small amount (less than 2Mb) of memory you will
+need more swap space, perhaps 4 or 5Mb.  It is a rare case where more than
+5 or 6Mb of swap space is required.   The system will run out of other
+resources by the time enough activity is generated to need that much swap
+space.
 .PP
-Each disk also has a swapping area and
-a root file system.
+The system (boot) disk has a swapping area and
+a root file system.  Other drives may use those partitions for data.
+\fBRemember:\fP the \fBa\fP partition must start at sector 0 or
+\fIdisklabel\fP\|(8) or else the kernel will not be able to read/write the
+label.
+.PP
 The distributed system binaries occupy about 34 Megabytes
-while the major sources occupy another 36 Megabytes.
+while the major sources occupy another 36 Megabytes.  Adding in the
+miscellaneous sources, a few locate works of art bring the total for
+a complete system to about 90 Megabytes.
 This overflows RK07, RL02 and RM03 systems,
 but fits easily on most other hardware configurations.  \*(2B is quite
 happy on RD54 or larger.  Simply fitting the distribution isn't enough,
-there must still be space left for user files and spooling directories.
+there must still be space left for user files, objects when compiling
+programs, spooling directories, usw.
 .PP
 Be aware that the disks have their sizes measured in disk sectors (512
 bytes), while the UNIX file system blocks are 1024 bytes each.  Thus if a
 disk partition has 10000 sectors (disk blocks), it will have only 5000
 UNIX file system blocks, and you \fImust\fP divide by 2 to use 5000 when
-specifying the size to the \fImkfs\fP command for instance.  All user
+specifying the size to the \fImkfs\fP command for instance.  The 
+\fInewfs\fP\|(8) program performs this calculation automatically.   You
+should \fBnever\fP need to run \fImkfs\fP manually.
+All user
 programs report disk space in kilobytes and, where needed, disk sizes are
 always specified in units of sectors.  The /etc/disktab file used in
 making file systems specifies disk partition sizes in sectors; the
-default sector size may be overridden with the ``se'' attribute.  Note
+default sector size may be overridden with the ``se'' attribute.  \fBNote\fP
 that the only sector size currently supported is NBPG as defined in 
-\fI/sys/pdp/machparam.h\fP.
+\fI/sys/pdp/machparam.h\fP.  This restriction is enforced in several places
+in the disklabeling process as a safeguard against specifying a sector
+size other than NBPG (512).  Any other sector size would produce strange
+results and almost certainly curdled filesystems.
 .NH 3
 Layout considerations
 .PP
