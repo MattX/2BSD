@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)y1.c	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)y1.c	4.1.1	(2.11BSD)	1995/05/11";
+#endif
 
 # include "dextern"
 
@@ -111,7 +111,7 @@ others(){ /* put out other arrays, copy the parsers */
 	fclose( ftable );
 	}
 
-char *chcopy( p, q )  char *p, *q; {
+char *chcopy( p, q )  register char *p, *q; {
 	/* copies string q into p, returning next free char ptr */
 	while( *p = *q++ ) ++p;
 	return( p );
@@ -119,9 +119,9 @@ char *chcopy( p, q )  char *p, *q; {
 
 # define ISIZE 400
 char *writem(pp) int *pp; { /* creates output string for item pointed to by pp */
-	int i,*p;
+	register int i,*p;
 	static char sarr[ISIZE];
-	char *q;
+	register char *q;
 
 	for( p=pp; *p>0 ; ++p ) ;
 	p = prdptr[-*p];
@@ -145,7 +145,7 @@ char *writem(pp) int *pp; { /* creates output string for item pointed to by pp *
 	}
 
 char *symnam(i){ /* return a pointer to the name of symbol i */
-	char *cp;
+	register char *cp;
 
 	cp = (i>=NTBASE) ? nontrst[i-NTBASE].name : tokset[i].name ;
 	if( *cp == ' ' ) ++cp;
@@ -203,7 +203,7 @@ error(s,a1) char *s; { /* write out error comment */
 	}
 
 aryfil( v, n, c ) int *v,n,c; { /* set elements 0 through n-1 to c */
-	int i;
+	register int i;
 	for( i=0; i<n; ++i ) v[i] = c;
 	}
 
@@ -222,6 +222,7 @@ setunion( a, b ) register *a, *b; {
 
 prlook( p ) struct looksets *p;{
 	register j, *pp;
+
 	pp = p->lset;
 	if( pp == 0 ) fprintf( foutput, "\tNULL");
 	else {
@@ -236,7 +237,7 @@ prlook( p ) struct looksets *p;{
 cpres(){ /* compute an array with the beginnings of  productions yielding given nonterminals
 	The array pres points to these lists */
 	/* the array pyield has the lists: the total size is only NPROD+1 */
-	register **pmem;
+	int **pmem;
 	register c, j, i;
 	static int * pyield[NPROD];
 

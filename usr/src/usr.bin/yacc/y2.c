@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)y2.c	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)y2.c	4.1.1	(2.11BSD)	1995/05/11";
+#endif
 
 # include "dextern"
 # define IDENTIFIER 257
@@ -67,7 +67,8 @@ int levprd[NPROD] ;	/* precedence levels for the productions */
 
 
 setup(argc,argv) int argc; char *argv[];
-{	int i,j,lev,t, ty;
+{	int i,lev, ty;
+	register int t, j;
 	int c;
 	int *p;
 	char actname[8];
@@ -628,6 +629,7 @@ begin:
 
 fdtype( t ){ /* determine the type of a symbol */
 	register v;
+
 	if( t >= NTBASE ) v = nontrst[t-NTBASE].tvalue;
 	else v = TYPE( toklev[t] );
 	if( v <= 0 ) error( "must specify type for %s", (t>=NTBASE)?nontrst[t-NTBASE].name:
@@ -691,8 +693,8 @@ cpyunion(){
 	}
 
 cpycode(){ /* copies code between \{ and \} */
+	register int c;
 
-	int c;
 	c = getc(finput);
 	if( c == '\n' ) {
 		c = getc(finput);
@@ -714,7 +716,7 @@ cpycode(){ /* copies code between \{ and \} */
 	}
 
 skipcom(){ /* skip over comments */
-	register c, i=0;  /* i is the number of lines skipped */
+	register int c, i=0;  /* i is the number of lines skipped */
 
 	/* skipcom is called after reading a / */
 
@@ -732,7 +734,8 @@ skipcom(){ /* skip over comments */
 	}
 
 cpyact(offset){ /* copy C action to the next ; or closing } */
-	int brac, c, match, j, s, tok;
+	register int c;
+	int brac, match, j, s, tok;
 
 	fprintf( faction, "\n# line %d \"%s\"\n", lineno, infile );
 

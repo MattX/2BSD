@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)y3.c	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)y3.c	4.1.1	(2.11BSD)	1995/05/11";
+#endif
 
 # include "dextern"
 
@@ -10,7 +10,8 @@ int defact[NSTATES];  /* the default actions of states */
 
 output(){ /* print the output for the states */
 
-	int i, k, c;
+	int i, k;
+	register int c;
 	register struct wset *u, *v;
 
 	fprintf( ftable, "short yyexca[] ={\n" );
@@ -123,7 +124,8 @@ apack(p, n ) int *p;{ /* pack state i from temp1 into amem */
 	}
 
 go2out(){ /* output the gotos for the nontermninals */
-	int i, j, k, best, count, cbest, times;
+	register int i, j, k;
+	int best, count, cbest, times;
 
 	fprintf( ftemp, "$\n" );  /* mark begining of gotos */
 
@@ -176,7 +178,8 @@ go2out(){ /* output the gotos for the nontermninals */
 int g2debug = 0;
 go2gen(c){ /* output the gotos for nonterminal c */
 
-	int i, work, cc;
+	register int i, cc;
+	int work;
 	struct item *p, *q;
 
 
@@ -224,7 +227,8 @@ go2gen(c){ /* output the gotos for nonterminal c */
 		}
 	}
 
-precftn(r,t,s){ /* decide a shift/reduce conflict by precedence.
+precftn(r,t,s) register int t;
+	{ /* decide a shift/reduce conflict by precedence.
 	/* r is a rule number, t a token number */
 	/* the conflict is in state s */
 	/* temp1[t] is changed to reflect the action */
@@ -257,10 +261,11 @@ precftn(r,t,s){ /* decide a shift/reduce conflict by precedence.
 		}
 	}
 
-wract(i){ /* output state i */
+wract(i) register int i; { /* output state i */
 	/* temp1 has the actions, lastred the default */
 	int p, p0, p1;
-	int ntimes, tred, count, j;
+	int ntimes, tred, count;
+	register int j;
 	int flag;
 
 	/* find the best choice for lastred */

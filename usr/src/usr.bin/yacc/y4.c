@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)y4.c	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)y4.c	4.1.1	(2.11BSD)	1995/05/11";
+#endif
 
 # include "dextern"
 
