@@ -30,6 +30,7 @@
  * 12/23/92 - add the partition size routine.
  * 1/2/93   - remove unibus map ifdefs, the run time check using 'ubmap' is
  *	      sufficient and does the right thing.
+ * 1995/04/13 - change reference to dkunit.
  */
 
 #include "br.h"
@@ -44,6 +45,8 @@
 #include "user.h"
 #include "brreg.h"
 #include "dk.h"
+#include "disklabel.h"
+#include "disk.h"
 #include "syslog.h"
 #include "map.h"
 #include "uba.h"
@@ -332,7 +335,7 @@ brintr(dev)
 		while (((Br_addr->brcs.w&BR_RDY) == 0) && --ctr) ;
 		if (brtab.b_errcnt == 0) {
 			log(LOG_WARNING,"br%d%c ds:%b er:%b cs:%b wc:%o ba:%o ca:%o da:%o bae:%o\n",
-			    dkunit(bp), 'a'+ (bp->b_dev & 07),
+			    dkunit(bp->b_dev), 'a'+ dkpart(bp->b_dev),
 			    brsave.brds, BRDS_BITS, brsave.brer, BRER_BITS,
 			    brsave.brcs.w, BR_BITS, brsave.brwc,brsave.brba,
 			    brsave.brca, brsave.brda, brsave.brae);

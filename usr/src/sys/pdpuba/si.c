@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)si.c	1.4 (2.11BSD GTE) 1/2/93
+ *	@(#)si.c	1.5 (2.11BSD GTE) 1995/04/13
  */
 
 /*
@@ -22,6 +22,8 @@
 #include "map.h"
 #include "uba.h"
 #include "dk.h"
+#include "disklabel.h"
+#include "disk.h"
 #include "xp.h"
 #include "errno.h"
 
@@ -126,7 +128,7 @@ register struct	buf *bp;
 		goto errexit;
 	}
 	if (bp->b_blkno < 0 ||
-	    (bn = dkblock(bp)) + (long) ((bp->b_bcount + 511) >> 9)
+	    (bn = bp->b_blkno) + (long) ((bp->b_bcount + 511) >> 9)
 	    > rm5_sizes[unit & 07].nblocks) {
 		bp->b_error = EINVAL;
 errexit:
@@ -136,7 +138,7 @@ errexit:
 	}
 	mapalloc(bp);
 	bp->b_cylin = bn / (SI_NSECT * SI_NTRAC) + rm5_sizes[unit & 07].cyloff;
-	unit = dkunit(bp);
+	unit = dkunit(bp->b_dev);
 	dp = &siutab[unit];
 	s = splbio();
 	disksort(dp, bp);
@@ -199,7 +201,7 @@ register unit;
 	 * Figure out where this transfer is going to
 	 * and see if we are close enough to justify not searching.
 	 */
-	bn = dkblock(bp);
+	bn = bp->b_blkno;
 	cn = bp->b_cylin;
 	sn = bn % (SI_NSECT * SI_NTRAC);
 	sn = (sn + SI_NSECT) % SI_NSECT;
@@ -268,8 +270,8 @@ loop:
 	 */
 	sitab.b_active++;
 	unit = minor(bp->b_dev) & 077;
-	dn = dkunit(bp);
-	bn = dkblock(bp);
+	dn = dkunit(bp->b_dev);
+	bn = bp->b_blkno;
 	cn = bn / (SI_NSECT * SI_NTRAC) + rm5_sizes[unit & 07].cyloff;
 	sn = bn % (SI_NSECT * SI_NTRAC);
 	tn = sn / SI_NSECT;
@@ -340,7 +342,7 @@ siintr()
 		 */
 		dp = sitab.b_actf;
 		bp = dp->b_actf;
-		unit = dkunit(bp);
+		unit = dkunit(bp->b_dev);
 		/*
 		 * Check for and process errors.
 		 */

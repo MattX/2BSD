@@ -3,15 +3,24 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.4 (2.11BSD GTE) 1/2/93
+ *	@(#)rl.c	1.5 (2.11BSD GTE) 1995/06/28
  */
 
 /*
  *  RL01/RL02 disk driver
+ * 
+ * Date: June 15, 1995.
+ * Modified to handle disklabels.  This provides the ability to partition
+ * a drive.  An RL02 can hold a root and swap partition quite easily and is
+ * useful for maintenance.
  */
 
 #include "rl.h"
 #if NRL > 0
+
+#if NRL > 4
+error to have more than 4 drives - only 1 controller is supported.
+#endif
 
 #include "param.h"
 #include "buf.h"
@@ -19,8 +28,14 @@
 #include "systm.h"
 #include "conf.h"
 #include "dk.h"
+#include "file.h"
+#include "ioctl.h"
+#include "stat.h"
 #include "map.h"
 #include "uba.h"
+#include "disklabel.h"
+#include "disk.h"
+#include "syslog.h"
 #include "rlreg.h"
 
 #define	RL01_NBLKS	10240	/* Number of UNIX blocks for an RL01 drive */
@@ -29,17 +44,20 @@
 #define	RL_SECSZ	256	/* bytes per sector */
 
 #define	rlwait(r)	while (((r)->rlcs & RL_CRDY) == 0)
+#define	RLUNIT(x) 	((minor(x) >> 3) & 7)
 
 struct	rldevice *RLADDR;
 
 static	int	q22bae = 1;
 
+	daddr_t	rlsize();
+	int	rlstrategy();
 struct	buf	rlutab[NRL];	/* Seek structure for each device */
 struct	buf	rltab;
 
 struct	rl_softc {
 	short	cn[4];		/* location of heads for each drive */
-	short	type[4];	/* parameter dependent on drive type (RL01/2) */
+	short	nblks[4];	/* number of blocks on drive */
 	short	dn;		/* drive number */
 	short	com;		/* read or write command word */
 	short	chn;		/* cylinder and head number */
@@ -51,7 +69,9 @@ struct	rl_softc {
 		long	l;
 	} rl_un;		/* address of memory for transfer */
 
-} rl = {-1,-1,-1,-1, -1,-1,-1,-1};	/* initialize cn[] and type[] */
+} rl = {-1,-1,-1,-1};	/* initialize cn[] */
+
+struct	dkdevice rl_dk[NRL];
 
 #ifdef UCB_METER
 static	int		rl_dkn = -1;	/* number for iostat */
@@ -67,7 +87,7 @@ rlattach(addr, unit)
 {
 #ifdef UCB_METER
 	if (rl_dkn < 0) {
-		dk_alloc(&rl_dkn, NRL+1, "rl", 40L * 40L * 128L);
+		dk_alloc(&rl_dkn, NRL+1, "rl", 20L * 10L * 512L);
 		if (rl_dkn >= 0)
 			dk_wps[rl_dkn+NRL] = 0L;
 	}
@@ -83,74 +103,266 @@ rlattach(addr, unit)
 	return (0);
 }
 
-rlopen(dev, flag)
+rlopen(dev, flag, mode)
 	dev_t dev;
 	int flag;
-{
-	register int drive = minor(dev);
-
-	if (drive >= NRL || !RLADDR)
+	int mode;
+	{
+	int	i, mask;
+	int	drive = RLUNIT(dev);
+	register struct	dkdevice *disk;
+	
+	if	(drive >= NRL || !RLADDR)
 		return (ENXIO);
-	if	(rl.type[drive] == -1)
-		rlgsts(drive);
-	return (0);
-}
+	disk = &rl_dk[drive];
+	if	((disk->dk_flags & DKF_ALIVE) == 0)
+		{
+		if	(rlgsts(drive) < 0)
+			return(ENXIO);
+		}
+/*
+ * The drive has responded to a GETSTATUS (is alive).  Now we read the
+ * label.  Allocate an external label structure if one has not already
+ * been assigned to this drive.  First wait for any pending opens/closes
+ * to complete.
+*/
+	while	(disk->dk_flags & (DKF_OPENING | DKF_CLOSING))
+		sleep(disk, PRIBIO);
+
+/*
+ * Next if an external label buffer has not already been allocated do so now.
+ * This "can not fail" because if the initial pool of label buffers has
+ * been exhausted the allocation takes place from main memory.  The return
+ * value is the 'click' address to be used when mapping in the label.
+*/
+
+	if	(disk->dk_label == 0)
+		disk->dk_label = disklabelalloc();
+
+/*
+ * On first open get label and partition info.  We may block reading the
+ * label so be careful to stop any other opens.
+*/
+
+	if	(disk->dk_openmask == 0)
+		{
+		disk->dk_flags |= DKF_OPENING;
+		rlgetinfo(disk, dev);
+		disk->dk_flags &= ~DKF_OPENING;
+		wakeup(disk);
+		}
+/*
+ * Need to make sure the partition is not out of bounds.  This requires
+ * mapping in the external label.  This only happens when a partition
+ * is opened (at mount time) and isn't an efficiency problem.
+*/
+	mapseg5(disk->dk_label, LABELDESC);
+	i = ((struct disklabel *)SEG5)->d_npartitions;
+	normalseg5();
+	if	(dkpart(dev) >= i)
+		return(ENXIO);
+
+	mask = 1 << dkpart(dev);
+	dkoverlapchk(disk->dk_openmask, dev, disk->dk_label, "rl");
+	if	(mode == S_IFCHR)
+		disk->dk_copenmask |= mask;
+	else if	(mode == S_IFBLK)
+		disk->dk_bopenmask |= mask;
+	else
+		return(EINVAL);
+	disk->dk_openmask |= mask;
+	return(0);
+	}
+
+/*
+ * Disk drivers now have to have close entry points in order to keep
+ * track of what partitions are still active on a drive.
+*/
+rlclose(dev, flag, mode)
+	register dev_t	dev;
+	int	flag, mode;
+	{
+	int	s, drive = RLUNIT(dev);
+	register int	mask;
+	register struct dkdevice *disk;
+
+	disk = &rl_dk[drive];
+	mask = 1 << dkpart(dev);
+	if	(mode == S_IFCHR)
+		disk->dk_copenmask &= ~mask;
+	else if	(mode == S_IFBLK)
+		disk->dk_bopenmask &= ~mask;
+	else
+		return(EINVAL);
+	disk->dk_openmask = disk->dk_bopenmask | disk->dk_copenmask;
+	if	(disk->dk_openmask == 0)
+		{
+		disk->dk_flags |= DKF_CLOSING;
+		s = splbio();
+		while	(rlutab[drive].b_actf)
+			{
+			disk->dk_flags |= DKF_WANTED;
+			sleep(&rlutab[drive], PRIBIO);
+			}
+		splx(s);
+		disk->dk_flags &= ~(DKF_CLOSING | DKF_WANTED);
+		wakeup(disk);
+		}
+	return(0);
+	}
+
+/*
+ * Read disklabel.  It is tempting to generalize this routine so that
+ * all disk drivers could share it.  However by the time all of the 
+ * necessary parameters are setup and passed the savings vanish.  Also,
+ * each driver has a different method of calculating the number of blocks
+ * to use if one large partition must cover the disk.
+ *
+ * This routine used to always return success and callers carefully checked
+ * the return status.  Silly.  This routine will fake a label (a single
+ * partition spanning the drive) if necessary but will never return an error.
+ *
+ * It is the caller's responsibility to check the validity of partition 
+ * numbers, etc.
+*/
+
+void
+rlgetinfo(disk, dev)
+	register struct dkdevice *disk;
+	dev_t	dev;
+	{
+	struct	disklabel locallabel;
+	char	*msg;
+	register struct disklabel *lp = &locallabel;
+	int	part = dkpart(dev);
+/*
+ * NOTE: partition 0 ('a') is used to read the label.  Therefore 'a' must
+ * start at the beginning of the disk!  If there is no label or the label
+ * is corrupted then 'a' will span the entire disk
+*/
+	register struct partition *pi = lp->d_partitions;
+	struct	partition *kpi = disk->dk_parts;
+
+	bzero(lp, sizeof (*lp));
+	lp->d_type = DTYPE_DEC;
+	lp->d_secsize = 512;		/* XXX */
+	lp->d_nsectors = 20;
+	lp->d_ntracks = 2;
+	lp->d_secpercyl = 2 * 20;
+	lp->d_npartitions = 1;		/* 'a' */
+	pi[0].p_offset = 0;
+	pi[0].p_size = LABELSECTOR + 1;
+	pi[0].p_fstype = FS_V71K;
+	kpi[0].p_offset = 0;		/* put where rlstrategy will look */
+	kpi[0].p_size = LABELSECTOR + 1;
+	kpi[0].p_fstype = FS_V71K;
+	msg = readdisklabel((dev & ~7) | 0, rlstrategy, lp);	/* 'a' */
+	if	(msg == 0)
+		{
+		mapseg5(disk->dk_label, LABELDESC)
+		bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
+		normalseg5();
+		bcopy(pi, kpi, sizeof (lp->d_partitions));
+		return;
+		}
+	log(LOG_NOTICE, "rl%da is entire disk: '%s'\n", dkunit(dev), msg);
+	kpi[0].p_size = rl.nblks[dkunit(dev)];
+	return;
+	}
 
 rlstrategy(bp)
 	register struct	buf *bp;
 {
-	register int drive;
-	int nblocks, s, ctr;
+	int	drive, part;
+	int	s, ctr;
+	daddr_t	sz;
+	register struct dkdevice *disk;
+	register struct partition *pi;
 
-	drive = minor(bp->b_dev);
-	if (drive >= NRL || !RLADDR) {
+	drive = RLUNIT(bp->b_dev);
+	part = dkpart(bp->b_dev);
+	disk = &rl_dk[drive];
+
+	if	(drive >= NRL || !RLADDR || !(disk->dk_flags & DKF_ALIVE))
+		{
 		bp->b_error = ENXIO;
 		goto bad;
-	}
-
-	/*
-	 * We must determine what type of drive we are talking to in order 
-	 * to determine how many blocks are on the device.  The rl.type[]
-	 * array has been initialized with -1's so that we may test first
-	 * contact with a particular drive and do this determination only once.
-	 */
-	if (rl.type[drive] < 0)
-		rlgsts(drive);
-	/* determine nblocks based upon which drive this is */
-	nblocks = rl.type[drive];
-	if(bp->b_blkno >= nblocks) {
-		if((bp->b_blkno == nblocks) && (bp->b_flags & B_READ))
-			bp->b_resid = bp->b_bcount;
-		else {
-			bp->b_error = ENXIO;
-bad:
-			bp->b_flags |= B_ERROR;
 		}
-		iodone(bp);
-		return;
-	}
+
+	pi = &disk->dk_parts[part];
+
+	/* Valid block in device partition */
+	sz = (bp->b_bcount + 511) >> 9;
+	if	(bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
+		{
+		sz = pi->p_size - bp->b_blkno;
+		/* if exactly at end of disk, return an EOF */
+		if	(sz == 0)
+			{
+			bp->b_resid = bp->b_bcount;
+			goto done;	
+			}
+		/* or truncate if part of it fits */
+		if	(sz < 0)
+			{
+			bp->b_error = EINVAL;
+			goto bad;
+			}
+		bp->b_bcount = dbtob(sz);	/* compute byte count */
+		}
+/*
+ * Check for write to write-protected label area.  This does not include
+ * sector 0 which is the boot block.
+*/
+	if	(bp->b_blkno + pi->p_offset <= LABELSECTOR &&
+		 bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
+		 !(bp->b_flags & B_READ) && !(disk->dk_flags & DKF_WLABEL))
+		{
+		bp->b_error = EROFS;
+		goto bad;
+		}
 	mapalloc(bp);
 
 	bp->av_forw = NULL;
-	bp->b_cylin = (int)(bp->b_blkno/20l);
+	bp->b_cylin = (int)(bp->b_blkno/20L);
 	s = splbio();
 	disksort(&rlutab[drive], bp);	/* Put the request on drive Q */
-	if(rltab.b_active == NULL)
+	if	(rltab.b_active == 0)
 		rlstart();
 	splx(s);
+	return;
+bad:
+	bp->b_flags |= B_ERROR;
+done:
+	iodone(bp);
+	return;
 }
 
 rlstart()
 {
 	register struct rl_softc *rlp = &rl;
 	register struct buf *bp, *dp;
+	struct	dkdevice *disk;
 	int unit;
 
 	if((bp = rltab.b_actf) == NULL) {
 		for(unit = 0;unit < NRL;unit++) {	/* Start seeks */
 			dp = &rlutab[unit];
-			if(dp->b_actf == NULL)
+			if	(dp->b_actf == NULL)
+				{
+/*
+ * No more requests in the drive queue.  If a close is pending waiting
+ * for activity to be done on the drive then issue a wakeup and clear the
+ * flag.
+*/
+				disk = &rl_dk[unit];
+				if	(disk->dk_flags & DKF_WANTED)
+					{
+					disk->dk_flags &= ~DKF_WANTED;
+					wakeup(dp);
+					}
 				continue;
+				}
 			rlseek((int)(dp->b_actf->b_blkno/20l),unit);
 		}
 
@@ -159,7 +371,7 @@ rlstart()
 			return;
 	}
 	rltab.b_active++;
-	rlp->dn = minor(bp->b_dev);
+	rlp->dn = RLUNIT(bp->b_dev);
 	rlp->chn = bp->b_blkno / 20;
 	rlp->sn = (bp->b_blkno % 20) << 1;
 	rlp->bleft = bp->b_bcount;
@@ -343,44 +555,69 @@ rlgss()
 	}
 }
 
+rlioctl(dev, cmd, data, flag)
+	dev_t	dev;
+	int	cmd;
+	caddr_t data;
+	int	flag;
+	{
+	register int	error;
+	struct	dkdevice *disk = &rl_dk[RLUNIT(dev)];
+
+	error = ioctldisklabel(dev, cmd, data, flag, disk, rlstrategy);
+	return(error);
+	}
+
 #ifdef RL_DUMP
 /*
  * Dump routine for RL01/02
- * Dumps from dumplo to end of memory/end of disk section for minor(dev).
  * This routine is stupid (because the rl is stupid) and assumes that
  * dumplo begins on a track boundary!
  */
 
-#define DBSIZE	10	/* Same number */
+#define DBSIZE	10	/* Half a track of sectors.  Can't go higher 
+			 * because only a single UMR is set for the transfer.
+			 */
 
 rldump(dev)
 	dev_t dev;
 {
 	register struct rldevice *rladdr = RLADDR;
+	struct	dkdevice *disk;
+	struct	partition *pi;
 	daddr_t bn, dumpsize;
 	long paddr;
-	register int count;
+	int count, memblks;
 	u_int com;
-	int ccn, cn, tn, sn, unit, dif, ctr;
+	int ccn, cn, tn, sn, unit, dif, partition;
 	register struct ubmap *ubp;
 
-	unit = minor(dev);
-	ctr = 0;
-	if	(rlgsts(unit) < 0)
-		return(EIO);
-	dumpsize = rl.type[unit];
-	if((dumplo < 0) || (dumplo >= dumpsize))
+	unit = RLUNIT(dev);
+	partition = dkpart(dev);
+	disk = &rl_dk[unit];
+	pi = &disk->dk_parts[partition];
+
+	if	(!(disk->dk_flags & DKF_ALIVE))
+		return(ENXIO);
+	if	(pi->p_fstype != FS_SWAP)
+		return(EFTYPE);
+
+	dumpsize = rlsize(dev) - dumplo;
+	memblks = ctod(physmem);
+
+	if	(dumplo < 0 || dumpsize <= 0)
 		return(EINVAL);
-	dumpsize -= dumplo;
+	if	(memblks > dumpsize)
+		memblks = dumpsize;
+	bn = dumplo + pi->p_offset;
 
 	rladdr->rlcs = (dev << 8) | RL_RHDR;	/* Find the heads */
 	rlwait(rladdr);
 	ccn = ((unsigned)rladdr->rlmp&0177700) >> 6;
 
 	ubp = &UBMAP[0];
-	for(paddr = 0L;dumpsize > 0;dumpsize -= count) {
-		count = dumpsize > DBSIZE ? DBSIZE : dumpsize;
-		bn = dumplo + (paddr >> PGSHIFT);
+	for (paddr = 0L; memblks > 0; ) {
+		count = MIN(memblks, DBSIZE);
 		cn = bn / 20;
 		sn = (unsigned)(bn % 20) << 1;
 		dif = (ccn >> 1) - (cn >> 1);
@@ -421,25 +658,51 @@ rldump(dev)
 				RLDA_BITS, rladdr->rlmp, RLMP_BITS);
 			return(EIO);
 		}
-		paddr += (DBSIZE << PGSHIFT);
+		paddr += (count << PGSHIFT);
+		bn += count;
+		memblks -= count;
 	}
 	return(0);	/* Filled the disk */
 }
 #endif RL_DUMP
 
 /*
- * Assumes the 'open' routine has already been called to get the drive
- * status and determine what type of drive this is.
+ * Return the number of blocks in a partition.  Call rlopen() to online
+ * the drive if necessary.  If an open is necessary then a matching close
+ * will be done.
 */
 daddr_t
 rlsize(dev)
-	dev_t	dev;
+	register dev_t dev;
 	{
+	register struct dkdevice *disk;
+	daddr_t	psize;
+	int	didopen = 0;
 
-	return(rl.type[minor(dev)]);
+	disk = &rl_dk[RLUNIT(dev)];
+/*
+ * This should never happen but if we get called early in the kernel's
+ * life (before opening the swap or root devices) then we have to do
+ * the open here.
+*/
+	if	(disk->dk_openmask == 0)
+		{
+		if	(rlopen(dev, FREAD|FWRITE, S_IFBLK))
+			return(-1);
+		didopen = 1;
+		}
+	psize = disk->dk_parts[dkpart(dev)].p_size;
+	if	(didopen)
+		raclose(dev, FREAD|FWRITE, S_IFBLK);
+	return(psize);
 	}
 
-/* For some unknown reason the RL02 (seems to be
+/*
+ * This routine is only called by rlopen() the first time a drive is
+ * touched.  Once the number of blocks has been determined the drive is
+ * marked 'alive'.
+ *
+ * For some unknown reason the RL02 (seems to be
  * only drive 1) does not return a valid drive status
  * the first time that a GET STATUS request is issued
  * for the drive, in fact it can take up to three or more
@@ -465,13 +728,14 @@ rlgsts(drive)
 		{
 		printf("rl%d: !status cs=%b da=%b\n", drive,
 			rp->rlcs, RL_BITS, rp->rlda, RLDA_BITS);
-		rl.type[drive] = RL02_NBLKS;	/* assume RL02 */
+		rl_dk[drive].dk_flags &= ~DKF_ALIVE;
 		return(-1);
 		}
-	else if (rp->rlmp & RLMP_DTYP)
-		rl.type[drive] = RL02_NBLKS;	/* drive is RL02 */
+	if	(rp->rlmp & RLMP_DTYP)
+		rl.nblks[drive] = RL02_NBLKS;	/* drive is RL02 */
 	else
-		rl.type[drive] = RL01_NBLKS;	/* drive RL01 */
+		rl.nblks[drive] = RL01_NBLKS;	/* drive RL01 */
+	rl_dk[drive].dk_flags |= DKF_ALIVE;
 	return(0);
 	}
-#endif
+#endif /* NRL */

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	1.7 (2.11BSD GTE) 7/1/93
+ *	@(#)xp.c	1.8 (2.11BSD GTE) 1995/04/13
  */
 
 /*
@@ -31,6 +31,8 @@
 #include "hpreg.h"
 #include "dkbad.h"
 #include "dk.h"
+#include "disklabel.h"
+#include "disk.h"
 #include "map.h"
 #include "uba.h"
 
@@ -500,15 +502,15 @@ register struct buf *bp;
 	int s;
 	long bn;
 
-	unit = dkunit(bp);
-	pseudo_unit = minor(bp->b_dev) & 07;
+	unit = dkunit(bp->b_dev);
+	pseudo_unit = dkpart(bp->b_dev);
 
 	if ((unit >= NXPD) || ((xd = &xp_drive[unit])->xp_ctlr == 0) ||
 		(xd->xp_ctlr->xp_addr == 0)) {
 		bp->b_error = ENXIO;
 		goto errexit;
 	}
-	if ((bp->b_blkno < 0) || ((bn = dkblock(bp)) + ((bp->b_bcount + 511)
+	if ((bp->b_blkno < 0) || ((bn = bp->b_blkno) + ((bp->b_bcount + 511)
 		>> 9) > xd->xp_sizes[pseudo_unit].nblocks)) {
 		bp->b_error = EINVAL;
 errexit:
@@ -611,7 +613,7 @@ int unit;
 	 * Figure out where this transfer is going to
 	 * and see if we are close enough to justify not searching.
 	 */
-	bn = dkblock(bp);
+	bn = bp->b_blkno;
 	cn = bp->b_cylin;
 	sn = bn % xd->xp_nspc;
 	sn += xd->xp_nsect - XP_SDIST;
@@ -688,10 +690,10 @@ loop:
 	 * Mark controller busy and determine destination of this request.
 	 */
 	xc->xp_active++;
-	pseudo_unit = minor(bp->b_dev) & 07;
-	unit = dkunit(bp);
+	pseudo_unit = dkpart(bp->b_dev);
+	unit = dkunit(bp->b_dev);
 	xd = &xp_drive[unit];
-	bn = dkblock(bp);
+	bn = bp->b_blkno;
 	cn = xd->xp_sizes[pseudo_unit].cyloff;
 	cn += bn / xd->xp_nspc;
 	sn = bn % xd->xp_nspc;
@@ -782,7 +784,7 @@ int dev;
 			if (xpecc(bp, CONT))
 				return;
 #endif
-		unit = dkunit(bp);
+		unit = dkunit(bp->b_dev);
 		xd = &xp_drive[unit];
 		xpaddr->hpcs2.c[0] = xd->xp_unit;
 		/*
@@ -908,7 +910,7 @@ register struct	buf *bp;
 	 * ndone is #bytes including the error which is assumed to be in the
 	 * last disk page transferred.
 	 */
-	unit = dkunit(bp);
+	unit = dkunit(bp->b_dev);
 	xd = &xp_drive[unit];
 	xpaddr = xd->xp_ctlr->xp_addr;
 #ifdef BADSECT
@@ -928,7 +930,7 @@ register struct	buf *bp;
 #endif
 	ocmd = (xpaddr->hpcs1.w & ~HP_RDY) | HP_IE | HP_GO;
 	bb = exadr(bp->b_xmem, bp->b_un.b_addr);
-	bn = dkblock(bp);
+	bn = bp->b_blkno;
 	cn = bp->b_cylin - (bn / xd->xp_nspc);
 	bn += npx;
 	cn += bn / xd->xp_nspc;

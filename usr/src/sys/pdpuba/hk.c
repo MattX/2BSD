@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	2.0 (2.11BSD GTE) 12/29/92
+ *	@(#)hk.c	2.1 (2.11BSD GTE) 1995/04/13
  */
 
 /*
@@ -12,6 +12,8 @@
  * This driver mimics the 4.1bsd rk driver.
  * It does overlapped seeks, ECC, and bad block handling.
  * 	salkind@nyu
+ *
+ * dkunit() takes a 'dev_t' now instead of 'buf *'.  1995/04/13 - sms
  *
  * Modified to correctly handle 22 bit addressing available on DILOG
  * DQ615 controller. 05/31/90 -- tymann@oswego.edu
@@ -36,6 +38,8 @@
 #include "hkreg.h"
 #include "dkbad.h"
 #include "dk.h"
+#include "disklabel.h"
+#include "disk.h"
 #include "syslog.h"
 
 #define	NHK7CYL	815
@@ -169,14 +173,14 @@ register struct buf *bp;
 	long sz;
 	struct size *szp;
 
-	unit = dkunit(bp);
+	unit = dkunit(bp->b_dev);
 	part = bp->b_dev & 7;
 	if (unit >= NHK || !HKADDR  || !(szp = hk_sizes[unit])) {
 		bp->b_error = ENXIO;
 		goto bad;
 	}
 	sz = (bp->b_bcount + (NBPG-1)) >> PGSHIFT;
-	if (bp->b_blkno < 0 || (bn = dkblock(bp))+sz > szp[part].nblocks) {
+	if (bp->b_blkno < 0 || (bn = bp->b_blkno)+sz > szp[part].nblocks) {
 		bp->b_error = EINVAL;
 		goto bad;
 	}
@@ -294,8 +298,8 @@ loop:
 		goto loop;
 	}
 	hktab.b_active++;
-	unit = dkunit(bp);
-	bn = dkblock(bp);
+	unit = dkunit(bp->b_dev);
+	bn = bp->b_blkno;
 
 	sn = bn % HK_NSPC;
 	tn = sn / HK_NSECT;
@@ -366,7 +370,7 @@ hkintr()
 	if (hktab.b_active) {
 		dp = hktab.b_actf;
 		bp = dp->b_actf;
-		unit = dkunit(bp);
+		unit = dkunit(bp->b_dev);
 #ifdef UCB_METER
 		if (hk_dkn >= 0)
 			dk_busy &= ~(1 << (hk_dkn + NHK));
@@ -591,8 +595,8 @@ register struct	buf *bp;
 		ndone = (wc * NBPW) + bp->b_bcount;
 		npx = ndone / NBPG;
 		}
-	unit = dkunit(bp);
-	bn = dkblock(bp);
+	unit = dkunit(bp->b_dev);
+	bn = bp->b_blkno;
 	cn = bp->b_cylin - bn / HK_NSPC;
 	bn += npx;
 	cn += bn / HK_NSPC;
