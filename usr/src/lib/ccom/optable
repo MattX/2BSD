@@ -1163,6 +1163,7 @@ cr82:
 /* *, /, rem for unsigned long */
 cr121:
 %nul,nl
+%nl,nul
 %nul,nul
 %	[l82]
 
