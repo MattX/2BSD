@@ -1,6 +1,6 @@
 /* @(#)tmscpreg.h	7.1 (Berkeley) 6/5/86 */
 
-/*	@(#)tmscpreg.h	1.1	11/2/84	84/09/25	*/
+/*	@(#)tmscpreg.h	1.2	(2.11BSD) 1995/12/14 */
 
 /****************************************************************
  *								*
@@ -58,6 +58,18 @@ typedef struct {		/* swap shorts for TMSCP controller */
 /*
  * TMSCP Communications Area
  */
+
+/* 
+ * These defines were moved here so they could be shared between the
+ * driver and the crash dump module.
+*/
+#define	NRSPL2	3	/* log2 number of response packets */
+#define	NCMDL2	3	/* log2 number of command packets */
+#define	NRSP	(1<<NRSPL2)
+#define	NCMD	(1<<NCMDL2)
+#define	RINGBASE	(4 * sizeof (short))
+/* Size to map in when mapping a controller's command packet area */
+#define	MAPBUFDESC	(((btoc(sizeof (struct tmscp)) - 1) << 8) | RW)
  
 struct tmscpca {
 	short	ca_xxx1;	/* unused */

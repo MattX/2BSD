@@ -1,4 +1,6 @@
-/*	@(#)tmscp.c	1.4 (2.11BSD GTE) 12/9/94 */
+#define	TMSDEBUG	1
+
+/*	@(#)tmscp.c	1.5 (2.11BSD GTE) 1995/12/08 */
 
 #if	!defined(lint) && defined(DOSCCS)
 static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
@@ -31,6 +33,28 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
  * tmscp.c - TMSCP (TK50/TU81) tape device driver
  * 
  * Modification History:
+ *
+ * 14-Dec-95 - sms@wlv...
+ *	Success!  But the size of the driver is even more of a problem now.
+ *	If the crash dump option is defined the driver could exceed the max
+ *	size permitted for an overlay.  The 'tmsdump' routine was moved to
+ *	a separate file.  This driver almost always must be in an overlay 
+ *	by itself now.
+ *
+ * 08-Dec-95 - sms@wlv...
+ *	Begin serious surgery on this driver.  The goals are: 1) to correctly
+ *	handle TU81/81+ drives (do not set density unless at BOT), 2) support
+ *	use of the cache on drives which implement it (TU81+), 3) improve 
+ *	error detection and reporting, 4) improve readability by replacing
+ *	multipage 'switch' statements with calls to functions, 5) make it
+ *	easier to add new capabilities and fix problems without wholescale
+ *	changes again.
+ *
+ * 30-Nov-95 - sms@wlv...
+ *	Experiment to see if M_MD_IMMED being set for the rewind on close
+ *	obviates the need for skipping the iowait().  Success - only 2 ticks
+ *	elapse doing the iowait!.
+ *
  * 02-Jan-93 - sms@wlv. [2.11BSD]
  *	Remove unibus map ifdefs and rely on run time testing of 'ubmap' which
  * 	does the right thing and makes kernels easier to move between machines.
@@ -187,13 +211,7 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
 #include "uio.h"
 #include "tty.h"
 #include "uba.h"
-
-#define	TMS_PRI	LOG_INFO
-
-#define NRSPL2  3               /* log2 number of response packets */
-#define NCMDL2  3               /* log2 number of command packets */
-#define NRSP    (1<<NRSPL2)
-#define NCMD    (1<<NCMDL2)
+#include "kernel.h"
 
 #include "tmscpreg.h"
 #include "../pdp/tmscp.h"
@@ -214,65 +232,29 @@ static	char	*sccsid = "@(#)tmscp.c	1.24	(ULTRIX)	1/21/86";
 /* HI */    {0,M_TF_800,M_TF_PE,M_TF_PE,M_TF_GCR,M_TF_GCR,M_TF_GCR,M_TF_GCR}
 		};
 
-/* Software state per controller */
-
-struct tmscp_softc {
-	struct	tmscpdevice *sc_addr;	/* controller CSR address */
-	short   sc_state;       /* state of controller */
-	short	sc_ivec;        /* interrupt vector address */
-	short	sc_unit;	/* CONTROLLER number - NOT drive unit # */
-	short   sc_credits;     /* transfer credits */
-	short   sc_lastcmd;     /* pointer into command ring */
-	short   sc_lastrsp;     /* pointer into response ring */
-	struct	buf sc_cmdbuf;	/* internal command buffer */
-	struct	buf sc_ctab;	/* controller queue */
-	struct	buf sc_wtab;	/* I/O wait queue for controller */
-	struct	tmscp *sc_com;	/* communications area pointer */
-	struct	tms_info *sc_drives[4];	/* pointers to per drive info */
-} tmscp_softc[NTMSCP];
-
-#define	RINGBASE	(4 * sizeof (short))
-
-struct tmscp {
-	struct tmscpca	tmscp_ca;         /* communications area */
-	struct mscp	tmscp_rsp[NRSP];  /* response packets */
-	struct mscp	tmscp_cmd[NCMD];  /* command packets */
-};					  /* 1896 bytes per controller! */
+struct	tmscp_softc tmscp_softc[NTMSCP];	/* Controller info */
+struct	tms_info tms_info[NTMS];		/* Drive info */
 
 	memaddr	tmscp[NTMSCP];		/* click addresses of ctrl comm area */
 
 /*
- * Per drive-unit info
- */
-struct tms_info {
-	daddr_t		tms_dsize;	/* Max user size from online pkt */
-	long		tms_type;	/* Drive type field  */
-	int		tms_resid;	/* residual from last xfer */
-	u_char		tms_endcode;	/* last command endcode */
-	u_char		tms_flags;	/* last command end flags */
-	unsigned	tms_status;	/* Command status from last command */
-	char		tms_openf;	/* lock against multiple opens */
-	char		tms_lastiow;	/* last op was a write */
-	char		tms_serex;	/* set when serious exception occurs */
-	char		tms_clserex;	/* set when serex being cleared by no-op */
-	short		tms_fmtmenu;	/* the unit's format (density) menu */
-	short		tms_unitflgs;	/* unit flag parameters */
-	short		tms_format;	/* the unit's current format (density) */
-	struct tty	*tms_ttyp;	/* record user's tty for errors */
-	struct	buf	tms_dtab;	/* I/O tape drive queues */
-	short		tms_online;	/* 0=available, 1=online, -1=offline */
-} tms_info[NTMS];
+ * Bit definitions for Tflags word above.  These take the place of several
+ * individual structure members in tms_info.
+*/
 
-/* Bits in minor device */
-#define	TMSUNIT(dev)	(minor(dev)&03)
-#define	TMSCTLR(dev)	((minor(dev) >> 6) & 3)
-#define	TMSDENS(dev)	((minor(dev) >> 3) & 3)
-#define	FMTMASK		(M_TF_800|M_TF_PE|M_TF_GCR)	/* = 7 */
-
-#define	T_NOREWIND	04
-
-/* Size to map in when mapping a controller's command packet area */
-#define	MAPBUFDESC	(((btoc(sizeof (struct tmscp)) - 1) << 8) | RW)
+#define	_SEREX		0x0001		/* Serious Exception exists */
+#define	_CLSEREX	0x0002		/* Do Clear Serious Exception */
+#define	_EOM		0x0004		/* At End Of Media */
+#define	_BOM		0x0008		/* At Beginning Of Media */
+#define	_WRITTEN	0x0010		/* Tape has been Written */
+#define	_LOST		0x0020		/* Position lost error happened */
+#define	_BUFMARK	0x0040		/* Encountered a tape mark */
+#define	_HASCACHE	0x0080		/* Drive has cache capability */
+#define	_CACHE_ON	0x0100		/* Cache enabled */
+#define	_CACHE_LOST	0x0200		/* Cache data loss has happened */
+#define	_CACHE_WRITTEN	0x0400		/* Cache has been written */
+#define	_INUSE		0x0800		/* Drive is in use */
+#define	_ONLINE		0x1000		/* Drive is online */
 
 /*
  * Internal (ioctl) command codes (these must also be declared in the
@@ -288,9 +270,10 @@ struct tms_info {
 #define TMS_SENSE	7		/* noop - do a get unit status */
 #define TMS_CACHE	8		/* enable cache */
 #define TMS_NOCACHE	9		/* disable cache */
+#define	TMS_FLUSH	10		/* flush cache */
 /* These go last: after all real mt cmds, just bump the numbers up */
-#define TMS_CSE		10		/* clear serious exception */
-#define TMS_SETDENSITY	11		/* set unit density */
+#define TMS_CSE		11		/* clear serious exception */
+#define TMS_SETDENSITY	12		/* set unit density */
 
 /*
  * Controller states
@@ -302,21 +285,25 @@ struct tms_info {
 #define S_SCHAR 4               /* doing "set controller characteristics" */
 #define S_RUN   5               /* running */
 
-static	char *tmscpstepfailed = "step%d init failed: sa 0x%x\n";
-static	char *tmscpfatalerr = "tms%d,%d: fatal error 0%o\n";
+static	char *tmscpstepfailed = "step%d init failed: sa %x\n";
+	char *tmscpfatalerr = "tms%d,%d: fatal error %x\n";
 
-int     tmscperror = 0;		/* causes hex dump of packets */
+int     tmscperror = 0;		/* enable last failed packet return */
 int	tmscp_cp_wait = 0;	/* Something to wait on for command */
 				/* packets and or credits. */
 int	wakeup();
 extern	int	hz;		/* Should find the right include */
 extern	long	_iomap();
 
-#ifdef	TMSCP_DEBUG
-#define printd if (tmscpdebug) printf
-int tmscpdebug = 1;
-#define	printd10 if(tmscpdebug >= 10) printf
-#endif 
+/*
+ * Most of these only take effect when TMSDEBUG is defined.
+ *
+ * Bit 0 = print all non-successful response packets _except_ hitting a
+ *	   tapemark (which really isn't an error).
+ * Bit 1 = print datagram arrival message.
+ * Bit 2 = print status of all response packets except datagrams.
+*/
+int	tmscpprintf = 1;
 
 struct  mscp *tmscpgetcp();
 
@@ -368,12 +355,33 @@ getdd()
 	register struct tms_info *p;
 
 	for (i = NTMS, p = tms_info; i--; p++) {
-		if (p->tms_online == 0)
+		if ((p->Tflags & _INUSE) == 0)
 			return(p);
 	}
-	log(TMS_PRI, "tms: no drive descriptors\n");
+	log(LOG_INFO, "tms: !drives\n");
 	return(NULL);
 }
+
+static int
+wait_step(mask, good, csr, sc)
+	u_short mask, good;
+	register struct tmscpdevice *csr;
+	register struct	tmscp_softc *sc;
+	{
+	register int i;
+
+	for	(i = 0; i < 150; i++)
+		{
+		if	((csr->tmscpsa & mask) == good)
+			return(0);
+		delay(10000L);		/* still in step - wait 1/100 sec */
+		}
+	sc->sc_state = S_IDLE;
+	sc->sc_ctab.b_active = 0;
+	log(LOG_INFO, tmscpstepfailed, sc->sc_state, csr->tmscpsa);
+	wakeup((caddr_t)&sc->sc_ctab);
+	return(-1);
+	}
 
 /*
  * TMSCP interrupt routine.
@@ -383,16 +391,13 @@ tmsintr(dev)
 {
 	register struct tmscpdevice *tmscpaddr;
 	struct buf *bp;
-	register int i;
+	int	i;
 	register struct tmscp_softc *sc = &tmscp_softc[dev];
 	register struct tmscp *tm = sc->sc_com;
 	struct mscp *mp;
 	segm seg5;
 
 	tmscpaddr = sc->sc_addr;
-#ifdef TMSCP_DEBUG
-	printd10("tmscpintr: state %d, tmscpsa %o\n", sc->sc_state, tmscpaddr->tmscpsa);
-#endif	
 
 	/*
 	 * How the interrupt is handled depends on the state of the controller.
@@ -400,33 +405,16 @@ tmsintr(dev)
 	switch (sc->sc_state) {
 
 	case S_IDLE:
-		printf("tms%d: random intr ignored\n", dev);
+		log(LOG_INFO, "tms%d: random intr\n", dev);
 		return;
 
 	/* Controller was in step 1 last, see if its gone to step 2 */
 	case S_STEP1:
 #		define STEP1MASK 0174377
 #		define STEP1GOOD (TMSCP_STEP2|TMSCP_IE|(NCMDL2<<3)|NRSPL2)
-		for (i = 0; i < 150; i++)
-			{
-			if ((tmscpaddr->tmscpsa&STEP1MASK) != STEP1GOOD)
-				{ /* still in step 1 (wait 1/100 sec) */
-				delay(10000L);
-#ifdef TMSCP_DEBUG
-				printd("still in step 1, delaying\n");
-#endif
-				}
-			else
-				break;
-			}
-		if (i > 149)
-			{
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
-			wakeup((caddr_t)&sc->sc_ctab);
+
+		if	(wait_step(STEP1MASK, STEP1GOOD, tmscpaddr, sc) < 0)
 			return;
-			}
 		tmscpaddr->tmscpsa = (short)sc->sc_ctab.b_un.b_addr;
 		sc->sc_state = S_STEP2;
 		return;
@@ -435,26 +423,9 @@ tmsintr(dev)
 	case S_STEP2:
 #		define STEP2MASK 0174377
 #		define STEP2GOOD (TMSCP_STEP3|TMSCP_IE|(sc->sc_ivec/4))
-		for (i = 0; i < 150; i++)
-			{
-			if ((tmscpaddr->tmscpsa&STEP2MASK) != STEP2GOOD)
-				{ /* still in step 2 (wait 1/100 sec) */
-				delay(10000L);
-#ifdef TMSCP_DEBUG
-				printd("still in step 2, delaying\n");
-#endif
-				}
-			else
-				break;
-			}
-		if (i > 149)
-			{
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
-			wakeup((caddr_t)&sc->sc_ctab);
+
+		if	(wait_step(STEP2MASK, STEP2GOOD, tmscpaddr, sc) < 0)
 			return;
-			}
 		tmscpaddr->tmscpsa = sc->sc_ctab.b_xmem;
 		sc->sc_state = S_STEP3;
 		return;
@@ -463,39 +434,20 @@ tmsintr(dev)
 	case S_STEP3:
 #		define STEP3MASK 0174000
 #		define STEP3GOOD TMSCP_STEP4
-		for (i = 0; i < 150; i++)
-			{
-			if ((tmscpaddr->tmscpsa&STEP3MASK) != STEP3GOOD)
-				{ /* still in step 3 (wait 1/100 sec) */
-				delay(10000L);
-#ifdef TMSCP_DEBUG
-				printd("still in step 3, delaying\n");
-#endif
-				}
-			else
-				break;
-			}
-		if (i > 149)
-			{
-			sc->sc_state = S_IDLE;
-			sc->sc_ctab.b_active = 0;
-			printf(tmscpstepfailed,sc->sc_state,tmscpaddr->tmscpsa);
-			wakeup((caddr_t)&sc->sc_ctab);
+
+		if	(wait_step(STEP3MASK, STEP3GOOD, tmscpaddr, sc) < 0)
 			return;
-			}
 		/*
 		 * Get microcode version and model number of controller;
 		 * Signal initialization complete (_GO) (to the controller);
-		 *    ask for Last Fail response if tmscperror is set;
 		 * Set state to "set controller characteristics".
 		 */
 		i = tmscpaddr->tmscpsa;
-		tmscpaddr->tmscpsa = TMSCP_GO | (tmscperror? TMSCP_LF : 0);
+		tmscpaddr->tmscpsa = TMSCP_GO | TMSCP_LF;
 		sc->sc_state = S_SCHAR;
-#ifdef TMSCP_DEBUG
-		printd("tmscpintr: completed state %d \n", sc->sc_state);
-		printd("tmscp%d Version: %d model %d\n", dev, i & 0xf, (i >> 4) & 0xf);
-#endif
+
+		log(LOG_INFO, "tms%d Ver %d Mod %d\n", dev, i & 0xf,
+			(i >> 4) & 0xf);
 
 	    /*
 	     * Initialize the data structures (response and command queues).
@@ -533,7 +485,7 @@ tmsintr(dev)
 		break;
 
 	default:
-	    printf("tms%d: intr unknown state %d ignored\n",dev,sc->sc_state);
+	    log(LOG_INFO, "tms%d: state %d\n", dev, sc->sc_state);
 	    return;
 	}	/* end switch */
 
@@ -547,7 +499,7 @@ tmsintr(dev)
 	 */
 	if (tmscpaddr->tmscpsa&TMSCP_ERR)
 		{
-		printf(tmscpfatalerr, dev, sc->sc_unit, tmscpaddr->tmscpsa);
+		log(LOG_INFO, tmscpfatalerr, dev, sc->sc_unit, tmscpaddr->tmscpsa);
 		tmscpaddr->tmscpip = 0;
 		sc->sc_state = S_IDLE;
 		sc->sc_ctab.b_active = 0;
@@ -584,13 +536,8 @@ tmsintr(dev)
 	/*
 	 * Check for command ring transition. (Should never happen!)
 	 */
-	if (tm->tmscp_ca.ca_cmdint)
-		{
-#ifdef TMSCP_DEBUG
-		printd("tmscpintr: command ring transition\n");
-#endif		
+	if	(tm->tmscp_ca.ca_cmdint)
 		tm->tmscp_ca.ca_cmdint = 0;
-		}
 	restorseg5(seg5);
     	if (tmscp_cp_wait)
 		wakeup((caddr_t)&tmscp_cp_wait);
@@ -616,10 +563,6 @@ tmscpopen(dev, flag)
 	struct tmscpdevice *tmscpaddr;
 	int s,i;
 	
-#ifdef TMSCP_DEBUG
-	printd("tmscpopen %d,%d\n", ctlr, unit);
-	if (tmscpdebug) delay(10000L);
-#endif
 	if (ctlr >= NTMSCP)
 		return (ENXIO);
 	sc = &tmscp_softc[ctlr];
@@ -629,20 +572,20 @@ tmscpopen(dev, flag)
 		tms = getdd();
 		if (!tms)
 			return(ENXIO);
-		tms->tms_online = -1;
+		tms->Tflags &= ~_ONLINE;
 		sc->sc_drives[unit] = tms;
 	}
-	if (tms->tms_openf)
+	if	(tms->Tflags & _INUSE)
 		return(EBUSY);
-	tms->tms_openf = 1;
-	tms->tms_ttyp = u.u_ttyp;
+	tms->Tflags |= _INUSE;
+
 	s = spl5();
 	if (sc->sc_state != S_RUN)
 		{
 		if (sc->sc_state == S_IDLE)
-			if(!tkini(sc))
+			if	(!tkini(sc))
 				{
-				printf("tms%d init failed\n", ctlr);
+				log(LOG_INFO, "tms%d init fail\n", ctlr);
 				(void) splx(s);
 				return(ENXIO);
 				}
@@ -651,24 +594,26 @@ tmscpopen(dev, flag)
 		 */
 		timeout(wakeup,(caddr_t)&sc->sc_ctab,11*hz);	/* to be sure*/
 		sleep((caddr_t)&sc->sc_ctab, PSWP+1);
-		if (sc->sc_state != S_RUN)
+		if	(sc->sc_state != S_RUN)
 			{
 			sc->sc_drives[unit] = NULL;
-			tms->tms_online = tms->tms_openf = 0;
+			tms->Tflags &= ~(_INUSE | _ONLINE);
 			(void) splx(s);
-			return (EIO);
+			return(EIO);
 			}
 		}
+	(void) splx(s);
+
 	/*
-	 * Check to see if the device is really there.
-	 * this code was taken from Fred Canters 11 driver
+	 * If drive is not online get a command packet, sleeping if no
+	 * controller credits are available at the moment.  Then start
+	 * the ONLINE process.
 	 */
 	tmscpaddr = (struct tmscpdevice *) sc->sc_addr;
-	(void) splx(s);
-	if(tms->tms_online == -1)
+	if	(!(tms->Tflags & _ONLINE))
 		{
 		s = spl5();
-		while ((mp = tmscpgetcp(sc)) == 0)
+		while	((mp = tmscpgetcp(sc)) == 0)
 			{
 			tmscp_cp_wait++;
 			sleep((caddr_t)&tmscp_cp_wait,PSWP+1);
@@ -680,9 +625,6 @@ tmscpopen(dev, flag)
 		mp->mscp_unit = unit;		/* unit? */
 		mp->mscp_cmdref = (u_short)&tms->tms_type;
 					    /* need to sleep on something */
-#ifdef TMSCP_DEBUG
-		printd("tmscpopen: bring unit %d,%d online\n",ctlr, unit);
-#endif	
 		((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN | TMSCP_INT;
 		normalseg5();
 		i = tmscpaddr->tmscpip;
@@ -694,33 +636,38 @@ tmscpopen(dev, flag)
 		 */
 		timeout(wakeup,(caddr_t) &tms->tms_type,240 * hz);
 		sleep((caddr_t) &tms->tms_type,PSWP+1);
+		untimeout(wakeup, &tms->tms_type);
 		}
-	if	(tms->tms_online == -1)
+	if	(!(tms->Tflags & _ONLINE))
 		{
-oops:		tms->tms_online = tms->tms_openf = 0;
+oops:		tms->Tflags = 0;
 		sc->sc_drives[unit] = NULL;
 		return(ENXIO);  /* Didn't go online */
 		}
-	/*
-	 * Get the unit characteristics (GTUNT).  Done here because we
-	 * do not check for slave units at autoconfigure time.  This really
-	 * only need be done once, but it's easier to do it on each open.
-	 * tmscpcommand() is used since the iodone() handling for GTUNT has
-	 * been fixed.
-	*/
-	tms->tms_type = 0;
+/*
+ * Get the unit characteristics (GTUNT).  This 1) Verifies the drive
+ * is really still online and 2) Retrieves information about the drive
+ * such as density choices, cache presence, etc.
+*/
+	tms->tms_flags = 0;
+	tms->Tflags = _ONLINE | _INUSE;		/* Clear all other flags */
 	tmscpcommand(dev, TMS_SENSE, 1);
-	if	(tms->tms_type == 0)
+	if	(!(tms->Tflags & _ONLINE))
 		goto oops;
-	tms->tms_lastiow = 0;
-	/*
-	 * Set unit density using the density matrix.
-	 * This is done as an "internal" ioctl command so
-	 * that the command setup and response handling
-	 * is done thru "regular" command routines.
-	 */
+
+/*
+ * Next issue a reposition NOP by spacing forward 0 records.  This returns
+ * the current position (so we can tell if we're at BOT or not) and also 
+ * clears any serious exceptions outstanding.
+*/
+	tmscpcommand(dev, TMS_CSE, 1);
+
+/*
+ * Now go set the density - the lower level routines set the density if 
+ * the drive is at BOT.
+*/
 	tmscpcommand(dev, TMS_SETDENSITY, 1);
-	return (0);
+	return(0);
 }
 
 /*
@@ -729,52 +676,48 @@ oops:		tms->tms_online = tms->tms_openf = 0;
  * If tape was open for writing or last operation was
  * a write, then write two EOF's and backspace over the last one.
  * Unless this is a non-rewinding special file, rewind the tape.
- *
- * NOTE:
- *	We want to be sure that any serious exception is cleared on the
- *	close. A Clear Serious Exception (CSE) modifier is always done on
- *	the rewind command.  For the non-rewind case we check to see if the
- *	"serex" field is set in the softc struct; if it is then issue a noop
- *	command with the CSE modifier.
- * Make the tape available to others, by clearing openf flag.
- */
+*/
 tmscpclose(dev, flag)
 	register dev_t dev;
 	register flag;
-{
+	{
 	struct tmscp_softc *sc;
 	register struct tms_info *tms;
 	int unit = TMSUNIT(dev);
 
-#ifdef TMSCP_DEBUG
-	printd("tmscpclose: %d,%d\n", TMSCTLR(dev), unit);
-	if(tmscpdebug)delay(10000L);
-#endif
 	sc = &tmscp_softc[TMSCTLR(dev)];
 	tms = sc->sc_drives[unit];
-	if (flag == FWRITE || (flag&FWRITE) && tms->tms_lastiow)
+
+	if	((tms->Tflags & _CACHE_ON) && (tms->Tflags & _CACHE_WRITTEN))
 		{
-		/*	   device, command, count */
-		tmscpcommand (dev, TMS_WRITM, 1);
-		tmscpcommand (dev, TMS_WRITM, 1);
-		tmscpcommand (dev, TMS_BSR, 1);
-		}
-	if ((minor(dev)&T_NOREWIND) == 0)
-		/*
-		 * Don't hang waiting for rewind complete.
-		 */
-		tmscpcommand(dev, TMS_REW, 0);
-	else
-		if (tms->tms_serex)
+/*
+ * A misbehaving application has closed the device without flushing 
+ * the enabled cache by issuing a MTFLUSH - we'll do it for it.
+*/
+		tmscpcommand(dev, TMS_FLUSH, 1);
+		if	(tms->tms_status != M_ST_SUCC)
 			{
-#ifdef TMSCP_DEBUG
-			printd("tmscpclose: clearing serex\n");
-			if (tmscpdebug)delay(10000L);
-#endif
-			tmscpcommand(dev, TMS_CSE, 1);
+/*
+ * This is BAD news - the flush didn't work.  The drive is in a serious
+ * exception state, leave that alone for the non-rewind case so that further
+ * operations fail.  About all that can be done now is log the error.
+*/
+			log(LOG_INFO, "tms%d,%d flush fail\n", 
+					TMSCTLR(dev), unit);
+			tms->Tflags &= ~_CACHE_WRITTEN;
 			}
-	tms->tms_openf = 0;
-}
+		}
+	tms->tms_flags &= ~MTF_CSE;
+	if	(tms->Tflags & _WRITTEN)
+		tms_wrteof(dev, tms);
+	tms->Tflags &= ~(_WRITTEN | _BUFMARK |_INUSE);
+	if	((dev & T_NOREWIND) == 0)
+		{
+		tmscpcommand(dev, TMS_REW, 0);
+		tms->Tflags &= ~(_LOST | _CLSEREX | _SEREX);
+		}
+	return(0);
+	}
 
 /*
  * Execute a command on the tape drive a specified number of times.
@@ -798,12 +741,6 @@ tmscpcommand(dev, com, count)
 	s = spl5();
 	while (bp->b_flags&B_BUSY)
 		{
-		/*
-		 * This special check is because B_BUSY never
-		 * gets cleared in the non-waiting rewind case.
-		 */
-		if (bp->b_bcount == 0 && (bp->b_flags&B_DONE))
-			break;
 		bp->b_flags |= B_WANTED;
 		sleep((caddr_t)bp, PRIBIO);
 		}
@@ -820,12 +757,10 @@ tmscpcommand(dev, com, count)
 	bp->b_resid = com;
 	bp->b_blkno = 0;
 	tmscpstrategy(bp);
-	/*
-	 * In case of rewind from close, don't wait.
-	 * This is the only case where count can be 0.
-	 */
-	if (count == 0)
-		return;
+/*
+ * It is safe to wait here because the rewind done on a close specifies
+ * the modifier M_MD_IMMED which causes an immediate return.
+*/
 	iowait(bp);
 	if (bp->b_flags&B_WANTED)
 		wakeup((caddr_t)bp);
@@ -874,8 +809,8 @@ tmscpgetcp(sc)
 	register struct tmscp_softc *sc;
 {
 	register struct mscp *mp = NULL;
-	struct tmscpca *cp;
-	register int i;
+	register struct tmscpca *cp;
+	int	i;
 	int	s;
 	segm seg5;
 
@@ -888,15 +823,14 @@ tmscpgetcp(sc)
 	 * until some outstanding commands complete.
 	 */
 	i = sc->sc_lastcmd;
-#ifdef TMSCP_DEBUG
-	printd10("tmscpgetcp: %d credits remain\n", sc->sc_credits);
-#endif
-	if(((cp->ca_cmddsc[i].hsh&(TMSCP_OWN|TMSCP_INT))==TMSCP_INT) &&
-	  (sc->sc_credits >= 2))
+	if	(((cp->ca_cmddsc[i].hsh&(TMSCP_OWN|TMSCP_INT))==TMSCP_INT) &&
+		  (sc->sc_credits >= 2))
 		{
 		sc->sc_credits--;       /* This commits to issuing a command */
 		cp->ca_cmddsc[i].hsh &= ~TMSCP_INT;
 		mp = &sc->sc_com->tmscp_cmd[i];
+		mp->mscp_cmdref = 0;
+		mp->mscp_mediaid = 0;
 		mp->mscp_unit = mp->mscp_modifier = 0;
 		mp->mscp_opcode = mp->mscp_flags = 0;
 		mp->mscp_bytecnt = 0;
@@ -933,11 +867,7 @@ tkini(sc)
 
 	while((tmscpaddr->tmscpsa & TMSCP_STEP1) == 0)
 		{
-#ifdef TMSCP_DEBUG
-		printd("tkini: tmscpsa = 0%o\n",tmscpaddr->tmscpsa);
-		delay(100000L);
-#endif
-		if(tmscpaddr->tmscpsa & TMSCP_ERR)
+		if	(tmscpaddr->tmscpsa & TMSCP_ERR)
 			return(0);	/* CHECK */
 		}
 	tmscpaddr->tmscpsa=TMSCP_ERR|(NCMDL2<<11)|(NRSPL2<<8)|TMSCP_IE|(sc->sc_ivec/4);
@@ -967,16 +897,13 @@ tmsstart(sc)
      saveseg5(seg5);		/* save just once at top */
      for(;;)
 	{
-	if ((dp = sc->sc_ctab.b_actf) == NULL)
+	if	((dp = sc->sc_ctab.b_actf) == NULL)
 		{
-		/*
-		 * Release unneeded UBA resources and return
-		 * (drive was inactive)
-		 */
+		/* (drive was inactive) */
 		sc->sc_ctab.b_active = 0;
 		break;
 		}
-	if ((bp = dp->b_actf) == NULL)
+	if	((bp = dp->b_actf) == NULL)
 		{
 		/*
 		 * No more requests for this drive, remove
@@ -985,31 +912,24 @@ tmsstart(sc)
 		 */
 		dp->b_active = 0;
 		sc->sc_ctab.b_actf = dp->b_forw;
-		continue;		/* Need to check for loop */
+		continue;
 		}
 	sc->sc_ctab.b_active++;
 	unit = TMSUNIT(bp->b_dev);
 	tmscpaddr = (struct tmscpdevice *)sc->sc_addr;
 	tms = sc->sc_drives[unit];
-	if ((tmscpaddr->tmscpsa&TMSCP_ERR) || sc->sc_state != S_RUN)
+	if	((tmscpaddr->tmscpsa&TMSCP_ERR) || sc->sc_state != S_RUN)
 		{
-		tprintf(tms->tms_ttyp,
-		    "tms%d,%d: hard error bn%ld\n", sc->sc_unit, unit,
-		    bp->b_blkno);
-		log(TMS_PRI, "tms%d,%d: sa 0%o state %d\n", sc->sc_unit,
+		log(LOG_INFO, "tms%d,%d: sa %x state %d\n", sc->sc_unit,
 			unit, tmscpaddr->tmscpsa, sc->sc_state);
 		(void)tkini(sc);
 		/* SHOULD REQUEUE OUTSTANDING REQUESTS, LIKE TMSCPRESET */
 		break;
 		}
-	/*
-	 * Default is that last command was NOT a write command;
-	 * if a write command is done it will be detected in tmscprsp.
-	 */
-	tms->tms_lastiow = 0;
-	if (tms->tms_online == -1)
-		{        /* not online */
-		if ((mp = tmscpgetcp(sc)) == NULL)
+
+	if	(!(tms->Tflags & _ONLINE))
+		{
+		if	((mp = tmscpgetcp(sc)) == NULL)
 			break;
 		mapseg5(tmscp[sc->sc_unit], MAPBUFDESC);
 		mp->mscp_opcode = M_OP_ONLIN;
@@ -1017,14 +937,14 @@ tmsstart(sc)
 		dp->b_active = 2;
 		sc->sc_ctab.b_actf = dp->b_forw; /* remove from controller q */
 		((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
-		if (tmscpaddr->tmscpsa&TMSCP_ERR)
-			printf(tmscpfatalerr, sc->sc_unit,
+		if	(tmscpaddr->tmscpsa&TMSCP_ERR)
+			log(LOG_INFO, tmscpfatalerr, sc->sc_unit,
 					TMSUNIT(bp->b_dev), tmscpaddr->tmscpsa);
 		restorseg5(seg5);
 		i = tmscpaddr->tmscpip;
 		continue;
 		}
-	if ((mp = tmscpgetcp(sc)) == NULL)
+	if	((mp = tmscpgetcp(sc)) == NULL)
 		break;
 	mapseg5(tmscp[sc->sc_unit], MAPBUFDESC);
 	mp->mscp_cmdref = (u_short)bp;		/* pointer to get back */
@@ -1034,11 +954,8 @@ tmsstart(sc)
 	 * tmscp command;  by doing a switch on the "b_resid" field where
 	 * the command mneumonic is stored.
 	 */
-	if (bp == &sc->sc_cmdbuf)
+	if	(bp == &sc->sc_cmdbuf)
 		{
-#ifdef TMSCP_DEBUG
-		printd("tmsstart: doing ioctl cmd %d\n", bp->b_resid);
-#endif
 		/*
 		 * The reccnt and tmkcnt fields are set to zero by the getcp
 		 * routine (as bytecnt and buffer fields).  Thus reccnt and
@@ -1048,88 +965,58 @@ tmsstart(sc)
 		switch ((int)bp->b_resid) {
 
 		case TMS_WRITM:
-			mp->mscp_opcode = M_OP_WRITM;
+			tms_wtm_st(mp, sc, 0);
 			break;
 		case TMS_FSF:
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_tmkcnt = bp->b_bcount;
+			tms_repos_st(mp, sc, 0);
 			break;
 		case TMS_BSF:
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_modifier = M_MD_REVRS;
-			mp->mscp_tmkcnt = bp->b_bcount;
+			tms_repos_st(mp, sc, M_MD_REVRS);
 			break;
 		case TMS_FSR:
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_modifier = M_MD_OBJCT;
-			mp->mscp_reccnt = bp->b_bcount;
+			tms_reposrec_st(mp, sc, M_MD_OBJCT);
 			break;
 		case TMS_BSR:
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_modifier = M_MD_REVRS | M_MD_OBJCT;
-			mp->mscp_reccnt = bp->b_bcount;
+			tms_reposrec_st(mp, sc, M_MD_OBJCT | M_MD_REVRS);
 			break;
-		/*
-		 * Clear serious exception is done for Rewind & Available cmds
-		 */
 		case TMS_REW:
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_modifier = M_MD_REWND | M_MD_CLSEX;
-			if (bp->b_bcount == 0)
-				mp->mscp_modifier |= M_MD_IMMED;
-			tms->tms_serex = 0;
+			if	(bp->b_bcount)
+				i = M_MD_REWND;
+			else
+				i = M_MD_REWND | M_MD_IMMED;
+			tms_repos_st(mp, sc, i);
 			break;
 		case TMS_OFFL:
-			mp->mscp_opcode = M_OP_AVAIL;
-			mp->mscp_modifier = M_MD_UNLOD | M_MD_CLSEX;
-			tms->tms_serex = 0;
+			tms_avail_st(mp, sc, M_MD_UNLOD);
 			break;
 		case TMS_SENSE:
 			mp->mscp_opcode = M_OP_GTUNT;
 			break;
+		case TMS_FLUSH:
+			mp->mscp_opcode = M_OP_FLUSH;
+			break;
 		case TMS_CACHE:
-			mp->mscp_opcode = M_OP_STUNT;
 			tms->tms_unitflgs |= M_UF_WBKNV;
-			mp->mscp_unitflgs = tms->tms_unitflgs;
-			mp->mscp_format = tms->tms_format;
-			/* default device dependant parameters */
-			mp->mscp_mediaid = 0;
+			tms->tms_unitflgs &= ~M_UF_SCCHH;
+			tms->Tflags |= _CACHE_ON;
+			tms_stunt_st(mp, sc, 0);
 			break;
 		case TMS_NOCACHE:
-			mp->mscp_opcode = M_OP_STUNT;
-			tms->tms_unitflgs &= ~(M_UF_WBKNV);
-			mp->mscp_unitflgs = tms->tms_unitflgs;
-			mp->mscp_format = tms->tms_format;
-			/* default device dependant parameters */
-			mp->mscp_mediaid = 0;
+			tms->tms_unitflgs &= ~M_UF_WBKNV;
+			tms->tms_unitflgs |= M_UF_SCCHH;
+			tms->Tflags &= ~_CACHE_ON;
+			tms_stunt_st(mp, sc, 0);
 			break;
 		case TMS_CSE:
-			/*
-			 * This is a no-op command. It performs a 
-			 * clear serious exception only.  (Done on a
-			 * non-rewinding close after a serious exception.)
-			 */
-			mp->mscp_opcode = M_OP_REPOS;
-			mp->mscp_modifier = M_MD_CLSEX;
-			tms->tms_serex = 0;
-			tms->tms_clserex = 1;
+			bp->b_bcount = 0;	/* 0 objects to skip */
+			tms_repos_st(mp, sc, M_MD_OBJCT);
 			break;
 		case TMS_SETDENSITY:
-			/*
-			 * Set the unit density
-			 */
-			mp->mscp_opcode = M_OP_STUNT;
-			mp->mscp_unitflgs = tms->tms_unitflgs;
-			mp->mscp_mediaid = 0;	/* default device dependant parameters */
-			mp->mscp_format = Dmatrix[TMSDENS(bp->b_dev)][tms->tms_fmtmenu & FMTMASK];
-#ifdef	TMSCP_DEBUG
-			printd("b_dev: 0%o fmtmenu: 0%o format: 0%o\n", bp->b_dev, tms->tms_fmtmenu, mp->mscp_format);
-			delay(4000000L);
-#endif
-			tms->tms_format = mp->mscp_format;
+			tms->tms_format = Dmatrix[TMSDENS(bp->b_dev)][tms->tms_fmtmenu & FMTMASK];
+			tms_stunt_st(mp, sc, 0);
 			break;
 		default:
-			printf("tms%d,%d bad ioctl\n",sc->sc_unit,mp->mscp_unit);
+			log(LOG_INFO, "tms ioctl %x\n", bp->b_resid);
 			/* Need a no-op. Reposition no amount */
 			mp->mscp_opcode = M_OP_REPOS;
 			break;
@@ -1142,16 +1029,17 @@ tmsstart(sc)
 		mp->mscp_buffer_l = (u_short) bp->b_un.b_addr;
 		mp->mscp_buffer_h = bp->b_xmem;
 		}
-	if (tms->tms_serex == 2)			/* if tape mark read */
+
+	if	((tms->Tflags & _CACHE_ON) && (mp->mscp_opcode == M_OP_WRITE))
+		tms->Tflags |= _CACHE_WRITTEN;
+	if	((tms->Tflags & _BUFMARK) && (mp->mscp_opcode == M_OP_READ) &&
+		 (tms->Tflags & _CLSEREX))
 		{
-		mp->mscp_modifier |= M_MD_CLSEX;	/*  clear serious exc */
-		tms->tms_serex = 0;
+		tms->Tflags &= ~(_BUFMARK | _CLSEREX);
+		mp->mscp_modifier |= M_MD_CLSEX;
 		}
+
 	((Trl *)mp->mscp_dscptr)->hsh |= TMSCP_OWN|TMSCP_INT;
-#ifdef TMSCP_DEBUG
-	printd("tmsstart: opcode 0%o mod %o unit %d cnt %d\n",mp->mscp_opcode,mp->mscp_modifier,mp->mscp_unit,mp->mscp_bytecnt);
-	if(tmscpdebug)delay(100000L);
-#endif
 	i = tmscpaddr->tmscpip;              /* initiate polling */
 	dp->b_qsize++;
 	/*
@@ -1175,7 +1063,7 @@ tmsstart(sc)
 	dp->av_back = bp;
 	if (tmscpaddr->tmscpsa&TMSCP_ERR)
 		{
-		printf(tmscpfatalerr,sc->sc_unit, 
+		log(LOG_INFO, tmscpfatalerr,sc->sc_unit, 
 			mp->mscp_unit, tmscpaddr->tmscpsa);
 		(void)tkini(sc);
 		break;
@@ -1209,252 +1097,133 @@ tmscprsp(sc, i)
 	register struct mscp *mp;
 	register struct tms_info *tms;
 	struct buf *dp, *bp;
-	int st;
+	int	em_status, em_endcode;
 
 	mp = &sc->sc_com->tmscp_rsp[i];
 	mp->mscp_header.tmscp_msglen = mscp_msglen;
 	sc->sc_credits += mp->mscp_header.tmscp_credits & 0xf;  /* low 4 bits */
-	if ((mp->mscp_header.tmscp_credits & 0xf0) > 0x10)	/* Check */
+	if	((mp->mscp_header.tmscp_credits & 0xf0) > 0x10)	/* Check */
 		return;
-#ifdef TMSCP_DEBUG
-	printd("tmscprsp, opcode 0%o status 0%o\n",mp->mscp_opcode,mp->mscp_status&M_ST_MASK);
-	printd("  SEG5: 0%o sc: 0%o mp: 0%o i: %d\n",*KDSA5, sc, mp, i);
-#endif	
+
 	/*
 	 * If it's an error log message (datagram),
 	 * pass it on for more extensive processing.
 	 */
-	if ((mp->mscp_header.tmscp_credits & 0xf0) == 0x10)
-		{	/* check */
+	if	((mp->mscp_header.tmscp_credits & 0xf0) == 0x10)
+		{
 		tmserror(sc->sc_unit, (struct mslg *)mp);
 		return;
 		}
-	st = mp->mscp_status&M_ST_MASK;
-	/*
-	 * The controller interrupts as drive 0.
-	 * This means that you must check for controller interrupts
-	 * before you check to see if there is a drive 0.
-	 */
-	if((M_OP_STCON|M_OP_END) == mp->mscp_opcode)
-		{
-		if (st == M_ST_SUCC)
-			{
-#ifdef TMSCP_DEBUG
-			printd("ctlr has %d credits\n", mp->mscp_header.tmscp_credits & 0xf);
-			printd("ctlr timeout = %d\n", mp->mscp_cnttmo);
+#ifdef	TMSDEBUG
+	if	(tmscpprintf & 0x4)
+		log(LOG_INFO, "tms%d,%d: op %x st %x\n", sc->sc_unit,
+			mp->mscp_unit,mp->mscp_opcode,
+			mp->mscp_status & M_ST_MASK);
 #endif
+
+	em_status = mp->mscp_status&M_ST_MASK;
+	em_endcode = mp->mscp_endcode & ~M_OP_END;
+	/*
+	 * The controller interrupts as any drive.
+	 * This means that you must check for controller interrupts
+	 * before drive responses.
+	 */
+	if	(em_endcode == M_OP_STCON)
+		{
+		if	(em_status == M_ST_SUCC)
 			sc->sc_state = S_RUN;
-			}
 		else
 			sc->sc_state = S_IDLE;
 		sc->sc_ctab.b_active = 0;
 		wakeup((caddr_t)&sc->sc_ctab);
 		return;
 		}
-	if (mp->mscp_unit >= 4)
+	if	(mp->mscp_unit >= 4)
 		return;
 	tms = sc->sc_drives[mp->mscp_unit];
-	if (!tms)		/* unopened unit coming online - ignore it */
+	if	(!tms)		/* unopened unit coming online - ignore it */
 		return;
-	/*
-	 * Save endcode, endflags, and status for mtioctl get unit status.
-	 * NOTE: Don't do this on Clear serious exception (reposition no-op);
-	 *    which is done on close since this would
-	 *    overwrite the real status we want.
-	 */
-	if (tms->tms_clserex != 1)
-		{
-		tms->tms_endcode = mp->mscp_opcode;
-		tms->tms_flags = mp->mscp_flags;
-		tms->tms_status = st;
-		}
-	else tms->tms_clserex = 0;
+	dp = &tms->tms_dtab;
 
-	switch (mp->mscp_opcode) {
-	case M_OP_ONLIN|M_OP_END:
-		tms->tms_type = mp->mscp_mediaid;
-		dp = &tms->tms_dtab;
-		if (st == M_ST_SUCC)
+	switch (em_endcode) {
+	case	M_OP_ONLIN:
+		if	(em_status == M_ST_SUCC || em_status == M_ST_WRTPR)
 			{
+			tms->Tflags |= _ONLINE;
+			tms->Tflags &= ~_CACHE_WRITTEN;
+/*
+ * Normally this is done in the 'tms_check_ret' routine.  The ONLIN case is
+ * special (well, ok - weird) in that it was never put on the I/O wait queue.
+ * Thus we need to do this here.
+*/
+			tms->tms_endcode = em_endcode;
+			tms->tms_status = em_status;
+			tms->tms_type = mp->mscp_mediaid;
+			tms->tms_unitflgs = mp->mscp_unitflgs;
+			tms->tms_format = mp->mscp_format;
 			/*
 			 * Link the drive onto the controller queue
 			 */
 			dp->b_forw = NULL;
-			if (sc->sc_ctab.b_actf == NULL)
+			if	(sc->sc_ctab.b_actf == NULL)
 				sc->sc_ctab.b_actf = dp;
 			else
 				sc->sc_ctab.b_actl->b_forw = dp;
 			sc->sc_ctab.b_actl = dp;
-			tms->tms_online = 1;       /* mark it online */
-			tms->tms_dsize=(daddr_t)mp->mscp_maxwrt;
-			/* 
-			 * This define decodes the Media type identifier
-			 */
-#ifdef TMSCP_DEBUG
-			printd("tmscprsp: %d,%d online mediaid 0x%lx format 0x%x\n",
-				sc->sc_unit, mp->mscp_unit, mp->mscp_mediaid,
-				mp->mscp_format);
-#endif				
 			dp->b_active = 1;
-			}	/* end if st == M_ST_SUCC */
+			}
 		else 
 			{
-			if (bp = dp->b_actf)
-				tprintf(tms->tms_ttyp,
-				    "tms%d,%d: hard error bn%ld: OFFLINE\n",
-				    sc->sc_unit, mp->mscp_unit, bp->b_blkno);
-			else
-				tprintf(tms->tms_ttyp,
-				    "tms%d,%d: hard error: OFFLINE\n", 
-				    sc->sc_unit, mp->mscp_unit);
-			while (bp = dp->b_actf)
+			while	(bp = dp->b_actf)
 				{
 				dp->b_actf = bp->av_forw;
 				bp->b_flags |= B_ERROR;
 				iodone(bp);
 				}
 			}
-		if(mp->mscp_cmdref!=NULL)
-			/* Seems to get lost sometimes in uda */
+		if	(mp->mscp_cmdref)
 			wakeup((caddr_t)mp->mscp_cmdref);
-		break;
+		return;
 	/*
 	 * The AVAILABLE ATTENTION message occurs when the
-	 * unit becomes available after loading,
-	 * marking the unit offline (tms_online = -1) will force an
+	 * unit becomes available after loading.
+	 * Marking the unit offline will force an
 	 * online command prior to using the unit.
 	 */
-	case M_OP_AVATN:
-		tms->tms_online = -1;
-		tms->tms_type = mp->mscp_mediaid;
-		break;
-	case M_OP_END:
-		/*
-		 * An endcode without an opcode (0200) is an invalid command.
-		 * The mscp specification states that this would be a protocol
-		 * type error, such as illegal opcodes. The mscp spec. also
-		 * states that parameter error type of invalid commands should
-		 * return the normal end message for the command. This does not appear
-		 * to be the case. An invalid logical block number returned an endcode
-		 * of 0200 instead of the 0241 (read) that was expected.
-		 */
-			
-		printf("tms%d,%d: invalid cmd endcode = %o status=%o\n",
-			sc->sc_unit, mp->mscp_unit, mp->mscp_opcode, st);
-common:	/* GTUNT finishes up thru here too */
-		bp = (struct buf *)mp->mscp_cmdref;
-		/*
-		 * Unlink buffer from I/O wait queue.
-		 * And signal iodone, so the higher level command can exit!
-		 *
-		 */
-		bp->av_back->av_forw = bp->av_forw;
-		bp->av_forw->av_back = bp->av_back;
-		dp = &tms->tms_dtab;
-		dp->b_qsize--;
-		iodone(bp);
-		break;
-	case M_OP_WRITE|M_OP_END:
-		/* mark the last io op as a write */
-		tms->tms_lastiow = 1;
-	case M_OP_READ|M_OP_END:
-	case M_OP_WRITM|M_OP_END:
-	case M_OP_REPOS|M_OP_END:
-	case M_OP_STUNT|M_OP_END:
-	/*
-	 * The AVAILABLE message occurs when the mt ioctl "rewoffl" is
-	 * issued.  For the ioctl, "rewoffl", a tmscp AVAILABLE command is
-	 * done with the UNLOAD modifier.  This performs a rewind, followed
-	 * by marking the unit offline.  So mark the unit offline
-	 * software wise as well (tms->tms_online = -1 and tms_open = 0).
-	 */
-	case M_OP_AVAIL|M_OP_END:
-#ifdef TMSCP_DEBUG
-		printd("tmscprsp: position = %u,%u\n", mp->mscp_lbn_h,mp->mscp_lbn_l);
-#endif
-		bp = (struct buf *)mp->mscp_cmdref;
-		/*
-		 * Unlink buffer from I/O wait queue.
-		 */
-		bp->av_back->av_forw = bp->av_forw;
-		bp->av_forw->av_back = bp->av_back;
-		dp = &tms->tms_dtab;
-		dp->b_qsize--;
-		if (st == M_ST_OFFLN || st == M_ST_AVLBL)
-			{
-			tms->tms_online = -1;       /* mark unit offline */
-			tms->tms_openf = 0;
-			tms->tms_type = mp->mscp_mediaid;
-			/*
-			 * Link the buffer onto the front of the drive queue
-			 */
-			if ((bp->av_forw = dp->b_actf) == 0)
-				dp->b_actl = bp;
-			dp->b_actf = bp;
-			/*
-			 * Link the drive onto the controller queue
-			 */
-			if (dp->b_active == 0)
-				{
-				dp->b_forw = NULL;
-				if (sc->sc_ctab.b_actf == NULL)
-					sc->sc_ctab.b_actf = dp;
-				else
-					sc->sc_ctab.b_actl->b_forw = dp;
-				sc->sc_ctab.b_actl = dp;
-				dp->b_active = 1;
-				}
-			return;
-			}
-		if (st != M_ST_SUCC)
-			{
-			if (mp->mscp_flags & M_EF_SEREX)
-				tms->tms_serex = 1;
-			if (st != M_ST_TAPEM)
-				{
-				tprintf(tms->tms_ttyp,
-				"tms%d,%d: hard err bn%ld status:0%o flags:0%o\n",
-				    sc->sc_unit, mp->mscp_unit, bp->b_blkno,
-				    mp->mscp_status, mp->mscp_flags);
-				bp->b_flags |= B_ERROR;
-				}
-			else
-				/* Hit a tape mark - Set serex flag to
-				 * a special value so we can clear the
-				 * serious exception on the next command.
-				 */
-				tms->tms_serex = 2;
-			}
-		/*
-		 * The tmscp spec states that controllers do not have to
-		 * report the number of records or files skipped.  So on
-		 * reposition commands we go strictly by cmd status.
-		 */
-		if (mp->mscp_opcode != (M_OP_REPOS|M_OP_END))
-			bp->b_resid = bp->b_bcount - mp->mscp_bytecnt;
-		else
-			bp->b_resid = 0;
-		tms->tms_resid = bp->b_resid;
-		iodone(bp);
-		break;
-
-	case M_OP_GTUNT|M_OP_END:
-#ifdef TMSCP_DEBUG
-		printd("tmscprsp: GTUNT end packet status = 0%o\n",st);
-		printd("tmscprsp: %d,%d mediaid 0x%lx 0x%lx 0x%lx format=%d speed = %d\n",
-		    sc->sc_unit,mp->mscp_unit, mp->mscp_mediaid
-		    ,mp->mscp_unitid.val[0]
-		    ,mp->mscp_unitid.val[1]
-		    ,mp->mscp_format, mp->mscp_speed);
-#endif
-		tms->tms_type = mp->mscp_mediaid;
-		tms->tms_fmtmenu = mp->mscp_fmtmenu;
-		tms->tms_unitflgs = mp->mscp_unitflgs;
-		goto common;	/* need to dequeue buffer and do iodone() */
-
+	case	M_OP_AVATN:
+		tms->Tflags &= ~_ONLINE;
+		return;
+	case 0:
+		log(LOG_INFO, "tms%d,%d: inv end=%x st=%x\n",
+			sc->sc_unit, mp->mscp_unit, em_endcode, em_status);
+		tms_iodone(mp, tms);
+		return;
+	case	M_OP_WRITE:
+	case	M_OP_READ:
+		tms_rw_em(mp, sc);
+		return;
+	case	M_OP_WRITM:
+		tms_wtm_em(mp, sc);
+		return;
+	case	M_OP_REPOS:
+		tms_repos_em(mp, sc);
+		return;
+	case	M_OP_STUNT:
+		tms_stunt_em(mp, sc);
+		return;
+	case	M_OP_AVAIL:
+		tms_avail_em(mp, sc);
+		return;
+	case	M_OP_GTUNT:
+		tms_gtunt_em(mp, sc);
+		return;
+	case	M_OP_FLUSH:
+		tms_flush_em(mp, sc);
+		return;
 	default:
-		printf("tms%d,%d unknown packet\n", sc->sc_unit,mp->mscp_unit);
-		tmserror(sc->sc_unit, (struct mslg *)mp);
+		log(LOG_INFO, "tms%d,%d bad rsp: %x\n", sc->sc_unit,
+			mp->mscp_unit, em_endcode);
+		return;
 	}	/* end switch mp->mscp_opcode */
 }
 
@@ -1464,7 +1233,7 @@ common:	/* GTUNT finishes up thru here too */
 
 tmscpstrategy (bp)
 	register struct buf *bp;
-{
+	{
 	register struct buf *dp;
 	register struct tmscp_softc *sc;
 	struct	tms_info *tms;
@@ -1473,8 +1242,20 @@ tmscpstrategy (bp)
 
 	sc = &tmscp_softc[ctlr];
 	tms = sc->sc_drives[TMSUNIT(bp->b_dev)];
-	if (!tms || tms->tms_online != 1)
+	if	(!tms || !(tms->Tflags & _ONLINE))
 		{
+		bp->b_flags |= B_ERROR;
+		iodone(bp);
+		return;
+		}
+/*
+ * If we're at the end of the tape and no Clear Serious Exception has been
+ * done then return an error rather than reading off the end of the tape.
+*/
+	if	((tms->tms_flags & MTF_CSE) == 0 && (tms->tms_flags & MTF_EOM))
+		{
+		bp->b_resid = bp->b_bcount;
+		bp->b_error = ENOSPC;
 		bp->b_flags |= B_ERROR;
 		iodone(bp);
 		return;
@@ -1507,150 +1288,11 @@ tmscpstrategy (bp)
 	/*
 	 * If the controller is not active, start it.
 	 */
-	if (sc->sc_ctab.b_active == 0)
-		{
-#ifdef TMSCP_DEBUG
-		printd10("tmscpstrategy: Controller not active, starting it\n");
-#endif
+	if	(sc->sc_ctab.b_active == 0)
 		(void) tmsstart(sc);
-		}
 	splx(s);
 	return;
-}
-
-#ifdef	TMSCP_DUMP
-#define DBSIZE 16
-
-tmsdump(dev)
-	dev_t dev;
-{
-	register struct tmscpdevice *tmscpaddr;
-	register struct	tmscp_softc *sc;
-	register struct	mscp	*mp;
-	daddr_t bn, dumpsize;
-	long paddr, maddr;
-	int unit = TMSUNIT(dev), count, ctlr = TMSCTLR(dev);
-	struct	ubmap *ubp;
-	segm seg5;
-
-	if (ctlr >= NTMSCP)
-		return (ENXIO);
-	sc = &tmscp_softc[ctlr];
-	tmscpaddr = sc->sc_addr;
-	if (tmscpaddr == NULL)
-		return(ENXIO);
-
-	paddr = _iomap(tmscp[sc->sc_unit]);
-	if (ubmap) {
-		ubp = UBMAP;
-		ubp->ub_lo = loint(paddr);
-		ubp->ub_hi = hiint(paddr);
 	}
-	paddr += RINGBASE;
-	saveseg5(seg5);
-	mapseg5(tmscp[sc->sc_unit], MAPBUFDESC);
-	mp = sc->sc_com->tmscp_rsp;
-	sc->sc_com->tmscp_ca.ca_cmdint = sc->sc_com->tmscp_ca.ca_rspint = 0;
-	bzero(mp, 2 * sizeof (*mp));
-
-	tmscpaddr->tmscpip = 0;
-	while ((tmscpaddr->tmscpsa & TMSCP_STEP1) == 0)
-		if(tmscpaddr->tmscpsa & TMSCP_ERR) return(EFAULT);
-	tmscpaddr->tmscpsa = TMSCP_ERR;
-	while ((tmscpaddr->tmscpsa & TMSCP_STEP2) == 0)
-		if(tmscpaddr->tmscpsa & TMSCP_ERR) return(EFAULT);
-	tmscpaddr->tmscpsa = loint(paddr);
-	while ((tmscpaddr->tmscpsa & TMSCP_STEP3) == 0)
-		if(tmscpaddr->tmscpsa & TMSCP_ERR) return(EFAULT);
-	tmscpaddr->tmscpsa = hiint(paddr);
-	while ((tmscpaddr->tmscpsa & TMSCP_STEP4) == 0)
-		if(tmscpaddr->tmscpsa & TMSCP_ERR) return(EFAULT);
-	tmscpaddr->tmscpsa = TMSCP_GO;
-	
-	tmsginit(sc, sc->sc_com->tmscp_ca.ca_rspdsc, mp, 0, 2, 0);
-
-	if (tmscpcmd(M_OP_STCON, unit, sc) == 0) {
-		return(EFAULT);
-	}
-	sc->sc_com->tmscp_cmd[0].mscp_unit = unit;
-	if (tmscpcmd(M_OP_ONLIN, unit, sc) == 0) {
-		return(EFAULT);
-	}
-
-	dumpsize = 8 * 1024L;	 /* XXX */
-	ubp = &UBMAP[1];
-	for (paddr = 0; dumpsize > 0; dumpsize -= count) {
-		count = MIN(dumpsize, DBSIZE);
-		bn = paddr >> PGSHIFT;
-		maddr = paddr;
-		if (ubmap) {
-			ubp->ub_lo = loint(paddr);
-			ubp->ub_hi = hiint(paddr);
-			maddr = (u_int)(1 << 13);
-		}
-	/* write it to the tape */
-	mp = &sc->sc_com->tmscp_rsp[1];
-	mp->mscp_lbn_l = loint(bn);
-	mp->mscp_lbn_h = hiint(bn);
-	mp->mscp_bytecnt = count * NBPG;
-	mp->mscp_buffer_l = loint(maddr);
-	mp->mscp_buffer_h = hiint(maddr);
-	if (tmscpcmd(M_OP_WRITE, unit, sc) == 0)
-		return(EIO);
-	paddr += (DBSIZE << PGSHIFT);
-	}
-	restorseg5(seg5);
-	return (0);
-}
-
-/*
- * Perform a standalone tmscp command.  This routine is only used by tmscpdump.
- */
-
-tmscpcmd(op, unit, sc)
-	int op;
-	int unit;
-	register struct tmscp_softc *sc;
-{
-	int i;
-	register struct mscp *cmp, *rmp;
-	Trl *rlp;
-
-	cmp = &sc->sc_com->tmscp_rsp[1];
-	rmp = &sc->sc_com->tmscp_rsp[0];
-	rlp = &sc->sc_com->tmscp_ca.ca_rspdsc[0];
-
-	cmp->mscp_opcode = op;
-	cmp->mscp_unit = unit;
-	cmp->mscp_header.tmscp_msglen = mscp_msglen;
-	rmp->mscp_header.tmscp_msglen = mscp_msglen;
-	rlp[0].hsh |= TMSCP_OWN|TMSCP_INT;
-	rlp[1].hsh |= TMSCP_OWN|TMSCP_INT;
-	if (sc->sc_addr->tmscpsa&TMSCP_ERR)
-		printf(tmscpfatalerr, sc->sc_unit, unit, sc->sc_addr->tmscpsa);
-	i = sc->sc_addr->tmscpip;
-
-	while ((rlp[1].hsh & TMSCP_INT) == 0)
-		;
-	while ((rlp[0].hsh & TMSCP_INT) == 0)
-		;
-
-	sc->sc_com->tmscp_ca.ca_rspint = 0;
-	sc->sc_com->tmscp_ca.ca_cmdint = 0;
-	if (rmp->mscp_opcode != (op|M_OP_END) ||
-	    (rmp->mscp_status&M_ST_MASK) != M_ST_SUCC)
-		{
-		printf("err: com %d opc 0x%x stat 0x%x\ndump ", op,
-			rmp->mscp_opcode, rmp->mscp_status);
-		return(0);
-		}
-	return(1);
-}
-#endif TMSCP_DUMP
-
-/*
- * Catch ioctl commands, and call the "command" routine to do them.
- */
 
 /* ARGSUSED */
 tmscpioctl(dev, cmd, data, flag)
@@ -1660,61 +1302,69 @@ tmscpioctl(dev, cmd, data, flag)
 	int flag;
 {
 	struct tmscp_softc *sc = &tmscp_softc[TMSCTLR(dev)];
-	register struct buf *bp = &sc->sc_cmdbuf;
-	register callcount;	/* number of times to call cmd routine */
-	register struct tms_info *tms;
+	struct buf *bp = &sc->sc_cmdbuf;
+	register struct tms_info *tms = sc->sc_drives[TMSUNIT(dev)];
 	int fcount;		/* number of files (or records) to space */
 	register struct mtop *mtop;	/* mag tape cmd op to perform */
 	register struct mtget *mtget;	/* mag tape struct to get info in */
 
 	/* we depend of the values and order of the TMS ioctl codes here */
-	static u_char tmsops[] =
+	static char tmsops[] =
 	 {TMS_WRITM,TMS_FSF,TMS_BSF,TMS_FSR,TMS_BSR,TMS_REW,TMS_OFFL,TMS_SENSE,
-	  TMS_CACHE,TMS_NOCACHE};
+	  TMS_CACHE,TMS_NOCACHE,TMS_FLUSH};
+
+	if	(!tms)
+		return(ENXIO);
+	if	(cmd != MTIOCGET)
+		tms->tms_status = ~M_ST_SUCC;
+	if	(tms->tms_position == 0)
+		tms->tms_flags |= MTF_BOM;
+	else
+		tms->tms_flags &= ~MTF_BOM;
 
 	switch (cmd) {
-	case MTIOCTOP:	/* tape operation */
+	case	MTIOCTOP:
 		mtop = (struct mtop *)data;
 		switch (mtop->mt_op) {
 
-		case MTWEOF:
-			callcount = mtop->mt_count;
-			fcount = 1;
-			break;
-		case MTFSF: case MTBSF:
-		case MTFSR: case MTBSR:
-			callcount = 1;
+		case	MTWEOF:
+			return(tms_wrteof(dev, tms));
+		case	MTFSF:
+		case	MTBSF:
+		case	MTFSR:
+		case	MTBSR:
 			fcount = mtop->mt_count;
 			break;
-		case MTREW: case MTOFFL: case MTNOP:
-		case MTCACHE: case MTNOCACHE:
-			callcount = 1;
-			fcount = 1;		/* wait for this rewind */
+		case	MTFLUSH:
+		case	MTCACHE:
+		case	MTNOCACHE:
+			if	((tms->Tflags & _HASCACHE|_ONLINE) !=
+				 _HASCACHE|_ONLINE)
+				return(0);
+		case	MTREW:
+		case	MTOFFL:
+		case	MTNOP:
+			fcount = 1;
 			break;
 		default:
-			return (ENXIO);
+			return(ENXIO);
 		}	/* end switch mtop->mt_op */
 
-		if (callcount <= 0 || fcount <= 0)
-			return (EINVAL);
-		while (--callcount >= 0)
+		if	(fcount <= 0)
+			return(EINVAL);
+		tmscpcommand(dev, tmsops[mtop->mt_op], fcount);
+		if	(tms->tms_status != M_ST_SUCC)
 			{
-			tmscpcommand(dev, tmsops[mtop->mt_op], fcount);
-			if ((mtop->mt_op == MTFSR || mtop->mt_op == MTBSR) &&
-			    bp->b_resid)
-				return (EIO);
-			if (bp->b_flags & B_ERROR)	/* like hitting BOT */
-				break;
+			if	(tms->Tflags & _CLSEREX)
+				tmscpcommand(dev, TMS_CSE, 1);
+			return(EIO);
 			}
-		return (geterror(bp));
+		return(geterror(bp));
 
-	case MTIOCGET:
+	case	MTIOCGET:
 		/*
 		 * Return status info associated with the particular UNIT.
 		 */
-		tms = sc->sc_drives[TMSUNIT(dev)];
-		if (!tms)
-			return(ENXIO);
 		mtget = (struct mtget *)data;
 		mtget->mt_type = MT_ISTMSCP;
 		mtget->mt_dsreg = tms->tms_flags << 8;
@@ -1722,77 +1372,574 @@ tmscpioctl(dev, cmd, data, flag)
 		mtget->mt_erreg = tms->tms_status;
 		mtget->mt_resid = tms->tms_resid;
 		break;
-
 	default:
-		return (ENXIO);
+		return(ENXIO);
 	}
 	return (0);
 }
 
-/*
- * Process an error log message
- *
- * Only minimal decoding is done, only "useful"
- * information is printed.  Eventually should
- * send message to an error logger.
- */
+tms_wrteof(dev, tms)
+	dev_t	dev;
+	register struct tms_info *tms;
+	{
 
-tmserror(ctlr, mp)
-	register int ctlr;
-	register struct mslg *mp;
-{
-	register i;
-
-#ifdef TMSCP_DEBUG
-	printd("tmserror:\n");
-#endif
-	if(!(mp->mslg_flags & (M_LF_SUCC | M_LF_CONT)))
-		log(TMS_PRI, "tms%d,%d: %s err ", ctlr, mp->mslg_unit,
-		mp->mslg_flags & ( M_LF_SUCC | M_LF_CONT ) ? "soft" : "hard");
-
-	switch (mp->mslg_format) {
-
-	case M_FM_CNTERR:
-		log(TMS_PRI, "ctlr err event 0%o\n", mp->mslg_event);
-		break;
-	case M_FM_BUSADDR:
-		log(TMS_PRI, "host memory access err, event 0%o, addr 0%o\n",
-			mp->mslg_event, mp->mslg_busaddr);
-		break;
-	case M_FM_TAPETRN:
-		log(TMS_PRI, "tape transfer err unit %d grp 0x%x event 0%o\n",
-			mp->mslg_unit, mp->mslg_group, mp->mslg_event);
-		break;
-	case M_FM_STIERR:
-		log(TMS_PRI, "STI err unit %d event 0%o\n",
-			mp->mslg_unit, mp->mslg_event);
-#ifdef notdef
-		/* too painful to do with log() */
-		for(i = 0; i < 62;i++)
-			mprintf("\t0x%x",mp->mslg_stiunsucc[i] & 0xff);
-		mprintf("\n");
-#endif
-		break;
-	case M_FM_STIDEL:
-		log(TMS_PRI, "STI Drive ErrorLog unit %d event 0%o\n",
-			mp->mslg_unit, mp->mslg_event);
-		break;
-	case M_FM_STIFEL:
-		log(TMS_PRI, "STI Formatter ErrorLog unit %d event 0%o\n",
-			mp->mslg_unit, mp->mslg_event);
-		break;
-	default:
-		log(TMS_PRI, "unknown err %d,%d format 0%o event 0%o\n",
-			ctlr,mp->mslg_unit, mp->mslg_format, mp->mslg_event);
+	tmscpcommand(dev, TMS_WRITM, 1);
+	if	(tms->tms_status != M_ST_SUCC)
+		return(EIO);
+	tms->tms_status = ~M_ST_SUCC;
+	tmscpcommand(dev, TMS_WRITM, 1);
+	if	(tms->tms_status != M_ST_SUCC)
+		return(EIO);
+	tms->Tflags &= ~_CACHE_WRITTEN;
+	tms->tms_status = ~M_ST_SUCC;
+	tmscpcommand(dev, TMS_BSR, 1);
+	if	(tms->tms_status != M_ST_SUCC)
+		return(EIO);
+	return(0);
 	}
 
-	if (tmscperror)
-		{
-		register long *p = (long *)mp;
+/*
+ * Initialize the mscp packet for a STUNT command.  If the drive is in a
+ * 'cache lost' but 'written' state then clear it and log the error.
+*/
 
-		for (i = 0; i < mp->mslg_header.tmscp_msglen; i += sizeof(*p))
-			printf("%x ", *p++);
-		printf("\n");
+tms_stunt_st(mp, sc, flgs)
+	register struct	mscp	*mp;
+	register struct	tmscp_softc *sc;
+	int	flgs;
+	{
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	mp->mscp_opcode = M_OP_STUNT;
+	mp->mscp_modifier = flgs | M_MD_EXCAC;
+	tms_cache_cmn(sc, tms, mp);
+
+/*
+ * Set the unit flags - this includes the cache enable/disable flags.
+*/
+
+	mp->mscp_unitflgs = tms->tms_unitflgs;
+
+/*
+ * Only initialize the density if the position is not at BOT.  On some
+ * drives (notably the TU81) selecting a density other than the 'current'
+ * (0) causes an illegal command error.
+*/
+	if	(tms->tms_position != 0)
+		mp->mscp_format = 0;
+	else
+		mp->mscp_format = tms->tms_format;
+	}
+
+/*
+ * Initialize the mscp packet for a REPOS command.  The 'flgs' parameter
+ * specifies if the movement if forwards or backwards and if records or
+ * tape marks (objects) are to be skipped.
+*/
+
+tms_repos_st(mp, sc, flgs)
+	register struct	mscp	*mp;
+	register struct	tmscp_softc *sc;
+	int	flgs;
+	{
+	struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	mp->mscp_opcode = M_OP_REPOS;
+	mp->mscp_modifier = flgs | M_MD_CLSEX;
+	tms->Tflags &= ~_CLSEREX;
+	tms_cache_cmn(sc, tms, mp);	/* shared code with tms_reposrec_st */
+	if	(mp->mscp_modifier & M_MD_OBJCT)
+		mp->mscp_reccnt = bp->b_bcount;
+	else
+		mp->mscp_tmkcnt = bp->b_bcount;
+	}
+
+/*
+ * Initialize the mscp packet for a REPOS 'record' command.  Tape records do
+ * not include tapemarks (which is why this is a separate routine from
+ * tms_repos_st above).
+*/
+
+tms_reposrec_st(mp, sc, flgs)
+	register struct	mscp	*mp;
+	register struct	tmscp_softc *sc;
+	int	flgs;
+	{
+	struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	mp->mscp_opcode = M_OP_REPOS;
+	mp->mscp_modifier = flgs;
+	tms_cache_cmn(sc, tms, mp);
+	mp->mscp_reccnt = bp->b_bcount;
+	}
+
+/*
+ * Initialize the mscp packet for an AVAIL command.  The only time this is
+ * done is on a 'rewoffl' command.
+*/
+
+tms_avail_st(mp, sc, flgs)
+	register struct	mscp	*mp;
+	register struct	tmscp_softc *sc;
+	int	flgs;
+	{
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	mp->mscp_opcode = M_OP_AVAIL;
+	mp->mscp_modifier = flgs | M_MD_CLSEX;
+	tms->Tflags &= ~_CLSEREX;
+	if	(tms->Tflags & _CACHE_LOST)
+		{
+		tms->Tflags &= ~(_CACHE_LOST | _CACHE_WRITTEN);
+		mp->mscp_modifier |= M_MD_CDATL;
 		}
-}
+	}
+
+/*
+ * Initialize the mscp packet for a WTM (write tapemark) command.
+*/
+
+tms_wtm_st(mp, sc, flgs)
+	register struct	mscp	*mp;
+	register struct	tmscp_softc *sc;
+	int	flgs;
+	{
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	mp->mscp_opcode = M_OP_WRITM;
+	mp->mscp_modifier = flgs | M_MD_CLSEX;
+	tms->Tflags &= ~_CLSEREX;
+	tms_cache_cmn(sc, tms, mp);
+	}
+
+tms_cache_cmn(sc, tms, mp)
+	register struct	tmscp_softc *sc;
+	register struct	tms_info *tms;
+	register struct	mscp *mp;
+	{
+
+	if	(tms->Tflags & _CACHE_LOST)
+		{
+		if	(!(tms->Tflags & _CACHE_WRITTEN) || 
+			   (tms->tms_flags & MTF_CSE))
+			{
+			tms->Tflags &= ~(_CACHE_LOST | _CACHE_WRITTEN);
+			mp->mscp_modifier |= M_MD_CDATL;
+			}
+		else
+			log(LOG_INFO, "tms%d,%d cache lost\n",
+				sc->sc_unit, mp->mscp_unit);
+		}
+	}
+
+/*
+ * Process the end message from a REPOS command.  Called from tmscprsp().
+*/
+
+tms_repos_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+
+	(void)tms_check_ret(mp, sc);
+	if	(em_status == M_ST_SUCC)
+		{
+		if	(tms->tms_position != mp->mscp_position)
+			tms->Tflags &= ~_WRITTEN;
+		if	(tms->tms_position = mp->mscp_position)
+			tms->tms_flags &= ~MTF_BOM;
+		else
+			{
+			tms->tms_flags |= MTF_BOM;
+			tms->Tflags &= ~_LOST;
+			}
+		tms->Tflags &= ~_CACHE_WRITTEN;
+		}
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+/*
+ * Process the end message from a STUNT command.
+*/
+
+tms_stunt_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+
+	(void)tms_check_ret(mp, sc);
+	tms->Tflags &= ~_CACHE_WRITTEN;
+	if	(em_status == M_ST_SUCC)
+		{
+		tms->tms_unitflgs = mp->mscp_unitflgs;
+		tms->tms_format = mp->mscp_format;
+		tms->tms_type = mp->mscp_mediaid;
+		tms->Tflags |= _ONLINE;
+		}
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+/*
+ * Process the end message from a WRITM (Write Tape Mark) command.
+*/
+
+tms_wtm_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+
+	if	(em_status == M_ST_SUCC)
+		{
+		tms->Tflags &= ~_WRITTEN;
+		tms->tms_position = mp->mscp_position;
+		}
+	(void)tms_check_ret(mp, sc);
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+tms_avail_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+
+	tms->Tflags &= ~_INUSE;
+	(void)tms_check_ret(mp, sc);
+	tms->Tflags &= ~_ONLINE;
+	tms->tms_position = 0;
+	tms->tms_flags |= MTF_BOM;
+	if	(tms->tms_status == M_ST_SUCC)
+		tms->Tflags &= ~_CACHE_WRITTEN;
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+tms_flush_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+
+	if	(em_status == M_ST_SUCC)
+		tms->Tflags &= ~_CACHE_WRITTEN;
+	else
+		log(LOG_INFO, "tms%d,%d flush fail\n",sc->sc_unit,mp->mscp_unit);
+	tms->tms_position = mp->mscp_position;
+	(void)tms_check_ret(mp, sc);
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+tms_gtunt_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+	u_short	em_flags = mp->mscp_unitflgs;
+
+	(void)tms_check_ret(mp, sc);
+	if	(em_status == M_ST_SUCC)
+		{
+		tms->tms_format = mp->mscp_format;
+		tms->tms_type = mp->mscp_mediaid;
+		tms->tms_fmtmenu = mp->mscp_fmtmenu;
+		tms->tms_unitflgs = mp->mscp_unitflgs;
+		tms->Tflags |= _ONLINE;
+		if	(em_flags & (M_UF_WRTPH | M_UF_WRTPS | M_UF_WRTPD))
+			tms->tms_flags |= MTF_WRTLCK;
+		else
+			tms->tms_flags &= ~MTF_WRTLCK;
+		if	(em_flags & M_UF_CACH)
+			{
+			tms->Tflags |= _HASCACHE;
+			if	(tms->Tflags & _CACHE_ON)
+				{
+				tms->tms_unitflgs |= M_UF_WBKNV;
+				tms->tms_unitflgs &= ~M_UF_SCCHH;
+				}
+			else
+				{
+				tms->tms_unitflgs &= ~M_UF_WBKNV;
+				tms->tms_unitflgs |= M_UF_SCCHH;
+				}
+			}
+		if	(tms->tms_position == 0)
+			tms->tms_flags |= MTF_BOM;
+		else
+			tms->tms_flags &= ~MTF_BOM;
+		}
+	tms->tms_resid = 0;
+	tms_iodone(mp, sc);
+	}
+
+tms_rw_em(mp, sc)
+	register struct mscp *mp;
+	register struct tmscp_softc *sc;
+	{
+	struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
+	register struct tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+
+	tms->tms_flags &= ~MTF_WRITTEN;
+	(void)tms_check_ret(mp, sc);
+	if	(em_status == M_ST_SUCC)
+		{
+		if	((tms->tms_endcode & ~M_OP_END) == M_OP_WRITE)
+			{
+			tms->Tflags |= _WRITTEN;
+			tms->tms_flags |= MTF_WRITTEN;
+			}
+		else
+			tms->Tflags &= ~_CACHE_WRITTEN;
+		}
+	tms->tms_resid = bp->b_bcount - mp->mscp_bytecnt;
+	if	(tms->tms_position = mp->mscp_position)
+		tms->tms_flags &= ~MTF_BOM;
+	else
+		tms->tms_flags |= MTF_BOM;
+	tms_iodone(mp, sc);
+	}
+
+/*
+ * This routine removes the buffer from the I/O wait queue, decrements the
+ * drive queue size, stores the residual value in the buffer header and
+ * calls iodone.
+*/
+
+tms_iodone(mp, sc)
+	struct	mscp	*mp;
+	struct	tmscp_softc *sc;
+	{
+	struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	register struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
+	register struct	buf	*dp = &tms->tms_dtab;
+	u_short	st = tms->tms_status;
+
+/*
+ * Remove the buffer from the I/O wait queue.
+*/
+	bp->av_back->av_forw = bp->av_forw;
+	bp->av_forw->av_back = bp->av_back;
+	dp->b_qsize--;
+/*
+ * The weird (and not fully understood) treatment of the OFFLIN and AVLBL
+ * status values was moved intact.  It is not clear why the error bit can't
+ * simply be set and iodone called as for other not successful status codes.
+*/
+	if	(st == M_ST_OFFLN || st == M_ST_AVLBL)
+		{
+/*
+ * Link buffer on to the front of the drive queue.
+*/
+		if	((bp->av_forw = dp->b_actf) == 0)
+			dp->b_actf = bp;
+		dp->b_actf = bp;
+/*
+ * Link the drive onto the controller queue.
+*/
+		if	(dp->b_active == 0)
+			{
+			dp->b_forw = NULL;
+			if	(sc->sc_ctab.b_actf == NULL)
+				sc->sc_ctab.b_actf = dp;
+			else
+				sc->sc_ctab.b_actl->b_forw = dp;
+			sc->sc_ctab.b_actl = dp;
+			dp->b_active = 1;
+			}
+		return;
+		}
+	bp->b_resid = tms->tms_resid;
+	iodone(bp);
+	}
+
+/*
+ * Check the return status of an mscp packet and adjust the drive's flags
+ * appropriately.  On error conditions set the error flag and code in the 
+ * buffer header.
+ *
+ * Many of the 'case' statements below are finer grained than strictly
+ * necessary - this is done to provide easy access for logging of specific 
+ * conditions during debugging.
+*/
+
+tms_check_ret(mp, sc)
+	struct	mscp	*mp;
+	struct	tmscp_softc *sc;
+	{
+	register struct	tms_info *tms = sc->sc_drives[mp->mscp_unit];
+	register struct	buf	*bp = (struct buf *)mp->mscp_cmdref;
+	u_short	em_status = mp->mscp_status & M_ST_MASK;
+	u_short	em_subcode = mp->mscp_status >> M_ST_SBBIT;
+	u_short	em_flags = mp->mscp_flags;
+	u_short	em_endcode = mp->mscp_endcode & ~M_OP_END;
+	char	berr, unkerr;
+
+#ifdef	TMSDEBUG
+	if	(em_status != M_ST_SUCC && em_status != M_ST_TAPEM &&
+			(tmscpprintf & 0x1))
+		log(LOG_INFO, "tms%d,%d st=%x sb=%x fl=%x en=%x\n",
+			sc->sc_unit, mp->mscp_unit,
+			em_status, em_subcode, em_flags, em_endcode);
+#endif
+	tms->tms_endcode = mp->mscp_endcode;
+	if	(em_flags & M_EF_EOT)
+		tms->tms_flags |= MTF_EOM;
+	else
+		tms->tms_flags &= ~MTF_EOM;
+	if	(em_flags & M_EF_DLS)
+		tms->Tflags |= _CACHE_LOST;
+	if	(em_flags & M_EF_PLS)
+		tms->Tflags |= _LOST;
+	tms->tms_status = mp->mscp_status;
+
+	berr = 0;
+	unkerr = 0;
+
+	switch	(em_status)
+		{
+		case	M_ST_SUCC:
+			{
+			switch	(em_subcode)
+				{
+				case	M_SC_DUPUN:	/* Duplicate unit */
+					berr = ENXIO;
+					break;
+				case	M_SC_ALONL:	/* Already online */
+				case	M_SC_STONL:	/* Still online */
+				case	M_SC_UNIGN:	/* Unload ignored */
+				case	M_SC_ROVOL:	/* Readonly unit */
+					tms->Tflags |= _ONLINE;
+					break;
+				case	M_SC_EOT:	/* End of Tape */
+					tms->tms_flags |= MTF_EOM;
+					break;
+				}
+			}
+			break;
+		case	M_ST_OFFLN:
+			tms->Tflags &= ~_ONLINE;
+			if	((tms->Tflags & _CACHE_ON) && 
+				 (tms->Tflags & _CACHE_WRITTEN))
+				log(LOG_INFO, "tms%d,%d cache loss2\n",
+					sc->sc_unit, mp->mscp_unit);
+			berr = ENXIO;
+			break;
+		case	M_ST_WRTPR:			/* Write Protected */
+			tms->tms_flags |= MTF_WRTLCK;
+			berr = EACCES;			/* Really an error ? */
+			break;
+		case	M_ST_ICMD:			/* Byte count too big */
+		case	M_ST_ABRTD:			/* Command aborted */
+		case	M_ST_COMP:			/* Data Compare error */
+		case	M_ST_DATA:			/* Data error */
+		case	M_ST_HSTBF:			/* Host buffer error */
+		case	M_ST_CNTLR:			/* Controller error */
+		case	M_ST_FMTER:			/* Formatter error */
+			berr = EIO;
+			break;
+		case	M_ST_AVLBL:			/* Unit available */
+			tms->Tflags &= ~(_LOST | _CLSEREX | _SEREX | _ONLINE);
+			break;
+		case	M_ST_BOT:			/* Beginning of tape */
+			tms->tms_flags |= MTF_BOM;
+			tms->tms_position = 0;
+			break;
+		case	M_ST_TAPEM:			/* Tape Mark */
+			tms->Tflags |= (_BUFMARK | _CLSEREX);
+			break;
+		case	M_ST_SEX:			/* Serious Exception */
+			if	(em_flags & M_EF_EOT)
+				{
+				tms->tms_flags |= MTF_EOM;
+				berr = ENOSPC;
+				}
+			else
+				{
+				tms->Tflags &= ~_CLSEREX;
+#ifdef	TMSDEBUG
+				log(LOG_INFO, "tms%d,%d serex, subcode %x\n",
+					sc->sc_unit, mp->mscp_unit);
+#endif
+				berr = EIO;
+				}
+			break;
+		case	M_ST_PLOST:			/* Position Lost */
+#ifdef	TMSDEBUG
+			log(LOG_INFO, "tms%d,%d plost\n", sc->sc_unit,
+				mp->mscp_unit);
+#endif
+			tms->Tflags |= (_LOST | _SEREX);
+			tms->Tflags &= ~_CLSEREX;
+			berr = EIO;
+			break;
+		case	M_ST_LED:			/* Logical end of dev */
+			tms->Tflags |= _CLSEREX;
+			break;
+		case	M_ST_MFMTE:			/* Media format err */
+		case	M_ST_DRIVE:			/* Drive error */
+		case	M_ST_RDTRN:			/* Record truncated */
+			tms->Tflags |= _SEREX;
+			tms->Tflags &= ~_CLSEREX;
+		case	M_ST_LOADR:
+		case	M_ST_DIAG:			/* Intern diag err */
+		case	M_ST_IPARM:			/* Invalid parameter */
+			berr = EIO;
+			break;
+		default:
+			unkerr = 1;
+			berr = EIO;
+			break;
+		}
+	if	(unkerr)
+		log(LOG_INFO, "tms%d,%d: bad st/sb =%x/%x\n",
+			sc->sc_unit, mp->mscp_unit, em_status, em_subcode);
+	if	(berr && bp)
+		{
+		bp->b_flags |= B_ERROR;
+		bp->b_error = berr;
+		}
+	return;
+	}
+
+/*
+ * Process an error log datagram. 
+ *
+ * No decoding is done - it wasn't worth the D space.  If bit 1 is set
+ * in the print flags then a simple message is generated out of (hopefully) 
+ * useful fields.
+ *
+ * Eventually a error log daemon will be written and the datagram sent to
+ * it for capture and detailed analysis.  Until then the logging in 
+ * 'tms_check_ret' and a few other strategic spots will have to suffice.
+ */
+
+	u_short	tms_datagrams[NTMSCP];
+
+tmserror(ctlr, mp)
+	int ctlr;
+	register struct mslg *mp;
+	{
+
+	tms_datagrams[ctlr]++;
+	if	(tmscpprintf & 0x2)
+		log(LOG_INFO,
+		"tms%d,%d dgram fmt=%x evt=%x grp=%x flg=%x pos=%D\n",
+			ctlr, mp->mslg_unit, mp->mslg_format,
+			mp->mslg_event, mp->mslg_group, mp->mslg_flags, 
+			mp->mslg_position);
+	}
 #endif NTMSCP
