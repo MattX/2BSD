@@ -1,0 +1,7 @@
+system::0:root
+staff::1:daemon,ddl
+sys::2:bin,sys,ddl
+bin::3:bin,sys,ddl
+uucp::4:ddl
+net::5:
+guest::200:

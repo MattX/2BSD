@@ -1,0 +1,10 @@
+lp|default line printer:\
+	:lp=:rm=sidrat:rp=ll:lf=/usr/adm/lpdlog:sd=/usr/spool/lpd:
+lw|default line printer - wide:\
+	:lp=:rm=sidrat:rp=ll:lf=/usr/adm/lpdlog:sd=/usr/spool/lpd:
+ip|imagen|imprint line printer:\
+	:lp=:rm=sidrat:rp=ll:lf=/usr/adm/lpdlog:sd=/usr/spool/lpd:
+ll|local line printer:\
+	:lp=/dev/null:\
+	:sd=/usr/spool/lpd:\
+	:lf=/usr/adm/lpdlog:

@@ -1,0 +1,11 @@
+shell	tcp	root	ak	/etc/rshd
+telnet	tcp	root	ak	/etc/telnetd
+uucp	tcp	root	a	/etc/uucpd
+login	tcp	root	ak	/etc/rlogind
+ftp	tcp	root	ak	/etc/ftpd
+exec	tcp	root	ak	/etc/rexecd
+talk	udp	root	t	/etc/talkd
+printer	tcp	root	ak	/etc/lpd
+finger	tcp	daemon	aklp1	/usr/ucb/finger
+#bnews	tcp	daemon	aktp0	/usr/bin/bnproc
+#fortune	tcp	daemon	aklp0	/usr/games/fortune

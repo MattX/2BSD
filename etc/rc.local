@@ -1,0 +1,12 @@
+#! /bin/sh
+PATH=/bin:/usr/bin:/usr/ucb:/etc; export PATH
+# enpload ep0 /etc/enpcode.v1
+# ifconfig enp0 tardis-ether
+# slip /dev/tty00 &
+# ifconfig sl0 192.5.90.1
+ifconfig dc0 sidrat up
+rm -f /usr/spool/rwho/*
+rwhod
+lpd -s
+inetd
+/usr/lib/sendmail -bd -q1h30m
