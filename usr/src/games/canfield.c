@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)canfield.c	5.4.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)canfield.c	5.4.2 (2.11BSD GTE) 1/16/95";
 #endif
 
 /*
@@ -1604,7 +1604,7 @@ main(argc, argv)
 #ifdef MAXLOAD
 	double vec[3];
 
-	loadav(vec);
+	getloadavg(vec, 3);
 	if (vec[2] >= MAXLOAD) {
 		puts("The system load is too high.  Try again later.");
 		exit(0);

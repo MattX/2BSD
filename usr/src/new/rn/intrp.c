@@ -1,4 +1,4 @@
-/* $Header: intrp.c,v 4.3.1.5 85/05/23 17:21:24 lwall Exp $
+/* $Header: intrp.c,v 4.3.1.5.1 95/01/21 17:21:24 lwall Exp $
  *
  * $Log:	intrp.c,v $
  * Revision 4.3.1.5  85/05/23  17:21:24  lwall
@@ -207,7 +207,6 @@ register char *s;
 		}
 		tildedir = Nullch;
 		tildename = savestr(scrbuf);
-#ifdef GETPWENT		/* getpwnam() is not the paragon of efficiency */
 		{
 		    struct passwd *getpwnam();
 		    struct passwd *pwd = getpwnam(tildename);
@@ -219,47 +218,8 @@ register char *s;
 			newsuid = atoi(pwd->pw_uid);
 #endif
 		    strcpy(filename,scrbuf);
-#ifdef GETPWENT
 		    endpwent();
-#endif
 		}
-#else			/* this will run faster, and is less D space */
-		{	/* just be sure LOGDIRFIELD is correct */
-		    FILE *pfp = fopen("/etc/passwd","r");
-		    char tmpbuf[512];
-		    int i;
-		    
-		    if (pfp == Nullfp) {
-			printf(cantopen,"passwd") FLUSH;
-			sig_catcher(0);
-		    }
-		    while (fgets(tmpbuf,512,pfp) != Nullch) {
-			d = cpytill(scrbuf,tmpbuf,':');
-#ifdef DEBUGGING
-			if (debug & DEB_FILEXP)
-			    printf("p %s\n",tmpbuf) FLUSH;
-#endif
-			if (strEQ(scrbuf,tildename)) {
-#ifdef NEWSADMIN
-			    if (strEQ(newsadmin,tildename))
-				newsuid = atoi(index(d,':')+1);
-#endif
-			    for (i=LOGDIRFIELD-2; i; i--) {
-				if (d)
-				    d = index(d+1,':');
-			    }
-			    if (d) {
-				cpytill(scrbuf,d+1,':');
-				tildedir = savestr(scrbuf);
-				strcat(scrbuf,s);
-				strcpy(filename,scrbuf);
-			    }
-			    break;
-			}
-		    }
-		    fclose(pfp);
-		}
-#endif
 	    }
 #else !TILDENAME
 #ifdef VERBOSE
@@ -1004,24 +964,9 @@ int uid;
     char *s, *c;
 
 #ifdef PASSNAMES
-#ifdef GETPWENT
     struct passwd *pwd = getpwuid(uid);
     
     s = pwd->pw_gecos;
-#else
-    char tmpbuf[512];
-    int i;
-
-    getpw(uid, tmpbuf);
-    for (s=tmpbuf, i=GCOSFIELD-1; i; i--) {
-	if (s)
-	    s = index(s,':')+1;
-    }
-    if (!s)
-	return nullstr;
-    cpytill(tmpbuf,s,':');
-    s = tmpbuf;
-#endif
 #ifdef BERKNAMES
 #ifdef BERKJUNK
     while (*s && !isalnum(*s) && *s != '&') s++;
@@ -1045,9 +990,7 @@ int uid;
 	s = c;
     strcpy(buf,tmpbuf);
 #endif
-#ifdef GETPWENT
     endpwent();
-#endif
     return buf;				/* return something static */
 #else
     if ((tmpfp=fopen(filexp(FULLNAMEFILE),"r")) != Nullfp) {

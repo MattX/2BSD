@@ -1,4 +1,4 @@
-/* $Header: /usr/src/games/warp/RCS/score.c,v 1.1 87/07/03 02:13:26 games Exp $ */
+/* $Header: /usr/src/games/warp/RCS/score.c,v 1.1.1 95/01/21 02:13:26 games Exp $ */
 
 /* $Log:	score.c,v $
  * Revision 7.0.1.2a  87/07/03  02:13:26  games
@@ -40,14 +40,7 @@ score_init()
 	finalize(1);
     }
     if (filestat.st_uid != geteuid()) {
-#ifdef GETPWENT
 	printf("Warp will not run right without being setuid.\r\n");
-#else
-	getpw(filestat.st_uid, spbuf);
-	s = index(spbuf, ':');
-	*s = '\0';
-	printf("Warp will not run right without being setuid to %s.\r\n",spbuf);
-#endif
 	finalize(1);
     }
     if ((filestat.st_mode & 0605) != 0605) {

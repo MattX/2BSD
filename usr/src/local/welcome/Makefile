@@ -3,7 +3,7 @@
 #
 DESTDIR=
 BINDIR=	/usr/local
-CFLAGS= -O -DPDP
+CFLAGS= -O
 SEPFLAG= -i
 PROGRAM=	welcome
 SRCS=		welcome.c

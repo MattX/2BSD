@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)busy.c	5.1.1 (2.11BSD GTE) 1/06/93";
+static char sccsid[] = "@(#)busy.c	5.1.2 (2.11BSD GTE) 1/16/95";
 #endif
 
 /*
@@ -22,7 +22,7 @@ char **argv;
 	double la[3];
 	double max;
 
-	loadav(la);
+	getloadavg(la, 3);
 	max = la[0];
 	if (la[1] > max) max = la[1];
 	if (la[2] > max) max = la[2];
@@ -33,31 +33,4 @@ char **argv;
 	else
 		printf("0\n");
 	exit(0);
-}
-
-#include <nlist.h>
-
-struct	nlist nl[] = {
-	{ "_avenrun" },
-	{ 0 },
-};
-
-loadav(avenrun)
-double	*avenrun;
-{
-	register int i;
-	int	kmem;
-
-	if ((kmem = open("/dev/kmem", 0)) < 0) {
-		fprintf(stderr, "No kmem\n");
-		exit(1);
-	}
-	nlist("/vmunix", nl);
-	if (nl[0].n_type==0) {
-		fprintf(stderr, "No namelist\n");
-		exit(1);
-	}
-
-	lseek(kmem, (long)nl[0].n_value, 0);
-	read(kmem, avenrun, 3*sizeof(*avenrun));
 }

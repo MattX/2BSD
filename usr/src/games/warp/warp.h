@@ -1,6 +1,9 @@
-/* $Header: warp.h,v 7.0.1.2 86/12/12 17:08:42 lwall Exp $ */
+/* $Header: warp.h,v 7.0.1.3 95/21/1 17:08:42 lwall Exp $ */
 
 /* $Log:	warp.h,v $
+ * Revision 7.0.1.3 95/21/1 18:40:00 sms
+ * Remove ifdefs around pwd.h
+ *
  * Revision 7.0.1.2  86/12/12  17:08:42  lwall
  * Baseline for net release.
  * 
@@ -116,9 +119,7 @@ EXT char amb[YSIZE][XSIZE];
 #include <sys/timeb.h>
 #endif
 
-#ifdef GETPWENT
 #   include <pwd.h>
-#endif
 
 #define BITSPERBYTE 8
 #define LBUFLEN 512	/* line buffer length */

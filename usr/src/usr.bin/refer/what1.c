@@ -1,8 +1,9 @@
-#ifndef lint
-static char *sccsid = "@(#)what1.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)what1.c	4.1.1 (2.11BSD GTE) 1/21/95";
 #endif
 
 #include "what..c"
+#include <pwd.h>
 
 struct filans files[NFILES];
 char fnames[NAMES];
@@ -87,14 +88,19 @@ wrdoc ( np, argc, argv, relfeed )
 	int eval, k, pid;
 	FILE *rf NULL;
 	FILE *ans NULL;
+	struct passwd *pw;
+
 	pid=getpid();
 	for(af=files; af<files+np; af++)
 	{
 		t = ctime(&af->fdate);
-		getpw(af->uid, s=buf);
-		while (*s && *s!=':') s++;
-		*s=0;
+		pw = getpwuid(af->uid);
+		if (!pw)
+		   buf[0] = '\0';
+		else
+		   strcpy(buf, pw->pw_name);
 		printf("%s (%.20s)  %s, %ld bytes\n",af->nm,t+4,buf,af->size);
+		endpwent();
 		if (relfeed)
 		{
 			k=af-files;

@@ -1,4 +1,4 @@
-/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.3 93/12/31 22:40:37 games Exp $
+/* $Header: /usr/src/games/warp/RCS/intrp.c,v 1.3.1 95/1/21 22:40:37 games Exp $
  *
  * $Log:	intrp.c,v $
  * Revision 7.0.2  93/12/31  23:40:37  games
@@ -613,24 +613,9 @@ int uid;
     char *s, *c;
 
 #ifdef PASSNAMES
-#ifdef GETPWENT
     struct passwd *pwd = getpwuid(uid);
     
     s = pwd->pw_gecos;
-#else
-    char tmpbuf[512];
-    int i;
-
-    getpw(uid, tmpbuf);
-    for (s=tmpbuf, i=GCOSFIELD-1; i; i--) {
-	if (s)
-	    s = index(s,':')+1;
-    }
-    if (!s)
-	return nullstr;
-    Cpytill(tmpbuf,s,':');
-    s = tmpbuf;
-#endif
 #ifdef BERKNAMES
 #ifdef BERKJUNK
     while (*s && !isalnum(*s) && *s != '&') s++;
@@ -654,9 +639,7 @@ int uid;
 	s = c;
     strcpy(buf,tmpbuf);
 #endif
-#ifdef GETPWENT
     endpwent();
-#endif
     return buf;				/* return something static */
 #else
     if ((tmpfp=fopen(filexp(FULLNAMEFILE),"r")) != Nullfp) {

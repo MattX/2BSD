@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)rotprt.c	5.1 (Berkeley) 5/15/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)rotprt.c	5.1.1 (2.11BSD GTE) 1/21/95";
 #endif not lint
 
 /*
@@ -26,7 +26,7 @@ char **argv;
 	struct header h;
 	struct dispatch d[256];
 	struct stat stb;
-	off_t tell();
+	off_t lseek();
 	int i,size;
 
 	argc--, argv++;
@@ -42,7 +42,7 @@ char **argv;
 	if (read(0, d, sizeof(d)) != sizeof(d))
 		fprintf(stderr, "dispatch read error\n"), exit(1);
 	fstat(0, &stb);
-	size = stb.st_size - tell(0);
+	size = stb.st_size - lseek(0, 0L, 1);
 	fprintf(stderr, "%d bytes of characters\n", size);
 	chp = sbrk(size);
 	read(0, chp, size);

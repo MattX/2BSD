@@ -4,8 +4,8 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)rotate.c	5.1 (Berkeley) 5/15/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)rotate.c	5.1.1 (2.11BSD GTE) 1/21/95";
 #endif not lint
 
 /*
@@ -26,7 +26,7 @@ char **argv;
 	struct header h;
 	struct dispatch d[256], nd;
 	struct stat stb;
-	off_t tell();
+	off_t lseek();
 	int i,size;
 	int beg;
 	char scr[2048];
@@ -50,13 +50,13 @@ char **argv;
 		exit(1);
 	}
 	fstat(0, &stb);
-	size = stb.st_size - tell(0);
+	size = stb.st_size - lseek(0, 0L, 1);
 	fprintf(stderr, "%d bytes of characters\n", size);
 	chp = sbrk(size + 1024);
 	read(0, chp, size);
 	write(1, &h, sizeof (h));
 	write(1, d, sizeof (d));
-	beg = tell(1);
+	beg = lseek(1, 0L, 1);
 	for (i = 0; i < 256; i++)
 		if (d[i].nbytes) {
 			if (d[i].addr + d[i].nbytes > size) {
@@ -65,12 +65,12 @@ char **argv;
 			}
 			cvt(&d[i], chp+d[i].addr, &nd, scr);
 			d[i] = nd;
-			d[i].addr = tell(1) - beg;
+			d[i].addr = lseek(1, 0L, 1) - beg;
 			write(1, scr, d[i].nbytes);
 		}
-	fprintf(stderr, "done, new size %d\n", tell(1) - beg);
-	h.size = tell(1) - beg;
-	lseek(1, 0, 0);
+	fprintf(stderr, "done, new size %d\n", lseek(1, 0L, 1) - beg);
+	h.size = lseek(1, 0L, 1) - beg;
+	lseek(1, 0L, 0);
 	write(1, &h, sizeof (h));
 	write(1, d, sizeof (d));
 }

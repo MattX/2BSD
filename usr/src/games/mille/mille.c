@@ -5,7 +5,7 @@
 # endif	attron
 
 /*
- * @(#)mille.c	1.3 (Berkeley) 5/10/83
+ * @(#)mille.c	1.3.1 (2.11BSD GTE) 1/16/95
  */
 
 int	rub();
@@ -25,16 +25,14 @@ reg char	*av[]; {
 		Debug = TRUE;
 	}
 	restore = FALSE;
-# ifdef LOADAV
-	if (geteuid() != ARNOLD) {
-		loadav(avs);
-		if (avs[2] > 9.0) {
-			printf("Sorry.  The load average is too high.\n");
-			printf("Please try again later\n");
-			exit(1);
-		}
+
+	getloadavg(avs, 3);
+	if (avs[2] > 4.0) {
+		printf("Sorry.  The load average is too high.\n");
+		printf("Please try again later\n");
+		exit(1);
 	}
-# endif
+
 	switch (ac) {
 	  case 2:
 		rest_f(av[1]);

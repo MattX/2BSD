@@ -3,15 +3,15 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 5/30/85
+#	@(#)Makefile	5.1.1 (2.11BSD GTE) 1/16/95
 #
 DESTDIR=
-CFLAGS=	-O
+CFLAGS=	-O -DCHECKBUSY
 LIBS=	-lm -ltermcap
 BIN=	$(DESTDIR)/usr/games
 LIB=	$(DESTDIR)/usr/games/lib
 USER=	daemon
-UTILS=	snscore
+UTILS=	snscore busy
 OBJS=	snake.o move.o
 ALL=	snake ${UTILS}
 SEPFLAG= -i
@@ -32,7 +32,7 @@ busy:	busy.c
 install: all
 	install -s -m 4755 -o ${USER} snake ${BIN}/snake
 	install -s -m 755 -o ${USER} snscore ${BIN}/snscore
-#	install -s -m 755 -o ${USER} busy ${BIN}/busy
+	install -s -m 755 -o ${USER} busy ${LIB}/busy
 	cat /dev/null >> $(LIB)/snakerawscores
 	chmod 644 $(LIB)/snakerawscores
 	chown $(USER) $(LIB)/snakerawscores

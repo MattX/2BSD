@@ -1,19 +1,9 @@
-#include <time.h>
 #include <stdio.h>
-#include "cpu.h"
-#include <nlist.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include "./cpu.h"
 
-extern	struct nlist	namelist[];
-extern	struct nlist	nl[];
-
-struct nlist	nl[] = { { "_cpu" }, { "" } };
-double ldvec[4];
-int kmem;
-
-struct nlist	namelist[] = {
-	{ "_avenrun" },
-	{ 0 }
-};
+double ldvec[3];
 
 char *days[] = { "Sunday", "Monday", "Tuesday", "Wednesday",
 		 "Thursday", "Friday", "Saturday" };
@@ -27,36 +17,40 @@ char *ttime[] = { "morning ", "afternoon ", "evening ", "night " };
 main()
 {
 	register struct tm *det;
-	int a, b, x, y, num, cpu;
+	size_t size;
+	int a, b, x, y, mib[2];
 	long secs;
 	char	bot[100], *foo, goo[50], ap;
+	char	machine[64], model[64], ostype[64];
+
 	time(&secs);
-#ifdef	LOAD
-#if	defined(PDP)
-	loadav(ldvec);
-#else	defined(PDP)
-	nlist("/vmunix", namelist);
-	if (namelist[0].n_type == 1)
-		puts("/vmunix no namelist\n"), exit(1);
-	kmem = open("/dev/kmem", 0);
-	if (kmem <= 0)
-		printf("cannot open /dev/kmem\n"), exit(1);
-	lseek(kmem, (long)namelist[0].n_value, 0);
-	read(kmem, &ldvec[0], sizeof ldvec);
-	close(kmem);
-#endif	defined(PDP)
-#endif	LOAD
-#ifdef CPU
-	nlist("/vmunix", nl);
-	if (nl[0].n_type == 1)
-		puts("/vmunix no namelist\n"), exit(1);
-	kmem = open("/dev/kmem", 0);
-	if (kmem <= 0)
-		printf("cannot open /dev/kmem\n"), exit(1);
-	lseek(kmem, nl[0].n_value, 0);
-	read(kmem, &cpu, sizeof(cpu));
-	close(kmem);
-#endif CPU
+	(void)getloadavg(ldvec, 3);
+
+	mib[0] = CTL_HW;
+	mib[1] = HW_MACHINE;
+	size = sizeof (machine);
+	if	(sysctl(mib, 2, machine, &size, NULL, 0) < 0)
+		{
+		printf("Can't get machine type\n");
+		strcpy(machine, "?");
+		}
+	mib[0] = CTL_HW;
+	mib[1] = HW_MODEL;
+	size = sizeof (model);
+	if	(sysctl(mib, 2, model, &size, NULL, 0) < 0)
+		{
+		printf("Can't get cpu type\n");
+		strcpy(model, "?");
+		}
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_OSTYPE;
+	size = sizeof (ostype);
+	if	(sysctl(mib, 2, ostype, &size, NULL, 0) < 0)
+		{
+		printf("Can't get ostype\n");
+		strcpy(ostype, "?");
+		}
+
 	ap = "AP"[(det = localtime(&secs))->tm_hour >= 12];
 	if (det->tm_hour > 0 && det->tm_hour < 12)
 		foo = ttime[0];
@@ -68,22 +62,18 @@ main()
 		det->tm_hour = 12;
 	fflush(stdout);
 	printf("\033[2J\033(0\033)0\033[m");
-#ifdef	LOAD
 	printf("\033[3;11H\033(B\033)B   Load Average\033(0\033)0");
 	printf("\033[4;11Hlqqqqqqqqqqqqqqqqk");
 	printf("\033[5;11Hx                x");
 	printf("\033[6;11Hmqqqqqqqqqqqqqqwqj");
 	printf("\033[5;13H%.02f %.02f %.02f", ldvec[0], ldvec[1], ldvec[2]);
 	printf("\033[7;16Hlqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk");
-#else   LOAD
-	printf("\033[7;16Hlqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk");
-#endif	LOAD
 #ifdef	TTY
 	printf("\033[3;51H\033(B\033)BTTY Name\033(0\033)0");
 	printf("\033[4;46Hlqqqqqqqqqqqqqqqqk");
 	printf("\033[5;46Hx                x");
 	printf("\033[6;46Hmqwqqqqqqqqqqqqqqj");
-	printf("\033[5;50H\033(B\033)B%s\033(0\033)0",ttyname(isatty(ttyslot())));
+	printf("\033[5;50H\033(B\033)B%s\033(0\033)0",ttyname(0));
 	printf("\033[7;16Hlqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqvqqqqqqqqk");
 #else   TTY
 	printf("\033[7;16Hlqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk");
@@ -111,84 +101,14 @@ main()
 #ifdef  LIGHT
 	printf("\033[13;13H\033[7m                                                ");
 #endif  LIGHT
-#ifdef  CPU
 	printf("\033[m");
-	switch(cpu) {
-		case VAX_780:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 11/780 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 11/780 running Ultrix");
-#endif LIGHT
-			break;
-		case VAX_750:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 11/750 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 11/750 running Ultrix");
-#endif LIGHT
-			break;
-		case VAX_730:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 11/730 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 11/730 running Ultrix");
-#endif LIGHT
-			break;
-		case VAX_8600:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 8600 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 8600 running Ultrix");
-#endif LIGHT
-			break;
-		case VAX_8200:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 8200 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 8200 running Ultrix");
-#endif LIGHT
-			break;
-		case VAX_8800:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A VAX 8800 running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A VAX 8800 running Ultrix");
-#endif LIGHT
-			break;
-		case MVAX_I:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A MicroVAX I running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A MicroVAX I running Ultrix");
-#endif LIGHT
-			break;
-		case MVAX_II:
-#ifdef LIGHT
-			printf("\033[13;13H\033[7m        A MicroVAX II running Ultrix");
-#else LIGHT
-			printf("\033[13;13H        A MicroVAX II running Ultrix");
-#endif LIGHT
-			break;
-		default:
-			printf("\033[13;13H        CPU ident error");
-			break;
-	}
-#else   CPU
-#ifdef LIGHT
-#if defined(PDP)
-	printf("\033[13;13H\033[7m        A PDP-11 running 2.11BSD");
-#else defined(PDP)
-	printf("\033[13;13H\033[7m        A system running Ultrix");
-#endif defined(PDP)
-#else  LIGHT
-#if defined(PDP)
-	printf("\033[13;13H        A PDP-11 running 2.11BSD");
-#else defined(PDP)
-	printf("\033[13;13H        A system running Ultrix");
-#endif defined(PDP)
-#endif LIGHT
-#endif  CPU
+#ifdef	LIGHT
+	printf("\033[13;13H\033[7m       A %s/%s running %s",
+#else
+	printf("\033[13;13H       A %s/%s running %s",
+#endif
+		machine, model, ostype);
+
 #ifdef	UVERS
 	fp = fopen("/etc/motd", "r");
 	fscanf(fp, "%s%s", poo, doo);
