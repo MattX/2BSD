@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)systm.h	1.2 (2.11BSD GTE) 12/29/94
+ *	@(#)systm.h	1.3 (2.11BSD GTE) 1996/5/9
  */
 
 #ifndef SUPERVISOR
@@ -66,6 +66,7 @@ dev_t	dumpdev;		/* device to take dumps on */
 long	dumplo;			/* offset into dumpdev */
 dev_t	swapdev;		/* swapping device */
 dev_t	pipedev;		/* pipe device */
+int	nodev();		/* no device function used in bdevsw/cdevsw */
 
 extern	int icode[];		/* user init code */
 extern	int szicode;		/* its size */

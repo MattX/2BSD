@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)boot.c	2.3 (2.11BSD) 1995/06/08
+ *	@(#)boot.c	3.0 (2.11BSD) 1996/5/9
  */
 #include "../h/param.h"
 #include "../machine/seg.h"
@@ -47,6 +47,7 @@ bool_t		overlaid = 0;
 u_short		pdrproto[16 + NOVL] = {0};
 struct exec	exec;
 struct ovlhdr	ovlhdr;
+int		bootdebug;
 unsigned	btoc();
 
 struct	loadmap {
@@ -172,10 +173,18 @@ main()
 	 */
 	if (checkword != ~bootopts)
 		bootopts = RB_SINGLE | RB_ASKNAME;
+	j = -1;
 	do {
 		if (bootopts & RB_ASKNAME) {
+another:
 			printf(": ");
 			gets(line);
+			cp = line;
+			if	(*cp == '-')
+				{
+				dobootopts(cp, &bootopts);
+				goto another;
+				}
 		} else {
 			strcpy(line, defdev);
 			strcat(line, defname);
@@ -196,8 +205,17 @@ main()
 			bcopy(line, line + strlen(defdev), strlen(line) + 1);
 			bcopy(defdev, line, strlen(defdev));
 			}
-		i = open(line, 0);
 		j = -1;
+		if	(cp = index(line, ' '))
+			{
+			if	((bootflags(cp, &bootopts, "bootfile")) == -1)
+				{
+				bootopts |= RB_ASKNAME;
+				continue;
+				}
+			*cp = '\0';
+			}
+		i = open(line, 0);
 		if (i >= 0) {
 			file = &iob[i - 3];	/* -3 for pseudo stdin/o/e */
 			j = checkunix(i, setup(i));
@@ -592,3 +610,144 @@ btoc(nclicks)
 {
 	return((unsigned)(((((long) nclicks) + ((long) 63)) >> 6)));
 }
+
+/*
+ * Couldn't use getopt(3) for a couple reasons:  1) because that would end up 
+ * dragging in way too much of libc.a, and 2) the code to build argc
+ * and argv would be almost as large as the parsing routines themselves.
+*/
+
+char *
+arg(cp)
+	register char *cp;
+	{
+
+	if	((cp = index(cp, ' ')) == NULL)
+		return(NULL);
+	while	(*cp == ' ' || *cp == '\t')
+		cp++;
+	if	(*cp == '\0')
+		return(NULL);
+	return(cp);
+	}
+
+/*
+ * Flags to boot may be present in two places.  1) At the ': ' prompt enter
+ * a line starting with "-bootflags".  2) After the filename.  For example, 
+ * to turn on the autoconfig debug flag:
+ *
+ * : -bootflags -D
+ *
+ * To force the kernel to use the compiled in root device (which also affects
+ * swapdev, pipedev and possibly dumpdev):
+ *
+ * : -bootflags -R
+ *
+ * To specify flags on the filename line place the options after the filename:
+ *
+ * : ra(0,0)unix -D -s
+ *
+ * will cause the kernel to use the compiled in root device (rather than auto
+ * matically switching to the load device) and enter single user mode.
+ *
+ * Bootflags may also be specified as a decimal number (you will need the
+ * sys/reboot.h file to look up the RB_* flags in).  Turning all bootflags off
+ * is the special case:
+ *
+ * : -bootflags 0
+ *
+ * There is a general purpose 'debug' flag word ("bootdebug") which can be
+ * set to any arbitrary 16 bit value.  This can be used when debugging a 
+ * driver for example.
+ *
+ * : -bootdebug 16
+*/
+
+#define	BOOTFLAGS	"-bootflags"
+#define	BOOTDEBUG	"-bootdebug"
+
+dobootopts(cp, opt)
+	register char *cp;
+	int *opt;
+	{
+	char	*bflags = BOOTFLAGS;
+	char	*bdebug = BOOTDEBUG;
+
+	if	(strncmp(cp, bdebug, sizeof (BOOTDEBUG) - 1) == 0)
+		{
+		if	(cp = arg(cp))
+			bootdebug = atoi(cp);
+		else
+			printf("%s = %u\n", bdebug, bootdebug);
+		return(0);
+		}
+	if	(strncmp(cp, bflags, sizeof (BOOTFLAGS) - 1) == 0)
+		{
+		if	(cp = arg(cp))
+			(void) bootflags(cp, &bootopts, bflags);
+		else
+			printf("%s = %u\n", bflags, bootopts);
+		return(0);
+		}
+	printf("bad cmd: %s\n", cp);
+	return(0);
+	}
+
+bootflags(cp, pflags, tag)
+	register char *cp;
+	int *pflags;
+	char *tag;
+	{
+	int first = 1;
+	int flags = 0;
+
+	while	(*cp)
+		{
+		while	(*cp == ' ')
+			cp++;
+		if	(*cp == '\0')
+			break;
+		if	(*cp == '-')
+			{
+			first = 0;
+			while	(*++cp)
+				switch	(*cp)
+					{
+					case	' ':
+						goto nextarg;
+					case	'a':
+						flags |= RB_ASKNAME;
+						break;
+					case	'D':
+						flags |= RB_AUTODEBUG;
+						break;
+					case	'r':
+						flags |= RB_RDONLY;
+						break;
+					case	'R':
+						flags |= RB_DFLTROOT;
+						break;
+					case	's':
+						flags |= RB_SINGLE;
+						break;
+					default:
+						goto usage;
+					}
+				continue;
+			}
+		if	(first && *cp >= '0' && *cp <= '9')
+			{
+			*pflags = atoi(cp);
+			return(0);
+			}
+		goto usage;
+
+nextarg: 	;
+		}
+	if	(first == 0)
+		*pflags = flags;
+	return(0);
+usage:
+	printf("usage: %s [ -aDrRs ]\n", tag);
+	return(-1);
+	}

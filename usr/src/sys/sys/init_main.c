@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	2.0 (2.11BSD GTE) 1995/12/24
+ *	@(#)init_main.c	2.1 (2.11BSD GTE) 1996/5/9
  */
 
 #include "param.h"
@@ -105,20 +105,29 @@ main()
 	nchinit();
 	clkstart();
 
-#ifdef	GENERIC
 /*
- * If this is the GENERIC kernel we set 'rootdev' to be the same as
- * the device booted from.  'swapdev' is set to the the 'b' partition
- * of 'bootdev'.  Set 'pipedev' to be 'rootdev'.  The 077 in the first
- * statement removes the controller number (bits 6 and 7) - those bits
- * are passed thru from /boot but would only greatly confuse the rest
- * of the kernel.
+ * If the kernel is configured for the boot/load device AND the use of the
+ * compiled in 'bootdev' has not been overridden (by turning on RB_DFLTROOT,
+ * see conf/boot.c for details) THEN switch 'rootdev', 'swapdev' and 'pipedev'
+ * over to the boot/load device.  Set 'pipedev' to be 'rootdev'.
+ *
+ * The &077 removes the controller number (bits 6 and 7) - those bits are 
+ * passed thru from /boot but would only greatly confuse the rest of the kernel.
 */
-	rootdev = makedev(major(bootdev), minor(bootdev) & 077);
-	swapdev = rootdev | 1;	/* partition 'b' */
-	pipedev = rootdev;
-	dumpdev = NODEV;	/* paranoia */
-#endif
+	i = major(bootdev);
+	if	((bdevsw[i].d_strategy != nodev) && !(boothowto & RB_DFLTROOT))
+		{
+		rootdev = makedev(i, minor(bootdev) & 077);
+		swapdev = rootdev | 1;	/* partition 'b' */
+		pipedev = rootdev;
+/*
+ * We check that the dump device is the same as the boot device.  If it is 
+ * different then it is likely that crashdumps go to a tape device rather than 
+ * the swap area.  In that case do not switch the dump device.
+*/
+		if	((dumpdev != NODEV) && major(dumpdev) == i)
+			dumpdev = swapdev;
+		}
 
 /*
  * Need to attach the root device.  The CSR is passed thru because this

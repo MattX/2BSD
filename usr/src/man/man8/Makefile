@@ -14,11 +14,12 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.3 (2.11BSD) 1996/1/23
+#	@(#)Makefile	5.4.4 (2.11BSD) 1996/5/24
 #
 MDIR=	/usr/man/cat8
 SRCS=	XNSrouted.8 ac.8 adduser.8 arff.8 arp.8 autoconfig.8 bad144.8 \
 	badsect.8 bugfiler.8 catman.8 chown.8 clri.8 comsat.8 crash.8 \
+	boot.8 \
 	cron.8 dcheck.8 diskpart.8 dmesg.8 drtest.8 dump.8 dumpdir.8 \
 	dumpfs.8 edquota.8 format.8 fsck.8 fstat.8 \
 	gettable.8 getty.8 htable.8 icheck.8 ifconfig.8 implog.8 \
@@ -33,6 +34,7 @@ SRCS=	XNSrouted.8 ac.8 adduser.8 arff.8 arp.8 autoconfig.8 bad144.8 \
 	uuclean.8 uupoll.8 uusnap.8 uuxqt.8
 OBJS=	XNSrouted.0 ac.0 adduser.0 arff.0 arp.0 autoconfig.0 bad144.0 \
 	badsect.0 bugfiler.0 catman.0 chown.0 clri.0 comsat.0 crash.0 \
+	boot.0 \
 	cron.0 dcheck.0 diskpart.0 dmesg.0 drtest.0 dump.0 dumpdir.0 \
 	dumpfs.0 edquota.0 format.0 fsck.0 fstat.0 \
 	gettable.0 getty.0 htable.0 icheck.0 ifconfig.0 implog.0 \

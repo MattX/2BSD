@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980,1986 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)reboot.c	5.5.1 (2.11BSD) 1/1/94";
+static char sccsid[] = "@(#)reboot.c	5.5.2 (2.11BSD) 1996/5/9";
 #endif
 
 /*
@@ -25,11 +25,7 @@ static char sccsid[] = "@(#)reboot.c	5.5.1 (2.11BSD) 1/1/94";
 #include <sys/reboot.h>
 #include <sys/signal.h>
 
-#ifdef pdp11
-#	define	OPTS	"lqnhdarsf"
-#else
-#	define	OPTS	"lqnhdarsfk"
-#endif
+#define	OPTS	"lqnhdarsfRD"
 
 main(argc, argv)
 	int argc;
@@ -70,9 +66,8 @@ main(argc, argv)
 			case 'r':  howto |= RB_RDONLY;	break;
 			case 's':  howto |= RB_SINGLE;	break;
 			case 'f':  howto |= RB_NOFSCK;	break;
-#ifndef pdp11
-			case 'k':  howto |= RB_KDB;	break;
-#endif
+			case 'R':  howto |= RB_DFLTROOT; break;
+			case 'D':  howto |= RB_AUTODEBUG; break;
 			case '?':
 				fprintf(stderr,
 					"usage: %s [-%s]\n", myname, OPTS);

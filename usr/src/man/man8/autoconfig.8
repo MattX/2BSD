@@ -2,14 +2,14 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)autoconfig.8	2.6 (2.11BSD GTE) 12/30/92
+.\"	@(#)autoconfig.8	2.7 (2.11BSD GTE) 1996/5/24
 .\"
 .TH AUTOCONFIG 8 "December 30, 1992"
 .UC 2
 .SH NAME
 autoconfig \- configure the running system to the hardware
 .SH SYNOPSIS
-.B "autoconfig [\-i ifile] [\-n nfile] [\-k kfile] [\-v] [\-c]"
+.B "autoconfig [\-i ifile] [\-n nfile] [\-k kfile] [\-v] [\-d] [\-c]"
 .SH DESCRIPTION
 .PP
 .I Autoconfig
@@ -83,6 +83,10 @@ table.  Normally only attached devices are reported.
 \fB\-\^c\fR
 Report error messages for devices skipped because of problems with
 their interrupt vectors.
+.TP
+\fB\-\^d\fR
+Turn on debugging mode.  Shows many gory details of autoconfig's internal
+processing.
 .SH BUGS
 Devices of the same type must be listed with ascending unit numbers
 or with wildcards.
@@ -98,6 +102,8 @@ There is a flag set in the kernel that autoconfig has already run, running
 autoconfig a second time results in the error:
 .TP
 "namelist doesn't match running kernel."
+Autoconfig attempts to open /dev/kmem for write.  If the kernel is in
+securelevel 1 or higher the open of /dev/kmem will fail.
 .SH FILES
 .ta 2i
 /etc/dtab	device table
@@ -106,4 +112,6 @@ autoconfig a second time results in the error:
 .br
 /dev/kmem
 .SH SEE ALSO
-ucall(2), dtab(5)
+ucall(2), 
+nlist(3),
+dtab(5)

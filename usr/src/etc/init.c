@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)init.c	5.6.2 (2.11BSD GTE) 1995/05/04";
+static char sccsid[] = "@(#)init.c	5.6.3 (2.11BSD GTE) 1996/5/9";
 #endif
 
 #include <sys/param.h>
@@ -117,8 +117,8 @@ main(argc, argv)
 
 	openlog("init", LOG_CONS|LOG_ODELAY, LOG_AUTH);
 #ifdef pdp11
-	if (autoconfig() == 0)
-		howto = RB_SINGLE;
+	if (autoconfig(howto) == 0)
+		howto = RB_SINGLE | (howto & RB_AUTODEBUG);
 #endif
 	signal(SIGSYS, badsys);
 	sigvec(SIGTERM, &rvec, (struct sigvec *)0);
@@ -743,7 +743,8 @@ done:
 #ifdef pdp11
 #include <machine/autoconfig.h>
 
-autoconfig()
+autoconfig(howto)
+	int	howto;
 {
 	int pid, status, f;
 	static char config[]= "/etc/autoconfig";
@@ -755,7 +756,8 @@ autoconfig()
 			dup2(f, 0);
 		dup2(0, 1);
 		dup2(0, 2);
-		execl(config, "autoconfig", "-vc", 0);
+		execl(config, "autoconfig",
+			 howto & RB_AUTODEBUG ? "-vcd" : "-vc", 0);
 		syslog(LOG_ERR, "init: couldn't exec %s\n", config);
 		exit(AC_SETUP);
 	}

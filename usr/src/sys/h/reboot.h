@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)reboot.h	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)reboot.h	1.2 (2.11BSD GTE) 1996/5/9
  */
 
 /*
@@ -23,6 +23,7 @@
 #define	RB_NOFSCK	0x080	/* don't perform fsck's on reboot */
 #define	RB_POWRFAIL	0x100	/* reboot caused by power failure */
 #define	RB_RDONLY	0x200	/* mount root fs read-only */
+#define	RB_AUTODEBUG	0x400	/* init runs autoconfig with "-d" (debug) */
 
 #define	RB_PANIC	0	/* reboot due to panic */
 #define	RB_BOOT		1	/* reboot due to boot() */
