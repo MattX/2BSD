@@ -1,7 +1,7 @@
 /*
  * Steven Schultz - sms@moe.2bsd.com
  *
- *	@(#)accton.c	1.0 (2.11BSD) 1999/2/10
+ *	@(#)accton.c	1.1 (2.11BSD) 1999/5/5
  *
  * accton - enable/disable process accounting.
 */
@@ -170,12 +170,20 @@ main(argc, argv)
 			errx(1, "%s content out of bound(30000>pid>3)",
 				pidfile);
 		fclose(fp);
+/*
+ * If the signal can be successfully posted to the process then do not
+ * attempt to start another instance of acctd (it will fail but syslog
+ * an annoying error message).  If the signal can not be posted but the
+ * acctd process does not exist then go start it.  Otherwise complain.
+*/
 		if	(kill(pid, SIGHUP) < 0)
 			{
 			if	(errno != ESRCH)
 				err(1, "%d from %s bogus value", pid, pidfile);
 			/* process no longer exists, fall thru and start it */
 			}
+		else
+			exit(0);
 		}
 	pid = vfork();
 	switch	(pid)
