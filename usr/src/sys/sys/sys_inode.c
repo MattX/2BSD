@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.5 (2.11BSD GTE) 1995/05/21
+ *	@(#)sys_inode.c	1.6 (2.11BSD GTE) 1995/12/29
  */
 
 #include "param.h"
@@ -651,7 +651,6 @@ openi(ip, mode)
 		 */
 		if (securelevel >= 2 && (mode & FWRITE) && isdisk(dev, IFBLK))
 			return(EPERM);
-#ifdef	notyet
 		/*
 		 * Do not allow opens of block devices that are 
 		 * currently mounted.
@@ -659,14 +658,11 @@ openi(ip, mode)
 		 * 2.11BSD must relax this restriction to allow 'fsck' to
  		 * open the root filesystem (which is always mounted) during 
 		 * a reboot.  Once in secure or very secure mode the 
-		 * above restriction is fully effective.
-		 *
-		 * Also, 'df' on 2.11BSD opens the device - this check can
-		 * not be enabled until the 'statfs' capability is present.
+		 * above restriction is fully effective.  On the otherhand
+		 * fsck should 1) use the raw device, 2) not do sync calls...
 		 */
 		if (securelevel > 0 && (error = ufs_mountedon(dev)))
 			return(error);
-#endif
 		return ((*bdevsw[maj].d_open)(dev, mode, S_IFBLK));
 	}
 	return (0);

@@ -3,11 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	1.7 (2.11BSD GTE) 1995/11/27
+ *	@(#)rl.c	1.8 (2.11BSD GTE) 1996/1/8
  */
 
 /*
  *  RL01/RL02 disk driver
+ *
+ * Date: January 7, 1996
+ * Fix broken UCB_METER statistics gathering.
  *
  * Date: November 27, 1995
  * Add support for using the software unibus/qbus map.  This allows 3rd
@@ -103,9 +106,7 @@ rlattach(addr, unit)
 {
 #ifdef UCB_METER
 	if (rl_dkn < 0) {
-		dk_alloc(&rl_dkn, NRL+1, "rl", 20L * 10L * 512L);
-		if (rl_dkn >= 0)
-			dk_wps[rl_dkn+NRL] = 0L;
+		dk_alloc(&rl_dkn, NRL, "rl", 20L * 10L * 512L);
 	}
 #endif
 
@@ -442,7 +443,7 @@ rlintr()
 	bp = rltab.b_actf;
 #ifdef UCB_METER
 	if (rl_dkn >= 0)
-		dk_busy &= ~((1 << (rl_dkn + rl.dn)) | (1 << (rl_dkn + NRL)));
+		dk_busy &= ~(1 << (rl_dkn + rl.dn));
 #endif
 	if (rladdr->rlcs & RL_CERR) {
 		if (rladdr->rlcs & RL_HARDERR && rltab.b_errcnt > 2) {
@@ -518,7 +519,7 @@ rlio()
 	rladdr->rlcs = rl.com | (rl.rl_un.w[0] & 03) << 4;
 #ifdef UCB_METER
 	if (rl_dkn >= 0) {
-		int dkn = rl_dkn + NRL;
+		int dkn = rl_dkn + rl.dn;
 
 		dk_busy |= 1<<dkn;
 		dk_xfer[dkn]++;

@@ -1,5 +1,5 @@
-#ifndef lint
-static	char *sccsid = "@(#)iostat.c	4.15 (Berkeley) 87/01/12";
+#if	!defined(lint) && defined(DOSCCS)
+static	char *sccsid = "@(#)iostat.c	4.16 (2.11BSD) 1996/1/8";
 #endif
 
 /*
@@ -248,10 +248,10 @@ stats(dn)
 		return;
 	}
 	atime = s.dk_time[dn];
-	atime /= (float) hz;
+	atime /= (float) hz; /* time controller busy, seconds */
 	words = (double)s.dk_wds[dn]*32.0;	/* number of words transferred */
-	xtime = (double)dk_mspw[dn]*words;	/* transfer time */
-	itime = atime - xtime;		/* time not transferring */
+	xtime = (double)dk_mspw[dn]*words/1000.;/* transfer time , seconds */
+	itime = atime - xtime;	/* time busy but not transferring , seconds */
 	if (xtime < 0)
 		itime += xtime, xtime = 0;
 	if (itime < 0)

@@ -1,4 +1,4 @@
-/*	@(#)llib-lc	1.40 (2.11BSD GTE) 1995/09/10 */
+/*	@(#)llib-lc	1.41 (2.11BSD GTE) 1996/1/1 */
 
 /* LINTLIBRARY */
 
@@ -6,6 +6,7 @@
 #include <sys/time.h>
 
 #include <sys/dir.h>
+#include <sys/mount.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -66,6 +67,7 @@ int	fork() { return(0); }
 int	fperr(f) struct fperr *f; { return(0); }
 int	fsync( f ) { return 0; }
 int	fstat(f, b) struct stat *b; { return(0); }
+int	fstatfs(f, b) int f; struct statfs *b; { return(0); }
 int	ftruncate( d, l) off_t l; { return 0;}
 int	getdtablesize() { return 20 ; }
 gid_t	getegid() { return((gid_t)1); }
@@ -76,6 +78,7 @@ u_long	gethostid() { return 1L; }
 int	gethostname( n, l ) char *n; int l; { return 0 ;}
 int	getitimer( w, v ) struct itimerval *v; { return 0; }
 int	getloadavg( d, n) double d[]; int n; { return 0; }
+int	getmntinfo(b, f) struct statfs **b; int f; { return (0); }
 int	getpagesize() { return 1; }
 int	getpeername(s, n, l) struct sockaddr *n; int *l; { return (0); }
 int	getpgrp(p) { return 1; }
@@ -86,6 +89,7 @@ int	getrlimit( res, rip) struct rlimit *rip; { return 0;}
 int	getrusage( res, rip) struct rusage *rip; { return 0;}
 int	getsockname(s, name, namelen) char *name; int *namelen; { return(0); }
 int	getsockopt( s, level, opt, buf, len ) char *buf; int *len; { return 0;}
+int	getstatfs(b, s, f) struct statfs *b; int s, f; { return(0); }
 int	gettimeofday( t, z ) struct timeval *t; struct timezone *z; { return 0;}
 uid_t	getuid() { return((uid_t)1); }
 int	ioctl( d, r, p) u_long r; char *p; { return 0;}
@@ -157,6 +161,7 @@ int	sigstack(ss, oss) struct sigstack *ss, *oss; { return 0 ; }
 int	socket( a, t, p) {return 1;}
 int	socketpair( d, t, p, s ) int s[2]; { return 0; }
 int	stat(s, b) char *s; struct stat *b; { return(0); }
+int	statfs(s, b) char *s; struct statfs *b; { return(0); }
 #ifdef notdef
 char *	stk( a ) char * a; { return a; }
 char *	sstk( a ) int a; { return (char *)0; }

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.3 (2.11BSD GTE) 1995/11/20
+ *	@(#)xp.c	2.4 (2.11BSD GTE) 1996/1/8
  */
 
 /*
@@ -143,8 +143,9 @@ xpattach(xpaddr, unit)
 	static int last_attached = -1;
 
 #ifdef UCB_METER
-	if (xp_dkn < 0)
-		dk_alloc(&xp_dkn, NXPD+NXPC, "xp", 0L);
+	if (xp_dkn < 0) {
+		dk_alloc(&xp_dkn, NXPD, "xp", 0L);
+	}
 #endif
 
 	if ((unsigned)unit >= NXPC)
@@ -249,8 +250,9 @@ register int	mask;
 	if	(part >= i)
 		return(ENXIO);
 #ifdef	UCB_METER
-	if	(xp_dkn >= 0)
-		dk_wps[xd - xp_drive] = (long) xd->xp_nsect * (rpm / 60) * 256L;
+	if	(xp_dkn >= 0) {
+		dk_wps[xp_dkn+unit] = (long) xd->xp_nsect * (rpm / 60) * 256L;
+		}
 #endif
 	mask = 1 << part;
 	dkoverlapchk(xd->xp_open, dev, xd->xp_label, "xp");
@@ -474,8 +476,9 @@ xpustart(unit)
 	xpaddr->hpcs1.c[0] = HP_IE;
 	xpaddr->hpas = 1 << xd->xp_unit;
 #ifdef UCB_METER
-	if (xp_dkn >= 0)
+	if (xp_dkn >= 0) {
 		dk_busy &= ~(1 << (xp_dkn + unit));
+	}
 #endif
 	dp = &xputab[unit];
 	if ((bp=dp->b_actf) == NULL)
@@ -675,9 +678,10 @@ loop:
 	xpaddr->hpcs1.w = unit;
 #ifdef UCB_METER
 	if (xp_dkn >= 0) {
-		int dkn = xp_dkn + NXPD + (xc - &xp_controller[0]);
+		int dkn = xp_dkn + XPUNIT(bp->b_dev);
 
 		dk_busy |= 1<<dkn;
+		dk_xfer[dkn]++;
 		dk_seek[dkn]++;
 		dk_wds[dkn] += bp->b_bcount>>6;
 	}
@@ -702,10 +706,6 @@ int dev;
 	xpaddr = xc->xp_addr;
 	as = xpaddr->hpas & 0377;
 	if (xc->xp_active) {
-#ifdef UCB_METER
-		if (xp_dkn >= 0)
-			dk_busy &= ~(1 << (xp_dkn + NXPD + dev));
-#endif
 	/*
  	 * Get device and block structures.  Select the drive.
 	 */
@@ -717,6 +717,11 @@ int dev;
 				return;
 #endif
 		unit = XPUNIT(bp->b_dev);
+#ifdef UCB_METER
+		if (xp_dkn >= 0) {
+			dk_busy &= ~(1 << (xp_dkn + unit));
+		}
+#endif
 		xd = &xp_drive[unit];
 		xpaddr->hpcs2.c[0] = xd->xp_unit;
 		/*
