@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.4 (2.11BSD) 1995/04/13
+#	@(#)Makefile	5.7.5 (2.11BSD) 1996/02/23
 #
 # Several routines have been rewritten in assembly language for the VAX and
 # the PDP. If you are not running on a VAX or PDP, you should use the
@@ -22,6 +22,7 @@ STDSRC=	abort.c alarm.c atoi.c atol.c calloc.c closedir.c crypt.c \
 	initgroups.c isatty.c malloc.c mktemp.c ndbm.c nlist.c \
 	opendir.c perror.c popen.c psignal.c qsort.c random.c readdir.c \
 	regex.c scandir.c seekdir.c setgid.c setegid.c setrgid.c setuid.c \
+	setmode.c \
 	setenv.c seteuid.c setruid.c siglist.c signal.c siginterrupt.c \
 	sleep.c strcasecmp.c strftime.c swab.c sysctl.c syslog.c system.c \
 	telldir.c time.c timezone.c ttyname.c ttyslot.c ualarm.c usleep.c \
@@ -35,6 +36,7 @@ STDOBJ=	abort.o alarm.o atoi.o atol.o calloc.o closedir.o crypt.o \
 	initgroups.o isatty.o malloc.o mktemp.o ndbm.o nlist.o \
 	opendir.o perror.o popen.o psignal.o qsort.o random.o readdir.o \
 	regex.o scandir.o seekdir.o setgid.o setegid.o setrgid.o setuid.o \
+	setmode.o \
 	setenv.o seteuid.o setruid.o siglist.o signal.o siginterrupt.o \
 	sleep.o strcasecmp.o strftime.o swab.o sysctl.o syslog.o system.o \
 	telldir.o time.o timezone.o ttyname.o ttyslot.o ualarm.o usleep.o \

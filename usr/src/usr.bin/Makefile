@@ -1,4 +1,4 @@
-#	Makefile	1.2 (2.11BSD GTE) 1995/06/21
+#	Makefile	1.3 (2.11BSD GTE) 1996/02/23
 #
 DESTDIR=
 CFLAGS=	-O
@@ -8,7 +8,7 @@ SEPFLAG= -i
 #
 SUBDIR=	at calendar dc diction diff3 eqn f77 find graph learn lex lint \
 	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
-	tip uucp uname yacc xargs
+	tip uucp uname yacc xargs xinstall
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -17,7 +17,7 @@ SCRIPT=	lorder mkdep nohup
 # C source that lives in the current directory
 #
 SRCS=	basename.c cal.c cb.c checkeq.c col.c comm.c crypt.c deroff.c \
-	fgrep.c file.c install.c iostat.c join.c look.c mesg.c ptx.c \
+	fgrep.c file.c iostat.c join.c look.c mesg.c ptx.c \
 	rev.c sleep.c sort.c spline.c split.c sum.c tabs.c \
 	tc.c tk.c touch.c tr.c tsort.c tty.c uniq.c units.c
 
@@ -37,7 +37,7 @@ NSTD=	bc egrep
 #
 KMEM=	iostat
 
-all: ${SUBDIR} ${STD} ${NSTD} ${KMEM} xinstall
+all: ${SUBDIR} ${STD} ${NSTD} ${KMEM}
 
 ${SUBDIR}: FRC
 	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
@@ -47,7 +47,7 @@ FRC:
 ${STD} ${KMEM}:
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install: ${STD} ${NSTD} ${KMEM} xinstall units.lib
+install: ${STD} ${NSTD} ${KMEM} units.lib
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do \
@@ -55,7 +55,6 @@ install: ${STD} ${NSTD} ${KMEM} xinstall units.lib
 	-for i in ${KMEM}; do \
 		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
 	install -s ${STD} ${NSTD} ${DESTDIR}/usr/bin
-	install -s -m 755 xinstall ${DESTDIR}/usr/bin/install
 	install -c -m 755 units.lib ${DESTDIR}/usr/lib/units
 
 clean:
@@ -76,10 +75,6 @@ bc egrep:
 	mv y.tab.o $@.o
 	${CC} ${SEPFLAG} -o $@ $@.o
 	rm -f $@.o
-
-# Can't have two "install" targets in a makefile now, can we?
-xinstall: install.c
-	${CC} ${CFLAGS} ${SEPFLAG} -o xinstall install.c
 
 # DO NOT DELETE THIS LINE -- make depend uses it
 
