@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	2.5 (2.11BSD) 1997/2/16
+ *	@(#)kern_acct.c	2.6 (2.11BSD) 1997/8/1
  *
  * This module is a real mishmash of FreeBSD, 4.3BSD, and home brewed code.
  */
@@ -107,14 +107,14 @@ acctwatch()
 		if	(chkfreesp(fs, acctresume) > 0)
 			{
 			acctdisabled = 0;
-			log(LOG_NOTICE, "Accounting resumed\n");
+			log(LOG_NOTICE, "Acct resume\n");
 			}
 		}
 	else
 		{
 		if	(chkfreesp(fs, acctsuspend) <= 0)
 			{
-			log(LOG_NOTICE, "Accounting suspended\n");
+			log(LOG_NOTICE, "Acct suspend\n");
 			acctdisabled = 1;
 			}
 		}
@@ -128,6 +128,7 @@ acct()
 	struct	acct acctbuf;
 	register struct inode *ip;
 	register struct acct *ap = &acctbuf;
+	int	resid;
 
 	acctwatch();
 
@@ -156,21 +157,19 @@ acct()
 	else
 		ap->ac_tty = NODEV;
 	ap->ac_flag = u.u_acflag;
+	u.u_error = 0;			/* XXX */
 	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), ip->i_size,
-			UIO_SYSSPACE, IO_UNIT|IO_APPEND, (int *)0);
+			UIO_SYSSPACE, IO_UNIT|IO_APPEND, (int *)&resid);
 	if	(u.u_error)
 		{
 /*
  * The only time this should happen is when a physical error occurs on the
- *  disk drive or the space is exhausted.  The diagnostic message is not
- * enabled by default to save space and also because there's apparently a
- * race condition during 'reboot'/'fastboot' that would elicit the (harmless
- * I hope) warning message.
+ * disk drive.  The freespace check has been made earlier so an error at this
+ * time is I/O related.  The message is terse to save space (D-space doesn't
+ * grow on trees you know ;)).
 */
+		log(LOG_NOTICE,"acct %d %d\n", u.u_error, resid);
 		acctdisabled = 1;
-#ifdef	DIAGNOSTIC
-		log(LOG_NOTICE, "acct rdwri=%d\n", u.u_error);
-#endif
 		}
 	iunlock(ip);
 	}
