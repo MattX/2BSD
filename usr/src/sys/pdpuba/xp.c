@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.2 (2.11BSD GTE) 1995/08/21
+ *	@(#)xp.c	2.3 (2.11BSD GTE) 1995/11/20
  */
 
 /*
@@ -497,7 +497,7 @@ xpustart(unit)
 #ifdef	XPDEBUG
 		log(LOG_NOTICE, "xp%d preset done\n", unit);
 #endif
-	}
+
 /*
  * XXX - The 'h' partition is used below to access the bad block area.  This
  * XXX - will almost certainly be wrong if the user has defined another 
@@ -518,6 +518,7 @@ xpustart(unit)
 		bbp->av_forw = bp;
 		bp = bbp;
 #endif BADSECT
+	}
 
 #if NXPD > 1
 	/*
