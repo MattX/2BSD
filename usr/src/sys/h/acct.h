@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)acct.h	2.0	(2.11BSD) 1997/2/14
+ *	@(#)acct.h	2.1	(2.11BSD) 1997/11/28
  */
 
 /*
@@ -34,6 +34,7 @@ struct	acct
 #define	ACOMPAT	0004		/* used compatibility mode */
 #define	ACORE	0010		/* dumped core */
 #define	AXSIG	0020		/* killed by a signal */
+#define	ASUGID	0040		/* setuser/group id privileges used */
 
 /*
  * 1/AHZ is the granularity of the data encoded in the various

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.8 (2.11BSD GTE) 1997/8/29
+ *	@(#)kern_sig.c	1.9 (2.11BSD GTE) 1997/11/28
  */
 
 #include "param.h"
@@ -743,8 +743,12 @@ core()
 	register char *np;
 	char	*cp, name[MAXCOMLEN + 6];
 
-	if (u.u_uid != u.u_ruid || u.u_gid != u.u_rgid)
-		return (0);
+	/*
+	 * Don't dump if not root and the process has used set user or
+	 * group privileges.
+	*/
+	if	(u.u_acflag & ASUGID && !suser())
+		return(0);
 	if (ctob(USIZE+u.u_dsize+u.u_ssize) >=
 	    u.u_rlimit[RLIMIT_CORE].rlim_cur)
 		return (0);

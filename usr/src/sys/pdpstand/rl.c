@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)rl.c	2.5 (2.11BSD) 1996/3/8
+ *	@(#)rl.c	2.6 (2.11BSD) 1997/11/7
  */
 
 /*
@@ -134,8 +134,6 @@ reading:
 rlopen(io)
 	register struct iob *io;
 	{
-	register struct	disklabel *lp = &io->i_label;
-	register int part = io->i_part;
 
 	if	(io->i_unit > 3)
 		return(-1);
@@ -144,7 +142,7 @@ rlopen(io)
 	rlgsts(io);		/* get status and head position */
 	if	(devlabel(io, READLABEL) < 0)
 		return(-1);
-	io->i_boff = lp->d_partitions[part].p_offset;
+	io->i_boff = io->i_label.d_partitions[io->i_part].p_offset;
 	return(0);
 	}
 
@@ -221,7 +219,7 @@ rllabel(io)
 	lp->d_nsectors = 20;		/* sectors per track */
 	lp->d_ntracks = 2;		/* tracks per cylinder */
 	lp->d_secpercyl = 40;		/* sectors per cylinder */
-	lp->d_ncylinders = nblks / (lp->d_nsectors * lp->d_ntracks);
+	lp->d_ncylinders = nblks / (20 * 2);
 	lp->d_secperunit = nblks;
 	return(0);
 	}

@@ -32,7 +32,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)fio.c	5.24.1 (2.11BSD) 1996/1/27";
+static char sccsid[] = "@(#)fio.c	5.24.2 (2.11BSD) 1997/11/3";
 #endif
 
 #include "rcv.h"
@@ -41,9 +41,6 @@ static char sccsid[] = "@(#)fio.c	5.24.1 (2.11BSD) 1996/1/27";
 #include <sys/wait.h>
 #include <paths.h>
 #include <errno.h>
-
-#define	S_ISREG(m)	((m & S_IFMT) == S_IFREG)	/* regular file */
-extern int errno;
 
 /*
  * Mail -- a mail program
@@ -145,7 +142,7 @@ setptr(ibuf)
  * characters written, including the newline.
  */
 putline(obuf, linebuf)
-	FILE *obuf;
+	register FILE *obuf;
 	char *linebuf;
 {
 	register int c;
@@ -165,7 +162,7 @@ putline(obuf, linebuf)
  */
 readline(ibuf, linebuf, linesize)
 	FILE *ibuf;
-	char *linebuf;
+	register char *linebuf;
 {
 	register int n;
 
@@ -203,7 +200,6 @@ makemessage(f)
 	FILE *f;
 {
 	register size = (msgCount + 1) * sizeof (struct message);
-	off_t lseek();
 
 	if (message != 0)
 		free((char *) message);
@@ -391,7 +387,7 @@ expand(name)
 getfold(name)
 	char *name;
 {
-	char *folder;
+	register char *folder;
 
 	if ((folder = value("folder")) == NOSTR)
 		return (-1);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_sysent.c	1.11 (2.11BSD GTE) 1997/9/26
+ *	@(#)init_sysent.c	1.12 (2.11BSD GTE) 1997/11/28
  */
 
 /*
@@ -16,11 +16,15 @@
 int	nosys();
 
 /* 1.1 processes and protection */
-int	sethostid(),gethostid(),sethostname(),gethostname(),getpid();
-int	getppid(), fork(),rexit(),execv(),execve(),owait(),wait4();
-int	getuid(),setreuid(),getgid(),getgroups(),setregid(),setgroups();
+int	sethostid(),gethostid(),sethostname(),gethostname();	/* COMPAT-43 */
+int	getpid();
+int	getppid(), fork(),rexit(),execv(),execve();
+int	owait();					/* COMPAT-43 */
+int	wait4(), getuid(),getgid(),getgroups(),setgroups();
 int	geteuid(), getegid(), getlogin();
 int	getpgrp(),setpgrp(), setlogin();
+int	setgid(), setegid(), setuid(), seteuid();
+int	setregid(), setreuid();				/* COMPAT-43 */
 int	ucall();					/* 2BSD calls */
 
 /* 1.2 memory management */
@@ -152,12 +156,12 @@ struct sysent sysent[] = {
 	0, pipe,			/*  42 = pipe */
 	1, setlogin,			/*  43 = setlogin */
 	4, profil,			/*  44 = profil */
-	0, nosys,			/*  45 = nosys */
-	0, nosys,			/*  46 = unused */
+	1, setuid,			/*  45 = setuid */
+	1, seteuid,			/*  46 = seteuid */
 	0, getgid,			/*  47 = getgid */
 	0, getegid,			/*  48 = getegid */
-	0, nosys,			/*  49 = unused */
-	0, nosys,			/*  50 = unused */
+	1, setgid,			/*  49 = setgid */
+	1, setegid,			/*  50 = setegid */
 	1, sysacct,			/*  51 = turn acct off/on */
 	3, phys,			/*  52 = (2.9) set phys addr */
 	1, lock,			/*  53 = (2.9) lock in core */
@@ -191,11 +195,11 @@ struct sysent sysent[] = {
 	1, getpgrp,			/*  81 = getpgrp */
 	2, setpgrp,			/*  82 = setpgrp */
 	3, setitimer,			/*  83 = setitimer */
-	0, owait,			/*  84 = wait,wait3 COMPAT */
+	0, owait,			/*  84 = wait,wait3 COMPAT-43 */
 	0, nosys,			/*  85 = unused */
 	2, getitimer,			/*  86 = getitimer */
-	2, gethostname,			/*  87 = gethostname */
-	2, sethostname,			/*  88 = sethostname */
+	2, gethostname,			/*  87 = gethostname COMPAT-43 */
+	2, sethostname,			/*  88 = sethostname COMPAT-43 */
 	0, getdtablesize,		/*  89 = getdtablesize */
 	2, dup2,			/*  90 = dup2 */
 	0, nosys,			/*  91 = unused */
@@ -233,8 +237,8 @@ struct sysent sysent[] = {
 	3, fchown,			/* 123 = fchown */
 	2, fchmod,			/* 124 = fchmod */
 	ifnet(6, recvfrom),		/* 125 = recvfrom */
-	2, setreuid,			/* 126 = setreuid */
-	2, setregid,			/* 127 = setregid */
+	2, setreuid,			/* 126 = setreuid - COMPAT43 */
+	2, setregid,			/* 127 = setregid - COMPAT43 */
 	2, rename,			/* 128 = rename */
 	3, truncate,			/* 129 = truncate */
 	3, ftruncate,			/* 130 = ftruncate */

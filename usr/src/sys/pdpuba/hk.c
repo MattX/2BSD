@@ -3,11 +3,14 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)hk.c	2.1 (2.11BSD GTE) 1995/04/13
+ *	@(#)hk.c	2.2 (2.11BSD GTE) 1997/11/11
  */
 
 /*
  * RK611/RK0[67] disk driver
+ *
+ * Heavily modified for disklabel support.  Still only supports 1 controller
+ * (but who'd have more than one of these on a system anyhow?) - 1997/11/11 sms
  *
  * This driver mimics the 4.1bsd rk driver.
  * It does overlapped seeks, ECC, and bad block handling.
@@ -15,15 +18,16 @@
  *
  * dkunit() takes a 'dev_t' now instead of 'buf *'.  1995/04/13 - sms
  *
- * Modified to correctly handle 22 bit addressing available on DILOG
- * DQ615 controller. 05/31/90 -- tymann@oswego.edu
- *
  * Removed ifdefs on both Q22 and UNIBUS_MAP, substituting a runtime
  * test for presence of a Unibus Map.  Reworked the partition logic,
  * the 'e' partiton no longer overlaps the 'a'+'b' partitions - a separate
  * 'b' partition is now present.  Old root filesystems can still be used
  * because the size is the same, but user data will have to be saved and
  * then reloaded.  12/28/92 -- sms@wlv.iipo.gtegsc.com
+ *
+ * Modified to correctly handle 22 bit addressing available on DILOG
+ * DQ615 controller. 05/31/90 -- tymann@oswego.edu
+ *
  */
 
 #include "hk.h"
@@ -31,6 +35,7 @@
 #include "param.h"
 #include "systm.h"
 #include "buf.h"
+#include "machine/seg.h"
 #include "conf.h"
 #include "user.h"
 #include "map.h"
@@ -38,6 +43,8 @@
 #include "hkreg.h"
 #include "dkbad.h"
 #include "dk.h"
+#include "stat.h"
+#include "file.h"
 #include "disklabel.h"
 #include "disk.h"
 #include "syslog.h"
@@ -49,163 +56,349 @@
 #define	HK_NSPC		(HK_NTRAC*HK_NSECT)
 
 struct	hkdevice *HKADDR;
-struct size {
-	daddr_t	nblocks;
-	int	cyloff;
-} hk6_sizes[8] =
-	{
-	8316,	0,	/* a: cyl    0 - 125 */
-	8316,	90,	/* b: cyl  126 - 251 */
-	27126,	0,	/* c: cyl    0 - 410, whole RK06 */
-	0,	0,	/* d: Not Defined */
-	0,	0,	/* e: Not Defined */
-	0,	0,	/* f: Not Defined */
-	10428,	252,	/* g: cyl  252 - 409 */
-	27126,	0,	/* h: cyl   0 - 409, whole RK06 less 1 track */
-	},
-hk7_sizes[8] =
-	{
-	8316,	0,	/* a: cyl   0 -  125 */
-	8316,	126,	/* b: cyl  126 - 251 */
-	53790,	0,	/* c: cyl   0 - 814, whole RK07 */
-	0,	0,	/* d: Not Defined */
-	0,	0,	/* e: Not Defined */
-	0,	0,	/* f: Not Defined */
-	37092,	0,	/* g: cyl   252 - 813 */
-	53724,	0	/* h: cyl   0 - 813, whole RK07 less 1 track */
-};
+
+	daddr_t	hksize();
+	void	hkdfltlbl();
+	int	hkstrategy();
 
 /* Can be u_char because all are less than 0377 */
 u_char	hk_offset[] =
-{
+	{
 	HKAS_P400,	HKAS_M400,	HKAS_P400,	HKAS_M400,
 	HKAS_P800,	HKAS_M800,	HKAS_P800,	HKAS_M800,
 	HKAS_P1200,	HKAS_M1200,	HKAS_P1200,	HKAS_M1200,
 	0,		0,		0,		0,
-};
+	};
 
-int	hk_type[NHK];
-int	hk_cyl[NHK];
-struct	size *hk_sizes[NHK];
-char	hk_pack[NHK];
+	int	hk_type[NHK];
+	int	hk_cyl[NHK];
 
-struct hk_softc {
+struct hk_softc
+	{
 	int	sc_softas;
 	int	sc_recal;
-} hk;
+	} hk;
 
-struct	buf	hktab;
-struct	buf	hkutab[NHK];
+	struct	buf	hktab;
+	struct	buf	hkutab[NHK];
+	struct	dkdevice hk_dk[NHK];
+
 #ifdef BADSECT
-struct	dkbad	hkbad[NHK];
-struct	buf	bhkbuf[NHK];
+	struct	dkbad	hkbad[NHK];
+	struct	buf	bhkbuf[NHK];
 #endif
 
 #ifdef UCB_METER
-static	int		hk_dkn = -1;	/* number for iostat */
+	static	int		hk_dkn = -1;	/* number for iostat */
 #endif
 
 #define	hkwait(hkaddr)		while ((hkaddr->hkcs1 & HK_CRDY) == 0)
 #define	hkncyl(unit)		(hk_type[unit] ? NHK7CYL : NHK6CYL)
-#define	hkunit(dev)		(((dev) >> 3) & 07)
 
 void
 hkroot()
-{
+	{
 	hkattach((struct hkdevice *)0177440, 0);
-}
+	}
 
 hkattach(addr, unit)
 struct hkdevice *addr;
-{
+	{
 #ifdef UCB_METER
-	if (hk_dkn < 0) {
+	if	(hk_dkn < 0)
+		{
 		dk_alloc(&hk_dkn, NHK+1, "hk", 60L * (long)HK_NSECT * 256L);
-		if (hk_dkn >= 0)
+		if	(hk_dkn >= 0)
 			dk_wps[hk_dkn+NHK] = 0L;
-	}
+		}
 #endif
 	if (unit != 0)
 		return(0);
 	HKADDR = addr;
 	return(1);
-}
+	}
 
-hkopen(dev, flag)
-	dev_t dev;
-	int flag;
-{
-	register int unit = hkunit(dev);
+hkopen(dev, flag, mode)
+	dev_t	dev;
+	int	flag;
+	int	mode;
+	{
+	register int unit = dkunit(dev);
 	register struct hkdevice *hkaddr = HKADDR;
+	register struct	dkdevice *disk;
+	int	i, mask;
 
-	if (unit >= NHK || !HKADDR)
-		return (ENXIO);
-
-	hk_type[unit] = 0;
-	hkaddr->hkcs1 = HK_CCLR;
-	hkaddr->hkcs2 = unit;
-	hkaddr->hkcs1 = HK_DCLR | HK_GO;
-	hkwait(hkaddr);
-	if((hkaddr->hkcs2&HKCS2_NED) || (hkaddr->hkds&HKDS_SVAL) == 0) {
-		hkaddr->hkcs1 = HK_CCLR;
-		hkwait(hkaddr);
+	if	(unit >= NHK || !HKADDR)
 		return(ENXIO);
-	}
-	if((hkaddr->hkcs1&HK_CERR) && (hkaddr->hker&HKER_DTYE)) {
-		hk_type[unit] = HK_CDT;
+	disk = &hk_dk[unit];
+
+	if	((disk->dk_flags & DKF_ALIVE) == 0)
+		{
+		hk_type[unit] = 0;
 		hkaddr->hkcs1 = HK_CCLR;
+		hkaddr->hkcs2 = unit;
+		hkaddr->hkcs1 = HK_DCLR | HK_GO;
 		hkwait(hkaddr);
-		hk_sizes[unit] = hk7_sizes;
-	}
+		if	(hkaddr->hkcs2&HKCS2_NED || !(hkaddr->hkds&HKDS_SVAL))
+			{
+			hkaddr->hkcs1 = HK_CCLR;
+			hkwait(hkaddr);
+			return(ENXIO);
+			}
+		disk->dk_flags |= DKF_ALIVE;
+		if	((hkaddr->hkcs1&HK_CERR) && (hkaddr->hker&HKER_DTYE))
+			{
+			hk_type[unit] = HK_CDT;
+			hkaddr->hkcs1 = HK_CCLR;
+			hkwait(hkaddr);
+			}
+		}
+/*
+ * The drive has responded to a probe (is alive).  Now we read the
+ * label.  Allocate an external label structure if one has not already
+ * been assigned to this drive.  First wait for any pending opens/closes
+ * to complete.
+*/
+	while	(disk->dk_flags & (DKF_OPENING | DKF_CLOSING))
+		sleep(disk, PRIBIO);
+
+/*
+ * Next if an external label buffer has not already been allocated do so now.
+ * This "can not fail" because if the initial pool of label buffers has
+ * been exhausted the allocation takes place from main memory.  The return
+ * value is the 'click' address to be used when mapping in the label.
+*/
+
+	if	(disk->dk_label == 0)
+		disk->dk_label = disklabelalloc();
+
+/*
+ * On first open get label and partition info.  We may block reading the
+ * label so be careful to stop any other opens.
+*/
+	if	(disk->dk_openmask == 0)
+		{
+		disk->dk_flags |= DKF_OPENING;
+		hkgetinfo(disk, dev);
+		disk->dk_flags &= ~DKF_OPENING;
+		wakeup(disk);
+		hk_cyl[unit] = -1;
+		}
+/*
+ * Need to make sure the partition is not out of bounds.  This requires
+ * mapping in the external label.  This only happens when a partition
+ * is opened (at mount time) and isn't an efficiency problem.
+*/
+	mapseg5(disk->dk_label, LABELDESC);
+	i = ((struct disklabel *)SEG5)->d_npartitions;
+	normalseg5();
+	if	(dkpart(dev) >= i)
+		return(ENXIO);
+	mask = 1 << dkpart(dev);
+	dkoverlapchk(disk->dk_openmask, dev, disk->dk_label, "hk");
+	if	(mode == S_IFCHR)
+		disk->dk_copenmask |= mask;
+	else if (mode == S_IFBLK)
+		disk->dk_bopenmask |= mask;
 	else
-		hk_sizes[unit] = hk6_sizes;
-	hk_cyl[unit] = -1;
+		return(EINVAL);
+	disk->dk_openmask |= mask;
 	return(0);
-}
+	}
+
+/*
+ * Disk drivers now have to have close entry points in order to keep
+ * track of what partitions are still active on a drive.
+*/
+hkclose(dev, flag, mode)
+register dev_t  dev;
+	int     flag, mode;
+	{
+	int     s, drive = dkunit(dev);
+	register int    mask;
+	register struct dkdevice *disk;
+
+	disk = &hk_dk[drive];
+	mask = 1 << dkpart(dev);
+	if	(mode == S_IFCHR)
+		disk->dk_copenmask &= ~mask;
+	else if (mode == S_IFBLK)
+		disk->dk_bopenmask &= ~mask;
+	else
+		return(EINVAL);
+	disk->dk_openmask = disk->dk_bopenmask | disk->dk_copenmask;
+	if	(disk->dk_openmask == 0)
+		{
+		disk->dk_flags |= DKF_CLOSING;
+		s = splbio();
+		while   (hkutab[drive].b_actf)
+			{
+			disk->dk_flags |= DKF_WANTED;
+			sleep(&hkutab[drive], PRIBIO);
+			}
+		splx(s);
+/*
+ * On last close of a drive we declare it not alive and offline to force a
+ * probe on the next open in order to handle diskpack changes.
+*/
+		disk->dk_flags &= 
+			~(DKF_CLOSING | DKF_WANTED | DKF_ALIVE | DKF_ONLINE);
+		wakeup(disk);
+		}
+	return(0);
+	}
+
+/*
+ * This code moved here from hkgetinfo() because it is fairly large and used
+ * twice - once to initialize for reading the label and a second time if
+ * there is no valid label present on the drive and the default one must be
+ * used to span the drive.
+*/
+
+void
+hkdfltlbl(disk, lp, dev)
+	struct dkdevice *disk;
+	register struct disklabel *lp;
+	dev_t	dev;
+	{
+	register struct partition *pi = &lp->d_partitions[0];
+
+	bzero(lp, sizeof (*lp));
+        lp->d_type = DTYPE_DEC;
+	lp->d_secsize = 512;            /* XXX */
+	lp->d_nsectors = HK_NSECT;
+	lp->d_ntracks = HK_NTRAC;
+	lp->d_secpercyl = HK_NSPC;
+	lp->d_npartitions = 1;          /* 'a' */
+	lp->d_ncylinders = hkncyl(dkunit(dev));
+	pi->p_size = lp->d_ncylinders * lp->d_secpercyl;     /* entire volume */
+	pi->p_fstype = FS_V71K;
+	pi->p_frag = 1;
+	pi->p_fsize = 1024;
+/*
+ * Put where hkstrategy() will look.
+*/
+	bcopy(pi, disk->dk_parts, sizeof (lp->d_partitions));
+	}
+
+/*
+ * Read disklabel.  It is tempting to generalize this routine so that
+ * all disk drivers could share it.  However by the time all of the
+ * necessary parameters are setup and passed the savings vanish.  Also,
+ * each driver has a different method of calculating the number of blocks
+ * to use if one large partition must cover the disk.
+ *
+ * This routine used to always return success and callers carefully checked
+ * the return status.  Silly.  This routine will fake a label (a single
+ * partition spanning the drive) if necessary but will never return an error.
+ *
+ * It is the caller's responsibility to check the validity of partition
+ * numbers, etc.
+*/
+
+void
+hkgetinfo(disk, dev)
+register struct dkdevice *disk;
+	dev_t   dev;
+	{
+	struct  disklabel locallabel;
+	char    *msg;
+	register struct disklabel *lp = &locallabel;
+/*
+ * NOTE: partition 0 ('a') is used to read the label.  Therefore 'a' must
+ * start at the beginning of the disk!  If there is no label or the label
+ * is corrupted then 'a' will span the entire disk
+*/
+	hkdfltlbl(disk, lp, dev);
+	msg = readdisklabel((dev & ~7) | 0, hkstrategy, lp);    /* 'a' */
+	if      (msg != 0)
+		{
+		log(LOG_NOTICE, "hk%da is entire disk: %s\n", dkunit(dev), msg);
+		hkdfltlbl(disk, lp, dev);
+		}
+	mapseg5(disk->dk_label, LABELDESC)
+	bcopy(lp, (struct disklabel *)SEG5, sizeof (struct disklabel));
+	normalseg5();
+	bcopy(lp->d_partitions, disk->dk_parts, sizeof (lp->d_partitions));
+	return;
+	}
 
 hkstrategy(bp)
 register struct buf *bp;
 {
 	register struct buf *dp;
-	register unit;
-	int s, part;
-	long bn;
-	long sz;
-	struct size *szp;
+	int s, drive, part;
+	daddr_t sz;
+	register struct dkdevice *disk;
+	struct partition *pi;
 
-	unit = dkunit(bp->b_dev);
-	part = bp->b_dev & 7;
-	if (unit >= NHK || !HKADDR  || !(szp = hk_sizes[unit])) {
+	drive = dkunit(bp->b_dev);
+	part = dkpart(bp->b_dev);
+	disk = &hk_dk[drive];
+
+	if	(drive >= NHK || !HKADDR  || !(disk->dk_flags & DKF_ALIVE))
+		{
 		bp->b_error = ENXIO;
 		goto bad;
-	}
-	sz = (bp->b_bcount + (NBPG-1)) >> PGSHIFT;
-	if (bp->b_blkno < 0 || (bn = bp->b_blkno)+sz > szp[part].nblocks) {
-		bp->b_error = EINVAL;
+		}
+	pi = &disk->dk_parts[part];
+
+        /* Valid block in device partition */
+	sz = (bp->b_bcount + 511) >> 9;
+	if      (bp->b_blkno < 0 || bp->b_blkno + sz > pi->p_size)
+		{
+		sz = pi->p_size - bp->b_blkno;
+		/* if exactly at end of disk, return an EOF */
+		if      (sz == 0)
+			{
+			bp->b_resid = bp->b_bcount;
+			goto done;
+			}
+		/* or truncate if part of it fits */
+		if      (sz < 0)
+			{
+			bp->b_error = EINVAL;
+			goto bad;
+			}
+		bp->b_bcount = dbtob(sz);       /* compute byte count */
+		}
+/*
+ * Check for write to write-protected label area.  This does not include
+ * sector 0 which is the boot block.
+*/
+	if      (bp->b_blkno + pi->p_offset <= LABELSECTOR &&
+		bp->b_blkno + pi->p_offset + sz > LABELSECTOR &&
+		!(bp->b_flags & B_READ) && !(disk->dk_flags & DKF_WLABEL))
+		{
+		bp->b_error = EROFS;
 		goto bad;
-	}
-	bp->b_cylin = bn / HK_NSPC + szp[part].cyloff;
+		}
+
+	bp->b_cylin = bp->b_blkno / HK_NSPC;
 	mapalloc(bp);
-	dp = &hkutab[unit];
+	dp = &hkutab[drive];
 	s = splbio();
 	disksort(dp, bp);
-	if (dp->b_active == 0) {
-		hkustart(unit);
-		if (hktab.b_active == 0)
+	if	(dp->b_active == 0)
+		{
+		hkustart(drive);
+		if	(hktab.b_active == 0)
 			hkstart();
-	}
+		}
 	splx(s);
 	return;
 bad:
 	bp->b_flags |= B_ERROR;
+done:
 	iodone(bp);
-}
+	}
 
 hkustart(unit)
 	int unit;
 {
 	register struct hkdevice *hkaddr = HKADDR;
 	register struct buf *bp, *dp;
+	struct dkdevice *disk;
 	int didie = 0;
 
 #ifdef UCB_METER
@@ -223,22 +416,31 @@ hkustart(unit)
 	hkwait(hkaddr);
 
 	dp = &hkutab[unit];
+	disk = &hk_dk[unit];
 	if ((bp = dp->b_actf) == NULL)
 		return(0);
 	if (dp->b_active)
 		goto done;
 	dp->b_active = 1;
-	if ((hkaddr->hkds & HKDS_VV) == 0 || hk_pack[unit] == 0) {
+	if	(!(hkaddr->hkds & HKDS_VV) || !(disk->dk_flags & DKF_ONLINE))
+		{
 		/* SHOULD WARN SYSTEM THAT THIS HAPPENED */
 #ifdef BADSECT
 		struct buf *bbp = &bhkbuf[unit];
 #endif
 
 		hkaddr->hkcs1 = hk_type[unit]|HK_PACK|HK_GO;
-		hk_pack[unit]++;
+		disk->dk_flags |= DKF_ONLINE;
+/*
+ * XXX - The 'c' partition is used below to access the bad block area.  This
+ * XXX - is DIFFERENT than the XP driver (which should have used 'c' but could
+ * XXX - not due to historical reasons).  The 'c' partition MUST span the entire
+ * XXX - disk including the bad sector track.  The 'h' partition should be 
+ * XXX - used for user data.
+*/
 #ifdef BADSECT
 		bbp->b_flags = B_READ|B_BUSY|B_PHYS;
-		bbp->b_dev = bp->b_dev;
+		bbp->b_dev = (bp->b_dev & ~7) | ('c' - 'a');
 		bbp->b_bcount = sizeof(struct dkbad);
 		bbp->b_un.b_addr = (caddr_t)&hkbad[unit];
 		bbp->b_blkno = (long)hkncyl(unit)*HK_NSPC - HK_NSECT;
@@ -249,9 +451,12 @@ hkustart(unit)
 		bp = bbp;
 #endif
 		hkwait(hkaddr);
-	}
-	if ((hkaddr->hkds & HKDS_DREADY) != HKDS_DREADY)
+		}
+	if	((hkaddr->hkds & HKDS_DREADY) != HKDS_DREADY)
+		{
+		disk->dk_flags &= ~DKF_ONLINE;
 		goto done;
+		}
 #ifdef NHK > 1
 	if (bp->b_cylin == hk_cyl[unit])
 		goto done;
@@ -287,6 +492,7 @@ hkstart()
 {
 	register struct buf *bp, *dp;
 	register struct hkdevice *hkaddr = HKADDR;
+	register struct dkdevice *disk;
 	daddr_t bn;
 	int sn, tn, cmd, unit;
 
@@ -294,11 +500,25 @@ loop:
 	if ((dp = hktab.b_actf) == NULL)
 		return(0);
 	if ((bp = dp->b_actf) == NULL) {
+/*
+ * No more requests for this drive, remove from controller queue and
+ * look at next drive.  We know we're at the head of the controller queue.
+ * The drive may not need anything, in which case it might be shutting
+ * down in hkclose() and a wakeup is done.
+*/
 		hktab.b_actf = dp->b_forw;
+		unit = dp - hkutab;
+		disk = &hk_dk[unit];
+		if	(disk->dk_flags & DKF_WANTED)
+			{
+			disk->dk_flags &= ~DKF_WANTED;
+			wakeup(dp);	/* finish the close protocol */
+			}
 		goto loop;
 	}
 	hktab.b_active++;
 	unit = dkunit(bp->b_dev);
+	disk = &hk_dk[unit];
 	bn = bp->b_blkno;
 
 	sn = bn % HK_NSPC;
@@ -315,9 +535,9 @@ retry:
 	if (hkaddr->hkds & HKDS_PIP)
 		goto retry;
 	if ((hkaddr->hkds&HKDS_DREADY) != HKDS_DREADY) {
-		log(LOG_WARNING, "hk%d: not ready\n", unit);
+		disk->dk_flags &= ~DKF_ONLINE;
+		log(LOG_WARNING, "hk%d: !ready\n", unit);
 		if ((hkaddr->hkds&HKDS_DREADY) != HKDS_DREADY) {
-			printf("\n");
 			hkaddr->hkcs1 = hk_type[unit] | HK_DCLR | HK_GO;
 			hkwait(hkaddr);
 			hkaddr->hkcs1 = HK_CCLR;
@@ -331,6 +551,7 @@ retry:
 			goto loop;
 		}
 	}
+	disk->dk_flags |= DKF_ONLINE;
 nosval:
 	hkaddr->hkcyl = bp->b_cylin;
 	hk_cyl[unit] = bp->b_cylin;
@@ -387,7 +608,7 @@ hkintr()
 			u_short er = hkaddr->hker;
 
 			if (er & HKER_WLE) {
-				log(LOG_WARNING, "hk%d: write locked\n", unit);
+				log(LOG_WARNING, "hk%d: wrtlck\n", unit);
 				bp->b_flags |= B_ERROR;
 			} else if (++hktab.b_errcnt > 28 ||
 			    ds&HKDS_HARD || er&HKER_HARD || cs2&HKCS2_HARD) {
@@ -472,7 +693,7 @@ retry:
 	}
 	for (unit = 0; as; as >>= 1, unit++)
 		if (as & 1) {
-			if (unit < NHK && hk_sizes[unit]) {
+			if (unit < NHK && (hk_dk[unit].dk_flags & DKF_ALIVE)) {
 				if (hkustart(unit))
 					needie = 0;
 			} else {
@@ -500,38 +721,48 @@ retry:
 
 hkdump(dev)
 	dev_t dev;
-{
+	{
 	register struct hkdevice *hkaddr = HKADDR;
 	daddr_t	bn, dumpsize;
 	long paddr;
-	register count;
 	register struct ubmap *ubp;
+	int	count, memblks;
+	register struct partition *pi;
+	struct dkdevice *disk;
 	int com, cn, tn, sn, unit;
-	struct size *szp;
 
-	unit = hkunit(dev);
-	szp = hk_sizes[unit];
-	if (unit >= NHK || !szp)
+	unit = dkunit(dev);
+	if	(unit >= NHK)
 		return(EINVAL);
-	dumpsize = szp[dev & 7]->nblocks;
-	if ((dumplo < 0) || (dumplo >= dumpsize))
+
+	disk = &hk_dk[unit];
+	if	((disk->dk_flags & DKF_ALIVE) == 0)
+		return(ENXIO);
+	pi = &disk->dk_parts[dkpart(dev)];
+	if	(pi->p_fstype != FS_SWAP)
+		return(EFTYPE);
+
+	dumpsize = hksize(dev) - dumplo;
+	memblks = ctod(physmem);
+	if	(dumplo < 0 || dumpsize <= 0)
 		return(EINVAL);
-	dumpsize -= dumplo;
+	bn = dumplo + pi->p_offset;
 
 	hkaddr->hkcs1 = HK_CCLR;
 	hkwait(hkaddr);
 	hkaddr->hkcs2 = unit;
 	hkaddr->hkcs1 = hk_type[unit] | HK_DCLR | HK_GO;
 	hkwait(hkaddr);
-	if ((hkaddr->hkds & HKDS_VV) == 0) {
+	if	((hkaddr->hkds & HKDS_VV) == 0)
+		{
 		hkaddr->hkcs1 = hk_type[unit]|HK_IE|HK_PACK|HK_GO;
 		hkwait(hkaddr);
-	}
+		}
 	ubp = &UBMAP[0];
-	for (paddr = 0L; dumpsize > 0; dumpsize -= count) {
-		count = dumpsize>DBSIZE? DBSIZE: dumpsize;
-		bn = dumplo + (paddr >> PGSHIFT);
-		cn = (bn/HK_NSPC) + szp[dev & 7]->cyloff;
+	for	(paddr = 0L; memblks > 0; )
+		{
+		count = MIN(memblks, DBSIZE);
+		cn = bn/HK_NSPC;
 		sn = bn%HK_NSPC;
 		tn = sn/HK_NSECT;
 		sn = sn%HK_NSECT;
@@ -539,26 +770,32 @@ hkdump(dev)
 		hkaddr->hkda = (tn << 8) | sn;
 		hkaddr->hkwc = -(count << (PGSHIFT-1));
 		com = hk_type[unit]|HK_GO|HK_WRITE;
-		if (ubmap) {
+		if	(ubmap)
+			{
 			ubp->ub_lo = loint(paddr);
 			ubp->ub_hi = hiint(paddr);
 			hkaddr->hkba = 0;
-		} else {
+			}
+		else
+			{
 			/* non UNIBUS map */
 			hkaddr->hkba = loint(paddr);
 			hkaddr->hkxmem = hiint(paddr);
 			com |= ((paddr >> 8) & (03 << 8));
-		}
+			}
 		hkaddr->hkcs2 = unit;
 		hkaddr->hkcs1 = com;
 		hkwait(hkaddr);
-		if (hkaddr->hkcs1 & HK_CERR) {
+		if	(hkaddr->hkcs1 & HK_CERR)
+			{
 			if (hkaddr->hkcs2 & HKCS2_NEM)
 				return(0);	/* made it to end of memory */
 			return(EIO);
+			}
+		paddr += (count << PGSHIFT);
+		bn += count;
+		memblks -= count;
 		}
-		paddr += (DBSIZE << PGSHIFT);
-	}
 	return(0);		/* filled disk minor dev */
 }
 #endif HK_DUMP
@@ -697,17 +934,35 @@ register struct	buf *bp;
 }
 
 /*
- * Assumes the 'open' entry point has already been called to validate
- * the unit number.
+ * Return the number of blocks in a partition.  Call hkopen() to read the
+ * label if necessary.  If an open is necessary then a matching close
+ * will be done.
 */
+
 daddr_t
 hksize(dev)
-	register dev_t dev;
+register dev_t dev;
 	{
-	register struct size *szp = hk_sizes[hkunit(dev)];
+	register struct dkdevice *disk;
+	daddr_t psize;
+	int     didopen = 0;
 
-	if	(!szp)
-		return(-1);
-	return(szp[dev & 7].nblocks);
+	disk = &hk_dk[dkunit(dev)];
+/*
+ * This should never happen but if we get called early in the kernel's
+ * life (before opening the swap or root devices) then we have to do
+ * the open here.
+*/
+
+	if      (disk->dk_openmask == 0)
+		{
+		if      (hkopen(dev, FREAD|FWRITE, S_IFBLK))
+			return(-1);
+		didopen = 1;
+		}
+	psize = disk->dk_parts[dkpart(dev)].p_size;
+	if      (didopen)
+		hkclose(dev, FREAD|FWRITE, S_IFBLK);
+	return(psize);
 	}
 #endif NHK > 0

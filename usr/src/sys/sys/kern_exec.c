@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exec.c	1.6 (2.11BSD GTE) 1997/8/28
+ *	@(#)kern_exec.c	1.7 (2.11BSD GTE) 1997/11/28
  */
 
 #include "param.h"
@@ -71,7 +71,7 @@ execve()
 	bp = 0;
 	indir = 0;
 	uid = u.u_uid;
-	gid = u.u_gid;
+	gid = u.u_groups[0];
 	if (ip->i_fs->fs_flags & MNT_NOEXEC) {
 		u.u_error = EACCES;
 		goto bad;
@@ -138,6 +138,12 @@ execve()
 			u.u_error = ENOEXEC;
 			goto bad;
 		}
+/*
+ * If setuid/gid scripts were to be disallowed this is where it would
+ * have to be done.
+ *		u.u_uid = uid;
+ *		u.u_gid = u_groups[0];
+*/
 		cp = &exdata.ex_shell[2];		/* skip "#!" */
 		while (cp < &exdata.ex_shell[SHSIZE]) {
 			if (*cp == '\t')
@@ -600,9 +606,12 @@ getxfile(ip, ep, nargc, uid, gid)
 		if ((u.u_procp->p_flag&STRC)==0) {
 			u.u_uid = uid;
 			u.u_procp->p_uid = uid;
-			u.u_gid = gid;
+			u.u_groups[0] = gid;
 		} else
 			psignal(u.u_procp, SIGTRAP);
+		u.u_svuid = u.u_uid;
+		u.u_svgid = u.u_groups[0];
+		u.u_acflag &= ~ASUGID;	/* start fresh setuid/gid priv use */
 	}
 	u.u_tsize = ts;
 	u.u_dsize = ds;

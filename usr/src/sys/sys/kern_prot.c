@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_prot.c	1.3 (2.11BSD GTE) 1997/09/26
+ *	@(#)kern_prot.c	1.4 (2.11BSD GTE) 1997/11/28
  */
 
 /*
@@ -65,13 +65,13 @@ getgid()
 {
 
 	u.u_r.r_val1 = u.u_rgid;
-	u.u_r.r_val2 = u.u_gid;		/* XXX */
+	u.u_r.r_val2 = u.u_groups[0];		/* XXX */
 }
 
 getegid()
 {
 
-	u.u_r.r_val1 = u.u_gid;
+	u.u_r.r_val1 = u.u_groups[0];
 }
 
 /*
@@ -124,68 +124,6 @@ setpgrp()
 	p->p_pgrp = uap->pgrp;
 }
 
-setreuid()
-{
-	struct a {
-		int	ruid;
-		int	euid;
-	} *uap;
-	register int ruid, euid;
-
-	uap = (struct a *)u.u_ap;
-	ruid = uap->ruid;
-	if (ruid == -1)
-		ruid = u.u_ruid;
-	if (u.u_ruid != ruid && u.u_uid != ruid && !suser())
-		return;
-	euid = uap->euid;
-	if (euid == -1)
-		euid = u.u_uid;
-	if (u.u_ruid != euid && u.u_uid != euid && !suser())
-		return;
-	/*
-	 * Everything's okay, do it.
-	 */
-#ifdef QUOTA
-	QUOTAMAP();
-	if (u.u_quota->q_uid != ruid) {
-		qclean();
-		qstart(getquota((uid_t)ruid, 0, 0));
-	}
-	QUOTAUNMAP();
-#endif
-	u.u_procp->p_uid = euid;
-	u.u_ruid = ruid;
-	u.u_uid = euid;
-}
-
-setregid()
-{
-	register struct a {
-		int	rgid;
-		int	egid;
-	} *uap;
-	register int rgid, egid;
-
-	uap = (struct a *)u.u_ap;
-	rgid = uap->rgid;
-	if (rgid == -1)
-		rgid = u.u_rgid;
-	if (u.u_rgid != rgid && u.u_gid != rgid && !suser())
-		return;
-	egid = uap->egid;
-	if (egid == -1)
-		egid = u.u_gid;
-	if (u.u_rgid != egid && u.u_gid != egid && !suser())
-		return;
-	if (u.u_rgid != rgid) {
-		leavegroup(u.u_rgid);
-		(void) entergroup(rgid);
-		u.u_rgid = rgid;
-	}
-	u.u_gid = egid;
-}
-
 setgroups()
 {
 	register struct	a {
@@ -209,47 +147,6 @@ setgroups()
 }
 
 /*
- * Group utility functions.
- */
-
-/*
- * Delete gid from the group set.
- */
-leavegroup(gid)
-	int gid;
-{
-	register gid_t *gp;
-
-	for (gp = u.u_groups; gp < &u.u_groups[NGROUPS]; gp++)
-		if (*gp == gid)
-			goto found;
-	return;
-found:
-	for (; gp < &u.u_groups[NGROUPS-1]; gp++)
-		*gp = *(gp+1);
-	*gp = NOGROUP;
-}
-
-/*
- * Add gid to the group set.
- */
-entergroup(gid)
-	int gid;
-{
-	register gid_t *gp;
-
-	for (gp = u.u_groups; gp < &u.u_groups[NGROUPS]; gp++) {
-		if (*gp == gid)
-			return (0);
-		if (*gp == NOGROUP) {
-			*gp = gid;
-			return (0);
-		}
-	}
-	return (-1);
-}
-
-/*
  * Check if gid is a member of the group set.
  */
 groupmember(gid)
@@ -257,8 +154,6 @@ groupmember(gid)
 {
 	register gid_t *gp;
 
-	if (u.u_gid == gid)
-		return (1);
 	for (gp = u.u_groups; gp < &u.u_groups[NGROUPS] && *gp != NOGROUP; gp++)
 		if (*gp == gid)
 			return (1);

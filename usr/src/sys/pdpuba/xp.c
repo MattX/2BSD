@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.4 (2.11BSD GTE) 1996/1/8
+ *	@(#)xp.c	2.5 (2.11BSD GTE) 1997/11/11
  */
 
 /*
@@ -995,10 +995,11 @@ xpdump(dev)
 		return(EINVAL);
 	if	(!(xd->xp_flags & DKF_ALIVE))
 		return(ENXIO);
+
+	pi = &xd->xp_parts[dkpart(dev)];
 	if	(pi->p_fstype != FS_SWAP)
 		return(EFTYPE);
 
-	pi = &xd->xp_parts[dkpart(dev)];
 	xpaddr = xd->xp_ctlr->xp_addr;
 
 	dumpsize = xpsize(dev) - dumplo;
@@ -1052,7 +1053,7 @@ xpdump(dev)
 			continue;
 		if	(xpaddr->hpcs1.w & HP_TRE)
 			return(EIO);
-		paddr += (DBSIZE << PGSHIFT);
+		paddr += (count << PGSHIFT);
 		bn += count;
 		memblks -= count;
 		}

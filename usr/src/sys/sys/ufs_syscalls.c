@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.11 (2.11BSD GTE) 1997/8/5
+ *	@(#)ufs_syscalls.c	1.12 (2.11BSD GTE) 1997/11/28
  */
 
 #include "param.h"
@@ -399,8 +399,8 @@ out:
  */
 saccess()
 {
-	uid_t svuid;
-	gid_t svgid;
+	uid_t t_uid;
+	gid_t t_gid;
 	register struct inode *ip;
 	register struct a {
 		char	*fname;
@@ -409,10 +409,10 @@ saccess()
 	struct	nameidata nd;
 	register struct	nameidata *ndp = &nd;
 
-	svuid = u.u_uid;
-	svgid = u.u_gid;
+	t_uid = u.u_uid;
+	t_gid = u.u_groups[0];
 	u.u_uid = u.u_ruid;
-	u.u_gid = u.u_rgid;
+	u.u_groups[0] = u.u_rgid;
 	NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
 	ip = namei(ndp);
 	if (ip != NULL) {
@@ -425,8 +425,8 @@ saccess()
 done:
 		iput(ip);
 	}
-	u.u_uid = svuid;
-	u.u_gid = svgid;
+	u.u_uid = t_uid;
+	u.u_groups[0] = t_gid;
 }
 
 /*

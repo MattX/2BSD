@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	3.1 (2.11BSD GTE) 1997/5/31
+ *	@(#)conf.c	3.2 (2.11BSD GTE) 1997/11/12
  */
 
 #include "param.h"
@@ -45,9 +45,8 @@ int	tmopen(), tmclose(), tmioctl(), tmstrategy();
 
 #include "hk.h"
 #if NHK > 0
-int	hkopen(), hkstrategy(), hkroot();
+int	hkopen(), hkstrategy(), hkroot(), hkclose();
 daddr_t	hksize();
-#define	hkclose		nulldev
 #else
 #define	hkopen		nodev
 #define	hkclose		nodev

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)user.h	1.4 (2.11BSD) 1997/8/28
+ *	@(#)user.h	1.5 (2.11BSD) 1997/11/28
  */
 
 #ifdef KERNEL
@@ -66,8 +66,9 @@ struct user {
 
 /* 1.1 - processes and protection */
 	uid_t	u_uid;			/* effective user id */
+	uid_t	u_svuid;		/* saved user id */
 	uid_t	u_ruid;			/* real user id */
-	gid_t	u_gid;			/* effective group id */
+	gid_t	u_svgid;		/* saved group id */
 	gid_t	u_rgid;			/* real group id */
 	gid_t	u_groups[NGROUPS];	/* groups, 0 terminated */
 
@@ -138,7 +139,8 @@ struct user {
 		ino_t nc_inumber;	/* inum of cached directory */
 		dev_t nc_dev;		/* dev of cached directory */
 	} u_ncache;
-	char	u_login[MAXLOGNAME];	/* future use (setlogin/getlogin) */
+	short	u_xxxx[2];		/* spare */
+	char	u_login[MAXLOGNAME];	/* setlogin/getlogin */
 	short	u_stack[1];		/* kernel stack per user
 					 * extends from u + USIZE*64
 					 * backward not to reach here

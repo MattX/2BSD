@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_fork.c	1.4 (2.11BSD GTE) 12/31/93
+ *	@(#)kern_fork.c	1.5 (2.11BSD GTE) 1997/11/28
  */
 
 #include "param.h"
@@ -76,7 +76,8 @@ fork1(isvfork)
 		u.u_r.r_val2 = 1;  /* child */
 #endif
 		u.u_start = time.tv_sec;
-		u.u_acflag = AFORK;
+		/* set forked but preserve suid/gid state */
+		u.u_acflag = AFORK | (u.u_acflag & ASUGID); 
 		bzero(&u.u_ru, sizeof(u.u_ru));
 		bzero(&u.u_cru, sizeof(u.u_cru));
 		return;

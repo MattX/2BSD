@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)syscalls.c	1.8 (2.11BSD GTE) 1997/9/26
+ *	@(#)syscalls.c	1.9 (2.11BSD GTE) 1997/11/28
  */
 
 /*
@@ -56,12 +56,12 @@ char *syscallnames[] = {
 	"pipe",			/*  42 = pipe */
 	"setlogin",		/*  43 = setlogin */
 	"profil",		/*  44 = profil */
-	"#45",			/*  45 = unused */
-	"#46",			/*  46 = unused */
+	"setuid",		/*  45 = setuid */
+	"seteuid",		/*  46 = seteuid */
 	"getgid",		/*  47 = getgid */
 	"getegid",		/*  48 = getegid */
-	"#49",			/*  49 = unused */
-	"#50",			/*  50 = unused */
+	"setgid",		/*  49 = setgid */
+	"setegid",		/*  50 = setegid */
 	"acct",			/*  51 = turn acct off/on */
 	"phys",			/*  52 = (2.9) set phys addr */
 	"lock",			/*  53 = (2.9) lock in core */
@@ -137,8 +137,8 @@ char *syscallnames[] = {
 	"fchown",		/* 123 = fchown */
 	"fchmod",		/* 124 = fchmod */
 	"recvfrom",		/* 125 = recvfrom */
-	"setreuid",		/* 126 = setreuid */
-	"setregid",		/* 127 = setregid */
+	"setreuid",		/* 126 = setreuid COMPAT43 */
+	"setregid",		/* 127 = setregid COMPAT43 */
 	"rename",		/* 128 = rename */
 	"truncate",		/* 129 = truncate */
 	"ftruncate",		/* 130 = ftruncate */

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)pstat.c	5.8.4 (2.11BSD GTE) 1997/9/1";
+static char sccsid[] = "@(#)pstat.c	5.8.5 (2.11BSD GTE) 1997/11/28";
 #endif
 
 /*
@@ -544,7 +544,8 @@ dousr()
 	printf("r_val2\t%.1o\n", U.u_r.r_val2);
 	printf("error\t%d\n", U.u_error);
 	printf("eosys\t%d\n", U.u_eosys);
-	printf("uids\t%d,%d,%d,%d\n", U.u_uid, U.u_gid, U.u_ruid, U.u_rgid);
+	printf("uids\t%d,%d,%d,%d,%d\n", U.u_uid, U.u_svuid, U.u_ruid,
+		U.u_svgid, U.u_rgid);
 	printf("groups");
 	for	(i = 0; (i < NGROUPS) && (U.u_groups[i] != NOGROUP); i++)
 		{

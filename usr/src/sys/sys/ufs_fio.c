@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_fio.c	1.5 (2.11BSD GTE) 1997/7/3
+ *	@(#)ufs_fio.c	1.6 (2.11BSD GTE) 1997/11/28
  */
 
 #include "param.h"
@@ -82,8 +82,6 @@ access(ip, mode)
 	 */
 	if (u.u_uid != ip->i_uid) {
 		m >>= 3;
-		if (u.u_gid == ip->i_gid)
-			goto found;
 		gp = u.u_groups;
 		for (; gp < &u.u_groups[NGROUPS] && *gp != NOGROUP; gp++)
 			if (ip->i_gid == *gp)
