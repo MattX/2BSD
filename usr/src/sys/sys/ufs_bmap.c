@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_bmap.c	1.1 (2.10BSD Berkeley) 12/1/86
+ *	@(#)ufs_bmap.c	1.2 (2.11BSD) 1996/9/19
  */
 
 #include "param.h"
@@ -16,6 +16,7 @@
 #include "user.h"
 #include "buf.h"
 #include "fs.h"
+#include "mount.h"
 #include "uio.h"
 
 /*
@@ -27,16 +28,17 @@
  * for use in read-ahead.
  */
 daddr_t
-bmap(ip, bn, rwflg, clrflg)
+bmap(ip, bn, rwflg, flags)
 	register struct inode *ip;
 	daddr_t bn;
-	int rwflg, clrflg;
+	int rwflg, flags;
 {
 	register int i;
 	register struct buf *bp;
 	struct buf *nbp;
 	int j, sh;
 	daddr_t nb, *bap, ra;
+	int async = ip->i_fs->fs_flags & MNT_ASYNC;
 
 	if (bn < 0) {
 		u.u_error = EFBIG;
@@ -51,15 +53,15 @@ bmap(ip, bn, rwflg, clrflg)
 		i = bn;
 		nb = ip->i_addr[i];
 		if (nb == 0) {
-			if (rwflg == B_READ || (bp = alloc(ip, clrflg)) == NULL)
+			if (rwflg == B_READ || (bp = balloc(ip, flags)) == NULL)
 				return((daddr_t)-1);
 			nb = dbtofsb(bp->b_blkno);
-			if ((ip->i_mode&IFMT) == IFDIR)
-				/*
-				 * Write directory blocks synchronously
-				 * so they never appear with garbage in
-				 * them on the disk.
-				 */
+/*
+ * directory blocks are usually the only thing written synchronously at this
+ * point (so they never appear with garbage in them on the disk).  This is
+ * overridden if the filesystem was mounted 'async'.
+*/
+			if (flags & B_SYNC)
 				bwrite(bp);
 			else
 				bdwrite(bp);
@@ -97,14 +99,17 @@ bmap(ip, bn, rwflg, clrflg)
 	 */
 	nb = ip->i_addr[NADDR-j];
 	if (nb == 0) {
-		if (rwflg == B_READ || (bp = alloc(ip, 1)) == NULL)
+		if (rwflg == B_READ || (bp = balloc(ip, flags | B_CLRBUF)) == NULL)
 			return((daddr_t) -1);
 		nb = dbtofsb(bp->b_blkno);
 		/*
-		 * Write synchronously so that indirect blocks
+		 * Write synchronously if requested so that indirect blocks
 		 * never point at garbage.
 		 */
-		bwrite(bp);
+		if (async)
+			bdwrite(bp);
+		else
+			bwrite(bp);
 		ip->i_addr[NADDR-j] = nb;
 		ip->i_flag |= IUPD|ICHG;
 	}
@@ -129,17 +134,18 @@ bmap(ip, bn, rwflg, clrflg)
 			ra = bap[i+1];
 		mapout(bp);
 		if (nb == 0) {
-			if (rwflg == B_READ || (nbp = alloc(ip, 1)) == NULL) {
+			if (rwflg == B_READ || (nbp = balloc(ip, flags | B_CLRBUF)) == NULL) {
 				brelse(bp);
 				return((daddr_t) -1);
 			}
 			nb = dbtofsb(nbp->b_blkno);
-			if (j < 3 || (ip->i_mode&IFMT) == IFDIR)
-				/*
-				 * Write synchronously so indirect blocks
-				 * never point at garbage and blocks
-				 * in directories never contain garbage.
-				 */
+/*
+ * Write synchronously so indirect blocks never point at garbage and blocks
+ * in directories never contain garbage.  This check used to be based on the
+ * type of inode, if it was a directory then 'sync' writes were done.  See the
+ * comments earlier about filesystems being mounted 'async'.
+*/
+			if (!async && (j < 3 || (flags & B_SYNC)))
 				bwrite(nbp);
 			else
 				bdwrite(nbp);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_syscalls.c	1.6 (2.11BSD GTE) 1995/12/24
+ *	@(#)ufs_syscalls.c	1.7 (2.11BSD GTE) 1996/9/13
  */
 
 #include "param.h"
@@ -198,7 +198,7 @@ copen(mode, arg, fname)
 		}
 	}
 	if (mode & O_TRUNC)
-		itrunc(ip, (u_long)0);
+		itrunc(ip, (u_long)0, mode & O_FSYNC ? IO_SYNC : 0);
 	iunlock(ip);
 	fp->f_flag = mode&FMASK;
 	fp->f_type = DTYPE_INODE;
@@ -832,15 +832,6 @@ utimes()
 }
 
 /*
- * Flush any pending I/O.
- */
-sync()
-{
-
-	update();
-}
-
-/*
  * Truncate a file given its path name.
  */
 truncate()
@@ -1144,7 +1135,7 @@ rename()
 		if (doingdirectory) {
 			if (--xp->i_nlink != 0)
 				panic("rename: lnk dir");
-			itrunc(xp, (u_long)0);
+			itrunc(xp, (u_long)0, 0);	/* IO_SYNC? */
 		}
 		xp->i_flag |= ICHG;
 		iput(xp);
@@ -1494,7 +1485,7 @@ rmdir()
 	 * worry about them later.
 	 */
 	ip->i_nlink -= 2;
-	itrunc(ip, (u_long)0);
+	itrunc(ip, (u_long)0, 0);	/* IO_SYNC? */
 	cacheinval(ip);
 out:
 	if (dp)

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.6 (2.11BSD GTE) 1995/12/24
+ *	@(#)machdep2.c	2.7 (2.11BSD GTE) 1996/9/14
  */
 
 #include "param.h"
@@ -398,7 +398,7 @@ boot(dev, howto)
 		 * Release inodes held by texts before update.
 		 */
 		xumount(NODEV);
-		update();
+		sync();
 		{ register struct buf *bp;
 		  int iter, nbusy;
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_mount.c	1.8 (2.11BSD GTE) 1996/4/20
+ *	@(#)ufs_mount.c	1.9 (2.11BSD GTE) 1996/9/13
  */
 
 #include "param.h"
@@ -270,6 +270,7 @@ unmount1(fname)
 	register struct mount *mp;
 	register struct inode *ip;
 	register int error;
+	int aflag;
 
 	error = getmdev(&dev, fname);
 	if (error)
@@ -281,13 +282,19 @@ unmount1(fname)
 found:
 	xumount(dev);	/* remove unused sticky files from text table */
 	nchinval(dev);	/* flush the name cache */
-	update();
+	aflag = mp->m_flags & MNT_ASYNC;
+	mp->m_flags &= ~MNT_ASYNC;	/* Don't want async when unmounting */
+	ufs_sync(mp);
+
 #ifdef QUOTA
 	if (iflush(dev, mp->m_qinod) < 0)
 #else
 	if (iflush(dev) < 0)
 #endif
+		{
+		mp->m_flags |= aflag;
 		return (EBUSY);
+		}
 #ifdef QUOTA
 	QUOTAMAP();
 	closedq(mp);

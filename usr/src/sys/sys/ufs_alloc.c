@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_alloc.c	1.2 (2.11BSD GTE) 1/11/94
+ *	@(#)ufs_alloc.c	1.3 (2.11BSD GTE) 1996/9/19
  */
 
 #include "param.h"
@@ -15,6 +15,7 @@
 #include "buf.h"
 #include "user.h"
 #include "kernel.h"
+#include "mount.h"
 #ifdef QUOTA
 #include "quota.h"
 #endif
@@ -30,15 +31,18 @@ typedef	struct fblk *FBLKP;
  * obtain NICFREE more...
  */
 struct buf *
-alloc(ip, clrflg)
+balloc(ip, flags)
 	struct inode *ip;
-	int clrflg;
+	int flags;
 {
 	register struct fs *fs;
 	register struct buf *bp;
+	int	async;
 	daddr_t bno;
 
 	fs = ip->i_fs;
+	async = fs->fs_flags & MNT_ASYNC;
+
 	while (fs->fs_flock)
 		sleep((caddr_t)&fs->fs_flock, PINOD);
 	do {
@@ -64,7 +68,7 @@ alloc(ip, clrflg)
 		}
 		brelse(bp);
 		/*
-		 * Write the superblock back, synchronously,
+		 * Write the superblock back, synchronously if requested,
 		 * so that the free list pointer won't point at garbage.
 		 * We can still end up with dups in free if we then
 		 * use some of the blocks in this freeblock, then crash
@@ -80,7 +84,10 @@ alloc(ip, clrflg)
 			*fps = *fs;
 		}
 		mapout(bp);
-		bwrite(bp);
+		if (!async)
+			bwrite(bp);
+		else
+			bdwrite(bp);
 		fs->fs_flock = 0;
 		wakeup((caddr_t)&fs->fs_flock);
 		if (fs->fs_nfree <=0)
@@ -88,7 +95,7 @@ alloc(ip, clrflg)
 	}
 	bp = getblk(ip->i_dev, bno);
 	bp->b_resid = 0;
-	if (clrflg)
+	if (flags & B_CLRBUF)
 		clrbuf(bp);
 	fs->fs_fmod = 1;
 	fs->fs_tfree--;
@@ -220,7 +227,7 @@ fromtop:
 	if (fs->fs_ninode > 0)
 		goto loop;
 	fserr(fs, emsg);
-	uprintf("\n%s: create/symlink failed, %s\n", fs->fs_fsmnt, emsg);
+	uprintf("\n%s: %s\n", fs->fs_fsmnt, emsg);
 	u.u_error = ENOSPC;
 	return(NULL);
 }
@@ -257,7 +264,10 @@ free(ip, bno)
 		*fbp = *((FBLKP)&fs->fs_nfree);
 		mapout(bp);
 		fs->fs_nfree = 0;
-		bwrite(bp);
+		if (fs->fs_flags & MNT_ASYNC)
+			bdwrite(bp);
+		else
+			bwrite(bp);
 		fs->fs_flock = 0;
 		wakeup((caddr_t)&fs->fs_flock);
 	}

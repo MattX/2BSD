@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_fio.c	1.3 (2.11BSD GTE) 12/29/94
+ *	@(#)ufs_fio.c	1.4 (2.11BSD GTE) 1996/9/13
  */
 
 #include "param.h"
@@ -162,7 +162,7 @@ ufs_setattr(ip, vap)
 		{
 		if	((ip->i_mode & IFMT) == IFDIR)
 			return(EISDIR);
-		itrunc(ip, vap->va_size);
+		itrunc(ip, vap->va_size, 0);
 		if	(u.u_error)
 			return(u.u_error);
 		}

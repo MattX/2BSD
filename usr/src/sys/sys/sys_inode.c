@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_inode.c	1.7 (2.11BSD GTE) 1996/3/2
+ *	@(#)sys_inode.c	1.8 (2.11BSD GTE) 1996/9/19
  */
 
 #include "param.h"
@@ -56,6 +56,9 @@ register struct uio *uio;
 			ioflag |= IO_APPEND;
 		if	(fp->f_flag & FNONBLOCK)
 			ioflag |= IO_NDELAY;
+		if	(fp->f_flag & FFSYNC ||
+			 (ip->i_fs->fs_flags & MNT_SYNCHRONOUS))
+			ioflag |= IO_SYNC;
 		error = rwip(ip, uio, ioflag);
 		if	(ioflag & IO_APPEND)
 			fp->f_offset = uio->uio_offset;
@@ -109,6 +112,7 @@ rwip(ip, uio, ioflag)
 	daddr_t lbn, bn;
 	int n, on, type, resid;
 	int error = 0;
+	int flags;
 
 #ifdef	DIAGNOSTIC
 	if (uio->uio_rw != UIO_READ && uio->uio_rw != UIO_WRITE)
@@ -152,6 +156,21 @@ rwip(ip, uio, ioflag)
 		}
 	   }
 
+/*
+ * The IO_SYNC flag is turned off here if the 'async' mount flag is on.
+ * Otherwise directory I/O (which is done by the kernel) would still 
+ * synchronous (because the kernel carefully passes IO_SYNC for all directory
+ * I/O) even if the fs was mounted with "-o async".  
+ *
+ * A side effect of this is that if the system administrator mounts a filesystem
+ * 'async' then the O_FSYNC flag to open() is ignored.
+ *
+ * This behaviour should probably be selectable via "sysctl fs.async.dirs" and
+ * "fs.async.ofsync".  A project for a rainy day.
+*/
+	if (type == IFREG  || type == IFDIR && (ip->i_fs->fs_flags & MNT_ASYNC))
+		ioflag &= ~IO_SYNC;
+
 	if (type == IFCHR) {
 		if (uio->uio_rw == UIO_READ)
 			error = (*cdevsw[major(dev)].d_read)(dev, uio, ioflag);
@@ -194,6 +213,8 @@ rwip(ip, uio, ioflag)
 	resid = uio->uio_resid;
 	osize = ip->i_size;
 
+	flags = ioflag & IO_SYNC ? B_SYNC : 0;
+
 	do {
 		lbn = lblkno(uio->uio_offset);
 		on = blkoff(uio->uio_offset);
@@ -205,10 +226,11 @@ rwip(ip, uio, ioflag)
 					return (0);
 				if (diff < n)
 					n = diff;
-			bn = bmap(ip, lbn, B_READ, 0);
+			bn = bmap(ip, lbn, B_READ, flags);
 			}
 			else
-				bn = bmap(ip,lbn,B_WRITE,n == DEV_BSIZE ? 0: 1);
+				bn = bmap(ip,lbn,B_WRITE,
+				       n == DEV_BSIZE ? flags : flags|B_CLRBUF);
 			if (u.u_error || uio->uio_rw == UIO_WRITE && (long)bn<0)
 				return (u.u_error);
 			if (uio->uio_rw == UIO_WRITE && uio->uio_offset + n > ip->i_size &&
@@ -260,6 +282,13 @@ rwip(ip, uio, ioflag)
 		} else {
 			if (ioflag & IO_SYNC)
 				bwrite(bp);
+/*
+ * The check below interacts _very_ badly with virtual memory tmp files
+ * such as those used by 'ld'.   These files tend to be small and repeatedly
+ * rewritten in 1kb chunks.  The check below causes the device driver to be
+ * called (and I/O initiated)  constantly.  Not sure what to do about this yet
+ * but this comment is being placed here as a reminder.
+*/
 			else if (n + on == DEV_BSIZE && !(ip->i_flag & IPIPE)) {
 				bp->b_flags |= B_AGE;
 				bawrite(bp);
@@ -274,7 +303,7 @@ rwip(ip, uio, ioflag)
 		error = u.u_error;		/* XXX */
 	if (error && (uio->uio_rw == UIO_WRITE) && (ioflag & IO_UNIT) && 
 		(type != IFBLK)) {
-		itrunc(ip, osize);
+		itrunc(ip, osize, ioflag & IO_SYNC);
 		uio->uio_offset -= (resid - uio->uio_resid);
 		uio->uio_resid = resid;
 /*

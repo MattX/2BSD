@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_namei.c	1.3 (2.11BSD GTE) 11/26/94
+ *	@(#)ufs_namei.c	1.4 (2.11BSD GTE) 1996/9/13
  */
 #include "param.h"
 #include "../machine/seg.h"
@@ -984,7 +984,7 @@ direnter(ip, ndp)
 	bwrite(bp);
 	dp->i_flag |= IUPD|ICHG;
 	if (ndp->ni_endoff && ndp->ni_endoff < dp->i_size)
-		itrunc(dp, (u_long)ndp->ni_endoff);
+		itrunc(dp, (u_long)ndp->ni_endoff, 0);
 	iput(dp);
 	return (error);
 }

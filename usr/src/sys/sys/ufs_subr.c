@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_subr.c	1.4 (2.11BSD GTE) 2/15/94
+ *	@(#)ufs_subr.c	1.5 (2.11BSD GTE) 1996/9/13
  */
 
 #include "param.h"
@@ -19,70 +19,33 @@
 #include "systm.h"
 
 /*
- * Update is the internal name of 'sync'.  It goes through the disk
- * queues to initiate sandbagged IO; goes through the inodes to write
- * modified nodes; and it goes through the mount table to initiate
- * the writing of the modified super blocks.
+ * Go through the mount table looking for filesystems which have been modified.
+ * For each "dirty" filesystem call 'ufs_sync' to flush changed inodes, data
+ * blocks and the superblock to disc.
  */
-update()
+sync()
 {
 	register struct mount *mp;
-	register struct buf *bp;
+	register struct fs *fs;
+	int async;
 
-	if (updlock)
+	if	(updlock)
 		return;
 	updlock++;
-	/*
-	 * Write back modified superblocks.
-	 * Consistency check that the superblock
-	 * of each file system is still in the buffer cache.
-	 */
-	for (mp = &mount[0]; mp < &mount[NMOUNT]; mp++) {
-		register struct fs *fs;
-
-		if (mp->m_inodp == NULL || mp->m_dev == NODEV)
+	for	(mp = &mount[0]; mp < &mount[NMOUNT]; mp++)
+		{
+		if	(mp->m_inodp == NULL || mp->m_dev == NODEV)
 			continue;
 		fs = &mp->m_filsys;
-		if (fs->fs_fmod == 0)
+		if	(fs->fs_fmod == 0 || fs->fs_ilock || fs->fs_flock)
 			continue;
-		if (fs->fs_ronly != 0) {		/* XXX */
-			printf("fs = %s\n", fs->fs_fsmnt);
-			panic("update: rofs mod");
+		async = mp->m_flags & MNT_ASYNC;
+		mp->m_flags &= ~MNT_ASYNC;
+		ufs_sync(mp);
+		mp->m_flags |= async;
 		}
-		if (fs->fs_ilock || fs->fs_flock)
-			continue;
-		bp = getblk(mp->m_dev, SUPERB);
-		if (bp->b_flags & B_ERROR)
-			continue;
-		fs->fs_fmod = 0;
-		fs->fs_time = time.tv_sec;
-		bcopy(fs, mapin(bp), sizeof (struct fs));
-		mapout(bp);
-		bwrite(bp);
-	}
-	/*
-	 * Write back each (modified) inode.
-	 */
-	{
-		register struct inode *ip;
-
-		for (ip = inode; ip < inodeNINODE; ip++) {
-			if ((ip->i_flag & ILOCKED) != 0 || ip->i_count == 0 ||
-			    (ip->i_flag & (IMOD|IACC|IUPD|ICHG)) == 0)
-				continue;
-			ip->i_flag |= ILOCKED;
-			ip->i_count++;
-			iupdat(ip, &time, &time, 0);
-			iput(ip);
-		}
-	}
 	updlock = 0;
-	/*
-	 * Force stale buffer cache information to be flushed,
-	 * for all devices.
-	 */
-	bflush(NODEV);
-}
+	}
 
 /*
  * Flush all the blocks associated with an inode.
@@ -207,33 +170,5 @@ getfsx(dev)
 		if (mp->m_dev == dev)
 			return (mp - &mount[0]);
 	return (-1);
-}
-#endif
-
-#if (!defined(vax) && !defined(tahoe) && !defined(pdp11)) || defined(VAX630)
-scanc(size, cp, table, mask)
-	u_int size;
-	register u_char *cp, table[];
-	register u_char mask;
-{
-	register u_char *end = &cp[size];
-
-	while (cp < end && (table[*cp] & mask) == 0)
-		cp++;
-	return (end - cp);
-}
-#endif
-
-#if !defined(vax) && !defined(tahoe) && !defined(pdp11)
-locc(mask, size, cp)
-	register u_char mask;
-	u_int size;
-	register u_char *cp;
-{
-	register u_char *end = &cp[size];
-
-	while (cp < end && *cp != mask)
-		cp++;
-	return (end - cp);
 }
 #endif

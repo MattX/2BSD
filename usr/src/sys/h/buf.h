@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)buf.h	1.3 (2.11BSD GTE) 1996/6/9
+ *	@(#)buf.h	1.4 (2.11BSD GTE) 1996/9/13
  */
 
 /*
@@ -68,6 +68,10 @@ struct buf
 #define	BQ_AGE		2		/* rubbish */
 #define	BQ_EMPTY	3		/* buffer headers with no memory */
 
+/* Flags to low-level allocation routines. */
+#define B_CLRBUF	0x01	/* Request allocated buffer be cleared. */
+#define B_SYNC		0x02	/* Do all allocations synchronously. */
+
 #define	bawrite(bp)	{(bp)->b_flags |= B_ASYNC; bwrite(bp);}
 #define	bfree(bp)	(bp)->b_bcount = 0
 #define	bftopaddr(bp)	((u_int)(bp)->b_un.b_addr >> 6 | (bp)->b_xmem << 10)
@@ -80,7 +84,7 @@ extern int	nbuf;			/* number of buffer headers */
 extern struct	bufhd bufhash[];	/* heads of hash lists */
 extern struct	buf bfreelist[];	/* heads of available lists */
 
-struct	buf *alloc();
+struct	buf *balloc();
 struct	buf *getblk();
 struct	buf *geteblk();
 struct	buf *getnewbuf();

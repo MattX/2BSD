@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_inode.c	1.4 (2.11BSD GTE) 11/26/94
+ *	@(#)ufs_inode.c	1.5 (2.11BSD GTE) 1996/9/19
  */
 
 #include "param.h"
@@ -312,11 +312,6 @@ irele(ip)
 	if (ip->i_count == 1) {
 		ip->i_flag |= ILOCKED;
 		if (ip->i_nlink <= 0 && ip->i_fs->fs_ronly == 0) {
-			itrunc(ip, (u_long)0);
-			ip->i_mode = 0;
-			ip->i_rdev = 0;
-			ip->i_flag |= IUPD|ICHG;
-			ifree(ip, ip->i_number);
 #ifdef QUOTA
 			QUOTAMAP();
 			(void) chkiq(ip->i_dev, ip, ip->i_uid, 0);
@@ -324,6 +319,11 @@ irele(ip)
 			ix_dquot[ip - inode] = NODQUOT;
 			QUOTAUNMAP();
 #endif
+			itrunc(ip, (u_long)0, 0);
+			ip->i_mode = 0;
+			ip->i_rdev = 0;
+			ip->i_flag |= IUPD|ICHG;
+			ifree(ip, ip->i_number);
 		}
 		IUPDAT(ip, &time, &time, 0);
 		IUNLOCK(ip);
@@ -411,7 +411,7 @@ iupdat(ip, ta, tm, waitfor)
 #endif
 	bcopy(ip->i_addr, dp->di_addr, NADDR * sizeof (daddr_t));
 	mapout(bp);
-	if (waitfor)
+	if (waitfor && ((ip->i_fs->fs_flags & MNT_ASYNC) == 0))
 		bwrite(bp);
 	else
 		bdwrite(bp);
@@ -428,9 +428,10 @@ iupdat(ip, ta, tm, waitfor)
  *
  * NB: triple indirect blocks are untested.
  */
-itrunc(oip,length)
+itrunc(oip,length, ioflags)
 	register struct inode *oip;
 	u_long length;
+	int	ioflags;
 {
 	daddr_t lastblock;
 	register int i;
@@ -439,9 +440,14 @@ itrunc(oip,length)
 	struct buf *bp;
 	int offset, level;
 	struct inode tip;
+	int aflags;
 #ifdef QUOTA
 	long bytesreleased;
 #endif
+
+	aflags = B_CLRBUF;
+	if (ioflags & IO_SYNC)
+		aflags |= B_SYNC;
 
 	/*
 	 * special hack for pipes, since size for them isn't the size of
@@ -452,11 +458,26 @@ itrunc(oip,length)
 	 */
 	if (oip->i_flag & IPIPE)
 		oip->i_size = MAXPIPSIZ;
-	else if (oip->i_size <= length) {
-		oip->i_flag |= ICHG|IUPD;
-		iupdat(oip, &time, &time, 1);
-		return;
+	else if (oip->i_size == length)
+		goto updret;
+
+	/*
+	 * Lengthen the size of the file. We must ensure that the
+	 * last byte of the file is allocated. Since the smallest
+	 * value of osize is 0, length will be at least 1.
+	 */
+	if (oip->i_size < length) {
+		bn = bmap(oip, lblkno(length - 1), B_WRITE, aflags);
+		if (u.u_error || bn < 0)
+			return;
+#ifdef	QUOTA
+		bytesreleased = oip->i_size - length;
+#endif
+		oip->i_size = length;
+		bdwrite(bp);
+		goto doquotaupd;
 	}
+
 	/*
 	 * Calculate index into inode's block list of
 	 * last direct and indirect blocks (if any)
@@ -476,7 +497,7 @@ itrunc(oip,length)
 	 */
 	offset = blkoff(length);
 	if (offset) {
-		bn = bmap(oip, lblkno(length), B_WRITE, 1);
+		bn = bmap(oip, lblkno(length), B_WRITE, aflags);
 		if (u.u_error || bn < 0)
 			return;
 		bp = bread(oip->i_dev, bn);
@@ -509,8 +530,6 @@ itrunc(oip,length)
 		}
 	for (i = NDADDR - 1; i > lastblock; i--)
 		oip->i_db[i] = 0;
-	oip->i_flag |= ICHG|IUPD;
-	iupdat(oip, &time, &time, 1);
 
 	/*
 	 * Indirect blocks first.
@@ -519,7 +538,7 @@ itrunc(oip,length)
 	for (level = TRIPLE; level >= SINGLE; level--) {
 		bn = ip->i_ib[level];
 		if (bn != 0) {
-			indirtrunc(ip, bn, lastiblock[level], level);
+			indirtrunc(ip, bn, lastiblock[level], level, aflags);
 			if (lastiblock[level] < 0) {
 				ip->i_ib[level] = 0;
 				free(ip, bn);
@@ -553,12 +572,16 @@ done:
 			panic("itrunc2");
 /* END PARANOIA */
 #endif
-	oip->i_flag |= ICHG;
+
+doquotaupd:
 #ifdef QUOTA
 	QUOTAMAP();
 	(void)chkdq(oip, -bytesreleased, 0);
 	QUOTAUNMAP();
 #endif
+updret:
+	oip->i_flag |= ICHG|IUPD;
+	iupdat(oip, &time, &time, 1);
 }
 
 /*
@@ -571,10 +594,11 @@ done:
  *
  * NB: triple indirect blocks are untested.
  */
-indirtrunc(ip, bn, lastbn, level)
+indirtrunc(ip, bn, lastbn, level, aflags)
 	struct inode *ip;
 	daddr_t bn, lastbn;
 	int level;
+	int aflags;
 {
 	register struct buf *bp;
 	daddr_t nb, last;
@@ -619,7 +643,10 @@ indirtrunc(ip, bn, lastbn, level)
 		bzero((caddr_t)&bap[last + 1],
 		    (u_int)(NINDIR - (last + 1)) * sizeof(daddr_t));
 		mapout(bp);
-		bwrite(bp);
+		if (aflags & B_SYNC)
+			bwrite(bp);
+		else
+			bawrite(bp);
 		bp = cpy;
 	}
 
@@ -632,7 +659,7 @@ indirtrunc(ip, bn, lastbn, level)
 	 * and that doesn't work well with recursion.
 	 */
 	if (level == SINGLE)
-		trsingle(ip, bp, last);
+		trsingle(ip, bp, last, aflags);
 	else {
 		register daddr_t *bstart, *bstop;
 
@@ -646,7 +673,7 @@ indirtrunc(ip, bn, lastbn, level)
 			nb = *bstart;
 			if (nb) {
 				mapout(bp);
-				indirtrunc(ip, nb, (daddr_t)-1, level - 1);
+				indirtrunc(ip,nb,(daddr_t)-1, level-1, aflags);
 				free(ip, nb);
 				mapin(bp);
 			}
@@ -663,17 +690,18 @@ indirtrunc(ip, bn, lastbn, level)
 			mapout(bp);
 			last = lastbn % factor;
 			if (nb != 0)
-				indirtrunc(ip, nb, last, level - 1);
+				indirtrunc(ip, nb, last, level - 1, aflags);
 		}
 	}
 	brelse(bp);
 }
 
 static
-trsingle(ip, bp,last)
+trsingle(ip, bp,last, aflags)
 	register struct inode *ip;
 	caddr_t bp;
 	daddr_t last;
+	int aflags;
 {
 	register daddr_t *bstart, *bstop;
 	daddr_t blarray[NINDIR];

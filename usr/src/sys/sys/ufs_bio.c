@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ufs_bio.c	2.1 (2.11BSD) 12/26/92
+ *	@(#)ufs_bio.c	2.2 (2.11BSD) 1996/9/13
  */
 
 #include "param.h"
@@ -325,8 +325,7 @@ loop:
 	bp = dp->av_forw;
 	notavail(bp);
 	if (bp->b_flags & B_DELWRI) {
-		bp->b_flags |= B_ASYNC;
-		bwrite(bp);
+		bawrite(bp);
 		goto loop;
 	}
 	if(bp->b_flags & (B_RAMREMAP|B_PHYS)) {
@@ -421,10 +420,8 @@ loop:
 }
 
 /*
- * Make sure all write-behind blocks
- * on dev (or NODEV for all)
- * are flushed out.
- * (from umount and update)
+ * Make sure all write-behind blocks on dev are flushed out.
+ * (from umount and sync)
  */
 bflush(dev)
 	register dev_t dev;
@@ -439,7 +436,7 @@ loop:
 	for (bp = flist->av_forw; bp != flist; bp = bp->av_forw) {
 		if ((bp->b_flags & B_DELWRI) == 0)
 			continue;
-		if (dev == NODEV || dev == bp->b_dev) {
+		if (dev == bp->b_dev) {
 			bp->b_flags |= B_ASYNC;
 			notavail(bp);
 			bwrite(bp);

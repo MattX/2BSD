@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_sig.c	1.5 (2.11BSD GTE) 11/26/94
+ *	@(#)kern_sig.c	1.6 (2.11BSD GTE) 1996/9/13
  */
 
 #include "param.h"
@@ -838,7 +838,7 @@ core()
 		u.u_error = EFAULT;
 		goto out;
 	}
-	itrunc(ip, (u_long)0);
+	itrunc(ip, (u_long)0, 0);
 	u.u_acflag |= ACORE;
 	u.u_error = rdwri(UIO_WRITE, ip, &u, ctob(USIZE), (off_t)0,
 			UIO_SYSSPACE, IO_UNIT, (int *)0);
