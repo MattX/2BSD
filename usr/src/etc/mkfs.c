@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-char	*sccsid = "@(#)mkfs.c	2.8 (2.11BSD) 1996/04/11";
+char	*sccsid = "@(#)mkfs.c	2.9 (2.11BSD) 1996/5/8";
 #endif
 
 /*
@@ -34,7 +34,7 @@ char	*sccsid = "@(#)mkfs.c	2.8 (2.11BSD) 1996/04/11";
 #endif
 
 #define	UMASK	0755
-#define	MAXFN	500
+#define	MAXFN	750
 
 time_t	utime;
 

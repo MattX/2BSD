@@ -2,9 +2,9 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)mkfs.8	2.0 (2.11BSD) 1996/4/12
+.\"	@(#)mkfs.8	2.1 (2.11BSD) 1996/5/8
 .\"
-.TH MKFS 8 "April 12, 1996"
+.TH MKFS 8 "May 8, 1996"
 .UC 2
 .SH NAME
 mkfs \- construct a file system
@@ -81,8 +81,6 @@ fsck(8),
 mkproto(8)
 newfs(8)
 .SH BUGS
-There should be some way to specify links.
-.PP
 The
 .I lost+found
 directory is created but the boot block is left uninitialized (see

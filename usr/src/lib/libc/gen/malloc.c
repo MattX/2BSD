@@ -1,20 +1,41 @@
-/*	@(#)malloc.c	2.1	SCCS id keyword	*/
+/*	@(#)malloc.c	2.2	(2.11BSD) 1996/4/11 */
+
+#include <unistd.h>
+
 #ifdef debug
+#include <sys/types.h>
+#include <sys/uio.h>
 
-#	define ASSERT(p) if(!(p))botch("p");else
+#define ASSERT(p) if(!(p))botch("p")
 
-	botch(s)
-		char *s;
-	{
-		printf("assertion botched: %s\n",s);
-		abort();
-	}
+/*
+ * Can't use 'printf' below because that can call malloc().  If the malloc
+ * arena is corrupt malloc() calls botch() which calls printf which calls malloc
+ * ... result is a recursive loop which underflows the stack.
+*/
 
+static botch(s)
+char *s;
+{
+	struct	iovec	iov[3];
+	register struct iovec *v = iov;
+	char	*ab = "assertion botched: ";
+
+	v->iov_base = ab;
+	v->iov_len = strlen(ab);
+	v++;
+	v->iov_base = s;
+	v->iov_len = strlen(s);
+	v++;
+	v->iov_base = "\n";
+	v->iov_len = 1;
+
+	writev(STDOUT_FILENO, iov, 3);
+	abort();
+}
 #else
-
-#	define ASSERT(p)
-
-#endif
+#define ASSERT(p)
+#endif	/* debug */
 
 /*
  * The origins of the following ifdef are lost.  The only comment attached
@@ -53,7 +74,6 @@
 #define	BLOCK		1024	/* a multiple of WORD */
 
 #define	BUSY		1
-#define	NULL		0
 
 #define	testbusy(p)	((INT)(p)&BUSY)
 #define	setbusy(p)	(union store *)((INT)(p)|BUSY)
@@ -188,8 +208,8 @@ realloc(p, nbytes)
 	return((char *)q);
 }
 
-#ifdef debug
-allock()
+#ifdef	debug
+static allock()
 {
 #ifdef longdebug
 	register union store *p;
@@ -205,4 +225,4 @@ allock()
 	return(1);
 #endif
 }
-#endif
+#endif /* debug */
