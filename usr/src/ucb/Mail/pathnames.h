@@ -30,16 +30,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)pathnames.h	5.14.1 (2.11BSD GTE) 6/11/94
+ *	@(#)pathnames.h	5.14.2 (2.11BSD GTE) 1996/10/23
  */
 
 #include <paths.h>
 
 #define	_PATH_EX	"/usr/ucb/ex"
 #define	_PATH_VI	"/usr/ucb/vi"
-#define	_PATH_HELP	"/usr/lib/Mail.help"
-#define	_PATH_TILDE	"/usr/lib/Mail.tildehelp"
+#define	_PATH_HELP	"/usr/share/misc/Mail.help"
+#define	_PATH_TILDE	"/usr/share/misc/Mail.tildehelp"
 #define	_PATH_MAIL_LOG	"/usr/spool/mqueue/syslog"
-#define	_PATH_MASTER_RC	"/usr/lib/Mail.rc"
+#define	_PATH_MASTER_RC	"/etc/Mail.rc"
 #define	_PATH_MORE	"/usr/ucb/more"
 #define	_PATH_MAILDIR	"/usr/spool/mail"

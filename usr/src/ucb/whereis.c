@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)whereis.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+static char sccsid[] = "@(#)whereis.c	5.1.1 (2.11BSD) 1996/10/23";
+#endif
 
 #include <sys/param.h>
 #include <sys/dir.h>
@@ -22,16 +20,15 @@ static char sccsid[] = "@(#)whereis.c	5.1 (Berkeley) 5/31/85";
 static char *bindirs[] = {
 	"/etc",
 	"/bin",
+	"/sbin",
 	"/usr/bin",
+	"/usr/sbin",
 	"/usr/games",
-	"/lib",
 	"/usr/ucb",
-	"/usr/lib",
+	"/usr/libexec",
 	"/usr/local",
+	"/usr/local/bin",
 	"/usr/new",
-	"/usr/old",
-	"/usr/hosts",
-	"/usr/include",
 	0
 };
 static char *mandirs[] = {
@@ -50,25 +47,25 @@ static char *mandirs[] = {
 };
 static char *srcdirs[]  = {
 	"/usr/src/bin",
+	"/usr/src/sbin",
 	"/usr/src/usr.bin",
+	"/usr/src/usr.sbin",
 	"/usr/src/etc",
 	"/usr/src/ucb",
 	"/usr/src/games",
 	"/usr/src/usr.lib",
 	"/usr/src/lib",
+	"/usr/src/libexec",
 	"/usr/src/local",
 	"/usr/src/new",
-	"/usr/src/old",
 	"/usr/src/include",
 	"/usr/src/lib/libc/gen",
 	"/usr/src/lib/libc/stdio",
 	"/usr/src/lib/libc/sys",
-	"/usr/src/lib/libc/net/common",
 	"/usr/src/lib/libc/net/inet",
 	"/usr/src/lib/libc/net/misc",
 	"/usr/src/ucb/pascal",
 	"/usr/src/ucb/pascal/utilities",
-	"/usr/src/undoc",
 	0
 };
 

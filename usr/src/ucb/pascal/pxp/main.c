@@ -2,6 +2,9 @@
 /*
  * pxp - Pascal execution profiler
  *
+ * Steven Schultz GTE
+ * Version 1.2.1 October 1996
+ *
  * Bill Joy UCB
  * Version 1.2 January 1979
  */
@@ -29,8 +32,8 @@
 char	usagestr[] =
 	"pxp [ -acdefjntuw_ ] [ -23456789 ] [ -z [ name ... ] ] name.p";
 
-char	*how_file	= "/usr/lib/how_pxp";
-int	how_pathlen	= 9;	/* "/usr/lib/" */
+char	*how_file	= "/usr/share/pascal/how_pxp";
+int	how_pathlen	= 18;	/* "/usr/share/pascal/" */
 
 char	*stdoutn	= "Standard output";
 

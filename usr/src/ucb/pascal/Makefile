@@ -1,6 +1,5 @@
 DESTDIR=
 BINDIR=	/usr/ucb
-LIBDIR=	/usr/lib
 
 CFLAGS= -O -w
 LDFLAGS= -X
@@ -16,7 +15,7 @@ pi pxp: eyacc
 
 ${ALL}: FRC
 	cd $@; make CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}" SEPFLAG=${SEPFLAG} \
-		BINDIR=${BINDIR} LIBDIR=${LIBDIR}
+		BINDIR=${BINDIR}
 
 install: ${UTILS}
 	for i in ${PASCAL}; do \

@@ -1,9 +1,9 @@
 #! /bin/sh
 #
-#	@(#)diction.sh	4.5	(Berkeley)	82/11/06
+#	@(#)diction.sh	4.5.1	(2.11BSD)	1996/10/25
 #
 D=/usr/bin
-B=/usr/lib
+B=/usr/libexec/diction
 echo $*
 rest=
 flag=

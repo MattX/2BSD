@@ -1,4 +1,6 @@
-static char *sccsid = "@(#)crypt.c	4.3 (Berkeley) 1/25/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)crypt.c	4.3.1 (2.11BSD) 1996/10/23";
+#endif
 
 /*
  *	A one-rotor machine designed along the lines of Enigma
@@ -35,8 +37,7 @@ char *pw;
 		close(1);
 		dup(pf[0]);
 		dup(pf[1]);
-		execl("/usr/lib/makekey", "-", 0);
-		execl("/lib/makekey", "-", 0);
+		execl("/usr/libexec/makekey", "-", 0);
 		exit(1);
 	}
 	write(pf[1], buf, 10);

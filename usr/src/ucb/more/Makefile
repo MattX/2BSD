@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 6/4/85
+#	@(#)Makefile	5.1.1 (2.11BSD) 1996/10/23
 #
 CFLAGS=	-O
 SEPFLAG= -i
@@ -16,7 +16,7 @@ install: more more.help
 	install -s more ${DESTDIR}/usr/ucb/more
 	rm -f ${DESTDIR}/usr/ucb/page
 	ln ${DESTDIR}/usr/ucb/more ${DESTDIR}/usr/ucb/page
-	install -c more.help ${DESTDIR}/usr/lib/more.help
+	install -c more.help ${DESTDIR}/usr/share/misc/more.help
 
 more.o:	more.c
 more.o:	/usr/include/stdio.h

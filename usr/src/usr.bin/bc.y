@@ -1,5 +1,5 @@
 %{
-static	char *sccsid = "@(#)bc.y	4.3 (Berkeley) 85/11/28";
+static	char *sccsid = "@(#)bc.y	4.3.1 (2.11BSD) 1996/10/23";
 	int *getout();
 %}
 %right '='
@@ -589,7 +589,7 @@ char **argv;
 			fflush(stdout);
 			exit();
 		}
-		argv[1] = "/usr/lib/lib.b";
+		argv[1] = "/usr/share/misc/lib.b";
 	}
 	pipe(p);
 	if (fork()==0) {

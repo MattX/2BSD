@@ -9,7 +9,7 @@ char *copyright =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char *sccsid = "@(#)expreserve.c	7.13.1 (2.11BSD GTE) 12/31/93";
+static char *sccsid = "@(#)expreserve.c	7.13.2 (2.11BSD GTE) 1996/10/26";
 #endif
 
 #include <stdio.h>
@@ -31,12 +31,12 @@ static char *sccsid = "@(#)expreserve.c	7.13.1 (2.11BSD GTE) 12/31/93";
 char xstr[1];			/* make loader happy */
 
 /*
- * Expreserve - preserve a file in usrpath(preserve)
+ * Expreserve - preserve a file in /usr/preserve
  * Bill Joy UCB November 13, 1977
  *
  * This routine is very naive - it doesn't remove anything from
- * usrpath(preserve)... this may mean that we leave
- * stuff there... the danger in doing anything with usrpath(preserve)
+ * /usr/preserve... this may mean that we leave
+ * stuff there... the danger in doing anything with /usr/preserve
  * is that the clock may be screwed up and we may get confused.
  *
  * We are called in two ways - first from the editor with no argumentss
@@ -135,10 +135,10 @@ main(argc)
 	exit(0);
 }
 
-char	pattern[] =	usrpath(preserve/Exaa`XXXXX);
+char	pattern[] =	"/usr/preserve/Exaa`XXXXX";
 
 /*
- * Copy file name into usrpath(preserve)/...
+ * Copy file name into /usr/preserve/...
  * If name is (char *) 0, then do the standard input.
  * We make some checks on the input to make sure it is
  * really an editor temporary, generate a name for the

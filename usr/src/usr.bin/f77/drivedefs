@@ -8,7 +8,7 @@
 	Wrong Definitions File!
 #endif
 
-#define PASS1NAME	"/lib/f77pass1"
+#define PASS1NAME	"/usr/libexec/f77pass1"
 #define PASS2NAME	"/lib/c1"
 #define PASS2OPT	"/lib/c2"
 #define NOFLPASS2	"/lib/fc1"

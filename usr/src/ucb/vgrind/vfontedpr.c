@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)vfontedpr.c	5.1 (Berkeley) 6/5/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)vfontedpr.c	5.1.1 (2.11BSD) 1996/10/23";
+#endif
 
 #include <ctype.h>
 #include <stdio.h>
@@ -64,7 +64,7 @@ int	psptr;			/* the stack index of the current procedure */
 char	pstack[PSMAX][PNAMELEN+1];	/* the procedure name stack */
 int	plstack[PSMAX];		/* the procedure nesting level stack */
 int	blklevel;		/* current nesting level */
-char	*defsfile = "/usr/lib/vgrindefs";	/* name of language definitions file */
+char	*defsfile = "/usr/share/misc/vgrindefs";	/* name of language definitions file */
 char	pname[BUFSIZ+1];
 
 /*

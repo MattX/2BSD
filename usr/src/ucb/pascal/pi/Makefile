@@ -1,5 +1,5 @@
 #
-# pi Makefile - 1.2 1996/3/22
+# pi Makefile - 1.2.1 1996/10/23
 #
 
 DESTDIR=
@@ -87,11 +87,13 @@ Version.c: version
 	./version > Version.c
 
 install: ${ALL}
-	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/lib
-	install -c how_pi ${DESTDIR}/usr/lib
-	install -c how_pix ${DESTDIR}/usr/lib
-	dd if=px_header.out of=${DESTDIR}/usr/lib/npx_header conv=sync
-	chmod a+r $(DESTDIR)/usr/lib/npx_header
+	-mkdir -p ${DESTDIR}/usr/share/pascal
+	chmod 755 ${DESTDIR}/usr/share/pascal
+	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/share/pascal
+	install -c how_pi ${DESTDIR}/usr/share/pascal
+	install -c how_pix ${DESTDIR}/usr/share/pascal
+	dd if=px_header.out of=${DESTDIR}/usr/share/pascal/npx_header conv=sync
+	chmod a+r $(DESTDIR)/usr/share/pascal/npx_header
 	install -s pi ${DESTDIR}/usr/ucb
 	install -s pix ${DESTDIR}/usr/ucb
 

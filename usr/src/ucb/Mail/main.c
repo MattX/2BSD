@@ -35,7 +35,7 @@
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-static char sccsid[] = "@(#)main.c	5.28 (Berkeley) 4/1/91";
+static char sccsid[] = "@(#)main.c	5.28.1 (2.11BSD) 1996/10/23";
 #endif
 
 #include "rcv.h"
@@ -139,7 +139,7 @@ main(argc, argv)
 			break;
 		case 'n':
 			/*
-			 * User doesn't want to source /usr/lib/Mail.rc
+			 * User doesn't want to source /etc/Mail.rc
 			 */
 			nosrc++;
 			break;

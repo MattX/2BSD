@@ -1,4 +1,4 @@
-#	Makefile	1.4 (2.11BSD GTE) 1996/03/20
+#	Makefile	1.5 (2.11BSD GTE) 1996/10/22
 #
 DESTDIR=
 CFLAGS=	-O
@@ -48,7 +48,7 @@ FRC:
 ${STD} ${KMEM}:
 	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
 
-install: ${STD} ${NSTD} ${KMEM} units.lib
+install: ${STD} ${NSTD} ${KMEM}
 	-for i in ${SUBDIR}; do \
 		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
 	-for i in ${SCRIPT}; do \
@@ -56,7 +56,6 @@ install: ${STD} ${NSTD} ${KMEM} units.lib
 	-for i in ${KMEM}; do \
 		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
 	install -s ${STD} ${NSTD} ${DESTDIR}/usr/bin
-	install -c -m 755 units.lib ${DESTDIR}/usr/lib/units
 
 clean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	7.13.1.2 (2.11BSD GTE) 12/9/94
+#	@(#)Makefile	7.13.1.3 (2.11BSD GTE) 1996/10/23
 #
 VERSION=3.7
 #
@@ -24,8 +24,8 @@ VERSION=3.7
 # If your system expands tabs to 4 spaces you should -DTABS=4 below
 #
 BINDIR=	/usr/ucb
-NBINDIR=/usr/new
-LIBDIR=	/usr/lib
+SBINDIR= /usr/sbin
+MISCDIR= /usr/share/misc
 FOLD=	${BINDIR}/fold
 CTAGS=	${BINDIR}/ctags
 XSTR=	${BINDIR}/xstr
@@ -63,7 +63,7 @@ VHDR=	"Ex Version ${VERSION}"
 # ifdef VMUNIX
 #	${CC} -E ${CFLAGS} $*.c | ${XSTR} -c -
 # else
-	${MKSTR} - ex${VERSION}strings x $*.c
+	${MKSTR} - exstrings x $*.c
 	${CC} -E ${CFLAGS} x$*.c | ${XSTR} -c -
 	rm -f x$*.c
 # endif
@@ -122,7 +122,7 @@ expreserve.o:
 
 clean:
 #	If we dont have ex we cant make it so don't rm ex_vars.h
-	-rm -f a.out exrecover expreserve ex${VERSION}strings strings
+	-rm -f a.out exrecover expreserve exstrings strings
 	-rm -f *.o x*.[cs] core errs trace
 
 # install in standard place (/usr/ucb)
@@ -130,19 +130,15 @@ install: a.out exrecover expreserve
 	-rm -f ${DESTDIR}/${BINDIR}/ex
 	-rm -f ${DESTDIR}/${BINDIR}/vi
 	-rm -f ${DESTDIR}/${BINDIR}/view
-#	-rm -f ${DESTDIR}/${BINDIR}/edit
-#	-rm -f ${DESTDIR}/${BINDIR}/e
 	-rm -f ${DESTDIR}/usr/bin/ex
 	install -s -m 1755 a.out ${DESTDIR}/${BINDIR}/ex
-	cp ex${VERSION}strings ${DESTDIR}/${LIBDIR}/ex${VERSION}strings
-#	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/edit
-#	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/e
+	install -c -m 444  exstrings ${DESTDIR}/${MISCDIR}/exstrings
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/vi
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/${BINDIR}/view
 	ln ${DESTDIR}/${BINDIR}/ex ${DESTDIR}/usr/bin/ex
 	chmod 1755 ${DESTDIR}/${BINDIR}/ex
-	install -s -o root -m 4755 exrecover ${DESTDIR}/${LIBDIR}/ex${VERSION}recover
-	install -s -o root -m 4755 expreserve ${DESTDIR}/${LIBDIR}/ex${VERSION}preserve
+	install -s -o root -m 4755 exrecover ${DESTDIR}/${SBINDIR}/exrecover
+	install -s -o root -m 4755 expreserve ${DESTDIR}/${SBINDIR}/expreserve
 # The following line normally fails.  This is OK.
 	-mkdir ${DESTDIR}/usr/preserve
 

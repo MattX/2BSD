@@ -2,6 +2,9 @@
 /*
  * pi - Pascal interpreter code translator
  *
+ * Steven Schultz GTE
+ * Version 1.2.1 October 1996
+ *
  * Charles Haley, Bill Joy UCB
  * Version 1.2 January 1979
  *
@@ -119,7 +122,7 @@ magic()
 	int buf[512];
 	register int hf, i;
 
-	hf = open("/usr/lib/npx_header", 0);
+	hf = open("/usr/share/pascal/npx_header", 0);
 	if (hf >= 0 && read(hf, buf, 1024) > 16) {
 		header.magic = buf[0];
 		header.txt_size = buf[1];

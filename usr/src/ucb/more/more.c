@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)more.c	5.4 (Berkeley) 4/3/86";
-#endif not lint
+static char sccsid[] = "@(#)more.c	5.4.1 (2.11BSD) 1996/10/23";
+#endif
 
 /*
 ** more.c - General purpose tty output filter and file perusal program
@@ -32,7 +30,7 @@ static char sccsid[] = "@(#)more.c	5.4 (Berkeley) 4/3/86";
 #include <setjmp.h>
 #include <sys/stat.h>
 
-#define HELPFILE	"/usr/lib/more.help"
+#define HELPFILE	"/usr/share/misc/more.help"
 #define VI		"/usr/ucb/vi"
 
 #define Fopen(s,m)	(Currline = 0,file_pos=0,fopen(s,m))

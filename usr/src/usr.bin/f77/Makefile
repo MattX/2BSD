@@ -2,7 +2,7 @@
 #	generating code for the PDP11,
 #	using the Ritchie pass 2
 #
-#	1996/1/28 - 2.11BSD
+#	1996/10/25 - 2.11BSD
 #
 
 AS=		as -V
@@ -95,8 +95,8 @@ locdefs:	pdp11defs
 
 install: all
 		install -s f77 ${DESTDIR}/usr/bin
-		install -s f77pass1 ${DESTDIR}/lib
-		install -c -m 644 ${STRINGS} ${DESTDIR}/lib
+		install -s f77pass1 ${DESTDIR}/usr/libexec
+		install -c -m 644 ${STRINGS} ${DESTDIR}/usr/share/misc
 
 clean:
 		-rm -f f77 f77pass1 *.o gram.c x.c xs.c f77_strings strings

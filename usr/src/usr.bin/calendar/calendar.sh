@@ -1,9 +1,12 @@
-: calendar.sh 4.5 84/02/14
+#!/bin/sh
+#
+# calendar.sh 4.5.1 (2.11BSD) 1996/10/23
+#
 PATH=/bin:/usr/bin:
 tmp=/tmp/cal0$$
 trap "rm -f $tmp /tmp/cal1$$ /tmp/cal2$$"
 trap exit 1 2 13 15
-/usr/lib/calendar >$tmp
+/usr/libexec/calendar >$tmp
 case $# in
 0)
 	trap "rm -f $tmp ; exit" 0 1 2 13 15

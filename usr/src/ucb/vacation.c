@@ -9,7 +9,7 @@
 */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char	SccsId[] = "@(#)vacation.c	5.3.1 (2.11BSD GTE) 6/11/94";
+static char	SccsId[] = "@(#)vacation.c	5.3.2 (2.11BSD GTE) 1996/10/23";
 #endif
 
 # include <sys/types.h>
@@ -345,7 +345,7 @@ sendmessage(msgf, user, myname)
 	f = freopen(msgf, "r", stdin);
 	if (f == NULL)
 	{
-		f = freopen("/usr/lib/vacation.def", "r", stdin);
+		f = freopen("/usr/share/misc/vacation.def", "r", stdin);
 		if (f == NULL)
 			syserr("No message to send");
 	}

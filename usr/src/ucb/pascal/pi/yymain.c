@@ -1,8 +1,11 @@
-/*	@(#)yymain.c	2.2	SCCS id keyword	*/
+/*	@(#)yymain.c	2.2.1	SCCS id keyword	*/
 /* Copyright (c) 1979 Regents of the University of California */
 #
 /*
  * pi - Pascal interpreter code translator
+ *
+ * Steven Schultz, GTE
+ * Version 1.2.1 October 1996
  *
  * Charles Haley, Bill Joy UCB
  * Version 1.2 November 1978
@@ -134,7 +137,7 @@ magic()
 	unsigned	*ubuf = buf;
 	register int	hf, i;
 
-	hf = open("/usr/lib/npx_header", 0);
+	hf = open("/usr/share/pascal/npx_header", 0);
 	if (hf >= 0 && read(hf, buf, HEAD_BYTES) > sizeof header) {
 		header.magic = ubuf[0];
 		header.txt_size = ubuf[1];

@@ -52,7 +52,7 @@ y.tab.c y.tab.h: pas.y
 
 install: pxp how_pxp
 	install -s pxp ${DESTDIR}/usr/ucb/pxp
-	install -c how_pxp ${DESTDIR}/usr/lib/how_pxp
+	install -c how_pxp ${DESTDIR}/usr/share/pascal/how_pxp
 
 tags: FRC
 	ctags ${HDRS} ${SRCS}

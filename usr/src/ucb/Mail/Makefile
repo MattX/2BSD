@@ -1,4 +1,4 @@
-#	@(#)Makefile	5.16 (Berkeley) 6/19/91
+#	@(#)Makefile	5.16.1 (2.11BSD) 1996/10/22
 
 SRCS=	version.c aux.c cmd1.c cmd2.c cmd3.c cmdtab.c collect.c edit.c fio.c \
 	getname.c head.c v7.local.c lex.c list.c main.c names.c popen.c \
@@ -39,6 +39,7 @@ install: all
 	install -s Mail ${DESTDIR}/usr/ucb/Mail
 	install -s fmt ${DESTDIR}/usr/ucb/fmt
 	cd ${DESTDIR}/usr/ucb; rm -f mail; ln Mail mail
+	install -c -m 444 Mail.rc ${DESTDIR}/etc/Mail.rc
 
 tags:	$(SRCS)
 	${CTAGS} $(SRCS);

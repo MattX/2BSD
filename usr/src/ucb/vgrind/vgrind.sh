@@ -4,11 +4,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)vgrind.sh	5.3 (Berkeley) 11/13/85
+#	@(#)vgrind.sh	5.3.1 (2.11BSD) 1996/10/29
 #
 # vgrind
 #
-set b=/usr/lib
+set b=/usr/libexec
+set s=/usr/share
 set voptions=
 set options=
 set files=
@@ -82,9 +83,9 @@ if (-r index) then
     sed -f nindex index >xindex
     if ($f == 'filter') then
 	if ("$head" != "") then
-	    $b/vfontedpr $options -h "$head" $files | cat $b/tmac/tmac.vgrind -
+	    $b/vfontedpr $options -h "$head" $files | cat $s/tmac/tmac.vgrind -
 	else
-	    $b/vfontedpr $options $files | cat $b/tmac/tmac.vgrind -
+	    $b/vfontedpr $options $files | cat $s/tmac/tmac.vgrind -
 	endif
     else
 	if ("$head" != "") then
@@ -100,9 +101,9 @@ if (-r index) then
 else
     if ($f == 'filter') then
 	if ("$head" != "") then
-	    $b/vfontedpr $options -h "$head" $files | cat $b/tmac/tmac.vgrind -
+	    $b/vfontedpr $options -h "$head" $files | cat $s/tmac/tmac.vgrind -
 	else
-	    $b/vfontedpr $options $files | cat $b/tmac/tmac.vgrind -
+	    $b/vfontedpr $options $files | cat $s/tmac/tmac.vgrind -
 	endif
     else
 	if ("$head" != "") then

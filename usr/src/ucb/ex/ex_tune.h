@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ex_tune.h	7.8 (Berkeley) 5/31/85
+ *	@(#)ex_tune.h	7.8.1 (2.11BSD) 1996/10/23
  */
 
 /*
@@ -12,20 +12,13 @@
 
 /*
  * Pathnames.
- *
- * Only exstrings is looked at "+4", i.e. if you give
- * "/usr/lib/..." here, "/lib" will be tried only for strings.
  */
-#define libpath(file) "/usr/lib/file"
-#define loclibpath(file) "/usr/local/lib/file"
-#define binpath(file) "/usr/ucb/file"
-#define usrpath(file) "/usr/file"
 #define E_TERMCAP	"/etc/termcap"
 #define B_CSH		"/bin/csh"
-#define	EXRECOVER	libpath(ex3.7recover)
-#define	EXPRESERVE	libpath(ex3.7preserve)
+#define	EXRECOVER	"/usr/sbin/exrecover"
+#define	EXPRESERVE	"/usr/sbin/expreserve"
 #ifndef VMUNIX
-#define	EXSTRINGS	libpath(ex3.7strings)
+#define	EXSTRINGS	"/usr/share/misc/exstrings"
 #endif
 
 /*

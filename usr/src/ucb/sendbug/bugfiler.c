@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)bugfiler.c	5.5.1 (2.11BSD GTE) 6/11/94";
+static char sccsid[] = "@(#)bugfiler.c	5.5.2 (2.11BSD GTE) 1996/10/23";
 #endif
 
 /*
@@ -29,14 +29,14 @@ static char sccsid[] = "@(#)bugfiler.c	5.5.1 (2.11BSD GTE) 6/11/94";
 #include <sys/dir.h>
 
 #ifndef BUGS_NAME
-#define	BUGS_NAME	"4bsd-bugs"
+#define	BUGS_NAME	"2bsd-bugs"
 #endif
 #ifndef BUGS_HOME
-#define	BUGS_HOME	"@ucbvax.BERKELEY.EDU"
+#define	BUGS_HOME	"@moe.2bsd.com"
 #endif
 
 #ifndef UNIXTOMH
-#define UNIXTOMH	"/usr/lib/unixtomh"
+#define UNIXTOMH	"/usr/libexec/unixtomh"
 #endif
 char	*bugperson = "bugs";
 char	*maildir = "mail";

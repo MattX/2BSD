@@ -1,8 +1,8 @@
 #! /bin/sh
 #
-#	@(#)style.sh	4.5	(Berkeley)	82/11/06
+#	@(#)style.sh	4.5.1	(2.11BSD)	1996/10/25
 #
-L=/usr/lib
+L=/usr/libexec/diction
 B=/usr/bin
 echo " " $*
 sflag=-s

@@ -17,6 +17,7 @@
 #	to install /sys/pdpdist/dtab (or /etc/dtab.save) as ${ROOT}/etc/dtab 
 #	so that the GENERIC kernel can find the tape device.
 #
+# 1996/10/28 - added usr/sbin, usr/libexec and corresponding src directories.
 # 1995/12/05 - add RX02 driver.
 # 1995/06/05 - add disklabel program to Makefile.
 # 1995/06/01 - use split I/D for icheck and restor.
@@ -63,21 +64,24 @@ tmscptape: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data
 	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
-		adm bin dict doc games guest hosts include ingres lib \
-		local man msgs new old preserve pub skel spool tmp ucb
+		adm bin crash dict doc games guest hosts include ingres \
+		lib libdata libexec local man msgs new old preserve pub \
+		sbin share skel spool tmp ucb
 	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys include
 	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
 		Makefile asm.sed asm.sed.pdp asm.sed.vax bin etc games \
-		lib local man new old ucb usr.bin usr.lib
+		lib libexec local man new old sbin share ucb usr.bin \
+		usr.lib usr.sbin
 
 tape1: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data
 	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
-		adm bin dict doc games guest hosts include ingres lib \
-		local man msgs new old preserve pub skel spool tmp ucb
-	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
+		adm bin crash dict doc games guest hosts include ingres \
+		lib libdata libexec local man msgs new old preserve pub \
+		sbin share skel spool tmp ucb
+	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys include
 
 switch_tapes: FRC
@@ -89,7 +93,8 @@ FRC:
 tape2:
 	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
 		Makefile asm.sed asm.sed.pdp asm.sed.vax bin etc games \
-		lib local man new old ucb usr.bin usr.lib
+		lib libexec local man new old sbin share ucb usr.bin \
+		usr.lib usr.sbin
 
 ${DUMP}:
 	@echo "You must make a dump of the root file system first."

@@ -1,10 +1,8 @@
 #
-#	@(#)Makefile	4.5	(Berkeley)	83/06/30
+#	@(#)Makefile	4.5.1	(2.11BSD)	1996/10/23
 #
 #	make file for STYLE and DICTION
 #
-#	BIN is the directory for storing the object code
-#		for the 3 programs that make up style
 #	DICT is the full pathname of the file dict.d, the
 #		dictionary file used by DICTION
 #
@@ -19,24 +17,23 @@ SRCS = \
 	style.h style.sh explain.sh ydict.c \
 	README
 
-BIN = ${DESTDIR}/usr/lib
-DICT= -DDICT=\"/usr/lib/dict.d\"
+DICT= -DDICT=\"/usr/share/misc/dict.d\"
 
 all: diction style
 
 style: style1 style2 style3
 
 install: style diction style.sh diction.sh explain.sh dict.d explain.d
-	install -s style1 ${DESTDIR}/usr/lib
-	install -s style2 ${DESTDIR}/usr/lib
-	install -s style3 ${DESTDIR}/usr/lib
-	install -s dprog ${DESTDIR}/usr/lib
-	install -c style.sh ${DESTDIR}/usr/bin/style
-	install -c diction.sh ${DESTDIR}/usr/bin/diction
-	install -c explain.sh ${DESTDIR}/usr/bin/explain
-	install -c dict.d ${DESTDIR}/usr/lib
-	install -c explain.d ${DESTDIR}/usr/lib
-#	ln ${DESTDIR}/usr/bin/explain ${DESTDIR}/usr/bin/suggest
+	-mkdir -p ${DESTDIR}/usr/libexec/diction
+	install -s -m 755 style1 ${DESTDIR}/usr/libexec/diction
+	install -s -m 755 style2 ${DESTDIR}/usr/libexec/diction
+	install -s -m 755 style3 ${DESTDIR}/usr/libexec/diction
+	install -s -m 755 dprog ${DESTDIR}/usr/libexec/diction
+	install -c -m 755 style.sh ${DESTDIR}/usr/bin/style
+	install -c -m 755 diction.sh ${DESTDIR}/usr/bin/diction
+	install -c -m 755 explain.sh ${DESTDIR}/usr/bin/explain
+	install -c -m 444 dict.d ${DESTDIR}/usr/share/misc
+	install -c -m 444 explain.d ${DESTDIR}/usr/share/misc
 
 clean:
 	rm -f prtlex.c wdslex.c endlex.c

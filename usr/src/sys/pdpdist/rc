@@ -67,7 +67,6 @@ then
 fi
 
 umount -a
-cp /dev/null /etc/mtab
 mount -a						>/dev/console 2>&1
 
 if [ ${RAMSIZE} != 0 ]
@@ -104,7 +103,7 @@ if [ -d /etc/crash ]; then
 fi
 
 			echo preserving editor files 	>/dev/console 2>&1
-(cd /tmp; /usr/lib/ex3.7preserve -a)
+(cd /tmp; /usr/sbin/expreserve -a)
 			echo clearing /tmp 		>/dev/console 2>&1
 (cd /tmp; find . ! -name . ! -name lost+found ! -name quotas -exec rm -r {} \; )
 
@@ -136,12 +135,12 @@ if [ $INET = YES ]; then
 		rwhod;		echo -n ' rwhod'	>/dev/console 2>&1
 	fi
 	rm -f /dev/printer
-	/usr/lib/lpd;		echo -n ' printer'	>/dev/console 2>&1
+	/usr/sbin/lpd;		echo -n ' printer'	>/dev/console 2>&1
 				echo '.'		>/dev/console 2>&1
 else
 	# lpd will run even with out networking.
 		echo starting lpd			>/dev/console 2>&1
-	/usr/lib/lpd
+	/usr/sbin/lpd
 fi
 
 . /etc/rc.local

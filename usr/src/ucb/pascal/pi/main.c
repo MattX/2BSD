@@ -1,8 +1,11 @@
-static	char	sccsid[] = "%W%";	/* SCCS id keyword */
+/* static	char	sccsid[] = "%W%";	/* SCCS id keyword */
 /* Copyright (c) 1979 Regents of the University of California */
 #
 /*
  * pi - Pascal interpreter code translator
+ *
+ * Steven Schultz, GTE
+ * Version 1.2.1 October 1996
  *
  * Charles Haley, Bill Joy UCB
  * Version 1.2 November 1978
@@ -33,11 +36,11 @@ char	*obj		= "obj";
  * There are the "magic" constants err_pathlen and how_pathlen
  * immediately below.
  */
-char    *err_file	= "/usr/lib/pi1.2strings";
-int	err_pathlen	= 9;			/* "/usr/lib/" */
+char    *err_file	= "/usr/share/pascal/pi1.2strings";
+int	err_pathlen	= 18;			/* "/usr/share/pascal/" */
 
-char    *how_file	= "/usr/lib/how_pi\0";	/* room for 'x' in pix */
-int	how_pathlen	= 9;			/* "/usr/lib/" */
+char    *how_file	= "/usr/share/pascal/how_pi\0";	/* room for 'x' in pix */
+int	how_pathlen	= 18;			/* "/usr/share/pascal/" */
 
 int	onintr();
 

@@ -49,7 +49,7 @@ E.s E.h: Edata Emake.ed
 
 install: ${ALL}
 	install -s px ${DESTDIR}/usr/ucb/px
-	install -s gather ${DESTDIR}/usr/lib/gather
+	install -s gather ${DESTDIR}/usr/libexec/gather
 
 tags: FRC
 

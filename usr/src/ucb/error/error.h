@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)error.h	5.1 (Berkeley) 5/31/85
+ *	@(#)error.h	5.1.1 (2.11BSD) 1996/10/23
  */
 
 typedef	int	boolean;
@@ -142,8 +142,8 @@ extern struct lang_desc lang_table[];
  */
 #define	IG_FILE1	"llib-lc"
 #define	IG_FILE2	"llib-port"
-#define	IG_FILE3	"/usr/lib/llib-lc"
-#define	IG_FILE4	"/usr/lib/llib-port"
+#define	IG_FILE3	"/usr/share/lint/llib-lc"
+#define	IG_FILE4	"/usr/share/lint/llib-port"
 
 #define	ERRORNAME	"/.errorrc"
 int	nignored;

@@ -12,7 +12,7 @@ exit(c)
 			cp[1] |= c;
 			cp[2] = 0;
 		}
-		execl("/usr/lib/gather", "gather", cp, "px", 0);
+		execl("/usr/libexec/gather", "gather", cp, "px", 0);
 	}
 */
 	_exit(c);

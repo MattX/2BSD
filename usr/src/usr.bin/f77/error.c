@@ -2,7 +2,7 @@
 #include "string_defs"
 
 #ifdef	C_OVERLAY
-char efilname[] = "/lib/f77_strings";
+char efilname[] = "/usr/share/misc/f77_strings";
 int  efil = -1;
 
 error(index,t,u,type)

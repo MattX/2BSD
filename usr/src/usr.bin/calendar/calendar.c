@@ -1,5 +1,8 @@
-static	char *sccsid = "@(#)calendar.c	4.5 (Berkeley) 84/05/07";
-/* /usr/lib/calendar produces an egrep -f file
+#if	!defined(lint) && defined(DOSCCS)
+static	char *sccsid = "@(#)calendar.c	4.5.1 (2.11BSD) 1996/10/23";
+#endif
+
+/* /usr/libexec/calendar produces an egrep -f file
    that will select today's and tomorrow's
    calendar entries, with special weekend provisions
 
