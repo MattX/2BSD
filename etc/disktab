@@ -1,4 +1,4 @@
-#	@(#)disktab	1.1 (2.11BSD) 1995/05/11
+#	@(#)disktab	1.2 (2.11BSD) 1995/07/13
 #
 # Disk geometry and partition layout tables. 
 # Key:
@@ -186,7 +186,7 @@ rk06|RK06|DEC RK06:\
 	:b0=/mdec/hkuboot:\
 	:pa#8316:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
 	:pb#8316:ob#8316:bb#1024:fb#1024:tb=swap:\
-	:pc#27126:oc#0:bg#1024:fg#1024:\
+	:pc#27126:oc#0:bc#1024:fc#1024:tc=unused:\
 	:pg#10428:og#16632:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#27060:oh#0:bh#1024:fh#1024:th=2.11BSD
 
@@ -195,8 +195,8 @@ rk07|RK07|DEC RK07:\
 	:b0=/mdec/hkuboot:\
 	:pa#8316:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
 	:pb#8316:ob#8316:bb#1024:fb#1024:tb=swap:\
-	:pc#53790:oc#0:bc#1024:fc#1024:\
-	:pg#37092:og#16632:bg#1024:fg#1024:tb=2.11BSD:\
+	:pc#53790:oc#0:bc#1024:fc#1024:tc=unused:\
+	:pg#37092:og#16632:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#53724:oh#0:bh#1024:fh#1024:th=2.11BSD
 
 # The RL02 and RL01 have 256 byte sectors,  getdiskbyname ignores 'se' 
@@ -344,9 +344,9 @@ rd54|RD54|DEC RD54:\
 	:dt=MSCP:ty=fixed:ns#17:nt#15:nc#1221:so:\
 	:b0=/mdec/rauboot:\
 	:pa#15884:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
-	:pb#16720:ob#15884:bb#1024:fb#1024:ta=swap:\
-	:pc#311200:oc#0:bc#1024:fc#1024:\
-	:pg#278596:og#32604:bg#1024:fg#1024:ta=2.11BSD
+	:pb#16720:ob#15884:bb#1024:fb#1024:tb=swap:\
+	:pc#311200:oc#0:bc#1024:fc#1024:tc=unused:\
+	:pg#278596:og#32604:bg#1024:fg#1024:tg=2.11BSD
 
 rx23|RX23|DEC RX23:\
 	:dt=MSCP:ty=floppy:ns#18:nt#2:nc#80:\

@@ -1,5 +1,5 @@
-#ifndef	lint
-static char *rcsid = "$Source: /usr/users/louie/ntp/RCS/ntp_proto.c,v $ $Revision: 3.4.1.12 $ $Date: 89/05/18 18:25:04 $";
+#if	defined(DOSCCS) && !defined(lint)
+static char *rcsid = "$Source: /usr/users/louie/ntp/RCS/ntp_proto.c,v $ $Revision: 3.4.1.13 $ $Date: 95/07/01 18:25:04 $";
 #endif
 
 /*
@@ -11,6 +11,9 @@ static char *rcsid = "$Source: /usr/users/louie/ntp/RCS/ntp_proto.c,v $ $Revisio
 
 /*
  * $Log:	ntp_proto.c,v $
+ * Revision 3.4.1.13 95/07/01 
+ * Fix shifting 1 to 0 with "1<<sys.prec" - need "(u_long)(1L<<sys.prec)"
+ *
  * Revision 3.4.1.12  89/05/18  18:25:04  louie
  * Changes for reference clock feature in ntp_proto.c
  * 
@@ -1096,11 +1099,11 @@ select_clock() {
 			   around.. */
 			sel_lst[i].distance = dispersion;
 			
-			precision_thres = NTP_MAXSKW + 1.0/(1<<-sys.precision);
+			precision_thres = NTP_MAXSKW + 1.0/(u_long)(1L<<-sys.precision);
 			if (sel_lst[i].peer->precision < 0 &&
 			    -sel_lst[i].peer->precision < sizeof(long)*NBBY)
 				precision_thres +=
-					1.0/(1<<-sel_lst[i].peer->precision);
+					1.0/(u_long)(1L<<-sel_lst[i].peer->precision);
 
 			sel_lst[i].precision = precision_thres;
 

@@ -4,7 +4,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)MAKEDEV	4.27 (Berkeley) 4/15/86
+#	@(#)MAKEDEV	4.27.2 (2.11BSD GTE) 1995/06/17
 #
 # Device "make" file.  Valid arguments:
 #	std	standard devices
@@ -24,11 +24,13 @@
 #	si*	unibus cdc 9766 w/ si 9500
 #	xp*	unibus rm02/03/05, rp04/05/06, diva, eagle, cdc9766, fuji 160.
 # Terminal multiplexors:
+#	dl*	dl-11 units other than the console
 #	dz*	unibus dz11 and dz32
 #	dh*	unibus dh11 and emulations (e.g. Able dmax, Emulex cs-11)
 #	dmf*	unibus dmf32
 #	dhu*    unibus dhu11
 #	dmz*    unibus dmz32
+#	dhv*    qbus dhv11
 # Pseudo terminals:
 #	pty*	set of 16 master and slave pseudo terminals
 # Printers:
@@ -37,9 +39,11 @@
 #	vp*	unibus versatec parallel interface
 # Call units:
 # Special purpose devices:
-#	dr*	unibus dr11
-#	ram*	memory disk
-#	dn*	dn11 dialer
+#	dr*		unibus dr11
+#	ram*		memory disk
+#	dn*		dn11 dialer
+#	ingreslock	Ingres lock driver.
+
 umask 77
 for i
 do
@@ -56,50 +60,76 @@ std)
 	;;
 
 ht*|tm*|ts*|tu*)
-	umask 0 ; unit=`expr $i : '..\(.*\)'`
+	umask 0 ; ctlr=`expr $i : '..\(.*\)'`
+	ctlr=`expr $ctlr '*' 64`
 	case $i in
-	ht*) blk=0; chr=6 ;;
+	ht*) blk=0; chr=6;;
 	tm*) blk=1; chr=7;;
 	ts*) blk=2; chr=8;;
 	tu*) blk=12; chr=23;;
 	esac
-	case $unit in
-	0|1|2|3)
-		four=`expr $unit + 4` ; eight=`expr $unit + 8`
-		twelve=`expr $unit + 12`; twenty=`expr $unit + 20`
-		/etc/mknod mt$unit	b $blk $unit
+# Maximum of 4 controllers in a system
+	case $ctlr in
+	0|64|128|192)
+# Maximum of 4 units per controller
+#		for unit in 0 1 2 3
+		for unit in 0 1
+		do
+		zero=`expr $ctlr + $unit + 0`
+		four=`expr $zero + 4` ; eight=`expr $zero + 8`
+		twelve=`expr $zero + 12`
+		sixteen=`expr $zero + 16`
+		twenty=`expr $zero + 20`
+		twentyfour=`expr $zero + 24`
+		twentyeight=`expr $zero + 28`
+		/etc/mknod mt$zero	b $blk $zero
 		/etc/mknod mt$four	b $blk $four
 		/etc/mknod mt$eight	b $blk $eight
 		/etc/mknod mt$twelve	b $blk $twelve
-		/etc/mknod nmt$unit	b $blk $four ;: sanity w/pdp11 v7
+		/etc/mknod nmt$zero	b $blk $four ;: v7 compatibility
 		/etc/mknod nmt$eight	b $blk $twelve ;: ditto
-		/etc/mknod nrmt$unit	c $chr $four ;: sanity w/pdp11 v7
+		/etc/mknod nrmt$zero	c $chr $four ;: ditto
 		/etc/mknod nrmt$eight	c $chr $twelve ;: ditto
-		/etc/mknod rmt$unit	c $chr $unit
+		/etc/mknod rmt$zero	c $chr $zero
 		/etc/mknod rmt$four	c $chr $four
 		/etc/mknod rmt$eight	c $chr $eight
 		/etc/mknod rmt$twelve	c $chr $twelve
-		if [ $i = ut ] 
+		if [ `expr $i : '\(..\)'` = tu ]
+		then
+		/etc/mknod mt$sixteen	b $blk $sixteen
+		/etc/mknod mt$twenty	b $blk $twenty
+		/etc/mknod mt$twentyfour b $blk $twentyfour
+		/etc/mknod mt$twentyeight b $blk $twentyeight
+		/etc/mknod nmt$sixteen	b $blk $twenty ;: v7 compatibility
+		/etc/mknod nmt$twentyfour b $blk $twentyeight ;: ditto
+		/etc/mknod nrmt$sixteen c $chr $twenty ;: ditto
+		/etc/mknod nrmt$twentyfour c $chr $twentyeight ;: ditto
+		/etc/mknod rmt$sixteen	c $chr $sixteen
+		/etc/mknod rmt$twenty	c $chr $twenty
+		/etc/mknod rmt$twentyfour c $chr $twentyfour
+		/etc/mknod rmt$twentyeight c $chr $twentyeight
+		fi
+		if [ `expr $i : '\(..\)'` = ut ]
 		then
 			/etc/mknod mt$twenty	b $blk $twenty
 			/etc/mknod rmt$twenty	c $chr $twenty
 		fi
+		done
 		;;
 	*)
-		echo bad unit for tape in: $1
+		echo bad controller for tape in: $1
 		;;
 	esac
 	umask 77
 	;;
 
-rk*|rl*)
-	# The 2.10BSD rk and rl drivers don't support partitions.  We create
+rk*)
+	# The 2.11BSD rk driver doesn't support partitions.  We create
 	# a single block and charater inode pair for each unit and
-	# call it rkNh and rlNh.
+	# call it rkNh.
 	umask 2 ; unit=`expr $i : '..\(.*\)'`
 	case $i in
 	rk*) name=rk; blk=6; chr=15;;
-	rl*) name=rl; blk=7; chr=16;;
 	esac
 	/etc/mknod ${name}${unit}h b ${blk} ${unit}
 	/etc/mknod r${name}${unit}h c ${chr} ${unit}
@@ -133,7 +163,7 @@ ram*)
 	umask 77
 	;;
 
-br*|hk*|ra*|si*|xp*)
+br*|hk*|ra*|si*|xp*|rl*)
 	umask 2 ; unit=`expr $i : '..\(.*\)'`
 	case $i in
 	br*) name=rp; blk=11; chr=20;;
@@ -141,6 +171,7 @@ br*|hk*|ra*|si*|xp*)
 	ra*) name=ra; blk=5; chr=14;;
 	si*) name=si; blk=9; chr=18;;
 	xp*) name=xp; blk=10; chr=19;;
+	rl*) name=rl; blk=7; chr=16;;
 	esac
 	case $unit in
 	0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|\
@@ -188,7 +219,7 @@ dz*)
 #
 # we may want dmz and dmf someday...
 # dhu*|dh*|dmf*|dmz*)
-dhu*|dh*)
+dhv*|dhu*|dh*)
 	case $i in
 #	dmz*)	name=dmz; major=37; count=24;
 #		unit=`expr $i : "$name\(.*\)"`
@@ -204,6 +235,13 @@ dhu*|dh*)
 #		4) ch=F ;; 5) ch=G ;; 6) ch=H ;; 7) ch=I ;;
 #		*) echo bad unit for $name in: $i ;;
 #		esac;;
+	dhv*)	name=dhv; major=24; count=8;
+		unit=`expr $i : "$name\(.*\)"`;
+		case $unit in
+		0) ch=S ;; 1) ch=T ;; 2) ch=U ;; 3) ch=V ;;
+		4) ch=W ;; 5) ch=X ;; 6) ch=Y ;; 7) ch=Z ;;
+		*) echo bad unit for $name in: $i ;;
+		esac;;
 	dhu*)	name=dhu; major=4; count=16;
 		unit=`expr $i : "$name\(.*\)"`;
 		case $unit in
@@ -215,7 +253,6 @@ dhu*|dh*)
 		unit=`expr $i : "$name\(.*\)"`
 		case $unit in
 		0) ch=h ;; 1) ch=i ;; 2) ch=j ;; 3) ch=k ;;
-		4) ch=l ;; 5) ch=m ;; 6) ch=n ;; 7) ch=o ;;
 		*) echo bad unit for $name in: $i ;;
 		esac;;
 	esac
@@ -228,12 +265,31 @@ dhu*|dh*)
 		printf("/etc/mknod tty%s%c c %d %d; ",ch,87+i,m,u+i); }'`
 	;;
 
+# extra DL-11 units not including the console.  unit numbers start at 1 because
+# the console is always unit 0.  Seven units (1 - 7) are defined for the 11/93
+# and 11/94.  Device name is "ttyl?".  The DH range was restricted from 'h'-'o'
+# to 'h' - 'k' (very unlikely that more than 64 channels of DH-11 will or could
+# be put on an 11.
+
+dl*)
+	name=dl; major=0; ch=l
+	unit=`expr $i : "$name\(.*\)"`
+	case $unit in
+	1|2|3|4|5|6|7)
+		/etc/mknod tty${ch}${unit} c $major $unit;
+		;;
+	*)
+		echo bad unit for $name in: $i
+		;;
+	esac
+	;;
+
 # we may want va and vp someday...
 # lp*|va*|vp*)
 lp*|dn*)
 	case $i in
 	lp*) name=lp; major=5;;
-	dn*) name=dn; major=21;
+	dn*) name=dn; major=21;;
 #	va*) name=va; major=10;;
 #	vp*) name=vp; major=6;;
 	esac
@@ -288,6 +344,12 @@ dr*)
 		echo bad unit for ${name} in: $i
 		;;
 	esac
+	;;
+
+ingreslock)
+	mknod ingreslock c 25 0
+	chown ingres ingreslock
+	chmod 200 ingreslock
 	;;
 
 local)

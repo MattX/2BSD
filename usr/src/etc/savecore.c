@@ -1,11 +1,10 @@
 /*
- * savecore
+ * savecore, 1.1 (2.11BSD) 1995/07/15
  */
 
 #include	<sys/param.h>
 #include	<stdio.h>
 #include	<nlist.h>
-#include	<sys/dir.h>
 #include	<sys/stat.h>
 #include	<sys/fs.h>
 #include	<sys/time.h>
@@ -53,13 +52,14 @@ daddr_t	dumplo;				/* where dump starts on dumpdev */
 size_t	physmem;			/* amount of memory in machine */
 time_t	now;				/* current date */
 char	*path();
-char	*malloc();
-char	*ctime();
+extern	char	*malloc();
+extern	char	*ctime();
 char	vers[80];
 char	core_vers[80];
 char	panic_mesg[80];
 int	panicstr;
-off_t	lseek();
+extern	off_t	lseek();
+extern	char	*devname();
 off_t	Lseek();
 int	debug;
 
@@ -97,39 +97,22 @@ main(argc, argv)
 char *
 find_dev(dev, type)
 	register dev_t dev;
-	register int type;
-{
-	register DIR *dfd = opendir("/dev");
-	struct direct *dir;
-	struct stat statb;
-	static char devname[MAXNAMLEN + 6];
-	char *dp;
+	int type;
+	{
+	register char *dp, *cp;
 
-	strcpy(devname, "/dev/");
-	while(dir = readdir(dfd)) {
-		if (dir->d_ino == 0)
-			continue;
-		strncpy(devname + 5, dir->d_name, MAXNAMLEN);
-		devname[MAXNAMLEN + 5] = '\0';
-		if (stat(devname, &statb)) {
-			perror(devname);
-			continue;
+	cp = devname(dev, type);
+	if	(!cp)
+		{
+		if	(debug)
+			fprintf(stderr, "Can't find device %d,%d\n",
+				major(dev), minor(dev));
+		return(NULL);
 		}
-		if ((statb.st_mode&S_IFMT) != type)
-			continue;
-		if (dev == statb.st_rdev) {
-			closedir(dfd);
-			dp = (char *)malloc(strlen(devname)+1);
-			strcpy(dp, devname);
-			return (dp);
-		}
+	dp = (char *)malloc(strlen(cp) + 1 + sizeof ("/dev/"));
+	(void)sprintf(dp, "/dev/%s", cp);
+	return(dp);
 	}
-	closedir(dfd);
-	if (debug)
-		fprintf(stderr, "Can't find device %d,%d\n",
-			major(dev), minor(dev));
-	return(NULL);
-}
 
 read_kmem()
 {
@@ -164,19 +147,19 @@ read_kmem()
 		exit(1);
 	}
 	kmem = Open("/dev/kmem", 0);
-	Lseek(kmem, (long)nl[X_DUMPDEV].n_value, 0);
+	Lseek(kmem, (off_t)nl[X_DUMPDEV].n_value, 0);
 	Read(kmem, (char *)&dumpdev, sizeof dumpdev);
 	if (dumpdev == NODEV) {
 		if (debug)
 			fprintf(stderr, "Dumpdev is NODEV\n");
 		return(0);
 	}
-	Lseek(kmem, (long)nl[X_DUMPLO].n_value, 0);
+	Lseek(kmem, (off_t)nl[X_DUMPLO].n_value, 0);
 	Read(kmem, (char *)&dumplo, sizeof dumplo);
-	Lseek(kmem, (long)nl[X_PHYSMEM].n_value, 0);
+	Lseek(kmem, (off_t)nl[X_PHYSMEM].n_value, 0);
 	Read(kmem, (char *)&physmem, sizeof physmem);
 	if (nl[X_BOOTIME].n_value != 0) {
-		Lseek(kmem, (long)nl[X_BOOTIME].n_value, 0);
+		Lseek(kmem, (off_t)nl[X_BOOTIME].n_value, 0);
 		Read(kmem, (char *)&boottime, sizeof boottime);
 	}
 	dumplo *= (long)NBPG;
@@ -223,7 +206,6 @@ get_crashtime()
 {
 	int dumpfd;
 	time_t clobber = (time_t)0;
-	time_t	diff;
 
 	if (dumpdev == NODEV)
 		return (0);
@@ -286,7 +268,7 @@ check_space()
 	}
 	ddev = find_dev(dsb.st_dev, S_IFBLK);
 	dfd = Open(ddev, 0);
-	Lseek(dfd, (long)SUPERB*DEV_BSIZE, 0);
+	Lseek(dfd, (off_t)SUPERB*DEV_BSIZE, 0);
 	Read(dfd, (char *)&sblk, sizeof sblk);
 	close(dfd);
 	if (read_number("minfree") > sblk.fs_tfree) {
@@ -318,23 +300,25 @@ save_core()
 {
 	register int n;
 	char buffer[BLOCK*CLICK];
-	register char *cp = buffer;
+	char *cp = buffer;
 	register int ifd, ofd, bounds;
-	register FILE *fp;
+	FILE *fp;
 
 	bounds = read_number("bounds");
 	ifd = Open(system ?  system : "/unix", 0);
-	ofd = Create(path(sprintf(cp, "unix.%d", bounds)), 0666);
+	(void)sprintf(cp, "unix.%d", bounds);
+	ofd = Create(path(cp), 0666);
 	while((n = Read(ifd, buffer, sizeof buffer)) > 0)
 		Write(ofd, cp, n);
 	close(ifd);
 	close(ofd);
 	ifd = Open(ddname, 0);
-	ofd = Create(path(sprintf(cp, "core.%d", bounds)), 0666);
+	(void)sprintf(cp, "core.%d", bounds);
+	ofd = Create(path(cp), 0666);
 	Lseek(ifd, (off_t)dumplo, 0);
 	printf("Saving %D bytes of image in core.%d\n",
 		(long)CLICK*physmem, bounds);
-	while(physmem > 0) {
+	while (physmem) {
 		n = Read(ifd, cp, (physmem>BLOCK? BLOCK: physmem) * CLICK);
 		if (n<0) {
 			perror("Read");
@@ -343,19 +327,6 @@ save_core()
 		Write(ofd, cp, n);
 		physmem -= n/CLICK;
 	}
-#ifdef notdef
-	/*
-	 * Copy the saved registers from their current location to location 4
-	 * (where a tape dump would have put them).
-	 *
-	 * Update: we always save in 0300 now; adb and the kernel have been
-	 * fixed.  Casey Leedom
-	 */
-	Lseek(ifd, (off_t)dumplo+REGLOC, 0);
-	Lseek(ofd, (off_t) 4, 0);
-	n = read(ifd, buffer, NREGS * sizeof(int));
-	write(ofd, buffer, n);
-#endif
 	close(ifd);
 	close(ofd);
 	fp = fopen(path("bounds"), "w");
@@ -425,9 +396,9 @@ Read(fd, buff, size)
 off_t
 Lseek(fd, off, flag)
 	int fd, flag;
-	long off;
+	off_t off;
 {
-	long ret;
+	off_t ret;
 
 	if ((ret = lseek(fd, off, flag)) == -1L) {
 		perror("lseek");

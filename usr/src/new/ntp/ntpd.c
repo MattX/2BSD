@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static char *rcsid = "$Source: /usr/src/new/ntp/ntpd.c,v $ $Revision: 3.4.1.11 $ $Date: 95/01/31 20:35:17 $";
+static char *rcsid = "$Source: /usr/src/new/ntp/ntpd.c,v $ $Revision: 3.4.1.12 $ $Date: 95/07/1 20:35:17 $";
 #endif	lint
 
 /*
@@ -389,7 +389,7 @@ main(argc, argv)
 						(struct timeval *) 0);
 		(void) gettimeofday(&tv, (struct timezone *) 0);
 
-		for(i = 0; i < nintf && nfds; i++) {
+		for(i = 0; i < nintf && nfds > 0; i++) {
 			if (!FD_ISSET(addrs[i].fd, &readfds))
 				continue;
 			addrs[i].uses++;
@@ -400,7 +400,7 @@ main(argc, argv)
 				      (struct sockaddr *) dst, &dstlen)) < 0) {
 
 				if (errno != EWOULDBLOCK) {
-					syslog("recvfrom: %m");
+					syslog(LOG_NOTICE, "recvfrom: %m");
 #ifdef	DEBUG
 					if(debug > 2)
 						perror("recvfrom");

@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)syslog.c	8.4.2 (2.11BSD) 1995/05/04";
+static char sccsid[] = "@(#)syslog.c	8.4.3 (2.11BSD) 1995/07/15";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -226,6 +226,7 @@ openlog(ident, logstat, logfac)
 			if (LogFile == -1) {
 				LogFile = open(logfile, O_WRONLY|O_APPEND);
 				ToFile = 1;
+				connected = 1;
 			}
 			else
 				ToFile = 0;
