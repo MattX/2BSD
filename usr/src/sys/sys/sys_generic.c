@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_generic.c	1.5 (2.11BSD GTE) 1997/1/30
+ *	@(#)sys_generic.c	1.6 (2.11BSD GTE) 1997/2/14
  */
 
 #include "param.h"
@@ -324,7 +324,7 @@ select()
 			goto done;
 		}
 		s = splhigh();
-		time.tv_usec = lbolt * 1000000L / LINEHZ;
+		time.tv_usec = lbolt * mshz;
 		timevaladd(&atv, &time);
 		splx(s);
 	}
@@ -337,7 +337,7 @@ retry:
 	s = splhigh();
 	/* this should be timercmp(&time, &atv, >=) */
 	if (uap->tv && (time.tv_sec > atv.tv_sec || (time.tv_sec == atv.tv_sec
-	    && lbolt * 1000000L / LINEHZ >= atv.tv_usec))) {
+	    && lbolt * mshz >= atv.tv_usec))) {
 		splx(s);
 		goto done;
 	}

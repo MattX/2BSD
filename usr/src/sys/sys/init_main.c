@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)init_main.c	2.2 (2.11BSD GTE) 1997/1/18
+ *	@(#)init_main.c	2.3 (2.11BSD GTE) 1997/2/24
  */
 
 #include "param.h"
@@ -208,7 +208,10 @@ main()
 	if (netoff = netinit())
 		printf("netinit failed\n");
 	else
+		{
+		NETSETHZ();
 		NETSTART();
+		}
 #endif
 
 /*

@@ -1,3 +1,5 @@
+Updated 1997/2/14
+
 	This directory contains prototypes of the files necessary to remaking
 the kernel.  The kernel is not compiled or loaded in this directory, but in
 individual directories per machine.  To set up a directory for a new machine,
@@ -40,10 +42,11 @@ to the old version of your system, you'll have to recover the file before
 you try and remake the old system.  To make this easy, config saves a copy
 in the kernel directory.
 
-Almost no applications depend on localopts.h now, pstat.c, mkfs.c and sa.c 
+Almost no applications depend on localopts.h now, pstat.c and mkfs.c
 are the only ones which come to mind.  'pstat' and 'mkfs' need the 
-EXTERNALITIMES define and the accounting program 'sa' needs the LINEHZ 
-definition.  ALL other options have either been deleted (obsolete) or made
+EXTERNALITIMES define.
+
+ALL other options have either been deleted (obsolete) or made
 standard.  The few remaining options have been moved into the kernel Makefile
 as "-Dxxx" flags to the compiler.  If EXTERNALITIMES changes you will need
 to recompile anything which looks at the kernel's incore inode table.

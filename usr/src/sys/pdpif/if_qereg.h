@@ -1,4 +1,4 @@
-/*	@(#)if_qereg.h	7.1 (Berkeley) 6/5/86 */
+/*	@(#)if_qereg.h	7.1.1 (2.11BSD) 1997/2/16 */
 
 /* @(#)if_qereg.h	1.2 (ULTRIX) 1/3/85 */
  
@@ -28,10 +28,12 @@
 /* ---------------------------------------------------------------------
  * Modification History 
  *
+ *  16 Feb. 1997 -- sms
+ *	Add DELQA mode select and Identity test bit definitions.
+ *
  *  13 Feb. 84 -- rjl
  *
  *	Initial version of driver. derived from IL driver.
- * 
  * ---------------------------------------------------------------------
  */
 
@@ -79,6 +81,9 @@ struct qedevice {
 #define QE_POWERUP	0x1000		/* Tranceiver power on		*/
 #define QE_CARRIER	0x2000		/* Carrier detect		*/
 #define QE_RCV_INT	0x8000		/* Receiver interrupt		*/
+
+#define	QE_VEC_MS	0x8000		/* DELQA mode select (1=LQA)	*/
+#define	QE_VEC_ID	0x0001		/* Identity test bit		*/
  
 /*
  * Transmit and receive ring discriptor ---------------------------

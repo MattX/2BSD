@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_pipe.c	1.4 (2.11BSD GTE) 1997/1/30
+ *	@(#)sys_pipe.c	1.5 (2.11BSD GTE) 1997/2/7
  */
 
 #include "param.h"
@@ -265,8 +265,9 @@ pipe_select(fp, which)
  * because the inode type was DTYPE_PIPE.  The dispatch in closef() can come
  * directly here instead of the general inode close routine.
  *
- * This routine frees the inode by calling 'irele'.  The inode must be
- * unlocked prior to calling this routine.
+ * This routine frees the inode by calling 'iput'.  The inode must be
+ * unlocked prior to calling this routine because an 'ilock' is done prior
+ * to the select wakeup processing.
 */
 
 pipe_close(fp)
@@ -274,6 +275,7 @@ pipe_close(fp)
 	{
 	register struct inode *ip = (struct inode *)fp->f_data;
 
+	ilock(ip);
 #ifdef	DIAGNOSTIC
 	if	((ip->i_flag & IPIPE) == 0)
 		panic("pipe_close !IPIPE");
@@ -297,6 +299,6 @@ pipe_close(fp)
 /*
  * And finally decrement the reference count and (likely) release the inode.
  */
-	irele(ip);
+	iput(ip);
 	return(0);
 	}

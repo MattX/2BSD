@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhv.c	2.1 (2.11BSD Berkeley) 11/29/94
+ *	@(#)dhv.c	2.2 (2.11BSD Berkeley) 1997/2/14
  */
 
 /*
@@ -38,6 +38,7 @@
 #include "uba.h"
 #include "ubavar.h"
 #include "systm.h"
+#include <sys/kernel.h>
 
 struct	uba_device dhvinfo[NDHV];
 
@@ -209,7 +210,7 @@ dhvclose(dev, flag)
 		extern int wakeup();
 
 		/* Hold DTR low for 0.5 seconds */
-		timeout(wakeup, (caddr_t) &tp->t_dev, LINEHZ/2);
+		timeout(wakeup, (caddr_t) &tp->t_dev, hz/2);
 		sleep((caddr_t) &tp->t_dev, PZERO);
 	}
 	ttyclose(tp);
@@ -353,23 +354,6 @@ dhvrint(dhv)
 		{
 		for	(line = 0; rcnt; line++) rcnt >>= 1;
 		dhv_rcnt[line]++;
-#ifdef	notnow
-/*
- * If 16 or less characters were processed from the silo we drop
- * priority to 4 which will block further DHV interrupts but allow
- * clock and most disc interrupts to occur.  Then a small (~ 1ms)
- * delay is done and the interrupt dismissed.  Best that can be done
- * since delaying for any number of whole clock ticks seems to cause
- * problems.
-*/
-		if	(line <= 4)
-			{
-			c = spl4();	/* DHV is a spl4 device */
-			delay(1000L);	/* try a 1 ms delay */
-			dhvwait++;
-			splx(c);
-			}
-#endif
 		}
 }
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_clock.c	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)kern_clock.c	1.4 (2.11BSD GTE) 1997/2/14
  */
 
 #include "param.h"
@@ -107,7 +107,7 @@ hardclock(dev,sp,r1,ov,nps,r0,pc,ps)
 			psignal(p, SIGXCPU);
 			if (u.u_rlimit[RLIMIT_CPU].rlim_cur <
 			    u.u_rlimit[RLIMIT_CPU].rlim_max)
-				u.u_rlimit[RLIMIT_CPU].rlim_cur += 5 * LINEHZ;
+				u.u_rlimit[RLIMIT_CPU].rlim_cur += 5 * hz;
 		}
 		if (u.u_timer[ITIMER_PROF - 1].it_value &&
 		    !--u.u_timer[ITIMER_PROF - 1].it_value) {
@@ -134,8 +134,8 @@ hardclock(dev,sp,r1,ov,nps,r0,pc,ps)
 			--lbolt;
 			++adjdelta;
 		}
-	if (++lbolt >= LINEHZ) {
-		lbolt -= LINEHZ;
+	if (++lbolt >= hz) {
+		lbolt -= hz;
 		++time.tv_sec;
 	}
 
@@ -250,7 +250,7 @@ softclock(pc, ps)
 		 */
 
 		if (p->p_uid && p->p_nice == NZERO &&
-		    u.u_ru.ru_utime > 10L * 60L * LINEHZ) {
+		    u.u_ru.ru_utime > 10L * 60L * hz) {
 			p->p_nice = NZERO+4;
 				(void) setpri(p);
 		}

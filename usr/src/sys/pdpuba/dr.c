@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dr.c	1.4 (2.11BSD GTE) 11/30/94
+ *	@(#)dr.c	1.5 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -22,6 +22,7 @@
 #include "conf.h"
 #include "ioctl.h"
 #include "drreg.h"
+#include <sys/kernel.h>
 
 struct	dr11w {
 	int	i_flags;		/* interface flags */
@@ -71,7 +72,7 @@ dev_t dev;
 	drptr->i_sig = 0;		/* clear signals (set by ioctl) */
 	drptr->i_tsig = 0;
 	drptr->i_fun = 0;		/* clear function */
-	timeout(drtimeout, (caddr_t)drptr, LINEHZ);
+	timeout(drtimeout, (caddr_t)drptr, hz);
 	return(0);
 }
 
@@ -311,7 +312,7 @@ caddr_t ptr;
 	if(drptr->i_flags & (DR_TACTIVE | DR_OPEN))
 	{
 		drptr->i_prev = drptr->i_req;	/* arm timeout */
-		timeout(drtimeout, ptr, LINEHZ);
+		timeout(drtimeout, ptr, hz);
 	}
 }
 

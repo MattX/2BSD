@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)kern_sysctl.c	8.4.5 (2.11BSD GTE) 1997/1/18
+ *	@(#)kern_sysctl.c	8.4.6 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -746,7 +746,7 @@ sysctl_clockrate(where, sizep)
 	 * Construct clockinfo structure.
 	*/
 	clkinfo.hz = hz;
-	clkinfo.tick = 1000000L / hz;
+	clkinfo.tick = mshz;
 	clkinfo.profhz = 0;
 	clkinfo.stathz = hz;
 	return(sysctl_rdstruct(where, sizep, NULL, &clkinfo, sizeof (clkinfo)));

@@ -1,6 +1,11 @@
 #! /bin/sh
 #	2.11BSD script to set up a new kernel configuration directory.
 #
+#	1997/2/14 - LINEHZ removed from localopts.h.  The clock rate is
+#		    now known in _exactly 1_ place in the kernel (param.c)
+#		    rather than having references scattered all over the 
+#		    place.  Patching 'hz' (and 'mshz') will now do the right 
+#		    thing (i.e. change the clock rate on the fly).
 #	1996/6/8 - New spl massaging scripts.  They are now 'sed' scripts
 #		   rather than 'ed' scripts and are about twice as fast.
 #	1995/07/21 - remove XP_PROBE, the kernel no longer probes for disk
@@ -53,7 +58,7 @@ cat << EOF > $LO
  *
  * It contains a list the kernel options not prepended to the Makefile
  * as -Dxxxx commands to the compiler.  MAXMEM was moved to param.h leaving
- * only LINEHZ and EXTERNALITIMES to be placed in localopts.h
+ * only EXTERNALITIMES to be placed in localopts.h
  */
 
 EOF
@@ -106,6 +111,7 @@ sed	-e "s/%ROOTDEV%/$ROOTDEV/" \
 	-e "s/%DUMPROUTINE%/$DUMPROUTINE/" < ioconf.c > ../$MACHINE/ioconf.c
 
 sed	-e "s/%TIMEZONE%/$TIMEZONE/" \
+	-e "s/%LINEHZ%/$LINEHZ/g" \
 	-e "s/%DST%/$DST/" \
 	-e "s/%NBUF%/$NBUF/" \
 	-e "s/%MAXUSERS%/$MAXUSERS/" < param.c > ../$MACHINE/param.c
@@ -113,7 +119,6 @@ sed	-e "s/%TIMEZONE%/$TIMEZONE/" \
 echo "Setting configuration options for $MACHINE."
 
 OPTS="-D${IDENT}"
-echo "#define LINEHZ	$LINEHZ"	>> $LO
 if [ $FPSIM = YES ]; then
 	OPTS="$OPTS -DFPSIM"
 fi

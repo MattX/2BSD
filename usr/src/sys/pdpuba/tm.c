@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)tm.c	2.3 (2.11BSD GTE) 1997/1/18
+ *	@(#)tm.c	2.4 (2.11BSD GTE) 1997/4/14
  */
 
 /*
@@ -166,7 +166,7 @@ get:
 	if (sc->sc_tact == 0) {
 		sc->sc_timo = INF;
 		sc->sc_tact = 1;
-		timeout(tmtimer, (caddr_t) dev, 5 * LINEHZ);
+		timeout(tmtimer, (caddr_t) dev, 5 * hz);
 	}
 	splx(s);
 	return(0);
@@ -583,7 +583,7 @@ register dev_t	dev;
 		tmintr();
 		splx(s);
 	}
-	timeout(tmtimer, (caddr_t) dev, 5 * LINEHZ);
+	timeout(tmtimer, (caddr_t) dev, 5 * hz);
 }
 
 tmseteof(bp)

@@ -3,8 +3,7 @@
  *
  * It contains a list the kernel options not prepended to the Makefile
  * as -Dxxxx commands to the compiler.  MAXMEM was moved to param.h leaving
- * only LINEHZ and EXTERNALITIMES to be placed in localopts.h
+ * only EXTERNALITIMES to be placed in localopts.h
  */
 
-#define LINEHZ	60
 #define EXTERNALITIMES 1

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980,1986 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)reboot.c	5.5.2 (2.11BSD) 1996/5/9";
+static char sccsid[] = "@(#)reboot.c	5.5.3 (2.11BSD) 1997/2/16";
 #endif
 
 /*
@@ -100,6 +100,12 @@ main(argc, argv)
 		syslog(LOG_CRIT, "%s; %s by %s",
  			args, (howto&RB_HALT)?"halted":"rebooted", user);
 	}
+/*
+ * Do a sync early on so disks start transfers while we're killing 
+ * processes.
+*/
+	if (!(howto & RB_NOSYNC))
+		sync();
 
 	(void) signal(SIGHUP, SIG_IGN);	/* for remote connections */
 	if (kill(1, SIGTSTP) == -1) {
@@ -108,23 +114,29 @@ main(argc, argv)
 	}
 	sleep(1);
 	(void) kill(-1, SIGTERM);	/* one chance to catch it */
-	sleep(5);
+
+/*
+ * After the processes receive the TERM signal start the rest of the
+ * buffers out to disk.  Wait five seconds between SIGTERM and SIGKILL so
+ * the processes have a chance to clean up and exit nicely.
+*/
+	sleep(2);
+	if (!(howto & RB_NOSYNC))
+		sync();
+	sleep(3);
 
 	if (!quickly)
 		for (i = 1; ; i++) {
 			if (kill(-1, SIGKILL) == -1) {
-				extern int errno;
-
 				if (errno == ESRCH)
 					break;
-
 				perror(myname);
 				kill(1, SIGHUP);
 				exit(EX_OSERR);
 			}
 			if (i > 5) {
 				fprintf(stderr,
-				    "CAUTION: some process(es) wouldn\'t die\n");
+				    "CAUTION: some process(es) wouldn't die\n");
 				break;
 			}
 			sleep(2 * i);

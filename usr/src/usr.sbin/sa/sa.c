@@ -1,15 +1,11 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)sa.c	4.9.1 (2.11BSD GTE) 1/1/94";
+static char *sccsid = "@(#)sa.c	4.9.2 (2.11BSD GTE) 1997/2/14";
 #endif
 
 /*
  *	Extensive modifications to internal data structures
  *	to allow arbitrary number of different commands and users added.
  *	
- *	Also allowed the digit option on the -v flag (interactive
- *	threshold compress) to be a digit string, so one can
- *	set the threshold > 9.
- *
  *	Also added the -f flag, to force no interactive threshold
  *	compression with the -v flag.
  *
@@ -17,9 +13,6 @@ static char *sccsid = "@(#)sa.c	4.9.1 (2.11BSD GTE) 1/1/94";
  *	UC Berkeley
  *	31jan81
  */
-#ifdef pdp11
-#include <sys/param.h>		/* need LINEHZ for acct.h */
-#endif
 
 #include <stdio.h>
 #include <ctype.h>
@@ -28,6 +21,8 @@ static char *sccsid = "@(#)sa.c	4.9.1 (2.11BSD GTE) 1/1/94";
 #include <signal.h>
 #include <utmp.h>
 #include <pwd.h>
+#include <sysexits.h>
+#include <stdlib.h>
 
 /* interpret command time accounting */
 
@@ -231,7 +226,6 @@ double	tsys;
 double	tio;
 double	timem;
 cell	*junkp;
-char	*sname;
 double	ncom;
 time_t	expand();
 
@@ -258,20 +252,12 @@ time_t	expand();
 #define	SAVACCT	"/usr/adm/savacct"
 #define	ACCT	"/usr/adm/acct"
 #endif	DEBUG
-
 
 char *usracct = USRACCT;
 char *savacct = SAVACCT;
 
 int	cellcmp();
 cell	*junkp = 0;
-/*
- *	The threshold is built up from digits in the argv ;
- *	eg, -v1s0u1
- *	will build a value of thres of 101.
- *
- *	If the threshold is zero after processing argv, it is set to 1
- */
 int	thres = 0;	
 int	htabinstall = 1;
 int	(*cmp)();
@@ -290,7 +276,8 @@ main(argc, argv)
 	double ft;
 	register struct	allocbox *allocwalk;
 	register cell *tp, *ub;
-	int i, j, size, nchunks, smallest;
+	char	*acctfn;
+	int i, j, size, nchunks, smallest, c;
 	struct chunkdesc *chunkvector;
 
 	pgdiv = getpagesize() / 1024;
@@ -300,156 +287,107 @@ main(argc, argv)
 
 	tabinit();
 	cmp = tcmp;
-	if (argc>1)
-	if (argv[1][0]=='-') {
-		argv++;
-		argc--;
-		for(i=1; argv[0][i]; i++)
-		switch(argv[0][i]) {
 
-		case 'o':
-			oflg++;
-			break;
-
-		case 'i':
-			iflg++;
-			break;
-
-		case 'b':
-			bflg++;
-			cmp = Bcmp;
-			break;
-
-		case 'l':
-			lflg++;
-			break;
-
-		case 'c':
-			cflg++;
-			break;
-
-		case 'd':
-			dflg++;
-			cmp = dcmp;
-			break;
-
-		case 'D':
-			Dflg++;
-			cmp = Dcmp;
-			break;
-
-		case 'j':
-			jflg++;
-			break;
-
-		case 'k':
-			kflg++;
-			cmp = kcmp;
-			break;
-
-		case 'K':
-			Kflg++;
-			cmp = Kcmp;
-			break;
-
-		case 'n':
-			nflg++;
-			cmp = ncmp;
-			break;
-
-		case 'a':
-			aflg++;
-			break;
-
-		case 'r':
-			rflg++;
-			break;
-
-		case 't':
-			tflg++;
-			break;
-
-		case 's':
-			sflg++;
-			aflg++;
-			break;
-
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			thres = thres * 10 + (argv[0][i]-'0');
-			break;
-
-		case 'v':
-			vflg++;
-			break;
-
-		case 'f':
-			fflg++;	/* force v option; no tty interaction */
-			break;
-
-		case 'u':
-			uflg++;
-			break;
-
-		case 'm':
-			mflg++;
-			break;
-
-		case 'U':
-		case 'S':
-			if (i != 1 || argv[0][2]) {	/* gross! */
-				fprintf(stderr, "-U and -S options must be separate\n");
-				exit(1);
+	while	((c = getopt(argc, argv, "oiblcdDjkKnartsv:fumU:S:")) != EOF)
+		{
+		switch	(c)
+			{
+			case	'o':
+				oflg++;
+				break;
+			case	'i':
+				iflg++;
+				break;
+			case	'b':
+				bflg++;
+				cmp = Bcmp;
+				break;
+			case	'l':
+				lflg++;
+				break;
+			case	'c':
+				cflg++;
+				break;
+			case	'd':
+				dflg++;
+				cmp = dcmp;
+				break;
+			case	'D':
+				Dflg++;
+				cmp = Dcmp;
+				break;
+			case	'j':
+				jflg++;
+				break;
+			case	'k':
+				kflg++;
+				cmp = kcmp;
+				break;
+			case	'K':
+				Kflg++;
+				cmp = Kcmp;
+				break;
+			case	'n':
+				nflg++;
+				cmp = ncmp;
+				break;
+			case	'a':
+				aflg++;
+				break;
+			case	'r':
+				rflg++;
+				break;
+			case	't':
+				tflg++;
+				break;
+			case	's':
+				sflg++;
+				aflg++;
+				break;
+			case	'v':
+				vflg++;
+				thres = atoi(optarg);
+				break;
+			case	'f':
+				fflg++;	/* force v option; no tty interaction */
+				break;
+			case	'u':
+				uflg++;
+				break;
+			case	'm':
+				mflg++;
+				break;
+			case	'U':
+				usracct = optarg;
+				break;
+			case	'S':
+				savacct = optarg;
+				break;
+			default:
+				(void)usage();
+				/* NOTREACHED */
 			}
-			argc++, argv--;			/* backup - yuk */
-			goto doUS;
-
+		}
+	switch	(argc - optind)
+		{
+		case	1:
+			acctfn = argv[optind];
+			break;
+		case	0:
+			acctfn = ACCT;
+			break;
 		default:
-		    	fprintf(stderr, "Invalid option %c\n", argv[0][1]);
-			exit(1);
+			(void)usage();
+			/* NOTREACHED */
 		}
-	}
 
-#define optfile(f) {if (argc < 2) \
-			{ fprintf(stderr, "Missing filename\n"); exit(1); } \
-			argc--, argv++; f = argv[0]; }
-
-doUS:
-	for (argc--, argv++; argc && argv[0][0] == '-'; argc--, argv++) {
-		switch(argv[0][1]) {
-		    case 'U':
-		    	optfile(usracct);
-			break;
-
-		    case 'S':
-		    	optfile(savacct);
-			break;
-
-		    default:
-		    	fprintf(stderr, "Invalid option %c\n", argv[0][1]);
-			exit(1);
-		}
-	}
-
-	if (thres == 0)
+	if	(thres == 0)
 		thres = 1;
-	if (iflg==0)
+	if	(iflg==0)
 		init();
-	if (argc<1)
-		doacct(ACCT);
-	else while (argc--)
-		doacct(*argv++);
-	if (uflg) {
+	doacct(acctfn);
+	if	(uflg)
 		return;
-	}
 
 /*
  * cleanup pass
@@ -500,12 +438,11 @@ doUS:
 		}
 		if ((ff = fopen(savacct, "w")) == NULL) {
 			printf("Can't save\n");
-			exit(0);
+			exit(EX_OK);
 		}
 		PROCESSITERATE(allocwalk, tp, ub)
 			fwrite((char *)&(tp->p), sizeof(struct process), 1, ff);
 		fclose(ff);
-		creat(sname, 0644);
 		signal(SIGINT, SIG_DFL);
 	}
 /*
@@ -513,7 +450,7 @@ doUS:
  */
 	if (mflg) {
 		printmoney();
-		exit(0);
+		exit(EX_OK);
 	}
 	column(ncom, treal, tcpu, tsys, timem, tio);
 	printf("\n");
@@ -563,6 +500,13 @@ doUS:
 		}
 	}	/* iterate to merge the lists */
 }
+
+void
+usage()
+	{
+	fprintf(stderr, "Usage sa [-oiblcdDjkKnartsfum] [-S savacct] [-U usracct] [file]\n");
+	exit(EX_USAGE);
+	}
 
 printmoney()
 {
@@ -646,20 +590,14 @@ char *f;
 	int	nrecords = 0;
 #endif DEBUG
 
-	if (sflg && sname) {
-		printf("Only 1 file with -s\n");
-		exit(0);
-	}
-	if (sflg)
-		sname = f;
 	if ((ff = fopen(f, "r"))==NULL) {
-		printf("Can't open %s\n", f);
+		fprintf(stderr, "Can't open %s\n", f);
 		return;
 	}
 	while (fread((char *)&fbuf, sizeof(fbuf), 1, ff) == 1) {
 #ifdef DEBUG
 		if (++nrecords % 1000 == 0)
-			printf("Input record from %s number %d\n",
+			fprintf(stderr, "Input record from %s number %d\n",
 				f, nrecords);
 #endif DEBUG
 		for (cp = fbuf.ac_comm; *cp && cp < &fbuf.ac_comm[NC]; cp++)
@@ -676,11 +614,7 @@ char *f;
 			*cp = '\0';
 		x = expand(fbuf.ac_utime) + expand(fbuf.ac_stime);
 		y = pgtok((u_short)fbuf.ac_mem);
-#ifdef pdp11
-		z = expand(fbuf.ac_io);
-#else
 		z = expand(fbuf.ac_io) / AHZ;
-#endif
 		if (uflg) {
 			printf("%3u %6.2f cpu %8luk mem %6ld io %.*s\n",
 			    fbuf.ac_uid, x/(double)AHZ, y, z, NC, fbuf.ac_comm);
@@ -718,7 +652,7 @@ char *f;
  *	Generalized cell compare routine, to cast out users
  */
 cellcmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 	if (ISPROCESS(p1)){
 		if (ISPROCESS(p2))
@@ -731,7 +665,7 @@ cellcmp(p1, p2)
 }
 
 ncmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 
 	if(p1->p.count == p2->p.count)
@@ -763,7 +697,7 @@ Bcmp(p1, p2)
 }
 
 Kcmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 
 	if (p1->p.imem < p2->p.imem) {
@@ -780,7 +714,7 @@ Kcmp(p1, p2)
 }
 
 kcmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 	double a1, a2;
 
@@ -800,7 +734,7 @@ kcmp(p1, p2)
 }
 
 dcmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 	double a1, a2;
 
@@ -820,7 +754,7 @@ dcmp(p1, p2)
 }
 
 Dcmp(p1, p2)
-	cell *p1, *p2;
+	register cell *p1, *p2;
 {
 
 	if (p1->p.io < p2->p.io) {
@@ -941,9 +875,9 @@ strip()
 
 time_t
 expand(t)
-	unsigned t;
+	register unsigned int t;
 {
-	register time_t nt;
+	time_t nt;
 
 	nt = t&017777;
 	t >>= 13;
@@ -1000,7 +934,6 @@ getnames()
 {
 	register struct user *tp;
 	register struct passwd *pw;
-	struct passwd *getpwent();
 
 	setpwent();
 	while (pw = getpwent()){
@@ -1016,7 +949,6 @@ getmaxuid()
 {
 	register struct user *tp;
 	register struct passwd *pw;
-	struct passwd *getpwent();
 	uid_t maxuid = 0;
 
 	setpwent();

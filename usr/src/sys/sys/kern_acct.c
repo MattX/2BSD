@@ -3,7 +3,9 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	2.4 (2.11BSD) 1997/1/18
+ *	@(#)kern_acct.c	2.5 (2.11BSD) 1997/2/16
+ *
+ * This module is a real mishmash of FreeBSD, 4.3BSD, and home brewed code.
  */
 
 #include "param.h"
@@ -14,6 +16,7 @@
 #include "user.h"
 #include "namei.h"
 #include "proc.h"
+#include <sys/file.h>
 #include "acct.h"
 #include "kernel.h"
 #include "syslog.h"
@@ -21,145 +24,195 @@
 /*
  * SHOULD REPLACE THIS WITH A DRIVER THAT CAN BE READ TO SIMPLIFY.
  */
-int	acctsuspend = 2;	/* stop accounting when < 2% free space left */
-int	acctresume = 4;		/* resume when free space risen to > 4% */
-struct	timeval chk = {15, 0};	/* frequency to check space for accounting */
+short	acctsuspend = 2;	/* stop accounting when < 2% free space left */
+short	acctresume = 4;		/* resume when free space risen to > 4% */
+short	acctchkfreq = 15;	/* frequency to check space for accounting */
+short	acctdisabled = 0;	/* 0 = not disabled */
 struct	inode *acctp;
-struct	inode *savacctp;
+comp_t	compress();
+static	int	chkfreesp();
 
 /*
  * Perform process accounting functions.
  */
 sysacct()
-{
-	register struct inode *ip;
+	{
+	register struct inode *ip = NULL;
 	register struct a {
 		char	*fname;
 	} *uap = (struct a *)u.u_ap;
 	struct	nameidata nd;
 	register struct nameidata *ndp = &nd;
-	int acctwatch();
+	int	error;
 
-	if (suser()) {
-		if (savacctp) {
-			acctp = savacctp;
-			savacctp = NULL;
+	if	(!suser())
+		{
+		error = u.u_error;	/* XXX */
+		goto out;
 		}
-		if (uap->fname==NULL) {
-			if (ip = acctp) {
-				irele(ip);
-				acctp = NULL;
-				chk.tv_usec = 0;
-				untimeout(acctwatch, &chk);
-			}
-			return;
-		}
+/*
+ * If accounting is to be started to a file, "open" that file for
+ * writing.  We don't check that the file is 'normal' because while it may
+ * be strange to write to a tape or (unmounted) disk why should it be
+ * prohibited?
+*/
+	if	(uap->fname != NULL)
+		{
 		NDINIT(ndp, LOOKUP, FOLLOW, UIO_USERSPACE, uap->fname);
-		ip = namei(ndp);
-		if (ip == NULL)
-			return;
-		if ((ip->i_mode&IFMT) != IFREG) {
-			u.u_error = EACCES;
-			iput(ip);
-			return;
+		if	((error = vn_open(ndp, FFLAGS(O_WRONLY), 0)) != 0)
+			goto	out;
+		ip = ndp->ni_ip;
 		}
-		if (ip->i_fs->fs_ronly) {
-			u.u_error = EROFS;
-			iput(ip);
-			return;
-		}
-		if (acctp && (acctp->i_number != ip->i_number ||
-		    acctp->i_dev != ip->i_dev))
-			irele(acctp);
-		acctp = ip;
-		iunlock(ip);
-		if (chk.tv_usec == 0) {
-			chk.tv_usec = 1;	/* usec is timer enabled flag */
-			timeout(acctwatch, &chk, chk.tv_sec * hz);
-		}
-	}
-}
+/*
+ * Swap the accounting files.
+*/
+	error = swapacctf(ip);
 
-acctwatch(resettime)
-	register struct	timeval *resettime;
-{
+out:
+	return(u.u_error = error);
+	}
+
+/*
+ * This was broken out into a function of its own so that it could be 
+ * called from elsewhere in the kernel.  The experiment that was done for
+ * didn't work out but it doesn't hurt anything to retain this function 
+ * (it might come in handy in the future).
+*/
+swapacctf(ip)
+	register struct inode *ip;
+	{
+	register struct inode *oacctp;
+
+	oacctp = acctp;
+	acctp = ip;
+	if	(oacctp)
+		(void)vn_close(oacctp, FWRITE);
+	if	(acctp)
+		acctwatch();
+	return(0);
+	}
+
+acctwatch()
+	{
 	register struct fs *fs;
+	static	time_t	acctchecktime;
 
-	if (savacctp) {
-		fs = savacctp->i_fs;
-		if (freespace(fs, acctresume) > 0) {
-			acctp = savacctp;
-			savacctp = NULL;
+	if	(acctp == NULL || time.tv_sec < acctchecktime)
+		return;		/* do not refresh timer */
+	acctchecktime = time.tv_sec + acctchkfreq;
+	fs = acctp->i_fs;
+
+	if	(acctdisabled)
+		{
+		if	(chkfreesp(fs, acctresume) > 0)
+			{
+			acctdisabled = 0;
 			log(LOG_NOTICE, "Accounting resumed\n");
-/*			return;		/* XXX - fall thru and refresh timer */
+			}
+		}
+	else
+		{
+		if	(chkfreesp(fs, acctsuspend) <= 0)
+			{
+			log(LOG_NOTICE, "Accounting suspended\n");
+			acctdisabled = 1;
+			}
 		}
 	}
-	if (acctp == NULL)
-		return;		/* do not refresh timer */
-	fs = acctp->i_fs;
-	if (freespace(fs, acctsuspend) <= 0) {
-		savacctp = acctp;
-		acctp = NULL;
-		log(LOG_NOTICE, "Accounting suspended\n");
-	}
-	timeout(acctwatch, resettime, resettime->tv_sec * hz);
-}
 
 /*
  * On exit, write a record on the accounting file.
  */
 acct()
-{
+	{
 	struct	acct acctbuf;
 	register struct inode *ip;
-	off_t siz;
 	register struct acct *ap = &acctbuf;
 
-	if ((ip = acctp) == NULL)
+	acctwatch();
+
+	if	((ip = acctp) == NULL || acctdisabled)
 		return;
 	ilock(ip);
 	bcopy(u.u_comm, ap->ac_comm, sizeof(acctbuf.ac_comm));
-	ap->ac_utime = compress(u.u_ru.ru_utime);
-	ap->ac_stime = compress(u.u_ru.ru_stime);
-	ap->ac_etime = compress(time.tv_sec - u.u_start);
+/*
+ * The 'user' and 'system' times need to be converted from 'hz' (linefrequency)
+ * clockticks to the AHZ pseudo-tick unit of measure.  The elapsed time is
+ * converted from seconds to AHZ ticks.
+*/
+	ap->ac_utime = compress(((u_long)u.u_ru.ru_utime * AHZ) / hz);
+	ap->ac_stime = compress(((u_long)u.u_ru.ru_stime * AHZ) / hz);
+	ap->ac_etime = compress((u_long)(time.tv_sec - u.u_start) * AHZ);
 	ap->ac_btime = u.u_start;
 	ap->ac_uid = u.u_ruid;
 	ap->ac_gid = u.u_rgid;
 	ap->ac_mem = (u.u_dsize+u.u_ssize) / 16; /* fast ctok() */
-	ap->ac_io = compress(u.u_ru.ru_inblock + u.u_ru.ru_oublock);
-	if (u.u_ttyp)
+/*
+ * Section 3.9 of the 4.3BSD book says that I/O is measured in 1/AHZ units too.
+*/
+	ap->ac_io = compress((u_long)(u.u_ru.ru_inblock+u.u_ru.ru_oublock)*AHZ);
+	if	(u.u_ttyp)
 		ap->ac_tty = u.u_ttyd;
 	else
 		ap->ac_tty = NODEV;
 	ap->ac_flag = u.u_acflag;
-	siz = ip->i_size;
-	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), siz,
+	u.u_error = rdwri(UIO_WRITE, ip, ap, sizeof(acctbuf), ip->i_size,
 			UIO_SYSSPACE, IO_UNIT|IO_APPEND, (int *)0);
-	if (u.u_error)
-		itrunc(ip, (u_long)siz, 0);
+	if	(u.u_error)
+		{
+/*
+ * The only time this should happen is when a physical error occurs on the
+ *  disk drive or the space is exhausted.  The diagnostic message is not
+ * enabled by default to save space and also because there's apparently a
+ * race condition during 'reboot'/'fastboot' that would elicit the (harmless
+ * I hope) warning message.
+*/
+		acctdisabled = 1;
+#ifdef	DIAGNOSTIC
+		log(LOG_NOTICE, "acct rdwri=%d\n", u.u_error);
+#endif
+		}
 	iunlock(ip);
-}
+	}
 
 /*
- * Produce a pseudo-floating point representation
- * with 3 bits base-8 exponent, 13 bits fraction.
+ * Raise exponent and drop bits off the right of the mantissa until the
+ * mantissa fits.  If we run out of exponent space, return max value (all
+ * one bits).  With AHZ set to 64 this is good for close to 8.5 years:
+ * (8191 * (1 << (3*7)) / 64 / 60 / 60 / 24 / 365 ~= 8.5)
  */
-compress(t)
-register time_t t;
-{
-	register exp = 0, round = 0;
 
-	while (t >= 8192) {
-		exp++;
-		round = t&04L;
-		t >>= 3;
+#define	MANTSIZE	13			/* 13 bit mantissa. */
+#define	EXPSIZE		3			/* Base 8 (3 bit) exponent. */
+
+comp_t
+compress(mant)
+	u_long mant;
+	{
+	register int exp;
+
+	for	(exp = 0; exp < (1 << EXPSIZE); exp++, mant >>= EXPSIZE)
+		if	(mant < (1L << MANTSIZE))
+			return(mant | (exp << MANTSIZE));
+	return(~0);
 	}
-	if (round) {
-		t++;
-		if (t >= 8192) {
-			t >>= 3;
-			exp++;
-		}
+
+/*
+ * A helper function since freespace's generated code is so voluminous.  All
+ * we really want is an indication if there is the desired amount of space
+ * available (greater than or equal, less than zero).
+*/
+static int
+chkfreesp(fs, percent)
+	register struct fs *fs;
+	int	percent;
+	{
+	daddr_t	l;
+
+	l = freespace(fs, percent);
+	if	(l < 0)
+		return(-1);
+	else if	(l == 0)
+		return(0);
+	return(1);
 	}
-	return((exp<<13) + t);
-}

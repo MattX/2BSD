@@ -1,4 +1,4 @@
-/*	@(#)if_qe.c	1.2 (2.11BSD) 1995/05/20 */
+/*	@(#)if_qe.c	1.3 (2.11BSD) 1997/2/16 */
  
 /****************************************************************
  *								*
@@ -147,12 +147,7 @@
 #define NXMT	5	 		/* Transmit descriptors		*/
 #define NTOT	(NXMT + NRCV)
  
-/*
- * This constant should really be 60 because the qna adds 4 bytes of crc.
- * However when set to 60 our packets are ignored by deuna's , 3coms are
- * okay ??????????????????????????????????????????
- */
-#define MINDATA 64
+#define MINDATA 60
  
 /*
  * Ethernet software status per interface.
@@ -230,6 +225,7 @@ qeattach(ui)
 	register struct ifnet *ifp = &sc->is_if;
 	struct qedevice *addr = (struct qedevice *)ui->ui_addr;
 	register int i;
+	int	islqa = 0;
 	extern int nextiv();
  
 	ifp->if_unit = ui->ui_unit;
@@ -242,6 +238,13 @@ qeattach(ui)
 	 */
 	for	( i=0 ; i<6 ; i++ )
 		sc->setup_pkt[i][1] = sc->is_addr[i] = addr->qe_sta_addr[i] & 0xff;  
+	/*
+ 	 * Determine if this is a DEQNA or a DELQA...
+	*/
+	addr->qe_vector |= QE_VEC_ID;
+	if	(addr->qe_vector & QE_VEC_ID)
+		islqa = 1;
+	addr->qe_vector &= ~QE_VEC_ID;
  
 	/*
 	 * Allocate a floating vector and initialize it with the address of
@@ -273,6 +276,9 @@ qeattach(ui)
 	ifp->if_ioctl = qeioctl;
 	ifp->if_reset = 0;
 	if_attach(ifp);
+
+	printf("qe%d: DEC DE%sA addr %s\n",ifp->if_unit, islqa ? "LQ": "QN",
+		ether_sprintf(&sc->is_addr));
 }
  
 /*
@@ -392,12 +398,12 @@ qestart(dev)
 		/*
 		 *  Does buffer end on odd byte ? 
 		 */
-		if( len & 1 ) {
+		if (len < MINDATA)
+			len = MINDATA;
+		if (len & 1) {
 			len++;
 			rp->qe_odd_end = 1;
 		}
-		if( len < MINDATA )
-			len = MINDATA;
 		rp->qe_buf_len = -(len/2);
 		rp->qe_flag = rp->qe_status1 = QE_NOTYET;
 		rp->qe_addr_lo = loint(buf_addr);

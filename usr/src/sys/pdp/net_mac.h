@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	%W% (Berkeley) %G%
+ *	net_mac.h 2.0 (2.11BSD) 1997/2/14
  */
 
 struct socket *asoqremque();
@@ -66,6 +66,10 @@ struct proc *netpfind();
 int netpsignal();
 #define	NETPSIGNAL(p, sig) \
 	SKcall(netpsignal, sizeof(struct proc *) + sizeof(int), p, sig)
+
+void netsethz();
+#define	NETSETHZ() \
+	KScall(netsethz, sizeof (hz), hz)
 
 int netstart();
 #define	NETSTART() \

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)param.c	2.1 (2.11BSD GTE) 1/18/95
+ *	@(#)param.c	2.2 (2.11BSD GTE) 1997/2/14
  */
 
 #include "../h/param.h"
@@ -35,8 +35,10 @@
 #define	MAXUSERS %MAXUSERS%
 #define	NBUF %NBUF%
 
-int	hz = LINEHZ;
+int	hz = %LINEHZ%;
+u_short	mshz = (1000000L + %LINEHZ% - 1) / %LINEHZ%;
 struct	timezone tz = { %TIMEZONE%, %DST% };
+
 #define	NPROC (10 + 7 * MAXUSERS)
 int	nproc = NPROC;
 #define NTEXT (26 + MAXUSERS)

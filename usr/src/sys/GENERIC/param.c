@@ -35,8 +35,10 @@
 #define	MAXUSERS 4
 #define	NBUF 32
 
-int	hz = LINEHZ;
+int	hz = 60;
+u_short	mshz = (1000000L + 60 - 1) / 60;
 struct	timezone tz = { 480, 1 };
+
 #define	NPROC (10 + 7 * MAXUSERS)
 int	nproc = NPROC;
 #define NTEXT (26 + MAXUSERS)

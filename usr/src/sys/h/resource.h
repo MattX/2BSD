@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)resource.h	1.2 (2.11BSD GTE) 1/14/95
+ *	@(#)resource.h	1.3 (2.11BSD GTE) 1997/2/14
  */
 
 #ifndef	_SYS_RESOURCE_H_
@@ -50,8 +50,8 @@ struct	rusage {
 
 struct	k_rusage {			/* KERNEL RUSAGE STRUCTURE */
 #define	k_ru_first	ru_utime
-	long	ru_utime;		/* user time used (LINEHZ ticks) */
-	long	ru_stime;		/* system time used (LINEHZ ticks) */
+	long	ru_utime;		/* user time used ('hz' ticks) */
+	long	ru_stime;		/* system time used ('hz' ticks) */
 	long	ru_ovly;		/* overlay changes */
 	long	ru_nswap;		/* swaps */
 	long	ru_inblock;		/* block input operations */

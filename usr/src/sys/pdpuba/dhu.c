@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhu.c	2.1 (2.11BSD GTE) 11/29/94
+ *	@(#)dhu.c	2.2 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -32,6 +32,7 @@
 #include "uba.h"
 #include "ubavar.h"
 #include "systm.h"
+#include <sys/kernel.h>
 
 struct	uba_device dhuinfo[NDHU];
 
@@ -208,7 +209,7 @@ dhuclose(dev, flag)
 
 		(void) dhumctl(unit, (long)DHU_OFF, DMSET);
 		/* Hold DTR low for 0.5 seconds */
-		timeout(wakeup, (caddr_t) &tp->t_dev, LINEHZ/2);
+		timeout(wakeup, (caddr_t) &tp->t_dev, hz/2);
 		sleep((caddr_t) &tp->t_dev, PZERO);
 	}
 #else

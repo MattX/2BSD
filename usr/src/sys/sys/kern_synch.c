@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_synch.c	1.2 (2.11BSD GTE) 1/1/93
+ *	@(#)kern_synch.c	1.3 (2.11BSD GTE) 1997/2/14
  */
 
 #include "param.h"
@@ -68,7 +68,7 @@ schedcpu()
 		wakeup((caddr_t)&runin);
 	}
 	++runrun;			/* swtch at least once a second */
-	timeout(schedcpu, (caddr_t)0, LINEHZ);
+	timeout(schedcpu, (caddr_t)0, hz);
 }
 
 /*

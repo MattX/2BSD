@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)lastcomm.c	5.2.2 (2.11BSD GTE) 2/3/95";
+static char sccsid[] = "@(#)lastcomm.c	5.2.3 (2.11BSD GTE) 1997/2/14";
 #endif
 
 /*
@@ -25,6 +25,7 @@ static char sccsid[] = "@(#)lastcomm.c	5.2.2 (2.11BSD GTE) 2/3/95";
 #include <utmp.h>
 #include <struct.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 struct	acct buf[DEV_BSIZE / sizeof (struct acct)];
 
@@ -32,9 +33,6 @@ time_t	expand();
 char	*flagbits();
 char	*getname();
 char	*getdev();
-
-extern	char	*devname(), *optarg;
-extern	int	optind;
 
 main(argc, argv)
 	char *argv[];

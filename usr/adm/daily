@@ -5,8 +5,16 @@ echo ""
 msgs -c
 
 echo ""
-echo "Purging accounting records:"
-sa -sfv10 > /dev/null
+echo "Rotating accounting records:"
+mv -f /usr/adm/acct.2.Z /usr/adm/acct.3.Z
+mv -f /usr/adm/acct.1.Z /usr/adm/acct.2.Z
+mv -f /usr/adm/acct.0.Z /usr/adm/acct.1.Z
+mv -f /usr/adm/acct /usr/adm/acct.0
+cp /dev/null /usr/adm/acct
+chmod 644 /usr/adm/acct
+accton /usr/adm/acct
+sa -s -f -v 10 /usr/adm/acct.0 > /dev/null
+compress /usr/adm/acct.0
 
 echo ""
 echo "Running calendar:"

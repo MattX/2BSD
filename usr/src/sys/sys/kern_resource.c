@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_resource.c	1.3 (2.11BSD GTE) 3/10/93
+ *	@(#)kern_resource.c	1.4 (2.11BSD GTE) 1997/2/14
  */
 
 #include "param.h"
@@ -165,14 +165,14 @@ setrlimit()
 		 * 2.11 stores RLIMIT_CPU as ticks to keep from making
 		 * hardclock() do long multiplication/division.
 		 */
-		if (alim.rlim_cur >= RLIM_INFINITY / LINEHZ)
+		if (alim.rlim_cur >= RLIM_INFINITY / hz)
 			alim.rlim_cur = RLIM_INFINITY;
 		else
-			alim.rlim_cur = alim.rlim_cur * LINEHZ;
-		if (alim.rlim_max >= RLIM_INFINITY / LINEHZ)
+			alim.rlim_cur = alim.rlim_cur * hz;
+		if (alim.rlim_max >= RLIM_INFINITY / hz)
 			alim.rlim_max = RLIM_INFINITY;
 		else
-			alim.rlim_max = alim.rlim_max * LINEHZ;
+			alim.rlim_max = alim.rlim_max * hz;
 	}
 	if (alim.rlim_cur > alimp->rlim_max || alim.rlim_max > alimp->rlim_max)
 		if (!suser())
@@ -196,9 +196,9 @@ getrlimit()
 
 		alim = u.u_rlimit[uap->which];
 		if (alim.rlim_cur != RLIM_INFINITY)
-			alim.rlim_cur = alim.rlim_cur / LINEHZ;
+			alim.rlim_cur = alim.rlim_cur / hz;
 		if (alim.rlim_max != RLIM_INFINITY)
-			alim.rlim_max = alim.rlim_max / LINEHZ;
+			alim.rlim_max = alim.rlim_max / hz;
 		u.u_error = copyout((caddr_t)&alim,
 		    (caddr_t)uap->rlp,sizeof (struct rlimit));
 	}
@@ -257,10 +257,10 @@ rucvt(rup, krup)
 	register struct k_rusage	*krup;
 {
 	bzero((caddr_t)rup, sizeof(*rup));
-	rup->ru_utime.tv_sec   = krup->ru_utime / LINEHZ;
-	rup->ru_utime.tv_usec  = (krup->ru_utime % LINEHZ * 1000000) / LINEHZ;
-	rup->ru_stime.tv_sec   = krup->ru_stime / LINEHZ;
-	rup->ru_stime.tv_usec  = (krup->ru_stime % LINEHZ * 1000000) / LINEHZ;
+	rup->ru_utime.tv_sec   = krup->ru_utime / hz;
+	rup->ru_utime.tv_usec  = (krup->ru_utime % hz) * mshz;
+	rup->ru_stime.tv_sec   = krup->ru_stime / hz;
+	rup->ru_stime.tv_usec  = (krup->ru_stime % hz) * mshz;
 	rup->ru_ovly = krup->ru_ovly;
 	rup->ru_nswap = krup->ru_nswap;
 	rup->ru_inblock = krup->ru_inblock;

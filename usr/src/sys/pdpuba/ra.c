@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)ra.c	3.1 (2.11BSD GTE) 1995/10/28
+ *	@(#)ra.c	3.2 (2.11BSD GTE) 1997/2/14
  */
 
  /***********************************************************************
@@ -14,6 +14,9 @@
 
 /* 
  * ra.c - MSCP Driver
+ * Date:	February 14, 1997
+ * Use 'hz' to calculate delays rather than compile time constant.
+ *
  * Date:	October 28, 1995
  * Fix multicontroller support (which was badly broken when disklabels were 
  * added).  Accessing drives on the second controller would cause serious 
@@ -132,10 +135,7 @@
 #include "errno.h"
 #include "file.h"
 #include "stat.h"
-
-#ifndef	offsetof
-#define	offsetof(type,member) ((size_t)(&((type *)0)->member))
-#endif
+#include <sys/kernel.h>
 
 #define	RACON(x)			((minor(x) >> 6) & 03)
 #define	RAUNIT(x)			((minor(x) >> 3) & 07)
@@ -370,7 +370,7 @@ raopen(dev, flag, mode)
 		}
 
 		/* wait for initialization to complete */
-		timeout(wakeup, (caddr_t)&sc->sc_ctab, 12 * LINEHZ);
+		timeout(wakeup, (caddr_t)&sc->sc_ctab, 12 * hz);
 		sleep((caddr_t)&sc->sc_ctab, PSWP+1);
 		if (sc->sc_state != S_RUN) {
 			splx(s);
@@ -412,7 +412,7 @@ raopen(dev, flag, mode)
 		((Trl *)mp->m_dscptr)->hsh |= RA_OWN|RA_INT;
 		normalseg5();
 		i = sc->RAADDR->raip;
-		timeout(wakeup, (caddr_t)&disk->ra_flags, 10 * LINEHZ);
+		timeout(wakeup, (caddr_t)&disk->ra_flags, 10 * hz);
 		sleep((caddr_t)&disk->ra_flags, PSWP+1);
 		splx(s);
 	}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dz.c	1.3 (2.11BSD GTE) 11/29/94
+ *	@(#)dz.c	1.4 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -32,7 +32,7 @@
 struct	uba_device dzinfo[NDZ];
 
 #define	NDZLINE		(NDZ*8)
-#define	FASTTIMER	(LINEHZ/30)	/* rate to drain silos, when in use */
+#define	FASTTIMER	2	/* rate to drain silos, when in use */
 
 int	dzstart(), dzxint(), dzdma();
 int	ttrstrt();
@@ -108,7 +108,7 @@ dzattach(addr, unit)
 	}
 	if (dz_timer == 0) {
 		dz_timer++;
-		timeout(dzscan, (caddr_t)0, LINEHZ);
+		timeout(dzscan, (caddr_t)0, hz);
 		dztimerintvl = FASTTIMER;
 	}
 	return (1);
@@ -558,7 +558,7 @@ dzscan()
 	}
 	if (dzsilos && !olddzsilos)
 		timeout(dztimer, (caddr_t)0, dztimerintvl);
-	timeout(dzscan, (caddr_t)0, LINEHZ);
+	timeout(dzscan, (caddr_t)0, hz);
 }
 
 dztimer()

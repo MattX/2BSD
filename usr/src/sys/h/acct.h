@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)acct.h	(2.11BSD) 2/21/92
+ *	@(#)acct.h	2.0	(2.11BSD) 1997/2/14
  */
 
 /*
@@ -39,4 +39,4 @@ struct	acct
  * 1/AHZ is the granularity of the data encoded in the various
  * comp_t fields.  This is not necessarily equal to hz.
  */
-#define AHZ LINEHZ
+#define AHZ 64

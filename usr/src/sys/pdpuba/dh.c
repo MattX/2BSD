@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dh.c	1.3 (2.11BSD GTE) 11/29/94
+ *	@(#)dh.c	1.4 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -45,7 +45,12 @@ struct	uba_device dminfo[NDH];
 #define	IFLAGS	(EVENP|ODDP)
 #endif
 
-#define	FASTTIMER	(LINEHZ/30)	/* scan rate with silos on */
+/*
+ * Use 2 ticks rather than doing a divide of 'hz' by 30.  The old method
+ * would produce a scan rate of 1 tick if the lineclock was 50hz but 2 ticks
+ * if the lineclock was 60hz.
+*/
+#define	FASTTIMER	2	/* scan rate with silos on */
 
 /*
  * Local variables for the driver
@@ -142,7 +147,7 @@ dhopen(dev, flag)
 	s = spl5();
 	if (timerstarted == 0) {
 		timerstarted++;
-		timeout(dhtimer, (caddr_t) 0, LINEHZ);
+		timeout(dhtimer, (caddr_t) 0, hz);
 	}
 	if ((dhact&(1<<dh)) == 0) {
 		addr->un.dhcsr |= DH_IE;
@@ -594,7 +599,7 @@ dhtimer()
 		    dhchars[dh] = 0;
 		}
 	}
-	timeout(dhtimer, (caddr_t) 0, dhsilos ? FASTTIMER : LINEHZ);
+	timeout(dhtimer, (caddr_t) 0, dhsilos ? FASTTIMER : hz);
 }
 
 /*

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_time.c	1.3 (2.11BSD GTE) 12/31/93
+ *	@(#)kern_time.c	1.4 (2.11BSD GTE) 1997/2/14
  */
 
 #include "param.h"
@@ -34,7 +34,7 @@ gettimeofday()
 		 * easier to do it here.  Long casts are out of paranoia.
 		 */
 		s = splhigh(); atv = time; ms = lbolt; splx(s);
-		atv.tv_usec = (long)ms * 1000000L / (long)LINEHZ;
+		atv.tv_usec = (long)ms * mshz;
 		u.u_error = copyout((caddr_t)&atv, (caddr_t)(uap->tp),
 			sizeof(atv));
 		if (u.u_error)
@@ -79,7 +79,7 @@ setthetime(tv)
 /* WHAT DO WE DO ABOUT PENDING REAL-TIME TIMEOUTS??? */
 	boottime.tv_sec += tv->tv_sec - time.tv_sec;
 	s = splhigh();
-	time = *tv; lbolt = time.tv_usec / (1000000L / LINEHZ);
+	time = *tv; lbolt = time.tv_usec / mshz;
 	splx(s);
 #ifndef pdp11
 	/*
@@ -105,14 +105,14 @@ adjtime()
 		sizeof (struct timeval));
 	if (u.u_error)
 		return;
-	adjust = atv.tv_sec * LINEHZ + atv.tv_usec / (1000000L / LINEHZ);
+	adjust = (atv.tv_sec * hz) + (atv.tv_usec / mshz);
 	/* if unstoreable values, just set the clock */
 	if (adjust > 0x7fff || adjust < 0x8000) {
 		s = splclock();
 		time.tv_sec += atv.tv_sec;
-		lbolt += atv.tv_usec / (1000000L / LINEHZ);
-		while (lbolt >= LINEHZ) {
-			lbolt -= LINEHZ;
+		lbolt += atv.tv_usec / mshz;
+		while (lbolt >= hz) {
+			lbolt -= hz;
 			++time.tv_sec;
 		}
 		splx(s);
@@ -124,8 +124,8 @@ adjtime()
 			adjdelta = adjust;
 			return;
 		}
-		atv.tv_sec = adjdelta / LINEHZ;
-		atv.tv_usec = (adjdelta % LINEHZ) * (1000000L / LINEHZ);
+		atv.tv_sec = adjdelta / hz;
+		atv.tv_usec = (adjdelta % hz) * mshz;
 		adjdelta = adjust;
 	}
 	(void) copyout((caddr_t)&atv, (caddr_t)uap->olddelta,
@@ -157,8 +157,8 @@ getitimer()
 	else {
 		register struct k_itimerval *t = &u.u_timer[uap->which - 1];
 
-		aitv.it_interval.tv_sec = t->it_interval / LINEHZ;
-		aitv.it_value.tv_sec = t->it_value / LINEHZ;
+		aitv.it_interval.tv_sec = t->it_interval / hz;
+		aitv.it_value.tv_sec = t->it_value / hz;
 	}
 	splx(s);
 	u.u_error = copyout((caddr_t)&aitv, (caddr_t)uap->itv,
@@ -204,12 +204,12 @@ setitimer()
 	else {
 		register struct k_itimerval *t = &u.u_timer[uap->which - 1];
 
-		t->it_value = aitv.it_value.tv_sec * LINEHZ;
+		t->it_value = aitv.it_value.tv_sec * hz;
 		if (aitv.it_value.tv_usec)
-			t->it_value += LINEHZ;
-		t->it_interval = aitv.it_interval.tv_sec * LINEHZ;
+			t->it_value += hz;
+		t->it_interval = aitv.it_interval.tv_sec * hz;
 		if (aitv.it_interval.tv_usec)
-			t->it_interval += LINEHZ;
+			t->it_interval += hz;
 	}
 	splx(s);
 }
@@ -254,7 +254,7 @@ itimerdecr(itp, usec)
 			usec -= itp->it_value.tv_usec;
 			goto expire;
 		}
-		itp->it_value.tv_usec += 1000000;
+		itp->it_value.tv_usec += 1000000L;
 		itp->it_value.tv_sec--;
 	}
 	itp->it_value.tv_usec -= usec;
@@ -311,10 +311,10 @@ timevalfix(t1)
 
 	if (t1->tv_usec < 0) {
 		t1->tv_sec--;
-		t1->tv_usec += 1000000;
+		t1->tv_usec += 1000000L;
 	}
-	if (t1->tv_usec >= 1000000) {
+	if (t1->tv_usec >= 1000000L) {
 		t1->tv_sec++;
-		t1->tv_usec -= 1000000;
+		t1->tv_usec -= 1000000L;
 	}
 }

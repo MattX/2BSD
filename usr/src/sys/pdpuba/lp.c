@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)lp.c	1.2 (2.11BSD GTE) 11/29/94
+ *	@(#)lp.c	1.3 (2.11BSD GTE) 1997/2/14
  */
 
 #include "lp.h"
@@ -91,7 +91,7 @@ lpopen(dev, flag)
 	s = spl4();
 	if ((sc->sc_state&TOUT) == 0) {
 		sc->sc_state |= TOUT;
-		timeout(lptout, (caddr_t)dev, 10*LINEHZ);
+		timeout(lptout, (caddr_t)dev, 10*hz);
 	}
 	splx(s);
 	lpcanon(dev, '\f');
@@ -282,7 +282,7 @@ lptout(dev)
 	if ((sc->sc_state&MOD) != 0) {
 		sc->sc_state &= ~MOD;		/* something happened */
 						/* so don't sweat */
-		timeout(lptout, (caddr_t)dev, 2*LINEHZ);
+		timeout(lptout, (caddr_t)dev, 2*hz);
 		return;
 	}
 	if ((sc->sc_state&OPEN) == 0 && sc->sc_outq.c_cc == 0) {
@@ -293,6 +293,6 @@ lptout(dev)
 	if (sc->sc_outq.c_cc && (lpaddr->lpcs&LP_RDY) &&
 	    (lpaddr->lpcs&LP_ERR)==0)
 		lpintr(LPUNIT(dev));			/* ready to go */
-	timeout(lptout, (caddr_t)dev, 10*LINEHZ);
+	timeout(lptout, (caddr_t)dev, 10*hz);
 }
 #endif

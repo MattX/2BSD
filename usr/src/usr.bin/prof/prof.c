@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static	char *sccsid = "@(#)prof.c	4.4.1 (2.11BSD GTE) 1/1/94";
+static	char *sccsid = "@(#)prof.c	4.4.2 (2.11BSD GTE) 1997/2/14";
 #endif
 /*
  * prof
@@ -9,9 +9,6 @@ static	char *sccsid = "@(#)prof.c	4.4.1 (2.11BSD GTE) 1/1/94";
 #include <sys/stat.h>
 #include <a.out.h>
 #include <sys/time.h>
-#ifdef pdp11
-#include <sys/localopts.h>	/* For LINEHZ */
-#endif
 
 typedef	short UNIT;		/* unit of profiling */
 #ifdef pdp11
@@ -494,27 +491,22 @@ putprof()
 	fclose(sfile);
 }
 
+#include <sys/sysctl.h>
 /*
  *	discover the tick frequency of the machine
  *	if something goes wrong, we return 1.
  */
 hertz()
 {
-#ifdef pdp11
-	return(LINEHZ);
-#else
-	struct itimerval tim;
+	int size, mib[2];
+	struct clockinfo cinfo;
 
-	tim.it_interval.tv_sec = 0;
-	tim.it_interval.tv_usec = 1;
-	tim.it_value.tv_sec = 0;
-	tim.it_value.tv_usec = 0;
-	setitimer(ITIMER_REAL, &tim, 0);
-	setitimer(ITIMER_REAL, 0, &tim);
-	if (tim.it_interval.tv_usec < 1)
-		return (1);
-	return (1000000 / tim.it_interval.tv_usec);
-#endif
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_CLOCKRATE;
+	size = sizeof (struct clockinfo);
+	if	(sysctl(mib, 2, &cinfo, &size, NULL, 0) < 0)
+		return(1);
+	return(cinfo.hz);
 }
 
 min(a, b)

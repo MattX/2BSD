@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kernel.h	1.2 (2.11BSD GTE) 12/24/92
+ *	@(#)kernel.h	1.3 (2.11BSD GTE) 1997/2/14
  */
 
 /*
@@ -21,11 +21,14 @@ char	hostname[MAXHOSTNAMELEN];
 int	hostnamelen;
 
 /* 1.2 */
+#include <sys/time.h>
+
 struct	timeval boottime;
 struct	timeval time;
 struct	timezone tz;			/* XXX */
 int	adjdelta;
 int	hz;
+int	mshz;				/* # milliseconds per hz */
 int	lbolt;				/* awoken once a second */
 int	realitexpire();
 

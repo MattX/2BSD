@@ -3,7 +3,12 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)sys_net.c	1.4 (2.11BSD GTE) 1995/10/09
+ *	@(#)sys_net.c	1.5 (2.11BSD GTE) 1997/2/16
+ *
+ * Print the csr of attached ethernet cards.  sms - 1997/2/16
+ *
+ * Initialize the supervisor mode 'hz' variable via a call from the kernel
+ * rather compiling in a constant. sms - 1997/2/14
  *
  * Change uiomove calling convention.  The r/w type is now encapsulated
  * in the uio structure now. sms - 11/26/94
@@ -110,9 +115,16 @@ static struct uba_device ubdinit[] = {
 	NULL,
 };
 
-int hz = LINEHZ;
-
+int hz;				/* kernel calls netsethz() to initialize */
 long startnet;			/* start of network data space */
+
+void
+netsethz(ticks)
+	int	ticks;
+	{
+
+	hz = ticks;
+	}
 
 netstart()
 {
@@ -122,6 +134,7 @@ netstart()
 	register struct uba_driver *udp;
 	register struct uba_device *ui = ubdinit;
 	register int s;
+	char	*attaching = "attaching ";
 	int first;
 	struct ubmap *ubp;
 	ubadr_t paddr;
@@ -166,18 +179,19 @@ netstart()
 			continue;
 		ui->ui_alive = 1;
 		udp->ud_dinfo[ui->ui_unit] = ui;
-		printf("attaching %s%d\n", udp->ud_dname, ui->ui_unit);
+		printf("%s%s%d csr %o\n", attaching,udp->ud_dname,ui->ui_unit, 
+			ui->ui_addr);
 		(*udp->ud_attach)(ui);
 	}
 #include "sl.h"
 #if NSL > 0
-	printf("attaching sl\n");
+	printf("%ssl\n", attaching);
 	slattach();
 #endif
 
 #include "loop.h"
 #if NLOOP > 0
-	printf("attaching lo0\n");
+	printf("%slo0\n", attaching);
 	loattach();
 #endif
 
