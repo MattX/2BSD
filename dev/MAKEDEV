@@ -4,7 +4,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)MAKEDEV	4.27 (Berkeley) 4/15/86
+#	@(#)MAKEDEV	4.27.1 (2.11BSD GTE) 2/14/95
 #
 # Device "make" file.  Valid arguments:
 #	std	standard devices
@@ -39,9 +39,11 @@
 #	vp*	unibus versatec parallel interface
 # Call units:
 # Special purpose devices:
-#	dr*	unibus dr11
-#	ram*	memory disk
-#	dn*	dn11 dialer
+#	dr*		unibus dr11
+#	ram*		memory disk
+#	dn*		dn11 dialer
+#	ingreslock	Ingres lock driver.
+
 umask 77
 for i
 do
@@ -342,6 +344,12 @@ dr*)
 		echo bad unit for ${name} in: $i
 		;;
 	esac
+	;;
+
+ingreslock)
+	mknod ingreslock c 25 0
+	chown ingres ingreslock
+	chmod 200 ingreslock
 	;;
 
 local)

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_exit.c	2.0 (2.11BSD GTE) 3/10/93
+ *	@(#)kern_exit.c	2.1 (2.11BSD GTE) 2/14/95
  */
 
 #include "param.h"
@@ -22,6 +22,7 @@
 #ifdef QUOTA
 #include "quota.h"
 #endif
+#include "ingres.h"
 
 /*
  * exit system call: pass back caller's arg
@@ -100,6 +101,11 @@ exit(rv)
 	p->p_prev = &zombproc;
 	zombproc = p;
 	p->p_stat = SZOMB;
+
+#if	NINGRES > 0
+	ingres_rma(p->p_pid);		/* Remove any ingres locks */
+#endif
+
 	noproc = 1;
 	for (pp = &pidhash[PIDHASH(p->p_pid)]; *pp; pp = &(*pp)->p_hash)
 		if (*pp == p) {

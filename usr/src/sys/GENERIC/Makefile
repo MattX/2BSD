@@ -63,7 +63,7 @@ OV4=	hk.o init_main.o kern_prot.o tty_pty.o quota_kern.o quota_subr.o \
 	quota_ufs.o subr_log.o vm_swp.o vm_swap.o vm_proc.o toy.o
 OV5=	ht.o tm.o ts.o mem.o
 OV6=	tmscp.o rl.o
-OV7=	mch_fpsim.o kern_sysctl.o
+OV7=	mch_fpsim.o kern_sysctl.o ingreslock.o
 
 KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

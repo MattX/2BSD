@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machdep2.c	2.2 (2.11BSD GTE) 3/13/93
+ *	@(#)machdep2.c	2.3 (2.11BSD GTE) 2/15/95
  */
 
 #include "param.h"
@@ -29,6 +29,11 @@
 #include "namei.h"
 #include "ra.h"
 #include "tms.h"
+#include "ingres.h"
+
+#if	NINGRES > 0
+#include <sys/ingreslock.h>
+#endif
 
 #ifdef QUOTA
 #include "quota.h"
@@ -134,10 +139,10 @@ startup()
 #endif
 
 #ifdef EXTERNALITIMES
-#define C (ninode * sizeof (struct icommon2))
-	if ((xitimes = malloc(coremap, btoc(C))) == 0)
+#define C (btoc(ninode * sizeof (struct icommon2)))
+	if ((xitimes = malloc(coremap, C)) == 0)
 		panic("xitimes");
-	xitdesc = ((btoc(C) << 8) | RW);
+	xitdesc = ((C - 1) << 8) | RW;
 #undef C
 #endif
 
@@ -158,16 +163,14 @@ register int B;
 		nchsize = ninode * 11 / 10;
 	B = (btoc(nchsize * sizeof(struct namecache)));
 	if ((nmidesc.se_addr = malloc(coremap, B)) == 0)
-		panic("nameimalloc");
+		panic("nmidesc");
 	nmidesc.se_desc = ((B - 1) << 8) | RW;
 	namecache = (struct namecache *)SEG5;
 	}
 
 #if	NRAC > 0 || NTMSCP > 0
-{
 	if ((_iobase = malloc(coremap, btoc(_iosize))) == 0)
 		panic("_iobase");
-}
 #endif	NRAC
 
 #define B	(size_t)(((long)nbuf * (MAXBSIZE)) / ctob(1))
@@ -177,11 +180,19 @@ register int B;
 
 #define	C	(btoc(MSG_BSIZE))
 	if ((msgbuf.msg_click = malloc(coremap, C)) == 0)
-		panic("msgbufmem");
+		panic("msgbuf");
 	msgbuf.msg_magic = MSG_MAGIC;
 	msgbuf.msg_bufc = SEG5;
 	msgbuf.msg_bufx = msgbuf.msg_bufr = 0;
 #undef	C
+
+#if NINGRES > 0
+#define	C	(btoc(LOCKTABSIZE))
+
+	if (Locktabseg.se_addr = malloc(coremap, C))
+		Locktabseg.se_desc = ((C - 1) << 8) | RW;
+#undef  C
+#endif
 
 #if NRAM > 0
 	ramsize = raminit();
@@ -265,7 +276,7 @@ ubinit()
 	 * Clstaddt was the physical address of clists.
 	 */
 	if (nclist * sizeof(struct cblock) > ctob(stoc(1)))
-		panic("clist area too large");
+		panic("clist > 8k");
 	setubregno(0, clstaddr);
 	clstaddr = (ubadr_t)0;
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)conf.c	2.3 (2.11BSD Berkeley) 12/29/94
+ *	@(#)conf.c	2.4 (2.11BSD GTE) 2/15/95
  */
 
 #include "param.h"
@@ -336,6 +336,20 @@ int	syopen(), syread(), sywrite(), syioctl(), syselect();
 int	mmrw();
 #define	mmselect	seltrue
 
+#include "ingres.h"
+#if NINGRES > 0
+int	ingres_open(), ingres_write();
+#define	ingres_read	nodev
+#define	ingres_ioctl	nodev
+#define	ingres_close	nulldev
+#else
+#define	ingres_open	nodev
+#define	ingres_close	nodev
+#define	ingres_read	nodev
+#define	ingres_write	nodev
+#define	ingres_ioctl	nodev
+#endif
+
 int	ttselect(), seltrue();
 
 struct cdevsw	cdevsw[] = {
@@ -439,6 +453,10 @@ struct cdevsw	cdevsw[] = {
 	dhvopen,	dhvclose,	dhvread,	dhvwrite,
 	dhvioctl,	dhvstop,	dhv_tty,	dhvselect,
 	nulldev,
+/* ingres = 25 */
+	ingres_open,	ingres_close,	ingres_read,	ingres_write,
+	ingres_ioctl,	nulldev,	0,		seltrue,
+	nulldev,
 };
 
 int	nchrdev = sizeof(cdevsw) / sizeof(cdevsw[0]);
@@ -497,7 +515,7 @@ isdisk(dev, type)
 	/* NOTREACHED */
 }
 
-#define MAXDEV	25
+#define MAXDEV	26
 static char chrtoblktbl[MAXDEV] =  {
       /* CHR */      /* BLK */
 	/* 0 */		NODEV,
@@ -524,7 +542,8 @@ static char chrtoblktbl[MAXDEV] =  {
 	/* 21 */	NODEV,
 	/* 22 */	NODEV,
 	/* 23 */	12,		/* tmscp */
-	/* 24 */	NODEV
+	/* 24 */	NODEV,
+	/* 25 */	NODEV
 };
 /*
  * Routine to convert from character to block device number.

@@ -253,4 +253,6 @@ FPSIM		NO			# floating point simulator
 #
 # Note that profiling is not currently working.  We don't have any plans on
 # fixing it, so this is essentially a non-supported feature.
-PROFILE		NO			# system profiling with KW11P clock
+PROFILE		NO		# system profiling with KW11P clock
+
+INGRES		NO		# include the Ingres lock driver
