@@ -29,9 +29,9 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)sysctl.8	8.1.4 (2.11BSD GTE) 1998/4/3
+.\"	@(#)sysctl.8	8.1.5 (2.11BSD) 1999/4/29
 .\"
-.TH SYSCTL 8 "June 6, 1993"
+.TH SYSCTL 8 "April 24, 1999"
 .UC 4
 .SH NAME
 sysctl \- get or set kernel state
@@ -109,6 +109,7 @@ privilege can change the value.
 .ta 0.5i 3.0i 4.0i
 .nf
 	Name	Type	Changeable
+	kern.acctthresh	int	yes
 	kern.ostype	string	no
 	kern.osrelease	string	no
 	kern.osrevision	long	no

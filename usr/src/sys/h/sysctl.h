@@ -33,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)sysctl.h	8.1.2 (2.11BSD GTE) 1/19/95
+ *	@(#)sysctl.h	8.1.3 (2.11BSD) 1999/4/29
  */
 
 #ifndef _SYS_SYSCTL_H_
@@ -135,7 +135,8 @@ struct ctlname {
 #define	KERN_BOOTTIME		21	/* struct: time kernel was booted */
 #define	KERN_MAXTEXTS		22	/* int: # of text entries */
 #define	KERN_TEXT		23	/* struct: text entries */
-#define	KERN_MAXID		24	/* number of valid kern ids */
+#define	KERN_ACCTTHRESH		24	/* int: accounting daemon threshold */
+#define	KERN_MAXID		25	/* number of valid kern ids */
 
 #ifndef	KERNEL
 #define CTL_KERN_NAMES { \
@@ -163,6 +164,7 @@ struct ctlname {
 	{ "boottime", CTLTYPE_STRUCT }, \
 	{ "maxtexts", CTLTYPE_INT }, \
 	{ "text", CTLTYPE_STRUCT }, \
+	{ "acctthresh", CTLTYPE_INT }, \
 }
 #endif
 

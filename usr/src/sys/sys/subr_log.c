@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)subr_log.c	2.0 (2.11BSD) 1998/12/5
+ *	@(#)subr_log.c	2.1 (2.11BSD) 1999/4/29
  */
 
 /*
@@ -170,8 +170,6 @@ logread(dev, uio, flag)
 		if	(error)
 			break;
 		mp->msg_bufr += l;
-		if	(mp->msg_bufr < 0 || mp->msg_bufr >= MSG_BSIZE)
-			mp->msg_bufr = 0;
 		}
 	splx(s);
 	return(error);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)kern_acct.c	3.0 (2.11BSD) 1999/2/19
+ *	@(#)kern_acct.c	3.1 (2.11BSD) 1999/4/29
  *
  * This module is a shadow of its former self.  This comment:
  *
@@ -20,6 +20,7 @@
 #include "acct.h"
 
 	comp_t	compress();
+	int	Acctthresh = 10;
 
 /*
  * On exit, write a record on the accounting file.
@@ -54,12 +55,12 @@ acct()
 	ap->ac_flag = u.u_acflag;
 /*
  * Not a lot that can be done if logwrt fails so ignore any errors.  Every
- * 10 commands call the wakeup routine.  This isn't perfect but does cut 
- * down the overhead of issuing a wakeup to the accounting daemon every 
- * single accounting record.
+ * few (10 by default) commands call the wakeup routine.  This isn't perfect 
+ * but does cut down the overhead of issuing a wakeup to the accounting daemon 
+ * every single accounting record.  The threshold is settable via sysctl(8)
 */
 	logwrt(ap, sizeof (*ap), logACCT);
-	if	(acctcnt++ > 10)
+	if	(++acctcnt >= Acctthresh)
 		{
 		logwakeup(logACCT);
 		acctcnt = 0;
