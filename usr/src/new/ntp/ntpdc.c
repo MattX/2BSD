@@ -1,9 +1,12 @@
-#ifndef	lint
-static char *RCSid = "$Source: /usr/users/louie/ntp/RCS/ntpdc.c,v $ $Revision: 3.4.1.7 $ $Date: 89/05/18 18:31:26 $";
+#if !defined(lint) && defined(DOSCCS)
+static char *RCSid = "$Source: /usr/src/new/ntp/ntpdc.c,v $ $Revision: 3.4.1.8 $ $Date: 95/01/27 17:31:26 $";
 #endif
 
 /*
  * $Log:	ntpdc.c,v $
+ * Revision 3.4.1.8  95/01/27  17:31:26  sms
+ * Fix name clockinfo name collision with sysctl.h
+ *
  * Revision 3.4.1.7  89/05/18  18:31:26  louie
  * A few cosmetic changes for ntpd.c
  * 
@@ -182,7 +185,7 @@ answer(host)
 	char *host;
 {
 	register struct ntpinfo *msg = (struct ntpinfo *) packet;
-	register struct clockinfo *n;
+	register struct xclockinfo *n;
 	struct sockaddr_in from;
 	int fromlen = sizeof(from);
 	int count, cc;
@@ -238,7 +241,7 @@ answer(host)
 			}
 		}
 		replies &= ~(1L << msg->seq);
-		n = (struct clockinfo *)&msg[1];
+		n = (struct xclockinfo *)&msg[1];
 		for (count = msg->count; count > 0; count--) {
 			if(vflag)
 				print_verbose(n);
@@ -300,7 +303,7 @@ timeout()
 }
 
 print_terse (n)
-	struct clockinfo *n;
+	struct xclockinfo *n;
 {
 	int i;
 	double offset[PEER_SHIFT], delay[PEER_SHIFT], dsp,del,off;
@@ -346,7 +349,7 @@ print_terse (n)
 }	
 
 print_verbose(n)
-	struct clockinfo *n;
+	struct xclockinfo *n;
 {
 	int i;
 	struct in_addr clock_host;

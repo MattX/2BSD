@@ -1,7 +1,11 @@
-/* $Source: /usr/users/louie/ntp/RCS/ntp.h,v $ $Revision: 3.4.1.7 $ $Date: 89/05/18 18:22:14 $ */
+/* $Source: /usr/src/new/ntp/ntp.h,v $ $Revision: 3.4.1.8 $ $Date: 95/01/27 17:22:14 $ */
 
 /*
  *  $Log:	ntp.h,v $
+ * Revision 3.4.1.8  95/01/27  17:20:14  sms
+ * Fix name 'struct clockinfo' name collision with sysctl.h by renaming our
+ * structure xclockinfo.
+ *
  * Revision 3.4.1.7  89/05/18  18:22:14  louie
  * A few extra diddles in ntp.h for the reference clock feature.
  * 
@@ -367,7 +371,7 @@ struct sysdata {			/* procedure */
  *  program.  They are unique to this implementation and not part of the
  *  NTP specification.
  */
-struct clockinfo {
+struct xclockinfo {
 	u_long net_address;
 	u_long my_address;
 	u_short port;

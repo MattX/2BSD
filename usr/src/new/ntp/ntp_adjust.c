@@ -1,5 +1,5 @@
-#ifndef lint
-static char *RCSid = "$Source: /usr/users/louie/ntp/RCS/ntp_adjust.c,v $ $Revision: 3.4.1.4 $ $Date: 89/05/18 18:23:36 $";
+#if !defined(lint) && defined(DOSCCS)
+static char *RCSid = "$Source: /usr/src/new/ntp/ntp_adjust.c,v $ $Revision: 3.4.1.5 $ $Date: 95/01/27 17:23:36 $";
 #endif
 
 /*
@@ -7,6 +7,9 @@ static char *RCSid = "$Source: /usr/users/louie/ntp/RCS/ntp_adjust.c,v $ $Revisi
  * 5. of the NTP specification.
  *
  * $Log:	ntp_adjust.c,v $
+ * Revision 3.4.1.5  95/01/27  17:23:36  sms
+ * Remove SETTICKADJ - see rational in ntpd.c
+ *
  * Revision 3.4.1.4  89/05/18  18:23:36  louie
  * A couple of changes to debug NeXT support in ntp_adjust.c
  * 
@@ -87,7 +90,6 @@ extern int debug;
 
 extern int doset;
 extern int debuglevel;
-extern int kern_tickadj;
 extern char *ntoa();
 extern struct sysdata sys;
 
@@ -105,10 +107,7 @@ int	firstpass = 1;
 void
 init_logical_clock()
 {
-	if (kern_tickadj)
-		adj_precision = kern_tickadj;
-	else
-		adj_precision = 1;
+	adj_precision = 1;
 	/*
 	 *  If you have the "fix" for adjtime() installed in you kernel, you'll
 	 *  have to make sure that adj_precision is set to 1 here.

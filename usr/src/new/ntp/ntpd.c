@@ -1,9 +1,17 @@
-#ifndef	lint
-static char *rcsid = "$Source: /usr/users/louie/ntp/RCS/ntpd.c,v $ $Revision: 3.4.1.9 $ $Date: 89/05/18 18:30:17 $";
+#if	!defined(lint) && defined(DOSCCS)
+static char *rcsid = "$Source: /usr/src/new/ntp/ntpd.c,v $ $Revision: 3.4.1.10 $ $Date: 95/01/27 17:20:17 $";
 #endif	lint
 
 /*
  *  $Log:	ntpd.c,v $
+ * Revision 3.4.1.10 95/01/27 17:20:17 sms
+ * 2.11BSD - remove SETTICKADJ from ntpd.c.  This was done for several reasons:
+ * 1) tickadj does not (and never has) existed, 2) this is an old version and
+ * not going to be ported to a system with tickadj, 3) with 'securelevel' 
+ * (see sysctl(3), init(8) and sysctl(8)) set to 1 or 2 /dev/{k}mem can not
+ * be written even by root.  If tickadj were ever added it would need an
+ * extension to sysctl(3) to have a chance of working.
+ *
  * Revision 3.4.1.9  89/05/18  18:30:17  louie
  * Changes in ntpd.c for reference clock support.  Also, a few diddles to
  * accomodate the NeXT computer system that has a slightly different nlist.h
@@ -106,7 +114,6 @@ static char *rcsid = "$Source: /usr/users/louie/ntp/RCS/ntpd.c,v $ $Revision: 3.
 #include <strings.h>
 #include <errno.h>
 #include <syslog.h>
-#include <nlist.h>
 
 #include "ntp.h"
 #include "patchlevel.h"
@@ -130,11 +137,6 @@ static int drift_fd = -1;
 
 #ifdef	DEBUG
 int debug = 0;
-#endif
-
-#ifdef	SETTICKADJ
-int	tickadj = 0;
-int	dotickadj = 0;
 #endif
 
 #ifdef	NOSWAP
@@ -215,12 +217,8 @@ main(argc, argv)
 			break;
 
 		case 't':
-#ifdef	SETTICKADJ
-			dotickadj++;
-#else
-			fprintf(stderr, "%s: not compiled to set tickadj\n",
+			fprintf(stderr, "%s: tickadj not supported\n",
 				prog_name);
-#endif
 			break;
 
 		case 'n':
@@ -793,23 +791,6 @@ init_ntp(config)
 			if (fscanf(fp, "%d", &precision) != 1)
 				error = TRUE;
 			else sys.precision = (char) precision;
-#ifdef	SETTICKADJ
-		} else if (strcmp(name, "tickadj") == 0) {
-			if (fscanf(fp, "%d", &i) != 1)
-				error = TRUE;
-			else tickadj = i;
-		} else if (strcmp(name, "settickadj") == 0) {
-			if (fscanf(fp, "%s", name) != 1)
-				error = TRUE;
-			else {
-				if (*name == 'Y' || *name == 'y') {
-					dotickadj = 1;
-				} else if (*name == 'N' || *name == 'n') {
-					dotickadj = 0;
-				} else
-					dotickadj = atoi(name);
-			}
-#endif
 #ifdef	NOSWAP
 		} else if (strcmp(name, "noswap") == 0) {
 			noswap = 1;
@@ -1040,126 +1021,23 @@ init_ntp(config)
 	}
 }
 
-int kern_tickadj, kern_hz, kern_tick;
+int kern_hz;
+
+#include <sys/sysctl.h>
 
 void
 init_kern_vars() {
-	int kmem;
-	static char	*memory = "/dev/kmem";
-	static struct nlist nl[] = {
-#ifndef	NeXT
-		{"_tickadj"},
-		{"_hz"},
-		{"_tick"},
-		{""},
-#else
-		{{"_tickadj"}},
-		{{"_hz"}},
-		{{"_tick"}},
-		{{""}},
-#endif
-	};
-	static int *kern_vars[] = {&kern_tickadj, &kern_hz, &kern_tick};
-	int i;
-	kmem = open(memory, O_RDONLY);
-	if (kmem < 0) {
-		syslog(LOG_ERR, "Can't open %s for reading: %m", memory);
-#ifdef	DEBUG
-		if (debug)
-			perror(memory);
-#endif
+	int size, mib[2];
+	struct clockinfo cinfo;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_CLOCKRATE;
+	if	(sysctl(mib, 2, &cinfo, &size, NULL, 0) < 0)
+		{
+		syslog(LOG_ERR, "sysctl() for kern.clockrate: %m\n");
 		return;
-	}
-
-	nlist("/vmunix", nl);
-
-	for (i = 0; i < (sizeof(kern_vars)/sizeof(kern_vars[0])); i++) {
-		long where;
-
-		if ((where = nl[i].n_value) == 0) {
-			syslog(LOG_ERR, "Unknown kernal var %s",
-#ifdef	NeXT
-			       nl[i].n_un.n_name
-#else
-			       nl[i].n_name
-#endif
-			       );
-			continue;
 		}
-		if (lseek(kmem, where, L_SET) == -1) {
-			syslog(LOG_ERR, "lseek for %s fails: %m",
-#ifdef	NeXT
-			       nl[i].n_un.n_name
-#else
-			       nl[i].n_name
-#endif
-			       );
-			continue;
-		}
-		if (read(kmem, kern_vars[i], sizeof(int)) != sizeof(int)) {
-			syslog(LOG_ERR, "read for %s fails: %m",
-#ifdef	NeXT
-			       nl[i].n_un.n_name
-#else
-			       nl[i].n_name
-#endif
-			       );
-
-			*kern_vars[i] = 0;
-		}
-	}
-#ifdef	SETTICKADJ
-	/*
-	 *  If desired value of tickadj is not specified in the configuration
-	 *  file, compute a "reasonable" value here, based on the assumption 
-	 *  that we don't have to slew more than 2ms every 4 seconds.
-	 *
-	 *  TODO: the 500 needs to be parameterized.
-	 */
-	if (tickadj == 0 && kern_hz)
-		tickadj = 500/kern_hz;
-
-#ifdef	DEBUG
-	if (debug) {
-		printf("kernel vars: tickadj = %d, hz = %d, tick = %d\n",
-		       kern_tickadj, kern_hz, kern_tick);
-		printf("desired tickadj = %d, dotickadj = %d\n", tickadj,
-		       dotickadj);
-	}
-#endif
-
-	if (dotickadj && tickadj && (tickadj != kern_tickadj)) {
-		close(kmem);
-		if ((kmem = open(memory, O_RDWR)) >= 0) {
-			if (lseek(kmem, (long)nl[0].n_value, L_SET) == -1) {
-				syslog(LOG_ERR, "%s: lseek fails: %m", memory);
-				close(kmem);
-				tickadj = 0;
-			}
-			if (tickadj && write(kmem, &tickadj, sizeof(tickadj)) !=
-			    sizeof(tickadj)) {
-				syslog(LOG_ERR, "%s: tickadj set fails: %m", memory);
-#ifdef	DEBUG
-				printf("tickadj set fails\n");
-#endif
-				tickadj = 0;
-			} 
-			if (tickadj && tickadj != kern_tickadj)
-				syslog(LOG_INFO,
-				       "System tickadj SET to %d",
-				       tickadj);
-#ifdef	DEBUG
-			if (tickadj && debug)
-				printf("System tickadj SET to %d\n",
-				       tickadj);
-#endif
-		} else {
-			syslog(LOG_ERR, "Can't open %s: %m", memory);
-			printf("Can't open %s\n", memory);
-		}
-	}
-#endif	/* SETTICKADJ */
-	close(kmem);
+	kern_hz = cinfo.hz;
 
 	/*
 	 *  If we have successfully discovered `hz' from the kernel, then we
@@ -1224,7 +1102,7 @@ GetHostName(name, sin)
 
 /* number of clocks per packet */
 #define	N_NTP_PKTS \
-      ((PKTBUF_SIZE - sizeof(struct ntpinfo))/(sizeof(struct clockinfo)))
+      ((PKTBUF_SIZE - sizeof(struct ntpinfo))/(sizeof(struct xclockinfo)))
 
 query_mode(dst, ntp, sock)
 	struct sockaddr_in *dst;
@@ -1234,7 +1112,7 @@ query_mode(dst, ntp, sock)
 	char packet[PKTBUF_SIZE];
 	register struct ntpinfo *nip = (struct ntpinfo *) packet;
 	register struct ntp_peer *peer = peer_list.head;
-	struct clockinfo *cip;
+	struct xclockinfo *cip;
 	int seq = 0;
 	int i;
 
@@ -1248,7 +1126,7 @@ query_mode(dst, ntp, sock)
 		nip->npkts++;
 	nip->peers = peer_list.members;
 	nip->count = 0;
-	cip = (struct clockinfo *)&nip[1];
+	cip = (struct xclockinfo *)&nip[1];
 
 	while (peer != NULL) {
 		cip->net_address = peer->src.sin_addr.s_addr;
@@ -1296,7 +1174,7 @@ query_mode(dst, ntp, sock)
 			}
 			nip->type = INFO_REPLY;
 			nip->count = 0;
-			cip = (struct clockinfo *)&nip[1];
+			cip = (struct xclockinfo *)&nip[1];
 		}
 		peer = peer->next;
 	}
