@@ -10,6 +10,6 @@ static char sccsid[] = "@(#)message.c	4.3 (Berkeley) 1/11/86";
 #endif not lint
 
 char	*message[] = {
-	"Last update on Friday, November 26, 1999.",
+	"Last update on Saturday, April 27, 2019.",
 	0
 };

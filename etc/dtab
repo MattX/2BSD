@@ -16,7 +16,7 @@ ht	? 172440 224	5	htintr		# tu 16 massbus tape
 # vp	? 177500 174	4	vpintr		# Versatec; should be before lp
 # lp	? 177514 200	4	lpintr		# lp-11 line printer
 ra	? 172150 154	5	raintr		# uda50, rqdx1/2/3
-# rk	? 177400 220	5	rkintr		# rk05
+rk	? 177400 220	5	rkintr		# rk05
 rl	? 174400 160	5	rlintr		# rl-01/02
 # rm	? 176700 254	5	rmintr		# rjm02/rwm03, rm02/03/05
 # br	? 176710 254	5	brintr		# Eaton br1537/br1711

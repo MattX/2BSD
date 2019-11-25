@@ -1,6 +1,1 @@
-tftpd: ALL
-rexecd: ALL
-rshd: ALL
-zyncd: ALL
-popper: ALL
-ALL: 0.0.0.0
+ALL: ALL

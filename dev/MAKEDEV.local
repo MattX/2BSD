@@ -1,4 +1,5 @@
-rm -f swap;		ln hk1a swap
+rm -f swap
+ln ra0a swap
 chgrp kmem swap
 chmod 640 swap
 

@@ -20,11 +20,16 @@
 .if "\nm"10" .ds ]m November
 .if "\nm"11" .ds ]m December
 '	# set the date
+.nr )y \n(yr%100
+.ie \n()y<10 .ds ]Y 0\n()y
+.el .ds ]Y \n()y
+'
+.nr )Y \n(yr+1900
 .if n \{.nr m \nm+1
-.	 ie \nd .ds ]W Modified \nm/\nd/\ny
-.	 el .ds ]W Printed \n(mo/\n(dy/\n(yr\}
-.if t \{.ie \nd .ds ]W \*(]m \nd, 19\ny
-.	 el .ds ]W \*(]m \n(dy, 19\n(yr\}
+.	 ie \nd .ds ]W Modified \nm/\nd/\*(]Y
+.	 el .ds ]W Printed \n(mo/\n(dy/\*(]Y\}
+.if t \{.ie \nd .ds ]W \*(]m \nd, \n()Y
+.	 el .ds ]W \*(]m \n(dy, \n()Y\}
 .if t .tr *\(**
 .ie n \{\
 .	ds lq \&"\"
@@ -48,7 +53,7 @@
 .de UC
 .if t \{\
 .	ds ]W 3rd Berkeley Distribution
-.	if "\\$1"2" .ds ]W 2rd Berkeley Distribution
+.	if "\\$1"2" .ds ]W 2nd Berkeley Distribution
 .	if "\\$1"3" .ds ]W 3rd Berkeley Distribution
 .	if "\\$1"4" .ds ]W 4th Berkeley Distribution
 .	if "\\$1"5" .ds ]W 4.2 Berkeley Distribution

@@ -13,10 +13,10 @@ SYNOPSIS
      long random()
 
      srandom(seed)
-     int seed;
+     long seed;
 
      char *initstate(seed, state, n)
-     unsigned seed;
+     long seed;
      char *state;
      int n;
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 11/26/99       September 29, 1985			1
+Printed 4/27/19         December 19, 2018			1
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 11/26/99       September 29, 1985			2
+Printed 4/27/19         December 19, 2018			2
 
 
 

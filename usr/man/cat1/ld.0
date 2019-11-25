@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 11/24/99	  May 08, 1995				1
+Printed 10/13/01	 August 14, 2001			1
 
 
 
@@ -126,7 +126,7 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 
 
 
-Printed 11/24/99	  May 08, 1995				2
+Printed 10/13/01	 August 14, 2001			2
 
 
 
@@ -192,7 +192,7 @@ LD(1)		    UNIX Programmer's Manual		    LD(1)
 
 
 
-Printed 11/24/99	  May 08, 1995				3
+Printed 10/13/01	 August 14, 2001			3
 
 
 
@@ -226,7 +226,7 @@ AUTOMATIC TEXT OVERLAY EXAMPLE
 	  ld -n -X /lib/crt0.o base.o base2.o
 	  -Z ov1a.o ov1b.o ...
 	  -Z ov2a.o ov2b.o ...
-	  -Y base3.o ... -lovc
+	  -Y base3.o ... -lc
 
      Assembly source code must be compiled using the assembler
      overlay flags: "_a_s -_V prog.s" which causes the assembler to
@@ -258,7 +258,7 @@ AUTOMATIC TEXT OVERLAY EXAMPLE
 
 
 
-Printed 11/24/99	  May 08, 1995				4
+Printed 10/13/01	 August 14, 2001			4
 
 
 
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 11/24/99	  May 08, 1995				5
+Printed 10/13/01	 August 14, 2001			5
 
 
 

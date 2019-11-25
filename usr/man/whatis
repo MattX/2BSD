@@ -111,7 +111,7 @@ copysign, drem, finite, logb, scalb (3M) - copysign, remainder, exponent manipul
 core (5) - format of memory image file
 cp (1) - copy
 crash (8V) - what happens when the system crashes
-creat (2) - create a new file
+creat (3) - create a new file
 cribbage (6) - the card game cribbage
 cron (8) - daemon to execute scheduled commands (Vixie Cron)
 crontab (1) - maintain crontab files for individual users (V3)
@@ -759,7 +759,7 @@ vhangup (2) - virtually ``hangup'' the current control terminal
 vi (1) - screen oriented (visual) display editor based on ex
 vipw (8) - edit the password file
 vminit, vmopen, vmclose, vmmapseg, vmmodify, vmlock, vmunlock, vmclrseg, vmflush, (3) - disk based virtual memory rou-     tines
-vmstat (1) - report virtual memory statistics
+vmstat (1) - report virtual memory statistics (2.11BSD)
 vv (4) - Proteon proNET 10 Megabit ring
 vwidth (1) - make troff width table for a font
 w, uptime (1) - who is on and what they are doing; system time up

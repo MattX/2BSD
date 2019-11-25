@@ -14,7 +14,7 @@ SYNOPSIS
      char *name;
 
      setenv(name, value, overwrite)
-     char *name, value;
+     char *name, *value;
      int overwrite;
 
      void unsetenv(name)
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 11/26/99	 March 20, 1987                         1
+Printed 5/14/01         February 22, 2001			1
 
 
 

@@ -9,22 +9,23 @@ NAME
      date - print and set the date
 
 SYNOPSIS
-     date [-nu] [-d dst] [-t timezone] [yymmddhhmm [.ss] ]
+     date [-nu] [[[[yy]mm]dd]hhmm [.ss] ]
 
 DESCRIPTION
      If no arguments are given, the current date and time are
      printed.  Providing an argument will set the desired date;
-     only the superuser can set the date.  The -_d and -_t flags
-     set the kernel's values for daylight savings time and
-     minutes west of GMT.  If _d_s_t is non-zero, future calls to
-     _g_e_t_t_i_m_e_o_f_d_a_y(2) will return a non-zero _t_z__d_s_t_t_i_m_e.  _T_i_m_e_z_o_n_e
-     provides the number of minutes returned by future calls to
-     _g_e_t_t_i_m_e_o_f_d_a_y(2) in _t_z__m_i_n_u_t_e_s_w_e_s_t.  The -_u flag is used to
-     display or set the date in GMT (universal) time.  _y_y
-     represents the last two digits of the year; the first _m_m is
-     the month number; _d_d is the day number; _h_h is the hour
-     number (24 hour system); the second _m_m is the minute number;
-     ._s_s is optional and represents the seconds.  For example:
+     only the superuser can set the date.
+
+     The kernel timezone structure is obsolete and is a historic
+     relic. date(1) no longer updates the kernel timezone struc-
+     ture (daylight savings time and minutes west of GMT).
+
+     The -_u flag is used to display or set the date in GMT
+     (universal) time.	_y_y represents the last two digits of the
+     year; the first _m_m is the month number; _d_d is the day
+     number; _h_h is the hour number (24 hour system); the second
+     _m_m is the minute number; ._s_s is optional and represents the
+     seconds.  For example:
 
 	  date 8506131627
 
@@ -56,11 +57,10 @@ DIAGNOSTICS
      hosts, the setting of a new time value may require more than
      a few seconds.  On these occasions, _d_a_t_e prints: `Network
      time being set'.  The message `Communication error with
-     timed' occurs when the communication between _d_a_t_e and _t_i_m_e_d
 
 
 
-Printed 11/26/99	 March 24, 1987                         1
+Printed 10/24/19	October 20, 2019			1
 
 
 
@@ -71,6 +71,7 @@ DATE(1)             UNIX Programmer's Manual		  DATE(1)
 
 
 
+     timed' occurs when the communication between _d_a_t_e and _t_i_m_e_d
      fails.
 
 BUGS
@@ -125,8 +126,7 @@ BUGS
 
 
 
-
-Printed 11/26/99	 March 24, 1987                         2
+Printed 10/24/19	October 20, 2019			2
 
 
 

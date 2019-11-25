@@ -1,0 +1,66 @@
+
+
+
+CREAT(3)	    UNIX Programmer's Manual		 CREAT(3)
+
+
+
+NAME
+     creat - create a new file
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <fcntl.h>
+
+     creat(name, mode)
+	 char *name;
+	 int mode;
+
+DESCRIPTION
+     This interface is made obsolete by: open(2).
+
+     Creat() is the same as:
+
+	 open(name, O_CREAT | O_TRUNC | O_WRONLY, mode);
+
+SEE ALSO
+     open(2)
+
+HISTORY
+     The creat function call appeared in Version 6 AT&T UNIX.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Printed 12/4/01         November 19, 2001			1
+
+
+
