@@ -12,7 +12,8 @@ pdp11		GENERIC
 ident		UNKNOWN
 maxusers	4
 bootdev		none
-timezone	8			# Pacific
+linefreq	50
+timezone	0			# GMT
 dst		1
 #
 #	Filesystem configuration
@@ -31,6 +32,7 @@ NXP_CONTROLLER 	1
 NHK		8
 NRK		8
 NRL		8
+NRA		0
 NRP		4
 NHT		1
 NTM		1

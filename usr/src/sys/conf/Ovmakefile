@@ -48,7 +48,7 @@ OV3 =	bio.o dkbad.o dkleave.o subr.o rm.o machdep.o sys3.o syslocal.o
 OV4 =	ttynew.o tty.o prim.o kl.o partab.o
 OV5 =	acct.o prf.o ioctl.o sys.o ttyold.o rk.o dz.o tm.o lp.o
 OV6 =	ts.o xp.o dh.o hs.o
-OV7 =	nami.o ht.o rp.o hk.o rl.o vp.o
+OV7 =	nami.o ht.o rp.o hk.o rl.o vp.o ra.o
 BASE =	sig.o slp.o sysent.o clock.o trap.o rdwri.o dsort.o
 
 #	boot.o must be loaded in the base well above 0 data
@@ -88,7 +88,7 @@ mch.o:	assym.s ../sys/mch.s whoami.h dz.h ht.h tm.h \
 l.o:	l.s whoami.h ${I}/a.out.h \
 	${I}/sys/trap.h ${I}/sys/koverlay.h \
 	dh.h dn.h dz.h hk.h hp.h hs.h ht.h kl.h lp.h \
-	rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+	rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h ra.h
 	${CPP} ${CPPFLAGS} l.s >l.i
 	${AS} -o l.o l.i
 	-rm l.i
@@ -137,15 +137,15 @@ c.o: c.c
 c.o: param.h ${I}/sys/systm.h ${I}/sys/buf.h ${I}/sys/tty.h ${I}/sys/conf.h
 c.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/dir.h ${I}/sys/user.h
 c.o: ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/acct.h ${I}/sys/map.h
-c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h
-c.o: lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h ra.h hp.h hs.h
+c.o: ht.h lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
 	${C} c.c
 	${E} c.s
 	${A} c.o c.s
 	-rm c.s
 
 ioconf.o: ioconf.c
-ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h
+ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h ra.h
 ioconf.o: ${I}/sys/hpreg.h
 	${C} ioconf.c
 	${E} ioconf.s
@@ -599,10 +599,19 @@ xp.o: ${I}/sys/inline.h ${I}/sys/uba.h
 
 vp.o: ../dev/vp.c
 vp.o: vp.h param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/buf.h
+vp.o: ${I}/sys/proc.h ${I}/sys/vcmd.h
 	${C} ../dev/vp.c
 	${E} vp.s
 	${A} vp.o vp.s
 	-rm vp.s
+
+ra.o: ../dev/ra.c
+ra.o: ra.h ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/buf.h
+ra.o: ${I}/sys/conf.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/inline.h
+	${C} ../dev/ra.c
+	${E} ra.s
+	${A} ra.o ra.s
+	-rm ra.s
 
 # DEPENDENCIES MUST END HERE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY

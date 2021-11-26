@@ -24,7 +24,7 @@
 #include	<sys/map.h>
 #include	<sys/seg.h>
 
-#define	HZ	60			/* Ticks/second of the clock */
+#define	HZ	%LINEFREQ%			/* Ticks/second of the clock */
 #define	TIMEZONE (%TIMEZONE% * 60)		/* Minutes westward from Greenwich */
 #define	DSTFLAG	%DST%			/* Daylight Saving Time applies here */
 

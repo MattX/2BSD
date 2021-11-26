@@ -1,23 +1,24 @@
 HASH	slp.c	/^#define HASH(x)	(( (int) x >> 5) & (SQSIZE-1))$/
+IFREE	iget.c	/^#define	IFREE(dev, ip, bn)		qfree(ip, bn)$/
 INOHASH	iget.c	/^#define	INOHASH(dev,ino)	(((dev) + (ino)) & (INOHS/
 Mmain	main.c	/^main()$/
 Restormap	machdep.c	/^Restormap(map)$/
 Savemap	machdep.c	/^Savemap(map)$/
+TLOOP	iget.c	/^#define	TLOOP(dev, bn, f1, f2, ip)	tloop(dev, bn, /
+_insque	syslocal.c	/^_insque(e,prev)$/
+_remque	syslocal.c	/^_remque(e)$/
 access	fio.c	/^access(ip, mode)$/
 acct	acct.c	/^acct()$/
-addupc	mch.s	/^_addupc/
 alarm	sys4.c	/^alarm()$/
 alloc	alloc.c	/^alloc(dev)$/
 ave	clock.c	/^#define ave(smooth,new,time)  (smooth) = (((time)-/
 b_to_q	prim.c	/^b_to_q(cp, cc, q)$/
-backup	mch.s	/^_backup/
-badblock	alloc.c	/^badblock(fp, bn, dev)$/
+badblock	alloc.c	/^badblock(fp, bn)$/
+bcmp	syslocal.c	/^bcmp(s1, s2, n)$/
 bcopy	subr.c	/^bcopy(from, to, count)$/
 binit	main.c	/^binit()$/
 bmap	subr.c	/^bmap(ip, bn, rwflg)$/
 boot	machdep.c	/^boot(dev, howto)$/
-call	mch.s	/^call/
-call1	mch.s	/^call1/
 catq	prim.c	/^catq(from, to)$/
 chdir	sys4.c	/^chdir()$/
 chdirec	sys4.c	/^chdirec(ipp)$/
@@ -26,37 +27,22 @@ choverlay	ureg.c	/^choverlay(xrw)$/
 chown	sys4.c	/^chown()$/
 chroot	sys4.c	/^chroot()$/
 cinit	prim.c	/^cinit()$/
-clear	mch.s	/^_clear/
 clkstart	machdep.c	/^clkstart()$/
 clock	clock.c	/^clock(dev, sp, r1, ov, nps, r0, pc, ps)$/
 close	sys2.c	/^close()$/
-closef	fio.c	/^closef(fp,nouser)$/
-clrpreempt	mch.s	/^clrpreempt/
+closef	fio.c	/^closef(fp, nouser)$/
 compress	acct.c	/^compress(t)$/
-copsu	mch.s	/^copsu/
-copy	mch.s	/^_copy:/
-copyiin	mch.s	/^_copyiin/
-copyin	mch.s	/^_copyin/
-copyiout	mch.s	/^_copyiout/
-copyout	mch.s	/^_copyout/
-copyu	mch.s	/^_copyu/
 core	sigjcl.c	/^core()$/
 cpass	subr.c	/^cpass()$/
-cputype	mch.s	/^_cputype/
 creat	sys2.c	/^creat()$/
-cret	mch.s	/^cret/
-csv	mch.s	/^csv/
-ctok	clock.c	/^#define	ctok(cliks)	(((cliks) >> 4) & 07777)	/* cl/
+ctok	clock.c	/^#define	ctok(cliks)	(((cliks) >> 4) & 07777)	\/* cl/
 delay	machdep.c	/^delay(del)$/
 deverror	prf.c	/^deverror(bp, o1, o2)$/
-display	mch.s	/^_display/
-do_panic	mch.s	/^do_panic/
 dorti	machdep.c	/^dorti(n)$/
 dumpsys	machdep.c	/^dumpsys()$/
 dup	sys3.c	/^dup()$/
-emt	mch.s	/^emt/
 enableon	enable34.c	/^enableon()$/
-endvfork	slp.c	/^endvfork() {$/
+endvfork	slp.c	/^endvfork()$/
 esprof	machdep.c	/^esprof()$/
 estabur	ureg.c	/^estabur(nt, nd, ns, sep, xrw)$/
 exec	sys1.c	/^exec()$/
@@ -64,7 +50,8 @@ exece	sys1.c	/^exece()$/
 exit	sys1.c	/^exit(rv)$/
 expand	slp.c	/^expand(newsize,segment)$/
 falloc	fio.c	/^falloc()$/
-fetchi	syslocal.c	/^fetchi() {$/
+fetchi	syslocal.c	/^fetchi()$/
+ffs	syslocal.c	/^ffs(mask)$/
 fiobyte	enable34.c	/^fiobyte (addr)$/
 fioword	enable34.c	/^fioword (addr)$/
 forceclose	syslocal.c	/^forceclose(dev)$/
@@ -76,14 +63,11 @@ fserr	prf.c	/^fserr(fp, cp)$/
 fsig	signojcl.c	/^fsig(p)$/
 fstat	sys3.c	/^fstat()$/
 ftime	sys4.c	/^ftime()$/
-fubyte	mch.s	/^_fubyte/
-fuibyte	mch.s	/^_fuibyte/
-fuiword	mch.s	/^_fuiword/
-fuword	mch.s	/^_fuword/
 getc	prim.c	/^getc(p)$/
 getf	fio.c	/^getf(f)$/
 getfs	alloc.c	/^getfs(dev)$/
 getgid	sys4.c	/^getgid()$/
+gethostid	syslocal.c	/^gethostid()$/
 gethostname	syslocal.c	/^gethostname()$/
 getmdev	sys3.c	/^getmdev()$/
 getpid	sys4.c	/^getpid()$/
@@ -95,13 +79,8 @@ grow	sigjcl.c	/^grow(sp)$/
 gsignal	sigjcl.c	/^gsignal(pgrp, sig)$/
 gtime	sys4.c	/^gtime()$/
 gtty	ioctl.c	/^gtty()$/
-halt	mch.s	/^_halt/
 harderr	prf.c	/^harderr(bp, cp)$/
-hardldiv	mch.s	/^hardldiv/
-hardlrem	mch.s	/^hardlrem/
-hardprobe	mch.s	/^hardprobe/
 ialloc	alloc.c	/^ialloc(dev)$/
-idle	mch.s	/^_idle/
 iexpand	iget.c	/^iexpand(ip, dp)$/
 ifind	iget.c	/^ifind(dev, ino)$/
 ifree	alloc.c	/^ifree(dev, ino)$/
@@ -112,7 +91,6 @@ inferior	sys4.c	/^inferior(p)$/
 ioctl	ioctl.c	/^ioctl()$/
 iomove	rdwri.c	/^iomove(cp, n, flag)$/
 iput	iget.c	/^iput(ip)$/
-isprof	mch.s	/^_isprof/
 issig	sigjcl.c	/^issig()$/
 itrunc	iget.c	/^itrunc(ip)$/
 iupdat	iget.c	/^iupdat(ip, ta, tm, waitfor)$/
@@ -120,13 +98,10 @@ kill	sys4.c	/^kill()$/
 killbkg	syslocal.c	/^killbkg()$/
 killgrp	syslocal.c	/^killgrp(pgrp, sig, mask)$/
 killpg	syslocal.c	/^killpg()$/
-ldiv	mch.s	/^ldiv/
 link	sys2.c	/^link()$/
-lmul	mch.s	/^lmul/
 loadav	clock.c	/^loadav(avg, n)$/
 login	syslocal.c	/^login()$/
 lookc	prim.c	/^lookc(cp)$/
-lrem	mch.s	/^lrem/
 lstat	sys3.c	/^lstat()$/
 maknode	iget.c	/^maknode(mode)$/
 malloc	malloc.c	/^malloc(mp, size)$/
@@ -135,33 +110,29 @@ mapalloc	machdep.c	/^mapalloc(bp)$/
 mapfree	machdep.c	/^mapfree(bp)$/
 mapin	machdep.c	/^mapin(bp)$/
 mapout	machdep.c	/^mapout(bp)$/
+mcstart	fakemx.c	/^mcstart(p, q)$/
+mcttstart	fakemx.c	/^mcttstart(tp)$/
 meter	clock.c	/^meter()$/
 mfree	malloc.c	/^mfree(mp, size, addr)$/
 mknod	sys2.c	/^mknod()$/
+mpxchan	fakemx.c	/^mpxchan()$/
 msprof	machdep.c	/^msprof()$/
 namei	nami.c	/^namei(func, flag, follow)$/
 ndflush	prim.c	/^ndflush(q, cc)$/
 ndqb	prim.c	/^ndqb(q, flag)$/
+netinit	syslocal.c	/^netinit()$/
+netintr	syslocal.c	/^netintr()$/
 newproc	slp.c	/^newproc(isvfork)$/
 nextc	prim.c	/^nextc(p, cp)$/
 nice	sys4.c	/^nice()$/
 nodev	subr.c	/^nodev()$/
-nostk	syslocal.c	/^nostk() {$/
+nostk	syslocal.c	/^nostk()$/
 nosys	trap.c	/^nosys()$/
-nulldev	subr.c	/^nulldev()$/
+nprintf	syslocal.c	/^nprintf(fmt, x1)$/
 nullioctl	ioctl.c	/^nullioctl(tp, cmd, addr, flag)$/
-nullsys	trap.c	/^nullsys()$/
 open	sys2.c	/^open()$/
 open1	sys2.c	/^open1(ip, mode, trf)$/
 openi	fio.c	/^openi(ip, rw)$/
-ovhndlr	mch.s	/^ovhndlr/
-ovhndlr1	mch.s	/^ovhndlr1/
-ovhndlr2	mch.s	/^ovhndlr2/
-ovhndlr3	mch.s	/^ovhndlr3/
-ovhndlr4	mch.s	/^ovhndlr4/
-ovhndlr5	mch.s	/^ovhndlr5/
-ovhndlr6	mch.s	/^ovhndlr6/
-ovhndlr7	mch.s	/^ovhndlr7/
 own	fio.c	/^own(ip)$/
 owner	fio.c	/^owner()$/
 panic	prf.c	/^panic(s)$/
@@ -169,9 +140,6 @@ passc	subr.c	/^passc(c)$/
 pause	sys4.c	/^pause()$/
 pipe	pipe.c	/^pipe()$/
 plock	pipe.c	/^plock(ip)$/
-powrdown	mch.s	/^powrdown/
-powrup	mch.s	/^powrup/
-preempt	mch.s	/^preempt/
 prele	pipe.c	/^prele(ip)$/
 prf	prf.c	/^prf(fmt, adx, touser)$/
 printf	prf.c	/^printf(fmt, x1)$/
@@ -189,7 +157,7 @@ qcopy	nami.c	/^qcopy(dp, ip)$/
 qfree	alloc.c	/^qfree(ip, b)$/
 qfstat	syslocal.c	/^qfstat()$/
 qstat	syslocal.c	/^qstat()$/
-qstat1	syslocal.c	/^qstat1(ip, ub, pipeadj)$/
+qstat1	syslocal.c	/^qstat1(ip, ub)$/
 qswtch	slp.c	/^qswtch()$/
 quota	syslocal.c	/^quota()$/
 rdwr	sys2.c	/^rdwr(mode)$/
@@ -200,58 +168,47 @@ readp	pipe.c	/^readp(fp)$/
 reboot	sys4.c	/^reboot()$/
 remrq	slp.c	/^remrq(p)$/
 renice	syslocal.c	/^renice()$/
-restfp	mch.s	/^_restfp/
-resume	mch.s	/^_resume/
 rexit	sys1.c	/^rexit()$/
-rrupt	mch.s	/^_rrupt/
 rtp	sys4.c	/^rtp()$/
 runrtp	slp.c	/^runrtp()$/
 saccess	sys2.c	/^saccess()$/
-save	mch.s	/^_save/
-saveregs	mch.s	/^_saveregs/
-savfp	mch.s	/^_savfp/
 sbreak	sys1.c	/^sbreak()$/
 schar	nami.c	/^schar()$/
 sched	slp.c	/^sched()$/
+scontrol	fakemx.c	/^scontrol(chan, s, c)$/
+sdata	fakemx.c	/^sdata(cp)$/
 seek	sys2.c	/^seek()$/
-sendsig	machdep.c	/^sendsig(p, signo)$/
+select	syslocal.c	/^select()$/
+selscan	syslocal.c	/^selscan(nfd, fds, nfdp, flag)$/
+seltrue	syslocal.c	/^seltrue(dev, flag)$/
+selwakeup	syslocal.c	/^selwakeup(p, coll)$/
+sendsig	machdep.c	/^sendsig(p)$/
 setgid	sys4.c	/^setgid()$/
+sethostid	syslocal.c	/^sethostid()$/
 sethostname	syslocal.c	/^sethostname()$/
 setpgrp	sys4.c	/^setpgrp()$/
 setpri	slp.c	/^setpri(pp)$/
+setregid	syslocal.c	/^setregid()$/
 setregs	sys1.c	/^setregs()$/
+setreuid	syslocal.c	/^setreuid()$/
 setrq	slp.c	/^setrq(p)$/
 setrun	slp.c	/^setrun(p)$/
 setuid	sys4.c	/^setuid()$/
-sizeof	sysent.c	/^int	nlocalsys = sizeof(syslocal) / sizeof(syslocal/
+sizeof	sysent.c	/^int	nlocalsys = sizeof(syslocal) \/ sizeof(syslocal/
 sleep	slp.c	/^sleep(chan, pri)$/
 smount	sys3.c	/^smount()$/
 spgrp	sys4.c	/^spgrp(top, npgrp)$/
-spl0	mch.s	/^_spl0/
-spl1	mch.s	/^_spl1/
-spl4	mch.s	/^_spl4/
-spl5	mch.s	/^_spl5/
-spl6	mch.s	/^_spl6/
-spl7	mch.s	/^_spl7/
-splx	mch.s	/^_splx/
-sprof	mch.s	/^_sprof/
 ssig	sys4.c	/^ssig()$/
-start	mch.s	/^start/
 startup	machdep.c	/^startup()$/
 stat	sys3.c	/^stat()$/
 stat1	sys3.c	/^stat1(ip, ub, pipeadj)$/
 stime	sys4.c	/^stime()$/
 stop	sigjcl.c	/^stop(p)$/
-stst	mch.s	/^_stst/
 stty	ioctl.c	/^stty()$/
 submit	syslocal.c	/^submit()$/
-subyte	mch.s	/^_subyte/
-suibyte	mch.s	/^_suibyte/
-suiword	mch.s	/^_suiword/
 sumount	sys3.c	/^sumount()$/
 sureg	ureg.c	/^sureg()$/
 suser	fio.c	/^suser()$/
-suword	mch.s	/^_suword/
 swapin	slp.c	/^swapin(p)$/
 swtch	slp.c	/^swtch()$/
 symchar	nami.c	/^symchar()$/
@@ -265,6 +222,7 @@ timeout	clock.c	/^timeout(fun, arg, tim)$/
 times	sys4.c	/^times()$/
 tloop	iget.c	/^tloop(dev, bn, f1, f2, ip)$/
 trap	trap.c	/^trap(dev, sp, r1, ov, nps, r0, pc, ps)$/
+tsleep	syslocal.c	/^tsleep(chan, pri, seconds)$/
 ubinit	machdep.c	/^ubinit()$/
 ucall	syslocal.c	/^ucall()$/
 uchar	nami.c	/^uchar()$/

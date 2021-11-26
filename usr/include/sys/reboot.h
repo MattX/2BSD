@@ -14,4 +14,4 @@
 /*
  * The name of system to boot on automatic reboots.
  */
-#define	RB_DEFNAME	"xp(0,0)unix"
+#define	RB_DEFNAME	"ra(0,0)unix"

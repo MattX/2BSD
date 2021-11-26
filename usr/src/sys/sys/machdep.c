@@ -2,6 +2,13 @@
  *	SCCS id	@(#)machdep.c	2.1 (Berkeley)	11/20/83
  */
 
+/*
+ * added some changes from the Pro code to support 22bit addressing
+ * and more than 248K of memory on a PDP11/23 and a PDP11/45
+ *
+ *	Peter Klapper, 22.10.2021
+ */
+
 #include "param.h"
 #include <sys/systm.h>
 #include <sys/acct.h>
@@ -100,6 +107,9 @@ startup()
 		panic("_end > 0120000");
 #endif
 
+#if PDP11 == 23 || PDP11 == 73
+	*SSR3 = 20;		/* enable 22 bit memory mgmt */
+#endif
 	/*
 	 * zero and free all of core
 	 */
@@ -114,11 +124,14 @@ startup()
 		/*
 		 * avoid testing locations on the IO page if possible,
 		 * since some people have dz's at 0160000 (0760000).
-		 * Note that more than 248K of memory is not currently
-		 * supported without a Unibus map anyway.
 		 * (3968 is btoc(248K); the macro doesn't do longs.)
+		 * (65408 is btoc(4088K))
 		 */
+#if PDP11 == 23 || PDP11 == 73
+		if (!ubmap && i >= 0xff80)	/* up to 4088K of memory */
+#else
 		if (!ubmap && i >= 3968)
+#endif
 			break;
 	}
 	clear(freebase, i - freebase);

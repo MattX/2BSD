@@ -17,7 +17,7 @@
 /* #define UCB_SYMLINKS		/* Symbolic links */
 /* #define TEXAS_AUTOBAUD	/* tty image mode to support autobauding */
 
-/* #define UCB_AUTOBOOT		/* System is able to reboot itself */
+#define UCB_AUTOBOOT		/* System is able to reboot itself */
 #define	UCB_UPRINTF		/* Send error messages to user */
 #define	UCB_VHANGUP		/* Revoke control tty access when user leaves */
 #define UCB_LOAD		/* load average and uptime */

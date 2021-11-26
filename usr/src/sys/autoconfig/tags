@@ -30,6 +30,7 @@ otoi	read_dtab.c	/^otoi(cp)$/
 parse_args	args.c	/^parse_args(ac, av, bopts, fopts)$/
 prdev	do_config.c	/^prdev(dp)$/
 pry	attach.c	/^pry(dp)$/
+raprobe	uprobe1.c	/^raprobe(addr)$/
 read_dtab	read_dtab.c	/^read_dtab()$/
 read_nlist	read_nlist.c	/^read_nlist()$/
 read_while	read_dtab.c	/^#define read_while(expr) while ((ch = getc(dtab_fp/

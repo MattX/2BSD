@@ -28,6 +28,7 @@
 #include "ts.h"
 #include "vp.h"
 #include "xp.h"
+#include "ra.h"
 
 	.globl	call, trap, buserr, start, _panic
 #ifdef	NONFP
@@ -108,6 +109,11 @@ br7 = 340
 . = ZERO+114
 	trap; br7+PARITYFLT.		/ 11/70 parity
 	trap; br7+SEGFLT.		/ segmentation violation
+
+#if	NRA > 0
+. = ZERO+154
+	raio; br5
+#endif	NRA
 
 #if	NRL > 0
 . = ZERO+160
@@ -285,3 +291,8 @@ vpio:	jsr	r0,call; jmp _vpintr
 .globl	_xpintr
 xpio:	jsr	r0,call; jmp _xpintr
 #endif
+
+#if	NRA > 0
+.globl	_raintr
+raio:	jsr	r0,call; jmp _raintr
+#endif	NRA

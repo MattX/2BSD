@@ -6,7 +6,7 @@
 #	add them to the OPTIONAL line (below) and then "make depend".
 #	There is no need to delete unused drivers from this list.
 
-OPTIONAL=
+OPTIONAL= ../dev/ra.c
 
 #  Other files may be included in the OPTIONAL listing; some possiblities
 #  are listed here.  See also the Others subdirectory of ../dev.

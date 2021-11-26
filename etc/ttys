@@ -1,10 +1,15 @@
 00 name		comments
-34console
-39tty00		dz0; used in special session also
-19tty01		dz1
-19tty02		dz2
-19tty03		dz3
-19tty04		dz4
-19tty05		dz5
-19tty06		dz6
-19tty07		dz7
+39console
+09tty00		dz0; used in special session also
+09tty01		dz1
+09tty02		dz2
+09tty03		dz3
+09tty04		dz4
+09tty05		dz5
+09tty06		dz6
+09tty07		dz7
+09dl1		kl1
+09dl2		kl2
+09dl3		kl3
+09dl4		kl4
+09dl5		kl5

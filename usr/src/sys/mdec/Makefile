@@ -1,4 +1,10 @@
-all:	hkuboot hpuboot rkuboot rluboot rmuboot rpuboot
+#####
+# Makefile: added rauboot from 2.10 BSD
+# 14.10.2021, Peter Klapper
+#
+
+all:	hkuboot hpuboot rkuboot rluboot rmuboot rpuboot \
+	rauboot1 rauboot2 rauboot3
 
 hkuboot: hkuboot.s
 	as -o hkuboot.o hkuboot.s
@@ -15,8 +21,11 @@ hpuboot: hpuboot.s
 	rm hpuboot.o
 
 rkuboot: rkuboot.s
-	as -o rkuboot rkuboot.s
-	strip rkuboot
+	as -o rkuboot.o rkuboot.s
+	size rkuboot.o
+	strip rkuboot.o
+	dd if=rkuboot.o of=rkuboot bs=8w skip=1
+	rm rkuboot.o
 
 rluboot: rluboot.s
 	as -o rluboot.o rluboot.s
@@ -39,9 +48,34 @@ rpuboot: rpuboot.s
 	dd if=rpuboot.o of=rpuboot bs=8w skip=1
 	rm rpuboot.o
 
+rauboot1: rauboot1.s
+	as -o rauboot1.o rauboot1.s
+	size rauboot1.o
+	strip rauboot1.o
+	dd if=rauboot1.o of=rauboot1 bs=8w skip=1
+	rm rauboot1.o
+
+rauboot2: rauboot2.s
+	as -o rauboot2.o rauboot2.s
+	size rauboot2.o
+	strip rauboot2.o
+	dd if=rauboot2.o of=rauboot2 bs=8w skip=1
+	rm rauboot2.o
+
+rauboot3: rauboot3.s
+	as -o rauboot3.o rauboot3.s
+	size rauboot3.o
+	strip rauboot3.o
+	dd if=rauboot3.o of=rauboot3 bs=8w skip=1
+	rm rauboot3.o
+
 .DEFAULT:
 	as -o $@.o $@.s
 	size $@.o
 	strip $@.o
 	dd if=$@.o of=$@ bs=8w skip=1
 	rm $@.o
+
+clean:
+	rm -f hkuboot hpuboot rkuboot rluboot rmuboot rpuboot \
+	rauboot1 rauboot2 rauboot3

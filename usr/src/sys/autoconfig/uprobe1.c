@@ -34,7 +34,7 @@
 int	xpprobe(), hkprobe(), hsprobe(), rlprobe(), rkprobe(), rpprobe();
 int	htprobe(), tmprobe(), tsprobe();
 int	dnprobe(), klprobe(), dzprobe(), dhprobe(), dmprobe();
-int	lpprobe(), vpprobe();
+int	lpprobe(), vpprobe(), raprobe();
 #ifdef	VIRUS
 int	caryprobe();
 #endif
@@ -52,6 +52,7 @@ struct uprobe uprobe[] = {
 	"rl",	rlprobe,
 	"rk",	rkprobe,
 	"rp",	rpprobe,
+	"ra",	raprobe,
 
 	/*
 	 *	Tapes
@@ -136,6 +137,12 @@ struct rpdevice *addr;
 	DELAY(10);
 	stuff(0, (&(addr->rpcs.w)));
 	return(ACP_IFINTR);
+}
+
+raprobe(addr)
+struct radevice *addr;
+{
+	return(ACP_EXISTS);
 }
 
 htprobe(addr)

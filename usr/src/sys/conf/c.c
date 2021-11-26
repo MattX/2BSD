@@ -86,12 +86,28 @@ extern	struct	buf	hktab;
 #else
 #define	hkopen		nodev
 #define	hkclose		nodev
+#define	hkroot		nulldev
 #define	hkstrategy	nodev
 #define	hkread		nodev
 #define	hkwrite		nodev
-#define	hkroot		nulldev
 #define	_hktab		((struct buf *) NULL)
 #endif	NHK
+
+#include	"ra.h"
+#if	NRA > 0
+int	rastrategy(), raread(), rawrite(), raopen(), raroot();
+extern	struct	buf	ratab;
+#define	raclose		nulldev
+#define	_ratab		&ratab
+#else
+#define	raopen		nodev
+#define	raclose		nodev
+#define	rastrategy	nodev
+#define	raread		nodev
+#define	rawrite		nodev
+#define raroot		nulldev
+#define	_ratab		((struct buf *) NULL)
+#endif	NRA
 
 #include	"hp.h"
 #if	NHP > 0
@@ -296,8 +312,8 @@ struct	bdevsw	bdevsw[] =
 	rpopen,		rpclose,	rpstrategy,
 	nulldev,	_rptab,		/* rp = 1 */
 
-	nodev,		nodev,		nodev,
-	nulldev,	0,		/* rf = 2 */
+	raopen,		raclose,	rastrategy,
+	raroot,		_ratab,		/* ra = 2 */
 
 	tmopen,		tmclose,	tmstrategy,
 	nulldev,	_tmtab,		/* tm = 3 */
@@ -359,8 +375,8 @@ struct	cdevsw	cdevsw[] =
 	nodev,		nodev,		nodev,		nodev,
 	nodev,		nodev,		0,		/* dp = 5 */
 
-	nodev,		nodev,		nodev,		nodev,
-	nodev,		nodev,		0,		/* dj = 6 */
+	raopen,		raclose,	raread,		rawrite,
+	nodev,		nulldev,	0,		/* ra = 6 */
 
 	dnopen,		dnclose,	nodev,		dnwrite,
 	nodev,		nulldev,	0,		/* dn = 7 */
@@ -372,7 +388,7 @@ struct	cdevsw	cdevsw[] =
 	nodev,		nulldev,	0,		/* rk = 9 */
 
 	nodev,		nodev,		nodev,		nodev,
-	nodev,		nodev,		0,		/* rf = 10 */
+	nodev,		nodev,		0,		/*  = 10 */
 
 	rpopen,		rpclose,	rpread,		rpwrite,
 	nodev,		nulldev,	0,		/* rp = 11 */
@@ -402,7 +418,7 @@ struct	cdevsw	cdevsw[] =
 	htioctl,	nulldev,	0,		/* ht = 15 */
 
 	nodev,		nodev,		nodev,		nodev,
-	nodev,		nodev,		0,		/* du = 16 */
+	nodev,		nodev,		0,		/*  = 16 */
 
 	syopen,		nulldev,	syread,		sywrite,
 	sysioctl,	nulldev,	0,		/* tty = 17 */

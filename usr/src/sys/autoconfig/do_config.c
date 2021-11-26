@@ -102,7 +102,7 @@ auto_config()
 		errno = 0;
 		grab(dp->dt_addr);
 		if (errno) {
-			if (errno != EFAULT && errno != ENXIO)
+ 			if (errno != EFAULT && errno != ENXIO)
 				perror("Reading CSR");
 			if (debug || verbose) {
 				prdev(dp);

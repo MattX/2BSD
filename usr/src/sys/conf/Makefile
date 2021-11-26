@@ -44,7 +44,7 @@ OBJS =	acct.o alloc.o clock.o fio.o iget.o ioctl.o machdep.o main.o \
 	syslocal.o text.o trap.o ureg.o \
 	bio.o dh.o dkbad.o dkleave.o dn.o dsort.o dz.o hk.o \
 	hp.o ht.o kl.o lp.o mem.o partab.o rk.o rl.o rm.o \
-	rp.o sys.o tm.o ts.o tty.o ttynew.o ttyold.o xp.o vp.o
+	rp.o sys.o tm.o ts.o tty.o ttynew.o ttyold.o xp.o vp.o ra.o
 
 #	boot.o must be loaded in the base well above 0 data
 CONFOBJ = l.o mch.o c.o ioconf.o boot.o 
@@ -127,15 +127,15 @@ c.o: c.c
 c.o: param.h ${I}/sys/systm.h ${I}/sys/buf.h ${I}/sys/tty.h ${I}/sys/conf.h
 c.o: ${I}/sys/proc.h ${I}/sys/text.h ${I}/sys/dir.h ${I}/sys/user.h
 c.o: ${I}/sys/file.h ${I}/sys/inode.h ${I}/sys/acct.h ${I}/sys/map.h
-c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h hp.h hs.h ht.h
-c.o: lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
+c.o: ${I}/sys/filsys.h ${I}/sys/mount.h bk.h dh.h dn.h dz.h hk.h hp.h hs.h ra.h
+c.o: ht.h lp.h rk.h rl.h rm.h rp.h tm.h ts.h vp.h xp.h
 	${C} c.c
 	${E} c.s
 	${A} c.o c.s
 	-rm c.s
 
 ioconf.o: ioconf.c
-ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h
+ioconf.o: param.h ${I}/sys/systm.h hk.h hp.h hs.h rk.h rl.h rm.h rp.h xp.h ra.h
 ioconf.o: ${I}/sys/hpreg.h
 	${C} ioconf.c
 	${E} ioconf.s
@@ -589,10 +589,19 @@ xp.o: ${I}/sys/inline.h ${I}/sys/uba.h
 
 vp.o: ../dev/vp.c
 vp.o: vp.h param.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/buf.h
+vp.o: ${I}/sys/proc.h ${I}/sys/vcmd.h
 	${C} ../dev/vp.c
 	${E} vp.s
 	${A} vp.o vp.s
 	-rm vp.s
+
+ra.o: ../dev/ra.c
+ra.o: ra.h ${I}/sys/param.h ${I}/sys/systm.h ${I}/sys/buf.h
+ra.o: ${I}/sys/conf.h ${I}/sys/dir.h ${I}/sys/user.h ${I}/sys/inline.h
+	${C} ../dev/ra.c
+	${E} ra.s
+	${A} ra.o ra.s
+	-rm ra.s
 
 # DEPENDENCIES MUST END HERE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY

@@ -1,0 +1,45 @@
+#  Machine configuration file.
+#  Format:
+#	name	value		comments
+#
+#  The value field may not contain blanks;
+#  blank lines are not allowed.
+#
+#  Description file for 2.9BSD distributed kernel binary
+#
+#	General parameters
+pdp11		73
+ident		sms1000
+maxusers	2
+bootdev		ra
+linefreq	50			# Europe 50 / USA 60
+timezone	-1			# MET
+dst		1
+#
+#	Filesystem configuration
+rootdev		makedev(2,8)		# ra1a
+swapdev		makedev(2,9)		# ra1b
+dumpdev		NODEV
+pipedev		makedev(2,8)		# ra1a
+swplo		0
+nswap		3200
+dumplo		0
+dumproutine	nodev
+#
+#	Device configuration
+NXP		1		# at least 1 is required
+NXP_CONTROLLER 	0
+NHK		0
+NRK		0
+NRL		0
+NRA		4		# total RA drives (RX50, RD51, RD52, RD53)
+NRP		0
+NHT		1		# required for other tape drivers
+NTM		0
+NTS		1		# SMS1000 emulates a TSV05 tape drive
+NDZ		0		# in units of boards (8 each)
+NDH		0		# in units of boards (16 each)
+NDM		0		# in units of boards (16 each)
+LOWDM		0		# LOWDM is in units of lines
+NKL		1		# minimum 1 for the console
+NLP		0

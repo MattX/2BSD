@@ -8,3 +8,5 @@ as an argument.  This will create a directory "../machinename" of the
 same name as the description file.  You will need to tune the header
 files to your liking, setting global or device-specific options,
 but most of the work of configuring a system will be done.
+
+This configuration has been adapted to support MSCP drives!

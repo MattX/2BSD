@@ -1,0 +1,2 @@
+#define	NRA	%NRA%
+/* #define RA_DKN	0		/* drive # for iostat disk monitoring */
