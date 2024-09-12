@@ -5,16 +5,16 @@ SCRIPT(1)	    UNIX Programmer's Manual		SCRIPT(1)
 
 
 
-NAME
+NNAAMMEE
      script - make typescript of terminal session
 
-SYNOPSIS
-     script [ -a ] [ file ]
+SSYYNNOOPPSSIISS
+     ssccrriipptt [ --aa ] [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_c_r_i_p_t makes a typescript of everything printed on your ter-
      minal.  The typescript is written to _f_i_l_e, or appended to
-     _f_i_l_e if the -a option is given.  It can be sent to the line
+     _f_i_l_e if the --aa option is given.  It can be sent to the line
      printer later with _l_p_r.  If no file name is given, the
      typescript is saved in the file _t_y_p_e_s_c_r_i_p_t.
 
@@ -25,8 +25,8 @@ DESCRIPTION
      a program that was developed on a crt when hard-copy termi-
      nals are in short supply.
 
-BUGS
-     _S_c_r_i_p_t places everything in the log file.	This is not what
+BBUUGGSS
+     _S_c_r_i_p_t places eevveerryytthhiinngg in the log file.	This is not what
      the naive user expects.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

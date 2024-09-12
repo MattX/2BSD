@@ -5,17 +5,17 @@ UTIMES(2)	    UNIX Programmer's Manual		UTIMES(2)
 
 
 
-NAME
+NNAAMMEE
      utimes - set file times
 
-SYNOPSIS
-     #include <sys/time.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttiimmee..hh>>
 
-     utimes(file, tvp)
-     char *file;
-     struct timeval tvp[2];
+     uuttiimmeess((ffiillee,, ttvvpp))
+     cchhaarr **ffiillee;;
+     ssttrruucctt ttiimmeevvaall ttvvpp[[22]];;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _u_t_i_m_e_s call uses the "accessed" and "updated" times in
      that order from the _t_v_p vector to set the corresponding
      recorded times for _f_i_l_e.
@@ -24,12 +24,12 @@ DESCRIPTION
      The "inode-changed" time of the file is set to the current
      time.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-ERRORS
+EERRRROORRSS
      _U_t_i_m_e will fail if one or more of the following are true:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	 August 26, 1985			1
+Printed 9/10/24          August 26, 1985			1
 
 
 
@@ -76,7 +76,7 @@ UTIMES(2)	    UNIX Programmer's Manual		UTIMES(2)
      [EIO]	    An I/O error occurred while reading or writ-
 		    ing the affected inode.
 
-SEE ALSO
+SSEEEE AALLSSOO
      stat(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 26, 1985			2
+Printed 9/10/24          August 26, 1985			2
 
 
 

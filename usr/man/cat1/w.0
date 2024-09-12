@@ -5,15 +5,15 @@ W(1)		    UNIX Programmer's Manual		     W(1)
 
 
 
-NAME
+NNAAMMEE
      w, uptime	- who is on and what they are doing; system time
      up
 
-SYNOPSIS
-     w [ -hswu ] [ user ]
-     uptime
+SSYYNNOOPPSSIISS
+     ww [ --hhsswwuu ] [ user ]
+     uuppttiimmee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W prints a summary of the current activity on the system,
      including what each user is doing.
 
@@ -32,35 +32,35 @@ DESCRIPTION
      terminal, the CPU time used by the currently active
      processes, the name and arguments of the current process.
 
-     The -h flag suppresses the heading.  The -s flag asks for a
+     The --hh flag suppresses the heading.  The --ss flag asks for a
      short form of output.  In the short form, the tty is abbre-
      viated, the login time and cpu times are left off, as are
      the arguments to commands.
 
-     The -w and -u flags force the _w and _u_p_t_i_m_e actions respec-
+     The --ww and --uu flags force the _w and _u_p_t_i_m_e actions respec-
      tively, regardless of the name the program is invoked as.
 
      If a _u_s_e_r name is included, the output will be restricted to
      that user.
 
-FILES
+FFIILLEESS
      /var/run/utmp	 for login names
      /dev/swap		 secondary storage
 
-SEE ALSO
+SSEEEE AALLSSOO
      finger(1), ps(1), who(1)
 
-AUTHOR
+AAUUTTHHOORR
      Mark Horton
 
-BUGS
+BBUUGGSS
      The notion of the ``current process'' is muddy.  The current
      algorithm is ``the highest numbered process on the terminal
      that is not ignoring interrupts, or, if there is none, the
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -126,7 +126,7 @@ W(1)		    UNIX Programmer's Manual		     W(1)
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

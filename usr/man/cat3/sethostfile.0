@@ -5,32 +5,32 @@ GETHOSTBYNAME(3)    UNIX Programmer's Manual	 GETHOSTBYNAME(3)
 
 
 
-NAME
+NNAAMMEE
      gethostbyname, gethostbyaddr, gethostent, sethostent,
      endhostent, herror - get network host entry
 
-SYNOPSIS
-     #include <netdb.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<nneettddbb..hh>>
 
-     extern int h_errno;
+     eexxtteerrnn iinntt hh__eerrrrnnoo;;
 
-     struct hostent *gethostbyname(name)
-     char *name;
+     ssttrruucctt hhoosstteenntt **ggeetthhoossttbbyynnaammee((nnaammee))
+     cchhaarr **nnaammee;;
 
-     struct hostent *gethostbyaddr(addr, len, type)
-     char *addr; int len, type;
+     ssttrruucctt hhoosstteenntt **ggeetthhoossttbbyyaaddddrr((aaddddrr,, lleenn,, ttyyppee))
+     cchhaarr **aaddddrr;; iinntt lleenn,, ttyyppee;;
 
-     struct hostent *gethostent()
+     ssttrruucctt hhoosstteenntt **ggeetthhoosstteenntt(())
 
-     sethostent(stayopen)
-     int stayopen;
+     sseetthhoosstteenntt((ssttaayyooppeenn))
+     iinntt ssttaayyooppeenn;;
 
-     endhostent()
+     eennddhhoosstteenntt(())
 
-     herror(string)
-     char *string;
+     hheerrrroorr((ssttrriinngg))
+     cchhaarr **ssttrriinngg;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_h_o_s_t_b_y_n_a_m_e and _g_e_t_h_o_s_t_b_y_a_d_d_r each return a pointer to an
      object with the following structure describing an internet
      host referenced by name or by address, respectively.  This
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 30, 1996			1
+Printed 9/10/24         October 30, 1996			1
 
 
 
@@ -97,7 +97,7 @@ GETHOSTBYNAME(3)    UNIX Programmer's Manual	 GETHOSTBYNAME(3)
 
      _E_n_d_h_o_s_t_e_n_t closes the TCP connection.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Error return status from _g_e_t_h_o_s_t_b_y_n_a_m_e and _g_e_t_h_o_s_t_b_y_a_d_d_r  is
      indicated by return of a null pointer.  The external integer
      _h__e_r_r_n_o may then be checked to see whether this  is  a  tem-
@@ -126,7 +126,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	October 30, 1996			2
+Printed 9/10/24         October 30, 1996			2
 
 
 
@@ -146,13 +146,13 @@ GETHOSTBYNAME(3)    UNIX Programmer's Manual	 GETHOSTBYNAME(3)
 			  a mail-forwarder may be registered  for
 			  this domain.
 
-FILES
+FFIILLEESS
      /etc/hosts
 
-SEE ALSO
+SSEEEE AALLSSOO
      resolver(3), hosts(5), hostname(7), named(8)
 
-CAVEAT
+CCAAVVEEAATT
      _G_e_t_h_o_s_t_e_n_t is defined, and  _s_e_t_h_o_s_t_e_n_t  and  _e_n_d_h_o_s_t_e_n_t  are
      redefined,  when  _l_i_b_c  is built to use only the routines to
      lookup in /_e_t_c/_h_o_s_t_s and not the name server.
@@ -165,7 +165,7 @@ CAVEAT
      be closed after each call to _g_e_t_h_o_s_t_b_y_n_a_m_e or _g_e_t_h_o_s_t_b_y_a_d_d_r.
      _E_n_d_h_o_s_t_e_n_t is redefined to close the file.
 
-BUGS
+BBUUGGSS
      All information is contained in a static area so it must  be
      copied if it is to be saved.  Only the Internet address for-
      mat is currently understood.
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 30, 1996			3
+Printed 9/10/24         October 30, 1996			3
 
 
 

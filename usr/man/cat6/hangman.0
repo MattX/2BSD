@@ -5,22 +5,22 @@ HANGMAN(6)	    UNIX Programmer's Manual	       HANGMAN(6)
 
 
 
-NAME
+NNAAMMEE
      hangman - Computer version of the game hangman
 
-SYNOPSIS
-     /usr/games/hangman
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//hhaannggmmaann
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      In _h_a_n_g_m_a_n, the computer picks a word from the on-line word
      list and you must try to guess it.  The computer keeps track
      of which letters have been guessed and how many wrong
      guesses you have made on the screen in a graphic fashion.
 
-FILES
+FFIILLEESS
      /usr/dict/words	 On-line word list
 
-AUTHOR
+AAUUTTHHOORR
      Ken Arnold
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

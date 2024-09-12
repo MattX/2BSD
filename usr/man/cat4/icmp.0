@@ -5,16 +5,16 @@ ICMP(4P)	    UNIX Programmer's Manual		 ICMP(4P)
 
 
 
-NAME
+NNAAMMEE
      icmp - Internet Control Message Protocol
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <netinet/in.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneettiinneett//iinn..hh>>
 
-     s = socket(AF_INET, SOCK_RAW, proto);
+     ss == ssoocckkeett((AAFF__IINNEETT,, SSOOCCKK__RRAAWW,, pprroottoo));;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      ICMP is the error and control message protocol used by IP
      and the Internet protocol family.	It may be accessed
      through a "raw socket" for network monitoring and diagnostic
@@ -30,7 +30,7 @@ DESCRIPTION
      to them (based on the destination address).  Incoming pack-
      ets are received with the IP header and options intact.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -52,7 +52,7 @@ DIAGNOSTICS
 		    with a network address for which no network
 		    interface exists.
 
-SEE ALSO
+SSEEEE AALLSSOO
      send(2), recv(2), intro(4N), inet(4F), ip(4P)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 16, 1986				1
+Printed 9/10/24           May 16, 1986				1
 
 
 

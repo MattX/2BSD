@@ -5,13 +5,13 @@ CLRI(8)             UNIX Programmer's Manual		  CLRI(8)
 
 
 
-NAME
+NNAAMMEE
      clri - clear i-node
 
-SYNOPSIS
-     clri filesystem i-number ...
+SSYYNNOOPPSSIISS
+     ccllrrii filesystem i-number ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_l_r_i writes zeros on the i-nodes with the decimal _i-_n_u_m_b_e_r_s
      on the _f_i_l_e_s_y_s_t_e_m. After _c_l_r_i, any blocks in the affected
      file will show up as `missing' in an _i_c_h_e_c_k(8) of the
@@ -30,10 +30,10 @@ DESCRIPTION
      entry will again point to an unallocated i-node, so the
      whole cycle is likely to be repeated again and again.
 
-SEE ALSO
+SSEEEE AALLSSOO
      fsck(8), icheck(8)
 
-BUGS
+BBUUGGSS
      If the file is open, _c_l_r_i is likely to be ineffective.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

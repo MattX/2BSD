@@ -5,11 +5,11 @@ HOSTS_ACCESS(3)     UNIX Programmer's Manual	  HOSTS_ACCESS(3)
 
 
 
-NAME
+NNAAMMEE
      hosts_access, hosts_ctl, request_init, request_set - access
      control library
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      #include "tcpd.h"
 
      extern int allow_severity;
@@ -30,7 +30,7 @@ SYNOPSIS
      char *client_addr;
      char *client_user;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The routines described in this document are part of the
      _l_i_b_w_r_a_p._a library. They implement a rule-based access con-
      trol language with optional shell commands that are executed
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -110,23 +110,23 @@ HOSTS_ACCESS(3)     UNIX Programmer's Manual	  HOSTS_ACCESS(3)
      provided by the caller and may be modified by rules in the
      access control tables.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Problems are reported via the syslog daemon.
 
-SEE ALSO
+SSEEEE AALLSSOO
      hosts_access(5), format of the access control tables.
      hosts_options(5), optional extensions to the base language.
 
-FILES
+FFIILLEESS
      /etc/hosts.access, /etc/hosts.deny, access control tables.
 
-BUGS
+BBUUGGSS
      hosts_access() uses the strtok() library function. This may
      interfere with other code that relies on strtok().
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -137,7 +137,7 @@ HOSTS_ACCESS(3)     UNIX Programmer's Manual	  HOSTS_ACCESS(3)
 
 
 
-AUTHOR
+AAUUTTHHOORR
      Wietse Venema (wietse@wzv.win.tue.nl)
      Department of Mathematics and Computing Science
      Eindhoven University of Technology
@@ -192,7 +192,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 

@@ -5,13 +5,13 @@ RXFORMAT(8)	    UNIX Programmer's Manual	      RXFORMAT(8)
 
 
 
-NAME
+NNAAMMEE
      rxformat - format floppy disks (2.11BSD)
 
-SYNOPSIS
-     rxformat special
+SSYYNNOOPPSSIISS
+     rrxxffoorrmmaatt special
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _r_x_f_o_r_m_a_t program formats a diskette in the specified
      drive associated with the special device _s_p_e_c_i_a_l.	_S_p_e_c_i_a_l
      is normally /dev/rrx0?, for drive 0, or /dev/rrx1?, for
@@ -27,21 +27,21 @@ DESCRIPTION
      will destroy any existing data).  Formatting is done by the
      hardware.	All sectors are zero-filled.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      `No such device' means that the drive is not ready, usually
      because no disk is in the drive or the drive door is open.
      Other error messages are selfexplanatory.
 
-FILES
+FFIILLEESS
      /dev/rrx??
 
-SEE ALSO
+SSEEEE AALLSSOO
      rx(4)
 
-AUTHOR
+AAUUTTHHOORR
      Helge Skrivervik
 
-BUGS
+BBUUGGSS
      A floppy may not be formatted if the header info on sector
      1, track 0 has been damaged.  Hence, it is not possible to
      format a completely degaussed disk. (This is actually a
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 17, 1996			1
+Printed 9/10/24         November 17, 1996			1
 
 
 

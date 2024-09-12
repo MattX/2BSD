@@ -5,26 +5,26 @@ READLINK(2)	    UNIX Programmer's Manual	      READLINK(2)
 
 
 
-NAME
+NNAAMMEE
      readlink - read value of a symbolic link
 
-SYNOPSIS
-     cc = readlink(path, buf, bufsiz)
-     int cc;
-     char *path, *buf;
-     int bufsiz;
+SSYYNNOOPPSSIISS
+     cccc == rreeaaddlliinnkk((ppaatthh,, bbuuff,, bbuuffssiizz))
+     iinntt cccc;;
+     cchhaarr **ppaatthh,, **bbuuff;;
+     iinntt bbuuffssiizz;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_a_d_l_i_n_k places the contents of the symbolic link _n_a_m_e in
      the buffer _b_u_f, which has size _b_u_f_s_i_z.  The contents of the
      link are not null terminated when returned.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      The call returns the count of characters placed in the
      buffer if it succeeds, or a -1 if an error occurs, placing
      the error code in the global variable _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      _R_e_a_d_l_i_n_k will fail and the file mode will be unchanged if:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -53,14 +53,14 @@ ERRORS
      [EFAULT]	    _B_u_f extends outside the process's allocated
 		    address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      stat(2), lstat(2), symlink(2)
 
 
 
 
 
-Printed 2/16/100	 August 26, 1985			1
+Printed 9/10/24          August 26, 1985			1
 
 
 

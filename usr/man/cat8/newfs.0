@@ -5,52 +5,52 @@ NEWFS(8)	    UNIX Programmer's Manual		 NEWFS(8)
 
 
 
-NAME
+NNAAMMEE
      newfs - construct a new file system
 
-SYNOPSIS
-     /sbin/newfs [ -N ] [ -m free-gap ] [ -n free-modulus ] [ -i
-     bytes ] [ -s size ] [ -T disk-type ] special
+SSYYNNOOPPSSIISS
+     //ssbbiinn//nneewwffss [ --NN ] [ --mm ffrreeee--ggaapp ] [ --nn ffrreeee--mmoodduulluuss ] [ --ii
+     bbyytteess ] [ --ss ssiizzee ] [ --TT ddiisskk--ttyyppee ] ssppeecciiaall
 
-DESCRIPTION
-     Newfs is a ``friendly'' front-end to the mkfs(8) program.
-     Newfs(8) will normally read the disklabel from the drive to
+DDEESSCCRRIIPPTTIIOONN
+     NNeewwffss is a ``friendly'' front-end to the mmkkffss(8) program.
+     NNeewwffss(8) will normally read the disklabel from the drive to
      determine the partition sizes.  If the driver for the disk
      does not support disklabels the -T option must be used to
      force a search of /_e_t_c/_d_i_s_k_t_a_b for partition information
-     about _d_r_i_v_e-_t_y_p_e.	Newfs calculates the appropriate parame-
-     ters to use in calling mkfs, then builds the file system by
-     forking mkfs.
+     about _d_r_i_v_e-_t_y_p_e.	NNeewwffss calculates the appropriate parame-
+     ters to use in calling mmkkffss, then builds the file system by
+     forking mmkkffss.
 
-     -N causes the mkfs command which would be executed to be
+     --NN causes the mmkkffss command which would be executed to be
      printed out without actually creating the file system.  The
-     disk specified by special must be online though so that
-     newfs can read the disklabel.
+     disk specified by ssppeecciiaall must be online though so that
+     nneewwffss can read the disklabel.
 
-     -m allows the specification of the block interleaving of the
+     --mm allows the specification of the block interleaving of the
      free list.  If not specified or outside the range 1 thru 32
      then a value of 2 is used.
 
-     -n parameter is the freelist modulus (when the -m pattern
-     repeats) and is calculated by newfs to be 1 cylinder in size
+     --nn parameter is the freelist modulus (when the --mm pattern
+     repeats) and is calculated by nneewwffss to be 1 cylinder in size
      by default.
 
-     -i specifies how many bytes per inode to assume when calcu-
+     --ii specifies how many bytes per inode to assume when calcu-
      lating how many inodes to allocate.  The default is 4096
      bytes per inode.  If this results in too few inodes being
      allocated (there is an absolute maximum of 65500) then
      decrease the _b_y_t_e_s number (which must lie between 512 and
      65536).
 
-     -T must be used if the disk specified by _s_p_e_c_i_a_l has not
-     been labeled with the disklabel(8) program.  In this case
-     _d_i_s_k-_t_y_p_e is used by getdisklabel(3) when searching
+     --TT must be used if the disk specified by _s_p_e_c_i_a_l has not
+     been labeled with the ddiisskkllaabbeell(8) program.  In this case
+     _d_i_s_k-_t_y_p_e is used by ggeettddiisskkllaabbeell(3) when searching
      /_e_t_c/_d_i_s_k_t_a_b.  This option is used when the underlying dev-
      ice driver does not support disklabels.  Care must be taken
      that the contents of /etc/disktab match the partition tables
      in the kernel.
 
-     -s specifies how many sectors the file system is to contain.
+     --ss specifies how many sseeccttoorrss the file system is to contain.
      There are two sectors per file system block, therefore _s_i_z_e
      should be even.  This parameter must be less than or equal
      to the partition size (as determined from the disklabel or
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 12, 1996                         1
+Printed 9/10/24          April 12, 1996                         1
 
 
 
@@ -71,22 +71,22 @@ NEWFS(8)	    UNIX Programmer's Manual		 NEWFS(8)
 
 
 
-	  NOTE: Mkfs deals in units of filesystem blocks not sec-
+	  NNOOTTEE:: Mkfs deals in units of filesystem blocks not sec-
 	  tors.  Newfs uses sectors.
 
-FILES
+FFIILLEESS
      /etc/disktab   disk geometry and partition information
      mkfs to actually build the file system
 
-SEE ALSO
+SSEEEE AALLSSOO
      getdisklabel(3), disklabel(8), disktab(5), diskpart(8),
      fs(5), fsck(8), mkfs(8)
 
-BUGS
-     newfs(8) no longer places boot blocks on the filesystem.
-     That duty has been moved to the disklabel(8) program.  If
+BBUUGGSS
+     nneewwffss(8) no longer places boot blocks on the filesystem.
+     That duty has been moved to the ddiisskkllaabbeell(8) program.  If
      you must place a boot block on a disk whose driver does not
-     support disklabels use dd(1).
+     support disklabels use dddd(1).
 
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 12, 1996                         2
+Printed 9/10/24          April 12, 1996                         2
 
 
 

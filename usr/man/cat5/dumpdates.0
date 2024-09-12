@@ -5,15 +5,15 @@ DUMP(5)             UNIX Programmer's Manual		  DUMP(5)
 
 
 
-NAME
+NNAAMMEE
      dump, ddate - incremental dump format
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/ino.h>
-     #include <dumprestor.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//iinnoo..hh>>
+     ##iinncclluuddee <<dduummpprreessttoorr..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Tapes used by _d_u_m_p and _r_e_s_t_o_r(8) contain:
 
 	  a header record
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -126,7 +126,7 @@ DUMP(5)             UNIX Programmer's Manual		  DUMP(5)
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -160,10 +160,10 @@ DUMP(5)             UNIX Programmer's Manual		  DUMP(5)
      id_ddate The date of the incremental dump in system format
 	      see _t_y_p_e_s(5).
 
-FILES
+FFIILLEESS
      /etc/ddate
 
-SEE ALSO
+SSEEEE AALLSSOO
      filsys(5), types(5), dump(8), dumpdir(8), restor(8)
 
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 

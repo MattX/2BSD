@@ -1,33 +1,13 @@
 # ------------------------
 #
-#	Termcap source file	@(#)termcap.src	5.40.1 (2.11BSD) 1996/10/21
+#	Termcap source file	@(#)termcap.src	5.41 (2.11BSD) 2020/3/24
 #	John Kunze, Berkeley
 #	Craig Leres, Berkeley
 #
 # Please mail changes to (arpanet):  termcap@berkeley
 # See DESCRIPTION section for information about contents.
 #
-sa|network:\
-	:tc=unknown:
-sb|arpanet:\
-	:tc=unknown:
-sc|bussiplexer:\
-	:tc=unknown:
-sd|du|dialup:\
-	:tc=unknown:
-se|ethernet:\
-	:tc=unknown:
-sl|lpr|printer|print|printing|line printer:\
-	:do=^J:le=^H:bs:co#132:hc:os:
-sp|plugboard|patch|patchboard:\
-	:tc=unknown:
-su|dumb|un|unknown:\
-	:am:co#80:do=^J:
-sw|switch|intelligent switch:\
-	:tc=unknown:
-sx|ansi|any ansi terminal with pessimistic assumptions:\
-	:co#80:li#24:cl=50\E[;H\E[2J:bs:am:cm=\E[%i%d;%dH:\
-	:nd=\E[C:up=\E[A:ce=\E[K:ho=\E[H:pt:
+screen|VT 100/ANSI X3.64 virtual terminal:tc=vt100
 TD|dmd|5620|ttydmd|tty5620|5620	terminal 88 columns:\
 	:co#88:li#70:am:bs:pt:cm=\E[%i%d;%dH:nd=\E[C:up=\E[A:\
 	:cl=\E[H\E[J:cd=\E[J:ce=\E[K:al=\E[L:dl=\E[M:do=^J:\
@@ -1925,6 +1905,8 @@ dy|vt102-obs|dec vt102:\
 dw|vt52|dec vt52:\
 	:do=^J:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#80:li#24:\
 	:nd=\EC:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:
+# Screen VT100 virtual terminal emulator
+# Have more capabilities but stay with VT100 for now.
 # vt61 created by Roger Sacilotto  Massachusetts Computer Associates, Inc
 # Similar to vt52 but add al and dl
 #
@@ -2305,6 +2287,27 @@ qx|xitex|xitex sct-100:\
 # Special "terminals".  These are used to label tty lines when you don't
 # know what kind of terminal is on it.  The characteristics of an unknown
 # terminal are the lowest common denominator - they look about like a ti 700.
+sa|network:\
+	:tc=unknown:
+sb|arpanet:\
+	:tc=unknown:
+sc|bussiplexer:\
+	:tc=unknown:
+sd|du|dialup:\
+	:tc=unknown:
+se|ethernet:\
+	:tc=unknown:
+sl|lpr|printer|print|printing|line printer:\
+	:do=^J:le=^H:bs:co#132:hc:os:
+sp|plugboard|patch|patchboard:\
+	:tc=unknown:
+su|dumb|un|unknown:\
+	:am:co#80:do=^J:
+sw|switch|intelligent switch:\
+	:tc=unknown:
+sx|ansi|any ansi terminal with pessimistic assumptions:\
+	:co#80:li#24:cl=50\E[;H\E[2J:bs:am:cm=\E[%i%d;%dH:\
+	:nd=\E[C:up=\E[A:ce=\E[K:ho=\E[H:pt:
 # # --------------------------------
 #
 # t: TEXAS INSTRUMENTS

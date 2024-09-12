@@ -5,14 +5,14 @@ UMASK(2)	    UNIX Programmer's Manual		 UMASK(2)
 
 
 
-NAME
+NNAAMMEE
      umask - set file creation mode mask
 
-SYNOPSIS
-     oumask = umask(numask)
-     int oumask, numask;
+SSYYNNOOPPSSIISS
+     oouummaasskk == uummaasskk((nnuummaasskk))
+     iinntt oouummaasskk,, nnuummaasskk;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_m_a_s_k sets the process's file mode creation mask to _n_u_m_a_s_k
      and returns the previous value of the mask.  The low-order 9
      bits of _n_u_m_a_s_k are used whenever a file is created, clearing
@@ -23,11 +23,11 @@ DESCRIPTION
      The value is initially 022 (write access for owner only).
      The mask is inherited by child processes.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      The previous value of the file mode mask is returned by the
      call.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chmod(2), mknod(2), open(2)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	   May 9, 1985				1
+Printed 9/10/24            May 9, 1985				1
 
 
 

@@ -5,21 +5,21 @@ ACCTON(8)	    UNIX Programmer's Manual		ACCTON(8)
 
 
 
-NAME
+NNAAMMEE
      accton - enable/disable system accounting
 
-SYNOPSIS
-     accton [-f file] [-r resum] [-s suspend] [-t freq]
-     [filename]
+SSYYNNOOPPSSIISS
+     aaccccttoonn [--ff ffiillee] [--rr rreessuumm] [--ss ssuussppeenndd] [--tt ffrreeqq]
+     [ffiilleennaammee]
 
-DESCRIPTION
-     With no argument, accton will disable system accounting.  If
-     the -f option is given or the last argument is an existing
+DDEESSCCRRIIPPTTIIOONN
+     With no argument, aaccccttoonn will disable system accounting.  If
+     the --ff option is given or the last argument is an existing
      pathname accounting is enabled and for every process which
      terminates under normal conditions an accounting record is
      sent to the accounting daemon.
 
-     accton is a frontend to  the accounting daemon: acctd(8).
+     aaccccttoonn is a frontend to  the accounting daemon: aaccccttdd(8).
      Accounting is turned off by sending a SIGTERM to the running
      accounting daemon.  Changes in configuration (free space
      thresholds, etc) are made by writing /etc/acctd.cf and issu-
@@ -38,12 +38,12 @@ DESCRIPTION
 	       for accounting to be resumed.  The default is 4%.
 
      -s susp   If the percentage of free diskspace falls below
-	       susp accounting is suspended.  The default is 2%.
+	       ssuusspp accounting is suspended.  The default is 2%.
 
      -t freq   How often (in seconds) to check the free diskpace.
 	       Default is 30.
 
-FILES
+FFIILLEESS
      /usr/libexec/acctd  The accounting daemon that reads
 			 /dev/acct
 
@@ -54,13 +54,13 @@ FILES
 			 is simpleminded and the daemon is
 			 paranoid.
 
-SEE ALSO
+SSEEEE AALLSSOO
      acct(5), acctd(8), sa(8)
 
 
 
 
-Printed 2/16/100	February 19, 1999			1
+Printed 9/10/24         February 19, 1999			1
 
 
 
@@ -71,8 +71,8 @@ ACCTON(8)	    UNIX Programmer's Manual		ACCTON(8)
 
 
 
-HISTORY
-     A accton command appeared in Version 7 AT&T UNIX.
+HHIISSTTOORRYY
+     A aaccccttoonn command appeared in Version 7 AT&T UNIX.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	February 19, 1999			2
+Printed 9/10/24         February 19, 1999			2
 
 
 

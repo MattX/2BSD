@@ -5,25 +5,25 @@ RL(4)		    UNIX Programmer's Manual		    RL(4)
 
 
 
-NAME
+NNAAMMEE
      rl - RL-11/RL01, RL02 moving-head disk
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NRL  _r_l__d_r_i_v_e_s # RL01/02
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNRRLL  _r_l__d_r_i_v_e_s ## RRLL0011//0022
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  rl	?     174400 160    5  rlintr	       # rl-01/02
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  rrll	??     117744440000 116600    55  rrlliinnttrr	       ## rrll--0011//0022
 
-     major device number(s):
-	  raw: 16
-	  block: 7
-     minor device encoding:
-	  bits 0007 specify partition of RL drive
-	  bits 0070 specify RL drive
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 1166
+	  bblloocckk:: 77
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy ppaarrttiittiioonn ooff RRLL ddrriivvee
+	  bbiittss 00007700 ssppeecciiffyy RRLL ddrriivvee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The block files access the disk via the system's normal
      buffering mechanism and may be read and written without
      regard to physical disk records.  There is also a `raw'
@@ -39,7 +39,7 @@ DESCRIPTION
      tor).  Likewise _s_e_e_k calls should specify a multiple of 512
      bytes.
 
-DISK SUPPORT
+DDIISSKK SSUUPPPPOORRTT
      The RL01 drives are each 10240 blocks long and the RL02
      drives are 20480 blocks long.
 
@@ -47,20 +47,20 @@ DISK SUPPORT
      tion and a reasonable sized swap ('b') partition.	The RL01
      can only (realistically) have a single 5mb partition.
 
-FILES
+FFIILLEESS
      /dev/rl[0-3][a-h]	 block files
      /dev/rrl[0-3][a-h]  raw files
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-SEE ALSO
+SSEEEE AALLSSOO
      hk(4), ra(4), ram(4), rk(4), rp(4), rx(4), si(4), xp(4),
      dtab(5), autoconfig(8)
 
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 
@@ -71,29 +71,29 @@ RL(4)		    UNIX Programmer's Manual		    RL(4)
 
 
 
-DIAGNOSTICS
-     rl%d: hard error sn%d cs=%b da=%b.  An unrecoverable error
+DDIIAAGGNNOOSSTTIICCSS
+     rrll%%dd:: hhaarrdd eerrrroorr ssnn%%dd ccss==%%bb ddaa==%%bb.  An unrecoverable error
      occurred during transfer of the specified sector of the
      specified disk.  The contents of the two error registers are
      also printed in octal and symbolically with bits decoded.
      The error was either unrecoverable, or a large number of
      retry attempts could not recover the error.
 
-     rl%d: hard error sn%d mp=%b da=%b.  An unrecoverable drive
+     rrll%%dd:: hhaarrdd eerrrroorr ssnn%%dd mmpp==%%bb ddaa==%%bb.  An unrecoverable drive
      error occured during transfer of the specified sector of the
      specified disk.  The contents of the two error registers are
      also printed in octal and symbolically with bits decoded.
      The error was either unrecoverable, or a large number of
      retry attempts could not recover the error.
 
-     rl%d: write locked.  The write protect switch was set on the
+     rrll%%dd:: wwrriittee lloocckkeedd.  The write protect switch was set on the
      drive when a write was attempted.	The write operation is
      not recoverable.
 
-     rl%d: can't get status.  A ``get status'' command on the
+     rrll%%dd:: ccaann''tt ggeett ssttaattuuss.  A ``get status'' command on the
      specified drive failed.  The error is unrecoverable.
 
-BUGS
+BBUUGGSS
      In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to 512-
      byte block boundaries, and _w_r_i_t_e scribbles on the tail of
      incomplete blocks.  Thus, in programs that are likely to
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 20, 1987			2
+Printed 9/10/24          August 20, 1987			2
 
 
 

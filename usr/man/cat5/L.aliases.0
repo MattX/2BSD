@@ -5,10 +5,10 @@ L.ALIASES(5)	    UNIX Programmer's Manual	     L.ALIASES(5)
 
 
 
-NAME
+NNAAMMEE
      L.aliases - UUCP hostname alias file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _L._a_l_i_a_s_e_s file defines mapping (aliasing) of system
      names for uucp.  This is intended for compensating for sys-
      tems that have changed names, or do not provide their entire
@@ -25,18 +25,18 @@ DESCRIPTION
      All occurrences of _a_l_i_a_s__n_a_m_e are mapped to _r_e_a_l__n_a_m_e by
      _u_u_c_i_c_o(8), _u_u_c_p(1), and _u_u_x(1).  The mapping occurs regard-
      less of whether the name was typed in by a user or provided
-     by a remote site. An exception is the -s option of _u_u_c_i_c_o;
+     by a remote site. An exception is the --ss option of _u_u_c_i_c_o;
      only the site's real hostname (the name in _L._s_y_s(5)) will be
      accepted there.
 
      Aliased system names should not be placed in _L._s_y_s; they
      will not be used.
 
-FILES
+FFIILLEESS
      /etc/uucp/L.aliases /etc/uucp/UUAIDS/L.aliases   L.aliases
      example
 
-SEE ALSO
+SSEEEE AALLSSOO
      uucp(1), uux(1), L.sys(5), uucico(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 

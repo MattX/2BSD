@@ -5,62 +5,62 @@ SIGSETOPS(3)	    UNIX Programmer's Manual	     SIGSETOPS(3)
 
 
 
-NAME
-     sigemptyset, sigfillset, sigaddset, sigdelset, sigismember -
+NNAAMMEE
+     ssiiggeemmppttyysseett, ssiiggffiillllsseett, ssiiggaaddddsseett, ssiiggddeellsseett, ssiiggiissmmeemmbbeerr -
      manipulate signal sets
 
-SYNOPSIS
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
-     sigemptyset(set)
+     ssiiggeemmppttyysseett(set)
      _s_i_g_s_e_t__t *_s_e_t;
 
-     sigfillset(set)
+     ssiiggffiillllsseett(set)
      _s_i_g_s_e_t__t *_s_e_t;
 
-     sigaddset(set, signo)
-     _s_i_g_s_e_t__t *_s_e_t;
-     _i_n_t _s_i_g_n_o;
-
-     sigdelset(set, signo)
+     ssiiggaaddddsseett(set, signo)
      _s_i_g_s_e_t__t *_s_e_t;
      _i_n_t _s_i_g_n_o;
 
-     sigismember(set, signo)
+     ssiiggddeellsseett(set, signo)
      _s_i_g_s_e_t__t *_s_e_t;
      _i_n_t _s_i_g_n_o;
 
-DESCRIPTION
+     ssiiggiissmmeemmbbeerr(set, signo)
+     _s_i_g_s_e_t__t *_s_e_t;
+     _i_n_t _s_i_g_n_o;
+
+DDEESSCCRRIIPPTTIIOONN
      These functions manipulate signal sets stored in a _s_i_g_s_e_t__t
-     . Either sigemptyset or sigfillset must be called for every
+     . Either ssiiggeemmppttyysseett or ssiiggffiillllsseett must be called for every
      object of type _s_i_g_s_e_t__t before any other use of the object.
 
-     The sigemptyset function initializes a signal set to be
+     The ssiiggeemmppttyysseett function initializes a signal set to be
      empty.
 
-     The sigfillset function initializes a signal set to contain
+     The ssiiggffiillllsseett function initializes a signal set to contain
      all signals.
 
-     The sigaddset function adds the specified signal _s_i_g_n_o to
+     The ssiiggaaddddsseett function adds the specified signal _s_i_g_n_o to
      the signal set.
 
-     The sigdelset function deletes the specified signal _s_i_g_n_o
+     The ssiiggddeellsseett function deletes the specified signal _s_i_g_n_o
      from the signal set.
 
-     The sigismember function returns whether a specified signal
+     The ssiiggiissmmeemmbbeerr function returns whether a specified signal
      _s_i_g_n_o is contained in the signal set.
 
      These functions are provided as macros in the include file
      <_s_i_g_n_a_l._h>.  Actual functions are available if their names
-     are undefined (with #undef name).
+     are undefined (with #undef nnaammee).
 
-RETURN VALUES
-     The sigismember function returns 1 if the signal is a member
+RREETTUURRNN VVAALLUUEESS
+     The ssiiggiissmmeemmbbeerr function returns 1 if the signal is a member
      of the set, 0 otherwise.  The other functions return 0.
 
 
 
-Printed 2/16/100	September 3, 1997			1
+Printed 9/10/24         September 3, 1997			1
 
 
 
@@ -71,13 +71,13 @@ SIGSETOPS(3)	    UNIX Programmer's Manual	     SIGSETOPS(3)
 
 
 
-ERRORS
+EERRRROORRSS
      Currently no errors are detected.
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(2), sigaction(2), sigsuspend(2)
 
-STANDARDS
+SSTTAANNDDAARRDDSS
      These functions are defined by IEEE Std1003.1-1988
      (``POSIX'').
 
@@ -126,7 +126,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	September 3, 1997			2
+Printed 9/10/24         September 3, 1997			2
 
 
 

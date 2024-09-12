@@ -5,15 +5,15 @@ TRAPER(3F)	    UNIX Programmer's Manual	       TRAPER(3F)
 
 
 
-NAME
+NNAAMMEE
      traper - trap arithmetic errors
 
-SYNOPSIS
-     integer function traper (mask)
+SSYYNNOOPPSSIISS
+     iinntteeggeerr ffuunnccttiioonn ttrraappeerr ((mmaasskk))
 
-DESCRIPTION
-     NOTE: This routine applies only to the VAX.  It is ignored
-     on the PDP11.
+DDEESSCCRRIIPPTTIIOONN
+     NNOOTTEE:: TThhiiss rroouuttiinnee aapppplliieess oonnllyy ttoo tthhee VVAAXX..  IItt iiss iiggnnoorreedd
+     oonn tthhee PPDDPP1111..
 
      Integer overflow and floating point underflow are not nor-
      mally trapped during execution. This routine enables these
@@ -35,10 +35,10 @@ DESCRIPTION
 
      The previous value of these bits is returned.
 
-FILES
+FFIILLEESS
      /usr/lib/libF77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      signal(3C), signal(3F)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

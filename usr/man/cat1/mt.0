@@ -5,13 +5,13 @@ MT(1)		    UNIX Programmer's Manual		    MT(1)
 
 
 
-NAME
+NNAAMMEE
      mt - magnetic tape manipulating program
 
-SYNOPSIS
-     mt [ -f _t_a_p_e_n_a_m_e ] _c_o_m_m_a_n_d [ _c_o_u_n_t ]
+SSYYNNOOPPSSIISS
+     mmtt [ --ff _t_a_p_e_n_a_m_e ] _c_o_m_m_a_n_d [ _c_o_u_n_t ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_t is used to give commands to a magnetic tape drive.  If a
      tape name is not specified, the environment variable TAPE is
      used;  if TAPE does not exist, _m_t uses the device
@@ -24,33 +24,33 @@ DESCRIPTION
      acters as are required to uniquely identify a command need
      be specified.
 
-     eof, weof
+     eeooff, wweeooff
 	  Write _c_o_u_n_t end-of-file marks at the current position
 	  on the tape.
 
-     fsf  Forward space _c_o_u_n_t files.
+     ffssff  Forward space _c_o_u_n_t files.
 
-     fsr  Forward space _c_o_u_n_t records.
+     ffssrr  Forward space _c_o_u_n_t records.
 
-     bsf  Back space _c_o_u_n_t files.
+     bbssff  Back space _c_o_u_n_t files.
 
-     bsr  Back space _c_o_u_n_t records.
+     bbssrr  Back space _c_o_u_n_t records.
 
-     rewind
+     rreewwiinndd
 	  Rewind the tape (_C_o_u_n_t is ignored).
 
-     offline, rewoffl
+     oofffflliinnee, rreewwooffffll
 	  Rewind the tape and place the tape unit off-line (_C_o_u_n_t
 	  is ignored).
 
-     status
+     ssttaattuuss
 	  Print status information about the tape unit.
 
-     cacheon
+     ccaacchheeoonn
 	  Enable the readahead/writebehind cache on the tape
 	  unit.
 
-     cacheoff
+     ccaacchheeooffff
 	  Turn off the readahead/writebehind cache on the tape
 	  unit.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	December 22, 1995			1
+Printed 9/10/24         December 22, 1995			1
 
 
 
@@ -71,17 +71,17 @@ MT(1)		    UNIX Programmer's Manual		    MT(1)
 
 
 
-     The cacheon and cacheoff commands currently only apply to
+     The ccaacchheeoonn and ccaacchheeooffff commands currently only apply to
      the TMSCP driver and then only for certain drives such as
      the TU81+.  No error is produced by the TMSCP driver if the
      cache commands are used.  Other drivers will return an error
-     code since they do not recognize the MTCACHE and MTNOCACHE
-     functions codes.  See mtio(4).
+     code since they do not recognize the MMTTCCAACCHHEE and MMTTNNOOCCAACCHHEE
+     functions codes.  See mmttiioo(4).
 
-FILES
+FFIILLEESS
      /dev/rmt* Raw magnetic tape interface
 
-SEE ALSO
+SSEEEE AALLSSOO
      mtio(4), tmscp(4), dd(1), ioctl(2), environ(7)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	December 22, 1995			2
+Printed 9/10/24         December 22, 1995			2
 
 
 

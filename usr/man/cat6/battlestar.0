@@ -60,7 +60,7 @@
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -71,20 +71,20 @@ BATTLESTAR(6)	    UNIX Programmer's Manual	    BATTLESTAR(6)
 
 
 
-NAME
+NNAAMMEE
      battlestar - a tropical adventure game
 
-SYNOPSIS
-     battlestar [ -r (recover a saved game) ]
+SSYYNNOOPPSSIISS
+     bbaattttlleessttaarr [ --rr ((rreeccoovveerr aa ssaavveedd ggaammee)) ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_a_t_t_l_e_s_t_a_r is an adventure game in the classic style.  How-
      ever, It's slightly less of a puzzle and more a game of
      exploration.  There are a few magical words in the game, but
      on the whole, simple English should suffice to make one's
      desires understandable to the parser.
 
-THE SETTING
+TTHHEE SSEETTTTIINNGG
      In the days before the darkness came, when battlestars ruled
      the heavens...
 
@@ -108,7 +108,7 @@ THE SETTING
      across the grass.	The entire fleet of battlestars was
      reduced to a single ship.
 
-SAMPLE COMMANDS
+SSAAMMPPLLEE CCOOMMMMAANNDDSS
 	  take ---  take an object
 	  drop ---  drop an object
 
@@ -126,7 +126,7 @@ SAMPLE COMMANDS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -137,7 +137,7 @@ BATTLESTAR(6)	    UNIX Programmer's Manual	    BATTLESTAR(6)
 
 
 
-IMPLIED OBJECTS
+IIMMPPLLIIEEDD OOBBJJEECCTTSS
 	  >-: take watermellon
 	  watermellon:
 	  Taken.
@@ -166,23 +166,23 @@ IMPLIED OBJECTS
      you want to take advantage of it.	That is, saying "take
      knife" and then "drop" will drop the knife you just took.
 
-SCORE & INVEN
+SSCCOORREE && IINNVVEENN
      The two commands "score" and "inven" will print out your
      current status in the game.
 
-SAVING A GAME
+SSAAVVIINNGG AA GGAAMMEE
      The command "save" will save your game in a file called
      "Bstar."  You can recover a saved game by using the "-r"
      option when you start up the game.
 
-DIRECTIONS
+DDIIRREECCTTIIOONNSS
      The compass directions N, S, E, and W can be used if you
      have a compass.  If you don't have a compass, you'll have to
      say R, L, A, or B, which stand for Right, Left, Ahead, and
      Back.  Directions printed in room descriptions are always
      printed in R, L, A, & B relative directions.
 
-HISTORY
+HHIISSTTOORRYY
      I wrote Battlestar in 1979 in order to experiment with the
      niceties of the C Language.  Most interesting things that
      happen in the game are hardwired into the code, so don't
@@ -192,7 +192,7 @@ HISTORY
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -203,20 +203,20 @@ BATTLESTAR(6)	    UNIX Programmer's Manual	    BATTLESTAR(6)
 
 
 
-AUTHOR
+AAUUTTHHOORR
      David Riggle
 
-INSPIRATION & ASSISTANCE
+IINNSSPPIIRRAATTIIOONN && AASSSSIISSTTAANNCCEE
      Chris Guthrie
      Peter Da Silva
      Kevin Brown
      Edward Wang
      Ken Arnold & Company
 
-BUGS
+BBUUGGSS
      Countless.
 
-FAN MAIL
+FFAANN MMAAIILL
      Send to edward%ucbarpa@Berkeley.arpa,
      chris%ucbcory@berkeley.arpa, riggle.pa@xerox.arpa.
 
@@ -258,7 +258,7 @@ FAN MAIL
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 

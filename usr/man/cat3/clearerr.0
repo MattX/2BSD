@@ -5,25 +5,25 @@ FERROR(3S)	    UNIX Programmer's Manual	       FERROR(3S)
 
 
 
-NAME
+NNAAMMEE
      ferror, feof, clearerr, fileno - stream status inquiries
 
-SYNOPSIS
-     #include <stdio.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddiioo..hh>>
 
-     feof(stream)
-     FILE *stream;
+     ffeeooff((ssttrreeaamm))
+     FFIILLEE **ssttrreeaamm;;
 
-     ferror(stream)
-     FILE *stream
+     ffeerrrroorr((ssttrreeaamm))
+     FFIILLEE **ssttrreeaamm
 
-     clearerr(stream)
-     FILE *stream
+     cclleeaarreerrrr((ssttrreeaamm))
+     FFIILLEE **ssttrreeaamm
 
-     fileno(stream)
-     FILE *stream;
+     ffiilleennoo((ssttrreeaamm))
+     FFIILLEE **ssttrreeaamm;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_e_o_f returns non-zero when end of file is read on the named
      input _s_t_r_e_a_m, otherwise zero.  Unless cleared by _c_l_e_a_r_e_r_r,
      the end-of-file indication lasts until the stream is closed.
@@ -42,7 +42,7 @@ DESCRIPTION
      Currently all of these functions are implemented as macros;
      they cannot be redeclared.
 
-SEE ALSO
+SSEEEE AALLSSOO
      fopen(3S), open(2)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 14, 1986				1
+Printed 9/10/24           May 14, 1986				1
 
 
 

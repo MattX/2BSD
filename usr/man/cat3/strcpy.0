@@ -5,51 +5,51 @@ STRING(3)	    UNIX Programmer's Manual		STRING(3)
 
 
 
-NAME
+NNAAMMEE
      strcat, strncat, strcmp, strncmp, strcasecmp, strncasecmp,
      strcpy, strncpy, strlen, index, rindex - string operations
 
-SYNOPSIS
-     #include <strings.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttrriinnggss..hh>>
 
-     char *strcat(s, append)
-     char *s, *append;
+     cchhaarr **ssttrrccaatt((ss,, aappppeenndd))
+     cchhaarr **ss,, **aappppeenndd;;
 
-     char *strncat(s, append, count)
-     char *s, *append;
-     int count;
+     cchhaarr **ssttrrnnccaatt((ss,, aappppeenndd,, ccoouunntt))
+     cchhaarr **ss,, **aappppeenndd;;
+     iinntt ccoouunntt;;
 
-     strcmp(s1, s2)
-     char *s1, *s2;
+     ssttrrccmmpp((ss11,, ss22))
+     cchhaarr **ss11,, **ss22;;
 
-     strncmp(s1, s2, count)
-     char *s1, *s2;
-     int count;
+     ssttrrnnccmmpp((ss11,, ss22,, ccoouunntt))
+     cchhaarr **ss11,, **ss22;;
+     iinntt ccoouunntt;;
 
-     strcasecmp(s1, s2)
-     char *s1, *s2;
+     ssttrrccaasseeccmmpp((ss11,, ss22))
+     cchhaarr **ss11,, **ss22;;
 
-     strncasecmp(s1, s2, count)
-     char *s1, *s2;
-     int count;
+     ssttrrnnccaasseeccmmpp((ss11,, ss22,, ccoouunntt))
+     cchhaarr **ss11,, **ss22;;
+     iinntt ccoouunntt;;
 
-     char *strcpy(to, from)
-     char *to, *from;
+     cchhaarr **ssttrrccppyy((ttoo,, ffrroomm))
+     cchhaarr **ttoo,, **ffrroomm;;
 
-     char *strncpy(to, from, count)
-     char *to, *from;
-     int count;
+     cchhaarr **ssttrrnnccppyy((ttoo,, ffrroomm,, ccoouunntt))
+     cchhaarr **ttoo,, **ffrroomm;;
+     iinntt ccoouunntt;;
 
-     strlen(s)
-     char *s;
+     ssttrrlleenn((ss))
+     cchhaarr **ss;;
 
-     char *index(s, c)
-     char *s, c;
+     cchhaarr **iinnddeexx((ss,, cc))
+     cchhaarr **ss,, cc;;
 
-     char *rindex(s, c)
-     char *s, c;
+     cchhaarr **rriinnddeexx((ss,, cc))
+     cchhaarr **ss,, cc;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These functions operate on null-terminated strings.  They do
      not check for overflow of any receiving string.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 22, 1987			1
+Printed 9/10/24         October 22, 1987			1
 
 
 
@@ -126,7 +126,7 @@ STRING(3)	    UNIX Programmer's Manual		STRING(3)
 
 
 
-Printed 2/16/100	October 22, 1987			2
+Printed 9/10/24         October 22, 1987			2
 
 
 

@@ -5,27 +5,27 @@ MAILP(1)	    UNIX Programmer's Manual		 MAILP(1)
 
 
 
-NAME
+NNAAMMEE
      mailp - frontend to the mp PostScript pretty printer
 
-SYNOPSIS
-     mailp [ options] file ...
+SSYYNNOOPPSSIISS
+     mmaaiillpp [ options] file ...
 
-     newsp [ options] file ...
+     nneewwsspp [ options] file ...
 
-     digestp [ options] file ...
+     ddiiggeessttpp [ options] file ...
 
-     filep [ options] file ...
+     ffiilleepp [ options] file ...
 
-     filofaxp [ options] file ...
+     ffiillooffaaxxpp [ options] file ...
 
-     franklinp [ options] file ...
+     ffrraannkklliinnpp [ options] file ...
 
-     timemanp [ options] file ...
+     ttiimmeemmaannpp [ options] file ...
 
-     timesysp [ options] file ...
+     ttiimmeessyysspp [ options] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _m_a_i_l_p is a frontend to the _m_p PostScript pretty printer pro-
      gram. It uses different names to provide various _m_p options:
 
@@ -54,13 +54,13 @@ DESCRIPTION
      in PostScript format. If no filename arguments are provided,
      _m_a_i_l_p reads the standard input.
 
-     _m_a_i_l_p uses the PRINTER environment variable to determine
+     _m_a_i_l_p uses the PPRRIINNTTEERR environment variable to determine
      which printer the output from the _m_p program is sent to. If
      this environment variable is not found, then it defaults to
 
 
 
-Printed 2/18/100	17 February 1992			1
+Printed 9/10/24         17 February 1992			1
 
 
 
@@ -73,39 +73,39 @@ MAILP(1)	    UNIX Programmer's Manual		 MAILP(1)
 
      the _p_s printer.
 
-OPTIONS
-     -F   Instead of printing who the mail article is for, the
+OOPPTTIIOONNSS
+     --FF   Instead of printing who the mail article is for, the
 	  top header will contain who the mail article is from. A
 	  useful option for people with their own personal
 	  printer.
 
-     -P_p_r_i_n_t_e_r
+     --PP_p_r_i_n_t_e_r
 	  Send output to the named printer. Otherwise send output
 	  to the printer named in the PRINTER environment vari-
 	  able.
 
-     -h   Banner printing is disabled. Most of the information
+     --hh   Banner printing is disabled. Most of the information
 	  that typically appears on the banner sheet is output in
 	  the _m_p banners.
 
-     -d_p_r_i_n_t_e_r
+     --dd_p_r_i_n_t_e_r
 	  Send output to the named printer. Otherwise send output
 	  to the printer named in the PRINTER environment vari-
 	  able.
 
-     -l   Format output in landscape mode.  Two pages of text
+     --ll   Format output in landscape mode.  Two pages of text
 	  will be printed per sheet of paper.
 
-     -s _s_u_b_j_e_c_t
+     --ss _s_u_b_j_e_c_t
 	  Use  _s_u_b_j_e_c_t as the new subject for the printout. If
 	  you are printing ordinary ASCII files which have been
 	  specified on the command line, the subject will default
 	  to the name of each of these files.
 
-SEE ALSO
-     mp(1)
+SSEEEE AALLSSOO
+     mmpp(1)
 
-AUTHORS
+AAUUTTHHOORRSS
      Original version by Bruno Pillard - October 1988.
 
      Modified by Rich Burridge - June 1989 and October 1990.
@@ -126,7 +126,7 @@ AUTHORS
 
 
 
-Printed 2/18/100	17 February 1992			2
+Printed 9/10/24         17 February 1992			2
 
 
 

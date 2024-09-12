@@ -5,22 +5,22 @@ FLUSH(3F)	    UNIX Programmer's Manual		FLUSH(3F)
 
 
 
-NAME
+NNAAMMEE
      flush - flush output to a logical unit
 
-SYNOPSIS
-     subroutine flush (lunit)
+SSYYNNOOPPSSIISS
+     ssuubbrroouuttiinnee fflluusshh ((lluunniitt))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_l_u_s_h causes the contents of the buffer for logical unit
      _l_u_n_i_t to be flushed to the associated file.  This is most
      useful for logical units 0 and 6 when they are both associ-
      ated with the control terminal.
 
-FILES
+FFIILLEESS
      /usr/lib/libI77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      fclose(3S)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

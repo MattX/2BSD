@@ -5,11 +5,11 @@ SLEEP(3)	    UNIX Programmer's Manual		 SLEEP(3)
 
 
 
-NAME
-     sleep, usleep - suspend process execution
+NNAAMMEE
+     sslleeeepp, usleep - suspend process execution
 
-SYNOPSIS
-     #include <unistd.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<uunniissttdd..hh>>
 
      unsigned int
      sleep(seconds)
@@ -19,48 +19,48 @@ SYNOPSIS
      usleep(microseconds)
 	    long microseconds;
 
-DESCRIPTION
-     The sleep function suspends execution of the calling process
+DDEESSCCRRIIPPTTIIOONN
+     The sslleeeepp function suspends execution of the calling process
      for _s_e_c_o_n_d_s of clock time, or until interrupted by a signal.
 
-     The usleep function suspends execution of the calling pro-
+     The uusslleeeepp function suspends execution of the calling pro-
      cess for _m_i_c_r_o_s_e_c_o_n_d_s of clock time, or until interrupted by
      a signal.
 
      System activity may lengthen the suspension.
 
-RETURN VALUES
-     The sleep function returns 0, or if interrupted before
+RREETTUURRNN VVAALLUUEESS
+     The sslleeeepp function returns 0, or if interrupted before
      _s_e_c_o_n_d_s, the amount not slept (the requested time minus the
-     time actually slept) in seconds.  The usleep function does
+     time actually slept) in seconds.  The uusslleeeepp function does
      not return anything (meaningful).
 
-SEE ALSO
+SSEEEE AALLSSOO
      select(2)
 
-COMPATIBILITY
-     Previous implementations of sleep and usleep re-suspended
+CCOOMMPPAATTIIBBIILLIITTYY
+     Previous implementations of sslleeeepp and uusslleeeepp re-suspended
      the process if interrupted by a signal.  This implementation
      has been changed to return in that case, to conform to POSIX
      1003.1-88.
 
-     On the PDP-11 the previous version of usleep took a _u__i_n_t as
+     On the PDP-11 the previous version of uusslleeeepp took a _u__i_n_t as
      the input parameter.  This has been changed to be _l_o_n_g so
-     that usleep can be used for more than 65 milliseconds (a
+     that uusslleeeepp can be used for more than 65 milliseconds (a
      u_int could only count 65535 microseconds) of sleep.  Thus
-     it is now possible for usleep to handle longer sleep dura-
-     tions than sleep.
+     it is now possible for uusslleeeepp to handle longer sleep dura-
+     tions than sslleeeepp.
 
-BUGS
+BBUUGGSS
      On the PDP-11 the clock resolution is limited to the line
      frequency (usually 60Hz in the U.S.A. and 50Hz elsewhere).
 
-HISTORY
-     A usleep function appeared in 4.3BSD.  A sleep function
+HHIISSTTOORRYY
+     A uusslleeeepp function appeared in 4.3BSD.  A sslleeeepp function
 
 
 
-Printed 2/16/100	September 26,1997			1
+Printed 9/10/24         September 26,1997			1
 
 
 
@@ -126,7 +126,7 @@ SLEEP(3)	    UNIX Programmer's Manual		 SLEEP(3)
 
 
 
-Printed 2/16/100	September 26,1997			2
+Printed 9/10/24         September 26,1997			2
 
 
 

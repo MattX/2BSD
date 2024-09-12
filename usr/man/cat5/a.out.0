@@ -5,13 +5,13 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-NAME
+NNAAMMEE
      a.out - assembler and link editor output
 
-SYNOPSIS
-     #include <a.out.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<aa..oouutt..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A._o_u_t is the output file of the assembler _a_s(1) and the link
      editor _l_d(1).  Both programs make _a._o_u_t executable if there
      were no errors and no unresolved external references.  Lay-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 January 9, 1994			1
+Printed 9/10/24          January 9, 1994			1
 
 
 
@@ -126,7 +126,7 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-Printed 2/16/100	 January 9, 1994			2
+Printed 9/10/24          January 9, 1994			2
 
 
 
@@ -180,8 +180,8 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
      stack segment is automatically extended as required.  The
      data segment is only extended as requested by _b_r_k(2).
 
-     The include file a.out.h defines __A_O_U_T__I_N_C_L_U_D_E_, the include
-     file nlist.h does not.  This permits compile time initiali-
+     The include file aa..oouutt..hh defines __A_O_U_T__I_N_C_L_U_D_E_, the include
+     file nnlliisstt..hh does not.  This permits compile time initiali-
      zation of the _n__n_a_m_e field for programs that are not looking
      at the executable header.
 
@@ -192,7 +192,7 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-Printed 2/16/100	 January 9, 1994			3
+Printed 9/10/24          January 9, 1994			3
 
 
 
@@ -258,7 +258,7 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
 
 
-Printed 2/16/100	 January 9, 1994			4
+Printed 9/10/24          January 9, 1994			4
 
 
 
@@ -296,10 +296,10 @@ A.OUT(5)	    UNIX Programmer's Manual		 A.OUT(5)
 
      The first symbol is numbered 0, the second 1, etc.
 
-SEE ALSO
+SSEEEE AALLSSOO
      as(1), ld(1), nm(1), strip(1), nlist(3)
 
-BUGS
+BBUUGGSS
      The current implementation places a maximum length of 32
      characters for symbol names in _a._o_u_t files.  This is (rela-
      tively) easily raised with the caveat that the linker and
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 2/16/100	 January 9, 1994			5
+Printed 9/10/24          January 9, 1994			5
 
 
 

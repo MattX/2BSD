@@ -5,23 +5,23 @@ LSEEK(2)	    UNIX Programmer's Manual		 LSEEK(2)
 
 
 
-NAME
+NNAAMMEE
      lseek - move read/write pointer
 
-SYNOPSIS
-     #include <sys/file.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ffiillee..hh>>
 
-     #define L_SET   0 /* set the seek pointer */
-     #define L_INCR  1 /* increment the seek pointer */
-     #define L_XTND  2 /* extend the file size */
+     ##ddeeffiinnee LL__SSEETT   00 //** sseett tthhee sseeeekk ppooiinntteerr **//
+     ##ddeeffiinnee LL__IINNCCRR  11 //** iinnccrreemmeenntt tthhee sseeeekk ppooiinntteerr **//
+     ##ddeeffiinnee LL__XXTTNNDD  22 //** eexxtteenndd tthhee ffiillee ssiizzee **//
 
-     pos = lseek(d, offset, whence)
-     off_t pos;
-     int d;
-     off_t offset;
-     int whence;
+     ppooss == llsseeeekk((dd,, ooffffsseett,, wwhheennccee))
+     ooffff__tt ppooss;;
+     iinntt dd;;
+     ooffff__tt ooffffsseett;;
+     iinntt wwhheennccee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The descriptor _d refers to a file or device open for reading
      and/or writing.  _L_s_e_e_k sets the file pointer of _d as fol-
      lows:
@@ -39,17 +39,17 @@ DESCRIPTION
      Some devices are incapable of seeking.  The value of the
      pointer associated with such a device is undefined.
 
-NOTES
+NNOOTTEESS
      Seeking far beyond the end of a file, then writing, creates
      a gap or "hole", which occupies no physical space and reads
      as zeros.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, the current file pointer value
      is returned.  Otherwise, a value of -1 is returned and _e_r_r_n_o
      is set to indicate the error.
 
-ERRORS
+EERRRROORRSS
      _L_s_e_e_k will fail and the file pointer will remain unchanged
      if:
 
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	February 24, 1986			1
+Printed 9/10/24         February 24, 1986			1
 
 
 
@@ -73,10 +73,10 @@ LSEEK(2)	    UNIX Programmer's Manual		 LSEEK(2)
 
      [EINVAL]	    _W_h_e_n_c_e is not a proper value.
 
-SEE ALSO
+SSEEEE AALLSSOO
      dup(2), open(2)
 
-BUGS
+BBUUGGSS
      This document's use of _w_h_e_n_c_e is incorrect English, but
      maintained for historical reasons.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	February 24, 1986			2
+Printed 9/10/24         February 24, 1986			2
 
 
 

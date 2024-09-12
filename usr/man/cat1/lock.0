@@ -5,13 +5,13 @@ LOCK(1)             UNIX Programmer's Manual		  LOCK(1)
 
 
 
-NAME
+NNAAMMEE
      lock - reserve a terminal
 
-SYNOPSIS
-     lock [ -p ] [ -t timeout ]
+SSYYNNOOPPSSIISS
+     lloocckk [ --pp ] [ --tt ttiimmeeoouutt ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_o_c_k requests a password from the user, reads it again for
      verification and then will normally not relinquish the ter-
      minal until the password is repeated.  There are two other
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	February 23, 1989			1
+Printed 9/10/24         February 23, 1989			1
 
 
 

@@ -5,17 +5,17 @@ MKTEMP(3)	    UNIX Programmer's Manual		MKTEMP(3)
 
 
 
-NAME
+NNAAMMEE
      mktemp - make a unique file name
 
-SYNOPSIS
-     char *mktemp(template)
-     char *template;
+SSYYNNOOPPSSIISS
+     cchhaarr **mmkktteemmpp((tteemmppllaattee))
+     cchhaarr **tteemmppllaattee;;
 
-     mkstemp(template)
-     char *template;
+     mmkksstteemmpp((tteemmppllaattee))
+     cchhaarr **tteemmppllaattee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_t_e_m_p creates a unique file name and returns the address of
      the template.  The template should contain a file name with
      trailing _X's, normally something like /_t_m_p/_t_e_m_p_X_X_X_X_X_X.  The
@@ -29,10 +29,10 @@ DESCRIPTION
      placed on the end of the template; six _X's will result in
      them trying roughly 26 ** 6 combinations.
 
-SEE ALSO
+SSEEEE AALLSSOO
      access(2), getpid(2), open(2)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _M_k_t_e_m_p returns NULL on failure, _m_k_s_t_e_m_p returns -1 if no
      suitable file could be created.
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 10, 1987                         1
+Printed 9/10/24          April 10, 1987                         1
 
 
 

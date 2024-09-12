@@ -5,22 +5,22 @@ STRFTIME(3)	    UNIX Programmer's Manual	      STRFTIME(3)
 
 
 
-NAME
+NNAAMMEE
      strftime - format date and time
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <time.h>
-     #include <string.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ttiimmee..hh>>
+     ##iinncclluuddee <<ssttrriinngg..hh>>
 
-     size_t strftime(buf, maxsize, format, timeptr)
-     char *buf;
-     size_t maxsize;
-     char *format;
-     struct tm *timeptr;
+     ssiizzee__tt ssttrrffttiimmee((bbuuff,, mmaaxxssiizzee,, ffoorrmmaatt,, ttiimmeeppttrr))
+     cchhaarr **bbuuff;;
+     ssiizzee__tt mmaaxxssiizzee;;
+     cchhaarr **ffoorrmmaatt;;
+     ssttrruucctt ttmm **ttiimmeeppttrr;;
 
-DESCRIPTION
-     The strftime() function formats the information from _t_i_m_e_p_t_r
+DDEESSCCRRIIPPTTIIOONN
+     The ssttrrffttiimmee(()) function formats the information from _t_i_m_e_p_t_r
      into the buffer _b_u_f according to the string pointed to by
      _f_o_r_m_a_t.
 
@@ -33,7 +33,7 @@ DESCRIPTION
      No more than _m_a_x_s_i_z_e characters will be placed into the
      array.  If the total number of resulting characters, includ-
      ing the terminating null character, is not more than _m_a_x_-
-     _s_i_z_e, strftime() returns the number of characters in the
+     _s_i_z_e, ssttrrffttiimmee(()) returns the number of characters in the
      array, not counting the terminating null.	Otherwise, zero
      is returned.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  April 1, 1995                         1
+Printed 9/10/24           April 1, 1995                         1
 
 
 
@@ -126,7 +126,7 @@ STRFTIME(3)	    UNIX Programmer's Manual	      STRFTIME(3)
 
 
 
-Printed 2/16/100	  April 1, 1995                         2
+Printed 9/10/24           April 1, 1995                         2
 
 
 
@@ -151,14 +151,14 @@ STRFTIME(3)	    UNIX Programmer's Manual	      STRFTIME(3)
 
      %%     is replaced by `%' .
 
-SEE ALSO
+SSEEEE AALLSSOO
      _d_a_t_e(1), _c_t_i_m_e(3), _p_r_i_n_t_f(1), _p_r_i_n_t_f(3)
 
-STANDARDS
-     The strftime() function conforms to ANSI X C3.159-
+SSTTAANNDDAARRDDSS
+     The ssttrrffttiimmee(()) function conforms to ANSI X C3.159-
      1989(``ANSI C'').
 
-BUGS
+BBUUGGSS
      There is no conversion specification for the phase of the
      moon.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	  April 1, 1995                         3
+Printed 9/10/24           April 1, 1995                         3
 
 
 

@@ -5,20 +5,20 @@ RC(8)		    UNIX Programmer's Manual		    RC(8)
 
 
 
-NAME
+NNAAMMEE
      rc - command script for auto-reboot and daemons
 
-SYNOPSIS
-     /etc/rc
-     /etc/rc.local
+SSYYNNOOPPSSIISS
+     //eettcc//rrcc
+     //eettcc//rrcc..llooccaall
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_c is the command script which controls the automatic reboot
      and _r_c._l_o_c_a_l is the script holding commands which are per-
      tinent only to a specific site.
 
      When an automatic reboot is in progress, _r_c is invoked with
-     the argument _a_u_t_o_b_o_o_t and runs a _f_s_c_k with option -p to
+     the argument _a_u_t_o_b_o_o_t and runs a _f_s_c_k with option --pp to
      ``preen'' all the disks of minor inconsistencies resulting
      from the last system shutdown and to check for serious
      inconsistencies caused by hardware or software failure.  If
@@ -29,7 +29,7 @@ DESCRIPTION
      succeeds and also if _r_c is invoked when a single user shell
      terminates (see _i_n_i_t(8)), starts all the daemons on the sys-
      tem, preserves editor files and clears the scratch directory
-     /tmp. _R_c._l_o_c_a_l is executed immediately before any other com-
+     //ttmmpp.. _R_c._l_o_c_a_l is executed immediately before any other com-
      mands after a successful _f_s_c_k.  Normally, the first commands
      placed in the _r_c._l_o_c_a_l file define the machine's name, using
      _h_o_s_t_n_a_m_e(1), and save any possible core image that might
@@ -38,10 +38,10 @@ DESCRIPTION
      file because the directory in which core dumps are saved is
      usually site specific.
 
-SEE ALSO
+SSEEEE AALLSSOO
      init(8), reboot(8), savecore(8)
 
-BUGS
+BBUUGGSS
 
 
 
@@ -57,7 +57,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 27, 1985                         1
+Printed 9/10/24          April 27, 1985                         1
 
 
 

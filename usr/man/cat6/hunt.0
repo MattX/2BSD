@@ -5,27 +5,27 @@ HUNT(6)             UNIX Programmer's Manual		  HUNT(6)
 
 
 
-NAME
+NNAAMMEE
      hunt - a multi-player multi-terminal game
 
-SYNOPSIS
-     /usr/games/hunt [-q] [-m] [hostname] [-l name]
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//hhuunntt [-q] [--mm] [hostname] [--ll name]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The object of the game _h_u_n_t is to kill off the other
      players.  There are no rooms, no treasures, and no monsters.
      Instead, you wander around a maze, find grenades, trip
      mines, and shoot down walls and players.  The more players
      you kill before you die, the better your score is.  If the
-     -m flag is given, you enter the game as a monitor (you can
+     --mm flag is given, you enter the game as a monitor (you can
      see the action but you cannot play).
 
      _H_u_n_t normally looks for an active game on the local network;
      if none is found, it starts one up on the local host.  One
      may specify the location of the game by giving the _h_o_s_t_n_a_m_e
      argument.	The player name may be specified on the command
-     line by using the -l option.  This command syntax was chosen
-     for _r_l_o_g_i_n/_r_s_h compatibility.  If the -q flag is given, _h_u_n_t
+     line by using the --ll option.  This command syntax was chosen
+     for _r_l_o_g_i_n/_r_s_h compatibility.  If the --qq flag is given, _h_u_n_t
      queries the network and reports if an active game were
      found.  This is useful for .login scripts.
 
@@ -40,8 +40,8 @@ DESCRIPTION
      the maze, except for the 24th line, which is used for longer
      messages that don't fit in the status area.
 
-     _H_u_n_t uses the same keys to move as _v_i does, _i._e., h,j,k, and
-     l for left, down, up, right respectively.	To change which
+     _H_u_n_t uses the same keys to move as _v_i does, _i._e., hh,jj,kk, and
+     ll for left, down, up, right respectively.	To change which
      direction you're facing in the maze, use the upper case ver-
      sion of the movement key (_i._e., HJKL).
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 January 9, 1986			1
+Printed 9/10/24          January 9, 1986			1
 
 
 
@@ -126,7 +126,7 @@ HUNT(6)             UNIX Programmer's Manual		  HUNT(6)
 
 
 
-Printed 2/16/100	 January 9, 1986			2
+Printed 9/10/24          January 9, 1986			2
 
 
 
@@ -168,15 +168,15 @@ HUNT(6)             UNIX Programmer's Manual		  HUNT(6)
 
 
 
-     [] The environment variable HUNT is checked to get the
+     [] The environment variable HHUUNNTT is checked to get the
 	player name.  If you don't have this variable set, _h_u_n_t
 	will ask you what name you want to play under.	If it is
 	set, you may also set up a single character keyboard map,
 	but then you have to enumerate the options:
 		  _e._g. setenv HUNT
 	``name=Sneaky,mapkey=zoFfGg1f2g3F4G''
-	sets the player name to Sneaky, and the maps z to o, F to
-	f, G to g, 1 to f, 2 to g, 3 to F, and 4 to G.	The _m_a_p_-
+	sets the player name to Sneaky, and the maps zz to oo, FF to
+	ff, GG to gg, 11 to ff, 22 to gg, 33 to FF, and 44 to GG.	The _m_a_p_-
 	_k_e_y option must be last.
      [] It's a boring game if you're the only one playing.
 
@@ -192,7 +192,7 @@ HUNT(6)             UNIX Programmer's Manual		  HUNT(6)
 
 
 
-Printed 2/16/100	 January 9, 1986			3
+Printed 9/10/24          January 9, 1986			3
 
 
 
@@ -203,20 +203,20 @@ HUNT(6)             UNIX Programmer's Manual		  HUNT(6)
 
 
 
-FILES
+FFIILLEESS
      /usr/games/lib/hunt.driver   game coordinator
 
-AUTHORS
+AAUUTTHHOORRSS
      Conrad Huang, Ken Arnold, and Greg Couch; University of Cal-
      ifornia, San Francisco, Computer Graphics Lab
 
-ACKNOWLEDGEMENTS
+AACCKKNNOOWWLLEEDDGGEEMMEENNTTSS
      We thank Don Kneller, John Thomason, Eric Pettersen, and
      Scott Weiner for providing endless hours of play-testing to
      improve the character of the game.  We hope their signifi-
      cant others will forgive them; we certainly don't.
 
-BUGS
+BBUUGGSS
      To keep up the pace, not everything is as realistic as pos-
      sible.
 
@@ -258,7 +258,7 @@ BUGS
 
 
 
-Printed 2/16/100	 January 9, 1986			4
+Printed 9/10/24          January 9, 1986			4
 
 
 

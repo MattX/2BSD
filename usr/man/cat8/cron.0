@@ -5,13 +5,13 @@ CRON(8)             UNIX Programmer's Manual              CRON(8)
 
 
 
-NAME
+NNAAMMEE
      cron - daemon to execute scheduled commands (Vixie Cron)
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      cron
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_r_o_n should be started from /etc/rc or /etc/rc.local.  It
      will return immediately, so you don't need to start it with
      '&'.
@@ -34,10 +34,10 @@ DESCRIPTION
      fied.  Note that the _C_r_o_n_t_a_b(1) command updates the modtime
      of the spool directory whenever it changes a crontab.
 
-SEE ALSO
+SSEEEE AALLSSOO
      crontab(1), crontab(5)
 
-AUTHOR
+AAUUTTHHOORR
      Paul Vixie <paul@vix.com>
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/18/100        20 December 1993                        1
+Printed 9/10/24         20 December 1993                        1
 
 
 

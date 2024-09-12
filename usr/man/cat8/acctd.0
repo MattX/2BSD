@@ -5,26 +5,26 @@ ACCTD(8)	    UNIX Programmer's Manual		 ACCTD(8)
 
 
 
-NAME
+NNAAMMEE
      acctd - system accounting daemon
 
-SYNOPSIS
-     acctd [-d]
+SSYYNNOOPPSSIISS
+     aaccccttdd [[--dd]]
 
-DESCRIPTION
-     Acctd reads accounting records from the kernel's accounting
+DDEESSCCRRIIPPTTIIOONN
+     AAccccttdd reads accounting records from the kernel's accounting
      driver (/dev/acctlog) and writes the records to a file for
-     later analysis.  The accton(8) program is used to update (or
+     later analysis.  The aaccccttoonn(8) program is used to update (or
      create) the config file (/etc/acctd.cf).
 
-     Acctd(8) reads the config file upon startup and reciept of a
+     AAccccttdd(8) reads the config file upon startup and reciept of a
      SIGHUP signal.  If a SIGTERM signal is received the account-
      ing file is closed and the daemon exits.  The one option is:
 
      -d        Enable debugging mode.  Currently no debugging
 	       logic is present.
 
-FILES
+FFIILLEESS
      /etc/acctd.cf	 The configuration file.  Must be owned
 			 by root and writeable only by root.
 			 This file, while simple text, is not
@@ -32,11 +32,11 @@ FILES
 			 is simpleminded and the daemon is
 			 paranoid.
 
-SEE ALSO
+SSEEEE AALLSSOO
      acct(5), accton(8), sa(8)
 
-HISTORY
-     Acctd first appeared in 2.11BSD
+HHIISSTTOORRYY
+     AAccccttdd first appeared in 2.11BSD
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	 April 28, 1999                         1
+Printed 9/10/24          April 28, 1999                         1
 
 
 

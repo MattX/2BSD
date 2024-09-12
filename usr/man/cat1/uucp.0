@@ -5,14 +5,14 @@ UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
-NAME
+NNAAMMEE
      uucp - unix to unix copy
 
-SYNOPSIS
-     uucp [ -acCdfmr ] [ -n_u_s_e_r ] [ -g_g_r_a_d_e ] [ -s_s_p_o_o_l ] [ -x_d_e_-
+SSYYNNOOPPSSIISS
+     uuuuccpp [ --aaccCCddffmmrr ] [ --nn_u_s_e_r ] [ --gg_g_r_a_d_e ] [ --ss_s_p_o_o_l ] [ --xx_d_e_-
      _b_u_g ] source-file....  destination-file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_u_c_p copies files named by the source-file arguments to the
      destination-file argument.  A file name may be a pathname on
      your machine, or may have the form
@@ -28,11 +28,11 @@ DESCRIPTION
 
      (1)  a full pathname;
 
-     (2)  a pathname preceded by ~_u_s_e_r; where _u_s_e_r is a userid on
+     (2)  a pathname preceded by ~~_u_s_e_r; where _u_s_e_r is a userid on
 	  the specified system and is replaced by that user's
 	  login directory;
 
-     (3)  a pathname prefixed by ~, where ~ is expanded into the
+     (3)  a pathname prefixed by ~~, where ~~ is expanded into the
 	  system's public directory (usually
 	  /usr/spool/uucppublic);
 
@@ -48,19 +48,19 @@ DESCRIPTION
 
      The following options are interpreted by _u_u_c_p.
 
-     -a   Avoid doing a _g_e_t_w_d to find the current directory.
+     --aa   Avoid doing a _g_e_t_w_d to find the current directory.
 	  (This is sometimes used for efficiency.)
 
-     -c   Use the source file when copying out rather than copy-
+     --cc   Use the source file when copying out rather than copy-
 	  ing the file to the spool directory.	(This is the
 	  default.)
 
-     -C   Copy the source file to the spool directory and
+     --CC   Copy the source file to the spool directory and
 	  transmit the copy.
 
 
 
-Printed 2/16/100	 April 24, 1986                         1
+Printed 9/10/24          April 24, 1986                         1
 
 
 
@@ -71,38 +71,38 @@ UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
-     -d   Make all necessary directories for the file copy.
+     --dd   Make all necessary directories for the file copy.
 	  (This is the default.)
 
-     -f   Do not make intermediate directories for the file copy.
+     --ff   Do not make intermediate directories for the file copy.
 
-     -g_g_r_a_d_e
+     --gg_g_r_a_d_e
 	  _G_r_a_d_e is a single letter/number; lower ASCII sequence
 	  characters will cause a job to be transmitted earlier
 	  during a particular conversation.  Default is `n'. By
 	  way of comparison, _u_u_x(1C) defaults to `A'; mail is
 	  usually sent at `C'.
 
-     -m   Send mail to the requester when the copy is complete.
+     --mm   Send mail to the requester when the copy is complete.
 
-     -n_u_s_e_r
+     --nn_u_s_e_r
 	  Notify _u_s_e_r on remote system (i.e., send _u_s_e_r mail)
 	  that a file was sent.
 
-     -r   Do not start the transfer, just queue the job.
+     --rr   Do not start the transfer, just queue the job.
 
-     -s_s_p_o_o_l
+     --ss_s_p_o_o_l
 	  Use _s_p_o_o_l as the spool directory instead of the
 	  default.
 
-     -x_d_e_b_u_g
+     --xx_d_e_b_u_g
 	  Turn on the debugging at level _d_e_b_u_g.
 
-FILES
+FFIILLEESS
      /usr/spool/uucp - spool directory
      /etc/uucp/* - data and configuration files
 
-SEE ALSO
+SSEEEE AALLSSOO
      uux(1C), mail(1)
 
      D. A. Nowitz and M. E. Lesk, _A _D_i_a_l-_U_p _N_e_t_w_o_r_k _o_f _U_N_I_X _S_y_s_-
@@ -110,7 +110,7 @@ SEE ALSO
 
      D. A. Nowitz, _U_u_c_p _I_m_p_l_e_m_e_n_t_a_t_i_o_n _D_e_s_c_r_i_p_t_i_o_n.
 
-WARNING
+WWAARRNNIINNGG
      The domain of remotely accessible files can (and for obvious
      security reasons, usually should) be severely restricted.
      You will very likely not be able to fetch files by pathname;
@@ -118,7 +118,7 @@ WARNING
      to you.  For the same reasons you will probably not be able
      to send files to arbitrary pathnames.
 
-BUGS
+BBUUGGSS
      All files received by _u_u_c_p will be owned by the uucp
      administrator (usually UID 5).
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 24, 1986                         2
+Printed 9/10/24          April 24, 1986                         2
 
 
 
@@ -137,9 +137,9 @@ UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
-     The -m option will only work sending files or receiving a
+     The --mm option will only work sending files or receiving a
      single file.  (Receiving multiple files specified by special
-     shell characters ?*[] will not activate the -m option.)
+     shell characters ?*[] will not activate the --mm option.)
 
      At present _u_u_c_p cannot copy to a system several "hops" away,
      that is, a command of the form
@@ -192,7 +192,7 @@ UUCP(1)             UNIX Programmer's Manual		  UUCP(1)
 
 
 
-Printed 2/16/100	 April 24, 1986                         3
+Printed 9/10/24          April 24, 1986                         3
 
 
 

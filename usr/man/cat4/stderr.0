@@ -5,10 +5,10 @@ FD(4)		    UNIX Programmer's Manual		    FD(4)
 
 
 
-NAME
-     fd, stdin, stdout, stderr file descriptor files
+NNAAMMEE
+     ffdd, ssttddiinn, ssttddoouutt, ssttddeerrrr file descriptor files
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The files /_d_e_v/_f_d/_0 through /_d_e_v/_f_d/# refer to file descrip-
      tors which can be accessed through the file system.  If the
      file descriptor is open and the mode the file is being
@@ -33,13 +33,13 @@ DESCRIPTION
      Flags to the open(2) call other than O_RDONLY, O_WRONLY and
      O_RDWR are ignored.
 
-FILES
+FFIILLEESS
      /dev/fd/#
      /dev/stdin
      /dev/stdout
      /dev/stderr
 
-SEE ALSO
+SSEEEE AALLSSOO
      tty(4)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	February 4, 1997			1
+Printed 9/10/24         February 4, 1997			1
 
 
 

@@ -5,20 +5,20 @@ L3TOL(3)	    UNIX Programmer's Manual		 L3TOL(3)
 
 
 
-NAME
+NNAAMMEE
      l3tol, ltol3 - convert between 3-byte and long integers
      (2BSD)
 
-SYNOPSIS
-     l3tol(lp, cp, n)
-     long *lp;
-     char *cp;
+SSYYNNOOPPSSIISS
+     ll33ttooll((llpp,, ccpp,, nn))
+     lloonngg **llpp;;
+     cchhaarr **ccpp;;
 
-     ltol3(cp, lp, n)
-     char *cp;
-     long *lp;
+     llttooll33((ccpp,, llpp,, nn))
+     cchhaarr **ccpp;;
+     lloonngg **llpp;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_3_t_o_l converts a list of _n three-byte integers packed into a
      character string pointed to by _c_p into a list of long
      integers pointed to by _l_p.
@@ -30,10 +30,10 @@ DESCRIPTION
      2BSD where disk addresses within inodes are three bytes
      long.
 
-SEE ALSO
+SSEEEE AALLSSOO
      fs(5)
 
-BUGS
+BBUUGGSS
      _l_3_t_o_l and _l_t_o_l_3 are unique to the PDP-11 and 2BSD; their use
      is discouraged.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

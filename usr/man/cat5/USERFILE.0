@@ -5,17 +5,17 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
 
 
 
-NAME
+NNAAMMEE
      USERFILE - UUCP pathname permissions file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _U_S_E_R_F_I_L_E file specifies the file system directory trees
      that are accessible to local users and to remote systems via
      UUCP.
 
      Each line in _U_S_E_R_F_I_L_E is of the form:
 
-     [_l_o_g_i_n_n_a_m_e],[_s_y_s_t_e_m] [ c ] _p_a_t_h_n_a_m_e [_p_a_t_h_n_a_m_e] [_p_a_t_h_n_a_m_e]
+     [_l_o_g_i_n_n_a_m_e],,[_s_y_s_t_e_m] [ cc ] _p_a_t_h_n_a_m_e [_p_a_t_h_n_a_m_e] [_p_a_t_h_n_a_m_e]
 
      The first two items are separated by a comma; any number of
      spaces or tabs may separate the remaining items.  Lines
@@ -29,7 +29,7 @@ DESCRIPTION
      _S_y_s_t_e_m is the name of a remote machine, the same name used
      in _L._s_y_s(5).
 
-     _c denotes the optional _c_a_l_l_b_a_c_k field.  If a c appears here,
+     _c denotes the optional _c_a_l_l_b_a_c_k field.  If a cc appears here,
      a remote machine that calls in will be told that callback is
      requested, and the conversation will be terminated.  The
      local system will then immediately call the remote host
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 
@@ -73,7 +73,7 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
 
      A line with both _l_o_g_i_n_n_a_m_e and _s_y_s_t_e_m null, for example
 
-	  , /usr/spool/uucppublic
+	  ,, //uussrr//ssppooooll//uuuuccppppuubblliicc
 
      can be used to conveniently specify the paths for both "no
      match" cases if lines earlier in _U_S_E_R_F_I_L_E did not define
@@ -91,9 +91,9 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
 	  matches the current real UID, then _l_o_g_i_n_n_a_m_e is set to
 	  the _u_t_m_p name.
 
-     2)   If the USER environment variable is defined and the UID
+     2)   If the UUSSEERR environment variable is defined and the UID
 	  for this name matches the current real UID, then _l_o_g_i_n_-
-	  _n_a_m_e is set to the name in USER.
+	  _n_a_m_e is set to the name in UUSSEERR.
 
      3)   If both of the above fail, call _g_e_t_p_w_u_i_d(3) to fetch
 	  the first name in /_e_t_c/_p_a_s_s_w_d that matches the real
@@ -101,19 +101,19 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
 
      4)   If all of the above fail, the utility aborts.
 
-FILES
+FFIILLEESS
      /etc/uucp/USERFILE
      /etc/uucp/UUAIDS/USERFILE	 USERFILE example
 
-SEE ALSO
+SSEEEE AALLSSOO
      uucp(1), uux(1), L.cmds(5), L.sys(5), uucico(8), uuxqt(8)
 
-NOTES
+NNOOTTEESS
      The UUCP utilities (_u_u_c_i_c_o, _u_u_c_p, _u_u_x, and _u_u_x_q_t) always
      have access to the UUCP spool files in /_u_s_r/_s_p_o_o_l/_u_u_c_p,
      regardless of pathnames in _U_S_E_R_F_I_L_E.
 
-     If uucp is listed in _L._c_m_d_s(5), then a remote system will
+     If uuuuccpp is listed in _L._c_m_d_s(5), then a remote system will
      execute _u_u_c_p on the local system with the _U_S_E_R_F_I_L_E
      privileges for its _l_o_g_i_n, not its hostname.
 
@@ -121,12 +121,12 @@ NOTES
      the course of a conversation, regardless of the role it was
      started with.  This affects how _U_S_E_R_F_I_L_E is interpreted.
 
-WARNING
+WWAARRNNIINNGG
      _U_S_E_R_F_I_L_E restricts access only on strings that the UUCP
 
 
 
-Printed 2/16/100	November 27, 1996			2
+Printed 9/10/24         November 27, 1996			2
 
 
 
@@ -144,7 +144,7 @@ USERFILE(5)	    UNIX Programmer's Manual	      USERFILE(5)
      assumes all of its non-option arguments are files.  _U_u_x(1)
      cannot make such assumptions; hence, it is more dangerous.
 
-BUGS
+BBUUGGSS
      The _U_U_C_P _I_m_p_l_e_m_e_n_t_a_t_i_o_n _D_e_s_c_r_i_p_t_i_o_n explicitly states that
      all remote login names must be listed in _U_S_E_R_F_I_L_E.  This
      requirement is not enforced by Berkeley UUCP, although it is
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 27, 1996			3
+Printed 9/10/24         November 27, 1996			3
 
 
 

@@ -5,54 +5,54 @@ GETMNTINFO(3)	    UNIX Programmer's Manual	    GETMNTINFO(3)
 
 
 
-NAME
-     getmntinfo - get information about mounted file systems
+NNAAMMEE
+     ggeettmmnnttiinnffoo - get information about mounted file systems
 
-SYNOPSIS
-     #include <sys/param.h>
-     #include <sys/mount.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ppaarraamm..hh>>
+     ##iinncclluuddee <<ssyyss//mmoouunntt..hh>>
 
      _i_n_t
-     getmntinfo(mntbufp,flags)
+     ggeettmmnnttiinnffoo(mntbufp,flags)
      _s_t_r_u_c_t _s_t_a_t_f_s **_m_n_t_b_u_f_p;
      _i_n_t _f_l_a_g_s
 
-DESCRIPTION
-     The getmntinfo() function returns an array of _s_t_a_t_f_s struc-
+DDEESSCCRRIIPPTTIIOONN
+     The ggeettmmnnttiinnffoo() function returns an array of _s_t_a_t_f_s struc-
      tures describing each currently mounted file system (see
-     statfs(2).
+     ssttaattffss(2).
 
-     The getmntinfo() function passes its _f_l_a_g_s parameter tran-
-     sparently to getfsstat(2).
+     The ggeettmmnnttiinnffoo() function passes its _f_l_a_g_s parameter tran-
+     sparently to ggeettffssssttaatt(2).
 
-RETURN VALUES
-     On successful completion, getmntinfo() returns a count of
+RREETTUURRNN VVAALLUUEESS
+     On successful completion, ggeettmmnnttiinnffoo() returns a count of
      the number of elements in the array.  The pointer to the
      array is stored into _m_n_t_b_u_f_p.
 
      If an error occurs, zero is returned and the external vari-
      able _e_r_r_n_o is set to indicate the error.  Although the
      pointer _m_n_t_b_u_f_p will be unmodified, any information previ-
-     ously returned by getmntinfo() will be lost.
+     ously returned by ggeettmmnnttiinnffoo() will be lost.
 
-ERRORS
-     The getmntinfo() function may fail and set errno for any of
-     the errors specified for the library routines getfsstat(2)
-     or malloc(3).
+EERRRROORRSS
+     The ggeettmmnnttiinnffoo() function may fail and set errno for any of
+     the errors specified for the library routines ggeettffssssttaatt(2)
+     or mmaalllloocc(3).
 
-SEE ALSO
+SSEEEE AALLSSOO
      getfsstat(2), statfs(2), mount(2), mount(8)
 
-HISTORY
-     The getmntinfo() function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ggeettmmnnttiinnffoo() function first appeared in 4.4BSD.
 
-BUGS
-     The getmntinfo() function writes the array of structures to
+BBUUGGSS
+     The ggeettmmnnttiinnffoo() function writes the array of structures to
      an internal static object and returns a pointer to that
-     object. Subsequent calls to getmntinfo() will modify the
+     object. Subsequent calls to ggeettmmnnttiinnffoo() will modify the
      same object.
 
-     The memory allocated by getmntinfo() cannot be free(2)'d by
+     The memory allocated by ggeettmmnnttiinnffoo() cannot be ffrreeee(2)'d by
      the application.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	December 26, 1995			1
+Printed 9/10/24         December 26, 1995			1
 
 
 

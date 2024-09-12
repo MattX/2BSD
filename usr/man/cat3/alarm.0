@@ -5,15 +5,15 @@ ALARM(3C)	    UNIX Programmer's Manual		ALARM(3C)
 
 
 
-NAME
+NNAAMMEE
      alarm - schedule signal after specified time
 
-SYNOPSIS
-     alarm(seconds)
-     unsigned seconds;
+SSYYNNOOPPSSIISS
+     aallaarrmm((sseeccoonnddss))
+     uunnssiiggnneedd sseeccoonnddss;;
 
-DESCRIPTION
-     This interface is made obsolete by setitimer(2).
+DDEESSCCRRIIPPTTIIOONN
+     TThhiiss iinntteerrffaaccee iiss mmaaddee oobbssoolleettee bbyy sseettiittiimmeerr((22))..
 
      _A_l_a_r_m causes signal SIGALRM, see _s_i_g_v_e_c(2), to be sent to
      the invoking process in a number of seconds given by the
@@ -30,7 +30,7 @@ DESCRIPTION
      The return value is the amount of time previously remaining
      in the alarm clock.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sigpause(2), sigvec(2), signal(3C), sleep(3), ualarm(3),
      usleep(3)
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 

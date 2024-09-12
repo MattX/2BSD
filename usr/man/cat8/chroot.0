@@ -5,13 +5,13 @@ CHROOT(8)	    UNIX Programmer's Manual		CHROOT(8)
 
 
 
-NAME
+NNAAMMEE
      chroot - change root directory
 
-SYNOPSIS
-     chroot newroot [ command ]
+SSYYNNOOPPSSIISS
+     cchhrroooott nneewwrroooott [[ ccoommmmaanndd ]]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _c_h_r_o_o_t command changes its root directory to the sup-
      plied directory _n_e_w_r_o_o_t and exec's _c_o_m_m_a_n_d, if supplied, or
      an interactive copy of your shell (as specified by the
@@ -20,7 +20,7 @@ DESCRIPTION
 
      Note, _c_o_m_m_a_n_d or the shell are run as your real-user-id.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chdir(2), chroot(2), environ(7)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	December 5, 1988			1
+Printed 9/10/24         December 5, 1988			1
 
 
 

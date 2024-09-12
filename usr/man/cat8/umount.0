@@ -5,15 +5,15 @@ UMOUNT(8)	    UNIX Programmer's Manual		UMOUNT(8)
 
 
 
-NAME
-     umount - unmount file systems
+NNAAMMEE
+     uummoouunntt - unmount file systems
 
-SYNOPSIS
-     umount [ -fv ] _s_p_e_c_i_a_l | _n_o_d_e
-     umount -a [ -fv ] [ -t _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
+SSYYNNOOPPSSIISS
+     uummoouunntt [ --ffvv ] _s_p_e_c_i_a_l | _n_o_d_e
+     uummoouunntt --aa [ --ffvv ] [ --tt _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
 
-DESCRIPTION
-     The umount command calls the umount(2) system call to remove
+DDEESSCCRRIIPPTTIIOONN
+     The uummoouunntt command calls the umount(2) system call to remove
      a _s_p_e_c_i_a_l _d_e_v_i_c_e from the file system tree at the point
      _n_o_d_e.  If either _s_p_e_c_i_a_l or _n_o_d_e are not provided, the
      appropriate information is taken from the fstab(5) file.
@@ -21,46 +21,46 @@ DESCRIPTION
      The options are as follows:
 
 
-     -a        All of the file systems described in fstab(5) are
+     --aa        All of the file systems described in fstab(5) are
 	       unmounted.
 
-     -f        The file system is forcibly unmounted.  Active
+     --ff        The file system is forcibly unmounted.  Active
 	       special devices continue to work, but all other
 	       files return errors if further accesses are
 	       attempted.  The root file system cannot be forci-
 	       bly unmounted.  This is not currently implemented
 	       in 2.11BSD.
 
-     -t _u_f_s | _e_x_t_e_r_n_a_l _t_y_p_e
+     --tt _u_f_s | _e_x_t_e_r_n_a_l _t_y_p_e
 	       Is used to indicate the actions should only be
 	       taken on filesystems of the specified type.  More
 	       than one type may be specified in a comma
 	       separated list.	The list of filesystem types can
-	       be prefixed with no to specify the filesystem
-	       types for which action should not be taken.  For
-	       example, the umount command:
+	       be prefixed with nnoo to specify the filesystem
+	       types for which action should nnoott be taken.  For
+	       example, the uummoouunntt command:
 
 	       umount -a -t nfs,mfs
 
 	       umounts all filesystems of the type NFS and MFS.
 
-	       NOTE: Only UFS is supported by 2.11BSD.	The exam-
+	       NNOOTTEE: Only UFS is supported by 2.11BSD.	The exam-
 	       ple is for illustrative purposes only.
 
-     -v        Verbose, additional information is printed out as
+     --vv        Verbose, additional information is printed out as
 	       each file system is unmounted.
 
-FILES
+FFIILLEESS
      /etc/fstab     file system table
 
-SEE ALSO
+SSEEEE AALLSSOO
      umount(2), fstab(5), mount(8)
 
 
 
 
 
-Printed 12/27/08	January 16, 1996			1
+Printed 9/10/24         January 16, 1996			1
 
 
 
@@ -71,8 +71,8 @@ UMOUNT(8)	    UNIX Programmer's Manual		UMOUNT(8)
 
 
 
-HISTORY
-     A umount command appeared in Version 6 AT&T UNIX.
+HHIISSTTOORRYY
+     A uummoouunntt command appeared in Version 6 AT&T UNIX.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 12/27/08	January 16, 1996			2
+Printed 9/10/24         January 16, 1996			2
 
 
 

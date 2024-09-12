@@ -5,26 +5,26 @@ DHV(4)		    UNIX Programmer's Manual		   DHV(4)
 
 
 
-NAME
+NNAAMMEE
      dhv - DHV-11 communications multiplexer
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NDHV _d_h_v__u_n_i_t_s # DHV11
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNDDHHVV _d_h_v__u_n_i_t_s ## DDHHVV1111
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  dhv	?     160440 310    5  dhvrint dhvxint # dhv terminal mux
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  ddhhvv	??     116600444400 331100    55  ddhhvvrriinntt ddhhvvxxiinntt ## ddhhvv tteerrmmiinnaall mmuuxx
 
-     major device number(s):
-	  raw: 24
-     minor device encoding:
-	  bits 0007 specify line on DHV unit
-	  bits 0070 specify DHV unit
-	  bit  0100 specifies RTS/CTS (``hardware'') flowcontrol
-	  bit  0200 specifies non-blocking open (``CD always on'')
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 2244
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy lliinnee oonn DDHHVV uunniitt
+	  bbiittss 00007700 ssppeecciiffyy DDHHVV uunniitt
+	  bbiitt  00110000 ssppeecciiffiieess RRTTSS//CCTTSS ((````hhaarrddwwaarree'''')) fflloowwccoonnttrrooll
+	  bbiitt  00220000 ssppeecciiffiieess nnoonn--bblloocckkiinngg ooppeenn ((````CCDD aallwwaayyss oonn''''))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      A DHV-11 provides 8 communication lines.
 
      Each line attached to the DHV-11 communications multiplexer
@@ -43,24 +43,24 @@ DESCRIPTION
      device number via _m_k_n_o_d /_d_e_v/_t_t_y_S_2 _c _4 _1_9_4 would enable
      RTS/CTS flow control.
 
-     The DHV-11 has an input silo but does not have the programm-
+     The DHV-11 has an input silo but does nnoott have the programm-
      able receiver delay that the DHU (and DHQ) have.  Thus sys-
      tem services more interrupts (i.e. gets fewer characters per
      interrupt on average) with a DHV-11 than with a DHQ (in DHU
      mode).
 
-FILES
+FFIILLEESS
      /dev/tty[S-Z][0-9a-f]
 
-SEE ALSO
+SSEEEE AALLSSOO
      tty(4)
 
-DIAGNOSTICS
-     dhv%d,%d NXM.  No response from QBUS on a DMA transfer
+DDIIAAGGNNOOSSTTIICCSS
+     ddhhvv%%dd,,%%dd NNXXMM.  No response from QBUS on a DMA transfer
 
 
 
-Printed 2/16/100	  May 31, 1997				1
+Printed 9/10/24           May 31, 1997				1
 
 
 
@@ -75,17 +75,17 @@ DHV(4)		    UNIX Programmer's Manual		   DHV(4)
      on a PDP-11 and is a carryover from the VAX driver when that
      was ported to 2BSD.
 
-     dhv%d diag %o.  Diagnostic information from the DHV11.  This
+     ddhhvv%%dd ddiiaagg %%oo.  Diagnostic information from the DHV11.  This
      has never been observed.  The DHV-11 hardware manual will be
      required to decode the value printed out.
 
-     dhv%d: %d overruns.  The character input silo overflowed
+     ddhhvv%%dd:: %%dd oovveerrrruunnss.  The character input silo overflowed
      before it could be serviced.  This message is printed only
      when the line is closed.  By only printing this when the
      line is closed further silo overruns are avoided (kernel
      printf statements are not interrupt driven).
 
-NOTES
+NNOOTTEESS
      The DHV lacks the receiver delay that the DHU (and DHQ)
      have.  Thus it is extremely easy (indeed it's almost certain
      at higher data rates) for a DHV-11 to enter an interrupt per
@@ -126,7 +126,7 @@ NOTES
 
 
 
-Printed 2/16/100	  May 31, 1997				2
+Printed 9/10/24           May 31, 1997				2
 
 
 

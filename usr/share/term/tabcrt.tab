@@ -1,0 +1,130 @@
+# dummy
+bset	0
+breset	0
+Hor	24
+Vert	40
+Newline	40
+Char	24
+Em	24
+Halfline	20
+Adj	24
+twinit	""
+twrest	""
+twnl	"\012"
+hlr	""
+hlf	""
+flr	""
+bdon	""
+bdoff	""
+ploton	""
+plotoff	""
+up	""
+down	""
+right	""
+left	""
+# codetab
+hy 	1 -
+bu 	1 o\010+
+sq 	2 []
+em 	1 -
+ru 	1 _
+14 	3 1/4
+12 	3 1/2
+34 	3 3/4
+mi 	1 -
+fi 	2 fi
+fl 	2 fl
+ff 	2 ff
+Fi 	3 ffi
+Fl 	3 ffl
+dg 	1 |\010-
+sc 	1 s\010S
+fm 	1 '
+aa 	1 '
+ga 	1 `
+ul 	1 _
+sl 	1 /
+*a 	1 o\010(
+*b 	1 8\010|
+*g 	1 >\010/
+*d 	1 d\010`
+*e 	1 C\010-
+*y 	1 n
+*h 	1 o\010-
+*i 	1 i
+*k 	1 k
+*l 	1 ,\010\134
+*m 	1 u
+*n 	1 v
+*o 	1 o
+*p 	2 i\010~i\010~
+*r 	1 p
+*s 	1 o\010~
+*t 	1 i\010~
+*u 	1 u
+*f 	1 o\010|
+*x 	1 x
+*q 	1 u\010|
+*w 	1 w
+*G 	1 I\010~
+*D 	2 /\010_\134\010_
+*H 	1 O\010-
+*L 	2 /\134
+*C 	1 =\010_
+*P 	2 TT
+*S 	1 >\010_\010~
+*U 	1 Y
+*F 	1 O\010|
+*Q 	1 U\010|
+*W 	1 O\010_
+sr 	1 v\010/
+rn 	1 ~
+>= 	1 >\010_
+<= 	1 <\010_
+== 	1 =\010_
+mi 	1 -
+~= 	1 ~\010_
+ap 	1 ~
+!= 	1 =\010/
+-> 	2 ->
+<- 	2 <-
+ua 	1 |\010^
+da 	1 |\010v
+eq 	1 =
+mu 	1 x
+di 	1 :\010-
++- 	1 +\010_
+cu 	2 (\010~)\010~
+ca 	2 (\010_)\010_
+sb 	2 (=
+sp 	2 =)
+ib 	2 (=\010_
+ip 	2 =\010_)
+if 	2 oo
+pd 	1 o\010`
+gr 	2 \134\010~/\010~
+pt 	2 oc
+es 	1 O\010/
+mo 	1 <\010-
+pl 	1 +
+rg 	3 (R)
+co 	3 (C)
+br 	1 |
+ct 	1 c\010/
+dd 	1 |\010=
+rh 	2 =>
+lh 	2 <=
+** 	1 *
+or 	1 |
+ci 	1 O
+lt 	1 |
+lb 	1 |
+rt 	1 |
+rb 	1 |
+lk 	1 |
+rk 	1 |
+bv 	1 |
+lf 	1 |
+rf 	1 |
+lc 	1 |
+rc 	1 |

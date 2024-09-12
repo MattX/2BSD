@@ -5,24 +5,24 @@ WHOAMI(1)	    UNIX Programmer's Manual		WHOAMI(1)
 
 
 
-NAME
+NNAAMMEE
      whoami - display effective user id
 
-SYNOPSIS
-     whoami
+SSYYNNOOPPSSIISS
+     wwhhooaammii
 
-DESCRIPTION
-     The whoami utility has been obsoleted by the id(1) utility,
-     and is equivalent to ``id -un''.  The command ``id -p'' is
+DDEESSCCRRIIPPTTIIOONN
+     The wwhhooaammii utility has been obsoleted by the id(1) utility,
+     and is equivalent to ``iidd --uunn''.  The command ``iidd --pp'' is
      suggested for normal interactive use.
 
-     The whoami utility displays your effective user ID as a
+     The wwhhooaammii utility displays your effective user ID as a
      name.
 
-     The whoami utility exits 0 on success, and >0 if an error
+     The wwhhooaammii utility exits 0 on success, and >0 if an error
      occurs.
 
-SEE ALSO
+SSEEEE AALLSSOO
      id(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  June 25, 1997                         1
+Printed 9/10/24           June 25, 1997                         1
 
 
 

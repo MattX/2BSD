@@ -5,21 +5,21 @@ GETFSSTAT(2)	    UNIX Programmer's Manual	     GETFSSTAT(2)
 
 
 
-NAME
-     getfsstat - get list of all mounted filesystems
+NNAAMMEE
+     ggeettffssssttaatt - get list of all mounted filesystems
 
-SYNOPSIS
-     #include <sys/param.h>
-     #include <sys/mount.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ppaarraamm..hh>>
+     ##iinncclluuddee <<ssyyss//mmoouunntt..hh>>
 
      _i_n_t
-     getfsstat(buf,bufsize,flags)
+     ggeettffssssttaatt(buf,bufsize,flags)
      _s_t_r_u_c_t _s_t_a_t_f_s *_b_u_f;
      _i_n_t _b_u_f_s_i_z_e;
      _i_n_t _f_l_a_g_s;
 
-DESCRIPTION
-     Getfsstat() returns information about all mounted filesys-
+DDEESSCCRRIIPPTTIIOONN
+     GGeettffssssttaatt() returns information about all mounted filesys-
      tems.  _B_u_f is a pointer to _s_t_a_t_f_s structures defined as fol-
      lows:
 
@@ -53,14 +53,14 @@ DESCRIPTION
      structures, one for each mounted filesystem up to the size
      specified by _b_u_f_s_i_z_e.
 
-     If _b_u_f is given as NULL, getfsstat() returns just the number
+     If _b_u_f is given as NULL, ggeettffssssttaatt() returns just the number
      of mounted filesystems.
 
 
 
 
 
-Printed 2/16/100	December 24, 1995			1
+Printed 9/10/24         December 24, 1995			1
 
 
 
@@ -73,19 +73,19 @@ GETFSSTAT(2)	    UNIX Programmer's Manual	     GETFSSTAT(2)
 
      Normally _f_l_a_g_s is currently unused.  In 4.4BSD systems the
      usage is specified as MNT_WAIT.  If _f_l_a_g_s is set to
-     MNT_NOWAIT, getfsstat() will return the information it has
+     MNT_NOWAIT, ggeettffssssttaatt() will return the information it has
      available without requesting an update from each filesystem.
      Thus, some of the information will be out of date, but
-     getfsstat() will not block waiting for information from a
+     ggeettffssssttaatt() will not block waiting for information from a
      filesystem that is unable to respond.
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      Upon successful completion, the number of _f_s_s_t_a_t structures
      is returned.  Otherwise, -1 is returned and the global vari-
      able _e_r_r_n_o is set to indicate the error.
 
-ERRORS
-     Getfsstat() fails if one or more of the following are true:
+EERRRROORRSS
+     GGeettffssssttaatt() fails if one or more of the following are true:
 
 
      [EFAULT]		 _B_u_f points to an invalid address.
@@ -93,11 +93,11 @@ ERRORS
      [EIO]		 An I/O error occurred while reading from
 			 or writing to the filesystem.
 
-SEE ALSO
+SSEEEE AALLSSOO
      statfs(2), fstab(5), mount(8)
 
-HISTORY
-     The getfsstat function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ggeettffssssttaatt function first appeared in 4.4BSD.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	December 24, 1995			2
+Printed 9/10/24         December 24, 1995			2
 
 
 

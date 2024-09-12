@@ -5,30 +5,30 @@ SIGPAUSE(2)	    UNIX Programmer's Manual	      SIGPAUSE(2)
 
 
 
-NAME
+NNAAMMEE
      sigpause - atomically release blocked signals and wait for
      interrupt
 
-SYNOPSIS
-     sigpause(_s_i_g_m_a_s_k)
+SSYYNNOOPPSSIISS
+     ssiiggppaauussee(_s_i_g_m_a_s_k)
      long _s_i_g_m_a_s_k;
 
-DESCRIPTION
-     This interface is made obsolete by: sigsuspend(2).
+DDEESSCCRRIIPPTTIIOONN
+     TThhiiss iinntteerrffaaccee iiss mmaaddee oobbssoolleettee bbyy:: sigsuspend(2).
 
-     Sigpause() assigns _s_i_g_m_a_s_k to the set of masked signals and
+     SSiiggppaauussee(()) assigns _s_i_g_m_a_s_k to the set of masked signals and
      then waits for a signal to arrive; on return the set of
      masked signals is restored.  _S_i_g_m_a_s_k is usually 0L to indi-
-     cate that no signals are now to be blocked.  Sigpause always
+     cate that no signals are now to be blocked.  SSiiggppaauussee always
      terminates by being interrupted, returning -1 with _e_r_r_n_o set
      to EINTR.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sigsuspend(2), kill(2), sigaction(2), sigprocmask(2), sig-
      block(2), sigvec(2)
 
-HISTORY
-     The sigpause function call appeared in 4.2BSD and has been
+HHIISSTTOORRYY
+     The ssiiggppaauussee function call appeared in 4.2BSD and has been
      deprecated.
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	September 2, 1997			1
+Printed 9/10/24         September 2, 1997			1
 
 
 

@@ -5,29 +5,29 @@ SIGPROCMASK(2)	    UNIX Programmer's Manual	   SIGPROCMASK(2)
 
 
 
-NAME
-     sigprocmask - manipulate current signal mask
+NNAAMMEE
+     ssiiggpprrooccmmaasskk - manipulate current signal mask
 
-SYNOPSIS
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
      _i_n_t
-     sigprocmask(how, set, oset)
+     ssiiggpprrooccmmaasskk(how, set, oset)
      _i_n_t _h_o_w;
      _s_i_g_s_e_t__t *_s_e_t;
      _s_i_g_s_e_t__t *_o_s_e_t;
 
      _s_i_g_s_e_t__t
-     sigmask(signum)
+     ssiiggmmaasskk(signum)
      _i_n_t _s_i_g_n_u_m;
 
-DESCRIPTION
-     The sigprocmask function examines and/or changes the current
+DDEESSCCRRIIPPTTIIOONN
+     The ssiiggpprrooccmmaasskk function examines and/or changes the current
      signal mask (those signals that are blocked from delivery).
      Signals are blocked if they are members of the current sig-
      nal mask set.
 
-     If _s_e_t is not null, the action of sigprocmask depends on the
+     If _s_e_t is not null, the action of ssiiggpprrooccmmaasskk depends on the
      value of the parameter _h_o_w.  The signal mask is changed as a
      function of the specified _s_e_t and the current mask.  The
      function is specified by _h_o_w using one of the following
@@ -51,7 +51,7 @@ DESCRIPTION
      The system quietly disallows SIGKILL or SIGSTOP to be
      blocked.
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      A 0 value indicated that the call succeeded.  A -1 return
      value indicates an error occurred and _e_r_r_n_o is set to indi-
      cated the reason.
@@ -60,7 +60,7 @@ RETURN VALUES
 
 
 
-Printed 2/16/100	September 3, 1997			1
+Printed 9/10/24         September 3, 1997			1
 
 
 
@@ -71,8 +71,8 @@ SIGPROCMASK(2)	    UNIX Programmer's Manual	   SIGPROCMASK(2)
 
 
 
-ERRORS
-     The sigprocmask call will fail and the signal mask will be
+EERRRROORRSS
+     The ssiiggpprrooccmmaasskk call will fail and the signal mask will be
      unchanged if one of the following occurs:
 
      EINVAL		 _h_o_w has a value other than those listed
@@ -80,11 +80,11 @@ ERRORS
 
      EFAULT		 _s_e_t or _o_s_e_t contain an invalid address.
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(2), sigaction(2), sigsetops(3), sigsuspend(2)
 
-STANDARDS
-     The sigprocmask function call is expected to conform to IEEE
+SSTTAANNDDAARRDDSS
+     The ssiiggpprrooccmmaasskk function call is expected to conform to IEEE
      Std1003.1-1988 (``POSIX'').
 
 
@@ -126,7 +126,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	September 3, 1997			2
+Printed 9/10/24         September 3, 1997			2
 
 
 

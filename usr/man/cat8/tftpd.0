@@ -5,13 +5,13 @@ TFTPD(8)	    UNIX Programmer's Manual		 TFTPD(8)
 
 
 
-NAME
+NNAAMMEE
      tftpd - DARPA Trivial File Transfer Protocol server
 
-SYNOPSIS
-     tftpd [ directory ... ]
+SSYYNNOOPPSSIISS
+     ttffttppdd [ directory ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_f_t_p_d is a server which supports the DARPA Trivial File
      Transfer Protocol.  The TFTP server operates at the port
      indicated in the ``tftp'' service description; see _s_e_r_-
@@ -34,7 +34,7 @@ DESCRIPTION
      tricted to files whose names are prefixed by the one of the
      given directories.
 
-SEE ALSO
+SSEEEE AALLSSOO
      tftp(1), inetd(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  June 24, 1990                         1
+Printed 9/10/24           June 24, 1990                         1
 
 
 

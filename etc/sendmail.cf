@@ -14,10 +14,10 @@ CwLOCAL
 ######################
 
 # local domain names
-DD2BSD.COM
+DDYOUR.DOMAIN
 
 # our arpanet gateway
-DAMOE.2BSD.COM
+DAGW.YOUR.DOMAIN
 
 # the UUCP relay
 DU

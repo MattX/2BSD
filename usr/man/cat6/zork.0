@@ -5,13 +5,13 @@ ZORK(6)             UNIX Programmer's Manual		  ZORK(6)
 
 
 
-NAME
+NNAAMMEE
      zork - the game of dungeon
 
-SYNOPSIS
-     /usr/games/zork
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//zzoorrkk
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _D_u_n_g_e_o_n is a computer fantasy simulation based on Adventure
      and on Dungeons & Dragons, originally written by Lebling,
      Blank, and Anderson of MIT.  In it you explore a dungeon
@@ -33,7 +33,7 @@ DESCRIPTION
 
      <	  (to restore a game)
 
-FILES
+FFIILLEESS
      /usr/games/lib/d*
 
 
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

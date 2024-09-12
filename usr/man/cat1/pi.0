@@ -5,13 +5,13 @@ PI(1)		    UNIX Programmer's Manual		    PI(1)
 
 
 
-NAME
+NNAAMMEE
      pi - Pascal interpreter code translator
 
-SYNOPSIS
-     pi [ -blnpstuwz ] [ -i name ...  ] name.p
+SSYYNNOOPPSSIISS
+     ppii [ --bbllnnppssttuuwwzz ] [ --ii name ...  ] name.p
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_i translates the program in the file _n_a_m_e._p leaving inter-
      preter code in the file _o_b_j in the current directory.  The
      interpreter code can be executed using _p_x. _P_i_x performs the
@@ -21,46 +21,46 @@ DESCRIPTION
      options can also be controlled in comments within the pro-
      gram as described in the _B_e_r_k_e_l_e_y _P_a_s_c_a_l _U_s_e_r'_s _M_a_n_u_a_l.
 
-     -b    Block buffer the file _o_u_t_p_u_t.
+     --bb    Block buffer the file _o_u_t_p_u_t.
 
-     -i    Enable the listing for any specified procedures and
-	   functions and while processing any specified include
+     --ii    Enable the listing for any specified procedures and
+	   functions and while processing any specified iinncclluuddee
 	   files.
 
-     -l    Make a program listing during translation.
+     --ll    Make a program listing during translation.
 
-     -n    Begin each listed include file on a new page with a
+     --nn    Begin each listed iinncclluuddee file on a new page with a
 	   banner line.
 
-     -p    Suppress the post-mortem control flow backtrace if an
+     --pp    Suppress the post-mortem control flow backtrace if an
 	   error occurs; suppress statement limit counting.
 
-     -s    Accept standard Pascal only; non-standard constructs
+     --ss    Accept standard Pascal only; non-standard constructs
 	   cause warning diagnostics.
 
-     -t    Suppress runtime tests of subrange variables and treat
-	   assert statements as comments.
+     --tt    Suppress runtime tests of subrange variables and treat
+	   aasssseerrtt statements as comments.
 
-     -u    Card image mode; only the first 72 characters of input
+     --uu    Card image mode; only the first 72 characters of input
 	   lines are used.
 
-     -w    Suppress warning diagnostics.
+     --ww    Suppress warning diagnostics.
 
-     -z    Allow execution profiling with _p_x_p by generating
+     --zz    Allow execution profiling with _p_x_p by generating
 	   statement counters, and arranging for the creation of
 	   the profile data file _p_m_o_n._o_u_t when the resulting
 	   object is executed.
 
-FILES
+FFIILLEESS
      file.p		 input file
-     file.i		 include file(s)
+     file.i		 iinncclluuddee file(s)
      /usr/share/pascal/pi_stringstext of the error messages
      /usr/share/pascal/how_pi*basic usage explanation
      obj		 interpreter code output
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -71,14 +71,14 @@ PI(1)		    UNIX Programmer's Manual		    PI(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      Berkeley Pascal User's Manual
      pcc(1), pix(1), px(1), pxp(1), pxref(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      For a basic explanation do
 
-	     pi
+	     ppii
 
      In the diagnostic output of the translator, lines containing
      syntax errors are listed with a flag indicating the point of
@@ -106,27 +106,27 @@ DIAGNOSTICS
      If a severe error occurs which inhibits further processing,
      the translator will give a diagnostic and then `QUIT'.
 
-AUTHORS
+AAUUTTHHOORRSS
      Charles B. Haley, William N. Joy, and Ken Thompson
 
-BUGS
+BBUUGGSS
      Formal parameters which are procedures and functions are not
      supported.
 
-     The keyword packed and the function _d_i_s_p_o_s_e are recognized
+     The keyword ppaacckkeedd and the function _d_i_s_p_o_s_e are recognized
      but have no effect.
 
      For clarity, semantic errors should be flagged at an
      appropriate place in the source text, and multiple instances
      of the `same' semantic error should be summarized at the end
-     of a procedure or function rather than evoking many diagnos-
+     of a pprroocceedduurree or ffuunnccttiioonn rather than evoking many diagnos-
      tics.
 
 
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -137,7 +137,7 @@ PI(1)		    UNIX Programmer's Manual		    PI(1)
 
 
 
-     When include files are present, diagnostics relating to the
+     When iinncclluuddee files are present, diagnostics relating to the
      last procedure in one file may appear after the beginning of
      the listing of the next.
 
@@ -192,7 +192,7 @@ PI(1)		    UNIX Programmer's Manual		    PI(1)
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 

@@ -5,15 +5,15 @@ MKDIR(2)	    UNIX Programmer's Manual		 MKDIR(2)
 
 
 
-NAME
+NNAAMMEE
      mkdir - make a directory file
 
-SYNOPSIS
-     mkdir(path, mode)
-     char *path;
-     int mode;
+SSYYNNOOPPSSIISS
+     mmkkddiirr((ppaatthh,, mmooddee))
+     cchhaarr **ppaatthh;;
+     iinntt mmooddee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_d_i_r creates a new directory file with name _p_a_t_h.  The mode
      of the new file is initialized from _m_o_d_e.	(The protection
      part of the mode is modified by the process's mode mask; see
@@ -27,11 +27,11 @@ DESCRIPTION
      file mode creation mask: all bits set in the process's file
      mode creation mask are cleared.  See _u_m_a_s_k(2).
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      A 0 return value indicates success.  A -1 return value indi-
      cates an error, and an error code is stored in _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      _M_k_d_i_r will fail and no directory will be created if:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	 August 26, 1985			1
+Printed 9/10/24          August 26, 1985			1
 
 
 
@@ -111,7 +111,7 @@ MKDIR(2)	    UNIX Programmer's Manual		 MKDIR(2)
      [EFAULT]	    _P_a_t_h points outside the process's allocated
 		    address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chmod(2), stat(2), umask(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 26, 1985			2
+Printed 9/10/24          August 26, 1985			2
 
 
 

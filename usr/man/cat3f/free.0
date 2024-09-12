@@ -5,20 +5,20 @@ MALLOC(3F)	    UNIX Programmer's Manual	       MALLOC(3F)
 
 
 
-NAME
+NNAAMMEE
      malloc, free, falloc - memory allocator
 
-SYNOPSIS
-     subroutine malloc (size, addr)
-     integer size, addr
+SSYYNNOOPPSSIISS
+     ssuubbrroouuttiinnee mmaalllloocc ((ssiizzee,, aaddddrr))
+     iinntteeggeerr ssiizzee,, aaddddrr
 
-     subroutine free (addr)
-     integer addr
+     ssuubbrroouuttiinnee ffrreeee ((aaddddrr))
+     iinntteeggeerr aaddddrr
 
-     subroutine falloc (nelem, elsize, clean, basevec, addr, offset)
-     integer nelem, elsize, clean, addr, offset
+     ssuubbrroouuttiinnee ffaalllloocc ((nneelleemm,, eellssiizzee,, cclleeaann,, bbaasseevveecc,, aaddddrr,, ooffffsseett))
+     iinntteeggeerr nneelleemm,, eellssiizzee,, cclleeaann,, aaddddrr,, ooffffsseett
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_a_l_l_o_c, _f_a_l_l_o_c and _f_r_e_e provide a general-purpose memory
      allocation package.  _M_a_l_l_o_c returns in _a_d_d_r the address of a
      block of at least _s_i_z_e bytes beginning on an even-byte boun-
@@ -42,7 +42,7 @@ DESCRIPTION
      assigned by _m_a_l_l_o_cor_f_a_l_l_o_c is overrun or if some random
      number is handed to _f_r_e_e.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _M_a_l_l_o_c and _f_a_l_l_o_c set _a_d_d_r to 0 if there is no available
      memory or if the arena has been detectably corrupted by
      storing outside the bounds of a block.
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 
@@ -93,10 +93,10 @@ MALLOC(3F)	    UNIX Programmer's Manual	       MALLOC(3F)
 	   real arr1(k,l), arr2(l,m), arr3(k,m), vsym(lsym), v2(m)
 	      ...
 
-FILES
+FFIILLEESS
      /usr/lib/libU77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      malloc(3)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				2
+Printed 9/10/24           May 15, 1985				2
 
 
 

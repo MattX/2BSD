@@ -5,14 +5,14 @@ EXECVE(2)	    UNIX Programmer's Manual		EXECVE(2)
 
 
 
-NAME
+NNAAMMEE
      execve - execute a file
 
-SYNOPSIS
-     execve(name, argv, envp)
-     char *name, *argv[], *envp[];
+SSYYNNOOPPSSIISS
+     eexxeeccvvee((nnaammee,, aarrggvv,, eennvvpp))
+     cchhaarr **nnaammee,, **aarrggvv[[]],, **eennvvpp[[]];;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _E_x_e_c_v_e transforms the calling process into a new process.
      The new process is constructed from an ordinary file called
      the _n_e_w _p_r_o_c_e_s_s _f_i_l_e.  This file is either an executable
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 
@@ -114,19 +114,19 @@ EXECVE(2)	    UNIX Programmer's Manual		EXECVE(2)
      shell variable defined when the program is called.  See
      _e_n_v_i_r_o_n(7) for some conventionally used names.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      If _e_x_e_c_v_e returns to the calling process an error has
      occurred; the return value will be -1 and the global vari-
      able _e_r_r_n_o will contain an error code.
 
-ERRORS
+EERRRROORRSS
      _E_x_e_c_v_e will fail and return to the calling process if one or
      more of the following are true:
 
 
 
 
-Printed 2/16/100	  May 22, 1986				2
+Printed 9/10/24           May 22, 1986				2
 
 
 
@@ -187,12 +187,12 @@ EXECVE(2)	    UNIX Programmer's Manual		EXECVE(2)
      [EIO]	    An I/O error occurred while reading from the
 		    file system.
 
-CAVEATS
+CCAAVVEEAATTSS
      If a program is _s_e_t_u_i_d to a non-super-user, but is executed
 
 
 
-Printed 2/16/100	  May 22, 1986				3
+Printed 9/10/24           May 22, 1986				3
 
 
 
@@ -206,7 +206,7 @@ EXECVE(2)	    UNIX Programmer's Manual		EXECVE(2)
      when the real _u_i_d is ``root'', then the program has some of
      the powers of a super-user as well.
 
-SEE ALSO
+SSEEEE AALLSSOO
      exit(2), fork(2), execl(3), environ(7)
 
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1986				4
+Printed 9/10/24           May 22, 1986				4
 
 
 

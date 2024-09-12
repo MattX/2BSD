@@ -5,13 +5,13 @@ WUMP(6)             UNIX Programmer's Manual		  WUMP(6)
 
 
 
-NAME
+NNAAMMEE
      wump - the game of hunt-the-wumpus
 
-SYNOPSIS
-     /usr/games/wump
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//wwuummpp
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W_u_m_p plays the game of `Hunt the Wumpus.' A Wumpus is a
      creature that lives in a cave with several rooms connected
      by tunnels.  You wander among the rooms, trying to shoot the
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

@@ -5,13 +5,13 @@ SAVECORE(8)	    UNIX Programmer's Manual	      SAVECORE(8)
 
 
 
-NAME
+NNAAMMEE
      savecore - save a core dump of the operating system
 
-SYNOPSIS
-     savecore _d_i_r_n_a_m_e [ _s_y_s_t_e_m ]
+SSYYNNOOPPSSIISS
+     ssaavveeccoorree _d_i_r_n_a_m_e [ _s_y_s_t_e_m ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_a_v_e_c_o_r_e is meant to be called at the end of the /etc/rc
      file.  Its function is to save the core dump of the system
      (if one was made) and to write a reboot message in the shut-
@@ -43,11 +43,11 @@ DESCRIPTION
      elapsed time since the reboot.  It announces the time that
      it set when this occurs.
 
-FILES
+FFIILLEESS
      /usr/adm/shutdownlogshutdown log
      /unix		 current UNIX
 
-BUGS
+BBUUGGSS
      The method used to determine whether a dump is present, and
      to prevent the same core image from being saved multiple
      times, is not elegant.  This information should be passed to
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

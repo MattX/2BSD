@@ -5,18 +5,18 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
 
 
 
-NAME
+NNAAMMEE
      mount, umount - mount or remove file system
 
-SYNOPSIS
-     mount(special, name, flags)
-     char *special, *name;
-     int flags;
+SSYYNNOOPPSSIISS
+     mmoouunntt((ssppeecciiaall,, nnaammee,, ffllaaggss))
+     cchhaarr **ssppeecciiaall,, **nnaammee;;
+     iinntt ffllaaggss;;
 
-     umount(special)
-     char *special;
+     uummoouunntt((ssppeecciiaall))
+     cchhaarr **ssppeecciiaall;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_o_u_n_t announces to the system that a removable file system
      has been mounted on the block-structured special file _s_p_e_-
      _c_i_a_l; from now on, references to file _n_a_m_e will refer to the
@@ -50,7 +50,7 @@ DESCRIPTION
      longer to contain a removable file system.  The associated
      file reverts to its ordinary interpretation.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      _M_o_u_n_t returns 0 if the action occurred, -1 if _s_p_e_c_i_a_l is
      inaccessible or not an appropriate file, if _n_a_m_e does not
      exist, if _s_p_e_c_i_a_l is already mounted, if _n_a_m_e is in use, or
@@ -60,7 +60,7 @@ RETURN VALUE
 
 
 
-Printed 2/16/100	January 25, 1996			1
+Printed 9/10/24         January 25, 1996			1
 
 
 
@@ -76,7 +76,7 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
      system, or if there are active files in the mounted file
      system.
 
-ERRORS
+EERRRROORRSS
      _M_o_u_n_t will fail when one of the following occurs:
 
      [ENAMETOOLONG] A component of either pathname exceeded 255
@@ -126,7 +126,7 @@ ERRORS
 
 
 
-Printed 2/16/100	January 25, 1996			2
+Printed 9/10/24         January 25, 1996			2
 
 
 
@@ -175,10 +175,10 @@ MOUNT(2)	    UNIX Programmer's Manual		 MOUNT(2)
      [EFAULT]	    _S_p_e_c_i_a_l points outside the process's allo-
 		    cated address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      mount(8), umount(8)
 
-BUGS
+BBUUGGSS
      Some of the error codes need translation to more obvious
      messages.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 25, 1996			3
+Printed 9/10/24         January 25, 1996			3
 
 
 

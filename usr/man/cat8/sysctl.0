@@ -5,27 +5,27 @@ SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 
 
 
-NAME
+NNAAMMEE
      sysctl - get or set kernel state
 
-SYNOPSIS
-     sysctl [ -n ] _n_a_m_e ...
-     sysctl [ -n ] -w _n_a_m_e=_v_a_l_u_e ...
-     sysctl [ -n ] -aA
+SSYYNNOOPPSSIISS
+     ssyyssccttll [ --nn ] _n_a_m_e ...
+     ssyyssccttll [ --nn ] --ww _n_a_m_e=_v_a_l_u_e ...
+     ssyyssccttll [ --nn ] --aaAA
 
-DESCRIPTION
-     The sysctl utility retrieves kernel state and allows
+DDEESSCCRRIIPPTTIIOONN
+     The ssyyssccttll utility retrieves kernel state and allows
      processes with appropriate privilege to set kernel state.
      The state to be retrieved or set is described using a
      ``Management Information Base'' (``MIB'') style name,
-     described as a dotted set of components.  The -a flag can be
+     described as a dotted set of components.  The --aa flag can be
      used to list all the currently available string or integer
-     values.  The -A flag will list all the known MIB names
+     values.  The --AA flag will list all the known MIB names
      including tables.	Those with string or integer values will
-     be printed as with the -a flag; for the table values, the
+     be printed as with the --aa flag; for the table values, the
      name of the utility to retrieve them is given.
 
-     The -n flag specifies that the printing of the field name
+     The --nn flag specifies that the printing of the field name
      should be suppressed and that only its value should be out-
      put.  This flag is useful for setting shell variables.  For
      example, to save the pagesize in variable psize, use:
@@ -33,16 +33,16 @@ DESCRIPTION
       set psize=`sysctl -n hw.pagesize`
 
      If just a MIB style name is given, the corresponding value
-     is retrieved.  If a value is to be set, the -w flag must be
+     is retrieved.  If a value is to be set, the --ww flag must be
      specified and the MIB name followed by an equal sign and the
      new value to be used.
 
-     The information available from sysctl consists of integers,
+     The information available from ssyyssccttll consists of integers,
      strings, and tables.  The tabular information can only be
-     retrieved by special purpose programs such as ps, systat,
-     and netstat.  The string and integer information is sum-
+     retrieved by special purpose programs such as ppss, ssyyssttaatt,
+     and nneettssttaatt.  The string and integer information is sum-
      maried below.  For a detailed description of these variable
-     see sysctl(3).  The changeable column indicates whether a
+     see ssyyssccttll((33)).  The changeable column indicates whether a
      process with appropriate privilege can change the value.
 
 	  Name			   Type      Changeable
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 24, 1999                         1
+Printed 9/10/24          April 24, 1999                         1
 
 
 
@@ -115,7 +115,7 @@ SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 	  user.posix2_sw_dev	   integer   no
 	  user.posix2_upe	   integer   no
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      For example, to retrieve the maximum number of processes
      allowed in the system, one would use the follow request:
 
@@ -126,7 +126,7 @@ EXAMPLES
 
 
 
-Printed 2/16/100	 April 24, 1999                         2
+Printed 9/10/24          April 24, 1999                         2
 
 
 
@@ -149,7 +149,7 @@ SYSCTL(8)	    UNIX Programmer's Manual		SYSCTL(8)
 
 	       sysctl vm.loadavg
 
-FILES
+FFIILLEESS
      <sys/sysctl.h> definitions for top level identifiers, second
 		    level kernel and hardware identifiers, and
 		    user level identifiers
@@ -177,11 +177,11 @@ FILES
      <netinet/udp_var.h>
 		    definitions for fourth level UDP identifiers
 
-SEE ALSO
+SSEEEE AALLSSOO
      sysctl(3)
 
-HISTORY
-     sysctl first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     ssyyssccttll first appeared in 4.4BSD.
 
 
 
@@ -192,7 +192,7 @@ HISTORY
 
 
 
-Printed 2/16/100	 April 24, 1999                         3
+Printed 9/10/24          April 24, 1999                         3
 
 
 

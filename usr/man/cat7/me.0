@@ -5,14 +5,14 @@ ME(7)		    UNIX Programmer's Manual		    ME(7)
 
 
 
-NAME
+NNAAMMEE
      me - macros for formatting papers
 
-SYNOPSIS
-     nroff -me [ options ] file ...
-     troff -me [ options ] file ...
+SSYYNNOOPPSSIISS
+     nnrrooffff --mmee [ options ] file ...
+     ttrrooffff --mmee [ options ] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This package of _n_r_o_f_f and _t_r_o_f_f macro definitions provides a
      canned formatting facility for technical papers in various
      formats.  When producing 2-column output on a terminal,
@@ -35,16 +35,16 @@ DESCRIPTION
      Output of the _e_q_n, _n_e_q_n, _r_e_f_e_r, and _t_b_l(1) preprocessors for
      equations and tables is acceptable as input.
 
-FILES
+FFIILLEESS
      /usr/share/tmac/tmac.e
      /usr/share/me/*
 
-SEE ALSO
+SSEEEE AALLSSOO
      eqn(1), troff(1), refer(1), tbl(1)
      -me Reference Manual, Eric P. Allman
      Writing Papers with Nroff Using -me
 
-REQUESTS
+RREEQQUUEESSTTSS
      In the following list, "initialization" refers to the first
      .pp, .lp, .ip, .np, .sh, or .uh macro.  This list is incom-
      plete; see _T_h_e -_m_e _R_e_f_e_r_e_n_c_e _M_a_n_u_a_l for interesting details.
@@ -60,7 +60,7 @@ Request      Initial Cause Explanation
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 
@@ -80,12 +80,12 @@ ME(7)		    UNIX Programmer's Manual		    ME(7)
 .)x	     -	     yes   End index item
 .)z	     -	     yes   End floating keep
 .++ _m _H      -	     no    Define paper section.  _m defines the
-			   part of the paper, and can be C
-			   (chapter), A (appendix), P (prelim-
+			   part of the paper, and can be CC
+			   (chapter), AA (appendix), PP (prelim-
 			   inary, e.g., abstract, table of con-
-			   tents, etc.), B (bibliography), RC
+			   tents, etc.), BB (bibliography), RRCC
 			   (chapters renumbered from page one
-			   each chapter), or RA (appendix renum-
+			   each chapter), or RRAA (appendix renum-
 			   bered from page one).
 .+c _T	     -	     yes   Begin chapter (or appendix, etc., as
 			   set by .++).  _T is the chapter title.
@@ -126,7 +126,7 @@ ME(7)		    UNIX Programmer's Manual		    ME(7)
 
 
 
-Printed 2/16/100	October 23, 1996			2
+Printed 9/10/24         October 23, 1996			2
 
 
 
@@ -148,7 +148,7 @@ ME(7)		    UNIX Programmer's Manual		    ME(7)
 			   5).
 .lp	     yes     yes   Start left-blocked paragraph.
 .lo	     -	     no    Read in a file of local macros of the
-			   form .*_x.  Must be given before ini-
+			   form ..**_x.  Must be given before ini-
 			   tialization.
 .np	     1	     yes   Start numbered paragraph.
 .of '_x'_y'_z'  ''''    no    Set odd footer to x	y  z
@@ -192,7 +192,7 @@ ME(7)		    UNIX Programmer's Manual		    ME(7)
 
 
 
-Printed 2/16/100	October 23, 1996			3
+Printed 9/10/24         October 23, 1996			3
 
 
 

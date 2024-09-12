@@ -5,10 +5,10 @@ CONS(4)             UNIX Programmer's Manual		  CONS(4)
 
 
 
-NAME
+NNAAMMEE
      cons - PDP-11 console interface
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The console is available to the processor through the con-
      sole registers.  It acts like a normal terminal, except that
      typing control-P on the consoles of some PDP-11's puts the
@@ -29,10 +29,10 @@ DESCRIPTION
      an ``@''.	No characters typed on the console are special
      while UNIX is in control of the console.
 
-FILES
+FFIILLEESS
      /dev/console
 
-SEE ALSO
+SSEEEE AALLSSOO
      tty(4), reboot(8)
      PDP-11 Hardware Handbook specific to hardware
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  July 27, 1987                         1
+Printed 9/10/24           July 27, 1987                         1
 
 
 

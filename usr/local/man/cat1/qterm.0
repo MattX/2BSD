@@ -5,15 +5,15 @@ QTERM(1)	    UNIX Programmer's Manual		 QTERM(1)
 
 
 
-NAME
+NNAAMMEE
      qterm - Query Terminal
 
-SYNOPSIS
-     qterm [ +|-alt ] [ +|-always ] [ +|-longname ] [ +|-quiet ]
-     [ +|-sent ] [ +|-timeout ] [ +|-usrtab ] [ +|-watch ] [
-     +|-systab ] [ -wait _i_n_t_e_r_v_a_l ] [ -file _t_a_b_f_i_l_e ]
+SSYYNNOOPPSSIISS
+     qterm [ ++||--aalltt ] [ ++||--aallwwaayyss ] [ ++||--lloonnggnnaammee ] [ ++||--qquuiieett ]
+     [ ++||--sseenntt ] [ ++||--ttiimmeeoouutt ] [ ++||--uussrrttaabb ] [ ++||--wwaattcchh ] [
+     ++||--ssyyssttaabb ] [ --wwaaiitt _i_n_t_e_r_v_a_l ] [ --ffiillee _t_a_b_f_i_l_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _Q_t_e_r_m is used to query a terminal to determine its name.
      This is done by sending a special sequence to the terminal,
      reading in a response, and comparing it against a table of
@@ -34,28 +34,28 @@ DESCRIPTION
 	  export TERM
 
 
-     By default, qterm uses the system tab file
+     By default, qqtteerrmm uses the system tab file
      /_u_s_r/_l_o_c_a_l/_l_i_b/_q_t_e_r_m_t_a_b to obtain information for querying
      terminals.
 
-OPTIONS
-     +alt Use the alternate string ``<ESCAPE>[c'' when asking the
+OOPPTTIIOONNSS
+     ++aalltt Use the alternate string ``<ESCAPE>[c'' when asking the
 	  terminal to identify itself.	This string is recognized
 	  by most ANSI compatible terminals.
 
-     -alt Don't use the alternate string, but the string found in
-	  the tabfile being used.  This is the default.
+     --aalltt Don't use the alternate string, but the string found in
+	  the ttaabbffiillee being used.  This is the default.
 
-     +always
+     ++aallwwaayyss
 	  Always send the terminal query string.  Normally the
 	  query string is only sent if it differs from the last
 	  string sent.
 
-     -always
+     --aallwwaayyss
 	  Only send the terminal query string if it differs from
 	  the last string sent.  This is the default.
 
-     -file _t_a_b_f_i_l_e
+     --ffiillee _t_a_b_f_i_l_e
 	  Use <_t_a_b_f_i_l_e> to find information for querying the
 
 
@@ -73,56 +73,56 @@ QTERM(1)	    UNIX Programmer's Manual		 QTERM(1)
 
 	  terminal.
 
-     +longname
+     ++lloonnggnnaammee
 	  Print only the long (verbose) terminal name.
 
-     -longname
+     --lloonnggnnaammee
 	  Don't print the long (verbose) terminal name.  This is
 	  the default.
 
-     +quiet
+     ++qquuiieett
 	  Be quiet and only print the terminal name to standard
 	  output.
 
-     -quiet
+     --qquuiieett
 	  Don't be quiet and only print the terminal name to
 	  standard output.  This is the default.
 
-     +watch
+     ++wwaattcchh
 	  Watch the characters sent and recieved to the terminal.
 
-     -watch
+     --wwaattcchh
 	  Don't watch the characters sent and recieved to the
 	  terminal.  This is the default.
 
-     +timeout
+     ++ttiimmeeoouutt
 	  Wait for timeout when listening for response string.
 	  This is useful if the first entry in a qtermtab doesn't
 	  have a response string with an ending character that is
 	  common with the rest of the qtermtab entries.
 
-     -timeout
+     --ttiimmeeoouutt
 	  Disable waiting for timeout when listening for response
 	  string.  This is the default.
 
-     +usrtab
-	  Use $HOME/.qtermtab to find information for querying
+     ++uussrrttaabb
+	  Use $$HHOOMMEE//..qqtteerrmmttaabb to find information for querying
 	  the terminal.
 
-     -usrtab
-	  Don't use $HOME/.qtermtab to find information for
+     --uussrrttaabb
+	  Don't use $$HHOOMMEE//..qqtteerrmmttaabb to find information for
 	  querying the terminal.  This is the default.
 
-     +sent
+     ++sseenntt
 	  Display the final response sent from the terminal in a
 	  ``nice'' fashion.
 
-     -sent
+     --sseenntt
 	  Don't display the final response sent from the termi-
 	  nal.	This is the default.
 
-     +systab
-	  Use /usr/local/lib/qtermtab to find information for
+     ++ssyyssttaabb
+	  Use //uussrr//llooccaall//lliibb//qqtteerrmmttaabb to find information for
 
 
 
@@ -139,14 +139,14 @@ QTERM(1)	    UNIX Programmer's Manual		 QTERM(1)
 
 	  querying the terminal.  This is the default
 
-     -systab
+     --ssyyssttaabb
 	  Don't use system tab file to find information for
 	  querying the terminal.
 
-     -wait _i_n_t_e_r_v_a_l
+     --wwaaiitt _i_n_t_e_r_v_a_l
 	  Set the wait (timeout) period to _i_n_t_e_r_v_a_l (in seconds).
 
-QTERMTAB
+QQTTEERRMMTTAABB
      The format of the file $HOME/.qtermtab and _q_t_e_r_m'_s system
      tab file /_u_s_r/_l_o_c_a_l/_l_i_b/_q_t_e_r_m_t_a_b, consists of four fields
      each seperated by white space (tabs and/or spaces).  The
@@ -185,7 +185,7 @@ QTERMTAB
 	  ^[Z	  ^[iBO        z29	 Zenith in Zenith Mode
 
 
-AUTHOR
+AAUUTTHHOORR
      Michael A. Cooper,
      University Computing Services,
      University of Southern California.
@@ -203,22 +203,22 @@ QTERM(1)	    UNIX Programmer's Manual		 QTERM(1)
 
 
 
-FILES
+FFIILLEESS
      /usr/local/lib/qtermtab   - System table
      $HOME/.qtermtab	       - User's table
      /etc/termcap	       - termcap(5) database
 
-SEE ALSO
+SSEEEE AALLSSOO
      csh(1), ed(1), sh(1), termcap(5)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _T_e_r_m_i_n_a_l _n_o_t _r_e_c_o_g_n_i_z_e_d - _d_e_f_a_u_l_t_s _t_o _d_u_m_b.
 	  _Q_T_e_r_m did not receive a response from the terminal, or
 	  the response did not match any that _q_t_e_r_m has stored
 	  internally.  Use the +watch option to check to see
 	  which is the case.
 
-BUGS
+BBUUGGSS
      Many terminals do not send a response at all.
 
 

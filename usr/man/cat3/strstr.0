@@ -5,30 +5,30 @@ STRSTR(3)	    UNIX Programmer's Manual		STRSTR(3)
 
 
 
-NAME
-     strstr - locate a substring in a string
+NNAAMMEE
+     ssttrrssttrr - locate a substring in a string
 
-SYNOPSIS
-     #include <string.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttrriinngg..hh>>
 
-     char *
-     strstr(big, little)
+     cchhaarr **
+     ssttrrssttrr((bbiigg,, lliittttllee))
      _c_h_a_r *_b_i_g, *_l_i_t_t_l_e;
 
-DESCRIPTION
-     The strstr() function locates the first occurrence of the
+DDEESSCCRRIIPPTTIIOONN
+     The ssttrrssttrr() function locates the first occurrence of the
      null-terminated string _l_i_t_t_l_e in the null-terminated string
-     _b_i_g.  If _l_i_t_t_l_e is the empty string, strstr() returns _b_i_g;
-     if _l_i_t_t_l_e occurs nowhere in _b_i_g, strstr() returns NULL; oth-
-     erwise strstr() returns a pointer to the first character of
+     _b_i_g.  If _l_i_t_t_l_e is the empty string, ssttrrssttrr() returns _b_i_g;
+     if _l_i_t_t_l_e occurs nowhere in _b_i_g, ssttrrssttrr() returns NULL; oth-
+     erwise ssttrrssttrr() returns a pointer to the first character of
      the first occurrence of _l_i_t_t_l_e.
 
-SEE ALSO
+SSEEEE AALLSSOO
      index(3), memchr(3), rindex(3), strchr(3), strcspn(3),
      strpbrk(3), strrchr(3), strsep(3), strspn(3), strtok(3)
 
-STANDARDS
-     The strstr() function conforms to ANSI C X3/159-1989 (``ANSI
+SSTTAANNDDAARRDDSS
+     The ssttrrssttrr() function conforms to ANSI C X3/159-1989 (``ANSI
      C'').
 
 
@@ -60,7 +60,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	January 15, 1996			1
+Printed 9/10/24         January 15, 1996			1
 
 
 

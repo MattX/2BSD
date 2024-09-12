@@ -5,13 +5,13 @@ MAKEKEY(8)	    UNIX Programmer's Manual	       MAKEKEY(8)
 
 
 
-NAME
+NNAAMMEE
      makekey - generate encryption key
 
-SYNOPSIS
-     /usr/sbin/makekey
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//mmaakkeekkeeyy
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_a_k_e_k_e_y improves the usefulness of encryption schemes
      depending on a key by increasing the amount of time required
      to search the key space.  It reads 10 bytes from its stan-
@@ -41,7 +41,7 @@ DESCRIPTION
      (for instance, _e_d and _c_r_y_p_t(1)).  Usually makekey's input
      and output will be pipes.
 
-SEE ALSO
+SSEEEE AALLSSOO
      crypt(1), ed(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 

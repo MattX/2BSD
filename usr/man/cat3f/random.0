@@ -5,17 +5,17 @@ RANDOM(3F)	    UNIX Programmer's Manual	       RANDOM(3F)
 
 
 
-NAME
+NNAAMMEE
      random, drandm, irandm - better random number generator
 
-SYNOPSIS
-     function irandm (iflag)
+SSYYNNOOPPSSIISS
+     ffuunnccttiioonn iirraannddmm ((iiffllaagg))
 
-     function random (iflag)
+     ffuunnccttiioonn rraannddoomm ((iiffllaagg))
 
-     double precision function drandm (iflag)
+     ddoouubbllee pprreecciissiioonn ffuunnccttiioonn ddrraannddmm ((iiffllaagg))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These functions use _r_a_n_d_o_m(3) to generate sequences of ran-
      dom numbers, and should be used rather than the older func-
      tions described in _m_a_n _3_f _r_a_n_d. If _i_f_l_a_g is non-zero, it is
@@ -27,10 +27,10 @@ DESCRIPTION
      the range 0. through 1.0 by dividing the integer random
      number from _r_a_n_d_o_m(3) by 2147483647 .
 
-FILES
+FFIILLEESS
      /usr/lib/libF77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      random(3)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

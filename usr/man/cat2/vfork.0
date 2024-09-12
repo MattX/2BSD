@@ -5,14 +5,14 @@ VFORK(2)	    UNIX Programmer's Manual		 VFORK(2)
 
 
 
-NAME
+NNAAMMEE
      vfork - spawn new process in a virtual memory efficient way
 
-SYNOPSIS
-     pid = vfork()
-     int pid;
+SSYYNNOOPPSSIISS
+     ppiidd == vvffoorrkk(())
+     iinntt ppiidd;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _V_f_o_r_k can be used to create new processes without fully
      copying the address space of the old process, which is
      horrendously inefficient in a paged environment.  It is use-
@@ -36,13 +36,13 @@ DESCRIPTION
      dard I/O data structures.	(Even with _f_o_r_k it is wrong to
      call _e_x_i_t since buffered data would then be flushed twice.)
 
-SEE ALSO
+SSEEEE AALLSSOO
      fork(2), execve(2), sigvec(2), wait(2),
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Same as for _f_o_r_k.
 
-BUGS
+BBUUGGSS
      This system call will be eliminated when proper system shar-
      ing mechanisms are implemented. Users should not depend on
      the memory sharing semantics of _v_f_o_r_k as it will, in that
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	  June 30, 1985                         1
+Printed 9/10/24           June 30, 1985                         1
 
 
 

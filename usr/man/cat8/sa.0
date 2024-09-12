@@ -5,14 +5,14 @@ SA(8)		    UNIX Programmer's Manual		    SA(8)
 
 
 
-NAME
+NNAAMMEE
      sa - system accounting
 
-SYNOPSIS
-     sa [ -abcdDfijkKlnrstu ] [ -v _t_h_r_e_s_h_o_l_d ] [ -S savacctfile ]
-     [ -U usracctfile ] [ file ]
+SSYYNNOOPPSSIISS
+     ssaa [ --aabbccddDDffiijjkkKKllnnrrssttuu ] [ --vv _t_h_r_e_s_h_o_l_d ] [ --SS savacctfile ]
+     [ --UU usracctfile ] [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_a reports on, cleans up, and generally maintains accounting
      files.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 
@@ -111,22 +111,22 @@ SA(8)		    UNIX Programmer's Manual		    SA(8)
 	  /_u_s_r/_a_d_m/_u_s_r_a_c_c_t to accumulate the per-user statistics
 	  printed by the -m option.
 
-FILES
+FFIILLEESS
      /usr/adm/acct	 raw accounting
      /usr/adm/savacct	 summary
      /usr/adm/usracct	 per-user summary
 
-SEE ALSO
+SSEEEE AALLSSOO
      ac(8), accton(8), acctd(8)
 
-BUGS
+BBUUGGSS
      The number of options to this program is absurd.
 
 
 
 
 
-Printed 2/16/100	November 16, 1996			2
+Printed 9/10/24         November 16, 1996			2
 
 
 

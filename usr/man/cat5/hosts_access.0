@@ -5,10 +5,10 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
 
 
 
-NAME
+NNAAMMEE
      hosts_access - format of host access control files
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This manual page describes a simple access control language
      that is based on client (host name/address, user name), and
      server (process name, host name/address) patterns.  Examples
@@ -25,42 +25,42 @@ DESCRIPTION
      address of a host requesting service. Network daemon process
      names are specified in the inetd configuration file.
 
-ACCESS CONTROL FILES
+AACCCCEESSSS CCOONNTTRROOLL FFIILLEESS
      The access control software consults two files. The search
      stops at the first match:
 
-     o+	  Access will be granted when a (daemon,client) pair
+     o	  Access will be granted when a (daemon,client) pair
 	  matches an entry in the /_e_t_c/_h_o_s_t_s._a_l_l_o_w file.
 
-     o+	  Otherwise, access will be denied when a (daemon,client)
+     o	  Otherwise, access will be denied when a (daemon,client)
 	  pair matches an entry in the /_e_t_c/_h_o_s_t_s._d_e_n_y file.
 
-     o+	  Otherwise, access will be granted.
+     o	  Otherwise, access will be granted.
 
      A non-existing access control file is treated as if it were
      an empty file. Thus, access control can be turned off by
      providing no access control files.
 
-ACCESS CONTROL RULES
+AACCCCEESSSS CCOONNTTRROOLL RRUULLEESS
      Each access control file consists of zero or more lines of
      text.  These lines are processed in order of appearance. The
      search terminates when a match is found.
 
-     o+	  A newline character is ignored when it is preceded by a
+     o	  A newline character is ignored when it is preceded by a
 	  backslash character. This permits you to break up long
 	  lines so that they are easier to edit.
 
-     o+	  Blank lines or lines that begin with a `#' character
+     o	  Blank lines or lines that begin with a `#' character
 	  are ignored.	This permits you to insert comments and
 	  whitespace so that the tables are easier to read.
 
-     o+	  All other lines should satisfy the following format,
+     o	  All other lines should satisfy the following format,
 	  things between [] being optional:
 
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -89,35 +89,35 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
      With the exception of NIS (YP) netgroup lookups, all access
      control checks are case insensitive.
 
-PATTERNS
+PPAATTTTEERRNNSS
      The access control language implements the following pat-
      terns:
 
-     o+	  A string that begins with a `.' character. A host name
+     o	  A string that begins with a `.' character. A host name
 	  is matched if the last components of its name match the
 	  specified pattern.  For example, the pattern `.tue.nl'
 	  matches the host name `wzv.win.tue.nl'.
 
-     o+	  A string that ends with a `.' character. A host address
+     o	  A string that ends with a `.' character. A host address
 	  is matched if its first numeric fields match the given
 	  string.  For example, the pattern `131.155.' matches
 	  the address of (almost) every host on the Eindhoven
 	  University network (131.155.x.x).
 
-     o+	  A string that begins with an `@' character is treated
+     o	  A string that begins with an `@' character is treated
 	  as an NIS (formerly YP) netgroup name. A host name is
 	  matched if it is a host member of the specified net-
 	  group. Netgroup matches are not supported for daemon
 	  process names or for client user names.
 
-     o+	  An expression of the form `n.n.n.n/m.m.m.m' is inter-
+     o	  An expression of the form `n.n.n.n/m.m.m.m' is inter-
 	  preted as a `net/mask' pair. A host address is matched
 	  if `net' is equal to the bitwise AND of the address and
 	  the `mask'. For example, the net/mask pattern
 	  `131.155.72.0/255.255.254.0' matches every address in
 	  the range `131.155.72.0' through `131.155.73.255'.
 
-WILDCARDS
+WWIILLDDCCAARRDDSS
      The access control language supports explicit wildcards:
 
      ALL  The universal wildcard, always matches.
@@ -126,7 +126,7 @@ WILDCARDS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -163,7 +163,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
 	  the access control tables.  Build without -DPARANOID
 	  when you want more control over such requests.
 
-OPERATORS
+OOPPEERRAATTOORRSS
      EXCEPT
 	  Intended use is of the form: `list_1 EXCEPT list_2';
 	  this construct matches anything that matches _l_i_s_t__1
@@ -173,7 +173,7 @@ OPERATORS
 	  permit the use of parentheses, `a EXCEPT b EXCEPT c'
 	  would parse as `(a EXCEPT (b EXCEPT c))'.
 
-SHELL COMMANDS
+SSHHEELLLL CCOOMMMMAANNDDSS
      If the first-matched access control rule contains a shell
      command, that command is subjected to %<letter> substitu-
      tions (see next section).	The result is executed by a
@@ -192,7 +192,7 @@ SHELL COMMANDS
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 
@@ -203,7 +203,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
 
 
 
-% EXPANSIONS
+%% EEXXPPAANNSSIIOONNSS
      The following expansions are available within shell com-
      mands:
 
@@ -237,7 +237,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
      Characters in % expansions that may confuse the shell are
      replaced by underscores.
 
-SERVER ENDPOINT PATTERNS
+SSEERRVVEERR EENNDDPPOOIINNTT PPAATTTTEERRNNSS
      In order to distinguish clients by the network address that
      they connect to, use patterns of the form:
 
@@ -258,7 +258,7 @@ SERVER ENDPOINT PATTERNS
 
 
 
-Printed 2/16/100						4
+Printed 9/10/24                                                 4
 
 
 
@@ -273,7 +273,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
      point information is available only with connection-oriented
      services.
 
-CLIENT USERNAME LOOKUP
+CCLLIIEENNTT UUSSEERRNNAAMMEE LLOOOOKKUUPP
      When the client host supports the RFC 931 protocol or one of
      its descendants (TAP, IDENT, RFC 1413) the wrapper programs
      can retrieve additional information about the owner of a
@@ -294,21 +294,21 @@ CLIENT USERNAME LOOKUP
      not supported).  One should not get carried away with user-
      name lookups, though.
 
-     o+	  The client username information cannot be trusted when
+     o	  The client username information cannot be trusted when
 	  it is needed most, i.e. when the client system has been
 	  compromised.	In general, ALL and (UN)KNOWN are the
 	  only user name patterns that make sense.
 
-     o+	  Username lookups are possible only with TCP-based ser-
+     o	  Username lookups are possible only with TCP-based ser-
 	  vices, and only when the client host runs a suitable
 	  daemon; in all other cases the result is "unknown".
 
-     o+	  A well-known UNIX kernel bug may cause loss of service
+     o	  A well-known UNIX kernel bug may cause loss of service
 	  when username lookups are blocked by a firewall. The
 	  wrapper README document describes a procedure to find
 	  out if your kernel has this bug.
 
-     o+	  Username lookups may cause noticeable delays for non-
+     o	  Username lookups may cause noticeable delays for non-
 	  UNIX users.  The default timeout for username lookups
 	  is 10 seconds: too short to cope with slow networks,
 	  but long enough to irritate PC users.
@@ -324,7 +324,7 @@ CLIENT USERNAME LOOKUP
 
 
 
-Printed 2/16/100						5
+Printed 9/10/24                                                 5
 
 
 
@@ -335,7 +335,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
 
 
 
-DETECTING ADDRESS SPOOFING ATTACKS
+DDEETTEECCTTIINNGG AADDDDRREESSSS SSPPOOOOFFIINNGG AATTTTAACCKKSS
      A flaw in the sequence number generator of many TCP/IP
      implementations allows intruders to easily impersonate
      trusted hosts and to break in via, for example, the remote
@@ -358,7 +358,7 @@ DETECTING ADDRESS SPOOFING ATTACKS
 
      Note: IDENT lookups don't work with UDP services.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      The language is flexible enough that different types of
      access control policy can be expressed with a minimum of
      fuss. Although the language uses two access control tables,
@@ -374,7 +374,7 @@ EXAMPLES
      by including address and/or network/netmask information, to
      reduce the impact of temporary name server lookup failures.
 
-MOSTLY CLOSED
+MMOOSSTTLLYY CCLLOOSSEEDD
      In this case, access is denied by default. Only explicitly
      authorized hosts are permitted access.
 
@@ -390,7 +390,7 @@ MOSTLY CLOSED
 
 
 
-Printed 2/16/100						6
+Printed 9/10/24                                                 6
 
 
 
@@ -414,7 +414,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
      all hosts in the _f_o_o_b_a_r._e_d_u domain (notice the leading dot),
      with the exception of _t_e_r_m_i_n_a_l_s_e_r_v_e_r._f_o_o_b_a_r._e_d_u.
 
-MOSTLY OPEN
+MMOOSSTTLLYY OOPPEENN
      Here, access is granted by default; only explicitly speci-
      fied hosts are refused service.
 
@@ -430,7 +430,7 @@ MOSTLY OPEN
      the second rule still permits finger requests from other
      hosts and domains.
 
-BOOBY TRAPS
+BBOOOOBBYY TTRRAAPPSS
      The next example permits tftp requests from hosts in the
      local domain (notice the leading dot).  Requests from any
      other hosts are denied.  Instead of the requested file, a
@@ -456,7 +456,7 @@ BOOBY TRAPS
 
 
 
-Printed 2/16/100						7
+Printed 9/10/24                                                 7
 
 
 
@@ -476,7 +476,7 @@ HOSTS_ACCESS(5)     UNIX Programmer's Manual	  HOSTS_ACCESS(5)
      can be "bugged" just like the above tftp example. The result
      is an excellent early-warning system.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      An error is reported when a syntax error is found in a host
      access control rule; when the length of an access control
      rule exceeds the capacity of an internal buffer; when an
@@ -485,15 +485,15 @@ DIAGNOSTICS
      an internal buffer; when a system call fails that shouldn't.
      All problems are reported via the syslog daemon.
 
-FILES
+FFIILLEESS
      /etc/hosts.allow, (daemon,client) pairs that are granted access.
      /etc/hosts.deny, (daemon,client) pairs that are denied access.
 
-SEE ALSO
+SSEEEE AALLSSOO
      tcpd(8) tcp/ip daemon wrapper program.
      tcpdchk(8), tcpdmatch(8), test programs.
 
-BUGS
+BBUUGGSS
      If a name server lookup times out, the host name will not be
      available	to  the  access control software, even though the
      host is registered.
@@ -501,7 +501,7 @@ BUGS
      Domain name server lookups are case insensitive; NIS  (form-
      erly YP) netgroup lookups are case sensitive.
 
-AUTHOR
+AAUUTTHHOORR
      Wietse Venema (wietse@wzv.win.tue.nl)
      Department of Mathematics and Computing Science
      Eindhoven University of Technology
@@ -522,7 +522,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						8
+Printed 9/10/24                                                 8
 
 
 

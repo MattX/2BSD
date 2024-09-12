@@ -5,17 +5,17 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-NAME
+NNAAMMEE
      math - introduction to mathematical library functions
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These functions constitute the C math library, _l_i_b_m. The
      link editor searches this library under the "-lm" option.
      Declarations for these functions may be obtained from the
      include file <_m_a_t_h._h>.  The Fortran math library is
      described in ``man 3f intro''.
 
-LIST OF FUNCTIONS
+LLIISSTT OOFF FFUUNNCCTTIIOONNSS
      _N_a_m_e      _A_p_p_e_a_r_s _o_n _P_a_g_e	  _D_e_s_c_r_i_p_t_i_o_n		    _E_r_r_o_r _B_o_u_n_d (_U_L_P_s)
      acos	 sin.3m       inverse trigonometric function	 3
      acosh	 asinh.3m     inverse hyperbolic function	 3
@@ -60,7 +60,7 @@ LIST OF FUNCTIONS
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 
@@ -73,7 +73,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
      yn          j0.3m	      bessel function			???
 
-NOTES
+NNOOTTEESS
      In 4.3 BSD, distributed from the University of California in
      late 1985, most of the foregoing functions come in two ver-
      sions, one for the double-precision "D" format in the DEC
@@ -95,7 +95,7 @@ NOTES
      However the two versions do differ in ways that have to be
      explained, to which end the following notes are provided.
 
-     DEC VAX-11 D_floating-point:
+     DDEECC VVAAXX--1111 DD__ffllooaattiinngg--ppooiinntt::
 
      This is the format for which the original math library _l_i_b_m
      was developed, and to which this manual is still principally
@@ -112,7 +112,7 @@ NOTES
 	       If x and x' are consecutive positive
 	       D_floating-point numbers (they differ by 1 _u_l_p),
 	       then
-	       1.3e-17 < 0.5**56 < (x'-x)/x <_ 0.5**55 < 2.8e-17.
+	       1.3e-17 < 0.5**56 < (x'-x)/x <= 0.5**55 < 2.8e-17.
 	  Range: Overflow threshold  = 2.0**127 = 1.7e38.
 		 Underflow threshold = 0.5**128 = 2.9e-39.
 		 NOTE:	THIS RANGE IS COMPARATIVELY NARROW.
@@ -126,7 +126,7 @@ NOTES
 
 
 
-Printed 2/16/100	  May 27, 1986				2
+Printed 9/10/24           May 27, 1986				2
 
 
 
@@ -192,7 +192,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 2/16/100	  May 27, 1986				3
+Printed 9/10/24           May 27, 1986				3
 
 
 
@@ -213,7 +213,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
      resembles VAX D_floating-point need use anything worse than
      the new _l_i_b_m.
 
-     IEEE STANDARD 754 Floating-Point Arithmetic:
+     IIEEEEEE SSTTAANNDDAARRDD 775544 FFllooaattiinngg--PPooiinntt AArriitthhmmeettiicc::
 
      This standard is on its way to becoming more widely adopted
      than any other design for computer arithmetic.  VLSI chips
@@ -258,7 +258,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-Printed 2/16/100	  May 27, 1986				4
+Printed 9/10/24           May 27, 1986				4
 
 
 
@@ -273,7 +273,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	       If x and x' are consecutive positive
 	       Double-Precision numbers (they differ by 1 _u_l_p),
 	       then
-	       1.1e-16 < 0.5**53 < (x'-x)/x <_ 0.5**52 < 2.3e-16.
+	       1.1e-16 < 0.5**53 < (x'-x)/x <= 0.5**52 < 2.3e-16.
 	  Range: Overflow threshold  = 2.0**1024 = 1.8e308
 		 Underflow threshold = 0.5**1022 = 2.2e-308
 	       Overflow goes by default to a signed Infinity.
@@ -284,16 +284,17 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	       tion or division, and is preserved by addition of
 	       zeros with like signs; but x-x yields +0 for every
 	       finite x.  The only operations that reveal zero's
-	       sign are division by zero and copysign(x,+_0).  In
-	       particular, comparison (x > y, x >_ y, etc.) cannot
-	       be affected by the sign of zero; but if finite x =
-	       y then Infinity = 1/(x-y) != -1/(y-x) = -Infinity.
+	       sign are division by zero and copysign(x,+-0).  In
+	       particular, comparison (x > y, x >= y, etc.) can-
+	       not be affected by the sign of zero; but if finite
+	       x = y then Infinity = 1/(x-y) != -1/(y-x) =
+	       -Infinity.
 	  Infinity is signed.
 	       it persists when added to itself or to any finite
 	       number.	Its sign transforms correctly through
 	       multiplication and division, and
-	       (finite)/+_Infinity = +_0 (nonzero)/0 = +_Infinity.
-	       But Infinity-Infinity, Infinity*0 and
+	       (finite)/+-Infinity = +-0 (nonzero)/0 = +-Infin-
+	       ity.  But Infinity-Infinity, Infinity*0 and
 	       Infinity/Infinity are, like 0/0 and sqrt(-3),
 	       invalid operations that produce _N_a_N. ...
 	  Reserved operands:
@@ -320,11 +321,10 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	       This kind of rounding is usually the best kind,
 	       sometimes provably so; for instance, for every x =
 	       1.0, 2.0, 3.0, 4.0, ..., 2.0**52, we find
-	       (x/3.0)*3.0 == x and (x/10.0)*10.0 == x and ...
 
 
 
-Printed 2/16/100	  May 27, 1986				5
+Printed 9/10/24           May 27, 1986				5
 
 
 
@@ -335,6 +335,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
+	       (x/3.0)*3.0 == x and (x/10.0)*10.0 == x and ...
 	       despite that both the quotients and the products
 	       have been rounded.  Only rounding like IEEE 754
 	       can do that.  But no single kind of rounding can
@@ -351,8 +352,8 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 		    Exception		   Default Result
 		    __________________________________________
 		    Invalid Operation	   _N_a_N, or FALSE
-		    Overflow		   +_Infinity
-		    Divide by Zero	   +_Infinity
+		    Overflow		   +-Infinity
+		    Divide by Zero	   +-Infinity
 		    Underflow		   Gradual Underflow
 		    Inexact		   Rounded value
 	       NOTE:  An Exception is not an Error unless handled
@@ -385,12 +386,11 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	      or quotients lie closer to zero than the underflow
 	      threshold, or to test the Underflow flag.  (Sums
 	      and differences cannot underflow in IEEE 754; if x
-	      != y then x-y is correct to full precision and cer-
-	      tainly nonzero regardless of how tiny it may be.)
+	      != y then x-y is correct to full precision and
 
 
 
-Printed 2/16/100	  May 27, 1986				6
+Printed 9/10/24           May 27, 1986				6
 
 
 
@@ -401,13 +401,14 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
-	      Products and quotients that underflow gradually can
-	      lose accuracy gradually without vanishing, so com-
-	      paring them with zero (as one might on a VAX) will
-	      not reveal the loss.  Fortunately, if a gradually
-	      underflowed value is destined to be added to some-
-	      thing bigger than the underflow threshold, as is
-	      almost always the case, digits lost to gradual
+	      certainly nonzero regardless of how tiny it may
+	      be.)  Products and quotients that underflow gradu-
+	      ally can lose accuracy gradually without vanishing,
+	      so comparing them with zero (as one might on a VAX)
+	      will not reveal the loss.  Fortunately, if a gradu-
+	      ally underflowed value is destined to be added to
+	      something bigger than the underflow threshold, as
+	      is almost always the case, digits lost to gradual
 	      underflow will not be missed because they would
 	      have been rounded off anyway.  So gradual under-
 	      flows are usually _p_r_o_v_a_b_l_y ignorable.  The same
@@ -423,12 +424,12 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	      offer different forms of this statement, but most
 	      share the following characteristics:
 
-	  -   No means is provided to substitute a value for the
+	  --  No means is provided to substitute a value for the
 	      offending operation's result and resume computation
 	      from what may be the middle of an expression.  An
 	      exceptional result is abandoned.
 
-	  -   In a subprogram that lacks an error-handling state-
+	  --  In a subprogram that lacks an error-handling state-
 	      ment, an exception causes the subprogram to abort
 	      within whatever program called it, and so on back
 	      up the chain of calling subprograms until an
@@ -452,11 +453,10 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
      The crucial problem for exception handling is the problem of
      Scope, and the problem's solution is understood, but not
-     enough manpower was available to implement it fully in time
 
 
 
-Printed 2/16/100	  May 27, 1986				7
+Printed 9/10/24           May 27, 1986				7
 
 
 
@@ -467,6 +467,7 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
+     enough manpower was available to implement it fully in time
      to be distributed in 4.3 BSD's _l_i_b_m.  Ideally, each elemen-
      tary function should act as if it were indivisible, or
      atomic, in the sense that ...
@@ -516,13 +517,12 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 	       greater range or precision would be needed to
 	       represent the exact result.
 
-BUGS
+BBUUGGSS
      When signals are appropriate, they are emitted by certain
-     operations within the codes, so a subroutine-trace may be
 
 
 
-Printed 2/16/100	  May 27, 1986				8
+Printed 9/10/24           May 27, 1986				8
 
 
 
@@ -533,13 +533,14 @@ MATH(3M)	    UNIX Programmer's Manual		 MATH(3M)
 
 
 
+     operations within the codes, so a subroutine-trace may be
      needed to identify the function with its signal in case
      method 5) above is in use.  And the codes all take the IEEE
      754 defaults for granted; this means that a decision to trap
      all divisions by zero could disrupt a code that would other-
      wise get correct results despite division by zero.
 
-SEE ALSO
+SSEEEE AALLSSOO
      An explanation of IEEE 754 and its proposed extension p854
      was published in the IEEE magazine MICRO in August 1984
      under the title "A Proposed Radix- and
@@ -551,7 +552,7 @@ SEE ALSO
      Special Issue of Oct. 1979, may be helpful although they
      pertain to superseded drafts of the standard.
 
-AUTHOR
+AAUUTTHHOORR
      W. Kahan, with the help of Z-S. Alex Liu, Stuart I.
      McDonald, Dr. Kwok-Choi Ng, Peter Tang.
 
@@ -587,8 +588,7 @@ AUTHOR
 
 
 
-
-Printed 2/16/100	  May 27, 1986				9
+Printed 9/10/24           May 27, 1986				9
 
 
 

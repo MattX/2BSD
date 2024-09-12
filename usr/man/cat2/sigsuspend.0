@@ -5,42 +5,42 @@ SIGSUSPEND(2)	    UNIX Programmer's Manual	    SIGSUSPEND(2)
 
 
 
-NAME
-     sigsuspend - atomically release blocked signals and wait for
+NNAAMMEE
+     ssiiggssuussppeenndd - atomically release blocked signals and wait for
      interrupt
 
-SYNOPSIS
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
      _i_n_t
-     sigsuspend(sigmask)
+     ssiiggssuussppeenndd(sigmask)
      _s_i_g_s_e_t__t *_s_i_g_m_a_s_k
 
-DESCRIPTION
-     Sigsuspend() temporarily changes the blocked signal mask to
+DDEESSCCRRIIPPTTIIOONN
+     SSiiggssuussppeenndd() temporarily changes the blocked signal mask to
      the set to which _s_i_g_m_a_s_k points, and then waits for a signal
      to arrive; on return the previous set of masked signals is
      restored.	The signal mask set is usually empty to indicate
      that all signals are to be unblocked for the duration of the
      call.
 
-     In normal usage, a signal is blocked using sigprocmask(2) to
+     In normal usage, a signal is blocked using ssiiggpprrooccmmaasskk(2) to
      begin a critical section, variables modified on the
      occurrence of the signal are examined to determine that
      there is no work to be done, and the process pauses awaiting
-     work by using sigsuspend with the previous mask returned by
-     sigprocmask.
+     work by using ssiiggssuussppeenndd with the previous mask returned by
+     ssiiggpprrooccmmaasskk.
 
-RETURN VALUES
-     The sigsuspend function always terminates by being inter-
+RREETTUURRNN VVAALLUUEESS
+     The ssiiggssuussppeenndd function always terminates by being inter-
      rupted, returning -1 with _e_r_r_n_o set to EINTR.  If EFAULT is
      set in _e_r_r_n_o then _s_e_t contains an invalid address.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sigprocmask(2), sigaction(2), sigsetops(3)
 
-STANDARDS
-     The sigsuspend function call conforms to IEEE Std1003.1-1988
+SSTTAANNDDAARRDDSS
+     The ssiiggssuussppeenndd function call conforms to IEEE Std1003.1-1988
      (``POSIX'').
 
 
@@ -60,7 +60,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	September 3, 1997			1
+Printed 9/10/24         September 3, 1997			1
 
 
 

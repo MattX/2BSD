@@ -5,13 +5,13 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-NAME
+NNAAMMEE
      intro - introduction to system calls and error numbers
 
-SYNOPSIS
-     #include <sys/errno.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//eerrrrnnoo..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This section describes all of the system calls.  Most of
      these calls have one or more error returns.  An error condi-
      tion is indicated by an otherwise impossible return value.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 23, 1986				1
+Printed 9/10/24           May 23, 1986				1
 
 
 
@@ -126,7 +126,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				2
+Printed 9/10/24           May 23, 1986				2
 
 
 
@@ -192,7 +192,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				3
+Printed 9/10/24           May 23, 1986				3
 
 
 
@@ -258,7 +258,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				4
+Printed 9/10/24           May 23, 1986				4
 
 
 
@@ -324,7 +324,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				5
+Printed 9/10/24           May 23, 1986				5
 
 
 
@@ -390,7 +390,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				6
+Printed 9/10/24           May 23, 1986				6
 
 
 
@@ -435,7 +435,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 	  newly created file failed because the user's quota of
 	  inodes was exhausted.
 
-DEFINITIONS
+DDEEFFIINNIITTIIOONNSS
      Process ID
 	  Each active process in the system is uniquely identi-
 	  fied by a positive integer called a process ID.  The
@@ -456,7 +456,7 @@ DEFINITIONS
 
 
 
-Printed 2/16/100	  May 23, 1986				7
+Printed 9/10/24           May 23, 1986				7
 
 
 
@@ -522,7 +522,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				8
+Printed 9/10/24           May 23, 1986				8
 
 
 
@@ -588,7 +588,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				9
+Printed 9/10/24           May 23, 1986				9
 
 
 
@@ -654,7 +654,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 
 
 
-Printed 2/16/100	  May 23, 1986			       10
+Printed 9/10/24           May 23, 1986			       10
 
 
 
@@ -678,7 +678,7 @@ INTRO(2)	    UNIX Programmer's Manual		 INTRO(2)
 	  protocols.  Each socket has an address chosen from the
 	  address family in which the socket was created.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(3), perror(3)
 
 
@@ -720,7 +720,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 23, 1986			       11
+Printed 9/10/24           May 23, 1986			       11
 
 
 

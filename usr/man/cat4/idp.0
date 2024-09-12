@@ -5,17 +5,17 @@ IDP(4P)             UNIX Programmer's Manual		  IDP(4P)
 
 
 
-NAME
+NNAAMMEE
      idp - Xerox Internet Datagram Protocol
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <netns/ns.h>
-     #include <netns/idp.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneettnnss//nnss..hh>>
+     ##iinncclluuddee <<nneettnnss//iiddpp..hh>>
 
-     s = socket(AF_NS, SOCK_DGRAM, 0);
+     ss == ssoocckkeett((AAFF__NNSS,, SSOOCCKK__DDGGRRAAMM,, 00));;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      IDP is a simple, unreliable datagram protocol which is used
      to support the SOCK_DGRAM abstraction for the Internet pro-
      tocol family.  IDP sockets are connectionless, and are nor-
@@ -33,7 +33,7 @@ DESCRIPTION
      ports this) by using a reserved "broadcast address"; this
      address is network interface dependent.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	  July 30, 1985                         1
+Printed 9/10/24           July 30, 1985                         1
 
 
 
@@ -71,7 +71,7 @@ IDP(4P)             UNIX Programmer's Manual		  IDP(4P)
 
 
 
-SOCKET OPTIONS
+SSOOCCKKEETT OOPPTTIIOONNSS
      [SO_HEADERS_ON_INPUT]
 		    When set, the first 30 bytes of any data
 		    returned from a read or recv from will be the
@@ -120,13 +120,13 @@ SOCKET OPTIONS
 		    has passed.  It is useful in constructing
 		    Packet Exchange Protocol packets.
 
-SEE ALSO
+SSEEEE AALLSSOO
      send(2), recv(2), intro(4N), ns(4F)
 
 
 
 
-Printed 2/16/100	  July 30, 1985                         2
+Printed 9/10/24           July 30, 1985                         2
 
 
 

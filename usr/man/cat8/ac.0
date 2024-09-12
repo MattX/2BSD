@@ -5,18 +5,18 @@ AC(8)		    UNIX Programmer's Manual		    AC(8)
 
 
 
-NAME
+NNAAMMEE
      ac - login accounting
 
-SYNOPSIS
-     /usr/sbin/ac [ -w wtmp ] [ -p ] [ -d ] [ people ] ...
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//aacc [ --ww wtmp ] [ --pp ] [ --dd ] [ people ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_c produces a printout giving connect time for each user who
      has logged in during the life of the current _w_t_m_p file.  A
-     total is also produced.  -w is used to specify an alternate
-     _w_t_m_p file.  -p prints individual totals; without this
-     option, only totals are printed.  -d causes a printout for
+     total is also produced.  --ww is used to specify an alternate
+     _w_t_m_p file.  --pp prints individual totals; without this
+     option, only totals are printed.  --dd causes a printout for
      each midnight to midnight period.	Any _p_e_o_p_l_e will limit the
      printout to only the specified login names.  If no _w_t_m_p file
      is given, /_u_s_r/_a_d_m/_w_t_m_p is used.
@@ -29,10 +29,10 @@ DESCRIPTION
      without bound, so periodically any information desired
      should be collected and the file truncated.
 
-FILES
+FFIILLEESS
      /usr/adm/wtmp
 
-SEE ALSO
+SSEEEE AALLSSOO
      init(8), sa(8), login(1), utmp(5).
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 

@@ -5,26 +5,26 @@ GETGRENT(3)	    UNIX Programmer's Manual	      GETGRENT(3)
 
 
 
-NAME
+NNAAMMEE
      getgrent, getgrgid, getgrnam, setgrent, endgrent - get group
      file entry
 
-SYNOPSIS
-     #include <grp.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ggrrpp..hh>>
 
-     struct group *getgrent()
+     ssttrruucctt ggrroouupp **ggeettggrreenntt(())
 
-     struct group *getgrgid(gid)
-     int gid;
+     ssttrruucctt ggrroouupp **ggeettggrrggiidd((ggiidd))
+     iinntt ggiidd;;
 
-     struct group *getgrnam(name)
-     char *name;
+     ssttrruucctt ggrroouupp **ggeettggrrnnaamm((nnaammee))
+     cchhaarr **nnaammee;;
 
-     setgrent()
+     sseettggrreenntt(())
 
-     endgrent()
+     eennddggrreenntt(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_g_r_e_n_t, _g_e_t_g_r_g_i_d and _g_e_t_g_r_n_a_m each return pointers to an
      object with the following structure containing the broken-
      out fields of a line in the group file.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 
@@ -71,16 +71,16 @@ GETGRENT(3)	    UNIX Programmer's Manual	      GETGRENT(3)
 
 
 
-FILES
+FFIILLEESS
      /etc/group
 
-SEE ALSO
+SSEEEE AALLSSOO
      getlogin(3), getpwent(3), group(5)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A null pointer (0) is returned on EOF or error.
 
-BUGS
+BBUUGGSS
      All information is contained in a static area so it must be
      copied if it is to be saved.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 15, 1985				2
+Printed 9/10/24           May 15, 1985				2
 
 
 

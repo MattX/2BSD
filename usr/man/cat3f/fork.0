@@ -5,13 +5,13 @@ FORK(3F)	    UNIX Programmer's Manual		 FORK(3F)
 
 
 
-NAME
+NNAAMMEE
      fork - create a copy of this process
 
-SYNOPSIS
-     integer function fork()
+SSYYNNOOPPSSIISS
+     iinntteeggeerr ffuunnccttiioonn ffoorrkk(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_o_r_k creates a copy of the calling process.  The only dis-
      tinction between the 2 processes is that the value returned
      to one of them (referred to as the `parent' process) will be
@@ -32,10 +32,10 @@ DESCRIPTION
      across the exec.  However, the usual function of _f_o_r_k/_e_x_e_c
      can be performed using _s_y_s_t_e_m(3F).
 
-FILES
+FFIILLEESS
      /usr/lib/libU77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      fork(2), wait(3F), kill(3F), system(3F), perror(3F)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 

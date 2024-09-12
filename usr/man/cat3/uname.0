@@ -5,18 +5,18 @@ UNAME(3)	    UNIX Programmer's Manual		 UNAME(3)
 
 
 
-NAME
+NNAAMMEE
      uname - get system identification
 
-SYNOPSIS
-     #include <sys/utsname.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//uuttssnnaammee..hh>>
 
-     int
-     uname(name)
-     struct utsname *name
+     iinntt
+     uunnaammee((nnaammee))
+     ssttrruucctt uuttssnnaammee **nnaammee
 
-DESCRIPTION
-     The uname function stores nul-terminated strings of informa-
+DDEESSCCRRIIPPTTIIOONN
+     The uunnaammee function stores nul-terminated strings of informa-
      tion identifying the current system into the structure
      referenced by _n_a_m_e.
 
@@ -33,23 +33,23 @@ DESCRIPTION
 
      machine	    Machine hardware platform.
 
-RETURN VALUES
-     If uname is successful, 0 is returned, otherwise, -1 is
+RREETTUURRNN VVAALLUUEESS
+     If uunnaammee is successful, 0 is returned, otherwise, -1 is
      returned and _e_r_r_n_o is set appropriately.
 
-ERRORS
-     The uname function may fail and set _e_r_r_n_o for any of the
+EERRRROORRSS
+     The uunnaammee function may fail and set _e_r_r_n_o for any of the
      errors specified for the library functions sysctl(3).
 
-SEE ALSO
+SSEEEE AALLSSOO
      uname(1), sysctl(3)
 
-STANDARDS
-     The uname function conforms to IEEE Std1003.1-88
+SSTTAANNDDAARRDDSS
+     The uunnaammee function conforms to IEEE Std1003.1-88
      (``POSIX'').
 
-HISTORY
-     The uname function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The uunnaammee function first appeared in 4.4BSD.
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	February 4, 1995			1
+Printed 9/10/24         February 4, 1995			1
 
 
 

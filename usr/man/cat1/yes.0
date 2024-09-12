@@ -5,13 +5,13 @@ YES(1)		    UNIX Programmer's Manual		   YES(1)
 
 
 
-NAME
+NNAAMMEE
      yes - be repetitively affirmative
 
-SYNOPSIS
-     yes [ _e_x_p_l_e_t_i_v_e ]
+SSYYNNOOPPSSIISS
+     yyeess [ _e_x_p_l_e_t_i_v_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _Y_e_s repeatedly outputs "y", or if _e_x_p_l_e_t_i_v_e is given, that
      is output repeatedly.  Termination is by rubout.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

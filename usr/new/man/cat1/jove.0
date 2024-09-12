@@ -5,14 +5,14 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
 
 
 
-NAME
+NNAAMMEE
      jove - an interactive display-oriented text editor
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      jove [-d directory] [-w] [-t tag] [+[n] file] [-p file] [files]
      jove -r
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      JOVE is Jonathan's Own Version of Emacs.  It is based on the
      original  EMACS  editor  written at MIT by Richard Stallman.
      Although JOVE is meant to be compatible  with  EMACS,  there
@@ -40,7 +40,7 @@ DESCRIPTION
      (e.g.,  vt100).   If  neither of these works get somebody to
      help you.
 
-INVOKING JOVE
+IINNVVOOKKIINNGG JJOOVVEE
      If you run JOVE with no arguments you will be placed  in  an
      empty buffer, called _M_a_i_n. Otherwise, any arguments you sup-
      ply are considered file names and each is	"given"  its  own
@@ -60,7 +60,7 @@ INVOKING JOVE
 
 
 
-Printed 2/18/100	12 February 1986			1
+Printed 9/10/24         12 February 1986			1
 
 
 
@@ -114,7 +114,7 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
 	  second file in the list is read in and displayed in its
 	  window.
 
-RECOVERING BUFFERS AFTER A CRASH
+RREECCOOVVEERRIINNGG BBUUFFFFEERRSS AAFFTTEERR AA CCRRAASSHH
      The -_r option of jove runs the JOVE  recover  program.   Use
      this  when  the  system  crashes,	or  JOVE  crashes, or you
      accidently get logged out while in JOVE.  If there  are  any
@@ -126,7 +126,7 @@ RECOVERING BUFFERS AFTER A CRASH
 
 
 
-Printed 2/18/100	12 February 1986			2
+Printed 9/10/24         12 February 1986			2
 
 
 
@@ -185,14 +185,14 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
      you do this but wish you hadn't, just type "jove -r" to  the
      shell again, and you will be put back with no loss.
 
-GETTING HELP
+GGEETTTTIINNGG HHEELLPP
      Once in JOVE, there are several commands  available  to  get
      help.   To  execute  any  JOVE  command,  you  type "<ESC> X
      command-name" followed by <Return>.  To get a  list  of  all
 
 
 
-Printed 2/18/100	12 February 1986			3
+Printed 9/10/24         12 February 1986			3
 
 
 
@@ -230,7 +230,7 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
      mend this for beginners; you may save yourself a lot of time
      and headaches.
 
-KEY BINDINGS and VARIABLES
+KKEEYY BBIINNDDIINNGGSS aanndd VVAARRIIAABBLLEESS
      You can alter the key bindings in JOVE to fit your  personal
      tastes.   That is, you can change what a key does every time
      you strike it.  For example, by default the C-N key is bound
@@ -247,7 +247,7 @@ KEY BINDINGS and VARIABLES
      you  set  the  "make-backup-files" variable to "on".  To see
      the value of a variable, use the "print <variable>" command.
 
-INITIALIZATION
+IINNIITTIIAALLIIZZAATTIIOONN
      JOVE automatically reads  commands  from  an  initialization
      file in your HOME directory, called ".joverc".  In this file
      you can place commands that you would normally type in JOVE.
@@ -258,7 +258,7 @@ INITIALIZATION
 
 
 
-Printed 2/18/100	12 February 1986			4
+Printed 9/10/24         12 February 1986			4
 
 
 
@@ -282,7 +282,7 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
      must  BackSlash it (e.g., bind-to-key grow-window ^X\^ binds
      grow-window to "^X^").
 
-SOME MINOR DETAILS
+SSOOMMEE MMIINNOORR DDEETTAAIILLSS
      You should type C-\ instead of C-S in many  instances.   For
      example,  the  way  to  search for a string is documented as
      being "C-S" but in reality you should type "C-\".	 This  is
@@ -304,7 +304,7 @@ SOME MINOR DETAILS
      home and one at work) and one has a metakey  and  the  other
      doesn't.
 
-FILES
+FFIILLEESS
      /usr/new/lib/jove/.joverc - system wide initialization file
      ~/.joverc - personal initialization file
      /tmp - where temporary files are stored
@@ -312,11 +312,11 @@ FILES
      /usr/new/lib/jove/portsrv - for running  shells  in  windows
      (pdp11 only)
 
-SEE ALSO
+SSEEEE AALLSSOO
      ed(1) - for a description of regular expressions
      teachjove(1) - for an interactive JOVE tutorial.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      JOVE diagnostics are meant to be self-explanatory,  but  you
      are advised to seek help whenever you are confused.  You can
      easily lose a lot of work if you don't know EXACTLY what you
@@ -324,7 +324,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/18/100	12 February 1986			5
+Printed 9/10/24         12 February 1986			5
 
 
 
@@ -335,12 +335,12 @@ JOVE(1)             UNIX Programmer's Manual		  JOVE(1)
 
 
 
-BUGS
+BBUUGGSS
      Lines can't be more than 1024 characters long.
 
      Searches can't cross line boundaries.
 
-AUTHOR
+AAUUTTHHOORR
      Jonathan Payne
 
 
@@ -390,7 +390,7 @@ AUTHOR
 
 
 
-Printed 2/18/100	12 February 1986			6
+Printed 9/10/24         12 February 1986			6
 
 
 

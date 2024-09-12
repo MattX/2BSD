@@ -5,21 +5,21 @@ AR(1)               UNIX Programmer's Manual                AR(1)
 
 
 
-NAME
+NNAAMMEE
      ar - create and maintain library archives
 
-SYNOPSIS
-     ar -d [-Tv] archive file ...
-     ar -m [-Tv] archive file ...
-     ar -m [-abiTv] position archive file ...
-     ar -p [-Tv] archive [file ...]
-     ar -q [-cTv] archive file ...
-     ar -r [-cuTv] archive file ...
-     ar -r [-abciuTv] position archive file ...
-     ar -t [-Tv] archive [file ...]
-     ar -x [-ouTv] archive [file ...]
+SSYYNNOOPPSSIISS
+     aarr --dd [[--TTvv]] aarrcchhiivvee ffiillee ......
+     aarr --mm [[--TTvv]] aarrcchhiivvee ffiillee ......
+     aarr --mm [[--aabbiiTTvv]] ppoossiittiioonn aarrcchhiivvee ffiillee ......
+     aarr --pp [[--TTvv]] aarrcchhiivvee [[ffiillee ......]]
+     aarr --qq [[--ccTTvv]] aarrcchhiivvee ffiillee ......
+     aarr --rr [[--ccuuTTvv]] aarrcchhiivvee ffiillee ......
+     aarr --rr [[--aabbcciiuuTTvv]] ppoossiittiioonn aarrcchhiivvee ffiillee ......
+     aarr --tt [[--TTvv]] aarrcchhiivvee [[ffiillee ......]]
+     aarr --xx [[--oouuTTvv]] aarrcchhiivvee [[ffiillee ......]]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _a_r utility creates and maintains groups of files com-
      bined into an archive.  Once an archive has been created,
      new files can be added and existing files can be extracted,
@@ -36,7 +36,7 @@ DESCRIPTION
      the command line, if any was specified, otherwise the name
      in the archive is used.  If multiple files in the archive
      have the same name, and paths are listed on the command line
-     to ``select'' archive files for an operation, only the first
+     to ``select'' archive files for an operation, only the ffiirrsstt
      file with a matching name will be selected.
 
      The normal use of _a_r is for the creation and maintenance of
@@ -45,11 +45,11 @@ DESCRIPTION
      are as follows:
 
      -a   A positioning modifier used with the options -r and -m.
-          The files are entered or moved after the archive member
+          The files are entered or moved aafftteerr the archive member
           _p_o_s_i_t_i_o_n, which must be specified.
 
      -b   A positioning modifier used with the options -r and -m.
-          The files are entered or moved before the archive
+          The files are entered or moved bbeeffoorree the archive
           member _p_o_s_i_t_i_o_n, which must be specified.
 
      -c   Whenever an archive is created, an informational mes-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100         March 21, 1991                         1
+Printed 9/10/24          March 21, 1991                         1
 
 
 
@@ -126,7 +126,7 @@ AR(1)               UNIX Programmer's Manual                AR(1)
 
 
 
-Printed 2/16/100         March 21, 1991                         2
+Printed 9/10/24          March 21, 1991                         2
 
 
 
@@ -184,7 +184,7 @@ AR(1)               UNIX Programmer's Manual                AR(1)
      The _a_r utility exits 0 on success, and >0 if an error
      occurs.
 
-ENVIRONMENT
+EENNVVIIRROONNMMEENNTT
      TMPDIR
           The pathname of the directory to use when creating tem-
           porary files.
@@ -192,7 +192,7 @@ ENVIRONMENT
 
 
 
-Printed 2/16/100         March 21, 1991                         3
+Printed 9/10/24          March 21, 1991                         3
 
 
 
@@ -203,12 +203,12 @@ AR(1)               UNIX Programmer's Manual                AR(1)
 
 
 
-FILES
+FFIILLEESS
      /tmp          default temporary file directory
 
      ar.XXXXXX     temporary file names
 
-COMPATIBILITY
+CCOOMMPPAATTIIBBIILLIITTYY
      By default, _a_r writes archives that may be incompatible with
      historic archives, as the format used for storing archive
      members with names longer than fifteen characters has
@@ -218,11 +218,11 @@ COMPATIBILITY
      provided for compatibility only, and will be deleted in a
      future release.  See _a_r(5) for more information.
 
-STANDARDS
+SSTTAANNDDAARRDDSS
      The _a_r utility is expected to offer a superset of the POSIX
      1003.2 functionality.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ld(1), ranlib(1), strmode(3), ar(5)
 
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100         March 21, 1991                         4
+Printed 9/10/24          March 21, 1991                         4
 
 
 

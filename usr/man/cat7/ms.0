@@ -5,14 +5,14 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 
 
 
-NAME
+NNAAMMEE
      ms - text formatting macros
 
-SYNOPSIS
-     nroff  -ms  [ options ]  file  ...
-     troff  -ms  [ options ]  file  ...
+SSYYNNOOPPSSIISS
+     nnrrooffff  --mmss  [ options ]  file  ...
+     ttrrooffff  --mmss  [ options ]  file  ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This package of _n_r_o_f_f and _t_r_o_f_f macro definitions provides a
      formatting facility for various styles of articles, theses,
      and books.  When producing 2-column output on a terminal or
@@ -34,14 +34,14 @@ DESCRIPTION
      the _t_b_l, _e_q_n, and _r_e_f_e_r(1) preprocessors for equations,
      tables, and references is acceptable as input.
 
-FILES
+FFIILLEESS
      /usr/share/tmac/tmac.x
      /usr/share/ms/x.???
 
-SEE ALSO
+SSEEEE AALLSSOO
      eqn(1), refer(1), tbl(1), troff(1)
 
-REQUESTS
+RREEQQUUEESSTTSS
 Macro	Initial   Break?   Explanation
 Name	Value	  Reset?
 .AB _x	-	  y	 begin abstract; if _x=no don't label abstract
@@ -143,7 +143,7 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 .[0	-	  n	 end of unclassifiable type of reference
 .[N	-	  n	 N= 1:journal-article, 2:book, 3:book-article, 4:report
 
-REGISTERS
+RREEGGIISSTTEERRSS
      Formatting distances can be controlled in -ms by means of
      built-in number registers.  For example, this sets the line
      length to 6.5 inches:
@@ -177,7 +177,7 @@ REGISTERS
 	  Name	String's Function
 	  \*Q	quote (" in _n_r_o_f_f, `` in _t_r_o_f_f )
 	  \*U	unquote (" in _n_r_o_f_f, '' in _t_r_o_f_f )
-	  \*-	dash (-- in _n_r_o_f_f, - in _t_r_o_f_f )
+	  \*-	dash (-- in _n_r_o_f_f, -- in _t_r_o_f_f )
 	  \*(MO month (month of the year)
 	  \*(DY day (current date)
 	  \**	automatically numbered footnote
@@ -205,7 +205,7 @@ MS(7)		    UNIX Programmer's Manual		    MS(7)
 
      before, the letter to be accented.
 
-BUGS
+BBUUGGSS
      Floating keeps and regular keeps are diverted to the same
      space, so they cannot be mixed together with predictable
      results.

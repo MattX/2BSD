@@ -5,14 +5,14 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 
 
 
-NAME
+NNAAMMEE
      error - analyze and disperse compiler error messages
 
-SYNOPSIS
-     error [ -n ] [ -s ] [ -q ] [ -v ] [ -t suffixlist ] [ -I
+SSYYNNOOPPSSIISS
+     eerrrroorr [ --nn ] [ --ss ] [ --qq ] [ --vv ] [ --tt suffixlist ] [ --II
      ignorefile ] [ name ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _E_r_r_o_r analyzes and optionally disperses the diagnostic error
      messages produced by a number of compilers and language pro-
      cessors to the source file and line where the errors
@@ -32,13 +32,13 @@ DESCRIPTION
      Error messages which can't be categorized by language pro-
      cessor or content are not inserted into any file, but are
      sent to the standard output.  _E_r_r_o_r touches source files
-     only after all input has been read.  By specifying the -q
+     only after all input has been read.  By specifying the --qq
      query option, the user is asked to confirm any potentially
      dangerous (such as touching a file) or verbose action.  Oth-
-     erwise _e_r_r_o_r proceeds on its merry business.  If the -t
+     erwise _e_r_r_o_r proceeds on its merry business.  If the --tt
      touch option and associated suffix list is given, _e_r_r_o_r will
      restrict itself to touch only those files with suffices in
-     the suffix list.  Error also can be asked (by specifying -v)
+     the suffix list.  Error also can be asked (by specifying --vv))
      to invoke _v_i(1) on the files in which error messages were
      inserted; this obviates the need to remember the names of
      the files with errors.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 21, 1996			1
+Printed 9/10/24         October 21, 1996			1
 
 
 
@@ -103,7 +103,7 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 	       source file, but are written to the standard out-
 	       put.  The names of functions to ignore are taken
 	       from either the file named ._e_r_r_o_r_r_c in the users's
-	       home directory, or from the file named by the -I
+	       home directory, or from the file named by the --II
 	       option.	If the file does not exist, no error mes-
 	       sages are nullified.  If the file does exist,
 	       there must be one function name per line.
@@ -126,7 +126,7 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 
 
 
-Printed 2/16/100	October 21, 1996			2
+Printed 9/10/24         October 21, 1996			2
 
 
 
@@ -161,22 +161,22 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 
      Options available with _e_r_r_o_r are:
 
-     -n   Do _n_o_t touch any files; all error messages are sent to
+     --nn   Do _n_o_t touch any files; all error messages are sent to
 	  the standard output.
 
-     -q   The user is _q_u_e_r_i_e_d whether s/he wants to touch the
+     --qq   The user is _q_u_e_r_i_e_d whether s/he wants to touch the
 	  file.  A ``y'' or ``n'' to the question is necessary to
-	  continue.  Absence of the -q option implies that all
+	  continue.  Absence of the --qq option implies that all
 	  referenced files (except those referring to discarded
 	  error messages) are to be touched.
 
-     -v   After all files have been touched, overlay the visual
+     --vv   After all files have been touched, overlay the visual
 	  editor _v_i with it set up to edit all files touched, and
 	  positioned in the first touched file at the first
 	  error.  If _v_i can't be found, try _e_x or _e_d from stan-
 	  dard places.
 
-     -t   Take the following argument as a suffix list.  Files
+     --tt   Take the following argument as a suffix list.  Files
 	  whose suffixes do not appear in the suffix list are not
 	  touched.  The suffix list is dot separated, and ``*''
 	  wildcards work.  Thus the suffix list:
@@ -186,13 +186,13 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
 	  allows _e_r_r_o_r to touch files ending with ``.c'', ``.y'',
 	  ``.foo*'' and ``.y''.
 
-     -s   Print out _s_t_a_t_i_s_t_i_c_s regarding the error categoriza-
+     --ss   Print out _s_t_a_t_i_s_t_i_c_s regarding the error categoriza-
 	  tion.  Not too useful.
 
 
 
 
-Printed 2/16/100	October 21, 1996			3
+Printed 9/10/24         October 21, 1996			3
 
 
 
@@ -206,15 +206,15 @@ ERROR(1)	    UNIX Programmer's Manual		 ERROR(1)
      _E_r_r_o_r catches interrupt and terminate signals, and if in the
      insertion phase, will orderly terminate what it is doing.
 
-AUTHOR
+AAUUTTHHOORR
      Robert Henry
 
-FILES
+FFIILLEESS
      ~/.errorrc          function names to ignore for _l_i_n_t error
      messages
      /dev/tty		 user's teletype
 
-BUGS
+BBUUGGSS
      Opens the teletype directly to do user querying.
 
      Source files with links make a new copy of the file with
@@ -258,7 +258,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 21, 1996			4
+Printed 9/10/24         October 21, 1996			4
 
 
 

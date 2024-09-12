@@ -5,10 +5,10 @@ DTAB(5)             UNIX Programmer's Manual		  DTAB(5)
 
 
 
-NAME
+NNAAMMEE
      dtab - automatic system configuration device table (2BSD)
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _d_t_a_b file contains a list of the devices that the _a_u_t_o_-
      _c_o_n_f_i_g(8) program will attempt to attach to the system.
 
@@ -35,7 +35,7 @@ DESCRIPTION
      handler(s)  One or more routine names with which the inter-
 		 rupt vector is filled.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      #		     Device Configuration Table
      #	  Clock and console are pre-configured and should not be listed here
      #
@@ -47,20 +47,20 @@ EXAMPLE
      dh   ?	 160020  320	 5  dhin dhou	    # dh11 terminal mux
      dz   ?	 160110  330	 5  dzin dzdma	    # dz11 terminal mux
 
-FILES
+FFIILLEESS
      /etc/dtab		 device table
 
-SEE ALSO
+SSEEEE AALLSSOO
      autoconfig(8)
 
-BUGS
+BBUUGGSS
      /_E_t_c/_d_t_a_b is unique to the PDP-11 and 2BSD.
 
 
 
 
 
-Printed 2/16/100	January 22, 1987			1
+Printed 9/10/24         January 22, 1987			1
 
 
 

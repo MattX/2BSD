@@ -5,31 +5,31 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-NAME
+NNAAMMEE
      sysctl - get or set system information
 
-SYNOPSIS
-     #include <sys/sysctl.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssyyssccttll..hh>>
 
-     int
-     sysctl(name, namelen, oldp, *oldlenp, *newp, newlen)
-	int *name;
-	u_int namelen;
-	void *oldp;
-	size_t *oldlenp;
-	void *newp;
-	size_t newlen
+     iinntt
+     ssyyssccttll((nnaammee,, nnaammeelleenn,, oollddpp,, **oollddlleennpp,, **nneewwpp,, nneewwlleenn))
+	iinntt **nnaammee;;
+	uu__iinntt nnaammeelleenn;;
+	vvooiidd **oollddpp;;
+	ssiizzee__tt **oollddlleennpp;;
+	vvooiidd **nneewwpp;;
+	ssiizzee__tt nneewwlleenn
 
-DESCRIPTION
-     The sysctl function retrieves system information and allows
+DDEESSCCRRIIPPTTIIOONN
+     The ssyyssccttll function retrieves system information and allows
      processes with appropriate privileges to set system informa-
-     tion.  The information available from sysctl consists of
+     tion.  The information available from ssyyssccttll consists of
      integers, strings, and tables.  Information may be retrieved
      and set from the command interface using the _s_y_s_c_t_l(1) util-
      ity.
 
-     Unless explicitly noted below, sysctl returns a consistent
-     snapshot of the data requested.  Calls to sysctl are serial-
+     Unless explicitly noted below, ssyyssccttll returns a consistent
+     snapshot of the data requested.  Calls to ssyyssccttll are serial-
      ized to avoid deadlock.
 
      The state is described using a ``Management Information
@@ -47,7 +47,7 @@ DESCRIPTION
      set to NULL.
 
      The size of the available data can be determined by calling
-     sysctl with a NULL parameter for _o_l_d_p.  The size of the
+     ssyyssccttll with a NULL parameter for _o_l_d_p.  The size of the
      available data will be returned in the location pointed to
      by _o_l_d_l_e_n_p.  For some operations, the amount of space may
      change often.  For these operations, the system attempts to
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	January 13, 1995			1
+Printed 9/10/24           March 2, 2020                         1
 
 
 
@@ -111,11 +111,11 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  p = malloc(len);
 	  sysctl(mib, 2, p, &len, NULL, 0);
 
-CTL_DEBUG
+CCTTLL__DDEEBBUUGG
      The debugging variables vary from system to system.  A
      debugging variable may be added or deleted without need to
-     recompile sysctl to know about it.  Each time it runs,
-     sysctl gets the list of debugging variables from the kernel
+     recompile ssyyssccttll to know about it.  Each time it runs,
+     ssyyssccttll gets the list of debugging variables from the kernel
      and displays their current values.  The system defines
      twenty _s_t_r_u_c_t _c_t_l_d_e_b_u_g variables named _d_e_b_u_g_0 through
      _d_e_b_u_g_1_9.  They are declared as separate variables so that
@@ -126,7 +126,7 @@ CTL_DEBUG
 
 
 
-Printed 2/16/100	January 13, 1995			2
+Printed 9/10/24           March 2, 2020                         2
 
 
 
@@ -143,11 +143,11 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  int dospecialcheck = 1;
 	  struct ctldebug debug5 = { "dospecialcheck", &dospecialcheck };
 
-CTL_FS
+CCTTLL__FFSS
      There are currently no second level names for the file sys-
      tem.
 
-CTL_HW
+CCTTLL__HHWW
      The string and integer information available for the CTL_HW
      level is detailed below.  The changeable column shows
      whether a process with appropriate privilege may change the
@@ -184,7 +184,7 @@ CTL_HW
 	  The software page size.
 
 
-CTL_KERN
+CCTTLL__KKEERRNN
      The string and integer information available for the
      CTL_KERN level is detailed below.	The changeable column
      shows whether a process with appropriate privilege may
@@ -192,7 +192,7 @@ CTL_KERN
 
 
 
-Printed 2/16/100	January 13, 1995			3
+Printed 9/10/24           March 2, 2020                         3
 
 
 
@@ -235,7 +235,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
        KERN_INODE		struct inode	  no
 
      KERN_ARGMAX
-	  The maximum bytes of argument to exec(2).
+	  The maximum bytes of argument to eexxeecc((22)).
 
      KERN_BOOTTIME
 	  A _s_t_r_u_c_t _t_i_m_e_v_a_l structure is returned.  This structure
@@ -252,13 +252,13 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  _f_i_l_e structures.  Each element of the array contains
 	  the kernel address of a file _s_t_r_u_c_t _i_n_o_d_e * followed by
 	  the file itself _s_t_r_u_c_t _f_i_l_e.	There can never be more
-	  than KERN_MAXFILES inodes returned.
+	  than KKEERRNN__MMAAXXFFIILLEESS inodes returned.
 
      KERN_HOSTID
 
 
 
-Printed 2/16/100	January 13, 1995			4
+Printed 9/10/24           March 2, 2020                         4
 
 
 
@@ -324,7 +324,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-Printed 2/16/100	January 13, 1995			5
+Printed 9/10/24           March 2, 2020                         5
 
 
 
@@ -390,7 +390,7 @@ KERN_INODE
 
 
 
-Printed 2/16/100	January 13, 1995			6
+Printed 9/10/24           March 2, 2020                         6
 
 
 
@@ -406,7 +406,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
      current number of such objects in the system.  Each element
      of the array contains the kernel address of a inode _s_t_r_u_c_t
      _i_n_o_d_e * followed by the inode itself _s_t_r_u_c_t _i_n_o_d_e.  There
-     can never be more than KERN_MAXINODES inodes returned.
+     can never be more than KKEERRNN__MMAAXXIINNOODDEESS inodes returned.
 
 KERN_TEXT
      Return the entire text table.  The returned data consists of
@@ -414,16 +414,16 @@ KERN_TEXT
      objects active in the system. Each element of the array con-
      tains the kernel address of a text _s_t_r_u_c_t _t_e_x_t * followed by
      the text structure itself _s_t_r_u_c_t _t_e_x_t.  There can never be
-     more structures than returned by KERN_MAXTEXTS.
+     more structures than returned by KKEERRNN__MMAAXXTTEEXXTTSS.
 
-CTL_MACHDEP
+CCTTLL__MMAACCHHDDEEPP
      The set of variables defined is architecture dependent.
      Most architectures define at least the following variables.
 
        Second level name	Type	  Changeable
        CPU_CONSDEV		dev_t	  no
 
-CTL_NET
+CCTTLL__NNEETT
      The string and integer information available for the CTL_NET
      level is detailed below.  The changeable column shows
      whether a process with appropriate privilege may change the
@@ -456,7 +456,7 @@ CTL_NET
 
 
 
-Printed 2/16/100	January 13, 1995			7
+Printed 9/10/24           March 2, 2020                         7
 
 
 
@@ -503,7 +503,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  discouraged.
 
 
-CTL_USER
+CCTTLL__UUSSEERR
      The string and integer information available for the
      CTL_USER level is detailed below.	The changeable column
      shows whether a process with appropriate privilege may
@@ -522,7 +522,7 @@ CTL_USER
 
 
 
-Printed 2/16/100	January 13, 1995			8
+Printed 9/10/24           March 2, 2020                         8
 
 
 
@@ -588,7 +588,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
 
-Printed 2/16/100	January 13, 1995			9
+Printed 9/10/24           March 2, 2020                         9
 
 
 
@@ -638,7 +638,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  The minimum maximum number of types supported for the
 	  name of a timezone.
 
-CTL_VM
+CCTTLL__VVMM
      The string and integer information available for the CTL_VM
      level is detailed below.  The changeable column shows
      whether a process with appropriate privilege may change the
@@ -647,14 +647,14 @@ CTL_VM
        Second level name   Type              Changeable
        VM_LOADAVG	   struct loadavg    no
        VM_METER            struct vmtotal    no
-       VM_SWAPMAP	   struct map	     no
-       VM_COREMAP	   struct map	     no
+       VM_SWAPMAP	   struct mapent     no
+       VM_COREMAP	   struct mapent     no
+       VM_NSWAP            int		     no
 
 
 
 
-
-Printed 2/16/100	January 13, 1995		       10
+Printed 9/10/24           March 2, 2020                        10
 
 
 
@@ -675,7 +675,7 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
      VM_SWAPMAP
 	  Return the swapmap.  The size of this structure is
-	  fixed and may be determined by specifying a oldlenp
+	  fixed and may be determined by specifying a oollddlleennpp
 	  initialized to zero, the kernel will fill in the size
 	  of the swapmap.
 
@@ -683,11 +683,15 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 	  Same as for swapmap above except that the core alloca-
 	  tion map is returned.
 
-RETURN VALUES
-     If the call to sysctl is successful, 0 is returned.  Other-
+     VM_NSWAP
+	  Return the number of sectors of swap space.  This is
+	  the value of the kernel variable 'nswap'.
+
+RREETTUURRNN VVAALLUUEESS
+     If the call to ssyyssccttll is successful, 0 is returned.  Other-
      wise -1 is returned and _e_r_r_n_o is set appropriately.
 
-ERRORS
+EERRRROORRSS
      The following errors may be reported:
 
      EFAULT	    The buffer _n_a_m_e, _o_l_d_p , _n_e_w_p , or length
@@ -713,14 +717,10 @@ ERRORS
      EPERM	    A process without appropriate privilege
 		    attempts to set a value.
 
-FILES
-     <sys/sysctl.h> definitions for top level identifiers, second
-		    level kernel and hardware identifiers, and
-		    user level identifiers
 
 
 
-Printed 2/16/100	January 13, 1995		       11
+Printed 9/10/24           March 2, 2020                        11
 
 
 
@@ -730,6 +730,11 @@ Printed 2/16/100	January 13, 1995		       11
 SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
 
 
+
+FFIILLEESS
+     <sys/sysctl.h> definitions for top level identifiers, second
+		    level kernel and hardware identifiers, and
+		    user level identifiers
 
      <sys/socket.h> definitions for second level network identif-
 		    iers
@@ -750,11 +755,11 @@ SYSCTL(3)	    UNIX Programmer's Manual		SYSCTL(3)
      <netinet/udp_var.h>
 		    definitions for fourth level UDP identifiers
 
-SEE ALSO
+SSEEEE AALLSSOO
      _s_y_s_c_t_l(_8)
 
-HISTORY
-     The sysctl function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ssyyssccttll function first appeared in 4.4BSD.
 
      The KERN_TEXT, KERN_MAXTEXTS, VM_SWAPMAP, VM_COREMAP options
      are 2.11BSD specific extensions to the 4.4BSD _s_y_s_c_t_l impl-
@@ -781,12 +786,7 @@ HISTORY
 
 
 
-
-
-
-
-
-Printed 2/16/100	January 13, 1995		       12
+Printed 9/10/24           March 2, 2020                        12
 
 
 

@@ -5,13 +5,13 @@ FSTAT(8)	    UNIX Programmer's Manual		 FSTAT(8)
 
 
 
-NAME
+NNAAMMEE
      fstat - file status
 
-SYNOPSIS
-     fstat [ -u user ] [ -p pid ] [ filename... ]
+SSYYNNOOPPSSIISS
+     ffssttaatt [ --uu user ] [ --pp pid ] [ ffiilleennaammee...... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_s_t_a_t identifies open files.  A file is considered open if a
      process has it open, if it is the working directory for a
      process, or if it is an active pure text file.  If no
@@ -19,11 +19,11 @@ DESCRIPTION
 
      Options:
 
-     -u    Report all files open by a specified user.
+     --uu    Report all files open by a specified user.
 
-     -p    Report all files open by a specified process id.
+     --pp    Report all files open by a specified process id.
 
-     filename...
+     ffiilleennaammee......
 	   Restrict reports to the specified files.  If the file
 	   is a block special file, _f_s_t_a_t additionally reports on
 	   any open files on that device, treating it as a
@@ -31,13 +31,13 @@ DESCRIPTION
 
      The following fields are printed
 
-     USER  The username of the owner of the process.
+     UUSSEERR  The username of the owner of the process.
 
-     CMD   The command name of the process.
+     CCMMDD   The command name of the process.
 
-     PID   The process id.
+     PPIIDD   The process id.
 
-     FD    The file number in the per-process open file table.
+     FFDD    The file number in the per-process open file table.
 	   The special names "text" and "wd" mean that the file
 	   is the pure text inode or the working directory for
 	   the process.  If the file number is followed by an
@@ -48,19 +48,19 @@ DESCRIPTION
 	   enclosed in parenthesis.  The following paragraph
 	   describing sockets will explain the variable format.
 
-     DEVICE
+     DDEEVVIICCEE
 	   Major minor number of the device this file exists on.
 
-     INODE The inode number of the file.
+     IINNOODDEE The inode number of the file.
 
-     SIZE  The size in bytes of the file.
+     SSIIZZEE  The size in bytes of the file.
 
-     TYPE  The type of the file. (see sys/file.h)
-
-
+     TTYYPPEE  The type of the file. (see sys/file.h)
 
 
-Printed 2/16/100	December 12, 1987			1
+
+
+Printed 9/10/24         December 12, 1987			1
 
 
 
@@ -92,13 +92,13 @@ FSTAT(8)	    UNIX Programmer's Manual		 FSTAT(8)
      direction of flow with an arrow ("<-" or "->"), and a full
      duplex socket shows a double arrow ("<->").
 
-BUGS
+BBUUGGSS
      Socket information clutters the output.
 
      Since _f_s_t_a_t takes a snapshot of the system, it is only
      correct for a very short period of time.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ps(1), pstat(8)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	December 12, 1987			2
+Printed 9/10/24         December 12, 1987			2
 
 
 

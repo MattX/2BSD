@@ -5,13 +5,13 @@ IMPLOGD(8)	    UNIX Programmer's Manual	       IMPLOGD(8)
 
 
 
-NAME
+NNAAMMEE
      implogd - IMP logger process
 
-SYNOPSIS
-     /usr/sbin/implogd [ -d ]
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//iimmppllooggdd [ --dd ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_m_p_l_o_g_d is program which logs error messages from the IMP,
      placing them in the file /_u_s_r/_a_d_m/_i_m_p_l_o_g.
 
@@ -37,7 +37,7 @@ DESCRIPTION
      such as ``IMP going down'' messages, ``host down'' and other
      error messages, and, perhaps, stray NCP messages.
 
-SEE ALSO
+SSEEEE AALLSSOO
      imp(4P), implog(8C)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 

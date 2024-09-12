@@ -5,15 +5,15 @@ LN(1)		    UNIX Programmer's Manual		    LN(1)
 
 
 
-NAME
+NNAAMMEE
      ln - make links
 
-SYNOPSIS
-     ln [ -s ] sourcename [ targetname ]
-     ln [ -s ] sourcename1 sourcename2 [ sourcename3 ... ] tar-
+SSYYNNOOPPSSIISS
+     llnn [ --ss ] sourcename [ targetname ]
+     llnn [ --ss ] sourcename1 sourcename2 [ sourcename3 ... ] tar-
      getdirectory
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      A link is a directory entry referring to a file; the same
      file (together with its size, all its protection informa-
      tion, etc.) may have several links to it.	There are two
@@ -25,7 +25,7 @@ DESCRIPTION
      to reference the file.  Hard links may not span file systems
      and may not refer to directories.
 
-     The -s option causes _l_n to create symbolic links.	A sym-
+     The --ss option causes _l_n to create symbolic links.	A sym-
      bolic link contains the name of the file to which it is
      linked.  The referenced file is used when an _o_p_e_n(2) opera-
      tion is performed on the link.  A _s_t_a_t(2) on a symbolic link
@@ -45,7 +45,7 @@ DESCRIPTION
      _d_i_r_e_c_t_o_r_y to all the named source files.  The links made
      will have the same name as the files being linked to.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rm(1), cp(1), mv(1), link(2), readlink(2), stat(2), sym-
      link(2)
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 10, 1986                         1
+Printed 9/10/24          April 10, 1986                         1
 
 
 

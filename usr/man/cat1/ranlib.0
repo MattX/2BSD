@@ -5,13 +5,13 @@ RANLIB(1)	    UNIX Programmer's Manual		RANLIB(1)
 
 
 
-NAME
+NNAAMMEE
      ranlib - table-of-contents for archive libraries
 
-SYNOPSIS
-     ranlib [-t] file ...
+SSYYNNOOPPSSIISS
+     rraannlliibb [[--tt]] ffiillee ......
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_a_n_l_i_b creates a table of external references for archive
      libraries, normally used by the loader, _l_d(1).  This table
      is is named ``__.SYMDEF'' and is prepended to the archive.
@@ -29,15 +29,15 @@ DESCRIPTION
 	  ``touch'' the modification time so that it appears that
 	  the table is up-to-date.
 
-FILES
+FFIILLEESS
      /tmp	   default temporary file directory
 
      ranlib.XXXXXX temporary file names
 
-SEE ALSO
+SSEEEE AALLSSOO
      _a_r(1), _l_d(1), _l_o_r_d_e_r(1), _n_m(1), _r_a_n_l_i_b(5)
 
-HISTORY
+HHIISSTTOORRYY
      A _r_a_n_l_i_b command appeared in Version 7 AT&T UNIX.
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	   May 9, 1991				1
+Printed 9/10/24            May 9, 1991				1
 
 
 

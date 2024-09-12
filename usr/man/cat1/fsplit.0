@@ -5,15 +5,15 @@ FSPLIT(1)	    UNIX Programmer's Manual		FSPLIT(1)
 
 
 
-NAME
+NNAAMMEE
      fsplit - split a multi-routine Fortran file into individual
      files
 
-SYNOPSIS
-     fsplit [ -e efile] ... [ file ]
+SSYYNNOOPPSSIISS
+     ffsspplliitt [ --ee efile] ... [ file ]
 
-DESCRIPTION
-     Fsplit takes as input either a file or standard input con-
+DDEESSCCRRIIPPTTIIOONN
+     FFsspplliitt takes as input either a file or standard input con-
      taining Fortran source code.  It attempts to split the input
      into separate routine files of the form _n_a_m_e._f, where _n_a_m_e
      is the name of the program unit (e.g. function, subroutine,
@@ -32,14 +32,14 @@ DESCRIPTION
 	  fsplit -e readit -e doit prog.f
      will split readit and doit into separate files.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      If names specified via the -_e option are not found, a diag-
      nostic is written to _s_t_a_n_d_a_r_d _e_r_r_o_r.
 
-AUTHOR
+AAUUTTHHOORR
      Asa Romberger and Jerry Berkman
 
-BUGS
+BBUUGGSS
      _F_s_p_l_i_t assumes the subprogram name is on the first noncom-
      ment line of the subprogram unit.	Nonstandard source for-
      mats may confuse _f_s_p_l_i_t.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

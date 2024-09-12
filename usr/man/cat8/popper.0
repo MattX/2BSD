@@ -5,13 +5,13 @@ popper(8)	    UNIX Programmer's Manual		popper(8)
 
 
 
-NAME
+NNAAMMEE
      popper - pop 3 server
 
-SYNOPSIS
-     /usr/libexec/popper [ -d ] [ -t trace-file]
+SSYYNNOOPPSSIISS
+     //uussrr//lliibbeexxeecc//ppooppppeerr [ -d ] [ -t trace-file]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_o_p_p_e_r is an implementation  of  the  Post  Office  Protocol
      server  that  runs  on a variety of Unix computers to manage
      electronic mail for Macintosh  and  MS-DOS  computers.   The
@@ -20,19 +20,19 @@ DESCRIPTION
      1081  and RFC 1082.  The Berkeley server also has extensions
      to send electronic mail on behalf of a client.
 
-     The -d flag sets the socket to debugging and turns on debug-
+     The --dd flag sets the socket to debugging and turns on debug-
      ging.   All  debugging information is saved using syslog(8).
-     The -t trace-file flag turns  on  debugging  and  saves  the
+     The --tt ttrraaccee--ffiillee flag turns  on  debugging  and  saves  the
      trace information in _t_r_a_c_e-_f_i_l_e using fprintf(s).
 
-HOW TO OBTAIN THE SERVER
+HHOOWW TTOO OOBBTTAAIINN TTHHEE SSEERRVVEERR
      The  POP  server  is  available  via  anonymous   ftp   from
      ftp.CC.Berkeley.EDU (128.32.136.9, 128.32.206.12).  It is in
      two files in  the	pub  directory:  a  compressed	tar  file
      popper.tar.Z  and a Macintosh StuffIt archive in BinHex for-
      mat called MacPOP.sit.hqx.
 
-THE POP TRANSACTION CYCLE
+TTHHEE PPOOPP TTRRAANNSSAACCTTIIOONN CCYYCCLLEE
      The Berkeley POP server is a single program (called  popper)
      that  is launched by inetd when it gets a service request on
      the POP TCP port.	(The official port  number  specified  in
@@ -60,7 +60,7 @@ THE POP TRANSACTION CYCLE
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 
@@ -82,7 +82,7 @@ popper(8)	    UNIX Programmer's Manual		popper(8)
      is terminated and the user's maildrop is  updated	with  the
      (possibly) modified temporary maildrop.
 
-LOGGING
+LLOOGGGGIINNGG
      The POP server uses syslog to keep a record of  its  activi-
      ties.   On  systems with BSD 4.3 syslogging, the server logs
      (by default) to the "local0" facility at  priority  "notice"
@@ -92,7 +92,7 @@ LOGGING
      On systems with 4.2 syslogging all messages  are  logged  to
      the local log file, usually /usr/spool/mqueue/syslog.
 
-DEBUGGING
+DDEEBBUUGGGGIINNGG
      The popper program will log debugging information	when  the
      -d  parameter  is	specified  after  its  invocation  in the
      inetd.conf file.  Care should be  exercised  in  using  this
@@ -120,13 +120,13 @@ DEBUGGING
      quit
      Connection closed by foreign host.
 
-VERSION 1.7 RELEASE NOTES
+VVEERRSSIIOONN 11..77 RREELLEEAASSEE NNOOTTEESS
      Extensive re-write of the maildrop processing  code  contri-
      buted  by	Viktor	Dukhovni <viktor@math.princeton.edu> that
 
 
 
-Printed 2/16/100	November 27, 1996			2
+Printed 9/10/24         November 27, 1996			2
 
 
 
@@ -155,7 +155,7 @@ popper(8)	    UNIX Programmer's Manual		popper(8)
      Note:  You still need to use the -d or -t option  to  obtain
      debugging output.
 
-LIMITATIONS
+LLIIMMIITTAATTIIOONNSS
      The POP server copies the user's entire maildrop to /tmp and
      then operates on that copy.  If the maildrop is particularly
      large, or inadequate space is available in  /tmp,	then  the
@@ -169,15 +169,15 @@ LIMITATIONS
      minates.	This problem is being worked on and will be fixed
      in a later release.
 
-FILES
+FFIILLEESS
      /usr/spool/mail	     mail files
      /etc/inetd.conf	     pop program invocation
      /etc/syslog.conf	     logging specifications
 
-SEE ALSO
+SSEEEE AALLSSOO
      inetd(8), RFC1081, RFC1082
 
-AUTHORS
+AAUUTTHHOORRSS
      Bob Campbell, Edward Moy, Austin Shelton, Marshall  T  Rose,
      and cast of thousands at Rand, UDel, UCI, and elsewhere
 
@@ -192,7 +192,7 @@ AUTHORS
 
 
 
-Printed 2/16/100	November 27, 1996			3
+Printed 9/10/24         November 27, 1996			3
 
 
 

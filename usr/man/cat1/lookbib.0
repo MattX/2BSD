@@ -5,15 +5,15 @@ LOOKBIB(1)	    UNIX Programmer's Manual	       LOOKBIB(1)
 
 
 
-NAME
+NNAAMMEE
      indxbib, lookbib - build inverted index for a bibliography,
      find references in a bibliography
 
-SYNOPSIS
-     indxbib database  ...
-     lookbib [ -n ] database
+SSYYNNOOPPSSIISS
+     iinnddxxbbiibb database  ...
+     llooookkbbiibb [ --nn ] database
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_n_d_x_b_i_b makes an inverted index to the named _d_a_t_a_b_a_s_e_s (or
      files) for use by _l_o_o_k_b_i_b(1) and _r_e_f_e_r(1).  These files con-
      tain bibliographic references (or other kinds of informa-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 
@@ -71,14 +71,14 @@ LOOKBIB(1)	    UNIX Programmer's Manual	       LOOKBIB(1)
 
 
 
-FILES
+FFIILLEESS
      _x.ia, _x.ib, _x.ic, where _x is the first argument, or if these
      are not present, then _x.ig, _x
 
-SEE ALSO
+SSEEEE AALLSSOO
      refer(1), addbib(1), sortbib(1), roffbib(1), lookbib(1)
 
-BUGS
+BBUUGGSS
      Probably all dates should be indexed, since many disciplines
      refer to literature written in the 1800s or earlier.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 22, 1996			2
+Printed 9/10/24         October 22, 1996			2
 
 
 

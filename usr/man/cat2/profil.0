@@ -5,15 +5,15 @@ PROFIL(2)	    UNIX Programmer's Manual		PROFIL(2)
 
 
 
-NAME
+NNAAMMEE
      profil - execution time profile
 
-SYNOPSIS
-     profil(buff, bufsiz, offset, scale)
-     char *buff;
-     int bufsiz, offset, scale;
+SSYYNNOOPPSSIISS
+     pprrooffiill((bbuuffff,, bbuuffssiizz,, ooffffsseett,, ssccaallee))
+     cchhaarr **bbuuffff;;
+     iinntt bbuuffssiizz,, ooffffsseett,, ssccaallee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_u_f_f points to an area of core whose length (in bytes) is
      given by _b_u_f_s_i_z.  After this call, the user's program
      counter (pc) is examined each clock tick (VAX and TAHOE: 100
@@ -33,10 +33,10 @@ DESCRIPTION
      child and parent both after a _f_o_r_k.  Profiling is turned off
      if an update in _b_u_f_f would cause a memory fault.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      A 0, indicating success, is always returned.
 
-SEE ALSO
+SSEEEE AALLSSOO
      gprof(1), prof(1), setitimer(2), monitor(3)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	   May 6, 1987				1
+Printed 9/10/24            May 6, 1987				1
 
 
 

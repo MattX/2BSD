@@ -5,19 +5,19 @@ ERF(3M)             UNIX Programmer's Manual		  ERF(3M)
 
 
 
-NAME
+NNAAMMEE
      erf, erfc - error functions
 
-SYNOPSIS
-     #include <math.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<mmaatthh..hh>>
 
-     double erf(x)
-     double x;
+     ddoouubbllee eerrff((xx))
+     ddoouubbllee xx;;
 
-     double erfc(x)
-     double x;
+     ddoouubbllee eerrffcc((xx))
+     ddoouubbllee xx;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Erf(x) returns the error function of x; where
 
      erf(x) = 2/sqrt(pi)*integral from 0 to x of exp(-t*t) dt.
@@ -29,7 +29,7 @@ DESCRIPTION
      result subtracted from 1.	(e.g. for x = 10, 12 places are
      lost).
 
-SEE ALSO
+SSEEEE AALLSSOO
      math(3M)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 

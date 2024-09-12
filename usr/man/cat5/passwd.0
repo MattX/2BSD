@@ -5,10 +5,10 @@ PASSWD(5)	    UNIX Programmer's Manual		PASSWD(5)
 
 
 
-NAME
+NNAAMMEE
      passwd - password files
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_a_s_s_w_d files are files consisting of newline separated
      records, one per user, containing ten colon (``:'')
      separated fields.	These fields are as follows:
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	   May 8, 1989				1
+Printed 9/10/24            May 8, 1989				1
 
 
 
@@ -97,11 +97,11 @@ PASSWD(5)	    UNIX Programmer's Manual		PASSWD(5)
      If the _s_h_e_l_l field is empty, the Bourne shell (/_b_i_n/_s_h) is
      assumed.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chpass(1), login(1), passwd(1), getpwent(3), mkpasswd(8),
      vipw(8) adduser(8)
 
-BUGS
+BBUUGGSS
      User information should (and eventually will) be stored
      elsewhere.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 8, 1989				2
+Printed 9/10/24            May 8, 1989				2
 
 
 

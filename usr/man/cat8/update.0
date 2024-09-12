@@ -5,23 +5,23 @@ UPDATE(8)	    UNIX Programmer's Manual		UPDATE(8)
 
 
 
-NAME
+NNAAMMEE
      update - periodically update the super block
 
-SYNOPSIS
-     update
+SSYYNNOOPPSSIISS
+     uuppddaattee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_p_d_a_t_e is a program that executes the _s_y_n_c(2) primitive
      every 30 seconds.	This insures that the file system is
      fairly up to date in case of a crash.  This command should
      not be executed directly, but should be executed out of the
      initialization shell command file.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sync(2), sync(8), init(8), rc(8)
 
-BUGS
+BBUUGGSS
      With _u_p_d_a_t_e running, if the CPU is halted just as the _s_y_n_c
      is executed, a file system can be damaged.  This is par-
      tially due to DEC hardware that writes zeros when NPR
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 17, 1996			1
+Printed 9/10/24         November 17, 1996			1
 
 
 

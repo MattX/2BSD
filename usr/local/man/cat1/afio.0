@@ -5,32 +5,32 @@ AFIO(1)             UNIX Programmer's Manual		  AFIO(1)
 
 
 
-NAME
+NNAAMMEE
      afio - manipulate archives and files
 
-SYNOPSIS
-     afio -o [ _o_p_t_i_o_n_s ] archive
-     afio -t [ _o_p_t_i_o_n_s ] archive
-     afio -i [ _o_p_t_i_o_n_s ] archive
-     afio -p [ _o_p_t_i_o_n_s ] directory [ ... ]
+SSYYNNOOPPSSIISS
+     aaffiioo --oo [ _o_p_t_i_o_n_s ] archive
+     aaffiioo --tt [ _o_p_t_i_o_n_s ] archive
+     aaffiioo --ii [ _o_p_t_i_o_n_s ] archive
+     aaffiioo --pp [ _o_p_t_i_o_n_s ] directory [ ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_f_i_o manipulates groups of files, copying them within the
      (collective) filesystem or between the filesystem and an
      _a_f_i_o archive. Note that _a_f_i_o archives are portable, as they
      contain only ASCII-formatted header information. They are
      also compatible with ASCII _c_p_i_o(1) archives (ala _c_p_i_o -_c).
 
-     With -o, reads pathnames from the standard input and writes
+     With --oo, reads pathnames from the standard input and writes
      an _a_r_c_h_i_v_e.
 
-     With -t, reads an _a_r_c_h_i_v_e and writes a table-of-contents to
+     With --tt, reads an _a_r_c_h_i_v_e and writes a table-of-contents to
      the standard output.
 
-     With -i, installs the contents of an _a_r_c_h_i_v_e relative to the
+     With --ii, installs the contents of an _a_r_c_h_i_v_e relative to the
      working directory.
 
-     With -p, reads pathnames from the standard input and copies
+     With --pp, reads pathnames from the standard input and copies
      the files to each _d_i_r_e_c_t_o_r_y.
 
      Creates missing directories as necessary, with permissions
@@ -45,22 +45,22 @@ DESCRIPTION
 
      Options:
 
-     -b _s_i_z_e	  Read or write _s_i_z_e-character archive blocks.
-		  Suffices of b, k and m denote multiples of _5_1_2,
+     --bb _s_i_z_e	  Read or write _s_i_z_e-character archive blocks.
+		  Suffices of bb, kk and mm denote multiples of _5_1_2,
 		  _1_0_2_4 and _1_0_4_8_5_7_6, respectively.  Defaults to
 		  _5_1_2_0 for compatibility with _c_p_i_o(1).
 
-     -c _c_o_u_n_t	  Buffer _c_o_u_n_t archive blocks between I/O opera-
+     --cc _c_o_u_n_t	  Buffer _c_o_u_n_t archive blocks between I/O opera-
 		  tions. A large _c_o_u_n_t is recommended with
 		  streaming magnetic tape drives.
 
-     -d           Don't create missing directories.
+     --dd           Don't create missing directories.
 
-     -e _b_o_u_n_d	  Pad the archive to a multiple of _b_o_u_n_d
+     --ee _b_o_u_n_d	  Pad the archive to a multiple of _b_o_u_n_d
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -72,61 +72,61 @@ AFIO(1)             UNIX Programmer's Manual		  AFIO(1)
 
 
 		  characters.  Recognizes the same suffices as
-		  -s.  Defaults to _1_x (the -b block size) for
+		  --ss.  Defaults to _1_x (the --bb block size) for
 		  compatibility with _c_p_i_o(1).
 
-     -f           Spawn a child process to actually write to the
+     --ff           Spawn a child process to actually write to the
 		  archive; provides a clumsy form of double-
-		  buffering.  Requires -s for multi-volume
+		  buffering.  Requires --ss for multi-volume
 		  archive support.
 
-     -g           Change to input file directories. Avoids qua-
+     --gg           Change to input file directories. Avoids qua-
 		  dratic filesystem behavior with long similar
 		  pathnames. Requires all absolute pathnames,
-		  including those for the -o _a_r_c_h_i_v_e and the -p
+		  including those for the --oo _a_r_c_h_i_v_e and the --pp
 		  _d_i_r_e_c_t_o_r_i_e_s.
 
-     -h           Follow symbolic links, treating them as ordi-
+     --hh           Follow symbolic links, treating them as ordi-
 		  nary files and directories.
 
-     -j           Don't generate sparse filesystem blocks.
+     --jj           Don't generate sparse filesystem blocks.
 
-     -k           Skip corrupt data at the _b_e_g_i_n_n_i_n_g of an
+     --kk           Skip corrupt data at the _b_e_g_i_n_n_i_n_g of an
 		  archive (rather than complaining about unrecog-
 		  nizable input).
 
-     -l           With -o, write file contents with each hard
+     --ll           With --oo, write file contents with each hard
 		  link.
 
-		  With -t, report hard links.
+		  With --tt, report hard links.
 
-		  With -p, attempt to link files rather than
+		  With --pp, attempt to link files rather than
 		  copying them.
 
-     -m           Mark output files with a common current times-
+     --mm           Mark output files with a common current times-
 		  tamp (rather than with input file modification
 		  times).
 
-     -n           Protect newer existing files (comparing file
+     --nn           Protect newer existing files (comparing file
 		  modification times).
 
-     -s _l_i_m_i_t	  Restrict each portion of a multi-volume archive
+     --ss _l_i_m_i_t	  Restrict each portion of a multi-volume archive
 		  to _l_i_m_i_t characters.	Recognizes the same suf-
-		  fices as -b.	Also, the suffix x denotes a mul-
-		  tiple of the -b block size (and must follow any
-		  -b specification).  Useful with finite-length
+		  fices as --bb.	Also, the suffix xx denotes a mul-
+		  tiple of the --bb block size (and must follow any
+		  --bb specification).  Useful with finite-length
 		  devices which do not return short counts at end
 		  of media (sigh); output to magnetic tape typi-
 		  cally falls into this category.
 
-     -u           Report files with unseen links.
+     --uu           Report files with unseen links.
 
-     -v           Verbose. Report pathnames as they are pro-
-		  cessed. With -t, gives an _l_s -_l style report
+     --vv           Verbose. Report pathnames as they are pro-
+		  cessed. With --tt, gives an _l_s -_l style report
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -139,37 +139,37 @@ AFIO(1)             UNIX Programmer's Manual		  AFIO(1)
 
 		  (including link information).
 
-     -x           Retain file ownership and setuid/setgid permis-
+     --xx           Retain file ownership and setuid/setgid permis-
 		  sions.  This is the default for the super-user;
-		  he may use -X to override it.
+		  he may use --XX to override it.
 
-     -y _p_r_e_f_i_x	  Restrict archive processing to names beginning
+     --yy _p_r_e_f_i_x	  Restrict archive processing to names beginning
 		  with _p_r_e_f_i_x.	Specify once for each prefix to
-		  be recognized.  Use -Y to supply prefixes which
+		  be recognized.  Use --YY to supply prefixes which
 		  are _n_o_t to be processed.
 
-     -z           Print execution statistics. This is meant for
+     --zz           Print execution statistics. This is meant for
 		  human consumption; use by other programs is
 		  officially discouraged.
 
      Special-case archive names:
 
-	o  Specify - to read or write the standard input or out-
+	oo  Specify - to read or write the standard input or out-
 	   put, respectively.  This disables multi-volume archive
 	   handling.
 
-	o  Prefix a command string to be executed with an excla-
+	oo  Prefix a command string to be executed with an excla-
 	   mation mark (!).  The command is executed once for
 	   each archive volume, with its standard input or output
 	   piped to _a_f_i_o.  It is expected to produce a zero exit
 	   code when all is well.
 
-	o  Use _s_y_s_t_e_m:_f_i_l_e to access an archive in _f_i_l_e on _s_y_s_-
+	oo  Use _s_y_s_t_e_m:_f_i_l_e to access an archive in _f_i_l_e on _s_y_s_-
 	   _t_e_m.  This is really just a special case of pipelin-
 	   ing.  It requires a 4.2BSD-style remote shell
 	   (_r_s_h(1C)) and a remote copy of _a_f_i_o.
 
-	o  Anything else specifies a local file or device.  An
+	oo  Anything else specifies a local file or device.  An
 	   output file will be created if it does not already
 	   exist.
 
@@ -185,14 +185,14 @@ AFIO(1)             UNIX Programmer's Manual		  AFIO(1)
      directories. For example, ./_s_r_c/_s_h/../_m_i_s_c/_a_f_i_o._c becomes
      _s_r_c/_m_i_s_c/_a_f_i_o._c.
 
-BUGS
+BBUUGGSS
      There are too many options.
 
 
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 
@@ -217,10 +217,10 @@ AFIO(1)             UNIX Programmer's Manual		  AFIO(1)
      "usr.src/../bin/cu" is mis-optimized into "bin/cu" (rather
      than "/usr/bin/cu").
 
-SEE ALSO
+SSEEEE AALLSSOO
      cpio(1), find(1), tar(1), tp(1).
 
-AUTHOR
+AAUUTTHHOORR
      Mark Brukhartz
      ..!_i_h_n_p_4!_l_a_i_d_b_a_k!_m_d_b
 
@@ -258,7 +258,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						4
+Printed 9/10/24                                                 4
 
 
 

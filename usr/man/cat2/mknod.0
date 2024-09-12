@@ -5,15 +5,15 @@ MKNOD(2)	    UNIX Programmer's Manual		 MKNOD(2)
 
 
 
-NAME
+NNAAMMEE
      mknod - make a special file
 
-SYNOPSIS
-     mknod(path, mode, dev)
-     char *path;
-     int mode, dev;
+SSYYNNOOPPSSIISS
+     mmkknnoodd((ppaatthh,, mmooddee,, ddeevv))
+     cchhaarr **ppaatthh;;
+     iinntt mmooddee,, ddeevv;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_n_o_d creates a new file whose name is _p_a_t_h. The mode of the
      new file (including special file bits) is initialized from
      _m_o_d_e.  (The protection part of the mode is modified by the
@@ -28,12 +28,12 @@ DESCRIPTION
 
      _M_k_n_o_d may be invoked only by the super-user.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion a value of 0 is returned.  Other-
      wise, a value of -1 is returned and _e_r_r_n_o is set to indicate
      the error.
 
-ERRORS
+EERRRROORRSS
      _M_k_n_o_d will fail and the file mode will be unchanged if:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 23, 1986				1
+Printed 9/10/24           May 23, 1986				1
 
 
 
@@ -103,7 +103,7 @@ MKNOD(2)	    UNIX Programmer's Manual		 MKNOD(2)
      [EFAULT]	    _P_a_t_h points outside the process's allocated
 		    address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chmod(2), stat(2), umask(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 23, 1986				2
+Printed 9/10/24           May 23, 1986				2
 
 
 

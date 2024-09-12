@@ -5,18 +5,18 @@ SNAKE(6)	    UNIX Programmer's Manual		 SNAKE(6)
 
 
 
-NAME
+NNAAMMEE
      snake, snscore - display chase game
 
-SYNOPSIS
-     /usr/games/snake [ -w_n ] [ -l_n ]
-     /usr/games/snscore
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//ssnnaakkee [ --ww_n ] [ --ll_n ]
+     //uussrr//ggaammeess//ssnnssccoorree
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Snake is a display-based game which must be played on a CRT
      terminal from among those supported by vi(1).  The object of
      the game is to make as much money as possible without get-
-     ting eaten by the snake.  The -l and -w options allow you to
+     ting eaten by the snake.  The --ll and --ww options allow you to
      specify the length and width of the field.  By default the
      entire screen (except for the last column) is used.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 
@@ -84,12 +84,12 @@ SNAKE(6)	    UNIX Programmer's Manual		 SNAKE(6)
      To see who wastes time playing snake, run /_u_s_r/_g_a_m_e_s/_s_n_s_c_o_r_e
      .
 
-FILES
+FFIILLEESS
      /usr/games/lib/snakerawscores database of personal bests
      /usr/games/lib/snake.log	   log of games played
      /usr/games/busy		   program to determine if system too busy
 
-BUGS
+BBUUGGSS
      When playing on a small screen, it's hard to tell when you
      hit the edge of the screen.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 20, 1985				2
+Printed 9/10/24           May 20, 1985				2
 
 
 

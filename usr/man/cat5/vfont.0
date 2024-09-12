@@ -5,13 +5,13 @@ VFONT(5)	    UNIX Programmer's Manual		 VFONT(5)
 
 
 
-NAME
+NNAAMMEE
      vfont - font formats for the Benson-Varian or Versatec
 
-SYNOPSIS
-     /usr/share/vfont/*
+SSYYNNOOPPSSIISS
+     //uussrr//sshhaarree//vvffoonntt//**
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The fonts for the printer/plotters have the following for-
      mat.  Each file contains a header, an array of 256 character
      description structures, and then the bit maps for the char-
@@ -54,13 +54,13 @@ DESCRIPTION
      width of the glyph, in raster lines, and shows where the
      base point of the next glyph would be.
 
-FILES
+FFIILLEESS
      /usr/share/vfont/*
 
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 
@@ -71,7 +71,7 @@ VFONT(5)	    UNIX Programmer's Manual		 VFONT(5)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      troff(1), pti(1), vfontinfo(1)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 22, 1996			2
+Printed 9/10/24         October 22, 1996			2
 
 
 

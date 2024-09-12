@@ -5,13 +5,13 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
 
 
 
-NAME
+NNAAMMEE
      sccs - front end for the SCCS subsystem
 
-SYNOPSIS
-     sccs [ -r ] [ -d_p_a_t_h ] [ -p_p_a_t_h ] command [ flags ] [ args ]
+SSYYNNOOPPSSIISS
+     ssccccss [ --rr ] [ --dd_p_a_t_h ] [ --pp_p_a_t_h ] command [ flags ] [ args ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_c_c_s is a front end to the SCCS programs that helps them
      mesh more cleanly with the rest of UNIX.  It also includes
      the capability to run ``set user id'' to another user to
@@ -55,12 +55,12 @@ DESCRIPTION
 	       vinced that the SCCS files have been created suc-
 	       cessfully.
 
-     fix       Must be followed by a -r flag.  This command
+     fix       Must be followed by a --rr flag.  This command
 	       essentially removes the named delta, but leaves
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 
@@ -79,7 +79,7 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
      clean     This routine removes everything from the current
 	       directory that can be recreated from SCCS files.
 	       It will not remove any files being edited.  If the
-	       -b flag is given, branches are ignored in the
+	       --bb flag is given, branches are ignored in the
 	       determination of whether they are being edited;
 	       this is dangerous if you are keeping the branches
 	       in the same directory.
@@ -90,8 +90,8 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
 	       irretrievably lost.
 
      info      Gives a listing of all files being edited.  If the
-	       -b flag is given, branches (i.e., SID's with two
-	       or fewer components) are ignored.  If the -u flag
+	       --bb flag is given, branches (i.e., SID's with two
+	       or fewer components) are ignored.  If the --uu flag
 	       is given (with an optional argument) then only
 	       files being edited by you (or the named user) are
 	       listed.
@@ -105,28 +105,28 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
 	       version is installed.
 
      tell      Gives a newline-separated list of the files being
-	       edited on the standard output.  Takes the -b and
-	       -u flags like ``info'' and ``check''.
+	       edited on the standard output.  Takes the --bb and
+	       --uu flags like ``info'' and ``check''.
 
      diffs     Gives a ``diff'' listing between the current ver-
 	       sion of the program(s) you have out for editing
-	       and the versions in SCCS format.  The -r, -c, -i,
-	       -x, and -t flags are passed to _g_e_t; the -l, -s,
-	       -e, -f, -h, and -b options are passed to _d_i_f_f. The
-	       -C flag is passed to _d_i_f_f as -c.
+	       and the versions in SCCS format.  The --rr,, --cc,, --ii,,
+	       --xx,, and --tt flags are passed to _g_e_t; the --ll,, --ss,,
+	       --ee,, --ff,, --hh,, and --bb options are passed to _d_i_f_f. The
+	       --CC flag is passed to _d_i_f_f as --cc..
 
      print     This command prints out verbose information about
 	       the named files.
 
-     The -r flag runs _s_c_c_s as the real user rather than as what-
-     ever effective user _s_c_c_s is ``set user id'' to.  The -d flag
+     The --rr flag runs _s_c_c_s as the real user rather than as what-
+     ever effective user _s_c_c_s is ``set user id'' to.  The --dd flag
      gives a root directory for the SCCS files.  The default is
-     the current directory.  The -p flag defines the pathname of
+     the current directory.  The --pp flag defines the pathname of
      the directory in which the SCCS files will be found;
 
 
 
-Printed 2/16/100	  May 12, 1986				2
+Printed 9/10/24           May 12, 1986				2
 
 
 
@@ -137,15 +137,15 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
 
 
 
-     ``SCCS'' is the default.  The -p flag differs from the -d
-     flag in that the -d argument is prepended to the entire
-     pathname and the -p argument is inserted before the final
+     ``SCCS'' is the default.  The --pp flag differs from the --dd
+     flag in that the --dd argument is prepended to the entire
+     pathname and the --pp argument is inserted before the final
      component of the pathname.  For example, ``sccs -d/x -py get
      a/b'' will convert to ``get /x/a/y/s.b''.	The intent here
      is to create aliases such as ``alias syssccs sccs
      -d/usr/src'' which will be used as ``syssccs get
      cmd/who.c''.  Also, if the environment variable PROJECT is
-     set, its value is used to determine the -d flag. If it
+     set, its value is used to determine the --dd ffllaagg.. If it
      begins with a slash, it is taken directly; otherwise, the
      home directory of a user of that name is examined for a sub-
      directory ``src'' or ``source''.  If such a directory is
@@ -156,7 +156,7 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
      the authorizations.  These commands are always run as the
      real user.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      To get a file for editing, edit it, and produce a new delta:
 
 	  sccs get -e file.c
@@ -192,7 +192,7 @@ EXAMPLES
 
 
 
-Printed 2/16/100	  May 12, 1986				3
+Printed 9/10/24           May 12, 1986				3
 
 
 
@@ -207,14 +207,14 @@ SCCS(1)             UNIX Programmer's Manual		  SCCS(1)
 	  $(SRCS):
 	       sccs get $(REL) $@
 
-SEE ALSO
+SSEEEE AALLSSOO
      admin(SCCS), chghist(SCCS), comb(SCCS), delta(SCCS),
      get(SCCS), help(SCCS), prt(SCCS), rmdel(SCCS),
      sccsdiff(SCCS), what(SCCS)
      Eric Allman, _A_n _I_n_t_r_o_d_u_c_t_i_o_n _t_o _t_h_e _S_o_u_r_c_e _C_o_d_e _C_o_n_t_r_o_l _S_y_s_-
      _t_e_m
 
-BUGS
+BBUUGGSS
      It should be able to take directory arguments on pseudo-
      commands like the SCCS commands do.
 
@@ -258,7 +258,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 12, 1986				4
+Printed 9/10/24           May 12, 1986				4
 
 
 

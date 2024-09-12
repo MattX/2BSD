@@ -5,21 +5,21 @@ STRTOUL(3)	    UNIX Programmer's Manual	       STRTOUL(3)
 
 
 
-NAME
-     strtoul - convert a string to an unsigned long
+NNAAMMEE
+     ssttrrttoouull - convert a string to an unsigned long
 
-SYNOPSIS
-     #include <stdlib.h>
-     #include <limits.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddlliibb..hh>>
+     ##iinncclluuddee <<lliimmiittss..hh>>
 
-     unsigned long
-     strtoul(nptr, endptr, base)
+     uunnssiiggnneedd lloonngg
+     ssttrrttoouull(nptr, endptr, base)
      _c_h_a_r *_n_p_t_r;
      _c_h_a_r **_e_n_d_p_t_r;
      _i_n_t _b_a_s_e;
 
-DESCRIPTION
-     The strtoul() function converts the string in _n_p_t_r to an
+DDEESSCCRRIIPPTTIIOONN
+     The ssttrrttoouull() function converts the string in _n_p_t_r to an
      _u_n_s_i_g_n_e_d _l_o_n_g value.  The conversion is done according to
      the given _b_a_s_e, which must be between 2 and 36 inclusive, or
      be the special value 0.
@@ -39,28 +39,28 @@ DESCRIPTION
      letter `A' in either upper or lower case represents 10, `B'
      represents 11, and so forth, with `Z' representing 35.)
 
-     If _e_n_d_p_t_r is non nil, strtoul() stores the address of the
+     If _e_n_d_p_t_r is non nil, ssttrrttoouull() stores the address of the
      first invalid character in *_e_n_d_p_t_r . If there were no digits
-     at all, however, strtoul() stores the original value of _n_p_t_r
+     at all, however, ssttrrttoouull() stores the original value of _n_p_t_r
      in *_e_n_d_p_t_r . (Thus, if *_n_p_t_r is not `\0' but **_e_n_d_p_t_r is
      `\0' on return, the entire string was valid.)
 
-RETURN VALUES
-     The strtoul() function returns either the result of the
+RREETTUURRNN VVAALLUUEESS
+     The ssttrrttoouull() function returns either the result of the
      conversion or, if there was a leading minus sign, the nega-
      tion of the result of the conversion, unless the original
      (non-negated) value would overflow; in the latter case,
-     strtoul() returns ULONG_MAX and sets the global variable
-     errno to ERANGE .
+     ssttrrttoouull() returns UULLOONNGG__MMAAXX and sets the global variable
+     eerrrrnnoo to EERRAANNGGEE ..
 
-ERRORS
+EERRRROORRSS
      [ERANGE]	    The given string was out of range; the value
 		    converted has been clamped.
 
 
 
 
-Printed 2/16/100	January 12, 1996			1
+Printed 9/10/24         January 12, 1996			1
 
 
 
@@ -71,14 +71,14 @@ STRTOUL(3)	    UNIX Programmer's Manual	       STRTOUL(3)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      strtol(3)
 
-STANDARDS
-     The strtoul() function conforms to ANSI C X3.159-1989
+SSTTAANNDDAARRDDSS
+     The ssttrrttoouull() function conforms to ANSI C X3.159-1989
      (``ANSI C'').
 
-BUGS
+BBUUGGSS
      Ignores the current locale.
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 12, 1996			2
+Printed 9/10/24         January 12, 1996			2
 
 
 

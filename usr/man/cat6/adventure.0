@@ -5,13 +5,13 @@ ADVENTURE(6)	    UNIX Programmer's Manual	     ADVENTURE(6)
 
 
 
-NAME
+NNAAMMEE
      adventure - an exploration game
 
-SYNOPSIS
-     /usr/games/adventure
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//aaddvveennttuurree
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The object of the game is to locate and explore Colossal
      Cave, find the treasures hidden there, and bring them back
      to the building with you.	The program is self-descriptive
@@ -20,7 +20,7 @@ DESCRIPTION
      To terminate a game, type `quit'; to save a game for later
      resumption, type `suspend'.
 
-BUGS
+BBUUGGSS
      Saving a game creates a large executable file instead of
      just the information needed to resume the game.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 6, 1986				1
+Printed 9/10/24            May 6, 1986				1
 
 
 

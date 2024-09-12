@@ -5,24 +5,24 @@ READ(2)             UNIX Programmer's Manual		  READ(2)
 
 
 
-NAME
+NNAAMMEE
      read, readv - read input
 
-SYNOPSIS
-     cc = read(d, buf, nbytes)
-     int cc, d;
-     char *buf;
-     unsigned short nbytes;
+SSYYNNOOPPSSIISS
+     cccc == rreeaadd((dd,, bbuuff,, nnbbyytteess))
+     iinntt cccc,, dd;;
+     cchhaarr **bbuuff;;
+     uunnssiiggnneedd sshhoorrtt nnbbyytteess;;
 
-     #include <sys/types.h>
-     #include <sys/uio.h>
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//uuiioo..hh>>
 
-     cc = readv(d, iov, iovcnt)
-     int cc, d;
-     struct iovec *iov;
-     int iovcnt;
+     cccc == rreeaaddvv((dd,, iioovv,, iioovvccnntt))
+     iinntt cccc,, dd;;
+     ssttrruucctt iioovveecc **iioovv;;
+     iinntt iioovvccnntt;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_a_d attempts to read _n_b_y_t_e_s of data from the object refer-
      enced by the descriptor _d into the buffer pointed to by _b_u_f.
      _R_e_a_d_v performs the same action, but scatters the input data
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 August 1, 1987                         1
+Printed 9/10/24          August 1, 1987                         1
 
 
 
@@ -74,12 +74,12 @@ READ(2)             UNIX Programmer's Manual		  READ(2)
      If the returned value is 0, then end-of-file has been
      reached.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      If successful, the number of bytes actually read is
      returned.	Otherwise, a -1 is returned and the global vari-
      able _e_r_r_n_o is set to indicate the error.
 
-ERRORS
+EERRRROORRSS
      _R_e_a_d and _r_e_a_d_v will fail if one or more of the following are
      true:
 
@@ -112,7 +112,7 @@ ERRORS
      [EFAULT]	    Part of the _i_o_v points outside the process's
 		    allocated address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      dup(2), fcntl(2), open(2), pipe(2), select(2), socket(2),
      socketpair(2)
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 1, 1987                         2
+Printed 9/10/24          August 1, 1987                         2
 
 
 

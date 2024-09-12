@@ -5,27 +5,27 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-NAME
-     getopt - get option character from command line argument
+NNAAMMEE
+     ggeettoopptt - get option character from command line argument
      list
 
-SYNOPSIS
-     #include <stdlib.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddlliibb..hh>>
 
-     extern char *optarg;
-     extern int optind;
-     extern int optopt;
-     extern int opterr;
-     extern int optreset;
+     eexxtteerrnn cchhaarr **ooppttaarrgg;;
+     eexxtteerrnn iinntt ooppttiinndd;;
+     eexxtteerrnn iinntt ooppttoopptt;;
+     eexxtteerrnn iinntt oopptteerrrr;;
+     eexxtteerrnn iinntt ooppttrreesseett;;
 
      _i_n_t
-     getopt(argc, argv, optstring)
+     ggeettoopptt(argc, argv, optstring)
      _i_n_t _a_r_g_c;
      _c_h_a_r **_a_r_g_v;
      _c_h_a_r *_o_p_t_s_t_r_i_n_g;
 
-DESCRIPTION
-     The getopt() function incrementally parses a command line
+DDEESSCCRRIIPPTTIIOONN
+     The ggeettoopptt() function incrementally parses a command line
      argument list _a_r_g_v and returns the next _k_n_o_w_n option charac-
      ter.  An option character is _k_n_o_w_n if it has been specified
      in the string of accepted option characters, _o_p_t_s_t_r_i_n_g.
@@ -34,33 +34,33 @@ DESCRIPTION
      ments: individual characters, and characters followed by a
      colon to indicate an option argument is to follow.  For
      example, an option string """x"" recognizes an option
-     ``-x'', and an option string """x:"" recognizes an option
-     and argument ``-x _a_r_g_u_m_e_n_t''.  It does not matter to
-     getopt() if a following argument has leading white space.
+     ``-xx'', and an option string """x:"" recognizes an option
+     and argument ``--xx _a_r_g_u_m_e_n_t''.  It does not matter to
+     ggeettoopptt() if a following argument has leading white space.
 
-     On return from getopt(), _o_p_t_a_r_g points to an option argu-
+     On return from ggeettoopptt(), _o_p_t_a_r_g points to an option argu-
      ment, if it is anticipated, and the variable _o_p_t_i_n_d contains
      the index to the next _a_r_g_v argument for a subsequent call to
-     getopt().	The variable _o_p_t_o_p_t saves the last _k_n_o_w_n option
-     character returned by getopt().
+     ggeettoopptt().	The variable _o_p_t_o_p_t saves the last _k_n_o_w_n option
+     character returned by ggeettoopptt().
 
      The variable _o_p_t_e_r_r and _o_p_t_i_n_d are both initialized to 1.
      The _o_p_t_i_n_d variable may be set to another value before a set
-     of calls to getopt() in order to skip over more or less argv
+     of calls to ggeettoopptt() in order to skip over more or less argv
      entries.
 
-     In order to use getopt() to evaluate multiple sets of argu-
+     In order to use ggeettoopptt() to evaluate multiple sets of argu-
      ments, or to evaluate a single set of arguments multiple
      times, the variable _o_p_t_r_e_s_e_t must be set to 1 before the
-     second and each additional set of calls to getopt(), and the
+     second and each additional set of calls to ggeettoopptt(), and the
      variable _o_p_t_i_n_d must be reinitialized.
 
-     The getopt() function returns an EOF when the argument list
+     The ggeettoopptt() function returns an EEOOFF when the argument list
      is exhausted, or a non-recognized option is encountered.
 
 
 
-Printed 2/16/100	January 12, 1996			1
+Printed 9/10/24         January 12, 1996			1
 
 
 
@@ -73,12 +73,12 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
      The interpretation of options in the argument list may be
      cancelled by the option `--' (double dash) which causes
-     getopt() to signal the end of argument processing and return
-     an EOF.  When all options have been processed (i.e., up to
-     the first non-option argument), getopt() returns EOF.
+     ggeettoopptt() to signal the end of argument processing and return
+     an EEOOFF.  When all options have been processed (i.e., up to
+     the first non-option argument), ggeettoopptt() returns EEOOFF.
 
-DIAGNOSTICS
-     If the getopt() function encounters a character not found in
+DDIIAAGGNNOOSSTTIICCSS
+     If the ggeettoopptt() function encounters a character not found in
      the string _o_p_t_a_r_g or detects a missing option argument it
      writes an error message and returns `?' to the _s_t_d_e_r_r.  Set-
      ting _o_p_t_e_r_r to a zero will disable these error messages.  If
@@ -89,12 +89,12 @@ DIAGNOSTICS
      Option arguments are allowed to begin with `-'; this is rea-
      sonable but reduces the amount of error checking possible.
 
-EXTENSIONS
+EEXXTTEENNSSIIOONNSS
      The _o_p_t_r_e_s_e_t variable was added to make it possible to call
-     the getopt() function multiple times.  This is an extension
+     the ggeettoopptt() function multiple times.  This is an extension
      to the IEEE Std1003.2 (``POSIX'') specification.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      extern char *optarg;
      extern int optind;
      int bflag, ch, fd;
@@ -119,14 +119,14 @@ EXAMPLE
      argc -= optind;
      argv += optind;
 
-HISTORY
-     The getopt() function appeared 4.3BSD.
+HHIISSTTOORRYY
+     The ggeettoopptt() function appeared 4.3BSD.
 
 
 
 
 
-Printed 2/16/100	January 12, 1996			2
+Printed 9/10/24         January 12, 1996			2
 
 
 
@@ -137,21 +137,21 @@ GETOPT(3)	    UNIX Programmer's Manual		GETOPT(3)
 
 
 
-BUGS
+BBUUGGSS
      A single dash ``-'' may be specified as an character in _o_p_t_-
-     _s_t_r_i_n_g , however it should never have an argument associated
-     with it.  This allows getopt() to be used with programs that
+     _s_t_r_i_n_g , however it should nneevveerr have an argument associated
+     with it.  This allows ggeettoopptt() to be used with programs that
      expect ``-'' as an option flag.  This practice is wrong, and
      should not be used in any current development.  It is pro-
-     vided for backward compatibility only . By default, a single
-     dash causes getopt() to return EOF.  This is, we believe,
+     vided for backward compatibility oonnllyy .. By default, a single
+     dash causes ggeettoopptt() to return EEOOFF.  This is, we believe,
      compatible with System V.
 
      It is also possible to handle digits as option letters.
-     This allows getopt() to be used with programs that expect a
+     This allows ggeettoopptt() to be used with programs that expect a
      number (``-3'') as an option.  This practice is wrong, and
      should not be used in any current development.  It is pro-
-     vided for backward compatibility only.  The following code
+     vided for backward compatibility oonnllyy.  The following code
      fragment works in most cases.
 
      int length;
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 12, 1996			3
+Printed 9/10/24         January 12, 1996			3
 
 
 

@@ -5,38 +5,38 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
 
 
 
-NAME
+NNAAMMEE
      tmscp - DEC TMSCP magtape interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
 
-	     NTMSCP	  1	# TMSCP controllers
-	     NTMS	  1	# TMSCP drives
-	     TMSCP_DEBUG  NO	# debugging code in in TMSCP drive (EXPENSIVE)
+	     NNTTMMSSCCPP	  11	## TTMMSSCCPP ccoonnttrroolllleerrss
+	     NNTTMMSS	  11	## TTMMSSCCPP ddrriivveess
+	     TTMMSSCCPP__DDEEBBUUGG  NNOO	## ddeebbuuggggiinngg ccooddee iinn iinn TTMMSSCCPP ddrriivvee ((EEXXPPEENNSSIIVVEE))
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  tms	?     174500 260    5  tmsintr	       # tmscp driver
-	  tms	?     164334 0	    5  tmsintr	       # alternate
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  ttmmss	??     117744550000 226600    55  ttmmssiinnttrr	       ## ttmmssccpp ddrriivveerr
+	  ttmmss	??     116644333344 00	    55  ttmmssiinnttrr	       ## aalltteerrnnaattee
 
-     major device number(s):
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
 
-	    raw: 23
-	    block: 12
+	    rraaww:: 2233
+	    bblloocckk:: 1122
 
-     minor device encoding:
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
 
-     bit:    |7 | 6 | 5 | 4 | 3 | 2 | 1 | 0|
-	     -------------------------------
-	      C   C   X   D   D   N   U   U
+     bbiitt::    ||77 || 66 || 55 || 44 || 33 || 22 || 11 || 00||
+	     --------------------------------------------------------------
+	      CC   CC   XX   DD   DD   NN   UU   UU
 
-	    C = Controller # (max of 4 controllers)
-	    D = Density
-	    N = Norewind on close
-	    U = Unit (drive) number (max of 4 drives per controller)
+	    CC == CCoonnttrroolllleerr ## ((mmaaxx ooff 44 ccoonnttrroolllleerrss))
+	    DD == DDeennssiittyy
+	    NN == NNoorreewwiinndd oonn cclloossee
+	    UU == UUnniitt ((ddrriivvee)) nnuummbbeerr ((mmaaxx ooff 44 ddrriivveess ppeerr ccoonnttrroolllleerr))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Tape controllers compatible with the DEC Tape Mass Storage
      Control Protocol (TMSCP) architecture such as the TU81 and
      the TK50 provide a standard tape drive interface as
@@ -44,14 +44,14 @@ DESCRIPTION
      host through a packet oriented protocol.  Consult the file
      <pdp/tmscp.h> for a detailed description of this protocol.
 
-FILES
+FFIILLEESS
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-     The vector specified in /etc/dtab may be given as an expli-
+     The vector specified in //eettcc//ddttaabb may be given as an expli-
      cit value in which case _a_u_t_o_c_o_n_f_i_g(_8) will attempt to allo-
      cate the specified vector.  The vector may also be (if the
-     system is at revision level 100 or higher) given as 0 - in
+     system is at revision level 100 or higher) given as 00 - in
      which case _a_u_t_o_c_o_n_f_i_g(_8) will request the kernel to allocate
      the next available vector (beginning at 01000 and proceeding
      downward) which _a_u_t_o_c_o_n_f_i_g(_8) will initialize.
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 2/16/100	December 22, 1995			1
+Printed 9/10/24         December 22, 1995			1
 
 
 
@@ -81,44 +81,44 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
      defines values for three densities) and request the middle
      density (for tri-density tape drives).
 
-DIAGNOSTICS
-     tms: !drives.  Not enough drives were declared when the ker-
+DDIIAAGGNNOOSSTTIICCSS
+     ttmmss:: !!ddrriivveess.  Not enough drives were declared when the ker-
      nel was built.  The NTMS parameter in the kernel config file
      needs to be increased by at least one.
 
-     tms%d stepN init failed: sa %x.  Step N of the 4 step ini-
+     ttmmss%%dd sstteeppNN iinniitt ffaaiilleedd:: ssaa %%xx.  Step N of the 4 step ini-
      tialization sequence has failed.
 
-     tms%d: random intr.  An unexpected interrupt was received.
+     ttmmss%%dd:: rraannddoomm iinnttrr.  An unexpected interrupt was received.
      This is indicative of some other device using the same
      interrupt vector as the TMSCP controller.	The interrupt is
      ignored.
 
-     tms%d Ver %d Mod %d.  The version and model number of the
+     ttmmss%%dd VVeerr %%dd MMoodd %%dd.  The version and model number of the
      controller are displayed when the controller is initialized.
      This is an information message and not an error.
 
-     tms%d: state %d.  The controller state is not one of the 4
+     ttmmss%%dd:: ssttaattee %%dd.  The controller state is not one of the 4
      initialization states or the RUN state.  This indicates a
      serious problem in the driver and possibly the hardware.
 
-     tms%d:  fatal error %x.  The controller detected a ``fatal
+     ttmmss%%dd::  ffaattaall eerrrroorr %%xx.  The controller detected a ``fatal
      error'' in the status returned to the host.  The contents of
      the status register are displayed.
 
-     tms%d init fail.  The controller failed to initialize.
+     ttmmss%%dd iinniitt ffaaiill.  The controller failed to initialize.
      Indicative of a hardware problem.
 
-     tms%d,%d flush fail.  The cache failed to flush during a
+     ttmmss%%dd,,%%dd fflluusshh ffaaiill.  The cache failed to flush during a
      close operation.  Data loss is possible in this case.
 
-     tms%d,%d: sa %x state %d.	A fatal error.	The controller
+     ttmmss%%dd,,%%dd:: ssaa %%xx ssttaattee %%dd.	A fatal error.	The controller
      will be reset in an attempt to resume operation.
 
-     tms ioctl.  An invalid internal ioctl function call has been
+     ttmmss iiooccttll.  An invalid internal ioctl function call has been
      made.  This is a driver bug.
 
-     tms%d,%d inv end.	An invalid end (completion) code has been
+     ttmmss%%dd,,%%dd iinnvv eenndd.	An invalid end (completion) code has been
      detected.	A drive has returned 0 as the opcode originally
      issued.  This is a hardware problem.
 
@@ -126,7 +126,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	December 22, 1995			2
+Printed 9/10/24         December 22, 1995			2
 
 
 
@@ -137,16 +137,16 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
 
 
 
-     tms%d,%d bad rsp: %x.  An unrecognized response has been
+     ttmmss%%dd,,%%dd bbaadd rrsspp:: %%xx.  An unrecognized response has been
      received.	This is a driver bug.
 
-     tms%d,%d cache lost The cache on the drive has been lost.
+     ttmmss%%dd,,%%dd ccaacchhee lloosstt The cache on the drive has been lost.
      Data loss is likely.  Usually due to a hardware problem.
 
      The following error is produced when a TMSCP error log
      datagram is received:
 
-     tms%d,%d dgram fmt=%x evt=%x grp=%x flg=%x pos=%D.
+     ttmmss%%dd,,%%dd ddggrraamm ffmmtt==%%xx eevvtt==%%xx ggrrpp==%%xx ffllgg==%%xx ppooss==%%DD.
 
      Earlier versions of the driver consumed a noticeable amount
      of kernel D-space decoding and pretty printing more detailed
@@ -155,11 +155,11 @@ TMSCP(4)	    UNIX Programmer's Manual		 TMSCP(4)
      and the datagrams from the MSCP and TMSCP drivers passed to
      it for analysis.
 
-SEE ALSO
+SSEEEE AALLSSOO
      mt(1), tar(1), tp(1), mtio(4), tm(4), ts(4), ut(4),
      dmesg(8), dtab(5), autoconfig(8)
 
-BUGS
+BBUUGGSS
      If any non-data error is encountered on non-raw tape, it
      refuses to do anything more until closed.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	December 22, 1995			3
+Printed 9/10/24         December 22, 1995			3
 
 
 

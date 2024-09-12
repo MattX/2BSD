@@ -5,27 +5,27 @@ MALLOC(3)	    UNIX Programmer's Manual		MALLOC(3)
 
 
 
-NAME
+NNAAMMEE
      malloc, free, realloc, calloc, alloca - memory allocator
 
-SYNOPSIS
-     char *malloc(size)
-     unsigned size;
+SSYYNNOOPPSSIISS
+     cchhaarr **mmaalllloocc((ssiizzee))
+     uunnssiiggnneedd ssiizzee;;
 
-     free(ptr)
-     char *ptr;
+     ffrreeee((ppttrr))
+     cchhaarr **ppttrr;;
 
-     char *realloc(ptr, size)
-     char *ptr;
-     unsigned size;
+     cchhaarr **rreeaalllloocc((ppttrr,, ssiizzee))
+     cchhaarr **ppttrr;;
+     uunnssiiggnneedd ssiizzee;;
 
-     char *calloc(nelem, elsize)
-     unsigned nelem, elsize;
+     cchhaarr **ccaalllloocc((nneelleemm,, eellssiizzee))
+     uunnssiiggnneedd nneelleemm,, eellssiizzee;;
 
-     char *alloca(size)
-     int size;
+     cchhaarr **aallllooccaa((ssiizzee))
+     iinntt ssiizzee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_a_l_l_o_c and _f_r_e_e provide a general-purpose memory allocation
      package.  _M_a_l_l_o_c returns a pointer to a block of at least
      _s_i_z_e bytes beginning on a word boundary.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 14, 1986				1
+Printed 9/10/24           May 14, 1986				1
 
 
 
@@ -80,10 +80,10 @@ MALLOC(3)	    UNIX Programmer's Manual		MALLOC(3)
      storage of any type of object.  If the space is of _p_a_g_e_s_i_z_e
      or larger, the memory returned will be page-aligned.
 
-SEE ALSO
+SSEEEE AALLSSOO
      brk(2), pagesize(2)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _M_a_l_l_o_c, _r_e_a_l_l_o_c and _c_a_l_l_o_c return a null pointer (0) if
      there is no available memory or if the arena has been
      detectably corrupted by storing outside the bounds of a
@@ -92,7 +92,7 @@ DIAGNOSTICS
      code license may check the source code to see how this can
      be done.
 
-BUGS
+BBUUGGSS
      When _r_e_a_l_l_o_c returns 0, the block pointed to by _p_t_r may be
      destroyed.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 14, 1986				2
+Printed 9/10/24           May 14, 1986				2
 
 
 

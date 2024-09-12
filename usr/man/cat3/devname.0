@@ -5,30 +5,30 @@ DEVNAME(3)	    UNIX Programmer's Manual	       DEVNAME(3)
 
 
 
-NAME
+NNAAMMEE
      devname - get device name
 
-SYNOPSIS
-     #include <sys/types.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
 
-     char *
-     devname(dev, type)
-	 dev_t dev;
-	 mode_t type;
+     cchhaarr **
+     ddeevvnnaammee((ddeevv,, ttyyppee))
+	 ddeevv__tt ddeevv;;
+	 mmooddee__tt ttyyppee;;
 
-DESCRIPTION
-     The devname function returns a pointer to the name of the
+DDEESSCCRRIIPPTTIIOONN
+     The ddeevvnnaammee function returns a pointer to the name of the
      block or character device in /_d_e_v with a device number of
      _d_e_v , and a file type matching the one encoded in _t_y_p_e which
      must be one of S_IFBLK or S_IFCHR.  If no device matches the
      specified values, or no information is available, the string
      ?? is returned.
 
-SEE ALSO
+SSEEEE AALLSSOO
      stat(2), dev_mkdb(8)
 
-HISTORY
-     The devname function call appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ddeevvnnaammee function call appeared in 4.4BSD.
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	February 3, 1995			1
+Printed 9/10/24         February 3, 1995			1
 
 
 

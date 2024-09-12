@@ -5,13 +5,13 @@ MKMANIFEST(1)       UNIX Programmer's Manual        MKMANIFEST(1)
 
 
 
-NAME
+NNAAMMEE
      mkmanifest - create a shell script to restore Unix filenames
 
-SYNOPSIS
-     mkmanifest [ files ]
+SSYYNNOOPPSSIISS
+     mmkkmmaanniiffeesstt [ files ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_m_a_n_i_f_e_s_t creates a shell script that will aid in the res-
      toration of Unix filenames that got clobbered by the MSDOS
      filename restrictions.  MSDOS filenames are restricted to 8
@@ -22,7 +22,7 @@ DESCRIPTION
      in _p_c_o_m_m, _a_r_c, and _m_t_o_o_l_s to change perfectly good Unix
      filenames to fit the MSDOS restrictions.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      I want to copy the following Unix files to a MSDOS diskette
      (using the _m_c_o_p_y command).
 
@@ -60,7 +60,7 @@ EXAMPLE
 
 
 
-Printed 2/16/100              local                             1
+Printed 9/10/24               local                             1
 
 
 
@@ -77,7 +77,7 @@ MKMANIFEST(1)       UNIX Programmer's Manual        MKMANIFEST(1)
      was sent along with those files, it could be used to convert
      the filenames.
 
-SEE ALSO
+SSEEEE AALLSSOO
      arc(1), pcomm(1), mtools(1)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100              local                             2
+Printed 9/10/24               local                             2
 
 
 

@@ -5,30 +5,30 @@ BIT(3F)             UNIX Programmer's Manual		  BIT(3F)
 
 
 
-NAME
+NNAAMMEE
      bit - and, or, xor, not, rshift, lshift bitwise functions
 
-SYNOPSIS
-     (intrinsic) function and (word1, word2)
+SSYYNNOOPPSSIISS
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn aanndd ((wwoorrdd11,, wwoorrdd22))
 
-     (intrinsic) function or (word1, word2)
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn oorr ((wwoorrdd11,, wwoorrdd22))
 
-     (intrinsic) function xor (word1, word2)
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn xxoorr ((wwoorrdd11,, wwoorrdd22))
 
-     (intrinsic) function not (word)
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn nnoott ((wwoorrdd))
 
-     (intrinsic) function rshift (word, nbits)
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn rrsshhiifftt ((wwoorrdd,, nnbbiittss))
 
-     (intrinsic) function lshift (word, nbits)
+     ((iinnttrriinnssiicc)) ffuunnccttiioonn llsshhiifftt ((wwoorrdd,, nnbbiittss))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These bitwise functions are built into the compiler and
      return the data type of their argument(s).  Their arguments
-     must be integer or logical values.
+     must be iinntteeggeerr or llooggiiccaall values.
 
      The bitwise combinatorial functions return the bitwise
-     ``and'' (and), ``or'' (or), or ``exclusive or'' (xor) of two
-     operands.	Not returns the bitwise complement of its
+     ``and'' (aanndd), ``or'' (oorr), or ``exclusive or'' (xxoorr) of two
+     operands.	NNoott returns the bitwise complement of its
      operand.
 
      _L_s_h_i_f_t, or _r_s_h_i_f_t with a negative _n_b_i_t_s, is a logical left
@@ -40,13 +40,13 @@ DESCRIPTION
      routines, as in the following statement function defini-
      tions:
 
-	integer bitset, bitclr, getbit, word, bitnum
+	iinntteeggeerr bbiittsseett,, bbiittccllrr,, ggeettbbiitt,, wwoorrdd,, bbiittnnuumm
 
-	bitset( word, bitnum ) = or(word,lshift(1,bitnum))
-	bitclr( word, bitnum ) = and(word,not(lshift(1,bitnum)))
-	getbit( word, bitnum ) = and(rshift(word,bitnum),1)
+	bbiittsseett(( wwoorrdd,, bbiittnnuumm )) == oorr((wwoorrdd,,llsshhiifftt((11,,bbiittnnuumm))))
+	bbiittccllrr(( wwoorrdd,, bbiittnnuumm )) == aanndd((wwoorrdd,,nnoott((llsshhiifftt((11,,bbiittnnuumm))))))
+	ggeettbbiitt(( wwoorrdd,, bbiittnnuumm )) == aanndd((rrsshhiifftt((wwoorrdd,,bbiittnnuumm)),,11))
 
-FILES
+FFIILLEESS
      These functions are generated in-line by the f77 compiler.
 
 
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 2/16/100	 April 30, 1986                         1
+Printed 9/10/24          April 30, 1986                         1
 
 
 

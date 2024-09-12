@@ -5,13 +5,13 @@ MAN(1)		    UNIX Programmer's Manual		   MAN(1)
 
 
 
-NAME
+NNAAMMEE
      man - print out the manual
 
-SYNOPSIS
-     man [ - ] [ -a ] [ -M _p_a_t_h ] [ section ] title ...
+SSYYNNOOPPSSIISS
+     mmaann [ -- ] [ --aa ] [ --MM _p_a_t_h ] [ section ] title ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_a_n is the program which provides on-line access to the UNIX
      manual.  If a _s_e_c_t_i_o_n specifier is given, _m_a_n looks in that
      section of the manual for the given _t_i_t_l_e(s).  _S_e_c_t_i_o_n is
@@ -27,7 +27,7 @@ DESCRIPTION
      Normally _m_a_n checks in standard locations (/usr/man and
      /usr/local/man) for manual information.  This can be changed
      by supplying a search path (a la the Bourne shell) with the
-     -M flag.  The search path is a colon (``:'') separated list
+     --MM flag.  The search path is a colon (``:'') separated list
      of directories in which _m_a_n expects to find the standard
      manual subdirectories.  This search path can also be set
      with the environmental variable _M_A_N_P_A_T_H.
@@ -38,7 +38,7 @@ DESCRIPTION
      machine type can be overridden by setting the environmental
      variable _M_A_C_H_I_N_E.
 
-     If the standard output is a teletype, and the - flag is not
+     If the standard output is a teletype, and the -- flag is not
      provided, _m_a_n uses _m_o_r_e(1), or the pager provided by the
      environmental variable _P_A_G_E_R, to display the manual page.
 
@@ -48,19 +48,19 @@ DESCRIPTION
      appending a number to the _s_e_c_t_i_o_n, i.e. ``l5'' would indi-
      cate section 5 of the local manual.
 
-FILES
+FFIILLEESS
      /usr/man		     standard manual area
      /usr/man/cat?/*	     directories containing standard manual pages
      /usr/local/man/cat?/*   directories containing local manual pages
      /usr/src/man	     directories containing unformatted manual pages
 
-SEE ALSO
+SSEEEE AALLSSOO
      apropos(1), more(1), whatis(1), whereis(1)
 
 
 
 
-Printed 2/16/100	 April 19, 1988                         1
+Printed 9/10/24          April 19, 1988                         1
 
 
 
@@ -71,7 +71,7 @@ MAN(1)		    UNIX Programmer's Manual		   MAN(1)
 
 
 
-BUGS
+BBUUGGSS
      The manual is supposed to be reproducible either on the pho-
      totypesetter or on a typewriter, however, on a typewriter,
      some information is necessarily lost.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 19, 1988                         2
+Printed 9/10/24          April 19, 1988                         2
 
 
 

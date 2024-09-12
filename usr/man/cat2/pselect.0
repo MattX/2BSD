@@ -5,34 +5,34 @@ SELECT(2)	    UNIX Programmer's Manual		SELECT(2)
 
 
 
-NAME
+NNAAMMEE
      pselect, select - synchronous I/O multiplexing
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/time.h>
-     #include <sys/select.h>
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ttiimmee..hh>>
+     ##iinncclluuddee <<ssyyss//sseelleecctt..hh>>
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
-     nfound = pselect(nfds, readfds, writefds, exceptfds, timeout, sigmask);
-     int nfound, nfds;
-     fd_set *readfds, *writefds, *exceptfds;
-     struct timespec *timeout;
-     sigset_t *sigmask;
+     nnffoouunndd == ppsseelleecctt((nnffddss,, rreeaaddffddss,, wwrriitteeffddss,, eexxcceeppttffddss,, ttiimmeeoouutt,, ssiiggmmaasskk));;
+     iinntt nnffoouunndd,, nnffddss;;
+     ffdd__sseett **rreeaaddffddss,, **wwrriitteeffddss,, **eexxcceeppttffddss;;
+     ssttrruucctt ttiimmeessppeecc **ttiimmeeoouutt;;
+     ssiiggsseett__tt **ssiiggmmaasskk;;
 
-     nfound = select(nfds, readfds, writefds, exceptfds, timeout)
-     int nfound, nfds;
-     fd_set *readfds, *writefds, *exceptfds;
-     struct timeval *timeout;
+     nnffoouunndd == sseelleecctt((nnffddss,, rreeaaddffddss,, wwrriitteeffddss,, eexxcceeppttffddss,, ttiimmeeoouutt))
+     iinntt nnffoouunndd,, nnffddss;;
+     ffdd__sseett **rreeaaddffddss,, **wwrriitteeffddss,, **eexxcceeppttffddss;;
+     ssttrruucctt ttiimmeevvaall **ttiimmeeoouutt;;
 
-     FD_SET(fd, &fdset)
-     FD_CLR(fd, &fdset)
-     FD_ISSET(fd, &fdset)
-     FD_ZERO(&fdset)
-     int fd;
-     fd_set fdset;
+     FFDD__SSEETT((ffdd,, &&ffddsseett))
+     FFDD__CCLLRR((ffdd,, &&ffddsseett))
+     FFDD__IISSSSEETT((ffdd,, &&ffddsseett))
+     FFDD__ZZEERROO((&&ffddsseett))
+     iinntt ffdd;;
+     ffdd__sseett ffddsseett;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_s_e_l_e_c_t and _s_e_l_e_c_t examine the I/O descriptor sets whose
      addresses are passed in _r_e_a_d_f_d_s, _w_r_i_t_e_f_d_s, and _e_x_c_e_p_t_f_d_s to
      see if some of their descriptors are ready for reading, are
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 4/21/100	  March 4, 2000                         1
+Printed 9/10/24           March 4, 2000                         1
 
 
 
@@ -91,14 +91,14 @@ SELECT(2)	    UNIX Programmer's Manual		SELECT(2)
      Any of _r_e_a_d_f_d_s, _w_r_i_t_e_f_d_s, and _e_x_c_e_p_t_f_d_s may be given as zero
      pointers if no descriptors are of interest.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      _S_e_l_e_c_t returns the number of ready descriptors that are con-
      tained in the descriptor sets, or -1 if an error occurred.
      If the time limit expires then _s_e_l_e_c_t returns 0.  If _s_e_l_e_c_t
      returns with an error, including one due to an interrupted
      call, the descriptor sets will be unmodified.
 
-ERRORS
+EERRRROORRSS
      An error return from _s_e_l_e_c_t indicates:
 
      [EBADF]	    One of the descriptor sets specified an
@@ -111,11 +111,11 @@ ERRORS
      [EINVAL]	    The specified time limit is invalid.  One of
 		    its components is negative or too large.
 
-SEE ALSO
+SSEEEE AALLSSOO
      accept(2), connect(2), read(2), write(2), recv(2), send(2),
      getdtablesize(2)
 
-BUGS
+BBUUGGSS
      Although the provision of _g_e_t_d_t_a_b_l_e_s_i_z_e(2) was intended to
      allow user programs to be written independent of the kernel
      limit on the number of open files, the dimension of a suffi-
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 4/21/100	  March 4, 2000                         2
+Printed 9/10/24           March 4, 2000                         2
 
 
 
@@ -192,7 +192,7 @@ SELECT(2)	    UNIX Programmer's Manual		SELECT(2)
 
 
 
-Printed 4/21/100	  March 4, 2000                         3
+Printed 9/10/24           March 4, 2000                         3
 
 
 

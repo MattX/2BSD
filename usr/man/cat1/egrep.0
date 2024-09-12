@@ -5,17 +5,17 @@ GREP(1)             UNIX Programmer's Manual		  GREP(1)
 
 
 
-NAME
+NNAAMMEE
      grep, egrep, fgrep - search a file for a pattern
 
-SYNOPSIS
-     grep [ option ] ...  expression [ file ] ...
+SSYYNNOOPPSSIISS
+     ggrreepp [ option ] ...  expression [ file ] ...
 
-     egrep [ option ] ...  [ expression ] [ file ] ...
+     eeggrreepp [ option ] ...  [ expression ] [ file ] ...
 
-     fgrep [ option ] ...  [ strings ] [ file ]
+     ffggrreepp [ option ] ...  [ strings ] [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Commands of the _g_r_e_p family search the input _f_i_l_e_s (standard
      input default) for lines matching a pattern.  Normally, each
      line found is copied to the standard output.  _G_r_e_p patterns
@@ -26,41 +26,41 @@ DESCRIPTION
      patterns are fixed strings; it is fast and compact.  The
      following options are recognized.
 
-     -v   All lines but those matching are printed.
+     --vv   All lines but those matching are printed.
 
-     -x   (Exact) only lines matched in their entirety are
+     --xx   (Exact) only lines matched in their entirety are
 	  printed (_f_g_r_e_p only).
 
-     -c   Only a count of matching lines is printed.
+     --cc   Only a count of matching lines is printed.
 
-     -l   The names of files with matching lines are listed
+     --ll   The names of files with matching lines are listed
 	  (once) separated by newlines.
 
-     -n   Each line is preceded by its relative line number in
+     --nn   Each line is preceded by its relative line number in
 	  the file.
 
-     -b   Each line is preceded by the block number on which it
+     --bb   Each line is preceded by the block number on which it
 	  was found.  This is sometimes useful in locating disk
 	  block numbers by context.
 
-     -i   The case of letters is ignored in making comparisons -
+     --ii   The case of letters is ignored in making comparisons --
 	  that is, upper and lower case are considered identical.
 	  This applies to _g_r_e_p and _f_g_r_e_p only.
 
-     -s   Silent mode.	Nothing is printed (except error mes-
+     --ss   Silent mode.	Nothing is printed (except error mes-
 	  sages).  This is useful for checking the error status.
 
-     -w   The expression is searched for as a word (as if sur-
+     --ww   The expression is searched for as a word (as if sur-
 	  rounded by `\<' and `\>', see _e_x(1).) (_g_r_e_p only)
 
-     -e _e_x_p_r_e_s_s_i_o_n
+     --ee _e_x_p_r_e_s_s_i_o_n
 	  Same as a simple _e_x_p_r_e_s_s_i_o_n argument, but useful when
 	  the _e_x_p_r_e_s_s_i_o_n begins with a -.
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -71,7 +71,7 @@ GREP(1)             UNIX Programmer's Manual		  GREP(1)
 
 
 
-     -f _f_i_l_e
+     --ff _f_i_l_e
 	  The regular expression (_e_g_r_e_p) or string list (_f_g_r_e_p)
 	  is taken from the _f_i_l_e.
 
@@ -94,7 +94,7 @@ GREP(1)             UNIX Programmer's Manual		  GREP(1)
 
 	  The character $ matches the end of a line.
 
-	  A . (period) matches any character.
+	  A .. (period) matches any character.
 
 	  A single character not otherwise endowed with special
 	  meaning matches that character.
@@ -126,7 +126,7 @@ GREP(1)             UNIX Programmer's Manual		  GREP(1)
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 
@@ -144,14 +144,14 @@ GREP(1)             UNIX Programmer's Manual		  GREP(1)
      single algorithm that spans a wide enough range of space-
      time tradeoffs.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ex(1), sed(1), sh(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 if any matches are found, 1 if none, 2 for
      syntax errors or inaccessible files.
 
-BUGS
+BBUUGGSS
      Lines are limited to 256 characters; longer lines are trun-
      cated.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         3
+Printed 9/10/24          April 29, 1985                         3
 
 
 

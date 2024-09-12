@@ -5,14 +5,14 @@ UNLINK(2)	    UNIX Programmer's Manual		UNLINK(2)
 
 
 
-NAME
+NNAAMMEE
      unlink - remove directory entry
 
-SYNOPSIS
-     unlink(path)
-     char *path;
+SSYYNNOOPPSSIISS
+     uunnlliinnkk((ppaatthh))
+     cchhaarr **ppaatthh;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_n_l_i_n_k removes the entry for the file _p_a_t_h from its direc-
      tory.  If this entry was the last link to the file, and no
      process has the file open, then all resources associated
@@ -21,12 +21,12 @@ DESCRIPTION
      until it is closed, even though the directory entry has
      disappeared.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-ERRORS
+EERRRROORRSS
      The _u_n_l_i_n_k succeeds unless:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 22, 1985				1
+Printed 9/10/24           May 22, 1985				1
 
 
 
@@ -85,7 +85,7 @@ UNLINK(2)	    UNIX Programmer's Manual		UNLINK(2)
      [EFAULT]	    _P_a_t_h points outside the process's allocated
 		    address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      close(2), link(2), rmdir(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1985				2
+Printed 9/10/24           May 22, 1985				2
 
 
 

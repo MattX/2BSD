@@ -5,13 +5,13 @@ VIPW(8)             UNIX Programmer's Manual		  VIPW(8)
 
 
 
-NAME
+NNAAMMEE
      vipw - edit the password file
 
-SYNOPSIS
-     vipw
+SSYYNNOOPPSSIISS
+     vviippww
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _V_i_p_w edits the password file while setting the appropriate
      locks, and does any necessary processing after the password
      file is unlocked.	If the password file is already being
@@ -32,7 +32,7 @@ DESCRIPTION
      is unavailable for other updates and the new information
      will not be available to programs.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chpass(1), passwd(1), passwd(5), adduser(8), mkpasswd(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 March 11, 1989                         1
+Printed 9/10/24          March 11, 1989                         1
 
 
 

@@ -5,13 +5,13 @@ CURSES(3X)	    UNIX Programmer's Manual	       CURSES(3X)
 
 
 
-NAME
+NNAAMMEE
      curses - screen functions with ``optimal'' cursor motion
 
-SYNOPSIS
-     cc [ flags ] files -lcurses -ltermcap [ libraries ]
+SSYYNNOOPPSSIISS
+     cccc [ flags ] files --llccuurrsseess --lltteerrmmccaapp [ libraries ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These routines give the user a method of updating screens
      with reasonable optimization.  They keep an image of the
      current screen, and the user sets up an image of a new one.
@@ -21,15 +21,15 @@ DESCRIPTION
      the other routines that deal with windows and screens are
      used.  The routine _e_n_d_w_i_n() should be called before exiting.
 
-SEE ALSO
+SSEEEE AALLSSOO
      _S_c_r_e_e_n _U_p_d_a_t_i_n_g _a_n_d _C_u_r_s_o_r _M_o_v_e_m_e_n_t _O_p_t_i_m_i_z_a_t_i_o_n: _A _L_i_b_r_a_r_y
      _P_a_c_k_a_g_e, Ken Arnold,
      ioctl(2), getenv(3), tty(4), termcap(5)
 
-AUTHOR
+AAUUTTHHOORR
      Ken Arnold
 
-FUNCTIONS
+FFUUNNCCTTIIOONNSS
      addch(ch)			   add a character to _s_t_d_s_c_r
      addstr(str)		   add a string to _s_t_d_s_c_r
      box(win,vert,hor)		   draw a box around a window
@@ -60,7 +60,7 @@ FUNCTIONS
 
 
 
-Printed 2/16/100	 April 23, 1986                         1
+Printed 9/10/24          April 23, 1986                         1
 
 
 
@@ -116,14 +116,14 @@ CURSES(3X)	    UNIX Programmer's Manual	       CURSES(3X)
      wstandend(win)		   end standout mode on _w_i_n
      wstandout(win)		   start standout mode on _w_i_n
 
-BUGS
+BBUUGGSS
 
 
 
 
 
 
-Printed 2/16/100	 April 23, 1986                         2
+Printed 9/10/24          April 23, 1986                         2
 
 
 

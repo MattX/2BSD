@@ -5,23 +5,23 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-NAME
+NNAAMMEE
      pstat - print system facts
 
-SYNOPSIS
-     /usr/sbin/pstat -aixptufbcmsT [ suboptions ] [ system ] [
-     corefile ]
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//ppssttaatt --aaiixxppttuuffbbccmmssTT [ ssuubbooppttiioonnss ] [ ssyysstteemm ] [
+     ccoorreeffiillee ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_s_t_a_t interprets the contents of certain system tables.  If
      _c_o_r_e_f_i_l_e is given, the tables are sought there, otherwise in
      /_d_e_v/_k_m_e_m. The required namelist is taken from /_v_m_u_n_i_x
      unless _s_y_s_t_e_m is specified.  Options are
 
-     -a    Under -p, describe all process slots rather than just
+     --aa    Under --pp, describe all process slots rather than just
 	   active ones.
 
-     -i    Print the inode table with the these headings:
+     --ii    Print the inode table with the these headings:
 
      LOC   The core location of this table entry.
      FLAGS Miscellaneous state variables encoded thus:
@@ -50,7 +50,7 @@ DESCRIPTION
 	   Number of bytes in an ordinary file, or major and
 	   minor device of special file.
 
-     -x    Print the text table with these headings:
+     --xx    Print the text table with these headings:
 
      LOC   The core location of this table entry.
      FLAGS Miscellaneous state variables encoded thus:
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 12/31/08	December 28, 2008			1
+Printed 9/10/24         December 28, 2008			1
 
 
 
@@ -89,7 +89,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      FORW  Forward link in free list.
      BACK  Backward link in free list.
 
-     -p    Print process table for active processes with these
+     --pp    Print process table for active processes with these
 	   headings:
 
      LOC   The core location of this table entry.
@@ -126,7 +126,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 
 
 
-Printed 12/31/08	December 28, 2008			2
+Printed 9/10/24         December 28, 2008			2
 
 
 
@@ -153,7 +153,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      TEXTP If text is pure, pointer to location of text table
 	   entry.
 
-     -t    Print table for terminals with these headings:
+     --tt    Print table for terminals with these headings:
 
      RAW   Number of characters in raw input queue.
      CAN   Number of characters in canonicalized input queue.
@@ -179,20 +179,20 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   tty'' for NTTYDISC or ``net'' for NETLDISC (see
 	   _b_k(4)).
 
-     -u    print information about a user process; the next argu-
+     --uu    print information about a user process; the next argu-
 	   ment is its address as given by _p_s(1).  The process
 	   must be in main memory, or the file used can be a core
 	   image and the address 0.  Only the fields located in
 	   the first page cluster can be located succesfully if
 	   the process is in main memory.
 
-     -f    Print the open file table with these headings:
+     --ff    Print the open file table with these headings:
 
      LOC   The core location of this table entry.
 
 
 
-Printed 12/31/08	December 28, 2008			3
+Printed 9/10/24         December 28, 2008			3
 
 
 
@@ -218,7 +218,7 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
      OFFSET
 	   The file offset (see _l_s_e_e_k(2)).
 
-     -b    Print the buffer pool table with the these headings:
+     --bb    Print the buffer pool table with the these headings:
 
      IND   Index of buffer descriptor
      LOC   Memory address of buffer descriptor
@@ -248,17 +248,17 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   Device major, minor number
      BLKNO Logical block number on device
 
-     -s    print the swapmap and a summary on swap space usage.
+     --ss    print the swapmap and a summary on swap space usage.
 	   The summary gives the number of used and available
 	   swapmap entries, the total amount of allocated and
 	   free swap space in kByte, and the size of the largest
 	   free swapspace segment.
 
-     -c    print the coremap and a summary on free memory areas.
+     --cc    print the coremap and a summary on free memory areas.
 
 
 
-Printed 12/31/08	December 28, 2008			4
+Printed 9/10/24         December 28, 2008			4
 
 
 
@@ -273,28 +273,28 @@ PSTAT(8)	    UNIX Programmer's Manual		 PSTAT(8)
 	   coremap entries as well as the total amount and size
 	   largest segment of free memory in kBytes.
 
-     -m    print the ub_map, describing free UNIBUS mapping
+     --mm    print the ub_map, describing free UNIBUS mapping
 	   registers, and a summary on free mapping registers.
 	   The summary gives the number of used and available
 	   ub_map entries as well as the total amount and size
 	   largest segment of free registers.
 
-     -T    prints the number of used and free slots in the
+     --TT    prints the number of used and free slots in the
 	   several system tables and is useful for checking to
 	   see how full system tables have become if the system
 	   is under heavy load.
 
-FILES
+FFIILLEESS
      /vmunix	namelist
      /dev/kmem	default source of tables
 
-SEE ALSO
+SSEEEE AALLSSOO
      iostat(1), ps(1), systat(1), vmstat(1), stat(2), fs(5),
      K. Thompson, _U_N_I_X _I_m_p_l_e_m_e_n_t_a_t_i_o_n
 
-BUGS
+BBUUGGSS
      It would be very useful if the system recorded "maximum
-     occupancy" on the tables reported by -T; even more useful if
+     occupancy" on the tables reported by --TT;; even more useful if
      these tables were dynamically allocated.
 
 
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 12/31/08	December 28, 2008			5
+Printed 9/10/24         December 28, 2008			5
 
 
 

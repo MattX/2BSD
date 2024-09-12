@@ -5,31 +5,31 @@ SEND(2)             UNIX Programmer's Manual		  SEND(2)
 
 
 
-NAME
+NNAAMMEE
      send, sendto, sendmsg - send a message from a socket
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/socket.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
 
-     cc = send(s, msg, len, flags)
-     int cc, s;
-     char *msg;
-     int len, flags;
+     cccc == sseenndd((ss,, mmssgg,, lleenn,, ffllaaggss))
+     iinntt cccc,, ss;;
+     cchhaarr **mmssgg;;
+     iinntt lleenn,, ffllaaggss;;
 
-     cc = sendto(s, msg, len, flags, to, tolen)
-     int cc, s;
-     char *msg;
-     int len, flags;
-     struct sockaddr *to;
-     int tolen;
+     cccc == sseennddttoo((ss,, mmssgg,, lleenn,, ffllaaggss,, ttoo,, ttoolleenn))
+     iinntt cccc,, ss;;
+     cchhaarr **mmssgg;;
+     iinntt lleenn,, ffllaaggss;;
+     ssttrruucctt ssoocckkaaddddrr **ttoo;;
+     iinntt ttoolleenn;;
 
-     cc = sendmsg(s, msg, flags)
-     int cc, s;
-     struct msghdr msg[];
-     int flags;
+     cccc == sseennddmmssgg((ss,, mmssgg,, ffllaaggss))
+     iinntt cccc,, ss;;
+     ssttrruucctt mmssgghhddrr mmssgg[[]];;
+     iinntt ffllaaggss;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_e_n_d, _s_e_n_d_t_o, and _s_e_n_d_m_s_g are used to transmit a message to
      another socket.  _S_e_n_d may be used only when the socket is in
      a _c_o_n_n_e_c_t_e_d state, while _s_e_n_d_t_o and _s_e_n_d_m_s_g may be used at
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 14, 1986				1
+Printed 9/10/24           May 14, 1986				1
 
 
 
@@ -77,11 +77,11 @@ SEND(2)             UNIX Programmer's Manual		  SEND(2)
 
      See _r_e_c_v(2) for a description of the _m_s_g_h_d_r structure.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      The call returns the number of characters sent, or -1 if an
      error occurred.
 
-ERRORS
+EERRRROORRSS
      [EBADF]		 An invalid descriptor was specified.
 
      [ENOTSOCK]          The argument _s is not a socket.
@@ -105,7 +105,7 @@ ERRORS
 			 the interface has stopped sending, but
 			 may be caused by transient congestion.
 
-SEE ALSO
+SSEEEE AALLSSOO
      fcntl(2), recv(2), select(2), getsockopt(2), socket(2),
      write(2)
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 14, 1986				2
+Printed 9/10/24           May 14, 1986				2
 
 
 

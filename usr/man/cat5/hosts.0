@@ -5,10 +5,10 @@ HOSTS(5)	    UNIX Programmer's Manual		 HOSTS(5)
 
 
 
-NAME
+NNAAMMEE
      hosts - host name data base
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _h_o_s_t_s file contains information regarding the known
      hosts on the network.  For each host a single line should be
      present with the following information:
@@ -42,10 +42,10 @@ DESCRIPTION
      tain any printable character other than a field delimiter,
      newline, or comment character.
 
-FILES
+FFIILLEESS
      /etc/hosts
 
-SEE ALSO
+SSEEEE AALLSSOO
      gethostbyname(3N), ifconfig(8C), named(8)
      Name Server Operations Guide for BIND
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 14, 1986				1
+Printed 9/10/24           May 14, 1986				1
 
 
 

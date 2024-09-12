@@ -5,14 +5,14 @@ DEV_MKDB(8)	    UNIX Programmer's Manual	      DEV_MKDB(8)
 
 
 
-NAME
+NNAAMMEE
      dev_mkdb - create /_d_e_v database
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      dev_mkdb
 
-DESCRIPTION
-     The dev_mkdb command creates a _d_b_m(3) hash access method
+DDEESSCCRRIIPPTTIIOONN
+     The ddeevv__mmkkddbb command creates a _d_b_m(3) hash access method
      database in /_v_a_r/_r_u_n/_d_e_v._d_b which contains the names of all
      of the character and block special files in the /_d_e_v direc-
      tory, using the file type and the _s_t__r_d_e_v field as the key.
@@ -22,16 +22,16 @@ DESCRIPTION
      of the file (st_mode & S_IFMT), the latter is the st_rdev
      field.
 
-FILES
+FFIILLEESS
      /dev		 Device directory.
 
      /var/run/dev.db	 Database file.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ps(1), stat(2), dbm(3), devname(3), ttyname(3)
 
-HISTORY
-     The dev_mkdb command appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ddeevv__mmkkddbb command appeared in 4.4BSD.
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	February 3, 1995			1
+Printed 9/10/24         February 3, 1995			1
 
 
 

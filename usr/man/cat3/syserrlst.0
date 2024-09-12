@@ -5,53 +5,53 @@ SYSERRLST(3)	    UNIX Programmer's Manual	     SYSERRLST(3)
 
 
 
-NAME
+NNAAMMEE
      syserrlst, __errlst - read system error messages from file
 
-SYNOPSIS
-     char *
-     syserrlst(err)
-     int err;
+SSYYNNOOPPSSIISS
+     cchhaarr **
+     ssyysseerrrrllsstt((eerrrr))
+     iinntt eerrrr;;
 
-     char *
-     __errlst(err, path);
-     int err;
-     char *path;
+     cchhaarr **
+     ____eerrrrllsstt((eerrrr,, ppaatthh));;
+     iinntt eerrrr;;
+     cchhaarr **ppaatthh;;
 
-DESCRIPTION
-     Syserrlst(3) reads the error message string corresponding to
+DDEESSCCRRIIPPTTIIOONN
+     SSyysseerrrrllsstt(3) reads the error message string corresponding to
      _e_r_r from the file /_e_t_c/_s_y_s_e_r_r_l_s_t.
 
-     __errlst(3) reads the error message string corresponding to
+     ____eerrrrllsstt((33)) reads the error message string corresponding to
      _e_r_r from the file _p_a_t_h.  The file _p_a_t_h must be in the format
-     described in syserrlst(5).
+     described in ssyysseerrrrllsstt(5).
 
-     NULL is returned if _e_r_r is out of bounds (negative or
+     NNUULLLL is returned if _e_r_r is out of bounds (negative or
      greater than the highest message number in /_e_t_c/_s_y_s_e_r_r_l_s_t or
      _p_a_t_h) or if the error message file can not be opened.  It is
-     the responsibility of the caller (strerror(3)) to check for
+     the responsibility of the caller (ssttrreerrrroorr(3)) to check for
      and properly handle the _N_U_L_L return.
 
-RETURN VALUE
-     NULL if an error was encountered in opening the error mes-
+RREETTUURRNN VVAALLUUEE
+     NNUULLLL if an error was encountered in opening the error mes-
      sage file, if the error was out of bounds, or if the file
      did not start with the correct magic number.  Otherwise a
-     char * is returned pointing to a static buffer containing
+     cchhaarr ** is returned pointing to a static buffer containing
      the text of the error message.
 
-ERRORS
-     syserrlst(3) and __errlst(3) can return any of the errors
-     for the open(2), lseek(2), or read(2) system calls.
+EERRRROORRSS
+     ssyysseerrrrllsstt(3) and ____eerrrrllsstt(3) can return any of the errors
+     for the ooppeenn(2), llsseeeekk(2), or rreeaadd(2) system calls.
 
-SEE ALSO
+SSEEEE AALLSSOO
      perror(3), strerror(3), syserrlst(5)
 
-HISTORY
-     syserrlst(3), and __errlst(3) were created for 2.11BSD with
-     the aim of saving 2kb of Data space in programs which called
-     perror(3), or strerror(3).
+HHIISSTTOORRYY
+     ssyysseerrrrllsstt(3), and ____eerrrrllsstt(3) were created for 2.11BSD with
+     the aim of saving 2kb of DDaattaa space in programs which called
+     ppeerrrroorr(3), or ssttrreerrrroorr(3).
 
-BUGS
+BBUUGGSS
      The information is stored in a static buffer.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 March 26, 1996                         1
+Printed 9/10/24          March 26, 1996                         1
 
 
 

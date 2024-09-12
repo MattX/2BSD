@@ -5,13 +5,13 @@ BACKGAMMON(6)	    UNIX Programmer's Manual	    BACKGAMMON(6)
 
 
 
-NAME
+NNAAMMEE
      backgammon - the game
 
-SYNOPSIS
-     /usr/games/backgammon
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//bbaacckkggaammmmoonn
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This program does what you expect.  It will ask whether you
      need instructions.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

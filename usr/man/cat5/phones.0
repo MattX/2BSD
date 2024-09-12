@@ -5,10 +5,10 @@ PHONES(5)	    UNIX Programmer's Manual		PHONES(5)
 
 
 
-NAME
+NNAAMMEE
      phones - remote host phone number data base
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The file /etc/phones contains the system-wide private phone
      numbers for the _t_i_p(1C) program.  This file is normally
      unreadable, and so may contain privileged information.  The
@@ -27,10 +27,10 @@ DESCRIPTION
      _t_i_p(1C) will attempt to dial each one in turn, until it
      establishes a connection.
 
-FILES
+FFIILLEESS
      /etc/phones
 
-SEE ALSO
+SSEEEE AALLSSOO
      tip(1C), remote(5)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 16, 1986				1
+Printed 9/10/24           May 16, 1986				1
 
 
 

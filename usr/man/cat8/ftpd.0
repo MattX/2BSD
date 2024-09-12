@@ -5,36 +5,36 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
 
 
 
-NAME
+NNAAMMEE
      ftpd - DARPA Internet File Transfer Protocol server
 
-SYNOPSIS
-     /usr/libexec/ftpd [ -d ] [ -l ] [ -ttimeout ] [ -Tmaxtimeout
+SSYYNNOOPPSSIISS
+     //uussrr//lliibbeexxeecc//ffttppdd [ --dd ] [ --ll ] [ --tttimeout ] [ --TTmaxtimeout
      ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_t_p_d is the DARPA Internet File Transfer Protocol server
      process.  The server uses the TCP protocol and listens at
      the port specified in the ``ftp'' service specification; see
      _s_e_r_v_i_c_e_s(5).
 
-     If the -d option is specified, debugging information is
+     If the --dd option is specified, debugging information is
      written to the syslog.
 
-     If the -l option is specified, each ftp session is logged in
+     If the --ll option is specified, each ftp session is logged in
      the syslog.
 
      The ftp server will timeout an inactive session after 15
-     minutes.  If the -t option is specified, the inactivity
+     minutes.  If the --tt option is specified, the inactivity
      timeout period will be set to _t_i_m_e_o_u_t seconds.  A client may
      also request a different timeout period; the maximum period
-     allowed may be set to _t_i_m_e_o_u_t seconds with the -T option.
+     allowed may be set to _t_i_m_e_o_u_t seconds with the --TT option.
      The default limit is 2 hours.
 
      The ftp server currently supports the following ftp
      requests; case is not distinguished.
 
-     Request	    Description
+     RReeqquueesstt	    DDeessccrriippttiioonn
      ABOR	    abort previous command
      ACCT	    specify account (ignored)
      ALLO	    allocate storage (vacuously)
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 5/14/01         February 23, 1989			1
+Printed 9/10/24         February 23, 1989			1
 
 
 
@@ -91,7 +91,7 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
      The following non-standard or UNIX specific commands are
      supported by the SITE request.
 
-     Request	    Description
+     RReeqquueesstt	    DDeessccrriippttiioonn
      UMASK	    change umask. _E._g. SITE UMASK 002
      IDLE	    set idle-timer. _E._g. SITE IDLE 60
      CHMOD	    change mode of a file. _E._g. SITE CHMOD 755 filename
@@ -126,7 +126,7 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
 
 
 
-Printed 5/14/01         February 23, 1989			2
+Printed 9/10/24         February 23, 1989			2
 
 
 
@@ -176,10 +176,10 @@ FTPD(8)             UNIX Programmer's Manual		  FTPD(8)
 	  Users should then place files which are to be accessi-
 	  ble via the anonymous account in this directory.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ftp(1), getusershell(3), syslogd(8)
 
-BUGS
+BBUUGGSS
      The anonymous account is inherently dangerous and should
      avoided when possible.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 5/14/01         February 23, 1989			3
+Printed 9/10/24         February 23, 1989			3
 
 
 

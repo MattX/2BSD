@@ -5,22 +5,22 @@ SUM(1)		    UNIX Programmer's Manual		   SUM(1)
 
 
 
-NAME
+NNAAMMEE
      sum - sum and count blocks in a file
 
-SYNOPSIS
-     sum file
+SSYYNNOOPPSSIISS
+     ssuumm file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_u_m calculates and prints a 16-bit checksum for the named
      file, and also prints the number of blocks in the file.  It
      is typically used to look for bad spots, or to validate a
      file communicated over some transmission line.
 
-SEE ALSO
+SSEEEE AALLSSOO
      wc(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      `Read error' is indistinguishable from end of file on most
      devices; check the block count.
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

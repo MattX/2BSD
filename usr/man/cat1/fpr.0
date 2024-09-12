@@ -5,13 +5,13 @@ FPR(1)		    UNIX Programmer's Manual		   FPR(1)
 
 
 
-NAME
+NNAAMMEE
      fpr - print Fortran file
 
-SYNOPSIS
-     fpr
+SSYYNNOOPPSSIISS
+     ffpprr
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_p_r is a filter that transforms files formatted according to
      Fortran's carriage control conventions into files formatted
      according to UNIX line printer conventions.
@@ -38,12 +38,12 @@ DESCRIPTION
      changed to a form feed. The effects of a "+" are simulated
      using backspaces.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      a.out | fpr | lpr
 
      fpr < f77.output | lpr
 
-BUGS
+BBUUGGSS
      Results are undefined for input lines longer than 170 char-
      acters.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 7, 1986				1
+Printed 9/10/24            May 7, 1986				1
 
 
 

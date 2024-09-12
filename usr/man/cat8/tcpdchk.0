@@ -5,13 +5,13 @@ TCPDCHK(8)	    UNIX Programmer's Manual	       TCPDCHK(8)
 
 
 
-NAME
+NNAAMMEE
      tcpdchk - tcp wrapper configuration checker
 
-SYNOPSYS
+SSYYNNOOPPSSYYSS
      tcpdchk [-a] [-d] [-i inet_conf] [-v]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _t_c_p_d_c_h_k examines your tcp wrapper configuration and reports
      all potential and real problems it can find. The program
      examines the _t_c_p_d access control files (by default, these
@@ -33,7 +33,7 @@ DESCRIPTION
      Where possible, _t_c_p_d_c_h_k provides a helpful suggestion to fix
      the problem.
 
-OPTIONS
+OOPPTTIIOONNSS
      -a   Report access control rules that permit access without
 	  an explicit ALLOW keyword. This applies only when the
 	  extended access control language is enabled (build with
@@ -53,14 +53,14 @@ OPTIONS
 	  for you to spot any discrepancies between what you want
 	  and what the program understands.
 
-FILES
+FFIILLEESS
      The default locations of the _t_c_p_d access control tables are:
 
 
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -74,14 +74,14 @@ TCPDCHK(8)	    UNIX Programmer's Manual	       TCPDCHK(8)
      /etc/hosts.allow
      /etc/hosts.deny
 
-SEE ALSO
+SSEEEE AALLSSOO
      tcpdmatch(8), explain what tcpd would do in specific cases.
      hosts_access(5), format of the tcpd access control tables.
      hosts_options(5), format of the language extensions.
      inetd.conf(5), format of the inetd control file.
      tlid.conf(5), format of the tlid control file.
 
-AUTHORS
+AAUUTTHHOORRSS
      Wietse Venema (wietse@wzv.win.tue.nl),
      Department of Mathematics and Computing Science,
      Eindhoven University of Technology
@@ -126,7 +126,7 @@ AUTHORS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

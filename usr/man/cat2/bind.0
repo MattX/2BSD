@@ -5,25 +5,25 @@ BIND(2)             UNIX Programmer's Manual		  BIND(2)
 
 
 
-NAME
+NNAAMMEE
      bind - bind a name to a socket
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/socket.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
 
-     bind(s, name, namelen)
-     int s;
-     struct sockaddr *name;
-     int namelen;
+     bbiinndd((ss,, nnaammee,, nnaammeelleenn))
+     iinntt ss;;
+     ssttrruucctt ssoocckkaaddddrr **nnaammee;;
+     iinntt nnaammeelleenn;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_i_n_d assigns a name to an unnamed socket.	When a socket is
      created with _s_o_c_k_e_t(2) it exists in a name space (address
      family) but has no name assigned.	_B_i_n_d requests that _n_a_m_e
      be assigned to the socket.
 
-NOTES
+NNOOTTEESS
      Binding a name in the UNIX domain creates a socket in the
      file system that must be deleted by the caller when it is no
      longer needed (using _u_n_l_i_n_k(2)).
@@ -32,12 +32,12 @@ NOTES
      domains.  Consult the manual entries in section 4 for
      detailed information.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      If the bind is successful, a 0 value is returned.	A return
      value of -1 indicates an error, which is further specified
      in the global _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      The _b_i_n_d call will fail if:
 
      [EBADF]		 _S is not a valid descriptor.
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 
@@ -100,7 +100,7 @@ BIND(2)             UNIX Programmer's Manual		  BIND(2)
 
      [EISDIR]	    A null pathname was specified.
 
-SEE ALSO
+SSEEEE AALLSSOO
      connect(2), listen(2), socket(2), getsockname(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1986				2
+Printed 9/10/24           May 22, 1986				2
 
 
 

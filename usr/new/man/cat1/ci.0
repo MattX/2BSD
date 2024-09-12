@@ -5,13 +5,13 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
 
 
 
-NAME
+NNAAMMEE
      ci - check in RCS revisions
 
-SYNOPSIS
-     ci [ options ] file ...
+SSYYNNOOPPSSIISS
+     ccii [ options ] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_i stores new revisions into RCS files.  Each file name end-
      ing in `,v' is taken to be an RCS file, all others are
      assumed to be working files containing new revisions.  _C_i
@@ -52,15 +52,15 @@ DESCRIPTION
 
      Normally, _c_i checks whether the revision to be deposited is
      different from the preceding one. If it is not different, _c_i
-     either aborts the deposit (if -q is given) or asks whether
-     to abort (if -q is omitted). A deposit can be forced with
-     the -f option.
+     either aborts the deposit (if --qq is given) or asks whether
+     to abort (if --qq is omitted). A deposit can be forced with
+     the --ff option.
 
 
 
 
 
-Printed 2/16/100	     6/29/83				1
+Printed 9/10/24              6/29/83				1
 
 
 
@@ -77,18 +77,18 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
      If several files are checked in, _c_i asks whether to reuse
      the previous log message.	If the std. input is not a termi-
      nal, _c_i suppresses the prompt and uses the same log message
-     for all files.  See also -m.
+     for all files.  See also --mm.
 
      The number of the deposited revision can be given by any of
-     the options -r, -f, -k, -l, -u, or -q (see -r).
+     the options --rr, --ff, --kk, --ll, --uu, or --qq (see --rr).
 
      If the RCS file does not exist, _c_i creates it and deposits
      the contents of the working file as the initial revision
      (default number: 1.1).  The access list is initialized to
      empty.  Instead of the log message, _c_i requests descriptive
-     text (see -t below).
+     text (see --tt below).
 
-     -r[_r_e_v]   assigns the revision number _r_e_v to the checked-in
+     --rr[_r_e_v]   assigns the revision number _r_e_v to the checked-in
 	       revision, releases the corresponding lock, and
 	       deletes the working file. This is also the
 	       default.
@@ -121,12 +121,12 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
 	       Exception: On the trunk, revisions can be appended
 	       to the end, but not inserted.
 
-     -f[_r_e_v]   forces a deposit; the new revision is deposited
+     --ff[_r_e_v]   forces a deposit; the new revision is deposited
 	       even it is not different from the preceding one.
 
 
 
-Printed 2/16/100	     6/29/83				2
+Printed 9/10/24              6/29/83				2
 
 
 
@@ -137,7 +137,7 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
 
 
 
-     -k[_r_e_v]   searches the working file for keyword values to
+     --kk[_r_e_v]   searches the working file for keyword values to
 	       determine its revision number, creation date,
 	       author, and state (see _c_o (1)), and assigns these
 	       values to the deposited revision, rather than com-
@@ -145,54 +145,54 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
 	       command option overrides the number in the working
 	       file.  This option is useful for software distri-
 	       bution. A revision that is sent to several sites
-	       should be checked in with the -k option at these
+	       should be checked in with the --kk option at these
 	       sites to preserve its original number, date,
 	       author, and state.
 
-     -l[_r_e_v]   works like -r, except it performs an additional _c_o
+     --ll[_r_e_v]   works like --rr, except it performs an additional _c_o
 	       -_l for the deposited revision. Thus, the deposited
 	       revision is immediately checked out again and
 	       locked.	This is useful for saving a revision
 	       although one wants to continue editing it after
 	       the checkin.
 
-     -u[_r_e_v]   works like -l, except that the deposited revision
+     --uu[_r_e_v]   works like --ll, except that the deposited revision
 	       is not locked.  This is useful if one wants to
 	       process (e.g., compile) the revision immediately
 	       after checkin.
 
-     -q[_r_e_v]   quiet mode; diagnostic output is not printed.  A
+     --qq[_r_e_v]   quiet mode; diagnostic output is not printed.  A
 	       revision that is not different from the preceding
-	       one is not deposited, unless -f is given.
+	       one is not deposited, unless --ff is given.
 
-     -m_m_s_g     uses the string _m_s_g as the log message for all
+     --mm_m_s_g     uses the string _m_s_g as the log message for all
 	       revisions checked in.
 
-     -n_n_a_m_e    assigns the symbolic name _n_a_m_e to the number of
+     --nn_n_a_m_e    assigns the symbolic name _n_a_m_e to the number of
 	       the checked-in revision.  _C_i prints an error mes-
 	       sage if _n_a_m_e is already assigned to another
 	       number.
 
-     -N_n_a_m_e    same as -n, except that it overrides a previous
+     --NN_n_a_m_e    same as --nn, except that it overrides a previous
 	       assignment of _n_a_m_e.
 
-     -s_s_t_a_t_e   sets the state of the checked-in revision to the
+     --ss_s_t_a_t_e   sets the state of the checked-in revision to the
 	       identifier _s_t_a_t_e.  The default is _E_x_p.
 
-     -t[_t_x_t_f_i_l_e]
+     --tt[_t_x_t_f_i_l_e]
 	       writes descriptive text into the RCS file (deletes
 	       the existing text).  If _t_x_t_f_i_l_e is omitted, _c_i
 	       prompts the user for text supplied from the std.
 	       input, terminated with a line containing a single
 	       `.' or control-D.  Otherwise, the descriptive text
 	       is copied from the file _t_x_t_f_i_l_e.  During initiali-
-	       zation, descriptive text is requested even if -t
+	       zation, descriptive text is requested even if --tt
 	       is not given.  The prompt is suppressed if std.
 	       input is not a terminal.
 
 
 
-Printed 2/16/100	     6/29/83				3
+Printed 9/10/24              6/29/83				3
 
 
 
@@ -203,20 +203,20 @@ CI(1)		    UNIX Programmer's Manual		    CI(1)
 
 
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      For each revision, _c_i prints the RCS file, the working file,
      and the number of both the deposited and the preceding revi-
      sion.  The exit status always refers to the last file
      checked in, and is 0 if the operation was successful, 1 oth-
      erwise.
 
-FILE MODES
+FFIILLEE MMOODDEESS
      An RCS file created by _c_i inherits the read and execute per-
      missions from the working file. If the RCS file exists
      already, _c_i preserves its read and execute permissions.  _C_i
      always turns off all write permissions of RCS files.
 
-FILES
+FFIILLEESS
      The caller of the command must have read/write permission
      for the directories containing the RCS file and the working
      file, and read permission for the RCS file itself.  A number
@@ -225,13 +225,13 @@ FILES
      a new RCS file and unlinks the old one.  This strategy makes
      links to RCS files useless.
 
-IDENTIFICATION
+IIDDEENNTTIIFFIICCAATTIIOONN
      Author: Walter F. Tichy, Purdue University, West Lafayette,
      IN, 47907.
      Revision Number: 3.1 ; Release Date: 83/04/04 .
      Copyright (C) 1982 by Walter F. Tichy.
 
-SEE ALSO
+SSEEEE AALLSSOO
      co (1), ident(1), rcs (1), rcsdiff (1), rcsintro (1),
      rcsmerge (1), rlog (1), rcsfile (5), sccstorcs (8).
      Walter F. Tichy, "Design, Implementation, and Evaluation of
@@ -239,7 +239,7 @@ SEE ALSO
      _n_a_t_i_o_n_a_l _C_o_n_f_e_r_e_n_c_e _o_n _S_o_f_t_w_a_r_e _E_n_g_i_n_e_e_r_i_n_g, IEEE, Tokyo,
      Sept. 1982.
 
-BUGS
+BBUUGGSS
 
 
 
@@ -255,7 +255,7 @@ BUGS
 
 
 
-Printed 2/16/100	     6/29/83				4
+Printed 9/10/24              6/29/83				4
 
 
 

@@ -5,18 +5,18 @@ OPEN(2)             UNIX Programmer's Manual		  OPEN(2)
 
 
 
-NAME
+NNAAMMEE
      open - open a file for reading or writing, or create a new
      file
 
-SYNOPSIS
-     #include <fcntl.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ffccnnttll..hh>>
 
-     open(path, flags, mode)
-     char *path;
-     int flags, mode;
+     ooppeenn((ppaatthh,, ffllaaggss,, mmooddee))
+     cchhaarr **ppaatthh;;
+     iinntt ffllaaggss,, mmooddee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _O_p_e_n opens the file _p_a_t_h for reading and/or writing, as
      specified by the _f_l_a_g_s argument and returns a descriptor for
      that file.  The _f_l_a_g_s argument may indicate the file is to
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  Nov 30, 1994				1
+Printed 9/10/24           Nov 30, 1994				1
 
 
 
@@ -94,7 +94,7 @@ OPEN(2)             UNIX Programmer's Manual		  OPEN(2)
      open simultaneously by one process.  _G_e_t_d_t_a_b_l_e_s_i_z_e(2)
      returns the current system limit.
 
-ERRORS
+EERRRROORRSS
      The named file is opened unless one or more of the following
      are true:
 
@@ -126,7 +126,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  Nov 30, 1994				2
+Printed 9/10/24           Nov 30, 1994				2
 
 
 
@@ -192,7 +192,7 @@ OPEN(2)             UNIX Programmer's Manual		  OPEN(2)
 
 
 
-Printed 2/16/100	  Nov 30, 1994				3
+Printed 9/10/24           Nov 30, 1994				3
 
 
 
@@ -209,7 +209,7 @@ OPEN(2)             UNIX Programmer's Manual		  OPEN(2)
      [EOPNOTSUPP]   An attempt was made to open a socket (not
 		    currently implemented).
 
-SEE ALSO
+SSEEEE AALLSSOO
      chmod(2), close(2), dup(2), getdtablesize(2), lseek(2),
      read(2), write(2), umask(2)
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  Nov 30, 1994				4
+Printed 9/10/24           Nov 30, 1994				4
 
 
 

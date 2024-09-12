@@ -5,13 +5,13 @@ ALIASES(5)	    UNIX Programmer's Manual	       ALIASES(5)
 
 
 
-NAME
+NNAAMMEE
      aliases - aliases file for sendmail
 
-SYNOPSIS
-     /etc/aliases
+SSYYNNOOPPSSIISS
+     //eettcc//aalliiaasseess
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This file describes user id aliases used by
      /_u_s_r/_s_b_i_n/_s_e_n_d_m_a_i_l. It is formatted as a series of lines of
      the form
@@ -34,12 +34,12 @@ DESCRIPTION
      time the aliases file is changed for the change to take
      effect.
 
-SEE  ALSO
+SSEEEE  AALLSSOO
      newaliases(1), dbm(3X), sendmail(8)
      SENDMAIL Installation and Operation Guide.
      SENDMAIL An Internetwork Mail Router.
 
-BUGS
+BBUUGGSS
      Because of restrictions in _d_b_m(3X) a single alias cannot
      contain more than about 1000 bytes of information.  You can
      get longer aliases by ``chaining''; that is, make the last
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 

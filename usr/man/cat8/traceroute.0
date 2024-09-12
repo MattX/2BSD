@@ -5,15 +5,15 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
 
 
 
-NAME
+NNAAMMEE
      traceroute - print the route packets take to network host
 
-SYNOPSIS
-     traceroute [ -m max_ttl ] [ -n ] [ -p port ] [ -q nqueries ]
-     [ -r ] [ -s src_addr ] [ -t tos ] [ -w ] [ -w waittime ]
+SSYYNNOOPPSSIISS
+     ttrraacceerroouuttee [ --mm max_ttl ] [ --nn ] [ --pp port ] [ --qq nqueries ]
+     [ --rr ] [ --ss src_addr ] [ --tt tos ] [ --ww ] [ --ww waittime ]
      _h_o_s_t [ _p_a_c_k_e_t_s_i_z_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The Internet is a large and complex aggregation of network
      hardware, connected together by gateways.	Tracking the
      route one's packets follow (or finding the miscreant gateway
@@ -29,15 +29,15 @@ DESCRIPTION
 
      Other options are:
 
-     -m   Set the max time-to-live (max number of hops) used in
+     --mm   Set the max time-to-live (max number of hops) used in
 	  outgoing probe packets.  The default is 30 hops (the
 	  same default used for TCP connections).
 
-     -n   Print hop addresses numerically rather than symboli-
+     --nn   Print hop addresses numerically rather than symboli-
 	  cally and numerically (saves a nameserver address-to-
 	  name lookup for each gateway found on the path).
 
-     -p   Set the base UDP port number used in probes (default is
+     --pp   Set the base UDP port number used in probes (default is
 	  33434).  Traceroute hopes that nothing is listening on
 	  UDP ports _b_a_s_e to _b_a_s_e+_n_h_o_p_s-_1 at the destination host
 	  (so an ICMP PORT_UNREACHABLE message will be returned
@@ -45,14 +45,14 @@ DESCRIPTION
 	  listening on a port in the default range, this option
 	  can be used to pick an unused port range.
 
-     -r   Bypass the normal routing tables and send directly to a
+     --rr   Bypass the normal routing tables and send directly to a
 	  host on an attached network.	If the host is not on a
 	  directly-attached network, an error is returned.  This
 	  option can be used to ping a local host through an
 	  interface that has no route through it (e.g., after the
 	  interface was dropped by _r_o_u_t_e_d(8C)).
 
-     -s   Use the following IP address (which must be given as an
+     --ss   Use the following IP address (which must be given as an
 	  IP number, not a hostname) as the source address in
 	  outgoing probe packets.  On hosts with more than one IP
 	  address, this option can be used to force the source
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	February 28, 1989			1
+Printed 9/10/24         February 28, 1989			1
 
 
 
@@ -75,7 +75,7 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
 	  address is not one of this machine's interface
 	  addresses, an error is returned and nothing is sent.
 
-     -t   Set the _t_y_p_e-_o_f-_s_e_r_v_i_c_e in probe packets to the follow-
+     --tt   Set the _t_y_p_e-_o_f-_s_e_r_v_i_c_e in probe packets to the follow-
 	  ing value (default zero).  The value must be a decimal
 	  integer in the range 0 to 255.  This option can be used
 	  to see if different types-of-service result in dif-
@@ -86,10 +86,10 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
 	  for definitions.  Useful values are probably `-t 16'
 	  (low delay) and `-t 8' (high throughput).
 
-     -v   Verbose output.  Received ICMP packets other than
+     --vv   Verbose output.  Received ICMP packets other than
 	  TIME_EXCEEDED and UNREACHABLEs are listed.
 
-     -w   Set the time (in seconds) to wait for a response to a
+     --ww   Set the time (in seconds) to wait for a response to a
 	  probe (default 3 sec.).
 
      This program attempts to trace the route an IP packet would
@@ -126,7 +126,7 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
 
 
 
-Printed 2/16/100	February 28, 1989			2
+Printed 9/10/24         February 28, 1989			2
 
 
 
@@ -192,7 +192,7 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
 
 
 
-Printed 2/16/100	February 28, 1989			3
+Printed 9/10/24         February 28, 1989			3
 
 
 
@@ -230,9 +230,9 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
      expect to see this problem frequently and/or take care pick-
      ing the target host of your probes.
 
-     Other possible annotations after the time are !H, !N, !P
+     Other possible annotations after the time are !!HH, !!NN, !!PP
      (got a host, network or protocol unreachable, respectively),
-     !S or !F (source route failed or fragmentation needed - nei-
+     !!SS or !!FF (source route failed or fragmentation needed - nei-
      ther of these should ever occur and the associated gateway
      is busted if you see one).  If almost all the probes result
      in some kind of unreachable, traceroute will give up and
@@ -244,13 +244,13 @@ TRACEROUTE(8)	    UNIX Programmer's Manual	    TRACEROUTE(8)
      on the network, it is unwise to use _t_r_a_c_e_r_o_u_t_e during normal
      operations or from automated scripts.
 
-AUTHOR
+AAUUTTHHOORR
      Implemented by Van Jacobson from a suggestion by Steve Deer-
      ing.  Debugged by a cast of thousands with particularly
      cogent suggestions or fixes from C. Philip Wood, Tim Seaver
      and Ken Adelman.
 
-SEE ALSO
+SSEEEE AALLSSOO
      netstat(1), ping(8)
 
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	February 28, 1989			4
+Printed 9/10/24         February 28, 1989			4
 
 
 

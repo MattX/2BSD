@@ -5,13 +5,13 @@ APROPOS(1)	    UNIX Programmer's Manual	       APROPOS(1)
 
 
 
-NAME
+NNAAMMEE
      apropos - locate commands by keyword lookup
 
-SYNOPSIS
-     apropos keyword ...
+SSYYNNOOPPSSIISS
+     aapprrooppooss keyword ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_p_r_o_p_o_s shows which manual sections contain instances of any
      of the given keywords in their title.  Each word is con-
      sidered separately and case of letters is ignored.  Words
@@ -30,16 +30,16 @@ DESCRIPTION
      format' and then `man 3s printf' to get the manual on the
      subroutine _p_r_i_n_t_f.
 
-     _A_p_r_o_p_o_s is actually just the -k option to the _m_a_n(1) com-
+     _A_p_r_o_p_o_s is actually just the --kk option to the _m_a_n(1) com-
      mand.
 
-FILES
+FFIILLEESS
      /usr/man/whatis	      data base
 
-SEE ALSO
+SSEEEE AALLSSOO
      man(1), whatis(1), catman(8)
 
-AUTHOR
+AAUUTTHHOORR
      William Joy
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	  June 5, 1986				1
+Printed 9/10/24           June 5, 1986				1
 
 
 

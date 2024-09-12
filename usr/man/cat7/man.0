@@ -5,15 +5,15 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
-NAME
+NNAAMMEE
      man - macros to typeset manual
 
-SYNOPSIS
-     nroff  -man  file ...
+SSYYNNOOPPSSIISS
+     nnrrooffff  --mmaann  file ...
 
-     troff  -man  file ...
+     ttrrooffff  --mmaann  file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These macros are used to lay out pages of this manual.  A
      skeleton page may be found in the file
      /usr/man/man.template.
@@ -21,8 +21,8 @@ DESCRIPTION
      Any text argument _t may be zero to six words.  Quotes may be
      used to include blanks in a `word'.  If _t_e_x_t is empty, spe-
      cial treatment is applied to the next input line with text
-     to be printed.  In this way .I may be used to italicize a
-     whole line, or .SM may be followed by .B to make small bold
+     to be printed.  In this way ..I may be used to italicize a
+     whole line, or ..SM may be followed by ..B to make small bold
      letters.
 
      A prevailing indent distance is remembered between succes-
@@ -34,23 +34,23 @@ DESCRIPTION
      paragraph, and after processing font and size setting mac-
      ros.
 
-     These strings are predefined by -man:
+     These strings are predefined by --mmaann:
 
      \*R  `(Reg)', trademark symbol in _t_r_o_f_f.
 
      \*S  Change to default type size.
 
-FILES
+FFIILLEESS
      /usr/share/tmac/tmac.an
      /usr/man/man.template
 
-SEE ALSO
+SSEEEE AALLSSOO
      troff(1), man(1)
 
-BUGS
+BBUUGGSS
      Relative indents don't nest.
 
-REQUESTS
+RREEQQUUEESSTTSS
 Request      Cause If no    Explanation
 	     Break Argument
 .B _t	     no    _t=n.t.l.*Text _t is bold.
@@ -60,7 +60,7 @@ Request      Cause If no    Explanation
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 
@@ -126,7 +126,7 @@ MAN(7)		    UNIX Programmer's Manual		   MAN(7)
 
 
 
-Printed 2/16/100	October 22, 1996			2
+Printed 9/10/24         October 22, 1996			2
 
 
 

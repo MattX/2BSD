@@ -5,39 +5,39 @@ TERMCAP(3X)	    UNIX Programmer's Manual	      TERMCAP(3X)
 
 
 
-NAME
+NNAAMMEE
      tgetent, tgetnum, tgetflag, tgetstr, tgoto, tputs - terminal
      independent operation routines
 
-SYNOPSIS
-     char PC;
-     char *BC;
-     char *UP;
-     short ospeed;
+SSYYNNOOPPSSIISS
+     cchhaarr PPCC;;
+     cchhaarr **BBCC;;
+     cchhaarr **UUPP;;
+     sshhoorrtt oossppeeeedd;;
 
-     tgetent(bp, name)
-     char *bp, *name;
+     ttggeetteenntt((bbpp,, nnaammee))
+     cchhaarr **bbpp,, **nnaammee;;
 
-     tgetnum(id)
-     char *id;
+     ttggeettnnuumm((iidd))
+     cchhaarr **iidd;;
 
-     tgetflag(id)
-     char *id;
+     ttggeettffllaagg((iidd))
+     cchhaarr **iidd;;
 
-     char *
-     tgetstr(id, area)
-     char *id, **area;
+     cchhaarr **
+     ttggeettssttrr((iidd,, aarreeaa))
+     cchhaarr **iidd,, ****aarreeaa;;
 
-     char *
-     tgoto(cm, destcol, destline)
-     char *cm;
+     cchhaarr **
+     ttggoottoo((ccmm,, ddeessttccooll,, ddeessttlliinnee))
+     cchhaarr **ccmm;;
 
-     tputs(cp, affcnt, outc)
-     register char *cp;
-     int affcnt;
-     int (*outc)();
+     ttppuuttss((ccpp,, aaffffccnntt,, oouuttcc))
+     rreeggiisstteerr cchhaarr **ccpp;;
+     iinntt aaffffccnntt;;
+     iinntt ((**oouuttcc))(());;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These functions extract and use capabilities from the termi-
      nal capability data base _t_e_r_m_c_a_p(5).  These are low level
      routines; see _c_u_r_s_e_s(3X) for a higher level package.
@@ -49,7 +49,7 @@ DESCRIPTION
      _t_e_r_m_c_a_p file, 0 if the terminal name given does not have an
      entry, and 1 if all goes well.  It will look in the environ-
      ment for a TERMCAP variable.  If found, and the value does
-     not begin with a slash, and the terminal type name is the
+     not begin with a slash, and the terminal type nnaammee is the
      same as the environment string TERM, the TERMCAP string is
      used instead of reading the termcap file.	If it does begin
      with a slash, the string is used as a path name rather than
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 
@@ -83,14 +83,14 @@ TERMCAP(3X)	    UNIX Programmer's Manual	      TERMCAP(3X)
 
      _T_g_o_t_o returns a cursor addressing string decoded from _c_m to
      go to column _d_e_s_t_c_o_l in line _d_e_s_t_l_i_n_e. It uses the external
-     variables UP (from the up capability) and BC (if bc is given
-     rather than bs) if necessary to avoid placing \n, ^D or ^@
+     variables UUPP (from the uupp capability) and BBCC (if bbcc is given
+     rather than bbss) if necessary to avoid placing \\nn, ^^DD or ^^@@
      in the returned string.  (Programs which call tgoto should
      be sure to turn off the XTABS bit(s), since _t_g_o_t_o may now
      output a tab.  Note that programs using termcap should in
      general turn off XTABS anyway since some terminals use con-
      trol I for other functions, such as nondestructive space.)
-     If a % sequence is given which is not understood, then _t_g_o_t_o
+     If a %% sequence is given which is not understood, then _t_g_o_t_o
      returns "OOPS".
 
      _T_p_u_t_s decodes the leading padding information of the string
@@ -98,18 +98,18 @@ TERMCAP(3X)	    UNIX Programmer's Manual	      TERMCAP(3X)
      tion, or 1 if this is not applicable, _o_u_t_c is a routine
      which is called with each character in turn.  The external
      variable _o_s_p_e_e_d should contain the output speed of the ter-
-     minal as encoded by _s_t_t_y(3).  The external variable PC
-     should contain a pad character to be used (from the pc capa-
-     bility) if a null (^@) is inappropriate.
+     minal as encoded by _s_t_t_y(3).  The external variable PPCC
+     should contain a pad character to be used (from the ppcc capa-
+     bility) if a null (^^@@) is inappropriate.
 
-FILES
+FFIILLEESS
      /usr/lib/libtermcap.a  -ltermcap library
      /etc/termcap	    data base
 
-SEE ALSO
+SSEEEE AALLSSOO
      ex(1), curses(3X), termcap(5)
 
-AUTHOR
+AAUUTTHHOORR
      William Joy
 
 
@@ -126,7 +126,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	  May 15, 1985				2
+Printed 9/10/24           May 15, 1985				2
 
 
 

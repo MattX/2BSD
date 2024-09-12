@@ -5,26 +5,26 @@ DATE(1)             UNIX Programmer's Manual		  DATE(1)
 
 
 
-NAME
+NNAAMMEE
      date - print and set the date
 
-SYNOPSIS
-     date [-nu] [[[[yy]mm]dd]hhmm [.ss] ]
+SSYYNNOOPPSSIISS
+     ddaattee [-nu] [[[[yy]mm]dd]hhmm [..ss] ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      If no arguments are given, the current date and time are
      printed.  Providing an argument will set the desired date;
      only the superuser can set the date.
 
      The kernel timezone structure is obsolete and is a historic
-     relic. date(1) no longer updates the kernel timezone struc-
+     relic. date(1) nnoo lloonnggeerr updates the kernel timezone struc-
      ture (daylight savings time and minutes west of GMT).
 
      The -_u flag is used to display or set the date in GMT
      (universal) time.	_y_y represents the last two digits of the
      year; the first _m_m is the month number; _d_d is the day
      number; _h_h is the hour number (24 hour system); the second
-     _m_m is the minute number; ._s_s is optional and represents the
+     _m_m is the minute number; .._s_s is optional and represents the
      seconds.  For example:
 
 	  date 8506131627
@@ -37,18 +37,18 @@ DESCRIPTION
 
      If _t_i_m_e_d(_8) is running to synchronize the clocks of machines
      in a local area network, _d_a_t_e sets the time globally on all
-     those machines unless the -n option is given.
+     those machines unless the --nn option is given.
 
-FILES
+FFIILLEESS
      /usr/adm/wtmp to record time-setting.  In /usr/adm/messages,
      _d_a_t_e records the name of the user setting the time.
 
-SEE ALSO
+SSEEEE AALLSSOO
      gettimeofday(2), utmp(5), timed(8),
      _T_S_P: _T_h_e _T_i_m_e _S_y_n_c_h_r_o_n_i_z_a_t_i_o_n _P_r_o_t_o_c_o_l _f_o_r _U_N_I_X _4._3_B_S_D, R.
      Gusella and S. Zatti
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 on complete failure to set
      the date, and 2 on successfully setting the local date but
      failing globally.
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 10/24/19	October 20, 2019			1
+Printed 9/10/24         October 20, 2019			1
 
 
 
@@ -74,7 +74,7 @@ DATE(1)             UNIX Programmer's Manual		  DATE(1)
      timed' occurs when the communication between _d_a_t_e and _t_i_m_e_d
      fails.
 
-BUGS
+BBUUGGSS
      The system attempts to keep the date in a format closely
      compatible with VMS.  VMS, however, uses local time (rather
      than GMT) and does not understand daylight-saving time.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 10/24/19	October 20, 2019			2
+Printed 9/10/24         October 20, 2019			2
 
 
 

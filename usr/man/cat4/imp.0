@@ -5,17 +5,17 @@ IMP(4P)             UNIX Programmer's Manual		  IMP(4P)
 
 
 
-NAME
+NNAAMMEE
      imp - IMP raw socket interface
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <netinet/in.h>
-     #include <netimp/if_imp.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneettiinneett//iinn..hh>>
+     ##iinncclluuddee <<nneettiimmpp//iiff__iimmpp..hh>>
 
-     s = socket(AF_IMPLINK, SOCK_RAW, proto);
+     ss == ssoocckkeett((AAFF__IIMMPPLLIINNKK,, SSOOCCKK__RRAAWW,, pprroottoo));;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The raw imp socket provides direct access to the _i_m_p(4) net-
      work interface.  Users send packets through the interface
      using the _s_e_n_d(2) calls, and receive packets with the
@@ -34,7 +34,7 @@ DESCRIPTION
      zero, only messages for the specified link type will be
      received.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      An operation on a socket may fail with one of the following
      errors:
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	  May 16, 1986				1
+Printed 9/10/24           May 16, 1986				1
 
 
 
@@ -74,7 +74,7 @@ IMP(4P)             UNIX Programmer's Manual		  IMP(4P)
 		    with a network address for which no network
 		    interface exists.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), inet(4F), imp(4)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 16, 1986				2
+Printed 9/10/24           May 16, 1986				2
 
 
 

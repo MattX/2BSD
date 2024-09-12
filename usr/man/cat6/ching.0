@@ -5,13 +5,13 @@ CHING(6)	    UNIX Programmer's Manual		 CHING(6)
 
 
 
-NAME
+NNAAMMEE
      ching - the book of changes and other cookies
 
-SYNOPSIS
-     /usr/games/ching [ hexagram ]
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//cchhiinngg [ hexagram ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _I _C_h_i_n_g or _B_o_o_k _o_f _C_h_a_n_g_e_s is an ancient Chinese oracle
      that has been in use for centuries as a source of wisdom and
      advice.
@@ -22,9 +22,9 @@ DESCRIPTION
      These lines have values ranging from six through nine, with
      the even values indicating the broken lines.
 
-     Each hexagram consists of two major sections.  The Judgement
+     Each hexagram consists of two major sections.  The JJuuddggeemmeenntt
      relates specifically to the matter at hand (E.g., "It furth-
-     ers one to have somewhere to go.") while the Image describes
+     ers one to have somewhere to go.") while the IImmaaggee describes
      the general attributes of the hexagram and how they apply to
      one's own life ("Thus the superior man makes himself strong
      and untiring.").
@@ -48,7 +48,7 @@ DESCRIPTION
      which happen to be lying around the system.  The resulting
      value is used as the seed of a random number generator which
      drives a simulated coin-toss divination.  The answer is then
-     piped through nroff for formatting and will appear on the
+     piped through nnrrooffff for formatting and will appear on the
      standard output.
 
      For those who wish to remain steadfast in the old tradi-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 
@@ -74,15 +74,15 @@ CHING(6)	    UNIX Programmer's Manual		 CHING(6)
      The impatient modern may prefer to settle for Chinese cook-
      ies; try _f_o_r_t_u_n_e(6).
 
-SEE ALSO
+SSEEEE AALLSSOO
      It furthers one to see the great man.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      The great prince issues commands,
      Founds states, vests families with fiefs.
      Inferior people should not be employed.
 
-BUGS
+BBUUGGSS
      Waiting in the mud
      Brings about the arrival of the enemy.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 20, 1985				2
+Printed 9/10/24           May 20, 1985				2
 
 
 

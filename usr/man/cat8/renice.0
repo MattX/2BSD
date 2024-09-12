@@ -5,14 +5,14 @@ RENICE(8)	    UNIX Programmer's Manual		RENICE(8)
 
 
 
-NAME
+NNAAMMEE
      renice - alter priority of running processes
 
-SYNOPSIS
-     renice priority [ [ -p ] pid ... ] [ [ -g ] pgrp ... ] [ [
-     -u ] user ... ]
+SSYYNNOOPPSSIISS
+     rreenniiccee priority [ [ --pp ] pid ... ] [ [ --gg ] pgrp ... ] [ [
+     --uu ] user ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_n_i_c_e alters the scheduling priority of one or more running
      processes.  The _w_h_o parameters are interpreted as process
      ID's, process group ID's, or user names.  _R_e_n_i_c_e'ing a pro-
@@ -21,9 +21,9 @@ DESCRIPTION
      all processes owned by the user to have their scheduling
      priority altered.	By default, the processes to be affected
      are specified by their process ID's.  To force _w_h_o parame-
-     ters to be interpreted as process group ID's, a -g may be
+     ters to be interpreted as process group ID's, a --gg may be
      specified.  To force the _w_h_o parameters to be interpreted as
-     user names, a -u may be given.  Supplying -p will reset _w_h_o
+     user names, a --uu may be given.  Supplying --pp will reset _w_h_o
      interpretation to be (the default) process ID's.  For exam-
      ple,
 
@@ -43,13 +43,13 @@ DESCRIPTION
      (the ``base'' scheduling priority), anything negative (to
      make things go very fast).
 
-FILES
+FFIILLEESS
      /etc/passwd    to map user names to user ID's
 
-SEE ALSO
+SSEEEE AALLSSOO
      getpriority(2), setpriority(2)
 
-BUGS
+BBUUGGSS
      Non super-users can not increase scheduling priorities of
      their own processes, even if they were the ones that
      decreased the priorities in the first place.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 17, 1996			1
+Printed 9/10/24         November 17, 1996			1
 
 
 

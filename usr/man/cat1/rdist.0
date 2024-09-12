@@ -5,22 +5,22 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-NAME
+NNAAMMEE
      rdist - remote file distribution program
 
-SYNOPSIS
-     rdist [ -nqbRhivwy ] [ -f distfile ] [ -d var=value ]  [  -m
+SSYYNNOOPPSSIISS
+     rrddiisstt [ -nqbRhivwy ] [ -f distfile ] [ -d var=value ]  [  -m
      host ] [ name ... ]
 
-     rdist [ -nqbRhivwy ] -c name ... [login@]host[:dest]
+     rrddiisstt [ -nqbRhivwy ] -c name ... [login@]host[:dest]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_d_i_s_t is a program to maintain  identical	copies	of  files
      over  multiple  hosts.  It preserves the owner, group, mode,
      and mtime of files if possible and can update programs  that
      are executing.  _R_d_i_s_t reads commands from _d_i_s_t_f_i_l_e to direct
      the updating of files and/or directories.	 If  _d_i_s_t_f_i_l_e  is
-     `-',  the	standard  input  is  used.   If  no  -f option is
+     `-',  the	standard  input  is  used.   If  no  --ff option is
      present, the program looks first for `distfile', then `Dist-
      file' to use as the input.  If no names are specified on the
      command line, _r_d_i_s_t will update all of the files and  direc-
@@ -30,7 +30,7 @@ DESCRIPTION
      assumed to be a label.  These may be used together to update
      specific files using specific commands.
 
-     The -c option forces _r_d_i_s_t to interpret the remaining  argu-
+     The --cc option forces _r_d_i_s_t to interpret the remaining  argu-
      ments  as	a  small _d_i_s_t_f_i_l_e.  The equivalent distfile is as
      follows.
 
@@ -40,27 +40,27 @@ DESCRIPTION
 
      Other options:
 
-     -d   Define _v_a_r to have _v_a_l_u_e.  The -d  option  is  used  to
+     --dd   Define _v_a_r to have _v_a_l_u_e.  The --dd  option  is  used  to
 	  define  or  override	variable definitions in the _d_i_s_t_-
 	  _f_i_l_e.  _V_a_l_u_e can be the empty string, one  name,  or	a
 	  list	of  names surrounded by parentheses and separated
 	  by tabs and/or spaces.
 
-     -m   Limit which machines are to  be  updated.  Multiple  -m
+     --mm   Limit which machines are to  be  updated.  Multiple  --mm
 	  arguments  can be given to limit updates to a subset of
 	  the hosts listed the _d_i_s_t_f_i_l_e.
 
-     -n   Print the commands without executing them. This  option
+     --nn   Print the commands without executing them. This  option
 	  is useful for debugging _d_i_s_t_f_i_l_e.
 
-     -q   Quiet mode. Files that are being modified are  normally
-	  printed  on  standard  output. The -q option suppresses
+     --qq   Quiet mode. Files that are being modified are  normally
+	  printed  on  standard  output. The --qq option suppresses
 	  this.
 
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 
@@ -71,24 +71,24 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-     -R   Remove  extraneous  files.  If  a  directory	is  being
+     --RR   Remove  extraneous  files.  If  a  directory	is  being
 	  updated,  any  files that exist on the remote host that
 	  do not exist in the master directory are removed.  This
 	  is  useful  for  maintaining truely identical copies of
 	  directories.
 
-     -h   Follow symbolic links. Copy  the  file  that	the  link
+     --hh   Follow symbolic links. Copy  the  file  that	the  link
 	  points to rather than the link itself.
 
-     -i   Ignore unresolved links.  _R_d_i_s_t will	normally  try  to
+     --ii   Ignore unresolved links.  _R_d_i_s_t will	normally  try  to
 	  maintain  the  link structure of files being transfered
 	  and warn the user if all the links cannot be found.
 
-     -v   Verify that the files are up to date on all the  hosts.
+     --vv   Verify that the files are up to date on all the  hosts.
 	  Any files that are out of date will be displayed but no
 	  files will be changed nor any mail sent.
 
-     -w   Whole mode. The whole file name is appended to the des-
+     --ww   Whole mode. The whole file name is appended to the des-
 	  tination  directory  name. Normally, only the last com-
 	  ponent of a name is used  when  renaming  files.   This
 	  will	preserve  the  directory  structure  of the files
@@ -98,15 +98,15 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 	  dir3/dir1/f1	and  dir3/dir2/f2  instead of dir3/f1 and
 	  dir3/f2.
 
-     -y   Younger mode. Files are normally updated if their _m_t_i_m_e
-	  and  _s_i_z_e  (see _s_t_a_t(2)) disagree. The -y option causes
+     --yy   Younger mode. Files are normally updated if their _m_t_i_m_e
+	  and  _s_i_z_e  (see _s_t_a_t(2)) disagree. The --yy option causes
 	  _r_d_i_s_t not to update files that  are  younger	than  the
 	  master  copy.  This can be used to prevent newer copies
 	  on other hosts from being replaced.  A warning  message
 	  is  printed  for  files which are newer than the master
 	  copy.
 
-     -b   Binary comparison.  Perform  a  binary  comparison  and
+     --bb   Binary comparison.  Perform  a  binary  comparison  and
 	  update files if they differ rather than comparing dates
 	  and sizes.
 
@@ -126,7 +126,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 2/16/100	October 22, 1996			2
+Printed 9/10/24         October 22, 1996			2
 
 
 
@@ -167,7 +167,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
      same way as _c_s_h(1).  They can be escaped with  a  backslash.
      The  `~'  character  is also expanded in the same way as _c_s_h
      but is expanded separately  on  the  local  and  destination
-     hosts.   When  the  -w  option is used with a file name that
+     hosts.   When  the  --ww  option is used with a file name that
      begins with `~', everything except  the  home  directory  is
      appended  to  the destination name.  File names which do not
      begin with `/' or `~' use the destination user's home direc-
@@ -192,7 +192,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 2/16/100	October 22, 1996			3
+Printed 9/10/24         October 22, 1996			3
 
 
 
@@ -222,7 +222,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
      appended to the name (e.g., name1@host, name2@host, ...).
 
      The _e_x_c_e_p_t command is used to update all of the files in the
-     source  list except for the files listed in _n_a_m_e _l_i_s_t.  This
+     source  list eexxcceepptt for the files listed in _n_a_m_e _l_i_s_t.  This
      is usually used to copy everything  in  a	directory  except
      certain files.
 
@@ -258,7 +258,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 2/16/100	October 22, 1996			4
+Printed 9/10/24         October 22, 1996			4
 
 
 
@@ -293,19 +293,19 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 		     notify root@cory ;
 
 
-FILES
+FFIILLEESS
      distfile	    input command file
      /tmp/rdist*    temporary file for update lists
 
-SEE ALSO
+SSEEEE AALLSSOO
      sh(1), csh(1), stat(2)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A complaint about mismatch  of  rdist  version  numbers  may
      really  stem  from  some  problem	with starting your shell,
      e.g., you are in too many groups.
 
-BUGS
+BBUUGGSS
      Source files must reside on the local host  where	rdist  is
      executed.
 
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 22, 1996			5
+Printed 9/10/24         October 22, 1996			5
 
 
 
@@ -390,7 +390,7 @@ RDIST(1)	    UNIX Programmer's Manual		 RDIST(1)
 
 
 
-Printed 2/16/100	October 22, 1996			6
+Printed 9/10/24         October 22, 1996			6
 
 
 

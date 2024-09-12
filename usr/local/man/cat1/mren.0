@@ -5,18 +5,18 @@ MREN(1)             UNIX Programmer's Manual              MREN(1)
 
 
 
-NAME
+NNAAMMEE
      mren - rename an existing MSDOS file
 
-SYNOPSIS
-     mren [ -v ] sourcefile targetfile
+SSYYNNOOPPSSIISS
+     mmrreenn [ --vv ] sourcefile targetfile
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_r_e_n renames an existing file on an MSDOS filesystem.
 
      _M_r_e_n will allow the following command line option:
 
-     v    Verbose mode.  Display the new filename if the name
+     vv    Verbose mode.  Display the new filename if the name
           supplied is invalid.
 
      Reasonable care is taken to create a valid MSDOS filename.
@@ -39,10 +39,10 @@ DESCRIPTION
      current working directory (relative to MSDOS), otherwise the
      default is A:/.
 
-SEE ALSO
+SSEEEE AALLSSOO
      mcd(1)
 
-BUGS
+BBUUGGSS
      MSDOS can't use REN to rename directories.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100              local                             1
+Printed 9/10/24               local                             1
 
 
 

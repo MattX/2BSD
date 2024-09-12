@@ -5,36 +5,36 @@ CHDIR(2)	    UNIX Programmer's Manual		 CHDIR(2)
 
 
 
-NAME
+NNAAMMEE
      chdir, fchdir - change current working directory
 
-SYNOPSIS
-     chdir(path)
-     char *path;
+SSYYNNOOPPSSIISS
+     cchhddiirr((ppaatthh))
+     cchhaarr **ppaatthh;;
 
-     fchdir(fd)
-     int fd;
+     ffcchhddiirr((ffdd))
+     iinntt ffdd;;
 
-DESCRIPTION
-     The path argument points to the pathname of a directory.
-     The fd argument is a file descriptor which references a
+DDEESSCCRRIIPPTTIIOONN
+     The ppaatthh argument points to the pathname of a directory.
+     The ffdd argument is a file descriptor which references a
      directory.  The _c_h_d_i_r function causes this directory to
      become the current working directory, the starting point for
      path names not beginning with ``/''.
 
-     The _f_c_h_d_i_r function causes the directory referenced by fd to
+     The _f_c_h_d_i_r function causes the directory referenced by ffdd to
      become the current working directory, the starting point for
      path searches of pathnames not beginning with a slahs, '/'.
 
      In order for a directory to become the current directory, a
      process must have execute (search) access to the directory.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
-ERRORS
+EERRRROORRSS
      _C_h_d_i_r will fail and the current working directory will be
      unchanged if one or more of the following are true:
 
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	 April 21, 1994                         1
+Printed 9/10/24          April 21, 1994                         1
 
 
 
@@ -82,13 +82,13 @@ CHDIR(2)	    UNIX Programmer's Manual		 CHDIR(2)
      [EACCES]	    Search permission is denied for the directory
 		    referenced by the file descriptor.
 
-     [ENOTDIR]	    The file descriptor fd does not reference a
+     [ENOTDIR]	    The file descriptor ffdd does not reference a
 		    directory.
 
-     [EBADF]	    The argument fd is not a valid file descrip-
+     [EBADF]	    The argument ffdd is not a valid file descrip-
 		    tor.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chroot(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 21, 1994                         2
+Printed 9/10/24          April 21, 1994                         2
 
 
 

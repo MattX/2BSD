@@ -5,13 +5,13 @@ BAD144(8)	    UNIX Programmer's Manual		BAD144(8)
 
 
 
-NAME
+NNAAMMEE
      bad144 - read/write DEC standard 144 bad sector information
 
-SYNOPSIS
-     bad144 disktype disk [ sno [ bad ...  ] ]
+SSYYNNOOPPSSIISS
+     bbaadd114444 disktype disk [ sno [ bad ...  ] ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_a_d_1_4_4 can be used to inspect the information stored on a
      disk that is used by the disk drivers to implement bad sec-
      tor forwarding.  The format of the information is specified
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -85,10 +85,10 @@ BAD144(8)	    UNIX Programmer's Manual		BAD144(8)
      New bad sectors can be added by running the standard DEC
      formatter in section ``bad.''
 
-SEE ALSO
+SSEEEE AALLSSOO
      badsect(8)
 
-BUGS
+BBUUGGSS
      Not all drivers support bad-sector forwarding on the PDP-11.
 
      It should be possible to both format disks on-line under
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

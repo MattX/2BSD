@@ -5,13 +5,13 @@ EXPR(1)             UNIX Programmer's Manual		  EXPR(1)
 
 
 
-NAME
+NNAAMMEE
      expr - evaluate arguments as an expression
 
-SYNOPSIS
-     expr arg ...
+SSYYNNOOPPSSIISS
+     eexxpprr arg ......
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The arguments are taken as an expression.	After evaluation,
      the result is written on the standard output.  Each token of
      the expression is a separate argument.
@@ -48,7 +48,7 @@ DESCRIPTION
 	  The matching operator compares the string first argu-
 	  ment with the regular expression second argument; regu-
 	  lar expression syntax is the same as that of _e_d(1).
-	  The \(...\) pattern symbols can be used to select a
+	  The \\((......\\)) pattern symbols can be used to select a
 	  portion of the first argument.  Otherwise, the matching
 	  operator yields the number of characters matched (`0'
 	  on failure).
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -85,10 +85,10 @@ EXPR(1)             UNIX Programmer's Manual		  EXPR(1)
 
      Note the quoted Shell metacharacters.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sh(1), test(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _E_x_p_r returns the following exit codes:
 
 	  0    if the expression is neither null nor `0',
@@ -126,7 +126,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 

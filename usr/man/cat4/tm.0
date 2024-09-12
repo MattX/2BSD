@@ -5,62 +5,62 @@ TM(4)		    UNIX Programmer's Manual		    TM(4)
 
 
 
-NAME
+NNAAMMEE
      tm - TM-11/TE-10 magtape interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  # Setting AVIVTM configures the TM driver for the AVIV 800/1600/6250
-	  # controller.  For more details, see /sys/pdpuba/tm.c.
-	  NTM	 _t_m__d_r_i_v_e_s # TM11
-	  AVIVTM _Y_E_S	   # AVIV 800/1600/6250 controller
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  ## SSeettttiinngg AAVVIIVVTTMM ccoonnffiigguurreess tthhee TTMM ddrriivveerr ffoorr tthhee AAVVIIVV 880000//11660000//66225500
+	  ## ccoonnttrroolllleerr..  FFoorr mmoorree ddeettaaiillss,, sseeee //ssyyss//ppddppuubbaa//ttmm..cc..
+	  NNTTMM	 _t_m__d_r_i_v_e_s ## TTMM1111
+	  AAVVIIVVTTMM _Y_E_S	   ## AAVVIIVV 880000//11660000//66225500 ccoonnttrroolllleerr
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  tm	?     172520 224    5  tmintr	       # tm11 driver
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  ttmm	??     117722552200 222244    55  ttmmiinnttrr	       ## ttmm1111 ddrriivveerr
 
-     major device number(s):
-	  raw: 7
-	  block: 1
-     minor device encoding:
-	  bits 0003 specify TS drive
-	  bit  0004 specifies no-rewind operation
-	  bits 0030 specify recording density:
-	       0000:   800BPI
-	       0010:  1600BPI (AVIVTM and some other controllers)
-	       0020:  6250BPI (AVIVTM only)
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 77
+	  bblloocckk:: 11
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000033 ssppeecciiffyy TTSS ddrriivvee
+	  bbiitt  00000044 ssppeecciiffiieess nnoo--rreewwiinndd ooppeerraattiioonn
+	  bbiittss 00003300 ssppeecciiffyy rreeccoorrddiinngg ddeennssiittyy::
+	       00000000::   880000BBPPII
+	       00001100::  11660000BBPPII ((AAVVIIVVTTMM aanndd ssoommee ootthheerr ccoonnttrroolllleerrss))
+	       00002200::  66225500BBPPII ((AAVVIIVVTTMM oonnllyy))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The tm-11/te-10 combination provides a standard tape drive
      interface as described in _m_t_i_o(4).  The standard DEC tm-11
      operates only at 800 bpi.	Other controllers of this type
      may also allow operation at 1600 bpi, under software control
      or by switching manually.
 
-FILES
+FFIILLEESS
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-SEE ALSO
+SSEEEE AALLSSOO
      mt(1), tar(1), tp(1), mtio(4), ht(4), ts(4), mt(4), dtab(5),
      autoconfig(8)
 
-DIAGNOSTICS
-     te%d: no write ring.  An attempt was made to write on the
+DDIIAAGGNNOOSSTTIICCSS
+     ttee%%dd:: nnoo wwrriittee rriinngg.  An attempt was made to write on the
      tape drive when no write ring was present; this message is
      written on the terminal of the user who tried to access the
      tape.
 
-     te%d: not online.	An attempt was made to access the tape
+     ttee%%dd:: nnoott oonnlliinnee.	An attempt was made to access the tape
      while it was offline; this message is written on the termi-
      nal of the user who tried to access the tape.
 
-     te%d: can't change density in mid-tape.  An attempt was made
+     ttee%%dd:: ccaann''tt cchhaannggee ddeennssiittyy iinn mmiidd--ttaappee.  An attempt was made
      to write on a tape at a different density than is already
 
 
 
-Printed 2/16/100	January 28, 1988			1
+Printed 9/10/24         January 28, 1988			1
 
 
 
@@ -74,13 +74,13 @@ TM(4)		    UNIX Programmer's Manual		    TM(4)
      recorded on the tape.  This message is written on the termi-
      nal of the user who tried to switch the density.
 
-     te%d: hard error bn%d er=%b.   A tape error occurred at
+     ttee%%dd:: hhaarrdd eerrrroorr bbnn%%dd eerr==%%bb.   A tape error occurred at
      block _b_n; the tm error register is printed in octal with the
      bits symbolically decoded.  Any error is fatal on non-raw
      tape; when possible the driver will have retried the opera-
      tion which failed several times before reporting the error.
 
-     te%d: lost interrupt.  A tape operation did not complete
+     ttee%%dd:: lloosstt iinntteerrrruupptt.  A tape operation did not complete
      within a reasonable time, most likely because the tape was
      taken off-line during rewind or lost vacuum.  The controller
      should, but does not, give an interrupt in these cases.  The
@@ -88,7 +88,7 @@ TM(4)		    UNIX Programmer's Manual		    TM(4)
      any current open reference to the device will return an
      error as the operation in progress aborts.
 
-BUGS
+BBUUGGSS
      If any non-data error is encountered on non-raw tape, it
      refuses to do anything more until closed.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 28, 1988			2
+Printed 9/10/24         January 28, 1988			2
 
 
 

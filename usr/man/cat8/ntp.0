@@ -5,13 +5,13 @@ NTP(8)		    UNIX Programmer's Manual		   NTP(8)
 
 
 
-NAME
+NNAAMMEE
      ntp - query an ntp clock
 
-SYNOPSIS
-     ntp [-v] [-s] [-f] _h_o_s_t_s...
+SSYYNNOOPPSSIISS
+     nnttpp [-v] [-s] [-f] _h_o_s_t_s...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _n_t_p sends an ntp packet to the ntp daemon running on each of
      the given hosts.  A daemon fills in fields of the ntp packet
      as per RFC-????  and sends the packet back.  _n_t_p then for-
@@ -22,7 +22,7 @@ DESCRIPTION
 
      Options can reset the time of the local system clock.
 
-OPTIONS
+OOPPTTIIOONNSS
      -v   Verbose output, showing the full contents of received
 	  ntp packets, plus caluclated offset, displacement, etc.
 
@@ -32,10 +32,10 @@ OPTIONS
 	  host is unsynchronized.
 
      -f   Force setting system clock regardless of offset.  Must
-	  be used with -s option.  Still will not reset clock if
+	  be used with --ss option.  Still will not reset clock if
 	  remote system is unsynchronized.
 
-NTP RESULTS
+NNTTPP RREESSUULLTTSS
      The default output for each _h_o_s_t looks like this:
 	 128.8.10.1: delay:1.845207 offset:-0.358460  Mon Mar 20 08:05:44 1989
 
@@ -60,7 +60,7 @@ NTP RESULTS
 
 
 
-Printed 2/16/100	  30 July 1988				1
+Printed 9/10/24           30 July 1988				1
 
 
 
@@ -126,7 +126,7 @@ NTP(8)		    UNIX Programmer's Manual		   NTP(8)
 
 
 
-Printed 2/16/100	  30 July 1988				2
+Printed 9/10/24           30 July 1988				2
 
 
 
@@ -137,7 +137,7 @@ NTP(8)		    UNIX Programmer's Manual		   NTP(8)
 
 
 
-BUGS
+BBUUGGSS
      Using _n_t_p with the current host will show inaccurate
      results.
 
@@ -145,7 +145,7 @@ BUGS
      (louie@trantor.umd.edu).
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      RFC-???? _N_e_t_w_o_r_k _T_i_m_e _P_r_o_t_o_c_o_l(1), Dave Mills and ...
      ntpd(8), ntpdc(8)
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  30 July 1988				3
+Printed 9/10/24           30 July 1988				3
 
 
 

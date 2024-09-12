@@ -5,18 +5,18 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-NAME
+NNAAMMEE
      getdiskbyname - get disk description by its name
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/disktab.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ddiisskkttaabb..hh>>
 
-     struct disklabel *
-     getdiskbyname(name)
-     char *name;
+     ssttrruucctt ddiisskkllaabbeell **
+     ggeettddiisskkbbyynnaammee((nnaammee))
+     cchhaarr **nnaammee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_d_i_s_k_b_y_n_a_m_e takes a disk name (e.g. rm03) and returns a
      structure describing its geometry information and the stan-
      dard disk partition tables.  Information obtained from the
@@ -54,13 +54,13 @@ DESCRIPTION
       * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
       * SUCH DAMAGE.
       *
-      *   @(#)disklabel.h     8.1.1 (2.11BSD) 1995/04/13
+      *   @(#)disklabel.h     8.2 (2.11BSD) 2020/1/7
       */
 
 
 
 
-Printed 2/16/100	September 8, 1995			1
+Printed 9/10/24         September 8, 1995			1
 
 
 
@@ -126,7 +126,7 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-Printed 2/16/100	September 8, 1995			2
+Printed 9/10/24         September 8, 1995			2
 
 
 
@@ -192,7 +192,7 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-Printed 2/16/100	September 8, 1995			3
+Printed 9/10/24         September 8, 1995			3
 
 
 
@@ -258,7 +258,7 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-Printed 2/16/100	September 8, 1995			4
+Printed 9/10/24         September 8, 1995			4
 
 
 
@@ -324,7 +324,7 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-Printed 2/16/100	September 8, 1995			5
+Printed 9/10/24         September 8, 1995			5
 
 
 
@@ -361,20 +361,20 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
       * Disk-specific ioctls.
       */
 	       /* get and set disklabel; DIOCGPART used internally */
-     #define DIOCGDINFO  _IOR(d, 101, struct disklabel)     /* get */
-     #define DIOCSDINFO  _IOW(d, 102, struct disklabel)     /* set */
-     #define DIOCWDINFO  _IOW(d, 103, struct disklabel)     /* set, update disk */
-     #define DIOCGPART	 _IOW(d, 104, struct partinfo) /* get partition */
+     #define DIOCGDINFO  _IOR('d', 101, struct disklabel)   /* get */
+     #define DIOCSDINFO  _IOW('d', 102, struct disklabel)   /* set */
+     #define DIOCWDINFO  _IOW('d', 103, struct disklabel)   /* set, update disk */
+     #define DIOCGPART	 _IOW('d', 104, struct partinfo)    /* get partition */
 
      /* do format operation, read or write */
-     #define DIOCRFORMAT _IOWR(d, 105, struct format_op)
-     #define DIOCWFORMAT _IOWR(d, 106, struct format_op)
+     #define DIOCRFORMAT _IOWR('d', 105, struct format_op)
+     #define DIOCWFORMAT _IOWR('d', 106, struct format_op)
 
-     #define DIOCSSTEP	 _IOW(d, 107, int)   /* set step rate */
-     #define DIOCSRETRIES     _IOW(d, 108, int)   /* set # of retries */
-     #define DIOCWLABEL  _IOW(d, 109, int)   /* write en/disable label */
+     #define DIOCSSTEP	 _IOW('d', 107, int) /* set step rate */
+     #define DIOCSRETRIES     _IOW('d', 108, int) /* set # of retries */
+     #define DIOCWLABEL  _IOW('d', 109, int) /* write en/disable label */
 
-     #define DIOCSBAD	 _IOW(d, 110, struct dkbad)    /* set kernel dkbad */
+     #define DIOCSBAD	 _IOW('d', 110, struct dkbad)  /* set kernel dkbad */
 
      #ifndef   KERNEL
      struct disklabel *getdiskbyname();
@@ -390,7 +390,7 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-Printed 2/16/100	September 8, 1995			6
+Printed 9/10/24         September 8, 1995			6
 
 
 
@@ -401,10 +401,10 @@ GETDISKBYNAME(3)    UNIX Programmer's Manual	 GETDISKBYNAME(3)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      disktab(5), disklabel(8)
 
-BUGS
+BBUUGGSS
      This routine is primarily used when the underlying disk
      driver does not support labels.  The other use is for sup-
      plying default information to the _d_i_s_k_l_a_b_e_l(8) program.
@@ -456,7 +456,7 @@ BUGS
 
 
 
-Printed 2/16/100	September 8, 1995			7
+Printed 9/10/24         September 8, 1995			7
 
 
 

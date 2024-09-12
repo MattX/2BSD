@@ -5,13 +5,13 @@ UTMP(5)             UNIX Programmer's Manual		  UTMP(5)
 
 
 
-NAME
+NNAAMMEE
      utmp, wtmp - login records
 
-SYNOPSIS
-     #include <utmp.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<uuttmmpp..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _u_t_m_p file records information about who is currently
      using the system.	The file is a sequence of entries with
      the following structure declared in the include file:
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 
@@ -78,11 +78,11 @@ UTMP(5)             UNIX Programmer's Manual		  UTMP(5)
      these programs creates the file, so if it is removed
      record-keeping is turned off.  It is summarized by _a_c(8).
 
-FILES
+FFIILLEESS
      /var/run/utmp
      /usr/adm/wtmp
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1), init(8), who(1), ac(8)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 27, 1996			2
+Printed 9/10/24         November 27, 1996			2
 
 
 

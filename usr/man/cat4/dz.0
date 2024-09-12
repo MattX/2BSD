@@ -5,25 +5,25 @@ DZ(4)		    UNIX Programmer's Manual		    DZ(4)
 
 
 
-NAME
+NNAAMMEE
      dz - DZ-11 communications multiplexer
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NDZ  _d_z__u_n_i_t_s  # DZ11; NDZ is in units of boards (8 each)
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNDDZZ  _d_z__u_n_i_t_s  ## DDZZ1111;; NNDDZZ iiss iinn uunniittss ooff bbooaarrddss ((88 eeaacchh))
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  dz	?     160100 310    5  dzrint  dzdma   # dz11 terminal mux
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  ddzz	??     116600110000 331100    55  ddzzrriinntt  ddzzddmmaa   ## ddzz1111 tteerrmmiinnaall mmuuxx
 
-     major device number:
-	  raw: 2
-     minor device encoding:
-	  bits 0007 specify line on DZ unit
-	  bits 0170 specify DZ unit
-	  bit  0200 specifies non-blocking open (``CD always on'')
+     mmaajjoorr ddeevviiccee nnuummbbeerr::
+	  rraaww:: 22
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy lliinnee oonn DDZZ uunniitt
+	  bbiittss 00117700 ssppeecciiffyy DDZZ uunniitt
+	  bbiitt  00220000 ssppeecciiffiieess nnoonn--bblloocckkiinngg ooppeenn ((````CCDD aallwwaayyss oonn''''))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      A DZ11 provides 8 communication lines with partial modem
      control, adequate for UNIX dialup use.  Each line attached
      to the DZ11 communications multiplexer behaves as described
@@ -43,24 +43,24 @@ DESCRIPTION
      of high-speed input, the driver polls for input 30 times per
      second.
 
-FILES
+FFIILLEESS
      /dev/tty[0-9][0-9]
      /dev/ttyd[0-9a-f]	 dialups
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-SEE ALSO
+SSEEEE AALLSSOO
      tty(4), dtab(5), autoconfig(8)
 
-DIAGNOSTICS
-     dz%d: silo overflow.  The 64 character input silo overflowed
+DDIIAAGGNNOOSSTTIICCSS
+     ddzz%%dd:: ssiilloo oovveerrffllooww.  The 64 character input silo overflowed
      before it could be serviced.  This can happen if a hard
      error occurs when the CPU is running with elevated priority,
      as the system will then print a message on the console with
 
 
 
-Printed 2/16/100	January 28, 1988			1
+Printed 9/10/24         January 28, 1988			1
 
 
 
@@ -126,7 +126,7 @@ DZ(4)		    UNIX Programmer's Manual		    DZ(4)
 
 
 
-Printed 2/16/100	January 28, 1988			2
+Printed 9/10/24         January 28, 1988			2
 
 
 

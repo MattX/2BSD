@@ -5,23 +5,23 @@ GETTTYENT(3)	    UNIX Programmer's Manual	     GETTTYENT(3)
 
 
 
-NAME
+NNAAMMEE
      getttyent, getttynam, setttyent, endttyent - get ttys file
      entry
 
-SYNOPSIS
-     #include <ttyent.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ttttyyeenntt..hh>>
 
-     struct ttyent *getttyent()
+     ssttrruucctt ttttyyeenntt **ggeettttttyyeenntt(())
 
-     struct ttyent *getttynam(name)
-     char *name;
+     ssttrruucctt ttttyyeenntt **ggeettttttyynnaamm((nnaammee))
+     cchhaarr **nnaammee;;
 
-     setttyent()
+     sseettttttyyeenntt(())
 
-     endttyent()
+     eennddttttyyeenntt(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_t_t_y_e_n_t, and _g_e_t_t_t_y_n_a_m each return a pointer to an object
      with the following structure containing the broken-out
      fields of a line from the tty description file.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1986				1
+Printed 9/10/24           May 20, 1986				1
 
 
 
@@ -107,17 +107,17 @@ GETTTYENT(3)	    UNIX Programmer's Manual	     GETTTYENT(3)
      _G_e_t_t_t_y_n_a_m searches from the beginning of the  file  until	a
      matching _n_a_m_e is found (or until EOF is encountered).
 
-FILES
+FFIILLEESS
      /etc/ttys
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1),	ttyslot(3),  ttys(5),  gettytab(5),   termcap(5),
      getty(8), init(8)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Null pointer (0) returned on EOF or error.
 
-BUGS
+BBUUGGSS
      All information is contained in a static area so it must  be
      copied if it is to be saved.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 20, 1986				2
+Printed 9/10/24           May 20, 1986				2
 
 
 

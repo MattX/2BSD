@@ -5,13 +5,13 @@ BM(PUBLIC)	    UNIX Programmer's Manual	       BM(PUBLIC)
 
 
 
-NAME
+NNAAMMEE
      bm - search a file for a string
 
-SYNOPSIS
-     /usr/public/bm [ option ] ...  [ strings ] [ file ]
+SSYYNNOOPPSSIISS
+     //uussrr//ppuubblliicc//bbmm [ option ] ...  [ strings ] [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_m searches the input _f_i_l_e_s (standard input default) for
      lines matching a string.  Normally, each line found is
      copied to the standard output.  It is blindingly fast.  _B_m
@@ -20,31 +20,31 @@ DESCRIPTION
      sions.  Bm is also case sensitive.  The following options
      are recognized.
 
-     -x   (Exact) only lines matched in their entirety are
+     --xx   (Exact) only lines matched in their entirety are
 	  printed
 
-     -l   The names of files with matching lines are listed
+     --ll   The names of files with matching lines are listed
 	  (once) separated by newlines.
 
-     -c   Only a count of the number of matches is printed
+     --cc   Only a count of the number of matches is printed
 
-     -e string
-	  The string is the next argument after the -e flag. This
+     --ee ssttrriinngg
+	  The string is the next argument after the --ee flag. This
 	  allows strings beginning with '-'.
 
-     -h   No filenames are printed, even if multiple files are
+     --hh   No filenames are printed, even if multiple files are
 	  searched.
 
-     -n   Each line is preceded by the number of characters from
+     --nn   Each line is preceded by the number of characters from
 	  the beginning of the file to the match.
 
-     -s   Silent mode.	Nothing is printed (except error mes-
+     --ss   Silent mode.	Nothing is printed (except error mes-
 	  sages).  This is useful for checking the error status.
 
-     -f _f_i_l_e
+     --ff _f_i_l_e
 	  The string list is taken from the _f_i_l_e.
 
-     Unless the -h option is specified the file name is shown if
+     Unless the --hh option is specified the file name is shown if
      there is more than one input file.  Care should be taken
      when using the characters $ * [ ^ | ( ) and \ in the _s_t_r_i_n_g_s
      (listed on the command line) as they are also meaningful to
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	   8 July 1985				1
+Printed 9/10/24            8 July 1985				1
 
 
 
@@ -71,18 +71,18 @@ BM(PUBLIC)	    UNIX Programmer's Manual	       BM(PUBLIC)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      grep(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 if any matches are found, 1 if none, 2 for
      syntax errors or inaccessible files.
 
-AUTHOR
+AAUUTTHHOORR
      Peter Bain (pdbain@wateng), with modifications suggested by
      John Gilmore
 
-BUGS
+BBUUGGSS
      Only 100 patterns are allowed.
 
      Patterns may not contain newlines.
@@ -100,11 +100,9 @@ BUGS
 
      The algorithm cannot count lines.
 
-     The -n and -c work differently from fgrep.
+     The --nn and --cc work differently from fgrep.
 
-     The -v, -i, and -b are not available.
-
-
+     The --vv,, --ii,, and --bb are not available.
 
 
 
@@ -126,7 +124,9 @@ BUGS
 
 
 
-Printed 2/16/100	   8 July 1985				2
+
+
+Printed 9/10/24            8 July 1985				2
 
 
 

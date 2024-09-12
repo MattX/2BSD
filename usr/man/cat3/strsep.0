@@ -5,19 +5,19 @@ STRSEP(3)	    UNIX Programmer's Manual		STRSEP(3)
 
 
 
-NAME
-     strsep - separate strings
+NNAAMMEE
+     ssttrrsseepp - separate strings
 
-SYNOPSIS
-     #include <string.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttrriinngg..hh>>
 
-     char *
-     strsep(stringp, delim)
+     cchhaarr **
+     ssttrrsseepp(stringp, delim)
      _c_h_a_r **_s_t_r_i_n_g_p;
      _c_h_a_r *_d_e_l_i_m;
 
-DESCRIPTION
-     The strsep() function locates, in the string referenced by
+DDEESSCCRRIIPPTTIIOONN
+     The ssttrrsseepp() function locates, in the string referenced by
      *_s_t_r_i_n_g_p , the first occurrence of any character in the
      string _d_e_l_i_m (or the terminating `\0' character) and
      replaces it with a `\0'.  The location of the next character
@@ -29,10 +29,10 @@ DESCRIPTION
      iter characters, can be detected by comparing the location
      referenced by the pointer returned in *_s_t_r_i_n_g_p to `\0'.
 
-     If *_s_t_r_i_n_g_p is initially NULL, strsep() returns NULL.
+     If *_s_t_r_i_n_g_p is initially NNUULLLL, ssttrrsseepp() returns NNUULLLL.
 
-EXAMPLES
-     The following uses strsep() to parse a string, containing
+EEXXAAMMPPLLEESS
+     The following uses ssttrrsseepp() to parse a string, containing
      tokens delimited by white space, into an argument vector:
 
      char **ap, *argv[10], *inputstring;
@@ -41,14 +41,14 @@ EXAMPLES
 	  if (**ap != '\0')
 	       ++ap;
 
-HISTORY
-     The strsep() function is intended as a replacement for the
-     strtok() function.  While the strtok() function should be
+HHIISSTTOORRYY
+     The ssttrrsseepp() function is intended as a replacement for the
+     ssttrrttookk() function.  While the ssttrrttookk() function should be
      preferred for portability reasons (it conforms to ANSI C
      X3.159-1989 (``ANSI C'')) it is unable to handle empty
      fields, i.e. detect fields delimited by two adjacent delim-
      iter characters, or to be used for more than a single string
-     at a time.  The strsep() function first appeared in 4.4BSD.
+     at a time.  The ssttrrsseepp() function first appeared in 4.4BSD.
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	January 12, 1996			1
+Printed 9/10/24         January 12, 1996			1
 
 
 

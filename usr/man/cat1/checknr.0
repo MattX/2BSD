@@ -5,14 +5,14 @@ CHECKNR(1)	    UNIX Programmer's Manual	       CHECKNR(1)
 
 
 
-NAME
+NNAAMMEE
      checknr - check nroff/troff files
 
-SYNOPSIS
-     checknr [ -s ] [ -f ] [ -a.x1.y1.x2.y2. ... .xn.yn ] [
-     -c.x1.x2.x3 ... .xn ] [ _f_i_l_e ...  ]
+SSYYNNOOPPSSIISS
+     cchheecckknnrr [ --ss ] [ --ff ] [ --aa.x1.y1.x2.y2. ... .xn.yn ] [
+     --cc.x1.x2.x3 ... .xn ] [ _f_i_l_e ...  ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_h_e_c_k_n_r checks a list of _n_r_o_f_f(1) or _t_r_o_f_f(1) input files
      for certain kinds of errors involving mismatched opening and
      closing delimiters and unknown commands.  If no files are
@@ -29,18 +29,18 @@ DESCRIPTION
      _C_h_e_c_k_n_r knows about the _m_s(7) and _m_e(7) macro packages.
 
      Additional pairs of macros can be added to the list using
-     the -a option.  This must be followed by groups of six char-
+     the --aa option.  This must be followed by groups of six char-
      acters, each group defining a pair of macros.  The six char-
      acters are a period, the first macro name, another period,
      and the second macro name.  For example, to define a pair
-     .BS and .ES, use -a.BS.ES
+     .BS and .ES, use -aa.BS.ES
 
-     The -c option defines commands which would otherwise be com-
+     The --cc option defines commands which would otherwise be com-
      plained about as undefined.
 
-     The -f option requests _c_h_e_c_k_n_r to ignore \f font changes.
+     The --ff option requests _c_h_e_c_k_n_r to ignore \f font changes.
 
-     The -s option requests _c_h_e_c_k_n_r to ignore \s size changes.
+     The --ss option requests _c_h_e_c_k_n_r to ignore \s size changes.
 
      _C_h_e_c_k_n_r is intended to be used on documents that are
      prepared with _c_h_e_c_k_n_r in mind, much the same as _l_i_n_t. It
@@ -54,13 +54,13 @@ DESCRIPTION
      \s0 forms anyway, you should think of this as a contribution
      to your document preparation style.
 
-SEE ALSO
+SSEEEE AALLSSOO
      nroff(1), troff(1), checkeq(1), ms(7), me(7)
 
 
 
 
-Printed 2/16/100	   May 7, 1986				1
+Printed 9/10/24            May 7, 1986				1
 
 
 
@@ -71,13 +71,13 @@ CHECKNR(1)	    UNIX Programmer's Manual	       CHECKNR(1)
 
 
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Complaints about unmatched delimiters.
      Complaints about unrecognized commands.
      Various complaints about the syntax of commands.
 
-BUGS
-     There is no way to define a 1 character macro name using -a.
+BBUUGGSS
+     There is no way to define a 1 character macro name using --aa.
      Does not correctly recognize certain reasonable constructs,
      such as conditionals.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 7, 1986				2
+Printed 9/10/24            May 7, 1986				2
 
 
 

@@ -5,10 +5,10 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
 
 
 
-NAME
+NNAAMMEE
      intro - introduction to special files and hardware support
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This section describes the special files, related driver
      functions, and networking support available in the system.
      In this part of the manual, the SYNOPSIS section of each
@@ -25,7 +25,7 @@ DESCRIPTION
      tion, ``4N'', ``4P'', and ``4F'' entries; The networking
      support is introduced in _i_n_t_r_o(4N).
 
-PDP DEVICE SUPPORT
+PPDDPP DDEEVVIICCEE SSUUPPPPOORRTT
      This section describes the hardware supported on the DEC
      PDP-11.  Software support for these devices comes in two
      forms.  A hardware device may be supported with a character
@@ -51,16 +51,16 @@ PDP DEVICE SUPPORT
      The autoconfiguration system is described in _a_u_t_o_c_o_n_f_i_g(8).
      A list of the supported devices is given below.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4), networking(4), config(8).
 
-LIST OF DEVICES
+LLIISSTT OOFF DDEEVVIICCEESS
      The devices listed below are supported in this incarnation
      of the system.  Pseudo-devices are not listed.  Listed also
 
 
 
-Printed 2/16/100	January 27, 1996			1
+Printed 9/10/24         January 27, 1996			1
 
 
 
@@ -77,12 +77,12 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
      Devices are indicated by their functional interface.  If
      second vendor products provide functionally identical inter-
      faces they should be usable with the supplied software.
-     (Beware, however, that we promise the software works ONLY
-     with the hardware indicated on the appropriate manual page.)
+     (BBeewwaarree,, hhoowweevveerr,, tthhaatt wwee pprroommiissee tthhee ssooffttwwaarree wwoorrkkss OONNLLYY
+     wwiitthh tthhee hhaarrddwwaarree iinnddiiccaatteedd oonn tthhee aapppprroopprriiaattee mmaannuuaall ppaaggee..)
      Occasionally, new devices of a similar type may be added
      simply by creating appropriate table entries in the driver.
 
-     The following are known to work:
+     TThhee ffoolllloowwiinngg aarree kknnoowwnn ttoo wwoorrkk::
      acc       ACC LH/DH IMP communications interface
      de        DEC DEUNA 10Mb/s Ethernet controller
      dh        DH-11 emulators, terminal multiplexor
@@ -105,16 +105,16 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
      vv        Proteon proNET 10Mb/s and 80Mb/s ring network interface
      xp        General purpose SMD disk controller
 
-     The following should work:
+     TThhee ffoolllloowwiinngg sshhoouulldd wwoorrkk::
      dr        DR-11W general purpose DMA UNIBUS interface
 
-     The following worked in the past but will probably require work:
+     TThhee ffoolllloowwiinngg wwoorrkkeedd iinn tthhee ppaasstt bbuutt wwiillll pprroobbaabbllyy rreeqquuiirree wwoorrkk::
      css       DEC IMP-11A communications interface
      dmc       DEC DMC-11/DMR-11 point-to-point communications device
      en        Xerox 3Mb/s Ethernet controller (obsolete)
      sri       DR-11C IMP interface
 
-     It should be possible to port these from 4.3BSD:
+     IItt sshhoouulldd bbee ppoossssiibbllee ttoo ppoorrtt tthheessee ffrroomm 44..33BBSSDD::
      ex        Excelan 10Mb/s Ethernet controller
      ix        Interlan NP-100 10Mb/s Ethernet controller
      np        Interlan NP-100 10Mb/s Ethernet controller (intelligent mode)
@@ -126,7 +126,7 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
 
 
 
-Printed 2/16/100	January 27, 1996			2
+Printed 9/10/24         January 27, 1996			2
 
 
 
@@ -137,7 +137,7 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
 
 
 
-     No idea whether any of the following could be ported:
+     NNoo iiddeeaa wwhheetthheerr aannyy ooff tthhee ffoolllloowwiinngg ccoouulldd bbee ppoorrtteedd::
      ad        Data translation A/D interface
      ct        C/A/T or APS phototypesetter
      ddn       ACC ACP625 DDN Standard Mode X.25 IMP interface
@@ -192,7 +192,7 @@ INTRO(4)	    UNIX Programmer's Manual		 INTRO(4)
 
 
 
-Printed 2/16/100	January 27, 1996			3
+Printed 9/10/24         January 27, 1996			3
 
 
 

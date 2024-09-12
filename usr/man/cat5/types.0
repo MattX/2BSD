@@ -5,13 +5,13 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
 
 
 
-NAME
+NNAAMMEE
      types - primitive system data types
 
-SYNOPSIS
-     #include <sys/types.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The data types defined in the include file are used in UNIX
      system code; some data of these types are accessible to user
      code:
@@ -21,7 +21,7 @@ DESCRIPTION
       * All rights reserved.  The Berkeley software License Agreement
       * specifies the terms and conditions for redistribution.
       *
-      *       @(#)types.h	1.4 (2.11BSD Berkeley) 1996/1/12
+      *       @(#)types.h	1.4.1 (2.11BSD) 2000/2/28
       */
 
      #ifndef _TYPES_
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 
@@ -82,30 +82,12 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
      typedef  u_short	mode_t;
 
      #define  NBBY	8	/* number of bits in a byte */
-     /*
-      * Select uses bit masks of file descriptors in longs.
-      * These macros manipulate such bit fields (the filesystem macros use chars).
-      * FD_SETSIZE may be defined by the user, but the default here
-      * should be >= NOFILE (param.h).
-      */
-     #ifndef  FD_SETSIZE
-     #define  FD_SETSIZE	32
-     #endif
 
-     typedef long	fd_mask;
-     #define NFDBITS	(sizeof(fd_mask) * NBBY)/* bits per mask */
      #ifndef howmany
      #define  howmany(x, y)	(((x)+((y)-1))/(y))
      #endif
 
-     typedef  struct fd_set {
-	      fd_mask	fds_bits[1];
-     } fd_set;
-
-     #define  FD_SET(n, p)	((p)->fds_bits[(n)/NFDBITS] |= (1L << ((n) % NFDBITS)))
-     #define  FD_CLR(n, p)	((p)->fds_bits[(n)/NFDBITS] &= ~(1L << ((n) % NFDBITS)))
-     #define  FD_ISSET(n, p)	((p)->fds_bits[(n)/NFDBITS] & (1L << ((n) % NFDBITS)))
-     #define FD_ZERO(p) bzero((char *)(p), sizeof(*(p)))
+     #include <sys/select.h>
 
      typedef char	bool_t; /* boolean */
      typedef u_int	memaddr;/* core or swap address */
@@ -122,22 +104,7 @@ TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
      used to save the processor state while another process is
      running.
 
-
-
-
-
-Printed 2/16/100	  May 15, 1985				2
-
-
-
-
-
-
-TYPES(5)	    UNIX Programmer's Manual		 TYPES(5)
-
-
-
-SEE ALSO
+SSEEEE AALLSSOO
      fs(5), time(3), lseek(2), adb(1)
 
 
@@ -159,40 +126,7 @@ SEE ALSO
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Printed 2/16/100	  May 15, 1985				3
+Printed 9/10/24           May 15, 1985				2
 
 
 

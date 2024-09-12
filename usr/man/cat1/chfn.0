@@ -5,13 +5,13 @@ CHPASS(1)	    UNIX Programmer's Manual		CHPASS(1)
 
 
 
-NAME
+NNAAMMEE
      chpass - add or change user database information
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      chpass [ -a list ] [ user ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_h_p_a_s_s allows editing of the user database information asso-
      ciated with _u_s_e_r or, by default, the current user.  The
      information is formatted and supplied to an editor for
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 March 12, 1989                         1
+Printed 9/10/24          March 12, 1989                         1
 
 
 
@@ -118,7 +118,7 @@ CHPASS(1)	    UNIX Programmer's Manual		CHPASS(1)
      is unavailable for other updates and the new information
      will not be available to programs.
 
-FILES
+FFIILLEESS
      /etc/master.passwd       The user database
      /etc/shells	      The list of approved shells
 
@@ -126,7 +126,7 @@ FILES
 
 
 
-Printed 2/16/100	 March 12, 1989                         2
+Printed 9/10/24          March 12, 1989                         2
 
 
 
@@ -137,12 +137,12 @@ CHPASS(1)	    UNIX Programmer's Manual		CHPASS(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1), finger(1), getusershell(3), passwd(5),
      mkpasswd(8), vipw(8)
      Robert Morris and Ken Thompson, _U_N_I_X _p_a_s_s_w_o_r_d _s_e_c_u_r_i_t_y
 
-BUGS
+BBUUGGSS
      User information should (and eventually will) be stored
      elsewhere.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	 March 12, 1989                         3
+Printed 9/10/24          March 12, 1989                         3
 
 
 

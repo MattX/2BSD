@@ -5,13 +5,13 @@ IDENT(1)	    UNIX Programmer's Manual		 IDENT(1)
 
 
 
-NAME
+NNAAMMEE
      ident - identify files
 
-SYNOPSIS
-     ident file ...
+SSYYNNOOPPSSIISS
+     iiddeenntt file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_d_e_n_t searches the named files for all occurrences of the
      pattern $_k_e_y_w_o_r_d:...$, where _k_e_y_w_o_r_d is one of
 
@@ -44,13 +44,13 @@ DESCRIPTION
 		     $Header:  Header information $
 
 
-IDENTIFICATION
+IIDDEENNTTIIFFIICCAATTIIOONN
      Author: Walter F. Tichy, Purdue University, West Lafayette,
      IN, 47907.
      Revision Number: 3.0 ; Release Date: 82/12/04 .
      Copyright (C) 1982 by Walter F. Tichy.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ci (1), co (1), rcs (1), rcsdiff(1), rcsintro (1), rcsmerge
      (1), rlog (1), rcsfile (5).
      Walter F. Tichy, "Design, Implementation, and Evaluation of
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	     6/29/83				1
+Printed 9/10/24              6/29/83				1
 
 
 
@@ -71,7 +71,7 @@ IDENT(1)	    UNIX Programmer's Manual		 IDENT(1)
 
 
 
-BUGS
+BBUUGGSS
 
 
 
@@ -123,7 +123,7 @@ BUGS
 
 
 
-Printed 2/16/100	     6/29/83				2
+Printed 9/10/24              6/29/83				2
 
 
 

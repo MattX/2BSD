@@ -5,14 +5,14 @@ DE(4)		    UNIX Programmer's Manual		    DE(4)
 
 
 
-NAME
+NNAAMMEE
      de - DEC DEUNA 10 Mb/s Ethernet interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NDE  _d_e__c_o_n_t_r_o_l_l_e_r_s # DEUNA
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNDDEE  _d_e__c_o_n_t_r_o_l_l_e_r_s ## DDEEUUNNAA
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _d_e interface provides access to a 10 Mb/s Ethernet net-
      work through a Digital Equipment UNIBUS Network Adapter
      (DEUNA).
@@ -29,27 +29,27 @@ DESCRIPTION
      disabled, on a per-interface basis, by setting the
      IFF_NOTRAILERS flag with an SIOCSIFFLAGS ioctl.
 
-DIAGNOSTICS
-     de%d: hardware address %s.  This is a normal autoconfigura-
+DDIIAAGGNNOOSSTTIICCSS
+     ddee%%dd:: hhaarrddwwaarree aaddddrreessss %%ss.  This is a normal autoconfigura-
      tion message noting the 6 byte physical ethernet address of
      the adapter.
 
-     de%d: oerror, flags=%b tdrerr=%b (len=%d).  The hardware
+     ddee%%dd:: ooeerrrroorr,, ffllaaggss==%%bb ttddrreerrrr==%%bb ((lleenn==%%dd)).  The hardware
      indicated an error in transmitting a packet to the cable.
      The status and error flags are reported.
 
-     de%d: ierror, flags=%b lenerr=%b (len=%d).  The hardware
+     ddee%%dd:: iieerrrroorr,, ffllaaggss==%%bb lleenneerrrr==%%bb ((lleenn==%%dd)).  The hardware
      indicated an error in reading a packet from the cable.  The
      status and error flags are reported.
 
-     de%d: can't handle af%d.  The interface was handed a message
+     ddee%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a message
      with addresses formatted in an unsuitable address family;
      the packet was dropped.
 
-     de%d: buffer unavailable.	The interface received more pack-
+     ddee%%dd:: bbuuffffeerr uunnaavvaaiillaabbllee.	The interface received more pack-
      ets than it had buffers allocated to receive them.
 
-     de%d: address change failed, csr0=%b csr1=%b.  The interface
+     ddee%%dd:: aaddddrreessss cchhaannggee ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.  The interface
      was unable to reprogram its physical ethernet address.  This
      may happen with very early models of the interface.  This
      facility is used only when the controller is not the first
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 
@@ -75,17 +75,17 @@ DE(4)		    UNIX Programmer's Manual		    DE(4)
      should indicate the nature of the failure.  See the hardware
      manual for details.
 
-     de%d: reset failed, csr0=%b csr1=%b.
+     ddee%%dd:: rreesseett ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.
 
-     de%d: ppcb failed, csr0=%b csr1=%b.
+     ddee%%dd:: ppppccbb ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.
 
-     de%d: read addr failed, csr0=%b csr1=%b.
+     ddee%%dd:: rreeaadd aaddddrr ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.
 
-     de%d: wtring failed, csr0=%b csr1=%b.
+     ddee%%dd:: wwttrriinngg ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.
 
-     de%d: wtmode failed, csr0=%b csr1=%b.
+     ddee%%dd:: wwttmmooddee ffaaiilleedd,, ccssrr00==%%bb ccssrr11==%%bb.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), inet(4F), arp(4P)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 20, 1987			2
+Printed 9/10/24          August 20, 1987			2
 
 
 

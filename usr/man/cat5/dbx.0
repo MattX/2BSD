@@ -5,17 +5,17 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
 
 
-NAME
+NNAAMMEE
      dbx - dbx symbol table information
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The compiler symbol information generated for _d_b_x(1) uses
      the same structure as described in _s_t_a_b(5), with additional
      type and scope information appended to a symbol's name.  The
      assembler directive used to describe symbol information has
      the following format:
 
-	     stabs ``_s_t_r_i_n_g'',_k_i_n_d,0,_s_i_z_e,_v_a_l_u_e
+	     ssttaabbss ``_s_t_r_i_n_g'',_k_i_n_d,0,_s_i_z_e,_v_a_l_u_e
 
      _S_t_r_i_n_g contains the name, source language type, and scope of
      the symbol, _k_i_n_d specifies the memory class (e.g., external,
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	January 12, 1986			1
+Printed 9/10/24         January 12, 1986			1
 
 
 
@@ -126,7 +126,7 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
 
 
-Printed 2/16/100	January 12, 1986			2
+Printed 9/10/24         January 12, 1986			2
 
 
 
@@ -192,7 +192,7 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
 
 
-Printed 2/16/100	January 12, 1986			3
+Printed 9/10/24         January 12, 1986			3
 
 
 
@@ -258,7 +258,7 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
 
 
-Printed 2/16/100	January 12, 1986			4
+Printed 9/10/24         January 12, 1986			4
 
 
 
@@ -324,7 +324,7 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
 
 
-Printed 2/16/100	January 12, 1986			5
+Printed 9/10/24         January 12, 1986			5
 
 
 
@@ -337,7 +337,7 @@ DBX(5)		    UNIX Programmer's Manual		   DBX(5)
 
      elements in one of these lists is large.
 
-SEE ALSO
+SSEEEE AALLSSOO
      dbx(1), stab(5), a.out(5)
 
 
@@ -390,7 +390,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	January 12, 1986			6
+Printed 9/10/24         January 12, 1986			6
 
 
 

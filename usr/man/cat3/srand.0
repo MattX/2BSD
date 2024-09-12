@@ -5,18 +5,18 @@ RAND(3C)	    UNIX Programmer's Manual		 RAND(3C)
 
 
 
-NAME
+NNAAMMEE
      rand, srand - random number generator
 
-SYNOPSIS
-     srand(seed)
-     int seed;
+SSYYNNOOPPSSIISS
+     ssrraanndd((sseeeedd))
+     iinntt sseeeedd;;
 
-     rand()
+     rraanndd(())
 
-DESCRIPTION
-     The newer random(3) should be used in new applications; rand
-     remains for compatibilty.
+DDEESSCCRRIIPPTTIIOONN
+     TThhee nneewweerr rraannddoomm((33)) sshhoouulldd bbee uusseedd iinn nneeww aapppplliiccaattiioonnss;; rraanndd
+     rreemmaaiinnss ffoorr ccoommppaattiibbiillttyy..
 
      _R_a_n_d uses a multiplicative congruential random number gen-
      erator with period 2**32 to return successive pseudo-random
@@ -27,7 +27,7 @@ DESCRIPTION
      argument.	It can be set to a random starting point by cal-
      ling _s_r_a_n_d with whatever you like as argument.
 
-SEE ALSO
+SSEEEE AALLSSOO
      random(3)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100       September 29, 1985			1
+Printed 9/10/24        September 29, 1985			1
 
 
 

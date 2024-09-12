@@ -5,10 +5,10 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
 
 
 
-NAME
+NNAAMMEE
      mtio - UNIX magtape interface
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The files _m_t_0, ..., _m_t_1_5 refer to the UNIX magtape drives,
      which may be on the MASSBUS using the TM03 formatter _h_t(4),
      or on the UNIBUS using either the TM11 or TS11 formatters
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	December 22, 1995			1
+Printed 9/10/24         December 22, 1995			1
 
 
 
@@ -126,7 +126,7 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
 
 
 
-Printed 2/16/100	December 22, 1995			2
+Printed 9/10/24         December 22, 1995			2
 
 
 
@@ -146,14 +146,14 @@ MTIO(4)             UNIX Programmer's Manual		  MTIO(4)
      drivers.  At present only the TMSCP driver supports those
      commands and then only for drives such as the TU81+.
 
-FILES
+FFIILLEESS
      /dev/mt?
      /dev/rmt?
 
-SEE ALSO
+SSEEEE AALLSSOO
      mt(1), tar(1), tp(1), ht(4), tm(4), ts(4)
 
-BUGS
+BBUUGGSS
      The status should be returned in a device independent for-
      mat.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	December 22, 1995			3
+Printed 9/10/24         December 22, 1995			3
 
 
 

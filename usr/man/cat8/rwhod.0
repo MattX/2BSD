@@ -5,13 +5,13 @@ RWHOD(8)	    UNIX Programmer's Manual		 RWHOD(8)
 
 
 
-NAME
+NNAAMMEE
      rwhod - system status server
 
-SYNOPSIS
-     /usr/sbin/rwhod
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//rrwwhhoodd
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_w_h_o_d is the server which maintains the database used by the
      _r_w_h_o(1) and _r_u_p_t_i_m_e(1) programs.  Its operation is predi-
      cated on the ability to _b_r_o_a_d_c_a_s_t messages on a network.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 11/25/19	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 
@@ -91,10 +91,10 @@ RWHOD(8)	    UNIX Programmer's Manual		 RWHOD(8)
      minutes to guard against the possibility that this file is
      not the system image currently operating.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rwho(1), ruptime(1)
 
-BUGS
+BBUUGGSS
      There should be a way to relay status information between
      networks. Status information should be sent only upon
      request rather than continuously.	People often interpret
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 11/25/19	November 16, 1996			2
+Printed 9/10/24         November 16, 1996			2
 
 
 

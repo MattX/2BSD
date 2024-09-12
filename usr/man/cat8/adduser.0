@@ -5,10 +5,10 @@ ADDUSER(8)	    UNIX Programmer's Manual	       ADDUSER(8)
 
 
 
-NAME
+NNAAMMEE
      adduser - procedure for adding new users
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      A new user must choose a login name, which must not already
      appear in /_e_t_c/_p_a_s_s_w_dor /_e_t_c/_a_l_i_a_s_e_s.  It must also not
      begin with the hyphen (``-'') character.  It is strongly
@@ -41,15 +41,15 @@ DESCRIPTION
      of these files which, for instance, use _t_s_e_t(1) automati-
      cally at each login.
 
-FILES
+FFIILLEESS
      /etc/master.passwd  user database
      /usr/skel		 skeletal login directory
 
-SEE ALSO
+SSEEEE AALLSSOO
      chpass(1), finger(1), passwd(1), aliases(5), passwd(5),
      mkpasswd(8), vipw(8)
 
-BUGS
+BBUUGGSS
      User information should (and eventually will) be stored
      elsewhere.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 

@@ -5,31 +5,31 @@ MWRITE(1)           UNIX Programmer's Manual            MWRITE(1)
 
 
 
-NAME
+NNAAMMEE
      mwrite - low level write (copy) a Unix file to MSDOS
 
-SYNOPSIS
-     mwrite [ -tnvm ] unixfile msdosfile
+SSYYNNOOPPSSIISS
+     mmwwrriittee [ --ttnnvvmm ] unixfile msdosfile
 
-     mwrite [ -tnvm ] unixfile [ unixfiles... ] msdosdirectory
+     mmwwrriittee [ --ttnnvvmm ] unixfile [ unixfiles... ] msdosdirectory
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      In the first form, _m_w_r_i_t_e copies the specified Unix file to
      the named MSDOS file.  The second form of the command copies
      multiple Unix files to the named MSDOS directory.
 
      _M_w_r_i_t_e will allow the following command line options:
 
-     t    Text file transfer.  _M_w_r_i_t_e will translate incoming
+     tt    Text file transfer.  _M_w_r_i_t_e will translate incoming
           line feeds to carriage return/line feeds.
 
-     n    No warning.  _M_w_r_i_t_e will not warn the user when
+     nn    No warning.  _M_w_r_i_t_e will not warn the user when
           overwriting an existing file.
 
-     v    Verbose mode.  Display the new filename if the Unix
+     vv    Verbose mode.  Display the new filename if the Unix
           filename requires conversion.
 
-     m    Preserve the file modification times.
+     mm    Preserve the file modification times.
 
      If the target file already exists, and the -_n option is not
      in effect, _m_w_r_i_t_e asks whether or not to overwrite the file.
@@ -47,11 +47,11 @@ DESCRIPTION
      current working directory (relative to MSDOS), otherwise the
      default is A:/.
 
-SEE ALSO
+SSEEEE AALLSSOO
      mcd(1), mcopy(1), mread(1)
 
-BUGS
-     Unlike MSDOS, the destination directory may not be omitted.
+BBUUGGSS
+     Unlike MSDOS, the destination directory may nnoott be omitted.
 
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100              local                             1
+Printed 9/10/24               local                             1
 
 
 

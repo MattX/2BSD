@@ -10,11 +10,11 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
      =wig % ="~" % tdefine bigstar % "+x" % ndefine bigstar % X|- %
      tdefine =dot % "=." % ndefine =dot % = dot % tdefine orsign %
      "\\//" % ndefine orsign % \/ % tdefine andsign % "//\\" % nde-
-     fine andsign % /\ % tdefine =del % "=/_\_" % ndefine =del % =
-     to DELTA % tdefine oppA % "\\//----" % ndefine oppA % V- % tdefine
-     oppE %"--- ||" % ndefine oppE % E/ % tdefine incl % "|---" % ndefine
-     incl % C_ % tdefine nomem % "<-/" % ndefine nomem % C-/ % tdefine
-     angstrom % "A" % ndefine angstrom % A to o % tdefine star %{
+     fine andsign % /\ % tdefine =del % "=D" % ndefine =del % = to
+     DELTA % tdefine oppA % "\\//----" % ndefine oppA % V- % tdefine oppE
+     %"------ ||" % ndefine oppE % E/ % tdefine incl % "|------" % ndefine incl
+     % C_ % tdefine nomem % "E/" % ndefine nomem % C-/ % tdefine
+     angstrom % "Ao" % ndefine angstrom % A to o % tdefine star %{
      roman "*"}% ndefine star % * % tdefine || % || % tdefine
      <wig % "<~" % ndefine <wig %{ < from "~" }% tdefine >wig %
      ">~" % ndefine >wig %{ > from "~" }% tdefine langle % "/
@@ -30,27 +30,27 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
 								   %
      tdefine thf % "..." % ndefine thf % ... % tdefine quarter %
      roman 1/4 % ndefine quarter % 1/4 % tdefine 3quarter % roman
-     3/4 % ndefine 3quarter % 3/4 % tdefine degree %  % ndefine
+     3/4 % ndefine 3quarter % 3/4 % tdefine degree % o % ndefine
      degree % nothing sup o % tdefine square % [] % ndefine
      square % [] % tdefine circle % O % ndefine circle % O % tde-
-     fine blot % "[]" % ndefine blot % HIX % tdefine bullet % o+ %
-     ndefine bullet % oxe % tdefine -wig % "~_" % ndefine -wig % -
+     fine blot % "[[]]" % ndefine blot % HIX % tdefine bullet % o %
+     ndefine bullet % oxe % tdefine -wig % "~=" % ndefine -wig % -
      to "~" % tdefine wig % ~ % ndefine wig % "~" % tdefine prop
-     % oc % ndefine prop % oc % tdefine empty % O/ % ndefine empty
-     % O/ % tdefine member % <- % ndefine member % C- % tdefine cup
-     % (~)~ % ndefine cup % U % define cap % (_)_ % define subset %
-     (= % define supset % =) % define !subset % (=_ % define
-     !supset % =_) %
+     % oc % ndefine prop % oc % tdefine empty % {} % ndefine
+     empty % O/ % tdefine member % E % ndefine member % C- % tde-
+     fine cup % U % ndefine cup % U % define cap % (^) % define
+     subset % (= % define supset % =) % define !subset % (=_ %
+     define !supset % =_) %
 
-NAME
+NNAAMMEE
      eqnchar - special character definitions for eqn
 
-SYNOPSIS
-     eqn /usr/pub/eqnchar [ files ] | troff [ options ]
+SSYYNNOOPPSSIISS
+     eeqqnn //uussrr//ppuubb//eeqqnncchhaarr [ files ] || ttrrooffff [ options ]
 
-     neqn /usr/pub/eqnchar [ files ] | nroff [ options ]
+     nneeqqnn //uussrr//ppuubb//eeqqnncchhaarr [ files ] || nnrrooffff [ options ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _E_q_n_c_h_a_r contains _t_r_o_f_f and _n_r_o_f_f character definitions for
      constructing characters that are not available on the
      Graphic Systems typesetter.  These definitions are primarily
@@ -63,7 +63,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 
@@ -88,10 +88,10 @@ EQNCHAR(7)	    UNIX Programmer's Manual	       EQNCHAR(7)
      "oppE"    oppE	   "3quarter"		3quarter  "!supset"!supset
      "angstrom"            angstrom  "degree"	degree
 
-FILES
+FFIILLEESS
      /usr/pub/eqnchar
 
-SEE ALSO
+SSEEEE AALLSSOO
      troff(1), eqn(1)
 
 
@@ -129,7 +129,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 20, 1985				2
+Printed 9/10/24           May 20, 1985				2
 
 
 

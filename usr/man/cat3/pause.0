@@ -5,27 +5,27 @@ PAUSE(3C)	    UNIX Programmer's Manual		PAUSE(3C)
 
 
 
-NAME
+NNAAMMEE
      pause - stop until signal
 
-SYNOPSIS
-     pause()
+SSYYNNOOPPSSIISS
+     ppaauussee(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_a_u_s_e never returns normally.  It is used to give up control
      while waiting for a signal from _k_i_l_l(2) or an interval
      timer, see _s_e_t_i_t_i_m_e_r(2).  Upon termination of a signal
      handler started during a _p_a_u_s_e, the _p_a_u_s_e call will return.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Always returns -1.
 
-ERRORS
+EERRRROORRSS
      _P_a_u_s_e always returns:
 
      [EINTR]	    The call was interrupted.
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(2), select(2), sigpause(2)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	   May 9, 1985				1
+Printed 9/10/24            May 9, 1985				1
 
 
 

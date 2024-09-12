@@ -5,10 +5,10 @@ CRONTAB(5)          UNIX Programmer's Manual           CRONTAB(5)
 
 
 
-NAME
+NNAAMMEE
      crontab - tables for driving cron
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      A _c_r_o_n_t_a_b file contains instructions to the _c_r_o_n(8) daemon
      of the general form: ``run this command at this time on this
      date''.  Each user has their own crontab, and commands in
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/18/100         24 January 1994                        1
+Printed 9/10/24          24 January 1994                        1
 
 
 
@@ -126,7 +126,7 @@ CRONTAB(5)          UNIX Programmer's Manual           CRONTAB(5)
 
 
 
-Printed 2/18/100         24 January 1994                        2
+Printed 9/10/24          24 January 1994                        2
 
 
 
@@ -138,13 +138,13 @@ CRONTAB(5)          UNIX Programmer's Manual           CRONTAB(5)
 
 
      Note: The day of a command's execution can be specified by
-     two fields - day of month, and day of week.  If both fields
+     two fields -- day of month, and day of week.  If both fields
      are restricted (ie, aren't *), the command will be run when
      _e_i_t_h_e_r field matches the current time.  For example,
      ``30 4 1,15 * 5'' would cause a command to be run at 4:30 am
      on the 1st and 15th of each month, plus every Friday.
 
-EXAMPLE CRON FILE
+EEXXAAMMPPLLEE CCRROONN FFIILLEE
      # use /bin/sh to run commands, no matter what /etc/passwd says
      SHELL=/bin/sh
      # mail any output to `paul', no matter whose crontab this is
@@ -159,10 +159,10 @@ EXAMPLE CRON FILE
      23 0-23/2 * * * echo "run 23 minutes after midn, 2am, 4am ..., everyday"
      5 4 * * sun     echo "run at 5 after 4 every sunday"
 
-SEE ALSO
+SSEEEE AALLSSOO
      cron(8), crontab(1)
 
-EXTENSIONS
+EEXXTTEENNSSIIOONNSS
      When specifying day of week, both day 0 and day 7 will be
      considered Sunday.  BSD and ATT seem to disagree about this.
 
@@ -185,14 +185,14 @@ EXTENSIONS
      owner (SysV can't do this), or the feature can be turned off
      and no mail will be sent at all (SysV can't do this either).
 
-AUTHOR
+AAUUTTHHOORR
      Paul Vixie <paul@vix.com>
 
 
 
 
 
-Printed 2/18/100         24 January 1994                        3
+Printed 9/10/24          24 January 1994                        3
 
 
 

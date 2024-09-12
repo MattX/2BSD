@@ -5,29 +5,29 @@ RESTOR(8)	    UNIX Programmer's Manual		RESTOR(8)
 
 
 
-NAME
+NNAAMMEE
      restor - incremental file system restore
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      _r_e_s_t_o_r key [ argument ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_s_t_o_r is used to read magtapes dumped with the _d_u_m_p com-
      mand.  The _k_e_y specifies what is to be done.  _K_e_y is one of
-     the characters rRxt optionally combined with f.
+     the characters rrRRxxtt optionally combined with ff.
 
-     f	  Use the first _a_r_g_u_m_e_n_t as the name of the tape instead
+     ff	  Use the first _a_r_g_u_m_e_n_t as the name of the tape instead
 	  of the default.
 
-     r or R
+     rr oorr RR
 	  The tape is read and loaded into the file system speci-
 	  fied in _a_r_g_u_m_e_n_t. This should not be done lightly (see
-	  below).  If the key is R _r_e_s_t_o_r asks which tape of a
+	  below).  If the key is RR _r_e_s_t_o_r asks which tape of a
 	  multi volume set to start on.  This allows restor to be
 	  interrupted and then restarted (an _i_c_h_e_c_k -s must be
 	  done before restarting ).
 
-     x	  Each file on the tape named by an _a_r_g_u_m_e_n_t is
+     xx	  Each file on the tape named by an _a_r_g_u_m_e_n_t is
 	  extracted.  The file name has all `mount' prefixes
 	  removed; for example, /usr/bin/lpr is named /bin/lpr on
 	  the tape.  The file extracted is placed in a file with
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -73,10 +73,10 @@ RESTOR(8)	    UNIX Programmer's Manual		RESTOR(8)
 
 	  to move the resulting files to their homes.
 
-     t	  Print the date the tape was written and the date the
+     tt	  Print the date the tape was written and the date the
 	  file system was dumped from.
 
-     The r option should only be used to restore a complete dump
+     The rr option should only be used to restore a complete dump
      tape onto a clear file system or to restore an incremental
      dump tape onto this.  Thus
 
@@ -90,14 +90,14 @@ RESTOR(8)	    UNIX Programmer's Manual		RESTOR(8)
      A _d_u_m_p followed by a _m_k_f_s and a _r_e_s_t_o_r is used to change the
      size of a file system.
 
-FILES
+FFIILLEESS
      /dev/rmt1		 default file name
      rst*		 temporary files
 
-SEE ALSO
+SSEEEE AALLSSOO
      dump(8), dumpdir(8), mkfs(8)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      There are various diagnostics involved with reading the tape
      and writing the disk.  There are also diagnostics if the i-
      list or the free list of the file system is not large enough
@@ -110,7 +110,7 @@ DIAGNOSTICS
      Dump tapes made before the new ondisc directory structure
      will be converted automatically by _r_e_s_t_o_r .
 
-BUGS
+BBUUGGSS
      There is redundant information on the tape that could be
      used in case of tape reading problems.  Unfortunately, _r_e_s_-
      _t_o_r does't use it.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

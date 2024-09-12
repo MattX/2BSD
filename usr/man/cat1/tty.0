@@ -5,18 +5,18 @@ TTY(1)		    UNIX Programmer's Manual		   TTY(1)
 
 
 
-NAME
+NNAAMMEE
      tty - get terminal name
 
-SYNOPSIS
-     tty [ -s ]
+SSYYNNOOPPSSIISS
+     ttttyy [ -s ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_t_y prints the pathname of the user's terminal unless the -s
      (silent) is given. In either case, the exit value is zero if
      the standard input is a terminal and one if it is not.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      `not a tty' if the standard input file is not a terminal.
 
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

@@ -5,30 +5,30 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
 
 
-NAME
+NNAAMMEE
      patch - a program for applying a diff file to an original
 
-SYNOPSIS
-     patch [options] orig patchfile [+ [options] orig]
+SSYYNNOOPPSSIISS
+     ppaattcchh [options] orig patchfile [+ [options] orig]
 
      but usually just
 
-     patch <patchfile
+     ppaattcchh <patchfile
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_a_t_c_h will take a patch file containing any of the three
      forms of difference listing produced by the _d_i_f_f program and
      apply those differences to an original file, producing a
      patched version.  By default, the patched version is put in
      place of the original, with the original file backed up to
      the same name with the extension ".orig" or "~" , or as
-     specified by the -b switch.  You may also specify where you
-     want the output to go with a -o switch.  If _p_a_t_c_h_f_i_l_e is
+     specified by the --bb switch.  You may also specify where you
+     want the output to go with a --oo switch.  If _p_a_t_c_h_f_i_l_e is
      omitted, or is a hyphen, the patch will be read from stan-
      dard input.
 
      Upon startup, patch will attempt to determine the type of
-     the diff listing, unless over-ruled by a -c, -e, or -n
+     the diff listing, unless over-ruled by a --cc, --ee, or --nn
      switch.  Context diffs and normal diffs are applied by the
      _p_a_t_c_h program itself, while ed diffs are simply fed to the
      _e_d editor via a pipe.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	      LOCAL				1
+Printed 9/10/24               LOCAL				1
 
 
 
@@ -126,7 +126,7 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
 
 
-Printed 2/16/100	      LOCAL				2
+Printed 9/10/24               LOCAL				2
 
 
 
@@ -148,37 +148,37 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
      _P_a_t_c_h recognizes the following switches:
 
-     -b   causes the next argument to be interpreted as the
+     --bb   causes the next argument to be interpreted as the
 	  backup extension, to be used in place of ".orig" or
 	  "~".
 
-     -B   causes the next argument to be interpreted as a prefix
+     --BB   causes the next argument to be interpreted as a prefix
 	  to the backup file name. If this argument is specified
 	  any argument from -b will be ignored.  This argument is
 	  an extension to Larry Wall's patch v2.0.1.4, patchlevel
 	  8, made by M. Greim (greim@sbsvax.uucp).
 
-     -c   forces _p_a_t_c_h to interpret the patch file as a context
+     --cc   forces _p_a_t_c_h to interpret the patch file as a context
 	  diff.
 
-     -d   causes _p_a_t_c_h to interpret the next argument as a direc-
+     --dd   causes _p_a_t_c_h to interpret the next argument as a direc-
 	  tory, and cd to it before doing anything else.
 
-     -D   causes _p_a_t_c_h to use the "#ifdef...#endif" construct to
+     --DD   causes _p_a_t_c_h to use the "#ifdef...#endif" construct to
 	  mark changes.  The argument following will be used as
 	  the differentiating symbol.  Note that, unlike the C
-	  compiler, there must be a space between the -D and the
+	  compiler, there must be a space between the --DD and the
 	  argument.
 
-     -e   forces _p_a_t_c_h to interpret the patch file as an ed
+     --ee   forces _p_a_t_c_h to interpret the patch file as an ed
 	  script.
 
-     -f   forces _p_a_t_c_h to assume that the user knows exactly what
+     --ff   forces _p_a_t_c_h to assume that the user knows exactly what
 	  he or she is doing, and to not ask any questions.  It
-	  does not suppress commentary, however.  Use -s for
+	  does not suppress commentary, however.  Use --ss for
 	  that.
 
-     -F<number>
+     --FF<<nnuummbbeerr>>
 	  sets the maximum fuzz factor.  This switch only applies
 	  to context diffs, and causes _p_a_t_c_h to ignore up to that
 	  many lines in looking for places to install a hunk.
@@ -187,12 +187,12 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 	  not be set to more than the number of lines of context
 	  in the context diff, ordinarily 3.
 
-     -l   causes the pattern matching to be done loosely, in case
+     --ll   causes the pattern matching to be done loosely, in case
 	  the tabs and spaces have been munged in your input
 
 
 
-Printed 2/16/100	      LOCAL				3
+Printed 9/10/24               LOCAL				3
 
 
 
@@ -208,16 +208,16 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 	  characters must still match exactly.	Each line of the
 	  context must still match a line in the input file.
 
-     -n   forces _p_a_t_c_h to interpret the patch file as a normal
+     --nn   forces _p_a_t_c_h to interpret the patch file as a normal
 	  diff.
 
-     -N   causes _p_a_t_c_h to ignore patches that it thinks are
-	  reversed or already applied.	See also -R .
+     --NN   causes _p_a_t_c_h to ignore patches that it thinks are
+	  reversed or already applied.	See also --RR ..
 
-     -o   causes the next argument to be interpreted as the out-
+     --oo   causes the next argument to be interpreted as the out-
 	  put file name.
 
-     -p<number>
+     --pp<<nnuummbbeerr>>
 	  sets the pathname strip count, which controls how path-
 	  names found in the patch file are treated, in case the
 	  you keep your files in a different directory than the
@@ -229,36 +229,36 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
 	       /u/howard/src/blurfl/blurfl.c
 
-	  setting -p or -p0 gives the entire pathname unmodified,
-	  -p1 gives
+	  setting --pp or --pp00 gives the entire pathname unmodified,
+	  --pp11 gives
 
 	       u/howard/src/blurfl/blurfl.c
 
-	  without the leading slash, -p4 gives
+	  without the leading slash, --pp44 gives
 
 	       blurfl/blurfl.c
 
-	  and not specifying -p at all just gives you "blurfl.c".
+	  and not specifying --pp at all just gives you "blurfl.c".
 	  Whatever you end up with is looked for either in the
-	  current directory, or the directory specified by the -d
+	  current directory, or the directory specified by the --dd
 	  switch.
 
-     -r   causes the next argument to be interpreted as the
+     --rr   causes the next argument to be interpreted as the
 	  reject file name.
 
-     -R   tells _p_a_t_c_h that this patch was created with the old
+     --RR   tells _p_a_t_c_h that this patch was created with the old
 	  and new files swapped.  (Yes, I'm afraid that does hap-
 	  pen occasionally, human nature being what it is.) _P_a_t_c_h
 	  will attempt to swap each hunk around before applying
 	  it.  Rejects will come out in the swapped format.  The
-	  -R switch will not work with ed diff scripts because
+	  --RR switch will not work with ed diff scripts because
 	  there is too little information to reconstruct the
 	  reverse operation.
 
 
 
 
-Printed 2/16/100	      LOCAL				4
+Printed 9/10/24               LOCAL				4
 
 
 
@@ -271,7 +271,7 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
 	  If the first hunk of a patch fails, _p_a_t_c_h will reverse
 	  the hunk to see if it can be applied that way.  If it
-	  can, you will be asked if you want to have the -R
+	  can, you will be asked if you want to have the --RR
 	  switch set.  If it can't, the patch will continue to be
 	  applied normally.  (Note: this method cannot detect a
 	  reversed patch if it is a normal diff and if the first
@@ -282,10 +282,10 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 	  most reversed normal diffs will begin with a delete,
 	  which will fail, triggering the heuristic.)
 
-     -s   makes _p_a_t_c_h do its work silently, unless an error
+     --ss   makes _p_a_t_c_h do its work silently, unless an error
 	  occurs.
 
-     -S   causes _p_a_t_c_h to ignore this patch from the patch file,
+     --SS   causes _p_a_t_c_h to ignore this patch from the patch file,
 	  but continue on looking for the next patch in the file.
 	  Thus
 
@@ -293,23 +293,23 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
 
 	  will ignore the first and second of three patches.
 
-     -v   causes _p_a_t_c_h to print out it's revision header and
+     --vv   causes _p_a_t_c_h to print out it's revision header and
 	  patch level.
 
-     -x<number>
+     --xx<<nnuummbbeerr>>
 	  sets internal debugging flags, and is of interest only
 	  to _p_a_t_c_h patchers.
 
-ENVIRONMENT
+EENNVVIIRROONNMMEENNTT
      No environment variables are used by _p_a_t_c_h.
 
-FILES
+FFIILLEESS
      /tmp/patch*
 
-SEE ALSO
+SSEEEE AALLSSOO
      diff(1)
 
-NOTES FOR PATCH SENDERS
+NNOOTTEESS FFOORR PPAATTCCHH SSEENNDDEERRSS
      There are several things you should bear in mind if you are
      going to be sending out patches.  First, you can save people
      a lot of grief by keeping a patchlevel.h file which is
@@ -319,12 +319,12 @@ NOTES FOR PATCH SENDERS
      without some warning.  Second, make sure you've specified
      the filenames right, either in a context diff header, or
      with an Index: line.  If you are patching something in a
-     subdirectory, be sure to tell the patch user to specify a -p
+     subdirectory, be sure to tell the patch user to specify a --pp
      switch as needed.	Third, you can create a file by sending
 
 
 
-Printed 2/16/100	      LOCAL				5
+Printed 9/10/24               LOCAL				5
 
 
 
@@ -344,7 +344,7 @@ PATCH(1)	    UNIX Programmer's Manual		 PATCH(1)
      into one file, it is probably wiser to group related patches
      into separate files in case something goes haywire.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Too many to list here, but generally indicative that _p_a_t_c_h
      couldn't parse your patch file.
 
@@ -358,7 +358,7 @@ DIAGNOSTICS
      behooves you to check this exit status so you don't apply a
      later patch to a partially patched file.
 
-CAVEATS
+CCAAVVEEAATTSS
      _P_a_t_c_h cannot tell if the line numbers are off in an ed
      script, and can only detect bad line numbers in a normal
      diff when it finds a "change" or a "delete" command.  A con-
@@ -375,7 +375,7 @@ CAVEATS
      exactly the same version of the file that the patch was gen-
      erated from.
 
-BUGS
+BBUUGGSS
      Could be smarter about partial matches, excessively deviant
      offsets and swapped code, but that would take an extra pass.
 
@@ -390,7 +390,7 @@ BUGS
 
 
 
-Printed 2/16/100	      LOCAL				6
+Printed 9/10/24               LOCAL				6
 
 
 

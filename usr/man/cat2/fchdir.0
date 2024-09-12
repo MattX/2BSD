@@ -5,18 +5,18 @@ CHMOD(2)	    UNIX Programmer's Manual		 CHMOD(2)
 
 
 
-NAME
+NNAAMMEE
      chmod - change mode of file
 
-SYNOPSIS
-     chmod(path, mode)
-     char *path;
-     int mode;
+SSYYNNOOPPSSIISS
+     cchhmmoodd((ppaatthh,, mmooddee))
+     cchhaarr **ppaatthh;;
+     iinntt mmooddee;;
 
-     fchmod(fd, mode)
-     int fd, mode;
+     ffcchhmmoodd((ffdd,, mmooddee))
+     iinntt ffdd,, mmooddee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The file whose name is given by _p_a_t_h or referenced by the
      descriptor _f_d has its mode changed to _m_o_d_e.  Modes are con-
      structed by _o_r'ing together some combination of the follow-
@@ -53,14 +53,14 @@ DESCRIPTION
      set-user-id (set-group-id) if they are modified, at the
      expense of a degree of compatibility.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, a value of -1 is returned and _e_r_r_n_o is set to indi-
      cate the error.
 
 
 
-Printed 2/16/100	  May 13, 1986				1
+Printed 9/10/24           May 13, 1986				1
 
 
 
@@ -71,7 +71,7 @@ CHMOD(2)	    UNIX Programmer's Manual		 CHMOD(2)
 
 
 
-ERRORS
+EERRRROORRSS
      _C_h_m_o_d will fail and the file mode will be unchanged if:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -116,7 +116,7 @@ ERRORS
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chmod(1), open(2), chown(2), stat(2), sticky(8)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 13, 1986				2
+Printed 9/10/24           May 13, 1986				2
 
 
 

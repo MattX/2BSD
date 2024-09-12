@@ -5,13 +5,13 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-NAME
+NNAAMMEE
      named - Internet domain name server
 
-SYNOPSIS
-     named [ -d _d_e_b_u_g_l_e_v_e_l ] [ -p _p_o_r_t# ] [{-b} _b_o_o_t_f_i_l_e ]
+SSYYNNOOPPSSIISS
+     nnaammeedd [ --dd _d_e_b_u_g_l_e_v_e_l ] [ --pp _p_o_r_t# ] [{-b} _b_o_o_t_f_i_l_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _N_a_m_e_d is the Internet domain name server.	See RFC883 for
      more information on the Internet name-domain system.
      Without any arguments, _n_a_m_e_d will read the default boot file
@@ -20,13 +20,13 @@ DESCRIPTION
 
      Options are:
 
-     -d   Print debugging information.	A number after the ``d''
+     --dd   Print debugging information.	A number after the ``d''
 	  determines the level of messages printed.
 
-     -p   Use a different port number.	The default is the stan-
+     --pp   Use a different port number.	The default is the stan-
 	  dard port number as listed in /etc/services.
 
-     -b   Use an alternate boot file.  This is optional and
+     --bb   Use an alternate boot file.  This is optional and
 	  allows you to specify a file with a leading dash.
 
      Any additional argument is taken as the name of the boot
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	February 28, 1988			1
+Printed 9/10/24         February 28, 1988			1
 
 
 
@@ -126,7 +126,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 2/16/100	February 28, 1988			2
+Printed 9/10/24         February 28, 1988			2
 
 
 
@@ -177,7 +177,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
      optional integer number for the time-to-live field.  It
      defaults to zero, meaning the minimum value specified in the
      SOA record for the zone.  The _o_p_t__c_l_a_s_s field is the object
-     address type; currently only one type is supported, IN, for
+     address type; currently only one type is supported, IINN, for
      objects connected to the DARPA Internet. The _t_y_p_e field con-
      tains one of the following tokens; the data expected in the
      _r_e_s_o_u_r_c_e__r_e_c_o_r_d__d_a_t_a field is in parentheses.
@@ -192,7 +192,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 2/16/100	February 28, 1988			3
+Printed 9/10/24         February 28, 1988			3
 
 
 
@@ -258,7 +258,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-Printed 2/16/100	February 28, 1988			4
+Printed 9/10/24         February 28, 1988			4
 
 
 
@@ -269,7 +269,7 @@ NAMED(8)	    UNIX Programmer's Manual		 NAMED(8)
 
 
 
-NOTES
+NNOOTTEESS
      The boot file directives ``domain'' and ``suffixes'' have
      been obsoleted by a more useful resolver based implementa-
      tion of suffixing for partially qualified domain names.  The
@@ -310,21 +310,21 @@ NOTES
 	  Turns off debugging completely.  (SIGFPE on older sys-
 	  tems without SIGUSR2)
 
-FILES
+FFIILLEESS
      /etc/named.boot	      name server configuration boot file
      /var/run/named.pid       the process id
      /usr/tmp/named.run       debug output
      /usr/tmp/named_dump.db   dump of the name server database
      /usr/tmp/named.stats     nameserver statistics data
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(1), gethostbyname(3), signal(3), resolver(3),
      resolver(5), hostname(7), RFC882, RFC883, RFC973, RFC974,
      _N_a_m_e _S_e_r_v_e_r _O_p_e_r_a_t_i_o_n_s _G_u_i_d_e _f_o_r _B_I_N_D
 
 
 
-Printed 2/16/100	February 28, 1988			5
+Printed 9/10/24         February 28, 1988			5
 
 
 

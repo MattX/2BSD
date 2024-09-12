@@ -30,7 +30,7 @@
 # TAPE	which tape to write the distribution on
 # DUMP	where to store a root system dump if you do a ``make dump''
 #
-DISK=	xp0a
+DISK=	ra0a
 TAPE=	mt8
 DUMP=	/usr/root.dump
 
@@ -64,7 +64,9 @@ csv.o:	FRC
 srt0-i.o: srt0.s
 	/lib/cpp -P -DSPLIT_ID ${DEFS} srt0.s | as -u -V -o $@
 
-distribution: tape1 switch_tapes tape2
+# distribution: tape1 switch_tapes tape2
+
+distribution: tmscptape
 
 tmscptape: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data

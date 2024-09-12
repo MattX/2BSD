@@ -5,27 +5,27 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
 
-NAME
+NNAAMMEE
      indent - indent and format C program source
 
-SYNOPSIS
-     indent  [ _i_n_p_u_t-_f_i_l_e [ _o_u_t_p_u_t-_f_i_l_e ] ] [ -bad | -nbad ]
-	    [ -bap | -nbap ] [ -bbb | -nbbb ] [ -bc | -nbc ]
-	    [ -bl | -br ] [ -c_n ] [ -cd_n ] [ -cdb | -ncdb ]
-	    [ -ce | -nce ] [ -ci_n ] [ -cli_n ] [ -d_n ] [ -di_n ]
-	    [ -dj | -ndj ] [ -ei | -nei ] [ -fc1 | -nfc1 ]
-	    [ -i_n ] [ -ip | -nip ] [ -l_n ] [ -lc_n ]
-	    [ -lp | -nlp ] [ -npro ] [ -pcs | -npcs ]
-	    [ -ps | -nps ] [ -psl | -npsl ] [ -sc | -nsc ]
-	    [ -sob | -nsob ] [ -st ] [ -troff ] [ -v | -nv ]
+SSYYNNOOPPSSIISS
+     iinnddeenntt  [ _i_n_p_u_t-_f_i_l_e [ _o_u_t_p_u_t-_f_i_l_e ] ] [ --bbaadd | --nnbbaadd ]
+	    [ --bbaapp | --nnbbaapp ] [ --bbbbbb | --nnbbbbbb ] [ --bbcc | --nnbbcc ]
+	    [ --bbll | --bbrr ] [ --cc_n ] [ --ccdd_n ] [ --ccddbb | --nnccddbb ]
+	    [ --ccee | --nnccee ] [ --ccii_n ] [ --ccllii_n ] [ --dd_n ] [ --ddii_n ]
+	    [ --ddjj | --nnddjj ] [ --eeii | --nneeii ] [ --ffcc11 | --nnffcc11 ]
+	    [ --ii_n ] [ --iipp | --nniipp ] [ --ll_n ] [ --llcc_n ]
+	    [ --llpp | --nnllpp ] [ --nnpprroo ] [ --ppccss | --nnppccss ]
+	    [ --ppss | --nnppss ] [ --ppssll | --nnppssll ] [ --sscc | --nnsscc ]
+	    [ --ssoobb | --nnssoobb ] [ --sstt ] [ --ttrrooffff ] [ --vv | --nnvv ]
 
-DESCRIPTION
-     _I_n_d_e_n_t is a C program formatter.  It reformats the C program
+DDEESSCCRRIIPPTTIIOONN
+     _I_n_d_e_n_t is a CC program formatter.  It reformats the CC program
      in the _i_n_p_u_t-_f_i_l_e according to the switches.  The switches
      which can be specified are described below. They may appear
      before or after the file names.
 
-     NOTE: If you only specify an _i_n_p_u_t-_f_i_l_e, the formatting is
+     NNOOTTEE: If you only specify an _i_n_p_u_t-_f_i_l_e, the formatting is
      done `in-place', that is, the formatted file is written back
      into _i_n_p_u_t-_f_i_l_e and a backup copy of _i_n_p_u_t-_f_i_l_e is written
      in the current directory.	If _i_n_p_u_t-_f_i_l_e is named
@@ -34,25 +34,25 @@ DESCRIPTION
      If _o_u_t_p_u_t-_f_i_l_e is specified, _i_n_d_e_n_t checks to make sure it
      is different from _i_n_p_u_t-_f_i_l_e.
 
-OPTIONS
+OOPPTTIIOONNSS
      The options listed below control the formatting style
      imposed by _i_n_d_e_n_t.
 
-     -bad,-nbad     If -bad is specified, a blank line is forced
+     --bbaadd,--nnbbaadd     If --bbaadd is specified, a blank line is forced
 		    after every block of declarations.	Default:
-		    -nbad.
+		    --nnbbaadd.
 
-     -bap,-nbap     If -bap is specified, a blank line is forced
-		    after every procedure body.  Default: -nbap.
+     --bbaapp,--nnbbaapp     If --bbaapp is specified, a blank line is forced
+		    after every procedure body.  Default: --nnbbaapp..
 
-     -bbb,-nbbb     If -bbb is specified, a blank line is forced
-		    before every block comment.  Default: -nbbb.
+     --bbbbbb,--nnbbbbbb     If --bbbbbb is specified, a blank line is forced
+		    before every block comment.  Default: --nnbbbbbb..
 
-     -bc,-nbc	    If -bc is specified, then a newline is forced
-		    after each comma in a declaration. -nbc turns
-		    off this option.  The default is -nbc.
+     --bbcc,--nnbbcc	    If --bbcc is specified, then a newline is forced
+		    after each comma in a declaration. --nnbbcc turns
+		    off this option.  The default is --nnbbcc.
 
-     -br,-bl	    Specifying -bl lines up compound statements
+     --bbrr,--bbll	    Specifying --bbll lines up compound statements
 		    like this:
 			if (...)
 			{
@@ -60,7 +60,7 @@ OPTIONS
 
 
 
-Printed 2/16/100       September 10, 1985			1
+Printed 9/10/24        September 10, 1985			1
 
 
 
@@ -72,20 +72,20 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
 			}
-		    Specifying -br (the default) makes them look
+		    Specifying --bbrr (the default) makes them look
 		    like this:
 			if (...) {
 			    code
 			}
 
-     -c_n	    The column in which comments on code start.
+     --cc_n	    The column in which comments on code start.
 		    The default is 33.
 
-     -cd_n	    The column in which comments on declarations
+     --ccdd_n	    The column in which comments on declarations
 		    start.  The default is for these comments to
 		    start in the same column as those on code.
 
-     -cdb,-ncdb     Enables (disables) the placement of comment
+     --ccddbb,--nnccddbb     Enables (disables) the placement of comment
 		    delimiters on blank lines.	With this option
 		    enabled, comments look like this:
 			 /*
@@ -95,38 +95,38 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 			 /* this is a comment */
 		    This only affects block comments, not com-
 		    ments to the right of code. The default is
-		    -cdb.
+		    --ccddbb.
 
-     -ce,-nce	    Enables (disables) forcing `else's to cuddle
+     --ccee,--nnccee	    Enables (disables) forcing `else's to cuddle
 		    up to the immediately preceding `}'.  The
-		    default is -ce.
+		    default is --ccee.
 
-     -ci_n	    Sets the continuation indent to be _n.  Con-
+     --ccii_n	    Sets the continuation indent to be _n.  Con-
 		    tinuation lines will be indented that far
 		    from the beginning of the first line of the
 		    statement.	Parenthesized expressions have
 		    extra indentation added to indicate the nest-
-		    ing, unless -lp is in effect.  -ci defaults
-		    to the same value as -i.
+		    ing, unless --llpp is in effect.  --ccii defaults
+		    to the same value as --ii.
 
-     -cli_n	    Causes case labels to be indented _n tab stops
-		    to the right of the containing switch state-
-		    ment.  -cli0.5 causes case labels to be
+     --ccllii_n	    Causes case labels to be indented _n tab stops
+		    to the right of the containing sswwiittcchh state-
+		    ment.  --ccllii00..55 causes case labels to be
 		    indented half a tab stop.  The default is
-		    -cli0.  (This is the only option that takes a
+		    --ccllii00.  (This is the only option that takes a
 		    fractional argument.)
 
-     -d_n	    Controls the placement of comments which are
-		    not to the right of code.  Specifying -d1
+     --dd_n	    Controls the placement of comments which are
+		    not to the right of code.  Specifying --dd11
 		    means that such comments are placed one
 		    indentation level to the left of code.  The
-		    default -d0 lines up these comments with the
+		    default --dd00 lines up these comments with the
 		    code.  See the section on comment indentation
 		    below.
 
 
 
-Printed 2/16/100       September 10, 1985			2
+Printed 9/10/24        September 10, 1985			2
 
 
 
@@ -137,46 +137,46 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
 
-     -di_n	    Specifies the indentation, in character posi-
+     --ddii_n	    Specifies the indentation, in character posi-
 		    tions, from a declaration keyword to the fol-
-		    lowing identifier.	The default is -di16.
+		    lowing identifier.	The default is --ddii1166.
 
-     -dj,-ndj	    -dj left justifies declarations.  -ndj
+     --ddjj,--nnddjj	    --ddjj left justifies declarations.  --nnddjj
 		    indents declarations the same as code.  The
-		    default is -ndj.
+		    default is --nnddjj.
 
-     -ei,-nei	    Enables (disables) special else-if process-
-		    ing.  If enabled, ifs following elses will
-		    have the same indentation as the preceding if
-		    statement.	The default is -ei.
+     --eeii,--nneeii	    Enables (disables) special eellssee--iiff process-
+		    ing.  If enabled, iiffs following eellssees will
+		    have the same indentation as the preceding iiff
+		    statement.	The default is --eeii.
 
-     -fc1,-nfc1     Enables (disables) the formatting of comments
+     --ffcc11,--nnffcc11     Enables (disables) the formatting of comments
 		    that start in column 1.  Often, comments
 		    whose leading `/' is in column 1 have been
 		    carefully hand formatted by the programmer.
-		    In such cases, -nfc1 should be used.  The
-		    default is -fc1.
+		    In such cases, --nnffcc11 should be used.  The
+		    default is --ffcc11.
 
-     -i_n	    The number of spaces for one indentation
+     --ii_n	    The number of spaces for one indentation
 		    level.  The default is 8.
 
-     -ip,-nip	    Enables (disables) the indentation of parame-
+     --iipp,--nniipp	    Enables (disables) the indentation of parame-
 		    ter declarations from the left margin.  The
-		    default is -ip.
+		    default is --iipp.
 
-     -l_n	    Maximum length of an output line.  The
+     --ll_n	    Maximum length of an output line.  The
 		    default is 78.
 
-     -lp,-nlp	    Lines up code surrounded by parenthesis in
+     --llpp,--nnllpp	    Lines up code surrounded by parenthesis in
 		    continuation lines.  If a line has a left
 		    paren which is not closed on that line, then
 		    continuation lines will be lined up to start
 		    at the character position just after the left
 		    paren.  For example, here is how a piece of
-		    continued code looks with -nlp in effect:
+		    continued code looks with --nnllpp in effect:
 			p1 = first_procedure(second_procedure(p2, p3),
 			    third_procedure(p4, p5));
-		    With -lp in effect (the default) the code
+		    With --llpp in effect (the default) the code
 		    looks somewhat clearer:
 			p1 = first_procedure(second_procedure(p2, p3),
 					     third_procedure(p4, p5));
@@ -186,13 +186,13 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 					     third_procedure(p4,
 							     p5));
 
-     -npro	    Causes the profile files, `./.indent.pro' and
+     --nnpprroo	    Causes the profile files, `./.indent.pro' and
 		    `~/.indent.pro', to be ignored.
 
 
 
 
-Printed 2/16/100       September 10, 1985			3
+Printed 9/10/24        September 10, 1985			3
 
 
 
@@ -203,62 +203,62 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
 
-     -pcs,-npcs     If true (-pcs) all procedure calls will have
+     --ppccss,--nnppccss     If true (--ppccss) all procedure calls will have
 		    a space inserted between the name and the
-		    `('.  The default is -npcs.
+		    `('.  The default is --nnppccss.
 
-     -ps,-nps	    If true (-ps) the pointer following operator
+     --ppss,--nnppss	    If true (--ppss) the pointer following operator
 		    `->' will be surrounded by spaces on either
-		    side.  The default is -nps.
+		    side.  The default is --nnppss.
 
-     -psl,-npsl     If true (-psl) the names of procedures being
+     --ppssll,--nnppssll     If true (--ppssll) the names of procedures being
 		    defined are placed in column 1 - their types,
 		    if any, will be left on the previous lines.
-		    The default is -psl.
+		    The default is --ppssll.
 
-     -sc,-nsc	    Enables (disables) the placement of asterisks
+     --sscc,--nnsscc	    Enables (disables) the placement of asterisks
 		    (`*'s) at the left edge of all comments.  The
-		    default is -sc.
+		    default is --sscc.
 
-     -sob,-nsob     If -sob is specified, indent will swallow
+     --ssoobb,--nnssoobb     If --ssoobb is specified, indent will swallow
 		    optional blank lines.  You can use this to
 		    get rid of blank lines after declarations.
-		    Default: -nsob.
+		    Default: --nnssoobb.
 
-     -st	    Causes indent to take its input from stdin,
+     --sstt	    Causes iinnddeenntt to take its input from stdin,
 		    and put its output to stdout.
 
-     -T_t_y_p_e_n_a_m_e     Adds _t_y_p_e_n_a_m_e to the list of type keywords.
-		    Names accumulate: -T can be specified more
+     --TT_t_y_p_e_n_a_m_e     Adds _t_y_p_e_n_a_m_e to the list of type keywords.
+		    Names accumulate: --TT can be specified more
 		    than once.	You need to specify all the
 		    typenames that appear in your program that
-		    are defined by typedefs - nothing will be
+		    are defined by ttyyppeeddeeffs - nothing will be
 		    harmed if you miss a few, but the program
 		    won't be formatted as nicely as it should.
 		    This sounds like a painful thing to have to
 		    do, but it's really a symptom of a problem in
-		    C: typedef causes a syntactic change in the
-		    language and _i_n_d_e_n_t can't find all typedefs.
+		    C: ttyyppeeddeeff causes a syntactic change in the
+		    language and _i_n_d_e_n_t can't find all ttyyppeeddeeffs.
 
-     -troff	    Causes indent to format the program for pro-
+     --ttrrooffff	    Causes iinnddeenntt to format the program for pro-
 		    cessing by troff.  It will produce a fancy
-		    listing in much the same spirit as vgrind.
+		    listing in much the same spirit as vvggrriinndd.
 		    If the output file is not specified, the
 		    default is standard output, rather than for-
 		    matting in place.
 
-     -v,-nv	    -v turns on `verbose' mode; -nv turns it off.
+     --vv,--nnvv	    --vv turns on `verbose' mode; --nnvv turns it off.
 		    When in verbose mode, _i_n_d_e_n_t reports when it
 		    splits one line of input into two or more
 		    lines of output, and gives some size statis-
-		    tics at completion. The default is -nv.
+		    tics at completion. The default is --nnvv.
 
-FURTHER DESCRIPTION
-
-
+FFUURRTTHHEERR DDEESSCCRRIIPPTTIIOONN
 
 
-Printed 2/16/100       September 10, 1985			4
+
+
+Printed 9/10/24        September 10, 1985			4
 
 
 
@@ -270,17 +270,17 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
      You may set up your own `profile' of defaults to _i_n_d_e_n_t by
-     creating a file called ._i_n_d_e_n_t._p_r_o in either your login
+     creating a file called .._i_n_d_e_n_t.._p_r_o in either your login
      directory and/or the current directory and including what-
      ever switches you like.  Switches in `.indent.pro' in the
      current directory override those in your login directory
-     (with the exception of -T type definitions, which just accu-
+     (with the exception of --TT type definitions, which just accu-
      mulate).  If _i_n_d_e_n_t is run and a profile file exists, then
      it is read to set up the program's defaults.  The switches
      should be separated by spaces, tabs or newlines.  Switches
      on the command line, however, override profile switches.
 
-     Comments
+     CCoommmmeennttss
 
      `_B_o_x' _c_o_m_m_e_n_t_s.  _I_n_d_e_n_t assumes that any comment with a dash
      or star immediately after the start of comment (that is,
@@ -294,27 +294,27 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
      or newlines) on a line as possible.  Blank lines break para-
      graphs.
 
-     Comment indentation
+     CCoommmmeenntt iinnddeennttaattiioonn
 
      If a comment is on a line with code it is started in the
-     `comment column', which is set by the -c_n command line
+     `comment column', which is set by the --cc_n command line
      parameter.  Otherwise, the comment is started at _n indenta-
      tion levels less than where code is currently being placed,
-     where _n is specified by the -d_n command line parameter.  If
+     where _n is specified by the --dd_n command line parameter.  If
      the code on a line extends past the comment column, the com-
      ment starts further to the right, and the right margin may
      be automatically extended in extreme cases.
 
-     Preprocessor lines
+     PPrreepprroocceessssoorr lliinneess
 
      In general, _i_n_d_e_n_t leaves preprocessor lines alone.  The
      only reformatting that it will do is to straighten up trail-
      ing comments.  It leaves embedded comments alone.	Condi-
-     tional compilation (#ifdef...#endif) is recognized and
+     tional compilation (##iiffddeeff......##eennddiiff) is recognized and
      _i_n_d_e_n_t attempts to correctly compensate for the syntactic
      peculiarities introduced.
 
-     C syntax
+     CC ssyynnttaaxx
 
      _I_n_d_e_n_t understands a substantial amount about the syntax of
      C, but it has a `forgiving' parser.  It attempts to cope
@@ -324,7 +324,7 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
 
 
-Printed 2/16/100       September 10, 1985			5
+Printed 9/10/24        September 10, 1985			5
 
 
 
@@ -337,16 +337,16 @@ INDENT(1)	    UNIX Programmer's Manual		INDENT(1)
 
      is handled properly.
 
-FILES
+FFIILLEESS
      ./.indent.pro  profile file
      ~/.indent.pro  profile file
 
-BUGS
+BBUUGGSS
      _I_n_d_e_n_t has even more switches than _l_s.
 
      A common mistake that often causes grief is typing:
 	 indent *.c
-     to the shell in an attempt to indent all the C programs in a
+     to the shell in an attempt to indent all the CC programs in a
      directory.  This is probably a bug, not a feature.
 
 
@@ -390,7 +390,7 @@ BUGS
 
 
 
-Printed 2/16/100       September 10, 1985			6
+Printed 9/10/24        September 10, 1985			6
 
 
 

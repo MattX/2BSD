@@ -5,20 +5,20 @@ NS(3N)		    UNIX Programmer's Manual		   NS(3N)
 
 
 
-NAME
+NNAAMMEE
      ns_addr, ns_ntoa - Xerox NS(tm)  address conversion routines
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <netns/ns.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<nneettnnss//nnss..hh>>
 
-     struct ns_addr ns_addr(cp)
-     char *cp;
+     ssttrruucctt nnss__aaddddrr nnss__aaddddrr((ccpp))
+     cchhaarr **ccpp;;
 
-     char *ns_ntoa(ns)
-     struct ns_addr ns;
+     cchhaarr **nnss__nnttooaa((nnss))
+     ssttrruucctt nnss__aaddddrr nnss;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The routine _n_s__a_d_d_r interprets character strings represent-
      ing XNS addresses, returning binary information suitable for
      use in system calls.  _n_s__n_t_o_a takes XNS addresses and
@@ -50,17 +50,17 @@ DESCRIPTION
      are no super-octal digits.  Otherwise, it is converted as a
      decimal number.
 
-SEE ALSO
+SSEEEE AALLSSOO
      hosts(5), networks(5),
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      None (see BUGS).
 
 
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 
@@ -71,7 +71,7 @@ NS(3N)		    UNIX Programmer's Manual		   NS(3N)
 
 
 
-BUGS
+BBUUGGSS
      The string returned by _n_s__n_t_o_a resides in a static memory
      area.
      _n_s__a_d_d_r should diagnose improperly formed input, and there
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 12, 1986				2
+Printed 9/10/24           May 12, 1986				2
 
 
 

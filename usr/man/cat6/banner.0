@@ -5,16 +5,16 @@ BANNER(6)	    UNIX Programmer's Manual		BANNER(6)
 
 
 
-NAME
+NNAAMMEE
      banner - print large banner on printer
 
-SYNOPSIS
-     /usr/games/banner [ -w_n ] message ...
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//bbaannnneerr [ --ww_n ] message ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_a_n_n_e_r prints a large, high quality banner on the standard
      output.  If the message is omitted, it prompts for and reads
-     one line of its standard input.  If -w is given, the output
+     one line of its standard input.  If --ww is given, the output
      is scrunched down from a width of 132 to _n , suitable for a
      narrow terminal.  If _n is omitted, it defaults to 80.
 
@@ -24,16 +24,16 @@ DESCRIPTION
      hardcopy terminal, but if you are patient, a decwriter or
      other 300 baud terminal will do.
 
-BUGS
+BBUUGGSS
      Several ASCII characters are not defined, notably <, >, [,
      ], \, ^, _, {, }, |, and ~.  Also, the characters ", ', and
      & are funny looking (but in a useful way.)
 
-     The -w option is implemented by skipping some rows and
+     The --ww option is implemented by skipping some rows and
      columns.  The smaller it gets, the grainier the output.
      Sometimes it runs letters together.
 
-AUTHOR
+AAUUTTHHOORR
      Mark Horton
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	   May 6, 1986				1
+Printed 9/10/24            May 6, 1986				1
 
 
 

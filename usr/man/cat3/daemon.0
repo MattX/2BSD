@@ -5,35 +5,35 @@ DAEMON(3)	    UNIX Programmer's Manual		DAEMON(3)
 
 
 
-NAME
+NNAAMMEE
      daemon - run in the background
 
-SYNOPSIS
-     int
-     daemon(nochdir, noclose)
-	 int nochdir, noclose;
+SSYYNNOOPPSSIISS
+     iinntt
+     ddaaeemmoonn((nnoocchhddiirr,, nnoocclloossee))
+	 iinntt nnoocchhddiirr,, nnoocclloossee;;
 
-DESCRIPTION
-     The daemon function is for programs wishing to detach them-
+DDEESSCCRRIIPPTTIIOONN
+     The ddaaeemmoonn function is for programs wishing to detach them-
      selves from the controlling terminal and run in the back-
      ground as system daemons.
 
-     Unless the argument _n_o_c_h_d_i_r is non-zero, daemon changes the
+     Unless the argument _n_o_c_h_d_i_r is non-zero, ddaaeemmoonn changes the
      current working directory to the root (``/'').
 
-     Unless the argument _n_o_c_l_o_s_e is non-zero, daemon will
+     Unless the argument _n_o_c_l_o_s_e is non-zero, ddaaeemmoonn will
      redirect standard input, standard output and standard error
      to ``/dev/null''.
 
-ERRORS
-     The function daemon may fail and set _e_r_r_n_o for any of the
+EERRRROORRSS
+     The function ddaaeemmoonn may fail and set _e_r_r_n_o for any of the
      errors specified for the library functions _f_o_r_k(2).
 
-SEE ALSO
+SSEEEE AALLSSOO
      fork(2), ioctl(2).
 
-HISTORY
-     The daemon function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ddaaeemmoonn function first appeared in 4.4BSD.
 
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	February 3, 1995			1
+Printed 9/10/24         February 3, 1995			1
 
 
 

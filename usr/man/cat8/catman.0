@@ -5,39 +5,39 @@ CATMAN(8)	    UNIX Programmer's Manual		CATMAN(8)
 
 
 
-NAME
+NNAAMMEE
      catman - create the cat files for the manual
 
-SYNOPSIS
-     /usr/sbin/catman [ -p ] [ -n ] [ -w ] [ -M _p_a_t_h ] [ sections
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//ccaattmmaann [ --pp ] [ --nn ] [ --ww ] [ --MM _p_a_t_h ] [ sections
      ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_a_t_m_a_n creates the preformatted versions of the on-line
      manual from the nroff input files.  Each manual page is
      examined and those whose preformatted versions are missing
      or out of date are recreated.  If any changes are made, _c_a_t_-
-     _m_a_n will recreate the whatis database.
+     _m_a_n will recreate the wwhhaattiiss database.
 
      If there is one parameter not starting with a `-', it is
      taken to be a list of manual sections to look in.	For exam-
      ple
 
-	  catman 123
+	  ccaattmmaann 112233
 
      will cause the updating to only happen to manual sections 1,
      2, and 3.
 
      Options:
 
-     -n   prevents creations of the whatis database.
+     --nn   prevents creations of the wwhhaattiiss database.
 
-     -p   prints what would be done instead of doing it.
+     --pp   prints what would be done instead of doing it.
 
-     -w   causes only the whatis database to be created.  No
+     --ww   causes only the wwhhaattiiss database to be created.  No
 	  manual reformatting is done.
 
-     -M   updates manual pages located in the set of directories
+     --MM   updates manual pages located in the set of directories
 	  specified by _p_a_t_h (/usr/man by default).  _P_a_t_h has the
 	  form of a colon (`:') separated list of directory
 	  names, for example `/usr/local/man:/usr/man'.  If the
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 
@@ -80,17 +80,17 @@ CATMAN(8)	    UNIX Programmer's Manual		CATMAN(8)
 		  notify root;
 
 
-FILES
+FFIILLEESS
      /usr/man		    default manual directory location
      /usr/man/man?/*.*	    raw (nroff input) manual sections
      /usr/man/cat?/*.*	    preformatted manual pages
      /usr/man/whatis	    whatis database
      /usr/sbin/makewhatis   command script to make whatis database
 
-SEE ALSO
+SSEEEE AALLSSOO
      man(1), cron(8), rdist(1)
 
-BUGS
+BBUUGGSS
      Acts oddly on nights with full moons.
 
      The need for catman(8) is almost but not quite gone.  Most
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 23, 1996			2
+Printed 9/10/24         October 23, 1996			2
 
 
 

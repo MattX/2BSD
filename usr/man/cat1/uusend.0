@@ -5,19 +5,19 @@ UUSEND(1C)	    UNIX Programmer's Manual	       UUSEND(1C)
 
 
 
-NAME
+NNAAMMEE
      uusend - send a file to a remote host
 
-SYNOPSIS
-     uusend [ -m mode ] sourcefile sys1!sys2!..!remotefile
+SSYYNNOOPPSSIISS
+     uuuusseenndd [ --mm mode ] sourcefile sys1!sys2!..!remotefile
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_u_s_e_n_d sends a file to a given location on a remote system.
      The system need not be directly connected to the local sys-
      tem, but a chain of _u_u_c_p(1) links needs to connect the two
      systems.
 
-     If the -m option is specified, the mode of the file on the
+     If the --mm option is specified, the mode of the file on the
      remote end will be taken from the octal number given.  Oth-
      erwise, the mode of the input file will be used.
 
@@ -27,14 +27,14 @@ DESCRIPTION
 
      The remotefile can include the ~userid syntax.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      If anything goes wrong any further away than the first sys-
      tem down the line, you will never hear about it.
 
-SEE ALSO
+SSEEEE AALLSSOO
      uux(1), uucp(1), uuencode(1)
 
-BUGS
+BBUUGGSS
      This command should not exist, since _u_u_c_p should handle it.
 
      All systems along the line must have the _u_u_s_e_n_d command
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 24, 1986                         1
+Printed 9/10/24          April 24, 1986                         1
 
 
 

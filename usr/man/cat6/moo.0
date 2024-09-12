@@ -5,13 +5,13 @@ MOO(6)		    UNIX Programmer's Manual		   MOO(6)
 
 
 
-NAME
+NNAAMMEE
      moo - guessing game
 
-SYNOPSIS
-     /usr/games/moo
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//mmoooo
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_o_o is a guessing game imported from England.  The computer
      picks a number consisting of four distinct decimal digits.
      The player guesses four distinct digits being scored on each
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

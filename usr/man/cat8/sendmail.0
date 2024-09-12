@@ -5,17 +5,17 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-NAME
+NNAAMMEE
      sendmail - send mail over the internet
 
-SYNOPSIS
-     /usr/sbin/sendmail [ flags ] [ address ...  ]
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//sseennddmmaaiill [ flags ] [ address ...  ]
 
-     newaliases
+     nneewwaalliiaasseess
 
-     mailq [ -v ]
+     mmaaiillqq [ --vv ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_e_n_d_m_a_i_l sends a message to one or more _r_e_c_i_p_i_e_n_t_s, routing
      the message over whatever networks are necessary.	_S_e_n_d_m_a_i_l
      does internetwork forwarding as necessary to deliver the
@@ -40,27 +40,27 @@ DESCRIPTION
 
      Flags are:
 
-     -ba	 Go into ARPANET mode.	All input lines must end
+     --bbaa	 Go into ARPANET mode.	All input lines must end
 		 with a CR-LF, and all messages will be generated
 		 with a CR-LF at the end.  Also, the ``From:''
 		 and ``Sender:'' fields are examined for the name
 		 of the sender.
 
-     -bd	 Run as a daemon.  This requires Berkeley IPC.
+     --bbdd	 Run as a daemon.  This requires Berkeley IPC.
 		 _S_e_n_d_m_a_i_l will fork and run in background listen-
 		 ing on socket 25 for incoming SMTP connections.
 		 This is normally run from /_e_t_c/_r_c.
 
-     -bi	 Initialize the alias database.
+     --bbii	 Initialize the alias database.
 
-     -bm	 Deliver mail in the usual way (default).
+     --bbmm	 Deliver mail in the usual way (default).
 
-     -bp	 Print a listing of the queue.
-
-
+     --bbpp	 Print a listing of the queue.
 
 
-Printed 2/16/100	October 23, 1996			1
+
+
+Printed 9/10/24         October 23, 1996			1
 
 
 
@@ -71,49 +71,49 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-     -bs	 Use the SMTP protocol as described in RFC821 on
+     --bbss	 Use the SMTP protocol as described in RFC821 on
 		 standard input and output.  This flag implies
-		 all the operations of the -ba flag that are com-
+		 all the operations of the --bbaa flag that are com-
 		 patible with SMTP.
 
-     -bt	 Run in address test mode.  This mode reads
+     --bbtt	 Run in address test mode.  This mode reads
 		 addresses and shows the steps in parsing; it is
 		 used for debugging configuration tables.
 
-     -bv	 Verify names only - do not try to collect or
+     --bbvv	 Verify names only - do not try to collect or
 		 deliver a message.  Verify mode is normally used
 		 for validating users or mailing lists.
 
-     -bz	 Create the configuration freeze file.
+     --bbzz	 Create the configuration freeze file.
 
-     -C_f_i_l_e	 Use alternate configuration file.  _S_e_n_d_m_a_i_l
+     --CC_f_i_l_e	 Use alternate configuration file.  _S_e_n_d_m_a_i_l
 		 refuses to run as root if an alternate confi-
 		 guration file is specified.  The frozen confi-
 		 guration file is bypassed.
 
-     -d_X	 Set debugging value to _X.
+     --dd_X	 Set debugging value to _X.
 
-     -F_f_u_l_l_n_a_m_e  Set the full name of the sender.
+     --FF_f_u_l_l_n_a_m_e  Set the full name of the sender.
 
-     -f_n_a_m_e	 Sets the name of the ``from'' person (i.e., the
-		 sender of the mail).  -f can only be used by
+     --ff_n_a_m_e	 Sets the name of the ``from'' person (i.e., the
+		 sender of the mail).  --ff can only be used by
 		 ``trusted'' users (normally _r_o_o_t, _d_a_e_m_o_n, and
 		 _n_e_t_w_o_r_k) or if the person you are trying to
 		 become is the same as the person you are.
 
-     -h_N	 Set the hop count to _N. The hop count is incre-
+     --hh_N	 Set the hop count to _N. The hop count is incre-
 		 mented every time the mail is processed.  When
 		 it reaches a limit, the mail is returned with an
 		 error message, the victim of an aliasing loop.
 		 If not specified, ``Received:'' lines in the
 		 message are counted.
 
-     -n          Don't do aliasing.
+     --nn          Don't do aliasing.
 
-     -o_x_v_a_l_u_e	 Set option _x to the specified _v_a_l_u_e. Options are
+     --oo_x_v_a_l_u_e	 Set option _x to the specified _v_a_l_u_e. Options are
 		 described below.
 
-     -q[_t_i_m_e]	 Processed saved messages in the queue at given
+     --qq[[_t_i_m_e]]	 Processed saved messages in the queue at given
 		 intervals.  If _t_i_m_e is omitted, process the
 		 queue once.  _T_i_m_e is given as a tagged number,
 		 with `s' being seconds, `m' being minutes, `h'
@@ -122,11 +122,11 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 		 would both set the timeout to one hour thirty
 		 minutes.  If _t_i_m_e is specified, _s_e_n_d_m_a_i_l will
 		 run in background.  This option can be used
-		 safely with -bd.
+		 safely with --bbdd.
 
 
 
-Printed 2/16/100	October 23, 1996			2
+Printed 9/10/24         October 23, 1996			2
 
 
 
@@ -137,22 +137,22 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-     -r_n_a_m_e	 An alternate and obsolete form of the -f flag.
+     --rr_n_a_m_e	 An alternate and obsolete form of the --ff flag.
 
-     -t          Read message for recipients.  To:, Cc:, and Bcc:
+     --tt          Read message for recipients.  To:, Cc:, and Bcc:
 		 lines will be scanned for recipient addresses.
 		 The Bcc: line will be deleted before transmis-
 		 sion.	Any addresses in the argument list will
 		 be suppressed, that is, they will _n_o_t receive
 		 copies even if listed in the message header.
 
-     -v          Go into verbose mode.	Alias expansions will be
+     --vv          Go into verbose mode.	Alias expansions will be
 		 announced, etc.
 
      There are also a number of processing options that may be
      set.  Normally these will only be used by a system adminis-
      trator.  Options may be set either on the command line using
-     the -o flag or in the configuration file.	These are
+     the --oo flag or in the configuration file.	These are
      described in detail in the _S_e_n_d_m_a_i_l _I_n_s_t_a_l_l_a_t_i_o_n _a_n_d _O_p_e_r_a_-
      _t_i_o_n _G_u_i_d_e.  The options are:
 
@@ -192,7 +192,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-Printed 2/16/100	October 23, 1996			3
+Printed 9/10/24         October 23, 1996			3
 
 
 
@@ -258,7 +258,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
 
 
 
-Printed 2/16/100	October 23, 1996			4
+Printed 9/10/24         October 23, 1996			4
 
 
 
@@ -299,7 +299,7 @@ SENDMAIL(8)	    UNIX Programmer's Manual	      SENDMAIL(8)
      database.	If invoked as _m_a_i_l_q, _s_e_n_d_m_a_i_l will print the con-
      tents of the mail queue.
 
-FILES
+FFIILLEESS
      Except for /etc/sendmail.cf, these pathnames are all speci-
      fied in /etc/sendmail.cf.	Thus, these values are only
      approximations.
@@ -313,7 +313,7 @@ FILES
      /var/log/sendmail.st	   collected statistics
      /usr/spool/mqueue/*	   temp files
 
-SEE ALSO
+SSEEEE AALLSSOO
      mail(1), rmail(1), syslog(3), aliases(5), sendmail.cf(5),
      mailaddr(7), rc(8);
      DARPA Internet Request For Comments RFC819, RFC821, RFC822;
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 23, 1996			5
+Printed 9/10/24         October 23, 1996			5
 
 
 

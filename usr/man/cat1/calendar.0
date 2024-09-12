@@ -5,13 +5,13 @@ CALENDAR(1)	    UNIX Programmer's Manual	      CALENDAR(1)
 
 
 
-NAME
+NNAAMMEE
      calendar - reminder service
 
-SYNOPSIS
-     calendar [ - ]
+SSYYNNOOPPSSIISS
+     ccaalleennddaarr [ - ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _C_a_l_e_n_d_a_r consults the file `calendar' in the current direc-
      tory and prints out lines that contain today's or tomorrow's
      date anywhere in the line.  Most reasonable month-day dates
@@ -32,7 +32,7 @@ DESCRIPTION
      will usually be shared by all users, maintained and docu-
      mented by the local administration.
 
-FILES
+FFIILLEESS
      calendar
      /usr/libexec/calendar to figure out today's and tomorrow's
      dates
@@ -40,10 +40,10 @@ FILES
      /tmp/cal*
      /lib/cpp, egrep, sed, mail as subprocesses
 
-SEE ALSO
+SSEEEE AALLSSOO
      at(1), cron(8), mail(1)
 
-BUGS
+BBUUGGSS
      _C_a_l_e_n_d_a_r'_s extended idea of `tomorrow' doesn't account for
      holidays.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 21, 1996			1
+Printed 9/10/24         October 21, 1996			1
 
 
 

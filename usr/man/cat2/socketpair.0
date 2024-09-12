@@ -5,28 +5,28 @@ SOCKETPAIR(2)	    UNIX Programmer's Manual	    SOCKETPAIR(2)
 
 
 
-NAME
+NNAAMMEE
      socketpair - create a pair of connected sockets
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/socket.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
 
-     socketpair(d, type, protocol, sv)
-     int d, type, protocol;
-     int sv[2];
+     ssoocckkeettppaaiirr((dd,, ttyyppee,, pprroottooccooll,, ssvv))
+     iinntt dd,, ttyyppee,, pprroottooccooll;;
+     iinntt ssvv[[22]];;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _s_o_c_k_e_t_p_a_i_r call creates an unnamed pair of connected
      sockets in the specified domain _d, of the specified _t_y_p_e,
      and using the optionally specified _p_r_o_t_o_c_o_l.  The descrip-
      tors used in referencing the new sockets are returned in
      _s_v[0] and _s_v[1].  The two sockets are indistinguishable.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A 0 is returned if the call succeeds, -1 if it fails.
 
-ERRORS
+EERRRROORRSS
      The call succeeds unless:
 
      [EMFILE]		 Too many descriptors are in use by this
@@ -44,10 +44,10 @@ ERRORS
      [EFAULT]		 The address _s_v does not specify a valid
 			 part of the process address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      read(2), write(2), pipe(2)
 
-BUGS
+BBUUGGSS
      This call is currently implemented only for the UNIX domain.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

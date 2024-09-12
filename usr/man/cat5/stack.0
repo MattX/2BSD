@@ -5,10 +5,10 @@ STACK(5)	    UNIX Programmer's Manual		 STACK(5)
 
 
 
-NAME
+NNAAMMEE
      stack -  2.10BSD PDP-11 C stack frame conventions
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The standard C stack frame layout:
 
 	  ------------------
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -101,11 +101,11 @@ STACK(5)	    UNIX Programmer's Manual		 STACK(5)
      ments they pass to a function, and will adjust the stack
      accordingly after a function returns.
 
-NOTE
+NNOOTTEE
      This stack frame format is the same as that used by overlaid
      objects in 2.9BSD.
 
-AUTHOR
+AAUUTTHHOORR
      John F. Woods, MIT Concouse Computer Center
 
 
@@ -126,7 +126,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

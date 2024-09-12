@@ -5,15 +5,15 @@ EX(1)		    UNIX Programmer's Manual		    EX(1)
 
 
 
-NAME
+NNAAMMEE
      ex, edit - text editor
 
-SYNOPSIS
-     ex [ - ] [ -v ] [ -t tag ] [ -r ] [ +_c_o_m_m_a_n_d ] [ -l ] name
+SSYYNNOOPPSSIISS
+     eexx [ -- ] [ --vv ] [ --tt tag ] [ --rr ] [ ++_c_o_m_m_a_n_d ] [ --ll ] name
      ...
-     edit [ ex options ]
+     eeddiitt [ ex options ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _E_x is the root of a family of editors: _e_d_i_t, _e_x and _v_i. _E_x
      is a superset of _e_d, with the most notable extension being a
      display editing facility.	Display based editing is the
@@ -28,7 +28,7 @@ DESCRIPTION
      based editor; in this case see _v_i(1), which is a command
      which focuses on the display editing portion of _e_x.
 
-DOCUMENTATION
+DDOOCCUUMMEENNTTAATTIIOONN
      The document _E_d_i_t: _A _t_u_t_o_r_i_a_l (USD:14) provides a comprehen-
      sive introduction to _e_d_i_t assuming no previous knowledge of
      computers or the UNIX system.
@@ -48,7 +48,7 @@ DOCUMENTATION
      the commands of _v_i in a useful, functional way, and is use-
      ful with the _I_n_t_r_o_d_u_c_t_i_o_n.
 
-FILES
+FFIILLEESS
      /usr/share/misc/exstrings		error messages
      /usr/libexec/exrecover	   recover command
      /usr/sbin/expreserve	   preserve command
@@ -60,7 +60,7 @@ FILES
 
 
 
-Printed 2/16/100	October 21, 1996			1
+Printed 9/10/24         October 21, 1996			1
 
 
 
@@ -71,17 +71,17 @@ EX(1)		    UNIX Programmer's Manual		    EX(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      awk(1), ed(1), grep(1), sed(1), grep(1), vi(1), termcap(5),
      environ(7)
 
-AUTHOR
+AAUUTTHHOORR
      Originally written by William Joy
      Mark Horton has maintained the editor since version 2.7,
      adding macros, support for many unusual terminals, and other
      features such as word abbreviation mode.
 
-BUGS
+BBUUGGSS
      The _u_n_d_o command causes all marks to be lost on lines
      changed and then restored if the marked lines were changed.
 
@@ -92,7 +92,7 @@ BUGS
      long lines are present.
 
      File input/output errors don't print a name if the command
-     line `-' option is used.
+     line ``--'' option is used.
 
      There is no easy way to do a single scan ignoring case.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 21, 1996			2
+Printed 9/10/24         October 21, 1996			2
 
 
 

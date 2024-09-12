@@ -5,14 +5,14 @@ LO(4)		    UNIX Programmer's Manual		    LO(4)
 
 
 
-NAME
+NNAAMMEE
      lo - software loopback network interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NLOOP     _1	 # loop-back pseudo-device
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNLLOOOOPP     _1	 ## lloooopp--bbaacckk ppsseeuuddoo--ddeevviiccee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _l_o_o_p interface is a software loopback mechanism which
      may be used for performance analysis, software testing,
      and/or local communication.  As with other network inter-
@@ -22,18 +22,18 @@ DESCRIPTION
      SIFADDR ioctl.  The loopback interface should be the last
      interface configured, as protocols may use the order of con-
      figuration as an indication of priority.  The loopback
-     should never be configured first unless no hardware inter-
+     should nneevveerr be configured first unless no hardware inter-
      faces exist.
 
-DIAGNOSTICS
-     lo%d: can't handle af%d.  The interface was handed a message
+DDIIAAGGNNOOSSTTIICCSS
+     lloo%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a message
      with addresses formatted in an unsuitable address family;
      the packet was dropped.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), inet(4F), ns(4F)
 
-BUGS
+BBUUGGSS
      Previous versions of the system enabled the loopback inter-
      face automatically, using a nonstandard Internet address
      (127.1).  Use of that address is now discouraged; a reserved
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 1, 1987                         1
+Printed 9/10/24          August 1, 1987                         1
 
 
 

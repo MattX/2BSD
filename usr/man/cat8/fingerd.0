@@ -5,14 +5,14 @@ FINGERD(8)	    UNIX Programmer's Manual	       FINGERD(8)
 
 
 
-NAME
+NNAAMMEE
      fingerd - remote user information server
 
-SYNOPSIS
-     fingerd [-s][-l][-p _f_i_l_e_n_a_m_e ]
+SSYYNNOOPPSSIISS
+     ffiinnggeerrdd [[--ss]][[--ll]][[--pp _f_i_l_e_n_a_m_e ]]
 
-DESCRIPTION
-     Fingerd is a simple protocol based on _R_F_C_1_1_9_6 that provides
+DDEESSCCRRIIPPTTIIOONN
+     FFiinnggeerrdd is a simple protocol based on _R_F_C_1_1_9_6 that provides
      an interface to the Name and Finger programs at several net-
      work sites.  The program is supposed to return a friendly,
      human-oriented status report on either the system at the
@@ -20,9 +20,9 @@ DESCRIPTION
      required format and the protocol consists mostly of specify-
      ing a single ``command line''.
 
-     Fingerd listens for TCP requests at port 79.  Once connected
+     FFiinnggeerrdd listens for TCP requests at port 79.  Once connected
      it reads a single command line terminated by a <CRLF> which
-     is passed to _f_i_n_g_e_r(1).  Fingerd closes its connections as
+     is passed to _f_i_n_g_e_r(1).  FFiinnggeerrdd closes its connections as
      soon as the output is finished.
 
      If the line is null (i.e. just a <CRLF> is sent) then _f_i_n_g_e_r
@@ -36,7 +36,7 @@ DESCRIPTION
      names''.  If a name is ambiguous, all possible derivations
      are returned.
 
-     The following options may be passed to fingerd as server
+     The following options may be passed to ffiinnggeerrdd as server
      program arguments in /_e_t_c/_i_n_e_t_d._c_o_n_f:
 
      -s   Enable secure mode.  Queries without a user name are
@@ -47,20 +47,20 @@ DESCRIPTION
 	  query is reported via _s_y_s_l_o_g(3) at LOG_NOTICE priority.
 
      -p   Use an alternate program as the local information pro-
-	  vider.  The default local program executed by fingerd
+	  vider.  The default local program executed by ffiinnggeerrdd
 	  is _f_i_n_g_e_r(1).  By specifying a customized local server,
 	  this option allows a system manager to have more con-
 	  trol over what information is provided to remote sites.
 
-SEE ALSO
+SSEEEE AALLSSOO
      _f_i_n_g_e_r(1)
 
-BUGS
+BBUUGGSS
      Connecting directly to the server from a TIP or an equally
 
 
 
-Printed 2/16/100	  April 1, 1995                         1
+Printed 9/10/24           April 1, 1995                         1
 
 
 
@@ -74,12 +74,12 @@ FINGERD(8)	    UNIX Programmer's Manual	       FINGERD(8)
      narrow-minded TELNET-protocol user program can result in
      meaningless attempts at option negotiation being sent to the
      server, which will foul up the command line interpretation.
-     Fingerd should be taught to filter out IAC's and perhaps
+     FFiinnggeerrdd should be taught to filter out IAC's and perhaps
      even respond negatively (IAC WON'T) to all option commands
      received.
 
-HISTORY
-     The fingerd command appeared in 4.3BSD.
+HHIISSTTOORRYY
+     The ffiinnggeerrdd command appeared in 4.3BSD.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	  April 1, 1995                         2
+Printed 9/10/24           April 1, 1995                         2
 
 
 

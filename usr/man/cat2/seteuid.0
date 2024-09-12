@@ -5,43 +5,43 @@ SETUID(2)	    UNIX Programmer's Manual		SETUID(2)
 
 
 
-NAME
-     setuid, seteuid,setgid,setegid - set user and group ID
+NNAAMMEE
+     sseettuuiidd, sseetteeuuiidd,sseettggiidd,sseetteeggiidd - set user and group ID
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <unistd.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<uunniissttdd..hh>>
 
      _i_n_t
-     setuid(uid)
+     sseettuuiidd(uid)
 	 uid_t uid
 
      _i_n_t
-     seteuid(euid)
+     sseetteeuuiidd(euid)
 	 uid_t euid
 
      _i_n_t
-     setgid(gid)
+     sseettggiidd(gid)
 	 gid_t gid
 
      _i_n_t
-     setegid(egid)
+     sseetteeggiidd(egid)
 	 gid_t egid
 
-DESCRIPTION
-     The setuid function sets the real and effective user IDs and
+DDEESSCCRRIIPPTTIIOONN
+     The sseettuuiidd function sets the real and effective user IDs and
      the saved set-user-ID of the current process to the speci-
-     fied value.  The setuid function is permitted if the speci-
+     fied value.  The sseettuuiidd function is permitted if the speci-
      fied ID is equal to the real user ID of the process, or if
      the effective user ID is that of the super user.
 
-     The setgid function sets the real and effective group IDs
+     The sseettggiidd function sets the real and effective group IDs
      and the saved set-group-ID of the current process to the
-     specified value.  The setgid function is permitted if the
+     specified value.  The sseettggiidd function is permitted if the
      specified ID is equal to the real group ID of the process,
      or if the effective user ID is that of the super user.
 
-     The seteuid function (setegid) sets the effective user ID
+     The sseetteeuuiidd function (sseetteeggiidd) sets the effective user ID
      (group ID) of the current process.  The effective user ID
      may be set to the value of the real user ID or the saved
      set-user-ID (see intro(2) and execve(2); in this way, the
@@ -51,7 +51,7 @@ DESCRIPTION
      group ID may be set to the value of the real group ID or the
      saved set-user-ID.
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      Upon success, these functions return 0; otherwise -1 is
      returned.
 
@@ -60,7 +60,7 @@ RETURN VALUES
 
 
 
-Printed 2/16/100	December 3, 1997			1
+Printed 9/10/24         December 3, 1997			1
 
 
 
@@ -73,13 +73,13 @@ SETUID(2)	    UNIX Programmer's Manual		SETUID(2)
 
      return -1.
 
-SEE ALSO
+SSEEEE AALLSSOO
      getuid(2), getgid(2)
 
-STANDARDS
-     The setuid and setgid functions are compliant with the IEEE
+SSTTAANNDDAARRDDSS
+     The sseettuuiidd and sseettggiidd functions are compliant with the IEEE
      Std 1003.1-1988 (``POSIX'') specification with
-     _POSIX_SAVED_IDS not defined.  The seteuid and setegid func-
+     _POSIX_SAVED_IDS not defined.  The sseetteeuuiidd and sseetteeggiidd func-
      tions are extensions based on the POSIX concept of
      _POSIX_SAVED_IDS , and have been proposed for a future revi-
      sion of the standard.
@@ -126,7 +126,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	December 3, 1997			2
+Printed 9/10/24         December 3, 1997			2
 
 
 

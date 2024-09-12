@@ -5,19 +5,19 @@ TREK(6)             UNIX Programmer's Manual		  TREK(6)
 
 
 
-NAME
+NNAAMMEE
      trek - trekkie game
 
-SYNOPSIS
-     /usr/games/trek [ [ -a ] file ]
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//ttrreekk [ [ --aa ] file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_r_e_k is a game of space glory and war.  Below is a summary
      of commands.  For complete documentation, see _T_r_e_k by Eric
      Allman.
 
      If a filename is given, a log of the game is written onto
-     that file.  If the -a flag is given before the filename,
+     that file.  If the --aa flag is given before the filename,
      that file is appended to, not truncated.
 
      The game will ask you what length game you would like.
@@ -32,13 +32,13 @@ DESCRIPTION
      appropriate the game will tell you what it expects if you
      just type in a question mark.
 
-AUTHOR
+AAUUTTHHOORR
      Eric Allman
 
-SEE ALSO
+SSEEEE AALLSSOO
      /usr/doc/trek
 
-COMMAND SUMMARY
+CCOOMMMMAANNDD SSUUMMMMAARRYY
      _a_b_a_n_d_o_n			   _c_apture
      _c_loak _up/_down
      _computer request; ...	   _d_amages
@@ -60,7 +60,7 @@ COMMAND SUMMARY
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

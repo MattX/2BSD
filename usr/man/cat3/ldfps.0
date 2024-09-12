@@ -5,19 +5,19 @@ LDFPS(3)	    UNIX Programmer's Manual		 LDFPS(3)
 
 
 
-NAME
+NNAAMMEE
      ldfps - load floating point status register
 
-SYNOPSIS
-     void ldfps(fps)
-     unsigned int fps;
+SSYYNNOOPPSSIISS
+     vvooiidd llddffppss((ffppss))
+     uunnssiiggnneedd iinntt ffppss;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_d_f_p_s loads the hardware floating point status register with
      _f_p_s.  See the PDP-11 hardware handbook for a description of
      the meaning of the various bits in _f_p_s.
 
-BUGS
+BBUUGGSS
      _L_d_f_p_s is unique to the PDP-11 and 2BSD; its use is
      discouraged.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 10, 1988			1
+Printed 9/10/24          August 10, 1988			1
 
 
 

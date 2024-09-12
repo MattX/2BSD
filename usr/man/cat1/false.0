@@ -5,30 +5,30 @@ FALSE(1)	    UNIX Programmer's Manual		 FALSE(1)
 
 
 
-NAME
+NNAAMMEE
      false, true - provide truth values
 
-SYNOPSIS
-     true
+SSYYNNOOPPSSIISS
+     ttrruuee
 
-     false
+     ffaallssee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_r_u_e and _f_a_l_s_e are usually used in a Bourne shell script.
      They test for the appropriate status "true" or "false"
      before running (or failing to run) a list of commands.
 
-EXAMPLE
+EEXXAAMMPPLLEE
 
 	       while false
 	       do
 		    command list
 	       done
 
-SEE ALSO
+SSEEEE AALLSSOO
      csh(1), sh(1), true(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      _F_a_l_s_e has exit status nonzero.
 
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

@@ -5,13 +5,13 @@ BJ(6)		    UNIX Programmer's Manual		    BJ(6)
 
 
 
-NAME
+NNAAMMEE
      bj - the game of black jack
 
-SYNOPSIS
-     /usr/games/bj
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//bbjj
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_j is a serious attempt at simulating the dealer in the game
      of black jack (or twenty-one) as might be found in Reno.
      The following rules apply:
@@ -52,7 +52,7 @@ DESCRIPTION
 
      The machine deals and keeps score.  The following questions
      will be asked at appropriate times.  Each question is
-     answered by y followed by a new line for `yes', or just new
+     answered by yy followed by a new line for `yes', or just new
      line for `no'.
 
      ?	       (means, `do you want a hit?')
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -126,7 +126,7 @@ BJ(6)		    UNIX Programmer's Manual		    BJ(6)
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

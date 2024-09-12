@@ -5,10 +5,10 @@ INTRO(7)	    UNIX Programmer's Manual		 INTRO(7)
 
 
 
-NAME
+NNAAMMEE
      miscellaneous - miscellaneous useful information pages
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This section contains miscellaneous documentation, mostly in
      the area of text processing macro packages for _t_r_o_f_f(1).
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

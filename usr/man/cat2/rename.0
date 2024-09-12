@@ -5,14 +5,14 @@ RENAME(2)	    UNIX Programmer's Manual		RENAME(2)
 
 
 
-NAME
+NNAAMMEE
      rename - change the name of a file
 
-SYNOPSIS
-     rename(from, to)
-     char *from, *to;
+SSYYNNOOPPSSIISS
+     rreennaammee((ffrroomm,, ttoo))
+     cchhaarr **ffrroomm,, **ttoo;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_n_a_m_e causes the link named _f_r_o_m to be renamed as _t_o.  If
      _t_o exists, then it is first removed.  Both _f_r_o_m and _t_o must
      be of the same type (that is, both directories or both non-
@@ -26,7 +26,7 @@ DESCRIPTION
      bolic link is renamed, not the file or directory to which it
      points.
 
-CAVEAT
+CCAAVVEEAATT
      The system can deadlock if a loop in the file system graph
      is present.  This loop takes the form of an entry in direc-
      tory "a", say "a/foo", being a hard link to directory "b",
@@ -38,12 +38,12 @@ CAVEAT
      tion.  Hard links to directories should be replaced by sym-
      bolic links by the system administrator.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      A 0 value is returned if the operation succeeds, otherwise
      _r_e_n_a_m_e returns -1 and the global variable _e_r_r_n_o indicates
      the reason for the failure.
 
-ERRORS
+EERRRROORRSS
      _R_e_n_a_m_e will fail and neither of the argument files will be
      affected if any of the following are true:
 
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 
@@ -126,7 +126,7 @@ RENAME(2)	    UNIX Programmer's Manual		RENAME(2)
 
 
 
-Printed 2/16/100	  May 22, 1986				2
+Printed 9/10/24           May 22, 1986				2
 
 
 
@@ -144,7 +144,7 @@ RENAME(2)	    UNIX Programmer's Manual		RENAME(2)
 
      [ENOTEMPTY]    _T_o is a directory and is not empty.
 
-SEE ALSO
+SSEEEE AALLSSOO
      open(2)
 
 
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1986				3
+Printed 9/10/24           May 22, 1986				3
 
 
 

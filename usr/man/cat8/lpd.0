@@ -5,13 +5,13 @@ LPD(8)		    UNIX Programmer's Manual		   LPD(8)
 
 
 
-NAME
+NNAAMMEE
      lpd - line printer daemon
 
-SYNOPSIS
-     /usr/sbin/lpd [ -l ] [ port # ]
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//llppdd [ --ll ] [ port # ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_p_d is the line printer daemon (spool area handler)  and  is
      normally invoked at boot time from the _r_c(8) file.  It makes
      a single pass through the _p_r_i_n_t_c_a_p(5) file to find out about
@@ -24,7 +24,7 @@ DESCRIPTION
      more  requests.  The Internet port number used to rendezvous
      with  other  processes  is  normally  obtained   with   _g_e_t_-
      _s_e_r_v_b_y_n_a_m_e(3)  but  can  be changed with the _p_o_r_t# argument.
-     The -l flag causes _l_p_d to log valid requests  received  from
+     The --ll flag causes _l_p_d to log valid requests  received  from
      the network. This can be useful for debugging purposes.
 
      Access control is provided by two means. First, All requests
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 
@@ -126,7 +126,7 @@ LPD(8)		    UNIX Programmer's Manual		   LPD(8)
 
 
 
-Printed 2/16/100	October 23, 1996			2
+Printed 9/10/24         October 23, 1996			2
 
 
 
@@ -165,7 +165,7 @@ LPD(8)		    UNIX Programmer's Manual		   LPD(8)
      second  line is updated to reflect the current status of _l_p_d
      for the programs _l_p_q(1) and _l_p_r_m(1).
 
-FILES
+FFIILLEESS
      /etc/printcap	     printer description file
      /usr/spool/*	     spool directories
      /usr/spool/*/minfree    minimum free space to leave
@@ -175,7 +175,7 @@ FILES
      /etc/hosts.lpd	     lists machine names allowed printer access,
 			     but not under same administrative control.
 
-SEE ALSO
+SSEEEE AALLSSOO
      lpc(8),  pac(1),	lpr(1),   lpq(1),   lprm(1),   syslog(3),
      printcap(5)
      _4._2_B_S_D _L_i_n_e _P_r_i_n_t_e_r _S_p_o_o_l_e_r _M_a_n_u_a_l
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 23, 1996			3
+Printed 9/10/24         October 23, 1996			3
 
 
 

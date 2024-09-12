@@ -5,21 +5,21 @@ STRTOL(3)	    UNIX Programmer's Manual		STRTOL(3)
 
 
 
-NAME
-     strtol - convert string value to a long
+NNAAMMEE
+     ssttrrttooll - convert string value to a long
 
-SYNOPSIS
-     #include <stdlib.h>
-     #include <limits.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddlliibb..hh>>
+     ##iinncclluuddee <<lliimmiittss..hh>>
 
-     long
-     strtol(nptr, endptr, base)
+     lloonngg
+     ssttrrttooll(nptr, endptr, base)
      _c_h_a_r *_n_p_t_r;
      _c_h_a_r **_e_n_d_p_t_r;
      _i_n_t _b_a_s_e;
 
-DESCRIPTION
-     The strtol() function converts the string in _n_p_t_r to a _l_o_n_g
+DDEESSCCRRIIPPTTIIOONN
+     The ssttrrttooll() function converts the string in _n_p_t_r to a _l_o_n_g
      value.  The conversion is done according to the given _b_a_s_e,
      which must be between 2 and 36 inclusive, or be the special
      value 0.
@@ -38,29 +38,29 @@ DESCRIPTION
      the letter `A' in either upper or lower case represents 10,
      `B' represents 11, and so forth, with `Z' representing 35.)
 
-     If _e_n_d_p_t_r is non nil, strtol() stores the address of the
+     If _e_n_d_p_t_r is non nil, ssttrrttooll() stores the address of the
      first invalid character in *_e_n_d_p_t_r . If there were no digits
-     at all, however, strtol() stores the original value of _n_p_t_r
+     at all, however, ssttrrttooll() stores the original value of _n_p_t_r
      in *_e_n_d_p_t_r.  (Thus, if *_n_p_t_r is not `\0' but **_e_n_d_p_t_r is
      `\0' on return, the entire string was valid.)
 
-RETURN VALUES
-     The strtol() function returns the result of the conversion,
+RREETTUURRNN VVAALLUUEESS
+     The ssttrrttooll() function returns the result of the conversion,
      unless the value would underflow or overflow.  If an under-
-     flow occurs, strtol() returns LONG_MIN.  If an overflow
-     occurs, strtol() returns LONG_MAX.  In both cases, errno is
-     set to ERANGE .
+     flow occurs, ssttrrttooll() returns LLOONNGG__MMIINN.  If an overflow
+     occurs, ssttrrttooll() returns LLOONNGG__MMAAXX.  In both cases, eerrrrnnoo is
+     set to EERRAANNGGEE ..
 
-ERRORS
+EERRRROORRSS
      [ERANGE]	    The given string was out of range; the value
 		    converted has been clamped.
 
-SEE ALSO
+SSEEEE AALLSSOO
      atof(3), atoi(3), atol(3), strtoul(3)
 
 
 
-Printed 2/16/100	January 12, 1996			1
+Printed 9/10/24         January 12, 1996			1
 
 
 
@@ -71,11 +71,11 @@ STRTOL(3)	    UNIX Programmer's Manual		STRTOL(3)
 
 
 
-STANDARDS
-     The strtol() function conforms to ANSI C X3.159-1989 (``ANSI
+SSTTAANNDDAARRDDSS
+     The ssttrrttooll() function conforms to ANSI C X3.159-1989 (``ANSI
      C'').
 
-BUGS
+BBUUGGSS
      Ignores the current locale.
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 12, 1996			2
+Printed 9/10/24         January 12, 1996			2
 
 
 

@@ -5,14 +5,14 @@ EC(4)		    UNIX Programmer's Manual		    EC(4)
 
 
 
-NAME
+NNAAMMEE
      ec - 3Com 10 Mb/s Ethernet interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NEC  _e_c__c_o_n_t_r_o_l_l_e_r_s # 3Com Ethernet
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNEECC  _e_c__c_o_n_t_r_o_l_l_e_r_s ## 33CCoomm EEtthheerrnneett
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _e_c interface provides access to a 10 Mb/s Ethernet net-
      work through a 3com controller.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 
@@ -71,24 +71,24 @@ EC(4)		    UNIX Programmer's Manual		    EC(4)
 
 
 
-DIAGNOSTICS
-     ec%d: send error.	After 16 retransmissions using the
+DDIIAAGGNNOOSSTTIICCSS
+     eecc%%dd:: sseenndd eerrrroorr.	After 16 retransmissions using the
      exponential backoff algorithm described above, the packet
      was dropped.
 
-     ec%d: input error (offset=%d).  The hardware indicated an
+     eecc%%dd:: iinnppuutt eerrrroorr ((ooffffsseett==%%dd)).  The hardware indicated an
      error in reading a packet off the cable or an illegally
      sized packet.  The buffer offset value is printed for debug-
      ging purposes.
 
-     ec%d: can't handle af%d.  The interface was handed a message
+     eecc%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a message
      with addresses formatted in an unsuitable address family;
      the packet was dropped.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), inet(4F), arp(4P)
 
-BUGS
+BBUUGGSS
      The hardware is not capable of talking to itself.	The
      software implements local sending and broadcast by sending
      such packets to the loop interface.  This is a kludge.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 20, 1987			2
+Printed 9/10/24          August 20, 1987			2
 
 
 

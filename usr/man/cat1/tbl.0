@@ -5,19 +5,19 @@ TBL(1)		    UNIX Programmer's Manual		   TBL(1)
 
 
 
-NAME
+NNAAMMEE
      tbl - format tables for nroff or troff
 
-SYNOPSIS
-     tbl [ files ] ...
+SSYYNNOOPPSSIISS
+     ttbbll [ files ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_b_l is a preprocessor for formatting tables for _n_r_o_f_f or
      _t_r_o_f_f(1).	The input files are copied to the standard out-
      put, except for lines between and are reformatted.  Details
      are given in the _t_b_l(1) reference manual.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      As an example, letting \t represent a tab (which should be
      typed as a genuine tab) the input
 
@@ -60,7 +60,7 @@ EXAMPLE
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -71,7 +71,7 @@ TBL(1)		    UNIX Programmer's Manual		   TBL(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      troff(1), eqn(1)
      M. E. Lesk, _T_B_L.
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 

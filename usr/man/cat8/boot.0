@@ -5,10 +5,10 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 
 
 
-NAME
+NNAAMMEE
      boot - 2.11BSD bootstrap proceedure
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The 2.11BSD system is started by a two-stage process.  The
      first is a primary bootstrap (limited to 512 bytes) which is
      able to read in relatively small stand-alone programs; the
@@ -18,7 +18,7 @@ DESCRIPTION
      device (the disklabel resides in block one).  It can be read
      in and started by standard ROM cold boot routines or, if
      necessary, by keying in a small startup routine.  The pri-
-     mary bootstrap is capable of loading only type 0407 execut-
+     mary bootstrap is capable of loading oonnllyy type 0407 execut-
      able files (impure (non-shared), non-separate I&D.) Copies
      of the block zero bootstraps are kept in the directory
      /_m_d_e_c.  _D_i_s_k_l_a_b_e_l(8) is normally used to place a copy of the
@@ -28,12 +28,12 @@ DESCRIPTION
      starts at block 0 of the drive specified to the boot ROM.
      Normally the boot device is automatically used as the root
      filesystem.  This action can be overriden by specifying the
-     -R command to _b_o_o_t.  If _b_o_o_t is not found the system will
+     --RR command to _b_o_o_t.  If _b_o_o_t is not found the system will
      hang as the primary boot spins in an endless loop trying to
      find _b_o_o_t.  No diagnostic message results if the file cannot
      be found.
 
-     o+	  In an emergency, the bootstrap methods described in the
+     o	  IInn aann eemmeerrggeennccyy, the bootstrap methods described in the
 	  paper _I_n_s_t_a_l_l_i_n_g _a_n_d _O_p_e_r_a_t_i_n_g _2._1_1_B_S_D can be used to
 	  boot from a distribution tape.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 24, 1996				1
+Printed 9/10/24           May 24, 1996				1
 
 
 
@@ -81,8 +81,8 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
      devices except /_d_e_v/_c_o_n_s_o_l_e and the boot disk will be known.
 
      If _a_u_t_o_c_o_n_f_i_g problems are suspected (or if  you are simply
-     voyeuristic) the debug flag can be turned on by specifying
-     -D to _b_o_o_t (see below).
+     voyeuristic) the ddeebbuugg flag can be turned on by specifying
+     --DD to _b_o_o_t (see below).
 
      When the system is running in single user mode, it starts a
      single user shell on the console which types a `#' prompt.
@@ -90,7 +90,7 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
      (_d_a_t_e(1)) a multi-user system can be brought up by typing an
      EOT (control-d) in response to the `#' prompt.
 
-     Boot file specification format: The file specifications used
+     BBoooott ffiillee ssppeecciiffiiccaattiioonn ffoorrmmaatt:: The file specifications used
      with _b_o_o_t are of the form:
 
 	  _d_e_v_i_c_e(_c_t_l_r,_u_n_i_t,_p_a_r_t)_p_a_t_h [-_a_R_r_D_s]
@@ -110,7 +110,7 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 
      _p_a_r_t is the partition number of a filesystem on the speci-
 	  fied disk or the tape file number if the device is a
-	  tape.  The underlying device driver must support disk-
+	  tape.  The underlying device driver mmuusstt support disk-
 	  labels and a valid disklabel must be present if _p_a_r_t is
 	  anything except 0.
 
@@ -120,13 +120,13 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 	  marks.
 
      Flags to _b_o_o_t may be specified in either of two places.  At
-     the : prompt and after the _f_i_l_e name.  The options are:
+     the :: prompt and after the _f_i_l_e name.  The options are:
 
-     -a   Ask for a kernel name.  This is present for symmetry
+     --aa   Ask for a kernel name.  This is present for symmetry
 
 
 
-Printed 2/16/100	  May 24, 1996				2
+Printed 9/10/24           May 24, 1996				2
 
 
 
@@ -138,26 +138,26 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 
 
 	  only because in order to specify this option you
-	  already have to be at the : prompt.
+	  already have to be at the :: prompt.
 
-     -D   Turn on the _a_u_t_o_c_o_n_f_i_g debug flag.
+     --DD   Turn on the _a_u_t_o_c_o_n_f_i_g debug flag.
 
-     -R   force the kernel to use its compiled in root device
+     --RR   force the kernel to use its compiled in root device
 	  rather than adapting to the boot device.
 
-     -s   tell _i_n_i_t to enter single user state rather than bring-
-	  ing the system all the way up to multi-user mode.  -r
+     --ss   tell _i_n_i_t to enter single user state rather than bring-
+	  ing the system all the way up to multi-user mode.  --rr
 	  mount the root filesystem read-only.	This is not
 	  currently supported by the kernel mostly because pipes
 	  are implemented in the filesystem.
 
      Commands (-_b_o_o_t_c_o_m_m_a_n_d) to _b_o_o_t are:
 
-     -bootflags N	 where N is a decimal number.
+     --bboooottffllaaggss NN	 where N is a decimal number.
 
-     -bootflags flag	 where flag is from the list above.
+     --bboooottffllaaggss ffllaagg	 where ffllaagg is from the list above.
 
-     -bootdebug N	 where N is a decimal number.  This is a
+     --bboooottddeebbuugg NN	 where N is a decimal number.  This is a
 			 general purpose flag word used by _b_o_o_t
 			 and is not passed to the loaded program
 			 or kernel.
@@ -180,19 +180,19 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
      tape subsystems either automatically adjust to tape density
      or have switches on the drives to force the density to a
      particular setting, but for those which don't the following
-     density select mechanisms may be necessary.  The ts only
+     density select mechanisms may be necessary.  The ttss only
      operates at 1600BPI, so there is no special unit density
-     encoding.	The ht will operate at either 800BPI or 1600BPI.
+     encoding.	The hhtt will operate at either 800BPI or 1600BPI.
      Units 0 through 3 correspond to 800BPI, and 4 through 7 to
      1600BPI on drives 0 through 3 respectively.  The standard
-     DEC tm only supports 800BPI (and hence can't be used with
-     the standard  distribution tape), but several widely used tm
+     DEC ttmm only supports 800BPI (and hence can't be used with
+     the standard  distribution tape), but several widely used ttmm
      emulators support 1600BPI and even 6250BPI.  Units 0 through
      3 correspond to 800BPI, 4 through 7 to 1600BPI, and 8
 
 
 
-Printed 2/16/100	  May 24, 1996				3
+Printed 9/10/24           May 24, 1996				3
 
 
 
@@ -213,7 +213,7 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
      cause the fourth file on a tape threaded on `ts' tape drive
      0 to be loaded and executed.
 
-     Cold boot loaders: The following programs to load and exe-
+     CCoolldd bboooott llooaaddeerrss:: The following programs to load and exe-
      cute the primary bootstrap may be installed in read-only
      memories or manually keyed into main memory.  Each program
      is position-independent but should be placed well above
@@ -258,7 +258,7 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 
 
 
-Printed 2/16/100	  May 24, 1996				4
+Printed 9/10/24           May 24, 1996				4
 
 
 
@@ -269,13 +269,13 @@ BOOT(8)             UNIX Programmer's Manual		  BOOT(8)
 
 
 
-FILES
+FFIILLEESS
      /unix	     system code
      /boot	     system bootstrap
      /etc/init	     system process dispatcher
      /mdec/xxuboot   sector 0 boot blocks, xx is disk type
 
-SEE ALSO
+SSEEEE AALLSSOO
      crash(8V), autoconfig(8), reboot(2), disklabel(8), fsck(8),
      init(8)
 
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 24, 1996				5
+Printed 9/10/24           May 24, 1996				5
 
 
 

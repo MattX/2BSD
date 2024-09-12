@@ -5,13 +5,13 @@ MKPROTO(8)	    UNIX Programmer's Manual	       MKPROTO(8)
 
 
 
-NAME
+NNAAMMEE
      mkproto - construct a prototype file system
 
-SYNOPSIS
-     /usr/sbin/mkproto special proto
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//mmkkpprroottoo special proto
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_p_r_o_t_o is used to bootstrap a new file system.  First a new
      file system is created using _n_e_w_f_s(8).  _M_k_p_r_o_t_o is then used
      to copy files from the old file system into the new file
@@ -25,10 +25,10 @@ DESCRIPTION
 
      The mode token for a file is a 6 character string.  The
      first character specifies the type of the file.  (The char-
-     acters -bcd specify regular, block special, character spe-
+     acters --bbccdd specify regular, block special, character spe-
      cial and directory files respectively.) The second character
-     of the type is either u or - to specify set-user-id mode or
-     not.  The third is g or - for the set-group-id mode.  The
+     of the type is either uu or -- to specify set-user-id mode or
+     not.  The third is gg or -- for the set-group-id mode.  The
      rest of the mode is a three digit octal number giving the
      owner, group, and other read, write, execute permissions,
      see _c_h_m_o_d(1).
@@ -43,10 +43,10 @@ DESCRIPTION
      decimal number tokens follow which give the major and minor
      device numbers.
 
-     If the file is a directory, _m_k_p_r_o_t_o makes the entries .  and
-     .. and then reads a list of names and (recursively) file
+     If the file is a directory, _m_k_p_r_o_t_o makes the entries ..  and
+     .... and then reads a list of names and (recursively) file
      specifications for the entries in the directory.  The scan
-     is terminated with the token $.
+     is terminated with the token $$.
 
      A sample prototype specification follows:
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 17, 1996			1
+Printed 9/10/24         November 17, 1996			1
 
 
 
@@ -74,10 +74,10 @@ MKPROTO(8)	    UNIX Programmer's Manual	       MKPROTO(8)
 	       $
 	  $
 
-SEE ALSO
+SSEEEE AALLSSOO
      fs(5), dir(5), fsck(8), newfs(8)
 
-BUGS
+BBUUGGSS
      There should be some way to specify links.
 
      There should be some way to specify bad blocks.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 17, 1996			2
+Printed 9/10/24         November 17, 1996			2
 
 
 

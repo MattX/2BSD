@@ -5,21 +5,21 @@ BINMAIL(1)	    UNIX Programmer's Manual	       BINMAIL(1)
 
 
 
-NAME
+NNAAMMEE
      binmail - send or receive mail among users
 
-SYNOPSIS
-     /bin/mail [ + ] [ -i ] [ person ] ...
-     /bin/mail [ + ] [ -i ] -f file
+SSYYNNOOPPSSIISS
+     //bbiinn//mmaaiill [ ++ ] [ --ii ] [ person ] ...
+     //bbiinn//mmaaiill [[ ++ ]] [ --ii ] --ff file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Note: This is the old version 7 UNIX system mail program.
      The default _m_a_i_l command is described in _M_a_i_l(1), and its
      binary is in the directory /_u_s_r/_u_c_b.
 
      _m_a_i_l with no argument prints a user's mail, message-by-
      message, in last-in, first-out order; the optional argument
-     + displays the mail messages in first-in, first-out order.
+     ++ displays the mail messages in first-in, first-out order.
      For each message, it reads a line from the standard input to
      direct disposition of the message.
 
@@ -54,13 +54,13 @@ DESCRIPTION
      *	  Print a command summary.
 
      An interrupt normally terminates the _m_a_i_l command; the mail
-     file is unchanged.  The optional argument -i tells _m_a_i_l to
+     file is unchanged.  The optional argument --ii tells _m_a_i_l to
      continue after interrupts.
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -80,12 +80,12 @@ BINMAIL(1)	    UNIX Programmer's Manual	       BINMAIL(1)
      remote system, prefix _p_e_r_s_o_n by the system name and exclama-
      tion mark (see _u_u_c_p(1C)).
 
-     The -f option causes the named file, for example, `mbox', to
+     The --ff option causes the named file, for example, `mbox', to
      be printed as if it were the mail file.
 
      When a user logs in he is informed of the presence of mail.
 
-FILES
+FFIILLEESS
      /etc/passwd	    to identify sender and locate persons
      /usr/spool/mail/*	    incoming mail for user *
      mbox		    saved mail
@@ -93,10 +93,10 @@ FILES
      /usr/spool/mail/*.lock lock for mail directory
      dead.letter	    unmailable text
 
-SEE ALSO
+SSEEEE AALLSSOO
      Mail(1), write(1), uucp(1C), uux(1C), xsend(1), sendmail(8)
 
-BUGS
+BBUUGGSS
      Race conditions sometimes result in a failure to remove a
      lock file.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 

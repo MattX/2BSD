@@ -5,16 +5,16 @@ NETSTAT(1)	    UNIX Programmer's Manual	       NETSTAT(1)
 
 
 
-NAME
+NNAAMMEE
      netstat - show network status
 
-SYNOPSIS
-     netstat [ -Aan ] [ -f _a_d_d_r_e_s_s__f_a_m_i_l_y ] [ _s_y_s_t_e_m ] [ _c_o_r_e ]
-     netstat [ -himnrs ] [ -f _a_d_d_r_e_s_s__f_a_m_i_l_y ] [ _s_y_s_t_e_m ] [ _c_o_r_e
+SSYYNNOOPPSSIISS
+     nneettssttaatt [ --AAaann ] [ --ff _a_d_d_r_e_s_s__f_a_m_i_l_y ] [ _s_y_s_t_e_m ] [ _c_o_r_e ]
+     nneettssttaatt [ --hhiimmnnrrss ] [ --ff _a_d_d_r_e_s_s__f_a_m_i_l_y ] [ _s_y_s_t_e_m ] [ _c_o_r_e
      ]
-     netstat [ -n ] [ -I _i_n_t_e_r_f_a_c_e ] _i_n_t_e_r_v_a_l [ _s_y_s_t_e_m ] [ _c_o_r_e ]
+     nneettssttaatt [ --nn ] [ --II _i_n_t_e_r_f_a_c_e ] _i_n_t_e_r_v_a_l [ _s_y_s_t_e_m ] [ _c_o_r_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _n_e_t_s_t_a_t command symbolically displays the contents of
      various network-related data structures.  There are a number
      of output formats, depending on the options for the informa-
@@ -28,39 +28,39 @@ DESCRIPTION
 
      The options have the following meaning:
 
-     -A   With the default display, show the address of any pro-
+     --AA   With the default display, show the address of any pro-
 	  tocol control blocks associated with sockets; used for
 	  debugging.
 
-     -a   With the default display, show the state of all sock-
+     --aa   With the default display, show the state of all sock-
 	  ets; normally sockets used by server processes are not
 	  shown.
 
-     -h   Show the state of the IMP host table.
+     --hh   Show the state of the IMP host table.
 
-     -i   Show the state of interfaces which have been auto-
+     --ii   Show the state of interfaces which have been auto-
 	  configured (interfaces statically configured into a
 	  system, but not located at boot time are not shown).
 
-     -I _i_n_t_e_r_f_a_c_e
+     --II _i_n_t_e_r_f_a_c_e
 	  Show information only about this interface; used with
 	  an _i_n_t_e_r_v_a_l as described below.
 
-     -m   Show statistics recorded by the memory management rou-
+     --mm   Show statistics recorded by the memory management rou-
 	  tines (the network manages a private pool of memory
 	  buffers).
 
-     -n   Show network addresses as numbers (normally _n_e_t_s_t_a_t
+     --nn   Show network addresses as numbers (normally _n_e_t_s_t_a_t
 	  interprets addresses and attempts to display them sym-
 	  bolically).  This option may be used with any of the
 	  display formats.
 
-     -s   Show per-protocol statistics.
+     --ss   Show per-protocol statistics.
 
 
 
 
-Printed 2/16/100	   May 8, 1986				1
+Printed 9/10/24            May 8, 1986				1
 
 
 
@@ -71,14 +71,14 @@ NETSTAT(1)	    UNIX Programmer's Manual	       NETSTAT(1)
 
 
 
-     -r   Show the routing tables.  When -s is also present, show
+     --rr   Show the routing tables.  When --ss is also present, show
 	  routing statistics instead.
 
-     -f _a_d_d_r_e_s_s__f_a_m_i_l_y
+     --ff _a_d_d_r_e_s_s__f_a_m_i_l_y
 	  Limit statistics or address control block reports to
 	  those of the specified _a_d_d_r_e_s_s _f_a_m_i_l_y.  The following
-	  address families are recognized: _i_n_e_t, for AF_INET, _n_s,
-	  for AF_NS, and _u_n_i_x, for AF_UNIX.
+	  address families are recognized: _i_n_e_t, for AAFF__IINNEETT, _n_s,
+	  for AAFF__NNSS, and _u_n_i_x, for AAFF__UUNNIIXX.
 
      The arguments, _s_y_s_t_e_m and _c_o_r_e allow substitutes for the
      defaults ``/vmunix'' and ``/dev/kmem''.
@@ -91,7 +91,7 @@ NETSTAT(1)	    UNIX Programmer's Manual	       NETSTAT(1)
      address.  When known the host and network addresses are
      displayed symbolically according to the data bases
      /_e_t_c/_h_o_s_t_s and /_e_t_c/_n_e_t_w_o_r_k_s, respectively.  If a symbolic
-     name for an address is unknown, or if the -n option is
+     name for an address is unknown, or if the --nn option is
      specified, the address is printed numerically, according to
      the address family.  For more information regarding the
      Internet ``dot format,'' refer to _i_n_e_t(3N).  Unspecified, or
@@ -126,7 +126,7 @@ NETSTAT(1)	    UNIX Programmer's Manual	       NETSTAT(1)
 
 
 
-Printed 2/16/100	   May 8, 1986				2
+Printed 9/10/24            May 8, 1986				2
 
 
 
@@ -144,11 +144,11 @@ NETSTAT(1)	    UNIX Programmer's Manual	       NETSTAT(1)
      tem was last rebooted.  Subsequent lines of output show
      values accumulated over the preceding interval.
 
-SEE ALSO
+SSEEEE AALLSSOO
      iostat(1), vmstat(1), hosts(5), networks(5), protocols(5),
      services(5), trpt(8C)
 
-BUGS
+BBUUGGSS
      The notion of errors is ill-defined.  Collisions mean some-
      thing else for the IMP.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 8, 1986				3
+Printed 9/10/24            May 8, 1986				3
 
 
 

@@ -5,42 +5,42 @@ DBM(3X)             UNIX Programmer's Manual		  DBM(3X)
 
 
 
-NAME
+NNAAMMEE
      dbminit, fetch, store, delete, firstkey, nextkey - data base
      subroutines
 
-SYNOPSIS
-     #include <dbm.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ddbbmm..hh>>
 
-     typedef struct {
-	  char *dptr;
-	  int dsize;
-     } datum;
+     ttyyppeeddeeff ssttrruucctt {{
+	  cchhaarr **ddppttrr;;
+	  iinntt ddssiizzee;;
+     }} ddaattuumm;;
 
-     dbminit(file)
-     char *file;
+     ddbbmmiinniitt((ffiillee))
+     cchhaarr **ffiillee;;
 
-     datum fetch(key)
-     datum key;
+     ddaattuumm ffeettcchh((kkeeyy))
+     ddaattuumm kkeeyy;;
 
-     store(key, content)
-     datum key, content;
+     ssttoorree((kkeeyy,, ccoonntteenntt))
+     ddaattuumm kkeeyy,, ccoonntteenntt;;
 
-     delete(key)
-     datum key;
+     ddeelleettee((kkeeyy))
+     ddaattuumm kkeeyy;;
 
-     datum firstkey()
+     ddaattuumm ffiirrssttkkeeyy(())
 
-     datum nextkey(key)
-     datum key;
+     ddaattuumm nneexxttkkeeyy((kkeeyy))
+     ddaattuumm kkeeyy;;
 
-DESCRIPTION
-     Note: the dbm library has been superceded by ndbm(3), and is
-     now implemented using ndbm.  These functions maintain
+DDEESSCCRRIIPPTTIIOONN
+     NNoottee:: tthhee ddbbmm lliibbrraarryy hhaass bbeeeenn ssuuppeerrcceeddeedd bbyy nnddbbmm((33)),, aanndd iiss
+     nnooww iimmpplleemmeenntteedd uussiinngg nnddbbmm..  These functions maintain
      key/content pairs in a data base.	The functions will handle
      very large (a billion blocks) databases and will access a
      keyed item in one or two file system accesses.  The func-
-     tions are obtained with the loader option -ldbm.
+     tions are obtained with the loader option --llddbbmm.
 
      _K_e_ys and _c_o_n_t_e_n_ts are described by the _d_a_t_u_m typedef.  A
      _d_a_t_u_m specifies a string of _d_s_i_z_e bytes pointed to by _d_p_t_r.
@@ -51,8 +51,8 @@ DESCRIPTION
      its suffix.
 
      Before a database can be accessed, it must be opened by
-     _d_b_m_i_n_i_t. At the time of this call, the files _f_i_l_e.dir and
-     _f_i_l_e.pag must exist.  (An empty database is created by
+     _d_b_m_i_n_i_t. At the time of this call, the files _f_i_l_e..ddiirr and
+     _f_i_l_e..ppaagg must exist.  (An empty database is created by
      creating zero-length `.dir' and `.pag' files.)
 
      Once open, the data stored under a key is accessed by _f_e_t_c_h
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 
@@ -78,18 +78,18 @@ DBM(3X)             UNIX Programmer's Manual		  DBM(3X)
      any key _n_e_x_t_k_e_y will return the next key in the database.
      This code will traverse the data base:
 
-	  for (key = firstkey(); key.dptr != NULL; key =
+	  ffoorr (key = firstkey(); key.dptr != NULL; key =
 	  nextkey(key))
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      All functions that return an _i_n_t indicate errors with nega-
      tive values.  A zero return indicates ok.	Routines that
      return a _d_a_t_u_m indicate errors with a null (0) _d_p_t_r.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ndbm(3)
 
-BUGS
+BBUUGGSS
      The `.pag' file will contain holes so that its apparent size
      is about four times its actual content.  Older UNIX systems
      may create real file blocks for these holes when touched.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 12, 1986				2
+Printed 9/10/24           May 12, 1986				2
 
 
 

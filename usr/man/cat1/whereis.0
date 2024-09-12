@@ -5,13 +5,13 @@ WHEREIS(1)	    UNIX Programmer's Manual	       WHEREIS(1)
 
 
 
-NAME
+NNAAMMEE
      whereis - locate programs
 
-SYNOPSIS
-     whereis program ...
+SSYYNNOOPPSSIISS
+     wwhheerreeiiss program ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _w_h_e_r_e_i_s utility checks the standard binary directories
      for the specified programs, printing out the paths of any it
      finds.
@@ -19,14 +19,14 @@ DESCRIPTION
      The path searched is the string returned by the _s_y_s_c_t_l(8)
      utility for the ``user.cs_path'' string.
 
-SEE ALSO
+SSEEEE AALLSSOO
      _s_y_s_c_t_l(8),
 
-COMPATIBILITY
+CCOOMMPPAATTIIBBIILLIITTYY
      The historic flags and arguments for the _w_h_e_r_e_i_s utility are
      no longer available in this version.
 
-HISTORY
+HHIISSTTOORRYY
      The _w_h_e_r_e_i_s command appeared in 3.0BSD.
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 

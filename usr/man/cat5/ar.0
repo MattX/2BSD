@@ -5,13 +5,13 @@ AR(5)               UNIX Programmer's Manual                AR(5)
 
 
 
-NAME
+NNAAMMEE
      ar - archive (library) file format
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      #include <ar.h>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The archive command _a_r combines several files into one.
      Archives are mainly used as libraries of object files
      intended to be loaded using the link-editor _l_d(1).
@@ -31,7 +31,7 @@ DESCRIPTION
      characters).  All numeric fields are in decimal, except for
      the file mode which is in octal.
 
-     The modification time is the file _s_t__m_t_i_m_e field, i.e., CUT
+     The modification time is the file _s_t__m_t_i_m_e field, i.e., CCUUTT
      seconds since the epoch.  The user and group id's are the
      file _s_t__u_i_d and _s_t__g_i_d fields.  The file mode is the file
      _s_t__m_o_d_e field.  The file size is the file _s_t__s_i_z_e field.
@@ -55,12 +55,12 @@ DESCRIPTION
      with a newline (``\n'') character, although the size in the
      header does not reflect this.
 
-SEE ALSO
+SSEEEE AALLSSOO
      _a_r(1), _s_t_a_t(2)
 
 
 
-Printed 2/16/100       September 24, 1993                       1
+Printed 9/10/24        September 24, 1993                       1
 
 
 
@@ -71,7 +71,7 @@ AR(5)               UNIX Programmer's Manual                AR(5)
 
 
 
-HISTORY
+HHIISSTTOORRYY
      There have been at least four _a_r formats.  The first was
      denoted by the leading ``magic'' number 0177555 (stored as
      type int).  These archives were almost certainly created on
@@ -101,7 +101,7 @@ HISTORY
      these reasons, as described above.  This format is under
      development.
 
-COMPATIBILITY
+CCOOMMPPAATTIIBBIILLIITTYY
      No archive format is currently specified by any standard.
      AT&T System V UNIX has historically distributed archives in
      a different format from all of the above.
@@ -126,7 +126,7 @@ COMPATIBILITY
 
 
 
-Printed 2/16/100       September 24, 1993                       2
+Printed 9/10/24        September 24, 1993                       2
 
 
 

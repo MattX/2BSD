@@ -5,25 +5,25 @@ CHFLAGS(2)	    UNIX Programmer's Manual	       CHFLAGS(2)
 
 
 
-NAME
+NNAAMMEE
      chflags, fchflags - set file flags
 
-SYNOPSIS
-     #include <sys/stat.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssttaatt..hh>>
 
-     int
-     chflags(path, flags)
-     char *path;
-     u_short flags;
+     iinntt
+     cchhffllaaggss((ppaatthh,, ffllaaggss))
+     cchhaarr **ppaatthh;;
+     uu__sshhoorrtt ffllaaggss;;
 
-     int
-     fchflags(fd, flags)
-     int fd;
-     u_short flags;
+     iinntt
+     ffcchhffllaaggss((ffdd,, ffllaaggss))
+     iinntt ffdd;;
+     uu__sshhoorrtt ffllaaggss;;
 
-DESCRIPTION
-     The file whose name is given by path or referenced by the
-     descriptor fd has its flags changed to flags .
+DDEESSCCRRIIPPTTIIOONN
+     The file whose name is given by ppaatthh or referenced by the
+     descriptor ffdd has its flags changed to ffllaaggss ..
 
      The flags specified are formed by or'ing the following
      values
@@ -40,27 +40,27 @@ DESCRIPTION
 
      SF_APPEND	    The file may only be appended to.
 
-     The UF_IMMUTABLE and UF_APPEND flags may be set or unset by
+     The UUFF__IIMMMMUUTTAABBLLEE and UUFF__AAPPPPEENNDD flags may be set or unset by
      either the owner of a file or the super-user.
 
-     The SF_IMMUTABLE and SF_APPEND flags may only be set or
+     The SSFF__IIMMMMUUTTAABBLLEE and SSFF__AAPPPPEENNDD flags may only be set or
      unset by the super-user.  They may be set at any time, but
      normally may only be unset when the system is in single-user
      mode.  (See _i_n_i_t(_8) for details.)
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      Upon successful completion, a value of 0 is returned.  Oth-
-     erwise, -1 is returned and the global variable errno is set
+     erwise, -1 is returned and the global variable eerrrrnnoo is set
      to indicate the error.
 
-ERRORS
+EERRRROORRSS
      Chflags will fail if:
 
      ENOTDIR	    A component of the path prefix is not a
 
 
 
-Printed 2/16/100	November 28, 1994			1
+Printed 9/10/24         November 28, 1994			1
 
 
 
@@ -95,7 +95,7 @@ CHFLAGS(2)	    UNIX Programmer's Manual	       CHFLAGS(2)
      EROFS	    The named file resides on a read-only file
 		    system.
 
-     EFAULT	    path points outside the process's allocated
+     EFAULT	    ppaatthh points outside the process's allocated
 		    address space.
 
      EIO	    An I/O error occurred while reading from or
@@ -105,7 +105,7 @@ CHFLAGS(2)	    UNIX Programmer's Manual	       CHFLAGS(2)
 
      EBADF	    The descriptor is not valid.
 
-     EINVAL	    fd refers to a socket, not to a file.
+     EINVAL	    ffdd refers to a socket, not to a file.
 
      EPERM	    The effective user ID does not match the
 		    owner of the file and the effective user ID
@@ -116,17 +116,17 @@ CHFLAGS(2)	    UNIX Programmer's Manual	       CHFLAGS(2)
      EIO	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chflags(1), init(8)
 
-HISTORY
-     The chflags and fchflags functions first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The cchhffllaaggss and ffcchhffllaaggss functions first appeared in 4.4BSD.
 
 
 
 
 
-Printed 2/16/100	November 28, 1994			2
+Printed 9/10/24         November 28, 1994			2
 
 
 

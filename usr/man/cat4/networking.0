@@ -5,15 +5,15 @@ INTRO(4N)	    UNIX Programmer's Manual		INTRO(4N)
 
 
 
-NAME
+NNAAMMEE
      networking - introduction to networking facilities
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <net/route.h>
-     #include <net/if.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneett//rroouuttee..hh>>
+     ##iinncclluuddee <<nneett//iiff..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This section briefly describes the networking facilities
      available in the system.  Documentation in this part of sec-
      tion 4 is broken up into three areas: _p_r_o_t_o_c_o_l _f_a_m_i_l_i_e_s
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 August 1, 1987                         1
+Printed 9/10/24          August 1, 1987                         1
 
 
 
@@ -78,7 +78,7 @@ INTRO(4N)	    UNIX Programmer's Manual		INTRO(4N)
      tem error log, /_u_s_r/_a_d_m/_m_e_s_s_a_g_e_s (see _s_y_s_l_o_g_d(8)), due to
      errors in device operation.
 
-PROTOCOLS
+PPRROOTTOOCCOOLLSS
      The system currently supports the DARPA Internet protocols
      and the Xerox Network Systems(tm) protocols.  Raw socket
      interfaces are provided to the IP protocol layer of the
@@ -87,7 +87,7 @@ PROTOCOLS
      in this section for more information regarding the support
      for each protocol family.
 
-ADDRESSING
+AADDDDRREESSSSIINNGG
      Associated with each protocol family is an address format.
      The following address formats are used by the system (and
      additional formats are defined for possible future implemen-
@@ -100,7 +100,7 @@ ADDRESSING
      #define AF_NS	       6      /* Xerox NS protocols */
      #define AF_HYLINK	       15     /* NSC Hyperchannel */
 
-ROUTING
+RROOUUTTIINNGG
      The network facilities provided limited packet routing.  A
      simple set of data structures comprise a ``routing table''
      used in selecting the appropriate network interface when
@@ -126,7 +126,7 @@ ROUTING
 
 
 
-Printed 2/16/100	 August 1, 1987                         2
+Printed 9/10/24          August 1, 1987                         2
 
 
 
@@ -192,7 +192,7 @@ INTRO(4N)	    UNIX Programmer's Manual		INTRO(4N)
 
 
 
-Printed 2/16/100	 August 1, 1987                         3
+Printed 9/10/24          August 1, 1987                         3
 
 
 
@@ -203,7 +203,7 @@ INTRO(4N)	    UNIX Programmer's Manual		INTRO(4N)
 
 
 
-INTERFACES
+IINNTTEERRFFAACCEESS
      Each network interface in a system corresponds to a path
      through which messages may be sent and received.  A network
      interface usually has a hardware device associated with it,
@@ -258,7 +258,7 @@ INTERFACES
 
 
 
-Printed 2/16/100	 August 1, 1987                         4
+Printed 9/10/24          August 1, 1987                         4
 
 
 
@@ -314,7 +314,7 @@ INTRO(4N)	    UNIX Programmer's Manual		INTRO(4N)
      #define   ifc_req	 ifc_ifcu.ifcu_req   /* array of structures returned */
      };
 
-SEE ALSO
+SSEEEE AALLSSOO
      socket(2), ioctl(2), intro(4), config(8), routed(8C)
 
 
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 1, 1987                         5
+Printed 9/10/24          August 1, 1987                         5
 
 
 

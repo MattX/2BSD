@@ -5,18 +5,18 @@ CHOWN(2)	    UNIX Programmer's Manual		 CHOWN(2)
 
 
 
-NAME
+NNAAMMEE
      chown - change owner and group of a file
 
-SYNOPSIS
-     chown(path, owner, group)
-     char *path;
-     int owner, group;
+SSYYNNOOPPSSIISS
+     cchhoowwnn((ppaatthh,, oowwnneerr,, ggrroouupp))
+     cchhaarr **ppaatthh;;
+     iinntt oowwnneerr,, ggrroouupp;;
 
-     fchown(fd, owner, group)
-     int fd, owner, group;
+     ffcchhoowwnn((ffdd,, oowwnneerr,, ggrroouupp))
+     iinntt ffdd,, oowwnneerr,, ggrroouupp;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The file that is named by _p_a_t_h or referenced by _f_d has its
      _o_w_n_e_r and _g_r_o_u_p changed as specified.  Only the super-user
      may change the owner of the file, because if users were able
@@ -39,12 +39,12 @@ DESCRIPTION
      ownership and group of the file or directory to which it
      points.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Zero is returned if the operation was successful; -1 is
      returned if an error occurs, with a more specific error code
      being placed in the global variable _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      _C_h_o_w_n will fail and the file will be unchanged if:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 
@@ -104,7 +104,7 @@ CHOWN(2)	    UNIX Programmer's Manual		 CHOWN(2)
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chown(8), chgrp(1), chmod(2), flock(2)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1986				2
+Printed 9/10/24           May 22, 1986				2
 
 
 

@@ -5,13 +5,13 @@ RATFOR(1)	    UNIX Programmer's Manual		RATFOR(1)
 
 
 
-NAME
+NNAAMMEE
      ratfor - rational Fortran dialect
 
-SYNOPSIS
-     ratfor [ option ... ] [ filename ... ]
+SSYYNNOOPPSSIISS
+     rraattffoorr [ option ... ] [ filename ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_a_t_f_o_r converts a rational dialect of Fortran into ordinary
      irrational Fortran.  _R_a_t_f_o_r provides control flow constructs
      essentially identical to those in C:
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -71,7 +71,7 @@ RATFOR(1)	    UNIX Programmer's Manual		RATFOR(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      f77(1)
      B. W. Kernighan and P. J. Plauger, _S_o_f_t_w_a_r_e _T_o_o_l_s, Addison-
      Wesley, 1976.
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 

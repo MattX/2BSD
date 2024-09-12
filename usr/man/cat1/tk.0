@@ -5,13 +5,13 @@ TK(1)		    UNIX Programmer's Manual		    TK(1)
 
 
 
-NAME
+NNAAMMEE
      tk - paginator for the Tektronix 4014
 
-SYNOPSIS
-     tk [ -t ] [ -_N ] [ -p_L ] [ file ]
+SSYYNNOOPPSSIISS
+     ttkk [ --tt ] [ --_N ] [ --pp_L ] [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The output of _t_k is intended for a Tektronix 4014 terminal.
      _T_k arranges for 66 lines to fit on the screen, divides the
      screen into _N columns, and contributes an eight space page
@@ -21,19 +21,19 @@ DESCRIPTION
      interpreted and plotted.  At the end of each page _t_k waits
      for a newline (empty line) from the keyboard before continu-
      ing on to the next page.  In this wait state, the command
-     !_c_o_m_m_a_n_d will send the _c_o_m_m_a_n_d to the shell.
+     !!_c_o_m_m_a_n_d will send the _c_o_m_m_a_n_d to the shell.
 
      The command line options are:
 
-     -t   Don't wait between pages; for directing output into a
+     --tt   Don't wait between pages; for directing output into a
 	  file.
 
-     -_N   Divide the screen into _N columns and wait after the
+     --_N   Divide the screen into _N columns and wait after the
 	  last column.
 
-     -p_L  Set page length to _L lines.
+     --pp_L  Set page length to _L lines.
 
-SEE ALSO
+SSEEEE AALLSSOO
      pr(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

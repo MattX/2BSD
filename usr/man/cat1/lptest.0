@@ -5,13 +5,13 @@ LPTEST(1)	    UNIX Programmer's Manual		LPTEST(1)
 
 
 
-NAME
+NNAAMMEE
      lptest - generate lineprinter ripple pattern
 
-SYNOPSIS
-     lptest [ length [ count ] ]
+SSYYNNOOPPSSIISS
+     llpptteesstt [ lleennggtthh [ ccoouunntt ] ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_p_t_e_s_t writes the traditional "ripple test" pattern on stan-
      dard output.  In 96 lines, this pattern will print all 96
      printable ASCII characters in each position.  While origi-
@@ -28,8 +28,8 @@ DESCRIPTION
      Note that if _c_o_u_n_t is to be specified, _l_e_n_g_t_h must be also
      be specified.
 
-SEE ALSO
-BUGS
+SSEEEE AALLSSOO
+BBUUGGSS
 
 
 
@@ -57,7 +57,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

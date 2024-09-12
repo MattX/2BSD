@@ -5,13 +5,13 @@ MKPASSWD(8)	    UNIX Programmer's Manual	      MKPASSWD(8)
 
 
 
-NAME
+NNAAMMEE
      mkpasswd - generate hashed password table
 
-SYNOPSIS
-     mkpasswd [ -p ] passwdfile
+SSYYNNOOPPSSIISS
+     mmkkppaasssswwdd [ --pp ] passwdfile
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_p_a_s_s_w_d is used to generated the hashed password database
      used by the password library routines (see _g_e_t_p_w_e_n_t(3)).
 
@@ -28,7 +28,7 @@ DESCRIPTION
      The -_p option causes _m_k_p_a_s_s_w_d to create ``passwdfile.orig'',
      a password file in the standard Version 7 format.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chpass(1), passwd(1), getpwent(3), ndbm(3), passwd(5),
      vipw(8)
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	February 22, 1989			1
+Printed 9/10/24         February 22, 1989			1
 
 
 

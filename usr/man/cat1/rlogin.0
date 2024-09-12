@@ -5,14 +5,14 @@ RLOGIN(1C)	    UNIX Programmer's Manual	       RLOGIN(1C)
 
 
 
-NAME
+NNAAMMEE
      rlogin - remote login
 
-SYNOPSIS
-     rlogin rhost [ -e_c ] [ -8 ] [ -L ] [ -l username ]
-     rhost [ -e_c ] [ -8 ] [ -L ] [ -l username ]
+SSYYNNOOPPSSIISS
+     rrllooggiinn rhost [ --ee_c ] [ --88 ] [ --LL ] [ --ll username ]
+     rhost [ --ee_c ] [ --88 ] [ --LL ] [ --ll username ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_l_o_g_i_n connects your terminal on the current local host sys-
      tem _l_h_o_s_t to the remote host system _r_h_o_s_t.
 
@@ -39,10 +39,10 @@ DESCRIPTION
      site, so that (except for delays) the rlogin is transparent.
      Flow control via ^S and ^Q and flushing of input and output
      on interrupts are handled properly.  The optional argument
-     -8 allows an eight-bit input data path at all times; other-
+     --88 allows an eight-bit input data path at all times; other-
      wise parity bits are stripped except when the remote side's
      stop and start characters are other than ^S/^Q.  The argu-
-     ment -L allows the rlogin session to be run in litout mode.
+     ment --LL allows the rlogin session to be run in litout mode.
      A line of the form ``~.'' disconnects from the remote host,
      where ``~'' is the escape character.  Similarly, the line
      ``~^Z'' (where ^Z, control-Z, is the suspend character) will
@@ -50,17 +50,17 @@ DESCRIPTION
      suspend character (normally ^Y) for the suspend character
      suspends the send portion of the rlogin, but allows output
      from the remote system.  A different escape character may be
-     specified by the -e option.  There is no space separating
+     specified by the --ee option.  There is no space separating
      this option flag and the argument character.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rsh(1C)
 
 
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 
@@ -71,10 +71,10 @@ RLOGIN(1C)	    UNIX Programmer's Manual	       RLOGIN(1C)
 
 
 
-FILES
+FFIILLEESS
      /usr/hosts/*	 for _r_h_o_s_t version of the command
 
-BUGS
+BBUUGGSS
      More of the environment should be propagated.
 
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 12, 1986				2
+Printed 9/10/24           May 12, 1986				2
 
 
 

@@ -5,13 +5,13 @@ WHATIS(1)	    UNIX Programmer's Manual		WHATIS(1)
 
 
 
-NAME
+NNAAMMEE
      whatis - describe what a command is
 
-SYNOPSIS
-     whatis command ...
+SSYYNNOOPPSSIISS
+     wwhhaattiiss command ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W_h_a_t_i_s looks up a given command and gives the header line
      from the manual section.  You can then run the _m_a_n(1) com-
      mand to get more information.  If the line starts
@@ -19,12 +19,12 @@ DESCRIPTION
      documentation for it.  Try `whatis ed' and then you should
      do `man 1 ed' to get the manual.
 
-     _W_h_a_t_i_s is actually just the -f option to the _m_a_n(1) command.
+     _W_h_a_t_i_s is actually just the --ff option to the _m_a_n(1) command.
 
-FILES
+FFIILLEESS
      /usr/man/whatis	 Data base
 
-SEE ALSO
+SSEEEE AALLSSOO
      man(1), catman(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	   May 7, 1986				1
+Printed 9/10/24            May 7, 1986				1
 
 
 

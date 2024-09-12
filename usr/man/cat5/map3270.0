@@ -5,23 +5,23 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-NAME
+NNAAMMEE
      map3270 - database for mapping ascii keystrokes into IBM
      3270 keys
 
-SYNOPSIS
-     /usr/share/misc/map3270
+SSYYNNOOPPSSIISS
+     //uussrr//sshhaarree//mmiisscc//mmaapp33227700
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      When emulating IBM-syle 3270 terminals under UNIX (see
      _t_n_3_2_7_0(1)), a mapping must be performed between sequences of
      keys hit on a user's (ascii) keyboard, and the keys that are
      available on a 3270.  For example, a 3270 has a key labeled
-     EEOF which erases the contents of the current field from the
+     EEEEOOFF which erases the contents of the current field from the
      location of the cursor to the end.  In order to accomplish
      this function, the terminal user and a program emulating a
      3270 must agree on what keys will be typed to invoke the
-     EEOF function.
+     EEEEOOFF function.
 
      The requirements for these sequences are:
 
@@ -32,7 +32,7 @@ DESCRIPTION
 	      sequences may _s_h_a_r_e initial parts).
 
 
-FORMAT
+FFOORRMMAATT
      The file consists of entries for various terminals.  The
      first part of an entry lists the names of the terminals
      which use that entry.  These names should be the same as in
@@ -56,11 +56,11 @@ FORMAT
      caret (`^') specifies that the next character is the ``con-
      trol'' character of whatever the character is.  So, `^a'
      represents control-a, ie: hexadecimal 1 (note that `^A'
-     would generate the same code). To generate rubout, one
+     would generate the same code). To generate rruubboouutt,, one
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 
@@ -101,7 +101,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
      However, comments cannot begin inside a quoted string; a
      hash mark inside a quoted string has no special meaning.
 
-3270 KEYS SUPPORTED
+33227700 KKEEYYSS SSUUPPPPOORRTTEEDD
      The following is the list of 3270 key names that are sup-
      ported in this file.  Note that some of the keys don't
      really exist on a 3270.  In particular, the developers of
@@ -111,8 +111,8 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
      corresponds closely to the functions that the developers of
      the Yale code offer in their product.
 
-     In the following list, the starred ("*") functions are not
-     supported by _t_n_3_2_7_0(1).  An unsupported function will cause
+     IInn tthhee ffoolllloowwiinngg lliisstt,, tthhee ssttaarrrreedd ((""**"")) ffuunnccttiioonnss aarree nnoott
+     ssuuppppoorrtteedd bbyy _t_n_3_2_7_0(1).  An unsupported function will cause
      _t_n_3_2_7_0(_1) to send a bell sequence to the user's terminal.
 
 	     3270 Key Name   Functional description
@@ -126,7 +126,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 2/16/100	November 27, 1996			2
+Printed 9/10/24         November 27, 1996			2
 
 
 
@@ -192,7 +192,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 2/16/100	November 27, 1996			3
+Printed 9/10/24         November 27, 1996			3
 
 
 
@@ -208,7 +208,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 	     etc.	     etc.
 	     PFK36	     program function key 36
 
-A SAMPLE ENTRY
+AA SSAAMMPPLLEE EENNTTRRYY
      The following entry is used by tn3270(1) when unable to
      locate a reasonable version in the user's environment and in
      /usr/share/misc/map3270:
@@ -246,7 +246,7 @@ A SAMPLE ENTRY
 	     pfk21 = 'E('; pfk22 = 'E)'; pfk23 = 'E_'; pfk24 = 'E+';
 	     }
 
-IBM 3270 KEY DEFINITONS FOR AN ABOVE DEFINITION
+IIBBMM 33227700 KKEEYY DDEEFFIINNIITTOONNSS FFOORR AANN AABBOOVVEE DDEEFFIINNIITTIIOONN
      The charts below show the proper keys to emulate each 3270
      function when using the default key mapping supplied with
      _t_n_3_2_7_0(1) and _m_s_e_t(1).
@@ -258,7 +258,7 @@ IBM 3270 KEY DEFINITONS FOR AN ABOVE DEFINITION
 
 
 
-Printed 2/16/100	November 27, 1996			4
+Printed 9/10/24         November 27, 1996			4
 
 
 
@@ -308,23 +308,23 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 	  Other Keys
 		    Erase current field           control-u
 
-FILES
+FFIILLEESS
      /usr/share/misc/map3270
 
-SEE ALSO
+SSEEEE AALLSSOO
      tn3270(1), mset(1), _Y_a_l_e _A_S_C_I_I _T_e_r_m_i_n_a_l _C_o_m_m_u_n_i_c_a_t_i_o_n _S_y_s_t_e_m
      _I_I _P_r_o_g_r_a_m _D_e_s_c_r_i_p_t_i_o_n/_O_p_e_r_a_t_o_r'_s _M_a_n_u_a_l (IBM SB30-1911)
 
-AUTHOR
+AAUUTTHHOORR
      Greg Minshall
 
-BUGS
+BBUUGGSS
      _T_n_3_2_7_0 doesn't yet understand how to process all the func-
      tions available in _m_a_p_3_2_7_0; when such a function is
 
 
 
-Printed 2/16/100	November 27, 1996			5
+Printed 9/10/24         November 27, 1996			5
 
 
 
@@ -390,7 +390,7 @@ MAP3270(5)	    UNIX Programmer's Manual	       MAP3270(5)
 
 
 
-Printed 2/16/100	November 27, 1996			6
+Printed 9/10/24         November 27, 1996			6
 
 
 

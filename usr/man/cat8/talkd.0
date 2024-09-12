@@ -5,13 +5,13 @@ TALKD(8)	    UNIX Programmer's Manual		 TALKD(8)
 
 
 
-NAME
+NNAAMMEE
      talkd - remote user communication server
 
-SYNOPSIS
-     /usr/libexec/ntalkd
+SSYYNNOOPPSSIISS
+     //uussrr//lliibbeexxeecc//nnttaallkkdd
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_a_l_k_d is the server that notifies a user that somebody else
      wants to initiate a conversation.	It acts a repository of
      invitations, responding to requests by clients wishing to
@@ -30,7 +30,7 @@ DESCRIPTION
      a stream connection through which the conversation takes
      place.
 
-SEE ALSO
+SSEEEE AALLSSOO
      talk(1), write(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 

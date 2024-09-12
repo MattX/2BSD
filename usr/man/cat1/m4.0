@@ -5,13 +5,13 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 
 
 
-NAME
+NNAAMMEE
      m4 - macro processor
 
-SYNOPSIS
-     m4 [ -Dname[=value]] [-Uname] [files ...]
+SSYYNNOOPPSSIISS
+     m4 [ -Dnnaammee[==vvaalluuee]] [-Unnaammee] [files ...]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _m_4 is a macro processor intended as a front end for any
      language (e.g., C, ratfor, fortran, lex, and yacc).  _m_4
      reads from the standard input and writes the processed text
@@ -42,17 +42,17 @@ DESCRIPTION
      collection, the value of the macro is pushed back onto the
      input stream and rescanned.
 
-     -Dname[=value]
-	       Define the symbol name to have some value (or
+     -Dnnaammee[==vvaalluuee]
+	       Define the symbol nnaammee to have some value (or
 	       NULL).
 
-     -Uname    Undefine the symbol name.
+     -Unnaammee    Undefine the symbol nnaammee.
 
      _m_4 makes available the following built-in macros.	They may
      be redefined, but once this is done the original meaning is
      lost.  Their values are null unless otherwise stated.
 
-     define    The second argument is installed as the value of
+     ddeeffiinnee    The second argument is installed as the value of
 	       the macro whose name is the first argument.  Each
 	       occurrence of $_n in the replacement text, where _n
 	       is a digit, is replaced by the _n-th argument.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 14, 1994                         1
+Printed 9/10/24          April 14, 1994                         1
 
 
 
@@ -73,28 +73,28 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 
 	       arguments are replaced by the null string.
 
-     undefine  removes the definition of the macro named in its
+     uunnddeeffiinnee  removes the definition of the macro named in its
 	       argument.
 
-     ifdef     If the first argument is defined, the value is the
+     iiffddeeff     If the first argument is defined, the value is the
 	       second argument, otherwise the third.  If there is
 	       no third argument, the value is null.
 
-     changecom Change the start and end comment sequences.  The
+     cchhaannggeeccoomm Change the start and end comment sequences.  The
 	       default is the pound sign '#' and the newline
 	       character.  With no arguments comments are turned
 	       off.  The maximum legnth for a comment marker is
 	       five characters.
 
-     changequote
+     cchhaannggeeqquuoottee
 	       Change quote characters to the first and second
 	       arguments.  _C_h_a_n_g_e_q_u_o_t_e without arguments restores
 	       the original values (i.e., `').
 
-     decr      Decrements the argument by 1.  The argument must
+     ddeeccrr      Decrements the argument by 1.  The argument must
 	       be a valid numeric string.
 
-     divert    _m_4 maintains 10 output streams, numbered 0-9.  The
+     ddiivveerrtt    _m_4 maintains 10 output streams, numbered 0-9.  The
 	       final output is the concatenation of the streams
 	       in numerical order; initially stream 0 is the
 	       current stream.	The _d_i_v_e_r_t macro changes the
@@ -102,23 +102,23 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 	       ment.  Output diverted to a stream other than 0
 	       through 9 is discarded.
 
-     undivert  causes immediate output of text from diversions
+     uunnddiivveerrtt  causes immediate output of text from diversions
 	       named as arguments, or all diversions if no argu-
 	       ment.  Text may be undiverted into another diver-
 	       sion.  Undiverting discards the diverted text.
 
-     defn      Returns the quoted definition for each argument.
+     ddeeffnn      Returns the quoted definition for each argument.
 	       This can be used to rename macro definitions (even
 	       for builtin macros).
 
-     divnum    returns the value of the current output stream.
+     ddiivvnnuumm    returns the value of the current output stream.
 
-     dnl       reads and discards characters up to and including
+     ddnnll       reads and discards characters up to and including
 	       the next newline.
 
-     expr      This is an alias for eval.
+     eexxpprr      This is an alias for eval.
 
-     ifelse    has three or more arguments.  If the first argu-
+     iiffeellssee    has three or more arguments.  If the first argu-
 	       ment is the same string as the second, then the
 	       value is the third argument.  If not, and if there
 	       are more than four arguments, the process is
@@ -126,7 +126,7 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 
 
 
-Printed 2/16/100	 April 14, 1994                         2
+Printed 9/10/24          April 14, 1994                         2
 
 
 
@@ -140,59 +140,59 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 	       the value is either the fourth string, or, if it
 	       is not present, null.
 
-     incr      returns the value of its argument incremented by
+     iinnccrr      returns the value of its argument incremented by
 	       1.  The value of the argument is calculated by
 	       interpreting an initial digit-string as a decimal
 	       number.
 
-     eval      evaluates its argument as an arithmetic expres-
+     eevvaall      evaluates its argument as an arithmetic expres-
 	       sion, using 32-bit arithmetic.  Operators include
 	       +, -, *, /, %, ^ (exponentiation); relationals;
 	       parentheses.
 
-     len       returns the number of characters in its argument.
+     lleenn       returns the number of characters in its argument.
 
-     m4exit    Immediately exits with the return value specified
+     mm44eexxiitt    Immediately exits with the return value specified
 	       by the first argument, 0 if none.
 
-     m4wrap    Allows you to define what happens at the final
+     mm44wwrraapp    Allows you to define what happens at the final
 	       EOF, usually for cleanup purposes.  (e.g.,
 	       m4wrap("cleanup(tempfile)") causes the macro
 	       cleanup to be invoked after all processing is
 	       done.)
 
-     index     returns the position in its first argument where
+     iinnddeexx     returns the position in its first argument where
 	       the second argument begins (zero origin), or -1 if
 	       the second argument does not occur.
 
-     substr    returns a substring of its first argument.  The
+     ssuubbssttrr    returns a substring of its first argument.  The
 	       second argument is a zero origin number selecting
 	       the first character; the third argument indicates
 	       the length of the substring.  A missing third
 	       argument is taken to be large enough to extend to
 	       the end of the first string.
 
-     translit  transliterates the characters in its first argu-
+     ttrraannsslliitt  transliterates the characters in its first argu-
 	       ment from the set given by the second argument to
 	       the set given by the third.  No abbreviations are
 	       permitted.
 
-     include   returns the contents of the file named in the
+     iinncclluuddee   returns the contents of the file named in the
 	       argument.
 
-     sinclude  is identical to _i_n_c_l_u_d_e, except that it says noth-
+     ssiinncclluuddee  is identical to _i_n_c_l_u_d_e, except that it says noth-
 	       ing if the file is inaccessible.
 
-     syscmd    executes the UNIX command given in the first argu-
+     ssyyssccmmdd    executes the UNIX command given in the first argu-
 	       ment.  No value is returned.
 
-     maketemp  fills in a string of XXXXX in its argument with
+     mmaakkeetteemmpp  fills in a string of XXXXX in its argument with
 	       the current process id.
 
 
 
 
-Printed 2/16/100	 April 14, 1994                         3
+Printed 9/10/24          April 14, 1994                         3
 
 
 
@@ -203,42 +203,42 @@ m4(1)		    UNIX Programmer's Manual		    m4(1)
 
 
 
-     paste     Includes the contents of the file specified by the
+     ppaassttee     Includes the contents of the file specified by the
 	       first argument without any macro processing.
 	       Aborts with an error message if the file cannot be
 	       included.
 
-     popdef    Restores the pushdef'd definition for each argu-
+     ppooppddeeff    Restores the pushdef'd definition for each argu-
 	       ment.
 
-     pushdef   Takes the same arguments as define, but it saves
+     ppuusshhddeeff   Takes the same arguments as define, but it saves
 	       the definition on a stack for later retrieval by
 	       popdef.
 
-     shift     Returns all but the first argument, the remaining
+     sshhiifftt     Returns all but the first argument, the remaining
 	       arguments are quoted and pushed back with commas
 	       in between.  The quoting nullifies the effect of
 	       the extra scan that will subsequently be per-
 	       formed.
 
-     spaste    Similar to paste, except it ignores any errors.
+     ssppaassttee    Similar to paste, except it ignores any errors.
 
-     syscal    Returns the return value from the last syscmd.
+     ssyyssccaall    Returns the return value from the last syscmd.
 
-     errprint  prints its argument on the diagnostic output file.
+     eerrrrpprriinntt  prints its argument on the diagnostic output file.
 
-     dumpdef   prints current names and definitions, for the
+     dduummppddeeff   prints current names and definitions, for the
 	       named items, or for all if no arguments are given.
 
-     unix      A pre-defined macro for testing the OS platform.
+     uunniixx      A pre-defined macro for testing the OS platform.
 
-SEE ALSO
+SSEEEE AALLSSOO
      B. W. Kernighan and D. M. Ritchie, _T_h_e _m_4 _M_a_c_r_o _P_r_o_c_e_s_s_o_r
 
-HISTORY
+HHIISSTTOORRYY
      An m4 command appeared in Version 6 AT&T UNIX.
 
-AUTHOR
+AAUUTTHHOORR
      Ozan Yigit <oz@sis.yorku.ca>
 
 
@@ -258,7 +258,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	 April 14, 1994                         4
+Printed 9/10/24          April 14, 1994                         4
 
 
 

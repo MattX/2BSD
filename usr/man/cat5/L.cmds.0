@@ -5,10 +5,10 @@ L.CMDS(5)	    UNIX Programmer's Manual		L.CMDS(5)
 
 
 
-NAME
+NNAAMMEE
      L.cmds - UUCP remote command permissions file
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _L._c_m_d_s file contains a list of commands, one per line,
      that are permitted for remote execution via _u_u_x(1).
 
@@ -19,10 +19,10 @@ DESCRIPTION
 
      Normally, an acknowledgment is mailed back to the requesting
      site after the command completes. If a command name is suf-
-     fixed with ,Error, then an acknowledgment will be mailed
+     fixed with ,,EErrrroorr, then an acknowledgment will be mailed
      only if the command fails.  If the command is suffixed with
-     ,No, then no acknowledgment will ever be sent. (These
-     correspond with the -z and -n options of _u_u_x, respectively.)
+     ,,NNoo, then no acknowledgment will ever be sent. (These
+     correspond with the --zz and --nn options of _u_u_x, respectively.)
 
      For most sites, _L._c_m_d_s should only include the lines:
 
@@ -44,11 +44,11 @@ DESCRIPTION
      It is common (but hazardous) to include _u_u_c_p(1) in _L._c_m_d_s;
      see the NOTES section of _U_S_E_R_F_I_L_E.
 
-FILES
+FFIILLEESS
      /etc/uucp/L.cmds
      /etc/uucp/UUAIDS/L.cmds   L.cmds example.
 
-SEE ALSO
+SSEEEE AALLSSOO
      uucp(1), uux(1), USERFILE(5), uucico(8), uuxqt(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 

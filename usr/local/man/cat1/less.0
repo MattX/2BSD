@@ -5,14 +5,14 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 
 
 
-NAME
+NNAAMMEE
      less - opposite of more
 
-SYNOPSIS
-     less [-cdepstwmMqQuU] [-h_N] [-b[fp]_N] [-x_N] [-[z]_N]
-	  [-P[mM]_s_t_r_i_n_g] [-l_l_o_g_f_i_l_e] [+_c_m_d]  [_f_i_l_e_n_a_m_e]...
+SSYYNNOOPPSSIISS
+     lleessss [[--ccddeeppssttwwmmMMqqQQuuUU]] [[--hh_N]] [[--bb[[ffpp]]_N]] [[--xx_N]] [[--[[zz]]_N]]
+	  [[--PP[[mmMM]]_s_t_r_i_n_g]] [[--ll_l_o_g_f_i_l_e]] [[++_c_m_d]]  [[_f_i_l_e_n_a_m_e]]......
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_e_s_s is a program similar to _m_o_r_e (1), but which allows
      backwards movement in the file as well as forward movement.
      Also, _l_e_s_s does not have to read the entire input file
@@ -28,7 +28,7 @@ DESCRIPTION
      below.  The number is used by some commands, as indicated.
 
 
-COMMANDS
+CCOOMMMMAANNDDSS
      In the following descriptions, ^X means control-X.
 
      h	  Help: display a summary of these commands.  If you for-
@@ -60,7 +60,7 @@ COMMANDS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -126,7 +126,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -192,7 +192,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 
@@ -206,7 +206,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
      ! shell-command
 	  Invokes a shell to run the shell-command given.
 
-OPTIONS
+OOPPTTIIOONNSS
      Command line options are described below.	Most options may
      be changed while _l_e_s_s is running, via the "-" command.
 
@@ -258,7 +258,7 @@ OPTIONS
 
 
 
-Printed 2/16/100						4
+Printed 9/10/24                                                 4
 
 
 
@@ -324,7 +324,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 
 
 
-Printed 2/16/100						5
+Printed 9/10/24                                                 5
 
 
 
@@ -390,7 +390,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 
 
 
-Printed 2/16/100						6
+Printed 9/10/24                                                 6
 
 
 
@@ -414,7 +414,7 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 	  if the data is not "clean", unpredicatable results may
 	  occur.)
 
-     +	  If a command line option begins with +, the remainder
+     +	  If a command line option begins with ++, the remainder
 	  of that option is taken to be an initial command to
 	  _l_e_s_s. For example, +G tells _l_e_s_s to start at the end of
 	  the file rather than the beginning, and +/xyz tells it
@@ -422,14 +422,14 @@ LESS(LOCAL)	    UNIX Programmer's Manual	      LESS(LOCAL)
 	  As a special case, +<number> acts like +<number>g; that
 	  is, it starts the display at the specified line number
 	  (however, see the caveat under the "g" command above).
-	  If the option starts with ++, the initial command
+	  If the option starts with ++++, the initial command
 	  applies to every file being viewed, not just the first
 	  one.	The + command described previously may also be
 	  used to set (or change) an initial command for every
 	  file.
 
 
-BUGS
+BBUUGGSS
      When used on standard input (rather than a file), you can
      move backwards only a finite amount, corresponding to that
      portion of the file which is still buffered.  The -b option
@@ -456,7 +456,7 @@ BUGS
 
 
 
-Printed 2/16/100						7
+Printed 9/10/24                                                 7
 
 
 

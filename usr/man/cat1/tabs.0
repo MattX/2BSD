@@ -5,23 +5,23 @@ TABS(1)             UNIX Programmer's Manual		  TABS(1)
 
 
 
-NAME
+NNAAMMEE
      tabs - set terminal tabs
 
-SYNOPSIS
-     tabs [ -n ] [ terminal ]
+SSYYNNOOPPSSIISS
+     ttaabbss [ --nn ] [ terminal ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_a_b_s sets the tabs on a variety of terminals.  Various ter-
      minal names given in _t_e_r_m(7) are recognized; the default is,
-     however, suitable for most 300 baud terminals.  If the -n
+     however, suitable for most 300 baud terminals.  If the --nn
      flag is present then the left margin is not indented as is
      normal.
 
-SEE ALSO
+SSEEEE AALLSSOO
      stty(1), term(7)
 
-BUGS
+BBUUGGSS
      It's much better to use _t_s_e_t(1).
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

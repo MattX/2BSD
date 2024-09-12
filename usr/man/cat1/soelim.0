@@ -5,13 +5,13 @@ SOELIM(1)	    UNIX Programmer's Manual		SOELIM(1)
 
 
 
-NAME
+NNAAMMEE
      soelim - eliminate .so's from nroff input
 
-SYNOPSIS
-     soelim [ file ...	]
+SSYYNNOOPPSSIISS
+     ssooeelliimm [ file ...	]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_o_e_l_i_m reads the specified files or the standard input and
      performs the textual inclusion implied by the _n_r_o_f_f direc-
      tives of the form
@@ -23,7 +23,7 @@ DESCRIPTION
      it allows the placement of individual tables in separate
      files to be run as a part of a large document.
 
-     An argument consisting of a single minus (-) is taken to be
+     An argument consisting of a single minus (--) is taken to be
      a file name corresponding to the standard input.
 
      Note that inclusion can be suppressed by using `'' instead
@@ -35,10 +35,10 @@ DESCRIPTION
 
 	  soelim exum?.n | tbl | nroff -ms | col | lpr
 
-SEE ALSO
+SSEEEE AALLSSOO
      colcrt(1), more(1)
 
-BUGS
+BBUUGGSS
      The format of the source commands must involve no strange-
      ness - exactly one blank must precede and no blanks follow
      the file name.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 

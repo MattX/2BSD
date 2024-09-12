@@ -5,21 +5,21 @@ FREXP(3)	    UNIX Programmer's Manual		 FREXP(3)
 
 
 
-NAME
+NNAAMMEE
      frexp, ldexp, modf - split into mantissa and exponent
 
-SYNOPSIS
-     double frexp(value, eptr)
-     double value;
-     int *eptr;
+SSYYNNOOPPSSIISS
+     ddoouubbllee ffrreexxpp((vvaalluuee,, eeppttrr))
+     ddoouubbllee vvaalluuee;;
+     iinntt **eeppttrr;;
 
-     double ldexp(value, exp)
-     double value;
+     ddoouubbllee llddeexxpp((vvaalluuee,, eexxpp))
+     ddoouubbllee vvaalluuee;;
 
-     double modf(value, iptr)
-     double value, *iptr;
+     ddoouubbllee mmooddff((vvaalluuee,, iippttrr))
+     ddoouubbllee vvaalluuee,, **iippttrr;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_r_e_x_p returns the mantissa of a double _v_a_l_u_e as a double
      quantity, _x, of magnitude less than 1 and stores an integer
      _n such that _v_a_l_u_e = _x*2_n indirectly through _e_p_t_r.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

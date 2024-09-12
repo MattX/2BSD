@@ -5,20 +5,20 @@ MLABEL(1)           UNIX Programmer's Manual            MLABEL(1)
 
 
 
-NAME
+NNAAMMEE
      mlabel - make an MSDOS volume label
 
-SYNOPSIS
-     mlabel [ -v ] drive:
+SSYYNNOOPPSSIISS
+     mmllaabbeell [ --vv ] drive:
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_l_a_b_e_l displays the current volume label, if present, and
      prompts the user for a new volume label.  To delete an
      existing volume label, press return at the prompt.
 
      _M_l_a_b_e_l will allow the following command line option:
 
-     v    Verbose mode.  Display the new volume label if the
+     vv    Verbose mode.  Display the new volume label if the
           label supplied is invalid.
 
      Reasonable care is taken to create a valid MSDOS volume
@@ -26,7 +26,7 @@ DESCRIPTION
      the label (and display the new label if the verbose mode is
      set).
 
-SEE ALSO
+SSEEEE AALLSSOO
      mformat(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100              local                             1
+Printed 9/10/24               local                             1
 
 
 

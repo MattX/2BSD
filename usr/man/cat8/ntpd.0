@@ -5,27 +5,27 @@ NTPD(8)         Clockwatcher's Programming Manual	  NTPD(8)
 
 
 
-NAME
+NNAAMMEE
      ntpd - time synchronization daemon implementing NTP
 
-SYNOPSIS
-     ntpd [-d] [-s] [-t]
+SSYYNNOOPPSSIISS
+     nnttppdd [-d] [-s] [-t]
 
-OPTIONS
-     -d will bump the debug level by one.  May be specified more
+OOPPTTIIOONNSS
+     --dd will bump the debug level by one.  May be specified more
      than once to increment debug level by one each time.  Has no
-     effect if _n_t_p_d has not been compiled with DEBUG defined.
+     effect if _n_t_p_d has not been compiled with DDEEBBUUGG defined.
 
-     -s will cause _n_t_p_d to not adjust the the local clock.
+     --ss will cause _n_t_p_d to nnoott adjust the the local clock.
 
-     -t will cause _n_t_p_d to modify the value of _t_i_c_k_a_d_j in your
+     --tt will cause _n_t_p_d to modify the value of _t_i_c_k_a_d_j in your
      kernel.  This will have no effect unless _n_t_p_d was compiled
-     with SETTICKADJ defined.
+     with SSEETTTTIICCKKAADDJJ defined.
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _N_T_P_D is the network time synchronization daemon and is nor-
      mally invoked at boot time from the /_e_t_c/_r_c(8) file.  It
-     implements a new revision of the Network Time Protocol first
+     implements a new revision of the NNeettwwoorrkk TTiimmee PPrroottooccooll first
      described in RFC-958.  It maintains the host's time syn-
      chronized with a set of distributed time servers, each with
      varying accurracy and reliability.  Multiple time server
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	27 November 1996			1
+Printed 9/10/24         27 November 1996			1
 
 
 
@@ -86,38 +86,38 @@ NTPD(8)         Clockwatcher's Programming Manual	  NTPD(8)
      configuration file: local host information, and remote timer
      server specification.  The local host information is used to
      describe the intrinsic properties of the local host's time-
-     keeping machinary.  The commands in this group are preci-
-     sion, and tickadj.
+     keeping machinary.  The commands in this group are pprreeccii--
+     ssiioonn,, and ttiicckkaaddjj..
 
-     The precision command takes a number which describes the
+     The pprreecciissiioonn command takes a number which describes the
      resolution of the local clock, as a power of two.	For exam-
      ple, a _V_A_X system typically has a 100 HZ clock and thus a
-     _p_r_e_c_i_s_i_o_n of -7.  If the symbol _hz is defined in the namel-
+     _p_r_e_c_i_s_i_o_n of -7.  If the symbol __hhzz is defined in the namel-
      ist of /vmunix, this value is automatically set based on the
      value of hz.
 
-     The tickadj command is used to specify the granularity of
+     The ttiicckkaaddjj command is used to specify the granularity of
      clock adjustment done by the _a_d_j_t_i_m_e(_2) system call.  If the
-     -s option is specified when ntpd is invoked, the kernel
+     --ss option is specified when ntpd is invoked, the kernel
      variable _tickadj is modified via /_d_e_v/_k_m_e_m.  The preferred
-     method of setting tickadj is by changing the value in the
+     method of setting ttiicckkaaddjj is by changing the value in the
      kernel file _c_o_n_f._c instead of having ntpd set in this rude
      fashion.  On a VAX, a value of 1 is usually used. See the
-     README file for typical values of tickadj on various
+     README file for typical values of ttiicckkaaddjj on various
      hardware platforms.
 
      Currently three timer server specifications are supported.
-     They are peer, server and passive. Each command takes either
+     They are ppeeeerr,, sseerrvveerr and ppaassssiivvee.. Each command takes either
      a dotted-quad internet address or a host name.  Each host
      specified in any one of the three commands is elligable to
      be synchronized to, while random hosts which set up a peer
-     relationship are not.  The peer and server commands create
-     an active polling situation; in the case of peer, the NTP
+     relationship are not.  The ppeeeerr and sseerrvveerr commands create
+     an active polling situation; in the case of ppeeeerr,, the NTP
      packets are sourced in _S_y_m_m_e_t_r_i_c-_A_c_t_i_v_e mode, while using
-     server causes the packets to be in _C_l_i_e_n_t mode.  When
+     sseerrvveerr causes the packets to be in _C_l_i_e_n_t mode.  When
      reachability is lost with a configured host in either of
      these two cases, the daemon will continue to poll to re-
-     acquire that host.  A host specified in the passive command
+     acquire that host.  A host specified in the ppaassssiivvee command
      will not continue to be polled.  If that host begins to poll
      us, it will be eligable as to be synchronized but will not
      be polled if reachability is lost.
@@ -126,7 +126,7 @@ NTPD(8)         Clockwatcher's Programming Manual	  NTPD(8)
 
 
 
-Printed 2/16/100	27 November 1996			2
+Printed 9/10/24         27 November 1996			2
 
 
 
@@ -148,29 +148,29 @@ NTPD(8)         Clockwatcher's Programming Manual	  NTPD(8)
      NTP configuration; _c_l_i_e_n_t specifications are more appropri-
      ate.
 
-NOTES
-     Please choose your NTP peers carefully; send mail to
-     _n_t_p@_T_R_A_N_T_O_R._U_M_D._E_D_U for assitance.
+NNOOTTEESS
+     PPlleeaassee cchhoooossee yyoouurr NNTTPP ppeeeerrss ccaarreeffuullllyy;; sseenndd mmaaiill ttoo
+     _n_t_p@_T_R_A_N_T_O_R._U_M_D._E_D_U ffoorr aassssiittaannccee..
 
-     There exists a broadcast command which will exercise com-
+     There exists a bbrrooaaddccaasstt command which will exercise com-
      pletely untested code.  Use at your own risk.
 
-     There is no reason to believe that the hpux code which was
+     There is no reason to believe that the hhppuuxx code which was
      added still works.  In general, this code and adaptations of
      the NTPD to platforms without the _a_d_j_t_i_m_e(_2) system call are
      not likely to be very satisfying.
 
-BUGS
+BBUUGGSS
      No doubt.
 
-FILES
+FFIILLEESS
      /etc/ntp.conf  NTP daemon configuration file
 
-SEE ALSO
+SSEEEE AALLSSOO
      adjtime(2), settimeofday(2), RFC-958, _N_e_t_w_o_r_k _T_i_m_e _P_r_o_t_o_c_o_l
      (_V_e_r_s_i_o_n _1) _S_p_e_c_i_f_i_c_a_t_i_o_n _R_e_v_i_s_e_d _1_7 _S_e_p_t_e_m_b_e_r _1_9_8_8
 
-AUTHORS
+AAUUTTHHOORRSS
      Louis A. Mamakos, _l_o_u_i_e@_T_R_A_N_T_O_R._U_M_D._E_D_U
      Michael G. Petry, _p_e_t_r_y@_T_R_A_N_T_O_R._U_M_D._E_D_U
      The University of Maryland, Computer Science Center.
@@ -192,7 +192,7 @@ AUTHORS
 
 
 
-Printed 2/16/100	27 November 1996			3
+Printed 9/10/24         27 November 1996			3
 
 
 

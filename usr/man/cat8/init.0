@@ -5,13 +5,13 @@ INIT(8)             UNIX Programmer's Manual		  INIT(8)
 
 
 
-NAME
+NNAAMMEE
      init - process control initialization
 
-SYNOPSIS
-     /etc/init
+SSYYNNOOPPSSIISS
+     //eettcc//iinniitt
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_n_i_t is invoked inside UNIX as the last step in the boot
      procedure.  It normally then runs the automatic reboot
      sequence as described in _r_e_b_o_o_t(8), and if this succeeds,
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 27, 1996			1
+Printed 9/10/24         November 27, 1996			1
 
 
 
@@ -87,23 +87,23 @@ INIT(8)             UNIX Programmer's Manual		  INIT(8)
      _i_n_i_t process cannot be located, the system will loop in user
      mode at location 0x13.
 
-DIAGNOSTICS
-     /usr/libexec/getty _g_e_t_t_y_a_r_g_s failing, sleeping.  A process
+DDIIAAGGNNOOSSTTIICCSS
+     //uussrr//lliibbeexxeecc//ggeettttyy _g_e_t_t_y_a_r_g_s ffaaiilliinngg,, sslleeeeppiinngg.  A process
      being started to service a line is exiting quickly each time
      it is started.  This is often caused by a ringing or noisy
      terminal line.  _I_n_i_t _w_i_l_l _s_l_e_e_p _f_o_r _3_0 _s_e_c_o_n_d_s,
 
-     WARNING: Something is hung (wont die); ps axl advised.  A
+     WWAARRNNIINNGG:: SSoommeetthhiinngg iiss hhuunngg ((wwoonntt ddiiee));; ppss aaxxll aaddvviisseedd.  A
      process is hung and could not be killed when the system was
      shutting down.  This is usually caused by a process which is
      stuck in a device driver due to a persistent device error
      condition.
 
-FILES
+FFIILLEESS
      /dev/console, /dev/tty*, /var/run/utmp, /usr/adm/wtmp,
      /etc/ttys, /etc/rc
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1), kill(1), sh(1), ttys(5), crash(8), getty(8),
      rc(8), reboot(8), halt(8), shutdown(8)
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 27, 1996			2
+Printed 9/10/24         November 27, 1996			2
 
 
 

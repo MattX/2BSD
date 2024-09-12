@@ -5,13 +5,13 @@ LEX(1)		    UNIX Programmer's Manual		   LEX(1)
 
 
 
-NAME
+NNAAMMEE
      lex - generator of lexical analysis programs
 
-SYNOPSIS
-     lex [ -tvfn ] [ file ] ...
+SSYYNNOOPPSSIISS
+     lleexx [ --ttvvffnn ] [ file ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_e_x generates programs to be used in simple lexical analyis
      of text.  The input _f_i_l_e_s (standard input default) contain
      regular expressions to be searched for, and actions written
@@ -28,18 +28,18 @@ DESCRIPTION
 
      The options have the following meanings.
 
-     -t   Place the result on the standard output instead of in
+     --tt   Place the result on the standard output instead of in
 	  file "lex.yy.c".
 
-     -v   Print a one-line summary of statistics of the generated
+     --vv   Print a one-line summary of statistics of the generated
 	  analyzer.
 
-     -n   Opposite of -v; -n is default.
+     --nn   Opposite of --vv; --nn is default.
 
-     -f   "Faster" compilation: don't bother to pack the result-
+     --ff   "Faster" compilation: don't bother to pack the result-
 	  ing tables; limited to small programs.
 
-EXAMPLE
+EEXXAAMMPPLLEE
 	  lex lexcommands
 
      would draw _l_e_x instructions from the file _l_e_x_c_o_m_m_a_n_d_s, and
@@ -60,7 +60,7 @@ EXAMPLE
 
 
 
-Printed 2/16/100	 April 14, 1986                         1
+Printed 9/10/24          April 14, 1986                         1
 
 
 
@@ -71,7 +71,7 @@ LEX(1)		    UNIX Programmer's Manual		   LEX(1)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      yacc(1), sed(1)
      M. E. Lesk and E. Schmidt, _L_E_X - _L_e_x_i_c_a_l _A_n_a_l_y_z_e_r _G_e_n_e_r_a_t_o_r
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 14, 1986                         2
+Printed 9/10/24          April 14, 1986                         2
 
 
 

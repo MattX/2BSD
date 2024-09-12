@@ -5,14 +5,14 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-NAME
+NNAAMMEE
      tcsh - C shell with file name completion and command line
      editing
 
-SYNOPSIS
-     tcsh [ -bcdefilmnqstvVxX ] [ _a_r_g_u_m_e_n_t ... ]
+SSYYNNOOPPSSIISS
+     ttccsshh [ --bbccddeeffiillmmnnqqssttvvVVxxXX ] [ _a_r_g_u_m_e_n_t ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _T_c_s_h is an enhanced version of the Berkeley UNIX C shell
      _c_s_h(1).  It behaves exactly like the C shell, except for the
      added utilities of:
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 11/25/19	27 November 1996			1
+Printed 9/10/24         27 November 1996			1
 
 
 
@@ -110,7 +110,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      For a description of standard C-shell features, see the _c_s_h
      manual page.
 
-1. COMMAND LINE EDITING
+11.. CCOOMMMMAANNDD LLIINNEE EEDDIITTIINNGG
      Commands that the user types in may be edited using the same
      control characters that Gnu Emacs or vi uses.  Arrow and
      function key sequences are also allowed.  _T_c_s_h allows this
@@ -126,7 +126,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			2
+Printed 9/10/24         27 November 1996			2
 
 
 
@@ -162,15 +162,15 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      In strings control characters may be written as caret-
      <letter> and backslash ("\") is used to escape a character
      as follows:
-	  \a   bell character
-	  \n   line feed (new line)
-	  \b   back space
-	  \t   horizontal tab
-	  \v   vertical tab
-	  \f   form feed
-	  \r   carriage return
-	  \e   escape
-	  \nnn character code in octal
+	  \\aa   bell character
+	  \\nn   line feed (new line)
+	  \\bb   back space
+	  \\tt   horizontal tab
+	  \\vv   vertical tab
+	  \\ff   form feed
+	  \\rr   carriage return
+	  \\ee   escape
+	  \\nnnnnn character code in octal
      In all other cases \ escapes the following character. Needed
      for escaping the special meaning of \ and ^.  Delete is
      written as "^?" (caret-question mark).
@@ -192,7 +192,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			3
+Printed 9/10/24         27 November 1996			3
 
 
 
@@ -258,7 +258,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			4
+Printed 9/10/24         27 November 1996			4
 
 
 
@@ -324,7 +324,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			5
+Printed 9/10/24         27 November 1996			5
 
 
 
@@ -390,7 +390,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			6
+Printed 9/10/24         27 November 1996			6
 
 
 
@@ -456,7 +456,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			7
+Printed 9/10/24         27 November 1996			7
 
 
 
@@ -498,7 +498,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      If you give bind the single argument of 'defaults', it
      resets each key to its default value (see the above list).
 
-2. VISUAL HISTORY
+22.. VVIISSUUAALL HHIISSTTOORRYY
      The keys ^P and ^N are used to step up and down the history
      list.  If the user has typed in the following:
 
@@ -522,7 +522,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			8
+Printed 9/10/24         27 November 1996			8
 
 
 
@@ -546,7 +546,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      history.  Expand-history is normally bound to _M-<_s_p_a_c_e> and
      magic-space is not bound.
 
-3. TTY MODE SANITY
+33.. TTTTYY MMOODDEE SSAANNIITTYY
      As part of the editor, _t_c_s_h does a check and reset of the
      terminal mode bits.  If the speed has been changed, then
      _t_c_s_h will change to using that speed.  _T_c_s_h will also obey
@@ -556,7 +556,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      will automatically turn off RAW and CBREAK modes, and will
      turn on the tty driver's output processing.
 
-4. WORD COMPLETION
+44.. WWOORRDD CCOOMMPPLLEETTIIOONN
      In typing commands, it is no longer necessary to type a com-
      plete name, only a unique abbreviation is necessary.  When
      you type a TAB to _t_c_s_h it will complete the name for you,
@@ -588,7 +588,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996			9
+Printed 9/10/24         27 November 1996			9
 
 
 
@@ -654,7 +654,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       10
+Printed 9/10/24         27 November 1996		       10
 
 
 
@@ -712,7 +712,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      variable is set, the spelling correction is attempted for
      any path components up to the completion point.
 
-5. LISTING OF POSSIBLE NAMES
+55.. LLIISSTTIINNGG OOFF PPOOSSSSIIBBLLEE NNAAMMEESS
      At any point in typing a command, you may request "what
      names are available".  Thus, when you have typed, perhaps:
 
@@ -720,7 +720,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       11
+Printed 9/10/24         27 November 1996		       11
 
 
 
@@ -775,7 +775,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 	   > vi *.c[^X*]
 	   > vi foo.c bar.c
 
-Command Name Recognition
+CCoommmmaanndd NNaammee RReeccooggnniittiioonn
      Command name recognition and completion works in the same
      manner as file name recognition and completion above.  The
      current value of the environment variable _P_A_T_H is used in
@@ -786,7 +786,7 @@ Command Name Recognition
 
 
 
-Printed 11/25/19	27 November 1996		       12
+Printed 9/10/24         27 November 1996		       12
 
 
 
@@ -818,7 +818,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      Meta-Control-D should be typed (Escape followed by Control-
      D).
 
-6. SPELLING CORRECTION
+66.. SSPPEELLLLIINNGG CCOORRRREECCTTIIOONN
      If while typing a command, the user mistypes or misspells a
      file name, user name, or command name, _t_c_s_h can correct the
      spelling.	When correcting a file name, each part of the
@@ -852,7 +852,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       13
+Printed 9/10/24         27 November 1996		       13
 
 
 
@@ -881,7 +881,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      tary fashion. It is mostly provided as an experimental
      feature. Suggestions and improvements are welcome.
 
-7. DOCUMENTATION LOOKUP
+77.. DDOOCCUUMMEENNTTAATTIIOONN LLOOOOKKUUPP
      The editor function _r_u_n-_h_e_l_p (M-h) prints a help file on the
      current command (using the same definition of current as the
      completion routines use).	This help file is found by
@@ -892,7 +892,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      be used to look up short help files, not manual pages
      (although it can do manual pages also).
 
-8. ENHANCED HISTORY MECHANISM
+88.. EENNHHAANNCCEEDD HHIISSTTOORRYY MMEECCHHAANNIISSMM
      _T_c_s_h will save the history list between login sessions.  It
      does this by writing the current list to the file "~/.his-
      tory" on logout, and reading it in on login.  For example,
@@ -918,7 +918,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       14
+Printed 9/10/24         27 November 1996		       14
 
 
 
@@ -958,7 +958,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      used.
 
 
-9. AUTOMATIC LOGOUT
+99.. AAUUTTOOMMAATTIICC LLOOGGOOUUTT
      The automatic logout time is controlled by the variable
      _a_u_t_o_l_o_g_o_u_t, the value of which is the number of minutes of
      inactivity will be allowed before automatically logging the
@@ -969,7 +969,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      disable autologout (for instance in a window system), unset
      the shell variable _a_u_t_o_l_o_g_o_u_t.
 
-10. EXECUTION OF A COMMAND PRIOR TO EACH PROMPT
+1100.. EEXXEECCUUTTIIOONN OOFF AA CCOOMMMMAANNDD PPRRIIOORR TTOO EEAACCHH PPRROOMMPPTT
      _T_c_s_h supports a special alias, _p_r_e_c_m_d, which if set holds a
      command that will be executed before printing each prompt.
      For example, if the user has done
@@ -984,7 +984,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       15
+Printed 9/10/24         27 November 1996		       15
 
 
 
@@ -995,7 +995,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-11. PERIODIC COMMAND EXECUTION
+1111.. PPEERRIIOODDIICC CCOOMMMMAANNDD EEXXEECCUUTTIIOONN
      _T_c_s_h is now capable of providing periodic command execution
      through the use of the shell variable _t_p_e_r_i_o_d and the alias
      _p_e_r_i_o_d_i_c. When these items are set, the alias _p_e_r_i_o_d_i_c will
@@ -1011,7 +1011,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      _t_p_e_r_i_o_d (or a value of 0 for _t_p_e_r_i_o_d) will cause _p_e_r_i_o_d_i_c to
      degenerate to another form of _p_r_e_c_m_d.
 
-12. NEW PROMPT FORMAT
+1122.. NNEEWW PPRROOMMPPTT FFOORRMMAATT
      The format for the _p_r_o_m_p_t shell variable has been changed to
      include many new things, such as the current time of day,
      current working directory, etc..  The new format uses
@@ -1050,7 +1050,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       16
+Printed 9/10/24         27 November 1996		       16
 
 
 
@@ -1099,7 +1099,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      (y|n)? ".
 
 
-13. TIME-STAMPED HISTORY LIST
+1133.. TTIIMMEE--SSTTAAMMPPEEDD HHIISSTTOORRYY LLIISSTT
      The history list in _t_c_s_h now has a time-of-day stamp
      attached to each history list event.  This time stamp is
      printed whenever the history command is executed.	This
@@ -1111,12 +1111,12 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      can be omitted from the history list by adding the -t switch
      to the _h_i_s_t_o_r_y command.
 
-14. DIRECTORY ACCESS
+1144.. DDIIRREECCTTOORRYY AACCCCEESSSS
      _T_c_s_h supports three new flags to control directory style
 
 
 
-Printed 11/25/19	27 November 1996		       17
+Printed 9/10/24         27 November 1996		       17
 
 
 
@@ -1182,7 +1182,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       18
+Printed 9/10/24         27 November 1996		       18
 
 
 
@@ -1240,7 +1240,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      In case you are wondering what happens when you set both,
      _i_g_n_o_r_e__s_y_m_l_i_n_k_s will override _c_h_a_s_e__s_y_m_l_i_n_k_s.
 
-15. WATCHING FOR LOGINS AND LOGOUTS
+1155.. WWAATTCCHHIINNGG FFOORR LLOOGGIINNSS AANNDD LLOOGGOOUUTTSS
      _T_c_s_h has a mechanism so that the user can watch for login
      and logout activity of any user or terminal in the system.
      This is accomplished using the new special shell variable
@@ -1248,7 +1248,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       19
+Printed 9/10/24         27 November 1996		       19
 
 
 
@@ -1314,7 +1314,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       20
+Printed 9/10/24         27 November 1996		       20
 
 
 
@@ -1351,7 +1351,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      set, the format defaults to "%n has %a %l from %m.", or "%n
      has %a %l." on systems that don't store the hostname.
 
-16. TIMED EVENT LIST
+1166.. TTIIMMEEDD EEVVEENNTT LLIISSTT
      _T_c_s_h now supports a scheduled-event list through the use of
      the command _s_c_h_e_d. This command gives the user a mechanism
      by which to arrange for other commands to be executed at
@@ -1380,7 +1380,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       21
+Printed 9/10/24         27 November 1996		       21
 
 
 
@@ -1434,7 +1434,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      mechanism for changing one's working environment based on
      the time of day.
 
-17. BUILTIN FOR ls -F
+1177.. BBUUIILLTTIINN FFOORR llss --FF
      There is a new builtin command called _l_s-_F which does the
      same thing as the command "ls -aF" if the shell variable
      _s_h_o_w_d_o_t_s has been set, and acts like "ls -F" otherwise. Ls-F
@@ -1446,7 +1446,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       22
+Printed 9/10/24         27 November 1996		       22
 
 
 
@@ -1491,7 +1491,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      mounting of filesystems if the symbolic links point to an
      NFS automounted partition.
 
-18. GLOBBING SYNTAX ADDITIONS
+1188.. GGLLOOBBBBIINNGG SSYYNNTTAAXX AADDDDIITTIIOONNSS
      The syntax for any character in a range (for example ".[a-
      z]*") has been extended so as to conform with standard Unix
      regular expression syntax (see _e_d(1)).  Specifically, after
@@ -1512,7 +1512,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       23
+Printed 9/10/24         27 November 1996		       23
 
 
 
@@ -1535,7 +1535,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      does not have any wildcard characters (?*[]) or if the
      expression has braces {}.
 
-19. NEW ENVIRONMENT AND SHELL VARIABLES
+1199.. NNEEWW EENNVVIIRROONNMMEENNTT AANNDD SSHHEELLLL VVAARRIIAABBLLEESS
      On startup, _t_c_s_h now automatically initializes the environ-
      ment variable _H_O_S_T to the name of the machine that it is
      running on.  It does this by doing a _g_e_t_h_o_s_t_n_a_m_e(2) system
@@ -1578,7 +1578,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       24
+Printed 9/10/24         27 November 1996		       24
 
 
 
@@ -1626,7 +1626,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      Domain/OS _t_c_s_h will also set _o_i_d indicating the current real
      organization id.
 
-20. COMMANDS FOR DEBUGGING
+2200.. CCOOMMMMAANNDDSS FFOORR DDEEBBUUGGGGIINNGG
      Only two such commands are available at this point, both
      concerned with testing termcap entries.
      _t_e_l_l_t_c tells you, politely, what _t_c_s_h thinks of your termi-
@@ -1635,7 +1635,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      the value `value'. No checking for sanity is performed, so
      beware of improper use.
 
-21. SEARCHING FOR THE VISUAL HISTORY
+2211.. SSEEAARRCCHHIINNGG FFOORR TTHHEE VVIISSUUAALL HHIISSTTOORRYY
      Two new editor functions have been added: history-search-
      backward, bound to M-p (and M-P), and history-search-
      forward, bound to M-n (and M-N).  Each of these search back-
@@ -1644,7 +1644,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       25
+Printed 9/10/24         27 November 1996		       25
 
 
 
@@ -1676,7 +1676,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      bing pattern. Successive history searches use the same pat-
      tern.
 
-22. BUILTIN WHICH(1) COMMAND
+2222.. BBUUIILLTTIINN WWHHIICCHH((11)) CCOOMMMMAANNDD
      There is now a builtin version of the _w_h_i_c_h(1) command.  The
      builtin version is just like the original, except that it
      correctly reports aliases peculiar to this _t_c_s_h, and builtin
@@ -1687,7 +1687,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      where on the command line, and will in effect do a 'which'
      on the command name.
 
-23. RESTARTING A STOPPED EDITOR
+2233.. RREESSTTAARRTTIINNGG AA SSTTOOPPPPEEDD EEDDIITTOORR
      There is another new editor function: run-fg-editor, which
      is bound to _M-^_Z.	When typed, it saves away the current
      input buffer, and looks for a stopped job with a name equal
@@ -1699,7 +1699,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      the shell easily.	Some people bind this function to ^_Z so
      they can do this even more easily.
 
-24. STATUS LINE SUPPORT
+2244.. SSTTAATTUUSS LLIINNEE SSUUPPPPOORRTT
      _T_c_s_h has a new builtin called _e_c_h_o_t_c that allows the user to
      access the terminal capabilities from the command line,
      similar to the system V _t_p_u_t(1).
@@ -1710,7 +1710,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       26
+Printed 9/10/24         27 November 1996		       26
 
 
 
@@ -1759,8 +1759,8 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      empty string if the capability is not found.
 
 
-25. EXECUTION OF A COMMAND AFTER CHANGING THE CURRENT WORKING
-     DIRECTORY
+2255.. EEXXEECCUUTTIIOONN OOFF AA CCOOMMMMAANNDD AAFFTTEERR CCHHAANNGGIINNGG TTHHEE CCUURRRREENNTT WWOORRKKIINNGG
+     DDIIRREECCTTOORRYY
      _T_c_s_h now supports a special alias, _c_w_d_c_m_d, which if set
      holds a command that will be executed after changing the
      value of $cwd.  For example, if the user is running on an X
@@ -1776,7 +1776,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       27
+Printed 9/10/24         27 November 1996		       27
 
 
 
@@ -1789,7 +1789,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
      user will get what he deserves.
 
-26. NATIVE LANGUAGE SYSTEM
+2266.. NNAATTIIVVEE LLAANNGGUUAAGGEE SSYYSSTTEEMM
      _T_c_s_h is eight bit clean (if so compiled, see the description
      of the _v_e_r_s_i_o_n shell variable below), and will thus support
      character sets needing this capability.  The _t_c_s_h support
@@ -1834,7 +1834,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      in 8 bit mode through the appropriate _s_t_t_y(1) command in
      e.g. the .login file.
 
-27. AUTOMATIC PROCESS TIME REPORTING
+2277.. AAUUTTOOMMAATTIICC PPRROOCCEESSSS TTIIMMEE RREEPPOORRTTIINNGG
      Automatic process time reporting is a feature that exists in
      _c_s_h, but it is usually not documented. In addition _t_c_s_h pro-
      vides a slightly enriched syntax. Process time reports are
@@ -1842,7 +1842,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       28
+Printed 9/10/24         27 November 1996		       28
 
 
 
@@ -1908,7 +1908,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       29
+Printed 9/10/24         27 November 1996		       29
 
 
 
@@ -1928,29 +1928,29 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      $E %P %I+%Oio %Fpf+%Ww". Also note that the CPU percentage
      can be higher than 100% on multi-processors.
 
-28. OS/DEPENDENT BUILTIN SUPPORT
+2288.. OOSS//DDEEPPEENNDDEENNTT BBUUIILLTTIINN SSUUPPPPOORRTT
      _T_R_A_N_S_P_A_R_E_N_T _C_O_M_P_U_T_I_N_G _F_A_C_I_L_I_T_Y
 
      On systems that support TCF (aix-ibm370, aix-ps2) the fol-
      lowing builtins have been added:
 
-     getspath  Print the current system execution path.
+     ggeettssppaatthh  Print the current system execution path.
 
-     setspath LOCAL|<site>|<cpu> ...
+     sseettssppaatthh LLOOCCAALL||<<ssiittee>>||<<ccppuu>> ......
 	       Set the current execution path.
 
 
-     getxvers  Print the current experimental version prefix.
+     ggeettxxvveerrss  Print the current experimental version prefix.
 
 
-     setxvers [<string>]
+     sseettxxvveerrss [[<<ssttrriinngg>>]]
 	       If the optional string is ommited, any experimen-
 	       tal version prefix is removed.  Otherwise the
 	       experimental version prefix is set to string.
 
 
-     migrate [-<site>] <pid>|%<jobid> ...
-     migrate -<site>
+     mmiiggrraattee [[--<<ssiittee>>]] <<ppiidd>>||%%<<jjoobbiidd>> ......
+     mmiiggrraattee --<<ssiittee>>
 	       The first form migrates the process or job to the
 	       site specified or the default site determined by
 	       the system path.  The second form, is equivalent
@@ -1964,17 +1964,17 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
      _D_o_m_a_i_n/_O_S _S_u_p_p_o_r_t
 
-     inlib <shared-library> ...
+     iinnlliibb <<sshhaarreedd--lliibbrraarryy>> ......
 	  Inlib adds shared libraries to the current enviroment.
 	  There is no way to remove them...
 
-     rootnode //<nodename>
+     rroooottnnooddee ////<<nnooddeennaammee>>
 	  Change the name of the current rootnode. From now on, /
 	  will resolve to //<_r_o_o_t_n_o_d_e>
 
 
 
-Printed 11/25/19	27 November 1996		       30
+Printed 9/10/24         27 November 1996		       30
 
 
 
@@ -1985,7 +1985,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-     ver [<systype>] [<command>]
+     vveerr [[<<ssyyssttyyppee>>]] [[<<ccoommmmaanndd>>]]
 	  Without arguments, print $_S_Y_S_T_Y_P_E; with the <_s_y_s_t_y_p_e>
 	  provided, set _S_Y_S_T_Y_P_E to the one provided. Valid sys-
 	  types are bsd4.3 and sys5.3. If a <_c_o_m_m_a_n_d> is argument
@@ -1994,23 +1994,23 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
      _M_a_c_h
 
-     setpath <path-spec> ...
+     sseettppaatthh <<ppaatthh--ssppeecc>> ......
 	  XXX: What does it do?
 
      _M_a_s_s_c_o_m_p/_R_T_U
 
-     universe <universe-spec> ...
+     uunniivveerrssee <<uunniivveerrssee--ssppeecc>> ......
 	  Sets the current universe to the specified parameter.
 
      _C_o_n_v_e_x/_O_S
 
-     warp [<universe-spec>] ...
+     wwaarrpp [[<<uunniivveerrssee--ssppeecc>>]] ......
 	  Without arguments prints the current value of the
 	  universe. With a universe argument it sets the current
 	  universe to the value of the argument.
 
 
-29. WINDOW SIZE TRACKING
+2299.. WWIINNDDOOWW SSIIZZEE TTRRAACCKKIINNGG
      On systems that support SIGWINCH or SIGWINDOW, _t_c_s_h adapts
      to window resizing automatically and adjusts the environment
      variables LINES and COLUMNS if set. Also if the environment
@@ -2018,7 +2018,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      adjusted also to reflect the new window size.
 
 
-30. INPUT FILES
+3300.. IINNPPUUTT FFIILLEESS
      On startup _t_c_s_h will try to source /_e_t_c/_c_s_h._c_s_h_r_c and then
      /_e_t_c/_c_s_h._l_o_g_i_n if the shell is a login shell. Then it will
      try to source $_H_O_M_E/._t_c_s_h_r_c and then $_H_O_M_E/._c_s_h_r_c if
@@ -2033,14 +2033,14 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      shell is a login shell.
 
 
-31. COMMAND LINE OPTIONS
+3311.. CCOOMMMMAANNDD LLIINNEE OOPPTTIIOONNSS
      This section describes options that are either undocumented
      in _c_s_h (*) or present only in _t_c_s_h. (+)
 
 
 
 
-Printed 11/25/19	27 November 1996		       31
+Printed 9/10/24         27 November 1996		       31
 
 
 
@@ -2064,7 +2064,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 	 used under a debugger.  Job control is disabled. (*)
 
 
-FYI
+FFYYII
      This shell uses cbreak mode but takes typed-ahead characters
      anyway.  You can still use _s_t_t_y(1) to set some of the modes
      of your terminal (but not bindings).
@@ -2073,7 +2073,7 @@ FYI
      appears to return from some command in raw, cbreak, or noe-
      cho mode.
 
-ENVIRONMENT
+EENNVVIIRROONNMMEENNTT
      HPATH -- path to look for command documentation
      LANG -- used to give preferred character environment (see
      NLS)
@@ -2089,24 +2089,24 @@ ENVIRONMENT
      TERMCAP -- Terminal capability string (see WINDOW SIZE)
      SYSTYPE -- The current system type (Domain OS only)
 
-NEW SHELL VARIABLES
-     addsuffix add a / for directories, and a space for normal
+NNEEWW SSHHEELLLL VVAARRIIAABBLLEESS
+     aaddddssuuffffiixx add a / for directories, and a space for normal
 	       files when complete matches a name exactly.  If
 	       unset don't add anything extra.
 
-     ampm      show all times in 12 hour, AM/PM format.
+     aammppmm      show all times in 12 hour, AM/PM format.
 
-     autocorrect
+     aauuttooccoorrrreecctt
 	       Correct mis-spelled path components automatically
 	       before attempting completion.
 
-     autoexpand
+     aauuttooeexxppaanndd
 	       invoke the expand-history function automatically
 	       on completion.
 
 
 
-Printed 11/25/19	27 November 1996		       32
+Printed 9/10/24         27 November 1996		       32
 
 
 
@@ -2117,31 +2117,31 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-     autolist  list possibilities on an ambiguous completion.
+     aauuttoolliisstt  list possibilities on an ambiguous completion.
 
-     autologout
+     aauuttoollooggoouutt
 	       number of minutes of inactivity before automatic
 	       logout.
 
-     chase_symlinks
+     cchhaassee__ssyymmlliinnkkss
 	       always resolve symbolic links to real names on cd,
 	       etc.
 
-     correct   automatically try to correct the spelling of com-
+     ccoorrrreecctt   automatically try to correct the spelling of com-
 	       mands.  Must be set to either correct=cmd, only
 	       command name will be corrected, or correct=all,
 	       the whole line will be corrected.
 
-     dextract  extract a directory on pushd rather than rotating.
+     ddeexxttrraacctt  extract a directory on pushd rather than rotating.
 
-     edit      use the input editor, set by default.
+     eeddiitt      use the input editor, set by default.
 
-     fignore   list of file name suffixes (e.g. .o, ~) to ignore
+     ffiiggnnoorree   list of file name suffixes (e.g. .o, ~) to ignore
 	       during complete.
 
-     gid       the current real group id.
+     ggiidd       the current real group id.
 
-     histlit   If set, history lines in the editor will be shown
+     hhiissttlliitt   If set, history lines in the editor will be shown
 	       with its literal value (that is the line as it was
 	       input) instead of the shells lexical version. The
 	       current history line can be toggled between
@@ -2149,20 +2149,20 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 	       history function.  History lines saved at shell
 	       exit are also saved as this variable indicates.
 
-     ignore_symlinks
+     iiggnnoorree__ssyymmlliinnkkss
 	       don't resolve symbolic links to real names on cd,
 	       etc.
 
-     listjobs  list all jobs when suspending. set listjobs=long,
+     lliissttjjoobbss  list all jobs when suspending. set listjobs=long,
 	       produces long format.
 
-     listlinks Resolve symbolic links when listing files so that
+     lliissttlliinnkkss Resolve symbolic links when listing files so that
 	       the correct filetype is shown.
 
-     listmax   maximum number of items to list without asking
+     lliissttmmaaxx   maximum number of items to list without asking
 	       first.
 
-     matchbeep control beeping on completion.  With
+     mmaattcchhbbeeeepp control beeping on completion.  With
 	       matchbeep=nomatch, completion only beeps when
 	       there is no match, with matchbeep=ambiguous, beeps
 	       also when there are multiple matches, with
@@ -2172,7 +2172,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       33
+Printed 9/10/24         27 November 1996		       33
 
 
 
@@ -2183,62 +2183,62 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-     nobeep    Disables beeping completely.
+     nnoobbeeeepp    Disables beeping completely.
 
-     oid       The organization id number (Domain OS only).
+     ooiidd       The organization id number (Domain OS only).
 
-     printexitvalue
+     pprriinntteexxiittvvaalluuee
 	       if an interactive program exits non-zero, print
 	       the exit value.
 
-     prompt    the string to prompt with.
+     pprroommpptt    the string to prompt with.
 
-     prompt2   the string to prompt for while and for loops with.
+     pprroommpptt22   the string to prompt for while and for loops with.
 
-     prompt3   the string to prompt with when automatic spelling
+     pprroommpptt33   the string to prompt with when automatic spelling
 	       correction has corrected a command line.
 
-     pushdtohome
+     ppuusshhddttoohhoommee
 	       make pushd with no args do a "pushd ~" (like cd
 	       does).
 
-     pushdsilent
+     ppuusshhddssiilleenntt
 	       do not print the dir stack on every pushd and
 	       popd.
 
-     recexact  recognize exact matches even if they are ambigu-
+     rreecceexxaacctt  recognize exact matches even if they are ambigu-
 	       ous.
 
-     recognize_only_executables
+     rreeccooggnniizzee__oonnllyy__eexxeeccuuttaabblleess
 	       list choices of commands only displays files in
 	       the path that are executable (slow).
 
-     rmstar    Prompt the user before execution of `rm *'.
+     rrmmssttaarr    Prompt the user before execution of `rm *'.
 
-     savehist  number of history items to save between login ses-
+     ssaavveehhiisstt  number of history items to save between login ses-
 	       sions.
 
-     shlvl     Integer value indicating the number of nested
+     sshhllvvll     Integer value indicating the number of nested
 	       shells.
 
-     showdots  show hidden files in list and complete operations.
+     sshhoowwddoottss  show hidden files in list and complete operations.
 
-     tcsh      Contains the current version of the shell as
+     ttccsshh      Contains the current version of the shell as
 	       R.VV.PP. The _R indicates the major release number,
 	       the _V_V the current version and the _P_P the
 	       patchlevel.
 
-     term      the terminal type; see above.
+     tteerrmm      the terminal type; see above.
 
-     tperiod   periodic command wait period (in minutes).
+     ttppeerriioodd   periodic command wait period (in minutes).
 
-     tty       The name of the tty, or empty if not attached to
+     ttttyy       The name of the tty, or empty if not attached to
 	       one.
 
 
 
 
-Printed 11/25/19	27 November 1996		       34
+Printed 9/10/24         27 November 1996		       34
 
 
 
@@ -2249,9 +2249,9 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-     uid       the current real user ID.
+     uuiidd       the current real user ID.
 
-     version   the version ID stamp for this _t_c_s_h. It contains,
+     vveerrssiioonn   the version ID stamp for this _t_c_s_h. It contains,
 	       the origin of this version of _t_c_s_h, the date this
 	       version was released and a string containing a
 	       comma separated list of the compile time options
@@ -2283,28 +2283,28 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      local strings to indicate differences in the local version.
 
 
-     visiblebell
+     vviissiibblleebbeellll
 	       use the visible bell (screen flash) rather than
 	       audible bell.
 
-     watch     list of events to watch.
+     wwaattcchh     list of events to watch.
 
-     who       format string for the printouts generated when
+     wwhhoo       format string for the printouts generated when
 	       _w_a_t_c_h is set.
 
-     wordchars list of nonalphanumeric characters considered part
+     wwoorrddcchhaarrss list of nonalphanumeric characters considered part
 	       of a word for the purpose of the forward-word,
 	       backward-word etc functions -- defaults to "*?_-
 	       .[]~=".
 
-NEW SPECIAL ALIASES
+NNEEWW SSPPEECCIIAALL AALLIIAASSEESS
      _c_w_d_c_m_d    the command is run after every change of working
 	       directory.
 
 
 
 
-Printed 11/25/19	27 November 1996		       35
+Printed 9/10/24         27 November 1996		       35
 
 
 
@@ -2320,10 +2320,10 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      _p_r_e_c_m_d    the command to be run prior to printing each
 	       prompt.
 
-SEE ALSO
+SSEEEE AALLSSOO
      csh(1), chsh(1), termcap(5)
 
-BUGS
+BBUUGGSS
      The screen update for lines longer than the screen width is
      very poor if the terminal cannot move the cursor up (i.e.
      terminal type "dumb").
@@ -2332,10 +2332,10 @@ BUGS
      fixes) should be sent to Christos Zoulas
      (christos@ee.cornell.edu).
 
-VERSION
+VVEERRSSIIOONN
      This man page documents tcsh 6.00.00 (Cornell) 07/04/91.
 
-AUTHORS
+AAUUTTHHOORRSS
      Ken Greer, HP Labs, 1981
      Wrote the command completion.
 
@@ -2370,7 +2370,7 @@ AUTHORS
 
 
 
-Printed 11/25/19	27 November 1996		       36
+Printed 9/10/24         27 November 1996		       36
 
 
 
@@ -2388,7 +2388,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      Re-ported tcsh to A/UX.
 
 
-BUGFIXES AND ENHANCEMENTS
+BBUUGGFFIIXXEESS AANNDD EENNHHAANNCCEEMMEENNTTSS
      Eric Schnoebelen, Convex, 1990
      Convex support, lots of csh bug fixes, save and restore of
      directory stack.
@@ -2436,7 +2436,7 @@ BUGFIXES AND ENHANCEMENTS
 
 
 
-Printed 11/25/19	27 November 1996		       37
+Printed 9/10/24         27 November 1996		       37
 
 
 
@@ -2502,7 +2502,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
 
 
 
-Printed 11/25/19	27 November 1996		       38
+Printed 9/10/24         27 November 1996		       38
 
 
 
@@ -2521,7 +2521,7 @@ TCSH(1)             UNIX Programmer's Manual		  TCSH(1)
      Various bugfixes and improvements, e.g. in history expan-
      sion, autolist, added autoexpand, updated the manual.
 
-THANKS TO
+TTHHAANNKKSS TTOO
      A special thanks to: Bryan Dunlap, Clayton Elwell, Karl
      Kleinpaste, Bob Manson, Steve Romig, Diana Smetters, Bob
      Sutterfield, Mark Verber, Elizabeth Zwicky, and all the
@@ -2568,7 +2568,7 @@ THANKS TO
 
 
 
-Printed 11/25/19	27 November 1996		       39
+Printed 9/10/24         27 November 1996		       39
 
 
 

@@ -5,25 +5,25 @@ STATFS(2)	    UNIX Programmer's Manual		STATFS(2)
 
 
 
-NAME
-     statfs, fstatfs - get file system statistics
+NNAAMMEE
+     ssttaattffss, ffssttaattffss - get file system statistics
 
-SYNOPSIS
-     #include <sys/param.h>
-     #include <sys/mount.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ppaarraamm..hh>>
+     ##iinncclluuddee <<ssyyss//mmoouunntt..hh>>
 
      _i_n_t
-     statfs(path,buf)
+     ssttaattffss(path,buf)
      _c_h_a_r *_p_a_t_h;
      _s_t_r_u_c_t _s_t_a_t_f_s *_b_u_f;
 
      _i_n_t
-     fstatfs(fd,buf)
+     ffssttaattffss(fd,buf)
      _i_n_t _f_d;
      _s_t_r_u_c_t _s_t_a_t_f_s *_b_u_f;
 
-DESCRIPTION
-     Statfs() returns information about a mounted file system.
+DDEESSCCRRIIPPTTIIOONN
+     SSttaattffss() returns information about a mounted file system.
      _P_a_t_h is the path name of any file within the mounted
      filesystem.  _B_u_f is a pointer to a _s_t_a_t_f_s structure defined
      as follows:
@@ -53,14 +53,14 @@ DESCRIPTION
      #define   MOUNT_UFS 1    /* Fast Filesystem */
 
      Fields that are undefined for a particular file system are
-     set to -1.  Fstatfs() returns the same information about an
+     set to -1.  FFssttaattffss() returns the same information about an
      open file referenced by descriptor _f_d.
 
 
 
 
 
-Printed 2/16/100	December 26, 1995			1
+Printed 9/10/24         December 26, 1995			1
 
 
 
@@ -71,13 +71,13 @@ STATFS(2)	    UNIX Programmer's Manual		STATFS(2)
 
 
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      Upon successful completion, a value of 0 is returned.  Oth-
      erwise, -1 is returned and the global variable _e_r_r_n_o is set
      to indicate the error.
 
-ERRORS
-     Statfs() fails if one or more of the following are true:
+EERRRROORRSS
+     SSttaattffss() fails if one or more of the following are true:
 
 
      [ENOTDIR]		 A component of the path prefix of _P_a_t_h
@@ -105,7 +105,7 @@ ERRORS
      [EIO]		 An I/O error occurred while reading from
 			 or writing to the file system.
 
-     Fstatfs() fails if one or more of the following are true:
+     FFssttaattffss() fails if one or more of the following are true:
 
 
      [EBADF]		 _F_d is not a valid open file descriptor.
@@ -115,8 +115,8 @@ ERRORS
      [EIO]		 An I/O error occurred while reading from
 			 or writing to the file system.
 
-HISTORY
-     The statfs function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ssttaattffss function first appeared in 4.4BSD.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	December 26, 1995			2
+Printed 9/10/24         December 26, 1995			2
 
 
 

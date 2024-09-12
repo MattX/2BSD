@@ -1,0 +1,64 @@
+# dummy
+bset	0
+breset	-240
+Hor	2
+Vert	5
+Newline	40
+Char	24
+Em	24
+Halfline	20
+Adj	24
+twinit	"\0334\033\037\015"
+twrest	"\0334\033\037\013"
+twnl	"\015\012"
+hlr	"\033D"
+hlf	"\033U"
+flr	"\033\012"
+bdon	""
+bdoff	""
+ploton	"\033G"
+plotoff	"\0334"
+up	"\033\012"
+down	"\012"
+right	"\040"
+left	"\010"
+# codetab
+hy 	1 -
+bu 	1 0\010+
+em 	1 -
+ru 	1 _
+mi 	1 -
+fi 	2 fi
+fl 	2 fl
+ff 	2 ff
+Fi 	3 ffi
+Fl 	3 ffl
+de 	1 `
+dg 	1 }
+sc 	1 {
+fm 	1 '
+aa 	1 '
+ga 	1 '
+ul 	1 _
+sl 	1 /
+*p 	1 |
+>= 	1 >\010_
+<= 	1 <\010_
+mi 	1 -
+!= 	1 =\010/
+-> 	2 ->
+<- 	2 <-
+eq 	1 =
+mu 	1 *
+di 	1 /
++- 	1 +\010_
+cu 	1 U
+es 	1 0\010/
+mo 	1 <\010-
+pl 	1 +
+rg 	1 \134
+co 	1 ^
+br 	1 \033\040
+ct 	1 c\010/
+** 	1 *
+or 	1 \033\040

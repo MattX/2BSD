@@ -5,21 +5,21 @@ GETTIMEOFDAY(2)     UNIX Programmer's Manual	  GETTIMEOFDAY(2)
 
 
 
-NAME
+NNAAMMEE
      gettimeofday, settimeofday - get/set date and time
 
-SYNOPSIS
-     #include <sys/time.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttiimmee..hh>>
 
-     gettimeofday(tp, tzp)
-     struct timeval *tp;
-     struct timezone *tzp;
+     ggeettttiimmeeooffddaayy((ttpp,, ttzzpp))
+     ssttrruucctt ttiimmeevvaall **ttpp;;
+     ssttrruucctt ttiimmeezzoonnee **ttzzpp;;
 
-     settimeofday(tp, tzp)
-     struct timeval *tp;
-     struct timezone *tzp;
+     sseettttiimmeeooffddaayy((ttpp,, ttzzpp))
+     ssttrruucctt ttiimmeevvaall **ttpp;;
+     ssttrruucctt ttiimmeezzoonnee **ttzzpp;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The system's notion of the current Greenwich time and the
      current time zone is obtained with the _g_e_t_t_i_m_e_o_f_d_a_y call,
      and set with the _s_e_t_t_i_m_e_o_f_d_a_y call.  The time is expressed
@@ -49,18 +49,18 @@ DESCRIPTION
 
      Only the super-user may set the time of day or time zone.
 
-RETURN
+RREETTUURRNN
      A 0 return value indicates that the call succeeded.  A -1
      return value indicates an error occurred, and in this case
      an error code is stored into the global variable _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      The following error codes may be set in _e_r_r_n_o:
 
 
 
 
-Printed 2/16/100	  May 14, 1986				1
+Printed 9/10/24           May 14, 1986				1
 
 
 
@@ -77,7 +77,7 @@ GETTIMEOFDAY(2)     UNIX Programmer's Manual	  GETTIMEOFDAY(2)
      [EPERM]	    A user other than the super-user attempted to
 		    set the time.
 
-SEE ALSO
+SSEEEE AALLSSOO
      date(1), adjtime(2), ctime(3), timed(8)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 14, 1986				2
+Printed 9/10/24           May 14, 1986				2
 
 
 

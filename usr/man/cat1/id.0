@@ -5,18 +5,18 @@ ID(1)		    UNIX Programmer's Manual		    ID(1)
 
 
 
-NAME
+NNAAMMEE
      id - return user identity
 
-SYNOPSIS
-     id [_u_s_e_r]
-     id -G [-n] [_u_s_e_r]
-     id -g [-nr] [_u_s_e_r]
-     id -p
-     id -u [-nr] [_u_s_e_r]
+SSYYNNOOPPSSIISS
+     iidd [_u_s_e_r]
+     iidd --GG [--nn] [_u_s_e_r]
+     iidd --gg [--nnrr] [_u_s_e_r]
+     iidd --pp
+     iidd --uu [--nnrr] [_u_s_e_r]
 
-DESCRIPTION
-     The id utility displays the user and group names and numeric
+DDEESSCCRRIIPPTTIIOONN
+     The iidd utility displays the user and group names and numeric
      IDs, of the calling process, to the standard output.  If the
      real and effective IDs are different, both are displayed,
      otherwise only the real ID is displayed.
@@ -27,18 +27,18 @@ DESCRIPTION
 
      The options are as follows:
 
-     -G        Display the different group IDs (effective, real
+     --GG        Display the different group IDs (effective, real
 	       and supplementary) as white-space separated
 	       numbers, in no particular order.
 
-     -g        Display the effective group ID as a number.
+     --gg        Display the effective group ID as a number.
 
-     -n        Display the name of the user or group ID for the
-	       -GP, -g and -u options instead of the number.  If
-	       any of the ID numbers cannot be mapped into names,
-	       the number will be displayed as usual.
+     --nn        Display the name of the user or group ID for the
+	       --GGPP,, --gg aanndd --uu ooppttiioonnss iinnsstteeaadd ooff tthhee nnuummbbeerr..  IIff
+	       aannyy ooff tthhee IIDD nnuummbbeerrss ccaannnnoott bbee mmaappppeedd iinnttoo nnaammeess,,
+	       tthhee nnuummbbeerr wwiillll bbee ddiissppllaayyeedd aass uussuuaall..
 
-     -p        Make the output human-readable.	If the user name
+     --pp        Make the output human-readable.	If the user name
 	       returned by getlogin(2) is different from the
 	       login name referenced by the user ID, the name
 	       returned by getlogin(2) is displayed, preceded by
@@ -54,13 +54,13 @@ DESCRIPTION
 	       preceded by the keyword ``groups''.  Each display
 	       is on a separate line.
 
-     -r        Display the real ID for the -g and -u options
+     --rr        Display the real ID for the --gg and --uu options
 	       instead of the effective ID.
 
 
 
 
-Printed 2/16/100	  June 25, 1997                         1
+Printed 9/10/24           June 25, 1997                         1
 
 
 
@@ -71,27 +71,25 @@ ID(1)		    UNIX Programmer's Manual		    ID(1)
 
 
 
-     -u        Display the effective user ID as a number.
+     --uu        Display the effective user ID as a number.
 
-     The id utility exits 0 on success, and >0 if an error
+     The iidd utility exits 0 on success, and >0 if an error
      occurs.
 
-SEE ALSO
+SSEEEE AALLSSOO
      who(1)
 
-STANDARDS
-     The id function is expected to conform to IEEE Std1003.2
+SSTTAANNDDAARRDDSS
+     The iidd function is expected to conform to IEEE Std1003.2
      (``POSIX'').
 
-HISTORY
-     The historic groups(1) command is equivalent to ``id -Gn
-     [user]''.
+HHIISSTTOORRYY
+     The historic groups(1) command is equivalent to ``iidd --GGnn
+     [uusseerr]''.
 
-     The historic whoami(1) command is equivalent to ``id -un''.
+     The historic whoami(1) command is equivalent to ``iidd --uunn''.
 
-     The id command first appeared in 4.4BSD.
-
-
+     The iidd command first appeared in 4.4BSD.
 
 
 
@@ -126,7 +124,9 @@ HISTORY
 
 
 
-Printed 2/16/100	  June 25, 1997                         2
+
+
+Printed 9/10/24           June 25, 1997                         2
 
 
 

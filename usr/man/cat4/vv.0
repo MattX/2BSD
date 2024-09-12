@@ -5,14 +5,14 @@ VV(4)		    UNIX Programmer's Manual		    VV(4)
 
 
 
-NAME
+NNAAMMEE
      vv - Proteon proNET 10 Megabit ring
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NVV  _v_v__c_o_n_t_r_o_l_l_e_r_s # V2LNI (Pronet)
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNVVVV  _v_v__c_o_n_t_r_o_l_l_e_r_s ## VV22LLNNII ((PPrroonneett))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _v_v interface provides access to a 10 Mb/s Proteon proNET
      ring network.
 
@@ -39,28 +39,28 @@ DESCRIPTION
      a per-interface basis, by setting the IFF_NOTRAILERS flag
      with an SIOCSIFFLAGS ioctl.
 
-DIAGNOSTICS
-     vv%d: host %d.  The software announces the host address
+DDIIAAGGNNOOSSTTIICCSS
+     vvvv%%dd:: hhoosstt %%dd.  The software announces the host address
      discovered during autoconfiguration.
 
-     vv%d: can't initialize. The software was unable to discover
+     vvvv%%dd:: ccaann''tt iinniittiiaalliizzee. The software was unable to discover
      the address of this interface, so it deemed "dead" will not
      be enabled.
 
-     vv%d: error vvocsr=%b.  The hardware indicated an error on
+     vvvv%%dd:: eerrrroorr vvvvooccssrr==%%bb.  The hardware indicated an error on
      the previous transmission.
 
-     vv%d: output timeout.  The token timer has fired and the
+     vvvv%%dd:: oouuttppuutt ttiimmeeoouutt.  The token timer has fired and the
      token will be recreated.
 
-     vv%d: error vvicsr=%b.  The hardware indicated an error in
+     vvvv%%dd:: eerrrroorr vvvviiccssrr==%%bb.  The hardware indicated an error in
      reading a packet off the ring.
 
 
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 
@@ -71,18 +71,18 @@ VV(4)		    UNIX Programmer's Manual		    VV(4)
 
 
 
-     en%d: can't handle af%d.  The interface was handed a message
+     eenn%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a message
      with addresses formatted in an unsuitable address family;
      the packet was dropped.
 
-     vv%d: vs_olen=%d.	The ring output routine has been handed a
+     vvvv%%dd:: vvss__oolleenn==%%dd.	The ring output routine has been handed a
      message with a preposterous length.  This results in an
      immediate _p_a_n_i_c: _v_s__o_l_e_n.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), inet(4F)
 
-BUGS
+BBUUGGSS
      The encapsulation of trailer packets in the 4.2BSD version
      of this driver was incorrect (the packet type was in VAX
      byte order).  As a result, the trailer encapsulation in this
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 20, 1987			2
+Printed 9/10/24          August 20, 1987			2
 
 
 

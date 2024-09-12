@@ -5,27 +5,27 @@ GETPROTOENT(3N)     UNIX Programmer's Manual	  GETPROTOENT(3N)
 
 
 
-NAME
+NNAAMMEE
      getprotoent, getprotobynumber, getprotobyname, setprotoent,
      endprotoent - get protocol entry
 
-SYNOPSIS
-     #include <netdb.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<nneettddbb..hh>>
 
-     struct protoent *getprotoent()
+     ssttrruucctt pprroottooeenntt **ggeettpprroottooeenntt(())
 
-     struct protoent *getprotobyname(name)
-     char *name;
+     ssttrruucctt pprroottooeenntt **ggeettpprroottoobbyynnaammee((nnaammee))
+     cchhaarr **nnaammee;;
 
-     struct protoent *getprotobynumber(proto)
-     int proto;
+     ssttrruucctt pprroottooeenntt **ggeettpprroottoobbyynnuummbbeerr((pprroottoo))
+     iinntt pprroottoo;;
 
-     setprotoent(stayopen)
-     int stayopen
+     sseettpprroottooeenntt((ssttaayyooppeenn))
+     iinntt ssttaayyooppeenn
 
-     endprotoent()
+     eennddpprroottooeenntt(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_p_r_o_t_o_e_n_t, _g_e_t_p_r_o_t_o_b_y_n_a_m_e, and _g_e_t_p_r_o_t_o_b_y_n_u_m_b_e_r each
      return a pointer to an object with the following structure
      containing the broken-out fields of a line in the network
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 19, 1986				1
+Printed 9/10/24           May 19, 1986				1
 
 
 
@@ -73,16 +73,16 @@ GETPROTOENT(3N)     UNIX Programmer's Manual	  GETPROTOENT(3N)
 
      protocol number is found, or until EOF is encountered.
 
-FILES
+FFIILLEESS
      /etc/protocols
 
-SEE ALSO
+SSEEEE AALLSSOO
      protocols(5)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Null pointer (0) returned on EOF or error.
 
-BUGS
+BBUUGGSS
      All information is contained in a static area so it must  be
      copied  if  it  is to be saved.  Only the Internet protocols
      are currently understood.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 19, 1986				2
+Printed 9/10/24           May 19, 1986				2
 
 
 

@@ -5,13 +5,13 @@ RCSDIFF(1)	    UNIX Programmer's Manual	       RCSDIFF(1)
 
 
 
-NAME
+NNAAMMEE
      rcsdiff - compare RCS revisions
 
-SYNOPSIS
-     rcsdiff [ -biwt ] [ -cefhn ] [ -r_r_e_v_1 ] [ -r_r_e_v_2 ] file ...
+SSYYNNOOPPSSIISS
+     rrccssddiiffff [ --bbiiwwtt ] [ --cceeffhhnn ] [ --rr_r_e_v_1 ] [ --rr_r_e_v_2 ] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_c_s_d_i_f_f runs _d_i_f_f (1) to compare two revisions of each RCS
      file given.  A file name ending in ',v' is an RCS file name,
      otherwise a working file name. _R_c_s_d_i_f_f derives the working
@@ -19,7 +19,7 @@ DESCRIPTION
      explained in _c_o (1). Pairs consisting of both an RCS and a
      working file name may also be specified.
 
-     All options except -r have the same effect as described in
+     All options except --rr have the same effect as described in
      _d_i_f_f(1).
 
      If both _r_e_v_1 and _r_e_v_2 are omitted, _r_c_s_d_i_f_f compares the
@@ -36,7 +36,7 @@ DESCRIPTION
 
      Both _r_e_v_1 and _r_e_v_2 may be given numerically or symbolically.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      The command
 
 	     rcsdiff  f.c
@@ -44,13 +44,13 @@ EXAMPLES
      runs _d_i_f_f on the latest trunk revision of RCS file f.c,v and
      the contents of working file f.c.
 
-IDENTIFICATION
+IIDDEENNTTIIFFIICCAATTIIOONN
      Author: Walter F. Tichy, Purdue University, West Lafayette,
      IN, 47907.
      Revision Number: 1.2 ; Release Date: 86/05/19 .
      Copyright (C) 1982 by Walter F. Tichy.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ci (1), co (1), diff (1), ident (1), rcs (1), rcsintro (1),
      rcsmerge (1), rlog (1), rcsfile (5).
      Walter F. Tichy, "Design, Implementation, and Evaluation of
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	     5/19/86				1
+Printed 9/10/24              5/19/86				1
 
 
 
@@ -71,7 +71,7 @@ RCSDIFF(1)	    UNIX Programmer's Manual	       RCSDIFF(1)
 
 
 
-BUGS
+BBUUGGSS
 
 
 
@@ -123,7 +123,7 @@ BUGS
 
 
 
-Printed 2/16/100	     5/19/86				2
+Printed 9/10/24              5/19/86				2
 
 
 

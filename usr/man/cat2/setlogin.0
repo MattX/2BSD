@@ -5,11 +5,11 @@ GETLOGIN(2)	    UNIX Programmer's Manual	      GETLOGIN(2)
 
 
 
-NAME
-     getlogin, setlogin - get/set login name
+NNAAMMEE
+     ggeettllooggiinn, sseettllooggiinn - get/set login name
 
-SYNOPSIS
-     #include <unistd.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<uunniissttdd..hh>>
 
      char *
      getlogin()
@@ -18,30 +18,30 @@ SYNOPSIS
      setlogin(name)
 	  char *name;
 
-DESCRIPTION
-     The getlogin routine returns the login name of the user
+DDEESSCCRRIIPPTTIIOONN
+     The ggeettllooggiinn routine returns the login name of the user
      associated with the current session, as previously set by
-     setlogin.	The name is normally associated with a login
+     sseettllooggiinn.	The name is normally associated with a login
      shell at the time a session is created, and is inherited by
      all processes descended from the login shell.  (This is true
      even if some of those processes assume another user ID, for
-     example when su(1) is used.)
+     example when ssuu(1) is used.)
 
-     Setlogin sets the login name of the user associated with the
+     SSeettllooggiinn sets the login name of the user associated with the
      current session to _n_a_m_e.  This call is restricted to the
      super-user, and is normally used only when a new session is
      being created on behalf of the named user (for example, at
      login time, or when a remote shell is invoked).
 
-RETURN VALUES
-     If a call to getlogin succeeds, it returns a pointer to a
+RREETTUURRNN VVAALLUUEESS
+     If a call to ggeettllooggiinn succeeds, it returns a pointer to a
      null-terminated string in a static buffer.  If the name has
-     not been set, it returns _N_U_L_L.  If a call to setlogin
-     succeeds, a value of 0 is returned.  If setlogin fails, a
+     not been set, it returns _N_U_L_L.  If a call to sseettllooggiinn
+     succeeds, a value of 0 is returned.  If sseettllooggiinn fails, a
      value of -1 is returned and an error code is placed in the
      global location _e_r_r_n_o.
 
-ERRORS
+EERRRROORRSS
      The following errors may be returned by these calls:
 
      EFAULT	    The _n_a_m_e parameter gave an invalid address.
@@ -54,13 +54,13 @@ ERRORS
      EPERM	    The caller tried to set the login name and
 		    was not the super-user.
 
-SEE ALSO
+SSEEEE AALLSSOO
      setsid(2)
 
 
 
 
-Printed 2/16/100       September 23, 1997			1
+Printed 9/10/24        September 23, 1997			1
 
 
 
@@ -71,22 +71,22 @@ GETLOGIN(2)	    UNIX Programmer's Manual	      GETLOGIN(2)
 
 
 
-BUGS
-     Login names are limited in length by setlogin.  However,
+BBUUGGSS
+     Login names are limited in length by sseettllooggiinn.  However,
      lower limits are placed on login names elsewhere in the sys-
      tem (UT_NAMESIZE in <_u_t_m_p._h>).
 
-     In earlier versions of the system, getlogin failed unless
+     In earlier versions of the system, ggeettllooggiinn failed unless
      the process was associated with a login terminal.	The
-     current implementation (using setlogin) allows getlogin to
+     current implementation (using sseettllooggiinn) allows getlogin to
      succeed even when the process has no controlling terminal.
      In earlier versions of the system, the value returned by
-     getlogin could not be trusted without checking the user ID.
+     ggeettllooggiinn could not be trusted without checking the user ID.
      Portable programs should probably still make this check.
 
-HISTORY
-     The setlogin function first appeared in 4.4BSD.  The getlo-
-     gin function was present in V7.
+HHIISSTTOORRYY
+     The sseettllooggiinn function first appeared in 4.4BSD.  The ggeettlloo--
+     ggiinn ffuunnccttiioonn wwaass pprreesseenntt iinn VV77..
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100       September 23, 1997			2
+Printed 9/10/24        September 23, 1997			2
 
 
 

@@ -5,14 +5,14 @@ WAIT(3F)	    UNIX Programmer's Manual		 WAIT(3F)
 
 
 
-NAME
+NNAAMMEE
      wait - wait for a process to terminate
 
-SYNOPSIS
-     integer function wait (status)
-     integer status
+SSYYNNOOPPSSIISS
+     iinntteeggeerr ffuunnccttiioonn wwaaiitt ((ssttaattuuss))
+     iinntteeggeerr ssttaattuuss
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W_a_i_t causes its caller to be suspended until a signal is
      received or one of its child processes terminates.  If any
      child has terminated since the last _w_a_i_t, return is immedi-
@@ -24,10 +24,10 @@ DESCRIPTION
      _w_a_i_t(2)).	If the returned value is negative, it is the
      negation of a system error code.
 
-FILES
+FFIILLEESS
      /usr/lib/libU77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      wait(2), signal(3F), kill(3F), perror(3F)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

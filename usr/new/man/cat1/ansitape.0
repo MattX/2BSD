@@ -5,13 +5,13 @@ ANSITAPE(LOCAL)     UNIX Programmer's Manual	  ANSITAPE(LOCAL)
 
 
 
-NAME
+NNAAMMEE
      ansitape - ANSI standard tape handler
 
-SYNOPSIS
-     ansitape [key] [keyargs] [files]
+SSYYNNOOPPSSIISS
+     aannssiittaappee [key] [keyargs] [files]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_n_s_i_t_a_p_e reads and writes magnetic tapes written in ANSI
      standard format (called ``Files-11'' by DEC).  Tapes written
      by _a_n_s_i_t_a_p_e are labeled with the first 6 characters of the
@@ -24,32 +24,32 @@ DESCRIPTION
      The function portion of the key is specified by one of the
      following letters:
 
-     r	     The named files are written at the end of the tape.
-	     The c function implies this.
+     rr	     The named files are written at the end of the tape.
+	     The cc function implies this.
 
-     x	     The named files are extracted from the tape.  If no
+     xx	     The named files are extracted from the tape.  If no
 	     file argument is given, the entire contents of the
 	     tape is extracted.  Note that if the tape has dupli-
 	     cated file names, only the last file of a given name
 	     can be extracted.
 
-     t	     The names of the specified files are listed each
+     tt	     The names of the specified files are listed each
 	     time they occur on the tape.  If no file argument is
 	     given, all files on the tape are listed.
 
-     c	     Create a new tape; writing begins at the beginning
+     cc	     Create a new tape; writing begins at the beginning
 	     of the tape instead of after the last file.  This
-	     command implies r.
+	     command implies rr..
 
      The following characters may be used in addition to the
      letter which selects the function desired.
 
-     f	     This argument allows the selection of a different
+     ff	     This argument allows the selection of a different
 	     tape device. The next word in the keyargs list is
 	     taken to be the full name of a device to write the
 	     tape on.  The default is /dev/rmt12.
 
-     n	     The n option allows the user to specify as the next
+     nn	     The nn option allows the user to specify as the next
 	     argument in the keyargs list, a control file con-
 	     taining the names of files to put on the tape. If
 	     the file name is '-', the control file will,
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	4/10/85 UCB Local			1
+Printed 9/10/24         4/10/85 UCB Local			1
 
 
 
@@ -75,21 +75,21 @@ ANSITAPE(LOCAL)     UNIX Programmer's Manual	  ANSITAPE(LOCAL)
 	     convenient flattening of hierarchies when placing
 	     them on tape.  If the second name is omitted, the
 	     UNIX file name will be used on the tape also.  This
-	     argument can only be used with the r and c func-
+	     argument can only be used with the rr and cc func-
 	     tions.
 
-     l	     The l option allows the user to specify the label to
+     ll	     The ll option allows the user to specify the label to
 	     be placed on the tape. The next argument in the
 	     keyargs list is taken as the tape label, which will
 	     be space padded or truncated to six characters.
-	     This option is meaningless unless c is also speci-
+	     This option is meaningless unless cc is also speci-
 	     fied.
 
-     v	     Normally _a_n_s_i_t_a_p_e works relatively silently.  The v
+     vv	     Normally _a_n_s_i_t_a_p_e works relatively silently.  The vv
 	     (verbose) option causes it to type information about
 	     each file as it processes it.
 
-     b	     The b option allows the user to select the blocksize
+     bb	     The bb option allows the user to select the blocksize
 	     to be used for the tape.  By default, _a_n_s_i_t_a_p_e uses
 	     the maximum block size permitted by the ANSI stan-
 	     dard, 2048.  Some systems will permit a much large
@@ -105,15 +105,15 @@ ANSITAPE(LOCAL)     UNIX Programmer's Manual	  ANSITAPE(LOCAL)
      Attempts to put these on tape will result in warnings, and
      they will be skipped completely.
 
-FILES
+FFIILLEESS
      /dev/rmt12
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A warning message will be generated when a record exceeds
      the maximum record length and the affected file will be
      truncated.
 
-BUGS
+BBUUGGSS
      Ansitape quietly truncates names longer than 17 characters.
      ANSI 'f' format files can be read but not written.
      Multivolume tapes can not be handled.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	4/10/85 UCB Local			2
+Printed 9/10/24         4/10/85 UCB Local			2
 
 
 

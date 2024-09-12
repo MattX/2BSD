@@ -5,14 +5,14 @@ SWAB(3)             UNIX Programmer's Manual		  SWAB(3)
 
 
 
-NAME
+NNAAMMEE
      swab - swap bytes
 
-SYNOPSIS
-     swab(from, to, nbytes)
-     char *from, *to;
+SSYYNNOOPPSSIISS
+     sswwaabb((ffrroomm,, ttoo,, nnbbyytteess))
+     cchhaarr **ffrroomm,, **ttoo;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_w_a_b copies _n_b_y_t_e_s bytes pointed to by _f_r_o_m to the position
      pointed to by _t_o, exchanging adjacent even and odd bytes.
      It is useful for carrying binary data between PDP11's and
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

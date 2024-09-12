@@ -5,13 +5,13 @@ REXECD(8)	    UNIX Programmer's Manual		REXECD(8)
 
 
 
-NAME
+NNAAMMEE
      rexecd - remote execution server
 
-SYNOPSIS
-     /usr/libexec/rexecd
+SSYYNNOOPPSSIISS
+     //uussrr//lliibbeexxeecc//rreexxeeccdd
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_e_x_e_c_d is the server for the _r_e_x_e_c(3) routine.  The server
      provides remote execution facilities with authentication
      based on user names and passwords.
@@ -27,7 +27,7 @@ DESCRIPTION
 
      2)   If the number received in step 1 is non-zero, it is
 	  interpreted as the port number of a secondary stream to
-	  be used for the stderr.  A second connection is then
+	  be used for the ssttddeerrrr.  A second connection is then
 	  created to the specified port on the client's machine.
 
      3)   A null terminated user name of at most 16 characters is
@@ -53,14 +53,14 @@ DESCRIPTION
 	  user.  The shell inherits the network connections esta-
 	  blished by _r_e_x_e_c_d.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Except for the last one listed below, all diagnostic mes-
      sages are returned on the initial socket, after which any
      network connections are closed.  An error is indicated by a
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 
@@ -75,37 +75,37 @@ REXECD(8)	    UNIX Programmer's Manual		REXECD(8)
      above upon successful completion of all the steps prior to
      the command execution).
 
-     ``username too long''
+     ````uusseerrnnaammee ttoooo lloonngg''''
      The name is longer than 16 characters.
 
-     ``password too long''
+     ````ppaasssswwoorrdd ttoooo lloonngg''''
      The password is longer than 16 characters.
 
-     ``command too long ''
+     ````ccoommmmaanndd ttoooo lloonngg ''''
      The command line passed exceeds the size of the argument
      list (as configured into the system).
 
-     ``Login incorrect.''
+     ````LLooggiinn iinnccoorrrreecctt..''''
      No password file entry for the user name existed.
 
-     ``Password incorrect.''
+     ````PPaasssswwoorrdd iinnccoorrrreecctt..''''
      The wrong was password supplied.
 
-     ``No remote directory.''
+     ````NNoo rreemmoottee ddiirreeccttoorryy..''''
      The _c_h_d_i_r command to the home directory failed.
 
-     ``Try again.''
+     ````TTrryy aaggaaiinn..''''
      A _f_o_r_k by the server failed.
 
-     ``<shellname>: ...''
+     ````<<sshheellllnnaammee>>:: ......''''
      The user's login shell could not be started.  This message
-     is returned on the connection associated with the stderr,
+     is returned on the connection associated with the ssttddeerrrr,
      and is not preceded by a flag byte.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rexec(3)
 
-BUGS
+BBUUGGSS
      Indicating ``Login incorrect'' as opposed to ``Password
      incorrect'' is a security breach which allows people to
      probe a system for users with null passwords.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	November 16, 1996			2
+Printed 9/10/24         November 16, 1996			2
 
 
 

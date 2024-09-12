@@ -5,15 +5,15 @@ ACC(4)		    UNIX Programmer's Manual		   ACC(4)
 
 
 
-NAME
+NNAAMMEE
      acc - ACC LH/DH IMP interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NACC 0    # ACC LH/DH ARPAnet IMP interface
-	  PLI  YES  # LH/DH is connected to a PLI
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNAACCCC 00    ## AACCCC LLHH//DDHH AARRPPAAnneett IIMMPP iinntteerrffaaccee
+	  PPLLII  YYEESS  ## LLHH//DDHH iiss ccoonnnneecctteedd ttoo aa PPLLII
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _a_c_c device provides a Local Host/Distant Host interface
      to an IMP.  It is normally used when participating in the
      DARPA Internet.  The controller itself is not accessible to
@@ -21,32 +21,32 @@ DESCRIPTION
      interface described in _i_m_p(4).  When configuring, the
      _i_m_p(_N_I_M_P) pseudo-device must also be included.
 
-DIAGNOSTICS
-     acc%d: not alive.	The initialization routine was entered
+DDIIAAGGNNOOSSTTIICCSS
+     aacccc%%dd:: nnoott aalliivvee.	The initialization routine was entered
      even though the device did not autoconfigure.  This indi-
      cates a system problem.
 
-     acc%d: can't initialize.  Insufficient UNIBUS resources
+     aacccc%%dd:: ccaann''tt iinniittiiaalliizzee.  Insufficient UNIBUS resources
      existed to initialize the device.	This is likely to occur
      when the device is run on a buffered data path on an 11/750
      and other network interfaces are also configured to use buf-
      fered data paths, or when it is configured to use buffered
      data paths on an 11/730 (which has none).
 
-     acc%d: imp doesn't respond, icsr=%b.  The driver attempted
+     aacccc%%dd:: iimmpp ddooeessnn''tt rreessppoonndd,, iiccssrr==%%bb.  The driver attempted
      to initialize the device, but the IMP failed to respond
      after 500 tries.  Check the cabling.
 
-     acc%d: stray xmit interrupt, csr=%b.  An interrupt occurred
+     aacccc%%dd:: ssttrraayy xxmmiitt iinntteerrrruupptt,, ccssrr==%%bb.  An interrupt occurred
      when no output had previously been started.
 
-     acc%d: output error, ocsr=%b, icsr=%b.  The device indicated
+     aacccc%%dd:: oouuttppuutt eerrrroorr,, ooccssrr==%%bb,, iiccssrr==%%bb.  The device indicated
      a problem sending data on output.
 
-     acc%d: input error, csr=%b.  The device indicated a problem
+     aacccc%%dd:: iinnppuutt eerrrroorr,, ccssrr==%%bb.  The device indicated a problem
      receiving data on input.
 
-     acc%d: bad length=%d.  An input operation resulted in a data
+     aacccc%%dd:: bbaadd lleennggtthh==%%dd.  An input operation resulted in a data
      transfer of less than 0 or more than 1008 bytes of data into
      memory (according to the word count register).  This should
      never happen as the maximum size of a host-IMP message is
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	  July 26, 1987                         1
+Printed 9/10/24           July 26, 1987                         1
 
 
 

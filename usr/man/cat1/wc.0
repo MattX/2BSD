@@ -5,13 +5,13 @@ WC(1)		    UNIX Programmer's Manual		    WC(1)
 
 
 
-NAME
+NNAAMMEE
      wc - word count
 
-SYNOPSIS
-     wc [ -lwc ] [ name ... ]
+SSYYNNOOPPSSIISS
+     wwcc [ --llwwcc ] [ name ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W_c counts lines, words and characters in the named files, or
      in the standard input if no name appears.	A word is a maxi-
      mal string of characters delimited by spaces, tabs or new-
@@ -19,11 +19,9 @@ DESCRIPTION
 
      If an argument beginning with one of ``lwc'' is present, the
      specified counts (lines, words, or characters) are selected
-     by the letters l, w, or c.  The default is -lwc.
+     by the letters ll, ww, or cc.  The default is --llwwcc.
 
-BUGS
-
-
+BBUUGGSS
 
 
 
@@ -57,7 +55,9 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+
+
+Printed 9/10/24          April 29, 1985                         1
 
 
 

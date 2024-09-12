@@ -5,15 +5,15 @@ IOINIT(3F)	    UNIX Programmer's Manual	       IOINIT(3F)
 
 
 
-NAME
+NNAAMMEE
      ioinit - change f77 I/O initialization
 
-SYNOPSIS
-     logical function ioinit (cctl, bzro, apnd, prefix, vrbose)
-     logical cctl, bzro, apnd, vrbose
-     character*(*) prefix
+SSYYNNOOPPSSIISS
+     llooggiiccaall ffuunnccttiioonn iiooiinniitt ((ccccttll,, bbzzrroo,, aappnndd,, pprreeffiixx,, vvrrbboossee))
+     llooggiiccaall ccccttll,, bbzzrroo,, aappnndd,, vvrrbboossee
+     cchhaarraacctteerr**((**)) pprreeffiixx
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This routine will initialize several global parameters in
      the f77 I/O system, and attach externally defined files to
      logical units at run time.  The effect of the flag arguments
@@ -23,29 +23,29 @@ DESCRIPTION
      Fortran-77.
 
      By default, carriage control is not recognized on any logi-
-     cal unit. If _c_c_t_l is .true. then carriage control will be
+     cal unit. If _c_c_t_l is ..ttrruuee.. then carriage control will be
      recognized on formatted output to all logical units except
      unit 0, the diagnostic channel.  Otherwise the default will
      be restored.
 
      By default, trailing and embedded blanks in input data
-     fields are ignored. If _b_z_r_o is .true. then such blanks will
+     fields are ignored. If _b_z_r_o is ..ttrruuee.. then such blanks will
      be treated as zeros.  Otherwise the default will be
      restored.
 
      By default, all files opened for sequential access are posi-
      tioned at their beginning.  It is sometimes necessary or
      convenient to open at the END-OF-FILE so that a write will
-     append to the existing data.  If _a_p_n_d is .true. then files
+     append to the existing data.  If _a_p_n_d is ..ttrruuee.. then files
      opened subsequently on any logical unit will be positioned
-     at their end upon opening.  A value of .false. will restore
+     at their end upon opening.  A value of ..ffaallssee.. will restore
      the default behavior.
 
      _I_o_i_n_i_t may be used to associate file names with Fortran log-
      ical unit numbers through environment variables (see "Intro-
      duction to the f77 I/O Library" for a more general way of
      doing this).  If the argument _p_r_e_f_i_x is a non-blank string,
-     then names of the form prefixNN will be sought in the pro-
+     then names of the form pprreeffiixxNN will be sought in the pro-
      gram environment. The value associated with each such name
      found will be used to open logical unit NN for formatted
      sequential access.  For example, if f77 program _m_y_p_r_o_g_r_a_m
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 
@@ -80,7 +80,7 @@ IOINIT(3F)	    UNIX Programmer's Manual	       IOINIT(3F)
      trol.  Embedded and trailing blanks would be ignored on
      input.
 
-     If the argument _v_r_b_o_s_e is .true. then _i_o_i_n_i_t will report on
+     If the argument _v_r_b_o_s_e is ..ttrruuee.. then _i_o_i_n_i_t will report on
      its activity.
 
      The effect of
@@ -100,15 +100,15 @@ IOINIT(3F)	    UNIX Programmer's Manual	       IOINIT(3F)
 	  common /ioiflg/ ieof, ictl, ibzr
 
 
-FILES
+FFIILLEESS
      /usr/lib/libI77.a	     f77 I/O library
      /usr/lib/libI66.a	     sets older fortran I/O modes
 
-SEE ALSO
+SSEEEE AALLSSOO
      getarg(3F), getenv(3F), ``Introduction to the f77 I/O
      Library''
 
-BUGS
+BBUUGGSS
      _P_r_e_f_i_x can be no longer than 30 characters.  A pathname
      associated with an environment name can be no longer than
      255 characters.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 27, 1986				2
+Printed 9/10/24           May 27, 1986				2
 
 
 

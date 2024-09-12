@@ -5,13 +5,13 @@ JOIN(1)             UNIX Programmer's Manual		  JOIN(1)
 
 
 
-NAME
+NNAAMMEE
      join - relational database operator
 
-SYNOPSIS
-     join [ options ] file1 file2
+SSYYNNOOPPSSIISS
+     jjooiinn [ options ] file1 file2
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _J_o_i_n forms, on the standard output, a join of the two rela-
      tions specified by the lines of _f_i_l_e_1 and _f_i_l_e_2.  If _f_i_l_e_1
      is `-', the standard input is used.
@@ -31,36 +31,36 @@ DESCRIPTION
 
      These options are recognized:
 
-     -a_n  In addition to the normal output, produce a line for
+     --aa_n  In addition to the normal output, produce a line for
 	  each unpairable line in file _n, where _n is 1 or 2.
 
-     -e _s Replace empty output fields by string _s.
+     --ee _s Replace empty output fields by string _s.
 
-     -j_n _m
+     --jj_n _m
 	  Join on the _mth field of file _n.  If _n is missing, use
 	  the _mth field in each file.
 
-     -o _l_i_s_t
+     --oo _l_i_s_t
 	  Each output line comprises the fields specified in
 	  _l_i_s_t, each element of which has the form _n._m, where _n
 	  is a file number and _m is a field number.
 
-     -t_c  Use character _c as a separator (tab character).  Every
+     --tt_c  Use character _c as a separator (tab character).  Every
 	  appearance of _c in a line is significant.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sort(1), comm(1), awk(1)
 
-BUGS
+BBUUGGSS
      With default field separation, the collating sequence is
-     that of _s_o_r_t -_b; with -t, the sequence is that of a plain
+     that of _s_o_r_t -_b; with --tt, the sequence is that of a plain
      sort.
 
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -126,7 +126,7 @@ JOIN(1)             UNIX Programmer's Manual		  JOIN(1)
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 

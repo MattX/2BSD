@@ -5,21 +5,21 @@ PERROR(3F)	    UNIX Programmer's Manual	       PERROR(3F)
 
 
 
-NAME
+NNAAMMEE
      perror, gerror, ierrno - get system error messages
 
-SYNOPSIS
-     subroutine perror (string)
-     character*(*) string
+SSYYNNOOPPSSIISS
+     ssuubbrroouuttiinnee ppeerrrroorr ((ssttrriinngg))
+     cchhaarraacctteerr**((**)) ssttrriinngg
 
-     subroutine gerror (string)
-     character*(*) string
+     ssuubbrroouuttiinnee ggeerrrroorr ((ssttrriinngg))
+     cchhaarraacctteerr**((**)) ssttrriinngg
 
-     character*(*) function gerror()
+     cchhaarraacctteerr**((**)) ffuunnccttiioonn ggeerrrroorr(())
 
-     function ierrno()
+     ffuunnccttiioonn iieerrrrnnoo(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_e_r_r_o_r will write a message to fortran logical unit 0
      appropriate to the last detected system error.  _S_t_r_i_n_g will
      be written preceding the standard error message.
@@ -35,21 +35,21 @@ DESCRIPTION
      call; that value is a more reliable indicator of what caused
      the error condition.
 
-FILES
+FFIILLEESS
      /usr/lib/libU77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(2), perror(3)
      D. L. Wasley, _I_n_t_r_o_d_u_c_t_i_o_n _t_o _t_h_e _f_7_7 _I/_O _L_i_b_r_a_r_y
 
-BUGS
+BBUUGGSS
      _S_t_r_i_n_g in the call to _p_e_r_r_o_r can be no longer than 127 char-
      acters.
 
      The length of the string returned by _g_e_r_r_o_r is determined by
      the calling program.
 
-NOTES
+NNOOTTEESS
      UNIX system error codes are described in _i_n_t_r_o(2).  The f77
      I/O error codes and their meanings are:
 
@@ -60,7 +60,7 @@ NOTES
 
 
 
-Printed 2/16/100	  June 7, 1985				1
+Printed 9/10/24           June 7, 1985				1
 
 
 
@@ -126,7 +126,7 @@ PERROR(3F)	    UNIX Programmer's Manual	       PERROR(3F)
 
 
 
-Printed 2/16/100	  June 7, 1985				2
+Printed 9/10/24           June 7, 1985				2
 
 
 

@@ -5,31 +5,31 @@ GETSUBOPT(3)	    UNIX Programmer's Manual	     GETSUBOPT(3)
 
 
 
-NAME
+NNAAMMEE
      getsubopt - get sub options from an argument
 
-SYNOPSIS
-     #include <stdlib.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddlliibb..hh>>
 
-     extern char *suboptarg
+     eexxtteerrnn cchhaarr **ssuubbooppttaarrgg
 
-     int
-     getsubopt(optionp, tokens, valuep)
-     char **optionp;
-     char **tokens;
-     char **valuep;
+     iinntt
+     ggeettssuubboopptt((ooppttiioonnpp,, ttookkeennss,, vvaalluueepp))
+     cchhaarr ****ooppttiioonnpp;;
+     cchhaarr ****ttookkeennss;;
+     cchhaarr ****vvaalluueepp;;
 
-DESCRIPTION
-     The getsubopt() function parses a string containing tokens
+DDEESSCCRRIIPPTTIIOONN
+     The ggeettssuubboopptt() function parses a string containing tokens
      delimited by one or more tab, space or comma (`,') charac-
      ters.  It is intended for use in parsing groups of option
      arguments provided as part of a utility command line.
 
      The argument _o_p_t_i_o_n_p is a pointer to a pointer to the
-     string.  The argument _t_o_k_e_n_s is a pointer to a NULL-
+     string.  The argument _t_o_k_e_n_s is a pointer to a NNUULLLL-
      terminated array of pointers to strings.
 
-     The getsubopt() function returns the zero-based offset of
+     The ggeettssuubboopptt() function returns the zero-based offset of
      the pointer in the _t_o_k_e_n_s array referencing a string which
      matches the first token in the string, or, -1 if the string
      contains no tokens or _t_o_k_e_n_s does not contain a matching
@@ -39,16 +39,16 @@ DESCRIPTION
      referenced by _v_a_l_u_e_p will be set to point to the start of
      the ``value'' portion of the token.
 
-     On return from getsubopt(), _o_p_t_i_o_n_p will be set to point to
+     On return from ggeettssuubboopptt(), _o_p_t_i_o_n_p will be set to point to
      the start of the next token in the string, or the null at
      the end of the string if no more tokens are present.  The
      external variable _s_u_b_o_p_t_a_r_g will be set to point to the
-     start of the current token, or NULL if no tokens were
+     start of the current token, or NNUULLLL if no tokens were
      present.  The argument _v_a_l_u_e_p will be set to point to the
-     ``value'' portion of the token, or NULL if no ``value'' por-
+     ``value'' portion of the token, or NNUULLLL if no ``value'' por-
      tion was present.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      char *tokens[] = {
 	  #define   ONE  0
 	       "one",
@@ -60,7 +60,7 @@ EXAMPLE
 
 
 
-Printed 2/16/100	January 12, 1996			1
+Printed 9/10/24         January 12, 1996			1
 
 
 
@@ -105,11 +105,11 @@ GETSUBOPT(3)	    UNIX Programmer's Manual	     GETSUBOPT(3)
 	       break;
 	  }
 
-SEE ALSO
+SSEEEE AALLSSOO
      getopt(3), strsep(3)
 
-HISTORY
-     The getsubopt() function first appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The ggeettssuubboopptt() function first appeared in 4.4BSD.
 
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	January 12, 1996			2
+Printed 9/10/24         January 12, 1996			2
 
 
 

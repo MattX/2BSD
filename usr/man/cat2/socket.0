@@ -5,17 +5,17 @@ SOCKET(2)	    UNIX Programmer's Manual		SOCKET(2)
 
 
 
-NAME
+NNAAMMEE
      socket - create an endpoint for communication
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/socket.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
 
-     s = socket(domain, type, protocol)
-     int s, domain, type, protocol;
+     ss == ssoocckkeett((ddoommaaiinn,, ttyyppee,, pprroottooccooll))
+     iinntt ss,, ddoommaaiinn,, ttyyppee,, pprroottooccooll;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_o_c_k_e_t creates an endpoint for communication and returns a
      descriptor.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 23, 1986				1
+Printed 9/10/24           May 23, 1986				1
 
 
 
@@ -126,7 +126,7 @@ SOCKET(2)	    UNIX Programmer's Manual		SOCKET(2)
 
 
 
-Printed 2/16/100	  May 23, 1986				2
+Printed 9/10/24           May 23, 1986				2
 
 
 
@@ -139,11 +139,11 @@ SOCKET(2)	    UNIX Programmer's Manual		SOCKET(2)
 
      set and get options, respectively.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      A -1 is returned if an error occurs, otherwise the return
      value is a descriptor referencing the socket.
 
-ERRORS
+EERRRROORRSS
      The _s_o_c_k_e_t call fails if:
 
      [EPROTONOSUPPORT]	 The protocol type or the specified pro-
@@ -163,7 +163,7 @@ ERRORS
 			 The socket cannot be created until suf-
 			 ficient resources are freed.
 
-SEE ALSO
+SSEEEE AALLSSOO
      accept(2), bind(2), connect(2), getsockname(2), get-
      sockopt(2), ioctl(2), listen(2), read(2), recv(2),
      select(2), send(2), shutdown(2), socketpair(2), write(2)
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 23, 1986				3
+Printed 9/10/24           May 23, 1986				3
 
 
 

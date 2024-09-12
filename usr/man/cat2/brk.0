@@ -5,19 +5,19 @@ BRK(2)		    UNIX Programmer's Manual		   BRK(2)
 
 
 
-NAME
+NNAAMMEE
      brk, sbrk - change data segment size
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      #include <sys/types.h>
 
-     char *brk(addr)
-     char *addr;
+     cchhaarr **bbrrkk((aaddddrr))
+     cchhaarr **aaddddrr;;
 
-     char *sbrk(incr)
-     int incr;
+     cchhaarr **ssbbrrkk((iinnccrr))
+     iinntt iinnccrr;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_r_k sets the system's idea of the lowest data segment loca-
      tion not used by the program (called the break) to _a_d_d_r
      (rounded up to the next multiple of the system's page size).
@@ -40,12 +40,12 @@ DESCRIPTION
      from a call to _g_e_t_r_l_i_m_i_t, e.g. "etext + rlp->rlim_max." (see
      _e_n_d(3) for the definition of _e_t_e_x_t).
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Zero is returned if the _b_r_k could be set; -1 if the program
      requests more memory than the system limit.  _S_b_r_k returns -1
      if the break could not be set.
 
-ERRORS
+EERRRROORRSS
      _S_b_r_k will fail and no additional memory will be allocated if
      one of the following are true:
 
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 
@@ -71,10 +71,10 @@ BRK(2)		    UNIX Programmer's Manual		   BRK(2)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      execve(2), getrlimit(2), malloc(3), end(3)
 
-BUGS
+BBUUGGSS
      Setting the break may fail due to a temporary lack of swap
      space.  It is not possible to distinguish this from a
      failure caused by exceeding the maximum size of the data
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 22, 1986				2
+Printed 9/10/24           May 22, 1986				2
 
 
 

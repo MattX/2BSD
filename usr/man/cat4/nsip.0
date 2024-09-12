@@ -5,16 +5,16 @@ NSIP(4)             UNIX Programmer's Manual		  NSIP(4)
 
 
 
-NAME
+NNAAMMEE
      nsip - software network interface encapsulating ns packets
      in ip packets.
 
-SYNOPSIS
-     #include <netns/ns_if.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<nneettnnss//nnss__iiff..hh>>
 
-     Not currently supported under 2.11BSD
+     NNoott ccuurrrreennttllyy ssuuppppoorrtteedd uunnddeerr 22..1111BBSSDD
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _n_s_i_p interface is a software mechanism which may be used
      to transmit Xerox NS(tm) packets through otherwise
      uncooperative networks.  It functions by prepending an IP
@@ -39,28 +39,28 @@ DESCRIPTION
      };
 
 
-DIAGNOSTICS
-     nsip%d: can't handle af%d.  The interface was handed a mes-
+DDIIAAGGNNOOSSTTIICCSS
+     nnssiipp%%dd:: ccaann''tt hhaannddllee aaff%%dd.  The interface was handed a mes-
      sage with addresses formatted in an unsuitable address fam-
      ily; the packet was dropped.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(4N), ns(4F)
 
-BUGS
+BBUUGGSS
      It is absurd to have a separate pseudo-device for each pt-
      to-pt link.  There is no way to change the IP address for an
      NS host once the the encapsulation interface is set up.  The
      request should honor flags of RTF_GATEWAY to indicate remote
      networks, and the absence of RTF_UP should be a clue to
      remove that partner.  This was intended to postpone the
-     necessity of rewriting reverse ARP for the en device, and to
+     necessity of rewriting reverse ARP for the eenn device, and to
      allow passing XNS packets through an Arpanet-Milnet gateway,
      to facilitate testing between some co-operating
 
 
 
-Printed 2/16/100	January 27, 1996			1
+Printed 9/10/24         January 27, 1996			1
 
 
 
@@ -126,7 +126,7 @@ NSIP(4)             UNIX Programmer's Manual		  NSIP(4)
 
 
 
-Printed 2/16/100	January 27, 1996			2
+Printed 9/10/24         January 27, 1996			2
 
 
 

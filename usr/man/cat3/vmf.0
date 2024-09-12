@@ -5,62 +5,62 @@ VMF(3)              UNIX Programmer's Manual               VMF(3)
 
 
 
-NAME
+NNAAMMEE
      vminit, vmopen, vmclose, vmmapseg, vmmodify, vmlock, vmun-
      lock, vmclrseg, vmflush, - disk based virtual memory rou-
      tines
 
-SYNOPSIS
-     #include <vmf.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<vvmmff..hh>>
 
-     struct vspace {
-          int     v_fd;           /* file for swapping */
-          off_t   v_foffset;      /* offset for computing file addresses */
-          int     v_maxsegno;     /* number of segments in this space */
-          };
+     ssttrruucctt vvssppaaccee {{
+          iinntt     vv__ffdd;;           //** ffiillee ffoorr sswwaappppiinngg **//
+          ooffff__tt   vv__ffooffffsseett;;      //** ooffffsseett ffoorr ccoommppuuttiinngg ffiillee aaddddrreesssseess **//
+          iinntt     vv__mmaaxxsseeggnnoo;;     //** nnuummbbeerr ooff sseeggmmeennttss iinn tthhiiss ssppaaccee **//
+          }};;
 
-     struct    vseg {                    /* structure of a segment in memory */
-          struct    dlink     s_link;        /* for linking into lru list */
-          int  s_segno;            /* segment number */
-          struct    vspace    *s_vspace;      /* which virtual space */
-          int  s_lock_count;
-          int     s_flags;
-          union
-               {
-               int  _winfo[WORDSPERSEG];     /* the actual segment */
-               char _cinfo[BYTESPERSEG];
-               } v_un;
-          };
-     #define   s_winfo   v_un._winfo
-     #define   s_cinfo   v_un._cinfo
+     ssttrruucctt    vvsseegg {{                    //** ssttrruuccttuurree ooff aa sseeggmmeenntt iinn mmeemmoorryy **//
+          ssttrruucctt    ddlliinnkk     ss__lliinnkk;;        //** ffoorr lliinnkkiinngg iinnttoo llrruu lliisstt **//
+          iinntt  ss__sseeggnnoo;;            //** sseeggmmeenntt nnuummbbeerr **//
+          ssttrruucctt    vvssppaaccee    **ss__vvssppaaccee;;      //** wwhhiicchh vviirrttuuaall ssppaaccee **//
+          iinntt  ss__lloocckk__ccoouunntt;;
+          iinntt     ss__ffllaaggss;;
+          uunniioonn
+               {{
+               iinntt  __wwiinnffoo[[WWOORRDDSSPPEERRSSEEGG]];;     //** tthhee aaccttuuaall sseeggmmeenntt **//
+               cchhaarr __cciinnffoo[[BBYYTTEESSPPEERRSSEEGG]];;
+               }} vv__uunn;;
+          }};;
+     ##ddeeffiinnee   ss__wwiinnffoo   vv__uunn..__wwiinnffoo
+     ##ddeeffiinnee   ss__cciinnffoo   vv__uunn..__cciinnffoo
 
-     int  vminit(nseg);
-          int nseg;
+     iinntt  vvmmiinniitt((nnsseegg));;
+          iinntt nnsseegg;;
 
-     int  vmopen(space, filename);
-          struct vspace *space;
-          char *filename;
+     iinntt  vvmmooppeenn((ssppaaccee,, ffiilleennaammee));;
+          ssttrruucctt vvssppaaccee **ssppaaccee;;
+          cchhaarr **ffiilleennaammee;;
 
-     struct    vseg *vmmapseg(space, segno);
-          struct    vspace    *space;
-          int  segno;
+     ssttrruucctt    vvsseegg **vvmmmmaappsseegg((ssppaaccee,, sseeggnnoo));;
+          ssttrruucctt    vvssppaaccee    **ssppaaccee;;
+          iinntt  sseeggnnoo;;
 
-     void vmlock(seg);
-          struct    vseg *seg;
+     vvooiidd vvmmlloocckk((sseegg));;
+          ssttrruucctt    vvsseegg **sseegg;;
 
-     void vmunlock(seg);
-          struct    vseg *seg;
+     vvooiidd vvmmuunnlloocckk((sseegg));;
+          ssttrruucctt    vvsseegg **sseegg;;
 
-     void vmclrseg(seg);
-          struct    vseg *seg;
+     vvooiidd vvmmccllrrsseegg((sseegg));;
+          ssttrruucctt    vvsseegg **sseegg;;
 
-     void vmmodify(seg);
-
-
+     vvooiidd vvmmmmooddiiffyy((sseegg));;
 
 
 
-Printed 12/4/01        September 24, 1993                       1
+
+
+Printed 9/10/24        September 24, 1993                       1
 
 
 
@@ -71,12 +71,10 @@ VMF(3)              UNIX Programmer's Manual               VMF(3)
 
 
 
-     void vmflush();
+     vvooiidd vvmmfflluusshh(());;
 
-     void vmclose(space);
-          struct    vspace *space;
-
-
+     vvooiidd vvmmcclloossee((ssppaaccee));;
+          ssttrruucctt    vvssppaaccee **ssppaaccee;;
 
 
 
@@ -126,7 +124,9 @@ VMF(3)              UNIX Programmer's Manual               VMF(3)
 
 
 
-Printed 12/4/01        September 24, 1993                       2
+
+
+Printed 9/10/24        September 24, 1993                       2
 
 
 
@@ -137,7 +137,7 @@ VMF(3)              UNIX Programmer's Manual               VMF(3)
 
 
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This library provides a standard set of routines for manag-
      ing large virtual memory spaces.  It supports creation of
      multiple concurrent virtual spaces, mapping of virtual pages
@@ -156,7 +156,7 @@ DESCRIPTION
      ('struct vspace'). This routine is used to initialize a vir-
      tual space structure using the specified address of a space
      structure and the name of the file that will serve as swap
-     file for the space.  If the second argument is NULL an
+     file for the space.  If the second argument is NNUULLLL an
      invisible temporary file is used rather than a named (per-
      manent) file.
 
@@ -174,7 +174,7 @@ DESCRIPTION
      _v_m_m_o_d_i_f_y - Whenever a program modifies the data of a seg-
      ment, it is the program's responsibility to inform the vir-
      tual memory system of the modification.  This function is
-     also available as a macro (VMMODIFY) for use in-line.
+     also available as a macro (VVMMMMOODDIIFFYY) for use in-line.
 
      _v_m_l_o_c_k - This routine increments the lock count of the
      specified segment buffer.  A buffer with a nonzero lock
@@ -192,7 +192,7 @@ DESCRIPTION
 
 
 
-Printed 12/4/01        September 24, 1993                       3
+Printed 9/10/24        September 24, 1993                       3
 
 
 
@@ -203,7 +203,7 @@ VMF(3)              UNIX Programmer's Manual               VMF(3)
 
 
 
-BUGS
+BBUUGGSS
      Not as transparent (or as fast) as a larger hardware address
      space.
 
@@ -211,10 +211,10 @@ BUGS
      application must check if a _v_i_r_t_u_a_l _a_d_d_r_e_s_s crosses
      page/segment boundaries and perform a _v_m_m_a_p_s_e_g call.
 
-SEE ALSO
+SSEEEE AALLSSOO
      There is a nroff document (using the -ms macros) in the
      _l_i_b_v_m_f source directory which goes into more details about
-     the vm functions.
+     the vvmm functions.
 
 
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 12/4/01        September 24, 1993                       4
+Printed 9/10/24        September 24, 1993                       4
 
 
 

@@ -5,38 +5,38 @@ PLOT(3X)	    UNIX Programmer's Manual		 PLOT(3X)
 
 
 
-NAME
+NNAAMMEE
      plot: openpl, erase, label, line, circle, arc, move, cont,
      point, linemod, space, closepl - graphics interface
 
-SYNOPSIS
-     openpl()
+SSYYNNOOPPSSIISS
+     ooppeennppll(())
 
-     erase()
+     eerraassee(())
 
-     label(s)
-     char s[];
+     llaabbeell((ss))
+     cchhaarr ss[[]];;
 
-     line(x1, y1, x2, y2)
+     lliinnee((xx11,, yy11,, xx22,, yy22))
 
-     circle(x, y, r)
+     cciirrccllee((xx,, yy,, rr))
 
-     arc(x, y, x0, y0, x1, y1)
+     aarrcc((xx,, yy,, xx00,, yy00,, xx11,, yy11))
 
-     move(x, y)
+     mmoovvee((xx,, yy))
 
-     cont(x, y)
+     ccoonntt((xx,, yy))
 
-     point(x, y)
+     ppooiinntt((xx,, yy))
 
-     linemod(s)
-     char s[];
+     lliinneemmoodd((ss))
+     cchhaarr ss[[]];;
 
-     space(x0, y0, x1, y1)
+     ssppaaccee((xx00,, yy00,, xx11,, yy11))
 
-     closepl()
+     cclloosseeppll(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These subroutines generate graphic output in a relatively
      device-independent manner.  See _p_l_o_t(5) for a description of
      their effect.  _O_p_e_n_p_l must be used before any of the others
@@ -49,18 +49,18 @@ DESCRIPTION
      put devices. They are obtained by the following _l_d(1)
      options:
 
-     -lplot  device-independent graphics stream on standard out-
+     --llpplloott  device-independent graphics stream on standard out-
 	     put for _p_l_o_t(1) filters
-     -l300   GSI 300 terminal
-     -l300s  GSI 300S terminal
-     -l450   GSI 450 terminal
-     -l4013  Tektronix 4013 terminal
-     -l4014  Tektronix 4014 and 4015 terminals with the Enhanced
-	     Graphics Module (Use -l4013 for 4014's or 4015's
+     --ll330000   GSI 300 terminal
+     --ll330000ss  GSI 300S terminal
+     --ll445500   GSI 450 terminal
+     --ll44001133  Tektronix 4013 terminal
+     --ll44001144  Tektronix 4014 and 4015 terminals with the Enhanced
+	     Graphics Module (Use --ll44001133 for 4014's or 4015's
 
 
 
-Printed 2/16/100	  May 15, 1986				1
+Printed 9/10/24           May 15, 1986				1
 
 
 
@@ -72,20 +72,20 @@ PLOT(3X)	    UNIX Programmer's Manual		 PLOT(3X)
 
 
 	     without the Enhanced Graphics Module)
-     -lplotaed
+     --llpplloottaaeedd
 	     AED 512 color graphics terminal
-     -lplotbg
+     --llpplloottbbgg
 	     BBN bitgraph graphics terminal
-     -lplotdumb
+     --llpplloottdduummbb
 	     Dumb terminals without cursor addressing or line
 	     printers
-     -lplot  DEC Gigi terminals
-     -lvt0   DEC vt100 terminals
-     -lplot2648
+     --llpplloott  DEC Gigi terminals
+     --llvvtt00   DEC vt100 terminals
+     --llpplloott22664488
 	     Hewlett Packard 2648 graphics terminal
-     -lplot7221
+     --llpplloott77222211
 	     Hewlett Packard 7221 graphics terminal
-     -lplotimagen
+     --llpplloottiimmaaggeenn
 	     Imagen laser printer (default 240 dots-per-inch
 	     resolution).
 
@@ -98,7 +98,7 @@ PLOT(3X)	    UNIX Programmer's Manual		 PLOT(3X)
 	  sleep(1);
      after each _e_r_a_s_e().
 
-SEE ALSO
+SSEEEE AALLSSOO
      plot(5), plot(1G), plot(3F), graph(1G)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1986				2
+Printed 9/10/24           May 15, 1986				2
 
 
 

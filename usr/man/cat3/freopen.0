@@ -5,23 +5,23 @@ FOPEN(3S)	    UNIX Programmer's Manual		FOPEN(3S)
 
 
 
-NAME
+NNAAMMEE
      fopen, freopen, fdopen - open a stream
 
-SYNOPSIS
-     #include <stdio.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssttddiioo..hh>>
 
-     FILE *fopen(filename, type)
-     char *filename, *type;
+     FFIILLEE **ffooppeenn((ffiilleennaammee,, ttyyppee))
+     cchhaarr **ffiilleennaammee,, **ttyyppee;;
 
-     FILE *freopen(filename, type, stream)
-     char *filename, *type;
-     FILE *stream;
+     FFIILLEE **ffrreeooppeenn((ffiilleennaammee,, ttyyppee,, ssttrreeaamm))
+     cchhaarr **ffiilleennaammee,, **ttyyppee;;
+     FFIILLEE **ssttrreeaamm;;
 
-     FILE *fdopen(fildes, type)
-     char *type;
+     FFIILLEE **ffddooppeenn((ffiillddeess,, ttyyppee))
+     cchhaarr **ttyyppee;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_o_p_e_n opens the file named by _f_i_l_e_n_a_m_e and associates a
      stream with it.  _F_o_p_e_n returns a pointer to be used to iden-
      tify the stream in subsequent operations.
@@ -49,18 +49,18 @@ DESCRIPTION
      ginal stream is closed.
 
      _F_r_e_o_p_e_n is typically used to attach the preopened constant
-     names, stdin, stdout, stderr, to specified files.
+     names, ssttddiinn,, ssttddoouutt,, ssttddeerrrr,, to specified files.
 
      _F_d_o_p_e_n associates a stream with a file descriptor obtained
      from _o_p_e_n, _d_u_p, _c_r_e_a_t, or _p_i_p_e(2).  The _t_y_p_e of the stream
      must agree with the mode of the open file.
 
-SEE ALSO
+SSEEEE AALLSSOO
      open(2), fclose(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 
@@ -71,12 +71,12 @@ FOPEN(3S)	    UNIX Programmer's Manual		FOPEN(3S)
 
 
 
-DIAGNOSTICS
-     _F_o_p_e_n and _f_r_e_o_p_e_n return the pointer NULL if _f_i_l_e_n_a_m_e cannot
+DDIIAAGGNNOOSSTTIICCSS
+     _F_o_p_e_n and _f_r_e_o_p_e_n return the pointer NNUULLLL if _f_i_l_e_n_a_m_e cannot
      be accessed, if too many files are already open, or if other
      resources needed cannot be allocated.
 
-BUGS
+BBUUGGSS
      _F_d_o_p_e_n is not portable to systems other than UNIX.
 
      The read/write _t_y_p_e_s do not exist on all systems.	Those
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 27, 1986				2
+Printed 9/10/24           May 27, 1986				2
 
 
 

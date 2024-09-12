@@ -5,28 +5,28 @@ SQRT(3M)	    UNIX Programmer's Manual		 SQRT(3M)
 
 
 
-NAME
+NNAAMMEE
      cbrt, sqrt - cube root, square root
 
-SYNOPSIS
-     #include <math.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<mmaatthh..hh>>
 
-     double cbrt(x)
-     double x;
+     ddoouubbllee ccbbrrtt((xx))
+     ddoouubbllee xx;;
 
-     double sqrt(x)
-     double x;
+     ddoouubbllee ssqqrrtt((xx))
+     ddoouubbllee xx;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Cbrt(x) returns the cube root of x.
 
      Sqrt(x) returns the square root of x.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      On a VAX, sqrt(negative) returns the reserved operand and
      sets _e_r_r_n_o to EDOM .
 
-ERROR (due to Roundoff etc.)
+EERRRROORR ((dduuee ttoo RRoouunnddooffff eettcc..))
      Cbrt is accurate to within 0.7 _u_l_ps.
      Sqrt on a VAX is accurate to within 0.501 _u_l_ps.
      Sqrt on a machine that conforms to IEEE 754 is correctly
@@ -35,10 +35,10 @@ ERROR (due to Roundoff etc.)
      (round-to-nearest).  An _u_l_p is one _Unit in the _Last _Place
      carried.
 
-SEE ALSO
+SSEEEE AALLSSOO
      math(3M), infnan(3M)
 
-AUTHOR
+AAUUTTHHOORR
      W. Kahan
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/16/100	  May 12, 1986				1
+Printed 9/10/24           May 12, 1986				1
 
 
 

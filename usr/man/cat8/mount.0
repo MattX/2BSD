@@ -5,41 +5,41 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 
 
 
-NAME
-     mount - mount file systems
+NNAAMMEE
+     mmoouunntt - mount file systems
 
-SYNOPSIS
-     mount [ -adfruvw ] [ -t _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
-     mount [ -dfruvw ] _s_p_e_c_i_a_l | _n_o_d_e
-     mount [ -dfruvw ] [ -o _o_p_t_i_o_n_s ] [ -t _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
+SSYYNNOOPPSSIISS
+     mmoouunntt [ --aaddffrruuvvww ] [ --tt _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
+     mmoouunntt [ --ddffrruuvvww ] _s_p_e_c_i_a_l | _n_o_d_e
+     mmoouunntt [ --ddffrruuvvww ] [ --oo _o_p_t_i_o_n_s ] [ --tt _u_f_s | _e_x_t_e_r_n_a_l__t_y_p_e ]
      _s_p_e_c_i_a_l _n_o_d_e
 
-DESCRIPTION
-     The mount command calls the mount(2) system call to prepare
+DDEESSCCRRIIPPTTIIOONN
+     The mmoouunntt command calls the mount(2) system call to prepare
      and graft a _s_p_e_c_i_a_l _d_e_v_i_c_e on to the file system tree at the
      point _n_o_d_e.  If either _s_p_e_c_i_a_l or _n_o_d_e are not provided, the
      appropriate information is taken from the fstab(5) file.
 
      The system maintains a list of currently mounted file sys-
-     tems.  If no arguments are given to mount, this list is
+     tems.  If no arguments are given to mmoouunntt, this list is
      printed.
 
      The options are as follows:
 
 
-     -a        Causes everything to be done except for the actual
+     --aa        Causes everything to be done except for the actual
 	       system call.  This option is useful in conjunction
 	       with the
 
-     -v        flag to determine what the mount command is trying
+     --vv        flag to determine what the mmoouunntt command is trying
 	       to do.
 
-     -f        Forces the revocation of write access when trying
+     --ff        Forces the revocation of write access when trying
 	       to downgrade a filesystem mount status from read-
 	       write to read-only.  For 2.11BSD this flag is
 	       currently not implemented.
 
-     -o        Options are specified with a -o flag followed by a
+     --oo        Options are specified with a --oo flag followed by a
 	       comma separated string of options.  The following
 	       options are available:
 
@@ -47,11 +47,11 @@ DESCRIPTION
 	       async	 All I/O to the file system should be
 			 done asynchronously.
 
-			 This is a dangerous flag to and should
-			 not be used unless system should your
-			 system crash.
+			 TThhiiss iiss aa ddaannggeerroouuss ffllaagg ttoo aanndd sshhoouulldd
+			 nnoott bbee uusseedd uunnlleessss ssyysstteemm sshhoouulldd yyoouurr
+			 ssyysstteemm ccrraasshh..
 
-	       force	 The same as -f; forces the revocation of
+	       force	 The same as --ff; forces the revocation of
 			 write access when trying to downgrade a
 			 filesystem mount status from read-write
 			 to read-only.	 This is not (and likely
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 
@@ -74,11 +74,11 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 	       noaccesstime
 			 File access times are not updated.
 
-			 This is a performance optimization for
-			 read-only, short-lived data, e.g., news.
+			 TThhiiss iiss aa ppeerrffoorrmmaannccee ooppttiimmiizzaattiioonn ffoorr
+			 rreeaadd--oonnllyy,, sshhoorrtt--lliivveedd ddaattaa,, ee..gg..,, nneewwss..
 
 	       noauto	 This filesystem should be skipped when
-			 mount is run with the -a flag.
+			 mount is run with the --aa flag.
 
 	       na	 Same as noauto.
 
@@ -98,20 +98,20 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 			 set-group-identifier bits to take
 			 effect.
 
-	       rdonly	 The same as -r; mount the file system
+	       rdonly	 The same as --rr; mount the file system
 			 read-only (even the super-user may not
 			 write it).
 
 	       sync	 All I/O to the file system should be
 			 done synchronously.
 
-	       update	 The same as -u; indicate that the status
+	       update	 The same as --uu; indicate that the status
 			 of an already mounted file system should
 			 be changed.
 
 	       Any additional options specific to a filesystem
 	       type that is not one of the internally known types
-	       (see the -t option) may be passed as a comma
+	       (see the --tt option) may be passed as a comma
 	       separated list; these options are distinguished by
 	       a leading - (dash).  Options that take a value are
 	       specified using the syntax -option=value.  At
@@ -126,7 +126,7 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 
 
 
-Printed 2/16/100	November 16, 1996			2
+Printed 9/10/24         November 16, 1996			2
 
 
 
@@ -137,29 +137,29 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 
 
 
-	       causes mount to execute the equivalent of:
+	       causes mmoouunntt to execute the equivalent of:
 
 	       /sbin/mount_mfs -o nosuid -N -s 4000 /dev/dk0b
 	       /tmp
 
-       -r	 The file system is to be mounted read-only.
+       --rr	 The file system is to be mounted read-only.
 		 Mount the file system read-only (even the
 		 super-user may not write it).	The same as the
-		 ``rdonly'' argument to the -o option.
+		 ``rdonly'' argument to the --oo option.
 
-       -t "_u_f_s | _e_x_t_e_r_n_a_l _t_y_p_e"
-		 The argument following the -t is used to indi-
+       --tt "_u_f_s | _e_x_t_e_r_n_a_l _t_y_p_e"
+		 The argument following the --tt is used to indi-
 		 cate the file system type.  The type _u_f_s is the
 		 default.  _U_f_s is also the only value supported
-		 by 2.11BSD other than _s_w_a_p.  Thus the -t will
-		 rarely be used.  The -t option can be used to
+		 by 2.11BSD other than _s_w_a_p.  Thus the --tt will
+		 rarely be used.  The --tt option can be used to
 		 indicate that the actions should only be taken
 		 on filesystems of the specified type.	More than
 		 one type may be specified in a comma separated
 		 list.	The list of filesystem types can be pre-
 		 fixed with ``no'' to specify the filesystem
 		 types for which action should _n_o_t be taken.  For
-		 example, the mount command:
+		 example, the mmoouunntt command:
 
 		 mount -a -t nonfs,mfs
 
@@ -172,27 +172,27 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 		 type name.  For example, mfs filesystems are
 		 mounted by the program /_s_b_i_n/_m_o_u_n_t__m_f_s.
 
-       -u	 The -u flag indicates that the status of an
+       --uu	 The --uu flag indicates that the status of an
 		 already mounted file system should be changed.
-		 Any of the options discussed above (the -o
+		 Any of the options discussed above (the --oo
 		 option) may be changed; also a file system can
 		 be changed from read-only to read-write or vice
 		 versa.  An attempt to change from read-write to
 		 read-only will fail if any files on the filesys-
-		 tem are currently open for writing unless the -f
+		 tem are currently open for writing unless the --ff
 		 flag is also specified.  This is currently not
 		 implemented in 2.11BSD.  The ability to change
 		 the flags (nodev, nosuid, etc) is however sup-
 		 ported.  The set of options is determined by
 		 first extracting the options for the file system
 		 from the _f_s_t_a_b table, then applying any options
-		 specified by the -o argument, and finally apply-
-		 ing the -r or -w option.
+		 specified by the --oo argument, and finally apply-
+		 ing the --rr or --ww option.
 
 
 
 
-Printed 2/16/100	November 16, 1996			3
+Printed 9/10/24         November 16, 1996			3
 
 
 
@@ -203,28 +203,28 @@ MOUNT(8)	    UNIX Programmer's Manual		 MOUNT(8)
 
 
 
-       -v	 Verbose mode.
+       --vv	 Verbose mode.
 
-       -w	 The file system object is to be read and write.
+       --ww	 The file system object is to be read and write.
 
-FILES
+FFIILLEESS
      /etc/fstab
 	       file system table
 
-SEE ALSO
+SSEEEE AALLSSOO
      mount(2), fstab(5), umount(8)
 
-BUGS
+BBUUGGSS
      It is possible for a corrupted file system to cause a crash.
 
-     mount and this manpage were ported from 4.4BSD-Lite to
+     mmoouunntt and this manpage were ported from 4.4BSD-Lite to
      2.11BSD to gain the ability to set the various flags such as
-     nodev, nosuid and so on.	Multiple filesystem types are not
+     nnooddeevv, nnoossuuiidd and so on.	Multiple filesystem types are not
      supported and several of the options and flags are not
      implemented.
 
-HISTORY
-     A mount command appeared in Version 6 AT&T UNIX.
+HHIISSTTOORRYY
+     A mmoouunntt command appeared in Version 6 AT&T UNIX.
 
 
 
@@ -258,7 +258,7 @@ HISTORY
 
 
 
-Printed 2/16/100	November 16, 1996			4
+Printed 9/10/24         November 16, 1996			4
 
 
 

@@ -5,13 +5,13 @@ RLOGIND(8)	    UNIX Programmer's Manual	       RLOGIND(8)
 
 
 
-NAME
+NNAAMMEE
      rlogind - remote login server
 
-SYNOPSIS
-     rlogind [ -aln ]
+SSYYNNOOPPSSIISS
+     rrllooggiinndd [ --aallnn ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_l_o_g_i_n_d is the server for the _r_l_o_g_i_n(1) program.  The server
      provides a remote login facility with authentication based
      on privileged port numbers from trusted hosts.
@@ -31,7 +31,7 @@ DESCRIPTION
 	  cannot be determined, the dot-notation representation
 	  of the host address is used.	If the hostname is in the
 	  same domain as the server (according to the last two
-	  components of the domain name), or if the -a option is
+	  components of the domain name), or if the --aa option is
 	  given, the addresses for the hostname are requested,
 	  verifying that the name and address correspond.  Normal
 	  authentication is bypassed if the address verification
@@ -41,12 +41,12 @@ DESCRIPTION
      proceeds with the authentication process described in
      _r_s_h_d(8).  It then allocates a pseudo terminal (see _p_t_y(4)),
      and manipulates file descriptors so that the slave half of
-     the pseudo terminal becomes the stdin , stdout , and stderr
+     the pseudo terminal becomes the ssttddiinn ,, ssttddoouutt ,, and ssttddeerrrr
      for a login process.  The login process is an instance of
-     the _l_o_g_i_n(1) program, invoked with the -f option if authen-
+     the _l_o_g_i_n(1) program, invoked with the --ff option if authen-
      tication has succeeded.  If automatic authentication fails,
      the user is prompted to log in as if on a standard terminal
-     line.  The -l option prevents any authentication based on
+     line.  The --ll option prevents any authentication based on
      the user's ``.rhosts'' file, unless the user is logging in
      as the superuser.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100       September 11, 1989			1
+Printed 9/10/24        September 11, 1989			1
 
 
 
@@ -77,24 +77,24 @@ RLOGIND(8)	    UNIX Programmer's Manual	       RLOGIND(8)
      changes from the client are propagated to the pseudo termi-
      nal.
 
-     Transport-level keepalive messages are enabled unless the -n
+     Transport-level keepalive messages are enabled unless the --nn
      option is present.  The use of keepalive messages allows
      sessions to be timed out if the client crashes or becomes
      unreachable.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      All initial diagnostic messages are indicated by a leading
      byte with a value of 1, after which any network connections
      are closed.  If there are no errors before _l_o_g_i_n is invoked,
      a null byte is returned as in indication of success.
 
-     ``Try again.''
+     ````TTrryy aaggaaiinn..''''
      A _f_o_r_k by the server failed.
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1), ruserok(3), rshd(8)
 
-BUGS
+BBUUGGSS
      The authentication procedure used here assumes the integrity
      of each client machine and the connecting medium.	This is
      insecure, but is useful in an ``open'' environment.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100       September 11, 1989			2
+Printed 9/10/24        September 11, 1989			2
 
 
 

@@ -5,19 +5,19 @@ AWK(1)		    UNIX Programmer's Manual		   AWK(1)
 
 
 
-NAME
+NNAAMMEE
      awk - pattern scanning and processing language
 
-SYNOPSIS
-     awk [ -F_c ] [ prog ] [ file ] ...
+SSYYNNOOPPSSIISS
+     aawwkk [ --FF_c ] [ prog ] [ file ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_w_k scans each input _f_i_l_e for lines that match any of a set
      of patterns specified in _p_r_o_g.  With each pattern in _p_r_o_g
      there can be an associated action that will be performed
      when a line of a _f_i_l_e matches the pattern.  The set of pat-
      terns may appear literally as _p_r_o_g, or in a file specified
-     as -f _f_i_l_e.
+     as --ff _f_i_l_e.
 
      Files are read in order; if there are no files, the standard
      input is read.  The file name `-' means the standard input.
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -126,7 +126,7 @@ AWK(1)		    UNIX Programmer's Manual		   AWK(1)
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 
@@ -139,7 +139,7 @@ AWK(1)		    UNIX Programmer's Manual		   AWK(1)
 
 	  BEGIN { FS = "c" }
 
-     or by using the -F_c option.
+     or by using the --FF_c option.
 
      Other variable names with special meanings include NF, the
      number of fields in the current record; NR, the ordinal
@@ -148,7 +148,7 @@ AWK(1)		    UNIX Programmer's Manual		   AWK(1)
      blank); ORS, the output record separator (default newline);
      and OFMT, the output format for numbers (default "%.6g").
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      Print lines longer than 72 characters:
 
 	  length > 72
@@ -175,12 +175,12 @@ EXAMPLES
 
 	  $1 != prev { print; prev = $1 }
 
-SEE ALSO
+SSEEEE AALLSSOO
      lex(1), sed(1)
      A. V. Aho, B. W. Kernighan, P. J. Weinberger, _A_w_k - _a _p_a_t_-
      _t_e_r_n _s_c_a_n_n_i_n_g _a_n_d _p_r_o_c_e_s_s_i_n_g _l_a_n_g_u_a_g_e
 
-BUGS
+BBUUGGSS
      There are no explicit conversions between numbers and
      strings.  To force an expression to be treated as a number
      add 0 to it; to force it to be treated as a string concaten-
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         3
+Printed 9/10/24          April 29, 1985                         3
 
 
 

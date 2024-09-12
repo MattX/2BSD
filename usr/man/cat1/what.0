@@ -5,21 +5,21 @@ WHAT(1)             UNIX Programmer's Manual		  WHAT(1)
 
 
 
-NAME
+NNAAMMEE
      what - show what versions of object modules were used to
      construct a file
 
-SYNOPSIS
-     what name ...
+SSYYNNOOPPSSIISS
+     wwhhaatt name ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _W_h_a_t reads each file and searches for sequences of the form
      ``@(#)'' as inserted by the source code control system.  It
      then prints the remainder of the string after this marker,
      up to a null character, newline, double quote, or ``>''
      character.
 
-BUGS
+BBUUGGSS
      As SCCS is not licensed with UNIX/32V, this is a rewrite of
      the _w_h_a_t command which is part of SCCS, and may not behave
      exactly the same as that command does.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

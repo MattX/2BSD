@@ -5,21 +5,21 @@ SIGSETMASK(2)	    UNIX Programmer's Manual	    SIGSETMASK(2)
 
 
 
-NAME
+NNAAMMEE
      sigsetmask - set current signal mask
 
-SYNOPSIS
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
-     omask = sigsetmask(mask);
-     long omask, mask;
+     oommaasskk == ssiiggsseettmmaasskk((mmaasskk));;
+     lloonngg oommaasskk,, mmaasskk;;
 
-     mask = sigmask(signum)
-     long mask;
-     int signum;
+     mmaasskk == ssiiggmmaasskk((ssiiggnnuumm))
+     lloonngg mmaasskk;;
+     iinntt ssiiggnnuumm;;
 
-DESCRIPTION
-     This interface is made obsolete by:
+DDEESSCCRRIIPPTTIIOONN
+     TThhiiss iinntteerrffaaccee iiss mmaaddee oobbssoolleettee bbyy::
 
      _S_i_g_s_e_t_m_a_s_k sets the current signal mask (those signals that
      are blocked from delivery).  Signals are blocked if the
@@ -29,14 +29,14 @@ DESCRIPTION
      The system quietly disallows SIGKILL, SIGSTOP, or SIGCONT to
      be blocked.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      The previous set of masked signals is returned.
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(2), sigvec(2), sigblock(2), sigpause(2)
 
-HISTORY
-     The sigsetmask function call appeared in 4.2BSD and has been
+HHIISSTTOORRYY
+     The ssiiggsseettmmaasskk function call appeared in 4.2BSD and has been
      deprecated.
 
 
@@ -60,7 +60,7 @@ HISTORY
 
 
 
-Printed 2/16/100	September 3, 1997			1
+Printed 9/10/24         September 3, 1997			1
 
 
 

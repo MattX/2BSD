@@ -5,19 +5,19 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
 
 
-NAME
+NNAAMMEE
      sx, sb, sz - XMODEM, YMODEM, ZMODEM file send
 
-SYNOPSIS
-     sz [-+abdefkLlNnopqTtuvyYZ] _f_i_l_e ...
-     sb [-adfkqtuv] _f_i_l_e ...
-     sx [-akqtuv] _f_i_l_e
-     sz [-oqtv] -c COMMAND
-     sz [-oqtv] -i COMMAND
+SSYYNNOOPPSSIISS
+     sz [-++aabbddeeffkkLLllNNnnooppqqTTttuuvvyyYYZZ] _f_i_l_e ...
+     sb [-aaddffkkqqttuuvv] _f_i_l_e ...
+     sx [-aakkqqttuuvv] _f_i_l_e
+     sz [-ooqqttvv] --cc CCOOMMMMAANNDD
+     sz [-ooqqttvv] --ii CCOOMMMMAANNDD
      sz -TT
 
-DESCRIPTION
-     Sz uses the ZMODEM, YMODEM or XMODEM error correcting proto-
+DDEESSCCRRIIPPTTIIOONN
+     SSzz uses the ZMODEM, YMODEM or XMODEM error correcting proto-
      col to send one or more files over a dial-in serial port to
      a variety of programs running under PC-DOS, CP/M, Unix, VMS,
      and other operating systems.
@@ -28,14 +28,14 @@ DESCRIPTION
      Professional-YAM communications software are available for
      dial-out applications.  (Reg.)
 
-     Sz sends one or more files with ZMODEM protocol.
+     SSzz sends one or more files with ZMODEM protocol.
 
      ZMODEM greatly simplifies file transfers compared to XMODEM.
      In addition to a friendly user interface, ZMODEM provides
      Personal Computer and other users an efficient, accurate,
      and robust file transfer method.
 
-     ZMODEM provides complete END-TO-END data integrity between
+     ZMODEM provides complete EENNDD--TTOO--EENNDD data integrity between
      application programs.  ZMODEM's 32 bit CRC catches errors
      that sneak into even the most advanced networks.
 
@@ -45,22 +45,22 @@ DESCRIPTION
      transmission time estimates, Crash Recovery, selective file
      transfers, and preservation of exact file date and length.
 
-     The -y option instructs the receiver to open the file for
-     writing unconditionally.  The -a option causes the receiver
+     The --yy option instructs the receiver to open the file for
+     writing unconditionally.  The --aa option causes the receiver
      to convert Unix newlines to PC-DOS carriage returns and
      linefeeds.
 
 
-     Sb batch sends one or more files with YMODEM or ZMODEM pro-
+     SSbb batch sends one or more files with YMODEM or ZMODEM pro-
      tocol.  The initial ZMODEM initialization is not sent.  When
-     requested by the receiver, sb supports YMODEM-g with
+     requested by the receiver, ssbb supports YYMMOODDEEMM--gg with
      "cbreak" tty mode, XON/XOFF flow control, and interrupt
-     character set to CAN (^X).  YMODEM-g (Professional-YAM g
+     character set to CAN (^X).  YYMMOODDEEMM--gg (Professional-YAM gg
      option) increases throughput over error free channels
 
 
 
-Printed 2/16/100	      OMEN				1
+Printed 9/10/24               OMEN				1
 
 
 
@@ -81,25 +81,25 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
      and file mode are set accordingly.
 
 
-     Sx sends a single _f_i_l_e with XMODEM or XMODEM-1k protocol
+     SSxx sends a single _f_i_l_e with XXMMOODDEEMM or XXMMOODDEEMM--11kk protocol
      (sometimes incorrectly called "ymodem").  The user must sup-
      ply the file name to both sending and receiving programs.
 
-     Iff sz is invoked with $SHELL set and iff that variable con-
-     tains the string _r_s_h or _r_k_s_h (restricted shell), sz operates
+     Iff sszz is invoked with $SHELL set and iff that variable con-
+     tains the string _r_s_h or _r_k_s_h (restricted shell), sszz operates
      in restricted mode.  Restricted mode restricts pathnames to
      the current directory and PUBDIR (usually
      /usr/spool/uucppublic) and/or subdirectories thereof.
 
 
      The fourth form sends a single COMMAND to a ZMODEM receiver
-     for execution.  Sz exits with the COMMAND return value.  If
+     for execution.  SSzz exits with the COMMAND return value.  If
      COMMAND includes spaces or characters special to the shell,
      it must be quoted.
 
 
      The fifth form sends a single COMMAND to a ZMODEM receiver
-     for execution.  Sz exits as soon as the receiver has
+     for execution.  SSzz exits as soon as the receiver has
      correctly received the command, before it is executed.
 
 
@@ -109,24 +109,24 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
      codes are being eaten by the operating system.
 
 
-     If sz is invoked with stdout and stderr to different
+     If sszz is invoked with stdout and stderr to different
      datasets, Verbose is set to 2, causing frame by frame pro-
-     gress reports to stderr.  This may be disabled with the q
+     gress reports to stderr.  This may be disabled with the qq
      option.
 
      The meanings of the available options are:
 
      \h@|120u+0u@(backslash) (VMS) Force the next option letter
 	  to upper case.
-     +	  Instruct the receiver to append transmitted data to an
+     ++	  Instruct the receiver to append transmitted data to an
 	  existing file (ZMODEM only).
-     a	  Convert NL characters in the transmitted file to CR/LF.
+     aa	  Convert NL characters in the transmitted file to CR/LF.
 	  This is done by the sender for XMODEM and YMODEM, by
 	  the receiver for ZMODEM.
 
 
 
-Printed 2/16/100	      OMEN				2
+Printed 9/10/24               OMEN				2
 
 
 
@@ -137,62 +137,62 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
 
 
-     b	  (ZMODEM) Binary override: transfer file without any
+     bb	  (ZMODEM) Binary override: transfer file without any
 	  translation.
-     c COMMAND
+     cc CCOOMMMMAANNDD
 	  Send COMMAND to the receiver for execution, return with
 	  COMMAND's exit status.
-     d	  Change all instances of "." to "/" in the transmitted
+     dd	  Change all instances of "." to "/" in the transmitted
 	  pathname.  Thus, C.omenB0000 (which is unacceptable to
 	  MSDOS or CP/M) is transmitted as C/omenB0000.  If the
 	  resultant filename has more than 8 characters in the
 	  stem, a "." is inserted to allow a total of eleven.
-     e	  Escape all control characters; normally XON, XOFF, DLE,
+     ee	  Escape all control characters; normally XON, XOFF, DLE,
 	  CR-@-CR, and Ctrl-X are escaped.
-     f	  Send Full pathname.  Normally directory prefixes are
+     ff	  Send Full pathname.  Normally directory prefixes are
 	  stripped from the transmitted filename.
-     i COMMAND
+     ii CCOOMMMMAANNDD
 	  Send COMMAND to the receiver for execution, return
 	  Immediately upon the receiving program's successful
 	  recption of the command.
-     k	  (XMODEM/YMODEM) Send files using 1024 byte blocks
+     kk	  (XMODEM/YMODEM) Send files using 1024 byte blocks
 	  rather than the default 128 byte blocks.  1024 byte
 	  packets speed file transfers at high bit rates.  (ZMO-
 	  DEM streams the data for the best possible throughput.)
-     L N  Use ZMODEM sub-packets of length N.  A larger N (32 <=
+     LL NN  Use ZMODEM sub-packets of length N.  A larger N (32 <=
 	  N <= 1024) gives slightly higher throughput, a smaller
 	  N speeds error recovery.  The default is 128 below 300
 	  baud, 256 above 300 baud, or 1024 above 2400 baud.
-     l N  Wait for the receiver to acknowledge correct data every
-	  N (32 <= N <= 1024) characters.  This may be used to
+     ll NN  Wait for the receiver to acknowledge correct data every
+	  NN (32 <= N <= 1024) characters.  This may be used to
 	  avoid network overrun when XOFF flow control is lack-
 	  ing.
-     n	  (ZMODEM) Send each file if destination file does not
+     nn	  (ZMODEM) Send each file if destination file does not
 	  exist.  Overwrite destination file if source file is
 	  newer than the destination file.
-     N	  (ZMODEM) Send each file if destination file does not
+     NN	  (ZMODEM) Send each file if destination file does not
 	  exist.  Overwrite destination file if source file is
 	  newer or longer than the destination file.
-     o	  (ZMODEM) Disable automatic selection of 32 bit CRC.
-     p	  (ZMODEM) Protect existing destination files by skipping
+     oo	  (ZMODEM) Disable automatic selection of 32 bit CRC.
+     pp	  (ZMODEM) Protect existing destination files by skipping
 	  transfer if the destination file exists.
-     q	  Quiet suppresses verbosity.
-     r	  (ZMODEM) Resume interrupted file transfer.  If the
+     qq	  Quiet suppresses verbosity.
+     rr	  (ZMODEM) Resume interrupted file transfer.  If the
 	  source file is longer than the destination file, the
 	  transfer commences at the offset in the source file
 	  that equals the length of the destination file.
-     rr   As above, but compares the files (the portion common to
+     rrrr   As above, but compares the files (the portion common to
 	  sender and reciever) before resuming the transfer.
-     t tim
+     tt ttiimm
 	  Change timeout to _t_i_m tenths of seconds.
-     u	  Unlink the file after successful transmission.
-     w N  Limit the transmit window size to N bytes (ZMODEM).
-     v	  Verbose causes a list of file names to be appended to
+     uu	  Unlink the file after successful transmission.
+     ww NN  Limit the transmit window size to N bytes (ZMODEM).
+     vv	  Verbose causes a list of file names to be appended to
 	  /tmp/szlog .	More v's generate more output.
 
 
 
-Printed 2/16/100	      OMEN				3
+Printed 9/10/24               OMEN				3
 
 
 
@@ -203,54 +203,54 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
 
 
-     y	  Instruct a ZMODEM receiving program to overwrite any
+     yy	  Instruct a ZMODEM receiving program to overwrite any
 	  existing file with the same name.
-     Y	  Instruct a ZMODEM receiving program to overwrite any
+     YY	  Instruct a ZMODEM receiving program to overwrite any
 	  existing file with the same name, and to skip any
 	  source files that do have a file with the same pathname
 	  on the destination system.
-     Z	  Use ZMODEM file compression to speed file transfer.
+     ZZ	  Use ZMODEM file compression to speed file transfer.
 
-EXAMPLES
-     ZMODEM File Transfer (Unix to DSZ/ZCOMM/Professional-YAM)
-     % sz -a *.c
+EEXXAAMMPPLLEESS
+     ZZMMOODDEEMM FFiillee TTrraannssffeerr (Unix to DSZ/ZCOMM/Professional-YAM)
+     %% sszz --aa **..cc
      This single command transfers all .c files in the current
-     Unix directory with conversion (-a) to end of line conven-
+     Unix directory with conversion (--aa) to end of line conven-
      tions appropriate to the receiving environment.  With ZMODEM
      AutoDownload enabled, Professional-YAM  and ZCOMM will
      automatically recieve the files after performing a security
      check.
 
-     % sz -Yan *.c *.h
+     %% sszz --YYaann **..cc **..hh
      Send only the .c and .h files that exist on both systems,
      and are newer on the sending system than the corresponding
      version on the receiving system, converting Unix to DOS text
      format.
-     $ sz -\Yan file1.c file2.c file3.c foo.h baz.h (Reg.)(for
+     $$ sszz --\\YYaann ffiillee11..cc ffiillee22..cc ffiillee33..cc ffoooo..hh bbaazz..hh (Reg.)(for
      VMS)
 
-     ZMODEM Command Download (Unix to Professional-YAM)
+     ZZMMOODDEEMM CCoommmmaanndd DDoowwnnllooaadd (Unix to Professional-YAM)
       cpszall:all
 	 sz -c "c:;cd /yam/dist"
 	 sz -ya $(YD)/*.me
 	 sz -yqb y*.exe
 	 sz -c "cd /yam"
 	 sz -i "!insms"
-     This Makefile fragment uses sz to issue commands to
+     This Makefile fragment uses sszz to issue commands to
      Professional-YAM to change current disk and directory.
-     Next, sz transfers the ._m_e files from the $YD directory,
+     Next, sszz transfers the ._m_e files from the $YD directory,
      commanding the receiver to overwrite the old files and to
      convert from Unix end of line conventions to PC-DOS conven-
      tions.  The third line transfers some ._e_x_e files.	The
      fourth and fifth lines command Pro-YAM to change directory
      and execute a PC-DOS batch file _i_n_s_m_s . Since the batch file
-     takes considerable time, the -i form is used to allow sz to
+     takes considerable time, the --ii form is used to allow sszz to
      exit immediately.
 
-     XMODEM File Transfer (Unix to Crosstalk)
-     % sx -a foo.c
-     ESC
-     rx foo.c
+     XXMMOODDEEMM FFiillee TTrraannssffeerr (Unix to Crosstalk)
+     % ssxx --aa ffoooo..cc
+     EESSCC
+     rrxx ffoooo..cc
      The above three commands transfer a single file from Unix to
      a PC and Crosstalk with _s_z translating Unix newlines to DOS
      CR/LF.  This combination is much slower and far less reli-
@@ -258,7 +258,7 @@ EXAMPLES
 
 
 
-Printed 2/16/100	      OMEN				4
+Printed 9/10/24               OMEN				4
 
 
 
@@ -269,11 +269,11 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
 
 
-ERROR MESSAGES
+EERRRROORR MMEESSSSAAGGEESS
      "Caught signal 99" indicates the program was not properly
      compiled, refer to "bibi(99)" in rbsb.c for details.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rz(omen), ZMODEM.DOC, YMODEM.DOC, Professional-YAM,
      crc(omen), sq(omen), todos(omen), tocpm(omen), tomac(omen),
      yam(omen)
@@ -281,7 +281,7 @@ SEE ALSO
      Compile time options required for various operating systems
      are described in the source file.
 
-VMS VERSION
+VVMMSS VVEERRSSIIOONN
      The VMS version does not support wild cards.  Because of VMS
      DCL, upper case option letters muse be represented by \
      proceding the letter.
@@ -292,7 +292,7 @@ VMS VERSION
      VMS C Standard I/O and RMS may interact to modify the file
      contents.
 
-FILES
+FFIILLEESS
      32 bit CRC code courtesy Gary S. Brown.
 
      sz.c, crctab.c, rbsb.c, zm.c, zmodem.h Unix source files
@@ -302,29 +302,29 @@ FILES
 
      /tmp/szlog stores debugging output (sz -vv) (szlog on VMS).
 
-TESTING FEATURE
-     The command "sz -T file" exercises the Attn sequence error
+TTEESSTTIINNGG FFEEAATTUURREE
+     The command "sz -T file" exercises the AAttttnn sequence error
      recovery by commanding errors with unterminated packets.
      The receiving program should complain five times about
-     binary data packets being too long.  Each time sz is inter-
+     binary data packets being too long.  Each time sszz is inter-
      rupted, it should send a ZDATA header followed by another
      defective packet.	If the receiver does not detect five long
-     data packets, the Attn sequence is not interrupting the
-     sender, and the Myattn string in sz.c must be modified.
+     data packets, the AAttttnn sequence is not interrupting the
+     sender, and the MMyyaattttnn string in sszz..cc must be modified.
 
-     After 5 packets, sz stops the "transfer" and prints the
+     After 5 packets, sszz stops the "transfer" and prints the
      total number of characters "sent" (Tcount).  The difference
      between Tcount and 5120 represents the number of characters
      stored in various buffers when the Attn sequence is gen-
      erated.
 
-NOTES
+NNOOTTEESS
      _S_z is not designed be called from _c_u(_1) or other outdial
      communications programs.  Unix flavors of Omen Technology's
 
 
 
-Printed 2/16/100	      OMEN				5
+Printed 9/10/24               OMEN				5
 
 
 
@@ -373,7 +373,7 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
      Circular buffering and a ZMODEM sliding window should be
      used when input is from pipes instead of acknowledging
-     frames each 1024 bytes.  If no files can be opened, sz sends
+     frames each 1024 bytes.  If no files can be opened, sszz sends
      a ZMODEM command to echo a suitable complaint; perhaps it
      should check for the presence of at least one accessible
      file before getting hot and bothered.
@@ -385,12 +385,12 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
      Values of 101 for a 4.77 mHz PC and 124 for an AT are typi-
      cal.
 
-BUGS
+BBUUGGSS
      On at least one BSD system, sz would abend it got within a
 
 
 
-Printed 2/16/100	      OMEN				6
+Printed 9/10/24               OMEN				6
 
 
 
@@ -456,7 +456,7 @@ SZ(1)		    UNIX Programmer's Manual		    SZ(1)
 
 
 
-Printed 2/16/100	      OMEN				7
+Printed 9/10/24               OMEN				7
 
 
 

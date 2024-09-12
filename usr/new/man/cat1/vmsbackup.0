@@ -5,21 +5,21 @@ VMSBACKUP(1)	    UNIX Programmer's Manual	     VMSBACKUP(1)
 
 
 
-NAME
+NNAAMMEE
      vmsbackup - read a VMS backup tape
 
-SYNOPSIS
-     vmsbackup -{tx}[cdenvw][s setnumber][f tapefile] [ name ...
+SSYYNNOOPPSSIISS
+     vvmmssbbaacckkuupp --{{ttxx}}[[ccddeennvvww]][[ss sseettnnuummbbeerr]][[ff ttaappeeffiillee]] [ name ...
      ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _v_m_s_b_a_c_k_u_p reads a VMS generated backup tape, converting the
      files to Unix format and writing the files to disc.  The
      default operation of the program is to go through an entire
      tape, extracting every file and writing it to disc.  This
      may be modified by the following options.
 
-     c	     Use complete filenames, including the version
+     cc	     Use complete filenames, including the version
 	     number.  A colon and the octal version number will
 	     be appended to all filenames.  A colon, rather than
 	     a semicolon, is used since the Unix Shell uses the
@@ -31,15 +31,15 @@ DESCRIPTION
 	     already exists in the destination directory.  The
 	     default is to ignore version numbers.
 
-     d	     use the directory structure from VMS, the default
+     dd	     use the directory structure from VMS, the default
 	     value is off.
 
-     e	     Process all filename extensions.  Since this program
+     ee	     Process all filename extensions.  Since this program
 	     is mainly intended to move source code and possibly
 	     data from a DEC system to a Unix system, the default
 	     is to ignore all files whose filename extension
 	     specifies system dependent data.  The file types
-	     which will be ignored, unless the e option is speci-
+	     which will be ignored, unless the ee option is speci-
 	     fied, are
 
 	       exe     VMS executable file
@@ -52,7 +52,7 @@ DESCRIPTION
 	       sys     RSX bootable system file
 	       tsk     RSX executable task file
 
-     f	     Use the next argument in the command line as the
+     ff	     Use the next argument in the command line as the
 	     tape device to be used, rather than the default.
 
 	     If vmsbackup is compiled with the remote tape option
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/18/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -82,28 +82,28 @@ VMSBACKUP(1)	    UNIX Programmer's Manual	     VMSBACKUP(1)
 	     The default is /_d_e_v/_r_m_t_8 (drive 0, raw mode, 1600
 	     bpi).  This must be a raw mode tape device.
 
-     n	     If the tape has a variable-length record format,
+     nn	     If the tape has a variable-length record format,
 	     then do not append a newline onto the end of the
 	     records.  This option does not affect stream or FOR-
 	     TRAN files.
 
-     s saveset
+     ss ssaavveesseett
 	     Process only the given saveset number.
 
-     t	     Produce a table of contents (a directory listing) on
+     tt	     Produce a table of contents (a directory listing) on
 	     the standard output of the files on tape.
 
-     v	     Verbose output.  Normally _v_m_s_b_a_c_k_u_p does its work
+     vv	     Verbose output.  Normally _v_m_s_b_a_c_k_u_p does its work
 	     silently.	The verbose option will cause the
 	     filenames of the files being read from tape to disk
 	     to be output on the standard output.
 
-     w	     _v_m_s_b_a_c_k_u_p prints the action to be taken followed by
+     ww	     _v_m_s_b_a_c_k_u_p prints the action to be taken followed by
 	     file name, then wait for user confirmation. If a
 	     word beginning with `y' is given, the action is
 	     done. Any other input means don't do it.
 
-     x	     extract the named files from the tape.
+     xx	     extract the named files from the tape.
 
      The optional
 	     _n_a_m_e argument specifies one or more filenames to be
@@ -111,22 +111,22 @@ VMSBACKUP(1)	    UNIX Programmer's Manual	     VMSBACKUP(1)
 	     files are to be processed.  The name may contain the
 	     usal sh(1) meta-characters *?![] 0n.
 
-FILES
+FFIILLEESS
      /dev/rmt_x
 
-SEE ALSO
+SSEEEE AALLSSOO
      rmtops(3)
 
-BUGS
+BBUUGGSS
      The filename match uses the complete VMS file names.
 
 
-AUTHOR
+AAUUTTHHOORR
      John Douglas Carey
 
 
 
-Printed 2/18/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -192,7 +192,7 @@ VMSBACKUP(1)	    UNIX Programmer's Manual	     VMSBACKUP(1)
 
 
 
-Printed 2/18/100						3
+Printed 9/10/24                                                 3
 
 
 

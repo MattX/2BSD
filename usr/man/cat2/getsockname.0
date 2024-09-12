@@ -5,25 +5,25 @@ GETSOCKNAME(2)	    UNIX Programmer's Manual	   GETSOCKNAME(2)
 
 
 
-NAME
+NNAAMMEE
      getsockname - get socket name
 
-SYNOPSIS
-     getsockname(s, name, namelen)
-     int s;
-     struct sockaddr *name;
-     int *namelen;
+SSYYNNOOPPSSIISS
+     ggeettssoocckknnaammee((ss,, nnaammee,, nnaammeelleenn))
+     iinntt ss;;
+     ssttrruucctt ssoocckkaaddddrr **nnaammee;;
+     iinntt **nnaammeelleenn;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_s_o_c_k_n_a_m_e returns the current _n_a_m_e for the specified
      socket.  The _n_a_m_e_l_e_n parameter should be initialized to
      indicate the amount of space pointed to by _n_a_m_e.  On return
      it contains the actual size of the name returned (in bytes).
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A 0 is returned if the call succeeds, -1 if it fails.
 
-ERRORS
+EERRRROORRSS
      The call succeeds unless:
 
      [EBADF]	    The argument _s is not a valid descriptor.
@@ -36,10 +36,10 @@ ERRORS
      [EFAULT]	    The _n_a_m_e parameter points to memory not in a
 		    valid part of the process address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      bind(2), socket(2)
 
-BUGS
+BBUUGGSS
      Names bound to sockets in the UNIX domain are inaccessible;
      _g_e_t_s_o_c_k_n_a_m_e returns a zero length name.
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 

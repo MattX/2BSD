@@ -5,13 +5,13 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
 
 
 
-NAME
+NNAAMMEE
      m11 - Macro-11 assembler for UNIX
 
-SYNOPSIS
-     m11 [ option1 option2 ...	] file1 file2 ...  filen
+SSYYNNOOPPSSIISS
+     mm1111 [ option1 option2 ...	] file1 file2 ...  filen
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_1_1 assembles the concatenation of the specified files
      (_f_i_l_e_1, etc.) and terminates when an ``.end'' statement is
      encountered.  The resulting object file is usually named
@@ -25,34 +25,34 @@ DESCRIPTION
      preted before any files are read.
 
 
-     -ls  Produce an assembly listing and place in _f_i_l_e_n.lst
+     --llss  Produce an assembly listing and place in _f_i_l_e_n.lst
 
-     -lt  Produce an assembly listing on the standard output.
+     --lltt  Produce an assembly listing on the standard output.
 
-     -fl  If coupled with the -_l_s or -_l_t directives, makes the
+     --ffll  If coupled with the -_l_s or -_l_t directives, makes the
 	  listing have a shortened format.  It is shorthand for
 	  -_n_l:_s_e_q:_l_o_c:_b_i_n:_b_e_x:_m_e:_m_e_b:_t_t_m:_t_o_c:_s_y_m.
 
-     -uc  Simulate an initial ._d_s_a_b_l _l_c directive.  Force all
+     --uucc  Simulate an initial ._d_s_a_b_l _l_c directive.  Force all
 	  characters in macro definitions to be upper case.  This
 	  flag makes lower-case handling in _m_1_1 compatable with
 	  the DEC Macro-11 assemblers.
 
-     -um  Force all characters in macro definitions to be upper
+     --uumm  Force all characters in macro definitions to be upper
 	  case.  This flag makes lower-case handling in this
 	  release of _m_1_1 compatable with previous versions of
 	  _m_1_1.
 
-     -de  Make all option choices needed to make assembly mimic
+     --ddee  Make all option choices needed to make assembly mimic
 	  DEC Macro-11.  Implies (_i_n_t_e_r _a_l_i_a) the -_u_c flag.  This
 	  includes the Johns Hopkins _a_s_m assembler.
 
-     -ha  Make all option choices needed to make assembly mimic
+     --hhaa  Make all option choices needed to make assembly mimic
 	  earlier (Harvard) releases of m11.  This implies the
 	  -_u_m flag.  Default .psect and .csect attributes are set
 	  up in the funny Harvard way.
 
-     -mx  Produce a listing of the source program as it appears
+     --mmxx  Produce a listing of the source program as it appears
 	  _a_f_t_e_r macro expansion.  Macro calls, conditional direc-
 	  tives and so on appear in the listing as comments.
 	  Listing appears on standard output. No machine code is
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 11/20/01						1
+Printed 9/10/24                                                 1
 
 
 
@@ -74,42 +74,42 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
 	  correspond to the -E or -P options of the C compiler
 	  _c_c(_1).
 
-     -my  Like -_m_x, except that macro calls and conditional
+     --mmyy  Like -_m_x, except that macro calls and conditional
 	  directives do not show up in the listing.
 
-     -10  Generate an error whenever op codes not in the PDP-11
+     --1100  Generate an error whenever op codes not in the PDP-11
 	  ``standard instruction set'' are encountered.  Program-
 	  mers writing for a PDP 11/10 can catch instructions
 	  illegal for that machine by using this argument.
 
-     -dp:args
+     --ddpp::aarrggss
 	  The default attributes for a ._p_s_e_c_t or unnamed ._c_s_e_c_t
 	  are redefined, using	the colon-separated list _a_r_g_s of
 	  valid .psect attributes.
 
-     -da:args
+     --ddaa::aarrggss
 	  The default attributes for an ._a_s_e_c_t are redefined.
 
-     -dp:c
+     --ddpp::cc
 	  The default attributes for a named ._c_s_e_c_t are rede-
 	  fined.
 
-     -li:arglist
+     --llii::aarrgglliisstt
 	  Simulate an initial ._l_i_s_t _a_r_g_l_i_s_t directive.	All ._l_i_s_t
 	  and ._n_l_i_s_t directives in the program text which attempt
 	  to change the settings established with the -_l_i flag
 	  will be ignored.
 
-     -nl:arglist
+     --nnll::aarrgglliisstt
 	  Like -_l_i:_a_r_g_l_i_s_t, but for the ._n_l_i_s_t directive.
 
-     -en:arglist
+     --eenn::aarrgglliisstt
 	  Similarly, for the ._e_n_a_b_l directive.
 
-     -ds:arglist
+     --ddss::aarrgglliisstt
 	  Similarly, but for the ._d_s_a_b_l directive.
 
-     -cr:arglist
+     --ccrr::aarrgglliisstt
 	  Produces a cross-reference listing.  If the -_l_s option
 	  is also included, the cross-reference listing will fol-
 	  low the assembly listing in _f_i_l_e_n.lst.  References
@@ -126,7 +126,7 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
 
 
 
-Printed 11/20/01						2
+Printed 9/10/24                                                 2
 
 
 
@@ -153,38 +153,38 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
 	  symbols are followed by a # sign if the symbol is
 	  defined and by a * sign if the symbol is modified.
 
-     -lp  Same as -ls, but also spools _f_i_l_e_n.lst for printing
+     --llpp  Same as -ls, but also spools _f_i_l_e_n.lst for printing
 	  upon completion.
 
-     -no  No object file is produced.  This is useful for syntax
+     --nnoo  No object file is produced.  This is useful for syntax
 	  checking or list producing.
 
-     -xs:n
+     --xxss::nn
 	  Allots nK words of extra space for symbol table and
 	  macro storage.  NOTE: This option is currently inopera-
 	  tive: _m_1_1 automatically allots core for its tables as
 	  needed.
 
-     -xx  Debug flag: generate all kinds of wierd hack flack.
+     --xxxx  Debug flag: generate all kinds of wierd hack flack.
 
-     -ns  No symbol table is included in the object file (thus
+     --nnss  No symbol table is included in the object file (thus
 	  ddt knows of no symbols from this assembly).
 
-     -sx  Make the symbol table contain ``local symbols'' as well
+     --ssxx  Make the symbol table contain ``local symbols'' as well
 	  as ordinary symbols.
 
-     -u   Treat form feed characters as spaces.  This will make
+     --uu   Treat form feed characters as spaces.  This will make
 	  _m_1_1's idea of line numbers coincide with the UNIX text
 	  editors.  Macro-11 statements containing imbedded form
 	  feed characters will be parsed differently when the -_u
 	  flag is in effect.
 
-     -na:file
+     --nnaa::ffiillee
 	  Override the convention of using last name as file
 	  name.  Instead, use names _f_i_l_e._o_b_j and _f_i_l_e._l_s_t for
 	  object and listing files.
 
-NOTES
+NNOOTTEESS
      This implementation of Macro-11 is a distant hand-me down
      from an old DEC Macro-11 modified at Harvard University in
      the early 1970's.	It is grubby with smudges by Brent Byer,
@@ -192,7 +192,7 @@ NOTES
 
 
 
-Printed 11/20/01						3
+Printed 9/10/24                                                 3
 
 
 
@@ -216,7 +216,7 @@ M11(1)		    UNIX Programmer's Manual		   M11(1)
      flag.  The ._e_n_a_b_l _g_l_b feature is implemented: undefined sym-
      bols are taken as undefined global externals.
 
-FILES
+FFIILLEESS
      /usr/share/misc/sysmac.smlsystem macro library (for .mcall
      directive)
      filen.xrf		 intermediate cross-reference temporary
@@ -224,7 +224,7 @@ FILES
      lpr(1)		 spooler
      /usr/ucb/macxrf	 cross-reference post-processor
 
-SEE ALSO
+SSEEEE AALLSSOO
      _P_D_P-_1_1 _M_A_C_R_O-_1_1 _L_a_n_g_u_a_g_e _R_e_f_e_r_e_n_c_e _M_a_n_u_a_l , Digital Equip-
      ment Corp. Order No. AA-5075A-TC, August 1977.
      _N_e_w _U_C_B _M_1_1 _M_a_n_u_a_l , notional document by Jim Reeds.
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 11/20/01						4
+Printed 9/10/24                                                 4
 
 
 

@@ -5,11 +5,11 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
 
 
-NAME
-     sigaction - software signal facilities
+NNAAMMEE
+     ssiiggaaccttiioonn - software signal facilities
 
-SYNOPSIS
-     #include <signal.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssiiggnnaall..hh>>
 
      struct sigaction {
 	  int	  (*sa_handler)();
@@ -17,12 +17,12 @@ SYNOPSIS
 	  int	sa_flags;
      };
 
-     sigaction(sig, act, oact)
+     ssiiggaaccttiioonn(sig, act, oact)
      _i_n_t _s_i_g;
      _s_t_r_u_c_t _s_i_g_a_c_t_i_o_n *_a_c_t;
      _s_t_r_u_c_t _s_i_g_a_c_t_i_o_n *_o_a_c_t;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The system defines a set of signals that may be delivered to
      a process.  Signal delivery resembles the occurrence of a
      hardware interrupt: the signal is blocked from further
@@ -43,7 +43,7 @@ DESCRIPTION
      bal _s_i_g_n_a_l _m_a_s_k defines the set of signals currently blocked
      from delivery to a process.  The signal mask for a process
      is initialized from that of its parent (normally empty).  It
-     may be changed with a sigprocmask(2) call, or when a signal
+     may be changed with a ssiiggpprrooccmmaasskk(2) call, or when a signal
      is delivered to the process.
 
      When a signal condition arises for a process, the signal is
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	September 3, 1997			1
+Printed 9/10/24         September 3, 1997			1
 
 
 
@@ -71,7 +71,7 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
 
 
-     signals is returned by the sigpending(2) function.  When a
+     signals is returned by the ssiiggppeennddiinngg(2) function.  When a
      caught signal is delivered, the current state of the process
      is saved, a new signal mask is calculated (as described
      below), and the signal handler is invoked.  The call to the
@@ -83,19 +83,19 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
      When a signal is delivered to a process a new signal mask is
      installed for the duration of the process' signal handler
-     (or until a sigprocmask call is made).  This mask is formed
+     (or until a ssiiggpprrooccmmaasskk call is made).  This mask is formed
      by taking the union of the current signal mask set, the sig-
      nal to be delivered, and the signal mask associated with the
      handler to be invoked.
 
-     Sigaction assigns an action for a specific signal.  If _a_c_t
+     SSiiggaaccttiioonn assigns an action for a specific signal.  If _a_c_t
      is non-zero, it specifies an action (SIG_DFL, SIG_IGN, or a
      handler routine) and mask to be used when delivering the
      specified signal.	If _o_a_c_t is non-zero, the previous han-
      dling information for the signal is returned to the user.
 
      Once a signal handler is installed, it remains installed
-     until another sigaction call is made, or an execve(2) is
+     until another ssiiggaaccttiioonn call is made, or an eexxeeccvvee(2) is
      performed.  A signal-specific default action may be reset by
      setting _s_a__h_a_n_d_l_e_r to SIG_DFL.  The defaults are process
      termination, possibly with core dump; no action; stopping
@@ -113,20 +113,20 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
      only when a child process exits, not when a child process
      stops.  Further, if the SA_ONSTACK bit is set in _s_a__f_l_a_g_s,
      the system will deliver the signal to the process on a _s_i_g_-
-     _n_a_l _s_t_a_c_k, specified with sigstack(2).
+     _n_a_l _s_t_a_c_k, specified with ssiiggssttaacckk(2).
 
      If a signal is caught during the system calls listed below,
      the call may be forced to terminate with the error EINTR,
      the call may return with a data transfer shorter than
      requested, or the call may be restarted.  Restart of pending
      calls is requested by setting the SA_RESTART bit in
-     _s_a__f_l_a_g_s.	The affected system calls include open(2),
-     read(2), write(2), sendto(2), recvfrom(2), sendmsg(2) and
-     recvmsg(2) on a communications channel or a slow device
+     _s_a__f_l_a_g_s.	The affected system calls include ooppeenn(2),
+     rreeaadd(2), wwrriittee(2), sseennddttoo(2), rreeccvvffrroomm(2), sseennddmmssgg(2) and
+     rreeccvvmmssgg(2) on a communications channel or a slow device
 
 
 
-Printed 2/16/100	September 3, 1997			2
+Printed 9/10/24         September 3, 1997			2
 
 
 
@@ -138,15 +138,15 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
 
      (such as a terminal, but not a regular file) and during a
-     wait(2) or ioctl(2).  However, calls that have already com-
+     wwaaiitt(2) or iiooccttll(2).  However, calls that have already com-
      mitted are not restarted, but instead return a partial suc-
      cess (for example, a short read count).
 
-     After a fork(2) or vfork(2) all signals, the signal mask,
+     After a ffoorrkk(2) or vvffoorrkk(2) all signals, the signal mask,
      the signal stack, and the restart/interrupt flags are inher-
      ited by the child.
 
-     Execve(2) reinstates the default action for all signals
+     EExxeeccvvee(2) reinstates the default action for all signals
      which were caught and resets all signals to be caught on the
      user stack.  Ignored signals remain ignored; the signal mask
      remains the same; signals that restart pending system calls
@@ -192,7 +192,7 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
 
 
-Printed 2/16/100	September 3, 1997			3
+Printed 9/10/24         September 3, 1997			3
 
 
 
@@ -212,16 +212,16 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 	  SIGUSR1    terminate	 User defined signal 1
 	  SIGUSR2    terminate	 User defined signal 2
 
-NOTE
+NNOOTTEE
      The mask specified in _a_c_t is not allowed to block SIGKILL or
      SIGSTOP.  This is done silently by the system.
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      A 0 value indicated that the call succeeded.  A -1 return
      value indicates an error occurred and _e_r_r_n_o is set to indi-
      cated the reason.
 
-EXAMPLE
+EEXXAAMMPPLLEE
      The handler routine can be declared:
 
      int handler(sig, code, scp)
@@ -235,8 +235,8 @@ EXAMPLE
      <_s_i_g_n_a_l._h>, used to restore the context from before the sig-
      nal.
 
-ERRORS
-     Sigaction will fail and no new signal handler will be
+EERRRROORRSS
+     SSiiggaaccttiioonn will fail and no new signal handler will be
      installed if one of the following occurs:
 
      EFAULT		 Either _a_c_t or _o_a_c_t points to memory that
@@ -248,8 +248,8 @@ ERRORS
      EINVAL		 An attempt is made to ignore or supply a
 			 handler for SIGKILL or SIGSTOP.
 
-STANDARDS
-     The sigaction function is defined by IEEE Std1003.1-1988
+SSTTAANNDDAARRDDSS
+     The ssiiggaaccttiioonn function is defined by IEEE Std1003.1-1988
      (``POSIX'').  The SA_ONSTACK and SA_RESTART flags are Berke-
      ley extensions, as are the signals, SIGTRAP, SIGEMT, SIGBUS,
      SIGSYS, SIGURG, SIGIO, SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF,
@@ -258,7 +258,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	September 3, 1997			4
+Printed 9/10/24         September 3, 1997			4
 
 
 
@@ -269,12 +269,12 @@ SIGACTION(2)	    UNIX Programmer's Manual	     SIGACTION(2)
 
 
 
-BUGS
+BBUUGGSS
      The networking related syscalls are not properly restarted
      in 2.11BSD.  The SIGINFO signal is not implemented in
      2.11BSD.
 
-SEE ALSO
+SSEEEE AALLSSOO
      kill(1), fcntl(2), ptrace(2), kill(2), setitimer(2),
      setrlimit(2), sigaction(2), sigprocmask(2), sigsuspend(2),
      sigblock(2), sigsetmask(2), sigpause(2), sigstack(2),
@@ -324,7 +324,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	September 3, 1997			5
+Printed 9/10/24         September 3, 1997			5
 
 
 

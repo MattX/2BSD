@@ -5,10 +5,10 @@ SHELLS(5)	    UNIX Programmer's Manual		SHELLS(5)
 
 
 
-NAME
+NNAAMMEE
      shells - shell database
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _s_h_e_l_l_s file contains a list of the shells on the system.
      For each shell a single line should be present, consisting
      of the shell's path, relative to root.
@@ -18,10 +18,10 @@ DESCRIPTION
      interpreted by the routines which search the file.  Blank
      lines are also ignored.
 
-FILES
+FFIILLEESS
      /etc/shells
 
-SEE ALSO
+SSEEEE AALLSSOO
      getusershell(3)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	February 23, 1989			1
+Printed 9/10/24         February 23, 1989			1
 
 
 

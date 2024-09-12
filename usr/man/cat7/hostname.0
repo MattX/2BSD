@@ -5,10 +5,10 @@ HOSTNAME(7)	    UNIX Programmer's Manual	      HOSTNAME(7)
 
 
 
-NAME
+NNAAMMEE
      hostname - host name resolution description
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Hostnames are domains, where a domain is a hierarchical,
      dot-separated list of subdomains; for example, the machine
      monet, in the Berkeley subdomain of the EDU subdomain of the
@@ -48,7 +48,7 @@ DESCRIPTION
      tried, as the there is only one component remaining from the
      local domain.
 
-SEE ALSO
+SSEEEE AALLSSOO
      gethostbyname(3), resolver(5), mailaddr(7), named(8), RFC883
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	November 21, 1987			1
+Printed 9/10/24         November 21, 1987			1
 
 
 

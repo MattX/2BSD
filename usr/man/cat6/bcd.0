@@ -5,21 +5,21 @@ BCD(6)		    UNIX Programmer's Manual		   BCD(6)
 
 
 
-NAME
+NNAAMMEE
      bcd, ppt - convert to antique media
 
-SYNOPSIS
-     /usr/games/bcd text
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//bbccdd text
 
-     /usr/games/ppt
+     //uussrr//ggaammeess//pppptt
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_c_d converts the literal _t_e_x_t into a form familiar to old-
      timers.
 
      _P_p_t converts the standard input into yet another form.
 
-SEE ALSO
+SSEEEE AALLSSOO
      dd(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

@@ -5,16 +5,16 @@ TCP(4P)             UNIX Programmer's Manual		  TCP(4P)
 
 
 
-NAME
+NNAAMMEE
      tcp - Internet Transmission Control Protocol
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <netinet/in.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneettiinneett//iinn..hh>>
 
-     s = socket(AF_INET, SOCK_STREAM, 0);
+     ss == ssoocckkeett((AAFF__IINNEETT,, SSOOCCKK__SSTTRREEAAMM,, 00));;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The TCP protocol provides reliable, flow-controlled, two-way
      transmission of data.  It is a byte-stream protocol used to
      support the SOCK_STREAM abstraction.  TCP uses the standard
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 16, 1986				1
+Printed 9/10/24           May 16, 1986				1
 
 
 
@@ -79,7 +79,7 @@ TCP(4P)             UNIX Programmer's Manual		  TCP(4P)
      are noted, and the reverse source route is used in respond-
      ing.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -108,7 +108,7 @@ DIAGNOSTICS
 			 socket with a network address for which
 			 no network interface exists.
 
-SEE ALSO
+SSEEEE AALLSSOO
      getsockopt(2), socket(2), intro(4N), inet(4F), ip(4P)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 16, 1986				2
+Printed 9/10/24           May 16, 1986				2
 
 
 

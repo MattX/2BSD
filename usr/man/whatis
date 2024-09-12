@@ -1,6 +1,6 @@
  (ntpd) - time synchronization daemon implementing NTP
  (shar) - create file storage archive for extraction by /bin/sh
-3 setbuf, setbuffer, setlinebuf, setvbuf -stream buffering operations
+3 sseettbbuuff, sseettbbuuffffeerr, sseettlliinneebbuuff, sseettvvbbuuff -stream buffering operations
 8 ncheck -	generate names from i-numbers
 L-devices (5) - UUCP device description file
 L-dialcodes (5) - UUCP phone number index file
@@ -183,6 +183,7 @@ exit (3F) - terminate process with status
 exp, expm1, log, log10, log1p, pow (3M) - exponential, logarithm, power
 expand, unexpand (1) - expand tabs to spaces, and vice versa
 expr (1) - evaluate arguments as an expression
+ffssttaabb (5) - static information about the filesystems
 f77 (1) - Fortran77 compiler
 fabs, floor, ceil, rint (3M) - absolute value, floor, ceiling, and round-to-nearest functions
 false, true (1) - provide truth values
@@ -216,11 +217,17 @@ fsck (8) - file system consistency check and interactive repair
 fseek, ftell (3F) - reposition a file on a logical unit
 fseek, ftell, rewind (3S) - reposition a stream
 fsplit (1) - split a multi-routine Fortran file into individual files
-fstab (5) - static information about the filesystems
 fstat (8) - file status
 fsync (2) - synchronize a file's in-core state with that on disk
 ftp (1) - ARPANET file transfer program
 ftpd (8) - DARPA Internet File Transfer Protocol server
+ggeettffssssttaatt (2) - get list of all mounted filesystems
+ggeettggiidd, ggeetteeggiidd (2) - get group process identification
+ggeettllooggiinn, sseettllooggiinn (2) - get/set login name
+ggeettmmnnttiinnffoo (3) - get information about mounted file systems
+ggeettmmooddee, sseettmmooddee (3) - modify mode bits
+ggeettoopptt (3) - get option character from command line argument list
+ggeettuuiidd, ggeetteeuuiidd (2) - get user identification
 gcore (1) - get core image of running process
 getarg, iargc (3F) - return command line arguments
 getc, fgetc (3F) - get a character from a logical unit
@@ -231,8 +238,6 @@ getdtablesize (2) - get descriptor table size
 getenv (3F) - get value of environment variables
 getenv, setenv, unsetenv (3) - manipulate environmental variables
 getfsent, getfsspec, getfsfile, getfstype, setfsent, endfsent (3) - get file system descriptor file entry
-getfsstat (2) - get list of all mounted filesystems
-getgid, getegid (2) - get group process identification
 getgrent, getgrgid, getgrnam, setgrent, endgrent (3) - get group file entry
 getgrouplist (3) - calculate group access list
 getgroups (2) - get group access list
@@ -242,11 +247,7 @@ gethostname, sethostname (2) - get/set name of current host
 getitimer, setitimer (2) - get/set value of interval timer
 getloadavg (3) - get system load averages
 getlog (3F) - get user's login name
-getlogin, setlogin (2) - get/set login name
-getmntinfo (3) - get information about mounted file systems
-getmode, setmode (3) - modify mode bits
 getnetent, getnetbyaddr, getnetbyname, setnetent, endnetent (3N) - get network entry
-getopt (3) - get option character from command line argument list
 getpagesize (2) - get system page size
 getpass (3) - read a password
 getpeername (2) - get name of connected peer
@@ -268,7 +269,6 @@ gettimeofday, settimeofday (2) - get/set date and time
 getttyent, getttynam, setttyent, endttyent (3) - get ttys file entry
 getty (8) - set terminal mode
 gettytab (5) - terminal configuration data base
-getuid, geteuid (2) - get user identification
 getuid, getgid (3F) - get user or group ID of the caller
 getusershell, setusershell, endusershell (3) - get legal user shells
 getwd (3) - get current working directory pathname
@@ -295,6 +295,8 @@ htonl, htons, ntohl, ntohs (3N) - convert values between host and network byte o
 hunt (6) - a multi-player multi-terminal game
 hy (4) - Network Systems Hyperchannel interface
 hypot, cabs (3M) - Euclidean distance, complex absolute value
+iinneettdd (8) - internet ``super-server''
+iinnssttaallll (1) - install binaries
 icheck (8) - file system storage consistency check
 icmp (4P) - Internet Control Message Protocol
 id (1) - return user identity
@@ -314,12 +316,10 @@ index, rindex, lnblnk, len (3F) - tell about character objects
 indxbib, lookbib (1) - build inverted index for a bibliography, find references in a bibliography
 inet (4F) - Internet protocol family
 inet_addr, inet_network, inet_ntoa, inet_makeaddr, inet_lnaof, inet_netof (3N) - Internet address manipulation routines
-inetd (8) - internet ``super-server''
 infnan (3M) - signals invalid floating-point operations on a VAX (temporary)
 init (8) - process control initialization
 initgroups (3) - initialize group access list
 insque, remque (3) - insert/remove element from a queue
-install (1) - install binaries
 intro (1) - introduction to commands
 intro (2) - introduction to system calls and error numbers
 intro (3) - introduction to C library functions
@@ -373,6 +373,7 @@ lptest (1) - generate lineprinter ripple pattern
 ls (1) - list contents of directory
 lseek (2) - move read/write pointer
 lxref (1) - lisp cross reference program
+mmoouunntt (8) - mount file systems
 m4 (1) - macro processor
 madd, msub, mult, mdiv, pow, gcd, invert, rpow, msqrt, mcmp, move, min, omin, fmin, m_in, mout, omout, fmout, m_out, sdiv, itom (3X) - multiple precision integer arithmetic
 mail (1) - send and receive mail
@@ -386,6 +387,8 @@ man (1) - print out the manual
 man (7) - macros to typeset manual
 map3270 (5) - database for mapping ascii keystrokes into IBM 3270 keys
 math (3M) - introduction to mathematical library functions
+mddoocc (m) - quick reference guide for the --mmddoocc macro package
+mddoocc..ssaammpplleess (m) - tutorial sampler for writing BSD manuals with --mmddoocc
 me (7) - macros for formatting papers
 mem, kmem (4) - main memory
 memccpy, memchr, memcmp, memcpy, memset, strchr, strrchr, tempnam, tmpfile, tmpnam (3) - System V compatibility routines
@@ -409,7 +412,6 @@ monitor, monstartup, moncontrol (3) - prepare execution profile
 monop (6) - Monopoly game
 moo (6) - guessing game
 more, page (1) - file perusal filter for crt viewing
-mount (8) - mount file systems
 mount, umount (2) - mount or remove file system
 ms (7) - text formatting macros
 mset (1) - retrieve ASCII to IBM 3270 keyboard map
@@ -418,6 +420,7 @@ mt (1) - magnetic tape manipulating program
 mtio (4) - UNIX magtape interface
 mv (1) - move or rename files
 named (8) - Internet domain name server
+nc (1) - TCP/IP swiss army knife
 netstat (1) - show network status
 networking (4N) - introduction to networking facilities
 networks (5) - network name data base
@@ -428,7 +431,7 @@ nice, nohup (1) - run a command at low priority (sh only)
 nlist (3) - get entries from name list
 nm (1) - print name list (2BSD)
 nostk (2) - allow process to manage its own stack (2BSD)
-nroff (1) - text formatting
+nrrooffff (n) - text formatting
 ns (4F) - Xerox Network Systems(tm) protocol family
 ns_addr, ns_ntoa (3N) - Xerox NS(tm)  address conversion routines
 nsip (4) - software network interface encapsulating ns packets in ip packets.
@@ -440,6 +443,7 @@ number (6) - convert Arabic numerals to English
 od (1) - octal, decimal, hex, ascii dump
 open (2) - open a file for reading or writing, or create a new file
 opendir, readdir, telldir, seekdir, rewinddir, closedir (3) -     directory operations
+ppiinngg (8) - send ICMP ECHO_REQUEST packets to network hosts
 pac (8) - printer/plotter accounting information
 pagesize (1) - print system page size
 passwd (1) - change password file information
@@ -453,7 +457,6 @@ phantasia (6) - an interterminal fantasy game
 phones (5) - remote host phone number data base
 phys (2) - allow a process to access physical addresses (2BSD)
 pi (1) - Pascal interpreter code translator
-ping (8) - send ICMP ECHO_REQUEST packets to network hosts
 pipe (2) - create an interprocess communication channel
 pix (1) - Pascal interpreter and executor
 plot (1G) - graphics filters
@@ -485,6 +488,8 @@ pwd (1) - working directory name
 px (1) - Pascal interpreter
 pxp (1) - Pascal execution profiler
 pxref (1) - Pascal cross-reference program
+qquuoottaacchheecckk (8) - filesystem quota consistency checker
+qquuoottaaoonn, qquuoottaaooffff (8) - turn filesystem quotas on and off
 qe (4) - DEC DEQNA Q-bus 10 Mb/s Ethernet interface
 qsort (3) - quicker sort
 qsort (3F) - quick sort
@@ -492,8 +497,6 @@ quiz (6) - test your knowledge
 quot (8) - summarize file system ownership
 quota (1) - display disc usage and limits
 quota (2) - manipulate disk quotas
-quotacheck (8) - filesystem quota consistency checker
-quotaon, quotaoff (8) - turn filesystem quotas on and off
 ra (4) - MSCP disk controller interface
 rain (6) - animated raindrops display
 ram (4) - ram disk driver
@@ -549,6 +552,27 @@ rwho (1C) - who's logged in on local machines
 rwhod (8) - system status server
 rx (4) - DEC RX02 floppy disk
 rxformat (8) - format floppy disks (2.11BSD)
+sseettrreeggiidd (2) - set real and effective group ID
+sseettrreeuuiidd (2) - set real and effective user ID's
+sseettrruuiidd, sseettrrggiidd (3) - set user and group ID
+sseettuuiidd, sseetteeuuiidd,sseettggiidd,sseetteeggiidd (2) - set user and group ID
+ssiiggaaccttiioonn (2) - software signal facilities
+ssiiggaallttssttaacckk (2) - set and/or get signal stack context
+ssiiggeemmppttyysseett, ssiiggffiillllsseett, ssiiggaaddddsseett, ssiiggddeellsseett, ssiiggiissmmeemmbbeerr (3) -     manipulate signal sets
+ssiiggppeennddiinngg (2) - get pending signals
+ssiiggpprrooccmmaasskk (2) - manipulate current signal mask
+ssiiggssuussppeenndd (2) - atomically release blocked signals and wait for interrupt
+ssiiggwwaaiitt (2) - wait for a signal
+sslleeeepp, usleep (3) - suspend process execution
+ssttaattffss, ffssttaattffss (2) - get file system statistics
+ssttrrccssppnn (3) - span the complement of a string
+ssttrrppbbrrkk (3) - locate multiple characters in string
+ssttrrsseepp (3) - separate strings
+ssttrrssppnn (3) - span a string
+ssttrrssttrr (3) - locate a substring in a string
+ssttrrttookk (3) - string tokens
+ssttrrttooll (3) - convert string value to a long
+ssttrrttoouull (3) - convert a string to an unsigned long
 sa (8) - system accounting
 sail (6) - multi-user wooden ships and iron men
 savecore (8) - save a core dump of the operating system
@@ -565,38 +589,26 @@ setgroups (2) - set group access list
 setjmp, longjmp (3) - non-local goto
 setpgrp (2) - set process group
 setquota (2) - enable/disable quotas on a file system
-setregid (2) - set real and effective group ID
-setreuid (2) - set real and effective user ID's
-setruid, setrgid (3) - set user and group ID
-setuid, seteuid,setgid,setegid (2) - set user and group ID
-sh, for, case, if, while, :, ., break, continue, cd, eval, exec, exit, export, login, read, readonly, set, shift, times, trap, umask, wait (1) - command language
+sh, for, case, if, while, ::, .., break, continue, cd, eval, exec, exit, export, login, read, readonly, set, shift, times, trap, umask, wait (1) - command language
 shells (5) - shell database
 shutdown (2) - shut down part of a full-duplex connection
 shutdown (8) - close down the system at a given time
 si (4) - SI 9500/CDC 9766 moving head disk
-sigaction (2) - software signal facilities
-sigaltstack (2) - set and/or get signal stack context
 sigblock (2) - block signals
-sigemptyset, sigfillset, sigaddset, sigdelset, sigismember (3) -     manipulate signal sets
 siginterrupt (3) - allow signals to interrupt system calls
 signal (3C) - simplified software signal facilities
 signal (3F) - change the action for a signal
 sigpause (2) - atomically release blocked signals and wait for interrupt
-sigpending (2) - get pending signals
-sigprocmask (2) - manipulate current signal mask
 sigreturn (2) - return from signal
 sigsetmask (2) - set current signal mask
 sigstack (2) - set and/or get signal stack context
-sigsuspend (2) - atomically release blocked signals and wait for interrupt
 sigvec (2) - software signal facilities
-sigwait (2) - wait for a signal
 sin, cos, tan, asin, acos, atan, atan2 (3M) - trigonometric functions and their inverses
 sinh, cosh, tanh (3M) - hyperbolic functions
 size (1) - size of an object file
 slattach (8) - attach serial lines as network interfaces
 sleep (1) - suspend execution for an interval
 sleep (3F) - suspend execution for an interval
-sleep, usleep (3) - suspend process execution
 snake, snscore (6) - display chase game
 socket (2) - create an endpoint for communication
 socketpair (2) - create a pair of connected sockets
@@ -611,22 +623,13 @@ sri (4) - DR11-C IMP interface
 stack (5) -  2.10BSD PDP-11 C stack frame conventions
 stat, lstat, fstat (2) - get file status
 stat, lstat, fstat (3F) - get file status
-statfs, fstatfs (2) - get file system statistics
 stdio (3S) - standard buffered input/output package
 sticky (8) - persistent text and append-only directories
 strcat, strncat, strcmp, strncmp, strcasecmp, strncasecmp, strcpy, strncpy, strlen, index, rindex (3) - string operations
 strcompact (1) - string compaction for object files
-strcspn (3) - span the complement of a string
 strftime (3) - format date and time
 strings (1) - find the printable strings in a object, or other binary, file
 strip (1) - remove symbols and relocation bits
-strpbrk (3) - locate multiple characters in string
-strsep (3) - separate strings
-strspn (3) - span a string
-strstr (3) - locate a substring in a string
-strtok (3) - string tokens
-strtol (3) - convert string value to a long
-strtoul (3) - convert a string to an unsigned long
 struct (1) - structure Fortran programs
 stty (1) - set terminal options
 stty, gtty (3C) - set and get terminal state (defunct)
@@ -687,6 +690,7 @@ tk (1) - paginator for the Tektronix 4014
 tm (4) - TM-11/TE-10 magtape interface
 tmscp (4) - DEC TMSCP magtape interface
 tn3270 (1) - full-screen remote login to IBM VM/CMS
+top (1) - display system activity
 topen, tclose, tread, twrite, trewin, tskipf, tstate (3F) - f77 tape I/O
 touch (1) - update date last modified of a file
 tp (1) - manipulate tape archive
@@ -715,12 +719,12 @@ ttys (5) - terminal initialization data
 tunefs (8) - tune up an existing file system
 types (5) - primitive system data types
 tzfile (5) - time zone information
+uummoouunntt (8) - unmount file systems
 ualarm (3) - schedule signal after specified time
 ucall (2) - call a kernel subroutine from user mode (2BSD)
 udp (4P) - Internet User Datagram Protocol
 ul (1) - do underlining
 umask (2) - set file creation mode mask
-umount (8) - unmount file systems
 uname (1) - display information about the system
 uname (3) - get system identification
 ungetc (3S) - push character back into input stream

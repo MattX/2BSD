@@ -5,13 +5,13 @@ FINGER(1)	    UNIX Programmer's Manual		FINGER(1)
 
 
 
-NAME
+NNAAMMEE
      finger - user information lookup program
 
-SYNOPSIS
-     finger [ -lmsp ] [user [@host] ...]
+SSYYNNOOPPSSIISS
+     ffiinnggeerr [ --llmmsspp ] [user [@host] ...]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _f_i_n_g_e_r command has two basic output formats providing
      essentially the same information.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 18, 1989				1
+Printed 9/10/24           May 18, 1989				1
 
 
 
@@ -88,7 +88,7 @@ FINGER(1)	    UNIX Programmer's Manual		FINGER(1)
      is the -_s style.  The -_l option is the only option that may
      be passed to a remote machine.
 
-SEE ALSO
+SSEEEE AALLSSOO
      chpass(1), w(1), who(1), getpwent(3)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 18, 1989				2
+Printed 9/10/24           May 18, 1989				2
 
 
 

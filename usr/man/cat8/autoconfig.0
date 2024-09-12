@@ -5,13 +5,13 @@ AUTOCONFIG(8)	    UNIX Programmer's Manual	    AUTOCONFIG(8)
 
 
 
-NAME
+NNAAMMEE
      autoconfig - configure the running system to the hardware
 
-SYNOPSIS
-     autoconfig [-i ifile] [-n nfile] [-k kfile] [-v] [-d] [-c]
+SSYYNNOOPPSSIISS
+     aauuttooccoonnffiigg [[--ii iiffiillee]] [[--nn nnffiillee]] [[--kk kkffiillee]] [[--vv]] [[--dd]] [[--cc]]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _A_u_t_o_c_o_n_f_i_g is called by _i_n_i_t(8) to configure the currently
      running system.  Init checks the exit status of autoconfig
      to determine if the configuration was successful.	_A_u_t_o_c_o_n_-
@@ -50,17 +50,17 @@ DESCRIPTION
      There are only a few flags which are mostly useful for
      debugging but for completeness, here they are.
 
-     -i _i_f_i_l_e  Use _i_f_i_l_e instead of /_e_t_c/_d_t_a_b as the device
+     --ii _i_f_i_l_e  Use _i_f_i_l_e instead of /_e_t_c/_d_t_a_b as the device
 	       table.
 
-     -n _n_f_i_l_e  Use _n_f_i_l_e instead of /_u_n_i_x for finding the namel-
+     --nn _n_f_i_l_e  Use _n_f_i_l_e instead of /_u_n_i_x for finding the namel-
 	       ist of the currently running kernel.
 
-     -k _k_f_i_l_e  The file _k_f_i_l_e should be used instead of /_d_e_v/_k_m_e_m
+     --kk _k_f_i_l_e  The file _k_f_i_l_e should be used instead of /_d_e_v/_k_m_e_m
 
 
 
-Printed 2/16/100	December 30, 1992			1
+Printed 9/10/24         December 30, 1992			1
 
 
 
@@ -73,17 +73,17 @@ AUTOCONFIG(8)	    UNIX Programmer's Manual	    AUTOCONFIG(8)
 
 	       to alter and read kernel memory.
 
-     -v        Verbose output, indicates reason for rejecting any
+     --vv        Verbose output, indicates reason for rejecting any
 	       device in the device table.  Normally only
 	       attached devices are reported.
 
-     -c        Report error messages for devices skipped because
+     --cc        Report error messages for devices skipped because
 	       of problems with their interrupt vectors.
 
-     -d        Turn on debugging mode.	Shows many gory details
+     --dd        Turn on debugging mode.	Shows many gory details
 	       of autoconfig's internal processing.
 
-BUGS
+BBUUGGSS
      Devices of the same type must be listed with ascending unit
      numbers or with wildcards.
 
@@ -101,12 +101,12 @@ BUGS
 	  the kernel is in securelevel 1 or higher the open of
 	  /dev/kmem will fail.
 
-FILES
+FFIILLEESS
      /etc/dtab		 device table
      /unix
      /dev/kmem
 
-SEE ALSO
+SSEEEE AALLSSOO
      ucall(2), nlist(3), dtab(5)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	December 30, 1992			2
+Printed 9/10/24         December 30, 1992			2
 
 
 

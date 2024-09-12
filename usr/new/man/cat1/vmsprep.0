@@ -5,13 +5,13 @@ VMSPREP(LOCAL)	    UNIX Programmer's Manual	   VMSPREP(LOCAL)
 
 
 
-NAME
+NNAAMMEE
      vmsprep - VMS tape preperation aid
 
-SYNOPSIS
-     vmsprep [-] [name ...]
+SSYYNNOOPPSSIISS
+     vvmmsspprreepp [-] [name ...]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _V_m_s_p_r_e_p traverses hierarchies of files and prepares them for
      transportation to VMS.  Since ANSI stardard tapes (the VMS
      standard) do not allow hierarchy, this program provides a
@@ -43,24 +43,24 @@ DESCRIPTION
 	  copy MFA0:*.*.* *
 	  @UNPACK
 
-FILES
+FFIILLEESS
      vmsprep.namelist
      UNPACK.COM
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A warning is reported if a file or directory name contains a
      character not permitted in VMS names. The offending charac-
      ter is replaced by 'Z' and _v_m_s_p_r_e_p continues.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ansitape(l)
 
-BUGS
+BBUUGGSS
      Extra periods in file names may not be dealt with optimally.
 
 
 
-Printed 2/16/100	4/10/85 UCB Local			1
+Printed 9/10/24         4/10/85 UCB Local			1
 
 
 
@@ -126,7 +126,7 @@ VMSPREP(LOCAL)	    UNIX Programmer's Manual	   VMSPREP(LOCAL)
 
 
 
-Printed 2/16/100	4/10/85 UCB Local			2
+Printed 9/10/24         4/10/85 UCB Local			2
 
 
 

@@ -5,10 +5,10 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-NAME
+NNAAMMEE
      intro - introduction to C library functions
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This section describes functions that may be found in vari-
      ous libraries.  The library functions are those other than
      the functions which directly invoke UNIX system primitives,
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 27, 1986				1
+Printed 9/10/24           May 27, 1986				1
 
 
 
@@ -81,16 +81,16 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 	  indexes.  These functions are located in separate
 	  libraries indicated in each manual entry.
 
-FILES
+FFIILLEESS
      /lib/libc.a	 the C library
      /usr/lib/libm.a	      the math library
      /usr/lib/libc_p.a	      the C library compiled for profiling
      /usr/lib/libm_p.a	      the math library compiled for profiling
 
-SEE ALSO
+SSEEEE AALLSSOO
      stdio(3S), math(3M), intro(2), cc(1), ld(1), nm(1)
 
-LIST OF FUNCTIONS
+LLIISSTT OOFF FFUUNNCCTTIIOONNSS
      _N_a_m_e	       _A_p_p_e_a_r_s _o_n _P_a_g_e		 _D_e_s_c_r_i_p_t_i_o_n
      abort		 abort.3	     generate a fault
      abs		 abs.3		     integer absolute value
@@ -126,7 +126,7 @@ LIST OF FUNCTIONS
 
 
 
-Printed 2/16/100	  May 27, 1986				2
+Printed 9/10/24           May 27, 1986				2
 
 
 
@@ -192,7 +192,7 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				3
+Printed 9/10/24           May 27, 1986				3
 
 
 
@@ -258,7 +258,7 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				4
+Printed 9/10/24           May 27, 1986				4
 
 
 
@@ -324,7 +324,7 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				5
+Printed 9/10/24           May 27, 1986				5
 
 
 
@@ -390,7 +390,7 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				6
+Printed 9/10/24           May 27, 1986				6
 
 
 
@@ -456,7 +456,7 @@ INTRO(3)	    UNIX Programmer's Manual		 INTRO(3)
 
 
 
-Printed 2/16/100	  May 27, 1986				7
+Printed 9/10/24           May 27, 1986				7
 
 
 

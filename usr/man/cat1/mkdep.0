@@ -5,13 +5,13 @@ MKDEP(1)	    UNIX Programmer's Manual		 MKDEP(1)
 
 
 
-NAME
+NNAAMMEE
      mkdep - construct Makefile dependency list
 
-SYNOPSIS
-     mkdep [ -f makefile ] [ -p ] flags file ...
+SSYYNNOOPPSSIISS
+     mmkkddeepp [ --ff mmaakkeeffiillee ] [ --pp ] flags file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _M_k_d_e_p takes a set of flags for the C compiler and a list of
      C source files as arguments and constructs a set of include
      file dependencies.  It attaches this dependency list to the
@@ -25,16 +25,16 @@ DESCRIPTION
 	       mkdep ${CFLAGS} ${SRCS}
 
      where the macro SRCS is the list of C source files and the macro
-     CFLAGS is the list of flags for the C compiler.  The -f option
+     CFLAGS is the list of flags for the C compiler.  The --ff option
      provides _m_k_d_e_p with a name other than ``Makefile'' to be edited.
-     If the -p option is provided, _m_k_d_e_p produces dependencies
+     If the --pp option is provided, _m_k_d_e_p produces dependencies
      of the form ``program: program.c'' so that subsequent makes will
      produce _p_r_o_g_r_a_m directly from its C module rather than using an
      intermediate ._o module.  This is useful in directories that
      contain many programs, each of whose source is contained in a single
      C module.
 
-SEE ALSO
+SSEEEE AALLSSOO
      cc(1), make(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  June 4, 1987				1
+Printed 9/10/24           June 4, 1987				1
 
 
 

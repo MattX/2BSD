@@ -5,48 +5,48 @@ MP(3X)		    UNIX Programmer's Manual		   MP(3X)
 
 
 
-NAME
+NNAAMMEE
      madd, msub, mult, mdiv, pow, gcd, invert, rpow, msqrt, mcmp,
      move, min, omin, fmin, m_in, mout, omout, fmout, m_out,
      sdiv, itom - multiple precision integer arithmetic
 
-SYNOPSIS
-     #include <mp.h>
-     #include <stdio.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<mmpp..hh>>
+     ##iinncclluuddee <<ssttddiioo..hh>>
 
-     typedef struct mint { int len; short *val; } MINT;
+     ttyyppeeddeeff ssttrruucctt mmiinntt {{ iinntt lleenn;; sshhoorrtt **vvaall;; }} MMIINNTT;;
 
-     madd(a, b, c)
-     msub(a, b, c)
-     mult(a, b, c)
-     mdiv(a, b, q, r)
-     pow(a, b, m, c)
-     gcd(a, b, c)
-     invert(a, b, c)
-     rpow(a, n, c)
-     msqrt(a, b, r)
-     mcmp(a, b)
-     move(a, b)
-     min(a)
-     omin(a)
-     fmin(a, f)
-     m_in(a, n, f)
-     mout(a)
-     omout(a)
-     fmout(a, f)
-     m_out(a, n, f)
-     MINT *a, *b, *c, *m, *q, *r;
-     FILE *f;
-     int n;
+     mmaadddd((aa,, bb,, cc))
+     mmssuubb((aa,, bb,, cc))
+     mmuulltt((aa,, bb,, cc))
+     mmddiivv((aa,, bb,, qq,, rr))
+     ppooww((aa,, bb,, mm,, cc))
+     ggccdd((aa,, bb,, cc))
+     iinnvveerrtt((aa,, bb,, cc))
+     rrppooww((aa,, nn,, cc))
+     mmssqqrrtt((aa,, bb,, rr))
+     mmccmmpp((aa,, bb))
+     mmoovvee((aa,, bb))
+     mmiinn((aa))
+     oommiinn((aa))
+     ffmmiinn((aa,, ff))
+     mm__iinn((aa,, nn,, ff))
+     mmoouutt((aa))
+     oommoouutt((aa))
+     ffmmoouutt((aa,, ff))
+     mm__oouutt((aa,, nn,, ff))
+     MMIINNTT **aa,, **bb,, **cc,, **mm,, **qq,, **rr;;
+     FFIILLEE **ff;;
+     iinntt nn;;
 
-     sdiv(a, n, q, r)
-     MINT *a, *q;
-     short n;
-     short *r;
+     ssddiivv((aa,, nn,, qq,, rr))
+     MMIINNTT **aa,, **qq;;
+     sshhoorrtt nn;;
+     sshhoorrtt **rr;;
 
-     MINT *itom(n)
+     MMIINNTT **iittoomm((nn))
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These routines perform arithmetic on integers of arbitrary
      length.  The integers are stored using the defined type
      _M_I_N_T.  Pointers to a _M_I_N_T can be initialized using the func-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  June 4, 1986				1
+Printed 9/10/24           June 4, 1986				1
 
 
 
@@ -92,18 +92,18 @@ MP(3X)		    UNIX Programmer's Manual		   MP(3X)
      Programs which use the multiple-precision arithmetic library
      must be loaded using the loader flag -_l_m_p.
 
-FILES
+FFIILLEESS
      /usr/include/mp.h	 include file
      /usr/lib/libmp.a	 object code library
 
-SEE ALSO
+SSEEEE AALLSSOO
      dc(1), bc(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Illegal operations and running out of memory produce mes-
      sages and core images.
 
-BUGS
+BBUUGGSS
      Bases for input and output should be <= 10.
 
      _d_c(1) and _b_c(1) don't use this library.
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  June 4, 1986				2
+Printed 9/10/24           June 4, 1986				2
 
 
 

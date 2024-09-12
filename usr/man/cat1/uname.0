@@ -5,14 +5,14 @@ UNAME(1)	    UNIX Programmer's Manual		 UNAME(1)
 
 
 
-NAME
+NNAAMMEE
      uname - display information about the system
 
-SYNOPSIS
-     uname [-amnrsv]
+SSYYNNOOPPSSIISS
+     uunnaammee [[--aammnnrrssvv]]
 
-DESCRIPTION
-     The uname command writes the name of the operating system
+DDEESSCCRRIIPPTTIIOONN
+     The uunnaammee command writes the name of the operating system
      implementation to standard output.  When options are speci-
      fied, strings representing one or more system characteris-
      tics are written to standard output.
@@ -40,16 +40,16 @@ DESCRIPTION
      fied, all output is written on a single line, separated by
      spaces.
 
-     The uname utility exits 0 on success, and >0 if an error
+     The uunnaammee utility exits 0 on success, and >0 if an error
      occurs.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sysctl(8), sysctl(3), uname(3)
 
-HISTORY
-     The uname command appeared in 4.4BSD.
+HHIISSTTOORRYY
+     The uunnaammee command appeared in 4.4BSD.
 
-STANDARDS
+SSTTAANNDDAARRDDSS
      The command is expected to conform to the IEEE Std1003.2
      (``POSIX'') specification.
 
@@ -60,7 +60,7 @@ STANDARDS
 
 
 
-Printed 2/16/100	February 4, 1995			1
+Printed 9/10/24         February 4, 1995			1
 
 
 

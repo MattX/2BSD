@@ -5,13 +5,13 @@ TEACHJOVE(1)	    UNIX Programmer's Manual	     TEACHJOVE(1)
 
 
 
-NAME
+NNAAMMEE
      TEACHJOVE - learn how to use the JOVE editor
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      teachjove
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      TEACHJOVE is a simple program that calls up the JOVE  editor
      on  a  special  file that is an interactive tutorial for the
      JOVE editor.  Once in JOVE all you do is follow the instruc-
@@ -21,13 +21,13 @@ DESCRIPTION
      file by accident) all you need to	do  is	remove	the  file
      "~/teach-jove" and run teachjove again.
 
-FILES
+FFIILLEESS
      /usr/new/lib/jove/teach-jove -- THE special file.
 
-SEE ALSO
+SSEEEE AALLSSOO
      JOVE(1) - to learn about JOVE in general.
 
-AUTHOR
+AAUUTTHHOORR
      Jonathan Payne
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/18/100	12 February 1986			1
+Printed 9/10/24         12 February 1986			1
 
 
 

@@ -5,13 +5,13 @@ LAST(1)             UNIX Programmer's Manual		  LAST(1)
 
 
 
-NAME
+NNAAMMEE
      last - indicate last logins of users and teletypes
 
-SYNOPSIS
-     last [ -f filename ] [ -N ] [ name ...  ] [ tty ...  ]
+SSYYNNOOPPSSIISS
+     llaasstt [ -f filename ] [ -N ] [ name ...  ] [ tty ...  ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _L_a_s_t will look back in the _w_t_m_p file which records all
      logins and logouts for information about a user, a teletype
      or any group of users and teletypes.  Arguments specify
@@ -28,7 +28,7 @@ DESCRIPTION
      sion is still continuing or was cut short by a reboot, _l_a_s_t
      so indicates.
 
-     The pseudo-user reboot logs in at reboots of the system,
+     The pseudo-user rreebboooott logs in at reboots of the system,
      thus
 
 	  last reboot
@@ -36,8 +36,8 @@ DESCRIPTION
      will give an indication of mean time between reboot.
 
      _L_a_s_t with no arguments prints a record of all logins and
-     logouts, in reverse order.  The -f filename option allows
-     the user to examine an alternate _w_t_m_p file.  The -N option
+     logouts, in reverse order.  The --ff ffiilleennaammee option allows
+     the user to examine an alternate _w_t_m_p file.  The --NN option
      limits the report to N lines.
 
      If _l_a_s_t is interrupted, it indicates how far the search has
@@ -45,22 +45,22 @@ DESCRIPTION
      erated by a control-\) _l_a_s_t indicates how far the search has
      progressed so far, and the search continues.
 
-FILES
+FFIILLEESS
      /usr/adm/wtmp	 login data base
      /usr/adm/shutdownlog     which records shutdowns and reasons
      for same
 
-SEE ALSO
+SSEEEE AALLSSOO
      wtmp(5), ac(8), lastcomm(1)
 
-AUTHOR
+AAUUTTHHOORR
      Howard Katseff
 
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

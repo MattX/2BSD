@@ -5,17 +5,17 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
 
 
-NAME
+NNAAMMEE
      fcntl - file control
 
-SYNOPSIS
-     #include <fcntl.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ffccnnttll..hh>>
 
-     res = fcntl(fd, cmd, arg)
-     int res;
-     int fd, cmd, arg;
+     rreess == ffccnnttll((ffdd,, ccmmdd,, aarrgg))
+     iinntt rreess;;
+     iinntt ffdd,, ccmmdd,, aarrgg;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_c_n_t_l provides for control over descriptors.  The argument
      _f_d is a descriptor to be operated on by _c_m_d as follows:
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  Nov 30, 1994				1
+Printed 9/10/24           Nov 30, 1994				1
 
 
 
@@ -93,7 +93,7 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 		    process group when I/O is possible, e.g.,
 		    upon availability of data to be read.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      Upon successful completion, the value returned depends on
      _c_m_d as follows:
        F_DUPFD	 A new file descriptor.
@@ -104,7 +104,7 @@ RETURN VALUE
      Otherwise, a value of -1 is returned and _e_r_r_n_o is set to
      indicate the error.
 
-ERRORS
+EERRRROORRSS
      _F_c_n_t_l will fail if one or more of the following are true:
 
      [EBADF]	    _F_i_l_d_e_s is not a valid open file descriptor.
@@ -119,14 +119,14 @@ ERRORS
      [ESRCH]	    _C_m_d is F_SETOWN and the process ID given as
 		    argument is not in use.
 
-SEE ALSO
+SSEEEE AALLSSOO
      close(2), execve(2), getdtablesize(2), open(2), sigvec(2)
 
 
 
 
 
-Printed 2/16/100	  Nov 30, 1994				2
+Printed 9/10/24           Nov 30, 1994				2
 
 
 
@@ -137,7 +137,7 @@ FCNTL(2)	    UNIX Programmer's Manual		 FCNTL(2)
 
 
 
-BUGS
+BBUUGGSS
      The asynchronous I/O facilities of O_NONBLOCK and O_ASYNC
      are currently available only for tty and socket operations.
 
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	  Nov 30, 1994				3
+Printed 9/10/24           Nov 30, 1994				3
 
 
 

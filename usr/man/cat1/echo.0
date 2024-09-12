@@ -5,15 +5,15 @@ ECHO(1)             UNIX Programmer's Manual		  ECHO(1)
 
 
 
-NAME
+NNAAMMEE
      echo - echo arguments
 
-SYNOPSIS
-     echo [ -n ] [ arg ] ...
+SSYYNNOOPPSSIISS
+     eecchhoo [ --nn ] [ arg ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _E_c_h_o writes its arguments separated by blanks and terminated
-     by a newline on the standard output.  If the flag -n is
+     by a newline on the standard output.  If the flag --nn is
      used, no newline is added to the output.
 
      _E_c_h_o is useful for producing diagnostics in shell programs
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

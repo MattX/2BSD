@@ -5,13 +5,13 @@ SPLINE(1G)	    UNIX Programmer's Manual	       SPLINE(1G)
 
 
 
-NAME
+NNAAMMEE
      spline - interpolate smooth curve
 
-SYNOPSIS
-     spline [ option ] ...
+SSYYNNOOPPSSIISS
+     sspplliinnee [ option ] ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_p_l_i_n_e takes pairs of numbers from the standard input as
      abcissas and ordinates of a function.  It produces a similar
      set, which is approximately equally spaced and includes the
@@ -24,11 +24,11 @@ DESCRIPTION
      The following options are recognized, each as a separate
      argument.
 
-     -a   Supply abscissas automatically (they are missing from
+     --aa   Supply abscissas automatically (they are missing from
 	  the input); spacing is given by the next argument, or
 	  is assumed to be 1 if next argument is not a number.
 
-     -k   The constant _k used in the boundary value computation
+     --kk   The constant _k used in the boundary value computation
 
 
 	     (2nd deriv. at end) = k*(2nd deriv. next to end)
@@ -36,31 +36,31 @@ DESCRIPTION
 
 	  is set by the next argument.	By default _k = 0.
 
-     -n   Space output points so that approximately _n intervals
+     --nn   Space output points so that approximately _n intervals
 	  occur between the lower and upper _x limits.  (Default _n
 	  = 100.)
 
-     -p   Make output periodic, i.e. match derivatives at ends.
+     --pp   Make output periodic, i.e. match derivatives at ends.
 	  First and last input values should normally agree.
 
-     -x   Next 1 (or 2) arguments are lower (and upper) _x limits.
+     --xx   Next 1 (or 2) arguments are lower (and upper) _x limits.
 	  Normally these limits are calculated from the data.
 	  Automatic abcissas start at lower limit (default 0).
 
-SEE ALSO
+SSEEEE AALLSSOO
      graph(1G), plot(1G)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      When data is not strictly monotone in _x, _s_p_l_i_n_e reproduces
      the input without interpolating extra points.
 
-BUGS
+BBUUGGSS
      A limit of 1000 input points is enforced silently.
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

@@ -5,13 +5,13 @@ BUGFILER(8)	    UNIX Programmer's Manual	      BUGFILER(8)
 
 
 
-NAME
+NNAAMMEE
      bugfiler - file bug reports in folders automatically
 
-SYNOPSIS
-     bugfiler [ mail directory ]
+SSYYNNOOPPSSIISS
+     bbuuggffiilleerr [ mail directory ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _B_u_g_f_i_l_e_r is a program to automatically intercept bug
      reports, summarize them and store them in the appropriate
      sub directories of the mail directory specified on the com-
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 23, 1996			1
+Printed 9/10/24         October 23, 1996			1
 
 
 
@@ -79,7 +79,7 @@ BUGFILER(8)	    UNIX Programmer's Manual	      BUGFILER(8)
      with this index.  The list may be continued onto multiple
      lines by ending each but the last with a backslash (`\').
 
-FILES
+FFIILLEESS
      /usr/sbin/sendmail       mail delivery program
      /usr/libexec/unixtomh    converts unix mail format to mh
      format
@@ -92,10 +92,10 @@ FILES
      maildir/Rp??????	      temporary file for the reply mes-
      sage.
 
-SEE ALSO
+SSEEEE AALLSSOO
      mh(1), newaliases(1), aliases(5)
 
-BUGS
+BBUUGGSS
      Since mail can be forwarded in a number of different ways,
      _b_u_g_f_i_l_e_r does not recognize forwarded mail and will
      reply/complain to the forwarder instead of the original
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 23, 1996			2
+Printed 9/10/24         October 23, 1996			2
 
 
 

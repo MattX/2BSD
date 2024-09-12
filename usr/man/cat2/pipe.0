@@ -5,14 +5,14 @@ PIPE(2)             UNIX Programmer's Manual		  PIPE(2)
 
 
 
-NAME
+NNAAMMEE
      pipe - create an interprocess communication channel
 
-SYNOPSIS
-     pipe(fildes)
-     int fildes[2];
+SSYYNNOOPPSSIISS
+     ppiippee((ffiillddeess))
+     iinntt ffiillddeess[[22]];;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _p_i_p_e system call creates an I/O mechanism called a pipe.
      The file descriptors returned can be used in read and write
      operations.  When the pipe is written using the descriptor
@@ -38,11 +38,11 @@ DESCRIPTION
      A signal is generated if a write on a pipe with only one end
      is attempted.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      The function value zero is returned if the pipe was created;
      -1 if an error occurred.
 
-ERRORS
+EERRRROORRSS
      The _p_i_p_e call will fail if:
 
      [EMFILE]	    Too many descriptors are active.
@@ -52,15 +52,15 @@ ERRORS
      [EFAULT]	    The _f_i_l_d_e_s buffer is in an invalid area of
 		    the process's address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sh(1), read(2), write(2), fork(2), socketpair(2)
 
-BUGS
+BBUUGGSS
      Should more than 4096 bytes be necessary in any pipe among a
 
 
 
-Printed 2/16/100	 August 26, 1985			1
+Printed 9/10/24          August 26, 1985			1
 
 
 
@@ -126,7 +126,7 @@ PIPE(2)             UNIX Programmer's Manual		  PIPE(2)
 
 
 
-Printed 2/16/100	 August 26, 1985			2
+Printed 9/10/24          August 26, 1985			2
 
 
 

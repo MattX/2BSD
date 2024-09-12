@@ -5,15 +5,15 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
 
 
 
-NAME
+NNAAMMEE
      diff - differential file and directory comparator
 
-SYNOPSIS
-     diff [ -l ] [ -r ] [ -s ] [ -cefhn ] [ -biwt ] dir1 dir2
-     diff [ -cefhn ] [ -biwt ] file1 file2
-     diff [ -D_s_t_r_i_n_g ] [ -biw ] file1 file2
+SSYYNNOOPPSSIISS
+     ddiiffff [ --ll ] [ --rr ] [ --ss ] [ --cceeffhhnn ] [ --bbiiwwtt ] dir1 dir2
+     ddiiffff [ --cceeffhhnn ]] [[ --bbiiwwtt ] file1 file2
+     ddiiffff [ --DD_s_t_r_i_n_g ] [ --bbiiww ] file1 file2
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      If both arguments are directories, _d_i_f_f sorts the contents
      of the directories by name, and then runs the regular file
      _d_i_f_f algorithm (described below) on text files which are
@@ -21,18 +21,18 @@ DESCRIPTION
      tories, and files which appear in only one directory are
      listed.  Options when comparing directories are:
 
-     -l   long output format; each text file _d_i_f_f is piped
+     --ll   long output format; each text file _d_i_f_f is piped
 	  through _p_r(1) to paginate it, other differences are
 	  remembered and summarized after all text file differ-
 	  ences are reported.
 
-     -r   causes application of _d_i_f_f recursively to common sub-
+     --rr   causes application of _d_i_f_f recursively to common sub-
 	  directories encountered.
 
-     -s   causes _d_i_f_f to report files which are the same, which
+     --ss   causes _d_i_f_f to report files which are the same, which
 	  are otherwise not mentioned.
 
-     -Sname
+     --SSnnaammee
 	  starts a directory _d_i_f_f in the middle beginning with
 	  file _n_a_m_e.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	October 21, 1996			1
+Printed 9/10/24         October 21, 1996			1
 
 
 
@@ -78,12 +78,12 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
      affected in the first file flagged by `<', then all the
      lines that are affected in the second file flagged by `>'.
 
-     Except for -b, -w, -i or -t which may be given with any of
+     Except for --bb,, --ww,, --ii or --tt which may be given with any of
      the others, the following options are mutually exclusive:
 
-     -e       produces a script of _a, _c and _d commands for the
+     --ee       produces a script of _a, _c and _d commands for the
 	      editor _e_d, which will recreate _f_i_l_e_2 from _f_i_l_e_1.
-	      In connection with -e, the following shell program
+	      In connection with --ee, the following shell program
 	      may help maintain multiple versions of a file.
 	      Only an ancestral file ($1) and a chain of
 	      version-to-version _e_d scripts ($2,$3,...) made by
@@ -93,22 +93,22 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
 		      (shift; cat $*; echo '1,$p') | ed - $1
 
 	      Extra commands are added to the output when compar-
-	      ing directories with -e, so that the result is a
+	      ing directories with --ee,, so that the result is a
 	      _s_h(1) script for converting text files which are
 	      common to the two directories from their state in
 	      _d_i_r_1 to their state in _d_i_r_2.
 
-     -f       produces a script similar to that of -e, not useful
+     --ff       produces a script similar to that of --ee,, not useful
 	      with _e_d, and in the opposite order.
 
-     -n       produces a script similar to that of -e, but in the
+     --nn       produces a script similar to that of --ee,, but in the
 	      opposite order and with a count of changed lines on
 	      each insert or delete command.  This is the form
 	      used by _r_c_s_d_i_f_f(1).
 
-     -c       produces a diff with lines of context.  The default
+     --cc       produces a diff with lines of context.  The default
 	      is to present 3 lines of context and may be
-	      changed, e.g to 10, by -c10.  With -c the output
+	      changed, e.g to 10, by --cc1100.  With --cc the output
 	      format is modified slightly: the output beginning
 	      with identification of the files involved and their
 	      creation dates and then each change is separated by
@@ -126,7 +126,7 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
 
 
 
-Printed 2/16/100	October 21, 1996			2
+Printed 9/10/24         October 21, 1996			2
 
 
 
@@ -137,54 +137,54 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
 
 
 
-     -h       does a fast, half-hearted job.  It works only when
+     --hh       does a fast, half-hearted job.  It works only when
 	      changed stretches are short and well separated, but
 	      does work on files of unlimited length.
 
-     -Dstring causes _d_i_f_f to create a merged version of _f_i_l_e_1 and
+     --DDssttrriinngg causes _d_i_f_f to create a merged version of _f_i_l_e_1 and
 	      _f_i_l_e_2 on the standard output, with C preprocessor
 	      controls included so that a compilation of the
 	      result without defining _s_t_r_i_n_g is equivalent to
 	      compiling _f_i_l_e_1, while defining _s_t_r_i_n_g will yield
 	      _f_i_l_e_2.
 
-     -b       causes trailing blanks (spaces and tabs) to be
+     --bb       causes trailing blanks (spaces and tabs) to be
 	      ignored, and other strings of blanks to compare
 	      equal.
 
-     -w       is similar to -b but causes whitespace (blanks and
+     --ww       is similar to --bb but causes whitespace (blanks and
 	      tabs) to be totally ignored.  E.g.,
 	      ``if ( a == b )'' will compare equal to
 	      ``if(a==b)''.
 
-     -i       ignores the case of letters.  E.g., ``A'' will com-
+     --ii       ignores the case of letters.  E.g., ``A'' will com-
 	      pare equal to ``a''.
 
-     -t       will expand tabs in output lines.  Normal or -c
+     --tt       will expand tabs in output lines.  Normal or --cc
 	      output adds character(s) to the front of each line
 	      which may screw up the indentation of the original
 	      source lines and make the output listing difficult
 	      to interpret.  This option will preserve the origi-
 	      nal source's indentation.
 
-FILES
+FFIILLEESS
      /tmp/d?????
-     /usr/libexec/diffh for -h
+     /usr/libexec/diffh for --hh
      /bin/diff for directory diffs
      /bin/pr
 
-SEE ALSO
+SSEEEE AALLSSOO
      cmp(1), cc(1), comm(1), ed(1), diff3(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 for no differences, 1 for some, 2 for trou-
      ble.
 
-BUGS
-     Editing scripts produced under the -e or -f option are naive
-     about creating lines consisting of a single `.'.
+BBUUGGSS
+     Editing scripts produced under the --ee or --ff option are naive
+     about creating lines consisting of a single `..'.
 
-     When comparing directories with the -b, -w or -i options
+     When comparing directories with the --bb,, --ww or --ii options
      specified, _d_i_f_f first compares the files ala _c_m_p, and then
      decides to run the _d_i_f_f algorithm if they are not equal.
      This may cause a small amount of spurious output if the
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 21, 1996			3
+Printed 9/10/24         October 21, 1996			3
 
 
 
@@ -258,7 +258,7 @@ DIFF(1)             UNIX Programmer's Manual		  DIFF(1)
 
 
 
-Printed 2/16/100	October 21, 1996			4
+Printed 9/10/24         October 21, 1996			4
 
 
 

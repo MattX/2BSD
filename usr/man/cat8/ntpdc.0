@@ -5,28 +5,28 @@ NTPDC(8)	    UNIX Programmer's Manual		 NTPDC(8)
 
 
 
-NAME
+NNAAMMEE
      ntpdc - monitor operation of ntp daemon
 
-SYNOPSIS
-     ntpdc [-n] [-v] _h_o_s_t_s...
+SSYYNNOOPPSSIISS
+     nnttppddcc [--nn] [--vv] _h_o_s_t_s...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _n_t_p_d_c sends an INFO_QUERY packet to an ntp daemon running on
      the given hosts.  Each daemon responds with information
      about each of its peers, which _n_t_p_d_c formats on the standard
      output.
 
      Normally, the name of the responding host and its peers are
-     printed.  The -n switch disables this, printing only inter-
+     printed.  The --nn switch disables this, printing only inter-
      net addresses.
 
-     Default is a terse, table-style report.  The -t switch gen-
-     erates an alternate form of the terse report.  The -v switch
+     Default is a terse, table-style report.  The --tt switch gen-
+     erates an alternate form of the terse report.  The --vv switch
      generates a verbose report.
 
 
-TERSE REPORT
+TTEERRSSEE RREEPPOORRTT
      A typical terse report looks like:
 
 	(rem)  Address	 (lcl)	    Strat Poll Reach	Delay	Offset	  Disp
@@ -53,14 +53,14 @@ TERSE REPORT
      Fields are interpreted as follows:
 
      - or *:
-	  The - mark indicates a pre-configured peer (mentioned
-	  in ntp.conf).  the * mark shows which pre-configured
+	  The -- mark indicates a pre-configured peer (mentioned
+	  in ntp.conf).  the ** mark shows which pre-configured
 	  peer (if any) is currently being used for synchroniza-
 	  tion.
 
 
 
-Printed 2/16/100	  10 March 1989                         1
+Printed 9/10/24           10 March 1989                         1
 
 
 
@@ -102,8 +102,8 @@ NTPDC(8)	    UNIX Programmer's Manual		 NTPDC(8)
 	  liseconds for this peer.
 
 
-VERBOSE REPORTS
-     When the -v flag is given a series of verbose reports are
+VVEERRBBOOSSEE RREEPPOORRTTSS
+     When the --vv flag is given a series of verbose reports are
      presented.  A typical one looks like this:
 
      Neighbor address 128.4.0.6 port:123  local address 192.35.201.47
@@ -126,7 +126,7 @@ VERBOSE REPORTS
 
 
 
-Printed 2/16/100	  10 March 1989                         2
+Printed 9/10/24           10 March 1989                         2
 
 
 
@@ -192,7 +192,7 @@ NTPDC(8)	    UNIX Programmer's Manual		 NTPDC(8)
 
 
 
-Printed 2/16/100	  10 March 1989                         3
+Printed 9/10/24           10 March 1989                         3
 
 
 
@@ -207,12 +207,12 @@ NTPDC(8)	    UNIX Programmer's Manual		 NTPDC(8)
 	  the above samples.  Meanings...???
 
 
-BUGS
+BBUUGGSS
      Probably a few.  Report bugs to Louis A. Mamakos
      (louie@trantor.umd.edu).
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      RFC-???? _N_e_t_w_o_r_k _T_i_m_e _P_r_o_t_o_c_o_l(1), Dave Mills and ...
      ntpd(8), ntp(8)
 
@@ -258,7 +258,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  10 March 1989                         4
+Printed 9/10/24           10 March 1989                         4
 
 
 

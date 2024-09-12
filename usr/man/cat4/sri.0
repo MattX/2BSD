@@ -5,40 +5,40 @@ SRI(4)		    UNIX Programmer's Manual		   SRI(4)
 
 
 
-NAME
+NNAAMMEE
      sri - DR11-C IMP interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NSRI _s_r_i__c_o_n_t_r_o_l_l_e_r_s	   # SRI DR11c ARPAnet IMP
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNSSRRII _s_r_i__c_o_n_t_r_o_l_l_e_r_s	   ## SSRRII DDRR1111cc AARRPPAAnneett IIMMPP
 
-DESCRIPTION
-DIAGNOSTICS
-     sri%d: not alive.	The initialization routine was entered
+DDEESSCCRRIIPPTTIIOONN
+DDIIAAGGNNOOSSTTIICCSS
+     ssrrii%%dd:: nnoott aalliivvee.	The initialization routine was entered
      even though the device did not autoconfigure.  This indi-
      cates a system problem.
 
-     sri%d: can't initialize.  Insufficient UNIBUS resources
+     ssrrii%%dd:: ccaann''tt iinniittiiaalliizzee.  Insufficient UNIBUS resources
      existed to initialize the device.	This is likely to occur
      when the device is run on a buffered data path on an 11/750
      and other network interfaces are also configured to use buf-
      fered data paths, or when it is configured to use buffered
      data paths on an 11/730 (which has none).
 
-     sri%d: imp doesn't respond, ibf=%b.  The driver attempted to
+     ssrrii%%dd:: iimmpp ddooeessnn''tt rreessppoonndd,, iibbff==%%bb.  The driver attempted to
      initialize the device, but the IMP failed to respond after 5
      tries.  Check the cabling.
 
-     sri%d: stray xmit interrupt, csr=%b.  An interrupt occurred
+     ssrrii%%dd:: ssttrraayy xxmmiitt iinntteerrrruupptt,, ccssrr==%%bb.  An interrupt occurred
      when no output had previously been started.
 
-     sri%d: output error, csr=%b.  The device indicated a problem
+     ssrrii%%dd:: oouuttppuutt eerrrroorr,, ccssrr==%%bb.  The device indicated a problem
      sending data on output.
 
-     sri%d: input error, ibf=%b.  The device indicated a problem
+     ssrrii%%dd:: iinnppuutt eerrrroorr,, iibbff==%%bb.  The device indicated a problem
      receiving data on input.
 
-     sri%d: bad length=%d.  An input operation resulted in a data
+     ssrrii%%dd:: bbaadd lleennggtthh==%%dd.  An input operation resulted in a data
      transfer of less than 10 or more than 1008 bytes of data
      into memory (according to the word count register).  This
      should never happen as the maximum size of a host-IMP mes-
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 

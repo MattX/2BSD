@@ -5,15 +5,15 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-NAME
+NNAAMMEE
      fs, inode - format of file system volume (2BSD)
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <sys/fs.h>
-     #include <sys/inode.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ssyyss//ffss..hh>>
+     ##iinncclluuddee <<ssyyss//iinnooddee..hh>>
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      Every file system storage volume (e.g. disk) has a common
      format for certain vital information.  Every such volume is
      divided into a certain number of blocks.  The block size is
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	January 27, 1996			1
+Printed 9/10/24         January 27, 1996			1
 
 
 
@@ -89,7 +89,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      and should be copied to the disk during the next periodic
      update of file system information.  _F_s__r_o_n_l_y is a write-
      protection indicator.  It is a copy of the mount flags
-     _f_s__f_l_a_g_s anded with MNT_RDONLY(see/_s_y_s/_h/_m_o_u_n_t._h).
+     _f_s__f_l_a_g_s anded with MMNNTT__RRDDOONNLLYY(see/_s_y_s/_h/_m_o_u_n_t._h))..
 
      _F_s__t_i_m_e is the last time the super-block of the file system
      was changed.  During a reboot, the _f_s__t_i_m_e of the super-
@@ -126,7 +126,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-Printed 2/16/100	January 27, 1996			2
+Printed 9/10/24         January 27, 1996			2
 
 
 
@@ -192,7 +192,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-Printed 2/16/100	January 27, 1996			3
+Printed 9/10/24         January 27, 1996			3
 
 
 
@@ -258,7 +258,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-Printed 2/16/100	January 27, 1996			4
+Printed 9/10/24         January 27, 1996			4
 
 
 
@@ -299,11 +299,11 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
      inode itself).  If the i-number of the freed inode is less
      than _f_s__l_a_s_t_i increment _f_s__n_b_e_h_i_n_d.
 
-SEE ALSO
+SSEEEE AALLSSOO
      stat(2), dir(5), types(5), dcheck(8), fsck(8), icheck(8),
      mkfs(8), mount(8)
 
-BUGS
+BBUUGGSS
      It isn't the _4_B_S_D _f_a_s_t _f_i_l_e _s_y_s_t_e_m.  The 2BSD file system is
      a direct descendent of the V7 file system and exists little
      changed from that ancestor.  There are many performance
@@ -324,7 +324,7 @@ BUGS
 
 
 
-Printed 2/16/100	January 27, 1996			5
+Printed 9/10/24         January 27, 1996			5
 
 
 
@@ -370,7 +370,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
      For a more in depth analysis of the 2BSD file system, its
      shortcomings, and a description of the changes made for the
-     4BSD file system see "A Fast File System for UNIX" by _M.
+     4BSD file system see "AA FFaasstt FFiillee SSyysstteemm ffoorr UUNNIIXX" by _M.
      _M_c_K_u_s_i_c_k; _W. _J_o_y; _S. _L_e_f_f_l_e_r; and _R. _F_a_b_r_y.
 
 
@@ -390,7 +390,7 @@ FS(5)		    UNIX Programmer's Manual		    FS(5)
 
 
 
-Printed 2/16/100	January 27, 1996			6
+Printed 9/10/24         January 27, 1996			6
 
 
 

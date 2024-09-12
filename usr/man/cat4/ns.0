@@ -5,13 +5,13 @@ NS(4F)		    UNIX Programmer's Manual		   NS(4F)
 
 
 
-NAME
+NNAAMMEE
      ns - Xerox Network Systems(tm) protocol family
 
-SYNOPSIS
-     Not currently supported under 2.11BSD
+SSYYNNOOPPSSIISS
+     NNoott ccuurrrreennttllyy ssuuppppoorrtteedd uunnddeerr 22..1111BBSSDD
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The NS protocol family is a collection of protocols layered
      atop the _I_n_t_e_r_n_e_t _D_a_t_a_g_r_a_m _P_r_o_t_o_c_o_l (IDP) transport layer,
      and using the Xerox NS address formats.  The NS family pro-
@@ -21,7 +21,7 @@ DESCRIPTION
      packets entering, (or with toggling kernel variable, addi-
      tionally leaving) the local host.
 
-ADDRESSING
+AADDDDRREESSSSIINNGG
      NS addresses are 12 byte quantities, consisting of a 4 byte
      Network number, a 6 byte Host number and a 2 byte port
      number, all stored in network standard format.  (on the VAX
@@ -60,7 +60,7 @@ ADDRESSING
 
 
 
-Printed 2/16/100	January 27, 1996			1
+Printed 9/10/24         January 27, 1996			1
 
 
 
@@ -78,7 +78,7 @@ NS(4F)		    UNIX Programmer's Manual		   NS(4F)
      unless the creating process is running as the super-user,
      providing a space of protected port numbers.
 
-PROTOCOLS
+PPRROOTTOOCCOOLLSS
      The NS protocol family supported by the operating system is
      comprised of the Internet Datagram Protocol (IDP) _i_d_p(4P),
      Error Protocol (available through IDP), and Sequenced Packet
@@ -91,7 +91,7 @@ PROTOCOLS
      is, however, only accessible to user programs through heroic
      actions.
 
-SEE ALSO
+SSEEEE AALLSSOO
      intro(3), byteorder(3N), gethostbyname(3N), getnetent(3N),
      getprotoent(3N), getservent(3N), ns(3N), intro(4N), spp(4P),
      idp(4P), nsip(4)
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	January 27, 1996			2
+Printed 9/10/24         January 27, 1996			2
 
 
 

@@ -5,10 +5,10 @@ HOSTS_OPTIONS(5)    UNIX Programmer's Manual	 HOSTS_OPTIONS(5)
 
 
 
-NAME
+NNAAMMEE
      hosts_options - host access control language extensions
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      This document describes optional extensions to the language
      described in the hosts_access(5) document. The extensions
      are enabled at program build time. For example, by editing
@@ -30,7 +30,7 @@ DESCRIPTION
      backwards compatibility with earlier versions, an "=" is
      permitted between keyword and value.
 
-LOGGING
+LLOOGGGGIINNGG
      severity mail.info
 
      severity notice
@@ -40,7 +40,7 @@ LOGGING
 	  mentations. The severity option can be used to
 	  emphasize or to ignore specific events.
 
-ACCESS CONTROL
+AACCCCEESSSS CCOONNTTRROOLL
      allow
 
      deny Grant (deny) service. These options must appear at the
@@ -60,7 +60,7 @@ ACCESS CONTROL
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -76,7 +76,7 @@ HOSTS_OPTIONS(5)    UNIX Programmer's Manual	 HOSTS_OPTIONS(5)
 
      Notice the leading dot on the domain name patterns.
 
-RUNNING OTHER COMMANDS
+RRUUNNNNIINNGG OOTTHHEERR CCOOMMMMAANNDDSS
      spawn shell_command
 	  Execute, in a child process, the specified shell com-
 	  mand, after performing the %<letter> expansions
@@ -126,7 +126,7 @@ RUNNING OTHER COMMANDS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -137,7 +137,7 @@ HOSTS_OPTIONS(5)    UNIX Programmer's Manual	 HOSTS_OPTIONS(5)
 
 
 
-NETWORK OPTIONS
+NNEETTWWOORRKK OOPPTTIIOONNSS
      keepalive
 	  Causes the server to periodically send a message to the
 	  client.  The connection is considered broken when the
@@ -151,7 +151,7 @@ NETWORK OPTIONS
 	  yet delivered data after the server process closes a
 	  connection.
 
-USERNAME LOOKUP
+UUSSEERRNNAAMMEE LLOOOOKKUUPP
      rfc931 [ timeout_in_seconds ]
 	  Look up the client user name with the RFC 931 (TAP,
 	  IDENT, RFC 1413) protocol.  This option is silently
@@ -163,7 +163,7 @@ USERNAME LOOKUP
 	  is specified a compile-time defined default value is
 	  taken.
 
-MISCELLANEOUS
+MMIISSCCEELLLLAANNEEOOUUSS
      banners /some/directory
 	  Look for a file in `/some/directory' with the same name
 	  as the daemon process (for example in.telnetd for the
@@ -192,7 +192,7 @@ MISCELLANEOUS
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 
@@ -221,15 +221,15 @@ HOSTS_OPTIONS(5)    UNIX Programmer's Manual	 HOSTS_OPTIONS(5)
 	  privilege. The second form is useful for services that
 	  need special group privileges only.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      When a syntax error is found in an access control rule, the
      error is reported to the syslog daemon; further options will
      be ignored, and service is denied.
 
-SEE ALSO
+SSEEEE AALLSSOO
      hosts_access(5), the default access control language
 
-AUTHOR
+AAUUTTHHOORR
      Wietse Venema (wietse@wzv.win.tue.nl)
      Department of Mathematics and Computing Science
      Eindhoven University of Technology
@@ -258,7 +258,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						4
+Printed 9/10/24                                                 4
 
 
 

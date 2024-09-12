@@ -5,15 +5,15 @@ RMDIR(1)	    UNIX Programmer's Manual		 RMDIR(1)
 
 
 
-NAME
+NNAAMMEE
      rmdir, rm	- remove (unlink) directories or files
 
-SYNOPSIS
-     rmdir dir ...
+SSYYNNOOPPSSIISS
+     rrmmddiirr dir ...
 
-     rm [ -f ] [ -r ] [ -i ] [ - ] file ...
+     rrmm [ --ff ] [ --rr ] [ --ii ] [ -- ] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_m_d_i_r removes entries for the named directories, which must
      be empty.
 
@@ -27,23 +27,23 @@ DESCRIPTION
      a terminal, its permissions are printed and a line is read
      from the standard input.  If that line begins with `y' the
      file is deleted, otherwise the file remains.  No questions
-     are asked and no errors are reported when the -f (force)
+     are asked and no errors are reported when the --ff (force)
      option is given.
 
      If a designated file is a directory, an error comment is
-     printed unless the optional argument -r has been used.  In
+     printed unless the optional argument --rr has been used.  In
      that case, _r_m recursively deletes the entire contents of the
      specified directory, and the directory itself.
 
-     If the -i (interactive) option is in effect, _r_m asks whether
-     to delete each file, and, under -r, whether to examine each
+     If the --ii (interactive) option is in effect, _r_m asks whether
+     to delete each file, and, under --rr, whether to examine each
      directory.
 
-     The null option - indicates that all the arguments following
+     The null option -- indicates that all the arguments following
      it are to be treated as file names.  This allows the specif-
      ication of file names starting with a minus.
 
-SEE ALSO
+SSEEEE AALLSSOO
      rm(1), unlink(2), rmdir(2)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

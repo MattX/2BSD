@@ -5,13 +5,13 @@ GETTYTAB(5)	    UNIX Programmer's Manual	      GETTYTAB(5)
 
 
 
-NAME
+NNAAMMEE
      gettytab - terminal configuration data base
 
-SYNOPSIS
+SSYYNNOOPPSSIISS
      /etc/gettytab
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_t_y_t_a_b is a simplified version of the _t_e_r_m_c_a_p(5) data base
      used to describe terminal lines.  The initial terminal login
      process _g_e_t_t_y(8) accesses the _g_e_t_t_y_t_a_b file each time it
@@ -24,13 +24,13 @@ DESCRIPTION
      _d_e_f_a_u_l_t entry is read, then the entry for the class required
      is used to override particular settings.)
 
-CAPABILITIES
+CCAAPPAABBIILLIITTIIEESS
      Refer to _t_e_r_m_c_a_p(5) for a description of the file layout.
      The _d_e_f_a_u_l_t column below lists defaults obtained if there is
      no entry in the table obtained, nor one in the special
      _d_e_f_a_u_l_t table.
 
-     Name   Type  Default	 Description
+     NNaammee   TTyyppee  DDeeffaauulltt	 DDeessccrriippttiioonn
      ap     bool  false          terminal uses any parity
      bk     str   0377		 alternate end of line character (input break)
      cb     bool  false          use crt backspace mode
@@ -60,7 +60,7 @@ CAPABILITIES
 
 
 
-Printed 2/16/100	 March 28, 1997                         1
+Printed 9/10/24          April 13, 2023                         1
 
 
 
@@ -78,6 +78,7 @@ GETTYTAB(5)	    UNIX Programmer's Manual	      GETTYTAB(5)
      ln     str   ^V		 ``literal next'' character
      lo     str   /bin/login	 program to exec when name obtained
      nl     bool  false          terminal has (or might have) a newline character
+     np     bool  false          terminal uses no parity (i.e. 8-bit characters)
      nx     str   default	 next table (for auto speed selection)
      op     bool  false          terminal uses odd parity
      os     num   unused	 output speed
@@ -108,25 +109,24 @@ GETTYTAB(5)	    UNIX Programmer's Manual	      GETTYTAB(5)
      input of the login name, and to leave the terminal set as
      upon completion, are derived from the boolean flags speci-
      fied.  If the derivation should prove inadequate, any (or
-     all) of these three may be overriden with one of the f0, f1,
-     or f2 numeric specifications, which can be used to specify
+     all) of these three may be overriden with one of the ff00, ff11,
+     or ff22 numeric specifications, which can be used to specify
      (usually in octal, with a leading '0') the exact values of
      the flags.  Local (new tty) flags are set in the top 16 bits
      of this (32 bit) value.
 
      Should _g_e_t_t_y receive a null character (presumed to indicate
      a line break) it will restart using the table indicated by
-     the nx entry. If there is none, it will re-use its original
+     the nnxx entry. If there is none, it will re-use its original
      table.
 
-     The cl screen clear string may be preceded by a (decimal)
+     The ccll screen clear string may be preceded by a (decimal)
      number of milliseconds of delay required (a la termcap).
      This delay is simulated by repeated use of the pad character
-     pc.
 
 
 
-Printed 2/16/100	 March 28, 1997                         2
+Printed 9/10/24          April 13, 2023                         2
 
 
 
@@ -137,51 +137,53 @@ GETTYTAB(5)	    UNIX Programmer's Manual	      GETTYTAB(5)
 
 
 
-     The initial message, and login message, im and lm may
-     include the character sequence %h or %t to obtain the host-
-     name or tty name respectively.  (%% obtains a single '%'
+     ppcc.
+
+     The initial message, and login message, iimm and llmm may
+     include the character sequence %%hh or %%tt to obtain the host-
+     name or tty name respectively.  (%%%% obtains a single '%'
      character.) The hostname is normally obtained from the sys-
-     tem, but may be set by the hn table entry.  In either case
-     it may be edited with he.	The he string is a sequence of
+     tem, but may be set by the hhnn table entry.  In either case
+     it may be edited with hhee.	The hhee string is a sequence of
      characters, each character that is neither '@' nor '#' is
-     copied into the final hostname.  A '@' in the he string,
+     copied into the final hostname.  A '@' in the hhee string,
      causes one character from the real hostname to be copied to
-     the final hostname.  A '#' in the he string, causes the next
+     the final hostname.  A '#' in the hhee string, causes the next
      character of the real hostname to be skipped.  Surplus '@'
      and '#' characters are ignored.
 
-     When getty execs the login process, given in the lo string
+     When getty execs the login process, given in the lloo string
      (usually "/bin/login"), it will have set the enviroment to
-     include the terminal type, as indicated by the tt string (if
-     it exists).  The ev string, can be used to enter additional
+     include the terminal type, as indicated by the tttt string (if
+     it exists).  The eevv string, can be used to enter additional
      data into the environment.  It is a list of comma separated
      strings, each of which will presumably be of the form
      _n_a_m_e=_v_a_l_u_e.
 
-     If a non-zero timeout is specified, with to, then getty will
+     If a non-zero timeout is specified, with ttoo, then getty will
      exit within the indicated number of seconds, either having
      received a login name and passed control to _l_o_g_i_n, or having
      received an alarm signal, and exited.  This may be useful to
      hangup dial in lines.
 
-     Output from _g_e_t_t_y is even parity unless op is specified.  Op
-     may be specified with ap to allow any parity on input, but
+     Output from _g_e_t_t_y is even parity unless oopp is specified.  OOpp
+     may be specified with aapp to allow any parity on input, but
      generate odd parity output.  Note: this only applies while
      getty is being run, terminal driver limitations prevent a
      more complete implementation.  _G_e_t_t_y does not check parity
      of input characters in _R_A_W mode.
 
-SEE ALSO
+SSEEEE AALLSSOO
      login(1), termcap(5), getty(8).
 
-BUGS
+BBUUGGSS
      The special characters (erase, kill, etc.) are reset to sys-
-     tem defaults by _l_o_g_i_n(1).	In all cases, '#' or '^H' typed
+     tem defaults by _l_o_g_i_n(1).	In aallll cases, '#' or '^H' typed
      in a login name will be treated as an erase character, and
      '@' will be treated as a kill character.
 
      The delay stuff is a real crock.  It has been removed from
-     the system entirely.  The he capability is stupid.
+     the system entirely.  The hhee capability is stupid.
 
      _T_e_r_m_c_a_p format is horrid, something more rational should
      have been chosen.
@@ -190,9 +192,7 @@ BUGS
 
 
 
-
-
-Printed 2/16/100	 March 28, 1997                         3
+Printed 9/10/24          April 13, 2023                         3
 
 
 

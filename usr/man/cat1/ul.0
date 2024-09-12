@@ -5,17 +5,17 @@ UL(1)		    UNIX Programmer's Manual		    UL(1)
 
 
 
-NAME
+NNAAMMEE
      ul - do underlining
 
-SYNOPSIS
-     ul [ -i ] [ -t _t_e_r_m_i_n_a_l ] [ _n_a_m_e ...  ]
+SSYYNNOOPPSSIISS
+     uull [ --ii ] [ --tt _t_e_r_m_i_n_a_l ] [ _n_a_m_e ...  ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _U_l reads the named files (or standard input if none are
      given) and translates occurrences of underscores to the
      sequence which indicates underlining for the terminal in
-     use, as specified by the environment variable TERM.  The -t
+     use, as specified by the environment variable TERM.  The --tt
      option overrides the terminal kind specified in the environ-
      ment.  The file /_e_t_c/_t_e_r_m_c_a_p is read to determine the
      appropriate sequences for underlining.  If the terminal is
@@ -25,15 +25,15 @@ DESCRIPTION
      _c_a_t(1).  If the terminal cannot underline, underlining is
      ignored.
 
-     The -i option causes _u_l to indicate underlining onto by a
+     The --ii option causes _u_l to indicate underlining onto by a
      separate line containing appropriate dashes `-'; this is
      useful when you want to look at the underlining which is
      present in an _n_r_o_f_f output stream on a crt-terminal.
 
-SEE ALSO
+SSEEEE AALLSSOO
      man(1), nroff(1), colcrt(1)
 
-BUGS
+BBUUGGSS
      _N_r_o_f_f usually outputs a series of backspaces and underlines
      intermixed with the text to indicate underlining.	No
      attempt is made to optimize the backward motion.
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	   May 7, 1986				1
+Printed 9/10/24            May 7, 1986				1
 
 
 

@@ -5,14 +5,14 @@ FSYNC(2)	    UNIX Programmer's Manual		 FSYNC(2)
 
 
 
-NAME
+NNAAMMEE
      fsync - synchronize a file's in-core state with that on disk
 
-SYNOPSIS
-     fsync(fd)
-     int fd;
+SSYYNNOOPPSSIISS
+     ffssyynncc((ffdd))
+     iinntt ffdd;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _F_s_y_n_c causes all modified data and attributes of _f_d to be
      moved to a permanent storage device.  This normally results
      in all in-core modified copies of buffers for the associated
@@ -22,11 +22,11 @@ DESCRIPTION
      in a known state, for example, in building a simple transac-
      tion facility.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      A 0 value is returned on success.	A -1 value indicates an
      error.
 
-ERRORS
+EERRRROORRSS
      The _f_s_y_n_c fails if:
 
      [EBADF]	    _F_d is not a valid descriptor.
@@ -36,7 +36,7 @@ ERRORS
      [EIO]	    An I/O error occurred while reading from or
 		    writing to the file system.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sync(2), sync(8), update(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 22, 1986				1
+Printed 9/10/24           May 22, 1986				1
 
 
 

@@ -5,14 +5,14 @@ SWAPON(2)	    UNIX Programmer's Manual		SWAPON(2)
 
 
 
-NAME
+NNAAMMEE
      swapon - add a swap device for interleaved paging/swapping
 
-SYNOPSIS
-     swapon(special)
-     char *special;
+SSYYNNOOPPSSIISS
+     sswwaappoonn((ssppeecciiaall))
+     cchhaarr **ssppeecciiaall;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_w_a_p_o_n makes the block device _s_p_e_c_i_a_l available to the sys-
      tem for allocation for paging and swapping.  The names of
      potentially available devices are known to the system and
@@ -20,11 +20,11 @@ DESCRIPTION
      area on _s_p_e_c_i_a_l is calculated at the time the device is
      first made available for swapping.
 
-RETURN VALUE
+RREETTUURRNN VVAALLUUEE
      If an error has occurred, a value of -1 is returned and
      _e_r_r_n_o is set to indicate the error.
 
-ERRORS
+EERRRROORRSS
      _S_w_a_p_o_n succeeds unless:
 
      [ENOTDIR]	    A component of the path prefix is not a
@@ -60,7 +60,7 @@ ERRORS
 
 
 
-Printed 2/16/100	  March 9, 1986                         1
+Printed 9/10/24           March 9, 1986                         1
 
 
 
@@ -79,10 +79,10 @@ SWAPON(2)	    UNIX Programmer's Manual		SWAPON(2)
      [EFAULT]	    _S_p_e_c_i_a_l points outside the process's allo-
 		    cated address space.
 
-SEE ALSO
+SSEEEE AALLSSOO
      swapon(8), config(8)
 
-BUGS
+BBUUGGSS
      There is no way to stop swapping on a disk so that the pack
      may be dismounted.
 
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100	  March 9, 1986                         2
+Printed 9/10/24           March 9, 1986                         2
 
 
 

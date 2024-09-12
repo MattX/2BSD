@@ -5,14 +5,14 @@ RLOG(1L)	    UNIX Programmer's Manual		 RLOG(1L)
 
 
 
-NAME
+NNAAMMEE
      rlog - print log messages and other information about RCS
      files
 
-SYNOPSIS
-     rlog [ options ] file ...
+SSYYNNOOPPSSIISS
+     rrlloogg [ options ] file ...
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _R_l_o_g prints information about RCS files.  Files ending in
      `,v' are RCS files, all others are working files. If a work-
      ing file is given, _r_l_o_g tries to find the corresponding RCS
@@ -32,24 +32,24 @@ DESCRIPTION
      message.  Without options, _r_l_o_g prints complete information.
      The options below restrict this output.
 
-     -L        ignores RCS files that have no locks set; con-
-	       venient in combination with -R, -h, or -l.
+     --LL        ignores RCS files that have no locks set; con-
+	       venient in combination with --RR, --hh, or --ll.
 
-     -R        only prints the name of the RCS file; convenient
+     --RR        only prints the name of the RCS file; convenient
 	       for translating a working file name into an RCS
 	       file name.
 
-     -h        prints only RCS file name, working file name,
+     --hh        prints only RCS file name, working file name,
 	       head, default branch, access list, locks, symbolic
 	       names, and suffix.
 
-     -t        prints the same as -h, plus the descriptive text.
+     --tt        prints the same as --hh, plus the descriptive text.
 
-     -b        prints information about the revisions on the
+     --bb        prints information about the revisions on the
 	       default branch (normally the highest branch on the
 	       trunk).
 
-     -d_d_a_t_e_s   prints information about revisions with a checkin
+     --dd_d_a_t_e_s   prints information about revisions with a checkin
 	       date/time in the ranges given by the semicolon-
 	       separated list of _d_a_t_e_s.  A range of the form
 	       _d_1<_d_2 or _d_2>_d_1 selects the revisions that were
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -77,14 +77,14 @@ RLOG(1L)	    UNIX Programmer's Manual		 RLOG(1L)
 	       ing is normally necessary, especially for < and >.
 	       Note that the separator is a semicolon.
 
-     -l[_l_o_c_k_e_r_s]
+     --ll[_l_o_c_k_e_r_s]
 	       prints information about locked revisions.  If the
 	       comma-separated list _l_o_c_k_e_r_s of login names is
 	       given, only the revisions locked by the given
 	       login names are printed.  If the list is omitted,
 	       all locked revisions are printed.
 
-     -r_r_e_v_i_s_i_o_n_s
+     --rr_r_e_v_i_s_i_o_n_s
 	       prints information about revisions given in the
 	       comma-separated list _r_e_v_i_s_i_o_n_s of revisions and
 	       ranges. A range _r_e_v_1-_r_e_v_2 means revisions _r_e_v_1 to
@@ -96,21 +96,21 @@ RLOG(1L)	    UNIX Programmer's Manual		 RLOG(1L)
 	       branch. A range of branches means all revisions on
 	       the branches in that range.
 
-     -s_s_t_a_t_e_s  prints information about revisions whose state
+     --ss_s_t_a_t_e_s  prints information about revisions whose state
 	       attributes match one of the states given in the
 	       comma-separated list _s_t_a_t_e_s.
 
-     -w[_l_o_g_i_n_s]
+     --ww[_l_o_g_i_n_s]
 	       prints information about revisions checked in by
 	       users with login names appearing in the comma-
 	       separated list _l_o_g_i_n_s.  If _l_o_g_i_n_s is omitted, the
 	       user's login is assumed.
 
      _R_l_o_g prints the intersection of the revisions selected with
-     the options -d, -l, -s, -w, intersected with the union of
-     the revisions selected by -b and -r.
+     the options --dd, --ll, --ss, --ww, intersected with the union of
+     the revisions selected by --bb and --rr.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
 	     rlog  -L  -R  RCS/*,v
 	     rlog  -L  -h  RCS/*,v
 	     rlog  -L  -l  RCS/*,v
@@ -126,7 +126,7 @@ EXAMPLES
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 
@@ -137,17 +137,17 @@ RLOG(1L)	    UNIX Programmer's Manual		 RLOG(1L)
 
 
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      The exit status always refers to the last RCS file operated
      upon, and is 0 if the operation was successful, 1 otherwise.
 
-IDENTIFICATION
+IIDDEENNTTIIFFIICCAATTIIOONN
      Author: Walter F. Tichy, Purdue University, West Lafayette,
      IN, 47907.
      Revision Number: 1.2 ; Release Date: 87/03/17 .
      Copyright (C) 1982 by Walter F. Tichy.
 
-SEE ALSO
+SSEEEE AALLSSOO
      ci(1L), co(1L), ident(1L), rcs(1L), rcsdiff(1L),
      rcsintro(1L), rcsmerge(1L), rcsfile(5L)
      Walter F. Tichy, "Design, Implementation, and Evaluation of
@@ -192,7 +192,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100						3
+Printed 9/10/24                                                 3
 
 
 

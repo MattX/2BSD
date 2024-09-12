@@ -5,14 +5,14 @@ IMPLOG(8)	    UNIX Programmer's Manual		IMPLOG(8)
 
 
 
-NAME
+NNAAMMEE
      implog - IMP log interpreter
 
-SYNOPSIS
-     /usr/sbin/implog [ -D ] [ -f ] [ -c ] [ -r ] [ -l [ _l_i_n_k ] ]
-     [ -h _h_o_s_t# ] [ -i _i_m_p# ] [ -t _m_e_s_s_a_g_e-_t_y_p_e ]
+SSYYNNOOPPSSIISS
+     //uussrr//ssbbiinn//iimmpplloogg [ --DD ] [ --ff ] [ --cc ] [ --rr ] [ --ll [ _l_i_n_k ] ]
+     [ --hh _h_o_s_t# ] [ --ii _i_m_p# ] [ --tt _m_e_s_s_a_g_e-_t_y_p_e ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_m_p_l_o_g is program which interprets the message log produced
      by _i_m_p_l_o_g_d(8C).
 
@@ -21,46 +21,46 @@ DESCRIPTION
      specified to force printing only a subset of the logged mes-
      sages.
 
-     -D   Do not show data messages.
+     --DD   Do not show data messages.
 
-     -f   Follow the logging process in action.  This flags
+     --ff   Follow the logging process in action.  This flags
 	  causes _i_m_p_l_o_g to print the current contents of the log
 	  file, then check for new logged messages every 5
 	  seconds.
 
-     -c   In addition to printing any data messages logged, show
+     --cc   In addition to printing any data messages logged, show
 	  the contents of the data in hexadecimal bytes.
 
-     -r   Print the raw imp leader, showing all fields, in addi-
+     --rr   Print the raw imp leader, showing all fields, in addi-
 	  tion to the formatted interpretation according to type.
 
-     -l [ _l_i_n_k# ]
+     --ll [ _l_i_n_k# ]
 	  Show only those messages received on the specified
 	  ``link''.  If no value is given for the link, the link
 	  number of the IP protocol is assumed.
 
-     -h _h_o_s_t#
+     --hh _h_o_s_t#
 	  Show only those messages received from the specified
 	  host.  (Usually specified in conjunction with an imp.)
 
-     -i _i_m_p#
+     --ii _i_m_p#
 	  Show only those messages received from the specified
 	  imp.
 
-     -t _m_e_s_s_a_g_e-_t_y_p_e
+     --tt _m_e_s_s_a_g_e-_t_y_p_e
 	  Show only those messages received of the specified mes-
 	  sage type.
 
-SEE ALSO
+SSEEEE AALLSSOO
      imp(4P), implogd(8C)
 
-BUGS
+BBUUGGSS
      Can not specify multiple hosts, imps, etc.  Can not follow
      reception of messages without looking at those currently in
 
 
 
-Printed 2/16/100	November 16, 1996			1
+Printed 9/10/24         November 16, 1996			1
 
 
 
@@ -126,7 +126,7 @@ IMPLOG(8)	    UNIX Programmer's Manual		IMPLOG(8)
 
 
 
-Printed 2/16/100	November 16, 1996			2
+Printed 9/10/24         November 16, 1996			2
 
 
 

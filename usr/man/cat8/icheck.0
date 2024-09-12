@@ -5,13 +5,13 @@ ICHECK(8)	    UNIX Programmer's Manual		ICHECK(8)
 
 
 
-NAME
+NNAAMMEE
      icheck - file system storage consistency check
 
-SYNOPSIS
-     icheck [ -s ]  [ -b numbers ] [ filesystem ]
+SSYYNNOOPPSSIISS
+     iicchheecckk [ --ss ]  [ --bb numbers ] [ filesystem ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _I_c_h_e_c_k examines a file system, builds a bit map of used
      blocks, and compares this bit map against the free list
      maintained on the file system.  If the file system is not
@@ -31,7 +31,7 @@ DESCRIPTION
 	  The number of blocks missing; i.e. not in any file nor
 	  in the free list.
 
-     The -s option causes _i_c_h_e_c_k to ignore the actual free list
+     The --ss option causes _i_c_h_e_c_k to ignore the actual free list
      and reconstruct a new one by rewriting the super-block of
      the file system.  The file system should be dismounted while
      this is done; if this is not possible (for example if the
@@ -42,25 +42,25 @@ DESCRIPTION
      the words in the super-block which indicate the size of the
      free list and of the i-list are believed.	If the super-
      block has been curdled these words will have to be patched.
-     The -s option causes the normal output reports to be
+     The --ss option causes the normal output reports to be
      suppressed.
 
-     Following the -b option is a list of block numbers; whenever
+     Following the --bb option is a list of block numbers; whenever
      any of the named blocks turns up in a file, a diagnostic is
      produced.
 
      _I_c_h_e_c_k is faster if the raw version of the special file is
      used, since it reads the i-list many blocks at a time.
 
-SEE ALSO
+SSEEEE AALLSSOO
      filsys(5), clri(8), dcheck(8), fsck(8), ncheck(8)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      For duplicate blocks and bad blocks (which lie outside the
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -80,7 +80,7 @@ ICHECK(8)	    UNIX Programmer's Manual		ICHECK(8)
      blocks were found in the free list which duplicate blocks
      either in some file or in the earlier part of the free list.
 
-BUGS
+BBUUGGSS
      Since _i_c_h_e_c_k is inherently two-pass in nature, extraneous
      diagnostics may be produced if applied to active file sys-
      tems.  Since default file systems vary with installations,
@@ -126,7 +126,7 @@ BUGS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

@@ -5,10 +5,10 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-NAME
+NNAAMMEE
      hier - file system hierarchy
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The following outline gives a quick tour through a represen-
      tative directory hierarchy.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 
@@ -126,7 +126,7 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-Printed 2/16/100	  May 20, 1985				2
+Printed 9/10/24           May 20, 1985				2
 
 
 
@@ -192,7 +192,7 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-Printed 2/16/100	  May 20, 1985				3
+Printed 9/10/24           May 20, 1985				3
 
 
 
@@ -258,7 +258,7 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-Printed 2/16/100	  May 20, 1985				4
+Printed 9/10/24           May 20, 1985				4
 
 
 
@@ -324,7 +324,7 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-Printed 2/16/100	  May 20, 1985				5
+Printed 9/10/24           May 20, 1985				5
 
 
 
@@ -368,29 +368,29 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 			 mail queue for _s_e_n_d_m_a_i_l(8)
 	  _w_d   initial working directory of a user, typically _w_d
 	       is the user's login name
-	       .profile
+	       ..profile
 		    set environment for _s_h(1), _e_n_v_i_r_o_n(7)
-	       .project
+	       ..project
 		    what you are doing (used by ( _f_i_n_g_e_r(1) )
-	       .cshrc
+	       ..cshrc
 		    startup file for _c_s_h(1)
-	       .exrc
+	       ..exrc
 		    startup file for _e_x(1)
-	       .plan
+	       ..plan
 		    what your short-term plans are (used by
 		    _f_i_n_g_e_r(1) )
-	       .netrc
+	       ..netrc
 		    startup file for various network programs
-	       .msgsrc
+	       ..msgsrc
 		    startup file for _m_s_g_s(1)
-	       .mailrc
+	       ..mailrc
 		    startup file for _m_a_i_l(1)
 	       calendar
 		    user's datebook for _c_a_l_e_n_d_a_r(1)
 
 
 
-Printed 2/16/100	  May 20, 1985				6
+Printed 9/10/24           May 20, 1985				6
 
 
 
@@ -456,7 +456,7 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 
 
 
-Printed 2/16/100	  May 20, 1985				7
+Printed 9/10/24           May 20, 1985				7
 
 
 
@@ -487,10 +487,10 @@ HIER(7)             UNIX Programmer's Manual		  HIER(7)
 	       px   Pascal interpreter
 	       ...
 	       vi   visual editor
-SEE ALSO
+SSEEEE AALLSSOO
      ls(1),   apropos(1),   whatis(1),	 whereis(1),   finger(1),
      which(1), ncheck(8), find(1), grep(1)
-BUGS
+BBUUGGSS
      The position of files is subject to change without notice.
 
 
@@ -522,7 +522,7 @@ BUGS
 
 
 
-Printed 2/16/100	  May 20, 1985				8
+Printed 9/10/24           May 20, 1985				8
 
 
 

@@ -5,16 +5,16 @@ IP(4P)		    UNIX Programmer's Manual		   IP(4P)
 
 
 
-NAME
+NNAAMMEE
      ip - Internet Protocol
 
-SYNOPSIS
-     #include <sys/socket.h>
-     #include <netinet/in.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ssoocckkeett..hh>>
+     ##iinncclluuddee <<nneettiinneett//iinn..hh>>
 
-     s = socket(AF_INET, SOCK_RAW, proto);
+     ss == ssoocckkeett((AAFF__IINNEETT,, SSOOCCKK__RRAAWW,, pprroottoo));;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      IP is the transport layer protocol used by the Internet pro-
      tocol family.  Options may be set at the IP level when using
      higher-level protocols that are based on IP (such as TCP and
@@ -51,7 +51,7 @@ DESCRIPTION
      number the socket is created with).  Incoming packets are
      received with IP header and options intact.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      A socket operation may fail with one of the following errors
      returned:
 
@@ -60,7 +60,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	  May 16, 1986				1
+Printed 9/10/24           May 16, 1986				1
 
 
 
@@ -97,7 +97,7 @@ IP(4P)		    UNIX Programmer's Manual		   IP(4P)
 		    value or longer than the option buffer pro-
 		    vided.
 
-SEE ALSO
+SSEEEE AALLSSOO
      getsockopt(2), send(2), recv(2), intro(4N), icmp(4P),
      inet(4F)
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 16, 1986				2
+Printed 9/10/24           May 16, 1986				2
 
 
 

@@ -5,33 +5,33 @@ GETPWENT(3)	    UNIX Programmer's Manual	      GETPWENT(3)
 
 
 
-NAME
+NNAAMMEE
      getpwent, getpwnam, getpwuid, setpassent, setpwfile,
      setpwent, endpwent - get password file entries
 
-SYNOPSIS
-     #include <sys/types.h>
-     #include <pwd.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyyss//ttyyppeess..hh>>
+     ##iinncclluuddee <<ppwwdd..hh>>
 
-     struct passwd *getpwent()
+     ssttrruucctt ppaasssswwdd **ggeettppwweenntt(())
 
-     struct passwd *getpwnam(login)
-     char *login;
+     ssttrruucctt ppaasssswwdd **ggeettppwwnnaamm((llooggiinn))
+     cchhaarr **llooggiinn;;
 
-     struct passwd *getpwuid(uid)
-     uid_t uid;
+     ssttrruucctt ppaasssswwdd **ggeettppwwuuiidd((uuiidd))
+     uuiidd__tt uuiidd;;
 
-     int setpassent(stayopen)
-     int stayopen;
+     iinntt sseettppaasssseenntt((ssttaayyooppeenn))
+     iinntt ssttaayyooppeenn;;
 
-     void setpwfile(file)
-     char *file;
+     vvooiidd sseettppwwffiillee((ffiillee))
+     cchhaarr **ffiillee;;
 
-     int setpwent()
+     iinntt sseettppwweenntt(())
 
-     void endpwent()
+     vvooiidd eennddppwweenntt(())
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _G_e_t_p_w_e_n_t, _g_e_t_p_w_u_i_d, and _g_e_t_p_w_n_a_m each return a pointer to a
      structure containing the broken-out fields of a line in the
      password file.  This structure is defined by the include
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	February 23, 1989			1
+Printed 9/10/24         February 23, 1989			1
 
 
 
@@ -111,13 +111,13 @@ GETPWENT(3)	    UNIX Programmer's Manual	      GETPWENT(3)
      are not, this makes the password available only to programs
      running with super-user privileges.
 
-FILES
+FFIILLEESS
      /etc/passwd
 
-SEE ALSO
+SSEEEE AALLSSOO
      getlogin(3), getgrent(3), ndbm(3), passwd(5)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      The routines _g_e_t_p_w_e_n_t, _g_e_t_p_w_n_a_m, and _g_e_t_p_w_u_i_d, return a null
      pointer on EOF or error.  _S_e_t_p_a_s_s_e_n_t and _s_e_t_p_w_e_n_t return 0
      on failure and 1 on success.  _E_n_d_p_w_e_n_t and _s_e_t_p_w_f_i_l_e have no
@@ -126,7 +126,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	February 23, 1989			2
+Printed 9/10/24         February 23, 1989			2
 
 
 
@@ -137,7 +137,7 @@ GETPWENT(3)	    UNIX Programmer's Manual	      GETPWENT(3)
 
 
 
-BUGS
+BBUUGGSS
      All information is contained in a static buffer which is
      overwritten by each new call.  It must be copied elsewhere
      to be retained.
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	February 23, 1989			3
+Printed 9/10/24         February 23, 1989			3
 
 
 

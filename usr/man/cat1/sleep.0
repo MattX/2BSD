@@ -5,13 +5,13 @@ SLEEP(1)	    UNIX Programmer's Manual		 SLEEP(1)
 
 
 
-NAME
+NNAAMMEE
      sleep - suspend execution for an interval
 
-SYNOPSIS
-     sleep time
+SSYYNNOOPPSSIISS
+     sslleeeepp time
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_l_e_e_p suspends execution for _t_i_m_e seconds.  It is used to
      execute a command after a certain amount of time as in:
 
@@ -25,10 +25,10 @@ DESCRIPTION
 	       sleep 37
 	  done
 
-SEE ALSO
+SSEEEE AALLSSOO
      setitimer(2), alarm(3C), sleep(3)
 
-BUGS
+BBUUGGSS
      _T_i_m_e must be less than 2,147,483,647 seconds.
 
 
@@ -60,7 +60,7 @@ BUGS
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

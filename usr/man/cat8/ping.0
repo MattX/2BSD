@@ -5,62 +5,62 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
 
 
-NAME
-     ping - send ICMP ECHO_REQUEST packets to network hosts
+NNAAMMEE
+     ppiinngg - send ICMP ECHO_REQUEST packets to network hosts
 
-SYNOPSIS
-     ping [-dfnqrvR] [-c _c_o_u_n_t] [-i _w_a_i_t] [-l _p_r_e_l_o_a_d] [-p _p_a_t_-
-     _t_e_r_n] [-s _p_a_c_k_e_t_s_i_z_e]
+SSYYNNOOPPSSIISS
+     ppiinngg [[--ddffnnqqrrvvRR]] [--cc _c_o_u_n_t] [--ii _w_a_i_t] [--ll _p_r_e_l_o_a_d] [--pp _p_a_t_-
+     _t_e_r_n] [--ss _p_a_c_k_e_t_s_i_z_e]
 
-DESCRIPTION
-     Ping uses the ICMP protocol's mandatory ECHO_REQUEST
+DDEESSCCRRIIPPTTIIOONN
+     PPiinngg uses the ICMP protocol's mandatory ECHO_REQUEST
      datagram to elicit an ICMP ECHO_RESPONSE from a host or
      gateway.  ECHO_REQUEST datagrams (``pings'') have an IP and
      ICMP header, followed by a ``struct timeval'' and then an
      arbitrary number of ``pad'' bytes used to fill out the
      packet.  The options are as follows:
 
-     -c _c_o_u_n_t	    Stop after sending (and receiving) _c_o_u_n_t
+     --cc _c_o_u_n_t	    Stop after sending (and receiving) _c_o_u_n_t
 		    ECHO_RESPONSE packets.
 
-     -d             Set the SO_DEBUG option on the socket being
+     --dd             Set the SO_DEBUG option on the socket being
 		    used.
 
-     -f             Flood ping.  Outputs packets as fast as they
+     --ff             Flood ping.  Outputs packets as fast as they
 		    come back or one hundred times per second,
 		    whichever is more.	For every ECHO_REQUEST
 		    sent a period ``.'' is printed, while for
 		    every ECHO_REPLY received a backspace is
 		    printed.  This provides a rapid display of
 		    how many packets are being dropped.  Only the
-		    super-user may use this option.  This can be
-		    very hard on
+		    super-user may use this option.  TThhiiss ccaann bbee
+		    vveerryy hhaarrdd oonn
 
-     -i _w_a_i_t	    Wait _w_a_i_t seconds between sending each
+     --ii _w_a_i_t	    Wait _w_a_i_t seconds between sending each
 		    packet.  The default is to wait for one
 		    second between each packet.  This option is
-		    incompatible with the -f option.
+		    incompatible with the --ff option.
 
-     -l _p_r_e_l_o_a_d     If _p_r_e_l_o_a_d is specified, ping sends that many
+     --ll _p_r_e_l_o_a_d     If _p_r_e_l_o_a_d is specified, ppiinngg sends that many
 		    packets as fast as possible before falling
 		    into its normal mode of behavior.
 
-     -n             Numeric output only.  No attempt will be made
+     --nn             Numeric output only.  No attempt will be made
 		    to lookup symbolic names for host addresses.
 
-     -p _p_a_t_t_e_r_n     You may specify up to 16 ``pad'' bytes to
+     --pp _p_a_t_t_e_r_n     You may specify up to 16 ``pad'' bytes to
 		    fill out the packet you send.  This is useful
 		    for diagnosing data-dependent problems in a
 		    network.  For example, `` -p ff'' will cause
 		    the sent packet to be filled with all ones.
 
-     -q             Quiet output.  Nothing is displayed except
+     --qq             Quiet output.  Nothing is displayed except
 		    the summary lines at startup time and when
 		    finished.
 
 
 
-Printed 2/16/100	December 22, 1995			1
+Printed 9/10/24         December 22, 1995			1
 
 
 
@@ -71,30 +71,30 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
 
 
-     -R             Record route.  Includes the RECORD_ROUTE
+     --RR             Record route.  Includes the RECORD_ROUTE
 		    option in the ECHO_REQUEST packet and
 		    displays the route buffer on returned pack-
 		    ets.  Note that the IP header is only large
 		    enough for nine such routes.  Many hosts
 		    ignore or discard this option.
 
-     -r             Bypass the normal routing tables and send
+     --rr             Bypass the normal routing tables and send
 		    directly to a host on an attached network.
 		    If the host is not on a directly-attached
 		    network, an error is returned.  This option
 		    can be used to ping a local host through an
 		    interface that has no route through it (e.g.,
-		    after the interface was dropped by routed(8).
+		    after the interface was dropped by rroouutteedd(8).
 
-     -s _p_a_c_k_e_t_s_i_z_e  Specifies the number of data bytes to be
+     --ss _p_a_c_k_e_t_s_i_z_e  Specifies the number of data bytes to be
 		    sent. The default is 56, which translates
 		    into 64 ICMP data bytes when combined with
 		    the 8 bytes of ICMP header data.
 
-     -v             Verbose output.  ICMP packets other than
+     --vv             Verbose output.  ICMP packets other than
 		    ECHO_RESPONSE that are received are listed.
 
-     When using ping for fault isolation, it should first be run
+     When using ppiinngg for fault isolation, it should first be run
      on the local host, to verify that the local network inter-
      face is up and running.  Then, hosts and gateways further
      and further away should be ``pinged''.  Round-trip times and
@@ -108,10 +108,10 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
      This program is intended for use in network testing, meas-
      urement and management.  Because of the load it can impose
-     on the network, it is unwise to use ping during normal
+     on the network, it is unwise to use ppiinngg during normal
      operations or from automated scripts.
 
-ICMP PACKET DETAILS
+IICCMMPP PPAACCKKEETT DDEETTAAIILLSS
      An IP header without options is 20 bytes.	An ICMP
      ECHO_REQUEST packet contains an additional 8 bytes worth of
      ICMP header followed by an arbitrary amount of data.  When a
@@ -121,12 +121,12 @@ ICMP PACKET DETAILS
      always be 8 bytes more than the requested data space (the
      ICMP header).
 
-     If the data space is at least eight bytes large, ping uses
+     If the data space is at least eight bytes large, ppiinngg uses
      the first eight bytes of this space to include a timestamp
 
 
 
-Printed 2/16/100	December 22, 1995			2
+Printed 9/10/24         December 22, 1995			2
 
 
 
@@ -141,8 +141,8 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
      less than eight bytes of pad are specified, no round trip
      times are given.
 
-DUPLICATE AND DAMAGED PACKETS
-     Ping will report duplicate and damaged packets.  Duplicate
+DDUUPPLLIICCAATTEE AANNDD DDAAMMAAGGEEDD PPAACCKKEETTSS
+     PPiinngg will report duplicate and damaged packets.  Duplicate
      packets should never occur, and seem to be caused by inap-
      propriate link-level retransmissions.  Duplicates may occur
      in many situations and are rarely (if ever) a good sign,
@@ -150,10 +150,10 @@ DUPLICATE AND DAMAGED PACKETS
      always be cause for alarm.
 
      Damaged packets are obviously serious cause for alarm and
-     often indicate broken hardware somewhere in the ping
+     often indicate broken hardware somewhere in the ppiinngg
      packet's path (in the network or in the hosts).
 
-TRYING DIFFERENT DATA PATTERNS
+TTRRYYIINNGG DDIIFFFFEERREENNTT DDAATTAA PPAATTTTEERRNNSS
      The (inter)network layer should never treat packets dif-
      ferently depending on the data contained in the data por-
      tion.  Unfortunately, data-dependent problems have been
@@ -174,9 +174,9 @@ TRYING DIFFERENT DATA PATTERNS
      can't be sent across your network or that takes much longer
      to transfer than other similar length files.  You can then
      examine this file for repeated patterns that you can test
-     using the -p option of ping.
+     using the --pp option of ppiinngg.
 
-TTL DETAILS
+TTTTLL DDEETTAAIILLSS
      The TTL value of an IP packet represents the maximum number
      of IP routers that the packet can go through before being
      thrown away.  In current practice you can expect each router
@@ -192,7 +192,7 @@ TTL DETAILS
 
 
 
-Printed 2/16/100	December 22, 1995			3
+Printed 9/10/24         December 22, 1995			3
 
 
 
@@ -203,29 +203,29 @@ PING(8)             UNIX Programmer's Manual		  PING(8)
 
 
 
-     hosts, but not reach them with telnet(1) or ftp(1).
+     hosts, but not reach them with tteellnneett(1) or ffttpp(1)..
 
      In normal operation ping prints the ttl value from the
      packet it receives.  When a remote system receives a ping
      packet, it can do one of three things with the TTL field in
      its response:
 
-     o+	  Not change it; this is what Berkeley Unix systems did
+     o	  Not change it; this is what Berkeley Unix systems did
 	  before the 4.3BSD-tahoe release.  In this case the TTL
 	  value in the received packet will be 255 minus the
 	  number of routers in the round-trip path.
 
-     o+	  Set it to 255; this is what current Berkeley Unix sys-
+     o	  Set it to 255; this is what current Berkeley Unix sys-
 	  tems do.  In this case the TTL value in the received
 	  packet will be 255 minus the number of routers in the
-	  path from the remote system _t_o the ping'ing host.
+	  path ffrroomm the remote system _t_o the ppiinngg'ing host.
 
-     o+	  Set it to some other value.  Some machines use the same
+     o	  Set it to some other value.  Some machines use the same
 	  value for ICMP packets that they use for TCP packets,
 	  for example either 30 or 60.	Others may use completely
 	  wild values.
 
-BUGS
+BBUUGGSS
      Many Hosts and Gateways ignore the RECORD_ROUTE option.
 
      The maximum IP header length is too small for options like
@@ -236,13 +236,11 @@ BUGS
      ing the broadcast address should only be done under very
      controlled conditions.
 
-SEE ALSO
-     netstat(1), ifconfig(8), routed(8)
+SSEEEE AALLSSOO
+     nneettssttaatt(1), iiffccoonnffiigg(8), rroouutteedd(8)
 
-HISTORY
-     The ping command appeared in 4.3BSD.
-
-
+HHIISSTTOORRYY
+     The ppiinngg command appeared in 4.3BSD.
 
 
 
@@ -258,7 +256,9 @@ HISTORY
 
 
 
-Printed 2/16/100	December 22, 1995			4
+
+
+Printed 9/10/24         December 22, 1995			4
 
 
 

@@ -5,13 +5,13 @@ DF(1)		    UNIX Programmer's Manual		    DF(1)
 
 
 
-NAME
+NNAAMMEE
      df - disk free
 
-SYNOPSIS
-     df [ -i ] [ filesystem ... ] [ file ... ]
+SSYYNNOOPPSSIISS
+     ddff [ --ii ] [ filesystem ... ] [ file ... ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _D_f prints out the amount of free disk space available on the
      specified _f_i_l_e_s_y_s_t_e_m, e.g. ``/dev/rp0a'', or on the filesys-
      tem in which the specified _f_i_l_e, e.g. ``$HOME'', is con-
@@ -21,13 +21,13 @@ DESCRIPTION
 
      Other options are:
 
-     -i   Report also the number of inodes which are used and
+     --ii   Report also the number of inodes which are used and
 	  free.
 
-FILES
+FFIILLEESS
      /etc/fstab     list of normally mounted filesystems
 
-SEE ALSO
+SSEEEE AALLSSOO
      fstab(5), icheck(8), quot(8)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 

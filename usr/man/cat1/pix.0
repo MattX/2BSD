@@ -5,13 +5,13 @@ PIX(1)		    UNIX Programmer's Manual		   PIX(1)
 
 
 
-NAME
+NNAAMMEE
      pix - Pascal interpreter and executor
 
-SYNOPSIS
-     pix [ -blnpstuwz ] [ -i name ...  ] name.p [ argument ...	]
+SSYYNNOOPPSSIISS
+     ppiixx [ --bbllnnppssttuuwwzz ] [ --ii name ...  ] name.p [ argument ...	]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _P_i_x is a `load and go' version of Pascal which combines the
      functions of the interpreter code translator _p_i and the exe-
      cutor _p_x.	It uses _p_i to translate the program in the file
@@ -21,22 +21,22 @@ DESCRIPTION
      used for the object code; the file _o_b_j is neither created
      nor destroyed.
 
-FILES
+FFIILLEESS
      /usr/bin/pi	 Pascal translator
      /usr/bin/px	 Pascal executor
      /tmp/pix?????	 temporary files
      /usr/share/pascal/how_pixbasic explanation
 
-SEE ALSO
+SSEEEE AALLSSOO
      Berkeley Pascal User's Manual
      pi(1), px(1)
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      For a basic explanation do
 
-	pix
+	ppiixx
 
-AUTHOR
+AAUUTTHHOORR
      Susan L. Graham and William N. Joy
 
 
@@ -60,7 +60,7 @@ AUTHOR
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 

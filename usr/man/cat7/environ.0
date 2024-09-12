@@ -5,13 +5,13 @@ ENVIRON(7)	    UNIX Programmer's Manual	       ENVIRON(7)
 
 
 
-NAME
+NNAAMMEE
      environ - user environment
 
-SYNOPSIS
-     extern char **environ;
+SSYYNNOOPPSSIISS
+     eexxtteerrnn cchhaarr ****eennvviirroonn;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      An array of strings called the `environment' is made avail-
      able by _e_x_e_c_v_e(2) when a process begins.  By convention
      these strings have the form `_n_a_m_e=_v_a_l_u_e'.	The following
@@ -54,13 +54,13 @@ DESCRIPTION
      frequently exported by `.profile' files: MAIL, PS1, PS2,
      IFS.
 
-SEE ALSO
+SSEEEE AALLSSOO
      csh(1), ex(1), login(1), sh(1), execve(2), system(3),
      termcap(3X), termcap(5)
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

@@ -5,13 +5,13 @@ DOCTOR(6)	    UNIX Programmer's Manual		DOCTOR(6)
 
 
 
-NAME
+NNAAMMEE
      doctor - interact with a psychoanalyst
 
-SYNOPSIS
-     /usr/games/doctor
+SSYYNNOOPPSSIISS
+     //uussrr//ggaammeess//ddooccttoorr
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _D_o_c_t_o_r is a lisp-language version of the legendary ELIZA
      program of Joseph Weizenbaum.  This script "simulates" a
      Rogerian psychoanalyst.  Type in lower case, and when you
@@ -22,7 +22,7 @@ DESCRIPTION
      In order to run this you must have a Franz Lisp system in
      /usr/ucb/lisp.
 
-AUTHORS
+AAUUTTHHOORRSS
      Adapted for Lisp by Jon L White, moved to Franz by John
      Foderaro, from an original script by Joseph Weizenbaum.
 
@@ -60,7 +60,7 @@ AUTHORS
 
 
 
-Printed 2/16/100	  May 20, 1985				1
+Printed 9/10/24           May 20, 1985				1
 
 
 

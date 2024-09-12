@@ -5,41 +5,41 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-NAME
+NNAAMMEE
      syslog , vsyslog , openlog , closelog , setlogmask - control
      system log
 
-SYNOPSIS
-     #include <syslog.h>
-     #include <varargs.h>
+SSYYNNOOPPSSIISS
+     ##iinncclluuddee <<ssyysslloogg..hh>>
+     ##iinncclluuddee <<vvaarraarrggss..hh>>
 
-     void syslog(priority, message, ...);
-     int priority;
-     char *message;
+     vvooiidd ssyysslloogg((pprriioorriittyy,, mmeessssaaggee,, ......));;
+     iinntt pprriioorriittyy;;
+     cchhaarr **mmeessssaaggee;;
 
-     void vsyslog(priority, message, args);
-     int priority;
-     char *message;
-     va_list args;
+     vvooiidd vvssyysslloogg((pprriioorriittyy,, mmeessssaaggee,, aarrggss));;
+     iinntt pprriioorriittyy;;
+     cchhaarr **mmeessssaaggee;;
+     vvaa__lliisstt aarrggss;;
 
-     void openlog(ident, logopt, facility);
-     char *ident;
-     int logopt;
-     int facility;
+     vvooiidd ooppeennlloogg((iiddeenntt,, llooggoopptt,, ffaacciilliittyy));;
+     cchhaarr **iiddeenntt;;
+     iinntt llooggoopptt;;
+     iinntt ffaacciilliittyy;;
 
-     void closelog();
+     vvooiidd cclloosseelloogg(());;
 
-     int setlogmask(maskpri);
-     int maskpri;
+     iinntt sseettllooggmmaasskk((mmaasskkpprrii));;
+     iinntt mmaasskkpprrii;;
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _s_y_s_l_o_g() function writes _m_e_s_s_a_g_e to the system message
      logger.  The message is then written to the system console,
      log files, logged-in users, or forwarded to other machines
      as appropriate. (See _s_y_s_l_o_g_d(8)).
 
      The message is identical to a _p_r_i_n_t_f(3) format string,
-     except that %m is replaced by the current error message as
+     except that %%mm is replaced by the current error message as
      denoted by the global variable _e_r_r_n_o.  See _s_t_r_e_r_r_o_r(3)).  A
      trailing newline is added if none is present.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  April 1, 1995                         1
+Printed 9/10/24           April 1, 1995                         1
 
 
 
@@ -90,12 +90,12 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
      cessing of the messages sent by _s_y_s_l_o_g() and _v_s_y_s_l_o_g().  The
      parameter _i_d_e_n_t is a string that will be prepended to every
      message.  The _l_o_g_o_p_t argument is a bit field specifying log-
-     ging options, which is formed by OR'ing one or more of the
+     ging options, which is formed by OORR''iinngg one or more of the
      following values:
 
      LOG_CONS	    If _s_y_s_l_o_g cannot pass the message to _s_y_s_l_o_g_d
 		    it will attempt to write the message to the
-		    console (/dev/console).
+		    console (//ddeevv//ccoonnssoollee).
 
      LOG_NDELAY     Open the connection to _s_y_s_l_o_g_d immediately.
 		    Normally the open is delayed until the first
@@ -116,7 +116,7 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
      LOG_AUTH	    The authorization system: _l_o_g_i_n(1), _s_u(1),
 		    _g_e_t_t_y(8), etc.
 
-     LOG_AUTHPRIV   The same as LOG_AUTH , but logged to a file
+     LOG_AUTHPRIV   The same as LLOOGG__AAUUTTHH ,, but logged to a file
 		    readable only by selected individuals.
 
      LOG_CRON	    The clock daemon.
@@ -126,7 +126,7 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-Printed 2/16/100	  April 1, 1995                         2
+Printed 9/10/24           April 1, 1995                         2
 
 
 
@@ -158,7 +158,7 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
      LOG_UUCP	    The uucp system.
 
      LOG_LOCAL0     Reserved for local use.  Similarly for
-		    LOG_LOCAL1 through LOG_LOCAL7.
+		    LLOOGG__LLOOCCAALL11 through LLOOGG__LLOOCCAALL77.
 
      The _c_l_o_s_e_l_o_g function can be used to close the log file.
 
@@ -170,14 +170,14 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
      including _t_o_p_p_r_i is given by the macro _L_O_G__U_P_T_O(toppri).
      The default allows all priorities to be logged.
 
-RETURN VALUES
+RREETTUURRNN VVAALLUUEESS
      The routines _c_l_o_s_e_l_o_g(), _o_p_e_n_l_o_g(), _s_y_s_l_o_g() and _v_s_y_s_l_o_g()
      return no value.
 
      The routine _s_e_t_l_o_g_m_a_s_k() always returns the previous log
      mask level.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
 	     syslog(LOG_ALERT, "who: internal error 23");
 
 	     openlog("ftpd", LOG_PID, LOG_DAEMON);
@@ -186,13 +186,13 @@ EXAMPLES
 
 	     syslog(LOG_INFO|LOG_LOCAL2, "foobar error: %m");
 
-SEE ALSO
+SSEEEE AALLSSOO
      _l_o_g_g_e_r(_1), _s_y_s_l_o_g_d(_8)
 
 
 
 
-Printed 2/16/100	  April 1, 1995                         3
+Printed 9/10/24           April 1, 1995                         3
 
 
 
@@ -203,12 +203,12 @@ SYSLOG(3)	    UNIX Programmer's Manual		SYSLOG(3)
 
 
 
-BUGS
-     Under 2.11BSD the logfile /usr/adm/messages is used if a non
+BBUUGGSS
+     Under 2.11BSD the logfile //uussrr//aaddmm//mmeessssaaggeess is used if a non
      networking kernel has been booted.  That file must be publi-
      cally writeable in this case.
 
-HISTORY
+HHIISSTTOORRYY
      These functions appeared in 4.2BSD.
 
 
@@ -258,7 +258,7 @@ HISTORY
 
 
 
-Printed 2/16/100	  April 1, 1995                         4
+Printed 9/10/24           April 1, 1995                         4
 
 
 

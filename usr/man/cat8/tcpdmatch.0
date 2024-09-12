@@ -5,15 +5,15 @@ TCPDMATCH(8)	    UNIX Programmer's Manual	     TCPDMATCH(8)
 
 
 
-NAME
+NNAAMMEE
      tcpdmatch - tcp wrapper oracle
 
-SYNOPSYS
+SSYYNNOOPPSSYYSS
      tcpdmatch [-d] [-i inet_conf] daemon client
 
      tcpdmatch [-d] [-i inet_conf] daemon[@server] [user@]client
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _t_c_p_d_m_a_t_c_h predicts how the tcp wrapper would handle a
      specific request for service.  Examples are given below.
 
@@ -28,7 +28,7 @@ DESCRIPTION
      mat; this makes it easier for you to spot any discrepancies
      between what you want and what the program understands.
 
-ARGUMENTS
+AARRGGUUMMEENNTTSS
      The following two arguments are always required:
 
      daemon
@@ -60,7 +60,7 @@ ARGUMENTS
 
 
 
-Printed 2/16/100						1
+Printed 9/10/24                                                 1
 
 
 
@@ -71,7 +71,7 @@ TCPDMATCH(8)	    UNIX Programmer's Manual	     TCPDMATCH(8)
 
 
 
-OPTIONS
+OOPPTTIIOONNSS
      -d   Examine _h_o_s_t_s._a_l_l_o_w and _h_o_s_t_s._d_e_n_y files in the current
 	  directory instead of the default ones.
 
@@ -81,7 +81,7 @@ OPTIONS
 	  file, or when you suspect that the program uses the
 	  wrong one.
 
-EXAMPLES
+EEXXAAMMPPLLEESS
      To predict how _t_c_p_d would handle a telnet request from the
      local system:
 
@@ -100,20 +100,20 @@ EXAMPLES
      _t_c_p_d_m_a_t_c_h may need some help to locate the inetd configura-
      tion file.
 
-FILES
+FFIILLEESS
      The default locations of the _t_c_p_d access control tables are:
 
      /etc/hosts.allow
      /etc/hosts.deny
 
-SEE ALSO
+SSEEEE AALLSSOO
      tcpdchk(8), tcpd configuration checker
      hosts_access(5), format of the tcpd access control tables.
      hosts_options(5), format of the language extensions.
      inetd.conf(5), format of the inetd control file.
      tlid.conf(5), format of the tlid control file.
 
-AUTHORS
+AAUUTTHHOORRSS
      Wietse Venema (wietse@wzv.win.tue.nl),
      Department of Mathematics and Computing Science,
      Eindhoven University of Technology
@@ -126,7 +126,7 @@ AUTHORS
 
 
 
-Printed 2/16/100						2
+Printed 9/10/24                                                 2
 
 
 

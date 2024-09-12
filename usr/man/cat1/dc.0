@@ -5,13 +5,13 @@ DC(1)		    UNIX Programmer's Manual		    DC(1)
 
 
 
-NAME
+NNAAMMEE
      dc - desk calculator
 
-SYNOPSIS
-     dc [ file ]
+SSYYNNOOPPSSIISS
+     ddcc [ file ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _D_c is an arbitrary precision arithmetic package.  Ordinarily
      it operates on decimal integers, but one may specify an
      input base, output base, and a number of fractional digits
@@ -34,33 +34,33 @@ DESCRIPTION
 	   their place.  Any fractional part of an exponent is
 	   ignored.
 
-     s_x    The top of the stack is popped and stored into a
+     ss_x    The top of the stack is popped and stored into a
 	   register named _x, where _x may be any character.  If
-	   the s is capitalized, _x is treated as a stack and the
+	   the ss is capitalized, _x is treated as a stack and the
 	   value is pushed on it.
 
-     l_x    The value in register _x is pushed on the stack.  The
+     ll_x    The value in register _x is pushed on the stack.  The
 	   register _x is not altered.  All registers start with
-	   zero value.	If the l is capitalized, register _x is
+	   zero value.	If the ll is capitalized, register _x is
 	   treated as a stack and its top value is popped onto
 	   the main stack.
 
-     d	   The top value on the stack is duplicated.
+     dd	   The top value on the stack is duplicated.
 
-     p	   The top value on the stack is printed.  The top value
-	   remains unchanged.  P interprets the top of the stack
+     pp	   The top value on the stack is printed.  The top value
+	   remains unchanged.  PP interprets the top of the stack
 	   as an ascii string, removes it, and prints it.
 
-     f	   All values on the stack and in registers are printed.
+     ff	   All values on the stack and in registers are printed.
 
-     q	   exits the program.  If executing a string, the recur-
-	   sion level is popped by two.  If q is capitalized, the
+     qq	   exits the program.  If executing a string, the recur-
+	   sion level is popped by two.  If qq is capitalized, the
 	   top value on the stack is popped and the string execu-
 	   tion level is popped by that value.
 
 
 
-Printed 2/16/100	 April 29, 1985                         1
+Printed 9/10/24          April 29, 1985                         1
 
 
 
@@ -71,13 +71,13 @@ DC(1)		    UNIX Programmer's Manual		    DC(1)
 
 
 
-     x	   treats the top element of the stack as a character
+     xx	   treats the top element of the stack as a character
 	   string and executes it as a string of dc commands.
 
-     X	   replaces the number on the top of the stack with its
+     XX	   replaces the number on the top of the stack with its
 	   scale factor.
 
-     [ ... ]
+     [[ ...... ]]
 	   puts the bracketed ascii string onto the top of the
 	   stack.
 
@@ -86,47 +86,47 @@ DC(1)		    UNIX Programmer's Manual		    DC(1)
 	   pared.  Register _x is executed if they obey the stated
 	   relation.
 
-     v	   replaces the top element on the stack by its square
+     vv	   replaces the top element on the stack by its square
 	   root.  Any existing fractional part of the argument is
 	   taken into account, but otherwise the scale factor is
 	   ignored.
 
-     !	   interprets the rest of the line as a UNIX command.
+     !!	   interprets the rest of the line as a UNIX command.
 
-     c	   All values on the stack are popped.
+     cc	   All values on the stack are popped.
 
-     i	   The top value on the stack is popped and used as the
-	   number radix for further input.  I pushes the input
+     ii	   The top value on the stack is popped and used as the
+	   number radix for further input.  II pushes the input
 	   base on the top of the stack.
 
-     o	   The top value on the stack is popped and used as the
+     oo	   The top value on the stack is popped and used as the
 	   number radix for further output.
 
-     O	   pushes the output base on the top of the stack.
+     OO	   pushes the output base on the top of the stack.
 
-     k	   the top of the stack is popped, and that value is used
+     kk	   the top of the stack is popped, and that value is used
 	   as a non-negative scale factor: the appropriate number
 	   of places are printed on output, and maintained during
 	   multiplication, division, and exponentiation.  The
 	   interaction of scale factor, input base, and output
 	   base will be reasonable if all are changed together.
 
-     z	   The stack level is pushed onto the stack.
+     zz	   The stack level is pushed onto the stack.
 
-     Z	   replaces the number on the top of the stack with its
+     ZZ	   replaces the number on the top of the stack with its
 	   length.
 
-     ?	   A line of input is taken from the input source (usu-
+     ??	   A line of input is taken from the input source (usu-
 	   ally the terminal) and executed.
 
-     ; :   are used by _b_c for array operations.
+     ;; ::   are used by _b_c for array operations.
 
      An example which prints the first ten values of n! is
 
 
 
 
-Printed 2/16/100	 April 29, 1985                         2
+Printed 9/10/24          April 29, 1985                         2
 
 
 
@@ -141,12 +141,12 @@ DC(1)		    UNIX Programmer's Manual		    DC(1)
 	0sa1
 	lyx
 
-SEE ALSO
+SSEEEE AALLSSOO
      bc(1), which is a preprocessor for _d_c providing infix nota-
      tion and a C-like syntax which implements functions and rea-
      sonable control structures for programs.
 
-DIAGNOSTICS
+DDIIAAGGNNOOSSTTIICCSS
      `x is unimplemented' where x is an octal number.
      `stack empty' for not enough elements on the stack to do
      what was asked.
@@ -192,7 +192,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 April 29, 1985                         3
+Printed 9/10/24          April 29, 1985                         3
 
 
 

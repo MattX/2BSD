@@ -5,28 +5,28 @@ XP(4)		    UNIX Programmer's Manual		    XP(4)
 
 
 
-NAME
+NNAAMMEE
      xp - generic SMD moving-head disk
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NXPC	  _x_p__c_o_n_t_r_o_l_l_e_r_s # Number of controllers
-	  NXPD	  _x_p__d_r_i_v_e_s	 # RM02/03/05, RP04/05/06,
-				 # CDC 9766, Fuji 160, etc.
-	  BADSECT _N_O		 # Bad sector handling (see BUGS)
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNXXPPCC	  _x_p__c_o_n_t_r_o_l_l_e_r_s ## NNuummbbeerr ooff ccoonnttrroolllleerrss
+	  NNXXPPDD	  _x_p__d_r_i_v_e_s	 ## RRMM0022//0033//0055,, RRPP0044//0055//0066,,
+				 ## CCDDCC 99776666,, FFuujjii 116600,, eettcc..
+	  BBAADDSSEECCTT _N_O		 ## BBaadd sseeccttoorr hhaannddlliinngg ((sseeee BBUUGGSS))
 
-     /etc/dtab:
-	  #Name Unit# Addr   Vector Br Handler(s)      # Comments
-	  xp	?     176700 254    5  xpintr	       # xp driver
+     //eettcc//ddttaabb::
+	  ##NNaammee UUnniitt## AAddddrr   VVeeccttoorr BBrr HHaannddlleerr((ss))      ## CCoommmmeennttss
+	  xxpp	??     117766770000 225544    55  xxppiinnttrr	       ## xxpp ddrriivveerr
 
-     major device number(s):
-	  raw: 19
-	  block: 10
-     minor device encoding:
-	  bits 0007 specify partition of XP drive
-	  bits 0370 specify XP drive
+     mmaajjoorr ddeevviiccee nnuummbbeerr((ss))::
+	  rraaww:: 1199
+	  bblloocckk:: 1100
+     mmiinnoorr ddeevviiccee eennccooddiinngg::
+	  bbiittss 00000077 ssppeecciiffyy ppaarrttiittiioonn ooff XXPP ddrriivvee
+	  bbiittss 00337700 ssppeecciiffyy XXPP ddrriivvee
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      The _x_p driver is a generic SMD storage module disk driver.
      It can be adapted to most SMD controllers although
      bootstrapping will not necessarily be directly possible.
@@ -39,7 +39,7 @@ DESCRIPTION
      0 thru 7 on controller 1, 8 thru 15 on controller 2 and so
      on.  _x_p on the other hand can have drives 0 and 1 on con-
      troller 1, drives 2, 3, 4 and 5 on controller 2 and drives
-     6, 7 and 8 on controller 3.  This is different from boot's
+     6, 7 and 8 on controller 3.  This is different from bboooott's
      view of the world, so if you are booting from other than
      unit 0 you may have to experiment a bit.
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	 August 14, 1995			1
+Printed 9/10/24          August 14, 1995			1
 
 
 
@@ -79,7 +79,7 @@ XP(4)		    UNIX Programmer's Manual		    XP(4)
      tor).  Likewise _l_s_e_e_k calls should specify a multiple of 512
      bytes.
 
-DISK SUPPORT
+DDIISSKK SSUUPPPPOORRTT
      Disks must be labeled using either the standalone _d_i_s_k_l_a_b_e_l
      program on the boot tape or with the _d_i_s_k_l_a_b_e_l(8) program.
      The kernel no longer attempts to determine the drive type
@@ -94,18 +94,18 @@ DISK SUPPORT
      partition as a swap area, and the xp?c partition for pack-
      pack copying (it maps the entire disk).
 
-FILES
+FFIILLEESS
      /dev/xp[0-7][a-h]	 block files
      /dev/rxp[0-7][a-h]  raw files
      /dev/MAKEDEV	 script to create special files
      /dev/MAKEDEV.local  script to localize special files
 
-SEE ALSO
+SSEEEE AALLSSOO
      hk(4), ra(4), ram(4), rk(4), rl(4), rp(4), rx(4), si(4),
      dtab(5), autoconfig(8), newfs(8)
 
-DIAGNOSTICS
-     xp%d%c: hard error sn%d cs2=%b er1=%b.  An unrecoverable
+DDIIAAGGNNOOSSTTIICCSS
+     xxpp%%dd%%cc:: hhaarrdd eerrrroorr ssnn%%dd ccss22==%%bb eerr11==%%bb.  An unrecoverable
      error occurred during transfer of the specified sector of
      the specified disk partition.  The contents of the two error
      registers are also printed in octal and symbolically with
@@ -113,11 +113,11 @@ DIAGNOSTICS
      large number of retry attempts (including offset positioning
      and drive recalibration) could not recover the error.
 
-     xp%d: write locked.  The write protect switch was set on the
+     xxpp%%dd:: wwrriittee lloocckkeedd.  The write protect switch was set on the
      drive when a write was attempted.	The write operation is
      not recoverable.
 
-     xp%d%c: soft ecc sn%d.  A recoverable ECC error occurred on
+     xxpp%%dd%%cc:: ssoofftt eecccc ssnn%%dd.  A recoverable ECC error occurred on
      the specified sector of the specified disk partition.  This
      happens normally a few times a week.  If it happens more
      frequently than this the sectors where the errors are occur-
@@ -126,7 +126,7 @@ DIAGNOSTICS
 
 
 
-Printed 2/16/100	 August 14, 1995			2
+Printed 9/10/24          August 14, 1995			2
 
 
 
@@ -139,10 +139,10 @@ XP(4)		    UNIX Programmer's Manual		    XP(4)
 
      indicated.
 
-     xp%d: unknown device type 0%o.  The number in the drive's
+     xxpp%%dd:: uunnkknnoowwnn ddeevviiccee ttyyppee 00%%oo.  The number in the drive's
      drive type register is unknown to the xp driver.
 
-BUGS
+BBUUGGSS
      In raw I/O _r_e_a_d and _w_r_i_t_e(2) truncate file offsets to 512-
      byte block boundaries, and _w_r_i_t_e scribbles on the tail of
      incomplete blocks.  Thus, in programs that are likely to
@@ -192,7 +192,7 @@ BUGS
 
 
 
-Printed 2/16/100	 August 14, 1995			3
+Printed 9/10/24          August 14, 1995			3
 
 
 

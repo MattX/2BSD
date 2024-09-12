@@ -5,10 +5,10 @@ SYSERRLST(5)	    UNIX Programmer's Manual	     SYSERRLST(5)
 
 
 
-NAME
+NNAAMMEE
      syserrlst - error message file format
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _m_k_e_r_r_l_s_t(1), creates error message files in the format
      described below.
 
@@ -17,7 +17,7 @@ DESCRIPTION
      and the array of message strings separated by newlines.
 
      The message strings are separated by newlines but the new-
-     line characters are not included in the size of the message.
+     line characters are nnoott included in the size of the message.
      These newline characters serve only to make the file edit-
      able or printable (after stripping off the header).
 
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  March 7, 1996                         1
+Printed 9/10/24           March 7, 1996                         1
 
 
 
@@ -71,14 +71,14 @@ SYSERRLST(5)	    UNIX Programmer's Manual	     SYSERRLST(5)
 
 
 
-SEE ALSO
+SSEEEE AALLSSOO
      mkerrlst(1), syserrlst(3)
 
-BUGS
+BBUUGGSS
      Format of the file isn't necessarily portable between
      machines.
 
-HISTORY
+HHIISSTTOORRYY
      This file format is new with 2.11BSD.
 
 
@@ -126,7 +126,7 @@ HISTORY
 
 
 
-Printed 2/16/100	  March 7, 1996                         2
+Printed 9/10/24           March 7, 1996                         2
 
 
 

@@ -5,13 +5,13 @@ SU(1)		    UNIX Programmer's Manual		    SU(1)
 
 
 
-NAME
+NNAAMMEE
      su - substitute user id temporarily
 
-SYNOPSIS
-     su [ -f ] [ - ] [ userid ]
+SSYYNNOOPPSSIISS
+     ssuu [ -f ] [ - ] [ userid ]
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _S_u demands the password of the specified _u_s_e_r_i_d, and if it
      is given, changes to that _u_s_e_r_i_d and invokes the Shell _s_h(1)
      or _c_s_h(1) without changing the current directory.	The user
@@ -26,12 +26,12 @@ DESCRIPTION
      responsibilities, the Shell substitutes `#' for its usual
      prompt.
 
-     The -f option prevents _c_s_h(1) from executing the .cshrc
+     The --ff option prevents _c_s_h(1) from executing the .cshrc
      file; thus making _s_u start up faster.
 
-     The - option simulates a full login.
+     The -- option simulates a full login.
 
-SEE ALSO
+SSEEEE AALLSSOO
      sh(1), csh(1)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	   May 5, 1986				1
+Printed 9/10/24            May 5, 1986				1
 
 
 

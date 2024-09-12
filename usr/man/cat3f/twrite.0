@@ -5,39 +5,39 @@ TOPEN(3F)	    UNIX Programmer's Manual		TOPEN(3F)
 
 
 
-NAME
+NNAAMMEE
      topen, tclose, tread, twrite, trewin, tskipf, tstate - f77
      tape I/O
 
-SYNOPSIS
-     integer function topen (tlu, devnam, label)
-     integer tlu
-     character*(*) devnam
-     logical label
+SSYYNNOOPPSSIISS
+     iinntteeggeerr ffuunnccttiioonn ttooppeenn (tlu, devnam, label)
+     iinntteeggeerr tlu
+     cchhaarraacctteerr**((**)) devnam
+     llooggiiccaall label
 
-     integer function tclose (tlu)
-     integer tlu
+     iinntteeggeerr ffuunnccttiioonn ttcclloossee (tlu)
+     iinntteeggeerr tlu
 
-     integer function tread (tlu, buffer)
-     integer tlu
-     character*(*) buffer
+     iinntteeggeerr ffuunnccttiioonn ttrreeaadd (tlu, buffer)
+     iinntteeggeerr tlu
+     cchhaarraacctteerr**((**)) buffer
 
-     integer function twrite (tlu, buffer)
-     integer tlu
-     character*(*) buffer
+     iinntteeggeerr ffuunnccttiioonn ttwwrriittee (tlu, buffer)
+     iinntteeggeerr tlu
+     cchhaarraacctteerr**((**)) buffer
 
-     integer function trewin (tlu)
-     integer tlu
+     iinntteeggeerr ffuunnccttiioonn ttrreewwiinn (tlu)
+     iinntteeggeerr tlu
 
-     integer function tskipf (tlu, nfiles, nrecs)
-     integer tlu, nfiles, nrecs
+     iinntteeggeerr ffuunnccttiioonn ttsskkiippff (tlu, nfiles, nrecs)
+     iinntteeggeerr tlu, nfiles, nrecs
 
-     integer function tstate (tlu, fileno, recno, errf, eoff,
+     iinntteeggeerr ffuunnccttiioonn ttssttaattee (tlu, fileno, recno, errf, eoff,
      eotf, tcsr)
-     integer tlu, fileno, recno, tcsr
-     logical errf, eoff, eotf
+     iinntteeggeerr tlu, fileno, recno, tcsr
+     llooggiiccaall errf, eoff, eotf
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      These functions provide a simple interface between f77 and
      magnetic tape devices.  A ``tape logical unit'', _t_l_u, is
      ``topen''ed in much the same way as a normal f77 logical
@@ -60,7 +60,7 @@ DESCRIPTION
 
 
 
-Printed 2/16/100	  May 15, 1985				1
+Printed 9/10/24           May 15, 1985				1
 
 
 
@@ -72,7 +72,7 @@ TOPEN(3F)	    UNIX Programmer's Manual		TOPEN(3F)
 
 
      _T_r_e_a_d reads the next physical record from tape to _b_u_f_f_e_r.
-     _B_u_f_f_e_r must be of type character.	The size of _b_u_f_f_e_r should
+     _B_u_f_f_e_r mmuusstt be of type cchhaarraacctteerr.	The size of _b_u_f_f_e_r should
      be large enough to hold the largest physical record to be
      read.  The actual number of bytes read will be returned as
      the value of the function.  If the value is 0, the end-of-
@@ -81,7 +81,7 @@ TOPEN(3F)	    UNIX Programmer's Manual		TOPEN(3F)
 
      _T_w_r_i_t_e writes a physical record to tape from _b_u_f_f_e_r.  The
      physical record length will be the size of _b_u_f_f_e_r.  _B_u_f_f_e_r
-     must be of type character.  The number of bytes written will
+     mmuusstt be of type cchhaarraacctteerr.  The number of bytes written will
      be returned.  A value of 0 or negative indicates an error.
 
      _T_r_e_w_i_n rewinds the tape associated with _t_l_u to the beginning
@@ -109,10 +109,10 @@ TOPEN(3F)	    UNIX Programmer's Manual		TOPEN(3F)
      write.  The value of _t_c_s_r will reflect the tape drive con-
      trol status register.  See _h_t(4) for details.
 
-FILES
+FFIILLEESS
      /usr/lib/libU77.a
 
-SEE ALSO
+SSEEEE AALLSSOO
      ht(4), perror(3F), rewind(1)
 
 
@@ -126,7 +126,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	  May 15, 1985				2
+Printed 9/10/24           May 15, 1985				2
 
 
 

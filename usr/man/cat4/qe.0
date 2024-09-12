@@ -5,19 +5,19 @@ QE(4)		    UNIX Programmer's Manual		    QE(4)
 
 
 
-NAME
+NNAAMMEE
      qe - DEC DEQNA Q-bus 10 Mb/s Ethernet interface
 
-SYNOPSIS
-     /sys/conf/SYSTEM:
-	  NQE  _q_e__c_o_n_t_r_o_l_l_e_r_s # DEQNA
+SSYYNNOOPPSSIISS
+     //ssyyss//ccoonnff//SSYYSSTTEEMM::
+	  NNQQEE  _q_e__c_o_n_t_r_o_l_l_e_r_s ## DDEEQQNNAA
 
-DESCRIPTION
-     The qe interface provides access to a 10 Mb/s Ethernet net-
+DDEESSCCRRIIPPTTIIOONN
+     The qqee interface provides access to a 10 Mb/s Ethernet net-
      work through the DEC DEQNA Q-bus controller.
 
      Each of the host's network addresses is specified at boot
-     time with an SIOCSIFADDR ioctl.  The qe interface employs
+     time with an SIOCSIFADDR ioctl.  The qqee interface employs
      the address resolution protocol described in arp(4P) to map
      dynamically  between Internet and Ethernet addresses on the
      local network.
@@ -28,8 +28,8 @@ DESCRIPTION
      disabled, on a per-interface basis, by setting the
      IFF_NOTRAILERS flag with an SIOCSIFFLAGS ioctl.
 
-DIAGNOSTICS
-SEE ALSO
+DDIIAAGGNNOOSSTTIICCSS
+SSEEEE AALLSSOO
      inet(4F), intro(4N), arp(4P)
 
 
@@ -60,7 +60,7 @@ SEE ALSO
 
 
 
-Printed 2/16/100	 August 20, 1987			1
+Printed 9/10/24          August 20, 1987			1
 
 
 

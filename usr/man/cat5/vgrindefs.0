@@ -5,20 +5,20 @@ VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
 
 
 
-NAME
+NNAAMMEE
      vgrindefs - vgrind's language definition data base
 
-SYNOPSIS
-     /usr/share/misc/vgrindefs
+SSYYNNOOPPSSIISS
+     //uussrr//sshhaarree//mmiisscc//vvggrriinnddeeffss
 
-DESCRIPTION
+DDEESSCCRRIIPPTTIIOONN
      _V_g_r_i_n_d_e_f_s contains all language definitions for vgrind.  The
      data base is very similar to _t_e_r_m_c_a_p(5).
 
-FIELDS
+FFIIEELLDDSS
      The following table names and describes each field.
 
-     Name   Type  Description
+     NNaammee   TTyyppee  DDeessccrriippttiioonn
      pb     str   regular expression for start of a procedure
      bb     str   regular expression for start of a lexical block
      be     str   regular expression for the end of a lexical block
@@ -33,7 +33,7 @@ FIELDS
      oc     bool  present means upper and lower case are equivalent
      kw     str   a list of keywords separated by spaces
 
-     Example
+     EExxaammppllee
 
      The following entry, which describes the C language, is typ-
      ical of a language entry.
@@ -60,7 +60,7 @@ FIELDS
 
 
 
-Printed 2/16/100	October 22, 1996			1
+Printed 9/10/24         October 22, 1996			1
 
 
 
@@ -71,7 +71,7 @@ VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
 
 
 
-     REGULAR EXPRESSIONS
+     RREEGGUULLAARR EEXXPPRREESSSSIIOONNSS
 
      _V_g_r_i_n_d_e_f_s uses regular expression which are very similar to
      those of _e_x(1) and _l_e_x(1).  The characters `^', `$', `:' and
@@ -108,25 +108,25 @@ VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
      "(tramp|steamer)flies?" would match "tramp", "steamer",
      "trampflies", or "steamerflies".
 
-     KEYWORD LIST
+     KKEEYYWWOORRDD LLIISSTT
 
      The keyword list is just a list of keywords in the language
      separated by spaces.  If the "oc" boolean is specified,
      indicating that upper and lower case are equivalent, then
      all the keywords should be specified in lower case.
 
-FILES
+FFIILLEESS
      /usr/share/misc/vgrindefs	   file containing terminal
      descriptions
 
-SEE ALSO
+SSEEEE AALLSSOO
      vgrind(1), troff(1)
 
 
 
 
 
-Printed 2/16/100	October 22, 1996			2
+Printed 9/10/24         October 22, 1996			2
 
 
 
@@ -137,10 +137,10 @@ VGRINDEFS(5)	    UNIX Programmer's Manual	     VGRINDEFS(5)
 
 
 
-AUTHOR
+AAUUTTHHOORR
      Dave Presotto
 
-BUGS
+BBUUGGSS
 
 
 
@@ -189,7 +189,7 @@ BUGS
 
 
 
-Printed 2/16/100	October 22, 1996			3
+Printed 9/10/24         October 22, 1996			3
 
 
 
