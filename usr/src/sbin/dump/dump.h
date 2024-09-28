@@ -1,5 +1,5 @@
 /*
- * "@(#)dump.h	1.2 (2.11BSD GTE) 12/6/94"
+ * "@(#)dump.h	1.3 (2.11BSD) 2024/9/18"
  */
 #define	NI	4	/* number of blocks of inodes per read */
 
