@@ -20,7 +20,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980, 1987, 1988 The Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)login.c	5.42 (2.11BSD) 2025/3/21";
+static char sccsid[] = "@(#)login.c	5.43 (2.11BSD) 2025/3/26";
 #endif
 
 /*
@@ -84,9 +84,11 @@ struct	sgttyb sgttyb;
 struct  sgttyb tmode = {
 	0, 0, CERASE, CKILL, 0
 };
+
 struct	tchars tc = {
 	CINTR, CQUIT, CSTART, CSTOP, CEOT, CBRK
 };
+
 struct	ltchars ltc = {
 	CSUSP, CDSUSP, CRPRNT, CFLUSH, CWERASE, CLNEXT
 };
@@ -125,7 +127,7 @@ main(argc, argv)
 
 	/*
 	 * -p is used by getty to tell login not to destroy the environment
- 	 * -f is used to skip a second login authentication 
+ 	 * -f is used to skip a second login authentication
 	 * -h is used by other servers to pass the name of the remote
 	 *    host to login so that it may be placed in utmp and wtmp
 	 */
@@ -184,15 +186,14 @@ main(argc, argv)
 	sgttyb.sg_kill = CKILL;
 
 	allflags = setflags(2);
-	tmode.sg_flags = allflags & 0xffff;
-	if (NL) tmode.sg_flags |= CRMOD;
-	ioctl(0, TIOCSETP, &tmode);
+	sgttyb.sg_flags = allflags & 0xffff;
+	if (NL) sgttyb.sg_flags |= CRMOD;
 	someflags = allflags >> 16;
-	ioctl(0, TIOCLSET, &someflags);
 
 	(void)ioctl(0, TIOCSLTC, &ltc);
 	(void)ioctl(0, TIOCSETC, &tc);
 	(void)ioctl(0, TIOCSETP, &sgttyb);
+	(void)ioctl(0, TIOCLSET, &someflags);
 
 	for (cnt = getdtablesize(); cnt > 2; cnt--)
 		close(cnt);

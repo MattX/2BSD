@@ -642,7 +642,7 @@ onsusp()
 	kill(0, SIGTSTP);
 	signal(SIGTSTP, onsusp);
 	if (!mailing)
-		longjmp(tstpbuf);
+		longjmp(tstpbuf,0);
 }
 
 linecnt(f)

@@ -753,7 +753,7 @@ exprline(void)
 	struct symtab *nl;
 	int oCflag = Cflag;
 	usch *dp;
-	register int c, d, ifdef;
+	register int c, d, ifdef, i, clrb;
 
 	rb = getobuf(BNORMAL);
 	nbufused--;
@@ -806,6 +806,18 @@ xloop:		if (c == '\n')
 	rb->buf[rb->cptr] = 0;
 	unch('\n');
 	yyinp = rb->buf;
+	if (oCflag)
+	    for (i = clrb = 0; i < rb->cptr; i++) {
+		if (rb->buf[i] == '/' && rb->buf[i+1] == '*')
+			clrb = 1;
+		if (rb->buf[i] == '*' && rb->buf[i+1] == '/') {
+			rb->buf[i] = ' ';
+			rb->buf[i+1] = ' ';
+			clrb = 0;
+		}
+		if (clrb)
+			rb->buf[i] = ' ';
+	}
 	c = yyparse();
 	bufree(rb);
 	nbufused++;

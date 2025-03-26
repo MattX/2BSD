@@ -5,9 +5,6 @@
  * specifies the terms and conditions for redistribution.
  */
 .
-/Msccsid/c
-static char Msccsid[] = "@(#)Mesgfix	5.2 (Berkeley) 1/8/86";
-.
 /Last update/!date
 mark a
 g/Sun /s//Sunday, /

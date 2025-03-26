@@ -1784,5 +1784,5 @@ onsusp ()
     signal (SIGTSTP, onsusp);
     set_tty ();
     if (inwait)
-	    longjmp (restore);
+	    longjmp (restore,0);
 }

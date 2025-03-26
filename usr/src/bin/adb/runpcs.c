@@ -52,12 +52,29 @@ runpcs(runmode, execsig)
 #ifdef DEBUG
 		printf("\ncontinue %d %d\n",userpc,execsig);
 #endif
-		stty(0,&usrtty);
-		ptrace(runmode,pid,userpc,execsig);
-		bpwait(); chkerr(); readregs();
+		/* If we're at a breakpoint, execute that using execbkpt */
+		if (bkpt=scanbkpt(userpc == 1 ? uar0[PC] : userpc)) {
+			execbkpt(bkpt);
+			userpc = 1;
+		}
+		/*
+		** If we're single stepping and already executed the
+		** instruction at the breakpoint, don't do another one
+		*/
+		if (signo == 0 && (!bkpt || runmode != PT_STEP)) {
+			stty(0,&usrtty);
+			ptrace(runmode,pid,userpc,execsig);
+			bpwait(); chkerr();
+		}
+		readregs();
 
-		/*look for bkpt*/
-		IF signo==0 ANDF (bkpt=scanbkpt(uar0[PC]-2))
+		/*
+		** look for bkpt
+		** in step mode we would have actually hit the breakpoint,
+		** not stepped through it, so look at PC instead of PC-2
+		*/
+		IF signo==0 ANDF 
+			(bkpt=scanbkpt(uar0[PC]- (runmode == PT_STEP ? 0:2)))
 		THEN /*stopped at bkpt*/
 		     userpc=uar0[PC]=bkpt->loc;
 		     IF bkpt->flag==BKPTEXEC

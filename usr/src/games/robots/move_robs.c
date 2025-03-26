@@ -81,7 +81,7 @@ bool	was_sig;
 	if (was_sig) {
 		refresh();
 		if (Dead || Num_robots <= 0)
-			longjmp(End_move);
+			longjmp(End_move,0);
 	}
 
 # ifdef DEBUG
