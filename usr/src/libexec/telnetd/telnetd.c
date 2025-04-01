@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)telnetd.c	5.21 (2.11BSD) 2025/3/5";
+static char sccsid[] = "@(#)telnetd.c	5.22 (2.11BSD) 2025/3/29";
 #endif
 
 /*
@@ -363,6 +363,9 @@ gotpty:
 		if (strncmp(environ[i], "INET=", 5) == 0) continue;
 		if (strncmp(environ[i], "PATH=", 5) == 0) continue;
 		env[j++] = environ[i];
+	}
+	if (*terminaltype) {
+		TT = terminaltype;
 	}
 	makeenv(&env[j], terminaltype);
 

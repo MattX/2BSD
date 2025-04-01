@@ -5,8 +5,8 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)ruserpass.c	5.2.1 (2.11BSD) 1996/11/16";
-#endif LIBC_SCCS and not lint
+static char sccsid[] = "@(#)ruserpass.c	5.2.2 (2.11BSD) 2025/3/26";
+#endif
 
 #include <stdio.h>
 #include <utmp.h>
@@ -18,8 +18,8 @@ static char sccsid[] = "@(#)ruserpass.c	5.2.1 (2.11BSD) 1996/11/16";
 #include <unistd.h>
 #include <stdlib.h>
 
-char	*renvlook();
-struct	utmp *getutmp();
+static char *renvlook();
+static struct utmp *getutmp();
 static	FILE *cfile;
 
 ruserpass(host, aname, apass)
@@ -54,7 +54,7 @@ renv(host, aname, apass)
 	char *host, **aname, **apass;
 {
 	register char *cp;
-	char *stemp, fgetlogin, *comma;
+	register char *comma;
 
 	cp = renvlook(host);
 	if (cp == NULL)

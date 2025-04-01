@@ -25,6 +25,7 @@
  *               Added %cpu time to header.
  * 07 26/8/2022  Truncate hostname by first period or 7 char.     bqt
  * 08 20/9/2024  Change /vmunix to /unix                          sms
+ * 09 28/3/2025  Exit gracefully when out of memory               martin
  */
 /*
  * Using RAW removes the need for signal processing, but adds a requirement
@@ -164,6 +165,16 @@ int	onoff;
 		noecho();
 	}
 	return(0);
+}
+
+/*
+ * Exit gracefully when out of memory
+ */
+LOCAL int oom_reset_exit(int status)
+{
+	resetty();
+	printf("This error may occur if the window size is too large.\n");
+	exit(status);
 }
 
 /*
@@ -701,7 +712,7 @@ unsigned long *freeswap;
 		{
 			perror("SWAPMAP");
 			printf("\r\n");
-			exit(1);
+			oom_reset_exit(1);
 		}
 		memset(swapmap, 0, smsz);
 	}
@@ -1098,7 +1109,7 @@ do_top()
 	if((proctab = (struct proc *)malloc(ptsz))==NULL)
 	{
 		fprintf(stderr, "top: not enough memory for proc table\r\n");
-		exit(1);
+		oom_reset_exit(1);
 	}
 	/*
 	 * allocate an array to user struct information
@@ -1106,7 +1117,7 @@ do_top()
 	if((userdata=(struct udata_s *)calloc(nproc, sizeof(struct udata_s)))==NULL)
 	{
 		fprintf(stderr, "top: can't allocate %d bytes for saving info\r\n", nproc*sizeof(struct udata_s));
-		exit(1);
+		oom_reset_exit(1);
 	}
 	/*
 	 * allocate an indirection table for efficient sorting
@@ -1114,7 +1125,7 @@ do_top()
 	if( (procidx = (int *) malloc(nproc*sizeof(short))) == NULL)
 	{
 		fprintf(stderr, "top: cant allocate index table\r\n");
-		return(1);
+		oom_reset_exit(1);
 	}
 	if((npr = update()) < 0)
 		return(1);

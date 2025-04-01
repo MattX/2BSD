@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)rcmd.c	5.21 (2.11BSD) 2025/3/22";
+static char sccsid[] = "@(#)rcmd.c	5.22 (2.11BSD) 2025/3/26";
 #endif
 
 #include <stdio.h>
@@ -42,7 +42,7 @@ rcmd(ahost, rport, locuser, remuser, cmd, fd2p)
 {
 	int s, timo = 1, pid;
 	sigset_t oldmask, nmask;
-	struct sockaddr_in sin, sin2, from;
+	struct sockaddr_in sin, from;
 	char c;
 	int lport = IPPORT_RESERVED - 1;
 	struct hostent *hp;

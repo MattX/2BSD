@@ -1,4 +1,4 @@
-/* $Header: warp.h,v 7.0.1.3 95/21/1 17:08:42 lwall Exp $ */
+/* @(#)warp.h    1.0 (2.11BSD) 2025/3/31
 
 /* $Log:	warp.h,v $
  * Revision 7.0.1.3 95/21/1 18:40:00 sms
@@ -47,13 +47,7 @@ extern int errno;
 #define WARPMACRO "%X/Kbmap.%{TERM}"
 
 /* warp library */
-#ifndef WARPLIB		/* ~ and %l only ("~%l" is permissable) */
-#   ifdef PRIVLIB
-#	define WARPLIB PRIVLIB
-#   else
-#	define WARPLIB "/usr/games/warp"
-#   endif
-#endif
+#define WARPLIB "/usr/games/lib/warp"
 
 EXT char *warplib;
 
