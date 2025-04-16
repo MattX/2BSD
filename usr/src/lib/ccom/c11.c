@@ -1,6 +1,10 @@
 /*
- *  C compiler
+ *  C compiler, part 2
  */
+
+#if     !defined(lint) && defined(DOSCCS)
+static  char    sccsid[] = "@(#)c11.c   2.2 (2.11BSD) 2025/4/16";
+#endif
 
 #include "c1.h"
 
@@ -830,9 +834,10 @@ getree()
 	char s[80];		/* big for asm() stuff & long variable names */
 	struct swtab *swp;
 	long outloc;
-	int lbl, cond, lbl2, lbl3;
+	int lbl, cond, lbl2, lbl3, gotrsh;
 	double atof();
 
+	gotrsh = 0;
 	curbase = funcbase;
 	sp = expstack;
 	for (;;) {
@@ -980,9 +985,14 @@ getree()
 			outloc = ftell(stdout);
 		if (op==CBRANCH)
 			cbranch(tp, lbl, cond, 0);
-		else if (op==EXPR)
+		else if (op==EXPR) {
+			int onreg = nreg;
+			if (gotrsh)
+				nreg = 2;
 			rcexpr(tp, efftab, 0);
-		else {
+			nreg = onreg;
+			gotrsh = 0;
+		} else {
 			if (tp->t.type==LONG || tp->t.type==UNLONG) {
 				rcexpr(tnode(RFORCE, tp->t.type, tp, TNULL), efftab, 0);
 				printf("ashc	$0,r0\n");
@@ -1100,7 +1110,12 @@ getree()
 				exit(1);
 			}
 			tp = *--sp;
-			*sp++ = tnode(op, geti(), *--sp, tp);
+			--sp;
+			*sp = tnode(op, geti(), *sp, tp);
+			if ((*sp)->t.type == UNLONG &&
+			    (op == ASRSH || op == RSHIFT))
+				gotrsh = 1;
+			sp++;
 		} else
 			sp[-1] = tnode(op, geti(), sp[-1], TNULL);
 		break;

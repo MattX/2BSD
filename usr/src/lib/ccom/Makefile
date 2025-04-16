@@ -2,9 +2,6 @@ CFLAGS = -O
 LDC0FLAGS= -i
 LDC1FLAGS= -n
 
-DESTDIR =
-LIB=/lib
-
 all: c0 c1 cvopt
 c0: c00.o c01.o c02.o c03.o c04.o c05.o ansi.o
 	${CC} ${LDC0FLAGS} ${CFLAGS} -o c0 c00.o c01.o c02.o c03.o c04.o \
@@ -28,14 +25,14 @@ cvopt:	cvopt.c
 	${CC} ${CFLAGS} -o cvopt cvopt.c
 
 install: c0 c1
-	-mv ${DESTDIR}${LIB}/c0 ${DESTDIR}${LIB}/oc0
-	-mv ${DESTDIR}${LIB}/c1 ${DESTDIR}${LIB}/oc1
-	install -s c0 ${DESTDIR}${LIB}/c0
-	install -s c1 ${DESTDIR}${LIB}/c1
+	-mv /lib/c0 /lib/oc0
+	-mv /lib/c1 /lib/oc1
+	install -s -m 755 -o root -g wheel c0 /lib/c0
+	install -s -m 755 -o root -g wheel c1 /lib/c1
 
 restore:
-	mv ${DESTDIR}${LIB}/oc0 ${DESTDIR}${LIB}/c0
-	mv ${DESTDIR}${LIB}/oc1 ${DESTDIR}${LIB}/c1
+	mv /lib/oc0 /lib/c0
+	mv /lib/oc1 /lib/c1
 
 lint:
 	lint -haxc -I. c0?.c > lint.c0
