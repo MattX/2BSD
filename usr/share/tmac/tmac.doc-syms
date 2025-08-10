@@ -29,9 +29,10 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)doc-syms	8.1 (Berkeley) 6/8/93
+.\"     @(#)doc-syms	8.2 (2.11BSD) 2025/8/10
 .\"
-.\" This version has had comments stripped; an unstripped version is available.
+.\"     %beginstrip%
+.\" NS Ux macro - UNIX
 .de Ux
 .nr cF \\n(.f
 .nr cZ \\n(.s
@@ -50,11 +51,13 @@
 .\}
 .el .aZ
 ..
+.\" NS Bx macro -BSD (fix smaller nroff version)
 .de Bx
 .nr cF \\n(.f
 .nr cZ \\n(.s
 .ds aa \&\f\\n(cF\s\\n(cZ
 .if \\n(aC==0 \{\
+.\" .       ie \\n(.$==0 \&\\*(tNBSD\\*(aa \\*(tNUNIX\\*(aa
 .       ie \\n(.$==0 \&\\*(tNBSD\\*(aa
 .       el .aV \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8 \\$9
 .\}
@@ -113,9 +116,11 @@
 .	\}
 .\}
 ..
+.\" Ns Ud macro - prints "currently under development" (HISTORY section)
 .de Ud
 \&currently under development.
 ..
+.\" Ns At macro - AT&T UNIX (this macro does not handle punctuation)
 .de At
 .nr cF \\n(.f
 .nr cZ \\n(.s
@@ -140,15 +145,18 @@
 \&\\*(tNAT&T UNIX\\*(aa
 .\}
 ..
+.\" The Bt macro should go away now
+.\" Ns Bt macro - prints "is currently in beta test." (HISTORY section)
 .de Bt
 \&is currently in beta test.
 ..
+.\" NS St macro - standards (posix, ansi - formal standard names)
 .ds Px \\*(tNPOSIX
 .ds Ai \\*(tNANSI
 .de St
 .if \\n(aC==0 \{\
 .	ie \\n(.$==0 \{\
-.tm Usage: .St [-p1003.1-88 | -p1003.2 | -ansiC-89 | -iso ] \\*(Pu ... (#\\n(.c)
+.tm Usage: .St [-p1003.1-88 | -p1003.2 | -ansiC-89 | -isoC | -isoC-99 ] \\*(Pu ... (#\\n(.c)
 .	\}
 .	el \{\
 .		ds mN St
@@ -211,12 +219,34 @@
 .			as b1 (``\\*(tNANSI C \\*(aa'')
 .		\}
 .       \}
+.       if "\\*(A\\n(aP"-isoC" \{\
+.		ie \\n(sT==1 \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1990\\*(sV
+.			as b1 (``\\*(tNISO C90\\*(aa'')
+.		\}
+.		el \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1990\\*(sV
+.			as b1 (``\\*(tNISO C90\\*(aa'')
+.		\}
+.       \}
+.       if "\\*(A\\n(aP"-isoC-99" \{\
+.		ie \\n(sT==1 \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1999\\*(sV
+.			as b1 (``\\*(tNISO C99\\*(aa'')
+.		\}
+.		el \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1999\\*(sV
+.			as b1 (``\\*(tNISO C99\\*(aa'')
+.		\}
+.       \}
 .       if "\\*(A\\n(aP"-iso8802-3" \{\
 .		ie \\n(sT==1 \{\
 .			ds b1 \&\\*(tNISO \\*(aa8802-3: 1989\\*(sV
+.\" .			as b1 (``\\*(tNANSI C\\*(aa'')
 .		\}
 .		el \{\
 .			ds b1 \&\\*(tNISO \\*(aa8802-3: 1989\\*(sV
+.\" .			as b1 (``\\*(tNANSI C\\*(aa'')
 .		\}
 .       \}
 .	ie \\n(aC>\\n(aP \{\

@@ -1,6 +1,6 @@
-.\"	@(#)printf.3s	6.5.1 (2.11BSD) 1995/04/02
+.\"	@(#)printf.3s	6.5.2 (2.11BSD) 2025/04/24
 .\"
-.TH PRINTF 3S "August 10, 1988"
+.TH PRINTF 3S "April 24, 2025"
 .AT 3
 .SH NAME
 printf, fprintf, sprintf, vfprintf, vsprintf \- formatted output conversion
@@ -14,7 +14,7 @@ arg ] ...
 .br
 .B char *format;
 .PP
-.B char *fprintf(stream, format
+.B int fprintf(stream, format
 .RB [ ,
 arg ] ...
 .B )
@@ -34,13 +34,13 @@ arg ] ...
 .PP
 .B #include <varargs.h>
 .br
-.B char *vprintf(format, args)
+.B int vprintf(format, args)
 .br
 .B char *format;
 .br
 .B va_list args;
 .PP
-.B char *vfprintf(stream, format, args)
+.B int vfprintf(stream, format, args)
 .br
 .B FILE *stream;
 .br

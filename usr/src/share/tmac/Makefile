@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.3 (2.11BSD) 2020/3/24
+#	@(#)Makefile	6.4 (2.11BSD) 2025/8/10
 #
 #
 #  Makefile for -man macros
@@ -17,12 +17,12 @@ MSRCS=	doc doc-ditroff doc-common doc-nroff doc-syms
 all:	${SRCS}
 
 install:${SRCS}
-	-mkdir -p ${DESTDIR}/usr/share/tmac
-	-chmod a+r,a+x ${DESTDIR}/usr/share/tmac
-	install -c -m 444 ${SRCS} ${DESTDIR}/usr/share/tmac
+	-mkdir -p /usr/share/tmac
+	-chmod a+r,a+x /usr/share/tmac
+	install -c -m 444 ${SRCS} /usr/share/tmac
 	for i in ${MSRCS}; do \
-		sed -f strip.sed < $$i > ${DESTDIR}/usr/share/tmac/tmac.$$i; \
-		chmod 444 ${DESTDIR}/usr/share/tmac/tmac.$$i; \
+		sed -f strip.sed < $$i > /usr/share/tmac/tmac.$$i; \
+		chmod 444 /usr/share/tmac/tmac.$$i; \
 	done
 
 clean:

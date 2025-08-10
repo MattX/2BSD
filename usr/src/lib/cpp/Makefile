@@ -1,4 +1,4 @@
-#	Makefile	2.0	(2.11BSD) 2020/1/7
+#	Makefile	2.1	(2.11BSD) 2025/8/10
 #
 
 # if machine has separate I/D
@@ -11,11 +11,17 @@ VMPGS = 16
 
 CFLAGS=-O -DLIBVMF -I. -DNVMPGS=${VMPGS}
 
+all : cpp cpp.0
+
 cpp :	cpp.o cpc.o token.o
 	$(CC) $(CFLAGS) $(SEPFLAG) -o cpp cpp.o cpc.o token.o -lvmf
 
-clean :
-	rm -f *.o cpp
+cpp.0 : cpp.1
+	/usr/man/manroff cpp.1 > cpp.0
 
-install : cpp
-	install -s -m 755 -o root -g wheel cpp $(DESTDIR)/lib
+clean :
+	rm -f *.o cpp cpp.0
+
+install : cpp cpp.0
+	install -s -m 755 -o root -g wheel cpp /lib
+	install -m 444 -o bin -g bin cpp.0 /usr/man/cat1

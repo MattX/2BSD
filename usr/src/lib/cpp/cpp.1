@@ -1,6 +1,4 @@
-.\"	$Id: cpp.1,v 1.17 2013/02/26 19:27:38 plunky Exp $
-.\"
-.\"	"@(#)cpp.1	1.0 (2.11BSD) 2020/1/7";
+.\"	"@(#)cpp.1	2.0 (2.11BSD) 2025/8/10";
 .\"
 .\" Copyright (c) 2007 Jeremy C. Reed <reed@reedmedia.net>
 .\"
@@ -17,7 +15,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 .\" THIS SOFTWARE.
 .\"
-.Dd February 26, 2013
+.Dd August 10, 2025
 .Dt CPP 1
 .Os
 .Sh NAME
@@ -26,7 +24,8 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl ACEMPtVv
-.Op Fl D Ar macro Ns Oo = Ns Ar value Oc
+.Oo Fl D Ar macro Ns
+.Op = Ns Ar value Oc
 .Op Fl d Ar flags
 .Op Fl I Ar path
 .Op Fl i Ar file
@@ -69,7 +68,7 @@ For assembler-with-cpp input: treat non-directive lines starting
 with a # as comments.
 .It Fl C
 Do not discard comments.
-.It Fl D Ar macro Ns Oo = Ns Ar value Oc
+.It Fl D Ar macro Ns = Ns Ar value
 Create a macro definition before processing any input, as if a
 .Lp
 .Dl #define Ar macro Ar value
@@ -107,7 +106,7 @@ may be specified multiple times and is cumulative.
 .It Fl i Ar file
 Include a file before processing any input, as if a
 .Lp
-.Dl #include Qo Ar file Qc
+.Dl #include \*q Ns Ar file Ns \*q
 .Lp
 directive had appeared in the source.
 .Fl i
@@ -119,8 +118,9 @@ of dependencies for
 detailing the files that need to be processed when compiling
 the input.
 .It Fl P
-Inhibit generation of line markers.  This is sometimes useful when
-running the preprocessor on something other than C code.
+Inhibit generation of line markers.
+This is sometimes useful when running the preprocessor on
+something other than C code.
 .It Fl S Ar path
 Add
 .Ar path
@@ -149,13 +149,11 @@ directive had appeared in the source.
 Verbose debugging output.
 .Fl V
 can be repeated for greater detail.
-.Po
 This is only available if the
 .Nm
 program was built with
 .Dv PCC_DEBUG
-defined, which is the default
-.Pc .
+defined, which is the default.
 .It Fl v
 Display version.
 .El

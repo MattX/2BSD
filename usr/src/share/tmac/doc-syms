@@ -29,7 +29,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)doc-syms	8.1 (Berkeley) 6/8/93
+.\"     @(#)doc-syms	8.2 (2.11BSD) 2025/8/10
 .\"
 .\"     %beginstrip%
 .\" NS Ux macro - UNIX
@@ -156,7 +156,7 @@
 .de St
 .if \\n(aC==0 \{\
 .	ie \\n(.$==0 \{\
-.tm Usage: .St [-p1003.1-88 | -p1003.2 | -ansiC-89 | -iso ] \\*(Pu ... (#\\n(.c)
+.tm Usage: .St [-p1003.1-88 | -p1003.2 | -ansiC-89 | -isoC | -isoC-99 ] \\*(Pu ... (#\\n(.c)
 .	\}
 .	el \{\
 .		ds mN St
@@ -217,6 +217,26 @@
 .		el \{\
 .			ds b1 \&\\*(tNANSI C \\*(aaX3.159-1989\\*(sV
 .			as b1 (``\\*(tNANSI C \\*(aa'')
+.		\}
+.       \}
+.       if "\\*(A\\n(aP"-isoC" \{\
+.		ie \\n(sT==1 \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1990\\*(sV
+.			as b1 (``\\*(tNISO C90\\*(aa'')
+.		\}
+.		el \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1990\\*(sV
+.			as b1 (``\\*(tNISO C90\\*(aa'')
+.		\}
+.       \}
+.       if "\\*(A\\n(aP"-isoC-99" \{\
+.		ie \\n(sT==1 \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1999\\*(sV
+.			as b1 (``\\*(tNISO C99\\*(aa'')
+.		\}
+.		el \{\
+.			ds b1 \&\\*(tNISO/IEC \\*(aa9899:1999\\*(sV
+.			as b1 (``\\*(tNISO C99\\*(aa'')
 .		\}
 .       \}
 .       if "\\*(A\\n(aP"-iso8802-3" \{\
