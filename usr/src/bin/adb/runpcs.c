@@ -50,7 +50,7 @@ runpcs(runmode, execsig)
 	WHILE (loopcnt--)>0
 	DO
 #ifdef DEBUG
-		printf("\ncontinue %d %d\n",userpc,execsig);
+		printf("\ncontinue %o %d\n",userpc,execsig);
 #endif
 		/* If we're at a breakpoint, execute that using execbkpt */
 		if (bkpt=scanbkpt(userpc == 1 ? uar0[PC] : userpc)) {
@@ -78,7 +78,8 @@ runpcs(runmode, execsig)
 		THEN /*stopped at bkpt*/
 		     userpc=uar0[PC]=bkpt->loc;
 		     IF bkpt->flag==BKPTEXEC
-			ORF ((bkpt->flag=BKPTEXEC, command(bkpt->comm,':')) ANDF --bkpt->count)
+			ORF ((bkpt->flag=BKPTEXEC, command(bkpt->comm,':'))
+			     ANDF --bkpt->count)
 		     THEN execbkpt(bkpt); execsig=0; loopcnt++;
 			  userpc=1;
 		     ELSE bkpt->count=bkpt->initcnt;
@@ -128,7 +129,7 @@ BKPTR   bkptr;
 {
 	int	bkptloc;
 #ifdef DEBUG
-	printf("exbkpt: %d\n",bkptr->count);
+	printf("execbkpt: %o %d\n",bkptr->loc,bkptr->count);
 #endif
 	bkptloc = bkptr->loc;
 	ptrace(PT_WRITE_I,pid,bkptloc,bkptr->ins);

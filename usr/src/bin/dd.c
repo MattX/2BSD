@@ -1,40 +1,55 @@
-#ifndef lint
-static char *sccsid = "@(#)dd.c	4.4 (Berkeley) 1/22/85";
+#if !defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)dd.c	5.0 (2.11BSD) 2025/8/11";
 #endif
 
+#include <sys/file.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <signal.h>
+#include <unistd.h>
 
+#define	MAXBUF	(54*1024)
+#define	SMALL	65535
 #define	BIG	2147483647
+
+#define	SNONE	1
+#define	SNOXFR	2
+#define	SPROGR	3
+int	sflag;
+
 #define	LCASE	01
 #define	UCASE	02
 #define	SWAB	04
-#define NERR	010
-#define SYNC	020
+#define	NERR	010
+#define	SYNC	020
+#define	NTRUNC	040
 int	cflag;
 int	fflag;
-int	skip;
-int	seekn;
-int	count;
-int	files	= 1;
+
 char	*string;
 char	*ifile;
 char	*ofile;
 char	*ibuf;
 char	*obuf;
-char	*sbrk();
-int	ibs	= 512;
-int	obs	= 512;
-int	bs;
-int	cbs;
-int	ibc;
-int	obc;
-int	cbc;
-int	nifr;
-int	nipr;
-int	nofr;
-int	nopr;
-int	ntrunc;
+
+off_t	skip;
+off_t	seekn;
+unsigned long	count;
+unsigned int	files	= 1;
+unsigned int	ibs	= 512;
+unsigned int	obs	= 512;
+unsigned int	bs;
+unsigned int	cbs;
+unsigned int	ibc;
+unsigned int	obc;
+unsigned int	cbc;
+unsigned int	progress;
+unsigned long	nifr;
+unsigned long	nipr;
+unsigned long	nofr;
+unsigned long	nopr;
+unsigned long	ntrunc;
+unsigned long	nbytes;
 int	ibf;
 int	obf;
 char	*op;
@@ -142,6 +157,7 @@ char	atoibm[] =
 	0334,0335,0336,0337,0352,0353,0354,0355,
 	0356,0357,0372,0373,0374,0375,0376,0377,
 };
+struct timeval tstart;
 
 
 main(argc, argv)
@@ -151,26 +167,28 @@ char	**argv;
 	int (*conv)();
 	register char *ip;
 	register c;
-	int ebcdic(), ibm(), ascii(), null(), cnull(), term(), block(), unblock();
+	int ebcdic(), ibm(), ascii(), null(), cnull(), term(), stats();
+	int block(), unblock();
+	long number();
 	int a;
 
 	conv = null;
 	for(c=1; c<argc; c++) {
 		string = argv[c];
 		if(match("ibs=")) {
-			ibs = number(BIG);
+			ibs = number(MAXBUF);
 			continue;
 		}
 		if(match("obs=")) {
-			obs = number(BIG);
+			obs = number(MAXBUF);
 			continue;
 		}
 		if(match("cbs=")) {
-			cbs = number(BIG);
+			cbs = number(MAXBUF);
 			continue;
 		}
 		if (match("bs=")) {
-			bs = number(BIG);
+			bs = number(MAXBUF);
 			continue;
 		}
 		if(match("if=")) {
@@ -194,7 +212,23 @@ char	**argv;
 			continue;
 		}
 		if(match("files=")) {
-			files = number(BIG);
+			files = number(SMALL);
+			continue;
+		}
+		if(match("status=")) {
+			if(match("none")) {
+				sflag = SNONE;
+				continue;
+			} else if(match("noxfer")) {
+				sflag = SNOXFR; 
+				continue;
+			} else if(match("progress")) {
+				sflag = SPROGR;
+				continue;
+			}
+		}
+		if(match("progress=")) {
+			progress = number(SMALL);
 			continue;
 		}
 		if(match("conv=")) {
@@ -243,6 +277,10 @@ char	**argv;
 				cflag |= SYNC;
 				goto cloop;
 			}
+			if(match("notrunc")) {
+				cflag |= NTRUNC;
+				goto cloop;
+			}
 		}
 		fprintf(stderr,"bad arg: %s\n", string);
 		exit(1);
@@ -257,10 +295,13 @@ char	**argv;
 		perror(ifile);
 		exit(1);
 	}
-	if (ofile)
-		obf = creat(ofile, 0666);
-	else
+	if (ofile) {
+		int flags = O_CREAT | O_WRONLY;
+
+		obf = open(ofile, flags, 0666);
+	} else {
 		obf = dup(1);
+	}
 	if(obf < 0) {
 		fprintf(stderr,"cannot create: %s\n", ofile);
 		exit(1);
@@ -275,10 +316,18 @@ char	**argv;
 		exit(1);
 	}
 	ibuf = sbrk(ibs);
-	if (fflag)
+	if (fflag) {
 		obuf = ibuf;
-	else
+	} else {
+		if ((long)ibs + obs >= MAXBUF) {
+			fprintf(stderr,
+				"combined buffer sizes of %lu too large, max %lu\n",
+				(long)ibs + obs, MAXBUF-1);
+			exit(1);
+		}
+
 		obuf = sbrk(obs);
+	}
 	sbrk(64);	/* For good measure */
 	if(ibuf == (char *)-1 || obuf == (char *)-1) {
 		fprintf(stderr, "not enough memory\n");
@@ -291,23 +340,63 @@ char	**argv;
 
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, term);
-	while(skip) {
-		read(ibf, ibuf, ibs);
-		skip--;
+
+	if (skip) {
+		if (skip >= BIG/ibs) {
+			fprintf(stderr, "dd: argument %D out of range\n", skip);
+			exit(1);
+		}
+
+		if (lseek(ibf, (long)0, L_INCR) < 0) {
+			while(skip) {
+				read(ibf, ibuf, ibs);
+				skip--;
+			}
+		} else {
+			lseek(ibf, (off_t)skip * ibs, L_INCR);
+			skip = 0;
+		}
 	}
-	while(seekn) {
-		lseek(obf, (long)obs, 1);
-		seekn--;
+	if (seekn) {
+		if (seekn >= BIG/obs) {
+			fprintf(stderr, "dd: argument %D out of range\n", seekn);
+			exit(1);
+		}
+
+		lseek(obf, (off_t)seekn * obs, L_INCR);
 	}
 
+	if ((cflag & NTRUNC) == 0)
+		ftruncate(obf, (off_t)seekn * obs);
+
+	seekn = 0;
+
+	if (sflag == SPROGR) {
+		struct itimerval itv;
+
+		itv.it_interval.tv_sec = 1;
+		itv.it_interval.tv_usec = 0;
+		itv.it_value = itv.it_interval;
+
+		if (signal(SIGALRM, SIG_IGN) != SIG_IGN)
+			signal(SIGALRM, stats);
+
+		setitimer(ITIMER_REAL, &itv, NULL);
+	}
+
+	gettimeofday(&tstart);
 loop:
 	if(ibc-- == 0) {
 		ibc = 0;
 		if(count==0 || nifr+nipr!=count) {
 			if(cflag&(NERR|SYNC))
-			for(ip=ibuf+ibs; ip>ibuf;)
-				*--ip = 0;
+				for(ip=ibuf+ibs; ip>ibuf;)
+					*--ip = 0;
 			ibc = read(ibf, ibuf, ibs);
+		}
+		if(ibc == 0 && --files<=0) {
+			flsh();
+			term(0);
 		}
 		if(ibc == -1) {
 			perror("read");
@@ -319,11 +408,8 @@ loop:
 			for(c=0; c<ibs; c++)
 				if(ibuf[c] != 0)
 					ibc = c;
+			lseek(ibf, (off_t)ibs, L_INCR);
 			stats();
-		}
-		if(ibc == 0 && --files<=0) {
-			flsh();
-			term(0);
 		}
 		if(ibc != ibs) {
 			nipr++;
@@ -356,13 +442,16 @@ loop:
 
 flsh()
 {
-	register c;
+	register unsigned c;
 
 	if(obc) {
 		if(obc == obs)
 			nofr++; else
 			nopr++;
 		c = write(obf, obuf, obc);
+		if (progress > 0 && ((nofr + nopr) % progress) == 0)
+			fprintf(stderr, ".");
+		nbytes += c;
 		if(c != obc) {
 			perror("write");
 			term(1);
@@ -389,7 +478,9 @@ true:
 	return(1);
 }
 
+long
 number(big)
+	unsigned long big;
 {
 	register char *cs;
 	long n;
@@ -602,9 +693,37 @@ int status;
 
 stats()
 {
+	char buf[100];
+	struct timeval tend;
+	long s, us, cs;
+	int len;
 
-	fprintf(stderr,"%u+%u records in\n", nifr, nipr);
-	fprintf(stderr,"%u+%u records out\n", nofr, nopr);
-	if(ntrunc)
-		fprintf(stderr,"%u truncated records\n", ntrunc);
+	if (sflag == SNONE)
+		return;
+
+	gettimeofday(&tend, NULL);
+
+	len = sprintf(buf, "%lu+%lu records in\n%lu+%lu records out\n",
+		nifr, nipr, nofr, nopr);
+	write(STDERR_FILENO, buf, len);
+	if(ntrunc) {
+		len = sprintf(buf, "%lu truncated records\n", ntrunc);
+		write(STDERR_FILENO, buf, len);
+	}
+
+	if (sflag == SNOXFR || nbytes == 0)
+		return;
+
+	s = tend.tv_sec - tstart.tv_sec;
+	us = tend.tv_usec - tstart.tv_usec;
+	cs = s * 100 + us / 10000;
+
+	if (cs == 0)
+		return;
+
+	len = sprintf(buf,
+		"%lu bytes transferred in %ld.%02ld secs (%lu bytes/sec)\n",
+		nbytes, cs / 100, cs % 100,
+		(long)(((double)nbytes*(double)100 / (double)cs))); 
+	write(STDERR_FILENO, buf, len);
 }

@@ -4,7 +4,7 @@
 .\"
 .\"	@(#)dd.1	6.1 (Berkeley) 4/29/85
 .\"
-.TH DD 1 "April 29, 1985"
+.TH DD 1 "August 10, 2025"
 .UC 4
 .SH NAME
 dd \- convert and copy a file
@@ -12,17 +12,18 @@ dd \- convert and copy a file
 .B dd
 [option=value] ...
 .SH DESCRIPTION
-.I Dd
+.I dd
 copies the specified input file
 to the specified output with
 possible conversions.
 The standard input and output are used by default.
 The input and output block size may be
 specified to take advantage of raw physical I/O.
+By default, the output is truncated before copying.
 .PP
 .br
 .ns
-.TP 15
+.TP 17
 .I option
 .I values
 .br
@@ -137,8 +138,38 @@ pad every input record to
 .I  ibs
 .br
 .ns
+.IP \*hnotrunc
+do not truncate the output file
+.br
+.ns
 .IP "\*h... , ..."
 several comma-separated conversions
+.br
+.ns
+.TP
+status=noxfer
+.ds h \h'\w'status='u'
+do not print the transfer statistics as the last line of
+status output
+.br
+.ns
+.IP \*hnone
+do not print the status output; error messages are shown but
+informational messages are not
+.br
+.ns
+.IP \*hprogress
+print transfer statistics once per second
+.br
+.ns
+.TP
+.RI progress= n
+switch on display of progress if
+.I n
+is set to any non-zero value; this will cause a "." to be printed
+(to the standard error output) for every
+.I n
+full or partial blocks written to the output file
 .PP
 .fi
 Where sizes are specified,

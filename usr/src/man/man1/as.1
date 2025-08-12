@@ -5,6 +5,8 @@ as \- assembler
 .SH SYNOPSIS
 .B as
 [
+.B \-
+] [
 .B \-u
 ] [
 .B \-V
@@ -16,6 +18,11 @@ objfile
 .I As
 assembles the concatenation of the named files.
 The options are:
+.TP
+.B \-
+Synonym with
+.B \-u
+for backwards compatibility earlier versions of the Unix PDP-11 assembler.
 .TP
 .B \-u
 Treat all undefined symbols in the assembly as external globals.

@@ -174,6 +174,9 @@ symINI(ex)
 
 	symnum = ex->a_syms / sizeof (sym);
 
+	if	(symnum == 0)
+		goto out;
+
 	fseek(fp, symoff, L_SET);
 	nused = 0;
 	for	(i = 0; i < symnum; i++)
@@ -186,6 +189,9 @@ symINI(ex)
 		else
 			nused++;
 		}
+	if	(nused == 0)
+		goto out;
+
 	fseek(fp, symoff, L_SET);
 
 	symtab = (struct SYMbol *)malloc(nused * sizeof (struct SYMbol));
@@ -204,6 +210,10 @@ symINI(ex)
 				continue;
 			nused++;
 			}
+
+		if	(nused == 0)
+			goto out;
+
 		symtab = (struct SYMbol *)malloc(nused * sizeof(struct SYMbol));
 		if	(!symtab)
 			{
@@ -229,8 +239,9 @@ symINI(ex)
 		sp->soff = shorten(sym.n_un.n_strx);
 		sp++;
 		}
+out:
 	symnum = nused;
-#ifdef	debug
+#ifdef	DEBUG
 	printf("%d symbols loaded\n", nused);
 #endif
 	if	(globals_only)

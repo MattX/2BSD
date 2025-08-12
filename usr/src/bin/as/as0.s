@@ -74,9 +74,9 @@ _main:
 	mov	4(r5),r0		/ argc
 	mov	6(r5),curarg		/ argv
 9:
-	dec	r0			/ argc--
 	add	$2,curarg		/ argv++
-1:
+	dec	r0			/ argc--
+	beq	1f			/ argc == 0?
 	mov	*curarg,r1
 	cmpb	(r1)+,$'-
 	bne	1f
@@ -85,24 +85,24 @@ _main:
 	tstb	1(r1)			/ check for null terminator
 	beq	1f			/ got it, the "--" means read 'stdin'
 8:
-	add	$2,curarg		/ argv++
-	dec	r0			/ argc--
 	cmpb	(r1),$'u
 	beq	3f
 	cmpb	(r1), $'V
 	bne	2f
 	inc	overlaid
-	br	1b
+	br	9b
 2:
 	tstb	(r1)
 	bne	2f
 3:
 	mov	$40,defund
-	br	1b
+	br	9b
 2:
 	cmpb	(r1),$'o
 	bne	1f
+	add	$2,curarg		/ argv++
 	mov	*curarg,a.outp
+	dec	r0			/ argc--
 	br	9b
 1:
 
