@@ -26,6 +26,7 @@
  * 07 26/8/2022  Truncate hostname by first period or 7 char.     bqt
  * 08 20/9/2024  Change /vmunix to /unix                          sms
  * 09 28/3/2025  Exit gracefully when out of memory               martin
+ * 10 06/5/2025  Handle long user names gracefully                hbe
  */
 /*
  * Using RAW removes the need for signal processing, but adds a requirement
@@ -392,6 +393,10 @@ short	uid;
 		return(-1);
 	untab[idx].uid = uid;
 	strcpy(untab[idx].uname, pw->pw_name);
+	if(strlen(untab[idx].uname) > 8) {
+		untab[idx].uname[7] = '+';
+		untab[idx].uname[8] = 0;
+	}
 	return(1);
 }
 
@@ -885,10 +890,10 @@ int	max;
 		{
 			printw("%5d ",	p->p_pid);
 			if(a->o_uname != NULL)
-				printw("%-7s", a->o_uname);
+				printw("%-8s", a->o_uname);
 			else
-				printw("%7d", p->p_uid);
-			printw("%5d",	p->p_pri);
+				printw("%8d", p->p_uid);
+			printw("%4d",	p->p_pri);
 			printw("%4d",	p->p_nice);
 			printw("%5.1fK", (ctob(a->o_tsize))/1024.0);
 			printw("%5.1fK", (ctob(p->p_dsize))/1024.0);

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dz.c	1.6 (2.11BSD) 2025/8/11
+ *	@(#)dz.c	1.7 (2.11BSD) 2025/8/13
  */
 
 /*
@@ -373,9 +373,9 @@ dzparam(unit)
 		return;
 	}
 	lpr = (dz_speeds[tp->t_ispeed]<<8) | (unit & 07);
-	if ((tp->t_flags & (EVENP|ODDP) == ODDP)
+	if ((tp->t_flags & (EVENP|ODDP)) == ODDP)
 		lpr |= PENABLE|OPAR;
-	else if ((tp->t_flags & (EVENP|ODDP) == EVENP)
+	else if ((tp->t_flags & (EVENP|ODDP)) == EVENP)
 		lpr |= PENABLE;
 	if ((tp->t_flags & (RAW|LITOUT|PASS8)) || !(lpr & PENABLE))
 		lpr |= BITS8;
