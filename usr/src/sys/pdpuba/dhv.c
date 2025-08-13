@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhv.c	2.4 (2.11BSD 2.11BSD) 1997/5/31
+ *	@(#)dhv.c	2.5 (2.11BSD) 2025/8/11
  */
 
 /*
@@ -471,21 +471,16 @@ dhvparam(unit)
 		goto out;
 		}
 	lpar = (dhv_speeds[tp->t_ospeed]<<12) | (dhv_speeds[tp->t_ispeed]<<8);
+	if	((tp->t_flags & (EVENP|ODDP)) == EVENP)
+		lpar |= DHV_LP_PENABLE|DHV_LP_EPAR;
+	else if	((tp->t_flags & (EVENP|ODDP)) == ODDP)
+		lpar |= DHV_LP_PENABLE;
 	if	(tp->t_ispeed == B134)
-		lpar |= DHV_LP_BITS6|DHV_LP_PENABLE;
-	else if (tp->t_flags & (RAW|LITOUT|PASS8))
+		lpar |= DHV_LP_BITS6;
+	else if ((tp->t_flags & (RAW|LITOUT|PASS8)) || !(lpar & DHV_LP_PENABLE))
 		lpar |= DHV_LP_BITS8;
 	else
-		lpar |= DHV_LP_BITS7|DHV_LP_PENABLE;
-	if	(tp->t_flags&EVENP)
-		lpar |= DHV_LP_EPAR;
-	if	((tp->t_flags & EVENP) && (tp->t_flags & ODDP))
-		{
-		/* hack alert.  assume "allow both" means don't care */
-		/* trying to make xon/xoff work with evenp+oddp */
-		lpar |= DHV_LP_BITS8;
-		lpar &= ~DHV_LP_PENABLE;
-		}
+		lpar |= DHV_LP_BITS7;
 	if	((tp->t_ospeed) == B110)
 		lpar |= DHV_LP_TWOSB;
 	addr->dhvcsr = DHV_SELECT(unit) | DHV_IE;

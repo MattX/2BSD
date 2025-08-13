@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhu.c	2.3 (2.11BSD GTE) 1997/5/9
+ *	@(#)dhu.c	2.4 (2.11BSD) 2025/8/112025/8/11
  */
 
 /*
@@ -39,7 +39,10 @@
 
 struct	uba_device dhuinfo[NDHU];
 
-#define	NDHULINE	(NDHU*16)
+#ifndef	NDHUL
+#define NDHUL 16
+#endif
+#define	NDHULINE	(NDHU*NDHUL)
 
 #define	UNIT(x)	(minor(x) & 077)
 #define	SOFTCAR	0x80
@@ -451,14 +454,16 @@ dhuparam(unit)
 		goto out;
 		}
 	lpar = (dhu_speeds[tp->t_ospeed]<<12) | (dhu_speeds[tp->t_ispeed]<<8);
+	if	((tp->t_flags & (EVENP|ODDP)) == EVENP)
+		lpar |= DHU_LP_PENABLE|DHU_LP_EPAR;
+	else if ((tp->t_flags & (EVENP|ODDP)) == ODDP)
+		lpar |= DHU_LP_PENABLE;
 	if	((tp->t_ispeed) == B134)
-		lpar |= DHU_LP_BITS6|DHU_LP_PENABLE;
-	else if (tp->t_flags & (RAW|LITOUT|PASS8))
+		lpar |= DHU_LP_BITS6;
+	else if ((tp->t_flags & (RAW|LITOUT|PASS8)) || !(lpar & DHU_LP_PENABLE))
 		lpar |= DHU_LP_BITS8;
 	else
-		lpar |= DHU_LP_BITS7|DHU_LP_PENABLE;
-	if	(tp->t_flags&EVENP)
-		lpar |= DHU_LP_EPAR;
+		lpar |= DHU_LP_BITS7;
 	if	((tp->t_ospeed) == B110)
 		lpar |= DHU_LP_TWOSB;
 	addr->dhucsr = DHU_SELECT(unit) | DHU_IE;

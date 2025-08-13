@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dz.c	1.5 (2.11BSD) 2023/4/13
+ *	@(#)dz.c	1.6 (2.11BSD) 2025/8/11
  */
 
 /*
@@ -373,12 +373,14 @@ dzparam(unit)
 		return;
 	}
 	lpr = (dz_speeds[tp->t_ispeed]<<8) | (unit & 07);
-	if (tp->t_flags & (RAW|LITOUT|PASS8))
+	if ((tp->t_flags & (EVENP|ODDP) == ODDP)
+		lpr |= PENABLE|OPAR;
+	else if ((tp->t_flags & (EVENP|ODDP) == EVENP)
+		lpr |= PENABLE;
+	if ((tp->t_flags & (RAW|LITOUT|PASS8)) || !(lpr & PENABLE))
 		lpr |= BITS8;
 	else
-		lpr |= (BITS7|PENABLE);
-	if ((tp->t_flags & EVENP) == 0)
-		lpr |= OPAR;
+		lpr |= BITS7;
 	if (tp->t_ispeed == B110)
 		lpr |= TWOSB;
 	dzaddr->dzlpr = lpr;

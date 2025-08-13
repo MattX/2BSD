@@ -1,3 +1,4 @@
+# 2025/08/11 - add NDHUL
 # 2019/10/18 - TIMEZONE set to GMT
 # 1997/1/21 - RK added to GENERIC kernel (for use with Bob Supnik's emulator)
 # 1995/12/14 - RX added to GENERIC kernel.
@@ -188,6 +189,7 @@ CS02		NO		# DH units above are really Emulex CS02
 				# boards on a 22bit Qbus.
 NDM		0		# DM11; NDM is in units of boards (16 each)
 NDHU		0		# DHU11
+NDHUL		16		# No. of lines per DHU11
 NDHV		0		# DHV11
 NDZ		0		# DZ11; NDZ is in units of boards (8 each)
 

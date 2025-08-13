@@ -1,6 +1,7 @@
 #! /bin/sh
 #	2.11BSD script to set up a new kernel configuration directory.
 #
+#       2025/08/11 - add NDHUL to specify no. of lines per DHU
 #       2019/10/18 - the kernel runs on GMT.  The kernel timezone structure
 #                   is obsolete, will be initialized to 0 now and only 
 #                   present for historical reference.
@@ -175,6 +176,7 @@ fi
 echo "#define NDM	$NDM"		>> ../$MACHINE/dh.h
 echo "#define NDN	$NDN"		> ../$MACHINE/dn.h
 echo "#define NDHU	$NDHU"		> ../$MACHINE/dhu.h
+echo "#define NDHUL	$NDHUL"		>> ../$MACHINE/dhu.h
 echo "#define NDHV	$NDHV"		> ../$MACHINE/dhv.h
 echo "#define NDMC	$NDMC"		> ../$MACHINE/dmc.h
 echo "#define NDR	$NDR"		> ../$MACHINE/dr.h

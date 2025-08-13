@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)gettytab.h	5.3 (2.11BSD) 2023/4/13
+ *	@(#)gettytab.h	5.4 (2.11BSD) 2025/8/11
  */
 
 /*
@@ -81,9 +81,9 @@ struct gettyflags {
 #define	EP	gettyflags[2].value
 #define	EPset	gettyflags[2].set
 #define	OP	gettyflags[3].value
-#define	OPset	gettyflags[2].set
+#define	OPset	gettyflags[3].set
 #define	AP	gettyflags[4].value
-#define	APset	gettyflags[2].set
+#define	APset	gettyflags[4].set
 /* EC is defined and used also for telnet, with a different meaning.
  * However, in telnetd, we don't care about the getty EC anyway, so
  * we just protect ourself from a double definition error this way.

@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)telnetd.c	5.22 (2.11BSD) 2025/3/29";
+static char sccsid[] = "@(#)telnetd.c	5.23 (2.11BSD) 2025/8/11";
 #endif
 
 /*
@@ -865,6 +865,7 @@ willoption(option)
 
 	case TELOPT_BINARY:
 		mode(RAW, 0);
+		lmode(PASS8, 0);
 		fmt = doopt;
 		break;
 
@@ -927,6 +928,7 @@ wontoption(option)
 
 	case TELOPT_BINARY:
 		mode(0, RAW);
+		lmode(0, PASS8);
 		break;
 
 	case TELOPT_TTYPE:
@@ -958,6 +960,7 @@ dooption(option)
 
 	case TELOPT_BINARY:
 		mode(RAW, 0);
+		lmode(PASS8, 0);
 		fmt = will;
 		break;
 
@@ -1068,6 +1071,19 @@ mode(on, off)
 	b.sg_flags |= on;
 	b.sg_flags &= ~off;
 	ioctl(pty, TIOCSETP, &b);
+}
+
+lmode(on, off)
+	long on, off;
+{
+	int some_on = on >> 16;
+	int some_off = off >> 16;
+	int old = 0;
+
+	ioctl(pty, TIOCLGET, &old);
+	old |= some_on;
+	old &= ~some_off;
+	ioctl(pty, TIOCLSET, &old);
 }
 
 /*

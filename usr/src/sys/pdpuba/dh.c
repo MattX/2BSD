@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dh.c	1.5 (2.11BSD GTE) 1997/6/12
+ *	@(#)dh.c	1.6 (2.11BSD) 2025/8/11
  */
 
 /*
@@ -413,14 +413,16 @@ dhparam(unit)
 		goto out;
 		}
 	lpar = ((tp->t_ospeed)<<10) | ((tp->t_ispeed)<<6);
+	if ((tp->t_flags & (EVENP|ODDP)) == ODDP)
+		lpar |= PENABLE|OPAR;
+	else if ((tp->t_flags & (EVENP|ODDP)) == EVENP)
+		lpar |= PENABLE;
 	if ((tp->t_ispeed) == B134)
 		lpar |= BITS6|PENABLE|HDUPLX;
-	else if (tp->t_flags & (RAW|LITOUT|PASS8))
+	else if ((tp->t_flags & (RAW|LITOUT|PASS8)) || !(lpar & PENABLE))
 		lpar |= BITS8;
 	else
-		lpar |= BITS7|PENABLE;
-	if ((tp->t_flags&EVENP) == 0)
-		lpar |= OPAR;
+		lpar |= BITS7;
 	if ((tp->t_ospeed) == B110)
 		lpar |= TWOSB;
 	addr->dhlpr = lpar;
