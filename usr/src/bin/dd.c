@@ -1,5 +1,5 @@
 #if !defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)dd.c	5.0 (2.11BSD) 2025/8/11";
+static char *sccsid = "@(#)dd.c	5.1 (2.11BSD) 2025/8/18";
 #endif
 
 #include <sys/file.h>
@@ -169,7 +169,7 @@ char	**argv;
 	register c;
 	int ebcdic(), ibm(), ascii(), null(), cnull(), term(), stats();
 	int block(), unblock();
-	long number();
+	unsigned long number();
 	int a;
 
 	conv = null;
@@ -478,12 +478,12 @@ true:
 	return(1);
 }
 
-long
+unsigned long
 number(big)
 	unsigned long big;
 {
 	register char *cs;
-	long n;
+	unsigned long n;
 
 	cs = string;
 	n = 0;
@@ -510,7 +510,7 @@ number(big)
 		n *= number(BIG);
 
 	case '\0':
-		if (n>=big || n<0) {
+		if (n>=big) {
 			fprintf(stderr, "dd: argument %D out of range\n", n);
 			exit(1);
 		}

@@ -1,7 +1,7 @@
 /*	$Id: cpp.c,v 1.311 2019/12/14 15:12:52 ragge Exp $	*/
 
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)cpp.c	1.0 (2.11BSD) 2020/1/7";
+static	char	sccsid[] = "@(#)cpp.c	1.1 (2.11BSD) 2025/8/16";
 #endif
 
 /*
@@ -183,12 +183,18 @@ main(int argc, char **argv)
 	register int ch;
 	register const usch *fn1, *fn2;
 	char *a;
+	time_t t;
+	char timebuf[12], datebuf[12];
+	char *timestring;
 
 #ifdef TIMING
 	struct timeval t1, t2;
 
 	(void)gettimeofday(&t1, NULL);
 #endif
+
+	timebuf[0] = '\0';
+	datebuf[0] = '\0';
 
 #if LIBVMF
 	if (vminit(NVMPGS))
@@ -336,9 +342,22 @@ main(int argc, char **argv)
 	bsheap(fb, "#define pdp11 1\n");
 	bsheap(fb, "#define unix 1\n"); /* XXX go away */
 	addidir("/usr/include", &incdir[SYSINC]);
-	if (tflag == 0)
-		bsheap(fb, "#define __STDC__ 1\n");
 #endif
+
+	if	(tflag == 0)
+		{
+		/* Create __TIME__ and __DATE__ as required by ANSI C */
+		t = time(NULL);
+		timestring = ctime(&t);
+/* ctime() string is a fixed size so we can "cheat" by using fixed offsets */
+		strncat(timebuf, &timestring[11], 8);
+		strncat(datebuf, &timestring[4], 7);
+		strncat(datebuf, &timestring[20], 4);
+		bsheap(fb, "#define __DATE__ \"%s\"\n", datebuf);
+		bsheap(fb, "#define __TIME__ \"%s\"\n", timebuf);
+		bsheap(fb, "#define __STDC__ 1\n");
+		bsheap(fb, "#define __STDC_VERSION__ 199901L\n");
+		}
 
 	macsav(0);
 	filloc->valoff = linloc->valoff = pragloc->valoff =

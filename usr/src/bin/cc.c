@@ -1,5 +1,5 @@
 #if !defined(lint) && defined(DOSCCS)
-static	char sccsid[] = "@(#)cc.c 5.0 (2.11BSD) 2020/1/7";
+static	char sccsid[] = "@(#)cc.c 5.1 (2.11BSD) 2025/8/16";
 #endif
 
 /*
@@ -19,9 +19,6 @@ char	*c2 = "/lib/c2";
 char	*as = "/bin/as";
 char	*ld = "/bin/ld";
 char	*crt0 = "/lib/crt0.o";
-
-char	datebuf[26] = "-D__DATE__=\"";
-char	timebuf[26] = "-D__TIME__=\"";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
 char	*tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
@@ -180,17 +177,6 @@ main(argc, argv)
 		tmp4 = strspl(tmp0, "4");
 	if (oflag)
 		tmp5 = strspl(tmp0, "5");
-
-	/* Create __TIME__ and __DATE__ as required by ISO C */
-	tid = time(NULL);
-	ctbuf = ctime(&tid);
-	strncat(timebuf, &ctbuf[11], 8);
-	strcat(timebuf, "\"");
-	strncat(datebuf, &ctbuf[4], 7);
-	strncat(datebuf, &ctbuf[20], 4);
-	strcat(datebuf, "\"");
-	plist[np++] = timebuf;
-	plist[np++] = datebuf;
 
 	for (i=0; i<nc; i++) {
 		if (nc > 1 && !Mflag) {
