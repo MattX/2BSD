@@ -3,7 +3,7 @@
  */
 
 #if     !defined(lint) && defined(DOSCCS)
-static  char    sccsid[] = "@(#)c11.c   2.2 (2.11BSD) 2025/4/16";
+static  char    sccsid[] = "@(#)c11.c   2.3 (2.11BSD) 2025/8/29";
 #endif
 
 #include "c1.h"
@@ -988,7 +988,7 @@ getree()
 		else if (op==EXPR) {
 			int onreg = nreg;
 			if (gotrsh)
-				nreg = 2;
+				nreg = 1;
 			rcexpr(tp, efftab, 0);
 			nreg = onreg;
 			gotrsh = 0;

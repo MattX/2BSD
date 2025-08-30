@@ -1,7 +1,5 @@
-/*	$Id: cpp.h,v 1.113 2019/12/14 15:03:16 ragge Exp $	*/
-
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)cpp.h	1.0 (2.11BSD) 2020/1/7";
+static	char	sccsid[] = "@(#)cpp.h	1.1 (2.11BSD) 2025/8/29";
 #endif
 
 /*
@@ -75,8 +73,10 @@ typedef	unsigned int mvtyp;
 #define	PRAGLOC	3	/* _Pragma */
 #define	LINLOC	4	/* __LINE__ */
 #define	FILLOC	5	/* __FILE__ */
-#define OBJCT	6
-#define VARG	7	/* has varargs */
+#define	TIMLOC	6	/* __TIME__ */
+#define	DATLOC	7	/* __DATE__ */
+#define OBJCT	8
+#define VARG	9	/* has varargs */
 
 /* The following must be > MAXARGS since they are following WARN */
 #define C99ARG	253	/* C99 vararg */

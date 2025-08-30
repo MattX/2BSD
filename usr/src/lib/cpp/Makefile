@@ -1,9 +1,9 @@
-#	Makefile	2.1	(2.11BSD) 2025/8/10
+#	Makefile	2.2	(2.11BSD) 2025/8/29
 #
 
 # if machine has separate I/D
 SEPFLAG=-i
-VMPGS = 16
+VMPGS = 12
 # else
 # LDFLAGS =
 # VMPGS = 4
@@ -14,7 +14,7 @@ CFLAGS=-O -DLIBVMF -I. -DNVMPGS=${VMPGS}
 all : cpp cpp.0
 
 cpp :	cpp.o cpc.o token.o
-	$(CC) $(CFLAGS) $(SEPFLAG) -o cpp cpp.o cpc.o token.o -lvmf
+	$(CC) $(CFLAGS) $(SEPFLAG) -o cpp cpp.o cpc.o token.o -lvmf -lstubs
 
 cpp.0 : cpp.1
 	/usr/man/manroff cpp.1 > cpp.0

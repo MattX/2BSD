@@ -6,7 +6,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)c03.c	2.1 (2.11BSD) 2022/1/21";
+static	char	sccsid[] = "@(#)c03.c	2.2 (2.11BSD) 2025/8/29";
 #endif
 #include "c0.h"
 
@@ -178,7 +178,9 @@ strdec(mosf, kind)
 	if ((o=symbol())==NAME) {
 		ssym = csym;
 		mosflg = mosf;
-		o = symbol();
+		do {
+			o = symbol();
+		} while (o == KEYW && (cval == CONST || cval == VOLATIL));
 		if (o==LBRACE && ssym->hblklev<blklev)
 			ssym = pushdecl(ssym);
 		if (ssym->hclass && ssym->hclass!=tagkind) {
@@ -426,7 +428,8 @@ struct nmlist *atptr, *absname;
 	}
 	if (!(dsym->hclass==0
 	   || ((skw==ARG||skw==AREG) && dsym->hclass==ARG1)
-	   || (skw==EXTERN && dsym->hclass==EXTERN && dsym->htype==type))) {
+	   || (skw==EXTERN && dsym->hclass==EXTERN && dsym->htype==type)
+	   || (skw==TYPEDEF && dsym->hclass==TYPEDEF && dsym->htype==type))) {
 		redec();
 		goto syntax;
 	}
@@ -582,8 +585,11 @@ struct nmlist *absname;
 	type = 0;
 more:	switch(o=symbol()) {
 	case KEYW:
-		if (cval == CONST || cval == VOLATIL)
+		if (cval == CONST || cval == VOLATIL) {
+			mosflg = mossym;
+			mossym = 0;
 			goto more;
+		}
 		break;
 
 	case TIMES:

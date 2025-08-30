@@ -1,24 +1,30 @@
 #
-#	@(#)Makefile	4.2.1	(2.11BSD)	1996/10/24
+#	@(#)Makefile	4.3	(2.11BSD) 2025/8/20
 #
 DESTDIR=
 SEPFLAG= -i
 CFLAGS=-O
-SRCS = Makefile dextern files yaccpar \
-	y1.c y2.c y3.c y4.c \
-	yaccdiffs yaccnews
+XSTR=xstr
+ 
+.c.o:
+	cc -E ${CFLAGS} $*.c | ${XSTR} -c -
+	cc ${CFLAGS} -c x.c
+	mv x.o $*.o
 
 all: yacc
 
-yacc: y1.o y2.o y3.o y4.o
-	$(CC) ${SEPFLAG} -o yacc y?.o
+yacc: y1.o y2.o y3.o y4.o strings.o
+	$(CC) ${SEPFLAG} -o yacc y?.o strings.o
+
 y1.o y2.o y3.o y4.o: dextern files
+
+strings.o: strings
+	${XSTR}
+	cc -c xs.c
+	mv xs.o strings.o
+
 install: yacc yaccpar
-	install -s yacc $(DESTDIR)/usr/bin
+	install -s -m 755 yacc $(DESTDIR)/usr/bin
 	install -c yaccpar $(DESTDIR)/usr/share/misc
 clean :
-	-rm -f *.o yacc
-
-srcs: $(SRCS)
-$(SRCS):
-	sccs get $@
+	-rm -f *.o yacc x.c xs.c

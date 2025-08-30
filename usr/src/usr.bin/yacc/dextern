@@ -1,5 +1,5 @@
 /*
- * @(#)dextern	4.2	(Berkeley)	3/21/86
+ * @(#)dextern	4.3	(2.11BSD)	2025/8/20
  */
 # include <stdio.h>
 # include <ctype.h>
@@ -32,7 +32,7 @@
 
 # ifdef MEDIUM
 # define ACTSIZE 4000
-# define MEMSIZE 5200
+# define MEMSIZE 5400
 # define NSTATES 600
 # define NTERMS 127
 # define NPROD 400
