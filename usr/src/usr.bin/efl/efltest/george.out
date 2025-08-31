@@ -1,0 +1,15 @@
+      subroutine george
+      real x
+      integer x1
+c   block 0
+      x = 2
+      if (x .le. 2.) goto 3
+         do  2 x1 = 1, 7
+c new block
+c a different variable
+            write (6,  1) x1
+   1        format (i10)
+   2        continue
+c end of block
+   3  continue
+      end

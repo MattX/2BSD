@@ -1,0 +1,17 @@
+This is my attempt to make EFL work on 2.11 BSD.  The 64K memory space makes
+this a dicey proposition at best.  I was motivated by the fact that the
+system includes an installed man page for EFL, but no binary.  4.3 BSD includes
+both the man page and the binary, so (in my mind) it was worth a try.
+
+Most of the changes were confined to a new Makefile.  I managed to squeeze
+EFL into a split I&D (411) binary, a minor miracle.  This was done by
+carefully ordering the object files and by rewriting the error message
+printing code in error.c.  Over 2000 bytes are now part of an external
+messages file, efl_errorstrings.  This makes the binary just barely fit.
+As a reminder, I have added a new program, catastrophe, which prints
+the number of bytes remaining in the text and data segments. If catastrophe
+fails, well, the program may need restructuring into an overlaid executable.
+
+Good Luck and God Speed,
+
+Frank Wortner

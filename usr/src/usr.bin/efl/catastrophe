@@ -1,0 +1,34 @@
+#!/bin/sh
+# How far away are we from catastrophe (running out of memory)?
+#
+# If we run out of text bytes, it might be time to change this to an
+# overlaid binary.
+# If we run out of data bytes, launch a desparte search to reduce array sizes
+# or coalless strings.  The Makfile already strips over 2000 bytes of error
+# messages and stores them externally, so the low hanging fruit has
+# already been picked.
+
+if [ ! -f $1 ]
+then
+	echo "$0: $1: no such file"
+	exit 1
+fi
+size $1 | sed -e '1d' -e '3d' | awk '
+	{
+		if ($1 > 65536) {
+			print "Catastrophe!  EFL needs to be restructured as an overlaid excutable."
+			print "The text segment is greater than 64K."
+			exit 1
+		}
+		if (($2 + $3) > (56 * 1024)) {
+			print "Catastrophe!  There is not enough space left for a stack."
+			print "The combined bss and data segments can be no more than 56K."
+			print "There must be at least one 8K segment avaiable for a stack."
+
+			print "Something has to be cut or compressed."
+			exit 1
+		}
+		print "You are", 65536 - $1, "text bytes away from catastrophe."
+		print "You are", 57344 - ($2 + $3), "data bytes away from catastrophe."
+		exit 0
+	}'
