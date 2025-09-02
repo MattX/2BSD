@@ -20,7 +20,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 The Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)rcp.c	5.20.1 (2.11BSD) 1996/3/21";
+static char sccsid[] = "@(#)rcp.c	5.20.2 (2.11BSD) 2025/8/30";
 #endif /* not lint */
 
 /*
@@ -40,7 +40,10 @@ static char sccsid[] = "@(#)rcp.c	5.20.1 (2.11BSD) 1996/3/21";
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "pathnames.h"
+
+#define	_PATH_BSHELL	"/bin/sh"
+#define	_PATH_CP	"/bin/cp"
+#define	_PATH_RSH	"/usr/ucb/rsh"
 
 #ifdef KERBEROS
 #include <kerberos/krb.h>

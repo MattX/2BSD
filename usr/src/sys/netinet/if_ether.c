@@ -9,15 +9,11 @@
  * software without specific prior written permission. This software
  * is provided ``as is'' without express or implied warranty.
  *
- *	@(#)if_ether.c	7.6 (Berkeley) 12/7/87
+ *	@(#)if_ether.c	7.8 (2.11BSD) 2025/8/21
  */
 
 /*
  * Ethernet address resolution protocol.
- * TODO:
- *	run at splnet (add ARP protocol intr.)
- *	link entries onto hash chains, keep free list
- *	add "inuse/lock" bit (or ref. count) along with valid bit
  */
 
 #include "ether.h"
@@ -47,23 +43,22 @@
 struct	arptab arptab[ARPTAB_SIZE];
 int	arptab_size = ARPTAB_SIZE;	/* for arp command */
 
-/*
- * ARP trailer negotiation.  Trailer protocol is not IP specific,
- * but ARP request/response use IP addresses.
- */
-#define ETHERTYPE_IPTRAILERS ETHERTYPE_TRAIL
-
 #define	ARPTAB_HASH(a) \
 	((short)((((a) >> 16) ^ (a)) & 0x7fff) % ARPTAB_NB)
 
-#define	ARPTAB_LOOK(at,addr) { \
-	register n; \
-	at = &arptab[ARPTAB_HASH(addr) * ARPTAB_BSIZ]; \
-	for (n = 0 ; n < ARPTAB_BSIZ ; n++,at++) \
-		if (at->at_iaddr.s_addr == addr) \
-			break; \
-	if (n >= ARPTAB_BSIZ) \
-		at = 0; \
+static	struct arptab *arptab_look(u_long addr)
+	{
+	register int n;
+	register struct arptab *at;
+
+	at = &arptab[ARPTAB_HASH(addr) * ARPTAB_BSIZ];
+	for (n = 0 ; n < ARPTAB_BSIZ ; n++,at++)
+		if (at->at_iaddr.s_addr == addr)
+			break;
+	if (n >= ARPTAB_BSIZ)
+		at = 0;
+	return (at);
+	
 }
 
 /* timer values */
@@ -104,7 +99,7 @@ arpwhohas(ac, addr)
 	struct in_addr *addr;
 {
 	register struct mbuf *m;
-	register struct ether_header *eh;
+	struct ether_header *eh;
 	register struct ether_arp *ea;
 	struct sockaddr sa;
 
@@ -152,7 +147,7 @@ arpresolve(ac, m, destip, desten, usetrailers)
 	register struct arpcom *ac;
 	struct mbuf *m;
 	register struct in_addr *destip;
-	register u_char *desten;
+	u_char *desten;
 	int *usetrailers;
 {
 	register struct arptab *at;
@@ -194,7 +189,7 @@ arpresolve(ac, m, destip, desten, usetrailers)
 		}
 	}
 	s = splimp();
-	ARPTAB_LOOK(at, destip->s_addr);
+	at = arptab_look(destip->s_addr);
 	if (at == 0) {			/* not found */
 		if (ac->ac_if.if_flags & IFF_NOARP) {
 			bcopy((caddr_t)ac->ac_enaddr, (caddr_t)desten, 3);
@@ -215,12 +210,7 @@ arpresolve(ac, m, destip, desten, usetrailers)
 	}
 	at->at_timer = 0;		/* restart the timer */
 	if (at->at_flags & ATF_COM) {	/* entry IS complete */
-		bcopy((caddr_t)at->at_enaddr, (caddr_t)desten,
-		    sizeof(at->at_enaddr));
-#ifdef I_WANT_MY_MACHINE_TO_CRASH
-		if (at->at_flags & ATF_USETRAILERS)
-			*usetrailers = 1;
-#endif
+		bcopy((caddr_t)at->at_enaddr, (caddr_t)desten, sizeof(at->at_enaddr));
 		splx(s);
 		return (1);
 	}
@@ -259,17 +249,11 @@ arpinput(ac, m)
 		goto out;
 	if (m->m_len < sizeof(struct arphdr) + 2 * ar->ar_hln + 2 * ar->ar_pln)
 		goto out;
-
-	switch (ntohs(ar->ar_pro)) {
-
-	case ETHERTYPE_IP:
-	case ETHERTYPE_IPTRAILERS:
+	if (ntohs(ar->ar_pro) == ETHERTYPE_IP)
+		{
 		in_arpinput(ac, m);
 		return;
-
-	default:
-		break;
-	}
+		}
 out:
 	m_freem(m);
 }
@@ -279,14 +263,6 @@ out:
  * Algorithm is that given in RFC 826.
  * In addition, a sanity check is performed on the sender
  * protocol address, to catch impersonators.
- * We also handle negotiations for use of trailer protocol:
- * ARP replies for protocol type ETHERTYPE_TRAIL are sent
- * along with IP replies if we want trailers sent to us,
- * and also send them in response to IP replies.
- * This allows either end to announce the desire to receive
- * trailer packets.
- * We reply to requests for ETHERTYPE_TRAIL protocol as well,
- * but don't normally send requests.
  */
 in_arpinput(ac, m)
 	register struct arpcom *ac;
@@ -295,11 +271,10 @@ in_arpinput(ac, m)
 	register struct ether_arp *ea;
 	struct ether_header *eh;
 	register struct arptab *at;  /* same as "merge" flag */
-	struct mbuf *mcopy = 0;
 	struct sockaddr_in sin;
 	struct sockaddr sa;
 	struct in_addr isaddr, itaddr, myaddr;
-	int proto, op, s, completed = 0;
+	int proto, op, s;
 
 	myaddr = ac->ac_ipaddr;
 	ea = mtod(m, struct ether_arp *);
@@ -326,12 +301,10 @@ in_arpinput(ac, m)
 		goto out;
 	}
 	s = splimp();
-	ARPTAB_LOOK(at, isaddr.s_addr);
+	at = arptab_look(isaddr.s_addr);
 	if (at) {
 		bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
 		    sizeof(ea->arp_sha));
-		if ((at->at_flags & ATF_COM) == 0)
-			completed = 1;
 		at->at_flags |= ATF_COM;
 		if (at->at_hold) {
 			sin.sin_family = AF_INET;
@@ -346,36 +319,18 @@ in_arpinput(ac, m)
 		if (at = arptnew(&isaddr)) {
 			bcopy((caddr_t)ea->arp_sha, (caddr_t)at->at_enaddr,
 			    sizeof(ea->arp_sha));
-			completed = 1;
 			at->at_flags |= ATF_COM;
 		}
 	}
 	splx(s);
 reply:
-	switch (proto) {
+	/*
+	 * If this is a Reply then we're done (goto out).
+	 * Else this is a Request so send a Reply.
+	*/
+	if (op != ARPOP_REQUEST)    /* Same as op == ARPOP_REPLY */
+	   goto out;
 
-	case ETHERTYPE_IPTRAILERS:
-		/* partner says trailers are OK */
-		if (at)
-			at->at_flags |= ATF_USETRAILERS;
-		/*
-		 * Reply to request iff we want trailers.
-		 */
-		if (op != ARPOP_REQUEST || ac->ac_if.if_flags & IFF_NOTRAILERS)
-			goto out;
-		break;
-
-	case ETHERTYPE_IP:
-		/*
-		 * Reply if this is an IP request,
-		 * or if we want to send a trailer response.
-		 * Send the latter only to the IP response
-		 * that completes the current ARP entry.
-		 */
-		if (op != ARPOP_REQUEST &&
-		    (completed == 0 || ac->ac_if.if_flags & IFF_NOTRAILERS))
-			goto out;
-	}
 	if (itaddr.s_addr == myaddr.s_addr) {
 		/* I am the target */
 		bcopy((caddr_t)ea->arp_sha, (caddr_t)ea->arp_tha,
@@ -383,7 +338,7 @@ reply:
 		bcopy((caddr_t)ac->ac_enaddr, (caddr_t)ea->arp_sha,
 		    sizeof(ea->arp_sha));
 	} else {
-		ARPTAB_LOOK(at, itaddr.s_addr);
+		at = arptab_look(itaddr.s_addr);
 		if (at == NULL || (at->at_flags & ATF_PUBL) == 0)
 			goto out;
 		bcopy((caddr_t)ea->arp_sha, (caddr_t)ea->arp_tha,
@@ -397,29 +352,12 @@ reply:
 	bcopy((caddr_t)&itaddr, (caddr_t)ea->arp_spa,
 	    sizeof(ea->arp_spa));
 	ea->arp_op = htons(ARPOP_REPLY); 
-	/*
-	 * If incoming packet was an IP reply,
-	 * we are sending a reply for type IPTRAILERS.
-	 * If we are sending a reply for type IP
-	 * and we want to receive trailers,
-	 * send a trailer reply as well.
-	 */
-	if (op == ARPOP_REPLY)
-		ea->arp_pro = htons(ETHERTYPE_IPTRAILERS);
-	else if (proto == ETHERTYPE_IP &&
-	    (ac->ac_if.if_flags & IFF_NOTRAILERS) == 0)
-		mcopy = m_copy(m, 0, (int)M_COPYALL);
 	eh = (struct ether_header *)sa.sa_data;
 	bcopy((caddr_t)ea->arp_tha, (caddr_t)eh->ether_dhost,
 	    sizeof(eh->ether_dhost));
 	eh->ether_type = ETHERTYPE_ARP;
 	sa.sa_family = AF_UNSPEC;
 	(*ac->ac_if.if_output)(&ac->ac_if, m, &sa);
-	if (mcopy) {
-		ea = mtod(mcopy, struct ether_arp *);
-		ea->arp_pro = htons(ETHERTYPE_IPTRAILERS);
-		(*ac->ac_if.if_output)(&ac->ac_if, mcopy, &sa);
-	}
 	return;
 out:
 	m_freem(m);
@@ -498,7 +436,7 @@ arpioctl(cmd, data)
 		return (EAFNOSUPPORT);
 	sin = (struct sockaddr_in *)&ar->arp_pa;
 	s = splimp();
-	ARPTAB_LOOK(at, sin->sin_addr.s_addr);
+	at = arptab_look(sin->sin_addr.s_addr);
 	if (at == NULL) {		/* not found */
 		if (cmd != SIOCSARP) {
 			splx(s);

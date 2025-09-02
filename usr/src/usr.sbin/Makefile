@@ -1,20 +1,17 @@
 #
 # Public domain - 1996/10/24 - sms
 #
-#	@(#)Makefile	1.3 (2.11BSD) 2021/8/30
+#	@(#)Makefile	1.4 (2.11BSD) 2025/8/31
 #
 DESTDIR=
 CFLAGS=	-O
 SEPFLAG= -i
 
 SUBDIR=	ac accton arff arp bad144 catman chown chroot config cron dev_mkdb \
-	diskpart edquota flcopy gettable htable implog implogd inetd kgmon \
+	diskpart edquota flcopy implog implogd inetd kgmon \
 	lpr makewhatis mkhosts mklost+found mkproto named nc ntp pstat quot \
 	quotaon repquota rmt rwhod rxformat sa sendmail sysgen syslogd timed \
-	traceroute trpt update vipw
-
-# This is broken and doesn't compile - thus it is not included in SUBDIR above.
-BROKEN=	trsp
+	traceroute trpt trsp update vipw
 
 all:	${SUBDIR}
 

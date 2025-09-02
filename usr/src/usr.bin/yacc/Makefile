@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	4.3	(2.11BSD) 2025/8/20
+#	@(#)Makefile	4.4	(2.11BSD) 2025/8/30
 #
 DESTDIR=
 SEPFLAG= -i
@@ -27,4 +27,4 @@ install: yacc yaccpar
 	install -s -m 755 yacc $(DESTDIR)/usr/bin
 	install -c yaccpar $(DESTDIR)/usr/share/misc
 clean :
-	-rm -f *.o yacc x.c xs.c
+	-rm -f *.o yacc x.c xs.c strings

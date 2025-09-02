@@ -4,21 +4,21 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)trsp.c	6.1 (Berkeley) 10/8/85";
-#endif not lint
+static char sccsid[] = "@(#)trsp.c	6.2 (2.11BSD) 2025/8/31";
+#endif
 
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #define PRUREQUESTS
+#define SUPERVISOR	/* for 2.11BSD to get prurequests[] */
 #include <sys/protosw.h>
+#undef SUPERVISOR	/* causes problems with other network header files */
 
 #include <net/route.h>
 #include <net/if.h>
@@ -35,6 +35,7 @@ static char sccsid[] = "@(#)trsp.c	6.1 (Berkeley) 10/8/85";
 #include <netns/idp_var.h>
 #include <netns/sp.h>
 #include <netns/spidp.h>
+#include <netns/spp_timer.h>
 #include <netns/spp_var.h>
 #define SANAMES
 #include <netns/spp_debug.h>
@@ -64,7 +65,7 @@ main(argc, argv)
 	char **argv;
 {
 	int i, mask = 0, npcbs = 0;
-	char *system = "/vmunix", *core = "/dev/kmem";
+	char *system = "/unix", *core = "/dev/kmem";
 
 	argc--, argv++;
 again:
@@ -282,12 +283,12 @@ spp_trace(act, ostate, asp, sp, si, req)
 			printf("flags=%x", flags);
 			if (flags) {
 				char *cp = "<";
-#define pf(f) { if (flags&SP_/**/f) { printf("%s%s", cp, "f"); cp = ","; } }
+#define pf(f) { if (flags&SP_##f) { printf("%s%s", cp, "f"); cp = ","; } }
 				pf(SP); pf(SA); pf(OB); pf(EM);
 				printf(">");
 			}
 			printf(", ");
-#define p2(f)  { printf("%s = %x, ", "f", si->si_/**/f); }
+#define p2(f)  { printf("%s = %x, ", "f", si->si_##f); }
 			p2(sid);p2(did);p2(dt);
 			printf("\n\tsna=");
 			ns_printhost(&si->si_sna);
@@ -306,15 +307,16 @@ spp_trace(act, ostate, asp, sp, si, req)
 	printf("\n");
 	if (sp == 0)
 		return;
-#define p3(f)  { printf("%s = %x, ", "f", sp->s_/**/f); }
+#define p3(f)  { printf("%s = %x, ", "f", sp->s_##f); }
 	if(sflag) {
-		printf("\t"); p3(rack); p3(ralo); p3(snt); p3(flags);
+		printf("\t"); p3(rack); p3(ralo); p3(snxt); p3(flags);  /* was p3(snt) - likely a typo */
+
 #undef pf
-#define pf(f) { if (flags&SF_/**/f) { printf("%s%s", cp, "f"); cp = ","; } }
+#define pf(f) { if (flags&SF_##f) { printf("%s%s", cp, "f"); cp = ","; } }
 		flags = sp->s_flags;
 		if (flags || sp->s_oobflags) {
 			char *cp = "<";
-			pf(AK); pf(DELACK); pf(HI); pf(HO);
+			pf(ACKNOW); pf(DELACK); pf(HI); pf(HO);  /* was pf(AK) - likely a typo */
 			flags = sp->s_oobflags;
 			pf(SOOB); pf(IOOB);
 			printf(">");
